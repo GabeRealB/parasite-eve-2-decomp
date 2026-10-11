@@ -905,29 +905,37 @@ static void _actor503500LargeOrbEmitterInit(Task* task)
 static inline void _actor503500LargeOrbEmitterHandleHit(Task* task, _Actor503500LargeOrbEmitterWork* work, Enemy* enemy, GfxCoord* coord,
                                                         const WorldCollisionContact* contacts, s32 contactIndex)
 {
-/// Projects a contact into this part's local hit-effect point.
+/// Places a large orb emitter hit effect on its local radius-1600 shell.
 ///
-/// Captures coord, contacts, contactIndex, inverseRotation, effectPosition,
-/// radialScale and the radius constant below. No arguments. Requires a current
-/// cached transform and a nonzero narrowed offset; changes GTE state and
-/// preserves signed-halfword narrowing after each position step.
-/// `work` selects the side's local sphere centre.
-#define ACTOR_503500_LARGE_ORB_EMITTER_PROJECT_HIT_POINT()                                                                                                                                                     \
-    gte_TransposeMatrix(&coord->workm, &inverseRotation);                                                                                                                                                      \
-    effectPosition.vx = contacts[contactIndex].point.vx - coord->workm.t[0];                                                                                                                                   \
-    effectPosition.vy = contacts[contactIndex].point.vy - coord->workm.t[1];                                                                                                                                   \
-    effectPosition.vz = contacts[contactIndex].point.vz - coord->workm.t[2];                                                                                                                                   \
-    radialScale       = (ACTOR_503500_LARGE_ORB_HIT_EFFECT_RADIUS * ONE) / SquareRoot0(effectPosition.vx * effectPosition.vx + effectPosition.vy * effectPosition.vy + effectPosition.vz * effectPosition.vz); \
-    effectPosition.vx = effectPosition.vx * radialScale / ONE;                                                                                                                                                 \
-    effectPosition.vy = effectPosition.vy * radialScale / ONE;                                                                                                                                                 \
-    effectPosition.vz = effectPosition.vz * radialScale / ONE;                                                                                                                                                 \
-    gte_SetRotMatrix(&inverseRotation);                                                                                                                                                                        \
-    gte_ldv0(&effectPosition);                                                                                                                                                                                 \
-    gte_rtv0();                                                                                                                                                                                                \
-    gte_stsv(&effectPosition);                                                                                                                                                                                 \
-    effectPosition.vx += gActor503500LargeOrbEmitterTargetOffsets[work->side].vx;                                                                                                                              \
-    effectPosition.vy += gActor503500LargeOrbEmitterTargetOffsets[work->side].vy;                                                                                                                              \
-    effectPosition.vz += gActor503500LargeOrbEmitterTargetOffsets[work->side].vz;
+/// `coord` is a live GfxCoord with a current cached composition; `contactPoint`
+/// is an SVECTOR in that same frame (normally view space), in game units.
+/// `localCenter` is the target sphere's local SVECTOR offset. `effectPosition`
+/// and `inverseRotation` are disjoint writable SVECTOR/MATRIX lvalues, and
+/// `radialScale` is an s32 scratch lvalue. The matrix and vector scratch must be
+/// word-aligned; GTE loads read their ignored alignment/pad halfwords too.
+/// Subtracts the coordinate origin, narrows XYZ to s16, scales in Q12, rotates
+/// through the cached basis's transpose, then adds localCenter, narrowing again.
+/// For an inverse rotation the cached basis must be orthonormal. The narrowed
+/// squared length must fit s32 and have a nonzero integer square root.
+/// Arguments must be stable, side-effect-free expressions: all are repeated.
+/// Captures only `ACTOR_503500_LARGE_ORB_HIT_EFFECT_RADIUS` and `ONE`; changes GTE rotation/vector/IR state.
+/// Expands to statements; invoke only as a standalone statement in a braced block.
+#define ACTOR_503500_LARGE_ORB_EMITTER_PROJECT_HIT_POINT(coord, contactPoint, localCenter, effectPosition, inverseRotation, radialScale)                                                                                     \
+    gte_TransposeMatrix(&(coord)->workm, &(inverseRotation));                                                                                                                                                                \
+    (effectPosition).vx = (contactPoint).vx - (coord)->workm.t[0];                                                                                                                                                           \
+    (effectPosition).vy = (contactPoint).vy - (coord)->workm.t[1];                                                                                                                                                           \
+    (effectPosition).vz = (contactPoint).vz - (coord)->workm.t[2];                                                                                                                                                           \
+    (radialScale)       = (ACTOR_503500_LARGE_ORB_HIT_EFFECT_RADIUS * ONE) / SquareRoot0((effectPosition).vx * (effectPosition).vx + (effectPosition).vy * (effectPosition).vy + (effectPosition).vz * (effectPosition).vz); \
+    (effectPosition).vx = (effectPosition).vx * (radialScale) / ONE;                                                                                                                                                         \
+    (effectPosition).vy = (effectPosition).vy * (radialScale) / ONE;                                                                                                                                                         \
+    (effectPosition).vz = (effectPosition).vz * (radialScale) / ONE;                                                                                                                                                         \
+    gte_SetRotMatrix(&(inverseRotation));                                                                                                                                                                                    \
+    gte_ldv0(&(effectPosition));                                                                                                                                                                                             \
+    gte_rtv0();                                                                                                                                                                                                              \
+    gte_stsv(&(effectPosition));                                                                                                                                                                                             \
+    (effectPosition).vx += (localCenter).vx;                                                                                                                                                                                 \
+    (effectPosition).vy += (localCenter).vy;                                                                                                                                                                                 \
+    (effectPosition).vz += (localCenter).vz;
     enum { ACTOR_503500_LARGE_ORB_HIT_EFFECT_RADIUS = 1600 };
     MATRIX    worldRotation;
     MATRIX    inverseRotation;
@@ -995,7 +1003,7 @@ static inline void _actor503500LargeOrbEmitterHandleHit(Task* task, _Actor503500
             break;
     }
     // Project the contact radially, then move the effect point into the part frame.
-    ACTOR_503500_LARGE_ORB_EMITTER_PROJECT_HIT_POINT();
+    ACTOR_503500_LARGE_ORB_EMITTER_PROJECT_HIT_POINT(coord, contacts[contactIndex].point, gActor503500LargeOrbEmitterTargetOffsets[work->side], effectPosition, inverseRotation, radialScale);
 #undef ACTOR_503500_LARGE_ORB_EMITTER_PROJECT_HIT_POINT
     effectSpawnHit(damageGetPlayerAttackEffectId(attackKey), coord, &effectPosition, &work->hitEffect);
     if (criticalHit != 0) {
@@ -1507,29 +1515,37 @@ static void _actor503500RearPartInit(Task* task)
 static inline void _actor503500RearPartHandleHit(Task* task, _Actor503500RearPartWork* work, Enemy* enemy, GfxCoord* coord,
                                                  const WorldCollisionContact* contacts, s32 contactIndex)
 {
-/// Projects a contact into this part's local hit-effect point.
+/// Places a rear part hit effect on its local radius-1400 shell.
 ///
-/// Captures coord, contacts, contactIndex, inverseRotation, effectPosition,
-/// radialScale and the radius constant below. No arguments. Requires a current
-/// cached transform and a nonzero narrowed offset; changes GTE state and
-/// preserves signed-halfword narrowing after each position step.
-/// Adds the part's fixed local sphere centre.
-#define ACTOR_503500_REAR_PART_PROJECT_HIT_POINT()                                                                                                                                                             \
-    gte_TransposeMatrix(&coord->workm, &inverseRotation);                                                                                                                                                      \
-    effectPosition.vx = contacts[contactIndex].point.vx - coord->workm.t[0];                                                                                                                                   \
-    effectPosition.vy = contacts[contactIndex].point.vy - coord->workm.t[1];                                                                                                                                   \
-    effectPosition.vz = contacts[contactIndex].point.vz - coord->workm.t[2];                                                                                                                                   \
-    radialScale       = (ACTOR_503500_REAR_PART_HIT_EFFECT_RADIUS * ONE) / SquareRoot0(effectPosition.vx * effectPosition.vx + effectPosition.vy * effectPosition.vy + effectPosition.vz * effectPosition.vz); \
-    effectPosition.vx = effectPosition.vx * radialScale / ONE;                                                                                                                                                 \
-    effectPosition.vy = effectPosition.vy * radialScale / ONE;                                                                                                                                                 \
-    effectPosition.vz = effectPosition.vz * radialScale / ONE;                                                                                                                                                 \
-    gte_SetRotMatrix(&inverseRotation);                                                                                                                                                                        \
-    gte_ldv0(&effectPosition);                                                                                                                                                                                 \
-    gte_rtv0();                                                                                                                                                                                                \
-    gte_stsv(&effectPosition);                                                                                                                                                                                 \
-    effectPosition.vx += gActor503500RearPartTargetOffset.vx;                                                                                                                                                  \
-    effectPosition.vy += gActor503500RearPartTargetOffset.vy;                                                                                                                                                  \
-    effectPosition.vz += gActor503500RearPartTargetOffset.vz;
+/// `coord` is a live GfxCoord with a current cached composition; `contactPoint`
+/// is an SVECTOR in that same frame (normally view space), in game units.
+/// `localCenter` is the target sphere's local SVECTOR offset. `effectPosition`
+/// and `inverseRotation` are disjoint writable SVECTOR/MATRIX lvalues, and
+/// `radialScale` is an s32 scratch lvalue. The matrix and vector scratch must be
+/// word-aligned; GTE loads read their ignored alignment/pad halfwords too.
+/// Subtracts the coordinate origin, narrows XYZ to s16, scales in Q12, rotates
+/// through the cached basis's transpose, then adds localCenter, narrowing again.
+/// For an inverse rotation the cached basis must be orthonormal. The narrowed
+/// squared length must fit s32 and have a nonzero integer square root.
+/// Arguments must be stable, side-effect-free expressions: all are repeated.
+/// Captures only `ACTOR_503500_REAR_PART_HIT_EFFECT_RADIUS` and `ONE`; changes GTE rotation/vector/IR state.
+/// Expands to statements; invoke only as a standalone statement in a braced block.
+#define ACTOR_503500_REAR_PART_PROJECT_HIT_POINT(coord, contactPoint, localCenter, effectPosition, inverseRotation, radialScale)                                                                                             \
+    gte_TransposeMatrix(&(coord)->workm, &(inverseRotation));                                                                                                                                                                \
+    (effectPosition).vx = (contactPoint).vx - (coord)->workm.t[0];                                                                                                                                                           \
+    (effectPosition).vy = (contactPoint).vy - (coord)->workm.t[1];                                                                                                                                                           \
+    (effectPosition).vz = (contactPoint).vz - (coord)->workm.t[2];                                                                                                                                                           \
+    (radialScale)       = (ACTOR_503500_REAR_PART_HIT_EFFECT_RADIUS * ONE) / SquareRoot0((effectPosition).vx * (effectPosition).vx + (effectPosition).vy * (effectPosition).vy + (effectPosition).vz * (effectPosition).vz); \
+    (effectPosition).vx = (effectPosition).vx * (radialScale) / ONE;                                                                                                                                                         \
+    (effectPosition).vy = (effectPosition).vy * (radialScale) / ONE;                                                                                                                                                         \
+    (effectPosition).vz = (effectPosition).vz * (radialScale) / ONE;                                                                                                                                                         \
+    gte_SetRotMatrix(&(inverseRotation));                                                                                                                                                                                    \
+    gte_ldv0(&(effectPosition));                                                                                                                                                                                             \
+    gte_rtv0();                                                                                                                                                                                                              \
+    gte_stsv(&(effectPosition));                                                                                                                                                                                             \
+    (effectPosition).vx += (localCenter).vx;                                                                                                                                                                                 \
+    (effectPosition).vy += (localCenter).vy;                                                                                                                                                                                 \
+    (effectPosition).vz += (localCenter).vz;
     enum { ACTOR_503500_REAR_PART_HIT_EFFECT_RADIUS = 1400 };
     VECTOR    attackerOffset;
     SVECTOR   effectPosition;
@@ -1597,7 +1613,7 @@ static inline void _actor503500RearPartHandleHit(Task* task, _Actor503500RearPar
             break;
     }
     // Project the contact radially, then move the effect point into the part frame.
-    ACTOR_503500_REAR_PART_PROJECT_HIT_POINT();
+    ACTOR_503500_REAR_PART_PROJECT_HIT_POINT(coord, contacts[contactIndex].point, gActor503500RearPartTargetOffset, effectPosition, inverseRotation, radialScale);
 #undef ACTOR_503500_REAR_PART_PROJECT_HIT_POINT
     effectSpawnHit(damageGetPlayerAttackEffectId(attackKey), coord, &effectPosition, &work->hitEffect);
     if (criticalHit != 0) {
@@ -1940,37 +1956,45 @@ static void _actor503500ChainBaseInit(Task* task)
 static inline void _actor503500ChainBaseHandleHit(Task* task, _Actor503500ChainBaseWork* work, Enemy* enemy, GfxCoord* coord,
                                                   const WorldCollisionContact* contacts, s32 contactIndex)
 {
-/// Projects a contact into this part's local hit-effect point.
+/// Places a chain base hit effect on its local radius-200 shell.
 ///
-/// Captures coord, contacts, contactIndex, inverseRotation, effectPosition,
-/// radialScale and the radius constant below. No arguments. Requires a current
-/// cached transform and a nonzero narrowed offset; changes GTE state and
-/// preserves signed-halfword narrowing after each position step.
-/// `task` selects the local centre for slot 7 or 8.
-#define ACTOR_503500_CHAIN_BASE_PROJECT_HIT_POINT()                                                                                                                                                             \
-    gte_TransposeMatrix(&coord->workm, &inverseRotation);                                                                                                                                                       \
-    effectPosition.vx = contacts[contactIndex].point.vx - coord->workm.t[0];                                                                                                                                    \
-    effectPosition.vy = contacts[contactIndex].point.vy - coord->workm.t[1];                                                                                                                                    \
-    effectPosition.vz = contacts[contactIndex].point.vz - coord->workm.t[2];                                                                                                                                    \
-    radialScale       = (ACTOR_503500_CHAIN_BASE_HIT_EFFECT_RADIUS * ONE) / SquareRoot0(effectPosition.vx * effectPosition.vx + effectPosition.vy * effectPosition.vy + effectPosition.vz * effectPosition.vz); \
-    effectPosition.vx = effectPosition.vx * radialScale / ONE;                                                                                                                                                  \
-    effectPosition.vy = effectPosition.vy * radialScale / ONE;                                                                                                                                                  \
-    effectPosition.vz = effectPosition.vz * radialScale / ONE;                                                                                                                                                  \
-    gte_SetRotMatrix(&inverseRotation);                                                                                                                                                                         \
-    gte_ldv0(&effectPosition);                                                                                                                                                                                  \
-    gte_rtv0();                                                                                                                                                                                                 \
-    gte_stsv(&effectPosition);                                                                                                                                                                                  \
-    {                                                                                                                                                                                                           \
-        const SVECTOR* targetCenter = &gActor503500ChainBaseTargetOffsets[task->spawnArg1.value - ACTOR_503500_CHAIN_BASE_FIRST_SLOT];                                                                          \
-        effectPosition.vx          += targetCenter->vx;                                                                                                                                                         \
-    }                                                                                                                                                                                                           \
-    {                                                                                                                                                                                                           \
-        const SVECTOR* targetCenter = &gActor503500ChainBaseTargetOffsets[task->spawnArg1.value - ACTOR_503500_CHAIN_BASE_FIRST_SLOT];                                                                          \
-        effectPosition.vy          += targetCenter->vy;                                                                                                                                                         \
-    }                                                                                                                                                                                                           \
-    {                                                                                                                                                                                                           \
-        const SVECTOR* targetCenter = &gActor503500ChainBaseTargetOffsets[task->spawnArg1.value - ACTOR_503500_CHAIN_BASE_FIRST_SLOT];                                                                          \
-        effectPosition.vz          += targetCenter->vz;                                                                                                                                                         \
+/// `coord` is a live GfxCoord with a current cached composition; `contactPoint`
+/// is an SVECTOR in that same frame (normally view space), in game units.
+/// `localCenter` is the target sphere's local SVECTOR offset. `effectPosition`
+/// and `inverseRotation` are disjoint writable SVECTOR/MATRIX lvalues, and
+/// `radialScale` is an s32 scratch lvalue. The matrix and vector scratch must be
+/// word-aligned; GTE loads read their ignored alignment/pad halfwords too.
+/// Subtracts the coordinate origin, narrows XYZ to s16, scales in Q12, rotates
+/// through the cached basis's transpose, then adds localCenter, narrowing again.
+/// For an inverse rotation the cached basis must be orthonormal. The narrowed
+/// squared length must fit s32 and have a nonzero integer square root.
+/// Arguments must be stable, side-effect-free expressions: all are repeated.
+/// Captures only `ACTOR_503500_CHAIN_BASE_HIT_EFFECT_RADIUS` and `ONE`; changes GTE rotation/vector/IR state.
+/// Expands to statements; invoke only as a standalone statement in a braced block.
+#define ACTOR_503500_CHAIN_BASE_PROJECT_HIT_POINT(coord, contactPoint, localCenter, effectPosition, inverseRotation, radialScale)                                                                                             \
+    gte_TransposeMatrix(&(coord)->workm, &(inverseRotation));                                                                                                                                                                 \
+    (effectPosition).vx = (contactPoint).vx - (coord)->workm.t[0];                                                                                                                                                            \
+    (effectPosition).vy = (contactPoint).vy - (coord)->workm.t[1];                                                                                                                                                            \
+    (effectPosition).vz = (contactPoint).vz - (coord)->workm.t[2];                                                                                                                                                            \
+    (radialScale)       = (ACTOR_503500_CHAIN_BASE_HIT_EFFECT_RADIUS * ONE) / SquareRoot0((effectPosition).vx * (effectPosition).vx + (effectPosition).vy * (effectPosition).vy + (effectPosition).vz * (effectPosition).vz); \
+    (effectPosition).vx = (effectPosition).vx * (radialScale) / ONE;                                                                                                                                                          \
+    (effectPosition).vy = (effectPosition).vy * (radialScale) / ONE;                                                                                                                                                          \
+    (effectPosition).vz = (effectPosition).vz * (radialScale) / ONE;                                                                                                                                                          \
+    gte_SetRotMatrix(&(inverseRotation));                                                                                                                                                                                     \
+    gte_ldv0(&(effectPosition));                                                                                                                                                                                              \
+    gte_rtv0();                                                                                                                                                                                                               \
+    gte_stsv(&(effectPosition));                                                                                                                                                                                              \
+    {                                                                                                                                                                                                                         \
+        const SVECTOR* targetCenter = &(localCenter);                                                                                                                                                                         \
+        (effectPosition).vx        += targetCenter->vx;                                                                                                                                                                       \
+    }                                                                                                                                                                                                                         \
+    {                                                                                                                                                                                                                         \
+        const SVECTOR* targetCenter = &(localCenter);                                                                                                                                                                         \
+        (effectPosition).vy        += targetCenter->vy;                                                                                                                                                                       \
+    }                                                                                                                                                                                                                         \
+    {                                                                                                                                                                                                                         \
+        const SVECTOR* targetCenter = &(localCenter);                                                                                                                                                                         \
+        (effectPosition).vz        += targetCenter->vz;                                                                                                                                                                       \
     }
     enum { ACTOR_503500_CHAIN_BASE_HIT_EFFECT_RADIUS = 200 };
     VECTOR    attackerOffset;
@@ -2039,7 +2063,7 @@ static inline void _actor503500ChainBaseHandleHit(Task* task, _Actor503500ChainB
             break;
     }
     // Project the contact radially, then move the effect point into the part frame.
-    ACTOR_503500_CHAIN_BASE_PROJECT_HIT_POINT();
+    ACTOR_503500_CHAIN_BASE_PROJECT_HIT_POINT(coord, contacts[contactIndex].point, gActor503500ChainBaseTargetOffsets[task->spawnArg1.value - ACTOR_503500_CHAIN_BASE_FIRST_SLOT], effectPosition, inverseRotation, radialScale);
 #undef ACTOR_503500_CHAIN_BASE_PROJECT_HIT_POINT
     effectSpawnHit(damageGetPlayerAttackEffectId(attackKey), coord, &effectPosition, &work->hitEffect);
     if (criticalHit != 0) {
@@ -2107,23 +2131,6 @@ static void _actor503500ChainBaseStepAttack(Task* emitterTask)
     s32                        rotationWordIndex;
     s32                        mirroredComponent;
 
-    /// Composes the local Q12 rotation onto the shotCoord's current rotation.
-    ///
-    /// Captures rotationMatrix and shotCoord; requires live disjoint halfword-
-    /// aligned matrices. Writes only the nine coefficients and changes GTE
-    /// state. Expands to statements; invoke only in a braced block.
-#define ACTOR_503500_CHAIN_BASE_COMPOSE_LAUNCH_ROTATION() \
-    gte_SetRotMatrix(&shotCoord->coord);                  \
-    gte_ldclmv(&rotationMatrix);                          \
-    gte_rtir();                                           \
-    gte_stclmv(&shotCoord->coord);                        \
-    gte_ldclmv(&rotationMatrix.m[0][1]);                  \
-    gte_rtir();                                           \
-    gte_stclmv(&shotCoord->coord.m[0][1]);                \
-    gte_ldclmv(&rotationMatrix.m[0][2]);                  \
-    gte_rtir();                                           \
-    gte_stclmv(&shotCoord->coord.m[0][2]);
-
     work      = emitterTask->work;
     baseCoord = emitterTask->extra.coordBody->coord;
     if (actor503500ShouldInterruptAttack(emitterTask->parent) != 0) {
@@ -2174,7 +2181,8 @@ static void _actor503500ChainBaseStepAttack(Task* emitterTask)
                     poseVector.vy     = -mirroredComponent;
                 }
                 RotMatrixZYX(&poseVector, &rotationMatrix);
-                ACTOR_503500_CHAIN_BASE_COMPOSE_LAUNCH_ROTATION();
+                // Postmultiply the launch aim, retaining the shot's placed translation.
+                gte_MulMatrix0(&shotCoord->coord, &rotationMatrix, &shotCoord->coord);
             }
             work->stateStep++;
             break;
@@ -2184,7 +2192,6 @@ static void _actor503500ChainBaseStepAttack(Task* emitterTask)
             }
             break;
     }
-#undef ACTOR_503500_CHAIN_BASE_COMPOSE_LAUNCH_ROTATION
 }
 
 /// Retires the defeated chain base's target and reports its lost boss slot.
@@ -2591,29 +2598,37 @@ static void _actor503500SmallOrbEmitterInit(Task* task)
 static inline void _actor503500SmallOrbEmitterHandleHit(Task* task, _Actor503500SmallOrbEmitterWork* work, Enemy* enemy, GfxCoord* coord,
                                                         const WorldCollisionContact* contacts, s32 contactIndex)
 {
-/// Projects a contact into this part's local hit-effect point.
+/// Places a small orb emitter hit effect on its local radius-600 shell.
 ///
-/// Captures coord, contacts, contactIndex, inverseRotation, effectPosition,
-/// radialScale and the radius constant below. No arguments. Requires a current
-/// cached transform and a nonzero narrowed offset; changes GTE state and
-/// preserves signed-halfword narrowing after each position step.
-/// Adds the part's fixed local sphere centre.
-#define ACTOR_503500_SMALL_ORB_EMITTER_PROJECT_HIT_POINT()                                                                                                                                                     \
-    gte_TransposeMatrix(&coord->workm, &inverseRotation);                                                                                                                                                      \
-    effectPosition.vx = contacts[contactIndex].point.vx - coord->workm.t[0];                                                                                                                                   \
-    effectPosition.vy = contacts[contactIndex].point.vy - coord->workm.t[1];                                                                                                                                   \
-    effectPosition.vz = contacts[contactIndex].point.vz - coord->workm.t[2];                                                                                                                                   \
-    radialScale       = (ACTOR_503500_SMALL_ORB_HIT_EFFECT_RADIUS * ONE) / SquareRoot0(effectPosition.vx * effectPosition.vx + effectPosition.vy * effectPosition.vy + effectPosition.vz * effectPosition.vz); \
-    effectPosition.vx = effectPosition.vx * radialScale / ONE;                                                                                                                                                 \
-    effectPosition.vy = effectPosition.vy * radialScale / ONE;                                                                                                                                                 \
-    effectPosition.vz = effectPosition.vz * radialScale / ONE;                                                                                                                                                 \
-    gte_SetRotMatrix(&inverseRotation);                                                                                                                                                                        \
-    gte_ldv0(&effectPosition);                                                                                                                                                                                 \
-    gte_rtv0();                                                                                                                                                                                                \
-    gte_stsv(&effectPosition);                                                                                                                                                                                 \
-    effectPosition.vx += gActor503500SmallOrbEmitterTargetOffset.vx;                                                                                                                                           \
-    effectPosition.vy += gActor503500SmallOrbEmitterTargetOffset.vy;                                                                                                                                           \
-    effectPosition.vz += gActor503500SmallOrbEmitterTargetOffset.vz;
+/// `coord` is a live GfxCoord with a current cached composition; `contactPoint`
+/// is an SVECTOR in that same frame (normally view space), in game units.
+/// `localCenter` is the target sphere's local SVECTOR offset. `effectPosition`
+/// and `inverseRotation` are disjoint writable SVECTOR/MATRIX lvalues, and
+/// `radialScale` is an s32 scratch lvalue. The matrix and vector scratch must be
+/// word-aligned; GTE loads read their ignored alignment/pad halfwords too.
+/// Subtracts the coordinate origin, narrows XYZ to s16, scales in Q12, rotates
+/// through the cached basis's transpose, then adds localCenter, narrowing again.
+/// For an inverse rotation the cached basis must be orthonormal. The narrowed
+/// squared length must fit s32 and have a nonzero integer square root.
+/// Arguments must be stable, side-effect-free expressions: all are repeated.
+/// Captures only `ACTOR_503500_SMALL_ORB_HIT_EFFECT_RADIUS` and `ONE`; changes GTE rotation/vector/IR state.
+/// Expands to statements; invoke only as a standalone statement in a braced block.
+#define ACTOR_503500_SMALL_ORB_EMITTER_PROJECT_HIT_POINT(coord, contactPoint, localCenter, effectPosition, inverseRotation, radialScale)                                                                                     \
+    gte_TransposeMatrix(&(coord)->workm, &(inverseRotation));                                                                                                                                                                \
+    (effectPosition).vx = (contactPoint).vx - (coord)->workm.t[0];                                                                                                                                                           \
+    (effectPosition).vy = (contactPoint).vy - (coord)->workm.t[1];                                                                                                                                                           \
+    (effectPosition).vz = (contactPoint).vz - (coord)->workm.t[2];                                                                                                                                                           \
+    (radialScale)       = (ACTOR_503500_SMALL_ORB_HIT_EFFECT_RADIUS * ONE) / SquareRoot0((effectPosition).vx * (effectPosition).vx + (effectPosition).vy * (effectPosition).vy + (effectPosition).vz * (effectPosition).vz); \
+    (effectPosition).vx = (effectPosition).vx * (radialScale) / ONE;                                                                                                                                                         \
+    (effectPosition).vy = (effectPosition).vy * (radialScale) / ONE;                                                                                                                                                         \
+    (effectPosition).vz = (effectPosition).vz * (radialScale) / ONE;                                                                                                                                                         \
+    gte_SetRotMatrix(&(inverseRotation));                                                                                                                                                                                    \
+    gte_ldv0(&(effectPosition));                                                                                                                                                                                             \
+    gte_rtv0();                                                                                                                                                                                                              \
+    gte_stsv(&(effectPosition));                                                                                                                                                                                             \
+    (effectPosition).vx += (localCenter).vx;                                                                                                                                                                                 \
+    (effectPosition).vy += (localCenter).vy;                                                                                                                                                                                 \
+    (effectPosition).vz += (localCenter).vz;
     enum { ACTOR_503500_SMALL_ORB_HIT_EFFECT_RADIUS = 600 };
     VECTOR    attackerOffset;
     SVECTOR   effectPosition;
@@ -2681,7 +2696,7 @@ static inline void _actor503500SmallOrbEmitterHandleHit(Task* task, _Actor503500
             break;
     }
     // Project the contact radially, then move the effect point into the part frame.
-    ACTOR_503500_SMALL_ORB_EMITTER_PROJECT_HIT_POINT();
+    ACTOR_503500_SMALL_ORB_EMITTER_PROJECT_HIT_POINT(coord, contacts[contactIndex].point, gActor503500SmallOrbEmitterTargetOffset, effectPosition, inverseRotation, radialScale);
 #undef ACTOR_503500_SMALL_ORB_EMITTER_PROJECT_HIT_POINT
     effectSpawnHit(damageGetPlayerAttackEffectId(attackKey), coord, &effectPosition, &work->hitEffect);
     if (criticalHit != 0) {
@@ -2756,23 +2771,6 @@ static void _actor503500SmallOrbEmitterStepAttack(Task* emitterTask)
     s32                              launchSpeed;
     s16                              shotIndex;
 
-    /// Composes the local Q12 rotation onto the shotCoord's current rotation.
-    ///
-    /// Captures rotationMatrix and shotCoord; requires live disjoint halfword-
-    /// aligned matrices. Writes only the nine coefficients and changes GTE
-    /// state. Expands to statements; invoke only in a braced block.
-#define ACTOR_503500_SMALL_ORB_COMPOSE_LAUNCH_ROTATION() \
-    gte_SetRotMatrix(&shotCoord->coord);                 \
-    gte_ldclmv(&rotationMatrix);                         \
-    gte_rtir();                                          \
-    gte_stclmv(&shotCoord->coord);                       \
-    gte_ldclmv(&rotationMatrix.m[0][1]);                 \
-    gte_rtir();                                          \
-    gte_stclmv(&shotCoord->coord.m[0][1]);               \
-    gte_ldclmv(&rotationMatrix.m[0][2]);                 \
-    gte_rtir();                                          \
-    gte_stclmv(&shotCoord->coord.m[0][2]);
-
     work         = emitterTask->work;
     emitterCoord = emitterTask->extra.coordBody->coord;
     if (actor503500ShouldInterruptAttack(emitterTask->parent) != 0) {
@@ -2815,7 +2813,8 @@ static void _actor503500SmallOrbEmitterStepAttack(Task* emitterTask)
                 }
                 shotCoord->coord.m[2][2] = rotationMatrix.m[2][2];
                 RotMatrix(&gActor503500SmallOrbEmitterLaunchAngles[shotIndex], &rotationMatrix);
-                ACTOR_503500_SMALL_ORB_COMPOSE_LAUNCH_ROTATION();
+                // Postmultiply the volley aim, retaining the shot's placed translation.
+                gte_MulMatrix0(&shotCoord->coord, &rotationMatrix, &shotCoord->coord);
             }
             if (shotIndex >= ACTOR_503500_SMALL_ORB_EMITTER_VOLLEY_SHOTS - 1) {
                 work->stateStep += 2;
@@ -2827,7 +2826,6 @@ static void _actor503500SmallOrbEmitterStepAttack(Task* emitterTask)
             }
             break;
     }
-#undef ACTOR_503500_SMALL_ORB_COMPOSE_LAUNCH_ROTATION
 }
 
 /// Retires the defeated small-orb emitter's target and reports its lost boss slot.
@@ -3137,29 +3135,37 @@ static void _actor503500YellowFlashEmitterInit(Task* task)
 static inline void _actor503500YellowFlashEmitterHandleHit(Task* task, _Actor503500YellowFlashEmitterWork* work, Enemy* enemy, GfxCoord* coord,
                                                            const WorldCollisionContact* contacts, s32 contactIndex)
 {
-/// Projects a contact into this part's local hit-effect point.
+/// Places a yellow flash emitter hit effect on its local radius-400 shell.
 ///
-/// Captures coord, contacts, contactIndex, inverseRotation, effectPosition,
-/// radialScale and the radius constant below. No arguments. Requires a current
-/// cached transform and a nonzero narrowed offset; changes GTE state and
-/// preserves signed-halfword narrowing after each position step.
-/// Adds the part's fixed local sphere centre.
-#define ACTOR_503500_YELLOW_FLASH_EMITTER_PROJECT_HIT_POINT()                                                                                                                                                     \
-    gte_TransposeMatrix(&coord->workm, &inverseRotation);                                                                                                                                                         \
-    effectPosition.vx = contacts[contactIndex].point.vx - coord->workm.t[0];                                                                                                                                      \
-    effectPosition.vy = contacts[contactIndex].point.vy - coord->workm.t[1];                                                                                                                                      \
-    effectPosition.vz = contacts[contactIndex].point.vz - coord->workm.t[2];                                                                                                                                      \
-    radialScale       = (ACTOR_503500_YELLOW_FLASH_HIT_EFFECT_RADIUS * ONE) / SquareRoot0(effectPosition.vx * effectPosition.vx + effectPosition.vy * effectPosition.vy + effectPosition.vz * effectPosition.vz); \
-    effectPosition.vx = effectPosition.vx * radialScale / ONE;                                                                                                                                                    \
-    effectPosition.vy = effectPosition.vy * radialScale / ONE;                                                                                                                                                    \
-    effectPosition.vz = effectPosition.vz * radialScale / ONE;                                                                                                                                                    \
-    gte_SetRotMatrix(&inverseRotation);                                                                                                                                                                           \
-    gte_ldv0(&effectPosition);                                                                                                                                                                                    \
-    gte_rtv0();                                                                                                                                                                                                   \
-    gte_stsv(&effectPosition);                                                                                                                                                                                    \
-    effectPosition.vx += gActor503500YellowFlashEmitterTargetOffset.vx;                                                                                                                                           \
-    effectPosition.vy += gActor503500YellowFlashEmitterTargetOffset.vy;                                                                                                                                           \
-    effectPosition.vz += gActor503500YellowFlashEmitterTargetOffset.vz;
+/// `coord` is a live GfxCoord with a current cached composition; `contactPoint`
+/// is an SVECTOR in that same frame (normally view space), in game units.
+/// `localCenter` is the target sphere's local SVECTOR offset. `effectPosition`
+/// and `inverseRotation` are disjoint writable SVECTOR/MATRIX lvalues, and
+/// `radialScale` is an s32 scratch lvalue. The matrix and vector scratch must be
+/// word-aligned; GTE loads read their ignored alignment/pad halfwords too.
+/// Subtracts the coordinate origin, narrows XYZ to s16, scales in Q12, rotates
+/// through the cached basis's transpose, then adds localCenter, narrowing again.
+/// For an inverse rotation the cached basis must be orthonormal. The narrowed
+/// squared length must fit s32 and have a nonzero integer square root.
+/// Arguments must be stable, side-effect-free expressions: all are repeated.
+/// Captures only `ACTOR_503500_YELLOW_FLASH_HIT_EFFECT_RADIUS` and `ONE`; changes GTE rotation/vector/IR state.
+/// Expands to statements; invoke only as a standalone statement in a braced block.
+#define ACTOR_503500_YELLOW_FLASH_EMITTER_PROJECT_HIT_POINT(coord, contactPoint, localCenter, effectPosition, inverseRotation, radialScale)                                                                                     \
+    gte_TransposeMatrix(&(coord)->workm, &(inverseRotation));                                                                                                                                                                   \
+    (effectPosition).vx = (contactPoint).vx - (coord)->workm.t[0];                                                                                                                                                              \
+    (effectPosition).vy = (contactPoint).vy - (coord)->workm.t[1];                                                                                                                                                              \
+    (effectPosition).vz = (contactPoint).vz - (coord)->workm.t[2];                                                                                                                                                              \
+    (radialScale)       = (ACTOR_503500_YELLOW_FLASH_HIT_EFFECT_RADIUS * ONE) / SquareRoot0((effectPosition).vx * (effectPosition).vx + (effectPosition).vy * (effectPosition).vy + (effectPosition).vz * (effectPosition).vz); \
+    (effectPosition).vx = (effectPosition).vx * (radialScale) / ONE;                                                                                                                                                            \
+    (effectPosition).vy = (effectPosition).vy * (radialScale) / ONE;                                                                                                                                                            \
+    (effectPosition).vz = (effectPosition).vz * (radialScale) / ONE;                                                                                                                                                            \
+    gte_SetRotMatrix(&(inverseRotation));                                                                                                                                                                                       \
+    gte_ldv0(&(effectPosition));                                                                                                                                                                                                \
+    gte_rtv0();                                                                                                                                                                                                                 \
+    gte_stsv(&(effectPosition));                                                                                                                                                                                                \
+    (effectPosition).vx += (localCenter).vx;                                                                                                                                                                                    \
+    (effectPosition).vy += (localCenter).vy;                                                                                                                                                                                    \
+    (effectPosition).vz += (localCenter).vz;
     enum { ACTOR_503500_YELLOW_FLASH_HIT_EFFECT_RADIUS = 400 };
     VECTOR    attackerOffset;
     SVECTOR   effectPosition;
@@ -3227,7 +3233,7 @@ static inline void _actor503500YellowFlashEmitterHandleHit(Task* task, _Actor503
             break;
     }
     // Project the contact radially, then move the effect point into the part frame.
-    ACTOR_503500_YELLOW_FLASH_EMITTER_PROJECT_HIT_POINT();
+    ACTOR_503500_YELLOW_FLASH_EMITTER_PROJECT_HIT_POINT(coord, contacts[contactIndex].point, gActor503500YellowFlashEmitterTargetOffset, effectPosition, inverseRotation, radialScale);
 #undef ACTOR_503500_YELLOW_FLASH_EMITTER_PROJECT_HIT_POINT
     effectSpawnHit(damageGetPlayerAttackEffectId(attackKey), coord, &effectPosition, &work->hitEffect);
     if (criticalHit != 0) {
@@ -3831,22 +3837,33 @@ static void _actor503500LungingChainStepLunge(Task* task)
     s32                           withinAttackArc;
     s32                           playerBearing;
 
-    // Convert the latched world target into the root parent's frame, after a
-    // world-Y offset. Captures work, rootCoord and the four matrix/vector locals;
-    // worldYOffset is evaluated once. Inputs narrow to signed halfwords before
-    // inverse rotation. Writes tipTarget's XYZ and changes GTE state. This
-    // binding exists only in the lunge step. This is a statement sequence;
-    // never use it as an unbraced if/loop body.
-#define ACTOR_503500_LUNGING_CHAIN_AIM_AT_WORLD_TARGET(worldYOffset)                             \
-    gfxComposeNodeWorldTransform(rootCoord->parent, &parentWorldRotation, &parentWorldPosition); \
-    targetOffset.vx = work->lungeTarget.vx - parentWorldPosition.vx;                             \
-    targetOffset.vy = work->lungeTarget.vy - parentWorldPosition.vy + (worldYOffset);            \
-    targetOffset.vz = work->lungeTarget.vz - parentWorldPosition.vz;                             \
-    gte_TransposeMatrix(&parentWorldRotation, &worldToParentRotation);                           \
-    gte_SetRotMatrix(&worldToParentRotation);                                                    \
-    gte_ldv0(&targetOffset);                                                                     \
-    gte_rtv0();                                                                                  \
-    gte_stsv(&work->tipTarget)
+/// Sets a lunging chain's tip destination from a latched world point and a world-Y bias.
+///
+/// `parentCoord` is the live root parent; its acyclic hierarchy must reach
+/// `gGfxViewCoord`. `worldTarget` and writable `localTarget` are SVECTOR
+/// lvalues in game units; `worldYOffset` is an s32 expression evaluated once.
+/// Negative Y raises the wind-up point; positive Y lowers the strike point.
+/// `targetOffset`, `parentWorldPosition`, `parentWorldRotation` and
+/// `worldToParentRotation` are disjoint writable SVECTOR/MATRIX scratch
+/// lvalues. Rotation scratch and targetOffset must be word-aligned; GTE
+/// loads read their ignored alignment/pad halfwords too. Parent composition
+/// excludes the view and narrows translation at each ancestor. Subtraction
+/// and the world-Y bias narrow to s16 before the transpose rotation; output
+/// XYZ narrows again. An orthonormal parent basis is required for inversion.
+/// Except worldYOffset, arguments repeat and must be stable and side-effect-free.
+/// Captures no caller locals; changes GTE state, retains no pointer and leaves
+/// vector pads and matrix translations untouched. Expands to statements;
+/// invoke only as a standalone statement in a braced block.
+#define ACTOR_503500_LUNGING_CHAIN_AIM_AT_WORLD_TARGET(parentCoord, worldTarget, worldYOffset, localTarget, targetOffset, parentWorldRotation, parentWorldPosition, worldToParentRotation) \
+    gfxComposeNodeWorldTransform((parentCoord), &(parentWorldRotation), &(parentWorldPosition));                                                                                           \
+    (targetOffset).vx = (worldTarget).vx - (parentWorldPosition).vx;                                                                                                                       \
+    (targetOffset).vy = (worldTarget).vy - (parentWorldPosition).vy + (worldYOffset);                                                                                                      \
+    (targetOffset).vz = (worldTarget).vz - (parentWorldPosition).vz;                                                                                                                       \
+    gte_TransposeMatrix(&(parentWorldRotation), &(worldToParentRotation));                                                                                                                 \
+    gte_SetRotMatrix(&(worldToParentRotation));                                                                                                                                            \
+    gte_ldv0(&(targetOffset));                                                                                                                                                             \
+    gte_rtv0();                                                                                                                                                                            \
+    gte_stsv(&(localTarget))
 
     work      = task->work;
     rootCoord = task->extra.tmd->coords;
@@ -3861,7 +3878,7 @@ static void _actor503500LungingChainStepLunge(Task* task)
             work->lungeTarget.vx = gPlayerStatus.coordMtx->t[0];
             work->lungeTarget.vy = gPlayerStatus.coordMtx->t[1];
             work->lungeTarget.vz = gPlayerStatus.coordMtx->t[2];
-            ACTOR_503500_LUNGING_CHAIN_AIM_AT_WORLD_TARGET(-ACTOR_503500_LUNGING_CHAIN_LUNGE_WINDUP_HEIGHT);
+            ACTOR_503500_LUNGING_CHAIN_AIM_AT_WORLD_TARGET(rootCoord->parent, work->lungeTarget, -ACTOR_503500_LUNGING_CHAIN_LUNGE_WINDUP_HEIGHT, work->tipTarget, targetOffset, parentWorldRotation, parentWorldPosition, worldToParentRotation);
             actor503500PlayAnimationPreset(task->parent, ACTOR_503500_LUNGING_CHAIN_LUNGE_ANIMATION_PRESET, ANIMATION_RATE_ONE);
             work->stateStep++;
             break;
@@ -3872,7 +3889,7 @@ static void _actor503500LungingChainStepLunge(Task* task)
             }
             if (work->tipArrived != 0 && work->swayPhase[ACTOR_503500_LUNGING_CHAIN_TIP_PART] > ACTOR_503500_LUNGING_CHAIN_LUNGE_RELEASE_SWAY_PHASE) {
                 // Release toward the latched point when the tip and sway phase are ready.
-                ACTOR_503500_LUNGING_CHAIN_AIM_AT_WORLD_TARGET(ACTOR_503500_LUNGING_CHAIN_LUNGE_TARGET_Y_OFFSET);
+                ACTOR_503500_LUNGING_CHAIN_AIM_AT_WORLD_TARGET(rootCoord->parent, work->lungeTarget, ACTOR_503500_LUNGING_CHAIN_LUNGE_TARGET_Y_OFFSET, work->tipTarget, targetOffset, parentWorldRotation, parentWorldPosition, worldToParentRotation);
                 work->tipSpeedLimit.word = ACTOR_503500_LUNGING_CHAIN_LUNGE_TIP_SPEED;
                 work->attackBody.flags  |= WORLD_COLLISION_BODY_PAIR_ENABLED;
                 work->stateStep++;
@@ -4010,29 +4027,33 @@ static void _actor503500LungingChainStepDying(Task* task)
     s32                           linkIndex;
     s32                           elementIndex;
 
-    /// Eases three signed Euler angles toward zero without overshoot.
-    ///
-    /// Captures poseVector, angleComponent and elementIndex and requires this
-    /// function's angle-step/component constants. Units are 4096 per turn.
-    /// Reuses elementIndex with the later smoke walk. Expands to statements;
-    /// call only as a standalone statement in a braced block.
-#define ACTOR_503500_LUNGING_CHAIN_EASE_DYING_ANGLES()                      \
-    angleComponent = &poseVector.vx;                                        \
-    elementIndex   = 1;                                                     \
-    do {                                                                    \
-        if (*angleComponent > 0) {                                          \
-            *angleComponent -= ACTOR_503500_LUNGING_CHAIN_DEATH_ANGLE_STEP; \
-            if (*angleComponent < 0) {                                      \
-                *angleComponent = 0;                                        \
-            }                                                               \
-        } else {                                                            \
-            *angleComponent += ACTOR_503500_LUNGING_CHAIN_DEATH_ANGLE_STEP; \
-            if (*angleComponent > 0) {                                      \
-                *angleComponent = 0;                                        \
-            }                                                               \
-        }                                                                   \
-        angleComponent++;                                                   \
-    } while (elementIndex++ < ACTOR_503500_LUNGING_CHAIN_DEATH_ANGLE_COMPONENTS);
+/// Straightens a dying link's three Euler angles by at most two units per update.
+///
+/// `angles` is a writable SVECTOR lvalue, in 4096ths of a turn; pad is retained.
+/// `angleComponent` and `elementIndex` are writable s16*/s32 scratch lvalues.
+/// Visits exactly vx, vy and vz; clamps sign crossings to zero. Halfword stores
+/// precede each sign-crossing test; zero remains zero.
+/// The postincrement loop finishes with elementIndex == 4 and angleComponent
+/// at the pad halfword. Captures only the angle-step (2) and component-count (3)
+/// constants. Arguments must be stable and side-effect-free; repeated evaluation.
+/// Expands to statements; invoke only as a standalone statement in a braced block.
+#define ACTOR_503500_LUNGING_CHAIN_EASE_DYING_ANGLES(angles, angleComponent, elementIndex) \
+    (angleComponent) = &(angles).vx;                                                       \
+    (elementIndex)   = 1;                                                                  \
+    do {                                                                                   \
+        if (*(angleComponent) > 0) {                                                       \
+            *(angleComponent) -= ACTOR_503500_LUNGING_CHAIN_DEATH_ANGLE_STEP;              \
+            if (*(angleComponent) < 0) {                                                   \
+                *(angleComponent) = 0;                                                     \
+            }                                                                              \
+        } else {                                                                           \
+            *(angleComponent) += ACTOR_503500_LUNGING_CHAIN_DEATH_ANGLE_STEP;              \
+            if (*(angleComponent) > 0) {                                                   \
+                *(angleComponent) = 0;                                                     \
+            }                                                                              \
+        }                                                                                  \
+        (angleComponent)++;                                                                \
+    } while ((elementIndex)++ < ACTOR_503500_LUNGING_CHAIN_DEATH_ANGLE_COMPONENTS);
 
     work      = task->work;
     enemy     = task->spawnArg2.pointer;
@@ -4074,7 +4095,7 @@ static void _actor503500LungingChainStepDying(Task* task)
             for (linkIndex = 1; linkIndex < ACTOR_503500_LUNGING_CHAIN_PART_COUNT; linkIndex++) {
                 linkCoord = &rootCoord[linkIndex];
                 gfxExtractSmallestEuler(&poseVector, &linkCoord->coord);
-                ACTOR_503500_LUNGING_CHAIN_EASE_DYING_ANGLES();
+                ACTOR_503500_LUNGING_CHAIN_EASE_DYING_ANGLES(poseVector, angleComponent, elementIndex);
                 gfxSetRotIdentity(&rootCoord[linkIndex].coord);
                 RotMatrix(&poseVector, &linkCoord->coord);
                 linkCoord->composeStamp = GRAPHICS_COORD_DIRTY;
@@ -4206,29 +4227,37 @@ static void _actor503500LungingChainReactToDamage(Task* task)
 static inline void _actor503500LungingChainHandleHit(Task* task, _Actor503500LungingChainWork* work, Enemy* enemy, GfxCoord* coord,
                                                      const WorldCollisionContact* contacts, s32 contactIndex)
 {
-/// Projects a contact into this part's local hit-effect point.
+/// Places a lunging chain hit effect on its local radius-500 shell.
 ///
-/// Captures coord, contacts, contactIndex, inverseRotation, effectPosition,
-/// radialScale and the radius constant below. No arguments. Requires a current
-/// cached transform and a nonzero narrowed offset; changes GTE state and
-/// preserves signed-halfword narrowing after each position step.
-/// Adds the part's fixed local sphere centre.
-#define ACTOR_503500_LUNGING_CHAIN_PROJECT_HIT_POINT()                                                                                                                                                             \
-    gte_TransposeMatrix(&coord->workm, &inverseRotation);                                                                                                                                                          \
-    effectPosition.vx = contacts[contactIndex].point.vx - coord->workm.t[0];                                                                                                                                       \
-    effectPosition.vy = contacts[contactIndex].point.vy - coord->workm.t[1];                                                                                                                                       \
-    effectPosition.vz = contacts[contactIndex].point.vz - coord->workm.t[2];                                                                                                                                       \
-    radialScale       = (ACTOR_503500_LUNGING_CHAIN_HIT_EFFECT_RADIUS * ONE) / SquareRoot0(effectPosition.vx * effectPosition.vx + effectPosition.vy * effectPosition.vy + effectPosition.vz * effectPosition.vz); \
-    effectPosition.vx = effectPosition.vx * radialScale / ONE;                                                                                                                                                     \
-    effectPosition.vy = effectPosition.vy * radialScale / ONE;                                                                                                                                                     \
-    effectPosition.vz = effectPosition.vz * radialScale / ONE;                                                                                                                                                     \
-    gte_SetRotMatrix(&inverseRotation);                                                                                                                                                                            \
-    gte_ldv0(&effectPosition);                                                                                                                                                                                     \
-    gte_rtv0();                                                                                                                                                                                                    \
-    gte_stsv(&effectPosition);                                                                                                                                                                                     \
-    effectPosition.vx += gActor503500LungingChainTipTargetOffset.vx;                                                                                                                                               \
-    effectPosition.vy += gActor503500LungingChainTipTargetOffset.vy;                                                                                                                                               \
-    effectPosition.vz += gActor503500LungingChainTipTargetOffset.vz;
+/// `coord` is a live GfxCoord with a current cached composition; `contactPoint`
+/// is an SVECTOR in that same frame (normally view space), in game units.
+/// `localCenter` is the target sphere's local SVECTOR offset. `effectPosition`
+/// and `inverseRotation` are disjoint writable SVECTOR/MATRIX lvalues, and
+/// `radialScale` is an s32 scratch lvalue. The matrix and vector scratch must be
+/// word-aligned; GTE loads read their ignored alignment/pad halfwords too.
+/// Subtracts the coordinate origin, narrows XYZ to s16, scales in Q12, rotates
+/// through the cached basis's transpose, then adds localCenter, narrowing again.
+/// For an inverse rotation the cached basis must be orthonormal. The narrowed
+/// squared length must fit s32 and have a nonzero integer square root.
+/// Arguments must be stable, side-effect-free expressions: all are repeated.
+/// Captures only `ACTOR_503500_LUNGING_CHAIN_HIT_EFFECT_RADIUS` and `ONE`; changes GTE rotation/vector/IR state.
+/// Expands to statements; invoke only as a standalone statement in a braced block.
+#define ACTOR_503500_LUNGING_CHAIN_PROJECT_HIT_POINT(coord, contactPoint, localCenter, effectPosition, inverseRotation, radialScale)                                                                                             \
+    gte_TransposeMatrix(&(coord)->workm, &(inverseRotation));                                                                                                                                                                    \
+    (effectPosition).vx = (contactPoint).vx - (coord)->workm.t[0];                                                                                                                                                               \
+    (effectPosition).vy = (contactPoint).vy - (coord)->workm.t[1];                                                                                                                                                               \
+    (effectPosition).vz = (contactPoint).vz - (coord)->workm.t[2];                                                                                                                                                               \
+    (radialScale)       = (ACTOR_503500_LUNGING_CHAIN_HIT_EFFECT_RADIUS * ONE) / SquareRoot0((effectPosition).vx * (effectPosition).vx + (effectPosition).vy * (effectPosition).vy + (effectPosition).vz * (effectPosition).vz); \
+    (effectPosition).vx = (effectPosition).vx * (radialScale) / ONE;                                                                                                                                                             \
+    (effectPosition).vy = (effectPosition).vy * (radialScale) / ONE;                                                                                                                                                             \
+    (effectPosition).vz = (effectPosition).vz * (radialScale) / ONE;                                                                                                                                                             \
+    gte_SetRotMatrix(&(inverseRotation));                                                                                                                                                                                        \
+    gte_ldv0(&(effectPosition));                                                                                                                                                                                                 \
+    gte_rtv0();                                                                                                                                                                                                                  \
+    gte_stsv(&(effectPosition));                                                                                                                                                                                                 \
+    (effectPosition).vx += (localCenter).vx;                                                                                                                                                                                     \
+    (effectPosition).vy += (localCenter).vy;                                                                                                                                                                                     \
+    (effectPosition).vz += (localCenter).vz;
     enum { ACTOR_503500_LUNGING_CHAIN_HIT_EFFECT_RADIUS = 500 };
     SVECTOR   effectPosition;
     MATRIX    inverseRotation;
@@ -4299,7 +4328,7 @@ static inline void _actor503500LungingChainHandleHit(Task* task, _Actor503500Lun
         }
     }
     // Project the contact radially, then move the effect point into the part frame.
-    ACTOR_503500_LUNGING_CHAIN_PROJECT_HIT_POINT();
+    ACTOR_503500_LUNGING_CHAIN_PROJECT_HIT_POINT(coord, contacts[contactIndex].point, gActor503500LungingChainTipTargetOffset, effectPosition, inverseRotation, radialScale);
 #undef ACTOR_503500_LUNGING_CHAIN_PROJECT_HIT_POINT
     effectSpawnHit(damageGetPlayerAttackEffectId(attackKey), coord, &effectPosition, &work->hitEffect);
     if (criticalHit != 0) {
@@ -4503,23 +4532,6 @@ static void _actor503500LungingChainPlaceLinks(const SVECTOR* points, GfxCoord* 
     s32                      i;
     s32                      j;
 
-    // Accumulate the link's rotation with the current world rotation already
-    // loaded into the GTE. Arguments are live, halfword-aligned MATRIX pointers
-    // with no side effects: each is evaluated three times. Writes rotation only
-    // and changes GTE arithmetic state. This binding exists only in this walk.
-#define ACTOR_503500_LUNGING_CHAIN_COMPOSE_LINK_ROTATION(linkRotation, worldRotation) \
-    do {                                                                              \
-        gte_ldclmv((linkRotation));                                                   \
-        gte_rtir();                                                                   \
-        gte_stclmv((worldRotation));                                                  \
-        gte_ldclmv(&(linkRotation)->m[0][1]);                                         \
-        gte_rtir();                                                                   \
-        gte_stclmv(&(worldRotation)->m[0][1]);                                        \
-        gte_ldclmv(&(linkRotation)->m[0][2]);                                         \
-        gte_rtir();                                                                   \
-        gte_stclmv(&(worldRotation)->m[0][2]);                                        \
-    } while (0)
-
     scratch        = SCRATCH_STACK_RESERVE_BLOCK(Actor503500ChainScratch);
     scratch->up.vx = 0;
     scratch->up.vy = ONE;
@@ -4530,12 +4542,10 @@ static void _actor503500LungingChainPlaceLinks(const SVECTOR* points, GfxCoord* 
         scratch->segment.vx = points[j].vx - points[i].vx;
         scratch->segment.vy = points[j].vy - points[i].vy;
         scratch->segment.vz = points[j].vz - points[i].vz;
-        gte_SetRotMatrix(&scratch->worldRotation);
-        ACTOR_503500_LUNGING_CHAIN_COMPOSE_LINK_ROTATION(&coordinates[i].coord, &scratch->worldRotation);
+        gte_MulMatrix0(&scratch->worldRotation, &coordinates[i].coord, &scratch->worldRotation);
         _actor503500LungingChainAimNextLink(scratch, &coordinates[j]);
     }
     SCRATCH_STACK_RELEASE_BLOCK(Actor503500ChainScratch);
-#undef ACTOR_503500_LUNGING_CHAIN_COMPOSE_LINK_ROTATION
 }
 
 #include "../../shared/bezier_curve_evaluate.inc.c"
@@ -4567,19 +4577,24 @@ static void _actor503500LungingChainBlendPose(Task* task)
     s32                           linkIndex;
     s32                           rotationWordIndex;
 
-    // Copy exactly 18 rotation bytes from live, word-aligned matrices, leaving
-    // alignment bytes and translation untouched. Captures destinationWords,
-    // sourceWords and rotationWordIndex. Both pointer arguments are evaluated
-    // twice and must have no side effects; only identical-pointer overlap is
-    // supported. This binding exists only in the pose blend.
-#define ACTOR_503500_LUNGING_CHAIN_COPY_ROTATION(sourceMatrix, destinationMatrix)                                              \
-    do {                                                                                                                       \
-        destinationWords = (s32*)(destinationMatrix);                                                                          \
-        sourceWords      = (const s32*)(sourceMatrix);                                                                         \
-        for (rotationWordIndex = 0; rotationWordIndex < ACTOR_503500_LUNGING_CHAIN_ROTATION_WORD_COUNT; rotationWordIndex++) { \
-            *destinationWords++ = *sourceWords++;                                                                              \
-        }                                                                                                                      \
-        (destinationMatrix)->m[2][2] = (sourceMatrix)->m[2][2];                                                                \
+/// Copies the nine Q12 rotation coefficients, retaining alignment bytes and translation.
+///
+/// `sourceMatrix` and `destinationMatrix` point to live, word-aligned MATRIXs,
+/// disjoint or identical. Copies four s32 coefficient pairs then m[2][2],
+/// exactly 18 bytes; the casts are word-access views of rotation storage.
+/// `sourceWords` and `destinationWords` are writable const-s32*/s32* scratch lvalues;
+/// `rotationWordIndex` is an s32 scratch lvalue. No caller locals are captured.
+/// Captures `ACTOR_503500_LUNGING_CHAIN_ROTATION_WORD_COUNT` (4). Matrix arguments are evaluated twice
+/// and must have no side effects; scratch pointers advance four words.
+/// Expands to statements; invoke only as a standalone statement in a braced block.
+#define ACTOR_503500_LUNGING_CHAIN_COPY_ROTATION(sourceMatrix, destinationMatrix, sourceWords, destinationWords, rotationWordIndex)  \
+    do {                                                                                                                             \
+        (destinationWords) = (s32*)(destinationMatrix);                                                                              \
+        (sourceWords)      = (const s32*)(sourceMatrix);                                                                             \
+        for ((rotationWordIndex) = 0; (rotationWordIndex) < ACTOR_503500_LUNGING_CHAIN_ROTATION_WORD_COUNT; (rotationWordIndex)++) { \
+            *(destinationWords)++ = *(sourceWords)++;                                                                                \
+        }                                                                                                                            \
+        (destinationMatrix)->m[2][2] = (sourceMatrix)->m[2][2];                                                                      \
     } while (0)
 
     work      = task->work;
@@ -4589,7 +4604,7 @@ static void _actor503500LungingChainBlendPose(Task* task)
         blendWeight = work->blendWeight;
         for (linkIndex = 1; linkIndex < ACTOR_503500_LUNGING_CHAIN_PART_COUNT; linkIndex++) {
             gfxBlendOrthonormalRotation(blendStart, &linkCoord->coord, &blendedRotation, blendWeight);
-            ACTOR_503500_LUNGING_CHAIN_COPY_ROTATION(&blendedRotation, &linkCoord->coord);
+            ACTOR_503500_LUNGING_CHAIN_COPY_ROTATION(&blendedRotation, &linkCoord->coord, sourceWords, destinationWords, rotationWordIndex);
             translationOffset.vx  = ((linkCoord->coord.t[0] - blendStart->t[0]) * blendWeight) >> ACTOR_503500_LUNGING_CHAIN_BLEND_WEIGHT_FRACTION_BITS;
             translationOffset.vy  = ((linkCoord->coord.t[1] - blendStart->t[1]) * blendWeight) >> ACTOR_503500_LUNGING_CHAIN_BLEND_WEIGHT_FRACTION_BITS;
             translationOffset.vz  = ((linkCoord->coord.t[2] - blendStart->t[2]) * blendWeight) >> ACTOR_503500_LUNGING_CHAIN_BLEND_WEIGHT_FRACTION_BITS;
@@ -5173,23 +5188,6 @@ static void _actor503500ArmStepDying(Task* task)
     s32                  smokeOffsetIndex;
     s32                  rotationWordIndex;
 
-    /// Composes the local Q12 rotation onto the armCoords's current rotation.
-    ///
-    /// Captures rotationMatrix and armCoords; requires live disjoint halfword-
-    /// aligned matrices. Writes only the nine coefficients and changes GTE
-    /// state. Expands to statements; invoke only in a braced block.
-#define ACTOR_503500_ARM_COMPOSE_SPIN_ROTATION() \
-    gte_SetRotMatrix(&armCoords->coord);         \
-    gte_ldclmv(&rotationMatrix);                 \
-    gte_rtir();                                  \
-    gte_stclmv(&armCoords->coord);               \
-    gte_ldclmv(&rotationMatrix.m[0][1]);         \
-    gte_rtir();                                  \
-    gte_stclmv(&armCoords->coord.m[0][1]);       \
-    gte_ldclmv(&rotationMatrix.m[0][2]);         \
-    gte_rtir();                                  \
-    gte_stclmv(&armCoords->coord.m[0][2]);
-
     work      = task->work;
     enemy     = task->spawnArg2.pointer;
     armCoords = task->extra.tmd->coords;
@@ -5343,7 +5341,8 @@ static void _actor503500ArmStepDying(Task* task)
     poseVector.vz = work->spin.fixed.vz.word >> ACTOR_503500_ARM_DEATH_FRACTION_BITS;
     gfxSetRotIdentity(&rotationMatrix);
     RotMatrix(&poseVector, &rotationMatrix);
-    ACTOR_503500_ARM_COMPOSE_SPIN_ROTATION();
+    // Apply spin in the arm's local frame, retaining its translation.
+    gte_MulMatrix0(&armCoords->coord, &rotationMatrix, &armCoords->coord);
     work->positionCarry.fixed.vx.word += work->velocity.fixed.vx.word;
     work->positionCarry.fixed.vy.word += work->velocity.fixed.vy.word;
     work->positionCarry.fixed.vz.word += work->velocity.fixed.vz.word;
@@ -5367,7 +5366,6 @@ static void _actor503500ArmStepDying(Task* task)
         sndEvtRequestScriptStop(ACTOR_503500_CORPSE_BURN_SOUND, SOUND_SCRIPT_STOP_KEEP_RELEASE);
         task->state = ACTOR_503500_ARM_DEATH_TASK_EXIT;
     }
-#undef ACTOR_503500_ARM_COMPOSE_SPIN_ROTATION
 }
 
 /// Applies one eligible attack contact to an arm.
@@ -5385,29 +5383,37 @@ static void _actor503500ArmStepDying(Task* task)
 static inline void _actor503500ArmHandleHit(Task* task, _Actor503500ArmWork* work, Enemy* enemy, GfxCoord* coord,
                                             const WorldCollisionContact* contacts, s32 contactIndex)
 {
-/// Projects a contact into this part's local hit-effect point.
+/// Places a arm hit effect on its local radius-1500 shell.
 ///
-/// Captures coord, contacts, contactIndex, inverseRotation, effectPosition,
-/// radialScale and the radius constant below. No arguments. Requires a current
-/// cached transform and a nonzero narrowed offset; changes GTE state and
-/// preserves signed-halfword narrowing after each position step.
-/// `work` selects the side's local sphere centre.
-#define ACTOR_503500_ARM_PROJECT_HIT_POINT()                                                                                                                                                             \
-    gte_TransposeMatrix(&coord->workm, &inverseRotation);                                                                                                                                                \
-    effectPosition.vx = contacts[contactIndex].point.vx - coord->workm.t[0];                                                                                                                             \
-    effectPosition.vy = contacts[contactIndex].point.vy - coord->workm.t[1];                                                                                                                             \
-    effectPosition.vz = contacts[contactIndex].point.vz - coord->workm.t[2];                                                                                                                             \
-    radialScale       = (ACTOR_503500_ARM_HIT_EFFECT_RADIUS * ONE) / SquareRoot0(effectPosition.vx * effectPosition.vx + effectPosition.vy * effectPosition.vy + effectPosition.vz * effectPosition.vz); \
-    effectPosition.vx = effectPosition.vx * radialScale / ONE;                                                                                                                                           \
-    effectPosition.vy = effectPosition.vy * radialScale / ONE;                                                                                                                                           \
-    effectPosition.vz = effectPosition.vz * radialScale / ONE;                                                                                                                                           \
-    gte_SetRotMatrix(&inverseRotation);                                                                                                                                                                  \
-    gte_ldv0(&effectPosition);                                                                                                                                                                           \
-    gte_rtv0();                                                                                                                                                                                          \
-    gte_stsv(&effectPosition);                                                                                                                                                                           \
-    effectPosition.vx += gActor503500ArmTargetOffsets[work->side].vx;                                                                                                                                    \
-    effectPosition.vy += gActor503500ArmTargetOffsets[work->side].vy;                                                                                                                                    \
-    effectPosition.vz += gActor503500ArmTargetOffsets[work->side].vz;
+/// `coord` is a live GfxCoord with a current cached composition; `contactPoint`
+/// is an SVECTOR in that same frame (normally view space), in game units.
+/// `localCenter` is the target sphere's local SVECTOR offset. `effectPosition`
+/// and `inverseRotation` are disjoint writable SVECTOR/MATRIX lvalues, and
+/// `radialScale` is an s32 scratch lvalue. The matrix and vector scratch must be
+/// word-aligned; GTE loads read their ignored alignment/pad halfwords too.
+/// Subtracts the coordinate origin, narrows XYZ to s16, scales in Q12, rotates
+/// through the cached basis's transpose, then adds localCenter, narrowing again.
+/// For an inverse rotation the cached basis must be orthonormal. The narrowed
+/// squared length must fit s32 and have a nonzero integer square root.
+/// Arguments must be stable, side-effect-free expressions: all are repeated.
+/// Captures only `ACTOR_503500_ARM_HIT_EFFECT_RADIUS` and `ONE`; changes GTE rotation/vector/IR state.
+/// Expands to statements; invoke only as a standalone statement in a braced block.
+#define ACTOR_503500_ARM_PROJECT_HIT_POINT(coord, contactPoint, localCenter, effectPosition, inverseRotation, radialScale)                                                                                             \
+    gte_TransposeMatrix(&(coord)->workm, &(inverseRotation));                                                                                                                                                          \
+    (effectPosition).vx = (contactPoint).vx - (coord)->workm.t[0];                                                                                                                                                     \
+    (effectPosition).vy = (contactPoint).vy - (coord)->workm.t[1];                                                                                                                                                     \
+    (effectPosition).vz = (contactPoint).vz - (coord)->workm.t[2];                                                                                                                                                     \
+    (radialScale)       = (ACTOR_503500_ARM_HIT_EFFECT_RADIUS * ONE) / SquareRoot0((effectPosition).vx * (effectPosition).vx + (effectPosition).vy * (effectPosition).vy + (effectPosition).vz * (effectPosition).vz); \
+    (effectPosition).vx = (effectPosition).vx * (radialScale) / ONE;                                                                                                                                                   \
+    (effectPosition).vy = (effectPosition).vy * (radialScale) / ONE;                                                                                                                                                   \
+    (effectPosition).vz = (effectPosition).vz * (radialScale) / ONE;                                                                                                                                                   \
+    gte_SetRotMatrix(&(inverseRotation));                                                                                                                                                                              \
+    gte_ldv0(&(effectPosition));                                                                                                                                                                                       \
+    gte_rtv0();                                                                                                                                                                                                        \
+    gte_stsv(&(effectPosition));                                                                                                                                                                                       \
+    (effectPosition).vx += (localCenter).vx;                                                                                                                                                                           \
+    (effectPosition).vy += (localCenter).vy;                                                                                                                                                                           \
+    (effectPosition).vz += (localCenter).vz;
     enum {
         ACTOR_503500_ARM_HIT_EFFECT_RADIUS            = 1500,
         ACTOR_503500_ARM_HIT_NORMAL                   = 0,
@@ -5497,7 +5503,7 @@ static inline void _actor503500ArmHandleHit(Task* task, _Actor503500ArmWork* wor
         hitKind = ACTOR_503500_ARM_HIT_DESTROYING;
     }
     // Project the contact radially, then move the effect point into the part frame.
-    ACTOR_503500_ARM_PROJECT_HIT_POINT();
+    ACTOR_503500_ARM_PROJECT_HIT_POINT(coord, contacts[contactIndex].point, gActor503500ArmTargetOffsets[work->side], effectPosition, inverseRotation, radialScale);
 #undef ACTOR_503500_ARM_PROJECT_HIT_POINT
     effectSpawnHit(damageGetPlayerAttackEffectId(attackKey), coord, &effectPosition, &work->hitEffect);
     if (hitKind != ACTOR_503500_ARM_HIT_NORMAL) {
@@ -5575,18 +5581,23 @@ static void _actor503500ArmApplyAttackContacts(Task* task, const WorldCollisionC
     s32                  fallDirection;
     s32                  audioPan;
 
-    /// Copies 18 Q12 rotation bytes without alignment or translation.
-    ///
-    /// Captures bossCoord, work, rotationSourceWords, rotationDestinationWords
-    /// and rotationWordIndex; requires this function's four-word bound. Matrices must
-    /// be live, disjoint and word-aligned. Invoke only in a braced block.
-#define ACTOR_503500_ARM_COPY_KNOCKBACK_ROTATION()                                                                         \
-    rotationSourceWords      = (const s32*)&bossCoord->coord;                                                              \
-    rotationDestinationWords = (s32*)&work->knockbackRotation;                                                             \
-    for (rotationWordIndex = 0; rotationWordIndex < ACTOR_503500_ARM_KNOCKBACK_ROTATION_WORD_COUNT; rotationWordIndex++) { \
-        *rotationDestinationWords++ = *rotationSourceWords++;                                                              \
-    }                                                                                                                      \
-    work->knockbackRotation.m[2][2] = bossCoord->coord.m[2][2];
+/// Copies the nine Q12 rotation coefficients, retaining alignment bytes and translation.
+///
+/// `sourceMatrix` and `destinationMatrix` point to live, word-aligned MATRIXs,
+/// disjoint or identical. Copies four s32 coefficient pairs then m[2][2],
+/// exactly 18 bytes; the casts are word-access views of rotation storage.
+/// `rotationSourceWords` and `rotationDestinationWords` are writable const-s32*/s32* scratch lvalues;
+/// `rotationWordIndex` is an s32 scratch lvalue. No caller locals are captured.
+/// Captures `ACTOR_503500_ARM_KNOCKBACK_ROTATION_WORD_COUNT` (4). Matrix arguments are evaluated twice
+/// and must have no side effects; scratch pointers advance four words.
+/// Expands to statements; invoke only as a standalone statement in a braced block.
+#define ACTOR_503500_ARM_COPY_KNOCKBACK_ROTATION(sourceMatrix, destinationMatrix, rotationSourceWords, rotationDestinationWords, rotationWordIndex) \
+    (rotationSourceWords)      = (const s32*)(sourceMatrix);                                                                                        \
+    (rotationDestinationWords) = (s32*)(destinationMatrix);                                                                                         \
+    for ((rotationWordIndex) = 0; (rotationWordIndex) < ACTOR_503500_ARM_KNOCKBACK_ROTATION_WORD_COUNT; (rotationWordIndex)++) {                    \
+        *(rotationDestinationWords)++ = *(rotationSourceWords)++;                                                                                   \
+    }                                                                                                                                               \
+    (destinationMatrix)->m[2][2] = (sourceMatrix)->m[2][2];
 
     enemy = task->spawnArg2.pointer;
     work  = task->work;
@@ -5598,7 +5609,7 @@ static void _actor503500ArmApplyAttackContacts(Task* task, const WorldCollisionC
                 TASK_MESSAGE_DISPATCH_POINTER(playerTask, GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, &gActor503500PlayerKnockbackHoldRequest, 0) == 0) {
                 // Build the push direction from the boss, preserving translation.
                 bossCoord = task->parent->extra.tmd->coords;
-                ACTOR_503500_ARM_COPY_KNOCKBACK_ROTATION();
+                ACTOR_503500_ARM_COPY_KNOCKBACK_ROTATION(&bossCoord->coord, &work->knockbackRotation, rotationSourceWords, rotationDestinationWords, rotationWordIndex);
                 if (work->side != 0) {
                     RotMatrixY(ACTOR_503500_ARM_KNOCKBACK_TURN, &work->knockbackRotation);
                     bossCoord = &task->parent->extra.tmd->coords[ACTOR_503500_ARM_KNOCKBACK_PART_SIDE_1];
@@ -5629,18 +5640,23 @@ static void _actor503500ArmApplyAttackContacts(Task* task, const WorldCollisionC
 
 void actor503500KnockbackTask(Task* task)
 {
-/// Copies 18 Q12 rotation bytes, excluding matrix alignment and translation.
+/// Copies the nine Q12 rotation coefficients, retaining alignment bytes and translation.
 ///
-/// Captures task, work, rotationSourceWords, rotationDestinationWords,
-/// rotationWordIndex and the four-word bound. No arguments; requires live,
-/// word-aligned disjoint matrices and borrows spawnArg2 only during the copy.
-#define ACTOR_503500_KNOCKBACK_COPY_ROTATION()                                                                         \
-    rotationSourceWords      = (const s32*)task->spawnArg2.pointer;                                                    \
-    rotationDestinationWords = (s32*)&work->rotation;                                                                  \
-    for (rotationWordIndex = 0; rotationWordIndex < ACTOR_503500_KNOCKBACK_ROTATION_WORD_COUNT; rotationWordIndex++) { \
-        *rotationDestinationWords++ = *rotationSourceWords++;                                                          \
-    }                                                                                                                  \
-    work->rotation.m[2][2] = ((const MATRIX*)task->spawnArg2.pointer)->m[2][2];
+/// `sourceMatrix` and `destinationMatrix` point to live, word-aligned MATRIXs,
+/// disjoint or identical. Copies four s32 coefficient pairs then m[2][2],
+/// exactly 18 bytes; the casts are word-access views of rotation storage.
+/// `rotationSourceWords` and `rotationDestinationWords` are writable const-s32*/s32* scratch lvalues;
+/// `rotationWordIndex` is an s32 scratch lvalue. No caller locals are captured.
+/// Captures `ACTOR_503500_KNOCKBACK_ROTATION_WORD_COUNT` (4). Matrix arguments are evaluated twice
+/// and must have no side effects; scratch pointers advance four words.
+/// Expands to statements; invoke only as a standalone statement in a braced block.
+#define ACTOR_503500_KNOCKBACK_COPY_ROTATION(sourceMatrix, destinationMatrix, rotationSourceWords, rotationDestinationWords, rotationWordIndex) \
+    (rotationSourceWords)      = (const s32*)(sourceMatrix);                                                                                    \
+    (rotationDestinationWords) = (s32*)(destinationMatrix);                                                                                     \
+    for ((rotationWordIndex) = 0; (rotationWordIndex) < ACTOR_503500_KNOCKBACK_ROTATION_WORD_COUNT; (rotationWordIndex)++) {                    \
+        *(rotationDestinationWords)++ = *(rotationSourceWords)++;                                                                               \
+    }                                                                                                                                           \
+    (destinationMatrix)->m[2][2] = (sourceMatrix)->m[2][2];
     enum {
         ACTOR_503500_KNOCKBACK_PLAYER_DEAD         = -1,
         ACTOR_503500_KNOCKBACK_INIT                = 0,
@@ -5680,7 +5696,7 @@ void actor503500KnockbackTask(Task* task)
             work->displacementCarry.fixed.vx.word = 0;
             work->displacementCarry.fixed.vy.word = 0;
             work->displacementCarry.fixed.vz.word = 0;
-            ACTOR_503500_KNOCKBACK_COPY_ROTATION();
+            ACTOR_503500_KNOCKBACK_COPY_ROTATION((const MATRIX*)task->spawnArg2.pointer, &work->rotation, rotationSourceWords, rotationDestinationWords, rotationWordIndex);
 #undef ACTOR_503500_KNOCKBACK_COPY_ROTATION
             padScriptSpawn(gActor503500KnockbackPadScriptCommands, gActor503500KnockbackPadScriptSegments);
             work->shakeFrames = ACTOR_503500_KNOCKBACK_SHAKE_FRAMES;
