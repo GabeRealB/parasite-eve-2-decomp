@@ -1474,8 +1474,6 @@ static const TaskFuncTable7 _gMadChaserShrinkDeathStates = { {
 #include "../../shared/mad_chaser_to_alert.inc.c"
 #undef MAD_CHASER_COMBAT_ENTER_ALERT_HANDLER
 
-/// Walk-family interrupt binding: a declared s16(Task*) predicate, called once
-/// before sub-state dispatch; nonzero skips that dispatch. Undefine after inclusion.
 #define MAD_CHASER_STEP_STATE _madChaserWalkState
 /// Selects the combat walk's three-phase table for this dispatch instance.
 ///
@@ -1483,12 +1481,19 @@ static const TaskFuncTable7 _gMadChaserShrinkDeathStates = { {
 /// When uninterrupted, `subState` 0..2 selects start, approach or finish.
 /// All entries are non-NULL void(Task*) callbacks; keep their code loaded.
 /// Undefine this binding after the fragment; it has no default.
-#define MAD_CHASER_STEP_TABLE             gMadChaserWalkSteps
-#define MAD_CHASER_WALK_INTERRUPT_HANDLER _madChaserTakeHitRequest
+#define MAD_CHASER_STEP_TABLE gMadChaserWalkSteps
+/// Selects the hit-request predicate that can interrupt the combat walk.
+///
+/// Names a declared s16(Task*) function; the task must have live MadChaserWork.
+/// Called once after the table copy and before reading `subState`: zero allows
+/// step dispatch, nonzero skips it. A hit latch equal to one consumes the
+/// reaction and interrupts even when no combat behavior is selected.
+/// Bind only for this fragment inclusion, then undefine; there is no default.
+#define MAD_CHASER_STEP_INTERRUPT_HANDLER _madChaserTakeHitRequest
 #include "../../shared/mad_chaser_walk_state.inc.c"
 #undef MAD_CHASER_STEP_STATE
 #undef MAD_CHASER_STEP_TABLE
-#undef MAD_CHASER_WALK_INTERRUPT_HANDLER
+#undef MAD_CHASER_STEP_INTERRUPT_HANDLER
 
 #include "../../shared/mad_chaser_leap_state.inc.c"
 
@@ -1600,12 +1605,18 @@ static const TaskFuncTable7 _gMadChaserShrinkDeathStates = { {
 /// All entries are non-NULL void(Task*) callbacks; keep their code loaded.
 /// Undefine this binding after the fragment; it has no default.
 #define MAD_CHASER_STEP_TABLE _gMadChaserLurkIdleSteps
-// This lurk instance joins a shared alert instead of consuming a hit reaction.
-#define MAD_CHASER_WALK_INTERRUPT_HANDLER _madChaserJoinAlert
+/// Selects the shared-alert predicate that can interrupt the lurk idle hold.
+///
+/// Names a declared s16(Task*) function; the task must have live MadChaserWork.
+/// Called once after the table copy and before reading `subState`: zero allows
+/// step dispatch, nonzero skips it. Any claimed shared alert enters combat at
+/// its alert behavior and interrupts this dispatch.
+/// Bind only for this fragment inclusion, then undefine; there is no default.
+#define MAD_CHASER_STEP_INTERRUPT_HANDLER _madChaserJoinAlert
 #include "../../shared/mad_chaser_walk_state.inc.c"
 #undef MAD_CHASER_STEP_STATE
 #undef MAD_CHASER_STEP_TABLE
-#undef MAD_CHASER_WALK_INTERRUPT_HANDLER
+#undef MAD_CHASER_STEP_INTERRUPT_HANDLER
 
 /// Runs the lurk look sequence, yielding to a claimed shared alert.
 ///
@@ -1619,12 +1630,18 @@ static const TaskFuncTable7 _gMadChaserShrinkDeathStates = { {
 /// All entries are non-NULL void(Task*) callbacks; keep their code loaded.
 /// Undefine this binding after the fragment; it has no default.
 #define MAD_CHASER_STEP_TABLE _gMadChaserLurkLookSteps
-// This lurk instance joins a shared alert instead of consuming a hit reaction.
-#define MAD_CHASER_WALK_INTERRUPT_HANDLER _madChaserJoinAlert
+/// Selects the shared-alert predicate that can interrupt the lurk look hold.
+///
+/// Names a declared s16(Task*) function; the task must have live MadChaserWork.
+/// Called once after the table copy and before reading `subState`: zero allows
+/// step dispatch, nonzero skips it. Any claimed shared alert enters combat at
+/// its alert behavior and interrupts this dispatch.
+/// Bind only for this fragment inclusion, then undefine; there is no default.
+#define MAD_CHASER_STEP_INTERRUPT_HANDLER _madChaserJoinAlert
 #include "../../shared/mad_chaser_walk_state.inc.c"
 #undef MAD_CHASER_STEP_STATE
 #undef MAD_CHASER_STEP_TABLE
-#undef MAD_CHASER_WALK_INTERRUPT_HANDLER
+#undef MAD_CHASER_STEP_INTERRUPT_HANDLER
 
 #include "../../shared/mad_chaser_lurk_rise_state.inc.c"
 

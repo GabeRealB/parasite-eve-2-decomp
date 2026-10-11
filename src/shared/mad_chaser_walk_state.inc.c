@@ -7,11 +7,21 @@
 // TaskFuncTable3 value for the combat walk, lurk idle or lurk look instance.
 // Its three non-NULL void(Task*) callbacks must remain loaded through dispatch.
 // This object-like binding is evaluated once as the table copy; it constructs
-// no tokens. Undefine it after inclusion. The carrier also supplies an
-// s16(Task*) MAD_CHASER_WALK_INTERRUPT_HANDLER.
+// no tokens. Undefine it after inclusion.
+// Bind MAD_CHASER_STEP_INTERRUPT_HANDLER to a declared s16(Task*) predicate
+// taking a task with live MadChaserWork, and keep its code loaded. This
+// object-like binding selects one direct call with task, after the table copy
+// and before reading subState: zero continues dispatch, nonzero skips the step.
+// The combat walk binds the hit-request consumer; lurk idle/look bind the
+// shared-alert joiner. It constructs no tokens and has no default; undefine it
+// after inclusion.
 
 #ifndef MAD_CHASER_STEP_TABLE
 #error "Bind MAD_CHASER_STEP_TABLE to this instance's TaskFuncTable3 value before inclusion"
+#endif
+
+#ifndef MAD_CHASER_STEP_INTERRUPT_HANDLER
+#error "Bind MAD_CHASER_STEP_INTERRUPT_HANDLER to this instance's s16(Task*) predicate before inclusion"
 #endif
 
 /// Dispatches one Mad Chaser behavior step unless an interrupt takes over.
@@ -32,7 +42,7 @@ static void MAD_CHASER_STEP_STATE(Task* task)
     MadChaserWork* work         = task->work;
     TaskFuncTable3 stepHandlers = MAD_CHASER_STEP_TABLE;
 
-    if (MAD_CHASER_WALK_INTERRUPT_HANDLER(task) == 0) {
+    if (MAD_CHASER_STEP_INTERRUPT_HANDLER(task) == 0) {
         stepHandlers.funcs[(s16)work->subState](task);
     }
 }
