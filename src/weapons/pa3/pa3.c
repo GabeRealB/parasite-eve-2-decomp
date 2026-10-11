@@ -2177,136 +2177,243 @@ static AnimationSet _gSp12AimForwardWalkAnimation = {
     },
 };
 
-static AnimationPackedPose _gSp12Animation0BA44Bank1[34] = {
+/// Translation/Euler keyframes for `_gSp12ReloadAnimation`'s tracks 0 and 1.
+///
+/// Translations use model units; angles use 4096 units per turn. Pose reads require word alignment.
+static const AnimationPackedPose _gSp12ReloadAnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/sp12_animation_0BA44_bank1.inc"
 };
 
-static AnimationPackedRotation _gSp12Animation0BA44Bank4[541] = {
+/// Rotation-only keyframes for `_gSp12ReloadAnimation`'s tracks 2..18, in eight-angle-unit steps.
+static const AnimationPackedRotation _gSp12ReloadAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/sp12_animation_0BA44_bank4.inc"
 };
 
-static AnimationRecord _gSp12Animation0BA44Records[633] = {
+/// Keyframe durations, paired reload cues and stop controls for `_gSp12ReloadAnimation`'s nineteen tracks.
+///
+/// Track 1's first full-mask cue applies the load; its second requests the pump sound.
+static const AnimationRecord _gSp12ReloadAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/sp12_animation_0BA44_records.inc"
 };
 
-static u16 _gSp12Animation0BA44Indices[20] = {
+/// Absolute record starts for `_gSp12ReloadAnimation`'s nineteen model-part tracks.
+///
+/// Entries 0..18 are track starts; the serialized trailing zero halfword is retained.
+static const u16 _gSp12ReloadAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/sp12_animation_0BA44_indices.inc"
 };
 
-static AnimationSet _gSp12Animation0BA44 = {
-    _gSp12Animation0BA44Records,
-    _gSp12Animation0BA44Indices,
-    { NULL, _gSp12Animation0BA44Bank1, NULL, NULL, _gSp12Animation0BA44Bank4, NULL, NULL, NULL },
+/// Reload clip shared by primary, secondary and battle-end reloads in SP12 bank slots 14, 15 and 20.
+///
+/// Child tracks 1..18 play through the load and pump cues, then hold their final
+/// poses. The nineteen tracks and pose banks must remain loaded while referenced
+/// by playback or a cached record.
+static AnimationSet _gSp12ReloadAnimation = {
+    .records           = _gSp12ReloadAnimationRecords,
+    .trackStartIndices = _gSp12ReloadAnimationIndices,
+    .poseBanks         = {
+        [SP12_ANIMATION_TRANSLATION_ROTATION_BANK] = _gSp12ReloadAnimationBank1,
+        [SP12_ANIMATION_PACKED_ROTATION_BANK]      = _gSp12ReloadAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gSp12Animation0C4B8Bank1[18] = {
+/// Translation/Euler keyframes for `_gSp12ShotAnimation`'s tracks 0 and 1.
+///
+/// Translations use model units; angles use 4096 units per turn. Pose reads require word alignment.
+static const AnimationPackedPose _gSp12ShotAnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/sp12_animation_0C4B8_bank1.inc"
 };
 
-static AnimationPackedRotation _gSp12Animation0C4B8Bank4[268] = {
+/// Rotation-only keyframes for `_gSp12ShotAnimation`'s tracks 2..18, in eight-angle-unit steps.
+static const AnimationPackedRotation _gSp12ShotAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/sp12_animation_0C4B8_bank4.inc"
 };
 
-static AnimationRecord _gSp12Animation0C4B8Records[327] = {
+/// Keyframe durations and stop controls for `_gSp12ShotAnimation`'s nineteen tracks.
+///
+/// Track 1 retains a full-mask cue unused by normal shotgun firing.
+static const AnimationRecord _gSp12ShotAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/sp12_animation_0C4B8_records.inc"
 };
 
-static u16 _gSp12Animation0C4B8Indices[20] = {
+/// Absolute record starts for `_gSp12ShotAnimation`'s nineteen model-part tracks.
+///
+/// Entries 0..18 are track starts; the serialized trailing zero halfword is retained.
+static const u16 _gSp12ShotAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/sp12_animation_0C4B8_indices.inc"
 };
 
-static AnimationSet _gSp12Animation0C4B8 = {
-    _gSp12Animation0C4B8Records,
-    _gSp12Animation0C4B8Indices,
-    { NULL, _gSp12Animation0C4B8Bank1, NULL, NULL, _gSp12Animation0C4B8Bank4, NULL, NULL, NULL },
+/// Shot and recovery clip in SP12 bank slots 10 and 11.
+///
+/// Firing blends child tracks 1..18 into slot 10 after the ready pose. The clip
+/// holds its final poses while the attack handler controls impact and pump
+/// timing. The nineteen tracks and pose banks must remain loaded while
+/// referenced by playback or a cached record.
+static AnimationSet _gSp12ShotAnimation = {
+    .records           = _gSp12ShotAnimationRecords,
+    .trackStartIndices = _gSp12ShotAnimationIndices,
+    .poseBanks         = {
+        [SP12_ANIMATION_TRANSLATION_ROTATION_BANK] = _gSp12ShotAnimationBank1,
+        [SP12_ANIMATION_PACKED_ROTATION_BANK]      = _gSp12ShotAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gSp12Animation0CB3CBank1[12] = {
+/// Translation/Euler keyframes for `_gSp12AimEnterAnimation`'s tracks 0 and 1.
+///
+/// Translations use model units; angles use 4096 units per turn. Pose reads require word alignment.
+static const AnimationPackedPose _gSp12AimEnterAnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/sp12_animation_0CB3C_bank1.inc"
 };
 
-static AnimationPackedRotation _gSp12Animation0CB3CBank4[160] = {
+/// Rotation-only keyframes for `_gSp12AimEnterAnimation`'s tracks 2..18, in eight-angle-unit steps.
+static const AnimationPackedRotation _gSp12AimEnterAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/sp12_animation_0CB3C_bank4.inc"
 };
 
-static AnimationRecord _gSp12Animation0CB3CRecords[201] = {
+/// Keyframe durations and stop controls for `_gSp12AimEnterAnimation`'s nineteen tracks.
+static const AnimationRecord _gSp12AimEnterAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/sp12_animation_0CB3C_records.inc"
 };
 
-static u16 _gSp12Animation0CB3CIndices[20] = {
+/// Absolute record starts for `_gSp12AimEnterAnimation`'s nineteen model-part tracks.
+///
+/// Entries 0..18 are track starts; the serialized trailing zero halfword is retained.
+static const u16 _gSp12AimEnterAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/sp12_animation_0CB3C_indices.inc"
 };
 
-static AnimationSet _gSp12Animation0CB3C = {
-    _gSp12Animation0CB3CRecords,
-    _gSp12Animation0CB3CIndices,
-    { NULL, _gSp12Animation0CB3CBank1, NULL, NULL, _gSp12Animation0CB3CBank4, NULL, NULL, NULL },
+/// Transition into shotgun aiming in SP12 bank slot 7.
+///
+/// Aim entry resets or blends child tracks 1..18 and holds the final poses
+/// before aim locomotion. The nineteen tracks and pose banks must remain
+/// loaded while referenced by playback or a cached record.
+static AnimationSet _gSp12AimEnterAnimation = {
+    .records           = _gSp12AimEnterAnimationRecords,
+    .trackStartIndices = _gSp12AimEnterAnimationIndices,
+    .poseBanks         = {
+        [SP12_ANIMATION_TRANSLATION_ROTATION_BANK] = _gSp12AimEnterAnimationBank1,
+        [SP12_ANIMATION_PACKED_ROTATION_BANK]      = _gSp12AimEnterAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gSp12Animation0D0B4Bank1[10] = {
+/// Translation/Euler keyframes for `_gSp12AimExitAnimation`'s tracks 0 and 1.
+///
+/// Translations use model units; angles use 4096 units per turn. Pose reads require word alignment.
+static const AnimationPackedPose _gSp12AimExitAnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/sp12_animation_0D0B4_bank1.inc"
 };
 
-static AnimationPackedRotation _gSp12Animation0D0B4Bank4[131] = {
+/// Rotation-only keyframes for `_gSp12AimExitAnimation`'s tracks 2..18, in eight-angle-unit steps.
+static const AnimationPackedRotation _gSp12AimExitAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/sp12_animation_0D0B4_bank4.inc"
 };
 
-static AnimationRecord _gSp12Animation0D0B4Records[169] = {
+/// Keyframe durations and stop controls for `_gSp12AimExitAnimation`'s nineteen tracks.
+static const AnimationRecord _gSp12AimExitAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/sp12_animation_0D0B4_records.inc"
 };
 
-static u16 _gSp12Animation0D0B4Indices[20] = {
+/// Absolute record starts for `_gSp12AimExitAnimation`'s nineteen model-part tracks.
+///
+/// Entries 0..18 are track starts; the serialized trailing zero halfword is retained.
+static const u16 _gSp12AimExitAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/sp12_animation_0D0B4_indices.inc"
 };
 
-static AnimationSet _gSp12Animation0D0B4 = {
-    _gSp12Animation0D0B4Records,
-    _gSp12Animation0D0B4Indices,
-    { NULL, _gSp12Animation0D0B4Bank1, NULL, NULL, _gSp12Animation0D0B4Bank4, NULL, NULL, NULL },
+/// Transition out of shotgun aiming in SP12 bank slot 8.
+///
+/// Aim exit blends child tracks 1..18 over six normal-rate frames and holds
+/// their final poses before ordinary locomotion resumes. The nineteen tracks
+/// and pose banks must remain loaded while referenced by playback or a cached record.
+static AnimationSet _gSp12AimExitAnimation = {
+    .records           = _gSp12AimExitAnimationRecords,
+    .trackStartIndices = _gSp12AimExitAnimationIndices,
+    .poseBanks         = {
+        [SP12_ANIMATION_TRANSLATION_ROTATION_BANK] = _gSp12AimExitAnimationBank1,
+        [SP12_ANIMATION_PACKED_ROTATION_BANK]      = _gSp12AimExitAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gSp12Animation0D96CBank1[18] = {
+/// Translation/Euler keyframes for `_gSp12ForwardWalkAnimation`'s tracks 0 and 1.
+///
+/// Translations use model units; angles use 4096 units per turn. Pose reads require word alignment.
+static const AnimationPackedPose _gSp12ForwardWalkAnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/sp12_animation_0D96C_bank1.inc"
 };
 
-static AnimationPackedRotation _gSp12Animation0D96CBank4[201] = {
+/// Rotation-only keyframes for `_gSp12ForwardWalkAnimation`'s tracks 2..18, in eight-angle-unit steps.
+static const AnimationPackedRotation _gSp12ForwardWalkAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/sp12_animation_0D96C_bank4.inc"
 };
 
-static AnimationRecord _gSp12Animation0D96CRecords[283] = {
+/// Keyframes, loop jumps and terminal controls for `_gSp12ForwardWalkAnimation`'s nineteen tracks.
+///
+/// Track 1 carries the paired footstep cues consumed during locomotion.
+static const AnimationRecord _gSp12ForwardWalkAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/sp12_animation_0D96C_records.inc"
 };
 
-static u16 _gSp12Animation0D96CIndices[20] = {
+/// Absolute record starts for `_gSp12ForwardWalkAnimation`'s nineteen model-part tracks.
+///
+/// Entries 0..18 are track starts; the serialized trailing zero halfword is retained.
+static const u16 _gSp12ForwardWalkAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/sp12_animation_0D96C_indices.inc"
 };
 
-static AnimationSet _gSp12Animation0D96C = {
-    _gSp12Animation0D96CRecords,
-    _gSp12Animation0D96CIndices,
-    { NULL, _gSp12Animation0D96CBank1, NULL, NULL, _gSp12Animation0D96CBank4, NULL, NULL, NULL },
+/// Looping forward walk with the equipped shotgun in SP12 bank slot 2.
+///
+/// Ordinary forward locomotion plays child tracks 1..18 when the weapon model
+/// is present; track 1 supplies alternating footstep cues. Root displacement
+/// is driven separately. The nineteen tracks and pose banks must remain loaded
+/// while referenced by playback or a cached record.
+static AnimationSet _gSp12ForwardWalkAnimation = {
+    .records           = _gSp12ForwardWalkAnimationRecords,
+    .trackStartIndices = _gSp12ForwardWalkAnimationIndices,
+    .poseBanks         = {
+        [SP12_ANIMATION_TRANSLATION_ROTATION_BANK] = _gSp12ForwardWalkAnimationBank1,
+        [SP12_ANIMATION_PACKED_ROTATION_BANK]      = _gSp12ForwardWalkAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gSp12Animation0E10CBank1[16] = {
+/// Translation/Euler keyframes for `_gSp12BackwardWalkAnimation`'s tracks 0 and 1.
+///
+/// Translations use model units; angles use 4096 units per turn. Pose reads require word alignment.
+static const AnimationPackedPose _gSp12BackwardWalkAnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/sp12_animation_0E10C_bank1.inc"
 };
 
-static AnimationPackedRotation _gSp12Animation0E10CBank4[157] = {
+/// Rotation-only keyframes for `_gSp12BackwardWalkAnimation`'s tracks 2..18, in eight-angle-unit steps.
+static const AnimationPackedRotation _gSp12BackwardWalkAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/sp12_animation_0E10C_bank4.inc"
 };
 
-static AnimationRecord _gSp12Animation0E10CRecords[263] = {
+/// Keyframes, loop jumps and terminal controls for `_gSp12BackwardWalkAnimation`'s nineteen tracks.
+///
+/// Track 1 carries the paired footstep cues consumed during locomotion.
+static const AnimationRecord _gSp12BackwardWalkAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/sp12_animation_0E10C_records.inc"
 };
 
-static u16 _gSp12Animation0E10CIndices[20] = {
+/// Absolute record starts for `_gSp12BackwardWalkAnimation`'s nineteen model-part tracks.
+///
+/// Entries 0..18 are track starts; the serialized trailing zero halfword is retained.
+static const u16 _gSp12BackwardWalkAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/sp12_animation_0E10C_indices.inc"
 };
 
-static AnimationSet _gSp12Animation0E10C = {
-    _gSp12Animation0E10CRecords,
-    _gSp12Animation0E10CIndices,
-    { NULL, _gSp12Animation0E10CBank1, NULL, NULL, _gSp12Animation0E10CBank4, NULL, NULL, NULL },
+/// Looping backward walk with the shotgun in SP12 bank slot 3.
+///
+/// Ordinary backward locomotion plays child tracks 1..18; track 1 supplies
+/// alternating footstep cues. Root displacement is driven separately. The
+/// nineteen tracks and pose banks must remain loaded while referenced by
+/// playback or a cached record.
+static AnimationSet _gSp12BackwardWalkAnimation = {
+    .records           = _gSp12BackwardWalkAnimationRecords,
+    .trackStartIndices = _gSp12BackwardWalkAnimationIndices,
+    .poseBanks         = {
+        [SP12_ANIMATION_TRANSLATION_ROTATION_BANK] = _gSp12BackwardWalkAnimationBank1,
+        [SP12_ANIMATION_PACKED_ROTATION_BANK]      = _gSp12BackwardWalkAnimationBank4,
+    },
 };
 
 static AnimationPackedPose _gSp12Animation0EAE0Bank1[25] = {
@@ -2334,25 +2441,25 @@ static AnimationSet _gSp12Animation0EAE0 = {
 AnimationBank D_sp12_8012BCC8 = { { {
     NULL,
     &_gSp12IdleAnimation,
-    &_gSp12Animation0D96C,
-    &_gSp12Animation0E10C,
+    &_gSp12ForwardWalkAnimation,
+    &_gSp12BackwardWalkAnimation,
     &_gSp12Animation0EAE0,
     &_gSp12NegativeTurnAnimation,
     &_gSp12PositiveTurnAnimation,
-    &_gSp12Animation0CB3C,
-    &_gSp12Animation0D0B4,
+    &_gSp12AimEnterAnimation,
+    &_gSp12AimExitAnimation,
     &_gSp12AimIdleAnimation,
-    &_gSp12Animation0C4B8,
-    &_gSp12Animation0C4B8,
+    &_gSp12ShotAnimation,
+    &_gSp12ShotAnimation,
     &_gSp12AimForwardWalkAnimation,
     &_gSp12AimBackwardOrTurnAnimation,
-    &_gSp12Animation0BA44,
-    &_gSp12Animation0BA44,
+    &_gSp12ReloadAnimation,
+    &_gSp12ReloadAnimation,
     &_gSp12Part4HitReactionAnimation,
     &_gSp12OtherBodyHitReactionAnimation,
     &_gSp12DeathAnimation,
     &_gSp12UnarmedWalkAnimation,
-    &_gSp12Animation0BA44,
+    &_gSp12ReloadAnimation,
     &_gSp12IdleAnimation,
     &_gSp12IdleAnimation,
     &_gSp12HighHealthIdleAnimation,
