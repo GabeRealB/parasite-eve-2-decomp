@@ -587,6 +587,25 @@ def image_words(address: int, count: int, image: str | None) -> tuple[int, ...] 
     return within(pkg.read_bytes(), load) if pkg.is_file() else None
 
 
+def image_tail(image: str) -> tuple[int, bytes] | None:
+    """(address, bytes) of the last 16 bytes of a package that are not all zero - what is in memory only once the
+    whole package has been inflated. None for the executable, which is in memory from the start."""
+    if not image:
+        return None
+    if image == "gameplay":
+        load = 0x80093800
+    else:
+        sys.path.insert(0, str(ROOT / "tools" / "peassets"))
+        import asset_residency
+        load = asset_residency.package_loads(tomllib.loads((ROOT / "configs/USA/overlays.toml").read_text())).get(image)
+    pkg = ROOT / "assets" / "USA" / "pe2pkg" / f"{image}.pe2pkg"
+    if load is None or not pkg.is_file():
+        return None
+    data = pkg.read_bytes()
+    end = len(data.rstrip(b"\x00")) & ~3
+    return (load + end - 16, data[end - 16:end]) if end >= 16 else None
+
+
 def sites_of(cfg: dict) -> dict:
     """Every place a hook goes and the two instructions there now: (id, "enter") and (id, "exit", offset)."""
     out, problems = {}, []
@@ -914,6 +933,7 @@ class Session:
         self.by_image: dict[str, list] = {}           # the same, by the image the address is in ("" = the executable)
         self.known: dict[str, int] = {}               # image -> how many of its hooks were in place at the last full look
         self.settled: set[str] = set()                # images that are never loaded again
+        self.tails: dict[str, tuple[int, bytes]] = {} # image -> where its last bytes go and what they are
         for event in self.events:
             self.layout[header(event, 0, event["_enter"])] = (event, "enter", event["_enter"])
             self.hooks.append((event["address"], self.sites[(event["id"], "enter")], self.symbols[f"gt_enter_{event['id']}"]))
@@ -923,6 +943,10 @@ class Session:
                 self.layout[header(event, 1, event["_exit"])] = (event, "exit", event["_exit"])
                 self.hooks.append((event["address"] + offset, self.sites[(event["id"], "exit", offset)], self.symbols[f"gt_exit_{event['id']}_{k}"]))
                 self.by_image[image].append(self.hooks[-1])
+        for image in self.by_image:
+            tail = image_tail(image)
+            if tail is not None:
+                self.tails[image] = tail
 
     def emit(self, record: dict) -> None:
         self.out.write(json.dumps(record) + "\n")
@@ -1165,6 +1189,13 @@ class Session:
                 if first != jump and first != tuple(original):
                     self.known[image] = 0             # something else is loaded there, or nothing yet
                     continue
+            # A package is inflated in place, and the inflater copies from what it has already written: a hook put
+            # into a half-loaded image could be copied into the code after it. So an image is hooked only once its
+            # last bytes are there.
+            tail = self.tails.get(image)
+            if tail is not None and self.gdb.read(tail[0], len(tail[1])) != tail[1]:
+                self.known[image] = 0
+                continue
             count = 0
             for address, original, stub in hooks:
                 jump = (0x08000000 | ((stub >> 2) & 0x03FFFFFF), 0)
@@ -1190,8 +1221,14 @@ class Session:
         """Write out what the buffer holds beyond what the log already has. `reset` starts the buffer again from
         here (the game must be stopped); where the game is stopped on gt_full its own next instructions do that."""
         start = self.symbols["gt_buffer"]
+        # The game may be writing the cursor as it is read here; a value seen twice running was not caught halfway.
         cursor = struct.unpack("<I", self.peek(self.symbols["gt_cursor"], 4))[0]
-        if not start <= cursor <= self.symbols["gt_end"]:
+        for _ in range(8):
+            again = struct.unpack("<I", self.peek(self.symbols["gt_cursor"], 4))[0]
+            if again == cursor:
+                break
+            cursor = again
+        if not start <= cursor <= self.symbols["gt_end"] or (cursor - start) % 4:
             return
         if cursor < self.read_at:                     # the game started the buffer again since the last look
             self.read_at = start
@@ -1211,10 +1248,19 @@ class Session:
             at = field
         self.out.flush()
         self.read_at = cursor
-        if reset and cursor != start:
-            self.gdb.write(self.symbols["gt_cursor"], struct.pack("<I", start))
-        if reset:
+        # Starting the buffer again is only done where no stub is part-way through a record: a stub holds its own
+        # copy of the cursor, and would put the old value back when it finished. Elsewhere the buffer simply goes
+        # on filling; the log has what it holds so far either way.
+        if reset and self.between_records():
+            if cursor != start:
+                self.gdb.write(self.symbols["gt_cursor"], struct.pack("<I", start))
             self.read_at = start
+
+    def between_records(self) -> bool:
+        """Whether the stopped game is outside the stubs, or at one of the places in them where the record is done."""
+        pc = self.gdb.registers()[PC]
+        inside = self.cfg["blob"]["address"] <= pc < self.symbols["gt_buffer"]
+        return not inside or pc == self.symbols["gt_full"] or pc in self.drains
 
     def close(self) -> None:
         """Leave the game as it was found, running: no hook, no breakpoint. What the buffer still holds is read first."""
@@ -1225,6 +1271,12 @@ class Session:
             while not Gdb._is_stop(self.gdb._recv() or ""):
                 pass
         if self.ready:
+            # A hook cannot be taken out from under a stub that has still to jump back through it: let the game
+            # run on to the end of the stub first (a stub is a few dozen instructions).
+            for _ in range(400):
+                if self.between_records():
+                    break
+                self.gdb._go("s")
             self.drain(reset=True)
             self.remove()
         self.gdb.release(False)
@@ -1247,12 +1299,14 @@ class Session:
         return pc
 
     def lost_hooks(self) -> bool:
-        """Whether some image has been loaded again without its hooks: a look that does not stop the game."""
+        """Whether some image is in memory, whole, with a hook missing: a look that does not stop the game."""
         for image, hooks in self.by_image.items():
             if image in self.settled:
                 continue
-            address, original, _stub = hooks[0]
-            if struct.unpack("<2I", self.peek(address, 8)) == tuple(original):
+            tail = self.tails.get(image)
+            if tail is not None and self.peek(tail[0], len(tail[1])) != tail[1]:
+                continue                              # not loaded, or still being loaded
+            if any(struct.unpack("<2I", self.peek(address, 8)) == tuple(original) for address, original, _stub in hooks):
                 return True
         return False
 
