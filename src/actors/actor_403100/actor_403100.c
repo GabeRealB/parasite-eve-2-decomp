@@ -7962,7 +7962,7 @@ static void _actor403100BeginPlayerHitRecovery(void)
 
     if (taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_IS_PLAYING, 0, 0) == 0) {
         // Reuse the equipped weapon's aim-entry pose while retaining scripted control.
-        _gActor403100PlayerAnimationSets[ACTOR_403100_PLAYER_ANIMATION_HIT_RECOVERY] = Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon]->table.sets[ACTOR_403100_NATIVE_PLAYER_AIM_ENTRY];
+        _gActor403100PlayerAnimationSets[ACTOR_403100_PLAYER_ANIMATION_HIT_RECOVERY] = gPlayerActorWeaponAnimationBanks[gPlayerActorWeaponAnimationBankBases[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon]->table.sets[ACTOR_403100_NATIVE_PLAYER_AIM_ENTRY];
         request.source.sets                                                          = _gActor403100PlayerAnimationSets;
         request.blend                                                                = ANIMATION_BLEND_INTERPOLATE;
         request.blendFrames                                                          = ACTOR_403100_PLAYER_HIT_RECOVERY_BLEND_FRAMES;

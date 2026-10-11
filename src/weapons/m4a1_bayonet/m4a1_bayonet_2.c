@@ -152,7 +152,7 @@ void m4a1BayonetAttackState(Task* playerTask)
                     actor->actionValue--;
                     actor->stateTimer                                     = M4A1_BAYONET_SHOT_DELAY_FRAMES;
                     actor->rumblePosted                                   = 0;
-                    weaponCapsule->ends[0].vz                             = weaponCapsule->ends[1].vz + D_80112F60[M4A1_BAYONET_WEAPON_ID];
+                    weaponCapsule->ends[0].vz                             = weaponCapsule->ends[1].vz + gPlayerActorWeaponReaches[M4A1_BAYONET_WEAPON_ID];
                     actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
                     equipmentConsumeWeaponLoad(WEAPON_ITEM(M4A1_BAYONET_WEAPON_ID), EQUIPMENT_WEAPON_LOAD_CONSUME_PRIMARY);
                     if (playerActorQueryWeaponLoads(PLAYER_ACTOR_WEAPON_LOAD_PRIMARY) == 0) {
@@ -205,7 +205,7 @@ void m4a1BayonetAttackState(Task* playerTask)
             if (actor->attackCancelTicks != 0) {
                 actor->attackCancelTicks--;
             }
-            if (playerActorIsSlotAdvancingLinearly(playerTask, D_80112E04[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId][1], 0, 0) == 0 ||
+            if (playerActorIsSlotAdvancingLinearly(playerTask, gPlayerActorAttachmentParentParts[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId][1], 0, 0) == 0 ||
                 ((actor->padHeld & actor->actionPadMask) != 0 && actor->attackCancelTicks == 0)) {
                 actor->attackControl.cooldownTicks = M4A1_BAYONET_RECOVERY_COOLDOWN_FRAMES;
                 playerActorFinishWeaponAttack(playerTask);

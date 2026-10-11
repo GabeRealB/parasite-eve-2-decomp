@@ -228,7 +228,7 @@ static inline void _capHoldWeaponEventPlayer(void)
     AnimationPlayRequest idleRequest;
 
     idleRequest              = _gCapScriptedIdleAnimationRequest;
-    idleRequest.source.index = Gp_WeaponIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon;
+    idleRequest.source.index = gPlayerActorWeaponAnimationBankBases[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon;
     TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &idleRequest, 0);
 }
 
@@ -273,7 +273,7 @@ static void _capWeaponEventTask(Task* task)
             }
             // The request copy is retained; presentation itself receives only a clip selector.
             unusedPresentationRequest              = _gCapWeaponEventEntryAnimationRequest;
-            unusedPresentationRequest.source.index = Gp_WeaponIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon;
+            unusedPresentationRequest.source.index = gPlayerActorWeaponAnimationBankBases[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon;
             taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), PLAYER_ACTOR_MESSAGE_ENTER_SCRIPTED_PRESENTATION, CAP_WEAPON_EVENT_ENTRY_CLIP, 0);
             task->state++;
             break;
@@ -322,7 +322,7 @@ static void _capWeaponEventTask(Task* task)
                 taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), ROOM_MESSAGE_SOUND, task->spawnArg2.value + CAP_WEAPON_EVENT_COMPLETION_CUE_BASE, 0);
             }
             unusedPresentationRequest              = _gCapWeaponEventExitAnimationRequest;
-            unusedPresentationRequest.source.index = Gp_WeaponIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon;
+            unusedPresentationRequest.source.index = gPlayerActorWeaponAnimationBankBases[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon;
             taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), PLAYER_ACTOR_MESSAGE_ENTER_SCRIPTED_PRESENTATION, CAP_WEAPON_EVENT_EXIT_CLIP, 0);
             task->state++;
             break;
@@ -379,7 +379,7 @@ void playerActorSetScriptedControl(s32 resume)
 
     if (resume == GAME_ACTOR_SCRIPTED_CONTROL_HOLD) {
         request              = _gCapScriptedIdleAnimationRequest;
-        request.source.index = Gp_WeaponIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon;
+        request.source.index = gPlayerActorWeaponAnimationBankBases[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon;
         TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &request, 0);
     } else {
         taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_END_SCRIPTED, 0, 0);
@@ -400,12 +400,12 @@ void sceneSetPlacedActorDrawMode(s32 placeIndex, s32 drawMode)
 
 void playerActorWriteWeaponAnimationBankIndex(s32* bankIndexOut)
 {
-    *bankIndexOut = Gp_WeaponIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon;
+    *bankIndexOut = gPlayerActorWeaponAnimationBankBases[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon;
 }
 
 void companionWriteAnimationBankIndex(s32* bankIndexOut)
 {
-    *bankIndexOut = Gp_AllyIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType - 1] + gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant;
+    *bankIndexOut = gCompanionAnimationBankBases[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType - 1] + gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant;
 }
 
 void playerStateRestoreFullHpMp(void)
@@ -470,7 +470,7 @@ void companionSetScriptedControl(s32 resume)
     if (companionTask != NULL) {
         if (resume == GAME_ACTOR_SCRIPTED_CONTROL_HOLD) {
             request              = _gCapScriptedIdleAnimationRequest;
-            request.source.index = Gp_AllyIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType - 1] + gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant;
+            request.source.index = gCompanionAnimationBankBases[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType - 1] + gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant;
             TASK_MESSAGE_DISPATCH_POINTER(companionTask, ANIMATION_MESSAGE_PLAY, &request, 0);
         } else {
             taskMessageDispatch(companionTask, GAME_ACTOR_MESSAGE_END_SCRIPTED, 0, 0);

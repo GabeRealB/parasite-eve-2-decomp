@@ -52,17 +52,39 @@ typedef struct {
 } PlayerActorWeaponImpactScratch;
 STATIC_ASSERT_SIZEOF(PlayerActorWeaponImpactScratch, 0x68);
 
-/// 2-wide rows indexed by `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId`. `_playerActorTickScriptedItemUse` passes
-/// `D_80112E04[field_22][1]` to `playerActorIsSlotAdvancingLinearly`.
-extern u8 D_80112E04[][2];
+/// Attachment parent parts and animation slots for each actor rig.
+///
+/// Rig indices are 0..5 and attachment slots 0/1. Row 0 is {0,0}; rows
+/// 1..5 are {12,8}, requiring at least thirteen model coordinates/playback
+/// slots. Attachment slot 1 is also queried to detect weapon/item-use
+/// playback completion. Entries are element indices, not byte offsets.
+extern u8 gPlayerActorAttachmentParentParts[6][2];
 
-/// u16 table indexed by `playerActorInitWeaponCollision` weaponId: the reach a weapon of that
-/// attach id adds to the shape's `ends[1]` to give its `ends[0]`.
-extern u16 D_80112F60[];
+/// Weapon collision and aiming reaches in game-coordinate units, indexed 0..32.
+///
+/// Adds along capsule-frame Z from endpoint 1 to endpoint 0, with callers
+/// retaining their signed-halfword narrowing. Beam drawing also uses these
+/// values as lengths. Every consumer requires the selected weapon row.
+extern u16 gPlayerActorWeaponReaches[33];
 
-extern u16 Gp_WeaponIdBase[2];
+/// Character-indexed bases for the player weapon-animation bank table.
+///
+/// characterId - 1 selects one of two entries, {1,0}; the equipped weapon
+/// id is added to form the bank index. The ordinary character-1 path maps
+/// weapon ids 0..32 to banks 1..33. The second entry does not establish
+/// storage for event selectors that instead add 34; bank 0 is NULL.
+extern u16 gPlayerActorWeaponAnimationBankBases[2];
 
-extern AnimationBank* Gp_PlayerAnimBlkTbl[34];
+/// Native player animation banks selected by character and equipped weapon.
+///
+/// Slot 0 is NULL; slots 1..33 supply character-1 weapon ids 0..32, using
+/// `gPlayerActorWeaponAnimationBankBases`. Repeated pointers intentionally
+/// select the same bank layout for related weapon packages. Only the bank
+/// whose weapon package is loaded may be dereferenced; its sets and writable
+/// extension words must stay live throughout playback and extension copies.
+/// This table contains exactly 34 entries; selectors beyond 33 have no
+/// established backing storage.
+extern AnimationBank* gPlayerActorWeaponAnimationBanks[34];
 
 /// Initializes and links the equipped weapon's collision capsule for a player-type actor.
 ///

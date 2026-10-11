@@ -1111,7 +1111,7 @@ void hypervelocityAttackState(Task* playerTask)
             }
             /* fallthrough */
         case HYPERVELOCITY_PHASE_RECOVER:
-            if (playerActorIsSlotAdvancingLinearly(playerTask, D_80112E04[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId][1], 0, 0) == 0) {
+            if (playerActorIsSlotAdvancingLinearly(playerTask, gPlayerActorAttachmentParentParts[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId][1], 0, 0) == 0) {
                 playerActorFinishWeaponAttack(playerTask);
             }
             break;

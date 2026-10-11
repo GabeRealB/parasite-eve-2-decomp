@@ -574,7 +574,7 @@ enum {
     /// bursts of 0x20/8 at random points by the bridge.
     EFFECT_ACROPOLIS_BRIDGE_DUST_MOTE = EFFECT_ID(EFFECT_TASK_BANK, 0x0BC),
     /// An expanding, fading coloured band (effectDrawInnerGlowBand) at a Z angle from the spawn
-    /// argument, with colour from D_80112C6C; spawned three at a time 120 degrees apart
+    /// argument, with colour from _gEffectExpandingBandColors; spawned three at a time 120 degrees apart
     /// by effectAntibodyAuraTask and the gunblade.
     EFFECT_EXPANDING_COLOR_BAND = EFFECT_ID(EFFECT_TASK_BANK, 0x0C1),
     /// Companion task of the Inferno PE cast: spins and fades a drawn shape through two

@@ -3288,7 +3288,7 @@ static void _actor800100DrawAimBeamLine(const GfxCoord* beamCoord, s16 contactDi
 
     beamLength = contactDistance;
     if (contactDistance == 0) {
-        beamLength = D_80112F60[gPlayerStatus.weapon];
+        beamLength = gPlayerActorWeaponReaches[gPlayerStatus.weapon];
     }
     projectionScratch->tip.vy    = beamLength;
     projectionScratch->origin.vx = 0;
@@ -3634,7 +3634,7 @@ static void _actor800100InitAimCollision(Task* actorTask)
         aimCapsule->ends[0].vx   = aimCapsule->ends[1].vx;
         aimCapsule->ends[1].vz   = ACTOR_800100_AIM_CAPSULE_Z;
         aimCapsule->ends[0].vy   = aimCapsule->ends[1].vy;
-        aimCapsule->ends[0].vz   = aimCapsule->ends[1].vz + D_80112F60[gPlayerStatus.weapon];
+        aimCapsule->ends[0].vz   = aimCapsule->ends[1].vz + gPlayerActorWeaponReaches[gPlayerStatus.weapon];
         aimCapsule->end1Radius   = ACTOR_800100_AIM_CAPSULE_RADIUS;
         aimCapsule->end0Radius   = ACTOR_800100_AIM_CAPSULE_RADIUS;
         aimCapsule->contacts     = actor->aimContacts;

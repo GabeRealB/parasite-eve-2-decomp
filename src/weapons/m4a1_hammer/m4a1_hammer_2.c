@@ -105,7 +105,7 @@ void m4a1HammerAttackState(Task* playerTask)
                 actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].key    = gPlayerStatus.weaponSlotItem | M4A1_HAMMER_RIFLE_KEY_BASE;
                 weaponShape->end0Radius                               = M4A1_HAMMER_RIFLE_RADIUS;
                 weaponShape->end1Radius                               = M4A1_HAMMER_RIFLE_RADIUS;
-                weaponShape->ends[0].vz                               = weaponShape->ends[1].vz + D_80112F60[0x19];
+                weaponShape->ends[0].vz                               = weaponShape->ends[1].vz + gPlayerActorWeaponReaches[0x19];
                 actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= WORLD_COLLISION_BODY_SINGLE_CONTACT;
                 playerActorSetWeaponAttackFlags(playerTask, 0, 1);
             } else if (actor->attackButton & PLAYER_ACTOR_ATTACK_BUTTON_SECONDARY) {
@@ -186,7 +186,7 @@ void m4a1HammerAttackState(Task* playerTask)
             if (actor->attackCancelTicks != 0) {
                 actor->attackCancelTicks--;
             }
-            if (playerActorIsSlotAdvancingLinearly(playerTask, D_80112E04[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId][1], 0, 0) == 0 ||
+            if (playerActorIsSlotAdvancingLinearly(playerTask, gPlayerActorAttachmentParentParts[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId][1], 0, 0) == 0 ||
                 ((actor->padHeld & actor->actionPadMask) != 0 && actor->attackCancelTicks == 0)) {
                 actor->attackControl.cooldownTicks = M4A1_HAMMER_RECOVERY_COOLDOWN_FRAMES;
                 playerActorFinishWeaponAttack(playerTask);

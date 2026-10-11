@@ -7683,13 +7683,13 @@ lbu    v0,0(a2)
 Assign the table to a local, then the subtract, then index:
 
 ```c
-descriptorBases = D_80112DFC;
+descriptorBases = _gPlayerActorAttachmentDescriptorBases;
 resourceOffset  = gPlayerStatus.resourceVariant - 2;
 task = taskSpawn(7, descriptorBases[rigIndex + resourceOffset] + pairVariant * 2 + attachmentIndex, 0, 0);
 ```
 
 `playerActorSpawnAttachment` is the example. Inlining the table stuck at 96.8%
-(`lbu -2`) or 97.4% (`%lo(D_80112DFC-2)`).
+(`lbu -2`) or 97.4% (`%lo(_gPlayerActorAttachmentDescriptorBases-2)`).
 
 ## Split two `index->actor` reloads so they take `$a3` then `$v0`
 
@@ -8045,7 +8045,7 @@ the address is computed:
 ```c
 s32 descriptorBase;
 
-descriptorBase = D_80112DF4[characterId] - 1; /* lhu a1; addiu a1, -1 */
+descriptorBase = _gPlayerActorWeaponModelDescriptorBases[characterId] - 1; /* lhu a1; addiu a1, -1 */
 task = taskSpawn(7, descriptorBase + weaponId, spawnArg, 0);
 ```
 
@@ -24341,7 +24341,7 @@ GfxCoord*       playerCoords;
 GfxCoord*       puffCoord;
 EffectSpawnArg* spawnRecord;
 
-spawnRecord            = &D_80113358;          /* before the call — keeps $s0 live */
+spawnRecord            = &gEffectPlayerHitSpawnArg;          /* before the call — keeps $s0 live */
 playerTask             = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
 playerModel            = playerTask->extra.tmd;
 playerCoords           = playerModel->coords; /* model local is required */
@@ -26655,7 +26655,7 @@ p->field = table16[i] + addend;
 p->ptr   = table32[p->field];
 ```
 
-`_animationBindPlayerWeaponBank` is the example (`Gp_PlayerAnimBlkTbl[actor->animationBankIndex]`).
+`_animationBindPlayerWeaponBank` is the example (`gPlayerActorWeaponAnimationBanks[actor->animationBankIndex]`).
 
 ## Empty `while (x == K) p++` inverts; `while (1)` + `!=` break does not
 
@@ -27087,7 +27087,7 @@ memFillBytes(actor, 0, 0x998);
 
 When a new overlay switch moves the TU `.rodata` range earlier, splat migrates
 jtbls and some data tables onto `INCLUDE_ASM` functions. Tables used only by
-already-matched C (e.g. `Gp_PlayerModeFns`, `Gp_PlayerMode1States`) land in a standalone
+already-matched C (e.g. `_gPlayerActorModeHandlers`, `Gp_PlayerMode1States`) land in a standalone
 `nonmatchings/.../D_*.s` or in `matchings/<func>.s`. `INCLUDE_RODATA` the
 splat-owned standalone file. For a table stuck in a `matchings/` dump, emit
 the words with inline `.section .rodata` / `.globl` in the C file — a C
@@ -28162,7 +28162,7 @@ switch's `li 1`, without a pinned register or a barrier:
 ```c
 actor       = task->work;
 localOffset = SCRATCH_STACK_RESERVE_BLOCK(SVECTOR);
-spawnRecord = &D_80113358;
+spawnRecord = &gEffectPlayerHitSpawnArg;
 ```
 
 `playerActorTickPoisonHit` is the example. The reservation and release cover
@@ -30751,8 +30751,8 @@ is scheduled before it.
 Write the lookup twice:
 
 ```c
-if (actor->animationSets != Gp_AnimBlkTbl[idx]->table.sets) {
-    actor->animationSets = Gp_AnimBlkTbl[idx]->table.sets;
+if (actor->animationSets != gCompanionAnimationBanks[idx]->table.sets) {
+    actor->animationSets = gCompanionAnimationBanks[idx]->table.sets;
 }
 ```
 
@@ -30918,7 +30918,7 @@ extension, then mask:
 s32 colorBits;
 
 colorBits    = task->spawnArg1.halves.high; /* lh */
-work->period = D_80112C6C[colorBits & 3];
+work->period = _gEffectExpandingBandColors[colorBits & 3];
 ```
 
 `effectPolyTaskC1` is the example.
@@ -31079,9 +31079,9 @@ multiply and wrecks the prefix. An early `term = 0xFFFF` takes `$s2`.
 ## Overlay callback tables bundled with a function stay as inline asm
 
 Splat often puts a stack-copied function-pointer table in the same
-`.s` file as the function that copies it (`_playerActorTickNormal` / `D_8009794C`).
+`.s` file as the function that copies it (`_playerActorTickNormal` / `_gPlayerActorNormalStateHandlers`).
 `INCLUDE_RODATA` of a newly created `nonmatchings/.../D_*.s` looks like
-the `Gp_PlayerModeFns` pattern, but configure/splat regenerates that tree and
+the `_gPlayerActorModeHandlers` pattern, but configure/splat regenerates that tree and
 deletes the extra file. Emit the table with the same inline
 `.section .rodata` block used for `Gp_PlayerMode1States` (`_playerActorTickDamage`). Keep
 any trailing `0` word that sits before the next `.align 3` jump table.
@@ -31518,7 +31518,7 @@ the scheduler can still hoist:
 
 ```c
 head     = *scratch;
-params   = &D_80113358;
+params   = &gEffectPlayerHitSpawnArg;
 head    -= 8;
 *scratch = head;
 vec      = (SVECTOR*)head;
@@ -33499,7 +33499,7 @@ addu   v0, v0, v1
 ```
 
 Write the constant grouped with the *other* operand:
-`D_80112E74[(s8)a->textureSequenceA * 4 + (gPlayerStatus.resourceVariant - 5)][frame]`.
+`_gPlayerActorEyeTextureSequences[(s8)a->textureSequenceA * 4 + (gPlayerStatus.resourceVariant - 5)][frame]`.
 fold moves a constant term of the right-hand sum onto the left
 (`x * 4 + (y - 5)` becomes `(x * 4 - 5) + y`), and the chain then ties into
 one pseudo. The ungrouped `x * 4 + y - 5` keeps the constant last and
@@ -34943,8 +34943,8 @@ Two ways to keep that order:
    stall. Use (1) when the index is inlined as `table[expr]` so the `la`
    can fill `multu` delay (`lui t0` / `addiu t0, %lo` during `tens / 10`).
 
-`_effectControlTask07State1` is the example (effectPhase-add on the `D_80112A50` arm, split
-add on the `D_80112978` arm).
+`_effectControlTask07State1` is the example (effectPhase-add on the `_gEffectPeChargeIds` arm, split
+add on the `_gEffectPeReleaseIds` arm).
 
 ## Empty `asm volatile("")` pins `if (x <= 0) return` as `bgtz` + `j; li -1`
 
@@ -36876,7 +36876,7 @@ keeps `$v1` and the `la` can use `$a0`:
     register u16* tbl asm("a0");
     idx = actor->turnRateIndex;
     if (idx != 0) {
-        tbl = D_80112E20;
+        tbl = _gPlayerActorBodyTurnRates;
         actor->rotation.vy = (actor->rotation.vy + tbl[idx] * yaw) & 0xFFF;
     }
 }
@@ -37739,7 +37739,7 @@ symbol address still hoists because the whole index is one expression.
 
 ```c
 /* 100% */
-arg0->spawnArg1 = D_80112B94[((u16)(x / 100U) - 1) * 9 +
+arg0->spawnArg1 = _gEffectPeChargeSoundIds[((u16)(x / 100U) - 1) * 9 +
                              ((u16)((u16)(x / 10U) % 10U) - 1) * 3 +
                              ((u16)(x % 10U) - 1U)];
 ```
@@ -38682,7 +38682,7 @@ second, which puts the index and the base in the opposite registers from the
 target:
 
 ```c
-quad->clut = getClut(D_80112964[2][palette], 266);
+quad->clut = getClut(_gEffectSpriteClutX[2][palette], 266);
 /* andi v1,a3,0xffff ; lui v0,%hi ; addiu v0 ; sll v1,1 ; addu v1,v1,v0 ; lhu v0,8(v1) */
 ```
 
@@ -38693,7 +38693,7 @@ local restores that shape, because the pointer becomes its own pseudo that is bo
 before the index expression:
 
 ```c
-u16 (*clutTbl)[2] = D_80112964;
+u16 (*clutTbl)[2] = _gEffectSpriteClutX;
 quad->clut = getClut(clutTbl[2][palette], 266);
 /* lui v1,%hi ; addiu v1 ; andi v0,a3,0xffff ; sll v0,1 ; addu v0,v0,v1 ; lhu v0,8(v0) */
 ```
@@ -41884,7 +41884,7 @@ worse). Writing the guarded initialisation as a plain assignment
 
 ```c
 dir = 1;
-if (D_80112EF8[gPlayerStatus.weapon] != 0) {
+if (_gPlayerActorWeaponUsesSelectedLoads[gPlayerStatus.weapon] != 0) {
     dir = actor->attackButton;
 }
 ```
@@ -41895,7 +41895,7 @@ all four references (89.7%, `regs=21`). The ternary — or the equivalent
 reference folds on its own (98.2%):
 
 ```c
-dir = D_80112EF8[gPlayerStatus.weapon] != 0 ? actor->attackButton : 1;
+dir = _gPlayerActorWeaponUsesSelectedLoads[gPlayerStatus.weapon] != 0 ? actor->attackButton : 1;
 ```
 
 Both forms emit the identical `li s1, 1` in the branch delay slot followed by
@@ -49971,7 +49971,7 @@ A nested record inside a struct reads naturally through one named pointer:
 
 ```c
 WorldCollisionCapsule* rec = &player->weaponShape;
-rec->ends[0].vz = (rec->ends[1].vz + D_80112F60[gPlayerStatus.weapon]) << 1;
+rec->ends[0].vz = (rec->ends[1].vz + gPlayerActorWeaponReaches[gPlayerStatus.weapon]) << 1;
 ```
 
 That scores 98% with `regs`/`branch` leftovers, because the local forces GCC to
@@ -49990,7 +49990,7 @@ interior pointer:
 
 ```c
 player->weaponShape.ends[0].vz =
-    (player->weaponShape.ends[1].vz + D_80112F60[gPlayerStatus.weapon]) << 1;
+    (player->weaponShape.ends[1].vz + gPlayerActorWeaponReaches[gPlayerStatus.weapon]) << 1;
 ```
 
 This is the opposite of "Hold a global's address in a local pointer": a global
@@ -56477,10 +56477,10 @@ The lever is GCC 2.8.1's `MEM_IN_STRUCT_P`. `true_dependence` skips the address
 comparison entirely when one `MEM` is inside an aggregate and the other is not,
 so a store through `rec->` and a load of a *scalar* `extern` are declared
 independent and `sched1` is free to reorder them. Give the load an aggregate of
-its own — here the table row it actually is, `D_80112F60[0x19]` — and both
+its own — here the table row it actually is, `gPlayerActorWeaponReaches[0x19]` — and both
 `MEM`s are `MEM_IN_STRUCT_P`, the address check runs, a `symbol_ref` against a
 `reg + offset` is not provably distinct, and the load stays put. 97.3% → 99.9%,
-with the last 0.1% being the cosmetic `%lo(D_80112F60+0x32)` vs `%lo(D_80112F92)`
+with the last 0.1% being the cosmetic `%lo(gPlayerActorWeaponReaches+0x32)` vs `%lo(D_80112F92)`
 spelling of the same relocation.
 
 `D_XXXXXXXX` for an interior address is splat inventing a name because it has no
@@ -74397,7 +74397,7 @@ late inside the `%hi`/`%lo` cluster that computes
 
 ```c
 _gActor444000GluttonPlayerCaptureAnimationSets[4] =
-    ((Actor403200AnimTable*)Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[D_8007218A - 1] + D_80073BA9])->sets[7];
+    ((Actor403200AnimTable*)gPlayerActorWeaponAnimationBanks[gPlayerActorWeaponAnimationBankBases[D_8007218A - 1] + D_80073BA9])->sets[7];
 ```
 
 Nothing about the allocation or the statement order was wrong - swapping the two
@@ -105013,7 +105013,7 @@ intermediate inside an `s8` inline keeps `lb`, and `80137084` still matches.
 ### A store scheduled past an absolute-byte load: read the byte through its struct
 
 `_actor403000Update` clears `work->catchFrame` and then indexes
-`Gp_WeaponIdBase[D_8007218A - 1]`. The ROM keeps `sh zero,0xFCC(s2)` between
+`gPlayerActorWeaponAnimationBankBases[D_8007218A - 1]`. The ROM keeps `sh zero,0xFCC(s2)` between
 `lui v0,%hi(D_8007218A)` and the `lb`; with `extern s8 D_8007218A` sched2
 moved the store after the `lb` (reorder=1, everything else zero). `D_8007218A`
 is `gMcSaveData + 0x22`, and writing `gMcSaveData.characterId` makes the load a
@@ -137304,7 +137304,7 @@ fixed-scalar/varying-struct alias exemption. Its archived seed was 95.301%
 `WorldCollisionCapsule` but could not move the `ends[1].vx` store/load pair earlier while
 keeping both loads and the target's register homes.
 
-The deciding access was later: `D_80112F60[D_80073BA9]`. UID 113's bare scalar
+The deciding access was later: `gPlayerActorWeaponReaches[D_80073BA9]`. UID 113's bare scalar
 byte load was `mem:QI`, with dependencies only on its address and the prior
 call. A preplanned controlled variant changed only the global declaration to
 an array and its use to `[0]`. RTL made it `mem/s:QI`; sched1 added dependencies

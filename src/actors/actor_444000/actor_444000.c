@@ -5796,8 +5796,8 @@ static void _actor444000SwipeState(Task* task)
                 case ACTOR_444000_SWIPE_CAUGHT_PLAYER_CLIP:
                     if (work->swipeDamageReply != ACTOR_444000_SWIPE_FATAL_REPLY && (s16)work->caughtTicks >= ACTOR_444000_SWIPE_PLAYER_RECOVER_TICK) {
                         work->playerAnim.source.sets                                                           = _gActor444000GluttonPlayerCaptureAnimationSets;
-                        _gActor444000GluttonPlayerCaptureAnimationSets[ACTOR_444000_SWIPE_PLAYER_RECOVER_CLIP] = (Gp_PlayerAnimBlkTbl
-                                                                                                                      [Gp_WeaponIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon])
+                        _gActor444000GluttonPlayerCaptureAnimationSets[ACTOR_444000_SWIPE_PLAYER_RECOVER_CLIP] = (gPlayerActorWeaponAnimationBanks
+                                                                                                                      [gPlayerActorWeaponAnimationBankBases[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon])
                                                                                                                      ->table.sets[ACTOR_444000_SWIPE_WEAPON_RECOVER_SET];
                         work->playerAnim.animationId = ACTOR_444000_SWIPE_PLAYER_RECOVER_CLIP;
                         work->playerAnim.blend       = ANIMATION_BLEND_INTERPOLATE;

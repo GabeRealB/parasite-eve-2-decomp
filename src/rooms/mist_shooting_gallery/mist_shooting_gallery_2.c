@@ -2613,7 +2613,7 @@ static void _mistShootingGalleryInitCourse(Task* controller)
 
     // Extend the weapon capsule in the firing lane before entering locomotion.
     player->weaponShape.ends[0].vz =
-        (player->weaponShape.ends[1].vz + D_80112F60[gPlayerStatus.weapon]) << 1;
+        (player->weaponShape.ends[1].vz + gPlayerActorWeaponReaches[gPlayerStatus.weapon]) << 1;
     playerActorEnterLocomotion(playerTask, 1);
 
     // The early courses restrict swapping; the first two also hold movement.

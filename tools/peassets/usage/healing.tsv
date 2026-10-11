@@ -23,9 +23,9 @@ pe2clut_307	row 3 (y=268), 16-colour palettes 16 and 17 (x=256, 272)	healing:_he
 pe2clut_307	row 2 (y=267), 16-colour palette 3 (x=48)	gameplay:effectDrawSpinningBillboard	palette of the rising-spark cells: gEffectBillboardClutX[1]	as the rising spark	src/gameplay/room_effects.c:2023 effectDrawSpinningBillboard; table src/gameplay/effect_tasks.c:531-533; palette index 1 from src/shared/rising_spark_task.inc.c:60 (period = 1 << 12)	established	
 # checklist is missing: pe2img_302 and pe2clut_307 (gameplay's shared effect sheet and its palettes) carry all four textured uses of this spell.
 # the spell package embeds no asset: asset_schema --deps prints nothing for healing and asset_residency lists only the three carrier files (50122..50124) with 0 uploads.
-# who starts the cast: release of an armed Healing spawns effect 0x60015 (healingAuraTask) from D_80112978[21..23], src/gameplay/player_actor.c:756-758, 2669-2675; task table src/gameplay/room_effects.c:559-561 (0x15 aura, 0x16 rising spark, 0x17 sparkle).
+# who starts the cast: release of an armed Healing spawns effect 0x60015 (healingAuraTask) from _gEffectPeReleaseIds[21..23], src/gameplay/player_actor.c:756-758, 2669-2675; task table src/gameplay/room_effects.c:559-561 (0x15 aura, 0x16 rising spark, 0x17 sparkle).
 # untextured parts, for completeness: the aura's doubled centre disc is effectDrawGouraudDisc and its bands effectDrawOuterGlowBand (src/pe/healing/healing.c:77-104) - no texture or palette.
 # entries 0 and 1 of each bank are the same script per spk_scripts.py; only entry 1 is requested.
 # a static gameplay loader _attachmentEnqueueBattleSoundLoad (src/gameplay/hud_sprites.c:1274-1284) takes a variable file index but has no caller in src/; attachmentSoundLoadStub (hud_sprites.c:1256) loads nothing. Neither was counted as a load of these banks.
-# the charge-up sound was not traced here (pyrokinesis.tsv found it in the common bank through D_80112B94).
+# the charge-up sound was not traced here (pyrokinesis.tsv found it in the common bank through _gEffectPeChargeSoundIds).
 # _HealingLevelTuning.field_0 (8, 12, 16) is never read by this overlay.

@@ -187,7 +187,7 @@ void gunbladeAttackState(Task* playerTask)
                 weaponRecordUse(GUNBLADE_WEAPON_ID);
                 actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].key = GUNBLADE_SLASH_KEY;
                 {
-                    u16 slashReach            = weaponCapsule->ends[1].vz + D_80112F60[GUNBLADE_WEAPON_ID];
+                    u16 slashReach            = weaponCapsule->ends[1].vz + gPlayerActorWeaponReaches[GUNBLADE_WEAPON_ID];
                     weaponCapsule->end0Radius = GUNBLADE_SLASH_RADIUS;
                     weaponCapsule->end1Radius = GUNBLADE_SLASH_RADIUS;
                     weaponCapsule->ends[0].vz = slashReach;
@@ -283,7 +283,7 @@ void gunbladeAttackState(Task* playerTask)
             /* fallthrough */
         case GUNBLADE_PHASE_RECOVER:
             actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
-            if (playerActorIsSlotAdvancingLinearly(playerTask, D_80112E04[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId][1], 0, 0) == 0) {
+            if (playerActorIsSlotAdvancingLinearly(playerTask, gPlayerActorAttachmentParentParts[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId][1], 0, 0) == 0) {
                 playerActorFinishWeaponAttack(playerTask);
             }
             break;

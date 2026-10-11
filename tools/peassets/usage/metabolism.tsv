@@ -14,7 +14,7 @@ pe2clut_307	row 2 (y=267), 16-colour palette 17 (x=272)	gameplay:effectDrawModul
 # checklist is missing: pe2img_302 and pe2clut_307 (gameplay's shared effect sheet and its palettes) carry both textured uses of this spell.
 # the spell package embeds no asset: asset_schema --deps prints nothing for metabolism and asset_residency lists only the three carrier files (50119..50121) with 0 uploads.
 # the overlay names no texture page or palette itself: both sprites go through gameplay's billboard drawers, so the rectangles and palettes above are gameplay constants selected by this overlay's arguments (frame, bank, palette index).
-# who starts the cast: release of an armed Metabolism spawns effect 0x60012 (metabolismCastTask) from D_80112978[18..20], src/gameplay/player_actor.c:734, 2669; task table src/gameplay/room_effects.c:556 (cast), 557 (sparkle 0x13).
+# who starts the cast: release of an armed Metabolism spawns effect 0x60012 (metabolismCastTask) from _gEffectPeReleaseIds[18..20], src/gameplay/player_actor.c:734, 2669; task table src/gameplay/room_effects.c:556 (cast), 557 (sparkle 0x13).
 # untextured parts, for completeness: the fan is _metabolismDrawFanWedge (POLY_G3, src/pe/metabolism/metabolism.c:373), the rings effectDrawGouraudDisc and effectDrawOuterGlowBand - no texture or palette.
 # entries 0 and 1 of each bank are the same script per spk_scripts.py; only entry 1 is requested.
-# the charge-up effect and sound (D_80112A50 / D_80112B94, gameplay) were not traced here.
+# the charge-up effect and sound (_gEffectPeChargeIds / _gEffectPeChargeSoundIds, gameplay) were not traced here.

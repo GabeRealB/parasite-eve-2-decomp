@@ -333,7 +333,7 @@ void m93rAttackState(Task* playerTask)
             if ((actor->padHeld & actor->actionPadMask) != 0) {
                 cancelOnHeldInput = actor->attackCancelTicks == 0;
             }
-            if (playerActorIsSlotAdvancingLinearly(playerTask, D_80112E04[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId][1], 0, 0) == 0 || cancelOnHeldInput) {
+            if (playerActorIsSlotAdvancingLinearly(playerTask, gPlayerActorAttachmentParentParts[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId][1], 0, 0) == 0 || cancelOnHeldInput) {
                 if (cancelOnHeldInput) {
                     actor->attackControl.cooldownTicks = M93R_HELD_COOLDOWN_FRAMES;
                 } else {

@@ -315,108 +315,17 @@ typedef struct {
 } _PlayerActorVibrationPreset;
 STATIC_ASSERT_SIZEOF(_PlayerActorVibrationPreset, 0x4);
 
-extern EffectSpawnArg D_80112C74;
-
-extern s32 D_80112C7C[];
-
-/// CLUT X positions, in pixels, for effect sprites drawn from texture page
-/// 0x29, in five rows of two. Each entry places a CLUT on VRAM row 0x10A; the
-/// drawing function fixes the row and its caller picks the column.
-extern u16 D_80112964[5][2];
-
-/// Spawn-id words indexed by the 3-digit packing of `gAttachmentState.attachId`
-/// `(hundreds-1)*9 + (tens-1)*3 + ones - 1`. `_effectControlTask07State1` uses this
-/// when `gAttachmentState.effectPhase == ATTACHMENT_EFFECT_RELEASED`, and
-/// `D_80112A50` when `gAttachmentState.effectPhase == ATTACHMENT_EFFECT_CHARGE`.
-extern s32 D_80112978[];
-
-extern s32 D_80112A50[];
-
-/// Spawn-id words for `effectControlTaskAE`, indexed with the same 3-digit packing
-/// of `gAttachmentState.attachId` as `D_80112978`; the value becomes the task's
-/// `Task::spawnArg1` sound id.
-extern s32 D_80112B94[];
-
-/// `GfxCoord` index parallel to `D_80112978`. `_effectControlTask07State1` adds
-/// it onto `TmdObject.coords` when `gAttachmentState.effectPhase == ATTACHMENT_EFFECT_RELEASED`.
-extern u16 D_80112B28[];
-
-/// 4 packed RGB-nibble colors. `effectPolyTaskC1` indexes with
-/// `TaskSpawnArg::halves.high & 3` and stores the halfword in `EffectWork.period`.
-extern u16 D_80112C6C[];
-
-/// u8 taskSpawn type bases. `playerActorSpawnAttachment` indexes
-/// `D_80112DFC[rigIndex + gPlayerStatus.resourceVariant - 2]`.
-extern u8 D_80112DFC[];
-
-/// The one variable-motor vibration preset. The poster indexes it with the
-/// low halfword of its selector; the only call passes 0.
-extern _PlayerActorVibrationPreset D_80112E28[];
-
-/// s16 scale rows indexed by `GameActor.movementMode`. `playerActorStepMovement` divides
-/// the normalized matrix-column by `D_80112E10[movementMode]`.
-extern s16 D_80112E10[];
-
-/// u16 facing-step rows indexed by `GameActor.turnRateIndex`. `playerActorUpdateFacing`
-/// adds `D_80112E20[turnRateIndex] * turnSign` onto `rotation.vy` (masked `0xFFF`).
-extern u16 D_80112E20[];
-
 /// 2-wide rows of `GfxCoord` indices. `_playerActorGetCharacterPartCoord` indexes
 /// `D_80112E2C[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1][partSelector]`.
 extern u8 D_80112E2C[][2];
 
-/// u16 turn-rate rows indexed by `gPlayerStatus.weapon`. `playerActorAimYawToLock`
-/// clamps the wrapped yaw delta to this value (or 1.5x when
-/// `equipmentHasEffect(EQUIPMENT_EFFECT_QUICK_FIRE)` is set).
-extern u16 D_80112E30[];
-
-/// NULL-terminated `GpuImageUpload*` lists for `_playerActorTickTextureSequences`. Indexed as
-/// `table[type * 4 + gPlayerStatus.resourceVariant - 5][frame]`. `D_80112E74` is
-/// the `textureSequenceA` sequence; `D_80112EB4` is the `textureSequenceB` sequence.
-extern GpuImageUpload* const* D_80112E74[];
-
-extern GpuImageUpload* const* D_80112EB4[];
-
-/// Per-item flag byte indexed by `gPlayerStatus.weapon`. Nonzero makes
-/// `_playerActorNormalState2` / `_playerActorTickScriptedAttack` pass `GameActor.attackButton` (the current
-/// primary/secondary fire-input selector) to `playerActorQueryWeaponLoads` instead of the default 1.
-extern u8 D_80112EF8[];
-
-/// 2-wide rows indexed by `gPlayerStatus.weapon`. Zero at `[i][0]`
-/// makes `playerActorEnterReload` abort the battle-end path (`statePhase = 0x3E8`).
-extern u8 D_80112F1C[][2];
-
-/// 0x10-byte `VECTOR` rows indexed by `playerActorInitWeaponCollision` weaponId: where the
-/// weapon of that attach id sits on the actor. Copied through scratch; the low
-/// 16 bits of `vx`/`vy`/`vz` seed the shape's `ends[1]`.
-extern VECTOR D_80112FA4[];
-
-/// Aiming origin of each weapon, indexed by weapon id: a point in the local
-/// space of the root coordinate of the equipped weapon's model. The aim
-/// routines stage a row in their scratch block and measure the lock target's
-/// offset from the resulting world position.
-extern SVECTOR D_801131B4[];
-
 extern TaskMessageEntry Gp_PlayerMsgTable[28];
-
-extern u16 D_80112DF4[4];
 
 static const TaskFuncTable3 Gp_EffTask07States;
 
 /// Four-entry `Task::state` dispatcher: `_playerActorInitWork`, `_playerActorWorkState1`,
 /// `_playerActorWorkState2`, `_playerActorTeardown`.
 static const TaskFuncTable4 Gp_PlayerWorkStates;
-
-/// Per-weapon handlers, indexed by `PlayerStatus::weapon` and copied by
-/// `_playerActorDispatchWeaponAttack`. Most live in the weapon overlay loaded at the time;
-/// `_playerActorNoWeaponAttack` serves the weapons with none.
-static const _PlayerActorWeaponAttacks D_800978BC;
-
-/// `mode` dispatcher: `_playerActorTickNormal`, `_playerActorTickDamage`, `_playerActorTickScripted`.
-static const TaskFuncTable3 Gp_PlayerModeFns;
-
-/// `state` dispatcher copied by `_playerActorTickNormal`.
-static const TaskFuncTable8 D_8009794C;
 
 /// `hitRegion` dispatcher: three slots of `_playerActorTickDamageReaction`, then `_playerActorDamageHitRegion3`.
 static const TaskFuncTable4 Gp_PlayerMode1States;
@@ -623,50 +532,199 @@ void func_sp12_8011D1DC(Task* arg0);
 void func_mp5a5_p1_8011DDA4(Task* arg0);
 void func_mp5a5_p2_8011DDA4(Task* arg0);
 
-u16 D_80112964[5][2] = {
+/// PE cast/charge task ids used by the attachment effect lookup tables.
+enum {
+    EFFECT_PE_LOOKUP_COUNT       = ATTACHMENT_LEVEL_ROW_COUNT - 1,
+    EFFECT_PE_NO_EFFECT          = 0,
+    EFFECT_PE_METABOLISM_CAST    = EFFECT_ID(EFFECT_TASK_BANK, 0x012),
+    EFFECT_PE_PLASMA_CAST        = EFFECT_ID(EFFECT_TASK_BANK, 0x014),
+    EFFECT_PE_HEALING_AURA       = EFFECT_ID(EFFECT_TASK_BANK, 0x015),
+    EFFECT_PE_NECROSIS_CAST      = EFFECT_ID(EFFECT_TASK_BANK, 0x018),
+    EFFECT_PE_LIFE_DRAIN_CAST    = EFFECT_ID(EFFECT_TASK_BANK, 0x0AB),
+    EFFECT_PE_INFERNO_CAST       = EFFECT_ID(EFFECT_TASK_BANK, 0x0BE),
+    EFFECT_PE_APOBIOSIS_CAST     = EFFECT_ID(EFFECT_TASK_BANK, 0x0C0),
+    EFFECT_PE_ANTIBODY_CAST      = EFFECT_ID(EFFECT_TASK_BANK, 0x0CB),
+    EFFECT_PE_ENERGY_SHOT_CAST   = EFFECT_ID(EFFECT_TASK_BANK, 0x0CC),
+    EFFECT_PE_ENERGY_BALL_CAST   = EFFECT_ID(EFFECT_TASK_BANK, 0x0CF),
+    EFFECT_PE_PYROKINESIS_VOLLEY = EFFECT_ID(EFFECT_TASK_BANK, 0x0FC),
+    EFFECT_PE_PEPPER_SPRAY       = EFFECT_ID(EFFECT_TASK_BANK, 0x197),
+    EFFECT_PE_OFUDA              = EFFECT_ID(EFFECT_TASK_BANK, 0x198),
+    EFFECT_PE_FLARE              = EFFECT_ID(EFFECT_TASK_BANK, 0x19D),
+    EFFECT_PE_COMBUSTION_CAST    = EFFECT_ID(EFFECT_TASK_BANK, 0x1A0),
+    EFFECT_PE_CONCENTRIC_CHARGE  = EFFECT_ID(EFFECT_TASK_BANK, 0x0AE),
+    EFFECT_PE_ORBITING_CHARGE    = EFFECT_ID(EFFECT_TASK_BANK, 0x0A8),
+};
+
+/// CLUT X positions in VRAM pixels for the effect sprite atlas.
+///
+/// Five retained pairs of palette columns 0/1; projectile sprites use row 1
+/// and animated ground quads row 2, both at VRAM Y=266. The other rows
+/// have no current reader.
+static u16 _gEffectSpriteClutX[5][2] = {
     { 16, 240 },
     { 64, 256 },
     { 80, 272 },
     { 96, 288 },
     { 224, 304 },
 };
-s32 D_80112978[54] = {
-    -0x7FF9FFF0,
-    -0x7FF9FFF0,
-    -0x7FF9FF04,
-    -0x7FF9FFE5,
-    -0x7FF9FE60,
-    -0x7FF9FE60,
-    -0x7FF9FF42,
-    -0x7FF9FF42,
-    -0x7FF9FF42,
-    -0x7FF9FFE8,
-    -0x7FF9FFE8,
-    -0x7FF9FFE8,
-    -0x7FF9FFEC,
-    -0x7FF9FFEC,
-    -0x7FF9FFEC,
-    -0x7FF9FF40,
-    -0x7FF9FF40,
-    -0x7FF9FF40,
-    -0x7FF9FFEE,
-    -0x7FF9FFEE,
-    -0x7FF9FFEE,
-    -0x7FF9FFEB,
-    -0x7FF9FFEB,
-    -0x7FF9FFEB,
-    -0x7FF9FF55,
-    -0x7FF9FF55,
-    -0x7FF9FF55,
-    -0x7FF9FF35,
-    -0x7FF9FF35,
-    -0x7FF9FF35,
-    -0x7FF9FF34,
-    -0x7FF9FF34,
-    -0x7FF9FF34,
-    -0x7FF9FF31,
-    -0x7FF9FF31,
-    -0x7FF9FF31,
+/// Effect-spawn ids for released PE abilities and consumable effects.
+///
+/// The decimal attachment id htl selects (h-1)*9 + (t-1)*3 + l-1,
+/// with h=1..6, t=1..3 and l=1..3 (indices 0..53). Zero emits nothing;
+/// nonzero ids include EFFECT_SPAWN_UNLIMITED. Placement uses the matching
+/// entry of `_gEffectPeReleaseParentParts`.
+static s32 _gEffectPeReleaseIds[EFFECT_PE_LOOKUP_COUNT] = {
+    (EFFECT_PYROKINESIS_CAST | EFFECT_SPAWN_UNLIMITED),
+    (EFFECT_PYROKINESIS_CAST | EFFECT_SPAWN_UNLIMITED),
+    (EFFECT_PE_PYROKINESIS_VOLLEY | EFFECT_SPAWN_UNLIMITED),
+    (EFFECT_COMBUSTION_FLAME_EMITTER | EFFECT_SPAWN_UNLIMITED),
+    (EFFECT_PE_COMBUSTION_CAST | EFFECT_SPAWN_UNLIMITED),
+    (EFFECT_PE_COMBUSTION_CAST | EFFECT_SPAWN_UNLIMITED),
+    (EFFECT_PE_INFERNO_CAST | EFFECT_SPAWN_UNLIMITED),
+    (EFFECT_PE_INFERNO_CAST | EFFECT_SPAWN_UNLIMITED),
+    (EFFECT_PE_INFERNO_CAST | EFFECT_SPAWN_UNLIMITED),
+    (EFFECT_PE_NECROSIS_CAST | EFFECT_SPAWN_UNLIMITED),
+    (EFFECT_PE_NECROSIS_CAST | EFFECT_SPAWN_UNLIMITED),
+    (EFFECT_PE_NECROSIS_CAST | EFFECT_SPAWN_UNLIMITED),
+    (EFFECT_PE_PLASMA_CAST | EFFECT_SPAWN_UNLIMITED),
+    (EFFECT_PE_PLASMA_CAST | EFFECT_SPAWN_UNLIMITED),
+    (EFFECT_PE_PLASMA_CAST | EFFECT_SPAWN_UNLIMITED),
+    (EFFECT_PE_APOBIOSIS_CAST | EFFECT_SPAWN_UNLIMITED),
+    (EFFECT_PE_APOBIOSIS_CAST | EFFECT_SPAWN_UNLIMITED),
+    (EFFECT_PE_APOBIOSIS_CAST | EFFECT_SPAWN_UNLIMITED),
+    (EFFECT_PE_METABOLISM_CAST | EFFECT_SPAWN_UNLIMITED),
+    (EFFECT_PE_METABOLISM_CAST | EFFECT_SPAWN_UNLIMITED),
+    (EFFECT_PE_METABOLISM_CAST | EFFECT_SPAWN_UNLIMITED),
+    (EFFECT_PE_HEALING_AURA | EFFECT_SPAWN_UNLIMITED),
+    (EFFECT_PE_HEALING_AURA | EFFECT_SPAWN_UNLIMITED),
+    (EFFECT_PE_HEALING_AURA | EFFECT_SPAWN_UNLIMITED),
+    (EFFECT_PE_LIFE_DRAIN_CAST | EFFECT_SPAWN_UNLIMITED),
+    (EFFECT_PE_LIFE_DRAIN_CAST | EFFECT_SPAWN_UNLIMITED),
+    (EFFECT_PE_LIFE_DRAIN_CAST | EFFECT_SPAWN_UNLIMITED),
+    (EFFECT_PE_ANTIBODY_CAST | EFFECT_SPAWN_UNLIMITED),
+    (EFFECT_PE_ANTIBODY_CAST | EFFECT_SPAWN_UNLIMITED),
+    (EFFECT_PE_ANTIBODY_CAST | EFFECT_SPAWN_UNLIMITED),
+    (EFFECT_PE_ENERGY_SHOT_CAST | EFFECT_SPAWN_UNLIMITED),
+    (EFFECT_PE_ENERGY_SHOT_CAST | EFFECT_SPAWN_UNLIMITED),
+    (EFFECT_PE_ENERGY_SHOT_CAST | EFFECT_SPAWN_UNLIMITED),
+    (EFFECT_PE_ENERGY_BALL_CAST | EFFECT_SPAWN_UNLIMITED),
+    (EFFECT_PE_ENERGY_BALL_CAST | EFFECT_SPAWN_UNLIMITED),
+    (EFFECT_PE_ENERGY_BALL_CAST | EFFECT_SPAWN_UNLIMITED),
+    EFFECT_PE_NO_EFFECT,
+    EFFECT_PE_NO_EFFECT,
+    EFFECT_PE_NO_EFFECT,
+    EFFECT_PE_NO_EFFECT,
+    EFFECT_PE_NO_EFFECT,
+    EFFECT_PE_NO_EFFECT,
+    EFFECT_PE_NO_EFFECT,
+    EFFECT_PE_NO_EFFECT,
+    EFFECT_PE_NO_EFFECT,
+    (EFFECT_PE_OFUDA | EFFECT_SPAWN_UNLIMITED),
+    EFFECT_PE_NO_EFFECT,
+    EFFECT_PE_NO_EFFECT,
+    (EFFECT_PE_FLARE | EFFECT_SPAWN_UNLIMITED),
+    EFFECT_PE_NO_EFFECT,
+    EFFECT_PE_NO_EFFECT,
+    (EFFECT_PE_PEPPER_SPRAY | EFFECT_SPAWN_UNLIMITED),
+    EFFECT_PE_NO_EFFECT,
+    EFFECT_PE_NO_EFFECT,
+};
+/// Effect-spawn ids for the charging phase of each PE ability.
+///
+/// Uses the same 54-entry decimal attachment-id domain as `_gEffectPeReleaseIds`.
+/// Charge phase -1 combines with the ones digit to select level minus one.
+/// The first three abilities use the concentric glow controller; the other
+/// wheel spells use the orbiting-particle controller. Zero emits nothing.
+/// Nonzero entries include EFFECT_SPAWN_UNLIMITED and spawn at the player root.
+static s32 _gEffectPeChargeIds[EFFECT_PE_LOOKUP_COUNT] = {
+    (EFFECT_PE_CONCENTRIC_CHARGE | EFFECT_SPAWN_UNLIMITED),
+    (EFFECT_PE_CONCENTRIC_CHARGE | EFFECT_SPAWN_UNLIMITED),
+    (EFFECT_PE_CONCENTRIC_CHARGE | EFFECT_SPAWN_UNLIMITED),
+    (EFFECT_PE_CONCENTRIC_CHARGE | EFFECT_SPAWN_UNLIMITED),
+    (EFFECT_PE_CONCENTRIC_CHARGE | EFFECT_SPAWN_UNLIMITED),
+    (EFFECT_PE_CONCENTRIC_CHARGE | EFFECT_SPAWN_UNLIMITED),
+    (EFFECT_PE_CONCENTRIC_CHARGE | EFFECT_SPAWN_UNLIMITED),
+    (EFFECT_PE_CONCENTRIC_CHARGE | EFFECT_SPAWN_UNLIMITED),
+    (EFFECT_PE_CONCENTRIC_CHARGE | EFFECT_SPAWN_UNLIMITED),
+    (EFFECT_PE_ORBITING_CHARGE | EFFECT_SPAWN_UNLIMITED),
+    (EFFECT_PE_ORBITING_CHARGE | EFFECT_SPAWN_UNLIMITED),
+    (EFFECT_PE_ORBITING_CHARGE | EFFECT_SPAWN_UNLIMITED),
+    (EFFECT_PE_ORBITING_CHARGE | EFFECT_SPAWN_UNLIMITED),
+    (EFFECT_PE_ORBITING_CHARGE | EFFECT_SPAWN_UNLIMITED),
+    (EFFECT_PE_ORBITING_CHARGE | EFFECT_SPAWN_UNLIMITED),
+    (EFFECT_PE_ORBITING_CHARGE | EFFECT_SPAWN_UNLIMITED),
+    (EFFECT_PE_ORBITING_CHARGE | EFFECT_SPAWN_UNLIMITED),
+    (EFFECT_PE_ORBITING_CHARGE | EFFECT_SPAWN_UNLIMITED),
+    (EFFECT_PE_ORBITING_CHARGE | EFFECT_SPAWN_UNLIMITED),
+    (EFFECT_PE_ORBITING_CHARGE | EFFECT_SPAWN_UNLIMITED),
+    (EFFECT_PE_ORBITING_CHARGE | EFFECT_SPAWN_UNLIMITED),
+    (EFFECT_PE_ORBITING_CHARGE | EFFECT_SPAWN_UNLIMITED),
+    (EFFECT_PE_ORBITING_CHARGE | EFFECT_SPAWN_UNLIMITED),
+    (EFFECT_PE_ORBITING_CHARGE | EFFECT_SPAWN_UNLIMITED),
+    (EFFECT_PE_ORBITING_CHARGE | EFFECT_SPAWN_UNLIMITED),
+    (EFFECT_PE_ORBITING_CHARGE | EFFECT_SPAWN_UNLIMITED),
+    (EFFECT_PE_ORBITING_CHARGE | EFFECT_SPAWN_UNLIMITED),
+    (EFFECT_PE_ORBITING_CHARGE | EFFECT_SPAWN_UNLIMITED),
+    (EFFECT_PE_ORBITING_CHARGE | EFFECT_SPAWN_UNLIMITED),
+    (EFFECT_PE_ORBITING_CHARGE | EFFECT_SPAWN_UNLIMITED),
+    (EFFECT_PE_ORBITING_CHARGE | EFFECT_SPAWN_UNLIMITED),
+    (EFFECT_PE_ORBITING_CHARGE | EFFECT_SPAWN_UNLIMITED),
+    (EFFECT_PE_ORBITING_CHARGE | EFFECT_SPAWN_UNLIMITED),
+    (EFFECT_PE_ORBITING_CHARGE | EFFECT_SPAWN_UNLIMITED),
+    (EFFECT_PE_ORBITING_CHARGE | EFFECT_SPAWN_UNLIMITED),
+    (EFFECT_PE_ORBITING_CHARGE | EFFECT_SPAWN_UNLIMITED),
+    EFFECT_PE_NO_EFFECT,
+    EFFECT_PE_NO_EFFECT,
+    EFFECT_PE_NO_EFFECT,
+    EFFECT_PE_NO_EFFECT,
+    EFFECT_PE_NO_EFFECT,
+    EFFECT_PE_NO_EFFECT,
+    EFFECT_PE_NO_EFFECT,
+    EFFECT_PE_NO_EFFECT,
+    EFFECT_PE_NO_EFFECT,
+    EFFECT_PE_NO_EFFECT,
+    EFFECT_PE_NO_EFFECT,
+    EFFECT_PE_NO_EFFECT,
+    EFFECT_PE_NO_EFFECT,
+    EFFECT_PE_NO_EFFECT,
+    EFFECT_PE_NO_EFFECT,
+    EFFECT_PE_NO_EFFECT,
+    EFFECT_PE_NO_EFFECT,
+    EFFECT_PE_NO_EFFECT,
+};
+/// Player model part indices for the released PE and consumable effects.
+///
+/// Parallel to `_gEffectPeReleaseIds`, using its 0..53 decimal-id index.
+/// Live effect entries select root 0, part 1 or part 12; the player model
+/// must contain the selected part. Zero is a root index, not a terminator.
+static u16 _gEffectPeReleaseParentParts[EFFECT_PE_LOOKUP_COUNT] = {
+    12,
+    12,
+    12,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    12,
+    12,
+    12,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
     0,
     0,
     0,
@@ -676,53 +734,68 @@ s32 D_80112978[54] = {
     0,
     0,
     0,
-    -0x7FF9FE68,
     0,
     0,
-    -0x7FF9FE63,
     0,
     0,
-    -0x7FF9FE69,
+    0,
+    0,
+    0,
+    0,
+    0,
+    12,
+    0,
+    0,
+    12,
+    0,
+    0,
+    12,
     0,
     0,
 };
-s32 D_80112A50[54] = {
-    -0x7FF9FF52,
-    -0x7FF9FF52,
-    -0x7FF9FF52,
-    -0x7FF9FF52,
-    -0x7FF9FF52,
-    -0x7FF9FF52,
-    -0x7FF9FF52,
-    -0x7FF9FF52,
-    -0x7FF9FF52,
-    -0x7FF9FF58,
-    -0x7FF9FF58,
-    -0x7FF9FF58,
-    -0x7FF9FF58,
-    -0x7FF9FF58,
-    -0x7FF9FF58,
-    -0x7FF9FF58,
-    -0x7FF9FF58,
-    -0x7FF9FF58,
-    -0x7FF9FF58,
-    -0x7FF9FF58,
-    -0x7FF9FF58,
-    -0x7FF9FF58,
-    -0x7FF9FF58,
-    -0x7FF9FF58,
-    -0x7FF9FF58,
-    -0x7FF9FF58,
-    -0x7FF9FF58,
-    -0x7FF9FF58,
-    -0x7FF9FF58,
-    -0x7FF9FF58,
-    -0x7FF9FF58,
-    -0x7FF9FF58,
-    -0x7FF9FF58,
-    -0x7FF9FF58,
-    -0x7FF9FF58,
-    -0x7FF9FF58,
+/// Common-bank sound scripts for each PE spell and effective level.
+///
+/// Uses the 54-entry decimal attachment-id domain of `_gEffectPeReleaseIds`.
+/// The twelve wheel spells occupy the first 36 entries; the remaining
+/// entries are zero. Charge controllers retain the selected id in the task
+/// for paired start/stop requests; zero denotes no selected sound.
+static s32 _gEffectPeChargeSoundIds[EFFECT_PE_LOOKUP_COUNT] = {
+    SOUND_COMMON(16),
+    SOUND_COMMON(39),
+    SOUND_COMMON(40),
+    SOUND_COMMON(31),
+    SOUND_COMMON(41),
+    SOUND_COMMON(42),
+    SOUND_COMMON(47),
+    SOUND_COMMON(48),
+    SOUND_COMMON(33),
+    SOUND_COMMON(29),
+    SOUND_COMMON(45),
+    SOUND_COMMON(46),
+    SOUND_COMMON(25),
+    SOUND_COMMON(49),
+    SOUND_COMMON(50),
+    SOUND_COMMON(36),
+    SOUND_COMMON(51),
+    SOUND_COMMON(52),
+    SOUND_COMMON(17),
+    SOUND_COMMON(53),
+    SOUND_COMMON(54),
+    SOUND_COMMON(26),
+    SOUND_COMMON(55),
+    SOUND_COMMON(56),
+    SOUND_COMMON(32),
+    SOUND_COMMON(57),
+    SOUND_COMMON(58),
+    SOUND_ANTIBODY_AURA_LOOP,
+    SOUND_COMMON(61),
+    SOUND_COMMON(62),
+    SOUND_COMMON(34),
+    SOUND_COMMON(63),
+    SOUND_COMMON(64),
+    SOUND_COMMON(37),
+    SOUND_COMMON(43),
+    SOUND_COMMON(44),
     0,
     0,
     0,
@@ -742,129 +815,30 @@ s32 D_80112A50[54] = {
     0,
     0,
 };
-u16 D_80112B28[54] = {
-    12,
-    12,
-    12,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    12,
-    12,
-    12,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    12,
-    0,
-    0,
-    12,
-    0,
-    0,
-    12,
-    0,
-    0,
+/// Expanding-band modulation colors packed as 0xRGB, one nibble per channel.
+///
+/// The low two bits of the spawn argument high half select one of four colors.
+/// Each nibble is multiplied by the current brightness and divided by eight.
+static u16 _gEffectExpandingBandColors[4] = {
+    0x886,
+    0xCC4,
+    0xC44,
+    0x44C,
 };
-s32 D_80112B94[54] = {
-    16,
-    39,
-    40,
-    31,
-    41,
-    42,
-    47,
-    48,
-    33,
-    29,
-    45,
-    46,
-    25,
-    49,
-    50,
-    36,
-    51,
-    52,
-    17,
-    53,
-    54,
-    26,
-    55,
-    56,
-    32,
-    57,
-    58,
-    35,
-    61,
-    62,
-    34,
-    63,
-    64,
-    37,
-    43,
-    44,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-};
-u16 D_80112C6C[4] = {
-    2182,
-    3268,
-    3140,
-    1100,
-};
-EffectSpawnArg D_80112C74    = { NULL, 512, 1 };
-s32            D_80112C7C[3] = {
-    -0x1FF4FFFF,
-    -0x1FF1FFFF,
-    -0x1FEEFFFF,
+/// Mutable fallback recipe for a hit effect spawned without an explicit record.
+///
+/// Each fallback call replaces the borrowed coordinate with its coord argument,
+/// including NULL. The low/high argument halves remain 512/1; the selected
+/// hit-effect kind determines their interpretation. This record owns no coordinate.
+static EffectSpawnArg _gEffectDefaultHitSpawnArg = { NULL, 512, 1 };
+/// PE-bank blast sound scripts for attachment levels 1..3.
+///
+/// The blast-with-sound hit recipe selects attachId % 10 - 1. Its caller must
+/// supply a level suffix in 1..3 and keep the corresponding sound bank loaded.
+static s32 _gEffectAttachmentBlastSoundIds[3] = {
+    SOUND_ID(14, 11, 1),
+    SOUND_ID(14, 14, 1),
+    SOUND_ID(14, 17, 1),
 };
 
 TaskMessageEntry Gp_PlayerMsgTable[28] = {
@@ -897,18 +871,30 @@ TaskMessageEntry Gp_PlayerMsgTable[28] = {
     { PLAYER_ACTOR_MESSAGE_ENTER_ITEM_USE, _playerActorEnterItemUse },
     { -1, NULL },
 };
-u16 Gp_WeaponIdBase[2] = {
+u16 gPlayerActorWeaponAnimationBankBases[2] = {
     1,
     0,
 };
-AnimationBank* Gp_PlayerAnimBlkTbl[34] = { NULL, &gP08PlayerAnimationBank, &gP08PlayerAnimationBank, &gM93rPlayerAnimationBank, &gM950PlayerAnimationBank, &gP08PlayerAnimationBank, &gP229PlayerAnimationBank, &gUnused85PlayerAnimationBank, &gUnused86PlayerAnimationBank, &gUnused86PlayerAnimationBank, &gMongoosePlayerAnimationBank, &gUnused86PlayerAnimationBank, &gGrenadePistolPlayerAnimationBank, &gMm1PlayerAnimationBank, &gPa3PlayerAnimationBank, &gSp12PlayerAnimationBank, &gAs12PlayerAnimationBank, &gM4a1PlayerAnimationBank, &gM249PlayerAnimationBank, &gUnused86PlayerAnimationBank, &gTonfaBatonPlayerAnimationBank, &gM4a1PlayerAnimationBank, &gM4a1PlayerAnimationBank, &gHypervelocityPlayerAnimationBank, &gGunbladePlayerAnimationBank, &gUnused86PlayerAnimationBank, &gM4a1HammerPlayerAnimationBank, &gM4a1BayonetPlayerAnimationBank, &gM4a1GrenadePlayerAnimationBank, &gM4a1PykePlayerAnimationBank, &gM4a1JavelinPlayerAnimationBank, &gMp5a5PlayerAnimationBank, &gMp5a5PlayerAnimationBank, &gMp5a5PlayerAnimationBank };
-u16            D_80112DF4[4]           = {
+AnimationBank* gPlayerActorWeaponAnimationBanks[34] = { NULL, &gP08PlayerAnimationBank, &gP08PlayerAnimationBank, &gM93rPlayerAnimationBank, &gM950PlayerAnimationBank, &gP08PlayerAnimationBank, &gP229PlayerAnimationBank, &gUnused85PlayerAnimationBank, &gUnused86PlayerAnimationBank, &gUnused86PlayerAnimationBank, &gMongoosePlayerAnimationBank, &gUnused86PlayerAnimationBank, &gGrenadePistolPlayerAnimationBank, &gMm1PlayerAnimationBank, &gPa3PlayerAnimationBank, &gSp12PlayerAnimationBank, &gAs12PlayerAnimationBank, &gM4a1PlayerAnimationBank, &gM249PlayerAnimationBank, &gUnused86PlayerAnimationBank, &gTonfaBatonPlayerAnimationBank, &gM4a1PlayerAnimationBank, &gM4a1PlayerAnimationBank, &gHypervelocityPlayerAnimationBank, &gGunbladePlayerAnimationBank, &gUnused86PlayerAnimationBank, &gM4a1HammerPlayerAnimationBank, &gM4a1BayonetPlayerAnimationBank, &gM4a1GrenadePlayerAnimationBank, &gM4a1PykePlayerAnimationBank, &gM4a1JavelinPlayerAnimationBank, &gMp5a5PlayerAnimationBank, &gMp5a5PlayerAnimationBank, &gMp5a5PlayerAnimationBank };
+/// First bank-7 weapon-model descriptor for each character selector.
+///
+/// Indexed directly by characterId 0..3. Character 1 uses descriptors 64..95
+/// for weapon ids 1..32; character 2 uses 155..158 for companion variants 1..4.
+/// Selection adds the one-based weapon/variant id minus one. Entries 0 and 3
+/// are zero, not evidence of additional loaded weapon-model groups.
+static u16 _gPlayerActorWeaponModelDescriptorBases[4] = {
     0,
     64,
     155,
     0,
 };
-u8 D_80112DFC[8] = {
+/// Bank-7 descriptor bases for four-model attachment groups.
+///
+/// rigIndex + resourceVariant - 2 must be 0..7. Player rig 1 and variants
+/// 1..4 select the first four groups; companion rig 5 selects the last four.
+/// pairVariant*2 + attachmentIndex selects within the group, both in 0..1.
+/// The selected model resources must remain loaded with the child.
+static u8 _gPlayerActorAttachmentDescriptorBases[8] = {
     9,
     13,
     17,
@@ -918,7 +904,7 @@ u8 D_80112DFC[8] = {
     143,
     147,
 };
-u8 D_80112E04[6][2] = {
+u8 gPlayerActorAttachmentParentParts[6][2] = {
     { 0, 0 },
     { 12, 8 },
     { 12, 8 },
@@ -926,7 +912,13 @@ u8 D_80112E04[6][2] = {
     { 12, 8 },
     { 12, 8 },
 };
-s16 D_80112E10[8] = {
+/// Forward-axis movement divisors indexed by movement mode 0..7.
+///
+/// A normalized direction has length 4096; division gives game-coordinate
+/// displacement per tick before the movement sign is applied. Mode 0 stops
+/// and never divides by its zero entry. Mode 4 also uses its divisor for
+/// lock-target circling. Every moving mode requires a nonzero entry.
+static s16 _gPlayerActorMovementSpeedDivisors[8] = {
     0,
     112,
     170,
@@ -936,20 +928,33 @@ s16 D_80112E10[8] = {
     48,
     170,
 };
-u16 D_80112E20[4] = {
+/// Body yaw steps per tick indexed by turn-rate selector 0..3.
+///
+/// Values use 4096 angle units per turn, multiplied by the actor turn sign.
+/// Selector 0 leaves yaw unchanged; selectors 1..3 step by 64, 40 and 88.
+static u16 _gPlayerActorBodyTurnRates[4] = {
     0,
     64,
     40,
     88,
 };
-_PlayerActorVibrationPreset D_80112E28[1] = {
+/// The player attack variable-motor preset: intensity 255 for two duration units.
+///
+/// Only index 0 is supported. Duration units become two serviced controller
+/// polls each; the actor rumble latch permits one post per attack. The
+/// unread byte remains zero and has no established role.
+static _PlayerActorVibrationPreset _gPlayerActorVibrationPresets[1] = {
     { 255, 0, 2 },
 };
 u8 D_80112E2C[2][2] = {
     { 18, 15 },
     { 0, 0 },
 };
-u16 D_80112E30[33] = {
+/// Maximum body yaw change toward a lock target per weapon, indexed 0..32.
+///
+/// Values use 4096 angle units per turn. Quick Fire increases the selected
+/// step by half, retaining integer truncation.
+static u16 _gPlayerActorWeaponAimYawSteps[PLAYER_ACTOR_WEAPON_COUNT] = {
     96,
     144,
     112,
@@ -984,13 +989,58 @@ u16 D_80112E30[33] = {
     96,
     96
 };
-GpuImageUpload* const* D_80112E74[16] = { gAya10400EyesRestSequence, gAya10300EyesRestSequence, gAya10200EyesRestSequence, gAya10500EyesRestSequence, gAya10400EyesClosingSequence, gAya10300EyesClosingSequence, gAya10200EyesClosingSequence, gAya10500EyesClosingSequence, gAya10400EyesOpeningSequence, gAya10300EyesOpeningSequence, gAya10200EyesOpeningSequence, gAya10500EyesOpeningSequence, gAya10400EyesBlinkSequence, gAya10300EyesBlinkSequence, gAya10200EyesBlinkSequence, gAya10500EyesBlinkSequence };
-GpuImageUpload* const* D_80112EB4[8]  = { gAya10400MouthOpenSequence, gAya10300MouthOpenSequence, gAya10200MouthAlternateSequence, gAya10500MouthAlternateSequence, gAya10400MouthRestSequence, gAya10300MouthRestSequence, gAya10200MouthRestSequence, gAya10500MouthRestSequence };
+/// Eye texture frame sequences selected by eye state and player resource variant.
+///
+/// Four consecutive variants 1..4 per sequence: rest, closing, opening
+/// and blink (selectors 1..4). The flat index is selector*4 + variant - 5. Each borrowed frame-pointer array ends in NULL,
+/// which stops that channel. Frame pointers are read-only; upload lists
+/// remain writable and require the corresponding costume package loaded.
+/// The player advances a frame every four eligible actor ticks.
+static GpuImageUpload* const* _gPlayerActorEyeTextureSequences[16] = {
+    gAya10400EyesRestSequence,
+    gAya10300EyesRestSequence,
+    gAya10200EyesRestSequence,
+    gAya10500EyesRestSequence,
+    gAya10400EyesClosingSequence,
+    gAya10300EyesClosingSequence,
+    gAya10200EyesClosingSequence,
+    gAya10500EyesClosingSequence,
+    gAya10400EyesOpeningSequence,
+    gAya10300EyesOpeningSequence,
+    gAya10200EyesOpeningSequence,
+    gAya10500EyesOpeningSequence,
+    gAya10400EyesBlinkSequence,
+    gAya10300EyesBlinkSequence,
+    gAya10200EyesBlinkSequence,
+    gAya10500EyesBlinkSequence,
+};
+/// Mouth texture frame sequences selected by mouth state and player resource variant.
+///
+/// Four consecutive variants 1..4 per sequence: alternate and rest
+/// (selectors 1..2). The flat index is selector*4 + variant - 5.
+/// Alternate is open for variants 1/2, but that interpretation is unproven
+/// for variants 3/4. Each borrowed read-only frame-pointer array ends in NULL.
+/// Upload lists remain writable and require the costume package loaded;
+/// the player advances a frame every eight eligible actor ticks.
+static GpuImageUpload* const* _gPlayerActorMouthTextureSequences[8] = {
+    gAya10400MouthOpenSequence,
+    gAya10300MouthOpenSequence,
+    gAya10200MouthAlternateSequence,
+    gAya10500MouthAlternateSequence,
+    gAya10400MouthRestSequence,
+    gAya10300MouthRestSequence,
+    gAya10200MouthRestSequence,
+    gAya10500MouthRestSequence,
+};
 /// Thirty-three retained zero/one bytes with no identified reader.
 ///
 /// Their meaning and index domain are unproven.
 static u8 D_80112ED4[33] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 0, 0, 0, 1, 1, 1, 0, 1, 1, 1 };
-u8        D_80112EF8[33] = {
+/// Whether a weapon queries ammunition for its selected fire input.
+///
+/// Weapon indices are 0..32. Zero always queries primary loads; one uses
+/// the primary/secondary attack-button selector as the load mask.
+static u8 _gPlayerActorWeaponUsesSelectedLoads[PLAYER_ACTOR_WEAPON_COUNT] = {
     0,
     0,
     0,
@@ -1025,7 +1075,12 @@ u8        D_80112EF8[33] = {
     1,
     1
 };
-u8 D_80112F1C[33][2] = {
+/// Per-weapon permissions to attack with no loaded ammunition.
+///
+/// Weapon rows 0..32 have primary/secondary columns 0/1, each zero or one.
+/// The primary flag also permits the battle-end animation when primary
+/// loads remain, instead of taking the ordinary early-completion path.
+static u8 _gPlayerActorWeaponLoadFreeAttacks[PLAYER_ACTOR_WEAPON_COUNT][2] = {
     { 0, 0 },
     { 0, 0 },
     { 0, 0 },
@@ -1060,7 +1115,7 @@ u8 D_80112F1C[33][2] = {
     { 0, 0 },
     { 0, 0 }
 };
-u16 D_80112F60[33] = {
+u16 gPlayerActorWeaponReaches[33] = {
     256,
     8704,
     8704,
@@ -1095,7 +1150,13 @@ u16 D_80112F60[33] = {
     8704,
     8704
 };
-VECTOR D_80112FA4[33] = {
+/// Near endpoint of each weapon collision capsule, indexed by weapon id 0..32.
+///
+/// XYZ are game-coordinate offsets in the capsule frame, whose weapon-root
+/// rotation is turned a quarter turn about X. A full VECTOR is copied to
+/// scratch before XYZ narrow into endpoint 1; the fourth word is retained.
+/// Endpoint 0 adds `gPlayerActorWeaponReaches` along that frame Z axis.
+static VECTOR _gPlayerActorWeaponCapsuleOffsets[PLAYER_ACTOR_WEAPON_COUNT] = {
     { 0, 0, 0, 0 },
     { 0, -96, 0, 0 },
     { 0, -96, 0, 0 },
@@ -1130,7 +1191,12 @@ VECTOR D_80112FA4[33] = {
     { 0, -96, 0, 0 },
     { 0, -96, 0, 0 },
 };
-SVECTOR D_801131B4[33] = {
+/// Aim origins in the equipped weapon model root space, indexed by weapon id 0..32.
+///
+/// XYZ are signed game-coordinate offsets. Lock aiming places a temporary
+/// coordinate at the selected point before measuring target yaw or elevation.
+/// The fourth halfword is retained and never used as an angle.
+static SVECTOR _gPlayerActorWeaponAimOrigins[PLAYER_ACTOR_WEAPON_COUNT] = {
     { 0, 0, 0, 0 },
     { 0, 320, 96, 0 },
     { 0, 320, -96, 0 },
@@ -1204,21 +1270,19 @@ static u16 D_801132BC[33][2] = {
     { 43, 6 },
     { 43, 6 }
 };
-TaskDesc D_80113340[2] = {
+TaskDesc gEffectPlayerBodyHitTaskDescriptors[2] = {
     { { { TASK_BODY_NONE, 192 } }, effectPlayerBodyBlastTask, { NULL } },
     { { { TASK_BODY_NONE, 192 } }, effectPlayerBodyPuffTask, { NULL } },
 };
-EffectSpawnArg D_80113358       = { NULL, 512, 3 };
-u16            Gp_AllyIdBase[4] = {
+EffectSpawnArg gEffectPlayerHitSpawnArg        = { NULL, 512, 3 };
+u16            gCompanionAnimationBankBases[4] = {
     1,
     6,
     7,
     0,
 };
-AnimationBank* Gp_AnimBlkTbl[8] = { NULL, &gKyle800101KyleMadiganAnimationBank, &gKyle800101KyleMadiganAnimationBank, &gKyle800102CompanionAnimationBank, &gKyle800103KyleMadiganAnimationBank, &gKyle800104KyleMadiganAnimationBank, &gActor800200CompanionAnimationBank, &gActor800300CompanionAnimationBank };
-/// Five observed flag entries; the final F0 EE EF bytes have no known reader.
-/// Their meaning and relationship to the flag array are unconfirmed.
-u8 D_80113388[8] = {
+AnimationBank* gCompanionAnimationBanks[8]        = { NULL, &gKyle800101KyleMadiganAnimationBank, &gKyle800101KyleMadiganAnimationBank, &gKyle800102CompanionAnimationBank, &gKyle800103KyleMadiganAnimationBank, &gKyle800104KyleMadiganAnimationBank, &gActor800200CompanionAnimationBank, &gActor800300CompanionAnimationBank };
+u8             gCompanionVariantUsesTorsoPitch[8] = {
     0,
     0,
     1,
@@ -1372,7 +1436,7 @@ static void _effectDrawProjectileSprite(const Task* task)
         setSemiTrans(quad, work->angle);
         // Use raw texels; angle is the caller-controlled transparency toggle.
         quad->tpage = EFFECT_PROJECTILE_SPRITE_TEXTURE_PAGE;
-        quad->clut  = getClut(D_80112964[EFFECT_PROJECTILE_SPRITE_CLUT_ROW][work->step], EFFECT_PROJECTILE_SPRITE_CLUT_Y);
+        quad->clut  = getClut(_gEffectSpriteClutX[EFFECT_PROJECTILE_SPRITE_CLUT_ROW][work->step], EFFECT_PROJECTILE_SPRITE_CLUT_Y);
         setUV4(quad, ((work->age >> EFFECT_PROJECTILE_SPRITE_FRAME_SHIFT) & (EFFECT_PROJECTILE_SPRITE_FRAME_COUNT - 1)) * EFFECT_PROJECTILE_SPRITE_CELL_SIZE, EFFECT_PROJECTILE_SPRITE_TEXTURE_V,
                (((work->age >> EFFECT_PROJECTILE_SPRITE_FRAME_SHIFT) & (EFFECT_PROJECTILE_SPRITE_FRAME_COUNT - 1)) * EFFECT_PROJECTILE_SPRITE_CELL_SIZE) + EFFECT_PROJECTILE_SPRITE_CELL_SIZE - 1, EFFECT_PROJECTILE_SPRITE_TEXTURE_V,
                ((work->age >> EFFECT_PROJECTILE_SPRITE_FRAME_SHIFT) & (EFFECT_PROJECTILE_SPRITE_FRAME_COUNT - 1)) * EFFECT_PROJECTILE_SPRITE_CELL_SIZE, EFFECT_PROJECTILE_SPRITE_TEXTURE_V + EFFECT_PROJECTILE_SPRITE_CELL_SIZE - 1,
@@ -2504,7 +2568,7 @@ static void _effectDrawAnimatedGroundQuad(const GfxCoord* coord, s32 halfSize, u
             setlen(quad, EFFECT_DRAW_TEXTURED_QUAD_PACKET_WORDS);
             setcode(quad, EFFECT_DRAW_RAW_ADDITIVE_TEXTURED_QUAD);
             quad->tpage = EFFECT_SPRITE_ATLAS_TEXTURE_PAGE;
-            quad->clut  = getClut(D_80112964[EFFECT_ANIMATED_GROUND_CLUT_ROW][palette], EFFECT_ANIMATED_GROUND_CLUT_Y);
+            quad->clut  = getClut(_gEffectSpriteClutX[EFFECT_ANIMATED_GROUND_CLUT_ROW][palette], EFFECT_ANIMATED_GROUND_CLUT_Y);
             textureU0   = (frame & EFFECT_ANIMATED_GROUND_FRAME_MASK) * EFFECT_ANIMATED_GROUND_CELL_SIZE + EFFECT_ANIMATED_GROUND_U_ORIGIN;
             textureU1   = (frame & EFFECT_ANIMATED_GROUND_FRAME_MASK) * EFFECT_ANIMATED_GROUND_CELL_SIZE + (EFFECT_ANIMATED_GROUND_U_ORIGIN + EFFECT_ANIMATED_GROUND_UV_SPAN);
             setUV4(quad, textureU0, EFFECT_ANIMATED_GROUND_V_ORIGIN, textureU1, EFFECT_ANIMATED_GROUND_V_ORIGIN,
@@ -2558,9 +2622,9 @@ static void _effectControlTask07State1(Task* unusedTask)
     }
     // Charge and release share the decimal family/level index, with different placement.
     if (effectPhase == ATTACHMENT_EFFECT_CHARGE) {
-        effectId = D_80112A50[((u16)(gAttachmentState.attachId / 100U) - 1) * 9 +
-                              ((u16)((u16)(gAttachmentState.attachId / 10U) % 10U) - 1) * 3 + effectPhase +
-                              (u16)(gAttachmentState.attachId % 10U)];
+        effectId = _gEffectPeChargeIds[((u16)(gAttachmentState.attachId / 100U) - 1) * 9 +
+                                       ((u16)((u16)(gAttachmentState.attachId / 10U) % 10U) - 1) * 3 + effectPhase +
+                                       (u16)(gAttachmentState.attachId % 10U)];
         if (effectId == 0) {
             return;
         }
@@ -2570,12 +2634,12 @@ static void _effectControlTask07State1(Task* unusedTask)
         effectIndex = ((u16)(gAttachmentState.attachId / 100U) - 1) * 9 +
                       ((u16)((u16)(gAttachmentState.attachId / 10U) % 10U) - 1) * 3 - 1;
         effectIndex += (u16)(gAttachmentState.attachId % 10U);
-        effectId     = D_80112978[effectIndex];
+        effectId     = _gEffectPeReleaseIds[effectIndex];
         if (effectId == 0) {
             return;
         }
         effectSpawn(effectId,
-                    &playerTask->extra.tmd->coords[D_80112B28[effectIndex]], 0,
+                    &playerTask->extra.tmd->coords[_gEffectPeReleaseParentParts[effectIndex]], 0,
                     NULL);
     }
 }
@@ -2595,9 +2659,9 @@ void effectPeChargeTask(Task* task)
     coord = task->extra.coordBody->coord;
     // This callback leaves state unchanged, so new tasks refresh the sound each tick.
     if (task->state == EFFECT_DRAW_TASK_NEW) {
-        task->spawnArg1.value = D_80112B94[((u16)(gAttachmentState.attachId / 100U) - 1) * EFFECT_PE_CHARGE_GROUP_STRIDE +
-                                           ((u16)((u16)(gAttachmentState.attachId / 10U) % 10U) - 1) * ATTACHMENT_AREA_LEVEL_COUNT +
-                                           ((u16)(gAttachmentState.attachId % 10U) - 1U)];
+        task->spawnArg1.value = _gEffectPeChargeSoundIds[((u16)(gAttachmentState.attachId / 100U) - 1) * EFFECT_PE_CHARGE_GROUP_STRIDE +
+                                                         ((u16)((u16)(gAttachmentState.attachId / 10U) % 10U) - 1) * ATTACHMENT_AREA_LEVEL_COUNT +
+                                                         ((u16)(gAttachmentState.attachId % 10U) - 1U)];
     }
     actorRenderComposeCoord(coord);
     if (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN || gAttachmentState.duration == 0 ||
@@ -2814,9 +2878,9 @@ void effectControlTaskAE(Task* task)
                 gRoomEffectState->battleState != ROOM_EFFECT_BATTLE_ENGAGED) {
                 break;
             }
-            task->spawnArg1.value = D_80112B94[((u16)(gAttachmentState.attachId / 100U) - 1) * 9 +
-                                               ((u16)((u16)(gAttachmentState.attachId / 10U) % 10U) - 1) * 3 +
-                                               ((u16)(gAttachmentState.attachId % 10U) - 1U)];
+            task->spawnArg1.value = _gEffectPeChargeSoundIds[((u16)(gAttachmentState.attachId / 100U) - 1) * 9 +
+                                                             ((u16)((u16)(gAttachmentState.attachId / 10U) % 10U) - 1) * 3 +
+                                                             ((u16)(gAttachmentState.attachId % 10U) - 1U)];
             audioPan              = (s8)worldCoordGetOriginAudioPan(coord);
             sndEvtRequestScriptStart(task->spawnArg1.value, audioPan, (s8)worldCoordGetOriginAudioDepth(coord));
             return;
@@ -2926,7 +2990,7 @@ void effectPolyTaskC1(Task* task)
         work->scale         = EFFECT_COLOR_BAND_INITIAL_BRIGHTNESS;
         work->angle         = EFFECT_COLOR_BAND_INITIAL_RADIUS;
         colorBits           = task->spawnArg1.halves.high;
-        work->period        = D_80112C6C[colorBits & 3];
+        work->period        = _gEffectExpandingBandColors[colorBits & 3];
         task->state         = EFFECT_DRAW_TASK_ACTIVE;
     }
 
@@ -3894,7 +3958,7 @@ void effectSpawnHit(s32 effectKind, GfxCoord* coord, SVECTOR* localOffset, Effec
     actor = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->work;
     // Resolve call placement and the record's independently retained placement.
     if (spawnRecord == NULL) {
-        spawnRecord        = &D_80112C74;
+        spawnRecord        = &_gEffectDefaultHitSpawnArg;
         spawnRecord->coord = coord;
     } else {
         if (spawnRecord->coord == NULL) {
@@ -3963,7 +4027,7 @@ void effectSpawnHit(s32 effectKind, GfxCoord* coord, SVECTOR* localOffset, Effec
         case EFFECT_HIT_KIND_BLAST_WITH_SOUND:
             effectSpawn(EFFECT_HIT_BLAST, spawnRecord->coord, spawnRecord->spawnArgLo | (spawnRecord->spawnArgHi << EFFECT_HIT_ARGUMENT_HIGH_SHIFT), NULL);
             pan = (s8)worldCoordGetOriginAudioPan(coord);
-            sndEvtRequestScriptStart(D_80112C7C[(u16)(gAttachmentState.attachId % 10U) - 1], pan,
+            sndEvtRequestScriptStart(_gEffectAttachmentBlastSoundIds[(u16)(gAttachmentState.attachId % 10U) - 1], pan,
                                      (s8)worldCoordGetOriginAudioDepth(coord));
             break;
         case EFFECT_HIT_KIND_APOBIOSIS_SHARD:
@@ -5259,13 +5323,13 @@ void playerActorInitWeaponCollision(Task* actorTask, s32 weaponId, s32 attackRow
         weaponBody->pos.vy                                 = 0;
         weaponBody->pos.vz                                 = 0;
         actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].key = WORLD_COLLISION_CONTACT_ATTACK | (weaponId << PLAYER_ACTOR_WEAPON_DISTANCE_ROW_SHIFT) | attackRow;
-        *endpoint                                          = D_80112FA4[weaponId];
+        *endpoint                                          = _gPlayerActorWeaponCapsuleOffsets[weaponId];
         capsule->ends[1].vx                                = endpoint->vx;
         capsule->ends[1].vy                                = endpoint->vy;
         capsule->ends[1].vz                                = endpoint->vz;
         capsule->ends[0].vx                                = capsule->ends[1].vx;
         capsule->ends[0].vy                                = capsule->ends[1].vy;
-        capsule->ends[0].vz                                = capsule->ends[1].vz + D_80112F60[weaponId];
+        capsule->ends[0].vz                                = capsule->ends[1].vz + gPlayerActorWeaponReaches[weaponId];
         radius                                             = PLAYER_ACTOR_WEAPON_RADIUS;
         if (gPlayerStatus.weapon == PLAYER_ACTOR_TONFA_WEAPON_ID) {
             radius = PLAYER_ACTOR_TONFA_RADIUS;
@@ -5651,7 +5715,7 @@ void playerActorTickAnimationState(Task* task)
 /// scratch without retaining it or changing the root translation.
 static inline void _playerActorSetForwardVelocity(GameActor* actor, GfxCoord* rootCoord, _PlayerActorMoveStepScratch* scratch)
 {
-    scratch->speedDivisor = D_80112E10[(u16)actor->movementMode];
+    scratch->speedDivisor = _gPlayerActorMovementSpeedDivisors[(u16)actor->movementMode];
     gfxReadMatrixZAxis(&rootCoord->coord, &scratch->direction);
     VectorNormalSS(&scratch->direction, &scratch->direction);
     actor->velocity.vx = scratch->direction.vx * actor->movementSign / scratch->speedDivisor;
@@ -5707,7 +5771,7 @@ void playerActorStepMovement(Task* task)
             coord->coord.t[2] += actor->velocity.vz;
             // Circle after applying forward motion, then restore the root orientation.
             block->savedMatrix  = coord->coord;
-            block->speedDivisor = D_80112E10[(u16)actor->movementMode];
+            block->speedDivisor = _gPlayerActorMovementSpeedDivisors[(u16)actor->movementMode];
             worldTargetGetBodyPosition(actor->targetNode, &block->targetPosition);
             block->direction.vx  = abs(coord->coord.t[0] - block->targetPosition.vx);
             block->direction.vx += abs(coord->coord.t[2] - block->targetPosition.vz);
@@ -5772,7 +5836,7 @@ void playerActorUpdateFacing(Task* task)
     if (actor->turnRateIndex != 0) {
         s32 turnSign = (u8) * (volatile s8*)&actor->turnSign;
 
-        actor->rotation.vy = (actor->rotation.vy + D_80112E20[actor->turnRateIndex] * (s8)turnSign) & ACTOR_TRANSFORM_ANGLE_MASK;
+        actor->rotation.vy = (actor->rotation.vy + _gPlayerActorBodyTurnRates[actor->turnRateIndex] * (s8)turnSign) & ACTOR_TRANSFORM_ANGLE_MASK;
     }
     RotMatrix(&actor->rotation, &coord->coord);
     MatrixNormal(&coord->coord, &coord->coord);
@@ -5873,7 +5937,7 @@ static inline void _playerActorAimYawAtLock(GameActor* actor, _PlayerActorAimYaw
     s32       turnLimit;
 
     if (actor->targetNode != NULL) {
-        localOffset = &D_801131B4[gPlayerStatus.weapon];
+        localOffset = &_gPlayerActorWeaponAimOrigins[gPlayerStatus.weapon];
         weaponCoord = actor->equipmentTasks[1]->extra.tmd->coords;
         _playerActorPlaceAimYawOrigin(scratch, weaponCoord, localOffset);
         targetDelta = &scratch->targetDelta;
@@ -5884,7 +5948,7 @@ static inline void _playerActorAimYawAtLock(GameActor* actor, _PlayerActorAimYaw
         if (_playerActorAimPlanarLength(scratch->targetDelta.vx, scratch->targetDelta.vz) > minGroundDistance) {
             scratch->yaw = ratan2(scratch->targetDelta.vx, scratch->targetDelta.vz);
             scratch->yaw = _playerActorShortestTurn(actor->rotation.vy, scratch->yaw);
-            turnLimit    = (s16)D_80112E30[gPlayerStatus.weapon];
+            turnLimit    = (s16)_gPlayerActorWeaponAimYawSteps[gPlayerStatus.weapon];
             if (equipmentHasEffect(EQUIPMENT_EFFECT_QUICK_FIRE) != 0) {
                 turnLimit += turnLimit >> 1;
             }
@@ -5986,7 +6050,7 @@ void playerActorAimPitchToLock(Task* task)
         scratch->pitch           -= actor->part2Pitch;
         PLAYER_ACTOR_APPLY_LOCK_PITCH(scratch, actor->part2Pitch, actor->part2Roll, PLAYER_ACTOR_LOCK_PART2_PITCH_LIMIT, 3);
 
-        _playerActorPlaceAimPitchOrigin(scratch, actor->equipmentTasks[1]->extra.tmd->coords, &D_801131B4[gPlayerStatus.weapon]);
+        _playerActorPlaceAimPitchOrigin(scratch, actor->equipmentTasks[1]->extra.tmd->coords, &_gPlayerActorWeaponAimOrigins[gPlayerStatus.weapon]);
         scratch->groundDistance = _playerActorGetAimPitchTargetDelta(actor, scratch);
         scratch->pitch          = ratan2(-scratch->targetDelta.vy, scratch->groundDistance) / 7 * 4;
         scratch->pitch         -= actor->part3Pitch;
@@ -6047,7 +6111,7 @@ static void _playerActorAimRollToLock(Task* task)
         scratch->pitch           -= actor->part2Roll;
         PLAYER_ACTOR_APPLY_LOCK_ELEVATION_STEP(scratch, actor->part2Roll, PLAYER_ACTOR_LOCK_PART2_ROLL_LIMIT);
 
-        _playerActorPlaceAimPitchOrigin(scratch, actor->equipmentTasks[1]->extra.tmd->coords, &D_801131B4[gPlayerStatus.weapon]);
+        _playerActorPlaceAimPitchOrigin(scratch, actor->equipmentTasks[1]->extra.tmd->coords, &_gPlayerActorWeaponAimOrigins[gPlayerStatus.weapon]);
         scratch->groundDistance = _playerActorGetAimPitchTargetDelta(actor, scratch);
         scratch->pitch          = ratan2(-scratch->targetDelta.vy, scratch->groundDistance) / 7 * 4;
         scratch->pitch         -= actor->part3Roll;
@@ -6068,7 +6132,7 @@ void playerActorAimPart6PitchToLock(Task* task, s32 weaponId, s32 minGroundDista
     actor   = task->work;
     scratch = SCRATCH_STACK_RESERVE_BLOCK(_PlayerActorAimPitchScratch);
     if (actor->targetNode != NULL) {
-        _playerActorPlaceAimPitchOrigin(scratch, actor->equipmentTasks[1]->extra.tmd->coords, &D_801131B4[weaponId]);
+        _playerActorPlaceAimPitchOrigin(scratch, actor->equipmentTasks[1]->extra.tmd->coords, &_gPlayerActorWeaponAimOrigins[weaponId]);
         scratch->groundDistance = _playerActorGetAimPitchTargetDelta(actor, scratch);
         if (scratch->groundDistance > (s16)minGroundDistance) {
             scratch->pitch  = ratan2(-scratch->targetDelta.vy, scratch->groundDistance);
@@ -6172,7 +6236,7 @@ static void _playerActorTickTextureSequences(Task* task)
     if ((s8)actor->textureSequenceA != PLAYER_ACTOR_TEXTURE_SEQUENCE_OFF) {
         actor->textureDelayA--;
         if ((s8)actor->textureDelayA <= 0) {
-            frameUploads = D_80112E74[(s8)actor->textureSequenceA * PLAYER_ACTOR_TEXTURE_VARIANT_COUNT + (gPlayerStatus.resourceVariant - PLAYER_ACTOR_TEXTURE_INDEX_BIAS)][(s8)actor->textureFrameA];
+            frameUploads = _gPlayerActorEyeTextureSequences[(s8)actor->textureSequenceA * PLAYER_ACTOR_TEXTURE_VARIANT_COUNT + (gPlayerStatus.resourceVariant - PLAYER_ACTOR_TEXTURE_INDEX_BIAS)][(s8)actor->textureFrameA];
             if (frameUploads != NULL) {
                 _playerActorUploadTextureFrame(task, frameUploads, textureRect, PLAYER_ACTOR_TEXTURE_A_X, PLAYER_ACTOR_TEXTURE_A_Y,
                                                PLAYER_ACTOR_TEXTURE_A_WIDTH_WORDS, PLAYER_ACTOR_TEXTURE_A_HEIGHT_ROWS);
@@ -6187,7 +6251,7 @@ static void _playerActorTickTextureSequences(Task* task)
     if ((s8)actor->textureSequenceB != PLAYER_ACTOR_TEXTURE_SEQUENCE_OFF) {
         actor->textureDelayB--;
         if ((s8)actor->textureDelayB <= 0) {
-            frameUploads = D_80112EB4[(s8)actor->textureSequenceB * PLAYER_ACTOR_TEXTURE_VARIANT_COUNT + (gPlayerStatus.resourceVariant - PLAYER_ACTOR_TEXTURE_INDEX_BIAS)][(s8)actor->textureFrameB];
+            frameUploads = _gPlayerActorMouthTextureSequences[(s8)actor->textureSequenceB * PLAYER_ACTOR_TEXTURE_VARIANT_COUNT + (gPlayerStatus.resourceVariant - PLAYER_ACTOR_TEXTURE_INDEX_BIAS)][(s8)actor->textureFrameB];
             if (frameUploads != NULL) {
                 _playerActorUploadTextureFrame(task, frameUploads, textureRect, PLAYER_ACTOR_TEXTURE_B_X, PLAYER_ACTOR_TEXTURE_B_Y,
                                                PLAYER_ACTOR_TEXTURE_B_WIDTH_WORDS, PLAYER_ACTOR_TEXTURE_B_HEIGHT_ROWS);
@@ -6253,8 +6317,8 @@ static inline Task* _playerActorSpawnAttachment(Task* actorTask, s32 attachmentI
 
     actorModel      = actorTask->extra.tmd;
     actor           = actorTask->work;
-    parentCoord     = &actorModel->coords[D_80112E04[rigIndex][attachmentIndex]];
-    descriptorBases = D_80112DFC;
+    parentCoord     = &actorModel->coords[gPlayerActorAttachmentParentParts[rigIndex][attachmentIndex]];
+    descriptorBases = _gPlayerActorAttachmentDescriptorBases;
     resourceOffset  = gPlayerStatus.resourceVariant - PLAYER_ACTOR_ATTACHMENT_RESOURCE_BIAS;
     task            = taskSpawn(PLAYER_ACTOR_ATTACHMENT_BANK, descriptorBases[rigIndex + resourceOffset] + pairVariant * PLAYER_ACTOR_ATTACHMENT_PAIR_SIZE + attachmentIndex, 0, 0);
     if (task == NULL) {
@@ -6328,7 +6392,7 @@ inline static Task* _playerActorSpawnEquippedWeapon(Task* parent, s32 characterI
     if (weaponId == PLAYER_STATUS_EQUIPMENT_NONE) {
         return NULL;
     }
-    descriptorBase = D_80112DF4[characterId] - 1;
+    descriptorBase = _gPlayerActorWeaponModelDescriptorBases[characterId] - 1;
     weaponTask     = taskSpawn(PLAYER_ACTOR_WEAPON_MODEL_BANK, descriptorBase + weaponId, 0, 0);
     if (weaponTask == NULL) {
         return NULL;
@@ -6416,8 +6480,8 @@ restorePlayback:
     actor->reloadEffectSuppressed     = 0;
     playbackActor                     = playerTask->work;
     playerModel                       = playerTask->extra.tmd;
-    playbackActor->animationBankIndex = Gp_WeaponIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon;
-    playbackActor->animationSets      = Gp_PlayerAnimBlkTbl[playbackActor->animationBankIndex]->table.sets;
+    playbackActor->animationBankIndex = gPlayerActorWeaponAnimationBankBases[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon;
+    playbackActor->animationSets      = gPlayerActorWeaponAnimationBanks[playbackActor->animationBankIndex]->table.sets;
     animationInitContext(&playbackActor->animationContext, playbackActor->animationSets, playerModel, playbackActor->poseBuffer,
                          playbackActor->animationSlots);
     playerActorEnterLocomotion(playerTask, 1);
@@ -6500,8 +6564,8 @@ static void _animationBindPlayerWeaponBank(Task* task)
 
     actor                     = task->work;
     model                     = task->extra.tmd;
-    actor->animationBankIndex = Gp_WeaponIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon;
-    actor->animationSets      = Gp_PlayerAnimBlkTbl[actor->animationBankIndex]->table.sets;
+    actor->animationBankIndex = gPlayerActorWeaponAnimationBankBases[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon;
+    actor->animationSets      = gPlayerActorWeaponAnimationBanks[actor->animationBankIndex]->table.sets;
     animationInitContext(&actor->animationContext, actor->animationSets, model, actor->poseBuffer,
                          actor->animationSlots);
 }
@@ -6833,7 +6897,7 @@ static void _playerActorPostVibrationPreset(Task* task, s32 presetIndex)
     // Normal-mode state 4 calls this every tick; the latch allows one post.
     if (actor->rumblePosted == 0) {
         actor->rumblePosted++;
-        preset = &D_80112E28[selectedPresetIndex];
+        preset = &_gPlayerActorVibrationPresets[selectedPresetIndex];
         padPostVibrationRequest(0, PAD_VIBRATION_MOTOR_VARIABLE, preset->intensity, preset->durationUnits);
     }
 }
@@ -6856,8 +6920,8 @@ Task* playerActorSpawnAttachment(Task* actorTask, s32 attachmentIndex, s32 rigIn
 
     actorModel      = actorTask->extra.tmd;
     actor           = actorTask->work;
-    parentCoord     = &actorModel->coords[D_80112E04[rigIndex][attachmentIndex]];
-    descriptorBases = D_80112DFC;
+    parentCoord     = &actorModel->coords[gPlayerActorAttachmentParentParts[rigIndex][attachmentIndex]];
+    descriptorBases = _gPlayerActorAttachmentDescriptorBases;
     resourceOffset  = gPlayerStatus.resourceVariant - PLAYER_ACTOR_ATTACHMENT_RESOURCE_BIAS;
     task            = taskSpawn(PLAYER_ACTOR_ATTACHMENT_BANK, descriptorBases[rigIndex + resourceOffset] + pairVariant * PLAYER_ACTOR_ATTACHMENT_PAIR_SIZE + attachmentIndex, 0, 0);
     if (task == NULL) {
@@ -6886,7 +6950,7 @@ Task* playerActorSpawnWeaponModel(Task* parentTask, s32 characterId, s32 weaponI
     if (weaponId == PLAYER_STATUS_EQUIPMENT_NONE) {
         return NULL;
     }
-    descriptorBase = D_80112DF4[characterId] - 1;
+    descriptorBase = _gPlayerActorWeaponModelDescriptorBases[characterId] - 1;
     task           = taskSpawn(PLAYER_ACTOR_WEAPON_MODEL_BANK, descriptorBase + weaponId, spawnArg, 0);
     if (task == NULL) {
         return NULL;
@@ -6998,7 +7062,7 @@ static inline void _playerActorEnterScriptedMode(Task* task)
 /// Takes scripted control and plays a clip from a loaded player animation bank.
 ///
 /// Borrows request only for this call; source.index must select a non-NULL bank
-/// in `Gp_PlayerAnimBlkTbl` (currently 1..33). Its sets and records stay live during
+/// in `gPlayerActorWeaponAnimationBanks` (currently 1..33). Its sets and records stay live during
 /// playback. Requires live actor/model, initialized pose and child-slot storage,
 /// session and weapon effects. animationId narrows to u16 and must supply every
 /// active child track; when blending, blendFrames counts 0..2047 whole normal-rate
@@ -7019,8 +7083,8 @@ static s32 _playerActorPlayScriptedAnimation(Task* task, s32 unusedMessageId, co
     _playerActorEnterScriptedMode(task);
     // Select the animation table before resetting or blending its slots.
     actor->state = PLAYER_ACTOR_SCRIPTED_ANIMATION_STATE;
-    if (actor->animationSets != Gp_PlayerAnimBlkTbl[request->source.index]->table.sets) {
-        actor->animationSets = Gp_PlayerAnimBlkTbl[request->source.index]->table.sets;
+    if (actor->animationSets != gPlayerActorWeaponAnimationBanks[request->source.index]->table.sets) {
+        actor->animationSets = gPlayerActorWeaponAnimationBanks[request->source.index]->table.sets;
         animationInitContext(&actor->animationContext, actor->animationSets, model, actor->poseBuffer,
                              actor->animationSlots);
         actor->animationBankIndex = (u16)request->source.index;
@@ -7159,8 +7223,8 @@ s32 playerActorEndScripted(Task* task, s32 unusedMessageId, s32 resumeMode, s32 
     actor->previousPosition.vx                          = rootCoord->coord.t[0];
     actor->previousPosition.vy                          = rootCoord->coord.t[1];
     actor->previousPosition.vz                          = rootCoord->coord.t[2];
-    actor->animationBankIndex                           = Gp_WeaponIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon;
-    actor->animationSets                                = Gp_PlayerAnimBlkTbl[actor->animationBankIndex]->table.sets;
+    actor->animationBankIndex                           = gPlayerActorWeaponAnimationBankBases[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon;
+    actor->animationSets                                = gPlayerActorWeaponAnimationBanks[actor->animationBankIndex]->table.sets;
     actor->animationRate                                = ANIMATION_RATE_ONE;
     actor->pendingCollisionUpdates                      = GAME_ACTOR_COLLISION_REQUEST_MASK;
     actor->collisionBodies[GAME_ACTOR_BODY_ROOT].flags |= WORLD_COLLISION_BODY_VIEW_TRIGGER_ENABLED;
@@ -7647,7 +7711,7 @@ static s32 _animationCopyPlayerBankExtension(Task* unusedTask, s32 unusedMessage
     s32        wordIndex;
     s32        wordCount;
 
-    destinationWords = Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon]->table.words;
+    destinationWords = gPlayerActorWeaponAnimationBanks[gPlayerActorWeaponAnimationBankBases[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon]->table.words;
     sourceWords      = request->source.words;
     wordCount        = request->wordCount;
     if (wordCount >= ANIMATION_BANK_EXTENSION_CAPACITY + 1) {
@@ -7960,10 +8024,13 @@ s8 playerActorReadAttackButton(Task* task)
     return actor->attackButton;
 }
 
-/// Per-weapon handlers, indexed by `PlayerStatus::weapon` and copied by
-/// `_playerActorDispatchWeaponAttack`. Most live in the weapon overlay loaded at the time;
-/// `_playerActorNoWeaponAttack` serves the weapons with none.
-static const _PlayerActorWeaponAttacks D_800978BC = { {
+/// Attack handlers indexed by equipped weapon id 0..32.
+///
+/// Slot 0 and code-less weapon slots 6, 7, 8, 10, 18 and 24 use the empty
+/// handler. Every other slot requires its weapon package loaded in the shared
+/// weapon overlay slot. The dispatcher copies all 33 pointers before calling
+/// the selected handler; the table has no terminator.
+static const _PlayerActorWeaponAttacks _gPlayerActorWeaponAttacks = { {
     _playerActorNoWeaponAttack,
     func_p08_snail_8011D1D8,
     m93rAttackState,
@@ -8013,7 +8080,7 @@ static void _playerActorDispatchWeaponAttack(Task* task)
     GameActor*                actor;
     _PlayerActorWeaponAttacks weaponAttacks;
 
-    weaponAttacks        = D_800978BC;
+    weaponAttacks        = _gPlayerActorWeaponAttacks;
     actor                = task->work;
     actor->actionPadMask = PLAYER_ACTOR_ATTACK_CANCEL_BUTTONS;
     actor->movementSign  = 0;
@@ -8302,15 +8369,21 @@ void playerActorEnterLocomotion(Task* task, s16 resetAnimation)
     }
 }
 
-/// `mode` dispatcher: `_playerActorTickNormal`, `_playerActorTickDamage`, `_playerActorTickScripted`.
-static const TaskFuncTable3 Gp_PlayerModeFns = { {
+/// Player control-mode handlers: normal 0, damage 1 and scripted 2.
+///
+/// Copied before dispatch by GameActor.mode; there is no sentinel or bounds check.
+static const TaskFuncTable3 _gPlayerActorModeHandlers = { {
     _playerActorTickNormal,
     _playerActorTickDamage,
     _playerActorTickScripted,
 } };
 
-/// `state` dispatcher copied by `_playerActorTickNormal`.
-static const TaskFuncTable8 D_8009794C = { {
+/// Player normal-mode handlers indexed by GameActor.state 0..7.
+///
+/// States are locomotion 0, aim entry 1, aiming 2, aim exit 3, attack 4,
+/// reload 5, PE action 6 and paralysis 7. Copied before dispatch; the
+/// state index belongs to normal mode and there is no terminator.
+static const TaskFuncTable8 _gPlayerActorNormalStateHandlers = { {
     _playerActorNormalState0,
     _playerActorNormalState1,
     _playerActorNormalState2,
@@ -8374,7 +8447,7 @@ static void _playerActorTickNormal(Task* task)
     PlayerStatus*  status;
     TaskFuncTable8 states;
 
-    states = D_8009794C;
+    states = _gPlayerActorNormalStateHandlers;
     actor  = task->work;
     if (gPlayerStatus.statusFlags & PLAYER_STATUS_CONFUSION) {
         playerActorApplyConfusionInput(task);
@@ -8451,11 +8524,11 @@ static void _playerActorNormalState2(Task* task)
         if (playerActorReadAttackButton(task) != 0 &&
             animationGetCurrentRecord(&actor->animationContext, actor->animationSlots + 1) != NULL &&
             actor->attackControl.cooldownTicks == 0) {
-            loadMask       = D_80112EF8[gPlayerStatus.weapon] != 0 ? actor->attackButton : PLAYER_ACTOR_WEAPON_LOAD_PRIMARY;
+            loadMask       = _gPlayerActorWeaponUsesSelectedLoads[gPlayerStatus.weapon] != 0 ? actor->attackButton : PLAYER_ACTOR_WEAPON_LOAD_PRIMARY;
             remainingLoads = playerActorQueryWeaponLoads(loadMask);
             if (remainingLoads > 0 ||
                 (attackButton = actor->attackButton,
-                 D_80112F1C[gPlayerStatus.weapon][(u8)(attackButton - PLAYER_ACTOR_ATTACK_BUTTON_PRIMARY)] != 0)) {
+                 _gPlayerActorWeaponLoadFreeAttacks[gPlayerStatus.weapon][(u8)(attackButton - PLAYER_ACTOR_ATTACK_BUTTON_PRIMARY)] != 0)) {
                 if (gPlayerStatus.statusFlags & PLAYER_STATUS_BERSERKER) {
                     playerStateApplyHpDamage(PLAYER_ACTOR_BERSERKER_SHOT_HP_COST);
                 }
@@ -9348,11 +9421,11 @@ static void _playerActorTickScriptedAttack(Task* task)
                    animationGetCurrentRecord(&actor->animationContext,
                                              actor->animationSlots + 1) != NULL &&
                    actor->attackControl.cooldownTicks == 0) {
-            loadMask       = D_80112EF8[gPlayerStatus.weapon] != 0 ? (s8)actor->attackButton : PLAYER_ACTOR_WEAPON_LOAD_PRIMARY;
+            loadMask       = _gPlayerActorWeaponUsesSelectedLoads[gPlayerStatus.weapon] != 0 ? (s8)actor->attackButton : PLAYER_ACTOR_WEAPON_LOAD_PRIMARY;
             remainingLoads = playerActorQueryWeaponLoads(loadMask);
             if (remainingLoads > 0 ||
                 (attackButton = actor->attackButton,
-                 D_80112F1C[gPlayerStatus.weapon][(u8)(attackButton - PLAYER_ACTOR_ATTACK_BUTTON_PRIMARY)] != 0)) {
+                 _gPlayerActorWeaponLoadFreeAttacks[gPlayerStatus.weapon][(u8)(attackButton - PLAYER_ACTOR_ATTACK_BUTTON_PRIMARY)] != 0)) {
                 actor->aimControl = GAME_ACTOR_AIM_REQUEST_SCRIPTED;
                 actor->statePhase = 0;
                 _playerActorDispatchWeaponAttack(task);
@@ -9399,7 +9472,7 @@ static void _playerActorTickScriptedItemUse(Task* task)
         }
         case PLAYER_ACTOR_ITEM_USE_PLAY_PHASE:
             if (animationGetCurrentRecord(&actor->animationContext, actor->animationSlots + 1) != NULL) {
-                if (playerActorIsSlotAdvancingLinearly(task, D_80112E04[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId][PLAYER_ACTOR_ITEM_USE_RIG_SLOT], 0, 0) == 0) {
+                if (playerActorIsSlotAdvancingLinearly(task, gPlayerActorAttachmentParentParts[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId][PLAYER_ACTOR_ITEM_USE_RIG_SLOT], 0, 0) == 0) {
                     _playerActorResumeAimLocomotion(task, PLAYER_ACTOR_ITEM_USE_RESUME_BLEND);
                 }
             }
@@ -9421,7 +9494,7 @@ static void _playerActorTick(Task* task)
     GameActor*     actor;
     TaskFuncTable3 modeHandlers;
 
-    modeHandlers = Gp_PlayerModeFns;
+    modeHandlers = _gPlayerActorModeHandlers;
     actor        = task->work;
     _playerActorCaptureInteractionPress(task);
     if (actor->attackControl.cooldownTicks > 0) {
@@ -9748,7 +9821,7 @@ void playerActorEnterReload(Task* task, s32 loadSelection, s32 reloadSource)
     actor = task->work;
     if (reloadSource == PLAYER_ACTOR_RELOAD_BATTLE_END) {
         if (playerActorQueryWeaponLoads(loadSelection) != 0) {
-            if (D_80112F1C[gPlayerStatus.weapon][0] == 0) {
+            if (_gPlayerActorWeaponLoadFreeAttacks[gPlayerStatus.weapon][0] == 0) {
                 actor->statePhase = PLAYER_ACTOR_RELOAD_PHASE_COMPLETE;
                 return;
             }
@@ -10710,18 +10783,18 @@ static void _playerActorTickSparkPuffHit(Task* task)
     actor          = task->work;
     hitEffectLevel = (u16)actor->pendingDamage / PLAYER_ACTOR_EFFECT_HIT_DAMAGE_STEP;
     localOffset    = SCRATCH_STACK_RESERVE_BLOCK(SVECTOR);
-    spawnRecord    = &D_80113358;
+    spawnRecord    = &gEffectPlayerHitSpawnArg;
     hitEffectLevel = _playerActorClampHitEffectLevel(hitEffectLevel);
     switch (actor->statePhase) {
         case PLAYER_ACTOR_EFFECT_HIT_PHASE_START:
             // Retain hit placement and count across waits; this recipe ignores the size half.
-            actor->statePhase       = PLAYER_ACTOR_EFFECT_HIT_PHASE_EMIT;
-            hitCoord                = ((s8)actor->hitBodyIndex + actor->collisionBodies)->coord;
-            spawnRecord->spawnArgLo = (hitEffectLevel * PLAYER_ACTOR_SPARK_PUFF_RECORD_SIZE_STEP) + PLAYER_ACTOR_SPARK_PUFF_RECORD_SIZE_BASE;
-            spawnRecord->spawnArgHi = hitEffectLevel + 1;
-            D_80113358.coord        = hitCoord;
-            actor->stateTimer       = 0;
-            actor->actionValue      = hitEffectLevel;
+            actor->statePhase              = PLAYER_ACTOR_EFFECT_HIT_PHASE_EMIT;
+            hitCoord                       = ((s8)actor->hitBodyIndex + actor->collisionBodies)->coord;
+            spawnRecord->spawnArgLo        = (hitEffectLevel * PLAYER_ACTOR_SPARK_PUFF_RECORD_SIZE_STEP) + PLAYER_ACTOR_SPARK_PUFF_RECORD_SIZE_BASE;
+            spawnRecord->spawnArgHi        = hitEffectLevel + 1;
+            gEffectPlayerHitSpawnArg.coord = hitCoord;
+            actor->stateTimer              = 0;
+            actor->actionValue             = hitEffectLevel;
             /* fallthrough */
         case PLAYER_ACTOR_EFFECT_HIT_PHASE_EMIT:
             if (actor->stateTimer == 0) {
@@ -10803,7 +10876,7 @@ static void _playerActorTickBodyBlastHit(Task* task)
             /* fallthrough */
         case PLAYER_ACTOR_EFFECT_HIT_PHASE_EMIT:
             if (actor->stateTimer == 0) {
-                spawnRecord = &D_80113358;
+                spawnRecord = &gEffectPlayerHitSpawnArg;
                 actor->actionValue++;
                 if (actor->actionValue == PLAYER_ACTOR_BODY_BLAST_COUNT) {
                     actor->statePhase++;

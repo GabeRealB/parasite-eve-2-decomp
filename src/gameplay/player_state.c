@@ -942,23 +942,23 @@ void playerActorTickPoisonHit(Task* task)
 
     actor       = task->work;
     localOffset = SCRATCH_STACK_RESERVE_BLOCK(SVECTOR);
-    spawnRecord = &D_80113358;
+    spawnRecord = &gEffectPlayerHitSpawnArg;
     switch (actor->statePhase) {
         case PLAYER_ACTOR_POISON_HIT_INITIAL_PHASE:
-            bodyIndex               = (s8)actor->hitBodyIndex;
-            actor->statePhase       = PLAYER_ACTOR_POISON_HIT_WAIT_PHASE;
-            hitCoord                = (bodyIndex + actor->collisionBodies)->coord;
-            spawnRecord->spawnArgLo = PLAYER_ACTOR_POISON_HIT_PUFF_LOW_ARG;
-            spawnRecord->spawnArgHi = PLAYER_ACTOR_POISON_HIT_EXTRA_PUFFS;
-            D_80113358.coord        = hitCoord;
-            localOffset->vx         = 0;
-            offsetY                 = 0;
+            bodyIndex                      = (s8)actor->hitBodyIndex;
+            actor->statePhase              = PLAYER_ACTOR_POISON_HIT_WAIT_PHASE;
+            hitCoord                       = (bodyIndex + actor->collisionBodies)->coord;
+            spawnRecord->spawnArgLo        = PLAYER_ACTOR_POISON_HIT_PUFF_LOW_ARG;
+            spawnRecord->spawnArgHi        = PLAYER_ACTOR_POISON_HIT_EXTRA_PUFFS;
+            gEffectPlayerHitSpawnArg.coord = hitCoord;
+            localOffset->vx                = 0;
+            offsetY                        = 0;
             if ((s8)actor->hitBodyIndex == GAME_ACTOR_BODY_ROOT) {
                 offsetY = PLAYER_ACTOR_POISON_HIT_ROOT_OFFSET_Y;
             }
             localOffset->vy = offsetY;
             localOffset->vz = 0;
-            effectSpawnHit(EFFECT_HIT_KIND_TINTED_PUFF, D_80113358.coord, localOffset, spawnRecord);
+            effectSpawnHit(EFFECT_HIT_KIND_TINTED_PUFF, gEffectPlayerHitSpawnArg.coord, localOffset, spawnRecord);
             break;
         case PLAYER_ACTOR_POISON_HIT_WAIT_PHASE:
             break;
@@ -1188,7 +1188,7 @@ static s32 _playerStateTestFatalAttack(s32 attackKey)
 
 void effectSpawnPlayerBodyHit(s32 effectKind, s32 effectArgument)
 {
-    taskSpawnFromTable(D_80113340, effectKind, effectArgument, 0);
+    taskSpawnFromTable(gEffectPlayerBodyHitTaskDescriptors, effectKind, effectArgument, 0);
 }
 
 /// Latches the first category-4 attack against a player or companion motion body.
@@ -1299,7 +1299,7 @@ void effectPlayerBodyBlastTask(Task* task)
             stageAndDelay = task->killCountdown;
             if ((stageAndDelay & EFFECT_PLAYER_BODY_BLAST_DELAY_MASK) == 0) {
                 nextStage           = stageAndDelay + EFFECT_PLAYER_BODY_BLAST_STAGE_STEP;
-                spawnRecord         = &D_80113358;
+                spawnRecord         = &gEffectPlayerHitSpawnArg;
                 task->killCountdown = nextStage;
                 effectLevel         = task->spawnArg1.value & EFFECT_PLAYER_BODY_BLAST_LEVEL_MASK;
                 if (nextStage >= EFFECT_PLAYER_BODY_BLAST_LAST_STAGE) {
@@ -1330,7 +1330,7 @@ void effectPlayerBodyPuffTask(Task* task)
     EffectSpawnArg* spawnRecord;
     GfxCoord*       puffCoord;
 
-    spawnRecord             = &D_80113358;
+    spawnRecord             = &gEffectPlayerHitSpawnArg;
     playerTask              = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     playerModel             = playerTask->extra.tmd;
     playerCoords            = playerModel->coords;
@@ -1418,8 +1418,8 @@ void companionRemoveEquipment(Task* task)
         actor->equipmentTasks[1]           = NULL;
         model                              = task->extra.tmd;
         animationActor                     = task->work;
-        animationActor->animationBankIndex = Gp_AllyIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType - 1] + gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant;
-        animationActor->animationSets      = Gp_AnimBlkTbl[animationActor->animationBankIndex]->table.sets;
+        animationActor->animationBankIndex = gCompanionAnimationBankBases[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType - 1] + gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant;
+        animationActor->animationSets      = gCompanionAnimationBanks[animationActor->animationBankIndex]->table.sets;
         animationInitContext(&animationActor->animationContext, animationActor->animationSets, model, animationActor->poseBuffer,
                              animationActor->animationSlots);
         playerActorResetChildSlots(task, COMPANION_REMOVE_EQUIPMENT_IDLE_SET);
@@ -1508,8 +1508,8 @@ Task* companionRestoreEquipment(void)
 
     animationActor                     = companionTask->work;
     companionModel                     = companionTask->extra.tmd;
-    animationActor->animationBankIndex = Gp_AllyIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType - 1] + gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant;
-    animationActor->animationSets      = Gp_AnimBlkTbl[animationActor->animationBankIndex]->table.sets;
+    animationActor->animationBankIndex = gCompanionAnimationBankBases[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType - 1] + gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant;
+    animationActor->animationSets      = gCompanionAnimationBanks[animationActor->animationBankIndex]->table.sets;
     animationInitContext(&animationActor->animationContext, animationActor->animationSets, companionModel, animationActor->poseBuffer,
                          animationActor->animationSlots);
     idleActor = companionTask->work;
@@ -1796,8 +1796,8 @@ void companionInitNativeAnimation(Task* task)
 
     actor                     = task->work;
     model                     = task->extra.tmd;
-    actor->animationBankIndex = Gp_AllyIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType - 1] + gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant;
-    actor->animationSets      = Gp_AnimBlkTbl[actor->animationBankIndex]->table.sets;
+    actor->animationBankIndex = gCompanionAnimationBankBases[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType - 1] + gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant;
+    actor->animationSets      = gCompanionAnimationBanks[actor->animationBankIndex]->table.sets;
     animationInitContext(&actor->animationContext, actor->animationSets, model, actor->poseBuffer,
                          actor->animationSlots);
 }
@@ -1837,7 +1837,7 @@ void companionTrackLockTarget(Task* task, s32 trackingAxes)
             playerActorAimYawToLock(task, minGroundDistance);
         }
         if (trackingAxes & COMPANION_LOCK_TRACK_PITCH) {
-            if (D_80113388[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant] != 0) {
+            if (gCompanionVariantUsesTorsoPitch[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant] != 0) {
                 playerActorAimPitchToLock(task);
             } else {
                 playerActorAimPart6PitchToLock(task, gActor800100WeaponIdsByResourceVariant[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant], COMPANION_LOCK_MIN_GROUND_DISTANCE);
@@ -1935,8 +1935,8 @@ s32 companionEndScriptedMotion(Task* task, s32 unusedMessageId, s32 unusedFirstA
     actor->previousPosition.vz = rootCoord->coord.t[2];
     // Restart on a bank change; otherwise blend the existing pose back to idle.
     previousSets              = actor->animationSets;
-    actor->animationBankIndex = Gp_AllyIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType - 1] + gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant;
-    nativeSets                = Gp_AnimBlkTbl[actor->animationBankIndex]->table.sets;
+    actor->animationBankIndex = gCompanionAnimationBankBases[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType - 1] + gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant;
+    nativeSets                = gCompanionAnimationBanks[actor->animationBankIndex]->table.sets;
     bankChanged               = previousSets != nativeSets;
     actor->animationSets      = nativeSets;
     animationInitContext(&actor->animationContext, actor->animationSets, model, actor->poseBuffer,
@@ -1998,8 +1998,8 @@ s32 companionPlayScriptedAnimation(Task* task, s32 unusedMessageId, const Animat
     _companionEnterScriptedMode(task, actor);
     // Select the animation table before resetting or blending its slots.
     actor->state = COMPANION_SCRIPTED_ANIMATION_STATE;
-    if (actor->animationSets != Gp_AnimBlkTbl[request->source.index]->table.sets) {
-        actor->animationSets = Gp_AnimBlkTbl[request->source.index]->table.sets;
+    if (actor->animationSets != gCompanionAnimationBanks[request->source.index]->table.sets) {
+        actor->animationSets = gCompanionAnimationBanks[request->source.index]->table.sets;
         animationInitContext(&actor->animationContext, actor->animationSets, model, actor->poseBuffer,
                              actor->animationSlots);
         actor->animationBankIndex = (u16)request->source.index;
@@ -2106,7 +2106,7 @@ s32 animationCopyCompanionBankExtension(Task* unusedTask, s32 unusedMessageId, c
     s32        wordIndex;
     s32        wordCount;
 
-    destinationWords = Gp_AnimBlkTbl[Gp_AllyIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType - 1] + gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant]->table.words;
+    destinationWords = gCompanionAnimationBanks[gCompanionAnimationBankBases[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType - 1] + gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant]->table.words;
     sourceWords      = request->source.words;
     wordCount        = request->wordCount;
     if (wordCount >= ANIMATION_BANK_EXTENSION_CAPACITY + 1) {

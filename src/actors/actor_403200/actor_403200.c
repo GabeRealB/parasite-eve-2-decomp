@@ -6679,8 +6679,8 @@ static void _actor403200Tick(Enemy* enemy, Task* task)
                     if (work->swipeDamageReply != 1 && (s16)work->caughtTicks >= ACTOR_403200_SWIPE_RELEASE_MIN_TICKS) {
                         work->playerAnim.source.sets = _gActor403200GluttonPlayerAnimSets;
                         _gActor403200GluttonPlayerAnimSets[4] =
-                            (Gp_PlayerAnimBlkTbl
-                                 [Gp_WeaponIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon])
+                            (gPlayerActorWeaponAnimationBanks
+                                 [gPlayerActorWeaponAnimationBankBases[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon])
                                 ->table.sets[ACTOR_403200_PLAYER_WEAPON_RELEASE_CLIP];
                         work->playerAnim.animationId = ACTOR_403200_PLAYER_CLIP_SWIPE_RELEASE;
                         work->playerAnim.blend       = ANIMATION_BLEND_INTERPOLATE;

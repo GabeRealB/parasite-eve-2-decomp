@@ -697,17 +697,17 @@ There is **no separate model or animation chunk type**. Both live inside the
 
 ### 9.1 Where they live
 
-The index is in one binary and the content is in another. `Gp_PlayerAnimBlkTbl`
-and `Gp_AnimBlkTbl` sit in the **gameplay** overlay's `.data`, but the addresses
+The index is in one binary and the content is in another. `gPlayerActorWeaponAnimationBanks`
+and `gCompanionAnimationBanks` sit in the **gameplay** overlay's `.data`, but the addresses
 they hold point into *other* RAM slots — the packages that get loaded on top:
 
 | Table | VA | Entries | Targets | Slot |
 |---|---|---|---|---|
-| `Gp_PlayerAnimBlkTbl` | `0x80112D6C` | 34 | `0x8012A0D8`–`0x8012EDD0` | weapons, `0x8011D1C0` |
-| `Gp_AnimBlkTbl` | `0x80113368` | 8 | `0x8016CB98`–`0x801772E8` | Kyle, `0x80167A70` |
+| `gPlayerActorWeaponAnimationBanks` | `0x80112D6C` | 34 | `0x8012A0D8`–`0x8012EDD0` | weapons, `0x8011D1C0` |
+| `gCompanionAnimationBanks` | `0x80113368` | 8 | `0x8016CB98`–`0x801772E8` | Kyle, `0x80167A70` |
 
-`Gp_PlayerAnimBlkTbl` is indexed by `GameActor.animationBankIndex`
-(`Gp_WeaponIdBase[...] + gPlayerStatus.weapon`), so an entry is only
+`gPlayerActorWeaponAnimationBanks` is indexed by `GameActor.animationBankIndex`
+(`gPlayerActorWeaponAnimationBankBases[...] + gPlayerStatus.weapon`), so an entry is only
 meaningful while *that weapon's* package is loaded. Two consequences:
 
 - The same VA means different things depending on which package is resident.
@@ -801,7 +801,7 @@ animation block:
 
 Actors and Kyle's packages match their own part count exactly, 7 blocks out of 7.
 The weapons look like an exception and are the clearest confirmation: a weapon
-is a single part, its blocks come from `Gp_PlayerAnimBlkTbl`, and 19 is **Aya's**
+is a single part, its blocks come from `gPlayerActorWeaponAnimationBanks`, and 19 is **Aya's**
 part count — the weapon package carries the *player's* animation for that
 weapon, driving Aya's skeleton, not its own geometry.
 

@@ -32,17 +32,43 @@ enum {
 /// Bank sentinel for a directly installed animation-set table.
 enum { PLAYER_ACTOR_DIRECT_ANIMATION_BANK = 0x7FFF };
 
-/// u8 table indexed by `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant`. Non-zero selects
-/// `playerActorAimPitchToLock`; zero uses `gActor800100WeaponIdsByResourceVariant` with `playerActorAimPart6PitchToLock`.
-extern u8 D_80113388[];
+/// Companion-variant selector for torso rather than part-6 lock pitch.
+///
+/// Variants 0/1 select part 6; variants 2..4 select parts 2/3. Only variants
+/// 0..4 are established as selectors. The retained final bytes F0 EE EF
+/// have unproven meaning and ownership; they do not extend that domain.
+extern u8 gCompanionVariantUsesTorsoPitch[8];
 
-extern TaskDesc D_80113340[2];
+/// Two bodyless player-hit visual tasks, selected by `EFFECT_PLAYER_BODY_HIT_*`.
+///
+/// Blast is index 0 and puff index 1. Both run at priority 192; the table
+/// has exactly two descriptors and no sentinel.
+extern TaskDesc gEffectPlayerBodyHitTaskDescriptors[2];
 
-extern EffectSpawnArg D_80113358;
+/// Shared mutable hit-effect recipe used by player damage and body-hit visual tasks.
+///
+/// Initially {NULL,512,3}; consumers replace the borrowed coordinate and
+/// both argument halves for the selected recipe. Spark/puff reactions
+/// retain the coordinate/count across delayed ticks, while body blast/puff
+/// tasks also overwrite this record. Coordinate storage must outlive any
+/// effect that retains it; the record owns no model or coordinate.
+extern EffectSpawnArg gEffectPlayerHitSpawnArg;
 
-extern u16 Gp_AllyIdBase[4];
+/// Native companion animation-bank bases indexed by family minus one.
+///
+/// Family 1 adds variants 0..4 to base 1; families 2/3 use variant 0
+/// and bases 6/7. The final zero entry is reserved, with no live family-4
+/// consumer. Family 0 denotes no companion and must not index this table.
+extern u16 gCompanionAnimationBankBases[4];
 
-extern AnimationBank* Gp_AnimBlkTbl[8];
+/// Native companion animation banks indexed by family base plus resource variant.
+///
+/// Slot 0 is NULL; 1/2 share Kyle variant 1, 3..5 hold Kyle variants 2..4,
+/// and 6/7 hold companion families 2/3. The appropriate companion package
+/// must be loaded before lookup, and its borrowed sets/records must remain
+/// live during playback. Extension copies write the bank words, not these
+/// pointers; repeated entries intentionally alias the same loaded bank.
+extern AnimationBank* gCompanionAnimationBanks[8];
 
 /// Advances the live player's input/state and prepares its bodies for collision.
 ///

@@ -111,7 +111,7 @@ void grenadePistolAttackState(Task* playerTask)
             playerActorPlayChildSlotsWithBlend(playerTask, GRENADE_PISTOL_ANIMATION_FIRE, 0, GRENADE_PISTOL_FIRE_BLEND_FRAMES);
             break;
         case GRENADE_PISTOL_PHASE_RECOVER:
-            if (playerActorIsSlotAdvancingLinearly(playerTask, D_80112E04[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId][1], 0, 0) == 0) {
+            if (playerActorIsSlotAdvancingLinearly(playerTask, gPlayerActorAttachmentParentParts[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId][1], 0, 0) == 0) {
                 playerActorFinishWeaponAttack(playerTask);
             }
             break;

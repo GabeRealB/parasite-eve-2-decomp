@@ -1,7 +1,7 @@
 """Decode the animation blocks that gameplay's tables point into.
 
-The clips are not in the binaries the build splits. ``Gp_PlayerAnimBlkTbl`` and
-``Gp_AnimBlkTbl`` live in the gameplay overlay's ``.data``, but the addresses
+The clips are not in the binaries the build splits. ``gPlayerActorWeaponAnimationBanks`` and
+``gCompanionAnimationBanks`` live in the gameplay overlay's ``.data``, but the addresses
 they hold land in *other* RAM slots - the weapon and actor ``.pe2pkg`` packages
 that load at ``0x8011D1C0``, ``0x80167A70`` and friends. Gameplay carries the
 index; the packages carry the content.
@@ -37,8 +37,8 @@ from pathlib import Path
 # VAs of the index tables inside the gameplay overlay (see sym.gameplay.txt).
 GAMEPLAY_BASE = 0x80093800
 ANIM_TABLES = {
-    "Gp_PlayerAnimBlkTbl": (0x80112D6C, 34),
-    "Gp_AnimBlkTbl": (0x80113368, 8),
+    "gPlayerActorWeaponAnimationBanks": (0x80112D6C, 34),
+    "gCompanionAnimationBanks": (0x80113368, 8),
 }
 
 # RAM slots a package can load at (doc/OVERLAYS.md section 8).

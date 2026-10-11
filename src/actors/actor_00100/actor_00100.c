@@ -3251,7 +3251,7 @@ static void _actor00100FrameState(Enemy* enemy, Task* actor)
                 if (playerSets == _gDesertChaserRearCatchPlayerAnimSets) {
                     if ((playerStatus->hp > 0) && (work->playerAnimFrames >= ACTOR00100_PLAYER_REAR_RECOVER_TICK)) {
                         playerAnimRequest            = &work->playerAnim;
-                        playerSets[4]                = Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon]->table.sets[7];
+                        playerSets[4]                = gPlayerActorWeaponAnimationBanks[gPlayerActorWeaponAnimationBankBases[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon]->table.sets[7];
                         work->playerAnim.animationId = ACTOR00100_PLAYER_CLIP_RECOVER_HOLD;
                         work->playerAnim.blend       = ANIMATION_BLEND_INTERPOLATE;
                         work->playerAnim.blendFrames = 3;
@@ -3260,7 +3260,7 @@ static void _actor00100FrameState(Enemy* enemy, Task* actor)
                     }
                 } else if ((playerStatus->hp > 0) && (work->playerAnimFrames >= ACTOR00100_PLAYER_FRONT_RECOVER_TICK)) {
                     playerAnimRequest                         = &work->playerAnim;
-                    _gDesertChaserFrontCatchPlayerAnimSets[4] = Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon]->table.sets[7];
+                    _gDesertChaserFrontCatchPlayerAnimSets[4] = gPlayerActorWeaponAnimationBanks[gPlayerActorWeaponAnimationBankBases[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon]->table.sets[7];
                     work->playerAnim.animationId              = ACTOR00100_PLAYER_CLIP_RECOVER_HOLD;
                     work->playerAnim.blend                    = ANIMATION_BLEND_INTERPOLATE;
                     work->playerAnim.blendFrames              = 3;
@@ -3306,9 +3306,9 @@ static void _actor00100FrameState(Enemy* enemy, Task* actor)
                         work->playerAnim.animationId = ACTOR00100_PLAYER_CLIP_RECOVER_KNOCK_BACK;
                         recoverPlayerSets            = work->playerAnim.source.sets;
                         if (recoverPlayerSets == _gDesertChaserRearCatchPlayerAnimSets) {
-                            recoverPlayerSets[5] = Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon]->table.sets[9];
+                            recoverPlayerSets[5] = gPlayerActorWeaponAnimationBanks[gPlayerActorWeaponAnimationBankBases[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon]->table.sets[9];
                         } else {
-                            _gDesertChaserFrontCatchPlayerAnimSets[5] = Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon]->table.sets[9];
+                            _gDesertChaserFrontCatchPlayerAnimSets[5] = gPlayerActorWeaponAnimationBanks[gPlayerActorWeaponAnimationBankBases[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon]->table.sets[9];
                         }
                         nextPlayerAnimRequest = &work->playerAnim;
                         TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, nextPlayerAnimRequest, 0);

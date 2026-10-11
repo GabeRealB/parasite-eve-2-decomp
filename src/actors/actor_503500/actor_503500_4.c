@@ -5695,7 +5695,7 @@ void actor503500KnockbackTask(Task* task)
         case ACTOR_503500_KNOCKBACK_RESTORE_POSE:
             if (taskMessageDispatch(player, ANIMATION_MESSAGE_IS_PLAYING, 0, 0) == 0) {
                 D_actor_503500_801714DC =
-                    Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon]
+                    gPlayerActorWeaponAnimationBanks[gPlayerActorWeaponAnimationBankBases[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon]
                         ->table.sets[ACTOR_503500_KNOCKBACK_WEAPON_BANK_WORD];
                 TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &gActor503500PlayerKnockbackRestoreRequest, 0);
                 task->state++;
