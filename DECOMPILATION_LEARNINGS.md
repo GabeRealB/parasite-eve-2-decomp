@@ -26008,12 +26008,12 @@ sb    zero, %lo(B)(s2)
 first:
 
 ```c
-Gp_DirAltNibble = 0; /* $s2 — stored second in the epilogue */
-Gp_DirAlt = 0; /* $s3 — stored first, then s3 is restored */
+gDirectionSecondaryActionParameter1 = 0; /* $s2 — stored second in the epilogue */
+gDirectionSecondaryActionParameter0 = 0; /* $s3 — stored first, then s3 is restored */
 ```
 
 `directionCommitStairWarp` is the example. The load-order variant
-`Gp_DirAlt = 0; Gp_DirAltNibble = 0` stuck at 99.5% with only those two
+`gDirectionSecondaryActionParameter0 = 0; gDirectionSecondaryActionParameter1 = 0` stuck at 99.5% with only those two
 `%hi` registers swapped.
 
 ## `*(s32*)&` strips volatile and lets an independent store hoist past earlier ones
@@ -26868,8 +26868,8 @@ for a qualifying script instance. A caller that only tests a global then calls
 value as the argument forces `lw a0`:
 
 ```c
-if (D_80114CF0 == 0 || sndScriptHasActiveId(D_80114CF0) == 0) {
-    Gp_DirPhase++;
+if (_gDirectionWarpSoundId == 0 || sndScriptHasActiveId(_gDirectionWarpSoundId) == 0) {
+    gDirectionActionPhase++;
 }
 ```
 
@@ -44994,7 +44994,7 @@ local is describing exactly that mix in C — write the plain assignments as
 `d->room = …` and the read-modify-write as `dst.room = dst.room + 2`.
 
 `Room_Script01` is the example: a `RoomEventMsg` src/dst pair (the `0x13EE`
-message payload, see `Gp_WarpLoc`) built on the stack. Unlike the `volatile`
+message payload, see `gDirectionWarpRequest`) built on the stack. Unlike the `volatile`
 recipes above, no qualifier is needed — the pointer local alone is the barrier.
 
 ## `default: goto done` so `lui` fills the last-case `beq` delay
@@ -90438,7 +90438,7 @@ integer, which is why `Room_Snd01` reads `arg2` as an `s32` and never
 dereferences it. Grepping the immediate finds the id's one producer - here
 `addiu $a1, $zero, 0x13EF` occurs exactly once in `asm/USA/`, in `_directionDispatchRoomAction`
 - and that function posts `(s32)&request` where `request` is a 4-byte `DirectionActionRequest`
-(`actionId = Gp_DirByte`). So the third parameter is `const DirectionActionRequest*` and the fourth
+(`actionId = gDirectionActionParameter0`). So the third parameter is `const DirectionActionRequest*` and the fourth
 `s32 unusedSecondArg`:
 
 ```c
@@ -121032,7 +121032,7 @@ which is exactly where moving the two labels puts them:
 That one move took the score to 94.52% with `branch=0 reorder=0`, leaving only
 `insert=2 delete=2` — case 4's `gMcSaveData` stores, which were still
 `M2C_FIELD(&gMcSaveData, u8 *, 6)` pointer arithmetic. Reading the 100% sibling
-idiom (`src/gameplay/1A8.c`'s `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = (u8)Gp_WarpLoc.areaId;`) and
+idiom (`src/gameplay/1A8.c`'s `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = (u8)gDirectionWarpRequest.areaId;`) and
 using the `GameLoc`/`McSaveData` struct fields instead fixed those and the
 function:
 

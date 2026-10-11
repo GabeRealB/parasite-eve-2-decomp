@@ -1593,7 +1593,7 @@ static void _neoArkShrineClosePuzzle(Task* task)
 {
     enum { NEO_ARK_SHRINE_EXIT_ACTION_COOLDOWN_TICKS = 10 };
 
-    D_80114D08 = NEO_ARK_SHRINE_EXIT_ACTION_COOLDOWN_TICKS;
+    gDirectionInteractionRearmUpdates = NEO_ARK_SHRINE_EXIT_ACTION_COOLDOWN_TICKS;
     _neoArkShrineResumeRoomFromPuzzle();
     taskKill(task->spawnArg2.pointer);
     taskRequestKill(task, 0);

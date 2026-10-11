@@ -2444,7 +2444,7 @@ static inline void _actor548100RestoreRoomPlay(void)
 
     playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
     playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO);
-    D_80114D08 = ACTOR_548100_INTERACTION_REARM_UPDATES;
+    gDirectionInteractionRearmUpdates = ACTOR_548100_INTERACTION_REARM_UPDATES;
     displayReleaseMenuHold();
     gGameSession->eventState                                   = ACTOR_548100_EVENT_IDLE;
     gGameSession->hideHud                                      = false;

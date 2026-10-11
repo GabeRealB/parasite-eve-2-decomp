@@ -2721,7 +2721,7 @@ static void _dryfieldNightSaloonGRJukeboxSceneTask(Task* task)
             // Return to the preceding room view before releasing scripted control.
             gGameSession->eventState                                   = 0;
             gGameSession->hideHud                                      = 0;
-            D_80114D08                                                 = DRYFIELD_NIGHT_SALOON_G_R_INTERACTION_REARM_UPDATES;
+            gDirectionInteractionRearmUpdates                          = DRYFIELD_NIGHT_SALOON_G_R_INTERACTION_REARM_UPDATES;
             gSceneCombatState.actorControl                             = SCENE_COMBAT_ACTORS_RUNNING;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = _gDryfieldNightSaloonGRJukeboxSavedView.view;
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);

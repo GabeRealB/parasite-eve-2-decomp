@@ -32,9 +32,9 @@ void areaSetCurrentMapMark(void);
 /// Refreshes the map bits for marked areas with saved-pose restoration disabled.
 ///
 /// Requires an active stage 1..5 and loaded area directories. Refreshes ids
-/// `1..Gp_AreaIdCounts[stage-1]` (17, 38, 38, 49, 33), setting a bit only when
+/// `1..gMenuMapStageAreaCounts.counts[stage-1]` (17, 38, 38, 49, 33), setting a bit only when
 /// `AREA_SAVED_MAP_MARK` is set and `AREA_SPAWN_RESTORE_SAVED_POSES` is clear.
-/// `Gp_AreaIdBits[0]` covers ids 1..32 and `[1]` covers 33..64. Bits above the
+/// `gMenuMapMarkedAreaBits[0]` covers ids 1..32 and `[1]` covers 33..64. Bits above the
 /// stage's count retain their prior values; the cache is separate from visitation.
 /// Stages above 5 leave it untouched; stage 0 is not a valid input.
 void menuMapRebuildMarkedAreaBits(void);

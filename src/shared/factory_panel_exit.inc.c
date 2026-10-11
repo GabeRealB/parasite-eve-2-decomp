@@ -10,7 +10,7 @@ static inline void _factoryPanelRestorePlay(void)
     enum { FACTORY_PANEL_REENTRY_DELAY_UPDATES = 10,
            FACTORY_PANEL_EVENT_IDLE            = 0 };
 
-    D_80114D08 = FACTORY_PANEL_REENTRY_DELAY_UPDATES;
+    gDirectionInteractionRearmUpdates = FACTORY_PANEL_REENTRY_DELAY_UPDATES;
     playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
     playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO);
     companionSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO);

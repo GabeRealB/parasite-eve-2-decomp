@@ -25,47 +25,57 @@
 #include "main/wipsys.h"
 
 /* Define BSS before API headers to preserve first-declaration order. */
-s16 D_80114CD0;
+u16 gDirectionPreviousActionControl;
 
-u16 Gp_DirFlags;
+u16 gDirectionActionControl;
 
-u16 D_80114CD4;
+u16 gDirectionSecondaryActionControl;
 
-u16 Gp_DirPhase;
+u16 gDirectionActionPhase;
 
-u8 Gp_DirByte;
+u8 gDirectionActionParameter0;
 
-u8 Gp_DirNibble;
+u8 gDirectionActionParameter1;
 
-u8 Gp_DirAlt;
+u8 gDirectionSecondaryActionParameter0;
 
-u8 Gp_DirAltNibble;
+u8 gDirectionSecondaryActionParameter1;
 
-u8 D_80114CDC;
+u8 gDirectionActionControlChanged;
 
-u8 D_80114CDD;
+u8 gDirectionStairBattleFinished;
 
-u8 D_80114CDE;
+u8 gDirectionPreviousBattlePhase;
 
 s16 D_80114CE0;
 
-RoomEventMsg Gp_WarpLoc;
+RoomEventMsg gDirectionWarpRequest;
 
-s32 D_80114CF0;
+/// Sound script selected for the current warp's departure or in-area execution.
+///
+/// DIRECTION_WARP_SOUND_NONE skips playback and the wait. Retained from the
+/// room query through execution and script completion; dead players skip playback.
+static s32 _gDirectionWarpSoundId;
 
-s16 D_80114CF4;
+/// Room query reply retained through the turn and resolve phases.
+///
+/// Dispatch narrows to s16: 0 executes in this area, 1 departs, and 2 executes
+/// the room's replacement action immediately. Other replies keep the query phase.
+static s16 _gDirectionWarpQueryResult;
 
-u16 Gp_DirFadeLevel;
+u16 gDirectionWarpDepartureShade;
 
-u8 D_80114CF8;
+u8 gDirectionActionActive;
 
-s32 Gp_AreaIdBits[2];
+u32 gMenuMapMarkedAreaBits[2];
 
-s16 D_80114D08;
+s16 gDirectionInteractionRearmUpdates;
 
 #include "direction_input.h"
 
 #include "gameplay/direction_input.h"
+
+#include "menu_map.h"
 
 /// Outcomes recognized by the warp query phase after narrowing the room reply to s16.
 enum {
@@ -78,23 +88,13 @@ enum {
 enum {
     DIRECTION_WARP_ENDPOINT_SHIFT       = 4,
     DIRECTION_WARP_ARRIVAL_MASK         = 0xF,
+    DIRECTION_WARP_DEFAULT_ROOM         = 1,
     DIRECTION_WARP_DEPARTURE_FADE_START = 30,
     DIRECTION_WARP_DRIVEWAY_FACING_X    = -1473,
     DIRECTION_WARP_DRIVEWAY_FACING_Z    = 2497
 };
 
-/// Five stage counts, followed by three unexplained nonzero bytes.
-/// The tail is retained for review, not interpreted as additional stages.
-s8 Gp_AreaIdCounts[8] = {
-    17,
-    38,
-    38,
-    49,
-    33,
-    -31,
-    -1,
-    34,
-};
+MenuMapAreaCountStorage gMenuMapStageAreaCounts = { { 17, 38, 38, 49, 33 }, { 0xE1, 0xFF, 0x22 } };
 
 u8 gViewIdentityMap[VIEW_IDENTITY_MAP_LENGTH] = {
     1,
@@ -166,45 +166,45 @@ void directionUpdateAction(void)
     if (viewGateTask != NULL) {
         if (viewGateTask->spawnArg1.value != gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view) {
             viewChangeStub();
-            D_80114D08 = DIRECTION_INTERACTION_REARM_UPDATES;
+            gDirectionInteractionRearmUpdates = DIRECTION_INTERACTION_REARM_UPDATES;
         }
     }
     if (gDisplayState.pendingMode != DISPLAY_MODE_NONE) {
-        D_80114D08 = DIRECTION_INTERACTION_REARM_UPDATES;
+        gDirectionInteractionRearmUpdates = DIRECTION_INTERACTION_REARM_UPDATES;
     }
-    if (D_80114CF8 == 0) {
+    if (gDirectionActionActive == 0) {
         if (gAttachmentState.mode == ATTACHMENT_MODE_IDLE) {
             gGameSession->dirActionBusy = 0;
-            if (D_80114D08 != 0) {
-                D_80114D08 = (u16)D_80114D08 - 1;
+            if (gDirectionInteractionRearmUpdates != 0) {
+                gDirectionInteractionRearmUpdates = (u16)gDirectionInteractionRearmUpdates - 1;
             }
-            if (worldCollisionReadActionHit(&Gp_DirFlags, &Gp_DirByte, &Gp_DirNibble) != 0) {
-                if (D_80114CD0 != (s16)Gp_DirFlags) {
-                    D_80114CDC = 1;
+            if (worldCollisionReadActionHit(&gDirectionActionControl, &gDirectionActionParameter0, &gDirectionActionParameter1) != 0) {
+                if ((s16)gDirectionPreviousActionControl != (s16)gDirectionActionControl) {
+                    gDirectionActionControlChanged = true;
                 } else {
-                    D_80114CDC = 0;
+                    gDirectionActionControlChanged = false;
                 }
-                Gp_DirPhase    = 0;
-                triggerControl = Gp_DirFlags;
-                automaticFlag  = triggerControl & WORLD_COLLISION_TRIGGER_AUTOMATIC;
+                gDirectionActionPhase = 0;
+                triggerControl        = gDirectionActionControl;
+                automaticFlag         = triggerControl & WORLD_COLLISION_TRIGGER_AUTOMATIC;
                 if (gSceneCombatState.signals.bytes.endDelayFrames == 0) {
                     if (automaticFlag && (gDisplayState.pendingMode == DISPLAY_MODE_NONE) && !(gGameSession->padPressed & PAD_BUTTON_TRIANGLE)) {
                         if (!(triggerControl & WORLD_COLLISION_TRIGGER_OUTSIDE_BATTLE)) {
-                            D_80114CF8 = 1;
+                            gDirectionActionActive = true;
                         } else if (gSceneCombatState.signals.bytes.battlePhase != SCENE_COMBAT_BATTLE_ENGAGED) {
-                            D_80114CF8 = 1;
+                            gDirectionActionActive = true;
                         }
                     } else if (playerStatus->interactionPressed != 0) {
                         if (!(gGameSession->padPressed & PAD_BUTTON_TRIANGLE)) {
-                            if (!(Gp_DirFlags & WORLD_COLLISION_TRIGGER_OUTSIDE_BATTLE)) {
-                                if (D_80114D08 == 0) {
-                                    D_80114CF8 = 1;
-                                    D_80114D08 = DIRECTION_INTERACTION_REARM_UPDATES;
+                            if (!(gDirectionActionControl & WORLD_COLLISION_TRIGGER_OUTSIDE_BATTLE)) {
+                                if (gDirectionInteractionRearmUpdates == 0) {
+                                    gDirectionActionActive            = true;
+                                    gDirectionInteractionRearmUpdates = DIRECTION_INTERACTION_REARM_UPDATES;
                                 }
                             } else if (gSceneCombatState.signals.bytes.battlePhase != SCENE_COMBAT_BATTLE_ENGAGED) {
-                                if (D_80114D08 == 0) {
-                                    D_80114CF8 = 1;
-                                    D_80114D08 = DIRECTION_INTERACTION_REARM_UPDATES;
+                                if (gDirectionInteractionRearmUpdates == 0) {
+                                    gDirectionActionActive            = true;
+                                    gDirectionInteractionRearmUpdates = DIRECTION_INTERACTION_REARM_UPDATES;
                                 }
                             }
                         }
@@ -214,20 +214,20 @@ void directionUpdateAction(void)
         }
     }
     // Once latched, actions advance regardless of the gates for new requests.
-    D_80114CD0 = (s16)Gp_DirFlags;
-    if (D_80114CF8 != 0) {
+    gDirectionPreviousActionControl = gDirectionActionControl;
+    if (gDirectionActionActive != 0) {
         gGameSession->dirActionBusy = 1;
-        actionIndex                 = (u8)Gp_DirFlags;
+        actionIndex                 = (u8)gDirectionActionControl;
         if (actionIndex != WORLD_COLLISION_TRIGGER_ACTION_CANCEL) {
             actions.handlers[actionIndex]();
         } else {
             _directionClearTriggerParameters();
-            D_80114CF8 = 0;
+            gDirectionActionActive = false;
         }
     } else {
         _directionClearTriggerParameters();
     }
-    D_80114CDE = gSceneCombatState.signals.bytes.battlePhase;
+    gDirectionPreviousBattlePhase = gSceneCombatState.signals.bytes.battlePhase;
 }
 
 void directionQueryWarp(void)
@@ -275,83 +275,83 @@ void directionQueryWarp(void)
     playerActor  = playerTask->work;
 
     if (gGameSession->eventState != 0) {
-        D_80114CF8 = 0;
+        gDirectionActionActive = false;
         _directionClearTriggerParameters();
         return;
     }
 
-    D_80114CF4      = 0;
-    Gp_DirFadeLevel = 0;
+    _gDirectionWarpQueryResult   = 0;
+    gDirectionWarpDepartureShade = 0;
     // The current endpoint supplies facing and sounds for this departure.
-    warpEntry = Gp_WarpTables[stageId - 1][areaId - 1][(Gp_DirNibble >> DIRECTION_WARP_ENDPOINT_SHIFT) - 1];
+    warpEntry = Gp_WarpTables[stageId - 1][areaId - 1][(gDirectionActionParameter1 >> DIRECTION_WARP_ENDPOINT_SHIFT) - 1];
 
-    Gp_WarpLoc.field_4   = 1;
-    Gp_WarpLoc.room      = 1;
-    Gp_WarpLoc.queryOnly = ROOM_EVENT_QUERY_ONLY;
-    Gp_WarpLoc.areaId    = Gp_DirByte;
-    Gp_WarpLoc.warp      = Gp_DirNibble & DIRECTION_WARP_ARRIVAL_MASK;
-    Gp_WarpLoc.flagId    = warpEntry.mapFlagId;
+    gDirectionWarpRequest.field_4   = 1;
+    gDirectionWarpRequest.room      = DIRECTION_WARP_DEFAULT_ROOM;
+    gDirectionWarpRequest.queryOnly = ROOM_EVENT_QUERY_ONLY;
+    gDirectionWarpRequest.areaId    = gDirectionActionParameter0;
+    gDirectionWarpRequest.warp      = gDirectionActionParameter1 & DIRECTION_WARP_ARRIVAL_MASK;
+    gDirectionWarpRequest.flagId    = warpEntry.mapFlagId;
 
     // The room may resolve the reusable request in place while answering the query.
-    queryResult = TASK_MESSAGE_DISPATCH_POINTERS(roomTask, ROOM_EVENT_MESSAGE_RESOLVE, &Gp_WarpLoc, &Gp_WarpLoc);
-    D_80114CF4  = queryResult;
+    queryResult                = TASK_MESSAGE_DISPATCH_POINTERS(roomTask, ROOM_EVENT_MESSAGE_RESOLVE, &gDirectionWarpRequest, &gDirectionWarpRequest);
+    _gDirectionWarpQueryResult = queryResult;
 
     switch (queryResult) {
         case DIRECTION_WARP_QUERY_DEPART:
             if (warpEntry.departureSound != DIRECTION_WARP_SOUND_NONE) {
-                D_80114CF0 = warpEntry.departureSound;
+                _gDirectionWarpSoundId = warpEntry.departureSound;
             } else {
-                D_80114CF0 = 0;
+                _gDirectionWarpSoundId = DIRECTION_WARP_SOUND_NONE;
             }
             DIRECTION_PREPARE_WARP_TURN(turnRequest, warpEntry, playerActor, departureFacingPoint);
             TASK_MESSAGE_DISPATCH_POINTER(playerTask, GAME_ACTOR_MESSAGE_TURN_TO_YAW, &turnRequest, 0);
             if (warpEntry.flags & DIRECTION_WARP_FLAG_FADE_DEPARTURE) {
-                Gp_DirFadeLevel = DIRECTION_WARP_DEPARTURE_FADE_START;
+                gDirectionWarpDepartureShade = DIRECTION_WARP_DEPARTURE_FADE_START;
             }
-            Gp_DirPhase++;
+            gDirectionActionPhase++;
             break;
 
         case DIRECTION_WARP_QUERY_STAY:
             if (warpEntry.blockedSound != DIRECTION_WARP_SOUND_NONE) {
-                D_80114CF0 = warpEntry.blockedSound;
+                _gDirectionWarpSoundId = warpEntry.blockedSound;
             } else {
-                D_80114CF0 = 0;
+                _gDirectionWarpSoundId = DIRECTION_WARP_SOUND_NONE;
             }
             if (gSceneCombatState.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_ENGAGED) {
-                Gp_WarpLoc.field_4   = gSceneCombatState.signals.bytes.battlePhase;
-                Gp_WarpLoc.room      = gSceneCombatState.signals.bytes.battlePhase;
-                Gp_WarpLoc.queryOnly = ROOM_EVENT_EXECUTE;
-                Gp_WarpLoc.areaId    = Gp_DirByte;
-                Gp_WarpLoc.warp      = Gp_DirNibble & DIRECTION_WARP_ARRIVAL_MASK;
-                Gp_WarpLoc.flagId    = warpEntry.mapFlagId;
-                TASK_MESSAGE_DISPATCH_POINTERS(roomTask, ROOM_EVENT_MESSAGE_RESOLVE, &Gp_WarpLoc, &Gp_WarpLoc);
-                D_80114CF8                       = 0;
-                Gp_DirNibble                     = 0;
-                Gp_DirByte                       = 0;
-                Gp_DirFlags                      = 0;
+                gDirectionWarpRequest.field_4   = gSceneCombatState.signals.bytes.battlePhase;
+                gDirectionWarpRequest.room      = gSceneCombatState.signals.bytes.battlePhase;
+                gDirectionWarpRequest.queryOnly = ROOM_EVENT_EXECUTE;
+                gDirectionWarpRequest.areaId    = gDirectionActionParameter0;
+                gDirectionWarpRequest.warp      = gDirectionActionParameter1 & DIRECTION_WARP_ARRIVAL_MASK;
+                gDirectionWarpRequest.flagId    = warpEntry.mapFlagId;
+                TASK_MESSAGE_DISPATCH_POINTERS(roomTask, ROOM_EVENT_MESSAGE_RESOLVE, &gDirectionWarpRequest, &gDirectionWarpRequest);
+                gDirectionActionActive           = false;
+                gDirectionActionParameter1       = 0;
+                gDirectionActionParameter0       = 0;
+                gDirectionActionControl          = 0;
                 playerStatus->interactionPressed = 0;
-                if (D_80114CF0 != DIRECTION_WARP_SOUND_NONE && playerStatus->hp > 0) {
-                    sndEvtRequestScriptStart(D_80114CF0, 0, 0);
+                if (_gDirectionWarpSoundId != DIRECTION_WARP_SOUND_NONE && playerStatus->hp > 0) {
+                    sndEvtRequestScriptStart(_gDirectionWarpSoundId, 0, 0);
                 }
                 return;
             }
             DIRECTION_PREPARE_WARP_TURN(turnRequest, warpEntry, playerActor, stayFacingPoint);
             TASK_MESSAGE_DISPATCH_POINTER(playerTask, GAME_ACTOR_MESSAGE_TURN_TO_YAW, &turnRequest, 0);
-            Gp_DirPhase++;
+            gDirectionActionPhase++;
             break;
 
         case DIRECTION_WARP_QUERY_ROOM_ACTION:
-            Gp_WarpLoc.field_4   = 1;
-            Gp_WarpLoc.room      = 1;
-            Gp_WarpLoc.queryOnly = ROOM_EVENT_EXECUTE;
-            Gp_WarpLoc.areaId    = Gp_DirByte;
-            Gp_WarpLoc.warp      = Gp_DirNibble & DIRECTION_WARP_ARRIVAL_MASK;
-            Gp_WarpLoc.flagId    = warpEntry.mapFlagId;
-            TASK_MESSAGE_DISPATCH_POINTERS(roomTask, ROOM_EVENT_MESSAGE_RESOLVE, &Gp_WarpLoc, &Gp_WarpLoc);
-            D_80114CF8                       = 0;
-            Gp_DirNibble                     = 0;
-            Gp_DirByte                       = 0;
-            Gp_DirFlags                      = 0;
+            gDirectionWarpRequest.field_4   = 1;
+            gDirectionWarpRequest.room      = DIRECTION_WARP_DEFAULT_ROOM;
+            gDirectionWarpRequest.queryOnly = ROOM_EVENT_EXECUTE;
+            gDirectionWarpRequest.areaId    = gDirectionActionParameter0;
+            gDirectionWarpRequest.warp      = gDirectionActionParameter1 & DIRECTION_WARP_ARRIVAL_MASK;
+            gDirectionWarpRequest.flagId    = warpEntry.mapFlagId;
+            TASK_MESSAGE_DISPATCH_POINTERS(roomTask, ROOM_EVENT_MESSAGE_RESOLVE, &gDirectionWarpRequest, &gDirectionWarpRequest);
+            gDirectionActionActive           = false;
+            gDirectionActionParameter1       = 0;
+            gDirectionActionParameter0       = 0;
+            gDirectionActionControl          = 0;
             playerStatus->interactionPressed = 0;
             break;
     }
@@ -365,10 +365,10 @@ void directionAwaitWarpTurn(void)
     playerTask = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     _directionStepDepartureFade();
     if (taskMessageDispatch(playerTask, GAME_ACTOR_MESSAGE_IS_SCRIPTED_MOTION_PENDING, 0, 0) == 0) {
-        if (D_80114CF4 != 0) {
+        if (_gDirectionWarpQueryResult != 0) {
             gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
         }
-        Gp_DirPhase++;
+        gDirectionActionPhase++;
     }
 }
 
@@ -386,42 +386,42 @@ void directionResolveWarp(void)
     roomTask     = gameGetTaskSlot(GAME_TASK_SLOT_ROOM);
 
     location  = &gGameSession->location.loc;
-    warpEntry = Gp_WarpTables[location->stage - 1][location->area - 1][(Gp_DirNibble >> DIRECTION_WARP_ENDPOINT_SHIFT) - 1];
+    warpEntry = Gp_WarpTables[location->stage - 1][location->area - 1][(gDirectionActionParameter1 >> DIRECTION_WARP_ENDPOINT_SHIFT) - 1];
 
     _directionStepDepartureFade();
 
     // Rebuild the request from the trigger; query-time selector edits do not survive.
-    request            = &Gp_WarpLoc;
-    request->field_4   = 1;
-    request->room      = 1;
-    request->queryOnly = ROOM_EVENT_EXECUTE;
-    Gp_WarpLoc.areaId  = Gp_DirByte;
-    request->warp      = Gp_DirNibble & DIRECTION_WARP_ARRIVAL_MASK;
-    request->flagId    = warpEntry.mapFlagId;
+    request                      = &gDirectionWarpRequest;
+    request->field_4             = 1;
+    request->room                = DIRECTION_WARP_DEFAULT_ROOM;
+    request->queryOnly           = ROOM_EVENT_EXECUTE;
+    gDirectionWarpRequest.areaId = gDirectionActionParameter0;
+    request->warp                = gDirectionActionParameter1 & DIRECTION_WARP_ARRIVAL_MASK;
+    request->flagId              = warpEntry.mapFlagId;
     TASK_MESSAGE_DISPATCH_POINTERS(roomTask, ROOM_EVENT_MESSAGE_RESOLVE, request, request);
 
-    if (D_80114CF0 != DIRECTION_WARP_SOUND_NONE) {
+    if (_gDirectionWarpSoundId != DIRECTION_WARP_SOUND_NONE) {
         if (playerStatus->hp > 0) {
-            sndEvtRequestScriptStart(D_80114CF0, 0, 0);
+            sndEvtRequestScriptStart(_gDirectionWarpSoundId, 0, 0);
         }
     }
 
-    if (D_80114CF4 == DIRECTION_WARP_QUERY_STAY) {
+    if (_gDirectionWarpQueryResult == DIRECTION_WARP_QUERY_STAY) {
         taskMessageDispatch(playerTask, GAME_ACTOR_MESSAGE_END_SCRIPTED, 0, 0);
-        D_80114CF8                       = 0;
-        Gp_DirNibble                     = 0;
-        Gp_DirByte                       = 0;
-        Gp_DirFlags                      = 0;
+        gDirectionActionActive           = false;
+        gDirectionActionParameter1       = 0;
+        gDirectionActionParameter0       = 0;
+        gDirectionActionControl          = 0;
         playerStatus->interactionPressed = 0;
     } else {
-        Gp_DirPhase++;
+        gDirectionActionPhase++;
     }
 }
 
 void directionAwaitWarpSound(void)
 {
     _directionStepDepartureFade();
-    if (D_80114CF0 == 0 || sndScriptHasActiveId(D_80114CF0) == 0) {
-        Gp_DirPhase++;
+    if (_gDirectionWarpSoundId == DIRECTION_WARP_SOUND_NONE || sndScriptHasActiveId(_gDirectionWarpSoundId) == 0) {
+        gDirectionActionPhase++;
     }
 }

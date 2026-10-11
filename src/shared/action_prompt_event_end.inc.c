@@ -40,7 +40,7 @@ static void _actionPromptEventEnd(Task* eventTask)
     };
 
     // Restore play while delaying another manual interaction for ten eligible direction updates.
-    D_80114D08 = ACTION_PROMPT_EVENT_REENTRY_DELAY_UPDATES;
+    gDirectionInteractionRearmUpdates = ACTION_PROMPT_EVENT_REENTRY_DELAY_UPDATES;
     _actionPromptRestoreEventPlay();
 
     // The cursor ends now; the polling owner releases the event's own resources.

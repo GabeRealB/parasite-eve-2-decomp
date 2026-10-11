@@ -1174,10 +1174,10 @@ static void _shelterB4UpperSewerOpenWaterHoleTask(Task* task)
                 playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO);
                 companionSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
                 companionSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO);
-                gGameSession->eventState       = 0;
-                gGameSession->hideHud          = 0;
-                gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
-                D_80114D08                     = SHELTER_B4_UPPER_SEWER_INTERACTION_DELAY_UPDATES;
+                gGameSession->eventState          = 0;
+                gGameSession->hideHud             = 0;
+                gSceneCombatState.actorControl    = SCENE_COMBAT_ACTORS_RUNNING;
+                gDirectionInteractionRearmUpdates = SHELTER_B4_UPPER_SEWER_INTERACTION_DELAY_UPDATES;
                 break;
             }
             // The event script restores the view and releases the held actors.
@@ -1188,8 +1188,8 @@ static void _shelterB4UpperSewerOpenWaterHoleTask(Task* task)
             break;
         case SHELTER_B4_UPPER_SEWER_WATER_HOLE_WAIT_EVENT:
             if (gGameSession->eventState == 0) {
-                D_80114D08                     = SHELTER_B4_UPPER_SEWER_INTERACTION_DELAY_UPDATES;
-                gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
+                gDirectionInteractionRearmUpdates = SHELTER_B4_UPPER_SEWER_INTERACTION_DELAY_UPDATES;
+                gSceneCombatState.actorControl    = SCENE_COMBAT_ACTORS_RUNNING;
                 taskKill(task);
             }
             break;
@@ -1236,8 +1236,8 @@ static void _shelterB4UpperSewerExitTransitTask(Task* task)
             if (capGetVariantKey() != SHELTER_B4_UPPER_SEWER_EXIT_ACCEPT_KEY) {
                 taskKill(task);
                 playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
-                gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
-                D_80114D08                     = SHELTER_B4_UPPER_SEWER_INTERACTION_DELAY_UPDATES;
+                gSceneCombatState.actorControl    = SCENE_COMBAT_ACTORS_RUNNING;
+                gDirectionInteractionRearmUpdates = SHELTER_B4_UPPER_SEWER_INTERACTION_DELAY_UPDATES;
                 break;
             }
             gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_PAUSED;

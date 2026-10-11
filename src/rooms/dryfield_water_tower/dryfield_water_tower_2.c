@@ -2823,7 +2823,7 @@ static u16 _dryfieldWaterTowerStepTimedRun(Task* task)
                 break;
             }
             D_dryfield_water_tower_801876A8++;
-            if (D_80114CF8 != 0) {
+            if (gDirectionActionActive != 0) {
                 break;
             }
             if (D_dryfield_water_tower_801876AA < D_dryfield_water_tower_801876A8) {

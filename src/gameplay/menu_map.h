@@ -5,6 +5,32 @@
 
 #include "gameplay/map.h"
 
+/// Stored stage limits for refreshing the map's marked-area cache.
+///
+/// Only the first five bytes have count consumers. The following three bytes
+/// retain the existing image span; their role and the original object's end
+/// are unproven, so they are not additional stage counts.
+typedef struct {
+    s8   counts[5];     // Signed area limits for stages 1..5: 17, 38, 38, 49, 33
+    byte unknown_05[3]; // Retained nonzero bytes with no known consumer; role unproven
+} MenuMapAreaCountStorage;
+STATIC_ASSERT_SIZEOF(MenuMapAreaCountStorage, 8);
+
+/// Current-stage areas drawn with the map's marked-area fill.
+///
+/// Bit (area-1) in word 0 covers areas 1..32; bit (area-33) in word 1 covers
+/// 33..64. A set bit requires AREA_SAVED_MAP_MARK and disabled saved-pose
+/// restoration. Refresh updates only the current stage's count range, retaining
+/// higher bits; direction-task initialization clears both words. This cache
+/// is separate from visited-area bits, which rendering tests independently.
+extern u32 gMenuMapMarkedAreaBits[2];
+
+/// Per-stage signed area limits used when refreshing the marked-area cache.
+///
+/// Index `counts` by stage-1 for stages 1..5. These limits describe the cache's
+/// refresh range, not the complete area's directory extent. Tail bytes are opaque.
+extern MenuMapAreaCountStorage gMenuMapStageAreaCounts;
+
 /// Packed marker-table entry and marker-state values used by the map screen.
 enum {
     MENU_MAP_MARKER_FLAG_ID_MASK      = 0x7FF,

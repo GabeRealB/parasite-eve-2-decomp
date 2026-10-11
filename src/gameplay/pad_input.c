@@ -180,10 +180,10 @@ void padInputUpdate(void)
                 Gp_MenuLockNow = false;
             }
         } else {
-            Gp_MenuLockNow      = true;
-            Gp_PadSuppressTimer = PAD_INPUT_WHEEL_BLOCK_UPDATES;
-            Gp_MenuLockDelay    = PAD_INPUT_MENU_UNLOCK_UPDATES;
-            D_80114D08          = PAD_INPUT_INTERACTION_REARM_DELAY;
+            Gp_MenuLockNow                    = true;
+            Gp_PadSuppressTimer               = PAD_INPUT_WHEEL_BLOCK_UPDATES;
+            Gp_MenuLockDelay                  = PAD_INPUT_MENU_UNLOCK_UPDATES;
+            gDirectionInteractionRearmUpdates = PAD_INPUT_INTERACTION_REARM_DELAY;
         }
         if (Gp_MenuLockNow == true && Gp_MenuLockPrev == false) {
             Gp_MenuLockHold     = false;

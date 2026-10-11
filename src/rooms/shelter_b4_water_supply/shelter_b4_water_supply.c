@@ -993,8 +993,8 @@ static void _shelterB4WaterSupplyUpperSewerDepartureTask(Task* task)
             if (capGetVariantKey() != SHELTER_B4_WATER_SUPPLY_SEWER_ACCEPTED_CHOICE) {
                 taskKill(task);
                 playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
-                gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
-                D_80114D08                     = SHELTER_B4_WATER_SUPPLY_INTERACTION_REARM_UPDATES;
+                gSceneCombatState.actorControl    = SCENE_COMBAT_ACTORS_RUNNING;
+                gDirectionInteractionRearmUpdates = SHELTER_B4_WATER_SUPPLY_INTERACTION_REARM_UPDATES;
                 break;
             }
             _shelterB4WaterSupplyStartUpperSewerFade(task);

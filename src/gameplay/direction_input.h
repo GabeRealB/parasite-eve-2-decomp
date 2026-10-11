@@ -9,22 +9,59 @@
 
 // Direction input state, action dispatch and warp handling.
 
-/// Direction and warp state shared within gameplay.
-extern s16 D_80114CD0;
+/// Control word observed by the preceding direction update.
+///
+/// Compared with the next hit's complete control word to detect trigger changes;
+/// copied before dispatch, so it survives a handler clearing the latched request.
+/// Equality uses signed halfword views of both words, retaining all 16 bits.
+extern u16 gDirectionPreviousActionControl;
 
-extern u16 Gp_DirFlags;
+/// Latched primary trigger's action selector and activation gates.
+///
+/// The low byte is WORLD_COLLISION_TRIGGER_ACTION_* (0..6 or CANCEL).
+/// Upper bits carry automatic/outside-battle gates, stair descent or a callback
+/// index, as specified by `WorldCollisionTrigger`. Zero also selects WARP;
+/// `gDirectionActionActive` determines whether a request is being serviced.
+extern u16 gDirectionActionControl;
 
-extern u16 D_80114CD4;
+/// Secondary trigger control read while the player's stair motion is pending.
+///
+/// A low-byte WARP selector chains the climb into a transition. Other hits
+/// are ignored. Cleared with its parameter bytes when the request is discarded.
+extern u16 gDirectionSecondaryActionControl;
 
-extern u16 Gp_DirPhase;
+/// Phase index of the active warp or stair action.
+///
+/// Starts at zero when a primary hit is read. Warp phases use 0..5 and stair
+/// phases 0..4; each handler advances at most once and the final phase releases
+/// activity without incrementing. Dispatch interprets the stored halfword as s16.
+extern u16 gDirectionActionPhase;
 
-extern u8 Gp_DirByte;
+/// Full first byte of the latched primary action trigger.
+///
+/// WARP requests an area; stairs pack steps (bits 0..3), surface class or flight
+/// (4..6), and indexed-flight selection (7). CAP/CAP_WEAPON select a command,
+/// ROOM selects a room action, and CALLBACK forwards the byte unchanged.
+extern u8 gDirectionActionParameter0;
 
-extern u8 Gp_DirNibble;
+/// Full second byte of the latched primary action trigger.
+///
+/// WARP packs departure slot (high nibble, 1..15) and arrival slot (low nibble).
+/// Stairs use yaw in 256 units per turn. CAP uses presentation flags or 255 for
+/// a room command; CAP_WEAPON uses presentation flags. ROOM and CALLBACK forward
+/// all eight bits. CLEAR/CANCEL ignore both parameters.
+extern u8 gDirectionActionParameter1;
 
-extern u8 Gp_DirAlt;
+/// Full first byte of the secondary hit encountered during a stair climb.
+///
+/// A chained WARP uses it as the requested area within the active stage.
+extern u8 gDirectionSecondaryActionParameter0;
 
-extern u8 Gp_DirAltNibble;
+/// Full second byte of the secondary hit encountered during a stair climb.
+///
+/// A chained WARP uses the low nibble as its requested arrival slot; this
+/// consumer does not use the high nibble. Storage retains all eight bits.
+extern u8 gDirectionSecondaryActionParameter1;
 
 /// Discards the primary action parameters and the secondary trigger hit.
 ///
@@ -33,25 +70,55 @@ extern u8 Gp_DirAltNibble;
 /// callers decide when to release activity. Each gameplay TU uses an inline copy.
 static inline void _directionClearTriggerParameters(void)
 {
-    Gp_DirNibble    = 0;
-    Gp_DirByte      = 0;
-    Gp_DirFlags     = 0;
-    Gp_DirAltNibble = 0;
-    Gp_DirAlt       = 0;
-    D_80114CD4      = 0;
+    gDirectionActionParameter1          = 0;
+    gDirectionActionParameter0          = 0;
+    gDirectionActionControl             = 0;
+    gDirectionSecondaryActionParameter1 = 0;
+    gDirectionSecondaryActionParameter0 = 0;
+    gDirectionSecondaryActionControl    = 0;
 }
 
-extern u8 D_80114CDC;
+/// Whether the most recently read primary hit differs from the preceding control word.
+///
+/// Zero means equal and one means changed. Only the control word is compared,
+/// not the parameter bytes or trigger address. CAP and ROOM consumption retain
+/// the session busy flag for this update when the control changed.
+extern u8 gDirectionActionControlChanged;
 
-extern u8 D_80114CDD;
+/// Battle-finished latch held for the remainder of a stair action.
+///
+/// Zero is clear; SCENE_COMBAT_BATTLE_ENGAGED (1) records an engaged-to-finished
+/// transition between direction updates. While set, the stair dispatcher
+/// refreshes the battle-end delay. A blocked stair start, climb completion or
+/// chained warp commit clears it.
+extern u8 gDirectionStairBattleFinished;
 
-extern u8 D_80114CDE;
+/// Scene battle phase sampled at the end of the preceding direction update.
+///
+/// Uses SCENE_COMBAT_BATTLE_* (0 idle, 1 engaged, 2 finished, 3 resumed).
+/// Stair actions use it to detect a battle ending during scripted movement.
+extern u8 gDirectionPreviousBattlePhase;
 
+/// Halfword initialized to one for a new direction task; no reader is known.
+///
+/// Its role remains unproven.
 extern s16 D_80114CE0;
 
-extern RoomEventMsg Gp_WarpLoc;
+/// Reusable room-transition request and in-place reply for the active warp.
+///
+/// Borrowed synchronously by ROOM_EVENT_MESSAGE_RESOLVE, first as a query and
+/// then with effects enabled. Execute phases rebuild the requested selectors;
+/// the resolved area, room and arrival slot remain until committed to the live
+/// save. Stair warps reuse the record and retain its previous flagId. Fields
+/// unused by the selected handler may retain values from an earlier action.
+extern RoomEventMsg gDirectionWarpRequest;
 
-extern u16 Gp_DirFadeLevel;
+/// Departure fade shade for the active warp (0 disabled, otherwise 30..255).
+///
+/// Starts at 30 when an allowed warp requests fading. Each serviced phase
+/// draws the low byte, adds 30 and saturates at 255; the leave phase only draws.
+/// The signed-halfword gate and clamp are value views of this unsigned ramp.
+extern u16 gDirectionWarpDepartureShade;
 
 /// Draws and advances the active warp departure shade by one frame.
 ///
@@ -65,23 +132,16 @@ static inline void _directionStepDepartureFade(void)
     u8  fadeShade;
     s16 activeShade;
 
-    activeShade = (s16)Gp_DirFadeLevel;
+    activeShade = (s16)gDirectionWarpDepartureShade;
     if (activeShade != 0) {
-        fadeShade = (u8)Gp_DirFadeLevel;
+        fadeShade = (u8)gDirectionWarpDepartureShade;
         fadeDrawOverlay(fadeShade, fadeShade, fadeShade, GPU_BLEND_SUBTRACT);
-        Gp_DirFadeLevel += DIRECTION_DEPARTURE_FADE_STEP;
-        if ((s16)Gp_DirFadeLevel >= DIRECTION_DEPARTURE_FADE_MAX + 1) {
-            Gp_DirFadeLevel = DIRECTION_DEPARTURE_FADE_MAX;
+        gDirectionWarpDepartureShade += DIRECTION_DEPARTURE_FADE_STEP;
+        if ((s16)gDirectionWarpDepartureShade >= DIRECTION_DEPARTURE_FADE_MAX + 1) {
+            gDirectionWarpDepartureShade = DIRECTION_DEPARTURE_FADE_MAX;
         }
     }
 }
-
-/// Dual area-id bitmask (1–32 / 33–64), rebuilt from the area bit-2 flags.
-extern s32 Gp_AreaIdBits[2];
-
-/// Per-stage signed counts, indexed by `GameSession.location.loc.stage - 1`.
-/// `menuMapRebuildMarkedAreaBits` loops area ids `1..count` when the stage is 1–5.
-extern s8 Gp_AreaIdCounts[];
 
 /// Queries the room for a warp and starts the appropriate departure turn.
 ///
@@ -145,7 +205,7 @@ void directionUpdateAction(void);
 /// room's `ROOM_MESSAGE_COMMAND` handler; otherwise the bytes select a CAP
 /// command and its event flags. CAP resources must remain live through playback.
 /// Busy events or playback discard the request. After dispatch or discard,
-/// clears the request and secondary hit; a newly entered trigger keeps the
+/// clears the request and secondary hit; a changed control word keeps the
 /// session's busy flag until the next direction tick.
 void directionDispatchCapInteraction(void);
 

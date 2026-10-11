@@ -376,15 +376,15 @@ void menuMapRebuildMarkedAreaBits(void)
     /// Clears the map-screen cache bit for an area ID in 1..64.
     ///
     /// The argument must be a side-effect-free area expression: it is evaluated
-    /// in the comparison and again for the shift. Captures `Gp_AreaIdBits` and
+    /// in the comparison and again for the shift. Captures `gMenuMapMarkedAreaBits` and
     /// the local word-boundary constants; use as a standalone statement.
-#define MENU_MAP_CLEAR_MARKED_AREA_BIT(areaId)                                        \
-    {                                                                                 \
-        if ((areaId) <= MENU_MAP_AREA_BITS_PER_WORD) {                                \
-            Gp_AreaIdBits[0] &= ~(1 << ((areaId) - 1));                               \
-        } else {                                                                      \
-            Gp_AreaIdBits[1] &= ~(1 << ((areaId) - MENU_MAP_SECOND_WORD_FIRST_AREA)); \
-        }                                                                             \
+#define MENU_MAP_CLEAR_MARKED_AREA_BIT(areaId)                                                  \
+    {                                                                                           \
+        if ((areaId) <= MENU_MAP_AREA_BITS_PER_WORD) {                                          \
+            gMenuMapMarkedAreaBits[0] &= ~(1U << ((areaId) - 1));                               \
+        } else {                                                                                \
+            gMenuMapMarkedAreaBits[1] &= ~(1U << ((areaId) - MENU_MAP_SECOND_WORD_FIRST_AREA)); \
+        }                                                                                       \
     }
 
     currentLocation = &gGameSession->location.loc;
@@ -395,7 +395,7 @@ void menuMapRebuildMarkedAreaBits(void)
     areaKey.stage = stageId;
     // Refresh only this stage's area bits; higher bits retain their prior values.
     if (gGameSession->location.loc.stage - GAME_STAGE_ACROPOLIS < MENU_MAP_STAGE_COUNT) {
-        areaCount = Gp_AreaIdCounts[currentLocation->stage - GAME_STAGE_ACROPOLIS];
+        areaCount = gMenuMapStageAreaCounts.counts[currentLocation->stage - GAME_STAGE_ACROPOLIS];
         for (areaId = 1; areaId <= areaCount; areaId++) {
             areaKey.area = areaId;
             if (_areaHasMapMark(&areaKey) == 1) {
@@ -403,9 +403,9 @@ void menuMapRebuildMarkedAreaBits(void)
                     MENU_MAP_CLEAR_MARKED_AREA_BIT(areaKey.area);
                 } else {
                     if (areaKey.area <= MENU_MAP_AREA_BITS_PER_WORD) {
-                        Gp_AreaIdBits[0] |= 1 << (areaKey.area - 1);
+                        gMenuMapMarkedAreaBits[0] |= 1U << (areaKey.area - 1);
                     } else {
-                        Gp_AreaIdBits[1] |= 1 << (areaKey.area - MENU_MAP_SECOND_WORD_FIRST_AREA);
+                        gMenuMapMarkedAreaBits[1] |= 1U << (areaKey.area - MENU_MAP_SECOND_WORD_FIRST_AREA);
                     }
                 }
             } else {
@@ -530,25 +530,25 @@ void areaClearMapMark(const GameLocationKey* key)
 /// Resets direction action history and the area map-mark cache, then enables per-frame updates.
 ///
 /// Runs once for a new direction task. Interaction activation is held off for
-/// ten direction updates. The legacy D_80114CE0 initialization is retained;
+/// ten eligible idle direction updates. The legacy D_80114CE0 initialization is retained;
 /// that value has no observed reader.
 static void _directionInitTask(Task* task)
 {
     enum { DIRECTION_INITIAL_INTERACTION_DELAY_UPDATES = 10 };
 
-    D_80114CDE       = SCENE_COMBAT_BATTLE_IDLE;
-    D_80114CDD       = 0;
-    Gp_DirFlags      = 0;
-    D_80114CD0       = 0;
-    D_80114CDC       = 0;
-    Gp_DirByte       = 0;
-    Gp_DirNibble     = 0;
-    Gp_DirPhase      = 0;
-    D_80114CF8       = 0;
-    D_80114CE0       = 1;
-    Gp_AreaIdBits[0] = 0;
-    Gp_AreaIdBits[1] = 0;
-    D_80114D08       = DIRECTION_INITIAL_INTERACTION_DELAY_UPDATES;
+    gDirectionPreviousBattlePhase     = SCENE_COMBAT_BATTLE_IDLE;
+    gDirectionStairBattleFinished     = false;
+    gDirectionActionControl           = 0;
+    gDirectionPreviousActionControl   = 0;
+    gDirectionActionControlChanged    = false;
+    gDirectionActionParameter0        = 0;
+    gDirectionActionParameter1        = 0;
+    gDirectionActionPhase             = 0;
+    gDirectionActionActive            = false;
+    D_80114CE0                        = 1;
+    gMenuMapMarkedAreaBits[0]         = 0;
+    gMenuMapMarkedAreaBits[1]         = 0;
+    gDirectionInteractionRearmUpdates = DIRECTION_INITIAL_INTERACTION_DELAY_UPDATES;
     task->state++;
 }
 
@@ -606,7 +606,7 @@ static u8 _viewGetCurrentRoomCount(void)
 
 /// Runs one phase of the latched warp action through its copied handler table.
 ///
-/// Requires Gp_DirPhase in 0..5. Query, turn-wait, hold, resolve and sound-wait
+/// Requires gDirectionActionPhase in 0..5. Query, turn-wait, hold, resolve and sound-wait
 /// advance at most once; the leave phase ends the action without advancing.
 /// Dispatch preserves the signed-halfword interpretation and performs no check.
 static void _directionUpdateWarpAction(void)
@@ -614,7 +614,7 @@ static void _directionUpdateWarpAction(void)
     _DirectionWarpPhaseTable phaseTable;
 
     phaseTable = Gp_WarpPhaseFns;
-    phaseTable.handlers[(s16)Gp_DirPhase]();
+    phaseTable.handlers[(s16)gDirectionActionPhase]();
 }
 
 /// Runs the current stair phase and holds the battle-end delay until the action finishes.
@@ -629,14 +629,14 @@ static void _directionUpdateStairAction(void)
 
     phaseTable = D_80093990;
     if (gSceneCombatState.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_FINISHED) {
-        if (D_80114CDE == SCENE_COMBAT_BATTLE_ENGAGED) {
-            D_80114CDD = D_80114CDE;
+        if (gDirectionPreviousBattlePhase == SCENE_COMBAT_BATTLE_ENGAGED) {
+            gDirectionStairBattleFinished = gDirectionPreviousBattlePhase;
         }
     }
-    if (D_80114CDD != 0) {
+    if (gDirectionStairBattleFinished != 0) {
         gSceneCombatState.signals.bytes.endDelayFrames = SCENE_COMBAT_END_DELAY_FRAMES;
     }
-    phaseTable.handlers[(s16)Gp_DirPhase]();
+    phaseTable.handlers[(s16)gDirectionActionPhase]();
 }
 
 /// Ends the active direction action and discards both latched trigger hits.
@@ -645,15 +645,15 @@ static void _directionUpdateStairAction(void)
 static void _directionClearAction(void)
 {
     _directionClearTriggerParameters();
-    D_80114CF8 = 0;
+    gDirectionActionActive = false;
 }
 
 /// Dispatches a room action while events and CAP playback are idle, then consumes it.
 ///
 /// Requires a live room task when the gates permit dispatch. The room borrows
 /// the four-byte request only during synchronous dispatch; the second word is
-/// zero and the reply is ignored. Blocked requests are also discarded. A newly
-/// entered trigger keeps the session busy flag until the next direction update.
+/// zero and the reply is ignored. Blocked requests are also discarded. A changed
+/// control word keeps the session busy flag until the next direction update.
 static void _directionDispatchRoomAction(void)
 {
     DirectionActionRequest request;
@@ -661,17 +661,17 @@ static void _directionDispatchRoomAction(void)
 
     if (gGameSession->eventState == 0) {
         if (capIsBusy() == 0) {
-            request.control  = Gp_DirFlags;
-            request.actionId = Gp_DirByte;
-            request.argument = Gp_DirNibble;
+            request.control  = gDirectionActionControl;
+            request.actionId = gDirectionActionParameter0;
+            request.argument = gDirectionActionParameter1;
             roomTask         = gameGetTaskSlot(GAME_TASK_SLOT_ROOM);
             TASK_MESSAGE_DISPATCH_POINTER(roomTask, DIRECTION_MESSAGE_ROOM_ACTION, &request, 0);
         }
     }
     // Consume the request even when an event or CAP playback blocks dispatch.
     _directionClearTriggerParameters();
-    D_80114CF8 = 0;
-    if (D_80114CDC == 0) {
+    gDirectionActionActive = false;
+    if (gDirectionActionControlChanged == 0) {
         gGameSession->dirActionBusy = 0;
     }
 }
@@ -686,11 +686,11 @@ static void _directionDispatchWeaponCapEvent(void)
 {
     if (gGameSession->eventState == 0) {
         if (capIsBusy() == 0) {
-            capSpawnWeaponEvent(Gp_DirByte, Gp_DirNibble);
+            capSpawnWeaponEvent(gDirectionActionParameter0, gDirectionActionParameter1);
         }
     }
     // Consume blocked requests too, releasing activity before the parameters.
-    D_80114CF8 = 0;
+    gDirectionActionActive = false;
     _directionClearTriggerParameters();
 }
 
@@ -702,7 +702,7 @@ static void _directionDispatchWeaponCapEvent(void)
 static void _directionHoldWarpFrame(void)
 {
     _directionStepDepartureFade();
-    Gp_DirPhase++;
+    gDirectionActionPhase++;
 }
 
 /// Stores the resolved warp destination and requests a reload from the live save.
@@ -717,20 +717,20 @@ static void _directionLeaveWarp(void)
     u8  fadeShade;
     s16 activeShade;
 
-    activeShade = (s16)Gp_DirFadeLevel;
+    activeShade = (s16)gDirectionWarpDepartureShade;
     if (activeShade != 0) {
-        fadeShade = (u8)Gp_DirFadeLevel;
+        fadeShade = (u8)gDirectionWarpDepartureShade;
         fadeDrawOverlay(fadeShade, fadeShade, fadeShade, GPU_BLEND_SUBTRACT);
     }
     // Publish the destination before the reload task can consume the live save.
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = (u8)Gp_WarpLoc.areaId;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = Gp_WarpLoc.warp;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = Gp_WarpLoc.room;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = (u8)gDirectionWarpRequest.areaId;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = gDirectionWarpRequest.warp;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = gDirectionWarpRequest.room;
     taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
-    D_80114CF8   = 0;
-    Gp_DirNibble = 0;
-    Gp_DirByte   = 0;
-    Gp_DirFlags  = 0;
+    gDirectionActionActive     = false;
+    gDirectionActionParameter1 = 0;
+    gDirectionActionParameter0 = 0;
+    gDirectionActionControl    = 0;
 }
 
 /// Starts the player's scripted turn to the stair trigger's byte-encoded yaw.
@@ -747,15 +747,15 @@ static void _directionStartStairTurn(void)
 
     playerTask = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     if (gGameSession->eventState != 0) {
-        D_80114CF8 = 0;
+        gDirectionActionActive = false;
         _directionClearTriggerParameters();
-        D_80114CDD = 0;
+        gDirectionStairBattleFinished = false;
     } else {
         facing.rot.vx = 0;
         facing.rot.vz = 0;
-        facing.rot.vy = Gp_DirNibble << DIRECTION_STAIR_YAW_SHIFT;
+        facing.rot.vy = gDirectionActionParameter1 << DIRECTION_STAIR_YAW_SHIFT;
         TASK_MESSAGE_DISPATCH_POINTER(playerTask, GAME_ACTOR_MESSAGE_TURN_TO_YAW, &facing, 0);
-        Gp_DirPhase++;
+        gDirectionActionPhase++;
     }
 }
 
@@ -766,7 +766,7 @@ static void _directionStartStairTurn(void)
 static void _directionAwaitStairTurn(void)
 {
     if (taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_IS_SCRIPTED_MOTION_PENDING, 0, 0) == 0) {
-        Gp_DirPhase++;
+        gDirectionActionPhase++;
     }
 }
 
@@ -787,13 +787,13 @@ static void _directionStartStairClimb(void)
     Task*               playerTask;
 
     playerTask      = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-    climb.descend   = (Gp_DirFlags >> DIRECTION_STAIR_DESCEND_SHIFT) & DIRECTION_STAIR_DESCEND_MASK;
-    climb.stepCount = Gp_DirByte & DIRECTION_STAIR_STEP_COUNT_MASK;
+    climb.descend   = (gDirectionActionControl >> DIRECTION_STAIR_DESCEND_SHIFT) & DIRECTION_STAIR_DESCEND_MASK;
+    climb.stepCount = gDirectionActionParameter0 & DIRECTION_STAIR_STEP_COUNT_MASK;
     TASK_MESSAGE_DISPATCH_POINTER(playerTask, GAME_ACTOR_MESSAGE_CLIMB_STAIRS, &climb, 0);
-    Gp_DirAltNibble = 0;
-    Gp_DirAlt       = 0;
-    D_80114CD4      = 0;
-    Gp_DirPhase++;
+    gDirectionSecondaryActionParameter1 = 0;
+    gDirectionSecondaryActionParameter0 = 0;
+    gDirectionSecondaryActionControl    = 0;
+    gDirectionActionPhase++;
 }
 
 void areaSetCurrentMapMark(void)

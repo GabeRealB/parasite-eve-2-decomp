@@ -1441,9 +1441,9 @@ static void _shelterB4ReservoirWaterEventTask(Task* task)
                 taskKill(task);
                 gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = SHELTER_B4_RESERVOIR_EVENT_RETURN_VIEW;
                 _shelterB4ReservoirRestoreEventActors();
-                gGameSession->eventState = SHELTER_B4_RESERVOIR_EVENT_IDLE;
-                gGameSession->hideHud    = 0;
-                D_80114D08               = SHELTER_B4_RESERVOIR_INTERACTION_REARM_UPDATES;
+                gGameSession->eventState          = SHELTER_B4_RESERVOIR_EVENT_IDLE;
+                gGameSession->hideHud             = 0;
+                gDirectionInteractionRearmUpdates = SHELTER_B4_RESERVOIR_INTERACTION_REARM_UPDATES;
                 break;
             }
             sceneSetPlacedActorDrawMode(SHELTER_B4_RESERVOIR_EVENT_PLACED_ACTOR, SHELTER_B4_RESERVOIR_EVENT_ACTOR_HIDE);
@@ -1461,7 +1461,7 @@ static void _shelterB4ReservoirWaterEventTask(Task* task)
                 gameFlagSetNibble(GAME_FLAG_INCINERATOR_CONTROL_ROOM_STATE, SHELTER_B4_RESERVOIR_CONTROL_ROOM_AFTER_EVENT);
                 gameFlagSetNibble(GAME_FLAG_MAP_MARK_RESERVOIR_1BE, SHELTER_B4_RESERVOIR_EVENT_MAP_MARK);
                 areaApplySavedUpdates(_gShelterB4ReservoirWaterEventAreaUpdates);
-                D_80114D08 = SHELTER_B4_RESERVOIR_INTERACTION_REARM_UPDATES;
+                gDirectionInteractionRearmUpdates = SHELTER_B4_RESERVOIR_INTERACTION_REARM_UPDATES;
                 taskKill(task);
             }
             break;
@@ -1525,8 +1525,8 @@ static void _shelterB4ReservoirExitTask(Task* task)
             if (capGetVariantKey() != SHELTER_B4_RESERVOIR_EXIT_ACCEPT_KEY) {
                 taskKill(task);
                 playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
-                gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
-                D_80114D08                     = SHELTER_B4_RESERVOIR_INTERACTION_REARM_UPDATES;
+                gSceneCombatState.actorControl    = SCENE_COMBAT_ACTORS_RUNNING;
+                gDirectionInteractionRearmUpdates = SHELTER_B4_RESERVOIR_INTERACTION_REARM_UPDATES;
                 break;
             }
             gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_PAUSED;

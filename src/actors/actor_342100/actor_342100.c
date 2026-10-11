@@ -706,7 +706,7 @@ static void _actor342100EncounterBlazeControllerTask(Task* task)
     PlayerStatus*          playerStatus;
 
     entryWork = task->work;
-    if (gGameSession->sceneUpdatesPaused != 0 || gAttachmentState.menuOpen != ATTACHMENT_MENU_CLOSED || gSceneCombatState.actorControl != SCENE_COMBAT_ACTORS_RUNNING || D_80114CF8 != 0) {
+    if (gGameSession->sceneUpdatesPaused != 0 || gAttachmentState.menuOpen != ATTACHMENT_MENU_CLOSED || gSceneCombatState.actorControl != SCENE_COMBAT_ACTORS_RUNNING || gDirectionActionActive != 0) {
         return;
     }
     switch (task->state) {

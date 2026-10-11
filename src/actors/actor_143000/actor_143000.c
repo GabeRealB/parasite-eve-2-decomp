@@ -956,7 +956,7 @@ static void _actor143000CloseKeypad(Task* task)
     displayReleaseMenuHold();
     gGameSession->cutsceneHold = 0;
     if (work->codeAccepted == 0) {
-        D_80114D08                                                 = ACTOR_143000_KEYPAD_INTERACTION_REARM_UPDATES;
+        gDirectionInteractionRearmUpdates                          = ACTOR_143000_KEYPAD_INTERACTION_REARM_UPDATES;
         gGameSession->eventState                                   = 0;
         gGameSession->hideHud                                      = 0;
         gSceneCombatState.actorControl                             = SCENE_COMBAT_ACTORS_RUNNING;

@@ -4084,10 +4084,10 @@ static void _acropolisBridgeKeypadClose(Task* task)
     _acropolisBridgeShowKeypadCode(ACROPOLIS_BRIDGE_KEYPAD_CODE_BLANK, 0);
     taskKill(task->spawnArg2.pointer);
     taskRequestKill(task, _gAcropolisBridgeKeypadExitResult);
-    gGameSession->eventState   = 0;
-    gGameSession->hideHud      = 0;
-    gGameSession->cutsceneHold = 0;
-    D_80114D08                 = ACROPOLIS_BRIDGE_KEYPAD_INTERACTION_REARM_UPDATES;
+    gGameSession->eventState          = 0;
+    gGameSession->hideHud             = 0;
+    gGameSession->cutsceneHold        = 0;
+    gDirectionInteractionRearmUpdates = ACROPOLIS_BRIDGE_KEYPAD_INTERACTION_REARM_UPDATES;
 }
 
 #include "../../shared/action_prompt_hit_test.inc.c"

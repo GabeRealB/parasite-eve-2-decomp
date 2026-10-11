@@ -85,7 +85,7 @@ _DirectionStairSurfaces D_801149FC[5] = {
 /// The phase, trigger-control change latch and session busy flag are left for callers.
 static inline void _directionClearRequest(void)
 {
-    D_80114CF8 = 0;
+    gDirectionActionActive = false;
     _directionClearTriggerParameters();
 }
 
@@ -107,10 +107,10 @@ void directionAwaitStairClimb(void)
 
     // Apply the surface at the current step, including the final landing.
     player         = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->work;
-    stairParameter = Gp_DirByte;
+    stairParameter = gDirectionActionParameter0;
     if (stairParameter & DIRECTION_STAIR_INDEXED_SURFACES) {
         stepsRemaining = player->scriptMotion.jumpSteps;
-        if (Gp_DirFlags & DIRECTION_STAIR_DESCEND) {
+        if (gDirectionActionControl & DIRECTION_STAIR_DESCEND) {
             stepSurfaces         = D_801149FC[(stairParameter & DIRECTION_STAIR_SURFACE_MASK) >> DIRECTION_STAIR_SURFACE_SHIFT].descent;
             player->surfaceClass = stepSurfaces[(stairParameter & DIRECTION_STAIR_STEP_COUNT_MASK) - stepsRemaining];
         } else {
@@ -126,11 +126,11 @@ void directionAwaitStairClimb(void)
     if (taskMessageDispatch(playerTask, GAME_ACTOR_MESSAGE_IS_SCRIPTED_MOTION_PENDING, 0, 0) == 0) {
         taskMessageDispatch(playerTask, GAME_ACTOR_MESSAGE_END_SCRIPTED, 0, 0);
         _directionClearRequest();
-        D_80114CDD = 0;
-    } else if (worldCollisionReadActionHit(&D_80114CD4, &Gp_DirAlt, &Gp_DirAltNibble)) {
-        if ((u8)D_80114CD4 == WORLD_COLLISION_TRIGGER_ACTION_WARP) {
+        gDirectionStairBattleFinished = false;
+    } else if (worldCollisionReadActionHit(&gDirectionSecondaryActionControl, &gDirectionSecondaryActionParameter0, &gDirectionSecondaryActionParameter1)) {
+        if ((u8)gDirectionSecondaryActionControl == WORLD_COLLISION_TRIGGER_ACTION_WARP) {
             gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
-            Gp_DirPhase++;
+            gDirectionActionPhase++;
         }
     }
 }
@@ -148,47 +148,47 @@ void directionCommitStairWarp(void)
     McSaveData*   liveSave;
 
     roomTask    = gameGetTaskSlot(GAME_TASK_SLOT_ROOM);
-    destination = &Gp_WarpLoc;
+    destination = &gDirectionWarpRequest;
 
     // Resolve the warp encountered during the climb within the active stage.
-    Gp_WarpLoc.areaId      = Gp_DirAlt;
-    destination->warp      = Gp_DirAltNibble & DIRECTION_WARP_ARRIVAL_MASK;
-    destination->field_4   = 1;
-    destination->room      = DIRECTION_WARP_DEFAULT_ROOM;
-    destination->queryOnly = ROOM_EVENT_EXECUTE;
+    gDirectionWarpRequest.areaId = gDirectionSecondaryActionParameter0;
+    destination->warp            = gDirectionSecondaryActionParameter1 & DIRECTION_WARP_ARRIVAL_MASK;
+    destination->field_4         = 1;
+    destination->room            = DIRECTION_WARP_DEFAULT_ROOM;
+    destination->queryOnly       = ROOM_EVENT_EXECUTE;
     TASK_MESSAGE_DISPATCH_POINTERS(roomTask, ROOM_EVENT_MESSAGE_RESOLVE, destination, destination);
 
     // Publish only the resolved destination selectors, then queue the area change.
     liveSave                          = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
-    liveSave->state.location.loc.area = (u8)Gp_WarpLoc.areaId;
+    liveSave->state.location.loc.area = (u8)gDirectionWarpRequest.areaId;
     liveSave->state.location.loc.warp = destination->warp;
     liveSave->state.location.loc.room = destination->room;
     taskSpawn(DIRECTION_AREA_CHANGE_TASK_BANK, DIRECTION_AREA_CHANGE_TASK_ID, 0, 0);
 
-    Gp_DirAltNibble = 0;
-    Gp_DirAlt       = 0;
-    D_80114CF8      = 0;
-    Gp_DirNibble    = 0;
-    Gp_DirByte      = 0;
-    Gp_DirFlags     = 0;
-    D_80114CD4      = 0;
-    D_80114CDD      = 0;
+    gDirectionSecondaryActionParameter1 = 0;
+    gDirectionSecondaryActionParameter0 = 0;
+    gDirectionActionActive              = false;
+    gDirectionActionParameter1          = 0;
+    gDirectionActionParameter0          = 0;
+    gDirectionActionControl             = 0;
+    gDirectionSecondaryActionControl    = 0;
+    gDirectionStairBattleFinished       = false;
 }
 
 void directionDispatchCapInteraction(void)
 {
     if (gGameSession->eventState == 0) {
         if (capIsBusy() == 0) {
-            if (Gp_DirNibble == WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE) {
-                taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), ROOM_MESSAGE_COMMAND, Gp_DirByte, 0);
+            if (gDirectionActionParameter1 == WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE) {
+                taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), ROOM_MESSAGE_COMMAND, gDirectionActionParameter0, 0);
             } else {
-                capSpawnEventIfIdle(Gp_DirByte, Gp_DirNibble);
+                capSpawnEventIfIdle(gDirectionActionParameter0, gDirectionActionParameter1);
             }
         }
     }
     // A blocked interaction is consumed too; it is never retried by this action.
     _directionClearRequest();
-    if (D_80114CDC == 0) {
+    if (gDirectionActionControlChanged == 0) {
         gGameSession->dirActionBusy = 0;
     }
 }
@@ -204,7 +204,7 @@ void directionDispatchCallbackAction(void)
     if (gGameSession->eventState != 0) {
         _directionClearRequest();
     } else {
-        callbacks[(Gp_DirFlags >> DIRECTION_CALLBACK_INDEX_SHIFT) & DIRECTION_CALLBACK_INDEX_MASK](Gp_DirByte, Gp_DirNibble);
+        callbacks[(gDirectionActionControl >> DIRECTION_CALLBACK_INDEX_SHIFT) & DIRECTION_CALLBACK_INDEX_MASK](gDirectionActionParameter0, gDirectionActionParameter1);
         _directionClearRequest();
     }
 }

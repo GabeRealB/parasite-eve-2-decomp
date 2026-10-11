@@ -811,8 +811,8 @@ static void _shelterR47ConsoleFadeOutTask(Task* task)
         gameFlagSetNibble(GAME_FLAG_SHELTER_WATCHERS_DISABLED, switchWork->toggles[4]);
         playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
         playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO);
-        Gp_MenuLockDelay = SHELTER_R47_CONSOLE_MENU_UNLOCK_UPDATES;
-        D_80114D08       = SHELTER_R47_CONSOLE_INTERACTION_REARM_UPDATES;
+        Gp_MenuLockDelay                  = SHELTER_R47_CONSOLE_MENU_UNLOCK_UPDATES;
+        gDirectionInteractionRearmUpdates = SHELTER_R47_CONSOLE_INTERACTION_REARM_UPDATES;
         displayReleaseMenuHold();
         gGameSession->eventState   = 0;
         gGameSession->hideHud      = 0;
@@ -1055,8 +1055,8 @@ static void _shelterR47ConsoleDismissTask(Task* task)
 {
     ShelterR47ConsoleWork* work;
 
-    work       = task->work;
-    D_80114D08 = SHELTER_R47_CONSOLE_INTERACTION_REARM_UPDATES;
+    work                              = task->work;
+    gDirectionInteractionRearmUpdates = SHELTER_R47_CONSOLE_INTERACTION_REARM_UPDATES;
     _shelterR47ConsoleSaveSwitches(task);
     playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
     playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO);
@@ -1349,7 +1349,7 @@ static inline s32 _areaIsSavedMapMarkEnabled(const GameLocationKey* location)
 ///
 /// Stage and area must fit their tables. Requires `AREA_SAVED_MAP_MARK` set and
 /// `AREA_SPAWN_RESTORE_SAVED_POSES` clear; missing tables or saved state return 0.
-/// This is the predicate used by `menuMapRebuildMarkedAreaBits` for `Gp_AreaIdBits`.
+/// This is the predicate used by `menuMapRebuildMarkedAreaBits` for `gMenuMapMarkedAreaBits`.
 /// The synthetic room/view values are ignored by both flag queries.
 static inline s16 _shelterR47MapTerminalIsAreaMarkerVisible(s32 stage, s32 area)
 {

@@ -2824,7 +2824,7 @@ static inline void _shelterB1UndergroundParkingPanelRestoreRoom(void)
         SHELTER_B1_UNDERGROUND_PARKING_PANEL_EVENT_IDLE                = 0,
     };
 
-    D_80114D08 = SHELTER_B1_UNDERGROUND_PARKING_PANEL_INTERACTION_DELAY_UPDATES;
+    gDirectionInteractionRearmUpdates = SHELTER_B1_UNDERGROUND_PARKING_PANEL_INTERACTION_DELAY_UPDATES;
     playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
     playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO);
     displayReleaseMenuHold();

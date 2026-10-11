@@ -229,7 +229,7 @@ static void _roomCutsceneTask(Task* task)
         case ROOM_CUTSCENE_STATE_FINISH:
             sndEvtRequestScriptStart(cutscene->endSound, 0, 0);
             _roomCutsceneReleasePresentation(cutscene);
-            D_80114D08 = ROOM_CUTSCENE_INTERACTION_REARM_UPDATES;
+            gDirectionInteractionRearmUpdates = ROOM_CUTSCENE_INTERACTION_REARM_UPDATES;
             taskKill(task);
             break;
         case ROOM_CUTSCENE_STATE_UNUSED_15:

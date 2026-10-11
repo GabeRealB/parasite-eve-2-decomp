@@ -2054,7 +2054,7 @@ static s32 _mistShootingGalleryHandleRoomAction(Task* unusedTask, s32 messageId,
     if ((request->actionId == MIST_SHOOTING_GALLERY_ACTION_OPEN_COURSE_MENU) && (gActor215100GalleryTrainingActive == 0)) {
         playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
         taskSpawnFromTable(gActor215100GalleryTaskDescs, ACTOR_215100_GALLERY_MENU_TASK, 1, 0);
-        D_80114D08 = MIST_SHOOTING_GALLERY_ACTION_REARM_TICKS;
+        gDirectionInteractionRearmUpdates = MIST_SHOOTING_GALLERY_ACTION_REARM_TICKS;
     }
     if ((request->actionId == MIST_SHOOTING_GALLERY_ACTION_TALK_TO_PIERCE) && (gameFlagGetNibble(GAME_FLAG_0ED) == 0)) {
         actor215100StartPierceConversation();

@@ -1978,8 +1978,8 @@ static void _acropolisSecurityRoomMonitorClose(Task* task)
     enum { ACROPOLIS_SECURITY_ROOM_MONITOR_RETURN_VIEW = 4 };
     _AcropolisSecurityRoomMonitorWork* work;
 
-    work       = task->work;
-    D_80114D08 = ACROPOLIS_SECURITY_ROOM_PANEL_REARM_UPDATES;
+    work                              = task->work;
+    gDirectionInteractionRearmUpdates = ACROPOLIS_SECURITY_ROOM_PANEL_REARM_UPDATES;
     _acropolisSecurityRoomSaveScreenLevel((s16)work->screenLevel);
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = ACROPOLIS_SECURITY_ROOM_MONITOR_RETURN_VIEW;
     displayReleaseMenuHold();
@@ -2365,7 +2365,7 @@ static void _acropolisSecurityRoomPowerSupplyHandlePrompt(Task* task)
 static void _acropolisSecurityRoomPowerSupplyClose(Task* task)
 {
     enum { ACROPOLIS_SECURITY_ROOM_POWER_SUPPLY_RETURN_VIEW = 3 };
-    D_80114D08 = ACROPOLIS_SECURITY_ROOM_PANEL_REARM_UPDATES;
+    gDirectionInteractionRearmUpdates = ACROPOLIS_SECURITY_ROOM_PANEL_REARM_UPDATES;
     playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO);
     gGameSession->eventState                                   = 0;
     gGameSession->hideHud                                      = 0;
@@ -2540,7 +2540,7 @@ static void _acropolisSecurityRoomPowerSupplyRestoreRoomView(Task* task)
 /// the opener polls and releases this task and its work.
 static void _acropolisSecurityRoomPowerSupplyFinishRightUnlock(Task* task)
 {
-    D_80114D08 = ACROPOLIS_SECURITY_ROOM_PANEL_REARM_UPDATES;
+    gDirectionInteractionRearmUpdates = ACROPOLIS_SECURITY_ROOM_PANEL_REARM_UPDATES;
     playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO);
     displayReleaseMenuHold();
     gGameSession->hideHud      = 0;
@@ -2622,7 +2622,7 @@ static void _acropolisSecurityRoomPowerSupplyWaitLeftUnlock(Task* task)
 static void _acropolisSecurityRoomPowerSupplyFinishLeftUnlock(Task* task)
 {
     enum { ACROPOLIS_SECURITY_ROOM_LEFT_UNLOCK_RETURN_VIEW = 3 };
-    D_80114D08                                                 = ACROPOLIS_SECURITY_ROOM_PANEL_REARM_UPDATES;
+    gDirectionInteractionRearmUpdates                          = ACROPOLIS_SECURITY_ROOM_PANEL_REARM_UPDATES;
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = ACROPOLIS_SECURITY_ROOM_LEFT_UNLOCK_RETURN_VIEW;
     displayReleaseMenuHold();
     padInputChangeSuppression(PAD_INPUT_SUPPRESSION_CLEAR, PAD_INPUT_SUPPRESS_GAMEPLAY);

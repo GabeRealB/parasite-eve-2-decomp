@@ -1254,7 +1254,7 @@ static void _shelterB3GarbageIncineratorBlazeControllerTask(Task* task)
     s32                                    shouldBurn;
     PlayerStatus*                          playerStatus;
 
-    if (session->sceneUpdatesPaused != 0 || (s8)gAttachmentState.menuOpen != ATTACHMENT_MENU_CLOSED || gSceneCombatState.actorControl != SCENE_COMBAT_ACTORS_RUNNING || D_80114CF8 != 0) {
+    if (session->sceneUpdatesPaused != 0 || (s8)gAttachmentState.menuOpen != ATTACHMENT_MENU_CLOSED || gSceneCombatState.actorControl != SCENE_COMBAT_ACTORS_RUNNING || gDirectionActionActive != 0) {
         return;
     }
     switch (task->state) {

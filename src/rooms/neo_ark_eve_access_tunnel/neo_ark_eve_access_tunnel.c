@@ -524,7 +524,7 @@ void neoArkEveAccessTunnelShelterDepartureTask(Task* task)
             task->state++;
             return;
         case NEO_ARK_EVE_ACCESS_TUNNEL_DEPARTURE_CHECK_REPLY:
-            D_80114D08 = NEO_ARK_EVE_ACCESS_TUNNEL_INTERACTION_REARM_UPDATES;
+            gDirectionInteractionRearmUpdates = NEO_ARK_EVE_ACCESS_TUNNEL_INTERACTION_REARM_UPDATES;
             if (capGetVariantKey() == NEO_ARK_EVE_ACCESS_TUNNEL_CAP_DECLINED) {
                 taskKill(task);
                 playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
@@ -572,7 +572,7 @@ void neoArkEveAccessTunnelElevatorDepartureTask(Task* task)
             task->state++;
             return;
         case NEO_ARK_EVE_ACCESS_TUNNEL_DEPARTURE_CHECK_REPLY:
-            D_80114D08 = NEO_ARK_EVE_ACCESS_TUNNEL_INTERACTION_REARM_UPDATES;
+            gDirectionInteractionRearmUpdates = NEO_ARK_EVE_ACCESS_TUNNEL_INTERACTION_REARM_UPDATES;
             if (capGetVariantKey() == NEO_ARK_EVE_ACCESS_TUNNEL_CAP_DECLINED) {
                 taskKill(task);
                 playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);

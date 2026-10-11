@@ -15,7 +15,6 @@
 #include "attachments.h"
 #include "gameplay/gameflag.h"
 #include "cdcmd.h"
-#include "direction_input.h"
 #include "gameplay/hud_sprites.h"
 #include "gameplay/inventory.h"
 #include "item_menu.h"
@@ -1523,7 +1522,7 @@ static void _menuMapDrawAreas(const Task* mapTask)
                             } else {
                                 _menuMapDrawAreaShape(mapObject, shapes[(u8)shapeIndex].model, MENU_MAP_AREA_FILL_PATTERN, scaleQ12);
                             }
-                        } else if ((areaMask & Gp_AreaIdBits[visitedWord]) != 0) {
+                        } else if ((areaMask & gMenuMapMarkedAreaBits[visitedWord]) != 0) {
                             _menuMapDrawAreaShape(mapObject, shapes[(u8)shapeIndex].model, MENU_MAP_AREA_FILL_RED, scaleQ12);
                             _menuMapDrawAreaIcons(mapTask, (u8)areaIndex, 0);
                         } else {
@@ -1532,7 +1531,7 @@ static void _menuMapDrawAreas(const Task* mapTask)
                     } else if ((areaMask & visited[visitedWord]) == 0) {
                         _menuMapDrawAreaShape(mapObject, shapes[(u8)shapeIndex].model, MENU_MAP_AREA_FILL_DIM, scaleQ12);
                         _menuMapDrawAreaIcons(mapTask, (u8)areaIndex, 1);
-                    } else if ((areaMask & Gp_AreaIdBits[visitedWord]) != 0) {
+                    } else if ((areaMask & gMenuMapMarkedAreaBits[visitedWord]) != 0) {
                         _menuMapDrawAreaShape(mapObject, shapes[(u8)shapeIndex].model, MENU_MAP_AREA_FILL_RED, scaleQ12);
                         _menuMapDrawAreaIcons(mapTask, (u8)areaIndex, 0);
                     } else {

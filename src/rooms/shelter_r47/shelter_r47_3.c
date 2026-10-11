@@ -2596,7 +2596,7 @@ static void _shelterR47MapTerminalRestoreRoomTask(Task* task)
 
     work = task->work;
     // Delay a fresh directional interaction while room control is restored.
-    D_80114D08 = SHELTER_R47_MAP_ACTION_DELAY_FRAMES;
+    gDirectionInteractionRearmUpdates = SHELTER_R47_MAP_ACTION_DELAY_FRAMES;
     playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
     playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO);
     sndEvtRequestScriptStop(SOUND_SHELTER_R47_MAP_TERMINAL_LOOP, SOUND_SCRIPT_STOP_KEEP_RELEASE);
