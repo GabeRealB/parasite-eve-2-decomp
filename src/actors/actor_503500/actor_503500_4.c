@@ -557,10 +557,6 @@ typedef struct {
 } _Actor503500SmallOrbEmitterWork;
 STATIC_ASSERT_SIZEOF(_Actor503500SmallOrbEmitterWork, 0xF0);
 
-extern _Actor503500YellowFlashEmitterWork D_actor_503500_80177A6C;
-
-extern _Actor503500RearPartWork D_actor_503500_801776A0;
-
 /// Shared collision identity and packed hit-effect arguments of these boss parts.
 enum {
     ACTOR_503500_PART_BODY_KEY            = 0x30023,
@@ -582,14 +578,9 @@ enum { ACTOR_503500_CORPSE_BURN_SOUND = SOUND_COMMON(0x0D) };
 
 static void _actor503500LungingChainApplyPitch(const SVECTOR* linkAngles, GfxCoord* coordinates);
 
-extern _Actor503500SmallOrbEmitterWork D_actor_503500_8017797C;
-
-extern _Actor503500LargeOrbEmitterWork D_actor_503500_801774C0[2];
-
 static void _actor503500LargeOrbEmitterExit(Task* task);
 
-extern _Actor503500ChainBaseWork D_actor_503500_80177794[2];
-static void                      _actor503500ChainBaseExit(Task* task);
+static void _actor503500ChainBaseExit(Task* task);
 
 static void _actor503500LargeOrbEmitterApplyHits(Task* task, WorldCollisionBody* unusedBody, const WorldCollisionContact* contacts, s32 contactCount);
 static void _actor503500RearPartApplyHits(Task* task, WorldCollisionBody* unusedBody, const WorldCollisionContact* rec, s32 count);
@@ -678,13 +669,6 @@ static void _actor503500BallisticShotExit(Task* task);
 static void _actor503500LingeringShotExit(Task* task);
 
 static void _actor503500LungingChainExit(Task* task);
-
-extern _Actor503500LungingChainWork D_actor_503500_80177B60[];
-
-extern _Actor503500ArmStorage D_actor_503500_80178AC0;
-
-/// Work block of the arms' knock-back task.
-extern _Actor503500KnockbackWork D_actor_503500_80178F10;
 
 static void _actor503500LargeOrbEmitterInit(Task* task);
 static void _actor503500LargeOrbEmitterUpdate(Task* task);
@@ -776,8 +760,11 @@ static inline void _actor503500ArmBeginStrike(Task* task, _Actor503500ArmWork* w
                              (s8)(worldCoordGetOriginAudioDepth(strikeSoundCoord) / 2));
 }
 
-/// `Task::state` handlers `actor503500LargeOrbEmitterTask` dispatches through.
-static const TaskFuncTable3 D_actor_503500_80131FF0 = {
+/// Large-orb emitter task handlers for states 0 initialize, 1 update and 2 exit.
+///
+/// Copied by value before unchecked `Task::state` dispatch; each entry takes
+/// a live `Task*` and returns nothing.
+static const TaskFuncTable3 _gActor503500LargeOrbEmitterStateHandlers = {
     {
         _actor503500LargeOrbEmitterInit,
         _actor503500LargeOrbEmitterUpdate,
@@ -785,21 +772,63 @@ static const TaskFuncTable3 D_actor_503500_80131FF0 = {
     },
 };
 
-_Actor503500LargeOrbEmitterWork D_actor_503500_801774C0[2] = { 0 };
+/// Borrowed work for the two large-orb emitters in slots 4 and 5.
+///
+/// Indexed by slot minus `ACTOR_503500_LARGE_ORB_EMITTER_FIRST_SLOT`. Each
+/// live emitter borrows one element in `Task::work`; initialization clears
+/// that element and exit clears the task's pointer without freeing it.
+static _Actor503500LargeOrbEmitterWork _gActor503500LargeOrbEmitterWork[ACTOR_503500_SIDE_COUNT] = { 0 };
 
-_Actor503500RearPartWork D_actor_503500_801776A0 = { 0 };
+/// Borrowed work for the singleton rear-part target in slot 6.
+///
+/// Initialization clears it and assigns it to `Task::work`. Its sphere borrows
+/// the embedded contacts until exit unlinks the sphere and clears the work
+/// pointer; this storage remains live for the overlay's lifetime.
+static _Actor503500RearPartWork _gActor503500RearPartWork = { 0 };
 
-_Actor503500ChainBaseWork D_actor_503500_80177794[2] = { 0 };
+/// Borrowed work for the two chain bases in slots 7 and 8.
+///
+/// Indexed by slot minus `ACTOR_503500_CHAIN_BASE_FIRST_SLOT`. Initialization
+/// clears only the selected element and assigns it to `Task::work`; exit
+/// unlinks its sphere and clears that pointer without freeing the element.
+static _Actor503500ChainBaseWork _gActor503500ChainBaseWork[ACTOR_503500_SIDE_COUNT] = { 0 };
 
-_Actor503500SmallOrbEmitterWork D_actor_503500_8017797C = { 0 };
+/// Borrowed work for the singleton small-orb volley emitter in slot 9.
+///
+/// Initialization clears it and assigns it to `Task::work`. Its sphere borrows
+/// the embedded contacts until exit unlinks the sphere and clears the work
+/// pointer; the storage lasts for the overlay's lifetime.
+static _Actor503500SmallOrbEmitterWork _gActor503500SmallOrbEmitterWork = { 0 };
 
-_Actor503500YellowFlashEmitterWork D_actor_503500_80177A6C = { 0 };
+/// Borrowed work for the singleton yellow-flash emitter in slot 12.
+///
+/// Initialization clears it and assigns it to `Task::work`, starting dormant.
+/// Exit unlinks its sphere and clears the work pointer without freeing this
+/// storage, which lasts for the overlay's lifetime.
+static _Actor503500YellowFlashEmitterWork _gActor503500YellowFlashEmitterWork = { 0 };
 
-_Actor503500LungingChainWork D_actor_503500_80177B60[4];
+/// Borrowed work for the four lunging chains in slots 13 through 16.
+///
+/// Indexed by slot minus `ACTOR_503500_SLOT_LUNGING_CHAIN_0`. Each live chain
+/// borrows one cleared element in `Task::work`, including its lighting,
+/// blend pose and two spheres' contacts. Exit unlinks the spheres and clears
+/// the work pointer, allowing a later chain in that slot to reuse the element.
+static _Actor503500LungingChainWork _gActor503500LungingChainWork[ACTOR_503500_LUNGING_CHAIN_COUNT];
 
-_Actor503500ArmStorage D_actor_503500_80178AC0;
+/// Borrowed storage for the two striking arms in slots 10 and 11.
+///
+/// `arms` is indexed by slot minus `ACTOR_503500_SLOT_ARM_0`. Initialization
+/// clears only that arm's element and assigns it to `Task::work`; exit clears
+/// the pointer without freeing it. The following eight bytes remain untouched;
+/// their role is unproven.
+static _Actor503500ArmStorage _gActor503500ArmStorage;
 
-_Actor503500KnockbackWork D_actor_503500_80178F10;
+/// Singleton work for the player's arm-strike knockback and recovery sequence.
+///
+/// The bodyless task clears it on initialization and accesses it directly,
+/// leaving `Task::work` unset so teardown retains the storage. It lasts for
+/// the overlay's lifetime and supports one active knockback sequence at a time.
+static _Actor503500KnockbackWork _gActor503500KnockbackWork;
 
 static void _actor503500ChainBaseStepAttack(Task* emitterTask);
 
@@ -822,7 +851,7 @@ static void _actor503500LargeOrbEmitterInit(Task* task)
     side   = task->spawnArg1.value - ACTOR_503500_LARGE_ORB_EMITTER_FIRST_SLOT;
     enemy  = task->spawnArg2.pointer;
     parent = task->parent;
-    work   = &D_actor_503500_801774C0[side];
+    work   = &_gActor503500LargeOrbEmitterWork[side];
     coord  = task->extra.tmd->coords;
     memFillBytes(work, 0, sizeof(*work));
     task->work = work;
@@ -1397,12 +1426,15 @@ void actor503500LargeOrbEmitterTask(Task* task)
 {
     TaskFuncTable3 stateHandlers;
 
-    stateHandlers = D_actor_503500_80131FF0;
+    stateHandlers = _gActor503500LargeOrbEmitterStateHandlers;
     stateHandlers.funcs[task->state](task);
 }
 
-/// `Task::state` handlers `actor503500RearPartTask` dispatches through.
-static const TaskFuncTable3 D_actor_503500_80132028 = {
+/// Rear-part task handlers for states 0 initialize, 1 update and 2 exit.
+///
+/// Copied by value before unchecked `Task::state` dispatch; each entry takes
+/// a live `Task*` and returns nothing.
+static const TaskFuncTable3 _gActor503500RearPartStateHandlers = {
     {
         _actor503500RearPartInit,
         _actor503500RearPartUpdate,
@@ -1425,8 +1457,8 @@ static void _actor503500RearPartInit(Task* task)
     coord  = task->extra.tmd->coords;
     enemy  = task->spawnArg2.pointer;
     parent = task->parent;
-    memFillBytes(&D_actor_503500_801776A0, 0, sizeof(D_actor_503500_801776A0));
-    task->work = &D_actor_503500_801776A0;
+    memFillBytes(&_gActor503500RearPartWork, 0, sizeof(_gActor503500RearPartWork));
+    task->work = &_gActor503500RearPartWork;
 
     coord->parent = &parent->extra.tmd->coords[ACTOR_503500_REAR_PART_BOSS_PART];
     gfxSetRotIdentity(&coord->coord);
@@ -1438,25 +1470,25 @@ static void _actor503500RearPartInit(Task* task)
     enemy->bodyPos.vx             = gActor503500RearPartTargetOffset.vx;
     enemy->bodyPos.vy             = gActor503500RearPartTargetOffset.vy;
     enemy->bodyPos.vz             = gActor503500RearPartTargetOffset.vz;
-    contacts                      = D_actor_503500_801776A0.contacts;
+    contacts                      = _gActor503500RearPartWork.contacts;
     enemy->param                  = &gActor503500EnemyParams[task->spawnArg1.value];
     enemy->recs                   = contacts;
     enemy->hp                     = enemy->param->hpMax;
 
-    D_actor_503500_801776A0.body.coord            = coord;
-    D_actor_503500_801776A0.body.context.contacts = contacts;
-    D_actor_503500_801776A0.body.key              = ACTOR_503500_PART_BODY_KEY;
-    D_actor_503500_801776A0.body.radius           = 1000;
-    D_actor_503500_801776A0.body.flags            = WORLD_COLLISION_BODY_SPHERE;
-    D_actor_503500_801776A0.body.pos.vx           = gActor503500RearPartTargetOffset.vx;
-    D_actor_503500_801776A0.body.pos.vy           = gActor503500RearPartTargetOffset.vy;
-    D_actor_503500_801776A0.body.pos.vz           = gActor503500RearPartTargetOffset.vz;
-    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, &D_actor_503500_801776A0.body);
-    worldCollisionInitContacts(contacts, ARRAY_SIZE(D_actor_503500_801776A0.contacts), 0);
-    D_actor_503500_801776A0.hitEffect.spawnArgLo = ACTOR_503500_PART_HIT_EFFECT_LOW_ARG;
-    D_actor_503500_801776A0.hitEffect.coord      = coord;
-    D_actor_503500_801776A0.hitEffect.spawnArgHi = ACTOR_503500_PART_HIT_EFFECT_HIGH_ARG;
-    D_actor_503500_801776A0.body.flags          |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+    _gActor503500RearPartWork.body.coord            = coord;
+    _gActor503500RearPartWork.body.context.contacts = contacts;
+    _gActor503500RearPartWork.body.key              = ACTOR_503500_PART_BODY_KEY;
+    _gActor503500RearPartWork.body.radius           = 1000;
+    _gActor503500RearPartWork.body.flags            = WORLD_COLLISION_BODY_SPHERE;
+    _gActor503500RearPartWork.body.pos.vx           = gActor503500RearPartTargetOffset.vx;
+    _gActor503500RearPartWork.body.pos.vy           = gActor503500RearPartTargetOffset.vy;
+    _gActor503500RearPartWork.body.pos.vz           = gActor503500RearPartTargetOffset.vz;
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, &_gActor503500RearPartWork.body);
+    worldCollisionInitContacts(contacts, ARRAY_SIZE(_gActor503500RearPartWork.contacts), 0);
+    _gActor503500RearPartWork.hitEffect.spawnArgLo = ACTOR_503500_PART_HIT_EFFECT_LOW_ARG;
+    _gActor503500RearPartWork.hitEffect.coord      = coord;
+    _gActor503500RearPartWork.hitEffect.spawnArgHi = ACTOR_503500_PART_HIT_EFFECT_HIGH_ARG;
+    _gActor503500RearPartWork.body.flags          |= WORLD_COLLISION_BODY_PAIR_ENABLED;
     _actor503500RearPartEnterState(task, ACTOR_503500_REAR_PART_STATE_IDLE);
     task->exitCallback = _actor503500RearPartExit;
     task->state       += 1;
@@ -1819,12 +1851,15 @@ void actor503500RearPartTask(Task* task)
 {
     TaskFuncTable3 stateHandlers;
 
-    stateHandlers = D_actor_503500_80132028;
+    stateHandlers = _gActor503500RearPartStateHandlers;
     stateHandlers.funcs[task->state](task);
 }
 
-/// `Task::state` handlers `actor503500ChainBaseTask` dispatches through.
-static const TaskFuncTable3 D_actor_503500_80132060 = {
+/// Chain-base task handlers for states 0 initialize, 1 update and 2 exit.
+///
+/// Copied by value before unchecked `Task::state` dispatch; each entry takes
+/// a live `Task*` and returns nothing.
+static const TaskFuncTable3 _gActor503500ChainBaseStateHandlers = {
     {
         _actor503500ChainBaseInit,
         _actor503500ChainBaseUpdate,
@@ -1852,7 +1887,7 @@ static void _actor503500ChainBaseInit(Task* task)
 
     slot       = task->spawnArg1.value;
     enemy      = task->spawnArg2.pointer;
-    work       = &D_actor_503500_80177794[slot - ACTOR_503500_CHAIN_BASE_FIRST_SLOT];
+    work       = &_gActor503500ChainBaseWork[slot - ACTOR_503500_CHAIN_BASE_FIRST_SLOT];
     bodyOffset = &gActor503500ChainBaseTargetOffsets[slot - ACTOR_503500_CHAIN_BASE_FIRST_SLOT];
     coord      = task->extra.tmd->coords;
     parent     = task->parent;
@@ -2440,7 +2475,7 @@ void actor503500ChainBaseTask(Task* task)
 {
     TaskFuncTable3 stateHandlers;
 
-    stateHandlers = D_actor_503500_80132060;
+    stateHandlers = _gActor503500ChainBaseStateHandlers;
     stateHandlers.funcs[task->state](task);
 }
 
@@ -2477,8 +2512,11 @@ static void _actor503500ChainBaseStepCovered(Task* task)
     }
 }
 
-/// `Task::state` handlers `actor503500SmallOrbEmitterTask` dispatches through.
-static const TaskFuncTable3 D_actor_503500_80132098 = {
+/// Small-orb emitter task handlers for states 0 initialize, 1 update and 2 exit.
+///
+/// Copied by value before unchecked `Task::state` dispatch; each entry takes
+/// a live `Task*` and returns nothing.
+static const TaskFuncTable3 _gActor503500SmallOrbEmitterStateHandlers = {
     {
         _actor503500SmallOrbEmitterInit,
         _actor503500SmallOrbEmitterUpdate,
@@ -2503,8 +2541,8 @@ static void _actor503500SmallOrbEmitterInit(Task* task)
     coord  = task->extra.tmd->coords;
     enemy  = task->spawnArg2.pointer;
     parent = task->parent;
-    memFillBytes(&D_actor_503500_8017797C, 0, sizeof(D_actor_503500_8017797C));
-    task->work = &D_actor_503500_8017797C;
+    memFillBytes(&_gActor503500SmallOrbEmitterWork, 0, sizeof(_gActor503500SmallOrbEmitterWork));
+    task->work = &_gActor503500SmallOrbEmitterWork;
 
     coord->parent = &parent->extra.tmd->coords[ACTOR_503500_SMALL_ORB_EMITTER_BOSS_PART];
     gfxSetRotIdentity(&coord->coord);
@@ -2516,25 +2554,25 @@ static void _actor503500SmallOrbEmitterInit(Task* task)
     enemy->bodyPos.vx             = gActor503500SmallOrbEmitterTargetOffset.vx;
     enemy->bodyPos.vy             = gActor503500SmallOrbEmitterTargetOffset.vy;
     enemy->bodyPos.vz             = gActor503500SmallOrbEmitterTargetOffset.vz;
-    contacts                      = D_actor_503500_8017797C.contacts;
+    contacts                      = _gActor503500SmallOrbEmitterWork.contacts;
     enemy->param                  = &gActor503500EnemyParams[task->spawnArg1.value];
     enemy->recs                   = contacts;
     enemy->hp                     = enemy->param->hpMax;
 
-    D_actor_503500_8017797C.body.coord            = coord;
-    D_actor_503500_8017797C.body.context.contacts = contacts;
-    D_actor_503500_8017797C.body.key              = ACTOR_503500_PART_BODY_KEY;
-    D_actor_503500_8017797C.body.radius           = 1000;
-    D_actor_503500_8017797C.body.flags            = WORLD_COLLISION_BODY_SPHERE;
-    D_actor_503500_8017797C.body.pos.vx           = gActor503500SmallOrbEmitterTargetOffset.vx;
-    D_actor_503500_8017797C.body.pos.vy           = gActor503500SmallOrbEmitterTargetOffset.vy;
-    D_actor_503500_8017797C.body.pos.vz           = gActor503500SmallOrbEmitterTargetOffset.vz;
-    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, &D_actor_503500_8017797C.body);
-    worldCollisionInitContacts(contacts, ARRAY_SIZE(D_actor_503500_8017797C.contacts), 0);
-    D_actor_503500_8017797C.hitEffect.spawnArgLo = ACTOR_503500_PART_HIT_EFFECT_LOW_ARG;
-    D_actor_503500_8017797C.hitEffect.coord      = coord;
-    D_actor_503500_8017797C.hitEffect.spawnArgHi = ACTOR_503500_PART_HIT_EFFECT_HIGH_ARG;
-    D_actor_503500_8017797C.body.flags          |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+    _gActor503500SmallOrbEmitterWork.body.coord            = coord;
+    _gActor503500SmallOrbEmitterWork.body.context.contacts = contacts;
+    _gActor503500SmallOrbEmitterWork.body.key              = ACTOR_503500_PART_BODY_KEY;
+    _gActor503500SmallOrbEmitterWork.body.radius           = 1000;
+    _gActor503500SmallOrbEmitterWork.body.flags            = WORLD_COLLISION_BODY_SPHERE;
+    _gActor503500SmallOrbEmitterWork.body.pos.vx           = gActor503500SmallOrbEmitterTargetOffset.vx;
+    _gActor503500SmallOrbEmitterWork.body.pos.vy           = gActor503500SmallOrbEmitterTargetOffset.vy;
+    _gActor503500SmallOrbEmitterWork.body.pos.vz           = gActor503500SmallOrbEmitterTargetOffset.vz;
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, &_gActor503500SmallOrbEmitterWork.body);
+    worldCollisionInitContacts(contacts, ARRAY_SIZE(_gActor503500SmallOrbEmitterWork.contacts), 0);
+    _gActor503500SmallOrbEmitterWork.hitEffect.spawnArgLo = ACTOR_503500_PART_HIT_EFFECT_LOW_ARG;
+    _gActor503500SmallOrbEmitterWork.hitEffect.coord      = coord;
+    _gActor503500SmallOrbEmitterWork.hitEffect.spawnArgHi = ACTOR_503500_PART_HIT_EFFECT_HIGH_ARG;
+    _gActor503500SmallOrbEmitterWork.body.flags          |= WORLD_COLLISION_BODY_PAIR_ENABLED;
     _actor503500SmallOrbEmitterEnterState(task, ACTOR_503500_SMALL_ORB_EMITTER_STATE_IDLE);
     task->exitCallback = _actor503500SmallOrbEmitterExit;
     task->state       += 1;
@@ -3015,12 +3053,15 @@ void actor503500SmallOrbEmitterTask(Task* task)
 {
     TaskFuncTable3 stateHandlers;
 
-    stateHandlers = D_actor_503500_80132098;
+    stateHandlers = _gActor503500SmallOrbEmitterStateHandlers;
     stateHandlers.funcs[task->state](task);
 }
 
-/// `Task::state` handlers `actor503500YellowFlashEmitterTask` dispatches through.
-static const TaskFuncTable3 D_actor_503500_801320D0 = {
+/// Yellow-flash emitter task handlers for states 0 initialize, 1 update and 2 exit.
+///
+/// Copied by value before unchecked `Task::state` dispatch; each entry takes
+/// a live `Task*` and returns nothing.
+static const TaskFuncTable3 _gActor503500YellowFlashEmitterStateHandlers = {
     {
         _actor503500YellowFlashEmitterInit,
         _actor503500YellowFlashEmitterUpdate,
@@ -3046,8 +3087,8 @@ static void _actor503500YellowFlashEmitterInit(Task* task)
     coord  = task->extra.tmd->coords;
     enemy  = task->spawnArg2.pointer;
     parent = task->parent;
-    memFillBytes(&D_actor_503500_80177A6C, 0, sizeof(D_actor_503500_80177A6C));
-    task->work = &D_actor_503500_80177A6C;
+    memFillBytes(&_gActor503500YellowFlashEmitterWork, 0, sizeof(_gActor503500YellowFlashEmitterWork));
+    task->work = &_gActor503500YellowFlashEmitterWork;
 
     coord->parent = &parent->extra.tmd->coords[ACTOR_503500_YELLOW_FLASH_EMITTER_BOSS_PART];
     gfxSetRotIdentity(&coord->coord);
@@ -3059,25 +3100,25 @@ static void _actor503500YellowFlashEmitterInit(Task* task)
     enemy->bodyPos.vx              = gActor503500YellowFlashEmitterTargetOffset.vx;
     enemy->bodyPos.vy              = gActor503500YellowFlashEmitterTargetOffset.vy;
     enemy->bodyPos.vz              = gActor503500YellowFlashEmitterTargetOffset.vz;
-    contacts                       = D_actor_503500_80177A6C.contacts;
+    contacts                       = _gActor503500YellowFlashEmitterWork.contacts;
     enemy->param                   = &gActor503500EnemyParams[task->spawnArg1.value];
     enemy->recs                    = contacts;
     enemy->hp                      = enemy->param->hpMax;
 
-    D_actor_503500_80177A6C.body.coord            = coord;
-    D_actor_503500_80177A6C.body.context.contacts = contacts;
-    D_actor_503500_80177A6C.body.pos.vx           = gActor503500YellowFlashEmitterTargetOffset.vx;
-    D_actor_503500_80177A6C.body.pos.vy           = gActor503500YellowFlashEmitterTargetOffset.vy;
-    D_actor_503500_80177A6C.body.pos.vz           = gActor503500YellowFlashEmitterTargetOffset.vz;
-    D_actor_503500_80177A6C.body.key              = ACTOR_503500_PART_BODY_KEY;
-    D_actor_503500_80177A6C.body.radius           = 800;
-    D_actor_503500_80177A6C.body.flags            = WORLD_COLLISION_BODY_SPHERE;
-    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, &D_actor_503500_80177A6C.body);
-    worldCollisionInitContacts(contacts, ARRAY_SIZE(D_actor_503500_80177A6C.contacts), 0);
-    D_actor_503500_80177A6C.hitEffect.spawnArgLo = ACTOR_503500_PART_HIT_EFFECT_LOW_ARG;
-    D_actor_503500_80177A6C.hitEffect.coord      = coord;
-    D_actor_503500_80177A6C.hitEffect.spawnArgHi = ACTOR_503500_PART_HIT_EFFECT_HIGH_ARG;
-    D_actor_503500_80177A6C.body.flags          &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+    _gActor503500YellowFlashEmitterWork.body.coord            = coord;
+    _gActor503500YellowFlashEmitterWork.body.context.contacts = contacts;
+    _gActor503500YellowFlashEmitterWork.body.pos.vx           = gActor503500YellowFlashEmitterTargetOffset.vx;
+    _gActor503500YellowFlashEmitterWork.body.pos.vy           = gActor503500YellowFlashEmitterTargetOffset.vy;
+    _gActor503500YellowFlashEmitterWork.body.pos.vz           = gActor503500YellowFlashEmitterTargetOffset.vz;
+    _gActor503500YellowFlashEmitterWork.body.key              = ACTOR_503500_PART_BODY_KEY;
+    _gActor503500YellowFlashEmitterWork.body.radius           = 800;
+    _gActor503500YellowFlashEmitterWork.body.flags            = WORLD_COLLISION_BODY_SPHERE;
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, &_gActor503500YellowFlashEmitterWork.body);
+    worldCollisionInitContacts(contacts, ARRAY_SIZE(_gActor503500YellowFlashEmitterWork.contacts), 0);
+    _gActor503500YellowFlashEmitterWork.hitEffect.spawnArgLo = ACTOR_503500_PART_HIT_EFFECT_LOW_ARG;
+    _gActor503500YellowFlashEmitterWork.hitEffect.coord      = coord;
+    _gActor503500YellowFlashEmitterWork.hitEffect.spawnArgHi = ACTOR_503500_PART_HIT_EFFECT_HIGH_ARG;
+    _gActor503500YellowFlashEmitterWork.body.flags          &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
     _actor503500YellowFlashEmitterEnterState(task, ACTOR_503500_YELLOW_FLASH_EMITTER_STATE_DORMANT);
     task->exitCallback = _actor503500YellowFlashEmitterExit;
     task->state       += 1;
@@ -3532,12 +3573,15 @@ void actor503500YellowFlashEmitterTask(Task* task)
 {
     TaskFuncTable3 stateHandlers;
 
-    stateHandlers = D_actor_503500_801320D0;
+    stateHandlers = _gActor503500YellowFlashEmitterStateHandlers;
     stateHandlers.funcs[task->state](task);
 }
 
-/// `Task::state` handlers `actor503500LungingChainTask` dispatches through.
-static const TaskFuncTable3 D_actor_503500_80132108 = {
+/// Lunging-chain task handlers for states 0 initialize, 1 update and 2 exit.
+///
+/// Copied by value before unchecked `Task::state` dispatch; each entry takes
+/// a live `Task*` and returns nothing.
+static const TaskFuncTable3 _gActor503500LungingChainStateHandlers = {
     {
         _actor503500LungingChainInit,
         _actor503500LungingChainUpdate,
@@ -3580,7 +3624,7 @@ static void _actor503500LungingChainInit(Task* task)
 
     chainIndex = task->spawnArg1.value - ACTOR_503500_SLOT_LUNGING_CHAIN_0;
     enemy      = task->spawnArg2.pointer;
-    work       = &D_actor_503500_80177B60[chainIndex];
+    work       = &_gActor503500LungingChainWork[chainIndex];
     rootCoord  = task->extra.tmd->coords;
     model      = task->extra.tmd;
     memFillBytes(work, 0, sizeof(*work));
@@ -4834,12 +4878,15 @@ void actor503500LungingChainTask(Task* task)
 {
     TaskFuncTable3 stateHandlers;
 
-    stateHandlers = D_actor_503500_80132108;
+    stateHandlers = _gActor503500LungingChainStateHandlers;
     stateHandlers.funcs[task->state](task);
 }
 
-/// `Task::state` handlers `actor503500ArmTask` dispatches through.
-static const TaskFuncTable3 D_actor_503500_80132178 = {
+/// Arm task handlers for states 0 initialize, 1 update and 2 exit.
+///
+/// Copied by value before unchecked `Task::state` dispatch; each entry takes
+/// a live `Task*` and returns nothing.
+static const TaskFuncTable3 _gActor503500ArmStateHandlers = {
     {
         _actor503500ArmInit,
         _actor503500ArmUpdate,
@@ -4879,7 +4926,7 @@ static void _actor503500ArmInit(Task* task)
     model     = task->extra.tmd;
     parent    = task->parent;
     side      = task->spawnArg1.value - ACTOR_503500_SLOT_ARM_0;
-    work      = &D_actor_503500_80178AC0.arms[side];
+    work      = &_gActor503500ArmStorage.arms[side];
     coord     = model->coords;
     bossModel = parent->extra.tmd;
     memFillBytes(work, 0, sizeof(*work));
@@ -5617,7 +5664,7 @@ void actor503500KnockbackTask(Task* task)
     s32                        nextState;
     s32                        cameraShake;
 
-    work   = &D_actor_503500_80178F10;
+    work   = &_gActor503500KnockbackWork;
     player = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     if (gSceneCombatState.actorControl != SCENE_COMBAT_ACTORS_RUNNING) {
         return;
@@ -5907,12 +5954,15 @@ void actor503500ArmTask(Task* task)
 {
     TaskFuncTable3 stateHandlers;
 
-    stateHandlers = D_actor_503500_80132178;
+    stateHandlers = _gActor503500ArmStateHandlers;
     stateHandlers.funcs[task->state](task);
 }
 
-/// `Task::state` handlers `actor503500BallisticShotTask` dispatches through.
-static const TaskFuncTable3 D_actor_503500_801321DC = {
+/// Ballistic-shot task handlers for states 0 initialize, 1 update and 2 exit.
+///
+/// Copied by value before unchecked `Task::state` dispatch; each entry takes
+/// a live `Task*` and returns nothing.
+static const TaskFuncTable3 _gActor503500BallisticShotStateHandlers = {
     {
         _actor503500BallisticShotInit,
         _actor503500BallisticShotUpdate,
@@ -6160,12 +6210,15 @@ void actor503500BallisticShotTask(Task* task)
 {
     TaskFuncTable3 stateHandlers;
 
-    stateHandlers = D_actor_503500_801321DC;
+    stateHandlers = _gActor503500BallisticShotStateHandlers;
     stateHandlers.funcs[task->state](task);
 }
 
-/// `Task::state` handlers `actor503500LingeringShotTask` dispatches through.
-static const TaskFuncTable3 D_actor_503500_801321E8 = {
+/// Lingering-shot task handlers for states 0 initialize, 1 update and 2 exit.
+///
+/// Copied by value before unchecked `Task::state` dispatch; each entry takes
+/// a live `Task*` and returns nothing.
+static const TaskFuncTable3 _gActor503500LingeringShotStateHandlers = {
     {
         _actor503500LingeringShotInit,
         _actor503500LingeringShotUpdate,
@@ -6410,6 +6463,6 @@ void actor503500LingeringShotTask(Task* task)
 {
     TaskFuncTable3 stateHandlers;
 
-    stateHandlers = D_actor_503500_801321E8;
+    stateHandlers = _gActor503500LingeringShotStateHandlers;
     stateHandlers.funcs[task->state](task);
 }
