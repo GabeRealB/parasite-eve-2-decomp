@@ -66,6 +66,32 @@
 #include "rooms/shelter_b2_pod_bottom.h"
 #include "../../shared/frame_capture.h"
 
+/// Queues a spatial sound for the actor's placed-enemy instance.
+///
+/// task must borrow a live Enemy in spawnArg2.pointer; its placement index
+/// (0..15) supplies sound-id bits 8..15. cue supplies bank/entry with those
+/// instance bits clear. soundCoord must already have a composed view matrix.
+/// Pan narrows to s8; the signed depth in -128..127 is stored in a u32 lvalue
+/// and halved toward zero before signed-byte attenuation is dispatched.
+/// The 31-bit shift recovers its sign, and shifts 23/24 retain that byte-width
+/// conversion. soundKeyOut/panOut are writable s32 lvalues, depthOut is u32;
+/// all must be distinct. Arguments may repeat and must have no side effects.
+/// Pan projection uses temporary scratch/GTE state. Queue failures are ignored;
+/// the sound bank must remain loaded through playback. Invoke in a braced block.
+#define ACTOR_403600_PLAY_PLACED_ENEMY_SOUND(task, cue, soundCoord, soundKeyOut, panOut, depthOut)                                                                                                                               \
+    {                                                                                                                                                                                                                            \
+        enum {                                                                                                                                                                                                                   \
+            ACTOR_403600_SOUND_INSTANCE_SHIFT           = 8,                                                                                                                                                                     \
+            ACTOR_403600_SOUND_DEPTH_SIGN_SHIFT         = 31,                                                                                                                                                                    \
+            ACTOR_403600_SOUND_HALF_DEPTH_PACK_SHIFT    = 23,                                                                                                                                                                    \
+            ACTOR_403600_SOUND_ATTENUATION_UNPACK_SHIFT = 24                                                                                                                                                                     \
+        };                                                                                                                                                                                                                       \
+        (soundKeyOut) = ((((Enemy*)(task)->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << ACTOR_403600_SOUND_INSTANCE_SHIFT) | (cue);                                                                               \
+        (panOut)      = (s8)worldCoordGetOriginAudioPan((soundCoord));                                                                                                                                                           \
+        (depthOut)    = worldCoordGetOriginAudioDepth((soundCoord));                                                                                                                                                             \
+        sndEvtRequestScriptStart((soundKeyOut), (panOut), (s32)((((depthOut) >> ACTOR_403600_SOUND_DEPTH_SIGN_SHIFT) + (depthOut)) << ACTOR_403600_SOUND_HALF_DEPTH_PACK_SHIFT) >> ACTOR_403600_SOUND_ATTENUATION_UNPACK_SHIFT); \
+    }
+
 /// One row of the table that sizes the boss's recoil from a hit's damage.
 ///
 /// The rows run in rising order of `minDamage` and a hit takes the last row
@@ -1010,16 +1036,6 @@ static inline void _actor403600ResetState(Task* task)
 /// 303600 before spawning its task. Animation playback advances phaseFrame.
 static void _actor403600UpdateMode(Task* task)
 {
-    // Starts one placed-enemy cue. cue/coord must have no side effects;
-    // coord is read twice, and panOut/depthOut are s32/u32 output lvalues.
-    // Captures task and soundKey, preserving byte pan and half-depth rounding.
-#define ACTOR_403600_PLAY_MODE_SOUND(cue, coord, panOut, depthOut)                                                 \
-    {                                                                                                              \
-        soundKey   = (((u16)((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | (cue); \
-        (panOut)   = (s8)worldCoordGetOriginAudioPan((coord));                                                     \
-        (depthOut) = worldCoordGetOriginAudioDepth((coord));                                                       \
-        sndEvtRequestScriptStart(soundKey, (panOut), (s32)((((depthOut) >> 31) + (depthOut)) << 23) >> 24);        \
-    }
 
     enum {
         ACTOR_403600_SOUND_RECOVERY_BURST = 0x54160014,
@@ -1201,7 +1217,7 @@ static void _actor403600UpdateMode(Task* task)
                 if (chargeFrame < 0x2F) {
                     if (chargeFrame == 0x2E) {
                         chargeCoord = &work->worldCoord;
-                        ACTOR_403600_PLAY_MODE_SOUND(SOUND_SHELTER_B2_POD_BTM_ENEMY_CHARGE, chargeCoord, chargePan, chargeDepth);
+                        ACTOR_403600_PLAY_PLACED_ENEMY_SOUND(task, SOUND_SHELTER_B2_POD_BTM_ENEMY_CHARGE, chargeCoord, soundKey, chargePan, chargeDepth);
                     }
                     if (((u16)work->phaseFrame & 0xF) == 0xF) {
                         shelterB2PodBottomSpawnJointFlash(task);
@@ -1210,7 +1226,7 @@ static void _actor403600UpdateMode(Task* task)
                     shelterB2PodBottomSpawnJointFlash(task);
                     if (work->phaseFrame == 0x32) {
                         burstCoord = &work->worldCoord;
-                        ACTOR_403600_PLAY_MODE_SOUND(ACTOR_403600_SOUND_RECOVERY_BURST, burstCoord, burstPan, burstDepth);
+                        ACTOR_403600_PLAY_PLACED_ENEMY_SOUND(task, ACTOR_403600_SOUND_RECOVERY_BURST, burstCoord, soundKey, burstPan, burstDepth);
                         effectSpawn(EFFECT_SHELTER_B2_POD_BOTTOM_CHARGE_BURST, &task->extra.tmd->coords[1], 0x1E, NULL);
                     }
                 }
@@ -1435,8 +1451,6 @@ static void _actor403600UpdateMode(Task* task)
             }
             break;
     }
-
-#undef ACTOR_403600_PLAY_MODE_SOUND
 }
 /// Advances the boss's current combat action and its animation-driven phases.
 ///
@@ -1448,17 +1462,32 @@ static void _actor403600UpdateMode(Task* task)
 /// MP during its wind-up, then removes 251 MP at the strike. Owns no work storage.
 static void _actor403600UpdateFightAction(Task* task)
 {
-    // Advance the resident LCG once and take the low four bits of its 16-bit draw.
-    // Captures the shared unsigned state and signed roll locals below. The state
-    // is committed before the draw is consumed; multiplication wraps in u32.
-#define ACTOR_403600_DRAW_PROJECTILE_ROLL()                                                     \
-    {                                                                                           \
-        projectileRandomState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT; \
-        gRandomLcgState       = projectileRandomState;                                          \
-        projectileRoll        = (projectileRandomState >> 16) & 0xF;                            \
+    /// Draws the 0..15 roll that selects this volley's projectile kind.
+    ///
+    /// randomStateOut is a writable u32 lvalue, rollOut a distinct writable s32
+    /// lvalue; both must have no side effects and may repeat. Advances and commits
+    /// gRandomLcgState modulo 2^32 before taking bits 16..19. The caller consumes
+    /// the roll once per volley, leaving all shots with the selected kind.
+#define ACTOR_403600_DRAW_PROJECTILE_ROLL(randomStateOut, rollOut)                                                       \
+    {                                                                                                                    \
+        enum { ACTOR_403600_PROJECTILE_ROLL_SHIFT = 16,                                                                  \
+               ACTOR_403600_PROJECTILE_ROLL_MASK  = 0xF };                                                                \
+        (randomStateOut) = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;                               \
+        gRandomLcgState  = (randomStateOut);                                                                             \
+        (rollOut)        = ((randomStateOut) >> ACTOR_403600_PROJECTILE_ROLL_SHIFT) & ACTOR_403600_PROJECTILE_ROLL_MASK; \
     }
 
     enum {
+        ACTOR_403600_SOUND_PLAYER_HIT              = 6,
+        ACTOR_403600_SOUND_DRAIN_KNOCKBACK         = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_POD_BOTTOM, 3),
+        ACTOR_403600_SOUND_CLIMB                   = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_POD_BOTTOM, 4),
+        ACTOR_403600_SOUND_SLAM_DIVE               = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_POD_BOTTOM, 5),
+        ACTOR_403600_SOUND_SLAM_IMPACT             = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_POD_BOTTOM, 6),
+        ACTOR_403600_SOUND_FLIGHT_LAUNCH           = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_POD_BOTTOM, 11),
+        ACTOR_403600_SOUND_MELEE_SWIPE             = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_POD_BOTTOM, 13),
+        ACTOR_403600_SOUND_RUSH_BOUNDARY_HIT       = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_POD_BOTTOM, 14),
+        ACTOR_403600_SOUND_SUMMON                  = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_POD_BOTTOM, 20),
+        ACTOR_403600_SOUND_RUSH_WINDUP             = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_POD_BOTTOM, 21),
         ACTOR_403600_SLAM_STEP_CLIMB_WINDUP        = 0,
         ACTOR_403600_SLAM_STEP_CLIMB               = 1,
         ACTOR_403600_SLAM_STEP_DIVE                = 2,
@@ -1497,17 +1526,6 @@ static void _actor403600UpdateFightAction(Task* task)
         ACTOR_403600_SLAM_RESPONSE_SHORT_KNOCKBACK = 2,
         ACTOR_403600_SLAM_RESPONSE_HEAVY_KNOCKBACK = 3,
     };
-    // Start a placed-enemy cue using signed-byte pan and half-depth rounding.
-    // cue and soundCoord must have no side effects; soundCoord is read twice.
-    // panOut and depthOut are s32/u32 local lvalues, assigned before dispatch.
-    // Captures task and the shared soundKey local. Only this function uses it.
-#define ACTOR_403600_PLAY_FIGHT_SOUND(cue, soundCoord, panOut, depthOut)                                           \
-    {                                                                                                              \
-        soundKey   = (((u16)((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | (cue); \
-        (panOut)   = (s8)worldCoordGetOriginAudioPan((soundCoord));                                                \
-        (depthOut) = worldCoordGetOriginAudioDepth((soundCoord));                                                  \
-        sndEvtRequestScriptStart(soundKey, (panOut), (s32)((((depthOut) >> 0x1F) + (depthOut)) << 0x17) >> 0x18);  \
-    }
 
     u32                   playerRange;
     s32                   playerBearing;
@@ -1657,7 +1675,7 @@ static void _actor403600UpdateFightAction(Task* task)
         case ACTOR_403600_ACTION_RECHARGE:
             if (work->phaseFrame == 0x14) {
                 rechargeSoundCoord = &work->worldCoord;
-                ACTOR_403600_PLAY_FIGHT_SOUND(SOUND_SHELTER_B2_POD_BTM_ENEMY_CHARGE, rechargeSoundCoord, rechargePan, rechargeDepth);
+                ACTOR_403600_PLAY_PLACED_ENEMY_SOUND(task, SOUND_SHELTER_B2_POD_BTM_ENEMY_CHARGE, rechargeSoundCoord, soundKey, rechargePan, rechargeDepth);
             }
             if (work->phaseFrame >= 0x14) {
                 shelterB2PodBottomSpawnJointFlash(task);
@@ -1704,7 +1722,7 @@ static void _actor403600UpdateFightAction(Task* task)
                     _actor403600TurnToAim(task);
                     if (work->phaseFrame >= 0x13) {
                         slamClimbSoundCoord = &work->worldCoord;
-                        ACTOR_403600_PLAY_FIGHT_SOUND(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_POD_BOTTOM, 4), slamClimbSoundCoord, slamClimbPan, slamClimbDepth);
+                        ACTOR_403600_PLAY_PLACED_ENEMY_SOUND(task, ACTOR_403600_SOUND_CLIMB, slamClimbSoundCoord, soundKey, slamClimbPan, slamClimbDepth);
                         work->animRate   = ANIMATION_RATE_ONE;
                         work->turnRate   = 0x80;
                         work->phaseFrame = 0;
@@ -1753,7 +1771,7 @@ static void _actor403600UpdateFightAction(Task* task)
                     if (((_gActor403600SlamTarget.vy - 0x1388) < work->worldCoord.coord.t[1]) && (work->actionParam == 0)) {
                         work->actionParam  = 1;
                         slamDiveSoundCoord = &work->worldCoord;
-                        ACTOR_403600_PLAY_FIGHT_SOUND(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_POD_BOTTOM, 5), slamDiveSoundCoord, slamDivePan, slamDiveDepth);
+                        ACTOR_403600_PLAY_PLACED_ENEMY_SOUND(task, ACTOR_403600_SOUND_SLAM_DIVE, slamDiveSoundCoord, soundKey, slamDivePan, slamDiveDepth);
                     }
                     if ((_gActor403600SlamTarget.vy - 0x3E8) < work->worldCoord.coord.t[1]) {
                         padScriptSpawnVariableMotorRamp(0xA, 0xFF, 0x50);
@@ -1800,12 +1818,12 @@ static void _actor403600UpdateFightAction(Task* task)
                                 }
                             }
                             if (slamHitResponse != ACTOR_403600_SLAM_RESPONSE_NONE) {
-                                ACTOR_403600_PLAY_FIGHT_SOUND(6, playerCoord, slamPlayerHitPan, slamPlayerHitDepth);
+                                ACTOR_403600_PLAY_PLACED_ENEMY_SOUND(task, ACTOR_403600_SOUND_PLAYER_HIT, playerCoord, soundKey, slamPlayerHitPan, slamPlayerHitDepth);
                                 taskMessageDispatch(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], GAME_ACTOR_MESSAGE_APPLY_DAMAGE, damagePackAttackKey(&_gActor403600PlayerDamage, 0), 0);
                             }
                         }
                         slamImpactSoundCoord = &work->worldCoord;
-                        ACTOR_403600_PLAY_FIGHT_SOUND(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_POD_BOTTOM, 6), slamImpactSoundCoord, slamImpactPan, slamImpactDepth);
+                        ACTOR_403600_PLAY_PLACED_ENEMY_SOUND(task, ACTOR_403600_SOUND_SLAM_IMPACT, slamImpactSoundCoord, soundKey, slamImpactPan, slamImpactDepth);
                         effectSpawn(EFFECT_SHELTER_B2_POD_BOTTOM_ARC_FLASH, &task->extra.tmd->coords[1], 0, &_gActor403600BodyEffectOffset);
                         work->shakeFrames     = 0x32;
                         work->shakeFadeFrames = 0x10;
@@ -1868,7 +1886,7 @@ static void _actor403600UpdateFightAction(Task* task)
                     _actor403600TurnToAim(task);
                     if (work->phaseFrame >= 0x13) {
                         volleyClimbSoundCoord = &work->worldCoord;
-                        ACTOR_403600_PLAY_FIGHT_SOUND(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_POD_BOTTOM, 4), volleyClimbSoundCoord, volleyClimbPan, volleyClimbDepth);
+                        ACTOR_403600_PLAY_PLACED_ENEMY_SOUND(task, ACTOR_403600_SOUND_CLIMB, volleyClimbSoundCoord, soundKey, volleyClimbPan, volleyClimbDepth);
                         work->turnRate      = 0x80;
                         work->step          = 0;
                         work->animRate      = ANIMATION_RATE_ONE;
@@ -1898,7 +1916,7 @@ static void _actor403600UpdateFightAction(Task* task)
                         work->animId        = (u32)ACTOR_403600_ANIM_DIVE_RECOVER;
                         volleySoundCoord    = &work->worldCoord;
 
-                        ACTOR_403600_PLAY_FIGHT_SOUND(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_POD_BOTTOM, 4), volleySoundCoord, volleyArrivalPan, volleyArrivalDepth);
+                        ACTOR_403600_PLAY_PLACED_ENEMY_SOUND(task, ACTOR_403600_SOUND_CLIMB, volleySoundCoord, soundKey, volleyArrivalPan, volleyArrivalDepth);
                         return;
                     }
                     break;
@@ -1923,7 +1941,7 @@ static void _actor403600UpdateFightAction(Task* task)
                 case ACTOR_403600_ANIM_CHARGE - ACTOR_403600_ANIM_CHARGE:
                     volleyFrame = work->phaseFrame;
                     if (volleyFrame == 1) {
-                        ACTOR_403600_DRAW_PROJECTILE_ROLL();
+                        ACTOR_403600_DRAW_PROJECTILE_ROLL(projectileRandomState, projectileRoll);
                         if (projectileRoll < 2) {
                             work->projectileKind = 0;
                         } else if (projectileRoll < 5) {
@@ -1936,7 +1954,7 @@ static void _actor403600UpdateFightAction(Task* task)
                     }
                     if (work->phaseFrame == ACTOR_403600_VOLLEY_FIRST_SHOT_FRAME) {
                         volleyFireSoundCoord = &work->worldCoord;
-                        ACTOR_403600_PLAY_FIGHT_SOUND(SOUND_SHELTER_B2_POD_BTM_ENEMY_VOLLEY, volleyFireSoundCoord, volleyFirePan, volleyFireDepth);
+                        ACTOR_403600_PLAY_PLACED_ENEMY_SOUND(task, SOUND_SHELTER_B2_POD_BTM_ENEMY_VOLLEY, volleyFireSoundCoord, soundKey, volleyFirePan, volleyFireDepth);
                         taskSpawnFromTable(gActor403600ChildTaskTable, ACTOR_403600_PROJECTILE_TASK, (s32)((s16)((u16)work->projectileKind | 0x10)), task);
                     }
                     if ((work->phaseFrame == ACTOR_403600_VOLLEY_SECOND_SHOT_FRAME) || (work->phaseFrame == ACTOR_403600_VOLLEY_THIRD_SHOT_FRAME)) {
@@ -2017,7 +2035,7 @@ static void _actor403600UpdateFightAction(Task* task)
                     _actor403600TurnToAim(task);
                     if (work->phaseFrame >= 0x13) {
                         swoopLaunchSoundCoord = &work->worldCoord;
-                        ACTOR_403600_PLAY_FIGHT_SOUND(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_POD_BOTTOM, 11), swoopLaunchSoundCoord, swoopLaunchPan, swoopLaunchDepth);
+                        ACTOR_403600_PLAY_PLACED_ENEMY_SOUND(task, ACTOR_403600_SOUND_FLIGHT_LAUNCH, swoopLaunchSoundCoord, soundKey, swoopLaunchPan, swoopLaunchDepth);
                         work->forwardSpeed  = 0x320U;
                         work->animRate      = ANIMATION_RATE_ONE;
                         work->ignorePushOut = 0;
@@ -2066,7 +2084,7 @@ static void _actor403600UpdateFightAction(Task* task)
                                 swoopPlayerAnimation->animationId = ACTOR_403600_PLAYER_ANIM_BACKWARD;
                                 TASK_MESSAGE_DISPATCH_POINTER(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], ANIMATION_MESSAGE_INSTALL_AND_PLAY, swoopPlayerAnimation, 0);
                             }
-                            ACTOR_403600_PLAY_FIGHT_SOUND(6, playerCoord, swoopPlayerHitPan, swoopPlayerHitDepth);
+                            ACTOR_403600_PLAY_PLACED_ENEMY_SOUND(task, ACTOR_403600_SOUND_PLAYER_HIT, playerCoord, soundKey, swoopPlayerHitPan, swoopPlayerHitDepth);
                             taskMessageDispatch(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], GAME_ACTOR_MESSAGE_APPLY_DAMAGE, damagePackAttackKey(gActor403600BossAttacks, ACTOR_403600_BOSS_ATTACK_SWOOP), 0);
                         }
                     }
@@ -2132,7 +2150,7 @@ static void _actor403600UpdateFightAction(Task* task)
                     work->animId = (u32)ACTOR_403600_ANIM_RUSH_CHARGE;
                     if (work->phaseFrame == 0x19) {
                         rushWindupSoundCoord = &work->worldCoord;
-                        ACTOR_403600_PLAY_FIGHT_SOUND(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_POD_BOTTOM, 21), rushWindupSoundCoord, rushWindupPan, rushWindupDepth);
+                        ACTOR_403600_PLAY_PLACED_ENEMY_SOUND(task, ACTOR_403600_SOUND_RUSH_WINDUP, rushWindupSoundCoord, soundKey, rushWindupPan, rushWindupDepth);
                     }
                     if (work->phaseFrame < 0x14) {
                         work->targetPos.vx = (s32)gPlayerStatus.coordMtx->t[0];
@@ -2170,7 +2188,7 @@ static void _actor403600UpdateFightAction(Task* task)
                         work->diving         = 1;
                         work->step           = (s16)((u16)work->step + 1);
                         rushLaunchSoundCoord = &work->worldCoord;
-                        ACTOR_403600_PLAY_FIGHT_SOUND(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_POD_BOTTOM, 11), rushLaunchSoundCoord, rushLaunchPan, rushLaunchDepth);
+                        ACTOR_403600_PLAY_PLACED_ENEMY_SOUND(task, ACTOR_403600_SOUND_FLIGHT_LAUNCH, rushLaunchSoundCoord, soundKey, rushLaunchPan, rushLaunchDepth);
                         return;
                     }
                     break;
@@ -2199,7 +2217,7 @@ static void _actor403600UpdateFightAction(Task* task)
                                 work->knockbackSpeed = -0x190;
                                 TASK_MESSAGE_DISPATCH_POINTER(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], ANIMATION_MESSAGE_INSTALL_AND_PLAY, rushPlayerAnimation, 0);
                                 work->knockbackFrame = 0;
-                                ACTOR_403600_PLAY_FIGHT_SOUND(6, playerCoord, rushFinalHitPan, rushFinalHitDepth);
+                                ACTOR_403600_PLAY_PLACED_ENEMY_SOUND(task, ACTOR_403600_SOUND_PLAYER_HIT, playerCoord, soundKey, rushFinalHitPan, rushFinalHitDepth);
                                 taskMessageDispatch(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], GAME_ACTOR_MESSAGE_APPLY_DAMAGE, damagePackAttackKey(&_gActor403600PlayerDamage, 0), 0);
                             } else {
                                 padScriptSpawnVariableMotorRamp(0x14, 0xB0, 0x50);
@@ -2217,7 +2235,7 @@ static void _actor403600UpdateFightAction(Task* task)
                                     rushPlayerAnimation->animationId = ACTOR_403600_PLAYER_ANIM_BACKWARD;
                                     TASK_MESSAGE_DISPATCH_POINTER(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], ANIMATION_MESSAGE_INSTALL_AND_PLAY, rushPlayerAnimation, 0);
                                 }
-                                ACTOR_403600_PLAY_FIGHT_SOUND(6, playerCoord, rushPassHitPan, rushPassHitDepth);
+                                ACTOR_403600_PLAY_PLACED_ENEMY_SOUND(task, ACTOR_403600_SOUND_PLAYER_HIT, playerCoord, soundKey, rushPassHitPan, rushPassHitDepth);
                                 taskMessageDispatch(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], GAME_ACTOR_MESSAGE_APPLY_DAMAGE, damagePackAttackKey(gActor403600BossAttacks, ACTOR_403600_ATTACK_RUSH), 0);
                                 work->actionParam = (s16)work->rushPasses;
                             }
@@ -2238,7 +2256,7 @@ static void _actor403600UpdateFightAction(Task* task)
                     if (flightResult == ACTOR_403600_RUSH_EVENT_BOUNDARY) {
                         work->diving        = 0;
                         work->repositioning = 1;
-                        ACTOR_403600_PLAY_FIGHT_SOUND(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_POD_BOTTOM, 14), playerCoord, rushBoundaryPan, rushBoundaryDepth);
+                        ACTOR_403600_PLAY_PLACED_ENEMY_SOUND(task, ACTOR_403600_SOUND_RUSH_BOUNDARY_HIT, playerCoord, soundKey, rushBoundaryPan, rushBoundaryDepth);
                         taskSpawnFromTable(gActor403600ChildTaskTable, ACTOR_403600_RUSH_EFFECT_TASK, 1, task);
                         work->actionDelay             = 0;
                         work->gridBody.flags          = (u16)(work->gridBody.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED));
@@ -2332,7 +2350,7 @@ static void _actor403600UpdateFightAction(Task* task)
                     work->verticalSpeed = 0;
                     if (work->phaseFrame == 1) {
                         summonSoundCoord = &work->worldCoord;
-                        ACTOR_403600_PLAY_FIGHT_SOUND(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_POD_BOTTOM, 20), summonSoundCoord, summonPan, summonDepth);
+                        ACTOR_403600_PLAY_PLACED_ENEMY_SOUND(task, ACTOR_403600_SOUND_SUMMON, summonSoundCoord, soundKey, summonPan, summonDepth);
                     }
                     if (work->phaseFrame >= work->actionParam) {
                         work->phaseFrame = 0;
@@ -2416,7 +2434,7 @@ static void _actor403600UpdateFightAction(Task* task)
                     if (drainStrikeFrame == ACTOR_403600_DRAIN_STRIKE_FRAME) {
                         padScriptSpawnVariableMotorRamp(0xA, 0xFF, 0xFF);
                         work->screenDistortion = (u32)ONE;
-                        ACTOR_403600_PLAY_FIGHT_SOUND(6, playerCoord, drainPlayerHitPan, drainPlayerHitDepth);
+                        ACTOR_403600_PLAY_PLACED_ENEMY_SOUND(task, ACTOR_403600_SOUND_PLAYER_HIT, playerCoord, soundKey, drainPlayerHitPan, drainPlayerHitDepth);
                         taskMessageDispatch(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], GAME_ACTOR_MESSAGE_APPLY_DAMAGE, damagePackAttackKey(gActor403600BossAttacks, ACTOR_403600_ATTACK_DRAIN), 0);
                         _gActor403600PlayerAnimationRequest.animationId = ACTOR_403600_PLAYER_ANIM_FORWARD;
                         TASK_MESSAGE_DISPATCH_POINTER(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], ANIMATION_MESSAGE_INSTALL_AND_PLAY, &_gActor403600PlayerAnimationRequest, 0);
@@ -2429,7 +2447,7 @@ static void _actor403600UpdateFightAction(Task* task)
                         work->knockbackFrame     = 0;
                         work->knockbackSpeed     = 0x28;
                         drainKnockbackSoundCoord = gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER]->extra.tmd->coords;
-                        ACTOR_403600_PLAY_FIGHT_SOUND(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_POD_BOTTOM, 3), drainKnockbackSoundCoord, drainKnockbackPan, drainKnockbackDepth);
+                        ACTOR_403600_PLAY_PLACED_ENEMY_SOUND(task, ACTOR_403600_SOUND_DRAIN_KNOCKBACK, drainKnockbackSoundCoord, soundKey, drainKnockbackPan, drainKnockbackDepth);
                         sndEvtRequestScriptStop(SOUND_SHELTER_B2_POD_BTM_ENEMY_DRAIN_WINDUP, SOUND_SCRIPT_STOP_KEEP_RELEASE);
                     } else if (drainStrikeFrame < ACTOR_403600_DRAIN_STRIKE_FRAME) {
                         _actor403600RaisePlayerMpForDrain(task);
@@ -2507,7 +2525,7 @@ static void _actor403600UpdateFightAction(Task* task)
                     work->animId = (u16)meleeAnimation;
                     if (work->phaseFrame == 0xE) {
                         meleeFirstSoundCoord = &work->worldCoord;
-                        ACTOR_403600_PLAY_FIGHT_SOUND(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_POD_BOTTOM, 13), meleeFirstSoundCoord, meleeFirstPan, meleeFirstDepth);
+                        ACTOR_403600_PLAY_PLACED_ENEMY_SOUND(task, ACTOR_403600_SOUND_MELEE_SWIPE, meleeFirstSoundCoord, soundKey, meleeFirstPan, meleeFirstDepth);
                     }
                     if (work->phaseFrame == 0x11) {
                         work->attackBody.flags = (u16)(work->attackBody.flags | WORLD_COLLISION_BODY_PAIR_ENABLED);
@@ -2532,7 +2550,7 @@ static void _actor403600UpdateFightAction(Task* task)
                     work->animId = (u16)meleeAnimation;
                     if (work->phaseFrame == 9) {
                         meleeSecondSoundCoord = &work->worldCoord;
-                        ACTOR_403600_PLAY_FIGHT_SOUND(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_POD_BOTTOM, 13), meleeSecondSoundCoord, meleeSecondPan, meleeSecondDepth);
+                        ACTOR_403600_PLAY_PLACED_ENEMY_SOUND(task, ACTOR_403600_SOUND_MELEE_SWIPE, meleeSecondSoundCoord, soundKey, meleeSecondPan, meleeSecondDepth);
                     }
                     if (work->phaseFrame == 0xA) {
                         work->attackBody.flags = (u16)(work->attackBody.flags | WORLD_COLLISION_BODY_PAIR_ENABLED);
@@ -2550,7 +2568,6 @@ static void _actor403600UpdateFightAction(Task* task)
             break;
     }
 #undef ACTOR_403600_DRAW_PROJECTILE_ROLL
-#undef ACTOR_403600_PLAY_FIGHT_SOUND
 }
 
 /// Initializes the horizontal radius arm and rotation for a rush placement.
@@ -3275,15 +3292,20 @@ static inline void _actor403600BuildAimBasis(_Actor403600AimTurnScratch* scratch
 /// block and uses GTE registers; does not compose worldCoord.workm.
 static s32 _actor403600TurnToAim(Task* task)
 {
-    // Step one signed-halfword Euler angle, in 4096 units per turn. The two
-    // arguments must be side-effect-free s16 lvalues: they are read repeatedly,
-    // and angleSlot is written. Captures work->turnRate and the shared angle
-    // temporaries below; scoped here so all three axes use the same locals.
-#define ACTOR_403600_STEP_AIM_ANGLE(goalAngle, angleSlot)                                                          \
+    /// Steps one Euler angle toward a goal in 4096 units per turn.
+    ///
+    /// goalAngle is an s16 value, angleSlot a writable s16 lvalue, and turnRate
+    /// a nonnegative s16 step. Arguments repeat and must have no side effects.
+    /// Snaps only when the direct masked difference fits the step; otherwise
+    /// chooses a turn direction across the seam and stores a narrowed sum.
+    /// The wrapped distance is not used for the snap test. Captures s16 locals
+    /// angleDifference/turnDirection/wrappedDifference and s32 currentAngle/
+    /// nextAngle as temporary outputs shared by the three axis expansions.
+#define ACTOR_403600_STEP_AIM_ANGLE(goalAngle, angleSlot, turnRate)                                                \
     {                                                                                                              \
         angleDifference = ((goalAngle) & ACTOR_TRANSFORM_ANGLE_MASK) - ((angleSlot) & ACTOR_TRANSFORM_ANGLE_MASK); \
         turnDirection   = angleDifference;                                                                         \
-        if (work->turnRate >= __builtin_abs(angleDifference)) {                                                    \
+        if ((turnRate) >= __builtin_abs(angleDifference)) {                                                        \
             (angleSlot) = (goalAngle);                                                                             \
         } else {                                                                                                   \
             if (__builtin_abs(angleDifference) > ACTOR_TRANSFORM_ANGLE_HALF_TURN) {                                \
@@ -3295,9 +3317,9 @@ static s32 _actor403600TurnToAim(Task* task)
             }                                                                                                      \
             currentAngle = (angleSlot);                                                                            \
             if (turnDirection > 0) {                                                                               \
-                nextAngle = currentAngle + work->turnRate;                                                         \
+                nextAngle = currentAngle + (turnRate);                                                             \
             } else {                                                                                               \
-                nextAngle = currentAngle - work->turnRate;                                                         \
+                nextAngle = currentAngle - (turnRate);                                                             \
             }                                                                                                      \
             (angleSlot) = nextAngle;                                                                               \
         }                                                                                                          \
@@ -3359,11 +3381,11 @@ static s32 _actor403600TurnToAim(Task* task)
         // The direction is spent: its slot takes the boss's own angles, which
         // step toward the basis's one axis at a time.
         gfxMatrixToEuler(&work->worldCoord.coord, &scratch->direction);
-        ACTOR_403600_STEP_AIM_ANGLE(scratch->angles.vx, scratch->direction.vx);
+        ACTOR_403600_STEP_AIM_ANGLE(scratch->angles.vx, scratch->direction.vx, work->turnRate);
 
-        ACTOR_403600_STEP_AIM_ANGLE(scratch->angles.vy, scratch->direction.vy);
+        ACTOR_403600_STEP_AIM_ANGLE(scratch->angles.vy, scratch->direction.vy, work->turnRate);
 
-        ACTOR_403600_STEP_AIM_ANGLE(scratch->angles.vz, scratch->direction.vz);
+        ACTOR_403600_STEP_AIM_ANGLE(scratch->angles.vz, scratch->direction.vz, work->turnRate);
         scratch->direction.vz += work->roll;
         gfxRotMatrixXYZ(&work->worldCoord.coord, &scratch->direction, GRAPHICS_ROTATION_REPLACE);
         work->yaw = scratch->direction.vy;
@@ -4275,16 +4297,6 @@ static const EnemyTaskFuncTable3 _gActor403600DoubleStates = { {
 /// Animation frames gate attack pairing and sound. Does not move or age the task.
 static void _actor403600UpdateDoubleAction(Task* task)
 {
-    // Starts one placed-enemy cue. cue/coord must have no side effects;
-    // coord is read twice, and panOut/depthOut are s32/u32 output lvalues.
-    // Captures task and soundKey, preserving byte pan and half-depth rounding.
-#define ACTOR_403600_PLAY_DOUBLE_SOUND(cue, coord, panOut, depthOut)                                               \
-    {                                                                                                              \
-        soundKey   = (((u16)((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | (cue); \
-        (panOut)   = (s8)worldCoordGetOriginAudioPan((coord));                                                     \
-        (depthOut) = worldCoordGetOriginAudioDepth((coord));                                                       \
-        sndEvtRequestScriptStart(soundKey, (panOut), (s32)((((depthOut) >> 31) + (depthOut)) << 23) >> 24);        \
-    }
 
     enum {
         ACTOR_403600_SOUND_DOUBLE_SWIPE = 0x5416000D,
@@ -4351,7 +4363,7 @@ static void _actor403600UpdateDoubleAction(Task* task)
             work->verticalSpeed  = 0;
             if (work->phaseFrame == 0xE) {
                 firstSwipeCoord = &work->worldCoord;
-                ACTOR_403600_PLAY_DOUBLE_SOUND(ACTOR_403600_SOUND_DOUBLE_SWIPE, firstSwipeCoord, firstSwipePan, firstSwipeDepth);
+                ACTOR_403600_PLAY_PLACED_ENEMY_SOUND(task, ACTOR_403600_SOUND_DOUBLE_SWIPE, firstSwipeCoord, soundKey, firstSwipePan, firstSwipeDepth);
             }
             if (work->phaseFrame == 0x11) {
                 work->attackBody.flags = work->attackBody.flags | WORLD_COLLISION_BODY_PAIR_ENABLED;
@@ -4384,7 +4396,7 @@ static void _actor403600UpdateDoubleAction(Task* task)
             work->verticalSpeed  = 0;
             if (work->phaseFrame == 9) {
                 secondSwipeCoord = &work->worldCoord;
-                ACTOR_403600_PLAY_DOUBLE_SOUND(ACTOR_403600_SOUND_DOUBLE_SWIPE, secondSwipeCoord, secondSwipePan, secondSwipeDepth);
+                ACTOR_403600_PLAY_PLACED_ENEMY_SOUND(task, ACTOR_403600_SOUND_DOUBLE_SWIPE, secondSwipeCoord, soundKey, secondSwipePan, secondSwipeDepth);
             }
             if (work->phaseFrame == 0xA) {
                 work->attackBody.flags = work->attackBody.flags | WORLD_COLLISION_BODY_PAIR_ENABLED;
@@ -4422,9 +4434,9 @@ static void _actor403600UpdateDoubleAction(Task* task)
             }
             break;
     }
-
-#undef ACTOR_403600_PLAY_DOUBLE_SOUND
 }
+
+#undef ACTOR_403600_PLAY_PLACED_ENEMY_SOUND
 
 /// Unlinks the fading double's borrowed enemy/model state and releases its task.
 ///
@@ -4665,24 +4677,28 @@ static void _actor403600UpdateSceneFigure(Enemy* enemy, Task* task)
         ACTOR_403600_SCENE_REVERSE_SPRITE_Y      = 0x10000,
         ACTOR_403600_SCENE_SIDE_PUFF_RADIUS_MASK = 0x7FF
     };
-    /// Spawns a beam from a random ring point in view space.
+    /// Spawns a vertical scene beam at a random point around the view's Y axis.
     ///
-    /// Captures offset and viewSpace locals; the beam uses their copied placement.
-    /// height is a signed-halfword Y position; beamSpeed is signed Y units per
-    /// running update. Both are evaluated once and must have no side effects.
-    /// Local angles use 4096 units per turn; radius is 512..4352 world units.
-#define ACTOR_403600_SPAWN_SCENE_BEAM(height, beamSpeed)                                                             \
-    {                                                                                                                \
-        s16 angle;                                                                                                   \
-        s16 radius;                                                                                                  \
-        s32 radialX;                                                                                                 \
-        angle     = _actor403600Rand() & ACTOR_403600_SCENE_BEAM_ANGLE_MASK;                                         \
-        radius    = (_actor403600Rand() & ACTOR_403600_SCENE_BEAM_RADIUS_MASK) + ACTOR_403600_SCENE_BEAM_MIN_RADIUS; \
-        radialX   = radius * rcos(angle);                                                                            \
-        offset.vy = (height);                                                                                        \
-        offset.vx = radialX >> ACTOR_403600_SCENE_VECTOR_FRACTION_BITS;                                              \
-        offset.vz = (radius * rsin(angle)) >> ACTOR_403600_SCENE_VECTOR_FRACTION_BITS;                               \
-        effectSpawn(EFFECT_EVE_LIGHT_BEAM, &viewSpace, (beamSpeed), &offset);                                        \
+    /// placementCoord points to the identity coordinate parented to gGfxViewCoord;
+    /// beamOffset is writable SVECTOR storage live through synchronous placement.
+    /// height fits signed-halfword Y and beamSpeed is signed Y units per running
+    /// effect update. Two package LCG draws pick an angle in 128-unit steps over
+    /// a 4096-unit turn and a radius 512..4352 in 256-unit steps. Q12 trig products
+    /// narrow to signed-halfword X/Z. beamOffset repeats; all arguments must have
+    /// no side effects. The effect snapshots placement and does not read the
+    /// retained offset pointer later. Spawn failure is ignored.
+#define ACTOR_403600_SPAWN_SCENE_BEAM(placementCoord, beamOffset, height, beamSpeed)                                       \
+    {                                                                                                                      \
+        s16 angle;                                                                                                         \
+        s16 radius;                                                                                                        \
+        s32 radialX;                                                                                                       \
+        angle           = _actor403600Rand() & ACTOR_403600_SCENE_BEAM_ANGLE_MASK;                                         \
+        radius          = (_actor403600Rand() & ACTOR_403600_SCENE_BEAM_RADIUS_MASK) + ACTOR_403600_SCENE_BEAM_MIN_RADIUS; \
+        radialX         = radius * rcos(angle);                                                                            \
+        (beamOffset).vy = (height);                                                                                        \
+        (beamOffset).vx = radialX >> ACTOR_403600_SCENE_VECTOR_FRACTION_BITS;                                              \
+        (beamOffset).vz = (radius * rsin(angle)) >> ACTOR_403600_SCENE_VECTOR_FRACTION_BITS;                               \
+        effectSpawn(EFFECT_EVE_LIGHT_BEAM, (placementCoord), (beamSpeed), &(beamOffset));                                  \
     }
 
     SVECTOR                   offset;
@@ -4745,7 +4761,7 @@ static void _actor403600UpdateSceneFigure(Enemy* enemy, Task* task)
             work->ambientBoost -= ACTOR_403600_SCENE_AMBIENT_DECAY;
         }
         if (work->phaseFrame >= ACTOR_403600_SCENE_FIRST_BEAM_FRAME && work->phaseFrame < ACTOR_403600_SCENE_FIRST_BEAM_END_FRAME) {
-            ACTOR_403600_SPAWN_SCENE_BEAM(-ACTOR_403600_SCENE_BEAM_HEIGHT, ACTOR_403600_SCENE_BEAM_SPEED);
+            ACTOR_403600_SPAWN_SCENE_BEAM(&viewSpace, offset, -ACTOR_403600_SCENE_BEAM_HEIGHT, ACTOR_403600_SCENE_BEAM_SPEED);
         }
         if (work->phaseFrame == ACTOR_403600_SCENE_REVERSE_SCROLL_FRAME) {
             reverseCommand.context.loc.stage = GAME_STAGE_MINE_SHELTER;
@@ -4785,7 +4801,7 @@ static void _actor403600UpdateSceneFigure(Enemy* enemy, Task* task)
         _gActor403600PlayerPlacement.placement.rot.vy += ACTOR_403600_SCENE_PLAYER_TURN_STEP;
         TASK_MESSAGE_DISPATCH_POINTER(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], GAME_ACTOR_MESSAGE_PLACE, &_gActor403600PlayerPlacement.placement, 0);
         if (work->phaseFrame >= ACTOR_403600_SCENE_LAST_BEAM_FRAME && work->phaseFrame < ACTOR_403600_SCENE_EFFECT_END_FRAME) {
-            ACTOR_403600_SPAWN_SCENE_BEAM(ACTOR_403600_SCENE_BEAM_HEIGHT, -ACTOR_403600_SCENE_BEAM_SPEED);
+            ACTOR_403600_SPAWN_SCENE_BEAM(&viewSpace, offset, ACTOR_403600_SCENE_BEAM_HEIGHT, -ACTOR_403600_SCENE_BEAM_SPEED);
         }
     }
     work->worldCoord.composeStamp = GRAPHICS_COORD_DIRTY;
@@ -5402,17 +5418,22 @@ static void _actor403600SceneFigureExit(Task* task)
 /// stays intact, composition is invalidated and the scratch reservation is freed.
 static void _actor403600ScaleSceneFigure(GfxCoord* coord, s32 uniformScale)
 {
-    // Scales one column of the borrowed matrix with the live scratch vector.
-    // columnIndex must be a literal in 0..2; captures matrix, column and
-    // uniformScale. GTE state is overwritten, and arguments have no side effects.
-#define ACTOR_403600_SCALE_ROTATION_COLUMN(columnIndex)     \
-    {                                                       \
-        gte_ReadMatrixColumn(matrix, columnIndex, column);  \
-        gte_lddp(uniformScale);                             \
-        gte_ldsv(column);                                   \
-        gte_gpf12();                                        \
-        gte_stsv(column);                                   \
-        gte_WriteMatrixColumn(column, matrix, columnIndex); \
+    /// Scales one rotation-basis column through the GTE's signed Q12 multiply.
+    ///
+    /// matrix points to a writable MATRIX, column to a distinct writable SVECTOR
+    /// temporary. columnIndex is a compile-time constant 0..2: the SDK wrappers
+    /// require immediate halfword offsets. uniformScale fits signed IR0, with
+    /// 4096 for unity. Retains GTE saturation and leaves translation/vector pad
+    /// intact. Arguments repeat and must have no side effects; overwrites GTE
+    /// IR0, MAC, IR and FLAG state. Invoke inside a braced block.
+#define ACTOR_403600_SCALE_ROTATION_COLUMN(matrix, columnIndex, uniformScale, column) \
+    {                                                                                 \
+        gte_ReadMatrixColumn((matrix), (columnIndex), (column));                      \
+        gte_lddp((uniformScale));                                                     \
+        gte_ldsv((column));                                                           \
+        gte_gpf12();                                                                  \
+        gte_stsv((column));                                                           \
+        gte_WriteMatrixColumn((column), (matrix), (columnIndex));                     \
     }
 
     SVECTOR** cursorSlot;
@@ -5426,11 +5447,11 @@ static void _actor403600ScaleSceneFigure(GfxCoord* coord, s32 uniformScale)
     *cursorSlot = column;
     matrix      = &coord->coord;
 
-    ACTOR_403600_SCALE_ROTATION_COLUMN(0);
+    ACTOR_403600_SCALE_ROTATION_COLUMN(matrix, 0, uniformScale, column);
 
-    ACTOR_403600_SCALE_ROTATION_COLUMN(1);
+    ACTOR_403600_SCALE_ROTATION_COLUMN(matrix, 1, uniformScale, column);
 
-    ACTOR_403600_SCALE_ROTATION_COLUMN(2);
+    ACTOR_403600_SCALE_ROTATION_COLUMN(matrix, 2, uniformScale, column);
 
     cursor              = *cursorSlot;
     coord->composeStamp = GRAPHICS_COORD_DIRTY;

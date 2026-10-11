@@ -82,13 +82,13 @@ typedef struct {
 } _Actor403600GridQuad;
 STATIC_ASSERT_SIZEOF(_Actor403600GridQuad, sizeof(POLY_FT4));
 
-/// The x and y of a grid vertex as the one word a primitive keeps them in, for
-/// copying both at once.
+/// Packed signed screen X/Y word of a captured-frame grid corner.
 ///
-/// `vertex` is an `_Actor403600GridVertex` lvalue at a word-aligned address,
-/// which every vertex of an `_Actor403600GridQuad` is. It is named once and
-/// not evaluated beyond taking its address; the result is a `u32` lvalue with
-/// `x` in the low half.
+/// `vertex` is a word-aligned `_Actor403600GridVertex` lvalue, as each corner
+/// of an arena-allocated `_Actor403600GridQuad` is. Evaluates its address once
+/// and exposes a writable u32 with X in the low half and Y in the high half.
+/// Copies/projected GTE SXY stores touch exactly these four bytes, leaving UV
+/// and the following page/CLUT halfword intact; this is a packet word view.
 #define ACTOR_403600_GRID_VERTEX_XY_WORD(vertex) (*(u32*)&(vertex).x)
 
 /// Scratch block the chains hanging from the boss are laid out in.
@@ -958,15 +958,17 @@ static inline void _actor403600RotateSv(const MATRIX* rotationMatrix, const SVEC
 static inline void _actor403600TickRipple(Actor403600Ripple* state);
 static inline s32  _actor403600RippleHasDiedOut(const Actor403600Ripple* state);
 
-/// Lights GT3 corner normals using a common screen-fade RGB weight.
+/// Lights a GT3's three normals with the remaining screen-fade colour weight.
 ///
-/// Arguments must have no side effects; colour, workspace and offsets are used
-/// repeatedly. `lightColor` is a CVECTOR lvalue, `fadeAmount` a loss in 0..128,
-/// and `normalBytes` a writable const-byte-pointer lvalue receiving the borrowed
-/// normal-array view. Requires complete serialized offsets, writable packet RGB,
-/// and loaded GTE light/colour matrices. Retains no pointer and overwrites GTE
-/// normal, RGB, MAC, IR and FLAG state. Use as a standalone statement inside
-/// a braced block.
+/// `fadeAmount` is a Q7 loss in 0..128; assigning -128-loss to CVECTOR bytes
+/// yields 128-loss modulo 256. Leaves the colour-command byte intact. `offsets`
+/// supplies at least six u16 stream halfwords: 3..5 are normal byte offsets,
+/// with low three flag bits discarded, into eight-byte SVECTOR records.
+/// `normalBytes` is a writable const-u8-pointer lvalue receiving that byte view;
+/// the normals stay live through the GTE loads. `lightColor` is a word-aligned
+/// writable CVECTOR and `packet` a writable POLY_GT3. Requires loaded light and
+/// colour matrices; overwrites GTE normal, RGB, MAC, IR and FLAG state. Arguments
+/// have no side effects and may repeat; invoke inside a braced block.
 #define ACTOR_403600_LIGHT_GT3_SCREEN_FADE(workspace, lightColor, fadeAmount, offsets, packet, normalBytes) \
     {                                                                                                       \
         (lightColor).r = -ACTOR_403600_SCREEN_FADE_COLOR_ONE - (fadeAmount);                                \
@@ -981,15 +983,17 @@ static inline s32  _actor403600RippleHasDiedOut(const Actor403600Ripple* state);
         gte_strgb3_gt3(packet);                                                                             \
     }
 
-/// Lights GT4 corner normals using a common screen-fade RGB weight.
+/// Lights a GT4's four normals with the remaining screen-fade colour weight.
 ///
-/// Arguments must have no side effects; colour, workspace and offsets are used
-/// repeatedly. `lightColor` is a CVECTOR lvalue, `fadeAmount` a loss in 0..128,
-/// and `normalBytes` a writable const-byte-pointer lvalue receiving the borrowed
-/// normal-array view. Requires complete serialized offsets, writable packet RGB,
-/// and loaded GTE light/colour matrices. Retains no pointer and overwrites GTE
-/// normal, RGB, MAC, IR and FLAG state. Use as a standalone statement inside
-/// a braced block.
+/// `fadeAmount` is a Q7 loss in 0..128; CVECTOR byte assignment of -128-loss
+/// yields 128-loss modulo 256 without changing its command byte. `offsets`
+/// supplies at least eight u16 stream halfwords: 4..7 are normal byte offsets,
+/// with low three flag bits discarded, into eight-byte SVECTOR records.
+/// `normalBytes` receives the const-u8 view for the first three loads; the
+/// fourth reads the normal base again after those packet colours are stored.
+/// Requires live word-aligned normals/CVECTOR, writable POLY_GT4 RGB, and loaded
+/// GTE light/colour matrices. Overwrites GTE normal, RGB, MAC, IR and FLAG state.
+/// Arguments have no side effects and may repeat; invoke inside a braced block.
 #define ACTOR_403600_LIGHT_GT4_SCREEN_FADE(workspace, lightColor, fadeAmount, offsets, packet, normalBytes) \
     {                                                                                                       \
         (lightColor).r = -ACTOR_403600_SCREEN_FADE_COLOR_ONE - (fadeAmount);                                \
@@ -1007,13 +1011,13 @@ static inline s32  _actor403600RippleHasDiedOut(const Actor403600Ripple* state);
         gte_strgb(&(packet)->r3);                                                                           \
     }
 
-/// Fades pre-transformed GT3 RGB channels using the remaining Q7 weight.
+/// Attenuates all three pre-transformed GT3 corner colours by a Q7 fade.
 ///
-/// `packet` must be a side-effect-free POLY_GT3 pointer; it is evaluated
-/// repeatedly. `fadeAmount` is a side-effect-free writable s32 lvalue, initially
-/// a loss in 0..128 and changed to 128 minus that loss. Channel stores truncate
-/// to bytes after shifting products right by 7. Use as a standalone statement
-/// inside a braced block.
+/// packet points to a live writable POLY_GT3. fadeAmount is a writable s32
+/// lvalue holding loss in 0..128 and receives the remaining weight, 128-loss.
+/// Each RGB byte becomes floor(channel * weight / 128); all XY, UV and command
+/// bytes stay intact. Both arguments repeat and must have no side effects.
+/// Uses one block-local s32 product temporary; invoke inside a braced block.
 #define ACTOR_403600_FADE_PRE_XFORM_GT3_COLORS(packet, fadeAmount)                            \
     {                                                                                         \
         s32 fadedChannel;                                                                     \
@@ -1039,15 +1043,15 @@ static inline s32  _actor403600RippleHasDiedOut(const Actor403600Ripple* state);
         (packet)->b2 = fadedChannel;                                                          \
     }
 
-/// Fades pre-transformed GT4 RGB channels using the remaining Q7 weight.
+/// Fades pre-transformed GT4 corners 0/2 and twice fades corner 1 into corner 3.
 ///
-/// `packet` must be a side-effect-free POLY_GT4 pointer; it is evaluated
-/// repeatedly. `fadeAmount` is a side-effect-free writable s32 lvalue, initially
-/// a loss in 0..128 and changed to 128 minus that loss. Channel stores truncate
-/// to bytes after shifting products right by 7. Use as a standalone statement
-/// inside a braced block.
-/// Leaves corner 1 unchanged, fades its RGB into corner 3, then fades corner 3
-/// again. Corners 0 and 2 fade once, preserving the packet writer's order.
+/// packet points to a live writable POLY_GT4. fadeAmount is a writable s32
+/// lvalue holding loss in 0..128 and receives 128-loss. Products shift right
+/// seven bits before byte stores; XY, UV and command bytes stay intact.
+/// Arguments repeat and must have no side effects; invoke in a braced block.
+/// Corner 1 is unchanged; corner 3's incoming RGB is discarded. The first
+/// corner-3 stores truncate to bytes before the second multiply, so combining
+/// the two weights would change rounding. Corners 0 and 2 fade once.
 #define ACTOR_403600_FADE_PRE_XFORM_GT4_COLORS(packet, fadeAmount)                            \
     {                                                                                         \
         s32 fadedChannel;                                                                     \
@@ -1079,12 +1083,15 @@ static inline s32  _actor403600RippleHasDiedOut(const Actor403600Ripple* state);
         (packet)->b3 = fadedChannel;                                                          \
     }
 
-/// Transforms a vertex by the loaded model-to-plane matrix, then clamps its Y.
+/// Flattens the positive-Y side of a vertex onto the loaded ripple plane.
 ///
-/// `source` addresses a readable, word-aligned SVECTOR; `planeVertex` is a
-/// writable SVECTOR lvalue with halfword-aligned xyz. Its address expression
-/// must have no side effects: it is evaluated three times. Overwrites GTE V0, MAC,
-/// IR and FLAG, with no scratch-stack use or pointer retention.
+/// Requires the model-to-plane Q12 rotation and translation already loaded.
+/// `source` addresses a readable word-aligned eight-byte SVECTOR in model units;
+/// `planeVertex` is a writable SVECTOR lvalue receiving saturated signed-halfword
+/// plane XYZ, with Y capped at zero and its fourth halfword untouched. Source
+/// is evaluated once; destination is evaluated repeatedly and must have no side
+/// effects. May transform in place. Overwrites GTE V0, MAC, IR and FLAG state;
+/// invoke as a standalone statement inside a braced block.
 #define ACTOR_403600_TRANSFORM_AND_CLAMP_PLANE_VERTEX(source, planeVertex) \
     {                                                                      \
         gte_ldv0(source);                                                  \
@@ -1095,14 +1102,16 @@ static inline s32  _actor403600RippleHasDiedOut(const Actor403600Ripple* state);
         }                                                                  \
     }
 
-/// Links primitive `p` at the head of ordering-table entry `ot` through tag words.
+/// Prepends a primitive to an ordering-table entry while retaining both tag lengths.
 ///
-/// `ot` points to one `u_long` tag and `p` to a packet with a tag word. Both
-/// arguments must be side-effect-free: each is evaluated repeatedly. The link
-/// preserves each tag's packet length and stores only the low 24 address bits.
-#define ACTOR_403600_LINK_PRIMITIVE(ot, p)                                                     \
-    ((p)->tag = ((p)->tag & GPU_DMA_PACKET_LENGTH_MASK) | (*(ot) & GPU_DMA_LINK_ADDRESS_MASK), \
-     *(ot)    = (*(ot) & GPU_DMA_PACKET_LENGTH_MASK) | ((u32)(p) & GPU_DMA_LINK_ADDRESS_MASK))
+/// `otEntry` points to a writable u_long tag; `packet` points to a distinct live
+/// GPU packet with its length initialized. Each argument repeats and must have
+/// no side effects. The packet takes the old low-24-bit link before the entry
+/// takes the packet's encoded DMA address. Returns the updated entry tag.
+/// Linked storage must remain valid until GPU submission has consumed it.
+#define ACTOR_403600_LINK_PRIMITIVE(otEntry, packet)                                                          \
+    ((packet)->tag = ((packet)->tag & GPU_DMA_PACKET_LENGTH_MASK) | (*(otEntry) & GPU_DMA_LINK_ADDRESS_MASK), \
+     *(otEntry)    = (*(otEntry) & GPU_DMA_PACKET_LENGTH_MASK) | ((u32)(packet) & GPU_DMA_LINK_ADDRESS_MASK))
 
 #include "../../shared/frame_capture.inc.c"
 
@@ -1234,40 +1243,43 @@ static void _actor403600PlaceDistortionVertex(_Actor403600GridQuad* quad, s32 co
         jitterTop                         = localY + ACTOR_403600_DISTORTION_SCREEN_CENTER_Y - ACTOR_403600_DISTORTION_JITTER_RADIUS;
         screenY                           = jitterTop + (((s32)yState >> 16) & ACTOR_403600_DISTORTION_JITTER_MASK);
     }
-    /// Clamps the grid geometry and selects page/UV under the displaced pixel.
+    /// Keeps a displaced capture texel and its grid geometry within the screen.
     ///
-    /// Arguments must be distinct, side-effect-free pointer/scalar locals.
-    /// pixelX/pixelY are writable s32 lvalues; vertex/page storage stays live.
-    /// Each argument may be evaluated repeatedly. Use as a standalone statement.
-#define ACTOR_403600_CLAMP_DISTORTION_VERTEX(gridVertex, pageOffset, pixelX, pixelY) \
-    {                                                                                \
-        enum {                                                                       \
-            ACTOR_403600_DISTORTION_SCREEN_WIDTH  = 320,                             \
-            ACTOR_403600_DISTORTION_SCREEN_HEIGHT = 240,                             \
-            ACTOR_403600_DISTORTION_PAGE_PIXELS   = 256,                             \
-            ACTOR_403600_DISTORTION_PAGE_SHIFT    = 64,                              \
-        };                                                                           \
-        /* Fold edge clamping back into geometry, then sample the capture page. */   \
-        if (pixelY >= ACTOR_403600_DISTORTION_SCREEN_HEIGHT) {                       \
-            (gridVertex)->y += (ACTOR_403600_DISTORTION_SCREEN_HEIGHT - 1) - pixelY; \
-            pixelY           = ACTOR_403600_DISTORTION_SCREEN_HEIGHT - 1;            \
-        } else if (pixelY < 0) {                                                     \
-            (gridVertex)->y -= pixelY;                                               \
-            pixelY           = 0;                                                    \
-        }                                                                            \
-        if (pixelX >= ACTOR_403600_DISTORTION_SCREEN_WIDTH) {                        \
-            (gridVertex)->x += (ACTOR_403600_DISTORTION_SCREEN_WIDTH - 1) - pixelX;  \
-            pixelX           = ACTOR_403600_DISTORTION_SCREEN_WIDTH - 1;             \
-        } else if (pixelX < 0) {                                                     \
-            (gridVertex)->x -= pixelX;                                               \
-            pixelX           = 0;                                                    \
-        }                                                                            \
-        *(pageOffset) = 0;                                                           \
-        if (pixelX >= ACTOR_403600_DISTORTION_PAGE_PIXELS) {                         \
-            *(pageOffset) = ACTOR_403600_DISTORTION_PAGE_SHIFT;                      \
-        }                                                                            \
-        (gridVertex)->u = pixelX - *(pageOffset);                                    \
-        (gridVertex)->v = pixelY;                                                    \
+    /// pixelX/pixelY are signed capture pixels, clamped to 0..319/0..239;
+    /// the clamp delta also adjusts the vertex's centred signed-halfword XY.
+    /// Stores page shift 0 or 64 through the u8 pointer pageOffset and writes
+    /// byte UV relative to it. gridVertex points to a live writable grid corner.
+    /// Arguments repeat: use side-effect-free pointers and distinct writable
+    /// s32 pixel lvalues. Invoke as a standalone statement in a braced block.
+#define ACTOR_403600_CLAMP_DISTORTION_VERTEX(gridVertex, pageOffset, pixelX, pixelY)   \
+    {                                                                                  \
+        enum {                                                                         \
+            ACTOR_403600_DISTORTION_SCREEN_WIDTH  = 320,                               \
+            ACTOR_403600_DISTORTION_SCREEN_HEIGHT = 240,                               \
+            ACTOR_403600_DISTORTION_PAGE_PIXELS   = 256,                               \
+            ACTOR_403600_DISTORTION_PAGE_SHIFT    = 64,                                \
+        };                                                                             \
+        /* Fold edge clamping back into geometry, then sample the capture page. */     \
+        if ((pixelY) >= ACTOR_403600_DISTORTION_SCREEN_HEIGHT) {                       \
+            (gridVertex)->y += (ACTOR_403600_DISTORTION_SCREEN_HEIGHT - 1) - (pixelY); \
+            (pixelY)         = ACTOR_403600_DISTORTION_SCREEN_HEIGHT - 1;              \
+        } else if ((pixelY) < 0) {                                                     \
+            (gridVertex)->y -= (pixelY);                                               \
+            (pixelY)         = 0;                                                      \
+        }                                                                              \
+        if ((pixelX) >= ACTOR_403600_DISTORTION_SCREEN_WIDTH) {                        \
+            (gridVertex)->x += (ACTOR_403600_DISTORTION_SCREEN_WIDTH - 1) - (pixelX);  \
+            (pixelX)         = ACTOR_403600_DISTORTION_SCREEN_WIDTH - 1;               \
+        } else if ((pixelX) < 0) {                                                     \
+            (gridVertex)->x -= (pixelX);                                               \
+            (pixelX)         = 0;                                                      \
+        }                                                                              \
+        *(pageOffset) = 0;                                                             \
+        if ((pixelX) >= ACTOR_403600_DISTORTION_PAGE_PIXELS) {                         \
+            *(pageOffset) = ACTOR_403600_DISTORTION_PAGE_SHIFT;                        \
+        }                                                                              \
+        (gridVertex)->u = (pixelX) - *(pageOffset);                                    \
+        (gridVertex)->v = (pixelY);                                                    \
     }
     ACTOR_403600_CLAMP_DISTORTION_VERTEX(vertex, pageShift, screenX, screenY);
 #undef ACTOR_403600_CLAMP_DISTORTION_VERTEX
@@ -1283,10 +1295,13 @@ static void _actor403600PlaceDistortionVertex(_Actor403600GridQuad* quad, s32 co
 /// uses and releases one scratch block. The first argument is unused.
 static void _actor403600DrawScreenDistortion(Task* unusedFxTask, const Actor403600Work* work, Actor403600FxWork* fx)
 {
-    /// Copies a grid corner with its captured texel and page shift.
+    /// Copies one shared distortion-grid corner, including its capture-page origin.
     ///
-    /// Vertices and page bytes are side-effect-free lvalues, evaluated repeatedly.
-    /// XY must be word aligned; source and destination are distinct live corners.
+    /// Vertex arguments are live word-aligned grid-corner lvalues; page arguments
+    /// are their u8 page-shift lvalues (0 or 64 capture pixels). All may repeat
+    /// and must have no side effects. Copies only packed XY, UV and the page byte;
+    /// it leaves packet colour, CLUT and texture-page selection for the caller.
+    /// Invoke as a standalone statement inside a braced block.
 #define ACTOR_403600_COPY_DISTORTION_CORNER(destination, destinationPage, source, sourcePage)     \
     {                                                                                             \
         ACTOR_403600_GRID_VERTEX_XY_WORD(destination) = ACTOR_403600_GRID_VERTEX_XY_WORD(source); \
@@ -2179,6 +2194,8 @@ static void _actor403600ProjectileTask(Task* task)
     SCRATCH_STACK_RELEASE_BLOCK(_Actor403600ProjectileScratch);
 }
 
+#undef ACTOR_403600_LINK_PRIMITIVE
+
 /// Clamps one radial-grid vertex's geometry and assigns its capture page/UV.
 ///
 /// Borrows a writable quad and signed capture-image pixel coordinates.
@@ -2416,41 +2433,48 @@ void actor403600DrawRipple(const Actor403600Ripple* ripple, GfxCoord* discCoord)
         sectorIndex++;
     } while (sectorIndex < ACTOR_403600_RIPPLE_SECTOR_COUNT);
 
-    /// Rebases the current ripple quad and retreats the reverse traversal.
+    /// Selects one capture texture page for a ripple quad and retreats its traversal.
     ///
-    /// Captures live one-past afterQuad and quad pointers, ringIndex, cornerU[4],
-    /// minU/maxU/pageShift and cornerIndex (signed words). Reads corner page
-    /// bytes without changing them; writes tpage/U, then decreases both cursors
-    /// and advances ringIndex. The interleaved cursor updates preserve traversal.
-    /// Uses this function's ACTOR_403600_RIPPLE_ constants; no arguments or calls.
-#define ACTOR_403600_REBASE_AND_RETREAT_RIPPLE_QUAD()                                                                                                               \
-    {                                                                                                                                                               \
-        cornerU[0] = afterQuad[-1].vertex0.u + afterQuad[-1].page0;                                                                                                 \
-        cornerU[1] = afterQuad[-1].vertex1.u + afterQuad[-1].page1;                                                                                                 \
-        cornerU[2] = afterQuad[-1].vertex2.u + afterQuad[-1].page2;                                                                                                 \
-        cornerU[3] = afterQuad[-1].vertex3.u + afterQuad[-1].page3;                                                                                                 \
-        minU       = cornerU[0];                                                                                                                                    \
-        maxU       = cornerU[0];                                                                                                                                    \
-        for (cornerIndex = 1; cornerIndex < ARRAY_SIZE(cornerU); cornerIndex++) {                                                                                   \
-            if (cornerU[cornerIndex] < minU) {                                                                                                                      \
-                minU = cornerU[cornerIndex];                                                                                                                        \
-            } else if (maxU < cornerU[cornerIndex]) {                                                                                                               \
-                maxU = cornerU[cornerIndex];                                                                                                                        \
-            }                                                                                                                                                       \
-        }                                                                                                                                                           \
-        if (maxU >= ACTOR_403600_RIPPLE_PAGE_PIXELS || minU >= ACTOR_403600_RIPPLE_PAGE_SHIFT) {                                                                    \
-            pageShift = ACTOR_403600_RIPPLE_PAGE_SHIFT;                                                                                                             \
-        } else {                                                                                                                                                    \
-            pageShift = 0;                                                                                                                                          \
-        }                                                                                                                                                           \
-        afterQuad[-1].tpage     = ((u32)(pageShift + ACTOR_403600_RIPPLE_CAPTURE_X) >> ACTOR_403600_RIPPLE_PAGE_X_SHIFT) | ACTOR_403600_RIPPLE_CAPTURE_TPAGE_FLAGS; \
-        afterQuad[-1].vertex0.u = cornerU[0] - pageShift;                                                                                                           \
-        afterQuad[-1].vertex1.u = cornerU[1] - pageShift;                                                                                                           \
-        quad--;                                                                                                                                                     \
-        afterQuad[-1].vertex2.u = cornerU[2] - pageShift;                                                                                                           \
-        ringIndex++;                                                                                                                                                \
-        afterQuad[-1].vertex3.u = cornerU[3] - pageShift;                                                                                                           \
-        afterQuad--;                                                                                                                                                \
+    /// afterQuad is one past the current writable quad; quad is that same current
+    /// record. Linked quads recover capture U in 0..319 from byte U plus page
+    /// shift (0/64). Terminal records also pass here; their unused corners can
+    /// retain arena bytes, but those records are never submitted to the GPU.
+    /// Chooses VRAM X 512 when any U reaches 256 or all reach 64, otherwise X 448;
+    /// rebased U narrows modulo 256 without testing the span. Writes tpage/U,
+    /// retaining the old page bytes: this is the last pass that reads them.
+    /// Captures cornerU[4], minU, maxU, pageShift and cornerIndex as writable s32
+    /// scratch locals, plus the function's ACTOR_403600_RIPPLE_ constants. The
+    /// Cursor/index arguments repeat and must be distinct side-effect-free
+    /// lvalues. afterQuad must cover the current record; quad retreats alongside
+    /// it to derive the next sector's starting cursor. Invoke in a braced block.
+#define ACTOR_403600_REBASE_AND_RETREAT_RIPPLE_QUAD(afterQuad, quad, ringIndex)                                                                                       \
+    {                                                                                                                                                                 \
+        cornerU[0] = (afterQuad)[-1].vertex0.u + (afterQuad)[-1].page0;                                                                                               \
+        cornerU[1] = (afterQuad)[-1].vertex1.u + (afterQuad)[-1].page1;                                                                                               \
+        cornerU[2] = (afterQuad)[-1].vertex2.u + (afterQuad)[-1].page2;                                                                                               \
+        cornerU[3] = (afterQuad)[-1].vertex3.u + (afterQuad)[-1].page3;                                                                                               \
+        minU       = cornerU[0];                                                                                                                                      \
+        maxU       = cornerU[0];                                                                                                                                      \
+        for (cornerIndex = 1; cornerIndex < ARRAY_SIZE(cornerU); cornerIndex++) {                                                                                     \
+            if (cornerU[cornerIndex] < minU) {                                                                                                                        \
+                minU = cornerU[cornerIndex];                                                                                                                          \
+            } else if (maxU < cornerU[cornerIndex]) {                                                                                                                 \
+                maxU = cornerU[cornerIndex];                                                                                                                          \
+            }                                                                                                                                                         \
+        }                                                                                                                                                             \
+        if (maxU >= ACTOR_403600_RIPPLE_PAGE_PIXELS || minU >= ACTOR_403600_RIPPLE_PAGE_SHIFT) {                                                                      \
+            pageShift = ACTOR_403600_RIPPLE_PAGE_SHIFT;                                                                                                               \
+        } else {                                                                                                                                                      \
+            pageShift = 0;                                                                                                                                            \
+        }                                                                                                                                                             \
+        (afterQuad)[-1].tpage     = ((u32)(pageShift + ACTOR_403600_RIPPLE_CAPTURE_X) >> ACTOR_403600_RIPPLE_PAGE_X_SHIFT) | ACTOR_403600_RIPPLE_CAPTURE_TPAGE_FLAGS; \
+        (afterQuad)[-1].vertex0.u = cornerU[0] - pageShift;                                                                                                           \
+        (afterQuad)[-1].vertex1.u = cornerU[1] - pageShift;                                                                                                           \
+        (quad)--;                                                                                                                                                     \
+        (afterQuad)[-1].vertex2.u = cornerU[2] - pageShift;                                                                                                           \
+        (ringIndex)++;                                                                                                                                                \
+        (afterQuad)[-1].vertex3.u = cornerU[3] - pageShift;                                                                                                           \
+        (afterQuad)--;                                                                                                                                                \
     }
 
     // Rebase each completed quad onto one captured-frame texture page.
@@ -2460,7 +2484,7 @@ void actor403600DrawRipple(const Actor403600Ripple* ripple, GfxCoord* discCoord)
         // Retreat from one-past the last quad through this sector's records.
         afterQuad = quad + 1;
         do {
-            ACTOR_403600_REBASE_AND_RETREAT_RIPPLE_QUAD();
+            ACTOR_403600_REBASE_AND_RETREAT_RIPPLE_QUAD(afterQuad, quad, ringIndex);
         } while (ringIndex < ARRAY_SIZE(ringLift));
         sectorIndex++;
     } while (sectorIndex < ACTOR_403600_RIPPLE_SECTOR_COUNT);
@@ -2468,6 +2492,8 @@ void actor403600DrawRipple(const Actor403600Ripple* ripple, GfxCoord* discCoord)
     frameCaptureQueue(scratch->maxOtz + 1);
     SCRATCH_STACK_RELEASE_BYTES(sizeof(_Actor403600RadialGridScratch));
 }
+
+#undef ACTOR_403600_GRID_VERTEX_XY_WORD
 
 /// Model-local offset of the ripple disc from the boss's part 1.
 ///
@@ -3026,7 +3052,7 @@ u32* actor403600DrawStreamGt4PreXformBottomFade(TmdStreamWorkspace* workspace, s
                             if (!(vertexDepth & invalidDepthMask)) {
                                 gte_ldSZ3(vertexDepth);
                                 gte_avsz4();
-                                // Fade from corner 0; every corner uses this same colour weight.
+                                // Corner 0 supplies loss; partial fades keep corner 1 and rebuild corner 3.
                                 fadeAmount = 0;
                                 if (fadeDistance != 0) {
                                     fadeAnchorY = packet->y0;
