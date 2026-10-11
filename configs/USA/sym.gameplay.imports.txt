@@ -1381,7 +1381,7 @@ gShelterB4WaterSupplyStairSurfaceRows = 0x801826FC; // absolute:True owner=shelt
 
 gAcropolisPlazaSequenceTaskDescriptors = 0x80183824; // absolute:True owner=acropolis_plaza
 
-D_dryfield_night_garage_80181C2C = 0x80181C2C; // absolute:True owner=dryfield_night_garage
+gDryfieldNightGarageShopSessionTaskDesc = 0x80181C2C; // absolute:True owner=dryfield_night_garage
 
 gDryfieldNightTrailerCoachShopSessionTaskDesc = 0x801846D0; // absolute:True owner=dryfield_night_trailer_coach
 

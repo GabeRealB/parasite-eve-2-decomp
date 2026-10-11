@@ -3,6 +3,7 @@
 #include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 
+#include "common.h"
 #include "types.h"
 
 #include "dryfield_night_garage_private.h"
@@ -61,21 +62,6 @@ static const u16 _gShopStandardDefaultItemsStock[];
 
 static s32 _gShopPreviewRowId;
 
-/// The room's own `TaskMessageEntry[]` - the message table `_dryfieldNightGarageInitRoomTask`
-/// publishes in `Task::msgTable`. It terminates with id `TASK_MESSAGE_TABLE_END`.
-extern TaskMessageEntry D_dryfield_night_garage_80181C38[];
-
-/// Ally animation descriptor handed to `companionWriteAnimationBankIndex`, then forwarded as the
-/// payload of the 0x3E8 message.
-extern AnimationPlayRequest D_dryfield_night_garage_80181C68;
-
-/// Script blob passed to `evsStartScript` when game flag 0x8E is already set.
-extern EvsCommand D_dryfield_night_garage_80181C7C[];
-
-/// Two layout templates and the live copy the resets restore from them.
-extern WorldCollisionGrid D_dryfield_night_garage_80181D7C;
-extern WorldCollisionGrid D_dryfield_night_garage_80181E40;
-
 /// The room's action triggers; `flags` bit 0x40 enables collision testing.
 /// The room switches the enabled state of entries 3 and 5.
 
@@ -95,9 +81,23 @@ static s32 _dryfieldNightGarageIgnoreCommand(Task* unusedTask, s32 unusedMessage
 
 #include "../../shared/shop_panels.inc.c"
 
-TaskDesc D_dryfield_night_garage_80181C2C = { { { TASK_BODY_NONE, 192 } }, _shopSessionTask, { .value = 0 } };
+enum {
+    DRYFIELD_NIGHT_GARAGE_SHOP_TASK_PRIORITY  = 192,
+    DRYFIELD_NIGHT_GARAGE_COMPANION_POSE_CLIP = 1,
+};
 
-TaskMessageEntry D_dryfield_night_garage_80181C38[6] = {
+TaskDesc gDryfieldNightGarageShopSessionTaskDesc = {
+    .header   = { .fields = { TASK_BODY_NONE, DRYFIELD_NIGHT_GARAGE_SHOP_TASK_PRIORITY } },
+    .callback = _shopSessionTask,
+    .data     = { .value = 0 },
+};
+
+/// Synchronous messages accepted by the persistent night-garage room task.
+///
+/// Resolves departures, refuses key items, handles action triggers, ignores
+/// commands and routes sound cues. The final marker makes other IDs return
+/// zero. The task borrows this table and its callbacks while the room is loaded.
+static TaskMessageEntry _gDryfieldNightGarageRoomMessageTable[] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _roomVariantResolveDryfieldMsg },
     { ROOM_MESSAGE_USE_KEY_ITEM, _dryfieldNightGarageRefuseKeyItem },
     { DIRECTION_MESSAGE_ROOM_ACTION, _dryfieldNightGarageHandleRoomAction },
@@ -106,62 +106,114 @@ TaskMessageEntry D_dryfield_night_garage_80181C38[6] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-AnimationPlayRequest D_dryfield_night_garage_80181C68 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Resets the companion to garage pose clip 1 with world collision disabled.
+///
+/// Room setup overwrites the bank index from the live companion selection;
+/// event playback resolves that selection again in a copy. Dispatch consumes
+/// the request synchronously, while the selected animation bank stays borrowed.
+static AnimationPlayRequest _gDryfieldNightGarageCompanionPoseRequest = {
+    .source               = { .index = 1 },
+    .animationId          = DRYFIELD_NIGHT_GARAGE_COMPANION_POSE_CLIP,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
-EvsCommand D_dryfield_night_garage_80181C7C[4] = {
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &gActor136300CompanionGaragePlacement } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 10 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_night_garage_80181C68 }, { .value = 0 } },
+/// Restores the companion's garage placement and pose on a later scene visit.
+///
+/// Four commands including END. The zero-frame wait still yields one task
+/// update before placement and playback. Starts with HUD unchanged and borrows
+/// the loaded garage, companion bank and actor resources owning the placement.
+static EvsCommand _gDryfieldNightGarageCompanionRevisitScript[] = {
+    { .opcode = EVENT_SCRIPT_OPCODE_WAIT_FRAMES, .operand0 = { .value = 0 } },
+    { .opcode = EVENT_SCRIPT_OPCODE_SEND_MESSAGE, .operand0 = { .value = GAME_TASK_SLOT_COMPANION }, .operand2 = { .value = GAME_ACTOR_MESSAGE_PLACE }, .operand3 = { .message = { .transform = &gActor136300CompanionGaragePlacement } } },
+    { .opcode = EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, .operand0 = { .value = GAME_TASK_SLOT_COMPANION }, .operand2 = { .value = ANIMATION_MESSAGE_PLAY }, .operand3 = { .animation = &_gDryfieldNightGarageCompanionPoseRequest } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-static SVECTOR _gDryfieldNightGarageCollision047BCNormals[4] = {
+static SVECTOR _gDryfieldNightGarageLowCollisionBoxTemplateNormals[4] = {
 #include "assets/dryfield_night_garage_collision_047BC_normals.inc"
 };
 
-static SVECTOR _gDryfieldNightGarageCollision047BCVerts[8] = {
+static SVECTOR _gDryfieldNightGarageLowCollisionBoxTemplateVerts[8] = {
 #include "assets/dryfield_night_garage_collision_047BC_verts.inc"
 };
 
-static WorldCollisionGridFace _gDryfieldNightGarageCollision047BCFaces[4] = {
+static WorldCollisionGridFace _gDryfieldNightGarageLowCollisionBoxTemplateFaces[4] = {
 #include "assets/dryfield_night_garage_collision_047BC_faces.inc"
 };
 
-static s16 _gDryfieldNightGarageCollision047BCCells[6] = {
+static s16 _gDryfieldNightGarageLowCollisionBoxTemplateCells[6] = {
 #include "assets/dryfield_night_garage_collision_047BC_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gDryfieldNightGarageCollision047BCCells[i])
-static s16* _gDryfieldNightGarageCollision047BCTable[1] = {
+#define GRID_CELL(i) (&_gDryfieldNightGarageLowCollisionBoxTemplateCells[i])
+static s16* _gDryfieldNightGarageLowCollisionBoxTemplateTable[1] = {
 #include "assets/dryfield_night_garage_collision_047BC_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_dryfield_night_garage_80181D7C = { NULL, _gDryfieldNightGarageCollision047BCNormals, _gDryfieldNightGarageCollision047BCVerts, _gDryfieldNightGarageCollision047BCFaces, _gDryfieldNightGarageCollision047BCTable, 722, 250, 1, 1, 4000, 4 };
+/// Source geometry for the movable low box in the garage's live collision mesh.
+///
+/// Four vertical walls use four normals scaled by 4096 and eight vertices,
+/// spanning X -722..1002 and Y/Z -250..250 in game units. Placement copies the faces and
+/// vector XYZ into the live grid, then translates the box for refueling progress.
+/// The retained one-cell index is unused by that copy; this grid is never activated.
+static WorldCollisionGrid _gDryfieldNightGarageLowCollisionBoxTemplate = {
+    .viewCoord   = NULL,
+    .normals     = _gDryfieldNightGarageLowCollisionBoxTemplateNormals,
+    .vertices    = _gDryfieldNightGarageLowCollisionBoxTemplateVerts,
+    .faces       = _gDryfieldNightGarageLowCollisionBoxTemplateFaces,
+    .cellFaceIds = _gDryfieldNightGarageLowCollisionBoxTemplateTable,
+    .xBias       = 722,
+    .zBias       = 250,
+    .cellCountX  = 1,
+    .cellCountZ  = 1,
+    .cellSize    = 4000,
+    .faceCount   = ARRAY_SIZE(_gDryfieldNightGarageLowCollisionBoxTemplateFaces),
+};
 
-static SVECTOR _gDryfieldNightGarageCollision04880Normals[4] = {
+static SVECTOR _gDryfieldNightGarageTallCollisionBoxTemplateNormals[4] = {
 #include "assets/dryfield_night_garage_collision_04880_normals.inc"
 };
 
-static SVECTOR _gDryfieldNightGarageCollision04880Verts[8] = {
+static SVECTOR _gDryfieldNightGarageTallCollisionBoxTemplateVerts[8] = {
 #include "assets/dryfield_night_garage_collision_04880_verts.inc"
 };
 
-static WorldCollisionGridFace _gDryfieldNightGarageCollision04880Faces[4] = {
+static WorldCollisionGridFace _gDryfieldNightGarageTallCollisionBoxTemplateFaces[4] = {
 #include "assets/dryfield_night_garage_collision_04880_faces.inc"
 };
 
-static s16 _gDryfieldNightGarageCollision04880Cells[6] = {
+static s16 _gDryfieldNightGarageTallCollisionBoxTemplateCells[6] = {
 #include "assets/dryfield_night_garage_collision_04880_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gDryfieldNightGarageCollision04880Cells[i])
-static s16* _gDryfieldNightGarageCollision04880Table[1] = {
+#define GRID_CELL(i) (&_gDryfieldNightGarageTallCollisionBoxTemplateCells[i])
+static s16* _gDryfieldNightGarageTallCollisionBoxTemplateTable[1] = {
 #include "assets/dryfield_night_garage_collision_04880_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_dryfield_night_garage_80181E40 = { NULL, _gDryfieldNightGarageCollision04880Normals, _gDryfieldNightGarageCollision04880Verts, _gDryfieldNightGarageCollision04880Faces, _gDryfieldNightGarageCollision04880Table, -1900, -4890, 1, 1, 4000, 4 };
+/// Source geometry for the tall box around the companion's garage placement.
+///
+/// Four vertical walls use four normals scaled by 4096 and eight room-space vertices,
+/// spanning X 1900..2560, Y -1726..33 and Z 4890..5590 in game units. Reset
+/// copies the faces and vector XYZ into the live grid and optionally adds 2000
+/// to Y. The retained one-cell index is unused; this grid is never activated.
+static WorldCollisionGrid _gDryfieldNightGarageTallCollisionBoxTemplate = {
+    .viewCoord   = NULL,
+    .normals     = _gDryfieldNightGarageTallCollisionBoxTemplateNormals,
+    .vertices    = _gDryfieldNightGarageTallCollisionBoxTemplateVerts,
+    .faces       = _gDryfieldNightGarageTallCollisionBoxTemplateFaces,
+    .cellFaceIds = _gDryfieldNightGarageTallCollisionBoxTemplateTable,
+    .xBias       = -1900,
+    .zBias       = -4890,
+    .cellCountX  = 1,
+    .cellCountZ  = 1,
+    .cellSize    = 4000,
+    .faceCount   = ARRAY_SIZE(_gDryfieldNightGarageTallCollisionBoxTemplateFaces),
+};
 
 static AnimationPackedPose _gDryfieldNightGarageAnimation04B80Bank1[6] = {
 #include "assets/dryfield_night_garage_animation_04B80_bank1.inc"
@@ -286,15 +338,15 @@ static void _dryfieldNightGarageInitRoomTask(Task* task)
     WorldCollisionTrigger* beforeRefuelingTrigger;
     Task*                  companion;
 
-    task->msgTable = D_dryfield_night_garage_80181C38;
+    task->msgTable = _gDryfieldNightGarageRoomMessageTable;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     (gDryfieldNightGarageEarlyRoomActionTriggers + DRYFIELD_NIGHT_GARAGE_TRIGGER_AFTER_REFUELING)->flags &= (0xFF ^ WORLD_COLLISION_TRIGGER_ENABLED);
     companion                                                                                             = gameGetTaskSlot(GAME_TASK_SLOT_COMPANION);
     // Restore the companion before starting either the first-visit scene or its pose-only script.
     if (gGameSession->location.loc.variant == DRYFIELD_NIGHT_GARAGE_VARIANT_COMPANION && companion != NULL) {
         TASK_MESSAGE_DISPATCH_POINTER(companion, GAME_ACTOR_MESSAGE_PLACE, &gActor136300CompanionGaragePlacement, 0);
-        companionWriteAnimationBankIndex(&D_dryfield_night_garage_80181C68.source.index);
-        TASK_MESSAGE_DISPATCH_POINTER(companion, ANIMATION_MESSAGE_PLAY, &D_dryfield_night_garage_80181C68, 0);
+        companionWriteAnimationBankIndex(&_gDryfieldNightGarageCompanionPoseRequest.source.index);
+        TASK_MESSAGE_DISPATCH_POINTER(companion, ANIMATION_MESSAGE_PLAY, &_gDryfieldNightGarageCompanionPoseRequest, 0);
         _dryfieldNightGarageResetTallCollisionBox(0);
         companionRemoveEquipment(companion);
         if (gameFlagGetNibble(GAME_FLAG_NIGHT_GARAGE_COMPANION_SCENE_SEEN) == 0) {
@@ -302,7 +354,7 @@ static void _dryfieldNightGarageInitRoomTask(Task* task)
             gameFlagSetNibble(GAME_FLAG_NIGHT_GARAGE_COMPANION_SCENE_SEEN, 1);
             evsStartScriptWithSkip(gActor136300GarageCompanionSceneScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, gActor136300GarageCompanionSceneSkipScript);
         } else {
-            evsStartScript(D_dryfield_night_garage_80181C7C, EVENT_SCRIPT_HUD_KEEP);
+            evsStartScript(_gDryfieldNightGarageCompanionRevisitScript, EVENT_SCRIPT_HUD_KEEP);
         }
     }
     // Re-entry keeps the post-event interaction and retires the original refueling hotspot.
@@ -443,10 +495,12 @@ static void _dryfieldNightGarageIdleRoomTask(Task* unusedTask)
     char unusedStackBytes[0x10];
 }
 
-/// State handlers of the room's message task `dryfieldNightGarageRoomTask`
-/// runs: its set-up, an empty per-frame state and the kill.
-static const TaskFuncTable3 D_dryfield_night_garage_8017D6FC = {
-    {
+/// Initialize, idle and teardown states of the persistent garage room task.
+///
+/// Indexed by `Task::state` in 0..2 without a terminator or bounds check.
+/// Dispatch copies all three callbacks by value; the overlay must stay loaded.
+static const TaskFuncTable3 _gDryfieldNightGarageRoomTaskStates = {
+    .funcs = {
         _dryfieldNightGarageInitRoomTask,
         _dryfieldNightGarageIdleRoomTask,
         taskKill,
@@ -457,7 +511,7 @@ void dryfieldNightGarageRoomTask(Task* task)
 {
     TaskFuncTable3 stateHandlers;
 
-    stateHandlers = D_dryfield_night_garage_8017D6FC;
+    stateHandlers = _gDryfieldNightGarageRoomTaskStates;
     stateHandlers.funcs[task->state](task);
 }
 
@@ -493,7 +547,7 @@ void dryfieldNightGaragePlaceLowCollisionBox(s32 useFarPosition)
     s32                       vertexIndex;
 
     liveGrid    = &gDryfieldNightGarageEarlyRoomCollisionGrid;
-    boxTemplate = &D_dryfield_night_garage_80181D7C;
+    boxTemplate = &_gDryfieldNightGarageLowCollisionBoxTemplate;
 
     _dryfieldNightGarageCopyCollisionBox(liveGrid, boxTemplate);
 
@@ -529,7 +583,7 @@ static void _dryfieldNightGarageResetTallCollisionBox(s32 useYOffset)
     s32                       vertexIndex;
 
     liveGrid    = &gDryfieldNightGarageEarlyRoomCollisionGrid;
-    boxTemplate = &D_dryfield_night_garage_80181E40;
+    boxTemplate = &_gDryfieldNightGarageTallCollisionBoxTemplate;
 
     _dryfieldNightGarageCopyCollisionBox(liveGrid, boxTemplate);
 

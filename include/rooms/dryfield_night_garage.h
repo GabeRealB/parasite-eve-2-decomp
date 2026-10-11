@@ -19,7 +19,14 @@
 /// Keep the garage overlay loaded through playback and restoration.
 extern TaskDesc gDryfieldNightGarageMovieTasks[2];
 
-extern TaskDesc D_dryfield_night_garage_80181C2C;
+/// Bodyless priority-192 display task for the night garage's shop session.
+///
+/// Gameplay queues this recipe by the saved stage/area. Spawn argument 1 is
+/// the packed stock-profile/category selector; argument 2 is unused on entry
+/// and then holds the owned UI root. The callback owns the UI tree and stage
+/// primitive buffer until closure. Keep the garage and catalogue resources
+/// loaded through the session and its display-mode exit.
+extern TaskDesc gDryfieldNightGarageShopSessionTaskDesc;
 
 /// Placement/resource directory for the night garage, indexed by saved area variant.
 ///
