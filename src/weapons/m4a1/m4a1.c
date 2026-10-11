@@ -1087,136 +1087,192 @@ static AnimationSet _gM4a1AimForwardWalkAnimation = {
     .poseBanks         = { NULL, _gM4a1AimForwardWalkAnimationBank1, NULL, NULL, _gM4a1AimForwardWalkAnimationBank4, NULL, NULL, NULL },
 };
 
-static AnimationPackedPose _gM4a1Animation0B894Bank1[26] = {
+/// Reload translation/rotation keyframes in integer model units and 1/4096 turns.
+///
+/// Read-only clip data retains its serialized position in .data.
+static const AnimationPackedPose _gM4a1ReloadAnimationBank1[26] __attribute__((section(".data"))) = {
 #include "assets/m4a1_animation_0B894_bank1.inc"
 };
 
-static AnimationPackedRotation _gM4a1Animation0B894Bank4[416] = {
+/// Reload rotation-only keyframes, with packed angle steps of 1/512 turn.
+static const AnimationPackedRotation _gM4a1ReloadAnimationBank4[416] __attribute__((section(".data"))) = {
 #include "assets/m4a1_animation_0B894_bank4.inc"
 };
 
-static AnimationRecord _gM4a1Animation0B894Records[471] = {
+/// Reload keyframes, loading cues and stop controls; durations count normal-rate frames.
+static const AnimationRecord _gM4a1ReloadAnimationRecords[471] __attribute__((section(".data"))) = {
 #include "assets/m4a1_animation_0B894_records.inc"
 };
 
-static u16 _gM4a1Animation0B894Indices[20] = {
+/// Reload record starts for tracks 0..18; the final serialized halfword is unused.
+static const u16 _gM4a1ReloadAnimationIndices[20] __attribute__((section(".data"))) = {
 #include "assets/m4a1_animation_0B894_indices.inc"
 };
 
-static AnimationSet _gM4a1Animation0B894 = {
-    _gM4a1Animation0B894Records,
-    _gM4a1Animation0B894Indices,
-    { NULL, _gM4a1Animation0B894Bank1, NULL, NULL, _gM4a1Animation0B894Bank4, NULL, NULL, NULL },
+/// Player-rig rifle reload shared by M4A1-family bank entries 14, 15 and 20.
+///
+/// Child tracks stop at the final pose; track 1 supplies two loading cues.
+/// Nineteen tracks borrow the loaded weapon overlay throughout playback,
+/// including while a caller retains a cue-record pointer.
+static AnimationSet _gM4a1ReloadAnimation = {
+    .records           = _gM4a1ReloadAnimationRecords,
+    .trackStartIndices = _gM4a1ReloadAnimationIndices,
+    .poseBanks         = { NULL, _gM4a1ReloadAnimationBank1, NULL, NULL, _gM4a1ReloadAnimationBank4, NULL, NULL, NULL },
 };
 
-static AnimationPackedPose _gM4a1Animation0BC60Bank1[6] = {
+/// Firing translation/rotation keyframes in integer model units and 1/4096 turns.
+static const AnimationPackedPose _gM4a1FireAnimationBank1[6] __attribute__((section(".data"))) = {
 #include "assets/m4a1_animation_0BC60_bank1.inc"
 };
 
-static AnimationPackedRotation _gM4a1Animation0BC60Bank4[80] = {
+/// Firing rotation-only keyframes, with packed angle steps of 1/512 turn.
+static const AnimationPackedRotation _gM4a1FireAnimationBank4[80] __attribute__((section(".data"))) = {
 #include "assets/m4a1_animation_0BC60_bank4.inc"
 };
 
-static AnimationRecord _gM4a1Animation0BC60Records[125] = {
+/// Firing keyframes and stop controls; durations count normal-rate frames.
+static const AnimationRecord _gM4a1FireAnimationRecords[125] __attribute__((section(".data"))) = {
 #include "assets/m4a1_animation_0BC60_records.inc"
 };
 
-static u16 _gM4a1Animation0BC60Indices[20] = {
+/// Firing record starts for tracks 0..18; the final serialized halfword is unused.
+static const u16 _gM4a1FireAnimationIndices[20] __attribute__((section(".data"))) = {
 #include "assets/m4a1_animation_0BC60_indices.inc"
 };
 
-static AnimationSet _gM4a1Animation0BC60 = {
-    _gM4a1Animation0BC60Records,
-    _gM4a1Animation0BC60Indices,
-    { NULL, _gM4a1Animation0BC60Bank1, NULL, NULL, _gM4a1Animation0BC60Bank4, NULL, NULL, NULL },
+/// Player-rig rifle firing pose shared by M4A1-family bank entries 10 and 11.
+///
+/// Each fired round blends the child tracks into this clip; they stop at the
+/// final pose. Shot timing belongs to the attack state rather than clip cues.
+/// Nineteen tracks borrow the loaded weapon overlay throughout playback.
+static AnimationSet _gM4a1FireAnimation = {
+    .records           = _gM4a1FireAnimationRecords,
+    .trackStartIndices = _gM4a1FireAnimationIndices,
+    .poseBanks         = { NULL, _gM4a1FireAnimationBank1, NULL, NULL, _gM4a1FireAnimationBank4, NULL, NULL, NULL },
 };
 
-static AnimationPackedPose _gM4a1Animation0C3A0Bank1[13] = {
+/// Aim-entry translation/rotation keyframes in integer model units and 1/4096 turns.
+static const AnimationPackedPose _gM4a1AimEntryAnimationBank1[13] __attribute__((section(".data"))) = {
 #include "assets/m4a1_animation_0C3A0_bank1.inc"
 };
 
-static AnimationPackedRotation _gM4a1Animation0C3A0Bank4[182] = {
+/// Aim-entry rotation-only keyframes, with packed angle steps of 1/512 turn.
+static const AnimationPackedRotation _gM4a1AimEntryAnimationBank4[182] __attribute__((section(".data"))) = {
 #include "assets/m4a1_animation_0C3A0_bank4.inc"
 };
 
-static AnimationRecord _gM4a1Animation0C3A0Records[223] = {
+/// Aim-entry keyframes and stop controls; durations count normal-rate frames.
+static const AnimationRecord _gM4a1AimEntryAnimationRecords[223] __attribute__((section(".data"))) = {
 #include "assets/m4a1_animation_0C3A0_records.inc"
 };
 
-static u16 _gM4a1Animation0C3A0Indices[20] = {
+/// Aim-entry record starts for tracks 0..18; the final serialized halfword is unused.
+static const u16 _gM4a1AimEntryAnimationIndices[20] __attribute__((section(".data"))) = {
 #include "assets/m4a1_animation_0C3A0_indices.inc"
 };
 
-static AnimationSet _gM4a1Animation0C3A0 = {
-    _gM4a1Animation0C3A0Records,
-    _gM4a1Animation0C3A0Indices,
-    { NULL, _gM4a1Animation0C3A0Bank1, NULL, NULL, _gM4a1Animation0C3A0Bank4, NULL, NULL, NULL },
+/// Player-rig transition into rifle aim, in M4A1-family bank entry 7.
+///
+/// Child tracks stop at the final pose. Enemy grab and hit recovery can also
+/// borrow this set into their player-animation tables. All nineteen tracks
+/// remain borrowed from the loaded weapon overlay throughout playback.
+static AnimationSet _gM4a1AimEntryAnimation = {
+    .records           = _gM4a1AimEntryAnimationRecords,
+    .trackStartIndices = _gM4a1AimEntryAnimationIndices,
+    .poseBanks         = { NULL, _gM4a1AimEntryAnimationBank1, NULL, NULL, _gM4a1AimEntryAnimationBank4, NULL, NULL, NULL },
 };
 
-static AnimationPackedPose _gM4a1Animation0CDD0Bank1[18] = {
+/// Aim-exit translation/rotation keyframes in integer model units and 1/4096 turns.
+static const AnimationPackedPose _gM4a1AimExitAnimationBank1[18] __attribute__((section(".data"))) = {
 #include "assets/m4a1_animation_0CDD0_bank1.inc"
 };
 
-static AnimationPackedRotation _gM4a1Animation0CDD0Bank4[266] = {
+/// Aim-exit rotation-only keyframes, with packed angle steps of 1/512 turn.
+static const AnimationPackedRotation _gM4a1AimExitAnimationBank4[266] __attribute__((section(".data"))) = {
 #include "assets/m4a1_animation_0CDD0_bank4.inc"
 };
 
-static AnimationRecord _gM4a1Animation0CDD0Records[312] = {
+/// Aim-exit keyframes and stop controls; durations count normal-rate frames.
+static const AnimationRecord _gM4a1AimExitAnimationRecords[312] __attribute__((section(".data"))) = {
 #include "assets/m4a1_animation_0CDD0_records.inc"
 };
 
-static u16 _gM4a1Animation0CDD0Indices[20] = {
+/// Aim-exit record starts for tracks 0..18; the final serialized halfword is unused.
+static const u16 _gM4a1AimExitAnimationIndices[20] __attribute__((section(".data"))) = {
 #include "assets/m4a1_animation_0CDD0_indices.inc"
 };
 
-static AnimationSet _gM4a1Animation0CDD0 = {
-    _gM4a1Animation0CDD0Records,
-    _gM4a1Animation0CDD0Indices,
-    { NULL, _gM4a1Animation0CDD0Bank1, NULL, NULL, _gM4a1Animation0CDD0Bank4, NULL, NULL, NULL },
+/// Player-rig transition out of rifle aim, in M4A1-family bank entry 8.
+///
+/// Normal and scripted attacks use this clip when leaving aim. Child tracks
+/// stop at the final pose; all nineteen tracks borrow the loaded weapon overlay
+/// throughout playback.
+static AnimationSet _gM4a1AimExitAnimation = {
+    .records           = _gM4a1AimExitAnimationRecords,
+    .trackStartIndices = _gM4a1AimExitAnimationIndices,
+    .poseBanks         = { NULL, _gM4a1AimExitAnimationBank1, NULL, NULL, _gM4a1AimExitAnimationBank4, NULL, NULL, NULL },
 };
 
-static AnimationPackedPose _gM4a1Animation0D688Bank1[18] = {
+/// Forward-walk translation/rotation keyframes in integer model units and 1/4096 turns.
+static const AnimationPackedPose _gM4a1ForwardWalkAnimationBank1[18] __attribute__((section(".data"))) = {
 #include "assets/m4a1_animation_0D688_bank1.inc"
 };
 
-static AnimationPackedRotation _gM4a1Animation0D688Bank4[201] = {
+/// Forward-walk rotation-only keyframes, with packed angle steps of 1/512 turn.
+static const AnimationPackedRotation _gM4a1ForwardWalkAnimationBank4[201] __attribute__((section(".data"))) = {
 #include "assets/m4a1_animation_0D688_bank4.inc"
 };
 
-static AnimationRecord _gM4a1Animation0D688Records[283] = {
+/// Forward-walk keyframes, footstep cues and loop/stop controls; durations count normal-rate frames.
+static const AnimationRecord _gM4a1ForwardWalkAnimationRecords[283] __attribute__((section(".data"))) = {
 #include "assets/m4a1_animation_0D688_records.inc"
 };
 
-static u16 _gM4a1Animation0D688Indices[20] = {
+/// Forward-walk record starts for tracks 0..18; the final serialized halfword is unused.
+static const u16 _gM4a1ForwardWalkAnimationIndices[20] __attribute__((section(".data"))) = {
 #include "assets/m4a1_animation_0D688_indices.inc"
 };
 
-static AnimationSet _gM4a1Animation0D688 = {
-    _gM4a1Animation0D688Records,
-    _gM4a1Animation0D688Indices,
-    { NULL, _gM4a1Animation0D688Bank1, NULL, NULL, _gM4a1Animation0D688Bank4, NULL, NULL, NULL },
+/// Player-rig forward walk with the rifle attached, in M4A1-family bank entry 2.
+///
+/// Child tracks loop; track 1 supplies the paired footstep cues. Root
+/// displacement comes from the actor's movement step. Nineteen tracks borrow
+/// the loaded weapon overlay throughout playback.
+static AnimationSet _gM4a1ForwardWalkAnimation = {
+    .records           = _gM4a1ForwardWalkAnimationRecords,
+    .trackStartIndices = _gM4a1ForwardWalkAnimationIndices,
+    .poseBanks         = { NULL, _gM4a1ForwardWalkAnimationBank1, NULL, NULL, _gM4a1ForwardWalkAnimationBank4, NULL, NULL, NULL },
 };
 
-static AnimationPackedPose _gM4a1Animation0DE28Bank1[16] = {
+/// Backward-walk translation/rotation keyframes in integer model units and 1/4096 turns.
+static const AnimationPackedPose _gM4a1BackwardWalkAnimationBank1[16] __attribute__((section(".data"))) = {
 #include "assets/m4a1_animation_0DE28_bank1.inc"
 };
 
-static AnimationPackedRotation _gM4a1Animation0DE28Bank4[157] = {
+/// Backward-walk rotation-only keyframes, with packed angle steps of 1/512 turn.
+static const AnimationPackedRotation _gM4a1BackwardWalkAnimationBank4[157] __attribute__((section(".data"))) = {
 #include "assets/m4a1_animation_0DE28_bank4.inc"
 };
 
-static AnimationRecord _gM4a1Animation0DE28Records[263] = {
+/// Backward-walk keyframes, footstep cues and loop/stop controls; durations count normal-rate frames.
+static const AnimationRecord _gM4a1BackwardWalkAnimationRecords[263] __attribute__((section(".data"))) = {
 #include "assets/m4a1_animation_0DE28_records.inc"
 };
 
-static u16 _gM4a1Animation0DE28Indices[20] = {
+/// Backward-walk record starts for tracks 0..18; the final serialized halfword is unused.
+static const u16 _gM4a1BackwardWalkAnimationIndices[20] __attribute__((section(".data"))) = {
 #include "assets/m4a1_animation_0DE28_indices.inc"
 };
 
-static AnimationSet _gM4a1Animation0DE28 = {
-    _gM4a1Animation0DE28Records,
-    _gM4a1Animation0DE28Indices,
-    { NULL, _gM4a1Animation0DE28Bank1, NULL, NULL, _gM4a1Animation0DE28Bank4, NULL, NULL, NULL },
+/// Player-rig backward walk in the M4A1-family bank, entry 3.
+///
+/// Child tracks loop; track 1 supplies the paired footstep cues. Root
+/// displacement comes from the actor's movement step. Nineteen tracks borrow
+/// the loaded weapon overlay throughout playback.
+static AnimationSet _gM4a1BackwardWalkAnimation = {
+    .records           = _gM4a1BackwardWalkAnimationRecords,
+    .trackStartIndices = _gM4a1BackwardWalkAnimationIndices,
+    .poseBanks         = { NULL, _gM4a1BackwardWalkAnimationBank1, NULL, NULL, _gM4a1BackwardWalkAnimationBank4, NULL, NULL, NULL },
 };
 
 static AnimationPackedPose _gM4a1Animation0E7FCBank1[25] = {
@@ -1244,25 +1300,25 @@ static AnimationSet _gM4a1Animation0E7FC = {
 AnimationBank D_m4a1_8012B9E4 = { { {
     NULL,
     &_gM4a1IdleAnimation,
-    &_gM4a1Animation0D688,
-    &_gM4a1Animation0DE28,
+    &_gM4a1ForwardWalkAnimation,
+    &_gM4a1BackwardWalkAnimation,
     &_gM4a1Animation0E7FC,
     &_gM4a1NegativeTurnAnimation,
     &_gM4a1PositiveTurnAnimation,
-    &_gM4a1Animation0C3A0,
-    &_gM4a1Animation0CDD0,
+    &_gM4a1AimEntryAnimation,
+    &_gM4a1AimExitAnimation,
     &_gM4a1AimHoldAnimation,
-    &_gM4a1Animation0BC60,
-    &_gM4a1Animation0BC60,
+    &_gM4a1FireAnimation,
+    &_gM4a1FireAnimation,
     &_gM4a1AimForwardWalkAnimation,
     &_gM4a1AimBackwardOrTurnAnimation,
-    &_gM4a1Animation0B894,
-    &_gM4a1Animation0B894,
+    &_gM4a1ReloadAnimation,
+    &_gM4a1ReloadAnimation,
     &_gM4a1Part4HitReactionAnimation,
     &_gM4a1OtherBodyHitReactionAnimation,
     &_gM4a1DeathAnimation,
     &_gM4a1UnarmedWalkAnimation,
-    &_gM4a1Animation0B894,
+    &_gM4a1ReloadAnimation,
     &_gM4a1IdleAnimation,
     &_gM4a1IdleAnimation,
     &_gM4a1HealthyIdleAnimation,
