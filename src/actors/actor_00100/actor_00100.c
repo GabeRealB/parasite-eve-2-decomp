@@ -62,6 +62,11 @@
 #include "../../shared/player_detection.h"
 #include "../../shared/actor_messages.h"
 #include "../../shared/actor_contacts.h"
+
+/// Selects ordinary Desert Chaser combat for the actor_400100 and actor_407500 images.
+///
+/// Keep this preprocessor binding fixed through the shared header and fragments;
+/// it selects the work layout, four lifecycle handlers and combat tuning.
 #define DESERT_CHASER_BUILD DESERT_CHASER_REGULAR
 #include "../../shared/desert_chaser.h"
 
@@ -3682,3 +3687,5 @@ static void _actor00100ReleaseBattleState(Enemy* enemy, Task* task)
 }
 
 #include "../../shared/desert_chaser_task.inc.c"
+
+#undef DESERT_CHASER_BUILD

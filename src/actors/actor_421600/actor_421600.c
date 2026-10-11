@@ -58,6 +58,12 @@
 #include "../../shared/limb_shadows.h"
 #include "../../shared/actor_messages.h"
 #include "../../shared/actor_contacts.h"
+
+/// Selects Desert Chaser arena combat and mechanism-run behavior for actor_421600.
+///
+/// Keep this preprocessor binding fixed through the shared header and fragments;
+/// it selects the Water Tower work layout and three lifecycle handlers regardless
+/// of whether a live room command has started the timed run.
 #define DESERT_CHASER_BUILD DESERT_CHASER_WATER_TOWER
 #include "../../shared/desert_chaser.h"
 
@@ -4567,3 +4573,5 @@ static void _actor421600RiseState(Task* task)
 #include "../../shared/desert_chaser_collapse.inc.c"
 
 #include "../../shared/desert_chaser_task.inc.c"
+
+#undef DESERT_CHASER_BUILD

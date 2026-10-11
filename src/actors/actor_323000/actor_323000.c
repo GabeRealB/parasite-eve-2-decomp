@@ -40,6 +40,11 @@
 
 #include "overlay.h"
 #include "../../shared/actor_messages.h"
+
+/// Selects the scripted, noncombat Desert Chaser implementation for actor_323000.
+///
+/// Keep this preprocessor binding fixed through the shared header and fragments;
+/// it selects the work layout and three lifecycle handlers, with no combat bodies.
 #define DESERT_CHASER_BUILD DESERT_CHASER_CUTSCENE
 #include "../../shared/desert_chaser.h"
 
@@ -1463,3 +1468,5 @@ static void _actor323000PlayClip13State(Enemy* enemy, Task* task)
 }
 
 #include "../../shared/desert_chaser_task.inc.c"
+
+#undef DESERT_CHASER_BUILD

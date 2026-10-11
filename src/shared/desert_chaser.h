@@ -1,21 +1,23 @@
-/* The Desert Chaser, one enemy built three ways; a package selects its build
- * with DESERT_CHASER_BUILD before including this header:
+/* Shared Desert Chaser interface and compile-time configuration.
  *
- * - DESERT_CHASER_CUTSCENE: actor_323000, the Main Street introduction where
- *   the chaser leaps from a roof (the fight that follows uses the regular
- *   build); actor_323400 in the Dryfield breezeway carries the same build,
- *   its scene not yet confirmed. Its spawn sets 0 HP and
- *   WORLD_TARGET_NOT_LOCKABLE, and message 2005 toggles its display flags.
- * - DESERT_CHASER_REGULAR: actor_00100 (packages actor_400100 and actor_407500).
- * - DESERT_CHASER_WATER_TOWER: actor_421600, the dryfield_water_tower build.
+ * Each carrier defines the object-like integer binding DESERT_CHASER_BUILD
+ * before including this header and keeps it fixed through every fragment:
  *
- * All three drive an 18-slot rig. The animation driver seeds its slots from a
- * per-transition blend-length table and mixes a second rig into slots 1-10;
- * it eases a look turn spread over the neck parts 2-4 and a counter-turn of
- * the waist, part 10, and plays the sound its per-package cue step returns.
+ * - DESERT_CHASER_CUTSCENE (1): actor_323000 and actor_323400, scripted
+ *   animation with zero live HP, no combat bodies and a non-lockable target.
+ * - DESERT_CHASER_REGULAR (2): actor_00100, compiled into actor_400100 and
+ *   actor_407500, ordinary combat with placement-dependent tuning.
+ * - DESERT_CHASER_WATER_TOWER (3): actor_421600, arena combat and the timed
+ *   mechanism run; the build remains selected before and after START_RUN.
  *
- * Include this header in the prologue and each fragment at its function's
- * position.
+ * The binding selects work and scratch layouts, lifecycle-table length,
+ * collision/avoidance capacities, clip/state indices and animation behavior.
+ * It must be a preprocessor value: enum constants cannot select these #if
+ * branches. This guarded header configures one build per translation unit;
+ * rebinding after inclusion would mix declarations with another implementation.
+ * Undefine the binding only after the last Desert Chaser fragment.
+ *
+ * Include the header in the prologue and fragments at their function positions.
  */
 
 #ifndef SRC_SHARED_DESERT_CHASER_H
@@ -51,7 +53,9 @@
 /// This selects the compiled layout and behavior, independently of a live room command.
 #define DESERT_CHASER_WATER_TOWER 3
 #ifndef DESERT_CHASER_BUILD
-#error "define DESERT_CHASER_BUILD (DESERT_CHASER_CUTSCENE, _REGULAR or _WATER_TOWER) before including desert_chaser.h"
+#error "define DESERT_CHASER_BUILD before including desert_chaser.h"
+#elif DESERT_CHASER_BUILD != DESERT_CHASER_CUTSCENE && DESERT_CHASER_BUILD != DESERT_CHASER_REGULAR && DESERT_CHASER_BUILD != DESERT_CHASER_WATER_TOWER
+#error "DESERT_CHASER_BUILD must be DESERT_CHASER_CUTSCENE, DESERT_CHASER_REGULAR or DESERT_CHASER_WATER_TOWER"
 #endif
 
 /// Secondary slot-1 status bit that stops mixing the two animation rigs.
