@@ -20,7 +20,6 @@
 #include "main/task.h"
 #include "main/task_types.h"
 #include "main/tmd_types.h"
-#define ACTOR_MESSAGE_BODY_TASK _gActor110300BodyTask
 #include "../../shared/actor_messages.h"
 #include "../../shared/view_figure.h"
 
@@ -263,6 +262,16 @@ static AnimationSet* _gViewFigureAnimSets[7] = {
     NULL,
 };
 
+/// Selects the published view-figure body task for the shared fragments.
+///
+/// Expands to a writable `Task*` lvalue with no evaluation side effects. Spawn
+/// publishes the body after work allocation succeeds; animation messages read
+/// it and pair visibility dereferences its TMD model. Keep bound through those
+/// fragment includes. Pair visibility also requires the matching live helper
+/// in `_gActorMsgHelperTask`. The pointer borrows the current body; a later spawn
+/// replaces it and teardown leaves it uncleared, so no read may follow teardown.
+#define ACTOR_MESSAGE_BODY_TASK _gActor110300BodyTask
+
 /// Selects this package's public TaskDesc array for the shared spawn state.
 ///
 /// Requires a live two-entry array with the body at VIEW_FIGURE_TASK_BODY and
@@ -342,3 +351,4 @@ static void _actor110300UpdateViewFigure(Enemy* unusedEnemy, Task* task)
 #include "../../shared/view_figure_play_message.inc.c"
 
 #include "../../shared/actor_messages_pair_visibility.inc.c"
+#undef ACTOR_MESSAGE_BODY_TASK

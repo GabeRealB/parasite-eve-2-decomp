@@ -36,7 +36,6 @@
 #include "main/task_types.h"
 #include "main/tmd_types.h"
 #include "../../shared/scripted_walk.h"
-#define ACTOR_MESSAGE_BODY_TASK _gActor146300BodyTask
 #include "../../shared/actor_messages.h"
 
 /// Work block of the package's actor, a twenty-part figure that event scripts
@@ -2175,7 +2174,16 @@ static s32 _actor146300PlayAnimation(Task* unusedTask, s32 messageId, const Anim
     return ACTOR146300_ANIMATION_REJECTED;
 }
 
+/// Selects the published water-tank figure's body for paired visibility.
+///
+/// Expands to a `Task*` identifier with no evaluation side effects; this
+/// fragment only reads it, independently of the message receiver. Requires
+/// the current live TMD body and its matching helper in `_gActorMsgHelperTask`.
+/// Successful spawn replaces the borrowed pointer; teardown does not clear it.
+/// Bind only around the pair-visibility fragment and never dispatch after teardown.
+#define ACTOR_MESSAGE_BODY_TASK _gActor146300BodyTask
 #include "../../shared/actor_messages_pair_visibility.inc.c"
+#undef ACTOR_MESSAGE_BODY_TASK
 
 #include "../../shared/scripted_walk_place.inc.c"
 
