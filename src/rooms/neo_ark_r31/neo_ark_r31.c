@@ -53,7 +53,12 @@ u8* gNeoArkR31ViewMaps[1] = {
     gViewIdentityMap,
 };
 
-ViewCount D_neo_ark_r31_8017DA20[1] = { 3 };
+// Logical entries searched in each room map, independent of its storage capacity.
+enum {
+    NEO_ARK_R31_LOGICAL_VIEW_COUNT = 3,
+};
+
+ViewCount gNeoArkR31ViewCounts[1] = { NEO_ARK_R31_LOGICAL_VIEW_COUNT };
 
 DirectionWarpEntry D_neo_ark_r31_8017DA24[1] = {
     { { { .word = 2048 }, 0, 0, 0 }, { 0, 0, 0, 0 }, { { .word = 2048 }, 0, 0, 0 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 1, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },

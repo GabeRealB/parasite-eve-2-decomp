@@ -38,7 +38,18 @@ extern s16 gNeoArkSubmarineTunnelDiverWaterY;
 
 extern TaskDesc D_neo_ark_submarine_tunnel_801810E4;
 
-extern AreaVariant D_neo_ark_submarine_tunnel_80187470[13];
+/// Number of retained placement-variant slots, including absent slots.
+enum { NEO_ARK_SUBMARINE_TUNNEL_AREA_VARIANT_COUNT = 13 };
+
+/// Neo Ark submarine tunnel placement/resource directory indexed by `GameLocationKey.variant`.
+///
+/// Variants 1..3 publish actor layouts; variant 4 publishes empty lists.
+/// All other slots, including 0, are absent (NULL, NULL).
+/// Placements belong to the Neo Ark map overlay; recipes belong to this room.
+/// Keep both and any actors supplying task descriptors loaded through loading,
+/// spawning and model-flag updates.
+/// Selectors must be in 0..12; there is no terminator or bounds check.
+extern AreaVariant gNeoArkSubmarineTunnelAreaVariants[NEO_ARK_SUBMARINE_TUNNEL_AREA_VARIANT_COUNT];
 
 /// Lighting for the tunnel's single room, indexed by room minus one.
 ///

@@ -447,19 +447,9 @@ static AreaResource _gShelter1fAirlockBishopResources[2] = {
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaVariant D_shelter_1f_airlock_8017F758[12] = {
-    { NULL, NULL },
-    { gMapNeoArkAirlockKnightPlacements, _gShelter1fAirlockKnightResources },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { gMapNeoArkAirlockBishopPlacements, _gShelter1fAirlockBishopResources },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
+AreaVariant gShelter1fAirlockAreaVariants[SHELTER_1F_AIRLOCK_AREA_VARIANT_COUNT] = {
+    [AREA_DEFAULT_VARIANT] = { .placements = gMapNeoArkAirlockKnightPlacements, .resources = _gShelter1fAirlockKnightResources },
+    [7]                    = { .placements = gMapNeoArkAirlockBishopPlacements, .resources = _gShelter1fAirlockBishopResources },
 };
 
 WorldCollisionOccluder D_shelter_1f_airlock_8017F7B8[2] = {

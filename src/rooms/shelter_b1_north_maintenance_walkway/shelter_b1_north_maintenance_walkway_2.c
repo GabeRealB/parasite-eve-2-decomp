@@ -388,19 +388,12 @@ static AreaPlacement _gShelterB1NorthMaintenanceWalkwayVariant11Placements[6] = 
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-AreaVariant D_shelter_b1_north_maintenance_walkway_80185A38[12] = {
-    { NULL, NULL },
-    { _gShelterB1NorthMaintenanceWalkwayVariant1Placements, _gShelterB1NorthMaintenanceWalkwayVariant1Resources },
-    { _gShelterB1NorthMaintenanceWalkwayVariant2Placements, _gShelterB1NorthMaintenanceWalkwayVariant2Resources },
-    { _gShelterB1NorthMaintenanceWalkwayVariant3Placements, _gShelterB1NorthMaintenanceWalkwayVariant3Resources },
-    { _gShelterB1NorthMaintenanceWalkwayVariant4Placements, _gShelterB1NorthMaintenanceWalkwayVariant4Resources },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { _gShelterB1NorthMaintenanceWalkwayVariant11Placements, _gShelterB1NorthMaintenanceWalkwayVariant11Resources },
+AreaVariant gShelterB1NorthMaintenanceWalkwayAreaVariants[SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_AREA_VARIANT_COUNT] = {
+    [AREA_DEFAULT_VARIANT] = { .placements = _gShelterB1NorthMaintenanceWalkwayVariant1Placements, .resources = _gShelterB1NorthMaintenanceWalkwayVariant1Resources },
+    [2]                    = { .placements = _gShelterB1NorthMaintenanceWalkwayVariant2Placements, .resources = _gShelterB1NorthMaintenanceWalkwayVariant2Resources },
+    [3]                    = { .placements = _gShelterB1NorthMaintenanceWalkwayVariant3Placements, .resources = _gShelterB1NorthMaintenanceWalkwayVariant3Resources },
+    [4]                    = { .placements = _gShelterB1NorthMaintenanceWalkwayVariant4Placements, .resources = _gShelterB1NorthMaintenanceWalkwayVariant4Resources },
+    [11]                   = { .placements = _gShelterB1NorthMaintenanceWalkwayVariant11Placements, .resources = _gShelterB1NorthMaintenanceWalkwayVariant11Resources },
 };
 
 WorldCollisionTrigger D_shelter_b1_north_maintenance_walkway_80185A98[2] = {

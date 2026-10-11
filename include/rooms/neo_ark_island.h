@@ -60,7 +60,13 @@ extern WorldCoordRoomLighting gNeoArkIslandRoomLighting[1];
 /// is no terminator. The directory requires this room overlay to stay loaded.
 extern u8* gNeoArkIslandViewMaps[1];
 
-extern ViewCount D_neo_ark_island_80181BB0[];
+/// Neo Ark island logical-view search count for its single room.
+///
+/// Room 1 searches five identity-map entries, selecting mapped views 1..5.
+/// Indexed by room - 1; signed halfword values count logical map elements,
+/// independently of map capacity and mapped resource extents. No terminator.
+/// Borrow the array only while this room overlay is loaded.
+extern ViewCount gNeoArkIslandViewCounts[1];
 
 extern DirectionWarpEntry D_neo_ark_island_80181BB4[];
 

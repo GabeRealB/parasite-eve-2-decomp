@@ -12,7 +12,18 @@
 
 #include "main/task_types.h"
 
-extern AreaVariant D_shelter_b6_corridor_80180304[13];
+/// Number of retained placement-variant slots, including absent slots.
+enum { SHELTER_B6_CORRIDOR_AREA_VARIANT_COUNT = 13 };
+
+/// Shelter B6 corridor placement/resource directory indexed by `GameLocationKey.variant`.
+///
+/// Variant 1 publishes the Eve scene layout.
+/// All other slots, including 0, are absent (NULL, NULL).
+/// Placements belong to the Neo Ark map overlay; recipes belong to this room.
+/// Keep both and any actors supplying task descriptors loaded through loading,
+/// spawning and model-flag updates.
+/// Selectors must be in 0..12; there is no terminator or bounds check.
+extern AreaVariant gShelterB6CorridorAreaVariants[SHELTER_B6_CORRIDOR_AREA_VARIANT_COUNT];
 
 /// Number of mapped camera, image and sprite views in the corridor.
 enum { SHELTER_B6_CORRIDOR_VIEW_COUNT = 5 };

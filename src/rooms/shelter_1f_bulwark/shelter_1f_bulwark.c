@@ -325,19 +325,8 @@ static AreaResource _gShelter1fBulwarkVariant1Resources[3] = {
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaVariant D_shelter_1f_bulwark_80180DA8[12] = {
-    { NULL, NULL },
-    { gMapNeoArkBulwarkDefaultPlacements, _gShelter1fBulwarkVariant1Resources },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
+AreaVariant gShelter1fBulwarkAreaVariants[SHELTER_1F_BULWARK_AREA_VARIANT_COUNT] = {
+    [AREA_DEFAULT_VARIANT] = { .placements = gMapNeoArkBulwarkDefaultPlacements, .resources = _gShelter1fBulwarkVariant1Resources },
 };
 
 /// Two room-space quads blocking sight, ending with LAST on the second record.

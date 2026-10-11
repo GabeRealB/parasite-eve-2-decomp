@@ -355,7 +355,12 @@ WorldCollisionRoomResources D_dryfield_night_factory_80186F34[2] = {
     { &gDryfieldNightFactoryCollisionGrid, D_dryfield_night_factory_80189CA0, D_dryfield_night_factory_8018A168, NULL },
 };
 
-ViewCount D_dryfield_night_factory_80186F54[2] = { 19, 19 };
+// Logical entries searched in each room map, independent of its storage capacity.
+enum {
+    DRYFIELD_NIGHT_FACTORY_LOGICAL_VIEW_COUNT = 19,
+};
+
+ViewCount gDryfieldNightFactoryViewCounts[2] = { DRYFIELD_NIGHT_FACTORY_LOGICAL_VIEW_COUNT, DRYFIELD_NIGHT_FACTORY_LOGICAL_VIEW_COUNT };
 
 DirectionWarpEntry D_dryfield_night_factory_80186F58[3] = {
     { { { .word = 3072 }, 5178, 0, 1454 }, { 0, 0, 0, 0 }, { { .word = 768 }, 3952, 0, 1200 }, { 0, 0, 0, 0 }, 0x53170002, 0x53170001, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, 474 },

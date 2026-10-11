@@ -360,20 +360,8 @@ static AreaResource _gShelterB6TrainingRoomVariant1Resources[6] = {
     { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaVariant D_shelter_b6_training_room_801859DC[13] = {
-    { NULL, NULL },
-    { gMapNeoArkTrainingRoomDefaultPlacements, _gShelterB6TrainingRoomVariant1Resources },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
+AreaVariant gShelterB6TrainingRoomAreaVariants[SHELTER_B6_TRAINING_ROOM_AREA_VARIANT_COUNT] = {
+    [AREA_DEFAULT_VARIANT] = { .placements = gMapNeoArkTrainingRoomDefaultPlacements, .resources = _gShelterB6TrainingRoomVariant1Resources },
 };
 
 WorldCollisionTrigger D_shelter_b6_training_room_80185A44[5] = {

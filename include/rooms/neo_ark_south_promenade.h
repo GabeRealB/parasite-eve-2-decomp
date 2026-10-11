@@ -11,7 +11,19 @@
 
 #include "main/task_types.h"
 
-extern AreaVariant D_neo_ark_south_promenade_801808E4[13];
+/// Number of retained placement-variant slots, including absent slots.
+enum { NEO_ARK_SOUTH_PROMENADE_AREA_VARIANT_COUNT = 13 };
+
+/// Neo Ark south promenade placement/resource directory indexed by `GameLocationKey.variant`.
+///
+/// Variants 2 and 3 publish distinct empty lists; 4 places Black Beetles,
+/// 5 places Pawns, and 11 places Pawns and a Rook.
+/// All other slots, including 0, are absent (NULL, NULL).
+/// Placements belong to the Neo Ark map overlay; recipes belong to this room.
+/// Keep both and any actors supplying task descriptors loaded through loading,
+/// spawning and model-flag updates.
+/// Selectors must be in 0..12; there is no terminator or bounds check.
+extern AreaVariant gNeoArkSouthPromenadeAreaVariants[NEO_ARK_SOUTH_PROMENADE_AREA_VARIANT_COUNT];
 
 /// Extents of the promenade's mapped view resources and surface-class directory.
 enum {
@@ -24,7 +36,12 @@ enum {
 /// Indexed by room - 1. Borrows mutable lights from the loaded promenade overlay.
 extern WorldCoordRoomLighting gNeoArkSouthPromenadeRoomLighting[1];
 
-extern WorldCollisionRoomResources D_neo_ark_south_promenade_8017F6F4[];
+/// Collision resources for the promenade's single room, indexed by room - 1.
+///
+/// Borrows the mutable grid, six view boundaries, six action triggers and one
+/// sight occluder. The final trigger and occluder records carry their LAST bits.
+/// Keep this room overlay loaded while the grid is active or records are linked.
+extern WorldCollisionRoomResources gNeoArkSouthPromenadeCollisionResources[1];
 
 /// Logical-view map for room 1, mapping views 1..5 to the same resource indices.
 ///
@@ -39,7 +56,15 @@ extern u8* gNeoArkSouthPromenadeViewMaps[1];
 /// Borrow this signed halfword array only while the room overlay is loaded.
 extern ViewCount gNeoArkSouthPromenadeViewCounts[1];
 
-extern DirectionWarpEntry D_neo_ark_south_promenade_8017F70C[];
+/// Player/companion placements and transition options for warp IDs 1 and 2.
+///
+/// Indexed by warp - 1, with no terminator. Positions use world game units and
+/// yaw uses 4096 units per turn. Warp 1 starts in view 5 with room-bank arrival
+/// and departure sounds; warp 2 starts in view 2 without sounds. Neither uses
+/// scripted-spawn/fade options or a map marker. Both actors share each position.
+/// The stage map borrows this room-overlay array; keep the overlay loaded while
+/// arrival setup or departure queries copy an endpoint.
+extern DirectionWarpEntry gNeoArkSouthPromenadeWarpEntries[2];
 
 /// Cameras for mapped views 1..5, indexed by mapped view - 1.
 ///

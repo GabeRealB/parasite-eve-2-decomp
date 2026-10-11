@@ -19,7 +19,18 @@ extern AreaApplyRec D_shelter_b1_control_room_80183BE0[2];
 
 extern TaskDesc D_shelter_b1_control_room_80181B88;
 
-extern AreaVariant D_shelter_b1_control_room_80183A98[22];
+/// Number of retained placement-variant slots, including absent slots.
+enum { SHELTER_B1_CONTROL_ROOM_AREA_VARIANT_COUNT = 22 };
+
+/// Shelter B1 control room placement/resource directory indexed by `GameLocationKey.variant`.
+///
+/// Variants 1, 2, 3, 11 and 13 publish layouts. Variants 2 and 3 retain
+/// separate placement and resource lists even though their contents agree.
+/// All other slots, including 0, are absent (NULL, NULL).
+/// Both lists belong to this room overlay. Keep it and any actors supplying
+/// task descriptors loaded through loading, spawning and model-flag updates.
+/// Selectors must be in 0..21; there is no terminator or bounds check.
+extern AreaVariant gShelterB1ControlRoomAreaVariants[SHELTER_B1_CONTROL_ROOM_AREA_VARIANT_COUNT];
 
 /// The control room's one-room directory of logical-view maps.
 ///

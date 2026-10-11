@@ -15,7 +15,19 @@
 
 extern TmdSource gShelterB6NurseryModel07BAC;
 
-extern AreaVariant D_shelter_b6_nursery_801874A4[13];
+/// Number of retained placement-variant slots, including absent slots.
+enum { SHELTER_B6_NURSERY_AREA_VARIANT_COUNT = 13 };
+
+/// Shelter B6 nursery placement/resource directory indexed by `GameLocationKey.variant`.
+///
+/// Variant 1 publishes the Kyle and Pawn layout. Its saved variant and spawn
+/// flags are also used by the growth room, which has a separate directory.
+/// All other slots, including 0, are absent (NULL, NULL).
+/// Placements belong to the Neo Ark map overlay; recipes belong to this room.
+/// Keep both and any actors supplying task descriptors loaded through loading,
+/// spawning and model-flag updates.
+/// Selectors must be in 0..12; there is no terminator or bounds check.
+extern AreaVariant gShelterB6NurseryAreaVariants[SHELTER_B6_NURSERY_AREA_VARIANT_COUNT];
 
 /// Logical-view maps for the nursery's single room.
 ///

@@ -19,7 +19,18 @@
 /// at world Y=140. The room overlay must stay loaded while the task runs.
 extern TaskDesc gNeoArkWoodlandPathWaterRefractionTaskDesc;
 
-extern AreaVariant D_neo_ark_woodland_path_8018471C[12];
+/// Number of retained placement-variant slots, including absent slots.
+enum { NEO_ARK_WOODLAND_PATH_AREA_VARIANT_COUNT = 12 };
+
+/// Neo Ark woodland path placement/resource directory indexed by `GameLocationKey.variant`.
+///
+/// Variants 1..3 each place two Horned Strangers; variant 4 places four.
+/// All other slots, including 0, are absent (NULL, NULL).
+/// Placements belong to the Neo Ark map overlay; recipes belong to this room.
+/// Keep both and any actors supplying task descriptors loaded through loading,
+/// spawning and model-flag updates.
+/// Selectors must be in 0..11; there is no terminator or bounds check.
+extern AreaVariant gNeoArkWoodlandPathAreaVariants[NEO_ARK_WOODLAND_PATH_AREA_VARIANT_COUNT];
 
 /// Logical-view map for the woodland path's single room.
 ///

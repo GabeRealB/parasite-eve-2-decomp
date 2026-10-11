@@ -35,7 +35,7 @@ mineTunnelRoomTask = 0x8017D77C; // type:func absolute:True owner=mine_tunnel sh
 gMineTunnelRoomLighting = 0x8017E154; // absolute:True owner=mine_tunnel
 D_mine_tunnel_8017E15C = 0x8017E15C; // absolute:True owner=mine_tunnel
 gMineTunnelRoomViewMaps = 0x8017E16C; // absolute:True owner=mine_tunnel
-D_mine_tunnel_8017E170 = 0x8017E170; // absolute:True owner=mine_tunnel
+gMineTunnelRoomViewCounts = 0x8017E170; // absolute:True owner=mine_tunnel
 D_mine_tunnel_8017E174 = 0x8017E174; // absolute:True owner=mine_tunnel
 gMineTunnelViewCameras = 0x8017E890; // absolute:True owner=mine_tunnel
 gMineTunnelSpriteViews = 0x8017F9A4; // absolute:True owner=mine_tunnel

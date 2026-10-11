@@ -12,7 +12,18 @@
 
 #include "main/task_types.h"
 
-extern AreaVariant D_shelter_1f_tent_80184230[13];
+/// Number of retained placement-variant slots, including absent slots.
+enum { SHELTER_1F_TENT_AREA_VARIANT_COUNT = 13 };
+
+/// Shelter 1F tent placement/resource directory indexed by `GameLocationKey.variant`.
+///
+/// Variant 1 publishes the three-soldier layout.
+/// All other slots, including 0, are absent (NULL, NULL).
+/// Placements belong to the Neo Ark map overlay; recipes belong to this room.
+/// Keep both and any actors supplying task descriptors loaded through loading,
+/// spawning and model-flag updates.
+/// Selectors must be in 0..12; there is no terminator or bounds check.
+extern AreaVariant gShelter1fTentAreaVariants[SHELTER_1F_TENT_AREA_VARIANT_COUNT];
 
 /// Extents of the tent's mapped sprite-view and collision surface directories.
 enum {

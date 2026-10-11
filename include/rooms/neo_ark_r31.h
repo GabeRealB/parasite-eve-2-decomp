@@ -36,7 +36,13 @@ extern AreaVariant gNeoArkR31AreaVariants[NEO_ARK_R31_AREA_VARIANT_COUNT];
 /// is no terminator. The directory requires this room overlay to stay loaded.
 extern u8* gNeoArkR31ViewMaps[1];
 
-extern ViewCount D_neo_ark_r31_8017DA20[];
+/// Neo Ark R31 logical-view search count for its single room.
+///
+/// Room 1 searches three identity-map entries, selecting mapped views 1..3.
+/// Indexed by room - 1; signed halfword values count logical map elements,
+/// independently of map capacity and mapped resource extents. No terminator.
+/// Borrow the array only while this room overlay is loaded.
+extern ViewCount gNeoArkR31ViewCounts[1];
 
 extern DirectionWarpEntry D_neo_ark_r31_8017DA24[];
 

@@ -145,18 +145,8 @@ static AreaPlacement _gShelterB1PodServiceGantryDefaultPlacements[6] = {
     { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaVariant D_shelter_b1_pod_service_gantry_8017FBF8[11] = {
-    { NULL, NULL },
-    { _gShelterB1PodServiceGantryDefaultPlacements, _gShelterB1PodServiceGantryDefaultResources },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
+AreaVariant gShelterB1PodServiceGantryAreaVariants[SHELTER_B1_POD_SERVICE_GANTRY_AREA_VARIANT_COUNT] = {
+    [AREA_DEFAULT_VARIANT] = { .placements = _gShelterB1PodServiceGantryDefaultPlacements, .resources = _gShelterB1PodServiceGantryDefaultResources },
 };
 
 /// Room-space collision normals, with 4096 representing unit length.

@@ -20,7 +20,17 @@
 /// synchronously while this room overlay remains loaded.
 extern AreaApplyRec gShelterB2ElevatorSceneSavedAreaUpdates[2];
 
-extern AreaVariant D_shelter_b2_elevator_8017E964[11];
+/// Number of retained placement-variant slots, including absent slots.
+enum { SHELTER_B2_ELEVATOR_AREA_VARIANT_COUNT = 11 };
+
+/// Shelter B2 elevator placement/resource directory indexed by `GameLocationKey.variant`.
+///
+/// Variant 1 loads the scene library without placing actors.
+/// All other slots, including 0, are absent (NULL, NULL).
+/// Both lists belong to this room overlay. Keep it and any actors supplying
+/// task descriptors loaded through loading, spawning and model-flag updates.
+/// Selectors must be in 0..10; there is no terminator or bounds check.
+extern AreaVariant gShelterB2ElevatorAreaVariants[SHELTER_B2_ELEVATOR_AREA_VARIANT_COUNT];
 
 /// Logical-view mapping for the elevator's single room.
 ///

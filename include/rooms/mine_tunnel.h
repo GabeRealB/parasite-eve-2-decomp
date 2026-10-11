@@ -38,7 +38,13 @@ extern WorldCollisionRoomResources D_mine_tunnel_8017E15C[];
 /// the five camera and sprite slots. The room directory lives with this overlay.
 extern u8* gMineTunnelRoomViewMaps[1];
 
-extern ViewCount D_mine_tunnel_8017E170[];
+/// Mine tunnel logical-view search count for its single room.
+///
+/// Room 1 searches five identity-map entries, selecting mapped views 1..5.
+/// Indexed by room - 1; signed halfword values count logical map elements,
+/// independently of map capacity and mapped resource extents. No terminator.
+/// Borrow the array only while this room overlay is loaded.
+extern ViewCount gMineTunnelRoomViewCounts[1];
 
 extern DirectionWarpEntry D_mine_tunnel_8017E174[];
 

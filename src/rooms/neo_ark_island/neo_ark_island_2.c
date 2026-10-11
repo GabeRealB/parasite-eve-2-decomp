@@ -76,7 +76,7 @@ u8* gNeoArkIslandViewMaps[1] = {
     gViewIdentityMap,
 };
 
-ViewCount D_neo_ark_island_80181BB0[1] = { 5 };
+ViewCount gNeoArkIslandViewCounts[1] = { NEO_ARK_ISLAND_VIEW_RESOURCE_COUNT };
 
 DirectionWarpEntry D_neo_ark_island_80181BB4[2] = {
     { { { .word = 2048 }, 3100, 0, 6464 }, { 0, 0, 0, 0 }, { { .word = 2048 }, 3100, 0, 6464 }, { 0, 0, 0, 0 }, 0x550E0002, 0x550E0001, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },

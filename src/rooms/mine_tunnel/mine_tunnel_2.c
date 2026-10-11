@@ -63,7 +63,12 @@ u8* gMineTunnelRoomViewMaps[1] = {
     gViewIdentityMap,
 };
 
-ViewCount D_mine_tunnel_8017E170[1] = { 5 };
+// Logical entries searched in each room map, independent of its storage capacity.
+enum {
+    MINE_TUNNEL_LOGICAL_VIEW_COUNT = 5,
+};
+
+ViewCount gMineTunnelRoomViewCounts[1] = { MINE_TUNNEL_LOGICAL_VIEW_COUNT };
 
 DirectionWarpEntry D_mine_tunnel_8017E174[2] = {
     { { { .word = 3072 }, 0x3CF0, 0, 1200 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 0x3CF0, 0, 1200 }, { 0, 0, 0, 0 }, 0x54040002, 0x54040001, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },

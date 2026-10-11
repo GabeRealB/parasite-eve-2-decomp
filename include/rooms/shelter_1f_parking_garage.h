@@ -11,7 +11,18 @@
 
 #include "main/task_types.h"
 
-extern AreaVariant D_shelter_1f_parking_garage_801818D8[12];
+/// Number of retained placement-variant slots, including absent slots.
+enum { SHELTER_1F_PARKING_GARAGE_AREA_VARIANT_COUNT = 12 };
+
+/// Shelter 1F parking garage placement/resource directory indexed by `GameLocationKey.variant`.
+///
+/// Variant 1 publishes empty placement and resource lists.
+/// All other slots, including 0, are absent (NULL, NULL).
+/// Placements belong to the Neo Ark map overlay; recipes belong to this room.
+/// Keep both and any actors supplying task descriptors loaded through loading,
+/// spawning and model-flag updates.
+/// Selectors must be in 0..11; there is no terminator or bounds check.
+extern AreaVariant gShelter1fParkingGarageAreaVariants[SHELTER_1F_PARKING_GARAGE_AREA_VARIANT_COUNT];
 
 /// Logical views and identity-mapped camera/image/sprite slots in the garage.
 enum { SHELTER_1F_PARKING_GARAGE_VIEW_COUNT = 4 };

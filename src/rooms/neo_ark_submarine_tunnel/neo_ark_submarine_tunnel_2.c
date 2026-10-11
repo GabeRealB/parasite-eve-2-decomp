@@ -1384,20 +1384,11 @@ static AreaResource _gNeoArkSubmarineTunnelVariant4Resources[] = {
     { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaVariant D_neo_ark_submarine_tunnel_80187470[13] = {
-    { NULL, NULL },
-    { gMapNeoArkSubmarineTunnelVariant1Placements, _gNeoArkSubmarineTunnelVariant1Resources },
-    { gMapNeoArkSubmarineTunnelVariant2Placements, _gNeoArkSubmarineTunnelVariant2Resources },
-    { gMapNeoArkSubmarineTunnelVariant3Placements, _gNeoArkSubmarineTunnelVariant3Resources },
-    { gMapNeoArkSubmarineTunnelVariant4Placements, _gNeoArkSubmarineTunnelVariant4Resources },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
+AreaVariant gNeoArkSubmarineTunnelAreaVariants[NEO_ARK_SUBMARINE_TUNNEL_AREA_VARIANT_COUNT] = {
+    [AREA_DEFAULT_VARIANT] = { .placements = gMapNeoArkSubmarineTunnelVariant1Placements, .resources = _gNeoArkSubmarineTunnelVariant1Resources },
+    [2]                    = { .placements = gMapNeoArkSubmarineTunnelVariant2Placements, .resources = _gNeoArkSubmarineTunnelVariant2Resources },
+    [3]                    = { .placements = gMapNeoArkSubmarineTunnelVariant3Placements, .resources = _gNeoArkSubmarineTunnelVariant3Resources },
+    [4]                    = { .placements = gMapNeoArkSubmarineTunnelVariant4Placements, .resources = _gNeoArkSubmarineTunnelVariant4Resources },
 };
 
 // Stair parameters pack surface class 4 above a low-nibble step count; yaw

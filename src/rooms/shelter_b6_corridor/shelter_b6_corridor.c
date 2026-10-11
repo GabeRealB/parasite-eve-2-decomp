@@ -641,20 +641,8 @@ static AreaResource _gShelterB6CorridorAreaResources[5] = {
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaVariant D_shelter_b6_corridor_80180304[13] = {
-    { NULL, NULL },
-    { gMapNeoArkCorridorDefaultPlacements, _gShelterB6CorridorAreaResources },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
+AreaVariant gShelterB6CorridorAreaVariants[SHELTER_B6_CORRIDOR_AREA_VARIANT_COUNT] = {
+    [AREA_DEFAULT_VARIANT] = { .placements = gMapNeoArkCorridorDefaultPlacements, .resources = _gShelterB6CorridorAreaResources },
 };
 
 /// Warp keys pack the corridor's departure slot above the destination's arrival slot.

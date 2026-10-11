@@ -782,19 +782,11 @@ static AreaResource _gNeoArkWoodlandPathVariant4ActorResources[] = {
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaVariant D_neo_ark_woodland_path_8018471C[12] = {
-    { NULL, NULL },
-    { gMapNeoArkWoodlandPathVariant1Placements, _gNeoArkWoodlandPathVariant1ActorResources },
-    { gMapNeoArkWoodlandPathVariant2Placements, _gNeoArkWoodlandPathVariant2ActorResources },
-    { gMapNeoArkWoodlandPathVariant3Placements, _gNeoArkWoodlandPathVariant3ActorResources },
-    { gMapNeoArkWoodlandPathVariant4Placements, _gNeoArkWoodlandPathVariant4ActorResources },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
+AreaVariant gNeoArkWoodlandPathAreaVariants[NEO_ARK_WOODLAND_PATH_AREA_VARIANT_COUNT] = {
+    [AREA_DEFAULT_VARIANT] = { .placements = gMapNeoArkWoodlandPathVariant1Placements, .resources = _gNeoArkWoodlandPathVariant1ActorResources },
+    [2]                    = { .placements = gMapNeoArkWoodlandPathVariant2Placements, .resources = _gNeoArkWoodlandPathVariant2ActorResources },
+    [3]                    = { .placements = gMapNeoArkWoodlandPathVariant3Placements, .resources = _gNeoArkWoodlandPathVariant3ActorResources },
+    [4]                    = { .placements = gMapNeoArkWoodlandPathVariant4Placements, .resources = _gNeoArkWoodlandPathVariant4ActorResources },
 };
 
 WorldCoordRoomAmbientEntry gNeoArkWoodlandPathRoomAmbientByView[11] = {

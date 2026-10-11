@@ -50,7 +50,13 @@ extern WorldCollisionGrid gDryfieldNightFactoryCollisionGrid;
 
 extern WorldCollisionRoomResources D_dryfield_night_factory_80186F34[];
 
-extern ViewCount D_dryfield_night_factory_80186F54[];
+/// Nighttime factory logical-view search counts for rooms 1 and 2.
+///
+/// Both rooms search nineteen identity-map entries, selecting mapped views 1..19.
+/// Indexed by room - 1; signed halfword values count logical map elements,
+/// independently of map capacity and mapped resource extents. No terminator.
+/// Borrow the array only while this room overlay is loaded.
+extern ViewCount gDryfieldNightFactoryViewCounts[2];
 
 extern DirectionWarpEntry D_dryfield_night_factory_80186F58[];
 

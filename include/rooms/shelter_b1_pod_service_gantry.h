@@ -13,7 +13,17 @@
 #include "main/coord.h"
 #include "main/task_types.h"
 
-extern AreaVariant D_shelter_b1_pod_service_gantry_8017FBF8[11];
+/// Number of retained placement-variant slots, including absent slots.
+enum { SHELTER_B1_POD_SERVICE_GANTRY_AREA_VARIANT_COUNT = 11 };
+
+/// Shelter B1 pod service gantry placement/resource directory indexed by `GameLocationKey.variant`.
+///
+/// Variant 1 loads scene graphics and places bodyless discard tasks.
+/// All other slots, including 0, are absent (NULL, NULL).
+/// Both lists belong to this room overlay. Keep it and any actors supplying
+/// task descriptors loaded through loading, spawning and model-flag updates.
+/// Selectors must be in 0..10; there is no terminator or bounds check.
+extern AreaVariant gShelterB1PodServiceGantryAreaVariants[SHELTER_B1_POD_SERVICE_GANTRY_AREA_VARIANT_COUNT];
 
 /// Logical-view maps for the pod service gantry's single room.
 ///

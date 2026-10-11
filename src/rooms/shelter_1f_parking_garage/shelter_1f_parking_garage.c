@@ -373,19 +373,8 @@ static AreaResource _gShelter1fParkingGarageEmptyAreaResources[1] = {
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaVariant D_shelter_1f_parking_garage_801818D8[12] = {
-    { NULL, NULL },
-    { gMapNeoArkParkingGarageDefaultPlacements, _gShelter1fParkingGarageEmptyAreaResources },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
+AreaVariant gShelter1fParkingGarageAreaVariants[SHELTER_1F_PARKING_GARAGE_AREA_VARIANT_COUNT] = {
+    [AREA_DEFAULT_VARIANT] = { .placements = gMapNeoArkParkingGarageDefaultPlacements, .resources = _gShelter1fParkingGarageEmptyAreaResources },
 };
 
 /// Paired-cue bases in the currently loaded type-1 sound bank.

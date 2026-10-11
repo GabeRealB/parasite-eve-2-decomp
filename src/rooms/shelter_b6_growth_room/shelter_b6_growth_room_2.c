@@ -375,20 +375,8 @@ static AreaResource _gShelterB6GrowthRoomSceneResources[2] = {
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaVariant D_shelter_b6_growth_room_80180338[13] = {
-    { NULL, NULL },
-    { gMapNeoArkGrowthRoomDefaultPlacements, _gShelterB6GrowthRoomSceneResources },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
+AreaVariant gShelterB6GrowthRoomAreaVariants[SHELTER_B6_GROWTH_ROOM_AREA_VARIANT_COUNT] = {
+    [AREA_DEFAULT_VARIANT] = { .placements = gMapNeoArkGrowthRoomDefaultPlacements, .resources = _gShelterB6GrowthRoomSceneResources },
 };
 
 /// Room action and dialogue identifiers carried by the interaction records.

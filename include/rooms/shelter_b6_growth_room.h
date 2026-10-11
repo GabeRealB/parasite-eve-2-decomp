@@ -12,7 +12,19 @@
 
 #include "main/task_types.h"
 
-extern AreaVariant D_shelter_b6_growth_room_80180338[13];
+/// Number of retained placement-variant slots, including absent slots.
+enum { SHELTER_B6_GROWTH_ROOM_AREA_VARIANT_COUNT = 13 };
+
+/// Shelter B6 growth room placement/resource directory indexed by `GameLocationKey.variant`.
+///
+/// Variant 1 loads scene resources with an empty placement list. Its saved
+/// variant and spawn flags share the nursery's state, but its tables are distinct.
+/// All other slots, including 0, are absent (NULL, NULL).
+/// Placements belong to the Neo Ark map overlay; recipes belong to this room.
+/// Keep both and any actors supplying task descriptors loaded through loading,
+/// spawning and model-flag updates.
+/// Selectors must be in 0..12; there is no terminator or bounds check.
+extern AreaVariant gShelterB6GrowthRoomAreaVariants[SHELTER_B6_GROWTH_ROOM_AREA_VARIANT_COUNT];
 
 /// Number of mapped camera and sprite views in the growth room.
 enum { SHELTER_B6_GROWTH_ROOM_VIEW_COUNT = 8 };

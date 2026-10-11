@@ -1583,29 +1583,29 @@ gNeoArkSavannaZoneAreaVariants = 0x80180864; // absolute:True owner=neo_ark_sava
 
 gNeoArkShrineAreaVariants = 0x801866C8; // absolute:True owner=neo_ark_shrine
 
-D_neo_ark_south_promenade_801808E4 = 0x801808E4; // absolute:True owner=neo_ark_south_promenade
+gNeoArkSouthPromenadeAreaVariants = 0x801808E4; // absolute:True owner=neo_ark_south_promenade
 
 gNeoArkSubmarineGalleryPlacementVariants = 0x80185860; // absolute:True owner=neo_ark_submarine_gallery
 
-D_neo_ark_submarine_tunnel_80187470 = 0x80187470; // absolute:True owner=neo_ark_submarine_tunnel
+gNeoArkSubmarineTunnelAreaVariants = 0x80187470; // absolute:True owner=neo_ark_submarine_tunnel
 
-D_neo_ark_woodland_path_8018471C = 0x8018471C; // absolute:True owner=neo_ark_woodland_path
+gNeoArkWoodlandPathAreaVariants = 0x8018471C; // absolute:True owner=neo_ark_woodland_path
 
-D_shelter_1f_airlock_8017F758 = 0x8017F758; // absolute:True owner=shelter_1f_airlock
+gShelter1fAirlockAreaVariants = 0x8017F758; // absolute:True owner=shelter_1f_airlock
 
-D_shelter_1f_bulwark_80180DA8 = 0x80180DA8; // absolute:True owner=shelter_1f_bulwark
+gShelter1fBulwarkAreaVariants = 0x80180DA8; // absolute:True owner=shelter_1f_bulwark
 
 gShelter1fHeliportAreaVariants = 0x80182BF4; // absolute:True owner=shelter_1f_heliport
 
-D_shelter_1f_tent_80184230 = 0x80184230; // absolute:True owner=shelter_1f_tent
+gShelter1fTentAreaVariants = 0x80184230; // absolute:True owner=shelter_1f_tent
 
-D_shelter_1f_vehicular_airlock_80182A04 = 0x80182A04; // absolute:True owner=shelter_1f_vehicular_airlock
+gShelter1fVehicularAirlockAreaVariants = 0x80182A04; // absolute:True owner=shelter_1f_vehicular_airlock
 
 gShelterB1AccessTunnelAreaVariants = 0x8017FE50; // absolute:True owner=shelter_b1_access_tunnel
 
-D_shelter_b1_armory_801854E0 = 0x801854E0; // absolute:True owner=shelter_b1_armory
+gShelterB1ArmoryAreaVariants = 0x801854E0; // absolute:True owner=shelter_b1_armory
 
-D_shelter_b1_control_room_80183A98 = 0x80183A98; // absolute:True owner=shelter_b1_control_room
+gShelterB1ControlRoomAreaVariants = 0x80183A98; // absolute:True owner=shelter_b1_control_room
 
 gShelterB1ControlRoomAccessTunnelAreaVariants = 0x801825AC; // absolute:True owner=shelter_b1_control_room_access_tunnel shared=rooms
 
@@ -1615,11 +1615,11 @@ gShelterB1GolemFreezer1AreaVariants = 0x8017F17C; // absolute:True owner=shelter
 
 gShelterB1MainCorridorAreaVariants = 0x80185C30; // absolute:True owner=shelter_b1_main_corridor
 
-D_shelter_b1_north_maintenance_walkway_80185A38 = 0x80185A38; // absolute:True owner=shelter_b1_north_maintenance_walkway
+gShelterB1NorthMaintenanceWalkwayAreaVariants = 0x80185A38; // absolute:True owner=shelter_b1_north_maintenance_walkway
 
 gShelterB1PodAccessTunnelAreaVariants = 0x80184C00; // absolute:True owner=shelter_b1_pod_access_tunnel
 
-D_shelter_b1_pod_service_gantry_8017FBF8 = 0x8017FBF8; // absolute:True owner=shelter_b1_pod_service_gantry
+gShelterB1PodServiceGantryAreaVariants = 0x8017FBF8; // absolute:True owner=shelter_b1_pod_service_gantry
 
 gShelterB1SleepingQuartersAreaVariants = 0x80183FDC; // absolute:True owner=shelter_b1_sleeping_quarters
 
@@ -1633,7 +1633,7 @@ gShelterB1TransferTunnelAreaVariants = 0x801830B8; // absolute:True owner=shelte
 
 gShelterB1UndergroundParkingAreaVariants = 0x8018B5C4; // absolute:True owner=shelter_b1_underground_parking
 
-D_shelter_b2_elevator_8017E964 = 0x8017E964; // absolute:True owner=shelter_b2_elevator
+gShelterB2ElevatorAreaVariants = 0x8017E964; // absolute:True owner=shelter_b2_elevator
 
 gShelterB2ElevatorHallAreaVariants = 0x80184C7C; // absolute:True owner=shelter_b2_elevator_hall
 
@@ -1641,7 +1641,7 @@ gShelterB2LaboratoryAreaVariants = 0x80186360; // absolute:True owner=shelter_b2
 
 gShelterB2MainCorridorAreaVariants = 0x8018933C; // absolute:True owner=shelter_b2_main_corridor
 
-D_shelter_b2_north_maintenance_walkway_80186258 = 0x80186258; // absolute:True owner=shelter_b2_north_maintenance_walkway shared=rooms
+gShelterB2NorthMaintenanceWalkwayAreaVariants = 0x80186258; // absolute:True owner=shelter_b2_north_maintenance_walkway shared=rooms
 
 gShelterB2OperatingRoomAreaVariants = 0x80184124; // absolute:True owner=shelter_b2_operating_room shared=rooms
 
@@ -1651,7 +1651,7 @@ gShelterB2PodBottomAreaVariants = 0x80187678; // absolute:True owner=shelter_b2_
 
 gShelterB2SepticTankAreaVariants = 0x80186F40; // absolute:True owner=shelter_b2_septic_tank
 
-D_shelter_b2_south_maintenance_walkway_801837AC = 0x801837AC; // absolute:True owner=shelter_b2_south_maintenance_walkway shared=rooms
+gShelterB2SouthMaintenanceWalkwayAreaVariants = 0x801837AC; // absolute:True owner=shelter_b2_south_maintenance_walkway shared=rooms
 
 gShelterB3DumpingHoleAreaVariants = 0x8018EC3C; // absolute:True owner=shelter_b3_dumping_hole
 
@@ -1669,13 +1669,13 @@ gShelterB4UpperSewerAreaVariants = 0x80188B9C; // absolute:True owner=shelter_b4
 
 gShelterB4WaterSupplyPlacementVariants = 0x80184CA4; // absolute:True owner=shelter_b4_water_supply shared=rooms
 
-D_shelter_b6_corridor_80180304 = 0x80180304; // absolute:True owner=shelter_b6_corridor
+gShelterB6CorridorAreaVariants = 0x80180304; // absolute:True owner=shelter_b6_corridor
 
-D_shelter_b6_growth_room_80180338 = 0x80180338; // absolute:True owner=shelter_b6_growth_room
+gShelterB6GrowthRoomAreaVariants = 0x80180338; // absolute:True owner=shelter_b6_growth_room
 
-D_shelter_b6_nursery_801874A4 = 0x801874A4; // absolute:True owner=shelter_b6_nursery
+gShelterB6NurseryAreaVariants = 0x801874A4; // absolute:True owner=shelter_b6_nursery
 
-D_shelter_b6_training_room_801859DC = 0x801859DC; // absolute:True owner=shelter_b6_training_room
+gShelterB6TrainingRoomAreaVariants = 0x801859DC; // absolute:True owner=shelter_b6_training_room
 
 gShelterR36AreaVariants = 0x8017FA40; // absolute:True owner=shelter_r36
 
@@ -1745,7 +1745,7 @@ gMistShootingGalleryWeaponSelectPanelDesc = 0x80184F70; // absolute:True owner=m
 
 gDryfieldNightR08AreaVariants = 0x801818D8; // absolute:True owner=dryfield_night_r08 shared=rooms
 
-D_shelter_1f_parking_garage_801818D8 = 0x801818D8; // absolute:True owner=shelter_1f_parking_garage shared=rooms
+gShelter1fParkingGarageAreaVariants = 0x801818D8; // absolute:True owner=shelter_1f_parking_garage shared=rooms
 
 D_shelter_b1_underground_parking_801871F0 = 0x801871F0; // absolute:True owner=shelter_b1_underground_parking
 

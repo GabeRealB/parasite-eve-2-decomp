@@ -14,7 +14,17 @@
 
 #include "rooms/room_visual_effects.h"
 
-extern AreaVariant D_shelter_b2_south_maintenance_walkway_801837AC[22];
+/// Number of retained placement-variant slots, including absent slots.
+enum { SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_AREA_VARIANT_COUNT = 22 };
+
+/// Shelter B2 south maintenance walkway placement/resource directory indexed by `GameLocationKey.variant`.
+///
+/// Variants 1, 2, 3, 11 and 21 publish layouts.
+/// All other slots, including 0, are absent (NULL, NULL).
+/// Both lists belong to this room overlay. Keep it and any actors supplying
+/// task descriptors loaded through loading, spawning and model-flag updates.
+/// Selectors must be in 0..21; there is no terminator or bounds check.
+extern AreaVariant gShelterB2SouthMaintenanceWalkwayAreaVariants[SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_AREA_VARIANT_COUNT];
 
 /// The walkway's one-room directory of logical-view to camera/image indices.
 ///

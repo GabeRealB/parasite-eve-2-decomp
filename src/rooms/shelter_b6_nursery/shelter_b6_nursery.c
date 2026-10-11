@@ -899,20 +899,8 @@ static AreaResource _gShelterB6NurseryVariant1Resources[4] = {
     { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaVariant D_shelter_b6_nursery_801874A4[13] = {
-    { NULL, NULL },
-    { gMapNeoArkNurseryDefaultPlacements, _gShelterB6NurseryVariant1Resources },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
+AreaVariant gShelterB6NurseryAreaVariants[SHELTER_B6_NURSERY_AREA_VARIANT_COUNT] = {
+    [AREA_DEFAULT_VARIANT] = { .placements = gMapNeoArkNurseryDefaultPlacements, .resources = _gShelterB6NurseryVariant1Resources },
 };
 
 /// Room action IDs and the scene command shared by triggers and message handlers.

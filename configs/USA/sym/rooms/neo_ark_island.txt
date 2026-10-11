@@ -16,7 +16,7 @@ gMapNeoArkIslandVariant11Placements = 0x8017B610; // absolute:True owner=map_neo
 D_neo_ark_island_80181B94 = 0x80181B94; // size:0x10 defined:True
 gNeoArkIslandRoomLighting = 0x80181BA4; // size:0x8 defined:True
 gNeoArkIslandViewMaps = 0x80181BAC; // size:0x4 defined:True
-D_neo_ark_island_80181BB0 = 0x80181BB0; // size:0x2 defined:True
+gNeoArkIslandViewCounts = 0x80181BB0; // size:0x2 defined:True
 _gNeoArkIslandCollisionGridNormals = 0x80181D30; // size:0x68 defined:True
 _gNeoArkIslandCollisionGridVerts = 0x80181D98; // size:0x3F8 defined:True
 _gNeoArkIslandCollisionGridFaces = 0x80182190; // size:0x2DC defined:True

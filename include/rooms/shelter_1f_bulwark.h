@@ -11,7 +11,18 @@
 
 #include "main/task_types.h"
 
-extern AreaVariant D_shelter_1f_bulwark_80180DA8[12];
+/// Number of retained placement-variant slots, including absent slots.
+enum { SHELTER_1F_BULWARK_AREA_VARIANT_COUNT = 12 };
+
+/// Shelter 1F bulwark placement/resource directory indexed by `GameLocationKey.variant`.
+///
+/// Variant 1 places a Beam Sword Rook and a grenade-launcher Rook.
+/// All other slots, including 0, are absent (NULL, NULL).
+/// Placements belong to the Neo Ark map overlay; recipes belong to this room.
+/// Keep both and any actors supplying task descriptors loaded through loading,
+/// spawning and model-flag updates.
+/// Selectors must be in 0..11; there is no terminator or bounds check.
+extern AreaVariant gShelter1fBulwarkAreaVariants[SHELTER_1F_BULWARK_AREA_VARIANT_COUNT];
 
 /// Collision resources for room 1: the grid, view boundaries, actions and sight quads.
 ///

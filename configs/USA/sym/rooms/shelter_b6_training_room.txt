@@ -3,7 +3,7 @@ D_shelter_b6_training_room_80185C58 = 0x80185C58; // size:0x4 defined:True
 D_shelter_b6_training_room_80185C5C = 0x80185C5C; // size:0x4 defined:True
 _gShelterB6TrainingRoomBeamColorRamp = 0x801843FC; // size:0x8 defined:True
 
-D_shelter_b6_training_room_801859DC = 0x801859DC; // size:0x68 defined:True
+gShelterB6TrainingRoomAreaVariants = 0x801859DC; // size:0x68 defined:True
 D_shelter_b6_training_room_80185A44 = 0x80185A44; // size:0x17C defined:True
 gShelterB6TrainingRoomAmbientByView = 0x80185BC0; // size:0x48 defined:True
 _gShelterB6TrainingRoomSurface1FootstepSounds = 0x80185C08; // size:0xC defined:True

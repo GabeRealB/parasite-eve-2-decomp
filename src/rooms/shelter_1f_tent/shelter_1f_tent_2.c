@@ -612,20 +612,8 @@ static AreaResource _gShelter1fTentDefaultResources[4] = {
     { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaVariant D_shelter_1f_tent_80184230[13] = {
-    { NULL, NULL },
-    { gMapNeoArkTentDefaultPlacements, _gShelter1fTentDefaultResources },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
+AreaVariant gShelter1fTentAreaVariants[SHELTER_1F_TENT_AREA_VARIANT_COUNT] = {
+    [AREA_DEFAULT_VARIANT] = { .placements = gMapNeoArkTentDefaultPlacements, .resources = _gShelter1fTentDefaultResources },
 };
 
 /// Cue-2 footstep bases in the loaded type-1 bank; cue 1 uses the next entry.

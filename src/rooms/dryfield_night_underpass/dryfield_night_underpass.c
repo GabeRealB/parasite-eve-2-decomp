@@ -228,7 +228,12 @@ u8* gDryfieldNightUnderpassViewMaps[6] = {
     _gDryfieldNightUnderpassRoom6ViewMap,
 };
 
-ViewCount D_dryfield_night_underpass_8017DE54[6] = { 26, 11, 11, 11, 11, 11 };
+// Logical entries searched in each room map, independent of its storage capacity.
+enum {
+    DRYFIELD_NIGHT_UNDERPASS_RESTRICTED_LOGICAL_VIEW_COUNT = 11,
+};
+
+ViewCount gDryfieldNightUnderpassViewCounts[6] = { DRYFIELD_NIGHT_UNDERPASS_MAPPED_VIEW_COUNT, DRYFIELD_NIGHT_UNDERPASS_RESTRICTED_LOGICAL_VIEW_COUNT, DRYFIELD_NIGHT_UNDERPASS_RESTRICTED_LOGICAL_VIEW_COUNT, DRYFIELD_NIGHT_UNDERPASS_RESTRICTED_LOGICAL_VIEW_COUNT, DRYFIELD_NIGHT_UNDERPASS_RESTRICTED_LOGICAL_VIEW_COUNT, DRYFIELD_NIGHT_UNDERPASS_RESTRICTED_LOGICAL_VIEW_COUNT };
 
 DirectionWarpEntry D_dryfield_night_underpass_8017DE60[3] = {
     { { { .word = 0 }, 5303, -997, -0x2C94 }, { 0, 0, 0, 0 }, { { .word = 0 }, 5303, -997, -0x2C94 }, { 0, 0, 0, 0 }, 0x53260008, 0x53260007, DIRECTION_WARP_SOUND_NONE, 6, DIRECTION_WARP_FLAG_NONE, 463 },

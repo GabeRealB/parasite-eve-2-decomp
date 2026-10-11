@@ -583,7 +583,7 @@ WorldCollisionTrigger D_shelter_b1_armory_80184E0C[23] = {
     { NULL, NULL, NULL, { 4048, -64, -2304, 0 }, { { -1072, 0, -432, 0 }, { 1072, 0, -432, 0 }, { -1072, 0, 432, 0 }, { 1072, 0, 432, 0 } }, { 0, 4099, 0, 0 }, { 0, 0, 4097, 0 }, 1152, WORLD_COLLISION_TRIGGER_ACTION_ROOM, 1, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-AreaVariant D_shelter_b1_armory_801854E0[11] = { 0 };
+AreaVariant gShelterB1ArmoryAreaVariants[SHELTER_B1_ARMORY_AREA_VARIANT_COUNT] = { 0 };
 
 /// Type-1 cue-2 bases; cue 1 uses the next entry in the loaded bank.
 enum {

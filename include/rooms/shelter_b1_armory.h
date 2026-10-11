@@ -19,7 +19,16 @@
 /// closure; keep this room's shop code and stock tables loaded throughout.
 extern TaskDesc gShelterB1ArmoryShopSessionTaskDesc;
 
-extern AreaVariant D_shelter_b1_armory_801854E0[11];
+/// Number of retained placement-variant slots, including absent slots.
+enum { SHELTER_B1_ARMORY_AREA_VARIANT_COUNT = 11 };
+
+/// Shelter B1 armory placement/resource directory indexed by `GameLocationKey.variant`.
+///
+/// All eleven slots are absent (NULL, NULL); this room publishes no actor
+/// placement or resource lists. The directory itself remains present.
+/// Keep the room overlay loaded while the directory is borrowed.
+/// Selectors must be in 0..10; there is no terminator or bounds check.
+extern AreaVariant gShelterB1ArmoryAreaVariants[SHELTER_B1_ARMORY_AREA_VARIANT_COUNT];
 
 /// Logical-view maps for the armory's single room, indexed by room ID minus one.
 ///
@@ -48,7 +57,7 @@ extern WorldCollisionGrid gShelterB1ArmoryCollisionGrid;
 /// camera tasks have applied their records. There is no terminator.
 extern ViewCamera gShelterB1ArmoryViewCameras[13];
 
-/// Shelter b1 armory's sprite resources, indexed by mapped view minus one.
+/// Shelter B1 armory's sprite resources, indexed by mapped view minus one.
 ///
 /// Views 1 and 9..13 have no sources; views 2..8 borrow sprite pools.
 /// The room uses an identity logical-view map.

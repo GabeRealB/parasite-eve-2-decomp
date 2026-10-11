@@ -37,7 +37,13 @@ extern WorldCollisionRoomResources D_dryfield_night_motel_room_3_8017DAA4[];
 /// lives in this overlay; the map itself lives in gameplay and has no terminator.
 extern u8* gDryfieldNightMotelRoom3ViewMaps[1];
 
-extern ViewCount D_dryfield_night_motel_room_3_8017DAB8[];
+/// Nighttime motel room 3 logical-view search count for its single room.
+///
+/// Room 1 searches eleven identity-map entries, selecting mapped views 1..11.
+/// Indexed by room - 1; signed halfword values count logical map elements,
+/// independently of map capacity and mapped resource extents. No terminator.
+/// Borrow the array only while this room overlay is loaded.
+extern ViewCount gDryfieldNightMotelRoom3ViewCounts[1];
 
 extern DirectionWarpEntry D_dryfield_night_motel_room_3_8017DABC[];
 

@@ -725,7 +725,7 @@ static ViewCount* D_map_dryfield_full_8017A8A4[38] = {
     NULL,
     gDryfieldNightMotelRoom1ViewCounts,
     gDryfieldNightMotelRoom2RoomViewCounts,
-    D_dryfield_night_motel_room_3_8017DAB8,
+    gDryfieldNightMotelRoom3ViewCounts,
     gDryfieldNightMotelRoom4ViewCounts,
     gDryfieldNightParkingLotViewCounts,
     gDryfieldNightToiletViewCounts,
@@ -735,7 +735,7 @@ static ViewCount* D_map_dryfield_full_8017A8A4[38] = {
     gDryfieldNightWaterTowerViewCounts,
     gDryfieldNightWaterTankViewCounts,
     gDryfieldNightBreezewayViewCounts,
-    D_dryfield_night_factory_80186F54,
+    gDryfieldNightFactoryViewCounts,
     gDryfieldNightGarageViewCounts,
     gDryfieldNightDrivewayViewCounts,
     gDryfieldNightJunkYardViewCounts,
@@ -746,11 +746,11 @@ static ViewCount* D_map_dryfield_full_8017A8A4[38] = {
     gDryfieldNightMotelLoftViewCounts,
     gDryfieldNightWaterHoleViewCounts,
     NULL,
-    D_dryfield_night_cellar_8017DB30,
+    gDryfieldNightCellarViewCounts,
     NULL,
     NULL,
     NULL,
-    D_dryfield_night_underpass_8017DE54,
+    gDryfieldNightUnderpassViewCounts,
 };
 
 ViewCountTable D_map_dryfield_full_8017A93C = { D_map_dryfield_full_8017A8A4 };

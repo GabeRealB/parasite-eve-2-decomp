@@ -12,7 +12,17 @@
 
 #include "main/task_types.h"
 
-extern AreaVariant D_shelter_b1_north_maintenance_walkway_80185A38[12];
+/// Number of retained placement-variant slots, including absent slots.
+enum { SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_AREA_VARIANT_COUNT = 12 };
+
+/// Shelter B1 north maintenance walkway placement/resource directory indexed by `GameLocationKey.variant`.
+///
+/// Variants 1, 2, 3, 4 and 11 publish layouts.
+/// All other slots, including 0, are absent (NULL, NULL).
+/// Both lists belong to this room overlay. Keep it and any actors supplying
+/// task descriptors loaded through loading, spawning and model-flag updates.
+/// Selectors must be in 0..11; there is no terminator or bounds check.
+extern AreaVariant gShelterB1NorthMaintenanceWalkwayAreaVariants[SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_AREA_VARIANT_COUNT];
 
 /// Logical-view maps for the walkway's single room.
 ///

@@ -15,7 +15,18 @@
 /// Models the Neo Ark map UI overlay's enemy descriptors attach.
 extern TmdSource gShelter1fVehicularAirlockModel03A58;
 
-extern AreaVariant D_shelter_1f_vehicular_airlock_80182A04[12];
+/// Number of retained placement-variant slots, including absent slots.
+enum { SHELTER_1F_VEHICULAR_AIRLOCK_AREA_VARIANT_COUNT = 12 };
+
+/// Shelter 1F vehicular airlock placement/resource directory indexed by `GameLocationKey.variant`.
+///
+/// Variant 1 places a Beam Sword Pawn and a grenade-launcher Rook.
+/// All other slots, including 0, are absent (NULL, NULL).
+/// Placements belong to the Neo Ark map overlay; recipes belong to this room.
+/// Keep both and any actors supplying task descriptors loaded through loading,
+/// spawning and model-flag updates.
+/// Selectors must be in 0..11; there is no terminator or bounds check.
+extern AreaVariant gShelter1fVehicularAirlockAreaVariants[SHELTER_1F_VEHICULAR_AIRLOCK_AREA_VARIANT_COUNT];
 
 /// Room 1's collision grid, two view boundaries and seven action regions; no occluders.
 ///

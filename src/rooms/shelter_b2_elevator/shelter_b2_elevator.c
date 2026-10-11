@@ -405,18 +405,8 @@ static AreaPlacement _gShelterB2ElevatorVariant1Placements[1] = {
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-AreaVariant D_shelter_b2_elevator_8017E964[11] = {
-    { NULL, NULL },
-    { _gShelterB2ElevatorVariant1Placements, _gShelterB2ElevatorVariant1Resources },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
+AreaVariant gShelterB2ElevatorAreaVariants[SHELTER_B2_ELEVATOR_AREA_VARIANT_COUNT] = {
+    [AREA_DEFAULT_VARIANT] = { .placements = _gShelterB2ElevatorVariant1Placements, .resources = _gShelterB2ElevatorVariant1Resources },
 };
 
 /// Three retained type-1 sound requests with no established reader or record type.

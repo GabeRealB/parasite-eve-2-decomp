@@ -772,29 +772,12 @@ static AreaPlacement _gShelterB2NorthMaintenanceWalkwayVariant21Placements[5] = 
     { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaVariant D_shelter_b2_north_maintenance_walkway_80186258[22] = {
-    { NULL, NULL },
-    { _gShelterB2NorthMaintenanceWalkwayVariant1Placements, _gShelterB2NorthMaintenanceWalkwayVariant1Resources },
-    { NULL, NULL },
-    { _gShelterB2NorthMaintenanceWalkwayVariant3Placements, _gShelterB2NorthMaintenanceWalkwayVariant3Resources },
-    { _gShelterB2NorthMaintenanceWalkwayVariant4Placements, _gShelterB2NorthMaintenanceWalkwayVariant4Resources },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { _gShelterB2NorthMaintenanceWalkwayVariant11Placements, _gShelterB2NorthMaintenanceWalkwayVariant11Resources },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { _gShelterB2NorthMaintenanceWalkwayVariant21Placements, _gShelterB2NorthMaintenanceWalkwayVariant21Resources },
+AreaVariant gShelterB2NorthMaintenanceWalkwayAreaVariants[SHELTER_B2_NORTH_MAINTENANCE_WALKWAY_AREA_VARIANT_COUNT] = {
+    [AREA_DEFAULT_VARIANT] = { .placements = _gShelterB2NorthMaintenanceWalkwayVariant1Placements, .resources = _gShelterB2NorthMaintenanceWalkwayVariant1Resources },
+    [3]                    = { .placements = _gShelterB2NorthMaintenanceWalkwayVariant3Placements, .resources = _gShelterB2NorthMaintenanceWalkwayVariant3Resources },
+    [4]                    = { .placements = _gShelterB2NorthMaintenanceWalkwayVariant4Placements, .resources = _gShelterB2NorthMaintenanceWalkwayVariant4Resources },
+    [11]                   = { .placements = _gShelterB2NorthMaintenanceWalkwayVariant11Placements, .resources = _gShelterB2NorthMaintenanceWalkwayVariant11Resources },
+    [21]                   = { .placements = _gShelterB2NorthMaintenanceWalkwayVariant21Placements, .resources = _gShelterB2NorthMaintenanceWalkwayVariant21Resources },
 };
 
 WorldCollisionOccluder D_shelter_b2_north_maintenance_walkway_80186308[1] = {

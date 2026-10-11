@@ -38,7 +38,14 @@ extern WorldCollisionRoomResources D_dryfield_night_cellar_8017DB00[];
 /// terminator. The directory and room 2 map are borrowed from the loaded overlay.
 extern u8* gDryfieldNightCellarViewMaps[2];
 
-extern ViewCount D_dryfield_night_cellar_8017DB30[];
+/// Nighttime cellar logical-view search counts for rooms 1 and 2.
+///
+/// Room 1 searches eleven identity-map entries; room 2 searches six entries
+/// selecting mapped views 1 and 7..11, excluding its two retained zero bytes.
+/// Indexed by room - 1; signed halfword values count logical map elements,
+/// independently of map capacity and mapped resource extents. No terminator.
+/// Borrow the array only while this room overlay is loaded.
+extern ViewCount gDryfieldNightCellarViewCounts[2];
 
 extern DirectionWarpEntry D_dryfield_night_cellar_8017DB34[];
 

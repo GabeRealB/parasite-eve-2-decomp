@@ -35,6 +35,7 @@
 #include "main/mem.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/sound_ids.h"
 #include "main/sound_types.h"
 #include "main/task.h"
 #include "main/task_types.h"
@@ -46,16 +47,26 @@
 #include "../../shared/room_visual_effects.h"
 #include "../../shared/room_variants.h"
 
-/// The room's message table, which the message-driven task installs.
-extern TaskMessageEntry D_neo_ark_south_promenade_8017F6B4[];
-
 static void _neoArkSouthPromenadeInitRoomTask(Task* task);
 static void _neoArkSouthPromenadeIdleRoomTask(Task* task);
 
-/// State table of the room's message-driven task, indexed by `Task::state`:
-/// install the message table, idle, then kill the task.
-static const TaskFuncTable3 D_neo_ark_south_promenade_8017D5C4 = {
-    { _neoArkSouthPromenadeInitRoomTask, _neoArkSouthPromenadeIdleRoomTask, taskKill },
+enum {
+    NEO_ARK_SOUTH_PROMENADE_ROOM_STATE_REGISTER_MESSAGES = 0,
+    NEO_ARK_SOUTH_PROMENADE_ROOM_STATE_IDLE              = 1,
+    NEO_ARK_SOUTH_PROMENADE_ROOM_STATE_KILL              = 2,
+};
+
+/// Room controller handlers indexed by `Task::state` 0..2.
+///
+/// Registration installs the borrowed message table and enters idle; state 2
+/// kills the task. The dispatcher copies all three pointers before calling one.
+/// Keep this overlay loaded while the room controller can run.
+static const TaskFuncTable3 _gNeoArkSouthPromenadeRoomTaskStates = {
+    .funcs = {
+        [NEO_ARK_SOUTH_PROMENADE_ROOM_STATE_REGISTER_MESSAGES] = _neoArkSouthPromenadeInitRoomTask,
+        [NEO_ARK_SOUTH_PROMENADE_ROOM_STATE_IDLE]              = _neoArkSouthPromenadeIdleRoomTask,
+        [NEO_ARK_SOUTH_PROMENADE_ROOM_STATE_KILL]              = taskKill,
+    },
 };
 
 static s32 _neoArkSouthPromenadeRejectKeyItemMessage(Task* task, s32 messageId, s32 itemId, s32 unusedArg);
@@ -67,12 +78,17 @@ static s32 _neoArkSouthPromenadeIgnoreActionMessage(Task* task, s32 messageId, c
 enum { NEO_ARK_SOUTH_PROMENADE_MESSAGE_USE_KEY_ITEM = 0x13F1 };
 
 static WorldCollisionGrid     _gNeoArkSouthPromenadeCollisionGrid;
-extern WorldCollisionOccluder D_neo_ark_south_promenade_8018094C[1];
+static WorldCollisionOccluder _gNeoArkSouthPromenadeOccluders[1];
 static WorldCollisionTrigger  _gNeoArkSouthPromenadeViewBoundaryTriggers[6];
 static WorldCollisionTrigger  _gNeoArkSouthPromenadeActionTriggers[6];
 static WorldCoordRoomLights   _gNeoArkSouthPromenadeRoomLights;
 
-TaskMessageEntry D_neo_ark_south_promenade_8017F6B4[5] = {
+/// Synchronous room messages: resolve transitions, reject items and ignore actions/commands.
+///
+/// The four handlers use the task-message word ABI and return signed results;
+/// pointer payloads are borrowed through dispatch. The final ID terminates lookup.
+/// The registered room task borrows this table while this overlay is loaded.
+static TaskMessageEntry _gNeoArkSouthPromenadeRoomMessages[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _neoArkSouthPromenadeResolveRoomTransition },
     { NEO_ARK_SOUTH_PROMENADE_MESSAGE_USE_KEY_ITEM, _neoArkSouthPromenadeRejectKeyItemMessage },
     { DIRECTION_MESSAGE_ROOM_ACTION, _neoArkSouthPromenadeIgnoreActionMessage },
@@ -86,8 +102,13 @@ WorldCoordRoomLighting gNeoArkSouthPromenadeRoomLighting[1] = {
     { &_gNeoArkSouthPromenadeRoomLights, NULL },
 };
 
-WorldCollisionRoomResources D_neo_ark_south_promenade_8017F6F4[1] = {
-    { &_gNeoArkSouthPromenadeCollisionGrid, _gNeoArkSouthPromenadeViewBoundaryTriggers, _gNeoArkSouthPromenadeActionTriggers, D_neo_ark_south_promenade_8018094C },
+WorldCollisionRoomResources gNeoArkSouthPromenadeCollisionResources[1] = {
+    {
+        .grid                 = &_gNeoArkSouthPromenadeCollisionGrid,
+        .viewBoundaryTriggers = _gNeoArkSouthPromenadeViewBoundaryTriggers,
+        .actionTriggers       = _gNeoArkSouthPromenadeActionTriggers,
+        .occluders            = _gNeoArkSouthPromenadeOccluders,
+    },
 };
 
 u8* gNeoArkSouthPromenadeViewMaps[1] = {
@@ -96,9 +117,32 @@ u8* gNeoArkSouthPromenadeViewMaps[1] = {
 
 ViewCount gNeoArkSouthPromenadeViewCounts[1] = { NEO_ARK_SOUTH_PROMENADE_VIEW_COUNT };
 
-DirectionWarpEntry D_neo_ark_south_promenade_8017F70C[2] = {
-    { { { .word = 1024 }, 1137, 0, 2500 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 1137, 0, 2500 }, { 0, 0, 0, 0 }, 0x55130002, 0x55130001, DIRECTION_WARP_SOUND_NONE, 5, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
-    { { { .word = 3072 }, 0x2A30, 0, 0x3200 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 0x2A30, 0, 0x3200 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+enum {
+    NEO_ARK_SOUTH_PROMENADE_WARP1_ARRIVAL_SOUND   = SOUND_AREA(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_SOUTH_PROMENADE, 2),
+    NEO_ARK_SOUTH_PROMENADE_WARP1_DEPARTURE_SOUND = SOUND_AREA(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_SOUTH_PROMENADE, 1),
+};
+
+DirectionWarpEntry gNeoArkSouthPromenadeWarpEntries[2] = {
+    {
+        .player         = { { .word = ACTOR_TRANSFORM_ANGLE_TURN / 4 }, 1137, 0, 2500 },
+        .companion      = { { .word = ACTOR_TRANSFORM_ANGLE_TURN / 4 }, 1137, 0, 2500 },
+        .arrivalSound   = NEO_ARK_SOUTH_PROMENADE_WARP1_ARRIVAL_SOUND,
+        .departureSound = NEO_ARK_SOUTH_PROMENADE_WARP1_DEPARTURE_SOUND,
+        .blockedSound   = DIRECTION_WARP_SOUND_NONE,
+        .initialView    = 5,
+        .flags          = DIRECTION_WARP_FLAG_NONE,
+        .mapFlagId      = DIRECTION_WARP_MAP_FLAG_NONE,
+    },
+    {
+        .player         = { { .word = ACTOR_TRANSFORM_ANGLE_TURN * 3 / 4 }, 10800, 0, 12800 },
+        .companion      = { { .word = ACTOR_TRANSFORM_ANGLE_TURN * 3 / 4 }, 10800, 0, 12800 },
+        .arrivalSound   = DIRECTION_WARP_SOUND_NONE,
+        .departureSound = DIRECTION_WARP_SOUND_NONE,
+        .blockedSound   = DIRECTION_WARP_SOUND_NONE,
+        .initialView    = 2,
+        .flags          = DIRECTION_WARP_FLAG_NONE,
+        .mapFlagId      = DIRECTION_WARP_MAP_FLAG_NONE,
+    },
 };
 
 /// Room-space face normals for the promenade collision grid, with ONE per unit.
@@ -396,24 +440,36 @@ static AreaResource _gNeoArkSouthPromenadeVariant11Resources[] = {
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaVariant D_neo_ark_south_promenade_801808E4[13] = {
-    { NULL, NULL },
-    { NULL, NULL },
-    { gMapNeoArkSouthPromenadeVariant2Placements, _gNeoArkSouthPromenadeVariant2Resources },
-    { gMapNeoArkSouthPromenadeVariant3Placements, _gNeoArkSouthPromenadeVariant3Resources },
-    { gMapNeoArkSouthPromenadeVariant4Placements, _gNeoArkSouthPromenadeVariant4Resources },
-    { gMapNeoArkSouthPromenadeVariant5Placements, _gNeoArkSouthPromenadeVariant5Resources },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { gMapNeoArkSouthPromenadeVariant11Placements, _gNeoArkSouthPromenadeVariant11Resources },
-    { NULL, NULL },
+AreaVariant gNeoArkSouthPromenadeAreaVariants[NEO_ARK_SOUTH_PROMENADE_AREA_VARIANT_COUNT] = {
+    [2]  = { .placements = gMapNeoArkSouthPromenadeVariant2Placements, .resources = _gNeoArkSouthPromenadeVariant2Resources },
+    [3]  = { .placements = gMapNeoArkSouthPromenadeVariant3Placements, .resources = _gNeoArkSouthPromenadeVariant3Resources },
+    [4]  = { .placements = gMapNeoArkSouthPromenadeVariant4Placements, .resources = _gNeoArkSouthPromenadeVariant4Resources },
+    [5]  = { .placements = gMapNeoArkSouthPromenadeVariant5Placements, .resources = _gNeoArkSouthPromenadeVariant5Resources },
+    [11] = { .placements = gMapNeoArkSouthPromenadeVariant11Placements, .resources = _gNeoArkSouthPromenadeVariant11Resources },
 };
 
-WorldCollisionOccluder D_neo_ark_south_promenade_8018094C[1] = {
-    { NULL, NULL, { 4912, -1568, 7344, 0 }, { { -4560, 2496, 2832, 0 }, { 4560, 2496, -2832, 0 }, { -4560, -2496, 2832, 0 }, { 4560, -2496, -2832, 0 } }, { 2162, 0, 3481, 0 }, 5904, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
+/// Single room-space sight-blocking quad, linked and enabled during room setup.
+///
+/// Its corners are relative to the origin in game units; the normal uses 4096
+/// per unit. LAST includes this record before ending the source-array scan.
+/// List links and transient flags are mutable. Keep this overlay loaded until
+/// unlinked. Persistent flag bit 0 is retained, but its role is unproven.
+static WorldCollisionOccluder _gNeoArkSouthPromenadeOccluders[1] = {
+    {
+        .next     = NULL,
+        .prevLink = NULL,
+        .origin   = { 4912, -1568, 7344, 0 },
+        .vertices = {
+            { -4560, 2496, 2832, 0 },
+            { 4560, 2496, -2832, 0 },
+            { -4560, -2496, 2832, 0 },
+            { 4560, -2496, -2832, 0 },
+        },
+        .normal     = { 2162, 0, 3481, 0 },
+        .radius     = 5904,
+        .flags      = 0x01 | WORLD_COLLISION_OCCLUDER_LAST,
+        .unknown_3B = 0,
+    },
 };
 
 /// Cue-2 request bases in the loaded type-1 sound bank; cue 1 uses the next entry.
@@ -517,7 +573,7 @@ static s32 _neoArkSouthPromenadeIgnoreActionMessage(Task* task, s32 messageId, c
 /// for subsequent synchronous messages while the registered task remains alive.
 static void _neoArkSouthPromenadeInitRoomTask(Task* task)
 {
-    task->msgTable = D_neo_ark_south_promenade_8017F6B4;
+    task->msgTable = _gNeoArkSouthPromenadeRoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     task->state++;
 }
@@ -531,7 +587,7 @@ void neoArkSouthPromenadeRoomTask(Task* task)
 {
     TaskFuncTable3 stateHandlers;
 
-    stateHandlers = D_neo_ark_south_promenade_8017D5C4;
+    stateHandlers = _gNeoArkSouthPromenadeRoomTaskStates;
     stateHandlers.funcs[task->state](task);
 }
 

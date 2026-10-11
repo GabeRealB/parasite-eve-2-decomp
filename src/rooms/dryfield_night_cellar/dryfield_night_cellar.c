@@ -113,7 +113,13 @@ u8* gDryfieldNightCellarViewMaps[2] = {
     _gDryfieldNightCellarRoom2ViewMap,
 };
 
-ViewCount D_dryfield_night_cellar_8017DB30[2] = { 11, 6 };
+// Logical entries searched in each room map, independent of its storage capacity.
+enum {
+    DRYFIELD_NIGHT_CELLAR_ROOM_1_LOGICAL_VIEW_COUNT = 11,
+    DRYFIELD_NIGHT_CELLAR_ROOM_2_LOGICAL_VIEW_COUNT = 6,
+};
+
+ViewCount gDryfieldNightCellarViewCounts[2] = { DRYFIELD_NIGHT_CELLAR_ROOM_1_LOGICAL_VIEW_COUNT, DRYFIELD_NIGHT_CELLAR_ROOM_2_LOGICAL_VIEW_COUNT };
 
 DirectionWarpEntry D_dryfield_night_cellar_8017DB34[1] = {
     { { { .word = 2048 }, 5611, 3, 3945 }, { 0, 0, 0, 0 }, { { .word = 2048 }, 5611, 3, 3945 }, { 0, 0, 0, 0 }, 0x53220002, 0x53220001, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, 463 },

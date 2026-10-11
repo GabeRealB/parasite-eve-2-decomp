@@ -1129,7 +1129,7 @@ static ViewCount* D_map_shelter_8017B04C[49] = {
     gMineMesaRoomViewCounts,
     gMineCavernRoomViewCounts,
     gMineTunnelEntranceRoomViewCounts,
-    D_mine_tunnel_8017E170,
+    gMineTunnelRoomViewCounts,
     gMineGorgeRoomViewCounts,
     gMineRefugeRoomViewCounts,
     gMineForkedTunnelRoomViewCounts,

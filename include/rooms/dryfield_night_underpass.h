@@ -42,7 +42,14 @@ extern WorldCoordRoomLighting gDryfieldNightUnderpassRoomLighting[6];
 /// outside the live range, not a terminator. Keep the room overlay loaded.
 extern u8* gDryfieldNightUnderpassViewMaps[6];
 
-extern ViewCount D_dryfield_night_underpass_8017DE54[];
+/// Nighttime underpass logical-view search counts for room selectors 1..6.
+///
+/// Room 1 searches 26 identity-map entries; rooms 2..6 each search eleven
+/// entries in their distinct maps, excluding each map's retained twelfth zero.
+/// Indexed by room - 1; signed halfword values count logical map elements,
+/// independently of map capacity and mapped resource extents. No terminator.
+/// Borrow the array only while this room overlay is loaded.
+extern ViewCount gDryfieldNightUnderpassViewCounts[6];
 
 extern DirectionWarpEntry D_dryfield_night_underpass_8017DE60[];
 

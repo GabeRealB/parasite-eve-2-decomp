@@ -605,29 +605,12 @@ static AreaPlacement _gShelterB1ControlRoomVariant13Placements[7] = {
     { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaVariant D_shelter_b1_control_room_80183A98[22] = {
-    { NULL, NULL },
-    { _gShelterB1ControlRoomDefaultPlacements, _gShelterB1ControlRoomDefaultResources },
-    { _gShelterB1ControlRoomVariant2Placements, _gShelterB1ControlRoomVariant2Resources },
-    { _gShelterB1ControlRoomVariant3Placements, _gShelterB1ControlRoomVariant3Resources },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { _gShelterB1ControlRoomVariant11Placements, _gShelterB1ControlRoomVariant11Resources },
-    { NULL, NULL },
-    { _gShelterB1ControlRoomVariant13Placements, _gShelterB1ControlRoomVariant13Resources },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
+AreaVariant gShelterB1ControlRoomAreaVariants[SHELTER_B1_CONTROL_ROOM_AREA_VARIANT_COUNT] = {
+    [AREA_DEFAULT_VARIANT] = { .placements = _gShelterB1ControlRoomDefaultPlacements, .resources = _gShelterB1ControlRoomDefaultResources },
+    [2]                    = { .placements = _gShelterB1ControlRoomVariant2Placements, .resources = _gShelterB1ControlRoomVariant2Resources },
+    [3]                    = { .placements = _gShelterB1ControlRoomVariant3Placements, .resources = _gShelterB1ControlRoomVariant3Resources },
+    [11]                   = { .placements = _gShelterB1ControlRoomVariant11Placements, .resources = _gShelterB1ControlRoomVariant11Resources },
+    [13]                   = { .placements = _gShelterB1ControlRoomVariant13Placements, .resources = _gShelterB1ControlRoomVariant13Resources },
 };
 
 WorldCoordRoomAmbientEntry gShelterB1ControlRoomAmbientByView[9] = {

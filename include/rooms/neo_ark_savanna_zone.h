@@ -44,7 +44,13 @@ extern WorldCoordRoomLighting gNeoArkSavannaZoneRoomLighting[1];
 /// The shared map has a larger capacity; this room uses only its first four bytes.
 extern u8* gNeoArkSavannaZoneViewMaps[1];
 
-extern ViewCount D_neo_ark_savanna_zone_8017FA00[];
+/// Savanna zone logical-view search count for its single room.
+///
+/// Room 1 searches four identity-map entries, selecting mapped views 1..4.
+/// Indexed by room - 1; signed halfword values count logical map elements,
+/// independently of map capacity and mapped resource extents. No terminator.
+/// Borrow the array only while this room overlay is loaded.
+extern ViewCount gNeoArkSavannaZoneViewCounts[1];
 
 extern DirectionWarpEntry D_neo_ark_savanna_zone_8017FA04[];
 

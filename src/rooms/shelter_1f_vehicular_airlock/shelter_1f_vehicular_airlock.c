@@ -331,19 +331,8 @@ static AreaResource _gShelter1fVehicularAirlockActorResources[3] = {
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaVariant D_shelter_1f_vehicular_airlock_80182A04[12] = {
-    { NULL, NULL },
-    { gMapNeoArkVehicularAirlockDefaultPlacements, _gShelter1fVehicularAirlockActorResources },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
+AreaVariant gShelter1fVehicularAirlockAreaVariants[SHELTER_1F_VEHICULAR_AIRLOCK_AREA_VARIANT_COUNT] = {
+    [AREA_DEFAULT_VARIANT] = { .placements = gMapNeoArkVehicularAirlockDefaultPlacements, .resources = _gShelter1fVehicularAirlockActorResources },
 };
 
 /// Surface-1 walking, running and scripted-jump cue bases in the loaded type-1 bank.

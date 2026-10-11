@@ -72,7 +72,12 @@ u8* gDryfieldNightMotelRoom3ViewMaps[1] = {
     gViewIdentityMap,
 };
 
-ViewCount D_dryfield_night_motel_room_3_8017DAB8[1] = { 11 };
+// Logical entries searched in each room map, independent of its storage capacity.
+enum {
+    DRYFIELD_NIGHT_MOTEL_ROOM_3_LOGICAL_VIEW_COUNT = 11,
+};
+
+ViewCount gDryfieldNightMotelRoom3ViewCounts[1] = { DRYFIELD_NIGHT_MOTEL_ROOM_3_LOGICAL_VIEW_COUNT };
 
 DirectionWarpEntry D_dryfield_night_motel_room_3_8017DABC[1] = {
     { { { .word = 3072 }, 4462, 0, 1067 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 4462, 0, 1067 }, { 0, 0, 0, 0 }, 0x530D0002, 0x530D0001, DIRECTION_WARP_SOUND_NONE, 9, DIRECTION_WARP_FLAG_NONE, 484 },

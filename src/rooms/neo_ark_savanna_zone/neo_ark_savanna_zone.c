@@ -104,7 +104,7 @@ u8* gNeoArkSavannaZoneViewMaps[1] = {
     gViewIdentityMap,
 };
 
-ViewCount D_neo_ark_savanna_zone_8017FA00[1] = { 4 };
+ViewCount gNeoArkSavannaZoneViewCounts[1] = { NEO_ARK_SAVANNA_ZONE_VIEW_COUNT };
 
 DirectionWarpEntry D_neo_ark_savanna_zone_8017FA04[2] = {
     { { { .word = 1024 }, 510, 0, 1500 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 510, 0, 1500 }, { 0, 0, 0, 0 }, 0x55120002, 0x55120001, DIRECTION_WARP_SOUND_NONE, 4, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },

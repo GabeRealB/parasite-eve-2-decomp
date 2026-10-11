@@ -13,7 +13,18 @@
 #include "main/coord.h"
 #include "main/task_types.h"
 
-extern AreaVariant D_shelter_b6_training_room_801859DC[13];
+/// Number of retained placement-variant slots, including absent slots.
+enum { SHELTER_B6_TRAINING_ROOM_AREA_VARIANT_COUNT = 13 };
+
+/// Shelter B6 training room placement/resource directory indexed by `GameLocationKey.variant`.
+///
+/// Variant 1 publishes the Eve, Kyle and Stinger scene layout.
+/// All other slots, including 0, are absent (NULL, NULL).
+/// Placements belong to the Neo Ark map overlay; recipes belong to this room.
+/// Keep both and any actors supplying task descriptors loaded through loading,
+/// spawning and model-flag updates.
+/// Selectors must be in 0..12; there is no terminator or bounds check.
+extern AreaVariant gShelterB6TrainingRoomAreaVariants[SHELTER_B6_TRAINING_ROOM_AREA_VARIANT_COUNT];
 
 /// Number of mapped camera and sprite views in the training room.
 enum { SHELTER_B6_TRAINING_ROOM_VIEW_COUNT = 8 };
