@@ -63,13 +63,16 @@ label { display: flex; flex-direction: column; gap: 3px; font-size: 11px; letter
 .sheet canvas { display: block; image-rendering: pixelated; } .sheetbox { overflow-x: auto; } .sheet { width: max-content; }
 .sheet svg { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
 .sheet .reg { fill: none; stroke: var(--muted); stroke-dasharray: 3 3; vector-effect: non-scaling-stroke; } .sheet text { font: 9px var(--sans); fill: var(--muted); }
+.ev { font: 12px var(--mono); border: 1px solid var(--line); background: var(--panel); } .ev > div { padding: 1px 6px; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } .ev .cur { background: var(--accent-soft); }
+.ev .k-dim, .ev .k-raw { color: var(--muted); } .ev .k-mark { font-weight: 600; } .ev .k-load { color: var(--accent); } .ev .k-sound { color: var(--clut); }
+.sheet .live { fill: none; stroke: var(--accent); vector-effect: non-scaling-stroke; } .sheet .movie { fill: none; stroke: var(--clash); stroke-dasharray: 6 3; vector-effect: non-scaling-stroke; } .sheet text { paint-order: stroke; stroke: var(--bg); stroke-width: 2px; }
 audio { height: 28px; max-width: 100%; } iframe { width: 100%; height: 320px; border: 1px solid var(--line); background: var(--panel); }
 </style>
 <div class="app">
   <nav class="nav">
     <header>
       <h1>PE2 Asset Map</h1>
-      <span class="seg"><button id="nav-o" aria-pressed="true">Overlays</button><button id="nav-a" aria-pressed="false">Assets</button><button id="nav-f" aria-pressed="false">Files</button><button id="nav-n" aria-pressed="false">Names (0)</button><button id="nav-g" aria-pressed="false">Groups (0)</button></span><datalist id="grouplist"></datalist>
+      <span class="seg"><button id="nav-o" aria-pressed="true">Overlays</button><button id="nav-a" aria-pressed="false">Assets</button><button id="nav-f" aria-pressed="false">Files</button><button id="nav-n" aria-pressed="false">Names (0)</button><button id="nav-g" aria-pressed="false">Groups (0)</button><button id="nav-t" aria-pressed="false">Traces</button></span><datalist id="grouplist"></datalist>
       <label for="scale" class="row">Scale<select id="scale"><option>1</option><option selected>2</option><option>3</option><option>4</option></select></label>
       <input id="filter" placeholder="filter by name or what it is; ? = name in question" autocomplete="off" spellcheck="false" aria-label="Filter the list">
     </header>
@@ -178,12 +181,13 @@ const scenes = new Map(), sceneWaiting = new Map();
 window.SCENE = (room, s) => { scenes.set(room, s); (sceneWaiting.get(room) || []).forEach(f => f()); sceneWaiting.delete(room); };
 const needScene = room => scenes.has(room) || !D.side ? Promise.resolve() : new Promise(done => { if (sceneWaiting.has(room)) return sceneWaiting.get(room).push(done); sceneWaiting.set(room, [done]); const tag = document.createElement("script"); tag.src = `${D.side}/scene_${room}.js`; tag.onerror = () => { scenes.set(room, null); (sceneWaiting.get(room) || []).forEach(f => f()); sceneWaiting.delete(room); }; document.head.append(tag); });
 const ACTION_HUE = { WARP: 140, CAP: 280, CAP_WEAPON: 300, CALLBACK: 30, ROOM: 200, FACING: 60, CLEAR: 0, CANCEL: 0 };
-function renderRoom(name) {
+function renderRoom(name, want) {
   const s = scenes.get(name); if (!s || !s.rooms.length) return h("div", { class: "dim", text: "no scene was read for this room" });
   const W = 640, H = 480, cv = h("canvas", { width: W, height: H, style: "cursor:grab;touch-action:none;image-rendering:auto;max-width:100%" }), ctx = cv.getContext("2d"), css = getComputedStyle(document.documentElement), ink = css.getPropertyValue("--ink") || "#000", accent = css.getPropertyValue("--clash") || "#c00";
   const opt = (list, id) => h("select", { id }, list.map(([v, t]) => h("option", { value: v, text: t })));
   const roomSel = opt(s.rooms.map((r, i) => [i, "room index " + r.i]), "rs-room"), viewSel = h("select", { id: "rs-view" }), vars = s.vars.filter(v => !v.empty), varSel = opt([["", "no placements"], ...vars.map(v => [v.n, `variant ${v.n}` + (v.set ? "" : " (no setter found)")])], "rs-var");
   if (vars.length) varSel.value = String((vars.find(v => v.n === 1) || vars[0]).n);
+  if (want) { const ri = s.rooms.findIndex(r => r.i === want.room); if (ri >= 0) roomSel.value = String(ri); varSel.value = vars.some(v => v.n === want.variant) ? String(want.variant) : ""; }
   const layers = [["grid", "floor and walls"], ["bnd", "view boundaries"], ["trg", "action regions"], ["warp", "entries and exits"], ["cam", "cameras"], ["act", "placements"], ["mesh", "models"], ["bg", "background"], ["lab", "labels"]], on = {};
   const boxes = layers.map(([k, t]) => { const b = h("input", { type: "checkbox", id: "rs-" + k }); b.checked = true; on[k] = b; return h("label", { class: "row", for: "rs-" + k }, b, t); });
   const info = h("div", { class: "dim" }), lists = h("div", {});
@@ -241,7 +245,7 @@ function renderRoom(name) {
   cv.addEventListener("pointermove", e => { if (!from || viewSel.value) return; yaw += (e.clientX - from[0]) * 0.01; pitch = Math.max(-1.55, Math.min(1.55, pitch + (e.clientY - from[1]) * 0.01)); from = [e.clientX, e.clientY]; draw(); });
   cv.addEventListener("pointerup", () => { from = null; }); cv.addEventListener("wheel", e => { if (viewSel.value) return; e.preventDefault(); zoomK = Math.max(0.3, Math.min(12, zoomK * (e.deltaY < 0 ? 1.15 : 1 / 1.15))); draw(); }, { passive: false });
   roomSel.addEventListener("change", () => { fillViews(); draw(); tell(); }); viewSel.addEventListener("change", draw); varSel.addEventListener("change", () => { draw(); tell(); models(); }); Object.values(on).forEach(b => b.addEventListener("change", draw));
-  fillViews(); draw(); tell(); models();
+  fillViews(); if (want && viewsOf(s.rooms[+roomSel.value || 0]).some(v => v[0] === want.view && v[3])) viewSel.value = String(want.view); draw(); tell(); models();
   return h("div", { class: "shot" }, cv, h("div", { class: "row" }, h("label", { for: "rs-room", class: "row" }, roomSel), h("label", { for: "rs-view", class: "row" }, viewSel), h("label", { for: "rs-var", class: "row" }, varSel)), h("div", { class: "row", style: "flex-wrap:wrap" }, boxes), info, lists);
 }
 // A list that may be long: the first rows, and a button for the rest.
@@ -253,12 +257,16 @@ function landed(kind, part, x, y, page, row, relocate) {
   return [x, y];
 }
 // Video memory as a list of loads leaves it: the words, and which asset put each there.
-function compose(ups) {
-  const vram = new Uint16Array(1024 * 512), owner = new Uint16Array(1024 * 512), names = [""];
-  for (const [f, page, row, rel] of ups) { const seen = new Set(); for (const r of (D.fp[f] || [])) { if (seen.has(r[0])) continue; seen.add(r[0]);
-    const id = names.push(r[0]) - 1; (pix.get(r[0]) || []).forEach((col, n) => { const [ax, ay] = landed(r[1], n ? "column " + n : "column 0", col.x, col.y, page, row, rel);
+// An entry is [file, page offset, row offset, relocate, label, only]: `only` lists the assets a partial load took. The
+// entry ["movie"] is a movie's workspace backup, (320,0)-(479,511) copied over (704,0)-(1023,255) (src/main/stream.c).
+// Given the memory of an earlier call, the loads are added to it.
+function compose(ups, mem) {
+  const vram = mem ? mem.vram : new Uint16Array(1024 * 512), owner = mem ? mem.owner : new Uint16Array(1024 * 512), names = mem ? mem.names : [""], ids = mem ? mem.ids : new Map(), idOf = n => ids.get(n) || (ids.set(n, names.push(n) - 1), ids.get(n));
+  for (const [f, page, row, rel, , only] of ups) { if (f === "movie") { const id = idOf("a movie's workspace backup"); for (const [sy, dx] of [[0, 704], [256, 864]]) for (let yy = 0; yy < 256; yy++) for (let xx = 0; xx < 160; xx++) { vram[yy * 1024 + dx + xx] = vram[(sy + yy) * 1024 + 320 + xx]; owner[yy * 1024 + dx + xx] = id; } continue; }
+    const seen = new Set(); for (const r of (D.fp[f] || [])) { if (seen.has(r[0]) || (only && !only.includes(r[0]))) continue; seen.add(r[0]);
+    const id = idOf(r[0]); (pix.get(r[0]) || []).forEach((col, n) => { const [ax, ay] = landed(r[1], n ? "column " + n : "column 0", col.x, col.y, page, row, rel);
       for (let yy = 0; yy < col.h; yy++) { const y = ay + yy; if (y < 0 || y > 511) continue; for (let xx = 0; xx < col.w; xx++) { const x = ax + xx; if (x < 0 || x > 1023) continue; vram[y * 1024 + x] = col.u[yy * col.w + xx]; owner[y * 1024 + x] = id; } } }); } }
-  return { vram, owner, names };
+  return { vram, owner, names, ids };
 }
 const geo = (t, c) => { const bpp = [4, 8, 16][(t >> 7) & 3] || 16; return { bpp, tx: (t & 15) * 64, ty: (t & 16) ? 256 : 0, cx: (c & 63) * 16, cy: c >> 6, n: bpp === 4 ? 16 : 256 }; };
 const put = (d, k, col, alpha) => { d[k] = (col & 31) * 255 / 31; d[k + 1] = ((col >> 5) & 31) * 255 / 31; d[k + 2] = ((col >> 10) & 31) * 255 / 31; d[k + 3] = alpha; };
@@ -330,7 +338,14 @@ let navMode = "o", current = "";
 function drawNav() {
   const box = $("list"), raw = $("filter").value.trim().toLowerCase(), only = raw.startsWith("?"), q = raw.replace(/^\?\s*/, ""); box.replaceChildren();
   const hit = window.__hit = k => (!only || asked(k)) && (!q || k.toLowerCase().includes(q) || (D.notes[k] && D.notes[k][0].toLowerCase().includes(q)));
-  $("nav-o").setAttribute("aria-pressed", navMode === "o"); $("nav-a").setAttribute("aria-pressed", navMode === "a"); $("nav-f").setAttribute("aria-pressed", navMode === "f"); $("nav-g").setAttribute("aria-pressed", navMode === "g");
+  $("nav-o").setAttribute("aria-pressed", navMode === "o"); $("nav-a").setAttribute("aria-pressed", navMode === "a"); $("nav-f").setAttribute("aria-pressed", navMode === "f"); $("nav-g").setAttribute("aria-pressed", navMode === "g"); $("nav-t").setAttribute("aria-pressed", navMode === "t");
+  if (navMode === "t") {
+    // Each trace and its sessions; a session opens its playback.
+    box.append(h("a", { href: "#t.", class: current === "t." ? "cur" : "", text: "all traces" }));
+    for (const [name, sessions] of D.traces || []) { if (q && !name.toLowerCase().includes(q) && !sessions.some(s => s[0].toLowerCase().includes(q))) continue;
+      box.append(h("details", { open: "" }, h("summary", { class: "dim", text: `${name} (${sessions.length})` }), h("div", {}, sessions.map(s => h("a", { href: `#t.${name}/${s[1]}`, class: current === `t.${name}/${s[1]}` ? "cur" : "" }, s[0], s[3] ? h("span", { class: "badge", text: "  dropped" }) : null, h("span", { class: "dim", text: `  ${s[4]}–${s[5]}` })))))); }
+    if (!(D.traces || []).length) box.append(h("p", { class: "dim", style: "padding:0 16px", text: "no traces" }));
+    return; }
   if (navMode === "g") {
     // The groups as a tree of their path parts; each opens its members.
     const rows = [...allGroups()].filter(([g]) => !q || g.includes(q)).sort((a, b) => a[0].localeCompare(b[0]));
@@ -509,6 +524,7 @@ async function showOverlay(name) {
   if (swept.length) { const open = swept.filter(u => u[6] === "open");
     sections.push(sec(`Uses (${swept.length}, ${open.length} open)`, "How this overlay's code uses its assets and its ancestors', read out of the sources. Open lines first.", useTable([...open, ...swept.filter(u => u[6] !== "open")], false))); }
   else sections.push(sec("Uses", "This overlay has not been swept yet: how its code uses its assets is not recorded."));
+  if (o.room) sections.push(observedRoom(name)); else { const seen = await observedSection(name, "pe2pkg", () => mine === turn); if (mine !== turn) return; sections.push(seen); }
   const said = D.remarks[name] || [];
   if (said.length) sections.push(sec(`Remarks (${said.length})`, "What the sweep recorded about this overlay as a whole: things no single asset line carries, such as what was searched and not found.", h("ul", { class: "plain" }, said.map(t => h("li", { text: t })))));
   const finds = D.findings[name] || [];
@@ -624,6 +640,7 @@ async function showAsset(key) {
   } else if (D.track[key] !== undefined) { await needSide(key); if (mine !== turn) return; sections.push(sec("Samples", "", h("div", { class: "shots" }, renderTrack(key)))); }
   const uses = D.usage[key] || [];
   if (uses.length) sections.push(sec(`Uses (${uses.length})`, "How the code uses this asset, read out of the sources. An open line says what is still missing.", useTable(uses, true)));
+  { const seen = type === "model" ? await observedModel(key, () => mine === turn) : await observedSection(key, type, () => mine === turn); if (mine !== turn) return; sections.push(seen); }
   const rows = Object.entries(attrs).filter(([k]) => k !== "notes");
   sections.push(sec("Properties", attrs.notes || "", rows.length ? h("table", {}, rows.map(([k, v]) => h("tr", {}, h("th", { text: k }), h("td", {}, k === "parent" ? [].concat(v).map((p, i) => [i ? ", " : "", link("o", p)]) : k === "vram" ? "0x" + v.toString(16) : String(JSON.stringify(v)).replace(/^"|"$/g, ""))))) : h("p", { text: "None recorded." })));
   const loaders = files.flatMap(f => (loadersOf.get(f) || []).map(l => [f, ...l]));
@@ -634,13 +651,175 @@ async function showAsset(key) {
   box.replaceChildren(head, ...sections);
 }
 
+// ---- traces: what the running game was recorded doing (tools/gametrace), replayed by tools/peassets/trace_replay.py ----
+// A trace's side file holds its records as readable lines, its loads, and every thing a load put somewhere with the
+// record it arrived at and the record it was displaced at. Residency ends by overwrite: whatever lands on any part
+// of a thing ends it. State at a record is therefore a filter over that list, and video memory is the loads so far.
+//   sessions [name, number, started, dropped, first, last]        ev [kind, text, extra]
+//   loads    [record, file, page, row, relocate, only, mode]      places [record, stage, area, room index, view, warp, variant, room, view file, background]
+//   things   [asset, memory (v, m or s), load, from record, to record or -1, displaced by, where, note]
+const traces = new Map(), traceWaiting = new Map(), fileIndex = new Map(D.files.map((n, i) => [n, i]));
+window.TRACE = (name, t) => { t.ops = []; t.loads.forEach((l, i) => { const f = fileIndex.get(l[1]); if (f !== undefined && !(l[5] && !l[5].length)) t.ops.push([l[0], [f, l[2], l[3], l[4], "", l[5]], i]); }); for (const n of t.movies) t.ops.push([n, ["movie"], -1]); t.ops.sort((a, b) => a[0] - b[0]);
+  traces.set(name, t); (traceWaiting.get(name) || []).forEach(f => f()); traceWaiting.delete(name); };
+const needTrace = name => traces.has(name) || !D.side ? Promise.resolve() : new Promise(done => { if (traceWaiting.has(name)) return traceWaiting.get(name).push(done); traceWaiting.set(name, [done]); const tag = document.createElement("script"); tag.src = `${D.side}/trace_${name}.js`; tag.onerror = () => { traces.set(name, null); (traceWaiting.get(name) || []).forEach(f => f()); traceWaiting.delete(name); }; document.head.append(tag); });
+const upTo = (list, n) => { let lo = 0, hi = list.length; while (lo < hi) { const mid = (lo + hi) >> 1; if (list[mid][0] <= n) lo = mid + 1; else hi = mid; } return lo; };
+const MEMORY = { v: "Video memory", m: "Main memory", s: "Sound memory" };
+const assetLink = k => D.overlays[k] ? link("o", k) : D.assets[k] ? link("a", k) : h("span", { text: k });
+const hexRange = w => `0x${w[0].toString(16)}–0x${(w[1] - 1).toString(16)}`;
+// Video memory at a record: every upload so far, in order (kept from the last call when stepping forward).
+function traceMemory(t, count) { const c = t.cache; if (c && c.count <= count) { compose(t.ops.slice(c.count, count).map(o => o[1]), c.mem); c.count = count; return c.mem; } t.cache = { count, mem: compose(t.ops.slice(0, count).map(o => o[1])) }; return t.cache.mem; }
+// The sheet. "raw": each word as a 15-bit colour. "as used": what is resident, an image through the palette its faces
+// name (D.pairs) read from where that palette sits now; what was displaced is still in memory, so it stays, faded.
+function traceSheet(t, mem, live, used) {
+  const cv = h("canvas", { width: 1024, height: 512 }), ctx = cv.getContext("2d"), im = ctx.createImageData(1024, 512), d = im.data;
+  for (let i = 0; i < 1024 * 512; i++) if (mem.owner[i] && mem.vram[i]) put(d, i * 4, mem.vram[i], used ? 70 : 255);
+  if (used) for (const x of live) { if (x[1] !== "v") continue; const load = t.loads[x[2]], f = load && fileIndex.get(load[1]), r = (D.fp[f] || []).find(q => q[0] === x[0]);
+    if (!r || r[1] === "c") { for (const [rx, ry, rw, rh] of x[6]) for (let yy = ry; yy < ry + rh && yy < 512; yy++) for (let xx = rx; xx < rx + rw && xx < 1024; xx++) { const w = mem.vram[yy * 1024 + xx]; if (w) put(d, (yy * 1024 + xx) * 4, w, 255); } continue; }
+    (pix.get(x[0]) || []).forEach((col, n) => { const [ax, ay] = landed("i", n ? "column " + n : "column 0", col.x, col.y, load[2], load[3], load[4]), pr = (D.pairs[x[0]] || []).find(p => p[4] === n) || (D.pairs[x[0]] || [])[0], bpp = pr ? pr[0] : (r[7] || 8);
+      const pals = pr && pr[1] ? live.filter(q => q[1] === "v" && q[0] === pr[1]) : [], pal = pals.find(q => q[2] === x[2]) || pals[pals.length - 1], pa = pal ? (pal[6][0][1] + pr[2]) * 1024 + pal[6][0][0] + pr[3] * 16 : -1;
+      for (let yy = 0; yy < col.h; yy++) { const y = ay + yy; if (y < 0 || y > 511) continue; for (let xx = 0; xx < col.w; xx++) { const xp = ax + xx; if (xp < 0 || xp > 1023) continue; const w = col.u[yy * col.w + xx], k = (y * 1024 + xp) * 4;
+        if (bpp === 16) { if (w) put(d, k, w, 255); else d[k + 3] = 0; continue; } const idx = bpp === 4 ? w & 15 : w & 255;
+        if (pa >= 0) { const c = mem.vram[pa + idx]; if (c) put(d, k, c, 255); else d[k + 3] = 0; } else { const g = idx * 255 / (bpp === 4 ? 15 : 255); d[k] = d[k + 1] = d[k + 2] = g; d[k + 3] = 255; } } } }); }
+  ctx.putImageData(im, 0, 0); return cv;
+}
+function listTraces() {
+  const box = $("subject"); box.replaceChildren(h("header", {}, h("h2", { text: `Traces (${D.traces.length})` }), h("div", { class: "crumbs", text: "recordings of the running game (tools/gametrace), under local/gametrace when the page was generated" })),
+    D.traces.length ? sec("Sessions", "A session is a stretch of a recording its maker named. Open one to play it back: what was loaded, where it went in memory, what it displaced.", h("table", {}, h("tr", {}, ["Trace", "Session", "Started", "Records"].map(x => h("th", { text: x }))),
+      D.traces.flatMap(([name, sessions]) => (sessions.length ? sessions : [["the whole trace", 0, "", 0, 0, 0]]).map(s => h("tr", {}, h("td", { text: name }), h("td", {}, link("t", `${name}/${s[1]}`, s[0]), s[3] ? h("span", { class: "flag", text: " dropped" }) : null), h("td", { text: s[2] }), h("td", { text: `${s[4]}–${s[5]}` }))))))
+    : h("p", { text: "No trace was found when this page was generated. Record one with tools/gametrace/gametrace.py and generate the page again." }));
+}
+async function showTrace(arg) {
+  const mine = ++turn, box = $("subject"), [path, start] = arg.split("@"), cut = path.lastIndexOf("/"), name = cut < 0 ? path : path.slice(0, cut), number = cut < 0 ? -1 : +path.slice(cut + 1);
+  if (!name) { listTraces(); return; }
+  box.replaceChildren(h("p", { class: "dim", text: "reading the trace…" })); await needTrace(name); if (mine !== turn) return;
+  const t = traces.get(name); if (!t) { box.replaceChildren(h("p", { text: `No trace named ${name} beside this page.` })); return; }
+  const s = t.sessions.find(x => x[1] === number) || t.sessions[0] || ["the whole trace", 0, "", 0, 0, t.ev.length - 1], lo = s[4], hi = Math.max(s[4], s[5]);
+  let pos = Math.min(hi, Math.max(lo, start ? +start : lo)), timer = null, seq = 0, roomKey = null, memKey = null, hover = null;
+  const slider = h("input", { type: "range", min: lo, max: hi, step: 1, id: "tr-pos", style: "flex:1;min-width:200px", "aria-label": "position in the session" }), said = h("span", { class: "dim" });
+  const mode = h("select", { id: "tr-mode" }, h("option", { value: "used", text: "as used" }), h("option", { value: "raw", text: "raw 15-bit colour" })), boxes = h("input", { type: "checkbox", id: "tr-box" }); boxes.checked = true;
+  const whereBox = h("div", {}), memBox = h("div", {}), memSaid = h("div", { class: "dim", text: "point at video memory to name what is there" }), liveBox = h("div", {}), evBox = h("div", { class: "ev" }), roomBox = h("div", {});
+  const big = k => { let n = pos + k; while (n >= lo && n <= hi && !/^(load|where|mark)$/.test(t.ev[n][0])) n += k; return n < lo || n > hi ? pos : n; };
+  const jump = n => h("a", { class: "lnk", text: n, onclick: () => go(n) });
+  const from = l => l ? l[1] + (l[2] || l[3] ? ` at ${sign(l[2], l[3])}` : "") + (l[6] ? ` mode ${l[6]}` : "") : "";
+  const drawMemory = async live => {
+    const count = upTo(t.ops, pos), key = count + "|" + mode.value + "|" + boxes.checked + "|" + live.filter(x => x[1] === "v").length + "|" + S, my = ++seq; if (key === memKey) return; 
+    await needFiles([...new Set(t.ops.slice(0, count).map(o => o[1][0]).filter(f => f !== "movie"))]); if (mine !== turn || my !== seq) return; memKey = key;
+    const mem = traceMemory(t, count), k = Math.min(S, 2), cv = zoom(traceSheet(t, mem, live, mode.value === "used"), k), NS = "http://www.w3.org/2000/svg", svg = document.createElementNS(NS, "svg"); svg.setAttribute("viewBox", "0 0 1024 512"); svg.setAttribute("preserveAspectRatio", "none");
+    const rect = (x, y, w, hh, cls, label) => { const r = document.createElementNS(NS, "rect"); r.setAttribute("class", cls); for (const [a, v] of [["x", x], ["y", y], ["width", w], ["height", hh]]) r.setAttribute(a, v); svg.append(r); if (label) { const tx = document.createElementNS(NS, "text"); tx.setAttribute("x", x + 2); tx.setAttribute("y", y + 9); tx.textContent = label; svg.append(tx); } };
+    if (boxes.checked) for (const x of live) if (x[1] === "v") x[6].forEach((r, n) => rect(r[0], r[1], r[2], r[3], "live", !n && r[2] >= 48 && r[3] >= 12 ? x[0] : ""));
+    const movie = t.movies.filter(n => n <= pos).pop(); if (movie !== undefined) rect(704, 0, 320, 256, "movie", `overwritten by a movie's workspace backup at record ${movie}`);
+    const at = e => { const x = Math.floor(e.offsetX / k), y = Math.floor(e.offsetY / k); return x >= 0 && x < 1024 && y >= 0 && y < 512 ? [x, y] : null; };
+    const what = p => { const o = mem.names[mem.owner[p[1] * 1024 + p[0]]], x = live.find(q => q[1] === "v" && q[6].some(r => p[0] >= r[0] && p[0] < r[0] + r[2] && p[1] >= r[1] && p[1] < r[1] + r[3])); return { o, x }; };
+    cv.addEventListener("mousemove", e => { const p = at(e); if (!p) return; const { o, x } = what(p), gone = !x && o ? t.things.filter(q => q[0] === o && q[1] === "v" && q[4] >= 0 && q[4] <= pos).pop() : null; hover = x ? x[0] : o || null;
+      memSaid.textContent = `(${p[0]}, ${p[1]}): ` + (x ? `${x[0]}, resident since record ${x[3]}` + (t.loads[x[2]] ? `, from ${t.loads[x[2]][1]}` : "") + " · click to open it" : o ? `${o}, no longer resident` + (gone ? `: ${gone[5]} at record ${gone[4]}` : "") + "; its words are still here" : "nothing was uploaded here"); });
+    cv.addEventListener("click", () => { if (hover && (D.assets[hover] || D.overlays[hover])) location.hash = (D.overlays[hover] ? "o." : "a.") + hover; }); cv.style.cursor = "crosshair";
+    memBox.replaceChildren(h("div", { class: "sheetbox" }, h("div", { class: "sheet" }, cv, svg)));
+  };
+  const drawRoom = async p => { const key = p && p[7] ? [p[7], p[3], p[6], p[4]].join("|") : ""; if (key === roomKey) return; roomKey = key;
+    if (!key) { roomBox.replaceChildren(h("p", { class: "dim", text: "The player is in no room at this record." })); return; }
+    if (!(D.scenes || []).includes(p[7])) { roomBox.replaceChildren(h("p", { class: "dim", text: `No scene was read for ${p[7]}.` })); return; }
+    await needScene(p[7]); if (mine !== turn || key !== roomKey) return; roomBox.replaceChildren(renderRoom(p[7], { room: p[3], variant: p[6], view: p[4] })); };
+  const update = async () => {
+    const p = t.places[upTo(t.places, pos) - 1], live = t.things.filter(x => x[3] <= pos && (x[4] < 0 || x[4] > pos)), has = k => live.some(x => x[0] === k);
+    slider.value = String(pos); said.textContent = `record ${pos} of ${lo}–${hi}`;
+    whereBox.replaceChildren(p && p[7] ? h("div", {}, D.overlays[p[7]] ? link("o", p[7]) : p[7], ` · stage ${p[1]} area ${p[2]} · room index ${p[3]} · variant ${p[6]} · view ${p[4]}` + (p[8] ? ` (file ${p[8]} is the last view file loaded)` : " (no view file loaded yet)") + ` · warp ${p[5]}`) : h("div", { class: "dim", text: "In no room: the title, or a load that has not named its room yet." }),
+      p && p[9] ? h("div", { class: "shot" }, D.pictures && has(p[9]) ? h("img", { src: `${at(p[9], "bs")}/${p[9]}.png`, alt: p[9], width: 320, height: 240 }) : null, h("div", {}, "background ", link("a", p[9]), has(p[9]) ? "" : " · displaced since: no longer in the image workspace")) : h("div", { class: "dim", text: p && p[7] ? "The last view file loaded has no background." : "" }));
+    const table = m => { const rows = live.filter(x => x[1] === m); return h("details", { open: "" }, h("summary", { class: "dim", text: `${MEMORY[m]} (${rows.length})` }), rows.length ? capped(rows, 60, part => h("div", { class: "scrollx" }, h("table", {}, h("tr", {}, ["Asset", "Where", "Brought by", "Since"].map(x => h("th", { text: x }))),
+      part.map(x => h("tr", {}, h("td", {}, assetLink(x[0]), x[7] && x[7] !== "bundle" ? h("span", { class: "dim", text: " " + x[7] }) : null), h("td", { text: m === "v" ? x[6].map(r => `(${r[0]}, ${r[1]}) ${r[2]}×${r[3]}`).join(" ") : hexRange(x[6]) }), h("td", { text: from(t.loads[x[2]]) }), h("td", {}, jump(x[3]))))))) : h("p", { class: "dim", text: "nothing" })); };
+    const gone = t.things.filter(x => x[4] >= lo && x[4] <= pos).sort((a, b) => b[4] - a[4]);
+    liveBox.replaceChildren(table("v"), table("m"), table("s"), h("details", { open: "" }, h("summary", { class: "dim", text: `Displaced so far in this session (${gone.length})` }), gone.length ? capped(gone, 25, part => h("div", { class: "scrollx" }, h("table", {}, h("tr", {}, ["Asset", "Memory", "What displaced it", "At", "Had been there since"].map(x => h("th", { text: x }))),
+      part.map(x => h("tr", {}, h("td", {}, assetLink(x[0])), h("td", { text: MEMORY[x[1]].split(" ")[0].toLowerCase() }), h("td", { text: x[5] }), h("td", {}, jump(x[4])), h("td", {}, jump(x[3]))))))) : h("p", { class: "dim", text: "nothing yet" })));
+    const first = Math.max(lo, pos - 10), rows = []; for (let n = first; n <= Math.min(hi, pos + 16); n++) { const e = t.ev[n]; rows.push(h("div", { class: `k-${e[0]}` + (n === pos ? " cur" : ""), onclick: () => go(n), title: e[1] }, h("span", { class: "dim", text: String(n).padStart(6, " ") + "  " }), e[1],
+      e[2] && e[2].play && D.pictures ? e[2].play.map(id => h("button", { text: "▶ " + id, style: "margin:0 0 0 8px;padding:0 6px", onclick: ev => { ev.stopPropagation && ev.stopPropagation(); try { new Audio(`${at(id, "sample")}/${id}.wav`).play(); } catch (x) {} } })) : null)); }
+    evBox.replaceChildren(...rows);
+    await Promise.all([drawMemory(live), drawRoom(p)]);
+  };
+  const go = n => { pos = Math.min(hi, Math.max(lo, n)); return update(); };
+  const stop = () => { if (timer) { clearInterval(timer); timer = null; play.textContent = "play"; } };
+  const play = h("button", { text: "play", onclick: () => { if (timer) return stop(); play.textContent = "pause"; timer = setInterval(() => { if (mine !== turn || pos >= hi) return stop(); let n = pos + 1; while (n < hi && /^(dim|raw)$/.test(t.ev[n][0])) n++; go(n); }, 450); } });
+  slider.addEventListener("input", () => { stop(); go(+slider.value); }); mode.addEventListener("change", update); boxes.addEventListener("change", update);
+  window.__trace = { go, big, pos: () => pos, lo, hi, trace: t };
+  box.replaceChildren(...[h("header", {}, h("h2", { text: `${s[0]}` }), h("div", { class: "crumbs" }, `session ${s[1]} of `, link("t", "", name), s[2] ? ` · started ${s[2]}` : "", ` · records ${lo}–${hi}`, s[3] ? h("span", { class: "flag", text: " · dropped: its records still count, since what was loaded is loaded" }) : "",
+      t.sessions.length > 1 ? [" · ", t.sessions.map((x, i) => [i ? ", " : "", x[1] === s[1] ? x[0] : link("t", `${name}/${x[1]}`, x[0])])] : "")),
+    sec("Playback", "Step through the session's records; everything below is the state at the chosen record. The double arrows go to the next load, location change or marker.",
+      h("div", { class: "row", style: "display:flex;flex-wrap:wrap;gap:8px;align-items:center" }, h("button", { text: "⏮", title: "previous load or change", onclick: () => { stop(); go(big(-1)); } }), h("button", { text: "◀", title: "one record back", onclick: () => { stop(); go(pos - 1); } }), play, h("button", { text: "▶", title: "one record on", onclick: () => { stop(); go(pos + 1); } }), h("button", { text: "⏭", title: "next load or change", onclick: () => { stop(); go(big(1)); } }), slider, said)),
+    sec("Where", "", whereBox),
+    sec("Video memory", "All 1024 × 512 of it, from every upload up to this record. Outlined: what is resident. An upload that lands on any part of an image or palette ends it; its remaining words stay in memory and are drawn faded in the \"as used\" view, where a resident image is read through the palette its faces name, taken from where that palette sits now (grey where none is resident). Uploads the trace does not record are not here: the frame buffers at the left, a movie's frames, MoveImage copies.",
+      h("div", { class: "bar" }, h("label", { for: "tr-mode" }, "Colours", mode), h("label", { class: "row", for: "tr-box" }, boxes, "outline what is resident")), memBox, memSaid),
+    sec("Resident", "What is in memory at this record, and where. Main memory: a package at its load address, each slot of a caption bundle, the background in the image workspace. Sound memory: a bank's samples.", liveBox),
+    sec("Records", "The records around this one, the current one marked. Click one to go there; a sound request plays its samples.", evBox),
+    sec("Room", "The room the player is in, set to the trace's room index, variant and view.", roomBox),
+    t.unknown.length ? sec(`Not established (${t.unknown.length})`, "What the replay could not place or identify in this trace.", capped(t.unknown, 30, part => h("ul", { class: "plain" }, part.map(x => h("li", { text: x }))))) : null].filter(Boolean));
+  await update();
+}
+
+// ---- observed residency (tools/peassets/observed.tsv): where the traces showed an asset, and how ----
+// A row: [how, trace, session, stage, room, room index, variant, view, where, file, page, row, mode, note, ended].
+const obsCtx = r => r.slice(1, 7).join("|");
+const obsWhere = r => r[4] ? [D.overlays[r[4]] ? link("o", r[4]) : r[4], ` (stage ${r[3]}, room index ${r[5]}, variant ${r[6]}` + (r[7] ? `, view ${r[7]}` : "") + `) · ${r[2]}`] : [h("span", { class: "dim", text: "in no room (title or loading)" }), ` · ${r[2]}`];
+let obsPalettes = null;
+const palettesIn = ctx => { if (!obsPalettes) { obsPalettes = new Map(); for (const [asset, rows] of Object.entries(D.observed)) { const ty = (D.assets[asset] || [""])[0]; if (ty !== "pe2clut" && ty !== "clut") continue;
+  for (const r of rows) if (r[0] === "video memory") for (const part of r[8].split(";")) { const [x, y, w, hh] = part.split(",").map(Number), k = obsCtx(r); (obsPalettes.get(k) || obsPalettes.set(k, []).get(k)).push([asset, x, y, w, hh]); } } } return obsPalettes.get(ctx) || []; };
+// Rows that differ only in context are one landing seen in several places.
+function obsGroups(rows) { const m = new Map(); for (const r of rows) { const k = [r[0], r[8], r[9], r[10], r[11], r[12], r[13]].join("|"), g = m.get(k) || m.set(k, { r, seen: [] }).get(k); g.seen.push(r); } return [...m.values()]; }
+function obsTable(rows) {
+  const groups = obsGroups(rows), traceCount = new Set(rows.map(r => r[1])).size;
+  return capped(groups, 40, part => h("div", { class: "scrollx" }, h("table", { class: "wide" }, h("tr", {}, ["How", "Where", "Brought by", "Seen in", "Displaced"].map(x => h("th", { text: x }))), part.map(({ r, seen }) => { const ended = seen.filter(q => q[14]);
+    return h("tr", {}, h("td", { text: r[0] + (r[13] ? ` · ${r[13]}` : "") }), h("td", { text: r[0] === "video memory" ? r[8].split(";").map(q => { const [x, y, w, hh] = q.split(","); return `(${x}, ${y}) ${w}×${hh}`; }).join(" ") : r[8].replace("-", "–") }),
+      h("td", { text: r[9] ? r[9] + (+r[10] || +r[11] ? ` at ${sign(+r[10], +r[11])}` : "") + (+r[12] ? ` mode ${r[12]}` : "") : "" }),
+      h("td", {}, seen.slice(0, 8).map((q, i) => [i ? h("br") : null, obsWhere(q), traceCount > 1 ? h("span", { class: "dim", text: " · " + q[1] }) : null]), seen.length > 8 ? h("div", { class: "dim", text: `and ${seen.length - 8} more contexts` }) : null),
+      h("td", { class: "dim" }, ended.slice(0, 4).map((q, i) => [i ? h("br") : null, q[14] + (q[4] ? ` (in ${q[4]})` : "")]))); }))));
+}
+async function observedSection(key, type, alive) {
+  const rows = D.observed[key] || [], extra = [];
+  if (!rows.length) return sec("Observed", (D.traces || []).length || Object.keys(D.observed).length ? "Not observed: no trace so far has this in memory, or playing." : "No trace has been observed yet (tools/peassets/trace_replay.py observe --write).");
+  if (type === "pe2img" || type === "image") {
+    // Each landing through the palette that was resident, in that context, at the place the faces' palette lands with the image's own offsets.
+    const shots = [], pairs = D.pairs[key] || [];
+    for (const { r, seen } of obsGroups(rows.filter(q => q[0] === "video memory")).slice(0, 6)) for (const [bpp, clut, prow, pal, col] of pairs.slice(0, 4)) {
+      if (!clut || bpp === 16 || !D.assets[clut]) continue; const a = D.assets[clut][1], base = landed("c", "", a.x, a.y, +r[10], +r[11], +r[12] === 3), px = base[0] + pal * 16, py = base[1] + prow, by = new Map();
+      for (const q of seen) { const hit = palettesIn(obsCtx(q)).find(c => px >= c[1] && px < c[1] + c[3] && py >= c[2] && py < c[2] + c[4]), k = hit ? hit.join() : ""; (by.get(k) || by.set(k, { hit, seen: [] }).get(k)).seen.push(q); }
+      for (const { hit, seen: where } of by.values()) shots.push({ r, bpp, col, hit, px, py, where }); }
+    await Promise.all([need(key), ...shots.filter(x => x.hit).map(x => need(x.hit[0]))]); if (!alive()) return null;
+    if (shots.length) extra.push(h("div", { class: "shots" }, shots.slice(0, 12).map(x => h("div", { class: "shot" }, renderImage(key, x.bpp, x.hit ? x.hit[0] : null, x.hit ? x.py - x.hit[2] : 0, x.hit ? Math.floor((x.px - x.hit[1]) / 16) : 0, x.col),
+      h("div", {}, `column ${x.col} · landed at ${x.r[8].split(";")[x.col] ? "(" + x.r[8].split(";")[x.col].split(",").slice(0, 2).join(", ") + ")" : x.r[8]} · `, x.hit ? [link("a", x.hit[0]), ` at (${x.px}, ${x.py})`] : h("span", { class: "flag", text: `no palette observed resident at (${x.px}, ${x.py})` })),
+      h("div", { class: "dim" }, x.where.slice(0, 3).map((q, i) => [i ? "; " : "", obsWhere(q)]), x.where.length > 3 ? ` and ${x.where.length - 3} more` : "")))));
+  }
+  return sec(`Observed (${rows.length})`, "Where the traces showed this, and how. Residency ends by overwrite: \"displaced\" names what landed on it.", ...extra, obsTable(rows));
+}
+// A model: the pages its faces name, from what the traces showed in video memory wherever its package was resident.
+async function observedModel(key, alive) {
+  // A mesh can sit in several packages (D.holds): it was seen wherever any of them was, and names the same pages in each.
+  const holders = [...new Set([(D.assets[key][1].source || "").replace(/\.pe2pkg$/, ""), ...Object.keys(D.holds).filter(p => D.holds[p].includes(key))])].filter(Boolean);
+  const rows = holders.flatMap(p => (D.observed[p] || []).filter(r => r[0] === "main memory").map(r => Object.assign([...r], { pkg: p })));
+  if (!rows.length) return sec("Observed", holders.length ? `Not observed: no trace so far has a package holding it (${holders.slice(0, 6).join(", ")}${holders.length > 6 ? ", …" : ""}) in memory.` : "Not observed.");
+  const ctxs = [...new Map(rows.filter(r => r[4]).map(r => [r.pkg + "|" + obsCtx(r), r])).values()], tiles = [], pkg = [...new Set(rows.map(r => r.pkg))].join(", ");
+  for (const r of ctxs.slice(0, 3)) { const own = (D.requests[r.pkg] || []).filter(q => q[0] === key), reqs = own.length ? own : [...new Map(Object.values(D.requests).flat().filter(q => q[0] === key).map(q => [q[1] + "|" + q[2], q])).values()]; const ups = new Map(); for (const [asset, list] of Object.entries(D.observed)) for (const q of list) if (q[0] === "video memory" && !q[14] && obsCtx(q) === obsCtx(r) && fileIndex.has(q[9])) { const k = [q[9], q[10], q[11], q[12]].join("|"); (ups.get(k) || ups.set(k, [fileIndex.get(q[9]), +q[10], +q[11], +(+q[12] === 3), "", []]).get(k))[5].push(asset); }
+    await needFiles([...ups.values()].map(u => u[0])); if (!alive()) return null; const mem = compose([...ups.values()]);
+    for (const [, t, c, b] of reqs) tiles.push(tile(mem, (t + +r[10]) & 0x19F, c + (+r[11] << 6), b, `in ${r.pkg} · ` + h("span", {}, obsWhere(r)).textContent, `as resident there at the end, displaced ${sign(+r[10], +r[11])} with its package's file`)); }
+  return sec(`Observed (${ctxs.length} contexts)`, `${pkg} was seen in memory in these contexts. The tiles are its texture pages read from what the traces showed still resident in video memory there (first three contexts).`, tiles.length ? h("div", { class: "tiles" }, tiles) : null, obsTable(rows));
+}
+// A room: which of its room indices, variants and views were seen, against which exist.
+function observedRoom(name) {
+  const rows = D.observed[name] || [], s = scenes.get(name), here = rows.filter(r => r[4] === name), views = here.filter(r => r[0] === "view");
+  if (!rows.length) return sec("Observed", "Not observed: no trace so far has this room in memory.");
+  const seenVar = new Set(here.map(r => +r[6])), seenRoom = new Set(here.map(r => +r[5])), seenView = new Set(views.map(r => r[5] + "|" + r[7]));
+  const mark = (list, seen, label) => h("p", {}, h("b", { text: `${label}: ` }), `${list.filter(x => seen.has(x[0])).length} of ${list.length} observed · `, list.map((x, i) => [i ? ", " : "", seen.has(x[0]) ? h("b", { text: x[1] + " ✓" }) : h("span", { class: "dim", text: x[1] })]));
+  const parts = [];
+  if (s) { parts.push(mark(s.rooms.map(r => [r.i, String(r.i)]), seenRoom, "Room indices"), mark(s.vars.filter(v => !v.empty).map(v => [v.n, String(v.n)]), seenVar, "Variants"));
+    for (const v of s.views) parts.push(mark(v.views.map(w => [v.i + "|" + w[0], `${w[0]}` + (w[1] !== w[0] ? ` (file ${w[1]})` : "")]), seenView, `Views of room index ${v.i}`)); }
+  else parts.push(h("p", {}, `Seen: room indices ${[...seenRoom].join(", ")}; variants ${[...seenVar].join(", ")}; views ${[...seenView].map(x => x.replace("|", ":")).join(", ")}. No scene was read for this room, so what exists is not listed.`));
+  return sec(`Observed (${rows.length})`, "What the traces showed of this room; what exists and was not seen is dim.", ...parts, obsTable(rows));
+}
+
 // ---- routing ----
 function route() {
   const hash = location.hash.slice(1), dot = hash.indexOf("."), kind = hash.slice(0, dot), name = hash.slice(dot + 1);
-  current = hash; $("nav-n").setAttribute("aria-pressed", kind === "n"); if (kind === "a") { showAsset(name); } else if (kind === "f" || kind === "d") { turn++; showFiles(name); } else if (kind === "n") { turn++; showNames(); } else if (kind === "g") { turn++; showGroups(name); } else { current = "o." + (D.overlays[name] ? name : "gameplay"); showOverlay(D.overlays[name] ? name : "gameplay"); }
+  current = hash; $("nav-n").setAttribute("aria-pressed", kind === "n"); if (kind === "a") { showAsset(name); } else if (kind === "f" || kind === "d") { turn++; showFiles(name); } else if (kind === "n") { turn++; showNames(); } else if (kind === "g") { turn++; showGroups(name); } else if (kind === "t") { showTrace(name); } else { current = "o." + (D.overlays[name] ? name : "gameplay"); showOverlay(D.overlays[name] ? name : "gameplay"); }
   markNav(); const m = document.querySelector("main"); if (m && m.scrollTo) m.scrollTo(0, 0);
 }
 $("nav-o").addEventListener("click", () => { navMode = "o"; drawNav(); }); $("nav-a").addEventListener("click", () => { navMode = "a"; drawNav(); }); $("nav-f").addEventListener("click", () => { navMode = "f"; drawNav(); }); $("nav-n").addEventListener("click", () => { location.hash = "n."; }); saveNames(); $("nav-g").addEventListener("click", () => { navMode = "g"; drawNav(); if (!/^g\./.test(current)) location.hash = "g."; }); saveGroups();
+$("nav-t").addEventListener("click", () => { navMode = "t"; drawNav(); if (!/^t\./.test(current)) location.hash = "t."; });
 $("scale").value = String(S); document.documentElement.style.setProperty("--scale", S);
 $("scale").addEventListener("change", e => { S = +e.target.value || 2; try { localStorage.setItem("asset-map-scale", S); } catch (x) {} document.documentElement.style.setProperty("--scale", S); route(); });
 $("filter").addEventListener("input", drawNav); window.addEventListener("hashchange", route); drawNav(); route();

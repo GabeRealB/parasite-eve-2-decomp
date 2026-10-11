@@ -1,0 +1,845 @@
+# Observed residency: what the traces of the running game (tools/gametrace) showed in memory, and in which context.
+# Written by `tools/peassets/trace_replay.py observe --write`, which merges: a trace observed again replaces its
+# own lines, the lines of other traces stay. One line per asset and distinct context. No game data: names, numbers.
+#   how         video memory | main memory | sound memory | played | caption command | view
+#   where       video memory: x,y,w,h of each rectangle as landed; main and sound memory: first-last address
+#   file..mode  the load that brought it: disc file, page offset, row offset, load mode
+#   view        only for what a view brings (a view's file, its palette), and for `view` lines of a room
+#   ended       what displaced it in this context (residency ends by overwrite), empty while it stayed
+# asset	how	trace	session	stage	room	room_index	variant	view	where	file	page	row	mode	note	ended
+acropolis_square	main memory	trace-20261011-164514	demo_1						0x8017d5c0-0x8018891b	1/acropolis_square/file0	0	0	0		
+acropolis_square	main memory	trace-20261011-164514	demo_1	1	acropolis_square	1	1		0x8017d5c0-0x8018891b	1/acropolis_square/file0	0	0	0		
+acropolis_square	main memory	trace-20261011-164514	demo_2						0x8017d5c0-0x8018891b	1/acropolis_square/file0	0	0	0		
+acropolis_square	main memory	trace-20261011-164514	demo_2	2	dryfield_main_street	1	3		0x8017d5c0-0x8018891b	1/acropolis_square/file0	0	0	0		overwritten by dryfield_main_street of 2/dryfield_main_street/file0 at event 379
+acropolis_square	main memory	trace-20261011-164514	demo_4 (dropped)						0x8017d5c0-0x8018891b	1/acropolis_square/file0	0	0	0		
+acropolis_square	main memory	trace-20261011-164514	demo_4 (dropped)	1	acropolis_square	1	1		0x8017d5c0-0x8018891b	1/acropolis_square/file0	0	0	0		
+acropolis_square	view	trace-20261011-164514	demo_1	1	acropolis_square	1	1	13		1/acropolis_square/file0	0	0	0	file 13, background bs_53	
+acropolis_square	view	trace-20261011-164514	demo_1	1	acropolis_square	1	1	15		1/acropolis_square/file0	0	0	0	file 15, background bs_55	
+acropolis_square	view	trace-20261011-164514	demo_1	1	acropolis_square	1	1	4		1/acropolis_square/file0	0	0	0	file 4, background bs_44	
+acropolis_square	view	trace-20261011-164514	demo_1	1	acropolis_square	1	1	7		1/acropolis_square/file0	0	0	0	file 7, background bs_47	
+acropolis_square	view	trace-20261011-164514	demo_1	1	acropolis_square	1	1	8		1/acropolis_square/file0	0	0	0	file 8, background bs_48	
+acropolis_square	view	trace-20261011-164514	demo_4 (dropped)	1	acropolis_square	1	1	15		1/acropolis_square/file0	0	0	0	file 15, background bs_55	
+actor_111800	main memory	trace-20261011-164514	demo_1						0x80131e20-0x8013a473	0/file111800	-1	2	0		
+actor_111800	main memory	trace-20261011-164514	demo_1	1	acropolis_square	1	1		0x80131e20-0x8013a473	0/file111800	-1	2	0		
+actor_111800	main memory	trace-20261011-164514	demo_2						0x80131e20-0x8013a473	0/file111800	-1	2	0		
+actor_111800	main memory	trace-20261011-164514	demo_2	2	dryfield_main_street	1	3		0x80131e20-0x8013a473	0/file111800	-1	2	0		overwritten by actor_400100 of 0/file400100 at event 391
+actor_111800	main memory	trace-20261011-164514	demo_4 (dropped)						0x80131e20-0x8013a473	0/file111800	-1	2	0		
+actor_111800	main memory	trace-20261011-164514	demo_4 (dropped)	1	acropolis_square	1	1		0x80131e20-0x8013a473	0/file111800	-1	2	0		
+actor_400100	main memory	trace-20261011-164514	demo_2						0x80131e20-0x8014d8b7	0/file400100	0	2	0		
+actor_400100	main memory	trace-20261011-164514	demo_2	2	dryfield_main_street	1	3		0x80131e20-0x8014d8b7	0/file400100	0	2	0		
+actor_400100	main memory	trace-20261011-164514	demo_3						0x80131e20-0x8014d8b7	0/file400100	0	2	0		
+actor_400100	main memory	trace-20261011-164514	demo_3	2	dryfield_underpass	6	1		0x80131e20-0x8014d8b7	0/file400100	0	2	0		overwritten by actor_400500 of 0/file400500 at event 736
+actor_400500	main memory	trace-20261011-164514	demo_3						0x80131e20-0x80153df4	0/file400500	0	2	0		
+actor_400500	main memory	trace-20261011-164514	demo_3	2	dryfield_underpass	3	1		0x80131e20-0x80153df4	0/file400500	0	2	0		
+actor_400500	main memory	trace-20261011-164514	demo_3	2	dryfield_underpass	6	1		0x80131e20-0x80153df4	0/file400500	0	2	0		
+actor_400500	main memory	trace-20261011-164514	demo_4 (dropped)						0x80131e20-0x80153df4	0/file400500	0	2	0		
+actor_400500	main memory	trace-20261011-164514	demo_4 (dropped)	1	acropolis_square	1	1		0x80131e20-0x80153df4	0/file400500	0	2	0		overwritten by actor_111800 of 0/file111800 at event 1177
+aya_10300	main memory	trace-20261011-164514	demo_2						0x80115770-0x8011cd6b	0/aya_10300	6	0	0		
+aya_10300	main memory	trace-20261011-164514	demo_2	2	dryfield_main_street	1	3		0x80115770-0x8011cd6b	0/aya_10300	6	0	0		
+aya_10300	main memory	trace-20261011-164514	demo_3						0x80115770-0x8011cd6b	0/aya_10300	6	0	0		
+aya_10300	main memory	trace-20261011-164514	demo_3						0x80115770-0x8011cd6b	0/aya_10300	6	0	0		overwritten by aya_10300 of 0/aya_10300 at event 683
+aya_10300	main memory	trace-20261011-164514	demo_3	2	dryfield_underpass	3	1		0x80115770-0x8011cd6b	0/aya_10300	6	0	0		
+aya_10300	main memory	trace-20261011-164514	demo_3	2	dryfield_underpass	6	1		0x80115770-0x8011cd6b	0/aya_10300	6	0	0		
+aya_10300	main memory	trace-20261011-164514	demo_4 (dropped)						0x80115770-0x8011cd6b	0/aya_10300	6	0	0		overwritten by aya_10400 of 0/aya_10400 at event 1126
+aya_10400	main memory	trace-20261011-164514	demo_1						0x80115770-0x8011cce3	0/aya_10400	6	0	0		
+aya_10400	main memory	trace-20261011-164514	demo_1	1	acropolis_square	1	1		0x80115770-0x8011cce3	0/aya_10400	6	0	0		
+aya_10400	main memory	trace-20261011-164514	demo_2						0x80115770-0x8011cce3	0/aya_10400	6	0	0		overwritten by aya_10300 of 0/aya_10300 at event 338
+aya_10400	main memory	trace-20261011-164514	demo_4 (dropped)						0x80115770-0x8011cce3	0/aya_10400	6	0	0		
+aya_10400	main memory	trace-20261011-164514	demo_4 (dropped)	1	acropolis_square	1	1		0x80115770-0x8011cce3	0/aya_10400	6	0	0		
+bs_0	main memory	trace-20261011-164514	boot						0x801d7000-0x801dcfef	0/file2	0	0	0		
+bs_0	main memory	trace-20261011-164514	demo_1						0x801d7000-0x801dcfef	0/file2	0	0	0		
+bs_0	main memory	trace-20261011-164514	demo_1						0x801d7000-0x801dcfef	0/file2	0	0	0		overwritten by bs_2 of 0/file5 at event 39
+bs_0	main memory	trace-20261011-164514	demo_2						0x801d7000-0x801dcfef	0/file2	0	0	0		
+bs_0	main memory	trace-20261011-164514	demo_2						0x801d7000-0x801dcfef	0/file2	0	0	0		overwritten by bs_6 of 0/file10 at event 334
+bs_0	main memory	trace-20261011-164514	demo_3						0x801d7000-0x801dcfef	0/file2	0	0	0		
+bs_0	main memory	trace-20261011-164514	demo_3						0x801d7000-0x801dcfef	0/file2	0	0	0		overwritten by bs_33 of 0/file39 at event 679
+bs_0	main memory	trace-20261011-164514	demo_4 (dropped)						0x801d7000-0x801dcfef	0/file2	0	0	0		
+bs_0	main memory	trace-20261011-164514	demo_4 (dropped)						0x801d7000-0x801dcfef	0/file2	0	0	0		overwritten by bs_2 of 0/file5 at event 1122
+bs_2	main memory	trace-20261011-164514	demo_1						0x801d7000-0x801dd7ef	0/file5	0	0	0		
+bs_2	main memory	trace-20261011-164514	demo_1	1	acropolis_square	1	1		0x801d7000-0x801dd7ef	0/file5	0	0	0		overwritten by bs_55 of 1/acropolis_square/file15 at event 104
+bs_2	main memory	trace-20261011-164514	demo_4 (dropped)						0x801d7000-0x801dd7ef	0/file5	0	0	0		
+bs_2	main memory	trace-20261011-164514	demo_4 (dropped)	1	acropolis_square	1	1		0x801d7000-0x801dd7ef	0/file5	0	0	0		overwritten by bs_55 of 1/acropolis_square/file15 at event 1187
+bs_318	main memory	trace-20261011-164514	demo_2	2	dryfield_main_street	1	3	3	0x801d7000-0x801de7ef	2/dryfield_main_street/file3	0	0	0		overwritten by bs_319 of 2/dryfield_main_street/file4 at event 539
+bs_319	main memory	trace-20261011-164514	demo_2	2	dryfield_main_street	1	3	4	0x801d7000-0x801defef	2/dryfield_main_street/file4	0	0	0		overwritten by bs_318 of 2/dryfield_main_street/file3 at event 527
+bs_319	main memory	trace-20261011-164514	demo_2	2	dryfield_main_street	1	3	4	0x801d7000-0x801defef	2/dryfield_main_street/file4	0	0	0		overwritten by bs_320 of 2/dryfield_main_street/file5 at event 576
+bs_319	main memory	trace-20261011-164514	demo_2	2	dryfield_main_street	1	3	4	0x801d7000-0x801defef	2/dryfield_main_street/file4	0	0	0		overwritten by bs_324 of 2/dryfield_main_street/file9 at event 468
+bs_320	main memory	trace-20261011-164514	demo_2	2	dryfield_main_street	1	3	5	0x801d7000-0x801ddfef	2/dryfield_main_street/file5	0	0	0		overwritten by bs_321 of 2/dryfield_main_street/file6 at event 593
+bs_321	main memory	trace-20261011-164514	demo_2					6	0x801d7000-0x801de7ef	2/dryfield_main_street/file6	0	0	0		overwritten by bs_0 of 0/file2 at event 655
+bs_321	main memory	trace-20261011-164514	demo_2	2	dryfield_main_street	1	3	6	0x801d7000-0x801de7ef	2/dryfield_main_street/file6	0	0	0		
+bs_324	main memory	trace-20261011-164514	demo_2	2	dryfield_main_street	1	3	9	0x801d7000-0x801ddfef	2/dryfield_main_street/file9	0	0	0		overwritten by bs_319 of 2/dryfield_main_street/file4 at event 414
+bs_324	main memory	trace-20261011-164514	demo_2	2	dryfield_main_street	1	3	9	0x801d7000-0x801ddfef	2/dryfield_main_street/file9	0	0	0		overwritten by bs_319 of 2/dryfield_main_street/file4 at event 499
+bs_33	main memory	trace-20261011-164514	demo_3						0x801d7000-0x801defef	0/file39	0	0	0		
+bs_33	main memory	trace-20261011-164514	demo_3	2	dryfield_underpass	6	1		0x801d7000-0x801defef	0/file39	0	0	0		overwritten by bs_650 of 2/dryfield_underpass/file24 at event 746
+bs_44	main memory	trace-20261011-164514	demo_1					4	0x801d7000-0x801df7ef	1/acropolis_square/file4	0	0	0		overwritten by bs_0 of 0/file2 at event 310
+bs_44	main memory	trace-20261011-164514	demo_1	1	acropolis_square	1	1	4	0x801d7000-0x801df7ef	1/acropolis_square/file4	0	0	0		
+bs_47	main memory	trace-20261011-164514	demo_1	1	acropolis_square	1	1	7	0x801d7000-0x801de7ef	1/acropolis_square/file7	0	0	0		overwritten by bs_48 of 1/acropolis_square/file8 at event 175
+bs_48	main memory	trace-20261011-164514	demo_1	1	acropolis_square	1	1	8	0x801d7000-0x801ddfef	1/acropolis_square/file8	0	0	0		overwritten by bs_44 of 1/acropolis_square/file4 at event 251
+bs_48	main memory	trace-20261011-164514	demo_1	1	acropolis_square	1	1	8	0x801d7000-0x801ddfef	1/acropolis_square/file8	0	0	0		overwritten by bs_47 of 1/acropolis_square/file7 at event 149
+bs_53	main memory	trace-20261011-164514	demo_1	1	acropolis_square	1	1	13	0x801d7000-0x801ddfef	1/acropolis_square/file13	0	0	0		overwritten by bs_48 of 1/acropolis_square/file8 at event 127
+bs_55	main memory	trace-20261011-164514	demo_1	1	acropolis_square	1	1	15	0x801d7000-0x801d7fef	1/acropolis_square/file15	0	0	0		overwritten by bs_53 of 1/acropolis_square/file13 at event 119
+bs_55	main memory	trace-20261011-164514	demo_4 (dropped)					15	0x801d7000-0x801d7fef	1/acropolis_square/file15	0	0	0		overwritten by bs_0 of 0/file2 at event 1210
+bs_55	main memory	trace-20261011-164514	demo_4 (dropped)	1	acropolis_square	1	1	15	0x801d7000-0x801d7fef	1/acropolis_square/file15	0	0	0		
+bs_6	main memory	trace-20261011-164514	demo_2						0x801d7000-0x801df7ef	0/file10	0	0	0		
+bs_6	main memory	trace-20261011-164514	demo_2	2	dryfield_main_street	1	3		0x801d7000-0x801df7ef	0/file10	0	0	0		overwritten by bs_324 of 2/dryfield_main_street/file9 at event 402
+bs_629	main memory	trace-20261011-164514	demo_3	2	dryfield_underpass	3	1	3	0x801d7000-0x801df7ef	2/dryfield_underpass/file3	0	0	0		overwritten by bs_635 of 2/dryfield_underpass/file9 at event 929
+bs_630	main memory	trace-20261011-164514	demo_3	2	dryfield_underpass	3	1	4	0x801d7000-0x801de7ef	2/dryfield_underpass/file4	0	0	0		overwritten by bs_631 of 2/dryfield_underpass/file5 at event 1025
+bs_631	main memory	trace-20261011-164514	demo_3					5	0x801d7000-0x801ddfef	2/dryfield_underpass/file5	0	0	0		overwritten by bs_0 of 0/file2 at event 1098
+bs_631	main memory	trace-20261011-164514	demo_3	2	dryfield_underpass	3	1	5	0x801d7000-0x801ddfef	2/dryfield_underpass/file5	0	0	0		
+bs_635	main memory	trace-20261011-164514	demo_3	2	dryfield_underpass	3	1	9	0x801d7000-0x801dc7ef	2/dryfield_underpass/file9	0	0	0		overwritten by bs_630 of 2/dryfield_underpass/file4 at event 945
+bs_637	main memory	trace-20261011-164514	demo_3	2	dryfield_underpass	3	1	2	0x801d7000-0x801dcfef	2/dryfield_underpass/file11	0	0	0		overwritten by bs_629 of 2/dryfield_underpass/file3 at event 807
+bs_650	main memory	trace-20261011-164514	demo_3	2	dryfield_underpass	6	1	2	0x801d7000-0x801ddfef	2/dryfield_underpass/file24	0	0	0		overwritten by bs_652 of 2/dryfield_underpass/file26 at event 778
+bs_652	main memory	trace-20261011-164514	demo_3	2	dryfield_underpass	3	1	11	0x801d7000-0x801dcfef	2/dryfield_underpass/file26	0	0	0		overwritten by bs_637 of 2/dryfield_underpass/file11 at event 790
+bs_652	main memory	trace-20261011-164514	demo_3	2	dryfield_underpass	6	1	11	0x801d7000-0x801dcfef	2/dryfield_underpass/file26	0	0	0		
+dryfield_main_street	main memory	trace-20261011-164514	demo_2						0x8017d5c0-0x80185657	2/dryfield_main_street/file0	0	0	0		
+dryfield_main_street	main memory	trace-20261011-164514	demo_2	2	dryfield_main_street	1	3		0x8017d5c0-0x80185657	2/dryfield_main_street/file0	0	0	0		
+dryfield_main_street	main memory	trace-20261011-164514	demo_3						0x8017d5c0-0x80185657	2/dryfield_main_street/file0	0	0	0		
+dryfield_main_street	main memory	trace-20261011-164514	demo_3	2	dryfield_underpass	6	1		0x8017d5c0-0x80185657	2/dryfield_main_street/file0	0	0	0		overwritten by dryfield_underpass of 2/dryfield_underpass/file0 at event 724
+dryfield_main_street	view	trace-20261011-164514	demo_2	2	dryfield_main_street	1	3	3		2/dryfield_main_street/file0	0	0	0	file 3, background bs_318	
+dryfield_main_street	view	trace-20261011-164514	demo_2	2	dryfield_main_street	1	3	4		2/dryfield_main_street/file0	0	0	0	file 4, background bs_319	
+dryfield_main_street	view	trace-20261011-164514	demo_2	2	dryfield_main_street	1	3	5		2/dryfield_main_street/file0	0	0	0	file 5, background bs_320	
+dryfield_main_street	view	trace-20261011-164514	demo_2	2	dryfield_main_street	1	3	6		2/dryfield_main_street/file0	0	0	0	file 6, background bs_321	
+dryfield_main_street	view	trace-20261011-164514	demo_2	2	dryfield_main_street	1	3	9		2/dryfield_main_street/file0	0	0	0	file 9, background bs_324	
+dryfield_underpass	main memory	trace-20261011-164514	demo_3						0x8017d5c0-0x80181183	2/dryfield_underpass/file0	0	0	0		
+dryfield_underpass	main memory	trace-20261011-164514	demo_3	2	dryfield_underpass	3	1		0x8017d5c0-0x80181183	2/dryfield_underpass/file0	0	0	0		
+dryfield_underpass	main memory	trace-20261011-164514	demo_3	2	dryfield_underpass	6	1		0x8017d5c0-0x80181183	2/dryfield_underpass/file0	0	0	0		
+dryfield_underpass	main memory	trace-20261011-164514	demo_4 (dropped)						0x8017d5c0-0x80181183	2/dryfield_underpass/file0	0	0	0		
+dryfield_underpass	main memory	trace-20261011-164514	demo_4 (dropped)	1	acropolis_square	1	1		0x8017d5c0-0x80181183	2/dryfield_underpass/file0	0	0	0		overwritten by acropolis_square of 1/acropolis_square/file0 at event 1167
+dryfield_underpass	view	trace-20261011-164514	demo_3	2	dryfield_underpass	3	1	2		2/dryfield_underpass/file0	0	0	0	file 11, background bs_637	
+dryfield_underpass	view	trace-20261011-164514	demo_3	2	dryfield_underpass	3	1	3		2/dryfield_underpass/file0	0	0	0	file 3, background bs_629	
+dryfield_underpass	view	trace-20261011-164514	demo_3	2	dryfield_underpass	3	1	4		2/dryfield_underpass/file0	0	0	0	file 4, background bs_630	
+dryfield_underpass	view	trace-20261011-164514	demo_3	2	dryfield_underpass	3	1	5		2/dryfield_underpass/file0	0	0	0	file 5, background bs_631	
+dryfield_underpass	view	trace-20261011-164514	demo_3	2	dryfield_underpass	3	1	9		2/dryfield_underpass/file0	0	0	0	file 9, background bs_635	
+dryfield_underpass	view	trace-20261011-164514	demo_3	2	dryfield_underpass	6	1	11		2/dryfield_underpass/file0	0	0	0	file 26, background bs_652	
+dryfield_underpass	view	trace-20261011-164514	demo_3	2	dryfield_underpass	6	1	2		2/dryfield_underpass/file0	0	0	0	file 24, background bs_650	
+gameplay	main memory	trace-20261011-164514	demo_1						0x80093800-0x80115768	0/gameplay	0	0	0		overwritten by title of 0/title at event 298
+gameplay	main memory	trace-20261011-164514	demo_1	1	acropolis_square	1	1		0x80093800-0x80115768	0/gameplay	0	0	0		
+gameplay	main memory	trace-20261011-164514	demo_2						0x80093800-0x80115768	0/gameplay	0	0	0		overwritten by title of 0/title at event 643
+gameplay	main memory	trace-20261011-164514	demo_2	2	dryfield_main_street	1	3		0x80093800-0x80115768	0/gameplay	0	0	0		
+gameplay	main memory	trace-20261011-164514	demo_3						0x80093800-0x80115768	0/gameplay	0	0	0		overwritten by title of 0/title at event 1086
+gameplay	main memory	trace-20261011-164514	demo_3	2	dryfield_underpass	3	1		0x80093800-0x80115768	0/gameplay	0	0	0		
+gameplay	main memory	trace-20261011-164514	demo_3	2	dryfield_underpass	6	1		0x80093800-0x80115768	0/gameplay	0	0	0		
+gameplay	main memory	trace-20261011-164514	demo_4 (dropped)						0x80093800-0x80115768	0/gameplay	0	0	0		overwritten by title of 0/title at event 1200
+gameplay	main memory	trace-20261011-164514	demo_4 (dropped)	1	acropolis_square	1	1		0x80093800-0x80115768	0/gameplay	0	0	0		
+healing	main memory	trace-20261011-164514	demo_1						0x8012ef30-0x8012fc3f	0/file50122	0	0	0		
+healing	main memory	trace-20261011-164514	demo_1	1	acropolis_square	1	1		0x8012ef30-0x8012fc3f	0/file50122	0	0	0		
+healing	main memory	trace-20261011-164514	demo_2						0x8012ef30-0x8012fc3f	0/file50122	0	0	0		
+healing	main memory	trace-20261011-164514	demo_2						0x8012ef30-0x8012fc3f	0/file50122	0	0	0		overwritten by healing of 0/file50122 at event 349
+healing	main memory	trace-20261011-164514	demo_2	2	dryfield_main_street	1	3		0x8012ef30-0x8012fc3f	0/file50122	0	0	0		
+healing	main memory	trace-20261011-164514	demo_3						0x8012ef30-0x8012fc3f	0/file50122	0	0	0		
+healing	main memory	trace-20261011-164514	demo_3						0x8012ef30-0x8012fc3f	0/file50122	0	0	0		overwritten by healing of 0/file50122 at event 694
+healing	main memory	trace-20261011-164514	demo_3	2	dryfield_underpass	3	1		0x8012ef30-0x8012fc3f	0/file50122	0	0	0		
+healing	main memory	trace-20261011-164514	demo_3	2	dryfield_underpass	6	1		0x8012ef30-0x8012fc3f	0/file50122	0	0	0		
+healing	main memory	trace-20261011-164514	demo_4 (dropped)						0x8012ef30-0x8012fc3f	0/file50122	0	0	0		
+healing	main memory	trace-20261011-164514	demo_4 (dropped)						0x8012ef30-0x8012fc3f	0/file50122	0	0	0		overwritten by healing of 0/file50122 at event 1137
+healing	main memory	trace-20261011-164514	demo_4 (dropped)	1	acropolis_square	1	1		0x8012ef30-0x8012fc3f	0/file50122	0	0	0		
+m4a1_pyke	main memory	trace-20261011-164514	demo_2						0x8011d1c0-0x8012d63b	0/m4a1_pyke	0	0	0		
+m4a1_pyke	main memory	trace-20261011-164514	demo_2	2	dryfield_main_street	1	3		0x8011d1c0-0x8012d63b	0/m4a1_pyke	0	0	0		
+m4a1_pyke	main memory	trace-20261011-164514	demo_3						0x8011d1c0-0x8012d63b	0/m4a1_pyke	0	0	0		overwritten by mp5a5 of 0/mp5a5 at event 687
+m93r	main memory	trace-20261011-164514	demo_1						0x8011d1c0-0x8012af33	0/m93r	0	0	0		
+m93r	main memory	trace-20261011-164514	demo_1	1	acropolis_square	1	1		0x8011d1c0-0x8012af33	0/m93r	0	0	0		
+m93r	main memory	trace-20261011-164514	demo_2						0x8011d1c0-0x8012af33	0/m93r	0	0	0		overwritten by m4a1_pyke of 0/m4a1_pyke at event 342
+m93r	main memory	trace-20261011-164514	demo_4 (dropped)						0x8011d1c0-0x8012af33	0/m93r	0	0	0		
+m93r	main memory	trace-20261011-164514	demo_4 (dropped)	1	acropolis_square	1	1		0x8011d1c0-0x8012af33	0/m93r	0	0	0		
+map_akropolis	main memory	trace-20261011-164514	demo_1						0x80179950-0x8017c32b	0/file900001	0	0	0		
+map_akropolis	main memory	trace-20261011-164514	demo_1	1	acropolis_square	1	1		0x80179950-0x8017c32b	0/file900001	0	0	0		
+map_akropolis	main memory	trace-20261011-164514	demo_2						0x80179950-0x8017c32b	0/file900001	0	0	0		overwritten by map_dryfield of 0/map_dryfield at event 356
+map_akropolis	main memory	trace-20261011-164514	demo_4 (dropped)						0x80179950-0x8017c32b	0/file900001	0	0	0		
+map_akropolis	main memory	trace-20261011-164514	demo_4 (dropped)	1	acropolis_square	1	1		0x80179950-0x8017c32b	0/file900001	0	0	0		
+map_dryfield	main memory	trace-20261011-164514	demo_2						0x80179950-0x8017c02d	0/map_dryfield	0	0	0		
+map_dryfield	main memory	trace-20261011-164514	demo_2	2	dryfield_main_street	1	3		0x80179950-0x8017c02d	0/map_dryfield	0	0	0		
+map_dryfield	main memory	trace-20261011-164514	demo_3						0x80179950-0x8017c02d	0/map_dryfield	0	0	0		
+map_dryfield	main memory	trace-20261011-164514	demo_3						0x80179950-0x8017c02d	0/map_dryfield	0	0	0		overwritten by map_dryfield of 0/map_dryfield at event 701
+map_dryfield	main memory	trace-20261011-164514	demo_3	2	dryfield_underpass	3	1		0x80179950-0x8017c02d	0/map_dryfield	0	0	0		
+map_dryfield	main memory	trace-20261011-164514	demo_3	2	dryfield_underpass	6	1		0x80179950-0x8017c02d	0/map_dryfield	0	0	0		
+map_dryfield	main memory	trace-20261011-164514	demo_4 (dropped)						0x80179950-0x8017c02d	0/map_dryfield	0	0	0		overwritten by map_akropolis of 0/file900001 at event 1144
+mp5a5	main memory	trace-20261011-164514	demo_3						0x8011d1c0-0x8012b50f	0/mp5a5	0	0	0		
+mp5a5	main memory	trace-20261011-164514	demo_3	2	dryfield_underpass	3	1		0x8011d1c0-0x8012b50f	0/mp5a5	0	0	0		
+mp5a5	main memory	trace-20261011-164514	demo_3	2	dryfield_underpass	6	1		0x8011d1c0-0x8012b50f	0/mp5a5	0	0	0		
+mp5a5	main memory	trace-20261011-164514	demo_4 (dropped)						0x8011d1c0-0x8012b50f	0/mp5a5	0	0	0		overwritten by m93r of 0/m93r at event 1130
+options	main memory	trace-20261011-164514	boot						0x801d4000-0x801d5f17	0/options	-8	-3	3		
+options	main memory	trace-20261011-164514	demo_1						0x801d4000-0x801d5f17	0/options	-8	-3	3		
+options	main memory	trace-20261011-164514	demo_1						0x801d4000-0x801d5f17	0/options	-8	-3	3		overwritten by options of 0/options at event 316
+options	main memory	trace-20261011-164514	demo_1	1	acropolis_square	1	1		0x801d4000-0x801d5f17	0/options	-8	-3	3		
+options	main memory	trace-20261011-164514	demo_2						0x801d4000-0x801d5f17	0/options	-8	-3	3		
+options	main memory	trace-20261011-164514	demo_2						0x801d4000-0x801d5f17	0/options	-8	-3	3		overwritten by options of 0/options at event 661
+options	main memory	trace-20261011-164514	demo_2	2	dryfield_main_street	1	3		0x801d4000-0x801d5f17	0/options	-8	-3	3		
+options	main memory	trace-20261011-164514	demo_3						0x801d4000-0x801d5f17	0/options	-8	-3	3		
+options	main memory	trace-20261011-164514	demo_3						0x801d4000-0x801d5f17	0/options	-8	-3	3		overwritten by options of 0/options at event 1104
+options	main memory	trace-20261011-164514	demo_3	2	dryfield_underpass	3	1		0x801d4000-0x801d5f17	0/options	-8	-3	3		
+options	main memory	trace-20261011-164514	demo_3	2	dryfield_underpass	6	1		0x801d4000-0x801d5f17	0/options	-8	-3	3		
+options	main memory	trace-20261011-164514	demo_4 (dropped)						0x801d4000-0x801d5f17	0/options	-8	-3	3		
+options	main memory	trace-20261011-164514	demo_4 (dropped)						0x801d4000-0x801d5f17	0/options	-8	-3	3		overwritten by options of 0/options at event 1215
+options	main memory	trace-20261011-164514	demo_4 (dropped)	1	acropolis_square	1	1		0x801d4000-0x801d5f17	0/options	-8	-3	3		
+pe2cap2_1	main memory	trace-20261011-164514	demo_1						0x80161e20-0x80162c9d	0/file801000	0	0	0	bundle	
+pe2cap2_1	main memory	trace-20261011-164514	demo_1	1	acropolis_square	1	1		0x80161e20-0x80162c9d	0/file801000	0	0	0	bundle	
+pe2cap2_1	main memory	trace-20261011-164514	demo_2						0x80161e20-0x80162c9d	0/file801000	0	0	0	bundle	overwritten by pe2cap2_2 of 0/file801100 at event 320
+pe2cap2_1	main memory	trace-20261011-164514	demo_4 (dropped)						0x80161e20-0x80162c9d	0/file801000	0	0	0	bundle	
+pe2cap2_1	main memory	trace-20261011-164514	demo_4 (dropped)	1	acropolis_square	1	1		0x80161e20-0x80162c9d	0/file801000	0	0	0	bundle	
+pe2cap2_1_slot_00	main memory	trace-20261011-164514	demo_1						0x80161e20-0x80162c9d	0/file801000	0	0	0	demo	
+pe2cap2_1_slot_00	main memory	trace-20261011-164514	demo_1	1	acropolis_square	1	1		0x80161e20-0x80162c9d	0/file801000	0	0	0	demo	
+pe2cap2_1_slot_00	main memory	trace-20261011-164514	demo_2						0x80161e20-0x80162c9d	0/file801000	0	0	0	demo	overwritten by pe2cap2_2 of 0/file801100 at event 320
+pe2cap2_1_slot_00	main memory	trace-20261011-164514	demo_4 (dropped)						0x80161e20-0x80162c9d	0/file801000	0	0	0	demo	
+pe2cap2_1_slot_00	main memory	trace-20261011-164514	demo_4 (dropped)	1	acropolis_square	1	1		0x80161e20-0x80162c9d	0/file801000	0	0	0	demo	
+pe2cap2_2	main memory	trace-20261011-164514	demo_2						0x80161e20-0x80162c55	0/file801100	0	0	0	bundle	
+pe2cap2_2	main memory	trace-20261011-164514	demo_2	2	dryfield_main_street	1	3		0x80161e20-0x80162c55	0/file801100	0	0	0	bundle	
+pe2cap2_2	main memory	trace-20261011-164514	demo_3						0x80161e20-0x80162c55	0/file801100	0	0	0	bundle	overwritten by pe2cap2_3 of 0/file801200 at event 665
+pe2cap2_26	main memory	trace-20261011-164514	demo_2						0x80185660-0x80187ef3	2/dryfield_main_street/file0	0	0	0	bundle	
+pe2cap2_26	main memory	trace-20261011-164514	demo_2	2	dryfield_main_street	1	3		0x80185660-0x80187ef3	2/dryfield_main_street/file0	0	0	0	bundle	
+pe2cap2_26	main memory	trace-20261011-164514	demo_3						0x80185660-0x80187ef3	2/dryfield_main_street/file0	0	0	0	bundle	
+pe2cap2_26	main memory	trace-20261011-164514	demo_3	2	dryfield_underpass	6	1		0x80185660-0x80187ef3	2/dryfield_main_street/file0	0	0	0	bundle	overwritten by dryfield_underpass of 2/dryfield_underpass/file0 at event 724
+pe2cap2_26_slot_01	main memory	trace-20261011-164514	demo_2						0x80185660-0x80185968	2/dryfield_main_street/file0	0	0	0	palette	
+pe2cap2_26_slot_01	main memory	trace-20261011-164514	demo_2	2	dryfield_main_street	1	3		0x80185660-0x80185968	2/dryfield_main_street/file0	0	0	0	palette	
+pe2cap2_26_slot_01	main memory	trace-20261011-164514	demo_3						0x80185660-0x80185968	2/dryfield_main_street/file0	0	0	0	palette	
+pe2cap2_26_slot_01	main memory	trace-20261011-164514	demo_3	2	dryfield_underpass	6	1		0x80185660-0x80185968	2/dryfield_main_street/file0	0	0	0	palette	overwritten by dryfield_underpass of 2/dryfield_underpass/file0 at event 724
+pe2cap2_26_slot_02	main memory	trace-20261011-164514	demo_2						0x80185970-0x80185c98	2/dryfield_main_street/file0	0	0	0	palette	
+pe2cap2_26_slot_02	main memory	trace-20261011-164514	demo_2	2	dryfield_main_street	1	3		0x80185970-0x80185c98	2/dryfield_main_street/file0	0	0	0	palette	
+pe2cap2_26_slot_02	main memory	trace-20261011-164514	demo_3						0x80185970-0x80185c98	2/dryfield_main_street/file0	0	0	0	palette	
+pe2cap2_26_slot_02	main memory	trace-20261011-164514	demo_3	2	dryfield_underpass	6	1		0x80185970-0x80185c98	2/dryfield_main_street/file0	0	0	0	palette	overwritten by dryfield_underpass of 2/dryfield_underpass/file0 at event 724
+pe2cap2_26_slot_02	video memory	trace-20261011-164514	demo_2	2	dryfield_main_street	1	3	3	0,255,256,6	bundle:pe2cap2_26_slot_02	0	0	0		overwritten by pe2cap2_26_slot_03 of bundle:pe2cap2_26_slot_03 at event 541
+pe2cap2_26_slot_03	main memory	trace-20261011-164514	demo_2						0x80185ca0-0x80185fa9	2/dryfield_main_street/file0	0	0	0	palette	
+pe2cap2_26_slot_03	main memory	trace-20261011-164514	demo_2	2	dryfield_main_street	1	3		0x80185ca0-0x80185fa9	2/dryfield_main_street/file0	0	0	0	palette	
+pe2cap2_26_slot_03	main memory	trace-20261011-164514	demo_3						0x80185ca0-0x80185fa9	2/dryfield_main_street/file0	0	0	0	palette	
+pe2cap2_26_slot_03	main memory	trace-20261011-164514	demo_3	2	dryfield_underpass	6	1		0x80185ca0-0x80185fa9	2/dryfield_main_street/file0	0	0	0	palette	overwritten by dryfield_underpass of 2/dryfield_underpass/file0 at event 724
+pe2cap2_26_slot_03	video memory	trace-20261011-164514	demo_2	2	dryfield_main_street	1	3	4	0,255,256,6	bundle:pe2cap2_26_slot_03	0	0	0		overwritten by pe2cap2_26_slot_02 of bundle:pe2cap2_26_slot_02 at event 529
+pe2cap2_26_slot_03	video memory	trace-20261011-164514	demo_2	2	dryfield_main_street	1	3	4	0,255,256,6	bundle:pe2cap2_26_slot_03	0	0	0		overwritten by pe2cap2_26_slot_03 of bundle:pe2cap2_26_slot_03 at event 501
+pe2cap2_26_slot_03	video memory	trace-20261011-164514	demo_2	2	dryfield_main_street	1	3	4	0,255,256,6	bundle:pe2cap2_26_slot_03	0	0	0		overwritten by pe2cap2_26_slot_04 of bundle:pe2cap2_26_slot_04 at event 578
+pe2cap2_26_slot_04	main memory	trace-20261011-164514	demo_2						0x80185fb0-0x8018627c	2/dryfield_main_street/file0	0	0	0	palette	
+pe2cap2_26_slot_04	main memory	trace-20261011-164514	demo_2	2	dryfield_main_street	1	3		0x80185fb0-0x8018627c	2/dryfield_main_street/file0	0	0	0	palette	
+pe2cap2_26_slot_04	main memory	trace-20261011-164514	demo_3						0x80185fb0-0x8018627c	2/dryfield_main_street/file0	0	0	0	palette	
+pe2cap2_26_slot_04	main memory	trace-20261011-164514	demo_3	2	dryfield_underpass	6	1		0x80185fb0-0x8018627c	2/dryfield_main_street/file0	0	0	0	palette	overwritten by dryfield_underpass of 2/dryfield_underpass/file0 at event 724
+pe2cap2_26_slot_04	video memory	trace-20261011-164514	demo_2	2	dryfield_main_street	1	3	5	0,255,256,6	bundle:pe2cap2_26_slot_04	0	0	0		overwritten by pe2cap2_26_slot_05 of bundle:pe2cap2_26_slot_05 at event 595
+pe2cap2_26_slot_05	main memory	trace-20261011-164514	demo_2						0x80186280-0x8018657c	2/dryfield_main_street/file0	0	0	0	palette	
+pe2cap2_26_slot_05	main memory	trace-20261011-164514	demo_2	2	dryfield_main_street	1	3		0x80186280-0x8018657c	2/dryfield_main_street/file0	0	0	0	palette	
+pe2cap2_26_slot_05	main memory	trace-20261011-164514	demo_3						0x80186280-0x8018657c	2/dryfield_main_street/file0	0	0	0	palette	
+pe2cap2_26_slot_05	main memory	trace-20261011-164514	demo_3	2	dryfield_underpass	6	1		0x80186280-0x8018657c	2/dryfield_main_street/file0	0	0	0	palette	overwritten by dryfield_underpass of 2/dryfield_underpass/file0 at event 724
+pe2cap2_26_slot_05	video memory	trace-20261011-164514	demo_2					6	0,255,256,6	bundle:pe2cap2_26_slot_05	0	0	0		overwritten by pe2clut_2 of 0/file2 at event 655
+pe2cap2_26_slot_05	video memory	trace-20261011-164514	demo_2	2	dryfield_main_street	1	3	6	0,255,256,6	bundle:pe2cap2_26_slot_05	0	0	0		
+pe2cap2_26_slot_06	main memory	trace-20261011-164514	demo_2						0x80186580-0x80186812	2/dryfield_main_street/file0	0	0	0	palette	
+pe2cap2_26_slot_06	main memory	trace-20261011-164514	demo_2	2	dryfield_main_street	1	3		0x80186580-0x80186812	2/dryfield_main_street/file0	0	0	0	palette	
+pe2cap2_26_slot_06	main memory	trace-20261011-164514	demo_3						0x80186580-0x80186812	2/dryfield_main_street/file0	0	0	0	palette	
+pe2cap2_26_slot_06	main memory	trace-20261011-164514	demo_3	2	dryfield_underpass	6	1		0x80186580-0x80186812	2/dryfield_main_street/file0	0	0	0	palette	overwritten by dryfield_underpass of 2/dryfield_underpass/file0 at event 724
+pe2cap2_26_slot_09	main memory	trace-20261011-164514	demo_2						0x80186820-0x80186a85	2/dryfield_main_street/file0	0	0	0	palette	
+pe2cap2_26_slot_09	main memory	trace-20261011-164514	demo_2	2	dryfield_main_street	1	3		0x80186820-0x80186a85	2/dryfield_main_street/file0	0	0	0	palette	
+pe2cap2_26_slot_09	main memory	trace-20261011-164514	demo_3						0x80186820-0x80186a85	2/dryfield_main_street/file0	0	0	0	palette	
+pe2cap2_26_slot_09	main memory	trace-20261011-164514	demo_3	2	dryfield_underpass	6	1		0x80186820-0x80186a85	2/dryfield_main_street/file0	0	0	0	palette	overwritten by dryfield_underpass of 2/dryfield_underpass/file0 at event 724
+pe2cap2_26_slot_12	main memory	trace-20261011-164514	demo_2						0x80186a90-0x80186d5e	2/dryfield_main_street/file0	0	0	0	palette	
+pe2cap2_26_slot_12	main memory	trace-20261011-164514	demo_2	2	dryfield_main_street	1	3		0x80186a90-0x80186d5e	2/dryfield_main_street/file0	0	0	0	palette	
+pe2cap2_26_slot_12	main memory	trace-20261011-164514	demo_3						0x80186a90-0x80186d5e	2/dryfield_main_street/file0	0	0	0	palette	
+pe2cap2_26_slot_12	main memory	trace-20261011-164514	demo_3	2	dryfield_underpass	6	1		0x80186a90-0x80186d5e	2/dryfield_main_street/file0	0	0	0	palette	overwritten by dryfield_underpass of 2/dryfield_underpass/file0 at event 724
+pe2cap2_26_slot_13	main memory	trace-20261011-164514	demo_2						0x80186d60-0x80187ef3	2/dryfield_main_street/file0	0	0	0	dialogue	
+pe2cap2_26_slot_13	main memory	trace-20261011-164514	demo_2	2	dryfield_main_street	1	3		0x80186d60-0x80187ef3	2/dryfield_main_street/file0	0	0	0	dialogue	
+pe2cap2_26_slot_13	main memory	trace-20261011-164514	demo_3						0x80186d60-0x80187ef3	2/dryfield_main_street/file0	0	0	0	dialogue	
+pe2cap2_26_slot_13	main memory	trace-20261011-164514	demo_3	2	dryfield_underpass	6	1		0x80186d60-0x80187ef3	2/dryfield_main_street/file0	0	0	0	dialogue	overwritten by dryfield_underpass of 2/dryfield_underpass/file0 at event 724
+pe2cap2_2_slot_00	main memory	trace-20261011-164514	demo_2						0x80161e20-0x80162c55	0/file801100	0	0	0	demo	
+pe2cap2_2_slot_00	main memory	trace-20261011-164514	demo_2	2	dryfield_main_street	1	3		0x80161e20-0x80162c55	0/file801100	0	0	0	demo	
+pe2cap2_2_slot_00	main memory	trace-20261011-164514	demo_3						0x80161e20-0x80162c55	0/file801100	0	0	0	demo	overwritten by pe2cap2_3 of 0/file801200 at event 665
+pe2cap2_3	main memory	trace-20261011-164514	demo_3						0x80161e20-0x80162c81	0/file801200	0	0	0	bundle	
+pe2cap2_3	main memory	trace-20261011-164514	demo_3	2	dryfield_underpass	3	1		0x80161e20-0x80162c81	0/file801200	0	0	0	bundle	
+pe2cap2_3	main memory	trace-20261011-164514	demo_3	2	dryfield_underpass	6	1		0x80161e20-0x80162c81	0/file801200	0	0	0	bundle	
+pe2cap2_3	main memory	trace-20261011-164514	demo_4 (dropped)						0x80161e20-0x80162c81	0/file801200	0	0	0	bundle	overwritten by pe2cap2_1 of 0/file801000 at event 1108
+pe2cap2_3_slot_00	main memory	trace-20261011-164514	demo_3						0x80161e20-0x80162c81	0/file801200	0	0	0	demo	
+pe2cap2_3_slot_00	main memory	trace-20261011-164514	demo_3	2	dryfield_underpass	3	1		0x80161e20-0x80162c81	0/file801200	0	0	0	demo	
+pe2cap2_3_slot_00	main memory	trace-20261011-164514	demo_3	2	dryfield_underpass	6	1		0x80161e20-0x80162c81	0/file801200	0	0	0	demo	
+pe2cap2_3_slot_00	main memory	trace-20261011-164514	demo_4 (dropped)						0x80161e20-0x80162c81	0/file801200	0	0	0	demo	overwritten by pe2cap2_1 of 0/file801000 at event 1108
+pe2cap2_4	main memory	trace-20261011-164514	demo_1						0x80188920-0x8018c073	1/acropolis_square/file0	0	0	0	bundle	
+pe2cap2_4	main memory	trace-20261011-164514	demo_1	1	acropolis_square	1	1		0x80188920-0x8018c073	1/acropolis_square/file0	0	0	0	bundle	
+pe2cap2_4	main memory	trace-20261011-164514	demo_2						0x80188920-0x8018c073	1/acropolis_square/file0	0	0	0	bundle	
+pe2cap2_4	main memory	trace-20261011-164514	demo_2	2	dryfield_main_street	1	3		0x80188920-0x8018c073	1/acropolis_square/file0	0	0	0	bundle	overwritten by dryfield_main_street of 2/dryfield_main_street/file0 at event 379
+pe2cap2_4	main memory	trace-20261011-164514	demo_4 (dropped)						0x80188920-0x8018c073	1/acropolis_square/file0	0	0	0	bundle	
+pe2cap2_4	main memory	trace-20261011-164514	demo_4 (dropped)	1	acropolis_square	1	1		0x80188920-0x8018c073	1/acropolis_square/file0	0	0	0	bundle	
+pe2cap2_4_slot_02	main memory	trace-20261011-164514	demo_1						0x80188920-0x80188c18	1/acropolis_square/file0	0	0	0	palette	
+pe2cap2_4_slot_02	main memory	trace-20261011-164514	demo_1	1	acropolis_square	1	1		0x80188920-0x80188c18	1/acropolis_square/file0	0	0	0	palette	
+pe2cap2_4_slot_02	main memory	trace-20261011-164514	demo_2						0x80188920-0x80188c18	1/acropolis_square/file0	0	0	0	palette	
+pe2cap2_4_slot_02	main memory	trace-20261011-164514	demo_2	2	dryfield_main_street	1	3		0x80188920-0x80188c18	1/acropolis_square/file0	0	0	0	palette	overwritten by dryfield_main_street of 2/dryfield_main_street/file0 at event 379
+pe2cap2_4_slot_02	main memory	trace-20261011-164514	demo_4 (dropped)						0x80188920-0x80188c18	1/acropolis_square/file0	0	0	0	palette	
+pe2cap2_4_slot_02	main memory	trace-20261011-164514	demo_4 (dropped)	1	acropolis_square	1	1		0x80188920-0x80188c18	1/acropolis_square/file0	0	0	0	palette	
+pe2cap2_4_slot_03	main memory	trace-20261011-164514	demo_1						0x80188c20-0x80188f1e	1/acropolis_square/file0	0	0	0	palette	
+pe2cap2_4_slot_03	main memory	trace-20261011-164514	demo_1	1	acropolis_square	1	1		0x80188c20-0x80188f1e	1/acropolis_square/file0	0	0	0	palette	
+pe2cap2_4_slot_03	main memory	trace-20261011-164514	demo_2						0x80188c20-0x80188f1e	1/acropolis_square/file0	0	0	0	palette	
+pe2cap2_4_slot_03	main memory	trace-20261011-164514	demo_2	2	dryfield_main_street	1	3		0x80188c20-0x80188f1e	1/acropolis_square/file0	0	0	0	palette	overwritten by dryfield_main_street of 2/dryfield_main_street/file0 at event 379
+pe2cap2_4_slot_03	main memory	trace-20261011-164514	demo_4 (dropped)						0x80188c20-0x80188f1e	1/acropolis_square/file0	0	0	0	palette	
+pe2cap2_4_slot_03	main memory	trace-20261011-164514	demo_4 (dropped)	1	acropolis_square	1	1		0x80188c20-0x80188f1e	1/acropolis_square/file0	0	0	0	palette	
+pe2cap2_4_slot_03	video memory	trace-20261011-164514	demo_1					4	0,255,256,6	bundle:pe2cap2_4_slot_03	0	0	0		overwritten by pe2clut_2 of 0/file2 at event 310
+pe2cap2_4_slot_03	video memory	trace-20261011-164514	demo_1	1	acropolis_square	1	1	4	0,255,256,6	bundle:pe2cap2_4_slot_03	0	0	0		
+pe2cap2_4_slot_04	main memory	trace-20261011-164514	demo_1						0x80188f20-0x80189216	1/acropolis_square/file0	0	0	0	palette	
+pe2cap2_4_slot_04	main memory	trace-20261011-164514	demo_1	1	acropolis_square	1	1		0x80188f20-0x80189216	1/acropolis_square/file0	0	0	0	palette	
+pe2cap2_4_slot_04	main memory	trace-20261011-164514	demo_2						0x80188f20-0x80189216	1/acropolis_square/file0	0	0	0	palette	
+pe2cap2_4_slot_04	main memory	trace-20261011-164514	demo_2	2	dryfield_main_street	1	3		0x80188f20-0x80189216	1/acropolis_square/file0	0	0	0	palette	overwritten by dryfield_main_street of 2/dryfield_main_street/file0 at event 379
+pe2cap2_4_slot_04	main memory	trace-20261011-164514	demo_4 (dropped)						0x80188f20-0x80189216	1/acropolis_square/file0	0	0	0	palette	
+pe2cap2_4_slot_04	main memory	trace-20261011-164514	demo_4 (dropped)	1	acropolis_square	1	1		0x80188f20-0x80189216	1/acropolis_square/file0	0	0	0	palette	
+pe2cap2_4_slot_05	main memory	trace-20261011-164514	demo_1						0x80189220-0x80189554	1/acropolis_square/file0	0	0	0	palette	
+pe2cap2_4_slot_05	main memory	trace-20261011-164514	demo_1	1	acropolis_square	1	1		0x80189220-0x80189554	1/acropolis_square/file0	0	0	0	palette	
+pe2cap2_4_slot_05	main memory	trace-20261011-164514	demo_2						0x80189220-0x80189554	1/acropolis_square/file0	0	0	0	palette	
+pe2cap2_4_slot_05	main memory	trace-20261011-164514	demo_2	2	dryfield_main_street	1	3		0x80189220-0x80189554	1/acropolis_square/file0	0	0	0	palette	overwritten by dryfield_main_street of 2/dryfield_main_street/file0 at event 379
+pe2cap2_4_slot_05	main memory	trace-20261011-164514	demo_4 (dropped)						0x80189220-0x80189554	1/acropolis_square/file0	0	0	0	palette	
+pe2cap2_4_slot_05	main memory	trace-20261011-164514	demo_4 (dropped)	1	acropolis_square	1	1		0x80189220-0x80189554	1/acropolis_square/file0	0	0	0	palette	
+pe2cap2_4_slot_06	main memory	trace-20261011-164514	demo_1						0x80189560-0x80189898	1/acropolis_square/file0	0	0	0	palette	
+pe2cap2_4_slot_06	main memory	trace-20261011-164514	demo_1	1	acropolis_square	1	1		0x80189560-0x80189898	1/acropolis_square/file0	0	0	0	palette	
+pe2cap2_4_slot_06	main memory	trace-20261011-164514	demo_2						0x80189560-0x80189898	1/acropolis_square/file0	0	0	0	palette	
+pe2cap2_4_slot_06	main memory	trace-20261011-164514	demo_2	2	dryfield_main_street	1	3		0x80189560-0x80189898	1/acropolis_square/file0	0	0	0	palette	overwritten by dryfield_main_street of 2/dryfield_main_street/file0 at event 379
+pe2cap2_4_slot_06	main memory	trace-20261011-164514	demo_4 (dropped)						0x80189560-0x80189898	1/acropolis_square/file0	0	0	0	palette	
+pe2cap2_4_slot_06	main memory	trace-20261011-164514	demo_4 (dropped)	1	acropolis_square	1	1		0x80189560-0x80189898	1/acropolis_square/file0	0	0	0	palette	
+pe2cap2_4_slot_06	video memory	trace-20261011-164514	demo_1	1	acropolis_square	1	1	7	0,255,256,6	bundle:pe2cap2_4_slot_06	0	0	0		overwritten by pe2cap2_4_slot_07 of bundle:pe2cap2_4_slot_07 at event 177
+pe2cap2_4_slot_07	main memory	trace-20261011-164514	demo_1						0x801898a0-0x80189bc4	1/acropolis_square/file0	0	0	0	palette	
+pe2cap2_4_slot_07	main memory	trace-20261011-164514	demo_1	1	acropolis_square	1	1		0x801898a0-0x80189bc4	1/acropolis_square/file0	0	0	0	palette	
+pe2cap2_4_slot_07	main memory	trace-20261011-164514	demo_2						0x801898a0-0x80189bc4	1/acropolis_square/file0	0	0	0	palette	
+pe2cap2_4_slot_07	main memory	trace-20261011-164514	demo_2	2	dryfield_main_street	1	3		0x801898a0-0x80189bc4	1/acropolis_square/file0	0	0	0	palette	overwritten by dryfield_main_street of 2/dryfield_main_street/file0 at event 379
+pe2cap2_4_slot_07	main memory	trace-20261011-164514	demo_4 (dropped)						0x801898a0-0x80189bc4	1/acropolis_square/file0	0	0	0	palette	
+pe2cap2_4_slot_07	main memory	trace-20261011-164514	demo_4 (dropped)	1	acropolis_square	1	1		0x801898a0-0x80189bc4	1/acropolis_square/file0	0	0	0	palette	
+pe2cap2_4_slot_07	video memory	trace-20261011-164514	demo_1	1	acropolis_square	1	1	8	0,255,256,6	bundle:pe2cap2_4_slot_07	0	0	0		overwritten by pe2cap2_4_slot_03 of bundle:pe2cap2_4_slot_03 at event 253
+pe2cap2_4_slot_07	video memory	trace-20261011-164514	demo_1	1	acropolis_square	1	1	8	0,255,256,6	bundle:pe2cap2_4_slot_07	0	0	0		overwritten by pe2cap2_4_slot_06 of bundle:pe2cap2_4_slot_06 at event 151
+pe2cap2_4_slot_14	caption command	trace-20261011-164514	demo_1	1	acropolis_square	1	1			1/acropolis_square/file0	0	0	0	command 14	
+pe2cap2_4_slot_14	caption command	trace-20261011-164514	demo_1	1	acropolis_square	1	1			1/acropolis_square/file0	0	0	0	command 16	
+pe2cap2_4_slot_14	main memory	trace-20261011-164514	demo_1						0x80189bd0-0x8018ab1b	1/acropolis_square/file0	0	0	0	dialogue	
+pe2cap2_4_slot_14	main memory	trace-20261011-164514	demo_1	1	acropolis_square	1	1		0x80189bd0-0x8018ab1b	1/acropolis_square/file0	0	0	0	dialogue	
+pe2cap2_4_slot_14	main memory	trace-20261011-164514	demo_2						0x80189bd0-0x8018ab1b	1/acropolis_square/file0	0	0	0	dialogue	
+pe2cap2_4_slot_14	main memory	trace-20261011-164514	demo_2	2	dryfield_main_street	1	3		0x80189bd0-0x8018ab1b	1/acropolis_square/file0	0	0	0	dialogue	overwritten by dryfield_main_street of 2/dryfield_main_street/file0 at event 379
+pe2cap2_4_slot_14	main memory	trace-20261011-164514	demo_4 (dropped)						0x80189bd0-0x8018ab1b	1/acropolis_square/file0	0	0	0	dialogue	
+pe2cap2_4_slot_14	main memory	trace-20261011-164514	demo_4 (dropped)	1	acropolis_square	1	1		0x80189bd0-0x8018ab1b	1/acropolis_square/file0	0	0	0	dialogue	
+pe2cap2_4_slot_15	main memory	trace-20261011-164514	demo_1						0x8018ab20-0x8018c073	1/acropolis_square/file0	0	0	0	dialogue	
+pe2cap2_4_slot_15	main memory	trace-20261011-164514	demo_1	1	acropolis_square	1	1		0x8018ab20-0x8018c073	1/acropolis_square/file0	0	0	0	dialogue	
+pe2cap2_4_slot_15	main memory	trace-20261011-164514	demo_2						0x8018ab20-0x8018c073	1/acropolis_square/file0	0	0	0	dialogue	
+pe2cap2_4_slot_15	main memory	trace-20261011-164514	demo_2	2	dryfield_main_street	1	3		0x8018ab20-0x8018c073	1/acropolis_square/file0	0	0	0	dialogue	overwritten by dryfield_main_street of 2/dryfield_main_street/file0 at event 379
+pe2cap2_4_slot_15	main memory	trace-20261011-164514	demo_4 (dropped)						0x8018ab20-0x8018c073	1/acropolis_square/file0	0	0	0	dialogue	
+pe2cap2_4_slot_15	main memory	trace-20261011-164514	demo_4 (dropped)	1	acropolis_square	1	1		0x8018ab20-0x8018c073	1/acropolis_square/file0	0	0	0	dialogue	
+pe2cap2_57	main memory	trace-20261011-164514	demo_3						0x80181190-0x801827db	2/dryfield_underpass/file0	0	0	0	bundle	
+pe2cap2_57	main memory	trace-20261011-164514	demo_3	2	dryfield_underpass	3	1		0x80181190-0x801827db	2/dryfield_underpass/file0	0	0	0	bundle	
+pe2cap2_57	main memory	trace-20261011-164514	demo_3	2	dryfield_underpass	6	1		0x80181190-0x801827db	2/dryfield_underpass/file0	0	0	0	bundle	
+pe2cap2_57	main memory	trace-20261011-164514	demo_4 (dropped)						0x80181190-0x801827db	2/dryfield_underpass/file0	0	0	0	bundle	
+pe2cap2_57	main memory	trace-20261011-164514	demo_4 (dropped)	1	acropolis_square	1	1		0x80181190-0x801827db	2/dryfield_underpass/file0	0	0	0	bundle	overwritten by acropolis_square of 1/acropolis_square/file0 at event 1167
+pe2cap2_57_slot_02	main memory	trace-20261011-164514	demo_3						0x80181190-0x8018140b	2/dryfield_underpass/file0	0	0	0	palette	
+pe2cap2_57_slot_02	main memory	trace-20261011-164514	demo_3	2	dryfield_underpass	3	1		0x80181190-0x8018140b	2/dryfield_underpass/file0	0	0	0	palette	
+pe2cap2_57_slot_02	main memory	trace-20261011-164514	demo_3	2	dryfield_underpass	6	1		0x80181190-0x8018140b	2/dryfield_underpass/file0	0	0	0	palette	
+pe2cap2_57_slot_02	main memory	trace-20261011-164514	demo_4 (dropped)						0x80181190-0x8018140b	2/dryfield_underpass/file0	0	0	0	palette	
+pe2cap2_57_slot_02	main memory	trace-20261011-164514	demo_4 (dropped)	1	acropolis_square	1	1		0x80181190-0x8018140b	2/dryfield_underpass/file0	0	0	0	palette	overwritten by acropolis_square of 1/acropolis_square/file0 at event 1167
+pe2cap2_57_slot_02	video memory	trace-20261011-164514	demo_3	2	dryfield_underpass	3	1	3	0,255,256,6	bundle:pe2cap2_57_slot_02	0	0	0		overwritten by pe2cap2_57_slot_08 of bundle:pe2cap2_57_slot_08 at event 931
+pe2cap2_57_slot_03	main memory	trace-20261011-164514	demo_3						0x80181410-0x80181643	2/dryfield_underpass/file0	0	0	0	palette	
+pe2cap2_57_slot_03	main memory	trace-20261011-164514	demo_3	2	dryfield_underpass	3	1		0x80181410-0x80181643	2/dryfield_underpass/file0	0	0	0	palette	
+pe2cap2_57_slot_03	main memory	trace-20261011-164514	demo_3	2	dryfield_underpass	6	1		0x80181410-0x80181643	2/dryfield_underpass/file0	0	0	0	palette	
+pe2cap2_57_slot_03	main memory	trace-20261011-164514	demo_4 (dropped)						0x80181410-0x80181643	2/dryfield_underpass/file0	0	0	0	palette	
+pe2cap2_57_slot_03	main memory	trace-20261011-164514	demo_4 (dropped)	1	acropolis_square	1	1		0x80181410-0x80181643	2/dryfield_underpass/file0	0	0	0	palette	overwritten by acropolis_square of 1/acropolis_square/file0 at event 1167
+pe2cap2_57_slot_03	video memory	trace-20261011-164514	demo_3	2	dryfield_underpass	3	1	4	0,255,256,6	bundle:pe2cap2_57_slot_03	0	0	0		overwritten by pe2cap2_57_slot_04 of bundle:pe2cap2_57_slot_04 at event 1027
+pe2cap2_57_slot_04	main memory	trace-20261011-164514	demo_3						0x80181650-0x801818b3	2/dryfield_underpass/file0	0	0	0	palette	
+pe2cap2_57_slot_04	main memory	trace-20261011-164514	demo_3	2	dryfield_underpass	3	1		0x80181650-0x801818b3	2/dryfield_underpass/file0	0	0	0	palette	
+pe2cap2_57_slot_04	main memory	trace-20261011-164514	demo_3	2	dryfield_underpass	6	1		0x80181650-0x801818b3	2/dryfield_underpass/file0	0	0	0	palette	
+pe2cap2_57_slot_04	main memory	trace-20261011-164514	demo_4 (dropped)						0x80181650-0x801818b3	2/dryfield_underpass/file0	0	0	0	palette	
+pe2cap2_57_slot_04	main memory	trace-20261011-164514	demo_4 (dropped)	1	acropolis_square	1	1		0x80181650-0x801818b3	2/dryfield_underpass/file0	0	0	0	palette	overwritten by acropolis_square of 1/acropolis_square/file0 at event 1167
+pe2cap2_57_slot_04	video memory	trace-20261011-164514	demo_3					5	0,255,256,6	bundle:pe2cap2_57_slot_04	0	0	0		overwritten by pe2clut_2 of 0/file2 at event 1098
+pe2cap2_57_slot_04	video memory	trace-20261011-164514	demo_3	2	dryfield_underpass	3	1	5	0,255,256,6	bundle:pe2cap2_57_slot_04	0	0	0		
+pe2cap2_57_slot_08	main memory	trace-20261011-164514	demo_3						0x801818c0-0x80181b3a	2/dryfield_underpass/file0	0	0	0	palette	
+pe2cap2_57_slot_08	main memory	trace-20261011-164514	demo_3	2	dryfield_underpass	3	1		0x801818c0-0x80181b3a	2/dryfield_underpass/file0	0	0	0	palette	
+pe2cap2_57_slot_08	main memory	trace-20261011-164514	demo_3	2	dryfield_underpass	6	1		0x801818c0-0x80181b3a	2/dryfield_underpass/file0	0	0	0	palette	
+pe2cap2_57_slot_08	main memory	trace-20261011-164514	demo_4 (dropped)						0x801818c0-0x80181b3a	2/dryfield_underpass/file0	0	0	0	palette	
+pe2cap2_57_slot_08	main memory	trace-20261011-164514	demo_4 (dropped)	1	acropolis_square	1	1		0x801818c0-0x80181b3a	2/dryfield_underpass/file0	0	0	0	palette	overwritten by acropolis_square of 1/acropolis_square/file0 at event 1167
+pe2cap2_57_slot_08	video memory	trace-20261011-164514	demo_3	2	dryfield_underpass	3	1	9	0,255,256,6	bundle:pe2cap2_57_slot_08	0	0	0		overwritten by pe2cap2_57_slot_03 of bundle:pe2cap2_57_slot_03 at event 947
+pe2cap2_57_slot_12	main memory	trace-20261011-164514	demo_3						0x80181b40-0x80181ccf	2/dryfield_underpass/file0	0	0	0	palette	
+pe2cap2_57_slot_12	main memory	trace-20261011-164514	demo_3	2	dryfield_underpass	3	1		0x80181b40-0x80181ccf	2/dryfield_underpass/file0	0	0	0	palette	
+pe2cap2_57_slot_12	main memory	trace-20261011-164514	demo_3	2	dryfield_underpass	6	1		0x80181b40-0x80181ccf	2/dryfield_underpass/file0	0	0	0	palette	
+pe2cap2_57_slot_12	main memory	trace-20261011-164514	demo_4 (dropped)						0x80181b40-0x80181ccf	2/dryfield_underpass/file0	0	0	0	palette	
+pe2cap2_57_slot_12	main memory	trace-20261011-164514	demo_4 (dropped)	1	acropolis_square	1	1		0x80181b40-0x80181ccf	2/dryfield_underpass/file0	0	0	0	palette	overwritten by acropolis_square of 1/acropolis_square/file0 at event 1167
+pe2cap2_57_slot_13	main memory	trace-20261011-164514	demo_3						0x80181cd0-0x80181ea7	2/dryfield_underpass/file0	0	0	0	palette	
+pe2cap2_57_slot_13	main memory	trace-20261011-164514	demo_3	2	dryfield_underpass	3	1		0x80181cd0-0x80181ea7	2/dryfield_underpass/file0	0	0	0	palette	
+pe2cap2_57_slot_13	main memory	trace-20261011-164514	demo_3	2	dryfield_underpass	6	1		0x80181cd0-0x80181ea7	2/dryfield_underpass/file0	0	0	0	palette	
+pe2cap2_57_slot_13	main memory	trace-20261011-164514	demo_4 (dropped)						0x80181cd0-0x80181ea7	2/dryfield_underpass/file0	0	0	0	palette	
+pe2cap2_57_slot_13	main memory	trace-20261011-164514	demo_4 (dropped)	1	acropolis_square	1	1		0x80181cd0-0x80181ea7	2/dryfield_underpass/file0	0	0	0	palette	overwritten by acropolis_square of 1/acropolis_square/file0 at event 1167
+pe2cap2_57_slot_14	main memory	trace-20261011-164514	demo_3						0x80181eb0-0x801820aa	2/dryfield_underpass/file0	0	0	0	palette	
+pe2cap2_57_slot_14	main memory	trace-20261011-164514	demo_3	2	dryfield_underpass	3	1		0x80181eb0-0x801820aa	2/dryfield_underpass/file0	0	0	0	palette	
+pe2cap2_57_slot_14	main memory	trace-20261011-164514	demo_3	2	dryfield_underpass	6	1		0x80181eb0-0x801820aa	2/dryfield_underpass/file0	0	0	0	palette	
+pe2cap2_57_slot_14	main memory	trace-20261011-164514	demo_4 (dropped)						0x80181eb0-0x801820aa	2/dryfield_underpass/file0	0	0	0	palette	
+pe2cap2_57_slot_14	main memory	trace-20261011-164514	demo_4 (dropped)	1	acropolis_square	1	1		0x80181eb0-0x801820aa	2/dryfield_underpass/file0	0	0	0	palette	overwritten by acropolis_square of 1/acropolis_square/file0 at event 1167
+pe2cap2_57_slot_18	main memory	trace-20261011-164514	demo_3						0x801820b0-0x801822a0	2/dryfield_underpass/file0	0	0	0	palette	
+pe2cap2_57_slot_18	main memory	trace-20261011-164514	demo_3	2	dryfield_underpass	3	1		0x801820b0-0x801822a0	2/dryfield_underpass/file0	0	0	0	palette	
+pe2cap2_57_slot_18	main memory	trace-20261011-164514	demo_3	2	dryfield_underpass	6	1		0x801820b0-0x801822a0	2/dryfield_underpass/file0	0	0	0	palette	
+pe2cap2_57_slot_18	main memory	trace-20261011-164514	demo_4 (dropped)						0x801820b0-0x801822a0	2/dryfield_underpass/file0	0	0	0	palette	
+pe2cap2_57_slot_18	main memory	trace-20261011-164514	demo_4 (dropped)	1	acropolis_square	1	1		0x801820b0-0x801822a0	2/dryfield_underpass/file0	0	0	0	palette	overwritten by acropolis_square of 1/acropolis_square/file0 at event 1167
+pe2cap2_57_slot_21	main memory	trace-20261011-164514	demo_3						0x801822b0-0x801827db	2/dryfield_underpass/file0	0	0	0	dialogue	
+pe2cap2_57_slot_21	main memory	trace-20261011-164514	demo_3	2	dryfield_underpass	3	1		0x801822b0-0x801827db	2/dryfield_underpass/file0	0	0	0	dialogue	
+pe2cap2_57_slot_21	main memory	trace-20261011-164514	demo_3	2	dryfield_underpass	6	1		0x801822b0-0x801827db	2/dryfield_underpass/file0	0	0	0	dialogue	
+pe2cap2_57_slot_21	main memory	trace-20261011-164514	demo_4 (dropped)						0x801822b0-0x801827db	2/dryfield_underpass/file0	0	0	0	dialogue	
+pe2cap2_57_slot_21	main memory	trace-20261011-164514	demo_4 (dropped)	1	acropolis_square	1	1		0x801822b0-0x801827db	2/dryfield_underpass/file0	0	0	0	dialogue	overwritten by acropolis_square of 1/acropolis_square/file0 at event 1167
+pe2clut_0	video memory	trace-20261011-164514	boot						256,243,64,6	0/title	0	0	0		
+pe2clut_0	video memory	trace-20261011-164514	demo_1						256,243,64,6	0/title	0	0	0		
+pe2clut_0	video memory	trace-20261011-164514	demo_1						256,243,64,6	0/title	0	0	0		overwritten by pe2clut_0 of 0/title at event 298
+pe2clut_0	video memory	trace-20261011-164514	demo_1	1	acropolis_square	1	1		256,243,64,6	0/title	0	0	0		
+pe2clut_0	video memory	trace-20261011-164514	demo_2						256,243,64,6	0/title	0	0	0		
+pe2clut_0	video memory	trace-20261011-164514	demo_2						256,243,64,6	0/title	0	0	0		overwritten by pe2clut_0 of 0/title at event 643
+pe2clut_0	video memory	trace-20261011-164514	demo_2	2	dryfield_main_street	1	3		256,243,64,6	0/title	0	0	0		
+pe2clut_0	video memory	trace-20261011-164514	demo_3						256,243,64,6	0/title	0	0	0		
+pe2clut_0	video memory	trace-20261011-164514	demo_3						256,243,64,6	0/title	0	0	0		overwritten by pe2clut_0 of 0/title at event 1086
+pe2clut_0	video memory	trace-20261011-164514	demo_3	2	dryfield_underpass	3	1		256,243,64,6	0/title	0	0	0		
+pe2clut_0	video memory	trace-20261011-164514	demo_3	2	dryfield_underpass	6	1		256,243,64,6	0/title	0	0	0		
+pe2clut_0	video memory	trace-20261011-164514	demo_4 (dropped)						256,243,64,6	0/title	0	0	0		
+pe2clut_0	video memory	trace-20261011-164514	demo_4 (dropped)						256,243,64,6	0/title	0	0	0		overwritten by pe2clut_0 of 0/title at event 1200
+pe2clut_0	video memory	trace-20261011-164514	demo_4 (dropped)	1	acropolis_square	1	1		256,243,64,6	0/title	0	0	0		
+pe2clut_1	video memory	trace-20261011-164514	boot						0,240,256,3	0/title	0	0	0		
+pe2clut_1	video memory	trace-20261011-164514	demo_1						0,240,256,3	0/title	0	0	0		
+pe2clut_1	video memory	trace-20261011-164514	demo_1						0,240,256,3	0/title	0	0	0		overwritten by pe2clut_1 of 0/title at event 298
+pe2clut_1	video memory	trace-20261011-164514	demo_1	1	acropolis_square	1	1		0,240,256,3	0/title	0	0	0		
+pe2clut_1	video memory	trace-20261011-164514	demo_2						0,240,256,3	0/title	0	0	0		
+pe2clut_1	video memory	trace-20261011-164514	demo_2						0,240,256,3	0/title	0	0	0		overwritten by pe2clut_1 of 0/title at event 643
+pe2clut_1	video memory	trace-20261011-164514	demo_2	2	dryfield_main_street	1	3		0,240,256,3	0/title	0	0	0		
+pe2clut_1	video memory	trace-20261011-164514	demo_3						0,240,256,3	0/title	0	0	0		
+pe2clut_1	video memory	trace-20261011-164514	demo_3						0,240,256,3	0/title	0	0	0		overwritten by pe2clut_1 of 0/title at event 1086
+pe2clut_1	video memory	trace-20261011-164514	demo_3	2	dryfield_underpass	3	1		0,240,256,3	0/title	0	0	0		
+pe2clut_1	video memory	trace-20261011-164514	demo_3	2	dryfield_underpass	6	1		0,240,256,3	0/title	0	0	0		
+pe2clut_1	video memory	trace-20261011-164514	demo_4 (dropped)						0,240,256,3	0/title	0	0	0		
+pe2clut_1	video memory	trace-20261011-164514	demo_4 (dropped)						0,240,256,3	0/title	0	0	0		overwritten by pe2clut_1 of 0/title at event 1200
+pe2clut_1	video memory	trace-20261011-164514	demo_4 (dropped)	1	acropolis_square	1	1		0,240,256,3	0/title	0	0	0		
+pe2clut_2	video memory	trace-20261011-164514	boot						0,255,256,6	0/file2	0	0	0		
+pe2clut_2	video memory	trace-20261011-164514	demo_1						0,255,256,6	0/file2	0	0	0		
+pe2clut_2	video memory	trace-20261011-164514	demo_1						0,255,256,6	0/file2	0	0	0		overwritten by pe2clut_3 of 0/file5 at event 39
+pe2clut_2	video memory	trace-20261011-164514	demo_2						0,255,256,6	0/file2	0	0	0		
+pe2clut_2	video memory	trace-20261011-164514	demo_2						0,255,256,6	0/file2	0	0	0		overwritten by pe2clut_3 of 0/file10 at event 334
+pe2clut_2	video memory	trace-20261011-164514	demo_3						0,255,256,6	0/file2	0	0	0		
+pe2clut_2	video memory	trace-20261011-164514	demo_3						0,255,256,6	0/file2	0	0	0		overwritten by pe2clut_3 of 0/file39 at event 679
+pe2clut_2	video memory	trace-20261011-164514	demo_4 (dropped)						0,255,256,6	0/file2	0	0	0		
+pe2clut_2	video memory	trace-20261011-164514	demo_4 (dropped)						0,255,256,6	0/file2	0	0	0		overwritten by pe2clut_3 of 0/file5 at event 1122
+pe2clut_201	video memory	trace-20261011-164514	demo_3						0,247,256,2	0/file400500	0	2	0		
+pe2clut_201	video memory	trace-20261011-164514	demo_3	2	dryfield_underpass	3	1		0,247,256,2	0/file400500	0	2	0		
+pe2clut_201	video memory	trace-20261011-164514	demo_3	2	dryfield_underpass	6	1		0,247,256,2	0/file400500	0	2	0		
+pe2clut_201	video memory	trace-20261011-164514	demo_4 (dropped)						0,247,256,2	0/file400500	0	2	0		
+pe2clut_201	video memory	trace-20261011-164514	demo_4 (dropped)	1	acropolis_square	1	1		0,247,256,2	0/file400500	0	2	0		overwritten by pe2clut_244 of 0/file111800 at event 1177
+pe2clut_232	video memory	trace-20261011-164514	demo_2						0,247,256,2	0/file400100	0	2	0		
+pe2clut_232	video memory	trace-20261011-164514	demo_2	2	dryfield_main_street	1	3		0,247,256,2	0/file400100	0	2	0		
+pe2clut_232	video memory	trace-20261011-164514	demo_3						0,247,256,2	0/file400100	0	2	0		
+pe2clut_232	video memory	trace-20261011-164514	demo_3	2	dryfield_underpass	6	1		0,247,256,2	0/file400100	0	2	0		overwritten by pe2clut_201 of 0/file400500 at event 736
+pe2clut_244	video memory	trace-20261011-164514	demo_1						0,247,256,2	0/file111800	-1	2	0		
+pe2clut_244	video memory	trace-20261011-164514	demo_1	1	acropolis_square	1	1		0,247,256,2	0/file111800	-1	2	0		
+pe2clut_244	video memory	trace-20261011-164514	demo_2						0,247,256,2	0/file111800	-1	2	0		
+pe2clut_244	video memory	trace-20261011-164514	demo_2	2	dryfield_main_street	1	3		0,247,256,2	0/file111800	-1	2	0		overwritten by pe2clut_232 of 0/file400100 at event 391
+pe2clut_244	video memory	trace-20261011-164514	demo_4 (dropped)						0,247,256,2	0/file111800	-1	2	0		
+pe2clut_244	video memory	trace-20261011-164514	demo_4 (dropped)	1	acropolis_square	1	1		0,247,256,2	0/file111800	-1	2	0		
+pe2clut_26	video memory	trace-20261011-164514	demo_2						0,243,16,1	0/m4a1_pyke	0	0	0		
+pe2clut_26	video memory	trace-20261011-164514	demo_2	2	dryfield_main_street	1	3		0,243,16,1	0/m4a1_pyke	0	0	0		
+pe2clut_26	video memory	trace-20261011-164514	demo_3						0,243,16,1	0/m4a1_pyke	0	0	0		overwritten by pe2clut_28 of 0/mp5a5 at event 687
+pe2clut_28	video memory	trace-20261011-164514	demo_3						0,243,16,1	0/mp5a5	0	0	0		
+pe2clut_28	video memory	trace-20261011-164514	demo_3	2	dryfield_underpass	3	1		0,243,16,1	0/mp5a5	0	0	0		
+pe2clut_28	video memory	trace-20261011-164514	demo_3	2	dryfield_underpass	6	1		0,243,16,1	0/mp5a5	0	0	0		
+pe2clut_28	video memory	trace-20261011-164514	demo_4 (dropped)						0,243,16,1	0/mp5a5	0	0	0		overwritten by pe2clut_7 of 0/m93r at event 1130
+pe2clut_29	video memory	trace-20261011-164514	demo_1						0,245,256,2	0/aya_10400	6	0	0		
+pe2clut_29	video memory	trace-20261011-164514	demo_1	1	acropolis_square	1	1		0,245,256,2	0/aya_10400	6	0	0		
+pe2clut_29	video memory	trace-20261011-164514	demo_2						0,245,256,2	0/aya_10400	6	0	0		overwritten by pe2clut_5 of 0/aya_10300 at event 338
+pe2clut_29	video memory	trace-20261011-164514	demo_4 (dropped)						0,245,256,2	0/aya_10400	6	0	0		
+pe2clut_29	video memory	trace-20261011-164514	demo_4 (dropped)	1	acropolis_square	1	1		0,245,256,2	0/aya_10400	6	0	0		
+pe2clut_3	video memory	trace-20261011-164514	demo_1						0,255,256,6	0/file5	0	0	0		
+pe2clut_3	video memory	trace-20261011-164514	demo_1	1	acropolis_square	1	1		0,255,256,6	0/file5	0	0	0		overwritten by pe2clut_308 of 1/acropolis_square/file15 at event 104
+pe2clut_3	video memory	trace-20261011-164514	demo_2						0,255,256,6	0/file10	0	0	0		
+pe2clut_3	video memory	trace-20261011-164514	demo_2	2	dryfield_main_street	1	3		0,255,256,6	0/file10	0	0	0		overwritten by pe2cap2_26_slot_03 of bundle:pe2cap2_26_slot_03 at event 416
+pe2clut_3	video memory	trace-20261011-164514	demo_3						0,255,256,6	0/file39	0	0	0		
+pe2clut_3	video memory	trace-20261011-164514	demo_3	2	dryfield_underpass	3	1		0,255,256,6	0/file39	0	0	0		overwritten by pe2cap2_57_slot_02 of bundle:pe2cap2_57_slot_02 at event 809
+pe2clut_3	video memory	trace-20261011-164514	demo_3	2	dryfield_underpass	6	1		0,255,256,6	0/file39	0	0	0		
+pe2clut_3	video memory	trace-20261011-164514	demo_4 (dropped)						0,255,256,6	0/file5	0	0	0		
+pe2clut_3	video memory	trace-20261011-164514	demo_4 (dropped)	1	acropolis_square	1	1		0,255,256,6	0/file5	0	0	0		overwritten by pe2clut_308 of 1/acropolis_square/file15 at event 1187
+pe2clut_305	video memory	trace-20261011-164514	demo_1						0,254,256,1	0/file801000	0	0	0		overwritten by pe2clut_305 of 0/file900001 at event 61
+pe2clut_305	video memory	trace-20261011-164514	demo_1						0,254,256,1	0/file900001	0	0	0		
+pe2clut_305	video memory	trace-20261011-164514	demo_1	1	acropolis_square	1	1		0,254,256,1	0/file900001	0	0	0		
+pe2clut_305	video memory	trace-20261011-164514	demo_2						0,254,256,1	0/file801100	0	0	0		overwritten by pe2clut_305 of 0/map_dryfield at event 356
+pe2clut_305	video memory	trace-20261011-164514	demo_2						0,254,256,1	0/file900001	0	0	0		overwritten by pe2clut_305 of 0/file801100 at event 320
+pe2clut_305	video memory	trace-20261011-164514	demo_2						0,254,256,1	0/map_dryfield	0	0	0		
+pe2clut_305	video memory	trace-20261011-164514	demo_2	2	dryfield_main_street	1	3		0,254,256,1	0/map_dryfield	0	0	0		
+pe2clut_305	video memory	trace-20261011-164514	demo_3						0,254,256,1	0/file801200	0	0	0		overwritten by pe2clut_305 of 0/map_dryfield at event 701
+pe2clut_305	video memory	trace-20261011-164514	demo_3						0,254,256,1	0/map_dryfield	0	0	0		
+pe2clut_305	video memory	trace-20261011-164514	demo_3						0,254,256,1	0/map_dryfield	0	0	0		overwritten by pe2clut_305 of 0/file801200 at event 665
+pe2clut_305	video memory	trace-20261011-164514	demo_3	2	dryfield_underpass	3	1		0,254,256,1	0/map_dryfield	0	0	0		
+pe2clut_305	video memory	trace-20261011-164514	demo_3	2	dryfield_underpass	6	1		0,254,256,1	0/map_dryfield	0	0	0		
+pe2clut_305	video memory	trace-20261011-164514	demo_4 (dropped)						0,254,256,1	0/file801000	0	0	0		overwritten by pe2clut_305 of 0/file900001 at event 1144
+pe2clut_305	video memory	trace-20261011-164514	demo_4 (dropped)						0,254,256,1	0/file900001	0	0	0		
+pe2clut_305	video memory	trace-20261011-164514	demo_4 (dropped)						0,254,256,1	0/map_dryfield	0	0	0		overwritten by pe2clut_305 of 0/file801000 at event 1108
+pe2clut_305	video memory	trace-20261011-164514	demo_4 (dropped)	1	acropolis_square	1	1		0,254,256,1	0/file900001	0	0	0		
+pe2clut_306	video memory	trace-20261011-164514	demo_1						0,253,256,1	0/file801000	0	0	0		overwritten by pe2clut_306 of 0/file900001 at event 61
+pe2clut_306	video memory	trace-20261011-164514	demo_1						0,253,256,1	0/file900001	0	0	0		
+pe2clut_306	video memory	trace-20261011-164514	demo_1	1	acropolis_square	1	1		0,253,256,1	0/file900001	0	0	0		
+pe2clut_306	video memory	trace-20261011-164514	demo_2						0,253,256,1	0/file801100	0	0	0		overwritten by pe2clut_306 of 0/map_dryfield at event 356
+pe2clut_306	video memory	trace-20261011-164514	demo_2						0,253,256,1	0/file900001	0	0	0		overwritten by pe2clut_306 of 0/file801100 at event 320
+pe2clut_306	video memory	trace-20261011-164514	demo_2						0,253,256,1	0/map_dryfield	0	0	0		
+pe2clut_306	video memory	trace-20261011-164514	demo_2	2	dryfield_main_street	1	3		0,253,256,1	0/map_dryfield	0	0	0		
+pe2clut_306	video memory	trace-20261011-164514	demo_3						0,253,256,1	0/file801200	0	0	0		overwritten by pe2clut_306 of 0/map_dryfield at event 701
+pe2clut_306	video memory	trace-20261011-164514	demo_3						0,253,256,1	0/map_dryfield	0	0	0		
+pe2clut_306	video memory	trace-20261011-164514	demo_3						0,253,256,1	0/map_dryfield	0	0	0		overwritten by pe2clut_306 of 0/file801200 at event 665
+pe2clut_306	video memory	trace-20261011-164514	demo_3	2	dryfield_underpass	3	1		0,253,256,1	0/map_dryfield	0	0	0		
+pe2clut_306	video memory	trace-20261011-164514	demo_3	2	dryfield_underpass	6	1		0,253,256,1	0/map_dryfield	0	0	0		
+pe2clut_306	video memory	trace-20261011-164514	demo_4 (dropped)						0,253,256,1	0/file801000	0	0	0		overwritten by pe2clut_306 of 0/file900001 at event 1144
+pe2clut_306	video memory	trace-20261011-164514	demo_4 (dropped)						0,253,256,1	0/file900001	0	0	0		
+pe2clut_306	video memory	trace-20261011-164514	demo_4 (dropped)						0,253,256,1	0/map_dryfield	0	0	0		overwritten by pe2clut_306 of 0/file801000 at event 1108
+pe2clut_306	video memory	trace-20261011-164514	demo_4 (dropped)	1	acropolis_square	1	1		0,253,256,1	0/file900001	0	0	0		
+pe2clut_307	video memory	trace-20261011-164514	demo_1						0,265,320,5	0/file900001	0	0	0		
+pe2clut_307	video memory	trace-20261011-164514	demo_1	1	acropolis_square	1	1		0,265,320,5	0/file900001	0	0	0		
+pe2clut_307	video memory	trace-20261011-164514	demo_2						0,265,320,5	0/file900001	0	0	0		overwritten by pe2clut_307 of 0/map_dryfield at event 356
+pe2clut_307	video memory	trace-20261011-164514	demo_2						0,265,320,5	0/map_dryfield	0	0	0		
+pe2clut_307	video memory	trace-20261011-164514	demo_2	2	dryfield_main_street	1	3		0,265,320,5	0/map_dryfield	0	0	0		
+pe2clut_307	video memory	trace-20261011-164514	demo_3						0,265,320,5	0/map_dryfield	0	0	0		
+pe2clut_307	video memory	trace-20261011-164514	demo_3						0,265,320,5	0/map_dryfield	0	0	0		overwritten by pe2clut_307 of 0/map_dryfield at event 701
+pe2clut_307	video memory	trace-20261011-164514	demo_3	2	dryfield_underpass	3	1		0,265,320,5	0/map_dryfield	0	0	0		
+pe2clut_307	video memory	trace-20261011-164514	demo_3	2	dryfield_underpass	6	1		0,265,320,5	0/map_dryfield	0	0	0		
+pe2clut_307	video memory	trace-20261011-164514	demo_4 (dropped)						0,265,320,5	0/file900001	0	0	0		
+pe2clut_307	video memory	trace-20261011-164514	demo_4 (dropped)						0,265,320,5	0/map_dryfield	0	0	0		overwritten by pe2clut_307 of 0/file900001 at event 1144
+pe2clut_307	video memory	trace-20261011-164514	demo_4 (dropped)	1	acropolis_square	1	1		0,265,320,5	0/file900001	0	0	0		
+pe2clut_308	video memory	trace-20261011-164514	demo_1	1	acropolis_square	1	1	15	0,255,256,6	1/acropolis_square/file15	0	0	0		overwritten by pe2cap2_4_slot_07 of bundle:pe2cap2_4_slot_07 at event 129
+pe2clut_308	video memory	trace-20261011-164514	demo_4 (dropped)					15	0,255,256,6	1/acropolis_square/file15	0	0	0		overwritten by pe2clut_2 of 0/file2 at event 1210
+pe2clut_308	video memory	trace-20261011-164514	demo_4 (dropped)	1	acropolis_square	1	1	15	0,255,256,6	1/acropolis_square/file15	0	0	0		
+pe2clut_309	video memory	trace-20261011-164514	demo_3						0,270,320,2	2/dryfield_underpass/file0	0	0	0		
+pe2clut_309	video memory	trace-20261011-164514	demo_3	2	dryfield_underpass	3	1		0,270,320,2	2/dryfield_underpass/file0	0	0	0		
+pe2clut_309	video memory	trace-20261011-164514	demo_3	2	dryfield_underpass	6	1		0,270,320,2	2/dryfield_underpass/file0	0	0	0		
+pe2clut_309	video memory	trace-20261011-164514	demo_4 (dropped)						0,270,320,2	2/dryfield_underpass/file0	0	0	0		
+pe2clut_309	video memory	trace-20261011-164514	demo_4 (dropped)	1	acropolis_square	1	1		0,270,320,2	2/dryfield_underpass/file0	0	0	0		
+pe2clut_336	video memory	trace-20261011-164514	demo_2						0,270,320,2	2/dryfield_main_street/file0	0	0	0		
+pe2clut_336	video memory	trace-20261011-164514	demo_2	2	dryfield_main_street	1	3		0,270,320,2	2/dryfield_main_street/file0	0	0	0		
+pe2clut_336	video memory	trace-20261011-164514	demo_3						0,270,320,2	2/dryfield_main_street/file0	0	0	0		
+pe2clut_336	video memory	trace-20261011-164514	demo_3	2	dryfield_underpass	6	1		0,270,320,2	2/dryfield_main_street/file0	0	0	0		overwritten by pe2clut_309 of 2/dryfield_underpass/file0 at event 724
+pe2clut_5	video memory	trace-20261011-164514	demo_2						0,245,256,2	0/aya_10300	6	0	0		
+pe2clut_5	video memory	trace-20261011-164514	demo_2	2	dryfield_main_street	1	3		0,245,256,2	0/aya_10300	6	0	0		
+pe2clut_5	video memory	trace-20261011-164514	demo_3						0,245,256,2	0/aya_10300	6	0	0		
+pe2clut_5	video memory	trace-20261011-164514	demo_3						0,245,256,2	0/aya_10300	6	0	0		overwritten by pe2clut_5 of 0/aya_10300 at event 683
+pe2clut_5	video memory	trace-20261011-164514	demo_3	2	dryfield_underpass	3	1		0,245,256,2	0/aya_10300	6	0	0		
+pe2clut_5	video memory	trace-20261011-164514	demo_3	2	dryfield_underpass	6	1		0,245,256,2	0/aya_10300	6	0	0		
+pe2clut_5	video memory	trace-20261011-164514	demo_4 (dropped)						0,245,256,2	0/aya_10300	6	0	0		overwritten by pe2clut_29 of 0/aya_10400 at event 1126
+pe2clut_7	video memory	trace-20261011-164514	demo_1						0,243,16,1	0/m93r	0	0	0		
+pe2clut_7	video memory	trace-20261011-164514	demo_1	1	acropolis_square	1	1		0,243,16,1	0/m93r	0	0	0		
+pe2clut_7	video memory	trace-20261011-164514	demo_2						0,243,16,1	0/m93r	0	0	0		overwritten by pe2clut_26 of 0/m4a1_pyke at event 342
+pe2clut_7	video memory	trace-20261011-164514	demo_4 (dropped)						0,243,16,1	0/m93r	0	0	0		
+pe2clut_7	video memory	trace-20261011-164514	demo_4 (dropped)	1	acropolis_square	1	1		0,243,16,1	0/m93r	0	0	0		
+pe2img_0	video memory	trace-20261011-164514	boot						960,256,64,256	0/title	0	0	0		
+pe2img_0	video memory	trace-20261011-164514	demo_1						960,256,64,256	0/title	0	0	0		
+pe2img_0	video memory	trace-20261011-164514	demo_1						960,256,64,256	0/title	0	0	0		overwritten by pe2img_0 of 0/title at event 298
+pe2img_0	video memory	trace-20261011-164514	demo_1	1	acropolis_square	1	1		960,256,64,256	0/title	0	0	0		
+pe2img_0	video memory	trace-20261011-164514	demo_2						960,256,64,256	0/title	0	0	0		
+pe2img_0	video memory	trace-20261011-164514	demo_2						960,256,64,256	0/title	0	0	0		overwritten by pe2img_0 of 0/title at event 643
+pe2img_0	video memory	trace-20261011-164514	demo_2	2	dryfield_main_street	1	3		960,256,64,256	0/title	0	0	0		
+pe2img_0	video memory	trace-20261011-164514	demo_3						960,256,64,256	0/title	0	0	0		
+pe2img_0	video memory	trace-20261011-164514	demo_3						960,256,64,256	0/title	0	0	0		overwritten by pe2img_0 of 0/title at event 1086
+pe2img_0	video memory	trace-20261011-164514	demo_3	2	dryfield_underpass	3	1		960,256,64,256	0/title	0	0	0		
+pe2img_0	video memory	trace-20261011-164514	demo_3	2	dryfield_underpass	6	1		960,256,64,256	0/title	0	0	0		
+pe2img_0	video memory	trace-20261011-164514	demo_4 (dropped)						960,256,64,256	0/title	0	0	0		
+pe2img_0	video memory	trace-20261011-164514	demo_4 (dropped)						960,256,64,256	0/title	0	0	0		overwritten by pe2img_0 of 0/title at event 1200
+pe2img_0	video memory	trace-20261011-164514	demo_4 (dropped)	1	acropolis_square	1	1		960,256,64,256	0/title	0	0	0		
+pe2img_1	video memory	trace-20261011-164514	boot						896,256,64,256	0/title	0	0	0		
+pe2img_1	video memory	trace-20261011-164514	demo_1						896,256,64,256	0/title	0	0	0		
+pe2img_1	video memory	trace-20261011-164514	demo_1						896,256,64,256	0/title	0	0	0		overwritten by pe2img_1 of 0/title at event 298
+pe2img_1	video memory	trace-20261011-164514	demo_1	1	acropolis_square	1	1		896,256,64,256	0/title	0	0	0		
+pe2img_1	video memory	trace-20261011-164514	demo_2						896,256,64,256	0/title	0	0	0		
+pe2img_1	video memory	trace-20261011-164514	demo_2						896,256,64,256	0/title	0	0	0		overwritten by pe2img_1 of 0/title at event 643
+pe2img_1	video memory	trace-20261011-164514	demo_2	2	dryfield_main_street	1	3		896,256,64,256	0/title	0	0	0		
+pe2img_1	video memory	trace-20261011-164514	demo_3						896,256,64,256	0/title	0	0	0		
+pe2img_1	video memory	trace-20261011-164514	demo_3						896,256,64,256	0/title	0	0	0		overwritten by pe2img_1 of 0/title at event 1086
+pe2img_1	video memory	trace-20261011-164514	demo_3	2	dryfield_underpass	3	1		896,256,64,256	0/title	0	0	0		
+pe2img_1	video memory	trace-20261011-164514	demo_3	2	dryfield_underpass	6	1		896,256,64,256	0/title	0	0	0		
+pe2img_1	video memory	trace-20261011-164514	demo_4 (dropped)						896,256,64,256	0/title	0	0	0		
+pe2img_1	video memory	trace-20261011-164514	demo_4 (dropped)						896,256,64,256	0/title	0	0	0		overwritten by pe2img_1 of 0/title at event 1200
+pe2img_1	video memory	trace-20261011-164514	demo_4 (dropped)	1	acropolis_square	1	1		896,256,64,256	0/title	0	0	0		
+pe2img_2	video memory	trace-20261011-164514	boot						768,256,128,256	0/file2	0	0	0		
+pe2img_2	video memory	trace-20261011-164514	demo_1						768,256,128,256	0/file2	0	0	0		
+pe2img_2	video memory	trace-20261011-164514	demo_1						768,256,128,256	0/file2	0	0	0		overwritten by pe2img_31 of 0/aya_10400 at event 43
+pe2img_2	video memory	trace-20261011-164514	demo_2						768,256,128,256	0/file2	0	0	0		
+pe2img_2	video memory	trace-20261011-164514	demo_2						768,256,128,256	0/file2	0	0	0		overwritten by pe2img_5 of 0/aya_10300 at event 338
+pe2img_2	video memory	trace-20261011-164514	demo_3						768,256,128,256	0/file2	0	0	0		
+pe2img_2	video memory	trace-20261011-164514	demo_3						768,256,128,256	0/file2	0	0	0		overwritten by pe2img_5 of 0/aya_10300 at event 683
+pe2img_2	video memory	trace-20261011-164514	demo_4 (dropped)						768,256,128,256	0/file2	0	0	0		
+pe2img_2	video memory	trace-20261011-164514	demo_4 (dropped)						768,256,128,256	0/file2	0	0	0		overwritten by pe2img_31 of 0/aya_10400 at event 1126
+pe2img_208	video memory	trace-20261011-164514	demo_3						384,256,64,256	0/file400500	0	2	0		
+pe2img_208	video memory	trace-20261011-164514	demo_3	2	dryfield_underpass	3	1		384,256,64,256	0/file400500	0	2	0		
+pe2img_208	video memory	trace-20261011-164514	demo_3	2	dryfield_underpass	6	1		384,256,64,256	0/file400500	0	2	0		
+pe2img_208	video memory	trace-20261011-164514	demo_4 (dropped)						384,256,64,256	0/file400500	0	2	0		
+pe2img_208	video memory	trace-20261011-164514	demo_4 (dropped)	1	acropolis_square	1	1		384,256,64,256	0/file400500	0	2	0		overwritten by pe2img_245 of 0/file111800 at event 1177
+pe2img_236	video memory	trace-20261011-164514	demo_2						384,256,128,256	0/file400100	0	2	0		
+pe2img_236	video memory	trace-20261011-164514	demo_2	2	dryfield_main_street	1	3		384,256,128,256	0/file400100	0	2	0		
+pe2img_236	video memory	trace-20261011-164514	demo_3						384,256,128,256	0/file400100	0	2	0		overwritten by pe2img_301 of 0/file801200 at event 665
+pe2img_245	video memory	trace-20261011-164514	demo_1						320,256,128,256	0/file111800	-1	2	0		
+pe2img_245	video memory	trace-20261011-164514	demo_1	1	acropolis_square	1	1		320,256,128,256	0/file111800	-1	2	0		
+pe2img_245	video memory	trace-20261011-164514	demo_2						320,256,128,256	0/file111800	-1	2	0		
+pe2img_245	video memory	trace-20261011-164514	demo_2	2	dryfield_main_street	1	3		320,256,128,256	0/file111800	-1	2	0		overwritten by pe2img_236 of 0/file400100 at event 391
+pe2img_245	video memory	trace-20261011-164514	demo_4 (dropped)						320,256,128,256	0/file111800	-1	2	0		
+pe2img_245	video memory	trace-20261011-164514	demo_4 (dropped)	1	acropolis_square	1	1		320,256,128,256	0/file111800	-1	2	0		
+pe2img_28	video memory	trace-20261011-164514	demo_2						448,0,64,64	0/m4a1_pyke	0	0	0		
+pe2img_28	video memory	trace-20261011-164514	demo_2	2	dryfield_main_street	1	3		448,0,64,64	0/m4a1_pyke	0	0	0		
+pe2img_28	video memory	trace-20261011-164514	demo_3						448,0,64,64	0/m4a1_pyke	0	0	0		overwritten by pe2img_30 of 0/mp5a5 at event 687
+pe2img_3	video memory	trace-20261011-164514	demo_1						960,0,64,256	0/file5	0	0	0		
+pe2img_3	video memory	trace-20261011-164514	demo_1	1	acropolis_square	1	1		960,0,64,256	0/file5	0	0	0		overwritten by pe2img_309 of 1/acropolis_square/file8 at event 127
+pe2img_3	video memory	trace-20261011-164514	demo_2						960,0,64,256	0/file10	0	0	0		
+pe2img_3	video memory	trace-20261011-164514	demo_2	2	dryfield_main_street	1	3		960,0,64,256	0/file10	0	0	0		overwritten by pe2img_495 of 2/dryfield_main_street/file4 at event 414
+pe2img_3	video memory	trace-20261011-164514	demo_3						960,0,64,256	0/file39	0	0	0		
+pe2img_3	video memory	trace-20261011-164514	demo_3	2	dryfield_underpass	3	1		960,0,64,256	0/file39	0	0	0		overwritten by pe2img_706 of 2/dryfield_underpass/file3 at event 807
+pe2img_3	video memory	trace-20261011-164514	demo_3	2	dryfield_underpass	6	1		960,0,64,256	0/file39	0	0	0		
+pe2img_3	video memory	trace-20261011-164514	demo_4 (dropped)						960,0,64,256	0/file5	0	0	0		
+pe2img_3	video memory	trace-20261011-164514	demo_4 (dropped)	1	acropolis_square	1	1		960,0,64,256	0/file5	0	0	0		
+pe2img_30	video memory	trace-20261011-164514	demo_3						448,0,64,64	0/mp5a5	0	0	0		
+pe2img_30	video memory	trace-20261011-164514	demo_3	2	dryfield_underpass	3	1		448,0,64,64	0/mp5a5	0	0	0		
+pe2img_30	video memory	trace-20261011-164514	demo_3	2	dryfield_underpass	6	1		448,0,64,64	0/mp5a5	0	0	0		
+pe2img_30	video memory	trace-20261011-164514	demo_4 (dropped)						448,0,64,64	0/mp5a5	0	0	0		overwritten by pe2img_7 of 0/m93r at event 1130
+pe2img_300	video memory	trace-20261011-164514	demo_1						448,128,64,96	0/file801000	0	0	0		overwritten by pe2img_301 of 0/file801000 at event 25
+pe2img_300	video memory	trace-20261011-164514	demo_1						448,128,64,96	0/file900001	0	0	0		overwritten by pe2img_301 of 0/file900001 at event 61
+pe2img_300	video memory	trace-20261011-164514	demo_2						448,128,64,96	0/file801100	0	0	0		overwritten by pe2img_301 of 0/file801100 at event 320
+pe2img_300	video memory	trace-20261011-164514	demo_2						448,128,64,96	0/map_dryfield	0	0	0		overwritten by pe2img_301 of 0/map_dryfield at event 356
+pe2img_300	video memory	trace-20261011-164514	demo_3						448,128,64,96	0/file801200	0	0	0		overwritten by pe2img_301 of 0/file801200 at event 665
+pe2img_300	video memory	trace-20261011-164514	demo_3						448,128,64,96	0/map_dryfield	0	0	0		overwritten by pe2img_301 of 0/map_dryfield at event 701
+pe2img_300	video memory	trace-20261011-164514	demo_4 (dropped)						448,128,64,96	0/file801000	0	0	0		overwritten by pe2img_301 of 0/file801000 at event 1108
+pe2img_300	video memory	trace-20261011-164514	demo_4 (dropped)						448,128,64,96	0/file900001	0	0	0		overwritten by pe2img_301 of 0/file900001 at event 1144
+pe2img_301	video memory	trace-20261011-164514	demo_1						448,192,64,96	0/file801000	0	0	0		overwritten by pe2img_300 of 0/file900001 at event 61
+pe2img_301	video memory	trace-20261011-164514	demo_1						448,192,64,96	0/file900001	0	0	0		
+pe2img_301	video memory	trace-20261011-164514	demo_1	1	acropolis_square	1	1		448,192,64,96	0/file900001	0	0	0		overwritten by pe2img_311 of 1/acropolis_square/file15 at event 104
+pe2img_301	video memory	trace-20261011-164514	demo_2						448,192,64,96	0/file801100	0	0	0		overwritten by pe2img_300 of 0/map_dryfield at event 356
+pe2img_301	video memory	trace-20261011-164514	demo_2						448,192,64,96	0/map_dryfield	0	0	0		
+pe2img_301	video memory	trace-20261011-164514	demo_2	2	dryfield_main_street	1	3		448,192,64,96	0/map_dryfield	0	0	0		overwritten by pe2img_236 of 0/file400100 at event 391
+pe2img_301	video memory	trace-20261011-164514	demo_3						448,192,64,96	0/file801200	0	0	0		overwritten by pe2img_300 of 0/map_dryfield at event 701
+pe2img_301	video memory	trace-20261011-164514	demo_3						448,192,64,96	0/map_dryfield	0	0	0		
+pe2img_301	video memory	trace-20261011-164514	demo_3	2	dryfield_underpass	3	1		448,192,64,96	0/map_dryfield	0	0	0		
+pe2img_301	video memory	trace-20261011-164514	demo_3	2	dryfield_underpass	6	1		448,192,64,96	0/map_dryfield	0	0	0		
+pe2img_301	video memory	trace-20261011-164514	demo_4 (dropped)						448,192,64,96	0/file801000	0	0	0		overwritten by pe2img_300 of 0/file900001 at event 1144
+pe2img_301	video memory	trace-20261011-164514	demo_4 (dropped)						448,192,64,96	0/file900001	0	0	0		
+pe2img_301	video memory	trace-20261011-164514	demo_4 (dropped)						448,192,64,96	0/map_dryfield	0	0	0		overwritten by pe2img_300 of 0/file801000 at event 1108
+pe2img_301	video memory	trace-20261011-164514	demo_4 (dropped)	1	acropolis_square	1	1		448,192,64,96	0/file900001	0	0	0		overwritten by pe2img_311 of 1/acropolis_square/file15 at event 1187
+pe2img_302	video memory	trace-20261011-164514	demo_1						512,0,192,256	0/file900001	0	0	0		
+pe2img_302	video memory	trace-20261011-164514	demo_1	1	acropolis_square	1	1		512,0,192,256	0/file900001	0	0	0		
+pe2img_302	video memory	trace-20261011-164514	demo_2						512,0,192,256	0/file900001	0	0	0		overwritten by pe2img_302 of 0/map_dryfield at event 356
+pe2img_302	video memory	trace-20261011-164514	demo_2						512,0,192,256	0/map_dryfield	0	0	0		
+pe2img_302	video memory	trace-20261011-164514	demo_2	2	dryfield_main_street	1	3		512,0,192,256	0/map_dryfield	0	0	0		
+pe2img_302	video memory	trace-20261011-164514	demo_3						512,0,192,256	0/map_dryfield	0	0	0		
+pe2img_302	video memory	trace-20261011-164514	demo_3						512,0,192,256	0/map_dryfield	0	0	0		overwritten by pe2img_302 of 0/map_dryfield at event 701
+pe2img_302	video memory	trace-20261011-164514	demo_3	2	dryfield_underpass	3	1		512,0,192,256	0/map_dryfield	0	0	0		
+pe2img_302	video memory	trace-20261011-164514	demo_3	2	dryfield_underpass	6	1		512,0,192,256	0/map_dryfield	0	0	0		
+pe2img_302	video memory	trace-20261011-164514	demo_4 (dropped)						512,0,192,256	0/file900001	0	0	0		
+pe2img_302	video memory	trace-20261011-164514	demo_4 (dropped)						512,0,192,256	0/map_dryfield	0	0	0		overwritten by pe2img_302 of 0/file900001 at event 1144
+pe2img_302	video memory	trace-20261011-164514	demo_4 (dropped)	1	acropolis_square	1	1		512,0,192,256	0/file900001	0	0	0		
+pe2img_303	video memory	trace-20261011-164514	demo_1						384,0,64,256	1/acropolis_square/file0	0	0	0		
+pe2img_303	video memory	trace-20261011-164514	demo_1	1	acropolis_square	1	1		384,0,64,256	1/acropolis_square/file0	0	0	0		
+pe2img_303	video memory	trace-20261011-164514	demo_2						384,0,64,256	1/acropolis_square/file0	0	0	0		
+pe2img_303	video memory	trace-20261011-164514	demo_2	2	dryfield_main_street	1	3		384,0,64,256	1/acropolis_square/file0	0	0	0		overwritten by pe2img_491 of 2/dryfield_main_street/file0 at event 379
+pe2img_303	video memory	trace-20261011-164514	demo_4 (dropped)						384,0,64,256	1/acropolis_square/file0	0	0	0		
+pe2img_303	video memory	trace-20261011-164514	demo_4 (dropped)	1	acropolis_square	1	1		384,0,64,256	1/acropolis_square/file0	0	0	0		
+pe2img_305	video memory	trace-20261011-164514	demo_1					4	960,0,64,256	1/acropolis_square/file4	0	0	0		overwritten by a movie's workspace backup at event 308
+pe2img_305	video memory	trace-20261011-164514	demo_1	1	acropolis_square	1	1	4	960,0,64,256	1/acropolis_square/file4	0	0	0		
+pe2img_308	video memory	trace-20261011-164514	demo_1	1	acropolis_square	1	1	7	896,0,128,256	1/acropolis_square/file7	0	0	0		overwritten by pe2img_309 of 1/acropolis_square/file8 at event 175
+pe2img_309	video memory	trace-20261011-164514	demo_1	1	acropolis_square	1	1	8	960,0,64,256	1/acropolis_square/file8	0	0	0		overwritten by pe2img_305 of 1/acropolis_square/file4 at event 251
+pe2img_309	video memory	trace-20261011-164514	demo_1	1	acropolis_square	1	1	8	960,0,64,256	1/acropolis_square/file8	0	0	0		overwritten by pe2img_308 of 1/acropolis_square/file7 at event 149
+pe2img_31	video memory	trace-20261011-164514	demo_1						768,256,128,256	0/aya_10400	6	0	0		overwritten by pe2img_2 of 0/file2 at event 310
+pe2img_31	video memory	trace-20261011-164514	demo_1	1	acropolis_square	1	1		768,256,128,256	0/aya_10400	6	0	0		
+pe2img_31	video memory	trace-20261011-164514	demo_4 (dropped)						768,256,128,256	0/aya_10400	6	0	0		overwritten by pe2img_2 of 0/file2 at event 1210
+pe2img_31	video memory	trace-20261011-164514	demo_4 (dropped)	1	acropolis_square	1	1		768,256,128,256	0/aya_10400	6	0	0		
+pe2img_311	video memory	trace-20261011-164514	demo_1					15	448,256,320,256	1/acropolis_square/file15	0	0	0		
+pe2img_311	video memory	trace-20261011-164514	demo_1	1	acropolis_square	1	1	15	448,256,320,256	1/acropolis_square/file15	0	0	0		
+pe2img_311	video memory	trace-20261011-164514	demo_2					15	448,256,320,256	1/acropolis_square/file15	0	0	0		overwritten by pe2img_301 of 0/file801100 at event 320
+pe2img_311	video memory	trace-20261011-164514	demo_4 (dropped)					15	448,256,320,256	1/acropolis_square/file15	0	0	0		
+pe2img_311	video memory	trace-20261011-164514	demo_4 (dropped)	1	acropolis_square	1	1	15	448,256,320,256	1/acropolis_square/file15	0	0	0		
+pe2img_319	video memory	trace-20261011-164514	demo_3						704,0,64,256	2/dryfield_underpass/file0	0	0	0		overwritten by a movie's workspace backup at event 1096
+pe2img_319	video memory	trace-20261011-164514	demo_3	2	dryfield_underpass	3	1		704,0,64,256	2/dryfield_underpass/file0	0	0	0		
+pe2img_319	video memory	trace-20261011-164514	demo_3	2	dryfield_underpass	6	1		704,0,64,256	2/dryfield_underpass/file0	0	0	0		
+pe2img_491	video memory	trace-20261011-164514	demo_2						384,0,64,256	2/dryfield_main_street/file0	0	0	0		
+pe2img_491	video memory	trace-20261011-164514	demo_2	2	dryfield_main_street	1	3		384,0,64,256	2/dryfield_main_street/file0	0	0	0		
+pe2img_491	video memory	trace-20261011-164514	demo_3						384,0,64,256	2/dryfield_main_street/file0	0	0	0		
+pe2img_491	video memory	trace-20261011-164514	demo_3	2	dryfield_underpass	6	1		384,0,64,256	2/dryfield_main_street/file0	0	0	0		overwritten by pe2img_705 of 2/dryfield_underpass/file0 at event 724
+pe2img_492	video memory	trace-20261011-164514	demo_2						704,0,64,256	2/dryfield_main_street/file0	0	0	0		overwritten by a movie's workspace backup at event 653
+pe2img_492	video memory	trace-20261011-164514	demo_2	2	dryfield_main_street	1	3		704,0,64,256	2/dryfield_main_street/file0	0	0	0		
+pe2img_494	video memory	trace-20261011-164514	demo_2	2	dryfield_main_street	1	3	3	960,0,64,256	2/dryfield_main_street/file3	0	0	0		overwritten by pe2img_495 of 2/dryfield_main_street/file4 at event 539
+pe2img_495	video memory	trace-20261011-164514	demo_2	2	dryfield_main_street	1	3	4	960,0,64,256	2/dryfield_main_street/file4	0	0	0		overwritten by pe2img_494 of 2/dryfield_main_street/file3 at event 527
+pe2img_495	video memory	trace-20261011-164514	demo_2	2	dryfield_main_street	1	3	4	960,0,64,256	2/dryfield_main_street/file4	0	0	0		overwritten by pe2img_495 of 2/dryfield_main_street/file4 at event 499
+pe2img_495	video memory	trace-20261011-164514	demo_2	2	dryfield_main_street	1	3	4	960,0,64,256	2/dryfield_main_street/file4	0	0	0		overwritten by pe2img_496 of 2/dryfield_main_street/file5 at event 576
+pe2img_496	video memory	trace-20261011-164514	demo_2	2	dryfield_main_street	1	3	5	960,0,64,256	2/dryfield_main_street/file5	0	0	0		overwritten by pe2img_497 of 2/dryfield_main_street/file6 at event 593
+pe2img_497	video memory	trace-20261011-164514	demo_2					6	960,0,64,256	2/dryfield_main_street/file6	0	0	0		overwritten by a movie's workspace backup at event 653
+pe2img_497	video memory	trace-20261011-164514	demo_2	2	dryfield_main_street	1	3	6	960,0,64,256	2/dryfield_main_street/file6	0	0	0		
+pe2img_5	video memory	trace-20261011-164514	demo_2						768,256,128,256	0/aya_10300	6	0	0		overwritten by pe2img_2 of 0/file2 at event 655
+pe2img_5	video memory	trace-20261011-164514	demo_2	2	dryfield_main_street	1	3		768,256,128,256	0/aya_10300	6	0	0		
+pe2img_5	video memory	trace-20261011-164514	demo_3						768,256,128,256	0/aya_10300	6	0	0		overwritten by pe2img_2 of 0/file2 at event 1098
+pe2img_5	video memory	trace-20261011-164514	demo_3	2	dryfield_underpass	3	1		768,256,128,256	0/aya_10300	6	0	0		
+pe2img_5	video memory	trace-20261011-164514	demo_3	2	dryfield_underpass	6	1		768,256,128,256	0/aya_10300	6	0	0		
+pe2img_7	video memory	trace-20261011-164514	demo_1						448,0,64,64	0/m93r	0	0	0		
+pe2img_7	video memory	trace-20261011-164514	demo_1	1	acropolis_square	1	1		448,0,64,64	0/m93r	0	0	0		
+pe2img_7	video memory	trace-20261011-164514	demo_2						448,0,64,64	0/m93r	0	0	0		overwritten by pe2img_28 of 0/m4a1_pyke at event 342
+pe2img_7	video memory	trace-20261011-164514	demo_4 (dropped)						448,0,64,64	0/m93r	0	0	0		
+pe2img_7	video memory	trace-20261011-164514	demo_4 (dropped)	1	acropolis_square	1	1		448,0,64,64	0/m93r	0	0	0		
+pe2img_705	video memory	trace-20261011-164514	demo_3						384,0,64,256	2/dryfield_underpass/file0	0	0	0		
+pe2img_705	video memory	trace-20261011-164514	demo_3	2	dryfield_underpass	3	1		384,0,64,256	2/dryfield_underpass/file0	0	0	0		
+pe2img_705	video memory	trace-20261011-164514	demo_3	2	dryfield_underpass	6	1		384,0,64,256	2/dryfield_underpass/file0	0	0	0		
+pe2img_705	video memory	trace-20261011-164514	demo_4 (dropped)						384,0,64,256	2/dryfield_underpass/file0	0	0	0		
+pe2img_705	video memory	trace-20261011-164514	demo_4 (dropped)	1	acropolis_square	1	1		384,0,64,256	2/dryfield_underpass/file0	0	0	0		overwritten by pe2img_303 of 1/acropolis_square/file0 at event 1167
+pe2img_706	video memory	trace-20261011-164514	demo_3	2	dryfield_underpass	3	1	3	960,0,64,256	2/dryfield_underpass/file3	0	0	0		overwritten by pe2img_709 of 2/dryfield_underpass/file9 at event 929
+pe2img_707	video memory	trace-20261011-164514	demo_3	2	dryfield_underpass	3	1	4	896,0,128,256	2/dryfield_underpass/file4	0	0	0		overwritten by pe2img_708 of 2/dryfield_underpass/file5 at event 1025
+pe2img_708	video memory	trace-20261011-164514	demo_3					5	960,0,64,256	2/dryfield_underpass/file5	0	0	0		overwritten by a movie's workspace backup at event 1096
+pe2img_708	video memory	trace-20261011-164514	demo_3	2	dryfield_underpass	3	1	5	960,0,64,256	2/dryfield_underpass/file5	0	0	0		
+pe2img_709	video memory	trace-20261011-164514	demo_3	2	dryfield_underpass	3	1	9	960,0,64,256	2/dryfield_underpass/file9	0	0	0		overwritten by pe2img_707 of 2/dryfield_underpass/file4 at event 945
+spk_0	played	trace-20261011-164514	demo_2	2	dryfield_main_street	1	3			0/title	0	0	0	entry 0x0b	
+spk_0	played	trace-20261011-164514	demo_3	2	dryfield_underpass	3	1			0/title	0	0	0	entry 0x06	
+spk_0	played	trace-20261011-164514	demo_3	2	dryfield_underpass	3	1			0/title	0	0	0	entry 0x0b	
+spk_0	played	trace-20261011-164514	demo_3	2	dryfield_underpass	3	1			0/title	0	0	0	entry 0x17	
+spk_0	sound memory	trace-20261011-164514	boot						0x63810-0x6ef8f	0/title	0	0	0	bank 0x0000 descriptor 0	
+spk_0	sound memory	trace-20261011-164514	demo_1						0x63810-0x6ef8f	0/title	0	0	0	bank 0x0000 descriptor 0	
+spk_0	sound memory	trace-20261011-164514	demo_1						0x63810-0x6ef8f	0/title	0	0	0	bank 0x0000 descriptor 0	overwritten by spk_0 of 0/title at event 301
+spk_0	sound memory	trace-20261011-164514	demo_1	1	acropolis_square	1	1		0x63810-0x6ef8f	0/title	0	0	0	bank 0x0000 descriptor 0	
+spk_0	sound memory	trace-20261011-164514	demo_2						0x63810-0x6ef8f	0/title	0	0	0	bank 0x0000 descriptor 0	
+spk_0	sound memory	trace-20261011-164514	demo_2						0x63810-0x6ef8f	0/title	0	0	0	bank 0x0000 descriptor 0	overwritten by spk_0 of 0/title at event 646
+spk_0	sound memory	trace-20261011-164514	demo_2	2	dryfield_main_street	1	3		0x63810-0x6ef8f	0/title	0	0	0	bank 0x0000 descriptor 0	
+spk_0	sound memory	trace-20261011-164514	demo_3						0x63810-0x6ef8f	0/title	0	0	0	bank 0x0000 descriptor 0	
+spk_0	sound memory	trace-20261011-164514	demo_3						0x63810-0x6ef8f	0/title	0	0	0	bank 0x0000 descriptor 0	overwritten by spk_0 of 0/title at event 1089
+spk_0	sound memory	trace-20261011-164514	demo_3	2	dryfield_underpass	3	1		0x63810-0x6ef8f	0/title	0	0	0	bank 0x0000 descriptor 0	
+spk_0	sound memory	trace-20261011-164514	demo_3	2	dryfield_underpass	6	1		0x63810-0x6ef8f	0/title	0	0	0	bank 0x0000 descriptor 0	
+spk_0	sound memory	trace-20261011-164514	demo_4 (dropped)						0x63810-0x6ef8f	0/title	0	0	0	bank 0x0000 descriptor 0	
+spk_0	sound memory	trace-20261011-164514	demo_4 (dropped)						0x63810-0x6ef8f	0/title	0	0	0	bank 0x0000 descriptor 0	overwritten by spk_0 of 0/title at event 1203
+spk_0	sound memory	trace-20261011-164514	demo_4 (dropped)	1	acropolis_square	1	1		0x63810-0x6ef8f	0/title	0	0	0	bank 0x0000 descriptor 0	
+spk_0_sample_05	played	trace-20261011-164514	demo_3	2	dryfield_underpass	3	1			0/title	0	0	0	spk_0 entry 0x06	
+spk_0_sample_06	played	trace-20261011-164514	demo_2	2	dryfield_main_street	1	3			0/title	0	0	0	spk_0 entry 0x0b	
+spk_0_sample_06	played	trace-20261011-164514	demo_3	2	dryfield_underpass	3	1			0/title	0	0	0	spk_0 entry 0x0b	
+spk_0_sample_09	played	trace-20261011-164514	demo_3	2	dryfield_underpass	3	1			0/title	0	0	0	spk_0 entry 0x17	
+spk_129	played	trace-20261011-164514	demo_2	2	dryfield_main_street	1	3			0/file400100	0	2	0	entry 0x01	
+spk_129	played	trace-20261011-164514	demo_2	2	dryfield_main_street	1	3			0/file400100	0	2	0	entry 0x02	
+spk_129	played	trace-20261011-164514	demo_2	2	dryfield_main_street	1	3			0/file400100	0	2	0	entry 0x03	
+spk_129	played	trace-20261011-164514	demo_2	2	dryfield_main_street	1	3			0/file400100	0	2	0	entry 0x04	
+spk_129	played	trace-20261011-164514	demo_2	2	dryfield_main_street	1	3			0/file400100	0	2	0	entry 0x05	
+spk_129	played	trace-20261011-164514	demo_2	2	dryfield_main_street	1	3			0/file400100	0	2	0	entry 0x06	
+spk_129	played	trace-20261011-164514	demo_2	2	dryfield_main_street	1	3			0/file400100	0	2	0	entry 0x07	
+spk_129	played	trace-20261011-164514	demo_2	2	dryfield_main_street	1	3			0/file400100	0	2	0	entry 0x09	
+spk_129	sound memory	trace-20261011-164514	demo_2						0x3d010-0x46f0f	0/file400100	0	2	0	bank 0x4001 descriptor 4	
+spk_129	sound memory	trace-20261011-164514	demo_2	2	dryfield_main_street	1	3		0x3d010-0x46f0f	0/file400100	0	2	0	bank 0x4001 descriptor 4	
+spk_129	sound memory	trace-20261011-164514	demo_3						0x3d010-0x46f0f	0/file400100	0	2	0	bank 0x4001 descriptor 4	
+spk_129	sound memory	trace-20261011-164514	demo_3	2	dryfield_underpass	6	1		0x3d010-0x46f0f	0/file400100	0	2	0	bank 0x4001 descriptor 4	overwritten by spk_88 of 0/file400500 at event 739
+spk_129_sample_00	played	trace-20261011-164514	demo_2	2	dryfield_main_street	1	3			0/file400100	0	2	0	spk_129 entry 0x01	
+spk_129_sample_00	played	trace-20261011-164514	demo_2	2	dryfield_main_street	1	3			0/file400100	0	2	0	spk_129 entry 0x03	
+spk_129_sample_00	played	trace-20261011-164514	demo_2	2	dryfield_main_street	1	3			0/file400100	0	2	0	spk_129 entry 0x09	
+spk_129_sample_01	played	trace-20261011-164514	demo_2	2	dryfield_main_street	1	3			0/file400100	0	2	0	spk_129 entry 0x02	
+spk_129_sample_01	played	trace-20261011-164514	demo_2	2	dryfield_main_street	1	3			0/file400100	0	2	0	spk_129 entry 0x03	
+spk_129_sample_01	played	trace-20261011-164514	demo_2	2	dryfield_main_street	1	3			0/file400100	0	2	0	spk_129 entry 0x04	
+spk_129_sample_02	played	trace-20261011-164514	demo_2	2	dryfield_main_street	1	3			0/file400100	0	2	0	spk_129 entry 0x05	
+spk_129_sample_02	played	trace-20261011-164514	demo_2	2	dryfield_main_street	1	3			0/file400100	0	2	0	spk_129 entry 0x09	
+spk_129_sample_03	played	trace-20261011-164514	demo_2	2	dryfield_main_street	1	3			0/file400100	0	2	0	spk_129 entry 0x05	
+spk_129_sample_04	played	trace-20261011-164514	demo_2	2	dryfield_main_street	1	3			0/file400100	0	2	0	spk_129 entry 0x06	
+spk_129_sample_05	played	trace-20261011-164514	demo_2	2	dryfield_main_street	1	3			0/file400100	0	2	0	spk_129 entry 0x07	
+spk_129_sample_06	played	trace-20261011-164514	demo_2	2	dryfield_main_street	1	3			0/file400100	0	2	0	spk_129 entry 0x03	
+spk_15	played	trace-20261011-164514	demo_2	2	dryfield_main_street	1	3			0/m4a1_pyke	0	0	0	entry 0x04	
+spk_15	played	trace-20261011-164514	demo_2	2	dryfield_main_street	1	3			0/m4a1_pyke	0	0	0	entry 0x05	
+spk_15	sound memory	trace-20261011-164514	demo_2						0x73c50-0x7b00f	0/m4a1_pyke	0	0	0	bank 0x201c descriptor 2	
+spk_15	sound memory	trace-20261011-164514	demo_2	2	dryfield_main_street	1	3		0x73c50-0x7b00f	0/m4a1_pyke	0	0	0	bank 0x201c descriptor 2	
+spk_15	sound memory	trace-20261011-164514	demo_3						0x73c50-0x7b00f	0/m4a1_pyke	0	0	0	bank 0x201c descriptor 2	overwritten by spk_17 of 0/mp5a5 at event 692
+spk_152	played	trace-20261011-164514	demo_1	1	acropolis_square	1	1			1/acropolis_square/file0	0	0	0	entry 0x11	
+spk_152	played	trace-20261011-164514	demo_1	1	acropolis_square	1	1			1/acropolis_square/file0	0	0	0	entry 0x12	
+spk_152	played	trace-20261011-164514	demo_1	1	acropolis_square	1	1			1/acropolis_square/file0	0	0	0	entry 0x13	
+spk_152	played	trace-20261011-164514	demo_1	1	acropolis_square	1	1			1/acropolis_square/file0	0	0	0	entry 0x14	
+spk_152	sound memory	trace-20261011-164514	demo_1						0x62950-0x6380f	1/acropolis_square/file0	0	0	0	bank 0x1101 descriptor 1	
+spk_152	sound memory	trace-20261011-164514	demo_1	1	acropolis_square	1	1		0x62950-0x6380f	1/acropolis_square/file0	0	0	0	bank 0x1101 descriptor 1	
+spk_152	sound memory	trace-20261011-164514	demo_2						0x62950-0x6380f	1/acropolis_square/file0	0	0	0	bank 0x1101 descriptor 1	
+spk_152	sound memory	trace-20261011-164514	demo_2	2	dryfield_main_street	1	3		0x62950-0x6380f	1/acropolis_square/file0	0	0	0	bank 0x1101 descriptor 1	overwritten by spk_194 of 2/dryfield_main_street/file0 at event 382
+spk_152	sound memory	trace-20261011-164514	demo_4 (dropped)						0x62950-0x6380f	1/acropolis_square/file0	0	0	0	bank 0x1101 descriptor 1	
+spk_152	sound memory	trace-20261011-164514	demo_4 (dropped)	1	acropolis_square	1	1		0x62950-0x6380f	1/acropolis_square/file0	0	0	0	bank 0x1101 descriptor 1	
+spk_152_sample_00	played	trace-20261011-164514	demo_1	1	acropolis_square	1	1			1/acropolis_square/file0	0	0	0	spk_152 entry 0x11	
+spk_152_sample_00	played	trace-20261011-164514	demo_1	1	acropolis_square	1	1			1/acropolis_square/file0	0	0	0	spk_152 entry 0x13	
+spk_152_sample_01	played	trace-20261011-164514	demo_1	1	acropolis_square	1	1			1/acropolis_square/file0	0	0	0	spk_152 entry 0x12	
+spk_152_sample_01	played	trace-20261011-164514	demo_1	1	acropolis_square	1	1			1/acropolis_square/file0	0	0	0	spk_152 entry 0x14	
+spk_153	sound memory	trace-20261011-164514	demo_1						0x58f50-0x6294f	1/acropolis_square/file0	0	0	0	bank 0x5101 descriptor 7	
+spk_153	sound memory	trace-20261011-164514	demo_1	1	acropolis_square	1	1		0x58f50-0x6294f	1/acropolis_square/file0	0	0	0	bank 0x5101 descriptor 7	
+spk_153	sound memory	trace-20261011-164514	demo_2						0x58f50-0x6294f	1/acropolis_square/file0	0	0	0	bank 0x5101 descriptor 7	
+spk_153	sound memory	trace-20261011-164514	demo_2	2	dryfield_main_street	1	3		0x58f50-0x6294f	1/acropolis_square/file0	0	0	0	bank 0x5101 descriptor 7	overwritten by spk_194 of 2/dryfield_main_street/file0 at event 382
+spk_153	sound memory	trace-20261011-164514	demo_4 (dropped)						0x58f50-0x6294f	1/acropolis_square/file0	0	0	0	bank 0x5101 descriptor 7	
+spk_153	sound memory	trace-20261011-164514	demo_4 (dropped)	1	acropolis_square	1	1		0x58f50-0x6294f	1/acropolis_square/file0	0	0	0	bank 0x5101 descriptor 7	
+spk_15_sample_02	played	trace-20261011-164514	demo_2	2	dryfield_main_street	1	3			0/m4a1_pyke	0	0	0	spk_15 entry 0x04	
+spk_15_sample_03	played	trace-20261011-164514	demo_2	2	dryfield_main_street	1	3			0/m4a1_pyke	0	0	0	spk_15 entry 0x05	
+spk_15_sample_04	played	trace-20261011-164514	demo_2	2	dryfield_main_street	1	3			0/m4a1_pyke	0	0	0	spk_15 entry 0x05	
+spk_17	played	trace-20261011-164514	demo_3	2	dryfield_underpass	3	1			0/mp5a5	0	0	0	entry 0x02	
+spk_17	played	trace-20261011-164514	demo_3	2	dryfield_underpass	3	1			0/mp5a5	0	0	0	entry 0x03	
+spk_17	played	trace-20261011-164514	demo_3	2	dryfield_underpass	3	1			0/mp5a5	0	0	0	entry 0x04	
+spk_17	played	trace-20261011-164514	demo_3	2	dryfield_underpass	3	1			0/mp5a5	0	0	0	entry 0x05	
+spk_17	sound memory	trace-20261011-164514	demo_3						0x73d10-0x7b00f	0/mp5a5	0	0	0	bank 0x201e descriptor 2	
+spk_17	sound memory	trace-20261011-164514	demo_3	2	dryfield_underpass	3	1		0x73d10-0x7b00f	0/mp5a5	0	0	0	bank 0x201e descriptor 2	
+spk_17	sound memory	trace-20261011-164514	demo_3	2	dryfield_underpass	6	1		0x73d10-0x7b00f	0/mp5a5	0	0	0	bank 0x201e descriptor 2	
+spk_17	sound memory	trace-20261011-164514	demo_4 (dropped)						0x73d10-0x7b00f	0/mp5a5	0	0	0	bank 0x201e descriptor 2	overwritten by spk_2 of 0/m93r at event 1135
+spk_171_sample_02	played	trace-20261011-164514	demo_2	2	dryfield_main_street	1	3			2/dryfield_main_street/file0	0	0	0	spk_194 entry 0x3f	
+spk_17_sample_01	played	trace-20261011-164514	demo_3	2	dryfield_underpass	3	1			0/mp5a5	0	0	0	spk_17 entry 0x02	
+spk_17_sample_02	played	trace-20261011-164514	demo_3	2	dryfield_underpass	3	1			0/mp5a5	0	0	0	spk_17 entry 0x03	
+spk_17_sample_03	played	trace-20261011-164514	demo_3	2	dryfield_underpass	3	1			0/mp5a5	0	0	0	spk_17 entry 0x04	
+spk_17_sample_04	played	trace-20261011-164514	demo_3	2	dryfield_underpass	3	1			0/mp5a5	0	0	0	spk_17 entry 0x05	
+spk_192_sample_00	played	trace-20261011-164514	demo_2	2	dryfield_main_street	1	3			2/dryfield_main_street/file0	0	0	0	spk_194 entry 0x49	
+spk_192_sample_01	played	trace-20261011-164514	demo_2	2	dryfield_main_street	1	3			2/dryfield_main_street/file0	0	0	0	spk_194 entry 0x4a	
+spk_194	played	trace-20261011-164514	demo_2	2	dryfield_main_street	1	3			2/dryfield_main_street/file0	0	0	0	entry 0x3d	
+spk_194	played	trace-20261011-164514	demo_2	2	dryfield_main_street	1	3			2/dryfield_main_street/file0	0	0	0	entry 0x3e	
+spk_194	played	trace-20261011-164514	demo_2	2	dryfield_main_street	1	3			2/dryfield_main_street/file0	0	0	0	entry 0x3f	
+spk_194	played	trace-20261011-164514	demo_2	2	dryfield_main_street	1	3			2/dryfield_main_street/file0	0	0	0	entry 0x40	
+spk_194	played	trace-20261011-164514	demo_2	2	dryfield_main_street	1	3			2/dryfield_main_street/file0	0	0	0	entry 0x49	
+spk_194	played	trace-20261011-164514	demo_2	2	dryfield_main_street	1	3			2/dryfield_main_street/file0	0	0	0	entry 0x4a	
+spk_194	played	trace-20261011-164514	demo_2	2	dryfield_main_street	1	3			2/dryfield_main_street/file0	0	0	0	entry 0x4b	
+spk_194	played	trace-20261011-164514	demo_2	2	dryfield_main_street	1	3			2/dryfield_main_street/file0	0	0	0	entry 0x4c	
+spk_194	sound memory	trace-20261011-164514	demo_2						0x5eb50-0x6380f	2/dryfield_main_street/file0	0	0	0	bank 0x1202 descriptor 1	
+spk_194	sound memory	trace-20261011-164514	demo_2	2	dryfield_main_street	1	3		0x5eb50-0x6380f	2/dryfield_main_street/file0	0	0	0	bank 0x1202 descriptor 1	
+spk_194	sound memory	trace-20261011-164514	demo_3						0x5eb50-0x6380f	2/dryfield_main_street/file0	0	0	0	bank 0x1202 descriptor 1	
+spk_194	sound memory	trace-20261011-164514	demo_3	2	dryfield_underpass	6	1		0x5eb50-0x6380f	2/dryfield_main_street/file0	0	0	0	bank 0x1202 descriptor 1	overwritten by spk_252 of 2/dryfield_underpass/file0 at event 727
+spk_194_sample_02	played	trace-20261011-164514	demo_2	2	dryfield_main_street	1	3			2/dryfield_main_street/file0	0	0	0	spk_194 entry 0x4b	
+spk_194_sample_03	played	trace-20261011-164514	demo_2	2	dryfield_main_street	1	3			2/dryfield_main_street/file0	0	0	0	spk_194 entry 0x4c	
+spk_194_sample_04	played	trace-20261011-164514	demo_2	2	dryfield_main_street	1	3			2/dryfield_main_street/file0	0	0	0	spk_194 entry 0x3d	
+spk_194_sample_05	played	trace-20261011-164514	demo_2	2	dryfield_main_street	1	3			2/dryfield_main_street/file0	0	0	0	spk_194 entry 0x3e	
+spk_194_sample_07	played	trace-20261011-164514	demo_2	2	dryfield_main_street	1	3			2/dryfield_main_street/file0	0	0	0	spk_194 entry 0x40	
+spk_195	sound memory	trace-20261011-164514	demo_2						0x4dfd0-0x5eb4f	2/dryfield_main_street/file0	0	0	0	bank 0x5202 descriptor 7	
+spk_195	sound memory	trace-20261011-164514	demo_2	2	dryfield_main_street	1	3		0x4dfd0-0x5eb4f	2/dryfield_main_street/file0	0	0	0	bank 0x5202 descriptor 7	
+spk_195	sound memory	trace-20261011-164514	demo_3						0x4dfd0-0x5eb4f	2/dryfield_main_street/file0	0	0	0	bank 0x5202 descriptor 7	
+spk_195	sound memory	trace-20261011-164514	demo_3	2	dryfield_underpass	6	1		0x4dfd0-0x5eb4f	2/dryfield_main_street/file0	0	0	0	bank 0x5202 descriptor 7	overwritten by spk_252 of 2/dryfield_underpass/file0 at event 727
+spk_2	sound memory	trace-20261011-164514	demo_1						0x73f90-0x7b00f	0/m93r	0	0	0	bank 0x2002 descriptor 2	
+spk_2	sound memory	trace-20261011-164514	demo_1	1	acropolis_square	1	1		0x73f90-0x7b00f	0/m93r	0	0	0	bank 0x2002 descriptor 2	
+spk_2	sound memory	trace-20261011-164514	demo_2						0x73f90-0x7b00f	0/m93r	0	0	0	bank 0x2002 descriptor 2	overwritten by spk_15 of 0/m4a1_pyke at event 347
+spk_2	sound memory	trace-20261011-164514	demo_4 (dropped)						0x73f90-0x7b00f	0/m93r	0	0	0	bank 0x2002 descriptor 2	
+spk_2	sound memory	trace-20261011-164514	demo_4 (dropped)	1	acropolis_square	1	1		0x73f90-0x7b00f	0/m93r	0	0	0	bank 0x2002 descriptor 2	
+spk_252	played	trace-20261011-164514	demo_3	2	dryfield_underpass	3	1			2/dryfield_underpass/file0	0	0	0	entry 0x37	
+spk_252	played	trace-20261011-164514	demo_3	2	dryfield_underpass	3	1			2/dryfield_underpass/file0	0	0	0	entry 0x38	
+spk_252	played	trace-20261011-164514	demo_3	2	dryfield_underpass	3	1			2/dryfield_underpass/file0	0	0	0	entry 0x3b	
+spk_252	played	trace-20261011-164514	demo_3	2	dryfield_underpass	3	1			2/dryfield_underpass/file0	0	0	0	entry 0x3c	
+spk_252	played	trace-20261011-164514	demo_3	2	dryfield_underpass	6	1			2/dryfield_underpass/file0	0	0	0	entry 0x35	
+spk_252	played	trace-20261011-164514	demo_3	2	dryfield_underpass	6	1			2/dryfield_underpass/file0	0	0	0	entry 0x39	
+spk_252	played	trace-20261011-164514	demo_3	2	dryfield_underpass	6	1			2/dryfield_underpass/file0	0	0	0	entry 0x3a	
+spk_252	sound memory	trace-20261011-164514	demo_3						0x5d8d0-0x6380f	2/dryfield_underpass/file0	0	0	0	bank 0x1226 descriptor 1	
+spk_252	sound memory	trace-20261011-164514	demo_3	2	dryfield_underpass	3	1		0x5d8d0-0x6380f	2/dryfield_underpass/file0	0	0	0	bank 0x1226 descriptor 1	
+spk_252	sound memory	trace-20261011-164514	demo_3	2	dryfield_underpass	6	1		0x5d8d0-0x6380f	2/dryfield_underpass/file0	0	0	0	bank 0x1226 descriptor 1	
+spk_252	sound memory	trace-20261011-164514	demo_4 (dropped)						0x5d8d0-0x6380f	2/dryfield_underpass/file0	0	0	0	bank 0x1226 descriptor 1	
+spk_252	sound memory	trace-20261011-164514	demo_4 (dropped)	1	acropolis_square	1	1		0x5d8d0-0x6380f	2/dryfield_underpass/file0	0	0	0	bank 0x1226 descriptor 1	overwritten by spk_152 of 1/acropolis_square/file0 at event 1170
+spk_252_sample_00	played	trace-20261011-164514	demo_3	2	dryfield_underpass	6	1			2/dryfield_underpass/file0	0	0	0	spk_252 entry 0x35	
+spk_252_sample_02	played	trace-20261011-164514	demo_3	2	dryfield_underpass	3	1			2/dryfield_underpass/file0	0	0	0	spk_252 entry 0x37	
+spk_252_sample_03	played	trace-20261011-164514	demo_3	2	dryfield_underpass	3	1			2/dryfield_underpass/file0	0	0	0	spk_252 entry 0x38	
+spk_252_sample_04	played	trace-20261011-164514	demo_3	2	dryfield_underpass	3	1			2/dryfield_underpass/file0	0	0	0	spk_252 entry 0x3b	
+spk_252_sample_04	played	trace-20261011-164514	demo_3	2	dryfield_underpass	6	1			2/dryfield_underpass/file0	0	0	0	spk_252 entry 0x39	
+spk_252_sample_05	played	trace-20261011-164514	demo_3	2	dryfield_underpass	3	1			2/dryfield_underpass/file0	0	0	0	spk_252 entry 0x3c	
+spk_252_sample_05	played	trace-20261011-164514	demo_3	2	dryfield_underpass	6	1			2/dryfield_underpass/file0	0	0	0	spk_252 entry 0x3a	
+spk_253	sound memory	trace-20261011-164514	demo_3						0x541d0-0x5d8cf	2/dryfield_underpass/file0	0	0	0	bank 0x5226 descriptor 7	
+spk_253	sound memory	trace-20261011-164514	demo_3	2	dryfield_underpass	3	1		0x541d0-0x5d8cf	2/dryfield_underpass/file0	0	0	0	bank 0x5226 descriptor 7	
+spk_253	sound memory	trace-20261011-164514	demo_3	2	dryfield_underpass	6	1		0x541d0-0x5d8cf	2/dryfield_underpass/file0	0	0	0	bank 0x5226 descriptor 7	
+spk_253	sound memory	trace-20261011-164514	demo_4 (dropped)						0x541d0-0x5d8cf	2/dryfield_underpass/file0	0	0	0	bank 0x5226 descriptor 7	
+spk_253	sound memory	trace-20261011-164514	demo_4 (dropped)	1	acropolis_square	1	1		0x541d0-0x5d8cf	2/dryfield_underpass/file0	0	0	0	bank 0x5226 descriptor 7	overwritten by spk_153 of 1/acropolis_square/file0 at event 1173
+spk_68	sound memory	trace-20261011-164514	demo_1						0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
+spk_68	sound memory	trace-20261011-164514	demo_1	1	acropolis_square	1	1		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
+spk_68	sound memory	trace-20261011-164514	demo_2						0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
+spk_68	sound memory	trace-20261011-164514	demo_2						0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	overwritten by spk_68 of 0/file50122 at event 352
+spk_68	sound memory	trace-20261011-164514	demo_2	2	dryfield_main_street	1	3		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
+spk_68	sound memory	trace-20261011-164514	demo_3						0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
+spk_68	sound memory	trace-20261011-164514	demo_3						0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	overwritten by spk_68 of 0/file50122 at event 697
+spk_68	sound memory	trace-20261011-164514	demo_3	2	dryfield_underpass	3	1		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
+spk_68	sound memory	trace-20261011-164514	demo_3	2	dryfield_underpass	6	1		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
+spk_68	sound memory	trace-20261011-164514	demo_4 (dropped)						0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
+spk_68	sound memory	trace-20261011-164514	demo_4 (dropped)						0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	overwritten by spk_68 of 0/file50122 at event 1140
+spk_68	sound memory	trace-20261011-164514	demo_4 (dropped)	1	acropolis_square	1	1		0x6f810-0x732cf	0/file50122	0	0	0	bank 0xe020 descriptor 8	
+spk_88	played	trace-20261011-164514	demo_3	2	dryfield_underpass	3	1			0/file400500	0	2	0	entry 0x01	
+spk_88	played	trace-20261011-164514	demo_3	2	dryfield_underpass	3	1			0/file400500	0	2	0	entry 0x02	
+spk_88	played	trace-20261011-164514	demo_3	2	dryfield_underpass	3	1			0/file400500	0	2	0	entry 0x04	
+spk_88	played	trace-20261011-164514	demo_3	2	dryfield_underpass	3	1			0/file400500	0	2	0	entry 0x05	
+spk_88	played	trace-20261011-164514	demo_3	2	dryfield_underpass	3	1			0/file400500	0	2	0	entry 0x06	
+spk_88	played	trace-20261011-164514	demo_3	2	dryfield_underpass	6	1			0/file400500	0	2	0	entry 0x01	
+spk_88	played	trace-20261011-164514	demo_3	2	dryfield_underpass	6	1			0/file400500	0	2	0	entry 0x02	
+spk_88	played	trace-20261011-164514	demo_3	2	dryfield_underpass	6	1			0/file400500	0	2	0	entry 0x04	
+spk_88	sound memory	trace-20261011-164514	demo_3						0x3d010-0x46ecf	0/file400500	0	2	0	bank 0x4005 descriptor 4	
+spk_88	sound memory	trace-20261011-164514	demo_3	2	dryfield_underpass	3	1		0x3d010-0x46ecf	0/file400500	0	2	0	bank 0x4005 descriptor 4	
+spk_88	sound memory	trace-20261011-164514	demo_3	2	dryfield_underpass	6	1		0x3d010-0x46ecf	0/file400500	0	2	0	bank 0x4005 descriptor 4	
+spk_88	sound memory	trace-20261011-164514	demo_4 (dropped)						0x3d010-0x46ecf	0/file400500	0	2	0	bank 0x4005 descriptor 4	
+spk_88	sound memory	trace-20261011-164514	demo_4 (dropped)	1	acropolis_square	1	1		0x3d010-0x46ecf	0/file400500	0	2	0	bank 0x4005 descriptor 4	overwritten by spk_90 of 0/file111800 at event 1180
+spk_88_sample_00	played	trace-20261011-164514	demo_3	2	dryfield_underpass	3	1			0/file400500	0	2	0	spk_88 entry 0x04	
+spk_88_sample_00	played	trace-20261011-164514	demo_3	2	dryfield_underpass	6	1			0/file400500	0	2	0	spk_88 entry 0x04	
+spk_88_sample_01	played	trace-20261011-164514	demo_3	2	dryfield_underpass	3	1			0/file400500	0	2	0	spk_88 entry 0x06	
+spk_88_sample_02	played	trace-20261011-164514	demo_3	2	dryfield_underpass	3	1			0/file400500	0	2	0	spk_88 entry 0x06	
+spk_88_sample_03	played	trace-20261011-164514	demo_3	2	dryfield_underpass	3	1			0/file400500	0	2	0	spk_88 entry 0x01	
+spk_88_sample_03	played	trace-20261011-164514	demo_3	2	dryfield_underpass	6	1			0/file400500	0	2	0	spk_88 entry 0x01	
+spk_88_sample_04	played	trace-20261011-164514	demo_3	2	dryfield_underpass	3	1			0/file400500	0	2	0	spk_88 entry 0x02	
+spk_88_sample_04	played	trace-20261011-164514	demo_3	2	dryfield_underpass	6	1			0/file400500	0	2	0	spk_88 entry 0x02	
+spk_88_sample_05	played	trace-20261011-164514	demo_3	2	dryfield_underpass	3	1			0/file400500	0	2	0	spk_88 entry 0x05	
+spk_90	sound memory	trace-20261011-164514	demo_1						0x3d010-0x4630f	0/file111800	-1	2	0	bank 0x400a descriptor 4	
+spk_90	sound memory	trace-20261011-164514	demo_1	1	acropolis_square	1	1		0x3d010-0x4630f	0/file111800	-1	2	0	bank 0x400a descriptor 4	
+spk_90	sound memory	trace-20261011-164514	demo_2						0x3d010-0x4630f	0/file111800	-1	2	0	bank 0x400a descriptor 4	
+spk_90	sound memory	trace-20261011-164514	demo_2	2	dryfield_main_street	1	3		0x3d010-0x4630f	0/file111800	-1	2	0	bank 0x400a descriptor 4	overwritten by spk_129 of 0/file400100 at event 394
+spk_90	sound memory	trace-20261011-164514	demo_4 (dropped)						0x3d010-0x4630f	0/file111800	-1	2	0	bank 0x400a descriptor 4	
+spk_90	sound memory	trace-20261011-164514	demo_4 (dropped)	1	acropolis_square	1	1		0x3d010-0x4630f	0/file111800	-1	2	0	bank 0x400a descriptor 4	
+title	main memory	trace-20261011-164514	boot						0x80093800-0x80094ca9	0/title	0	0	0		
+title	main memory	trace-20261011-164514	demo_1						0x80093800-0x80094ca9	0/title	0	0	0		
+title	main memory	trace-20261011-164514	demo_1						0x80093800-0x80094ca9	0/title	0	0	0		overwritten by gameplay of 0/gameplay at event 32
+title	main memory	trace-20261011-164514	demo_2						0x80093800-0x80094ca9	0/title	0	0	0		
+title	main memory	trace-20261011-164514	demo_2						0x80093800-0x80094ca9	0/title	0	0	0		overwritten by gameplay of 0/gameplay at event 327
+title	main memory	trace-20261011-164514	demo_3						0x80093800-0x80094ca9	0/title	0	0	0		
+title	main memory	trace-20261011-164514	demo_3						0x80093800-0x80094ca9	0/title	0	0	0		overwritten by gameplay of 0/gameplay at event 672
+title	main memory	trace-20261011-164514	demo_4 (dropped)						0x80093800-0x80094ca9	0/title	0	0	0		
+title	main memory	trace-20261011-164514	demo_4 (dropped)						0x80093800-0x80094ca9	0/title	0	0	0		overwritten by gameplay of 0/gameplay at event 1115

@@ -413,6 +413,35 @@ def write_scenes(folder: Path, rooms: list[str]) -> list[str]:
     return done
 
 
+def write_traces(folder: Path) -> list:
+    """One script per game trace (local/gametrace), replayed by trace_replay.py: the playback's data, loaded when a
+    session is opened. Returns [trace, [[session, number, started, dropped, first record, last record], ...]] each."""
+    import trace_replay
+    paths = trace_replay.all_traces()
+    if not paths:
+        return []
+    folder.mkdir(parents=True, exist_ok=True)
+    world, listed = trace_replay.World(), []
+    for path in paths:
+        try:
+            data = trace_replay.Replay(path, world).page_data()
+        except Exception as error:  # noqa: BLE001 - a trace that does not replay must not stop the page
+            print(f"trace {path.name}: {type(error).__name__}: {error}", file=sys.stderr)
+            continue
+        (folder / f"trace_{path.stem}.js").write_text(f"TRACE({json.dumps(path.stem)},{json.dumps(data, separators=(',', ':'))});\n", encoding="utf-8")
+        listed.append([path.stem, data["sessions"]])
+    return listed
+
+
+def observed_residency() -> dict:
+    """asset -> what the traces showed of it (tools/peassets/observed.tsv, written by trace_replay.py observe)."""
+    import trace_replay
+    out = defaultdict(list)
+    for row in trace_replay.read_observed():
+        out[row[0]].append(list(row[1:]))
+    return out
+
+
 def animation_tables(embedded: dict) -> dict:
     """Per animation bank: each set's record and track counts, and the tables of the package that index it."""
     import tomllib
@@ -744,6 +773,7 @@ def build_data(db: sqlite3.Connection, out: Path, pixels: str) -> dict:
     save_dir = extracted / dirs.get("mc_save_header", "mcsave") / "mc_save_header"
     saves = sorted(p.name for p in save_dir.glob("*.png")) if save_dir.is_dir() else []
     return {
+        "traces": write_traces(out.with_name(out.stem + "_data")) if pixels else [], "observed": observed_residency(),
         "holds": side["holds"], "viewpal": viewpal, "scripts": scripts, "scenes": scenes, "names": names, "usage": usage, "swept": by_overlay, "remarks": remarks, "notes": notes, "dialogue": dialogue,
         "mesh": side["mesh"], "track": side["track"], "banks": banks, "streams": streams, "saves": saves, "side": out.stem + "_data" if pixels else "",
         "files": files, "chunks": chunks, "fp": footprint, "loads": loads, "overlays": overlays, "requests": requests,

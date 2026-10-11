@@ -44,10 +44,14 @@ def named(value: int, header: str, prefix: str) -> str:
 # The bank types a sound id's top nibble names (include/main/sound_ids.h, src/main/sound_types.h). Type 1 is the
 # room's footstep bank, 14 the parasite-energy banks, 15 the music sequences.
 SOUND_TYPES = {0: "common", 1: "footstep", 2: "weapon", 4: "character", 5: "area", 6: "ambient", 14: "parasite energy", 15: "sequence"}
-# What a load policy makes the loader do (fsLoadFile, src/main/fs.c): which chunks of the file are taken.
-LOAD_MODES = {0: "everything", 1: "nothing: the drive only seeks to the file", 2: "everything, after the area's sound reset",
-              3: "everything, with its images relocated", 4: "everything but the background", 5: "its images only", 6: "everything but the sound bank"}
-LOADS_PACKAGE = {0, 2, 3, 4, 6}        # the policies under which a file's package is read
+# What a load policy makes the loader do (fsLoadFile and the chunk reader, src/main/fs.c): which chunks of the file
+# are taken. Under the sound-setup and images-only policies the load ENDS at the file's first package, data or
+# caption-bundle chunk, so only what is stored before that chunk is read.
+LOAD_MODES = {0: "everything", 1: "nothing: the drive only seeks to the file",
+              2: "the sound banks and images stored before its first package, data or bundle chunk, after the area's sound reset",
+              3: "everything, with its images relocated", 4: "everything but the background",
+              5: "the images stored before its first package, data or bundle chunk; no sound bank", 6: "everything but the sound bank"}
+LOADS_PACKAGE = {0, 3, 4, 6}           # the policies under which a file's package is read
 
 
 def signed(value: int) -> int:
