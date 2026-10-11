@@ -9,6 +9,7 @@
 
 #include "neo_ark_forest_zone_private.h"
 
+#include "actors/actor.h"
 #include "actors/task_tables.h"
 
 #include "gameplay/animation.h"
@@ -206,7 +207,22 @@ ActorCommand gNeoArkForestZoneStartAmbushCommand __attribute__((aligned(4))) = {
     .command = NEO_ARK_FOREST_ZONE_COMMAND_START_AMBUSH,
 };
 
-AnimationPlayRequest D_neo_ark_forest_zone_80181E3C = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
+enum {
+    NEO_ARK_FOREST_ZONE_UNUSED_REQUEST_BANK = 1,
+    NEO_ARK_FOREST_ZONE_UNUSED_REQUEST_CLIP = 1,
+};
+
+/// Retained, unused bank-1 clip-1 animation reset request.
+///
+/// Stores zero blend frames and enabled grid collision. No script selects
+/// this record, so its intended receiver and scene use are unproven.
+static const AnimationPlayRequest _gNeoArkForestZoneUnusedBank1Clip1ResetRequest SECTION(".data") = {
+    .source               = { .index = NEO_ARK_FOREST_ZONE_UNUSED_REQUEST_BANK },
+    .animationId          = NEO_ARK_FOREST_ZONE_UNUSED_REQUEST_CLIP,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE,
+};
 
 /// Player placement at the start of the first-visit scene, borrowed through dispatch.
 ///
@@ -721,11 +737,15 @@ static DamageAttack _gNeoArkForestZoneRoamerAttacks[6] = {
 
 EnemyParams gRoamerParams = { _gNeoArkForestZoneRoamerAttacks, 420, 115, 200, 5, 100, 10, 100, 10 };
 
-// Retained numeric records following the enemy parameters.
-u16 D_neo_ark_forest_zone_80182D2C[3][4] = {
-    { 0, 900, 3, 0 },
-    { 0, 800, 5, 0 },
-    { 0, 500, 7, 0 },
+/// Retained, unused Horned Stranger spawn-tuning rows.
+///
+/// Rows carry down-duration bases in ticks, sidestep angles in 4096ths of
+/// a turn, delay values 3/5/7 and an unread final halfword. This room does
+/// not apply them to its reserve enemies; no code reads the table.
+static const ActorHornedStrangerVariant _gNeoArkForestZoneUnusedHornedStrangerVariants[3] SECTION(".data") = {
+    { .downFramesBase = 0, .sidestepAngle = 900, .sidestepDelay = 3, .unknown_6 = 0 },
+    { .downFramesBase = 0, .sidestepAngle = 800, .sidestepDelay = 5, .unknown_6 = 0 },
+    { .downFramesBase = 0, .sidestepAngle = 500, .sidestepDelay = 7, .unknown_6 = 0 },
 };
 
 /// Pool-B reserve additions by location variant 0..15, also gating arm/tick work.
@@ -867,16 +887,31 @@ static RoamerSpawnPoint _gNeoArkForestZoneRoamerPoolBSpawnPoints[5] = {
     { -6500, 0, 2000, 2200 },
 };
 
-s16 D_neo_ark_forest_zone_80182E10[4] = {
-    0x7FFF,
-    0x7FFF,
-    0x7FFF,
-    0x7FFF,
+/// Retained, unread end marker following the five pool-B spawn points.
+///
+/// All four halfwords are ROAMER_SPAWN_POINT_END. Pool-B dispatch selects
+/// only the five preceding placements and never examines this row.
+static const RoamerSpawnPoint _gNeoArkForestZoneRoamerPoolBSpawnPointEnd SECTION(".data") = {
+    .x   = ROAMER_SPAWN_POINT_END,
+    .y   = ROAMER_SPAWN_POINT_END,
+    .z   = ROAMER_SPAWN_POINT_END,
+    .yaw = ROAMER_SPAWN_POINT_END,
 };
 
 TaskDesc D_neo_ark_forest_zone_80182E18 = { { { TASK_BODY_NONE, 32 } }, _neoArkForestZoneRoamerPoolBTask, { .value = 0 } };
 
-TaskDesc D_neo_ark_forest_zone_80182E24 = { { { TASK_BODY_NONE, 32 } }, _neoArkForestZoneRoamerPoolATask, { .value = 0 } };
+enum { NEO_ARK_FOREST_ZONE_UNUSED_POOL_A_PRIORITY = 32 };
+
+/// Retained, unused bodyless recipe for the pool-A roaming-enemy controller.
+///
+/// Priority is 32; the metadata word is zero and there is no terminator.
+/// No room code spawns this descriptor; a spawned task would borrow the
+/// callback code for its lifetime.
+static TaskDesc _gNeoArkForestZoneUnusedRoamerPoolATaskDesc = {
+    .header   = { .fields = { .flags = TASK_BODY_NONE, .priority = NEO_ARK_FOREST_ZONE_UNUSED_POOL_A_PRIORITY } },
+    .callback = _neoArkForestZoneRoamerPoolATask,
+    .data     = { .value = 0 },
+};
 
 static void _neoArkForestZoneFinishRoamerPoolBState(Task* task);
 

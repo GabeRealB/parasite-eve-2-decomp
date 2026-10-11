@@ -390,8 +390,22 @@ static const AnimationPlayRequest _gDryfieldTrailerCoachPlayerClip61ResetRequest
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE,
 };
 
-// Retained parameter record; layout follows the adjacent script arguments.
-AnimationPlayRequest D_dryfield_trailer_coach_801850D8 = { { .index = 1 }, 47, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
+enum {
+    DRYFIELD_TRAILER_COACH_UNUSED_PLAYER_TEMPLATE_BANK = 1,
+};
+
+/// Retained, unused player reset request for room extension clip 47.
+///
+/// Stores bank selector 1, zero blend frames and enabled grid collision.
+/// The room installs this clip in the player extension, but no script selects
+/// this record; indexed event playback resolves the equipped bank in a copy.
+static const AnimationPlayRequest _gDryfieldTrailerCoachPlayerUnusedClip47ResetRequest SECTION(".data") = {
+    .source               = { .index = DRYFIELD_TRAILER_COACH_UNUSED_PLAYER_TEMPLATE_BANK },
+    .animationId          = DRYFIELD_TRAILER_COACH_PLAYER_CLIP_47,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE,
+};
 
 /// Resets player clip 47 and restores world-grid participation.
 ///
@@ -482,8 +496,20 @@ static const AnimationPlayRequest _gDryfieldTrailerCoachPlayerClip52ResetRequest
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE,
 };
 
-// Retained parameter record; layout follows the adjacent script arguments.
-AnimationPlayRequest D_dryfield_trailer_coach_80185164 = { { .index = 1 }, 53, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
+enum { DRYFIELD_TRAILER_COACH_PLAYER_CLIP_53 = 53 };
+
+/// Retained, unused player reset request for room extension clip 53.
+///
+/// Stores bank selector 1, zero blend frames and enabled grid collision.
+/// The room installs this clip in the player extension, but no script selects
+/// this record; indexed event playback resolves the equipped bank in a copy.
+static const AnimationPlayRequest _gDryfieldTrailerCoachPlayerUnusedClip53ResetRequest SECTION(".data") = {
+    .source               = { .index = DRYFIELD_TRAILER_COACH_UNUSED_PLAYER_TEMPLATE_BANK },
+    .animationId          = DRYFIELD_TRAILER_COACH_PLAYER_CLIP_53,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE,
+};
 
 /// Resets player clip 54 and drops world-grid participation.
 ///
@@ -541,7 +567,21 @@ static const ActorCommand _gDryfieldTrailerCoachGaryTurnHeadToRoomFocusCommand S
     .command = DRYFIELD_TRAILER_COACH_GARY_HEAD_TURN_ROOM_FOCUS,
 };
 
-AnimationPlayRequest D_dryfield_trailer_coach_8018519C = { 0 };
+enum {
+    DRYFIELD_TRAILER_COACH_GARY_BASE_CLIP_0 = 0,
+};
+
+/// Retained, unused Gary bank-0 clip-0 reset request.
+///
+/// Stores zero blend frames and disabled collision; no script selects it.
+/// Base-bank slot 0 is NULL, so this is not a playable clip request.
+static const AnimationPlayRequest _gDryfieldTrailerCoachGaryUnusedBaseClip0ResetRequest SECTION(".data") = {
+    .source               = { .index = DRYFIELD_TRAILER_COACH_GARY_BASE_BANK },
+    .animationId          = DRYFIELD_TRAILER_COACH_GARY_BASE_CLIP_0,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
 /// Resets Gary Douglas base-bank clip 1 during conversations.
 ///
@@ -555,11 +595,39 @@ static const AnimationPlayRequest _gDryfieldTrailerCoachGaryBaseClip1ResetReques
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
 };
 
-// Retained parameter record; layout follows the adjacent script arguments.
-AnimationPlayRequest D_dryfield_trailer_coach_801851C4 = { { .index = 0 }, 2, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+enum {
+    DRYFIELD_TRAILER_COACH_GARY_BASE_CLIP_2 = 2,
+};
 
-// Retained parameter record; layout follows the adjacent script arguments.
-AnimationPlayRequest D_dryfield_trailer_coach_801851D8 = { { .index = 0 }, 3, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Retained, unused Gary bank-0 clip-2 reset request.
+///
+/// Stores zero blend frames and disabled collision; no script selects it.
+/// Gary maps this selector/ID to loaded local set 2;
+/// interpolation uses his fixed eight-frame duration.
+static const AnimationPlayRequest _gDryfieldTrailerCoachGaryUnusedBaseClip2ResetRequest SECTION(".data") = {
+    .source               = { .index = DRYFIELD_TRAILER_COACH_GARY_BASE_BANK },
+    .animationId          = DRYFIELD_TRAILER_COACH_GARY_BASE_CLIP_2,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
+
+enum {
+    DRYFIELD_TRAILER_COACH_GARY_BASE_CLIP_3 = 3,
+};
+
+/// Retained, unused Gary bank-0 clip-3 reset request.
+///
+/// Stores zero blend frames and disabled collision; no script selects it.
+/// Gary maps this selector/ID to loaded local set 3;
+/// interpolation uses his fixed eight-frame duration.
+static const AnimationPlayRequest _gDryfieldTrailerCoachGaryUnusedBaseClip3ResetRequest SECTION(".data") = {
+    .source               = { .index = DRYFIELD_TRAILER_COACH_GARY_BASE_BANK },
+    .animationId          = DRYFIELD_TRAILER_COACH_GARY_BASE_CLIP_3,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
 /// Resets Gary Douglas base-bank clip 4 during room conversations.
 ///
@@ -650,11 +718,35 @@ static const AnimationPlayRequest _gDryfieldTrailerCoachGaryBaseClip10BlendReque
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
 };
 
-// Retained parameter record; layout follows the adjacent script arguments.
-AnimationPlayRequest D_dryfield_trailer_coach_80185278 = { { .index = 0 }, 8, ANIMATION_BLEND_INTERPOLATE, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Retained, unused Gary bank-0 clip-8 blend request.
+///
+/// Stores zero blend frames and disabled collision; no script selects it.
+/// Gary maps this selector/ID to loaded local set 8;
+/// interpolation uses his fixed eight-frame duration.
+static const AnimationPlayRequest _gDryfieldTrailerCoachGaryUnusedBaseClip8BlendRequest SECTION(".data") = {
+    .source               = { .index = DRYFIELD_TRAILER_COACH_GARY_BASE_BANK },
+    .animationId          = DRYFIELD_TRAILER_COACH_GARY_BASE_CLIP_8,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
-// Retained parameter record; layout follows the adjacent script arguments.
-AnimationPlayRequest D_dryfield_trailer_coach_8018528C = { { .index = 1 }, 0, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+enum {
+    DRYFIELD_TRAILER_COACH_GARY_BANK_1_CLIP_0 = 0,
+};
+
+/// Retained, unused Gary bank-1 clip-0 reset request.
+///
+/// Stores zero blend frames and disabled collision; no script selects it.
+/// Gary maps this selector/ID to loaded local set 10;
+/// interpolation uses his fixed eight-frame duration.
+static const AnimationPlayRequest _gDryfieldTrailerCoachGaryUnusedBank1Clip0ResetRequest SECTION(".data") = {
+    .source               = { .index = DRYFIELD_TRAILER_COACH_GARY_BANK_1 },
+    .animationId          = DRYFIELD_TRAILER_COACH_GARY_BANK_1_CLIP_0,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
 /// Resets Gary Douglas bank-1 clip 1, selecting actor set-table entry 11.
 ///

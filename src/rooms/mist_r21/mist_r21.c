@@ -120,8 +120,11 @@ static const TaskFuncTable3 D_mist_r21_8017D5C4 = {
     { _mistR21InitializeRoomTask, _mistR21CheckPlazaReloadShortcut, taskKill },
 };
 
-/// `"target set\n"`: no code in the room reads it.
-static const char D_mist_r21_8017D5D0[] = "target set\n";
+/// Retained, unused diagnostic text reporting that a target was set.
+///
+/// The text includes its newline and NUL terminator; no room code prints it.
+/// Keep it at this position in the read-only data sequence.
+static const char _gMistR21UnusedTargetSetMessage[] = "target set\n";
 
 void mistR21RoomTask(Task* task)
 {

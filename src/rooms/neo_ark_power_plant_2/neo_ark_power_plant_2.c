@@ -317,7 +317,11 @@ static EvsCommand _gNeoArkPowerPlant2GeneratorClearSkipScript[] = {
 /// Coordinates are copied into the lighting slot each eligible frame.
 static SVECTOR _gNeoArkPowerPlant2View8BlueLightPosition = { 4000, -7000, -4400, 0 };
 
-SVECTOR D_neo_ark_power_plant_2_80180670 = { 4000, -5000, -1540, 0 };
+/// Retained, unused copy of the generator-clear player position, in world game units.
+///
+/// Matches the position used by both normal and skipped clear presentation.
+/// No light, glow, placement or script consumer selects this separate vector.
+static const SVECTOR _gNeoArkPowerPlant2UnusedGeneratorClearPlayerPosition SECTION(".data") = { .vx = 4000, .vy = -5000, .vz = -1540, .pad = 0 };
 
 /// Fixed world point of view 6's generator glow and damaged-support flashes, in game units.
 ///

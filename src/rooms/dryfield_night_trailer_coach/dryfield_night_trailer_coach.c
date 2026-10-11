@@ -640,9 +640,30 @@ AnimationPlayRequest gDryfieldNightTrailerCoachGaryTalkReplyAnimation = {
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
 };
 
-AnimationPlayRequest D_dryfield_night_trailer_coach_80187B9C[2] = {
-    { { .index = 0 }, 8, ANIMATION_BLEND_INTERPOLATE, 0, ANIMATION_WORLD_COLLISION_DISABLE },
-    { { .index = 1 }, 0, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
+enum {
+    DRYFIELD_NIGHT_TRAILER_COACH_GARY_UNUSED_DIALOGUE_CLIP_0 = 0,
+};
+
+/// Retained, unused Gary requests for base-bank clip 8 and dialogue-bank clip 0.
+///
+/// The first stores interpolation with zero requested frames; the second resets.
+/// Both disable world collision. Gary maps their selectors to local sets 8 and 10
+/// and uses eight frames for interpolation; no script selects these records.
+static const AnimationPlayRequest _gDryfieldNightTrailerCoachGaryUnusedBase8AndDialogue0Animations[2] SECTION(".data") = {
+    {
+        .source               = { .index = DRYFIELD_NIGHT_TRAILER_COACH_GARY_BASE_BANK },
+        .animationId          = DRYFIELD_NIGHT_TRAILER_COACH_GARY_TALK_HOLD_CLIP,
+        .blend                = ANIMATION_BLEND_INTERPOLATE,
+        .blendFrames          = 0,
+        .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+    },
+    {
+        .source               = { .index = DRYFIELD_NIGHT_TRAILER_COACH_GARY_DIALOGUE_BANK },
+        .animationId          = DRYFIELD_NIGHT_TRAILER_COACH_GARY_UNUSED_DIALOGUE_CLIP_0,
+        .blend                = ANIMATION_BLEND_RESET,
+        .blendFrames          = 0,
+        .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+    },
 };
 
 AnimationPlayRequest gDryfieldNightTrailerCoachGaryDialogueLeadInAnimation = {
@@ -669,10 +690,39 @@ AnimationPlayRequest gDryfieldNightTrailerCoachGaryStoryReplyAnimation = {
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
 };
 
-AnimationPlayRequest D_dryfield_night_trailer_coach_80187C00[3] = {
-    { { .index = 1 }, 4, ANIMATION_BLEND_INTERPOLATE, 0, ANIMATION_WORLD_COLLISION_DISABLE },
-    { { .index = 1 }, 5, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
-    { { .index = 1 }, 6, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
+enum {
+    DRYFIELD_NIGHT_TRAILER_COACH_GARY_UNUSED_DIALOGUE_CLIP_4 = 4,
+    DRYFIELD_NIGHT_TRAILER_COACH_GARY_UNUSED_DIALOGUE_CLIP_5 = 5,
+    DRYFIELD_NIGHT_TRAILER_COACH_GARY_UNUSED_DIALOGUE_CLIP_6 = 6,
+};
+
+/// Retained, unused Gary dialogue-bank requests for clips 4, 5 and 6.
+///
+/// Bank 1 maps to local sets 14..16. Clip 4 stores interpolation with zero
+/// requested frames; clips 5 and 6 reset. Collision is disabled in all three
+/// records; no script selects them and their intended scene use is unproven.
+static const AnimationPlayRequest _gDryfieldNightTrailerCoachGaryUnusedDialogueAnimations4To6[3] SECTION(".data") = {
+    {
+        .source               = { .index = DRYFIELD_NIGHT_TRAILER_COACH_GARY_DIALOGUE_BANK },
+        .animationId          = DRYFIELD_NIGHT_TRAILER_COACH_GARY_UNUSED_DIALOGUE_CLIP_4,
+        .blend                = ANIMATION_BLEND_INTERPOLATE,
+        .blendFrames          = 0,
+        .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+    },
+    {
+        .source               = { .index = DRYFIELD_NIGHT_TRAILER_COACH_GARY_DIALOGUE_BANK },
+        .animationId          = DRYFIELD_NIGHT_TRAILER_COACH_GARY_UNUSED_DIALOGUE_CLIP_5,
+        .blend                = ANIMATION_BLEND_RESET,
+        .blendFrames          = 0,
+        .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+    },
+    {
+        .source               = { .index = DRYFIELD_NIGHT_TRAILER_COACH_GARY_DIALOGUE_BANK },
+        .animationId          = DRYFIELD_NIGHT_TRAILER_COACH_GARY_UNUSED_DIALOGUE_CLIP_6,
+        .blend                = ANIMATION_BLEND_RESET,
+        .blendFrames          = 0,
+        .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+    },
 };
 
 AnimationPlayRequest gDryfieldNightTrailerCoachGaryDialogueFollowupAnimation = {
@@ -696,7 +746,21 @@ static AnimationPlayRequest _gDryfieldNightTrailerCoachGaryArrivalDialogueHoldAn
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
 };
 
-AnimationPlayRequest D_dryfield_night_trailer_coach_80187C64 = { { .index = 2 }, 0, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+enum {
+    DRYFIELD_NIGHT_TRAILER_COACH_GARY_UNUSED_ARRIVAL_CLIP_0 = 0,
+};
+
+/// Retained, unused Gary arrival-bank reset request for clip 0.
+///
+/// Bank 2 maps this ID to loaded local set 17. The stored blend duration is
+/// zero and collision is disabled; no script selects this request.
+static const AnimationPlayRequest _gDryfieldNightTrailerCoachGaryUnusedArrivalAnimation0 SECTION(".data") = {
+    .source               = { .index = DRYFIELD_NIGHT_TRAILER_COACH_GARY_ARRIVAL_BANK },
+    .animationId          = DRYFIELD_NIGHT_TRAILER_COACH_GARY_UNUSED_ARRIVAL_CLIP_0,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
 /// Gary's reset bank-2 clip 1 at the opening of warp-2 arrival dialogue.
 ///

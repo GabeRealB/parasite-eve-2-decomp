@@ -1461,8 +1461,8 @@ static u8* _gWaterHolePrimCursor = NULL;
 /// turn); narrowing retains the low 16 bits, so the sine repeats every 256 ticks.
 static s16 _gWaterHoleWaveScroll = 0;
 
-/// Not read by this room's code; what it belongs to is unknown.
-s16 D_dryfield_night_water_hole_8018362E = -0x3000;
+/// Retained, unreferenced halfword containing -12288; its role is unproven.
+static s16 D_dryfield_night_water_hole_8018362E = -0x3000;
 
 RoomDeparture gRoomDeparture;
 

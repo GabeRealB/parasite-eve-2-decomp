@@ -45,7 +45,19 @@ static void _neoArkBridgeIdleRoomTask(Task* unusedTask);
 
 TaskDesc D_neo_ark_bridge_80181F18 = { { { TASK_BODY_NONE, 192 } }, waterRefractionTask, { .value = 0 } };
 
-TaskDesc D_neo_ark_bridge_80181F24 = { { { TASK_BODY_NONE, 192 } }, waterDistortBandTask, { .value = 0 } };
+enum { NEO_ARK_BRIDGE_UNUSED_WATER_DISTORTION_PRIORITY = 192 };
+
+/// Retained, unused bodyless recipe for the water-distortion strip task.
+///
+/// Priority is 192; the metadata word is zero and there is no terminator.
+/// No room code spawns this descriptor; a spawned task would borrow the
+/// callback code for its lifetime.
+/// The callback draws only in the submarine tunnel and gallery areas.
+static TaskDesc _gNeoArkBridgeUnusedWaterDistortionTaskDesc = {
+    .header   = { .fields = { .flags = TASK_BODY_NONE, .priority = NEO_ARK_BRIDGE_UNUSED_WATER_DISTORTION_PRIORITY } },
+    .callback = waterDistortBandTask,
+    .data     = { .value = 0 },
+};
 
 /// Room-message dispatch for Neo Ark transitions, key-item refusals and ignored room actions/commands.
 ///

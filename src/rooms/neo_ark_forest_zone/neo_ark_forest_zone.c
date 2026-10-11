@@ -78,12 +78,14 @@ static RoomEventMsg _gRoomEventStagedMsg = { 0 };
 
 s8 D_neo_ark_forest_zone_80182E40 = 0;
 
-/// Three bytes stored after the flag; nothing references them.
-u8 D_neo_ark_forest_zone_80182E41 = 123;
+/// Retained, unreferenced byte containing 123; its role is unproven.
+static u8 D_neo_ark_forest_zone_80182E41 = 123;
 
-u8 D_neo_ark_forest_zone_80182E42 = 4;
+/// Retained, unreferenced byte containing 4; its role is unproven.
+static u8 D_neo_ark_forest_zone_80182E42 = 4;
 
-u8 D_neo_ark_forest_zone_80182E43 = 20;
+/// Retained, unreferenced byte containing 20; its role is unproven.
+static u8 D_neo_ark_forest_zone_80182E43 = 20;
 
 ActorCommand gRoamerCommand = { 0 };
 

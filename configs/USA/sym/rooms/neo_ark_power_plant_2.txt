@@ -82,7 +82,7 @@ _gNeoArkPowerPlant2GeneratorClearVibrationSegments = 0x801802A0; // size:0x8 def
 _gNeoArkPowerPlant2GeneratorClearScript = 0x801802A8; // size:0x2B8 defined:True
 _gNeoArkPowerPlant2GeneratorClearSkipScript = 0x80180560; // size:0x108 defined:True
 _gNeoArkPowerPlant2View8BlueLightPosition = 0x80180668; // size:0x8 defined:True
-D_neo_ark_power_plant_2_80180670 = 0x80180670; // size:0x8 defined:True
+_gNeoArkPowerPlant2UnusedGeneratorClearPlayerPosition = 0x80180670; // size:0x8 defined:True
 
 neoArkPowerPlant2SetView6SpritesHidden = 0x8017FD88; // type:func
 

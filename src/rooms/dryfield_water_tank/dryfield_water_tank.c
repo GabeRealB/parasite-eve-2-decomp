@@ -296,15 +296,47 @@ static ActorTransform _gDryfieldWaterTankPlayerPathEntryPlacement = { .pos = { 2
 /// logical view 3. Yaw is 960 in 4096 units per turn; pitch and roll are zero.
 static ActorTransform _gDryfieldWaterTankPlayerPathExitPlacement = { { 2388, -0x2EE0, 1137, 0 }, { 0, 960, 0, 0 } };
 
-s32 D_dryfield_water_tank_80184B60[2] = {
+/// Retained, unreferenced words containing 62 and 63; their payload role is unproven.
+static s32 D_dryfield_water_tank_80184B60[2] = {
     62,
     63,
 };
 
-AnimationPlayRequest D_dryfield_water_tank_80184B68[3] = {
-    { { .index = 0 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
-    { { .index = 0 }, 1, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_DISABLE },
-    { { .index = 0 }, 2, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE },
+enum {
+    DRYFIELD_WATER_TANK_KYLE_UNUSED_BANK         = 0,
+    DRYFIELD_WATER_TANK_KYLE_UNUSED_CLIP1        = 1,
+    DRYFIELD_WATER_TANK_KYLE_UNUSED_CLIP2        = 2,
+    DRYFIELD_WATER_TANK_KYLE_UNUSED_BLEND_FRAMES = 20,
+};
+
+/// Retained, unused Kyle bank-0 requests for clips 1, 1 and 2.
+///
+/// The first resets with collision disabled; the others store twenty-frame
+/// blends, disabling collision for clip 1 and enabling it for clip 2.
+/// Bank 0 indexes Kyle's loaded body clips. These records have no script
+/// consumer; their physical motion and intended scene use are unproven.
+static const AnimationPlayRequest _gDryfieldWaterTankKyleUnusedAnimations1And2[3] SECTION(".data") = {
+    {
+        .source               = { .index = DRYFIELD_WATER_TANK_KYLE_UNUSED_BANK },
+        .animationId          = DRYFIELD_WATER_TANK_KYLE_UNUSED_CLIP1,
+        .blend                = ANIMATION_BLEND_RESET,
+        .blendFrames          = 0,
+        .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+    },
+    {
+        .source               = { .index = DRYFIELD_WATER_TANK_KYLE_UNUSED_BANK },
+        .animationId          = DRYFIELD_WATER_TANK_KYLE_UNUSED_CLIP1,
+        .blend                = ANIMATION_BLEND_INTERPOLATE,
+        .blendFrames          = DRYFIELD_WATER_TANK_KYLE_UNUSED_BLEND_FRAMES,
+        .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+    },
+    {
+        .source               = { .index = DRYFIELD_WATER_TANK_KYLE_UNUSED_BANK },
+        .animationId          = DRYFIELD_WATER_TANK_KYLE_UNUSED_CLIP2,
+        .blend                = ANIMATION_BLEND_INTERPOLATE,
+        .blendFrames          = DRYFIELD_WATER_TANK_KYLE_UNUSED_BLEND_FRAMES,
+        .enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE,
+    },
 };
 
 /// Kyle's bank-0 clip keys and whole-frame blend durations for the player-path scene.
@@ -337,7 +369,22 @@ enum {
 /// The bank and clip remain borrowed during playback. Physical motion is unproven.
 static AnimationPlayRequest _gDryfieldWaterTankKyleEventAnimation3 = { { .index = DRYFIELD_WATER_TANK_KYLE_EVENT_BANK }, DRYFIELD_WATER_TANK_KYLE_EVENT_CLIP3, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
 
-AnimationPlayRequest D_dryfield_water_tank_80184BB8 = { { .index = 0 }, 4, ANIMATION_BLEND_INTERPOLATE, 8, ANIMATION_WORLD_COLLISION_ENABLE };
+enum {
+    DRYFIELD_WATER_TANK_KYLE_UNUSED_CLIP4 = 4,
+};
+
+/// Retained, unused Kyle bank-0 blend request for clip 4.
+///
+/// Stores a 8-frame blend and enabled collision, which Kyle ignores.
+/// Bank 0 indexes Kyle's loaded body clips. These records have no script
+/// consumer; their physical motion and intended scene use are unproven.
+static const AnimationPlayRequest _gDryfieldWaterTankKyleUnusedAnimation4 SECTION(".data") = {
+    .source               = { .index = DRYFIELD_WATER_TANK_KYLE_EVENT_BANK },
+    .animationId          = DRYFIELD_WATER_TANK_KYLE_UNUSED_CLIP4,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = DRYFIELD_WATER_TANK_KYLE_EVENT_MEDIUM_BLEND_FRAMES,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE,
+};
 
 /// Kyle's bank-0 event clip 5 for the player-path scene.
 ///
@@ -346,7 +393,22 @@ AnimationPlayRequest D_dryfield_water_tank_80184BB8 = { { .index = 0 }, 4, ANIMA
 /// The bank and clip remain borrowed during playback. Physical motion is unproven.
 static AnimationPlayRequest _gDryfieldWaterTankKyleEventAnimation5 = { { .index = DRYFIELD_WATER_TANK_KYLE_EVENT_BANK }, DRYFIELD_WATER_TANK_KYLE_EVENT_CLIP5, ANIMATION_BLEND_INTERPOLATE, DRYFIELD_WATER_TANK_KYLE_EVENT_MEDIUM_BLEND_FRAMES, ANIMATION_WORLD_COLLISION_ENABLE };
 
-AnimationPlayRequest D_dryfield_water_tank_80184BE0 = { { .index = 0 }, 6, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE };
+enum {
+    DRYFIELD_WATER_TANK_KYLE_UNUSED_CLIP6 = 6,
+};
+
+/// Retained, unused Kyle bank-0 blend request for clip 6.
+///
+/// Stores a 20-frame blend and enabled collision, which Kyle ignores.
+/// Bank 0 indexes Kyle's loaded body clips. These records have no script
+/// consumer; their physical motion and intended scene use are unproven.
+static const AnimationPlayRequest _gDryfieldWaterTankKyleUnusedAnimation6 SECTION(".data") = {
+    .source               = { .index = DRYFIELD_WATER_TANK_KYLE_EVENT_BANK },
+    .animationId          = DRYFIELD_WATER_TANK_KYLE_UNUSED_CLIP6,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = DRYFIELD_WATER_TANK_KYLE_EVENT_BLEND_FRAMES,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE,
+};
 
 /// Kyle's bank-0 event clip 7 for the player-path scene.
 ///
@@ -362,15 +424,79 @@ static AnimationPlayRequest _gDryfieldWaterTankKyleEventAnimation7 = { { .index 
 /// The bank and clip remain borrowed during playback. Physical motion is unproven.
 static AnimationPlayRequest _gDryfieldWaterTankKyleEventAnimation8 = { { .index = DRYFIELD_WATER_TANK_KYLE_EVENT_BANK }, DRYFIELD_WATER_TANK_KYLE_EVENT_CLIP8, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
 
-AnimationPlayRequest D_dryfield_water_tank_80184C1C[8] = {
-    { { .index = 0 }, 9, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE },
-    { { .index = 0 }, 10, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE },
-    { { .index = 0 }, 11, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE },
-    { { .index = 0 }, 12, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE },
-    { { .index = 0 }, 13, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE },
-    { { .index = 0 }, 14, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE },
-    { { .index = 0 }, 15, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE },
-    { { .index = 0 }, 16, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE },
+enum {
+    DRYFIELD_WATER_TANK_KYLE_UNUSED_CLIP9  = 9,
+    DRYFIELD_WATER_TANK_KYLE_UNUSED_CLIP10 = 10,
+    DRYFIELD_WATER_TANK_KYLE_UNUSED_CLIP11 = 11,
+    DRYFIELD_WATER_TANK_KYLE_UNUSED_CLIP12 = 12,
+    DRYFIELD_WATER_TANK_KYLE_UNUSED_CLIP13 = 13,
+    DRYFIELD_WATER_TANK_KYLE_UNUSED_CLIP14 = 14,
+    DRYFIELD_WATER_TANK_KYLE_UNUSED_CLIP15 = 15,
+    DRYFIELD_WATER_TANK_KYLE_UNUSED_CLIP16 = 16,
+};
+
+/// Retained, unused Kyle bank-0 blend requests for clips 9..16.
+///
+/// All eight store twenty-frame blends and enabled collision, which Kyle
+/// ignores. Bank 0 indexes Kyle's loaded body clips. These records have no script
+/// consumer; their physical motion and intended scene use are unproven.
+static const AnimationPlayRequest _gDryfieldWaterTankKyleUnusedAnimations9To16[8] SECTION(".data") = {
+    {
+        .source               = { .index = DRYFIELD_WATER_TANK_KYLE_EVENT_BANK },
+        .animationId          = DRYFIELD_WATER_TANK_KYLE_UNUSED_CLIP9,
+        .blend                = ANIMATION_BLEND_INTERPOLATE,
+        .blendFrames          = DRYFIELD_WATER_TANK_KYLE_EVENT_BLEND_FRAMES,
+        .enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE,
+    },
+    {
+        .source               = { .index = DRYFIELD_WATER_TANK_KYLE_EVENT_BANK },
+        .animationId          = DRYFIELD_WATER_TANK_KYLE_UNUSED_CLIP10,
+        .blend                = ANIMATION_BLEND_INTERPOLATE,
+        .blendFrames          = DRYFIELD_WATER_TANK_KYLE_EVENT_BLEND_FRAMES,
+        .enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE,
+    },
+    {
+        .source               = { .index = DRYFIELD_WATER_TANK_KYLE_EVENT_BANK },
+        .animationId          = DRYFIELD_WATER_TANK_KYLE_UNUSED_CLIP11,
+        .blend                = ANIMATION_BLEND_INTERPOLATE,
+        .blendFrames          = DRYFIELD_WATER_TANK_KYLE_EVENT_BLEND_FRAMES,
+        .enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE,
+    },
+    {
+        .source               = { .index = DRYFIELD_WATER_TANK_KYLE_EVENT_BANK },
+        .animationId          = DRYFIELD_WATER_TANK_KYLE_UNUSED_CLIP12,
+        .blend                = ANIMATION_BLEND_INTERPOLATE,
+        .blendFrames          = DRYFIELD_WATER_TANK_KYLE_EVENT_BLEND_FRAMES,
+        .enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE,
+    },
+    {
+        .source               = { .index = DRYFIELD_WATER_TANK_KYLE_EVENT_BANK },
+        .animationId          = DRYFIELD_WATER_TANK_KYLE_UNUSED_CLIP13,
+        .blend                = ANIMATION_BLEND_INTERPOLATE,
+        .blendFrames          = DRYFIELD_WATER_TANK_KYLE_EVENT_BLEND_FRAMES,
+        .enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE,
+    },
+    {
+        .source               = { .index = DRYFIELD_WATER_TANK_KYLE_EVENT_BANK },
+        .animationId          = DRYFIELD_WATER_TANK_KYLE_UNUSED_CLIP14,
+        .blend                = ANIMATION_BLEND_INTERPOLATE,
+        .blendFrames          = DRYFIELD_WATER_TANK_KYLE_EVENT_BLEND_FRAMES,
+        .enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE,
+    },
+    {
+        .source               = { .index = DRYFIELD_WATER_TANK_KYLE_EVENT_BANK },
+        .animationId          = DRYFIELD_WATER_TANK_KYLE_UNUSED_CLIP15,
+        .blend                = ANIMATION_BLEND_INTERPOLATE,
+        .blendFrames          = DRYFIELD_WATER_TANK_KYLE_EVENT_BLEND_FRAMES,
+        .enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE,
+    },
+    {
+        .source               = { .index = DRYFIELD_WATER_TANK_KYLE_EVENT_BANK },
+        .animationId          = DRYFIELD_WATER_TANK_KYLE_UNUSED_CLIP16,
+        .blend                = ANIMATION_BLEND_INTERPOLATE,
+        .blendFrames          = DRYFIELD_WATER_TANK_KYLE_EVENT_BLEND_FRAMES,
+        .enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE,
+    },
 };
 
 /// Kyle's bank-0 event clip 17 for the player-path scene.
@@ -443,7 +569,22 @@ static AnimationPlayRequest _gDryfieldWaterTankKyleEventAnimation25 = { { .index
 /// The bank and clip remain borrowed during playback. Physical motion is unproven.
 static AnimationPlayRequest _gDryfieldWaterTankKyleEventAnimation26 = { { .index = DRYFIELD_WATER_TANK_KYLE_EVENT_BANK }, DRYFIELD_WATER_TANK_KYLE_EVENT_CLIP26, ANIMATION_BLEND_INTERPOLATE, DRYFIELD_WATER_TANK_KYLE_EVENT_SHORT_BLEND_FRAMES, ANIMATION_WORLD_COLLISION_ENABLE };
 
-AnimationPlayRequest D_dryfield_water_tank_80184D84 = { { .index = 0 }, 27, ANIMATION_BLEND_INTERPOLATE, 2, ANIMATION_WORLD_COLLISION_ENABLE };
+enum {
+    DRYFIELD_WATER_TANK_KYLE_UNUSED_CLIP27 = 27,
+};
+
+/// Retained, unused Kyle bank-0 blend request for clip 27.
+///
+/// Stores a 2-frame blend and enabled collision, which Kyle ignores.
+/// Bank 0 indexes Kyle's loaded body clips. These records have no script
+/// consumer; their physical motion and intended scene use are unproven.
+static const AnimationPlayRequest _gDryfieldWaterTankKyleUnusedAnimation27 SECTION(".data") = {
+    .source               = { .index = DRYFIELD_WATER_TANK_KYLE_EVENT_BANK },
+    .animationId          = DRYFIELD_WATER_TANK_KYLE_UNUSED_CLIP27,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = DRYFIELD_WATER_TANK_KYLE_EVENT_SHORT_BLEND_FRAMES,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE,
+};
 
 /// Kyle's bank-0 event clip 28 for the player-path scene.
 ///

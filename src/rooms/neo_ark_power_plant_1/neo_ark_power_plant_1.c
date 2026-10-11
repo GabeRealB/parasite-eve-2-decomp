@@ -45,10 +45,21 @@ static const TaskFuncTable3 D_neo_ark_power_plant_1_8017D5C4 = {
     { _neoArkPowerPlant1InitializeRoom, _neoArkPowerPlant1UpdateRoom, taskKill },
 };
 
-s32 D_neo_ark_power_plant_1_80181BB4[3] = {
-    0x10000015,
-    0x10000017,
-    0x10000019,
+enum {
+    NEO_ARK_POWER_PLANT_1_UNUSED_WALK_SOUND = 0x10000015,
+    NEO_ARK_POWER_PLANT_1_UNUSED_RUN_SOUND  = 0x10000017,
+    NEO_ARK_POWER_PLANT_1_UNUSED_JUMP_SOUND = 0x10000019,
+};
+
+/// Retained, unused walking, running and scripted-jump footstep sound bases.
+///
+/// Type-1 script IDs 0x15, 0x17 and 0x19 select the loaded sound bank;
+/// paired animation cues add zero or one. No surface record points here,
+/// so this recipe supplies no footsteps in the first plant.
+static const WorldCollisionFootstepSounds _gNeoArkPowerPlant1UnusedFootstepSounds SECTION(".data") = {
+    .walk         = NEO_ARK_POWER_PLANT_1_UNUSED_WALK_SOUND,
+    .run          = NEO_ARK_POWER_PLANT_1_UNUSED_RUN_SOUND,
+    .scriptedJump = NEO_ARK_POWER_PLANT_1_UNUSED_JUMP_SOUND,
 };
 
 /// Collision policy for surface classes 0..2 and 6..7: probes block, impacts are enabled and pushback applies.

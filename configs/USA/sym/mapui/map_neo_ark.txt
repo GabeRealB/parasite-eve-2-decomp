@@ -127,7 +127,7 @@ D_neo_ark_island_80181B94 = 0x80181B94; // absolute:True owner=neo_ark_island sh
 gNeoArkIslandRoomLighting = 0x80181BA4; // absolute:True owner=neo_ark_island
 gNeoArkIslandViewMaps = 0x80181BAC; // absolute:True owner=neo_ark_island
 gNeoArkIslandViewCounts = 0x80181BB0; // absolute:True owner=neo_ark_island shared=rooms
-D_neo_ark_island_80181BB4 = 0x80181BB4; // absolute:True owner=neo_ark_island shared=rooms
+D_neo_ark_island_80181BB4 = 0x80181BB4; // absolute:True owner=neo_ark_island
 gNeoArkIslandViewCameras = 0x801826EC; // absolute:True owner=neo_ark_island
 gNeoArkIslandSpriteViews = 0x80183B14; // absolute:True owner=neo_ark_island
 gNeoArkIslandSurfaceProperties = 0x80183FE8; // absolute:True owner=neo_ark_island

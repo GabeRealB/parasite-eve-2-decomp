@@ -1048,10 +1048,39 @@ static AnimationPlayRequest _gMistParkingJodieTalkOpeningAnimation = {
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE,
 };
 
-AnimationPlayRequest D_mist_parking_8018DE4C[3] = {
-    { { .index = 0 }, 2, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE },
-    { { .index = 0 }, 3, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE },
-    { { .index = 0 }, 4, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_ENABLE },
+enum {
+    MIST_PARKING_JODIE_UNUSED_CLIP_2 = 2,
+    MIST_PARKING_JODIE_UNUSED_CLIP_3 = 3,
+    MIST_PARKING_JODIE_UNUSED_CLIP_4 = 4,
+};
+
+/// Retained, unused Jodie body-bank requests for clips 2, 3 and 4.
+///
+/// Clips 2 and 3 store twenty-frame blends; clip 4 stores ten frames.
+/// All enable collision, which Jodie ignores. Bank 0 loads all three clips,
+/// but no script selects these records; their physical gestures are unproven.
+static const AnimationPlayRequest _gMistParkingJodieUnusedAnimations2To4[3] SECTION(".data") = {
+    {
+        .source               = { .index = MIST_PARKING_ACTOR_BODY_ANIMATION_BANK },
+        .animationId          = MIST_PARKING_JODIE_UNUSED_CLIP_2,
+        .blend                = ANIMATION_BLEND_INTERPOLATE,
+        .blendFrames          = MIST_PARKING_ACTOR_DIALOGUE_BLEND_FRAMES,
+        .enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE,
+    },
+    {
+        .source               = { .index = MIST_PARKING_ACTOR_BODY_ANIMATION_BANK },
+        .animationId          = MIST_PARKING_JODIE_UNUSED_CLIP_3,
+        .blend                = ANIMATION_BLEND_INTERPOLATE,
+        .blendFrames          = MIST_PARKING_ACTOR_DIALOGUE_BLEND_FRAMES,
+        .enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE,
+    },
+    {
+        .source               = { .index = MIST_PARKING_ACTOR_BODY_ANIMATION_BANK },
+        .animationId          = MIST_PARKING_JODIE_UNUSED_CLIP_4,
+        .blend                = ANIMATION_BLEND_INTERPOLATE,
+        .blendFrames          = MIST_PARKING_JODIE_GREETING_BLEND_FRAMES,
+        .enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE,
+    },
 };
 
 /// Returns Jodie to body-bank clip 5 at room entry and after shop replies.
@@ -1066,7 +1095,22 @@ static AnimationPlayRequest _gMistParkingJodieConversationRestAnimation = {
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE,
 };
 
-AnimationPlayRequest D_mist_parking_8018DE9C = { { .index = 0 }, 6, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
+enum {
+    MIST_PARKING_JODIE_UNUSED_CLIP_6 = 6,
+};
+
+/// Retained, unused Jodie body-bank reset request for clip 6.
+///
+/// Stores zero blend frames and enabled collision, which Jodie ignores.
+/// Bank 0 loads clip 6, but no script selects this record; its physical
+/// gesture and intended scene use are unproven.
+static const AnimationPlayRequest _gMistParkingJodieUnusedAnimation6 SECTION(".data") = {
+    .source               = { .index = MIST_PARKING_ACTOR_BODY_ANIMATION_BANK },
+    .animationId          = MIST_PARKING_JODIE_UNUSED_CLIP_6,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE,
+};
 
 /// Jodie's bank-0 clip-7 greeting pose after the talk's opening delay.
 ///
@@ -1358,16 +1402,22 @@ EvsCommand gMistParkingSecondFollowupScript[10] = {
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-EvsCommand D_mist_parking_8018F284[10] = {
+/// Retained, unused third Pierce follow-up conversation script.
+///
+/// Selects CAP command 15, variant 2; installs player talk clips, starts head
+/// aim and poses Pierce, then waits for a CAP cue before restoring them.
+/// The ten commands end at END and borrow this overlay's payloads/callbacks
+/// if executed. No dispatcher selects this variant.
+static EvsCommand _gMistParkingUnusedThirdFollowupScript[10] = {
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _mistParkingStartPlayerHeadAim }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &gMistParkingPlayerConversationBankCopy } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _mistParkingStartPackedDialogue }, { .value = MIST_PARKING_CAP_FOLLOWUP_VARIANT_2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gMistParkingPlayerTalkAnimation }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gMistParkingPierceFollowupTalkAnimation } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = MIST_PARKING_PIERCE_SCENE_PLACEMENT }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gMistParkingPierceFollowupTalkAnimation } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = mistParkingControlPlayerHeadAim }, { .value = MIST_PARKING_HEAD_AIM_STOP }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gMistParkingPierceConversationRestAnimation } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = PLAYER_ACTOR_END_SCRIPTED_DEFAULT }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = MIST_PARKING_PIERCE_SCENE_PLACEMENT }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gMistParkingPierceConversationRestAnimation } }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 

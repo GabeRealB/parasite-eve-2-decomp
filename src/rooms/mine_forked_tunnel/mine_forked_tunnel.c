@@ -471,7 +471,22 @@ static AnimationBankCopyRequest _gMineForkedTunnelSwitchSceneAnimationBankCopy =
     .wordCount = ARRAY_SIZE(_gMineForkedTunnelSwitchSceneAnimationSets),
 };
 
-AnimationPlayRequest D_mine_forked_tunnel_80183134 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
+enum {
+    MINE_FORKED_TUNNEL_UNUSED_REQUEST_BANK = 1,
+    MINE_FORKED_TUNNEL_UNUSED_REQUEST_CLIP = 1,
+};
+
+/// Retained, unused bank-1 clip-1 animation reset request.
+///
+/// Stores zero blend frames and enabled grid collision. No script selects
+/// this record, so its intended receiver and scene use are unproven.
+static const AnimationPlayRequest _gMineForkedTunnelUnusedBank1Clip1ResetRequest SECTION(".data") = {
+    .source               = { .index = MINE_FORKED_TUNNEL_UNUSED_REQUEST_BANK },
+    .animationId          = MINE_FORKED_TUNNEL_UNUSED_REQUEST_CLIP,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE,
+};
 
 AnimationPlayRequest D_mine_forked_tunnel_80183148 = { { .index = 1 }, 48, ANIMATION_BLEND_INTERPOLATE, 30, ANIMATION_WORLD_COLLISION_DISABLE };
 
