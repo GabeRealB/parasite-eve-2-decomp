@@ -1181,8 +1181,8 @@ also uses for its text request.
 attachment, also carried by `actor_800100`. Its interface is
 `src/shared/pyke_flame.h`. Each package names the effect-table task itself and
 includes the shared body; `PYKE_FLAME_` bindings select the collision key, the
-paused-flame redraw and the splash depth bias. `PykeFlameBody` is the flying
-flame's collision block: the list-1 sphere and the one contact it borrows.
+paused-flame redraw and the order of the splash depth increment. `PykeFlameBody`
+is the flying flame's collision block: the list-1 sphere and the one contact it borrows.
 The splash, the ground glow and the fireball's floor quad share
 `EffectGroundQuadScratch` in `include/gameplay/effects.h`: the flat quad's
 corners and their projected screen positions, with ordering depth and the GTE

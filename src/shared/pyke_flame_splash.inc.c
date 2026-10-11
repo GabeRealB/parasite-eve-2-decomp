@@ -1,7 +1,16 @@
 /* Part of the Pyke flame library; see pyke_flame.h. */
 
-#ifndef PYKE_FLAME_SPLASH_DEAD_BIAS
-#define PYKE_FLAME_SPLASH_DEAD_BIAS 0
+#ifndef PYKE_FLAME_SPLASH_INCREMENT_BEFORE_DEPTH_STORE
+/// Selects the splash depth increment's position relative to the GTE store.
+///
+/// Preprocessor integer 0 or 1, supplied before this fragment is included.
+/// The default 0 (actor_800100) increments the stored `SZ3 >> 2` depth by one,
+/// before ordering-table quantization. Value 1 (m4a1_pyke) retains an increment
+/// of the uninitialized stack word before the GTE store overwrites it; the
+/// queued depth is then unbiased. The fragment undefines the binding at its end.
+#define PYKE_FLAME_SPLASH_INCREMENT_BEFORE_DEPTH_STORE 0
+#elif (PYKE_FLAME_SPLASH_INCREMENT_BEFORE_DEPTH_STORE != 0) && (PYKE_FLAME_SPLASH_INCREMENT_BEFORE_DEPTH_STORE != 1)
+#error "PYKE_FLAME_SPLASH_INCREMENT_BEFORE_DEPTH_STORE must be 0 or 1"
 #endif
 
 /// Draws an additive textured ground splash below a flying flame.
@@ -58,12 +67,12 @@ static void _pykeFlameDrawSplash(const VECTOR3* worldPosition, s32 halfSize)
     gte_stsxy3(&scratch->screenCorners[1], &scratch->screenCorners[2], &scratch->screenCorners[3]);
     gte_stflg(&projectionFlags);
     if (projectionFlags >= 0) {
-#if PYKE_FLAME_SPLASH_DEAD_BIAS
-        // This carrier applies the bias before the GTE store overwrites it.
+#if PYKE_FLAME_SPLASH_INCREMENT_BEFORE_DEPTH_STORE
+        // The original pre-store stack increment is discarded by the GTE store.
         orderingDepth++;
+#endif
         gte_stszotz(&orderingDepth);
-#else
-        gte_stszotz(&orderingDepth);
+#if !PYKE_FLAME_SPLASH_INCREMENT_BEFORE_DEPTH_STORE
         orderingDepth++;
 #endif
         quad           = gGpuPrimCursor;
@@ -89,4 +98,4 @@ static void _pykeFlameDrawSplash(const VECTOR3* worldPosition, s32 halfSize)
     SCRATCH_STACK_RELEASE_BLOCK(EffectGroundQuadScratch);
 }
 
-#undef PYKE_FLAME_SPLASH_DEAD_BIAS
+#undef PYKE_FLAME_SPLASH_INCREMENT_BEFORE_DEPTH_STORE

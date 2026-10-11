@@ -11,8 +11,9 @@
  *   PYKE_FLAME_KEY                    the flame body's collision key
  *   PYKE_FLAME_REDRAW_UPDATES_COORD   1: a paused flame recomposes its
  *                                     coordinate before redrawing (actor_800100)
- *   PYKE_FLAME_SPLASH_DEAD_BIAS       1: the splash's depth bias precedes the
- *                                     depth store and is lost (the M4A1)
+ * Splash increment/store ordering is configured at the splash fragment;
+ * its PYKE_FLAME_SPLASH_INCREMENT_BEFORE_DEPTH_STORE binding documents both
+ * instances and is consumed by that inclusion.
  */
 
 #ifndef SRC_SHARED_PYKE_FLAME_H

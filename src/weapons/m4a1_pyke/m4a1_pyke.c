@@ -174,7 +174,11 @@ void m4a1PykeFlameTask(Task* task)
 
 #include "../../shared/pyke_flame_blob.inc.c"
 
-#define PYKE_FLAME_SPLASH_DEAD_BIAS 1
+/// Retains this weapon's discarded splash-depth increment before the GTE store.
+///
+/// The splash fragment consumes this 0/1 binding; its default selects the
+/// companion's effective increment after the store instead.
+#define PYKE_FLAME_SPLASH_INCREMENT_BEFORE_DEPTH_STORE 1
 #include "../../shared/pyke_flame_splash.inc.c"
 
 #include "../../shared/pyke_flame_release.inc.c"
