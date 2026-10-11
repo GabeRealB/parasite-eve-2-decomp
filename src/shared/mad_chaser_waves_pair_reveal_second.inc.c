@@ -27,7 +27,7 @@ static void _overlayEncounterPairRevealSecond(Task* waveTask)
         model                     = enemyTask->extra.tmd;
         model->texturePageOffset  = OVERLAY_ENCOUNTER_PAIR_TEXTURE_PAGE_OFFSET;
         model->clutRowOffset      = OVERLAY_ENCOUNTER_PAIR_CLUT_ROW_OFFSET;
-        enemy->workType           = ENEMY_WORK_PLAIN;
+        enemy->workType           = ENEMY_WORK_ACTOR;
         request.context.loc.stage = OVERLAY_ENCOUNTER_PAIR_COMMAND_STAGE;
         request.context.loc.area  = OVERLAY_ENCOUNTER_PAIR_COMMAND_AREA;
         request.command           = waveTask->spawnArg1.value;

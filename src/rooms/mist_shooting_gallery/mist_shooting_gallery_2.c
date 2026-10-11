@@ -3889,7 +3889,7 @@ void mistShootingGallerySpawnDemoTarget(void)
         rootCoord->coord.t[0] = 6000;
         rootCoord->coord.t[2] = 3000;
         rootCoord->coord.t[1] = 0;
-        enemy->workType       = ENEMY_WORK_PLAIN;
+        enemy->workType       = ENEMY_WORK_ACTOR;
     }
 }
 
@@ -4102,7 +4102,7 @@ static Enemy* _mistShootingGallerySpawnTarget(Task* controller, const _MistShoot
         rootCoord->coord.t[0] = spawn->x;
         rootCoord->coord.t[1] = spawn->y;
         rootCoord->coord.t[2] = spawn->z;
-        enemy->workType       = ENEMY_WORK_PLAIN;
+        enemy->workType       = ENEMY_WORK_ACTOR;
         work->liveTargets++;
     }
     return enemy;

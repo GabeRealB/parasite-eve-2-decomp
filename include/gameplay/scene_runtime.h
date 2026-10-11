@@ -534,7 +534,7 @@ void animationAimHeadAt(Task* subject, Task* targetTask, AnimationHeadAim* aim);
 ///
 /// Requires state 0 (start), 1 (countdown) or 2 (destroy); dispatch performs
 /// no bounds check. `spawnArg2.pointer` must be the live primary-heap `Enemy`
-/// owned by this bodyless task. Start sets `waitTicks` to `ENEMY_WAIT_FRAMES`;
+/// owned by this bodyless task. Start sets `waitTicks` to 120;
 /// 120 subsequent countdown invocations advance to destruction on the next
 /// invocation. Destruction releases target tracking, actor locks and enemy
 /// storage, then tears down the task. Neither argument is used afterwards.

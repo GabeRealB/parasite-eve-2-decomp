@@ -5972,7 +5972,7 @@ static void _actor444000ThrowDebrisState(Task* task)
         }
         if ((s16)((s16)(u16)work->stateTicks % 10) == 4) {
             spawned           = enemySpawnFromTable(_gGluttonProjectileTaskDescs, GLUTTON_PROJECTILE_THROW, 0, task->spawnArg2.pointer);
-            spawned->workType = ENEMY_WORK_PLAIN;
+            spawned->workType = ENEMY_WORK_ACTOR;
             work->lastSpawned = spawned;
         }
     }
@@ -6387,7 +6387,7 @@ static void _actor444000SummonState(Task* task)
                         tmdBuildBufferHalf(summonModel);
                         tmdBuildBufferHalf(summonModel);
                     }
-                    work->summons[summonScratch->slot]->workType = ENEMY_WORK_PLAIN;
+                    work->summons[summonScratch->slot]->workType = ENEMY_WORK_ACTOR;
                     summon                                       = work->summons[summonScratch->slot];
                     summon->placeKey                            |= summonScratch->slot << ENEMY_PLACE_INDEX_SHIFT;
                     work->summonsAlive++;

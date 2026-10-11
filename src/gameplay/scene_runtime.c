@@ -439,10 +439,16 @@ enum { SCENE_CHILD_LOOKUP_FOUND     = 0,
 /// Fractional bits of the Q12 unit vectors used for Euler extraction.
 enum { GRAPHICS_FIXED_FRACTION_BITS = 12 };
 
+/// Countdown ticks before the fallback bodyless-enemy task enters destruction.
+///
+/// Initialization seeds 120; each countdown callback subtracts one. Reaching
+/// zero advances the state, and the following dispatch releases the work/task.
+#define ENEMY_TEARDOWN_DELAY_TICKS 0x78
+
 /// High byte of `Enemy::workType` for an actor the scene manager placed.
 enum {
     SCENE_ACTOR_BANK_SHIFT  = 8,
-    SCENE_PLACED_ACTOR_BANK = ENEMY_WORK_PLAIN >> SCENE_ACTOR_BANK_SHIFT,
+    SCENE_PLACED_ACTOR_BANK = ENEMY_WORK_ACTOR >> SCENE_ACTOR_BANK_SHIFT,
 };
 
 static TaskMessageEntry _gSceneManagerMessages[5];
@@ -1287,7 +1293,7 @@ static Enemy* _enemyAllocateWork(Task* task, Enemy* parent)
 /// the task from initialization to the countdown state; neither object is freed.
 static void _enemyStartTeardownDelay(Enemy* enemy, Task* task)
 {
-    enemy->waitTicks = ENEMY_WAIT_FRAMES;
+    enemy->waitTicks = ENEMY_TEARDOWN_DELAY_TICKS;
     task->state++;
 }
 
@@ -3633,7 +3639,7 @@ void areaSpawnPlacements(const GameLocationKey* location)
                         u16 placementKey;
 
                         placementKey    = (placementIndex << ENEMY_PLACE_INDEX_SHIFT) | (location->stage << ENEMY_PLACE_STAGE_SHIFT) | location->area;
-                        enemy->workType = ENEMY_WORK_PLAIN;
+                        enemy->workType = ENEMY_WORK_ACTOR;
                         enemy->place    = placement;
                         enemy->placeKey = placementKey;
                         task            = enemy->task;

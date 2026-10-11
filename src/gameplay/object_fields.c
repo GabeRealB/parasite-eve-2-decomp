@@ -11,6 +11,15 @@
 
 #include "main/random.h"
 
+/// Calls to the buildup tick function accumulated before advancing one step.
+#define DAMAGE_ENEMY_BUILDUP_STEP_TICKS 0x1F
+
+/// Mask selecting the final buildup hold's random byte-countdown seed.
+///
+/// LCG bits 16..21 yield 0..63. Seeds 1..63 take that many subsequent
+/// decrement calls; zero wraps through 255 and takes 256 calls to expire.
+#define DAMAGE_ENEMY_BUILDUP_HOLD_SEED_MASK 0x3F
+
 /// What a hazard contact does to the player, one row per hazard id.
 ///
 /// A hazard is a collision body whose key carries contact category 5 in its
@@ -87,7 +96,7 @@ static u16 D_80114096 = 0x3430;
 static inline void _damageReseedEnemyDamageOverTimeDelay(Enemy* enemy)
 {
     gRandomLcgState            = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    enemy->damageOverTimeDelay = ((gRandomLcgState >> 16) & ENEMY_DAMAGE_OVER_TIME_DELAY_JITTER) + ENEMY_DAMAGE_OVER_TIME_DELAY_BASE;
+    enemy->damageOverTimeDelay = ((gRandomLcgState >> 16) & DAMAGE_ENEMY_POISON_DELAY_JITTER_MASK) + DAMAGE_ENEMY_POISON_DELAY_BASE_TICKS;
 }
 
 s32 damageGetHazardDamage(s32 hazardKey, s32 victim)
@@ -233,11 +242,11 @@ s32 damageTickEnemyBuildup(Enemy* enemy)
     // Accumulate full steps before starting the final hold countdown.
     if (enemy->buildupStep < stepLimit) {
         enemy->buildupTimer++;
-        if (enemy->buildupTimer >= ENEMY_BUILDUP_STEP_FRAMES) {
+        if (enemy->buildupTimer >= DAMAGE_ENEMY_BUILDUP_STEP_TICKS) {
             enemy->buildupStep++;
             if (enemy->buildupStep >= stepLimit) {
                 gRandomLcgState     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                enemy->buildupTimer = gRandomLcgState >> 16 & ENEMY_BUILDUP_COUNTDOWN_MASK;
+                enemy->buildupTimer = gRandomLcgState >> 16 & DAMAGE_ENEMY_BUILDUP_HOLD_SEED_MASK;
             } else {
                 enemy->buildupTimer = 0;
             }

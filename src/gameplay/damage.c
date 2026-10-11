@@ -503,7 +503,7 @@ static void _damageApplyEnemyReaction(Enemy* enemy, s32 attackKey)
                 enemy->damageOverTimePulse = 0;
                 enemy->reactionFlags      |= ENEMY_REACTION_DAMAGE_OVER_TIME;
                 gRandomLcgState            = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                enemy->damageOverTimeDelay = (gRandomLcgState >> 16 & ENEMY_DAMAGE_OVER_TIME_DELAY_JITTER) + ENEMY_DAMAGE_OVER_TIME_DELAY_BASE;
+                enemy->damageOverTimeDelay = (gRandomLcgState >> 16 & DAMAGE_ENEMY_POISON_DELAY_JITTER_MASK) + DAMAGE_ENEMY_POISON_DELAY_BASE_TICKS;
                 if ((attackKey & DAMAGE_PLAYER_ATTACK_ATTACHMENT) == 0) {
                     enemy->damageOverTimeGrade = 0;
                     return;

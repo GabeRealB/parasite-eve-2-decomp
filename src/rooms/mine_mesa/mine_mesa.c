@@ -4702,7 +4702,7 @@ static void _mineMesaSpawnEnemyWaveState(Task* task)
         if (spawnedEnemy == NULL) {
             break;
         }
-        spawnedEnemy->workType                      = ENEMY_WORK_PLAIN;
+        spawnedEnemy->workType                      = ENEMY_WORK_ACTOR;
         _gMineMesaWaveEnemies[slotIndex]->placeKey |= slotIndex << ENEMY_PLACE_INDEX_SHIFT;
         // Keep the same LCG draws, including the two draws used by view 4.
         switch (viewGetMappedIndex() & 0xFF) {

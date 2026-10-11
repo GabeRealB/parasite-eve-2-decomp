@@ -115,7 +115,7 @@ void attachmentTargetAll(s32 release)
             enemy        = WORLD_TARGET_ENEMY_FROM_NODE(node);
             contactEnemy = enemy;
             if (release == 0) {
-                enemy->colorMode |= ENEMY_COLOR_HIT_FLASH;
+                enemy->colorMode |= ENEMY_COLOR_TARGET_FLASH;
             } else {
                 attackKey = _attachmentCurrentAttackKey();
                 attachmentAddTargetContact(contactEnemy, attackKey);
@@ -347,7 +347,7 @@ void attachmentTargetEllipsoid(s32 release, s32 radius, s32 extent, s32 ahead)
                         (u32)(extentSquaredScaled * radiusSquaredScaled)) {
                         enemy = WORLD_TARGET_ENEMY_FROM_NODE(node);
                         if (release == 0) {
-                            enemy->colorMode |= ENEMY_COLOR_HIT_FLASH;
+                            enemy->colorMode |= ENEMY_COLOR_TARGET_FLASH;
                         } else {
                             attackKey = _attachmentCurrentAttackKey();
                             attachmentAddTargetContact(enemy, attackKey);
@@ -399,7 +399,7 @@ void attachmentTargetCylinder(s32 release, s32 radius, s32 extent, s32 ahead)
                     if ((u32)(targetPosition->vx * targetPosition->vx + targetPosition->vz * targetPosition->vz) <= (u32)(radius * radius)) {
                         enemy = WORLD_TARGET_ENEMY_FROM_NODE(node);
                         if (release == 0) {
-                            enemy->colorMode |= ENEMY_COLOR_HIT_FLASH;
+                            enemy->colorMode |= ENEMY_COLOR_TARGET_FLASH;
                         } else {
                             attackKey = _attachmentCurrentAttackKey();
                             attachmentAddTargetContact(enemy, attackKey);

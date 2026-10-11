@@ -4966,7 +4966,7 @@ static void _shelterB3DumpingHoleEncounterRevealMadChaser(Task* waveTask)
         TmdObject* model          = enemyTask->extra.tmd;
         model->clutRowOffset      = SHELTER_B3_DUMPING_HOLE_MAD_CHASER_CLUT_ROW_OFFSET;
         model->texturePageOffset  = SHELTER_B3_DUMPING_HOLE_MAD_CHASER_TEXTURE_PAGE_OFFSET;
-        enemy->workType           = ENEMY_WORK_PLAIN;
+        enemy->workType           = ENEMY_WORK_ACTOR;
         request.context.loc.stage = SHELTER_B3_DUMPING_HOLE_MAD_CHASER_COMMAND_STAGE;
         request.context.loc.area  = SHELTER_B3_DUMPING_HOLE_MAD_CHASER_COMMAND_AREA;
         request.command           = waveTask->spawnArg1.halves.low;
@@ -5064,7 +5064,7 @@ static void _shelterB3DumpingHoleEncounterPairRevealSecond(Task* waveTask)
             ActorCommand request;
             model->texturePageOffset  = OVERLAY_ENCOUNTER_PAIR_TEXTURE_PAGE_OFFSET;
             model->clutRowOffset      = OVERLAY_ENCOUNTER_PAIR_CLUT_ROW_OFFSET;
-            enemy->workType           = ENEMY_WORK_PLAIN;
+            enemy->workType           = ENEMY_WORK_ACTOR;
             request.context.loc.stage = OVERLAY_ENCOUNTER_PAIR_COMMAND_STAGE;
             request.context.loc.area  = OVERLAY_ENCOUNTER_PAIR_COMMAND_AREA;
             request.command           = waveTask->spawnArg1.halves.low;

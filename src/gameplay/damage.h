@@ -5,6 +5,17 @@
 
 #include "gameplay/world_state.h"
 
+/// Minimum tick-call delay before an enemy poison pulse.
+///
+/// Adding the masked random draw yields 83..98 calls to the poison tick
+/// function. Activation and each emitted pulse restart this byte countdown.
+#define DAMAGE_ENEMY_POISON_DELAY_BASE_TICKS 0x53
+
+/// Mask selecting a 0..15-call addition to the enemy poison pulse delay.
+///
+/// Applied to LCG bits 16..19 after advancing the shared random state.
+#define DAMAGE_ENEMY_POISON_DELAY_JITTER_MASK 0xF
+
 /// Player attack row selection, and the low-six-bit buildup grade exception.
 enum {
     DAMAGE_PLAYER_ATTACK_ROW_MASK    = 0x7F,

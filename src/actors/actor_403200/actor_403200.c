@@ -4735,28 +4735,28 @@ static void _actor403200RainLaunchState(Task* hostTask)
     launchTick = work->stateTicks - ACTOR_403200_RAIN_FIRST_LAUNCH_TICK;
     switch (launchTick) {
         case 0:
-            enemySpawnFromTable(_gGluttonProjectileTaskDescs, GLUTTON_PROJECTILE_RAIN, 0, hostTask->spawnArg2.pointer)->workType = ENEMY_WORK_PLAIN;
+            enemySpawnFromTable(_gGluttonProjectileTaskDescs, GLUTTON_PROJECTILE_RAIN, 0, hostTask->spawnArg2.pointer)->workType = ENEMY_WORK_ACTOR;
             break;
         case 7:
-            enemySpawnFromTable(_gGluttonProjectileTaskDescs, GLUTTON_PROJECTILE_RAIN, 1, hostTask->spawnArg2.pointer)->workType = ENEMY_WORK_PLAIN;
+            enemySpawnFromTable(_gGluttonProjectileTaskDescs, GLUTTON_PROJECTILE_RAIN, 1, hostTask->spawnArg2.pointer)->workType = ENEMY_WORK_ACTOR;
             break;
         case 9:
-            enemySpawnFromTable(_gGluttonProjectileTaskDescs, GLUTTON_PROJECTILE_RAIN, 2, hostTask->spawnArg2.pointer)->workType = ENEMY_WORK_PLAIN;
+            enemySpawnFromTable(_gGluttonProjectileTaskDescs, GLUTTON_PROJECTILE_RAIN, 2, hostTask->spawnArg2.pointer)->workType = ENEMY_WORK_ACTOR;
             break;
         case 0x10:
-            enemySpawnFromTable(_gGluttonProjectileTaskDescs, GLUTTON_PROJECTILE_RAIN, 3, hostTask->spawnArg2.pointer)->workType = ENEMY_WORK_PLAIN;
+            enemySpawnFromTable(_gGluttonProjectileTaskDescs, GLUTTON_PROJECTILE_RAIN, 3, hostTask->spawnArg2.pointer)->workType = ENEMY_WORK_ACTOR;
             break;
         case 0x1F:
-            enemySpawnFromTable(_gGluttonProjectileTaskDescs, GLUTTON_PROJECTILE_RAIN, 4, hostTask->spawnArg2.pointer)->workType = ENEMY_WORK_PLAIN;
+            enemySpawnFromTable(_gGluttonProjectileTaskDescs, GLUTTON_PROJECTILE_RAIN, 4, hostTask->spawnArg2.pointer)->workType = ENEMY_WORK_ACTOR;
             break;
         case 0x37:
-            enemySpawnFromTable(_gGluttonProjectileTaskDescs, GLUTTON_PROJECTILE_RAIN, 5, hostTask->spawnArg2.pointer)->workType = ENEMY_WORK_PLAIN;
+            enemySpawnFromTable(_gGluttonProjectileTaskDescs, GLUTTON_PROJECTILE_RAIN, 5, hostTask->spawnArg2.pointer)->workType = ENEMY_WORK_ACTOR;
             break;
         case 0x3B:
-            enemySpawnFromTable(_gGluttonProjectileTaskDescs, GLUTTON_PROJECTILE_RAIN, 6, hostTask->spawnArg2.pointer)->workType = ENEMY_WORK_PLAIN;
+            enemySpawnFromTable(_gGluttonProjectileTaskDescs, GLUTTON_PROJECTILE_RAIN, 6, hostTask->spawnArg2.pointer)->workType = ENEMY_WORK_ACTOR;
             break;
         case 0x3F:
-            enemySpawnFromTable(_gGluttonProjectileTaskDescs, GLUTTON_PROJECTILE_RAIN, 7, hostTask->spawnArg2.pointer)->workType = ENEMY_WORK_PLAIN;
+            enemySpawnFromTable(_gGluttonProjectileTaskDescs, GLUTTON_PROJECTILE_RAIN, 7, hostTask->spawnArg2.pointer)->workType = ENEMY_WORK_ACTOR;
             break;
     }
     _gluttonTickAnim(hostTask);
@@ -4802,7 +4802,7 @@ static void _actor403200SpawnSpinnerFormation(Task* hostTask)
         spinner->task->extra.tmd->coords->coord.t[0]           = _gActor403200GluttonSpinnerPositions[formationIndex][spinnerIndex].vx;
         work->lastSpawned->task->extra.tmd->coords->coord.t[1] = _gActor403200GluttonSpinnerPositions[formationIndex][spinnerIndex].vy;
         work->lastSpawned->task->extra.tmd->coords->coord.t[2] = _gActor403200GluttonSpinnerPositions[formationIndex][spinnerIndex].vz;
-        work->lastSpawned->workType                            = ENEMY_WORK_PLAIN;
+        work->lastSpawned->workType                            = ENEMY_WORK_ACTOR;
         work->lastSpawned->placeKey                           |= spinnerIndex << ENEMY_PLACE_INDEX_SHIFT;
     }
 }
@@ -5574,7 +5574,7 @@ static void _actor403200GlobLaunchState(Task* hostTask)
         case 12:
         case 19:
             glob              = enemySpawnFromTable(_gGluttonProjectileTaskDescs, GLUTTON_PROJECTILE_GLOB, 0, hostTask->spawnArg2.pointer);
-            glob->workType    = ENEMY_WORK_PLAIN;
+            glob->workType    = ENEMY_WORK_ACTOR;
             work->lastSpawned = glob;
             break;
     }
@@ -5703,7 +5703,7 @@ static void _actor403200DebrisState(Task* hostTask)
         }
         if ((s16)((s16)(u16)work->stateTicks % ACTOR_403200_DEBRIS_CHUNK_PERIOD) == ACTOR_403200_DEBRIS_CHUNK_TICK_REMAINDER) {
             chunk             = enemySpawnFromTable(_gGluttonProjectileTaskDescs, GLUTTON_PROJECTILE_THROW, 0, hostTask->spawnArg2.pointer);
-            chunk->workType   = ENEMY_WORK_PLAIN;
+            chunk->workType   = ENEMY_WORK_ACTOR;
             work->lastSpawned = chunk;
         }
     }
@@ -6238,7 +6238,7 @@ static void _actor403200SummonState(Task* hostTask)
                             tmdBuildBufferHalf(summonModel);
                             tmdBuildBufferHalf(summonModel);
                         }
-                        work->summons[scratch->slot]->workType = ENEMY_WORK_PLAIN;
+                        work->summons[scratch->slot]->workType = ENEMY_WORK_ACTOR;
                         summon                                 = work->summons[scratch->slot];
                         summon->placeKey                      |= scratch->slot << ENEMY_PLACE_INDEX_SHIFT;
                         work->summonsAlive++;

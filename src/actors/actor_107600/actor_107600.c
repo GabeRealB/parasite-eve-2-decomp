@@ -1525,7 +1525,7 @@ static void _actor107600SpawnTarget(Enemy* mountEnemy, s32 targetKind, s32 targe
         }
         tmdBuildBufferHalf(targetModel);
         tmdBuildBufferHalf(targetModel);
-        targetEnemy->workType = ENEMY_WORK_PLAIN;
+        targetEnemy->workType = ENEMY_WORK_ACTOR;
     }
 }
 

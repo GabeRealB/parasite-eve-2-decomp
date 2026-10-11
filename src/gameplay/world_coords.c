@@ -41,6 +41,13 @@
 #include "main/text.h"
 #include "main/wipsys.h"
 
+/// Initial countdown of eligible colour-blend updates after an actor mode change.
+///
+/// The positive signed-byte count gives the previous mode a Q12 weight of
+/// countdown << 8, or countdown/16. Eligible world and gallery updates
+/// decrement it only while actors run; ambient RGB is never blended.
+#define WORLD_COORDINATE_ACTOR_COLOR_BLEND_TICKS 0x10
+
 /// Source kinds stored in the ranked-light table.
 enum {
     WORLD_COORDINATE_RANKED_LIGHT_DIRECTIONAL     = 0,
@@ -1429,12 +1436,12 @@ static void _worldCoordUpdatePlayerLighting(Task* unusedTask)
     }
 }
 
-/// Replaces light-colour coefficients with a green hit pulse and consumes its request.
+/// Replaces light-colour coefficients with a green targeting pulse and consumes its request.
 ///
 /// Every column gets red/blue at ONE/8 and green at a Q12 sine plus 1.5*ONE,
 /// halved on even display-loop iterations. The sine phase advances by 64 angle
 /// units per iteration (4096 per turn). Preserves the ambient translation and
-/// all packed colour-mode bits except ENEMY_COLOR_HIT_FLASH. Both arguments
+/// all packed colour-mode bits except `ENEMY_COLOR_TARGET_FLASH`. Both arguments
 /// must be writable; the caller establishes that the flash is eligible.
 static inline void _worldCoordApplyActorHitFlash(Enemy* enemy, MATRIX* colorMtx)
 {
@@ -1450,7 +1457,7 @@ static inline void _worldCoordApplyActorHitFlash(Enemy* enemy, MATRIX* colorMtx)
         flashGreen >>= 1;
     }
     _worldCoordFillLightColorMatrix(colorMtx, WORLD_COORDINATE_HIT_FLASH_RED_BLUE, flashGreen, WORLD_COORDINATE_HIT_FLASH_RED_BLUE);
-    enemy->colorMode &= ENEMY_COLOR_HIT_FLASH_CLEAR;
+    enemy->colorMode &= ENEMY_COLOR_TARGET_FLASH_CLEAR;
 }
 
 /// Zeros the directional light colours for an actor's black colour mode.
@@ -1479,7 +1486,7 @@ static inline void _worldCoordClearActorLightColor(s16 colorRows[3][3])
 /// Default, including unrecognized modes, retains lighting unless damage over
 /// time maps the weighted value to (3,1,3). Stores narrow to signed halfwords.
 ///
-/// Except in weighted mode, a pending hit flash with spawnState 0 overrides
+/// Except in weighted mode, a pending targeting flash with spawnState 0 overrides
 /// the mode and clears its request. This side effect precedes a later remap
 /// of the previous mode during blending; enemy and colorMtx must be live.
 static void _worldCoordRemapActorColor(Enemy* enemy, MATRIX* colorMtx, s32 colorMode)
@@ -1513,7 +1520,7 @@ static void _worldCoordRemapActorColor(Enemy* enemy, MATRIX* colorMtx, s32 color
             break;
 
         case ENEMY_COLOR_TINT:
-            if ((enemy->colorMode & ENEMY_COLOR_HIT_FLASH) && (enemy->spawnState == WORLD_COORDINATE_HIT_FLASH_SPAWN_STATE)) {
+            if ((enemy->colorMode & ENEMY_COLOR_TARGET_FLASH) && (enemy->spawnState == WORLD_COORDINATE_HIT_FLASH_SPAWN_STATE)) {
                 _worldCoordApplyActorHitFlash(enemy, colorMtx);
                 break;
             }
@@ -1521,7 +1528,7 @@ static void _worldCoordRemapActorColor(Enemy* enemy, MATRIX* colorMtx, s32 color
             break;
 
         case ENEMY_COLOR_BLACK:
-            if ((enemy->colorMode & ENEMY_COLOR_HIT_FLASH) && (enemy->spawnState == WORLD_COORDINATE_HIT_FLASH_SPAWN_STATE)) {
+            if ((enemy->colorMode & ENEMY_COLOR_TARGET_FLASH) && (enemy->spawnState == WORLD_COORDINATE_HIT_FLASH_SPAWN_STATE)) {
                 _worldCoordApplyActorHitFlash(enemy, colorMtx);
                 break;
             }
@@ -1530,7 +1537,7 @@ static void _worldCoordRemapActorColor(Enemy* enemy, MATRIX* colorMtx, s32 color
 
         case ENEMY_COLOR_DEFAULT:
         default:
-            if ((enemy->colorMode & ENEMY_COLOR_HIT_FLASH) && (enemy->spawnState == WORLD_COORDINATE_HIT_FLASH_SPAWN_STATE)) {
+            if ((enemy->colorMode & ENEMY_COLOR_TARGET_FLASH) && (enemy->spawnState == WORLD_COORDINATE_HIT_FLASH_SPAWN_STATE)) {
                 _worldCoordApplyActorHitFlash(enemy, colorMtx);
             } else if (enemy->reactionFlags & ENEMY_REACTION_DAMAGE_OVER_TIME_BITS) {
                 WORLD_COORDINATE_APPLY_WEIGHTED_ACTOR_TINT(colorMtx, 3, 1, 3);
@@ -1586,7 +1593,7 @@ void worldCoordUpdateActorColor(Enemy* enemy, const void* worldPosition, s32 unu
         } else {
             // Keep the same sampled coefficients; ambient is never copied or blended.
             _worldCoordCopyActorLightColor(blendScratch->previousColor.m, colorMtx->m);
-            // The current remap may consume a hit flash before the previous remap.
+            // The current remap may consume a targeting flash before the previous remap.
             _worldCoordRemapActorColor(enemy, colorMtx, currentMode);
             _worldCoordRemapActorColor(enemy, &blendScratch->previousColor, (enemy->colorMode >> ENEMY_COLOR_PREVIOUS_SHIFT) & ENEMY_COLOR_MODE_MASK);
             previousWeight = (s8)enemy->colorBlend << WORLD_COORDINATE_ACTOR_BLEND_WEIGHT_SHIFT;
@@ -1681,7 +1688,7 @@ void worldCoordSetActorColorMode(Enemy* enemy, s32 colorMode)
     colorMode  &= ENEMY_COLOR_MODE_MASK;
     if ((packedModes & ENEMY_COLOR_MODE_MASK) != colorMode) {
         enemy->colorMode  = (packedModes & ENEMY_COLOR_KEPT_BITS) | ((packedModes & ENEMY_COLOR_MODE_MASK) << ENEMY_COLOR_PREVIOUS_SHIFT) | colorMode;
-        enemy->colorBlend = ENEMY_COLOR_BLEND_STEPS;
+        enemy->colorBlend = WORLD_COORDINATE_ACTOR_COLOR_BLEND_TICKS;
     }
 }
 

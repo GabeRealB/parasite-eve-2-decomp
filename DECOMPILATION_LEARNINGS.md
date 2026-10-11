@@ -30813,7 +30813,7 @@ so GCC emits the subtract into `$v1` and the copy into `$t0`:
 enemy = WORLD_TARGET_ENEMY_FROM_NODE(node);
 contactEnemy = enemy;
 if (release == 0) {
-    enemy->colorMode |= ENEMY_COLOR_HIT_FLASH;
+    enemy->colorMode |= ENEMY_COLOR_TARGET_FLASH;
 } else {
     attackKey = _attachmentCurrentAttackKey();
     attachmentAddTargetContact(contactEnemy, attackKey);

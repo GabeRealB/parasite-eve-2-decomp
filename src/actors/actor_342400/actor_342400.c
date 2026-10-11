@@ -760,7 +760,7 @@ static void _actor342400WaveRevealMadChaser(Task* waveTask)
         model                     = enemyTask->extra.tmd;
         model->clutRowOffset      = ACTOR_342400_WAVE_MAD_CHASER_CLUT_ROW;
         model->texturePageOffset  = ACTOR_342400_WAVE_MAD_CHASER_TEXTURE_PAGE;
-        enemy->workType           = ENEMY_WORK_PLAIN;
+        enemy->workType           = ENEMY_WORK_ACTOR;
         request.context.loc.stage = 0;
         request.context.loc.area  = ACTOR_342400_WAVE_MAD_CHASER_COMMAND_AREA;
         request.command           = waveTask->spawnArg1.value;

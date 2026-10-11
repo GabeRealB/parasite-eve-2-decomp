@@ -28,7 +28,7 @@ static void _overlayEncounterRevealSlouch(Task* waveTask)
         model                     = enemyTask->extra.tmd;
         model->texturePageOffset  = OVERLAY_ENCOUNTER_SLOUCH_TEXTURE_PAGE_OFFSET;
         model->clutRowOffset      = OVERLAY_ENCOUNTER_SLOUCH_CLUT_ROW_OFFSET;
-        enemy->workType           = ENEMY_WORK_PLAIN;
+        enemy->workType           = ENEMY_WORK_ACTOR;
         request.context.loc.stage = OVERLAY_ENCOUNTER_SLOUCH_COMMAND_STAGE;
         request.context.loc.area  = OVERLAY_ENCOUNTER_SLOUCH_COMMAND_AREA;
         request.command           = waveTask->spawnArg1.value;

@@ -164,7 +164,7 @@ static void _gluttonHealState(Task* task)
         case GLUTTON_HEAL_FIRST_CHUNK_TICK:
         case GLUTTON_HEAL_SECOND_CHUNK_TICK:
             spawned           = enemySpawnFromTable(_gGluttonProjectileTaskDescs, GLUTTON_HEAL_CHUNK_DESCRIPTOR, 0, task->spawnArg2.pointer);
-            spawned->workType = ENEMY_WORK_PLAIN;
+            spawned->workType = ENEMY_WORK_ACTOR;
             work->lastSpawned = spawned;
             if (spawned != NULL) {
                 _gluttonApplyEscortTextureOffsets(spawned->task->extra.tmd);
