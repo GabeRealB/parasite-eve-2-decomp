@@ -485,20 +485,20 @@ static inline void _fsPrepareImageChunkUpload(const FsImageChunk* imageChunk)
 /// Clears the loading-screen phase and active latch without releasing buffers.
 static void _gameFlowResetLoadScreenState(void)
 {
-    Fs_BootLoadPhase           = 0;
+    gGameFlowLoadScreenPhase   = GAME_FLOW_LOAD_SCREEN_IDLE;
     gCdCmdQueue.bootLoadActive = false;
 }
 
 void gameFlowBeginLoadScreen(const GameLocationKey* destination, s16 alternateCaption)
 {
-    gCdCmdQueue.bootLoadActive = true;
-    Fs_LoadParams.stage        = destination->stage;
-    Fs_LoadParams.area         = destination->area;
-    D5B498_8006ACC0            = alternateCaption;
+    gCdCmdQueue.bootLoadActive           = true;
+    gGameFlowLoadScreenDestination.stage = destination->stage;
+    gGameFlowLoadScreenDestination.area  = destination->area;
+    gGameFlowLoadAlternateCaption        = alternateCaption;
 
     memFillBytes(gFsImageWorkspacePtr, 0, sizeof(*gFsImageWorkspacePtr));
     displaySetFrameTiming(DISPLAY_TIMING_TWO_VBLANKS);
-    Fs_BootLoadPhase = 0;
+    gGameFlowLoadScreenPhase = GAME_FLOW_LOAD_SCREEN_IDLE;
 }
 
 void gameFlowEnsureLoadScreenImageStarted(void)
@@ -508,9 +508,9 @@ void gameFlowEnsureLoadScreenImageStarted(void)
         GAME_FLOW_LOAD_IMAGE_READ_PENDING = 1
     };
 
-    if (Fs_BootLoadPhase == GAME_FLOW_LOAD_IMAGE_IDLE) {
+    if (gGameFlowLoadScreenPhase == GAME_FLOW_LOAD_IMAGE_IDLE) {
         gameFlowStartLoadScreenImage();
-        Fs_BootLoadPhase = GAME_FLOW_LOAD_IMAGE_READ_PENDING;
+        gGameFlowLoadScreenPhase = GAME_FLOW_LOAD_IMAGE_READ_PENDING;
     }
 }
 
@@ -522,18 +522,18 @@ void gameFlowStepLoadScreen(void)
         GAME_FLOW_LOAD_IMAGE_PRESENTING   = 2,
         GAME_FLOW_LOAD_PRESENTATION_BEGIN = 0,
     };
-    switch (Fs_BootLoadPhase) {
+    switch (gGameFlowLoadScreenPhase) {
         case GAME_FLOW_LOAD_IMAGE_IDLE:
             break;
         case GAME_FLOW_LOAD_IMAGE_READ_PENDING:
             // Start captions on the following frame, after the image request retires.
-            if (cdCmdIsSlotEmpty(Fs_BootLoadSlot)) {
-                Fs_BootLoadPhase = GAME_FLOW_LOAD_IMAGE_PRESENTING;
-                D5B498_8006AC9C  = GAME_FLOW_LOAD_PRESENTATION_BEGIN;
+            if (cdCmdIsSlotEmpty(gGameFlowLoadImageSlot)) {
+                gGameFlowLoadScreenPhase            = GAME_FLOW_LOAD_IMAGE_PRESENTING;
+                gGameFlowLoadScreenPresentationStep = GAME_FLOW_LOAD_PRESENTATION_BEGIN;
             }
             break;
         case GAME_FLOW_LOAD_IMAGE_PRESENTING:
-            gameFlowStepLoadScreenPresentation(Fs_BootTimPrimary, Fs_BootTimSecondary);
+            gameFlowStepLoadScreenPresentation(gGameFlowLoadCaption, gGameFlowLegacySecondaryLoadCaption);
             break;
     }
 }

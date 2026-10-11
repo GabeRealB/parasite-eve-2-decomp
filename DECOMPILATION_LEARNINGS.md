@@ -17358,7 +17358,7 @@ of the function. `sndLoadInstallSequence` is the pure example (relocate loop set
 
 ## Shared `var_v0` + epilogue flips global pointer store register order
 
-For multi-way dispatch that ends every arm with `Fs_BootTimPrimary = some_table;
+For multi-way dispatch that ends every arm with `gGameFlowLoadCaption = some_table;
 *arg0 = K`, collecting `K` into a shared `var_v0` and one trailing `*arg0 =
 var_v0` looks like the target's shared `sb v0,0(s0)` epilogue — but it often
 compiles the stores as `lui v1,dest; lui v0,src; sw v0,(v1)` with the wrong
@@ -17370,7 +17370,7 @@ the dest-first store pattern:
 ```c
 /* BAD ~88%: shared phi for *arg0 flips store regs / delay-slot lui */
 case_arm:
-    Fs_BootTimPrimary = D_80062E50;
+    gGameFlowLoadCaption = &_gGameFlowLoadCaptionDryfield;
     var_v0 = 0xC;
     goto store;
 ...
@@ -17379,7 +17379,7 @@ store:
 
 /* GOOD 100%: early return; GCC still emits j + li v0,K into the shared sb */
 case_arm:
-    Fs_BootTimPrimary = D_80062E50;
+    gGameFlowLoadCaption = &_gGameFlowLoadCaptionDryfield;
     *arg0 = 0xC;
     return;
 ```
@@ -17391,7 +17391,7 @@ order is `== 0x1B`, then `< 0x1C`, then `!= 0x11`. Keep the switch key in an
 `s32` (not `u8`) so the load is plain `lbu` without `andi`/`sltiu`.
 
 `_gameFlowSelectDryfieldNightLoadScreenAssets` is the pure example (load-screen caption/image selection by
-`Fs_LoadParams.area` × `gameFlagGetNibble(0x7A)`).
+`gGameFlowLoadScreenDestination.area` × `gameFlagGetNibble(0x7A)`).
 
 ## Independent `entry++` + mid-loop `i++`: prefer `goto` over re-index / `do`
 
@@ -18215,10 +18215,10 @@ early `lui %hi` order, while the actual `lw`/`sh` can still schedule as
 `lw cursor` then `sh color`:
 
 ```c
-extern volatile s16 D_8006ACB4;
+static s16 _gFadeBootImageMaskLevel;
 
-D_8006ACB4 = 0xFF;                      /* mention color first → lui v1 first */
-color      = *(volatile u8*)&D_8006ACB4; /* forces lbu reload, not reg reuse */
+_gFadeBootImageMaskLevel = 0xFF;                      /* mention color first → lui v1 first */
+color      = *(volatile u8*)&_gFadeBootImageMaskLevel; /* forces lbu reload, not reg reuse */
 p          = (TILE*)Gpu_SysPrimCursor;         /* lui t0 second; lw may still lead */
 Gpu_SysPrimCursor = (u8*)(p + 1);
 setlen(p, 3);
@@ -18231,7 +18231,7 @@ p->b0 = color;
 
 Writing `p = Gpu_SysPrimCursor` first swaps the two `lui`s (~99.7% near-match). The
 `*(volatile u8*)&` cast is required for the post-`sh` `lbu`; a plain
-`(u8)D_8006ACB4` may keep the value in a register. `_fadeBeginBootImageReveal` is the pure
+`(u8)_gFadeBootImageMaskLevel` may keep the value in a register. `_fadeBeginBootImageReveal` is the pure
 example (fullscreen white TILE at OT slot `-0x10` plus `setDrawTPage(..., 0, 1, 0x40)`).
 
 ## Scoped `register asm` pin for delay-slot `move a0,v1` after `lb`
@@ -19851,15 +19851,15 @@ scale factors. `fsBeginImageColumns` is the pure example.
 
 ## Fade step: non-volatile `lh` + volatile `lhu` + dual temps
 
-`D_8006ACB4` is `volatile s16`. Plain `D_8006ACB4 < 0x101` emits
+In this historical attempt, `_gFadeBootImageMaskLevel` was declared `volatile s16`. Plain `_gFadeBootImageMaskLevel < 0x101` emits
 `lhu` + `sll 16` / `sra 16` / `slti`, not `lh`. To get target `lh` for the
 compare and `lhu` for the add:
 
 ```c
-s16 cur  = *(s16*)&D_8006ACB4; /* lh */
-u16 next = D_8006ACB4;         /* lhu (volatile) */
+s16 cur  = *(s16*)&_gFadeBootImageMaskLevel; /* lh */
+u16 next = _gFadeBootImageMaskLevel;         /* lhu (volatile) */
 if (cur < 0x101) {
-    D_8006ACB4 = next + arg0;
+    _gFadeBootImageMaskLevel = next + arg0;
     ret = 0;
 } else {
     /* ClearImage both buffers; gDisplayState.control.flags.imageSource = 0 */

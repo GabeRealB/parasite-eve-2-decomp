@@ -46,19 +46,49 @@ extern s32 gFsStageCdfBaseSectors[FS_CDF_STAGE_COUNT];
 /// 16 bytes. Finish CD/decode/SPU consumers before another operation reuses it.
 extern FsSectorBuffers gFsSectorBuffers;
 
-extern s16 Fs_BootLoadSlot;
+/// Idle/armed phase shared by loading-screen reset and begin operations.
+enum { GAME_FLOW_LOAD_SCREEN_IDLE = 0 };
 
-extern u16 Fs_BootLoadPhase;
+/// CD request-ring slot whose retirement releases the selected loading image.
+///
+/// Set by image enqueue; valid indices are 0..7. Poll only in the read-pending
+/// phase, before the retired ring slot can be reused for another request.
+extern s16 gGameFlowLoadImageSlot;
 
-extern u16 D5B498_8006AC9C;
+/// Outer loading-screen phase (0 idle/armed, 1 image read pending, 2 presenting).
+///
+/// Beginning a screen arms phase zero; image enqueue and retirement advance it.
+/// Finishing the presentation returns it to zero and releases the active latch.
+extern u16 gGameFlowLoadScreenPhase;
 
-extern void* Fs_BootTimSecondary;
+/// Loading presentation step (0 begin, 1 reveal image, 2 caption, 3 hold, 4 fade out).
+///
+/// Reset when the image request retires; advanced once each phase completes.
+extern s16 gGameFlowLoadScreenPresentationStep;
 
-extern void* Fs_BootTimPrimary;
+/// Retained optional secondary loading caption; NULL when no pair is selected.
+///
+/// Borrows resident writable text records. The presentation interface ignores
+/// this selection and retains its delayed completion path without drawing it.
+extern TextStream* gGameFlowLegacySecondaryLoadCaption;
 
-extern BootLoadDestination Fs_LoadParams;
+/// Selected resident loading caption, whose cursor is reset and advanced for playback.
+///
+/// Borrows its record, glyph script and font cells through hold and fade-out.
+/// Selection finishes before image enqueue; presentation starts after retirement.
+extern TextStream* gGameFlowLoadCaption;
 
-extern s16 D5B498_8006ACC0;
+/// Retained stage and area selecting the location loading-screen image and caption.
+///
+/// Beginning a screen copies only these bytes from its destination key.
+/// The leading two bytes are untouched; a larger location-cell extent is unproven.
+extern BootLoadDestination gGameFlowLoadScreenDestination;
+
+/// Story-caption request (0 normal, any nonzero value alternate where available).
+///
+/// Retained as the caller's signed halfword for the gas-station, Shelter R36
+/// and default Neo Ark/Shelter heliport selectors; other areas ignore it.
+extern s16 gGameFlowLoadAlternateCaption;
 
 /// Signed X displacement of relocated image columns, in 64-halfword VRAM pages.
 ///
@@ -469,7 +499,7 @@ void fsAbortTimedOutOperation(void);
 /// Uses the destination and caption selector retained by `gameFlowBeginLoadScreen`.
 /// Clears the full resident image workspace and both 320x240 framebuffers, then
 /// blanks the display until the image is ready. Requires a free CD request slot;
-/// stores that slot in `Fs_BootLoadSlot` for asynchronous completion polling.
+/// stores that slot in `gGameFlowLoadImageSlot` for asynchronous completion polling.
 /// All image files come from category zero of the global stage-zero library.
 void gameFlowStartLoadScreenImage(void);
 

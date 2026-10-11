@@ -16,68 +16,90 @@
 #include "text.h"
 
 /* Define BSS before API headers to preserve first-declaration order. */
-s16 Fs_BootLoadSlot;
+s16 gGameFlowLoadImageSlot;
 
-u16 Fs_BootLoadPhase;
+u16 gGameFlowLoadScreenPhase;
 
-u16 D5B498_8006AC9C;
+s16 gGameFlowLoadScreenPresentationStep;
 
-static u8 D_8006AC9E;
+/// Text playback values used when initializing or retaining the revealed caption.
+enum {
+    GAME_FLOW_LOAD_CAPTION_PHASE_ARM        = 0,
+    GAME_FLOW_LOAD_CAPTION_STATUS_PROGRESS  = 0,
+    GAME_FLOW_LOAD_CAPTION_REDRAW_COUNTDOWN = 1,
+};
 
-static u8 D_8006AC9F;
+/// Primary caption playback phase (0 arm, 1 reveal/redraw, 2 complete).
+static u8 _gGameFlowLoadCaptionPhase;
 
-static s16 D_8006ACA0;
+/// Playback phase of the suppressed secondary caption (0 arm, 1 reveal, 2 complete).
+///
+/// Remains in the arm phase while secondary drawing is suppressed.
+static u8 _gGameFlowLegacySecondaryLoadCaptionPhase;
 
-static s16 D_8006ACA2;
+/// Presentation frames elapsed in the secondary-start delay or post-reveal hold.
+///
+/// Reset when presentation begins and when both reveal results are negative.
+/// Counts to 61 during reveal, then to 60 during hold; an extended hold does
+/// not increment it further.
+static s16 _gGameFlowLoadCaptionElapsedFrames;
 
-static s16 D_8006ACA4;
+/// Primary text countdown in presentation frames; expiry is a value below zero.
+///
+/// The text drawer reloads the glyph or final-caption delay. Once the reveal
+/// result is negative, presentation writes 1 each frame to keep redrawing.
+static s16 _gGameFlowLoadCaptionFramesLeft;
 
-static s16 D_8006ACA6;
+/// Frame countdown retained for the suppressed secondary text drawer.
+///
+/// Initialized to zero and forced to 1 after reveal or during hold/fade-out.
+static s16 _gGameFlowLegacySecondaryLoadCaptionFramesLeft;
 
-static s16 D_8006ACA8;
+/// Primary text result, latched once negative (0 progressing, -1 end reached).
+///
+/// Completion from the drawer is 1; retaining the first negative result lets
+/// the presentation advance while the caption continues to redraw.
+static s16 _gGameFlowLoadCaptionRevealStatus;
 
-void* Fs_BootTimSecondary;
+/// Secondary text result, latched once negative (0 progressing, -1 end reached).
+///
+/// The suppressed secondary path records -1 after its 61-frame start delay.
+static s16 _gGameFlowLegacySecondaryLoadCaptionRevealStatus;
 
-void* Fs_BootTimPrimary;
+TextStream* gGameFlowLegacySecondaryLoadCaption;
 
-// Fade/clear color; written as halfword, often re-read as byte for TILE RGB.
-static s16 D_8006ACB4;
+TextStream* gGameFlowLoadCaption;
 
-BootLoadDestination Fs_LoadParams;
+/// Signed subtraction level of the loading-image fade mask.
+///
+/// Reveal starts at 255 and finishes below zero; darkening starts at zero and
+/// clears the framebuffers above 256. Drawing uses the low byte, retaining its
+/// wrap at 256. The volatile byte views request actual reads of that byte.
+static s16 _gFadeBootImageMaskLevel;
+
+BootLoadDestination gGameFlowLoadScreenDestination;
 
 /// Unreferenced.
 static s32 D_8006ACBC;
 
-s16 D5B498_8006ACC0;
+s16 gGameFlowLoadAlternateCaption;
 
 #include "fs.h"
-
-/// September 3,  1999  7:07PM\nM.I.S.T.  Center, Los Angeles
-static u8 BootCaptionText_MistEvening[];
 
 static TextStream BootCaption_MistEvening;
 
 /// Legacy secondary caption; the current draw path ignores its second argument.
 static TextStream BootCaption_MistEveningSecondary;
 
-/// September 3,  1999  7:45PM\nAkropolis Tower,  Los Angeles
-static u8 BootCaptionText_AkropolisEvening[];
-
 static TextStream BootCaption_AkropolisEvening;
 
 /// Legacy secondary caption; the current draw path ignores its second argument.
 static TextStream BootCaption_AkropolisEveningSecondary;
 
-/// September 4,  1999  01:02PM\nMojave Desert,  Nevada
-static u8 BootCaptionText_DesertAfternoon[];
-
 static TextStream BootCaption_DesertAfternoon;
 
 /// Legacy secondary caption; the current draw path ignores its second argument.
 static TextStream BootCaption_DesertAfternoonSecondary;
-
-/// September 5,  1999  01:95AM\nMesa on the outskirts of \nDryfield, Mojave Desert
-static u8 BootCaptionText_DryfieldMesaNight[];
 
 static TextStream BootCaption_DryfieldMesaNight;
 
@@ -100,24 +122,15 @@ static TextStream BootCaption_DesertReturn;
 /// Legacy secondary caption; the current draw path ignores its second argument.
 static TextStream BootCaption_DesertReturnSecondary;
 
-/// September 6,  1999  8:94PM\nWhite House,  Washington D.C.
-static u8 BootCaptionText_WhiteHouseAftermath[];
-
 static TextStream BootCaption_WhiteHouseAftermath;
 
 /// Legacy secondary caption; the current draw path ignores its second argument.
 static TextStream BootCaption_WhiteHouseAftermathSecondary;
 
-/// September 0, 1990  6:05PM\nNature Museum,  New York
-static u8 BootCaptionText_MuseumFlashback[];
-
 static TextStream BootCaption_MuseumFlashback;
 
 /// Legacy secondary caption; the current draw path ignores its second argument.
 static TextStream BootCaption_MuseumFlashbackSecondary;
-
-/// September 3,  1999  \nM.I.S.T.  Center, Los Angeles
-static u8 BootCaptionText_MistArrival[];
 
 static TextStream BootCaption_MistArrival;
 
@@ -127,48 +140,19 @@ static u8 BootCaptionText_MistUnused[];
 /// Retained unused caption variant.
 static TextStream BootCaption_MistUnused;
 
-/// September 3,  1999\nAkropolis Tower,  Los Angeles
-static u8 BootCaptionText_Akropolis[];
-
 static TextStream BootCaption_Akropolis;
-
-/// September 4,  1999\nM.I.S.T.  Center, Los Angeles
-static u8 BootCaptionText_MistDeparture[];
 
 static TextStream BootCaption_MistDeparture;
 
-/// September 4,  1999\nDryfield, Mojave Desert
-static u8 BootCaptionText_Dryfield[];
-
-static TextStream BootCaption_Dryfield;
-
-/// September 5,  1999\nMine shaft, Mojave Desert
-static u8 BootCaptionText_Mine[];
-
 static TextStream BootCaption_Mine;
-
-/// September 5,  1999\nDwelling level, Shelter
-static u8 BootCaptionText_ShelterDwelling[];
 
 static TextStream BootCaption_ShelterDwelling;
 
-/// September 5,  1999\nWaste level, Shelter
-static u8 BootCaptionText_ShelterWaste[];
-
 static TextStream BootCaption_ShelterWaste;
-
-/// September 5,  1999\nDryfield, Mojave Desert
-static u8 BootCaptionText_DryfieldReturn[];
 
 static TextStream BootCaption_DryfieldReturn;
 
-/// September 5,  1999\nLaboratory level, Shelter
-static u8 BootCaptionText_ShelterLaboratory[];
-
 static TextStream BootCaption_ShelterLaboratory;
-
-/// September 5,  1999\nPod shaft, Shelter
-static u8 BootCaptionText_ShelterPod[];
 
 static TextStream BootCaption_ShelterPod;
 
@@ -204,6 +188,11 @@ enum {
     GAME_FLOW_LOAD_CHAPTER_5            = 5,
     GAME_FLOW_LOAD_CHAPTER_6            = 6,
 };
+
+/// Marks glyphs that a text-stream caller may omit while retaining their width.
+///
+/// The loading-screen drawer disables this filter, so marked time glyphs appear.
+enum { GAME_FLOW_LOAD_CAPTION_FILTER_FLAG = 0x80 };
 
 /// Category-zero file indices paired with each loading-screen caption context.
 enum {
@@ -245,8 +234,14 @@ enum {
     GAME_FLOW_LOAD_IMAGE_SHELTER_PARKING_CHAPTER_4        = 40,
 };
 
-/// September 3,  1999  7:07PM\nM.I.S.T.  Center, Los Angeles
-static u8 BootCaptionText_MistEvening[] = {
+/// Glyph script for the M.I.S.T. evening date and time loading caption.
+///
+/// Two lines; the shooting-gallery selector uses this detailed caption.
+/// Bytes index `gTextCaptionGlyphCells`; `TEXT_STREAM_LINE_BREAK` separates
+/// lines and `TEXT_STREAM_END` terminates the script. Storage stays resident.
+/// The time glyphs carry `GAME_FLOW_LOAD_CAPTION_FILTER_FLAG`; loading-screen
+/// playback draws them because filtering is disabled.
+static u8 _gGameFlowLoadCaptionMistEveningChars[] = {
     0x12,
     0x1E,
     0x29,
@@ -267,12 +262,12 @@ static u8 BootCaptionText_MistEvening[] = {
     0x3D,
     0x45,
     0x45,
-    0xBB,
-    0xBE,
-    0xB4,
-    0xBB,
-    0x8F,
-    0x8C,
+    0x3B | GAME_FLOW_LOAD_CAPTION_FILTER_FLAG,
+    0x3E | GAME_FLOW_LOAD_CAPTION_FILTER_FLAG,
+    0x34 | GAME_FLOW_LOAD_CAPTION_FILTER_FLAG,
+    0x3B | GAME_FLOW_LOAD_CAPTION_FILTER_FLAG,
+    0x0F | GAME_FLOW_LOAD_CAPTION_FILTER_FLAG,
+    0x0C | GAME_FLOW_LOAD_CAPTION_FILTER_FLAG,
     TEXT_STREAM_LINE_BREAK,
     0x0C,
     0x42,
@@ -305,11 +300,17 @@ static u8 BootCaptionText_MistEvening[] = {
     0x2C,
     TEXT_STREAM_END,
 };
-static TextStream BootCaption_MistEvening = { -150, -90, 960, 0, 0, 260, 1, 0, BootCaptionText_MistEvening, gTextCaptionGlyphCells, 13, 150, 216, 29 };
+static TextStream BootCaption_MistEvening = { -150, -90, 960, 0, 0, 260, 1, 0, _gGameFlowLoadCaptionMistEveningChars, gTextCaptionGlyphCells, 13, 150, 216, 29 };
 /// Legacy secondary caption; the current draw path ignores its second argument.
 static TextStream BootCaption_MistEveningSecondary = { 0 };
-/// September 3,  1999  7:45PM\nAkropolis Tower,  Los Angeles
-static u8 BootCaptionText_AkropolisEvening[] = {
+/// Glyph script for the Akropolis Tower evening date and time loading caption.
+///
+/// Two lines; the Acropolis plaza selector uses this detailed caption.
+/// Bytes index `gTextCaptionGlyphCells`; `TEXT_STREAM_LINE_BREAK` separates
+/// lines and `TEXT_STREAM_END` terminates the script. Storage stays resident.
+/// The time glyphs carry `GAME_FLOW_LOAD_CAPTION_FILTER_FLAG`; loading-screen
+/// playback draws them because filtering is disabled.
+static u8 _gGameFlowLoadCaptionAcropolisEveningChars[] = {
     0x12,
     0x1E,
     0x29,
@@ -330,12 +331,12 @@ static u8 BootCaptionText_AkropolisEvening[] = {
     0x3D,
     0x45,
     0x45,
-    0xBB,
-    0xBE,
-    0xB8,
-    0xB9,
-    0x8F,
-    0x8C,
+    0x3B | GAME_FLOW_LOAD_CAPTION_FILTER_FLAG,
+    0x3E | GAME_FLOW_LOAD_CAPTION_FILTER_FLAG,
+    0x38 | GAME_FLOW_LOAD_CAPTION_FILTER_FLAG,
+    0x39 | GAME_FLOW_LOAD_CAPTION_FILTER_FLAG,
+    0x0F | GAME_FLOW_LOAD_CAPTION_FILTER_FLAG,
+    0x0C | GAME_FLOW_LOAD_CAPTION_FILTER_FLAG,
     TEXT_STREAM_LINE_BREAK,
     0x00,
     0x24,
@@ -368,11 +369,17 @@ static u8 BootCaptionText_AkropolisEvening[] = {
     0x2C,
     TEXT_STREAM_END,
 };
-static TextStream BootCaption_AkropolisEvening = { -150, -90, 960, 0, 0, 260, 1, 0, BootCaptionText_AkropolisEvening, gTextCaptionGlyphCells, 13, 150, 216, 29 };
+static TextStream BootCaption_AkropolisEvening = { -150, -90, 960, 0, 0, 260, 1, 0, _gGameFlowLoadCaptionAcropolisEveningChars, gTextCaptionGlyphCells, 13, 150, 216, 29 };
 /// Legacy secondary caption; the current draw path ignores its second argument.
 static TextStream BootCaption_AkropolisEveningSecondary = { 0 };
-/// September 4,  1999  01:02PM\nMojave Desert,  Nevada
-static u8 BootCaptionText_DesertAfternoon[] = {
+/// Glyph script for the Mojave Desert afternoon date and time loading caption.
+///
+/// Two lines; the daytime gas-station alternate-caption path selects it.
+/// Bytes index `gTextCaptionGlyphCells`; `TEXT_STREAM_LINE_BREAK` separates
+/// lines and `TEXT_STREAM_END` terminates the script. Storage stays resident.
+/// The time glyphs carry `GAME_FLOW_LOAD_CAPTION_FILTER_FLAG`; loading-screen
+/// playback draws them because filtering is disabled.
+static u8 _gGameFlowLoadCaptionDesertAfternoonChars[] = {
     0x12,
     0x1E,
     0x29,
@@ -393,13 +400,13 @@ static u8 BootCaptionText_DesertAfternoon[] = {
     0x3D,
     0x45,
     0x45,
-    0xB4,
-    0xB5,
-    0xBE,
-    0xB4,
-    0xB6,
-    0x8F,
-    0x8C,
+    0x34 | GAME_FLOW_LOAD_CAPTION_FILTER_FLAG,
+    0x35 | GAME_FLOW_LOAD_CAPTION_FILTER_FLAG,
+    0x3E | GAME_FLOW_LOAD_CAPTION_FILTER_FLAG,
+    0x34 | GAME_FLOW_LOAD_CAPTION_FILTER_FLAG,
+    0x36 | GAME_FLOW_LOAD_CAPTION_FILTER_FLAG,
+    0x0F | GAME_FLOW_LOAD_CAPTION_FILTER_FLAG,
+    0x0C | GAME_FLOW_LOAD_CAPTION_FILTER_FLAG,
     TEXT_STREAM_LINE_BREAK,
     0x0C,
     0x28,
@@ -425,11 +432,17 @@ static u8 BootCaptionText_DesertAfternoon[] = {
     0x1A,
     TEXT_STREAM_END,
 };
-static TextStream BootCaption_DesertAfternoon = { -150, -90, 960, 0, 0, 260, 1, 0, BootCaptionText_DesertAfternoon, gTextCaptionGlyphCells, 13, 150, 216, 29 };
+static TextStream BootCaption_DesertAfternoon = { -150, -90, 960, 0, 0, 260, 1, 0, _gGameFlowLoadCaptionDesertAfternoonChars, gTextCaptionGlyphCells, 13, 150, 216, 29 };
 /// Legacy secondary caption; the current draw path ignores its second argument.
 static TextStream BootCaption_DesertAfternoonSecondary = { 0 };
-/// September 5,  1999  01:95AM\nMesa on the outskirts of \nDryfield, Mojave Desert
-static u8 BootCaptionText_DryfieldMesaNight[] = {
+/// Glyph script for the Dryfield outskirts mesa date, time and place loading caption.
+///
+/// Three lines; selected when entering the Mine mesa.
+/// Bytes index `gTextCaptionGlyphCells`; `TEXT_STREAM_LINE_BREAK` separates
+/// lines and `TEXT_STREAM_END` terminates the script. Storage stays resident.
+/// The time glyphs carry `GAME_FLOW_LOAD_CAPTION_FILTER_FLAG`; loading-screen
+/// playback draws them because filtering is disabled.
+static u8 _gGameFlowLoadCaptionDryfieldMesaNightChars[] = {
     0x12,
     0x1E,
     0x29,
@@ -450,13 +463,13 @@ static u8 BootCaptionText_DryfieldMesaNight[] = {
     0x3D,
     0x45,
     0x45,
-    0xB4,
-    0xB5,
-    0xBE,
-    0xBD,
-    0xB9,
-    0x80,
-    0x8C,
+    0x34 | GAME_FLOW_LOAD_CAPTION_FILTER_FLAG,
+    0x35 | GAME_FLOW_LOAD_CAPTION_FILTER_FLAG,
+    0x3E | GAME_FLOW_LOAD_CAPTION_FILTER_FLAG,
+    0x3D | GAME_FLOW_LOAD_CAPTION_FILTER_FLAG,
+    0x39 | GAME_FLOW_LOAD_CAPTION_FILTER_FLAG,
+    0x00 | GAME_FLOW_LOAD_CAPTION_FILTER_FLAG,
+    0x0C | GAME_FLOW_LOAD_CAPTION_FILTER_FLAG,
     TEXT_STREAM_LINE_BREAK,
     0x0C,
     0x1E,
@@ -509,7 +522,7 @@ static u8 BootCaptionText_DryfieldMesaNight[] = {
     0x2D,
     TEXT_STREAM_END,
 };
-static TextStream BootCaption_DryfieldMesaNight = { -150, -90, 960, 0, 0, 260, 1, 0, BootCaptionText_DryfieldMesaNight, gTextCaptionGlyphCells, 13, 150, 216, 40 };
+static TextStream BootCaption_DryfieldMesaNight = { -150, -90, 960, 0, 0, 260, 1, 0, _gGameFlowLoadCaptionDryfieldMesaNightChars, gTextCaptionGlyphCells, 13, 150, 216, 40 };
 /// Legacy secondary caption; the current draw path ignores its second argument.
 static TextStream BootCaption_DryfieldMesaNightSecondary = { 0 };
 /// September 5,  1999  5:26PM\nWhite House,  Washington D.C.
@@ -631,8 +644,14 @@ static u8 BootCaptionText_DesertReturn[] = {
 static TextStream BootCaption_DesertReturn = { -150, -90, 960, 0, 0, 260, 1, 0, BootCaptionText_DesertReturn, gTextCaptionGlyphCells, 13, 150, 216, 29 };
 /// Legacy secondary caption; the current draw path ignores its second argument.
 static TextStream BootCaption_DesertReturnSecondary = { 0 };
-/// September 6,  1999  8:94PM\nWhite House,  Washington D.C.
-static u8 BootCaptionText_WhiteHouseAftermath[] = {
+/// Glyph script for the White House aftermath date, time and place loading caption.
+///
+/// Two lines; selected by the normal-caption request for Shelter R36.
+/// Bytes index `gTextCaptionGlyphCells`; `TEXT_STREAM_LINE_BREAK` separates
+/// lines and `TEXT_STREAM_END` terminates the script. Storage stays resident.
+/// The time glyphs carry `GAME_FLOW_LOAD_CAPTION_FILTER_FLAG`; loading-screen
+/// playback draws them because filtering is disabled.
+static u8 _gGameFlowLoadCaptionWhiteHouseAftermathChars[] = {
     0x12,
     0x1E,
     0x29,
@@ -653,12 +672,12 @@ static u8 BootCaptionText_WhiteHouseAftermath[] = {
     0x3D,
     0x45,
     0x45,
-    0xBC,
-    0xBE,
-    0xBD,
-    0xB8,
-    0x8F,
-    0x8C,
+    0x3C | GAME_FLOW_LOAD_CAPTION_FILTER_FLAG,
+    0x3E | GAME_FLOW_LOAD_CAPTION_FILTER_FLAG,
+    0x3D | GAME_FLOW_LOAD_CAPTION_FILTER_FLAG,
+    0x38 | GAME_FLOW_LOAD_CAPTION_FILTER_FLAG,
+    0x0F | GAME_FLOW_LOAD_CAPTION_FILTER_FLAG,
+    0x0C | GAME_FLOW_LOAD_CAPTION_FILTER_FLAG,
     TEXT_STREAM_LINE_BREAK,
     0x16,
     0x21,
@@ -691,11 +710,15 @@ static u8 BootCaptionText_WhiteHouseAftermath[] = {
     0x42,
     TEXT_STREAM_END,
 };
-static TextStream BootCaption_WhiteHouseAftermath = { -150, -90, 960, 0, 0, 260, 1, 0, BootCaptionText_WhiteHouseAftermath, gTextCaptionGlyphCells, 13, 150, 216, 29 };
+static TextStream BootCaption_WhiteHouseAftermath = { -150, -90, 960, 0, 0, 260, 1, 0, _gGameFlowLoadCaptionWhiteHouseAftermathChars, gTextCaptionGlyphCells, 13, 150, 216, 29 };
 /// Legacy secondary caption; the current draw path ignores its second argument.
 static TextStream BootCaption_WhiteHouseAftermathSecondary = { 0 };
-/// September 0, 1990  6:05PM\nNature Museum,  New York
-static u8 BootCaptionText_MuseumFlashback[] = {
+/// Glyph script for the Nature Museum flashback date, time and place loading caption.
+///
+/// Two lines; selected by the alternate-caption request for Shelter R36.
+/// Bytes index `gTextCaptionGlyphCells`; `TEXT_STREAM_LINE_BREAK` separates
+/// lines and `TEXT_STREAM_END` terminates the script. Storage stays resident.
+static u8 _gGameFlowLoadCaptionMuseumFlashbackChars[] = {
     0x12,
     0x1E,
     0x29,
@@ -748,11 +771,15 @@ static u8 BootCaptionText_MuseumFlashback[] = {
     0x24,
     TEXT_STREAM_END,
 };
-static TextStream BootCaption_MuseumFlashback = { -150, -90, 960, 0, 0, 260, 1, 0, BootCaptionText_MuseumFlashback, gTextCaptionGlyphCells, 13, 300, 216, 29 };
+static TextStream BootCaption_MuseumFlashback = { -150, -90, 960, 0, 0, 260, 1, 0, _gGameFlowLoadCaptionMuseumFlashbackChars, gTextCaptionGlyphCells, 13, 300, 216, 29 };
 /// Legacy secondary caption; the current draw path ignores its second argument.
 static TextStream BootCaption_MuseumFlashbackSecondary = { 0 };
-/// September 3,  1999  \nM.I.S.T.  Center, Los Angeles
-static u8 BootCaptionText_MistArrival[] = {
+/// Glyph script for the M.I.S.T. arrival date and place loading caption.
+///
+/// Two lines; selected at M.I.S.T. parking while the story chapter is zero.
+/// Bytes index `gTextCaptionGlyphCells`; `TEXT_STREAM_LINE_BREAK` separates
+/// lines and `TEXT_STREAM_END` terminates the script. Storage stays resident.
+static u8 _gGameFlowLoadCaptionMistArrivalChars[] = {
     0x12,
     0x1E,
     0x29,
@@ -805,7 +832,7 @@ static u8 BootCaptionText_MistArrival[] = {
     0x2C,
     TEXT_STREAM_END,
 };
-static TextStream BootCaption_MistArrival = { -150, -90, 960, 0, 0, 260, 1, 0, BootCaptionText_MistArrival, gTextCaptionGlyphCells, 13, 107, 216, 29 };
+static TextStream BootCaption_MistArrival = { -150, -90, 960, 0, 0, 260, 1, 0, _gGameFlowLoadCaptionMistArrivalChars, gTextCaptionGlyphCells, 13, 107, 216, 29 };
 /// September 3,  1999\nM.I.S.T.  Center, Los Angeles
 static u8 BootCaptionText_MistUnused[] = {
     0x12,
@@ -860,8 +887,12 @@ static u8 BootCaptionText_MistUnused[] = {
 };
 /// Retained unused caption variant.
 static TextStream BootCaption_MistUnused = { -150, -90, 960, 0, 0, 260, 3, 0, BootCaptionText_MistUnused, gTextCaptionGlyphCells, 13, 300, 216, 29 };
-/// September 3,  1999\nAkropolis Tower,  Los Angeles
-static u8 BootCaptionText_Akropolis[] = {
+/// Glyph script for the Akropolis Tower arrival date loading caption.
+///
+/// Two lines; the Acropolis square and ordinary tower-area selectors share this script.
+/// Bytes index `gTextCaptionGlyphCells`; `TEXT_STREAM_LINE_BREAK` separates
+/// lines and `TEXT_STREAM_END` terminates the script. Storage stays resident.
+static u8 _gGameFlowLoadCaptionAcropolisChars[] = {
     0x12,
     0x1E,
     0x29,
@@ -912,9 +943,13 @@ static u8 BootCaptionText_Akropolis[] = {
     0x2C,
     TEXT_STREAM_END,
 };
-static TextStream BootCaption_Akropolis = { -150, -90, 960, 0, 0, 260, 3, 0, BootCaptionText_Akropolis, gTextCaptionGlyphCells, 13, 300, 216, 29 };
-/// September 4,  1999\nM.I.S.T.  Center, Los Angeles
-static u8 BootCaptionText_MistDeparture[] = {
+static TextStream BootCaption_Akropolis = { -150, -90, 960, 0, 0, 260, 3, 0, _gGameFlowLoadCaptionAcropolisChars, gTextCaptionGlyphCells, 13, 300, 216, 29 };
+/// Glyph script for the M.I.S.T. departure date and place loading caption.
+///
+/// Two lines; selected at M.I.S.T. parking after the initial story chapter.
+/// Bytes index `gTextCaptionGlyphCells`; `TEXT_STREAM_LINE_BREAK` separates
+/// lines and `TEXT_STREAM_END` terminates the script. Storage stays resident.
+static u8 _gGameFlowLoadCaptionMistDepartureChars[] = {
     0x12,
     0x1E,
     0x29,
@@ -965,9 +1000,13 @@ static u8 BootCaptionText_MistDeparture[] = {
     0x2C,
     TEXT_STREAM_END,
 };
-static TextStream BootCaption_MistDeparture = { -150, -90, 960, 0, 0, 260, 3, 0, BootCaptionText_MistDeparture, gTextCaptionGlyphCells, 13, 300, 216, 29 };
-/// September 4,  1999\nDryfield, Mojave Desert
-static u8 BootCaptionText_Dryfield[] = {
+static TextStream BootCaption_MistDeparture = { -150, -90, 960, 0, 0, 260, 3, 0, _gGameFlowLoadCaptionMistDepartureChars, gTextCaptionGlyphCells, 13, 300, 216, 29 };
+/// Glyph script for the first Dryfield visit date and place loading caption.
+///
+/// Two lines; used for daytime Dryfield and nighttime chapter-3 arrivals.
+/// Bytes index `gTextCaptionGlyphCells`; `TEXT_STREAM_LINE_BREAK` separates
+/// lines and `TEXT_STREAM_END` terminates the script. Storage stays resident.
+static u8 _gGameFlowLoadCaptionDryfieldChars[] = {
     0x12,
     0x1E,
     0x29,
@@ -1012,9 +1051,35 @@ static u8 BootCaptionText_Dryfield[] = {
     0x2D,
     TEXT_STREAM_END,
 };
-static TextStream BootCaption_Dryfield = { -150, -90, 960, 0, 0, 260, 3, 0, BootCaptionText_Dryfield, gTextCaptionGlyphCells, 13, 300, 216, 29 };
-/// September 5,  1999\nMine shaft, Mojave Desert
-static u8 BootCaptionText_Mine[] = {
+/// Resident date/place caption for first-visit Dryfield loading screens.
+///
+/// Uses the caption font at VRAM (960, 0) and CLUT (0, 260), drawn from
+/// (-150, -90) in display pixels. Each glyph has a three-frame countdown;
+/// the drawer advances when it decrements below zero. The final text countdown
+/// reloads to 300 frames, but loading presentation keeps the revealed text alive
+/// with its own hold/fade timing. Playback writes only the script cursor.
+static TextStream _gGameFlowLoadCaptionDryfield = {
+    .x           = -150,
+    .y           = -90,
+    .tpageX      = 960,
+    .tpageY      = 0,
+    .clutX       = 0,
+    .clutY       = 260,
+    .charDelay   = 3,
+    .cursor      = 0,
+    .chars       = _gGameFlowLoadCaptionDryfieldChars,
+    .glyphs      = gTextCaptionGlyphCells,
+    .lineHeight  = 13,
+    .delayReload = 300,
+    .boxWidth    = 216,
+    .boxHeight   = 29,
+};
+/// Glyph script for the Mine shaft date and place loading caption.
+///
+/// Two lines; the Mine refuge selector shares it across story chapters.
+/// Bytes index `gTextCaptionGlyphCells`; `TEXT_STREAM_LINE_BREAK` separates
+/// lines and `TEXT_STREAM_END` terminates the script. Storage stays resident.
+static u8 _gGameFlowLoadCaptionMineChars[] = {
     0x12,
     0x1E,
     0x29,
@@ -1061,9 +1126,13 @@ static u8 BootCaptionText_Mine[] = {
     0x2D,
     TEXT_STREAM_END,
 };
-static TextStream BootCaption_Mine = { -150, -90, 960, 0, 0, 260, 3, 0, BootCaptionText_Mine, gTextCaptionGlyphCells, 13, 300, 216, 29 };
-/// September 5,  1999\nDwelling level, Shelter
-static u8 BootCaptionText_ShelterDwelling[] = {
+static TextStream BootCaption_Mine = { -150, -90, 960, 0, 0, 260, 3, 0, _gGameFlowLoadCaptionMineChars, gTextCaptionGlyphCells, 13, 300, 216, 29 };
+/// Glyph script for the Shelter dwelling-level date and place loading caption.
+///
+/// Two lines; shared by sterilization-room and underground-parking arrivals.
+/// Bytes index `gTextCaptionGlyphCells`; `TEXT_STREAM_LINE_BREAK` separates
+/// lines and `TEXT_STREAM_END` terminates the script. Storage stays resident.
+static u8 _gGameFlowLoadCaptionShelterDwellingChars[] = {
     0x12,
     0x1E,
     0x29,
@@ -1108,9 +1177,13 @@ static u8 BootCaptionText_ShelterDwelling[] = {
     0x2B,
     TEXT_STREAM_END,
 };
-static TextStream BootCaption_ShelterDwelling = { -150, -90, 960, 0, 0, 260, 3, 0, BootCaptionText_ShelterDwelling, gTextCaptionGlyphCells, 13, 300, 216, 29 };
-/// September 5,  1999\nWaste level, Shelter
-static u8 BootCaptionText_ShelterWaste[] = {
+static TextStream BootCaption_ShelterDwelling = { -150, -90, 960, 0, 0, 260, 3, 0, _gGameFlowLoadCaptionShelterDwellingChars, gTextCaptionGlyphCells, 13, 300, 216, 29 };
+/// Glyph script for the Shelter waste-level date and place loading caption.
+///
+/// Two lines; selected for the incinerator control room.
+/// Bytes index `gTextCaptionGlyphCells`; `TEXT_STREAM_LINE_BREAK` separates
+/// lines and `TEXT_STREAM_END` terminates the script. Storage stays resident.
+static u8 _gGameFlowLoadCaptionShelterWasteChars[] = {
     0x12,
     0x1E,
     0x29,
@@ -1152,9 +1225,13 @@ static u8 BootCaptionText_ShelterWaste[] = {
     0x2B,
     TEXT_STREAM_END,
 };
-static TextStream BootCaption_ShelterWaste = { -150, -90, 960, 0, 0, 260, 3, 0, BootCaptionText_ShelterWaste, gTextCaptionGlyphCells, 13, 300, 216, 29 };
-/// September 5,  1999\nDryfield, Mojave Desert
-static u8 BootCaptionText_DryfieldReturn[] = {
+static TextStream BootCaption_ShelterWaste = { -150, -90, 960, 0, 0, 260, 3, 0, _gGameFlowLoadCaptionShelterWasteChars, gTextCaptionGlyphCells, 13, 300, 216, 29 };
+/// Glyph script for the return to Dryfield date and place loading caption.
+///
+/// Two lines; used for nighttime story chapters 4 and 5.
+/// Bytes index `gTextCaptionGlyphCells`; `TEXT_STREAM_LINE_BREAK` separates
+/// lines and `TEXT_STREAM_END` terminates the script. Storage stays resident.
+static u8 _gGameFlowLoadCaptionDryfieldReturnChars[] = {
     0x12,
     0x1E,
     0x29,
@@ -1199,9 +1276,13 @@ static u8 BootCaptionText_DryfieldReturn[] = {
     0x2D,
     TEXT_STREAM_END,
 };
-static TextStream BootCaption_DryfieldReturn = { -150, -90, 960, 0, 0, 260, 3, 0, BootCaptionText_DryfieldReturn, gTextCaptionGlyphCells, 13, 300, 216, 29 };
-/// September 5,  1999\nLaboratory level, Shelter
-static u8 BootCaptionText_ShelterLaboratory[] = {
+static TextStream BootCaption_DryfieldReturn = { -150, -90, 960, 0, 0, 260, 3, 0, _gGameFlowLoadCaptionDryfieldReturnChars, gTextCaptionGlyphCells, 13, 300, 216, 29 };
+/// Glyph script for the Shelter laboratory-level date and place loading caption.
+///
+/// Two lines; the laboratory selector shares it across story chapters.
+/// Bytes index `gTextCaptionGlyphCells`; `TEXT_STREAM_LINE_BREAK` separates
+/// lines and `TEXT_STREAM_END` terminates the script. Storage stays resident.
+static u8 _gGameFlowLoadCaptionShelterLaboratoryChars[] = {
     0x12,
     0x1E,
     0x29,
@@ -1248,9 +1329,13 @@ static u8 BootCaptionText_ShelterLaboratory[] = {
     0x2B,
     TEXT_STREAM_END,
 };
-static TextStream BootCaption_ShelterLaboratory = { -150, -90, 960, 0, 0, 260, 3, 0, BootCaptionText_ShelterLaboratory, gTextCaptionGlyphCells, 13, 300, 216, 29 };
-/// September 5,  1999\nPod shaft, Shelter
-static u8 BootCaptionText_ShelterPod[] = {
+static TextStream BootCaption_ShelterLaboratory = { -150, -90, 960, 0, 0, 260, 3, 0, _gGameFlowLoadCaptionShelterLaboratoryChars, gTextCaptionGlyphCells, 13, 300, 216, 29 };
+/// Glyph script for the Shelter pod-shaft date and place loading caption.
+///
+/// Two lines; the Mine/Shelter selector uses it for the remaining areas.
+/// Bytes index `gTextCaptionGlyphCells`; `TEXT_STREAM_LINE_BREAK` separates
+/// lines and `TEXT_STREAM_END` terminates the script. Storage stays resident.
+static u8 _gGameFlowLoadCaptionShelterPodChars[] = {
     0x12,
     0x1E,
     0x29,
@@ -1290,7 +1375,7 @@ static u8 BootCaptionText_ShelterPod[] = {
     0x2B,
     TEXT_STREAM_END,
 };
-static TextStream BootCaption_ShelterPod = { -150, -90, 960, 0, 0, 260, 3, 0, BootCaptionText_ShelterPod, gTextCaptionGlyphCells, 13, 300, 216, 29 };
+static TextStream BootCaption_ShelterPod = { -150, -90, 960, 0, 0, 260, 3, 0, _gGameFlowLoadCaptionShelterPodChars, gTextCaptionGlyphCells, 13, 300, 216, 29 };
 /// September 5,  1999\nExperiment level, Shelter
 static u8 BootCaptionText_ShelterExperiment[] = {
     0x12,
@@ -1432,10 +1517,10 @@ static s32 _fadeBootImageToBlack(s16 levelStep)
     u8   maskColor;
     RECT clearRect;
 
-    maskColor = D_8006ACB4;
+    maskColor = _gFadeBootImageMaskLevel;
     _fadeDrawBootImageMask(maskColor);
 
-    if (D_8006ACB4 > FADE_BOOT_IMAGE_CLEAR_LEVEL) {
+    if (_gFadeBootImageMaskLevel > FADE_BOOT_IMAGE_CLEAR_LEVEL) {
         clearRect.y = 0;
         clearRect.x = 0;
         clearRect.w = FILE_SYSTEM_IMAGE_WIDTH;
@@ -1446,7 +1531,7 @@ static s32 _fadeBootImageToBlack(s16 levelStep)
         gDisplayState.control.flags.imageSource = DISPLAY_IMAGE_NONE;
         return 1;
     }
-    D_8006ACB4 += levelStep;
+    _gFadeBootImageMaskLevel += levelStep;
     return 0;
 }
 
@@ -1461,8 +1546,8 @@ static void _fadeBeginBootImageReveal(void)
     displayConfigureFramebuffers(DISPLAY_SETUP_DEFAULT | DISPLAY_SETUP_NO_CLEAR | DISPLAY_SETUP_KEEP_VIEW);
     SetDispMask(1);
 
-    D_8006ACB4 = FADE_BOOT_IMAGE_MAX_COLOR;
-    maskColor  = *(volatile u8*)&D_8006ACB4;
+    _gFadeBootImageMaskLevel = FADE_BOOT_IMAGE_MAX_COLOR;
+    maskColor                = *(volatile u8*)&_gFadeBootImageMaskLevel;
     _fadeDrawBootImageMask(maskColor);
 }
 
@@ -1477,11 +1562,11 @@ static s32 _fadeBootImageFromBlack(s32 levelStep)
     s16 nextLevel;
 
     gDisplayState.control.flags.imageSource = DISPLAY_IMAGE_STRIPS;
-    maskColor                               = *(volatile u8*)&D_8006ACB4;
+    maskColor                               = *(volatile u8*)&_gFadeBootImageMaskLevel;
     _fadeDrawBootImageMask(maskColor);
 
-    nextLevel  = D_8006ACB4 - levelStep;
-    D_8006ACB4 = nextLevel;
+    nextLevel                = _gFadeBootImageMaskLevel - levelStep;
+    _gFadeBootImageMaskLevel = nextLevel;
     return nextLevel < 0;
 }
 
@@ -1492,35 +1577,35 @@ static s32 _fadeBootImageFromBlack(s32 levelStep)
 /// clears the secondary caption before selection, and all captions remain resident.
 static void _gameFlowSelectAcropolisLoadScreenAssets(u8* imageFileIndex)
 {
-    switch (Fs_LoadParams.area) {
+    switch (gGameFlowLoadScreenDestination.area) {
         case GAME_AREA_ACROPOLIS_SQUARE:
-            Fs_BootTimPrimary = &BootCaption_Akropolis;
-            *imageFileIndex   = GAME_FLOW_LOAD_IMAGE_ACROPOLIS_SQUARE;
+            gGameFlowLoadCaption = &BootCaption_Akropolis;
+            *imageFileIndex      = GAME_FLOW_LOAD_IMAGE_ACROPOLIS_SQUARE;
             break;
         case GAME_AREA_ACROPOLIS_PLAZA:
-            Fs_BootTimPrimary   = &BootCaption_AkropolisEvening;
-            Fs_BootTimSecondary = &BootCaption_AkropolisEveningSecondary;
-            *imageFileIndex     = GAME_FLOW_LOAD_IMAGE_DETAILED_CAPTION;
+            gGameFlowLoadCaption                = &BootCaption_AkropolisEvening;
+            gGameFlowLegacySecondaryLoadCaption = &BootCaption_AkropolisEveningSecondary;
+            *imageFileIndex                     = GAME_FLOW_LOAD_IMAGE_DETAILED_CAPTION;
             break;
         case GAME_AREA_ACROPOLIS_EAST_ELEVATOR_HALL ... GAME_AREA_ACROPOLIS_CAFETERIA:
         case GAME_AREA_ACROPOLIS_SECURITY_ROOM ... GAME_AREA_MIST_R18:
         default:
-            Fs_BootTimPrimary = &BootCaption_Akropolis;
-            *imageFileIndex   = GAME_FLOW_LOAD_IMAGE_ACROPOLIS_OTHER;
+            gGameFlowLoadCaption = &BootCaption_Akropolis;
+            *imageFileIndex      = GAME_FLOW_LOAD_IMAGE_ACROPOLIS_OTHER;
             break;
         case GAME_AREA_MIST_PARKING:
             if (gameFlagGetNibble(GAME_FLAG_STORY_CHAPTER) == GAME_FLOW_LOAD_CHAPTER_MIST_ARRIVAL) {
-                Fs_BootTimPrimary = &BootCaption_MistArrival;
-                *imageFileIndex   = GAME_FLOW_LOAD_IMAGE_MIST_ARRIVAL;
+                gGameFlowLoadCaption = &BootCaption_MistArrival;
+                *imageFileIndex      = GAME_FLOW_LOAD_IMAGE_MIST_ARRIVAL;
             } else {
-                Fs_BootTimPrimary = &BootCaption_MistDeparture;
-                *imageFileIndex   = GAME_FLOW_LOAD_IMAGE_MIST_DEPARTURE;
+                gGameFlowLoadCaption = &BootCaption_MistDeparture;
+                *imageFileIndex      = GAME_FLOW_LOAD_IMAGE_MIST_DEPARTURE;
             }
             break;
         case GAME_AREA_MIST_SHOOTING_GALLERY:
-            Fs_BootTimPrimary   = &BootCaption_MistEvening;
-            Fs_BootTimSecondary = &BootCaption_MistEveningSecondary;
-            *imageFileIndex     = GAME_FLOW_LOAD_IMAGE_DETAILED_CAPTION;
+            gGameFlowLoadCaption                = &BootCaption_MistEvening;
+            gGameFlowLegacySecondaryLoadCaption = &BootCaption_MistEveningSecondary;
+            *imageFileIndex                     = GAME_FLOW_LOAD_IMAGE_DETAILED_CAPTION;
             break;
     }
 }
@@ -1532,35 +1617,35 @@ static void _gameFlowSelectAcropolisLoadScreenAssets(u8* imageFileIndex)
 /// the secondary caption first, and all selected captions remain resident.
 static void _gameFlowSelectDryfieldLoadScreenAssets(u8* imageFileIndex)
 {
-    switch (Fs_LoadParams.area) {
+    switch (gGameFlowLoadScreenDestination.area) {
         case GAME_AREA_DRYFIELD_GAS_STATION:
-            if (D5B498_8006ACC0 == GAME_FLOW_LOAD_CAPTION_NORMAL) {
-                Fs_BootTimPrimary = &BootCaption_Dryfield;
-                *imageFileIndex   = GAME_FLOW_LOAD_IMAGE_DRYFIELD_MAIN_STREET;
+            if (gGameFlowLoadAlternateCaption == GAME_FLOW_LOAD_CAPTION_NORMAL) {
+                gGameFlowLoadCaption = &_gGameFlowLoadCaptionDryfield;
+                *imageFileIndex      = GAME_FLOW_LOAD_IMAGE_DRYFIELD_MAIN_STREET;
             } else {
-                Fs_BootTimPrimary   = &BootCaption_DesertAfternoon;
-                Fs_BootTimSecondary = &BootCaption_DesertAfternoonSecondary;
-                *imageFileIndex     = GAME_FLOW_LOAD_IMAGE_DETAILED_CAPTION;
+                gGameFlowLoadCaption                = &BootCaption_DesertAfternoon;
+                gGameFlowLegacySecondaryLoadCaption = &BootCaption_DesertAfternoonSecondary;
+                *imageFileIndex                     = GAME_FLOW_LOAD_IMAGE_DETAILED_CAPTION;
             }
             break;
         case GAME_AREA_DRYFIELD_MAIN_STREET:
-            Fs_BootTimPrimary = &BootCaption_Dryfield;
-            *imageFileIndex   = GAME_FLOW_LOAD_IMAGE_DRYFIELD_MAIN_STREET;
+            gGameFlowLoadCaption = &_gGameFlowLoadCaptionDryfield;
+            *imageFileIndex      = GAME_FLOW_LOAD_IMAGE_DRYFIELD_MAIN_STREET;
             break;
         case GAME_AREA_DRYFIELD_TRAILER_COACH:
-            Fs_BootTimPrimary = &BootCaption_Dryfield;
-            *imageFileIndex   = GAME_FLOW_LOAD_IMAGE_DRYFIELD_TRAILER_COACH;
+            gGameFlowLoadCaption = &_gGameFlowLoadCaptionDryfield;
+            *imageFileIndex      = GAME_FLOW_LOAD_IMAGE_DRYFIELD_TRAILER_COACH;
             break;
         case GAME_AREA_DRYFIELD_MOTEL_ROOM_6:
-            Fs_BootTimPrimary = &BootCaption_Dryfield;
-            *imageFileIndex   = GAME_FLOW_LOAD_IMAGE_DRYFIELD_MOTEL_ROOM_6;
+            gGameFlowLoadCaption = &_gGameFlowLoadCaptionDryfield;
+            *imageFileIndex      = GAME_FLOW_LOAD_IMAGE_DRYFIELD_MOTEL_ROOM_6;
             break;
         case GAME_AREA_DRYFIELD_GENERAL_STORE ... GAME_AREA_DRYFIELD_JUNK_YARD:
         case GAME_AREA_DRYFIELD_MOTEL_ROOM_5 ... GAME_AREA_DRYFIELD_MOTEL_BALCONY:
         case GAME_AREA_DRYFIELD_MOTEL_LOFT ... GAME_AREA_DRYFIELD_UNDERPASS:
         default:
-            Fs_BootTimPrimary = &BootCaption_Dryfield;
-            *imageFileIndex   = GAME_FLOW_LOAD_IMAGE_DRYFIELD_OTHER;
+            gGameFlowLoadCaption = &_gGameFlowLoadCaptionDryfield;
+            *imageFileIndex      = GAME_FLOW_LOAD_IMAGE_DRYFIELD_OTHER;
             break;
     }
 }
@@ -1575,21 +1660,21 @@ static void _gameFlowSelectDryfieldNightLoadScreenAssets(u8* imageFileIndex)
     u16 storyChapter;
 
     storyChapter = gameFlagGetNibble(GAME_FLAG_STORY_CHAPTER);
-    switch (Fs_LoadParams.area) {
+    switch (gGameFlowLoadScreenDestination.area) {
         case GAME_AREA_DRYFIELD_NIGHT_MOTEL_LOBBY:
             switch (storyChapter) {
                 case GAME_FLOW_LOAD_CHAPTER_3:
                 default:
-                    Fs_BootTimPrimary = &BootCaption_Dryfield;
-                    *imageFileIndex   = GAME_FLOW_LOAD_IMAGE_DRYFIELD_NIGHT_LOBBY_CHAPTER_3;
+                    gGameFlowLoadCaption = &_gGameFlowLoadCaptionDryfield;
+                    *imageFileIndex      = GAME_FLOW_LOAD_IMAGE_DRYFIELD_NIGHT_LOBBY_CHAPTER_3;
                     break;
                 case GAME_FLOW_LOAD_CHAPTER_4:
-                    Fs_BootTimPrimary = &BootCaption_DryfieldReturn;
-                    *imageFileIndex   = GAME_FLOW_LOAD_IMAGE_DRYFIELD_NIGHT_LOBBY_CHAPTER_4;
+                    gGameFlowLoadCaption = &BootCaption_DryfieldReturn;
+                    *imageFileIndex      = GAME_FLOW_LOAD_IMAGE_DRYFIELD_NIGHT_LOBBY_CHAPTER_4;
                     break;
                 case GAME_FLOW_LOAD_CHAPTER_5:
-                    Fs_BootTimPrimary = &BootCaption_DryfieldReturn;
-                    *imageFileIndex   = GAME_FLOW_LOAD_IMAGE_DRYFIELD_NIGHT_LOBBY_CHAPTER_5;
+                    gGameFlowLoadCaption = &BootCaption_DryfieldReturn;
+                    *imageFileIndex      = GAME_FLOW_LOAD_IMAGE_DRYFIELD_NIGHT_LOBBY_CHAPTER_5;
                     break;
             }
             break;
@@ -1597,16 +1682,16 @@ static void _gameFlowSelectDryfieldNightLoadScreenAssets(u8* imageFileIndex)
             switch (storyChapter) {
                 case GAME_FLOW_LOAD_CHAPTER_3:
                 default:
-                    Fs_BootTimPrimary = &BootCaption_Dryfield;
-                    *imageFileIndex   = GAME_FLOW_LOAD_IMAGE_DRYFIELD_NIGHT_TRAILER_CHAPTER_3;
+                    gGameFlowLoadCaption = &_gGameFlowLoadCaptionDryfield;
+                    *imageFileIndex      = GAME_FLOW_LOAD_IMAGE_DRYFIELD_NIGHT_TRAILER_CHAPTER_3;
                     break;
                 case GAME_FLOW_LOAD_CHAPTER_4:
-                    Fs_BootTimPrimary = &BootCaption_DryfieldReturn;
-                    *imageFileIndex   = GAME_FLOW_LOAD_IMAGE_DRYFIELD_NIGHT_TRAILER_CHAPTER_4;
+                    gGameFlowLoadCaption = &BootCaption_DryfieldReturn;
+                    *imageFileIndex      = GAME_FLOW_LOAD_IMAGE_DRYFIELD_NIGHT_TRAILER_CHAPTER_4;
                     break;
                 case GAME_FLOW_LOAD_CHAPTER_5:
-                    Fs_BootTimPrimary = &BootCaption_DryfieldReturn;
-                    *imageFileIndex   = GAME_FLOW_LOAD_IMAGE_DRYFIELD_NIGHT_TRAILER_CHAPTER_5;
+                    gGameFlowLoadCaption = &BootCaption_DryfieldReturn;
+                    *imageFileIndex      = GAME_FLOW_LOAD_IMAGE_DRYFIELD_NIGHT_TRAILER_CHAPTER_5;
                     break;
             }
             break;
@@ -1615,16 +1700,16 @@ static void _gameFlowSelectDryfieldNightLoadScreenAssets(u8* imageFileIndex)
             switch (storyChapter) {
                 case GAME_FLOW_LOAD_CHAPTER_3:
                 default:
-                    Fs_BootTimPrimary = &BootCaption_Dryfield;
-                    *imageFileIndex   = GAME_FLOW_LOAD_IMAGE_DRYFIELD_NIGHT_OTHER_CHAPTER_3;
+                    gGameFlowLoadCaption = &_gGameFlowLoadCaptionDryfield;
+                    *imageFileIndex      = GAME_FLOW_LOAD_IMAGE_DRYFIELD_NIGHT_OTHER_CHAPTER_3;
                     break;
                 case GAME_FLOW_LOAD_CHAPTER_4:
-                    Fs_BootTimPrimary = &BootCaption_DryfieldReturn;
-                    *imageFileIndex   = GAME_FLOW_LOAD_IMAGE_DRYFIELD_NIGHT_OTHER_CHAPTER_4;
+                    gGameFlowLoadCaption = &BootCaption_DryfieldReturn;
+                    *imageFileIndex      = GAME_FLOW_LOAD_IMAGE_DRYFIELD_NIGHT_OTHER_CHAPTER_4;
                     break;
                 case GAME_FLOW_LOAD_CHAPTER_5:
-                    Fs_BootTimPrimary = &BootCaption_DryfieldReturn;
-                    *imageFileIndex   = GAME_FLOW_LOAD_IMAGE_DRYFIELD_NIGHT_OTHER_CHAPTER_5;
+                    gGameFlowLoadCaption = &BootCaption_DryfieldReturn;
+                    *imageFileIndex      = GAME_FLOW_LOAD_IMAGE_DRYFIELD_NIGHT_OTHER_CHAPTER_5;
                     break;
             }
             break;
@@ -1642,22 +1727,22 @@ static void _gameFlowSelectMineShelterLoadScreenAssets(u8* imageFileIndex)
     u16 storyChapter;
 
     storyChapter = gameFlagGetNibble(GAME_FLAG_STORY_CHAPTER);
-    switch (Fs_LoadParams.area) {
+    switch (gGameFlowLoadScreenDestination.area) {
         case GAME_AREA_MINE_MESA:
-            Fs_BootTimPrimary   = &BootCaption_DryfieldMesaNight;
-            Fs_BootTimSecondary = &BootCaption_DryfieldMesaNightSecondary;
-            *imageFileIndex     = GAME_FLOW_LOAD_IMAGE_DETAILED_CAPTION;
+            gGameFlowLoadCaption                = &BootCaption_DryfieldMesaNight;
+            gGameFlowLegacySecondaryLoadCaption = &BootCaption_DryfieldMesaNightSecondary;
+            *imageFileIndex                     = GAME_FLOW_LOAD_IMAGE_DETAILED_CAPTION;
             break;
         case GAME_AREA_MINE_REFUGE:
             switch (storyChapter) {
                 case GAME_FLOW_LOAD_CHAPTER_4:
                 default:
-                    Fs_BootTimPrimary = &BootCaption_Mine;
-                    *imageFileIndex   = GAME_FLOW_LOAD_IMAGE_MINE_REFUGE_CHAPTER_4;
+                    gGameFlowLoadCaption = &BootCaption_Mine;
+                    *imageFileIndex      = GAME_FLOW_LOAD_IMAGE_MINE_REFUGE_CHAPTER_4;
                     break;
                 case GAME_FLOW_LOAD_CHAPTER_5:
-                    Fs_BootTimPrimary = &BootCaption_Mine;
-                    *imageFileIndex   = GAME_FLOW_LOAD_IMAGE_MINE_REFUGE_CHAPTER_5;
+                    gGameFlowLoadCaption = &BootCaption_Mine;
+                    *imageFileIndex      = GAME_FLOW_LOAD_IMAGE_MINE_REFUGE_CHAPTER_5;
                     break;
             }
             break;
@@ -1665,16 +1750,16 @@ static void _gameFlowSelectMineShelterLoadScreenAssets(u8* imageFileIndex)
             switch (storyChapter) {
                 case GAME_FLOW_LOAD_CHAPTER_4:
                 default:
-                    Fs_BootTimPrimary = &BootCaption_ShelterDwelling;
-                    *imageFileIndex   = GAME_FLOW_LOAD_IMAGE_SHELTER_STERILIZATION_CHAPTER_4;
+                    gGameFlowLoadCaption = &BootCaption_ShelterDwelling;
+                    *imageFileIndex      = GAME_FLOW_LOAD_IMAGE_SHELTER_STERILIZATION_CHAPTER_4;
                     break;
                 case GAME_FLOW_LOAD_CHAPTER_5:
-                    Fs_BootTimPrimary = &BootCaption_ShelterDwelling;
-                    *imageFileIndex   = GAME_FLOW_LOAD_IMAGE_SHELTER_STERILIZATION_CHAPTER_5;
+                    gGameFlowLoadCaption = &BootCaption_ShelterDwelling;
+                    *imageFileIndex      = GAME_FLOW_LOAD_IMAGE_SHELTER_STERILIZATION_CHAPTER_5;
                     break;
                 case GAME_FLOW_LOAD_CHAPTER_6:
-                    Fs_BootTimPrimary = &BootCaption_ShelterDwelling;
-                    *imageFileIndex   = GAME_FLOW_LOAD_IMAGE_SHELTER_STERILIZATION_CHAPTER_6;
+                    gGameFlowLoadCaption = &BootCaption_ShelterDwelling;
+                    *imageFileIndex      = GAME_FLOW_LOAD_IMAGE_SHELTER_STERILIZATION_CHAPTER_6;
                     break;
             }
             break;
@@ -1682,40 +1767,40 @@ static void _gameFlowSelectMineShelterLoadScreenAssets(u8* imageFileIndex)
             switch (storyChapter) {
                 case GAME_FLOW_LOAD_CHAPTER_4:
                 default:
-                    Fs_BootTimPrimary = &BootCaption_ShelterDwelling;
-                    *imageFileIndex   = GAME_FLOW_LOAD_IMAGE_SHELTER_PARKING_CHAPTER_4;
+                    gGameFlowLoadCaption = &BootCaption_ShelterDwelling;
+                    *imageFileIndex      = GAME_FLOW_LOAD_IMAGE_SHELTER_PARKING_CHAPTER_4;
                     break;
                 case GAME_FLOW_LOAD_CHAPTER_5:
-                    Fs_BootTimPrimary = &BootCaption_ShelterDwelling;
-                    *imageFileIndex   = GAME_FLOW_LOAD_IMAGE_SHELTER_PARKING_CHAPTER_5;
+                    gGameFlowLoadCaption = &BootCaption_ShelterDwelling;
+                    *imageFileIndex      = GAME_FLOW_LOAD_IMAGE_SHELTER_PARKING_CHAPTER_5;
                     break;
                 case GAME_FLOW_LOAD_CHAPTER_6:
-                    Fs_BootTimPrimary = &BootCaption_ShelterDwelling;
-                    *imageFileIndex   = GAME_FLOW_LOAD_IMAGE_SHELTER_PARKING_CHAPTER_6;
+                    gGameFlowLoadCaption = &BootCaption_ShelterDwelling;
+                    *imageFileIndex      = GAME_FLOW_LOAD_IMAGE_SHELTER_PARKING_CHAPTER_6;
                     break;
             }
             break;
         case GAME_AREA_SHELTER_R36:
-            if (D5B498_8006ACC0 == GAME_FLOW_LOAD_CAPTION_NORMAL) {
-                Fs_BootTimPrimary   = &BootCaption_WhiteHouseAftermath;
-                Fs_BootTimSecondary = &BootCaption_WhiteHouseAftermathSecondary;
-                *imageFileIndex     = GAME_FLOW_LOAD_IMAGE_DETAILED_CAPTION;
+            if (gGameFlowLoadAlternateCaption == GAME_FLOW_LOAD_CAPTION_NORMAL) {
+                gGameFlowLoadCaption                = &BootCaption_WhiteHouseAftermath;
+                gGameFlowLegacySecondaryLoadCaption = &BootCaption_WhiteHouseAftermathSecondary;
+                *imageFileIndex                     = GAME_FLOW_LOAD_IMAGE_DETAILED_CAPTION;
             } else {
-                Fs_BootTimPrimary   = &BootCaption_MuseumFlashback;
-                Fs_BootTimSecondary = &BootCaption_MuseumFlashbackSecondary;
-                *imageFileIndex     = GAME_FLOW_LOAD_IMAGE_DETAILED_CAPTION;
+                gGameFlowLoadCaption                = &BootCaption_MuseumFlashback;
+                gGameFlowLegacySecondaryLoadCaption = &BootCaption_MuseumFlashbackSecondary;
+                *imageFileIndex                     = GAME_FLOW_LOAD_IMAGE_DETAILED_CAPTION;
             }
             break;
         case GAME_AREA_SHELTER_B3_INCINERATOR_CONTROL_ROOM:
             switch (storyChapter) {
                 case GAME_FLOW_LOAD_CHAPTER_4:
                 default:
-                    Fs_BootTimPrimary = &BootCaption_ShelterWaste;
-                    *imageFileIndex   = GAME_FLOW_LOAD_IMAGE_SHELTER_INCINERATOR_CHAPTER_4;
+                    gGameFlowLoadCaption = &BootCaption_ShelterWaste;
+                    *imageFileIndex      = GAME_FLOW_LOAD_IMAGE_SHELTER_INCINERATOR_CHAPTER_4;
                     break;
                 case GAME_FLOW_LOAD_CHAPTER_5:
-                    Fs_BootTimPrimary = &BootCaption_ShelterWaste;
-                    *imageFileIndex   = GAME_FLOW_LOAD_IMAGE_SHELTER_INCINERATOR_CHAPTER_5;
+                    gGameFlowLoadCaption = &BootCaption_ShelterWaste;
+                    *imageFileIndex      = GAME_FLOW_LOAD_IMAGE_SHELTER_INCINERATOR_CHAPTER_5;
                     break;
             }
             break;
@@ -1723,16 +1808,16 @@ static void _gameFlowSelectMineShelterLoadScreenAssets(u8* imageFileIndex)
             switch (storyChapter) {
                 case GAME_FLOW_LOAD_CHAPTER_4:
                 default:
-                    Fs_BootTimPrimary = &BootCaption_ShelterLaboratory;
-                    *imageFileIndex   = GAME_FLOW_LOAD_IMAGE_SHELTER_LABORATORY_CHAPTER_4;
+                    gGameFlowLoadCaption = &BootCaption_ShelterLaboratory;
+                    *imageFileIndex      = GAME_FLOW_LOAD_IMAGE_SHELTER_LABORATORY_CHAPTER_4;
                     break;
                 case GAME_FLOW_LOAD_CHAPTER_5:
-                    Fs_BootTimPrimary = &BootCaption_ShelterLaboratory;
-                    *imageFileIndex   = GAME_FLOW_LOAD_IMAGE_SHELTER_LABORATORY_CHAPTER_5;
+                    gGameFlowLoadCaption = &BootCaption_ShelterLaboratory;
+                    *imageFileIndex      = GAME_FLOW_LOAD_IMAGE_SHELTER_LABORATORY_CHAPTER_5;
                     break;
                 case GAME_FLOW_LOAD_CHAPTER_6:
-                    Fs_BootTimPrimary = &BootCaption_ShelterLaboratory;
-                    *imageFileIndex   = GAME_FLOW_LOAD_IMAGE_SHELTER_LABORATORY_CHAPTER_6;
+                    gGameFlowLoadCaption = &BootCaption_ShelterLaboratory;
+                    *imageFileIndex      = GAME_FLOW_LOAD_IMAGE_SHELTER_LABORATORY_CHAPTER_6;
                     break;
             }
             break;
@@ -1747,12 +1832,12 @@ static void _gameFlowSelectMineShelterLoadScreenAssets(u8* imageFileIndex)
             switch (storyChapter) {
                 case GAME_FLOW_LOAD_CHAPTER_4:
                 default:
-                    Fs_BootTimPrimary = &BootCaption_ShelterPod;
-                    *imageFileIndex   = GAME_FLOW_LOAD_IMAGE_SHELTER_POD_CHAPTER_4;
+                    gGameFlowLoadCaption = &BootCaption_ShelterPod;
+                    *imageFileIndex      = GAME_FLOW_LOAD_IMAGE_SHELTER_POD_CHAPTER_4;
                     break;
                 case GAME_FLOW_LOAD_CHAPTER_5:
-                    Fs_BootTimPrimary = &BootCaption_ShelterPod;
-                    *imageFileIndex   = GAME_FLOW_LOAD_IMAGE_SHELTER_POD_CHAPTER_5;
+                    gGameFlowLoadCaption = &BootCaption_ShelterPod;
+                    *imageFileIndex      = GAME_FLOW_LOAD_IMAGE_SHELTER_POD_CHAPTER_5;
                     break;
             }
             break;
@@ -1799,10 +1884,10 @@ void gameFlowStartLoadScreenImage(void)
     // Discard the old image before selecting the next screen's resident captions.
     memFillBytes(gFsImageWorkspacePtr, 0, sizeof(*gFsImageWorkspacePtr));
     _gameFlowPrepareLoadScreenDisplay(&clearRect);
-    imageKey.stage      = GAME_STAGE_NONE;
-    imageKey.fileGroup  = GAME_FLOW_LOAD_FILE_CATEGORY;
-    Fs_BootTimSecondary = NULL;
-    switch (Fs_LoadParams.stage) {
+    imageKey.stage                      = GAME_STAGE_NONE;
+    imageKey.fileGroup                  = GAME_FLOW_LOAD_FILE_CATEGORY;
+    gGameFlowLegacySecondaryLoadCaption = NULL;
+    switch (gGameFlowLoadScreenDestination.stage) {
         case GAME_STAGE_ACROPOLIS:
             _gameFlowSelectAcropolisLoadScreenAssets(&imageKey.fileIndex);
             break;
@@ -1819,26 +1904,26 @@ void gameFlowStartLoadScreenImage(void)
         default:
             // Retain the story-flag read even though this stage does not branch on it.
             gameFlagGetNibble(GAME_FLAG_STORY_CHAPTER);
-            switch (Fs_LoadParams.area) {
+            switch (gGameFlowLoadScreenDestination.area) {
                 case GAME_AREA_NEO_ARK_SHRINE:
                 default:
-                    if (D5B498_8006ACC0 == GAME_FLOW_LOAD_CAPTION_NORMAL) {
-                        Fs_BootTimPrimary  = &BootCaption_ShelterHeliport;
-                        imageKey.fileIndex = GAME_FLOW_LOAD_IMAGE_SHELTER_HELIPORT;
+                    if (gGameFlowLoadAlternateCaption == GAME_FLOW_LOAD_CAPTION_NORMAL) {
+                        gGameFlowLoadCaption = &BootCaption_ShelterHeliport;
+                        imageKey.fileIndex   = GAME_FLOW_LOAD_IMAGE_SHELTER_HELIPORT;
                     } else {
-                        Fs_BootTimPrimary   = &BootCaption_DesertReturn;
-                        Fs_BootTimSecondary = &BootCaption_DesertReturnSecondary;
-                        imageKey.fileIndex  = GAME_FLOW_LOAD_IMAGE_DETAILED_CAPTION;
+                        gGameFlowLoadCaption                = &BootCaption_DesertReturn;
+                        gGameFlowLegacySecondaryLoadCaption = &BootCaption_DesertReturnSecondary;
+                        imageKey.fileIndex                  = GAME_FLOW_LOAD_IMAGE_DETAILED_CAPTION;
                     }
                     break;
                 case GAME_AREA_SHELTER_B6_NURSERY:
-                    Fs_BootTimPrimary  = &BootCaption_ShelterExperiment;
-                    imageKey.fileIndex = GAME_FLOW_LOAD_IMAGE_SHELTER_NURSERY;
+                    gGameFlowLoadCaption = &BootCaption_ShelterExperiment;
+                    imageKey.fileIndex   = GAME_FLOW_LOAD_IMAGE_SHELTER_NURSERY;
                     break;
                 case GAME_AREA_NEO_ARK_R26:
-                    Fs_BootTimPrimary   = &BootCaption_WhiteHouseEvening;
-                    Fs_BootTimSecondary = &BootCaption_WhiteHouseEveningSecondary;
-                    imageKey.fileIndex  = GAME_FLOW_LOAD_IMAGE_DETAILED_CAPTION;
+                    gGameFlowLoadCaption                = &BootCaption_WhiteHouseEvening;
+                    gGameFlowLegacySecondaryLoadCaption = &BootCaption_WhiteHouseEveningSecondary;
+                    imageKey.fileIndex                  = GAME_FLOW_LOAD_IMAGE_DETAILED_CAPTION;
                     break;
             }
             break;
@@ -1848,7 +1933,7 @@ void gameFlowStartLoadScreenImage(void)
     loadOptions.loadMode         = CD_COMMAND_LOAD_DEFAULT;
     loadOptions.imageXPageOffset = 0;
     loadOptions.imageYOffset     = 0;
-    Fs_BootLoadSlot              = cdCmdEnqueue(CD_COMMAND_LOAD_FILE, &imageKey, &loadOptions);
+    gGameFlowLoadImageSlot       = cdCmdEnqueue(CD_COMMAND_LOAD_FILE, &imageKey, &loadOptions);
 }
 
 void gameFlowStepLoadScreenPresentation(TextStream* primaryCaption, TextStream* legacySecondaryCaption)
@@ -1873,75 +1958,75 @@ void gameFlowStepLoadScreenPresentation(TextStream* primaryCaption, TextStream* 
     queue = &gCdCmdQueue;
     // Retain the suppressed secondary-caption path and its original timing.
     secondaryCaption = NULL;
-    switch ((s16)D5B498_8006AC9C) {
+    switch (gGameFlowLoadScreenPresentationStep) {
         case GAME_FLOW_LOAD_PRESENTATION_BEGIN:
-            D_8006ACA0 = 0;
-            D_8006AC9F = 0;
-            D_8006AC9E = 0;
-            D_8006ACA4 = 0;
-            D_8006ACA2 = 0;
-            D_8006ACA8 = 0;
-            D_8006ACA6 = 0;
+            _gGameFlowLoadCaptionElapsedFrames               = 0;
+            _gGameFlowLegacySecondaryLoadCaptionPhase        = GAME_FLOW_LOAD_CAPTION_PHASE_ARM;
+            _gGameFlowLoadCaptionPhase                       = GAME_FLOW_LOAD_CAPTION_PHASE_ARM;
+            _gGameFlowLegacySecondaryLoadCaptionFramesLeft   = 0;
+            _gGameFlowLoadCaptionFramesLeft                  = 0;
+            _gGameFlowLegacySecondaryLoadCaptionRevealStatus = GAME_FLOW_LOAD_CAPTION_STATUS_PROGRESS;
+            _gGameFlowLoadCaptionRevealStatus                = GAME_FLOW_LOAD_CAPTION_STATUS_PROGRESS;
             _fadeBeginBootImageReveal();
-            D5B498_8006AC9C++;
+            gGameFlowLoadScreenPresentationStep++;
             /* fallthrough */
         case GAME_FLOW_LOAD_PRESENTATION_REVEAL:
             if ((_fadeBootImageFromBlack(GAME_FLOW_LOAD_FADE_COLOR_STEP) & 0xFFFF) != 0) {
-                D5B498_8006AC9C++;
+                gGameFlowLoadScreenPresentationStep++;
             }
             return;
         case GAME_FLOW_LOAD_PRESENTATION_CAPTION:
-            if (D_8006ACA6 < 0) {
-                D_8006ACA2 = 1;
+            if (_gGameFlowLoadCaptionRevealStatus < 0) {
+                _gGameFlowLoadCaptionFramesLeft = GAME_FLOW_LOAD_CAPTION_REDRAW_COUNTDOWN;
             }
-            primaryRevealStatus = textDrawStream(primaryCaption, &D_8006AC9E, &D_8006ACA2, 0);
-            if (D_8006ACA6 >= 0) {
-                D_8006ACA6 = primaryRevealStatus;
+            primaryRevealStatus = textDrawStream(primaryCaption, &_gGameFlowLoadCaptionPhase, &_gGameFlowLoadCaptionFramesLeft, 0);
+            if (_gGameFlowLoadCaptionRevealStatus >= 0) {
+                _gGameFlowLoadCaptionRevealStatus = primaryRevealStatus;
             }
-            if (D_8006ACA0 >= GAME_FLOW_LOAD_SECONDARY_DELAY_FRAMES) {
-                if (D_8006ACA8 < 0) {
-                    D_8006ACA4 = 1;
+            if (_gGameFlowLoadCaptionElapsedFrames >= GAME_FLOW_LOAD_SECONDARY_DELAY_FRAMES) {
+                if (_gGameFlowLegacySecondaryLoadCaptionRevealStatus < 0) {
+                    _gGameFlowLegacySecondaryLoadCaptionFramesLeft = GAME_FLOW_LOAD_CAPTION_REDRAW_COUNTDOWN;
                 }
                 if (secondaryCaption != NULL) {
-                    secondaryRevealStatus = textDrawStream(secondaryCaption, &D_8006AC9F, &D_8006ACA4, 0);
+                    secondaryRevealStatus = textDrawStream(secondaryCaption, &_gGameFlowLegacySecondaryLoadCaptionPhase, &_gGameFlowLegacySecondaryLoadCaptionFramesLeft, 0);
                 } else {
-                    D_8006ACA8 = GAME_FLOW_LOAD_CAPTION_END_REACHED;
+                    _gGameFlowLegacySecondaryLoadCaptionRevealStatus = GAME_FLOW_LOAD_CAPTION_END_REACHED;
                 }
-                if (D_8006ACA8 >= 0) {
-                    D_8006ACA8 = secondaryRevealStatus;
+                if (_gGameFlowLegacySecondaryLoadCaptionRevealStatus >= 0) {
+                    _gGameFlowLegacySecondaryLoadCaptionRevealStatus = secondaryRevealStatus;
                 }
             } else {
-                D_8006ACA0++;
+                _gGameFlowLoadCaptionElapsedFrames++;
             }
-            if (D_8006ACA8 < 0 && D_8006ACA6 < 0) {
-                D_8006ACA0 = 0;
-                D5B498_8006AC9C++;
+            if (_gGameFlowLegacySecondaryLoadCaptionRevealStatus < 0 && _gGameFlowLoadCaptionRevealStatus < 0) {
+                _gGameFlowLoadCaptionElapsedFrames = 0;
+                gGameFlowLoadScreenPresentationStep++;
             }
             return;
         case GAME_FLOW_LOAD_PRESENTATION_HOLD:
-            if (D_8006ACA0 >= GAME_FLOW_LOAD_CAPTION_HOLD_FRAMES) {
+            if (_gGameFlowLoadCaptionElapsedFrames >= GAME_FLOW_LOAD_CAPTION_HOLD_FRAMES) {
                 if (queue->holdBootImage == 0) {
-                    D_8006ACB4 = 0;
-                    D5B498_8006AC9C++;
+                    _gFadeBootImageMaskLevel = 0;
+                    gGameFlowLoadScreenPresentationStep++;
                 }
             } else {
-                D_8006ACA0++;
+                _gGameFlowLoadCaptionElapsedFrames++;
             }
             break;
         case GAME_FLOW_LOAD_PRESENTATION_FADE_OUT:
             if ((_fadeBootImageToBlack(GAME_FLOW_LOAD_FADE_COLOR_STEP) & 0xFFFF) != 0) {
-                Fs_BootLoadPhase           = GAME_FLOW_LOAD_PHASE_IDLE;
+                gGameFlowLoadScreenPhase   = GAME_FLOW_LOAD_PHASE_IDLE;
                 gCdCmdQueue.bootLoadActive = 0;
             }
             break;
         default:
             return;
     }
-    D_8006ACA4 = 1;
-    D_8006ACA2 = 1;
+    _gGameFlowLegacySecondaryLoadCaptionFramesLeft = GAME_FLOW_LOAD_CAPTION_REDRAW_COUNTDOWN;
+    _gGameFlowLoadCaptionFramesLeft                = GAME_FLOW_LOAD_CAPTION_REDRAW_COUNTDOWN;
     // Keep the revealed caption visible throughout the hold and fade-out.
-    textDrawStream(primaryCaption, &D_8006AC9E, &D_8006ACA2, 0);
+    textDrawStream(primaryCaption, &_gGameFlowLoadCaptionPhase, &_gGameFlowLoadCaptionFramesLeft, 0);
     if (secondaryCaption != NULL) {
-        textDrawStream(secondaryCaption, &D_8006AC9F, &D_8006ACA4, 0);
+        textDrawStream(secondaryCaption, &_gGameFlowLegacySecondaryLoadCaptionPhase, &_gGameFlowLegacySecondaryLoadCaptionFramesLeft, 0);
     }
 }
