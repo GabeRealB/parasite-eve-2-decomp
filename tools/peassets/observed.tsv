@@ -568,28 +568,28 @@ pe2img_1	video memory	trace-20261011-173304	demo_3	2	dryfield_underpass	3	1		896
 pe2img_1	video memory	trace-20261011-173304	demo_3	2	dryfield_underpass	6	1		896,256,64,256	0/title	0	0	0		
 pe2img_1	video memory	trace-20261011-173304	new_game						896,256,64,256	0/title	0	0	0		
 pe2img_1	video memory	trace-20261011-173304	new_game	1	mist_shooting_gallery	1	1		896,256,64,256	0/title	0	0	0		
-pe2img_134	video memory	trace-20261011-173304	new_game	1	mist_shooting_gallery	1	1		448,128,64,128	0/file20401	-8	-3	3		
-pe2img_134	video memory	trace-20261011-173304	new_game	1	mist_shooting_gallery	1	1		448,128,64,128	0/file20401	-8	-3	3		overwritten by pe2img_134 of 0/file20401 at event 2787
-pe2img_134	video memory	trace-20261011-173304	new_game	1	mist_shooting_gallery	1	1		448,128,64,128	0/file20401	-8	-3	3		overwritten by pe2img_158 of 0/file20513 at event 2674
-pe2img_134	video memory	trace-20261011-173304	new_game	1	mist_shooting_gallery	1	1		448,128,64,128	0/file20401	-8	-3	3		overwritten by pe2img_158 of 0/file20513 at event 2696
-pe2img_134	video memory	trace-20261011-173304	new_game	1	mist_shooting_gallery	1	1		448,128,64,128	0/file20401	-8	-3	3		overwritten by pe2img_158 of 0/file20513 at event 2724
-pe2img_134	video memory	trace-20261011-173304	new_game	1	mist_shooting_gallery	1	1		448,128,64,128	0/file20401	-8	-3	3		overwritten by pe2img_158 of 0/file20513 at event 2750
-pe2img_134	video memory	trace-20261011-173304	new_game	1	mist_shooting_gallery	1	1		448,128,64,128	0/file20401	-8	-3	3		overwritten by pe2img_33 of 0/file20102 at event 2710
-pe2img_134	video memory	trace-20261011-173304	new_game	1	mist_shooting_gallery	1	1		448,128,64,128	0/file20401	-8	-3	3		overwritten by pe2img_33 of 0/file20102 at event 2764
-pe2img_134	video memory	trace-20261011-173304	new_game	1	mist_shooting_gallery	1	1		960,128,64,128	0/file20401	0	-2	3		overwritten by pe2img_191 of 0/file30103 at event 2800
-pe2img_158	video memory	trace-20261011-173304	new_game	1	mist_shooting_gallery	1	1		448,128,64,128	0/file20513	-8	-3	3		overwritten by pe2img_134 of 0/file20401 at event 2681
-pe2img_158	video memory	trace-20261011-173304	new_game	1	mist_shooting_gallery	1	1		448,128,64,128	0/file20513	-8	-3	3		overwritten by pe2img_134 of 0/file20401 at event 2703
-pe2img_158	video memory	trace-20261011-173304	new_game	1	mist_shooting_gallery	1	1		448,128,64,128	0/file20513	-8	-3	3		overwritten by pe2img_134 of 0/file20401 at event 2731
-pe2img_158	video memory	trace-20261011-173304	new_game	1	mist_shooting_gallery	1	1		448,128,64,128	0/file20513	-8	-3	3		overwritten by pe2img_134 of 0/file20401 at event 2757
+pe2img_134	video memory	trace-20261011-173304	new_game	1	mist_shooting_gallery	1	1		448,128,64,96	0/file20401	-8	-3	3	its last 32 rows are blank filler, not counted as part of it	
+pe2img_134	video memory	trace-20261011-173304	new_game	1	mist_shooting_gallery	1	1		448,128,64,96	0/file20401	-8	-3	3	its last 32 rows are blank filler, not counted as part of it	overwritten by pe2img_134 of 0/file20401 at event 2787
+pe2img_134	video memory	trace-20261011-173304	new_game	1	mist_shooting_gallery	1	1		448,128,64,96	0/file20401	-8	-3	3	its last 32 rows are blank filler, not counted as part of it	overwritten by pe2img_158 of 0/file20513 at event 2674
+pe2img_134	video memory	trace-20261011-173304	new_game	1	mist_shooting_gallery	1	1		448,128,64,96	0/file20401	-8	-3	3	its last 32 rows are blank filler, not counted as part of it	overwritten by pe2img_158 of 0/file20513 at event 2696
+pe2img_134	video memory	trace-20261011-173304	new_game	1	mist_shooting_gallery	1	1		448,128,64,96	0/file20401	-8	-3	3	its last 32 rows are blank filler, not counted as part of it	overwritten by pe2img_158 of 0/file20513 at event 2724
+pe2img_134	video memory	trace-20261011-173304	new_game	1	mist_shooting_gallery	1	1		448,128,64,96	0/file20401	-8	-3	3	its last 32 rows are blank filler, not counted as part of it	overwritten by pe2img_158 of 0/file20513 at event 2750
+pe2img_134	video memory	trace-20261011-173304	new_game	1	mist_shooting_gallery	1	1		448,128,64,96	0/file20401	-8	-3	3	its last 32 rows are blank filler, not counted as part of it	overwritten by pe2img_33 of 0/file20102 at event 2710
+pe2img_134	video memory	trace-20261011-173304	new_game	1	mist_shooting_gallery	1	1		448,128,64,96	0/file20401	-8	-3	3	its last 32 rows are blank filler, not counted as part of it	overwritten by pe2img_33 of 0/file20102 at event 2764
+pe2img_134	video memory	trace-20261011-173304	new_game	1	mist_shooting_gallery	1	1		960,128,64,96	0/file20401	0	-2	3	its last 32 rows are blank filler, not counted as part of it	overwritten by pe2img_191 of 0/file30103 at event 2800
+pe2img_158	video memory	trace-20261011-173304	new_game	1	mist_shooting_gallery	1	1		448,128,64,96	0/file20513	-8	-3	3	its last 32 rows are blank filler, not counted as part of it	overwritten by pe2img_134 of 0/file20401 at event 2681
+pe2img_158	video memory	trace-20261011-173304	new_game	1	mist_shooting_gallery	1	1		448,128,64,96	0/file20513	-8	-3	3	its last 32 rows are blank filler, not counted as part of it	overwritten by pe2img_134 of 0/file20401 at event 2703
+pe2img_158	video memory	trace-20261011-173304	new_game	1	mist_shooting_gallery	1	1		448,128,64,96	0/file20513	-8	-3	3	its last 32 rows are blank filler, not counted as part of it	overwritten by pe2img_134 of 0/file20401 at event 2731
+pe2img_158	video memory	trace-20261011-173304	new_game	1	mist_shooting_gallery	1	1		448,128,64,96	0/file20513	-8	-3	3	its last 32 rows are blank filler, not counted as part of it	overwritten by pe2img_134 of 0/file20401 at event 2757
 pe2img_191	video memory	trace-20261011-173304	new_game	1	mist_shooting_gallery	1	1		896,0,128,256	0/file30103	0	0	0		overwritten by pe2img_477 of 1/mist_shooting_gallery/file8 at event 2815
-pe2img_2	video memory	trace-20261011-173304	boot						768,256,128,256	0/file2	0	0	0		
-pe2img_2	video memory	trace-20261011-173304	demo_1						768,256,128,256	0/file2	0	0	0		
-pe2img_2	video memory	trace-20261011-173304	demo_1						768,256,128,256	0/file2	0	0	0		overwritten by pe2img_31 of 0/aya_10400 at event 43
-pe2img_2	video memory	trace-20261011-173304	demo_2						768,256,128,256	0/file2	0	0	0		
-pe2img_2	video memory	trace-20261011-173304	demo_2						768,256,128,256	0/file2	0	0	0		overwritten by pe2img_5 of 0/aya_10300 at event 270
-pe2img_2	video memory	trace-20261011-173304	demo_3						768,256,128,256	0/file2	0	0	0		
-pe2img_2	video memory	trace-20261011-173304	demo_3						768,256,128,256	0/file2	0	0	0		overwritten by pe2img_5 of 0/aya_10300 at event 611
-pe2img_2	video memory	trace-20261011-173304	new_game						768,256,128,256	0/file2	0	0	0		overwritten by pe2img_4 of 0/file10500 at event 1025
+pe2img_2	video memory	trace-20261011-173304	boot						768,256,128,96	0/file2	0	0	0	its last 160 rows are blank filler, not counted as part of it	
+pe2img_2	video memory	trace-20261011-173304	demo_1						768,256,128,96	0/file2	0	0	0	its last 160 rows are blank filler, not counted as part of it	
+pe2img_2	video memory	trace-20261011-173304	demo_1						768,256,128,96	0/file2	0	0	0	its last 160 rows are blank filler, not counted as part of it	overwritten by pe2img_31 of 0/aya_10400 at event 43
+pe2img_2	video memory	trace-20261011-173304	demo_2						768,256,128,96	0/file2	0	0	0	its last 160 rows are blank filler, not counted as part of it	
+pe2img_2	video memory	trace-20261011-173304	demo_2						768,256,128,96	0/file2	0	0	0	its last 160 rows are blank filler, not counted as part of it	overwritten by pe2img_5 of 0/aya_10300 at event 270
+pe2img_2	video memory	trace-20261011-173304	demo_3						768,256,128,96	0/file2	0	0	0	its last 160 rows are blank filler, not counted as part of it	
+pe2img_2	video memory	trace-20261011-173304	demo_3						768,256,128,96	0/file2	0	0	0	its last 160 rows are blank filler, not counted as part of it	overwritten by pe2img_5 of 0/aya_10300 at event 611
+pe2img_2	video memory	trace-20261011-173304	new_game						768,256,128,96	0/file2	0	0	0	its last 160 rows are blank filler, not counted as part of it	overwritten by pe2img_4 of 0/file10500 at event 1025
 pe2img_208	video memory	trace-20261011-173304	demo_3						384,256,64,256	0/file400500	0	2	0		
 pe2img_208	video memory	trace-20261011-173304	demo_3	2	dryfield_underpass	3	1		384,256,64,256	0/file400500	0	2	0		
 pe2img_208	video memory	trace-20261011-173304	demo_3	2	dryfield_underpass	6	1		384,256,64,256	0/file400500	0	2	0		
@@ -608,39 +608,49 @@ pe2img_245	video memory	trace-20261011-173304	demo_2	2	dryfield_main_street	1	3	
 pe2img_28	video memory	trace-20261011-173304	demo_2						448,0,64,64	0/m4a1_pyke	0	0	0		
 pe2img_28	video memory	trace-20261011-173304	demo_2	2	dryfield_main_street	1	3		448,0,64,64	0/m4a1_pyke	0	0	0		
 pe2img_28	video memory	trace-20261011-173304	demo_3						448,0,64,64	0/m4a1_pyke	0	0	0		overwritten by pe2img_30 of 0/mp5a5 at event 615
-pe2img_3	video memory	trace-20261011-173304	demo_1						960,0,64,256	0/file5	0	0	0		
-pe2img_3	video memory	trace-20261011-173304	demo_1	1	acropolis_square	1	1		960,0,64,256	0/file5	0	0	0		overwritten by pe2img_309 of 1/acropolis_square/file8 at event 127
-pe2img_3	video memory	trace-20261011-173304	demo_2						960,0,64,256	0/file10	0	0	0		
-pe2img_3	video memory	trace-20261011-173304	demo_2	2	dryfield_main_street	1	3		960,0,64,256	0/file10	0	0	0		overwritten by pe2img_495 of 2/dryfield_main_street/file4 at event 346
-pe2img_3	video memory	trace-20261011-173304	demo_3						960,0,64,256	0/file39	0	0	0		
-pe2img_3	video memory	trace-20261011-173304	demo_3	2	dryfield_underpass	3	1		960,0,64,256	0/file39	0	0	0		overwritten by pe2img_706 of 2/dryfield_underpass/file3 at event 735
-pe2img_3	video memory	trace-20261011-173304	demo_3	2	dryfield_underpass	6	1		960,0,64,256	0/file39	0	0	0		
-pe2img_3	video memory	trace-20261011-173304	new_game						960,0,64,256	0/file3	0	0	0		
-pe2img_3	video memory	trace-20261011-173304	new_game	1	mist_shooting_gallery	1	1		960,0,64,256	0/file3	0	0	0		overwritten by pe2img_483 of 1/mist_shooting_gallery/file15 at event 1597
+pe2img_3	video memory	trace-20261011-173304	demo_1						960,0,64,160	0/file5	0	0	0	its last 96 rows are blank filler, not counted as part of it	
+pe2img_3	video memory	trace-20261011-173304	demo_1	1	acropolis_square	1	1		960,0,64,160	0/file5	0	0	0	its last 96 rows are blank filler, not counted as part of it	overwritten by pe2img_309 of 1/acropolis_square/file8 at event 127
+pe2img_3	video memory	trace-20261011-173304	demo_2						960,0,64,160	0/file10	0	0	0	its last 96 rows are blank filler, not counted as part of it	
+pe2img_3	video memory	trace-20261011-173304	demo_2	2	dryfield_main_street	1	3		960,0,64,160	0/file10	0	0	0	its last 96 rows are blank filler, not counted as part of it	overwritten by pe2img_495 of 2/dryfield_main_street/file4 at event 346
+pe2img_3	video memory	trace-20261011-173304	demo_3						960,0,64,160	0/file39	0	0	0	its last 96 rows are blank filler, not counted as part of it	
+pe2img_3	video memory	trace-20261011-173304	demo_3	2	dryfield_underpass	3	1		960,0,64,160	0/file39	0	0	0	its last 96 rows are blank filler, not counted as part of it	overwritten by pe2img_706 of 2/dryfield_underpass/file3 at event 735
+pe2img_3	video memory	trace-20261011-173304	demo_3	2	dryfield_underpass	6	1		960,0,64,160	0/file39	0	0	0	its last 96 rows are blank filler, not counted as part of it	
+pe2img_3	video memory	trace-20261011-173304	new_game						960,0,64,160	0/file3	0	0	0	its last 96 rows are blank filler, not counted as part of it	
+pe2img_3	video memory	trace-20261011-173304	new_game	1	mist_shooting_gallery	1	1		960,0,64,160	0/file3	0	0	0	its last 96 rows are blank filler, not counted as part of it	overwritten by pe2img_483 of 1/mist_shooting_gallery/file15 at event 1597
 pe2img_30	video memory	trace-20261011-173304	demo_3						448,0,64,64	0/mp5a5	0	0	0		
 pe2img_30	video memory	trace-20261011-173304	demo_3	2	dryfield_underpass	3	1		448,0,64,64	0/mp5a5	0	0	0		
 pe2img_30	video memory	trace-20261011-173304	demo_3	2	dryfield_underpass	6	1		448,0,64,64	0/mp5a5	0	0	0		
 pe2img_30	video memory	trace-20261011-173304	new_game						448,0,64,64	0/mp5a5	0	0	0		overwritten by pe2img_7 of 0/m93r at event 1029
-pe2img_300	video memory	trace-20261011-173304	demo_1						448,128,64,96	0/file801000	0	0	0		overwritten by pe2img_301 of 0/file801000 at event 25
-pe2img_300	video memory	trace-20261011-173304	demo_1						448,128,64,96	0/file900001	0	0	0		overwritten by pe2img_301 of 0/file900001 at event 61
-pe2img_300	video memory	trace-20261011-173304	demo_2						448,128,64,96	0/file801100	0	0	0		overwritten by pe2img_301 of 0/file801100 at event 252
-pe2img_300	video memory	trace-20261011-173304	demo_2						448,128,64,96	0/map_dryfield	0	0	0		overwritten by pe2img_301 of 0/map_dryfield at event 288
-pe2img_300	video memory	trace-20261011-173304	demo_3						448,128,64,96	0/file801200	0	0	0		overwritten by pe2img_301 of 0/file801200 at event 593
-pe2img_300	video memory	trace-20261011-173304	demo_3						448,128,64,96	0/map_dryfield	0	0	0		overwritten by pe2img_301 of 0/map_dryfield at event 629
-pe2img_300	video memory	trace-20261011-173304	new_game						448,128,64,96	0/file900001	0	0	0		overwritten by pe2img_301 of 0/file900001 at event 1043
-pe2img_301	video memory	trace-20261011-173304	demo_1						448,192,64,96	0/file801000	0	0	0		overwritten by pe2img_300 of 0/file900001 at event 61
-pe2img_301	video memory	trace-20261011-173304	demo_1						448,192,64,96	0/file900001	0	0	0		
-pe2img_301	video memory	trace-20261011-173304	demo_1	1	acropolis_square	1	1		448,192,64,96	0/file900001	0	0	0		overwritten by pe2img_311 of 1/acropolis_square/file15 at event 104
-pe2img_301	video memory	trace-20261011-173304	demo_2						448,192,64,96	0/file801100	0	0	0		overwritten by pe2img_300 of 0/map_dryfield at event 288
-pe2img_301	video memory	trace-20261011-173304	demo_2						448,192,64,96	0/map_dryfield	0	0	0		
-pe2img_301	video memory	trace-20261011-173304	demo_2	2	dryfield_main_street	1	3		448,192,64,96	0/map_dryfield	0	0	0		overwritten by pe2img_236 of 0/file400100 at event 323
-pe2img_301	video memory	trace-20261011-173304	demo_3						448,192,64,96	0/file801200	0	0	0		overwritten by pe2img_300 of 0/map_dryfield at event 629
-pe2img_301	video memory	trace-20261011-173304	demo_3						448,192,64,96	0/map_dryfield	0	0	0		
-pe2img_301	video memory	trace-20261011-173304	demo_3	2	dryfield_underpass	3	1		448,192,64,96	0/map_dryfield	0	0	0		
-pe2img_301	video memory	trace-20261011-173304	demo_3	2	dryfield_underpass	6	1		448,192,64,96	0/map_dryfield	0	0	0		
-pe2img_301	video memory	trace-20261011-173304	new_game						448,192,64,96	0/file900001	0	0	0		
-pe2img_301	video memory	trace-20261011-173304	new_game						448,192,64,96	0/map_dryfield	0	0	0		overwritten by pe2img_300 of 0/file900001 at event 1043
-pe2img_301	video memory	trace-20261011-173304	new_game	1	mist_shooting_gallery	1	1		448,192,64,96	0/file900001	0	0	0		overwritten by pe2img_237 of 0/file107600 at event 1579
+pe2img_300	video memory	trace-20261011-173304	demo_1						448,128,64,64	0/file801000	0	0	0	its last 32 rows are blank filler, not counted as part of it	overwritten by pe2img_300 of 0/file900001 at event 61
+pe2img_300	video memory	trace-20261011-173304	demo_1						448,128,64,64	0/file900001	0	0	0	its last 32 rows are blank filler, not counted as part of it	
+pe2img_300	video memory	trace-20261011-173304	demo_1	1	acropolis_square	1	1		448,128,64,64	0/file900001	0	0	0	its last 32 rows are blank filler, not counted as part of it	
+pe2img_300	video memory	trace-20261011-173304	demo_2						448,128,64,64	0/file801100	0	0	0	its last 32 rows are blank filler, not counted as part of it	overwritten by pe2img_300 of 0/map_dryfield at event 288
+pe2img_300	video memory	trace-20261011-173304	demo_2						448,128,64,64	0/file900001	0	0	0	its last 32 rows are blank filler, not counted as part of it	overwritten by pe2img_300 of 0/file801100 at event 252
+pe2img_300	video memory	trace-20261011-173304	demo_2						448,128,64,64	0/map_dryfield	0	0	0	its last 32 rows are blank filler, not counted as part of it	
+pe2img_300	video memory	trace-20261011-173304	demo_2	2	dryfield_main_street	1	3		448,128,64,64	0/map_dryfield	0	0	0	its last 32 rows are blank filler, not counted as part of it	
+pe2img_300	video memory	trace-20261011-173304	demo_3						448,128,64,64	0/file801200	0	0	0	its last 32 rows are blank filler, not counted as part of it	overwritten by pe2img_300 of 0/map_dryfield at event 629
+pe2img_300	video memory	trace-20261011-173304	demo_3						448,128,64,64	0/map_dryfield	0	0	0	its last 32 rows are blank filler, not counted as part of it	
+pe2img_300	video memory	trace-20261011-173304	demo_3						448,128,64,64	0/map_dryfield	0	0	0	its last 32 rows are blank filler, not counted as part of it	overwritten by pe2img_300 of 0/file801200 at event 593
+pe2img_300	video memory	trace-20261011-173304	demo_3	2	dryfield_underpass	3	1		448,128,64,64	0/map_dryfield	0	0	0	its last 32 rows are blank filler, not counted as part of it	
+pe2img_300	video memory	trace-20261011-173304	demo_3	2	dryfield_underpass	6	1		448,128,64,64	0/map_dryfield	0	0	0	its last 32 rows are blank filler, not counted as part of it	
+pe2img_300	video memory	trace-20261011-173304	new_game						448,128,64,64	0/file900001	0	0	0	its last 32 rows are blank filler, not counted as part of it	
+pe2img_300	video memory	trace-20261011-173304	new_game						448,128,64,64	0/map_dryfield	0	0	0	its last 32 rows are blank filler, not counted as part of it	overwritten by pe2img_300 of 0/file900001 at event 1043
+pe2img_300	video memory	trace-20261011-173304	new_game	1	mist_shooting_gallery	1	1		448,128,64,64	0/file900001	0	0	0	its last 32 rows are blank filler, not counted as part of it	overwritten by pe2img_33 of 0/file20102 at event 1759
+pe2img_301	video memory	trace-20261011-173304	demo_1						448,192,64,64	0/file801000	0	0	0	its last 32 rows are blank filler, not counted as part of it	overwritten by pe2img_300 of 0/file900001 at event 61
+pe2img_301	video memory	trace-20261011-173304	demo_1						448,192,64,64	0/file900001	0	0	0	its last 32 rows are blank filler, not counted as part of it	
+pe2img_301	video memory	trace-20261011-173304	demo_1	1	acropolis_square	1	1		448,192,64,64	0/file900001	0	0	0	its last 32 rows are blank filler, not counted as part of it	
+pe2img_301	video memory	trace-20261011-173304	demo_2						448,192,64,64	0/file801100	0	0	0	its last 32 rows are blank filler, not counted as part of it	overwritten by pe2img_300 of 0/map_dryfield at event 288
+pe2img_301	video memory	trace-20261011-173304	demo_2						448,192,64,64	0/file900001	0	0	0	its last 32 rows are blank filler, not counted as part of it	overwritten by pe2img_300 of 0/file801100 at event 252
+pe2img_301	video memory	trace-20261011-173304	demo_2						448,192,64,64	0/map_dryfield	0	0	0	its last 32 rows are blank filler, not counted as part of it	
+pe2img_301	video memory	trace-20261011-173304	demo_2	2	dryfield_main_street	1	3		448,192,64,64	0/map_dryfield	0	0	0	its last 32 rows are blank filler, not counted as part of it	
+pe2img_301	video memory	trace-20261011-173304	demo_3						448,192,64,64	0/file801200	0	0	0	its last 32 rows are blank filler, not counted as part of it	overwritten by pe2img_300 of 0/map_dryfield at event 629
+pe2img_301	video memory	trace-20261011-173304	demo_3						448,192,64,64	0/map_dryfield	0	0	0	its last 32 rows are blank filler, not counted as part of it	
+pe2img_301	video memory	trace-20261011-173304	demo_3						448,192,64,64	0/map_dryfield	0	0	0	its last 32 rows are blank filler, not counted as part of it	overwritten by pe2img_300 of 0/file801200 at event 593
+pe2img_301	video memory	trace-20261011-173304	demo_3	2	dryfield_underpass	3	1		448,192,64,64	0/map_dryfield	0	0	0	its last 32 rows are blank filler, not counted as part of it	
+pe2img_301	video memory	trace-20261011-173304	demo_3	2	dryfield_underpass	6	1		448,192,64,64	0/map_dryfield	0	0	0	its last 32 rows are blank filler, not counted as part of it	
+pe2img_301	video memory	trace-20261011-173304	new_game						448,192,64,64	0/file900001	0	0	0	its last 32 rows are blank filler, not counted as part of it	
+pe2img_301	video memory	trace-20261011-173304	new_game						448,192,64,64	0/map_dryfield	0	0	0	its last 32 rows are blank filler, not counted as part of it	overwritten by pe2img_300 of 0/file900001 at event 1043
+pe2img_301	video memory	trace-20261011-173304	new_game	1	mist_shooting_gallery	1	1		448,192,64,64	0/file900001	0	0	0	its last 32 rows are blank filler, not counted as part of it	overwritten by pe2img_33 of 0/file20102 at event 1759
 pe2img_302	video memory	trace-20261011-173304	demo_1						512,0,192,256	0/file900001	0	0	0		
 pe2img_302	video memory	trace-20261011-173304	demo_1	1	acropolis_square	1	1		512,0,192,256	0/file900001	0	0	0		
 pe2img_302	video memory	trace-20261011-173304	demo_2						512,0,192,256	0/file900001	0	0	0		overwritten by pe2img_302 of 0/map_dryfield at event 288
@@ -653,10 +663,10 @@ pe2img_302	video memory	trace-20261011-173304	demo_3	2	dryfield_underpass	6	1		5
 pe2img_302	video memory	trace-20261011-173304	new_game						512,0,192,256	0/file900001	0	0	0		
 pe2img_302	video memory	trace-20261011-173304	new_game						512,0,192,256	0/map_dryfield	0	0	0		overwritten by pe2img_302 of 0/file900001 at event 1043
 pe2img_302	video memory	trace-20261011-173304	new_game	1	mist_shooting_gallery	1	1		512,0,192,256	0/file900001	0	0	0		
-pe2img_303	video memory	trace-20261011-173304	demo_1						384,0,64,256	1/acropolis_square/file0	0	0	0		
-pe2img_303	video memory	trace-20261011-173304	demo_1	1	acropolis_square	1	1		384,0,64,256	1/acropolis_square/file0	0	0	0		
-pe2img_303	video memory	trace-20261011-173304	demo_2						384,0,64,256	1/acropolis_square/file0	0	0	0		
-pe2img_303	video memory	trace-20261011-173304	demo_2	2	dryfield_main_street	1	3		384,0,64,256	1/acropolis_square/file0	0	0	0		overwritten by pe2img_491 of 2/dryfield_main_street/file0 at event 311
+pe2img_303	video memory	trace-20261011-173304	demo_1						384,0,64,32	1/acropolis_square/file0	0	0	0	its last 224 rows are blank filler, not counted as part of it	
+pe2img_303	video memory	trace-20261011-173304	demo_1	1	acropolis_square	1	1		384,0,64,32	1/acropolis_square/file0	0	0	0	its last 224 rows are blank filler, not counted as part of it	
+pe2img_303	video memory	trace-20261011-173304	demo_2						384,0,64,32	1/acropolis_square/file0	0	0	0	its last 224 rows are blank filler, not counted as part of it	
+pe2img_303	video memory	trace-20261011-173304	demo_2	2	dryfield_main_street	1	3		384,0,64,32	1/acropolis_square/file0	0	0	0	its last 224 rows are blank filler, not counted as part of it	overwritten by pe2img_491 of 2/dryfield_main_street/file0 at event 311
 pe2img_305	video memory	trace-20261011-173304	demo_1					4	960,0,64,256	1/acropolis_square/file4	0	0	0		overwritten by a movie's workspace backup at event 239
 pe2img_305	video memory	trace-20261011-173304	demo_1	1	acropolis_square	1	1	4	960,0,64,256	1/acropolis_square/file4	0	0	0		
 pe2img_308	video memory	trace-20261011-173304	demo_1	1	acropolis_square	1	1	7	896,0,128,256	1/acropolis_square/file7	0	0	0		overwritten by pe2img_309 of 1/acropolis_square/file8 at event 175
@@ -667,21 +677,21 @@ pe2img_31	video memory	trace-20261011-173304	demo_1	1	acropolis_square	1	1		768,
 pe2img_311	video memory	trace-20261011-173304	demo_1					15	448,256,320,256	1/acropolis_square/file15	0	0	0		
 pe2img_311	video memory	trace-20261011-173304	demo_1	1	acropolis_square	1	1	15	448,256,320,256	1/acropolis_square/file15	0	0	0		
 pe2img_311	video memory	trace-20261011-173304	demo_2					15	448,256,320,256	1/acropolis_square/file15	0	0	0		overwritten by pe2img_301 of 0/file801100 at event 252
-pe2img_319	video memory	trace-20261011-173304	demo_3						704,0,64,256	2/dryfield_underpass/file0	0	0	0		overwritten by a movie's workspace backup at event 997
-pe2img_319	video memory	trace-20261011-173304	demo_3	2	dryfield_underpass	3	1		704,0,64,256	2/dryfield_underpass/file0	0	0	0		
-pe2img_319	video memory	trace-20261011-173304	demo_3	2	dryfield_underpass	6	1		704,0,64,256	2/dryfield_underpass/file0	0	0	0		
-pe2img_33	video memory	trace-20261011-173304	new_game	1	mist_shooting_gallery	1	1		448,128,64,128	0/file20102	-8	-3	3		overwritten by pe2img_134 of 0/file20401 at event 2667
-pe2img_33	video memory	trace-20261011-173304	new_game	1	mist_shooting_gallery	1	1		448,128,64,128	0/file20102	-8	-3	3		overwritten by pe2img_134 of 0/file20401 at event 2717
-pe2img_33	video memory	trace-20261011-173304	new_game	1	mist_shooting_gallery	1	1		448,128,64,128	0/file20102	-8	-3	3		overwritten by pe2img_134 of 0/file20401 at event 2771
-pe2img_33	video memory	trace-20261011-173304	new_game	1	mist_shooting_gallery	1	1		448,128,64,128	0/file20102	-8	-3	3		overwritten by pe2img_33 of 0/file20102 at event 2660
+pe2img_319	video memory	trace-20261011-173304	demo_3						704,0,64,64	2/dryfield_underpass/file0	0	0	0	its last 192 rows are blank filler, not counted as part of it	overwritten by a movie's workspace backup at event 997
+pe2img_319	video memory	trace-20261011-173304	demo_3	2	dryfield_underpass	3	1		704,0,64,64	2/dryfield_underpass/file0	0	0	0	its last 192 rows are blank filler, not counted as part of it	
+pe2img_319	video memory	trace-20261011-173304	demo_3	2	dryfield_underpass	6	1		704,0,64,64	2/dryfield_underpass/file0	0	0	0	its last 192 rows are blank filler, not counted as part of it	
+pe2img_33	video memory	trace-20261011-173304	new_game	1	mist_shooting_gallery	1	1		448,128,64,96	0/file20102	-8	-3	3	its last 32 rows are blank filler, not counted as part of it	overwritten by pe2img_134 of 0/file20401 at event 2667
+pe2img_33	video memory	trace-20261011-173304	new_game	1	mist_shooting_gallery	1	1		448,128,64,96	0/file20102	-8	-3	3	its last 32 rows are blank filler, not counted as part of it	overwritten by pe2img_134 of 0/file20401 at event 2717
+pe2img_33	video memory	trace-20261011-173304	new_game	1	mist_shooting_gallery	1	1		448,128,64,96	0/file20102	-8	-3	3	its last 32 rows are blank filler, not counted as part of it	overwritten by pe2img_134 of 0/file20401 at event 2771
+pe2img_33	video memory	trace-20261011-173304	new_game	1	mist_shooting_gallery	1	1		448,128,64,96	0/file20102	-8	-3	3	its last 32 rows are blank filler, not counted as part of it	overwritten by pe2img_33 of 0/file20102 at event 2660
 pe2img_4	video memory	trace-20261011-173304	new_game						768,256,128,256	0/file10500	6	0	0		
 pe2img_4	video memory	trace-20261011-173304	new_game	1	mist_shooting_gallery	1	1		768,256,128,256	0/file10500	6	0	0		
-pe2img_471	video memory	trace-20261011-173304	new_game	1	mist_shooting_gallery	1	1		384,0,64,256	1/mist_shooting_gallery/file0	0	0	0		overwritten by pe2img_471 of 1/mist_shooting_gallery/file0 at event 1609
-pe2img_471	video memory	trace-20261011-173304	new_game	1	mist_shooting_gallery	1	1		384,0,64,256	1/mist_shooting_gallery/file0	0	0	5		
-pe2img_472	video memory	trace-20261011-173304	new_game	1	mist_shooting_gallery	1	1		704,0,128,256	1/mist_shooting_gallery/file0	0	0	0		overwritten by a movie's workspace backup at event 1607
-pe2img_472	video memory	trace-20261011-173304	new_game	1	mist_shooting_gallery	1	1		704,0,128,256	1/mist_shooting_gallery/file0	0	0	5		
-pe2img_473	video memory	trace-20261011-173304	new_game	1	mist_shooting_gallery	1	1		832,0,64,256	1/mist_shooting_gallery/file0	0	0	0		overwritten by a movie's workspace backup at event 1607
-pe2img_473	video memory	trace-20261011-173304	new_game	1	mist_shooting_gallery	1	1		832,0,64,256	1/mist_shooting_gallery/file0	0	0	5		
+pe2img_471	video memory	trace-20261011-173304	new_game	1	mist_shooting_gallery	1	1		384,0,64,64	1/mist_shooting_gallery/file0	0	0	0	its last 192 rows are blank filler, not counted as part of it	overwritten by pe2img_471 of 1/mist_shooting_gallery/file0 at event 1609
+pe2img_471	video memory	trace-20261011-173304	new_game	1	mist_shooting_gallery	1	1		384,0,64,64	1/mist_shooting_gallery/file0	0	0	5	its last 192 rows are blank filler, not counted as part of it	
+pe2img_472	video memory	trace-20261011-173304	new_game	1	mist_shooting_gallery	1	1		704,0,128,64	1/mist_shooting_gallery/file0	0	0	0	its last 192 rows are blank filler, not counted as part of it	overwritten by a movie's workspace backup at event 1607
+pe2img_472	video memory	trace-20261011-173304	new_game	1	mist_shooting_gallery	1	1		704,0,128,64	1/mist_shooting_gallery/file0	0	0	5	its last 192 rows are blank filler, not counted as part of it	
+pe2img_473	video memory	trace-20261011-173304	new_game	1	mist_shooting_gallery	1	1		832,0,64,64	1/mist_shooting_gallery/file0	0	0	0	its last 192 rows are blank filler, not counted as part of it	overwritten by a movie's workspace backup at event 1607
+pe2img_473	video memory	trace-20261011-173304	new_game	1	mist_shooting_gallery	1	1		832,0,64,64	1/mist_shooting_gallery/file0	0	0	5	its last 192 rows are blank filler, not counted as part of it	
 pe2img_476	video memory	trace-20261011-173304	new_game	1	mist_shooting_gallery	1	1	7	896,0,128,256	1/mist_shooting_gallery/file7	0	0	0		overwritten by pe2img_477 of 1/mist_shooting_gallery/file8 at event 2827
 pe2img_477	video memory	trace-20261011-173304	new_game	1	mist_shooting_gallery	1	1	8	896,0,128,256	1/mist_shooting_gallery/file8	0	0	0		overwritten by pe2img_134 of 0/file20401 at event 2778
 pe2img_477	video memory	trace-20261011-173304	new_game	1	mist_shooting_gallery	1	1	8	896,0,128,256	1/mist_shooting_gallery/file8	0	0	0		overwritten by pe2img_478 of 1/mist_shooting_gallery/file10 at event 2886
@@ -692,13 +702,13 @@ pe2img_483	video memory	trace-20261011-173304	new_game	1	mist_shooting_gallery	1
 pe2img_483	video memory	trace-20261011-173304	new_game	1	mist_shooting_gallery	1	1	15	896,0,128,256	1/mist_shooting_gallery/file15	0	0	0		overwritten by pe2img_482 of 1/mist_shooting_gallery/file14 at event 1799
 pe2img_483	video memory	trace-20261011-173304	new_game	1	mist_shooting_gallery	1	1	15	896,0,128,256	1/mist_shooting_gallery/file15	0	0	0		overwritten by pe2img_484 of 1/mist_shooting_gallery/file16 at event 1661
 pe2img_484	video memory	trace-20261011-173304	new_game	1	mist_shooting_gallery	1	1	16	960,0,64,256	1/mist_shooting_gallery/file16	0	0	0		overwritten by pe2img_483 of 1/mist_shooting_gallery/file15 at event 1676
-pe2img_485	video memory	trace-20261011-173304	new_game	1	mist_shooting_gallery	1	1	17	896,0,128,256	1/mist_shooting_gallery/file17	0	0	0		overwritten by pe2img_483 of 1/mist_shooting_gallery/file15 at event 1638
-pe2img_491	video memory	trace-20261011-173304	demo_2						384,0,64,256	2/dryfield_main_street/file0	0	0	0		
-pe2img_491	video memory	trace-20261011-173304	demo_2	2	dryfield_main_street	1	3		384,0,64,256	2/dryfield_main_street/file0	0	0	0		
-pe2img_491	video memory	trace-20261011-173304	demo_3						384,0,64,256	2/dryfield_main_street/file0	0	0	0		
-pe2img_491	video memory	trace-20261011-173304	demo_3	2	dryfield_underpass	6	1		384,0,64,256	2/dryfield_main_street/file0	0	0	0		overwritten by pe2img_705 of 2/dryfield_underpass/file0 at event 652
-pe2img_492	video memory	trace-20261011-173304	demo_2						704,0,64,256	2/dryfield_main_street/file0	0	0	0		overwritten by a movie's workspace backup at event 581
-pe2img_492	video memory	trace-20261011-173304	demo_2	2	dryfield_main_street	1	3		704,0,64,256	2/dryfield_main_street/file0	0	0	0		
+pe2img_485	video memory	trace-20261011-173304	new_game	1	mist_shooting_gallery	1	1	17	896,0,128,96	1/mist_shooting_gallery/file17	0	0	0	its last 160 rows are blank filler, not counted as part of it	overwritten by pe2img_483 of 1/mist_shooting_gallery/file15 at event 1638
+pe2img_491	video memory	trace-20261011-173304	demo_2						384,0,64,64	2/dryfield_main_street/file0	0	0	0	its last 192 rows are blank filler, not counted as part of it	
+pe2img_491	video memory	trace-20261011-173304	demo_2	2	dryfield_main_street	1	3		384,0,64,64	2/dryfield_main_street/file0	0	0	0	its last 192 rows are blank filler, not counted as part of it	
+pe2img_491	video memory	trace-20261011-173304	demo_3						384,0,64,64	2/dryfield_main_street/file0	0	0	0	its last 192 rows are blank filler, not counted as part of it	
+pe2img_491	video memory	trace-20261011-173304	demo_3	2	dryfield_underpass	6	1		384,0,64,64	2/dryfield_main_street/file0	0	0	0	its last 192 rows are blank filler, not counted as part of it	overwritten by pe2img_705 of 2/dryfield_underpass/file0 at event 652
+pe2img_492	video memory	trace-20261011-173304	demo_2						704,0,64,224	2/dryfield_main_street/file0	0	0	0	its last 32 rows are blank filler, not counted as part of it	overwritten by a movie's workspace backup at event 581
+pe2img_492	video memory	trace-20261011-173304	demo_2	2	dryfield_main_street	1	3		704,0,64,224	2/dryfield_main_street/file0	0	0	0	its last 32 rows are blank filler, not counted as part of it	
 pe2img_494	video memory	trace-20261011-173304	demo_2	2	dryfield_main_street	1	3	3	960,0,64,256	2/dryfield_main_street/file3	0	0	0		overwritten by pe2img_495 of 2/dryfield_main_street/file4 at event 469
 pe2img_495	video memory	trace-20261011-173304	demo_2	2	dryfield_main_street	1	3	4	960,0,64,256	2/dryfield_main_street/file4	0	0	0		overwritten by pe2img_494 of 2/dryfield_main_street/file3 at event 457
 pe2img_495	video memory	trace-20261011-173304	demo_2	2	dryfield_main_street	1	3	4	960,0,64,256	2/dryfield_main_street/file4	0	0	0		overwritten by pe2img_495 of 2/dryfield_main_street/file4 at event 429
@@ -717,11 +727,11 @@ pe2img_7	video memory	trace-20261011-173304	demo_2						448,0,64,64	0/m93r	0	0	0
 pe2img_7	video memory	trace-20261011-173304	new_game						448,0,64,64	0/m93r	0	0	0		
 pe2img_7	video memory	trace-20261011-173304	new_game	1	mist_shooting_gallery	1	1		448,0,64,64	0/m93r	0	0	0		
 pe2img_7	video memory	trace-20261011-173304	new_game	1	mist_shooting_gallery	1	1		448,0,64,64	0/m93r	0	0	0		overwritten by pe2img_7 of 0/m93r at event 1766
-pe2img_705	video memory	trace-20261011-173304	demo_3						384,0,64,256	2/dryfield_underpass/file0	0	0	0		
-pe2img_705	video memory	trace-20261011-173304	demo_3	2	dryfield_underpass	3	1		384,0,64,256	2/dryfield_underpass/file0	0	0	0		
-pe2img_705	video memory	trace-20261011-173304	demo_3	2	dryfield_underpass	6	1		384,0,64,256	2/dryfield_underpass/file0	0	0	0		
-pe2img_705	video memory	trace-20261011-173304	new_game						384,0,64,256	2/dryfield_underpass/file0	0	0	0		
-pe2img_705	video memory	trace-20261011-173304	new_game	1	mist_shooting_gallery	1	1		384,0,64,256	2/dryfield_underpass/file0	0	0	0		overwritten by pe2img_471 of 1/mist_shooting_gallery/file0 at event 1570
+pe2img_705	video memory	trace-20261011-173304	demo_3						384,0,64,32	2/dryfield_underpass/file0	0	0	0	its last 224 rows are blank filler, not counted as part of it	
+pe2img_705	video memory	trace-20261011-173304	demo_3	2	dryfield_underpass	3	1		384,0,64,32	2/dryfield_underpass/file0	0	0	0	its last 224 rows are blank filler, not counted as part of it	
+pe2img_705	video memory	trace-20261011-173304	demo_3	2	dryfield_underpass	6	1		384,0,64,32	2/dryfield_underpass/file0	0	0	0	its last 224 rows are blank filler, not counted as part of it	
+pe2img_705	video memory	trace-20261011-173304	new_game						384,0,64,32	2/dryfield_underpass/file0	0	0	0	its last 224 rows are blank filler, not counted as part of it	
+pe2img_705	video memory	trace-20261011-173304	new_game	1	mist_shooting_gallery	1	1		384,0,64,32	2/dryfield_underpass/file0	0	0	0	its last 224 rows are blank filler, not counted as part of it	overwritten by pe2img_471 of 1/mist_shooting_gallery/file0 at event 1570
 pe2img_706	video memory	trace-20261011-173304	demo_3	2	dryfield_underpass	3	1	3	960,0,64,256	2/dryfield_underpass/file3	0	0	0		overwritten by pe2img_709 of 2/dryfield_underpass/file9 at event 830
 pe2img_707	video memory	trace-20261011-173304	demo_3	2	dryfield_underpass	3	1	4	896,0,128,256	2/dryfield_underpass/file4	0	0	0		overwritten by pe2img_708 of 2/dryfield_underpass/file5 at event 926
 pe2img_708	video memory	trace-20261011-173304	demo_3					5	960,0,64,256	2/dryfield_underpass/file5	0	0	0		overwritten by a movie's workspace backup at event 997

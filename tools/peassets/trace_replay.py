@@ -81,6 +81,9 @@ def num(r: dict, *keys, default=0) -> int:
     return default
 
 
+STRIP_ROWS = 32          # an image is uploaded in strips of this many rows (fsUploadImageStrips)
+
+
 def overlap(a, b) -> bool:
     return a[0] < b[0] + b[2] and b[0] < a[0] + a[2] and a[1] < b[1] + b[3] and b[1] < a[1] + a[3]
 
@@ -122,9 +125,31 @@ class World:
         self.slots = sorted(set(self.address.values()))
         self._banks: dict[str, dict | None] = {}
         self._bundles: dict[str, list] = {}
+        self._filler: dict[str, int] = {}
 
     def type(self, key: str) -> str:
         return self.assets.get(key, {}).get("type", "")
+
+    def filler(self, key: str) -> int:
+        """How many rows at the bottom of an image are blank strips: whole upload strips of a single value.
+
+        An image's stored height is a count of 32-row strips, and some carry a blank last strip that the next
+        image of the same file is laid over (pe2img_300 and pe2img_301: each 96 rows stored, 64 drawn, 64 apart).
+        Writing over that strip takes nothing from the image, so it is not part of what must stay intact. Read
+        from the image's own pixels; an image that cannot be decoded has none."""
+        if key not in self._filler:
+            rows = 0
+            try:
+                import asset_decode
+                rec = self.assets[key]
+                image, _info, _colors = asset_decode.render_pe2img((RAW / "pe2img" / f"{key}.pe2img").read_bytes(), bpp=rec.get("bpp"))
+                width, height = image.size
+                while height - rows > STRIP_ROWS and len(image.crop((0, height - rows - STRIP_ROWS, width, height - rows)).getcolors(2) or ()) == 1:
+                    rows += STRIP_ROWS
+            except Exception:  # noqa: BLE001 - no pixels to look at: the whole rectangle counts
+                rows = 0
+            self._filler[key] = rows
+        return self._filler[key]
 
     def file(self, record: dict):
         """(path, node) of the disc file a load names, or (text, None) when the disc has none."""
@@ -232,14 +257,16 @@ class Replay:
         thing["n1"], thing["by"] = n, by
         self.live.remove(thing)
 
-    def put(self, n: int, asset: str, mem: str, where, load: dict | None, note: str = "", clears=None, part=None) -> dict:
-        """Land something; whatever it lands on stops being resident. `part` names a whole whose parts do not displace each other."""
+    def put(self, n: int, asset: str, mem: str, where, load: dict | None, note: str = "", clears=None, part=None, lands=None) -> dict:
+        """Land something; whatever it lands on stops being resident. `part` names a whole whose parts do not displace each other.
+        `lands` is everything an image writes in video memory where that is more than `where`, the part of it that
+        has to stay intact for it to be resident (see `filler`)."""
         label = asset + (f" of {load['path']}" if load else "")
         for other in list(self.live):
             if other["mem"] != mem or (part is not None and other.get("part") == part):
                 continue
             if mem == "v":
-                hit = any(overlap(a, b) for a in where for b in other["where"])
+                hit = any(overlap(a, b) for a in (lands or where) for b in other["where"])
             else:
                 lo, hi = clears or where
                 hit = other["where"][0] < hi and lo < other["where"][1]
@@ -336,7 +363,9 @@ class Replay:
             if kind in ("pe2img", "pe2clut"):
                 where = [(*residency.moved(rect, page, row, relocate), rect[5], rect[6]) for rect in prints.get(key, ())]
                 if where:
-                    self.put(n, key, "v", where, load)
+                    blank = self.w.filler(key) if kind == "pe2img" else 0
+                    kept = [(x, y, w, h - blank) for x, y, w, h in where] if blank else where
+                    self.put(n, key, "v", kept, load, lands=where, note=f"its last {blank} rows are blank filler, not counted as part of it" if blank else "")
                     load["assets"].append(key)
                     if kind == "pe2clut":
                         load["cluts"].append(key)
