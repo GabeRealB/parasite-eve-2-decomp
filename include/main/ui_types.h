@@ -22,14 +22,18 @@ typedef union {
 } UiHalf;
 STATIC_ASSERT_SIZEOF(UiHalf, 2);
 
-/// The shared selection cursor's coordinates in screen-centered integer pixels.
+/// A four-byte snapshot of the shared UI selection cursor in screen-centered pixels.
 ///
-/// Coordinates increase right and down from the screen center. Signed views
-/// represent -32768..32767; unsigned views promote the same bits as 0..65535.
-/// Select a view before integer promotion; stores retain the low sixteen bits.
+/// X precedes Y in adjacent halfwords; coordinates increase right and down from
+/// the screen center. Each component retains sixteen bits. `UiHalf.signedValue`
+/// promotes them as -32768..32767 for panel comparisons; `UiHalf.unsignedValue`
+/// promotes them as 0..65535 for layout arithmetic. Select the view before promotion.
+///
+/// `UiCursorPosition` supplies the packed integer view of this record. A complete
+/// byte copy from that packed word preserves both coordinates and their views.
 typedef struct {
-    UiHalf x; // Horizontal coordinate relative to the screen center, in pixels
-    UiHalf y; // Vertical coordinate relative to the screen center, in pixels
+    UiHalf x; // Screen-centered pixel X; positive right
+    UiHalf y; // Screen-centered pixel Y; positive down
 } UiCursorPixels;
 STATIC_ASSERT_SIZEOF(UiCursorPixels, 4);
 

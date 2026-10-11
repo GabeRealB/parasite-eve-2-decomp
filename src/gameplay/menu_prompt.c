@@ -3,6 +3,7 @@
 #include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
+#include <psyq/memory.h>
 
 #include "common.h"
 
@@ -1655,9 +1656,12 @@ void itemMenuInventoryPanelTask(Task* task)
     }
     if (object->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_LEFT) != 0) {
-            // Carry signed screen Y into the equipment pane that contains that height.
-            equipmentPane          = gItemMenuDestinationPanes[ITEM_MENU_DESTINATION_ARMOR_PANE];
-            *(s32*)&cursorPosition = uiGetCursorPositionWord();
+            s32 packedCursor;
+
+            // Copy the packed snapshot before choosing a pane from signed screen Y.
+            equipmentPane = gItemMenuDestinationPanes[ITEM_MENU_DESTINATION_ARMOR_PANE];
+            packedCursor  = uiGetCursorPositionWord();
+            memcpy(&cursorPosition, &packedCursor, sizeof(cursorPosition));
             if (cursorPosition.y.signedValue < equipmentPane->panel.bounds.rect.y) {
                 equipmentPane = gItemMenuDestinationPanes[ITEM_MENU_DESTINATION_WEAPON_PANE];
             }
