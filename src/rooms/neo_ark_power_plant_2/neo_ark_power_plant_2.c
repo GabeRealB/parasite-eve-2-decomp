@@ -886,26 +886,10 @@ static AreaResource _gNeoArkPowerPlant2BishopResources[] = {
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaVariant D_neo_ark_power_plant_2_80182DE0[19] = {
-    { NULL, NULL },
-    { gMapNeoArkPowerPlant2Variant1Placements, _gNeoArkPowerPlant2GeneratorResources },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { gMapNeoArkPowerPlant2Variant11Placements, _gNeoArkPowerPlant2RookResources },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { gMapNeoArkPowerPlant2Variant17Placements, _gNeoArkPowerPlant2BishopResources },
-    { NULL, NULL },
+AreaVariant gNeoArkPowerPlant2AreaVariants[NEO_ARK_POWER_PLANT_2_AREA_VARIANT_COUNT] = {
+    [AREA_DEFAULT_VARIANT] = { .placements = gMapNeoArkPowerPlant2Variant1Placements, .resources = _gNeoArkPowerPlant2GeneratorResources },
+    [11]                   = { .placements = gMapNeoArkPowerPlant2Variant11Placements, .resources = _gNeoArkPowerPlant2RookResources },
+    [17]                   = { .placements = gMapNeoArkPowerPlant2Variant17Placements, .resources = _gNeoArkPowerPlant2BishopResources },
 };
 
 /// The plant's single room-space line-of-sight blocking quad.

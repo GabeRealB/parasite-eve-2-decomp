@@ -1269,29 +1269,11 @@ static AreaResource _gDryfieldNightWaterHoleVariant21Resources[2] = {
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaVariant D_dryfield_night_water_hole_80183418[22] = {
-    { NULL, NULL },
-    { gMapDryfieldFullWaterHoleVariant1Placements, _gDryfieldNightWaterHoleVariant1Resources },
-    { gMapDryfieldFullWaterHoleVariant2Placements, _gDryfieldNightWaterHoleVariant2Resources },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { gMapDryfieldFullWaterHoleVariant10Placements, _gDryfieldNightWaterHoleVariant10Resources },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { gMapDryfieldFullWaterHoleVariant21Placements, _gDryfieldNightWaterHoleVariant21Resources },
+AreaVariant gDryfieldNightWaterHoleAreaVariants[DRYFIELD_NIGHT_WATER_HOLE_AREA_VARIANT_COUNT] = {
+    [AREA_DEFAULT_VARIANT] = { .placements = gMapDryfieldFullWaterHoleVariant1Placements, .resources = _gDryfieldNightWaterHoleVariant1Resources },
+    [2]                    = { .placements = gMapDryfieldFullWaterHoleVariant2Placements, .resources = _gDryfieldNightWaterHoleVariant2Resources },
+    [10]                   = { .placements = gMapDryfieldFullWaterHoleVariant10Placements, .resources = _gDryfieldNightWaterHoleVariant10Resources },
+    [21]                   = { .placements = gMapDryfieldFullWaterHoleVariant21Placements, .resources = _gDryfieldNightWaterHoleVariant21Resources },
 };
 
 /// Ambient minima by logical view for rooms 1 and 3, with switch 1 on.

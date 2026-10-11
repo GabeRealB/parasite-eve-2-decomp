@@ -11,7 +11,19 @@
 
 #include "main/task_types.h"
 
-extern AreaVariant D_mine_refuge_80182A00[11];
+/// Number of retained placement-variant slots, including absent slots.
+enum { MINE_REFUGE_AREA_VARIANT_COUNT = 11 };
+
+/// Actor placements and loading/spawn recipes indexed by `GameLocationKey.variant`.
+///
+/// Slots 1 are present; every other slot is absent (NULL, NULL).
+/// Slot 1 has no placed actors but retains its base-file loading recipe.
+/// Supply an index in 0..10; this directory has no terminator or bounds check.
+/// The placement selector is independent of room and view selectors.
+/// Placements and recipes belong to this room overlay; keep it loaded while
+/// loading or using either table. Referenced actor overlays must be loaded for
+/// spawning and model-policy updates.
+extern AreaVariant gMineRefugeAreaVariants[MINE_REFUGE_AREA_VARIANT_COUNT];
 
 /// Number of logical and mapped camera/sprite views in the refuge's identity map.
 enum { MINE_REFUGE_VIEW_COUNT = 7 };

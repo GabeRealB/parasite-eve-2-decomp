@@ -408,20 +408,9 @@ static AreaResource _gNeoArkEveAccessTunnelEncounterActorResources[3] = {
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaVariant D_neo_ark_eve_access_tunnel_801806B8[13] = {
-    { NULL, NULL },
-    { gMapNeoArkEveAccessTunnelDefaultPlacements, _gNeoArkEveAccessTunnelDefaultActorResources },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { gMapNeoArkEveAccessTunnelEncounterPlacements, _gNeoArkEveAccessTunnelEncounterActorResources },
-    { NULL, NULL },
+AreaVariant gNeoArkEveAccessTunnelAreaVariants[NEO_ARK_EVE_ACCESS_TUNNEL_AREA_VARIANT_COUNT] = {
+    [AREA_DEFAULT_VARIANT] = { .placements = gMapNeoArkEveAccessTunnelDefaultPlacements, .resources = _gNeoArkEveAccessTunnelDefaultActorResources },
+    [11]                   = { .placements = gMapNeoArkEveAccessTunnelEncounterPlacements, .resources = _gNeoArkEveAccessTunnelEncounterActorResources },
 };
 
 WorldCollisionOccluder gNeoArkEveAccessTunnelSightOccluders[1] = {

@@ -82,7 +82,18 @@ enum {
 /// its callback code must remain loaded until the task exits.
 extern TaskDesc gMistShootingGalleryTaskDescs[MIST_SHOOTING_GALLERY_TASK_COUNT];
 
-extern AreaVariant D_mist_shooting_gallery_8018DF74[12];
+/// Number of retained placement-variant slots, including absent slots.
+enum { MIST_SHOOTING_GALLERY_AREA_VARIANT_COUNT = 12 };
+
+/// Actor placements and loading/spawn recipes indexed by `GameLocationKey.variant`.
+///
+/// Slots 1 are present; every other slot is absent (NULL, NULL).
+/// Supply an index in 0..11; this directory has no terminator or bounds check.
+/// The placement selector is independent of room and view selectors.
+/// Placements belong to the stage map, recipes to this room. Keep both overlays
+/// loaded while loading or using either table. Referenced actor overlays must
+/// be loaded for spawning and model-policy updates.
+extern AreaVariant gMistShootingGalleryAreaVariants[MIST_SHOOTING_GALLERY_AREA_VARIANT_COUNT];
 
 /// RESULT-panel recipe used by gameplay after a gallery course ends.
 ///

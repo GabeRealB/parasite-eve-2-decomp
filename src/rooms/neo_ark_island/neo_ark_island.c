@@ -558,20 +558,12 @@ static AreaResource _gNeoArkIslandVariant11Resources[] = {
     { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaVariant D_neo_ark_island_80183F48[13] = {
-    { NULL, NULL },
-    { gMapNeoArkIslandVariant1Placements, _gNeoArkIslandVariant1Resources },
-    { gMapNeoArkIslandVariant2Placements, _gNeoArkIslandVariant2Resources },
-    { gMapNeoArkIslandVariant3Placements, _gNeoArkIslandVariant3Resources },
-    { gMapNeoArkIslandVariant4Placements, _gNeoArkIslandVariant4Resources },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { gMapNeoArkIslandVariant11Placements, _gNeoArkIslandVariant11Resources },
-    { NULL, NULL },
+AreaVariant gNeoArkIslandAreaVariants[NEO_ARK_ISLAND_AREA_VARIANT_COUNT] = {
+    [AREA_DEFAULT_VARIANT] = { .placements = gMapNeoArkIslandVariant1Placements, .resources = _gNeoArkIslandVariant1Resources },
+    [2]                    = { .placements = gMapNeoArkIslandVariant2Placements, .resources = _gNeoArkIslandVariant2Resources },
+    [3]                    = { .placements = gMapNeoArkIslandVariant3Placements, .resources = _gNeoArkIslandVariant3Resources },
+    [4]                    = { .placements = gMapNeoArkIslandVariant4Placements, .resources = _gNeoArkIslandVariant4Resources },
+    [11]                   = { .placements = gMapNeoArkIslandVariant11Placements, .resources = _gNeoArkIslandVariant11Resources },
 };
 
 /// Type-1 cue-2 request bases; cue 1 uses the following script entry.

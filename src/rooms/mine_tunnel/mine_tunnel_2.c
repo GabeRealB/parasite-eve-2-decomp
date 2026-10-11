@@ -606,19 +606,12 @@ static AreaPlacement _gMineTunnelVariant11Placements[7] = {
     { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaVariant D_mine_tunnel_801801CC[12] = {
-    { NULL, NULL },
-    { _gMineTunnelVariant1Placements, _gMineTunnelVariant1Resources },
-    { _gMineTunnelVariant2Placements, _gMineTunnelVariant2Resources },
-    { _gMineTunnelVariant3Placements, _gMineTunnelVariant3Resources },
-    { _gMineTunnelVariant4Placements, _gMineTunnelVariant4Resources },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { _gMineTunnelVariant11Placements, _gMineTunnelVariant11Resources },
+AreaVariant gMineTunnelAreaVariants[MINE_TUNNEL_AREA_VARIANT_COUNT] = {
+    [AREA_DEFAULT_VARIANT] = { .placements = _gMineTunnelVariant1Placements, .resources = _gMineTunnelVariant1Resources },
+    [2]                    = { .placements = _gMineTunnelVariant2Placements, .resources = _gMineTunnelVariant2Resources },
+    [3]                    = { .placements = _gMineTunnelVariant3Placements, .resources = _gMineTunnelVariant3Resources },
+    [4]                    = { .placements = _gMineTunnelVariant4Placements, .resources = _gMineTunnelVariant4Resources },
+    [11]                   = { .placements = _gMineTunnelVariant11Placements, .resources = _gMineTunnelVariant11Resources },
 };
 
 /// Header and five logical-view ambient minima, at 16 units per 8-bit colour level.

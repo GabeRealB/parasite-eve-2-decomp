@@ -2380,19 +2380,8 @@ static AreaResource _gMistShootingGalleryVariant1Resources[3] = {
     { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaVariant D_mist_shooting_gallery_8018DF74[12] = {
-    { NULL, NULL },
-    { gMapAkropolisMistShootingGalleryPlacements, _gMistShootingGalleryVariant1Resources },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
+AreaVariant gMistShootingGalleryAreaVariants[MIST_SHOOTING_GALLERY_AREA_VARIANT_COUNT] = {
+    [AREA_DEFAULT_VARIANT] = { .placements = gMapAkropolisMistShootingGalleryPlacements, .resources = _gMistShootingGalleryVariant1Resources },
 };
 
 // Keep the read-only table at its original position among the overlay's data.

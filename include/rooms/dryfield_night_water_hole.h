@@ -14,7 +14,19 @@
 
 extern AreaApplyRec D_dryfield_night_water_hole_80183618[4];
 
-extern AreaVariant D_dryfield_night_water_hole_80183418[22];
+/// Number of retained placement-variant slots, including absent slots.
+enum { DRYFIELD_NIGHT_WATER_HOLE_AREA_VARIANT_COUNT = 22 };
+
+/// Actor placements and loading/spawn recipes indexed by `GameLocationKey.variant`.
+///
+/// Slots 1, 2, 10, 21 are present; every other slot is absent (NULL, NULL).
+/// Slot 10 has no placed actors but retains its base-file loading recipe.
+/// Supply an index in 0..21; this directory has no terminator or bounds check.
+/// The placement selector is independent of room and view selectors.
+/// Placements belong to the stage map, recipes to this room. Keep both overlays
+/// loaded while loading or using either table. Referenced actor overlays must
+/// be loaded for spawning and model-policy updates.
+extern AreaVariant gDryfieldNightWaterHoleAreaVariants[DRYFIELD_NIGHT_WATER_HOLE_AREA_VARIANT_COUNT];
 
 /// Collision grid, view boundaries, actions and occluders for room selectors 1..4.
 ///

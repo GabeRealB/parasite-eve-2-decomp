@@ -11,7 +11,18 @@
 
 #include "main/task_types.h"
 
-extern AreaVariant D_dryfield_r08_80180B88[13];
+/// Number of retained placement-variant slots, including absent slots.
+enum { DRYFIELD_R08_AREA_VARIANT_COUNT = 13 };
+
+/// Actor placements and loading/spawn recipes indexed by `GameLocationKey.variant`.
+///
+/// Slots 1 are present; every other slot is absent (NULL, NULL).
+/// Supply an index in 0..12; this directory has no terminator or bounds check.
+/// The placement selector is independent of room and view selectors.
+/// Placements belong to the stage map, recipes to this room. Keep both overlays
+/// loaded while loading or using either table. Referenced actor overlays must
+/// be loaded for spawning and model-policy updates.
+extern AreaVariant gDryfieldR08AreaVariants[DRYFIELD_R08_AREA_VARIANT_COUNT];
 
 /// Collision resources for Dryfield R08's room variants 1 and 2.
 ///

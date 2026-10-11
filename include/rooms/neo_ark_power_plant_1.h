@@ -11,7 +11,18 @@
 
 #include "main/task_types.h"
 
-extern AreaVariant D_neo_ark_power_plant_1_80181AF8[13];
+/// Number of retained placement-variant slots, including absent slots.
+enum { NEO_ARK_POWER_PLANT_1_AREA_VARIANT_COUNT = 13 };
+
+/// Actor placements and loading/spawn recipes indexed by `GameLocationKey.variant`.
+///
+/// Slots 1, 2, 3, 4, 11 are present; every other slot is absent (NULL, NULL).
+/// Supply an index in 0..12; this directory has no terminator or bounds check.
+/// The placement selector is independent of room and view selectors.
+/// Placements belong to the stage map, recipes to this room. Keep both overlays
+/// loaded while loading or using either table. Referenced actor overlays must
+/// be loaded for spawning and model-policy updates.
+extern AreaVariant gNeoArkPowerPlant1AreaVariants[NEO_ARK_POWER_PLANT_1_AREA_VARIANT_COUNT];
 
 /// Room 1's collision grid, view boundaries, interactions and sight-blocking quad.
 ///

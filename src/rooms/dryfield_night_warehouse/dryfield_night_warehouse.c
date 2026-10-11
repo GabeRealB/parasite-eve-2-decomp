@@ -392,19 +392,10 @@ static AreaResource _gDryfieldNightWarehouseVariant11Resources[3] = {
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaVariant D_dryfield_night_warehouse_8017FB98[12] = {
-    { NULL, NULL },
-    { gMapDryfieldFullWarehouseVariant1Placements, _gDryfieldNightWarehouseVariant1Resources },
-    { NULL, NULL },
-    { gMapDryfieldFullWarehouseVariant3Placements, _gDryfieldNightWarehouseVariant3Resources },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { gMapDryfieldFullWarehouseVariant11Placements, _gDryfieldNightWarehouseVariant11Resources },
+AreaVariant gDryfieldNightWarehouseAreaVariants[DRYFIELD_NIGHT_WAREHOUSE_AREA_VARIANT_COUNT] = {
+    [AREA_DEFAULT_VARIANT] = { .placements = gMapDryfieldFullWarehouseVariant1Placements, .resources = _gDryfieldNightWarehouseVariant1Resources },
+    [3]                    = { .placements = gMapDryfieldFullWarehouseVariant3Placements, .resources = _gDryfieldNightWarehouseVariant3Resources },
+    [11]                   = { .placements = gMapDryfieldFullWarehouseVariant11Placements, .resources = _gDryfieldNightWarehouseVariant11Resources },
 };
 
 /// Surface class 6's walk, run and scripted-jump cue bases in the loaded type-1 bank.

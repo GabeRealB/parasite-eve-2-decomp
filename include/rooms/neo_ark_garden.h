@@ -20,7 +20,18 @@ enum { NEO_ARK_GARDEN_VIEW_COUNT = 7 };
 /// its room code must remain loaded for the task's lifetime.
 extern TaskDesc gNeoArkGardenWaterRefractionTaskDesc;
 
-extern AreaVariant D_neo_ark_garden_80182B54[13];
+/// Number of retained placement-variant slots, including absent slots.
+enum { NEO_ARK_GARDEN_AREA_VARIANT_COUNT = 13 };
+
+/// Actor placements and loading/spawn recipes indexed by `GameLocationKey.variant`.
+///
+/// Slots 1, 2, 3, 4 are present; every other slot is absent (NULL, NULL).
+/// Supply an index in 0..12; this directory has no terminator or bounds check.
+/// The placement selector is independent of room and view selectors.
+/// Placements belong to the stage map, recipes to this room. Keep both overlays
+/// loaded while loading or using either table. Referenced actor overlays must
+/// be loaded for spawning and model-policy updates.
+extern AreaVariant gNeoArkGardenAreaVariants[NEO_ARK_GARDEN_AREA_VARIANT_COUNT];
 
 /// Collision resources for garden room 1, borrowed while its overlay is loaded.
 ///

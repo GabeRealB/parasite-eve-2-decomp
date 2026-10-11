@@ -673,20 +673,10 @@ static AreaResource _gDryfieldToiletAmoebaResources[2] = {
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaVariant D_dryfield_toilet_80182918[13] = {
-    { NULL, NULL },
-    { gMapDryfieldToiletEncounterPlacements, _gDryfieldToiletEncounterResources },
-    { gMapDryfieldToiletBoneSucklerPlacements, _gDryfieldToiletBoneSucklerResources },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { gMapDryfieldToiletAmoebaPlacements, _gDryfieldToiletAmoebaResources },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
+AreaVariant gDryfieldToiletAreaVariants[DRYFIELD_TOILET_AREA_VARIANT_COUNT] = {
+    [AREA_DEFAULT_VARIANT] = { .placements = gMapDryfieldToiletEncounterPlacements, .resources = _gDryfieldToiletEncounterResources },
+    [2]                    = { .placements = gMapDryfieldToiletBoneSucklerPlacements, .resources = _gDryfieldToiletBoneSucklerResources },
+    [7]                    = { .placements = gMapDryfieldToiletAmoebaPlacements, .resources = _gDryfieldToiletAmoebaResources },
 };
 
 /// Full-ramp XYZ displacement of each Lesser Stranger vertex in model-local units.

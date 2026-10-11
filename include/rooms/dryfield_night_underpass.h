@@ -11,7 +11,18 @@
 
 #include "main/task_types.h"
 
-extern AreaVariant D_dryfield_night_underpass_801802DC[12];
+/// Number of retained placement-variant slots, including absent slots.
+enum { DRYFIELD_NIGHT_UNDERPASS_AREA_VARIANT_COUNT = 12 };
+
+/// Actor placements and loading/spawn recipes indexed by `GameLocationKey.variant`.
+///
+/// Slots 1, 2, 3, 7, 11 are present; every other slot is absent (NULL, NULL).
+/// Supply an index in 0..11; this directory has no terminator or bounds check.
+/// The placement selector is independent of room and view selectors.
+/// Placements belong to the stage map, recipes to this room. Keep both overlays
+/// loaded while loading or using either table. Referenced actor overlays must
+/// be loaded for spawning and model-policy updates.
+extern AreaVariant gDryfieldNightUnderpassAreaVariants[DRYFIELD_NIGHT_UNDERPASS_AREA_VARIANT_COUNT];
 
 // dryfield_night_underpass
 extern WorldCollisionRoomResources D_dryfield_night_underpass_8017DD70[];

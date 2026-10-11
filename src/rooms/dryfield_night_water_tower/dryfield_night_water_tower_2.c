@@ -1396,29 +1396,11 @@ static AreaResource _gDryfieldNightWaterTowerVariant21Resources[] = {
     },
 };
 
-AreaVariant D_dryfield_night_water_tower_80182B5C[22] = {
-    { NULL, NULL },
-    { gMapDryfieldFullWaterTowerVariant1Placements, _gDryfieldNightWaterTowerVariant1Resources },
-    { gMapDryfieldFullWaterTowerVariant2Placements, _gDryfieldNightWaterTowerVariant2Resources },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { gMapDryfieldFullWaterTowerVariant11Placements, _gDryfieldNightWaterTowerVariant11Resources },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { gMapDryfieldFullWaterTowerVariant21Placements, _gDryfieldNightWaterTowerVariant21Resources },
+AreaVariant gDryfieldNightWaterTowerAreaVariants[DRYFIELD_NIGHT_WATER_TOWER_AREA_VARIANT_COUNT] = {
+    [AREA_DEFAULT_VARIANT] = { .placements = gMapDryfieldFullWaterTowerVariant1Placements, .resources = _gDryfieldNightWaterTowerVariant1Resources },
+    [2]                    = { .placements = gMapDryfieldFullWaterTowerVariant2Placements, .resources = _gDryfieldNightWaterTowerVariant2Resources },
+    [11]                   = { .placements = gMapDryfieldFullWaterTowerVariant11Placements, .resources = _gDryfieldNightWaterTowerVariant11Resources },
+    [21]                   = { .placements = gMapDryfieldFullWaterTowerVariant21Placements, .resources = _gDryfieldNightWaterTowerVariant21Resources },
 };
 
 /// Cue-2 footstep bases in the loaded type-1 sound bank.

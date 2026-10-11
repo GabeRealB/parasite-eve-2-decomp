@@ -373,20 +373,8 @@ static AreaResource _gDryfieldSouvenirShopDefaultActorResources[3] = {
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaVariant D_dryfield_souvenir_shop_8017F598[13] = {
-    { NULL, NULL },
-    { gMapDryfieldSouvenirShopDefaultPlacements, _gDryfieldSouvenirShopDefaultActorResources },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
+AreaVariant gDryfieldSouvenirShopAreaVariants[DRYFIELD_SOUVENIR_SHOP_AREA_VARIANT_COUNT] = {
+    [AREA_DEFAULT_VARIANT] = { .placements = gMapDryfieldSouvenirShopDefaultPlacements, .resources = _gDryfieldSouvenirShopDefaultActorResources },
 };
 
 /// Cue-2 footstep bases in the loaded type-1 bank; cue 1 uses the following entry.

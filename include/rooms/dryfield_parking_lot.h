@@ -11,7 +11,19 @@
 
 #include "main/task_types.h"
 
-extern AreaVariant D_dryfield_parking_lot_8017FA74[13];
+/// Number of retained placement-variant slots, including absent slots.
+enum { DRYFIELD_PARKING_LOT_AREA_VARIANT_COUNT = 13 };
+
+/// Actor placements and loading/spawn recipes indexed by `GameLocationKey.variant`.
+///
+/// Slots 1, 2, 3, 7 are present; every other slot is absent (NULL, NULL).
+/// Slot 1 retains two terminator-only lists, distinct from an absent slot.
+/// Supply an index in 0..12; this directory has no terminator or bounds check.
+/// The placement selector is independent of room and view selectors.
+/// Placements belong to the stage map, recipes to this room. Keep both overlays
+/// loaded while loading or using either table. Referenced actor overlays must
+/// be loaded for spawning and model-policy updates.
+extern AreaVariant gDryfieldParkingLotAreaVariants[DRYFIELD_PARKING_LOT_AREA_VARIANT_COUNT];
 
 /// Room 1's collision mesh, view boundaries, interactions and sight blockers.
 ///

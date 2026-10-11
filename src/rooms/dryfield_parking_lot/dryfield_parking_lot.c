@@ -600,20 +600,11 @@ static AreaResource _gDryfieldParkingLotVariant7Resources[2] = {
     { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaVariant D_dryfield_parking_lot_8017FA74[13] = {
-    { NULL, NULL },
-    { gMapDryfieldParkingLotVariant1Placements, _gDryfieldParkingLotVariant1Resources },
-    { gMapDryfieldParkingLotVariant2Placements, _gDryfieldParkingLotVariant2Resources },
-    { gMapDryfieldParkingLotVariant3Placements, _gDryfieldParkingLotVariant3Resources },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { gMapDryfieldParkingLotVariant7Placements, _gDryfieldParkingLotVariant7Resources },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
+AreaVariant gDryfieldParkingLotAreaVariants[DRYFIELD_PARKING_LOT_AREA_VARIANT_COUNT] = {
+    [AREA_DEFAULT_VARIANT] = { .placements = gMapDryfieldParkingLotVariant1Placements, .resources = _gDryfieldParkingLotVariant1Resources },
+    [2]                    = { .placements = gMapDryfieldParkingLotVariant2Placements, .resources = _gDryfieldParkingLotVariant2Resources },
+    [3]                    = { .placements = gMapDryfieldParkingLotVariant3Placements, .resources = _gDryfieldParkingLotVariant3Resources },
+    [7]                    = { .placements = gMapDryfieldParkingLotVariant7Placements, .resources = _gDryfieldParkingLotVariant7Resources },
 };
 
 /// Cue-2 footstep bases in the loaded type-1 bank; cue 1 selects base plus one.

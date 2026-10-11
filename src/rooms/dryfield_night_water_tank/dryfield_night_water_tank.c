@@ -670,20 +670,10 @@ static AreaResource _gDryfieldNightWaterTankHandoverResources[2] = {
     { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaVariant D_dryfield_night_water_tank_80180764[13] = {
-    { NULL, NULL },
-    { gMapDryfieldFullWaterTankVariant1Placements, _gDryfieldNightWaterTankDefaultResources },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { gMapDryfieldFullWaterTankVariant10Placements, _gDryfieldNightWaterTankBattleResources },
-    { gMapDryfieldFullWaterTankVariant11Placements, _gDryfieldNightWaterTankHandoverResources },
-    { NULL, NULL },
+AreaVariant gDryfieldNightWaterTankAreaVariants[DRYFIELD_NIGHT_WATER_TANK_AREA_VARIANT_COUNT] = {
+    [AREA_DEFAULT_VARIANT] = { .placements = gMapDryfieldFullWaterTankVariant1Placements, .resources = _gDryfieldNightWaterTankDefaultResources },
+    [10]                   = { .placements = gMapDryfieldFullWaterTankVariant10Placements, .resources = _gDryfieldNightWaterTankBattleResources },
+    [11]                   = { .placements = gMapDryfieldFullWaterTankVariant11Placements, .resources = _gDryfieldNightWaterTankHandoverResources },
 };
 
 /// Two perpendicular room-space quads blocking line of sight through the tank area.

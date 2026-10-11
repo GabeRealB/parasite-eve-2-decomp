@@ -1007,20 +1007,9 @@ static AreaResource _gMistParkingActorResources[] = {
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaVariant D_mist_parking_801951B4[13] = {
-    { NULL, NULL },
-    { gMapAkropolisMistParkingPlacements, _gMistParkingActorResources },
-    { gMapAkropolisMistParkingPlacements, _gMistParkingActorResources },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
+AreaVariant gMistParkingAreaVariants[MIST_PARKING_AREA_VARIANT_COUNT] = {
+    [AREA_DEFAULT_VARIANT] = { .placements = gMapAkropolisMistParkingPlacements, .resources = _gMistParkingActorResources },
+    [2]                    = { .placements = gMapAkropolisMistParkingPlacements, .resources = _gMistParkingActorResources },
 };
 
 /// Minimum ambient RGB levels by logical view for parking room variants 2 and 4.

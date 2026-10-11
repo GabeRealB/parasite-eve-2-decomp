@@ -152,20 +152,8 @@ static AreaResource _gNeoArkR31DefaultResources[3] = {
     { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaVariant D_neo_ark_r31_8017DBB8[13] = {
-    { NULL, NULL },
-    { gMapNeoArkR31DefaultPlacements, _gNeoArkR31DefaultResources },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
+AreaVariant gNeoArkR31AreaVariants[NEO_ARK_R31_AREA_VARIANT_COUNT] = {
+    [AREA_DEFAULT_VARIANT] = { .placements = gMapNeoArkR31DefaultPlacements, .resources = _gNeoArkR31DefaultResources },
 };
 
 s32 D_neo_ark_r31_8017DC20[3] = {

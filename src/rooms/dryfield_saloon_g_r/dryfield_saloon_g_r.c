@@ -808,20 +808,9 @@ static AreaResource _gDryfieldSaloonGRVariant2Resources[3] = {
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaVariant D_dryfield_saloon_g_r_80181B1C[13] = {
-    { NULL, NULL },
-    { gMapDryfieldSaloonGRVariant1Placements, _gDryfieldSaloonGRVariant1Resources },
-    { gMapDryfieldSaloonGRVariant2Placements, _gDryfieldSaloonGRVariant2Resources },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
+AreaVariant gDryfieldSaloonGRAreaVariants[DRYFIELD_SALOON_G_R_AREA_VARIANT_COUNT] = {
+    [AREA_DEFAULT_VARIANT] = { .placements = gMapDryfieldSaloonGRVariant1Placements, .resources = _gDryfieldSaloonGRVariant1Resources },
+    [2]                    = { .placements = gMapDryfieldSaloonGRVariant2Placements, .resources = _gDryfieldSaloonGRVariant2Resources },
 };
 
 /// Cue-2 bases in the loaded type-1 footstep bank; cue 1 uses the next entry.

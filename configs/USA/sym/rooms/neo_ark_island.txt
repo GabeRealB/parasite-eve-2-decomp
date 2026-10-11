@@ -1,6 +1,6 @@
 // Overlay-local symbols for neo_ark_island.
 D_neo_ark_island_80184008 = 0x80184008; // size:0x8 defined:True
-D_neo_ark_island_80183F48 = 0x80183F48; // size:0x68 defined:True
+gNeoArkIslandAreaVariants = 0x80183F48; // size:0x68 defined:True
 _gNeoArkIslandSurface3FootstepSounds = 0x80183FB0; // size:0xC defined:True
 _gNeoArkIslandSurface4FootstepSounds = 0x80183FBC; // size:0xC defined:True
 _gNeoArkIslandSolidSurface = 0x80183FC8; // size:0x8 defined:True

@@ -24,10 +24,12 @@
 #include "gameplay/view.h"
 
 #include "main/coord.h"
+#include "main/areas.h"
 #include "main/display.h"
 #include "main/display_types.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/sound_ids.h"
 #include "main/sound_types.h"
 #include "main/task.h"
 #include "main/task_types.h"
@@ -37,9 +39,6 @@
 
 #include "rooms/room_common.h"
 #include "../../shared/glow_draw.h"
-
-/// The room's message table, published at `Task::msgTable` by the room task.
-extern TaskMessageEntry D_dryfield_night_souvenir_shop_8017E03C[];
 
 /// Prism corners in the space of the coordinate drawn under, eight per prism:
 /// the lit ring, then the far ring. The room draws the prisms at `[0..7]` and
@@ -57,9 +56,17 @@ enum {
     DRYFIELD_NIGHT_SOUVENIR_SHOP_MESSAGE_USE_KEY_ITEM = 0x13F1,
 };
 
+/// Resource-array extent and the packed departure/arrival slots of the doorway.
+enum {
+    DRYFIELD_NIGHT_SOUVENIR_SHOP_ACTION_TRIGGER_COUNT     = 12,
+    DRYFIELD_NIGHT_SOUVENIR_SHOP_BACK_STREET_ARRIVAL_WARP = 2,
+    DRYFIELD_NIGHT_SOUVENIR_SHOP_BACK_STREET_WARP_SLOTS   = (DRYFIELD_NIGHT_SOUVENIR_SHOP_WARP_BACK_STREET << 4) | DRYFIELD_NIGHT_SOUVENIR_SHOP_BACK_STREET_ARRIVAL_WARP,
+    DRYFIELD_NIGHT_SOUVENIR_SHOP_CAP_PRESENTATION_FLAGS   = 0,
+};
+
 static WorldCollisionGrid         _gDryfieldNightSouvenirShopCollisionGrid;
 static WorldCollisionTrigger      _gDryfieldNightSouvenirShopViewBoundaryTriggers[2];
-extern WorldCollisionTrigger      D_dryfield_night_souvenir_shop_8017F248[12];
+static WorldCollisionTrigger      _gDryfieldNightSouvenirShopActionTriggers[DRYFIELD_NIGHT_SOUVENIR_SHOP_ACTION_TRIGGER_COUNT];
 static WorldCoordRoomAmbientEntry _gDryfieldNightSouvenirShopAmbientByView[4];
 static WorldCoordRoomLights       _gDryfieldNightSouvenirShopRoomLights;
 
@@ -76,7 +83,13 @@ enum {
     DRYFIELD_NIGHT_SOUVENIR_SHOP_SPRITE_NEUTRAL_COLOR = 128,
 };
 
-TaskMessageEntry D_dryfield_night_souvenir_shop_8017E03C[5] = {
+/// Room-event resolution and key-item, action and command message routing.
+///
+/// Four entries followed by TASK_MESSAGE_TABLE_END. Initialization publishes
+/// this borrowed table on the live room task; its handlers permit unchanged
+/// room transitions, reject key items and ignore room actions and commands.
+/// Keep the room overlay loaded until the registered task is released.
+static TaskMessageEntry _gDryfieldNightSouvenirShopRoomMessages[] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _dryfieldNightSouvenirShopResolveRoomEvent },
     { DRYFIELD_NIGHT_SOUVENIR_SHOP_MESSAGE_USE_KEY_ITEM, _dryfieldNightSouvenirShopRejectKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, _dryfieldNightSouvenirShopIgnoreRoomAction },
@@ -107,8 +120,13 @@ WorldCoordRoomLighting gDryfieldNightSouvenirShopRoomLighting[1] = {
     { &_gDryfieldNightSouvenirShopRoomLights, _gDryfieldNightSouvenirShopAmbientByView },
 };
 
-WorldCollisionRoomResources D_dryfield_night_souvenir_shop_8017E0EC[1] = {
-    { &_gDryfieldNightSouvenirShopCollisionGrid, _gDryfieldNightSouvenirShopViewBoundaryTriggers, D_dryfield_night_souvenir_shop_8017F248, NULL },
+WorldCollisionRoomResources gDryfieldNightSouvenirShopRoomCollisionResources[1] = {
+    {
+        .grid                 = &_gDryfieldNightSouvenirShopCollisionGrid,
+        .viewBoundaryTriggers = _gDryfieldNightSouvenirShopViewBoundaryTriggers,
+        .actionTriggers       = _gDryfieldNightSouvenirShopActionTriggers,
+        .occluders            = NULL,
+    },
 };
 
 u8* gDryfieldNightSouvenirShopViewMaps[1] = {
@@ -117,8 +135,26 @@ u8* gDryfieldNightSouvenirShopViewMaps[1] = {
 
 ViewCount gDryfieldNightSouvenirShopViewCounts[1] = { DRYFIELD_NIGHT_SOUVENIR_SHOP_LOGICAL_VIEW_COUNT };
 
-DirectionWarpEntry D_dryfield_night_souvenir_shop_8017E104[1] = {
-    { { { .word = 0 }, 2000, 0, -3550 }, { 0, 0, 0, 0 }, { { .word = 512 }, 1381, 0, -2750 }, { 0, 0, 0, 0 }, 0x53060002, 0x53060001, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, 469 },
+/// Door sound requests and the optional arrival map-marker nibble.
+enum {
+    DRYFIELD_NIGHT_SOUVENIR_SHOP_ARRIVAL_SOUND   = SOUND_AREA(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_SOUVENIR_SHOP, 2),
+    DRYFIELD_NIGHT_SOUVENIR_SHOP_DEPARTURE_SOUND = SOUND_AREA(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_SOUVENIR_SHOP, 1),
+    DRYFIELD_NIGHT_SOUVENIR_SHOP_DOOR_MAP_FLAG   = 469,
+};
+
+DirectionWarpEntry gDryfieldNightSouvenirShopWarpEntries[DRYFIELD_NIGHT_SOUVENIR_SHOP_WARP_COUNT] = {
+    [DRYFIELD_NIGHT_SOUVENIR_SHOP_WARP_BACK_STREET - 1] = {
+        .player         = { { .word = 0 }, 2000, 0, -3550 },
+        .unknown_10     = { 0, 0, 0, 0 },
+        .companion      = { { .word = 512 }, 1381, 0, -2750 },
+        .unknown_24     = { 0, 0, 0, 0 },
+        .arrivalSound   = DRYFIELD_NIGHT_SOUVENIR_SHOP_ARRIVAL_SOUND,
+        .departureSound = DRYFIELD_NIGHT_SOUVENIR_SHOP_DEPARTURE_SOUND,
+        .blockedSound   = DIRECTION_WARP_SOUND_NONE,
+        .initialView    = DRYFIELD_NIGHT_SOUVENIR_SHOP_VIEW_2,
+        .flags          = DIRECTION_WARP_FLAG_NONE,
+        .mapFlagId      = DRYFIELD_NIGHT_SOUVENIR_SHOP_DOOR_MAP_FLAG,
+    },
 };
 
 /// Grid-local plane normals, with ONE (4096) for unit length.
@@ -379,19 +415,194 @@ static WorldCoordRoomAmbientEntry _gDryfieldNightSouvenirShopAmbientByView[4] = 
     { .color = { 410, 615, 615, 538 } },
 };
 
-WorldCollisionTrigger D_dryfield_night_souvenir_shop_8017F248[12] = {
-    { NULL, NULL, NULL, { 1920, -57, -3760, 0 }, { { -544, 0, -240, 0 }, { 544, 0, -240, 0 }, { -544, 0, 240, 0 }, { 544, 0, 240, 0 } }, { 0, 4095, 0, 0 }, { 0, 0, 4096, 0 }, 593, WORLD_COLLISION_TRIGGER_ACTION_WARP, 5, 18, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 2832, -64, -704, 0 }, { { -1088, 0, -272, 0 }, { 1088, 0, -272, 0 }, { -1088, 0, 272, 0 }, { 1088, 0, 272, 0 } }, { 0, 4109, 0, 0 }, { -201, 0, -4091, 0 }, 1115, WORLD_COLLISION_TRIGGER_ACTION_CAP, 4, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 4176, -64, -3296, 0 }, { { -1520, 0, -272, 0 }, { 1520, 0, -272, 0 }, { -1520, 0, 272, 0 }, { 1520, 0, 272, 0 } }, { 0, 4102, 0, 0 }, { 0, 0, 4096, 0 }, 1541, WORLD_COLLISION_TRIGGER_ACTION_CAP, 1, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 5312, -64, -752, 0 }, { { -192, 0, -1024, 0 }, { 192, 0, -1024, 0 }, { -192, 0, 1024, 0 }, { 192, 0, 1024, 0 } }, { 0, 4095, 0, 0 }, { -4091, 0, 201, 0 }, 1039, WORLD_COLLISION_TRIGGER_ACTION_CAP, 3, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 1023, -64, -1728, 0 }, { { -336, 0, -640, 0 }, { 336, 0, -640, 0 }, { -336, 0, 640, 0 }, { 336, 0, 640, 0 } }, { 0, 4098, 0, 0 }, { 4095, 0, 0, 0 }, 721, WORLD_COLLISION_TRIGGER_ACTION_CAP, 2, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 4656, -64, -1200, 0 }, { { -880, 0, -384, 0 }, { 880, 0, -384, 0 }, { -880, 0, 384, 0 }, { 880, 0, 384, 0 } }, { 0, 4101, 0, 0 }, { 0, 0, 4096, 0 }, 960, WORLD_COLLISION_TRIGGER_ACTION_CAP, 9, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 2736, -64, -1696, 0 }, { { -848, 0, -176, 0 }, { 848, 0, -176, 0 }, { -848, 0, 176, 0 }, { 848, 0, 176, 0 } }, { 0, 4098, 0, 0 }, { 0, 0, 4096, 0 }, 865, WORLD_COLLISION_TRIGGER_ACTION_CAP, 5, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 2720, -64, -2624, 0 }, { { -848, 0, -176, 0 }, { 848, 0, -176, 0 }, { -848, 0, 176, 0 }, { 848, 0, 176, 0 } }, { 0, 4098, 0, 0 }, { -201, 0, -4091, 0 }, 865, WORLD_COLLISION_TRIGGER_ACTION_CAP, 5, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 1056, -64, -3104, 0 }, { { -320, 0, -464, 0 }, { 320, 0, -464, 0 }, { -320, 0, 464, 0 }, { 320, 0, 464, 0 } }, { 0, 4098, 0, 0 }, { 3973, 0, 995, 0 }, 561, WORLD_COLLISION_TRIGGER_ACTION_CAP, 6, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 1392, -64, -736, 0 }, { { -576, 0, -176, 0 }, { 576, 0, -176, 0 }, { -576, 0, 176, 0 }, { 576, 0, 176, 0 } }, { 0, 4097, 0, 0 }, { -201, 0, -4091, 0 }, 600, WORLD_COLLISION_TRIGGER_ACTION_CAP, 7, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 4720, -64, -448, 0 }, { { -784, 0, -176, 0 }, { 784, 0, -176, 0 }, { -784, 0, 176, 0 }, { 784, 0, 176, 0 } }, { 0, 4099, 0, 0 }, { 200, 0, -4091, 0 }, 801, WORLD_COLLISION_TRIGGER_ACTION_CAP, 7, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 4352, -64, -1952, 0 }, { { -1360, 0, 32, 0 }, { 240, 0, 32, 0 }, { -752, 0, 896, 0 }, { 240, 0, 896, 0 } }, { 0, 4112, 0, 0 }, { 0, 0, 4096, 0 }, 1354, WORLD_COLLISION_TRIGGER_ACTION_CAP, 9, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
+/// The shop's doorway and eleven CAP interaction quads.
+///
+/// The doorway requests back-street area 5, departure slot 1 and arrival slot 2.
+/// CAP indices 1..7 and 9 use presentation flags 0. The final active quad carries
+/// LAST and accepts proximity or facing; the others require facing. Setup binds
+/// the writable records to the view coordinate and links all twelve, including
+/// LAST. Keep this overlay loaded until the action list is replaced and unlinked.
+static WorldCollisionTrigger _gDryfieldNightSouvenirShopActionTriggers[DRYFIELD_NIGHT_SOUVENIR_SHOP_ACTION_TRIGGER_COUNT] = {
+    {
+        .next         = NULL,
+        .prevLink     = NULL,
+        .coord        = NULL,
+        .origin       = { 1920, -57, -3760, 0 },
+        .vertices     = { { -544, 0, -240, 0 }, { 544, 0, -240, 0 }, { -544, 0, 240, 0 }, { 544, 0, 240, 0 } },
+        .normal       = { 0, 4095, 0, 0 },
+        .facingNormal = { 0, 0, ONE, 0 },
+        .radius       = 593,
+        .control      = WORLD_COLLISION_TRIGGER_ACTION_WARP,
+        .parameter0   = GAME_AREA_DRYFIELD_NIGHT_BACK_STREET,
+        .parameter1   = DRYFIELD_NIGHT_SOUVENIR_SHOP_BACK_STREET_WARP_SLOTS,
+        .flags        = WORLD_COLLISION_TRIGGER_FACING_QUAD,
+        .hit          = 0,
+    },
+    {
+        .next         = NULL,
+        .prevLink     = NULL,
+        .coord        = NULL,
+        .origin       = { 2832, -64, -704, 0 },
+        .vertices     = { { -1088, 0, -272, 0 }, { 1088, 0, -272, 0 }, { -1088, 0, 272, 0 }, { 1088, 0, 272, 0 } },
+        .normal       = { 0, 4109, 0, 0 },
+        .facingNormal = { -201, 0, -4091, 0 },
+        .radius       = 1115,
+        .control      = WORLD_COLLISION_TRIGGER_ACTION_CAP,
+        .parameter0   = 4,
+        .parameter1   = DRYFIELD_NIGHT_SOUVENIR_SHOP_CAP_PRESENTATION_FLAGS,
+        .flags        = WORLD_COLLISION_TRIGGER_FACING_QUAD,
+        .hit          = 0,
+    },
+    {
+        .next         = NULL,
+        .prevLink     = NULL,
+        .coord        = NULL,
+        .origin       = { 4176, -64, -3296, 0 },
+        .vertices     = { { -1520, 0, -272, 0 }, { 1520, 0, -272, 0 }, { -1520, 0, 272, 0 }, { 1520, 0, 272, 0 } },
+        .normal       = { 0, 4102, 0, 0 },
+        .facingNormal = { 0, 0, ONE, 0 },
+        .radius       = 1541,
+        .control      = WORLD_COLLISION_TRIGGER_ACTION_CAP,
+        .parameter0   = 1,
+        .parameter1   = DRYFIELD_NIGHT_SOUVENIR_SHOP_CAP_PRESENTATION_FLAGS,
+        .flags        = WORLD_COLLISION_TRIGGER_FACING_QUAD,
+        .hit          = 0,
+    },
+    {
+        .next         = NULL,
+        .prevLink     = NULL,
+        .coord        = NULL,
+        .origin       = { 5312, -64, -752, 0 },
+        .vertices     = { { -192, 0, -1024, 0 }, { 192, 0, -1024, 0 }, { -192, 0, 1024, 0 }, { 192, 0, 1024, 0 } },
+        .normal       = { 0, 4095, 0, 0 },
+        .facingNormal = { -4091, 0, 201, 0 },
+        .radius       = 1039,
+        .control      = WORLD_COLLISION_TRIGGER_ACTION_CAP,
+        .parameter0   = 3,
+        .parameter1   = DRYFIELD_NIGHT_SOUVENIR_SHOP_CAP_PRESENTATION_FLAGS,
+        .flags        = WORLD_COLLISION_TRIGGER_FACING_QUAD,
+        .hit          = 0,
+    },
+    {
+        .next         = NULL,
+        .prevLink     = NULL,
+        .coord        = NULL,
+        .origin       = { 1023, -64, -1728, 0 },
+        .vertices     = { { -336, 0, -640, 0 }, { 336, 0, -640, 0 }, { -336, 0, 640, 0 }, { 336, 0, 640, 0 } },
+        .normal       = { 0, 4098, 0, 0 },
+        .facingNormal = { 4095, 0, 0, 0 },
+        .radius       = 721,
+        .control      = WORLD_COLLISION_TRIGGER_ACTION_CAP,
+        .parameter0   = 2,
+        .parameter1   = DRYFIELD_NIGHT_SOUVENIR_SHOP_CAP_PRESENTATION_FLAGS,
+        .flags        = WORLD_COLLISION_TRIGGER_FACING_QUAD,
+        .hit          = 0,
+    },
+    {
+        .next         = NULL,
+        .prevLink     = NULL,
+        .coord        = NULL,
+        .origin       = { 4656, -64, -1200, 0 },
+        .vertices     = { { -880, 0, -384, 0 }, { 880, 0, -384, 0 }, { -880, 0, 384, 0 }, { 880, 0, 384, 0 } },
+        .normal       = { 0, 4101, 0, 0 },
+        .facingNormal = { 0, 0, ONE, 0 },
+        .radius       = 960,
+        .control      = WORLD_COLLISION_TRIGGER_ACTION_CAP,
+        .parameter0   = 9,
+        .parameter1   = DRYFIELD_NIGHT_SOUVENIR_SHOP_CAP_PRESENTATION_FLAGS,
+        .flags        = WORLD_COLLISION_TRIGGER_FACING_QUAD,
+        .hit          = 0,
+    },
+    {
+        .next         = NULL,
+        .prevLink     = NULL,
+        .coord        = NULL,
+        .origin       = { 2736, -64, -1696, 0 },
+        .vertices     = { { -848, 0, -176, 0 }, { 848, 0, -176, 0 }, { -848, 0, 176, 0 }, { 848, 0, 176, 0 } },
+        .normal       = { 0, 4098, 0, 0 },
+        .facingNormal = { 0, 0, ONE, 0 },
+        .radius       = 865,
+        .control      = WORLD_COLLISION_TRIGGER_ACTION_CAP,
+        .parameter0   = 5,
+        .parameter1   = DRYFIELD_NIGHT_SOUVENIR_SHOP_CAP_PRESENTATION_FLAGS,
+        .flags        = WORLD_COLLISION_TRIGGER_FACING_QUAD,
+        .hit          = 0,
+    },
+    {
+        .next         = NULL,
+        .prevLink     = NULL,
+        .coord        = NULL,
+        .origin       = { 2720, -64, -2624, 0 },
+        .vertices     = { { -848, 0, -176, 0 }, { 848, 0, -176, 0 }, { -848, 0, 176, 0 }, { 848, 0, 176, 0 } },
+        .normal       = { 0, 4098, 0, 0 },
+        .facingNormal = { -201, 0, -4091, 0 },
+        .radius       = 865,
+        .control      = WORLD_COLLISION_TRIGGER_ACTION_CAP,
+        .parameter0   = 5,
+        .parameter1   = DRYFIELD_NIGHT_SOUVENIR_SHOP_CAP_PRESENTATION_FLAGS,
+        .flags        = WORLD_COLLISION_TRIGGER_FACING_QUAD,
+        .hit          = 0,
+    },
+    {
+        .next         = NULL,
+        .prevLink     = NULL,
+        .coord        = NULL,
+        .origin       = { 1056, -64, -3104, 0 },
+        .vertices     = { { -320, 0, -464, 0 }, { 320, 0, -464, 0 }, { -320, 0, 464, 0 }, { 320, 0, 464, 0 } },
+        .normal       = { 0, 4098, 0, 0 },
+        .facingNormal = { 3973, 0, 995, 0 },
+        .radius       = 561,
+        .control      = WORLD_COLLISION_TRIGGER_ACTION_CAP,
+        .parameter0   = 6,
+        .parameter1   = DRYFIELD_NIGHT_SOUVENIR_SHOP_CAP_PRESENTATION_FLAGS,
+        .flags        = WORLD_COLLISION_TRIGGER_FACING_QUAD,
+        .hit          = 0,
+    },
+    {
+        .next         = NULL,
+        .prevLink     = NULL,
+        .coord        = NULL,
+        .origin       = { 1392, -64, -736, 0 },
+        .vertices     = { { -576, 0, -176, 0 }, { 576, 0, -176, 0 }, { -576, 0, 176, 0 }, { 576, 0, 176, 0 } },
+        .normal       = { 0, 4097, 0, 0 },
+        .facingNormal = { -201, 0, -4091, 0 },
+        .radius       = 600,
+        .control      = WORLD_COLLISION_TRIGGER_ACTION_CAP,
+        .parameter0   = 7,
+        .parameter1   = DRYFIELD_NIGHT_SOUVENIR_SHOP_CAP_PRESENTATION_FLAGS,
+        .flags        = WORLD_COLLISION_TRIGGER_FACING_QUAD,
+        .hit          = 0,
+    },
+    {
+        .next         = NULL,
+        .prevLink     = NULL,
+        .coord        = NULL,
+        .origin       = { 4720, -64, -448, 0 },
+        .vertices     = { { -784, 0, -176, 0 }, { 784, 0, -176, 0 }, { -784, 0, 176, 0 }, { 784, 0, 176, 0 } },
+        .normal       = { 0, 4099, 0, 0 },
+        .facingNormal = { 200, 0, -4091, 0 },
+        .radius       = 801,
+        .control      = WORLD_COLLISION_TRIGGER_ACTION_CAP,
+        .parameter0   = 7,
+        .parameter1   = DRYFIELD_NIGHT_SOUVENIR_SHOP_CAP_PRESENTATION_FLAGS,
+        .flags        = WORLD_COLLISION_TRIGGER_FACING_QUAD,
+        .hit          = 0,
+    },
+    {
+        .next         = NULL,
+        .prevLink     = NULL,
+        .coord        = NULL,
+        .origin       = { 4352, -64, -1952, 0 },
+        .vertices     = { { -1360, 0, 32, 0 }, { 240, 0, 32, 0 }, { -752, 0, 896, 0 }, { 240, 0, 896, 0 } },
+        .normal       = { 0, 4112, 0, 0 },
+        .facingNormal = { 0, 0, ONE, 0 },
+        .radius       = 1354,
+        .control      = WORLD_COLLISION_TRIGGER_ACTION_CAP,
+        .parameter0   = 9,
+        .parameter1   = DRYFIELD_NIGHT_SOUVENIR_SHOP_CAP_PRESENTATION_FLAGS,
+        .flags        = WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST,
+        .hit          = 0,
+    },
 };
 
 /// Placement keys and decimal actor file numbers used by the shop's encounters.
@@ -433,19 +644,10 @@ static AreaResource _gDryfieldNightSouvenirShopVariant11Resources[3] = {
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaVariant D_dryfield_night_souvenir_shop_8017F62C[12] = {
-    { NULL, NULL },
-    { gMapDryfieldFullSouvenirShopVariant1Placements, _gDryfieldNightSouvenirShopVariant1Resources },
-    { NULL, NULL },
-    { gMapDryfieldFullSouvenirShopVariant3Placements, _gDryfieldNightSouvenirShopVariant3Resources },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { gMapDryfieldFullSouvenirShopVariant11Placements, _gDryfieldNightSouvenirShopVariant11Resources },
+AreaVariant gDryfieldNightSouvenirShopAreaVariants[DRYFIELD_NIGHT_SOUVENIR_SHOP_AREA_VARIANT_COUNT] = {
+    [AREA_DEFAULT_VARIANT] = { .placements = gMapDryfieldFullSouvenirShopVariant1Placements, .resources = _gDryfieldNightSouvenirShopVariant1Resources },
+    [3]                    = { .placements = gMapDryfieldFullSouvenirShopVariant3Placements, .resources = _gDryfieldNightSouvenirShopVariant3Resources },
+    [11]                   = { .placements = gMapDryfieldFullSouvenirShopVariant11Placements, .resources = _gDryfieldNightSouvenirShopVariant11Resources },
 };
 
 /// Cue-2 bases in the currently loaded type-1 sound bank; cue 1 uses base + 1.
@@ -577,7 +779,7 @@ static s32 _dryfieldNightSouvenirShopIgnoreRoomAction(Task* task, s32 messageId,
 /// for subsequent synchronous messages while the registered task remains alive.
 static void _dryfieldNightSouvenirShopInitRoomTask(Task* task)
 {
-    task->msgTable = D_dryfield_night_souvenir_shop_8017E03C;
+    task->msgTable = _gDryfieldNightSouvenirShopRoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     task->state++;
 }
@@ -590,14 +792,29 @@ static void _dryfieldNightSouvenirShopIdleRoomTask(Task* task)
 {
 }
 
-/// The room task's three states.
-static const TaskFuncTable3 D_dryfield_night_souvenir_shop_8017D5C4 = {
-    { _dryfieldNightSouvenirShopInitRoomTask, _dryfieldNightSouvenirShopIdleRoomTask, taskKill },
+/// Unchecked selectors for the room task's three callback slots.
+enum {
+    DRYFIELD_NIGHT_SOUVENIR_SHOP_ROOM_STATE_INITIALIZE = 0,
+    DRYFIELD_NIGHT_SOUVENIR_SHOP_ROOM_STATE_IDLE       = 1,
+    DRYFIELD_NIGHT_SOUVENIR_SHOP_ROOM_STATE_RELEASE    = 2,
+};
+
+/// The room task's initialize, persistent idle and release states (0..2).
+///
+/// The dispatcher copies all three callbacks by value and indexes task->state
+/// without a bounds check. The callbacks require this room overlay to remain
+/// loaded; the release callback ends the task and its message-table lifetime.
+static const TaskFuncTable3 _gDryfieldNightSouvenirShopRoomTaskStates = {
+    .funcs = {
+        [DRYFIELD_NIGHT_SOUVENIR_SHOP_ROOM_STATE_INITIALIZE] = _dryfieldNightSouvenirShopInitRoomTask,
+        [DRYFIELD_NIGHT_SOUVENIR_SHOP_ROOM_STATE_IDLE]       = _dryfieldNightSouvenirShopIdleRoomTask,
+        [DRYFIELD_NIGHT_SOUVENIR_SHOP_ROOM_STATE_RELEASE]    = taskKill,
+    },
 };
 
 void dryfieldNightSouvenirShopRoomTask(Task* task)
 {
-    TaskFuncTable3 stateHandlers = D_dryfield_night_souvenir_shop_8017D5C4;
+    TaskFuncTable3 stateHandlers = _gDryfieldNightSouvenirShopRoomTaskStates;
     stateHandlers.funcs[task->state](task);
 }
 

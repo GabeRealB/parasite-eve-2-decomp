@@ -19,7 +19,18 @@
 /// overlay, shop panels and catalogue resources must remain loaded until exit.
 extern TaskDesc gMistParkingShopSessionTaskDesc;
 
-extern AreaVariant D_mist_parking_801951B4[13];
+/// Number of retained placement-variant slots, including absent slots.
+enum { MIST_PARKING_AREA_VARIANT_COUNT = 13 };
+
+/// Actor placements and loading/spawn recipes indexed by `GameLocationKey.variant`.
+///
+/// Slots 1, 2 are present; every other slot is absent (NULL, NULL).
+/// Supply an index in 0..12; this directory has no terminator or bounds check.
+/// The placement selector is independent of room and view selectors.
+/// Placements belong to the stage map, recipes to this room. Keep both overlays
+/// loaded while loading or using either table. Referenced actor overlays must
+/// be loaded for spawning and model-policy updates.
+extern AreaVariant gMistParkingAreaVariants[MIST_PARKING_AREA_VARIANT_COUNT];
 
 /// Dimensions of the parking area's room variants, logical views and surface classes.
 enum {

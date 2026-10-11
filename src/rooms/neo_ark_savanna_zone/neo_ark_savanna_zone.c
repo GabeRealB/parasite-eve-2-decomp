@@ -398,20 +398,13 @@ static AreaResource _gNeoArkSavannaZoneVariant11Resources[3] = {
     { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaVariant D_neo_ark_savanna_zone_80180864[13] = {
-    { NULL, NULL },
-    { gMapNeoArkSavannaZoneVariant1Placements, _gNeoArkSavannaZoneVariant1Resources },
-    { gMapNeoArkSavannaZoneVariant2Placements, _gNeoArkSavannaZoneVariant2Resources },
-    { gMapNeoArkSavannaZoneVariant3Placements, _gNeoArkSavannaZoneVariant3Resources },
-    { gMapNeoArkSavannaZoneVariant4Placements, _gNeoArkSavannaZoneVariant4Resources },
-    { gMapNeoArkSavannaZoneVariant5Placements, _gNeoArkSavannaZoneVariant5Resources },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { gMapNeoArkSavannaZoneVariant11Placements, _gNeoArkSavannaZoneVariant11Resources },
-    { NULL, NULL },
+AreaVariant gNeoArkSavannaZoneAreaVariants[NEO_ARK_SAVANNA_ZONE_AREA_VARIANT_COUNT] = {
+    [AREA_DEFAULT_VARIANT] = { .placements = gMapNeoArkSavannaZoneVariant1Placements, .resources = _gNeoArkSavannaZoneVariant1Resources },
+    [2]                    = { .placements = gMapNeoArkSavannaZoneVariant2Placements, .resources = _gNeoArkSavannaZoneVariant2Resources },
+    [3]                    = { .placements = gMapNeoArkSavannaZoneVariant3Placements, .resources = _gNeoArkSavannaZoneVariant3Resources },
+    [4]                    = { .placements = gMapNeoArkSavannaZoneVariant4Placements, .resources = _gNeoArkSavannaZoneVariant4Resources },
+    [5]                    = { .placements = gMapNeoArkSavannaZoneVariant5Placements, .resources = _gNeoArkSavannaZoneVariant5Resources },
+    [11]                   = { .placements = gMapNeoArkSavannaZoneVariant11Placements, .resources = _gNeoArkSavannaZoneVariant11Resources },
 };
 
 WorldCollisionOccluder D_neo_ark_savanna_zone_801808CC[1] = {

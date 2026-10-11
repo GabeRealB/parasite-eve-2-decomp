@@ -1,7 +1,7 @@
 // Overlay-local symbols for neo_ark_power_plant_2.
 _gNeoArkPowerPlant2GeneratorClearAreaUpdates = 0x80182F70; // size:0x24 defined:True
 _gNeoArkPowerPlant2GeneratorClearExtraAreaUpdates = 0x80182F94; // size:0x10 defined:True
-D_neo_ark_power_plant_2_80182DE0 = 0x80182DE0; // size:0x98 defined:True
+gNeoArkPowerPlant2AreaVariants = 0x80182DE0; // size:0x98 defined:True
 _gNeoArkPowerPlant2Occluders = 0x80182E78; // size:0x3C defined:True
 _gNeoArkPowerPlant2AmbientTable = 0x80182EB4; // size:0x50 defined:True
 _gNeoArkPowerPlant2Surface4FootstepSounds = 0x80182F04; // size:0xC defined:True

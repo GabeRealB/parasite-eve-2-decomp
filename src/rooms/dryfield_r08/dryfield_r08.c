@@ -655,20 +655,8 @@ static AreaResource _gDryfieldR08Variant1Resources[2] = {
     { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaVariant D_dryfield_r08_80180B88[13] = {
-    { NULL, NULL },
-    { gMapDryfieldR08Variant1Placements, _gDryfieldR08Variant1Resources },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
+AreaVariant gDryfieldR08AreaVariants[DRYFIELD_R08_AREA_VARIANT_COUNT] = {
+    [AREA_DEFAULT_VARIANT] = { .placements = gMapDryfieldR08Variant1Placements, .resources = _gDryfieldR08Variant1Resources },
 };
 
 /// Three retained words with the values of type-1 sound-script requests.

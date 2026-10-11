@@ -2,7 +2,7 @@
 D_neo_ark_garden_80182BF8 = 0x80182BF8; // size:0xC defined:True
 _gNeoArkGardenStarPosition = 0x801813D8; // size:0x8 defined:True
 _gNeoArkGardenAmbiencePositions = 0x801813E0; // size:0x20 defined:True
-D_neo_ark_garden_80182B54 = 0x80182B54; // size:0x68 defined:True
+gNeoArkGardenAreaVariants = 0x80182B54; // size:0x68 defined:True
 _gNeoArkGardenSurface4FootstepSounds = 0x80182BBC; // size:0xC defined:True
 _gNeoArkGardenDefaultSurfaceProperties = 0x80182BC8; // size:0x8 defined:True
 _gNeoArkGardenSurface4Properties = 0x80182BD0; // size:0x8 defined:True

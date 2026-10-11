@@ -978,20 +978,8 @@ static AreaResource _gDryfieldNightTrailerCoachGaryResources[2] = {
     { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaVariant D_dryfield_night_trailer_coach_8018C15C[13] = {
-    { NULL, NULL },
-    { gMapDryfieldFullTrailerCoachVariant1Placements, _gDryfieldNightTrailerCoachGaryResources },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
+AreaVariant gDryfieldNightTrailerCoachAreaVariants[DRYFIELD_NIGHT_TRAILER_COACH_AREA_VARIANT_COUNT] = {
+    [AREA_DEFAULT_VARIANT] = { .placements = gMapDryfieldFullTrailerCoachVariant1Placements, .resources = _gDryfieldNightTrailerCoachGaryResources },
 };
 
 /// Type-1 cue-2 requests; cue 1 uses the following entry in the loaded bank.

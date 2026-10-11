@@ -11,7 +11,18 @@
 
 #include "main/task_types.h"
 
-extern AreaVariant D_dryfield_saloon_g_r_80181B1C[13];
+/// Number of retained placement-variant slots, including absent slots.
+enum { DRYFIELD_SALOON_G_R_AREA_VARIANT_COUNT = 13 };
+
+/// Actor placements and loading/spawn recipes indexed by `GameLocationKey.variant`.
+///
+/// Slots 1, 2 are present; every other slot is absent (NULL, NULL).
+/// Supply an index in 0..12; this directory has no terminator or bounds check.
+/// The placement selector is independent of room and view selectors.
+/// Placements belong to the stage map, recipes to this room. Keep both overlays
+/// loaded while loading or using either table. Referenced actor overlays must
+/// be loaded for spawning and model-policy updates.
+extern AreaVariant gDryfieldSaloonGRAreaVariants[DRYFIELD_SALOON_G_R_AREA_VARIANT_COUNT];
 
 /// Logical-view search length and independent camera-table extent for the daytime saloon.
 enum {

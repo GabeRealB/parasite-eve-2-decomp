@@ -864,19 +864,12 @@ static AreaResource _gDryfieldNightUnderpassVariant11Resources[2] = {
     { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaVariant D_dryfield_night_underpass_801802DC[12] = {
-    { NULL, NULL },
-    { gMapDryfieldFullUnderpassVariant1Placements, _gDryfieldNightUnderpassGrayStalkerResources },
-    { gMapDryfieldFullUnderpassVariant2Placements, _gDryfieldNightUnderpassScavengerResources },
-    { gMapDryfieldFullUnderpassVariant3Placements, _gDryfieldNightUnderpassVariant3Resources },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { gMapDryfieldFullUnderpassVariant7Placements, _gDryfieldNightUnderpassVariant7Resources },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { gMapDryfieldFullUnderpassVariant11Placements, _gDryfieldNightUnderpassVariant11Resources },
+AreaVariant gDryfieldNightUnderpassAreaVariants[DRYFIELD_NIGHT_UNDERPASS_AREA_VARIANT_COUNT] = {
+    [AREA_DEFAULT_VARIANT] = { .placements = gMapDryfieldFullUnderpassVariant1Placements, .resources = _gDryfieldNightUnderpassGrayStalkerResources },
+    [2]                    = { .placements = gMapDryfieldFullUnderpassVariant2Placements, .resources = _gDryfieldNightUnderpassScavengerResources },
+    [3]                    = { .placements = gMapDryfieldFullUnderpassVariant3Placements, .resources = _gDryfieldNightUnderpassVariant3Resources },
+    [7]                    = { .placements = gMapDryfieldFullUnderpassVariant7Placements, .resources = _gDryfieldNightUnderpassVariant7Resources },
+    [11]                   = { .placements = gMapDryfieldFullUnderpassVariant11Placements, .resources = _gDryfieldNightUnderpassVariant11Resources },
 };
 
 /// Cue-2 bases in the currently loaded type-1 bank; cue 1 uses the next entry.

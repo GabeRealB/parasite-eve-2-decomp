@@ -884,20 +884,12 @@ static AreaResource _gNeoArkPowerPlant1Variant11Resources[2] = {
     { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaVariant D_neo_ark_power_plant_1_80181AF8[13] = {
-    { NULL, NULL },
-    { gMapNeoArkPowerPlant1Variant1Placements, _gNeoArkPowerPlant1Variant1Resources },
-    { gMapNeoArkPowerPlant1Variant2Placements, _gNeoArkPowerPlant1Variant2Resources },
-    { gMapNeoArkPowerPlant1Variant3Placements, _gNeoArkPowerPlant1Variant3Resources },
-    { gMapNeoArkPowerPlant1Variant4Placements, _gNeoArkPowerPlant1Variant4Resources },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { gMapNeoArkPowerPlant1Variant11Placements, _gNeoArkPowerPlant1Variant11Resources },
-    { NULL, NULL },
+AreaVariant gNeoArkPowerPlant1AreaVariants[NEO_ARK_POWER_PLANT_1_AREA_VARIANT_COUNT] = {
+    [AREA_DEFAULT_VARIANT] = { .placements = gMapNeoArkPowerPlant1Variant1Placements, .resources = _gNeoArkPowerPlant1Variant1Resources },
+    [2]                    = { .placements = gMapNeoArkPowerPlant1Variant2Placements, .resources = _gNeoArkPowerPlant1Variant2Resources },
+    [3]                    = { .placements = gMapNeoArkPowerPlant1Variant3Placements, .resources = _gNeoArkPowerPlant1Variant3Resources },
+    [4]                    = { .placements = gMapNeoArkPowerPlant1Variant4Placements, .resources = _gNeoArkPowerPlant1Variant4Resources },
+    [11]                   = { .placements = gMapNeoArkPowerPlant1Variant11Placements, .resources = _gNeoArkPowerPlant1Variant11Resources },
 };
 
 /// Single room-space line-of-sight quad, including the LAST setup marker.

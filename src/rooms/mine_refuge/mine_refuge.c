@@ -506,18 +506,8 @@ static AreaPlacement _gMineRefugeDefaultPlacements[1] = {
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-AreaVariant D_mine_refuge_80182A00[11] = {
-    { NULL, NULL },
-    { _gMineRefugeDefaultPlacements, _gMineRefugeVariant1Resources },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
+AreaVariant gMineRefugeAreaVariants[MINE_REFUGE_AREA_VARIANT_COUNT] = {
+    [AREA_DEFAULT_VARIANT] = { .placements = _gMineRefugeDefaultPlacements, .resources = _gMineRefugeVariant1Resources },
 };
 
 /// Logical-view ambient minima: 520 in view 3 and 16 in the other six views.

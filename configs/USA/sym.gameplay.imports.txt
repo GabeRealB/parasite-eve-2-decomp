@@ -418,7 +418,7 @@ gMapDryfieldFullSurfacePropertiesByArea = 0x8017ABB0; // absolute:True owner=map
 gMapShelterSurfacePropertiesByArea = 0x8017B614; // absolute:True owner=map_shelter
 gMapNeoArkSurfacePropertiesByArea = 0x8017AE3C; // absolute:True owner=map_neo_ark shared=mapui
 gAcropolisBridgePlacementVariants = 0x8019004C; // absolute:True owner=acropolis_bridge
-D_mist_parking_801951B4 = 0x801951B4; // absolute:True owner=mist_parking
+gMistParkingAreaVariants = 0x801951B4; // absolute:True owner=mist_parking
 gDryfieldNightGasStationAreaVariants = 0x80190624; // absolute:True owner=dryfield_night_gas_station
 gMapAkropolisObjectRooms = 0x8017A7FC; // absolute:True owner=map_akropolis
 gMapDryfieldObjectRooms = 0x8017A564; // absolute:True owner=map_dryfield
@@ -1495,31 +1495,31 @@ gDryfieldNightParkingLotAreaVariants = 0x80181438; // absolute:True owner=dryfie
 
 gDryfieldNightSaloonGRAreaVariants = 0x80188EE4; // absolute:True owner=dryfield_night_saloon_g_r
 
-D_dryfield_night_souvenir_shop_8017F62C = 0x8017F62C; // absolute:True owner=dryfield_night_souvenir_shop
+gDryfieldNightSouvenirShopAreaVariants = 0x8017F62C; // absolute:True owner=dryfield_night_souvenir_shop
 
-D_dryfield_night_toilet_8017F354 = 0x8017F354; // absolute:True owner=dryfield_night_toilet
+gDryfieldNightToiletAreaVariants = 0x8017F354; // absolute:True owner=dryfield_night_toilet
 
-D_dryfield_night_trailer_coach_8018C15C = 0x8018C15C; // absolute:True owner=dryfield_night_trailer_coach
+gDryfieldNightTrailerCoachAreaVariants = 0x8018C15C; // absolute:True owner=dryfield_night_trailer_coach
 
-D_dryfield_night_underpass_801802DC = 0x801802DC; // absolute:True owner=dryfield_night_underpass
+gDryfieldNightUnderpassAreaVariants = 0x801802DC; // absolute:True owner=dryfield_night_underpass
 
-D_dryfield_night_warehouse_8017FB98 = 0x8017FB98; // absolute:True owner=dryfield_night_warehouse
+gDryfieldNightWarehouseAreaVariants = 0x8017FB98; // absolute:True owner=dryfield_night_warehouse
 
-D_dryfield_night_water_hole_80183418 = 0x80183418; // absolute:True owner=dryfield_night_water_hole
+gDryfieldNightWaterHoleAreaVariants = 0x80183418; // absolute:True owner=dryfield_night_water_hole
 
-D_dryfield_night_water_tank_80180764 = 0x80180764; // absolute:True owner=dryfield_night_water_tank
+gDryfieldNightWaterTankAreaVariants = 0x80180764; // absolute:True owner=dryfield_night_water_tank
 
-D_dryfield_night_water_tower_80182B5C = 0x80182B5C; // absolute:True owner=dryfield_night_water_tower shared=rooms
+gDryfieldNightWaterTowerAreaVariants = 0x80182B5C; // absolute:True owner=dryfield_night_water_tower shared=rooms
 
-D_dryfield_parking_lot_8017FA74 = 0x8017FA74; // absolute:True owner=dryfield_parking_lot
+gDryfieldParkingLotAreaVariants = 0x8017FA74; // absolute:True owner=dryfield_parking_lot
 
-D_dryfield_r08_80180B88 = 0x80180B88; // absolute:True owner=dryfield_r08
+gDryfieldR08AreaVariants = 0x80180B88; // absolute:True owner=dryfield_r08
 
-D_dryfield_saloon_g_r_80181B1C = 0x80181B1C; // absolute:True owner=dryfield_saloon_g_r shared=rooms
+gDryfieldSaloonGRAreaVariants = 0x80181B1C; // absolute:True owner=dryfield_saloon_g_r shared=rooms
 
-D_dryfield_souvenir_shop_8017F598 = 0x8017F598; // absolute:True owner=dryfield_souvenir_shop
+gDryfieldSouvenirShopAreaVariants = 0x8017F598; // absolute:True owner=dryfield_souvenir_shop
 
-D_dryfield_toilet_80182918 = 0x80182918; // absolute:True owner=dryfield_toilet shared=rooms
+gDryfieldToiletAreaVariants = 0x80182918; // absolute:True owner=dryfield_toilet shared=rooms
 
 gDryfieldTrailerCoachAreaVariants = 0x801876F0; // absolute:True owner=dryfield_trailer_coach
 
@@ -1527,7 +1527,7 @@ gDryfieldUnderpassAreaVariants = 0x8017F868; // absolute:True owner=dryfield_und
 
 gDryfieldWarehousePlacementVariants = 0x80182100; // absolute:True owner=dryfield_warehouse
 
-D_dryfield_water_hole_801827BC = 0x801827BC; // absolute:True owner=dryfield_water_hole
+gDryfieldWaterHoleAreaVariants = 0x801827BC; // absolute:True owner=dryfield_water_hole
 
 gDryfieldWaterTankAreaVariants = 0x80188BF0; // absolute:True owner=dryfield_water_tank
 
@@ -1541,47 +1541,47 @@ gMineGorgeAreaVariants = 0x80183544; // absolute:True owner=mine_gorge
 
 gMineMesaAreaVariants = 0x801898F4; // absolute:True owner=mine_mesa
 
-D_mine_refuge_80182A00 = 0x80182A00; // absolute:True owner=mine_refuge
+gMineRefugeAreaVariants = 0x80182A00; // absolute:True owner=mine_refuge
 
 gMineSecretPassageAreaVariants = 0x80183340; // absolute:True owner=mine_secret_passage
 
-D_mine_tunnel_801801CC = 0x801801CC; // absolute:True owner=mine_tunnel shared=rooms
+gMineTunnelAreaVariants = 0x801801CC; // absolute:True owner=mine_tunnel shared=rooms
 
 gMineTunnelEntranceAreaVariants = 0x8017F32C; // absolute:True owner=mine_tunnel_entrance
 
 gMistR18AreaVariants = 0x80186BFC; // absolute:True owner=mist_r18
 
-D_mist_shooting_gallery_8018DF74 = 0x8018DF74; // absolute:True owner=mist_shooting_gallery
+gMistShootingGalleryAreaVariants = 0x8018DF74; // absolute:True owner=mist_shooting_gallery
 
 gNeoArkBridgePlacementVariants = 0x80184A50; // absolute:True owner=neo_ark_bridge
 
-D_neo_ark_eve_access_tunnel_801806B8 = 0x801806B8; // absolute:True owner=neo_ark_eve_access_tunnel
+gNeoArkEveAccessTunnelAreaVariants = 0x801806B8; // absolute:True owner=neo_ark_eve_access_tunnel
 
 gNeoArkForestZoneAreaVariants = 0x80182968; // absolute:True owner=neo_ark_forest_zone
 
-D_neo_ark_garden_80182B54 = 0x80182B54; // absolute:True owner=neo_ark_garden shared=rooms
+gNeoArkGardenAreaVariants = 0x80182B54; // absolute:True owner=neo_ark_garden shared=rooms
 
-D_neo_ark_island_80183F48 = 0x80183F48; // absolute:True owner=neo_ark_island
+gNeoArkIslandAreaVariants = 0x80183F48; // absolute:True owner=neo_ark_island
 
-D_neo_ark_north_promenade_8018305C = 0x8018305C; // absolute:True owner=neo_ark_north_promenade
+gNeoArkNorthPromenadeAreaVariants = 0x8018305C; // absolute:True owner=neo_ark_north_promenade
 
 gNeoArkObservatoryAreaVariants = 0x8018786C; // absolute:True owner=neo_ark_observatory
 
 gNeoArkPavilionAreaVariants = 0x801876C4; // absolute:True owner=neo_ark_pavilion shared=rooms
 
-D_neo_ark_power_plant_1_80181AF8 = 0x80181AF8; // absolute:True owner=neo_ark_power_plant_1
+gNeoArkPowerPlant1AreaVariants = 0x80181AF8; // absolute:True owner=neo_ark_power_plant_1
 
-D_neo_ark_power_plant_2_80182DE0 = 0x80182DE0; // absolute:True owner=neo_ark_power_plant_2 shared=rooms
+gNeoArkPowerPlant2AreaVariants = 0x80182DE0; // absolute:True owner=neo_ark_power_plant_2 shared=rooms
 
 gNeoArkPyramidPlacementVariants = 0x80181728; // absolute:True owner=neo_ark_pyramid shared=rooms
 
 gNeoArkR26AreaVariants = 0x8017E994; // absolute:True owner=neo_ark_r26
 
-D_neo_ark_r31_8017DBB8 = 0x8017DBB8; // absolute:True owner=neo_ark_r31
+gNeoArkR31AreaVariants = 0x8017DBB8; // absolute:True owner=neo_ark_r31
 
-D_neo_ark_savanna_zone_80180864 = 0x80180864; // absolute:True owner=neo_ark_savanna_zone
+gNeoArkSavannaZoneAreaVariants = 0x80180864; // absolute:True owner=neo_ark_savanna_zone
 
-D_neo_ark_shrine_801866C8 = 0x801866C8; // absolute:True owner=neo_ark_shrine
+gNeoArkShrineAreaVariants = 0x801866C8; // absolute:True owner=neo_ark_shrine
 
 D_neo_ark_south_promenade_801808E4 = 0x801808E4; // absolute:True owner=neo_ark_south_promenade
 

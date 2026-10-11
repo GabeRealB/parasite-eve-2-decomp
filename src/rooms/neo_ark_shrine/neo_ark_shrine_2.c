@@ -1329,20 +1329,14 @@ static AreaResource _gNeoArkShrineVariant11Resources[] = {
     { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaVariant D_neo_ark_shrine_801866C8[13] = {
-    { NULL, NULL },
-    { gMapNeoArkShrineVariant1Placements, _gNeoArkShrineVariant1Resources },
-    { gMapNeoArkShrineVariant2Placements, _gNeoArkShrineVariant2Resources },
-    { gMapNeoArkShrineVariant3Placements, _gNeoArkShrineVariant3Resources },
-    { gMapNeoArkShrineVariant4Placements, _gNeoArkShrineVariant4Resources },
-    { gMapNeoArkShrineVariant5Placements, _gNeoArkShrineVariant5Resources },
-    { NULL, NULL },
-    { gMapNeoArkShrineVariant7Placements, _gNeoArkShrineVariant7Resources },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { gMapNeoArkShrineVariant11Placements, _gNeoArkShrineVariant11Resources },
-    { NULL, NULL },
+AreaVariant gNeoArkShrineAreaVariants[NEO_ARK_SHRINE_AREA_VARIANT_COUNT] = {
+    [AREA_DEFAULT_VARIANT] = { .placements = gMapNeoArkShrineVariant1Placements, .resources = _gNeoArkShrineVariant1Resources },
+    [2]                    = { .placements = gMapNeoArkShrineVariant2Placements, .resources = _gNeoArkShrineVariant2Resources },
+    [3]                    = { .placements = gMapNeoArkShrineVariant3Placements, .resources = _gNeoArkShrineVariant3Resources },
+    [4]                    = { .placements = gMapNeoArkShrineVariant4Placements, .resources = _gNeoArkShrineVariant4Resources },
+    [5]                    = { .placements = gMapNeoArkShrineVariant5Placements, .resources = _gNeoArkShrineVariant5Resources },
+    [7]                    = { .placements = gMapNeoArkShrineVariant7Placements, .resources = _gNeoArkShrineVariant7Resources },
+    [11]                   = { .placements = gMapNeoArkShrineVariant11Placements, .resources = _gNeoArkShrineVariant11Resources },
 };
 
 /// Four line-of-sight blocking quads shared by every shrine layout.

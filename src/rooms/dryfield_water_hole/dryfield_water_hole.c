@@ -1498,20 +1498,8 @@ static AreaResource _gDryfieldWaterHoleAreaResources[2] = {
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaVariant D_dryfield_water_hole_801827BC[13] = {
-    { NULL, NULL },
-    { gMapDryfieldWaterHoleBatPlacements, _gDryfieldWaterHoleAreaResources },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
+AreaVariant gDryfieldWaterHoleAreaVariants[DRYFIELD_WATER_HOLE_AREA_VARIANT_COUNT] = {
+    [AREA_DEFAULT_VARIANT] = { .placements = gMapDryfieldWaterHoleBatPlacements, .resources = _gDryfieldWaterHoleAreaResources },
 };
 
 /// Minimum ambient colours for logical views 1..8 in switch-on rooms 1 and 3.

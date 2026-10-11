@@ -104,20 +104,11 @@ static AreaResource _gNeoArkGardenVariant4Resources[2] = {
     { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaVariant D_neo_ark_garden_80182B54[13] = {
-    { NULL, NULL },
-    { gMapNeoArkGardenVariant1Placements, _gNeoArkGardenVariant1Resources },
-    { gMapNeoArkGardenVariant2Placements, _gNeoArkGardenVariant2Resources },
-    { gMapNeoArkGardenVariant3Placements, _gNeoArkGardenVariant3Resources },
-    { gMapNeoArkGardenVariant4Placements, _gNeoArkGardenVariant4Resources },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
+AreaVariant gNeoArkGardenAreaVariants[NEO_ARK_GARDEN_AREA_VARIANT_COUNT] = {
+    [AREA_DEFAULT_VARIANT] = { .placements = gMapNeoArkGardenVariant1Placements, .resources = _gNeoArkGardenVariant1Resources },
+    [2]                    = { .placements = gMapNeoArkGardenVariant2Placements, .resources = _gNeoArkGardenVariant2Resources },
+    [3]                    = { .placements = gMapNeoArkGardenVariant3Placements, .resources = _gNeoArkGardenVariant3Resources },
+    [4]                    = { .placements = gMapNeoArkGardenVariant4Placements, .resources = _gNeoArkGardenVariant4Resources },
 };
 
 /// Cue-2 sound requests in the loaded type-1 bank; cue 1 selects the next entry.

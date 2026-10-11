@@ -11,7 +11,18 @@
 
 #include "main/task_types.h"
 
-extern AreaVariant D_dryfield_night_water_tower_80182B5C[22];
+/// Number of retained placement-variant slots, including absent slots.
+enum { DRYFIELD_NIGHT_WATER_TOWER_AREA_VARIANT_COUNT = 22 };
+
+/// Actor placements and loading/spawn recipes indexed by `GameLocationKey.variant`.
+///
+/// Slots 1, 2, 11, 21 are present; every other slot is absent (NULL, NULL).
+/// Supply an index in 0..21; this directory has no terminator or bounds check.
+/// The placement selector is independent of room and view selectors.
+/// Placements belong to the stage map, recipes to this room. Keep both overlays
+/// loaded while loading or using either table. Referenced actor overlays must
+/// be loaded for spawning and model-policy updates.
+extern AreaVariant gDryfieldNightWaterTowerAreaVariants[DRYFIELD_NIGHT_WATER_TOWER_AREA_VARIANT_COUNT];
 
 /// Model-lighting resources for the night Water Tower's only room (room ID 1).
 ///

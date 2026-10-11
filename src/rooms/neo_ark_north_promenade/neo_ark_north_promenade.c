@@ -421,20 +421,10 @@ static AreaResource _gNeoArkNorthPromenadeVariant11Resources[] = {
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaVariant D_neo_ark_north_promenade_8018305C[13] = {
-    { NULL, NULL },
-    { NULL, NULL },
-    { gMapNeoArkNorthPromenadeVariant2Placements, _gNeoArkNorthPromenadeVariant2Resources },
-    { gMapNeoArkNorthPromenadeVariant3Placements, _gNeoArkNorthPromenadeVariant3Resources },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { gMapNeoArkNorthPromenadeVariant11Placements, _gNeoArkNorthPromenadeVariant11Resources },
-    { NULL, NULL },
+AreaVariant gNeoArkNorthPromenadeAreaVariants[NEO_ARK_NORTH_PROMENADE_AREA_VARIANT_COUNT] = {
+    [2]  = { .placements = gMapNeoArkNorthPromenadeVariant2Placements, .resources = _gNeoArkNorthPromenadeVariant2Resources },
+    [3]  = { .placements = gMapNeoArkNorthPromenadeVariant3Placements, .resources = _gNeoArkNorthPromenadeVariant3Resources },
+    [11] = { .placements = gMapNeoArkNorthPromenadeVariant11Placements, .resources = _gNeoArkNorthPromenadeVariant11Resources },
 };
 
 /// Packed action parameters for the promenade's warps, stair climb and CAP interactions.

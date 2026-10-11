@@ -11,7 +11,18 @@
 
 #include "main/task_types.h"
 
-extern AreaVariant D_mine_tunnel_801801CC[12];
+/// Number of retained placement-variant slots, including absent slots.
+enum { MINE_TUNNEL_AREA_VARIANT_COUNT = 12 };
+
+/// Actor placements and loading/spawn recipes indexed by `GameLocationKey.variant`.
+///
+/// Slots 1, 2, 3, 4, 11 are present; every other slot is absent (NULL, NULL).
+/// Supply an index in 0..11; this directory has no terminator or bounds check.
+/// The placement selector is independent of room and view selectors.
+/// Placements and recipes belong to this room overlay; keep it loaded while
+/// loading or using either table. Referenced actor overlays must be loaded for
+/// spawning and model-policy updates.
+extern AreaVariant gMineTunnelAreaVariants[MINE_TUNNEL_AREA_VARIANT_COUNT];
 
 /// Light collection and per-view ambient minima for the tunnel's single room.
 ///
