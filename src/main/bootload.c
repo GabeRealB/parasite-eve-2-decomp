@@ -86,85 +86,8 @@ s16 gGameFlowLoadAlternateCaption;
 
 #include "fs.h"
 
-static TextStream BootCaption_MistEvening;
-
-/// Legacy secondary caption; the current draw path ignores its second argument.
-static TextStream BootCaption_MistEveningSecondary;
-
-static TextStream BootCaption_AkropolisEvening;
-
-/// Legacy secondary caption; the current draw path ignores its second argument.
-static TextStream BootCaption_AkropolisEveningSecondary;
-
-static TextStream BootCaption_DesertAfternoon;
-
-/// Legacy secondary caption; the current draw path ignores its second argument.
-static TextStream BootCaption_DesertAfternoonSecondary;
-
-static TextStream BootCaption_DryfieldMesaNight;
-
-/// Legacy secondary caption; the current draw path ignores its second argument.
-static TextStream BootCaption_DryfieldMesaNightSecondary;
-
-/// September 5,  1999  5:26PM\nWhite House,  Washington D.C.
-static u8 BootCaptionText_WhiteHouseEvening[];
-
-static TextStream BootCaption_WhiteHouseEvening;
-
-/// Legacy secondary caption; the current draw path ignores its second argument.
-static TextStream BootCaption_WhiteHouseEveningSecondary;
-
-/// September 5,  1999  2:41PM\nMojave Desert,  Nevada
-static u8 BootCaptionText_DesertReturn[];
-
-static TextStream BootCaption_DesertReturn;
-
-/// Legacy secondary caption; the current draw path ignores its second argument.
-static TextStream BootCaption_DesertReturnSecondary;
-
-static TextStream BootCaption_WhiteHouseAftermath;
-
-/// Legacy secondary caption; the current draw path ignores its second argument.
-static TextStream BootCaption_WhiteHouseAftermathSecondary;
-
-static TextStream BootCaption_MuseumFlashback;
-
-/// Legacy secondary caption; the current draw path ignores its second argument.
-static TextStream BootCaption_MuseumFlashbackSecondary;
-
-static TextStream BootCaption_MistArrival;
-
-/// September 3,  1999\nM.I.S.T.  Center, Los Angeles
-static u8 BootCaptionText_MistUnused[];
-
 /// Retained unused caption variant.
 static TextStream BootCaption_MistUnused;
-
-static TextStream BootCaption_Akropolis;
-
-static TextStream BootCaption_MistDeparture;
-
-static TextStream BootCaption_Mine;
-
-static TextStream BootCaption_ShelterDwelling;
-
-static TextStream BootCaption_ShelterWaste;
-
-static TextStream BootCaption_DryfieldReturn;
-
-static TextStream BootCaption_ShelterLaboratory;
-
-static TextStream BootCaption_ShelterPod;
-
-/// September 5,  1999\nExperiment level, Shelter
-static u8 BootCaptionText_ShelterExperiment[];
-
-static TextStream BootCaption_ShelterExperiment;
-
-/// September 5,  1999\nHeliport, Shelter
-static u8 BootCaptionText_ShelterHeliport[];
-
-static TextStream BootCaption_ShelterHeliport;
 
 static s32 _fadeBootImageToBlack(s16 levelStep);
 
@@ -234,6 +157,26 @@ enum {
     GAME_FLOW_LOAD_IMAGE_SHELTER_PARKING_CHAPTER_4        = 40,
 };
 
+/// Loading-caption font placement, pixel dimensions and frame-countdown reloads.
+///
+/// Countdown expiry means decrementing below zero, so a reload of 1 or 3 gives
+/// a two- or four-call glyph interval. Loading presentation retains the revealed
+/// caption using its own hold/fade timing rather than the final countdown.
+/// Backing-plate sizes remain in the records; the loading drawer paints no plate.
+enum {
+    GAME_FLOW_LOAD_CAPTION_FONT_PAGE_X                         = 960,
+    GAME_FLOW_LOAD_CAPTION_FONT_CLUT_Y                         = 260,
+    GAME_FLOW_LOAD_CAPTION_FAST_GLYPH_COUNTDOWN_FRAMES         = 1,
+    GAME_FLOW_LOAD_CAPTION_SLOW_GLYPH_COUNTDOWN_FRAMES         = 3,
+    GAME_FLOW_LOAD_CAPTION_SHORT_FINAL_COUNTDOWN_FRAMES        = 150,
+    GAME_FLOW_LOAD_CAPTION_LONG_FINAL_COUNTDOWN_FRAMES         = 300,
+    GAME_FLOW_LOAD_CAPTION_MIST_ARRIVAL_FINAL_COUNTDOWN_FRAMES = 107,
+    GAME_FLOW_LOAD_CAPTION_LINE_HEIGHT                         = 13,
+    GAME_FLOW_LOAD_CAPTION_BOX_WIDTH                           = 216,
+    GAME_FLOW_LOAD_CAPTION_TWO_LINE_BOX_HEIGHT                 = 29,
+    GAME_FLOW_LOAD_CAPTION_THREE_LINE_BOX_HEIGHT               = 40,
+};
+
 /// Glyph script for the M.I.S.T. evening date and time loading caption.
 ///
 /// Two lines; the shooting-gallery selector uses this detailed caption.
@@ -300,9 +243,33 @@ static u8 _gGameFlowLoadCaptionMistEveningChars[] = {
     0x2C,
     TEXT_STREAM_END,
 };
-static TextStream BootCaption_MistEvening = { -150, -90, 960, 0, 0, 260, 1, 0, _gGameFlowLoadCaptionMistEveningChars, gTextCaptionGlyphCells, 13, 150, 216, 29 };
-/// Legacy secondary caption; the current draw path ignores its second argument.
-static TextStream BootCaption_MistEveningSecondary = { 0 };
+/// Resident evening date/time/place caption for the M.I.S.T. center.
+///
+/// Selected for shooting-gallery arrivals with the detailed-caption loading image.
+/// 2 lines; glyph/final countdown reloads are 1/150 frames.
+/// Storage remains resident; playback resets and advances the cursor in place.
+/// Loading presentation supplies its own hold/fade timing after reveal.
+static TextStream _gGameFlowLoadCaptionMistEvening = {
+    .x           = -150,
+    .y           = -90,
+    .tpageX      = GAME_FLOW_LOAD_CAPTION_FONT_PAGE_X,
+    .tpageY      = 0,
+    .clutX       = 0,
+    .clutY       = GAME_FLOW_LOAD_CAPTION_FONT_CLUT_Y,
+    .charDelay   = GAME_FLOW_LOAD_CAPTION_FAST_GLYPH_COUNTDOWN_FRAMES,
+    .cursor      = 0,
+    .chars       = _gGameFlowLoadCaptionMistEveningChars,
+    .glyphs      = gTextCaptionGlyphCells,
+    .lineHeight  = GAME_FLOW_LOAD_CAPTION_LINE_HEIGHT,
+    .delayReload = GAME_FLOW_LOAD_CAPTION_SHORT_FINAL_COUNTDOWN_FRAMES,
+    .boxWidth    = GAME_FLOW_LOAD_CAPTION_BOX_WIDTH,
+    .boxHeight   = GAME_FLOW_LOAD_CAPTION_TWO_LINE_BOX_HEIGHT,
+};
+/// Zero-filled legacy secondary-caption record paired with `_gGameFlowLoadCaptionMistEvening`.
+///
+/// The selector retains its address, but loading presentation ignores the
+/// secondary argument. Its null script/font pointers are never dereferenced.
+static TextStream _gGameFlowLegacySecondaryLoadCaptionMistEvening = { 0 };
 /// Glyph script for the Akropolis Tower evening date and time loading caption.
 ///
 /// Two lines; the Acropolis plaza selector uses this detailed caption.
@@ -369,9 +336,33 @@ static u8 _gGameFlowLoadCaptionAcropolisEveningChars[] = {
     0x2C,
     TEXT_STREAM_END,
 };
-static TextStream BootCaption_AkropolisEvening = { -150, -90, 960, 0, 0, 260, 1, 0, _gGameFlowLoadCaptionAcropolisEveningChars, gTextCaptionGlyphCells, 13, 150, 216, 29 };
-/// Legacy secondary caption; the current draw path ignores its second argument.
-static TextStream BootCaption_AkropolisEveningSecondary = { 0 };
+/// Resident evening date/time/place caption for the Acropolis plaza.
+///
+/// Selected for the plaza detailed-caption loading image.
+/// 2 lines; glyph/final countdown reloads are 1/150 frames.
+/// Storage remains resident; playback resets and advances the cursor in place.
+/// Loading presentation supplies its own hold/fade timing after reveal.
+static TextStream _gGameFlowLoadCaptionAcropolisEvening = {
+    .x           = -150,
+    .y           = -90,
+    .tpageX      = GAME_FLOW_LOAD_CAPTION_FONT_PAGE_X,
+    .tpageY      = 0,
+    .clutX       = 0,
+    .clutY       = GAME_FLOW_LOAD_CAPTION_FONT_CLUT_Y,
+    .charDelay   = GAME_FLOW_LOAD_CAPTION_FAST_GLYPH_COUNTDOWN_FRAMES,
+    .cursor      = 0,
+    .chars       = _gGameFlowLoadCaptionAcropolisEveningChars,
+    .glyphs      = gTextCaptionGlyphCells,
+    .lineHeight  = GAME_FLOW_LOAD_CAPTION_LINE_HEIGHT,
+    .delayReload = GAME_FLOW_LOAD_CAPTION_SHORT_FINAL_COUNTDOWN_FRAMES,
+    .boxWidth    = GAME_FLOW_LOAD_CAPTION_BOX_WIDTH,
+    .boxHeight   = GAME_FLOW_LOAD_CAPTION_TWO_LINE_BOX_HEIGHT,
+};
+/// Zero-filled legacy secondary-caption record paired with `_gGameFlowLoadCaptionAcropolisEvening`.
+///
+/// The selector retains its address, but loading presentation ignores the
+/// secondary argument. Its null script/font pointers are never dereferenced.
+static TextStream _gGameFlowLegacySecondaryLoadCaptionAcropolisEvening = { 0 };
 /// Glyph script for the Mojave Desert afternoon date and time loading caption.
 ///
 /// Two lines; the daytime gas-station alternate-caption path selects it.
@@ -432,9 +423,33 @@ static u8 _gGameFlowLoadCaptionDesertAfternoonChars[] = {
     0x1A,
     TEXT_STREAM_END,
 };
-static TextStream BootCaption_DesertAfternoon = { -150, -90, 960, 0, 0, 260, 1, 0, _gGameFlowLoadCaptionDesertAfternoonChars, gTextCaptionGlyphCells, 13, 150, 216, 29 };
-/// Legacy secondary caption; the current draw path ignores its second argument.
-static TextStream BootCaption_DesertAfternoonSecondary = { 0 };
+/// Resident afternoon date/time/place caption for the Mojave Desert.
+///
+/// Selected by the alternate-caption request at the Dryfield gas station.
+/// 2 lines; glyph/final countdown reloads are 1/150 frames.
+/// Storage remains resident; playback resets and advances the cursor in place.
+/// Loading presentation supplies its own hold/fade timing after reveal.
+static TextStream _gGameFlowLoadCaptionDesertAfternoon = {
+    .x           = -150,
+    .y           = -90,
+    .tpageX      = GAME_FLOW_LOAD_CAPTION_FONT_PAGE_X,
+    .tpageY      = 0,
+    .clutX       = 0,
+    .clutY       = GAME_FLOW_LOAD_CAPTION_FONT_CLUT_Y,
+    .charDelay   = GAME_FLOW_LOAD_CAPTION_FAST_GLYPH_COUNTDOWN_FRAMES,
+    .cursor      = 0,
+    .chars       = _gGameFlowLoadCaptionDesertAfternoonChars,
+    .glyphs      = gTextCaptionGlyphCells,
+    .lineHeight  = GAME_FLOW_LOAD_CAPTION_LINE_HEIGHT,
+    .delayReload = GAME_FLOW_LOAD_CAPTION_SHORT_FINAL_COUNTDOWN_FRAMES,
+    .boxWidth    = GAME_FLOW_LOAD_CAPTION_BOX_WIDTH,
+    .boxHeight   = GAME_FLOW_LOAD_CAPTION_TWO_LINE_BOX_HEIGHT,
+};
+/// Zero-filled legacy secondary-caption record paired with `_gGameFlowLoadCaptionDesertAfternoon`.
+///
+/// The selector retains its address, but loading presentation ignores the
+/// secondary argument. Its null script/font pointers are never dereferenced.
+static TextStream _gGameFlowLegacySecondaryLoadCaptionDesertAfternoon = { 0 };
 /// Glyph script for the Dryfield outskirts mesa date, time and place loading caption.
 ///
 /// Three lines; selected when entering the Mine mesa.
@@ -522,11 +537,43 @@ static u8 _gGameFlowLoadCaptionDryfieldMesaNightChars[] = {
     0x2D,
     TEXT_STREAM_END,
 };
-static TextStream BootCaption_DryfieldMesaNight = { -150, -90, 960, 0, 0, 260, 1, 0, _gGameFlowLoadCaptionDryfieldMesaNightChars, gTextCaptionGlyphCells, 13, 150, 216, 40 };
-/// Legacy secondary caption; the current draw path ignores its second argument.
-static TextStream BootCaption_DryfieldMesaNightSecondary = { 0 };
-/// September 5,  1999  5:26PM\nWhite House,  Washington D.C.
-static u8 BootCaptionText_WhiteHouseEvening[] = {
+/// Resident nighttime date/time/place caption for the Dryfield outskirts mesa.
+///
+/// Selected for Mine mesa arrivals.
+/// 3 lines; glyph/final countdown reloads are 1/150 frames.
+/// Storage remains resident; playback resets and advances the cursor in place.
+/// Loading presentation supplies its own hold/fade timing after reveal.
+static TextStream _gGameFlowLoadCaptionDryfieldMesaNight = {
+    .x           = -150,
+    .y           = -90,
+    .tpageX      = GAME_FLOW_LOAD_CAPTION_FONT_PAGE_X,
+    .tpageY      = 0,
+    .clutX       = 0,
+    .clutY       = GAME_FLOW_LOAD_CAPTION_FONT_CLUT_Y,
+    .charDelay   = GAME_FLOW_LOAD_CAPTION_FAST_GLYPH_COUNTDOWN_FRAMES,
+    .cursor      = 0,
+    .chars       = _gGameFlowLoadCaptionDryfieldMesaNightChars,
+    .glyphs      = gTextCaptionGlyphCells,
+    .lineHeight  = GAME_FLOW_LOAD_CAPTION_LINE_HEIGHT,
+    .delayReload = GAME_FLOW_LOAD_CAPTION_SHORT_FINAL_COUNTDOWN_FRAMES,
+    .boxWidth    = GAME_FLOW_LOAD_CAPTION_BOX_WIDTH,
+    .boxHeight   = GAME_FLOW_LOAD_CAPTION_THREE_LINE_BOX_HEIGHT,
+};
+/// Zero-filled legacy secondary-caption record paired with `_gGameFlowLoadCaptionDryfieldMesaNight`.
+///
+/// The selector retains its address, but loading presentation ignores the
+/// secondary argument. Its null script/font pointers are never dereferenced.
+static TextStream _gGameFlowLegacySecondaryLoadCaptionDryfieldMesaNight = { 0 };
+/// Glyph script for the White House evening date/time/place loading caption.
+///
+/// Selected for Neo Ark R26 with the detailed-caption loading image.
+/// Two lines in 57 bytes, including the line break and terminator. Bytes
+/// select the low-seven-bit indices of `gTextCaptionGlyphCells`;
+/// `TEXT_STREAM_LINE_BREAK` separates lines and `TEXT_STREAM_END` ends the script.
+/// Storage remains resident and playback only reads its bytes.
+/// Time glyphs carry `GAME_FLOW_LOAD_CAPTION_FILTER_FLAG`; loading playback
+/// disables that filter, so these glyphs still appear.
+static u8 _gGameFlowLoadCaptionWhiteHouseEveningChars[] = {
     0x12,
     0x1E,
     0x29,
@@ -547,12 +594,12 @@ static u8 BootCaptionText_WhiteHouseEvening[] = {
     0x3D,
     0x45,
     0x45,
-    0xB9,
-    0xBE,
-    0xB6,
-    0xBA,
-    0x8F,
-    0x8C,
+    0x39 | GAME_FLOW_LOAD_CAPTION_FILTER_FLAG,
+    0x3E | GAME_FLOW_LOAD_CAPTION_FILTER_FLAG,
+    0x36 | GAME_FLOW_LOAD_CAPTION_FILTER_FLAG,
+    0x3A | GAME_FLOW_LOAD_CAPTION_FILTER_FLAG,
+    0x0F | GAME_FLOW_LOAD_CAPTION_FILTER_FLAG,
+    0x0C | GAME_FLOW_LOAD_CAPTION_FILTER_FLAG,
     TEXT_STREAM_LINE_BREAK,
     0x16,
     0x21,
@@ -585,11 +632,44 @@ static u8 BootCaptionText_WhiteHouseEvening[] = {
     0x42,
     TEXT_STREAM_END,
 };
-static TextStream BootCaption_WhiteHouseEvening = { -150, -90, 960, 0, 0, 260, 1, 0, BootCaptionText_WhiteHouseEvening, gTextCaptionGlyphCells, 13, 150, 216, 29 };
-/// Legacy secondary caption; the current draw path ignores its second argument.
-static TextStream BootCaption_WhiteHouseEveningSecondary = { 0 };
-/// September 5,  1999  2:41PM\nMojave Desert,  Nevada
-static u8 BootCaptionText_DesertReturn[] = {
+STATIC_ASSERT_SIZEOF(_gGameFlowLoadCaptionWhiteHouseEveningChars, 57);
+/// Resident evening date/time/place caption for the White House.
+///
+/// Selected for Neo Ark R26 with the detailed-caption loading image.
+/// 2 lines; glyph/final countdown reloads are 1/150 frames.
+/// Storage remains resident; playback resets and advances the cursor in place.
+/// Loading presentation supplies its own hold/fade timing after reveal.
+static TextStream _gGameFlowLoadCaptionWhiteHouseEvening = {
+    .x           = -150,
+    .y           = -90,
+    .tpageX      = GAME_FLOW_LOAD_CAPTION_FONT_PAGE_X,
+    .tpageY      = 0,
+    .clutX       = 0,
+    .clutY       = GAME_FLOW_LOAD_CAPTION_FONT_CLUT_Y,
+    .charDelay   = GAME_FLOW_LOAD_CAPTION_FAST_GLYPH_COUNTDOWN_FRAMES,
+    .cursor      = 0,
+    .chars       = _gGameFlowLoadCaptionWhiteHouseEveningChars,
+    .glyphs      = gTextCaptionGlyphCells,
+    .lineHeight  = GAME_FLOW_LOAD_CAPTION_LINE_HEIGHT,
+    .delayReload = GAME_FLOW_LOAD_CAPTION_SHORT_FINAL_COUNTDOWN_FRAMES,
+    .boxWidth    = GAME_FLOW_LOAD_CAPTION_BOX_WIDTH,
+    .boxHeight   = GAME_FLOW_LOAD_CAPTION_TWO_LINE_BOX_HEIGHT,
+};
+/// Zero-filled legacy secondary-caption record paired with `_gGameFlowLoadCaptionWhiteHouseEvening`.
+///
+/// The selector retains its address, but loading presentation ignores the
+/// secondary argument. Its null script/font pointers are never dereferenced.
+static TextStream _gGameFlowLegacySecondaryLoadCaptionWhiteHouseEvening = { 0 };
+/// Glyph script for the return to the Mojave Desert date/time/place loading caption.
+///
+/// Selected by the alternate-caption request for Neo Ark shrine/default areas.
+/// Two lines in 50 bytes, including the line break and terminator. Bytes
+/// select the low-seven-bit indices of `gTextCaptionGlyphCells`;
+/// `TEXT_STREAM_LINE_BREAK` separates lines and `TEXT_STREAM_END` ends the script.
+/// Storage remains resident and playback only reads its bytes.
+/// Time glyphs carry `GAME_FLOW_LOAD_CAPTION_FILTER_FLAG`; loading playback
+/// disables that filter, so these glyphs still appear.
+static u8 _gGameFlowLoadCaptionDesertReturnChars[] = {
     0x12,
     0x1E,
     0x29,
@@ -610,12 +690,12 @@ static u8 BootCaptionText_DesertReturn[] = {
     0x3D,
     0x45,
     0x45,
-    0xB6,
-    0xBE,
-    0xB8,
-    0xB5,
-    0x8F,
-    0x8C,
+    0x36 | GAME_FLOW_LOAD_CAPTION_FILTER_FLAG,
+    0x3E | GAME_FLOW_LOAD_CAPTION_FILTER_FLAG,
+    0x38 | GAME_FLOW_LOAD_CAPTION_FILTER_FLAG,
+    0x35 | GAME_FLOW_LOAD_CAPTION_FILTER_FLAG,
+    0x0F | GAME_FLOW_LOAD_CAPTION_FILTER_FLAG,
+    0x0C | GAME_FLOW_LOAD_CAPTION_FILTER_FLAG,
     TEXT_STREAM_LINE_BREAK,
     0x0C,
     0x28,
@@ -641,9 +721,34 @@ static u8 BootCaptionText_DesertReturn[] = {
     0x1A,
     TEXT_STREAM_END,
 };
-static TextStream BootCaption_DesertReturn = { -150, -90, 960, 0, 0, 260, 1, 0, BootCaptionText_DesertReturn, gTextCaptionGlyphCells, 13, 150, 216, 29 };
-/// Legacy secondary caption; the current draw path ignores its second argument.
-static TextStream BootCaption_DesertReturnSecondary = { 0 };
+STATIC_ASSERT_SIZEOF(_gGameFlowLoadCaptionDesertReturnChars, 50);
+/// Resident return date/time/place caption for the Mojave Desert.
+///
+/// Selected by the alternate-caption request for Neo Ark shrine/default areas.
+/// 2 lines; glyph/final countdown reloads are 1/150 frames.
+/// Storage remains resident; playback resets and advances the cursor in place.
+/// Loading presentation supplies its own hold/fade timing after reveal.
+static TextStream _gGameFlowLoadCaptionDesertReturn = {
+    .x           = -150,
+    .y           = -90,
+    .tpageX      = GAME_FLOW_LOAD_CAPTION_FONT_PAGE_X,
+    .tpageY      = 0,
+    .clutX       = 0,
+    .clutY       = GAME_FLOW_LOAD_CAPTION_FONT_CLUT_Y,
+    .charDelay   = GAME_FLOW_LOAD_CAPTION_FAST_GLYPH_COUNTDOWN_FRAMES,
+    .cursor      = 0,
+    .chars       = _gGameFlowLoadCaptionDesertReturnChars,
+    .glyphs      = gTextCaptionGlyphCells,
+    .lineHeight  = GAME_FLOW_LOAD_CAPTION_LINE_HEIGHT,
+    .delayReload = GAME_FLOW_LOAD_CAPTION_SHORT_FINAL_COUNTDOWN_FRAMES,
+    .boxWidth    = GAME_FLOW_LOAD_CAPTION_BOX_WIDTH,
+    .boxHeight   = GAME_FLOW_LOAD_CAPTION_TWO_LINE_BOX_HEIGHT,
+};
+/// Zero-filled legacy secondary-caption record paired with `_gGameFlowLoadCaptionDesertReturn`.
+///
+/// The selector retains its address, but loading presentation ignores the
+/// secondary argument. Its null script/font pointers are never dereferenced.
+static TextStream _gGameFlowLegacySecondaryLoadCaptionDesertReturn = { 0 };
 /// Glyph script for the White House aftermath date, time and place loading caption.
 ///
 /// Two lines; selected by the normal-caption request for Shelter R36.
@@ -710,9 +815,33 @@ static u8 _gGameFlowLoadCaptionWhiteHouseAftermathChars[] = {
     0x42,
     TEXT_STREAM_END,
 };
-static TextStream BootCaption_WhiteHouseAftermath = { -150, -90, 960, 0, 0, 260, 1, 0, _gGameFlowLoadCaptionWhiteHouseAftermathChars, gTextCaptionGlyphCells, 13, 150, 216, 29 };
-/// Legacy secondary caption; the current draw path ignores its second argument.
-static TextStream BootCaption_WhiteHouseAftermathSecondary = { 0 };
+/// Resident aftermath date/time/place caption for the White House.
+///
+/// Selected for Shelter R36 when no alternate caption is requested.
+/// 2 lines; glyph/final countdown reloads are 1/150 frames.
+/// Storage remains resident; playback resets and advances the cursor in place.
+/// Loading presentation supplies its own hold/fade timing after reveal.
+static TextStream _gGameFlowLoadCaptionWhiteHouseAftermath = {
+    .x           = -150,
+    .y           = -90,
+    .tpageX      = GAME_FLOW_LOAD_CAPTION_FONT_PAGE_X,
+    .tpageY      = 0,
+    .clutX       = 0,
+    .clutY       = GAME_FLOW_LOAD_CAPTION_FONT_CLUT_Y,
+    .charDelay   = GAME_FLOW_LOAD_CAPTION_FAST_GLYPH_COUNTDOWN_FRAMES,
+    .cursor      = 0,
+    .chars       = _gGameFlowLoadCaptionWhiteHouseAftermathChars,
+    .glyphs      = gTextCaptionGlyphCells,
+    .lineHeight  = GAME_FLOW_LOAD_CAPTION_LINE_HEIGHT,
+    .delayReload = GAME_FLOW_LOAD_CAPTION_SHORT_FINAL_COUNTDOWN_FRAMES,
+    .boxWidth    = GAME_FLOW_LOAD_CAPTION_BOX_WIDTH,
+    .boxHeight   = GAME_FLOW_LOAD_CAPTION_TWO_LINE_BOX_HEIGHT,
+};
+/// Zero-filled legacy secondary-caption record paired with `_gGameFlowLoadCaptionWhiteHouseAftermath`.
+///
+/// The selector retains its address, but loading presentation ignores the
+/// secondary argument. Its null script/font pointers are never dereferenced.
+static TextStream _gGameFlowLegacySecondaryLoadCaptionWhiteHouseAftermath = { 0 };
 /// Glyph script for the Nature Museum flashback date, time and place loading caption.
 ///
 /// Two lines; selected by the alternate-caption request for Shelter R36.
@@ -771,9 +900,33 @@ static u8 _gGameFlowLoadCaptionMuseumFlashbackChars[] = {
     0x24,
     TEXT_STREAM_END,
 };
-static TextStream BootCaption_MuseumFlashback = { -150, -90, 960, 0, 0, 260, 1, 0, _gGameFlowLoadCaptionMuseumFlashbackChars, gTextCaptionGlyphCells, 13, 300, 216, 29 };
-/// Legacy secondary caption; the current draw path ignores its second argument.
-static TextStream BootCaption_MuseumFlashbackSecondary = { 0 };
+/// Resident flashback date/time/place caption for the Nature Museum.
+///
+/// Selected by the alternate-caption request for Shelter R36.
+/// 2 lines; glyph/final countdown reloads are 1/300 frames.
+/// Storage remains resident; playback resets and advances the cursor in place.
+/// Loading presentation supplies its own hold/fade timing after reveal.
+static TextStream _gGameFlowLoadCaptionMuseumFlashback = {
+    .x           = -150,
+    .y           = -90,
+    .tpageX      = GAME_FLOW_LOAD_CAPTION_FONT_PAGE_X,
+    .tpageY      = 0,
+    .clutX       = 0,
+    .clutY       = GAME_FLOW_LOAD_CAPTION_FONT_CLUT_Y,
+    .charDelay   = GAME_FLOW_LOAD_CAPTION_FAST_GLYPH_COUNTDOWN_FRAMES,
+    .cursor      = 0,
+    .chars       = _gGameFlowLoadCaptionMuseumFlashbackChars,
+    .glyphs      = gTextCaptionGlyphCells,
+    .lineHeight  = GAME_FLOW_LOAD_CAPTION_LINE_HEIGHT,
+    .delayReload = GAME_FLOW_LOAD_CAPTION_LONG_FINAL_COUNTDOWN_FRAMES,
+    .boxWidth    = GAME_FLOW_LOAD_CAPTION_BOX_WIDTH,
+    .boxHeight   = GAME_FLOW_LOAD_CAPTION_TWO_LINE_BOX_HEIGHT,
+};
+/// Zero-filled legacy secondary-caption record paired with `_gGameFlowLoadCaptionMuseumFlashback`.
+///
+/// The selector retains its address, but loading presentation ignores the
+/// secondary argument. Its null script/font pointers are never dereferenced.
+static TextStream _gGameFlowLegacySecondaryLoadCaptionMuseumFlashback = { 0 };
 /// Glyph script for the M.I.S.T. arrival date and place loading caption.
 ///
 /// Two lines; selected at M.I.S.T. parking while the story chapter is zero.
@@ -832,9 +985,36 @@ static u8 _gGameFlowLoadCaptionMistArrivalChars[] = {
     0x2C,
     TEXT_STREAM_END,
 };
-static TextStream BootCaption_MistArrival = { -150, -90, 960, 0, 0, 260, 1, 0, _gGameFlowLoadCaptionMistArrivalChars, gTextCaptionGlyphCells, 13, 107, 216, 29 };
-/// September 3,  1999\nM.I.S.T.  Center, Los Angeles
-static u8 BootCaptionText_MistUnused[] = {
+/// Resident arrival date/place caption for the M.I.S.T. center.
+///
+/// Selected at M.I.S.T. parking while the story chapter is zero.
+/// 2 lines; glyph/final countdown reloads are 1/107 frames.
+/// Storage remains resident; playback resets and advances the cursor in place.
+/// Loading presentation supplies its own hold/fade timing after reveal.
+static TextStream _gGameFlowLoadCaptionMistArrival = {
+    .x           = -150,
+    .y           = -90,
+    .tpageX      = GAME_FLOW_LOAD_CAPTION_FONT_PAGE_X,
+    .tpageY      = 0,
+    .clutX       = 0,
+    .clutY       = GAME_FLOW_LOAD_CAPTION_FONT_CLUT_Y,
+    .charDelay   = GAME_FLOW_LOAD_CAPTION_FAST_GLYPH_COUNTDOWN_FRAMES,
+    .cursor      = 0,
+    .chars       = _gGameFlowLoadCaptionMistArrivalChars,
+    .glyphs      = gTextCaptionGlyphCells,
+    .lineHeight  = GAME_FLOW_LOAD_CAPTION_LINE_HEIGHT,
+    .delayReload = GAME_FLOW_LOAD_CAPTION_MIST_ARRIVAL_FINAL_COUNTDOWN_FRAMES,
+    .boxWidth    = GAME_FLOW_LOAD_CAPTION_BOX_WIDTH,
+    .boxHeight   = GAME_FLOW_LOAD_CAPTION_TWO_LINE_BOX_HEIGHT,
+};
+/// Glyph script for a retained, unselected M.I.S.T. date/place caption.
+///
+/// Only `BootCaption_MistUnused` references it; no loading selector reaches that record.
+/// Two lines in 49 bytes, including the line break and terminator. Bytes
+/// select the low-seven-bit indices of `gTextCaptionGlyphCells`;
+/// `TEXT_STREAM_LINE_BREAK` separates lines and `TEXT_STREAM_END` ends the script.
+/// Storage remains resident and playback only reads its bytes.
+static u8 _gGameFlowLoadCaptionMistUnusedChars[] = {
     0x12,
     0x1E,
     0x29,
@@ -885,8 +1065,9 @@ static u8 BootCaptionText_MistUnused[] = {
     0x2C,
     TEXT_STREAM_END,
 };
+STATIC_ASSERT_SIZEOF(_gGameFlowLoadCaptionMistUnusedChars, 49);
 /// Retained unused caption variant.
-static TextStream BootCaption_MistUnused = { -150, -90, 960, 0, 0, 260, 3, 0, BootCaptionText_MistUnused, gTextCaptionGlyphCells, 13, 300, 216, 29 };
+static TextStream BootCaption_MistUnused = { -150, -90, 960, 0, 0, 260, 3, 0, _gGameFlowLoadCaptionMistUnusedChars, gTextCaptionGlyphCells, 13, 300, 216, 29 };
 /// Glyph script for the Akropolis Tower arrival date loading caption.
 ///
 /// Two lines; the Acropolis square and ordinary tower-area selectors share this script.
@@ -943,7 +1124,28 @@ static u8 _gGameFlowLoadCaptionAcropolisChars[] = {
     0x2C,
     TEXT_STREAM_END,
 };
-static TextStream BootCaption_Akropolis = { -150, -90, 960, 0, 0, 260, 3, 0, _gGameFlowLoadCaptionAcropolisChars, gTextCaptionGlyphCells, 13, 300, 216, 29 };
+/// Resident date/place caption for ordinary Acropolis tower loading screens.
+///
+/// Selected for the square and the remaining ordinary tower areas.
+/// 2 lines; glyph/final countdown reloads are 3/300 frames.
+/// Storage remains resident; playback resets and advances the cursor in place.
+/// Loading presentation supplies its own hold/fade timing after reveal.
+static TextStream _gGameFlowLoadCaptionAcropolis = {
+    .x           = -150,
+    .y           = -90,
+    .tpageX      = GAME_FLOW_LOAD_CAPTION_FONT_PAGE_X,
+    .tpageY      = 0,
+    .clutX       = 0,
+    .clutY       = GAME_FLOW_LOAD_CAPTION_FONT_CLUT_Y,
+    .charDelay   = GAME_FLOW_LOAD_CAPTION_SLOW_GLYPH_COUNTDOWN_FRAMES,
+    .cursor      = 0,
+    .chars       = _gGameFlowLoadCaptionAcropolisChars,
+    .glyphs      = gTextCaptionGlyphCells,
+    .lineHeight  = GAME_FLOW_LOAD_CAPTION_LINE_HEIGHT,
+    .delayReload = GAME_FLOW_LOAD_CAPTION_LONG_FINAL_COUNTDOWN_FRAMES,
+    .boxWidth    = GAME_FLOW_LOAD_CAPTION_BOX_WIDTH,
+    .boxHeight   = GAME_FLOW_LOAD_CAPTION_TWO_LINE_BOX_HEIGHT,
+};
 /// Glyph script for the M.I.S.T. departure date and place loading caption.
 ///
 /// Two lines; selected at M.I.S.T. parking after the initial story chapter.
@@ -1000,7 +1202,28 @@ static u8 _gGameFlowLoadCaptionMistDepartureChars[] = {
     0x2C,
     TEXT_STREAM_END,
 };
-static TextStream BootCaption_MistDeparture = { -150, -90, 960, 0, 0, 260, 3, 0, _gGameFlowLoadCaptionMistDepartureChars, gTextCaptionGlyphCells, 13, 300, 216, 29 };
+/// Resident departure date/place caption for the M.I.S.T. center.
+///
+/// Selected at M.I.S.T. parking after the initial story chapter.
+/// 2 lines; glyph/final countdown reloads are 3/300 frames.
+/// Storage remains resident; playback resets and advances the cursor in place.
+/// Loading presentation supplies its own hold/fade timing after reveal.
+static TextStream _gGameFlowLoadCaptionMistDeparture = {
+    .x           = -150,
+    .y           = -90,
+    .tpageX      = GAME_FLOW_LOAD_CAPTION_FONT_PAGE_X,
+    .tpageY      = 0,
+    .clutX       = 0,
+    .clutY       = GAME_FLOW_LOAD_CAPTION_FONT_CLUT_Y,
+    .charDelay   = GAME_FLOW_LOAD_CAPTION_SLOW_GLYPH_COUNTDOWN_FRAMES,
+    .cursor      = 0,
+    .chars       = _gGameFlowLoadCaptionMistDepartureChars,
+    .glyphs      = gTextCaptionGlyphCells,
+    .lineHeight  = GAME_FLOW_LOAD_CAPTION_LINE_HEIGHT,
+    .delayReload = GAME_FLOW_LOAD_CAPTION_LONG_FINAL_COUNTDOWN_FRAMES,
+    .boxWidth    = GAME_FLOW_LOAD_CAPTION_BOX_WIDTH,
+    .boxHeight   = GAME_FLOW_LOAD_CAPTION_TWO_LINE_BOX_HEIGHT,
+};
 /// Glyph script for the first Dryfield visit date and place loading caption.
 ///
 /// Two lines; used for daytime Dryfield and nighttime chapter-3 arrivals.
@@ -1126,7 +1349,28 @@ static u8 _gGameFlowLoadCaptionMineChars[] = {
     0x2D,
     TEXT_STREAM_END,
 };
-static TextStream BootCaption_Mine = { -150, -90, 960, 0, 0, 260, 3, 0, _gGameFlowLoadCaptionMineChars, gTextCaptionGlyphCells, 13, 300, 216, 29 };
+/// Resident date/place caption for the Mine shaft.
+///
+/// Shared by Mine refuge arrivals in story chapters 4 and 5.
+/// 2 lines; glyph/final countdown reloads are 3/300 frames.
+/// Storage remains resident; playback resets and advances the cursor in place.
+/// Loading presentation supplies its own hold/fade timing after reveal.
+static TextStream _gGameFlowLoadCaptionMine = {
+    .x           = -150,
+    .y           = -90,
+    .tpageX      = GAME_FLOW_LOAD_CAPTION_FONT_PAGE_X,
+    .tpageY      = 0,
+    .clutX       = 0,
+    .clutY       = GAME_FLOW_LOAD_CAPTION_FONT_CLUT_Y,
+    .charDelay   = GAME_FLOW_LOAD_CAPTION_SLOW_GLYPH_COUNTDOWN_FRAMES,
+    .cursor      = 0,
+    .chars       = _gGameFlowLoadCaptionMineChars,
+    .glyphs      = gTextCaptionGlyphCells,
+    .lineHeight  = GAME_FLOW_LOAD_CAPTION_LINE_HEIGHT,
+    .delayReload = GAME_FLOW_LOAD_CAPTION_LONG_FINAL_COUNTDOWN_FRAMES,
+    .boxWidth    = GAME_FLOW_LOAD_CAPTION_BOX_WIDTH,
+    .boxHeight   = GAME_FLOW_LOAD_CAPTION_TWO_LINE_BOX_HEIGHT,
+};
 /// Glyph script for the Shelter dwelling-level date and place loading caption.
 ///
 /// Two lines; shared by sterilization-room and underground-parking arrivals.
@@ -1177,7 +1421,28 @@ static u8 _gGameFlowLoadCaptionShelterDwellingChars[] = {
     0x2B,
     TEXT_STREAM_END,
 };
-static TextStream BootCaption_ShelterDwelling = { -150, -90, 960, 0, 0, 260, 3, 0, _gGameFlowLoadCaptionShelterDwellingChars, gTextCaptionGlyphCells, 13, 300, 216, 29 };
+/// Resident date/place caption for the Shelter dwelling level.
+///
+/// Shared by sterilization-room and underground-parking arrivals in chapters 4, 5 and 6.
+/// 2 lines; glyph/final countdown reloads are 3/300 frames.
+/// Storage remains resident; playback resets and advances the cursor in place.
+/// Loading presentation supplies its own hold/fade timing after reveal.
+static TextStream _gGameFlowLoadCaptionShelterDwelling = {
+    .x           = -150,
+    .y           = -90,
+    .tpageX      = GAME_FLOW_LOAD_CAPTION_FONT_PAGE_X,
+    .tpageY      = 0,
+    .clutX       = 0,
+    .clutY       = GAME_FLOW_LOAD_CAPTION_FONT_CLUT_Y,
+    .charDelay   = GAME_FLOW_LOAD_CAPTION_SLOW_GLYPH_COUNTDOWN_FRAMES,
+    .cursor      = 0,
+    .chars       = _gGameFlowLoadCaptionShelterDwellingChars,
+    .glyphs      = gTextCaptionGlyphCells,
+    .lineHeight  = GAME_FLOW_LOAD_CAPTION_LINE_HEIGHT,
+    .delayReload = GAME_FLOW_LOAD_CAPTION_LONG_FINAL_COUNTDOWN_FRAMES,
+    .boxWidth    = GAME_FLOW_LOAD_CAPTION_BOX_WIDTH,
+    .boxHeight   = GAME_FLOW_LOAD_CAPTION_TWO_LINE_BOX_HEIGHT,
+};
 /// Glyph script for the Shelter waste-level date and place loading caption.
 ///
 /// Two lines; selected for the incinerator control room.
@@ -1225,7 +1490,28 @@ static u8 _gGameFlowLoadCaptionShelterWasteChars[] = {
     0x2B,
     TEXT_STREAM_END,
 };
-static TextStream BootCaption_ShelterWaste = { -150, -90, 960, 0, 0, 260, 3, 0, _gGameFlowLoadCaptionShelterWasteChars, gTextCaptionGlyphCells, 13, 300, 216, 29 };
+/// Resident date/place caption for the Shelter waste level.
+///
+/// Shared by incinerator-control-room arrivals in chapters 4 and 5.
+/// 2 lines; glyph/final countdown reloads are 3/300 frames.
+/// Storage remains resident; playback resets and advances the cursor in place.
+/// Loading presentation supplies its own hold/fade timing after reveal.
+static TextStream _gGameFlowLoadCaptionShelterWaste = {
+    .x           = -150,
+    .y           = -90,
+    .tpageX      = GAME_FLOW_LOAD_CAPTION_FONT_PAGE_X,
+    .tpageY      = 0,
+    .clutX       = 0,
+    .clutY       = GAME_FLOW_LOAD_CAPTION_FONT_CLUT_Y,
+    .charDelay   = GAME_FLOW_LOAD_CAPTION_SLOW_GLYPH_COUNTDOWN_FRAMES,
+    .cursor      = 0,
+    .chars       = _gGameFlowLoadCaptionShelterWasteChars,
+    .glyphs      = gTextCaptionGlyphCells,
+    .lineHeight  = GAME_FLOW_LOAD_CAPTION_LINE_HEIGHT,
+    .delayReload = GAME_FLOW_LOAD_CAPTION_LONG_FINAL_COUNTDOWN_FRAMES,
+    .boxWidth    = GAME_FLOW_LOAD_CAPTION_BOX_WIDTH,
+    .boxHeight   = GAME_FLOW_LOAD_CAPTION_TWO_LINE_BOX_HEIGHT,
+};
 /// Glyph script for the return to Dryfield date and place loading caption.
 ///
 /// Two lines; used for nighttime story chapters 4 and 5.
@@ -1276,7 +1562,28 @@ static u8 _gGameFlowLoadCaptionDryfieldReturnChars[] = {
     0x2D,
     TEXT_STREAM_END,
 };
-static TextStream BootCaption_DryfieldReturn = { -150, -90, 960, 0, 0, 260, 3, 0, _gGameFlowLoadCaptionDryfieldReturnChars, gTextCaptionGlyphCells, 13, 300, 216, 29 };
+/// Resident return date/place caption for nighttime Dryfield.
+///
+/// Shared by lobby, trailer and other-area arrivals in story chapters 4 and 5.
+/// 2 lines; glyph/final countdown reloads are 3/300 frames.
+/// Storage remains resident; playback resets and advances the cursor in place.
+/// Loading presentation supplies its own hold/fade timing after reveal.
+static TextStream _gGameFlowLoadCaptionDryfieldReturn = {
+    .x           = -150,
+    .y           = -90,
+    .tpageX      = GAME_FLOW_LOAD_CAPTION_FONT_PAGE_X,
+    .tpageY      = 0,
+    .clutX       = 0,
+    .clutY       = GAME_FLOW_LOAD_CAPTION_FONT_CLUT_Y,
+    .charDelay   = GAME_FLOW_LOAD_CAPTION_SLOW_GLYPH_COUNTDOWN_FRAMES,
+    .cursor      = 0,
+    .chars       = _gGameFlowLoadCaptionDryfieldReturnChars,
+    .glyphs      = gTextCaptionGlyphCells,
+    .lineHeight  = GAME_FLOW_LOAD_CAPTION_LINE_HEIGHT,
+    .delayReload = GAME_FLOW_LOAD_CAPTION_LONG_FINAL_COUNTDOWN_FRAMES,
+    .boxWidth    = GAME_FLOW_LOAD_CAPTION_BOX_WIDTH,
+    .boxHeight   = GAME_FLOW_LOAD_CAPTION_TWO_LINE_BOX_HEIGHT,
+};
 /// Glyph script for the Shelter laboratory-level date and place loading caption.
 ///
 /// Two lines; the laboratory selector shares it across story chapters.
@@ -1329,7 +1636,28 @@ static u8 _gGameFlowLoadCaptionShelterLaboratoryChars[] = {
     0x2B,
     TEXT_STREAM_END,
 };
-static TextStream BootCaption_ShelterLaboratory = { -150, -90, 960, 0, 0, 260, 3, 0, _gGameFlowLoadCaptionShelterLaboratoryChars, gTextCaptionGlyphCells, 13, 300, 216, 29 };
+/// Resident date/place caption for the Shelter laboratory level.
+///
+/// Shared by laboratory arrivals in story chapters 4, 5 and 6.
+/// 2 lines; glyph/final countdown reloads are 3/300 frames.
+/// Storage remains resident; playback resets and advances the cursor in place.
+/// Loading presentation supplies its own hold/fade timing after reveal.
+static TextStream _gGameFlowLoadCaptionShelterLaboratory = {
+    .x           = -150,
+    .y           = -90,
+    .tpageX      = GAME_FLOW_LOAD_CAPTION_FONT_PAGE_X,
+    .tpageY      = 0,
+    .clutX       = 0,
+    .clutY       = GAME_FLOW_LOAD_CAPTION_FONT_CLUT_Y,
+    .charDelay   = GAME_FLOW_LOAD_CAPTION_SLOW_GLYPH_COUNTDOWN_FRAMES,
+    .cursor      = 0,
+    .chars       = _gGameFlowLoadCaptionShelterLaboratoryChars,
+    .glyphs      = gTextCaptionGlyphCells,
+    .lineHeight  = GAME_FLOW_LOAD_CAPTION_LINE_HEIGHT,
+    .delayReload = GAME_FLOW_LOAD_CAPTION_LONG_FINAL_COUNTDOWN_FRAMES,
+    .boxWidth    = GAME_FLOW_LOAD_CAPTION_BOX_WIDTH,
+    .boxHeight   = GAME_FLOW_LOAD_CAPTION_TWO_LINE_BOX_HEIGHT,
+};
 /// Glyph script for the Shelter pod-shaft date and place loading caption.
 ///
 /// Two lines; the Mine/Shelter selector uses it for the remaining areas.
@@ -1375,9 +1703,36 @@ static u8 _gGameFlowLoadCaptionShelterPodChars[] = {
     0x2B,
     TEXT_STREAM_END,
 };
-static TextStream BootCaption_ShelterPod = { -150, -90, 960, 0, 0, 260, 3, 0, _gGameFlowLoadCaptionShelterPodChars, gTextCaptionGlyphCells, 13, 300, 216, 29 };
-/// September 5,  1999\nExperiment level, Shelter
-static u8 BootCaptionText_ShelterExperiment[] = {
+/// Resident date/place caption for the Shelter pod shaft.
+///
+/// Shared by the remaining Mine/Shelter areas in chapters 4 and 5, and other chapters.
+/// 2 lines; glyph/final countdown reloads are 3/300 frames.
+/// Storage remains resident; playback resets and advances the cursor in place.
+/// Loading presentation supplies its own hold/fade timing after reveal.
+static TextStream _gGameFlowLoadCaptionShelterPod = {
+    .x           = -150,
+    .y           = -90,
+    .tpageX      = GAME_FLOW_LOAD_CAPTION_FONT_PAGE_X,
+    .tpageY      = 0,
+    .clutX       = 0,
+    .clutY       = GAME_FLOW_LOAD_CAPTION_FONT_CLUT_Y,
+    .charDelay   = GAME_FLOW_LOAD_CAPTION_SLOW_GLYPH_COUNTDOWN_FRAMES,
+    .cursor      = 0,
+    .chars       = _gGameFlowLoadCaptionShelterPodChars,
+    .glyphs      = gTextCaptionGlyphCells,
+    .lineHeight  = GAME_FLOW_LOAD_CAPTION_LINE_HEIGHT,
+    .delayReload = GAME_FLOW_LOAD_CAPTION_LONG_FINAL_COUNTDOWN_FRAMES,
+    .boxWidth    = GAME_FLOW_LOAD_CAPTION_BOX_WIDTH,
+    .boxHeight   = GAME_FLOW_LOAD_CAPTION_TWO_LINE_BOX_HEIGHT,
+};
+/// Glyph script for the Shelter experiment-level date/place loading caption.
+///
+/// Selected for Shelter B6 nursery arrivals.
+/// Two lines in 45 bytes, including the line break and terminator. Bytes
+/// select the low-seven-bit indices of `gTextCaptionGlyphCells`;
+/// `TEXT_STREAM_LINE_BREAK` separates lines and `TEXT_STREAM_END` ends the script.
+/// Storage remains resident and playback only reads its bytes.
+static u8 _gGameFlowLoadCaptionShelterExperimentChars[] = {
     0x12,
     0x1E,
     0x29,
@@ -1424,9 +1779,37 @@ static u8 BootCaptionText_ShelterExperiment[] = {
     0x2B,
     TEXT_STREAM_END,
 };
-static TextStream BootCaption_ShelterExperiment = { -150, -90, 960, 0, 0, 260, 3, 0, BootCaptionText_ShelterExperiment, gTextCaptionGlyphCells, 13, 300, 216, 29 };
-/// September 5,  1999\nHeliport, Shelter
-static u8 BootCaptionText_ShelterHeliport[] = {
+STATIC_ASSERT_SIZEOF(_gGameFlowLoadCaptionShelterExperimentChars, 45);
+/// Resident date/place caption for the Shelter experiment level.
+///
+/// Selected for Shelter B6 nursery arrivals.
+/// 2 lines; glyph/final countdown reloads are 3/300 frames.
+/// Storage remains resident; playback resets and advances the cursor in place.
+/// Loading presentation supplies its own hold/fade timing after reveal.
+static TextStream _gGameFlowLoadCaptionShelterExperiment = {
+    .x           = -150,
+    .y           = -90,
+    .tpageX      = GAME_FLOW_LOAD_CAPTION_FONT_PAGE_X,
+    .tpageY      = 0,
+    .clutX       = 0,
+    .clutY       = GAME_FLOW_LOAD_CAPTION_FONT_CLUT_Y,
+    .charDelay   = GAME_FLOW_LOAD_CAPTION_SLOW_GLYPH_COUNTDOWN_FRAMES,
+    .cursor      = 0,
+    .chars       = _gGameFlowLoadCaptionShelterExperimentChars,
+    .glyphs      = gTextCaptionGlyphCells,
+    .lineHeight  = GAME_FLOW_LOAD_CAPTION_LINE_HEIGHT,
+    .delayReload = GAME_FLOW_LOAD_CAPTION_LONG_FINAL_COUNTDOWN_FRAMES,
+    .boxWidth    = GAME_FLOW_LOAD_CAPTION_BOX_WIDTH,
+    .boxHeight   = GAME_FLOW_LOAD_CAPTION_TWO_LINE_BOX_HEIGHT,
+};
+/// Glyph script for the Shelter heliport date/place loading caption.
+///
+/// Selected for Neo Ark shrine/default areas without an alternate-caption request.
+/// Two lines in 37 bytes, including the line break and terminator. Bytes
+/// select the low-seven-bit indices of `gTextCaptionGlyphCells`;
+/// `TEXT_STREAM_LINE_BREAK` separates lines and `TEXT_STREAM_END` ends the script.
+/// Storage remains resident and playback only reads its bytes.
+static u8 _gGameFlowLoadCaptionShelterHeliportChars[] = {
     0x12,
     0x1E,
     0x29,
@@ -1465,7 +1848,29 @@ static u8 BootCaptionText_ShelterHeliport[] = {
     0x2B,
     TEXT_STREAM_END,
 };
-static TextStream BootCaption_ShelterHeliport = { -150, -90, 960, 0, 0, 260, 3, 0, BootCaptionText_ShelterHeliport, gTextCaptionGlyphCells, 13, 300, 216, 29 };
+STATIC_ASSERT_SIZEOF(_gGameFlowLoadCaptionShelterHeliportChars, 37);
+/// Resident date/place caption for the Shelter heliport.
+///
+/// Selected for Neo Ark shrine/default areas when no alternate caption is requested.
+/// 2 lines; glyph/final countdown reloads are 3/300 frames.
+/// Storage remains resident; playback resets and advances the cursor in place.
+/// Loading presentation supplies its own hold/fade timing after reveal.
+static TextStream _gGameFlowLoadCaptionShelterHeliport = {
+    .x           = -150,
+    .y           = -90,
+    .tpageX      = GAME_FLOW_LOAD_CAPTION_FONT_PAGE_X,
+    .tpageY      = 0,
+    .clutX       = 0,
+    .clutY       = GAME_FLOW_LOAD_CAPTION_FONT_CLUT_Y,
+    .charDelay   = GAME_FLOW_LOAD_CAPTION_SLOW_GLYPH_COUNTDOWN_FRAMES,
+    .cursor      = 0,
+    .chars       = _gGameFlowLoadCaptionShelterHeliportChars,
+    .glyphs      = gTextCaptionGlyphCells,
+    .lineHeight  = GAME_FLOW_LOAD_CAPTION_LINE_HEIGHT,
+    .delayReload = GAME_FLOW_LOAD_CAPTION_LONG_FINAL_COUNTDOWN_FRAMES,
+    .boxWidth    = GAME_FLOW_LOAD_CAPTION_BOX_WIDTH,
+    .boxHeight   = GAME_FLOW_LOAD_CAPTION_TWO_LINE_BOX_HEIGHT,
+};
 
 /// Boot-image mask colour range and its screen/ordering-table placement.
 enum {
@@ -1579,32 +1984,32 @@ static void _gameFlowSelectAcropolisLoadScreenAssets(u8* imageFileIndex)
 {
     switch (gGameFlowLoadScreenDestination.area) {
         case GAME_AREA_ACROPOLIS_SQUARE:
-            gGameFlowLoadCaption = &BootCaption_Akropolis;
+            gGameFlowLoadCaption = &_gGameFlowLoadCaptionAcropolis;
             *imageFileIndex      = GAME_FLOW_LOAD_IMAGE_ACROPOLIS_SQUARE;
             break;
         case GAME_AREA_ACROPOLIS_PLAZA:
-            gGameFlowLoadCaption                = &BootCaption_AkropolisEvening;
-            gGameFlowLegacySecondaryLoadCaption = &BootCaption_AkropolisEveningSecondary;
+            gGameFlowLoadCaption                = &_gGameFlowLoadCaptionAcropolisEvening;
+            gGameFlowLegacySecondaryLoadCaption = &_gGameFlowLegacySecondaryLoadCaptionAcropolisEvening;
             *imageFileIndex                     = GAME_FLOW_LOAD_IMAGE_DETAILED_CAPTION;
             break;
         case GAME_AREA_ACROPOLIS_EAST_ELEVATOR_HALL ... GAME_AREA_ACROPOLIS_CAFETERIA:
         case GAME_AREA_ACROPOLIS_SECURITY_ROOM ... GAME_AREA_MIST_R18:
         default:
-            gGameFlowLoadCaption = &BootCaption_Akropolis;
+            gGameFlowLoadCaption = &_gGameFlowLoadCaptionAcropolis;
             *imageFileIndex      = GAME_FLOW_LOAD_IMAGE_ACROPOLIS_OTHER;
             break;
         case GAME_AREA_MIST_PARKING:
             if (gameFlagGetNibble(GAME_FLAG_STORY_CHAPTER) == GAME_FLOW_LOAD_CHAPTER_MIST_ARRIVAL) {
-                gGameFlowLoadCaption = &BootCaption_MistArrival;
+                gGameFlowLoadCaption = &_gGameFlowLoadCaptionMistArrival;
                 *imageFileIndex      = GAME_FLOW_LOAD_IMAGE_MIST_ARRIVAL;
             } else {
-                gGameFlowLoadCaption = &BootCaption_MistDeparture;
+                gGameFlowLoadCaption = &_gGameFlowLoadCaptionMistDeparture;
                 *imageFileIndex      = GAME_FLOW_LOAD_IMAGE_MIST_DEPARTURE;
             }
             break;
         case GAME_AREA_MIST_SHOOTING_GALLERY:
-            gGameFlowLoadCaption                = &BootCaption_MistEvening;
-            gGameFlowLegacySecondaryLoadCaption = &BootCaption_MistEveningSecondary;
+            gGameFlowLoadCaption                = &_gGameFlowLoadCaptionMistEvening;
+            gGameFlowLegacySecondaryLoadCaption = &_gGameFlowLegacySecondaryLoadCaptionMistEvening;
             *imageFileIndex                     = GAME_FLOW_LOAD_IMAGE_DETAILED_CAPTION;
             break;
     }
@@ -1623,8 +2028,8 @@ static void _gameFlowSelectDryfieldLoadScreenAssets(u8* imageFileIndex)
                 gGameFlowLoadCaption = &_gGameFlowLoadCaptionDryfield;
                 *imageFileIndex      = GAME_FLOW_LOAD_IMAGE_DRYFIELD_MAIN_STREET;
             } else {
-                gGameFlowLoadCaption                = &BootCaption_DesertAfternoon;
-                gGameFlowLegacySecondaryLoadCaption = &BootCaption_DesertAfternoonSecondary;
+                gGameFlowLoadCaption                = &_gGameFlowLoadCaptionDesertAfternoon;
+                gGameFlowLegacySecondaryLoadCaption = &_gGameFlowLegacySecondaryLoadCaptionDesertAfternoon;
                 *imageFileIndex                     = GAME_FLOW_LOAD_IMAGE_DETAILED_CAPTION;
             }
             break;
@@ -1669,11 +2074,11 @@ static void _gameFlowSelectDryfieldNightLoadScreenAssets(u8* imageFileIndex)
                     *imageFileIndex      = GAME_FLOW_LOAD_IMAGE_DRYFIELD_NIGHT_LOBBY_CHAPTER_3;
                     break;
                 case GAME_FLOW_LOAD_CHAPTER_4:
-                    gGameFlowLoadCaption = &BootCaption_DryfieldReturn;
+                    gGameFlowLoadCaption = &_gGameFlowLoadCaptionDryfieldReturn;
                     *imageFileIndex      = GAME_FLOW_LOAD_IMAGE_DRYFIELD_NIGHT_LOBBY_CHAPTER_4;
                     break;
                 case GAME_FLOW_LOAD_CHAPTER_5:
-                    gGameFlowLoadCaption = &BootCaption_DryfieldReturn;
+                    gGameFlowLoadCaption = &_gGameFlowLoadCaptionDryfieldReturn;
                     *imageFileIndex      = GAME_FLOW_LOAD_IMAGE_DRYFIELD_NIGHT_LOBBY_CHAPTER_5;
                     break;
             }
@@ -1686,11 +2091,11 @@ static void _gameFlowSelectDryfieldNightLoadScreenAssets(u8* imageFileIndex)
                     *imageFileIndex      = GAME_FLOW_LOAD_IMAGE_DRYFIELD_NIGHT_TRAILER_CHAPTER_3;
                     break;
                 case GAME_FLOW_LOAD_CHAPTER_4:
-                    gGameFlowLoadCaption = &BootCaption_DryfieldReturn;
+                    gGameFlowLoadCaption = &_gGameFlowLoadCaptionDryfieldReturn;
                     *imageFileIndex      = GAME_FLOW_LOAD_IMAGE_DRYFIELD_NIGHT_TRAILER_CHAPTER_4;
                     break;
                 case GAME_FLOW_LOAD_CHAPTER_5:
-                    gGameFlowLoadCaption = &BootCaption_DryfieldReturn;
+                    gGameFlowLoadCaption = &_gGameFlowLoadCaptionDryfieldReturn;
                     *imageFileIndex      = GAME_FLOW_LOAD_IMAGE_DRYFIELD_NIGHT_TRAILER_CHAPTER_5;
                     break;
             }
@@ -1704,11 +2109,11 @@ static void _gameFlowSelectDryfieldNightLoadScreenAssets(u8* imageFileIndex)
                     *imageFileIndex      = GAME_FLOW_LOAD_IMAGE_DRYFIELD_NIGHT_OTHER_CHAPTER_3;
                     break;
                 case GAME_FLOW_LOAD_CHAPTER_4:
-                    gGameFlowLoadCaption = &BootCaption_DryfieldReturn;
+                    gGameFlowLoadCaption = &_gGameFlowLoadCaptionDryfieldReturn;
                     *imageFileIndex      = GAME_FLOW_LOAD_IMAGE_DRYFIELD_NIGHT_OTHER_CHAPTER_4;
                     break;
                 case GAME_FLOW_LOAD_CHAPTER_5:
-                    gGameFlowLoadCaption = &BootCaption_DryfieldReturn;
+                    gGameFlowLoadCaption = &_gGameFlowLoadCaptionDryfieldReturn;
                     *imageFileIndex      = GAME_FLOW_LOAD_IMAGE_DRYFIELD_NIGHT_OTHER_CHAPTER_5;
                     break;
             }
@@ -1729,19 +2134,19 @@ static void _gameFlowSelectMineShelterLoadScreenAssets(u8* imageFileIndex)
     storyChapter = gameFlagGetNibble(GAME_FLAG_STORY_CHAPTER);
     switch (gGameFlowLoadScreenDestination.area) {
         case GAME_AREA_MINE_MESA:
-            gGameFlowLoadCaption                = &BootCaption_DryfieldMesaNight;
-            gGameFlowLegacySecondaryLoadCaption = &BootCaption_DryfieldMesaNightSecondary;
+            gGameFlowLoadCaption                = &_gGameFlowLoadCaptionDryfieldMesaNight;
+            gGameFlowLegacySecondaryLoadCaption = &_gGameFlowLegacySecondaryLoadCaptionDryfieldMesaNight;
             *imageFileIndex                     = GAME_FLOW_LOAD_IMAGE_DETAILED_CAPTION;
             break;
         case GAME_AREA_MINE_REFUGE:
             switch (storyChapter) {
                 case GAME_FLOW_LOAD_CHAPTER_4:
                 default:
-                    gGameFlowLoadCaption = &BootCaption_Mine;
+                    gGameFlowLoadCaption = &_gGameFlowLoadCaptionMine;
                     *imageFileIndex      = GAME_FLOW_LOAD_IMAGE_MINE_REFUGE_CHAPTER_4;
                     break;
                 case GAME_FLOW_LOAD_CHAPTER_5:
-                    gGameFlowLoadCaption = &BootCaption_Mine;
+                    gGameFlowLoadCaption = &_gGameFlowLoadCaptionMine;
                     *imageFileIndex      = GAME_FLOW_LOAD_IMAGE_MINE_REFUGE_CHAPTER_5;
                     break;
             }
@@ -1750,15 +2155,15 @@ static void _gameFlowSelectMineShelterLoadScreenAssets(u8* imageFileIndex)
             switch (storyChapter) {
                 case GAME_FLOW_LOAD_CHAPTER_4:
                 default:
-                    gGameFlowLoadCaption = &BootCaption_ShelterDwelling;
+                    gGameFlowLoadCaption = &_gGameFlowLoadCaptionShelterDwelling;
                     *imageFileIndex      = GAME_FLOW_LOAD_IMAGE_SHELTER_STERILIZATION_CHAPTER_4;
                     break;
                 case GAME_FLOW_LOAD_CHAPTER_5:
-                    gGameFlowLoadCaption = &BootCaption_ShelterDwelling;
+                    gGameFlowLoadCaption = &_gGameFlowLoadCaptionShelterDwelling;
                     *imageFileIndex      = GAME_FLOW_LOAD_IMAGE_SHELTER_STERILIZATION_CHAPTER_5;
                     break;
                 case GAME_FLOW_LOAD_CHAPTER_6:
-                    gGameFlowLoadCaption = &BootCaption_ShelterDwelling;
+                    gGameFlowLoadCaption = &_gGameFlowLoadCaptionShelterDwelling;
                     *imageFileIndex      = GAME_FLOW_LOAD_IMAGE_SHELTER_STERILIZATION_CHAPTER_6;
                     break;
             }
@@ -1767,27 +2172,27 @@ static void _gameFlowSelectMineShelterLoadScreenAssets(u8* imageFileIndex)
             switch (storyChapter) {
                 case GAME_FLOW_LOAD_CHAPTER_4:
                 default:
-                    gGameFlowLoadCaption = &BootCaption_ShelterDwelling;
+                    gGameFlowLoadCaption = &_gGameFlowLoadCaptionShelterDwelling;
                     *imageFileIndex      = GAME_FLOW_LOAD_IMAGE_SHELTER_PARKING_CHAPTER_4;
                     break;
                 case GAME_FLOW_LOAD_CHAPTER_5:
-                    gGameFlowLoadCaption = &BootCaption_ShelterDwelling;
+                    gGameFlowLoadCaption = &_gGameFlowLoadCaptionShelterDwelling;
                     *imageFileIndex      = GAME_FLOW_LOAD_IMAGE_SHELTER_PARKING_CHAPTER_5;
                     break;
                 case GAME_FLOW_LOAD_CHAPTER_6:
-                    gGameFlowLoadCaption = &BootCaption_ShelterDwelling;
+                    gGameFlowLoadCaption = &_gGameFlowLoadCaptionShelterDwelling;
                     *imageFileIndex      = GAME_FLOW_LOAD_IMAGE_SHELTER_PARKING_CHAPTER_6;
                     break;
             }
             break;
         case GAME_AREA_SHELTER_R36:
             if (gGameFlowLoadAlternateCaption == GAME_FLOW_LOAD_CAPTION_NORMAL) {
-                gGameFlowLoadCaption                = &BootCaption_WhiteHouseAftermath;
-                gGameFlowLegacySecondaryLoadCaption = &BootCaption_WhiteHouseAftermathSecondary;
+                gGameFlowLoadCaption                = &_gGameFlowLoadCaptionWhiteHouseAftermath;
+                gGameFlowLegacySecondaryLoadCaption = &_gGameFlowLegacySecondaryLoadCaptionWhiteHouseAftermath;
                 *imageFileIndex                     = GAME_FLOW_LOAD_IMAGE_DETAILED_CAPTION;
             } else {
-                gGameFlowLoadCaption                = &BootCaption_MuseumFlashback;
-                gGameFlowLegacySecondaryLoadCaption = &BootCaption_MuseumFlashbackSecondary;
+                gGameFlowLoadCaption                = &_gGameFlowLoadCaptionMuseumFlashback;
+                gGameFlowLegacySecondaryLoadCaption = &_gGameFlowLegacySecondaryLoadCaptionMuseumFlashback;
                 *imageFileIndex                     = GAME_FLOW_LOAD_IMAGE_DETAILED_CAPTION;
             }
             break;
@@ -1795,11 +2200,11 @@ static void _gameFlowSelectMineShelterLoadScreenAssets(u8* imageFileIndex)
             switch (storyChapter) {
                 case GAME_FLOW_LOAD_CHAPTER_4:
                 default:
-                    gGameFlowLoadCaption = &BootCaption_ShelterWaste;
+                    gGameFlowLoadCaption = &_gGameFlowLoadCaptionShelterWaste;
                     *imageFileIndex      = GAME_FLOW_LOAD_IMAGE_SHELTER_INCINERATOR_CHAPTER_4;
                     break;
                 case GAME_FLOW_LOAD_CHAPTER_5:
-                    gGameFlowLoadCaption = &BootCaption_ShelterWaste;
+                    gGameFlowLoadCaption = &_gGameFlowLoadCaptionShelterWaste;
                     *imageFileIndex      = GAME_FLOW_LOAD_IMAGE_SHELTER_INCINERATOR_CHAPTER_5;
                     break;
             }
@@ -1808,15 +2213,15 @@ static void _gameFlowSelectMineShelterLoadScreenAssets(u8* imageFileIndex)
             switch (storyChapter) {
                 case GAME_FLOW_LOAD_CHAPTER_4:
                 default:
-                    gGameFlowLoadCaption = &BootCaption_ShelterLaboratory;
+                    gGameFlowLoadCaption = &_gGameFlowLoadCaptionShelterLaboratory;
                     *imageFileIndex      = GAME_FLOW_LOAD_IMAGE_SHELTER_LABORATORY_CHAPTER_4;
                     break;
                 case GAME_FLOW_LOAD_CHAPTER_5:
-                    gGameFlowLoadCaption = &BootCaption_ShelterLaboratory;
+                    gGameFlowLoadCaption = &_gGameFlowLoadCaptionShelterLaboratory;
                     *imageFileIndex      = GAME_FLOW_LOAD_IMAGE_SHELTER_LABORATORY_CHAPTER_5;
                     break;
                 case GAME_FLOW_LOAD_CHAPTER_6:
-                    gGameFlowLoadCaption = &BootCaption_ShelterLaboratory;
+                    gGameFlowLoadCaption = &_gGameFlowLoadCaptionShelterLaboratory;
                     *imageFileIndex      = GAME_FLOW_LOAD_IMAGE_SHELTER_LABORATORY_CHAPTER_6;
                     break;
             }
@@ -1832,11 +2237,11 @@ static void _gameFlowSelectMineShelterLoadScreenAssets(u8* imageFileIndex)
             switch (storyChapter) {
                 case GAME_FLOW_LOAD_CHAPTER_4:
                 default:
-                    gGameFlowLoadCaption = &BootCaption_ShelterPod;
+                    gGameFlowLoadCaption = &_gGameFlowLoadCaptionShelterPod;
                     *imageFileIndex      = GAME_FLOW_LOAD_IMAGE_SHELTER_POD_CHAPTER_4;
                     break;
                 case GAME_FLOW_LOAD_CHAPTER_5:
-                    gGameFlowLoadCaption = &BootCaption_ShelterPod;
+                    gGameFlowLoadCaption = &_gGameFlowLoadCaptionShelterPod;
                     *imageFileIndex      = GAME_FLOW_LOAD_IMAGE_SHELTER_POD_CHAPTER_5;
                     break;
             }
@@ -1908,21 +2313,21 @@ void gameFlowStartLoadScreenImage(void)
                 case GAME_AREA_NEO_ARK_SHRINE:
                 default:
                     if (gGameFlowLoadAlternateCaption == GAME_FLOW_LOAD_CAPTION_NORMAL) {
-                        gGameFlowLoadCaption = &BootCaption_ShelterHeliport;
+                        gGameFlowLoadCaption = &_gGameFlowLoadCaptionShelterHeliport;
                         imageKey.fileIndex   = GAME_FLOW_LOAD_IMAGE_SHELTER_HELIPORT;
                     } else {
-                        gGameFlowLoadCaption                = &BootCaption_DesertReturn;
-                        gGameFlowLegacySecondaryLoadCaption = &BootCaption_DesertReturnSecondary;
+                        gGameFlowLoadCaption                = &_gGameFlowLoadCaptionDesertReturn;
+                        gGameFlowLegacySecondaryLoadCaption = &_gGameFlowLegacySecondaryLoadCaptionDesertReturn;
                         imageKey.fileIndex                  = GAME_FLOW_LOAD_IMAGE_DETAILED_CAPTION;
                     }
                     break;
                 case GAME_AREA_SHELTER_B6_NURSERY:
-                    gGameFlowLoadCaption = &BootCaption_ShelterExperiment;
+                    gGameFlowLoadCaption = &_gGameFlowLoadCaptionShelterExperiment;
                     imageKey.fileIndex   = GAME_FLOW_LOAD_IMAGE_SHELTER_NURSERY;
                     break;
                 case GAME_AREA_NEO_ARK_R26:
-                    gGameFlowLoadCaption                = &BootCaption_WhiteHouseEvening;
-                    gGameFlowLegacySecondaryLoadCaption = &BootCaption_WhiteHouseEveningSecondary;
+                    gGameFlowLoadCaption                = &_gGameFlowLoadCaptionWhiteHouseEvening;
+                    gGameFlowLegacySecondaryLoadCaption = &_gGameFlowLegacySecondaryLoadCaptionWhiteHouseEvening;
                     imageKey.fileIndex                  = GAME_FLOW_LOAD_IMAGE_DETAILED_CAPTION;
                     break;
             }
