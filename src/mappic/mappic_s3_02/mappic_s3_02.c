@@ -356,32 +356,37 @@ TmdSource gMappicS302MotelRoom4Shape = {
     .stream           = _gMappicS302MotelRoom4ShapeStream,
 };
 
-static TmdBone _gMappicS302MappicS202Model00710Skeleton[1] = {
+/// Identity transform and self-parented root for the Parking lot shape.
+static TmdBone _gMappicS302ParkingLotShapeSkeleton[] = {
 #include "assets/mappic_s2_02_model_00710_skeleton.inc"
 };
 
-static u32 _gMappicS302MappicS202Model00710PartVerts[1] = {
+/// Vertex count of the Parking lot shape's sole part (twelve vertices).
+static u32 _gMappicS302ParkingLotShapePartVerts[] = {
 #include "assets/mappic_s2_02_model_00710_partVerts.inc"
 };
 
-static SVECTOR _gMappicS302MappicS202Model00710Verts[12] = {
+/// Parking lot's map footprint in integer model X/Z coordinates, with Y zero.
+static SVECTOR _gMappicS302ParkingLotShapeVerts[] = {
 #include "assets/mappic_s2_02_model_00710_verts.inc"
 };
 
-static u32 _gMappicS302MappicS202Model00710Stream[21] = {
+/// Packed command stream for the Parking lot shape's five unlit quads.
+///
+/// Each quad has four SVECTOR byte offsets and white colour; two group ends
+/// precede the stream end. The map reads only the first group.
+static u32 _gMappicS302ParkingLotShapeStream[] = {
 #include "assets/mappic_s2_02_model_00710_stream.inc"
 };
 
-TmdSource D_mappic_s3_02_8012F6AC = {
-    0,
-    120,
-    0,
-    1,
-    _gMappicS302MappicS202Model00710PartVerts,
-    _gMappicS302MappicS202Model00710Verts,
-    &_gMappicS302MappicS202Model00710Verts[12],
-    _gMappicS302MappicS202Model00710Skeleton,
-    _gMappicS302MappicS202Model00710Stream,
+TmdSource gMappicS302ParkingLotShape = {
+    .bufferHalfBytes  = 5 * sizeof(POLY_F4),
+    .partCount        = ARRAY_SIZE(_gMappicS302ParkingLotShapeSkeleton),
+    .partVertexCounts = _gMappicS302ParkingLotShapePartVerts,
+    .verts            = _gMappicS302ParkingLotShapeVerts,
+    .normals          = &_gMappicS302ParkingLotShapeVerts[ARRAY_SIZE(_gMappicS302ParkingLotShapeVerts)], // Empty normal pool at the vertex end.
+    .skeleton         = _gMappicS302ParkingLotShapeSkeleton,
+    .stream           = _gMappicS302ParkingLotShapeStream,
 };
 
 static TmdBone _gMappicS302MappicS202Model00C48007F4Skeleton[1] = {

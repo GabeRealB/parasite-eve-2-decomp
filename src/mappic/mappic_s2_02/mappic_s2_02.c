@@ -356,32 +356,37 @@ TmdSource gMappicS202MotelRoom4Shape = {
     .stream           = _gMappicS202MotelRoom4ShapeStream,
 };
 
-static TmdBone _gMappicS202Model00710Skeleton[1] = {
+/// Identity transform and self-parented root for the Parking lot shape.
+static TmdBone _gMappicS202ParkingLotShapeSkeleton[] = {
 #include "assets/mappic_s2_02_model_00710_skeleton.inc"
 };
 
-static u32 _gMappicS202Model00710PartVerts[1] = {
+/// Vertex count of the Parking lot shape's sole part (twelve vertices).
+static u32 _gMappicS202ParkingLotShapePartVerts[] = {
 #include "assets/mappic_s2_02_model_00710_partVerts.inc"
 };
 
-static SVECTOR _gMappicS202Model00710Verts[12] = {
+/// Parking lot's map footprint in integer model X/Z coordinates, with Y zero.
+static SVECTOR _gMappicS202ParkingLotShapeVerts[] = {
 #include "assets/mappic_s2_02_model_00710_verts.inc"
 };
 
-static u32 _gMappicS202Model00710Stream[21] = {
+/// Packed command stream for the Parking lot shape's five unlit quads.
+///
+/// Each quad has four SVECTOR byte offsets and white colour; two group ends
+/// precede the stream end. The map reads only the first group.
+static u32 _gMappicS202ParkingLotShapeStream[] = {
 #include "assets/mappic_s2_02_model_00710_stream.inc"
 };
 
-TmdSource D_mappic_s2_02_8012F694 = {
-    0,
-    120,
-    0,
-    1,
-    _gMappicS202Model00710PartVerts,
-    _gMappicS202Model00710Verts,
-    &_gMappicS202Model00710Verts[12],
-    _gMappicS202Model00710Skeleton,
-    _gMappicS202Model00710Stream,
+TmdSource gMappicS202ParkingLotShape = {
+    .bufferHalfBytes  = 5 * sizeof(POLY_F4),
+    .partCount        = ARRAY_SIZE(_gMappicS202ParkingLotShapeSkeleton),
+    .partVertexCounts = _gMappicS202ParkingLotShapePartVerts,
+    .verts            = _gMappicS202ParkingLotShapeVerts,
+    .normals          = &_gMappicS202ParkingLotShapeVerts[ARRAY_SIZE(_gMappicS202ParkingLotShapeVerts)], // Empty normal pool at the vertex end.
+    .skeleton         = _gMappicS202ParkingLotShapeSkeleton,
+    .stream           = _gMappicS202ParkingLotShapeStream,
 };
 
 static TmdBone _gMappicS202Model00C48007F4Skeleton[1] = {

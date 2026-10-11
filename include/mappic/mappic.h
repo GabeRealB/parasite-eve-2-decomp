@@ -222,7 +222,13 @@ extern TmdSource gMappicS202MotelRoom3Shape;
 /// `mappic_s2_02` package loaded while these are used.
 extern TmdSource gMappicS202MotelRoom4Shape;
 
-extern TmdSource D_mappic_s2_02_8012F694;
+/// Parking lot's five area-fill quads on page 2 of the daytime Dryfield map.
+///
+/// Twelve vertices lie in the model X/Z plane; the map applies its 1495/4096
+/// page scale and maps Z to inverted screen Y. Has no normal data.
+/// The map borrows the vertices and first stream group; keep the
+/// `mappic_s2_02` package loaded while these are used.
+extern TmdSource gMappicS202ParkingLotShape;
 
 extern TmdSource D_mappic_s2_02_8012F724;
 
@@ -607,7 +613,13 @@ extern TmdSource gMappicS302MotelRoom3Shape;
 /// `mappic_s3_02` package loaded while these are used.
 extern TmdSource gMappicS302MotelRoom4Shape;
 
-extern TmdSource D_mappic_s3_02_8012F6AC;
+/// Parking lot's five area-fill quads on page 2 of the nighttime Dryfield map.
+///
+/// Twelve vertices lie in the model X/Z plane; the map applies its 1495/4096
+/// page scale and maps Z to inverted screen Y. Has no normal data.
+/// The map borrows the vertices and first stream group; keep the
+/// `mappic_s3_02` package loaded while these are used.
+extern TmdSource gMappicS302ParkingLotShape;
 
 extern TmdSource D_mappic_s3_02_8012F73C;
 
