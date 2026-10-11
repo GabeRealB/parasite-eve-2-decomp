@@ -67,10 +67,12 @@ size_t gMemSavedImageRegionBytes;
 #include "mem.h"
 #include "main/stream.h"
 
-/// Fixed addresses no image defines, which main points at: the work area
-/// at 0x801FD000 and 4MB into the dev kit's memory.
-
-extern u8 D_801FD000[];
+/// Exclusive end byte address of the ordinary image-memory region.
+///
+/// The saved whole region and auxiliary portion extend to this boundary.
+/// Retained in `Mem_UnusedTopRamPointer`, which has no code reader.
+/// This address does not define or reserve storage at the boundary.
+#define MEMORY_IMAGE_REGION_END ((u8*)0x801FD000)
 
 extern u8 D_80400000[];
 
@@ -111,7 +113,7 @@ static const char _gBootBuildStamp[sizeof("2000/05/01 19:24 ver2.49")] = "2000/0
 
 FsImgBuffers* gFsImageWorkspacePtr = &gFsImageWorkspace;
 /// Unreferenced.
-static void* Mem_UnusedTopRamPointer = D_801FD000;
+static void* Mem_UnusedTopRamPointer = MEMORY_IMAGE_REGION_END;
 u8*          gFsActorBuffer0Base     = FILE_SYSTEM_ACTOR_BUFFER_0_BASE;
 u8*          gFsActorBuffer1Base     = FILE_SYSTEM_ACTOR_BUFFER_1_BASE;
 u8*          gFsActorBuffer2Base     = FILE_SYSTEM_ACTOR_BUFFER_2_BASE;
