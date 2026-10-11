@@ -23,10 +23,10 @@ install_at = [0x80014300]     # main
 host = "127.0.0.1"
 port = 2345
 
+# Only used when some event has patch = true; with none, nothing is written into the game at all.
 [blob]
 address = 0x80200000     # where the patch stubs and the ring live: memory the game leaves alone (here, just above 2 MB)
-records = 1024           # ring size, a power of two
-drain_seconds = 1.0      # how often the game is interrupted to read the ring and re-apply patches
+records = 1024           # ring size, a power of two. The ring is read at every breakpoint event, and when it fills
 
 [[event]]
 id = 1

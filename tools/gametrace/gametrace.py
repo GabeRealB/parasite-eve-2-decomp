@@ -15,8 +15,11 @@ breakpoint or by a patch. Every event is recorded the same way - its id and the 
               into the game. Each hit is a round trip, so it suits events that happen a few times a second.
   patch       the function's first two instructions are replaced by a jump to a small stub at `blob.address` (the target
               must have memory there that the game leaves alone; by default that is just above 2 MB). The stub calls one shared handler, which appends a record to a ring
-              buffer, then runs the two displaced instructions and returns to the third. This tool reads the ring
-              every `drain_seconds`, by interrupting the game for a moment. It suits events too frequent to stop for.
+              buffer, then runs the two displaced instructions and returns to the third. The ring is read
+              whenever the game is stopped anyway: at each breakpoint event, before that event is written, so the
+              log keeps the order things happened in; and at a breakpoint inside the handler that is reached only
+              when the ring is full. It suits events too frequent to stop for.
+              With no patch event in the config, no blob is written and nothing above applies.
 
 The tool expects to be started with the game paused, before it has run. It continues the game itself up to the
 first `install_at` address - a function by which memory is set up, such as the program's `main` - and only there
@@ -79,7 +82,8 @@ def load(path: Path) -> dict:
             problems.append(f"{event.get('name')}: ret, stack and mem are read by this tool at a breakpoint; a patch records the registers only")
     if blob["records"] & (blob["records"] - 1):
         problems.append("blob.records must be a power of two")
-    blob.setdefault("drain_seconds", 1.0)
+    if blob["records"] > 0x8000:
+        problems.append("blob.records must be at most 32768")
     if problems:
         raise SystemExit("\n".join(problems))
     return cfg
@@ -131,8 +135,9 @@ def stub_source(cfg: dict, originals: dict[int, tuple[int, int]]) -> str:
     blob = cfg["blob"]
     lines = [
         ".set noreorder", ".set noat", ".text",
-        "# header: the next sequence number, then how many records the ring holds",
+        "# header: the next sequence number, how many records the ring holds now, and how many it can hold",
         "gt_seq:    .word 0",
+        "gt_fill:   .word 0",
         f"gt_count:  .word {blob['records']}",
         "",
         "# The one handler. In: t0 = the event's id, and the stub's frame at sp (the caller's ra at 0, t0 at 4).",
@@ -142,26 +147,36 @@ def stub_source(cfg: dict, originals: dict[int, tuple[int, int]]) -> str:
         "    sw    $t1, 0($sp)",
         "    sw    $t2, 4($sp)",
         "    sw    $t3, 8($sp)",
-        "    lui   $t1, %hi(gt_seq)",
-        "    lw    $t2, %lo(gt_seq)($t1)",
-        f"    andi  $t3, $t2, {blob['records'] - 1}",
-        "    sll   $t3, $t3, 5",
+        "    lui   $t1, %hi(gt_fill)",
+        "    lw    $t2, %lo(gt_fill)($t1)",
+        f"    li    $t3, {blob['records']}",
+        "    bne   $t2, $t3, 1f",
+        "    nop",
+        "# The ring is full. The tracer holds a breakpoint here and reads every record before this instruction",
+        "# starts the ring again from its first slot; with no tracer attached the old records are simply dropped.",
+        "gt_full:",
+        "    addu  $t2, $zero, $zero",
+        "1:",
+        "    sll   $t3, $t2, 5",
+        "    addiu $t2, $t2, 1",
+        "    sw    $t2, %lo(gt_fill)($t1)",
         "    lui   $t1, %hi(gt_ring)",
         "    addiu $t1, $t1, %lo(gt_ring)",
         "    addu  $t3, $t3, $t1",
+        "    lui   $t1, %hi(gt_seq)",
+        "    lw    $t2, %lo(gt_seq)($t1)",
         "    sw    $t0, 0($t3)",
         "    sw    $a0, 4($t3)",
         "    sw    $a1, 8($t3)",
         "    sw    $a2, 12($t3)",
         "    sw    $a3, 16($t3)",
         "    lw    $t0, 16($sp)          # the caller's return address, saved by the stub",
+        "    sw    $t2, 28($t3)",
+        "    addiu $t2, $t2, 1",
+        "    sw    $t2, %lo(gt_seq)($t1)",
         "    addiu $t1, $sp, 32          # the stack pointer the function was entered with",
         "    sw    $t0, 20($t3)",
         "    sw    $t1, 24($t3)",
-        "    sw    $t2, 28($t3)",
-        "    addiu $t2, $t2, 1",
-        "    lui   $t1, %hi(gt_seq)",
-        "    sw    $t2, %lo(gt_seq)($t1)",
         "    lw    $t1, 0($sp)",
         "    lw    $t2, 4($sp)",
         "    lw    $t3, 8($sp)",
@@ -415,7 +430,7 @@ class Session:
         self.by_address = {e["address"]: e for e in self.events if not e["patch"]}
         self.patched = [e for e in self.events if e["patch"]]
         self.pending: dict[int, list[dict]] = {}       # return address -> records waiting for their v0
-        self.seen = 0                                 # ring records already written out
+        self.seen: int | None = 0                     # the sequence number the next ring record should carry
         self.count = 0
         if self.patched:
             self.originals = originals_of(cfg)
@@ -453,8 +468,7 @@ class Session:
                 self.gdb.write(base, self.code)
             except OSError as error:
                 raise SystemExit(f"{error}\nThe patch blob lives at {base:#010x} (blob.address): the target has to have writable memory there.")
-            if "drain" in self.cfg["blob"]:
-                self.gdb.breakpoint(self.cfg["blob"]["drain"])
+            self.gdb.breakpoint(self.symbols["gt_full"])
             self.install()
         for address in self.by_address:
             self.gdb.breakpoint(address)
@@ -515,20 +529,26 @@ class Session:
             self.remove()
         self.gdb.release(False)
 
-    def drain(self) -> None:
+    def drain(self, at_full: bool = False) -> None:
+        """Write out what the ring holds and empty it. Called with the game stopped: before a breakpoint event is
+        recorded, so that the log stays in the order things happened, and where the handler found the ring full
+        (`at_full`; the handler itself starts the ring again there)."""
         base = self.cfg["blob"]["address"]
-        seq, count = struct.unpack("<2I", self.gdb.read(base, 8))
-        if seq == self.seen:
+        _seq, fill, count = struct.unpack("<3I", self.gdb.read(base, 12))
+        fill = min(fill, count)
+        if not fill:
             return
         ring = self.symbols["gt_ring"]
-        lost = max(0, seq - self.seen - count)
-        if lost:
-            self.emit({"lost": lost, "note": "the ring wrapped before it was read; raise blob.records or drain more often"})
+        data = self.gdb.read(ring, fill * RECORD)
         names = {e["id"]: e["name"] for e in self.patched}
-        for n in range(max(self.seen, seq - count), seq):
-            ident, a0, a1, a2, a3, ra, sp, stamp = struct.unpack("<8I", self.gdb.read(ring + (n & (count - 1)) * RECORD, RECORD))
+        for n in range(fill):
+            ident, a0, a1, a2, a3, ra, sp, stamp = struct.unpack_from("<8I", data, n * RECORD)
+            if stamp != self.seen and self.seen is not None:
+                self.emit({"lost": (stamp - self.seen) & 0xFFFFFFFF, "note": "records are missing here: the ring filled with no tracer stopped on it, or two hooks ran into each other"})
+            self.seen = (stamp + 1) & 0xFFFFFFFF
             self.emit({"seq": stamp, "id": ident, "name": names.get(ident, "?"), "a0": a0, "a1": a1, "a2": a2, "a3": a3, "ra": ra, "sp": sp, "from": self.names.at(ra), "by": "patch"})
-        self.seen = seq
+        if not at_full:
+            self.gdb.write(base + 4, struct.pack("<I", 0))
 
     def hit(self, event: dict, regs: list[int]) -> None:
         r = dict(zip(REGS, regs))
@@ -551,26 +571,18 @@ class Session:
 
     def run(self) -> None:
         self.start()
-        drain_at = self.cfg["blob"].get("drain") if self.patched else None
-        every, frames = self.cfg["blob"].get("drain_every", 1), 0
         pc = None
-        period = self.cfg["blob"]["drain_seconds"] if self.patched and drain_at is None else None
         while True:
             self.running = True
-            by_itself = self.gdb.resume(pc, period if self.ready else None)
+            self.gdb.resume(pc)
             self.running = False
-            if not by_itself:                         # the timer: read the ring, put back any patch a load removed
-                pc = None
-                self.drain()
-                self.install()
-                continue
             regs = self.gdb.registers()
             pc = regs[PC]
             if pc in self.pending:                    # a watched function has returned
                 for record in self.pending.pop(pc):
                     record["ret"] = regs[2]
                     self.emit(record)
-                if pc not in self.by_address and pc != drain_at and pc not in self.installers:
+                if pc not in self.by_address and pc not in self.installers:
                     self.gdb.breakpoint(pc, False)
             if pc in self.installers:
                 if not self.ready:
@@ -580,12 +592,13 @@ class Session:
                     self.install()
             if not self.ready:
                 continue
-            if pc == drain_at:
-                frames += 1
-                if frames % every == 0:
+            if self.patched and pc == self.symbols["gt_full"]:
+                self.drain(at_full=True)
+                self.install()
+            if pc in self.by_address:
+                if self.patched:                      # what the patches recorded up to here came first
                     self.drain()
                     self.install()
-            if pc in self.by_address:
                 self.hit(self.by_address[pc], regs)
 
 
@@ -613,8 +626,8 @@ def main() -> int:
             print(f"{event['id']:>4}  {event['name']:<28} {event['address']:#010x}  {'patch' if event['patch'] else 'breakpoint':<10} {names.at(event['address'])}")
         if any(e["patch"] for e in cfg.get("event", [])):
             code, symbols, listing = assemble(cfg, originals_of(cfg))
-            how = f"at {cfg['blob']['drain']:#010x} ({names.at(cfg['blob']['drain'])})" if "drain" in cfg["blob"] else f"every {cfg['blob']['drain_seconds']} s, by interrupting the game"
-            print(f"\nblob: {len(code)} bytes of code at {cfg['blob']['address']:#010x}, ring of {cfg['blob']['records']} records at {symbols['gt_ring']:#010x}; read {how}")
+            print(f"\nblob: {len(code)} bytes of code at {cfg['blob']['address']:#010x}, ring of {cfg['blob']['records']} records at {symbols['gt_ring']:#010x}; "
+                  f"read at every breakpoint event, and at {symbols['gt_full']:#010x} when it is full")
             if args.command == "blob":
                 (OUT / "blob.lst").write_text(listing, encoding="utf-8")
                 print(f"written: {OUT / 'blob.bin'}, {OUT / 'blob.s'}, {OUT / 'blob.lst'}")
