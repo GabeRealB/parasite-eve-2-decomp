@@ -3004,8 +3004,8 @@ void acropolisPlazaPollStreamCommands(void)
                                     /* fallthrough */
                                 case CD_SYNC_COMPLETE:
                                     if (queue->entries[queue->readIdx].cmd == CD_COMMAND_RESET_STREAM_AT_OFFSET) {
-                                        D_8005EAEC                         = 0;
-                                        D_8005EAEE                         = 0;
+                                        gMdecMovieInputSlot                = 0;
+                                        gMdecMovieOutputSlot               = 0;
                                         queue->entries[queue->readIdx].cmd = CD_COMMAND_PLAY_STREAM_AT_OFFSET;
                                     }
                                     streamInitMoviePlayback(slotIndex & 0xFFFF);

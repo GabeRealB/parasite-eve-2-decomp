@@ -18,29 +18,89 @@
 /// invalidation or whole-table clear; this table owns no payload buffers.
 extern StreamSlot gStreamSlots[15];
 
-extern u16 D_8005EAEC;
+/// Expanded-input slot (0 or 1) used for the next movie VLC expansion/MDEC submission.
+///
+/// Playback reset selects zero; submitting a frame toggles it. The selected
+/// buffer must hold the complete expanded command stream before submission.
+extern u16 gMdecMovieInputSlot;
 
-extern u16 D_8005EAEE;
+/// Completed movie-output slot (0 or 1); the next MDEC transfer targets its opposite.
+///
+/// Output completion advances it once per display column or texture frame.
+/// Texture presentation reads the selected slot; configured slots may alias.
+extern u16 gMdecMovieOutputSlot;
 
-extern StreamInterFile D_8006AC30;
+/// Disc movie-container location populated by the ISO root scan.
+///
+/// The last root `.STR` entry supplies the absolute sector; zero means absent.
+/// A root rescan replaces it. Nonzero movie volume selections seek within it.
+extern StreamInterFile gStreamInterFile;
 
-extern u16 D_8006AC3C;
+/// Nonzero permits texture-movie shutdown to release the game-pause block.
+///
+/// Buffer assignment enables this by default; Acropolis Plaza keeps the block.
+extern u16 gStreamMovieReleasePauseOnStop;
 
-extern void* D_8006AC40;
+/// Active borrowed movie workspace, with a byte extent supplied by its allocation.
+///
+/// Selected from a retained CD-command reservation or a temporary movie heap.
+/// Layouts vary with stage/area, format and dimensions; this is raw storage,
+/// not one fixed record. Word-aligned table, ring, expanded-input and pixel
+/// intervals must fit their selected arenas and stay live until decoding and
+/// GPU/DMA transfers end. Heap restoration/reinitialization invalidates them.
+extern void* gStreamMovieWorkspace;
 
-extern void* D_8006AC44;
+/// Byte address just after the final reserved buffer in the display/map layout.
+///
+/// Display layouts end after input slot 1; map layouts after output slot 1.
+/// Stage-zero texture placement leaves it unchanged. This retained metadata has
+/// no reader and does not describe an allocation's full capacity.
+extern u8* gStreamMovieBufferLayoutEnd;
 
-extern u_long* D_8006AC48[];
+/// Two borrowed word-aligned movie output slots, which may share storage.
+///
+/// Texture output is a full RGB16 frame (width*height*2 bytes), stored as
+/// successive full-height 16-pixel columns. Display output is one such column:
+/// 16*height*2 bytes for RGB16, or 16*height*3 for RGB24. Pointers use the SDK's
+/// 32-bit DMA/GPU word interface; byte casts advance through pixel storage.
+/// Each selected interval must fit its arena and outlive pending transfers.
+extern u_long* gMdecMovieOutputBuffers[2];
 
-extern u_long* D_8006AC50[];
+/// Two borrowed word-aligned slots for VLC-expanded movie MDEC commands.
+///
+/// Capacities depend on the active resident/map layout; each expanded frame
+/// must fit its reserved interval. These contain commands, not decoded pixels.
+/// An expanded payload of N words requires (N+1)*4 bytes including its command
+/// word; N is the compressed frame header's low halfword.
+/// Keep each slot intact until MDEC has consumed its submitted input.
+extern u_long* gMdecMovieExpandedBuffers[2];
 
-extern u16 D_8006AC5A;
+/// Cached descriptor width in pixels, shared with map buffer-placement hooks.
+///
+/// Must be a positive multiple of 16 for the movie's complete-column transfers;
+/// width/height products and their byte reservations must fit the selected arenas.
+extern u16 gStreamMovieWidthPixels;
 
-extern u16 D_8006AC5C;
+/// Nonzero lets the movie run without holding game pause or the CD command queue busy.
+///
+/// Skips the initial pause block and clears CD busy after the first read starts.
+/// Buffer assignment clears it; Fountain and Eve Elevator enable it. Independent
+/// of VRAM staging, which can also be used by blocking movie playback.
+extern u16 gStreamMovieBackgroundPlayback;
 
-extern u16* D_8006AC60;
+/// Borrowed word-aligned STR ring (32 sectors for texture, 40 for display movies).
+///
+/// Each sector reserves 2048 bytes. Texture storage follows the VLC table in
+/// actor buffer zero; display storage follows it in the active movie workspace.
+/// The ring owns acquired compressed frames until expansion releases them;
+/// stop ring delivery and pending decoding before repurposing the arena.
+extern u_long* gStreamMovieRingBuffer;
 
-extern u16 D_8006AC6C;
+/// Cached descriptor height in rows, shared with map buffer-placement hooks.
+///
+/// Full-frame and column capacities derive from this height and pixel width;
+/// the active buffers and VRAM destinations must fit every complete transfer.
+extern u16 gStreamMovieHeightRows;
 
 /// Schedules the cached scene image selected by the byte at `viewId`.
 ///

@@ -234,28 +234,28 @@ void mapNeoArkSetupMovieBuffers(const GameLocationKey* location)
 
     switch (location->area) {
         case GAME_AREA_SHELTER_1F_GUARDROOM:
-            frameBytes    = D_8006AC5A * D_8006AC6C * 2;
-            D_8006AC50[0] = (u_long*)((u8*)D_8006AC60 + MAP_NEO_ARK_MOVIE_RING_BYTES);
-            D_8006AC50[1] = D_8006AC40;
-            D_8006AC48[0] = (u_long*)((u8*)D_8006AC40 + frameBytes);
-            D_8006AC48[1] = (u_long*)((u8*)D_8006AC48[0] + frameBytes);
+            frameBytes                   = gStreamMovieWidthPixels * gStreamMovieHeightRows * 2;
+            gMdecMovieExpandedBuffers[0] = (u_long*)((u8*)gStreamMovieRingBuffer + MAP_NEO_ARK_MOVIE_RING_BYTES);
+            gMdecMovieExpandedBuffers[1] = gStreamMovieWorkspace;
+            gMdecMovieOutputBuffers[0]   = (u_long*)((u8*)gStreamMovieWorkspace + frameBytes);
+            gMdecMovieOutputBuffers[1]   = (u_long*)((u8*)gMdecMovieOutputBuffers[0] + frameBytes);
             break;
         case GAME_AREA_NEO_ARK_EVE_ELEVATOR:
-            queue->movieVramStaging = 1;
-            queue->movieStagingX    = MAP_NEO_ARK_MOVIE_ELEVATOR_STAGING_X_WORDS;
-            queue->movieStagingY    = MAP_NEO_ARK_MOVIE_ELEVATOR_STAGING_Y_ROWS;
-            D_8006AC5C              = 1;
-            D_8006AC50[0]           = (u_long*)((u8*)D_8006AC60 + MAP_NEO_ARK_MOVIE_RING_BYTES);
-            D_8006AC48[1]           = D_8006AC40;
-            D_8006AC48[0]           = D_8006AC40;
-            D_8006AC50[1]           = (u_long*)((u8*)D_8006AC50[0] + D_8006AC5A * D_8006AC6C);
-            gGameSession->field_80  = 0;
-            queue->field_24A        = 1;
+            queue->movieVramStaging        = 1;
+            queue->movieStagingX           = MAP_NEO_ARK_MOVIE_ELEVATOR_STAGING_X_WORDS;
+            queue->movieStagingY           = MAP_NEO_ARK_MOVIE_ELEVATOR_STAGING_Y_ROWS;
+            gStreamMovieBackgroundPlayback = true;
+            gMdecMovieExpandedBuffers[0]   = (u_long*)((u8*)gStreamMovieRingBuffer + MAP_NEO_ARK_MOVIE_RING_BYTES);
+            gMdecMovieOutputBuffers[1]     = gStreamMovieWorkspace;
+            gMdecMovieOutputBuffers[0]     = gStreamMovieWorkspace;
+            gMdecMovieExpandedBuffers[1]   = (u_long*)((u8*)gMdecMovieExpandedBuffers[0] + gStreamMovieWidthPixels * gStreamMovieHeightRows);
+            gGameSession->field_80         = 0;
+            queue->field_24A               = 1;
             break;
     }
-    D_8006AC44             = (u8*)D_8006AC48[1] + D_8006AC5A * D_8006AC6C * 2;
-    gGameSession->field_7C = 0;
-    gGameSession->field_7E = 0;
+    gStreamMovieBufferLayoutEnd = (u8*)gMdecMovieOutputBuffers[1] + gStreamMovieWidthPixels * gStreamMovieHeightRows * 2;
+    gGameSession->field_7C      = 0;
+    gGameSession->field_7E      = 0;
 }
 
 /// Binds the room-variant fragment to this overlay's cross-room export.

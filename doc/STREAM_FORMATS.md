@@ -253,7 +253,7 @@ Practical mapping when playing **INTER** movies (`data.movie.volumeTableIndex !=
 | 4, 5 | Disk2 only | **INTER1 only** |
 
 The engine does **not** map stage number → INTER index. It always seeks the
-**first `.STR` on the inserted disc** (`D_8006AC30` from ISO root scan). Which
+**last `.STR` in the inserted disc's root-directory order** (`gStreamInterFile` from ISO root scan). Which
 stages exist on that disc is how the player reaches disk1 vs disk2 content.
 
 Some movies use `data.movie.volumeTableIndex == 0` and live in the **STAGE*.CDF** folder (not
@@ -274,31 +274,31 @@ names; the C movie interpretation is `data.movie`.
 | `0x0C` | `u16` | `key.parts.group` | `unknown2` | Movie room selector: `0` wildcard, otherwise matches key byte 1. USA: almost always `0` | High |
 | `0x0E` | `u16` | `key.parts.id` | `stream_id` | Primary lookup ID matched against key byte 0 | High |
 | `0x10` | `u16` | `subId` | `stream_sub_id` | Exact selection qualifier (often `0`; small room sub-indices) | High |
-| `0x12` | `u16` | `data.movie.width` | `picture_width` | Decoded width in pixels (e.g. 320) → `D_8006AC5A` | High |
-| `0x14` | `u16` | `data.movie.height` | `picture_height` | Decoded height in rows (e.g. 240, 192) → `D_8006AC6C` | High |
-| `0x16` | `u16` | `data.movie.vramX` | `unknown3` | Upload origin X in VRAM words → `D_8006AC0E` | High |
-| `0x18` | `u16` | `data.movie.vramY` | `unknown4` | Upload origin Y in VRAM rows → `D_8006AC10`; often **24** (`0x18`) | High |
-| `0x1A` | `u16` | `data.movie.frameLimit` | `unknown5` | One-based playback stop frame → `D_8006AC0C`; can precede the physical STR end | High |
+| `0x12` | `u16` | `data.movie.width` | `picture_width` | Decoded width in pixels (e.g. 320) → `gStreamMovieWidthPixels` | High |
+| `0x14` | `u16` | `data.movie.height` | `picture_height` | Decoded height in rows (e.g. 240, 192) → `gStreamMovieHeightRows` | High |
+| `0x16` | `u16` | `data.movie.vramX` | `unknown3` | Upload origin X in VRAM words → `_gStreamMovieVramX` | High |
+| `0x18` | `u16` | `data.movie.vramY` | `unknown4` | Upload origin Y in VRAM rows → `_gStreamMovieVramY`; often **24** (`0x18`) | High |
+| `0x1A` | `u16` | `data.movie.frameLimit` | `unknown5` | One-based playback stop frame → `_gStreamMovieFrameLimit`; can precede the physical STR end | High |
 | `0x1C` | `u16` | `data.movie.loopMode` | low half of `unknown6` | `1` restarts playback after pausing at completion; other values stop | High |
 | `0x1E` | `u16` | `data.movie.viewStream` | middle half of `unknown6` | Nonzero permits selection for view-stream playback | High |
 | `0x20` | 2 | `data.movie.unknown_20` | high half of `unknown6` | Role unproven | Low |
-| `0x22` | `u16` | `data.movie.displayMode` | `unknown7` | `0` texture stream, `1` full-screen RGB24, `2` full-screen RGB16 → `D_8006AC14` | High |
-| `0x24` | `u16` | `data.movie.volumeTableIndex` | `movie_number` | Low byte selects CD volume; any nonzero value selects INTER seeking and enables streaming audio → `D_8006AC58` | High |
-| `0x26` | `u16` | `data.movie.uploadMode` | `unknown8` | `1` uses fixed VRAM coordinates; other values add the current draw-buffer Y offset → `D_8006AC18` | High |
+| `0x22` | `u16` | `data.movie.displayMode` | `unknown7` | `0` texture stream, `1` full-screen RGB24, `2` full-screen RGB16 → `_gStreamMovieDisplayMode` | High |
+| `0x24` | `u16` | `data.movie.volumeTableIndex` | `movie_number` | Low byte selects CD volume; any nonzero value selects INTER seeking and enables streaming audio → `gStreamMovieVolumeTableIndex` | High |
+| `0x26` | `u16` | `data.movie.uploadMode` | `unknown8` | `1` uses fixed VRAM coordinates; other values add the current draw-buffer Y offset → `_gStreamMovieUploadMode` | High |
 
 `_streamLoadMovieSlotState` wiring (slot field → BSS):
 
 ```text
-startSector                → D_8006AC08   (seek sector; may be rewritten)
-data.movie.frameLimit      → D_8006AC0C
-data.movie.width           → D_8006AC5A
-data.movie.height          → D_8006AC6C
-data.movie.vramX           → D_8006AC0E
-data.movie.vramY           → D_8006AC10
-data.movie.loopMode        → D_8006AC16
-data.movie.displayMode     → D_8006AC14
-data.movie.volumeTableIndex→ D_8006AC58
-data.movie.uploadMode      → D_8006AC18
+startSector                → _gStreamMovieSeekSector   (seek sector; may be rewritten)
+data.movie.frameLimit      → _gStreamMovieFrameLimit
+data.movie.width           → gStreamMovieWidthPixels
+data.movie.height          → gStreamMovieHeightRows
+data.movie.vramX           → _gStreamMovieVramX
+data.movie.vramY           → _gStreamMovieVramY
+data.movie.loopMode        → _gStreamMovieLoopMode
+data.movie.displayMode     → _gStreamMovieDisplayMode
+data.movie.volumeTableIndex→ gStreamMovieVolumeTableIndex
+data.movie.uploadMode      → _gStreamMovieUploadMode
 ```
 
 The two bytes in `data.movie.unknown_20` have no field-level consumer.
@@ -389,11 +389,11 @@ Runtime absolutization of `startSector` (table load):
 
 Play init (`_streamLoadMovieSlotState` + `streamPrepareMoviePlayback`):
 
-1. `D_8006AC08 = startSector` (absolute LBA into stage CDF space)
+1. `_gStreamMovieSeekSector = startSector` (absolute LBA into stage CDF space)
 2. If **`data.movie.volumeTableIndex != 0`**: **overwrite**
-   `D_8006AC08 = source.interSectorOffset + D_8006AC30.startSector`
-   (`D_8006AC30.startSector` = ISO-root LBA of the disc’s `INTER*.STR`)
-3. Seek with `CdIntToPos(D_8006AC08)` / `CdRead2`
+   `_gStreamMovieSeekSector = source.interSectorOffset + gStreamInterFile.startSector`
+   (`gStreamInterFile.startSector` = ISO-root LBA of the disc’s `INTER*.STR`)
+3. Seek with `CdIntToPos(_gStreamMovieSeekSector)` / `CdRead2`
 
 | `data.movie.volumeTableIndex` | Container | Sector form | Start |
 |----------------|-----------|-------------|--------|

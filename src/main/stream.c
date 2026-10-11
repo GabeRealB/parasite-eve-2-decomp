@@ -26,61 +26,101 @@
 #include "mapui/map_neo_ark.h"
 
 /* Define BSS before API headers to preserve first-declaration order. */
-static s32 D_8006AC08;
+/// Absolute 2048-byte CD sector used as the movie seek/recovery base.
+///
+/// Starts at the descriptor's CDF sector; INTER movies replace it with the
+/// disc container's first sector plus the descriptor's relative sector offset.
+static s32 _gStreamMovieSeekSector;
 
-static u16 D_8006AC0C;
+/// One-based movie stop frame; 1..32767 is required by the signed publication clamp.
+///
+/// Stored unsigned for the STR-header stop test and reverse scene-frame count.
+static u16 _gStreamMovieFrameLimit;
 
-static u16 D_8006AC0E;
+/// Movie presentation origin X in 16-bit VRAM words.
+static u16 _gStreamMovieVramX;
 
-static u16 D_8006AC10;
+/// Movie presentation origin Y in VRAM rows, before any framebuffer offset.
+static u16 _gStreamMovieVramY;
 
-static u16 D_8006AC12;
+/// Nonzero removes the VLC expansion budget; movie setup always selects zero.
+///
+/// Zero selects half the compressed header's expanded-payload word count plus
+/// two words per poll. The SDK budget is in 32-bit words, not halfwords.
+static u16 _gMdecMovieVlcUnlimited;
 
-static u16 D_8006AC14;
+/// Cached movie format (0 texture RGB16, 1 display RGB24, 2 display RGB16).
+static u16 _gStreamMovieDisplayMode;
 
-static u16 D_8006AC16;
+/// Cached completion policy (1 restart playback; all other values stop).
+static u16 _gStreamMovieLoopMode;
 
-static u16 D_8006AC18;
+/// Cached texture destination policy (1 fixed VRAM; otherwise draw-buffer Y offset).
+static u16 _gStreamMovieUploadMode;
 
-static u16 D_8006AC1A;
+/// Nonzero while the borrowed compressed frame has an unfinished VLC expansion.
+///
+/// Resumed on later decode polls; cleared when expanded input is submitted or
+/// the decoder is restarted. Retains the frame's ring storage until submission.
+static u16 _gMdecMovieVlcPending;
 
-static u16 D_8006AC1C;
+/// Display columns uploaded so far in the current frame, reset on frame completion.
+///
+/// Columns are 16 pixels wide; the final callback sees width/16 - 1 here.
+static u16 _gMdecMovieUploadedStripCount;
 
-static u16 D_8006AC1E;
+/// Nonzero when movie preparation saved the two displaced VRAM image regions.
+///
+/// Restoration copies those backups back before reconfiguring image memory.
+static u16 _gStreamMovieVramImagesSaved;
 
-static u16 D_8006AC20;
+/// Movie step restored after a read-start retry (1 initialize, 8 seek/resume).
+static u16 _gStreamMovieRetryResumeStep;
 
-static s32 D_8006AC24;
+/// STR ring capacity in 2048-byte sectors (32 texture, 40 display).
+static s32 _gStreamMovieRingSectorCount;
 
-static u16 D_8006AC28;
+/// Post-movie restore step (0 memory, 1 wait for images/CD idle, 2 complete).
+static u16 _gStreamGameRestoreStep;
 
-StreamInterFile D_8006AC30;
+StreamInterFile gStreamInterFile;
 
-static u_short* D_8006AC38;
+/// Borrowed 0x11000-byte halfword VLC lookup table in the selected movie layout.
+///
+/// Uses actor buffer zero for texture movies and the movie workspace for display
+/// movies. Must be built before expansion and remain intact throughout playback.
+static u_short* _gMdecMovieVlcTable;
 
-u16 D_8006AC3C;
+u16 gStreamMovieReleasePauseOnStop;
 
-void* D_8006AC40;
+void* gStreamMovieWorkspace;
 
-void* D_8006AC44;
+u8* gStreamMovieBufferLayoutEnd;
 
-u_long* D_8006AC48[2];
+u_long* gMdecMovieOutputBuffers[2];
 
-u_long* D_8006AC50[2];
+u_long* gMdecMovieExpandedBuffers[2];
 
-u16 D_8006AC58;
+u16 gStreamMovieVolumeTableIndex;
 
-u16 D_8006AC5A;
+u16 gStreamMovieWidthPixels;
 
-u16 D_8006AC5C;
+u16 gStreamMovieBackgroundPlayback;
 
-u16* D_8006AC60;
+u_long* gStreamMovieRingBuffer;
 
+/// Receives the active workspace base during buffer assignment; purpose unproven.
+///
+/// No code reads this copy. Retained to preserve its storage and setup write.
 static void* D_8006AC64;
 
-static u_long* D_8006AC68;
+/// Borrowed compressed movie frame retained while its VLC expansion is in progress.
+///
+/// The STR ring owns the storage; output submission releases it before feeding
+/// expanded commands to MDEC. This pointer is stale after that release.
+static u_long* _gMdecMovieCompressedFrame;
 
-u16 D_8006AC6C;
+u16 gStreamMovieHeightRows;
 
 #include "main/stream.h"
 #include "stream.h"
@@ -161,8 +201,8 @@ enum {
     STREAM_GAME_RESTORE_COMPLETE    = 2,
 };
 
-u16 D_8005EAEC = 0;
-u16 D_8005EAEE = 0;
+u16 gMdecMovieInputSlot  = 0;
+u16 gMdecMovieOutputSlot = 0;
 
 /// Assigns borrowed STR, VLC-output and decoded-pixel buffers for a movie.
 ///
@@ -182,7 +222,7 @@ u16 D_8005EAEE = 0;
 static void _streamAssignMovieBuffers(const GameLocationKey* location)
 {
     s32     vlcBufferBytes;
-    u16*    ringBuffer;
+    u_long* ringBuffer;
     u_long* decodedStrip;
     u_long* firstVlcBuffer;
     u_long* secondVlcBuffer;
@@ -190,30 +230,30 @@ static void _streamAssignMovieBuffers(const GameLocationKey* location)
     u_long* textureVlcBuffer;
 
     // Default input storage comes from actor buffer zero; map hooks can replace the pixel layout.
-    D_8006AC5C                   = 0;
-    D_8006AC3C                   = 1;
-    gCdCmdQueue.field_24A        = 0;
-    gCdCmdQueue.movieVramStaging = 0;
-    D_8006AC24                   = STREAM_MOVIE_TEXTURE_RING_SECTORS;
-    D_8006AC38                   = (u16*)gFsActorBuffer0Base;
-    D_8006AC60                   = (u16*)(gFsActorBuffer0Base + STREAM_VLC_TABLE_BYTES);
-    D_8006AC64                   = D_8006AC40;
+    gStreamMovieBackgroundPlayback = false;
+    gStreamMovieReleasePauseOnStop = true;
+    gCdCmdQueue.field_24A          = 0;
+    gCdCmdQueue.movieVramStaging   = 0;
+    _gStreamMovieRingSectorCount   = STREAM_MOVIE_TEXTURE_RING_SECTORS;
+    _gMdecMovieVlcTable            = (u16*)gFsActorBuffer0Base;
+    gStreamMovieRingBuffer         = (u_long*)(gFsActorBuffer0Base + STREAM_VLC_TABLE_BYTES);
+    D_8006AC64                     = gStreamMovieWorkspace;
 
     switch ((s8)(location->stage + 1)) {
         case (s8)(STREAM_MOVIE_DISPLAY_LAYOUT_STAGE + 1):
             // Pack table, ring, shared strip and both VLC outputs into the resident arena.
-            D_8006AC24 = STREAM_MOVIE_DISPLAY_RING_SECTORS;
-            D_8006AC38 = D_8006AC40;
-            ringBuffer = (D_8006AC60 = (u16*)((u8*)D_8006AC40 + STREAM_VLC_TABLE_BYTES));
+            _gStreamMovieRingSectorCount = STREAM_MOVIE_DISPLAY_RING_SECTORS;
+            _gMdecMovieVlcTable          = gStreamMovieWorkspace;
+            ringBuffer                   = (gStreamMovieRingBuffer = (u_long*)((u8*)gStreamMovieWorkspace + STREAM_VLC_TABLE_BYTES));
             {
-                u16 heightPixels     = D_8006AC6C;
-                s32 stripBufferBytes = heightPixels * STREAM_MOVIE_RGB24_STRIP_BYTES_PER_ROW;
-                vlcBufferBytes       = D_8006AC5A * heightPixels;
-                D_8006AC48[1]        = (decodedStrip = (u_long*)((u8*)ringBuffer + STREAM_MOVIE_DISPLAY_RING_BYTES));
-                D_8006AC48[0]        = decodedStrip;
-                D_8006AC50[0]        = (firstVlcBuffer = (u_long*)((u8*)decodedStrip + stripBufferBytes));
-                D_8006AC50[1]        = (secondVlcBuffer = (u_long*)((u8*)firstVlcBuffer + vlcBufferBytes));
-                D_8006AC44           = (u8*)secondVlcBuffer + vlcBufferBytes;
+                u16 heightRows               = gStreamMovieHeightRows;
+                s32 stripBufferBytes         = heightRows * STREAM_MOVIE_RGB24_STRIP_BYTES_PER_ROW;
+                vlcBufferBytes               = gStreamMovieWidthPixels * heightRows;
+                gMdecMovieOutputBuffers[1]   = (decodedStrip = (u_long*)((u8*)ringBuffer + STREAM_MOVIE_DISPLAY_RING_BYTES));
+                gMdecMovieOutputBuffers[0]   = decodedStrip;
+                gMdecMovieExpandedBuffers[0] = (firstVlcBuffer = (u_long*)((u8*)decodedStrip + stripBufferBytes));
+                gMdecMovieExpandedBuffers[1] = (secondVlcBuffer = (u_long*)((u8*)firstVlcBuffer + vlcBufferBytes));
+                gStreamMovieBufferLayoutEnd  = (u8*)secondVlcBuffer + vlcBufferBytes;
             }
             return;
         case GAME_STAGE_NONE + 1: {
@@ -222,11 +262,11 @@ static void _streamAssignMovieBuffers(const GameLocationKey* location)
             void*    workspace;
 
             // Keep actor-based input separate from the two full-frame pixel buffers.
-            textureVlcBufferBytes = D_8006AC5A * D_8006AC6C;
-            vlcBuffers            = D_8006AC50;
-            textureVlcBuffer      = (u_long*)((u8*)D_8006AC60 + STREAM_MOVIE_TEXTURE_RING_BYTES);
-            workspace             = D_8006AC40;
-            decodedBuffers        = D_8006AC48;
+            textureVlcBufferBytes = gStreamMovieWidthPixels * gStreamMovieHeightRows;
+            vlcBuffers            = gMdecMovieExpandedBuffers;
+            textureVlcBuffer      = (u_long*)((u8*)gStreamMovieRingBuffer + STREAM_MOVIE_TEXTURE_RING_BYTES);
+            workspace             = gStreamMovieWorkspace;
+            decodedBuffers        = gMdecMovieOutputBuffers;
             vlcBuffers[0]         = textureVlcBuffer;
             decodedBuffers[0]     = workspace;
             vlcBuffers[1]         = (u_long*)((u8*)textureVlcBuffer + textureVlcBufferBytes);
@@ -257,18 +297,18 @@ static void _streamLoadMovieSlotState(u32 slotIndex)
 
     gCdCmdQueue.suppressMoviePresentation = false;
     slotTable                             = gStreamSlots;
-    D_8006AC12                            = 0;
+    _gMdecMovieVlcUnlimited               = false;
     movieSlot                             = &slotTable[slotIndex & 0xFFFF];
-    D_8006AC08                            = movieSlot->startSector;
-    D_8006AC0C                            = movieSlot->data.movie.frameLimit;
-    D_8006AC5A                            = movieSlot->data.movie.width;
-    D_8006AC6C                            = movieSlot->data.movie.height;
-    D_8006AC0E                            = movieSlot->data.movie.vramX;
-    D_8006AC10                            = movieSlot->data.movie.vramY;
-    D_8006AC16                            = movieSlot->data.movie.loopMode;
-    D_8006AC14                            = movieSlot->data.movie.displayMode;
-    D_8006AC58                            = movieSlot->data.movie.volumeTableIndex;
-    D_8006AC18                            = movieSlot->data.movie.uploadMode;
+    _gStreamMovieSeekSector               = movieSlot->startSector;
+    _gStreamMovieFrameLimit               = movieSlot->data.movie.frameLimit;
+    gStreamMovieWidthPixels               = movieSlot->data.movie.width;
+    gStreamMovieHeightRows                = movieSlot->data.movie.height;
+    _gStreamMovieVramX                    = movieSlot->data.movie.vramX;
+    _gStreamMovieVramY                    = movieSlot->data.movie.vramY;
+    _gStreamMovieLoopMode                 = movieSlot->data.movie.loopMode;
+    _gStreamMovieDisplayMode              = movieSlot->data.movie.displayMode;
+    gStreamMovieVolumeTableIndex          = movieSlot->data.movie.volumeTableIndex;
+    _gStreamMovieUploadMode               = movieSlot->data.movie.uploadMode;
 }
 
 s16 streamFindMovieSlot(const GameLocationKey* location, s32 subId, s32 requireViewStream)
@@ -382,11 +422,11 @@ u16 streamPollGameRestore(s32 selectConfiguredAuxHeap, s32 reloadSpriteImages)
     u8           spriteVariant;
 
     queue       = &gCdCmdQueue;
-    restoreStep = D_8006AC28;
+    restoreStep = _gStreamGameRestoreStep;
     switch (restoreStep) {
         case STREAM_GAME_RESTORE_MEMORY:
             // Recover displaced VRAM before reusing the movie's auxiliary storage.
-            if (D_8006AC1E != 0) {
+            if (_gStreamMovieVramImagesSaved != 0) {
                 restoreRect.x = STREAM_MOVIE_IMAGE_BACKUP_FIRST_X;
                 restoreRect.y = 0;
                 restoreRect.w = STREAM_MOVIE_SAVED_IMAGE_WORDS;
@@ -407,7 +447,7 @@ u16 streamPollGameRestore(s32 selectConfiguredAuxHeap, s32 reloadSpriteImages)
                 cdCmdPrepareViewMovie();
                 cdCmdSelectMovieWorkspace();
             }
-            D_8006AC28 = D_8006AC28 + 1;
+            _gStreamGameRestoreStep = _gStreamGameRestoreStep + 1;
             if (reloadSpriteImages & 0xFFFF) {
                 session        = gGameSession;
                 stageId        = session->location.loc.stage;
@@ -426,8 +466,8 @@ u16 streamPollGameRestore(s32 selectConfiguredAuxHeap, s32 reloadSpriteImages)
             return 1;
         case STREAM_GAME_RESTORE_WAIT_IMAGES:
             if (cdCmdIsIdle() & 0xFFFF) {
-                queue->blockGamePause = false;
-                D_8006AC28            = D_8006AC28 + 1;
+                queue->blockGamePause   = false;
+                _gStreamGameRestoreStep = _gStreamGameRestoreStep + 1;
                 return 1;
             }
             break;
@@ -444,7 +484,7 @@ static __inline__ void _streamClearDisplayBuffers(RECT* clearRect)
 {
     clearRect->y = 0;
     clearRect->x = 0;
-    if (D_8006AC14 == STREAM_MOVIE_DISPLAY_RGB24) {
+    if (_gStreamMovieDisplayMode == STREAM_MOVIE_DISPLAY_RGB24) {
         clearRect->w = STREAM_MOVIE_RGB24_DISPLAY_WORDS;
     } else {
         clearRect->w = FILE_SYSTEM_IMAGE_WIDTH;
@@ -469,25 +509,25 @@ u32 streamPrepareMoviePlayback(u32 slotIndex)
     queue->movieAtEnd        = false;
     queue->movieFrameChanged = false;
     _streamLoadMovieSlotState(movieSlotIndex);
-    if (D_8006AC58 != 0) {
-        if (D_8006AC30.startSector == 0) {
+    if (gStreamMovieVolumeTableIndex != 0) {
+        if (gStreamInterFile.startSector == 0) {
             return STREAM_MOVIE_SETUP_INTER_UNAVAILABLE;
         }
-        D_8006AC08 = gStreamSlots[movieSlotIndex].source.interSectorOffset + D_8006AC30.startSector;
+        _gStreamMovieSeekSector = gStreamSlots[movieSlotIndex].source.interSectorOffset + gStreamInterFile.startSector;
     }
-    if (D_8006AC14 != STREAM_MOVIE_DISPLAY_TEXTURE) {
+    if (_gStreamMovieDisplayMode != STREAM_MOVIE_DISPLAY_TEXTURE) {
         // Display movies use a resident layout independently of the current map.
         displayLocation.stage = STREAM_MOVIE_DISPLAY_LAYOUT_STAGE;
         _streamAssignMovieBuffers(&displayLocation);
         queue->movieFrame = STREAM_MOVIE_FIRST_FRAME;
         _streamClearDisplayBuffers(&clearRect);
-        if (D_8006AC14 == STREAM_MOVIE_DISPLAY_RGB24) {
+        if (_gStreamMovieDisplayMode == STREAM_MOVIE_DISPLAY_RGB24) {
             displayConfigureFramebuffers(DISPLAY_SETUP_DEFAULT | DISPLAY_SETUP_RGB24 | DISPLAY_SETUP_NO_CLEAR | DISPLAY_SETUP_KEEP_VIEW);
         } else {
             displayConfigureFramebuffers(DISPLAY_SETUP_DEFAULT | DISPLAY_SETUP_NO_CLEAR | DISPLAY_SETUP_KEEP_VIEW);
         }
         gDisplayState.mdecActive = true;
-        DecDCTvlcBuild(D_8006AC38);
+        DecDCTvlcBuild(_gMdecMovieVlcTable);
         return STREAM_MOVIE_SETUP_COMPLETE;
     }
     _streamAssignMovieBuffers(&gGameSession->location.loc);
@@ -508,7 +548,7 @@ s16 streamPollMovieStop(s32 clearFramebuffers)
         DecDCTReset(0);
         StClearRing();
         StUnSetRing();
-        movieDisplayMode               = D_8006AC14;
+        movieDisplayMode               = _gStreamMovieDisplayMode;
         Wip_SysFlags.movieStreamActive = false;
         queue->field_24A               = 0;
         queue->movieReady              = false;
@@ -525,7 +565,7 @@ s16 streamPollMovieStop(s32 clearFramebuffers)
             }
             queue->movieFrameAvailable = false;
             gDisplayState.mdecActive   = false;
-        } else if (D_8006AC3C != 0) {
+        } else if (gStreamMovieReleasePauseOnStop != 0) {
             queue->blockGamePause = false;
         }
         return 1;
@@ -550,8 +590,8 @@ static __inline__ void _streamPublishMovieFrame(CdCmdQueue* queue, CdlLOC* backL
     if (receivedFrameMinusOne <= 0) {
         movieFrame = STREAM_MOVIE_FIRST_FRAME;
     }
-    if ((s16)D_8006AC0C < movieFrame) {
-        movieFrame = (s16)D_8006AC0C;
+    if ((s16)_gStreamMovieFrameLimit < movieFrame) {
+        movieFrame = (s16)_gStreamMovieFrameLimit;
     }
     if (queue->movieFrame != movieFrame) {
         queue->movieFrame        = (u16)movieFrame;
@@ -561,7 +601,7 @@ static __inline__ void _streamPublishMovieFrame(CdCmdQueue* queue, CdlLOC* backL
     if (queue->reverseSceneFrames == 0) {
         queue->sceneFrame = (u16)movieFrame;
     } else {
-        queue->sceneFrame = (D_8006AC0C - movieFrame) + 1;
+        queue->sceneFrame = (_gStreamMovieFrameLimit - movieFrame) + 1;
     }
 }
 
@@ -593,31 +633,31 @@ static void _streamCompleteDecodedFrame(void)
     queue = &gCdCmdQueue;
     _streamPublishMovieFrame(queue, &backLocation);
     queue->mdecOutputPending = false;
-    if (D_8006AC14 == STREAM_MOVIE_DISPLAY_TEXTURE) {
+    if (_gStreamMovieDisplayMode == STREAM_MOVIE_DISPLAY_TEXTURE) {
         queue->movieFrameAvailable = true;
     } else {
-        nextStripCount = D_8006AC1C + 1;
-        D_8006AC1C     = nextStripCount;
-        stripIndex     = (nextStripCount & 0xFFFF) - 1;
-        vramX          = D_8006AC0E;
-        if (D_8006AC14 == STREAM_MOVIE_DISPLAY_RGB24) {
+        nextStripCount                = _gMdecMovieUploadedStripCount + 1;
+        _gMdecMovieUploadedStripCount = nextStripCount;
+        stripIndex                    = (nextStripCount & 0xFFFF) - 1;
+        vramX                         = _gStreamMovieVramX;
+        if (_gStreamMovieDisplayMode == STREAM_MOVIE_DISPLAY_RGB24) {
             stripX = vramX + stripIndex * STREAM_MOVIE_RGB24_STRIP_WORDS;
         } else {
             stripX = vramX + stripIndex * FILE_SYSTEM_IMAGE_STRIP_WIDTH;
         }
-        stripY       = D_8006AC10;
+        stripY       = _gStreamMovieVramY;
         uploadRect.x = stripX;
         if (gDisplayState.frameBuffer != 0) {
             stripY += STREAM_MOVIE_FRAMEBUFFER_STRIDE_ROWS;
         }
         uploadRect.y = stripY;
         stripWords   = FILE_SYSTEM_IMAGE_STRIP_WIDTH;
-        if (D_8006AC14 == STREAM_MOVIE_DISPLAY_RGB24) {
+        if (_gStreamMovieDisplayMode == STREAM_MOVIE_DISPLAY_RGB24) {
             stripWords = STREAM_MOVIE_RGB24_STRIP_WORDS;
         }
-        uploadRect.h = D_8006AC6C;
+        uploadRect.h = gStreamMovieHeightRows;
         uploadRect.w = stripWords;
-        LoadImage(&uploadRect, D_8006AC48[D_8005EAEE ^ 1]);
+        LoadImage(&uploadRect, gMdecMovieOutputBuffers[gMdecMovieOutputSlot ^ 1]);
         gDisplayState.frameBuffer ^= 1;
     }
     stagingStripWords = FILE_SYSTEM_IMAGE_STRIP_WIDTH;
@@ -626,24 +666,24 @@ static void _streamCompleteDecodedFrame(void)
         stagingX    = queue->movieStagingX;
         stagingY    = queue->movieStagingY;
         stagingRect = &uploadRect;
-        if (D_8006AC14 == STREAM_MOVIE_DISPLAY_RGB24) {
+        if (_gStreamMovieDisplayMode == STREAM_MOVIE_DISPLAY_RGB24) {
             stagingStripWords = STREAM_MOVIE_RGB24_STRIP_WORDS;
         }
         stagingRect->y = stagingY;
         stagingRect->w = stagingStripWords;
-        stagingRect->h = D_8006AC6C;
+        stagingRect->h = gStreamMovieHeightRows;
         uploadRect.x   = stagingX;
-        stripPixels    = D_8006AC48[D_8005EAEE];
-        stripBytes     = stagingStripWords * D_8006AC6C * 2;
-        widthPixels    = D_8006AC5A;
+        stripPixels    = gMdecMovieOutputBuffers[gMdecMovieOutputSlot];
+        stripBytes     = stagingStripWords * gStreamMovieHeightRows * 2;
+        widthPixels    = gStreamMovieWidthPixels;
         for (stagingStripIndex = 0; (u32)stagingStripIndex < (widthPixels / FILE_SYSTEM_IMAGE_STRIP_WIDTH); stagingStripIndex++) {
             LoadImage(stagingRect, stripPixels);
             stagingRect->x += stagingStripWords;
             stripPixels     = (u_long*)((u8*)stripPixels + stripBytes);
         }
     }
-    D_8006AC1C  = 0;
-    D_8005EAEE ^= 1;
+    _gMdecMovieUploadedStripCount = 0;
+    gMdecMovieOutputSlot         ^= 1;
 }
 
 /// Handles one MDEC output completion, requesting the next column or completing the frame.
@@ -664,39 +704,39 @@ static void _mdecMovieOutputCallback(void)
     s32      outputWords;
     u_long** outputSlot;
 
-    if (D_8006AC14 != STREAM_MOVIE_DISPLAY_TEXTURE) {
+    if (_gStreamMovieDisplayMode != STREAM_MOVIE_DISPLAY_TEXTURE) {
         // Service the deferred CD interrupt before chaining an RGB24 output.
-        if ((D_8006AC14 == STREAM_MOVIE_DISPLAY_RGB24) && (StCdIntrFlag != 0)) {
+        if ((_gStreamMovieDisplayMode == STREAM_MOVIE_DISPLAY_RGB24) && (StCdIntrFlag != 0)) {
             StCdInterrupt();
             StCdIntrFlag = 0;
         }
-        if (D_8006AC1C != ((D_8006AC5A / FILE_SYSTEM_IMAGE_STRIP_WIDTH) - 1)) {
-            nextStripCount = D_8006AC1C + 1;
-            D_8006AC1C     = nextStripCount;
-            stripIndex     = (nextStripCount & 0xFFFF) - 1;
-            vramX          = D_8006AC0E;
-            if (D_8006AC14 == STREAM_MOVIE_DISPLAY_RGB24) {
+        if (_gMdecMovieUploadedStripCount != ((gStreamMovieWidthPixels / FILE_SYSTEM_IMAGE_STRIP_WIDTH) - 1)) {
+            nextStripCount                = _gMdecMovieUploadedStripCount + 1;
+            _gMdecMovieUploadedStripCount = nextStripCount;
+            stripIndex                    = (nextStripCount & 0xFFFF) - 1;
+            vramX                         = _gStreamMovieVramX;
+            if (_gStreamMovieDisplayMode == STREAM_MOVIE_DISPLAY_RGB24) {
                 stripX = vramX + stripIndex * STREAM_MOVIE_RGB24_STRIP_WORDS;
             } else {
                 stripX = vramX + stripIndex * FILE_SYSTEM_IMAGE_STRIP_WIDTH;
             }
-            stripY       = D_8006AC10;
+            stripY       = _gStreamMovieVramY;
             uploadRect.x = stripX;
             if (gDisplayState.frameBuffer != 0) {
                 stripY += STREAM_MOVIE_FRAMEBUFFER_STRIDE_ROWS;
             }
             stripWords   = FILE_SYSTEM_IMAGE_STRIP_WIDTH;
             uploadRect.y = stripY;
-            if (D_8006AC14 == STREAM_MOVIE_DISPLAY_RGB24) {
+            if (_gStreamMovieDisplayMode == STREAM_MOVIE_DISPLAY_RGB24) {
                 stripWords = STREAM_MOVIE_RGB24_STRIP_WORDS;
             }
-            uploadRect.h = D_8006AC6C;
+            uploadRect.h = gStreamMovieHeightRows;
             uploadRect.w = stripWords;
-            LoadImage(&uploadRect, D_8006AC48[D_8005EAEE ^ 1]);
-            D_8005EAEE ^= 1;
-            outputSlot  = &D_8006AC48[D_8005EAEE ^ 1];
-            heightRows  = D_8006AC6C;
-            if (D_8006AC14 == STREAM_MOVIE_DISPLAY_RGB24) {
+            LoadImage(&uploadRect, gMdecMovieOutputBuffers[gMdecMovieOutputSlot ^ 1]);
+            gMdecMovieOutputSlot ^= 1;
+            outputSlot            = &gMdecMovieOutputBuffers[gMdecMovieOutputSlot ^ 1];
+            heightRows            = gStreamMovieHeightRows;
+            if (_gStreamMovieDisplayMode == STREAM_MOVIE_DISPLAY_RGB24) {
                 outputWords = heightRows * STREAM_MOVIE_RGB24_OUTPUT_WORDS_PER_ROW;
             } else {
                 outputWords = heightRows * STREAM_MOVIE_RGB16_OUTPUT_WORDS_PER_ROW;
@@ -724,27 +764,27 @@ static void _mdecStartMovieFrameOutput(void)
     s32         frameHeightRows;
 
     queue = &gCdCmdQueue;
-    StFreeRing(D_8006AC68);
-    DecDCTin(D_8006AC50[D_8005EAEC], D_8006AC14 == STREAM_MOVIE_DISPLAY_RGB16 ? MDEC_IMAGE_MODE_RGB16 : D_8006AC14);
-    if (D_8006AC14 != STREAM_MOVIE_DISPLAY_TEXTURE) {
-        outputBuffers   = D_8006AC48;
-        outputSlot      = &outputBuffers[D_8005EAEE ^ 1];
-        stripHeightRows = D_8006AC6C;
-        if (D_8006AC14 == STREAM_MOVIE_DISPLAY_RGB24) {
+    StFreeRing(_gMdecMovieCompressedFrame);
+    DecDCTin(gMdecMovieExpandedBuffers[gMdecMovieInputSlot], _gStreamMovieDisplayMode == STREAM_MOVIE_DISPLAY_RGB16 ? MDEC_IMAGE_MODE_RGB16 : _gStreamMovieDisplayMode);
+    if (_gStreamMovieDisplayMode != STREAM_MOVIE_DISPLAY_TEXTURE) {
+        outputBuffers   = gMdecMovieOutputBuffers;
+        outputSlot      = &outputBuffers[gMdecMovieOutputSlot ^ 1];
+        stripHeightRows = gStreamMovieHeightRows;
+        if (_gStreamMovieDisplayMode == STREAM_MOVIE_DISPLAY_RGB24) {
             outputWords = stripHeightRows * STREAM_MOVIE_RGB24_OUTPUT_WORDS_PER_ROW;
         } else {
             outputWords = stripHeightRows * STREAM_MOVIE_RGB16_OUTPUT_WORDS_PER_ROW;
         }
         DecDCTout(*outputSlot, outputWords);
     } else {
-        frameHeightRows = D_8006AC6C;
-        outputWords     = (D_8006AC5A * frameHeightRows) / 2;
-        outputBuffers   = D_8006AC48;
-        DecDCTout(outputBuffers[D_8005EAEE ^ 1], outputWords);
+        frameHeightRows = gStreamMovieHeightRows;
+        outputWords     = (gStreamMovieWidthPixels * frameHeightRows) / 2;
+        outputBuffers   = gMdecMovieOutputBuffers;
+        DecDCTout(outputBuffers[gMdecMovieOutputSlot ^ 1], outputWords);
     }
     queue->mdecOutputPending = true;
-    D_8006AC1A               = false;
-    D_8005EAEC              ^= 1;
+    _gMdecMovieVlcPending    = false;
+    gMdecMovieInputSlot     ^= 1;
 }
 
 /// Advances a retained VLC expansion or starts decoding the next complete STR frame.
@@ -765,37 +805,37 @@ static void _mdecStepMovieDecode(void)
 
     queue = &gCdCmdQueue;
     // NULL inputs resume the SDK's sliced VLC expansion of the retained frame.
-    if (D_8006AC1A != 0) {
-        if (DecDCTvlc2(NULL, NULL, D_8006AC38) == 0) {
+    if (_gMdecMovieVlcPending != 0) {
+        if (DecDCTvlc2(NULL, NULL, _gMdecMovieVlcTable) == 0) {
             _mdecStartMovieFrameOutput();
         }
         return;
     }
 
-    if (StGetNext(&D_8006AC68, &frameHeaderWords) != 0) {
+    if (StGetNext(&_gMdecMovieCompressedFrame, &frameHeaderWords) != 0) {
         return;
     }
 
     // The SDK returns generic words for the STR header; its frame number sets the stop point.
     frameHeader = (StHEADER*)frameHeaderWords;
-    if (frameHeader->frameCount >= D_8006AC0C) {
+    if (frameHeader->frameCount >= _gStreamMovieFrameLimit) {
         cdVolApplyMoviePreset(0);
         queue->movieAtEnd = true;
         queue->movieStep  = CD_COMMAND_MOVIE_PAUSE;
     }
 
     queue->cdOperationPending = false;
-    if (D_8006AC12 != 0) {
+    if (_gMdecMovieVlcUnlimited != 0) {
         DecDCTvlcSize2(MDEC_VLC_UNLIMITED_OUTPUT);
     } else {
-        // The SDK slice budget counts halfwords, including the command header.
-        DecDCTvlcSize2(DecDCTBufSize(D_8006AC68) / 2 + MDEC_VLC_COMMAND_HEADER_HALFWORDS);
+        // Budget half the expanded-payload word count plus two 32-bit words.
+        DecDCTvlcSize2(DecDCTBufSize(_gMdecMovieCompressedFrame) / 2 + MDEC_VLC_COMMAND_HEADER_HALFWORDS);
     }
 
-    if (DecDCTvlc2(D_8006AC68, D_8006AC50[D_8005EAEC], D_8006AC38) == 0) {
+    if (DecDCTvlc2(_gMdecMovieCompressedFrame, gMdecMovieExpandedBuffers[gMdecMovieInputSlot], _gMdecMovieVlcTable) == 0) {
         _mdecStartMovieFrameOutput();
     } else {
-        D_8006AC1A = 1;
+        _gMdecMovieVlcPending = true;
     }
 
     if (queue->continueMovie == 0) {
@@ -832,14 +872,14 @@ static __inline__ void _streamStartDecode(void)
 
     queue = &gCdCmdQueue;
     DecDCTReset(0);
-    StSetStream(D_8006AC14 == STREAM_MOVIE_DISPLAY_RGB16 ? STREAM_MOVIE_RING_RGB16 : D_8006AC14, STREAM_MOVIE_RING_NO_START_FRAME, STREAM_MOVIE_RING_NO_END_FRAME, NULL, NULL);
-    StSetRing((u_long*)D_8006AC60, D_8006AC24);
+    StSetStream(_gStreamMovieDisplayMode == STREAM_MOVIE_DISPLAY_RGB16 ? STREAM_MOVIE_RING_RGB16 : _gStreamMovieDisplayMode, STREAM_MOVIE_RING_NO_START_FRAME, STREAM_MOVIE_RING_NO_END_FRAME, NULL, NULL);
+    StSetRing(gStreamMovieRingBuffer, _gStreamMovieRingSectorCount);
     StClearRing();
     Wip_SysFlags.movieStreamActive = true;
     DecDCToutCallback(_mdecMovieOutputCallback);
     cdVolApplyMoviePreset(0);
     queue->mdecOutputPending = false;
-    D_8006AC1A               = 0;
+    _gMdecMovieVlcPending    = false;
 }
 
 /// Starts a double-speed STR read, enabling XA ADPCM for a nonzero volume-table index.
@@ -848,7 +888,7 @@ static __inline__ void _streamStartDecode(void)
 /// SDK read-start result (zero means failure); it does not wait for a frame.
 static __inline__ s32 _streamStartRead(void)
 {
-    if (D_8006AC58 != 0) {
+    if (gStreamMovieVolumeTableIndex != 0) {
         return CdRead2(CdlModeStream2 | CdlModeSpeed | CdlModeRT);
     }
     return CdRead2(CdlModeStream2 | CdlModeSpeed);
@@ -870,7 +910,7 @@ s32 streamPollMoviePlayback(u16 sectorIsAbsolute, s32 sectorOffset)
     queue = &gCdCmdQueue;
     switch (queue->movieStep) {
         case CD_COMMAND_MOVIE_WAIT_READY:
-            if (D_8006AC5C == 0) {
+            if (gStreamMovieBackgroundPlayback == 0) {
                 queue->releasePauseBlockAfterFade = false;
                 queue->blockGamePause             = true;
             }
@@ -891,7 +931,7 @@ s32 streamPollMoviePlayback(u16 sectorIsAbsolute, s32 sectorOffset)
             queue->movieStep++;
         case CD_COMMAND_MOVIE_SEEK_START:
             if (sectorIsAbsolute == 0) {
-                absoluteSector = D_8006AC08 + sectorOffset;
+                absoluteSector = _gStreamMovieSeekSector + sectorOffset;
             } else {
                 absoluteSector = sectorOffset;
             }
@@ -900,16 +940,16 @@ s32 streamPollMoviePlayback(u16 sectorIsAbsolute, s32 sectorOffset)
             CdIntToPos(absoluteSector, &scratch.location);
             seekComplete = _streamPollMovieSeek(&scratch.location);
             if (seekComplete) {
-                cdVolApplyMoviePreset((u8)D_8006AC58);
+                cdVolApplyMoviePreset((u8)gStreamMovieVolumeTableIndex);
                 if (!(_streamStartRead() & 0xFFFF)) {
-                    D_8006AC20       = CD_COMMAND_MOVIE_INIT;
-                    queue->movieStep = CD_COMMAND_MOVIE_RETRY_READ;
+                    _gStreamMovieRetryResumeStep = CD_COMMAND_MOVIE_INIT;
+                    queue->movieStep             = CD_COMMAND_MOVIE_RETRY_READ;
                     return 0;
                 }
                 queue->cdOperationPending = false;
                 queue->movieReadPending   = false;
                 queue->movieStep++;
-                if (D_8006AC5C != 0) {
+                if (gStreamMovieBackgroundPlayback != 0) {
                     cdCmdClearBusy();
                 }
             }
@@ -930,7 +970,7 @@ s32 streamPollMoviePlayback(u16 sectorIsAbsolute, s32 sectorOffset)
             }
             break;
         case CD_COMMAND_MOVIE_FINISH:
-            if (D_8006AC16 == STREAM_MOVIE_REPEAT) {
+            if (_gStreamMovieLoopMode == STREAM_MOVIE_REPEAT) {
                 cdCmdSetBusy();
                 queue->movieFrame = STREAM_MOVIE_FIRST_FRAME;
                 queue->movieStep  = CD_COMMAND_MOVIE_INIT;
@@ -943,7 +983,7 @@ s32 streamPollMoviePlayback(u16 sectorIsAbsolute, s32 sectorOffset)
             DecDCTReset(0);
             StClearRing();
             StUnSetRing();
-            movieDisplayMode               = D_8006AC14;
+            movieDisplayMode               = _gStreamMovieDisplayMode;
             Wip_SysFlags.movieStreamActive = false;
             stopQueue->field_24A           = 0;
             stopQueue->movieReady          = false;
@@ -958,7 +998,7 @@ s32 streamPollMoviePlayback(u16 sectorIsAbsolute, s32 sectorOffset)
                 }
                 stopQueue->movieFrameAvailable = false;
                 gDisplayState.mdecActive       = false;
-            } else if (D_8006AC3C != 0) {
+            } else if (gStreamMovieReleasePauseOnStop != 0) {
                 stopQueue->blockGamePause = false;
             }
             return 1;
@@ -969,8 +1009,8 @@ s32 streamPollMoviePlayback(u16 sectorIsAbsolute, s32 sectorOffset)
             break;
         case CD_COMMAND_MOVIE_STOP_RETRY:
             if (streamPollMovieStop(0) != 0) {
-                if (D_8006AC14 != STREAM_MOVIE_DISPLAY_TEXTURE) {
-                    if (D_8006AC14 == STREAM_MOVIE_DISPLAY_RGB24) {
+                if (_gStreamMovieDisplayMode != STREAM_MOVIE_DISPLAY_TEXTURE) {
+                    if (_gStreamMovieDisplayMode == STREAM_MOVIE_DISPLAY_RGB24) {
                         displayConfigureFramebuffers(DISPLAY_SETUP_DEFAULT | DISPLAY_SETUP_RGB24 | DISPLAY_SETUP_NO_CLEAR | DISPLAY_SETUP_KEEP_VIEW);
                     }
                     gDisplayState.mdecActive = true;
@@ -981,16 +1021,16 @@ s32 streamPollMoviePlayback(u16 sectorIsAbsolute, s32 sectorOffset)
             break;
         case CD_COMMAND_MOVIE_SEEK_RESUME:
             // Resume from the last published frame after recovering the disc.
-            CdIntToPos(D_8006AC08 + (queue->movieFrame - 1) * STREAM_MOVIE_SECTORS_PER_FRAME, &scratch.location);
+            CdIntToPos(_gStreamMovieSeekSector + (queue->movieFrame - 1) * STREAM_MOVIE_SECTORS_PER_FRAME, &scratch.location);
             seekComplete = _streamPollMovieSeek(&scratch.location);
             if (seekComplete) {
                 if (!(_streamStartRead() & 0xFFFF)) {
-                    D_8006AC20       = CD_COMMAND_MOVIE_SEEK_RESUME;
-                    queue->movieStep = CD_COMMAND_MOVIE_RETRY_READ;
+                    _gStreamMovieRetryResumeStep = CD_COMMAND_MOVIE_SEEK_RESUME;
+                    queue->movieStep             = CD_COMMAND_MOVIE_RETRY_READ;
                     return 0;
                 }
                 _streamStartDecode();
-                cdVolApplyMoviePreset((u8)D_8006AC58);
+                cdVolApplyMoviePreset((u8)gStreamMovieVolumeTableIndex);
                 queue->movieDiskRecoveryActive = false;
                 queue->cdOperationPending      = false;
                 queue->movieStep               = CD_COMMAND_MOVIE_DECODE;
@@ -998,7 +1038,7 @@ s32 streamPollMoviePlayback(u16 sectorIsAbsolute, s32 sectorOffset)
             break;
         case CD_COMMAND_MOVIE_RETRY_READ:
             if (streamPollMovieStop(0) != 0) {
-                queue->movieStep = D_8006AC20;
+                queue->movieStep = _gStreamMovieRetryResumeStep;
             }
             break;
     }
@@ -1022,7 +1062,7 @@ static __inline__ void _streamUploadFrameStrips(RECT* uploadRect, u32 vramX, u32
     u32 widthPixels;
 
     stripWords = FILE_SYSTEM_IMAGE_STRIP_WIDTH;
-    if (D_8006AC14 == STREAM_MOVIE_DISPLAY_RGB24) {
+    if (_gStreamMovieDisplayMode == STREAM_MOVIE_DISPLAY_RGB24) {
         stripWords = STREAM_MOVIE_RGB24_STRIP_WORDS;
     }
     if (offsetDrawBuffer) {
@@ -1036,10 +1076,10 @@ static __inline__ void _streamUploadFrameStrips(RECT* uploadRect, u32 vramX, u32
     }
     uploadRect->w = stripWords;
     uploadRect->x = vramX;
-    uploadRect->h = D_8006AC6C;
-    stripBytes    = stripWords * D_8006AC6C * 2;
-    stripPixels   = (u8*)D_8006AC48[D_8005EAEE];
-    widthPixels   = D_8006AC5A;
+    uploadRect->h = gStreamMovieHeightRows;
+    stripBytes    = stripWords * gStreamMovieHeightRows * 2;
+    stripPixels   = (u8*)gMdecMovieOutputBuffers[gMdecMovieOutputSlot];
+    widthPixels   = gStreamMovieWidthPixels;
     for (stripIndex = 0; (u32)stripIndex < (widthPixels / FILE_SYSTEM_IMAGE_STRIP_WIDTH); stripIndex++) {
         LoadImage(uploadRect, (u_long*)stripPixels);
         uploadRect->x = (u16)uploadRect->x + stripWords;
@@ -1063,7 +1103,7 @@ void streamPresentMovieFrame(void)
     queue = &gCdCmdQueue;
     if ((queue->suppressMoviePresentation == 0) && (queue->movieFrameAvailable != 0)) {
         // Repeated presentations advance the scene substep but retain the frame.
-        if (queue->movieFrame == D_8006AC0C) {
+        if (queue->movieFrame == _gStreamMovieFrameLimit) {
             queue->movieFrameSubstep = STREAM_MOVIE_PRESENT_NEW_FRAME;
         } else if (queue->movieFrameChanged != 0) {
             queue->movieFrameChanged = false;
@@ -1073,21 +1113,21 @@ void streamPresentMovieFrame(void)
         }
         // Present from RAM columns or from the already uploaded staging rectangle.
         if (queue->movieVramStaging == 0) {
-            offsetDrawBuffer = D_8006AC18 != STREAM_MOVIE_UPLOAD_FIXED_VRAM;
-            vramX            = D_8006AC0E;
-            vramY            = D_8006AC10;
+            offsetDrawBuffer = _gStreamMovieUploadMode != STREAM_MOVIE_UPLOAD_FIXED_VRAM;
+            vramX            = _gStreamMovieVramX;
+            vramY            = _gStreamMovieVramY;
             _streamUploadFrameStrips(&presentRect, vramX, vramY, offsetDrawBuffer);
         } else {
             presentRect.x = queue->movieStagingX;
             presentRect.y = queue->movieStagingY;
-            presentRect.w = D_8006AC5A;
-            presentRect.h = D_8006AC6C;
-            if (D_8006AC18 == STREAM_MOVIE_UPLOAD_FIXED_VRAM) {
+            presentRect.w = gStreamMovieWidthPixels;
+            presentRect.h = gStreamMovieHeightRows;
+            if (_gStreamMovieUploadMode == STREAM_MOVIE_UPLOAD_FIXED_VRAM) {
                 drawBufferY = 0;
             } else {
                 drawBufferY = gDisplayState.drawBuffer != 0 ? STREAM_MOVIE_FRAMEBUFFER_STRIDE_ROWS : 0;
             }
-            MoveImage(&presentRect, D_8006AC0E, drawBufferY + D_8006AC10);
+            MoveImage(&presentRect, _gStreamMovieVramX, drawBufferY + _gStreamMovieVramY);
         }
     }
 }
@@ -1108,9 +1148,9 @@ void streamPrepareMovieWorkspace(s16 preserveVramImages)
     memSelectAuxHeapRegion(false);
     memInitAuxHeap();
     if (gDisplayState.videoMode == DISPLAY_VIDEO_NORMAL) {
-        D_8006AC40 = memMalloc(STREAM_MOVIE_WORKSPACE_NORMAL_BYTES, true);
+        gStreamMovieWorkspace = memMalloc(STREAM_MOVIE_WORKSPACE_NORMAL_BYTES, true);
     } else {
-        D_8006AC40 = memMalloc(STREAM_MOVIE_WORKSPACE_STREAMING_BYTES, true);
+        gStreamMovieWorkspace = memMalloc(STREAM_MOVIE_WORKSPACE_STREAMING_BYTES, true);
     }
     if ((preserveVramImages & 0xFFFF) != 0) {
         backupRect.x = STREAM_MOVIE_SAVED_IMAGE_X;
@@ -1124,13 +1164,13 @@ void streamPrepareMovieWorkspace(s16 preserveVramImages)
         backupRect.h = STREAM_MOVIE_SAVED_IMAGE_ROWS;
         MoveImage2(&backupRect, STREAM_MOVIE_IMAGE_BACKUP_SECOND_X, 0);
     }
-    D_8006AC1E            = preserveVramImages;
-    queue->blockGamePause = true;
+    _gStreamMovieVramImagesSaved = preserveVramImages;
+    queue->blockGamePause        = true;
 }
 
 void streamResetGameRestore(void)
 {
-    D_8006AC28 = STREAM_GAME_RESTORE_MEMORY;
+    _gStreamGameRestoreStep = STREAM_GAME_RESTORE_MEMORY;
 }
 
 s16 streamHasLoadedViewMovie(void* unusedLocation)

@@ -259,8 +259,8 @@ static void _cdCmdHandleMoviePlayback(void)
                 case CD_SYNC_COMPLETE:
                     entry = &queue->entries[queue->readIdx];
                     if (entry->cmd == CD_COMMAND_PLAY_STREAM) {
-                        D_8005EAEC = 0;
-                        D_8005EAEE = 0;
+                        gMdecMovieInputSlot  = 0;
+                        gMdecMovieOutputSlot = 0;
                     } else if (entry->cmd == CD_COMMAND_CONTINUE_STREAM) {
                         entry->cmd = CD_COMMAND_PLAY_STREAM;
                     }
@@ -762,7 +762,7 @@ static void _cdCmdHandleRequestCancellation(void)
             cancelStep = &queue->cancelStep;
             switch (*cancelStep) {
                 case CD_COMMAND_CANCEL_BEGIN:
-                    if (D_8006AC58 != 0) {
+                    if (gStreamMovieVolumeTableIndex != 0) {
                         cdVolBeginFadeOut();
                         queue->cancelStep = queue->cancelStep + 1;
                     } else {
@@ -926,7 +926,7 @@ static void _cdCmdHandleRequestSuspension(void)
             suspendStep = &queue->suspendResumeStep;
             switch (*suspendStep) {
                 case CD_COMMAND_SUSPEND_BEGIN:
-                    if (D_8006AC58 != 0) {
+                    if (gStreamMovieVolumeTableIndex != 0) {
                         cdVolBeginFadeOut();
                         queue->suspendResumeStep = queue->suspendResumeStep + 1;
                     } else {
@@ -1159,7 +1159,7 @@ void cdCmdSelectMovieWorkspace(void)
 
     queue = &gCdCmdQueue;
     if (streamFindMovieSlot(&gGameSession->location.loc, 0, 0) >= 0) {
-        D_8006AC40 = _gCdCmdMovieWorkspace;
+        gStreamMovieWorkspace = _gCdCmdMovieWorkspace;
     }
     queue->movieFrameAvailable = 0;
 }

@@ -1563,12 +1563,12 @@ restart:
         stageIndex++;
     } while (stageIndex < ARRAY_SIZE(gFsStageCdfBaseSectors));
 
-    directoryRecord         = gFsSectorBuffers.sector.bytes;
-    directoryDone           = 0;
-    D_8006AC30.field_4      = 0;
-    Wip_SysFlags.discNumber = GAME_MAIN_DISC_UNKNOWN;
-    D_8006AC30.startSector  = 0;
-    _gFsStage0HeaderSector  = FILE_SYSTEM_SECTOR_UNSET;
+    directoryRecord              = gFsSectorBuffers.sector.bytes;
+    directoryDone                = 0;
+    gStreamInterFile.field_4     = 0;
+    Wip_SysFlags.discNumber      = GAME_MAIN_DISC_UNKNOWN;
+    gStreamInterFile.startSector = 0;
+    _gFsStage0HeaderSector       = FILE_SYSTEM_SECTOR_UNSET;
 
     while ((directoryDone & 0xFF) == 0) {
         switch (directoryRecord[0]) {
@@ -1601,7 +1601,7 @@ restart:
                         gFsStageCdfBaseSectors[stageDigit] =
                             *(u16*)(directoryRecord + FILE_SYSTEM_ISO_EXTENT_LOW_OFFSET) + (*(u16*)(directoryRecord + FILE_SYSTEM_ISO_EXTENT_HIGH_OFFSET) << 16);
                     } else if (strncmp(_gFsStrExtension, (char*)extension, FILE_SYSTEM_ISO_EXTENSION_BYTES) == 0) {
-                        D_8006AC30.startSector =
+                        gStreamInterFile.startSector =
                             *(u16*)(directoryRecord + FILE_SYSTEM_ISO_EXTENT_LOW_OFFSET) + (*(u16*)(directoryRecord + FILE_SYSTEM_ISO_EXTENT_HIGH_OFFSET) << 16);
                     } else if (strncmp(_gFsStage0HeaderName, (char*)(directoryRecord + FILE_SYSTEM_ISO_NAME_OFFSET), sizeof(_gFsStage0HeaderName) - 1) == 0) {
                         _gFsStage0HeaderSector =

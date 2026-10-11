@@ -242,15 +242,15 @@ void mapDryfieldSetupMovieBuffers(const GameLocationKey* location)
 
     gCdCmdQueue.movieVramStaging = 0;
     if (location->area == GAME_AREA_DRYFIELD_GAS_STATION) {
-        pixelCount    = D_8006AC5A * D_8006AC6C;
-        D_8006AC50[0] = (u_long*)((u8*)D_8006AC60 + MAP_DRYFIELD_MOVIE_RING_BYTES);
-        D_8006AC50[1] = D_8006AC40;
-        D_8006AC48[0] = (u_long*)((u8*)D_8006AC40 + pixelCount * 3);
-        D_8006AC48[1] = (u_long*)((u8*)D_8006AC40 + pixelCount * 3 + pixelCount * 2);
+        pixelCount                   = gStreamMovieWidthPixels * gStreamMovieHeightRows;
+        gMdecMovieExpandedBuffers[0] = (u_long*)((u8*)gStreamMovieRingBuffer + MAP_DRYFIELD_MOVIE_RING_BYTES);
+        gMdecMovieExpandedBuffers[1] = gStreamMovieWorkspace;
+        gMdecMovieOutputBuffers[0]   = (u_long*)((u8*)gStreamMovieWorkspace + pixelCount * 3);
+        gMdecMovieOutputBuffers[1]   = (u_long*)((u8*)gStreamMovieWorkspace + pixelCount * 3 + pixelCount * 2);
     }
-    D_8006AC44             = (u8*)D_8006AC48[1] + D_8006AC5A * D_8006AC6C * 2;
-    gGameSession->field_7C = 0;
-    gGameSession->field_7E = 0;
+    gStreamMovieBufferLayoutEnd = (u8*)gMdecMovieOutputBuffers[1] + gStreamMovieWidthPixels * gStreamMovieHeightRows * 2;
+    gGameSession->field_7C      = 0;
+    gGameSession->field_7E      = 0;
 }
 
 GfxImageSlot gMapDryfieldImageSlots[GAME_AREA_DRYFIELD_UNDERPASS + 1] = {

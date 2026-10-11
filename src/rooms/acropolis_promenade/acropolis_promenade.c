@@ -1883,7 +1883,7 @@ static s32 _acropolisPromenadeResolveRoomTransition(Task* unusedTask, s32 unused
 
     *reply = *request;
     if (request->areaId == GAME_AREA_ACROPOLIS_OBSERVATORY && request->queryOnly == ROOM_EVENT_EXECUTE) {
-        if (gDisplayState.debugMode < 0 || D_8006AC30.startSector == 0) {
+        if (gDisplayState.debugMode < 0 || gStreamInterFile.startSector == 0) {
             reply->warp = ACROPOLIS_PROMENADE_OBSERVATORY_BLOCKED_ARRIVAL;
         }
         if (gameFlagGetNibble(GAME_FLAG_OBSERVATORY_ROUTE_PROGRESS) == ACROPOLIS_PROMENADE_ROUTE_FROM_OBSERVATORY) {

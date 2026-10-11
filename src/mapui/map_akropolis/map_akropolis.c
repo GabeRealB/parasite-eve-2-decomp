@@ -238,11 +238,11 @@ static __inline__ void _mapAkropolisPlaceMovieDecodeBuffers(size_t decodedFrameB
 {
     u8* firstDecodedFrame;
 
-    D_8006AC50[0]     = (u_long*)((u8*)D_8006AC60 + MAP_AKROPOLIS_MOVIE_RING_BYTES);
-    D_8006AC50[1]     = D_8006AC40;
-    firstDecodedFrame = (u8*)D_8006AC40 + decodedFrameBytes;
-    D_8006AC48[0]     = (u_long*)firstDecodedFrame;
-    D_8006AC48[1]     = (u_long*)(firstDecodedFrame + decodedFrameBytes);
+    gMdecMovieExpandedBuffers[0] = (u_long*)((u8*)gStreamMovieRingBuffer + MAP_AKROPOLIS_MOVIE_RING_BYTES);
+    gMdecMovieExpandedBuffers[1] = gStreamMovieWorkspace;
+    firstDecodedFrame            = (u8*)gStreamMovieWorkspace + decodedFrameBytes;
+    gMdecMovieOutputBuffers[0]   = (u_long*)firstDecodedFrame;
+    gMdecMovieOutputBuffers[1]   = (u_long*)(firstDecodedFrame + decodedFrameBytes);
 }
 
 void mapAkropolisSetupMovieBuffers(const GameLocationKey* location)
@@ -257,57 +257,57 @@ void mapAkropolisSetupMovieBuffers(const GameLocationKey* location)
     // Select byte offsets for the current area's movie and shared actor storage.
     switch (location->area) {
         case GAME_AREA_ACROPOLIS_PLAZA:
-            queue->movieVramStaging = 1;
-            queue->movieStagingX    = MAP_AKROPOLIS_MOVIE_PLAZA_STAGING_X_WORDS;
-            D_8006AC3C              = 0;
-            queue->movieStagingY    = 0;
-            D_8006AC50[0]           = (u_long*)((u8*)D_8006AC60 + MAP_AKROPOLIS_MOVIE_RING_BYTES);
-            D_8006AC50[1]           = D_8006AC40;
-            D_8006AC48[1]           = (u_long*)((u8*)D_8006AC40 + D_8006AC5A * D_8006AC6C);
-            D_8006AC48[0]           = D_8006AC48[1];
+            queue->movieVramStaging        = 1;
+            queue->movieStagingX           = MAP_AKROPOLIS_MOVIE_PLAZA_STAGING_X_WORDS;
+            gStreamMovieReleasePauseOnStop = false;
+            queue->movieStagingY           = 0;
+            gMdecMovieExpandedBuffers[0]   = (u_long*)((u8*)gStreamMovieRingBuffer + MAP_AKROPOLIS_MOVIE_RING_BYTES);
+            gMdecMovieExpandedBuffers[1]   = gStreamMovieWorkspace;
+            gMdecMovieOutputBuffers[1]     = (u_long*)((u8*)gStreamMovieWorkspace + gStreamMovieWidthPixels * gStreamMovieHeightRows);
+            gMdecMovieOutputBuffers[0]     = gMdecMovieOutputBuffers[1];
             break;
         case GAME_AREA_ACROPOLIS_FOUNTAIN:
             // This one-iteration loop preserves the original instruction schedule.
             do {
                 stagingEnabled = 1;
             } while (0);
-            queue->movieStagingX    = MAP_AKROPOLIS_MOVIE_FOUNTAIN_STAGING_X_WORDS;
-            queue->movieStagingY    = MAP_AKROPOLIS_MOVIE_FOUNTAIN_STAGING_Y_ROWS;
-            D_8006AC5C              = stagingEnabled;
-            queue->movieVramStaging = stagingEnabled;
-            fountainFrameBytes      = D_8006AC5A * D_8006AC6C * 2;
-            D_8006AC50[0]           = (u_long*)((u8*)D_8006AC60 + MAP_AKROPOLIS_MOVIE_RING_BYTES);
-            D_8006AC48[0]           = D_8006AC40;
-            D_8006AC50[1]           = (u_long*)((u8*)D_8006AC50[0] + fountainFrameBytes);
-            D_8006AC48[1]           = (u_long*)((u8*)D_8006AC48[0] + fountainFrameBytes);
-            gGameSession->field_80  = 0;
-            queue->field_24A        = stagingEnabled;
+            queue->movieStagingX           = MAP_AKROPOLIS_MOVIE_FOUNTAIN_STAGING_X_WORDS;
+            queue->movieStagingY           = MAP_AKROPOLIS_MOVIE_FOUNTAIN_STAGING_Y_ROWS;
+            gStreamMovieBackgroundPlayback = stagingEnabled;
+            queue->movieVramStaging        = stagingEnabled;
+            fountainFrameBytes             = gStreamMovieWidthPixels * gStreamMovieHeightRows * 2;
+            gMdecMovieExpandedBuffers[0]   = (u_long*)((u8*)gStreamMovieRingBuffer + MAP_AKROPOLIS_MOVIE_RING_BYTES);
+            gMdecMovieOutputBuffers[0]     = gStreamMovieWorkspace;
+            gMdecMovieExpandedBuffers[1]   = (u_long*)((u8*)gMdecMovieExpandedBuffers[0] + fountainFrameBytes);
+            gMdecMovieOutputBuffers[1]     = (u_long*)((u8*)gMdecMovieOutputBuffers[0] + fountainFrameBytes);
+            gGameSession->field_80         = 0;
+            queue->field_24A               = stagingEnabled;
             break;
         case GAME_AREA_ACROPOLIS_SECURITY_ROOM:
         case GAME_AREA_ACROPOLIS_FORKED_ROAD:
         case GAME_AREA_ACROPOLIS_OBSERVATORY:
-            frameBytes = D_8006AC5A * D_8006AC6C * 2;
+            frameBytes = gStreamMovieWidthPixels * gStreamMovieHeightRows * 2;
             _mapAkropolisPlaceMovieDecodeBuffers(frameBytes);
             break;
         case GAME_AREA_ACROPOLIS_PROMENADE:
-            promenadePixelCount = D_8006AC5A * D_8006AC6C;
-            D_8006AC50[0]       = (u_long*)((u8*)D_8006AC60 + MAP_AKROPOLIS_MOVIE_RING_BYTES);
-            D_8006AC50[1]       = D_8006AC40;
-            D_8006AC48[0]       = (u_long*)((u8*)D_8006AC40 + promenadePixelCount * 3 / 2);
-            D_8006AC48[1]       = (u_long*)((u8*)D_8006AC48[0] + promenadePixelCount * 2);
+            promenadePixelCount          = gStreamMovieWidthPixels * gStreamMovieHeightRows;
+            gMdecMovieExpandedBuffers[0] = (u_long*)((u8*)gStreamMovieRingBuffer + MAP_AKROPOLIS_MOVIE_RING_BYTES);
+            gMdecMovieExpandedBuffers[1] = gStreamMovieWorkspace;
+            gMdecMovieOutputBuffers[0]   = (u_long*)((u8*)gStreamMovieWorkspace + promenadePixelCount * 3 / 2);
+            gMdecMovieOutputBuffers[1]   = (u_long*)((u8*)gMdecMovieOutputBuffers[0] + promenadePixelCount * 2);
             break;
         case GAME_AREA_ACROPOLIS_BRIDGE:
-            bridgePixelCount = D_8006AC5A * D_8006AC6C;
-            D_8006AC50[0]    = (u_long*)((u8*)D_8006AC60 + MAP_AKROPOLIS_MOVIE_RING_BYTES);
-            D_8006AC48[0]    = D_8006AC40;
-            D_8006AC50[1]    = (u_long*)((u8*)D_8006AC50[0] + bridgePixelCount * 3 / 2);
-            D_8006AC48[1]    = (u_long*)((u8*)D_8006AC48[0] + bridgePixelCount * 2);
+            bridgePixelCount             = gStreamMovieWidthPixels * gStreamMovieHeightRows;
+            gMdecMovieExpandedBuffers[0] = (u_long*)((u8*)gStreamMovieRingBuffer + MAP_AKROPOLIS_MOVIE_RING_BYTES);
+            gMdecMovieOutputBuffers[0]   = gStreamMovieWorkspace;
+            gMdecMovieExpandedBuffers[1] = (u_long*)((u8*)gMdecMovieExpandedBuffers[0] + bridgePixelCount * 3 / 2);
+            gMdecMovieOutputBuffers[1]   = (u_long*)((u8*)gMdecMovieOutputBuffers[0] + bridgePixelCount * 2);
             break;
     }
     // Record the decoded-storage end and clear the actor-buffer reuse fields.
-    D_8006AC44             = (u8*)D_8006AC48[1] + D_8006AC5A * D_8006AC6C * 2;
-    gGameSession->field_7C = 0;
-    gGameSession->field_7E = 0;
+    gStreamMovieBufferLayoutEnd = (u8*)gMdecMovieOutputBuffers[1] + gStreamMovieWidthPixels * gStreamMovieHeightRows * 2;
+    gGameSession->field_7C      = 0;
+    gGameSession->field_7E      = 0;
 }
 
 /// Draws, previews and opens the current row of the MIST briefing's key-item list.

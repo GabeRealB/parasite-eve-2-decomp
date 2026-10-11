@@ -124,7 +124,7 @@ static s32 _acropolisForkedRoadResolveTransitionMessage(Task* unusedTask, s32 me
             }
             return 0;
         }
-        if ((gDisplayState.debugMode < 0) || (D_8006AC30.startSector == 0)) {
+        if ((gDisplayState.debugMode < 0) || (gStreamInterFile.startSector == 0)) {
             if (request->queryOnly != ROOM_EVENT_EXECUTE) {
                 return 1;
             }

@@ -13956,7 +13956,7 @@ Fix: load the field into a local once and reuse that local for both the
 equality-to-constant test and the later compare:
 
 ```c
-movieDisplayMode = D_8006AC14;          /* stays in $a0 */
+movieDisplayMode = _gStreamMovieDisplayMode;          /* stays in $a0 */
 displayVideoMode = gDisplayState.videoMode; /* lhu v1, %lo(...+0x12a)(v0) */
 if (displayVideoMode == DISPLAY_VIDEO_STREAMING) {
     if (movieDisplayMode == displayVideoMode) { /* bne a0, v1 — both already live */
@@ -13966,7 +13966,7 @@ if (displayVideoMode == DISPLAY_VIDEO_STREAMING) {
 gDisplayState.mdecActive = 0; /* separate lui after calls; delay-slot-friendly */
 ```
 
-`streamPollMovieStop` is the pure example (`D_8006AC14` vs `gDisplayState.videoMode`).
+`streamPollMovieStop` is the pure example (`_gStreamMovieDisplayMode` vs `gDisplayState.videoMode`).
 
 ## Equality comparison operand order controls `beq` register order
 
@@ -18073,11 +18073,11 @@ address setup first and emits the branchless-looking `mode = 0; if != 2
 mode = val` pattern from a ternary:
 
 ```c
-DecDCTin(D_8006AC50[D_8005EAEC], D_8006AC14 == 2 ? 0 : D_8006AC14);
+DecDCTin(gMdecMovieExpandedBuffers[gMdecMovieInputSlot], _gStreamMovieDisplayMode == 2 ? 0 : _gStreamMovieDisplayMode);
 ```
 
 Pair with `register u_long **base asm("v1")` when a later double-buffer base
-(`D_8006AC48`) must also be `lui v1; addiu v1,v1,%lo` rather than
+(`gMdecMovieOutputBuffers`) must also be `lui v1; addiu v1,v1,%lo` rather than
 `lui v0; addiu v1,v0`.
 
 `_mdecStartMovieFrameOutput` is the pure example.
@@ -19007,7 +19007,7 @@ p = &base[t & mask]; /* keeps andi after lhu / xori */
 ```
 
 `_mdecMovieOutputCallback` needs this so `xori` (flip) and `andi`/`sll`/`addu` (pointer)
-share the same `lhu` of `D_8005EAEE`.
+share the same `lhu` of `gMdecMovieOutputSlot`.
 
 ## Pin callee-saved reg + empty asm for store-in-delay-slot schedules
 
@@ -19023,12 +19023,12 @@ the one that should be in a specific callee-saved reg:
 ```c
 register u_long** base asm("s1");
 
-base = D_8006AC48;
+base = gMdecMovieOutputBuffers;
 /* ... */
 p = &base[t & mask];
 asm("" : "+r"(p), "+r"(flipped)); /* p fully in $a0 before store */
-D_8005EAEE = flipped;             /* lands in bne delay slot */
-if (D_8006AC14 == 1) {
+gMdecMovieOutputSlot = flipped;             /* lands in bne delay slot */
+if (_gStreamMovieDisplayMode == 1) {
     size *= 0xC;
 } else {
     size *= 8;
@@ -19037,7 +19037,7 @@ DecDCTout(*p, size);
 ```
 
 Without `asm("s1")` on `base`, the empty asm alone matched the body but
-swapped `$s0`/`$s1` between `D_8005EAEE` (`%hi` only) and `D_8006AC48`
+swapped `$s0`/`$s1` between `gMdecMovieOutputSlot` (`%hi` only) and `gMdecMovieOutputBuffers`
 (full address). `_mdecMovieOutputCallback` is the pure example.
 
 ## Snapshot compare operand so a post-load `arg++` fills the `bne` delay
@@ -20170,7 +20170,7 @@ When a `u16 * u16` product shares one operand with a later scaled use
 (e.g. `h * 0x30` after `w * h`), the plain expression forms are coupled:
 
 - `D_w * D_h` → correct `mult a2, a1` (w in `$a2`, h in `$a1`) but loads h first
-- `D_h * D_w` → perfect load interleave with `D_8006AC48` setup, but `mult a1, a2`
+- `D_h * D_w` → perfect load interleave with `gMdecMovieOutputBuffers` setup, but `mult a1, a2`
 
 Target often wants **both** the load interleave of the second form **and**
 `mult a2, a1`. Force h live early without putting it on the left of the mult:
@@ -59920,7 +59920,7 @@ somewhere downstream of it, not inside the block it was added for.
 ## `D_SYM[1]` and `D_SYM_PLUS_4` assemble the same but schedule differently
 
 splat names an address it cannot attribute to a known array with its own label,
-so `lw %lo(D_8006AC4C)` and `lw %lo(D_8006AC48+4)` look like two different
+so `lw %lo(D_8006AC4C)` and `lw %lo(gMdecMovieOutputBuffers+4)` look like two different
 symbols in the disassembly while linking to identical bytes. Which spelling you
 pick in C is therefore free for the checksum -- but it is *not* free for the
 scheduler, because GCC 2.8.1 sets `MEM_IN_STRUCT_P` on an array/struct
@@ -59929,7 +59929,7 @@ reference and not on a plain scalar global.
 In `mapNeoArkSetupMovieBuffers` the tail is
 
 ```c
-D_8006AC44             = (u8*)D_8006AC48[1] + D_8006AC5A * D_8006AC6C * 2;
+gStreamMovieBufferLayoutEnd = (u8*)gMdecMovieOutputBuffers[1] + gStreamMovieWidthPixels * gStreamMovieHeightRows * 2;
 gGameSession->field_7C = 0;
 gGameSession->field_7E = 0;
 ```
@@ -59938,7 +59938,7 @@ With `extern void* D_8006AC4C;` and `(u8*)D_8006AC4C`, the load is a scalar
 global: alias analysis proves it independent of the `gGameSession->field_*`
 stores, the list scheduler sinks it below them, and the score sticks at 94.5%
 with `insert`/`delete` = 2 no matter how the three statements are ordered. With
-`D_8006AC48[1]` -- the array declaration `include/main/stream.h` already has --
+`gMdecMovieOutputBuffers[1]` -- the array declaration `include/main/stream.h` already has --
 the load is a struct reference, conflicts with the struct stores, and stays
 pinned above them: byte-identical after linking.
 
@@ -60010,7 +60010,7 @@ do {
 } while (0);
 queue->movieStagingX = 0x180;
 queue->movieStagingY = 0x100;
-D_8006AC5C   = stagingEnabled;
+gStreamMovieBackgroundPlayback = stagingEnabled;
 queue->movieVramStaging = stagingEnabled;
 ```
 
@@ -65802,7 +65802,7 @@ unpinned attempt from 94.391% to 100% (all penalties zero).
 
 `func_80020058` matches with a `static __inline__` strip-upload helper taking
 `RECT*`, two `u32` coordinates, and a `u16` display-buffer flag. Materialize
-`flag = D_8006AC18 != 1`, then load both coordinates into separate `s32`
+`flag = _gStreamMovieUploadMode != 1`, then load both coordinates into separate `s32`
 locals before calling the helper. Passing the globals directly changed load
 order and register lifetimes. The inline boundary preserves the boolean's
 `xori; sltu; move`, its later `andi 0xffff`, and the rectangle pointer across
@@ -66268,7 +66268,7 @@ matched stream siblings. Keep a `CdCmdQueue*` initialized before
 (`stripWidth * height * 2`), not by that many `u32` elements.
 
 A 97.732% attempt still had `branch=2 insert=2`: its loop condition read
-`D_8006AC5A` after each `LoadImage`. The `.jump`, `.loop`, and `.cse2` dumps
+`gStreamMovieWidthPixels` after each `LoadImage`. The `.jump`, `.loop`, and `.cse2` dumps
 showed a cached global address plus a fresh load and shift in the loop.
 Caching the width in a `u32` before the loop and using the sibling's `u16`
 counter with `(u32)(i & 0xFFFF) < (frameWidth >> 4)` removed those extra

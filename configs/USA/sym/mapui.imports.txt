@@ -63,18 +63,18 @@ gAreaDryfieldMotelLoftObjectPlaces = 0x80114968; // absolute:True
 gAreaDryfieldWaterHoleObjectPlaces = 0x80114998; // absolute:True
 gAreaDryfieldCellarObjectPlaces = 0x801149B8; // absolute:True
 
-// --- still unnamed in their own overlay (13)
+// --- Resident data imports
 D_800691CC = 0x800691CC; // absolute:True
-D_8006AC3C = 0x8006AC3C; // absolute:True
-D_8006AC40 = 0x8006AC40; // absolute:True
-D_8006AC44 = 0x8006AC44; // absolute:True
-D_8006AC48 = 0x8006AC48; // absolute:True
+gStreamMovieReleasePauseOnStop = 0x8006AC3C; // absolute:True
+gStreamMovieWorkspace = 0x8006AC40; // absolute:True
+gStreamMovieBufferLayoutEnd = 0x8006AC44; // absolute:True
+gMdecMovieOutputBuffers = 0x8006AC48; // absolute:True
 D_8006AC4C = 0x8006AC4C; // absolute:True
-D_8006AC50 = 0x8006AC50; // absolute:True
-D_8006AC5A = 0x8006AC5A; // absolute:True
-D_8006AC5C = 0x8006AC5C; // absolute:True
-D_8006AC60 = 0x8006AC60; // absolute:True
-D_8006AC6C = 0x8006AC6C; // absolute:True
+gMdecMovieExpandedBuffers = 0x8006AC50; // absolute:True
+gStreamMovieWidthPixels = 0x8006AC5A; // absolute:True
+gStreamMovieBackgroundPlayback = 0x8006AC5C; // absolute:True
+gStreamMovieRingBuffer = 0x8006AC60; // absolute:True
+gStreamMovieHeightRows = 0x8006AC6C; // absolute:True
 gSndVolumeNeoArkLevel = 0x800820E0; // absolute:True
 
 gItemMenuPanelDescriptors = 0x8010EAB4; // absolute:True size:0x578

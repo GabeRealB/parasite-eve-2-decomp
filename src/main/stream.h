@@ -5,7 +5,12 @@
 
 #include "types.h"
 
-extern u16 D_8006AC58;
+/// Cached movie CD-volume selection and INTER/audio gate.
+///
+/// The low byte selects the volume preset (0 silent, 1..39 table entries;
+/// 40..255 also silence). Any nonzero full halfword selects INTER-relative
+/// seeking, XA read mode and the movie suspension/cancellation volume fades.
+extern u16 gStreamMovieVolumeTableIndex;
 
 /// Pauses the movie drive and releases its decoder and STR ring state.
 ///
