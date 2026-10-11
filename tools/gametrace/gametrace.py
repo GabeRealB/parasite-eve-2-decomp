@@ -280,8 +280,16 @@ class Gdb:
         return self.ask("?")
 
     def registers(self) -> list[int]:
-        raw = bytes.fromhex(self.ask("g"))
-        return list(struct.unpack_from(f"<{len(raw) // 4}I", raw))
+        """Every register of the `g` reply, in its order. A server writes one it does not have (the FPU's, on this
+        CPU) as `xxxxxxxx`; those read as zero here, and nothing this tool uses is among them."""
+        reply = self.ask("g")
+        if reply.startswith("E") or len(reply) < 8 * (PC + 1):
+            raise OSError(f"the GDB server's register reply is too short or an error: {reply[:40]!r}")
+        out = []
+        for at in range(0, len(reply) - 7, 8):
+            word = reply[at:at + 8]
+            out.append(0 if "x" in word.lower() else int.from_bytes(bytes.fromhex(word), "little"))
+        return out
 
     def read(self, address: int, length: int) -> bytes:
         out = b""
