@@ -20,13 +20,18 @@
 
 #include "main/task_types.h"
 
-/// Carrier's shared enemy-parameter record used by both spawn fragments.
-///
-/// Bind to an EnemyParams object that remains loaded for each spawned enemy.
-/// The default is a private per-TU instance; actor_342400 binds its record
-/// shared between its definition and spawn translation units.
 #ifndef MAD_CHASER_ENEMY_PARAMS
-#define MAD_CHASER_ENEMY_PARAMS _gMadChaserEnemyParams
+/// Selects the carrier-owned parameters borrowed by both Mad Chaser spawn paths.
+///
+/// Must expand to a stable, side-effect-free `EnemyParams` lvalue. Each spawn
+/// uses the binding twice: its address becomes `Enemy::param`, and its `hpMax`
+/// supplies both initial HP values in hit points. The record is borrowed, not
+/// copied; it and its attack table must remain loaded until enemy release.
+///
+/// Override before including this header and keep the binding through both
+/// spawn fragments. The default names the static record in `actor_04400` and
+/// `actor_341700`; `actor_342400_private.h` binds its overlay-shared record.
+#define MAD_CHASER_ENEMY_PARAMS (_gMadChaserEnemyParams)
 #endif
 
 /// Selects the detached-head source published for a burst model-effect spawn.

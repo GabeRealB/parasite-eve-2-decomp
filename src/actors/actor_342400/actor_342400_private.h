@@ -14,8 +14,12 @@
 /// Release rewards are 20 EXP, 40 BP and 1 MP.
 extern EnemyParams gActor342400MadChaserEnemyParams;
 
-/// Selects this overlay's cross-TU record for the included spawn fragments.
-#define MAD_CHASER_ENEMY_PARAMS gActor342400MadChaserEnemyParams
+/// Binds both Mad Chaser spawn paths to this overlay's shared parameter object.
+///
+/// Include this header before `mad_chaser.h` and retain the binding through both
+/// spawn fragments. This stable `EnemyParams` lvalue selects the record defined
+/// in the data translation unit and borrowed by enemies in the behavior unit.
+#define MAD_CHASER_ENEMY_PARAMS (gActor342400MadChaserEnemyParams)
 
 /// Detached Mad Chaser head thrown from body part 6 during a burst death.
 ///
