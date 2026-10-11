@@ -3464,7 +3464,7 @@ static s32 _actor800100SpawnWeaponImpact(const WorldCollisionContact* contacts, 
             if (distance < nearestDistance) {
                 worldCollisionResolveResponsePushback(contact, &scratch->pushback, 1, &surfaceClass);
                 surfaceClass = worldCollisionSurfaceClassFromMask((const u8*)&surfaceClass);
-                if (Gp_RoomParamTables[gGameSession->location.loc.stage - 1][gGameSession->location.loc.area - 1][surfaceClass]->weaponImpactEnabled != WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS) {
+                if (gWorldCollisionSurfacePropertiesTables[gGameSession->location.loc.stage - 1][gGameSession->location.loc.area - 1][surfaceClass]->weaponImpactEnabled != WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS) {
                     nearestDistance     = distance;
                     nearestContactIndex = contactIndex;
                 }

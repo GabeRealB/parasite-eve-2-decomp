@@ -847,8 +847,8 @@ static void _actor02100UpdateCombatContacts(Task* task)
     work->beamBlocked = 0;
     if (worldCollisionCountContactsByKind(work->strikeContacts, WORLD_COLLISION_CONTACT_GRID) != 0) {
         surfaceClass = worldCollisionSurfaceClassFromKey(work->strikeContacts[0].key.value);
-        surface      = Gp_RoomParamTables[gGameSession->location.loc.stage - 1]
-                                    [gGameSession->location.loc.area - 1][surfaceClass];
+        surface      = gWorldCollisionSurfacePropertiesTables[gGameSession->location.loc.stage - 1]
+                                                        [gGameSession->location.loc.area - 1][surfaceClass];
         if (surface->probePassThrough == WORLD_COLLISION_SURFACE_BLOCK_PROBES) {
             work->beamBlocked = 1;
         }

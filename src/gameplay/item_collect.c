@@ -104,7 +104,7 @@ static inline s32 _gpGetModLevel(s32 item)
     idx = item - 0x60;
     ret = 0;
     if ((u32)idx < 0x20) {
-        stats = &Gp_ModStatAttrs[(item)-0x60];
+        stats = &gEquipmentArmorStats[(item)-0x60];
         ret   = stats->baseAttachmentSlots;
         ret  += gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.itemLevelBonus[idx];
         if (ret >= ARMOR_ATTACHMENT_SLOT_MAX + 1) {
@@ -703,7 +703,7 @@ static void _itemInitializeIdentification(void)
         if (itemId < ITEM_IDENTIFICATION_KEY_ITEM_FIRST) {
             descriptor = &gItemDescriptors[itemId];
         } else {
-            descriptor = &Gp_KeyItemDescs[itemId - ITEM_IDENTIFICATION_KEY_ITEM_FIRST];
+            descriptor = &gItemKeyDescriptors[itemId - ITEM_IDENTIFICATION_KEY_ITEM_FIRST];
         }
         text = descriptor->textFields;
         while (fieldsRemaining > 0) {
@@ -752,7 +752,7 @@ void equipmentRecalculateMaxHp(void)
     maximumHp    += save->state.hpBonus;
     status->hpMax = maximumHp;
     if (status->armor != PLAYER_STATUS_EQUIPMENT_NONE) {
-        maximumHp    += Gp_ModStatAttrs[status->armor - 1].hpBonus;
+        maximumHp    += gEquipmentArmorStats[status->armor - 1].hpBonus;
         status->hpMax = maximumHp;
     }
     if (status->hpMax >= PLAYER_STATUS_STAT_MAX + 1) {

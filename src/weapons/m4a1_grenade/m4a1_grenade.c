@@ -449,7 +449,7 @@ static void _m4a1GrenadeFlyProjectile(Task* task)
     worldCollisionResolveResponsePushback(grenadeWork->capsuleContacts, &scratch->delta, 1, &surfaceClass);
     surfaceClass = worldCollisionSurfaceClassFromMask((const u8*)&surfaceClass);
 classified:
-    surface = Gp_RoomParamTables[gGameSession->location.loc.stage - 1][gGameSession->location.loc.area - 1][surfaceClass];
+    surface = gWorldCollisionSurfacePropertiesTables[gGameSession->location.loc.stage - 1][gGameSession->location.loc.area - 1][surfaceClass];
     if (surface->probePassThrough == WORLD_COLLISION_SURFACE_BLOCK_PROBES) {
         if (surface->weaponImpactEnabled != WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS) {
             goto detonate;

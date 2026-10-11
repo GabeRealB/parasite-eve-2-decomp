@@ -230,13 +230,13 @@ void itemMenuDrawEquipmentStats(const UiObject* object, s32 itemId, s32 displayM
     } else if ((u32)(itemId - ITEM_MENU_ARMOR_ITEM_FIRST) < (u32)ITEM_MENU_EQUIPMENT_ITEM_COUNT) {
 
         statList               = &D_8010E9F4;
-        armorStats             = &Gp_ModStatAttrs[itemId - ITEM_MENU_ARMOR_ITEM_FIRST];
+        armorStats             = &gEquipmentArmorStats[itemId - ITEM_MENU_ARMOR_ITEM_FIRST];
         candidateArmorStats[0] = armorStats->hpBonus;
         candidateArmorStats[1] = armorStats->mpBonus;
         candidateArmorStats[2] = equipmentGetArmorAttachmentSlotCount(itemId);
         candidateStats         = candidateArmorStats;
         equippedStats          = equippedArmorStats;
-        armorStats             = &Gp_ModStatAttrs[(player->armor + (ITEM_MENU_ARMOR_ITEM_FIRST - 1)) - ITEM_MENU_ARMOR_ITEM_FIRST];
+        armorStats             = &gEquipmentArmorStats[(player->armor + (ITEM_MENU_ARMOR_ITEM_FIRST - 1)) - ITEM_MENU_ARMOR_ITEM_FIRST];
         statCount              = 3;
         equippedArmorStats[0]  = armorStats->hpBonus;
         equippedArmorStats[1]  = armorStats->mpBonus;

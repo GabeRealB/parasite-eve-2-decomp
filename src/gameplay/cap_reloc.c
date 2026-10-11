@@ -134,7 +134,7 @@ bool capRelocateFile(CapFile* file)
     }
 
     // Repeated calls republish the tables without rebasing them again.
-    Gp_CapGlyphs = file->glyphs.cells;
-    Gp_CapCmds   = file->commands.table->entries;
+    Gp_CapGlyphs       = file->glyphs.cells;
+    gCapCommandEntries = file->commands.table->entries;
     return true;
 }

@@ -279,7 +279,7 @@ static void _evsExecuteInterpreterTask(Task* task)
         work->waitFrames         = 0;
         D_801156D0               = NULL;
         work->command            = skipTarget;
-        D_80115688               = 1;
+        gCapSuppressViewChanges  = CAP_SEQUENCE_VIEW_CHANGES_SUPPRESSED;
         gGameSession->evtSkipped = 1;
         if (D_801156CC != 0) {
             return;

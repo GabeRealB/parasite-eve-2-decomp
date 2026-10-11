@@ -202,7 +202,7 @@ static inline s32 _equipmentGetArmorAttachmentSlotCount(s32 armorItemId)
     armorIndex = armorItemId - EQUIPMENT_ARMOR_ITEM_FIRST;
     slotCount  = 0;
     if ((u32)armorIndex < EQUIPMENT_ARMOR_ITEM_COUNT) {
-        armorStats = &Gp_ModStatAttrs[armorItemId - EQUIPMENT_ARMOR_ITEM_FIRST];
+        armorStats = &gEquipmentArmorStats[armorItemId - EQUIPMENT_ARMOR_ITEM_FIRST];
         slotCount  = armorStats->baseAttachmentSlots;
         slotCount += gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.itemLevelBonus[armorIndex];
         if (slotCount > ARMOR_ATTACHMENT_SLOT_MAX) {
@@ -357,7 +357,7 @@ static inline void _equipmentRecalculateMaxHp(void)
     maximumHp    += save->state.hpBonus;
     status->hpMax = maximumHp;
     if (status->armor != PLAYER_STATUS_EQUIPMENT_NONE) {
-        maximumHp    += Gp_ModStatAttrs[status->armor - 1].hpBonus;
+        maximumHp    += gEquipmentArmorStats[status->armor - 1].hpBonus;
         status->hpMax = maximumHp;
     }
     if (status->hpMax >= PLAYER_STATUS_STAT_MAX + 1) {
@@ -549,7 +549,7 @@ s32 equipmentHasEffect(s32 effectSelector)
     mindProtected = 0;
     status        = &gPlayerStatus;
     if (status->armor != PLAYER_STATUS_EQUIPMENT_NONE) {
-        armorStats    = &Gp_ModStatAttrs[status->armor - 1];
+        armorStats    = &gEquipmentArmorStats[status->armor - 1];
         armorFeatures = armorStats->features;
     }
     // Metabolism and the two wards protect different groups of status effects.

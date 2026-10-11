@@ -362,7 +362,7 @@ static void _shelter1fGuardroomUnlockBulwarkTask(Task* task)
             }
             break;
         case SHELTER_1F_GUARDROOM_UNLOCK_CHECK_CHOICE:
-            Gp_CapCmds[SHELTER_1F_GUARDROOM_UNLOCK_CAP_COMMAND].command->counter = 1;
+            gCapCommandEntries[SHELTER_1F_GUARDROOM_UNLOCK_CAP_COMMAND].command->counter = 1;
             if (capGetVariantKey() != SHELTER_1F_GUARDROOM_UNLOCK_CONFIRMED_KEY) {
                 taskKill(task);
                 playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);

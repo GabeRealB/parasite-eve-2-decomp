@@ -1426,8 +1426,8 @@ static void _shelterB4ReservoirWaterEventTask(Task* task)
             break;
         case SHELTER_B4_RESERVOIR_EVENT_START_CHOICE:
             capRunCommand(SHELTER_B4_RESERVOIR_EVENT_CAP_COMMAND, CAP_PLAYBACK_IN_PLACE);
-            D_80115690 = SHELTER_B4_RESERVOIR_CAP_RETAIN_ACTOR_CONTROL;
-            D_80115680 = SHELTER_B4_RESERVOIR_CAP_CHOICE_ROW_STRIDE;
+            gCapPreserveActorControl = SHELTER_B4_RESERVOIR_CAP_RETAIN_ACTOR_CONTROL;
+            D_80115680               = SHELTER_B4_RESERVOIR_CAP_CHOICE_ROW_STRIDE;
             task->state++;
             break;
         case SHELTER_B4_RESERVOIR_EVENT_WAIT_CHOICE:

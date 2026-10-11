@@ -13,27 +13,6 @@
 #include "main/session.h"
 #include "main/wipsys.h"
 
-/* Item names and descriptions shared by the inventory tables. */
-extern const u8 D_80096BC4[];
-
-extern const u8 D_80096C0C[];
-
-extern const u8 D_80096C60[];
-
-extern const u8 D_80096CE8[];
-
-extern const u8 D_80096D44[];
-
-extern const u8 D_80096D9C[];
-
-extern const u8 D_80096DF0[];
-
-extern const u8 D_80096E0C[28];
-
-extern const u8 D_80096E28[];
-
-extern const u8 D_80096E38[];
-
 /* Item table a scan window lies in. */
 static inline InventoryItemRow* _gpScanTable(const InventoryItemRange* scan);
 
@@ -43,6 +22,9 @@ enum {
     ITEM_DESCRIPTOR_CATEGORY_WEAPON     = 0x20,
     ITEM_DESCRIPTOR_CATEGORY_AMMUNITION = 0x30
 };
+
+/// Catalogue classification used by populated key-item rows (category 4, subtype 0).
+enum { ITEM_KEY_DESCRIPTOR_CLASSIFICATION = 0x40 };
 
 /// Ammunition subtype of the built-in M4A1 Pyke fuel supply.
 enum { ITEM_DESCRIPTOR_AMMUNITION_FUEL = 9 };
@@ -2033,16 +2015,55 @@ static const u8 _gItemElectricCarKeyTextFields[] =
     "Car Key\n"
     "Looks like a car key...\n"
     "\n";
-const u8 D_80096BC4[]   = "Teddy Bear\nThis is Eve's teddy bear.\n\nTeddy Bear\nHmm... A teddy bear.\n\n";
-const u8 D_80096C0C[]   = "Pierce's Memo\nIt's in Pierce's handwriting.\n\nMessage\nSomething's scribbled on it.\n\n";
-const u8 D_80096C60[]   = "Aeris (Sept. issue)\nA magazine about the Internet.\nSpecial issue: \"Next-Gen Viruses\"\nComputer Magazine\nAeris-- a computer magazine.\n\n";
-const u8 D_80096CE8[]   = "Mr. Douglas's Letter\nIt's from Mr. Douglas.\n\nCanister\nSmall canister from Flint's neck.\n\n";
-const u8 D_80096D44[]   = "Jumper Plug\nElectrical switchboard component.\n\nPlug\nLooks like a headphone jack...\n\n";
-const u8 D_80096D9C[]   = "Micro Device\nPierce's modified NMC implant.\nDisplays my position on a monitor.\n\n\n\n";
-const u8 D_80096DF0[]   = "Pierce Rescue Bonus\n\n\n\n\n\n";
-const u8 D_80096E0C[28] = "Soldier Rescue Bonus\n\n\n\n\n\n\000\227";
-const u8 D_80096E28[]   = "You do not have";
-const u8 D_80096E38[]   = "applicable weapon";
+/// Catalogue name and description fields for Teddy Bear.
+///
+/// Identified name and two description lines, then the unidentified form.
+/// Six newline-delimited fields and a NUL; borrowed while gameplay is loaded.
+static const u8 _gItemTeddyBearTextFields[] = "Teddy Bear\nThis is Eve's teddy bear.\n\nTeddy Bear\nHmm... A teddy bear.\n\n";
+/// Catalogue name and description fields for Pierce's Memo.
+///
+/// Identified name and two description lines, then the unidentified form.
+/// Six newline-delimited fields and a NUL; borrowed while gameplay is loaded.
+static const u8 _gItemPierceMemoTextFields[] = "Pierce's Memo\nIt's in Pierce's handwriting.\n\nMessage\nSomething's scribbled on it.\n\n";
+/// Catalogue name and description fields for Aeris computer magazine, September issue.
+///
+/// Identified name and two description lines, then the unidentified form.
+/// Six newline-delimited fields and a NUL; borrowed while gameplay is loaded.
+static const u8 _gItemAerisMagazineTextFields[] = "Aeris (Sept. issue)\nA magazine about the Internet.\nSpecial issue: \"Next-Gen Viruses\"\nComputer Magazine\nAeris-- a computer magazine.\n\n";
+/// Catalogue name and description fields for Mr. Douglas's Letter.
+///
+/// Identified name and two description lines, then the unidentified form.
+/// Six newline-delimited fields and a NUL; borrowed while gameplay is loaded.
+static const u8 _gItemDouglasLetterTextFields[] = "Mr. Douglas's Letter\nIt's from Mr. Douglas.\n\nCanister\nSmall canister from Flint's neck.\n\n";
+/// Catalogue name and description fields for Jumper Plug at key-item id 0x12C.
+///
+/// Identified name and two description lines, then the unidentified form.
+/// Six newline-delimited fields and a NUL; borrowed while gameplay is loaded.
+/// Key-item id 0x120 has separate storage with the same six text fields.
+static const u8 _gItemJumperPlugKey12CTextFields[] = "Jumper Plug\nElectrical switchboard component.\n\nPlug\nLooks like a headphone jack...\n\n";
+/// Catalogue name and description fields for the identified-only Micro Device at key-item id 0x12D.
+///
+/// Identified name and two description lines, then the unidentified form.
+/// Six newline-delimited fields and a NUL; borrowed while gameplay is loaded.
+/// The unidentified name and description fields are empty, so identification starts set.
+static const u8 _gItemMicroDeviceIdentifiedTextFields[] = "Micro Device\nPierce's modified NMC implant.\nDisplays my position on a monitor.\n\n\n\n";
+/// Catalogue name and description fields for Pierce Rescue Bonus.
+///
+/// Identified name and two description lines, then the unidentified form.
+/// Six newline-delimited fields and a NUL; borrowed while gameplay is loaded.
+/// Only the identified name is populated; all description and unidentified fields are empty.
+static const u8 _gItemPierceRescueBonusTextFields[] = "Pierce Rescue Bonus\n\n\n\n\n\n";
+/// Catalogue name and description fields for Soldier Rescue Bonus.
+///
+/// Identified name and two description lines, then the unidentified form.
+/// Six newline-delimited fields and a NUL; borrowed while gameplay is loaded.
+/// Only the identified name is populated. The 28-byte object retains 0x97 after
+/// the six-field text terminator; that final byte is not text.
+static const u8 _gItemSoldierRescueBonusTextFields[28] = "Soldier Rescue Bonus\n\n\n\n\n\n\000\227";
+/// Unreferenced NUL-terminated text "You do not have"; its display role is unproven.
+static const u8 D_80096E28[] = "You do not have";
+/// Unreferenced NUL-terminated text "applicable weapon"; its display role is unproven.
+static const u8 D_80096E38[] = "applicable weapon";
 
 ItemDesc gItemDescriptors[ITEM_DESCRIPTOR_COUNT] = {
     { 0, 0, 0x00, _gItemEmptyTextFields },
@@ -2239,56 +2260,56 @@ ItemDesc gItemDescriptors[ITEM_DESCRIPTOR_COUNT] = {
     { 0, 0, 0x00, _gItemEmptyTextFields },
 };
 
-ItemDesc Gp_KeyItemDescs[] = {
+ItemDesc gItemKeyDescriptors[ITEM_KEY_DESCRIPTOR_COUNT] = {
     { 0, 0, 0x00, _gItemEmptyTextFields },
-    { 1000, 64, ITEM_FLAG_NO_ATTACHMENT, _gItemParthenonKeyTextFields },
-    { 1000, 64, 0x00, _gItemMicroDeviceTextFields },
-    { 1000, 64, ITEM_FLAG_NO_ATTACHMENT | 0x8, _gItemRedKeyTextFields },
-    { 1000, 64, 0x8, _gItemBlueKeyTextFields },
-    { 20000, 64, 0x00, _gItemArmoryCardkeyTextFields },
-    { 1000, 64, 0x8, _gItemMistBadgeTextFields },
-    { 20000, 64, ITEM_FLAG_NO_ATTACHMENT, _gItemMendelJournalTextFields },
-    { 1000, 64, ITEM_FLAG_NO_ATTACHMENT | 0x8, _gItemClipboardTextFields },
-    { 1000, 64, 0x8, _gItemMistSearchWarrantTextFields },
-    { 1000, 64, 0x00, _gItemNmcPhotoTextFields },
-    { 1000, 64, 0x8, _gItemMistManualTextFields },
-    { 1000, 64, 0x00, _gItemDryfieldMapTextFields },
-    { 0, 0, 0x00, _gItemEmptyTextFields },
-    { 0, 0, 0x00, _gItemEmptyTextFields },
-    { 1000, 64, 0x8, _gItemMotelRoom6KeyTextFields },
-    { 1000, 64, 0x00, _gItemSaloonKeyTextFields },
-    { 1000, 64, 0x8, _gItemMonkeyWrenchTextFields },
-    { 1000, 64, 0x8, _gItemLobbyKeyTextFields },
-    { 1000, 64, 0x00, _gItemBroncoMasterkeyTextFields },
-    { 1000, 64, 0x00, _gItemWireRopeTextFields },
-    { 1000, 64, 0x8, _gItemFactoryKeyTextFields },
-    { 1000, 64, 0x8, _gItemTruckKeyTextFields },
-    { 1000, 64, 0x8, _gItemJerryCanTextFields },
-    { 1000, 64, 0x8, _gItemGasolineTextFields },
-    { 1000, 64, 0x8, _gItemIceBagTextFields },
-    { 1000, 64, 0x8, _gItemBagOfWaterTextFields },
-    { 1000, 64, ITEM_FLAG_NO_ATTACHMENT, _gItemBottlecapMagnetTextFields },
+    { 1000, ITEM_KEY_DESCRIPTOR_CLASSIFICATION, ITEM_FLAG_NO_ATTACHMENT, _gItemParthenonKeyTextFields },
+    { 1000, ITEM_KEY_DESCRIPTOR_CLASSIFICATION, 0x00, _gItemMicroDeviceTextFields },
+    { 1000, ITEM_KEY_DESCRIPTOR_CLASSIFICATION, ITEM_FLAG_NO_ATTACHMENT | 0x8, _gItemRedKeyTextFields },
+    { 1000, ITEM_KEY_DESCRIPTOR_CLASSIFICATION, 0x8, _gItemBlueKeyTextFields },
+    { 20000, ITEM_KEY_DESCRIPTOR_CLASSIFICATION, 0x00, _gItemArmoryCardkeyTextFields },
+    { 1000, ITEM_KEY_DESCRIPTOR_CLASSIFICATION, 0x8, _gItemMistBadgeTextFields },
+    { 20000, ITEM_KEY_DESCRIPTOR_CLASSIFICATION, ITEM_FLAG_NO_ATTACHMENT, _gItemMendelJournalTextFields },
+    { 1000, ITEM_KEY_DESCRIPTOR_CLASSIFICATION, ITEM_FLAG_NO_ATTACHMENT | 0x8, _gItemClipboardTextFields },
+    { 1000, ITEM_KEY_DESCRIPTOR_CLASSIFICATION, 0x8, _gItemMistSearchWarrantTextFields },
+    { 1000, ITEM_KEY_DESCRIPTOR_CLASSIFICATION, 0x00, _gItemNmcPhotoTextFields },
+    { 1000, ITEM_KEY_DESCRIPTOR_CLASSIFICATION, 0x8, _gItemMistManualTextFields },
+    { 1000, ITEM_KEY_DESCRIPTOR_CLASSIFICATION, 0x00, _gItemDryfieldMapTextFields },
     { 0, 0, 0x00, _gItemEmptyTextFields },
     { 0, 0, 0x00, _gItemEmptyTextFields },
-    { 20000, 64, 0x8, _gItemSuvKeyTextFields },
-    { 1000, 64, 0x00, _gItemOakBoardTextFields },
-    { 1000, 64, 0x00, _gItemJumperPlugTextFields },
-    { 60000, 64, 0x00, _gItemBowmanCardTextFields },
-    { 30000, 64, 0x00, _gItemYoshidaCardTextFields },
-    { 1000, 64, 0x00, _gItemElectricCarKeyTextFields },
-    { 20000, 64, 0x00, D_80096BC4 },
-    { 50000, 64, 0x00, D_80096C0C },
+    { 1000, ITEM_KEY_DESCRIPTOR_CLASSIFICATION, 0x8, _gItemMotelRoom6KeyTextFields },
+    { 1000, ITEM_KEY_DESCRIPTOR_CLASSIFICATION, 0x00, _gItemSaloonKeyTextFields },
+    { 1000, ITEM_KEY_DESCRIPTOR_CLASSIFICATION, 0x8, _gItemMonkeyWrenchTextFields },
+    { 1000, ITEM_KEY_DESCRIPTOR_CLASSIFICATION, 0x8, _gItemLobbyKeyTextFields },
+    { 1000, ITEM_KEY_DESCRIPTOR_CLASSIFICATION, 0x00, _gItemBroncoMasterkeyTextFields },
+    { 1000, ITEM_KEY_DESCRIPTOR_CLASSIFICATION, 0x00, _gItemWireRopeTextFields },
+    { 1000, ITEM_KEY_DESCRIPTOR_CLASSIFICATION, 0x8, _gItemFactoryKeyTextFields },
+    { 1000, ITEM_KEY_DESCRIPTOR_CLASSIFICATION, 0x8, _gItemTruckKeyTextFields },
+    { 1000, ITEM_KEY_DESCRIPTOR_CLASSIFICATION, 0x8, _gItemJerryCanTextFields },
+    { 1000, ITEM_KEY_DESCRIPTOR_CLASSIFICATION, 0x8, _gItemGasolineTextFields },
+    { 1000, ITEM_KEY_DESCRIPTOR_CLASSIFICATION, 0x8, _gItemIceBagTextFields },
+    { 1000, ITEM_KEY_DESCRIPTOR_CLASSIFICATION, 0x8, _gItemBagOfWaterTextFields },
+    { 1000, ITEM_KEY_DESCRIPTOR_CLASSIFICATION, ITEM_FLAG_NO_ATTACHMENT, _gItemBottlecapMagnetTextFields },
     { 0, 0, 0x00, _gItemEmptyTextFields },
-    { 10000, 64, 0x00, D_80096C60 },
-    { 20000, 64, 0x00, D_80096CE8 },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
+    { 20000, ITEM_KEY_DESCRIPTOR_CLASSIFICATION, 0x8, _gItemSuvKeyTextFields },
+    { 1000, ITEM_KEY_DESCRIPTOR_CLASSIFICATION, 0x00, _gItemOakBoardTextFields },
+    { 1000, ITEM_KEY_DESCRIPTOR_CLASSIFICATION, 0x00, _gItemJumperPlugTextFields },
+    { 60000, ITEM_KEY_DESCRIPTOR_CLASSIFICATION, 0x00, _gItemBowmanCardTextFields },
+    { 30000, ITEM_KEY_DESCRIPTOR_CLASSIFICATION, 0x00, _gItemYoshidaCardTextFields },
+    { 1000, ITEM_KEY_DESCRIPTOR_CLASSIFICATION, 0x00, _gItemElectricCarKeyTextFields },
+    { 20000, ITEM_KEY_DESCRIPTOR_CLASSIFICATION, 0x00, _gItemTeddyBearTextFields },
+    { 50000, ITEM_KEY_DESCRIPTOR_CLASSIFICATION, 0x00, _gItemPierceMemoTextFields },
+    { 0, 0, 0x00, _gItemEmptyTextFields },
+    { 10000, ITEM_KEY_DESCRIPTOR_CLASSIFICATION, 0x00, _gItemAerisMagazineTextFields },
+    { 20000, ITEM_KEY_DESCRIPTOR_CLASSIFICATION, 0x00, _gItemDouglasLetterTextFields },
     { 0, 0, 0x00, _gItemEmptyTextFields },
     { 0, 0, 0x00, _gItemEmptyTextFields },
     { 0, 0, 0x00, _gItemEmptyTextFields },
-    { 1000, 64, 0x00, D_80096D44 },
-    { 10000, 64, 0x8, D_80096D9C },
+    { 1000, ITEM_KEY_DESCRIPTOR_CLASSIFICATION, 0x00, _gItemJumperPlugKey12CTextFields },
+    { 10000, ITEM_KEY_DESCRIPTOR_CLASSIFICATION, 0x8, _gItemMicroDeviceIdentifiedTextFields },
     { 0, 0, 0x00, _gItemEmptyTextFields },
-    { 60000, 64, 0x8, D_80096DF0 },
-    { 60000, 64, 0x8, D_80096E0C },
+    { 60000, ITEM_KEY_DESCRIPTOR_CLASSIFICATION, 0x8, _gItemPierceRescueBonusTextFields },
+    { 60000, ITEM_KEY_DESCRIPTOR_CLASSIFICATION, 0x8, _gItemSoldierRescueBonusTextFields },
     { 0, 0, 0x00, _gItemEmptyTextFields },
     { 0, 0, 0x00, _gItemEmptyTextFields },
     { 0, 0, 0x00, _gItemEmptyTextFields },
@@ -2422,7 +2443,7 @@ static inline void _itemInitializeNewGameIdentification(void)
         if (identificationIndex < ITEM_IDENTIFICATION_KEY_ITEM_FIRST) {
             descriptor = &gItemDescriptors[identificationIndex];
         } else {
-            descriptor = &Gp_KeyItemDescs[identificationIndex - ITEM_IDENTIFICATION_KEY_ITEM_FIRST];
+            descriptor = &gItemKeyDescriptors[identificationIndex - ITEM_IDENTIFICATION_KEY_ITEM_FIRST];
         }
         text = descriptor->textFields;
         while (fieldsRemaining > 0) {

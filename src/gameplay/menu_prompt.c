@@ -873,7 +873,7 @@ void itemMenuArmorSummaryTask(Task* task)
     if (itemId > PLAYER_STATUS_EQUIPMENT_NONE) {
         itemId    += ITEM_MENU_ARMOR_ITEM_FIRST - 1;
         colorRgb   = ITEM_MENU_STAT_TEXT_COLOR;
-        armorStats = &Gp_ModStatAttrs[itemId - ITEM_MENU_ARMOR_ITEM_FIRST];
+        armorStats = &gEquipmentArmorStats[itemId - ITEM_MENU_ARMOR_ITEM_FIRST];
         itemMenuDrawItemRow(object, rowX, rowY, itemId, colorRgb, 0);
 
         rowY         = topY + 0x1D;

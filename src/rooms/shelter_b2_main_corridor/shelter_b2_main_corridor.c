@@ -2079,7 +2079,7 @@ static void _shelterB2MainCorridorStagedDepartureTask(Task* task)
         case SHELTER_B2_MAIN_CORRIDOR_DEPARTURE_START_CAP:
             gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
             capRunCommandWithTransition(task->spawnArg1.value);
-            D_80115690 = SHELTER_B2_MAIN_CORRIDOR_CAP_KEEP_ACTORS_PAUSED;
+            gCapPreserveActorControl = SHELTER_B2_MAIN_CORRIDOR_CAP_KEEP_ACTORS_PAUSED;
             task->state++;
             break;
         case SHELTER_B2_MAIN_CORRIDOR_DEPARTURE_WAIT_CAP:

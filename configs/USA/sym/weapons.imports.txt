@@ -69,7 +69,7 @@ playerActorQueryWeaponLoads = 0x80106264; // type:func absolute:True
 worldCoordPlaySound = 0x801064A4; // type:func absolute:True
 weaponRecordUse = 0x80106518; // type:func absolute:True
 playerActorFinishWeaponAttack = 0x80106550; // type:func absolute:True
-Gp_RoomParamTables = 0x8010CBB8; // absolute:True
+gWorldCollisionSurfacePropertiesTables = 0x8010CBB8; // absolute:True
 gWorldCoordTransientPointLights = 0x80114F30; // absolute:True
 gRoomEffectState = 0x80115740; // absolute:True
 

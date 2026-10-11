@@ -137,7 +137,7 @@ void neoArkSubmarineGalleryDepartToIslandTask(Task* task)
             gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
             capRunCommand(CAP_CONFIRM_DEPARTURE, CAP_PLAYBACK_IN_PLACE);
-            D_80115690 = CAP_KEEP_ACTORS_HELD;
+            gCapPreserveActorControl = CAP_KEEP_ACTORS_HELD;
             task->state++;
             break;
         case DEPARTURE_WAIT_CAP:

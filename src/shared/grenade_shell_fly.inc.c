@@ -130,7 +130,7 @@ static void _grenadeShellFly(Task* task)
     worldCollisionResolveResponsePushback(work->capsuleContacts, &(scratchHead - 1)->delta, ARRAY_SIZE(work->capsuleContacts), &surfaceClass);
     surfaceClass = worldCollisionSurfaceClassFromMask((const u8*)&surfaceClass);
 classified:
-    surface = Gp_RoomParamTables[gGameSession->location.loc.stage - 1][gGameSession->location.loc.area - 1][surfaceClass];
+    surface = gWorldCollisionSurfacePropertiesTables[gGameSession->location.loc.stage - 1][gGameSession->location.loc.area - 1][surfaceClass];
     if (surface->probePassThrough == WORLD_COLLISION_SURFACE_BLOCK_PROBES) {
         if (surface->weaponImpactEnabled != WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS) {
             goto explode;

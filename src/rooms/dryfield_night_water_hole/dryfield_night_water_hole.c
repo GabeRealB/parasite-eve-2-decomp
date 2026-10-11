@@ -1662,7 +1662,7 @@ static void _dryfieldNightWaterHoleApplySurfaceOverrides(const _DryfieldNightWat
 
     location = &gGameSession->location.loc;
     for (overrideIndex = 0; overrides[overrideIndex].properties != NULL; overrideIndex++) {
-        surfaceProperties                                                                = Gp_RoomParamTables[location->stage - 1][location->area - 1];
+        surfaceProperties                                                                = gWorldCollisionSurfacePropertiesTables[location->stage - 1][location->area - 1];
         surfaceProperties[overrides[overrideIndex].surfaceClass]                         = overrides[overrideIndex].properties;
         gWorldCollisionSurfacePushbackSuppression[overrides[overrideIndex].surfaceClass] = surfaceProperties[overrides[overrideIndex].surfaceClass]->suppressPushback;
     }

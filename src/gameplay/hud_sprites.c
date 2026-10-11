@@ -1605,7 +1605,7 @@ void viewApplyCurrentCamera(void)
     u8               cameraIndex;
 
     location    = &gGameSession->location.loc;
-    cameraTable = Gp_ViewTables[location->stage - 1];
+    cameraTable = gViewCameraTables[location->stage - 1];
     cameras     = cameraTable->cameras[location->area - 1];
     cameraIndex = viewGetMappedIndex();
 
@@ -1679,7 +1679,7 @@ void viewQueueCurrentCameraAndPackets(void)
     u8                     cameraIndex;
 
     location    = &gGameSession->location.loc;
-    cameraTable = Gp_ViewTables[location->stage - 1];
+    cameraTable = gViewCameraTables[location->stage - 1];
     cameras     = cameraTable->cameras[location->area - 1];
     cameraIndex = viewGetMappedIndex();
     _viewQueueCameraCursorAndPackets(&cameras[cameraIndex], VIEW_PACKET_LIST_SELECTED);
@@ -1691,7 +1691,7 @@ ViewCamera* viewGetMappedCamera(const GameLocationKey* location)
     ViewCamera*      cameras;
     u8               cameraIndex;
 
-    cameraTable = Gp_ViewTables[location->stage - 1];
+    cameraTable = gViewCameraTables[location->stage - 1];
     cameras     = cameraTable->cameras[location->area - 1];
     cameraIndex = viewGetMappedIndex();
     return &cameras[cameraIndex - 1];
@@ -1733,7 +1733,7 @@ void viewQueueCurrentCamera(s32 packetListMode)
     u8                     cameraIndex;
 
     location    = &gGameSession->location.loc;
-    cameraTable = Gp_ViewTables[location->stage - 1];
+    cameraTable = gViewCameraTables[location->stage - 1];
     cameras     = cameraTable->cameras[location->area - 1];
     cameraIndex = viewGetMappedIndex();
     _viewQueueCameraCursorAndPackets(&cameras[cameraIndex], packetListMode);

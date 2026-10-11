@@ -36,7 +36,7 @@ void roomEventStagedTask(Task* task)
             gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
             capRunCommand(ROOM_EVENT_LATCHED.capCmd, CAP_PLAYBACK_IN_PLACE);
-            D_80115690 = ROOM_EVENT_STAGED_RESTORE_ACTORS_ON_CAP_EXIT;
+            gCapPreserveActorControl = ROOM_EVENT_STAGED_RESTORE_ACTORS_ON_CAP_EXIT;
             task->state++;
             break;
         case ROOM_EVENT_STAGED_STATE_WAIT_CAP:

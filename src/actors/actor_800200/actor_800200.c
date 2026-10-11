@@ -3014,7 +3014,7 @@ static s32 _actor800200PlayFootstepCue(Task* task)
         switch (cueBits = cueRecord->flags & ANIMATION_RECORD_CUE_MASK) {
             case ANIMATION_RECORD_CUE_1:
             case ANIMATION_RECORD_CUE_2:
-                surface        = Gp_RoomParamTables[gGameSession->location.loc.stage - 1][gGameSession->location.loc.area - 1][actor->surfaceClass];
+                surface        = gWorldCollisionSurfacePropertiesTables[gGameSession->location.loc.stage - 1][gGameSession->location.loc.area - 1][actor->surfaceClass];
                 footstepSounds = surface->footstepSounds;
                 if (footstepSounds != NULL) {
                     if ((u16)actor->movementMode - ACTOR_800200_MOVEMENT_WALK < 2U) {

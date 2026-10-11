@@ -8,6 +8,7 @@
 #include "gameplay/loading.h"
 #include "gameplay/view.h"
 
+#include "main/areas.h"
 #include "main/fs.h"
 #include "main/mem.h"
 #include "main/task_types.h"
@@ -24,7 +25,13 @@
 
 DR_STP D_80114C50;
 
-ViewCameraTable* Gp_ViewTables[5] = { &gMapAkropolisViewCameraTable, &gMapDryfieldViewCameraTable, &gMapDryfieldFullViewCameraTable, &gMapShelterViewCameraTable, &gMapNeoArkViewCameraTable };
+ViewCameraTable* gViewCameraTables[5] = {
+    [GAME_STAGE_ACROPOLIS - 1]       = &gMapAkropolisViewCameraTable,
+    [GAME_STAGE_DRYFIELD - 1]        = &gMapDryfieldViewCameraTable,
+    [GAME_STAGE_DRYFIELD_NIGHT - 1]  = &gMapDryfieldFullViewCameraTable,
+    [GAME_STAGE_MINE_SHELTER - 1]    = &gMapShelterViewCameraTable,
+    [GAME_STAGE_SHELTER_NEO_ARK - 1] = &gMapNeoArkViewCameraTable,
+};
 
 /// Uploads the current mapped view's retained image, retrying every incomplete result.
 ///

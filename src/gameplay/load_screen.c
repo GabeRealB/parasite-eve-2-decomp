@@ -129,7 +129,13 @@ WorldCoordRoomLighting**      gWorldCoordRoomLightingTables[5] = {
     [GAME_STAGE_MINE_SHELTER - 1]    = gMapShelterRoomLightingTables,
     [GAME_STAGE_SHELTER_NEO_ARK - 1] = gMapNeoArkRoomLightingTables,
 };
-WorldCollisionSurfaceProperties*** Gp_RoomParamTables[5] = { gMapAkropolisSurfacePropertiesByArea, gMapDryfieldSurfacePropertiesByArea, gMapDryfieldFullSurfacePropertiesByArea, gMapShelterSurfacePropertiesByArea, gMapNeoArkSurfacePropertiesByArea };
+WorldCollisionSurfaceProperties*** gWorldCollisionSurfacePropertiesTables[5] = {
+    [GAME_STAGE_ACROPOLIS - 1]       = gMapAkropolisSurfacePropertiesByArea,
+    [GAME_STAGE_DRYFIELD - 1]        = gMapDryfieldSurfacePropertiesByArea,
+    [GAME_STAGE_DRYFIELD_NIGHT - 1]  = gMapDryfieldFullSurfacePropertiesByArea,
+    [GAME_STAGE_MINE_SHELTER - 1]    = gMapShelterSurfacePropertiesByArea,
+    [GAME_STAGE_SHELTER_NEO_ARK - 1] = gMapNeoArkSurfacePropertiesByArea,
+};
 
 /// Expands a captured signed-halfword player pose into the room-start transform.
 ///

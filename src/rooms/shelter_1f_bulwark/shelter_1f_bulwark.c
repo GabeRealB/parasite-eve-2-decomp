@@ -568,7 +568,7 @@ static void _shelter1fBulwarkHeliportDepartureTask(Task* task)
             gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
             capRunCommand(SHELTER_1F_BULWARK_DEPARTURE_CAP, CAP_PLAYBACK_IN_PLACE);
-            D_80115690 = SHELTER_1F_BULWARK_CAP_KEEP_ACTORS_PAUSED;
+            gCapPreserveActorControl = SHELTER_1F_BULWARK_CAP_KEEP_ACTORS_PAUSED;
             task->state++;
             break;
         case SHELTER_1F_BULWARK_DEPARTURE_WAIT_CAP:

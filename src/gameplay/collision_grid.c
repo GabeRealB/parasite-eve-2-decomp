@@ -434,9 +434,9 @@ void worldCollisionCollideCapsuleGrid(const WorldCollisionBody* body)
             contact = body->context.capsule->contacts;
             // Clipping bodies keep the nearest blocking hit in contact zero.
             if (body->flags & WORLD_COLLISION_BODY_CLIP_TO_GRID_CONTACT) {
-                if (Gp_RoomParamTables[gGameSession->location.loc.stage - 1][gGameSession->location.loc.area - 1]
-                                      [gWorldCollisionActiveGrid->faces[faceIndex].surfaceClass]
-                                          ->probePassThrough == WORLD_COLLISION_SURFACE_BLOCK_PROBES) {
+                if (gWorldCollisionSurfacePropertiesTables[gGameSession->location.loc.stage - 1][gGameSession->location.loc.area - 1]
+                                                          [gWorldCollisionActiveGrid->faces[faceIndex].surfaceClass]
+                                                              ->probePassThrough == WORLD_COLLISION_SURFACE_BLOCK_PROBES) {
                     contact->distance = 0;
                     contact->flags   |= WORLD_COLLISION_CONTACT_OCCUPIED;
                     _worldCollisionWriteCapsuleGridHit(contact, scratch, faceIndex);
@@ -673,9 +673,9 @@ s32 worldCollisionProbeGridSegment(const SVECTOR* target, const SVECTOR* start, 
         if (_gWorldCollisionGridFaceCandidates[faceIndex] == WORLD_COLLISION_GRID_FACE_NOT_CANDIDATE) {
             continue;
         }
-        if (Gp_RoomParamTables[gGameSession->location.loc.stage - 1][gGameSession->location.loc.area - 1]
-                              [gWorldCollisionActiveGrid->faces[faceIndex].surfaceClass]
-                                  ->probePassThrough != WORLD_COLLISION_SURFACE_BLOCK_PROBES) {
+        if (gWorldCollisionSurfacePropertiesTables[gGameSession->location.loc.stage - 1][gGameSession->location.loc.area - 1]
+                                                  [gWorldCollisionActiveGrid->faces[faceIndex].surfaceClass]
+                                                      ->probePassThrough != WORLD_COLLISION_SURFACE_BLOCK_PROBES) {
             continue;
         }
         if (worldCollisionIntersectGridFace(faceIndex, scratch->endpoints, scratch->ray, NULL) == 0) {

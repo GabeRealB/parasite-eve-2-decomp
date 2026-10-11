@@ -138,7 +138,7 @@ STATIC_ASSERT_SIZEOF(WorldCollisionFootstepSounds, 12);
 
 /// Collision and footstep properties of one room-local surface class.
 ///
-/// `Gp_RoomParamTables` selects the loaded room overlay's records by stage - 1,
+/// `gWorldCollisionSurfacePropertiesTables` selects the loaded room overlay's records by stage - 1,
 /// area - 1, then surface class (0..7). Grid faces and grid-contact keys carry
 /// that class; actors retain it for footstep cues. Records and their sound
 /// tables remain borrowed only while the room overlay is loaded.
@@ -151,6 +151,17 @@ typedef struct {
     const WorldCollisionFootstepSounds* footstepSounds;      // Borrowed cue bases, or NULL for no surface footstep cues.
 } WorldCollisionSurfaceProperties;
 STATIC_ASSERT_SIZEOF(WorldCollisionSurfaceProperties, 8);
+
+/// Five stage directories of per-area collision surface-class property pointers.
+///
+/// Select [stage - 1][area - 1][surfaceClass], with stage 1..5 and class 0..7.
+/// The area extents are 20, 38, 38, 49 and 33 respectively; lookups require a
+/// populated area and class. Room variants share the area's class directory.
+/// There is no count header or terminator. The stage map owns the area directory
+/// and borrows the loaded room's writable class pointers and property records;
+/// keep both overlays loaded while using or replacing a pointer. Overrides also
+/// refresh `gWorldCollisionSurfacePushbackSuppression` for the affected classes.
+extern WorldCollisionSurfaceProperties*** gWorldCollisionSurfacePropertiesTables[5];
 
 /// A room's collision grid, view boundaries, action triggers and sight occluders.
 ///

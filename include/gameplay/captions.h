@@ -155,15 +155,40 @@ void capPlaybackTask(Task* task);
 
 extern CapFile* Gp_CapFile;
 
-extern u8 D_80115690;
+/// In-place playback's actor-control restoration choices.
+enum {
+    CAP_ACTOR_CONTROL_RESTORE_ON_EXIT  = 0,
+    CAP_ACTOR_CONTROL_PRESERVE_ON_EXIT = 1
+};
+
+/// Leaves scene actor control with the caller after in-place CAP playback when nonzero.
+///
+/// Sequence startup selects zero, which resumes actors on in-place completion.
+/// Rooms set one after starting playback to retain their current pause/hold
+/// through a decision or transition. Other playback modes do not consult it.
+extern u8 gCapPreserveActorControl;
 
 extern s32 D_80115694;
 
-extern CapCommandRef* Gp_CapCmds;
+/// Borrowed command-reference entries of the last successfully selected CAP table.
+///
+/// Successful relocation publishes `CapCommandTable.entries`; a failed magic
+/// check leaves this pointer intact even if `Gp_CapFile` has changed. The owning
+/// CAP resource must stay loaded while entries, commands or sequences are used.
+/// Every index must be nonnegative, below that table's count and fit 0..32767
+/// for the signed-halfword playback interface. Dispatch does not check bounds;
+/// a zero entry names no sequence. Slot-zero commands remain writable counters.
+extern CapCommandRef* gCapCommandEntries;
 
 extern u8 D_801156A4;
 
-extern s32 D_801156A8;
+/// Retained zero-based highlighted index from the last CAP confirmation.
+///
+/// Confirmation stores the current choice index, including zero for Continue
+/// without choices. The word remains available after playback completion;
+/// sequence startup and reset clear it to zero, which is also a valid choice.
+/// This is a choice position, independently of its selected variant key.
+extern s32 gCapConfirmedChoiceIndex;
 
 /// Starts CAP playback from a command-table slot with an explicit variant key.
 ///

@@ -1157,8 +1157,8 @@ static void _shelterB4UpperSewerOpenWaterHoleTask(Task* task)
         case SHELTER_B4_UPPER_SEWER_WATER_HOLE_START_CAP:
             gGameSession->hideHud = 1;
             capRunCommand(SHELTER_B4_UPPER_SEWER_WATER_HOLE_CAP_COMMAND, CAP_PLAYBACK_IN_PLACE);
-            D_80115690 = SHELTER_B4_UPPER_SEWER_CAP_KEEP_ACTORS_PAUSED;
-            D_80115680 = SHELTER_B4_UPPER_SEWER_CAP_CHOICE_ROW_STRIDE;
+            gCapPreserveActorControl = SHELTER_B4_UPPER_SEWER_CAP_KEEP_ACTORS_PAUSED;
+            D_80115680               = SHELTER_B4_UPPER_SEWER_CAP_CHOICE_ROW_STRIDE;
             task->state++;
             break;
         case SHELTER_B4_UPPER_SEWER_WATER_HOLE_WAIT_CAP:

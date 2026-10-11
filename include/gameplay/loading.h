@@ -106,12 +106,6 @@ void loadingViewLoadTask(Task* viewLoadTask);
 /// be retired. No task-owned drawing may remain when game-loop presentation resumes.
 void loadingRestoreViewGraphicsTask(Task* task);
 
-/// Per-stage pointer table. Index is `GameSession.location.loc.stage - 1`.
-/// Each entry is an array of `WorldCollisionSurfaceProperties**`, indexed by area - 1.
-/// Each room has eight surface-class pointers; `worldCollisionLoadSurfacePushbackFlags` copies only
-/// their `suppressPushback` flags into `gWorldCollisionSurfacePushbackSuppression`.
-extern WorldCollisionSurfaceProperties*** Gp_RoomParamTables[];
-
 /// Five stage-map directories of per-area mapped-view sprite arrays.
 ///
 /// Indexed by stage minus one (stages 1..5). Each entry borrows exactly one

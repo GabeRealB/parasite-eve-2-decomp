@@ -2477,7 +2477,7 @@ static inline void _actor215100StartGalleryExitPrompt(void)
     playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
     gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
     capRunCommand(ACTOR_215100_GALLERY_EXIT_CONFIRM_COMMAND, CAP_PLAYBACK_IN_PLACE);
-    D_80115690 = ACTOR_215100_GALLERY_EXIT_KEEP_ACTORS_HELD;
+    gCapPreserveActorControl = ACTOR_215100_GALLERY_EXIT_KEEP_ACTORS_HELD;
     taskSpawnFromTable(gActor215100GalleryDecisionTaskDescs, ACTOR_215100_GALLERY_EXIT_DECISION_TASK, ACTOR_215100_GALLERY_END_TRAINING, 0);
 }
 
@@ -2694,7 +2694,7 @@ s32 actor215100ResolveGalleryExit(const RoomEventMsg* request)
         playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
         gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
         capRunCommand(ACTOR_215100_GALLERY_EXIT_CONFIRM_COMMAND, CAP_PLAYBACK_IN_PLACE);
-        D_80115690 = ACTOR_215100_GALLERY_EXIT_KEEP_ACTORS_HELD;
+        gCapPreserveActorControl = ACTOR_215100_GALLERY_EXIT_KEEP_ACTORS_HELD;
         taskSpawnFromTable(gActor215100GalleryDecisionTaskDescs, ACTOR_215100_GALLERY_EXIT_DECISION_TASK, ACTOR_215100_GALLERY_CONFIRM_ROOM_EXIT, 0);
     } else {
         // Keep the one-shot scope for the original query branch's delay-slot layout.

@@ -142,8 +142,8 @@ static s32 _capStartControlledSequence(Task* unusedTask, s32 unusedMessageId, s1
 /// advancement occurs in the playback task. Both payloads are ignored. Returns 0.
 static s32 _capResumeTimedRecord(Task* unusedTask, s32 unusedMessageId, s32 unusedFirstArg, s32 unusedSecondArg)
 {
-    D_8011569A = 0;
-    D_80115698 = 0;
+    gCapPauseFramesRemaining   = 0;
+    gCapDisplayFramesRemaining = 0;
     return 0;
 }
 

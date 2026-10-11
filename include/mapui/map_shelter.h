@@ -83,7 +83,7 @@ extern u16 D_map_shelter_8017AD88[];
 extern WorldCoordRoomLighting* gMapShelterRoomLightingTables[49];
 
 /// This stage's entries in `Gp_WarpTables`,
-/// `Gp_ViewCountTables`, `Gp_RoomObjTables`, `Gp_ViewTables`,
+/// `Gp_ViewCountTables`, `Gp_RoomObjTables`, `gViewCameraTables`,
 /// `gViewIndexTables` and `gSpriteAreaTables`: each leads to
 /// one pointer per room into that room's package, except that some rooms'
 /// object records are this overlay's own.
@@ -116,7 +116,7 @@ extern SpriteAreaTable gMapShelterSpriteAreaTable;
 
 /// Mine/Shelter's collision and footstep property directory for 49 areas.
 ///
-/// Stage 4's `Gp_RoomParamTables` entry. Select with area - 1 (areas 1..49),
+/// Stage 4's `gWorldCollisionSurfacePropertiesTables` entry. Select with area - 1 (areas 1..49),
 /// then surface class 0..7; room variants share their area's class table.
 /// Each table supplies eight non-NULL class records, without a count header
 /// or terminator in that lookup domain. Any retained storage after class 7

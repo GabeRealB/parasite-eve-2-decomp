@@ -1228,9 +1228,9 @@ Gp_StrMP                    = 0x80093864;
 Gp_StrBP                    = 0x80093868;
 Gp_StrEXP                   = 0x8009386C;
 Gp_StrItem                  = 0x80093870;
-Gp_StrNewEnemyNull          = 0x800939F8;
+_gEnemyWorkAllocationFailureText          = 0x800939F8;
 _gEnemyTeardownDelayStates           = 0x80093A10; // size:0xC
-Gp_ViewTables = 0x8010CB2C; // size:0x14 defined:True
+gViewCameraTables = 0x8010CB2C; // size:0x14 defined:True
 gViewIndexTables = 0x8010CB54; // size:0x14 defined:True
 Gp_SndMaskTable = 0x8010D1C4; // size:0x38 defined:True
 _gModelObjectSavedModelList = 0x80114B80; // size:0x8 defined:True
@@ -1336,11 +1336,11 @@ gCapSelectedSequence                 = 0x801155A8; // size:0x4 defined:True
 Gp_CapEventKey = 0x80115668; // size:0x2 defined:True
 Gp_CapTask = 0x80115674; // size:0x4 defined:True
 Gp_CapGlyphs = 0x8011567C; // size:0x4 defined:True
-Gp_CapCmds = 0x801156A0; // size:0x4 defined:True
+gCapCommandEntries = 0x801156A0; // size:0x4 defined:True
 
 // Gameplay naming pass 7 (cap measure, player/ally msgs, warp/room)
 Gp_WarpTables = 0x8010CB90; // size:0x14 defined:True
-Gp_RoomParamTables = 0x8010CBB8; // size:0x14 defined:True
+gWorldCollisionSurfacePropertiesTables = 0x8010CBB8; // size:0x14 defined:True
 _gCapScriptedIdleAnimationRequest             = 0x8010FB38; // size:0x14 defined:True
 Gp_WeaponIdBase = 0x80112D68; // size:0x4 defined:True
 Gp_AllyIdBase = 0x80113360; // size:0x8 defined:True
@@ -1384,7 +1384,7 @@ Gp_StackLimits = 0x8010E3B8; // size:0x80 defined:True
 // Gameplay naming pass 10 (held equip, cap evt, light, id tables)
 // gNmcNamesEnemyNameTable lives in another overlay (0x801D6484); import is in
 // configs/USA/sym.gameplay.imports.txt (absolute:True).
-Gp_ModStatAttrs = 0x8010E2B8; // size:0x100 defined:True
+gEquipmentArmorStats = 0x8010E2B8; // size:0x100 defined:True
 Gp_ItemAttrs                = 0x8010DFB8;
 Gp_IdParamLo = 0x80113390; // size:0x1D6 defined:True
 gAttachmentLevelTable = 0x8011398C; // size:0x370 defined:True
@@ -1703,12 +1703,12 @@ D_80114CDD                  = 0x80114CDD; // type:u8 size:0x1 defined:True
 D_80114CDE                  = 0x80114CDE; // type:u8 size:0x1 defined:True
 D_80114D1A                  = 0x80114D1A; // type:s16 size:0x2 defined:True
 D_80114DDE = 0x80114DDE; // size:0x2 defined:True
-D_801155AE                  = 0x801155AE; // type:u16 size:0x2 defined:True
-D_801155B2                  = 0x801155B2; // type:s16 size:0x2 defined:True
-D_801155B6                  = 0x801155B6; // type:s16 size:0x2 defined:True
+gCapRecordIndex                  = 0x801155AE; // type:u16 size:0x2 defined:True
+gCapTextBlockLeftX                  = 0x801155B2; // type:s16 size:0x2 defined:True
+gCapTextBoxHeight                  = 0x801155B6; // type:s16 size:0x2 defined:True
 D_801155B9                  = 0x801155B9; // type:s8 size:0x1 defined:True
-D_801155BA                  = 0x801155BA; // type:u8 size:0x1 defined:True
-D_801155BB                  = 0x801155BB; // type:u8 size:0x1 defined:True
+gCapActionCaptureFramesRemaining                  = 0x801155BA; // type:u8 size:0x1 defined:True
+gCapPendingViewPhase                  = 0x801155BB; // type:u8 size:0x1 defined:True
 D_801155BE                  = 0x801155BE; // type:s16 size:0x2 defined:True
 D_8011564A = 0x8011564A; // size:0x2 defined:True
 D_80115652 = 0x80115652; // size:0x2 defined:True
@@ -1721,7 +1721,7 @@ D_8011566D = 0x8011566D; // size:0x1 defined:True
 D_8011566E = 0x8011566E; // size:0x1 defined:True
 D_8011566F = 0x8011566F; // size:0x1 defined:True
 D_8011567A = 0x8011567A; // size:0x2 defined:True
-D_8011569A = 0x8011569A; // size:0x2 defined:True
+gCapPauseFramesRemaining = 0x8011569A; // size:0x2 defined:True
 D_801156B1 = 0x801156B1; // size:0x1 defined:True
 D_801156C2                  = 0x801156C2; // type:u16 size:0x2 defined:True
 D_801156C6                  = 0x801156C6; // type:u16 size:0x2 defined:True
@@ -1895,14 +1895,14 @@ _gItemJumperPlugTextFields = 0x80096A84; // size:0x55 defined:True
 _gItemBowmanCardTextFields = 0x80096ADC; // size:0x45 defined:True
 _gItemYoshidaCardTextFields = 0x80096B24; // size:0x46 defined:True
 _gItemElectricCarKeyTextFields = 0x80096B6C; // size:0x55 defined:True
-D_80096BC4 = 0x80096BC4; // size:0x48 defined:True
-D_80096C0C = 0x80096C0C; // size:0x54 defined:True
-D_80096C60 = 0x80096C60; // size:0x86 defined:True
-D_80096CE8 = 0x80096CE8; // size:0x5A defined:True
-D_80096D44 = 0x80096D44; // size:0x55 defined:True
-D_80096D9C = 0x80096D9C; // size:0x53 defined:True
-D_80096DF0 = 0x80096DF0; // size:0x1A defined:True
-D_80096E0C = 0x80096E0C; // size:0x1C defined:True
+_gItemTeddyBearTextFields = 0x80096BC4; // size:0x48 defined:True
+_gItemPierceMemoTextFields = 0x80096C0C; // size:0x54 defined:True
+_gItemAerisMagazineTextFields = 0x80096C60; // size:0x86 defined:True
+_gItemDouglasLetterTextFields = 0x80096CE8; // size:0x5A defined:True
+_gItemJumperPlugKey12CTextFields = 0x80096D44; // size:0x55 defined:True
+_gItemMicroDeviceIdentifiedTextFields = 0x80096D9C; // size:0x53 defined:True
+_gItemPierceRescueBonusTextFields = 0x80096DF0; // size:0x1A defined:True
+_gItemSoldierRescueBonusTextFields = 0x80096E0C; // size:0x1C defined:True
 D_80096E28 = 0x80096E28; // size:0x10 defined:True
 D_80096E38 = 0x80096E38; // size:0x12 defined:True
 
@@ -2026,14 +2026,14 @@ D_8010D324 = 0x8010D324; // size:0x3 defined:True
 D_80114BDC = 0x80114BDC; // size:0x2 defined:True
 D_80114BE0 = 0x80114BE0; // size:0x2 defined:True
 D_80114BE4 = 0x80114BE4; // size:0x2 defined:True
-D_801155AC = 0x801155AC; // size:0x2 defined:True
-D_801155B0 = 0x801155B0; // size:0x2 defined:True
-D_801155B4 = 0x801155B4; // size:0x2 defined:True
-D_801155B8 = 0x801155B8; // size:0x1 defined:True
-D_801155BC = 0x801155BC; // size:0x2 defined:True
-D_801155C0 = 0x801155C0; // size:0x2 defined:True
+gCapRecordPhase = 0x801155AC; // size:0x2 defined:True
+gCapRevealCodeIndex = 0x801155B0; // size:0x2 defined:True
+gCapFirstBaselineY = 0x801155B4; // size:0x2 defined:True
+gCapRevealDelayLimit = 0x801155B8; // size:0x1 defined:True
+gCapTextViewTransitionState = 0x801155BC; // size:0x2 defined:True
+gCapSelectedChoiceIndex = 0x801155C0; // size:0x2 defined:True
 
-Gp_KeyItemDescs = 0x8010DE38; // size:0x400 defined:True
+gItemKeyDescriptors = 0x8010DE38; // size:0x400 defined:True
 
 D_8010D630 = 0x8010D630; // size:0x4 defined:True
 
@@ -2055,15 +2055,15 @@ D_80115670 = 0x80115670; // size:0x1 defined:True
 D_80115678 = 0x80115678; // size:0x2 defined:True
 D_80115680 = 0x80115680; // size:0x1 defined:True
 
-D_80115688 = 0x80115688; // size:0x1 defined:True
-D_80115690 = 0x80115690; // size:0x1 defined:True
+gCapSuppressViewChanges = 0x80115688; // size:0x1 defined:True
+gCapPreserveActorControl = 0x80115690; // size:0x1 defined:True
 
 D_80115694 = 0x80115694; // type:s32 size:0x4 defined:True
 
-D_80115698 = 0x80115698; // size:0x2 defined:True
+gCapDisplayFramesRemaining = 0x80115698; // size:0x2 defined:True
 D_8011569C = 0x8011569C; // size:0x1 defined:True
 D_801156A4 = 0x801156A4; // size:0x1 defined:True
-D_801156A8 = 0x801156A8; // size:0x4 defined:True
+gCapConfirmedChoiceIndex = 0x801156A8; // size:0x4 defined:True
 
 D_801156B0 = 0x801156B0; // size:0x1 defined:True
 D_801156B4 = 0x801156B4; // size:0x4 defined:True

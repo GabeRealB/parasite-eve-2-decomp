@@ -2122,7 +2122,7 @@ void acropolisHelicopterLandingPadConfirmDepartureTask(Task* task)
             break;
         case ACROPOLIS_HELICOPTER_LANDING_PAD_CONFIRM_CHECK_CHOICE:
             if (capIsBusy() == 0) {
-                if (D_801156A8 == ACROPOLIS_HELICOPTER_LANDING_PAD_CONFIRM_CANCEL_CHOICE) {
+                if (gCapConfirmedChoiceIndex == ACROPOLIS_HELICOPTER_LANDING_PAD_CONFIRM_CANCEL_CHOICE) {
                     playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
                     taskKill(task);
                     break;

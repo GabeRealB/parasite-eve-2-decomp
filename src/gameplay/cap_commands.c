@@ -163,7 +163,7 @@ void capRunCommand(s32 commandIndex, s16 playbackMode)
     s32         objectOffset;
 
     for (;;) {
-        command = Gp_CapCmds[commandIndex].command;
+        command = gCapCommandEntries[commandIndex].command;
         flagId  = command->flagIndexLo | (command->flagIndexHi << 8);
         switch (command->opcode) {
             case CAP_COMMAND_PLAIN:

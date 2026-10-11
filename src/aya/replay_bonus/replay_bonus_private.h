@@ -300,7 +300,7 @@ static inline s32 _replayBonusItemBp(s32 itemId)
     if (itemId < ITEM_TEXT_KEY_ID_FIRST) {
         purchasePriceBp = gItemDescriptors[itemId].price;
     } else {
-        purchasePriceBp = Gp_KeyItemDescs[itemId - ITEM_TEXT_KEY_ID_FIRST].price;
+        purchasePriceBp = gItemKeyDescriptors[itemId - ITEM_TEXT_KEY_ID_FIRST].price;
     }
     purchasePriceBp >>= REPLAY_BONUS_ITEM_CREDIT_SHIFT;
     return purchasePriceBp;

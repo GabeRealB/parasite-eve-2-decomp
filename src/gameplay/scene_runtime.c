@@ -338,8 +338,7 @@ s32 D_80114D20;
 /// 0-terminated `_CdCmdSceneSoundBankBit` table walked by `_cdCmdSuspendSceneSoundRequests` / `cdCmdResumeSceneSoundRequests`.
 extern _CdCmdSceneSoundBankBit Gp_SndMaskTable[];
 
-/// Printed when an enemy's work block cannot be allocated.
-static const char Gp_StrNewEnemyNull[];
+static const char _gEnemyWorkAllocationFailureText[];
 
 static const EnemyTaskFuncTable3 _gEnemyTeardownDelayStates;
 
@@ -490,8 +489,6 @@ TaskDesc D_8010D1FC = { { { TASK_BODY_NONE, 192 } }, _loadingRestartPresentation
 
 static const TaskFuncTable3 Gp_StageLoadStates;
 static const VECTOR         D_80093A28;
-
-static const char Gp_StrNewEnemyNull[];
 
 /// Blends Euler pitch/yaw and clamps them without pulling an existing pose inward.
 ///
@@ -1219,7 +1216,7 @@ static Enemy* _enemyAllocateWork(Task* task, Enemy* parent)
 
     enemy = memCalloc(sizeof(*enemy), false);
     if (enemy == NULL) {
-        printf(Gp_StrNewEnemyNull);
+        printf(_gEnemyWorkAllocationFailureText);
         taskKill(task);
         return NULL;
     }
@@ -4573,8 +4570,8 @@ static inline s16 _gpScanHeldQty(InventoryItemRow* table, InventoryItemRange* sc
     return found;
 }
 
-/// Printed when an enemy's work block cannot be allocated.
-static const char Gp_StrNewEnemyNull[] = "new_enemy ---> NULL\n";
+/// NUL-terminated diagnostic printed when primary-heap enemy work allocation fails.
+static const char _gEnemyWorkAllocationFailureText[] = "new_enemy ---> NULL\n";
 
 /// Bodyless-enemy teardown states: initialize the 120-frame delay, count down, destroy.
 ///

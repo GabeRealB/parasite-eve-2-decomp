@@ -3480,9 +3480,9 @@ static void _actor00300FlyFireball(Enemy* enemy, Task* task)
             _fireballDrawGlow(coord, ACTOR_00300_FIREBALL_GLOW_SIZE);
             // Consume the sweep contact before the next collision pass.
             surfaceKey = work->sweepContacts[0].key.value;
-            if (surfaceKey != 0 && Gp_RoomParamTables[gGameSession->location.loc.stage - 1]
-                                                     [gGameSession->location.loc.area - 1][worldCollisionSurfaceClassFromKey(surfaceKey)]
-                                                         ->probePassThrough == WORLD_COLLISION_SURFACE_BLOCK_PROBES) {
+            if (surfaceKey != 0 && gWorldCollisionSurfacePropertiesTables[gGameSession->location.loc.stage - 1]
+                                                                         [gGameSession->location.loc.area - 1][worldCollisionSurfaceClassFromKey(surfaceKey)]
+                                                                             ->probePassThrough == WORLD_COLLISION_SURFACE_BLOCK_PROBES) {
                 blockedBySurface = 1;
             }
             worldCollisionClearContacts(work->sweepContacts);

@@ -189,31 +189,89 @@ bool capRelocateFile(CapFile* file);
 /// reset, terminal selection or the unstarted guard. No storage is owned here.
 extern CapSequenceRecord* gCapSelectedSequence;
 
-extern s16 D_801155AC;
+/// Current record phase (0 revealing text or action unissued, 1 text complete or action issued).
+///
+/// Text drawing publishes 0/1; phase 1 waits for display/pause timing, user
+/// confirmation or the singleton action request's completion. Starting playback
+/// and advancing to a new ordinary record restore phase 0.
+extern s16 gCapRecordPhase;
 
-extern u16 D_801155AE;
+/// Active sequence slot cursor, stored as u16 and interpreted as s16 for addressing.
+///
+/// Slot zero is the command header; selected records and terminators must be
+/// reachable within the borrowed sequence at indices 1..32767. Advancement wraps
+/// the stored halfword before the next keyed scan. Keep the explicit signed view.
+extern u16 gCapRecordIndex;
 
-extern s16 D_801155B0;
+/// Inclusive visible-code cursor into the current u16 CAP text stream.
+///
+/// Starts at zero and advances one code after the reveal-delay gate opens.
+/// Controls consume indices as well as glyphs. Addressing uses signed-halfword
+/// indices, so the stream and any exposed one-past cursor must fit 0..32767.
+/// Timed completion can advance it once past the terminator before the callback
+/// observes it;
+/// that extra element must be readable in the containing file.
+extern s16 gCapRevealCodeIndex;
 
-extern s16 D_801155B2;
+/// Cached left pen of the centered CAP text block, in screen pixels.
+///
+/// Used for both background edges and left-aligned lines; drawing subtracts
+/// the screen-center X to obtain its pen coordinate. Playback recomputes this
+/// from the current text before drawing; startup seeds provisional geometry.
+extern s16 gCapTextBlockLeftX;
 
-extern s16 D_801155B4;
+/// Cached first CAP text baseline, in screen pixels.
+///
+/// Measured for each selected text block. Drawing subtracts screen-center Y,
+/// then removes vertical shake when emitting glyphs.
+extern s16 gCapFirstBaselineY;
 
-extern s16 D_801155B6;
+/// Cached CAP text-box height in pixels, measured from break-terminated lines.
+///
+/// Background and title drawing subtract it from the fixed box bottom. Empty
+/// text measures zero. Selected nonterminal records refresh it before drawing.
+extern s16 gCapTextBoxHeight;
 
-extern u8 D_801155B8;
+/// Glyph-adjustable threshold for the elapsed CAP code-reveal update counter.
+///
+/// Startup seeds 7; each drawn glyph replaces it with an even value 0..14 from
+/// its code attributes. A signed-byte comparison occurs before incrementing
+/// the elapsed counter: from zero, a limit N advances after N + 1 eligible
+/// updates. Transition, freeze and other playback gates do not count.
+extern u8 gCapRevealDelayLimit;
 
 extern s8 D_801155B9;
 
-extern u8 D_801155BA;
+/// Playback ticks left before a mode-2 placed-action frame capture and prompt.
+///
+/// Zero is idle; dispatch arms four and eligible playback ticks count down to
+/// zero before switching the saved view, capturing and spawning the prompt.
+/// The task's presentation and transition gates can defer those ticks.
+extern u8 gCapActionCaptureFramesRemaining;
 
-extern u8 D_801155BB;
+/// Pending record-requested view phase (0 none, 1 view change, 2 view change with scene sync).
+///
+/// A changed saved view arms 1; a scene-control record advances it to 2 and
+/// supplies that value to the synchronization receiver. View readiness or sync
+/// completion clears it. Embedded text-view transitions use separate state.
+extern u8 gCapPendingViewPhase;
 
-extern s16 D_801155BC;
+/// Embedded text-view transition state (0 initial, 2 waiting, 1 completed).
+///
+/// A text control code requesting queued playback's view transition sets 2.
+/// Playback waits until the stage transition finishes, then retains 1 until
+/// the next sequence initializes the state. In-place view changes do not arm it.
+extern s16 gCapTextViewTransitionState;
 
 extern s16 D_801155BE;
 
-extern s16 D_801155C0;
+/// Zero-based highlighted choice in the current laid-out CAP text block.
+///
+/// Stable selection is in [0, choice count); directional input tentatively
+/// steps the signed halfword, then restores the prior index if out of range.
+/// Startup and record advancement reset it to zero, also used with no choices.
+/// Confirmation copies it to `gCapConfirmedChoiceIndex` before resetting it.
+extern s16 gCapSelectedChoiceIndex;
 
 /// Starts playback of a relocated CAP sequence for the supplied variant key.
 ///
@@ -239,12 +297,31 @@ extern s16 D_801155C0;
 /// pointer even if accepted; task allocation and queue rejection are unchecked.
 s32 capStartSequence(CapSequenceRecord* sequence, s16 playbackMode, s16 variantKey);
 
-/// Pointer to the loaded `.pe2cap2` blob (folder slot type 3).
-extern u8 D_80115688;
+/// Sequence view-change suppression choices; embedded text controls are independent.
+enum {
+    CAP_SEQUENCE_VIEW_CHANGES_ENABLED    = 0,
+    CAP_SEQUENCE_VIEW_CHANGES_SUPPRESSED = 1
+};
 
-extern s16 D_80115698;
+/// Suppresses view changes requested by sequence view-control records when nonzero.
+///
+/// Sequence startup clears this byte; an event-script skip sets it. Embedded
+/// text-view controls have a separate path and do not consult this latch.
+extern u8 gCapSuppressViewChanges;
 
-extern s16 D_8011569A;
+/// Eligible playback frames left displaying completed timed-record text.
+///
+/// Loaded from the record's displayFrames byte, then adjusted for scene-sync
+/// lateness and clamped at zero. Counts down before the pause begins; a resume
+/// message clears both waits. Halfword storage retains truncating arithmetic.
+extern s16 gCapDisplayFramesRemaining;
+
+/// Eligible playback frames left in a timed record's following text-free pause.
+///
+/// Zero permits advancement; `CAP_SEQUENCE_PAUSE_UNTIL_RESUMED` (255) stays
+/// pending until a resume message clears both waits. Initialized from the
+/// record byte and adjusted for scene-sync lateness with halfword truncation.
+extern s16 gCapPauseFramesRemaining;
 
 extern u8 D_8011569C;
 

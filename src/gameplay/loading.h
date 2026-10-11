@@ -343,8 +343,14 @@ void loadingInitRoomResourcesTask(Task* task);
 /// sufficient current-frame packet storage and a 1024-tag depth-sorted OT.
 void loadingUpdateRoomResourcesTask(Task* task);
 
-/// Per-stage pointer table. Index is `GameSession.location.loc.stage - 1`.
-extern ViewCameraTable* Gp_ViewTables[];
+/// Five stage-map directories of per-area mapped-camera arrays.
+///
+/// Select the directory with stage - 1 (stages 1..5), then area - 1 with
+/// extents 20, 38, 38, 49 and 33. Each camera array has its own extent and some
+/// areas are NULL. Lookups require populated slots and an in-range mapped
+/// camera index; `ViewCameraTable` defines the 1-based camera convention.
+/// The selected map and room overlays must stay loaded through borrowed use.
+extern ViewCameraTable* gViewCameraTables[5];
 
 extern DR_STP D_80114C50;
 

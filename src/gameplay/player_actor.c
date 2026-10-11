@@ -7866,7 +7866,7 @@ s32 playerActorSpawnWeaponImpact(const WorldCollisionContact* contacts, const Gf
             if (distance < nearestDistance) {
                 worldCollisionResolveResponsePushback(contact, &scratch->pushback, 1, &surfaceClass);
                 surfaceClass = worldCollisionSurfaceClassFromMask((const u8*)&surfaceClass);
-                if (Gp_RoomParamTables[gGameSession->location.loc.stage - 1][gGameSession->location.loc.area - 1][surfaceClass]->weaponImpactEnabled != WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS) {
+                if (gWorldCollisionSurfacePropertiesTables[gGameSession->location.loc.stage - 1][gGameSession->location.loc.area - 1][surfaceClass]->weaponImpactEnabled != WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS) {
                     nearestDistance     = distance;
                     nearestContactIndex = contactIndex;
                 }
@@ -7942,7 +7942,7 @@ s32 playerActorPlayFootstepCue(Task* task)
         switch (cueBits = record->flags & ANIMATION_RECORD_CUE_MASK) {
             case ANIMATION_RECORD_CUE_1:
             case ANIMATION_RECORD_CUE_2:
-                footstepSounds = Gp_RoomParamTables[gGameSession->location.loc.stage - 1][gGameSession->location.loc.area - 1][actor->surfaceClass]->footstepSounds;
+                footstepSounds = gWorldCollisionSurfacePropertiesTables[gGameSession->location.loc.stage - 1][gGameSession->location.loc.area - 1][actor->surfaceClass]->footstepSounds;
                 if (footstepSounds != NULL) {
                     if (*(s32*)&actor->mode == PLAYER_ACTOR_FOOTSTEP_STAIR_CLIMB_MODE_STATE) {
                         soundEvent = footstepSounds->scriptedJump;

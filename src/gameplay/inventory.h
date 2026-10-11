@@ -47,7 +47,7 @@ enum {
 
 /// Stats for one armor item, ids 0x60–0x7F.
 ///
-/// `Gp_ModStatAttrs` holds one row per id, indexed by the id minus 0x60.
+/// `gEquipmentArmorStats` holds one row per id, indexed by the id minus 0x60.
 /// While that armor is equipped, `hpBonus` is added to max HP and `mpBonus`
 /// to max MP. `baseAttachmentSlots` plus the save's per-armor level bonus,
 /// clamped to `ARMOR_ATTACHMENT_SLOT_MAX`, is how many attachment slots it has.

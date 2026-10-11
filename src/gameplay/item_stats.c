@@ -459,7 +459,7 @@ void itemMenuInfoTask(Task* task)
                 labelRequest.drawMode   = TEXT_DRAW_OUTLINED;
                 textDrawString(&labelRequest, gItemMenuWeaponOperationLabel);
             } else if ((u32)(itemId - ITEM_MENU_INFO_ARMOR_ITEM_FIRST) < (u32)ITEM_MENU_INFO_EQUIPMENT_ITEM_COUNT) {
-                armorStats            = &Gp_ModStatAttrs[(itemId)-ITEM_MENU_INFO_ARMOR_ITEM_FIRST];
+                armorStats            = &gEquipmentArmorStats[(itemId)-ITEM_MENU_INFO_ARMOR_ITEM_FIRST];
                 displayedFeatureCount = 0;
                 bonusColorRgb         = ITEM_MENU_INFO_BONUS_COLOR;
                 rowX                  = 2;

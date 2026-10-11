@@ -1074,7 +1074,7 @@ void worldCollisionLoadSurfacePushbackFlags(void)
     }
 
     session           = gGameSession;
-    surfaceProperties = Gp_RoomParamTables[session->location.loc.stage - 1][session->location.loc.area - 1];
+    surfaceProperties = gWorldCollisionSurfacePropertiesTables[session->location.loc.stage - 1][session->location.loc.area - 1];
     for (surfaceClass = 0; surfaceClass < ARRAY_SIZE(gWorldCollisionSurfacePushbackSuppression); surfaceClass++) {
         gWorldCollisionSurfacePushbackSuppression[surfaceClass] = surfaceProperties[surfaceClass]->suppressPushback;
     }

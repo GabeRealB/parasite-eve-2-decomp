@@ -371,12 +371,19 @@ enum { ITEM_DESCRIPTOR_COUNT = 0xC0 };
 /// 0x60..0x7F, weapons at 0x80..0x9F and consumables at 0xA0..0xBF.
 /// Parasite Energy level entries occupy 0x0F..0x32.
 /// Row zero and unused ids share empty text. Rows and borrowed text remain
-/// readable while gameplay is loaded; key items use `Gp_KeyItemDescs`.
+/// readable while gameplay is loaded; key items use `gItemKeyDescriptors`.
 extern ItemDesc gItemDescriptors[ITEM_DESCRIPTOR_COUNT];
 
-/// Item descriptors for ids from 0x100 up, indexed by `id - 0x100`.
-/// Key-item rows, indexed by item id minus 0x100.
-extern ItemDesc Gp_KeyItemDescs[];
+/// Number of key-item catalogue rows, including unused entries.
+enum { ITEM_KEY_DESCRIPTOR_COUNT = 0x80 };
+
+/// Prices, key-item classifications, restrictions and six-field text for ids 0x100..0x17F.
+///
+/// Indexed by item id minus 0x100. Empty rows share empty text; a populated row
+/// has category 4 and subtype 0. Rows and borrowed text live while gameplay is
+/// loaded. The descriptor array has no terminator. Raw text dispatch does not
+/// enforce this bound; ids 0x180..0x2FF are outside this object's extent.
+extern ItemDesc gItemKeyDescriptors[ITEM_KEY_DESCRIPTOR_COUNT];
 
 /// Weapon quantity/related-id rows, indexed by item id minus 0x80.
 extern EquipmentWeaponLoadOptionsTable Gp_RelatedQty0;

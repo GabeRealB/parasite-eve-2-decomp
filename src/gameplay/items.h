@@ -334,7 +334,12 @@ void inventoryInitializeNewGame(void);
 /// fixups are performed; borrowed row pointers may identify different items afterwards.
 void inventoryMoveItemRow(const InventoryItemRange* range, s32 sourceIndex, s32 destinationIndex);
 
-extern ArmorStats Gp_ModStatAttrs[];
+/// Armor feature bits, HP/MP bonuses and base attachment slots for ids 0x60..0x7F.
+///
+/// Indexed by armor item id minus 0x60, or equipped armor selection minus one
+/// (selections 1..32; zero is unarmored and must be checked before indexing).
+/// Rows are gameplay-owned and remain readable while its overlay is loaded.
+extern ArmorStats gEquipmentArmorStats[32];
 
 // Shared item-publication work.
 extern u16 Gp_PubItemReady;

@@ -53,7 +53,7 @@ static inline void _equipmentRecalculateMaxHp(PlayerStatus* status, const Player
     maximumHp    += save->state.hpBonus;
     status->hpMax = maximumHp;
     if (status->armor != PLAYER_STATUS_EQUIPMENT_NONE) {
-        maximumHp    += Gp_ModStatAttrs[status->armor - 1].hpBonus;
+        maximumHp    += gEquipmentArmorStats[status->armor - 1].hpBonus;
         status->hpMax = maximumHp;
     }
     if (status->hpMax >= PLAYER_STATUS_STAT_MAX + 1) {
@@ -509,7 +509,7 @@ void equipmentRecalculateMaxMp(void)
         spellLevels++;
     }
     if (status->armor != PLAYER_STATUS_EQUIPMENT_NONE) {
-        maximumMp += Gp_ModStatAttrs[status->armor - 1].mpBonus;
+        maximumMp += gEquipmentArmorStats[status->armor - 1].mpBonus;
     }
     modeStats     = Gp_StatRows;
     save          = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];

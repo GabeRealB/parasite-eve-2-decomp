@@ -1065,7 +1065,7 @@ one).
 m2c reads the two labels off the asm and renders them as
 
 ```c
-case 0: ... D_80115690 = 1;
+case 0: ... gCapPreserveActorControl = 1;
 block_11:
         arg0->state += 1;
         return;
@@ -1084,7 +1084,7 @@ is one `lw` where the target has two, the tail in the wrong place, and
 Writing the natural form - no labels, each case spelling out `index->state++` -
 scores **99.706%** with `blocks=14/14 predicates_match=True calls_match=True`.
 The `.jump2` dump shows why: sched1 has already hoisted case 0's `lw` above
-`lui`/`sb D_80115690`, so the cross-jump walk (which stops at the first
+`lui`/`sb gCapPreserveActorControl`, so the cross-jump walk (which stops at the first
 difference, walking backwards pairwise) matches `sw` and `addiu`, then hits
 `sb` against the tail's `lw` and stops. The merge point lands below the load,
 exactly where the target has it. Nothing else was needed - the remaining
@@ -24772,7 +24772,7 @@ done:
 The argument/return must be `s32` so GCC does not emit `sll`/`sra 16`
 around the index. Callers compiled against the old `s16` prototype still
 need that extend: pass `(s16)u16_index` so the call site keeps
-`sll`/`sra 16` in the `jal` delay (`_capAdvanceRecord` / `D_801155AE`).
+`sll`/`sra 16` in the `jal` delay (`_capAdvanceRecord` / `gCapRecordIndex`).
 `capFindVariantRecord` is the example.
 
 ## Sparse switch on `x & 0xFFFF0000` needs a signed mask for `slt`
@@ -56605,7 +56605,7 @@ assignment:
     worldCollisionResolveResponsePushback(work->capsuleContacts, &scratch->delta, 1, &surfaceClass);
     surfaceClass = worldCollisionSurfaceClassFromMask((const u8*)&surfaceClass);
 check:
-    surface = Gp_RoomParamTables[...][...][surfaceClass];   /* reload: `check` is a join */
+    surface = gWorldCollisionSurfacePropertiesTables[...][...][surfaceClass];   /* reload: `check` is a join */
     ...
     goto move;
 trySphereContacts:
@@ -90101,10 +90101,10 @@ table, so `overlay_dup_index.py promote` refuses it - the "body references its
 own overlay's data" case the promote docstring measures at 39 of 42 clusters.
 
 The same split holds when the offset is written as the index: taking the
-element's *address* folds it. `Gp_ModStatAttrs[armor + 0x5F].features` keeps
-`addiu 0x5f` before the `sll 3`, whereas `attr = &Gp_ModStatAttrs[armor + 0x5F];
+element's *address* folds it. `gEquipmentArmorStats[armor + 0x5F].features` keeps
+`addiu 0x5f` before the `sll 3`, whereas `attr = &gEquipmentArmorStats[armor + 0x5F];
 attr->features` (`&` of an ARRAY_REF is rebuilt as `pointer + int`) emits
-`sll 3; addu` against `%lo(Gp_ModStatAttrs+0x2f8)` (equipmentHasEffect). Where splat
+`sll 3; addu` against `%lo(gEquipmentArmorStats+0x2f8)` (equipmentHasEffect). Where splat
 names that folded address after an unrelated symbol (`Gp_RelatedQty0+0x78`),
 a matched function had been hand-building `armor * 8 + &sym` with pins; the
 address-of form removed them.
@@ -121440,7 +121440,7 @@ not cosmetic: it moves the walk pointer into `$a1` and the session pointer into
 
 ```c
 for (overrideIndex = 0; overrides[overrideIndex].properties != NULL; overrideIndex++) {    /* not  for (p = overrides; p->properties; p++) */
-    surfaceProperties = Gp_RoomParamTables[location->stage - 1][location->area - 1];
+    surfaceProperties = gWorldCollisionSurfacePropertiesTables[location->stage - 1][location->area - 1];
     surfaceProperties[overrides[overrideIndex].surfaceClass] = overrides[overrideIndex].properties;
     gWorldCollisionSurfacePushbackSuppression[overrides[overrideIndex].surfaceClass] = surfaceProperties[overrides[overrideIndex].surfaceClass]->suppressPushback;
 }
@@ -144849,7 +144849,7 @@ which `true_dependence` lets run ahead of a store to a plain global. Making
 the position an array member and reading it through the decayed pointer,
 `pos = choices[i].pos; x = pos[0]; y = pos[1];`, gives a non-struct `x` load
 (`pos[0]` folds to `*pos`) that keeps the edge to the store. Two tie-breaks
-finished it. `i = D_801155C0; choices = D_801155D0;` before `&choices[i]`
+finished it. `i = gCapSelectedChoiceIndex; choices = D_801155D0;` before `&choices[i]`
 emits the base address between the index load and its shift, which is the
 order the target's luis follow. The adjusted y went into its own
 single-set local (`top = -(off + 2) + y`), so the `y` load keeps sched1's

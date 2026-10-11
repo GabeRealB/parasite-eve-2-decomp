@@ -785,7 +785,7 @@ static void _neoArkPyramidRotationPuzzleTask(Task* task)
             task->state++;
             break;
         case NEO_ARK_PYRAMID_ROTATION_WAIT_PROMPT:
-            D_80115690 = NEO_ARK_PYRAMID_ROTATION_KEEP_ACTORS_HELD;
+            gCapPreserveActorControl = NEO_ARK_PYRAMID_ROTATION_KEEP_ACTORS_HELD;
             if (capIsBusy() == 0) {
                 task->state++;
             }
@@ -819,7 +819,7 @@ static void _neoArkPyramidRotationPuzzleTask(Task* task)
             }
             break;
         case NEO_ARK_PYRAMID_ROTATION_WAIT_COMPLETION:
-            D_80115690 = NEO_ARK_PYRAMID_ROTATION_KEEP_ACTORS_HELD;
+            gCapPreserveActorControl = NEO_ARK_PYRAMID_ROTATION_KEEP_ACTORS_HELD;
             if (capIsBusy() == 0) {
                 task->state = NEO_ARK_PYRAMID_ROTATION_EXIT;
             }

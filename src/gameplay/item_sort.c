@@ -722,7 +722,7 @@ const u8* itemGetText(s32 itemId, s32 fieldIndex, s32 forceIdentified)
         if (itemId < ITEM_TEXT_KEY_ID_FIRST) {
             descriptor = &gItemDescriptors[itemId];
         } else {
-            descriptor = &Gp_KeyItemDescs[(itemId)-ITEM_TEXT_KEY_ID_FIRST];
+            descriptor = &gItemKeyDescriptors[(itemId)-ITEM_TEXT_KEY_ID_FIRST];
         }
         if (forceIdentified == 0) {
             forceIdentified = _itemIsIdentified(itemId);

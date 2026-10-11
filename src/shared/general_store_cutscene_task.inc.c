@@ -60,8 +60,8 @@ static void _generalStoreUnderpassTransitionTask(Task* task)
             sndEvtRequestStageScriptStart(SOUND_GENERAL_STORE_UNDERPASS_PROMPT, 0, 0);
             gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
             capRunCommandWithTransition(GENERAL_STORE_TRANSITION_CAP_COMMAND);
-            D_80115690   = GENERAL_STORE_CAP_KEEP_ACTORS_PAUSED;
-            task->state += 1;
+            gCapPreserveActorControl = GENERAL_STORE_CAP_KEEP_ACTORS_PAUSED;
+            task->state             += 1;
             return;
         case GENERAL_STORE_TRANSITION_CHECK_CHOICE:
             if (capGetVariantKey() == GENERAL_STORE_TRANSITION_ACCEPT_KEY) {

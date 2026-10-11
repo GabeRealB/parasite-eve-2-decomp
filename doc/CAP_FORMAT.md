@@ -68,7 +68,7 @@ and `commands.offset`, then walks both tables:
 
   Every nonzero word is a file-relative offset of a sequence command, slot zero
   of that sequence, and is rebased. Zero stays null and names no sequence.
-  `Gp_CapCmds` is the published `entries` pointer. Playback indexes those words
+  `gCapCommandEntries` is the published `entries` pointer. Playback indexes those words
   by the caller's command index. `count` is the relocation bound.
 
   On every retail payload with a nonzero sequence count the index is packed at
@@ -85,11 +85,11 @@ Then:
 
 ```c
 Gp_CapGlyphs = file->glyphs.cells;
-Gp_CapCmds   = file->commands.table->entries;
+gCapCommandEntries   = file->commands.table->entries;
 ```
 
-`Gp_CapCmds[i].command` is the `CapCommand*` in slot zero, and
-`Gp_CapCmds[i].sequence` is that same address indexed as `CapSequenceRecord`
+`gCapCommandEntries[i].command` is the `CapCommand*` in slot zero, and
+`gCapCommandEntries[i].sequence` is that same address indexed as `CapSequenceRecord`
 values. Playback starts at slot one.
 
 ## 3. Event records — `CapSequenceRecord` (0xC)
