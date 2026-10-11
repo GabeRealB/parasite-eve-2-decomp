@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
-"""Record what the running game does, through DuckStation's GDB server.
+"""Record what the running game does, through a GDB server.
 
     gametrace.py run   [--config tools/gametrace/events.toml] [--out local/gametrace/trace.jsonl]
+                       [--host HOST] [--port PORT]      (these override the config's [gdb] section)
     gametrace.py check [--config ...]     resolve the events, build the patch blob, show both; no connection
     gametrace.py blob  [--config ...]     write the assembled blob and its listing under local/gametrace/
 
@@ -9,10 +10,10 @@ One config file lists the events: an id, a name, the address of a function, and 
 breakpoint or by a patch. Every event is recorded the same way - its id and the registers at the function's entry
 - and what the numbers mean is decided afterwards, by whoever reads the log. Nothing in the game's files changes.
 
-  breakpoint  the emulator stops at the address, this tool reads the registers and continues. Nothing is written
+  breakpoint  the target stops at the address, this tool reads the registers and continues. Nothing is written
               into the game. Each hit is a round trip, so it suits events that happen a few times a second.
-  patch       the function's first two instructions are replaced by a jump to a small stub above 2 MB (the emulator
-              must run with 8 MB of memory). The stub calls one shared handler, which appends a record to a ring
+  patch       the function's first two instructions are replaced by a jump to a small stub at `blob.address` (the target
+              must have memory there that the game leaves alone; by default that is just above 2 MB). The stub calls one shared handler, which appends a record to a ring
               buffer, then runs the two displaced instructions and returns to the third. This tool reads the ring
               at the `drain` address, where it holds one breakpoint. It suits events too frequent to stop for.
 
@@ -244,7 +245,8 @@ def originals_of(cfg: dict) -> dict[int, tuple[int, int]]:
     return out
 
 
-# ---- the GDB remote protocol, as far as DuckStation's server speaks it: ? g m M c Z z
+# ---- the GDB remote protocol. Only the packets every stub has are used: ? g m M c Z z
+# (memory is written with `M`, in hex, because not every server takes the binary `X`).
 
 class Gdb:
     def __init__(self, host: str, port: int) -> None:
@@ -267,7 +269,7 @@ class Gdb:
                 return packet.decode(errors="replace")
             chunk = self.sock.recv(65536)
             if not chunk:
-                raise ConnectionError("the emulator closed the connection")
+                raise ConnectionError("the GDB server closed the connection")
             self.buf += chunk
 
     def ask(self, payload: str) -> str:
@@ -287,7 +289,7 @@ class Gdb:
             n = min(0x400, length - len(out))
             reply = self.ask(f"m{address + len(out):x},{n:x}")
             if reply.startswith("E") or not reply:
-                raise OSError(f"the emulator refused to read {n} bytes at {address + len(out):#010x}: {reply!r}")
+                raise OSError(f"the GDB server refused to read {n} bytes at {address + len(out):#010x}: {reply!r}")
             out += bytes.fromhex(reply)
         return out
 
@@ -296,12 +298,12 @@ class Gdb:
             piece = data[at:at + 0x200]
             reply = self.ask(f"M{address + at:x},{len(piece):x}:{piece.hex()}")
             if reply != "OK":
-                raise OSError(f"the emulator refused to write {len(piece)} bytes at {address + at:#010x}: {reply!r}")
+                raise OSError(f"the GDB server refused to write {len(piece)} bytes at {address + at:#010x}: {reply!r}")
 
     def breakpoint(self, address: int, on: bool = True) -> None:
         reply = self.ask(f"{'Z' if on else 'z'}1,{address:x},4")
         if reply != "OK":
-            raise OSError(f"the emulator refused a breakpoint at {address:#010x}: {reply!r}")
+            raise OSError(f"the GDB server refused a breakpoint at {address:#010x}: {reply!r}")
 
     def resume(self) -> str:
         """Continue, and wait for the next stop."""
@@ -341,7 +343,7 @@ class Session:
             try:
                 self.gdb.write(base, self.code)
             except OSError as error:
-                raise SystemExit(f"{error}\nThe patch blob lives at {base:#010x}: the emulator has to run with 8 MB of memory.")
+                raise SystemExit(f"{error}\nThe patch blob lives at {base:#010x} (blob.address): the target has to have writable memory there.")
             self.gdb.breakpoint(self.cfg["blob"]["drain"])
             self.install()
         for address in self.by_address:
@@ -419,8 +421,14 @@ def main() -> int:
     ap.add_argument("command", choices=["run", "check", "blob"])
     ap.add_argument("--config", type=Path, default=Path(__file__).with_name("events.toml"))
     ap.add_argument("--out", type=Path, default=OUT / "trace.jsonl")
+    ap.add_argument("--host", help="the GDB server's address, instead of the config's gdb.host")
+    ap.add_argument("--port", type=int, help="the GDB server's port, instead of the config's gdb.port")
     args = ap.parse_args()
     cfg = load(args.config)
+    if args.host:
+        cfg["gdb"]["host"] = args.host
+    if args.port:
+        cfg["gdb"]["port"] = args.port
     names = Names()
     if args.command in ("check", "blob"):
         for event in cfg.get("event", []):
@@ -436,7 +444,7 @@ def main() -> int:
     try:
         gdb = Gdb(cfg["gdb"]["host"], cfg["gdb"]["port"])
     except OSError as error:
-        raise SystemExit(f"no GDB server at {cfg['gdb']['host']}:{cfg['gdb']['port']} ({error}). Enable it in DuckStation and check the port in the config.")
+        raise SystemExit(f"no GDB server at {cfg['gdb']['host']}:{cfg['gdb']['port']} ({error}). Start the server, or give its address with --host and --port.")
     with args.out.open("a", encoding="utf-8") as out:
         session = Session(cfg, gdb, out)
         try:
