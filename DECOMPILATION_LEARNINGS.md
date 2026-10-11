@@ -142187,7 +142187,7 @@ A switch whose target shares one error tail between several cases was matched
 with gotos and some twenty asm blocks carrying the control flow. The sharing
 is GCC's cross-jumping (`jump.c`), which merges identical code at the end of
 branches: write each case out in full and let the compiler merge them. Which
-copy survives depends on how the paths leave: with `_fsHandleCdError(FS_ERROR_SOFT); break;`
+copy survives depends on how the paths leave: with `_fsHandleCdError(FILE_SYSTEM_CD_RECOVERY_RESTART_REQUEST); break;`
 the cases fold into the last case's copy as in the target, while `return 0;`
 keeps the first case's copy instead. Ordinary exits `break` to one return after
 the switch. When the target has one shared tail that several cases jump to,

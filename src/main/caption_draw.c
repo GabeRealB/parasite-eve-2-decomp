@@ -46,10 +46,19 @@ s32 textDrawStream(TextStream* stream, u8* phase, s16* framesLeft, s32 skipMarke
     s32            glyphIndex;
     u8             scriptByte;
 
-    /// Queues the revealed prefix, retaining pen advance for filtered glyphs.
+    /// Queues glyphs before the reveal cursor and their additive texture page.
     ///
-    /// Captures stream, draw, skipMarkedGlyphs, byteIndex, glyphIndex and scriptByte.
-    /// Requires initialized draw attributes and enough primitive/OT storage.
+    /// Captures `stream`, `draw`, `skipMarkedGlyphs`, `byteIndex`, `glyphIndex`
+    /// and `scriptByte`, overwriting the pen and scratch values. The cursor is
+    /// an excluded byte index into readable text, not a glyph count. Line breaks
+    /// reset X and advance Y by the pixel line height; the end byte does nothing.
+    /// Every other byte must select a live glyph through its low seven bits.
+    /// Marked glyphs can be suppressed and zero-height glyphs emit no sprite;
+    /// both still advance X by the glyph's pixel width. Texture V retains its
+    /// low byte and U includes the page's low six bits. Requires initialized
+    /// draw attributes and enough primitive/OT storage. Captures the enclosing
+    /// page-mask constant; no configuration binding is required.
+    /// Invoke as a standalone statement within the reveal case's compound block.
 #define TEXT_DRAW_STREAM_PREFIX()                                                                        \
     {                                                                                                    \
         for (byteIndex = 0; byteIndex < stream->cursor; byteIndex++) {                                   \

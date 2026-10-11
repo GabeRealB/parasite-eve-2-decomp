@@ -816,8 +816,13 @@ void memCopyBytes(const void* source, void* destination, u32 sizeBytes)
     /// regions with the same residue modulo four. Cursor/count arguments must
     /// be stable distinct lvalues outside those regions, with no evaluation
     /// side effects: const u8*, u8* and u32. Alignment is a u32 residue in 0..3,
-    /// evaluated once. The selected chunk advances both pointers by 4, 3, 2 or
-    /// 1 bytes; the arguments have no captured surrounding identifiers.
+    /// evaluated once and must equal the source address modulo four. The
+    /// selected chunk advances both pointers by 4, 3, 2 or 1 bytes and subtracts
+    /// that amount from the full u32 count. The caller also requires the low
+    /// halfword to be at least four, so no borrow changes its high bits. A residue
+    /// outside 0..3 changes nothing. Alignment is recomputed after each chunk.
+    /// The casts select aligned word/halfword access widths; they do not
+    /// describe a containing object. No locals or configuration are captured.
 #define MEMORY_COPY_ALIGNED_CHUNK(sourceCursor, destinationCursor, bytesRemaining, sourceAlignment) \
     do {                                                                                            \
         switch ((sourceAlignment)) {                                                                \

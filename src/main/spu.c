@@ -8,11 +8,17 @@
 
 #include "sound_types.h"
 
-/// Number of hardware voices the SPU mixes; voice indices run below it.
+/// Hardware voice count and maximum number of distinct queued voice updates.
+///
+/// Valid indices are 0..23, matching one low mask bit per hardware channel.
+/// Counted walks use an excluded upper bound; it is not a valid voice index.
 #define SPU_VOICE_COUNT 24
 
-/// Audio ticks after a key-on request during which a voice reading
-/// `SPU_ON_ENV_OFF` is not yet taken to have finished.
+/// Countdown seeded by ordinary, silent-block and CD-stream key-on requests.
+///
+/// Voice ticks decrement before judging SPU_ON_ENV_OFF: a reload of five
+/// protects that status for four such ticks and permits release on the fifth.
+/// SPU_OFF releases immediately, even while this countdown remains nonzero.
 #define SPU_KEY_ON_GRACE_TICKS 5
 
 /// SPU byte address and envelope words used when parking a voice on silence.
@@ -179,19 +185,27 @@ STATIC_ASSERT_SIZEOF(_gSpuSilentLoopAdpcm, 48);
 
 /// Selects the same SPU byte address for a queued voice's start and loop.
 ///
-/// ref is a live SpuVoiceRef value, evaluated once; address is evaluated twice
-/// and must have no side effects. The caller selects the attribute mask.
+/// `ref` borrows writable attributes in the pending batch until its next flush.
+/// It is evaluated once; `address` is a u32 SPU byte address evaluated twice,
+/// loop before start, and must have no expression side effects. The caller
+/// selects WDSA and LSAX mask bits. Does not upload samples, key on or flush;
+/// captures no caller identifiers or configuration bindings.
+/// Expands to one statement and is undefined after the voice tick.
 #define SPU_SET_VOICE_SAMPLE_ADDRESS(ref, address) \
-    {                                              \
+    do {                                           \
         SpuVoiceAttr* attr = (ref).attr;           \
         attr->loop_addr    = (address);            \
         attr->addr         = (address);            \
-    }
+    } while (0)
 
 /// Sets a queued voice's signed left and right volume register values.
 ///
-/// ref is a live SpuVoiceRef value. Each argument is evaluated once, right
-/// before left; values are narrowed to s16. The caller selects the mask.
+/// `ref` borrows writable pending attributes until their next flush and is
+/// evaluated once. Volumes are register units narrowed to s16, right before
+/// left; each argument is evaluated once. The caller selects VOLL/VOLR mask
+/// bits and volume modes. Does not flush or key on; captures no caller locals
+/// or configuration bindings.
+/// Invoke as a standalone statement in a compound caller block.
 #define SPU_SET_VOICE_VOLUMES(ref, leftVolume, rightVolume) \
     {                                                       \
         SpuVoiceAttr* attr = (ref).attr;                    \
@@ -201,8 +215,13 @@ STATIC_ASSERT_SIZEOF(_gSpuSilentLoopAdpcm, 48);
 
 /// Sets a queued voice's left and right volume sweep modes.
 ///
-/// ref is a live SpuVoiceRef value. Each argument is evaluated once, right
-/// before left; modes are SPU_VOICE_* values. The caller selects the mask.
+/// `ref` borrows writable pending attributes until their next flush and is
+/// evaluated once. Each mode is evaluated once, right before left, and narrowed
+/// to s16. Modes are the SDK's direct or linear/exponential sweep selectors;
+/// direct mode uses the volume register values without a sweep. The caller
+/// selects VOLMODEL/VOLMODER mask bits. Does not flush or key on, and captures
+/// no caller identifiers or configuration bindings.
+/// Invoke within a compound caller block; undefined after voice initialization.
 #define SPU_SET_VOICE_VOLUME_MODES(ref, leftMode, rightMode) \
     {                                                        \
         SpuVoiceAttr* attr  = (ref).attr;                    \
@@ -212,9 +231,12 @@ STATIC_ASSERT_SIZEOF(_gSpuSilentLoopAdpcm, 48);
 
 /// Sets both packed ADSR register words in a queued voice's attributes.
 ///
-/// ref is a live SpuVoiceRef value, evaluated twice, and must have no side
-/// effects. Each word is evaluated once and narrowed to u16, adsr1 before
-/// adsr2. The caller selects the mask. Use as a statement inside braces.
+/// `ref` borrows writable pending attributes until their next flush, is
+/// evaluated twice and must have no expression side effects. Each packed word
+/// is evaluated once and narrowed to u16, ADSR1 before ADSR2. The caller selects
+/// both ADSR mask bits. These are raw rate/mode words, not durations in ticks.
+/// Does not flush or key on; captures no caller locals or configuration bindings.
+/// Expands to two scoped statements; invoke within a compound caller block.
 #define SPU_SET_VOICE_ADSR(ref, adsrWord1, adsrWord2) \
     {                                                 \
         SpuVoiceAttr* attr = (ref).attr;              \
@@ -376,6 +398,7 @@ void spuInitVoices(void)
 
     spuSetVoiceRange(SPU_VOICE_RANGE_SHARED, 16, 2);
 }
+#undef SPU_SET_VOICE_VOLUME_MODES
 
 /// Notifies a voice's registered owner when both handler and borrowed context are present.
 ///
@@ -561,6 +584,9 @@ void spuTickVoices(void)
         }
     }
 }
+#undef SPU_SET_VOICE_SAMPLE_ADDRESS
+#undef SPU_SET_VOICE_VOLUMES
+#undef SPU_SET_VOICE_ADSR
 
 void spuFlushVoiceUpdates(void)
 {

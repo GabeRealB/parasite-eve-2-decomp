@@ -1550,9 +1550,13 @@ static void _midiResetSongSlot(s32 songIndex)
     }
 }
 
-/// Reads the big-endian 32-bit value at `p`, the form every length in a
-/// Standard MIDI File takes.
-#define MIDI_READ_BE32(p) (((p)[0] << 24) | ((p)[1] << 16) | ((p)[2] << 8) | (p)[3])
+/// Reads an unsigned, big-endian MIDI chunk length from four consecutive bytes.
+///
+/// `bytes` is a stable u8 pointer with four readable bytes at any alignment.
+/// It is evaluated four times in an unspecified order and must have no side
+/// effects. Casts before shifting keep bit 31 unsigned; the result is u32.
+/// Captures no identifiers or configuration bindings and advances no cursor.
+#define MIDI_READ_BE32(bytes) (((u32)(bytes)[0] << 24) | ((u32)(bytes)[1] << 16) | ((u32)(bytes)[2] << 8) | (u32)(bytes)[3])
 
 /// Locates a track's first delta-time byte in a loaded MIDI chunk image.
 ///
@@ -1575,6 +1579,8 @@ static u8* _midiResolveTrackData(_MidiSong* song, s32 trackIndex, u8* sequenceDa
     chunkBytes = MIDI_READ_BE32(sequenceData + sizeof(chunkBytes));
     return sequenceData + MIDI_CHUNK_HEADER_BYTES + chunkBytes + MIDI_CHUNK_HEADER_BYTES;
 }
+
+#undef MIDI_READ_BE32
 
 /// Marks every active track ended so the song's tracks stop advancing.
 ///
@@ -1606,11 +1612,14 @@ static void _midiKeyOffSongVoices(_MidiSong* song)
     SpuVoiceRef    voiceRef;
     u16            adsr2;
 
-    /// Queues rate 5 using a halfword scratch lvalue, preserving all other bits.
+    /// Queues ADSR release rate 5 while retaining exponential mode and all other bits.
     ///
     /// `ref` is a SpuVoiceRef with writable attributes; `releaseBits` is a u16
-    /// scratch lvalue. Both arguments must be side-effect-free lvalues and are
-    /// evaluated repeatedly. Captures this function's release-rate constants.
+    /// scratch lvalue distinct from the attribute storage. Both arguments are
+    /// evaluated repeatedly and must have no expression side effects. Copies
+    /// ADSR2 through the scratch, then marks only ADSR2 for the next SPU flush;
+    /// does not key off or submit hardware writes. Captures this function's
+    /// release-rate constants and requires no configuration binding.
 #define MIDI_SET_FAST_RELEASE(ref, releaseBits)                                                           \
     do {                                                                                                  \
         (releaseBits)     = (ref).attr->adsr2;                                                            \

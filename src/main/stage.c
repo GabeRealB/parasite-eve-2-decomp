@@ -69,7 +69,7 @@ enum {
     STAGE_FADE_OPAQUE       = 0xFF,
 };
 
-/// Work the transition task still has to do. The ending request is the sign bit.
+/// Work the transition task still has to do; mode-task exit occupies the sign bit.
 enum {
     STAGE_REQUEST_FILE_LOAD  = 0x08000000, // Run the file-load transition
     STAGE_REQUEST_KEEP_VIEW  = 0x10000000, // View transition reuses the current view
@@ -83,8 +83,12 @@ enum {
     STAGE_REQUEST_KEEP_TRANSITION = STAGE_REQUEST_TRANSITION | STAGE_REQUEST_KEEP_VIEW,
 };
 
-/// Ending request, the sign bit of the request word.
-#define STAGE_REQUEST_ENDING 0x80000000u
+/// Requests mode-task teardown/reload through the request word's sign bit.
+///
+/// Set alone or together with a view transition. The transition controller
+/// detects it through signed-negative tests, advances its state and begins
+/// exit loading; the bit does not select the game's ending sequence.
+#define STAGE_REQUEST_MODE_TASK_EXIT 0x80000000u
 
 /// Resident state for a stage transition, the grey fade overlay and one queued mode task.
 ///
@@ -109,7 +113,7 @@ typedef struct {
     u8           fadeFlags;          // Overlay bits (1 additive, 2 front of the OT, 0x80 skip one step)
     u8           fadeMax;            // Level at which the fade is complete; STAGE_FADE_OPAQUE until lowered
     byte         unknown_1b;         // Role unproven; no direct access
-    u32          requestFlags;       // Pending work (file load, keep view, capture, view transition, ending)
+    u32          requestFlags;       // Pending work (file load, keep view, capture, view transition, mode-task exit)
     s32          pendingView;        // View slot copied into the session when a view transition starts
     s32          heldFrameBuffer;    // Framebuffer index captured for the current step; the step waits until presentation leaves it
     u32          transitionStep;     // Step of the view transition or the file-load transition
@@ -361,11 +365,17 @@ static void _stageStepFadeOverlay(void)
 /// The task argument is unused and the retained return value is always 1.
 static s32 _stageStepFileLoadTransition(Task* unused)
 {
-/// Clears and synchronizes both 320x240 VRAM framebuffers before publishing the latch.
-///
-/// Captures the writable RECT local frameRect and gDisplayState. The framebuffer
-/// index must be 0 or 1. Takes no arguments; expands to a compound statement and
-/// is undefined after this function. Each reset remains necessary across SDK calls.
+    /// Clears both load-transition framebuffers and waits for GPU completion.
+    ///
+    /// Captures the writable RECT local `frameRect`, `gDisplayState` and layout
+    /// constants. The live framebuffer index must be 0 or 1 and is read again
+    /// after the first SDK call. Clears the opposite buffer first, then the
+    /// current one: each is 320 VRAM halfwords by 240 rows, using the display stride.
+    /// Reinitializes the rectangle before each clear; it ends at the current
+    /// buffer. DrawSync waits before the caller publishes its cleared latch.
+    /// Requires exclusive ownership of both buffers; no configuration binding.
+    /// Invoke as a standalone statement in a compound block. The definition
+    /// ends after this transition helper.
 #define STAGE_CLEAR_LOAD_FRAMEBUFFERS()                                                  \
     {                                                                                    \
         frameRect.x = 0;                                                                 \
@@ -803,7 +813,7 @@ void stageStartModeController(void)
 
 s32 stageRequestModeTaskExit(void)
 {
-    _gStageTransitionState->requestFlags |= STAGE_REQUEST_ENDING;
+    _gStageTransitionState->requestFlags |= STAGE_REQUEST_MODE_TASK_EXIT;
     return 0;
 }
 
@@ -843,7 +853,7 @@ s32 stageRequestViewTransitionAndModeExit(s32 view)
         stage->transitionKind                 = STAGE_TRANSITION_KIND_7;
         stage->requestFlags                  |= transitionMask;
         previousView                          = gGameSession->location.loc.view;
-        _gStageTransitionState->requestFlags |= STAGE_REQUEST_ENDING;
+        _gStageTransitionState->requestFlags |= STAGE_REQUEST_MODE_TASK_EXIT;
     }
     return previousView;
 }

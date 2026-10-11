@@ -84,16 +84,20 @@ typedef struct {
 } _FsLoadRedirect;
 STATIC_ASSERT_SIZEOF(_FsLoadRedirect, 0xC);
 
-/// Canary value at the end of the STAGE0.HED header.
-#define FS_CDF_STAGE0_CANARY -1
+/// Signed -1 word terminating STAGE0.HED file and stream records.
+///
+/// Compared with a u32 file-id word as 0xFFFFFFFF before testing its sign bit
+/// for a stream record. Ends the read and pauses sector delivery.
+#define FILE_SYSTEM_STAGE0_HEADER_TERMINATOR -1
 
 /// Canary value at the end of the folder list.
 #define FS_CDF_FOLDER_CANARY 0
 
-// Args used by _fsHandleCdError
-#define FS_ERROR_SOFT 0x0
+/// Restarts the file request and releases any partial sound-bank load state.
+#define FILE_SYSTEM_CD_RECOVERY_RESTART_REQUEST 0x0
 
-#define FS_ERROR_HARD 0x2
+/// Resumes the current chunk at its next sector, retaining sound-bank load state.
+#define FILE_SYSTEM_CD_RECOVERY_RESUME_CHUNK 0x2
 
 /// Storage capacities of the resident indexed and compact CDF lookup tables.
 enum {
@@ -376,7 +380,7 @@ static u8 _gFsChunkEndMarker;
 /// including the final byte of some shortened palette streams.
 static u_long _gFsImageUploadBuffer[0x460];
 
-s32 gFsStageCdfBaseSectors[FS_CDF_STAGE_COUNT];
+s32 gFsStageCdfBaseSectors[FILE_SYSTEM_CDF_STAGE_COUNT];
 
 /// Saved token scratch value for the resumable LZSS decoder.
 ///
@@ -416,9 +420,11 @@ u16 gFsLzssUnreadBitMask;
 
 #include "main/fs.h"
 
-/// What `BreakDraw` returns when it cannot suspend the DMA transfer: the SDK's
-/// status value in place of a primitive address, never dereferenced.
-#define FS_DRAW_BREAK_FAILED ((u_long*)-1)
+/// SDK failure sentinel returned when draw DMA cannot be suspended.
+///
+/// This encoded -1 pointer is compared or forwarded to ContinueDraw, never
+/// dereferenced by the CPU. Its u_long* type matches BreakDraw's opaque result.
+#define FILE_SYSTEM_DRAW_BREAK_FAILED ((u_long*)-1)
 
 #include "fs.h"
 #include "main/stream.h"
@@ -449,16 +455,24 @@ static void _fsHandleCdError(u8 recoveryMode);
 
 static void _fsResumeDrawing(u_long* resumeAddress);
 
-/// Searches the mounted folder table from an initialized index to its active end.
+/// Finds a disc folder ID in the active prefix of the mounted stage folder table.
 ///
-/// Both arguments must be plain, stable local variables: they are read repeatedly
-/// and index is incremented. A missing ID leaves index at the active count.
-#define FILE_SYSTEM_FIND_FOLDER_INDEX(requestedId, index)                   \
-    for (; (u16)(index) < _gFsStageFolderCount; (index)++) {                \
-        if ((requestedId) == _gFsStageFolders[(index) & 0xFFFF].folderId) { \
-            break;                                                          \
-        }                                                                   \
-    }
+/// `requestedId` is a stable folder-number value; `index` is a writable s32
+/// cursor initially in 0..the active count. Both are evaluated repeatedly, with
+/// no expression side effects. Index tests and accesses use its low halfword;
+/// increments retain the full s32 value. Captures `_gFsStageFolders` and
+/// `_gFsStageFolderCount`, whose active prefix must fit the fifty-entry table.
+/// Leaves the first matching index, or the active count if missing. Callers
+/// that dereference the result require an existing ID. No configuration binding
+/// is required; this definition ends after the two folder consumers.
+#define FILE_SYSTEM_FIND_FOLDER_INDEX(requestedId, index)                       \
+    do {                                                                        \
+        for (; (u16)(index) < _gFsStageFolderCount; (index)++) {                \
+            if ((requestedId) == _gFsStageFolders[(index) & 0xFFFF].folderId) { \
+                break;                                                          \
+            }                                                                   \
+        }                                                                       \
+    } while (0)
 
 /// Unused initialized word; its original role is unproven.
 static s32 D_8005EBC0 = 0;
@@ -724,10 +738,10 @@ static void _fsChunkReadyCallback(u8 interruptStatus, u8* unusedResult)
 
         if (sectorPosition != gFsNextReadSector) {
             if ((_gFsReadingPayload != 0) && (_gFsPayloadPhase != FILE_SYSTEM_PAYLOAD_MUSIC)) {
-                _fsHandleCdError(FS_ERROR_HARD);
+                _fsHandleCdError(FILE_SYSTEM_CD_RECOVERY_RESUME_CHUNK);
                 return;
             }
-            _fsHandleCdError(FS_ERROR_SOFT);
+            _fsHandleCdError(FILE_SYSTEM_CD_RECOVERY_RESTART_REQUEST);
             return;
         }
 
@@ -738,7 +752,7 @@ static void _fsChunkReadyCallback(u8 interruptStatus, u8* unusedResult)
             loadComplete = _fsReadChunkPayloadSector();
         }
     } else {
-        _fsHandleCdError(FS_ERROR_SOFT);
+        _fsHandleCdError(FILE_SYSTEM_CD_RECOVERY_RESTART_REQUEST);
         return;
     }
 
@@ -793,7 +807,7 @@ static u8 _fsReadChunkHeaderSector(void)
             gFsLzssInputCursor    = gFsSectorBuffers.sector.chunk.data.bytes;
             fsDecompressStream();
             if (gFsLzssDecodeStatus == FILE_SYSTEM_LZSS_DECODE_SCRATCH_BUSY) {
-                _fsHandleCdError(FS_ERROR_SOFT);
+                _fsHandleCdError(FILE_SYSTEM_CD_RECOVERY_RESTART_REQUEST);
                 break;
             }
             if (gFsLzssDecodeStatus != FILE_SYSTEM_LZSS_DECODE_NEEDS_INPUT) {
@@ -811,7 +825,7 @@ static u8 _fsReadChunkHeaderSector(void)
             fsBeginImageColumns((const FsImageColumn*)gFsSectorBuffers.sector.chunk.data.bytes);
             payloadStatus = fsUploadImageStrips(FILE_SYSTEM_IMAGE_STRIPS_CD_INPUT);
             if (payloadStatus == FILE_SYSTEM_IMAGE_STRIPS_TIMER_FAILED || payloadStatus == FILE_SYSTEM_IMAGE_STRIPS_RETRY) {
-                _fsHandleCdError(FS_ERROR_SOFT);
+                _fsHandleCdError(FILE_SYSTEM_CD_RECOVERY_RESTART_REQUEST);
                 break;
             }
             if (payloadStatus == FILE_SYSTEM_IMAGE_STRIPS_COMPLETE) {
@@ -829,7 +843,7 @@ static u8 _fsReadChunkHeaderSector(void)
             if (_gFsPayloadEndSector == gFsNextReadSector) {
                 payloadStatus = fsUploadImageChunk((const FsImageChunk*)gFsSectorBuffers.sector.chunk.data.bytes, 0);
                 if (payloadStatus == FILE_SYSTEM_IMAGE_UPLOAD_TIMER_FAILED || payloadStatus == FILE_SYSTEM_IMAGE_UPLOAD_RETRY) {
-                    _fsHandleCdError(FS_ERROR_SOFT);
+                    _fsHandleCdError(FILE_SYSTEM_CD_RECOVERY_RESTART_REQUEST);
                     break;
                 }
                 if (_gFsChunkEndMarker == FILE_SYSTEM_CHUNK_LAST) {
@@ -919,7 +933,7 @@ static u8 _fsReadChunkHeaderSector(void)
                     return 1;
                 }
             } else if (payloadStatus == SOUND_LOAD_RESULT_ERROR) {
-                _fsHandleCdError(FS_ERROR_SOFT);
+                _fsHandleCdError(FILE_SYSTEM_CD_RECOVERY_RESTART_REQUEST);
                 break;
             } else {
                 _gFsPayloadPhase   = FILE_SYSTEM_PAYLOAD_MUSIC;
@@ -991,7 +1005,7 @@ static u8 _fsReadChunkPayloadSector(void)
             gFsLzssInputCursor = gFsSectorBuffers.sector.bytes;
             fsDecompressStream();
             if (gFsLzssDecodeStatus == FILE_SYSTEM_LZSS_DECODE_SCRATCH_BUSY) {
-                _fsHandleCdError(FS_ERROR_SOFT);
+                _fsHandleCdError(FILE_SYSTEM_CD_RECOVERY_RESTART_REQUEST);
             } else if (gFsLzssDecodeStatus != FILE_SYSTEM_LZSS_DECODE_NEEDS_INPUT || (u32)gFsNextReadSector >= (u32)_gFsPayloadEndSector) {
                 switch (_gFsLoadBank - 1) {
                     case FILE_SYSTEM_PACKAGE_OUTPUT_BASE0:
@@ -1031,9 +1045,9 @@ static u8 _fsReadChunkPayloadSector(void)
             payloadStatus = fsUploadImageStrips(FILE_SYSTEM_IMAGE_STRIPS_CD_INPUT);
             if (payloadStatus == FILE_SYSTEM_IMAGE_STRIPS_TIMER_FAILED) {
                 gFsNextReadSector--;
-                _fsHandleCdError(FS_ERROR_HARD);
+                _fsHandleCdError(FILE_SYSTEM_CD_RECOVERY_RESUME_CHUNK);
             } else if (payloadStatus == FILE_SYSTEM_IMAGE_STRIPS_RETRY) {
-                _fsHandleCdError(FS_ERROR_SOFT);
+                _fsHandleCdError(FILE_SYSTEM_CD_RECOVERY_RESTART_REQUEST);
             } else if (payloadStatus == FILE_SYSTEM_IMAGE_STRIPS_COMPLETE || (u32)gFsNextReadSector >= (u32)_gFsPayloadEndSector) {
                 endMarker = _gFsChunkEndMarker;
                 if (endMarker == FILE_SYSTEM_CHUNK_LAST) {
@@ -1049,9 +1063,9 @@ static u8 _fsReadChunkPayloadSector(void)
             payloadStatus = fsUploadImageChunk((const FsImageChunk*)gFsSectorBuffers.sector.chunk.data.bytes, 0);
             if (payloadStatus == FILE_SYSTEM_IMAGE_UPLOAD_TIMER_FAILED) {
                 gFsNextReadSector--;
-                _fsHandleCdError(FS_ERROR_HARD);
+                _fsHandleCdError(FILE_SYSTEM_CD_RECOVERY_RESUME_CHUNK);
             } else if (payloadStatus == FILE_SYSTEM_IMAGE_UPLOAD_RETRY) {
-                _fsHandleCdError(FS_ERROR_SOFT);
+                _fsHandleCdError(FILE_SYSTEM_CD_RECOVERY_RESTART_REQUEST);
             } else {
                 endMarker = _gFsChunkEndMarker;
                 if (endMarker == FILE_SYSTEM_CHUNK_LAST) {
@@ -1107,7 +1121,7 @@ static u8 _fsReadChunkPayloadSector(void)
                 }
                 _gFsReadingPayload = false;
             } else if (payloadStatus == SOUND_LOAD_RESULT_ERROR) {
-                _fsHandleCdError(FS_ERROR_SOFT);
+                _fsHandleCdError(FILE_SYSTEM_CD_RECOVERY_RESTART_REQUEST);
             }
             break;
         default:
@@ -1329,7 +1343,7 @@ static void _fsStage0HeaderReadyCallback(u8 interruptStatus, u8* unusedResult)
 
         _gFsLastReceivedSector = absoluteSector = CdPosToInt(&sectorHeader.location);
         if (absoluteSector != gFsNextReadSector) {
-            _fsHandleCdError(FS_ERROR_SOFT);
+            _fsHandleCdError(FILE_SYSTEM_CD_RECOVERY_RESTART_REQUEST);
             return;
         }
 
@@ -1351,7 +1365,7 @@ static void _fsStage0HeaderReadyCallback(u8 interruptStatus, u8* unusedResult)
 
             fileRecord = (FsCdfFile*)&sectorBuffer->words[(u16)recordWordOffset];
             fileId     = fileRecord->fileId;
-            if (fileId == FS_CDF_STAGE0_CANARY) {
+            if (fileId == FILE_SYSTEM_STAGE0_HEADER_TERMINATOR) {
                 CdReadyCallback(NULL);
                 gFsCdOperationStatus = FILE_SYSTEM_CD_OPERATION_COMPLETE;
                 CdControlF(CdlPause, NULL);
@@ -1466,7 +1480,7 @@ static void _fsStage0HeaderReadyCallback(u8 interruptStatus, u8* unusedResult)
         }
     }
 
-    _fsHandleCdError(FS_ERROR_SOFT);
+    _fsHandleCdError(FILE_SYSTEM_CD_RECOVERY_RESTART_REQUEST);
 }
 
 // Keep these literals before the ISO scanner's jump table in .rodata.
@@ -1694,7 +1708,7 @@ u8 fsUploadImageChunk(const FsImageChunk* imageChunk, u8 ignoreGpuTimeLimit)
     // Suspend draw DMA before reusing the GPU for this upload.
     do {
         drawResumeAddress = BreakDraw();
-        if (drawResumeAddress != FS_DRAW_BREAK_FAILED) {
+        if (drawResumeAddress != FILE_SYSTEM_DRAW_BREAK_FAILED) {
             break;
         }
         if (GetRCnt(RCntCNT2) >= FILE_SYSTEM_IMAGE_UPLOAD_TIME_LIMIT_TICKS) {
@@ -1837,7 +1851,7 @@ u8 fsUploadImageStrips(s32 inputMode)
         return FILE_SYSTEM_IMAGE_STRIPS_TIMER_FAILED;
     }
     // Suspend draw DMA before sharing the GPU and upload buffer.
-    drawBreakFailed = FS_DRAW_BREAK_FAILED;
+    drawBreakFailed = FILE_SYSTEM_DRAW_BREAK_FAILED;
     residentInput   = (u8)inputMode;
     for (;;) {
         drawResumeAddress = BreakDraw();
@@ -1846,7 +1860,7 @@ u8 fsUploadImageStrips(s32 inputMode)
         }
         if (GetRCnt(RCntCNT2) >= FILE_SYSTEM_STRIP_GPU_TIME_LIMIT_TICKS) {
             if (residentInput == 0) {
-                _fsResumeDrawing(FS_DRAW_BREAK_FAILED);
+                _fsResumeDrawing(FILE_SYSTEM_DRAW_BREAK_FAILED);
                 return FILE_SYSTEM_IMAGE_STRIPS_RETRY;
             }
         }
@@ -2241,7 +2255,7 @@ static void _fsReadNSyncCallback(u8 interruptStatus, u8* unusedResult)
         CdSyncCallback(NULL);
         gFsCdErrorCount = 0;
     } else {
-        _fsHandleCdError(FS_ERROR_SOFT);
+        _fsHandleCdError(FILE_SYSTEM_CD_RECOVERY_RESTART_REQUEST);
     }
 }
 
@@ -2259,7 +2273,7 @@ static void _fsPayloadReadStartedCallback(u8 interruptStatus, u8* unusedResult)
         CdReadyCallback(_fsChunkReadyCallback);
         CdSyncCallback(NULL);
     } else {
-        _fsHandleCdError(FS_ERROR_SOFT);
+        _fsHandleCdError(FILE_SYSTEM_CD_RECOVERY_RESTART_REQUEST);
     }
 }
 
@@ -2274,14 +2288,15 @@ static void _fsSeekSyncCallback(u8 interruptStatus, u8* unusedResult)
         CdSyncCallback(NULL);
         gFsCdErrorCount = 0;
     } else {
-        _fsHandleCdError(FS_ERROR_SOFT);
+        _fsHandleCdError(FILE_SYSTEM_CD_RECOVERY_RESTART_REQUEST);
     }
 }
 
 /// Pauses a failed transfer and selects chunk resumption or request restart.
 ///
-/// `FS_ERROR_HARD` (2) retains sound-load state and selects resumption at
-/// `gFsNextReadSector`. All other values, normally `FS_ERROR_SOFT` (0), release that
+/// `FILE_SYSTEM_CD_RECOVERY_RESUME_CHUNK` (2) retains sound-load state and selects
+/// resumption at `gFsNextReadSector`. All other values, normally
+/// `FILE_SYSTEM_CD_RECOVERY_RESTART_REQUEST` (0), release that
 /// state and select a fresh request. Every call increments the byte error count
 /// and removes both CD callbacks before pausing; it does not reissue a read.
 static void _fsHandleCdError(u8 recoveryMode)
@@ -2290,7 +2305,7 @@ static void _fsHandleCdError(u8 recoveryMode)
     CdReadyCallback(NULL);
     CdSyncCallback(NULL);
 
-    if (recoveryMode == FS_ERROR_HARD) {
+    if (recoveryMode == FILE_SYSTEM_CD_RECOVERY_RESUME_CHUNK) {
         gFsCdOperationStatus = FILE_SYSTEM_CD_OPERATION_RESUME_CHUNK;
     } else {
         sndLoadTeardown();

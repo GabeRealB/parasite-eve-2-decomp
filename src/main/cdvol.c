@@ -91,11 +91,16 @@ void fsSoundBankReadyCallback(u8 interruptStatus, u8* unusedResult)
     s32            sectorPosition;
     u8             errorCount;
 
-    /// Reads a header and writes its absolute sector without consuming payload.
+    /// Consumes the sound-bank sector's drive header and publishes its disc position.
     ///
-    /// `header` must be a side-effect-free `CdSectorHeader` lvalue;
-    /// it is evaluated twice, plus once in sizeof. `position` is assigned once
-    /// after both synchronous SDK calls. The transfer count is in u32 words.
+    /// `header` is a stable, writable, word-aligned CdSectorHeader lvalue,
+    /// evaluated twice at runtime; sizeof does not evaluate it. `position` is
+    /// a distinct s32 output lvalue assigned once after the two SDK calls.
+    /// Argument expressions have no side effects and the output's storage must
+    /// not overlap the header. Reads all twelve bytes, converting only its BCD
+    /// location to an absolute disc sector. The transfer count is in u32 words.
+    /// No locals or configuration bindings are captured. The caller validates
+    /// the sector and reads its payload before another sector replaces it.
 #define FILE_SYSTEM_READ_SOUND_BANK_SECTOR_POSITION(header, position) \
     do {                                                              \
         CdGetSector(&(header), sizeof(header) / sizeof(u32));         \

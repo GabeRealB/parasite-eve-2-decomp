@@ -177,7 +177,10 @@ enum {
 /// `clearRect` must be a writable, side-effect-free RECT lvalue: it is evaluated
 /// repeatedly and ends describing the lower buffer. `rgb24` is tested once;
 /// true uses 480 VRAM words per row, false uses 320. Both buffers must be owned
-/// by movie playback until the clears are queued. No caller locals are captured.
+/// by movie playback until the clears are queued. X starts at zero and Y ends
+/// at row 272; height is 240 rows. The two ClearImage calls queue GPU work,
+/// without waiting for completion. Captures the TU's movie-layout constants
+/// but no caller locals or configuration bindings.
 #define STREAM_MOVIE_CLEAR_DISPLAY_FRAMEBUFFERS(clearRect, rgb24) \
     do {                                                          \
         (clearRect).y = 0;                                        \

@@ -226,7 +226,10 @@ typedef struct {
 } BootLoadDestination;
 STATIC_ASSERT_SIZEOF(BootLoadDestination, 0x4);
 
-/// Number of stage CDF files.
-#define FS_CDF_STAGE_COUNT 6
+/// Mounted CDF base-sector slots, indexed by stage ID 0..5.
+///
+/// Slot zero is the global STAGE0 library; slots 1..5 serve stage folders.
+/// A zero stored sector marks an absent CDF, rather than an extra array slot.
+#define FILE_SYSTEM_CDF_STAGE_COUNT 6
 
 #endif // MAIN_PRIVATE_FS_TYPES_H

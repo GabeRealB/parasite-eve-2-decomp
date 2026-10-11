@@ -8,8 +8,11 @@
 
 #include "mem.h"
 
-/// Extent in bytes of the primary heap.
-#define G_HEAP_SIZE 0xFF80
+/// Total byte extent given to heap3 for the resident primary heap.
+///
+/// Includes allocator headers and payload space at gMemPrimaryHeapBase;
+/// auxiliary heaps have separately selected runtime extents.
+#define MEMORY_PRIMARY_HEAP_BYTES 0xFF80
 
 static void _memSetActiveHeap(bool auxHeap);
 
@@ -245,7 +248,7 @@ void memInitAuxHeap(void)
 void memInitHeaps(void)
 {
     InitHeap3(gMemActiveAuxHeap, gMemActiveAuxHeapBytes);
-    InitHeap3(gMemPrimaryHeapBase, G_HEAP_SIZE);
+    InitHeap3(gMemPrimaryHeapBase, MEMORY_PRIMARY_HEAP_BYTES);
 }
 
 /// Unreferenced no-op retained at its original position in the resident image.

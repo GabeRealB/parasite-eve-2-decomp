@@ -44,7 +44,10 @@ enum {
     CD_AUDIO_HEADER_READ_STEP_FAILED            = 0x80, // a step timed out or the sector arrived wrong; the read is given up
 };
 
-/// Bits a 0..127 track level is shifted up by to give `_CdAudioPlayback::volume`.
+/// Converts a seven-bit CD-stream gain level to SPU volume units by shifting left.
+///
+/// Levels 0..127 become 0..16256 at 128 register units per level. Shifting the
+/// retained volume right recovers the integer level used to seed a fade ramp.
 #define CD_AUDIO_VOLUME_LEVEL_SHIFT 7
 
 /// Number of 32-bit words delivered before a CD sector's payload.
@@ -163,12 +166,19 @@ typedef struct {
 } _CdAudioReadState;
 STATIC_ASSERT_SIZEOF(_CdAudioReadState, 0x18);
 
-/// Ticks a header read or wave load may spend in one wait before the step is
-/// given up.
+/// First expired wait count for the header-read and waveform-upload drivers.
+///
+/// Counts driver updates, not sectors or hardware timer ticks. A count below
+/// 601 permits waiting; 601 or more records a timeout. Command setup resets
+/// waitTicks, and accepted waveform reads separately reset readTicks. Header
+/// timeouts stop that driver; waveform timeouts restart drive-mode setup.
 #define CD_AUDIO_WAIT_TIMEOUT_TICKS 601
 
-/// Ticks a wave load lets pass after the drive has taken its mode.
-#define CD_AUDIO_WAVE_LOAD_SETTLE_TICKS 5
+/// Initial signed countdown after the drive accepts waveform read mode.
+///
+/// The settling driver decrements before testing: five becomes -1 on its
+/// sixth update, which selects location setup for the following update.
+#define CD_AUDIO_WAVE_LOAD_SETTLE_COUNTDOWN_TICKS 5
 
 /// `_CdAudioDriverStatus::failureKind` values: why a header read or wave load
 /// gave a step up.
@@ -354,19 +364,6 @@ static inline s32 _cdAudioReadSectorPosition(FsSector* sector)
     CdGetSector(sector, CD_AUDIO_SECTOR_HEADER_WORDS);
     return CdPosToInt(&sector->location);
 }
-
-/// Reads a header-sector position and binds the playback state used to validate it.
-///
-/// sector is a writable FsSector pointer evaluated twice. playbackState and
-/// sectorPosition are plain local output lvalues evaluated once; none of the
-/// arguments may have side effects. The captured player state is the owner of
-/// the expected sector. The payload read and mismatch handling stay in the caller.
-#define CD_AUDIO_READ_HEADER_SECTOR_POSITION(sector, playbackState, sectorPosition) \
-    do {                                                                            \
-        CdGetSector((sector), CD_AUDIO_SECTOR_HEADER_WORDS);                        \
-        (playbackState)  = &_gCdAudioState.playback;                                \
-        (sectorPosition) = CdPosToInt(&(sector)->location);                         \
-    } while (0)
 
 /// Copies a complete SDK voice-attribute record, including its representation bytes.
 ///
@@ -972,7 +969,7 @@ static s32 _cdAudioLoadWavesDriver(void)
                     CdFlush();
                     goto do_setmode;
                 case CdlComplete:
-                    modeWaitStatus->settleTicks   = CD_AUDIO_WAVE_LOAD_SETTLE_TICKS;
+                    modeWaitStatus->settleTicks   = CD_AUDIO_WAVE_LOAD_SETTLE_COUNTDOWN_TICKS;
                     gCdAudioProgress.waveLoadStep = CD_AUDIO_WAVE_LOAD_STEP_SETTLE;
                     break;
                 case CdlNoIntr:
@@ -1578,6 +1575,23 @@ static void _cdAudioHeaderSectorReadyCallback(u8 interruptStatus, u8* unusedResu
     FsSector*                  sector;
     volatile _CdAudioPlayback* playback;
 
+    /// Reads a header-sector position and binds the playback state used to validate it.
+    ///
+    /// `sector` is a stable FsSector pointer evaluated twice, with twelve writable,
+    /// word-aligned header bytes. `playbackState` and `sectorPosition` are distinct
+    /// writable volatile _CdAudioPlayback* and s32 lvalues, each assigned once.
+    /// Argument expressions have no side effects and their storage must not overlap
+    /// the header. Captures `_gCdAudioState` and the three-word header constant.
+    /// The state pointer is bound between header intake and BCD position conversion;
+    /// no playback fields are read here. The caller validates the absolute disc
+    /// sector and consumes the payload before the next sector arrives.
+#define CD_AUDIO_READ_HEADER_SECTOR_POSITION(sector, playbackState, sectorPosition) \
+    do {                                                                            \
+        CdGetSector((sector), CD_AUDIO_SECTOR_HEADER_WORDS);                        \
+        (playbackState)  = &_gCdAudioState.playback;                                \
+        (sectorPosition) = CdPosToInt(&(sector)->location);                         \
+    } while (0)
+
     if (_gCdAudioHeaderSectorArrived != 0) {
         return;
     }
@@ -1595,6 +1609,7 @@ static void _cdAudioHeaderSectorReadyCallback(u8 interruptStatus, u8* unusedResu
         _gCdAudioDriverStatus.headerReadError = CD_AUDIO_HEADER_READ_ERROR_NOT_READY;
     }
 }
+#undef CD_AUDIO_READ_HEADER_SECTOR_POSITION
 
 /// Reports that the stream's opening read finished or was abandoned.
 ///

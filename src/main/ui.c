@@ -2316,30 +2316,41 @@ void uiDrawPanelLabel(UiPanel* panel, const char* label)
     panel->otIndex.unsignedValue += 1;
 }
 
-/// Applies style padding and centers an option dialog's content rectangle.
+/// Pixel insets between an option dialog's frame and its centered content.
+enum {
+    USER_INTERFACE_OPTION_DIALOG_CONTENT_EDGE_INSET_PIXELS  = 2,
+    USER_INTERFACE_OPTION_DIALOG_CONTENT_TITLE_INSET_PIXELS = 9,
+};
+
+/// Applies style padding and publishes an option dialog's centered content coordinates.
 ///
 /// Requires a stable UiPanel pointer and writable frame-inset RECT lvalue without
-/// side effects; both arguments are used repeatedly. Captures no locals. Stores
-/// retain sixteen bits, using signed left-edge and unsigned top-edge arithmetic.
-/// Invoke as a standalone statement in a compound block; the rectangle keeps its
-/// caller-local lifetime and must be separate from the panel's bounds.
-#define USER_INTERFACE_CENTER_OPTION_DIALOG_CONTENT(panelValue, contentRectValue)                               \
-    if (((panelValue)->style & USER_INTERFACE_PANEL_STYLE_MASK) == USER_INTERFACE_PANEL_TITLE_STYLE) {          \
-        (contentRectValue).y += 9;                                                                              \
-        (contentRectValue).h -= 0xB;                                                                            \
-        (contentRectValue).x += 2;                                                                              \
-        (contentRectValue).w -= 4;                                                                              \
-    } else {                                                                                                    \
-        (contentRectValue).y += 2;                                                                              \
-        (contentRectValue).h -= 4;                                                                              \
-        (contentRectValue).x += 2;                                                                              \
-        (contentRectValue).w -= 4;                                                                              \
-    }                                                                                                           \
-    (panelValue)->contentLeft.signedValue      = -((contentRectValue).w >> 1);                                  \
-    (panelValue)->contentRight.unsignedValue   = (panelValue)->contentLeft.signedValue + (contentRectValue).w;  \
-    (panelValue)->contentTop.unsignedValue     = -((contentRectValue).h >> 1);                                  \
-    (panelValue)->contentBottom.unsignedValue  = (panelValue)->contentTop.unsignedValue + (contentRectValue).h; \
-    (panelValue)->contentOriginX.unsignedValue = (contentRectValue).x - (panelValue)->contentLeft.signedValue;  \
+/// expression side effects; both are evaluated repeatedly. Title padding is nine
+/// pixels above and two below; other padding is two pixels on all sides. The
+/// rectangle retains its caller-local lifetime and is separate from panel bounds.
+/// Stores retain sixteen bits without clamping. X-origin and right-edge sums
+/// read the left edge as signed; Y-origin and bottom-edge sums read the top edge
+/// as unsigned. Origins translate content-relative pixels to screen-centered
+/// pixels. Captures style and inset constants, with no caller locals or bindings.
+/// Expands to several statements: invoke within a compound block, never as an
+/// unbraced conditional or loop body, so layout can interleave with caller setup.
+#define USER_INTERFACE_CENTER_OPTION_DIALOG_CONTENT(panelValue, contentRectValue)                                                                 \
+    if (((panelValue)->style & USER_INTERFACE_PANEL_STYLE_MASK) == USER_INTERFACE_PANEL_TITLE_STYLE) {                                            \
+        (contentRectValue).y += USER_INTERFACE_OPTION_DIALOG_CONTENT_TITLE_INSET_PIXELS;                                                          \
+        (contentRectValue).h -= USER_INTERFACE_OPTION_DIALOG_CONTENT_TITLE_INSET_PIXELS + USER_INTERFACE_OPTION_DIALOG_CONTENT_EDGE_INSET_PIXELS; \
+        (contentRectValue).x += USER_INTERFACE_OPTION_DIALOG_CONTENT_EDGE_INSET_PIXELS;                                                           \
+        (contentRectValue).w -= 2 * USER_INTERFACE_OPTION_DIALOG_CONTENT_EDGE_INSET_PIXELS;                                                       \
+    } else {                                                                                                                                      \
+        (contentRectValue).y += USER_INTERFACE_OPTION_DIALOG_CONTENT_EDGE_INSET_PIXELS;                                                           \
+        (contentRectValue).h -= 2 * USER_INTERFACE_OPTION_DIALOG_CONTENT_EDGE_INSET_PIXELS;                                                       \
+        (contentRectValue).x += USER_INTERFACE_OPTION_DIALOG_CONTENT_EDGE_INSET_PIXELS;                                                           \
+        (contentRectValue).w -= 2 * USER_INTERFACE_OPTION_DIALOG_CONTENT_EDGE_INSET_PIXELS;                                                       \
+    }                                                                                                                                             \
+    (panelValue)->contentLeft.signedValue      = -((contentRectValue).w >> 1);                                                                    \
+    (panelValue)->contentRight.unsignedValue   = (panelValue)->contentLeft.signedValue + (contentRectValue).w;                                    \
+    (panelValue)->contentTop.unsignedValue     = -((contentRectValue).h >> 1);                                                                    \
+    (panelValue)->contentBottom.unsignedValue  = (panelValue)->contentTop.unsignedValue + (contentRectValue).h;                                   \
+    (panelValue)->contentOriginX.unsignedValue = (contentRectValue).x - (panelValue)->contentLeft.signedValue;                                    \
     (panelValue)->contentOriginY.unsignedValue = (contentRectValue).y - (panelValue)->contentTop.unsignedValue;
 
 UiObject* uiSpawnOptionDialog(UiOptionDialogRequest* request, s32 unused2, s32 unused3, s32 unused4)

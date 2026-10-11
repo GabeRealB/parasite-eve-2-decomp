@@ -35,7 +35,7 @@ extern u8 gFsCdErrorCount;
 /// discovered LBAs; file/folder/stream offsets add the selected stage's base.
 /// Requests require stage indices 0..5 and a present file. Cached until a new
 /// disc-directory scan, with no ownership of the disc contents.
-extern s32 gFsStageCdfBaseSectors[FS_CDF_STAGE_COUNT];
+extern s32 gFsStageCdfBaseSectors[FILE_SYSTEM_CDF_STAGE_COUNT];
 
 /// Resident two-sector scratch storage shared by filesystem and CD audio reads.
 ///

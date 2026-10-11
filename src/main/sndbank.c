@@ -126,11 +126,14 @@ enum {
     SPU_INIT_PLAYBACK_ONLY = 2
 };
 
-#define SNDHEAP_SIZE 0x3D00
+/// Total byte extent of the sound allocator's arena, including block headers.
+#define SOUND_HEAP_BUFFER_BYTES 0x3D00
 
-#define SNDHEAP_START_MAGIC 0xB25A
+/// Header recognizer of the arena's initial block, retained through allocation and merging.
+#define SOUND_HEAP_INITIAL_BLOCK_MAGIC 0xB25A
 
-#define SNDHEAP_MAGIC 0xA52B
+/// Header recognizer of a block created by splitting, independent of its allocation state.
+#define SOUND_HEAP_SPLIT_BLOCK_MAGIC 0xA52B
 
 // Audio work and polling are admitted by separate gates; neither waits for a running update.
 enum {
@@ -157,7 +160,7 @@ static u8 D_8007A3A8[8];
 /// Blocks and payloads start on four-byte boundaries. This is raw storage,
 /// partitioned by the allocator rather than an array of equal-sized headers.
 /// Reset invalidates all allocations; callers must serialize heap operations.
-static u8 _gSndHeapArena[SNDHEAP_SIZE];
+static u8 _gSndHeapArena[SOUND_HEAP_BUFFER_BYTES];
 
 /// Sentinel preceding the first registration in the ascending-id audio poll list.
 ///
@@ -235,7 +238,7 @@ enum { AUDIO_TICK_POLL_FINISHED = -1 };
 static inline void _sndHeapSplitBlock(_SndHeapBlockHeader* block, _SndHeapBlockHeader* remainder, size_t blockBytes)
 {
     remainder->size        = block->size - blockBytes;
-    remainder->magic       = SNDHEAP_MAGIC;
+    remainder->magic       = SOUND_HEAP_SPLIT_BLOCK_MAGIC;
     remainder->isAllocated = false;
     if (block->next == NULL) {
         remainder->next = NULL;
@@ -965,7 +968,7 @@ static void _sndHeapReset(void)
 {
     _gSndHeapFirstBlock              = (_SndHeapBlockHeader*)_gSndHeapArena;
     _gSndHeapFirstBlock->size        = sizeof(_gSndHeapArena);
-    _gSndHeapFirstBlock->magic       = SNDHEAP_START_MAGIC;
+    _gSndHeapFirstBlock->magic       = SOUND_HEAP_INITIAL_BLOCK_MAGIC;
     _gSndHeapFirstBlock->isAllocated = false;
     _gSndHeapFirstBlock->prev        = NULL;
     _gSndHeapFirstBlock->next        = NULL;
@@ -1054,7 +1057,7 @@ void sndHeapFree(void* payload)
     // the same merge path.
     header              = (_SndHeapBlockHeader*)payload - 1;
     header->isAllocated = false;
-    if (header->magic != SNDHEAP_MAGIC && header->magic != SNDHEAP_START_MAGIC) {
+    if (header->magic != SOUND_HEAP_SPLIT_BLOCK_MAGIC && header->magic != SOUND_HEAP_INITIAL_BLOCK_MAGIC) {
         return;
     }
 

@@ -1765,12 +1765,14 @@ void sndScriptKeyOffType1AndArea(void)
     s32         bankType;
     s32         emptyBankType;
 
-    /// Queues rate-11 exponential release using this function's ADSR constants.
+    /// Queues ADSR release rate 11 with exponential release enabled.
     ///
     /// `ref` must be a side-effect-free SpuVoiceRef lvalue whose attributes are
     /// live in the pending SPU batch. Evaluates it repeatedly; preserves every
-    /// ADSR bit outside the release rate and exponential-mode bit. Expands to
-    /// a compound statement, used only as a standalone statement in this walk.
+    /// ADSR bit outside the five-bit rate and exponential-mode bit. Selects
+    /// ADSR2 in the pending update mask, without key-off or hardware submission.
+    /// Captures this function's rate/mode constants; no configuration binding
+    /// is required. Invoke as a standalone statement in a compound caller block.
 #define SOUND_SCRIPT_SET_TRANSITION_RELEASE(ref)                                                                                     \
     {                                                                                                                                \
         (ref).attr->adsr2  = ((ref).attr->adsr2 & ~SOUND_SCRIPT_ADSR_RELEASE_RATE_MASK) | SOUND_SCRIPT_ADSR_TRANSITION_RELEASE_RATE; \
@@ -2547,11 +2549,17 @@ static void _sndVoiceDetach(void* context)
     } neighborOrOwner;
     _SndVoice* nextVoice;
 
-    /// Unlinks `voice` using its captured previous link in `neighborOrOwner.voice`.
+    /// Detaches a voice from its script's doubly linked voice list.
     ///
     /// Requires the local `_SndVoice* voice`, `_SndVoice* nextVoice` and the
-    /// voice/script pointer union `neighborOrOwner`; updates the latter two
-    /// temporaries and clears only the voice's neighbor links.
+    /// voice/script pointer union `neighborOrOwner`, initialized with voice->prev.
+    /// The voice is non-NULL and its live neighbors must agree on their links;
+    /// a NULL previous link means the script's head, and a NULL script is allowed.
+    /// Replaces the owner head or previous node's next link, repairs the next
+    /// node's previous link, then clears both links of the detached voice.
+    /// Overwrites the two captured temporaries but retains the script pointer,
+    /// allocation flag and SPU voice number. It frees no storage and captures
+    /// no configuration binding. Defined only for this callback.
 #define SOUND_SCRIPT_UNLINK_VOICE()                                  \
     do {                                                             \
         if (neighborOrOwner.voice == NULL) {                         \
@@ -2785,11 +2793,14 @@ static s32 _sndScriptReleaseVoices(_SndScript* script)
     u8          keyStatus;
     u16         adsr2;
 
-    /// Queues fast release using the caller's halfword scratch variable.
+    /// Queues ADSR release rate 5, preserving exponential mode and all other bits.
     ///
     /// `ref` must be a side-effect-free SpuVoiceRef lvalue and `releaseBits` a
-    /// u16 lvalue; both are evaluated repeatedly. Uses this function's release
-    /// constants and preserves every ADSR bit outside the five-bit rate.
+    /// u16 scratch lvalue distinct from the attributes. Both are evaluated
+    /// repeatedly with no expression side effects. Copies ADSR2 through the
+    /// scratch and selects its pending mask bit, without key-off or hardware
+    /// submission. Captures the enclosing rate constants; no configuration
+    /// binding is required.
 #define SOUND_SCRIPT_SET_FAST_RELEASE(ref, releaseBits)                          \
     do {                                                                         \
         (releaseBits) = (ref).attr->adsr2;                                       \
