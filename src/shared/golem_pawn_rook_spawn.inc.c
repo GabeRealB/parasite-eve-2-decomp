@@ -53,7 +53,7 @@ static void _golemPawnRookSpawn(Enemy* enemy, Task* actor)
     u8                 soundFileArgs[8];
     s32                slotIndex;
     s32                patrolLengthThousands;
-#if GOLEM_PAWN_ROOK_TYPE == GOLEM_PAWN_ROOK_KIND_ROOK
+#if GOLEM_PAWN_ROOK_KIND == GOLEM_PAWN_ROOK_KIND_ROOK
     u32 randomDraw;
 #endif
 
@@ -79,7 +79,7 @@ static void _golemPawnRookSpawn(Enemy* enemy, Task* actor)
     for (slotIndex = 1; slotIndex < ARRAY_SIZE(work->rig.slots); slotIndex++) {
         animationResetSlot(&work->rig.anim, slotIndex, GOLEM_PAWN_ROOK_IDLE_ANIM);
     }
-#if GOLEM_PAWN_ROOK_TYPE == GOLEM_PAWN_ROOK_KIND_ROOK
+#if GOLEM_PAWN_ROOK_KIND == GOLEM_PAWN_ROOK_KIND_ROOK
     _actorRenderApplyPlacementTextureOffsets(enemySpawnFromTable(GOLEM_PAWN_ROOK_TASK_DESCRIPTORS, GOLEM_PAWN_ROOK_SHIELD_TASK, 0, enemy)->task->extra.tmd, enemy);
 #endif
     weaponEnemy = enemySpawnFromTable(GOLEM_PAWN_ROOK_TASK_DESCRIPTORS, GOLEM_PAWN_ROOK_WEAPON_TASK, 0, enemy);
@@ -127,7 +127,7 @@ static void _golemPawnRookSpawn(Enemy* enemy, Task* actor)
                 cdCmdEnqueue(CD_COMMAND_LOAD_FILE, soundFileKey, soundFileArgs);
             }
 
-#if GOLEM_PAWN_ROOK_TYPE == GOLEM_PAWN_ROOK_KIND_ROOK
+#if GOLEM_PAWN_ROOK_KIND == GOLEM_PAWN_ROOK_KIND_ROOK
             work->shieldHp = GOLEM_PAWN_ROOK_SHIELD_HP;
 #endif
             // Sight, hurt, floor, weapon and laser bodies borrow the owned contact arrays.
@@ -140,7 +140,7 @@ static void _golemPawnRookSpawn(Enemy* enemy, Task* actor)
             work->sightCapsule.ends[1].vz = 0;
             work->sightCapsule.end1Radius = GOLEM_PAWN_ROOK_SIGHT_NEAR_RADIUS;
             work->sightCapsule.contacts   = work->sightContacts;
-#if GOLEM_PAWN_ROOK_TYPE == GOLEM_PAWN_ROOK_KIND_ROOK
+#if GOLEM_PAWN_ROOK_KIND == GOLEM_PAWN_ROOK_KIND_ROOK
             randomDraw          = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
             work->screamCharges = ((randomDraw >> 16) & 1) + 1;
             gRandomLcgState     = randomDraw;

@@ -39,7 +39,7 @@ static void _golemPawnRookEngageState(Task* actor)
     s16 yawError;
     s32 playerOffsetX;
     s32 playerOffsetZ;
-#if GOLEM_PAWN_ROOK_TYPE == GOLEM_PAWN_ROOK_KIND_ROOK
+#if GOLEM_PAWN_ROOK_KIND == GOLEM_PAWN_ROOK_KIND_ROOK
     u32 screamRandom;
 #endif
     u16                sightFlags;
@@ -131,7 +131,7 @@ static void _golemPawnRookEngageState(Task* actor)
                 work->step     = GOLEM_PAWN_ROOK_BEHAVIOR_START_STEP;
                 work->anim     = GOLEM_PAWN_ROOK_CLOSE_ATTACK_ANIM;
             } else {
-#if GOLEM_PAWN_ROOK_TYPE == GOLEM_PAWN_ROOK_KIND_ROOK
+#if GOLEM_PAWN_ROOK_KIND == GOLEM_PAWN_ROOK_KIND_ROOK
                 screamRandom    = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
                 gRandomLcgState = screamRandom;
                 if (!((screamRandom >> 0x10) & ((1 << (work->screamCount + 1)) - 1)) && !(gPlayerStatus.statusFlags & PLAYER_STATUS_SILENCE) &&

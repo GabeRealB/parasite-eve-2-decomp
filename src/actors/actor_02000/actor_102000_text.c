@@ -42,7 +42,8 @@
 #include "main/tmd_types.h"
 #include "main/wipsys.h"
 #include "main/wipsys_types.h"
-#define GOLEM_PAWN_ROOK_TYPE   GOLEM_PAWN_ROOK_KIND_PAWN
+/// Selects Pawn behavior for this Beam Sword GOLEM carrier.
+#define GOLEM_PAWN_ROOK_KIND   GOLEM_PAWN_ROOK_KIND_PAWN
 #define GOLEM_PAWN_ROOK_WEAPON GOLEM_PAWN_ROOK_WEAPON_BEAM_SWORD
 #include "../../shared/player_detection.h"
 #include "../../shared/golem_pawn_rook.h"

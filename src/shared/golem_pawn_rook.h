@@ -8,9 +8,12 @@
  * package defines its own voice-cue table and per-animation blend lengths
  * under the shared names.
  *
- * Each package states its type and weapon before including this header:
- * `GOLEM_PAWN_ROOK_TYPE` must be `GOLEM_PAWN_ROOK_KIND_PAWN` or
- * `GOLEM_PAWN_ROOK_KIND_ROOK`; `GOLEM_PAWN_ROOK_WEAPON` must be
+ * Each carrier selects its GOLEM kind and weapon before including this header:
+ * `GOLEM_PAWN_ROOK_KIND` must expand to `GOLEM_PAWN_ROOK_KIND_PAWN` (1) or
+ * `GOLEM_PAWN_ROOK_KIND_ROOK` (2). These are preprocessor selectors, independent
+ * of actor IDs and the weapon. Keep the kind binding unchanged through every
+ * GOLEM fragment inclusion: it selects attack tuning and the Rook's shield
+ * and Silence scream. `GOLEM_PAWN_ROOK_WEAPON` must be
  * `GOLEM_PAWN_ROOK_WEAPON_BEAM_SWORD` (actor_02000, actor_02300) or
  * `GOLEM_PAWN_ROOK_WEAPON_GRENADE_LAUNCHER` (actor_05600, actor_05700).
  * Selector replacement tokens are expanded after their definitions below.
@@ -41,6 +44,13 @@
 #define GOLEM_PAWN_ROOK_KIND_PAWN 1
 /// Kind selector for the shielded Rooks in actor_02300/actor_05700.
 #define GOLEM_PAWN_ROOK_KIND_ROOK 2
+
+#ifndef GOLEM_PAWN_ROOK_KIND
+#error "Define GOLEM_PAWN_ROOK_KIND before including golem_pawn_rook.h"
+#elif GOLEM_PAWN_ROOK_KIND != GOLEM_PAWN_ROOK_KIND_PAWN && GOLEM_PAWN_ROOK_KIND != GOLEM_PAWN_ROOK_KIND_ROOK
+#error "GOLEM_PAWN_ROOK_KIND must select GOLEM_PAWN_ROOK_KIND_PAWN or GOLEM_PAWN_ROOK_KIND_ROOK"
+#endif
+
 /// Weapon selector for the sword carriers actor_02000/actor_02300.
 #define GOLEM_PAWN_ROOK_WEAPON_BEAM_SWORD 1
 /// Weapon selector for the launcher carriers actor_05600/actor_05700.
@@ -59,7 +69,7 @@
 #define GOLEM_PAWN_ROOK_WEAPON_APPROACH_BEHAVIOR GOLEM_PAWN_ROOK_BEHAVIOR_SWORD_CHARGE
 /// Animation-table index of the Beam Sword charge wind-up.
 #define GOLEM_PAWN_ROOK_WEAPON_APPROACH_ANIM 5
-#if GOLEM_PAWN_ROOK_TYPE == GOLEM_PAWN_ROOK_KIND_PAWN
+#if GOLEM_PAWN_ROOK_KIND == GOLEM_PAWN_ROOK_KIND_PAWN
 /// Pawn running-charge steering step per call (4096 angular units per turn).
 #define GOLEM_PAWN_ROOK_SWORD_CHARGE_TURN_RATE 15
 #else
@@ -86,14 +96,14 @@
 /// hpMax is an s32 maximum-HP count in 0..65535, evaluated once. Integer
 /// division truncates: sword Rook uses 25%, all other builds 15%. The caller
 /// compares surviving HP strictly below this result; equality does not qualify.
-#if GOLEM_PAWN_ROOK_WEAPON == GOLEM_PAWN_ROOK_WEAPON_BEAM_SWORD && GOLEM_PAWN_ROOK_TYPE == GOLEM_PAWN_ROOK_KIND_ROOK
+#if GOLEM_PAWN_ROOK_WEAPON == GOLEM_PAWN_ROOK_WEAPON_BEAM_SWORD && GOLEM_PAWN_ROOK_KIND == GOLEM_PAWN_ROOK_KIND_ROOK
 #define GOLEM_PAWN_ROOK_KNOCKDOWN_HP_THRESHOLD(hpMax) ((hpMax) / 4)
 #else
 #define GOLEM_PAWN_ROOK_KNOCKDOWN_HP_THRESHOLD(hpMax) ((hpMax) * 15 / 100)
 #endif
 
 #if GOLEM_PAWN_ROOK_WEAPON == GOLEM_PAWN_ROOK_WEAPON_GRENADE_LAUNCHER
-#if GOLEM_PAWN_ROOK_TYPE == GOLEM_PAWN_ROOK_KIND_PAWN
+#if GOLEM_PAWN_ROOK_KIND == GOLEM_PAWN_ROOK_KIND_PAWN
 /// Launcher Pawn actor number, also its sound-bank file argument and body-key ID.
 #define GOLEM_PAWN_ROOK_ACTOR_ID 0x38
 /// Launcher Pawn retreat duration; leaves backoff when its call count reaches 30.
@@ -367,7 +377,7 @@ static void _golemPawnRookLauncherSpawn(Enemy* unusedEnemy, Task* task);
 static void _golemPawnRookLauncherTick(Enemy* enemy, Task* task);
 #endif
 
-#if GOLEM_PAWN_ROOK_TYPE == GOLEM_PAWN_ROOK_KIND_ROOK
+#if GOLEM_PAWN_ROOK_KIND == GOLEM_PAWN_ROOK_KIND_ROOK
 static void _golemPawnRookShieldSpawn(Enemy* unusedEnemy, Task* task);
 #endif
 
