@@ -23825,7 +23825,7 @@ if (id == 0) {
 ```
 
 GCC CSE's the two calls into one `jal` and materializes `K` directly in `$a0`,
-jumping past `move a0, v0`. `itemMenuSetItemDescriptionPrompt` is the pure example (`Gp_StrEmpty`
+jumping past `move a0, v0`. `itemMenuSetItemDescriptionPrompt` is the pure example (`gItemMenuEmptyPromptText`
 empty string + `itemGetText` + `func_80049D34`).
 
 ## If/else stores of two constants keep `bnez; nop; j join`
@@ -25178,7 +25178,7 @@ Two other pieces have to stay wide:
   `lw v0` / `move v1, v0` in the delay slot, then `sw` / `li a1`.
 
 `worldCollisionClearOccluderList` is the example (sibling `worldCollisionClearTriggerList` is the same shape
-on `WorldCollisionTrigger` / `Gp_Obj4ALists`).
+on `WorldCollisionTrigger` / `_gWorldCollisionTriggerListHeads`).
 
 ## Chained `r = g = b` plus the `<= 0` arm first for CVECTOR stores
 
@@ -26723,7 +26723,7 @@ check is `lw v0` / `beqz` / `move v1, v0` (same temp trick as
 empty insert:
 
 ```c
-head  = Gp_Obj4ALists[arg0];
+head  = _gWorldCollisionTriggerListHeads[arg0];
 flags = arg1->flags;
 if (!(flags & 0x20)) {
     arg1->flags = flags | 0x20;
@@ -32686,14 +32686,14 @@ if (arg0->currentItemIndex == 0) {
 }
 ```
 
-The 16-byte stack copy itself is `texts = Gp_ItemPromptTexts` of a 4-pointer
+The 16-byte stack copy itself is `texts = _gItemMenuTransferExitTexts` of a 4-pointer
 struct, not element-wise assignment. Pin the later item-walk locals
 (`i` in `$s2`, scan pointer in `$s3`) so they do not swap. `_itemMenuTransferExitRow`
 is the example.
 
-## D4 fade overlay: `Gp_FadeTiles`/`Gp_FadeTpages` + split `0xE1000000 | 0x240`
+## D4 fade overlay: `_gLoadingFadeTiles`/`_gLoadingFadeBlendCommands` + split `0xE1000000 | 0x240`
 
-`Gp_FadeTiles` is `TILE[2]` and `Gp_FadeTpages` is `DR_TPAGE[2]`, indexed by
+`_gLoadingFadeTiles` is `TILE[2]` and `_gLoadingFadeBlendCommands` is `DR_TPAGE[2]`, indexed by
 `gDisplayState.otBuffer` (16-byte / 8-byte stride). Several neighboring
 D4 task states share this pair (`loadingPrepareCharacterResourcesTask` … `loadingHoldFadeAndReleaseBootImageTask`).
 
@@ -32724,7 +32724,7 @@ access is `bootLoadActive`, the target hoists `li a2,8` then
 `lui a1,%hi(gCdCmdQueue)` (no `addiu` of the queue base) and wants:
 
 ```
-addiu v0, v0, %lo(Gp_FadeTpages)
+addiu v0, v0, %lo(_gLoadingFadeBlendCommands)
 lhu   a0, %lo(gCdCmdQueue+0x224)(a1)
 nop
 bnez  a0, skip
@@ -32747,8 +32747,8 @@ darkness          = 8;
 displayState      = &gDisplayState;
 asm("lui %0, %%hi(gCdCmdQueue)" : "=r"(qhi));
 packetBufferIndex = displayState->otBuffer;
-fadeTile          = &Gp_FadeTiles[packetBufferIndex];
-blendCommand      = &Gp_FadeTpages[packetBufferIndex];
+fadeTile          = &_gLoadingFadeTiles[packetBufferIndex];
+blendCommand      = &_gLoadingFadeBlendCommands[packetBufferIndex];
 bootLoadActive    = *(u16*)((s32)qhi + (s16)0x91C4); /* %lo(gCdCmdQueue+0x224) */
 if (bootLoadActive == 0) {
 ```
@@ -33439,12 +33439,12 @@ do {
     } else {
         src = &gMcSaveData.carriedItems;
     }
-    (&Gp_MoveScanSrc)[i] = *src;
+    gItemMenuTransferRanges[i] = *src;
     i++;
 } while (i < 2);
 ```
 
-`_itemMenuTransferScreenTask` is the example. `dest = &Gp_MoveScanSrc; *dest = *src;
+`_itemMenuTransferScreenTask` is the example. `dest = gItemMenuTransferRanges; *dest = *src;
 dest++` stuck at 98.6% with only that `la` two instructions early.
 
 ## Pin fail `-1` and shared `0x34` through `$v0` so the store is a phi
@@ -33885,13 +33885,13 @@ halfword). The C load then consumes `$a0` too early (`sll a1` instead
 of `sll a0`, and `addu t2` can no longer fill the `bnez` delay).
 
 Depend the load on the finished `fadeTile` pointer with a non-volatile
-empty asm so `lhu` sits after `addiu %lo(Gp_FadeTpages)` and `addu t2`
+empty asm so `lhu` sits after `addiu %lo(_gLoadingFadeBlendCommands)` and `addu t2`
 stays in the delay slot:
 
 ```c
-fadeTile = &Gp_FadeTiles[packetBufferIndex];
+fadeTile = &_gLoadingFadeTiles[packetBufferIndex];
 asm("" : : "r"(qhi), "r"(fadeTile));
-blendCommand   = &Gp_FadeTpages[packetBufferIndex];
+blendCommand   = &_gLoadingFadeBlendCommands[packetBufferIndex];
 bootLoadActive = *(u16*)((s32)qhi + (s16)0x91C4);
 ```
 
@@ -34364,7 +34364,7 @@ clobbers the base and the stores must happen before `sll` reuses `$v0`:
     register s32         val asm("v0");
     register InventoryItemRange* s asm("v0");
 
-    s             = &Gp_MoveScanSrc;
+    s             = gItemMenuTransferRanges;
     val           = s[arg0->spawnArg1].rowCount;
     menu->itemCount = val;
     menu->visibleRowCount.unsignedValue = val;
@@ -34439,14 +34439,14 @@ pointers into callee-saved regs. `itemMenuApplyHpBoostPanel` is the example.
 
 ## Split an unaligned 4-byte copy so `lui` / `li a1` / `addiu $t4` match the jal args
 
-`save->field_5BC = Gp_DefaultScan; inventoryAddItem(&save->field_5BC, 0x6C, 1)`
-schedules `li a1, 0x6C` *before* `lui %hi(Gp_DefaultScan)`. The target wants:
+`save->field_5BC = gInventoryTrainingCarriedRange; inventoryAddItem(&save->field_5BC, 0x6C, 1)`
+schedules `li a1, 0x6C` *before* `lui %hi(gInventoryTrainingCarriedRange)`. The target wants:
 
 ```
 addiu  a0, v0, 0x5BC
-lui    v1, %hi(Gp_DefaultScan)
+lui    v1, %hi(gInventoryTrainingCarriedRange)
 li     a1, 0x6C
-addiu  t4, v1, %lo(Gp_DefaultScan)
+addiu  t4, v1, %lo(gInventoryTrainingCarriedRange)
 lwl/lwr/swl/swr
 jal    inventoryAddItem
  li    a2, 1
@@ -34464,10 +34464,10 @@ register GpItemRec*  table asm("v1");
 
 save = &gMcSaveData;
 dest = &save->field_5BC;
-asm volatile("lui %0, %%hi(Gp_DefaultScan)" : "=r"(table));
+asm volatile("lui %0, %%hi(gInventoryTrainingCarriedRange)" : "=r"(table));
 item = 0x6C;
 asm volatile("" ::"r"(item));
-asm volatile("addiu %0, %1, %%lo(Gp_DefaultScan)" : "=r"(src) : "r"(table));
+asm volatile("addiu %0, %1, %%lo(gInventoryTrainingCarriedRange)" : "=r"(src) : "r"(table));
 asm volatile("" ::"r"(table));
 *dest = *src;
 inventoryAddItem(dest, item, 1);

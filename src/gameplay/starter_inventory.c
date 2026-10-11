@@ -40,41 +40,41 @@ enum {
     INVENTORY_STARTER_TEMP_RANGE_B_INDEX       = 2
 };
 
-extern InventoryItemRange D_8010D524;
+InventoryItemRange gInventoryTrainingCarriedRange = { .firstRow = 20, .rowCount = 10, .tableId = INVENTORY_ITEM_TABLE_SAVED };
 
-extern InventoryItemRange D_8010D528;
+/// Container selector 1's saved rows 30..39; cleared by the starter-loadout reset.
+static InventoryItemRange _gInventoryContainerRange1 = { .firstRow = 30, .rowCount = 10, .tableId = INVENTORY_ITEM_TABLE_SAVED };
 
-extern InventoryItemRange D_8010D52C;
+/// Container selector 2's saved rows 40..49; cleared by the starter-loadout reset.
+static InventoryItemRange _gInventoryContainerRange2 = { .firstRow = 40, .rowCount = 10, .tableId = INVENTORY_ITEM_TABLE_SAVED };
 
-extern InventoryItemRange D_8010D530;
+/// Container selector 3's saved rows 50..79, retaining carried extras and training prizes.
+static InventoryItemRange _gInventoryContainerRange3 = { .firstRow = 50, .rowCount = 30, .tableId = INVENTORY_ITEM_TABLE_SAVED };
 
-extern InventoryItemRange D_8010D534;
+/// Container selector 4's saved rows 80..89, including the Dryfield motel room 6 box.
+static InventoryItemRange _gInventoryContainerRange4 = { .firstRow = 80, .rowCount = 10, .tableId = INVENTORY_ITEM_TABLE_SAVED };
 
-extern InventoryItemRange D_8010D538;
+/// Container selector 5's saved rows 90..109, including the Dryfield garage box.
+static InventoryItemRange _gInventoryContainerRange5 = { .firstRow = 90, .rowCount = 20, .tableId = INVENTORY_ITEM_TABLE_SAVED };
 
-extern InventoryItemRange D_8010D53C;
+/// Container selector 6's saved rows 110..119.
+static InventoryItemRange _gInventoryContainerRange6 = { .firstRow = 110, .rowCount = 10, .tableId = INVENTORY_ITEM_TABLE_SAVED };
 
-extern InventoryItemRange D_8010D540;
+/// Container selector 7's saved rows 120..129.
+static InventoryItemRange _gInventoryContainerRange7 = { .firstRow = 120, .rowCount = 10, .tableId = INVENTORY_ITEM_TABLE_SAVED };
 
-extern InventoryItemRange D_8010D544;
+/// Container selector 8's saved rows 130..149, seeded with Buckshot and Grenades.
+static InventoryItemRange _gInventoryContainerRange8 = { .firstRow = 130, .rowCount = 20, .tableId = INVENTORY_ITEM_TABLE_SAVED };
 
-extern InventoryItemRange D_8010D548;
+/// Container selector 9's saved rows 150..159.
+static InventoryItemRange _gInventoryContainerRange9 = { .firstRow = 150, .rowCount = 10, .tableId = INVENTORY_ITEM_TABLE_SAVED };
 
-extern InventoryItemRange D_8010D54C;
+/// Container selector 10's saved rows 160..169.
+static InventoryItemRange _gInventoryContainerRange10 = { .firstRow = 160, .rowCount = 10, .tableId = INVENTORY_ITEM_TABLE_SAVED };
 
-InventoryItemRange  Gp_DefaultScan  = { 20, 10, INVENTORY_ITEM_TABLE_SAVED, 0 };
-InventoryItemRange  D_8010D524      = { 30, 10, INVENTORY_ITEM_TABLE_SAVED, 0 };
-InventoryItemRange  D_8010D528      = { 40, 10, INVENTORY_ITEM_TABLE_SAVED, 0 };
-InventoryItemRange  D_8010D52C      = { 50, 30, INVENTORY_ITEM_TABLE_SAVED, 0 };
-InventoryItemRange  D_8010D530      = { 80, 10, INVENTORY_ITEM_TABLE_SAVED, 0 };
-InventoryItemRange  D_8010D534      = { 90, 20, INVENTORY_ITEM_TABLE_SAVED, 0 };
-InventoryItemRange  D_8010D538      = { 110, 10, INVENTORY_ITEM_TABLE_SAVED, 0 };
-InventoryItemRange  D_8010D53C      = { 120, 10, INVENTORY_ITEM_TABLE_SAVED, 0 };
-InventoryItemRange  D_8010D540      = { 130, 20, INVENTORY_ITEM_TABLE_SAVED, 0 };
-InventoryItemRange  D_8010D544      = { 150, 10, INVENTORY_ITEM_TABLE_SAVED, 0 };
-InventoryItemRange  D_8010D548      = { 160, 10, INVENTORY_ITEM_TABLE_SAVED, 0 };
-InventoryItemRange  D_8010D54C      = { 170, 10, INVENTORY_ITEM_TABLE_SAVED, 0 };
-InventoryItemRange* Gp_ScanPtrs[12] = { &D_8010CA2C, &D_8010D524, &D_8010D528, &D_8010D52C, &D_8010D530, &D_8010D534, &D_8010D538, &D_8010D53C, &D_8010D540, &D_8010D544, &D_8010D548, &D_8010D54C };
+/// Container selector 11's saved rows 170..179.
+static InventoryItemRange _gInventoryContainerRange11 = { .firstRow = 170, .rowCount = 10, .tableId = INVENTORY_ITEM_TABLE_SAVED };
+InventoryItemRange*       Gp_ScanPtrs[12]             = { &gInventoryBattleRewardRange, &_gInventoryContainerRange1, &_gInventoryContainerRange2, &_gInventoryContainerRange3, &_gInventoryContainerRange4, &_gInventoryContainerRange5, &_gInventoryContainerRange6, &_gInventoryContainerRange7, &_gInventoryContainerRange8, &_gInventoryContainerRange9, &_gInventoryContainerRange10, &_gInventoryContainerRange11 };
 
 /// Stores carried extras and converts selected training equipment before the reset.
 ///

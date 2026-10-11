@@ -14,7 +14,8 @@
 #include "main/text.h"
 
 /* Define BSS before API headers to preserve first-declaration order. */
-s8 D_801156B0;
+/// Scene-sync timer latch (0 disarmed, 1 armed); inactive CAP playback pauses it.
+static s8 _gCapSceneSyncArmed;
 
 s8 D_801156B1;
 
@@ -22,7 +23,7 @@ s32 D_801156B4;
 
 Task* D_801156B8;
 
-s16 D_801156BC;
+s16 gCapSceneSyncElapsedTicks;
 
 #include "captions.h"
 
@@ -78,12 +79,12 @@ TaskMessageEntry D_8010FB90[10] = {
 /// bit was already set when armed, counting continues until playback clears it.
 static inline void _capTickSceneSync(void)
 {
-    if (capIsBusy() != 0 && D_801156B0 != 0) {
-        D_801156BC++;
+    if (capIsBusy() != 0 && _gCapSceneSyncArmed != 0) {
+        gCapSceneSyncElapsedTicks++;
         if ((D_801156A4 & CAP_CONTROL_SCENE_SYNC_COMPLETE) == 0) {
-            if (D_801156BC >= CAP_CONTROL_SCENE_SYNC_DELAY_FRAMES) {
-                D_801156A4 |= CAP_CONTROL_SCENE_SYNC_COMPLETE;
-                D_801156B0  = CAP_CONTROL_SCENE_SYNC_DISABLED;
+            if (gCapSceneSyncElapsedTicks >= CAP_CONTROL_SCENE_SYNC_DELAY_FRAMES) {
+                D_801156A4         |= CAP_CONTROL_SCENE_SYNC_COMPLETE;
+                _gCapSceneSyncArmed = CAP_CONTROL_SCENE_SYNC_DISABLED;
             }
         }
     }
@@ -104,8 +105,8 @@ void capInitializeControlTask(Task* task)
     D_801156B8     = NULL;
     task->msgTable = D_8010FB90;
     gameSetTaskSlot(task, GAME_TASK_SLOT_CAP_CONTROL);
-    task->work = workStorage;
-    D_801156B0 = CAP_CONTROL_SCENE_SYNC_DISABLED;
+    task->work          = workStorage;
+    _gCapSceneSyncArmed = CAP_CONTROL_SCENE_SYNC_DISABLED;
     task->state++;
 }
 
@@ -132,7 +133,7 @@ static s32 _capStartControlledSequence(Task* unusedTask, s32 unusedMessageId, s1
     enum { CAP_CONTROL_DEFAULT_VARIANT = 0 };
 
     capStartSequenceSlot(commandIndex, CAP_PLAYBACK_IN_PLACE, CAP_CONTROL_DEFAULT_VARIANT);
-    D_801156B0 = CAP_CONTROL_SCENE_SYNC_DISABLED;
+    _gCapSceneSyncArmed = CAP_CONTROL_SCENE_SYNC_DISABLED;
     return 0;
 }
 
@@ -154,7 +155,7 @@ static s32 _capResumeTimedRecord(Task* unusedTask, s32 unusedMessageId, s32 unus
 /// with no task remains selected.
 static s32 _capAbortControlledPlayback(Task* unusedTask, s32 unusedMessageId, s32 unusedFirstArg, s32 unusedSecondArg)
 {
-    D_801156B0 = CAP_CONTROL_SCENE_SYNC_DISABLED;
+    _gCapSceneSyncArmed = CAP_CONTROL_SCENE_SYNC_DISABLED;
     return capAbortPlayback();
 }
 
@@ -263,14 +264,14 @@ static s32 _capBeginSceneSync(Task* unusedTask, s32 unusedMessageId, s32 viewCha
     if (gGameSession->evtSkipped == 0) {
         if (D_801156B1 != 0) {
             cdCmdSceneControlNoOp();
-            D_801156B0 = CAP_CONTROL_SCENE_SYNC_ARMED;
-            D_801156BC = 0;
+            _gCapSceneSyncArmed       = CAP_CONTROL_SCENE_SYNC_ARMED;
+            gCapSceneSyncElapsedTicks = 0;
         } else {
-            D_801156B0 = CAP_CONTROL_SCENE_SYNC_ARMED;
+            _gCapSceneSyncArmed = CAP_CONTROL_SCENE_SYNC_ARMED;
             if (viewChangePhase == CAP_CONTROL_VIEW_CHANGE_WITH_SCENE_SYNC) {
-                D_801156BC = CAP_CONTROL_SCENE_SYNC_DELAY_FRAMES;
+                gCapSceneSyncElapsedTicks = CAP_CONTROL_SCENE_SYNC_DELAY_FRAMES;
             } else {
-                D_801156BC = 0;
+                gCapSceneSyncElapsedTicks = 0;
             }
         }
     }

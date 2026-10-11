@@ -398,7 +398,7 @@ static void _shopDrawItemRow(UiList* list, UiObject* object)
         panelControl = object->panel.control.word;
         if (((panelControl >> SHOP_ROW_SUSPENDED_CONTROL_SHIFT) == USER_INTERFACE_PANEL_ACTIVE) || (panelControl == USER_INTERFACE_PANEL_ACTIVE)) {
             if (list->selectedItemIndex == list->currentItemIndex) {
-                uiSetPromptText((const u8*)Gp_StrEmpty, 0, 0);
+                uiSetPromptText(gItemMenuEmptyPromptText, 0, 0);
             }
         }
         if (inventoryGetItemQuantity(carriedItems, SHOP_UNREACHED_ROW_BLOCKING_ITEM) != 0) {
@@ -779,7 +779,7 @@ static void _shopDrawCategoryRow(UiList* list, UiObject* object)
     panelControl = object->panel.control.word;
     if (((panelControl >> 16) == USER_INTERFACE_PANEL_ACTIVE) || (panelControl == USER_INTERFACE_PANEL_ACTIVE)) {
         if (list->selectedItemIndex == list->currentItemIndex) {
-            uiSetPromptText((const u8*)Gp_StrEmpty, 0, 0);
+            uiSetPromptText(gItemMenuEmptyPromptText, 0, 0);
         }
     }
 

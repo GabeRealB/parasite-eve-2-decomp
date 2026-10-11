@@ -428,7 +428,7 @@ s32 itemPickupPublishPlacedObject(s32 flagIndex);
 /// Byte remap of an item id used as a sort/order key (`inventoryGetItemSortKey` /
 /// `inventorySortItems`). Split by item class: 0x01–0x5F → `Gp_ItemSortKey0[id]`,
 /// 0x60–0x7F → `Gp_ItemSortKey60[id-0x60]`, 0x80–0x9F → `Gp_ItemSortKey80[id-0x80]`,
-/// 0xA0–0xBF → `Gp_ItemSortKeyA0[id-0xA0]`. A 0 entry (or an id outside those
+/// 0xA0–0xBF → `gInventoryConsumableSortKeys[id-0xA0]`. A 0 entry (or an id outside those
 /// ranges) falls back to `id + 0x100`; id 0 returns 0x1000.
 extern u8 Gp_ItemSortKey0[];
 
@@ -436,7 +436,12 @@ extern u8 Gp_ItemSortKey60[];
 
 extern u8 Gp_ItemSortKey80[];
 
-extern u8 Gp_ItemSortKeyA0[];
+/// Catalogue-order keys for consumable ids 0xA0..0xBF, indexed by id minus 0xA0.
+///
+/// Zero selects numerical fallback order (id + 0x100). The final stored byte
+/// at index 32 is 255 and is outside both sort consumers' index domain;
+/// its purpose is unproven. Storage remains in the overlay's data section.
+extern const u8 gInventoryConsumableSortKeys[INVENTORY_CONSUMABLE_ITEM_COUNT + 1];
 
 /// Sorts the selected range by catalogue order, placing free rows last.
 ///
@@ -493,6 +498,11 @@ enum { INVENTORY_ADD_FULL_STACK = -2 };
 /// row borrows that table and may change item identity after sorting/transfers.
 InventoryItemRow* inventoryAddItem(const InventoryItemRange* range, s32 itemId, s32 quantity);
 
-extern InventoryItemRange Gp_DefaultScan;
+/// Alternate carried-inventory descriptor using saved rows 20..29 during training.
+///
+/// Shooting-gallery setup copies it into the live save's carried descriptor,
+/// preserving normal carried rows. Clearing it clears those ten saved rows;
+/// restoring the normal loadout discards them. The descriptor owns no rows.
+extern InventoryItemRange gInventoryTrainingCarriedRange;
 
 #endif // GAMEPLAY_PRIVATE_ITEMS_H

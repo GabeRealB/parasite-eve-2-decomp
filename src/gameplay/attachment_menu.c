@@ -518,7 +518,7 @@ void itemMenuDrawArmorChoiceRow(UiList* list, UiObject* object)
     if (((panelControl >> 16) == USER_INTERFACE_PANEL_ACTIVE) || (panelControl == USER_INTERFACE_PANEL_ACTIVE)) {
         if (list->selectedItemIndex == list->currentItemIndex) {
             if (armorItemId == INVENTORY_ITEM_NONE) {
-                uiSetPromptText((const u8*)Gp_StrEmpty, 0, 0);
+                uiSetPromptText(gItemMenuEmptyPromptText, 0, 0);
             } else {
                 uiSetPromptText(itemGetText(armorItemId, ITEM_TEXT_DESCRIPTION_FIRST, 0), 0, 0);
             }

@@ -36,10 +36,10 @@ extern UiObjectDesc D_8010CA78[];
 
 static void _sceneBattleResultTask(Task* task);
 
-u8                 Gp_StrItemObtained[] = "Item obtained!";
-u8                 Gp_StrBonusItem[]    = "Bonus item!!";
-s32                Gp_ItemGrantCooldown = 0;
-InventoryItemRange D_8010CA2C           = { 0, 5, INVENTORY_ITEM_TABLE_AREA_GRANTS, 0 };
+u8                 Gp_StrItemObtained[]        = "Item obtained!";
+u8                 Gp_StrBonusItem[]           = "Bonus item!!";
+s32                Gp_ItemGrantCooldown        = 0;
+InventoryItemRange gInventoryBattleRewardRange = { .firstRow = 0, .rowCount = ARRAY_SIZE(gInventoryBattleRewardRows), .tableId = INVENTORY_ITEM_TABLE_AREA_GRANTS };
 
 /// Unreferenced halfword table following the item-grant scan.
 static u16 D_8010CA30[] = { 0x3A, 0x2E, 0x3B, 0x31, 0x41, 0x34, 0, 0 };
@@ -53,8 +53,8 @@ UiObjectDesc D_8010CA78[] = {
     { 3, { -80, 16, 160, 20 }, 28, 0, TASK_BODY_NONE, 0xC0, itemPickupNoticeTask, 0 },
     { 3, { 16, 24, 160, 20 }, 24, 0, TASK_BODY_NONE, 0xC0, itemPickupNoticeTask, 0 },
 };
-TaskDesc D_8010CAB0 = { { { TASK_BODY_NONE, 0xC0 } }, sceneBattleStartTransitionTask };
-TaskDesc D_8010CABC = { { { TASK_BODY_NONE, 0xC0 } }, _sceneBattleResultTask };
+TaskDesc D_8010CAB0                 = { { { TASK_BODY_NONE, 0xC0 } }, sceneBattleStartTransitionTask };
+TaskDesc gSceneBattleResultTaskDesc = { { { TASK_BODY_NONE, 0xC0 } }, _sceneBattleResultTask };
 
 /// Presents battle gains or an escape result, restores area music and exits the transition.
 ///
@@ -73,7 +73,6 @@ static void _sceneBattleResultTask(Task* task)
         SCENE_BATTLE_RESULT_WAIT_ITEMS              = 3,
         SCENE_BATTLE_RESULT_CLOSE_DELAY             = 16,
         SCENE_BATTLE_RESULT_FINISH                  = 17,
-        SCENE_BATTLE_RESULT_WON                     = 0,
         SCENE_BATTLE_RESULT_COUNTER_MAX             = 9999,
         SCENE_BATTLE_RESULT_CLOSE_FRAMES            = 10,
         SCENE_BATTLE_RESULT_ITEM_TRANSFER_MODE      = 1,
@@ -129,7 +128,7 @@ static void _sceneBattleResultTask(Task* task)
                         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.battlesWon++;
                     }
                 }
-                rewardRange = &D_8010CA2C;
+                rewardRange = &gInventoryBattleRewardRange;
                 inventoryClearItems(rewardRange);
                 task->status = inventoryGrantBattleRewards(rewardRange);
                 if (task->status != INVENTORY_BATTLE_REWARD_NONE_GRANTED) {

@@ -265,7 +265,11 @@ s32 itemMenuOpenHotspotCommands(s32 screenX, s32 screenY, s32 actionKind);
 /// callers must separately check resource readiness. Does not change the preview.
 s32 itemMenuGetPrimaryPreviewItem(void);
 
-extern char Gp_StrEmpty[];
+/// Empty encoded byte string used to clear the shared menu or shop prompt.
+///
+/// The prompt retains its address; this gameplay-owned storage stays live
+/// while menu and room-owned shop tasks use it.
+extern u8 gItemMenuEmptyPromptText[];
 
 /// Draws a framed proportional meter in panel-relative pixels.
 ///

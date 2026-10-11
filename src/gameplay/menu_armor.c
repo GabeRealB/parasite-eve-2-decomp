@@ -243,7 +243,7 @@ void itemMenuDrawAttachmentCandidateRow(UiList* list, UiObject* object)
 
         if (((object->panel.control.word >> 16) == USER_INTERFACE_PANEL_ACTIVE || object->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) && list->selectedItemIndex == list->currentItemIndex) {
             if (itemId == INVENTORY_ITEM_NONE) {
-                uiSetPromptText(Gp_StrEmpty, 0, 0);
+                uiSetPromptText(gItemMenuEmptyPromptText, 0, 0);
             } else {
                 uiSetPromptText(itemGetText(itemId, ITEM_TEXT_DESCRIPTION_FIRST, 0), 0, 0);
             }

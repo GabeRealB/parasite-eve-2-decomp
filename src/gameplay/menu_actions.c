@@ -469,7 +469,7 @@ void itemMenuWeaponSummaryTask(Task* task)
 void itemMenuSetItemDescriptionPrompt(s32 itemId)
 {
     if (itemId == INVENTORY_ITEM_NONE) {
-        uiSetPromptText((const u8*)Gp_StrEmpty, 0, 0);
+        uiSetPromptText(gItemMenuEmptyPromptText, 0, 0);
     } else {
         uiSetPromptText(itemGetText(itemId, ITEM_TEXT_DESCRIPTION_FIRST, 0), 0, 0);
     }

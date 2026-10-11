@@ -67,8 +67,6 @@ enum {
 
 /// Transfer-pane indices, interaction states and the battle-field spawn flag.
 enum {
-    ITEM_MENU_PANE_CONTAINER             = 0,
-    ITEM_MENU_PANE_CARRIED               = 1,
     ITEM_MENU_PANE_BROWSING              = 1,
     ITEM_MENU_PANE_CHOOSING_SWAP_PARTNER = 2,
     ITEM_MENU_PANE_BATTLE_FIELD_FLAG     = 0x100,
@@ -216,8 +214,6 @@ extern UiList Gp_ItemActionList;
 /// UiList used by `_itemMenuTransferExitMenuTask`. `selectedItemIndex` is Select when `spawnArg1` is 0.
 extern UiList Gp_ItemMenuList;
 
-extern UiListRowCallback D_8010D6B0[1];
-
 extern TaskMessageEntry D_8010D828[2];
 
 /* Kept next to _itemMenuHandleTransferChildResult's jump table so the overlay .rodata stays packed;
@@ -231,7 +227,7 @@ static const char Gp_StrPlayerItem[];
 static const char Gp_StrBullet[];
 
 /* After Gp_StrBullet from _itemMenuAmmoSplitTask so the overlay .rodata stays packed. */
-static const _ItemMenuPromptTexts Gp_ItemPromptTexts;
+static const _ItemMenuPromptTexts _gItemMenuTransferExitTexts;
 
 /// Vector template used by `itemPickupContainerLidTask`.
 static const VECTOR D_80093DB0;
@@ -266,11 +262,15 @@ static s32 _itemMenuIsTransferRestricted(s32 itemId, s32 battleFieldMode);
 
 static void _itemMenuHandlePaneChildResult(UiObject* child, Task* childTask);
 
-UiList            Gp_ItemActionList = { Gp_ItemActionFns, 3, { 3 }, 1, 10, 0, { 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { 0 }, 0 };
-UiListRowCallback D_8010D6B0[1]     = { _itemMenuTransferExitRow };
-UiList            Gp_ItemMenuList   = { D_8010D6B0, 3, { 3 }, 0, 15, 0, { 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { 0 }, 0 };
-UiObjectDesc      D_8010D6D8        = { (s32)USER_INTERFACE_PANEL_NO_FRAME, { -100, -30, 200, 60 }, 36, 0, TASK_BODY_NONE, 192, _itemMenuTransferScreenTask, 0 };
-UiObjectDesc      D_8010D6F4[11]    = {
+UiList Gp_ItemActionList = { Gp_ItemActionFns, 3, { 3 }, 1, 10, 0, { 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { 0 }, 0 };
+/// Single row renderer/input handler reused by all three transfer-exit command rows.
+///
+/// The exit list enables USER_INTERFACE_LIST_SHARED_ROW_CALLBACK before dispatch;
+/// its three command rows all call entry zero of this one-element table.
+static UiListRowCallback _gItemMenuTransferExitRowCallbacks[1] = { _itemMenuTransferExitRow };
+UiList                   Gp_ItemMenuList                       = { _gItemMenuTransferExitRowCallbacks, 3, { 3 }, 0, 15, 0, { 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { 0 }, 0 };
+UiObjectDesc             D_8010D6D8                            = { (s32)USER_INTERFACE_PANEL_NO_FRAME, { -100, -30, 200, 60 }, 36, 0, TASK_BODY_NONE, 192, _itemMenuTransferScreenTask, 0 };
+UiObjectDesc             D_8010D6F4[11]                        = {
     { 0x80000 | USER_INTERFACE_PANEL_TITLE_STYLE, { -144, -104, 144, 160 }, 56, 0, TASK_BODY_NONE, 192, _itemMenuTransferPaneTask, 0 },
     { 0x80000 | USER_INTERFACE_PANEL_TITLE_STYLE, { 0, -104, 144, 160 }, 52, 0, TASK_BODY_NONE, 192, _itemMenuTransferPaneTask, 0 },
     { 0, { 0, 0, 0, 0 }, 0, 0, TASK_BODY_NONE, 0, NULL, 0 },
@@ -407,14 +407,14 @@ static void _itemMenuHandleTransferChildResult(UiObject* child, Task* childTask)
     switch (child->result) {
         case ITEM_MENU_RESULT_MOVE_ALL:
             // Give each occupied container row, then clear its source slot.
-            sourceRange = &Gp_MoveScanSrc;
+            sourceRange = gItemMenuTransferRanges;
             sourceRows  = inventoryGetRangeTable(sourceRange);
             sourceRow   = sourceRange->firstRow;
             rowOffset   = 0;
             if (sourceRange->rowCount != 0) {
                 do {
                     if (sourceRows[sourceRow].itemId != INVENTORY_ITEM_NONE) {
-                        inventoryGiveItem(&Gp_MoveScanDst, sourceRows[sourceRow].itemId, sourceRows[sourceRow].qty);
+                        inventoryGiveItem(&gItemMenuTransferRanges[ITEM_MENU_PANE_CARRIED], sourceRows[sourceRow].itemId, sourceRows[sourceRow].qty);
                         sourceRows[sourceRow].itemId = INVENTORY_ITEM_NONE;
                         sourceRows[sourceRow].qty    = 0;
                     }
@@ -426,7 +426,7 @@ static void _itemMenuHandleTransferChildResult(UiObject* child, Task* childTask)
         case USER_INTERFACE_RESULT_CANCEL:
             hasContainerItems = 0;
             if (work->panes[ITEM_MENU_PANE_CONTAINER]->owner->status != 0) {
-                hasContainerItems = inventoryCountOccupiedRows(&Gp_MoveScanSrc) > 0;
+                hasContainerItems = inventoryCountOccupiedRows(gItemMenuTransferRanges) > 0;
             }
             _itemMenuSetTransferPaneState(work, ITEM_MENU_PANE_BROWSING);
             if ((child->result != ITEM_MENU_RESULT_MOVE_ALL) && hasContainerItems) {
@@ -463,7 +463,7 @@ static void _itemMenuHandleTransferChildResult(UiObject* child, Task* childTask)
                     containerRowIndex = work->swapRow;
                     carriedRowIndex   = work->swapPartnerRow;
                 }
-                carriedRange    = &Gp_MoveScanDst;
+                carriedRange    = &gItemMenuTransferRanges[ITEM_MENU_PANE_CARRIED];
                 carriedRow      = inventoryGetRow(carriedRange, carriedRowIndex, 0);
                 carriedQuantity = carriedRow->qty;
                 carriedItemId   = carriedRow->itemId;
@@ -482,7 +482,7 @@ static void _itemMenuHandleTransferChildResult(UiObject* child, Task* childTask)
                 firstRowIndex  = work->swapRow;
                 secondRowIndex = work->swapPartnerRow;
                 if (firstRowIndex != secondRowIndex) {
-                    swapRange           = &Gp_MoveScanSrc + work->swapPane;
+                    swapRange           = gItemMenuTransferRanges + work->swapPane;
                     firstRow            = inventoryGetRow(swapRange, firstRowIndex, 0);
                     firstQuantity       = firstRow->qty;
                     firstItemId         = firstRow->itemId;
@@ -571,10 +571,10 @@ static void _itemMenuTransferScreenTask(Task* task)
             } else {
                 sourceRange = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
             }
-            (&Gp_MoveScanSrc)[paneIndex] = *sourceRange;
+            gItemMenuTransferRanges[paneIndex] = *sourceRange;
             paneIndex++;
-        } while (paneIndex < ARRAY_SIZE(work->panes));
-        inventorySortItems(&Gp_MoveScanSrc, 0);
+        } while (paneIndex < ARRAY_SIZE(gItemMenuTransferRanges));
+        inventorySortItems(gItemMenuTransferRanges, 0);
         if (task->spawnArg1.value == ITEM_MENU_TRANSFER_BATTLE_FIELD_MODE) {
             canMoveAll                            = itemMenuCanMoveAllItems();
             work->focusedPane                     = ITEM_MENU_PANE_CONTAINER;
@@ -610,7 +610,7 @@ void itemMenuDrawTransferInventoryRow(UiList* list, UiObject* object)
     s32               paneIndex;
     UiObject*         actionPopup;
 
-    row    = inventoryGetRow(&Gp_MoveScanSrc + object->owner->spawnArg1.value, list->currentItemIndex, 0);
+    row    = inventoryGetRow(gItemMenuTransferRanges + object->owner->spawnArg1.value, list->currentItemIndex, 0);
     itemId = row->itemId;
     if (list->rowInputEnabled != USER_INTERFACE_LIST_ROW_ACTIVE) {
         if ((object->owner->state != ITEM_MENU_PANE_BROWSING) && (list->currentItemIndex == Gp_ItemMoveWork->swapRow) &&
@@ -654,7 +654,7 @@ void itemMenuDrawTransferInventoryRow(UiList* list, UiObject* object)
             }
         } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask) != 0) {
             paneIndex     = object->owner->spawnArg1.value;
-            partnerItemId = inventoryGetRow(&Gp_MoveScanSrc + paneIndex, Gp_InvLists[paneIndex].selectedItemIndex, 0)->itemId;
+            partnerItemId = inventoryGetRow(gItemMenuTransferRanges + paneIndex, Gp_InvLists[paneIndex].selectedItemIndex, 0)->itemId;
             sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
             // After drawing, the item-id temporary carries the optional notice index.
             itemId = ITEM_MENU_TRANSFER_NO_NOTICE;
@@ -687,7 +687,7 @@ void itemMenuDrawTransferInventoryRow(UiList* list, UiObject* object)
 /// their backing rows must remain live throughout the transfer screen.
 static inline InventoryItemRange* _itemMenuGetPaneRange(const Task* task)
 {
-    return &Gp_MoveScanSrc + task->spawnArg1.value;
+    return gItemMenuTransferRanges + task->spawnArg1.value;
 }
 
 /// Updates one inventory pane of the container/carried-item transfer screen.
@@ -826,7 +826,7 @@ void itemMenuDrawTransferMoveRow(UiList* list, UiObject* object)
         noticeId       = -1;
         chooseQuantity = 0;
         paneIndex      = object->owner->spawnArg1.value;
-        selectedRow    = inventoryGetRow((&Gp_MoveScanSrc + (paneIndex)), Gp_InvLists[paneIndex].selectedItemIndex, 0);
+        selectedRow    = inventoryGetRow((gItemMenuTransferRanges + (paneIndex)), Gp_InvLists[paneIndex].selectedItemIndex, 0);
         itemId         = selectedRow->itemId;
         quantity       = selectedRow->qty;
         sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
@@ -834,15 +834,15 @@ void itemMenuDrawTransferMoveRow(UiList* list, UiObject* object)
         if ((u32)(itemId - INVENTORY_CONSUMABLE_ITEM_FIRST) < (u32)INVENTORY_CONSUMABLE_ITEM_COUNT) {
             rangeTask = object->owner;
             if (rangeTask->status != 0) {
-                if ((inventoryFindLastItemRowInRange(itemId, (&Gp_MoveScanSrc + (rangeTask->spawnArg1.value ^ 1))) == NULL) && (inventoryCanAddItem((&Gp_MoveScanSrc + (object->owner->spawnArg1.value ^ 1)), itemId) == 0)) {
+                if ((inventoryFindLastItemRowInRange(itemId, (gItemMenuTransferRanges + (rangeTask->spawnArg1.value ^ 1))) == NULL) && (inventoryCanAddItem((gItemMenuTransferRanges + (object->owner->spawnArg1.value ^ 1)), itemId) == 0)) {
                     noticeId = ITEM_MENU_NOTICE_NO_TRANSFER_SPACE;
                 }
-            } else if ((inventoryGetItemQuantity((&Gp_MoveScanSrc + (rangeTask->spawnArg1.value ^ 1)), itemId) != 0) || (inventoryCanAddItem((&Gp_MoveScanSrc + (object->owner->spawnArg1.value ^ 1)), itemId) != 0)) {
+            } else if ((inventoryGetItemQuantity((gItemMenuTransferRanges + (rangeTask->spawnArg1.value ^ 1)), itemId) != 0) || (inventoryCanAddItem((gItemMenuTransferRanges + (object->owner->spawnArg1.value ^ 1)), itemId) != 0)) {
                 chooseQuantity = 1;
             } else {
                 noticeId = ITEM_MENU_NOTICE_NO_TRANSFER_SPACE;
             }
-        } else if (inventoryCanAddItem((&Gp_MoveScanSrc + (object->owner->spawnArg1.value ^ 1)), itemId) != 0) {
+        } else if (inventoryCanAddItem((gItemMenuTransferRanges + (object->owner->spawnArg1.value ^ 1)), itemId) != 0) {
             actionTask         = object->owner;
             battleFieldMode    = actionTask->parent->status;
             transferRestricted = _itemMenuCheckTransferRestriction(itemId, battleFieldMode);
@@ -873,8 +873,8 @@ void itemMenuDrawTransferMoveRow(UiList* list, UiObject* object)
                 object->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
             }
         } else {
-            inventoryRemoveItemRow((&Gp_MoveScanSrc + (object->owner->spawnArg1.value)), selectedRow, quantity);
-            inventoryGiveItem((&Gp_MoveScanSrc + (object->owner->spawnArg1.value ^ 1)), itemId, quantity);
+            inventoryRemoveItemRow((gItemMenuTransferRanges + (object->owner->spawnArg1.value)), selectedRow, quantity);
+            inventoryGiveItem((gItemMenuTransferRanges + (object->owner->spawnArg1.value ^ 1)), itemId, quantity);
             object->result = USER_INTERFACE_RESULT_CONFIRM;
         }
     }
@@ -905,7 +905,7 @@ void itemMenuDrawSwitchRow(UiList* list, UiObject* object)
     if (rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask) != 0) {
             paneIndex   = object->owner->spawnArg1.value;
-            selectedRow = inventoryGetRow(&Gp_MoveScanSrc + paneIndex, Gp_InvLists[paneIndex].selectedItemIndex, 0);
+            selectedRow = inventoryGetRow(gItemMenuTransferRanges + paneIndex, Gp_InvLists[paneIndex].selectedItemIndex, 0);
             itemId      = selectedRow->itemId;
             sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
 
@@ -949,7 +949,7 @@ static void _itemMenuFillTransferActions(UiList* list, UiObject* object)
 
     actionTask  = object->owner;
     paneIndex   = actionTask->spawnArg1.value;
-    range       = &Gp_MoveScanSrc + paneIndex;
+    range       = gItemMenuTransferRanges + paneIndex;
     selectedRow = inventoryGetRow(range, Gp_InvLists[paneIndex].selectedItemIndex, 0);
     itemId      = INVENTORY_ITEM_NONE;
     if (selectedRow != NULL) {
@@ -1215,13 +1215,13 @@ static void _itemMenuAmmoSplitTask(Task* task)
             return;
         }
         task->work                 = split;
-        containerInitialQty        = inventoryGetConsumableStackQuantity(&Gp_MoveScanSrc, task->spawnArg1.value);
+        containerInitialQty        = inventoryGetConsumableStackQuantity(gItemMenuTransferRanges, task->spawnArg1.value);
         split->containerQty        = containerInitialQty;
         split->containerInitialQty = containerInitialQty;
-        carriedInitialQty          = inventoryGetConsumableStackQuantity(&Gp_MoveScanSrc + 1, task->spawnArg1.value);
+        carriedInitialQty          = inventoryGetConsumableStackQuantity(gItemMenuTransferRanges + ITEM_MENU_PANE_CARRIED, task->spawnArg1.value);
         split->carriedQty          = carriedInitialQty;
         split->carriedInitialQty   = carriedInitialQty;
-        split->loadedQty           = equipmentGetLoadedConsumableQuantity(&Gp_MoveScanSrc + 1, task->spawnArg1.value);
+        split->loadedQty           = equipmentGetLoadedConsumableQuantity(gItemMenuTransferRanges + ITEM_MENU_PANE_CARRIED, task->spawnArg1.value);
         uiSetPromptText(Gp_StrSetAmmoHelp, 0, 0);
         split->stackLimit = gInventoryConsumableStacks[task->spawnArg1.value - INVENTORY_CONSUMABLE_ITEM_FIRST].maxHeld;
         task->state       = task->state + 1;
@@ -1249,12 +1249,12 @@ static void _itemMenuAmmoSplitTask(Task* task)
             sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
             transferQty = split->containerQty - split->containerInitialQty;
             if (transferQty > 0) {
-                containerRange = &Gp_MoveScanSrc;
+                containerRange = gItemMenuTransferRanges;
                 inventoryGiveItem(containerRange, task->spawnArg1.value, transferQty);
                 inventoryConsumeFirstStack(containerRange + 1, task->spawnArg1.value, transferQty);
             } else if (transferQty < 0) {
                 transferQty  = -transferQty;
-                carriedRange = &Gp_MoveScanDst;
+                carriedRange = &gItemMenuTransferRanges[ITEM_MENU_PANE_CARRIED];
                 inventoryGiveItem(carriedRange, task->spawnArg1.value, transferQty);
                 inventoryConsumeFirstStack(carriedRange - 1, task->spawnArg1.value, transferQty);
             }
@@ -1326,7 +1326,11 @@ static void _itemMenuAmmoSplitTask(Task* task)
 }
 
 /* After Gp_StrBullet from _itemMenuAmmoSplitTask so the overlay .rodata stays packed. */
-static const _ItemMenuPromptTexts Gp_ItemPromptTexts = { Gp_StrAll, Gp_StrSelect, Gp_StrDiscard, Gp_StrEnd };
+/// Transfer-exit byte-string labels in row order: All, Select, Discard, End.
+///
+/// The callback copies all four pointers; only rows 0..2 are dispatched.
+/// End is retained in the fourth slot. Borrowed strings live with gameplay.
+static const _ItemMenuPromptTexts _gItemMenuTransferExitTexts = { .label = { gItemMenuTransferAllText, gItemMenuTransferSelectText, gItemMenuTransferDiscardText, gItemMenuTransferEndText } };
 /// Vector template used by `itemPickupContainerLidTask`.
 static const VECTOR D_80093DB0 = { 0, -100, 0, 0 };
 
@@ -1388,7 +1392,7 @@ static void _itemMenuTransferExitRow(UiList* list, UiObject* object)
     _ItemMenuPromptTexts labels;
     s32                  rowIndex;
 
-    labels = Gp_ItemPromptTexts;
+    labels = _gItemMenuTransferExitTexts;
     if (list->currentItemIndex == ITEM_MENU_PROMPT_ALL) {
         if (object->owner->spawnArg1.value == 0) {
             list->colorRgb = uiGetTextColor(object, USER_INTERFACE_TEXT_COLOR_DIMMED);

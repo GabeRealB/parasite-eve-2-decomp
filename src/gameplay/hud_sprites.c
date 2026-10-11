@@ -650,7 +650,7 @@ void hudDrawHpReadout(s32 x, s32 y, s32 hp, s32 hpMax, s32 layout)
     labelRequest.glyphTable = TEXT_GLYPH_TABLE_SMALL;
     labelRequest.alignment  = TEXT_ALIGNMENT_LEFT;
     labelRequest.drawMode   = TEXT_DRAW_OUTLINED;
-    textDrawString(&labelRequest, Gp_StrHP);
+    textDrawString(&labelRequest, gHudHpLabelText);
 
     if (hpMax >= 0) {
         s32 amount = hp;
@@ -1154,7 +1154,6 @@ void itemPickupTitleTask(Task* task)
 
 void sceneQueueBattleEscapeResult(void)
 {
-    enum { SCENE_BATTLE_RESULT_ESCAPE = 1 };
     u8 battlePhase;
 
     battlePhase = gSceneCombatState.signals.bytes.battlePhase;
@@ -1163,7 +1162,7 @@ void sceneQueueBattleEscapeResult(void)
             playerStateSetStatusEffects(1, PLAYER_STATUS_ALL_EFFECTS);
             roomEffectRequestCancelPe();
             gDisplayState.suppressDisconnectPause = 0;
-            displayQueueModeTask(&D_8010CABC, SCENE_BATTLE_RESULT_ESCAPE, 0, STAGE_ENTRY_RELOAD_FORCED);
+            displayQueueModeTask(&gSceneBattleResultTaskDesc, SCENE_BATTLE_RESULT_ESCAPE, 0, STAGE_ENTRY_RELOAD_FORCED);
         }
     }
 }

@@ -1864,7 +1864,7 @@ void hudUpdateAndDraw(HudState* hud)
                         hud->battleStep          = HUD_BATTLE_STEP_START;
                         hud->inBattle            = 0;
                     } else {
-                        displayQueueModeTask(&D_8010CABC, 0, hud, STAGE_ENTRY_RELOAD);
+                        displayQueueModeTask(&gSceneBattleResultTaskDesc, SCENE_BATTLE_RESULT_WON, hud, STAGE_ENTRY_RELOAD);
                     }
                 }
                 attachment = &gAttachmentState;

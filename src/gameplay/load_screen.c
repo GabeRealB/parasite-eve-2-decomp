@@ -57,9 +57,16 @@
 
 #include "mapui/map_shelter.h"
 
-TILE Gp_FadeTiles[2];
+/// Full-screen subtractive fade tiles, one packet for each ordering-table half.
+///
+/// The current half is rewritten for each loading update and paired with
+/// `_gLoadingFadeBlendCommands`; reuse waits until that half's GPU work retires.
+static TILE _gLoadingFadeTiles[2];
 
-DR_TPAGE Gp_FadeTpages[2];
+/// Subtractive GPU draw-mode packets paired with `_gLoadingFadeTiles` by OT half.
+///
+/// Each is linked ahead of its tile and must remain live through GPU consumption.
+static DR_TPAGE _gLoadingFadeBlendCommands[2];
 
 ActorSpawnTransform D_80114CB0;
 
@@ -417,8 +424,8 @@ void loadingPrepareCharacterResourcesTask(Task* task)
     bootLoadActive    = gCdCmdQueue.bootLoadActive;
     displayState      = &gDisplayState;
     packetBufferIndex = displayState->otBuffer;
-    fadeTile          = &Gp_FadeTiles[packetBufferIndex];
-    blendCommand      = &Gp_FadeTpages[packetBufferIndex];
+    fadeTile          = &_gLoadingFadeTiles[packetBufferIndex];
+    blendCommand      = &_gLoadingFadeBlendCommands[packetBufferIndex];
     if (bootLoadActive == 0) {
         _loadingDrawFadeOverlay(fadeTile, blendCommand, displayState, darkness);
     }
@@ -437,8 +444,8 @@ void loadingEnqueueStageResourcesTask(Task* task)
     bootLoadActive    = gCdCmdQueue.bootLoadActive;
     displayState      = &gDisplayState;
     packetBufferIndex = displayState->otBuffer;
-    fadeTile          = &Gp_FadeTiles[packetBufferIndex];
-    blendCommand      = &Gp_FadeTpages[packetBufferIndex];
+    fadeTile          = &_gLoadingFadeTiles[packetBufferIndex];
+    blendCommand      = &_gLoadingFadeBlendCommands[packetBufferIndex];
     if (bootLoadActive == 0) {
         _loadingDrawFadeOverlay(fadeTile, blendCommand, displayState, darkness);
     }
@@ -476,8 +483,8 @@ void loadingInitializeAreaMemoryAndAudioTask(Task* task)
     bootLoadActive    = gCdCmdQueue.bootLoadActive;
     displayState      = &gDisplayState;
     packetBufferIndex = displayState->otBuffer;
-    fadeTile          = &Gp_FadeTiles[packetBufferIndex];
-    blendCommand      = &Gp_FadeTpages[packetBufferIndex];
+    fadeTile          = &_gLoadingFadeTiles[packetBufferIndex];
+    blendCommand      = &_gLoadingFadeBlendCommands[packetBufferIndex];
     if (bootLoadActive == 0) {
         _loadingDrawFadeOverlay(fadeTile, blendCommand, displayState, darkness);
     }
@@ -530,8 +537,8 @@ void loadingEnqueueAreaAndCompanionResourcesTask(Task* task)
     bootLoadActive    = gCdCmdQueue.bootLoadActive;
     displayState      = &gDisplayState;
     packetBufferIndex = displayState->otBuffer;
-    fadeTile          = &Gp_FadeTiles[packetBufferIndex];
-    blendCommand      = &Gp_FadeTpages[packetBufferIndex];
+    fadeTile          = &_gLoadingFadeTiles[packetBufferIndex];
+    blendCommand      = &_gLoadingFadeBlendCommands[packetBufferIndex];
     if (bootLoadActive == 0) {
         _loadingDrawFadeOverlay(fadeTile, blendCommand, displayState, darkness);
     }
@@ -577,8 +584,8 @@ void loadingPrepareAreaStateTask(Task* task)
     bootLoadActive    = gCdCmdQueue.bootLoadActive;
     displayState      = &gDisplayState;
     packetBufferIndex = displayState->otBuffer;
-    fadeTile          = &Gp_FadeTiles[packetBufferIndex];
-    blendCommand      = &Gp_FadeTpages[packetBufferIndex];
+    fadeTile          = &_gLoadingFadeTiles[packetBufferIndex];
+    blendCommand      = &_gLoadingFadeBlendCommands[packetBufferIndex];
     if (bootLoadActive == 0) {
         _loadingDrawFadeOverlay(fadeTile, blendCommand, displayState, darkness);
     }
@@ -630,8 +637,8 @@ void loadingPollAreaResourcesTask(Task* task)
     bootLoadActive    = gCdCmdQueue.bootLoadActive;
     displayState      = &gDisplayState;
     packetBufferIndex = displayState->otBuffer;
-    fadeTile          = &Gp_FadeTiles[packetBufferIndex];
-    blendCommand      = &Gp_FadeTpages[packetBufferIndex];
+    fadeTile          = &_gLoadingFadeTiles[packetBufferIndex];
+    blendCommand      = &_gLoadingFadeBlendCommands[packetBufferIndex];
     if (bootLoadActive == 0) {
         _loadingDrawFadeOverlay(fadeTile, blendCommand, displayState, darkness);
     }
@@ -665,8 +672,8 @@ void loadingHoldFadeAndReleaseBootImageTask(Task* task)
     displayState      = &gDisplayState;
     darkness          = LOADING_FADE_HOLD_DARKNESS;
     packetBufferIndex = displayState->otBuffer;
-    fadeTile          = &Gp_FadeTiles[packetBufferIndex];
-    blendCommand      = &Gp_FadeTpages[packetBufferIndex];
+    fadeTile          = &_gLoadingFadeTiles[packetBufferIndex];
+    blendCommand      = &_gLoadingFadeBlendCommands[packetBufferIndex];
     if (cdQueue->bootLoadActive == 0) {
         _loadingDrawFadeOverlay(fadeTile, blendCommand, displayState, darkness);
     }

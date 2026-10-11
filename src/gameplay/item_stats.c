@@ -901,7 +901,7 @@ void itemMenuDrawCollectedItemRow(UiList* list, UiObject* object)
         if (list->selectedItemIndex == list->currentItemIndex) {
             ITEM_MENU_SET_COLLECTED_ROW_PREVIEW();
             if (itemId == INVENTORY_ITEM_NONE) {
-                uiSetPromptText((const u8*)Gp_StrEmpty, 0, 0);
+                uiSetPromptText(gItemMenuEmptyPromptText, 0, 0);
             } else {
                 uiSetPromptText(itemGetText(itemId, ITEM_TEXT_DESCRIPTION_FIRST, 0), 0, 0);
             }

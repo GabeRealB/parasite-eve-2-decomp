@@ -670,8 +670,8 @@ void inventoryInitializeShootingGalleryLoadout(void)
     }
 
     // Use the separate saved range so normal carried items survive training.
-    _inventoryClearItems(&Gp_DefaultScan);
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems = Gp_DefaultScan;
+    _inventoryClearItems(&gInventoryTrainingCarriedRange);
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems = gInventoryTrainingCarriedRange;
     inventoryAddItem(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, INVENTORY_SHOOTING_GALLERY_ARMOR_ITEM_ID, 1);
     equipmentEquipCarriedArmor(INVENTORY_SHOOTING_GALLERY_ARMOR_ITEM_ID);
 
@@ -706,7 +706,7 @@ void inventoryRestoreCarriedLoadout(void)
     }
 
     // Discard temporary rows, then recover the armor marked in normal inventory.
-    _inventoryClearItems(&Gp_DefaultScan);
+    _inventoryClearItems(&gInventoryTrainingCarriedRange);
     _inventorySetCarriedRange(INVENTORY_INITIAL_CARRIED_ROWS);
     range = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
 

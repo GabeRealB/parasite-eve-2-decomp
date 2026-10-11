@@ -201,7 +201,7 @@ u8 Gp_ItemSortKey80[33] = {
     21,
     255
 };
-u8 Gp_ItemSortKeyA0[33] = {
+const u8 gInventoryConsumableSortKeys[INVENTORY_CONSUMABLE_ITEM_COUNT + 1] SECTION(".data") = {
     23,
     24,
     25,
@@ -303,7 +303,7 @@ void inventorySortItems(const InventoryItemRange* range, s32 unused)
                 } else {                                                    \
                     classIndex = (id) - INVENTORY_CONSUMABLE_ITEM_FIRST;    \
                     if ((u32)classIndex < INVENTORY_SORT_CLASS_ID_COUNT) {  \
-                        (key) = Gp_ItemSortKeyA0[classIndex];               \
+                        (key) = gInventoryConsumableSortKeys[classIndex];   \
                     }                                                       \
                 }                                                           \
             }                                                               \

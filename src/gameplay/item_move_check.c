@@ -8,8 +8,6 @@
 #include "main/mc_types.h"
 #include "main/ui_types.h"
 
-extern UiListRowCallback D_8010D630[1];
-
 u8 Gp_StrMove2[] = "Move";
 
 char Gp_StrSwitch[] = "Switch";
@@ -20,23 +18,28 @@ char Gp_StrAmmoLocked[] = "Ammo loaded in a weapon\ncannot be moved.";
 
 char Gp_StrMaxCapacity[] = "Maximum capacity.";
 
-u8 Gp_StrAll[] = "All";
+u8 gItemMenuTransferAllText[] = "All";
 
-u8 Gp_StrSelect[] = "Select";
+u8 gItemMenuTransferSelectText[] = "Select";
 
-u8 Gp_StrEnd[] = "End";
+u8 gItemMenuTransferEndText[] = "End";
 
-u8 Gp_StrDiscard[] = "Discard";
+u8 gItemMenuTransferDiscardText[] = "Discard";
 
-InventoryItemRange Gp_MoveScanSrc = { 0, 60, INVENTORY_ITEM_TABLE_INDIRECT, 0 };
+InventoryItemRange gItemMenuTransferRanges[ITEM_MENU_PANE_COUNT] = {
+    { .firstRow = 0, .rowCount = 60, .tableId = INVENTORY_ITEM_TABLE_INDIRECT },
+    { .firstRow = 60, .rowCount = 60, .tableId = INVENTORY_ITEM_TABLE_INDIRECT },
+};
 
-InventoryItemRange Gp_MoveScanDst = { 60, 60, INVENTORY_ITEM_TABLE_INDIRECT, 0 };
-
-UiListRowCallback D_8010D630[1] = { itemMenuDrawTransferInventoryRow };
+/// Single inventory-row callback shared by the container and carried-item pane lists.
+///
+/// Lists must enable USER_INTERFACE_LIST_SHARED_ROW_CALLBACK before dispatch,
+/// so entry zero handles every row without indexing beyond this one-element table.
+static UiListRowCallback _gItemMenuTransferInventoryRowCallbacks[1] = { itemMenuDrawTransferInventoryRow };
 
 UiList Gp_InvLists[2] = {
-    { D_8010D630, 60, { 60 }, 0, 15, 0, { 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { 0 }, 0 },
-    { D_8010D630, 60, { 60 }, 0, 15, 0, { 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { 0 }, 0 },
+    { _gItemMenuTransferInventoryRowCallbacks, 60, { 60 }, 0, 15, 0, { 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { 0 }, 0 },
+    { _gItemMenuTransferInventoryRowCallbacks, 60, { 60 }, 0, 15, 0, { 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { 0 }, 0 },
 };
 
 UiListRowCallback Gp_ItemActionFns[3] = {
@@ -55,7 +58,7 @@ s32 itemMenuCanMoveAllItems(void)
     s32                       canMoveAll;
     s32                       rowOffset;
 
-    sourceRange  = &Gp_MoveScanSrc;
+    sourceRange  = gItemMenuTransferRanges;
     canMoveAll   = 0;
     sourceRows   = inventoryGetRangeTable(sourceRange);
     sourceRow    = sourceRange->firstRow;
@@ -67,7 +70,7 @@ s32 itemMenuCanMoveAllItems(void)
         for (rowOffset = 0; rowOffset < sourceRange->rowCount; rowOffset++, sourceRow++) {
             if (sourceRows[sourceRow].itemId != INVENTORY_ITEM_NONE) {
                 if ((u8)(sourceRows[sourceRow].itemId - INVENTORY_CONSUMABLE_ITEM_FIRST) < INVENTORY_CONSUMABLE_ITEM_COUNT) {
-                    if (inventoryFindLastItemRowInRange(sourceRows[sourceRow].itemId, &Gp_MoveScanDst) == NULL) {
+                    if (inventoryFindLastItemRowInRange(sourceRows[sourceRow].itemId, &gItemMenuTransferRanges[ITEM_MENU_PANE_CARRIED]) == NULL) {
                         requiredRows++;
                     }
                 } else {
@@ -75,7 +78,7 @@ s32 itemMenuCanMoveAllItems(void)
                 }
             }
         }
-        if (alwaysZero == 0 && Gp_MoveScanDst.rowCount >= requiredRows) {
+        if (alwaysZero == 0 && gItemMenuTransferRanges[ITEM_MENU_PANE_CARRIED].rowCount >= requiredRows) {
             canMoveAll = 1;
         }
     }

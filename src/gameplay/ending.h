@@ -6,7 +6,8 @@
 /// Colours and labels defined in `gameplay.c`, shared with `78.c`.
 extern const TaskFuncTable6 Gp_PlayClockStates;
 
-extern const char Gp_StrHP[];
+/// Encoded byte-string HP label shared by the HUD and battle-result readout.
+extern const u8 gHudHpLabelText[];
 
 extern const char Gp_StrMP[];
 

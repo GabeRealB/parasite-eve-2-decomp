@@ -562,7 +562,7 @@ void itemMenuDrawWeaponChoiceRow(UiList* list, UiObject* object)
     if (((controlWord >> 16) == USER_INTERFACE_PANEL_ACTIVE) || (controlWord == USER_INTERFACE_PANEL_ACTIVE)) {
         if (list->selectedItemIndex == list->currentItemIndex) {
             if (weaponItemId == 0) {
-                uiSetPromptText((const u8*)Gp_StrEmpty, 0, 0);
+                uiSetPromptText(gItemMenuEmptyPromptText, 0, 0);
             } else {
                 uiSetPromptText(itemGetText(weaponItemId, ITEM_TEXT_DESCRIPTION_FIRST, 0), 0, 0);
             }

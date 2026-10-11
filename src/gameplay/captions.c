@@ -293,7 +293,7 @@ void capUpdatePlaybackTask(Task* task)
         D_801156A4          &= CAP_PLAYBACK_BYTE_MASK ^ CAP_CONTROL_SCENE_SYNC_COMPLETE;
         // The no-view sync path compensates text timing for control ticks beyond thirty.
         if (gCapSceneSyncAdjustmentFrames == CAP_SCENE_SYNC_ADJUSTMENT_PENDING) {
-            gCapSceneSyncAdjustmentFrames = (u16)D_801156BC - CAP_CONTROL_SCENE_SYNC_DELAY_FRAMES;
+            gCapSceneSyncAdjustmentFrames = (u16)gCapSceneSyncElapsedTicks - CAP_CONTROL_SCENE_SYNC_DELAY_FRAMES;
         }
     }
     pendingViewState = gCapPendingViewPhase;

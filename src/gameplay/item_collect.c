@@ -796,7 +796,7 @@ s32 inventoryGetItemSortKey(s32 itemId)
     } else if (itemId >= EQUIPMENT_WEAPON_ITEM_FIRST && itemId < INVENTORY_CONSUMABLE_ITEM_FIRST) {
         key = Gp_ItemSortKey80[itemId - EQUIPMENT_WEAPON_ITEM_FIRST];
     } else if (itemId >= INVENTORY_CONSUMABLE_ITEM_FIRST && itemId < (INVENTORY_CONSUMABLE_ITEM_FIRST + INVENTORY_CONSUMABLE_ITEM_COUNT)) {
-        key = Gp_ItemSortKeyA0[itemId - INVENTORY_CONSUMABLE_ITEM_FIRST];
+        key = gInventoryConsumableSortKeys[itemId - INVENTORY_CONSUMABLE_ITEM_FIRST];
     }
     if (key == 0) {
         key = itemId + INVENTORY_SORT_FALLBACK_OFFSET;
@@ -908,7 +908,7 @@ void inventoryResetCarriedRange(void)
     McSaveData* save;
 
     save                     = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
-    save->state.carriedItems = Gp_DefaultScan;
+    save->state.carriedItems = gInventoryTrainingCarriedRange;
 }
 
 void playerActorPrepareAcropolisLoadout(void)

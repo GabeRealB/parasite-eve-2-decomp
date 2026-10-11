@@ -1556,12 +1556,21 @@ void itemMenuDrawAttachmentCandidateRow(UiList* list, UiObject* object);
 /// any nonzero argument retains DISMISS. Requires loaded menu/preview resources.
 void itemMenuAttachmentItemPickerTask(Task* task);
 
-/// Source item-table scan (`itemMenuCanMoveAllItems` / item-move UI). field_0 is the
-/// start index, field_1 the entry count, field_2 the table id.
-extern InventoryItemRange Gp_MoveScanSrc;
+/// Transfer-pane range indices used by the shared screen binding.
+enum {
+    ITEM_MENU_PANE_CONTAINER = 0,
+    ITEM_MENU_PANE_CARRIED   = 1,
+    ITEM_MENU_PANE_COUNT     = 2
+};
 
-/// Dest item-table scan immediately after `Gp_MoveScanSrc` (`itemMenuCanMoveAllItems`).
-extern InventoryItemRange Gp_MoveScanDst;
+/// Container/carried range descriptors borrowed by the single active transfer screen.
+///
+/// Initialization copies container selector 0..11 into pane 0 and the live save's
+/// carried range into pane 1. Copies retain their backing table and row extents;
+/// items can move in either direction. Initial descriptors select indirect rows
+/// 0..59 and 60..119; that backing must be live if used before screen binding.
+/// Storage remains valid until gameplay unloads; bindings are replaced on opening.
+extern InventoryItemRange gItemMenuTransferRanges[ITEM_MENU_PANE_COUNT];
 
 /// Pair of inventory UiLists indexed by `Task::spawnArg1` (source / dest).
 /// `selectedItemIndex` is the range-relative row passed to `inventoryGetRow`.
@@ -1570,13 +1579,17 @@ extern UiList Gp_InvLists[];
 /// Action-button callbacks for `Gp_ItemActionList`, filled by `_itemMenuFillTransferActions`.
 extern UiListRowCallback Gp_ItemActionFns[];
 
-extern u8 Gp_StrAll[];
+/// All command label for moving every container item into carried inventory.
+extern u8 gItemMenuTransferAllText[];
 
-extern u8 Gp_StrSelect[];
+/// Select command label for choosing individual transfers.
+extern u8 gItemMenuTransferSelectText[];
 
-extern u8 Gp_StrDiscard[];
+/// Discard command label for closing the battle-reward transfer without its remaining items.
+extern u8 gItemMenuTransferDiscardText[];
 
-extern u8 Gp_StrEnd[];
+/// Retained fourth transfer-exit label; the three-row command list does not dispatch it.
+extern u8 gItemMenuTransferEndText[];
 
 extern u8 Gp_StrMove2[];
 

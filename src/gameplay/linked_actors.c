@@ -458,7 +458,7 @@ static inline void _hudDrawHpMpLabels(const UiPanel* panel, s32 offsetX, s32 off
     hpRequest.glyphTable = TEXT_GLYPH_TABLE_SMALL;
     hpRequest.alignment  = TEXT_ALIGNMENT_LEFT;
     hpRequest.drawMode   = TEXT_DRAW_OUTLINED;
-    textDrawString(&hpRequest, (const u8*)Gp_StrHP);
+    textDrawString(&hpRequest, gHudHpLabelText);
 
     mpRequest.x          = panel->contentOriginX.unsignedValue + 0x2E + offsetX;
     mpRequest.y          = panel->contentOriginY.unsignedValue + 8 + offsetY;

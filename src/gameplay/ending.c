@@ -64,7 +64,7 @@ const char Gp_StrBattleResult[] = "Battle Result";
 
 const char Gp_StrTotal[] = "Total";
 
-const char Gp_StrHP[] = "HP";
+const u8 gHudHpLabelText[] = "HP";
 
 const char Gp_StrMP[] = "MP";
 
@@ -259,7 +259,7 @@ void itemMenuBattleResultTask(Task* task)
         hpLabelRequest.x = object->panel.contentLeft.signedValue + (object->panel.contentOriginX.unsignedValue + 6);
         hpLabelRequest.y = (s16)(object->panel.contentOriginY.unsignedValue - 2) + rowY;
         ITEM_MENU_SET_BATTLE_RESULT_TEXT_STYLE(hpLabelRequest, &object->panel, gainColorRgb, TEXT_GLYPH_TABLE_SMALL, TEXT_ALIGNMENT_LEFT, TEXT_DRAW_OUTLINED);
-        textDrawString(&hpLabelRequest, Gp_StrHP);
+        textDrawString(&hpLabelRequest, gHudHpLabelText);
         rowHeight = 0xA;
 
         hpGainRequest.x = object->panel.contentOriginX.unsignedValue + columnX;

@@ -192,10 +192,6 @@ WorldCollisionBody* gWorldCollisionBlastListHead;
 #include "world_collision.h"
 #include "attachments.h"
 
-/// Two-entry table of `WorldCollisionTrigger` list heads. `worldCollisionLinkTrigger` appends to
-/// `Gp_Obj4ALists[index]`; `worldCollisionClearTriggerList` walks and clears that list.
-extern WorldCollisionTrigger** Gp_Obj4ALists[2];
-
 /// One-entry table of `WorldCollisionOccluder` list heads. `worldCollisionLinkOccluder` appends to
 /// `Gp_Obj3ALists[index]`; `worldCollisionClearOccluderList` walks and clears that list.
 extern WorldCollisionOccluder** Gp_Obj3ALists[1];
@@ -234,7 +230,11 @@ static WorldCollisionBody** _gWorldCollisionBodyListHeads[] = {
     &gWorldCollisionGridOnlyListHead,
     &gWorldCollisionBlastListHead,
 };
-WorldCollisionTrigger** Gp_Obj4ALists[2] = {
+/// Writable list-head addresses selected by trigger group (0 action, 1 view boundary).
+///
+/// Linking and clearing update the selected head, not this table. Heads and
+/// trigger records remain owned by their collision/room lifetimes.
+static WorldCollisionTrigger** _gWorldCollisionTriggerListHeads[2] = {
     &gWorldCollisionActionTriggerListHead,
     &gWorldCollisionViewBoundaryListHead,
 };
@@ -878,7 +878,7 @@ void worldCollisionLinkTrigger(s32 listIndex, WorldCollisionTrigger* trigger)
     u8                      flags;
     WorldCollisionTrigger** listHead;
 
-    listHead = Gp_Obj4ALists[listIndex];
+    listHead = _gWorldCollisionTriggerListHeads[listIndex];
     flags    = trigger->flags;
     if (!(flags & WORLD_COLLISION_TRIGGER_LINKED)) {
         trigger->flags = flags | WORLD_COLLISION_TRIGGER_LINKED;
@@ -929,7 +929,7 @@ void worldCollisionClearTriggerList(s32 listIndex)
     WorldCollisionTrigger*  first;
     s32                     flags;
 
-    listHead = Gp_Obj4ALists[listIndex];
+    listHead = _gWorldCollisionTriggerListHeads[listIndex];
     first    = *listHead;
     if (first != NULL) {
         trigger   = first;

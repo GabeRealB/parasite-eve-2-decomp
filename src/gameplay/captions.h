@@ -82,7 +82,13 @@ enum { CAP_WEAPON_EVENT_ROOM_COMMAND = 0xFF };
 /// Enabled completion sound routing sends eventFlags + 100 as the cue key.
 void capSpawnWeaponEvent(s32 commandIndex, s32 eventFlags);
 
-extern s16 D_801156BC;
+/// Elapsed active CAP control ticks for the current scene-sync request.
+///
+/// Starts at zero, or is primed to thirty for an immediate reply on the next
+/// active tick. Inactive playback pauses it; disarming retains the last count.
+/// Playback subtracts thirty from its unsigned-halfword view to compensate
+/// timed text for a delayed reply. The signed-halfword storage is intentional.
+extern s16 gCapSceneSyncElapsedTicks;
 
 /// Scene-sync completion bit and delay measured in active CAP control ticks.
 enum {

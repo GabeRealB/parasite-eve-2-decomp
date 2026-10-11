@@ -124,8 +124,8 @@ static inline void _itemMenuClampArmorAttachmentViewport(UiList* list);
 
 static inline s32 _equipmentIsActiveItem(s32 itemId);
 
-char Gp_StrEmpty[]     = "";
-char Gp_StrReleasePe[] = "Release Parasite Energy.";
+u8   gItemMenuEmptyPromptText[] = "";
+char Gp_StrReleasePe[]          = "Release Parasite Energy.";
 
 /// Draws a borrowed text/P.E. payload under `itemMenuDrawTaskPrompt`'s contract.
 ///
@@ -188,7 +188,7 @@ void itemMenuDispatchCommand(UiObject* object, Task* task)
         case ITEM_MENU_COMMAND_INVENTORY_COUNT:
             countDescriptor = gItemMenuPanelDescriptors;
             uiSpawnObject(countDescriptor + ITEM_MENU_COMMAND_INVENTORY_COUNT, 0, USER_INTERFACE_PANEL_ACTIVE, ITEM_MENU_COMMAND_OPEN_DELAY_TICKS, object);
-            uiSetPromptText(Gp_StrEmpty, 0, 0);
+            uiSetPromptText(gItemMenuEmptyPromptText, 0, 0);
             uiStartPanelOpening(&(object)->panel, object->owner);
             break;
         case ITEM_MENU_COMMAND_WEAPON_CHOICE:
@@ -202,21 +202,21 @@ void itemMenuDispatchCommand(UiObject* object, Task* task)
         case ITEM_MENU_COMMAND_RETURN_FROM_MAP:
             displaySetTaskDrawMode(DISPLAY_TASK_DRAW_ROOM);
             uiSpawnObject(&gItemMenuPanelDescriptors[ITEM_MENU_COMMAND_MAIN], 0, USER_INTERFACE_PANEL_ACTIVE, ITEM_MENU_COMMAND_OPEN_DELAY_TICKS, object);
-            uiSetPromptText(Gp_StrEmpty, 0, 0);
+            uiSetPromptText(gItemMenuEmptyPromptText, 0, 0);
             uiStartPanelOpening(&(object)->panel, object->owner);
             break;
         case ITEM_MENU_COMMAND_USE_ATTACH:
         case ITEM_MENU_COMMAND_PARASITE_ENERGY:
             displaySetTaskDrawMode(DISPLAY_TASK_DRAW_ROOM);
             uiSpawnObject(gItemMenuPanelDescriptors + object->resultValue, 0, USER_INTERFACE_PANEL_INACTIVE, ITEM_MENU_COMMAND_OPEN_DELAY_TICKS, object);
-            uiSetPromptText(Gp_StrEmpty, 0, 0);
+            uiSetPromptText(gItemMenuEmptyPromptText, 0, 0);
             uiStartPanelOpening(&(object)->panel, object->owner);
             break;
         case ITEM_MENU_COMMAND_OPTIONS:
         default:
             displaySetTaskDrawMode(DISPLAY_TASK_DRAW_ROOM);
             uiSpawnObject(gItemMenuPanelDescriptors + object->resultValue, 0, USER_INTERFACE_PANEL_ACTIVE, ITEM_MENU_COMMAND_OPEN_DELAY_TICKS, object);
-            uiSetPromptText(Gp_StrEmpty, 0, 0);
+            uiSetPromptText(gItemMenuEmptyPromptText, 0, 0);
             uiStartPanelOpening(&(object)->panel, object->owner);
             break;
     }
@@ -1285,7 +1285,7 @@ static inline InventoryItemRow* _inventoryFindNthReorderableRow(const InventoryI
 #define GP_SHOW_ITEM_IN_HOLDER(item)                                                    \
     do {                                                                                \
         if ((item) == 0) {                                                              \
-            uiSetPromptText(Gp_StrEmpty, 0, 0);                                         \
+            uiSetPromptText(gItemMenuEmptyPromptText, 0, 0);                            \
         } else {                                                                        \
             uiSetPromptText(itemGetText((item), ITEM_TEXT_DESCRIPTION_FIRST, 0), 0, 0); \
         }                                                                               \
@@ -1705,7 +1705,7 @@ void itemMenuDrawEquippedWeaponRow(UiList* list, UiObject* object)
     if (((controlWord >> ITEM_MENU_ROW_SUSPENDED_CONTROL_SHIFT) == USER_INTERFACE_PANEL_ACTIVE || controlWord == USER_INTERFACE_PANEL_ACTIVE) && list->selectedItemIndex == list->currentItemIndex) {
         if (gItemMenuDestinationSelectionMode == ITEM_MENU_ROW_MODE_SELECT) {
             if (itemId == INVENTORY_ITEM_NONE) {
-                uiSetPromptText(Gp_StrEmpty, 0, 0);
+                uiSetPromptText(gItemMenuEmptyPromptText, 0, 0);
             } else {
                 uiSetPromptText(itemGetText(itemId, ITEM_TEXT_DESCRIPTION_FIRST, 0), 0, 0);
             }
@@ -2438,7 +2438,7 @@ void itemMenuArmorPanelTask(Task* task)
             if (((headerControl >> ITEM_MENU_ROW_SUSPENDED_CONTROL_SHIFT) == activeControl) || (headerControl == activeControl)) {
                 if (gItemMenuDestinationSelectionMode == ITEM_MENU_ROW_MODE_SELECT) {
                     if (armorItemId == INVENTORY_ITEM_NONE) {
-                        uiSetPromptText(Gp_StrEmpty, 0, 0);
+                        uiSetPromptText(gItemMenuEmptyPromptText, 0, 0);
                     } else {
                         uiSetPromptText(itemGetText(armorItemId, ITEM_TEXT_DESCRIPTION_FIRST, 0), 0, 0);
                     }
