@@ -12,3 +12,4 @@ _tonfaBatonDeferModelTaskRemoval = 0x8011db6c; // type:func
 tonfaBatonModelTask = 0x8011db98; // type:func
 tonfaBatonAttackState = 0x8011dbfc; // type:func
 _gTonfaBatonTrailEndpointOffsets = 0x8011e0f0; // size:0x10
+gTonfaBatonPlayerAnimationBank = 0x8012bab0;

@@ -1,7 +1,20 @@
 #ifndef INCLUDE_WEAPONS_TONFA_BATON_H
 #define INCLUDE_WEAPONS_TONFA_BATON_H
 
+#include "gameplay/animation.h"
+
 #include "main/task_types.h"
+
+/// Native player animation bank supplied by the loaded tonfa baton package.
+///
+/// The primary character selects bank index 20 for equipped weapon 19.
+/// Base slots 1..44 contain nineteen-track player clips; slots 0, 45 and 46
+/// are NULL. The 32 extension words start cleared and remain writable for
+/// scripted copies, including payloads that are not clip pointers. Play an
+/// extension slot only after installing a clip pointer there. The bank and
+/// its borrowed clip data must stay loaded while playback or cached records
+/// refer to them.
+extern AnimationBank gTonfaBatonPlayerAnimationBank;
 
 /// Records the tonfa baton's swing and draws its fading additive ribbon.
 ///
