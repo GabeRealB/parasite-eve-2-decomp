@@ -1190,9 +1190,9 @@ FLAG word left on the call stack.
 
 `bladeTrail` owns the included swoosh the Gunblade, M4A1 bayonet and tonfa
 baton leave behind a swing. Its interface is `src/shared/blade_trail.h`.
-Each weapon keeps eight frames of the blade base and tip and includes
+Each weapon keeps eight paired samples of two ribbon endpoints and includes
 `_bladeTrailDraw`, which joins seven adjacent pairs into fading gouraud quads.
-`BladeTrailScratch` is one quad's scratch block: four world corners, the
+`BladeTrailScratch` is one quad's scratch block: four endpoint corners, the
 ordering depth and the GTE FLAG word, plus one word the drawer never touches.
 
 `muzzleFlash` owns the included textured core, Gouraud streaks and short-lived

@@ -1,19 +1,20 @@
 /* Part of the blade trail library; see blade_trail.h. */
 
-// Carriers bind BLADE_TRAIL_FIRST_ENDPOINT_HISTORY and BLADE_TRAIL_TIP_HISTORY
+// Carriers bind BLADE_TRAIL_FIRST_ENDPOINT_HISTORY and BLADE_TRAIL_SECOND_ENDPOINT_HISTORY
 // to complete GfxCoord[8] array identifiers around this inclusion, then undefine
-// them. The first ring supplies corners 0 and 2; the other supplies 1 and 3.
+// them. The first ring supplies corners 0 and 2; the second supplies 1 and 3.
 // Slots are paired samples, newest at age & 7, seeded before drawing and
 // recomposed into the current view. The drawer reads only workm.t, narrowing
 // game-coordinate units to signed 16 bits; it retains no coordinate pointers.
 
 STATIC_ASSERT(ARRAY_SIZE(BLADE_TRAIL_FIRST_ENDPOINT_HISTORY) == 8, blade_trail_first_endpoint_has_eight_samples);
-STATIC_ASSERT(ARRAY_SIZE(BLADE_TRAIL_FIRST_ENDPOINT_HISTORY) == ARRAY_SIZE(BLADE_TRAIL_TIP_HISTORY), blade_trail_endpoint_histories_are_paired);
+STATIC_ASSERT(ARRAY_SIZE(BLADE_TRAIL_FIRST_ENDPOINT_HISTORY) == ARRAY_SIZE(BLADE_TRAIL_SECOND_ENDPOINT_HISTORY), blade_trail_endpoint_histories_are_paired);
 
 /// Colours the newer and older edges of a blade-trail quad with one packed tint.
 ///
-/// `quad` borrows one writable `POLY_G4`: vertices 0/1 are the newer base/tip
-/// and vertices 2/3 the older base/tip. Only their RGB bytes are written.
+/// `quad` borrows one writable `POLY_G4`: vertices 0/1 are the newer first/second
+/// endpoints and vertices 2/3 the older first/second endpoints. Only their RGB
+/// bytes are written.
 /// Brightness arguments are integer factors in 0..255. Tint multipliers occupy
 /// bits 8..9 (red), 4..5 (green) and 0..1 (blue), with other bits zero.
 /// Red uses the complete signed high part of `packedTint`, without masking.
@@ -49,8 +50,8 @@ static inline void _bladeTrailTintQuad(POLY_G4* quad, s32 newerBrightness, s32 o
 ///
 /// The seven quads fade from brightness 64 to 1 in steps of 9. Only the GTE
 /// FLAG from the last three corners rejects a quad; corner 0's flags are
-/// overwritten. Sorting and additive blend commands use the older tip's SZ3 / 4,
-/// scaled and wrapped by the current ordering-table configuration.
+/// overwritten. Sorting and additive blend commands use the older second
+/// endpoint's SZ3 / 4, scaled and wrapped by the current ordering-table configuration.
 ///
 /// Requires an initialized scratch stack with one free `BladeTrailScratch`
 /// block and a word-aligned frame arena with room for seven `POLY_G4` packets
@@ -66,7 +67,7 @@ static void _bladeTrailDraw(s16 newestSlot, s16 packedTint)
     };
     BladeTrailScratch* scratch;
     const GfxCoord*    firstEndpointCoord;
-    const GfxCoord*    tipCoord;
+    const GfxCoord*    secondEndpointCoord;
     POLY_G4*           quad;
     s32                segment;
     s32                unwrappedSlot;
@@ -83,23 +84,23 @@ static void _bladeTrailDraw(s16 newestSlot, s16 packedTint)
         // Join successive recorded poses, retaining the low signed coordinate halves.
         unwrappedSlot               = newestSlot - segment;
         newerSlot                   = unwrappedSlot & (ARRAY_SIZE(BLADE_TRAIL_FIRST_ENDPOINT_HISTORY) - 1);
-        olderSlot                   = (unwrappedSlot - 1) & (ARRAY_SIZE(BLADE_TRAIL_TIP_HISTORY) - 1);
+        olderSlot                   = (unwrappedSlot - 1) & (ARRAY_SIZE(BLADE_TRAIL_SECOND_ENDPOINT_HISTORY) - 1);
         firstEndpointCoord          = &BLADE_TRAIL_FIRST_ENDPOINT_HISTORY[newerSlot];
         scratch->worldCorners[0].vx = firstEndpointCoord->workm.t[0];
         scratch->worldCorners[0].vy = firstEndpointCoord->workm.t[1];
-        tipCoord                    = &BLADE_TRAIL_TIP_HISTORY[newerSlot];
+        secondEndpointCoord         = &BLADE_TRAIL_SECOND_ENDPOINT_HISTORY[newerSlot];
         scratch->worldCorners[0].vz = firstEndpointCoord->workm.t[2];
-        scratch->worldCorners[1].vx = tipCoord->workm.t[0];
-        scratch->worldCorners[1].vy = tipCoord->workm.t[1];
+        scratch->worldCorners[1].vx = secondEndpointCoord->workm.t[0];
+        scratch->worldCorners[1].vy = secondEndpointCoord->workm.t[1];
         firstEndpointCoord          = &BLADE_TRAIL_FIRST_ENDPOINT_HISTORY[olderSlot];
-        scratch->worldCorners[1].vz = tipCoord->workm.t[2];
+        scratch->worldCorners[1].vz = secondEndpointCoord->workm.t[2];
         scratch->worldCorners[2].vx = firstEndpointCoord->workm.t[0];
         scratch->worldCorners[2].vy = firstEndpointCoord->workm.t[1];
-        tipCoord                    = &BLADE_TRAIL_TIP_HISTORY[olderSlot];
+        secondEndpointCoord         = &BLADE_TRAIL_SECOND_ENDPOINT_HISTORY[olderSlot];
         scratch->worldCorners[2].vz = firstEndpointCoord->workm.t[2];
-        scratch->worldCorners[3].vx = tipCoord->workm.t[0];
-        scratch->worldCorners[3].vy = tipCoord->workm.t[1];
-        scratch->worldCorners[3].vz = tipCoord->workm.t[2];
+        scratch->worldCorners[3].vx = secondEndpointCoord->workm.t[0];
+        scratch->worldCorners[3].vy = secondEndpointCoord->workm.t[1];
+        scratch->worldCorners[3].vz = secondEndpointCoord->workm.t[2];
         // Corner 0 is projected alone. The flag word belongs to the transform of the other three.
         gte_ldv0(&scratch->worldCorners[0]);
         gte_rtps();
@@ -112,7 +113,7 @@ static void _bladeTrailDraw(s16 newestSlot, s16 packedTint)
         gte_stsxy3(&quad->x1, &quad->x2, &quad->x3);
         gte_stflg(&scratch->projectionFlags);
         if (scratch->projectionFlags >= 0) {
-            // Fade each edge and queue its additive mode at the older tip's depth.
+            // Fade each edge and queue its additive mode at the older second endpoint's depth.
             gte_stszotz(&scratch->otz);
             brightness      = BLADE_TRAIL_INITIAL_BRIGHTNESS - segment * BLADE_TRAIL_FADE_STEP;
             newerBrightness = brightness & BLADE_TRAIL_BRIGHTNESS_BYTE_MASK;
