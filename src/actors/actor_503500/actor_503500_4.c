@@ -1089,8 +1089,7 @@ static inline void _actor503500LargeOrbEmitterComposeLaunchRotation(MATRIX* shot
 /// its decayed step twice per update. Side 1 negates local X and launch yaw;
 /// angles use 4096 per turn.
 /// The spawned task owns its shot; allocation failure simply skips the launch.
-/// The angle rows currently cross separately declared data storage; their
-/// declaration bounds remain unproven. Uses GTE state and retains no pointer.
+/// Uses angle column 2 for either launch point. Uses GTE state and retains no pointer.
 static void _actor503500LargeOrbEmitterLaunchOrb(Task* emitterTask, s32 side, s32 launchPointIndex)
 {
     enum {
@@ -1100,18 +1099,19 @@ static void _actor503500LargeOrbEmitterLaunchOrb(Task* emitterTask, s32 side, s3
         ACTOR_503500_LARGE_ORB_ROTATION_WORD_COUNT = 4,
     };
 
-    SVECTOR    poseVector;
-    SVECTOR    launchOffset;
-    MATRIX     rotationMatrix;
-    GfxCoord*  emitterCoord;
-    GfxCoord*  shotCoord;
-    Task*      shotTask;
-    s32*       rotationDestinationWords;
-    const s32* rotationSourceWords;
-    s32        rotationWordIndex;
-    s32        mirroredComponent;
-    s16        offsetX;
-    s16        launchYaw;
+    SVECTOR        poseVector;
+    SVECTOR        launchOffset;
+    MATRIX         rotationMatrix;
+    GfxCoord*      emitterCoord;
+    GfxCoord*      shotCoord;
+    Task*          shotTask;
+    s32*           rotationDestinationWords;
+    const s32*     rotationSourceWords;
+    s32            rotationWordIndex;
+    s32            mirroredComponent;
+    s16            offsetX;
+    s16            launchYaw;
+    const SVECTOR* launchAngles;
 
     emitterCoord = emitterTask->extra.coordBody->coord;
     shotTask     = taskSpawnFromTable(gActor503500AttackTaskDescs, ACTOR_503500_LARGE_ORB_LINGERING_TASK, ACTOR_503500_LARGE_ORB_KIND, ACTOR_503500_LARGE_ORB_LAUNCH_SPEED);
@@ -1119,9 +1119,9 @@ static void _actor503500LargeOrbEmitterLaunchOrb(Task* emitterTask, s32 side, s3
         // Place the shot in world space; side 1 mirrors its local launch point.
         gfxComposeNodeWorldTransform(emitterCoord, &rotationMatrix, &poseVector);
         shotCoord       = shotTask->extra.coordBody->coord;
-        launchOffset.vx = offsetX = D_actor_503500_8016F108[launchPointIndex].vx;
-        launchOffset.vy           = D_actor_503500_8016F108[launchPointIndex].vy;
-        launchOffset.vz           = D_actor_503500_8016F108[launchPointIndex].vz;
+        launchOffset.vx = offsetX = gActor503500LargeOrbLaunchOffsets[launchPointIndex].vx;
+        launchOffset.vy           = gActor503500LargeOrbLaunchOffsets[launchPointIndex].vy;
+        launchOffset.vz           = gActor503500LargeOrbLaunchOffsets[launchPointIndex].vz;
         if (side != 0) {
             mirroredComponent = -offsetX;
             launchOffset.vx   = mirroredComponent;
@@ -1140,9 +1140,10 @@ static void _actor503500LargeOrbEmitterLaunchOrb(Task* emitterTask, s32 side, s3
             *rotationDestinationWords++ = *rotationSourceWords++;
         }
         shotCoord->coord.m[2][2] = rotationMatrix.m[2][2];
-        poseVector.vx            = D_actor_503500_8016F128[launchPointIndex][0].vx;
-        poseVector.vy = launchYaw = D_actor_503500_8016F128[launchPointIndex][0].vy;
-        poseVector.vz             = D_actor_503500_8016F128[launchPointIndex][0].vz;
+        launchAngles             = &gActor503500LargeOrbLaunchAngles[ACTOR_503500_LARGE_ORB_LAUNCH_ANGLE_INDEX];
+        poseVector.vx            = launchAngles[launchPointIndex * ACTOR_503500_LARGE_ORB_LAUNCH_ANGLE_COUNT].vx;
+        poseVector.vy = launchYaw = launchAngles[launchPointIndex * ACTOR_503500_LARGE_ORB_LAUNCH_ANGLE_COUNT].vy;
+        poseVector.vz             = launchAngles[launchPointIndex * ACTOR_503500_LARGE_ORB_LAUNCH_ANGLE_COUNT].vz;
         if (side != 0) {
             mirroredComponent = -launchYaw;
             poseVector.vy     = mirroredComponent;
@@ -5442,7 +5443,7 @@ static inline void _actor503500ArmHandleHit(Task* task, _Actor503500ArmWork* wor
             }
             break;
     }
-    if ((attackKey & ACTOR_503500_ATTACHMENT_ATTACK_FLAG) && D_actor_503500_80171490[attackKey & ACTOR_503500_ATTACK_ROW_MASK] != 0) {
+    if ((attackKey & ACTOR_503500_ATTACHMENT_ATTACK_FLAG) && gActor503500ArmDestroyingAttachmentRows[attackKey & ACTOR_503500_ATTACK_ROW_MASK] != 0) {
         _actor503500ArmEnterState(task, ACTOR_503500_ARM_STATE_DYING);
         hitKind = ACTOR_503500_ARM_HIT_DESTROYING;
     }
@@ -6308,7 +6309,7 @@ static void _actor503500LingeringShotStep(Task* task)
         case ACTOR_503500_LINGERING_SHOT_LINGERING:
             // Keep the sphere live through the kind's interval, then stop pair tests.
             work->lingerFrames++;
-            if (D_actor_503500_801715BC[task->spawnArg1.value] < work->lingerFrames) {
+            if (gActor503500LingeringShotFrameLimits[task->spawnArg1.value] < work->lingerFrames) {
                 work->lingerFrames = 0;
                 work->body.flags  &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                 work->phase++;

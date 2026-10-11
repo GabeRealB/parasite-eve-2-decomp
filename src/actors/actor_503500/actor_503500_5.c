@@ -419,199 +419,313 @@ static Actor503500AttackChoice _gActor503500AttackChoicesSet0MiddleBearing0[3] =
     { NULL, 0 },
 };
 
-Actor503500AttackChoice D_actor_503500_8016ECD8[3] = {
+enum { ACTOR_503500_ATTACK_BEARING_BAND_COUNT = 4 };
+
+/// Set-0 middle-height attacks for absolute bearing 701..1000.
+///
+/// Angles use 4096 units per turn. The first cumulative weight reaching a
+/// random byte wins; rolls beyond the total choose no attack. NULL ends the list.
+static const Actor503500AttackChoice _gActor503500AttackChoicesSet0MiddleBearing1[3] __attribute__((section(".data"))) = {
     { actor503500AttackLargeOrbPair, 159 },
     { actor503500AttackYellowFlash, 95 },
     { NULL, 0 },
 };
 
-Actor503500AttackChoice D_actor_503500_8016ECF0[4] = {
+/// Set-0 middle-height attacks for absolute bearing 1001..1300.
+///
+/// Angles use 4096 units per turn. The first cumulative weight reaching a
+/// random byte wins; rolls beyond the total choose no attack. NULL ends the list.
+static const Actor503500AttackChoice _gActor503500AttackChoicesSet0MiddleBearing2[4] __attribute__((section(".data"))) = {
     { actor503500AttackLargeOrbPair, 111 },
     { actor503500AttackSideChain, 79 },
     { actor503500AttackYellowFlash, 63 },
     { NULL, 0 },
 };
 
-Actor503500AttackChoice D_actor_503500_8016ED10[4] = {
+/// Set-0 middle-height attacks for absolute bearing 1301..2048.
+///
+/// Angles use 4096 units per turn. The first cumulative weight reaching a
+/// random byte wins; rolls beyond the total choose no attack. NULL ends the list.
+static const Actor503500AttackChoice _gActor503500AttackChoicesSet0MiddleBearing3[4] __attribute__((section(".data"))) = {
     { actor503500AttackSideChain, 159 },
     { actor503500AttackChainBases, 63 },
     { actor503500AttackYellowFlash, 31 },
     { NULL, 0 },
 };
 
-Actor503500AttackChoice D_actor_503500_8016ED30[4] = {
+/// Set-0 lower-height attacks for absolute bearing 0..300.
+///
+/// Angles use 4096 units per turn. The first cumulative weight reaching a
+/// random byte wins; rolls beyond the total choose no attack. NULL ends the list.
+static const Actor503500AttackChoice _gActor503500AttackChoicesSet0LowerBearing0[4] __attribute__((section(".data"))) = {
     { actor503500AttackSmallOrbVolley, 95 },
     { actor503500AttackPinkOrYellowFlash, 95 },
     { actor503500AttackLargeOrbPair, 63 },
     { NULL, 0 },
 };
 
-Actor503500AttackChoice D_actor_503500_8016ED50[3] = {
+/// Set-0 lower-height attacks for absolute bearing 301..1300.
+///
+/// Angles use 4096 units per turn. The first cumulative weight reaching a
+/// random byte wins; rolls beyond the total choose no attack. NULL ends the list.
+static const Actor503500AttackChoice _gActor503500AttackChoicesSet0LowerBearing1And2[3] __attribute__((section(".data"))) = {
     { actor503500AttackLargeOrbPair, 159 },
     { actor503500AttackSideChain, 95 },
     { NULL, 0 },
 };
 
-Actor503500AttackChoice D_actor_503500_8016ED68[3] = {
+/// Set-0 lower-height attacks for absolute bearing 1301..2048.
+///
+/// Angles use 4096 units per turn. The first cumulative weight reaching a
+/// random byte wins; rolls beyond the total choose no attack. NULL ends the list.
+static const Actor503500AttackChoice _gActor503500AttackChoicesSet0LowerBearing3[3] __attribute__((section(".data"))) = {
     { actor503500AttackSideChain, 223 },
     { actor503500AttackLargeOrbPair, 31 },
     { NULL, 0 },
 };
 
-Actor503500AttackChoice* D_actor_503500_8016ED80[4] = {
+/// Set-0 upper-height attack lists, in ascending absolute-bearing bands.
+///
+/// Indexed by bearing band 0..3; the matching limits select inclusive ends.
+/// Lists and callbacks remain live for the actor overlay lifetime.
+static const Actor503500AttackChoice* const _gActor503500AttackChoicesSet0Upper[ACTOR_503500_ATTACK_BEARING_BAND_COUNT] __attribute__((section(".data"))) = {
     _gActor503500AttackChoicesSet0UpperBearing0,
     _gActor503500AttackChoicesSet0UpperBearing1And2,
     _gActor503500AttackChoicesSet0UpperBearing1And2,
     _gActor503500AttackChoicesSet0UpperBearing3,
 };
 
-s16 D_actor_503500_8016ED90[4] = {
+/// Inclusive absolute-bearing limits for set 0, upper player height.
+///
+/// Four ordered bands at 4096 units per turn; the final half-turn limit
+/// covers the whole normalized bearing domain. Equality stays in that band.
+static const s16 _gActor503500AttackBearingLimitsSet0Upper[ACTOR_503500_ATTACK_BEARING_BAND_COUNT] __attribute__((section(".data"))) = {
     700,
     1000,
     1300,
-    2048,
+    ACTOR_TRANSFORM_ANGLE_HALF_TURN,
 };
 
-Actor503500AttackChoice* D_actor_503500_8016ED98[4] = {
+/// Set-0 middle-height attack lists, in ascending absolute-bearing bands.
+///
+/// Indexed by bearing band 0..3; the matching limits select inclusive ends.
+/// Lists and callbacks remain live for the actor overlay lifetime.
+static const Actor503500AttackChoice* const _gActor503500AttackChoicesSet0Middle[ACTOR_503500_ATTACK_BEARING_BAND_COUNT] __attribute__((section(".data"))) = {
     _gActor503500AttackChoicesSet0MiddleBearing0,
-    D_actor_503500_8016ECD8,
-    D_actor_503500_8016ECF0,
-    D_actor_503500_8016ED10,
+    _gActor503500AttackChoicesSet0MiddleBearing1,
+    _gActor503500AttackChoicesSet0MiddleBearing2,
+    _gActor503500AttackChoicesSet0MiddleBearing3,
 };
 
-s16 D_actor_503500_8016EDA8[4] = {
+/// Inclusive absolute-bearing limits for set 0, middle player height.
+///
+/// Four ordered bands at 4096 units per turn; the final half-turn limit
+/// covers the whole normalized bearing domain. Equality stays in that band.
+static const s16 _gActor503500AttackBearingLimitsSet0Middle[ACTOR_503500_ATTACK_BEARING_BAND_COUNT] __attribute__((section(".data"))) = {
     700,
     1000,
     1300,
-    2048,
+    ACTOR_TRANSFORM_ANGLE_HALF_TURN,
 };
 
-Actor503500AttackChoice* D_actor_503500_8016EDB0[4] = {
-    D_actor_503500_8016ED30,
-    D_actor_503500_8016ED50,
-    D_actor_503500_8016ED50,
-    D_actor_503500_8016ED68,
+/// Set-0 lower-height attack lists, in ascending absolute-bearing bands.
+///
+/// Indexed by bearing band 0..3; the matching limits select inclusive ends.
+/// Lists and callbacks remain live for the actor overlay lifetime.
+static const Actor503500AttackChoice* const _gActor503500AttackChoicesSet0Lower[ACTOR_503500_ATTACK_BEARING_BAND_COUNT] __attribute__((section(".data"))) = {
+    _gActor503500AttackChoicesSet0LowerBearing0,
+    _gActor503500AttackChoicesSet0LowerBearing1And2,
+    _gActor503500AttackChoicesSet0LowerBearing1And2,
+    _gActor503500AttackChoicesSet0LowerBearing3,
 };
 
-s16 D_actor_503500_8016EDC0[4] = {
+/// Inclusive absolute-bearing limits for set 0, lower player height.
+///
+/// Four ordered bands at 4096 units per turn; the final half-turn limit
+/// covers the whole normalized bearing domain. Equality stays in that band.
+static const s16 _gActor503500AttackBearingLimitsSet0Lower[ACTOR_503500_ATTACK_BEARING_BAND_COUNT] __attribute__((section(".data"))) = {
     300,
     1000,
     1300,
-    2048,
+    ACTOR_TRANSFORM_ANGLE_HALF_TURN,
 };
 
-Actor503500AttackChoice D_actor_503500_8016EDC8[4] = {
+/// Set-1 upper-height attacks for absolute bearing 0..700.
+///
+/// Angles use 4096 units per turn. The first cumulative weight reaching a
+/// random byte wins; rolls beyond the total choose no attack. NULL ends the list.
+static const Actor503500AttackChoice _gActor503500AttackChoicesSet1UpperBearing0[4] __attribute__((section(".data"))) = {
     { actor503500AttackBody, 111 },
     { actor503500AttackPinkOrYellowFlash, 111 },
     { actor503500AttackArmStrike, 31 },
     { NULL, 0 },
 };
 
-Actor503500AttackChoice D_actor_503500_8016EDE8[3] = {
+/// Set-1 upper-height attacks for absolute bearing 701..1300.
+///
+/// Angles use 4096 units per turn. The first cumulative weight reaching a
+/// random byte wins; rolls beyond the total choose no attack. NULL ends the list.
+static const Actor503500AttackChoice _gActor503500AttackChoicesSet1UpperBearing1And2[3] __attribute__((section(".data"))) = {
     { actor503500AttackPinkOrYellowFlash, 159 },
     { actor503500AttackArmStrike, 95 },
     { NULL, 0 },
 };
 
-Actor503500AttackChoice D_actor_503500_8016EE00[2] = {
+/// Set-1 upper-height attacks for absolute bearing 1301..2048.
+///
+/// Angles use 4096 units per turn. The first cumulative weight reaching a
+/// random byte wins; rolls beyond the total choose no attack. NULL ends the list.
+static const Actor503500AttackChoice _gActor503500AttackChoicesSet1UpperBearing3[2] __attribute__((section(".data"))) = {
     { actor503500AttackChainBases, 255 },
     { NULL, 0 },
 };
 
-Actor503500AttackChoice D_actor_503500_8016EE10[3] = {
+/// Set-1 middle-height attacks for absolute bearing 0..700.
+///
+/// Angles use 4096 units per turn. The first cumulative weight reaching a
+/// random byte wins; rolls beyond the total choose no attack. NULL ends the list.
+static const Actor503500AttackChoice _gActor503500AttackChoicesSet1MiddleBearing0[3] __attribute__((section(".data"))) = {
     { actor503500AttackBody, 127 },
     { actor503500AttackPinkOrYellowFlash, 127 },
     { NULL, 0 },
 };
 
-Actor503500AttackChoice D_actor_503500_8016EE28[3] = {
+/// Set-1 middle-height attacks for absolute bearing 701..1000.
+///
+/// Angles use 4096 units per turn. The first cumulative weight reaching a
+/// random byte wins; rolls beyond the total choose no attack. NULL ends the list.
+static const Actor503500AttackChoice _gActor503500AttackChoicesSet1MiddleBearing1[3] __attribute__((section(".data"))) = {
     { actor503500AttackLargeOrbPair, 159 },
     { actor503500AttackYellowFlash, 95 },
     { NULL, 0 },
 };
 
-Actor503500AttackChoice D_actor_503500_8016EE40[4] = {
+/// Set-1 middle-height attacks for absolute bearing 1001..1300.
+///
+/// Angles use 4096 units per turn. The first cumulative weight reaching a
+/// random byte wins; rolls beyond the total choose no attack. NULL ends the list.
+static const Actor503500AttackChoice _gActor503500AttackChoicesSet1MiddleBearing2[4] __attribute__((section(".data"))) = {
     { actor503500AttackLargeOrbPair, 95 },
     { actor503500AttackSideChain, 79 },
     { actor503500AttackYellowFlash, 63 },
     { NULL, 0 },
 };
 
-Actor503500AttackChoice D_actor_503500_8016EE60[4] = {
+/// Set-1 middle-height attacks for absolute bearing 1301..2048.
+///
+/// Angles use 4096 units per turn. The first cumulative weight reaching a
+/// random byte wins; rolls beyond the total choose no attack. NULL ends the list.
+static const Actor503500AttackChoice _gActor503500AttackChoicesSet1MiddleBearing3[4] __attribute__((section(".data"))) = {
     { actor503500AttackSideChain, 159 },
     { actor503500AttackChainBases, 63 },
     { actor503500AttackYellowFlash, 31 },
     { NULL, 0 },
 };
 
-Actor503500AttackChoice D_actor_503500_8016EE80[3] = {
+/// Set-1 lower-height attacks for absolute bearing 0..500.
+///
+/// Angles use 4096 units per turn. The first cumulative weight reaching a
+/// random byte wins; rolls beyond the total choose no attack. NULL ends the list.
+static const Actor503500AttackChoice _gActor503500AttackChoicesSet1LowerBearing0[3] __attribute__((section(".data"))) = {
     { actor503500AttackBody, 127 },
     { actor503500AttackSmallOrbVolley, 127 },
     { NULL, 0 },
 };
 
-Actor503500AttackChoice D_actor_503500_8016EE98[3] = {
+/// Set-1 lower-height attacks for absolute bearing 501..1300.
+///
+/// Angles use 4096 units per turn. The first cumulative weight reaching a
+/// random byte wins; rolls beyond the total choose no attack. NULL ends the list.
+static const Actor503500AttackChoice _gActor503500AttackChoicesSet1LowerBearing1And2[3] __attribute__((section(".data"))) = {
     { actor503500AttackLargeOrbPair, 159 },
     { actor503500AttackSideChain, 95 },
     { NULL, 0 },
 };
 
-Actor503500AttackChoice D_actor_503500_8016EEB0[3] = {
+/// Set-1 lower-height attacks for absolute bearing 1301..2048.
+///
+/// Angles use 4096 units per turn. The first cumulative weight reaching a
+/// random byte wins; rolls beyond the total choose no attack. NULL ends the list.
+static const Actor503500AttackChoice _gActor503500AttackChoicesSet1LowerBearing3[3] __attribute__((section(".data"))) = {
     { actor503500AttackSideChain, 127 },
     { actor503500AttackChainBases, 127 },
     { NULL, 0 },
 };
 
-Actor503500AttackChoice* D_actor_503500_8016EEC8[4] = {
-    D_actor_503500_8016EDC8,
-    D_actor_503500_8016EDE8,
-    D_actor_503500_8016EDE8,
-    D_actor_503500_8016EE00,
+/// Set-1 upper-height attack lists, in ascending absolute-bearing bands.
+///
+/// Indexed by bearing band 0..3; the matching limits select inclusive ends.
+/// Lists and callbacks remain live for the actor overlay lifetime.
+static const Actor503500AttackChoice* const _gActor503500AttackChoicesSet1Upper[ACTOR_503500_ATTACK_BEARING_BAND_COUNT] __attribute__((section(".data"))) = {
+    _gActor503500AttackChoicesSet1UpperBearing0,
+    _gActor503500AttackChoicesSet1UpperBearing1And2,
+    _gActor503500AttackChoicesSet1UpperBearing1And2,
+    _gActor503500AttackChoicesSet1UpperBearing3,
 };
 
-s16 D_actor_503500_8016EED8[4] = {
+/// Inclusive absolute-bearing limits for set 1, upper player height.
+///
+/// Four ordered bands at 4096 units per turn; the final half-turn limit
+/// covers the whole normalized bearing domain. Equality stays in that band.
+static const s16 _gActor503500AttackBearingLimitsSet1Upper[ACTOR_503500_ATTACK_BEARING_BAND_COUNT] __attribute__((section(".data"))) = {
     700,
     1000,
     1300,
-    2048,
+    ACTOR_TRANSFORM_ANGLE_HALF_TURN,
 };
 
-Actor503500AttackChoice* D_actor_503500_8016EEE0[4] = {
-    D_actor_503500_8016EE10,
-    D_actor_503500_8016EE28,
-    D_actor_503500_8016EE40,
-    D_actor_503500_8016EE60,
+/// Set-1 middle-height attack lists, in ascending absolute-bearing bands.
+///
+/// Indexed by bearing band 0..3; the matching limits select inclusive ends.
+/// Lists and callbacks remain live for the actor overlay lifetime.
+static const Actor503500AttackChoice* const _gActor503500AttackChoicesSet1Middle[ACTOR_503500_ATTACK_BEARING_BAND_COUNT] __attribute__((section(".data"))) = {
+    _gActor503500AttackChoicesSet1MiddleBearing0,
+    _gActor503500AttackChoicesSet1MiddleBearing1,
+    _gActor503500AttackChoicesSet1MiddleBearing2,
+    _gActor503500AttackChoicesSet1MiddleBearing3,
 };
 
-s16 D_actor_503500_8016EEF0[4] = {
+/// Inclusive absolute-bearing limits for set 1, middle player height.
+///
+/// Four ordered bands at 4096 units per turn; the final half-turn limit
+/// covers the whole normalized bearing domain. Equality stays in that band.
+static const s16 _gActor503500AttackBearingLimitsSet1Middle[ACTOR_503500_ATTACK_BEARING_BAND_COUNT] __attribute__((section(".data"))) = {
     700,
     1000,
     1300,
-    2048,
+    ACTOR_TRANSFORM_ANGLE_HALF_TURN,
 };
 
-Actor503500AttackChoice* D_actor_503500_8016EEF8[4] = {
-    D_actor_503500_8016EE80,
-    D_actor_503500_8016EE98,
-    D_actor_503500_8016EE98,
-    D_actor_503500_8016EEB0,
+/// Set-1 lower-height attack lists, in ascending absolute-bearing bands.
+///
+/// Indexed by bearing band 0..3; the matching limits select inclusive ends.
+/// Lists and callbacks remain live for the actor overlay lifetime.
+static const Actor503500AttackChoice* const _gActor503500AttackChoicesSet1Lower[ACTOR_503500_ATTACK_BEARING_BAND_COUNT] __attribute__((section(".data"))) = {
+    _gActor503500AttackChoicesSet1LowerBearing0,
+    _gActor503500AttackChoicesSet1LowerBearing1And2,
+    _gActor503500AttackChoicesSet1LowerBearing1And2,
+    _gActor503500AttackChoicesSet1LowerBearing3,
 };
 
-s16 D_actor_503500_8016EF08[4] = {
+/// Inclusive absolute-bearing limits for set 1, lower player height.
+///
+/// Four ordered bands at 4096 units per turn; the final half-turn limit
+/// covers the whole normalized bearing domain. Equality stays in that band.
+static const s16 _gActor503500AttackBearingLimitsSet1Lower[ACTOR_503500_ATTACK_BEARING_BAND_COUNT] __attribute__((section(".data"))) = {
     500,
     1000,
     1300,
-    2048,
+    ACTOR_TRANSFORM_ANGLE_HALF_TURN,
 };
 
-Actor503500AttackChoice** D_actor_503500_8016EF10[2][3] = {
-    { D_actor_503500_8016ED80, D_actor_503500_8016ED98, D_actor_503500_8016EDB0 },
-    { D_actor_503500_8016EEC8, D_actor_503500_8016EEE0, D_actor_503500_8016EEF8 },
+const Actor503500AttackChoice* const* D_actor_503500_8016EF10[2][3] = {
+    { _gActor503500AttackChoicesSet0Upper, _gActor503500AttackChoicesSet0Middle, _gActor503500AttackChoicesSet0Lower },
+    { _gActor503500AttackChoicesSet1Upper, _gActor503500AttackChoicesSet1Middle, _gActor503500AttackChoicesSet1Lower },
 };
 
-s16* D_actor_503500_8016EF28[2][3] = {
-    { D_actor_503500_8016ED90, D_actor_503500_8016EDA8, D_actor_503500_8016EDC0 },
-    { D_actor_503500_8016EED8, D_actor_503500_8016EEF0, D_actor_503500_8016EF08 },
+const s16* D_actor_503500_8016EF28[2][3] = {
+    { _gActor503500AttackBearingLimitsSet0Upper, _gActor503500AttackBearingLimitsSet0Middle, _gActor503500AttackBearingLimitsSet0Lower },
+    { _gActor503500AttackBearingLimitsSet1Upper, _gActor503500AttackBearingLimitsSet1Middle, _gActor503500AttackBearingLimitsSet1Lower },
 };
 
 enum {
@@ -726,18 +840,19 @@ SVECTOR gActor503500LargeOrbEmitterTargetOffsets[ACTOR_503500_SIDE_COUNT] = {
 
 RECT D_actor_503500_8016F100 = { 0, 253, 256, 1 };
 
-SVECTOR D_actor_503500_8016F108[4] = {
+SVECTOR gActor503500LargeOrbLaunchOffsets[ACTOR_503500_LARGE_ORB_LAUNCH_POINT_COUNT] = {
     { 2000, 0, 1000, 0 },
     { 2000, 0, -1000, 0 },
+};
+
+const SVECTOR gActor503500LargeOrbLaunchAngles[ACTOR_503500_LARGE_ORB_LAUNCH_POINT_COUNT * ACTOR_503500_LARGE_ORB_LAUNCH_ANGLE_COUNT] __attribute__((section(".data"))) = {
     { -750, 300, 0, 0 },
     { -750, 600, 0, 0 },
+    { -750, 900, 0, 0 },
+    { -750, 1700, 0, 0 },
+    { -750, 1400, 0, 0 },
+    { -750, 1100, 0, 0 },
 };
-
-SVECTOR D_actor_503500_8016F128[1][3] = {
-    { { -750, 900, 0, 0 }, { -750, 1700, 0, 0 }, { -750, 1400, 0, 0 } },
-};
-
-SVECTOR D_actor_503500_8016F140 = { -750, 1100, 0, 0 };
 
 RECT D_actor_503500_8016F148[2][2] = {
     { { 640, 256, 64, 256 }, { 0, 252, 256, 1 } },
@@ -1009,63 +1124,68 @@ SVECTOR gActor503500ArmTargetOffsets[ACTOR_503500_SIDE_COUNT] = {
     { -500, 0, 0, 0 },
 };
 
-s8 D_actor_503500_80171490[56] = {
-    0,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    1,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
+enum {
+    ACTOR_503500_ARM_ATTACHMENT_NORMAL     = 0,
+    ACTOR_503500_ARM_ATTACHMENT_DESTROYING = 1,
+};
+
+const s8 gActor503500ArmDestroyingAttachmentRows[56] __attribute__((section(".data"))) = {
+    ACTOR_503500_ARM_ATTACHMENT_NORMAL,
+    ACTOR_503500_ARM_ATTACHMENT_DESTROYING,
+    ACTOR_503500_ARM_ATTACHMENT_DESTROYING,
+    ACTOR_503500_ARM_ATTACHMENT_DESTROYING,
+    ACTOR_503500_ARM_ATTACHMENT_DESTROYING,
+    ACTOR_503500_ARM_ATTACHMENT_DESTROYING,
+    ACTOR_503500_ARM_ATTACHMENT_DESTROYING,
+    ACTOR_503500_ARM_ATTACHMENT_DESTROYING,
+    ACTOR_503500_ARM_ATTACHMENT_DESTROYING,
+    ACTOR_503500_ARM_ATTACHMENT_DESTROYING,
+    ACTOR_503500_ARM_ATTACHMENT_NORMAL,
+    ACTOR_503500_ARM_ATTACHMENT_NORMAL,
+    ACTOR_503500_ARM_ATTACHMENT_NORMAL,
+    ACTOR_503500_ARM_ATTACHMENT_NORMAL,
+    ACTOR_503500_ARM_ATTACHMENT_NORMAL,
+    ACTOR_503500_ARM_ATTACHMENT_NORMAL,
+    ACTOR_503500_ARM_ATTACHMENT_NORMAL,
+    ACTOR_503500_ARM_ATTACHMENT_NORMAL,
+    ACTOR_503500_ARM_ATTACHMENT_NORMAL,
+    ACTOR_503500_ARM_ATTACHMENT_NORMAL,
+    ACTOR_503500_ARM_ATTACHMENT_NORMAL,
+    ACTOR_503500_ARM_ATTACHMENT_NORMAL,
+    ACTOR_503500_ARM_ATTACHMENT_NORMAL,
+    ACTOR_503500_ARM_ATTACHMENT_NORMAL,
+    ACTOR_503500_ARM_ATTACHMENT_NORMAL,
+    ACTOR_503500_ARM_ATTACHMENT_NORMAL,
+    ACTOR_503500_ARM_ATTACHMENT_NORMAL,
+    ACTOR_503500_ARM_ATTACHMENT_NORMAL,
+    ACTOR_503500_ARM_ATTACHMENT_NORMAL,
+    ACTOR_503500_ARM_ATTACHMENT_NORMAL,
+    ACTOR_503500_ARM_ATTACHMENT_NORMAL,
+    ACTOR_503500_ARM_ATTACHMENT_NORMAL,
+    ACTOR_503500_ARM_ATTACHMENT_NORMAL,
+    ACTOR_503500_ARM_ATTACHMENT_NORMAL,
+    ACTOR_503500_ARM_ATTACHMENT_NORMAL,
+    ACTOR_503500_ARM_ATTACHMENT_NORMAL,
+    ACTOR_503500_ARM_ATTACHMENT_NORMAL,
+    ACTOR_503500_ARM_ATTACHMENT_NORMAL,
+    ACTOR_503500_ARM_ATTACHMENT_NORMAL,
+    ACTOR_503500_ARM_ATTACHMENT_NORMAL,
+    ACTOR_503500_ARM_ATTACHMENT_NORMAL,
+    ACTOR_503500_ARM_ATTACHMENT_NORMAL,
+    ACTOR_503500_ARM_ATTACHMENT_NORMAL,
+    ACTOR_503500_ARM_ATTACHMENT_NORMAL,
+    ACTOR_503500_ARM_ATTACHMENT_NORMAL,
+    ACTOR_503500_ARM_ATTACHMENT_NORMAL,
+    ACTOR_503500_ARM_ATTACHMENT_DESTROYING,
+    ACTOR_503500_ARM_ATTACHMENT_NORMAL,
+    ACTOR_503500_ARM_ATTACHMENT_NORMAL,
+    ACTOR_503500_ARM_ATTACHMENT_NORMAL,
+    ACTOR_503500_ARM_ATTACHMENT_NORMAL,
+    ACTOR_503500_ARM_ATTACHMENT_NORMAL,
+    ACTOR_503500_ARM_ATTACHMENT_NORMAL,
+    ACTOR_503500_ARM_ATTACHMENT_NORMAL,
+    ACTOR_503500_ARM_ATTACHMENT_NORMAL,
+    ACTOR_503500_ARM_ATTACHMENT_NORMAL,
 };
 
 AnimationSet* gActor503500PlayerKnockbackAnimationSets[ACTOR_503500_KNOCKBACK_SET_COUNT] = {
@@ -1116,9 +1236,14 @@ SVECTOR D_actor_503500_801715AC = { 0 };
 
 SVECTOR D_actor_503500_801715B4 = { 0 };
 
-s32 D_actor_503500_801715BC[2] = {
-    180,
-    150,
+enum {
+    ACTOR_503500_LINGERING_SHOT_ORB_FRAME_LIMIT        = 180,
+    ACTOR_503500_LINGERING_SHOT_PROJECTILE_FRAME_LIMIT = 150,
+};
+
+const s32 gActor503500LingeringShotFrameLimits[ACTOR_503500_LINGERING_SHOT_KIND_COUNT] __attribute__((section(".data"))) = {
+    ACTOR_503500_LINGERING_SHOT_ORB_FRAME_LIMIT,
+    ACTOR_503500_LINGERING_SHOT_PROJECTILE_FRAME_LIMIT,
 };
 
 SVECTOR D_actor_503500_801715C4 = { 0 };

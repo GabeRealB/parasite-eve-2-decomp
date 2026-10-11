@@ -362,9 +362,9 @@ extern AnimationPlayRequest gActor503500BossAnimationPresets[ACTOR_503500_BOSS_A
 /// Boss target/sphere center in part-3 local game units, also the orange-flash origin.
 extern SVECTOR gActor503500BossTargetOffset;
 
-extern Actor503500AttackChoice** D_actor_503500_8016EF10[2][3];
+extern const Actor503500AttackChoice* const* D_actor_503500_8016EF10[2][3];
 
-extern s16* D_actor_503500_8016EF28[2][3];
+extern const s16* D_actor_503500_8016EF28[2][3];
 
 /// Cooldowns in boss upkeep frames, parallel to either side's four chain candidates.
 ///
@@ -421,9 +421,24 @@ extern SVECTOR gActor503500LargeOrbEmitterTargetOffsets[ACTOR_503500_SIDE_COUNT]
 
 extern RECT D_actor_503500_8016F100;
 
-extern SVECTOR D_actor_503500_8016F108[4];
+enum {
+    ACTOR_503500_LARGE_ORB_LAUNCH_POINT_COUNT = 2,
+    ACTOR_503500_LARGE_ORB_LAUNCH_ANGLE_COUNT = 3,
+    ACTOR_503500_LARGE_ORB_LAUNCH_ANGLE_INDEX = 2,
+};
 
-extern SVECTOR D_actor_503500_8016F128[1][3];
+/// Large-orb launch points in emitter-local game units, ordered front then rear.
+///
+/// The other emitter side mirrors X; the actor overlay owns this storage.
+extern SVECTOR gActor503500LargeOrbLaunchOffsets[ACTOR_503500_LARGE_ORB_LAUNCH_POINT_COUNT];
+
+/// Local launch rotations for each large-orb point, at 4096 units per turn.
+///
+/// Six XYZ Euler vectors form front and rear triplets. Launches select the
+/// last vector of each triplet (indices 2 and 5), mirroring yaw on the other
+/// emitter side. The other four vectors are not selected by the current
+/// launcher; their intended use is unproven.
+extern const SVECTOR gActor503500LargeOrbLaunchAngles[ACTOR_503500_LARGE_ORB_LAUNCH_POINT_COUNT * ACTOR_503500_LARGE_ORB_LAUNCH_ANGLE_COUNT];
 
 extern RECT D_actor_503500_8016F148[2][2];
 
@@ -490,7 +505,12 @@ extern SVECTOR D_actor_503500_80171478;
 /// Arm target/sphere centers in arm-root local game units, ordered by slots 10, 11.
 extern SVECTOR gActor503500ArmTargetOffsets[ACTOR_503500_SIDE_COUNT];
 
-extern s8 D_actor_503500_80171490[56];
+/// Attachment damage rows that destroy an arm regardless of remaining HP.
+///
+/// Indexed by the attack key's low seven bits only when bit 0x8000 is set.
+/// Live attachment rows are 0..54; the stored final entry 55 is also zero.
+/// Values are 0 (normal HP/reaction rules) or 1 (destroy immediately).
+extern const s8 gActor503500ArmDestroyingAttachmentRows[56];
 
 /// Player knockback clips: NULL, two falls, two recoveries, and the weapon's restore pose.
 ///
@@ -525,7 +545,13 @@ extern SVECTOR D_actor_503500_801715AC;
 
 extern SVECTOR D_actor_503500_801715B4;
 
-extern s32 D_actor_503500_801715BC[2];
+enum { ACTOR_503500_LINGERING_SHOT_KIND_COUNT = 2 };
+
+/// Linger-count limits in active updates: kind 0 large orb, kind 1 projectile.
+///
+/// Pair tests stop when the incremented count exceeds 180 or 150, respectively:
+/// the 181st or 151st lingering update. Storage lives with the actor overlay.
+extern const s32 gActor503500LingeringShotFrameLimits[ACTOR_503500_LINGERING_SHOT_KIND_COUNT];
 
 /// Spawn-recipe indices of the independent shot and flash attack tasks.
 enum {
