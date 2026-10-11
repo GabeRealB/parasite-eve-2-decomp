@@ -351,8 +351,8 @@ WorldCoordRoomLighting gDryfieldNightFactoryRoomLighting[2] = {
 };
 
 WorldCollisionRoomResources D_dryfield_night_factory_80186F34[2] = {
-    { &gDryfieldNightFactoryCollisionGrid, D_dryfield_night_factory_80189CA0, D_dryfield_night_factory_8018A168, NULL },
-    { &gDryfieldNightFactoryCollisionGrid, D_dryfield_night_factory_80189CA0, D_dryfield_night_factory_8018A168, NULL },
+    { &gDryfieldNightFactoryCollisionGrid, gDryfieldNightFactoryViewBoundaryTriggers, gDryfieldNightFactoryActionTriggers, NULL },
+    { &gDryfieldNightFactoryCollisionGrid, gDryfieldNightFactoryViewBoundaryTriggers, gDryfieldNightFactoryActionTriggers, NULL },
 };
 
 // Logical entries searched in each room map, independent of its storage capacity.

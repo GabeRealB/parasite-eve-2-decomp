@@ -1439,7 +1439,7 @@ gDryfieldGasStationPlacementVariants = 0x80184A38; // absolute:True owner=dryfie
 
 gDryfieldGeneralStorePlacementVariants = 0x80185654; // absolute:True owner=dryfield_general_store
 
-gDryfieldJunkYardAreaVariants = 0x8017F558; // absolute:True owner=dryfield_junk_yard shared=rooms
+gDryfieldJunkYardAreaVariants = 0x8017F558; // absolute:True owner=dryfield_junk_yard
 
 gDryfieldMainStreetAreaVariants = 0x80184F20; // absolute:True owner=dryfield_main_street
 

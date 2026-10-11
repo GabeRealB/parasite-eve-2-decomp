@@ -66,7 +66,7 @@ static const TaskFuncTable3 D_neo_ark_north_promenade_8017D5C4 = {
 };
 
 static WorldCollisionGrid     _gNeoArkNorthPromenadeCollisionGrid;
-extern WorldCollisionOccluder D_neo_ark_north_promenade_8018328C[1];
+static WorldCollisionOccluder _gNeoArkNorthPromenadeSightOccluder;
 static WorldCollisionTrigger  _gNeoArkNorthPromenadeViewBoundaryTriggers[8];
 static WorldCollisionTrigger  _gNeoArkNorthPromenadeActionTriggers[6];
 static WorldCoordRoomLights   _gNeoArkNorthPromenadeRoomLights;
@@ -103,7 +103,7 @@ static inline const RoomFxShade* _roomVisualEffectsGetHaloShades(void)
 #include "../../shared/room_visual_effects_trail_data.inc.c"
 
 WorldCollisionRoomResources D_neo_ark_north_promenade_80181DB4[1] = {
-    { &_gNeoArkNorthPromenadeCollisionGrid, _gNeoArkNorthPromenadeViewBoundaryTriggers, _gNeoArkNorthPromenadeActionTriggers, D_neo_ark_north_promenade_8018328C },
+    { &_gNeoArkNorthPromenadeCollisionGrid, _gNeoArkNorthPromenadeViewBoundaryTriggers, _gNeoArkNorthPromenadeActionTriggers, &_gNeoArkNorthPromenadeSightOccluder },
 };
 
 WorldCoordRoomLighting gNeoArkNorthPromenadeRoomLighting[1] = {
@@ -450,9 +450,12 @@ static WorldCollisionTrigger _gNeoArkNorthPromenadeActionTriggers[6] = {
     { NULL, NULL, NULL, { 0x31A7, -64, 0x2E77, 0 }, { { -2805, 0, 441, 0 }, { -835, 0, -887, 0 }, { -2641, 0, 1549, 0 }, { 6283, 0, -1101, 0 } }, { 0, 4115, 0, 0 }, { -3290, 0, -2441, 0 }, 6374, WORLD_COLLISION_TRIGGER_ACTION_CAP, NEO_ARK_NORTH_PROMENADE_CAP_INTERACTION_2, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-WorldCollisionOccluder D_neo_ark_north_promenade_8018328C[1] = {
-    { NULL, NULL, { 6384, -1520, 5040, 0 }, { { -3056, 2672, -4368, 0 }, { 3056, 2672, 4368, 0 }, { -3056, -2672, -4368, 0 }, { 3056, -2672, 4368, 0 } }, { -3361, 0, 2350, 0 }, 5948, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
-};
+/// Sight-blocking room quad.
+///
+/// Origin and corner offsets use room-local game units; normals use 4096 per unit.
+/// Room binding links and enables every record through LAST; storage stays live
+/// until unlinking or room/view rebinding. The authored low flag bit is unproven.
+static WorldCollisionOccluder _gNeoArkNorthPromenadeSightOccluder = { NULL, NULL, { 6384, -1520, 5040, 0 }, { { -3056, 2672, -4368, 0 }, { 3056, 2672, 4368, 0 }, { -3056, -2672, -4368, 0 }, { 3056, -2672, 4368, 0 } }, { -3361, 0, 2350, 0 }, 5948, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 };
 
 /// Cue-2 request bases in the loaded type-1 sound bank; cue 1 uses the next entry.
 enum {

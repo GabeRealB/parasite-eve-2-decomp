@@ -807,7 +807,7 @@ static void _dryfieldBreezewayScanKeyItemHotspot(Task* task)
     // Upload the line artwork once per entry into this state.
     if (task->killCountdown == 0) {
         gpuUploadImages(_gDryfieldBreezewayKeyItemLineUploads);
-        gpuUploadImages(&D_dryfield_breezeway_80183144[0]);
+        gpuUploadImages(gDryfieldBreezewayKeyItemLineClutUploads);
         task->killCountdown = (u16)task->killCountdown + 1;
     }
 
@@ -1342,9 +1342,9 @@ void dryfieldBreezewayAmbientEffectsTask(Task* task)
     playerCoord = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords;
     // Draw the fixed glow before the control gate; paused emission still draws it.
     if (viewMask & DRYFIELD_BREEZEWAY_DIAMOND_GLOW_VIEWS) {
-        _dryfieldBreezewayDrawRedDiamondGlow(coord, &D_dryfield_breezeway_80183164, DRYFIELD_BREEZEWAY_GLOW_PULSE_RATE, DRYFIELD_BREEZEWAY_DIAMOND_GLOW_SCALE);
+        _dryfieldBreezewayDrawRedDiamondGlow(coord, &gDryfieldBreezewayGlowLocalPoint, DRYFIELD_BREEZEWAY_GLOW_PULSE_RATE, DRYFIELD_BREEZEWAY_DIAMOND_GLOW_SCALE);
     } else if (viewMask & DRYFIELD_BREEZEWAY_RAY_GLOW_VIEW) {
-        _glowDrawRayStar(coord, &D_dryfield_breezeway_80183164, DRYFIELD_BREEZEWAY_GLOW_PULSE_RATE, DRYFIELD_BREEZEWAY_RAY_GLOW_SCALE);
+        _glowDrawRayStar(coord, &gDryfieldBreezewayGlowLocalPoint, DRYFIELD_BREEZEWAY_GLOW_PULSE_RATE, DRYFIELD_BREEZEWAY_RAY_GLOW_SCALE);
     }
     if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
         return;

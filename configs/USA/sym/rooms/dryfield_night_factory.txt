@@ -35,9 +35,9 @@ gDryfieldFactoryLiftJoltSegments = 0x8018A3A8; // absolute:True owner=dryfield_f
 gDryfieldNightFactorySpriteViews = 0x80189A24; // size:0xE4 defined:True
 _gDryfieldNightFactoryPointLights = 0x80189B08; // size:0x180 defined:True
 gDryfieldNightFactoryRoomLights = 0x80189C88; // size:0x18 defined:True
-D_dryfield_night_factory_80189CA0 = 0x80189CA0; // size:0x428 defined:True
+gDryfieldNightFactoryViewBoundaryTriggers = 0x80189CA0; // size:0x428 defined:True
 gDryfieldNightFactoryAmbientByView = 0x8018A0C8; // size:0xA0 defined:True
-D_dryfield_night_factory_8018A168 = 0x8018A168; // size:0x5A4 defined:True
+gDryfieldNightFactoryActionTriggers = 0x8018A168; // size:0x5A4 defined:True
 gDryfieldNightFactoryAreaVariants = 0x8018A70C; // size:0x58 defined:True
 D_dryfield_night_factory_80186F34 = 0x80186F34; // size:0x20 defined:True
 gDryfieldNightFactoryViewCounts = 0x80186F54; // size:0x4 defined:True

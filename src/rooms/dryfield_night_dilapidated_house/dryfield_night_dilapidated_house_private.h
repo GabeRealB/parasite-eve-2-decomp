@@ -23,9 +23,21 @@ extern TaskDesc D_dryfield_night_dilapidated_house_801872B4[];
 /// collection and arrays belong to this overlay and remain live while loaded.
 extern WorldCoordRoomLights gDryfieldNightDilapidatedHouseRoomLights;
 
-extern WorldCollisionTrigger D_dryfield_night_dilapidated_house_80189B78[12];
+/// 12 interaction quads: 2 warps, 10 CAP commands.
+///
+/// Room-local origins/corners and radii use game units; normals use 4096 per unit.
+/// Warp bytes select destination area and departure/arrival endpoint nibbles;
+/// CAP IDs index the loaded command table or route through the room-message sentinel.
+/// Six CAP quads reject activation during battle; the other actions keep their authored gates.
+/// Room binding enables all records through LAST; keep them live until unlinking.
+extern WorldCollisionTrigger gDryfieldNightDilapidatedHouseActionTriggers[12];
 
-extern WorldCollisionOccluder D_dryfield_night_dilapidated_house_80189F08[1];
+/// Sight-blocking room quad.
+///
+/// Origin and corner offsets use room-local game units; normals use 4096 per unit.
+/// Room binding links and enables every record through LAST; storage stays live
+/// until unlinking or room/view rebinding. The authored low flag bit is unproven.
+extern WorldCollisionOccluder gDryfieldNightDilapidatedHouseSightOccluder;
 
 /// Minimum ambient colours for logical views 1..11.
 ///

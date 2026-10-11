@@ -22,6 +22,7 @@
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
 
+#include "main/areas.h"
 #include "main/coord.h"
 #include "main/display.h"
 #include "main/display_types.h"
@@ -34,9 +35,9 @@
 #include "../../shared/glow_draw.h"
 
 static WorldCollisionGrid         _gMineTunnelCollisionGrid;
-extern WorldCollisionOccluder     D_mine_tunnel_8018025C[3];
-extern WorldCollisionTrigger      D_mine_tunnel_8017FBD8[6];
-extern WorldCollisionTrigger      D_mine_tunnel_8017FDA0[4];
+static WorldCollisionOccluder     _gMineTunnelSightOccluders[3];
+static WorldCollisionTrigger      _gMineTunnelViewBoundaryTriggers[6];
+static WorldCollisionTrigger      _gMineTunnelActionTriggers[4];
 static WorldCoordRoomAmbientEntry _gMineTunnelAmbientByView[6];
 static WorldCoordRoomLights       _gMineTunnelRoomLights;
 
@@ -56,7 +57,7 @@ WorldCoordRoomLighting gMineTunnelRoomLighting[1] = {
 };
 
 WorldCollisionRoomResources D_mine_tunnel_8017E15C[1] = {
-    { &_gMineTunnelCollisionGrid, D_mine_tunnel_8017FBD8, D_mine_tunnel_8017FDA0, D_mine_tunnel_8018025C },
+    { &_gMineTunnelCollisionGrid, _gMineTunnelViewBoundaryTriggers, _gMineTunnelActionTriggers, _gMineTunnelSightOccluders },
 };
 
 u8* gMineTunnelRoomViewMaps[1] = {
@@ -450,20 +451,39 @@ static WorldCoordRoomLights _gMineTunnelRoomLights = {
     .coneLights            = NULL,
 };
 
-WorldCollisionTrigger D_mine_tunnel_8017FBD8[6] = {
-    { NULL, NULL, NULL, { 0x3600, -1296, 1504, 0 }, { { 96, -2112, -2416, 0 }, { -96, -2112, 2416, 0 }, { 96, 2112, -2416, 0 }, { -96, 2112, 2416, 0 } }, { 4110, 0, 163, 0 }, { 0, 0, 4096, 0 }, 3207, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 0x3691, -1360, 1424, 0 }, { { -80, -2112, 2416, 0 }, { 80, -2112, -2416, 0 }, { -80, 2112, 2416, 0 }, { 80, 2112, -2416, 0 } }, { -4111, 0, -137, 0 }, { 0, 0, 4096, 0 }, 3207, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 9986, -1344, 2849, 0 }, { { -1008, -2112, 1648, 0 }, { 1008, -2112, -1648, 0 }, { -1008, 2112, 1648, 0 }, { 1008, 2112, -1648, 0 } }, { -3496, 0, -2138, 0 }, { 0, 0, 4096, 0 }, 2862, 0, 4, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 9921, -1313, 2768, 0 }, { { 960, -2112, -1600, 0 }, { -960, -2112, 1600, 0 }, { 960, 2112, -1600, 0 }, { -960, 2112, 1600, 0 } }, { 3519, 0, 2111, 0 }, { 0, 0, 4096, 0 }, 2816, 0, 3, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 4880, -1377, 2800, 0 }, { { -560, -2112, -1264, 0 }, { 560, -2112, 1264, 0 }, { -560, 2112, -1264, 0 }, { 560, 2112, 1264, 0 } }, { 3745, 0, -1660, 0 }, { 0, 0, 4096, 0 }, 2521, 0, 4, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 5073, -1344, 2768, 0 }, { { 576, -2112, 1280, 0 }, { -576, -2112, -1280, 0 }, { 576, 2112, 1280, 0 }, { -576, 2112, -1280, 0 } }, { -3748, 0, 1686, 0 }, { 0, 0, 4096, 0 }, 2534, 0, 5, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
+/// 6 directed camera boundaries in room-local game units.
+///
+/// Source/destination views are 1-based: 2->3, 3->2, 4->3, 3->4, 4->5, 5->4.
+/// Room binding installs the view coordinate and enables all records through LAST.
+/// Normals use 4096 per unit; keep the writable list live until it is unlinked.
+static WorldCollisionTrigger _gMineTunnelViewBoundaryTriggers[6] = {
+    { NULL, NULL, NULL, { 0x3600, -1296, 1504, 0 }, { { 96, -2112, -2416, 0 }, { -96, -2112, 2416, 0 }, { 96, 2112, -2416, 0 }, { -96, 2112, 2416, 0 } }, { 4110, 0, 163, 0 }, { 0, 0, ONE, 0 }, 3207, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 0x3691, -1360, 1424, 0 }, { { -80, -2112, 2416, 0 }, { 80, -2112, -2416, 0 }, { -80, 2112, 2416, 0 }, { 80, 2112, -2416, 0 } }, { -4111, 0, -137, 0 }, { 0, 0, ONE, 0 }, 3207, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 9986, -1344, 2849, 0 }, { { -1008, -2112, 1648, 0 }, { 1008, -2112, -1648, 0 }, { -1008, 2112, 1648, 0 }, { 1008, 2112, -1648, 0 } }, { -3496, 0, -2138, 0 }, { 0, 0, ONE, 0 }, 2862, 0, 4, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 9921, -1313, 2768, 0 }, { { 960, -2112, -1600, 0 }, { -960, -2112, 1600, 0 }, { 960, 2112, -1600, 0 }, { -960, 2112, 1600, 0 } }, { 3519, 0, 2111, 0 }, { 0, 0, ONE, 0 }, 2816, 0, 3, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 4880, -1377, 2800, 0 }, { { -560, -2112, -1264, 0 }, { 560, -2112, 1264, 0 }, { -560, 2112, -1264, 0 }, { 560, 2112, 1264, 0 } }, { 3745, 0, -1660, 0 }, { 0, 0, ONE, 0 }, 2521, 0, 4, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 5073, -1344, 2768, 0 }, { { 576, -2112, 1280, 0 }, { -576, -2112, -1280, 0 }, { 576, 2112, 1280, 0 }, { -576, 2112, -1280, 0 } }, { -3748, 0, 1686, 0 }, { 0, 0, ONE, 0 }, 2534, 0, 5, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-WorldCollisionTrigger D_mine_tunnel_8017FDA0[4] = {
-    { NULL, NULL, NULL, { 0x3E20, -48, 1024, 0 }, { { -416, 0, -1024, 0 }, { 416, 0, -1024, 0 }, { -416, 0, 1024, 0 }, { 416, 0, 1024, 0 } }, { 0, 4095, 0, 0 }, { -4096, 0, 0, 0 }, 1101, WORLD_COLLISION_TRIGGER_ACTION_WARP, 3, 19, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 384, -48, 1648, 0 }, { { -416, 0, -592, 0 }, { 416, 0, -592, 0 }, { -416, 0, 592, 0 }, { 416, 0, 592, 0 } }, { 0, 4095, 0, 0 }, { 4096, 0, 0, 0 }, 721, WORLD_COLLISION_TRIGGER_ACTION_WARP, 5, 33, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 0x3370, -64, 1312, 0 }, { { -336, 0, -1920, 0 }, { 496, 0, -1920, 0 }, { -496, 0, 1920, 0 }, { 336, 0, 1920, 0 } }, { 0, 4102, 0, 0 }, { 799, 0, -4017, 0 }, 1982, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, 1, 0, WORLD_COLLISION_TRIGGER_QUAD, 0 },
-    { NULL, NULL, NULL, { 4255, -64, 3336, 0 }, { { -2527, 0, 88, 0 }, { -127, 0, -936, 0 }, { -32, 0, 792, 0 }, { 2689, 0, 56, 0 } }, { 0, 4111, 0, 0 }, { 0, 0, -4096, 0 }, 2684, WORLD_COLLISION_TRIGGER_ACTION_CAP, 2, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
+/// IDs stored in action records; warp pairs pack departure then arrival in four-bit nibbles.
+enum {
+    MINE_TUNNEL_TRIGGER_WARP_TO_TUNNEL_ENTRANCE   = (1 << 4) | 3,
+    MINE_TUNNEL_TRIGGER_WARP_TO_GORGE             = (2 << 4) | 1,
+    MINE_TUNNEL_TRIGGER_ACTION_ENTRANCE_ENCOUNTER = 1,
+    MINE_TUNNEL_TRIGGER_COMMAND_PASSAGE_REPLY     = 2,
+};
+
+/// 4 interaction quads: 2 warps, 1 room action, 1 room command.
+///
+/// Room-local origins/corners and radii use game units; normals use 4096 per unit.
+/// Warp bytes select destination area and departure/arrival endpoint nibbles;
+/// CAP IDs index the loaded command table or route through the room-message sentinel.
+/// Room binding enables all records through LAST; keep them live until unlinking.
+static WorldCollisionTrigger _gMineTunnelActionTriggers[4] = {
+    { NULL, NULL, NULL, { 0x3E20, -48, 1024, 0 }, { { -416, 0, -1024, 0 }, { 416, 0, -1024, 0 }, { -416, 0, 1024, 0 }, { 416, 0, 1024, 0 } }, { 0, 4095, 0, 0 }, { -ONE, 0, 0, 0 }, 1101, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_MINE_TUNNEL_ENTRANCE, MINE_TUNNEL_TRIGGER_WARP_TO_TUNNEL_ENTRANCE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 384, -48, 1648, 0 }, { { -416, 0, -592, 0 }, { 416, 0, -592, 0 }, { -416, 0, 592, 0 }, { 416, 0, 592, 0 } }, { 0, 4095, 0, 0 }, { ONE, 0, 0, 0 }, 721, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_MINE_GORGE, MINE_TUNNEL_TRIGGER_WARP_TO_GORGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 0x3370, -64, 1312, 0 }, { { -336, 0, -1920, 0 }, { 496, 0, -1920, 0 }, { -496, 0, 1920, 0 }, { 336, 0, 1920, 0 } }, { 0, 4102, 0, 0 }, { 799, 0, -4017, 0 }, 1982, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, MINE_TUNNEL_TRIGGER_ACTION_ENTRANCE_ENCOUNTER, 0, WORLD_COLLISION_TRIGGER_QUAD, 0 },
+    { NULL, NULL, NULL, { 4255, -64, 3336, 0 }, { { -2527, 0, 88, 0 }, { -127, 0, -936, 0 }, { -32, 0, 792, 0 }, { 2689, 0, 56, 0 } }, { 0, 4111, 0, 0 }, { 0, 0, -ONE, 0 }, 2684, WORLD_COLLISION_TRIGGER_ACTION_CAP, MINE_TUNNEL_TRIGGER_COMMAND_PASSAGE_REPLY, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
 /// Resource keys equal their decimal actor file numbers in these variant lists.
@@ -631,8 +651,13 @@ static WorldCoordRoomAmbientEntry _gMineTunnelAmbientByView[6] = {
     { .color = { 420, 420, 350, 411 } },
 };
 
-WorldCollisionOccluder D_mine_tunnel_8018025C[3] = {
-    { NULL, NULL, { 4416, 0, 416, 0 }, { { 0, -1024, 1024, 0 }, { 0, -1024, -1024, 0 }, { 0, 1024, 1024, 0 }, { 0, 1024, -1024, 0 } }, { -4096, 0, 0, 0 }, 1448, 1, 0 },
+/// 3 sight-blocking room quads.
+///
+/// Origin and corner offsets use room-local game units; normals use 4096 per unit.
+/// Room binding links and enables every record through LAST; storage stays live
+/// until unlinking or room/view rebinding. The authored low flag bit is unproven.
+static WorldCollisionOccluder _gMineTunnelSightOccluders[3] = {
+    { NULL, NULL, { 4416, 0, 416, 0 }, { { 0, -1024, 1024, 0 }, { 0, -1024, -1024, 0 }, { 0, 1024, 1024, 0 }, { 0, 1024, -1024, 0 } }, { -ONE, 0, 0, 0 }, 1448, 1, 0 },
     { NULL, NULL, { 7455, 0, 3568, 0 }, { { -9, -1024, 1509, 0 }, { 10, -1024, -1509, 0 }, { -9, 1024, 1509, 0 }, { 10, 1024, -1509, 0 } }, { -4110, 0, -28, 0 }, 1819, 1, 0 },
     { NULL, NULL, { 0x2C80, 0, 640, 0 }, { { -392, -1024, 946, 0 }, { 391, -1024, -946, 0 }, { -392, 1024, 946, 0 }, { 391, 1024, -946, 0 } }, { -3784, 0, -1568, 0 }, 1448, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
 };

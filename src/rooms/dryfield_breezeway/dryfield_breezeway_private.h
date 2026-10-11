@@ -9,9 +9,17 @@
 
 #include "main/task_types.h"
 
-extern GpuImageUpload D_dryfield_breezeway_80183144[2];
+/// Uploads the hanging line's 256-colour palette to VRAM (0, 256), then ends.
+///
+/// The copy reads all 128 packed words (512 bytes); the second record terminates.
+/// Records are read only; the room's pixel storage stays live until GPU completion.
+extern const GpuImageUpload gDryfieldBreezewayKeyItemLineClutUploads[2];
 
-extern SVECTOR D_dryfield_breezeway_80183164;
+/// Fixed glow centre in the ambient effect body's local game-coordinate units.
+///
+/// Views 3/4 draw a diamond and view 5 draws a ray star at this same point.
+/// Both drawers borrow it through the call and compose it with the effect coordinate.
+extern const SVECTOR gDryfieldBreezewayGlowLocalPoint;
 
 /// Borrowed first-event task published after its work allocation succeeds.
 ///

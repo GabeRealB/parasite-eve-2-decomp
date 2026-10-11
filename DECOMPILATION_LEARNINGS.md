@@ -87568,10 +87568,10 @@ if (_gNeoArkWoodlandPathRoamerPoolATask == NULL) {
     ret = -1;
 } else {
     ret = taskMessageDispatch(_gNeoArkWoodlandPathRoamerPoolATask);
-if (D_dryfield_breezeway_801843A8 == NULL) {
+if (_gDryfieldBreezewayKeyItemModelTask == NULL) {
     ret = 0;
 } else {
-    ret = taskMessageDispatch(D_dryfield_breezeway_801843A8);
+    ret = taskMessageDispatch(_gDryfieldBreezewayKeyItemModelTask);
 }
 return ret;
 ```

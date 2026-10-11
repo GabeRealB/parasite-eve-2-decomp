@@ -21,6 +21,7 @@
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
 
+#include "main/areas.h"
 #include "main/coord.h"
 #include "main/display.h"
 #include "main/display_types.h"
@@ -47,10 +48,10 @@ static s32  _dryfieldNightCellarIgnoreActionMessage(Task* task, s32 messageId, c
 static void _dryfieldNightCellarIdle(Task* task);
 
 static WorldCollisionGrid     _gDryfieldNightCellarCollisionGrid;
-extern WorldCollisionOccluder D_dryfield_night_cellar_801802F4[1];
-extern WorldCollisionTrigger  D_dryfield_night_cellar_8017FB3C[6];
-extern WorldCollisionTrigger  D_dryfield_night_cellar_8017FD04[10];
-extern WorldCollisionTrigger  D_dryfield_night_cellar_8017FFFC[10];
+static WorldCollisionOccluder _gDryfieldNightCellarSightOccluder;
+static WorldCollisionTrigger  _gDryfieldNightCellarViewBoundaryTriggers[6];
+static WorldCollisionTrigger  _gDryfieldNightCellarRoom1ActionTriggers[10];
+static WorldCollisionTrigger  _gDryfieldNightCellarRoom2ActionTriggers[10];
 static WorldCoordRoomLights   _gDryfieldNightCellarRoom1Lights;
 static WorldCoordRoomLights   _gDryfieldNightCellarRoom2Lights;
 
@@ -88,8 +89,8 @@ WorldCoordRoomLighting gDryfieldNightCellarRoomLighting[2] = {
 };
 
 WorldCollisionRoomResources D_dryfield_night_cellar_8017DB00[2] = {
-    { &_gDryfieldNightCellarCollisionGrid, D_dryfield_night_cellar_8017FB3C, D_dryfield_night_cellar_8017FD04, D_dryfield_night_cellar_801802F4 },
-    { &_gDryfieldNightCellarCollisionGrid, D_dryfield_night_cellar_8017FB3C, D_dryfield_night_cellar_8017FFFC, D_dryfield_night_cellar_801802F4 },
+    { &_gDryfieldNightCellarCollisionGrid, _gDryfieldNightCellarViewBoundaryTriggers, _gDryfieldNightCellarRoom1ActionTriggers, &_gDryfieldNightCellarSightOccluder },
+    { &_gDryfieldNightCellarCollisionGrid, _gDryfieldNightCellarViewBoundaryTriggers, _gDryfieldNightCellarRoom2ActionTriggers, &_gDryfieldNightCellarSightOccluder },
 };
 
 /// Maps room 2's six logical views to the shared camera, image and sprite indices.
@@ -729,44 +730,79 @@ SpriteView gDryfieldNightCellarSpriteViews[11] = {
     { { .empty = _gDryfieldNightCellarView11SpriteBatches }, _gDryfieldNightCellarView11SpriteBatches, NULL },
 };
 
-WorldCollisionTrigger D_dryfield_night_cellar_8017FB3C[6] = {
-    { NULL, NULL, NULL, { 6576, -1472, 2096, 0 }, { { -318, -1904, 2593, 0 }, { 311, -1904, -2603, 0 }, { -318, 1904, 2593, 0 }, { 311, 1904, -2603, 0 } }, { -4074, 0, -494, 0 }, { 0, 0, 4096, 0 }, 3228, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 6463, -1440, 2080, 0 }, { { 312, -1904, -2602, 0 }, { -317, -1904, 2594, 0 }, { 312, 1904, -2602, 0 }, { -317, 1904, 2594, 0 } }, { 4072, 0, 492, 0 }, { 0, 0, 4096, 0 }, 3228, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 1727, -1056, 2096, 0 }, { { -1261, -1904, 95, 0 }, { 1256, -1904, -100, 0 }, { -1261, 1904, 95, 0 }, { 1256, 1904, -100, 0 } }, { -318, 0, -4087, 0 }, { 0, 0, 4096, 0 }, 2275, 0, 4, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 1663, -1376, 2047, 0 }, { { 1253, -1904, -102, 0 }, { -1264, -1904, 94, 0 }, { 1253, 1904, -102, 0 }, { -1264, 1904, 94, 0 } }, { 317, 0, 4084, 0 }, { 0, 0, 4096, 0 }, 2275, 0, 5, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 2878, -1344, 670, 0 }, { { -87, -1904, 1261, 0 }, { 87, -1904, -1260, 0 }, { -87, 1904, 1261, 0 }, { 87, 1904, -1260, 0 } }, { -4092, 0, -283, 0 }, { 0, 0, 4096, 0 }, 2275, 0, 4, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 2718, -1312, 670, 0 }, { { 86, -1904, -1262, 0 }, { -88, -1904, 1259, 0 }, { 86, 1904, -1262, 0 }, { -88, 1904, 1259, 0 } }, { 4089, 0, 281, 0 }, { 0, 0, 4096, 0 }, 2275, 0, 2, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
+/// 6 directed camera boundaries in room-local game units.
+///
+/// Source/destination views are 1-based: 2->3, 3->2, 4->5, 5->4, 4->2, 2->4.
+/// Room binding installs the view coordinate and enables all records through LAST.
+/// Normals use 4096 per unit; keep the writable list live until it is unlinked.
+static WorldCollisionTrigger _gDryfieldNightCellarViewBoundaryTriggers[6] = {
+    { NULL, NULL, NULL, { 6576, -1472, 2096, 0 }, { { -318, -1904, 2593, 0 }, { 311, -1904, -2603, 0 }, { -318, 1904, 2593, 0 }, { 311, 1904, -2603, 0 } }, { -4074, 0, -494, 0 }, { 0, 0, ONE, 0 }, 3228, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 6463, -1440, 2080, 0 }, { { 312, -1904, -2602, 0 }, { -317, -1904, 2594, 0 }, { 312, 1904, -2602, 0 }, { -317, 1904, 2594, 0 } }, { 4072, 0, 492, 0 }, { 0, 0, ONE, 0 }, 3228, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 1727, -1056, 2096, 0 }, { { -1261, -1904, 95, 0 }, { 1256, -1904, -100, 0 }, { -1261, 1904, 95, 0 }, { 1256, 1904, -100, 0 } }, { -318, 0, -4087, 0 }, { 0, 0, ONE, 0 }, 2275, 0, 4, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 1663, -1376, 2047, 0 }, { { 1253, -1904, -102, 0 }, { -1264, -1904, 94, 0 }, { 1253, 1904, -102, 0 }, { -1264, 1904, 94, 0 } }, { 317, 0, 4084, 0 }, { 0, 0, ONE, 0 }, 2275, 0, 5, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 2878, -1344, 670, 0 }, { { -87, -1904, 1261, 0 }, { 87, -1904, -1260, 0 }, { -87, 1904, 1261, 0 }, { 87, 1904, -1260, 0 } }, { -4092, 0, -283, 0 }, { 0, 0, ONE, 0 }, 2275, 0, 4, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 2718, -1312, 670, 0 }, { { 86, -1904, -1262, 0 }, { -88, -1904, 1259, 0 }, { 86, 1904, -1262, 0 }, { -88, 1904, 1259, 0 } }, { 4089, 0, 281, 0 }, { 0, 0, ONE, 0 }, 2275, 0, 2, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-WorldCollisionTrigger D_dryfield_night_cellar_8017FD04[10] = {
-    { NULL, NULL, NULL, { 5056, -48, 4080, 0 }, { { -864, 0, -432, 0 }, { 864, 0, -432, 0 }, { -864, 0, 432, 0 }, { 864, 0, 432, 0 } }, { 0, 4102, 0, 0 }, { 0, 0, -4096, 0 }, 964, WORLD_COLLISION_TRIGGER_ACTION_WARP, 38, 17, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 1728, -64, 3680, 0 }, { { -864, 0, -432, 0 }, { 864, 0, -432, 0 }, { -864, 0, 432, 0 }, { 864, 0, 432, 0 } }, { 0, 4102, 0, 0 }, { 0, 0, -4096, 0 }, 964, WORLD_COLLISION_TRIGGER_ACTION_CAP, 12, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 7168, -64, 2368, 0 }, { { -1888, 0, -1520, 0 }, { 1888, 0, -1520, 0 }, { -1888, 0, 1520, 0 }, { 1888, 0, 1520, 0 } }, { 0, 4108, 0, 0 }, { 0, 0, -4096, 0 }, 2415, WORLD_COLLISION_TRIGGER_ACTION_CAP, 3, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 0x27B0, -64, 2224, 0 }, { { -400, 0, -960, 0 }, { 400, 0, -960, 0 }, { -400, 0, 960, 0 }, { 400, 0, 960, 0 } }, { 0, 4100, 0, 0 }, { -4096, 0, 0, 0 }, 1039, WORLD_COLLISION_TRIGGER_ACTION_CAP, 13, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 9696, -64, 656, 0 }, { { -400, 0, -688, 0 }, { 400, 0, -688, 0 }, { -400, 0, 688, 0 }, { 400, 0, 688, 0 } }, { 0, 4099, 0, 0 }, { -4096, 0, 0, 0 }, 794, WORLD_COLLISION_TRIGGER_ACTION_CAP, 5, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 1216, -64, 1632, 0 }, { { -400, 0, -1552, 0 }, { 400, 0, -1552, 0 }, { -400, 0, 1552, 0 }, { 400, 0, 1552, 0 } }, { 0, 4110, 0, 0 }, { 4096, 0, 0, 0 }, 1598, WORLD_COLLISION_TRIGGER_ACTION_CAP, 7, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 3840, -64, 2720, 0 }, { { -400, 0, -1552, 0 }, { 400, 0, -1552, 0 }, { -400, 0, 1552, 0 }, { 400, 0, 1552, 0 } }, { 0, 4110, 0, 0 }, { 4096, 0, 0, 0 }, 1598, WORLD_COLLISION_TRIGGER_ACTION_CAP, 7, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 2048, -64, 2112, 0 }, { { -400, 0, -400, 0 }, { 400, 0, -400, 0 }, { -400, 0, 400, 0 }, { 400, 0, 400, 0 } }, { 0, 4096, 0, 0 }, { -4096, 0, 0, 0 }, 565, WORLD_COLLISION_TRIGGER_ACTION_CAP, 6, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 2112, -64, 2096, 0 }, { { -400, 0, -1120, 0 }, { 400, 0, -1120, 0 }, { -400, 0, 1120, 0 }, { 400, 0, 1120, 0 } }, { 0, 4100, 0, 0 }, { -4096, 0, 0, 0 }, 1187, WORLD_COLLISION_TRIGGER_ACTION_CAP, 7, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 7120, -64, 192, 0 }, { { -1904, 0, -432, 0 }, { 1904, 0, -432, 0 }, { -1904, 0, 432, 0 }, { 1904, 0, 432, 0 } }, { 0, 4101, 0, 0 }, { 0, 0, 4096, 0 }, 1949, WORLD_COLLISION_TRIGGER_ACTION_CAP, 7, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
+/// IDs stored in action records; warp pairs pack departure then arrival in four-bit nibbles.
+enum {
+    DRYFIELD_NIGHT_CELLAR_TRIGGER_WARP_TO_UNDERPASS    = (1 << 4) | 1,
+    DRYFIELD_NIGHT_CELLAR_TRIGGER_CAP_COMMAND_12       = 12,
+    DRYFIELD_NIGHT_CELLAR_TRIGGER_CAP_COMMAND_3        = 3,
+    DRYFIELD_NIGHT_CELLAR_TRIGGER_COMMAND_P08_DIALOGUE = 13,
+    DRYFIELD_NIGHT_CELLAR_TRIGGER_CAP_COMMAND_5        = 5,
+    DRYFIELD_NIGHT_CELLAR_TRIGGER_CAP_COMMAND_7        = 7,
+    DRYFIELD_NIGHT_CELLAR_TRIGGER_CAP_COMMAND_6        = 6,
+    DRYFIELD_NIGHT_CELLAR_TRIGGER_CAP_COMMAND_11       = 11,
+    DRYFIELD_NIGHT_CELLAR_TRIGGER_CAP_COMMAND_10       = 10,
+    DRYFIELD_NIGHT_CELLAR_TRIGGER_CAP_COMMAND_9        = 9,
+    DRYFIELD_NIGHT_CELLAR_TRIGGER_CAP_COMMAND_8        = 8,
 };
 
-WorldCollisionTrigger D_dryfield_night_cellar_8017FFFC[10] = {
-    { NULL, NULL, NULL, { 5056, -48, 4080, 0 }, { { -864, 0, -432, 0 }, { 864, 0, -432, 0 }, { -864, 0, 432, 0 }, { 864, 0, 432, 0 } }, { 0, 4102, 0, 0 }, { 0, 0, -4096, 0 }, 964, WORLD_COLLISION_TRIGGER_ACTION_WARP, 38, 17, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 1728, -64, 3680, 0 }, { { -864, 0, -432, 0 }, { 864, 0, -432, 0 }, { -864, 0, 432, 0 }, { 864, 0, 432, 0 } }, { 0, 4102, 0, 0 }, { 0, 0, -4096, 0 }, 964, WORLD_COLLISION_TRIGGER_ACTION_CAP, 11, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 7168, -64, 2368, 0 }, { { -1888, 0, -1520, 0 }, { 1888, 0, -1520, 0 }, { -1888, 0, 1520, 0 }, { 1888, 0, 1520, 0 } }, { 0, 4108, 0, 0 }, { 0, 0, -4096, 0 }, 2415, WORLD_COLLISION_TRIGGER_ACTION_CAP, 3, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 0x27B0, -64, 2224, 0 }, { { -400, 0, -960, 0 }, { 400, 0, -960, 0 }, { -400, 0, 960, 0 }, { 400, 0, 960, 0 } }, { 0, 4100, 0, 0 }, { -4096, 0, 0, 0 }, 1039, WORLD_COLLISION_TRIGGER_ACTION_CAP, 10, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 9696, -64, 656, 0 }, { { -400, 0, -688, 0 }, { 400, 0, -688, 0 }, { -400, 0, 688, 0 }, { 400, 0, 688, 0 } }, { 0, 4099, 0, 0 }, { -4096, 0, 0, 0 }, 794, WORLD_COLLISION_TRIGGER_ACTION_CAP, 9, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 1216, -64, 1632, 0 }, { { -400, 0, -1552, 0 }, { 400, 0, -1552, 0 }, { -400, 0, 1552, 0 }, { 400, 0, 1552, 0 } }, { 0, 4110, 0, 0 }, { 4096, 0, 0, 0 }, 1598, WORLD_COLLISION_TRIGGER_ACTION_CAP, 7, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 3680, -64, 2720, 0 }, { { -400, 0, -1552, 0 }, { 400, 0, -1552, 0 }, { -400, 0, 1552, 0 }, { 400, 0, 1552, 0 } }, { 0, 4110, 0, 0 }, { 4096, 0, 0, 0 }, 1598, WORLD_COLLISION_TRIGGER_ACTION_CAP, 7, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 2048, -64, 2096, 0 }, { { -400, 0, -416, 0 }, { 400, 0, -416, 0 }, { -400, 0, 416, 0 }, { 400, 0, 416, 0 } }, { 0, 4105, 0, 0 }, { -4096, 0, 0, 0 }, 576, WORLD_COLLISION_TRIGGER_ACTION_CAP, 8, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 2368, -64, 2096, 0 }, { { -400, 0, -1120, 0 }, { 400, 0, -1120, 0 }, { -400, 0, 1120, 0 }, { 400, 0, 1120, 0 } }, { 0, 4100, 0, 0 }, { -4096, 0, 0, 0 }, 1187, WORLD_COLLISION_TRIGGER_ACTION_CAP, 7, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 7376, -64, 192, 0 }, { { -2192, 0, -303, 0 }, { 2192, 0, -303, 0 }, { -2192, 0, 304, 0 }, { 2192, 0, 304, 0 } }, { 0, 4112, 0, 0 }, { 0, 0, 4096, 0 }, 2202, WORLD_COLLISION_TRIGGER_ACTION_CAP, 7, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
+/// 10 interaction quads for cellar room 1: 1 warp, 8 CAP commands, 1 room command.
+///
+/// Room-local origins/corners and radii use game units; normals use 4096 per unit.
+/// Warp bytes select destination area and departure/arrival endpoint nibbles;
+/// CAP IDs index the loaded command table or route through the room-message sentinel.
+/// Room binding enables all records through LAST; keep them live until unlinking.
+static WorldCollisionTrigger _gDryfieldNightCellarRoom1ActionTriggers[10] = {
+    { NULL, NULL, NULL, { 5056, -48, 4080, 0 }, { { -864, 0, -432, 0 }, { 864, 0, -432, 0 }, { -864, 0, 432, 0 }, { 864, 0, 432, 0 } }, { 0, 4102, 0, 0 }, { 0, 0, -ONE, 0 }, 964, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_DRYFIELD_NIGHT_UNDERPASS, DRYFIELD_NIGHT_CELLAR_TRIGGER_WARP_TO_UNDERPASS, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 1728, -64, 3680, 0 }, { { -864, 0, -432, 0 }, { 864, 0, -432, 0 }, { -864, 0, 432, 0 }, { 864, 0, 432, 0 } }, { 0, 4102, 0, 0 }, { 0, 0, -ONE, 0 }, 964, WORLD_COLLISION_TRIGGER_ACTION_CAP, DRYFIELD_NIGHT_CELLAR_TRIGGER_CAP_COMMAND_12, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 7168, -64, 2368, 0 }, { { -1888, 0, -1520, 0 }, { 1888, 0, -1520, 0 }, { -1888, 0, 1520, 0 }, { 1888, 0, 1520, 0 } }, { 0, 4108, 0, 0 }, { 0, 0, -ONE, 0 }, 2415, WORLD_COLLISION_TRIGGER_ACTION_CAP, DRYFIELD_NIGHT_CELLAR_TRIGGER_CAP_COMMAND_3, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 0x27B0, -64, 2224, 0 }, { { -400, 0, -960, 0 }, { 400, 0, -960, 0 }, { -400, 0, 960, 0 }, { 400, 0, 960, 0 } }, { 0, 4100, 0, 0 }, { -ONE, 0, 0, 0 }, 1039, WORLD_COLLISION_TRIGGER_ACTION_CAP, DRYFIELD_NIGHT_CELLAR_TRIGGER_COMMAND_P08_DIALOGUE, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 9696, -64, 656, 0 }, { { -400, 0, -688, 0 }, { 400, 0, -688, 0 }, { -400, 0, 688, 0 }, { 400, 0, 688, 0 } }, { 0, 4099, 0, 0 }, { -ONE, 0, 0, 0 }, 794, WORLD_COLLISION_TRIGGER_ACTION_CAP, DRYFIELD_NIGHT_CELLAR_TRIGGER_CAP_COMMAND_5, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 1216, -64, 1632, 0 }, { { -400, 0, -1552, 0 }, { 400, 0, -1552, 0 }, { -400, 0, 1552, 0 }, { 400, 0, 1552, 0 } }, { 0, 4110, 0, 0 }, { ONE, 0, 0, 0 }, 1598, WORLD_COLLISION_TRIGGER_ACTION_CAP, DRYFIELD_NIGHT_CELLAR_TRIGGER_CAP_COMMAND_7, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 3840, -64, 2720, 0 }, { { -400, 0, -1552, 0 }, { 400, 0, -1552, 0 }, { -400, 0, 1552, 0 }, { 400, 0, 1552, 0 } }, { 0, 4110, 0, 0 }, { ONE, 0, 0, 0 }, 1598, WORLD_COLLISION_TRIGGER_ACTION_CAP, DRYFIELD_NIGHT_CELLAR_TRIGGER_CAP_COMMAND_7, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 2048, -64, 2112, 0 }, { { -400, 0, -400, 0 }, { 400, 0, -400, 0 }, { -400, 0, 400, 0 }, { 400, 0, 400, 0 } }, { 0, ONE, 0, 0 }, { -ONE, 0, 0, 0 }, 565, WORLD_COLLISION_TRIGGER_ACTION_CAP, DRYFIELD_NIGHT_CELLAR_TRIGGER_CAP_COMMAND_6, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 2112, -64, 2096, 0 }, { { -400, 0, -1120, 0 }, { 400, 0, -1120, 0 }, { -400, 0, 1120, 0 }, { 400, 0, 1120, 0 } }, { 0, 4100, 0, 0 }, { -ONE, 0, 0, 0 }, 1187, WORLD_COLLISION_TRIGGER_ACTION_CAP, DRYFIELD_NIGHT_CELLAR_TRIGGER_CAP_COMMAND_7, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 7120, -64, 192, 0 }, { { -1904, 0, -432, 0 }, { 1904, 0, -432, 0 }, { -1904, 0, 432, 0 }, { 1904, 0, 432, 0 } }, { 0, 4101, 0, 0 }, { 0, 0, ONE, 0 }, 1949, WORLD_COLLISION_TRIGGER_ACTION_CAP, DRYFIELD_NIGHT_CELLAR_TRIGGER_CAP_COMMAND_7, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-WorldCollisionOccluder D_dryfield_night_cellar_801802F4[1] = {
-    { NULL, NULL, { 3040, -960, 2832, 0 }, { { 0, -1984, -1744, 0 }, { 0, -1984, 1744, 0 }, { 0, 1984, -1744, 0 }, { 0, 1984, 1744, 0 } }, { 4098, 0, 0, 0 }, 2635, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
+/// 10 interaction quads for cellar room 2: 1 warp, 9 CAP commands.
+///
+/// Room-local origins/corners and radii use game units; normals use 4096 per unit.
+/// Warp bytes select destination area and departure/arrival endpoint nibbles;
+/// CAP IDs index the loaded command table or route through the room-message sentinel.
+/// Room binding enables all records through LAST; keep them live until unlinking.
+static WorldCollisionTrigger _gDryfieldNightCellarRoom2ActionTriggers[10] = {
+    { NULL, NULL, NULL, { 5056, -48, 4080, 0 }, { { -864, 0, -432, 0 }, { 864, 0, -432, 0 }, { -864, 0, 432, 0 }, { 864, 0, 432, 0 } }, { 0, 4102, 0, 0 }, { 0, 0, -ONE, 0 }, 964, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_DRYFIELD_NIGHT_UNDERPASS, DRYFIELD_NIGHT_CELLAR_TRIGGER_WARP_TO_UNDERPASS, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 1728, -64, 3680, 0 }, { { -864, 0, -432, 0 }, { 864, 0, -432, 0 }, { -864, 0, 432, 0 }, { 864, 0, 432, 0 } }, { 0, 4102, 0, 0 }, { 0, 0, -ONE, 0 }, 964, WORLD_COLLISION_TRIGGER_ACTION_CAP, DRYFIELD_NIGHT_CELLAR_TRIGGER_CAP_COMMAND_11, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 7168, -64, 2368, 0 }, { { -1888, 0, -1520, 0 }, { 1888, 0, -1520, 0 }, { -1888, 0, 1520, 0 }, { 1888, 0, 1520, 0 } }, { 0, 4108, 0, 0 }, { 0, 0, -ONE, 0 }, 2415, WORLD_COLLISION_TRIGGER_ACTION_CAP, DRYFIELD_NIGHT_CELLAR_TRIGGER_CAP_COMMAND_3, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 0x27B0, -64, 2224, 0 }, { { -400, 0, -960, 0 }, { 400, 0, -960, 0 }, { -400, 0, 960, 0 }, { 400, 0, 960, 0 } }, { 0, 4100, 0, 0 }, { -ONE, 0, 0, 0 }, 1039, WORLD_COLLISION_TRIGGER_ACTION_CAP, DRYFIELD_NIGHT_CELLAR_TRIGGER_CAP_COMMAND_10, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 9696, -64, 656, 0 }, { { -400, 0, -688, 0 }, { 400, 0, -688, 0 }, { -400, 0, 688, 0 }, { 400, 0, 688, 0 } }, { 0, 4099, 0, 0 }, { -ONE, 0, 0, 0 }, 794, WORLD_COLLISION_TRIGGER_ACTION_CAP, DRYFIELD_NIGHT_CELLAR_TRIGGER_CAP_COMMAND_9, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 1216, -64, 1632, 0 }, { { -400, 0, -1552, 0 }, { 400, 0, -1552, 0 }, { -400, 0, 1552, 0 }, { 400, 0, 1552, 0 } }, { 0, 4110, 0, 0 }, { ONE, 0, 0, 0 }, 1598, WORLD_COLLISION_TRIGGER_ACTION_CAP, DRYFIELD_NIGHT_CELLAR_TRIGGER_CAP_COMMAND_7, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 3680, -64, 2720, 0 }, { { -400, 0, -1552, 0 }, { 400, 0, -1552, 0 }, { -400, 0, 1552, 0 }, { 400, 0, 1552, 0 } }, { 0, 4110, 0, 0 }, { ONE, 0, 0, 0 }, 1598, WORLD_COLLISION_TRIGGER_ACTION_CAP, DRYFIELD_NIGHT_CELLAR_TRIGGER_CAP_COMMAND_7, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 2048, -64, 2096, 0 }, { { -400, 0, -416, 0 }, { 400, 0, -416, 0 }, { -400, 0, 416, 0 }, { 400, 0, 416, 0 } }, { 0, 4105, 0, 0 }, { -ONE, 0, 0, 0 }, 576, WORLD_COLLISION_TRIGGER_ACTION_CAP, DRYFIELD_NIGHT_CELLAR_TRIGGER_CAP_COMMAND_8, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 2368, -64, 2096, 0 }, { { -400, 0, -1120, 0 }, { 400, 0, -1120, 0 }, { -400, 0, 1120, 0 }, { 400, 0, 1120, 0 } }, { 0, 4100, 0, 0 }, { -ONE, 0, 0, 0 }, 1187, WORLD_COLLISION_TRIGGER_ACTION_CAP, DRYFIELD_NIGHT_CELLAR_TRIGGER_CAP_COMMAND_7, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 7376, -64, 192, 0 }, { { -2192, 0, -303, 0 }, { 2192, 0, -303, 0 }, { -2192, 0, 304, 0 }, { 2192, 0, 304, 0 } }, { 0, 4112, 0, 0 }, { 0, 0, ONE, 0 }, 2202, WORLD_COLLISION_TRIGGER_ACTION_CAP, DRYFIELD_NIGHT_CELLAR_TRIGGER_CAP_COMMAND_7, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
+
+/// Sight-blocking room quad.
+///
+/// Origin and corner offsets use room-local game units; normals use 4096 per unit.
+/// Room binding links and enables every record through LAST; storage stays live
+/// until unlinking or room/view rebinding. The authored low flag bit is unproven.
+static WorldCollisionOccluder _gDryfieldNightCellarSightOccluder = { NULL, NULL, { 3040, -960, 2832, 0 }, { { 0, -1984, -1744, 0 }, { 0, -1984, 1744, 0 }, { 0, 1984, -1744, 0 }, { 0, 1984, 1744, 0 } }, { 4098, 0, 0, 0 }, 2635, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 };
 
 /// Five warm point lights for nighttime cellar room variant 1, active in every view.
 ///

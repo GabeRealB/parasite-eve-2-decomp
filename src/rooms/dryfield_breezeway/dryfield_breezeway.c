@@ -27,6 +27,7 @@
 #include "gameplay/view.h"
 #include "gameplay/world_targets.h"
 
+#include "main/areas.h"
 #include "main/coord.h"
 #include "main/display.h"
 #include "main/display_types.h"
@@ -51,35 +52,32 @@
 /// event task it spawns to act on it.
 extern RoomEventReq gRoomEventReq;
 
-/// Handle of the room's key-item event task, which
-/// `dryfieldBreezewayKeyItemSessionTask` spawns from
-/// `gDryfieldBreezewayKeyItemModelTaskDesc` in its state 0 and drops again once
-/// `taskPollKill` reaps it; `_dryfieldBreezewayInitMessageTask` clears it when
-/// the message task starts. `dryfieldBreezewayForwardKeyItemUse` forwards message
-/// 0x13F1 to it through `taskMessageDispatch`, answering 0 while there is none.
-extern Task* D_dryfield_breezeway_801843A8;
+static Task* _gDryfieldBreezewayKeyItemModelTask;
 
 /// Raised by the room's event gate `_roomEventGate` when it
 /// latched a request and spawned the event task, cleared on every other call.
 extern u8 gRoomEventActive;
 
 static WorldCollisionGrid    _gDryfieldBreezewayCollisionGrid;
-extern WorldCollisionTrigger D_dryfield_breezeway_80183DE4[4];
-extern WorldCollisionTrigger D_dryfield_breezeway_80183F14[5];
+static WorldCollisionTrigger _gDryfieldBreezewayViewBoundaryTriggers[4];
+static WorldCollisionTrigger _gDryfieldBreezewayActionTriggers[5];
 static WorldCoordRoomLights  _gDryfieldBreezewayRoomLights;
-u_long                       D_dryfield_breezeway_80182F44[128] = {
+/// Hanging-line palette: 256 RGB555 entries packed two per word (512 bytes).
+///
+/// Borrowed by the GPU until its complete transfer finishes; keep this room loaded.
+static u_long _gDryfieldBreezewayKeyItemLineClut[128] = {
 #include "assets/dryfield_breezeway_clut_05984.inc"
 };
 
-GpuImageUpload D_dryfield_breezeway_80183144[2] = {
-    { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 256, 256, 1 }, D_dryfield_breezeway_80182F44 },
+const GpuImageUpload gDryfieldBreezewayKeyItemLineClutUploads[2] __attribute__((section(".data"))) = {
+    { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 256, ARRAY_SIZE(_gDryfieldBreezewayKeyItemLineClut) * 2, 1 }, _gDryfieldBreezewayKeyItemLineClut },
     { GP_IMG_REC_END, 0, { 0, 0, 0, 0 }, NULL },
 };
 
-SVECTOR D_dryfield_breezeway_80183164 = { 17990, -1365, 2825, 0 };
+const SVECTOR gDryfieldBreezewayGlowLocalPoint __attribute__((section(".data"))) = { 17990, -1365, 2825, 0 };
 
-WorldCollisionRoomResources D_dryfield_breezeway_8018316C[1] = {
-    { &_gDryfieldBreezewayCollisionGrid, D_dryfield_breezeway_80183DE4, D_dryfield_breezeway_80183F14, NULL },
+WorldCollisionRoomResources gDryfieldBreezewayRoomCollisionResources[1] = {
+    { &_gDryfieldBreezewayCollisionGrid, _gDryfieldBreezewayViewBoundaryTriggers, _gDryfieldBreezewayActionTriggers, NULL },
 };
 
 u8* gDryfieldBreezewayViewMaps[1] = {
@@ -92,9 +90,15 @@ WorldCoordRoomLighting gDryfieldBreezewayRoomLighting[1] = {
 
 ViewCount gDryfieldBreezewayViewCounts[2] = { DRYFIELD_BREEZEWAY_VIEW_COUNT, 0 };
 
-DirectionWarpEntry D_dryfield_breezeway_8018318C[2] = {
-    { { { .word = 1024 }, 6656, 1, 1568 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 6656, 1, 1568 }, { 0, 0, 0, 0 }, 0x52160002, 0x52160001, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, 476 },
-    { { { .word = 3072 }, 0x44F3, 1, 2075 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 0x44F3, 1, 2075 }, { 0, 0, 0, 0 }, 0x52160004, 0x52160003, 0x52160005, 4, DIRECTION_WARP_FLAG_NONE, 475 },
+/// Map-marker nibble IDs attached to the two breezeway warp endpoints.
+enum {
+    DRYFIELD_BREEZEWAY_WATER_TOWER_ENDPOINT_MAP_FLAG = 476,
+    DRYFIELD_BREEZEWAY_FACTORY_ENDPOINT_MAP_FLAG     = 475,
+};
+
+DirectionWarpEntry gDryfieldBreezewayWarpEntries[2] = {
+    { { { .word = 1024 }, 6656, 1, 1568 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 6656, 1, 1568 }, { 0, 0, 0, 0 }, SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_BREEZEWAY, 2), SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_BREEZEWAY, 1), DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, DRYFIELD_BREEZEWAY_WATER_TOWER_ENDPOINT_MAP_FLAG },
+    { { { .word = 3072 }, 0x44F3, 1, 2075 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 0x44F3, 1, 2075 }, { 0, 0, 0, 0 }, SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_BREEZEWAY, 4), SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_BREEZEWAY, 3), SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_BREEZEWAY, 5), 4, DIRECTION_WARP_FLAG_NONE, DRYFIELD_BREEZEWAY_FACTORY_ENDPOINT_MAP_FLAG },
 };
 
 /// Sixteen room-space face normals, with ONE for unit length.
@@ -296,19 +300,39 @@ SpriteView gDryfieldBreezewaySpriteViews[DRYFIELD_BREEZEWAY_VIEW_COUNT] = {
     { { .elements = _gDryfieldBreezewayView6SpriteSources }, _gDryfieldBreezewayView6SpriteBatches, NULL },
 };
 
-WorldCollisionTrigger D_dryfield_breezeway_80183DE4[4] = {
-    { NULL, NULL, NULL, { 0x2E60, -2880, 1440, 0 }, { { 0, -3568, -1024, 0 }, { 0, -3568, 1024, 0 }, { 0, 3568, -1024, 0 }, { 0, 3568, 1024, 0 } }, { 4097, 0, 0, 0 }, { 0, 0, 4096, 0 }, 3709, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 0x2F20, -2816, 1472, 0 }, { { 0, -3280, 1024, 0 }, { 0, -3280, -1024, 0 }, { 0, 3280, 1024, 0 }, { 0, 3280, -1024, 0 } }, { -4097, 0, 0, 0 }, { 0, 0, 4096, 0 }, 3434, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 0x3E6D, -2848, 2218, 0 }, { { -235, -3632, 1596, 0 }, { 223, -3632, -1607, 0 }, { -235, 3632, 1596, 0 }, { 223, 3632, -1607, 0 } }, { -4064, 0, -582, 0 }, { 0, 0, 4096, 0 }, 3974, 0, 3, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 0x3E0D, -3120, 2186, 0 }, { { 211, -3392, -1637, 0 }, { -225, -3392, 1627, 0 }, { 211, 3392, -1637, 0 }, { -225, 3392, 1627, 0 } }, { 4067, 0, 543, 0 }, { 0, 0, 4096, 0 }, 3762, 0, 4, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
+/// 4 directed camera boundaries in room-local game units.
+///
+/// Source/destination views are 1-based: 3->2, 2->3, 3->4, 4->3.
+/// Room binding installs the view coordinate and enables all records through LAST.
+/// Normals use 4096 per unit; keep the writable list live until it is unlinked.
+static WorldCollisionTrigger _gDryfieldBreezewayViewBoundaryTriggers[4] = {
+    { NULL, NULL, NULL, { 0x2E60, -2880, 1440, 0 }, { { 0, -3568, -1024, 0 }, { 0, -3568, 1024, 0 }, { 0, 3568, -1024, 0 }, { 0, 3568, 1024, 0 } }, { 4097, 0, 0, 0 }, { 0, 0, ONE, 0 }, 3709, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 0x2F20, -2816, 1472, 0 }, { { 0, -3280, 1024, 0 }, { 0, -3280, -1024, 0 }, { 0, 3280, 1024, 0 }, { 0, 3280, -1024, 0 } }, { -4097, 0, 0, 0 }, { 0, 0, ONE, 0 }, 3434, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 0x3E6D, -2848, 2218, 0 }, { { -235, -3632, 1596, 0 }, { 223, -3632, -1607, 0 }, { -235, 3632, 1596, 0 }, { 223, 3632, -1607, 0 } }, { -4064, 0, -582, 0 }, { 0, 0, ONE, 0 }, 3974, 0, 3, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 0x3E0D, -3120, 2186, 0 }, { { 211, -3392, -1637, 0 }, { -225, -3392, 1627, 0 }, { 211, 3392, -1637, 0 }, { -225, 3392, 1627, 0 } }, { 4067, 0, 543, 0 }, { 0, 0, ONE, 0 }, 3762, 0, 4, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-WorldCollisionTrigger D_dryfield_breezeway_80183F14[5] = {
-    { NULL, NULL, NULL, { 6416, -48, 1680, 0 }, { { -368, 0, -720, 0 }, { 368, 0, -720, 0 }, { -368, 0, 720, 0 }, { 368, 0, 720, 0 } }, { 0, 4095, 0, 0 }, { 4096, 0, 0, 0 }, 807, WORLD_COLLISION_TRIGGER_ACTION_WARP, 20, 18, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 0x4580, -64, 1760, 0 }, { { -368, 0, -720, 0 }, { 368, 0, -720, 0 }, { -368, 0, 720, 0 }, { 368, 0, 720, 0 } }, { 0, 4095, 0, 0 }, { -4091, 0, 201, 0 }, 807, WORLD_COLLISION_TRIGGER_ACTION_WARP, 23, 34, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 0x42B0, -64, 3584, 0 }, { { -992, 0, -560, 0 }, { 992, 0, -560, 0 }, { -992, 0, 560, 0 }, { 992, 0, 560, 0 } }, { 0, 4115, 0, 0 }, { 4096, 0, 0, 0 }, 1137, WORLD_COLLISION_TRIGGER_ACTION_CAP, 3, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_QUAD, 0 },
-    { NULL, NULL, NULL, { 0x4580, -64, 3024, 0 }, { { -368, 0, -512, 0 }, { 368, 0, -512, 0 }, { -368, 0, 512, 0 }, { 368, 0, 512, 0 } }, { 0, 4099, 0, 0 }, { -4096, 0, 0, 0 }, 630, WORLD_COLLISION_TRIGGER_ACTION_CAP, 1, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 0x3C5B, -64, 1807, 0 }, { { 32, 0, -1792, 0 }, { 608, 0, -1792, 0 }, { -608, 0, 1792, 0 }, { -32, 0, 1792, 0 } }, { 0, 4095, 0, 0 }, { 4096, 0, 0, 0 }, 1889, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, 1, 0, WORLD_COLLISION_TRIGGER_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
+/// IDs stored in action records; warp pairs pack departure then arrival in four-bit nibbles.
+enum {
+    DRYFIELD_BREEZEWAY_TRIGGER_WARP_TO_WATER_TOWER    = (1 << 4) | 2,
+    DRYFIELD_BREEZEWAY_TRIGGER_WARP_TO_FACTORY        = (2 << 4) | 2,
+    DRYFIELD_BREEZEWAY_TRIGGER_COMMAND_KEY_ITEM       = 3,
+    DRYFIELD_BREEZEWAY_TRIGGER_COMMAND_FACTORY_DOOR   = 1,
+    DRYFIELD_BREEZEWAY_TRIGGER_ACTION_FIRST_ENCOUNTER = 1,
+};
+
+/// 5 interaction quads: 2 warps, 2 room commands, 1 room action.
+///
+/// Room-local origins/corners and radii use game units; normals use 4096 per unit.
+/// Warp bytes select destination area and departure/arrival endpoint nibbles;
+/// CAP IDs index the loaded command table or route through the room-message sentinel.
+/// Room binding enables all records through LAST; keep them live until unlinking.
+static WorldCollisionTrigger _gDryfieldBreezewayActionTriggers[5] = {
+    { NULL, NULL, NULL, { 6416, -48, 1680, 0 }, { { -368, 0, -720, 0 }, { 368, 0, -720, 0 }, { -368, 0, 720, 0 }, { 368, 0, 720, 0 } }, { 0, 4095, 0, 0 }, { ONE, 0, 0, 0 }, 807, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_DRYFIELD_WATER_TOWER, DRYFIELD_BREEZEWAY_TRIGGER_WARP_TO_WATER_TOWER, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 0x4580, -64, 1760, 0 }, { { -368, 0, -720, 0 }, { 368, 0, -720, 0 }, { -368, 0, 720, 0 }, { 368, 0, 720, 0 } }, { 0, 4095, 0, 0 }, { -4091, 0, 201, 0 }, 807, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_DRYFIELD_FACTORY, DRYFIELD_BREEZEWAY_TRIGGER_WARP_TO_FACTORY, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 0x42B0, -64, 3584, 0 }, { { -992, 0, -560, 0 }, { 992, 0, -560, 0 }, { -992, 0, 560, 0 }, { 992, 0, 560, 0 } }, { 0, 4115, 0, 0 }, { ONE, 0, 0, 0 }, 1137, WORLD_COLLISION_TRIGGER_ACTION_CAP, DRYFIELD_BREEZEWAY_TRIGGER_COMMAND_KEY_ITEM, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_QUAD, 0 },
+    { NULL, NULL, NULL, { 0x4580, -64, 3024, 0 }, { { -368, 0, -512, 0 }, { 368, 0, -512, 0 }, { -368, 0, 512, 0 }, { 368, 0, 512, 0 } }, { 0, 4099, 0, 0 }, { -ONE, 0, 0, 0 }, 630, WORLD_COLLISION_TRIGGER_ACTION_CAP, DRYFIELD_BREEZEWAY_TRIGGER_COMMAND_FACTORY_DOOR, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 0x3C5B, -64, 1807, 0 }, { { 32, 0, -1792, 0 }, { 608, 0, -1792, 0 }, { -608, 0, 1792, 0 }, { -32, 0, 1792, 0 } }, { 0, 4095, 0, 0 }, { ONE, 0, 0, 0 }, 1889, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, DRYFIELD_BREEZEWAY_TRIGGER_ACTION_FIRST_ENCOUNTER, 0, WORLD_COLLISION_TRIGGER_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
 /// Four all-view directional lights; translation vectors and RGB intensities use the room-light contract.
@@ -430,7 +454,12 @@ static RoomEventMsg _gRoomEventMsg = { 0 };
 
 u8 gRoomEventActive = 0;
 
-Task* D_dryfield_breezeway_801843A8 = NULL;
+/// Borrowed live model task receiving key-item-use queries, or NULL between sessions.
+///
+/// Published after spawn, retained through synchronous messages and child-exit polling,
+/// then cleared when the child is reaped. Room-message initialization also clears it.
+/// This handle does not own the child or extend its lifetime.
+static Task* _gDryfieldBreezewayKeyItemModelTask = NULL;
 
 RoomEventReq gRoomEventReq = { 0 };
 
@@ -456,10 +485,10 @@ s32 dryfieldBreezewayForwardKeyItemUse(Task* unusedTask, s32 messageId, s32 item
 {
     s32 reply;
 
-    if (D_dryfield_breezeway_801843A8 == NULL) {
+    if (_gDryfieldBreezewayKeyItemModelTask == NULL) {
         reply = ROOM_KEY_ITEM_USE_REFUSED;
     } else {
-        reply = taskMessageDispatch(D_dryfield_breezeway_801843A8, messageId, itemId, secondArg);
+        reply = taskMessageDispatch(_gDryfieldBreezewayKeyItemModelTask, messageId, itemId, secondArg);
     }
     return reply;
 }
@@ -597,12 +626,12 @@ void dryfieldBreezewayKeyItemSessionTask(Task* task)
         case DRYFIELD_BREEZEWAY_KEY_ITEM_SESSION_START:
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
             playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE);
-            D_dryfield_breezeway_801843A8 = taskSpawnFromTable(&gDryfieldBreezewayKeyItemModelTaskDesc, 0, 0, 0);
-            task->state                  += 1;
+            _gDryfieldBreezewayKeyItemModelTask = taskSpawnFromTable(&gDryfieldBreezewayKeyItemModelTaskDesc, 0, 0, 0);
+            task->state                        += 1;
             return;
         case DRYFIELD_BREEZEWAY_KEY_ITEM_SESSION_WAIT:
-            if (taskPollKill(D_dryfield_breezeway_801843A8, &childResult) != 0) {
-                D_dryfield_breezeway_801843A8 = NULL;
+            if (taskPollKill(_gDryfieldBreezewayKeyItemModelTask, &childResult) != 0) {
+                _gDryfieldBreezewayKeyItemModelTask = NULL;
                 taskKill(task);
             }
             return;
@@ -661,7 +690,7 @@ static void _dryfieldBreezewayInitMessageTask(Task* task)
         taskSpawnFromTable(gDryfieldBreezewayFirstEventTaskDescs, DRYFIELD_BREEZEWAY_FIRST_EVENT_SETUP_TASK_INDEX, 0, 0);
     }
     task->state++;
-    D_dryfield_breezeway_801843A8 = NULL;
+    _gDryfieldBreezewayKeyItemModelTask = NULL;
 }
 
 /// Keeps the registered room-message task alive without advancing its idle state.
@@ -669,10 +698,10 @@ static void _dryfieldBreezewayMessageTaskIdle(Task* unusedTask)
 {
 }
 
-/// State handlers of the room's message task, indexed by its state through
-/// `dryfieldBreezewayMessageTask`: publish the message table, idle, then
-/// kill.
-static const TaskFuncTable3 D_dryfield_breezeway_8017D5DC = {
+/// Room-message task states: 0 registers the receiver, 1 idles, 2 releases the task.
+///
+/// Copied as a complete three-handler value; the task state must remain in 0..2.
+static const TaskFuncTable3 _gDryfieldBreezewayMessageTaskStates = {
     { _dryfieldBreezewayInitMessageTask, _dryfieldBreezewayMessageTaskIdle, taskKill }
 };
 
@@ -680,6 +709,6 @@ void dryfieldBreezewayMessageTask(Task* task)
 {
     TaskFuncTable3 stateHandlers;
 
-    stateHandlers = D_dryfield_breezeway_8017D5DC;
+    stateHandlers = _gDryfieldBreezewayMessageTaskStates;
     stateHandlers.funcs[task->state](task);
 }

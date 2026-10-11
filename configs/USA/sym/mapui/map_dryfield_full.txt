@@ -204,7 +204,7 @@ gDryfieldNightGarageSurfacePropertiesByClass = 0x801875B8; // absolute:True owne
 dryfieldNightDrivewayRoomTask = 0x8017DD8C; // type:func absolute:True owner=dryfield_night_driveway shared=rooms
 gDryfieldNightDrivewayRoomLighting = 0x801805E0; // absolute:True owner=dryfield_night_driveway
 gDryfieldNightDrivewayRoomCollisionResources = 0x801805F0; // absolute:True owner=dryfield_night_driveway
-gDryfieldNightDrivewayViewMaps = 0x8018061C; // absolute:True owner=dryfield_night_driveway shared=rooms
+gDryfieldNightDrivewayViewMaps = 0x8018061C; // absolute:True owner=dryfield_night_driveway
 gDryfieldNightDrivewayViewCounts = 0x80180624; // absolute:True owner=dryfield_night_driveway
 gDryfieldNightDrivewayWarpEntries = 0x80180628; // absolute:True owner=dryfield_night_driveway
 gDryfieldNightDrivewayViewCameras = 0x80180C30; // absolute:True owner=dryfield_night_driveway

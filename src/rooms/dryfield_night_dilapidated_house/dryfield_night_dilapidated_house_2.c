@@ -1512,7 +1512,7 @@ WorldCoordRoomLighting gDryfieldNightDilapidatedHouseRoomLighting[1] = {
 };
 
 WorldCollisionRoomResources D_dryfield_night_dilapidated_house_80187394[1] = {
-    { &_gDryfieldNightDilapidatedHouseCollisionGrid, _gDryfieldNightDilapidatedHouseViewBoundaries, D_dryfield_night_dilapidated_house_80189B78, D_dryfield_night_dilapidated_house_80189F08 },
+    { &_gDryfieldNightDilapidatedHouseCollisionGrid, _gDryfieldNightDilapidatedHouseViewBoundaries, gDryfieldNightDilapidatedHouseActionTriggers, &gDryfieldNightDilapidatedHouseSightOccluder },
 };
 
 u8* gDryfieldNightDilapidatedHouseViewMaps[1] = {

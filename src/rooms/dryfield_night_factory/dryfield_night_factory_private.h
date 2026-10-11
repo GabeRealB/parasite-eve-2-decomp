@@ -18,7 +18,13 @@
 /// array; coordinate setup and queries require this overlay to remain loaded.
 extern WorldCoordRoomLights gDryfieldNightFactoryRoomLights;
 
-extern WorldCollisionTrigger D_dryfield_night_factory_80189CA0[14];
+/// 14 directed camera boundaries in room-local game units.
+///
+/// Source/destination views are 1-based: 3->2, 2->3, 4->7, 7->4, 8->7, 7->8, 4->6, 6->4, 8->9,
+/// 9->8, 4->3, 3->4, 2->6, 6->2.
+/// Room binding installs the view coordinate and enables all records through LAST.
+/// Normals use 4096 per unit; keep the writable list live until it is unlinked.
+extern WorldCollisionTrigger gDryfieldNightFactoryViewBoundaryTriggers[14];
 
 /// Minimum ambient colours for logical views 1..19.
 ///
@@ -27,7 +33,13 @@ extern WorldCollisionTrigger D_dryfield_night_factory_80189CA0[14];
 /// while this overlay is loaded and uses default minima above its count.
 extern WorldCoordRoomAmbientEntry gDryfieldNightFactoryAmbientByView[20];
 
-extern WorldCollisionTrigger D_dryfield_night_factory_8018A168[19];
+/// 19 interaction quads: 3 warps, 6 room commands, 10 CAP commands.
+///
+/// Room-local origins/corners and radii use game units; normals use 4096 per unit.
+/// Warp bytes select destination area and departure/arrival endpoint nibbles;
+/// CAP IDs index the loaded command table or route through the room-message sentinel.
+/// Room binding enables all records through LAST; keep them live until unlinking.
+extern WorldCollisionTrigger gDryfieldNightFactoryActionTriggers[19];
 
 /// Snapshot of the accepted transition, copied by the gate for the deferred event.
 ///

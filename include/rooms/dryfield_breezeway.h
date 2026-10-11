@@ -24,8 +24,12 @@ enum { DRYFIELD_BREEZEWAY_VIEW_COUNT = 6 };
 /// and each selected actor overlay loaded throughout its tasks' lifetime.
 extern AreaVariant gDryfieldBreezewayAreaVariants[13];
 
-// dryfield_breezeway
-extern WorldCollisionRoomResources D_dryfield_breezeway_8018316C[];
+/// Room 1's collision resources, indexed by room minus one with no terminator.
+///
+/// Publishes the grid, four view boundaries, five actions and no sight occluders.
+/// The stage map borrows this one-room directory while the breezeway is loaded;
+/// linked resources stay live until room/view rebinding clears them.
+extern WorldCollisionRoomResources gDryfieldBreezewayRoomCollisionResources[1];
 
 /// Room 1's logical-view map, borrowing gameplay's identity entries for views 1..6.
 ///
@@ -43,7 +47,13 @@ extern WorldCoordRoomLighting gDryfieldBreezewayRoomLighting[1];
 /// The trailing halfword's role is unproven; it is not a list terminator.
 extern ViewCount gDryfieldBreezewayViewCounts[2];
 
-extern DirectionWarpEntry D_dryfield_breezeway_8018318C[];
+/// Two warp endpoints: 1 toward the water tower, 2 toward the factory.
+///
+/// Indexed by the 1-based endpoint minus one, without a terminator. Player and
+/// companion share each world placement (yaw 4096 per turn, positions in game units);
+/// initial views are 2 and 4. Departure/arrival sounds and map markers belong to
+/// the selected endpoint. The stage map borrows the table while this room is loaded.
+extern DirectionWarpEntry gDryfieldBreezewayWarpEntries[2];
 
 /// Cameras for mapped views 1..6, indexed by mapped view minus one.
 ///

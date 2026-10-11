@@ -18,6 +18,7 @@
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
 
+#include "main/areas.h"
 #include "main/coord.h"
 #include "main/display.h"
 #include "main/display_types.h"
@@ -46,9 +47,9 @@ typedef struct {
 STATIC_ASSERT_SIZEOF(_DryfieldNightMotelRoom3SpotLightStorage, 756);
 
 static WorldCollisionGrid     _gDryfieldNightMotelRoom3CollisionGrid;
-extern WorldCollisionOccluder D_dryfield_night_motel_room_3_801806F4[1];
-extern WorldCollisionTrigger  D_dryfield_night_motel_room_3_8018019C[11];
-extern WorldCollisionTrigger  D_dryfield_night_motel_room_3_801804E0[7];
+static WorldCollisionOccluder _gDryfieldNightMotelRoom3SightOccluder;
+static WorldCollisionTrigger  _gDryfieldNightMotelRoom3ViewBoundaryTriggers[11];
+static WorldCollisionTrigger  _gDryfieldNightMotelRoom3ActionTriggers[7];
 static WorldCoordRoomLights   _gDryfieldNightMotelRoom3RoomLights;
 
 /// Textured-flare centre for logical views 4, 10 and 11, in world units.
@@ -65,7 +66,7 @@ WorldCoordRoomLighting gDryfieldNightMotelRoom3RoomLighting[1] = {
 };
 
 WorldCollisionRoomResources D_dryfield_night_motel_room_3_8017DAA4[1] = {
-    { &_gDryfieldNightMotelRoom3CollisionGrid, D_dryfield_night_motel_room_3_8018019C, D_dryfield_night_motel_room_3_801804E0, D_dryfield_night_motel_room_3_801806F4 },
+    { &_gDryfieldNightMotelRoom3CollisionGrid, _gDryfieldNightMotelRoom3ViewBoundaryTriggers, _gDryfieldNightMotelRoom3ActionTriggers, &_gDryfieldNightMotelRoom3SightOccluder },
 };
 
 u8* gDryfieldNightMotelRoom3ViewMaps[1] = {
@@ -684,33 +685,59 @@ SpriteView gDryfieldNightMotelRoom3SpriteViews[11] = {
     { { .elements = _gDryfieldNightMotelRoom3View11SpriteSources }, _gDryfieldNightMotelRoom3View11SpriteBatches, NULL },
 };
 
-WorldCollisionTrigger D_dryfield_night_motel_room_3_8018019C[11] = {
-    { NULL, NULL, NULL, { 2207, -1136, 3071, 0 }, { { 18, -2160, -1057, 0 }, { -19, -2160, 1058, 0 }, { 18, 2160, -1057, 0 }, { -19, 2160, 1058, 0 } }, { 4119, 0, 72, 0 }, { 0, 0, 4096, 0 }, 2401, 0, 9, 10, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 2367, -1104, 3039, 0 }, { { -19, -2128, 1058, 0 }, { 18, -2128, -1057, 0 }, { -19, 2128, 1058, 0 }, { 18, 2128, -1057, 0 } }, { -4116, 0, -74, 0 }, { 0, 0, 4096, 0 }, 2374, 0, 10, 9, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 2303, -1104, 862, 0 }, { { 110, -2128, -705, 0 }, { -110, -2128, 704, 0 }, { 110, 2128, -705, 0 }, { -110, 2128, 704, 0 } }, { 4061, 0, 632, 0 }, { 0, 0, 4096, 0 }, 2231, 0, 9, 11, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 2495, -1120, 895, 0 }, { { -111, -2144, 704, 0 }, { 110, -2144, -705, 0 }, { -111, 2144, 704, 0 }, { 110, 2144, -705, 0 } }, { -4049, 0, -637, 0 }, { 0, 0, 4096, 0 }, 2246, 0, 11, 9, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 4094, -1136, 4958, 0 }, { { -865, -2160, 6, 0 }, { 865, -2160, -6, 0 }, { -865, 2160, 6, 0 }, { 865, 2160, -6, 0 } }, { -30, 0, -4098, 0 }, { 0, 0, 4096, 0 }, 2318, 0, 9, 6, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 4063, -1136, 4831, 0 }, { { 865, -2160, -6, 0 }, { -865, -2160, 6, 0 }, { 865, 2160, -6, 0 }, { -865, 2160, 6, 0 } }, { 26, 0, 4095, 0 }, { 0, 0, 4096, 0 }, 2318, 0, 6, 9, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 3199, -1104, 5630, 0 }, { { -6, -2128, -865, 0 }, { 6, -2128, 865, 0 }, { -6, 2128, -865, 0 }, { 6, 2128, 865, 0 } }, { 4095, 0, -30, 0 }, { 0, 0, 4096, 0 }, 2289, 0, 6, 7, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 3328, -1152, 5631, 0 }, { { 6, -2176, 865, 0 }, { -6, -2176, -865, 0 }, { 6, 2176, 865, 0 }, { -6, 2176, -865, 0 } }, { -4101, 0, 26, 0 }, { 0, 0, 4096, 0 }, 2332, 0, 7, 6, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 1408, -1120, 5840, 0 }, { { -6, -2144, -977, 0 }, { 6, -2144, 977, 0 }, { -6, 2144, -977, 0 }, { 6, 2144, 977, 0 } }, { 4097, 0, -27, 0 }, { 0, 0, 4096, 0 }, 2346, 0, 7, 8, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 1568, -1152, 5888, 0 }, { { 6, -2176, 977, 0 }, { -6, -2176, -977, 0 }, { 6, 2176, 977, 0 }, { -6, 2176, -977, 0 } }, { -4122, 0, 23, 0 }, { 0, 0, 4096, 0 }, 2374, 0, 8, 7, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 5247, -1120, 1056, 0 }, { { 3, -2160, -885, 0 }, { -2, -2160, 886, 0 }, { 3, 2160, -885, 0 }, { -2, 2160, 886, 0 } }, { 4102, 0, 10, 0 }, { 0, 0, 4096, 0 }, 2332, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
+/// 11 directed camera boundaries in room-local game units.
+///
+/// Source/destination views are 1-based: 9->10, 10->9, 9->11, 11->9, 9->6, 6->9, 6->7, 7->6,
+/// 7->8, 8->7, 2->3.
+/// Room binding installs the view coordinate and enables all records through LAST.
+/// Normals use 4096 per unit; keep the writable list live until it is unlinked.
+static WorldCollisionTrigger _gDryfieldNightMotelRoom3ViewBoundaryTriggers[11] = {
+    { NULL, NULL, NULL, { 2207, -1136, 3071, 0 }, { { 18, -2160, -1057, 0 }, { -19, -2160, 1058, 0 }, { 18, 2160, -1057, 0 }, { -19, 2160, 1058, 0 } }, { 4119, 0, 72, 0 }, { 0, 0, ONE, 0 }, 2401, 0, 9, 10, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 2367, -1104, 3039, 0 }, { { -19, -2128, 1058, 0 }, { 18, -2128, -1057, 0 }, { -19, 2128, 1058, 0 }, { 18, 2128, -1057, 0 } }, { -4116, 0, -74, 0 }, { 0, 0, ONE, 0 }, 2374, 0, 10, 9, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 2303, -1104, 862, 0 }, { { 110, -2128, -705, 0 }, { -110, -2128, 704, 0 }, { 110, 2128, -705, 0 }, { -110, 2128, 704, 0 } }, { 4061, 0, 632, 0 }, { 0, 0, ONE, 0 }, 2231, 0, 9, 11, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 2495, -1120, 895, 0 }, { { -111, -2144, 704, 0 }, { 110, -2144, -705, 0 }, { -111, 2144, 704, 0 }, { 110, 2144, -705, 0 } }, { -4049, 0, -637, 0 }, { 0, 0, ONE, 0 }, 2246, 0, 11, 9, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 4094, -1136, 4958, 0 }, { { -865, -2160, 6, 0 }, { 865, -2160, -6, 0 }, { -865, 2160, 6, 0 }, { 865, 2160, -6, 0 } }, { -30, 0, -4098, 0 }, { 0, 0, ONE, 0 }, 2318, 0, 9, 6, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 4063, -1136, 4831, 0 }, { { 865, -2160, -6, 0 }, { -865, -2160, 6, 0 }, { 865, 2160, -6, 0 }, { -865, 2160, 6, 0 } }, { 26, 0, 4095, 0 }, { 0, 0, ONE, 0 }, 2318, 0, 6, 9, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 3199, -1104, 5630, 0 }, { { -6, -2128, -865, 0 }, { 6, -2128, 865, 0 }, { -6, 2128, -865, 0 }, { 6, 2128, 865, 0 } }, { 4095, 0, -30, 0 }, { 0, 0, ONE, 0 }, 2289, 0, 6, 7, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 3328, -1152, 5631, 0 }, { { 6, -2176, 865, 0 }, { -6, -2176, -865, 0 }, { 6, 2176, 865, 0 }, { -6, 2176, -865, 0 } }, { -4101, 0, 26, 0 }, { 0, 0, ONE, 0 }, 2332, 0, 7, 6, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 1408, -1120, 5840, 0 }, { { -6, -2144, -977, 0 }, { 6, -2144, 977, 0 }, { -6, 2144, -977, 0 }, { 6, 2144, 977, 0 } }, { 4097, 0, -27, 0 }, { 0, 0, ONE, 0 }, 2346, 0, 7, 8, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 1568, -1152, 5888, 0 }, { { 6, -2176, 977, 0 }, { -6, -2176, -977, 0 }, { 6, 2176, 977, 0 }, { -6, 2176, -977, 0 } }, { -4122, 0, 23, 0 }, { 0, 0, ONE, 0 }, 2374, 0, 8, 7, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 5247, -1120, 1056, 0 }, { { 3, -2160, -885, 0 }, { -2, -2160, 886, 0 }, { 3, 2160, -885, 0 }, { -2, 2160, 886, 0 } }, { 4102, 0, 10, 0 }, { 0, 0, ONE, 0 }, 2332, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-WorldCollisionTrigger D_dryfield_night_motel_room_3_801804E0[7] = {
-    { NULL, NULL, NULL, { 4528, -50, 1040, 0 }, { { -368, 0, -816, 0 }, { 368, 0, -816, 0 }, { -368, 0, 816, 0 }, { 368, 0, 816, 0 } }, { 0, 4115, 0, 0 }, { -4096, 0, 0, 0 }, 893, WORLD_COLLISION_TRIGGER_ACTION_WARP, 2, 21, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 4160, -64, 2448, 0 }, { { -368, 0, -576, 0 }, { 368, 0, -576, 0 }, { -368, 0, 576, 0 }, { 368, 0, 576, 0 } }, { 0, 4099, 0, 0 }, { -4096, 0, 0, 0 }, 683, WORLD_COLLISION_TRIGGER_ACTION_CAP, 10, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 1776, -64, 384, 0 }, { { -544, 0, -352, 0 }, { 544, 0, -352, 0 }, { -544, 0, 352, 0 }, { 544, 0, 352, 0 } }, { 0, 4103, 0, 0 }, { 0, 0, 4096, 0 }, 646, WORLD_COLLISION_TRIGGER_ACTION_CAP, 4, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 1920, -64, 5952, 0 }, { { -352, 0, -352, 0 }, { 352, 0, -352, 0 }, { -352, 0, 352, 0 }, { 352, 0, 352, 0 } }, { 0, 4102, 0, 0 }, { 0, 0, -4096, 0 }, 497, WORLD_COLLISION_TRIGGER_ACTION_CAP, 5, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 2656, -64, 5952, 0 }, { { -352, 0, -352, 0 }, { 352, 0, -352, 0 }, { -352, 0, 352, 0 }, { 352, 0, 352, 0 } }, { 0, 4102, 0, 0 }, { 0, 0, -4096, 0 }, 497, WORLD_COLLISION_TRIGGER_ACTION_CAP, 6, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 4064, -64, 6560, 0 }, { { -640, 0, -288, 0 }, { 640, 0, -288, 0 }, { -640, 0, 288, 0 }, { 640, 0, 288, 0 } }, { 0, 4104, 0, 0 }, { 0, 0, -4096, 0 }, 701, WORLD_COLLISION_TRIGGER_ACTION_CAP, 7, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 4128, -64, 3776, 0 }, { { -368, 0, -576, 0 }, { 368, 0, -576, 0 }, { -368, 0, 576, 0 }, { 368, 0, 576, 0 } }, { 0, 4099, 0, 0 }, { -4096, 0, 0, 0 }, 683, WORLD_COLLISION_TRIGGER_ACTION_CAP, 9, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
+/// IDs stored in action records; warp pairs pack departure then arrival in four-bit nibbles.
+enum {
+    DRYFIELD_NIGHT_MOTEL_ROOM_3_TRIGGER_WARP_TO_MAIN_STREET = (1 << 4) | 5,
+    DRYFIELD_NIGHT_MOTEL_ROOM_3_TRIGGER_CAP_COMMAND_10      = 10,
+    DRYFIELD_NIGHT_MOTEL_ROOM_3_TRIGGER_CAP_COMMAND_4       = 4,
+    DRYFIELD_NIGHT_MOTEL_ROOM_3_TRIGGER_CAP_COMMAND_5       = 5,
+    DRYFIELD_NIGHT_MOTEL_ROOM_3_TRIGGER_CAP_COMMAND_6       = 6,
+    DRYFIELD_NIGHT_MOTEL_ROOM_3_TRIGGER_CAP_COMMAND_7       = 7,
+    DRYFIELD_NIGHT_MOTEL_ROOM_3_TRIGGER_CAP_COMMAND_9       = 9,
 };
 
-WorldCollisionOccluder D_dryfield_night_motel_room_3_801806F4[1] = {
-    { NULL, NULL, { 1168, -1024, 4864, 0 }, { { -2096, -2048, 0, 0 }, { 2096, -2048, 0, 0 }, { -2096, 2048, 0, 0 }, { 2096, 2048, 0, 0 } }, { 0, 0, -4097, 0 }, 2930, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
+/// 7 interaction quads: 1 warp, 6 CAP commands.
+///
+/// Room-local origins/corners and radii use game units; normals use 4096 per unit.
+/// Warp bytes select destination area and departure/arrival endpoint nibbles;
+/// CAP IDs index the loaded command table or route through the room-message sentinel.
+/// Room binding enables all records through LAST; keep them live until unlinking.
+static WorldCollisionTrigger _gDryfieldNightMotelRoom3ActionTriggers[7] = {
+    { NULL, NULL, NULL, { 4528, -50, 1040, 0 }, { { -368, 0, -816, 0 }, { 368, 0, -816, 0 }, { -368, 0, 816, 0 }, { 368, 0, 816, 0 } }, { 0, 4115, 0, 0 }, { -ONE, 0, 0, 0 }, 893, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_DRYFIELD_NIGHT_MAIN_STREET, DRYFIELD_NIGHT_MOTEL_ROOM_3_TRIGGER_WARP_TO_MAIN_STREET, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 4160, -64, 2448, 0 }, { { -368, 0, -576, 0 }, { 368, 0, -576, 0 }, { -368, 0, 576, 0 }, { 368, 0, 576, 0 } }, { 0, 4099, 0, 0 }, { -ONE, 0, 0, 0 }, 683, WORLD_COLLISION_TRIGGER_ACTION_CAP, DRYFIELD_NIGHT_MOTEL_ROOM_3_TRIGGER_CAP_COMMAND_10, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 1776, -64, 384, 0 }, { { -544, 0, -352, 0 }, { 544, 0, -352, 0 }, { -544, 0, 352, 0 }, { 544, 0, 352, 0 } }, { 0, 4103, 0, 0 }, { 0, 0, ONE, 0 }, 646, WORLD_COLLISION_TRIGGER_ACTION_CAP, DRYFIELD_NIGHT_MOTEL_ROOM_3_TRIGGER_CAP_COMMAND_4, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 1920, -64, 5952, 0 }, { { -352, 0, -352, 0 }, { 352, 0, -352, 0 }, { -352, 0, 352, 0 }, { 352, 0, 352, 0 } }, { 0, 4102, 0, 0 }, { 0, 0, -ONE, 0 }, 497, WORLD_COLLISION_TRIGGER_ACTION_CAP, DRYFIELD_NIGHT_MOTEL_ROOM_3_TRIGGER_CAP_COMMAND_5, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 2656, -64, 5952, 0 }, { { -352, 0, -352, 0 }, { 352, 0, -352, 0 }, { -352, 0, 352, 0 }, { 352, 0, 352, 0 } }, { 0, 4102, 0, 0 }, { 0, 0, -ONE, 0 }, 497, WORLD_COLLISION_TRIGGER_ACTION_CAP, DRYFIELD_NIGHT_MOTEL_ROOM_3_TRIGGER_CAP_COMMAND_6, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 4064, -64, 6560, 0 }, { { -640, 0, -288, 0 }, { 640, 0, -288, 0 }, { -640, 0, 288, 0 }, { 640, 0, 288, 0 } }, { 0, 4104, 0, 0 }, { 0, 0, -ONE, 0 }, 701, WORLD_COLLISION_TRIGGER_ACTION_CAP, DRYFIELD_NIGHT_MOTEL_ROOM_3_TRIGGER_CAP_COMMAND_7, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 4128, -64, 3776, 0 }, { { -368, 0, -576, 0 }, { 368, 0, -576, 0 }, { -368, 0, 576, 0 }, { 368, 0, 576, 0 } }, { 0, 4099, 0, 0 }, { -ONE, 0, 0, 0 }, 683, WORLD_COLLISION_TRIGGER_ACTION_CAP, DRYFIELD_NIGHT_MOTEL_ROOM_3_TRIGGER_CAP_COMMAND_9, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
+
+/// Sight-blocking room quad.
+///
+/// Origin and corner offsets use room-local game units; normals use 4096 per unit.
+/// Room binding links and enables every record through LAST; storage stays live
+/// until unlinking or room/view rebinding. The authored low flag bit is unproven.
+static WorldCollisionOccluder _gDryfieldNightMotelRoom3SightOccluder = { NULL, NULL, { 1168, -1024, 4864, 0 }, { { -2096, -2048, 0, 0 }, { 2096, -2048, 0, 0 }, { -2096, 2048, 0, 0 }, { 2096, 2048, 0, 0 } }, { 0, 0, -4097, 0 }, 2930, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 };
 
 /// Seven all-view point lights for the room's model shading and light queries.
 ///

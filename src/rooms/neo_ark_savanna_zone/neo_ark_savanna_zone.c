@@ -30,6 +30,7 @@
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
 
+#include "main/areas.h"
 #include "main/coord.h"
 #include "main/display.h"
 #include "main/display_types.h"
@@ -68,8 +69,8 @@ extern TaskMessageEntry D_neo_ark_savanna_zone_8017F9AC[];
 
 static WorldCollisionGrid               _gNeoArkSavannaZoneCollisionGrid;
 extern WorldCollisionOccluder           D_neo_ark_savanna_zone_801808CC[1];
-extern WorldCollisionTrigger            D_neo_ark_savanna_zone_801804EC[4];
-extern WorldCollisionTrigger            D_neo_ark_savanna_zone_8018061C[5];
+static WorldCollisionTrigger            _gNeoArkSavannaZoneViewBoundaryTriggers[4];
+static WorldCollisionTrigger            _gNeoArkSavannaZoneActionTriggers[5];
 static const WorldCoordRoomAmbientEntry _gNeoArkSavannaZoneAmbientTable[NEO_ARK_SAVANNA_ZONE_VIEW_COUNT + 1];
 static WorldCoordRoomLights             _gNeoArkSavannaZoneRoomLights;
 static s32                              _neoArkSavannaZoneResolveRoomEvent(Task* unusedTask, s32 unusedMessageId, RoomEventMsg* request, RoomEventMsg* reply);
@@ -93,7 +94,7 @@ TaskMessageEntry D_neo_ark_savanna_zone_8017F9AC[5] = {
 #include "../../shared/room_visual_effects_trail_data.inc.c"
 
 WorldCollisionRoomResources D_neo_ark_savanna_zone_8017F9E4[1] = {
-    { &_gNeoArkSavannaZoneCollisionGrid, D_neo_ark_savanna_zone_801804EC, D_neo_ark_savanna_zone_8018061C, D_neo_ark_savanna_zone_801808CC },
+    { &_gNeoArkSavannaZoneCollisionGrid, _gNeoArkSavannaZoneViewBoundaryTriggers, _gNeoArkSavannaZoneActionTriggers, D_neo_ark_savanna_zone_801808CC },
 };
 
 WorldCoordRoomLighting gNeoArkSavannaZoneRoomLighting[1] = {
@@ -329,19 +330,39 @@ static WorldCoordRoomLights _gNeoArkSavannaZoneRoomLights = {
     .coneLights            = NULL,
 };
 
-WorldCollisionTrigger D_neo_ark_savanna_zone_801804EC[4] = {
-    { NULL, NULL, NULL, { 5503, -2305, 1552, 0 }, { { 55, -2608, -3196, 0 }, { -59, -2608, 3190, 0 }, { 55, 2609, -3196, 0 }, { -59, 2609, 3190, 0 } }, { 4098, 0, 73, 0 }, { 0, 0, 4096, 0 }, 4096, 0, 3, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 5727, -2305, 1744, 0 }, { { -59, -2608, 3336, 0 }, { 53, -2608, -3342, 0 }, { -59, 2608, 3336, 0 }, { 53, 2608, -3342, 0 } }, { -4095, 0, -69, 0 }, { 0, 0, 4096, 0 }, 4222, 0, 4, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 0x277F, -2256, 1727, 0 }, { { -55, -2688, 3339, 0 }, { 56, -2688, -3338, 0 }, { -55, 2688, 3339, 0 }, { 56, 2688, -3338, 0 } }, { -4103, 0, -69, 0 }, { 0, 0, 4096, 0 }, 4283, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 9951, -2224, 1695, 0 }, { { 57, -2688, -3193, 0 }, { -56, -2688, 3194, 0 }, { 57, 2688, -3193, 0 }, { -56, 2688, 3194, 0 } }, { 4095, 0, 72, 0 }, { 0, 0, 4096, 0 }, 4159, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
+/// 4 directed camera boundaries in room-local game units.
+///
+/// Source/destination views are 1-based: 3->4, 4->3, 3->2, 2->3.
+/// Room binding installs the view coordinate and enables all records through LAST.
+/// Normals use 4096 per unit; keep the writable list live until it is unlinked.
+static WorldCollisionTrigger _gNeoArkSavannaZoneViewBoundaryTriggers[4] = {
+    { NULL, NULL, NULL, { 5503, -2305, 1552, 0 }, { { 55, -2608, -3196, 0 }, { -59, -2608, 3190, 0 }, { 55, 2609, -3196, 0 }, { -59, 2609, 3190, 0 } }, { 4098, 0, 73, 0 }, { 0, 0, ONE, 0 }, 4096, 0, 3, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 5727, -2305, 1744, 0 }, { { -59, -2608, 3336, 0 }, { 53, -2608, -3342, 0 }, { -59, 2608, 3336, 0 }, { 53, 2608, -3342, 0 } }, { -4095, 0, -69, 0 }, { 0, 0, ONE, 0 }, 4222, 0, 4, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 0x277F, -2256, 1727, 0 }, { { -55, -2688, 3339, 0 }, { 56, -2688, -3338, 0 }, { -55, 2688, 3339, 0 }, { 56, 2688, -3338, 0 } }, { -4103, 0, -69, 0 }, { 0, 0, ONE, 0 }, 4283, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 9951, -2224, 1695, 0 }, { { 57, -2688, -3193, 0 }, { -56, -2688, 3194, 0 }, { 57, 2688, -3193, 0 }, { -56, 2688, 3194, 0 } }, { 4095, 0, 72, 0 }, { 0, 0, ONE, 0 }, 4159, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-WorldCollisionTrigger D_neo_ark_savanna_zone_8018061C[5] = {
-    { NULL, NULL, NULL, { 736, -48, 1376, 0 }, { { -672, 0, -736, 0 }, { 672, 0, -736, 0 }, { -672, 0, 736, 0 }, { 672, 0, 736, 0 } }, { 0, 4101, 0, 0 }, { 4096, 0, 0, 0 }, 995, WORLD_COLLISION_TRIGGER_ACTION_WARP, 21, 18, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 0x33C0, -48, 1440, 0 }, { { -672, 0, -1136, 0 }, { 672, 0, -1136, 0 }, { -672, 0, 1136, 0 }, { 672, 0, 1136, 0 } }, { 0, 4103, 0, 0 }, { -4096, 0, 0, 0 }, 1317, WORLD_COLLISION_TRIGGER_ACTION_WARP, 19, 33, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 7776, -64, 272, 0 }, { { -1440, 0, -432, 0 }, { 1440, 0, -432, 0 }, { -1440, 0, 432, 0 }, { 1440, 0, 432, 0 } }, { 0, 4117, 0, 0 }, { 0, 0, 4096, 0 }, 1498, WORLD_COLLISION_TRIGGER_ACTION_CAP, 1, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 6992, -64, 256, 0 }, { { -6992, 0, -432, 0 }, { 6992, 0, -432, 0 }, { -6992, 0, 432, 0 }, { 6992, 0, 432, 0 } }, { 0, 4106, 0, 0 }, { 0, 0, 4096, 0 }, 7001, WORLD_COLLISION_TRIGGER_ACTION_CAP, 5, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 6976, -64, 2720, 0 }, { { -6992, 0, -432, 0 }, { 6992, 0, -432, 0 }, { -6992, 0, 432, 0 }, { 6992, 0, 432, 0 } }, { 0, 4106, 0, 0 }, { 0, 0, -4096, 0 }, 7001, WORLD_COLLISION_TRIGGER_ACTION_CAP, 4, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
+/// IDs stored in action records; warp pairs pack departure then arrival in four-bit nibbles.
+enum {
+    NEO_ARK_SAVANNA_ZONE_TRIGGER_WARP_TO_SHRINE          = (1 << 4) | 2,
+    NEO_ARK_SAVANNA_ZONE_TRIGGER_WARP_TO_SOUTH_PROMENADE = (2 << 4) | 1,
+    NEO_ARK_SAVANNA_ZONE_TRIGGER_CAP_COMMAND_1           = 1,
+    NEO_ARK_SAVANNA_ZONE_TRIGGER_CAP_COMMAND_5           = 5,
+    NEO_ARK_SAVANNA_ZONE_TRIGGER_CAP_COMMAND_4           = 4,
+};
+
+/// 5 interaction quads: 2 warps, 3 CAP commands.
+///
+/// Room-local origins/corners and radii use game units; normals use 4096 per unit.
+/// Warp bytes select destination area and departure/arrival endpoint nibbles;
+/// CAP IDs index the loaded command table or route through the room-message sentinel.
+/// Room binding enables all records through LAST; keep them live until unlinking.
+static WorldCollisionTrigger _gNeoArkSavannaZoneActionTriggers[5] = {
+    { NULL, NULL, NULL, { 736, -48, 1376, 0 }, { { -672, 0, -736, 0 }, { 672, 0, -736, 0 }, { -672, 0, 736, 0 }, { 672, 0, 736, 0 } }, { 0, 4101, 0, 0 }, { ONE, 0, 0, 0 }, 995, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_NEO_ARK_SHRINE, NEO_ARK_SAVANNA_ZONE_TRIGGER_WARP_TO_SHRINE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 0x33C0, -48, 1440, 0 }, { { -672, 0, -1136, 0 }, { 672, 0, -1136, 0 }, { -672, 0, 1136, 0 }, { 672, 0, 1136, 0 } }, { 0, 4103, 0, 0 }, { -ONE, 0, 0, 0 }, 1317, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_NEO_ARK_SOUTH_PROMENADE, NEO_ARK_SAVANNA_ZONE_TRIGGER_WARP_TO_SOUTH_PROMENADE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 7776, -64, 272, 0 }, { { -1440, 0, -432, 0 }, { 1440, 0, -432, 0 }, { -1440, 0, 432, 0 }, { 1440, 0, 432, 0 } }, { 0, 4117, 0, 0 }, { 0, 0, ONE, 0 }, 1498, WORLD_COLLISION_TRIGGER_ACTION_CAP, NEO_ARK_SAVANNA_ZONE_TRIGGER_CAP_COMMAND_1, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 6992, -64, 256, 0 }, { { -6992, 0, -432, 0 }, { 6992, 0, -432, 0 }, { -6992, 0, 432, 0 }, { 6992, 0, 432, 0 } }, { 0, 4106, 0, 0 }, { 0, 0, ONE, 0 }, 7001, WORLD_COLLISION_TRIGGER_ACTION_CAP, NEO_ARK_SAVANNA_ZONE_TRIGGER_CAP_COMMAND_5, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 6976, -64, 2720, 0 }, { { -6992, 0, -432, 0 }, { 6992, 0, -432, 0 }, { -6992, 0, 432, 0 }, { 6992, 0, 432, 0 } }, { 0, 4106, 0, 0 }, { 0, 0, -ONE, 0 }, 7001, WORLD_COLLISION_TRIGGER_ACTION_CAP, NEO_ARK_SAVANNA_ZONE_TRIGGER_CAP_COMMAND_4, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
 /// Variant 1's Desert Chaser and scorpion resources, keyed by placement entry 1 and 25.

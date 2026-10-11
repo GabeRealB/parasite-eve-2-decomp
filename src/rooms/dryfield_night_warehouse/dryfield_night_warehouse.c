@@ -24,6 +24,7 @@
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
 
+#include "main/areas.h"
 #include "main/coord.h"
 #include "main/display.h"
 #include "main/display_types.h"
@@ -63,7 +64,7 @@ enum {
 
 static WorldCollisionGrid         _gDryfieldNightWarehouseCollisionGrid;
 static WorldCollisionTrigger      _gDryfieldNightWarehouseViewBoundaryTriggers[4];
-extern WorldCollisionTrigger      D_dryfield_night_warehouse_8017F84C[10];
+static WorldCollisionTrigger      _gDryfieldNightWarehouseActionTriggers[10];
 static WorldCoordRoomAmbientEntry _gDryfieldNightWarehouseAmbientByView[5];
 static WorldCoordRoomLights       _gDryfieldNightWarehouseRoomLights;
 
@@ -138,9 +139,9 @@ WorldCoordRoomLighting gDryfieldNightWarehouseRoomLighting[3] = {
 };
 
 WorldCollisionRoomResources D_dryfield_night_warehouse_8017E900[3] = {
-    { &_gDryfieldNightWarehouseCollisionGrid, _gDryfieldNightWarehouseViewBoundaryTriggers, D_dryfield_night_warehouse_8017F84C, NULL },
-    { &_gDryfieldNightWarehouseCollisionGrid, _gDryfieldNightWarehouseViewBoundaryTriggers, D_dryfield_night_warehouse_8017F84C, NULL },
-    { &_gDryfieldNightWarehouseCollisionGrid, _gDryfieldNightWarehouseViewBoundaryTriggers, D_dryfield_night_warehouse_8017F84C, NULL },
+    { &_gDryfieldNightWarehouseCollisionGrid, _gDryfieldNightWarehouseViewBoundaryTriggers, _gDryfieldNightWarehouseActionTriggers, NULL },
+    { &_gDryfieldNightWarehouseCollisionGrid, _gDryfieldNightWarehouseViewBoundaryTriggers, _gDryfieldNightWarehouseActionTriggers, NULL },
+    { &_gDryfieldNightWarehouseCollisionGrid, _gDryfieldNightWarehouseViewBoundaryTriggers, _gDryfieldNightWarehouseActionTriggers, NULL },
 };
 
 u8* gDryfieldNightWarehouseViewMaps[3] = {
@@ -360,17 +361,35 @@ static WorldCoordRoomAmbientEntry _gDryfieldNightWarehouseAmbientByView[5] = {
     { .color = { 16, 0, 0, 6 } },
 };
 
-WorldCollisionTrigger D_dryfield_night_warehouse_8017F84C[10] = {
-    { NULL, NULL, NULL, { 2303, -62, -3664, 0 }, { { -543, 0, -208, 0 }, { 544, 0, -208, 0 }, { -543, 0, 208, 0 }, { 544, 0, 208, 0 } }, { 0, 4095, 0, 0 }, { 0, 0, 4096, 0 }, 579, WORLD_COLLISION_TRIGGER_ACTION_WARP, 5, 19, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 5600, -65, -864, 0 }, { { 352, 0, -671, 0 }, { 352, 0, 672, 0 }, { -352, 0, -671, 0 }, { -352, 0, 672, 0 } }, { 0, 4102, 0, 0 }, { -4096, 0, 0, 0 }, 757, WORLD_COLLISION_TRIGGER_ACTION_WARP, 9, 34, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 5040, -64, -2224, 0 }, { { 272, 0, -783, 0 }, { 272, 0, 784, 0 }, { -272, 0, -783, 0 }, { -272, 0, 784, 0 } }, { 0, 4095, 0, 0 }, { -4096, 0, 0, 0 }, 829, WORLD_COLLISION_TRIGGER_ACTION_CAP, 9, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 784, -64, -2592, 0 }, { { -751, 0, -208, 0 }, { 752, 0, -208, 0 }, { -751, 0, 208, 0 }, { 752, 0, 208, 0 } }, { 0, 4101, 0, 0 }, { 0, 0, -4096, 0 }, 778, WORLD_COLLISION_TRIGGER_ACTION_CAP, 1, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 1504, -64, -1408, 0 }, { { -271, 0, -1296, 0 }, { 272, 0, -1296, 0 }, { -271, 0, 1296, 0 }, { 272, 0, 1296, 0 } }, { 0, 4111, 0, 0 }, { 4091, 0, 201, 0 }, 1324, WORLD_COLLISION_TRIGGER_ACTION_CAP, 1, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 1744, -64, -368, 0 }, { { -543, 0, -256, 0 }, { 544, 0, -256, 0 }, { -543, 0, 256, 0 }, { 544, 0, 256, 0 } }, { 0, 4100, 0, 0 }, { 0, 0, -4096, 0 }, 600, WORLD_COLLISION_TRIGGER_ACTION_CAP, 10, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 4512, -64, -416, 0 }, { { -543, 0, -256, 0 }, { 544, 0, -256, 0 }, { -543, 0, 256, 0 }, { 544, 0, 256, 0 } }, { 0, 4100, 0, 0 }, { 0, 0, -4096, 0 }, 600, WORLD_COLLISION_TRIGGER_ACTION_CAP, 10, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 3040, -64, -2880, 0 }, { { -351, 0, -416, 0 }, { 352, 0, -416, 0 }, { -351, 0, 416, 0 }, { 352, 0, 416, 0 } }, { 0, 4115, 0, 0 }, { -601, 0, 4052, 0 }, 543, WORLD_COLLISION_TRIGGER_ACTION_CAP, 7, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 3008, -64, -416, 0 }, { { -1327, 0, -848, 0 }, { 1328, 0, -848, 0 }, { -1327, 0, 240, 0 }, { 1328, 0, 240, 0 } }, { 0, 4100, 0, 0 }, { 0, 0, -4096, 0 }, 1572, WORLD_COLLISION_TRIGGER_ACTION_CAP, 2, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 672, -64, -3200, 0 }, { { -703, 0, -208, 0 }, { 704, 0, -208, 0 }, { -703, 0, 208, 0 }, { 704, 0, 208, 0 } }, { 0, 4115, 0, 0 }, { 0, 0, 4096, 0 }, 732, WORLD_COLLISION_TRIGGER_ACTION_CAP, 8, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
+/// IDs stored in action records; warp pairs pack departure then arrival in four-bit nibbles.
+enum {
+    DRYFIELD_NIGHT_WAREHOUSE_TRIGGER_WARP_TO_BACK_STREET       = (1 << 4) | 3,
+    DRYFIELD_NIGHT_WAREHOUSE_TRIGGER_WARP_TO_DILAPIDATED_HOUSE = (2 << 4) | 2,
+    DRYFIELD_NIGHT_WAREHOUSE_TRIGGER_CAP_COMMAND_9             = 9,
+    DRYFIELD_NIGHT_WAREHOUSE_TRIGGER_CAP_COMMAND_1             = 1,
+    DRYFIELD_NIGHT_WAREHOUSE_TRIGGER_CAP_COMMAND_10            = 10,
+    DRYFIELD_NIGHT_WAREHOUSE_TRIGGER_CAP_COMMAND_7             = 7,
+    DRYFIELD_NIGHT_WAREHOUSE_TRIGGER_CAP_COMMAND_2             = 2,
+    DRYFIELD_NIGHT_WAREHOUSE_TRIGGER_CAP_COMMAND_8             = 8,
+};
+
+/// 10 interaction quads: 2 warps, 8 CAP commands.
+///
+/// Room-local origins/corners and radii use game units; normals use 4096 per unit.
+/// Warp bytes select destination area and departure/arrival endpoint nibbles;
+/// CAP IDs index the loaded command table or route through the room-message sentinel.
+/// Room binding enables all records through LAST; keep them live until unlinking.
+static WorldCollisionTrigger _gDryfieldNightWarehouseActionTriggers[10] = {
+    { NULL, NULL, NULL, { 2303, -62, -3664, 0 }, { { -543, 0, -208, 0 }, { 544, 0, -208, 0 }, { -543, 0, 208, 0 }, { 544, 0, 208, 0 } }, { 0, 4095, 0, 0 }, { 0, 0, ONE, 0 }, 579, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_DRYFIELD_NIGHT_BACK_STREET, DRYFIELD_NIGHT_WAREHOUSE_TRIGGER_WARP_TO_BACK_STREET, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 5600, -65, -864, 0 }, { { 352, 0, -671, 0 }, { 352, 0, 672, 0 }, { -352, 0, -671, 0 }, { -352, 0, 672, 0 } }, { 0, 4102, 0, 0 }, { -ONE, 0, 0, 0 }, 757, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_DRYFIELD_NIGHT_DILAPIDATED_HOUSE, DRYFIELD_NIGHT_WAREHOUSE_TRIGGER_WARP_TO_DILAPIDATED_HOUSE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 5040, -64, -2224, 0 }, { { 272, 0, -783, 0 }, { 272, 0, 784, 0 }, { -272, 0, -783, 0 }, { -272, 0, 784, 0 } }, { 0, 4095, 0, 0 }, { -ONE, 0, 0, 0 }, 829, WORLD_COLLISION_TRIGGER_ACTION_CAP, DRYFIELD_NIGHT_WAREHOUSE_TRIGGER_CAP_COMMAND_9, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 784, -64, -2592, 0 }, { { -751, 0, -208, 0 }, { 752, 0, -208, 0 }, { -751, 0, 208, 0 }, { 752, 0, 208, 0 } }, { 0, 4101, 0, 0 }, { 0, 0, -ONE, 0 }, 778, WORLD_COLLISION_TRIGGER_ACTION_CAP, DRYFIELD_NIGHT_WAREHOUSE_TRIGGER_CAP_COMMAND_1, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 1504, -64, -1408, 0 }, { { -271, 0, -1296, 0 }, { 272, 0, -1296, 0 }, { -271, 0, 1296, 0 }, { 272, 0, 1296, 0 } }, { 0, 4111, 0, 0 }, { 4091, 0, 201, 0 }, 1324, WORLD_COLLISION_TRIGGER_ACTION_CAP, DRYFIELD_NIGHT_WAREHOUSE_TRIGGER_CAP_COMMAND_1, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 1744, -64, -368, 0 }, { { -543, 0, -256, 0 }, { 544, 0, -256, 0 }, { -543, 0, 256, 0 }, { 544, 0, 256, 0 } }, { 0, 4100, 0, 0 }, { 0, 0, -ONE, 0 }, 600, WORLD_COLLISION_TRIGGER_ACTION_CAP, DRYFIELD_NIGHT_WAREHOUSE_TRIGGER_CAP_COMMAND_10, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 4512, -64, -416, 0 }, { { -543, 0, -256, 0 }, { 544, 0, -256, 0 }, { -543, 0, 256, 0 }, { 544, 0, 256, 0 } }, { 0, 4100, 0, 0 }, { 0, 0, -ONE, 0 }, 600, WORLD_COLLISION_TRIGGER_ACTION_CAP, DRYFIELD_NIGHT_WAREHOUSE_TRIGGER_CAP_COMMAND_10, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 3040, -64, -2880, 0 }, { { -351, 0, -416, 0 }, { 352, 0, -416, 0 }, { -351, 0, 416, 0 }, { 352, 0, 416, 0 } }, { 0, 4115, 0, 0 }, { -601, 0, 4052, 0 }, 543, WORLD_COLLISION_TRIGGER_ACTION_CAP, DRYFIELD_NIGHT_WAREHOUSE_TRIGGER_CAP_COMMAND_7, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 3008, -64, -416, 0 }, { { -1327, 0, -848, 0 }, { 1328, 0, -848, 0 }, { -1327, 0, 240, 0 }, { 1328, 0, 240, 0 } }, { 0, 4100, 0, 0 }, { 0, 0, -ONE, 0 }, 1572, WORLD_COLLISION_TRIGGER_ACTION_CAP, DRYFIELD_NIGHT_WAREHOUSE_TRIGGER_CAP_COMMAND_2, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 672, -64, -3200, 0 }, { { -703, 0, -208, 0 }, { 704, 0, -208, 0 }, { -703, 0, 208, 0 }, { 704, 0, 208, 0 } }, { 0, 4115, 0, 0 }, { 0, 0, ONE, 0 }, 732, WORLD_COLLISION_TRIGGER_ACTION_CAP, DRYFIELD_NIGHT_WAREHOUSE_TRIGGER_CAP_COMMAND_8, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
 /// Variant 1's Scorpion resource (file 102500), followed by AREA_PLACEMENT_END.

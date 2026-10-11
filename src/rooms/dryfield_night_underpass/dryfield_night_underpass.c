@@ -21,6 +21,7 @@
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
 
+#include "main/areas.h"
 #include "main/coord.h"
 #include "main/display.h"
 #include "main/display_types.h"
@@ -55,9 +56,9 @@ static s32  _dryfieldNightUnderpassIgnoreRoomAction(Task* unusedTask, s32 messag
 static void _dryfieldNightUnderpassIdleTask(Task* unusedTask);
 
 static WorldCollisionGrid     _gDryfieldNightUnderpassCollisionGrid;
-extern WorldCollisionOccluder D_dryfield_night_underpass_8017FBE0[3];
-extern WorldCollisionTrigger  D_dryfield_night_underpass_8017F558[16];
-extern WorldCollisionTrigger  D_dryfield_night_underpass_8017FA18[6];
+static WorldCollisionOccluder _gDryfieldNightUnderpassSightOccluders[3];
+static WorldCollisionTrigger  _gDryfieldNightUnderpassViewBoundaryTriggers[16];
+static WorldCollisionTrigger  _gDryfieldNightUnderpassActionTriggers[6];
 static WorldCoordRoomLights   _gDryfieldNightUnderpassLampRoomLights;
 static WorldCoordRoomLights   _gDryfieldNightUnderpassDimRoomLights;
 
@@ -111,12 +112,12 @@ static s16 _gDryfieldNightUnderpassFlareViewMasks[ARRAY_SIZE(_gDryfieldNightUnde
 };
 
 WorldCollisionRoomResources D_dryfield_night_underpass_8017DD70[6] = {
-    { &_gDryfieldNightUnderpassCollisionGrid, D_dryfield_night_underpass_8017F558, D_dryfield_night_underpass_8017FA18, D_dryfield_night_underpass_8017FBE0 },
-    { &_gDryfieldNightUnderpassCollisionGrid, D_dryfield_night_underpass_8017F558, D_dryfield_night_underpass_8017FA18, D_dryfield_night_underpass_8017FBE0 },
-    { &_gDryfieldNightUnderpassCollisionGrid, D_dryfield_night_underpass_8017F558, D_dryfield_night_underpass_8017FA18, D_dryfield_night_underpass_8017FBE0 },
-    { &_gDryfieldNightUnderpassCollisionGrid, D_dryfield_night_underpass_8017F558, D_dryfield_night_underpass_8017FA18, D_dryfield_night_underpass_8017FBE0 },
-    { &_gDryfieldNightUnderpassCollisionGrid, D_dryfield_night_underpass_8017F558, D_dryfield_night_underpass_8017FA18, D_dryfield_night_underpass_8017FBE0 },
-    { &_gDryfieldNightUnderpassCollisionGrid, D_dryfield_night_underpass_8017F558, D_dryfield_night_underpass_8017FA18, D_dryfield_night_underpass_8017FBE0 },
+    { &_gDryfieldNightUnderpassCollisionGrid, _gDryfieldNightUnderpassViewBoundaryTriggers, _gDryfieldNightUnderpassActionTriggers, _gDryfieldNightUnderpassSightOccluders },
+    { &_gDryfieldNightUnderpassCollisionGrid, _gDryfieldNightUnderpassViewBoundaryTriggers, _gDryfieldNightUnderpassActionTriggers, _gDryfieldNightUnderpassSightOccluders },
+    { &_gDryfieldNightUnderpassCollisionGrid, _gDryfieldNightUnderpassViewBoundaryTriggers, _gDryfieldNightUnderpassActionTriggers, _gDryfieldNightUnderpassSightOccluders },
+    { &_gDryfieldNightUnderpassCollisionGrid, _gDryfieldNightUnderpassViewBoundaryTriggers, _gDryfieldNightUnderpassActionTriggers, _gDryfieldNightUnderpassSightOccluders },
+    { &_gDryfieldNightUnderpassCollisionGrid, _gDryfieldNightUnderpassViewBoundaryTriggers, _gDryfieldNightUnderpassActionTriggers, _gDryfieldNightUnderpassSightOccluders },
+    { &_gDryfieldNightUnderpassCollisionGrid, _gDryfieldNightUnderpassViewBoundaryTriggers, _gDryfieldNightUnderpassActionTriggers, _gDryfieldNightUnderpassSightOccluders },
 };
 
 WorldCoordRoomLighting gDryfieldNightUnderpassRoomLighting[6] = {
@@ -716,35 +717,61 @@ SpriteView gDryfieldNightUnderpassSpriteViews[DRYFIELD_NIGHT_UNDERPASS_MAPPED_VI
     { { .empty = _gDryfieldNightUnderpassView26SpriteBatches }, _gDryfieldNightUnderpassView26SpriteBatches, NULL },
 };
 
-WorldCollisionTrigger D_dryfield_night_underpass_8017F558[16] = {
-    { NULL, NULL, NULL, { 0x4070, -2560, -5280, 0 }, { { -1616, -1888, 0, 0 }, { 1616, -1888, 0, 0 }, { -1616, 1888, 0, 0 }, { 1616, 1888, 0, 0 } }, { 0, 0, -4104, 0 }, { 0, 0, 4096, 0 }, 2482, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 0x40C0, -2544, -5408, 0 }, { { 1616, -1840, 0, 0 }, { -1616, -1840, 0, 0 }, { 1616, 1840, 0, 0 }, { -1616, 1840, 0, 0 } }, { 0, 0, 4105, 0 }, { 0, 0, 4096, 0 }, 2442, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 0x3A3F, -2720, -8402, 0 }, { { 65, -1824, -1727, 0 }, { -64, -1824, 1728, 0 }, { 65, 1824, -1727, 0 }, { -64, 1824, 1728, 0 } }, { 4101, 0, 151, 0 }, { 0, 0, 4096, 0 }, 2508, 0, 3, 9, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 0x3ABE, -2736, -8307, 0 }, { { -81, -1808, 1758, 0 }, { 81, -1808, -1757, 0 }, { -81, 1808, 1758, 0 }, { 81, 1808, -1757, 0 } }, { -4096, 0, -190, 0 }, { 0, 0, 4096, 0 }, 2521, 0, 9, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 9023, -2688, -8449, 0 }, { { 0, -1824, 1615, 0 }, { 1, -1824, -1616, 0 }, { 0, 1824, 1615, 0 }, { 1, 1824, -1616, 0 } }, { -4102, 0, -2, 0 }, { 0, 0, 4096, 0 }, 2428, 0, 5, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 8799, -2736, -8577, 0 }, { { -79, -1808, -1614, 0 }, { 78, -1808, 1613, 0 }, { -79, 1808, -1614, 0 }, { 78, 1808, 1613, 0 } }, { 4091, 0, -200, 0 }, { 0, 0, 4096, 0 }, 2415, 0, 4, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 5214, -2656, -0x27A2, 0 }, { { 1616, -1824, 1, 0 }, { -1615, -1824, 0, 0 }, { 1616, 1824, 1, 0 }, { -1615, 1824, 0, 0 } }, { -2, 0, 4100, 0 }, { 0, 0, 4096, 0 }, 2428, 0, 5, 6, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 5150, -2624, -9954, 0 }, { { -1615, -1888, 0, 0 }, { 1616, -1888, 1, 0 }, { -1615, 1888, 0, 0 }, { 1616, 1888, 1, 0 } }, { 0, 0, -4102, 0 }, { 0, 0, 4096, 0 }, 2482, 0, 6, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 3230, -2624, -8482, 0 }, { { -207, -1792, -2412, 0 }, { 207, -1792, 2413, 0 }, { -207, 1792, -2412, 0 }, { 207, 1792, 2413, 0 } }, { 4094, 0, -353, 0 }, { 0, 0, 4096, 0 }, 3007, 0, 5, 7, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 3454, -2624, -8513, 0 }, { { 159, -1856, 2416, 0 }, { -159, -1856, -2415, 0 }, { 159, 1856, 2416, 0 }, { -159, 1856, -2415, 0 } }, { -4100, 0, 269, 0 }, { 0, 0, 4096, 0 }, 3050, 0, 7, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -960, -2592, -8577, 0 }, { { 306, -1856, 1579, 0 }, { -322, -1856, -1589, 0 }, { 306, 1856, 1579, 0 }, { -322, 1856, -1589, 0 } }, { -4028, 0, 798, 0 }, { 0, 0, 4096, 0 }, 2455, 0, 8, 7, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -1056, -2528, -8385, 0 }, { { -322, -1856, -1592, 0 }, { 308, -1856, 1578, 0 }, { -322, 1856, -1592, 0 }, { 308, 1856, 1578, 0 } }, { 4028, 0, -802, 0 }, { 0, 0, 4096, 0 }, 2455, 0, 7, 8, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 0x3130, -2592, -8513, 0 }, { { 17, -1824, 1905, 0 }, { -16, -1824, -1904, 0 }, { 17, 1824, 1905, 0 }, { -16, 1824, -1904, 0 } }, { -4104, 0, 35, 0 }, { 0, 0, 4096, 0 }, 2635, 0, 4, 9, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 0x3061, -2528, -8577, 0 }, { { 1, -1824, -1615, 0 }, { 0, -1824, 1616, 0 }, { 1, 1824, -1615, 0 }, { 0, 1824, 1616, 0 } }, { 4100, 0, 0, 0 }, { 0, 0, 4096, 0 }, 2428, 0, 9, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 0x40C0, -2624, -1029, 0 }, { { 1577, -1840, 182, 0 }, { -1630, -1840, -237, 0 }, { 1577, 1840, 182, 0 }, { -1630, 1840, -237, 0 } }, { -534, 0, 4073, 0 }, { 0, 0, 4096, 0 }, 2442, 0, 10, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 0x40F1, -2624, -962, 0 }, { { -1854, -1840, -209, 0 }, { 1834, -1840, 184, 0 }, { -1854, 1840, -209, 0 }, { 1834, 1840, 184, 0 } }, { 434, 0, -4078, 0 }, { 0, 0, 4096, 0 }, 2610, 0, 2, 10, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
+/// 16 directed camera boundaries in room-local game units.
+///
+/// Source/destination views are 1-based: 3->2, 2->3, 3->9, 9->3, 5->4, 4->5, 5->6, 6->5, 5->7,
+/// 7->5, 8->7, 7->8, 4->9, 9->4, 10->2, 2->10.
+/// Room binding installs the view coordinate and enables all records through LAST.
+/// Normals use 4096 per unit; keep the writable list live until it is unlinked.
+static WorldCollisionTrigger _gDryfieldNightUnderpassViewBoundaryTriggers[16] = {
+    { NULL, NULL, NULL, { 0x4070, -2560, -5280, 0 }, { { -1616, -1888, 0, 0 }, { 1616, -1888, 0, 0 }, { -1616, 1888, 0, 0 }, { 1616, 1888, 0, 0 } }, { 0, 0, -4104, 0 }, { 0, 0, ONE, 0 }, 2482, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 0x40C0, -2544, -5408, 0 }, { { 1616, -1840, 0, 0 }, { -1616, -1840, 0, 0 }, { 1616, 1840, 0, 0 }, { -1616, 1840, 0, 0 } }, { 0, 0, 4105, 0 }, { 0, 0, ONE, 0 }, 2442, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 0x3A3F, -2720, -8402, 0 }, { { 65, -1824, -1727, 0 }, { -64, -1824, 1728, 0 }, { 65, 1824, -1727, 0 }, { -64, 1824, 1728, 0 } }, { 4101, 0, 151, 0 }, { 0, 0, ONE, 0 }, 2508, 0, 3, 9, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 0x3ABE, -2736, -8307, 0 }, { { -81, -1808, 1758, 0 }, { 81, -1808, -1757, 0 }, { -81, 1808, 1758, 0 }, { 81, 1808, -1757, 0 } }, { -ONE, 0, -190, 0 }, { 0, 0, ONE, 0 }, 2521, 0, 9, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 9023, -2688, -8449, 0 }, { { 0, -1824, 1615, 0 }, { 1, -1824, -1616, 0 }, { 0, 1824, 1615, 0 }, { 1, 1824, -1616, 0 } }, { -4102, 0, -2, 0 }, { 0, 0, ONE, 0 }, 2428, 0, 5, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 8799, -2736, -8577, 0 }, { { -79, -1808, -1614, 0 }, { 78, -1808, 1613, 0 }, { -79, 1808, -1614, 0 }, { 78, 1808, 1613, 0 } }, { 4091, 0, -200, 0 }, { 0, 0, ONE, 0 }, 2415, 0, 4, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 5214, -2656, -0x27A2, 0 }, { { 1616, -1824, 1, 0 }, { -1615, -1824, 0, 0 }, { 1616, 1824, 1, 0 }, { -1615, 1824, 0, 0 } }, { -2, 0, 4100, 0 }, { 0, 0, ONE, 0 }, 2428, 0, 5, 6, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 5150, -2624, -9954, 0 }, { { -1615, -1888, 0, 0 }, { 1616, -1888, 1, 0 }, { -1615, 1888, 0, 0 }, { 1616, 1888, 1, 0 } }, { 0, 0, -4102, 0 }, { 0, 0, ONE, 0 }, 2482, 0, 6, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 3230, -2624, -8482, 0 }, { { -207, -1792, -2412, 0 }, { 207, -1792, 2413, 0 }, { -207, 1792, -2412, 0 }, { 207, 1792, 2413, 0 } }, { 4094, 0, -353, 0 }, { 0, 0, ONE, 0 }, 3007, 0, 5, 7, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 3454, -2624, -8513, 0 }, { { 159, -1856, 2416, 0 }, { -159, -1856, -2415, 0 }, { 159, 1856, 2416, 0 }, { -159, 1856, -2415, 0 } }, { -4100, 0, 269, 0 }, { 0, 0, ONE, 0 }, 3050, 0, 7, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { -960, -2592, -8577, 0 }, { { 306, -1856, 1579, 0 }, { -322, -1856, -1589, 0 }, { 306, 1856, 1579, 0 }, { -322, 1856, -1589, 0 } }, { -4028, 0, 798, 0 }, { 0, 0, ONE, 0 }, 2455, 0, 8, 7, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { -1056, -2528, -8385, 0 }, { { -322, -1856, -1592, 0 }, { 308, -1856, 1578, 0 }, { -322, 1856, -1592, 0 }, { 308, 1856, 1578, 0 } }, { 4028, 0, -802, 0 }, { 0, 0, ONE, 0 }, 2455, 0, 7, 8, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 0x3130, -2592, -8513, 0 }, { { 17, -1824, 1905, 0 }, { -16, -1824, -1904, 0 }, { 17, 1824, 1905, 0 }, { -16, 1824, -1904, 0 } }, { -4104, 0, 35, 0 }, { 0, 0, ONE, 0 }, 2635, 0, 4, 9, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 0x3061, -2528, -8577, 0 }, { { 1, -1824, -1615, 0 }, { 0, -1824, 1616, 0 }, { 1, 1824, -1615, 0 }, { 0, 1824, 1616, 0 } }, { 4100, 0, 0, 0 }, { 0, 0, ONE, 0 }, 2428, 0, 9, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 0x40C0, -2624, -1029, 0 }, { { 1577, -1840, 182, 0 }, { -1630, -1840, -237, 0 }, { 1577, 1840, 182, 0 }, { -1630, 1840, -237, 0 } }, { -534, 0, 4073, 0 }, { 0, 0, ONE, 0 }, 2442, 0, 10, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 0x40F1, -2624, -962, 0 }, { { -1854, -1840, -209, 0 }, { 1834, -1840, 184, 0 }, { -1854, 1840, -209, 0 }, { 1834, 1840, 184, 0 } }, { 434, 0, -4078, 0 }, { 0, 0, ONE, 0 }, 2610, 0, 2, 10, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-WorldCollisionTrigger D_dryfield_night_underpass_8017FA18[6] = {
-    { NULL, NULL, NULL, { 5088, -1088, -0x2C70, 0 }, { { -1024, 0, -432, 0 }, { 1024, 0, -432, 0 }, { -1024, 0, 432, 0 }, { 1024, 0, 432, 0 } }, { 0, 4097, 0, 0 }, { 0, 0, 4096, 0 }, 1108, WORLD_COLLISION_TRIGGER_ACTION_WARP, 34, 17, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 1600, -1056, -7424, 0 }, { { -832, 0, -592, 0 }, { 768, 0, -592, 0 }, { -832, 0, 432, 0 }, { 768, 0, 432, 0 } }, { 0, 4098, 0, 0 }, { 0, 0, -4096, 0 }, 1019, WORLD_COLLISION_TRIGGER_ACTION_WARP, 3, 51, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 0x3B40, -1088, -3904, 0 }, { { 432, 0, -1024, 0 }, { 432, 0, 1024, 0 }, { -432, 0, -1024, 0 }, { -432, 0, 1024, 0 } }, { 0, 4097, 0, 0 }, { 4096, 0, 0, 0 }, 1108, WORLD_COLLISION_TRIGGER_ACTION_WARP, 32, 34, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -1616, -1056, -8464, 0 }, { { -432, 0, -960, 0 }, { 432, 0, -960, 0 }, { -432, 0, 960, 0 }, { 432, 0, 960, 0 } }, { 0, 4097, 0, 0 }, { 4096, 0, 0, 0 }, 1047, WORLD_COLLISION_TRIGGER_ACTION_CAP, 2, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 0x40E0, -1056, -576, 0 }, { { -1024, 0, -304, 0 }, { 1024, 0, -304, 0 }, { -1024, 0, 304, 0 }, { 1024, 0, 304, 0 } }, { 0, 4101, 0, 0 }, { 0, 0, -4096, 0 }, 1063, WORLD_COLLISION_TRIGGER_ACTION_CAP, 1, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 1648, -1056, -7184, 0 }, { { -1008, 0, -544, 0 }, { 1008, 0, -544, 0 }, { -1008, 0, 544, 0 }, { 1008, 0, 544, 0 } }, { 0, 4121, 0, 0 }, { 0, 0, -4096, 0 }, 1144, WORLD_COLLISION_TRIGGER_ACTION_WARP, 3, 51, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
+/// IDs stored in action records; warp pairs pack departure then arrival in four-bit nibbles.
+enum {
+    DRYFIELD_NIGHT_UNDERPASS_TRIGGER_WARP_TO_CELLAR        = (1 << 4) | 1,
+    DRYFIELD_NIGHT_UNDERPASS_TRIGGER_WARP_TO_GENERAL_STORE = (3 << 4) | 3,
+    DRYFIELD_NIGHT_UNDERPASS_TRIGGER_WARP_TO_WATER_HOLE    = (2 << 4) | 2,
+    DRYFIELD_NIGHT_UNDERPASS_TRIGGER_COMMAND_SECOND_SWITCH = 2,
+    DRYFIELD_NIGHT_UNDERPASS_TRIGGER_COMMAND_FIRST_SWITCH  = 1,
 };
 
-WorldCollisionOccluder D_dryfield_night_underpass_8017FBE0[3] = {
+/// 6 interaction quads: 4 warps, 2 room commands.
+///
+/// Room-local origins/corners and radii use game units; normals use 4096 per unit.
+/// Warp bytes select destination area and departure/arrival endpoint nibbles;
+/// CAP IDs index the loaded command table or route through the room-message sentinel.
+/// Room binding enables all records through LAST; keep them live until unlinking.
+static WorldCollisionTrigger _gDryfieldNightUnderpassActionTriggers[6] = {
+    { NULL, NULL, NULL, { 5088, -1088, -0x2C70, 0 }, { { -1024, 0, -432, 0 }, { 1024, 0, -432, 0 }, { -1024, 0, 432, 0 }, { 1024, 0, 432, 0 } }, { 0, 4097, 0, 0 }, { 0, 0, ONE, 0 }, 1108, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_DRYFIELD_NIGHT_CELLAR, DRYFIELD_NIGHT_UNDERPASS_TRIGGER_WARP_TO_CELLAR, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 1600, -1056, -7424, 0 }, { { -832, 0, -592, 0 }, { 768, 0, -592, 0 }, { -832, 0, 432, 0 }, { 768, 0, 432, 0 } }, { 0, 4098, 0, 0 }, { 0, 0, -ONE, 0 }, 1019, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_DRYFIELD_NIGHT_GENERAL_STORE, DRYFIELD_NIGHT_UNDERPASS_TRIGGER_WARP_TO_GENERAL_STORE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 0x3B40, -1088, -3904, 0 }, { { 432, 0, -1024, 0 }, { 432, 0, 1024, 0 }, { -432, 0, -1024, 0 }, { -432, 0, 1024, 0 } }, { 0, 4097, 0, 0 }, { ONE, 0, 0, 0 }, 1108, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_DRYFIELD_NIGHT_WATER_HOLE, DRYFIELD_NIGHT_UNDERPASS_TRIGGER_WARP_TO_WATER_HOLE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -1616, -1056, -8464, 0 }, { { -432, 0, -960, 0 }, { 432, 0, -960, 0 }, { -432, 0, 960, 0 }, { 432, 0, 960, 0 } }, { 0, 4097, 0, 0 }, { ONE, 0, 0, 0 }, 1047, WORLD_COLLISION_TRIGGER_ACTION_CAP, DRYFIELD_NIGHT_UNDERPASS_TRIGGER_COMMAND_SECOND_SWITCH, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 0x40E0, -1056, -576, 0 }, { { -1024, 0, -304, 0 }, { 1024, 0, -304, 0 }, { -1024, 0, 304, 0 }, { 1024, 0, 304, 0 } }, { 0, 4101, 0, 0 }, { 0, 0, -ONE, 0 }, 1063, WORLD_COLLISION_TRIGGER_ACTION_CAP, DRYFIELD_NIGHT_UNDERPASS_TRIGGER_COMMAND_FIRST_SWITCH, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 1648, -1056, -7184, 0 }, { { -1008, 0, -544, 0 }, { 1008, 0, -544, 0 }, { -1008, 0, 544, 0 }, { 1008, 0, 544, 0 } }, { 0, 4121, 0, 0 }, { 0, 0, -ONE, 0 }, 1144, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_DRYFIELD_NIGHT_GENERAL_STORE, DRYFIELD_NIGHT_UNDERPASS_TRIGGER_WARP_TO_GENERAL_STORE, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
+};
+
+/// 3 sight-blocking room quads.
+///
+/// Origin and corner offsets use room-local game units; normals use 4096 per unit.
+/// Room binding links and enables every record through LAST; storage stays live
+/// until unlinking or room/view rebinding. The authored low flag bit is unproven.
+static WorldCollisionOccluder _gDryfieldNightUnderpassSightOccluders[3] = {
     { NULL, NULL, { 1184, -2304, -0x2840, 0 }, { { -2912, -3328, 0, 0 }, { 2912, -3328, 0, 0 }, { -2912, 3328, 0, 0 }, { 2912, 3328, 0, 0 } }, { 0, 0, -4106, 0 }, 4404, 1, 0 },
     { NULL, NULL, { 0x2FB0, -2240, -0x2820, 0 }, { { -5840, -3264, 0, 0 }, { 5840, -3264, 0, 0 }, { -5840, 3264, 0, 0 }, { 5840, 3264, 0, 0 } }, { 0, 0, -4111, 0 }, 6675, 1, 0 },
     { NULL, NULL, { 8992, -3328, -4416, 0 }, { { -5840, -2848, 2496, 0 }, { 5840, -2848, -2496, 0 }, { -5840, 2848, 2496, 0 }, { 5840, 2848, -2496, 0 } }, { -1614, 0, -3777, 0 }, 6945, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },

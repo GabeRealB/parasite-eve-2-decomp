@@ -25,6 +25,7 @@
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
 
+#include "main/areas.h"
 #include "main/coord.h"
 #include "main/display.h"
 #include "main/display_types.h"
@@ -117,7 +118,7 @@ static s16  _neoArkAltarEvaluateTileSequence(Task* task);
 static void _neoArkAltarDrawTileWalls(s16 tileIndex, s32 height);
 
 static WorldCollisionGrid    _gNeoArkAltarCollisionGrid;
-extern WorldCollisionTrigger D_neo_ark_altar_8017FF08[4];
+static WorldCollisionTrigger _gNeoArkAltarActionTriggers[4];
 static WorldCoordRoomLights  _gNeoArkAltarRoomLights;
 static void                  _neoArkAltarTileSequenceTask(Task* task);
 
@@ -184,9 +185,9 @@ TaskDesc D_neo_ark_altar_8017F088[1] = {
 };
 
 WorldCollisionRoomResources D_neo_ark_altar_8017F094[3] = {
-    { &_gNeoArkAltarCollisionGrid, NULL, D_neo_ark_altar_8017FF08, NULL },
-    { &_gNeoArkAltarCollisionGrid, NULL, D_neo_ark_altar_8017FF08, NULL },
-    { &_gNeoArkAltarCollisionGrid, NULL, D_neo_ark_altar_8017FF08, NULL },
+    { &_gNeoArkAltarCollisionGrid, NULL, _gNeoArkAltarActionTriggers, NULL },
+    { &_gNeoArkAltarCollisionGrid, NULL, _gNeoArkAltarActionTriggers, NULL },
+    { &_gNeoArkAltarCollisionGrid, NULL, _gNeoArkAltarActionTriggers, NULL },
 };
 
 WorldCoordRoomLighting gNeoArkAltarRoomLighting[NEO_ARK_ALTAR_ROOM_VARIANT_COUNT] = {
@@ -499,11 +500,30 @@ static WorldCoordRoomLights _gNeoArkAltarRoomLights = {
     .coneLights            = NULL,
 };
 
-WorldCollisionTrigger D_neo_ark_altar_8017FF08[4] = {
-    { NULL, NULL, NULL, { 7645, -3808, -7473, 0 }, { { 14, -5344, -974, 0 }, { -13, -5344, 975, 0 }, { 14, 5344, -974, 0 }, { -13, 5344, 975, 0 } }, { 4109, 0, 56, 0 }, { 4076, 0, -401, 0 }, 5418, WORLD_COLLISION_TRIGGER_ACTION_WARP | WORLD_COLLISION_TRIGGER_AUTOMATIC, 32, 18, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 8656, -4256, -7488, 0 }, { { 208, 14, -974, 0 }, { 208, -13, 975, 0 }, { -208, 14, -974, 0 }, { -208, -13, 975, 0 } }, { 0, 4103, 41, 0 }, { 4096, 0, 0, 0 }, 995, WORLD_COLLISION_TRIGGER_ACTION_FACING | 0x100, 74, 192, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 7216, -3804, -7488, 0 }, { { 688, -2, -974, 0 }, { 688, 3, 975, 0 }, { -688, -2, -974, 0 }, { -688, 3, 975, 0 } }, { 0, 4104, -13, 0 }, { -4096, 0, -5, 0 }, 1187, WORLD_COLLISION_TRIGGER_ACTION_FACING | WORLD_COLLISION_TRIGGER_AUTOMATIC, 67, 64, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 0x2FC0, -4256, -7552, 0 }, { { 416, 14, -974, 0 }, { 416, -13, 975, 0 }, { -416, 14, -974, 0 }, { -416, -13, 975, 0 } }, { 0, 4099, 51, 0 }, { -4096, 0, 0, 0 }, 1055, WORLD_COLLISION_TRIGGER_ACTION_ROOM, 1, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
+/// IDs stored in action records; warp pairs pack departure then arrival in four-bit nibbles.
+/// Stair selectors pack surface class and step count; yaw bytes count 16 angle units.
+enum {
+    NEO_ARK_ALTAR_TRIGGER_WARP_TO_PYRAMID     = (1 << 4) | 2,
+    NEO_ARK_ALTAR_TRIGGER_STAIR_DESCEND       = 0x100,
+    NEO_ARK_ALTAR_TRIGGER_STAIR_SURFACE_CLASS = 4,
+    NEO_ARK_ALTAR_TRIGGER_STAIR_DESCENT_STEPS = 10,
+    NEO_ARK_ALTAR_TRIGGER_STAIR_DESCENT_YAW   = 192,
+    NEO_ARK_ALTAR_TRIGGER_STAIR_ASCENT_STEPS  = 3,
+    NEO_ARK_ALTAR_TRIGGER_STAIR_ASCENT_YAW    = 64,
+    NEO_ARK_ALTAR_TRIGGER_ACTION_SWITCH       = 1,
+};
+
+/// 4 altar actions: automatic pyramid exit, stair descent/ascent and switch.
+///
+/// The stair bytes select surface class 4 with 10 descending or 3 ascending steps;
+/// yaw bytes 192/64 use 16 angle units per encoded unit (4096 per turn).
+/// Origins/corners and radii are room-local game units; normals use 4096 per unit.
+/// Room binding enables every record through LAST; keep storage live until unlinking.
+static WorldCollisionTrigger _gNeoArkAltarActionTriggers[4] = {
+    { NULL, NULL, NULL, { 7645, -3808, -7473, 0 }, { { 14, -5344, -974, 0 }, { -13, -5344, 975, 0 }, { 14, 5344, -974, 0 }, { -13, 5344, 975, 0 } }, { 4109, 0, 56, 0 }, { 4076, 0, -401, 0 }, 5418, WORLD_COLLISION_TRIGGER_ACTION_WARP | WORLD_COLLISION_TRIGGER_AUTOMATIC, GAME_AREA_NEO_ARK_PYRAMID, NEO_ARK_ALTAR_TRIGGER_WARP_TO_PYRAMID, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 8656, -4256, -7488, 0 }, { { 208, 14, -974, 0 }, { 208, -13, 975, 0 }, { -208, 14, -974, 0 }, { -208, -13, 975, 0 } }, { 0, 4103, 41, 0 }, { ONE, 0, 0, 0 }, 995, WORLD_COLLISION_TRIGGER_ACTION_FACING | NEO_ARK_ALTAR_TRIGGER_STAIR_DESCEND, (NEO_ARK_ALTAR_TRIGGER_STAIR_SURFACE_CLASS << 4) | NEO_ARK_ALTAR_TRIGGER_STAIR_DESCENT_STEPS, NEO_ARK_ALTAR_TRIGGER_STAIR_DESCENT_YAW, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 7216, -3804, -7488, 0 }, { { 688, -2, -974, 0 }, { 688, 3, 975, 0 }, { -688, -2, -974, 0 }, { -688, 3, 975, 0 } }, { 0, 4104, -13, 0 }, { -ONE, 0, -5, 0 }, 1187, WORLD_COLLISION_TRIGGER_ACTION_FACING | WORLD_COLLISION_TRIGGER_AUTOMATIC, (NEO_ARK_ALTAR_TRIGGER_STAIR_SURFACE_CLASS << 4) | NEO_ARK_ALTAR_TRIGGER_STAIR_ASCENT_STEPS, NEO_ARK_ALTAR_TRIGGER_STAIR_ASCENT_YAW, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 0x2FC0, -4256, -7552, 0 }, { { 416, 14, -974, 0 }, { 416, -13, 975, 0 }, { -416, 14, -974, 0 }, { -416, -13, 975, 0 } }, { 0, 4099, 51, 0 }, { -ONE, 0, 0, 0 }, 1055, WORLD_COLLISION_TRIGGER_ACTION_ROOM, NEO_ARK_ALTAR_TRIGGER_ACTION_SWITCH, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
 /// Type-1 footstep requests select entries in the currently loaded sound bank.
