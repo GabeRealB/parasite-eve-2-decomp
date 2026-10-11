@@ -10,7 +10,7 @@
 /// Dispatch may release both task and enemy, so neither is accessed afterwards.
 void GLUTTON_PROP_TASK(Task* task)
 {
-    EnemyTaskFuncTable3 stateHandlers = gGluttonPropStates;
+    EnemyTaskFuncTable3 stateHandlers = _gGluttonPropStates;
 
     stateHandlers.funcs[task->state](task->spawnArg2.pointer, task);
 }

@@ -177,7 +177,16 @@ enum {
         (distanceOut)           = SquareRoot0((distanceOut) + ((offset).vz * (offset).vz)); \
     }
 
-extern s8 D_actor_403200_8015F8E0[8];
+/// Domains of the dumping-hole host's private banks and dispatch tables.
+enum {
+    ACTOR_403200_GLUTTON_LEG_ANIM_SET_COUNT         = 46,
+    ACTOR_403200_GLUTTON_PLAYER_AWAY_ANIM_SET_COUNT = 7,
+    ACTOR_403200_GLUTTON_VIEW_SELECTOR_COUNT        = 9,
+    ACTOR_403200_GLUTTON_ATTACHED_TASK_COUNT        = 7,
+    ACTOR_403200_GLUTTON_ATTACHED_TASK_PRIORITY     = 96,
+    ACTOR_403200_GLUTTON_MESSAGE_ENTRY_COUNT        = 8,
+    ACTOR_403200_MESSAGE_IGNORE                     = 2015,
+};
 
 /// Points one of the host's camera view functions measures the player's
 /// distance from, one for each phase of the fight.
@@ -256,38 +265,6 @@ typedef struct {
 STATIC_ASSERT_SIZEOF(_Actor403200DragScratch, 0x54);
 
 MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
-
-extern AnimationSet* D_actor_403200_8015E5F4[];
-
-extern AnimationSet* D_actor_403200_8015E6CC[];
-
-/// Drop-point group the falling enemies use this round, rerolled whenever a
-/// spawn arrives with `spawnArg1` 0.
-extern u8 gGluttonRainGroup;
-
-/// Spawn table of the seven escorts, indexed 0..6.
-extern TaskDesc D_actor_403200_8015E72C[];
-
-/// Per-`spawnArg1` offset from the host model to the point the falling enemy
-/// is stood up at.
-extern SVECTOR gGluttonRainLaunchOffsets[];
-/// The drop points: `vz` is added to the ring x coordinate and `vx` (less
-/// 0x189C) becomes the z coordinate.
-extern SVECTOR gGluttonRainPoints[];
-/// `[group][spawnArg1]` index into `gGluttonRainPoints`.
-extern u8 gGluttonRainPointIndex[][8];
-
-/// The enemy task's message-handler table, parked in `Task::msgTable`.
-// Message-table callbacks use the argument views required by this TU.
-
-extern TaskMessageEntry D_actor_403200_8015F770[8];
-
-/// The scratch coordinate the debris effect of `_actor403200DebrisState` is
-/// built on: `F920` is the whole `GfxCoord` and `F924` its `coord` matrix,
-/// which splat names separately because the code takes that address directly.
-extern GfxCoord D_actor_403200_8015F920;
-
-extern GfxCoord D_actor_403200_8015F970;
 
 /// Allocation holding the placement the host sends the player, and the forty
 /// bytes after it.
@@ -403,7 +380,7 @@ static s32  _actor403200ApplyCommand(Task* task, s32 unusedMessageId, const Acto
 static s32  _actor403200HandleActorEvent(Task* task, s32 unusedMessageId, s32 event, s32 unusedSecondArg);
 static s32  _actor403200ReleaseGlobGrab(Task* task, s32 unusedMessageId, s32 unusedFirstArg, s32 unusedSecondArg);
 static void _actor403200HostTask(Task* host);
-static void _actor403200IgnoreMessage2015(Task* task, s32 unusedMessageId, s32 unusedFirstArg, s32 unusedSecondArg);
+static s32  _actor403200IgnoreMessage2015(Task* task, s32 unusedMessageId, s32 unusedFirstArg, s32 unusedSecondArg);
 
 /// Contact attacks shared by the dumping-hole host and targetable attached parts.
 ///
@@ -436,7 +413,22 @@ static EnemyParams _gActor403200GluttonHostParams = {
     .damageOverTimeTicks  = 0,
 };
 
-EnemyParams D_actor_403200_80141C10 = { _gActor403200GluttonAttacks, 3000, 700, 200, 100, 100, 0, 0, 0 };
+/// Unselected host combat parameters with the incinerator encounter's rewards.
+///
+/// Shares the dumping-hole attack rows and 3000 starting HP, but credits 700
+/// experience, 200 BP and 100 MP. No recovered code selects this record;
+/// the reason this package retains it is unproven.
+static EnemyParams _gActor403200GluttonUnusedHostParams = {
+    .attacks              = _gActor403200GluttonAttacks,
+    .hpMax                = 3000,
+    .exp                  = 700,
+    .bp                   = 200,
+    .mp                   = 100,
+    .critChance           = 100,
+    .buildupSteps         = 0,
+    .damageOverTimeChance = 0,
+    .damageOverTimeTicks  = 0,
+};
 
 /// Escort-0 combat parameters and the 120-HP reaction pool for hit groups 3..5.
 ///
@@ -2711,7 +2703,11 @@ static AnimationSet* _gActor403200GluttonRightLegAnimSets[46] = {
     NULL,
 };
 
-AnimationSet* D_actor_403200_8015E5F4[46] = {
+/// Left-leg animation bank shared by escort 1's driving and blend rigs.
+///
+/// The host's clip ID indexes all 46 slots: 1..20 contain native clips and
+/// the rest are NULL. Both rigs borrow the bank while the attached leg lives.
+static AnimationSet* _gActor403200GluttonLeftLegAnimSets[ACTOR_403200_GLUTTON_LEG_ANIM_SET_COUNT] = {
     NULL,
     &_gActor403200Animation1DB18,
     &_gActor403200Animation1E3A0,
@@ -2776,7 +2772,12 @@ static AnimationSet* _gActor403200GluttonPlayerAnimSets[8] = {
     NULL,
 };
 
-AnimationSet* D_actor_403200_8015E6CC[7] = {
+/// Player animation bank selected when an inhale catch faces away from the host.
+///
+/// Slot 1 is the away-facing caught clip; slot 2 holds the swipe caught clip
+/// also present in the facing-host bank. Other slots are NULL. The player
+/// borrows this seven-slot bank for playback while the package remains loaded.
+static AnimationSet* _gActor403200GluttonPlayerAwayAnimSets[ACTOR_403200_GLUTTON_PLAYER_AWAY_ANIM_SET_COUNT] = {
     NULL,
     &_gActor403200Animation24FFC,
     &_gActor403200Animation2BE50,
@@ -2795,7 +2796,12 @@ AnimationSet* D_actor_403200_8015E6CC[7] = {
 /// the live view when it differs from the current one.
 typedef s32 (*_Actor403200ViewFunc)(Task* host, s16 phase);
 
-_Actor403200ViewFunc D_actor_403200_8015E6E8[9] = {
+/// Camera selectors indexed by the host's situation, in selector order.
+///
+/// `GluttonWork::viewSelector` must be 0..8. Each callback receives the live
+/// host task and fight phase and returns a room view index; selectors that
+/// use phase anchors require phase 0..3. There is no terminator or bounds check.
+static _Actor403200ViewFunc _gActor403200GluttonViewSelectors[ACTOR_403200_GLUTTON_VIEW_SELECTOR_COUNT] = {
     _actor403200PickDefaultView,
     _actor403200PickRainView,
     _actor403200PickCombatView,
@@ -2807,7 +2813,11 @@ _Actor403200ViewFunc D_actor_403200_8015E6E8[9] = {
     _actor403200PickAdvanceView,
 };
 
-u8 gGluttonRainGroup = 0;
+/// Landing-pattern group shared by one sequence of eight rain blobs.
+///
+/// Launch index 0 rerolls it: groups 0, 1 and 2 have probabilities 1/4, 1/2
+/// and 1/4. The remaining launches retain it until the next sequence begins.
+static u8 _gGluttonRainGroup = 0;
 
 /// Player animation bank for a glob engulf and its release.
 ///
@@ -2824,17 +2834,27 @@ static AnimationSet* _gGluttonGlobPlayerAnimSets[GLUTTON_GLOB_PLAYER_ANIM_SET_CO
     NULL,
 };
 
-TaskDesc D_actor_403200_8015E72C[7] = {
-    { { { TASK_BODY_TMD, 96 } }, _gluttonPropTask, { .model = &_gActor403200GluttonLegRight } },
-    { { { TASK_BODY_TMD, 96 } }, _gluttonPropTask, { .model = &_gActor403200GluttonLegLeft } },
-    { { { TASK_BODY_TMD, 96 } }, _gluttonPropTask, { .model = &_gActor403200Model12884 } },
-    { { { TASK_BODY_TMD, 96 } }, _gluttonPropTask, { .model = &_gActor403200Model13774 } },
-    { { { TASK_BODY_TMD, 96 } }, _gluttonPropTask, { .model = &_gActor403200Model1785C } },
-    { { { TASK_BODY_TMD, 96 } }, _gluttonPropTask, { .model = &_gActor403200Model18BE4 } },
-    { { { TASK_BODY_TMD, 96 } }, _gluttonEscort6Task, { .model = &_gActor403200Model186D8 } },
+/// Spawn recipes indexed by the host's seven attached-model slots.
+///
+/// Slots 0 and 1 are the animated right and left legs; slots 2..6 are other
+/// attached TMD models. Each task runs texture setup, coordinate refresh and
+/// teardown at priority 96. The host supplies the parent enemy as spawn data.
+static TaskDesc _gActor403200GluttonAttachedTaskDescs[ACTOR_403200_GLUTTON_ATTACHED_TASK_COUNT] = {
+    { { { TASK_BODY_TMD, ACTOR_403200_GLUTTON_ATTACHED_TASK_PRIORITY } }, _gluttonPropTask, { .model = &_gActor403200GluttonLegRight } },
+    { { { TASK_BODY_TMD, ACTOR_403200_GLUTTON_ATTACHED_TASK_PRIORITY } }, _gluttonPropTask, { .model = &_gActor403200GluttonLegLeft } },
+    { { { TASK_BODY_TMD, ACTOR_403200_GLUTTON_ATTACHED_TASK_PRIORITY } }, _gluttonPropTask, { .model = &_gActor403200Model12884 } },
+    { { { TASK_BODY_TMD, ACTOR_403200_GLUTTON_ATTACHED_TASK_PRIORITY } }, _gluttonPropTask, { .model = &_gActor403200Model13774 } },
+    { { { TASK_BODY_TMD, ACTOR_403200_GLUTTON_ATTACHED_TASK_PRIORITY } }, _gluttonPropTask, { .model = &_gActor403200Model1785C } },
+    { { { TASK_BODY_TMD, ACTOR_403200_GLUTTON_ATTACHED_TASK_PRIORITY } }, _gluttonPropTask, { .model = &_gActor403200Model18BE4 } },
+    { { { TASK_BODY_TMD, ACTOR_403200_GLUTTON_ATTACHED_TASK_PRIORITY } }, _gluttonEscort6Task, { .model = &_gActor403200Model186D8 } },
 };
 
-SVECTOR gGluttonRainLaunchOffsets[8] = {
+/// Launch translations for the eight rain blobs, indexed by spawnArg1's low half.
+///
+/// XYZ use whole game-coordinate units in the view parent's frame. X and Z
+/// are added to the host root; Y is an absolute height. No host rotation is
+/// applied. All Y and pad components are zero.
+static SVECTOR _gGluttonRainLaunchOffsets[GLUTTON_RAIN_BLOB_COUNT] = {
     { -1000, 0, -1800, 0 },
     { 800, 0, -800, 0 },
     { -1300, 0, 200, 0 },
@@ -2845,7 +2865,13 @@ SVECTOR gGluttonRainLaunchOffsets[8] = {
     { -1100, 0, 900, 0 },
 };
 
-SVECTOR gGluttonRainPoints[16] = {
+/// Pattern-space landing points selected by the rain group's index row.
+///
+/// Components use whole game-coordinate units: vz offsets the distance-led
+/// arena X, while vx minus 6300 plus jitter supplies arena Z. Y and pad are
+/// unused zeros. Index 15 is an unselected zero entry; its role and membership
+/// in the original table are unproven, so the stored extent is retained.
+static SVECTOR _gGluttonRainPoints[GLUTTON_RAIN_POINT_COUNT] = {
     { -2000, 0, -1800, 0 },
     { -1200, 0, -1900, 0 },
     { -80, 0, -1880, 0 },
@@ -2864,7 +2890,12 @@ SVECTOR gGluttonRainPoints[16] = {
     { 0, 0, 0, 0 },
 };
 
-u8 gGluttonRainPointIndex[3][8] = {
+/// Landing-point indices for each group and rain-blob launch index.
+///
+/// Rows 0..2 each supply eight indices into `_gGluttonRainPoints`, all 0..14.
+/// Launch 4 still samples its entry before replacing the landing X/Z with the
+/// player's current position. Both indices are unchecked.
+static u8 _gGluttonRainPointIndex[GLUTTON_RAIN_GROUP_COUNT][GLUTTON_RAIN_BLOB_COUNT] = {
     { 7, 10, 8, 0, 4, 3, 12, 9 },
     { 2, 5, 12, 0, 6, 14, 13, 10 },
     { 14, 13, 9, 0, 12, 7, 10, 11 },
@@ -2973,14 +3004,20 @@ AnimationSet gActor403200Animation2D928 = {
     { NULL, _gActor403200Animation2D928Bank1, NULL, NULL, _gActor403200Animation2D928Bank4, NULL, NULL, NULL },
 };
 
-TaskMessageEntry D_actor_403200_8015F770[8] = {
-    { 2015, _actor403200IgnoreMessage2015 },
+/// Synchronous message interface installed on the dumping-hole host task.
+///
+/// Seven handlers cover an ignored request, model visibility, presence,
+/// placement, actor commands, room events and glob-hold release. The final
+/// end marker makes unsupported IDs return zero. Message 2015 has no defined
+/// result; senders must discard it. The task borrows this table while loaded.
+static TaskMessageEntry _gActor403200GluttonMessages[ACTOR_403200_GLUTTON_MESSAGE_ENTRY_COUNT] = {
+    { ACTOR_403200_MESSAGE_IGNORE, _actor403200IgnoreMessage2015 },
     { ACTOR_MESSAGE_SET_MODEL_DRAW, _actor403200SetModelDraw },
     { ACTOR_MESSAGE_IS_PRESENT, actorMsgIsPresent },
     { ACTOR_MESSAGE_PLACE, actorMsgPlace },
     { ACTOR_COMMAND_MESSAGE_APPLY, _actor403200ApplyCommand },
     { ROOM_MESSAGE_ACTOR_EVENT, _actor403200HandleActorEvent },
-    { 2014, _actor403200ReleaseGlobGrab },
+    { ACTOR_MESSAGE_RELEASE_HOLD, _actor403200ReleaseGlobGrab },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -3028,9 +3065,12 @@ TaskDesc gActor403200GluttonHostTaskDesc = { { { TASK_BODY_TMD, ACTOR_403200_GLU
 /// to them; what they were is not established.
 static u8 _actor403200Unreferenced8015F8DC[4] = { 0, 0, 0, 0 };
 
-// Retain seven zero bytes after the accessed state byte.
-// Their original role as spare storage or alignment remains unresolved.
-s8 D_actor_403200_8015F8E0[8] = { 0 };
+/// Write-only mark that the caught player has been moved onto the host root.
+///
+/// Cleared on hold entry and set after the player's caught animation ends and
+/// placement is sent. No reader is recovered. The seven trailing zero bytes
+/// retain their unexplained storage extent; they are not established padding.
+static GluttonPlayerAtHostStorage _gActor403200GluttonPlayerAtHost = { 0, { 0 } };
 
 SVECTOR ActorContact_ScratchPosition = { 0, 0, 0, 0 };
 
@@ -3073,9 +3113,20 @@ static SVECTOR _gGluttonSpinnerTarget = { 0, 0, 0, 0 };
 /// original object boundary and remain in the allocation.
 static GluttonButtonPressHoldStorage _gGluttonGlobEngulfHold = { { { 0 }, 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0, 0, 0, 0 } };
 
-GfxCoord D_actor_403200_8015F920 = { 0, { { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } }, { 0, 0, 0 } }, { { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL };
+/// Persistent launch coordinate for the drifting debris sprites.
+///
+/// Rebuilt from right-leg part 1 beneath the view coordinate and offset 800
+/// game units along a flattened, normalized forward direction. Spawn copies
+/// placement but retains this node to rotate the sprite's initial velocity,
+/// so the coordinate stays live for the effects' lifetime.
+static GfxCoord _gActor403200GluttonDebrisEmitter = { 0 };
 
-GfxCoord D_actor_403200_8015F970 = { 0, { { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } }, { 0, 0, 0 } }, { { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } }, { 0, 0, 0 } }, { .rot = { 0, 0, 0, 0 } }, NULL };
+/// Scripted coordinate prepared beneath host part 4 during clip 9.
+///
+/// Tick 45 gives it identity rotation and local translation (0, -100, 100)
+/// in game units, then composes it. No subsequent reader is recovered; its
+/// further role and the reachability of this clip are unproven.
+static GfxCoord _gActor403200GluttonScriptedPart4Coord = { 0 };
 
 /// Placement payload lent to the caught player during synchronous dispatch.
 ///
@@ -3094,8 +3145,6 @@ static GameActorButtonPressHold _gActor403200GluttonGrabHold;
 
 /// Integer part of the last step `_actorContactApplyGridPushback` applied.
 extern SVECTOR ActorContact_ScratchPosition;
-
-extern _Actor403200ViewFunc D_actor_403200_8015E6E8[];
 
 /// Scratch-stack block the host's tick works in for one frame.
 ///
@@ -3675,10 +3724,12 @@ static const _Actor403200ViewAnchors _gActor403200GluttonAdvanceViewAnchors = {
     },
 };
 
-/// State handlers of the escort model task `_gluttonPropTask` and
-/// `_gluttonEscort6Task` dispatch: texture setup, coordinate refresh,
-/// teardown.
-static const EnemyTaskFuncTable3 gGluttonPropStates = {
+/// Attached-model lifecycle indexed by Task::state: texture setup, refresh, teardown.
+///
+/// Both escort dispatchers copy all three EnemyTaskFunc callbacks before
+/// indexing state 0..2. Each receives the live enemy and task and may release
+/// them during teardown; there is no terminator or bounds check.
+static const EnemyTaskFuncTable3 _gGluttonPropStates = {
     {
         _gluttonPropSetup,
         _gluttonPropTick,
@@ -3947,9 +3998,12 @@ static const EnemyTaskFuncTable5 gGluttonGlobStates = {
 
 #include "../../shared/glutton_chunk_settle.inc.c"
 
-/// State handlers of the enemy dropped from the host's part 3: spawn, fall,
-/// settle, teardown.
-static const EnemyTaskFuncTable4 gGluttonChunkStates = {
+/// Debris-chunk lifecycle indexed by Task::state: spawn, fall, settle, teardown.
+///
+/// The dispatcher copies all four EnemyTaskFunc callbacks before indexing
+/// state 0..3. Each receives the live enemy and its TMD-body task. Falling
+/// and settling own independent attack/grid spheres until unlink and teardown.
+static const EnemyTaskFuncTable4 _gGluttonChunkStates = {
     {
         _gluttonChunkSpawn,
         _gluttonChunkFall,
@@ -3966,9 +4020,12 @@ static const EnemyTaskFuncTable4 gGluttonChunkStates = {
 
 #include "../../shared/glutton_rain_splat.inc.c"
 
-/// State handlers of the enemy that rises out of view and slams back down:
-/// spawn, rise, descent, landing, teardown.
-static const EnemyTaskFuncTable5 gGluttonRainStates = {
+/// Rain-blob lifecycle indexed by Task::state: spawn, rise, fall, splat, teardown.
+///
+/// The dispatcher copies all five EnemyTaskFunc callbacks before indexing
+/// state 0..4. Each receives the live enemy and coordinate-body task. Spawn
+/// owns projectile work and a child visual effect; later states require it.
+static const EnemyTaskFuncTable5 _gGluttonRainStates = {
     {
         _gluttonRainSpawn,
         _gluttonRainRise,
@@ -4283,7 +4340,7 @@ static void _actor403200Spawn(Enemy* enemy, Task* task)
     work->playerAnim.blendFrames          = 3;
     work->playerAnim.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
     work->deathTicks                      = 0;
-    task->msgTable                        = D_actor_403200_8015F770;
+    task->msgTable                        = _gActor403200GluttonMessages;
     rootCoord->parent                     = &gGfxViewCoord;
     rootCoord->composeStamp               = GRAPHICS_COORD_DIRTY;
     actorRenderComposeCoord(rootCoord);
@@ -4294,7 +4351,7 @@ static void _actor403200Spawn(Enemy* enemy, Task* task)
     _actor403200ResetHostPose(task, work);
 
     // The first two escorts supply the paired animation rigs and hit groups.
-    escort                                                = enemySpawnFromTable(D_actor_403200_8015E72C, 0, 0, task->spawnArg2.pointer);
+    escort                                                = enemySpawnFromTable(_gActor403200GluttonAttachedTaskDescs, 0, 0, task->spawnArg2.pointer);
     work->escorts[0]                                      = escort;
     escort->task->extra.tmd->coords->parent               = task->extra.tmd->coords;
     work->escorts[0]->task->extra.tmd->coords->coord.t[0] = 0;
@@ -4324,16 +4381,16 @@ static void _actor403200Spawn(Enemy* enemy, Task* task)
     worldCollisionBindEnemySphere(&work->escorts[0]->task->extra.tmd->coords[3], &work->hits[5].body, work->hits[5].contacts, ARRAY_SIZE(work->hits[5].contacts),
                                   0x20, 0x300);
 
-    escort                                                = enemySpawnFromTable(D_actor_403200_8015E72C, 1, 0, task->spawnArg2.pointer);
+    escort                                                = enemySpawnFromTable(_gActor403200GluttonAttachedTaskDescs, 1, 0, task->spawnArg2.pointer);
     work->escorts[1]                                      = escort;
     escort->task->extra.tmd->coords->parent               = task->extra.tmd->coords;
     work->escorts[1]->task->extra.tmd->coords->coord.t[0] = 0;
     work->escorts[1]->task->extra.tmd->coords->coord.t[1] = 0;
     work->escorts[1]->task->extra.tmd->coords->coord.t[2] = 0;
     work->escorts[1]->task->extra.tmd->flags              = 0;
-    animationInitContext(&work->escort1Rig.anim, D_actor_403200_8015E5F4, work->escorts[1]->task->extra.tmd, work->escort1Rig.poses,
+    animationInitContext(&work->escort1Rig.anim, _gActor403200GluttonLeftLegAnimSets, work->escorts[1]->task->extra.tmd, work->escort1Rig.poses,
                          work->escort1Rig.slots);
-    animationInitContext(&work->escort1BlendRig.anim, D_actor_403200_8015E5F4, work->escorts[1]->task->extra.tmd, work->escort1BlendRig.poses,
+    animationInitContext(&work->escort1BlendRig.anim, _gActor403200GluttonLeftLegAnimSets, work->escorts[1]->task->extra.tmd, work->escort1BlendRig.poses,
                          work->escort1BlendRig.slots);
     work->escorts[1]->field_4    = &task->extra.tmd->coords->coord;
     work->escorts[1]->field_48   = 0;
@@ -4354,7 +4411,7 @@ static void _actor403200Spawn(Enemy* enemy, Task* task)
     worldCollisionBindEnemySphere(&work->escorts[1]->task->extra.tmd->coords[3], &work->hits[8].body, work->hits[8].contacts, ARRAY_SIZE(work->hits[8].contacts),
                                   0x20, 0x300);
 
-    escort           = enemySpawnFromTable(D_actor_403200_8015E72C, 2, 0, task->spawnArg2.pointer);
+    escort           = enemySpawnFromTable(_gActor403200GluttonAttachedTaskDescs, 2, 0, task->spawnArg2.pointer);
     work->escorts[2] = escort;
     if (escort != NULL) {
         escort->task->extra.tmd->coords->parent               = &task->extra.tmd->coords[4];
@@ -4364,7 +4421,7 @@ static void _actor403200Spawn(Enemy* enemy, Task* task)
         work->escorts[2]->task->extra.tmd->flags              = 0;
     }
 
-    escort           = enemySpawnFromTable(D_actor_403200_8015E72C, 3, 0, task->spawnArg2.pointer);
+    escort           = enemySpawnFromTable(_gActor403200GluttonAttachedTaskDescs, 3, 0, task->spawnArg2.pointer);
     work->escorts[3] = escort;
     if (escort != NULL) {
         escort->task->extra.tmd->coords->parent               = &task->extra.tmd->coords[3];
@@ -4386,7 +4443,7 @@ static void _actor403200Spawn(Enemy* enemy, Task* task)
         work->escorts[3]->recs          = work->hits[1].contacts;
     }
 
-    escort           = enemySpawnFromTable(D_actor_403200_8015E72C, 4, 0, task->spawnArg2.pointer);
+    escort           = enemySpawnFromTable(_gActor403200GluttonAttachedTaskDescs, 4, 0, task->spawnArg2.pointer);
     work->escorts[4] = escort;
     if (escort != NULL) {
         escort->task->extra.tmd->coords->parent               = &task->extra.tmd->coords[4];
@@ -4396,7 +4453,7 @@ static void _actor403200Spawn(Enemy* enemy, Task* task)
         work->escorts[4]->task->extra.tmd->flags              = 0;
     }
 
-    escort           = enemySpawnFromTable(D_actor_403200_8015E72C, 5, 0, task->spawnArg2.pointer);
+    escort           = enemySpawnFromTable(_gActor403200GluttonAttachedTaskDescs, 5, 0, task->spawnArg2.pointer);
     work->escorts[5] = escort;
     if (escort != NULL) {
         escort->task->extra.tmd->coords->parent               = &task->extra.tmd->coords[2];
@@ -4406,7 +4463,7 @@ static void _actor403200Spawn(Enemy* enemy, Task* task)
         work->escorts[5]->task->extra.tmd->flags              = 0;
     }
 
-    escort           = enemySpawnFromTable(D_actor_403200_8015E72C, 6, 0, task->spawnArg2.pointer);
+    escort           = enemySpawnFromTable(_gActor403200GluttonAttachedTaskDescs, 6, 0, task->spawnArg2.pointer);
     work->escorts[6] = escort;
     if (escort != NULL) {
         escort->task->extra.tmd->coords->parent               = &task->extra.tmd->coords[1];
@@ -4989,7 +5046,7 @@ static void _actor403200InhaleState(Task* hostTask)
                 work->playerAnim.source.sets                               = _gActor403200GluttonPlayerAnimSets;
             } else {
                 _gActor403200GluttonCaughtPlayerPlacement.placement.rot.vy = ratan2((s32)scratch->offset.vx, (s32)scratch->offset.vz) + ACTOR_TRANSFORM_ANGLE_HALF_TURN;
-                work->playerAnim.source.sets                               = D_actor_403200_8015E6CC;
+                work->playerAnim.source.sets                               = _gActor403200GluttonPlayerAwayAnimSets;
             }
         }
         if (playerStatus->hp > 0) {
@@ -5097,7 +5154,7 @@ static void _actor403200HoldPlayerState(Task* hostTask)
         hostRoot                                               = hostTask->extra.tmd->coords;
         playerYaw                                              = _actorAngleTurnToDirection(hostRoot, offsetPointer);
         work->neckYawTarget                                    = playerYaw;
-        D_actor_403200_8015F8E0[0]                             = 0;
+        _gActor403200GluttonPlayerAtHost.playerAtHost          = GLUTTON_PLAYER_NOT_AT_HOST_ROOT;
         _gActor403200GluttonMadChaserCommand.context.loc.stage = ACTOR_403200_BROADCAST_CONTEXT_STAGE;
         _gActor403200GluttonMadChaserCommand.context.loc.area  = ACTOR_403200_BROADCAST_CONTEXT_AREA;
         _gActor403200GluttonMadChaserCommand.command           = ACTOR_403200_SUMMON_COMMAND_VANISH;
@@ -5173,7 +5230,7 @@ static void _actor403200HoldPlayerState(Task* hostTask)
         _gActor403200GluttonCaughtPlayerPlacement.placement.pos.vy = hostTask->extra.tmd->coords[0].coord.t[1];
         _gActor403200GluttonCaughtPlayerPlacement.placement.pos.vz = hostTask->extra.tmd->coords[0].coord.t[2];
         TASK_MESSAGE_DISPATCH_POINTER(playerTask, GAME_ACTOR_MESSAGE_PLACE, &_gActor403200GluttonCaughtPlayerPlacement.placement, 0);
-        D_actor_403200_8015F8E0[0] = 1;
+        _gActor403200GluttonPlayerAtHost.playerAtHost = GLUTTON_PLAYER_AT_HOST_ROOT;
     }
     if (work->stateTicks < ACTOR_403200_HOLD_PLAYER_REPLAY_TICKS) {
         sndEvtRequestScriptStop((((u16)enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | SOUND_CHARACTER(SOUND_BANK_GLUTTON, 0x0A), SOUND_SCRIPT_STOP_KEEP_RELEASE);
@@ -5612,7 +5669,7 @@ static void _actor403200DebrisState(Task* hostTask)
             // Build an emitter from the limb part, excluding the view transform.
             _actorRenderAccumulateWorldRotation(
                 &work->escorts[0]->task->extra.tmd->coords[1],
-                &D_actor_403200_8015F920.coord);
+                &_gActor403200GluttonDebrisEmitter.coord);
 
             emissionVector.vz = 0;
             emissionVector.vy = 0;
@@ -5620,13 +5677,13 @@ static void _actor403200DebrisState(Task* hostTask)
             _actorRenderTransformLocalPointToWorld(&work->escorts[0]->task->extra.tmd->coords[1],
                                                    &emissionVector);
 
-            D_actor_403200_8015F920.parent     = &gGfxViewCoord;
-            D_actor_403200_8015F920.coord.t[0] = emissionVector.vx;
-            D_actor_403200_8015F920.coord.t[1] = emissionVector.vy;
-            D_actor_403200_8015F920.coord.t[2] = emissionVector.vz;
-            gfxRotMatrixY(&D_actor_403200_8015F920.coord, 0x80, 0);
-            gfxRotMatrixX(&D_actor_403200_8015F920.coord, -0x80, GRAPHICS_ROTATION_COMPOSE);
-            gfxReadMatrixZAxis(&D_actor_403200_8015F920.coord, &emissionVector);
+            _gActor403200GluttonDebrisEmitter.parent     = &gGfxViewCoord;
+            _gActor403200GluttonDebrisEmitter.coord.t[0] = emissionVector.vx;
+            _gActor403200GluttonDebrisEmitter.coord.t[1] = emissionVector.vy;
+            _gActor403200GluttonDebrisEmitter.coord.t[2] = emissionVector.vz;
+            gfxRotMatrixY(&_gActor403200GluttonDebrisEmitter.coord, 0x80, 0);
+            gfxRotMatrixX(&_gActor403200GluttonDebrisEmitter.coord, -0x80, GRAPHICS_ROTATION_COMPOSE);
+            gfxReadMatrixZAxis(&_gActor403200GluttonDebrisEmitter.coord, &emissionVector);
 
             emissionPointer   = &emissionVector;
             emissionVector.vy = 0;
@@ -5637,12 +5694,12 @@ static void _actor403200DebrisState(Task* hostTask)
             gte_gpf12();
             gte_stsv(emissionPointer);
 
-            D_actor_403200_8015F920.coord.t[0]  += emissionVector.vx;
-            D_actor_403200_8015F920.coord.t[1]  += emissionVector.vy;
-            D_actor_403200_8015F920.coord.t[2]  += emissionVector.vz;
-            D_actor_403200_8015F920.composeStamp = GRAPHICS_COORD_DIRTY;
-            actorRenderComposeCoord(&D_actor_403200_8015F920);
-            effectSpawn(EFFECT_SHELTER_B3_DUMPING_HOLE_DRIFT_SPRITE, &D_actor_403200_8015F920, ACTOR_403200_DEBRIS_SPRITE_OPTIONS, NULL);
+            _gActor403200GluttonDebrisEmitter.coord.t[0]  += emissionVector.vx;
+            _gActor403200GluttonDebrisEmitter.coord.t[1]  += emissionVector.vy;
+            _gActor403200GluttonDebrisEmitter.coord.t[2]  += emissionVector.vz;
+            _gActor403200GluttonDebrisEmitter.composeStamp = GRAPHICS_COORD_DIRTY;
+            actorRenderComposeCoord(&_gActor403200GluttonDebrisEmitter);
+            effectSpawn(EFFECT_SHELTER_B3_DUMPING_HOLE_DRIFT_SPRITE, &_gActor403200GluttonDebrisEmitter, ACTOR_403200_DEBRIS_SPRITE_OPTIONS, NULL);
         }
         if ((s16)((s16)(u16)work->stateTicks % ACTOR_403200_DEBRIS_CHUNK_PERIOD) == ACTOR_403200_DEBRIS_CHUNK_TICK_REMAINDER) {
             chunk             = enemySpawnFromTable(_gGluttonProjectileTaskDescs, GLUTTON_PROJECTILE_THROW, 0, hostTask->spawnArg2.pointer);
@@ -5707,14 +5764,14 @@ static void _actor403200ScriptedPoseState(Task* hostTask)
     }
     if (work->animId == 9 && work->stateTicks == 0x2D) {
         hostRoot        = hostTask->extra.tmd->coords;
-        attachmentCoord = &D_actor_403200_8015F970;
+        attachmentCoord = &_gActor403200GluttonScriptedPart4Coord;
         gfxSetRotIdentity(&attachmentCoord->coord);
-        D_actor_403200_8015F970.coord.t[1]   = -0x64;
-        D_actor_403200_8015F970.coord.t[0]   = 0;
-        D_actor_403200_8015F970.coord.t[2]   = 0x64;
-        D_actor_403200_8015F970.composeStamp = GRAPHICS_COORD_DIRTY;
-        D_actor_403200_8015F970.parent       = &hostRoot[4];
-        actorRenderComposeCoord(&D_actor_403200_8015F970);
+        _gActor403200GluttonScriptedPart4Coord.coord.t[1]   = -0x64;
+        _gActor403200GluttonScriptedPart4Coord.coord.t[0]   = 0;
+        _gActor403200GluttonScriptedPart4Coord.coord.t[2]   = 0x64;
+        _gActor403200GluttonScriptedPart4Coord.composeStamp = GRAPHICS_COORD_DIRTY;
+        _gActor403200GluttonScriptedPart4Coord.parent       = &hostRoot[4];
+        actorRenderComposeCoord(&_gActor403200GluttonScriptedPart4Coord);
     }
     previousAnimId = work->animId;
     if (previousAnimId == ACTOR_403200_CLIP_DEBRIS_POSE) {
@@ -6589,7 +6646,7 @@ static void _actor403200Tick(Enemy* enemy, Task* task)
     _gluttonShakeTick(task);
 
     if (work->viewLocked == 0 && work->state != ACTOR_403200_STATE_HIDDEN) {
-        scratch->view = D_actor_403200_8015E6E8[work->viewSelector](task, work->phase);
+        scratch->view = _gActor403200GluttonViewSelectors[work->viewSelector](task, work->phase);
         if (((viewGetMappedIndex() & ACTOR_403200_VIEW_INDEX_MASK) != scratch->view) &&
             (task->spawnArg1.value >> 16) == 0) {
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = scratch->view;
@@ -6979,7 +7036,7 @@ static void _actor403200DeathHandoffState(Task* task)
 ///
 /// The message's wider purpose is unproven. All arguments are ignored, and the
 /// binary supplies no defined return value; senders must discard the result.
-static void _actor403200IgnoreMessage2015(Task* task, s32 unusedMessageId, s32 unusedFirstArg, s32 unusedSecondArg)
+static s32 _actor403200IgnoreMessage2015(Task* task, s32 unusedMessageId, s32 unusedFirstArg, s32 unusedSecondArg)
 {
 }
 

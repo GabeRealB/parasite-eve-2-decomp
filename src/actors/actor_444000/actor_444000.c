@@ -299,18 +299,6 @@ typedef struct {
 } _Actor444000CommandStorage;
 STATIC_ASSERT_SIZEOF(_Actor444000CommandStorage, 8);
 
-/// Which of the three drop-point groups the falling enemies use this round,
-/// rerolled off `gRandomLcgState` whenever a spawn arrives with `spawnArg1` 0.
-extern u8 gGluttonRainGroup;
-/// Per-`spawnArg1` offset from the host model to the point the enemy is stood
-/// up at when it is spawned.
-extern SVECTOR gGluttonRainLaunchOffsets[];
-/// The drop points themselves: `vz` is added to the ring x coordinate and `vx`
-/// (less 0x189C) becomes the z coordinate.
-extern SVECTOR gGluttonRainPoints[];
-/// `[group][spawnArg1]` index into `gGluttonRainPoints`.
-extern u8 gGluttonRainPointIndex[][8];
-
 /// Number of coordinates the debris launches rotate through.
 enum { ACTOR_444000_DEBRIS_COORD_COUNT = 3 };
 
@@ -330,24 +318,6 @@ typedef struct {
     u8       unknown_F0[0x118];                       // Zero in the image; no access established and role unproven
 } _Actor444000DebrisCoordStorage;
 STATIC_ASSERT_SIZEOF(_Actor444000DebrisCoordStorage, 0x208);
-
-/// Static storage for the mark of how far a catch has taken the player.
-///
-/// The state the host runs once it has caught the player clears the flag as it
-/// places the player ahead of the host, and sets it when the player's scripted
-/// animation has stopped and it moves them onto the host's own position.
-/// Nothing in the package, its room or the resident code reads the flag, so
-/// what it was for is unproven.
-///
-/// Seven zero bytes separate the flag from the next object. No access to
-/// them is recovered, so whether they are trailing fields of this object or a
-/// separate unreferenced variable is unproven; they stay in this allocation
-/// only to keep the data after it at its address.
-typedef struct {
-    s8 playerAtHost; // 0 from the start of a catch, 1 once the catch has put the player on the host's root position
-    u8 unknown_1[7]; // Zero in the image; no access established and role unproven
-} _Actor444000PlayerAtHostStorage;
-STATIC_ASSERT_SIZEOF(_Actor444000PlayerAtHostStorage, 8);
 
 /// Static storage for the placement the host gives the player once it has
 /// caught them.
@@ -2698,7 +2668,11 @@ static AnimationSet* _gActor444000GluttonPlayerCaptureAnimationSets[8] = {
     NULL,
 };
 
-u8 gGluttonRainGroup = 0;
+/// Landing-pattern group shared by one sequence of eight rain blobs.
+///
+/// Launch index 0 rerolls it: groups 0, 1 and 2 have probabilities 1/4, 1/2
+/// and 1/4. The remaining launches retain it until the next sequence begins.
+static u8 _gGluttonRainGroup = 0;
 
 /// Player animation bank for a glob engulf and its release.
 ///
@@ -2743,7 +2717,12 @@ static TaskDesc _gActor444000GluttonAttachedTaskDescs[7] = {
     { { { TASK_BODY_TMD, ACTOR_444000_GLUTTON_TASK_PRIORITY } }, _gluttonEscort6Task, { .model = &_gActor444000GluttonEscort6ModelSource } },
 };
 
-SVECTOR gGluttonRainLaunchOffsets[8] = {
+/// Launch translations for the eight rain blobs, indexed by spawnArg1's low half.
+///
+/// XYZ use whole game-coordinate units in the view parent's frame. X and Z
+/// are added to the host root; Y is an absolute height. No host rotation is
+/// applied. All Y and pad components are zero.
+static SVECTOR _gGluttonRainLaunchOffsets[GLUTTON_RAIN_BLOB_COUNT] = {
     { -1000, 0, -1800, 0 },
     { 800, 0, -800, 0 },
     { -1300, 0, 200, 0 },
@@ -2754,7 +2733,13 @@ SVECTOR gGluttonRainLaunchOffsets[8] = {
     { -1100, 0, 900, 0 },
 };
 
-SVECTOR gGluttonRainPoints[16] = {
+/// Pattern-space landing points selected by the rain group's index row.
+///
+/// Components use whole game-coordinate units: vz offsets the distance-led
+/// arena X, while vx minus 6300 plus jitter supplies arena Z. Y and pad are
+/// unused zeros. Index 15 is an unselected zero entry; its role and membership
+/// in the original table are unproven, so the stored extent is retained.
+static SVECTOR _gGluttonRainPoints[GLUTTON_RAIN_POINT_COUNT] = {
     { -2000, 0, -1800, 0 },
     { -1200, 0, -1900, 0 },
     { -80, 0, -1880, 0 },
@@ -2773,7 +2758,12 @@ SVECTOR gGluttonRainPoints[16] = {
     { 0, 0, 0, 0 },
 };
 
-u8 gGluttonRainPointIndex[3][8] = {
+/// Landing-point indices for each group and rain-blob launch index.
+///
+/// Rows 0..2 each supply eight indices into `_gGluttonRainPoints`, all 0..14.
+/// Launch 4 still samples its entry before replacing the landing X/Z with the
+/// player's current position. Both indices are unchecked.
+static u8 _gGluttonRainPointIndex[GLUTTON_RAIN_GROUP_COUNT][GLUTTON_RAIN_BLOB_COUNT] = {
     { 7, 10, 8, 0, 4, 3, 12, 9 },
     { 2, 5, 12, 0, 6, 14, 13, 10 },
     { 14, 13, 9, 0, 12, 7, 10, 11 },
@@ -2829,7 +2819,7 @@ u32 D_actor_444000_80161864 = 0x1A90C60D;
 ///
 /// Only writes are recovered; the purpose of retaining this condition is
 /// unproven. The seven trailing zero bytes remain unexplained.
-static _Actor444000PlayerAtHostStorage _gActor444000GluttonPlayerAtHost = { 0, { 0, 0, 0, 0, 0, 0, 0 } };
+static GluttonPlayerAtHostStorage _gActor444000GluttonPlayerAtHost = { 0, { 0, 0, 0, 0, 0, 0, 0 } };
 
 SVECTOR ActorContact_ScratchPosition = { 0, 0, 0, 0 };
 
@@ -4086,9 +4076,12 @@ static void _actor444000BuildCornerWalls(Task* task, s32 distance, s16 faceIndex
 
 #include "../../shared/glutton_chunk_fall.inc.c"
 
-/// State handlers of the textured prop sub-task: setup, per-frame refresh and
-/// teardown.
-static const EnemyTaskFuncTable3 gGluttonPropStates = {
+/// Attached-model lifecycle indexed by Task::state: texture setup, refresh, teardown.
+///
+/// Both escort dispatchers copy all three EnemyTaskFunc callbacks before
+/// indexing state 0..2. Each receives the live enemy and task and may release
+/// them during teardown; there is no terminator or bounds check.
+static const EnemyTaskFuncTable3 _gGluttonPropStates = {
     {
         _gluttonPropSetup,
         _gluttonPropTick,
@@ -4127,9 +4120,12 @@ static const EnemyTaskFuncTable5 _gGluttonGlobStates = {
 
 #include "../../shared/glutton_rain_fall.inc.c"
 
-/// State handlers of the enemy `_gluttonChunkTask` dispatches: spawn,
-/// descent, settle and teardown.
-static const EnemyTaskFuncTable4 gGluttonChunkStates = {
+/// Debris-chunk lifecycle indexed by Task::state: spawn, fall, settle, teardown.
+///
+/// The dispatcher copies all four EnemyTaskFunc callbacks before indexing
+/// state 0..3. Each receives the live enemy and its TMD-body task. Falling
+/// and settling own independent attack/grid spheres until unlink and teardown.
+static const EnemyTaskFuncTable4 _gGluttonChunkStates = {
     {
         _gluttonChunkSpawn,
         _gluttonChunkFall,
@@ -4138,9 +4134,12 @@ static const EnemyTaskFuncTable4 gGluttonChunkStates = {
     },
 };
 
-/// State handlers of the dropped enemy: spawn, ascent, descent, landing and
-/// teardown.
-static const EnemyTaskFuncTable5 gGluttonRainStates = {
+/// Rain-blob lifecycle indexed by Task::state: spawn, rise, fall, splat, teardown.
+///
+/// The dispatcher copies all five EnemyTaskFunc callbacks before indexing
+/// state 0..4. Each receives the live enemy and coordinate-body task. Spawn
+/// owns projectile work and a child visual effect; later states require it.
+static const EnemyTaskFuncTable5 _gGluttonRainStates = {
     {
         _gluttonRainSpawn,
         _gluttonRainRise,
@@ -5437,7 +5436,7 @@ static void _actor444000CatchPlayerState(Task* task)
 
         _actor444000PlaceCaughtPlayer(task, work, player, catchScratch, playerStatus);
 
-        _gActor444000GluttonPlayerAtHost.playerAtHost = 0;
+        _gActor444000GluttonPlayerAtHost.playerAtHost = GLUTTON_PLAYER_NOT_AT_HOST_ROOT;
         gAttachmentState.flags                       |= ATTACHMENT_FLAG_EVENT_LOCK;
         roomEffectRequestCancelAll();
         worldTargetDisableNodeLockOn(&enemy->node);
@@ -5513,7 +5512,7 @@ static void _actor444000CatchPlayerState(Task* task)
             _gActor444000GluttonCaughtPlayerPlacement.placement.rot.vy = 0;
             _gActor444000GluttonCaughtPlayerPlacement.placement.rot.vz = 0;
             TASK_MESSAGE_DISPATCH_POINTER(player, GAME_ACTOR_MESSAGE_PLACE, &_gActor444000GluttonCaughtPlayerPlacement.placement, 0);
-            _gActor444000GluttonPlayerAtHost.playerAtHost = 1;
+            _gActor444000GluttonPlayerAtHost.playerAtHost = GLUTTON_PLAYER_AT_HOST_ROOT;
         }
 
         if (work->stateTicks == ACTOR_444000_CAUGHT_PLAYER_REPLACE_TICK) {

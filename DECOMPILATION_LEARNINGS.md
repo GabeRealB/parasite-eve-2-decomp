@@ -83029,7 +83029,7 @@ while the three `case` arms each get their own `jr ra; li v0,const`. Writing the
 source as a real `switch` with a post-switch `return 1;` recovers that shape
 exactly (98.2%), and the only remaining difference is the argument register:
 the target sign-extends `$a1`, so the real signature has an unused leading
-`Task*` — the dispatch table at `D_actor_403200_8015E6E8` lists it
+`Task*` — the dispatch table at `_gActor403200GluttonViewSelectors` lists it
 beside `_actor403200PickDefaultView(Task*, s16)`, which confirms it.
 Adding the unused parameter gives 100%.
 
@@ -112522,7 +112522,7 @@ This is the idiom the matched 444000 sibling already uses
 (`_actor444000ThrowDebrisState` keeps `launchVectorPointer` for the same reason, after
 `_actorRenderTransformLocalPointToWorld` in `include/actors/actor.h` places
 `launchVector` in world coordinates), and the fix is not just the argument pair: the extra
-call-crossing `&emissionVector` pseudo is what held `$s0`, so `&D_actor_403200_8015F920`
+call-crossing `&emissionVector` pseudo is what held `$s0`, so `&_gActor403200GluttonDebrisEmitter`
 and its `+4` were left as `$s0`/`$s1` against the target's `$s1`/`$s0`. Naming
 the pointer gave `$s0` back and both pairs fell into place. Distinct from the
 `&local` *call argument* entry above (`_gluttonHealState`), where the
@@ -112602,15 +112602,15 @@ At 99.96% the only difference left was the order of two independent `lui`s at th
 head of a block that clears one global and fills a message struct:
 
 ```
-    lui v0,%hi(D_actor_403200_8015F8E0)      /* target */
+    lui v0,%hi(_gActor403200GluttonPlayerAtHost)      /* target */
     lui s0,%hi(_gActor403200GluttonMadChaserCommand)
 ```
 
 The addresses are computed at their first use, and sched1 keeps that order when
 neither has a longer dependence chain. The source had the message stores first
-(`msg.context.loc.stage = 0; D_actor_403200_8015F8E0 = 0; msg.context.loc.area = 0x2C; ...`, which is
+(`msg.context.loc.stage = 0; _gActor403200GluttonPlayerAtHost.playerAtHost = 0; msg.context.loc.area = 0x2C; ...`, which is
 what puts the two `sb`s in the target's order), so `F8F4`'s `lui` came first.
-Moving the `D_actor_403200_8015F8E0 = 0;` store ahead of the `work->neckYawTarget =
+Moving the `_gActor403200GluttonPlayerAtHost.playerAtHost = 0;` store ahead of the `work->neckYawTarget =
 playerYaw;` store above it computes its address first and the pair lands in the target's
 order — the `playerYaw` store itself still schedules after both `lui`s. Worth trying
 before anything else when a lone `lui`/`lui` pair is the leftover: the store order
@@ -153514,7 +153514,7 @@ that step was inferred from the result, not read out of a dump.
   s-registers are used.
 
 **Other cases.**
-- A global `GfxCoord` (`D_actor_403200_8015F970`, `_gActor444000GluttonMouthCoord`):
+- A global `GfxCoord` (`_gActor403200GluttonScriptedPart4Coord`, `_gActor444000GluttonMouthCoord`):
   `gfxSetRotIdentity(&D.node.coord)` makes `D + 4` the first address computed
   and everything else is derived from it (`addiu a0,v1,-4`). The target loads
   `&D` and adds 4. `node = &D.node; gfxSetRotIdentity(&node->coord);` matches,

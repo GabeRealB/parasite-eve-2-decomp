@@ -14,7 +14,7 @@ static void _gluttonChunkTask(Task* task)
     EnemyTaskFuncTable4    states;
     GluttonProjectileWork* work;
 
-    states = gGluttonChunkStates;
+    states = _gGluttonChunkStates;
 
     switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_RUNNING:

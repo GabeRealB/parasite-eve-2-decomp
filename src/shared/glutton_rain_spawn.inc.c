@@ -87,16 +87,16 @@ static void _gluttonRainSpawn(Enemy* enemy, Task* task)
         switch (patternRoll) {
             case 0:
             case 1:
-                gGluttonRainGroup = 1;
+                _gGluttonRainGroup = 1;
                 break;
             case 2:
-                gGluttonRainGroup = patternRoll;
+                _gGluttonRainGroup = patternRoll;
                 break;
             case 3:
-                gGluttonRainGroup = 0;
+                _gGluttonRainGroup = 0;
                 break;
             default:
-                gGluttonRainGroup = 0;
+                _gGluttonRainGroup = 0;
                 break;
         }
     }
@@ -117,13 +117,13 @@ static void _gluttonRainSpawn(Enemy* enemy, Task* task)
     }
 
     work->aim.landing.vx +=
-        gGluttonRainPoints[gGluttonRainPointIndex[gGluttonRainGroup]
-                                                 [(u16)task->spawnArg1.value]]
+        _gGluttonRainPoints[_gGluttonRainPointIndex[_gGluttonRainGroup]
+                                                   [(u16)task->spawnArg1.value]]
             .vz;
     work->aim.landing.vy = 0;
     gRandomLcgState      = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    work->aim.landing.vz = gGluttonRainPoints[gGluttonRainPointIndex[gGluttonRainGroup]
-                                                                    [(u16)task->spawnArg1.value]]
+    work->aim.landing.vz = _gGluttonRainPoints[_gGluttonRainPointIndex[_gGluttonRainGroup]
+                                                                      [(u16)task->spawnArg1.value]]
                                .vx -
                            GLUTTON_RAIN_PATTERN_Z_OFFSET;
     work->aim.landing.vz = ((gRandomLcgState >> 16) & GLUTTON_RAIN_LANDING_JITTER_MASK) + work->aim.landing.vz;
@@ -138,9 +138,9 @@ static void _gluttonRainSpawn(Enemy* enemy, Task* task)
     gRandomLcgState   = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
     work->speedJitter = (gRandomLcgState >> 16) & GLUTTON_RAIN_SPEED_JITTER_MASK;
 
-    offset.vx = gGluttonRainLaunchOffsets[(u16)task->spawnArg1.value].vx;
-    offset.vy = gGluttonRainLaunchOffsets[(u16)task->spawnArg1.value].vy;
-    offset.vz = gGluttonRainLaunchOffsets[(u16)task->spawnArg1.value].vz;
+    offset.vx = _gGluttonRainLaunchOffsets[(u16)task->spawnArg1.value].vx;
+    offset.vy = _gGluttonRainLaunchOffsets[(u16)task->spawnArg1.value].vy;
+    offset.vz = _gGluttonRainLaunchOffsets[(u16)task->spawnArg1.value].vz;
 
     task->extra.coordBody->coord->coord.t[0] = offset.vx + hostTask->extra.tmd->coords->coord.t[0];
     task->extra.coordBody->coord->coord.t[1] = offset.vy;

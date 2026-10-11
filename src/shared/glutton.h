@@ -107,6 +107,31 @@ typedef struct {
 } GluttonButtonPressHoldStorage;
 STATIC_ASSERT_SIZEOF(GluttonButtonPressHoldStorage, 0x20);
 
+/// Storage for the caught-player placement condition in either Glutton encounter.
+///
+/// Only the leading signed byte is accessed. Both encounters clear it at hold
+/// entry and set it after placing the player on the host root. No reader is
+/// recovered. The seven trailing zero bytes have no established role or
+/// original object boundary and remain part of this storage extent.
+typedef struct {
+    s8 playerAtHost; // Placement condition (0 not yet moved onto the host root, 1 moved onto it)
+    u8 unknown_1[7]; // Unaccessed zero bytes; role and original boundary unproven
+} GluttonPlayerAtHostStorage;
+STATIC_ASSERT_SIZEOF(GluttonPlayerAtHostStorage, 8);
+
+/// Stored conditions of the caught-player placement byte.
+enum {
+    GLUTTON_PLAYER_NOT_AT_HOST_ROOT = 0,
+    GLUTTON_PLAYER_AT_HOST_ROOT     = 1,
+};
+
+/// Domains of each encounter's rain launch and landing-pattern tables.
+enum {
+    GLUTTON_RAIN_BLOB_COUNT  = 8,
+    GLUTTON_RAIN_GROUP_COUNT = 3,
+    GLUTTON_RAIN_POINT_COUNT = 16,
+};
+
 /// Domains of the per-instance animation banks and projectile recipes.
 enum {
     GLUTTON_ANIM_BLEND_CLIP_COUNT      = 45,

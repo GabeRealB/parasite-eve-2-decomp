@@ -10,7 +10,7 @@ static void _gluttonRainTask(Task* task)
 {
     EnemyTaskFuncTable5 states;
 
-    states = gGluttonRainStates;
+    states = _gGluttonRainStates;
     switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_RUNNING:
         default:
