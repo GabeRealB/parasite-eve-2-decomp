@@ -147,7 +147,7 @@ void roomEffectRecordAnimationSoundCue(s32 cueIndex);
 /// allocation failure. A failed work allocation tears down the new task. The
 /// installed exit callback frees the work and decrements the count before task
 /// teardown; callbacks with additional resources must release those themselves.
-EffectWork* effectSpawn(s32 effectId, GfxCoord* parentCoord, TaskSpawnArg spawnArg, SVECTOR* offset);
+EffectWork* effectSpawn(s32 effectId, GfxCoord* parentCoord, TaskSpawnArg spawnArg, const SVECTOR* offset);
 
 /// Hit-effect recipes selected by attack-property tables, separate from packed effect-task ids.
 ///

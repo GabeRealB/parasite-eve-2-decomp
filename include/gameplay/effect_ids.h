@@ -324,7 +324,7 @@ enum {
     /// in the falling mode (arg 9) and dies; spawned on the player reload state unless
     /// reloadEffectSuppressed, and by actor_310600.
     EFFECT_RELOAD_CASINGS_DROP = EFFECT_ID(EFFECT_TASK_BANK, 0x06D),
-    /// Controller placed at a per-weapon offset (D_801125EC) on its parent that spawns
+    /// Controller placed at a per-weapon emission offset on its parent that spawns
     /// three 0x60035 sprites, then model effect 0x60091 every tick for 12 ticks;
     /// spawned in the player reload state (unless reloadEffectSuppressed) and by
     /// golem/actor_800100 equivalents.

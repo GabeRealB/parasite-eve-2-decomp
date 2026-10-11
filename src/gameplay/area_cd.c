@@ -25,9 +25,19 @@ s16 gLoadingAreaPlacementFilePhase;
 /// loading neither owns nor releases this storage.
 static AreaVariant* _gLoadingAreaVariant;
 
-AreaResource* D_80114C68;
+/// Borrowed resource cursor shared by the serialized base and placement-file passes.
+///
+/// The base pass advances through the resource list; the placement pass searches
+/// it anew for each live entry ID. The list ends at AREA_PLACEMENT_END and must
+/// remain loaded with the selected variant until both passes finish.
+static AreaResource* _gLoadingAreaResourceCursor;
 
-AreaPlacement* Gp_CdRecCur;
+/// Borrowed placement cursor shared by the serialized area-load passes.
+///
+/// The base pass searches for a matching zero-file-index placement; the additional
+/// file pass advances through nonzero file indices. AREA_PLACEMENT_END ends the
+/// list, which must remain loaded with the selected variant through both passes.
+static AreaPlacement* _gLoadingAreaPlacementCursor;
 
 u16 gLoadingAreaBaseResourcePhase;
 
@@ -41,13 +51,14 @@ u16 gLoadingAreaResourcePass;
 
 #include "loading.h"
 
-extern u16 D_8010CAD0[];
-
 /// Retained two-word data with no reader; its purpose and internal format are unproven.
 u32 D_8010CAC8[2] = { 0, 0xE1EFCD00 };
 
-/// File-group base selected by each `AreaResource.fileGroupIndex` value.
-u16 D_8010CAD0[9] = { 10, 20, 30, 40, 50, 60, 0, 1, 2 };
+/// Global-library file-group bases indexed by `AreaResource.fileGroupIndex` (0..8).
+///
+/// Adding fileNumber / 100 produces the request's group byte. Entries retain
+/// their two-byte stride; the group byte consumes the low byte of the sum.
+static const u16 _gLoadingAreaFileGroupBases[AREA_RESOURCE_FILE_GROUP_BASE_2 + 1] __attribute__((section(".data"))) = { 10, 20, 30, 40, 50, 60, 0, 1, 2 };
 
 /// Queues the current placement's global-library file and signed texture relocation.
 ///
@@ -66,19 +77,19 @@ static inline void _loadingQueueCurrentPlacementFile(void)
     s32                 fileNumber;
 
     fileKey.stage     = GAME_STAGE_NONE;
-    fileKey.fileIndex = Gp_CdRecCur->fileIdLow;
-    resource          = D_80114C68;
+    fileKey.fileIndex = _gLoadingAreaPlacementCursor->fileIdLow;
+    resource          = _gLoadingAreaResourceCursor;
     fileNumber        = resource->fileNumber;
     if (fileNumber >= LOADING_FILE_ID_RADIX) {
         fileParams.fileIdHundreds = fileNumber % LOADING_FILE_ID_RADIX;
-        fileKey.fileGroup         = D_8010CAD0[resource->fileGroupIndex] + (resource->fileNumber / LOADING_FILE_ID_RADIX);
+        fileKey.fileGroup         = _gLoadingAreaFileGroupBases[resource->fileGroupIndex] + (resource->fileNumber / LOADING_FILE_ID_RADIX);
     } else {
         fileParams.fileIdHundreds = resource->fileNumber;
-        fileKey.fileGroup         = D_8010CAD0[resource->fileGroupIndex];
+        fileKey.fileGroup         = _gLoadingAreaFileGroupBases[resource->fileGroupIndex];
     }
     fileParams.loadMode         = CD_COMMAND_LOAD_DEFAULT;
-    fileParams.imageXPageOffset = Gp_CdRecCur->texturePageOffset;
-    fileParams.imageYOffset     = Gp_CdRecCur->clutRowOffset;
+    fileParams.imageXPageOffset = _gLoadingAreaPlacementCursor->texturePageOffset;
+    fileParams.imageYOffset     = _gLoadingAreaPlacementCursor->clutRowOffset;
     cdCmdEnqueue(CD_COMMAND_LOAD_FILE, &fileKey, &fileParams);
 }
 
@@ -89,32 +100,32 @@ u16 loadingPollAreaPlacementFiles(void)
     switch (gLoadingAreaPlacementFilePhase) {
         case LOADING_AREA_INIT:
             // The loaded destination must resolve before either table is read.
-            layout               = areaGetVariant(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc);
-            _gLoadingAreaVariant = layout;
-            Gp_CdRecCur          = layout->placements;
+            layout                       = areaGetVariant(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc);
+            _gLoadingAreaVariant         = layout;
+            _gLoadingAreaPlacementCursor = layout->placements;
             if (layout == NULL) {
                 return 1;
             }
-            if (D_80114C68 == NULL) {
+            if (_gLoadingAreaResourceCursor == NULL) {
                 return 1;
             }
-            if (Gp_CdRecCur == NULL) {
+            if (_gLoadingAreaPlacementCursor == NULL) {
                 return 1;
             }
             gLoadingAreaPlacementFilePhase++;
         case LOADING_AREA_QUEUE:
-            while (Gp_CdRecCur->entryId != AREA_PLACEMENT_END) {
-                if (Gp_CdRecCur->entryId == LOADING_AREA_UNUSED_PLACEMENT_ENTRY) {
-                    Gp_CdRecCur++;
+            while (_gLoadingAreaPlacementCursor->entryId != AREA_PLACEMENT_END) {
+                if (_gLoadingAreaPlacementCursor->entryId == LOADING_AREA_UNUSED_PLACEMENT_ENTRY) {
+                    _gLoadingAreaPlacementCursor++;
                     continue;
                 }
-                for (D_80114C68 = _gLoadingAreaVariant->resources; D_80114C68->entryId != AREA_PLACEMENT_END; D_80114C68++) {
-                    if (Gp_CdRecCur->entryId == D_80114C68->entryId) {
+                for (_gLoadingAreaResourceCursor = _gLoadingAreaVariant->resources; _gLoadingAreaResourceCursor->entryId != AREA_PLACEMENT_END; _gLoadingAreaResourceCursor++) {
+                    if (_gLoadingAreaPlacementCursor->entryId == _gLoadingAreaResourceCursor->entryId) {
                         break;
                     }
                 }
-                if (Gp_CdRecCur->fileIdLow == LOADING_AREA_BASE_FILE_INDEX) {
-                    Gp_CdRecCur++;
+                if (_gLoadingAreaPlacementCursor->fileIdLow == LOADING_AREA_BASE_FILE_INDEX) {
+                    _gLoadingAreaPlacementCursor++;
                     continue;
                 }
                 // Load this placement's additional file with its texture relocation.
@@ -122,13 +133,13 @@ u16 loadingPollAreaPlacementFiles(void)
                 gLoadingAreaPlacementFilePhase++;
                 break;
             }
-            if (Gp_CdRecCur->entryId == AREA_PLACEMENT_END) {
+            if (_gLoadingAreaPlacementCursor->entryId == AREA_PLACEMENT_END) {
                 return 1;
             }
             break;
         case LOADING_AREA_WAIT:
             if (cdCmdIsIdle()) {
-                Gp_CdRecCur++;
+                _gLoadingAreaPlacementCursor++;
                 gLoadingAreaPlacementFilePhase--;
             }
             break;
@@ -155,10 +166,10 @@ static inline void _loadingQueueAreaResource(const AreaResource* resource, s16 t
     fileNumber = resource->fileNumber;
     if (fileNumber >= LOADING_FILE_ID_RADIX) {
         commandArgs[0] = fileNumber % LOADING_FILE_ID_RADIX;
-        fileKey[2]     = D_8010CAD0[resource->fileGroupIndex] + (resource->fileNumber / LOADING_FILE_ID_RADIX);
+        fileKey[2]     = _gLoadingAreaFileGroupBases[resource->fileGroupIndex] + (resource->fileNumber / LOADING_FILE_ID_RADIX);
     } else {
         commandArgs[0] = resource->fileNumber;
-        fileKey[2]     = D_8010CAD0[resource->fileGroupIndex];
+        fileKey[2]     = _gLoadingAreaFileGroupBases[resource->fileGroupIndex];
     }
     commandArgs[1] = CD_COMMAND_LOAD_DEFAULT;
     commandArgs[2] = texturePageOffset;
@@ -175,55 +186,55 @@ u16 loadingPollAreaBaseResources(void)
     switch (gLoadingAreaBaseResourcePhase) {
         case LOADING_AREA_INIT:
             // The loaded destination must resolve before either table is read.
-            layout               = areaGetVariant(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc);
-            _gLoadingAreaVariant = layout;
-            D_80114C68           = layout->resources;
+            layout                      = areaGetVariant(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc);
+            _gLoadingAreaVariant        = layout;
+            _gLoadingAreaResourceCursor = layout->resources;
             if (layout == NULL || layout->resources == NULL) {
                 return 1;
             }
             gLoadingAreaBaseResourcePhase++;
         case LOADING_AREA_QUEUE:
-            if (D_80114C68->entryId == AREA_PLACEMENT_END) {
+            if (_gLoadingAreaResourceCursor->entryId == AREA_PLACEMENT_END) {
                 return 1;
             }
             do {
-                Gp_CdRecCur                   = _gLoadingAreaVariant->placements;
+                _gLoadingAreaPlacementCursor  = _gLoadingAreaVariant->placements;
                 _gLoadingAreaHasBasePlacement = false;
-                if (Gp_CdRecCur->entryId != AREA_PLACEMENT_END) {
-                    entryId = D_80114C68->entryId;
-                    while (Gp_CdRecCur->entryId != AREA_PLACEMENT_END) {
-                        if (Gp_CdRecCur->entryId == entryId && Gp_CdRecCur->fileIdLow == LOADING_AREA_BASE_FILE_INDEX) {
+                if (_gLoadingAreaPlacementCursor->entryId != AREA_PLACEMENT_END) {
+                    entryId = _gLoadingAreaResourceCursor->entryId;
+                    while (_gLoadingAreaPlacementCursor->entryId != AREA_PLACEMENT_END) {
+                        if (_gLoadingAreaPlacementCursor->entryId == entryId && _gLoadingAreaPlacementCursor->fileIdLow == LOADING_AREA_BASE_FILE_INDEX) {
                             _gLoadingAreaHasBasePlacement = true;
                             break;
                         }
-                        Gp_CdRecCur++;
+                        _gLoadingAreaPlacementCursor++;
                     }
                 }
                 // Base-60 files are optional unless a base placement names them.
-                resource = D_80114C68;
+                resource = _gLoadingAreaResourceCursor;
                 if (resource->fileGroupIndex != AREA_RESOURCE_FILE_GROUP_BASE_60) {
                     if (_gLoadingAreaHasBasePlacement != 0) {
-                        _loadingQueueAreaResource(resource, Gp_CdRecCur->texturePageOffset, Gp_CdRecCur->clutRowOffset);
+                        _loadingQueueAreaResource(resource, _gLoadingAreaPlacementCursor->texturePageOffset, _gLoadingAreaPlacementCursor->clutRowOffset);
                     } else {
                         _loadingQueueAreaResource(resource, 0, 0);
                     }
                     gLoadingAreaBaseResourcePhase++;
                     break;
                 } else if (_gLoadingAreaHasBasePlacement != 0) {
-                    _loadingQueueAreaResource(resource, Gp_CdRecCur->texturePageOffset, Gp_CdRecCur->clutRowOffset);
+                    _loadingQueueAreaResource(resource, _gLoadingAreaPlacementCursor->texturePageOffset, _gLoadingAreaPlacementCursor->clutRowOffset);
                     gLoadingAreaBaseResourcePhase++;
                     break;
                 } else {
-                    D_80114C68 = resource + 1;
+                    _gLoadingAreaResourceCursor = resource + 1;
                 }
             } while (resource[1].entryId != AREA_PLACEMENT_END);
-            if (D_80114C68->entryId == AREA_PLACEMENT_END) {
+            if (_gLoadingAreaResourceCursor->entryId == AREA_PLACEMENT_END) {
                 return 1;
             }
             break;
         case LOADING_AREA_WAIT:
             if (cdCmdIsIdle()) {
-                D_80114C68++;
+                _gLoadingAreaResourceCursor++;
                 gLoadingAreaBaseResourcePhase--;
             }
             break;

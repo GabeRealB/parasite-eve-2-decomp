@@ -83,7 +83,11 @@ enum {
     HUD_RADAR_SPRITE_PAYLOAD_WORDS     = sizeof(SPRT) / sizeof(u32) - 1
 };
 
-const char D_800938AC[8] = "????\0&!K";
+/// Encoded question marks displayed when the target's maximum HP is hidden.
+///
+/// Drawing stops at the first NUL. The retained 0x26, 0x21, 0x4B suffix has
+/// no identified reader and its original purpose is unproven.
+static const u8 _gHudHiddenHpText[8] = "????\0&!K";
 
 /// The nine rotation coefficients of a view `MATRIX`, assigned as one value.
 ///
@@ -751,7 +755,7 @@ void hudDrawHpReadout(s32 x, s32 y, s32 hp, s32 hpMax, s32 layout)
         scratch.hiddenAmount.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
         scratch.hiddenAmount.alignment  = TEXT_ALIGNMENT_RIGHT;
         scratch.hiddenAmount.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
-        textDrawString(&scratch.hiddenAmount, D_800938AC);
+        textDrawString(&scratch.hiddenAmount, _gHudHiddenHpText);
         barSpan = HUD_HP_ENEMY_BAR_PIXELS;
     }
 

@@ -124,12 +124,12 @@ static inline u16 _loadingPollAreaResourcePasses(void)
     }
 }
 
-ViewCountTable*               gViewCountTables[5]              = { &gMapAkropolisViewCountTable, &gMapDryfieldViewCountTable, &gMapDryfieldFullViewCountTable, &gMapShelterViewCountTable, &gMapNeoArkViewCountTable };
-ViewIndexTable*               gViewIndexTables[5]              = { &gMapAkropolisViewIndexTable, &gMapDryfieldViewIndexTable, &gMapDryfieldFullViewIndexTable, &gMapShelterViewIndexTable, &gMapNeoArkViewIndexTable };
-SpriteAreaTable*              gSpriteAreaTables[5]             = { &gMapAkropolisSpriteAreaTable, &gMapDryfieldSpriteAreaTable, &gMapDryfieldFullSpriteAreaTable, &gMapShelterSpriteAreaTable, &gMapNeoArkSpriteAreaTable };
-WorldCollisionStageResources* Gp_RoomObjTables[5]              = { &gMapAkropolisWorldCollisionResources, &gMapDryfieldWorldCollisionResources, &gMapDryfieldFullWorldCollisionResources, &gMapShelterWorldCollisionResources, &gMapNeoArkWorldCollisionResources };
-DirectionWarpEntry**          Gp_WarpTables[5]                 = { gMapAkropolisAreaWarpEntries, gMapDryfieldAreaWarpEntries, gMapDryfieldFullAreaWarpEntries, gMapShelterAreaWarpEntries, gMapNeoArkAreaWarpEntries };
-WorldCoordRoomLighting**      gWorldCoordRoomLightingTables[5] = {
+ViewCountTable*                     gViewCountTables[5]                                                   = { &gMapAkropolisViewCountTable, &gMapDryfieldViewCountTable, &gMapDryfieldFullViewCountTable, &gMapShelterViewCountTable, &gMapNeoArkViewCountTable };
+ViewIndexTable*                     gViewIndexTables[5]                                                   = { &gMapAkropolisViewIndexTable, &gMapDryfieldViewIndexTable, &gMapDryfieldFullViewIndexTable, &gMapShelterViewIndexTable, &gMapNeoArkViewIndexTable };
+SpriteAreaTable*                    gSpriteAreaTables[5]                                                  = { &gMapAkropolisSpriteAreaTable, &gMapDryfieldSpriteAreaTable, &gMapDryfieldFullSpriteAreaTable, &gMapShelterSpriteAreaTable, &gMapNeoArkSpriteAreaTable };
+WorldCollisionStageResources* const gWorldCollisionStageResources[5] __attribute__((section(".data")))    = { &gMapAkropolisWorldCollisionResources, &gMapDryfieldWorldCollisionResources, &gMapDryfieldFullWorldCollisionResources, &gMapShelterWorldCollisionResources, &gMapNeoArkWorldCollisionResources };
+DirectionWarpEntry** const          gDirectionAreaWarpEntriesByStage[5] __attribute__((section(".data"))) = { gMapAkropolisAreaWarpEntries, gMapDryfieldAreaWarpEntries, gMapDryfieldFullAreaWarpEntries, gMapShelterAreaWarpEntries, gMapNeoArkAreaWarpEntries };
+WorldCoordRoomLighting**            gWorldCoordRoomLightingTables[5]                                      = {
     [GAME_STAGE_ACROPOLIS - 1]       = gMapAkropolisAreaRoomLightingTables,
     [GAME_STAGE_DRYFIELD - 1]        = gMapDryfieldRoomLightingTables,
     [GAME_STAGE_DRYFIELD_NIGHT - 1]  = gMapDryfieldFullRoomLightingTables,
@@ -228,7 +228,7 @@ void areaStartRoomRuntime(s32 skipViewGate)
     // The destination endpoint supplies actor placements and the default view.
     stage     = location->stage;
     warpId    = location->warp;
-    warpEntry = Gp_WarpTables[stage - 1][location->area - 1][warpId - 1];
+    warpEntry = gDirectionAreaWarpEntriesByStage[stage - 1][location->area - 1][warpId - 1];
     if (!(gDisplayState.control.word & DISPLAY_ROOM_START_KEEP_VIEW_MASK)) {
         if (((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_KEY(0xFF, 0xFF, 0xFF, 0)) == GAME_LOCATION_KEY(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_GARAGE, AREA_ROOM_GARAGE_ROOM, 0)) && (gGameSession->location.loc.warp == AREA_ROOM_GARAGE_WARP)) {
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = gGameSession->location.loc.view = AREA_ROOM_GARAGE_VIEW;
@@ -277,7 +277,7 @@ void areaStartRoomRuntime(s32 skipViewGate)
     // Read arrival effects after the room's setup has run.
     stage     = location->stage;
     warpId    = location->warp;
-    warpEntry = Gp_WarpTables[stage - 1][location->area - 1][warpId - 1];
+    warpEntry = gDirectionAreaWarpEntriesByStage[stage - 1][location->area - 1][warpId - 1];
     if (gGameSession->areaSetupDone != false) {
         if (warpEntry.arrivalSound != DIRECTION_WARP_SOUND_NONE) {
             sndEvtRequestScriptStart(warpEntry.arrivalSound, 0, 0);

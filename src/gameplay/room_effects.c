@@ -1686,7 +1686,7 @@ static void _roomEffectControllerTask(Task* task)
     states.funcs[task->state](task);
 }
 
-EffectWork* effectSpawn(s32 effectId, GfxCoord* parentCoord, TaskSpawnArg spawnArg, SVECTOR* offset)
+EffectWork* effectSpawn(s32 effectId, GfxCoord* parentCoord, TaskSpawnArg spawnArg, const SVECTOR* offset)
 {
     enum {
         EFFECT_SPAWN_BANK_SHIFT = 16,

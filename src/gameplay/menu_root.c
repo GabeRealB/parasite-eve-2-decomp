@@ -278,7 +278,7 @@ UiList D_8010E960 = { D_8010E95C, 1, { 1 }, 0, 15, 0, { 0 }, 0, 0, 0, 0, 0, 0, 0
 const u8* D_8010E984[3] = {
     gItemMenuWeaponRangeLabel,
     gItemMenuWeaponRateLabel,
-    (const u8*)gGpStrWeight,
+    gItemMenuWeaponWeightLabel,
 };
 
 const u8* D_8010E990[1] = {
@@ -660,13 +660,13 @@ void menuRootTask(Task* task)
             gItemMenuRoomRestorePending = ITEM_MENU_ROOM_RESTORE_CLEAR;
             sndEvtRequestScriptDuckAcquire();
             itemMenuClearPreviewItems();
-            gItemMenuInfoPanel = NULL;
-            D_80114DE0         = ITEM_MENU_ROOT_SECONDARY_ITEM_ABSENT;
-            player             = &gPlayerStatus;
-            D_80114DE8         = player->weapon;
-            D_80114DE4         = player->weaponSlotItem;
+            gItemMenuInfoPanel                   = NULL;
+            gItemMenuPreviousSecondaryItemId     = ITEM_MENU_ROOT_SECONDARY_ITEM_ABSENT;
+            player                               = &gPlayerStatus;
+            gItemMenuPreviousWeaponSelection     = player->weapon;
+            gItemMenuPreviousWeaponSlotSelection = player->weaponSlotItem;
             if (player->weapon != PLAYER_STATUS_EQUIPMENT_NONE) {
-                D_80114DE0 = equipmentGetWeaponLoad(player->weapon + (EQUIPMENT_WEAPON_ITEM_FIRST - 1))->secondaryItemId;
+                gItemMenuPreviousSecondaryItemId = equipmentGetWeaponLoad(player->weapon + (EQUIPMENT_WEAPON_ITEM_FIRST - 1))->secondaryItemId;
             }
             inventoryUpdateIceBag();
             task->killCountdown = 1;
@@ -801,8 +801,8 @@ void menuRootTask(Task* task)
             if (player->weapon != PLAYER_STATUS_EQUIPMENT_NONE) {
                 secondaryItemId = equipmentGetWeaponLoad(player->weapon + (EQUIPMENT_WEAPON_ITEM_FIRST - 1))->secondaryItemId;
             }
-            if ((D_80114DE8 == player->weapon) && (D_80114DE4 == player->weaponSlotItem) &&
-                (D_80114DE0 == secondaryItemId)) {
+            if ((gItemMenuPreviousWeaponSelection == player->weapon) && (gItemMenuPreviousWeaponSlotSelection == player->weaponSlotItem) &&
+                (gItemMenuPreviousSecondaryItemId == secondaryItemId)) {
                 break;
             }
             // Remove old weapon effects before admitting the replacement resources.
@@ -810,7 +810,7 @@ void menuRootTask(Task* task)
             defaultList  = &gTaskDefaultList;
             taskSetActiveList(defaultList);
             selectedWeapon             = player->weapon;
-            previousWeapon             = (u8)D_80114DE8;
+            previousWeapon             = (u8)gItemMenuPreviousWeaponSelection;
             display                    = &gDisplayState;
             display->immediateTaskFree = 1;
             player->weapon             = previousWeapon;
@@ -835,8 +835,8 @@ void menuRootTask(Task* task)
             if (player->weapon != PLAYER_STATUS_EQUIPMENT_NONE) {
                 secondaryItemId = equipmentGetWeaponLoad(player->weapon + (EQUIPMENT_WEAPON_ITEM_FIRST - 1))->secondaryItemId;
             }
-            if ((D_80114DE8 != player->weapon) || (D_80114DE4 != player->weaponSlotItem) ||
-                (D_80114DE0 != secondaryItemId)) {
+            if ((gItemMenuPreviousWeaponSelection != player->weapon) || (gItemMenuPreviousWeaponSlotSelection != player->weaponSlotItem) ||
+                (gItemMenuPreviousSecondaryItemId != secondaryItemId)) {
                 previousList = taskGetActiveList();
                 taskSetActiveList(&gTaskDefaultList);
                 // Rebuild the weapon bodies now; allocate their buffers after the view reload.

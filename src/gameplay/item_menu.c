@@ -1881,8 +1881,8 @@ void itemPickupPublishPlacedObjectTask(Task* task)
     s32          packQuantity;
 
     // Publish the place flag index and kind before selecting pickup quantity.
-    Gp_PubItemId             = (u8)enemy->placeKey;
-    gItemPickupPublishedKind = enemy->workType;
+    gItemPickupPublishedFlagIndex = (u8)enemy->placeKey;
+    gItemPickupPublishedKind      = enemy->workType;
     if (enemy->workType < INVENTORY_CONSUMABLE_ITEM_FIRST) {
         if (gItemPickupPublishedKind >= ITEM_MENU_ARMOR_ITEM_FIRST && gItemPickupPublishedKind < EQUIPMENT_WEAPON_ITEM_FIRST) {
             if (inventoryIsItemLimitReached(gItemPickupPublishedKind) != 0) {
@@ -1894,10 +1894,10 @@ void itemPickupPublishPlacedObjectTask(Task* task)
             }
         }
         gItemPickupPublishedQuantity = 1;
-        Gp_PubItemReady              = 1;
+        gItemPickupPublicationReady  = ITEM_PICKUP_PUBLICATION_READY;
     } else {
         packQuantity                 = gInventoryConsumableStacks[gItemPickupPublishedKind - INVENTORY_CONSUMABLE_ITEM_FIRST].packQty;
-        Gp_PubItemReady              = 1;
+        gItemPickupPublicationReady  = ITEM_PICKUP_PUBLICATION_READY;
         gItemPickupPublishedQuantity = packQuantity;
     }
     displaySetFrameTiming(DISPLAY_TIMING_EVERY_VBLANK);

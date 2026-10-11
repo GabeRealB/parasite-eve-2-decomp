@@ -717,7 +717,7 @@ void loadingInitRoomResourcesTask(Task* task)
     Task*                              viewSpriteTask;
 
     location      = &gGameSession->location.loc;
-    roomResources = Gp_RoomObjTables[location->stage - 1]->areaRooms[location->area - 1];
+    roomResources = gWorldCollisionStageResources[location->stage - 1]->areaRooms[location->area - 1];
     _loadingBindInitialRoomCollisionResources(location, roomResources);
     // The room task owns the sprite task in its teardown tree.
     viewSpriteTask = taskSpawn(LOADING_VIEW_SPRITE_TASK_BANK, LOADING_VIEW_SPRITE_TASK_TYPE, 0, 0);

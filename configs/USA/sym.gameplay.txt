@@ -1244,7 +1244,7 @@ gGameDebugReplayCursor = 0x80114C38; // size:0x4 defined:True
 // Gameplay naming pass 2 (SPRT/HUD, area, anim, flags/msg)
 _gSpriteViewCachedPacketBuffers = 0x8010CAE8; // size:0x8 defined:True
 gSpriteAreaTables = 0x8010CB68; // size:0x14 defined:True
-Gp_RoomObjTables = 0x8010CB7C; // size:0x14 defined:True
+gWorldCollisionStageResources = 0x8010CB7C; // size:0x14 defined:True
 gAreaRecordsByStage = 0x8010CBCC; // size:0x18 defined:True
 _gSceneManagerMessages = 0x8010D208; // size:0x28 defined:True
 _gSpriteViewCachedPacketCursor = 0x80114CC8; // size:0x4 defined:True
@@ -1314,10 +1314,10 @@ gLoadingAreaPlacementFilePhase = 0x80114C60; // size:0x2 defined:True
 _gLoadingFadeTiles = 0x80114C80; // size:0x20 defined:True
 _gLoadingFadeBlendCommands = 0x80114CA0; // size:0x10 defined:True
 Gp_ItemMoveWork             = 0x80114D78; // size:0x4 defined:True
-Gp_PubItemReady = 0x80114DC8; // size:0x2 defined:True
+gItemPickupPublicationReady = 0x80114DC8; // size:0x2 defined:True
 gItemPickupPublishedQuantity = 0x80114DD0; // size:0x2 defined:True
 gItemPickupPublishedKind = 0x80114DDC; // size:0x2 defined:True
-Gp_PubItemId = 0x80114DEC; // size:0x2 defined:True
+gItemPickupPublishedFlagIndex = 0x80114DEC; // size:0x2 defined:True
 
 // Gameplay naming pass 6 (player/ally, CAP, map, pair ids)
 _gItemMenuTransferExitTexts          = 0x80093DA0; // size:0x10
@@ -1338,7 +1338,7 @@ gCapGlyphCells = 0x8011567C; // size:0x4 defined:True
 gCapCommandEntries = 0x801156A0; // size:0x4 defined:True
 
 // Gameplay naming pass 7 (cap measure, player/ally msgs, warp/room)
-Gp_WarpTables = 0x8010CB90; // size:0x14 defined:True
+gDirectionAreaWarpEntriesByStage = 0x8010CB90; // size:0x14 defined:True
 gWorldCollisionSurfacePropertiesTables = 0x8010CBB8; // size:0x14 defined:True
 _gCapScriptedIdleAnimationRequest             = 0x8010FB38; // size:0x14 defined:True
 gPlayerActorWeaponAnimationBankBases = 0x80112D68; // size:0x4 defined:True
@@ -1372,10 +1372,10 @@ gWorldCoordPlayerLightMatrix               = 0x80114E98; // size:0x20 defined:Tr
 gWorldCoordPlayerColorMatrix              = 0x80114EB8; // size:0x20 defined:True
 
 // Gameplay naming pass 9 (item-seen, room coords, btn remap)
-Gp_BtnMap0                  = 0x8010FBEC; // size:0x10 defined:True
-Gp_BtnMap1                  = 0x8010FBFC; // size:0x10 defined:True
-Gp_BtnMap2                  = 0x8010FC0C; // size:0x10 defined:True
-Gp_BtnMap2Alt               = 0x8010FC1C; // size:0x10 defined:True
+_gPadInputLayoutAMap                  = 0x8010FBEC; // size:0x10 defined:True
+_gPadInputLayoutBMap                  = 0x8010FBFC; // size:0x10 defined:True
+_gPadInputLayoutCMap                  = 0x8010FC0C; // size:0x10 defined:True
+_gPadInputLayoutCAlternateMap               = 0x8010FC1C; // size:0x10 defined:True
 gWorldCoordTransientPointLights = 0x80114F30; // size:0x320 defined:True
 gEquipmentModeBaseStats                 = 0x8010D328; // size:0x20 defined:True
 gInventoryConsumableStacks = 0x8010E3B8; // size:0x80 defined:True
@@ -1396,7 +1396,7 @@ Gp_StrUse                   = 0x8010E500; // defined:True
 Gp_StrMove                  = 0x8010E504; // defined:True
 gItemMenuTransferSwitchText                = 0x8010D588; // defined:True
 gItemMenuPeriodText                   = 0x8010E59C; // defined:True
-Gp_StrWeaponTitle           = 0x8009701C;
+gItemMenuWeaponTitle           = 0x8009701C;
 _gItemMenuTransferExitList = 0x8010D6B4; // size:0x24 defined:True
 gItemMenuTransferActionCallbacks            = 0x8010D67C; // defined:True
 _gItemMenuTransferActionList = 0x8010D68C; // size:0x24 defined:True
@@ -1460,8 +1460,8 @@ _gItemMenuCannotMoveEquippedText          = 0x8010F2B4; // defined:True
 _gItemMenuCannotSwitchWithAmmoText      = 0x8010F2D0; // defined:True
 _gItemMenuCannotSwitchEquippedText        = 0x8010F2F0; // defined:True
 gItemMenuParasiteEnergyTitle               = 0x80096FD8;
-Gp_StrOption                = 0x80096FE4;
-Gp_StrExit                  = 0x80096FEC;
+gItemMenuOptionsCommandText                = 0x80096FE4;
+gItemMenuExitCommandText                  = 0x80096FEC;
 gItemMenuHpLabel                    = 0x80096FF8;
 gItemMenuMpLabel                    = 0x80096FFC;
 gItemMenuExpLabel                   = 0x80097000;
@@ -1469,8 +1469,8 @@ gItemMenuBpLabel                    = 0x80097004;
 gItemMenuArmorTitle                 = 0x80097008;
 gItemMenuAttachmentsTitle           = 0x80097010;
 gItemMenuItemTitle               = 0x80097028;
-Gp_StrAttachments2          = 0x80097030;
-Gp_StrSelectTitle           = 0x8009703C;
+gItemMenuArmorAttachmentsHeading          = 0x80097030;
+_gItemMenuAttachmentItemSelectionTitle           = 0x8009703C;
 gItemMenuNextReplaySupplyTitle            = 0x80097044;
 gItemMenuSpecificationsTitle                 = 0x80097058;
 gItemMenuWeaponOperationLabel             = 0x80097068;
@@ -1484,16 +1484,16 @@ gItemMenuConsumableSpecialLabel               = 0x800970BC;
 gItemMenuApplicableWeaponsLabel         = 0x800970C4;
 gItemMenuNoticePanelTitle                = 0x800970D8;
 gItemMenuKeyItemTitle               = 0x800970E0;
-gGpStrWeight                = 0x800970EC;
+gItemMenuWeaponWeightLabel                = 0x800970EC;
 gItemMenuWeaponRateLabel                  = 0x800970F4;
 gItemMenuWeaponRangeLabel                 = 0x800970FC;
 gItemMenuAmmoPowerLabel                 = 0x80097104;
 gItemMenuArmorAttachmentCountLabel             = 0x8009710C;
-Gp_StrAttention             = 0x80097114;
-Gp_StrSelectWeapon          = 0x80097120;
+gItemMenuAttentionTitle             = 0x80097114;
+gItemMenuWeaponSelectionTitle          = 0x80097120;
 gItemMenuEquipTitle                 = 0x80097130;
-Gp_StrSelectAmmo            = 0x80097138;
-Gp_StrSelectArmor           = 0x80097144;
+gItemMenuAmmoSelectionTitle            = 0x80097138;
+gItemMenuArmorSelectionTitle           = 0x80097144;
 gItemMenuReloadTitle                = 0x80097154;
 gItemMenuAttachTitle                = 0x8009715C;
 
@@ -1573,9 +1573,9 @@ _gEvsDemoPauseLabel             = 0x80097550;
 _gItemMenuUseAttachHelpText = 0x8010F930; // size:0x16 defined:True
 _gItemMenuKeyItemHelpText = 0x8010F948; // size:0xF defined:True
 _gItemMenuMapHelpText = 0x8010F958; // size:0xF defined:True
-Gp_StrCustomizeHelp = 0x8010F96C; // size:0x19 defined:True
-Gp_StrRemoveAmmoHelp = 0x8010F988; // size:0x1A defined:True
-Gp_StrDetachArmorHelp = 0x8010F9A4; // size:0x19 defined:True
+gItemMenuOptionsHelpText = 0x8010F96C; // size:0x19 defined:True
+gItemMenuRemoveAmmoHelpText = 0x8010F988; // size:0x1A defined:True
+_gItemMenuDetachArmorHelpText = 0x8010F9A4; // size:0x19 defined:True
 
 // Gameplay naming pass 15 (StateF0, play clock, load-wait, lock)
 gSceneCombatState = 0x801153F0; // size:0x2C defined:True
@@ -1626,7 +1626,7 @@ gHudInputDelayUpdates        = 0x8010CA28; // defined:True
 Gp_ItemCmdFns               = 0x8010EA18; // defined:True
 gWorldCollisionFaceEdges            = 0x8010FA24; // defined:True
 _gEffectImpactFlashFrames = 0x80112934; // size:0x30 defined:True
-Gp_CdRecCur = 0x80114C6C; // size:0x4 defined:True
+_gLoadingAreaPlacementCursor = 0x80114C6C; // size:0x4 defined:True
 gDirectionWarpDepartureShade             = 0x80114CF6; // size:0x2 defined:True
 gItemMenuEquipmentDetailOpen            = 0x80114D84; // defined:True
 gItemMenuDestinationSelectionMode            = 0x80114D8C; // defined:True
@@ -1708,7 +1708,7 @@ gCapTextBoxHeight                  = 0x801155B6; // type:s16 size:0x2 defined:Tr
 D_801155B9                  = 0x801155B9; // type:s8 size:0x1 defined:True
 gCapActionCaptureFramesRemaining                  = 0x801155BA; // type:u8 size:0x1 defined:True
 gCapPendingViewPhase                  = 0x801155BB; // type:u8 size:0x1 defined:True
-D_801155BE                  = 0x801155BE; // type:s16 size:0x2 defined:True
+gCapChoiceCount                  = 0x801155BE; // type:s16 size:0x2 defined:True
 gCapDebugPlaybackFrame = 0x8011564A; // size:0x2 defined:True
 gCapTextCursorY = 0x80115652; // size:0x2 defined:True
 gCapTexturePageVramY = 0x80115656; // size:0x2 defined:True
@@ -2066,7 +2066,7 @@ gCapConfirmedChoiceIndex = 0x801156A8; // size:0x4 defined:True
 
 _gCapSceneSyncArmed = 0x801156B0; // size:0x1 defined:True
 D_801156B4 = 0x801156B4; // size:0x4 defined:True
-D_801156B8 = 0x801156B8; // size:0x4 defined:True
+_gCapHudSlideTask = 0x801156B8; // size:0x4 defined:True
 gCapSceneSyncElapsedTicks = 0x801156BC; // size:0x2 defined:True
 
 gEvsSelectedSceneKey = 0x801156F4; // size:0x4 defined:True
@@ -2093,7 +2093,7 @@ gWorldCollisionOccluderListHead = 0x80115550; // size:0x4 defined:True
 gCapRoomCompletionSoundsEnabled = 0x80115598; // size:0x1 defined:True
 
 _gLoadingAreaVariant = 0x80114C64; // size:0x4 defined:True
-D_80114C68 = 0x80114C68; // size:0x4 defined:True
+_gLoadingAreaResourceCursor = 0x80114C68; // size:0x4 defined:True
 gLoadingAreaBaseResourcePhase = 0x80114C70; // size:0x2 defined:True
 gLoadingAreaResourcePass = 0x80114C74; // size:0x2 defined:True
 
@@ -2103,9 +2103,9 @@ D_80114CB0 = 0x80114CB0; // size:0x10 defined:True
 
 gPlanarReflectionLocationKey = 0x80114DCC; // size:0x4 defined:True
 D_80114DD8 = 0x80114DD8; // size:0x4 defined:True
-D_80114DE0 = 0x80114DE0; // size:0x4 defined:True
-D_80114DE4 = 0x80114DE4; // size:0x4 defined:True
-D_80114DE8 = 0x80114DE8; // size:0x4 defined:True
+gItemMenuPreviousSecondaryItemId = 0x80114DE0; // size:0x4 defined:True
+gItemMenuPreviousWeaponSlotSelection = 0x80114DE4; // size:0x4 defined:True
+gItemMenuPreviousWeaponSelection = 0x80114DE8; // size:0x4 defined:True
 
 gRoomEffectSparkEmitterId = 0x80115720; // size:0x4 defined:True
 gEnergyBallInFlightCount = 0x80115724; // size:0x4 defined:True
@@ -2135,7 +2135,7 @@ gEffectSpriteAtlasFrames = 0x80111E48; // size:0x60 defined:True
 gEffectModulatedBillboardClutX = 0x80111EB4; // size:0xC defined:True
 
 D_8010CAC8 = 0x8010CAC8; // size:0x8 defined:True
-D_8010CAD0 = 0x8010CAD0; // size:0x12 defined:True
+_gLoadingAreaFileGroupBases = 0x8010CAD0; // size:0x12 defined:True
 
 _gAreaAcropolisRecords = 0x8010CBE4; // size:0xA8 defined:True
 D_8010CC8C = 0x8010CC8C; // size:0x8 defined:True
@@ -2212,7 +2212,7 @@ _gEffectThrownModel91Normals = 0x801123A8; // size:0x50 defined:True
 _gEffectThrownModel91Packets = 0x801123F8; // size:0xC0 defined:True
 gEffectThrownModel91 = 0x801124B8; // size:0x24 defined:True
 _gEffectWeaponMuzzleOffsets = 0x801124DC; // size:0x110 defined:True
-D_801125EC = 0x801125EC; // size:0x110 defined:True
+_gEffectWeaponEmissionOffsets = 0x801125EC; // size:0x110 defined:True
 _gEffectGrenadeMuzzleOffsets = 0x801126FC; // size:0x110 defined:True
 _gEffectGrenadeEmissionOffsets = 0x8011280C; // size:0x110 defined:True
 _gEffectCriticalHitStyles = 0x8011291C; // size:0x18 defined:True
@@ -2249,7 +2249,7 @@ _gDamageAttackDistanceCriticalPercent = 0x80113568; // size:0x2F0 defined:True
 _gDamageExplosionCriticalDistancePercent = 0x80113858; // size:0xC defined:True
 _gDamageDistanceBandClasses = 0x80113864; // size:0x20 defined:True
 
-Gp_WeaponStats = 0x80113884; // size:0x108 defined:True
+_gItemMenuWeaponComparisonValues = 0x80113884; // size:0x108 defined:True
 
 gDamageAntibodyComboPercent = 0x80113CFC; // size:0x10 defined:True
 gAttachmentEnergyShotComboScales = 0x80113D0C; // size:0x1C defined:True
@@ -2324,3 +2324,4 @@ _gHudWeaponR1LabelText = 0x8009388c;
 _gHudWeaponR2LabelText = 0x80093890;
 _gHudWeaponPrimaryButtonGlyphText = 0x80093894;
 _gHudWeaponSecondaryButtonGlyphText = 0x80093898;
+_gHudHiddenHpText = 0x800938ac;

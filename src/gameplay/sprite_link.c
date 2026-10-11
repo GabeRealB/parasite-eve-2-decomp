@@ -409,7 +409,7 @@ static void _worldCollisionBindCurrentRoomResources(Task* unusedTask)
     worldCollisionClearTriggerList(WORLD_COLLISION_TRIGGER_LIST_VIEW_BOUNDARIES);
     worldCollisionClearTriggerList(WORLD_COLLISION_TRIGGER_LIST_ACTION);
     worldCollisionClearOccluderList(WORLD_COLLISION_OCCLUDER_LIST_ACTIVE);
-    areaRooms = Gp_RoomObjTables[location->stage - 1]->areaRooms[location->area - 1];
+    areaRooms = gWorldCollisionStageResources[location->stage - 1]->areaRooms[location->area - 1];
     if (areaRooms != NULL) {
         grid                 = areaRooms[location->room - 1].grid;
         viewBoundaryTriggers = areaRooms[location->room - 1].viewBoundaryTriggers;

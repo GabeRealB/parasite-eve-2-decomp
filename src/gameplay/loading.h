@@ -229,13 +229,23 @@ extern ViewCountTable* gViewCountTables[5];
 /// room data, so both owning overlays must stay loaded during lookup.
 extern ViewIndexTable* gViewIndexTables[5];
 
-/// Per-stage pointer table. Index is `GameSession.location.loc.stage - 1`.
-extern WorldCollisionStageResources* Gp_RoomObjTables[];
+/// Five stage-map directories of mutable room collision resources.
+///
+/// Stage 1..5 selects stage minus one; each directory then uses area minus one
+/// and room minus one with its own bounds. NULL area entries bind no resources.
+/// The selector slots are fixed, while grids, triggers and occluders are mutable.
+/// Keep the selected stage-map and room overlays loaded while their resources
+/// or linked lists are in use; gameplay borrows them and releases no storage.
+extern WorldCollisionStageResources* const gWorldCollisionStageResources[5];
 
-/// Per-stage pointer table. Index is `GameSession.location.loc.stage - 1`. Each
-/// entry is an array of `DirectionWarpEntry*`, indexed 1-based by
-/// `GameSession.location.loc.area` / `GameLocationKey.area`.
-extern DirectionWarpEntry** Gp_WarpTables[];
+/// Five stage-map directories of per-area direction warp endpoints.
+///
+/// Indexed by stage minus one (1..5), area minus one and warp ID minus one.
+/// Area and endpoint bounds vary; require a populated area and a valid endpoint,
+/// independently of room ID. Entries supply departure facing/sounds and arrival
+/// placements, view and effects. Fixed selector slots borrow stage-map directories
+/// which borrow room-overlay endpoints; keep both owning overlays loaded for lookup.
+extern DirectionWarpEntry** const gDirectionAreaWarpEntriesByStage[5];
 
 /// Room-start choice for creating the automatic view-transition gate.
 enum {

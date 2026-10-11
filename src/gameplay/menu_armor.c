@@ -18,10 +18,6 @@
 #include "main/ui.h"
 #include "main/wipsys.h"
 
-extern const char Gp_StrSelectTitle[];
-
-extern char Gp_StrDetachArmorHelp[];
-
 /// Draws `item`'s name, its equipment status marker in `mode`, the variant
 /// marker for items 0x0F-0x32 and its icon at (`x`, `y`) in `obj`. Nothing is
 /// drawn while `obj->panel.state` is `USER_INTERFACE_PANEL_HIDDEN`.
@@ -41,9 +37,9 @@ static inline s32 _itemMenuDecodeEnergyPreviewIndex(s32 packedAbilityId);
 
 const u8 gItemMenuParasiteEnergyTitle[] = "P.Energy";
 
-const char Gp_StrOption[] = "Option";
+const u8 gItemMenuOptionsCommandText[] = "Option";
 
-const char Gp_StrExit[] = "Exit";
+const u8 gItemMenuExitCommandText[] = "Exit";
 
 const u8 gItemMenuFractionSeparatorText[] = "/";
 
@@ -59,15 +55,16 @@ const u8 gItemMenuArmorTitle[] = "Armor";
 
 const u8 gItemMenuAttachmentsTitle[] = "Attachments";
 
-const char Gp_StrWeaponTitle[] = "Weapon";
+const u8 gItemMenuWeaponTitle[] = "Weapon";
 
 const u8 gItemMenuEquippedMarkerText[] = "E";
 
 const u8 gItemMenuItemTitle[] = "Item";
 
-const char Gp_StrAttachments2[] = "ATTACHMENTs";
+const u8 gItemMenuArmorAttachmentsHeading[] = "ATTACHMENTs";
 
-const char Gp_StrSelectTitle[] = "Select";
+/// Encoded title for choosing an item to attach to armor.
+static const u8 _gItemMenuAttachmentItemSelectionTitle[] = "Select";
 
 const u8 gItemMenuNextReplaySupplyTitle[] = "NEXT REPLAY SUPPLY";
 
@@ -97,7 +94,7 @@ const u8 gItemMenuNoticePanelTitle[] = "Notice";
 
 const u8 gItemMenuKeyItemTitle[] = "Key Item";
 
-const char gGpStrWeight[] = "Weight";
+const u8 gItemMenuWeaponWeightLabel[] = "Weight";
 
 const u8 gItemMenuWeaponRateLabel[] = "Rate";
 
@@ -107,24 +104,25 @@ const u8 gItemMenuAmmoPowerLabel[] = "Power";
 
 const u8 gItemMenuArmorAttachmentCountLabel[] = "Attach.";
 
-const char Gp_StrAttention[] = "Attention";
+const u8 gItemMenuAttentionTitle[] = "Attention";
 
-const char Gp_StrSelectWeapon[] = "Select Weapon";
+const u8 gItemMenuWeaponSelectionTitle[] = "Select Weapon";
 
 const u8 gItemMenuEquipTitle[] = "Equip";
 
-const char Gp_StrSelectAmmo[] = "Select AMMO";
+const u8 gItemMenuAmmoSelectionTitle[] = "Select AMMO";
 
-const char Gp_StrSelectArmor[] = "Select Armor";
+const u8 gItemMenuArmorSelectionTitle[] = "Select Armor";
 
 const u8 gItemMenuReloadTitle[] = "Reload";
 
 const u8 gItemMenuAttachTitle[] = "Attach";
 
-char     Gp_StrCustomizeHelp[]                                       = "Customize game settings.";
-char     Gp_StrRemoveAmmoHelp[]                                      = "Remove loaded ammunition.";
-char     Gp_StrDetachArmorHelp[]                                     = "Detach items from armor.";
-const u8 gItemMenuSortHelpText[36] __attribute__((section(".data"))) = "Change the order of items carried.\000\335";
+const u8 gItemMenuOptionsHelpText[] __attribute__((section(".data")))    = "Customize game settings.";
+const u8 gItemMenuRemoveAmmoHelpText[] __attribute__((section(".data"))) = "Remove loaded ammunition.";
+/// Encoded prompt for detaching the item in the selected armor slot.
+static const u8 _gItemMenuDetachArmorHelpText[] __attribute__((section(".data"))) = "Detach items from armor.";
+const u8        gItemMenuSortHelpText[36] __attribute__((section(".data")))       = "Change the order of items carried.\000\335";
 
 /// Draws `item`'s name, its equipment status marker in `mode`, the variant
 /// marker for items 0x0F-0x32 and its icon at (`x`, `y`) in `obj`. Nothing is
@@ -278,7 +276,7 @@ void itemMenuDrawAttachmentCandidateRow(UiList* list, UiObject* object)
         }
     } else {
         if (((object->panel.control.word >> 16) == USER_INTERFACE_PANEL_ACTIVE || object->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) && list->selectedItemIndex == list->currentItemIndex) {
-            uiSetPromptText(Gp_StrDetachArmorHelp, 0, 0);
+            uiSetPromptText(_gItemMenuDetachArmorHelpText, 0, 0);
         }
         {
             TextDrawReq textRequest;
@@ -372,7 +370,7 @@ void itemMenuAttachmentItemPickerTask(Task* task)
     object         = task->spawnArg2.pointer;
     candidateList  = &D_8010E8D4;
     object->result = USER_INTERFACE_RESULT_NONE;
-    uiDrawPanelLabel(&object->panel, Gp_StrSelectTitle);
+    uiDrawPanelLabel(&object->panel, (const char*)_gItemMenuAttachmentItemSelectionTitle);
     previewItemId = INVENTORY_ITEM_NONE;
     // Reserve the preview header and hide the armor-slot parent while choosing an item.
     if (task->state == ITEM_MENU_ATTACHMENT_PICKER_INITIALIZE) {

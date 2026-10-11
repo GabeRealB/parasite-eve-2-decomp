@@ -163,7 +163,7 @@ static const _EffectImpactFlashFrame _gEffectImpactFlashFrames[4];
 
 static SVECTOR _gEffectWeaponMuzzleOffsets[34];
 
-extern SVECTOR D_801125EC[34];
+static const SVECTOR _gEffectWeaponEmissionOffsets[34];
 
 static const SVECTOR _gEffectGrenadeMuzzleOffsets[34];
 
@@ -457,14 +457,14 @@ static __inline__ void _effectInitializeHandgunLight(const GfxCoord* spawnCoord,
 /// rotation and invalidates composition without composing. Offsets use signed
 /// parent-local coordinate units. No caller locals are captured; invoke in a
 /// braced block because the expansion contains several statements.
-#define EFFECT_ATTACH_RELOAD_EMITTER(ejectionCoord, work, weaponProfile) \
-    (ejectionCoord)->parent       = (work)->parent;                      \
-    (ejectionCoord)->coord.t[0]   = D_801125EC[(weaponProfile)].vx;      \
-    (ejectionCoord)->coord.t[1]   = D_801125EC[(weaponProfile)].vy;      \
-    (ejectionCoord)->coord.t[2]   = D_801125EC[(weaponProfile)].vz;      \
-    (ejectionCoord)->coord.t[0]  += (work)->pos.vx;                      \
-    (ejectionCoord)->coord.t[1]  += (work)->pos.vy;                      \
-    (ejectionCoord)->coord.t[2]  += (work)->pos.vz;                      \
+#define EFFECT_ATTACH_RELOAD_EMITTER(ejectionCoord, work, weaponProfile)               \
+    (ejectionCoord)->parent       = (work)->parent;                                    \
+    (ejectionCoord)->coord.t[0]   = _gEffectWeaponEmissionOffsets[(weaponProfile)].vx; \
+    (ejectionCoord)->coord.t[1]   = _gEffectWeaponEmissionOffsets[(weaponProfile)].vy; \
+    (ejectionCoord)->coord.t[2]   = _gEffectWeaponEmissionOffsets[(weaponProfile)].vz; \
+    (ejectionCoord)->coord.t[0]  += (work)->pos.vx;                                    \
+    (ejectionCoord)->coord.t[1]  += (work)->pos.vy;                                    \
+    (ejectionCoord)->coord.t[2]  += (work)->pos.vz;                                    \
     (ejectionCoord)->composeStamp = GRAPHICS_COORD_DIRTY;
 
 // Preserve the initialized-data placement of the read-only metadata tables.
@@ -567,7 +567,7 @@ void effectControlTask2B(Task* task)
                         effectSpawn(EFFECT_MUZZLE_FLARE, muzzleCoord, (((u32)randomState >> 16) & EFFECT_WEAPON_FLASH_SIZE_JITTER_MASK) | EFFECT_WEAPON_FLASH_SMALL_SIZE, 0);
                         weaponProfile = task->spawnArg1.value;
                         task->state   = EFFECT_DRAW_TASK_ACTIVE;
-                        effectSpawn(EFFECT_BULLET_CASING, muzzleCoord, weaponProfile, &D_801125EC[weaponProfile]);
+                        effectSpawn(EFFECT_BULLET_CASING, muzzleCoord, weaponProfile, &_gEffectWeaponEmissionOffsets[weaponProfile]);
                         work->scale                = EFFECT_WEAPON_FLASH_LAST_AGE;
                         transientLight->framesLeft = EFFECT_WEAPON_FLASH_LIGHT_TICKS;
                         break;
@@ -578,7 +578,7 @@ void effectControlTask2B(Task* task)
                         effectSpawn(EFFECT_MUZZLE_FLARE, muzzleCoord, (((u32)randomState >> 16) & EFFECT_WEAPON_FLASH_SIZE_JITTER_MASK) + EFFECT_WEAPON_FLASH_MEDIUM_SIZE, 0);
                         weaponProfile = task->spawnArg1.value;
                         task->state   = EFFECT_DRAW_TASK_ACTIVE;
-                        effectSpawn(EFFECT_BULLET_CASING, muzzleCoord, weaponProfile, &D_801125EC[weaponProfile]);
+                        effectSpawn(EFFECT_BULLET_CASING, muzzleCoord, weaponProfile, &_gEffectWeaponEmissionOffsets[weaponProfile]);
                         work->scale                = EFFECT_WEAPON_FLASH_LAST_AGE;
                         transientLight->framesLeft = EFFECT_WEAPON_FLASH_LIGHT_TICKS;
                         break;
@@ -590,14 +590,14 @@ void effectControlTask2B(Task* task)
                         gRandomLcgState = randomState;
                         effectSpawn(EFFECT_MUZZLE_FLARE, muzzleCoord, (((u32)randomState >> 16) & EFFECT_WEAPON_FLASH_SIZE_JITTER_MASK) + EFFECT_WEAPON_FLASH_MEDIUM_SIZE, 0);
                         weaponProfile = task->spawnArg1.value;
-                        effectSpawn(EFFECT_BULLET_CASING, muzzleCoord, weaponProfile, &D_801125EC[weaponProfile]);
+                        effectSpawn(EFFECT_BULLET_CASING, muzzleCoord, weaponProfile, &_gEffectWeaponEmissionOffsets[weaponProfile]);
                         work->scale                = EFFECT_SMG_FLASH_LAST_AGE;
                         transientLight->framesLeft = EFFECT_SMG_FLASH_LAST_AGE;
                         break;
                     case EFFECT_WEAPON_FLASH_PROFILE_P229:
                         weaponProfile = task->spawnArg1.value;
                         task->state   = EFFECT_DRAW_TASK_ACTIVE;
-                        effectSpawn(EFFECT_P229_SHELL_CASING, muzzleCoord, weaponProfile, &D_801125EC[weaponProfile]);
+                        effectSpawn(EFFECT_P229_SHELL_CASING, muzzleCoord, weaponProfile, &_gEffectWeaponEmissionOffsets[weaponProfile]);
                         work->scale                = EFFECT_WEAPON_FLASH_LAST_AGE;
                         transientLight->framesLeft = WORLD_COORDINATE_TRANSIENT_LIGHT_INACTIVE;
                         break;
@@ -608,7 +608,7 @@ void effectControlTask2B(Task* task)
                         gRandomLcgState = randomState;
                         effectSpawn(EFFECT_MUZZLE_FLARE, muzzleCoord, (((u32)randomState >> 16) & EFFECT_WEAPON_FLASH_SIZE_JITTER_MASK) + EFFECT_WEAPON_FLASH_MEDIUM_SIZE, 0);
                         weaponProfile = task->spawnArg1.value;
-                        effectSpawn(EFFECT_P229_SHELL_CASING, muzzleCoord, weaponProfile, &D_801125EC[weaponProfile]);
+                        effectSpawn(EFFECT_P229_SHELL_CASING, muzzleCoord, weaponProfile, &_gEffectWeaponEmissionOffsets[weaponProfile]);
                         work->scale                = EFFECT_WEAPON_FLASH_LAST_AGE;
                         transientLight->framesLeft = WORLD_COORDINATE_TRANSIENT_LIGHT_INACTIVE;
                         break;
@@ -761,7 +761,7 @@ void effectControlTask6B(Task* task)
             effectSpawn(EFFECT_MUZZLE_FLARE_ADDITIVE, muzzleCoord, ((gRandomLcgState >> 16) & EFFECT_WEAPON_FLASH_SIZE_JITTER_MASK) + EFFECT_RIFLE_FLASH_SIZE, 0);
             weaponProfile = task->spawnArg1.value;
             task->state   = EFFECT_DRAW_TASK_ACTIVE;
-            effectSpawn(EFFECT_RIFLE_MUZZLE_FLASH_MODEL, muzzleCoord, weaponProfile, &D_801125EC[weaponProfile]);
+            effectSpawn(EFFECT_RIFLE_MUZZLE_FLASH_MODEL, muzzleCoord, weaponProfile, &_gEffectWeaponEmissionOffsets[weaponProfile]);
             if (task->spawnArg1.value == EFFECT_WEAPON_FLASH_PROFILE_M249) {
                 work->scale                                 = EFFECT_M249_FLASH_LAST_AGE;
                 gWorldCoordTransientPointLights->framesLeft = EFFECT_M249_FLASH_LAST_AGE;
@@ -907,7 +907,7 @@ void effectControlTaskA1(Task* task)
                             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                             effectSpawn(EFFECT_MUZZLE_SPARK_THROWN, muzzleCoord, ((gRandomLcgState >> 16) & EFFECT_WEAPON_FLASH_SIZE_JITTER_MASK) | EFFECT_SHOTGUN_FLASH_BUCKSHOT_SIZE, 0);
                         }
-                        effectSpawn(EFFECT_SHOTGUN_SHELL_CASING, muzzleCoord, task->spawnArg1.value, &D_801125EC[task->spawnArg1.value]);
+                        effectSpawn(EFFECT_SHOTGUN_SHELL_CASING, muzzleCoord, task->spawnArg1.value, &_gEffectWeaponEmissionOffsets[task->spawnArg1.value]);
                         task->state = EFFECT_SHOTGUN_FLASH_STATE_EJECTED;
                         work->scale = EFFECT_WEAPON_FLASH_LAST_AGE;
                         break;
@@ -956,7 +956,7 @@ void effectControlTaskA1(Task* task)
                             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                             effectSpawn(EFFECT_MUZZLE_SPARK_THROWN, muzzleCoord, ((gRandomLcgState >> 16) & EFFECT_WEAPON_FLASH_SIZE_JITTER_MASK) | EFFECT_SHOTGUN_FLASH_BUCKSHOT_SIZE, 0);
                         }
-                        effectSpawn(EFFECT_SHOTGUN_SHELL_CASING, work->parent, task->spawnArg1.value, &D_801125EC[task->spawnArg1.value]);
+                        effectSpawn(EFFECT_SHOTGUN_SHELL_CASING, work->parent, task->spawnArg1.value, &_gEffectWeaponEmissionOffsets[task->spawnArg1.value]);
                         task->state = EFFECT_SHOTGUN_FLASH_STATE_EJECTED;
                         work->scale = EFFECT_WEAPON_FLASH_LAST_AGE;
                 }
@@ -965,7 +965,7 @@ void effectControlTaskA1(Task* task)
                 break;
             case EFFECT_DRAW_TASK_ACTIVE:
                 if (work->age == work->scale) {
-                    effectSpawn(EFFECT_SHOTGUN_SHELL_CASING, muzzleCoord, task->spawnArg1.value, &D_801125EC[task->spawnArg1.value]);
+                    effectSpawn(EFFECT_SHOTGUN_SHELL_CASING, muzzleCoord, task->spawnArg1.value, &_gEffectWeaponEmissionOffsets[task->spawnArg1.value]);
                     task->state = EFFECT_SHOTGUN_FLASH_STATE_EJECTED;
                 }
                 break;
@@ -3662,7 +3662,14 @@ static SVECTOR _gEffectWeaponMuzzleOffsets[34] = {
     { 0, 576, 128, 0 },
     { 0, 448, 128, 0 },
 };
-SVECTOR D_801125EC[34] = {
+/// Weapon emission offsets indexed by weapon-effect profile 0..33.
+///
+/// Signed halfword XYZ use the spawning controller's local coordinate units.
+/// Casing and rifle-flash spawns copy these into their placement while retaining
+/// a borrowed pointer. Reload emitters instead add them to copied spawn XYZ in
+/// the weapon parent's axes. The fourth halfword is zero and unused. Storage
+/// remains valid with gameplay for all spawned tasks.
+static const SVECTOR _gEffectWeaponEmissionOffsets[34] __attribute__((section(".data"))) = {
     { 0, 0, 0, 0 },
     { 0, 0, 256, 0 },
     { 0, 0, 320, 0 },

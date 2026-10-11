@@ -89,8 +89,6 @@ STATIC_ASSERT_SIZEOF(AttachmentEnergyShotComboScale, 4);
 /// A cleared combo skips the table. Borrowed rows live with gameplay.
 extern AttachmentEnergyShotComboScale gAttachmentEnergyShotComboScales[7];
 
-extern const char D_800938AC[8];
-
 /// Advances the HUD's battle sequence, menu requests and visible frame updates.
 ///
 /// Borrows persistent writable HUD state from the live play-clock task.

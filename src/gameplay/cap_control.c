@@ -30,7 +30,12 @@ static s8 _gCapHasSceneKey;
 /// linkage because the optional external debug routines have no source here.
 s32 D_801156B4;
 
-Task* D_801156B8;
+/// Held demo-scene HUD slide task, or NULL when CAP holds no slide.
+///
+/// Hide retains the spawned task and suppresses duplicate hides. Show requests
+/// its return and releases this handle before the task finishes; abort kills a
+/// held task. Control-task initialization clears the handle without killing it.
+static Task* _gCapHudSlideTask;
 
 s16 gCapSceneSyncElapsedTicks;
 
@@ -111,8 +116,8 @@ void capInitializeControlTask(Task* task)
         return;
     }
     capReset();
-    D_801156B8     = NULL;
-    task->msgTable = D_8010FB90;
+    _gCapHudSlideTask = NULL;
+    task->msgTable    = D_8010FB90;
     gameSetTaskSlot(task, GAME_TASK_SLOT_CAP_CONTROL);
     task->work          = workStorage;
     _gCapSceneSyncArmed = CAP_CONTROL_SCENE_SYNC_DISABLED;
@@ -191,10 +196,10 @@ static s32 _capHideEventHud(Task* unusedTask, s32 unusedMessageId, s32 unusedFir
     };
 
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene == CAP_CONTROL_HUD_SLIDE_DEMO_SCENE) {
-        if (D_801156B8 != NULL) {
+        if (_gCapHudSlideTask != NULL) {
             return 0;
         }
-        D_801156B8 = taskSpawn(CAP_CONTROL_HUD_SLIDE_TASK_BANK, CAP_CONTROL_HUD_SLIDE_TASK_INDEX, 0, 0);
+        _gCapHudSlideTask = taskSpawn(CAP_CONTROL_HUD_SLIDE_TASK_BANK, CAP_CONTROL_HUD_SLIDE_TASK_INDEX, 0, 0);
     } else {
         gGameSession->hideHud = true;
     }
@@ -212,10 +217,10 @@ static s32 _capReleaseEventHud(Task* unusedTask, s32 unusedMessageId, s32 unused
     Task* hudSlideTask;
 
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene == CAP_CONTROL_HUD_SLIDE_DEMO_SCENE) {
-        hudSlideTask = D_801156B8;
+        hudSlideTask = _gCapHudSlideTask;
         if (hudSlideTask != NULL) {
             hudSlideTask->spawnArg1.value = CAP_CONTROL_HUD_SLIDE_RETURN;
-            D_801156B8                    = NULL;
+            _gCapHudSlideTask             = NULL;
             return 0;
         }
     } else {
@@ -232,11 +237,11 @@ static s32 _capReleaseEventHud(Task* unusedTask, s32 unusedMessageId, s32 unused
 static s32 _capAbortEventHud(Task* unusedTask, s32 unusedMessageId, s32 unusedFirstArg, s32 unusedSecondArg)
 {
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene == CAP_CONTROL_HUD_SLIDE_DEMO_SCENE) {
-        if (D_801156B8 == NULL) {
+        if (_gCapHudSlideTask == NULL) {
             return 0;
         }
-        taskKill(D_801156B8);
-        D_801156B8 = NULL;
+        taskKill(_gCapHudSlideTask);
+        _gCapHudSlideTask = NULL;
     } else {
         gGameSession->hideHud = 0;
     }

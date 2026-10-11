@@ -158,10 +158,10 @@ static inline void _capUpdateChoiceSelection(void)
     if (gCapSelectedChoiceIndex < 0) {
         gCapSelectedChoiceIndex = (s16)previousChoiceIndex;
     }
-    if (gCapSelectedChoiceIndex >= D_801155BE) {
+    if (gCapSelectedChoiceIndex >= gCapChoiceCount) {
         gCapSelectedChoiceIndex = (s16)previousChoiceIndex;
     }
-    if ((gCapSelectedChoiceIndex != (s16)previousChoiceIndex) && (D_801155BE != 0)) {
+    if ((gCapSelectedChoiceIndex != (s16)previousChoiceIndex) && (gCapChoiceCount != 0)) {
         sndEvtRequestScriptStart(SOUND_SYSTEM_CURSOR, 0, 0);
     }
     _capDrawChoiceMarker();
@@ -466,18 +466,18 @@ void capUpdatePlaybackTask(Task* task)
             } else {
                 _capDrawTextStream(gCapSelectedSequence[(s16)gCapRecordIndex].textRef.text, CAP_PLAYBACK_UNUSED_TEXT_DRAW_ARG, 1, gCapSelectedSequence[(s16)gCapRecordIndex].control.text.title | ((gCapSelectedSequence[(s16)gCapRecordIndex].control.text.flags & (CAP_SEQUENCE_LEFT_ALIGN | CAP_SEQUENCE_TITLE_BANK)) << CAP_TEXT_TITLE_FLAGS_SHIFT));
                 nextRecordForChoice = capFindVariantRecord((s16)gCapRecordIndex + 1);
-                if (((gCapSelectedSequence[nextRecordForChoice].textRef.offset != CAP_TEXT_REF_END) && (gCapSelectedSequence[nextRecordForChoice].actionId == 0) && ((gCapSelectedSequence[nextRecordForChoice].control.text.displayFrames != 0) || (gCapSelectedSequence[nextRecordForChoice].control.text.pauseFrames == 0)) && (D_801155BE == 0) && !(gCapSelectedSequence[nextRecordForChoice].control.text.flags & CAP_SEQUENCE_VIEW_CONTROL)) || (gCapSelectedSequence[(s16)gCapRecordIndex].control.text.flags & CAP_SEQUENCE_FORCE_CARET)) {
+                if (((gCapSelectedSequence[nextRecordForChoice].textRef.offset != CAP_TEXT_REF_END) && (gCapSelectedSequence[nextRecordForChoice].actionId == 0) && ((gCapSelectedSequence[nextRecordForChoice].control.text.displayFrames != 0) || (gCapSelectedSequence[nextRecordForChoice].control.text.pauseFrames == 0)) && (gCapChoiceCount == 0) && !(gCapSelectedSequence[nextRecordForChoice].control.text.flags & CAP_SEQUENCE_VIEW_CONTROL)) || (gCapSelectedSequence[(s16)gCapRecordIndex].control.text.flags & CAP_SEQUENCE_FORCE_CARET)) {
                     _capDrawContinueCaret(CAP_PLAYBACK_UNUSED_CARET_X, CAP_PLAYBACK_UNUSED_CARET_Y);
                 } else {
                     D_80115664 = 0;
                 }
                 _capUpdateChoiceSelection();
                 confirmButtons = gPadConfirmButtonMask;
-                if (D_801155BE == 0) {
+                if (gCapChoiceCount == 0) {
                     confirmButtons |= gPadCancelButtonMask;
                 }
                 if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, confirmButtons) != 0) {
-                    if (D_801155BE != 0) {
+                    if (gCapChoiceCount != 0) {
                         if (gCapChoiceConfirmFramesRemaining != 0) {
                             return;
                         }
@@ -491,7 +491,7 @@ void capUpdatePlaybackTask(Task* task)
                         }
                     }
                     gCapConfirmedChoiceIndex = gCapSelectedChoiceIndex;
-                    if (D_801155BE != 0) {
+                    if (gCapChoiceCount != 0) {
                         gCapVariantKey = gCapChoices[gCapSelectedChoiceIndex].eventKey;
                     }
                     // Select the next record now, but hold processing until the old minimum expires.
@@ -944,7 +944,7 @@ static u16 _capDrawTextStream(const u16* textStream, s32 unusedDrawArg, u8 revea
 
     // A break closes an open choice, turning its index into the published count.
     gCapTextCursorX = penX;
-    D_801155BE      = choiceIndex;
+    gCapChoiceCount = choiceIndex;
     gCapTextCursorY = penY - gDisplayState.vramYOffset;
     return textComplete;
 }
@@ -964,7 +964,7 @@ static void _capDrawChoiceMarker(void)
     s32              markerY;
     s32              grey;
 
-    if (D_801155BE != 0) {
+    if (gCapChoiceCount != 0) {
         // Confirmation stays locked while the initial choice frames elapse.
         if (gCapChoiceConfirmFramesRemaining != 0) {
             gCapChoiceConfirmFramesRemaining--;

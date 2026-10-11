@@ -412,7 +412,14 @@ extern u8 gCapPendingViewPhase;
 /// the next sequence initializes the state. In-place view changes do not arm it.
 extern s16 gCapTextViewTransitionState;
 
-extern s16 D_801155BE;
+/// Number of choices laid out in the current CAP text block (zero means none).
+///
+/// Text drawing publishes this signed halfword for selection bounds, caret and
+/// marker handling. A line break closes the final choice and advances its index
+/// into a count; choice streams must close that final choice before ending.
+/// Valid streams contain at most `CAP_CHOICE_CAPACITY` choices.
+/// The value is refreshed by drawing, rather than reset on sequence selection.
+extern s16 gCapChoiceCount;
 
 /// Zero-based highlighted choice in the current laid-out CAP text block.
 ///

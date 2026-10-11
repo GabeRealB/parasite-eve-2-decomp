@@ -2027,7 +2027,7 @@ void itemMenuWeaponPanelTask(Task* task)
     object         = task->spawnArg2.pointer;
     weaponList     = &D_8010E884;
     object->result = USER_INTERFACE_RESULT_NONE;
-    uiDrawPanelLabel(&(object)->panel, Gp_StrWeaponTitle);
+    uiDrawPanelLabel(&(object)->panel, (const char*)gItemMenuWeaponTitle);
     // Initialize the equipped-weapon rows, then refresh them as loads change.
     if (task->state == ITEM_MENU_WEAPON_PANEL_INITIAL) {
         _itemMenuSetWeaponRows(weaponList);
@@ -2575,7 +2575,7 @@ void itemMenuArmorPanelTask(Task* task)
         scratch.request.glyphTable = TEXT_GLYPH_TABLE_SMALL;
         scratch.request.alignment  = TEXT_ALIGNMENT_LEFT;
         scratch.request.drawMode   = TEXT_DRAW_OUTLINED;
-        textDrawString(&scratch.request, Gp_StrAttachments2);
+        textDrawString(&scratch.request, gItemMenuArmorAttachmentsHeading);
     }
 
     {

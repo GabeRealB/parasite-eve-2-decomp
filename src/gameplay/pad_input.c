@@ -58,14 +58,6 @@ static s16 _gPadInputWheelBlockUpdates;
 
 #include "gameplay/pad_input.h"
 
-extern u8 Gp_BtnMap0[16];
-
-extern u8 Gp_BtnMap1[16];
-
-extern u8 Gp_BtnMap2[16];
-
-extern u8 Gp_BtnMap2Alt[16];
-
 enum {
     PAD_INPUT_LAYOUT_A                    = 0,
     PAD_INPUT_LAYOUT_B                    = 1,
@@ -83,7 +75,11 @@ enum {
 
 static u16 _padInputRemapButtons(const GameActor* player, u16 buttons);
 
-u8 Gp_BtnMap0[16] = {
+/// Layout A physical-bit to logical-bit indices.
+///
+/// Input indices and stored output indices are 0..15, covering a complete
+/// active-high pad mask. Multiple inputs may map to one logical button.
+static const u8 _gPadInputLayoutAMap[16] __attribute__((section(".data"))) = {
     0,
     1,
     2,
@@ -102,7 +98,11 @@ u8 Gp_BtnMap0[16] = {
     15,
 };
 
-u8 Gp_BtnMap1[16] = {
+/// Layout B physical-bit to logical-bit indices.
+///
+/// Input indices and stored output indices are 0..15, covering a complete
+/// active-high pad mask. Multiple inputs may map to one logical button.
+static const u8 _gPadInputLayoutBMap[16] __attribute__((section(".data"))) = {
     0,
     1,
     2,
@@ -121,7 +121,11 @@ u8 Gp_BtnMap1[16] = {
     15,
 };
 
-u8 Gp_BtnMap2[16] = {
+/// Layout C physical-bit to logical-bit indices before aiming or outside normal mode.
+///
+/// Input indices and stored output indices are 0..15, covering a complete
+/// active-high pad mask. Multiple inputs may map to one logical button.
+static const u8 _gPadInputLayoutCMap[16] __attribute__((section(".data"))) = {
     0,
     4,
     2,
@@ -140,7 +144,11 @@ u8 Gp_BtnMap2[16] = {
     15,
 };
 
-u8 Gp_BtnMap2Alt[16] = {
+/// Layout C physical-bit to logical-bit indices in normal states at or above aiming.
+///
+/// Input indices and stored output indices are 0..15, covering a complete
+/// active-high pad mask. Multiple inputs may map to one logical button.
+static const u8 _gPadInputLayoutCAlternateMap[16] __attribute__((section(".data"))) = {
     0,
     4,
     2,
@@ -326,16 +334,16 @@ static u16 _padInputRemapButtons(const GameActor* player, u16 buttons)
     mappedButtons = 0;
     switch (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.buttonLayout) {
         case PAD_INPUT_LAYOUT_A:
-            PAD_INPUT_REMAP_BUTTON_BITS(buttons, Gp_BtnMap0, mappedButtons, buttonBit);
+            PAD_INPUT_REMAP_BUTTON_BITS(buttons, _gPadInputLayoutAMap, mappedButtons, buttonBit);
             break;
         case PAD_INPUT_LAYOUT_B:
-            PAD_INPUT_REMAP_BUTTON_BITS(buttons, Gp_BtnMap1, mappedButtons, buttonBit);
+            PAD_INPUT_REMAP_BUTTON_BITS(buttons, _gPadInputLayoutBMap, mappedButtons, buttonBit);
             break;
         case PAD_INPUT_LAYOUT_C:
             if (player->mode == GAME_ACTOR_MODE_NORMAL && player->state >= PAD_INPUT_PLAYER_STATE_AIM) {
-                PAD_INPUT_REMAP_BUTTON_BITS(buttons, Gp_BtnMap2Alt, mappedButtons, buttonBit);
+                PAD_INPUT_REMAP_BUTTON_BITS(buttons, _gPadInputLayoutCAlternateMap, mappedButtons, buttonBit);
             } else {
-                PAD_INPUT_REMAP_BUTTON_BITS(buttons, Gp_BtnMap2, mappedButtons, buttonBit);
+                PAD_INPUT_REMAP_BUTTON_BITS(buttons, _gPadInputLayoutCMap, mappedButtons, buttonBit);
             }
             break;
     }

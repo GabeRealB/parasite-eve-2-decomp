@@ -1443,9 +1443,11 @@ extern const u8 gItemMenuArmorMpBonusLabel[];
 /// Encoded P.Energy title and command-row label for Parasite Energy.
 extern const u8 gItemMenuParasiteEnergyTitle[];
 
-extern const char Gp_StrOption[];
+/// Encoded label for the item-menu game-settings command.
+extern const u8 gItemMenuOptionsCommandText[];
 
-extern const char Gp_StrExit[];
+/// Encoded label for the item-menu Exit command.
+extern const u8 gItemMenuExitCommandText[];
 
 /// Encoded slash separating current values from their maximum or capacity.
 extern const u8 gItemMenuFractionSeparatorText[];
@@ -1468,7 +1470,8 @@ extern const u8 gItemMenuArmorTitle[];
 /// Encoded Attachments title and armor-summary attachment-list label.
 extern const u8 gItemMenuAttachmentsTitle[];
 
-extern const char Gp_StrWeaponTitle[];
+/// Encoded title shared by weapon summary, equipment detail and weapon panels.
+extern const u8 gItemMenuWeaponTitle[];
 
 /// Encoded E marker identifying the currently equipped item.
 extern const u8 gItemMenuEquippedMarkerText[];
@@ -1476,7 +1479,8 @@ extern const u8 gItemMenuEquippedMarkerText[];
 /// Encoded title for the carried-item list and ordinary-item pickup panels.
 extern const u8 gItemMenuItemTitle[];
 
-extern const char Gp_StrAttachments2[];
+/// Encoded heading for the armor panel's attachment-slot list.
+extern const u8 gItemMenuArmorAttachmentsHeading[];
 
 /// Encoded title for an item awarded as next-replay supply.
 extern const u8 gItemMenuNextReplaySupplyTitle[];
@@ -1514,7 +1518,8 @@ extern const u8 gItemMenuNoticePanelTitle[];
 /// Encoded title for the key-item list and key-item pickup panels.
 extern const u8 gItemMenuKeyItemTitle[];
 
-extern const char gGpStrWeight[];
+/// Encoded Weight label for the weapon comparison's weight column.
+extern const u8 gItemMenuWeaponWeightLabel[];
 
 /// Encoded Rate label for the weapon comparison's rate column.
 extern const u8 gItemMenuWeaponRateLabel[];
@@ -1528,16 +1533,20 @@ extern const u8 gItemMenuAmmoPowerLabel[];
 /// Encoded Attach. label for the armor comparison's attachment-slot count.
 extern const u8 gItemMenuArmorAttachmentCountLabel[];
 
-extern const char Gp_StrAttention[];
+/// Encoded title for the no-compatible-weapon notice.
+extern const u8 gItemMenuAttentionTitle[];
 
-extern const char Gp_StrSelectWeapon[];
+/// Encoded title for the weapon-selection panel.
+extern const u8 gItemMenuWeaponSelectionTitle[];
 
 /// Encoded title for equipment confirmation notices.
 extern const u8 gItemMenuEquipTitle[];
 
-extern const char Gp_StrSelectAmmo[];
+/// Encoded title for the ammunition-selection panel.
+extern const u8 gItemMenuAmmoSelectionTitle[];
 
-extern const char Gp_StrSelectArmor[];
+/// Encoded title for the armor-selection panel.
+extern const u8 gItemMenuArmorSelectionTitle[];
 
 /// Encoded title for ammunition-loading and removal notices.
 extern const u8 gItemMenuReloadTitle[];
@@ -1545,9 +1554,11 @@ extern const u8 gItemMenuReloadTitle[];
 /// Encoded title for an attachment confirmation notice.
 extern const u8 gItemMenuAttachTitle[];
 
-extern char Gp_StrCustomizeHelp[];
+/// Encoded prompt describing the game-settings command.
+extern const u8 gItemMenuOptionsHelpText[];
 
-extern char Gp_StrRemoveAmmoHelp[];
+/// Encoded prompt for removing ammunition from the selected weapon load slot.
+extern const u8 gItemMenuRemoveAmmoHelpText[];
 
 /// Encoded prompt describing the inventory Sort command.
 ///

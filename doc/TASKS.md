@@ -363,7 +363,7 @@ Several `func_*` rows are already matched C and only lack a role name.
 | `00`–`05`, `09`–`0A`, `0F`–`10` | `C0`/`20` | `taskKill` or NULL | Unused |
 | `06` | `80` | `capControlTask` | Persistent CAP controller: initialize, relocate/update and exit |
 | `07` | `20` | `evsInterpreterTask` | Event-script interpreter; borrows the command stream in spawnArg2 and takes a display hold |
-| `08` | `80` | `capHudSlideTask` | CAP demo-scene HP/MP slide; `spawnArg1.value` is -1 to hide, +1 to return; live handle `D_801156B8` |
+| `08` | `80` | `capHudSlideTask` | CAP demo-scene HP/MP slide; `spawnArg1.value` is -1 to hide, +1 to return; live handle `_gCapHudSlideTask` |
 | `0B` | `80` | `capActionPromptExitTask` | Borrows `CapActionRequest*` in `spawnArg2`, starts the item/save prompt, then requests stage-mode exit and kills when `done` becomes nonzero |
 | `0C` | `20` | `evsScreenShakeTask` | Vertical display shake; packed `spawnArg2.value` holds signed amplitude above bit 7 and half-duration (1..255) in the low byte |
 | `0D` | `20` | `evsMusicVolumeFadeTask` | `spawnArg2` is `_EvsMusicVolumeFade*` (music volume: target level + duration) |

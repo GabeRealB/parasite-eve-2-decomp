@@ -177,7 +177,7 @@ gameplay	optional	event: ending	21000	0	0	CD_COMMAND_LOAD_DEFAULT	src/gameplay/s
 # --- Rules for the placement-driven actor loads (src/gameplay/area_cd.c); the edges themselves are already traced.
 # Called from the area load in two passes (load_screen.c:105 and :111), after the room base file, with the variant from areaGetVariant(live save location).
 # Pass 1, loadingPollAreaBaseResources (area_cd.c:163; enqueue at :160): walks EVERY AreaResource of the variant, not only placed ones, and queues its base file
-#   (stage 0, group = D_8010CAD0[fileGroupIndex] {10,20,30,40,50,60,0,1,2} + fileNumber / 100, hundreds = fileNumber % 100, index 0, CD_COMMAND_LOAD_DEFAULT).
+#   (stage 0, group = _gLoadingAreaFileGroupBases[fileGroupIndex] {10,20,30,40,50,60,0,1,2} + fileNumber / 100, hundreds = fileNumber % 100, index 0, CD_COMMAND_LOAD_DEFAULT).
 #   Exception: a resource with fileGroupIndex == AREA_RESOURCE_FILE_GROUP_BASE_60 (5, groups 60..) is loaded only when some placement has the same entryId AND fileIdLow == 0.
 #   page/row = texturePageOffset/clutRowOffset of the first placement with the same entryId and fileIdLow == 0; 0/0 when there is none.
 # Pass 2, loadingPollAreaPlacementFiles (area_cd.c:79; enqueue at :76): for every placement with entryId != 0 and fileIdLow != 0, queues the file with the same

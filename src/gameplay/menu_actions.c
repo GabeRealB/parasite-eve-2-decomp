@@ -337,12 +337,12 @@ void itemMenuDrawOptionsCommandRow(UiList* list, UiObject* object)
     UiObject*   commandReceiver;
 
     ITEM_MENU_PREPARE_COMMAND_TEXT(request, list, object, list->colorRgb, TEXT_GLYPH_TABLE_SMALL, TEXT_DRAW_FILL_ONLY);
-    textDrawString(&request, (const u8*)Gp_StrOption);
+    textDrawString(&request, gItemMenuOptionsCommandText);
 
     panelControl = object->panel.control.word;
     if (((panelControl >> 16) == USER_INTERFACE_PANEL_ACTIVE) || (panelControl == USER_INTERFACE_PANEL_ACTIVE)) {
         if (list->selectedItemIndex == list->currentItemIndex) {
-            uiSetPromptText((const u8*)Gp_StrCustomizeHelp, 0, 0);
+            uiSetPromptText(gItemMenuOptionsHelpText, 0, 0);
             // Restore the menu resource once when selection leaves the item preview.
             if (object->owner->spawnArg1.value != ITEM_MENU_MAIN_PREVIEW_OPTIONS) {
                 cdCmdDropQueuedTail();
@@ -369,7 +369,7 @@ void itemMenuDrawExitCommandRow(UiList* list, UiObject* object)
     s32         panelControl;
 
     ITEM_MENU_PREPARE_COMMAND_TEXT(request, list, object, list->colorRgb, TEXT_GLYPH_TABLE_SMALL, TEXT_DRAW_FILL_ONLY);
-    textDrawString(&request, (const u8*)Gp_StrExit);
+    textDrawString(&request, gItemMenuExitCommandText);
 
     panelControl = object->panel.control.word;
 
@@ -463,7 +463,7 @@ void itemMenuWeaponSummaryTask(Task* task)
     }
     object->result = USER_INTERFACE_RESULT_NONE;
     itemMenuDrawWeaponSummary(object, object->panel.contentLeft.signedValue + 2, object->panel.contentTop.signedValue + ITEM_MENU_WEAPON_FIRST_ROW_Y_PIXELS, 0);
-    uiDrawTitle(&object->panel, (const u8*)Gp_StrWeaponTitle);
+    uiDrawTitle(&object->panel, (const char*)gItemMenuWeaponTitle);
 }
 
 void itemMenuSetItemDescriptionPrompt(s32 itemId)

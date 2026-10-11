@@ -15,7 +15,7 @@
 #include "main/task_types.h"
 
 /* Define BSS before private APIs to preserve first-declaration order. */
-u16 Gp_PubItemReady;
+u16 gItemPickupPublicationReady;
 
 u32 gPlanarReflectionLocationKey;
 
@@ -29,13 +29,13 @@ u16 gItemPickupPublishedKind;
 
 u16 D_80114DDE;
 
-s32 D_80114DE0;
+s32 gItemMenuPreviousSecondaryItemId;
 
-s32 D_80114DE4;
+s32 gItemMenuPreviousWeaponSlotSelection;
 
-s32 D_80114DE8;
+s32 gItemMenuPreviousWeaponSelection;
 
-u16 Gp_PubItemId;
+u16 gItemPickupPublishedFlagIndex;
 
 #include "items.h"
 #include "planar_reflection.h"
@@ -118,8 +118,7 @@ s32 itemPickupPublishPlacedObject(s32 flagIndex)
         ITEM_PICKUP_WEAPON_COUNT                 = ARRAY_SIZE(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.weaponItems),
         ITEM_PICKUP_DUPLICATE_WEAPON_REPLACEMENT = 0x3D,
         ITEM_PICKUP_DUPLICATE_OTHER_REPLACEMENT  = 0x0D,
-        ITEM_PICKUP_FULL_STACK_STATE             = 3,
-        ITEM_PICKUP_PUBLICATION_READY            = 1
+        ITEM_PICKUP_FULL_STACK_STATE             = 3
     };
     const AreaObjectRoom*           room;
     const AreaObjectPlace*          place;
@@ -148,11 +147,11 @@ s32 itemPickupPublishPlacedObject(s32 flagIndex)
 
                         do {
                             if (place->flagIndex == flagIndex) {
-                                objectKind               = place->kind;
-                                placeState               = place->state;
-                                Gp_PubItemId             = flagIndex;
-                                gItemPickupPublishedKind = objectKind;
-                                D_80114DDE               = placeState;
+                                objectKind                    = place->kind;
+                                placeState                    = place->state;
+                                gItemPickupPublishedFlagIndex = flagIndex;
+                                gItemPickupPublishedKind      = objectKind;
+                                D_80114DDE                    = placeState;
                                 // Publish item quantity only for the item bank.
                                 if (objectKind < ITEM_PICKUP_ITEM_BANK_END) {
                                     if (inventoryIsItemLimitReached(place->kind) != 0) {
@@ -162,7 +161,7 @@ s32 itemPickupPublishPlacedObject(s32 flagIndex)
                                             gItemPickupPublishedKind = ITEM_PICKUP_DUPLICATE_OTHER_REPLACEMENT;
                                         }
                                         gItemPickupPublishedQuantity = 1;
-                                        Gp_PubItemReady              = ITEM_PICKUP_PUBLICATION_READY;
+                                        gItemPickupPublicationReady  = ITEM_PICKUP_PUBLICATION_READY;
                                     } else if ((u32)(place->kind - INVENTORY_CONSUMABLE_ITEM_FIRST) < (u32)INVENTORY_CONSUMABLE_ITEM_COUNT) {
                                         if (areaGetCurrentObjectState(flagIndex) != ITEM_PICKUP_FULL_STACK_STATE) {
                                             consumableIndex              = place->kind - INVENTORY_CONSUMABLE_ITEM_FIRST;
@@ -171,10 +170,10 @@ s32 itemPickupPublishPlacedObject(s32 flagIndex)
                                             consumableIndex              = place->kind - INVENTORY_CONSUMABLE_ITEM_FIRST;
                                             gItemPickupPublishedQuantity = consumableStacks[consumableIndex].maxHeld;
                                         }
-                                        Gp_PubItemReady = ITEM_PICKUP_PUBLICATION_READY;
+                                        gItemPickupPublicationReady = ITEM_PICKUP_PUBLICATION_READY;
                                     } else {
                                         gItemPickupPublishedQuantity = 1;
-                                        Gp_PubItemReady              = ITEM_PICKUP_PUBLICATION_READY;
+                                        gItemPickupPublicationReady  = ITEM_PICKUP_PUBLICATION_READY;
                                     }
                                 }
                                 found       = 1;

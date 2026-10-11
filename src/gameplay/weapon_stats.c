@@ -25,9 +25,6 @@
 #include "main/ui.h"
 #include "main/wipsys.h"
 
-/// Comparison values for weapon items 0x7F..0x9F (row zero is unequipped).
-extern u16 Gp_WeaponStats[33][4];
-
 /// Catalogue domains and comparison graphics used by the equipment choices.
 enum {
     ITEM_MENU_ARMOR_ITEM_FIRST                  = 0x60,
@@ -35,6 +32,8 @@ enum {
     ITEM_MENU_CONSUMABLE_POWER_NONE             = INVENTORY_CONSUMABLE_ITEM_FIRST - 1,
     ITEM_MENU_PARASITE_ENERGY_ITEM_FIRST        = 0xF,
     ITEM_MENU_PARASITE_ENERGY_ITEM_COUNT        = ATTACHMENT_SPELL_COUNT * ATTACHMENT_AREA_LEVEL_COUNT,
+    ITEM_MENU_WEAPON_COMPARISON_STAT_COUNT      = 3,
+    ITEM_MENU_WEAPON_COMPARISON_ROW_HALFWORDS   = 4,
     ITEM_MENU_WEAPON_WEIGHT_STAT                = 2,
     ITEM_MENU_STATS_NEUTRAL_COLOR_RGB           = 0x606060,
     ITEM_MENU_STATS_BETTER_COLOR_RGB            = 0x01741F,
@@ -67,13 +66,15 @@ enum {
     ITEM_MENU_DETAIL_OPEN_DELAY_TICKS = 16
 };
 
+static const u16 _gItemMenuWeaponComparisonValues[ITEM_MENU_EQUIPMENT_ITEM_COUNT + 1][ITEM_MENU_WEAPON_COMPARISON_ROW_HALFWORDS];
+
 /// Borrows the read-only range/rate/weight row for weapon item id 0x80..0x9F.
 ///
 /// The synthetic id 0x7F selects the all-zero unequipped row. The four-halfword
 /// row belongs to the gameplay image; only its first three values are drawn.
 static inline const u16* _itemMenuGetWeaponStats(s32 weaponItemId)
 {
-    return Gp_WeaponStats[weaponItemId - (EQUIPMENT_WEAPON_ITEM_FIRST - 1)];
+    return _gItemMenuWeaponComparisonValues[weaponItemId - (EQUIPMENT_WEAPON_ITEM_FIRST - 1)];
 }
 
 /// Borrows one consumable's base damage for display as ammunition power.
@@ -101,7 +102,14 @@ static inline void _itemMenuRequestSelectionPreview(s32 itemId, u8 loadProfile);
 
 static inline void _itemMenuDrawUnmarkedItemRowAt(UiObject* object, s32 x, s32 y, s32 colorRgb, s32 itemId);
 
-u16 Gp_WeaponStats[33][4] = {
+/// Weapon comparison vectors indexed by equipped selection 0..32.
+///
+/// Selection zero (synthetic item 0x7F) is the unequipped all-zero row; selections
+/// 1..32 represent item IDs 0x80..0x9F. Columns 0..2 are Range, Rate and Weight,
+/// drawn as raw integers; their physical units and scales are unproven. Higher
+/// range/rate and lower weight compare favorably. The fourth halfword is zero
+/// in every row, has no reader and has no established role.
+static const u16 _gItemMenuWeaponComparisonValues[ITEM_MENU_EQUIPMENT_ITEM_COUNT + 1][ITEM_MENU_WEAPON_COMPARISON_ROW_HALFWORDS] __attribute__((section(".data"))) = {
     { 0, 0, 0, 0 },
     { 70, 80, 100, 0 },
     { 50, 110, 117, 0 },
@@ -205,9 +213,9 @@ void itemMenuDrawEquipmentStats(const UiObject* object, s32 itemId, s32 displayM
     if ((u32)(itemId - EQUIPMENT_WEAPON_ITEM_FIRST) < (u32)ITEM_MENU_EQUIPMENT_ITEM_COUNT) {
         statList       = &gItemMenuWeaponChoiceList;
         candidateStats = _itemMenuGetWeaponStats(itemId);
-        statCount      = 3;
+        statCount      = ITEM_MENU_WEAPON_COMPARISON_STAT_COUNT;
         D_80114D80     = D_8010E984;
-        equippedStats  = Gp_WeaponStats[player->weapon];
+        equippedStats  = _gItemMenuWeaponComparisonValues[player->weapon];
     } else if ((u32)(itemId - INVENTORY_CONSUMABLE_ITEM_FIRST) < (u32)INVENTORY_CONSUMABLE_ITEM_COUNT) {
         weaponLoad     = equipmentGetWeaponLoad(player->weapon + (EQUIPMENT_WEAPON_ITEM_FIRST - 1));
         statList       = &gItemMenuConsumableChoiceList;
@@ -450,7 +458,7 @@ void itemMenuEquipmentDetailTask(Task* task)
     loadProfile    = CD_COMMAND_DISPLAY_LOAD_MENU;
     // Equipped selectors are one-based; attachments use the selected carried row.
     if (detailKind == ITEM_MENU_DETAIL_WEAPON) {
-        uiDrawPanelLabel(&object->panel, Gp_StrWeaponTitle);
+        uiDrawPanelLabel(&object->panel, (const char*)gItemMenuWeaponTitle);
         itemId = player->weapon + (EQUIPMENT_WEAPON_ITEM_FIRST - 1);
         if (itemId < EQUIPMENT_WEAPON_ITEM_FIRST) {
             itemId = INVENTORY_ITEM_NONE;
@@ -706,7 +714,7 @@ void itemMenuWeaponChoiceListTask(Task* task)
         }
         return;
     }
-    uiDrawPanelLabel(&(object)->panel, Gp_StrAttention);
+    uiDrawPanelLabel(&(object)->panel, (const char*)gItemMenuAttentionTitle);
     {
         s32 textDrawMode = activeState;
 
@@ -745,7 +753,7 @@ void itemMenuWeaponSelectionTask(Task* task)
     weaponChoices = &gItemMenuWeaponChoiceList;
     object        = task->spawnArg2.pointer;
     player        = &gPlayerStatus;
-    uiDrawPanelLabel(&object->panel, Gp_StrSelectWeapon);
+    uiDrawPanelLabel(&object->panel, (const char*)gItemMenuWeaponSelectionTitle);
     uiDrawHorizontalSeparator(&object->panel, object->panel.contentLeft.signedValue, object->panel.contentRight.signedValue, object->panel.contentTop.signedValue + 0x4A);
     if (task->state == ITEM_MENU_WEAPON_CHOICE_INITIAL) {
         parentTask = task->parent;
@@ -806,7 +814,7 @@ void itemMenuDrawConsumableChoiceRow(UiList* list, UiObject* object)
     if (((controlWord >> 16) == USER_INTERFACE_PANEL_ACTIVE) || (controlWord == USER_INTERFACE_PANEL_ACTIVE)) {
         if (list->selectedItemIndex == list->currentItemIndex) {
             if (consumableItemId == 0) {
-                uiSetPromptText((const u8*)Gp_StrRemoveAmmoHelp, 0, 0);
+                uiSetPromptText(gItemMenuRemoveAmmoHelpText, 0, 0);
             } else {
                 uiSetPromptText(itemGetText(consumableItemId, ITEM_TEXT_DESCRIPTION_FIRST, 0), 0, 0);
                 if (gItemMenuWeaponLoadSelection == EQUIPMENT_CLEAR_LOAD_BOTH) {

@@ -347,8 +347,14 @@ void inventoryMoveItemRow(const InventoryItemRange* range, s32 sourceIndex, s32 
 /// Rows are gameplay-owned and remain readable while its overlay is loaded.
 extern ArmorStats gEquipmentArmorStats[32];
 
-// Shared item-publication work.
-extern u16 Gp_PubItemReady;
+/// Value written when publication supplies an item quantity.
+enum { ITEM_PICKUP_PUBLICATION_READY = 1 };
+
+/// Item-quantity publication latch (initially zero, set to one on item publication).
+///
+/// Non-item bank publication leaves it untouched. No reader or clearing store
+/// is identified, so a consumer-driven reset or broader handshake is unproven.
+extern u16 gItemPickupPublicationReady;
 
 /// Item units offered by the current placed-object pickup.
 ///
@@ -381,13 +387,35 @@ extern u16 gItemPickupPublishedKind;
 
 extern u16 D_80114DDE;
 
-extern s32 D_80114DE0;
+/// Secondary consumable item ID captured when the item menu opens.
+///
+/// -1 means no weapon; otherwise copies the weapon load's byte item ID
+/// (0 none, 0xA0..0xBF consumable, 0xFF unavailable). Compared on menu exit
+/// to decide whether weapon resources and bodies must be rebuilt.
+extern s32 gItemMenuPreviousSecondaryItemId;
 
-extern s32 D_80114DE4;
+/// Primary consumable selection captured when the item menu opens.
+///
+/// Copies the equipped weapon-slot byte: item ID minus 0x9F, modulo 256;
+/// zero is empty. Compared on menu exit when deciding whether to rebuild
+/// weapon resources and bodies. Storage retains the captured value until
+/// the next menu opens.
+extern s32 gItemMenuPreviousWeaponSlotSelection;
 
-extern s32 D_80114DE8;
+/// Equipped weapon selection captured when the item menu opens (0 none, 1..32 weapon).
+///
+/// A weapon selection is item ID minus 0x7F. Menu exit compares this snapshot
+/// and temporarily restores its low byte while removing the old weapon bodies;
+/// the full word remains intact until the next menu opens.
+extern s32 gItemMenuPreviousWeaponSelection;
 
-extern u16 Gp_PubItemId;
+/// Placed-object flag index published alongside the current pickup kind.
+///
+/// Room lookup copies `AreaObjectPlace.flagIndex`; task publication copies the
+/// low byte of the enemy place key. It identifies packed 2-bit placement state,
+/// rather than an inventory item. No consumer is identified; later publication
+/// overwrites this singleton without a separate clearing store.
+extern u16 gItemPickupPublishedFlagIndex;
 
 /// Outcome of a battle-reward grant; a granted bonus takes precedence.
 enum {

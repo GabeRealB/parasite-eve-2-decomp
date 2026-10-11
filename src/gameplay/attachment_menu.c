@@ -429,7 +429,7 @@ void itemMenuAmmoSelectionTask(Task* task)
     }
     currentState = task->state;
     if (currentState == ITEM_MENU_CONSUMABLE_CHOICE_SELECTING) {
-        uiDrawPanelLabel(&object->panel, Gp_StrSelectAmmo);
+        uiDrawPanelLabel(&object->panel, (const char*)gItemMenuAmmoSelectionTitle);
         // The base controller has finished sizing and positioning this list.
         if (previousState == ITEM_MENU_CONSUMABLE_CHOICE_INITIAL) {
             list->topInset                      += ITEM_MENU_SELECTION_STATS_HEIGHT_PIXELS;
@@ -560,7 +560,7 @@ void itemMenuArmorSelectionTask(Task* task)
     list           = &D_8010E9F4;
     object         = task->spawnArg2.pointer;
     object->result = USER_INTERFACE_RESULT_NONE;
-    uiDrawPanelLabel(&object->panel, Gp_StrSelectArmor);
+    uiDrawPanelLabel(&object->panel, (const char*)gItemMenuArmorSelectionTitle);
 
     // Reserve the comparison area before rows and hide the previous command panel.
     if (task->state == ITEM_MENU_ARMOR_SELECTION_INITIAL) {

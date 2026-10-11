@@ -687,7 +687,7 @@ the copied local does:
 100.000%, 0 differences. The `"+r"` asm makes the copied value opaque, so the
 copy has to be materialized and the branch reads its result. `loadingPollAreaBaseResources`
 (`gameplay/D4.c`) is the only other site in the ROM with this shape and is
-matched the same way — `next = D_80114C68; TOUCH_REG(next);` ahead of
+matched the same way — `next = _gLoadingAreaResourceCursor; TOUCH_REG(next);` ahead of
 `if (next == NULL)` — so reach for `TOUCH_REG` here rather than a bare copy.
 (Found by scanning the disassembly for the encoding `21106000` followed by
 `beqz $v0`: four sites in the whole ROM, two of them this overlay's spawn
@@ -7622,7 +7622,7 @@ A 0x38-byte stack copy that the target does as three aligned 16-byte
 GCC emits `andi src, 3` plus an `lwl`/`lwr` fallback. A leading `s32`
 (or any 4-aligned member) is enough.
 
-`directionResolveWarp` is the example (`Gp_WarpTables` / `DirectionWarpEntry`).
+`directionResolveWarp` is the example (`gDirectionAreaWarpEntriesByStage` / `DirectionWarpEntry`).
 
 ## Barrier after scratch alloc so GTE setup cannot fill load-delay nops
 
@@ -23778,10 +23778,10 @@ already 0 from the `beqz` delay slot):
 
 ```c
 if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene == 9) {
-    hudSlideTask = D_801156B8;
+    hudSlideTask = _gCapHudSlideTask;
     if (hudSlideTask != NULL) {
         hudSlideTask->spawnArg1.value = 1;
-        D_801156B8                   = NULL;
+        _gCapHudSlideTask                   = NULL;
         return 0;
     }
 } else {
@@ -33058,15 +33058,15 @@ li    s8, 0xffff
 lui   s6, %hi(gItemPickupPublishedKind)
 lui   s4, %hi(gItemPickupPublishedQuantity)
 li    s1, 1
-lui   s5, %hi(Gp_PubItemReady)
+lui   s5, %hi(gItemPickupPublicationReady)
 ```
 
-Write the stores as a literal `1` (`gItemPickupPublishedQuantity = 1; Gp_PubItemReady = 1;`)
+Write the stores as a literal `1` (`gItemPickupPublishedQuantity = 1; gItemPickupPublicationReady = 1;`)
 and do **not** introduce a `one` temp. GCC CSE's the constant into `$s1`
 and places `li s1, 1` in first-use order among the hoisted `%hi`s.
 
-Duplicate `Gp_PubItemReady = 1` in each arm of the remap (not once after the
-join) so `%hi(Gp_PubItemReady)` hoists into `$s5`. GCC still CSE's the stores
+Duplicate `gItemPickupPublicationReady = 1` in each arm of the remap (not once after the
+join) so `%hi(gItemPickupPublicationReady)` hoists into `$s5`. GCC still CSE's the stores
 back to a single `sh` after the join.
 
 `itemPickupPublishPlacedObject` is the example.
@@ -35990,7 +35990,7 @@ Pin `k` in `$a0` before the assign:
     register s32 warpId asm("a0");
     warpId = location->warp;
     asm volatile("" : "+r"(warpId));
-    warpEntry = Gp_WarpTables[location->stage - 1][location->area - 1][warpId - 1];
+    warpEntry = gDirectionAreaWarpEntriesByStage[location->stage - 1][location->area - 1][warpId - 1];
 }
 ```
 
@@ -69558,12 +69558,12 @@ Separately, reversing chained vector assignment destinations corrects the six st
 
 ## An exact-symbol extern can split a CSE'd global HIGH without losing relocations
 
-`loadingPollAreaPlacementFiles` already keeps `%hi(Gp_CdRecCur)` live in `$t0` around its
+`loadingPollAreaPlacementFiles` already keeps `%hi(_gLoadingAreaPlacementCursor)` live in `$t0` around its
 main loop, so a second plain field read reuses that HIGH and deletes the ROM's
 fresh `lui $a0`. A block-local extern with a different C name and the exact
-assembler name survives CSE as `symbol_ref ("*Gp_CdRecCur")`; GNU as still
+assembler name survives CSE as `symbol_ref ("*_gLoadingAreaPlacementCursor")`; GNU as still
 emits ordinary `R_MIPS_HI16`/`R_MIPS_LO16` relocations against
-`Gp_CdRecCur`. This is narrower than spelling `Gp_CdRecCur+0`: it does not
+`_gLoadingAreaPlacementCursor`. This is narrower than spelling `_gLoadingAreaPlacementCursor+0`: it does not
 invent a linker addend or hide the relocation.
 
 The separate HIGH initially coalesces with its loaded pointer in `$v0`
@@ -152104,7 +152104,7 @@ heldButtons &= 0xFFDF;`. At local-alloc the extra arm is a branch, an `and` and 
 jump; jump2 cross-jumps the two equal arms and deletes the branch, leaving the
 image's single test. Length 246, priority 1341, order mask / session /
 `player`, no pin. There are three layouts and 0 and 2 do share the bit
-(`Gp_BtnMap0`/`Gp_BtnMap2` both send pad bit 5 to output bit 6), which is why
+(`_gPadInputLayoutAMap`/`_gPadInputLayoutCMap` both send pad bit 5 to output bit 6), which is why
 this spot was chosen, but the image does not say where the original's extra
 insns were or what the vanished test compared (`== 2` matches as well).
 

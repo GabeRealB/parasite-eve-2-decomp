@@ -283,7 +283,7 @@ void directionQueryWarp(void)
     _gDirectionWarpQueryResult   = 0;
     gDirectionWarpDepartureShade = 0;
     // The current endpoint supplies facing and sounds for this departure.
-    warpEntry = Gp_WarpTables[stageId - 1][areaId - 1][(gDirectionActionParameter1 >> DIRECTION_WARP_ENDPOINT_SHIFT) - 1];
+    warpEntry = gDirectionAreaWarpEntriesByStage[stageId - 1][areaId - 1][(gDirectionActionParameter1 >> DIRECTION_WARP_ENDPOINT_SHIFT) - 1];
 
     gDirectionWarpRequest.field_4   = 1;
     gDirectionWarpRequest.room      = DIRECTION_WARP_DEFAULT_ROOM;
@@ -386,7 +386,7 @@ void directionResolveWarp(void)
     roomTask     = gameGetTaskSlot(GAME_TASK_SLOT_ROOM);
 
     location  = &gGameSession->location.loc;
-    warpEntry = Gp_WarpTables[location->stage - 1][location->area - 1][(gDirectionActionParameter1 >> DIRECTION_WARP_ENDPOINT_SHIFT) - 1];
+    warpEntry = gDirectionAreaWarpEntriesByStage[location->stage - 1][location->area - 1][(gDirectionActionParameter1 >> DIRECTION_WARP_ENDPOINT_SHIFT) - 1];
 
     _directionStepDepartureFade();
 

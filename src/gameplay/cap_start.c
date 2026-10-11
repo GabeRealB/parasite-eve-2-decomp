@@ -34,7 +34,7 @@ u8 gCapPendingViewPhase;
 
 s16 gCapTextViewTransitionState;
 
-s16 D_801155BE;
+s16 gCapChoiceCount;
 
 s16 gCapSelectedChoiceIndex;
 

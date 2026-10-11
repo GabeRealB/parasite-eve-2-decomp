@@ -180,7 +180,7 @@ typedef struct {
     struct Task*     task;    // the effect task; this block is its `spawnArg2`
     s32              field_4; // zeroed at spawn; no decompiled reader; role unproven
     struct GfxCoord* parent;  // coordinate the spawn was given, or the view when that argument was NULL
-    SVECTOR*         field_C; // offset pointer the spawn was given, NULL left as NULL; no decompiled reader; role unproven
+    const SVECTOR*   field_C; // offset pointer the spawn was given, NULL left as NULL; no decompiled reader; role unproven
     SVECTOR          move;    // displacement or direction; zero at spawn
     SVECTOR          pos;     // position or offset copied from the spawn argument; some effects store a rotation triple
     s16              index;   // selector: a frame, variant or sprite column
