@@ -181,7 +181,13 @@ enum {
 /// through a decision or transition. Other playback modes do not consult it.
 extern u8 gCapPreserveActorControl;
 
-extern s32 D_80115694;
+/// Logical view restored after a room cutscene and used while CAP opens placed-object prompts.
+///
+/// A positive cutscene view latches the previous saved view here; a nonpositive
+/// one supplies its negation as the restoration target. Serialized playback
+/// and the cutscene runner share this word. Consumers store its low byte into
+/// the live save's view selector; keep the target valid for the loaded area.
+extern s32 gCapRestoreView;
 
 /// Borrowed command-reference entries of the last successfully selected CAP table.
 ///

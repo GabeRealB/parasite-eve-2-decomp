@@ -92,7 +92,7 @@ void func_80724748(GameLocationKey* arg0);
 
 /// Polls base resources, then placement files, using the shared area-load cursors.
 ///
-/// Start with `D_80114C74` at zero and keep the loaded layout and live saved
+/// Start with `gLoadingAreaResourcePass` at zero and keep the loaded layout and live saved
 /// destination valid through both passes. Returns 0 until the placement pass
 /// completes, then 1. Base completion starts placements on the next call;
 /// completion leaves the pass selector at 2 until the next area load resets it.
@@ -104,15 +104,15 @@ static inline u16 _loadingPollAreaResourcePasses(void)
         LOADING_AREA_PASS_PLACEMENTS = 2,
     };
 
-    switch (D_80114C74) {
+    switch (gLoadingAreaResourcePass) {
         case LOADING_AREA_PASS_INIT:
-            D_80114C70 = LOADING_AREA_INIT;
-            D_80114C74 = LOADING_AREA_PASS_BASE;
+            gLoadingAreaBaseResourcePhase = LOADING_AREA_INIT;
+            gLoadingAreaResourcePass      = LOADING_AREA_PASS_BASE;
             // Initialize and poll the base pass in the same callback tick.
         case LOADING_AREA_PASS_BASE:
             if (loadingPollAreaBaseResources()) {
-                Gp_AreaCdPhase = LOADING_AREA_INIT;
-                D_80114C74++;
+                gLoadingAreaPlacementFilePhase = LOADING_AREA_INIT;
+                gLoadingAreaResourcePass++;
             }
             return 0;
         case LOADING_AREA_PASS_PLACEMENTS:
@@ -616,7 +616,7 @@ void loadingPrepareAreaStateTask(Task* task)
         areaSyncLocationVariant(savedLocation);
         gGameSession->location.loc.variant = savedLocation->variant;
         cdCmdPrepareViewMovie();
-        D_80114C74 = LOADING_AREA_INIT;
+        gLoadingAreaResourcePass = LOADING_AREA_INIT;
         task->state++;
     }
 }

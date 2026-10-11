@@ -1963,7 +1963,7 @@ void itemPickupOpenPromptTask(Task* task)
                 break;
             default:
                 stageEnsureHeapTaskPrimitiveBuffer();
-                descriptor = &D_8010D6D8;
+                descriptor = &gItemMenuTransferScreenDescriptor;
                 break;
         }
         rootObject = uiSpawnObject(descriptor, 0, USER_INTERFACE_PANEL_INACTIVE, 0, NULL);

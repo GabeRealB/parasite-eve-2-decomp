@@ -42,13 +42,12 @@ typedef struct {
 } _DirectionStairSurfaces;
 STATIC_ASSERT_SIZEOF(_DirectionStairSurfaces, 8);
 
-extern _DirectionStairSurfaces D_801149FC[];
-
-extern u8 D_801149E8[10];
-
-extern u8 D_801149F4[8];
-
-u8 D_801149E8[10] = {
+/// Water-hole surface classes for ascent, indexed by completed stair steps.
+///
+/// The five-step flight reads entries 0..5, including its landing. Entries
+/// 6..9 are retained but have no established reader; the class changes from
+/// 4 to 6 after two steps. These bytes live with gameplay, not the room overlay.
+static u8 _gDirectionWaterHoleStairAscentSurfaces[10] = {
     4,
     4,
     6,
@@ -60,7 +59,11 @@ u8 D_801149E8[10] = {
     6,
     6
 };
-u8 D_801149F4[8] = {
+/// Water-hole surface classes for descent, indexed by completed stair steps.
+///
+/// The two-step descent reads entries 0..2, including its landing, all class 4.
+/// Entries 3..7 are retained but have no established reader.
+static u8 _gDirectionWaterHoleStairDescentSurfaces[8] = {
     4,
     4,
     4,
@@ -71,9 +74,15 @@ u8 D_801149F4[8] = {
     4
 };
 
-_DirectionStairSurfaces D_801149FC[5] = {
+/// Stair-flight surface rows selected by bits 4..6 of an indexed stair parameter.
+///
+/// Slots 0..4 are the Acropolis bridge, Dryfield water hole, two water-supply
+/// flights and the reservoir. Selectors 5..7 have no record. Each direction's
+/// row must cover the trigger's step count plus the landing. Borrowed room
+/// rows must remain loaded through the climb; the water-hole rows live here.
+static _DirectionStairSurfaces _gDirectionStairSurfaceFlights[5] = {
     { gAcropolisBridgeStairSurfaceRows[0], gAcropolisBridgeStairSurfaceRows[1] },
-    { D_801149E8, D_801149F4 },
+    { _gDirectionWaterHoleStairAscentSurfaces, _gDirectionWaterHoleStairDescentSurfaces },
     { gShelterB4WaterSupplyStairSurfaceRows[0], gShelterB4WaterSupplyStairSurfaceRows[1] },
     { gShelterB4WaterSupplyStairSurfaceRows[2], gShelterB4WaterSupplyStairSurfaceRows[3] },
     { gShelterB4ReservoirStairAscentSurfaces, gShelterB4ReservoirStairDescentSurfaces }
@@ -111,10 +120,10 @@ void directionAwaitStairClimb(void)
     if (stairParameter & DIRECTION_STAIR_INDEXED_SURFACES) {
         stepsRemaining = player->scriptMotion.jumpSteps;
         if (gDirectionActionControl & DIRECTION_STAIR_DESCEND) {
-            stepSurfaces         = D_801149FC[(stairParameter & DIRECTION_STAIR_SURFACE_MASK) >> DIRECTION_STAIR_SURFACE_SHIFT].descent;
+            stepSurfaces         = _gDirectionStairSurfaceFlights[(stairParameter & DIRECTION_STAIR_SURFACE_MASK) >> DIRECTION_STAIR_SURFACE_SHIFT].descent;
             player->surfaceClass = stepSurfaces[(stairParameter & DIRECTION_STAIR_STEP_COUNT_MASK) - stepsRemaining];
         } else {
-            stepSurfaces         = D_801149FC[(stairParameter & DIRECTION_STAIR_SURFACE_MASK) >> DIRECTION_STAIR_SURFACE_SHIFT].ascent;
+            stepSurfaces         = _gDirectionStairSurfaceFlights[(stairParameter & DIRECTION_STAIR_SURFACE_MASK) >> DIRECTION_STAIR_SURFACE_SHIFT].ascent;
             player->surfaceClass = stepSurfaces[(stairParameter & DIRECTION_STAIR_STEP_COUNT_MASK) - stepsRemaining];
         }
     } else {

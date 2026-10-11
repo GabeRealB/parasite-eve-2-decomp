@@ -36,10 +36,10 @@ extern UiObjectDesc D_8010CA78[];
 
 static void _sceneBattleResultTask(Task* task);
 
-u8                 Gp_StrItemObtained[]        = "Item obtained!";
-u8                 Gp_StrBonusItem[]           = "Bonus item!!";
-s32                gHudInputDelayUpdates       = 0;
-InventoryItemRange gInventoryBattleRewardRange = { .firstRow = 0, .rowCount = ARRAY_SIZE(gInventoryBattleRewardRows), .tableId = INVENTORY_ITEM_TABLE_AREA_GRANTS };
+u8                 gItemPickupObtainedNoticeText[] = "Item obtained!";
+u8                 gItemPickupBonusNoticeText[]    = "Bonus item!!";
+s32                gHudInputDelayUpdates           = 0;
+InventoryItemRange gInventoryBattleRewardRange     = { .firstRow = 0, .rowCount = ARRAY_SIZE(gInventoryBattleRewardRows), .tableId = INVENTORY_ITEM_TABLE_AREA_GRANTS };
 
 /// Unreferenced halfword table following the item-grant scan.
 static u16 D_8010CA30[] = { 0x3A, 0x2E, 0x3B, 0x31, 0x41, 0x34, 0, 0 };
@@ -169,7 +169,7 @@ static void _sceneBattleResultTask(Task* task)
                     uiStartTreeClosing(resultPanel, resultPanel->owner);
                     if (task->status != INVENTORY_BATTLE_REWARD_NONE_GRANTED) {
                         gItemPickupPublishedKind = SCENE_BATTLE_RESULT_ITEM_PLACE_KIND;
-                        task->spawnArg2.pointer  = uiSpawnObject(&D_8010D6D8, SCENE_BATTLE_RESULT_ITEM_TRANSFER_MODE, USER_INTERFACE_PANEL_ACTIVE, 1, NULL);
+                        task->spawnArg2.pointer  = uiSpawnObject(&gItemMenuTransferScreenDescriptor, SCENE_BATTLE_RESULT_ITEM_TRANSFER_MODE, USER_INTERFACE_PANEL_ACTIVE, 1, NULL);
                         task->state++;
                     } else {
                         task->killCountdown = SCENE_BATTLE_RESULT_CLOSE_FRAMES;

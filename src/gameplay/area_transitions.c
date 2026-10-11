@@ -24,6 +24,7 @@
 #include "world_collision.h"
 
 #include "main/gameflag.h"
+#include "main/areas.h"
 #include "main/gameflow.h"
 #include "main/mc.h"
 #include "main/session.h"
@@ -121,16 +122,6 @@ typedef struct {
 } _DirectionWarpPhaseTable;
 STATIC_ASSERT_SIZEOF(_DirectionWarpPhaseTable, 0x18);
 
-/// `AREA_MAP_MARK_END`-terminated `_AreaMapMarkRec` lists applied by `areaApplyNewGameMapMarks` to
-/// `gAreaRecordsByStage[1]`, `[2]`, `[4]` and `[5]`.
-extern _AreaMapMarkRec Gp_NewGameFlagsStg1[];
-
-extern _AreaMapMarkRec Gp_NewGameFlagsStg2[];
-
-extern _AreaMapMarkRec Gp_NewGameFlagsStg4[];
-
-extern _AreaMapMarkRec Gp_NewGameFlagsStg5[];
-
 /// The flag entry `table[idx]`: its low 11 bits select a flag nibble, and its
 /// bit 0x800 is added onto that nibble's value.
 extern const TaskFuncTable3 Gp_DirTaskStates;
@@ -193,140 +184,157 @@ static inline s32 _areaHasMapMark(const GameLocationKey* key)
     return 0;
 }
 
-_AreaMapMarkRec Gp_NewGameFlagsStg1[20] = {
-    { 1, 0 },
-    { 2, 0 },
-    { 3, 1 },
-    { 4, 0 },
-    { 5, 0 },
-    { 6, 0 },
-    { 7, 1 },
-    { 8, 0 },
-    { 9, 0 },
-    { 10, 1 },
-    { 11, 1 },
-    { 12, 0 },
-    { 13, 0 },
-    { 14, 1 },
-    { 15, 1 },
-    { 16, 0 },
-    { 18, 0 },
-    { 19, 0 },
+/// Initial Acropolis/M.I.S.T. map marks, ended by AREA_MAP_MARK_END.
+///
+/// True choices set the area's saved map-mark bit; false choices leave it
+/// unchanged. The final zero record after the terminator is unread and its
+/// purpose is unproven; retain it with the list's twenty-record extent.
+static _AreaMapMarkRec _gAreaAcropolisNewGameMapMarks[20] = {
+    { GAME_AREA_ACROPOLIS_SQUARE, false },
+    { GAME_AREA_ACROPOLIS_EAST_ELEVATOR_HALL, false },
+    { GAME_AREA_ACROPOLIS_PATIO, true },
+    { GAME_AREA_ACROPOLIS_CAFETERIA, false },
+    { GAME_AREA_ACROPOLIS_PLAZA, false },
+    { GAME_AREA_ACROPOLIS_SECURITY_ROOM, false },
+    { GAME_AREA_ACROPOLIS_HALLWAY, true },
+    { GAME_AREA_ACROPOLIS_FOUNTAIN, false },
+    { GAME_AREA_ACROPOLIS_FORKED_ROAD, false },
+    { GAME_AREA_ACROPOLIS_OBSERVATORY, true },
+    { GAME_AREA_ACROPOLIS_PROMENADE, true },
+    { GAME_AREA_ACROPOLIS_SANCTUARY, false },
+    { GAME_AREA_ACROPOLIS_ROOF_GARDEN, false },
+    { GAME_AREA_ACROPOLIS_BRIDGE, true },
+    { GAME_AREA_ACROPOLIS_FIRE_ESCAPE, true },
+    { GAME_AREA_ACROPOLIS_HELICOPTER_LANDING_PAD, false },
+    { GAME_AREA_MIST_R18, false },
+    { GAME_AREA_MIST_PARKING, false },
     { AREA_MAP_MARK_END, 0 },
     { 0, 0 },
 };
-_AreaMapMarkRec Gp_NewGameFlagsStg2[28] = {
-    { 1, 0 },
-    { 2, 0 },
-    { 3, 0 },
-    { 5, 1 },
-    { 6, 1 },
-    { 7, 0 },
-    { 9, 0 },
-    { 11, 0 },
-    { 12, 1 },
-    { 15, 0 },
-    { 16, 0 },
-    { 18, 1 },
-    { 19, 1 },
-    { 20, 1 },
-    { 21, 0 },
-    { 22, 0 },
-    { 23, 0 },
-    { 24, 0 },
-    { 25, 0 },
-    { 26, 0 },
-    { 27, 0 },
-    { 29, 0 },
-    { 30, 0 },
-    { 32, 1 },
-    { 34, 1 },
-    { 38, 0 },
+/// Initial daytime Dryfield map marks, ended by AREA_MAP_MARK_END.
+///
+/// True choices set the saved map-mark bit; false choices preserve it. The
+/// final zero record after the terminator is unread and has an unproven role.
+static _AreaMapMarkRec _gAreaDryfieldNewGameMapMarks[28] = {
+    { GAME_AREA_DRYFIELD_GAS_STATION, false },
+    { GAME_AREA_DRYFIELD_MAIN_STREET, false },
+    { GAME_AREA_DRYFIELD_GENERAL_STORE, false },
+    { GAME_AREA_DRYFIELD_BACK_STREET, true },
+    { GAME_AREA_DRYFIELD_SOUVENIR_SHOP, true },
+    { GAME_AREA_DRYFIELD_WAREHOUSE, false },
+    { GAME_AREA_DRYFIELD_DILAPIDATED_HOUSE, false },
+    { GAME_AREA_DRYFIELD_MOTEL_ROOM_1, false },
+    { GAME_AREA_DRYFIELD_MOTEL_ROOM_2, true },
+    { GAME_AREA_DRYFIELD_PARKING_LOT, false },
+    { GAME_AREA_DRYFIELD_TOILET, false },
+    { GAME_AREA_DRYFIELD_SALOON_G_R, true },
+    { GAME_AREA_DRYFIELD_G_R_KITCHEN, true },
+    { GAME_AREA_DRYFIELD_WATER_TOWER, true },
+    { GAME_AREA_DRYFIELD_WATER_TANK, false },
+    { GAME_AREA_DRYFIELD_BREEZEWAY, false },
+    { GAME_AREA_DRYFIELD_FACTORY, false },
+    { GAME_AREA_DRYFIELD_GARAGE, false },
+    { GAME_AREA_DRYFIELD_DRIVEWAY, false },
+    { GAME_AREA_DRYFIELD_JUNK_YARD, false },
+    { GAME_AREA_DRYFIELD_TRAILER_COACH, false },
+    { GAME_AREA_DRYFIELD_MOTEL_BALCONY, false },
+    { GAME_AREA_DRYFIELD_MOTEL_ROOM_6, false },
+    { GAME_AREA_DRYFIELD_WATER_HOLE, true },
+    { GAME_AREA_DRYFIELD_CELLAR, true },
+    { GAME_AREA_DRYFIELD_UNDERPASS, false },
     { AREA_MAP_MARK_END, 0 },
     { 0, 0 },
 };
-_AreaMapMarkRec Gp_NewGameFlagsStg4[46] = {
-    { 1, 0 },
-    { 2, 0 },
-    { 3, 1 },
-    { 4, 0 },
-    { 5, 0 },
-    { 6, 0 },
-    { 7, 0 },
-    { 8, 0 },
-    { 9, 0 },
-    { 10, 1 },
-    { 11, 1 },
-    { 12, 1 },
-    { 13, 0 },
-    { 14, 1 },
-    { 15, 1 },
-    { 16, 0 },
-    { 17, 0 },
-    { 18, 1 },
-    { 19, 1 },
-    { 20, 0 },
-    { 21, 0 },
-    { 22, 0 },
-    { 23, 0 },
-    { 24, 1 },
-    { 25, 1 },
-    { 26, 0 },
-    { 27, 1 },
-    { 28, 1 },
-    { 29, 1 },
-    { 30, 0 },
-    { 31, 0 },
-    { 32, 1 },
-    { 33, 1 },
-    { 34, 0 },
-    { 35, 1 },
-    { 39, 1 },
-    { 40, 0 },
-    { 41, 0 },
-    { 42, 1 },
-    { 43, 1 },
-    { 44, 1 },
-    { 45, 1 },
-    { 46, 1 },
-    { 47, 0 },
-    { 48, 0 },
+/// Initial Mine/Shelter map marks, ended by AREA_MAP_MARK_END.
+///
+/// True choices set the saved map-mark bit; false choices preserve it. These
+/// area IDs belong to stage 4, including Shelter floors 1F through B4.
+static _AreaMapMarkRec _gAreaMineShelterNewGameMapMarks[46] = {
+    { GAME_AREA_MINE_MESA, false },
+    { GAME_AREA_MINE_CAVERN, false },
+    { GAME_AREA_MINE_TUNNEL_ENTRANCE, true },
+    { GAME_AREA_MINE_TUNNEL, false },
+    { GAME_AREA_MINE_GORGE, false },
+    { GAME_AREA_MINE_REFUGE, false },
+    { GAME_AREA_MINE_FORKED_TUNNEL, false },
+    { GAME_AREA_MINE_SECRET_PASSAGE, false },
+    { GAME_AREA_SHELTER_B1_ELEVATOR_HALL, false },
+    { GAME_AREA_SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY, true },
+    { GAME_AREA_SHELTER_B1_STOREROOM, true },
+    { GAME_AREA_SHELTER_B1_NORTH_MAINTENANCE_WALKWAY, true },
+    { GAME_AREA_SHELTER_B1_ARMORY, false },
+    { GAME_AREA_SHELTER_B1_SLEEPING_QUARTERS, true },
+    { GAME_AREA_SHELTER_B1_MAIN_CORRIDOR, true },
+    { GAME_AREA_SHELTER_B1_STERILIZATION_ROOM, false },
+    { GAME_AREA_SHELTER_B1_POD_ACCESS_TUNNEL, false },
+    { GAME_AREA_SHELTER_B1_CONTROL_ROOM, true },
+    { GAME_AREA_SHELTER_B1_ACCESS_TUNNEL, true },
+    { GAME_AREA_SHELTER_B1_UNDERGROUND_PARKING, false },
+    { GAME_AREA_SHELTER_B1_GOLEM_FREEZER_1, false },
+    { GAME_AREA_SHELTER_B2_POD_BOTTOM, false },
+    { GAME_AREA_SHELTER_B1_POD_SERVICE_GANTRY, false },
+    { GAME_AREA_SHELTER_B1_TRANSFER_TUNNEL, true },
+    { GAME_AREA_SHELTER_B1_CONTROL_ROOM_ACCESS_TUNNEL, true },
+    { GAME_AREA_SHELTER_B2_ELEVATOR, false },
+    { GAME_AREA_SHELTER_B2_ELEVATOR_HALL, true },
+    { GAME_AREA_SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY, true },
+    { GAME_AREA_SHELTER_B2_OPERATING_ROOM, true },
+    { GAME_AREA_SHELTER_B2_NORTH_MAINTENANCE_WALKWAY, false },
+    { GAME_AREA_SHELTER_B2_LABORATORY, false },
+    { GAME_AREA_SHELTER_B2_BREEDING_ROOM, true },
+    { GAME_AREA_SHELTER_B2_MAIN_CORRIDOR, true },
+    { GAME_AREA_SHELTER_B2_SEPTIC_TANK, false },
+    { GAME_AREA_SHELTER_B2_POD_ACCESS_TUNNEL, true },
+    { GAME_AREA_SHELTER_B3_DUMPING_HOLE, true },
+    { GAME_AREA_SHELTER_B3_GARBAGE_INCINERATOR, false },
+    { GAME_AREA_SHELTER_B3_INCINERATOR_CONTROL_ROOM, false },
+    { GAME_AREA_SHELTER_B3_ELEVATOR_HALL, true },
+    { GAME_AREA_SHELTER_B4_LOWER_SEWER, true },
+    { GAME_AREA_SHELTER_B4_UPPER_SEWER, true },
+    { GAME_AREA_SHELTER_B4_RESERVOIR, true },
+    { GAME_AREA_SHELTER_B4_WATER_SUPPLY, true },
+    { GAME_AREA_SHELTER_R47, false },
+    { GAME_AREA_SHELTER_R48, false },
     { AREA_MAP_MARK_END, 0 },
 };
-_AreaMapMarkRec Gp_NewGameFlagsStg5[34] = {
-    { 1, 0 },
-    { 2, 1 },
-    { 3, 1 },
-    { 4, 0 },
-    { 5, 1 },
-    { 6, 0 },
-    { 7, 0 },
-    { 8, 1 },
-    { 9, 0 },
-    { 10, 0 },
-    { 11, 0 },
-    { 12, 0 },
-    { 13, 1 },
-    { 14, 1 },
-    { 15, 1 },
-    { 16, 1 },
-    { 17, 1 },
-    { 18, 1 },
-    { 19, 0 },
-    { 20, 0 },
-    { 21, 0 },
-    { 22, 0 },
-    { 23, 0 },
-    { 24, 1 },
-    { 25, 1 },
-    { 26, 0 },
-    { 27, 1 },
-    { 28, 0 },
-    { 29, 0 },
-    { 30, 1 },
-    { 31, 0 },
-    { 32, 1 },
-    { 33, 0 },
+/// Initial Shelter/Neo Ark map marks, ended by AREA_MAP_MARK_END.
+///
+/// True choices set the saved map-mark bit; false choices preserve it. These
+/// area IDs belong to stage 5, including Shelter 1F and B6 and Neo Ark.
+static _AreaMapMarkRec _gAreaShelterNeoArkNewGameMapMarks[34] = {
+    { GAME_AREA_SHELTER_1F_PARKING_GARAGE, false },
+    { GAME_AREA_SHELTER_1F_VEHICULAR_AIRLOCK, true },
+    { GAME_AREA_SHELTER_1F_BULWARK, true },
+    { GAME_AREA_SHELTER_1F_HELIPORT, false },
+    { GAME_AREA_SHELTER_1F_AIRLOCK, true },
+    { GAME_AREA_SHELTER_1F_GUARDROOM, false },
+    { GAME_AREA_NEO_ARK_OBSERVATORY, false },
+    { GAME_AREA_NEO_ARK_EVE_ACCESS_TUNNEL, true },
+    { GAME_AREA_NEO_ARK_EVE_ELEVATOR, false },
+    { GAME_AREA_NEO_ARK_NORTH_PROMENADE, false },
+    { GAME_AREA_NEO_ARK_FOREST_ZONE, false },
+    { GAME_AREA_NEO_ARK_SUBMARINE_TUNNEL, false },
+    { GAME_AREA_NEO_ARK_PAVILION, true },
+    { GAME_AREA_NEO_ARK_ISLAND, true },
+    { GAME_AREA_NEO_ARK_GARDEN, true },
+    { GAME_AREA_NEO_ARK_POWER_PLANT_2, true },
+    { GAME_AREA_NEO_ARK_POWER_PLANT_1, true },
+    { GAME_AREA_NEO_ARK_SAVANNA_ZONE, true },
+    { GAME_AREA_NEO_ARK_SOUTH_PROMENADE, false },
+    { GAME_AREA_NEO_ARK_ALTAR, false },
+    { GAME_AREA_NEO_ARK_SHRINE, false },
+    { GAME_AREA_SHELTER_B6_NURSERY, false },
+    { GAME_AREA_SHELTER_B6_GROWTH_ROOM, false },
+    { GAME_AREA_SHELTER_B6_CORRIDOR, true },
+    { GAME_AREA_SHELTER_B6_TRAINING_ROOM, true },
+    { GAME_AREA_NEO_ARK_R26, false },
+    { GAME_AREA_NEO_ARK_BRIDGE, true },
+    { GAME_AREA_SHELTER_1F_TENT, false },
+    { GAME_AREA_NEO_ARK_WOODLAND_PATH, false },
+    { GAME_AREA_NEO_ARK_SUBMARINE_GALLERY, true },
+    { GAME_AREA_NEO_ARK_R31, false },
+    { GAME_AREA_NEO_ARK_PYRAMID, true },
+    { GAME_AREA_NEO_ARK_SUBSTATION, false },
     { AREA_MAP_MARK_END, 0 },
 };
 
@@ -356,10 +364,10 @@ static inline void _areaApplyNewGameMapMarksForStage(s16 stageId, const _AreaMap
 
 void areaApplyNewGameMapMarks(void)
 {
-    _areaApplyNewGameMapMarksForStage(GAME_STAGE_ACROPOLIS, Gp_NewGameFlagsStg1);
-    _areaApplyNewGameMapMarksForStage(GAME_STAGE_DRYFIELD, Gp_NewGameFlagsStg2);
-    _areaApplyNewGameMapMarksForStage(GAME_STAGE_MINE_SHELTER, Gp_NewGameFlagsStg4);
-    _areaApplyNewGameMapMarksForStage(GAME_STAGE_SHELTER_NEO_ARK, Gp_NewGameFlagsStg5);
+    _areaApplyNewGameMapMarksForStage(GAME_STAGE_ACROPOLIS, _gAreaAcropolisNewGameMapMarks);
+    _areaApplyNewGameMapMarksForStage(GAME_STAGE_DRYFIELD, _gAreaDryfieldNewGameMapMarks);
+    _areaApplyNewGameMapMarksForStage(GAME_STAGE_MINE_SHELTER, _gAreaMineShelterNewGameMapMarks);
+    _areaApplyNewGameMapMarksForStage(GAME_STAGE_SHELTER_NEO_ARK, _gAreaShelterNeoArkNewGameMapMarks);
 }
 
 void menuMapRebuildMarkedAreaBits(void)

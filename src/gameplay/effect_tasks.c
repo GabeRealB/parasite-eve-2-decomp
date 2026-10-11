@@ -161,7 +161,7 @@ static const _EffectCriticalHitStyle _gEffectCriticalHitStyles[6];
 
 static const _EffectImpactFlashFrame _gEffectImpactFlashFrames[4];
 
-extern SVECTOR D_801124DC[34];
+static SVECTOR _gEffectWeaponMuzzleOffsets[34];
 
 extern SVECTOR D_801125EC[34];
 
@@ -554,9 +554,9 @@ void effectControlTask2B(Task* task)
                 // Light the spawn position before attaching the effect to the weapon.
                 _effectInitializeHandgunLight(muzzleCoord, pointLight);
                 muzzleCoord->parent       = work->parent;
-                muzzleCoord->coord.t[0]   = D_801124DC[task->spawnArg1.value].vx;
-                muzzleCoord->coord.t[1]   = D_801124DC[task->spawnArg1.value].vy;
-                muzzleCoord->coord.t[2]   = D_801124DC[task->spawnArg1.value].vz;
+                muzzleCoord->coord.t[0]   = _gEffectWeaponMuzzleOffsets[task->spawnArg1.value].vx;
+                muzzleCoord->coord.t[1]   = _gEffectWeaponMuzzleOffsets[task->spawnArg1.value].vy;
+                muzzleCoord->coord.t[2]   = _gEffectWeaponMuzzleOffsets[task->spawnArg1.value].vz;
                 muzzleCoord->composeStamp = GRAPHICS_COORD_DIRTY;
                 actorRenderComposeCoord(muzzleCoord);
                 switch (task->spawnArg1.value) {
@@ -670,9 +670,9 @@ void effectControlTask6A(Task* task)
                 gWorldCoordTransientPointLights->framesLeft             = EFFECT_WEAPON_FLASH_LIGHT_TICKS;
                 pointLight->head.transform.coord.coord.t[2]             = spawnZ;
                 muzzleCoord->parent                                     = work->parent;
-                muzzleCoord->coord.t[0]                                 = D_801124DC[task->spawnArg1.value].vx;
-                muzzleCoord->coord.t[1]                                 = D_801124DC[task->spawnArg1.value].vy;
-                muzzleCoord->coord.t[2]                                 = D_801124DC[task->spawnArg1.value].vz;
+                muzzleCoord->coord.t[0]                                 = _gEffectWeaponMuzzleOffsets[task->spawnArg1.value].vx;
+                muzzleCoord->coord.t[1]                                 = _gEffectWeaponMuzzleOffsets[task->spawnArg1.value].vy;
+                muzzleCoord->coord.t[2]                                 = _gEffectWeaponMuzzleOffsets[task->spawnArg1.value].vz;
                 muzzleCoord->composeStamp                               = GRAPHICS_COORD_DIRTY;
                 actorRenderComposeCoord(muzzleCoord);
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
@@ -746,9 +746,9 @@ void effectControlTask6B(Task* task)
             pointLight->outer                                       = EFFECT_WEAPON_FLASH_LIGHT_OUTER_RADIUS;
             pointLight->head.transform.coord.coord.t[2]             = spawnZ;
             muzzleCoord->parent                                     = work->parent;
-            muzzleCoord->coord.t[0]                                 = D_801124DC[task->spawnArg1.value].vx;
-            muzzleCoord->coord.t[1]                                 = D_801124DC[task->spawnArg1.value].vy;
-            muzzleCoord->coord.t[2]                                 = D_801124DC[task->spawnArg1.value].vz;
+            muzzleCoord->coord.t[0]                                 = _gEffectWeaponMuzzleOffsets[task->spawnArg1.value].vx;
+            muzzleCoord->coord.t[1]                                 = _gEffectWeaponMuzzleOffsets[task->spawnArg1.value].vy;
+            muzzleCoord->coord.t[2]                                 = _gEffectWeaponMuzzleOffsets[task->spawnArg1.value].vz;
             muzzleCoord->composeStamp                               = GRAPHICS_COORD_DIRTY;
             actorRenderComposeCoord(muzzleCoord);
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
@@ -838,9 +838,9 @@ void effectControlTaskA1(Task* task)
                 // Light the spawn position before moving to the weapon muzzle.
                 _effectInitializeShotgunLight(muzzleCoord, pointLight);
                 muzzleCoord->parent       = work->parent;
-                muzzleCoord->coord.t[0]   = D_801124DC[task->spawnArg1.value].vx;
-                muzzleCoord->coord.t[1]   = D_801124DC[task->spawnArg1.value].vy;
-                muzzleCoord->coord.t[2]   = D_801124DC[task->spawnArg1.value].vz;
+                muzzleCoord->coord.t[0]   = _gEffectWeaponMuzzleOffsets[task->spawnArg1.value].vx;
+                muzzleCoord->coord.t[1]   = _gEffectWeaponMuzzleOffsets[task->spawnArg1.value].vy;
+                muzzleCoord->coord.t[2]   = _gEffectWeaponMuzzleOffsets[task->spawnArg1.value].vz;
                 muzzleCoord->composeStamp = GRAPHICS_COORD_DIRTY;
                 actorRenderComposeCoord(muzzleCoord);
                 switch (task->spawnArg1.value) {
@@ -3620,7 +3620,13 @@ TmdSource gEffectThrownModel91 = {
     .skeleton            = _gEffectThrownModel91RestPose,
     .stream              = _gEffectThrownModel91Packets,
 };
-SVECTOR D_801124DC[34] = {
+/// Parent-local muzzle placements for the weapon-flash profiles 0..33.
+///
+/// Controllers copy signed XYZ in game-coordinate units into their muzzle
+/// coordinate before composition. The parent is the controller's borrowed
+/// weapon/model coordinate; the fourth halfword is unused. The table stays
+/// in initialized gameplay data and no controller modifies its entries.
+static SVECTOR _gEffectWeaponMuzzleOffsets[34] = {
     { 0, 0, 0, 0 },
     { 0, 384, 96, 0 },
     { 0, 448, 96, 0 },

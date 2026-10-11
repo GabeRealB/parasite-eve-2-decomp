@@ -308,7 +308,7 @@ enum {
     /// along the Pyrokinesis projectile while it flies.
     EFFECT_PYROKINESIS_FLAME_PUFF = EFFECT_ID(EFFECT_TASK_BANK, 0x069),
     /// Gun muzzle flash without a flash model: lights the transient point light white
-    /// for ~5 frames at the D_801124DC muzzle offset, spawns a 0x60034 flash and three
+    /// for ~5 frames at its weapon-profile muzzle offset, spawns a 0x60034 flash and three
     /// 0x60035 puffs and raises burstRequest; sibling of the weapons' 0x6006B, spawned
     /// by NPC actors (actor_310600, actor_511000) when they fire.
     EFFECT_ACTOR_MUZZLE_FLASH = EFFECT_ID(EFFECT_TASK_BANK, 0x06A),

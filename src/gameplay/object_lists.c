@@ -300,9 +300,9 @@ static inline void _worldCollisionDispatchBodyPair(const WorldCollisionPairRule*
     swapBodies   = rule->swapBodies;
     handlerIndex = rule->handlerIndex;
     if (swapBodies == false) {
-        Gp_PairHandlers[handlerIndex](firstBody, secondBody, handlerIndex);
+        gWorldCollisionPairHandlers[handlerIndex](firstBody, secondBody, handlerIndex);
     } else {
-        Gp_PairHandlers[handlerIndex](secondBody, firstBody, handlerIndex);
+        gWorldCollisionPairHandlers[handlerIndex](secondBody, firstBody, handlerIndex);
     }
 }
 
@@ -322,13 +322,13 @@ void worldCollisionCollideBodyLists(WorldCollisionBody* firstList, WorldCollisio
             firstKindIndex = (firstList->flags & WORLD_COLLISION_BODY_KIND_MASK) - WORLD_COLLISION_BODY_SPHERE;
             secondBody     = secondList;
             if (secondBody != NULL) {
-                rowOffsetBytes = firstKindIndex * (s32)sizeof(D_8010FA4C[0]);
+                rowOffsetBytes = firstKindIndex * (s32)sizeof(gWorldCollisionPairRules[0]);
                 for (; secondBody != NULL; secondBody = secondBody->next) {
                     if (secondBody->flags & WORLD_COLLISION_BODY_PAIR_ENABLED) {
                         secondKindIndex = (secondBody->flags & WORLD_COLLISION_BODY_KIND_MASK) - WORLD_COLLISION_BODY_SPHERE;
                         ruleOffsetBytes = secondKindIndex * (s32)sizeof(WorldCollisionPairRule) + rowOffsetBytes;
                         // Complete the byte offset before adding the matrix base.
-                        rule = (const WorldCollisionPairRule*)((const u8*)&D_8010FA4C + ruleOffsetBytes);
+                        rule = (const WorldCollisionPairRule*)((const u8*)&gWorldCollisionPairRules + ruleOffsetBytes);
                         _worldCollisionDispatchBodyPair(rule, firstList, secondBody);
                     }
                 }

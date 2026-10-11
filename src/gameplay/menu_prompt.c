@@ -124,8 +124,8 @@ static inline void _itemMenuClampArmorAttachmentViewport(UiList* list);
 
 static inline s32 _equipmentIsActiveItem(s32 itemId);
 
-u8   gItemMenuEmptyPromptText[] = "";
-char Gp_StrReleasePe[]          = "Release Parasite Energy.";
+u8 gItemMenuEmptyPromptText[]   = "";
+u8 gItemMenuReleasePeHelpText[] = "Release Parasite Energy.";
 
 /// Draws a borrowed text/P.E. payload under `itemMenuDrawTaskPrompt`'s contract.
 ///

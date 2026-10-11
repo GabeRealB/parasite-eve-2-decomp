@@ -260,7 +260,7 @@ static s32 _itemMenuIsTransferRestricted(s32 itemId, s32 battleFieldMode);
 
 static void _itemMenuHandlePaneChildResult(UiObject* child, Task* childTask);
 
-UiList Gp_ItemActionList = { Gp_ItemActionFns, 3, { 3 }, 1, 10, 0, { 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { 0 }, 0 };
+UiList Gp_ItemActionList = { gItemMenuTransferActionCallbacks, ARRAY_SIZE(gItemMenuTransferActionCallbacks), { ARRAY_SIZE(gItemMenuTransferActionCallbacks) }, 1, 10, 0, { 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { 0 }, 0 };
 /// Single row renderer/input handler reused by all three transfer-exit command rows.
 ///
 /// The exit list enables USER_INTERFACE_LIST_SHARED_ROW_CALLBACK before dispatch;
@@ -277,7 +277,14 @@ static UiList _gItemMenuTransferExitList = {
     .visibleRowCount = { ITEM_MENU_PROMPT_DISCARD + 1 },
     .rowHeight       = 15,
 };
-UiObjectDesc D_8010D6D8                                                        = { (s32)USER_INTERFACE_PANEL_NO_FRAME, { -100, -30, 200, 60 }, 36, 0, TASK_BODY_NONE, 192, _itemMenuTransferScreenTask, 0 };
+UiObjectDesc gItemMenuTransferScreenDescriptor = {
+    .style           = USER_INTERFACE_PANEL_NO_FRAME,
+    .bounds          = { -100, -30, 200, 60 },
+    .otIndexSeed     = 36,
+    .taskFlags       = TASK_BODY_NONE,
+    .taskPriority    = 192,
+    .contentCallback = _itemMenuTransferScreenTask,
+};
 UiObjectDesc gItemMenuTransferPanelDescriptors[ITEM_MENU_TRANSFER_PANEL_COUNT] = {
     [ITEM_MENU_PANE_CONTAINER] = {
         .style           = 0x80000 | USER_INTERFACE_PANEL_TITLE_STYLE, // Upper bit's role is unproven; retained from the recipe.
@@ -862,7 +869,7 @@ void itemMenuDrawTransferMoveRow(UiList* list, UiObject* object)
     textRequest.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
     textRequest.alignment  = TEXT_ALIGNMENT_LEFT;
     textRequest.drawMode   = TEXT_DRAW_OUTLINED;
-    textDrawString(&textRequest, Gp_StrMove2);
+    textDrawString(&textRequest, gItemMenuTransferMoveText);
     rowInputEnabled = list->rowInputEnabled;
     if ((rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) && (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask) != 0)) {
         noticeId       = -1;
@@ -941,7 +948,7 @@ void itemMenuDrawSwitchRow(UiList* list, UiObject* object)
     textRequest.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
     textRequest.alignment  = TEXT_ALIGNMENT_LEFT;
     textRequest.drawMode   = TEXT_DRAW_OUTLINED;
-    textDrawString(&textRequest, Gp_StrSwitch);
+    textDrawString(&textRequest, gItemMenuTransferSwitchText);
 
     rowInputEnabled = list->rowInputEnabled;
     if (rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
@@ -998,19 +1005,19 @@ static void _itemMenuFillTransferActions(UiList* list, UiObject* object)
         itemId = selectedRow->itemId;
     }
     if (itemId == INVENTORY_ITEM_NONE) {
-        Gp_ItemActionFns[0] = itemMenuDrawSwitchRow;
-        actionCount         = 1;
+        gItemMenuTransferActionCallbacks[0] = itemMenuDrawSwitchRow;
+        actionCount                         = 1;
     } else {
-        Gp_ItemActionFns[0] = itemMenuDrawTransferMoveRow;
-        callbacks           = Gp_ItemActionFns;
-        actionCount         = 1;
+        gItemMenuTransferActionCallbacks[0] = itemMenuDrawTransferMoveRow;
+        callbacks                           = gItemMenuTransferActionCallbacks;
+        actionCount                         = 1;
         if (((u32)(itemId - INVENTORY_CONSUMABLE_ITEM_FIRST) >= (u32)INVENTORY_CONSUMABLE_ITEM_COUNT) || (object->owner->status != 0)) {
             callbacks[1] = itemMenuDrawSwitchRow;
             actionCount  = 2;
         }
         if (((u32)(itemId - ITEM_MENU_ITEM_RECOVERY_FIRST) < (u32)ITEM_MENU_ITEM_RECOVERY_COUNT) || (itemId == ITEM_MENU_ITEM_COLA) || (itemId == ITEM_MENU_ITEM_MP_BOOST1) || (itemId == ITEM_MENU_ITEM_MP_BOOST2) || (itemId == ITEM_MENU_ITEM_PROTEIN_CAPSULE) || (itemId == ITEM_MENU_ITEM_RINGER)) {
-            Gp_ItemActionFns[actionCount] = itemMenuDrawUseRow;
-            actionCount                   = actionCount + 1;
+            gItemMenuTransferActionCallbacks[actionCount] = itemMenuDrawUseRow;
+            actionCount                                   = actionCount + 1;
         }
     }
     list->visibleRowCount.unsignedValue = actionCount;

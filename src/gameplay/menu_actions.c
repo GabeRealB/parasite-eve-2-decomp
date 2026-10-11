@@ -307,7 +307,7 @@ void itemMenuDrawPeCommandRow(UiList* list, UiObject* object)
         panelControl = object->panel.control.word;
         if (((panelControl >> 16) == USER_INTERFACE_PANEL_ACTIVE) || (panelControl == USER_INTERFACE_PANEL_ACTIVE)) {
             if (list->selectedItemIndex == list->currentItemIndex) {
-                uiSetPromptText((const u8*)Gp_StrReleasePe, 0, 0);
+                uiSetPromptText(gItemMenuReleasePeHelpText, 0, 0);
             }
         }
     }

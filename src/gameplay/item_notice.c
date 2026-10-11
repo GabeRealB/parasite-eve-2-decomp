@@ -104,7 +104,7 @@ void itemPickupActionPromptTask(Task* task)
                 break;
             default:
                 stageEnsureHeapTaskPrimitiveBuffer();
-                descriptor = &D_8010D6D8;
+                descriptor = &gItemMenuTransferScreenDescriptor;
                 break;
         }
         request->accepted = 0;

@@ -8,9 +8,9 @@
 #include "main/mc_types.h"
 #include "main/ui_types.h"
 
-u8 Gp_StrMove2[] = "Move";
+u8 gItemMenuTransferMoveText[] = "Move";
 
-char Gp_StrSwitch[] = "Switch";
+u8 gItemMenuTransferSwitchText[] = "Switch";
 
 u8 gItemMenuAmmoSplitHelpText[] = "Set ammo# with the directional\nbuttons. } button to confirm.";
 
@@ -42,7 +42,7 @@ UiList gItemMenuTransferPaneLists[ITEM_MENU_PANE_COUNT] = {
     [ITEM_MENU_PANE_CARRIED]   = { .rowCallbacks = _gItemMenuTransferInventoryRowCallbacks, .itemCount = 60, .visibleRowCount = { 60 }, .rowHeight = 15 },
 };
 
-UiListRowCallback Gp_ItemActionFns[3] = {
+UiListRowCallback gItemMenuTransferActionCallbacks[3] = {
     itemMenuDrawTransferMoveRow,
     itemMenuDrawSwitchRow,
     NULL,

@@ -304,14 +304,14 @@ static inline WorldCollisionContact* _worldCollisionGetBodyContacts(const WorldC
     return contacts;
 }
 
-WorldCollisionPairHandler Gp_PairHandlers[5] = {
+WorldCollisionPairHandler gWorldCollisionPairHandlers[5] = {
     worldCollisionPairNop,
     _worldCollisionCollideSpherePair,
     worldCollisionPairNop,
     _worldCollisionCollideSphereCapsulePair,
     worldCollisionPairNop,
 };
-WorldCollisionPairRule D_8010FA4C[4][4] = {
+WorldCollisionPairRule gWorldCollisionPairRules[4][4] = {
     { { WORLD_COLLISION_PAIR_HANDLER_SPHERES, false },
       { WORLD_COLLISION_PAIR_HANDLER_SPHERE_PROXY, false },
       { WORLD_COLLISION_PAIR_HANDLER_SPHERE_CAPSULE, false },
@@ -423,19 +423,19 @@ static void _worldCollisionCollideListPairs(WorldCollisionBody* body)
         if (flags & WORLD_COLLISION_BODY_PAIR_ENABLED) {
             rowIndex = (body->flags & WORLD_COLLISION_BODY_KIND_MASK) - WORLD_COLLISION_BODY_SPHERE;
             if (other != NULL) {
-                rowOffsetBytes = rowIndex * (s32)sizeof(D_8010FA4C[0]);
+                rowOffsetBytes = rowIndex * (s32)sizeof(gWorldCollisionPairRules[0]);
                 for (; other != NULL; other = other->next) {
                     if (other->flags & WORLD_COLLISION_BODY_PAIR_ENABLED) {
                         columnIndex     = (other->flags & WORLD_COLLISION_BODY_KIND_MASK) - WORLD_COLLISION_BODY_SPHERE;
                         ruleOffsetBytes = columnIndex * (s32)sizeof(WorldCollisionPairRule) + rowOffsetBytes;
                         // Complete the byte offset before adding the matrix base.
-                        rule         = (const WorldCollisionPairRule*)((const u8*)&D_8010FA4C + ruleOffsetBytes);
+                        rule         = (const WorldCollisionPairRule*)((const u8*)&gWorldCollisionPairRules + ruleOffsetBytes);
                         swapBodies   = rule->swapBodies;
                         handlerIndex = rule->handlerIndex;
                         if (swapBodies == false) {
-                            Gp_PairHandlers[handlerIndex](body, other, handlerIndex);
+                            gWorldCollisionPairHandlers[handlerIndex](body, other, handlerIndex);
                         } else {
-                            Gp_PairHandlers[handlerIndex](other, body, handlerIndex);
+                            gWorldCollisionPairHandlers[handlerIndex](other, body, handlerIndex);
                         }
                     }
                 }

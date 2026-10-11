@@ -187,9 +187,16 @@ typedef struct {
 } _GfxRelativeTransformScratch;
 STATIC_ASSERT_SIZEOF(_GfxRelativeTransformScratch, 0x30);
 
-u16 D_80114BB0[16];
+/// Sixteen RGB555/STP colours for the radar's ability-range texture.
+///
+/// Rebuilt for each range upload; the last entry remains transparent. The
+/// word-aligned storage must remain unchanged until the GPU consumes it.
+static u16 _gHudRadarRangePalette[16];
 
-RECT D_80114BD0;
+/// Radar range CLUT upload region in VRAM words/rows: (32,242), sixteen by one.
+///
+/// Rebuilt with the palette and retained unchanged through GPU consumption.
+static RECT _gHudRadarRangePaletteRect;
 
 ScreenFade D_80114BD8;
 
@@ -417,22 +424,22 @@ static inline void _hudUploadRadarRangePalette(s32 scaledRange)
     if (paletteEdgeIndex <= 0) {
         paletteEdgeIndex = 1;
     }
-    for (paletteIndex = 0; paletteIndex < ARRAY_SIZE(D_80114BB0); paletteIndex++) {
+    for (paletteIndex = 0; paletteIndex < ARRAY_SIZE(_gHudRadarRangePalette); paletteIndex++) {
         if (paletteIndex < paletteEdgeIndex) {
-            D_80114BB0[paletteIndex] = HUD_RADAR_PALETTE_ACTIVE;
+            _gHudRadarRangePalette[paletteIndex] = HUD_RADAR_PALETTE_ACTIVE;
         } else {
-            D_80114BB0[paletteIndex] = HUD_RADAR_PALETTE_INACTIVE;
+            _gHudRadarRangePalette[paletteIndex] = HUD_RADAR_PALETTE_INACTIVE;
         }
-        if (paletteIndex == paletteEdgeIndex && paletteIndex != ARRAY_SIZE(D_80114BB0) - 1) {
-            D_80114BB0[paletteIndex] = HUD_RADAR_PALETTE_EDGE;
+        if (paletteIndex == paletteEdgeIndex && paletteIndex != ARRAY_SIZE(_gHudRadarRangePalette) - 1) {
+            _gHudRadarRangePalette[paletteIndex] = HUD_RADAR_PALETTE_EDGE;
         }
     }
-    D_80114BD0.x = HUD_RADAR_RANGE_PALETTE_X_WORDS;
-    D_80114BD0.y = HUD_RADAR_RANGE_PALETTE_Y_ROWS;
-    D_80114BD0.w = ARRAY_SIZE(D_80114BB0);
-    D_80114BD0.h = 1;
+    _gHudRadarRangePaletteRect.x = HUD_RADAR_RANGE_PALETTE_X_WORDS;
+    _gHudRadarRangePaletteRect.y = HUD_RADAR_RANGE_PALETTE_Y_ROWS;
+    _gHudRadarRangePaletteRect.w = ARRAY_SIZE(_gHudRadarRangePalette);
+    _gHudRadarRangePaletteRect.h = 1;
     // LoadImage consumes RGB555 halfwords through its word-oriented payload API.
-    LoadImage(&D_80114BD0, (u_long*)D_80114BB0);
+    LoadImage(&_gHudRadarRangePaletteRect, (u_long*)_gHudRadarRangePalette);
 }
 
 void hudDrawRadar(HudState* hud)
@@ -1127,14 +1134,14 @@ void itemPickupNoticeTask(Task* task)
     if (task->spawnArg1.value == ITEM_PICKUP_NOTICE_BONUS) {
         if (task->state == ITEM_PICKUP_NOTICE_INITIAL) {
             // The bonus label needs a wider panel and a shifted placement once.
-            uiSetPanelContentSize(&panelObject->panel, textMeasureLineWidth(Gp_StrBonusItem) + 0xA, 0);
+            uiSetPanelContentSize(&panelObject->panel, textMeasureLineWidth(gItemPickupBonusNoticeText) + 0xA, 0);
             panelObject->panel.bounds.unsignedRect.x -= 0xF;
             panelObject->panel.bounds.unsignedRect.y += 9;
             task->state++;
         }
-        textDrawUiLine(panelObject, panelObject->panel.contentLeft.signedValue + 6, 7, Gp_StrBonusItem, 0x606060, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+        textDrawUiLine(panelObject, panelObject->panel.contentLeft.signedValue + 6, 7, gItemPickupBonusNoticeText, 0x606060, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     } else {
-        textDrawUiLine(panelObject, panelObject->panel.contentLeft.signedValue + 6, 7, Gp_StrItemObtained, 0x606060, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+        textDrawUiLine(panelObject, panelObject->panel.contentLeft.signedValue + 6, 7, gItemPickupObtainedNoticeText, 0x606060, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     }
 }
 

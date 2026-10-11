@@ -10639,7 +10639,7 @@ jal. `func_dryfield_night_trailer_coach_80181DB0` is the example.
 
 Case 11 writes the saved area id with `sb` at `gMcSaveData+4`. Some overlays'
 target asm names that reloc `D_8007216C`; the linked bytes are the same as
-`gMcSaveData.location.loc.view = (u8)D_80115694`. Do not overlay `*(u8*)&D_8007216C` in
+`gMcSaveData.location.loc.view = (u8)gCapRestoreView`. Do not overlay `*(u8*)&D_8007216C` in
 a function that also word-loads `D_8007216C` for the `0xFFFF0000` test — GCC
 2.8.1 treats them as one object and the switch grows insert/delete.
 
@@ -30778,20 +30778,20 @@ of main (`uiUpdatePanelContentLayout`). `_itemMenuFillTransferActions` is the ex
 
 ## Store the first vtable slot through the global, then take its address
 
-`table = Gp_ItemActionFns; table[0] = A;` writes `sw A, 0(table)`. The target
+`table = gItemMenuTransferActionCallbacks; table[0] = A;` writes `sw A, 0(table)`. The target
 stores through `%lo` first, then materializes the address for `table[1]`:
 
 ```
-sw    A, %lo(Gp_ItemActionFns)(v0)
-addiu v1, v0, %lo(Gp_ItemActionFns)
+sw    A, %lo(gItemMenuTransferActionCallbacks)(v0)
+addiu v1, v0, %lo(gItemMenuTransferActionCallbacks)
 sw    B, 4(v1)
 ```
 
 Write the first slot on the symbol, then assign the local:
 
 ```c
-Gp_ItemActionFns[0] = func_A;
-table         = Gp_ItemActionFns;
+gItemMenuTransferActionCallbacks[0] = func_A;
+table         = gItemMenuTransferActionCallbacks;
 table[1]      = func_B;
 ```
 
@@ -31024,9 +31024,9 @@ base through a byte view of the complete matrix. The offset uses the row
 and element sizes, so no extra `sra`/`sll` appear:
 
 ```c
-rowOffsetBytes  = rowIndex * (s32)sizeof(D_8010FA4C[0]);
+rowOffsetBytes  = rowIndex * (s32)sizeof(gWorldCollisionPairRules[0]);
 ruleOffsetBytes = columnIndex * (s32)sizeof(WorldCollisionPairRule) + rowOffsetBytes;
-rule            = (const WorldCollisionPairRule*)((const u8*)&D_8010FA4C + ruleOffsetBytes);
+rule            = (const WorldCollisionPairRule*)((const u8*)&gWorldCollisionPairRules + ruleOffsetBytes);
 ```
 
 Inlining `arr[row][col]` stuck at 99.8%. `_worldCollisionCollideListPairs` is the example
@@ -31043,9 +31043,9 @@ each half and reuse `v0` for `andi a2, v0, 0xffff`:
 swapBodies   = rule->swapBodies;
 handlerIndex = rule->handlerIndex;
 if (swapBodies == false) {
-    Gp_PairHandlers[handlerIndex](node, other, handlerIndex);
+    gWorldCollisionPairHandlers[handlerIndex](node, other, handlerIndex);
 } else {
-    Gp_PairHandlers[handlerIndex](other, node, handlerIndex);
+    gWorldCollisionPairHandlers[handlerIndex](other, node, handlerIndex);
 }
 ```
 
@@ -66372,7 +66372,7 @@ adds jumps and changes block order.
 
 Adjacent globals also affect that decision: viewing phase/found as a struct or
 array merges address computations and reintroduces hoisting. The declaration
-`extern u16 D_80114C72 asm("D_80114C70+2");` gives GCC a distinct found-flag
+`extern u16 _gLoadingAreaHasBasePlacement asm("gLoadingAreaBaseResourcePhase+2");` gives GCC a distinct found-flag
 symbol while GAS retains the existing data symbol plus its halfword offset.
 It emits no instructions or storage. This removed five relocation-name diffs
 from an otherwise identical object (99.906% to 100.000%).
@@ -150387,11 +150387,11 @@ attempts; left as it was.
   hand-placed fill block.
 - **One mention of a global in a loop is not hoisted, three are**
   (`loadingPollAreaBaseResources`). Its three queue arms each jumped to a shared
-  `D_80114C70++; break;`. With the increment written in all three, loop.c
+  `gLoadingAreaBaseResourcePhase++; break;`. With the increment written in all three, loop.c
   hoists the symbol's `lui` out of the loop; with one increment
   after the arms and `continue` in the skip arm the skip arm is laid out
   before the increment. The image's form has two: the two arms of the inner
-  `if` share one `D_80114C70++; break;` after it, the `else if` arm has its
+  `if` share one `gLoadingAreaBaseResourcePhase++; break;` after it, the `else if` arm has its
   own, and the skip arm is the final `else`. The three hand-expanded
   key/parameter builds are one `static inline` taking the two texture
   offsets (the `fileKey` / `fileParams` arrays are its locals; the frame does

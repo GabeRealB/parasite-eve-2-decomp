@@ -32,8 +32,7 @@ CapFile* gCapFile;
 
 u8 gCapPreserveActorControl;
 
-/// Rooms store a full word; gameplay consumes the low byte as the saved view id.
-s32 D_80115694;
+s32 gCapRestoreView;
 
 s16 gCapDisplayFramesRemaining;
 
@@ -252,7 +251,7 @@ void capUpdatePlaybackTask(Task* task)
             return;
         }
         gCapActionReturnView                                       = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view;
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = D_80115694;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = gCapRestoreView;
         taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_ROOM_EFFECT), CAP_PLAYBACK_ROOM_EFFECT_MESSAGE, 0, 0);
         stageRequestFrameCapture();
         taskSpawn(ITEM_PICKUP_ACTION_TASK_BANK, ITEM_PICKUP_ACTION_TASK_TYPE, 0, &gCapActionRequest);
@@ -404,7 +403,7 @@ void capUpdatePlaybackTask(Task* task)
                     gCapActionRequest.done = 0;
                     if (gCapPlaybackMode == CAP_PLAYBACK_DISPLAY_TRANSITION) {
                         gCapActionReturnView                                       = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view;
-                        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = D_80115694;
+                        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = gCapRestoreView;
                         taskSpawn(ITEM_PICKUP_ACTION_TASK_BANK, ITEM_PICKUP_ACTION_TASK_TYPE, 0, &gCapActionRequest);
                     } else if (gCapPlaybackMode == CAP_PLAYBACK_ACTION_CAPTURE) {
                         gCapActionCaptureFramesRemaining = CAP_ACTION_CAPTURE_DELAY_FRAMES;

@@ -38,23 +38,30 @@ enum {
     LOADING_AREA_WAIT  = 2
 };
 
-/// Phase for `loadingPollAreaPlacementFiles` (0 init, 1 walk/enqueue, 2 wait idle).
-/// `loadingPollAreaResourcesTask` clears it when phase 1 (`loadingPollAreaBaseResources`) finishes
-/// so phase 2 can start.
-extern s16 Gp_AreaCdPhase;
+/// Additional-placement-file loading phase (0 initialize, 1 queue, 2 wait CD idle).
+///
+/// Reset to `LOADING_AREA_INIT` after the base-resource pass completes. Queue
+/// and wait alternate without changing the borrowed layout's lifetime; both
+/// passes must remain serialized for the same live saved destination.
+extern s16 gLoadingAreaPlacementFilePhase;
 
-/// Phase for `loadingPollAreaBaseResources`. `loadingPollAreaResourcesTask` clears it when entering
-/// its own phase 1.
-extern u16 D_80114C70;
+/// Base-resource loading phase (0 initialize, 1 queue, 2 wait CD idle).
+///
+/// Reset to `LOADING_AREA_INIT` when the area-resource sequence starts. Queue
+/// and wait alternate until the resource terminator; its layout and saved
+/// destination must stay live through the subsequent placement-file pass.
+extern u16 gLoadingAreaBaseResourcePhase;
 
-/// Phase for `loadingPollAreaResourcesTask` (0 init, 1 `loadingPollAreaBaseResources`, 2 `loadingPollAreaPlacementFiles`).
-/// `loadingPrepareAreaStateTask` clears it when advancing to this task state.
-extern u16 D_80114C74;
+/// Serialized area-resource pass selector (0 initialize, 1 base resources, 2 placement files).
+///
+/// Area preparation resets it to zero. Entering each pass initializes that
+/// pass's phase; completion of the placement pass finishes the sequence.
+extern u16 gLoadingAreaResourcePass;
 
 /// Polls serialized additional-file loads selected by the saved area's placements.
 ///
 /// Returns 0 while walking or waiting for CD idle, and 1 on completion.
-/// Start with `Gp_AreaCdPhase == LOADING_AREA_INIT`, after
+/// Start with `gLoadingAreaPlacementFilePhase == LOADING_AREA_INIT`, after
 /// `loadingPollAreaBaseResources` finishes. Both passes share cursors and
 /// must run serially, with the same live saved destination and loaded layout.
 /// The layout lookup must succeed: its placements are read before the NULL
@@ -68,7 +75,7 @@ u16 loadingPollAreaPlacementFiles(void);
 /// Polls serialized base-resource loads for the saved area's layout.
 ///
 /// Returns 0 while walking or waiting for CD idle, and 1 on completion.
-/// Start with `D_80114C70 == LOADING_AREA_INIT`; the saved destination and
+/// Start with `gLoadingAreaBaseResourcePhase == LOADING_AREA_INIT`; the saved destination and
 /// loaded layout/tables must remain valid until both area-loading passes finish.
 /// The layout lookup must succeed: its resources are read before the NULL
 /// test. A NULL resource table completes immediately; a live resource table
@@ -331,7 +338,7 @@ void loadingPrepareAreaStateTask(Task* task);
 
 /// Completes the area's base and placement-resource passes before runtime setup.
 ///
-/// State 5 of the gameplay loading task. Start with `D_80114C74 == 0`; both
+/// State 5 of the gameplay loading task. Start with `gLoadingAreaResourcePass == 0`; both
 /// passes share cursors and run serially, with the placement pass beginning on
 /// the callback after base completion. On completion, resets collision/model
 /// lists, runs the model composition/draw pass, then advances to state 6. A

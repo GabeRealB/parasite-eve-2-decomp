@@ -17,8 +17,17 @@
 /// Scene-sync timer latch (0 disarmed, 1 armed); inactive CAP playback pauses it.
 static s8 _gCapSceneSyncArmed;
 
-s8 D_801156B1;
+/// Whether the last scene-selection message supplied a key (0 no, 1 yes).
+///
+/// Selects the subsequent scene-sync timing branch. A NULL selection clears
+/// it without changing the CD descriptor; control-task initialization does
+/// not reset it.
+static s8 _gCapHasSceneKey;
 
+/// Word set to one on every scene-selection message; its purpose is unproven.
+///
+/// No source reader or clearing store is identified. Retained with external
+/// linkage because the optional external debug routines have no source here.
 s32 D_801156B4;
 
 Task* D_801156B8;
@@ -245,8 +254,8 @@ static s32 _capSelectScene(Task* unusedTask, s32 unusedMessageId, const EvsScene
     if (sceneKey != NULL) {
         cdCmdSelectScene(sceneKey->group, sceneKey->streamId, sceneKey->subId);
     }
-    D_801156B4 = 1;
-    D_801156B1 = sceneKey != NULL;
+    D_801156B4       = 1;
+    _gCapHasSceneKey = sceneKey != NULL;
     return 0;
 }
 
@@ -262,7 +271,7 @@ static s32 _capBeginSceneSync(Task* unusedTask, s32 unusedMessageId, s32 viewCha
     enum { CAP_CONTROL_VIEW_CHANGE_WITH_SCENE_SYNC = 2 };
 
     if (gGameSession->evtSkipped == 0) {
-        if (D_801156B1 != 0) {
+        if (_gCapHasSceneKey != 0) {
             cdCmdSceneControlNoOp();
             _gCapSceneSyncArmed       = CAP_CONTROL_SCENE_SYNC_ARMED;
             gCapSceneSyncElapsedTicks = 0;

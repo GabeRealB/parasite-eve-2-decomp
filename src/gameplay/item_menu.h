@@ -13,7 +13,14 @@
 
 // Inventory menu tasks, item panels, prompts and their shared descriptors.
 
-extern UiObjectDesc D_8010D6D8;
+/// Bodyless root panel for container/carried-item transfers.
+///
+/// Spawn mode 1 presents battle rewards and opens the All/Select/Discard menu;
+/// other modes begin item-box browsing. The published place kind selects a
+/// valid container range. Only one screen may bind the shared transfer state
+/// at a time. `uiSpawnObject` copies the recipe synchronously; the callback,
+/// menu resources and selected ranges must stay live through panel teardown.
+extern UiObjectDesc gItemMenuTransferScreenDescriptor;
 
 /// Draws a transfer-pane inventory row and handles command or swap-partner input.
 ///
@@ -939,7 +946,8 @@ void itemMenuDrawHotspotItemRow(UiList* list, UiObject* object);
 /// Resets the object's result to NONE each update; picture inset is two pixels.
 void itemMenuPreviewPanelTask(Task* task);
 
-extern char Gp_StrReleasePe[];
+/// Encoded help text for the selected Parasite Energy menu command.
+extern u8 gItemMenuReleasePeHelpText[];
 
 /// Draws a weapon's selected consumable and remaining load, and accepts reloading.
 ///
@@ -1592,8 +1600,13 @@ extern InventoryItemRange gItemMenuTransferRanges[ITEM_MENU_PANE_COUNT];
 /// viewport and drawing state are retained between updates and reset on opening.
 extern UiList gItemMenuTransferPaneLists[ITEM_MENU_PANE_COUNT];
 
-/// Action-button callbacks for `Gp_ItemActionList`, filled by `_itemMenuFillTransferActions`.
-extern UiListRowCallback Gp_ItemActionFns[];
+/// Mutable row callbacks for the active transfer-action popup, with at most three rows.
+///
+/// Empty rows offer Switch. Occupied rows offer Move, optionally Switch, then
+/// optionally Use for supported consumables. The popup's item/visible counts
+/// select the initialized prefix; a NULL or stale trailing slot is never
+/// dispatched. Only the active transfer screen may rebuild this shared table.
+extern UiListRowCallback gItemMenuTransferActionCallbacks[3];
 
 /// All command label for moving every container item into carried inventory.
 extern u8 gItemMenuTransferAllText[];
@@ -1607,7 +1620,8 @@ extern u8 gItemMenuTransferDiscardText[];
 /// Retained fourth transfer-exit label; the three-row command list does not dispatch it.
 extern u8 gItemMenuTransferEndText[];
 
-extern u8 Gp_StrMove2[];
+/// Encoded Move command label for transferring the selected row to the other pane.
+extern u8 gItemMenuTransferMoveText[];
 
 /// Encoded instructions for the ammunition quantity and confirmation controls.
 extern u8 gItemMenuAmmoSplitHelpText[];
@@ -1618,7 +1632,8 @@ extern u8 gItemMenuAmmoLoadedNoticeText[];
 /// Encoded notice that the proposed stack has reached its per-item capacity.
 extern u8 gItemMenuAmmoCapacityNoticeText[];
 
-extern char Gp_StrSwitch[];
+/// Encoded Switch command label for choosing a row to exchange across panes.
+extern u8 gItemMenuTransferSwitchText[];
 
 /// Returns whether the transfer destination has rows for every source item.
 ///

@@ -103,10 +103,10 @@ static void _roomCutsceneTask(Task* task)
                 companionSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
             }
             if (cutscene->view > 0) {
-                D_80115694                    = save->state.location.loc.view;
+                gCapRestoreView               = save->state.location.loc.view;
                 save->state.location.loc.view = cutscene->view;
             } else {
-                D_80115694 = -cutscene->view;
+                gCapRestoreView = -cutscene->view;
             }
             gGameSession->hideHud          = 1;
             gGameSession->eventState       = 1;
@@ -219,7 +219,7 @@ static void _roomCutsceneTask(Task* task)
         case ROOM_CUTSCENE_STATE_RESTORE_VIEW:
             playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO);
             companionSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO);
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = (u8)D_80115694;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = (u8)gCapRestoreView;
             task->state++;
             break;
         case ROOM_CUTSCENE_STATE_VIEW_GAP_1:

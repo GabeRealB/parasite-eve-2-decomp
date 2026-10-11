@@ -78,13 +78,13 @@ STATIC_ASSERT_SIZEOF(_AttachmentWheelScratch, 0x30);
 
 u8 gPlayerActorStateTickHeld;
 
-extern const char D_8009388C[];
+static const u8 _gHudWeaponR1LabelText[];
 
-extern const char D_80093890[];
+static const u8 _gHudWeaponR2LabelText[];
 
-extern const char D_80093894[];
+static const u8 _gHudWeaponPrimaryButtonGlyphText[];
 
-extern const char D_80093898[];
+static const u8 _gHudWeaponSecondaryButtonGlyphText[];
 
 static void _hudDrawWeaponSupplyPrompt(s32 unusedPanelX, s32 unusedPanelY);
 
@@ -528,15 +528,15 @@ static void _hudDrawWeaponSupplyPrompt(s32 unusedPanelX, s32 unusedPanelY)
     lineY = lineY - gDisplayState.vramYOffset;
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.buttonLayout != HUD_WEAPON_PROMPT_SYMBOL_LAYOUT) {
         if (weaponItemId != HUD_WEAPON_PROMPT_GUNBLADE_ITEM_ID) {
-            DRAW_PROMPT_LABEL(primaryLabel, 4, lineY, HUD_WEAPON_PROMPT_TEXT_COLOR, D_8009388C);
+            DRAW_PROMPT_LABEL(primaryLabel, 4, lineY, HUD_WEAPON_PROMPT_TEXT_COLOR, _gHudWeaponR1LabelText);
         } else {
-            DRAW_PROMPT_LABEL(primaryLabel, 4, lineY, HUD_WEAPON_PROMPT_TEXT_COLOR, D_80093890);
+            DRAW_PROMPT_LABEL(primaryLabel, 4, lineY, HUD_WEAPON_PROMPT_TEXT_COLOR, _gHudWeaponR2LabelText);
         }
     } else {
         if (weaponItemId != HUD_WEAPON_PROMPT_GUNBLADE_ITEM_ID) {
-            DRAW_PROMPT_LABEL(primaryLabel, 6, lineY, HUD_WEAPON_PROMPT_PRIMARY_SYMBOL_COLOR, D_80093894);
+            DRAW_PROMPT_LABEL(primaryLabel, 6, lineY, HUD_WEAPON_PROMPT_PRIMARY_SYMBOL_COLOR, _gHudWeaponPrimaryButtonGlyphText);
         } else {
-            DRAW_PROMPT_LABEL(primaryLabel, 6, lineY, HUD_WEAPON_PROMPT_SECONDARY_SYMBOL_COLOR, D_80093898);
+            DRAW_PROMPT_LABEL(primaryLabel, 6, lineY, HUD_WEAPON_PROMPT_SECONDARY_SYMBOL_COLOR, _gHudWeaponSecondaryButtonGlyphText);
         }
     }
     if (weaponLoad->primaryItemId != INVENTORY_ITEM_NONE) {
@@ -550,9 +550,9 @@ static void _hudDrawWeaponSupplyPrompt(s32 unusedPanelX, s32 unusedPanelY)
         missingSupply = 0;
         lineY        += 0xA;
         if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.buttonLayout != HUD_WEAPON_PROMPT_SYMBOL_LAYOUT) {
-            DRAW_PROMPT_LABEL(secondaryLabel, 4, lineY, HUD_WEAPON_PROMPT_TEXT_COLOR, D_80093890);
+            DRAW_PROMPT_LABEL(secondaryLabel, 4, lineY, HUD_WEAPON_PROMPT_TEXT_COLOR, _gHudWeaponR2LabelText);
         } else {
-            DRAW_PROMPT_LABEL(secondaryLabel, 6, lineY, HUD_WEAPON_PROMPT_SECONDARY_SYMBOL_COLOR, D_80093898);
+            DRAW_PROMPT_LABEL(secondaryLabel, 6, lineY, HUD_WEAPON_PROMPT_SECONDARY_SYMBOL_COLOR, _gHudWeaponSecondaryButtonGlyphText);
         }
         if (weaponLoad->secondaryItemId != INVENTORY_ITEM_NONE) {
             DRAW_PROMPT_COUNT(secondaryLabel, lineY, secondaryQuantity);
@@ -1943,7 +1943,11 @@ void hudUpdateAndDraw(HudState* hud)
     }
 }
 
-const char D_8009388C[] = "R1";
-const char D_80093890[] = "R2";
-const char D_80093894[] = "%";
-const char D_80093898[] = "&";
+/// Encoded R1 label for the primary weapon supply in button layouts A and B.
+static const u8 _gHudWeaponR1LabelText[] = "R1";
+/// Encoded R2 label for secondary supply and the Gunblade's supply in layouts A and B.
+static const u8 _gHudWeaponR2LabelText[] = "R2";
+/// Small-font primary fire-button glyph used by the weapon supply prompt in layout C.
+static const u8 _gHudWeaponPrimaryButtonGlyphText[] = "%";
+/// Small-font secondary fire-button glyph used by the weapon supply prompt in layout C.
+static const u8 _gHudWeaponSecondaryButtonGlyphText[] = "&";

@@ -6,9 +6,11 @@
 #include "main/mc_types.h"
 #include "main/task_types.h"
 
-extern u8 Gp_StrItemObtained[];
+/// Encoded heading for an ordinary item-gain notice.
+extern u8 gItemPickupObtainedNoticeText[];
 
-extern u8 Gp_StrBonusItem[];
+/// Encoded heading for a bonus-item notice; its width sizes the wider notice panel.
+extern u8 gItemPickupBonusNoticeText[];
 
 /// Five-row staging range of items won in battle, exposed as container selector 0.
 ///

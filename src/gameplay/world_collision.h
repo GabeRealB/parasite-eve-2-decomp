@@ -12,14 +12,21 @@
 
 // Collision lists, contact records, room grids and collision updates.
 
-/// Pair-handler table used by `_worldCollisionCollideListPairs` / `worldCollisionCollideBodyLists`.
-/// Indexed by `WorldCollisionPairRule::handlerIndex` (`worldCollisionPairNop` / `_worldCollisionCollideSpherePair` /
-/// `_worldCollisionCollideSphereCapsulePair`).
-extern WorldCollisionPairHandler Gp_PairHandlers[5];
+/// Collision-pair callbacks indexed by `WORLD_COLLISION_PAIR_HANDLER_*` (0..4).
+///
+/// Slots 1 and 3 test sphere/sphere and sphere/capsule pairs; slots 0, 2 and 4
+/// are no-ops. The rule selects argument order. Dispatch passes the slot index
+/// as the callback's third argument and discards the result. No slot is a sentinel.
+extern WorldCollisionPairHandler gWorldCollisionPairHandlers[5];
 
-/// Pair-rule table used by `_worldCollisionCollideListPairs` / `worldCollisionCollideBodyLists`, one rule
-/// per ordered pair of body kinds. Rows and columns are `(flags & 7) - 1`.
-extern WorldCollisionPairRule D_8010FA4C[4][4];
+/// Ordered body-kind collision rules, one cell for each of sixteen kind pairs.
+///
+/// Rows and columns are sphere, contact proxy, capsule and motion sphere,
+/// indexed by `(flags & WORLD_COLLISION_BODY_KIND_MASK) - WORLD_COLLISION_BODY_SPHERE`.
+/// Enabled bodies must have kind 1..4. Each cell selects a handler slot 0..4
+/// and whether to exchange its arguments; motion spheres use sphere routes.
+/// The full 4-by-4 matrix has no terminator and stays in gameplay data.
+extern WorldCollisionPairRule gWorldCollisionPairRules[4][4];
 
 /// Enables action-hit clearing before every subsequent action-trigger scan.
 ///

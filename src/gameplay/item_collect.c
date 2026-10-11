@@ -27,9 +27,8 @@
 #include "main/ui.h"
 #include "main/wipsys.h"
 
-/// 0xFFFF-terminated item-id list walked by `inventoryGetCollectedItemId`. Each id's
-/// low 7 bits index a collected-item bit in `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.collectedBits`.
-extern u16 Gp_CollectedIds[];
+/// Terminator of the ordered collected-item catalogue, distinct from INVENTORY_ITEM_NONE.
+enum { INVENTORY_COLLECTED_LIST_END = 0xFFFF };
 
 /// Catalogue identification flags stored in the live save.
 enum {
@@ -235,7 +234,13 @@ static inline void _areaApplyObjectPlacement(Enemy* enemy, const AreaObjectPlace
     root->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
-u16 Gp_CollectedIds[41] = {
+/// Display order of forty collection catalogue IDs, followed by INVENTORY_COLLECTED_LIST_END.
+///
+/// Each ID's low seven bits select its live saved collection bit. Enumeration
+/// skips unset bits and returns the caller's zero-based collected position in
+/// this order. The sentinel is not an item, and adjacent retained bytes are
+/// outside the catalogue. The IDs and their order remain unchanged.
+static u16 _gInventoryCollectedItemOrder[41] = {
     297,
     296,
     295,
@@ -244,39 +249,39 @@ u16 Gp_CollectedIds[41] = {
     301,
     291,
     290,
-    289,
+    INVENTORY_COLLECTION_ID_BOWMANS_CARD,
     288,
     300,
-    287,
-    286,
-    282,
-    281,
-    280,
-    279,
-    278,
-    275,
-    274,
-    276,
-    273,
-    277,
-    283,
+    INVENTORY_COLLECTION_ID_OAK_BOARD,
+    INVENTORY_COLLECTION_ID_SUV_KEY,
+    INVENTORY_COLLECTION_ID_BAG_OF_WATER,
+    INVENTORY_COLLECTION_ID_ICE_BAG,
+    INVENTORY_COLLECTION_ID_GASOLINE,
+    INVENTORY_COLLECTION_ID_JERRY_CAN,
+    INVENTORY_COLLECTION_ID_TRUCK_KEY,
+    INVENTORY_COLLECTION_ID_BRONCO_MASTERKEY,
+    INVENTORY_COLLECTION_ID_LOBBY_KEY,
+    INVENTORY_COLLECTION_ID_WIRE_ROPE,
+    INVENTORY_COLLECTION_ID_MONKEY_WRENCH,
+    INVENTORY_COLLECTION_ID_FACTORY_KEY,
+    INVENTORY_COLLECTION_ID_BOTTLECAP_MAGNET,
     272,
-    271,
-    268,
-    267,
-    266,
-    265,
+    INVENTORY_COLLECTION_ID_MOTEL_ROOM_6_KEY,
+    INVENTORY_COLLECTION_ID_DRYFIELD_MAP,
+    INVENTORY_COLLECTION_ID_MANUAL,
+    INVENTORY_COLLECTION_ID_NMC_PHOTO,
+    INVENTORY_COLLECTION_ID_MIST_SEARCH_WARRANT,
     264,
-    261,
-    260,
-    259,
-    263,
+    INVENTORY_COLLECTION_ID_ARMORY_CARDKEY,
+    INVENTORY_COLLECTION_ID_BLUE_KEY,
+    INVENTORY_COLLECTION_ID_RED_KEY,
+    INVENTORY_COLLECTION_ID_MENDEL_JOURNAL,
     258,
-    257,
-    262,
-    303,
-    304,
-    65535
+    INVENTORY_COLLECTION_ID_PARTHENON_KEY,
+    INVENTORY_COLLECTION_ID_MIST_BADGE,
+    INVENTORY_COLLECTION_ID_PIERCE_RESCUE_BONUS,
+    INVENTORY_COLLECTION_ID_SOLDIER_RESCUE_BONUS,
+    INVENTORY_COLLECTED_LIST_END
 };
 /// Retained bytes after the collected-item list's end marker.
 ///
@@ -287,7 +292,6 @@ static u16 D_80114B32 = 0x1131;
 s32 inventoryGetCollectedItemId(s32 collectedIndex, s32 unused)
 {
     enum {
-        INVENTORY_COLLECTED_LIST_END       = 0xFFFF,
         INVENTORY_COLLECTION_ID_MASK       = 0x7F,
         INVENTORY_COLLECTION_BITS_PER_WORD = 32
     };
@@ -298,7 +302,7 @@ s32 inventoryGetCollectedItemId(s32 collectedIndex, s32 unused)
     s32        itemId;
     u32        maskUnit;
 
-    collectedIds    = Gp_CollectedIds;
+    collectedIds    = _gInventoryCollectedItemOrder;
     collectedItemId = INVENTORY_ITEM_NONE;
     if (*collectedIds != INVENTORY_COLLECTED_LIST_END) {
         do {

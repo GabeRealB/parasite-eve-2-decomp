@@ -27,7 +27,7 @@ extern WorldCollisionFaceEdge gWorldCollisionFaceEdges[5];
 
 /// Tests one ordered pair of collision bodies and records any contact.
 ///
-/// Dispatch selects the function from `Gp_PairHandlers` with
+/// Dispatch selects the function from `gWorldCollisionPairHandlers` with
 /// `WorldCollisionPairRule::handlerIndex` and passes that index as `handler`.
 /// `first` and `second` are the bodies in the order that rule specifies;
 /// `WorldCollisionPairRule::swapBodies` exchanges them before the call.
