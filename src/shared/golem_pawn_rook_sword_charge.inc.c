@@ -102,7 +102,7 @@ static void _golemPawnRookSwordChargeState(Task* actor)
             break;
         case GOLEM_PAWN_ROOK_CHARGE_RUN:
             work->forwardSpeed = GOLEM_PAWN_ROOK_CHARGE_SPEED;
-            work->turnRate     = GOLEM_PAWN_ROOK_CHARGE_TURN;
+            work->turnRate     = GOLEM_PAWN_ROOK_SWORD_CHARGE_TURN_RATE;
             toPlayer->vx       = gPlayerStatus.coordMtx->t[0] - root->coord.t[0];
             toPlayer->vz       = gPlayerStatus.coordMtx->t[2] - root->coord.t[2];
             work->targetYaw    = ratan2((s16)toPlayer->vx, (s16)toPlayer->vz) & ACTOR_TRANSFORM_ANGLE_MASK;

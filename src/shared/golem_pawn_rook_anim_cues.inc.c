@@ -15,12 +15,17 @@ static void _golemPawnRookPlayAnimCues(Task* actor)
     GfxCoord*              root;
     const AnimationRecord* record;
 
-    /// Plays a carrier cue at the body origin with its placement instance tag.
+    /// Requests an animation sound script at the composed body origin.
     ///
-    /// Borrows actor/root and the carrier's _gGolemPawnRookMotionCues table; cueIndex
-    /// must be valid there. soundId and audioPan are writable s32 lvalues. Arguments
-    /// must be side-effect-free; root and outputs occur repeatedly. The compound
-    /// statement is confined to this handler and undefined below.
+    /// actor borrows a live `Enemy` at spawnArg2.pointer; root is composed into the
+    /// active view. Captures the carrier's `_gGolemPawnRookMotionCues[17]`, whose
+    /// script IDs have zero instance bytes. cueIndex is evaluated once and must
+    /// be in 0..16; animation callers use 1..8 from sound sets 1..4. The placement
+    /// index (0..15) is inserted at bits 8..11. soundId/audioPan are writable s32
+    /// lvalues; pan is sampled before depth and both narrow to signed bytes. The
+    /// pan query changes GTE state and borrows projection scratch. Arguments must
+    /// be side-effect-free; root and outputs occur repeatedly. Use the compound
+    /// statement only as a standalone invocation; it is undefined below.
 #define GOLEM_PAWN_ROOK_PLAY_ANIM_CUE(actor, root, cueIndex, soundId, audioPan)                                                                                                     \
     {                                                                                                                                                                               \
         (soundId)  = _gGolemPawnRookMotionCues[(cueIndex)] | ((((Enemy*)(actor)->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << GOLEM_PAWN_ROOK_SOUND_INSTANCE_SHIFT); \

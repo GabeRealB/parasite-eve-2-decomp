@@ -9,9 +9,12 @@
  * under the shared names.
  *
  * Each package states its type and weapon before including this header:
- * GOLEM_PAWN_ROOK_TYPE is GOLEM_PAWN or GOLEM_ROOK, GOLEM_PAWN_ROOK_WEAPON is
- * GOLEM_BEAM_SWORD (actor_02000, actor_02300) or GOLEM_GRENADE_LAUNCHER
- * (actor_05600, actor_05700); the parameters below follow from them.
+ * `GOLEM_PAWN_ROOK_TYPE` must be `GOLEM_PAWN_ROOK_KIND_PAWN` or
+ * `GOLEM_PAWN_ROOK_KIND_ROOK`; `GOLEM_PAWN_ROOK_WEAPON` must be
+ * `GOLEM_PAWN_ROOK_WEAPON_BEAM_SWORD` (actor_02000, actor_02300) or
+ * `GOLEM_PAWN_ROOK_WEAPON_GRENADE_LAUNCHER` (actor_05600, actor_05700).
+ * Selector replacement tokens are expanded after their definitions below.
+ * All slot variants of a carrier use the same kind/weapon pair.
  *
  * Include this header in the prologue and each fragment at its function's
  * position. The package defines its tables at its own positions under these
@@ -22,58 +25,88 @@
  *   s32 _gGolemPawnRookSwingCue             sword swing/charge script ID (Beam Sword only)
  *   s32 _gGolemPawnRookGrenadeLaunchCue    grenade launch script ID (Grenade Launcher only)
  *   s32 gGolemPawnRookImpactSound          the grenade's impact cue (Grenade Launcher only)
+ *
+ * The hit fragment requires each carrier's own signed-halfword shield tables,
+ * `_gGolemPawnRookShieldWeaponRows[46]` and `_gGolemPawnRookShieldPeRows[56]`,
+ * declared before it is included. A nonzero row absorbs a covered frontal hit.
+ * The contact key's low seven bits index the table; bit 15 selects PE rows.
+ * Keys reaching shield lookup must select a weapon row in 0..45 or a PE row
+ * in 0..54, the latter also required by the damage API. No range checks run.
  */
 
 #ifndef SRC_SHARED_GOLEM_PAWN_ROOK_H
 #define SRC_SHARED_GOLEM_PAWN_ROOK_H
 
-#define GOLEM_PAWN             1
-#define GOLEM_ROOK             2
-#define GOLEM_BEAM_SWORD       1
-#define GOLEM_GRENADE_LAUNCHER 2
+/// Kind selector for the sword/launcher Pawns in actor_02000/actor_05600.
+#define GOLEM_PAWN_ROOK_KIND_PAWN 1
+/// Kind selector for the shielded Rooks in actor_02300/actor_05700.
+#define GOLEM_PAWN_ROOK_KIND_ROOK 2
+/// Weapon selector for the sword carriers actor_02000/actor_02300.
+#define GOLEM_PAWN_ROOK_WEAPON_BEAM_SWORD 1
+/// Weapon selector for the launcher carriers actor_05600/actor_05700.
+#define GOLEM_PAWN_ROOK_WEAPON_GRENADE_LAUNCHER 2
 
-/* Per weapon: the lunge cycle's wind-up turn rate and lunge range, and the
- * state and animation it hands over to for the lunge and for the walk-in (the
- * Grenade Launcher's state table is the longer one). The Beam Sword's charge
- * turns at GOLEM_PAWN_ROOK_CHARGE_TURN, which only the Pawn does, and a hit
- * that leaves it under GOLEM_PAWN_ROOK_LOW_HP of its maximum takes the heavy
- * reaction. */
-#if GOLEM_PAWN_ROOK_WEAPON == GOLEM_BEAM_SWORD
-#define GOLEM_PAWN_ROOK_WIND_UP_TURN 0x3C
-#define GOLEM_PAWN_ROOK_LUNGE_RANGE  0x8CA
-#define GOLEM_PAWN_ROOK_LUNGE_STATE  4
-#define GOLEM_PAWN_ROOK_LUNGE_ANIM   8
-#define GOLEM_PAWN_ROOK_WALK_STATE   3
-#define GOLEM_PAWN_ROOK_WALK_ANIM    5
-#if GOLEM_PAWN_ROOK_TYPE == GOLEM_PAWN
-#define GOLEM_PAWN_ROOK_CHARGE_TURN 0xF
-#define GOLEM_PAWN_ROOK_LOW_HP(max) ((max) * 15 / 100)
+#if GOLEM_PAWN_ROOK_WEAPON == GOLEM_PAWN_ROOK_WEAPON_BEAM_SWORD
+/// Engagement tracking step per call, in angular units (4096 per turn).
+#define GOLEM_PAWN_ROOK_ENGAGE_TRACK_TURN_RATE 60
+/// Strict horizontal player-distance cutoff for a sword swing, in game units.
+#define GOLEM_PAWN_ROOK_CLOSE_ATTACK_RANGE 2250
+/// Close-attack index into `GolemPawnRookWork::behavior`'s dispatch table.
+#define GOLEM_PAWN_ROOK_CLOSE_ATTACK_BEHAVIOR GOLEM_PAWN_ROOK_BEHAVIOR_SWORD_SWING
+/// Animation-table index of the close Beam Sword swing.
+#define GOLEM_PAWN_ROOK_CLOSE_ATTACK_ANIM 8
+/// Weapon-approach index into `GolemPawnRookWork::behavior`'s dispatch table.
+#define GOLEM_PAWN_ROOK_WEAPON_APPROACH_BEHAVIOR GOLEM_PAWN_ROOK_BEHAVIOR_SWORD_CHARGE
+/// Animation-table index of the Beam Sword charge wind-up.
+#define GOLEM_PAWN_ROOK_WEAPON_APPROACH_ANIM 5
+#if GOLEM_PAWN_ROOK_TYPE == GOLEM_PAWN_ROOK_KIND_PAWN
+/// Pawn running-charge steering step per call (4096 angular units per turn).
+#define GOLEM_PAWN_ROOK_SWORD_CHARGE_TURN_RATE 15
 #else
-#define GOLEM_PAWN_ROOK_CHARGE_TURN 0
-#define GOLEM_PAWN_ROOK_LOW_HP(max) ((max) / 4)
+/// Rook running-charge steering step; zero holds its heading.
+#define GOLEM_PAWN_ROOK_SWORD_CHARGE_TURN_RATE 0
 #endif
 #else
-#define GOLEM_PAWN_ROOK_LOW_HP(max)  ((max) * 15 / 100)
-#define GOLEM_PAWN_ROOK_WIND_UP_TURN 0x1E
-#define GOLEM_PAWN_ROOK_LUNGE_RANGE  0x7D0
-#define GOLEM_PAWN_ROOK_LUNGE_STATE  7
-#define GOLEM_PAWN_ROOK_LUNGE_ANIM   0x10
-#define GOLEM_PAWN_ROOK_WALK_STATE   6
-#define GOLEM_PAWN_ROOK_WALK_ANIM    0xC
+/// Engagement tracking step per call, in angular units (4096 per turn).
+#define GOLEM_PAWN_ROOK_ENGAGE_TRACK_TURN_RATE   30
+/// Strict horizontal player-distance cutoff for a launcher strike, in game units.
+#define GOLEM_PAWN_ROOK_CLOSE_ATTACK_RANGE       2000
+/// Close-attack index into `GolemPawnRookWork::behavior`'s dispatch table.
+#define GOLEM_PAWN_ROOK_CLOSE_ATTACK_BEHAVIOR    GOLEM_PAWN_ROOK_BEHAVIOR_LAUNCHER_STRIKE
+/// Animation-table index of the close launcher strike.
+#define GOLEM_PAWN_ROOK_CLOSE_ATTACK_ANIM        16
+/// Weapon-approach index into `GolemPawnRookWork::behavior`'s dispatch table.
+#define GOLEM_PAWN_ROOK_WEAPON_APPROACH_BEHAVIOR GOLEM_PAWN_ROOK_BEHAVIOR_GRENADE_BURST
+/// Animation-table index of the grenade burst's opening pose.
+#define GOLEM_PAWN_ROOK_WEAPON_APPROACH_ANIM     12
 #endif
 
-/* Per build: the type id (also in its collision keys, 0x30000 | id); and for
- * the Grenade Launcher's approach cycle, how long it backs away and how many
- * strikes it counts before the follow-up. */
-#if GOLEM_PAWN_ROOK_WEAPON == GOLEM_GRENADE_LAUNCHER
-#if GOLEM_PAWN_ROOK_TYPE == GOLEM_PAWN
-#define GOLEM_PAWN_ROOK_ID             0x38
-#define GOLEM_PAWN_ROOK_BACKOFF_FRAMES 0x1E
-#define GOLEM_PAWN_ROOK_STRIKE_LIMIT   6
+/// HP boundary below which a surviving hit requests a knockdown or downed flinch.
+///
+/// hpMax is an s32 maximum-HP count in 0..65535, evaluated once. Integer
+/// division truncates: sword Rook uses 25%, all other builds 15%. The caller
+/// compares surviving HP strictly below this result; equality does not qualify.
+#if GOLEM_PAWN_ROOK_WEAPON == GOLEM_PAWN_ROOK_WEAPON_BEAM_SWORD && GOLEM_PAWN_ROOK_TYPE == GOLEM_PAWN_ROOK_KIND_ROOK
+#define GOLEM_PAWN_ROOK_KNOCKDOWN_HP_THRESHOLD(hpMax) ((hpMax) / 4)
 #else
-#define GOLEM_PAWN_ROOK_ID             0x39
-#define GOLEM_PAWN_ROOK_BACKOFF_FRAMES 0x3C
-#define GOLEM_PAWN_ROOK_STRIKE_LIMIT   3
+#define GOLEM_PAWN_ROOK_KNOCKDOWN_HP_THRESHOLD(hpMax) ((hpMax) * 15 / 100)
+#endif
+
+#if GOLEM_PAWN_ROOK_WEAPON == GOLEM_PAWN_ROOK_WEAPON_GRENADE_LAUNCHER
+#if GOLEM_PAWN_ROOK_TYPE == GOLEM_PAWN_ROOK_KIND_PAWN
+/// Launcher Pawn actor number, also its sound-bank file argument and body-key ID.
+#define GOLEM_PAWN_ROOK_ACTOR_ID 0x38
+/// Launcher Pawn retreat duration; leaves backoff when its call count reaches 30.
+#define GOLEM_PAWN_ROOK_BURST_BACKOFF_FRAMES 30
+/// Launcher Pawn grenades requested per burst, independent of reload capacity.
+#define GOLEM_PAWN_ROOK_BURST_SHOT_LIMIT 6
+#else
+/// Launcher Rook actor number, also its sound-bank file argument and body-key ID.
+#define GOLEM_PAWN_ROOK_ACTOR_ID             0x39
+/// Launcher Rook retreat duration; leaves backoff when its call count reaches 60.
+#define GOLEM_PAWN_ROOK_BURST_BACKOFF_FRAMES 60
+/// Launcher Rook grenades requested per burst, independent of reload capacity.
+#define GOLEM_PAWN_ROOK_BURST_SHOT_LIMIT     3
 #endif
 #endif
 
@@ -193,7 +226,7 @@ typedef struct {
     s16                   downedPose;         // 0 standing, 1 knocked down by a hit from behind, 2 by one from the front; filed as the saved pose on death
     s16                   fireRequest;        // raised to make the launcher child spawn a grenade, which clears it
     s16                   shotsSinceReload;   // grenades fired since the last reload; the sixth is followed by the reload animation
-    s16                   burstShots;         // grenades fired in the current burst, up to `GOLEM_PAWN_ROOK_STRIKE_LIMIT`
+    s16                   burstShots;         // grenades fired in the current burst, up to `GOLEM_PAWN_ROOK_BURST_SHOT_LIMIT`
     s16                   screamCount;        // Silence screams started; each one halves the chance of the next
     s16                   screamActive;       // set while a Silence scream is charging, so damage counts toward breaking it
     s16                   screamCharges;      // screams the Rook can have broken before it is damaged (1 or 2 at spawn, 0 for a Pawn); while any remain hits whose key carries 0x8000 are quartered and light hits do not stagger
@@ -321,20 +354,20 @@ static void _golemPawnRookBuildupState(Task* task);
 static void _golemPawnRookNopState(Task* task);
 static void _golemPawnRookSwordTick(Enemy* unusedEnemy, Task* sword);
 
-#if GOLEM_PAWN_ROOK_WEAPON == GOLEM_BEAM_SWORD
+#if GOLEM_PAWN_ROOK_WEAPON == GOLEM_PAWN_ROOK_WEAPON_BEAM_SWORD
 static void _golemPawnRookSwordChargeState(Task* actor);
 static void _golemPawnRookSwordSwingState(Task* actor);
 static void _golemPawnRookSwordSpawn(Enemy* unusedEnemy, Task* task);
 #endif
 
-#if GOLEM_PAWN_ROOK_WEAPON == GOLEM_GRENADE_LAUNCHER
+#if GOLEM_PAWN_ROOK_WEAPON == GOLEM_PAWN_ROOK_WEAPON_GRENADE_LAUNCHER
 static void _golemPawnRookGrenadeSpawn(Enemy* enemy, Task* grenade);
 static void _golemPawnRookGrenadeDestroy(Enemy* enemy, Task* grenade);
 static void _golemPawnRookLauncherSpawn(Enemy* unusedEnemy, Task* task);
 static void _golemPawnRookLauncherTick(Enemy* enemy, Task* task);
 #endif
 
-#if GOLEM_PAWN_ROOK_TYPE == GOLEM_ROOK
+#if GOLEM_PAWN_ROOK_TYPE == GOLEM_PAWN_ROOK_KIND_ROOK
 static void _golemPawnRookShieldSpawn(Enemy* unusedEnemy, Task* task);
 #endif
 

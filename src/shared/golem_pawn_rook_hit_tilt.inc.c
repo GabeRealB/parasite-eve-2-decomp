@@ -20,12 +20,18 @@ static void _golemPawnRookDecayHitTilt(Task* actor)
     s32                nextYaw;
     s32                tiltRemaining;
 
-    /// Eases one flinch axis toward zero and marks it if still tilted.
+    /// Steps one signed flinch angle toward zero and records any remaining tilt.
     ///
-    /// angleField is a writable signed halfword; the other outputs are s32 lvalues.
-    /// decay is a positive integer angular step. All arguments must be side-effect-free
-    /// and can be evaluated repeatedly. remaining is only raised, never cleared.
-    /// Captures no locals; expands to a compound statement and is undefined below.
+    /// angleField is a writable s16 angle, in 4096 units per turn. value,
+    /// magnitude, next and remaining are distinct s32 lvalues. decay is a
+    /// positive signed-word angular step whose addition of 1 must not overflow;
+    /// callers use 32. Magnitudes <= decay snap to zero; otherwise the updated
+    /// angle retains its sign and remaining is set to 1. remaining is never
+    /// cleared; callers initialize it to 0 before processing both axes.
+    /// magnitude/next are written only on their respective nonzero/decay branches.
+    /// Arguments must be side-effect-free and can be evaluated repeatedly.
+    /// Captures no locals; use the compound statement only as a standalone
+    /// invocation. It is undefined below.
 #define GOLEM_PAWN_ROOK_DECAY_TILT_AXIS(angleField, value, magnitude, next, remaining, decay) \
     {                                                                                         \
         (value) = (angleField);                                                               \

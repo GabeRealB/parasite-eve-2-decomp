@@ -42,15 +42,22 @@ static void _golemPawnRookSilenceScreamState(Task* actor)
     s32                soundId;
     u32                randomDraw;
 
-/// Plays one scream-phase cue with the placement tag and sampled pan/depth.
-///
-/// actor and root are side-effect-free live pointers, cue is a bank script ID,
-/// and soundId is a caller-provided s32 local lvalue. root is composed. Repeats
-/// root while preserving the call argument evaluation and signed-byte narrowing.
-/// Expands to two statements; use only at a standalone braced call site.
-#define GOLEM_PAWN_ROOK_PLAY_SCREAM_CUE(actor, root, cue, soundId)                                                                             \
-    (soundId) = (cue) | ((((Enemy*)(actor)->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << GOLEM_PAWN_ROOK_SOUND_INSTANCE_SHIFT); \
-    sndEvtRequestScriptStart((soundId), (s8)worldCoordGetOriginAudioPan(root), (s8)worldCoordGetOriginAudioDepth(root));
+    /// Requests a scream-phase sound script tagged with the enemy placement instance.
+    ///
+    /// actor borrows a live `Enemy` at spawnArg2.pointer; root is composed into the
+    /// active view. cue is an s32 script ID with a zero instance byte, evaluated
+    /// once; soundId is a writable s32 lvalue receiving the tagged request ID.
+    /// The placement index (0..15) occupies bits 8..11. Pan and depth narrow to
+    /// signed bytes; their relative evaluation order remains the call's. The
+    /// spatial-pan query changes GTE state and borrows projection scratch.
+    /// Captures no locals; root and soundId occur repeatedly, so arguments must
+    /// be side-effect-free. Use this compound statement only as a standalone
+    /// invocation; it is undefined below.
+#define GOLEM_PAWN_ROOK_PLAY_SCREAM_CUE(actor, root, cue, soundId)                                                                                 \
+    {                                                                                                                                              \
+        (soundId) = (cue) | ((((Enemy*)(actor)->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << GOLEM_PAWN_ROOK_SOUND_INSTANCE_SHIFT); \
+        sndEvtRequestScriptStart((soundId), (s8)worldCoordGetOriginAudioPan((root)), (s8)worldCoordGetOriginAudioDepth((root)));                   \
+    }
 
     effectOffset = SCRATCH_STACK_RESERVE_BLOCK(SVECTOR);
     work         = actor->work;

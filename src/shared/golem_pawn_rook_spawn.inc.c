@@ -53,7 +53,7 @@ static void _golemPawnRookSpawn(Enemy* enemy, Task* actor)
     u8                 soundFileArgs[8];
     s32                slotIndex;
     s32                patrolLengthThousands;
-#if GOLEM_PAWN_ROOK_TYPE == GOLEM_ROOK
+#if GOLEM_PAWN_ROOK_TYPE == GOLEM_PAWN_ROOK_KIND_ROOK
     u32 randomDraw;
 #endif
 
@@ -70,7 +70,7 @@ static void _golemPawnRookSpawn(Enemy* enemy, Task* actor)
     root->composeStamp            = GRAPHICS_COORD_DIRTY;
     model->lightMtx               = &work->lightMtx;
     model->colorMtx               = &work->colorMtx;
-    work->actorId                 = GOLEM_PAWN_ROOK_ID;
+    work->actorId                 = GOLEM_PAWN_ROOK_ACTOR_ID;
     work->taskTable               = GOLEM_PAWN_ROOK_TASK_DESCRIPTORS;
     work->hitEffectArg.coord      = &actor->extra.tmd->coords[GOLEM_PAWN_ROOK_BODY_PART];
     work->hitEffectArg.spawnArgLo = GOLEM_PAWN_ROOK_HIT_EFFECT_SIZE;
@@ -79,7 +79,7 @@ static void _golemPawnRookSpawn(Enemy* enemy, Task* actor)
     for (slotIndex = 1; slotIndex < ARRAY_SIZE(work->rig.slots); slotIndex++) {
         animationResetSlot(&work->rig.anim, slotIndex, GOLEM_PAWN_ROOK_IDLE_ANIM);
     }
-#if GOLEM_PAWN_ROOK_TYPE == GOLEM_ROOK
+#if GOLEM_PAWN_ROOK_TYPE == GOLEM_PAWN_ROOK_KIND_ROOK
     _actorRenderApplyPlacementTextureOffsets(enemySpawnFromTable(GOLEM_PAWN_ROOK_TASK_DESCRIPTORS, GOLEM_PAWN_ROOK_SHIELD_TASK, 0, enemy)->task->extra.tmd, enemy);
 #endif
     weaponEnemy = enemySpawnFromTable(GOLEM_PAWN_ROOK_TASK_DESCRIPTORS, GOLEM_PAWN_ROOK_WEAPON_TASK, 0, enemy);
@@ -120,14 +120,14 @@ static void _golemPawnRookSpawn(Enemy* enemy, Task* actor)
                 soundFileKey[3]  = 0;
                 soundFileKey[2]  = GOLEM_PAWN_ROOK_SOUND_FILE_GROUP;
                 soundFileKey[0]  = work->soundSet;
-                soundFileArgs[0] = GOLEM_PAWN_ROOK_ID;
+                soundFileArgs[0] = GOLEM_PAWN_ROOK_ACTOR_ID;
                 soundFileArgs[3] = 0;
                 soundFileArgs[2] = 0;
                 soundFileArgs[1] = 0;
                 cdCmdEnqueue(CD_COMMAND_LOAD_FILE, soundFileKey, soundFileArgs);
             }
 
-#if GOLEM_PAWN_ROOK_TYPE == GOLEM_ROOK
+#if GOLEM_PAWN_ROOK_TYPE == GOLEM_PAWN_ROOK_KIND_ROOK
             work->shieldHp = GOLEM_PAWN_ROOK_SHIELD_HP;
 #endif
             // Sight, hurt, floor, weapon and laser bodies borrow the owned contact arrays.
@@ -140,7 +140,7 @@ static void _golemPawnRookSpawn(Enemy* enemy, Task* actor)
             work->sightCapsule.ends[1].vz = 0;
             work->sightCapsule.end1Radius = GOLEM_PAWN_ROOK_SIGHT_NEAR_RADIUS;
             work->sightCapsule.contacts   = work->sightContacts;
-#if GOLEM_PAWN_ROOK_TYPE == GOLEM_ROOK
+#if GOLEM_PAWN_ROOK_TYPE == GOLEM_PAWN_ROOK_KIND_ROOK
             randomDraw          = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
             work->screamCharges = ((randomDraw >> 16) & 1) + 1;
             gRandomLcgState     = randomDraw;
@@ -163,7 +163,7 @@ static void _golemPawnRookSpawn(Enemy* enemy, Task* actor)
             work->hurtBody.pos.vx           = 0;
             work->hurtBody.pos.vy           = 0;
             work->hurtBody.pos.vz           = 0;
-            work->hurtBody.key              = WORLD_COLLISION_CONTACT_ENEMY_BODY | GOLEM_PAWN_ROOK_ID;
+            work->hurtBody.key              = WORLD_COLLISION_CONTACT_ENEMY_BODY | GOLEM_PAWN_ROOK_ACTOR_ID;
             work->hurtBody.radius           = GOLEM_PAWN_ROOK_HURT_RADIUS;
             work->hurtBody.flags            = WORLD_COLLISION_BODY_SPHERE;
             work->hurtBody.coord            = &hurtCoords[GOLEM_PAWN_ROOK_BODY_PART];

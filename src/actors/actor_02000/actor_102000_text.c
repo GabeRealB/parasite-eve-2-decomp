@@ -42,8 +42,8 @@
 #include "main/tmd_types.h"
 #include "main/wipsys.h"
 #include "main/wipsys_types.h"
-#define GOLEM_PAWN_ROOK_TYPE   GOLEM_PAWN
-#define GOLEM_PAWN_ROOK_WEAPON GOLEM_BEAM_SWORD
+#define GOLEM_PAWN_ROOK_TYPE   GOLEM_PAWN_ROOK_KIND_PAWN
+#define GOLEM_PAWN_ROOK_WEAPON GOLEM_PAWN_ROOK_WEAPON_BEAM_SWORD
 #include "../../shared/player_detection.h"
 #include "../../shared/golem_pawn_rook.h"
 
@@ -1520,7 +1520,7 @@ static void _golemPawnRookEngageState(Task* task)
                 forwardSpeed = GOLEM_PAWN_ROOK_ENGAGE_SPEED;
             }
             work->forwardSpeed = forwardSpeed;
-            work->turnRate     = GOLEM_PAWN_ROOK_WIND_UP_TURN;
+            work->turnRate     = GOLEM_PAWN_ROOK_ENGAGE_TRACK_TURN_RATE;
             toPlayer->vx       = gPlayerStatus.coordMtx->t[0] - rootCoord->coord.t[0];
             toPlayer->vz       = gPlayerStatus.coordMtx->t[2] - rootCoord->coord.t[2];
             GOLEM_PAWN_ROOK_MEASURE_PLAYER_YAW_GAP(work, rootCoord, toPlayer, currentYaw, yawDelta, absoluteYawDelta, wrappedYawDelta, yawError);
@@ -1552,14 +1552,14 @@ static void _golemPawnRookEngageState(Task* task)
             playerOffsetZ      = gPlayerStatus.coordMtx->t[2] - rootCoord->coord.t[2];
             toPlayer->vz       = playerOffsetZ;
             playerOffsetX      = toPlayer->vx;
-            if (SquareRoot0((playerOffsetX * playerOffsetX) + (playerOffsetZ * playerOffsetZ)) < GOLEM_PAWN_ROOK_LUNGE_RANGE) {
+            if (SquareRoot0((playerOffsetX * playerOffsetX) + (playerOffsetZ * playerOffsetZ)) < GOLEM_PAWN_ROOK_CLOSE_ATTACK_RANGE) {
                 work->behavior = GOLEM_PAWN_ROOK_BEHAVIOR_SWORD_SWING;
                 work->step     = GOLEM_PAWN_ROOK_BEHAVIOR_START_STEP;
-                work->anim     = GOLEM_PAWN_ROOK_LUNGE_ANIM;
+                work->anim     = GOLEM_PAWN_ROOK_CLOSE_ATTACK_ANIM;
             } else {
                 work->behavior = GOLEM_PAWN_ROOK_BEHAVIOR_SWORD_CHARGE;
                 work->step     = GOLEM_PAWN_ROOK_BEHAVIOR_START_STEP;
-                work->anim     = GOLEM_PAWN_ROOK_WALK_ANIM;
+                work->anim     = GOLEM_PAWN_ROOK_WEAPON_APPROACH_ANIM;
                 work->timer    = 0;
             }
             break;

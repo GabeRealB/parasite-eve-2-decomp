@@ -67,20 +67,28 @@ static void _golemPawnRookGrenadeBurstState(Task* actor)
     GfxCoord*                      playerPart;
     GfxCoord*                      root;
 
-/// Samples a composed player offset and converts its normalized aim to room axes.
-///
-/// root and aim are side-effect-free pointers; playerPart is a GfxCoord* local
-/// lvalue. Inputs must have composed matrices in the same frame, and aim owns
-/// two live VECTORs. Repeats the pointer arguments, changes GTE state through
-/// normalization/rotation, and captures the live player slot and grid view.
-/// Expands to a statement sequence; use only at a standalone braced call site.
-#define GOLEM_PAWN_ROOK_BUILD_BURST_AIM(root, aim, playerPart)                                 \
-    (playerPart)              = &gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords[2]; \
-    (aim)->playerDirection.vx = (playerPart)->workm.t[0] - (root)->workm.t[0];                 \
-    (aim)->playerDirection.vy = (playerPart)->workm.t[1] - (root)->workm.t[1];                 \
-    (aim)->playerDirection.vz = (playerPart)->workm.t[2] - (root)->workm.t[2];                 \
-    VectorNormal(&(aim)->playerDirection, &(aim)->normalizedAim);                              \
-    ApplyTransposeMatrixLV(&gWorldCollisionActiveGrid->viewCoord->workm, &(aim)->normalizedAim, &(aim)->playerDirection);
+    /// Builds the room-axis Q12 direction toward the player's composed body part 2.
+    ///
+    /// Requires a live player model with coordinate 2, an active grid/view, and
+    /// root/player workm matrices composed into the same view frame. aim points
+    /// to a writable `_GolemPawnRookBurstAimScratch`; playerPart is a `GfxCoord*`
+    /// lvalue receiving a borrowed coordinate. Writes XYZ of both vectors,
+    /// leaving their pad words untouched. normalizedAim holds view-space Q12
+    /// direction (4096 = 1); playerDirection receives its room-axis rotation.
+    /// Offset subtraction and normalization must fit their signed-word domains.
+    /// Captures the player slot and active grid, changes GTE state, and repeats
+    /// pointer/lvalue arguments, which must be side-effect-free. Use this compound
+    /// statement only as a standalone invocation; it is undefined below.
+#define GOLEM_PAWN_ROOK_BUILD_BURST_AIM(root, aim, playerPart)                                                                         \
+    {                                                                                                                                  \
+        enum { GOLEM_PAWN_ROOK_BURST_PLAYER_AIM_PART = 2 };                                                                            \
+        (playerPart)              = &gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords[GOLEM_PAWN_ROOK_BURST_PLAYER_AIM_PART]; \
+        (aim)->playerDirection.vx = (playerPart)->workm.t[0] - (root)->workm.t[0];                                                     \
+        (aim)->playerDirection.vy = (playerPart)->workm.t[1] - (root)->workm.t[1];                                                     \
+        (aim)->playerDirection.vz = (playerPart)->workm.t[2] - (root)->workm.t[2];                                                     \
+        VectorNormal(&(aim)->playerDirection, &(aim)->normalizedAim);                                                                  \
+        ApplyTransposeMatrixLV(&gWorldCollisionActiveGrid->viewCoord->workm, &(aim)->normalizedAim, &(aim)->playerDirection);          \
+    }
 
     scratch = SCRATCH_STACK_RESERVE_BLOCK(_GolemPawnRookBurstAimScratch);
     work    = actor->work;
@@ -102,7 +110,7 @@ static void _golemPawnRookGrenadeBurstState(Task* actor)
             work->targetYaw             = ratan2((s16)scratch->playerDirection.vx, (s16)scratch->playerDirection.vz) & ACTOR_TRANSFORM_ANGLE_MASK;
             _golemPawnRookAimLaserSight(actor);
             work->timer++;
-            if (work->timer >= GOLEM_PAWN_ROOK_BACKOFF_FRAMES) {
+            if (work->timer >= GOLEM_PAWN_ROOK_BURST_BACKOFF_FRAMES) {
                 work->step             = GOLEM_PAWN_ROOK_BURST_CHECK_AIM;
                 work->timer            = 0;
                 work->laserBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
@@ -116,7 +124,7 @@ static void _golemPawnRookGrenadeBurstState(Task* actor)
             if (SquareRoot0((directionX * directionX) + (directionZ * directionZ)) < GOLEM_PAWN_ROOK_BURST_MIN_HORIZONTAL_AIM) {
                 work->behavior     = GOLEM_PAWN_ROOK_BEHAVIOR_LAUNCHER_STRIKE;
                 work->step         = GOLEM_PAWN_ROOK_BEHAVIOR_START_STEP;
-                work->anim         = GOLEM_PAWN_ROOK_LUNGE_ANIM;
+                work->anim         = GOLEM_PAWN_ROOK_CLOSE_ATTACK_ANIM;
                 work->shieldRaised = 0;
                 break;
             }
@@ -175,7 +183,7 @@ static void _golemPawnRookGrenadeBurstState(Task* actor)
                     _gGolemPawnRookAnimBlendFrames[GOLEM_PAWN_ROOK_BURST_FIRE_ANIM] = 0;
                     work->attackActive                                              = 0;
                 }
-            } else if (work->burstShots < GOLEM_PAWN_ROOK_STRIKE_LIMIT) {
+            } else if (work->burstShots < GOLEM_PAWN_ROOK_BURST_SHOT_LIMIT) {
                 if (work->animFrame >= _gGolemPawnRookAnimBlendFrames[GOLEM_PAWN_ROOK_BURST_FIRE_ANIM] + GOLEM_PAWN_ROOK_BURST_REPEAT_BLEND_FRAMES) {
                     _gGolemPawnRookAnimBlendFrames[GOLEM_PAWN_ROOK_BURST_FIRE_ANIM] = GOLEM_PAWN_ROOK_BURST_REPEAT_BLEND_FRAMES;
                     work->anim                                                      = GOLEM_PAWN_ROOK_BURST_FIRE_ANIM;

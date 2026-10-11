@@ -46,12 +46,17 @@ static void _golemPawnRookDrawLaserBeam(Task* actor, const SVECTOR* farEnd, cons
     s32                             ribbonIndex;
     s32                             segmentDepth;
 
-    /// Projects a root-space point to packed screen XY and quarter-Z ordering depth.
+    /// Projects a root-space laser point to packed screen XY and quarter-Z depth.
     ///
-    /// root is already composed for this view; point is a borrowed SVECTOR pointer.
-    /// screen/depth are writable s32 lvalues. Arguments must be side-effect-free,
-    /// including through the GTE macros. Captures no locals, changes GTE state and
-    /// expands to a compound statement; undefined below this handler.
+    /// root's workm is composed into the active view; point borrows a word-aligned
+    /// eight-byte SVECTOR. screen/depth are word-aligned writable s32 lvalues.
+    /// screen packs signed X/Y into its low/high halfwords; depth receives GTE
+    /// screen Z divided by four. Requires the current GTE projection settings;
+    /// replaces rotation, translation and projection results without testing
+    /// clipping flags. The caller filters depth after projecting both endpoints.
+    /// Arguments must be side-effect-free, including through the SDK macros;
+    /// root occurs repeatedly. Captures no locals; use the compound statement
+    /// only as a standalone invocation. It is undefined below this handler.
 #define GOLEM_PAWN_ROOK_PROJECT_LASER_POINT(root, point, screen, depth) \
     {                                                                   \
         gte_SetRotMatrix(&(root)->workm);                               \

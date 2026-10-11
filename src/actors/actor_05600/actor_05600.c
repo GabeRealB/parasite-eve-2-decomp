@@ -52,8 +52,8 @@
 #include "main/wipsys.h"
 #include "main/wipsys_types.h"
 #include "../../shared/player_detection.h"
-#define GOLEM_PAWN_ROOK_TYPE   GOLEM_PAWN
-#define GOLEM_PAWN_ROOK_WEAPON GOLEM_GRENADE_LAUNCHER
+#define GOLEM_PAWN_ROOK_TYPE   GOLEM_PAWN_ROOK_KIND_PAWN
+#define GOLEM_PAWN_ROOK_WEAPON GOLEM_PAWN_ROOK_WEAPON_GRENADE_LAUNCHER
 #include "../../shared/golem_pawn_rook.h"
 
 /// Character script bank used by this carrier's cue tables.

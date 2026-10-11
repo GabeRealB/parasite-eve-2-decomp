@@ -4,18 +4,6 @@
 
 /* Part of the Pawn/Rook GOLEM library; see golem_pawn_rook.h. */
 
-/// Carrier tables mark which attack rows a raised frontal shield absorbs.
-///
-/// Each binding is an s16 array indexed by the attack key's low seven bits;
-/// the PE table is selected by bit 15. The table spellings are carrier-owned.
-#if GOLEM_PAWN_ROOK_WEAPON == GOLEM_GRENADE_LAUNCHER
-#define GOLEM_PAWN_ROOK_SHIELD_WEAPON_ROWS _gGolemPawnRookShieldWeaponRows
-#define GOLEM_PAWN_ROOK_SHIELD_PE_ROWS     _gGolemPawnRookShieldPeRows
-#else
-#define GOLEM_PAWN_ROOK_SHIELD_WEAPON_ROWS _gGolemPawnRookShieldWeaponRows
-#define GOLEM_PAWN_ROOK_SHIELD_PE_ROWS     _gGolemPawnRookShieldPeRows
-#endif
-
 /// Requests release of a hit-interrupted Silence flash and drops its borrowed handle.
 ///
 /// Requires live work and a non-NULL flash effect/task. State 3 releases the
@@ -155,11 +143,11 @@ static void _golemPawnRookTakeHits(Task* actor)
                 attackReaction           = damageGetPlayerAttackReaction(work->hurtContacts[contactIndex].key.value);
                 if (work->shieldRaised != 0 && work->hitFromFront == 1 && work->downedPose == 0) {
                     if (work->hurtContacts[contactIndex].key.value & GOLEM_PAWN_ROOK_HIT_PE_BIT) {
-                        if (GOLEM_PAWN_ROOK_SHIELD_PE_ROWS[work->hurtContacts[contactIndex].key.value & GOLEM_PAWN_ROOK_HIT_ROW_MASK] != 0) {
+                        if (_gGolemPawnRookShieldPeRows[work->hurtContacts[contactIndex].key.value & GOLEM_PAWN_ROOK_HIT_ROW_MASK] != 0) {
                             shieldAbsorbed  = 1;
                             work->shieldHp -= damage;
                         }
-                    } else if (GOLEM_PAWN_ROOK_SHIELD_WEAPON_ROWS[work->hurtContacts[contactIndex].key.value & GOLEM_PAWN_ROOK_HIT_ROW_MASK] != 0) {
+                    } else if (_gGolemPawnRookShieldWeaponRows[work->hurtContacts[contactIndex].key.value & GOLEM_PAWN_ROOK_HIT_ROW_MASK] != 0) {
                         shieldAbsorbed  = 1;
                         work->shieldHp -= damage;
                     }
@@ -209,7 +197,7 @@ static void _golemPawnRookTakeHits(Task* actor)
                     } else {
                         hitReaction = GOLEM_PAWN_ROOK_HIT_DOWNED_DEATH;
                     }
-                } else if (hpMax = enemy->param->hpMax, enemy->hp < GOLEM_PAWN_ROOK_LOW_HP(hpMax)) {
+                } else if (hpMax = enemy->param->hpMax, enemy->hp < GOLEM_PAWN_ROOK_KNOCKDOWN_HP_THRESHOLD(hpMax)) {
                     if (work->downedPose == 0) {
                         hitReaction = GOLEM_PAWN_ROOK_HIT_KNOCKDOWN;
                     } else {
@@ -361,6 +349,3 @@ static void _golemPawnRookTakeHits(Task* actor)
     worldCollisionClearContacts(work->sightContacts);
     SCRATCH_STACK_RELEASE_BLOCK(GolemPawnRookHitScratch);
 }
-
-#undef GOLEM_PAWN_ROOK_SHIELD_WEAPON_ROWS
-#undef GOLEM_PAWN_ROOK_SHIELD_PE_ROWS

@@ -39,7 +39,7 @@ static void _golemPawnRookEngageState(Task* actor)
     s16 yawError;
     s32 playerOffsetX;
     s32 playerOffsetZ;
-#if GOLEM_PAWN_ROOK_TYPE == GOLEM_ROOK
+#if GOLEM_PAWN_ROOK_TYPE == GOLEM_PAWN_ROOK_KIND_ROOK
     u32 screamRandom;
 #endif
     u16                sightFlags;
@@ -49,15 +49,21 @@ static void _golemPawnRookEngageState(Task* actor)
     GolemPawnRookWork* work;
     GfxCoord*          root;
 
-    /// Updates player/current yaw and measures their shortest 4096-unit gap.
+    /// Stores player/current headings and measures their nonnegative shortest angular gap.
     ///
-    /// Arguments must be side-effect-free pointers or lvalues, evaluated repeatedly.
-    /// yawValue, differenceValue, wrappedValue and errorValue are signed halfwords;
-    /// magnitudeValue is s32. Captures no locals and expands to a compound statement.
-    /// Kept local to this handler and undefined below.
+    /// work borrows live GOLEM work; root and toPlayer describe facing and X/Z
+    /// offset in the same parent frame. Bearing deliberately narrows X/Z to s16.
+    /// Headings use 4096 units per turn, are masked to 0..4095, and overwrite
+    /// work's targetYaw/yaw. yawValue, differenceValue, wrappedValue and errorValue
+    /// are distinct s16 lvalues; magnitudeValue is a distinct s32 lvalue.
+    /// differenceValue is in -4095..4095; errorValue is in 0..2048, with the
+    /// half-turn tie going through the wrap branch. wrappedValue is written only
+    /// on that branch. Arguments must be side-effect-free, evaluated repeatedly.
+    /// Captures no locals; use the compound statement only as a standalone
+    /// invocation. It is undefined below.
 #define GOLEM_PAWN_ROOK_MEASURE_PLAYER_YAW_GAP(work, root, toPlayer, yawValue, differenceValue, magnitudeValue, wrappedValue, errorValue) \
     {                                                                                                                                     \
-        (work)->targetYaw = (u16)(ratan2((s16)(toPlayer)->vx, (s16)(toPlayer)->vz) & ACTOR_TRANSFORM_ANGLE_MASK);                         \
+        (work)->targetYaw = ratan2((s16)(toPlayer)->vx, (s16)(toPlayer)->vz) & ACTOR_TRANSFORM_ANGLE_MASK;                                \
         (yawValue)        = ratan2((root)->coord.m[0][2], (root)->coord.m[2][2]) & ACTOR_TRANSFORM_ANGLE_MASK;                            \
         (work)->yaw       = (yawValue);                                                                                                   \
         (differenceValue) = (work)->targetYaw - (yawValue);                                                                               \
@@ -88,7 +94,7 @@ static void _golemPawnRookEngageState(Task* actor)
                 forwardSpeed = GOLEM_PAWN_ROOK_ENGAGE_SPEED;
             }
             work->forwardSpeed = forwardSpeed;
-            work->turnRate     = GOLEM_PAWN_ROOK_WIND_UP_TURN;
+            work->turnRate     = GOLEM_PAWN_ROOK_ENGAGE_TRACK_TURN_RATE;
             toPlayer->vx       = gPlayerStatus.coordMtx->t[0] - root->coord.t[0];
             toPlayer->vz       = gPlayerStatus.coordMtx->t[2] - root->coord.t[2];
             GOLEM_PAWN_ROOK_MEASURE_PLAYER_YAW_GAP(work, root, toPlayer, currentYaw, yawDifference, absoluteDifference, wrappedDifference, yawError);
@@ -120,12 +126,12 @@ static void _golemPawnRookEngageState(Task* actor)
             playerOffsetZ      = gPlayerStatus.coordMtx->t[2] - root->coord.t[2];
             toPlayer->vz       = playerOffsetZ;
             playerOffsetX      = toPlayer->vx;
-            if (SquareRoot0((playerOffsetX * playerOffsetX) + (playerOffsetZ * playerOffsetZ)) < GOLEM_PAWN_ROOK_LUNGE_RANGE) {
-                work->behavior = GOLEM_PAWN_ROOK_LUNGE_STATE;
+            if (SquareRoot0((playerOffsetX * playerOffsetX) + (playerOffsetZ * playerOffsetZ)) < GOLEM_PAWN_ROOK_CLOSE_ATTACK_RANGE) {
+                work->behavior = GOLEM_PAWN_ROOK_CLOSE_ATTACK_BEHAVIOR;
                 work->step     = GOLEM_PAWN_ROOK_BEHAVIOR_START_STEP;
-                work->anim     = GOLEM_PAWN_ROOK_LUNGE_ANIM;
+                work->anim     = GOLEM_PAWN_ROOK_CLOSE_ATTACK_ANIM;
             } else {
-#if GOLEM_PAWN_ROOK_TYPE == GOLEM_ROOK
+#if GOLEM_PAWN_ROOK_TYPE == GOLEM_PAWN_ROOK_KIND_ROOK
                 screamRandom    = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
                 gRandomLcgState = screamRandom;
                 if (!((screamRandom >> 0x10) & ((1 << (work->screamCount + 1)) - 1)) && !(gPlayerStatus.statusFlags & PLAYER_STATUS_SILENCE) &&
@@ -138,15 +144,15 @@ static void _golemPawnRookEngageState(Task* actor)
                     work->interruptDamage = 0;
                     work->screamCount++;
                 } else {
-                    work->behavior = GOLEM_PAWN_ROOK_WALK_STATE;
+                    work->behavior = GOLEM_PAWN_ROOK_WEAPON_APPROACH_BEHAVIOR;
                     work->step     = GOLEM_PAWN_ROOK_BEHAVIOR_START_STEP;
-                    work->anim     = GOLEM_PAWN_ROOK_WALK_ANIM;
+                    work->anim     = GOLEM_PAWN_ROOK_WEAPON_APPROACH_ANIM;
                     work->timer    = 0;
                 }
 #else
-                work->behavior = GOLEM_PAWN_ROOK_WALK_STATE;
+                work->behavior = GOLEM_PAWN_ROOK_WEAPON_APPROACH_BEHAVIOR;
                 work->step     = GOLEM_PAWN_ROOK_BEHAVIOR_START_STEP;
-                work->anim     = GOLEM_PAWN_ROOK_WALK_ANIM;
+                work->anim     = GOLEM_PAWN_ROOK_WEAPON_APPROACH_ANIM;
                 work->timer    = 0;
 #endif
             }
