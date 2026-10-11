@@ -206,7 +206,14 @@ extern u8 gShelterR47MapNextFirstUseStarted;
 
 extern RoomCutsceneRec D_shelter_r47_8018A698;
 
-extern u8 D_shelter_r47_80186FAC[5];
+/// Mutable logical room view selected by each control-console row.
+///
+/// Rows 0..4 are Transfer Door, Switch 2, Observatory, Switch 4 and Watchers,
+/// initially selecting views 16, 18, 17, 20 and 19. Loading or toggling Switch 2
+/// replaces row 1 with view 18 (off) or 36 (on). View changes use the confirmed
+/// selection's low-byte row; all accesses require 0..4. This five-byte table
+/// has no terminator and borrows the room overlay's lifetime.
+extern u8 gShelterR47ConsoleRowViews[5];
 
 /// Interior reveal-stop starts for console status messages 0..9.
 ///

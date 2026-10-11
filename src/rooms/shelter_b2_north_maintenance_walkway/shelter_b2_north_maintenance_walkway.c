@@ -43,6 +43,7 @@
 #include "main/sound.h"
 #include "main/task.h"
 #include "main/task_types.h"
+#include "main/sound_ids.h"
 
 #include "mapui/map_shelter.h"
 
@@ -76,9 +77,36 @@ u8* gShelterB2NorthMaintenanceWalkwayRoomViewMaps[1] = {
 
 ViewCount gShelterB2NorthMaintenanceWalkwayRoomViewCounts[2] = { 8, 0 };
 
-DirectionWarpEntry D_shelter_b2_north_maintenance_walkway_80183C64[2] = {
-    { { { .word = 0 }, 2000, 0, -4500 }, { 0, 0, 0, 0 }, { { .word = 0 }, 2000, 0, -4500 }, { 0, 0, 0, 0 }, 0x541E0002, 0x541E0001, 0x541E0007, 2, DIRECTION_WARP_FLAG_NONE, 458 },
-    { { { .word = 0 }, -1839, 0, 3660 }, { 0, 0, 0, 0 }, { { .word = 0 }, -1839, 0, 3660 }, { 0, 0, 0, 0 }, 0x541E0005, 0x541E0004, DIRECTION_WARP_SOUND_NONE, 5, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+/// Optional map-marker nibble keys published by these arrival endpoints.
+enum {
+    SHELTER_B2_NORTH_MAINTENANCE_WALKWAY_WARP_1_MAP_FLAG = 458,
+};
+
+DirectionWarpEntry gShelterB2NorthMaintenanceWalkwayWarpEntries[2] = {
+    {
+        .player         = { { .word = 0 }, 2000, 0, -4500 },
+        .unknown_10     = { 0, 0, 0, 0 },
+        .companion      = { { .word = 0 }, 2000, 0, -4500 },
+        .unknown_24     = { 0, 0, 0, 0 },
+        .arrivalSound   = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_NORTH_MAINTENANCE_WALKWAY, 2),
+        .departureSound = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_NORTH_MAINTENANCE_WALKWAY, 1),
+        .blockedSound   = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_NORTH_MAINTENANCE_WALKWAY, 7),
+        .initialView    = 2,
+        .flags          = DIRECTION_WARP_FLAG_NONE,
+        .mapFlagId      = SHELTER_B2_NORTH_MAINTENANCE_WALKWAY_WARP_1_MAP_FLAG,
+    },
+    {
+        .player         = { { .word = 0 }, -1839, 0, 3660 },
+        .unknown_10     = { 0, 0, 0, 0 },
+        .companion      = { { .word = 0 }, -1839, 0, 3660 },
+        .unknown_24     = { 0, 0, 0, 0 },
+        .arrivalSound   = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_NORTH_MAINTENANCE_WALKWAY, 5),
+        .departureSound = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_NORTH_MAINTENANCE_WALKWAY, 4),
+        .blockedSound   = DIRECTION_WARP_SOUND_NONE,
+        .initialView    = 5,
+        .flags          = DIRECTION_WARP_FLAG_NONE,
+        .mapFlagId      = DIRECTION_WARP_MAP_FLAG_NONE,
+    },
 };
 
 /// Room-space collision normals, with `ONE` representing unit length.

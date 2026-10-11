@@ -38,7 +38,14 @@ extern u8* gShelterB1NorthMaintenanceWalkwayViewMaps[1];
 /// is no terminator.
 extern ViewCount gShelterB1NorthMaintenanceWalkwayRoomViewCounts[1];
 
-extern DirectionWarpEntry D_shelter_b1_north_maintenance_walkway_80184B88[];
+/// The north walkway's Sleeping Quarters and Storeroom endpoints.
+///
+/// Slots 1 and 2 arrive in views 2 and 5 respectively, with separate
+/// arrival/departure sounds and map-marker keys.
+/// Index by 1-based warp ID minus one; there is no terminator. Placements
+/// use whole world units and yaw uses 4096 units per turn. The stage map
+/// borrows this array while the room overlay and its sound bank stay loaded.
+extern DirectionWarpEntry gShelterB1NorthMaintenanceWalkwayWarpEntries[2];
 
 /// The walkway's floor and wall mesh, indexed by a 2-by-3 XZ collision grid.
 ///

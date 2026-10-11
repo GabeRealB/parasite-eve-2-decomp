@@ -1,6 +1,6 @@
 // Overlay-local symbols for dryfield_night_warehouse.
 gGlowPrismCorners = 0x8017E858; // size:0x80 defined:True
-D_dryfield_night_warehouse_8017E830 = 0x8017E830; // size:0x28 defined:True
+_gDryfieldNightWarehouseRoomMessages = 0x8017E830; // size:0x28 defined:True
 _gDryfieldNightWarehouseBeamRadii = 0x8017E8D8; // size:0x10 defined:True
 gDryfieldNightWarehouseRoomLighting = 0x8017E8E8; // size:0x18 defined:True
 gDryfieldNightWarehouseRoomCollisionResources = 0x8017E900; // size:0x30 defined:True

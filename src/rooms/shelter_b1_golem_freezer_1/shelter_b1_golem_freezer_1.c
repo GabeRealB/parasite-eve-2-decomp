@@ -40,6 +40,7 @@
 #include "main/task.h"
 #include "main/task_types.h"
 #include "main/tmd_types.h"
+#include "main/sound_ids.h"
 
 #include "mapui/map_shelter.h"
 
@@ -176,8 +177,24 @@ u8* gShelterB1GolemFreezer1ViewMaps[1] = {
 
 ViewCount gShelterB1GolemFreezer1ViewCounts[2] = { ARRAY_SIZE(gShelterB1GolemFreezer1ViewCameras), 0 };
 
-DirectionWarpEntry D_shelter_b1_golem_freezer_1_8017E798[1] = {
-    { { { .word = 3072 }, 6763, -80, 1000 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 6763, -80, 1000 }, { 0, 0, 0, 0 }, 0x54150002, 0x54150001, DIRECTION_WARP_SOUND_NONE, 5, DIRECTION_WARP_FLAG_NONE, 433 },
+/// Optional map-marker nibble keys published by these arrival endpoints.
+enum {
+    SHELTER_B1_GOLEM_FREEZER_1_WARP_1_MAP_FLAG = 433,
+};
+
+DirectionWarpEntry gShelterB1GolemFreezer1WarpEntries[1] = {
+    {
+        .player         = { { .word = 3072 }, 6763, -80, 1000 },
+        .unknown_10     = { 0, 0, 0, 0 },
+        .companion      = { { .word = 3072 }, 6763, -80, 1000 },
+        .unknown_24     = { 0, 0, 0, 0 },
+        .arrivalSound   = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_GOLEM_FREEZER_1, 2),
+        .departureSound = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_GOLEM_FREEZER_1, 1),
+        .blockedSound   = DIRECTION_WARP_SOUND_NONE,
+        .initialView    = 5,
+        .flags          = DIRECTION_WARP_FLAG_NONE,
+        .mapFlagId      = SHELTER_B1_GOLEM_FREEZER_1_WARP_1_MAP_FLAG,
+    },
 };
 
 /// Room collision normals in Q12; the meeting obstacle replaces entry zero.

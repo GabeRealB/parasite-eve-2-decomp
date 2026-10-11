@@ -28,7 +28,14 @@ extern u8* gShelterB1ControlRoomAccessTunnelRoomViewMaps[1];
 /// Room 1's three logical views, limiting reverse searches in its identity map.
 extern ViewCount gShelterB1ControlRoomAccessTunnelRoomViewCounts[1];
 
-extern DirectionWarpEntry D_shelter_b1_control_room_access_tunnel_80181F08[];
+/// Two access-tunnel door endpoints.
+///
+/// Slots 1 and 2 face the Main Corridor and Control Room doors, arriving
+/// in views 2 and 3 respectively.
+/// Index by 1-based warp ID minus one; there is no terminator. Placements
+/// use whole world units and yaw uses 4096 units per turn. The stage map
+/// borrows this array while the room overlay and its sound bank stay loaded.
+extern DirectionWarpEntry gShelterB1ControlRoomAccessTunnelWarpEntries[2];
 
 /// Tunnel collision mesh with two X cells and one Z cell, each 4000 world units.
 ///

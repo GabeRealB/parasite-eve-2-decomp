@@ -888,9 +888,9 @@ void shelterR47ConsoleLoadSwitches(Task* task)
     work->toggles[SHELTER_R47_CONSOLE_ROW_SWITCH_2]      = gameFlagGetNibble(GAME_FLAG_SHELTER_R47_CONSOLE_SWITCH_2);
     // Switch 2 has distinct room images for its off and on states.
     if (!(work->toggles[SHELTER_R47_CONSOLE_ROW_SWITCH_2] & 1)) {
-        D_shelter_r47_80186FAC[SHELTER_R47_CONSOLE_ROW_SWITCH_2] = SHELTER_R47_CONSOLE_SWITCH_2_OFF_VIEW;
+        gShelterR47ConsoleRowViews[SHELTER_R47_CONSOLE_ROW_SWITCH_2] = SHELTER_R47_CONSOLE_SWITCH_2_OFF_VIEW;
     } else {
-        D_shelter_r47_80186FAC[SHELTER_R47_CONSOLE_ROW_SWITCH_2] = SHELTER_R47_CONSOLE_SWITCH_2_ON_VIEW;
+        gShelterR47ConsoleRowViews[SHELTER_R47_CONSOLE_ROW_SWITCH_2] = SHELTER_R47_CONSOLE_SWITCH_2_ON_VIEW;
     }
     work->toggles[SHELTER_R47_CONSOLE_ROW_OBSERVATORY] = gameFlagGetNibble(GAME_FLAG_B2_CORRIDOR_OBSERVATORY_ACCESS);
     work->toggles[SHELTER_R47_CONSOLE_ROW_SWITCH_4]    = gameFlagGetNibble(GAME_FLAG_SHELTER_R47_CONSOLE_SWITCH_4);
@@ -1105,7 +1105,7 @@ static void _shelterR47ConsoleChangeViewTask(Task* task)
     shelterR47ConsoleUpdateAndDraw(task, SHELTER_R47_CONSOLE_LAYOUT_CHANGING_VIEW);
     // Change the room image only after the circular wipe has hidden it.
     if (shelterR47ConsoleFillWipe(task) != 0) {
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = D_shelter_r47_80186FAC[(u8)work->selection];
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = gShelterR47ConsoleRowViews[(u8)work->selection];
         work->revealPos                                            = 0;
         _shelterR47ConsoleSetWipe(task, SHELTER_R47_CONSOLE_LEVEL_MAX);
         task->state++;
@@ -1303,11 +1303,11 @@ static void _shelterR47ConsoleToggleSwitch(Task* task, s16 row)
             break;
         case SHELTER_R47_CONSOLE_ROW_SWITCH_2:
             if (!(work->toggles[1] & 1)) {
-                D_shelter_r47_80186FAC[1]                                  = SHELTER_R47_CONSOLE_SWITCH_2_OFF_VIEW;
-                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = SHELTER_R47_CONSOLE_SWITCH_2_OFF_VIEW;
+                gShelterR47ConsoleRowViews[SHELTER_R47_CONSOLE_ROW_SWITCH_2] = SHELTER_R47_CONSOLE_SWITCH_2_OFF_VIEW;
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view   = SHELTER_R47_CONSOLE_SWITCH_2_OFF_VIEW;
             } else {
-                D_shelter_r47_80186FAC[1]                                  = SHELTER_R47_CONSOLE_SWITCH_2_ON_VIEW;
-                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = SHELTER_R47_CONSOLE_SWITCH_2_ON_VIEW;
+                gShelterR47ConsoleRowViews[SHELTER_R47_CONSOLE_ROW_SWITCH_2] = SHELTER_R47_CONSOLE_SWITCH_2_ON_VIEW;
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view   = SHELTER_R47_CONSOLE_SWITCH_2_ON_VIEW;
             }
             break;
         case SHELTER_R47_CONSOLE_ROW_SWITCH_4:

@@ -524,7 +524,7 @@ static void _actor150400ReloadMainCorridor(void)
         SetDispMask(true);
         gameFlagSetNibble(GAME_FLAG_GOLEM_FREEZER_UNLOCKED, ACTOR_150400_FREEZER_UNLOCKED);
         loadingEnqueueCharacterResources(true);
-        areaApplySavedUpdates(D_shelter_b1_control_room_80183BE0);
+        areaApplySavedUpdates(gShelterB1ControlRoomFreezerSceneAreaUpdates);
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage = GAME_STAGE_MINE_SHELTER;
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area  = GAME_AREA_SHELTER_B2_MAIN_CORRIDOR;
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp  = ACTOR_150400_MAIN_CORRIDOR_ARRIVAL_WARP;
@@ -545,7 +545,7 @@ static void _actor150400StartControlRoomMovie(void)
 {
     enum { ACTOR_150400_CONTROL_ROOM_MOVIE_TASK_INDEX = 0 };
 
-    taskSpawnFromTable(D_shelter_b1_control_room_80181BBC, ACTOR_150400_CONTROL_ROOM_MOVIE_TASK_INDEX, 0, 0);
+    taskSpawnFromTable(gShelterB1ControlRoomMovieTaskDescs, ACTOR_150400_CONTROL_ROOM_MOVIE_TASK_INDEX, 0, 0);
 }
 
 /// Applies one state word to both scene sliding-model tasks.

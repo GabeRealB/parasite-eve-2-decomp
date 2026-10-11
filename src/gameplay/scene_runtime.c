@@ -2224,7 +2224,7 @@ void sceneStartRoomTasks(void)
             taskSpawnFromTable(gDryfieldNightMotelRoom6ReflectionTaskDescs, 0, SCENE_ROOM_REFLECTION_MODE_PLANE, 0);
             break;
         case GAME_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_CONTROL_ROOM, 0, 0):
-            taskSpawnFromTable(&D_shelter_b1_control_room_80181B88, 0, 0, 0);
+            taskSpawnFromTable(&gShelterB1ControlRoomMirrorTaskDesc, 0, 0, 0);
             break;
         case GAME_LOCATION_KEY(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_R31, 0, 0):
             taskSpawnFromTable(&gNeoArkR31FramebufferShiftTaskDesc, 0, 0, 0);

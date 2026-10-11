@@ -123,7 +123,7 @@ gNeoArkPavilionViewCameras = 0x80184208; // absolute:True owner=neo_ark_pavilion
 gNeoArkPavilionSpriteViews = 0x801873B8; // absolute:True owner=neo_ark_pavilion
 gNeoArkPavilionSurfaceProperties = 0x801879EC; // absolute:True owner=neo_ark_pavilion
 neoArkIslandRoomTask = 0x8017EB10; // type:func absolute:True owner=neo_ark_island
-gNeoArkIslandRoomCollisionResources = 0x80181B94; // absolute:True owner=neo_ark_island shared=rooms
+gNeoArkIslandRoomCollisionResources = 0x80181B94; // absolute:True owner=neo_ark_island
 gNeoArkIslandRoomLighting = 0x80181BA4; // absolute:True owner=neo_ark_island
 gNeoArkIslandViewMaps = 0x80181BAC; // absolute:True owner=neo_ark_island
 gNeoArkIslandViewCounts = 0x80181BB0; // absolute:True owner=neo_ark_island shared=rooms
@@ -209,7 +209,7 @@ gShelterB6NurserySurfaceProperties = 0x80187958; // absolute:True owner=shelter_
 shelterB6GrowthRoomTask = 0x8017D7D4; // type:func absolute:True owner=shelter_b6_growth_room shared=rooms
 gShelterB6GrowthRoomViewMaps = 0x8017F378; // absolute:True owner=shelter_b6_growth_room
 gShelterB6GrowthRoomViewCounts = 0x8017F37C; // absolute:True owner=shelter_b6_growth_room
-D_shelter_b6_growth_room_8017F380 = 0x8017F380; // absolute:True owner=shelter_b6_growth_room
+gShelterB6GrowthRoomWarpEntries = 0x8017F380; // absolute:True owner=shelter_b6_growth_room
 gShelterB6GrowthRoomCollisionGrid = 0x8017FAF0; // absolute:True owner=shelter_b6_growth_room
 gShelterB6GrowthRoomViewCameras = 0x8017FB14; // absolute:True owner=shelter_b6_growth_room
 gShelterB6GrowthRoomSpriteViews = 0x8017FEB8; // absolute:True owner=shelter_b6_growth_room
@@ -233,7 +233,7 @@ gShelterB6CorridorSurfaceProperties = 0x80180548; // absolute:True owner=shelter
 shelterB6TrainingRoomRoomTask = 0x8017D8E8; // type:func absolute:True owner=shelter_b6_training_room shared=rooms
 gShelterB6TrainingRoomViewMaps = 0x80184418; // absolute:True owner=shelter_b6_training_room
 gShelterB6TrainingRoomRoomViewCounts = 0x8018441C; // absolute:True owner=shelter_b6_training_room
-D_shelter_b6_training_room_80184420 = 0x80184420; // absolute:True owner=shelter_b6_training_room
+gShelterB6TrainingRoomWarpEntries = 0x80184420; // absolute:True owner=shelter_b6_training_room
 gShelterB6TrainingRoomCollisionGrid = 0x80184734; // absolute:True owner=shelter_b6_training_room shared=rooms
 gShelterB6TrainingRoomViewCameras = 0x80184758; // absolute:True owner=shelter_b6_training_room
 gShelterB6TrainingRoomSpriteViews = 0x80184D78; // absolute:True owner=shelter_b6_training_room

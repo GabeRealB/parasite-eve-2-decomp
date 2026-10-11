@@ -175,8 +175,24 @@ u8* gShelterB6GrowthRoomViewMaps[1] = {
 
 ViewCount gShelterB6GrowthRoomViewCounts[1] = { ARRAY_SIZE(gShelterB6GrowthRoomViewCameras) };
 
-DirectionWarpEntry D_shelter_b6_growth_room_8017F380[1] = {
-    { { { .word = 0 }, 4030, 0, -2950 }, { 0, 0, 0, 0 }, { { .word = 0 }, 4030, 0, -2950 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 4, DIRECTION_WARP_FLAG_NONE, 437 },
+/// Optional map-marker nibble keys published by these arrival endpoints.
+enum {
+    SHELTER_B6_GROWTH_ROOM_WARP_1_MAP_FLAG = 437,
+};
+
+DirectionWarpEntry gShelterB6GrowthRoomWarpEntries[1] = {
+    {
+        .player         = { { .word = 0 }, 4030, 0, -2950 },
+        .unknown_10     = { 0, 0, 0, 0 },
+        .companion      = { { .word = 0 }, 4030, 0, -2950 },
+        .unknown_24     = { 0, 0, 0, 0 },
+        .arrivalSound   = DIRECTION_WARP_SOUND_NONE,
+        .departureSound = DIRECTION_WARP_SOUND_NONE,
+        .blockedSound   = DIRECTION_WARP_SOUND_NONE,
+        .initialView    = 4,
+        .flags          = DIRECTION_WARP_FLAG_NONE,
+        .mapFlagId      = SHELTER_B6_GROWTH_ROOM_WARP_1_MAP_FLAG,
+    },
 };
 
 /// Room-space Q12 normal pool, including the four reserved box normals.

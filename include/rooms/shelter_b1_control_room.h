@@ -13,11 +13,28 @@
 
 #include "main/task_types.h"
 
-extern TaskDesc D_shelter_b1_control_room_80181BBC[2];
+/// Two bodyless priority-192 recipes for the freezer scene's control-room movie.
+///
+/// Slot 0 hands display ownership to slot 1, the streamed movie playback task,
+/// then retires. Actor event scripts spawn slot 0; the launcher spawns slot 1
+/// on the display list with zero payloads. There is no terminator. Keep this
+/// room and its movie resources loaded through playback and restoration.
+extern TaskDesc gShelterB1ControlRoomMovieTaskDescs[2];
 
-extern AreaApplyRec D_shelter_b1_control_room_80183BE0[2];
+/// Saved control-room update applied when the freezer scene reloads the main corridor.
+///
+/// The sole update selects placement variant 12 in every save mode, removes
+/// saved enemy poses and clears the area's saved map mark. A second record
+/// carries AREA_APPLY_END. Applying borrows this list synchronously; keep the
+/// control room overlay loaded until it returns.
+extern const AreaApplyRec gShelterB1ControlRoomFreezerSceneAreaUpdates[2];
 
-extern TaskDesc D_shelter_b1_control_room_80181B88;
+/// Bodyless priority-112 recipe for the control room's player mirror task.
+///
+/// Gameplay spawns entry 0 with zero payloads for this area. The callback owns
+/// mirror work and a cloned player model; keep this room and player resources
+/// loaded until teardown. The descriptor itself owns no model or work.
+extern TaskDesc gShelterB1ControlRoomMirrorTaskDesc;
 
 /// Number of retained placement-variant slots, including absent slots.
 enum { SHELTER_B1_CONTROL_ROOM_AREA_VARIANT_COUNT = 22 };
@@ -47,7 +64,14 @@ extern u8* gShelterB1ControlRoomRoomViewMaps[1];
 /// is no terminator.
 extern ViewCount gShelterB1ControlRoomRoomViewCounts[1];
 
-extern DirectionWarpEntry D_shelter_b1_control_room_80181C78[];
+/// Three control-room warp endpoints.
+///
+/// Slots 1 and 2 face the Control Room Access Tunnel and Access Tunnel doors;
+/// slot 3 repeats slot 1's placement without sounds. All arrive in view 2.
+/// Index by 1-based warp ID minus one; there is no terminator. Placements
+/// use whole world units and yaw uses 4096 units per turn. The stage map
+/// borrows this array while the room overlay and its sound bank stay loaded.
+extern DirectionWarpEntry gShelterB1ControlRoomWarpEntries[3];
 
 /// The control room's walls, floors and raised walkway collision mesh.
 ///

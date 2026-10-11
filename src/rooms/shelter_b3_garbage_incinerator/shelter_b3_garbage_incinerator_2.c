@@ -59,6 +59,7 @@
 #include "main/tmd_types.h"
 #include "main/wipsys.h"
 #include "main/wipsys_types.h"
+#include "main/sound_ids.h"
 
 #include "overlay.h"
 // The wave task and its persistent storage occupy separate translation units.
@@ -471,14 +472,49 @@ WorldCoordRoomLighting gShelterB3GarbageIncineratorRoomLighting[7] = {
     { &gShelterB3GarbageIncineratorRooms4To7Lights, NULL },
 };
 
-WorldCollisionRoomResources D_shelter_b3_garbage_incinerator_801872B8[7] = {
-    { &gShelterB3GarbageIncineratorCollisionGrid, gShelterB3GarbageIncineratorWaitingViewTriggers, gShelterB3GarbageIncineratorActionTriggers, gShelterB3GarbageIncineratorSightOccluders },
-    { &gShelterB3GarbageIncineratorCollisionGrid, gShelterB3GarbageIncineratorMovingAndLandedViewTriggers, gShelterB3GarbageIncineratorActionTriggers, gShelterB3GarbageIncineratorSightOccluders },
-    { &gShelterB3GarbageIncineratorCollisionGrid, gShelterB3GarbageIncineratorMovingAndLandedViewTriggers, gShelterB3GarbageIncineratorActionTriggers, gShelterB3GarbageIncineratorSightOccluders },
-    { &gShelterB3GarbageIncineratorCollisionGrid, gShelterB3GarbageIncineratorWaitingViewTriggers, gShelterB3GarbageIncineratorActionTriggers, gShelterB3GarbageIncineratorSightOccluders },
-    { &gShelterB3GarbageIncineratorCollisionGrid, gShelterB3GarbageIncineratorMovingAndLandedViewTriggers, gShelterB3GarbageIncineratorActionTriggers, gShelterB3GarbageIncineratorSightOccluders },
-    { &gShelterB3GarbageIncineratorCollisionGrid, gShelterB3GarbageIncineratorMovingAndLandedViewTriggers, gShelterB3GarbageIncineratorActionTriggers, gShelterB3GarbageIncineratorSightOccluders },
-    { &gShelterB3GarbageIncineratorCollisionGrid, gShelterB3GarbageIncineratorRoom7ViewTriggers, gShelterB3GarbageIncineratorActionTriggers, gShelterB3GarbageIncineratorSightOccluders },
+WorldCollisionRoomResources gShelterB3GarbageIncineratorRoomCollisionResources[7] = {
+    {
+        .grid                 = &gShelterB3GarbageIncineratorCollisionGrid,
+        .viewBoundaryTriggers = gShelterB3GarbageIncineratorWaitingViewTriggers,
+        .actionTriggers       = gShelterB3GarbageIncineratorActionTriggers,
+        .occluders            = gShelterB3GarbageIncineratorSightOccluders,
+    },
+    {
+        .grid                 = &gShelterB3GarbageIncineratorCollisionGrid,
+        .viewBoundaryTriggers = gShelterB3GarbageIncineratorMovingAndLandedViewTriggers,
+        .actionTriggers       = gShelterB3GarbageIncineratorActionTriggers,
+        .occluders            = gShelterB3GarbageIncineratorSightOccluders,
+    },
+    {
+        .grid                 = &gShelterB3GarbageIncineratorCollisionGrid,
+        .viewBoundaryTriggers = gShelterB3GarbageIncineratorMovingAndLandedViewTriggers,
+        .actionTriggers       = gShelterB3GarbageIncineratorActionTriggers,
+        .occluders            = gShelterB3GarbageIncineratorSightOccluders,
+    },
+    {
+        .grid                 = &gShelterB3GarbageIncineratorCollisionGrid,
+        .viewBoundaryTriggers = gShelterB3GarbageIncineratorWaitingViewTriggers,
+        .actionTriggers       = gShelterB3GarbageIncineratorActionTriggers,
+        .occluders            = gShelterB3GarbageIncineratorSightOccluders,
+    },
+    {
+        .grid                 = &gShelterB3GarbageIncineratorCollisionGrid,
+        .viewBoundaryTriggers = gShelterB3GarbageIncineratorMovingAndLandedViewTriggers,
+        .actionTriggers       = gShelterB3GarbageIncineratorActionTriggers,
+        .occluders            = gShelterB3GarbageIncineratorSightOccluders,
+    },
+    {
+        .grid                 = &gShelterB3GarbageIncineratorCollisionGrid,
+        .viewBoundaryTriggers = gShelterB3GarbageIncineratorMovingAndLandedViewTriggers,
+        .actionTriggers       = gShelterB3GarbageIncineratorActionTriggers,
+        .occluders            = gShelterB3GarbageIncineratorSightOccluders,
+    },
+    {
+        .grid                 = &gShelterB3GarbageIncineratorCollisionGrid,
+        .viewBoundaryTriggers = gShelterB3GarbageIncineratorRoom7ViewTriggers,
+        .actionTriggers       = gShelterB3GarbageIncineratorActionTriggers,
+        .occluders            = gShelterB3GarbageIncineratorSightOccluders,
+    },
 };
 
 u8 gShelterB3GarbageIncineratorRoom1And3ViewMap[40] = {
@@ -724,10 +760,43 @@ u8* gShelterB3GarbageIncineratorViewMaps[7] = {
 
 ViewCount gShelterB3GarbageIncineratorRoomViewCounts[7] = { 40, 40, 40, 40, 40, 40, 40 };
 
-DirectionWarpEntry D_shelter_b3_garbage_incinerator_8018741C[3] = {
-    { { { .word = 1024 }, 640, 0, -2656 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 640, 0, -2656 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 8, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
-    { { { .word = 0 }, 0x36D5, 0, -0x6466 }, { 0, 0, 0, 0 }, { { .word = 0 }, 0x36D5, 0, -0x6466 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, 0x54280006, DIRECTION_WARP_SOUND_NONE, 9, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
-    { { { .word = 1024 }, 522, 0, -714 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 522, 0, -714 }, { 0, 0, 0, 0 }, 0x54280002, 0x54280001, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+DirectionWarpEntry gShelterB3GarbageIncineratorWarpEntries[3] = {
+    {
+        .player         = { { .word = 1024 }, 640, 0, -2656 },
+        .unknown_10     = { 0, 0, 0, 0 },
+        .companion      = { { .word = 1024 }, 640, 0, -2656 },
+        .unknown_24     = { 0, 0, 0, 0 },
+        .arrivalSound   = DIRECTION_WARP_SOUND_NONE,
+        .departureSound = DIRECTION_WARP_SOUND_NONE,
+        .blockedSound   = DIRECTION_WARP_SOUND_NONE,
+        .initialView    = 8,
+        .flags          = DIRECTION_WARP_FLAG_NONE,
+        .mapFlagId      = DIRECTION_WARP_MAP_FLAG_NONE,
+    },
+    {
+        .player         = { { .word = 0 }, 0x36D5, 0, -0x6466 },
+        .unknown_10     = { 0, 0, 0, 0 },
+        .companion      = { { .word = 0 }, 0x36D5, 0, -0x6466 },
+        .unknown_24     = { 0, 0, 0, 0 },
+        .arrivalSound   = DIRECTION_WARP_SOUND_NONE,
+        .departureSound = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B3_GARBAGE_INCINERATOR, 6),
+        .blockedSound   = DIRECTION_WARP_SOUND_NONE,
+        .initialView    = 9,
+        .flags          = DIRECTION_WARP_FLAG_NONE,
+        .mapFlagId      = DIRECTION_WARP_MAP_FLAG_NONE,
+    },
+    {
+        .player         = { { .word = 1024 }, 522, 0, -714 },
+        .unknown_10     = { 0, 0, 0, 0 },
+        .companion      = { { .word = 1024 }, 522, 0, -714 },
+        .unknown_24     = { 0, 0, 0, 0 },
+        .arrivalSound   = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B3_GARBAGE_INCINERATOR, 2),
+        .departureSound = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B3_GARBAGE_INCINERATOR, 1),
+        .blockedSound   = DIRECTION_WARP_SOUND_NONE,
+        .initialView    = 2,
+        .flags          = DIRECTION_WARP_FLAG_NONE,
+        .mapFlagId      = DIRECTION_WARP_MAP_FLAG_NONE,
+    },
 };
 
 static s16 _shelterB3GarbageIncineratorMoveLiftWithActor(Task* task);

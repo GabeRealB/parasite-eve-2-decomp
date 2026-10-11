@@ -45,6 +45,7 @@
 #include "main/task.h"
 #include "main/task_types.h"
 #include "main/tmd_types.h"
+#include "main/sound_ids.h"
 
 #include "rooms/room.h"
 
@@ -76,9 +77,31 @@ u8* gShelterB1NorthMaintenanceWalkwayViewMaps[1] = {
 
 ViewCount gShelterB1NorthMaintenanceWalkwayRoomViewCounts[1] = { 6 };
 
-DirectionWarpEntry D_shelter_b1_north_maintenance_walkway_80184B88[2] = {
-    { { { .word = 0 }, -2000, 0, 3600 }, { 0, 0, 0, 0 }, { { .word = 0 }, -2000, 0, 3600 }, { 0, 0, 0, 0 }, 0x540C0002, 0x540C0001, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, GAME_FLAG_MAP_MARK_SHELTER_1B3 },
-    { { { .word = 0 }, 1983, 0, -4420 }, { 0, 0, 0, 0 }, { { .word = 0 }, 1983, 0, -4420 }, { 0, 0, 0, 0 }, 0x540C0004, 0x540C0003, DIRECTION_WARP_SOUND_NONE, 5, DIRECTION_WARP_FLAG_NONE, GAME_FLAG_MAP_MARK_SHELTER_1B0 },
+DirectionWarpEntry gShelterB1NorthMaintenanceWalkwayWarpEntries[2] = {
+    {
+        .player         = { { .word = 0 }, -2000, 0, 3600 },
+        .unknown_10     = { 0, 0, 0, 0 },
+        .companion      = { { .word = 0 }, -2000, 0, 3600 },
+        .unknown_24     = { 0, 0, 0, 0 },
+        .arrivalSound   = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_NORTH_MAINTENANCE_WALKWAY, 2),
+        .departureSound = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_NORTH_MAINTENANCE_WALKWAY, 1),
+        .blockedSound   = DIRECTION_WARP_SOUND_NONE,
+        .initialView    = 2,
+        .flags          = DIRECTION_WARP_FLAG_NONE,
+        .mapFlagId      = GAME_FLAG_MAP_MARK_SHELTER_1B3,
+    },
+    {
+        .player         = { { .word = 0 }, 1983, 0, -4420 },
+        .unknown_10     = { 0, 0, 0, 0 },
+        .companion      = { { .word = 0 }, 1983, 0, -4420 },
+        .unknown_24     = { 0, 0, 0, 0 },
+        .arrivalSound   = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_NORTH_MAINTENANCE_WALKWAY, 4),
+        .departureSound = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_NORTH_MAINTENANCE_WALKWAY, 3),
+        .blockedSound   = DIRECTION_WARP_SOUND_NONE,
+        .initialView    = 5,
+        .flags          = DIRECTION_WARP_FLAG_NONE,
+        .mapFlagId      = GAME_FLAG_MAP_MARK_SHELTER_1B0,
+    },
 };
 
 /// Room-space collision normals, with 4096 for unit length.

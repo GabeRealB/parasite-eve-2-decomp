@@ -201,12 +201,21 @@ static TaskDesc D_shelter_r47_80186F94[2] = {
     { { { TASK_BODY_NONE, 192 } }, _shelterR47PlayEntryScene7Task, { .value = 0 } },
 };
 
-u8 D_shelter_r47_80186FAC[5] = {
-    16,
-    18,
-    17,
-    20,
-    19,
+/// Initial logical camera views for the five console rows.
+enum {
+    SHELTER_R47_CONSOLE_TRANSFER_DOOR_VIEW    = 16,
+    SHELTER_R47_CONSOLE_INITIAL_SWITCH_2_VIEW = 18,
+    SHELTER_R47_CONSOLE_OBSERVATORY_VIEW      = 17,
+    SHELTER_R47_CONSOLE_SWITCH_4_VIEW         = 20,
+    SHELTER_R47_CONSOLE_WATCHERS_VIEW         = 19,
+};
+
+u8 gShelterR47ConsoleRowViews[5] = {
+    SHELTER_R47_CONSOLE_TRANSFER_DOOR_VIEW,
+    SHELTER_R47_CONSOLE_INITIAL_SWITCH_2_VIEW,
+    SHELTER_R47_CONSOLE_OBSERVATORY_VIEW,
+    SHELTER_R47_CONSOLE_SWITCH_4_VIEW,
+    SHELTER_R47_CONSOLE_WATCHERS_VIEW,
 };
 
 /// Packed choices and command-menu modes stored by the console's hotspot table.

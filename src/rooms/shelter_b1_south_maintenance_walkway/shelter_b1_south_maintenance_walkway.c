@@ -50,6 +50,7 @@
 #include "main/task.h"
 #include "main/task_types.h"
 #include "main/tmd_types.h"
+#include "main/sound_ids.h"
 
 #include "mapui/map_shelter.h"
 
@@ -128,8 +129,13 @@ WorldCoordRoomLighting gShelterB1SouthMaintenanceWalkwayRoomLighting[1] = {
     { &_gShelterB1SouthMaintenanceWalkwayRoomLights, NULL },
 };
 
-WorldCollisionRoomResources D_shelter_b1_south_maintenance_walkway_801823FC[1] = {
-    { &_gShelterB1SouthMaintenanceWalkwayCollisionGrid, _gShelterB1SouthMaintenanceWalkwayViewBoundaryTriggers, _gShelterB1SouthMaintenanceWalkwayActionTriggers, _gShelterB1SouthMaintenanceWalkwaySightOccluders },
+WorldCollisionRoomResources gShelterB1SouthMaintenanceWalkwayRoomCollisionResources[1] = {
+    {
+        .grid                 = &_gShelterB1SouthMaintenanceWalkwayCollisionGrid,
+        .viewBoundaryTriggers = _gShelterB1SouthMaintenanceWalkwayViewBoundaryTriggers,
+        .actionTriggers       = _gShelterB1SouthMaintenanceWalkwayActionTriggers,
+        .occluders            = _gShelterB1SouthMaintenanceWalkwaySightOccluders,
+    },
 };
 
 u8* gShelterB1SouthMaintenanceWalkwayRoomViewMaps[1] = {
@@ -138,9 +144,31 @@ u8* gShelterB1SouthMaintenanceWalkwayRoomViewMaps[1] = {
 
 ViewCount gShelterB1SouthMaintenanceWalkwayRoomViewCounts[1] = { 5 };
 
-DirectionWarpEntry D_shelter_b1_south_maintenance_walkway_80182414[2] = {
-    { { { .word = 1024 }, -2357, 0, -3990 }, { 0, 0, 0, 0 }, { { .word = 1024 }, -2357, 0, -3990 }, { 0, 0, 0, 0 }, 0x540A0002, 0x540A0001, DIRECTION_WARP_SOUND_NONE, 5, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
-    { { { .word = 2048 }, 2048, 0, 4600 }, { 0, 0, 0, 0 }, { { .word = 2048 }, 2048, 0, 4600 }, { 0, 0, 0, 0 }, 0x540A0004, 0x540A0003, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, GAME_FLAG_MAP_MARK_SHELTER_1AE },
+DirectionWarpEntry gShelterB1SouthMaintenanceWalkwayWarpEntries[2] = {
+    {
+        .player         = { { .word = 1024 }, -2357, 0, -3990 },
+        .unknown_10     = { 0, 0, 0, 0 },
+        .companion      = { { .word = 1024 }, -2357, 0, -3990 },
+        .unknown_24     = { 0, 0, 0, 0 },
+        .arrivalSound   = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY, 2),
+        .departureSound = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY, 1),
+        .blockedSound   = DIRECTION_WARP_SOUND_NONE,
+        .initialView    = 5,
+        .flags          = DIRECTION_WARP_FLAG_NONE,
+        .mapFlagId      = DIRECTION_WARP_MAP_FLAG_NONE,
+    },
+    {
+        .player         = { { .word = 2048 }, 2048, 0, 4600 },
+        .unknown_10     = { 0, 0, 0, 0 },
+        .companion      = { { .word = 2048 }, 2048, 0, 4600 },
+        .unknown_24     = { 0, 0, 0, 0 },
+        .arrivalSound   = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY, 4),
+        .departureSound = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY, 3),
+        .blockedSound   = DIRECTION_WARP_SOUND_NONE,
+        .initialView    = 2,
+        .flags          = DIRECTION_WARP_FLAG_NONE,
+        .mapFlagId      = GAME_FLAG_MAP_MARK_SHELTER_1AE,
+    },
 };
 
 /// Room-local collision normals, with ONE representing unit length.

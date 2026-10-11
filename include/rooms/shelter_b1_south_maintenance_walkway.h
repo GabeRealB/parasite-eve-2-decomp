@@ -26,7 +26,13 @@ extern AreaVariant gShelterB1SouthMaintenanceWalkwayAreaVariants[12];
 /// its room-owned light transforms and attenuation while this overlay is loaded.
 extern WorldCoordRoomLighting gShelterB1SouthMaintenanceWalkwayRoomLighting[1];
 
-extern WorldCollisionRoomResources D_shelter_b1_south_maintenance_walkway_801823FC[];
+/// Collision resources for the B1 south walkway's sole room.
+///
+/// Room 1 borrows its grid, six view-boundary triggers, two door triggers and
+/// one sight occluder. The last trigger/occluder in each list carries its LAST
+/// flag and is also live. Index by room ID minus one; there is no table terminator.
+/// Keep this room overlay loaded until its active collision lists are unlinked.
+extern WorldCollisionRoomResources gShelterB1SouthMaintenanceWalkwayRoomCollisionResources[1];
 
 /// Room 1's logical-view map, borrowing gameplay's identity mapping.
 ///
@@ -43,7 +49,14 @@ extern u8* gShelterB1SouthMaintenanceWalkwayRoomViewMaps[1];
 /// is no terminator.
 extern ViewCount gShelterB1SouthMaintenanceWalkwayRoomViewCounts[1];
 
-extern DirectionWarpEntry D_shelter_b1_south_maintenance_walkway_80182414[];
+/// The south walkway's Elevator Hall and Storeroom endpoints.
+///
+/// Slots 1 and 2 arrive in views 5 and 2 respectively. Slot 2 carries
+/// the optional Storeroom-side map-marker key.
+/// Index by 1-based warp ID minus one; there is no terminator. Placements
+/// use whole world units and yaw uses 4096 units per turn. The stage map
+/// borrows this array while the room overlay and its sound bank stay loaded.
+extern DirectionWarpEntry gShelterB1SouthMaintenanceWalkwayWarpEntries[2];
 
 /// The five mapped-view cameras, indexed by mapped view minus one.
 ///

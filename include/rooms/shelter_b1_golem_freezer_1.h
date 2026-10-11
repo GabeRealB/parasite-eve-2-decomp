@@ -29,7 +29,14 @@ extern u8* gShelterB1GolemFreezer1ViewMaps[1];
 /// The map publishes only room 1; the second halfword is not a list terminator.
 extern ViewCount gShelterB1GolemFreezer1ViewCounts[2];
 
-extern DirectionWarpEntry D_shelter_b1_golem_freezer_1_8017E798[];
+/// The GOLEM freezer's single warp endpoint.
+///
+/// Slot 1 places both actors at (6763, -80, 1000), selects view 5 and
+/// publishes the endpoint's optional map marker on arrival.
+/// Index by 1-based warp ID minus one; there is no terminator. Placements
+/// use whole world units and yaw uses 4096 units per turn. The stage map
+/// borrows this array while the room overlay and its sound bank stay loaded.
+extern DirectionWarpEntry gShelterB1GolemFreezer1WarpEntries[1];
 
 /// Mutable room collision mesh on a two-by-one XZ grid of 4000-unit cells.
 ///

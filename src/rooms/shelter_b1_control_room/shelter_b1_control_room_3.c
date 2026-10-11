@@ -24,6 +24,7 @@
 #include "main/task.h"
 #include "main/task_types.h"
 #include "main/tmd_types.h"
+#include "main/sound_ids.h"
 
 #include "rooms/shelter_b1_control_room.h"
 
@@ -47,10 +48,48 @@ u8* gShelterB1ControlRoomRoomViewMaps[1] = {
 
 ViewCount gShelterB1ControlRoomRoomViewCounts[1] = { 8 };
 
-DirectionWarpEntry D_shelter_b1_control_room_80181C78[3] = {
-    { { { .word = 3072 }, 0x283C, -600, -3700 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 0x283C, -600, -3700 }, { 0, 0, 0, 0 }, 0x54120002, 0x54120001, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
-    { { { .word = 2048 }, 9120, -672, -3000 }, { 0, 0, 0, 0 }, { { .word = 2048 }, 9120, -672, -3000 }, { 0, 0, 0, 0 }, 0x54120004, 0x54120003, 0x54120005, 2, DIRECTION_WARP_FLAG_NONE, 453 },
-    { { { .word = 3072 }, 0x283C, -600, -3700 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 0x283C, -600, -3700 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+/// Optional map-marker nibble keys published by these arrival endpoints.
+enum {
+    SHELTER_B1_CONTROL_ROOM_WARP_2_MAP_FLAG = 453,
+};
+
+DirectionWarpEntry gShelterB1ControlRoomWarpEntries[3] = {
+    {
+        .player         = { { .word = 3072 }, 0x283C, -600, -3700 },
+        .unknown_10     = { 0, 0, 0, 0 },
+        .companion      = { { .word = 3072 }, 0x283C, -600, -3700 },
+        .unknown_24     = { 0, 0, 0, 0 },
+        .arrivalSound   = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_CONTROL_ROOM, 2),
+        .departureSound = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_CONTROL_ROOM, 1),
+        .blockedSound   = DIRECTION_WARP_SOUND_NONE,
+        .initialView    = 2,
+        .flags          = DIRECTION_WARP_FLAG_NONE,
+        .mapFlagId      = DIRECTION_WARP_MAP_FLAG_NONE,
+    },
+    {
+        .player         = { { .word = 2048 }, 9120, -672, -3000 },
+        .unknown_10     = { 0, 0, 0, 0 },
+        .companion      = { { .word = 2048 }, 9120, -672, -3000 },
+        .unknown_24     = { 0, 0, 0, 0 },
+        .arrivalSound   = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_CONTROL_ROOM, 4),
+        .departureSound = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_CONTROL_ROOM, 3),
+        .blockedSound   = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_CONTROL_ROOM, 5),
+        .initialView    = 2,
+        .flags          = DIRECTION_WARP_FLAG_NONE,
+        .mapFlagId      = SHELTER_B1_CONTROL_ROOM_WARP_2_MAP_FLAG,
+    },
+    {
+        .player         = { { .word = 3072 }, 0x283C, -600, -3700 },
+        .unknown_10     = { 0, 0, 0, 0 },
+        .companion      = { { .word = 3072 }, 0x283C, -600, -3700 },
+        .unknown_24     = { 0, 0, 0, 0 },
+        .arrivalSound   = DIRECTION_WARP_SOUND_NONE,
+        .departureSound = DIRECTION_WARP_SOUND_NONE,
+        .blockedSound   = DIRECTION_WARP_SOUND_NONE,
+        .initialView    = 2,
+        .flags          = DIRECTION_WARP_FLAG_NONE,
+        .mapFlagId      = DIRECTION_WARP_MAP_FLAG_NONE,
+    },
 };
 
 /// Room-space unit normals for `gShelterB1ControlRoomRoomCollision`, in Q12.
@@ -707,9 +746,11 @@ WorldCollisionSurfaceProperties* gShelterB1ControlRoomSurfacePropertiesByClass[8
     &_gShelterB1ControlRoomDefaultSurface,
 };
 
-AreaApplyRec D_shelter_b1_control_room_80183BE0[2] = {
-    { 4, 18, 12, 0 },
-    { 255, 0, 0, 0 },
+enum { SHELTER_B1_CONTROL_ROOM_FREEZER_SCENE_COMPLETED_VARIANT = 12 };
+
+const AreaApplyRec gShelterB1ControlRoomFreezerSceneAreaUpdates[2] SECTION(".data") = {
+    { GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_CONTROL_ROOM, SHELTER_B1_CONTROL_ROOM_FREEZER_SCENE_COMPLETED_VARIANT, AREA_APPLY_MODE_ALWAYS },
+    { AREA_APPLY_END, 0, 0, 0 },
 };
 
 void shelterB1ControlRoomRoomVisualEffectsGlowDiscTask(Task* task)

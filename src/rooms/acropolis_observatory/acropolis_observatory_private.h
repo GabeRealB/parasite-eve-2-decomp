@@ -12,7 +12,13 @@ extern TaskDesc D_acropolis_observatory_8017E7DC[4];
 
 extern AnimationSet gAcropolisObservatoryAnimation02878;
 
-/// Borrowed player animation table with the observatory clip in entry one.
+/// Direct player animation-set directory for the scripted battle handoff.
+///
+/// Entry 0 is absent; animation ID 1 selects the observatory's set in entry 1.
+/// The scene installs this table into the player and may request the same set
+/// for its idle follow-up. Playback borrows the table, records and pose banks;
+/// keep this overlay loaded until the player's ordinary animation bank is restored.
+/// The table has exactly two entries and no terminator.
 extern AnimationSet* gAcropolisObservatoryPlayerAnimationSets[2];
 
 /// Bodyless priority-192 recipe for the room-2 scripted player/battle handoff.

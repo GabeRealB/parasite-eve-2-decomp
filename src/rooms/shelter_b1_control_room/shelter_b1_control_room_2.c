@@ -49,9 +49,11 @@
 
 static void _shelterB1ControlRoomStartMovieTask(Task* task);
 
-TaskDesc D_shelter_b1_control_room_80181BBC[2] = {
-    { { { TASK_BODY_NONE, 192 } }, _shelterB1ControlRoomStartMovieTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, streamedScenePlayThenHold, { .value = 0 } },
+enum { SHELTER_B1_CONTROL_ROOM_MOVIE_TASK_PRIORITY = 192 };
+
+TaskDesc gShelterB1ControlRoomMovieTaskDescs[2] = {
+    { .header = { .fields = { TASK_BODY_NONE, SHELTER_B1_CONTROL_ROOM_MOVIE_TASK_PRIORITY } }, .callback = _shelterB1ControlRoomStartMovieTask, .data = { .value = 0 } },
+    { .header = { .fields = { TASK_BODY_NONE, SHELTER_B1_CONTROL_ROOM_MOVIE_TASK_PRIORITY } }, .callback = streamedScenePlayThenHold, .data = { .value = 0 } },
 };
 
 /// The control room's capsule endpoint pairs and disc centres in signed world units.
@@ -110,7 +112,7 @@ static void _shelterB1ControlRoomStartMovieTask(Task* task)
 {
     enum { SHELTER_B1_CONTROL_ROOM_MOVIE_DESCRIPTOR = 1 };
 
-    displaySpawnTaskFromTable(D_shelter_b1_control_room_80181BBC, SHELTER_B1_CONTROL_ROOM_MOVIE_DESCRIPTOR, 0, 0);
+    displaySpawnTaskFromTable(gShelterB1ControlRoomMovieTaskDescs, SHELTER_B1_CONTROL_ROOM_MOVIE_DESCRIPTOR, 0, 0);
     gDisplayState.control.flags.flipMode = DISPLAY_FLIP_TASK_ONLY;
     viewQueueCurrentCameraAndPackets();
     taskKill(task);

@@ -30,10 +30,6 @@ static s32 _toiletSoundMsg(Task* unusedTask, s32 unusedMessageId, s32 cueKey, s3
 /// actors.
 extern s32 D_dryfield_toilet_801802D4;
 
-/// The template the room's collision grid is restored from, and the grid
-/// itself.
-extern WorldCollisionGrid D_dryfield_toilet_80180314;
-
 static void _dryfieldToiletInitRoom(Task* task);
 static void _dryfieldToiletIdleRoom(Task* unusedTask);
 
@@ -73,29 +69,52 @@ static const TaskMessageEntry _gDryfieldToiletRoomMessages[6] SECTION(".data") =
 
 s32 D_dryfield_toilet_801802D4 = 4098;
 
-static SVECTOR _gDryfieldToiletCollision02D54Normals[1] = {
+/// Q12 room-space normal restored into the room grid's reserved event face.
+static SVECTOR _gDryfieldToiletEventCollisionTemplateNormals[1] = {
 #include "assets/dryfield_toilet_collision_02D54_normals.inc"
 };
 
-static SVECTOR _gDryfieldToiletCollision02D54Verts[4] = {
+/// Four event-face vertices in signed whole room-coordinate units.
+static SVECTOR _gDryfieldToiletEventCollisionTemplateVerts[4] = {
 #include "assets/dryfield_toilet_collision_02D54_verts.inc"
 };
 
-static WorldCollisionGridFace _gDryfieldToiletCollision02D54Faces[1] = {
+/// The event quad, indexing this template's four vertices and single normal.
+static WorldCollisionGridFace _gDryfieldToiletEventCollisionTemplateFaces[1] = {
 #include "assets/dryfield_toilet_collision_02D54_faces.inc"
 };
 
-static s16 _gDryfieldToiletCollision02D54Cells[2] = {
+/// The event cell's face-index list: face 0 followed by the -1 end marker.
+static s16 _gDryfieldToiletEventCollisionTemplateCells[2] = {
 #include "assets/dryfield_toilet_collision_02D54_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gDryfieldToiletCollision02D54Cells[i])
-static s16* _gDryfieldToiletCollision02D54Table[1] = {
+#define GRID_CELL(i) (&_gDryfieldToiletEventCollisionTemplateCells[i])
+/// The sole cell's borrowed face-index list; this template is never bound live.
+static s16* _gDryfieldToiletEventCollisionTemplateTable[1] = {
 #include "assets/dryfield_toilet_collision_02D54_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_dryfield_toilet_80180314 = { NULL, _gDryfieldToiletCollision02D54Normals, _gDryfieldToiletCollision02D54Verts, _gDryfieldToiletCollision02D54Faces, _gDryfieldToiletCollision02D54Table, 2250, 590, 1, 1, 4000, 1 };
+/// Source geometry for the room grid's reserved event-collision head.
+///
+/// Restores normal 0, vertices 0..3 and face 0; the seen event shifts those
+/// live vertices 2000 whole room units toward negative X. This one-cell,
+/// one-face template is never activated as the room grid and borrows only
+/// its own private geometry pools for the overlay lifetime.
+static const WorldCollisionGrid _gDryfieldToiletEventCollisionTemplate SECTION(".data") = {
+    .viewCoord   = NULL,
+    .normals     = _gDryfieldToiletEventCollisionTemplateNormals,
+    .vertices    = _gDryfieldToiletEventCollisionTemplateVerts,
+    .faces       = _gDryfieldToiletEventCollisionTemplateFaces,
+    .cellFaceIds = _gDryfieldToiletEventCollisionTemplateTable,
+    .xBias       = 2250,
+    .zBias       = 590,
+    .cellCountX  = ARRAY_SIZE(_gDryfieldToiletEventCollisionTemplateTable),
+    .cellCountZ  = 1,
+    .cellSize    = 4000,
+    .faceCount   = ARRAY_SIZE(_gDryfieldToiletEventCollisionTemplateFaces),
+};
 
 static AnimationPackedPose _gDryfieldToiletAnimation03054Bank1[6] = {
 #include "assets/dryfield_toilet_animation_03054_bank1.inc"
@@ -158,10 +177,10 @@ static void _dryfieldToiletInitEventCollision(void)
     }
 
     WorldCollisionGrid*       liveGrid          = &gDryfieldToiletRoomCollisionGrid;
-    const WorldCollisionGrid* collisionTemplate = &D_dryfield_toilet_80180314;
+    const WorldCollisionGrid* collisionTemplate = &_gDryfieldToiletEventCollisionTemplate;
     s32                       index;
 
-    for (index = 0; index < (s32)ARRAY_SIZE(_gDryfieldToiletCollision02D54Faces); index++) {
+    for (index = 0; index < (s32)ARRAY_SIZE(_gDryfieldToiletEventCollisionTemplateFaces); index++) {
         DRYFIELD_TOILET_COPY_INITIAL_COLLISION_XYZ(liveGrid->normals[index], collisionTemplate->normals[index]);
         DRYFIELD_TOILET_COPY_INITIAL_COLLISION_XYZ(liveGrid->vertices[index * 4 + 0], collisionTemplate->vertices[index * 4 + 0]);
         DRYFIELD_TOILET_COPY_INITIAL_COLLISION_XYZ(liveGrid->vertices[index * 4 + 1], collisionTemplate->vertices[index * 4 + 1]);
@@ -170,7 +189,7 @@ static void _dryfieldToiletInitEventCollision(void)
         liveGrid->faces[index] = collisionTemplate->faces[index];
     }
     if (gameFlagGetNibble(GAME_FLAG_TOILET_EVENT_SEEN) != 0) {
-        for (index = 0; index < (s32)ARRAY_SIZE(_gDryfieldToiletCollision02D54Verts); index++) {
+        for (index = 0; index < (s32)ARRAY_SIZE(_gDryfieldToiletEventCollisionTemplateVerts); index++) {
             liveGrid->vertices[index].vx -= DRYFIELD_TOILET_EVENT_COLLISION_SHIFT_X;
         }
     }
@@ -254,11 +273,11 @@ void dryfieldToiletMoveEventCollision(s32 moveAside)
     }
 
     WorldCollisionGrid*       liveGrid          = &gDryfieldToiletRoomCollisionGrid;
-    const WorldCollisionGrid* collisionTemplate = &D_dryfield_toilet_80180314;
+    const WorldCollisionGrid* collisionTemplate = &_gDryfieldToiletEventCollisionTemplate;
     s32                       index;
 
     if (moveAside == DRYFIELD_TOILET_EVENT_COLLISION_RESTORE) {
-        for (index = 0; index < (s32)ARRAY_SIZE(_gDryfieldToiletCollision02D54Faces); index++) {
+        for (index = 0; index < (s32)ARRAY_SIZE(_gDryfieldToiletEventCollisionTemplateFaces); index++) {
             DRYFIELD_TOILET_COPY_SCRIPT_COLLISION_XYZ(liveGrid->normals[index], collisionTemplate->normals[index]);
             DRYFIELD_TOILET_COPY_SCRIPT_COLLISION_XYZ(liveGrid->vertices[index * 4 + 0], collisionTemplate->vertices[index * 4 + 0]);
             DRYFIELD_TOILET_COPY_SCRIPT_COLLISION_XYZ(liveGrid->vertices[index * 4 + 1], collisionTemplate->vertices[index * 4 + 1]);
@@ -267,7 +286,7 @@ void dryfieldToiletMoveEventCollision(s32 moveAside)
             liveGrid->faces[index] = collisionTemplate->faces[index];
         }
     } else {
-        for (index = 0; index < (s32)ARRAY_SIZE(_gDryfieldToiletCollision02D54Verts); index++) {
+        for (index = 0; index < (s32)ARRAY_SIZE(_gDryfieldToiletEventCollisionTemplateVerts); index++) {
             liveGrid->vertices[index].vx -= DRYFIELD_TOILET_EVENT_COLLISION_SHIFT_X;
         }
     }

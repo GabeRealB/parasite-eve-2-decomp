@@ -179,8 +179,6 @@ typedef struct {
 } _ShelterB1ControlRoomMirrorScratch;
 STATIC_ASSERT_SIZEOF(_ShelterB1ControlRoomMirrorScratch, 0x8C);
 
-extern TaskMessageEntry D_shelter_b1_control_room_80181B94[];
-
 static void _shelterB1ControlRoomConfigureMirror(Task* unusedTask, _ShelterB1ControlRoomMirrorConfig* config);
 
 static s32 _shelterB1ControlRoomRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 secondArg);
@@ -190,11 +188,21 @@ static s32 _shelterB1ControlRoomIgnoreRoomAction(Task* task, s32 messageId, cons
 
 static void _shelterB1ControlRoomMirrorTask(Task* task);
 
-TaskDesc D_shelter_b1_control_room_80181B88 = { { { TASK_BODY_NONE, 112 } }, _shelterB1ControlRoomMirrorTask, { .value = 0 } };
+enum { SHELTER_B1_CONTROL_ROOM_MIRROR_TASK_PRIORITY = 112 };
 
-TaskMessageEntry D_shelter_b1_control_room_80181B94[5] = {
+TaskDesc gShelterB1ControlRoomMirrorTaskDesc = {
+    .header   = { .fields = { TASK_BODY_NONE, SHELTER_B1_CONTROL_ROOM_MIRROR_TASK_PRIORITY } },
+    .callback = _shelterB1ControlRoomMirrorTask,
+    .data     = { .value = 0 },
+};
+
+/// Control-room transition, key-item, direction-action and CAP-command handlers.
+///
+/// Borrowed by the live room task; keep this overlay loaded while it receives
+/// messages. The final end marker makes unsupported IDs return zero.
+static const TaskMessageEntry _gShelterB1ControlRoomRoomMessages[5] SECTION(".data") = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _shelterB1ControlRoomResolveRoomEvent },
-    { 5105, _shelterB1ControlRoomRejectKeyItemUse },
+    { ROOM_MESSAGE_USE_KEY_ITEM, _shelterB1ControlRoomRejectKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, _shelterB1ControlRoomIgnoreRoomAction },
     { ROOM_MESSAGE_COMMAND, _shelterB1ControlRoomHandleCapCommand },
     { TASK_MESSAGE_TABLE_END, NULL },
@@ -847,7 +855,7 @@ static void _shelterB1ControlRoomInitializeRoom(Task* task)
         SHELTER_B1_CONTROL_ROOM_SKIP_SCRIPT_DEMO     = 9,
     };
 
-    task->msgTable = D_shelter_b1_control_room_80181B94;
+    task->msgTable = _gShelterB1ControlRoomRoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     if (gGameSession->location.loc.variant == SHELTER_B1_CONTROL_ROOM_SLIDING_MODEL_LAYOUT) {
         actor150400SpawnSlidingModels();
@@ -867,10 +875,11 @@ static void _shelterB1ControlRoomIdleState(Task* task)
     char reservedStack[0x10];
 }
 
-/// States of the room task `shelterB1ControlRoomRoomTask`: the setup
-/// state `_shelterB1ControlRoomInitializeRoom`, the idle state
-/// `_shelterB1ControlRoomIdleState`, then `taskKill`.
-static const TaskFuncTable3 D_shelter_b1_control_room_8017D5C4 = {
+/// Room-task states 0 initialize, 1 remain available for messages, and 2 release the task.
+///
+/// Copied whole before unchecked state dispatch in 0..2; all three callback
+/// addresses borrow this overlay's lifetime. There is no terminator.
+static const TaskFuncTable3 _gShelterB1ControlRoomRoomTaskStates = {
     { _shelterB1ControlRoomInitializeRoom, _shelterB1ControlRoomIdleState, taskKill },
 };
 
@@ -878,6 +887,6 @@ void shelterB1ControlRoomRoomTask(Task* task)
 {
     TaskFuncTable3 stateHandlers;
 
-    stateHandlers = D_shelter_b1_control_room_8017D5C4;
+    stateHandlers = _gShelterB1ControlRoomRoomTaskStates;
     stateHandlers.funcs[task->state](task);
 }

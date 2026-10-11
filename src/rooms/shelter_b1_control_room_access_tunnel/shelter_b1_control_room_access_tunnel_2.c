@@ -39,6 +39,7 @@
 #include "main/task.h"
 #include "main/task_types.h"
 #include "main/tmd_types.h"
+#include "main/sound_ids.h"
 
 #include "rooms/room.h"
 
@@ -52,9 +53,31 @@ u8* gShelterB1ControlRoomAccessTunnelRoomViewMaps[1] = {
 
 ViewCount gShelterB1ControlRoomAccessTunnelRoomViewCounts[1] = { ARRAY_SIZE(gShelterB1ControlRoomAccessTunnelViewCameras) };
 
-DirectionWarpEntry D_shelter_b1_control_room_access_tunnel_80181F08[2] = {
-    { { { .word = 3072 }, 5389, -25, 194 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 5389, -25, 194 }, { 0, 0, 0, 0 }, 0x54190002, 0x54190001, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
-    { { { .word = 1024 }, 831, -24, 119 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 831, -24, 119 }, { 0, 0, 0, 0 }, 0x54190004, 0x54190003, DIRECTION_WARP_SOUND_NONE, 3, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+DirectionWarpEntry gShelterB1ControlRoomAccessTunnelWarpEntries[2] = {
+    {
+        .player         = { { .word = 3072 }, 5389, -25, 194 },
+        .unknown_10     = { 0, 0, 0, 0 },
+        .companion      = { { .word = 3072 }, 5389, -25, 194 },
+        .unknown_24     = { 0, 0, 0, 0 },
+        .arrivalSound   = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_CONTROL_ROOM_ACCESS_TUNNEL, 2),
+        .departureSound = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_CONTROL_ROOM_ACCESS_TUNNEL, 1),
+        .blockedSound   = DIRECTION_WARP_SOUND_NONE,
+        .initialView    = 2,
+        .flags          = DIRECTION_WARP_FLAG_NONE,
+        .mapFlagId      = DIRECTION_WARP_MAP_FLAG_NONE,
+    },
+    {
+        .player         = { { .word = 1024 }, 831, -24, 119 },
+        .unknown_10     = { 0, 0, 0, 0 },
+        .companion      = { { .word = 1024 }, 831, -24, 119 },
+        .unknown_24     = { 0, 0, 0, 0 },
+        .arrivalSound   = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_CONTROL_ROOM_ACCESS_TUNNEL, 4),
+        .departureSound = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_CONTROL_ROOM_ACCESS_TUNNEL, 3),
+        .blockedSound   = DIRECTION_WARP_SOUND_NONE,
+        .initialView    = 3,
+        .flags          = DIRECTION_WARP_FLAG_NONE,
+        .mapFlagId      = DIRECTION_WARP_MAP_FLAG_NONE,
+    },
 };
 
 enum {

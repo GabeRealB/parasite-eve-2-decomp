@@ -1,13 +1,13 @@
 // Overlay-local symbols for shelter_b1_control_room.
 _gShelterB1ControlRoomGlowWorldPoints = 0x80181BD4; // size:0x90 defined:True
-D_shelter_b1_control_room_80181B94 = 0x80181B94; // size:0x28 defined:True
+_gShelterB1ControlRoomRoomMessages = 0x80181B94; // size:0x28 defined:True
 _gRoomVisualEffectsGlowDiscShades = 0x80181C64; // size:0xC defined:True
 gShelterB1ControlRoomRoomViewMaps = 0x80181C70; // size:0x4 defined:True
 gShelterB1ControlRoomRoomViewCounts = 0x80181C74; // size:0x2 defined:True
-D_shelter_b1_control_room_80181C78 = 0x80181C78; // size:0xA8 defined:True
+gShelterB1ControlRoomWarpEntries = 0x80181C78; // size:0xA8 defined:True
 _gShelterB1ControlRoomRoomCollisionNormals = 0x80181D20; // size:0x38 defined:True
-D_shelter_b1_control_room_80181BBC = 0x80181BBC; // size:0x18 defined:True
-D_shelter_b1_control_room_80181B88 = 0x80181B88; // size:0xC defined:True
+gShelterB1ControlRoomMovieTaskDescs = 0x80181BBC; // size:0x18 defined:True
+gShelterB1ControlRoomMirrorTaskDesc = 0x80181B88; // size:0xC defined:True
 _gShelterB1ControlRoomRoomCollisionVerts = 0x80181D58; // size:0x1C0 defined:True
 _gShelterB1ControlRoomRoomCollisionFaces = 0x80181F18; // size:0x15C defined:True
 _gShelterB1ControlRoomRoomCollisionCells = 0x80182074; // size:0x78 defined:True
@@ -53,7 +53,7 @@ gShelterB1ControlRoomSurfacePropertiesByClass = 0x80183BC0; // size:0x20 defined
 gActor102100WatcherTaskDesc = 0x80135C30; // absolute:True owner=actor_102100
 gActor150400No9GolemTaskDescriptors = 0x8013C8F4; // absolute:True owner=actor_150400
 gActor202400Tasks = 0x8014E47C; // absolute:True owner=actor_202400
-D_shelter_b1_control_room_80183BE0 = 0x80183BE0; // size:0x8 defined:True
+gShelterB1ControlRoomFreezerSceneAreaUpdates = 0x80183BE0; // size:0x8 defined:True
 
 shelterB1ControlRoomDrawGlowsTask = 0x8017F150; // type:func
 
@@ -80,3 +80,4 @@ _shelterB1ControlRoomHandleCapCommand = 0x8017ed68; // type:func
 _shelterB1ControlRoomInitializeRoom = 0x8017ee2c; // type:func
 shelterB1ControlRoomRoomTask = 0x8017eecc; // type:func
 _shelterB1ControlRoomStartMovieTask = 0x8017f100; // type:func
+_gShelterB1ControlRoomRoomTaskStates = 0x8017d5c4;

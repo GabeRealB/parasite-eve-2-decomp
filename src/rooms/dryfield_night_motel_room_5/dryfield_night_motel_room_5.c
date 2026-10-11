@@ -29,16 +29,17 @@
 
 static s32 _roomVariantMotelBalconyMsg(Task* task, s32 messageId, const RoomEventMsg* request, RoomEventMsg* reply);
 
-/// The room's message table, published at `Task::msgTable` by the room task.
-extern TaskMessageEntry D_dryfield_night_motel_room_5_8017DA30[];
-
 static s32  _dryfieldNightMotelRoom5RejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unusedArg);
 static s32  _dryfieldNightMotelRoom5IgnoreRoomCommand(Task* task, s32 messageId, s32 commandId, s32 commandArg);
 static s32  _dryfieldNightMotelRoom5IgnoreRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedArg);
 static void _dryfieldNightMotelRoom5InitRoomTask(Task* task);
 static void _dryfieldNightMotelRoom5IdleRoomTask(Task* unusedTask);
 
-TaskMessageEntry D_dryfield_night_motel_room_5_8017DA30[5] = {
+/// Night motel room 5's transition, key-item, direction-action and command handlers.
+///
+/// Borrowed by the live room task; keep this overlay loaded while it receives
+/// messages. The final end marker makes unsupported IDs return zero.
+static const TaskMessageEntry _gDryfieldNightMotelRoom5RoomMessages[5] SECTION(".data") = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _roomVariantMotelBalconyMsg },
     { ROOM_MESSAGE_USE_KEY_ITEM, _dryfieldNightMotelRoom5RejectKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, _dryfieldNightMotelRoom5IgnoreRoomAction },
@@ -81,7 +82,7 @@ static s32 _dryfieldNightMotelRoom5IgnoreRoomAction(Task* task, s32 messageId, c
 /// for subsequent synchronous messages while the registered task remains alive.
 static void _dryfieldNightMotelRoom5InitRoomTask(Task* task)
 {
-    task->msgTable = D_dryfield_night_motel_room_5_8017DA30;
+    task->msgTable = _gDryfieldNightMotelRoom5RoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     task->state++;
 }

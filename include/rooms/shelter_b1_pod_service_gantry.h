@@ -40,7 +40,14 @@ extern u8* gShelterB1PodServiceGantryRoomViewMaps[1];
 /// is no terminator.
 extern ViewCount gShelterB1PodServiceGantryRoomViewCounts[1];
 
-extern DirectionWarpEntry D_shelter_b1_pod_service_gantry_8017FB24[];
+/// The pod service gantry's single warp endpoint.
+///
+/// Slot 1 places both actors at (2535, 0, 3220) in view 2, without
+/// arrival, departure or blocked sounds and without a map-marker update.
+/// Index by 1-based warp ID minus one; there is no terminator. Placements
+/// use whole world units and yaw uses 4096 units per turn. The stage map
+/// borrows this array while the room overlay and its sound bank stay loaded.
+extern DirectionWarpEntry gShelterB1PodServiceGantryWarpEntries[1];
 
 /// The pod service gantry's room-space collision mesh and spatial cell index.
 ///

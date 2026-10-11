@@ -103,9 +103,6 @@ STATIC_ASSERT_SIZEOF(_NeoArkAltarTileSequenceWork, 0x10);
 
 extern _NeoArkAltarTile D_neo_ark_altar_8017F014[];
 
-extern s16 D_neo_ark_altar_801800AC;
-extern s16 D_neo_ark_altar_801800B0[];
-
 extern s16 D_neo_ark_altar_8017F050[];
 extern s16 D_neo_ark_altar_8017F068[];
 
@@ -625,7 +622,13 @@ AreaApplyRec D_neo_ark_altar_801800A0[3] = {
     { 255, 0, 0, 0 },
 };
 
-s16 D_neo_ark_altar_801800AC = 0;
+/// Number of recorded no-tile-to-tile entries in the current altar sequence.
+///
+/// A single controller resets this signed halfword to zero on a mismatch or
+/// restart and appends at indices 0..15. The completed 16-entry solution pauses
+/// tracking; the next evaluation resets it before another append. Increment
+/// retains the binary's unsigned-halfword view before narrowing to this word.
+static s16 _gNeoArkAltarEnteredTileCount = 0;
 
 /// Endpoints of the switch-animation cursor, increasing towards the clear choice.
 enum {
@@ -640,7 +643,13 @@ enum {
 /// than sprite batches. Reset snaps the cursor to the saved switch's endpoint.
 static s16 _gNeoArkAltarSwitchAnimationStep = NEO_ARK_ALTAR_SWITCH_SET_ENDPOINT;
 
-s16 D_neo_ark_altar_801800B0[16];
+/// Entered altar tile IDs (1..4), in chronological order for the current sequence.
+///
+/// Entries below `_gNeoArkAltarEnteredTileCount` are live; both solution checks
+/// borrow this overlay's storage. Appends use 16 slots. Reset also clears the
+/// following image-tail halfword, whose ownership is unproven; that extra store
+/// does not establish another history slot.
+static s16 _gNeoArkAltarEnteredTiles[16];
 
 static void _neoArkAltarInitializeTileSequence(Task* task);
 
@@ -918,9 +927,9 @@ static void _neoArkAltarTrackTileSequence(Task* task)
     work->currentTile  = currentTile;
     // Record only entry from outside a tile, not a direct tile-to-tile crossing.
     if (currentTile != previousTile && previousTile == 0) {
-        work->enteredTile                                  = currentTile;
-        D_neo_ark_altar_801800B0[D_neo_ark_altar_801800AC] = work->currentTile;
-        D_neo_ark_altar_801800AC                           = (u16)D_neo_ark_altar_801800AC + 1;
+        work->enteredTile                                        = currentTile;
+        _gNeoArkAltarEnteredTiles[_gNeoArkAltarEnteredTileCount] = work->currentTile;
+        _gNeoArkAltarEnteredTileCount                            = (u16)_gNeoArkAltarEnteredTileCount + 1;
     } else {
         work->enteredTile = 0;
     }
@@ -1011,10 +1020,10 @@ static void _neoArkAltarResetTileSequence(void)
         batches[6].hidden                = 0;
         _gNeoArkAltarSwitchAnimationStep = NEO_ARK_ALTAR_SWITCH_SET_ENDPOINT;
     }
-    D_neo_ark_altar_801800AC = 0;
+    _gNeoArkAltarEnteredTileCount = 0;
     // This is the observed transfer extent, not the declared history array bound.
     for (historyIndex = NEO_ARK_ALTAR_HISTORY_CLEAR_LAST_INDEX; historyIndex >= 0; historyIndex--) {
-        D_neo_ark_altar_801800B0[historyIndex] = 0;
+        _gNeoArkAltarEnteredTiles[historyIndex] = 0;
     }
 }
 
@@ -1024,37 +1033,37 @@ static void _neoArkAltarResetTileSequence(void)
 /// `prefixMismatch` is a stable 0/1 flag. Each argument is evaluated at most
 /// once, only for a newly entered tile; an entry mismatch skips the flag test.
 /// Expands to one braced block and preserves separate sound tests for tile IDs.
-#define NEO_ARK_ALTAR_PLAY_ENTERED_TILE_FEEDBACK(solution, prefixMismatch)                                                                     \
-    {                                                                                                                                          \
-        if (work->enteredTile != 0) {                                                                                                          \
-            if ((solution)[D_neo_ark_altar_801800AC - 1] != D_neo_ark_altar_801800B0[D_neo_ark_altar_801800AC - 1] || (prefixMismatch) == 1) { \
-                if (work->enteredTile == 1) {                                                                                                  \
-                    sndEvtRequestScriptStart(SOUND_NEO_ARK_ALTAR_TILE_1_WRONG, 0, 0);                                                          \
-                }                                                                                                                              \
-                if (work->enteredTile == 2) {                                                                                                  \
-                    sndEvtRequestScriptStart(SOUND_NEO_ARK_ALTAR_TILE_2_WRONG, 0, 0);                                                          \
-                }                                                                                                                              \
-                if (work->enteredTile == 3) {                                                                                                  \
-                    sndEvtRequestScriptStart(SOUND_NEO_ARK_ALTAR_TILE_3_WRONG, 0, 0);                                                          \
-                }                                                                                                                              \
-                if (work->enteredTile == 4) {                                                                                                  \
-                    sndEvtRequestScriptStart(SOUND_NEO_ARK_ALTAR_TILE_4_WRONG, 0, 0);                                                          \
-                }                                                                                                                              \
-            } else {                                                                                                                           \
-                if (work->enteredTile == 1) {                                                                                                  \
-                    sndEvtRequestScriptStart(SOUND_NEO_ARK_ALTAR_TILE_1_CORRECT, 0, 0);                                                        \
-                }                                                                                                                              \
-                if (work->enteredTile == 2) {                                                                                                  \
-                    sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_ALTAR, 0) | work->enteredTile, 0, 0);    \
-                }                                                                                                                              \
-                if (work->enteredTile == 3) {                                                                                                  \
-                    sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_ALTAR, 0) | work->enteredTile, 0, 0);    \
-                }                                                                                                                              \
-                if (work->enteredTile == 4) {                                                                                                  \
-                    sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_ALTAR, 0) | work->enteredTile, 0, 0);    \
-                }                                                                                                                              \
-            }                                                                                                                                  \
-        }                                                                                                                                      \
+#define NEO_ARK_ALTAR_PLAY_ENTERED_TILE_FEEDBACK(solution, prefixMismatch)                                                                                \
+    {                                                                                                                                                     \
+        if (work->enteredTile != 0) {                                                                                                                     \
+            if ((solution)[_gNeoArkAltarEnteredTileCount - 1] != _gNeoArkAltarEnteredTiles[_gNeoArkAltarEnteredTileCount - 1] || (prefixMismatch) == 1) { \
+                if (work->enteredTile == 1) {                                                                                                             \
+                    sndEvtRequestScriptStart(SOUND_NEO_ARK_ALTAR_TILE_1_WRONG, 0, 0);                                                                     \
+                }                                                                                                                                         \
+                if (work->enteredTile == 2) {                                                                                                             \
+                    sndEvtRequestScriptStart(SOUND_NEO_ARK_ALTAR_TILE_2_WRONG, 0, 0);                                                                     \
+                }                                                                                                                                         \
+                if (work->enteredTile == 3) {                                                                                                             \
+                    sndEvtRequestScriptStart(SOUND_NEO_ARK_ALTAR_TILE_3_WRONG, 0, 0);                                                                     \
+                }                                                                                                                                         \
+                if (work->enteredTile == 4) {                                                                                                             \
+                    sndEvtRequestScriptStart(SOUND_NEO_ARK_ALTAR_TILE_4_WRONG, 0, 0);                                                                     \
+                }                                                                                                                                         \
+            } else {                                                                                                                                      \
+                if (work->enteredTile == 1) {                                                                                                             \
+                    sndEvtRequestScriptStart(SOUND_NEO_ARK_ALTAR_TILE_1_CORRECT, 0, 0);                                                                   \
+                }                                                                                                                                         \
+                if (work->enteredTile == 2) {                                                                                                             \
+                    sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_ALTAR, 0) | work->enteredTile, 0, 0);               \
+                }                                                                                                                                         \
+                if (work->enteredTile == 3) {                                                                                                             \
+                    sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_ALTAR, 0) | work->enteredTile, 0, 0);               \
+                }                                                                                                                                         \
+                if (work->enteredTile == 4) {                                                                                                             \
+                    sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_ALTAR, 0) | work->enteredTile, 0, 0);               \
+                }                                                                                                                                         \
+            }                                                                                                                                             \
+        }                                                                                                                                                 \
     }
 
 /// Checks entered-tile history against both altar solutions and plays tile feedback.
@@ -1076,12 +1085,12 @@ static s16 _neoArkAltarEvaluateTileSequence(Task* task)
     firstMismatch  = 0;
     work           = task->work;
     secondMismatch = 0;
-    if (D_neo_ark_altar_801800AC == 0) {
+    if (_gNeoArkAltarEnteredTileCount == 0) {
         return NEO_ARK_ALTAR_SEQUENCE_IDLE;
     }
     if (gameFlagGetNibble(GAME_FLAG_NEO_ARK_ALTAR_SEQUENCE_1_SOLVED) == 0) {
-        for (historyIndex = 0; historyIndex < D_neo_ark_altar_801800AC; historyIndex++) {
-            if (D_neo_ark_altar_8017F050[historyIndex] != D_neo_ark_altar_801800B0[historyIndex]) {
+        for (historyIndex = 0; historyIndex < _gNeoArkAltarEnteredTileCount; historyIndex++) {
+            if (D_neo_ark_altar_8017F050[historyIndex] != _gNeoArkAltarEnteredTiles[historyIndex]) {
                 firstMismatch = 1;
                 break;
             }
@@ -1094,8 +1103,8 @@ static s16 _neoArkAltarEvaluateTileSequence(Task* task)
     }
     NEO_ARK_ALTAR_PLAY_ENTERED_TILE_FEEDBACK(D_neo_ark_altar_8017F050, firstMismatch);
     if (gameFlagGetNibble(GAME_FLAG_NEO_ARK_ALTAR_SEQUENCE_2_SOLVED) == 0) {
-        for (historyIndex = 0; historyIndex < D_neo_ark_altar_801800AC; historyIndex++) {
-            if (D_neo_ark_altar_8017F068[historyIndex] != D_neo_ark_altar_801800B0[historyIndex]) {
+        for (historyIndex = 0; historyIndex < _gNeoArkAltarEnteredTileCount; historyIndex++) {
+            if (D_neo_ark_altar_8017F068[historyIndex] != _gNeoArkAltarEnteredTiles[historyIndex]) {
                 secondMismatch = 1;
                 break;
             }

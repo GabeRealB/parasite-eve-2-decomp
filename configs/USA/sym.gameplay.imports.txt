@@ -520,7 +520,7 @@ gNeoArkSubmarineTunnelWaterRefractionTaskDesc = 0x801810E4; // absolute:True own
 
 gNeoArkWoodlandPathWaterRefractionTaskDesc = 0x80181638; // absolute:True owner=neo_ark_woodland_path shared=rooms
 
-D_shelter_b1_control_room_80181B88 = 0x80181B88; // absolute:True owner=shelter_b1_control_room
+gShelterB1ControlRoomMirrorTaskDesc = 0x80181B88; // absolute:True owner=shelter_b1_control_room
 
 D_shelter_r48_80182FAC = 0x80182FAC; // absolute:True owner=shelter_r48 shared=rooms
 

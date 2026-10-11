@@ -54,6 +54,7 @@
 #include "main/task.h"
 #include "main/task_types.h"
 #include "main/tmd_types.h"
+#include "main/sound_ids.h"
 
 #include "mapui/map_shelter.h"
 
@@ -158,9 +159,37 @@ u8* gShelterB2SouthMaintenanceWalkwayRoomViewMaps[1] = {
 
 ViewCount gShelterB2SouthMaintenanceWalkwayRoomViewCounts[1] = { 5 };
 
-DirectionWarpEntry D_shelter_b2_south_maintenance_walkway_80182644[2] = {
-    { { { .word = 1024 }, -2412, 0, -3946 }, { 0, 0, 0, 0 }, { { .word = 1024 }, -2412, 0, -3946 }, { 0, 0, 0, 0 }, 0x541C0002, 0x541C0001, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, 457 },
-    { { { .word = 2048 }, 2048, 0, 4600 }, { 0, 0, 0, 0 }, { { .word = 2048 }, 2048, 0, 4600 }, { 0, 0, 0, 0 }, 0x541C0002, 0x541C0001, DIRECTION_WARP_SOUND_NONE, 5, DIRECTION_WARP_FLAG_NONE, 456 },
+/// Optional map-marker nibble keys published by these arrival endpoints.
+enum {
+    SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_WARP_1_MAP_FLAG = 457,
+    SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_WARP_2_MAP_FLAG = 456,
+};
+
+DirectionWarpEntry gShelterB2SouthMaintenanceWalkwayWarpEntries[2] = {
+    {
+        .player         = { { .word = 1024 }, -2412, 0, -3946 },
+        .unknown_10     = { 0, 0, 0, 0 },
+        .companion      = { { .word = 1024 }, -2412, 0, -3946 },
+        .unknown_24     = { 0, 0, 0, 0 },
+        .arrivalSound   = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY, 2),
+        .departureSound = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY, 1),
+        .blockedSound   = DIRECTION_WARP_SOUND_NONE,
+        .initialView    = 2,
+        .flags          = DIRECTION_WARP_FLAG_NONE,
+        .mapFlagId      = SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_WARP_1_MAP_FLAG,
+    },
+    {
+        .player         = { { .word = 2048 }, 2048, 0, 4600 },
+        .unknown_10     = { 0, 0, 0, 0 },
+        .companion      = { { .word = 2048 }, 2048, 0, 4600 },
+        .unknown_24     = { 0, 0, 0, 0 },
+        .arrivalSound   = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY, 2),
+        .departureSound = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY, 1),
+        .blockedSound   = DIRECTION_WARP_SOUND_NONE,
+        .initialView    = 5,
+        .flags          = DIRECTION_WARP_FLAG_NONE,
+        .mapFlagId      = SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_WARP_2_MAP_FLAG,
+    },
 };
 
 /// Room-space unit normals for the collision grid's quad faces, with scale ONE.

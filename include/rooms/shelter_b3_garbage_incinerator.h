@@ -95,7 +95,14 @@ extern AreaVariant gShelterB3GarbageIncineratorAreaVariants[13];
 /// mutable light arrays; their pointers must not survive unloading it.
 extern WorldCoordRoomLighting gShelterB3GarbageIncineratorRoomLighting[7];
 
-extern WorldCollisionRoomResources D_shelter_b3_garbage_incinerator_801872B8[];
+/// Collision resources for incinerator rooms 1..7.
+///
+/// Every room borrows the same grid, action triggers and sight occluders.
+/// Rooms 1 and 4 use waiting view boundaries; 2, 3, 5 and 6 use moving/landed
+/// boundaries; room 7 has its own boundaries. Each list's final LAST record
+/// is live. Index by room ID minus one; there is no table terminator. Keep
+/// this overlay loaded until its active collision lists are unlinked.
+extern WorldCollisionRoomResources gShelterB3GarbageIncineratorRoomCollisionResources[7];
 
 /// Logical-view map directory for incinerator rooms 1..7.
 ///
@@ -112,7 +119,14 @@ extern u8* gShelterB3GarbageIncineratorViewMaps[7];
 /// is no terminator.
 extern ViewCount gShelterB3GarbageIncineratorRoomViewCounts[7];
 
-extern DirectionWarpEntry D_shelter_b3_garbage_incinerator_8018741C[];
+/// Three incinerator warp endpoints shared by its room variants.
+///
+/// Slots 1..3 arrive in logical views 8, 9 and 2. Only slot 3 supplies
+/// an arrival sound; slots 2 and 3 supply departure sounds. No slot updates a map marker.
+/// Index by 1-based warp ID minus one; there is no terminator. Placements
+/// use whole world units and yaw uses 4096 units per turn. The stage map
+/// borrows this array while the room overlay and its sound bank stay loaded.
+extern DirectionWarpEntry gShelterB3GarbageIncineratorWarpEntries[3];
 
 /// Forty cameras selected by the incinerator's mapped view index minus one.
 ///

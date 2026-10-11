@@ -45,7 +45,14 @@ extern u8* gShelterB6TrainingRoomViewMaps[1];
 /// is no terminator.
 extern ViewCount gShelterB6TrainingRoomRoomViewCounts[2];
 
-extern DirectionWarpEntry D_shelter_b6_training_room_80184420[];
+/// The training room's Corridor and Nursery endpoints.
+///
+/// Slots 1 and 2 arrive in views 2 and 4 respectively. Only the
+/// Corridor endpoint supplies an arrival sound; neither updates a map marker.
+/// Index by 1-based warp ID minus one; there is no terminator. Placements
+/// use whole world units and yaw uses 4096 units per turn. The stage map
+/// borrows this array while the room overlay and its sound bank stay loaded.
+extern DirectionWarpEntry gShelterB6TrainingRoomWarpEntries[2];
 
 /// The training room's wall, floor and raised-platform collision grid.
 ///

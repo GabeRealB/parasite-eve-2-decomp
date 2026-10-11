@@ -40,7 +40,14 @@ extern u8* gShelterB2SouthMaintenanceWalkwayRoomViewMaps[1];
 /// is no terminator.
 extern ViewCount gShelterB2SouthMaintenanceWalkwayRoomViewCounts[1];
 
-extern DirectionWarpEntry D_shelter_b2_south_maintenance_walkway_80182644[];
+/// The B2 south walkway's Elevator Hall and Operating Room endpoints.
+///
+/// Slots 1 and 2 arrive in views 2 and 5 respectively, sharing door
+/// sounds but carrying separate optional map-marker keys.
+/// Index by 1-based warp ID minus one; there is no terminator. Placements
+/// use whole world units and yaw uses 4096 units per turn. The stage map
+/// borrows this array while the room overlay and its sound bank stay loaded.
+extern DirectionWarpEntry gShelterB2SouthMaintenanceWalkwayWarpEntries[2];
 
 /// The walkway's room-space collision mesh and two-by-three XZ cell index.
 ///

@@ -1,11 +1,11 @@
 // Overlay-local symbols for dryfield_toilet.
 D_dryfield_toilet_801802D4 = 0x801802D4; // size:0x4 defined:True
-_gDryfieldToiletCollision02D54Normals = 0x801802D8; // size:0x8 defined:True
-_gDryfieldToiletCollision02D54Verts = 0x801802E0; // size:0x20 defined:True
-_gDryfieldToiletCollision02D54Faces = 0x80180300; // size:0xC defined:True
-_gDryfieldToiletCollision02D54Cells = 0x8018030C; // size:0x4 defined:True
-_gDryfieldToiletCollision02D54Table = 0x80180310; // size:0x4 defined:True
-D_dryfield_toilet_80180314 = 0x80180314; // size:0x24 defined:True
+_gDryfieldToiletEventCollisionTemplateNormals = 0x801802D8; // size:0x8 defined:True
+_gDryfieldToiletEventCollisionTemplateVerts = 0x801802E0; // size:0x20 defined:True
+_gDryfieldToiletEventCollisionTemplateFaces = 0x80180300; // size:0xC defined:True
+_gDryfieldToiletEventCollisionTemplateCells = 0x8018030C; // size:0x4 defined:True
+_gDryfieldToiletEventCollisionTemplateTable = 0x80180310; // size:0x4 defined:True
+_gDryfieldToiletEventCollisionTemplate = 0x80180314; // size:0x24 defined:True
 _gDryfieldToiletRoomMessages = 0x801802A4; // size:0x30 defined:True
 _gRoomVisualEffectsGlowDiscShades = 0x80181120; // size:0xC defined:True
 gDryfieldToiletRoomCollisionResources = 0x8018112C; // size:0x10 defined:True

@@ -6,9 +6,13 @@
 /* GCC orders BSS by first declaration; keep this prologue before the API headers. */
 s32 D_shelter_b6_training_room_80185C58;
 
-/// The room's tracked task, driven by `shelterB6TrainingRoomControlPlayerHeadAim`,
-/// or NULL when none is running.
-Task* D_shelter_b6_training_room_80185C5C;
+/// Borrowed player head-aim controller task, or NULL when no controller is tracked.
+///
+/// Starting publishes the new task even if it replaces an existing handle.
+/// Room initialization clears the handle without releasing a task; commands
+/// fade the tracked controller or release it and clear the handle. Keep the
+/// tracked task live until control releases it.
+static Task* _gShelterB6TrainingRoomPlayerHeadAimTask;
 
 #include "rooms/shelter_b6_training_room.h"
 
@@ -50,6 +54,7 @@ Task* D_shelter_b6_training_room_80185C5C;
 #include "main/sound.h"
 #include "main/stage.h"
 #include "main/task.h"
+#include "main/sound_ids.h"
 
 #include "mapui/map_neo_ark.h"
 
@@ -99,9 +104,31 @@ u8* gShelterB6TrainingRoomViewMaps[1] = {
 
 ViewCount gShelterB6TrainingRoomRoomViewCounts[2] = { SHELTER_B6_TRAINING_ROOM_VIEW_COUNT, 0 };
 
-DirectionWarpEntry D_shelter_b6_training_room_80184420[2] = {
-    { { { .word = 1024 }, 500, 0, 1500 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 500, 0, 1500 }, { 0, 0, 0, 0 }, 0x55190005, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
-    { { { .word = 3072 }, 4500, 0, 9390 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 4500, 0, 9390 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 4, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+DirectionWarpEntry gShelterB6TrainingRoomWarpEntries[2] = {
+    {
+        .player         = { { .word = 1024 }, 500, 0, 1500 },
+        .unknown_10     = { 0, 0, 0, 0 },
+        .companion      = { { .word = 1024 }, 500, 0, 1500 },
+        .unknown_24     = { 0, 0, 0, 0 },
+        .arrivalSound   = SOUND_AREA(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_SHELTER_B6_TRAINING_ROOM, 5),
+        .departureSound = DIRECTION_WARP_SOUND_NONE,
+        .blockedSound   = DIRECTION_WARP_SOUND_NONE,
+        .initialView    = 2,
+        .flags          = DIRECTION_WARP_FLAG_NONE,
+        .mapFlagId      = DIRECTION_WARP_MAP_FLAG_NONE,
+    },
+    {
+        .player         = { { .word = 3072 }, 4500, 0, 9390 },
+        .unknown_10     = { 0, 0, 0, 0 },
+        .companion      = { { .word = 3072 }, 4500, 0, 9390 },
+        .unknown_24     = { 0, 0, 0, 0 },
+        .arrivalSound   = DIRECTION_WARP_SOUND_NONE,
+        .departureSound = DIRECTION_WARP_SOUND_NONE,
+        .blockedSound   = DIRECTION_WARP_SOUND_NONE,
+        .initialView    = 4,
+        .flags          = DIRECTION_WARP_FLAG_NONE,
+        .mapFlagId      = DIRECTION_WARP_MAP_FLAG_NONE,
+    },
 };
 
 /// Q12 room-space normals borrowed by the training-room collision grid.
@@ -593,12 +620,12 @@ void shelterB6TrainingRoomRoomTask(Task* task)
 
 void shelterB6TrainingRoomStartPlayerHeadAim(void)
 {
-    D_shelter_b6_training_room_80185C5C = taskSpawnFromTable(&gShelterB6TrainingRoomPlayerHeadAimTaskDesc, 0, 0, 0);
+    _gShelterB6TrainingRoomPlayerHeadAimTask = taskSpawnFromTable(&gShelterB6TrainingRoomPlayerHeadAimTaskDesc, 0, 0, 0);
 }
 
 void shelterB6TrainingRoomControlPlayerHeadAim(s32 command)
 {
-    Task* headAimTask = D_shelter_b6_training_room_80185C5C;
+    Task* headAimTask = _gShelterB6TrainingRoomPlayerHeadAimTask;
 
     if (headAimTask == NULL) {
         return;
@@ -609,7 +636,7 @@ void shelterB6TrainingRoomControlPlayerHeadAim(s32 command)
             headAimTask->spawnArg1.value = command;
             break;
         default: {
-            Task** headAimHandle = &D_shelter_b6_training_room_80185C5C;
+            Task** headAimHandle = &_gShelterB6TrainingRoomPlayerHeadAimTask;
 
             taskKill(*headAimHandle);
             *headAimHandle = NULL;
@@ -695,5 +722,5 @@ void shelterB6TrainingRoomStopBattlePresentation(void)
 /// `unusedArg` has no effect.
 static void _shelterB6TrainingRoomClearPlayerHeadAimTask(s32 unusedArg)
 {
-    D_shelter_b6_training_room_80185C5C = NULL;
+    _gShelterB6TrainingRoomPlayerHeadAimTask = NULL;
 }

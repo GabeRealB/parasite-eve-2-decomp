@@ -46,10 +46,6 @@ static void _dryfieldNightWarehouseInitRoomTask(Task* task);
 static void _dryfieldNightWarehouseRoomIdle(Task* task);
 static void _dryfieldNightWarehouseDrawLightBeam(const GfxCoord* coord, s16 firstRing, s16 segmentCount);
 
-/// The room's message table: handlers for messages 0x13EE, 0x13F1, 0x13EF and
-/// 0x13F0, closed by a `TASK_MESSAGE_TABLE_END` entry.
-extern TaskMessageEntry D_dryfield_night_warehouse_8017E830[];
-
 /// Ring centres in the space of the coordinate drawn under, one per circle.
 extern SVECTOR gGlowPrismCorners[];
 
@@ -92,7 +88,11 @@ enum {
     DRYFIELD_NIGHT_WAREHOUSE_RUN_SOUND  = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x47,
 };
 
-TaskMessageEntry D_dryfield_night_warehouse_8017E830[5] = {
+/// Night warehouse transition, key-item, direction-action and command handlers.
+///
+/// Borrowed by the live room task; keep this overlay loaded while it receives
+/// messages. The final end marker makes unsupported IDs return zero.
+static const TaskMessageEntry _gDryfieldNightWarehouseRoomMessages[5] SECTION(".data") = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _dryfieldNightWarehouseResolveRoomEvent },
     { DRYFIELD_NIGHT_WAREHOUSE_MESSAGE_USE_KEY_ITEM, _dryfieldNightWarehouseRejectKeyItem },
     { DIRECTION_MESSAGE_ROOM_ACTION, _dryfieldNightWarehouseIgnoreDirectionAction },
@@ -559,7 +559,7 @@ static s32 _dryfieldNightWarehouseIgnoreDirectionAction(Task* task, s32 messageI
 /// for subsequent synchronous messages while the registered task remains alive.
 static void _dryfieldNightWarehouseInitRoomTask(Task* task)
 {
-    task->msgTable = D_dryfield_night_warehouse_8017E830;
+    task->msgTable = _gDryfieldNightWarehouseRoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     task->state++;
 }

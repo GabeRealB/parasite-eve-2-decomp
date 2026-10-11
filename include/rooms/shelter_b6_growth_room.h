@@ -42,7 +42,14 @@ extern u8* gShelterB6GrowthRoomViewMaps[1];
 /// logical-view searches independently of the shared identity map's capacity.
 extern ViewCount gShelterB6GrowthRoomViewCounts[1];
 
-extern DirectionWarpEntry D_shelter_b6_growth_room_8017F380[];
+/// The growth room's single warp endpoint.
+///
+/// Slot 1 places both actors at (4030, 0, -2950), selects view 4 and
+/// carries an optional map-marker key, without transition sounds.
+/// Index by 1-based warp ID minus one; there is no terminator. Placements
+/// use whole world units and yaw uses 4096 units per turn. The stage map
+/// borrows this array while the room overlay and its sound bank stay loaded.
+extern DirectionWarpEntry gShelterB6GrowthRoomWarpEntries[1];
 
 /// Live growth-room collision mesh with a reserved movable box.
 ///

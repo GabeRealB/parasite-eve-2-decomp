@@ -11,14 +11,15 @@
 #include "main/task_types.h"
 #include "../../shared/room_variants.h"
 
-/// The room's message table, published at `Task::msgTable` by the room task.
-extern TaskMessageEntry D_dryfield_night_motel_room_3_8017DA5C[];
-
 static s32 _dryfieldNightMotelRoom3RejectKeyItemUse(Task* unusedTask, s32 unusedMessageId, s32 itemId, s32 unusedSecondArg);
 static s32 _dryfieldNightMotelRoom3IgnoreRoomCommand(Task* unusedTask, s32 unusedMessageId, s32 commandId, s32 commandArgument);
 static s32 _dryfieldNightMotelRoom3IgnoreRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedArg);
 
-TaskMessageEntry D_dryfield_night_motel_room_3_8017DA5C[5] = {
+/// Night motel room 3's transition, key-item, direction-action and command handlers.
+///
+/// Borrowed by the live room task; keep this overlay loaded while it receives
+/// messages. The final end marker makes unsupported IDs return zero.
+static const TaskMessageEntry _gDryfieldNightMotelRoom3RoomMessages[5] SECTION(".data") = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _roomVariantMainStreetMsg },
     { ROOM_MESSAGE_USE_KEY_ITEM, _dryfieldNightMotelRoom3RejectKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, _dryfieldNightMotelRoom3IgnoreRoomAction },
@@ -64,7 +65,7 @@ static s32 _dryfieldNightMotelRoom3IgnoreRoomAction(Task* task, s32 messageId, c
 /// receive messages. Registration does not retain the task or clear on teardown.
 static void _dryfieldNightMotelRoom3InitRoomTask(Task* task)
 {
-    task->msgTable = D_dryfield_night_motel_room_3_8017DA5C;
+    task->msgTable = _gDryfieldNightMotelRoom3RoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     task->state++;
 }

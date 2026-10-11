@@ -41,7 +41,14 @@ extern u8* gShelterB2NorthMaintenanceWalkwayRoomViewMaps[1];
 /// is no terminator.
 extern ViewCount gShelterB2NorthMaintenanceWalkwayRoomViewCounts[2];
 
-extern DirectionWarpEntry D_shelter_b2_north_maintenance_walkway_80183C64[];
+/// The B2 north walkway's Operating Room and Breeding Room endpoints.
+///
+/// Slots 1 and 2 arrive in views 2 and 5 respectively. The Operating
+/// Room endpoint supplies a blocked-door sound and an optional map-marker key.
+/// Index by 1-based warp ID minus one; there is no terminator. Placements
+/// use whole world units and yaw uses 4096 units per turn. The stage map
+/// borrows this array while the room overlay and its sound bank stay loaded.
+extern DirectionWarpEntry gShelterB2NorthMaintenanceWalkwayWarpEntries[2];
 
 /// Walkway collision mesh and its two-by-three XZ cell directory.
 ///

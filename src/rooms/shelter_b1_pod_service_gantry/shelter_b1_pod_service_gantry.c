@@ -99,8 +99,19 @@ u8* gShelterB1PodServiceGantryRoomViewMaps[1] = {
 
 ViewCount gShelterB1PodServiceGantryRoomViewCounts[1] = { 46 };
 
-DirectionWarpEntry D_shelter_b1_pod_service_gantry_8017FB24[1] = {
-    { { { .word = 1024 }, 2535, 0, 3220 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 2535, 0, 3220 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+DirectionWarpEntry gShelterB1PodServiceGantryWarpEntries[1] = {
+    {
+        .player         = { { .word = 1024 }, 2535, 0, 3220 },
+        .unknown_10     = { 0, 0, 0, 0 },
+        .companion      = { { .word = 1024 }, 2535, 0, 3220 },
+        .unknown_24     = { 0, 0, 0, 0 },
+        .arrivalSound   = DIRECTION_WARP_SOUND_NONE,
+        .departureSound = DIRECTION_WARP_SOUND_NONE,
+        .blockedSound   = DIRECTION_WARP_SOUND_NONE,
+        .initialView    = 2,
+        .flags          = DIRECTION_WARP_FLAG_NONE,
+        .mapFlagId      = DIRECTION_WARP_MAP_FLAG_NONE,
+    },
 };
 
 /// Placement-entry keys, decimal file numbers and table selectors for these layouts.
