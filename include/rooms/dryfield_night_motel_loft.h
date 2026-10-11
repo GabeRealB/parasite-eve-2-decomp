@@ -12,7 +12,13 @@
 #include "main/task_types.h"
 #include "main/tmd_types.h"
 
-extern AreaVariant D_dryfield_night_motel_loft_80180888[13];
+/// Placement/resource pairs selected by the nighttime loft's saved variant byte.
+///
+/// Slots 1, 3, 4 and 11 are populated; 0, 2, 5..10 and 12 are absent.
+/// Selectors must be within 0..12. Placement lists belong to the Dryfield map;
+/// resource recipes belong to this room and borrow the selected actor overlays'
+/// task descriptors. Keep each owning overlay loaded while its data is used.
+extern AreaVariant gDryfieldNightMotelLoftAreaVariants[13];
 
 extern TmdSource gDryfieldNightMotelLoftActor135400Model071AC;
 
@@ -22,7 +28,12 @@ extern TmdSource gDryfieldNightMotelLoftActor135400Model071AC;
 /// overlay owns the records and borrowed lights, which remain live while loaded.
 extern WorldCoordRoomLighting gDryfieldNightMotelLoftRoomLighting[2];
 
-extern WorldCollisionRoomResources D_dryfield_night_motel_loft_8017EDC0[];
+/// Collision resources for room selectors 1 and 2, indexed by room minus one.
+///
+/// Both borrow the same mutable mesh, view boundaries and action triggers;
+/// neither has sight occluders. The room overlay must remain loaded until
+/// these resources are unlinked and the active grid is replaced or cleared.
+extern WorldCollisionRoomResources gDryfieldNightMotelLoftRoomCollisionResources[2];
 
 /// Logical-to-mapped view byte arrays for the loft's two room selectors.
 ///
@@ -94,7 +105,7 @@ void dryfieldNightMotelLoftFallingShardTask(Task* task);
 /// 0, view 8 emits 48 shards and advances to 1; view 3 or 10 then emits 32 and
 /// advances to 2. State 2 keeps drawing flares without further bursts.
 /// Each attempt consumes four random draws, even if effect allocation fails;
-/// the last vector of the room's seven-point array supplies shared writable
+/// the room's shard-spawn member supplies shared writable
 /// spawn storage. Positions use the effect spawner's world-matrix input units;
 /// radii are 16..79 coordinate units. The task is released by its external owner.
 void dryfieldNightMotelLoftFlaresAndShardsTask(Task* task);

@@ -12,11 +12,13 @@
 #include "dryfield_night_motel_loft_private.h"
 
 #include "gameplay/display.h"
+#include "gameplay/captions.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
 #include "gameplay/evs.h"
 #include "gameplay/loading.h"
 #include "gameplay/message.h"
+#include "gameplay/player_actor.h"
 #include "gameplay/room.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
@@ -54,6 +56,13 @@ typedef struct {
 } _DryfieldNightMotelLoftTriScratch;
 STATIC_ASSERT_SIZEOF(_DryfieldNightMotelLoftTriScratch, 0x20);
 
+/// Fixed light positions and the reusable coordinate passed to shard spawns.
+typedef struct {
+    SVECTOR flareAnchors[6]; // Fixed flare centres in integer world units
+    SVECTOR shardSpawn;      // Mutable world-matrix input; each spawn overwrites XYZ
+} _DryfieldNightMotelLoftFlareAndShardPoints;
+STATIC_ASSERT_SIZEOF(_DryfieldNightMotelLoftFlareAndShardPoints, 0x38);
+
 static WorldCollisionGrid _gDryfieldNightMotelLoftCollisionGrid;
 
 static void _dryfieldNightMotelLoftDrawShard(const GfxCoord* coord, s16 radius, s16 shade);
@@ -86,7 +95,7 @@ TmdSource gDryfieldNightMotelLoftActor135400Model071AC = {
     _gDryfieldNightMotelLoftActor135400Model071ACStream,
 };
 
-TaskMessageEntry D_dryfield_night_motel_loft_8017EB1C[6] = {
+TaskMessageEntry gDryfieldNightMotelLoftMessageHandlers[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, roomVariantMotelBalconyMsg },
     { ROOM_MESSAGE_USE_KEY_ITEM, dryfieldNightMotelLoftRefuseKeyItem },
     { DIRECTION_MESSAGE_ROOM_ACTION, dryfieldNightMotelLoftIgnoreRoomAction },
@@ -95,36 +104,72 @@ TaskMessageEntry D_dryfield_night_motel_loft_8017EB1C[6] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-TaskDesc D_dryfield_night_motel_loft_8017EB4C[1] = {
-    { { { TASK_BODY_NONE, 32 } }, dryfieldNightMotelLoftCaptionSceneTask, { .value = 0 } },
+enum { DRYFIELD_NIGHT_MOTEL_LOFT_CAPTION_SCENE_PRIORITY = 32 };
+
+TaskDesc gDryfieldNightMotelLoftCaptionSceneTaskDesc = {
+    .header   = { .fields = { TASK_BODY_NONE, DRYFIELD_NIGHT_MOTEL_LOFT_CAPTION_SCENE_PRIORITY } },
+    .callback = dryfieldNightMotelLoftCaptionSceneTask,
+    .data     = { .value = 0 },
 };
 
-AnimationPlayRequest D_dryfield_night_motel_loft_8017EB58 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
-
-ActorCommand D_dryfield_night_motel_loft_8017EB6C = { { .loc = { 3, 31 } }, 0 };
-
-ActorCommand D_dryfield_night_motel_loft_8017EB70[2] = {
-    { { .loc = { 3, 31 } }, 1 },
-    { { .loc = { 3, 31 } }, 2 },
+enum {
+    DRYFIELD_NIGHT_MOTEL_LOFT_ENCOUNTER_IDLE_CLIP         = 1,
+    DRYFIELD_NIGHT_MOTEL_LOFT_STALKER_DROP_COMMAND        = 0,
+    DRYFIELD_NIGHT_MOTEL_LOFT_STALKER_FLOOR_START_COMMAND = 1,
+    DRYFIELD_NIGHT_MOTEL_LOFT_ENCOUNTER_CAP_COMMAND       = 4,
+    DRYFIELD_NIGHT_MOTEL_LOFT_ENCOUNTER_ROOM              = 2,
+    DRYFIELD_NIGHT_MOTEL_LOFT_ENCOUNTER_FIRST_SOUND       = SOUND_AREA(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_MOTEL_LOFT, 6),
+    DRYFIELD_NIGHT_MOTEL_LOFT_ENCOUNTER_SECOND_SOUND      = SOUND_AREA(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_MOTEL_LOFT, 7),
 };
 
-EvsCommand D_dryfield_night_motel_loft_8017EB78[17] = {
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 4 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_night_motel_loft_8017EB58 }, { .value = 0 } },
+/// Equipped-weapon idle request used before the encounter's first CAP cue.
+///
+/// The interpreter copies this record and replaces source.index with the
+/// equipped bank before dispatch. Clip 1 resets with world collision enabled;
+/// blendFrames is ignored. Keep the room payload live until that instruction.
+static AnimationPlayRequest _gDryfieldNightMotelLoftEncounterIdleAnimation = {
+    .source               = { .index = 1 },
+    .animationId          = DRYFIELD_NIGHT_MOTEL_LOFT_ENCOUNTER_IDLE_CLIP,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE,
+};
+
+/// Command zero starts placement zero's scripted Stalker group entrance.
+///
+/// The receiver ignores the authored stage/area context and latches request 1.
+/// Borrowed synchronously after the first CAP cue; no payload pointer is kept.
+static ActorCommand _gDryfieldNightMotelLoftStalkerDropCommand = {
+    .context = { .loc = { GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_MOTEL_LOFT } },
+    .command = DRYFIELD_NIGHT_MOTEL_LOFT_STALKER_DROP_COMMAND,
+};
+
+/// Unreferenced command-1/2 records in the loft's authored Stalker namespace.
+///
+/// Command 1 selects the group entrance's floor start; command 2 has no branch
+/// there. No current consumer establishes these records' intended use.
+static ActorCommand _gDryfieldNightMotelLoftUnusedStalkerCommands[2] = {
+    { .context = { .loc = { GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_MOTEL_LOFT } }, .command = DRYFIELD_NIGHT_MOTEL_LOFT_STALKER_FLOOR_START_COMMAND },
+    { .context = { .loc = { GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_MOTEL_LOFT } }, .command = 2 },
+};
+
+EvsCommand gDryfieldNightMotelLoftStalkerEncounterScript[17] = {
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_START }, { .value = DRYFIELD_NIGHT_MOTEL_LOFT_ENCOUNTER_CAP_COMMAND }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldNightMotelLoftEncounterIdleAnimation }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU8 = dryfieldNightMotelLoftSetCurrentRoom }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_dryfield_night_motel_loft_8017EB6C } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU8 = dryfieldNightMotelLoftSetCurrentRoom }, { .value = DRYFIELD_NIGHT_MOTEL_LOFT_ENCOUNTER_ROOM }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gDryfieldNightMotelLoftStalkerDropCommand } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x531F0006 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = DRYFIELD_NIGHT_MOTEL_LOFT_ENCOUNTER_FIRST_SOUND }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x531F0007 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = DRYFIELD_NIGHT_MOTEL_LOFT_ENCOUNTER_SECOND_SOUND }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = sceneEngageBattle }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RESTORE_VIEW, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = PLAYER_ACTOR_END_SCRIPTED_DEFAULT }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
@@ -170,18 +215,21 @@ static WorldCollisionGrid _gDryfieldNightMotelLoftJerryCanBarrierTemplate = {
     .faceCount   = ARRAY_SIZE(_gDryfieldNightMotelLoftJerryCanBarrierTemplateFaces),
 };
 
-/// The room's sprite points. The room draws them by view - 0 and 5 for views
-/// 2 and 9, 1, 2 and 4 for 3 and 10, 2 for 4, 3 for 6, 4 and 5 for 7 and
-/// 11 - and the two effect bursts write the seventh as the offset they spawn
-/// at.
-SVECTOR D_dryfield_night_motel_loft_8017ED78[7] = {
-    { 5200, -2110, -1240, 0 },
-    { -10, -2110, -1240, 0 },
-    { -4600, -2110, -1240, 0 },
-    { -4600, -2110, 1500, 0 },
-    { -10, -2110, 1500, 0 },
-    { 5200, -2110, 1500, 0 },
-    { 3000, -3420, 0, 0 },
+/// Six ceiling-light flare anchors and one reusable shard-spawn point.
+///
+/// Flares read only the anchors; the two bursts overwrite shardSpawn.XYZ.
+/// Both roles use signed halfword coordinates and retain each fourth halfword.
+/// The loaded room owns the storage; shard setup snapshots its spawn position.
+static _DryfieldNightMotelLoftFlareAndShardPoints _gDryfieldNightMotelLoftFlareAndShardPoints = {
+    .flareAnchors = {
+        { 5200, -2110, -1240, 0 },
+        { -10, -2110, -1240, 0 },
+        { -4600, -2110, -1240, 0 },
+        { -4600, -2110, 1500, 0 },
+        { -10, -2110, 1500, 0 },
+        { 5200, -2110, 1500, 0 },
+    },
+    .shardSpawn = { 3000, -3420, 0, 0 },
 };
 
 WorldCoordRoomLighting gDryfieldNightMotelLoftRoomLighting[2] = {
@@ -189,9 +237,9 @@ WorldCoordRoomLighting gDryfieldNightMotelLoftRoomLighting[2] = {
     { .lights = &gDryfieldNightMotelLoftRoomLights, .ambientTable = NULL },
 };
 
-WorldCollisionRoomResources D_dryfield_night_motel_loft_8017EDC0[2] = {
-    { &_gDryfieldNightMotelLoftCollisionGrid, D_dryfield_night_motel_loft_80180064, D_dryfield_night_motel_loft_801803F4, NULL },
-    { &_gDryfieldNightMotelLoftCollisionGrid, D_dryfield_night_motel_loft_80180064, D_dryfield_night_motel_loft_801803F4, NULL },
+WorldCollisionRoomResources gDryfieldNightMotelLoftRoomCollisionResources[2] = {
+    { .grid = &_gDryfieldNightMotelLoftCollisionGrid, .viewBoundaryTriggers = gDryfieldNightMotelLoftViewBoundaryTriggers, .actionTriggers = gDryfieldNightMotelLoftActionTriggers, .occluders = NULL },
+    { .grid = &_gDryfieldNightMotelLoftCollisionGrid, .viewBoundaryTriggers = gDryfieldNightMotelLoftViewBoundaryTriggers, .actionTriggers = gDryfieldNightMotelLoftActionTriggers, .occluders = NULL },
 };
 
 enum { DRYFIELD_NIGHT_MOTEL_LOFT_LOGICAL_VIEW_COUNT = 14 };
@@ -544,27 +592,26 @@ void dryfieldNightMotelLoftRebuildJerryCanCollision(s32 collected)
     }
 }
 
-/// Attempts one falling-shard spawn using the seventh room point as workspace.
+/// Attempts one falling-shard spawn using the room's reusable shard point.
 ///
-/// `points` borrows at least seven writable room vectors; only element 6's XYZ
+/// `points` borrows the room's complete point storage; only shardSpawn's XYZ
 /// changes. Four LCG draws select matrix-input XYZ in [3001,4024], [-3420,-2909],
 /// [-1023,1024] and a radius of 16..79 coordinate units. Placement uses the
 /// current GsWSMATRIX. The spawner snapshots XYZ and retains the overlay-owned
 /// pointer, which this shard never reads again. Failure still consumes all draws.
-static inline void _dryfieldNightMotelLoftSpawnShard(SVECTOR points[7])
+static inline void _dryfieldNightMotelLoftSpawnShard(_DryfieldNightMotelLoftFlareAndShardPoints* points)
 {
-    enum { SHARD_WORKSPACE_POINT                      = 6,
-           DRYFIELD_NIGHT_MOTEL_LOFT_SHARD_MIN_RADIUS = 16,
+    enum { DRYFIELD_NIGHT_MOTEL_LOFT_SHARD_MIN_RADIUS = 16,
            SHARD_RADIUS_JITTER_MASK                   = 0x3F };
 
-    gRandomLcgState                  = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    points[SHARD_WORKSPACE_POINT].vx = 0xFB8 - ((gRandomLcgState >> 16) & 0x3FF);
-    gRandomLcgState                  = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    points[SHARD_WORKSPACE_POINT].vy = ((gRandomLcgState >> 16) & 0x1FF) - 0xD5C;
-    gRandomLcgState                  = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    points[SHARD_WORKSPACE_POINT].vz = 0x400 - ((gRandomLcgState >> 16) & 0x7FF);
-    gRandomLcgState                  = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    effectSpawn(EFFECT_NIGHT_MOTEL_LOFT_FALLING_SHARD, NULL, ((gRandomLcgState >> 16) & SHARD_RADIUS_JITTER_MASK) + DRYFIELD_NIGHT_MOTEL_LOFT_SHARD_MIN_RADIUS, &points[SHARD_WORKSPACE_POINT]);
+    gRandomLcgState       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    points->shardSpawn.vx = 0xFB8 - ((gRandomLcgState >> 16) & 0x3FF);
+    gRandomLcgState       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    points->shardSpawn.vy = ((gRandomLcgState >> 16) & 0x1FF) - 0xD5C;
+    gRandomLcgState       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    points->shardSpawn.vz = 0x400 - ((gRandomLcgState >> 16) & 0x7FF);
+    gRandomLcgState       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    effectSpawn(EFFECT_NIGHT_MOTEL_LOFT_FALLING_SHARD, NULL, ((gRandomLcgState >> 16) & SHARD_RADIUS_JITTER_MASK) + DRYFIELD_NIGHT_MOTEL_LOFT_SHARD_MIN_RADIUS, &points->shardSpawn);
 }
 
 void dryfieldNightMotelLoftFlaresAndShardsTask(Task* task)
@@ -583,22 +630,22 @@ void dryfieldNightMotelLoftFlaresAndShardsTask(Task* task)
     switch (viewGetMappedIndex() & 0xFF) {
         case 2:
         case 9:
-            glowDrawFlareClipped(&D_dryfield_night_motel_loft_8017ED78[0], DRYFIELD_NIGHT_MOTEL_LOFT_FLARE_TEXTURE, DRYFIELD_NIGHT_MOTEL_LOFT_FLARE_RADIUS_SCALE);
-            glowDrawFlareClipped(&D_dryfield_night_motel_loft_8017ED78[5], DRYFIELD_NIGHT_MOTEL_LOFT_FLARE_TEXTURE, DRYFIELD_NIGHT_MOTEL_LOFT_FLARE_RADIUS_SCALE);
+            glowDrawFlareClipped(&_gDryfieldNightMotelLoftFlareAndShardPoints.flareAnchors[0], DRYFIELD_NIGHT_MOTEL_LOFT_FLARE_TEXTURE, DRYFIELD_NIGHT_MOTEL_LOFT_FLARE_RADIUS_SCALE);
+            glowDrawFlareClipped(&_gDryfieldNightMotelLoftFlareAndShardPoints.flareAnchors[5], DRYFIELD_NIGHT_MOTEL_LOFT_FLARE_TEXTURE, DRYFIELD_NIGHT_MOTEL_LOFT_FLARE_RADIUS_SCALE);
             break;
         case 3:
         case 10: {
-            SVECTOR* viewFlarePoints = &D_dryfield_night_motel_loft_8017ED78[1];
+            SVECTOR* viewFlarePoints = &_gDryfieldNightMotelLoftFlareAndShardPoints.flareAnchors[1];
 
             glowDrawFlareClipped(&viewFlarePoints[0], DRYFIELD_NIGHT_MOTEL_LOFT_FLARE_TEXTURE, DRYFIELD_NIGHT_MOTEL_LOFT_FLARE_RADIUS_SCALE);
             glowDrawFlareClipped(&viewFlarePoints[1], DRYFIELD_NIGHT_MOTEL_LOFT_FLARE_TEXTURE, DRYFIELD_NIGHT_MOTEL_LOFT_FLARE_RADIUS_SCALE);
             glowDrawFlareClipped(&viewFlarePoints[3], DRYFIELD_NIGHT_MOTEL_LOFT_FLARE_TEXTURE, DRYFIELD_NIGHT_MOTEL_LOFT_FLARE_RADIUS_SCALE);
             // This second burst waits until the first burst has run in view 8.
             if (task->state == DRYFIELD_NIGHT_MOTEL_LOFT_SHARDS_WAIT_VIEWS_3_OR_10) {
-                SVECTOR* spawnPoints;
+                _DryfieldNightMotelLoftFlareAndShardPoints* spawnPoints;
 
                 shardIndex  = 0;
-                spawnPoints = &viewFlarePoints[-1];
+                spawnPoints = PARENT_OF(&viewFlarePoints[-1], _DryfieldNightMotelLoftFlareAndShardPoints, flareAnchors);
                 do {
                     _dryfieldNightMotelLoftSpawnShard(spawnPoints);
                     shardIndex++;
@@ -608,23 +655,23 @@ void dryfieldNightMotelLoftFlaresAndShardsTask(Task* task)
             break;
         }
         case 4:
-            glowDrawFlareClipped(&D_dryfield_night_motel_loft_8017ED78[2], DRYFIELD_NIGHT_MOTEL_LOFT_FLARE_TEXTURE, DRYFIELD_NIGHT_MOTEL_LOFT_FLARE_RADIUS_SCALE);
+            glowDrawFlareClipped(&_gDryfieldNightMotelLoftFlareAndShardPoints.flareAnchors[2], DRYFIELD_NIGHT_MOTEL_LOFT_FLARE_TEXTURE, DRYFIELD_NIGHT_MOTEL_LOFT_FLARE_RADIUS_SCALE);
             break;
         case 6:
-            glowDrawFlareClipped(&D_dryfield_night_motel_loft_8017ED78[3], DRYFIELD_NIGHT_MOTEL_LOFT_FLARE_TEXTURE, DRYFIELD_NIGHT_MOTEL_LOFT_FLARE_RADIUS_SCALE);
+            glowDrawFlareClipped(&_gDryfieldNightMotelLoftFlareAndShardPoints.flareAnchors[3], DRYFIELD_NIGHT_MOTEL_LOFT_FLARE_TEXTURE, DRYFIELD_NIGHT_MOTEL_LOFT_FLARE_RADIUS_SCALE);
             break;
         case 7:
         case 11:
-            glowDrawFlareClipped(&D_dryfield_night_motel_loft_8017ED78[4], DRYFIELD_NIGHT_MOTEL_LOFT_FLARE_TEXTURE, DRYFIELD_NIGHT_MOTEL_LOFT_FLARE_RADIUS_SCALE);
-            glowDrawFlareClipped(&D_dryfield_night_motel_loft_8017ED78[5], DRYFIELD_NIGHT_MOTEL_LOFT_FLARE_TEXTURE, DRYFIELD_NIGHT_MOTEL_LOFT_FLARE_RADIUS_SCALE);
+            glowDrawFlareClipped(&_gDryfieldNightMotelLoftFlareAndShardPoints.flareAnchors[4], DRYFIELD_NIGHT_MOTEL_LOFT_FLARE_TEXTURE, DRYFIELD_NIGHT_MOTEL_LOFT_FLARE_RADIUS_SCALE);
+            glowDrawFlareClipped(&_gDryfieldNightMotelLoftFlareAndShardPoints.flareAnchors[5], DRYFIELD_NIGHT_MOTEL_LOFT_FLARE_TEXTURE, DRYFIELD_NIGHT_MOTEL_LOFT_FLARE_RADIUS_SCALE);
             break;
         case 8:
             // Advance even if some of the 48 effect allocations fail.
             if (task->state == DRYFIELD_NIGHT_MOTEL_LOFT_SHARDS_WAIT_VIEW_8) {
-                SVECTOR* spawnPoints;
+                _DryfieldNightMotelLoftFlareAndShardPoints* spawnPoints;
 
                 shardIndex  = 0;
-                spawnPoints = &D_dryfield_night_motel_loft_8017ED78[0];
+                spawnPoints = &_gDryfieldNightMotelLoftFlareAndShardPoints;
                 do {
                     _dryfieldNightMotelLoftSpawnShard(spawnPoints);
                     shardIndex++;

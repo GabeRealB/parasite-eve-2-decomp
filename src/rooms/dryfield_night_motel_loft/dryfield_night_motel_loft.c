@@ -36,17 +36,8 @@
 
 #include "../../shared/room_variants.h"
 
-extern WorldCollisionTrigger D_dryfield_night_motel_loft_801803F4[14];
-
-/// The room's 0x7DB payload buffer.
-extern ActorCommand D_dryfield_night_motel_loft_8018092C;
-
-extern AreaResource D_dryfield_night_motel_loft_8018081C[2];
-extern AreaResource D_dryfield_night_motel_loft_80180834[3];
-extern AreaResource D_dryfield_night_motel_loft_80180858[2];
-extern AreaResource D_dryfield_night_motel_loft_80180870[2];
-
-ActorTransform D_dryfield_night_motel_loft_8017FB84[2] = {
+/// Unreferenced 48-byte object; its interpretation as actor transforms is unproven.
+static ActorTransform D_dryfield_night_motel_loft_8017FB84[2] = {
     { { 0, 0, 0xFFFF, 0 }, { 0, 0, 0, 0 } },
     { { 0xFFFF, 0, 0, 0 }, { -1, 0, 0, 0 } },
 };
@@ -256,72 +247,103 @@ WorldCoordRoomLights gDryfieldNightMotelLoftRoomLights = {
     .coneLights            = NULL,
 };
 
-WorldCollisionTrigger D_dryfield_night_motel_loft_80180064[12] = {
-    { NULL, NULL, NULL, { 3007, -1040, -417, 0 }, { { -4, -1264, -2500, 0 }, { -4, 1264, -2500, 0 }, { -3, -1264, 2489, 0 }, { -3, 1264, 2489, 0 } }, { -4106, 0, 0, 0 }, { 0, 0, 4096, 0 }, 2792, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 2782, -1088, -354, 0 }, { { -3, -1264, 2492, 0 }, { -3, 1264, 2492, 0 }, { -3, -1264, -2498, 0 }, { -3, 1264, -2498, 0 } }, { 4104, 0, 0, 0 }, { 0, 0, 4096, 0 }, 2792, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 928, -1024, 1199, 0 }, { { 687, -1264, 1236, 0 }, { 687, 1264, 1236, 0 }, { -687, -1264, -1235, 0 }, { -687, 1264, -1235, 0 } }, { 3587, 0, -1998, 0 }, { 0, 0, 4096, 0 }, 1894, 0, 3, 7, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 991, -1056, 959, 0 }, { { -685, -1264, -1237, 0 }, { -685, 1264, -1237, 0 }, { 686, -1264, 1237, 0 }, { 686, 1264, 1237, 0 } }, { -3582, 0, 1984, 0 }, { 0, 0, 4096, 0 }, 1894, 0, 7, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -1217, -1120, -1473, 0 }, { { 37, -1264, -1420, 0 }, { 37, 1264, -1420, 0 }, { -59, -1264, 1406, 0 }, { -59, 1264, 1406, 0 } }, { -4094, 0, -141, 0 }, { 0, 0, 4096, 0 }, 1894, 0, 4, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -1506, -1088, -1665, 0 }, { { 16, -1264, 1410, 0 }, { 16, 1264, 1410, 0 }, { -28, -1264, -1417, 0 }, { -28, 1264, -1417, 0 } }, { 4102, 0, -66, 0 }, { 0, 0, 4096, 0 }, 1894, 0, 3, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -4929, -1056, -1248, 0 }, { { 275, -1264, 1373, 0 }, { 275, 1264, 1373, 0 }, { -311, -1264, -1393, 0 }, { -311, 1264, -1393, 0 } }, { 4015, 0, -852, 0 }, { 0, 0, 4096, 0 }, 1894, 0, 4, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -4577, -1056, -1312, 0 }, { { -243, -1264, -1408, 0 }, { -243, 1264, -1408, 0 }, { 213, -1264, 1383, 0 }, { 213, 1264, 1383, 0 } }, { -4042, 0, 659, 0 }, { 0, 0, 4096, 0 }, 1894, 0, 5, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -5187, -1056, 703, 0 }, { { 1368, -1264, -360, 0 }, { 1368, 1264, -360, 0 }, { -1367, -1264, 360, 0 }, { -1367, 1264, 360, 0 } }, { -1044, 0, -3962, 0 }, { 0, 0, 4096, 0 }, 1894, 0, 5, 6, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -5282, -1024, 512, 0 }, { { -1367, -1264, 360, 0 }, { -1367, 1264, 360, 0 }, { 1368, -1264, -360, 0 }, { 1368, 1264, -360, 0 } }, { 1044, 0, 3971, 0 }, { 0, 0, 4096, 0 }, 1894, 0, 6, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -1761, -1088, 1472, 0 }, { { -17, -1264, -1414, 0 }, { -17, 1264, -1414, 0 }, { 17, -1264, 1414, 0 }, { 17, 1264, 1414, 0 } }, { -4096, 0, 46, 0 }, { 0, 0, 4096, 0 }, 1894, 0, 6, 7, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -2177, -1056, 1471, 0 }, { { 15, -1264, 1415, 0 }, { 15, 1264, 1415, 0 }, { -14, -1264, -1414, 0 }, { -14, 1264, -1414, 0 } }, { 4095, 0, -43, 0 }, { 0, 0, 4096, 0 }, 1894, 0, 7, 6, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
+enum {
+    DRYFIELD_NIGHT_MOTEL_LOFT_JERRY_CAN_TRIGGER             = 1,
+    DRYFIELD_NIGHT_MOTEL_LOFT_JERRY_CAN_CAP_COMMAND         = 2,
+    DRYFIELD_NIGHT_MOTEL_LOFT_TRIGGER_CAPTION_SCENE_COMMAND = 3,
+    DRYFIELD_NIGHT_MOTEL_LOFT_BALCONY_WARP_SLOTS            = 0x14, // Departure slot 1, balcony arrival slot 4
 };
 
-WorldCollisionTrigger D_dryfield_night_motel_loft_801803F4[14] = {
-    { NULL, NULL, NULL, { 4320, -56, -2096, 0 }, { { -1056, 0, -464, 0 }, { 1056, 0, -464, 0 }, { -1056, 0, 464, 0 }, { 1056, 0, 464, 0 } }, { 0, 4096, 0, 0 }, { 0, 0, 4096, 0 }, 1152, WORLD_COLLISION_TRIGGER_ACTION_WARP, 29, 20, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -6240, -64, 0, 0 }, { { 128, 0, -896, 0 }, { 1280, 0, -896, 0 }, { 128, 0, 768, 0 }, { 1280, 0, 768, 0 } }, { 0, 4104, 0, 0 }, { -4096, 0, 0, 0 }, 1562, WORLD_COLLISION_TRIGGER_ACTION_CAP, 2, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -4624, -64, -32, 0 }, { { -528, 0, -464, 0 }, { 528, 0, -464, 0 }, { -528, 0, 464, 0 }, { 528, 0, 464, 0 } }, { 0, 4096, 0, 0 }, { -4096, 0, 0, 0 }, 701, WORLD_COLLISION_TRIGGER_ACTION_CAP, 1, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -5088, -64, -1664, 0 }, { { -656, 0, -464, 0 }, { 656, 0, -464, 0 }, { -656, 0, 464, 0 }, { 656, 0, 464, 0 } }, { 0, 4098, 0, 0 }, { 199, 0, 4089, 0 }, 801, WORLD_COLLISION_TRIGGER_ACTION_CAP, 3, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 4736, -64, 1200, 0 }, { { -496, 0, -608, 0 }, { 496, 0, -608, 0 }, { -496, 0, 608, 0 }, { 496, 0, 608, 0 } }, { 0, 4105, 0, 0 }, { -4076, 0, 400, 0 }, 783, WORLD_COLLISION_TRIGGER_ACTION_CAP, 7, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 4768, -64, -352, 0 }, { { -496, 0, -832, 0 }, { 496, 0, -832, 0 }, { -496, 0, 832, 0 }, { 496, 0, 832, 0 } }, { 0, 4102, 0, 0 }, { -4096, 0, -1, 0 }, 968, WORLD_COLLISION_TRIGGER_ACTION_CAP, 8, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 4736, -64, -1856, 0 }, { { -496, 0, -608, 0 }, { 496, 0, -608, 0 }, { -496, 0, 608, 0 }, { 496, 0, 608, 0 } }, { 0, 4105, 0, 0 }, { -4076, 0, -403, 0 }, 783, WORLD_COLLISION_TRIGGER_ACTION_CAP, 9, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -496, -64, 784, 0 }, { { -1440, 0, -400, 0 }, { 1440, 0, -400, 0 }, { -1440, 0, 400, 0 }, { 1440, 0, 400, 0 } }, { 0, 4098, 0, 0 }, { -2, 0, 4095, 0 }, 1492, WORLD_COLLISION_TRIGGER_ACTION_CAP, 13, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -3488, -64, 800, 0 }, { { -1424, 0, -400, 0 }, { 1424, 0, -400, 0 }, { -1424, 0, 400, 0 }, { 1424, 0, 400, 0 } }, { 0, 4108, 0, 0 }, { -2, 0, 4095, 0 }, 1476, WORLD_COLLISION_TRIGGER_ACTION_CAP, 12, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -512, -64, -864, 0 }, { { -1440, 0, -400, 0 }, { 1440, 0, -400, 0 }, { -1440, 0, 400, 0 }, { 1440, 0, 400, 0 } }, { 0, 4098, 0, 0 }, { 1, 0, -4096, 0 }, 1492, WORLD_COLLISION_TRIGGER_ACTION_CAP, 10, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -3456, -64, -832, 0 }, { { -1440, 0, -400, 0 }, { 1440, 0, -400, 0 }, { -1440, 0, 400, 0 }, { 1440, 0, 400, 0 } }, { 0, 4098, 0, 0 }, { 1, 0, -4096, 0 }, 1492, WORLD_COLLISION_TRIGGER_ACTION_CAP, 11, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -1392, -64, 1632, 0 }, { { -944, 0, -400, 0 }, { 944, 0, -400, 0 }, { -944, 0, 400, 0 }, { 944, 0, 400, 0 } }, { 0, 4099, 0, 0 }, { 1, 0, -4096, 0 }, 1024, WORLD_COLLISION_TRIGGER_ACTION_CAP, 16, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -4416, -64, 1632, 0 }, { { -1440, 0, -400, 0 }, { 1440, 0, -400, 0 }, { -1440, 0, 400, 0 }, { 1440, 0, 400, 0 } }, { 0, 4098, 0, 0 }, { 1, 0, -4096, 0 }, 1492, WORLD_COLLISION_TRIGGER_ACTION_CAP, 15, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -2672, -64, -1664, 0 }, { { -1712, 0, -400, 0 }, { 1712, 0, -400, 0 }, { -1712, 0, 400, 0 }, { 1712, 0, 400, 0 } }, { 0, 4113, 0, 0 }, { -1, 0, 4096, 0 }, 1755, WORLD_COLLISION_TRIGGER_ACTION_CAP, 14, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
+WorldCollisionTrigger gDryfieldNightMotelLoftViewBoundaryTriggers[12] = {
+    { .origin = { 3007, -1040, -417, 0 }, .vertices = { { -4, -1264, -2500, 0 }, { -4, 1264, -2500, 0 }, { -3, -1264, 2489, 0 }, { -3, 1264, 2489, 0 } }, .normal = { -4106, 0, 0, 0 }, .facingNormal = { 0, 0, ONE, 0 }, .radius = 2792, .control = 0, .parameter0 = 3, .parameter1 = 2, .flags = WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY },
+    { .origin = { 2782, -1088, -354, 0 }, .vertices = { { -3, -1264, 2492, 0 }, { -3, 1264, 2492, 0 }, { -3, -1264, -2498, 0 }, { -3, 1264, -2498, 0 } }, .normal = { 4104, 0, 0, 0 }, .facingNormal = { 0, 0, ONE, 0 }, .radius = 2792, .control = 0, .parameter0 = 2, .parameter1 = 3, .flags = WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY },
+    { .origin = { 928, -1024, 1199, 0 }, .vertices = { { 687, -1264, 1236, 0 }, { 687, 1264, 1236, 0 }, { -687, -1264, -1235, 0 }, { -687, 1264, -1235, 0 } }, .normal = { 3587, 0, -1998, 0 }, .facingNormal = { 0, 0, ONE, 0 }, .radius = 1894, .control = 0, .parameter0 = 3, .parameter1 = 7, .flags = WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY },
+    { .origin = { 991, -1056, 959, 0 }, .vertices = { { -685, -1264, -1237, 0 }, { -685, 1264, -1237, 0 }, { 686, -1264, 1237, 0 }, { 686, 1264, 1237, 0 } }, .normal = { -3582, 0, 1984, 0 }, .facingNormal = { 0, 0, ONE, 0 }, .radius = 1894, .control = 0, .parameter0 = 7, .parameter1 = 3, .flags = WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY },
+    { .origin = { -1217, -1120, -1473, 0 }, .vertices = { { 37, -1264, -1420, 0 }, { 37, 1264, -1420, 0 }, { -59, -1264, 1406, 0 }, { -59, 1264, 1406, 0 } }, .normal = { -4094, 0, -141, 0 }, .facingNormal = { 0, 0, ONE, 0 }, .radius = 1894, .control = 0, .parameter0 = 4, .parameter1 = 3, .flags = WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY },
+    { .origin = { -1506, -1088, -1665, 0 }, .vertices = { { 16, -1264, 1410, 0 }, { 16, 1264, 1410, 0 }, { -28, -1264, -1417, 0 }, { -28, 1264, -1417, 0 } }, .normal = { 4102, 0, -66, 0 }, .facingNormal = { 0, 0, ONE, 0 }, .radius = 1894, .control = 0, .parameter0 = 3, .parameter1 = 4, .flags = WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY },
+    { .origin = { -4929, -1056, -1248, 0 }, .vertices = { { 275, -1264, 1373, 0 }, { 275, 1264, 1373, 0 }, { -311, -1264, -1393, 0 }, { -311, 1264, -1393, 0 } }, .normal = { 4015, 0, -852, 0 }, .facingNormal = { 0, 0, ONE, 0 }, .radius = 1894, .control = 0, .parameter0 = 4, .parameter1 = 5, .flags = WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY },
+    { .origin = { -4577, -1056, -1312, 0 }, .vertices = { { -243, -1264, -1408, 0 }, { -243, 1264, -1408, 0 }, { 213, -1264, 1383, 0 }, { 213, 1264, 1383, 0 } }, .normal = { -4042, 0, 659, 0 }, .facingNormal = { 0, 0, ONE, 0 }, .radius = 1894, .control = 0, .parameter0 = 5, .parameter1 = 4, .flags = WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY },
+    { .origin = { -5187, -1056, 703, 0 }, .vertices = { { 1368, -1264, -360, 0 }, { 1368, 1264, -360, 0 }, { -1367, -1264, 360, 0 }, { -1367, 1264, 360, 0 } }, .normal = { -1044, 0, -3962, 0 }, .facingNormal = { 0, 0, ONE, 0 }, .radius = 1894, .control = 0, .parameter0 = 5, .parameter1 = 6, .flags = WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY },
+    { .origin = { -5282, -1024, 512, 0 }, .vertices = { { -1367, -1264, 360, 0 }, { -1367, 1264, 360, 0 }, { 1368, -1264, -360, 0 }, { 1368, 1264, -360, 0 } }, .normal = { 1044, 0, 3971, 0 }, .facingNormal = { 0, 0, ONE, 0 }, .radius = 1894, .control = 0, .parameter0 = 6, .parameter1 = 5, .flags = WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY },
+    { .origin = { -1761, -1088, 1472, 0 }, .vertices = { { -17, -1264, -1414, 0 }, { -17, 1264, -1414, 0 }, { 17, -1264, 1414, 0 }, { 17, 1264, 1414, 0 } }, .normal = { -ONE, 0, 46, 0 }, .facingNormal = { 0, 0, ONE, 0 }, .radius = 1894, .control = 0, .parameter0 = 6, .parameter1 = 7, .flags = WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY },
+    { .origin = { -2177, -1056, 1471, 0 }, .vertices = { { 15, -1264, 1415, 0 }, { 15, 1264, 1415, 0 }, { -14, -1264, -1414, 0 }, { -14, 1264, -1414, 0 } }, .normal = { 4095, 0, -43, 0 }, .facingNormal = { 0, 0, ONE, 0 }, .radius = 1894, .control = 0, .parameter0 = 7, .parameter1 = 6, .flags = WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST },
 };
 
-AreaResource D_dryfield_night_motel_loft_8018081C[2] = {
-    { 6, 6, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &gActor400600ZebraStalkerTaskDesc },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+WorldCollisionTrigger gDryfieldNightMotelLoftActionTriggers[14] = {
+    { .origin = { 4320, -56, -2096, 0 }, .vertices = { { -1056, 0, -464, 0 }, { 1056, 0, -464, 0 }, { -1056, 0, 464, 0 }, { 1056, 0, 464, 0 } }, .normal = { 0, ONE, 0, 0 }, .facingNormal = { 0, 0, ONE, 0 }, .radius = 1152, .control = WORLD_COLLISION_TRIGGER_ACTION_WARP, .parameter0 = GAME_AREA_DRYFIELD_NIGHT_MOTEL_BALCONY, .parameter1 = DRYFIELD_NIGHT_MOTEL_LOFT_BALCONY_WARP_SLOTS, .flags = WORLD_COLLISION_TRIGGER_FACING_QUAD },
+    { .origin = { -6240, -64, 0, 0 }, .vertices = { { 128, 0, -896, 0 }, { 1280, 0, -896, 0 }, { 128, 0, 768, 0 }, { 1280, 0, 768, 0 } }, .normal = { 0, 4104, 0, 0 }, .facingNormal = { -ONE, 0, 0, 0 }, .radius = 1562, .control = WORLD_COLLISION_TRIGGER_ACTION_CAP, .parameter0 = DRYFIELD_NIGHT_MOTEL_LOFT_JERRY_CAN_CAP_COMMAND, .parameter1 = 0, .flags = WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD },
+    { .origin = { -4624, -64, -32, 0 }, .vertices = { { -528, 0, -464, 0 }, { 528, 0, -464, 0 }, { -528, 0, 464, 0 }, { 528, 0, 464, 0 } }, .normal = { 0, ONE, 0, 0 }, .facingNormal = { -ONE, 0, 0, 0 }, .radius = 701, .control = WORLD_COLLISION_TRIGGER_ACTION_CAP, .parameter0 = 1, .parameter1 = 0, .flags = WORLD_COLLISION_TRIGGER_FACING_QUAD },
+    { .origin = { -5088, -64, -1664, 0 }, .vertices = { { -656, 0, -464, 0 }, { 656, 0, -464, 0 }, { -656, 0, 464, 0 }, { 656, 0, 464, 0 } }, .normal = { 0, 4098, 0, 0 }, .facingNormal = { 199, 0, 4089, 0 }, .radius = 801, .control = WORLD_COLLISION_TRIGGER_ACTION_CAP, .parameter0 = DRYFIELD_NIGHT_MOTEL_LOFT_TRIGGER_CAPTION_SCENE_COMMAND, .parameter1 = WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, .flags = WORLD_COLLISION_TRIGGER_FACING_QUAD },
+    { .origin = { 4736, -64, 1200, 0 }, .vertices = { { -496, 0, -608, 0 }, { 496, 0, -608, 0 }, { -496, 0, 608, 0 }, { 496, 0, 608, 0 } }, .normal = { 0, 4105, 0, 0 }, .facingNormal = { -4076, 0, 400, 0 }, .radius = 783, .control = WORLD_COLLISION_TRIGGER_ACTION_CAP, .parameter0 = 7, .parameter1 = 0, .flags = WORLD_COLLISION_TRIGGER_FACING_QUAD },
+    { .origin = { 4768, -64, -352, 0 }, .vertices = { { -496, 0, -832, 0 }, { 496, 0, -832, 0 }, { -496, 0, 832, 0 }, { 496, 0, 832, 0 } }, .normal = { 0, 4102, 0, 0 }, .facingNormal = { -ONE, 0, -1, 0 }, .radius = 968, .control = WORLD_COLLISION_TRIGGER_ACTION_CAP, .parameter0 = 8, .parameter1 = 0, .flags = WORLD_COLLISION_TRIGGER_FACING_QUAD },
+    { .origin = { 4736, -64, -1856, 0 }, .vertices = { { -496, 0, -608, 0 }, { 496, 0, -608, 0 }, { -496, 0, 608, 0 }, { 496, 0, 608, 0 } }, .normal = { 0, 4105, 0, 0 }, .facingNormal = { -4076, 0, -403, 0 }, .radius = 783, .control = WORLD_COLLISION_TRIGGER_ACTION_CAP, .parameter0 = 9, .parameter1 = 0, .flags = WORLD_COLLISION_TRIGGER_FACING_QUAD },
+    { .origin = { -496, -64, 784, 0 }, .vertices = { { -1440, 0, -400, 0 }, { 1440, 0, -400, 0 }, { -1440, 0, 400, 0 }, { 1440, 0, 400, 0 } }, .normal = { 0, 4098, 0, 0 }, .facingNormal = { -2, 0, 4095, 0 }, .radius = 1492, .control = WORLD_COLLISION_TRIGGER_ACTION_CAP, .parameter0 = 13, .parameter1 = 0, .flags = WORLD_COLLISION_TRIGGER_FACING_QUAD },
+    { .origin = { -3488, -64, 800, 0 }, .vertices = { { -1424, 0, -400, 0 }, { 1424, 0, -400, 0 }, { -1424, 0, 400, 0 }, { 1424, 0, 400, 0 } }, .normal = { 0, 4108, 0, 0 }, .facingNormal = { -2, 0, 4095, 0 }, .radius = 1476, .control = WORLD_COLLISION_TRIGGER_ACTION_CAP, .parameter0 = 12, .parameter1 = 0, .flags = WORLD_COLLISION_TRIGGER_FACING_QUAD },
+    { .origin = { -512, -64, -864, 0 }, .vertices = { { -1440, 0, -400, 0 }, { 1440, 0, -400, 0 }, { -1440, 0, 400, 0 }, { 1440, 0, 400, 0 } }, .normal = { 0, 4098, 0, 0 }, .facingNormal = { 1, 0, -ONE, 0 }, .radius = 1492, .control = WORLD_COLLISION_TRIGGER_ACTION_CAP, .parameter0 = 10, .parameter1 = 0, .flags = WORLD_COLLISION_TRIGGER_FACING_QUAD },
+    { .origin = { -3456, -64, -832, 0 }, .vertices = { { -1440, 0, -400, 0 }, { 1440, 0, -400, 0 }, { -1440, 0, 400, 0 }, { 1440, 0, 400, 0 } }, .normal = { 0, 4098, 0, 0 }, .facingNormal = { 1, 0, -ONE, 0 }, .radius = 1492, .control = WORLD_COLLISION_TRIGGER_ACTION_CAP, .parameter0 = 11, .parameter1 = 0, .flags = WORLD_COLLISION_TRIGGER_FACING_QUAD },
+    { .origin = { -1392, -64, 1632, 0 }, .vertices = { { -944, 0, -400, 0 }, { 944, 0, -400, 0 }, { -944, 0, 400, 0 }, { 944, 0, 400, 0 } }, .normal = { 0, 4099, 0, 0 }, .facingNormal = { 1, 0, -ONE, 0 }, .radius = 1024, .control = WORLD_COLLISION_TRIGGER_ACTION_CAP, .parameter0 = 16, .parameter1 = 0, .flags = WORLD_COLLISION_TRIGGER_FACING_QUAD },
+    { .origin = { -4416, -64, 1632, 0 }, .vertices = { { -1440, 0, -400, 0 }, { 1440, 0, -400, 0 }, { -1440, 0, 400, 0 }, { 1440, 0, 400, 0 } }, .normal = { 0, 4098, 0, 0 }, .facingNormal = { 1, 0, -ONE, 0 }, .radius = 1492, .control = WORLD_COLLISION_TRIGGER_ACTION_CAP, .parameter0 = 15, .parameter1 = 0, .flags = WORLD_COLLISION_TRIGGER_FACING_QUAD },
+    { .origin = { -2672, -64, -1664, 0 }, .vertices = { { -1712, 0, -400, 0 }, { 1712, 0, -400, 0 }, { -1712, 0, 400, 0 }, { 1712, 0, 400, 0 } }, .normal = { 0, 4113, 0, 0 }, .facingNormal = { -1, 0, ONE, 0 }, .radius = 1755, .control = WORLD_COLLISION_TRIGGER_ACTION_CAP, .parameter0 = 14, .parameter1 = 0, .flags = WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST },
 };
 
-AreaResource D_dryfield_night_motel_loft_80180834[3] = {
-    { 6, 6, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &gActor400600ZebraStalkerTaskDesc },
-    { 16, 16, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, &gActor301600ScavengerTaskDesc },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+// Placement entry keys and decimal file numbers are separate loader domains.
+enum {
+    DRYFIELD_NIGHT_MOTEL_LOFT_RESOURCE_ZEBRA_STALKER    = 6,
+    DRYFIELD_NIGHT_MOTEL_LOFT_RESOURCE_SCAVENGER        = 16,
+    DRYFIELD_NIGHT_MOTEL_LOFT_ZEBRA_STALKER_FILE_NUMBER = 6,
+    DRYFIELD_NIGHT_MOTEL_LOFT_SCAVENGER_FILE_NUMBER     = 16,
 };
 
-AreaResource D_dryfield_night_motel_loft_80180858[2] = {
-    { 16, 16, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor101600ScavengerTaskDesc },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Variant 1's Zebra Stalker recipe, followed by the resource-list terminator.
+///
+/// Entry 6 loads file 400600 and borrows its one task descriptor at index zero.
+/// The map's three placements share this recipe; storage lives with the room.
+static AreaResource _gDryfieldNightMotelLoftVariant1Resources[] = {
+    { .entryId = DRYFIELD_NIGHT_MOTEL_LOFT_RESOURCE_ZEBRA_STALKER, .fileNumber = DRYFIELD_NIGHT_MOTEL_LOFT_ZEBRA_STALKER_FILE_NUMBER, .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_40, .taskIndex = 0, .taskTable = &gActor400600ZebraStalkerTaskDesc },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaResource D_dryfield_night_motel_loft_80180870[2] = {
-    { 16, 16, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor101600ScavengerTaskDesc },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Variant 3's Zebra Stalker and Scavenger recipes, terminated by entry 255.
+///
+/// Entry keys 6/16 select files 400600/301600 and their single task descriptors.
+/// One Stalker and four map-owned Scavenger placements borrow these room recipes.
+static AreaResource _gDryfieldNightMotelLoftVariant3Resources[] = {
+    { .entryId = DRYFIELD_NIGHT_MOTEL_LOFT_RESOURCE_ZEBRA_STALKER, .fileNumber = DRYFIELD_NIGHT_MOTEL_LOFT_ZEBRA_STALKER_FILE_NUMBER, .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_40, .taskIndex = 0, .taskTable = &gActor400600ZebraStalkerTaskDesc },
+    { .entryId = DRYFIELD_NIGHT_MOTEL_LOFT_RESOURCE_SCAVENGER, .fileNumber = DRYFIELD_NIGHT_MOTEL_LOFT_SCAVENGER_FILE_NUMBER, .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_30, .taskIndex = 0, .taskTable = &gActor301600ScavengerTaskDesc },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaVariant D_dryfield_night_motel_loft_80180888[13] = {
+/// Variant 4's file-101600 Scavenger recipe and resource-list terminator.
+///
+/// Entry 16 serves seven map-owned posed placements, borrowing descriptor zero.
+/// The room owns this list while the actor overlay owns the descriptor and code.
+static AreaResource _gDryfieldNightMotelLoftVariant4Resources[] = {
+    { .entryId = DRYFIELD_NIGHT_MOTEL_LOFT_RESOURCE_SCAVENGER, .fileNumber = DRYFIELD_NIGHT_MOTEL_LOFT_SCAVENGER_FILE_NUMBER, .fileGroupIndex = LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, .taskIndex = 0, .taskTable = &gActor101600ScavengerTaskDesc },
+    { .entryId = AREA_PLACEMENT_END },
+};
+
+/// Variant 11's file-101600 Scavenger recipe and resource-list terminator.
+///
+/// Entry 16 serves six map-owned placements, borrowing descriptor zero.
+/// This distinct authored list has the same recipe as variant 4.
+static AreaResource _gDryfieldNightMotelLoftVariant11Resources[] = {
+    { .entryId = DRYFIELD_NIGHT_MOTEL_LOFT_RESOURCE_SCAVENGER, .fileNumber = DRYFIELD_NIGHT_MOTEL_LOFT_SCAVENGER_FILE_NUMBER, .fileGroupIndex = LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, .taskIndex = 0, .taskTable = &gActor101600ScavengerTaskDesc },
+    { .entryId = AREA_PLACEMENT_END },
+};
+
+AreaVariant gDryfieldNightMotelLoftAreaVariants[13] = {
     { NULL, NULL },
-    { gMapDryfieldFullMotelLoftVariant1Placements, D_dryfield_night_motel_loft_8018081C },
+    { gMapDryfieldFullMotelLoftVariant1Placements, _gDryfieldNightMotelLoftVariant1Resources },
     { NULL, NULL },
-    { gMapDryfieldFullMotelLoftVariant3Placements, D_dryfield_night_motel_loft_80180834 },
-    { gMapDryfieldFullMotelLoftVariant4Placements, D_dryfield_night_motel_loft_80180858 },
-    { NULL, NULL },
-    { NULL, NULL },
+    { gMapDryfieldFullMotelLoftVariant3Placements, _gDryfieldNightMotelLoftVariant3Resources },
+    { gMapDryfieldFullMotelLoftVariant4Placements, _gDryfieldNightMotelLoftVariant4Resources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
-    { gMapDryfieldFullMotelLoftVariant11Placements, D_dryfield_night_motel_loft_80180870 },
+    { NULL, NULL },
+    { NULL, NULL },
+    { gMapDryfieldFullMotelLoftVariant11Placements, _gDryfieldNightMotelLoftVariant11Resources },
     { NULL, NULL },
 };
 
@@ -375,7 +397,11 @@ WorldCollisionSurfaceProperties* gDryfieldNightMotelLoftSurfacePropertiesByClass
     &_gDryfieldNightMotelLoftDefaultSurfaceProperties,
 };
 
-ActorCommand D_dryfield_night_motel_loft_8018092C = { 0 };
+/// Restores placement zero's Stalker at its floor start when the encounter was seen.
+///
+/// Initialization writes command 1 before synchronous dispatch. The Stalker
+/// ignores the zero context; this room-owned message is not retained by it.
+static ActorCommand _gDryfieldNightMotelLoftRestoreStalkerCommand = { 0 };
 
 static void _dryfieldNightMotelLoftInitializeRoom(Task* task);
 static void _dryfieldNightMotelLoftUpdateRoom(Task* task);
@@ -402,7 +428,7 @@ s32 dryfieldNightMotelLoftCommandMessage(Task* unusedTask, s32 messageId, s32 co
 
     if (commandId == DRYFIELD_NIGHT_MOTEL_LOFT_COMMAND_CAPTION_SCENE) {
         playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-        taskSpawnFromTable(D_dryfield_night_motel_loft_8017EB4C, 0, 0, 0);
+        taskSpawnFromTable(&gDryfieldNightMotelLoftCaptionSceneTaskDesc, 0, 0, 0);
     }
     return 0;
 }
@@ -476,11 +502,11 @@ static void _dryfieldNightMotelLoftInitializeRoom(Task* task)
 {
     enum { DRYFIELD_NIGHT_MOTEL_LOFT_RESTORE_STALKER_COMMAND = 1 };
 
-    task->msgTable = D_dryfield_night_motel_loft_8017EB1C;
+    task->msgTable = gDryfieldNightMotelLoftMessageHandlers;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     if (sceneFindPlacedActor(0) != 0 && gameFlagGetNibble(GAME_FLAG_NIGHT_MOTEL_LOFT_EVENT_SEEN) != 0) {
-        D_dryfield_night_motel_loft_8018092C.command = DRYFIELD_NIGHT_MOTEL_LOFT_RESTORE_STALKER_COMMAND;
-        TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(0), ACTOR_COMMAND_MESSAGE_APPLY, &D_dryfield_night_motel_loft_8018092C, 0);
+        _gDryfieldNightMotelLoftRestoreStalkerCommand.command = DRYFIELD_NIGHT_MOTEL_LOFT_RESTORE_STALKER_COMMAND;
+        TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(0), ACTOR_COMMAND_MESSAGE_APPLY, &_gDryfieldNightMotelLoftRestoreStalkerCommand, 0);
     }
     dryfieldNightMotelLoftRebuildJerryCanCollision(areaGetCurrentObjectState(DRYFIELD_NIGHT_MOTEL_LOFT_JERRY_CAN_OBJECT) == DRYFIELD_NIGHT_MOTEL_LOFT_OBJECT_REMOVED);
     task->state = task->state + 1;
@@ -500,20 +526,23 @@ static void _dryfieldNightMotelLoftUpdateRoom(Task* task)
 
     dryfieldNightMotelLoftRebuildJerryCanCollision(areaGetCurrentObjectState(DRYFIELD_NIGHT_MOTEL_LOFT_JERRY_CAN_OBJECT) == DRYFIELD_NIGHT_MOTEL_LOFT_OBJECT_REMOVED);
     if (areaGetCurrentObjectState(DRYFIELD_NIGHT_MOTEL_LOFT_JERRY_CAN_OBJECT) == DRYFIELD_NIGHT_MOTEL_LOFT_OBJECT_REMOVED) {
-        WorldCollisionTrigger* pickupTrigger = &D_dryfield_night_motel_loft_801803F4[1];
+        WorldCollisionTrigger* pickupTrigger = &gDryfieldNightMotelLoftActionTriggers[DRYFIELD_NIGHT_MOTEL_LOFT_JERRY_CAN_TRIGGER];
         pickupTrigger->flags                &= ~WORLD_COLLISION_TRIGGER_ENABLED;
     }
     // Latch before launching the script, which changes rooms and commands the Stalker.
     if (inventoryHasCollectedBit(INVENTORY_COLLECTION_ID_JERRY_CAN) && gameFlagGetNibble(GAME_FLAG_NIGHT_MOTEL_LOFT_EVENT_SEEN) == 0 && sceneFindPlacedActor(0)) {
         gameFlagSetNibble(GAME_FLAG_NIGHT_MOTEL_LOFT_EVENT_SEEN, 1);
-        evsStartScript(D_dryfield_night_motel_loft_8017EB78, EVENT_SCRIPT_HUD_HIDE_RESTORE);
+        evsStartScript(gDryfieldNightMotelLoftStalkerEncounterScript, EVENT_SCRIPT_HUD_HIDE_RESTORE);
         gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, DRYFIELD_NIGHT_MOTEL_LOFT_ENCOUNTER_OBJECTIVE);
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = DRYFIELD_NIGHT_MOTEL_LOFT_ENCOUNTER_MUSIC_KEY;
     }
 }
 
-/// The room task's three states.
-static const TaskFuncTable3 D_dryfield_night_motel_loft_8017D5C4 = {
+/// Room-controller handlers indexed by Task.state (0 initialize, 1 update, 2 kill).
+///
+/// The controller copies all three callbacks before dispatch; the index must
+/// stay in 0..2. Keep the table and callback code loaded for the task's lifetime.
+static const TaskFuncTable3 _gDryfieldNightMotelLoftRoomStates = {
     { _dryfieldNightMotelLoftInitializeRoom, _dryfieldNightMotelLoftUpdateRoom, taskKill },
 };
 
@@ -521,6 +550,6 @@ void dryfieldNightMotelLoftRoomTask(Task* task)
 {
     TaskFuncTable3 stateHandlers;
 
-    stateHandlers = D_dryfield_night_motel_loft_8017D5C4;
+    stateHandlers = _gDryfieldNightMotelLoftRoomStates;
     stateHandlers.funcs[task->state](task);
 }

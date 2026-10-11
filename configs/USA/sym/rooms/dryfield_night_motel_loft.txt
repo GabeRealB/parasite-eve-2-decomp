@@ -1,7 +1,7 @@
 // Overlay-local symbols for dryfield_night_motel_loft.
-D_dryfield_night_motel_loft_8018092C = 0x8018092C; // size:0x4 defined:True
-D_dryfield_night_motel_loft_8017ED78 = 0x8017ED78; // size:0x38 defined:True
-D_dryfield_night_motel_loft_80180888 = 0x80180888; // size:0x68 defined:True
+_gDryfieldNightMotelLoftRestoreStalkerCommand = 0x8018092C; // size:0x4 defined:True
+_gDryfieldNightMotelLoftFlareAndShardPoints = 0x8017ED78; // size:0x38 defined:True
+gDryfieldNightMotelLoftAreaVariants = 0x80180888; // size:0x68 defined:True
 _gDryfieldNightMotelLoftSurface1FootstepSounds = 0x801808F0; // size:0xC defined:True
 _gDryfieldNightMotelLoftDefaultSurfaceProperties = 0x801808FC; // size:0x8 defined:True
 _gDryfieldNightMotelLoftSurface1Properties = 0x80180904; // size:0x8 defined:True
@@ -17,14 +17,14 @@ _gDryfieldNightMotelLoftJerryCanBarrierTemplateCells = 0x8017ED44; // size:0x8 d
 _gDryfieldNightMotelLoftJerryCanBarrierTemplateTable = 0x8017ED4C; // size:0x8 defined:True
 _gDryfieldNightMotelLoftJerryCanBarrierTemplate = 0x8017ED54; // size:0x24 defined:True
 gDryfieldNightMotelLoftRoomLighting = 0x8017EDB0; // size:0x10 defined:True
-D_dryfield_night_motel_loft_8018081C = 0x8018081C; // size:0x18 defined:True
-D_dryfield_night_motel_loft_80180834 = 0x80180834; // size:0x24 defined:True
-D_dryfield_night_motel_loft_80180858 = 0x80180858; // size:0x18 defined:True
-D_dryfield_night_motel_loft_80180870 = 0x80180870; // size:0x18 defined:True
+_gDryfieldNightMotelLoftVariant1Resources = 0x8018081C; // size:0x18 defined:True
+_gDryfieldNightMotelLoftVariant3Resources = 0x80180834; // size:0x24 defined:True
+_gDryfieldNightMotelLoftVariant4Resources = 0x80180858; // size:0x18 defined:True
+_gDryfieldNightMotelLoftVariant11Resources = 0x80180870; // size:0x18 defined:True
 gActor101600ScavengerTaskDesc = 0x801445DC; // absolute:True owner=actor_101600
 gActor400600ZebraStalkerTaskDesc = 0x80151B10; // absolute:True owner=actor_400600
 gActor301600ScavengerTaskDesc = 0x801745DC; // absolute:True owner=actor_301600
-D_dryfield_night_motel_loft_8017EDC0 = 0x8017EDC0; // size:0x20 defined:True
+gDryfieldNightMotelLoftRoomCollisionResources = 0x8017EDC0; // size:0x20 defined:True
 _gDryfieldNightMotelLoftRoom2ViewMap = 0x8017EDE0; // size:0x10 defined:True
 gDryfieldNightMotelLoftViewMaps = 0x8017EDF0; // size:0x8 defined:True
 gDryfieldNightMotelLoftViewCounts = 0x8017EDF8; // size:0x4 defined:True
@@ -57,20 +57,20 @@ _gDryfieldNightMotelLoftView14SpriteBatches = 0x8017FBD4; // size:0x10 defined:T
 gDryfieldNightMotelLoftSpriteViews = 0x8017FBE4; // size:0xA8 defined:True
 _gDryfieldNightMotelLoftPointLights = 0x8017FC8C; // size:0x3C0 defined:True
 gDryfieldNightMotelLoftRoomLights = 0x8018004C; // size:0x18 defined:True
-D_dryfield_night_motel_loft_80180064 = 0x80180064; // size:0x390 defined:True
-D_dryfield_night_motel_loft_801803F4 = 0x801803F4; // size:0x428 defined:True
+gDryfieldNightMotelLoftViewBoundaryTriggers = 0x80180064; // size:0x390 defined:True
+gDryfieldNightMotelLoftActionTriggers = 0x801803F4; // size:0x428 defined:True
 D_dryfield_night_motel_loft_8017FB84 = 0x8017FB84; // size:0x30 defined:True
 _gDryfieldNightMotelLoftActor135400Model071ACSkeleton = 0x8017E888; // size:0x24 defined:True
 _gDryfieldNightMotelLoftActor135400Model071ACPartVerts = 0x8017E8AC; // size:0x4 defined:True
 _gDryfieldNightMotelLoftActor135400Model071ACVerts = 0x8017E8B0; // size:0xA0 defined:True
 _gDryfieldNightMotelLoftActor135400Model071ACStream = 0x8017E950; // size:0x1A8 defined:True
 gDryfieldNightMotelLoftActor135400Model071AC = 0x8017EAF8; // size:0x24 defined:True
-D_dryfield_night_motel_loft_8017EB1C = 0x8017EB1C; // size:0x30 defined:True
-D_dryfield_night_motel_loft_8017EB4C = 0x8017EB4C; // size:0xC defined:True
-D_dryfield_night_motel_loft_8017EB58 = 0x8017EB58; // size:0x14 defined:True
-D_dryfield_night_motel_loft_8017EB6C = 0x8017EB6C; // size:0x4 defined:True
-D_dryfield_night_motel_loft_8017EB70 = 0x8017EB70; // size:0x8 defined:True
-D_dryfield_night_motel_loft_8017EB78 = 0x8017EB78; // size:0x198 defined:True
+gDryfieldNightMotelLoftMessageHandlers = 0x8017EB1C; // size:0x30 defined:True
+gDryfieldNightMotelLoftCaptionSceneTaskDesc = 0x8017EB4C; // size:0xC defined:True
+_gDryfieldNightMotelLoftEncounterIdleAnimation = 0x8017EB58; // size:0x14 defined:True
+_gDryfieldNightMotelLoftStalkerDropCommand = 0x8017EB6C; // size:0x4 defined:True
+_gDryfieldNightMotelLoftUnusedStalkerCommands = 0x8017EB70; // size:0x8 defined:True
+gDryfieldNightMotelLoftStalkerEncounterScript = 0x8017EB78; // size:0x198 defined:True
 
 dryfieldNightMotelLoftFallingShardTask = 0x8017E090; // type:func
 
@@ -88,3 +88,4 @@ _dryfieldNightMotelLoftUpdateRoom = 0x8017d8b0; // type:func
 dryfieldNightMotelLoftRoomTask = 0x8017d964; // type:func
 dryfieldNightMotelLoftCaptionSceneTask = 0x8017d6f8; // type:func
 dryfieldNightMotelLoftCommandMessage = 0x8017d67c; // type:func
+_gDryfieldNightMotelLoftRoomStates = 0x8017d5c4;

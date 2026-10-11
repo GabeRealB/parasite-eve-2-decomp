@@ -786,7 +786,7 @@ static WorldCollisionRoomResources* D_map_dryfield_full_8017A940[38] = {
     gDryfieldNightMotelRoom5RoomCollisionResources,
     gDryfieldNightMotelBalconyRoomCollisionResources,
     gDryfieldNightMotelRoom6RoomCollisionResources,
-    D_dryfield_night_motel_loft_8017EDC0,
+    gDryfieldNightMotelLoftRoomCollisionResources,
     gDryfieldNightWaterHoleRoomCollisionResources,
     NULL,
     D_dryfield_night_cellar_8017DB00,

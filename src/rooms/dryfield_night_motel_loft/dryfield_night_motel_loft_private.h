@@ -18,15 +18,42 @@
 /// array; coordinate setup and queries require this overlay to remain loaded.
 extern WorldCoordRoomLights gDryfieldNightMotelLoftRoomLights;
 
-extern WorldCollisionTrigger D_dryfield_night_motel_loft_80180064[12];
+/// Twelve directed view boundaries shared by both loft room selectors.
+///
+/// Parameter bytes pair source/destination logical views 2..7; the final
+/// record carries LAST and participates in collision. Setup binds transforms,
+/// links and enables all records. Room-owned mutable storage lives until unlink.
+extern WorldCollisionTrigger gDryfieldNightMotelLoftViewBoundaryTriggers[12];
 
-extern WorldCollisionTrigger D_dryfield_night_motel_loft_801803F4[14];
+/// Balcony-door warp and thirteen CAP/room-command interaction quads.
+///
+/// Element 1 is the Jerry Can interaction, disabled after collection; element
+/// 3 routes command 3 to the room instead of starting CAP directly. The final
+/// quad carries LAST. Coordinates/radii use integer room units; normals use ONE.
+/// Setup and hit processing mutate these room-owned records while linked.
+extern WorldCollisionTrigger gDryfieldNightMotelLoftActionTriggers[14];
 
-extern TaskMessageEntry D_dryfield_night_motel_loft_8017EB1C[6];
+/// Room-controller dispatch for destination resolution, item use, actions, commands and sounds.
+///
+/// Five handlers precede TASK_MESSAGE_TABLE_END. The controller borrows this
+/// table and its callback code for its lifetime; payload types follow each ID.
+extern TaskMessageEntry gDryfieldNightMotelLoftMessageHandlers[6];
 
-extern TaskDesc D_dryfield_night_motel_loft_8017EB4C[1];
+/// Bodyless caption-scene task recipe with execution priority 32.
+///
+/// Command 3 spawns descriptor zero after holding player control. Spawning
+/// reads this room-owned recipe synchronously and retains only its callback.
+extern TaskDesc gDryfieldNightMotelLoftCaptionSceneTaskDesc;
 
-extern EvsCommand D_dryfield_night_motel_loft_8017EB78[17];
+/// CAP-cued Stalker encounter started once after the Jerry Can is collected.
+///
+/// Runs CAP command 4, resets the player's equipped-bank idle, then waits for
+/// three CAP cues around the room-2 switch, Stalker drop and area sound entries
+/// 6/7. Zero-frame waits still yield one update. It engages battle, restores
+/// the view, waits two countdown updates and releases scripted player control.
+/// The interpreter retains the stream; its callbacks and borrowed animation
+/// and command payloads must stay loaded through execution. END terminates it.
+extern EvsCommand gDryfieldNightMotelLoftStalkerEncounterScript[17];
 
 /// Mapped view 1's decoded-image background selector and empty sprite list.
 ///
