@@ -4,6 +4,8 @@
 
 #include "dryfield_night_motel_balcony_private.h"
 
+#include "actors/actor_335800.h"
+
 #include "gameplay/area_flags.h"
 #include "gameplay/attachment_state.h"
 #include "gameplay/attachments.h"
@@ -37,13 +39,6 @@
 extern RoomEventActiveBytes gRoomEventActive;
 
 /// A gameplay state byte; the one-shot balcony event waits while it is 1.
-
-/// Gameplay-resident script data the room task starts: the pair handed to
-/// `evsStartScriptWithSkip` on the first visit, and the one handed to `evsStartScript`
-/// by the one-shot event.
-extern EvsCommand D_actor_335800_80165060[];
-extern EvsCommand D_actor_335800_80165798[];
-extern EvsCommand D_actor_335800_80165720[];
 
 /// The request the event gate latched for the event task.
 extern RoomEventReq gRoomEventReq;
@@ -115,7 +110,7 @@ static void _dryfieldNightMotelBalconyInitRoom(Task* task)
     dryfieldNightMotelBalconyRestoreSectionStates();
     variant = gGameSession->location.loc.variant;
     if (variant == DRYFIELD_NIGHT_MOTEL_BALCONY_SCENE_VARIANT && gGameSession->location.loc.room == variant && gameFlagGetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SCENE_SEEN) == 0) {
-        evsStartScriptWithSkip(D_actor_335800_80165060, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_335800_80165798);
+        evsStartScriptWithSkip(gActor335800BalconyEntryScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, gActor335800BalconyEntrySkipScript);
         gameFlagSetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SCENE_SEEN, 1);
         gameFlagSetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SCRIPT_STATE, DRYFIELD_NIGHT_MOTEL_BALCONY_FOLLOW_UP_PENDING);
         gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
@@ -133,7 +128,7 @@ static void _dryfieldNightMotelBalconyInitRoom(Task* task)
 static void _dryfieldNightMotelBalconyCheckFollowUpScene(Task* unusedTask)
 {
     if (gGameSession->eventState == 0 && gAttachmentState.mode != ATTACHMENT_MODE_WHEEL && gameFlagGetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SCRIPT_STATE) == DRYFIELD_NIGHT_MOTEL_BALCONY_FOLLOW_UP_PENDING) {
-        evsStartScript(D_actor_335800_80165720, EVENT_SCRIPT_HUD_HIDE_RESTORE);
+        evsStartScript(gActor335800BalconyBattleStartScript, EVENT_SCRIPT_HUD_HIDE_RESTORE);
         gameFlagSetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SCRIPT_STATE, DRYFIELD_NIGHT_MOTEL_BALCONY_FOLLOW_UP_STARTED);
     }
 }

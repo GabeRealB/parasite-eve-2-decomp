@@ -1,3 +1,5 @@
+#include "actors/actor_335800.h"
+
 #include "actors/task_tables.h"
 
 #include <psyq/sys/types.h>
@@ -144,14 +146,6 @@ typedef struct {
 } _Actor335800GaryDouglasWork;
 STATIC_ASSERT_SIZEOF(_Actor335800GaryDouglasWork, 0x50C);
 
-extern EvsCommand D_actor_335800_80165FC0[];
-extern EvsCommand D_actor_335800_80166098[];
-
-// Handler views preserve the signatures used by this TU. The dispatcher
-// transports each argument in a word register.
-
-extern TaskMessageEntry D_actor_335800_8016EB00[];
-
 static void _modelPlacementAttachPartTask(Task* childTask);
 static void _actor335800GaryDouglasInit(Task* task);
 static void _actor335800GaryDouglasUpdate(Task* task);
@@ -181,9 +175,11 @@ static const TaskFuncTable3 _gActor335800GaryDouglasPartStates = { {
     taskKill,
 } };
 
-/// Spawn, tick and teardown handlers of the parent block, dispatched by
-/// `_actor335800GaryDouglasTask`.
-static const TaskFuncTable3 D_actor_335800_80161E30 = { {
+/// Gary Douglas's body-task initialization, update and enemy teardown states.
+///
+/// Indexed without a bounds check by `Task::state` in 0..2 while scene actor
+/// control is running. Teardown releases the body and its attached head/gun.
+static const TaskFuncTable3 _gActor335800GaryDouglasStates = { {
     _actor335800GaryDouglasInit,
     _actor335800GaryDouglasUpdate,
     _actor335800GaryDouglasExit,
@@ -238,17 +234,14 @@ static void _actor335800StartSceneVariantTask(Task* task);
 static void _actor335800RestorePlayerAnimationOnBattleResetTask(Task* task);
 static void _actor335800SceneScreenShakeTask(Task* task);
 
-extern ActorCommand   D_actor_335800_80164FC8;
-extern ActorTransform D_actor_335800_80164F98;
-extern ActorTransform D_actor_335800_80164FB0;
-static void           _actor335800StageSceneAudioStart(void);
-static void           _actor335800StartScenePlayback(void);
-static void           _actor335800FinishStreamedScene(void);
-static void           _actor335800SpawnSceneGroundShadow(void);
-static void           _actor335800StartBalconyMovies(void);
-static void           _actor335800EnableDisplay(void);
-static void           _actor335800SetStageAmbientMuted(s32 muted);
-static void           _actor335800SpawnSceneScreenShake(void);
+static void _actor335800StageSceneAudioStart(void);
+static void _actor335800StartScenePlayback(void);
+static void _actor335800FinishStreamedScene(void);
+static void _actor335800SpawnSceneGroundShadow(void);
+static void _actor335800StartBalconyMovies(void);
+static void _actor335800EnableDisplay(void);
+static void _actor335800SetStageAmbientMuted(s32 muted);
+static void _actor335800SpawnSceneScreenShake(void);
 
 static s32  _actor335800GaryDouglasSetDrawMode(Task* task, s32 messageId, s32 mode, s32 unusedArg);
 static s32  _actor335800GaryDouglasRequestDim(Task* task, s32 messageId, const ActorCommand* request, s32 unusedArg);
@@ -405,7 +398,8 @@ enum {
     ACTOR_335800_GARY_DOUGLAS_SCENE_CLIP_4 = 4
 };
 
-AnimationPlayRequest D_actor_335800_80164E2C = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Unreferenced five-word record with bank-1/clip-1 reset values; its role is unproven.
+static AnimationPlayRequest D_actor_335800_80164E2C = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
 /// Player clip 48 at the common opening of the Burner retreat and defeat scenes.
 ///
@@ -430,8 +424,8 @@ static AnimationPlayRequest _gActor335800PlayerBalconyEntryAnimation = {
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE
 };
 
-// Retained parameter record; layout follows the adjacent script arguments.
-AnimationPlayRequest D_actor_335800_80164E68 = { { .index = 1 }, 50, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Unreferenced five-word record with bank-1/clip-50 reset values; its role is unproven.
+static AnimationPlayRequest D_actor_335800_80164E68 = { { .index = 1 }, 50, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
 /// Resets player clip 51 at Burner scene boundaries and after a battle reset.
 ///
@@ -469,7 +463,8 @@ static ActorTransform _gActor335800PlayerScenePlacements[] = {
     { { -6280, -3200, 5570, 0 }, { 0, 2047, 0, 0 } },                           // High-end exit pose
 };
 
-AnimationPlayRequest D_actor_335800_80164F1C[2] = {
+/// Unreferenced bank-0/clip-1 reset and twenty-frame blend records; their role is unproven.
+static AnimationPlayRequest D_actor_335800_80164F1C[2] = {
     { { .index = 0 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
     { { .index = 0 }, 1, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_DISABLE },
 };
@@ -517,33 +512,111 @@ static AnimationPlayRequest _gActor335800GaryDouglasSceneAnimation4 = {
 /// shadow begins 1000 units below this Z and decelerates after passing it.
 static ActorTransform _gActor335800GaryDouglasSceneArrivalPlacement = { { -4000, 0, 1970, 0 }, { 0, 2047, 0, 0 } };
 
-ActorTransform D_actor_335800_80164F98 = { { -7730, 0, 1280, 0 }, { 0, -1024, 0, 0 } };
+/// Douglas's second entry-scene placement, before his bank-0 clip 3.
+///
+/// XYZ uses the root parent's game units and yaw is minus a quarter turn.
+/// The placement is borrowed only through its synchronous message dispatch.
+static ActorTransform _gActor335800GaryDouglasSceneSecondPlacement = {
+    .pos = { -7730, 0, 1280, 0 }, .rot = { 0, -ACTOR_TRANSFORM_ANGLE_TURN / 4, 0, 0 }
+};
 
-ActorTransform D_actor_335800_80164FB0 = { { -6260, 0, 1280, 0 }, { 0, -1024, 0, 0 } };
+/// Douglas's third entry-scene placement, retained through view 19 and clip 4.
+///
+/// XYZ uses the root parent's game units and yaw is minus a quarter turn.
+/// The placement is borrowed only through its synchronous message dispatch.
+static ActorTransform _gActor335800GaryDouglasSceneThirdPlacement = {
+    .pos = { -6260, 0, 1280, 0 }, .rot = { 0, -ACTOR_TRANSFORM_ANGLE_TURN / 4, 0, 0 }
+};
 
-ActorCommand D_actor_335800_80164FC8 = { { .loc = { 3, 29 } }, 0 };
+/// Command requesting Douglas's half-strength lighting and ground-shadow suppression.
+enum { ACTOR_335800_GARY_DOUGLAS_COMMAND_DIM = 0 };
 
-AnimationPlayRequest D_actor_335800_80164FCC = { 0 };
+/// Douglas dim request between the moving-shadow cue and his second placement.
+///
+/// Context is stage 3/area 29 but Douglas reads only the command. The next
+/// visible update halves both shared lighting matrices until a view relights
+/// the model; another request can halve them again. Dispatch borrows the record.
+static ActorCommand _gActor335800GaryDouglasDimCommand = {
+    .context = { .loc = { 3, 29 } }, .command = ACTOR_335800_GARY_DOUGLAS_COMMAND_DIM
+};
 
-AnimationPlayRequest D_actor_335800_80164FE0 = { { .index = 0 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Unreferenced twenty zero bytes; the animation-request interpretation is unproven.
+static AnimationPlayRequest D_actor_335800_80164FCC = { 0 };
 
-AnimationPlayRequest D_actor_335800_80164FF4 = { { .index = 0 }, 1, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Flint's only embedded clip, shared by entry-scene reset and blended restarts.
+enum { ACTOR_335800_FLINT_SCENE_CLIP = 1 };
 
-ActorTransform D_actor_335800_80165008 = { { -1287, 0, -2750, 0 }, { 0, -1650, 0, 0 } };
+/// Resets Flint's bank-0 clip 1 after placing him in the balcony entry scene.
+///
+/// Drives slots 1..18 and ticks once immediately. The receiver ignores the
+/// collision choice and borrows this request only through dispatch.
+static AnimationPlayRequest _gActor335800FlintSceneAnimationReset = {
+    .source               = { .index = ACTOR_335800_FLINT_ANIMATION_BANK },
+    .animationId          = ACTOR_335800_FLINT_SCENE_CLIP,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE
+};
 
-ActorCommand D_actor_335800_80165020 = { { .loc = { 3, 29 } }, 1 };
+/// Restarts Flint's bank-0 clip 1 with a ten-frame blend at four entry-scene cues.
+///
+/// Captures the advancing pose of slots 1..18 before seeking each track's
+/// start, then ticks once. Collision choice is ignored; dispatch borrows the
+/// request, and playback keeps borrowing the loaded clip data.
+static AnimationPlayRequest _gActor335800FlintSceneAnimationBlend = {
+    .source               = { .index = ACTOR_335800_FLINT_ANIMATION_BANK },
+    .animationId          = ACTOR_335800_FLINT_SCENE_CLIP,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = 10,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE
+};
 
-ActorCommand D_actor_335800_80165024 = { { .loc = { 3, 29 } }, 2 };
-
-ActorCommand D_actor_335800_80165028 = { { .loc = { 3, 29 } }, 3 };
+/// Flint's entry-scene placement while view 18 shows his repeated clip.
+///
+/// XYZ uses the root parent's game units; yaw -1650 uses 4096 units per turn.
+/// The receiver copies XYZ and Euler rotation through synchronous dispatch.
+static ActorTransform _gActor335800FlintScenePlacement = {
+    .pos = { -1287, 0, -2750, 0 }, .rot = { 0, -1650, 0, 0 }
+};
 
 /// Commands in the Burner's stage-3/area-29 namespace.
 enum {
-    ACTOR_335800_BURNER_COMMAND_BEGIN_FIGHT   = 0xFFFF,
-    ACTOR_335800_BURNER_COMMAND_TURN          = 6,
-    ACTOR_335800_BURNER_COMMAND_FLAME_RETREAT = 7,
-    ACTOR_335800_BURNER_COMMAND_DEPARTURE     = 8,
-    ACTOR_335800_BURNER_COMMAND_DEFEAT        = 10
+    ACTOR_335800_BURNER_COMMAND_BEGIN_FIGHT    = 0xFFFF,
+    ACTOR_335800_BURNER_COMMAND_ENTRANCE       = 1,
+    ACTOR_335800_BURNER_COMMAND_AIM_AND_IMPACT = 2,
+    ACTOR_335800_BURNER_COMMAND_ADVANCE        = 3,
+    ACTOR_335800_BURNER_COMMAND_FLAME_BREATH   = 4,
+    ACTOR_335800_BURNER_COMMAND_BALCONY_IMPACT = 5,
+    ACTOR_335800_BURNER_COMMAND_TURN           = 6,
+    ACTOR_335800_BURNER_COMMAND_FLAME_RETREAT  = 7,
+    ACTOR_335800_BURNER_COMMAND_DEPARTURE      = 8,
+    ACTOR_335800_BURNER_COMMAND_DEFEAT         = 10
+};
+
+/// Starts the Burner's scripted entrance across the balcony.
+///
+/// Stage 3/area 29, command 1 selects scene state 1 and resets its substate;
+/// the scene handler places the root and begins the entrance clip/movement.
+/// The record is borrowed through synchronous dispatch.
+static ActorCommand _gActor335800BurnerEntranceCommand = {
+    .context = { .loc = { 3, 29 } }, .command = ACTOR_335800_BURNER_COMMAND_ENTRANCE
+};
+
+/// Starts the Burner's placed head-aiming and impact sequence in view 18.
+///
+/// Stage 3/area 29, command 2 selects scene state 2 and resets its substate.
+/// The record is borrowed through synchronous dispatch.
+static ActorCommand _gActor335800BurnerAimAndImpactCommand = {
+    .context = { .loc = { 3, 29 } }, .command = ACTOR_335800_BURNER_COMMAND_AIM_AND_IMPACT
+};
+
+/// Starts the Burner's balcony advance and timed impact cues in view 19.
+///
+/// Stage 3/area 29, command 3 selects scene state 3 and resets its substate;
+/// the scene handler advances along +Z before its sound and sprite cues.
+/// The record is borrowed through synchronous dispatch.
+static ActorCommand _gActor335800BurnerAdvanceCommand = {
+    .context = { .loc = { 3, 29 } }, .command = ACTOR_335800_BURNER_COMMAND_ADVANCE
 };
 
 /// Command returning the Burner from the entry scene to combat initialization.
@@ -552,9 +625,21 @@ enum {
 /// runs combat, and clears both behaviour and substate. Dispatch borrows this record.
 static ActorCommand _gActor335800BurnerBeginFightCommand = { .context = { .loc = { 3, 29 } }, .command = ACTOR_335800_BURNER_COMMAND_BEGIN_FIGHT };
 
-ActorCommand D_actor_335800_80165030 = { { .loc = { 3, 29 } }, 4 };
+/// Starts the Burner's fixed-target flame breath after Douglas's gunshot cue.
+///
+/// Stage 3/area 29, command 4 selects scene state 4 and resets its substate.
+/// The scene breath emits collision-disabled flames. Dispatch borrows the record.
+static ActorCommand _gActor335800BurnerFlameBreathCommand = {
+    .context = { .loc = { 3, 29 } }, .command = ACTOR_335800_BURNER_COMMAND_FLAME_BREATH
+};
 
-ActorCommand D_actor_335800_80165034 = { { .loc = { 3, 29 } }, 5 };
+/// Starts the Burner's timed balcony sound, shake and sprite-impact cues.
+///
+/// Stage 3/area 29, command 5 selects scene state 5 and resets its substate.
+/// The entry scene sends it before stream playback starts; dispatch borrows it.
+static ActorCommand _gActor335800BurnerBalconyImpactCommand = {
+    .context = { .loc = { 3, 29 } }, .command = ACTOR_335800_BURNER_COMMAND_BALCONY_IMPACT
+};
 
 /// Command selecting the Burner's turn-to-walk scene sequence.
 ///
@@ -580,7 +665,13 @@ static ActorCommand _gActor335800BurnerDepartureCommand = { .context = { .loc = 
 /// and substate. Dispatch borrows this complete four-byte record.
 static ActorCommand _gActor335800BurnerDefeatCommand = { .context = { .loc = { 3, 29 } }, .command = ACTOR_335800_BURNER_COMMAND_DEFEAT };
 
-EvsSceneKey D_actor_335800_80165048 = { 3, 58, 11 };
+/// Stream key for the Burner, Douglas and Flint balcony entry scene.
+///
+/// Group 3, stream 58, first qualifier 11; playback supplies second qualifier
+/// zero. Caption/audio selection borrows the complete six-byte key until END.
+static EvsSceneKey _gActor335800BalconyEntrySceneKey = {
+    .group = 3, .streamId = 58, .subId = 11
+};
 
 /// Stream key for the balcony scene that ends with the Burner's retreat.
 ///
@@ -594,111 +685,6 @@ static EvsSceneKey _gActor335800BurnerRetreatSceneKey = { .group = 3, .streamId 
 /// zero. Caption/audio selection borrows the key until the event script ends.
 static EvsSceneKey _gActor335800BurnerDefeatSceneKey = { .group = 3, .streamId = 60, .subId = 11 };
 
-EvsCommand D_actor_335800_80165060[72] = {
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor335800SetStageAmbientMuted }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor335800StartBalconyMovies }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor335800EnableDisplay }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SELECT_SCENE, { .sceneKey = &D_actor_335800_80165048 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor335800StageSceneAudioStart }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor335800SpawnSceneScreenShake }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &_gActor335800CopyPlayerSceneAnimations } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = _gActor335800PlayerScenePlacements } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 2 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2005 }, { .value = 2 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 2 }, { .value = 2005 }, { .value = 2 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 22 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor335800PlayerBalconyEntryAnimation }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_335800_80165034 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor335800StartScenePlayback }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 49 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_335800_80165020 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 2 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 17 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 140 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 18 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_335800_80165024 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 2 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 2 }, { .value = 2004 }, { .message = { .pointer = &D_actor_335800_80165008 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 2 }, { .value = 2003 }, { .message = { .pointer = &D_actor_335800_80164FE0 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 18 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 2 }, { .value = 2003 }, { .message = { .pointer = &D_actor_335800_80164FF4 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 18 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 2 }, { .value = 2003 }, { .message = { .pointer = &D_actor_335800_80164FF4 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 38 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 2 }, { .value = 2003 }, { .message = { .pointer = &D_actor_335800_80164FF4 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 40 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 2 }, { .value = 2003 }, { .message = { .pointer = &D_actor_335800_80164FF4 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 2 }, { .value = 2005 }, { .value = 2 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gActor335800GaryDouglasSceneArrivalPlacement } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor335800GaryDouglasGunshotAnimation } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 21 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor335800SpawnSceneGroundShadow }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_335800_80165030 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 14 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_335800_80164FC8 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 16 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2004 }, { .message = { .pointer = &D_actor_335800_80164F98 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor335800GaryDouglasSceneAnimation3 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 50 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_335800_80165028 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2004 }, { .message = { .pointer = &D_actor_335800_80164FB0 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 19 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 45 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor335800GaryDouglasSceneAnimation4 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 45 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = 0 }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 29 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor335800FinishStreamedScene }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor335800PlayerRestoreAnimation }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2005 }, { .value = 2 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gActor335800BurnerBeginFightCommand } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 5 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_AREA_MUSIC, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_RETURN_SECONDARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { .opcode = EVENT_SCRIPT_OPCODE_END },
-};
-
-EvsCommand D_actor_335800_80165720[5] = {
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = sceneEngageBattle }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 2 }, { .value = 0 } },
-    { .opcode = EVENT_SCRIPT_OPCODE_END },
-};
-
-EvsCommand D_actor_335800_80165798[19] = {
-    { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 7 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor335800CancelStreamedScene }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor335800SetStageAmbientMuted }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor335800LockAttachmentsAndCancelEffects }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor335800PlayerRestoreAnimation }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = _gActor335800PlayerScenePlacements } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2005 }, { .value = 2 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gActor335800BurnerBeginFightCommand } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 2 }, { .value = 2005 }, { .value = 2 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SET_DIRTY_VIEW, { .value = 5 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor335800EnableDisplay }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_AREA_MUSIC, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { .opcode = EVENT_SCRIPT_OPCODE_END },
-};
-
 /// Scene-script selectors and cues used by the two Burner endings.
 enum {
     ACTOR_335800_BURNER_PLACEMENT    = 0,
@@ -706,6 +692,133 @@ enum {
     ACTOR_335800_RETREAT_SCENE_EVENT = 7,
     ACTOR_335800_DEFEAT_SOUND        = 0x401F000A,
     ACTOR_335800_SCENE_FADE_WHITE    = 1
+};
+
+/// Placed actor indices and presentation choices in the balcony entry/skip scripts.
+///
+/// Actor show mode 1 permits drawing and automatic buffers (Douglas/Flint also
+/// allocate immediately); hide mode 2 schedules buffer release and disables
+/// automatic recovery. These values apply to all three loaded scene actors.
+enum {
+    ACTOR_335800_GARY_DOUGLAS_PLACEMENT   = 1,
+    ACTOR_335800_FLINT_PLACEMENT          = 2,
+    ACTOR_335800_SCENE_ACTOR_SHOW         = 1,
+    ACTOR_335800_SCENE_ACTOR_HIDE_RELEASE = 2,
+    ACTOR_335800_BALCONY_ENTRY_VIEW       = 22,
+    ACTOR_335800_BURNER_ENTRANCE_VIEW     = 17,
+    ACTOR_335800_FLINT_SCENE_VIEW         = 18,
+    ACTOR_335800_DOUGLAS_GUNSHOT_VIEW     = 21,
+    ACTOR_335800_BALCONY_ENTRY_END_VIEW   = 19
+};
+
+EvsCommand gActor335800BalconyEntryScript[72] = {
+    // Hand presentation to the room movies, then stage the entry stream and actors.
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor335800SetStageAmbientMuted }, { .value = true }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor335800StartBalconyMovies }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor335800EnableDisplay }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SELECT_SCENE, { .sceneKey = &_gActor335800BalconyEntrySceneKey }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor335800StageSceneAudioStart }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor335800SpawnSceneScreenShake }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &_gActor335800CopyPlayerSceneAnimations } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = _gActor335800PlayerScenePlacements } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_335800_BURNER_PLACEMENT }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = ACTOR_335800_SCENE_ACTOR_HIDE_RELEASE }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_335800_GARY_DOUGLAS_PLACEMENT }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = ACTOR_335800_SCENE_ACTOR_HIDE_RELEASE }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_335800_FLINT_PLACEMENT }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = ACTOR_335800_SCENE_ACTOR_HIDE_RELEASE }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = ACTOR_335800_BALCONY_ENTRY_VIEW }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    // Run the Burner's entrance while Flint's single clip restarts on timed cues.
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor335800PlayerBalconyEntryAnimation }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_335800_BURNER_PLACEMENT }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gActor335800BurnerBalconyImpactCommand } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor335800StartScenePlayback }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 49 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_335800_BURNER_PLACEMENT }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gActor335800BurnerEntranceCommand } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = PLAYER_ACTOR_MODEL_DRAW_HIDE_RELEASE }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_335800_BURNER_PLACEMENT }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = ACTOR_335800_SCENE_ACTOR_SHOW }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = ACTOR_335800_BURNER_ENTRANCE_VIEW }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 140 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = ACTOR_335800_FLINT_SCENE_VIEW }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_335800_BURNER_PLACEMENT }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gActor335800BurnerAimAndImpactCommand } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_335800_FLINT_PLACEMENT }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = ACTOR_335800_SCENE_ACTOR_SHOW }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_335800_FLINT_PLACEMENT }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gActor335800FlintScenePlacement } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_335800_FLINT_PLACEMENT }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor335800FlintSceneAnimationReset } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 18 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_335800_FLINT_PLACEMENT }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor335800FlintSceneAnimationBlend } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 18 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_335800_FLINT_PLACEMENT }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor335800FlintSceneAnimationBlend } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 38 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_335800_FLINT_PLACEMENT }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor335800FlintSceneAnimationBlend } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 40 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_335800_FLINT_PLACEMENT }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor335800FlintSceneAnimationBlend } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_335800_FLINT_PLACEMENT }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = ACTOR_335800_SCENE_ACTOR_HIDE_RELEASE }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_335800_GARY_DOUGLAS_PLACEMENT }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = ACTOR_335800_SCENE_ACTOR_SHOW }, { .value = 0 } },
+    // Douglas's gunshot, moving shadow and dim request precede his later placements.
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_335800_GARY_DOUGLAS_PLACEMENT }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gActor335800GaryDouglasSceneArrivalPlacement } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_335800_GARY_DOUGLAS_PLACEMENT }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor335800GaryDouglasGunshotAnimation } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = ACTOR_335800_DOUGLAS_GUNSHOT_VIEW }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor335800SpawnSceneGroundShadow }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_335800_BURNER_PLACEMENT }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gActor335800BurnerFlameBreathCommand } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 14 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_335800_GARY_DOUGLAS_PLACEMENT }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gActor335800GaryDouglasDimCommand } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 16 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_335800_GARY_DOUGLAS_PLACEMENT }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gActor335800GaryDouglasSceneSecondPlacement } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_335800_GARY_DOUGLAS_PLACEMENT }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor335800GaryDouglasSceneAnimation3 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 50 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_335800_BURNER_PLACEMENT }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = ACTOR_335800_SCENE_ACTOR_SHOW }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_335800_BURNER_PLACEMENT }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gActor335800BurnerAdvanceCommand } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_335800_GARY_DOUGLAS_PLACEMENT }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gActor335800GaryDouglasSceneThirdPlacement } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = ACTOR_335800_BALCONY_ENTRY_END_VIEW }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 45 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_335800_GARY_DOUGLAS_PLACEMENT }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor335800GaryDouglasSceneAnimation4 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 45 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    // Fade out streamed presentation before restoring the player and Burner combat.
+    { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = SCREEN_FADE_SUBTRACT }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 29 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor335800FinishStreamedScene }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor335800PlayerRestoreAnimation }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_335800_GARY_DOUGLAS_PLACEMENT }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = ACTOR_335800_SCENE_ACTOR_HIDE_RELEASE }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_335800_BURNER_PLACEMENT }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gActor335800BurnerBeginFightCommand } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = ACTOR_335800_BALCONY_HIGH_VIEW }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_START_AREA_MUSIC, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_RETURN_SECONDARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { .opcode = EVENT_SCRIPT_OPCODE_END },
+};
+
+EvsCommand gActor335800BalconyBattleStartScript[5] = {
+    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = sceneEngageBattle }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = PLAYER_ACTOR_END_SCRIPTED_KEEP_ROOT_OFFSET }, { .value = 0 } },
+    { .opcode = EVENT_SCRIPT_OPCODE_END },
+};
+
+EvsCommand gActor335800BalconyEntrySkipScript[19] = {
+    // Cancel the stream under a fade before restoring the actors' combat presentation.
+    { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = SCREEN_FADE_SUBTRACT }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 7 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor335800CancelStreamedScene }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor335800SetStageAmbientMuted }, { .value = true }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor335800LockAttachmentsAndCancelEffects }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor335800PlayerRestoreAnimation }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = _gActor335800PlayerScenePlacements } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_335800_BURNER_PLACEMENT }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = ACTOR_335800_SCENE_ACTOR_SHOW }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_335800_GARY_DOUGLAS_PLACEMENT }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = ACTOR_335800_SCENE_ACTOR_HIDE_RELEASE }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_335800_BURNER_PLACEMENT }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gActor335800BurnerBeginFightCommand } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_335800_FLINT_PLACEMENT }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = ACTOR_335800_SCENE_ACTOR_HIDE_RELEASE }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SET_DIRTY_VIEW, { .value = ACTOR_335800_BALCONY_HIGH_VIEW }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor335800EnableDisplay }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_START_AREA_MUSIC, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
 /// Common opening subscript for the Burner's retreat and defeat streams.
@@ -814,26 +927,28 @@ static EvsCommand _gActor335800BurnerDefeatSceneEndingScript[] = {
     { EVENT_SCRIPT_OPCODE_RETURN, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
 };
 
-EvsCommand D_actor_335800_80165FC0[9] = {
+EvsCommand gActor335800BurnerRetreatSceneScript[9] = {
+    // Select stream 59 before entering the balanced opening/retreat subscript calls.
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &_gActor335800CopyPlayerSceneAnimations } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor335800PlayerSceneAnimation51 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SELECT_SCENE, { .sceneKey = &_gActor335800BurnerRetreatSceneKey }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor335800StageSceneAudioStart }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gActor335800BurnerTurnCommand } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_335800_BURNER_PLACEMENT }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gActor335800BurnerTurnCommand } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALL_SCRIPT, { .commands = _gActor335800BalconySceneOpeningScript }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALL_SCRIPT, { .commands = _gActor335800BurnerRetreatSceneEndingScript }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-EvsCommand D_actor_335800_80166098[10] = {
+EvsCommand gActor335800BurnerDefeatSceneScript[10] = {
+    // Stop stage music and select stream 60 before the opening/defeat subscript calls.
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &_gActor335800CopyPlayerSceneAnimations } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor335800PlayerSceneAnimation51 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor335800StopStageMusic }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SELECT_SCENE, { .sceneKey = &_gActor335800BurnerDefeatSceneKey }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor335800StageSceneAudioStart }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gActor335800BurnerTurnCommand } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_335800_BURNER_PLACEMENT }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gActor335800BurnerTurnCommand } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALL_SCRIPT, { .commands = _gActor335800BalconySceneOpeningScript }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALL_SCRIPT, { .commands = _gActor335800BurnerDefeatSceneEndingScript }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
@@ -1050,7 +1165,13 @@ TaskDesc gActor335800GaryDouglasTasks[3] = {
     { { { TASK_BODY_TMD, ACTOR_335800_TASK_PRIORITY } }, _actor335800GaryDouglasPartTask, { .model = &_gActor335800Actor120300Model082F8 } },
 };
 
-TaskMessageEntry D_actor_335800_8016EB00[6] = {
+/// Gary Douglas's body-task interface for animation, placement, draw, walk and dimming.
+///
+/// Installed at initialization and borrowed until body teardown. Payloads are
+/// respectively AnimationPlayRequest*, ActorTransform*, draw mode 0..3,
+/// ActorTransform* plus optional ActorMotionWalkAnim*, and ActorCommand*.
+/// Unsupported IDs return zero at the end marker; never dispatch that marker.
+static TaskMessageEntry _gActor335800GaryDouglasMessages[] = {
     { ACTOR_MESSAGE_PLAY_ANIMATION, _actorMotionPlayAnim },
     { ACTOR_MESSAGE_PLACE, actorMsgPlaceEuler },
     { ACTOR_MESSAGE_SET_MODEL_DRAW, _actor335800GaryDouglasSetDrawMode },
@@ -1421,9 +1542,9 @@ static void _actor335800StartSceneVariantTask(Task* task)
     enum { ACTOR_335800_SCENE_VARIANT_START = 0 };
     if (task->state == ACTOR_335800_SCENE_VARIANT_START) {
         if (task->spawnArg1.value != 0) {
-            evsStartScript(D_actor_335800_80166098, EVENT_SCRIPT_HUD_HIDE_RESTORE);
+            evsStartScript(gActor335800BurnerDefeatSceneScript, EVENT_SCRIPT_HUD_HIDE_RESTORE);
         } else {
-            evsStartScript(D_actor_335800_80165FC0, EVENT_SCRIPT_HUD_HIDE_RESTORE);
+            evsStartScript(gActor335800BurnerRetreatSceneScript, EVENT_SCRIPT_HUD_HIDE_RESTORE);
         }
         task->state += 1;
         return;
@@ -1659,7 +1780,7 @@ static void _actor335800GaryDouglasInit(Task* task)
         _actorRenderApplyPartPlacementTextures(partModel, placement);
     }
     _actor335800GaryDouglasBindLighting(task);
-    task->msgTable     = D_actor_335800_8016EB00;
+    task->msgTable     = _gActor335800GaryDouglasMessages;
     task->exitCallback = _actor335800GaryDouglasExit;
     task->state       += 1;
 }
@@ -1802,7 +1923,7 @@ static void _actor335800GaryDouglasTask(Task* task)
 {
     TaskFuncTable3 stateHandlers;
 
-    stateHandlers = D_actor_335800_80161E30;
+    stateHandlers = _gActor335800GaryDouglasStates;
     if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
         stateHandlers.funcs[task->state](task);
     }
@@ -1957,7 +2078,6 @@ static s32 _actor335800GaryDouglasSetDrawMode(Task* task, s32 messageId, s32 mod
 /// argument; acknowledges every request with 0.
 static s32 _actor335800GaryDouglasRequestDim(Task* task, s32 messageId, const ActorCommand* request, s32 unusedArg)
 {
-    enum { ACTOR_335800_GARY_DOUGLAS_COMMAND_DIM = 0 };
     _Actor335800GaryDouglasWork* work;
 
     work = task->work;

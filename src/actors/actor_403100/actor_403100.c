@@ -9,6 +9,7 @@
 #include "gte.h"
 
 #include "actors/actor.h"
+#include "actors/actor_335800.h"
 
 #include "gameplay/actor.h"
 #include "gameplay/actor_render.h"
@@ -487,8 +488,7 @@ typedef struct {
 } _Actor403100PlayerReactionTable;
 STATIC_ASSERT_SIZEOF(_Actor403100PlayerReactionTable, 0x10);
 
-extern EvsCommand D_actor_335800_80166098[];
-static s32        _actor403100FindZoneId(s16 x, s16 z, const _Actor403100Zone* zone);
+static s32 _actor403100FindZoneId(s16 x, s16 z, const _Actor403100Zone* zone);
 
 /// Rows of `_Actor403100AttackPickStorage::states`.
 enum {
@@ -1580,8 +1580,6 @@ static s16 _gActor403100FlameHitCooldown = 0;
 /// Active slots own linked collision spheres until expiry or pool release.
 /// The explicit zero initializer belongs to the overlay image.
 static _Actor403100Flame _gActor403100Flames[28] = { 0 };
-
-extern EvsCommand D_actor_335800_80165FC0[];
 
 static void _actor403100ApplyAnimationBlend(void);
 
@@ -4308,7 +4306,7 @@ static void _actor403100StepFight(Task* task)
                     _gActor403100Enemy->reactionFlags     = 0;
                     worldCoordSetActorColorMode(task->spawnArg2.pointer, ENEMY_COLOR_DEFAULT);
                     _gActor403100Enemy->node.state.parts.flags = (WORLD_TARGET_HIDE_HP | WORLD_TARGET_NOT_LOCKABLE);
-                    evsStartScript(D_actor_335800_80166098, EVENT_SCRIPT_HUD_HIDE_RESTORE);
+                    evsStartScript(gActor335800BurnerDefeatSceneScript, EVENT_SCRIPT_HUD_HIDE_RESTORE);
                     task->state                 = ACTOR_403100_TASK_SCENE_DISPATCH;
                     _gActor403100Work->state    = 0;
                     _gActor403100Work->subState = 0;
@@ -7690,7 +7688,7 @@ static void _actor403100BeginTimeoutEvent(Task* task)
     worldCoordSetActorColorMode(task->spawnArg2.pointer, ENEMY_COLOR_DEFAULT);
     sndEvtRequestScriptStop(ACTOR_403100_BREATH_SOUND, ACTOR_403100_FLAME_CONTACT_STOP_FADE_UPDATES);
     worldTargetUnlinkNode(&_gActor403100Enemy->node);
-    evsStartScript(D_actor_335800_80165FC0, EVENT_SCRIPT_HUD_HIDE_RESTORE);
+    evsStartScript(gActor335800BurnerRetreatSceneScript, EVENT_SCRIPT_HUD_HIDE_RESTORE);
     task->state                 = ACTOR_403100_TASK_SCENE;
     _gActor403100Work->state    = 0;
     _gActor403100Work->subState = 0;

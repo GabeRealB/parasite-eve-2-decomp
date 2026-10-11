@@ -1,8 +1,8 @@
 // Overlay-local symbols for actor_403100.
 
 // Referenced in another actor load slot, resident beside this one.
-D_actor_335800_80165FC0 = 0x80165FC0; // absolute:True owner=actor_335800
-D_actor_335800_80166098 = 0x80166098; // absolute:True owner=actor_335800
+gActor335800BurnerRetreatSceneScript = 0x80165FC0; // absolute:True owner=actor_335800
+gActor335800BurnerDefeatSceneScript = 0x80166098; // absolute:True owner=actor_335800
 _gActor403100PlayerRegions = 0x80155638; // size:0x60 defined:True
 _gActor403100BalconySections = 0x80155698; // size:0x54 defined:True
 _gActor403100MessageTable = 0x801556EC; // size:0x20 defined:True

@@ -86577,9 +86577,10 @@ reports 99.63% with `regs=2` on an object whose instruction words are identical
 (27/27 instructions, matching structure). The address form is 100%. Use it, and
 put the struct relationship in a comment: `extern s8 D_80114C12;` is already the
 convention in the actors (`src/actors/actor_503500/*.c`). The same trap applies
-to any address whose owner the gameplay map names only at the base — the
-cutscene blob `D_80165720` in this same function is another, referenced by many
-rooms and named nowhere.
+to any address whose owner the gameplay map names only at the base. The
+battle-start script `gActor335800BalconyBattleStartScript` in this same function
+is an actor-overlay export, declared in `actors/actor_335800.h` and imported
+with `owner=actor_335800`.
 
 The trap does *not* need the generator to be missing an entry. `gMcSaveData`
 (0x80072168) and `D_8007216C` are **both** absolute imports in
