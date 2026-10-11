@@ -169,7 +169,7 @@ static s32 _gCapCaptionCaretPulseFalling;
 /// Writable u16 continuation-triangle tip Y in draw pixels, with unsigned wrapping.
 #define CAP_CAPTION_CARET_TIP_Y CapCaption_Data_8015E66A
 /// Writable u8 delay before the continuation caret, counted in eligible draw calls.
-#define CAP_CAPTION_CARET_DRAWS_LEFT (CapCaption_Data_8015E66C[0])
+#define CAP_CAPTION_CARET_DRAWS_LEFT (CapCaption_Data_8015E66C.drawsLeft)
 #include "../../shared/cap_captions.h"
 
 static void _capCaptionRunSchedule(Task* task);

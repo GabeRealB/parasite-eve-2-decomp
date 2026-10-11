@@ -93,12 +93,14 @@ enum {
 
 /// One interval of clip-driven forward displacement during a leap or rebound.
 ///
-/// The first interval whose inclusive end covers the clip frame supplies that
-/// tick's displacement. Pounce frames include the pounce clip's blend duration;
-/// rebound frames start directly at zero. Past the last interval, neither
-/// table contributes displacement.
+/// The first interval whose inclusive end covers the animation tick counter
+/// supplies that tick's displacement. The counter resets on a clip request and
+/// advances once per unchanged request, including blend ticks. Pounce adds its
+/// blend duration to each threshold; rebound uses thresholds directly. Tables
+/// are ordered by increasing `lastFrame` and scanned within their array bounds;
+/// past the final threshold they contribute no displacement.
 typedef struct {
-    s16 lastFrame;   // Inclusive clip-frame threshold, before adding any blend duration
+    s16 lastFrame;   // Inclusive animation-tick threshold, before the pounce's blend adjustment
     s16 forwardStep; // Signed coordinate units moved along the root's yaw each tick
 } MaggotCaterpillarStrideStep;
 STATIC_ASSERT_SIZEOF(MaggotCaterpillarStrideStep, 4);

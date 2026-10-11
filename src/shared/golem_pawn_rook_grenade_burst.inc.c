@@ -1,9 +1,17 @@
 /* Part of the Pawn/Rook GOLEM library; see golem_pawn_rook.h. */
 
-/// Two-vector scratch block holding the composed offset and Q12 normalized aim.
+/// Temporary player offset and normalized aim for one grenade-burst tick.
+///
+/// Backoff fills only X/Z of the player-root offset in parent-coordinate units.
+/// Aim checks instead fill XYZ from composed player-part-2 minus actor-root
+/// positions, normalize into the second vector (4096 = 1), then overwrite the
+/// first with that direction rotated into room axes. Bearing calculations
+/// deliberately narrow the first vector's X/Z to signed halfwords; horizontal
+/// aim magnitude uses its full-width Q12 components. Both SDK vector pad words
+/// stay untouched. The uninitialized 32-byte scratch reservation lasts one call.
 typedef struct {
-    VECTOR playerDirection; // player offset, then Q12 aim in room axes
-    VECTOR normalizedAim;   // Q12 direction in composed-coordinate space
+    VECTOR playerDirection; // Parent-frame X/Z offset, composed XYZ offset, or Q12 room-axis aim
+    VECTOR normalizedAim;   // Q12 XYZ direction in the composed frame, before room-axis rotation
 } _GolemPawnRookBurstAimScratch;
 STATIC_ASSERT_SIZEOF(_GolemPawnRookBurstAimScratch, 0x20);
 

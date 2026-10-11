@@ -82,12 +82,15 @@ typedef struct {
 STATIC_ASSERT_SIZEOF(DesertChaserVariant, 0x8);
 
 #if DESERT_CHASER_BUILD == DESERT_CHASER_CUTSCENE
-/// Animation-source storage containing clip pointers and unaccessed trailing bytes.
+/// Cutscene animation-source pointer region and retained following image bytes.
 ///
-/// Both rigs borrow the pointer region while the overlay remains loaded; only
-/// populated clip indices may be played. The original directory boundary within
-/// or after that region is unproven. The remaining 120 bytes have no recovered
-/// use, and their original object boundaries and meaning are also unproven.
+/// Both animation rigs borrow the same base for zero-based clip indexing while
+/// this overlay remains loaded. A played index must select a populated descriptor
+/// with tracks for the driven model parts; the animation API carries no count
+/// and performs no directory bounds check. The 55 native pointer words describe
+/// the retained image region, not a proven directory capacity. Its original
+/// directory boundary and the ownership of the following 120 unaccessed bytes
+/// remain unproven.
 typedef struct {
     AnimationSet* sets[55];        // Native descriptor-pointer region; original directory extent unproven
     u8            unknown_DC[120]; // Following image bytes; role and original ownership unproven
@@ -691,15 +694,6 @@ static void _desertChaserExit(Task* task);
 #endif
 
 #if DESERT_CHASER_BUILD != DESERT_CHASER_CUTSCENE
-/// Scratch reservation of the close catch: a player offset and one observed turn store.
-typedef struct {
-    SVECTOR toPlayer;     // Player offset, then the normalized 32-unit move direction
-    s16     unknown_8[2]; // Reserved but never accessed; role unproven
-    s16     playerTurn;   // Turn toward the player in 4096-unit angles; stored but not read
-    s16     unknown_E;    // Reserved but never accessed; role unproven
-} _DesertChaserCloseCatchScratch;
-STATIC_ASSERT_SIZEOF(_DesertChaserCloseCatchScratch, 16);
-
 /// Turn-state timing, alignment threshold and the state resumed on completion.
 ///
 /// Timing counts ticks and angles use 4096 units per turn.

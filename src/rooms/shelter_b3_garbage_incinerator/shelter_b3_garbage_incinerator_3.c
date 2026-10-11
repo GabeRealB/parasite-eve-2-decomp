@@ -2479,11 +2479,9 @@ u16 CapCaption_Data_8015E668 = 0;
 
 u16 CapCaption_Data_8015E66A = 0;
 
-u8 CapCaption_Data_8015E66C[4] = {
+CapCaptionCaretDelayStorage CapCaption_Data_8015E66C = {
     0,
-    196,
-    94,
-    51,
+    { 196, 94, 51 },
 };
 
 ScreenWaveGridOscillator gScreenWaveColumnWaves[10];

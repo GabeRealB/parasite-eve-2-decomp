@@ -17,6 +17,8 @@
 
 #include "overlay.h"
 
+#include "../../shared/cap_captions_types.h"
+
 /// Bodyless priority-192 recipe running the exit encounter after lift descent.
 ///
 /// Spawn only index 0 with unused zero payloads/metadata when the exit switch
@@ -135,7 +137,7 @@ extern s16 CapCaption_Data_8015E666;
 extern u16 CapCaption_Data_8015E668;
 extern u16 CapCaption_Data_8015E66A;
 
-extern u8 CapCaption_Data_8015E66C[4];
+extern CapCaptionCaretDelayStorage CapCaption_Data_8015E66C;
 
 /// Column sine oscillators for horizontal screen displacement.
 ///

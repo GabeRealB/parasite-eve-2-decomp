@@ -24,17 +24,17 @@ static void _maggotCaterpillarPounceState(Task* actor)
         MAGGOT_CATERPILLAR_REBOUND_LAND_FRAME     = 16,
         MAGGOT_CATERPILLAR_POUNCE_LAND_SOUND      = 0x401A0002,
     };
-    MaggotCaterpillarWork*       work;
-    GfxCoord*                    coord;
-    SVECTOR*                     rotation;
-    MaggotCaterpillarStrideStep* pounceStride;
-    MaggotCaterpillarStrideStep* reboundStride;
-    s16                          step;
-    s32                          soundKey;
-    s32                          tableIndex;
-    s32                          landingPan;
-    s32                          reboundPan;
-    u32                          random;
+    MaggotCaterpillarWork*             work;
+    GfxCoord*                          coord;
+    SVECTOR*                           rotation;
+    const MaggotCaterpillarStrideStep* pounceStride;
+    const MaggotCaterpillarStrideStep* reboundStride;
+    s16                                step;
+    s32                                soundKey;
+    s32                                tableIndex;
+    s32                                landingPan;
+    s32                                reboundPan;
+    u32                                random;
 
     rotation = SCRATCH_STACK_RESERVE_BLOCK(SVECTOR);
     work     = actor->work;

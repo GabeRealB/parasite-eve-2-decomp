@@ -14,6 +14,12 @@
 #include "common.h"
 
 /// Signed halfword power-basis terms for one coordinate of a cubic Bezier.
+///
+/// Describes `cubic*t^3 + quadratic*t^2 + linear*t + constant` in the control
+/// points' coordinate units. Conversion retains the low signed halfword of each
+/// term, without saturation; these are whole-unit coefficients, not Q16 values.
+/// The evaluator uses a separate Q16 parameter and rounds at every Horner stage.
+/// One caller-owned record serves each of X, Y and Z for the sampling call.
 typedef struct {
     s16 cubic;     // Coefficient of t^3
     s16 quadratic; // Coefficient of t^2

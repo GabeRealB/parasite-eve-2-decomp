@@ -1,5 +1,21 @@
 /* Part of the Desert Chaser library; see desert_chaser.h. */
 
+/// Temporary player offset and turn storage for one close-catch tick.
+///
+/// The 16-byte scratch-stack reservation is uninitialized and released before
+/// return. XYZ starts as player minus actor translation in their common parent
+/// frame, narrowed to signed halfwords. Entry normalizes it at Q12, then scales
+/// it to a 32-unit move request; later range and turn queries refill the offset.
+/// The turn store is not consumed, and the remaining reserved bytes have no
+/// established meaning or scalar type.
+typedef struct {
+    SVECTOR toPlayer;     // Player offset or scaled move direction; pad is untouched
+    u8      unknown_8[4]; // Reserved bytes with no recovered accesses; role unproven
+    s16     playerTurn;   // Signed turn toward the player, -2048..2048 (4096 per turn); stored only
+    u8      unknown_E[2]; // Reserved bytes with no recovered accesses; role unproven
+} _DesertChaserCloseCatchScratch;
+STATIC_ASSERT_SIZEOF(_DesertChaserCloseCatchScratch, 16);
+
 /// Drives the close-catch clip and its lunge/recovery transitions.
 ///
 /// Requires armed work, live player/model and enemy. Entry prepares a 32-unit

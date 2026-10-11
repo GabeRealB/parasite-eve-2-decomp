@@ -26,25 +26,25 @@ static void _maggotCaterpillarEntranceState(Task* actor)
         MAGGOT_CATERPILLAR_ENTRANCE_LEAP_SOUND       = 0x51090007,
         MAGGOT_CATERPILLAR_ENTRANCE_LAND_SOUND       = 0x401A0002
     };
-    TmdObject*                   model;
-    MaggotCaterpillarWork*       work;
-    GfxCoord*                    coord;
-    MaggotCaterpillarStrideStep* stride;
-    SVECTOR*                     scratchEnd;
-    SVECTOR*                     spawnOffset;
-    s32                          entranceStep;
-    s32                          one;
-    s32                          dropAudioPan;
-    s32                          leapAudioPan;
-    s32                          landingAudioPan;
-    Enemy*                       enemy;
-    s32                          loopIndex;
-    s32                          soundKey;
-    u32                          randomY;
-    u32                          randomZ;
-    u32                          randomX;
-    u32                          randomDelay;
-    u32                          randomRise;
+    TmdObject*                         model;
+    MaggotCaterpillarWork*             work;
+    GfxCoord*                          coord;
+    const MaggotCaterpillarStrideStep* stride;
+    SVECTOR*                           scratchEnd;
+    SVECTOR*                           spawnOffset;
+    s32                                entranceStep;
+    s32                                one;
+    s32                                dropAudioPan;
+    s32                                leapAudioPan;
+    s32                                landingAudioPan;
+    Enemy*                             enemy;
+    s32                                loopIndex;
+    s32                                soundKey;
+    u32                                randomY;
+    u32                                randomZ;
+    u32                                randomX;
+    u32                                randomDelay;
+    u32                                randomRise;
 
     model        = actor->extra.tmd;
     work         = actor->work;
