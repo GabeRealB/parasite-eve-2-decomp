@@ -116,8 +116,13 @@ enum {
     PLAYER_ACTOR_EFFECT_HIT_DAMAGE_STEP     = 12,
 };
 
-/// Number of `PlayerStatus::weapon` indices. 0 is no weapon; 1..32 are the weapons.
-#define PLAYER_ACTOR_WEAPON_COUNT 33
+/// Number of player-control weapon slots, including no-weapon slot zero.
+///
+/// `PlayerStatus::weapon` indexes 0..32; indices 1..32 map to weapon item ids
+/// 0x80..0x9F. Unused weapon packages still occupy rows. This is an element
+/// count for the complete attack, aiming, ammunition-policy and capsule tables,
+/// not a terminator or a count of weapons currently loaded.
+enum { PLAYER_ACTOR_WEAPON_COUNT = 33 };
 
 /// Attack routine for every `PlayerStatus::weapon` index, stored so the whole table can be copied.
 ///
@@ -168,9 +173,13 @@ enum {
     EFFECT_DRAW_SEMITRANSPARENT            = 2,
 };
 
-/// Number of vertices in an `_EffectDeathFlameScratch`: six round the base
-/// ring and six round the top ring, interleaved and a twelfth of a turn apart.
-#define EFFECT_DEATH_FLAME_VERTEX_COUNT 12
+/// Total vertices in a death flame's interleaved base and top rings.
+///
+/// Twelve entries are generated as six base/top pairs: even indices are the
+/// base, odd indices the top. Side and cap connectivity wraps modulo this
+/// count. The angular stride truncates 4096 / 12 to 341 units; this counts
+/// vertices, not the eight queued quads or workspace bytes.
+enum { EFFECT_DEATH_FLAME_VERTEX_COUNT = 12 };
 
 /// Scratch-stack workspace for drawing one death flame, a hexagonal cone
 /// with its tip cut off.
@@ -1689,6 +1698,31 @@ void effectProjectileGlowTask(Task* task)
     }
 }
 
+/// Places a textured quad's rotated diagonals around its projected screen centre.
+///
+/// scratch is a writable `EffectShapeScratch` and quad a writable `POLY_FT4`.
+/// sizeNumerator is signed size times the texture cell's inclusive texel span;
+/// dividing by positive `scratch->depth` gives the screen half-diagonal in pixels.
+/// angle uses 4096 units per turn. Products and screen arithmetic must fit s32.
+/// Offsets retain full words in scratch, narrow to u16 before centre arithmetic,
+/// then retain low halfwords in the GPU packet. Arguments are evaluated repeatedly
+/// and must be stable, side-effect-free expressions; scratch/quad must be disjoint.
+/// No caller locals are captured. Does not project, allocate or queue the packet.
+/// Expand only as a standalone statement sequence inside a compound block.
+#define EFFECT_SET_ROTATED_SHAPE_CORNERS(scratch, quad, sizeNumerator, angle)                                                                    \
+    (scratch)->extent.corner.x = (((sizeNumerator) / (scratch)->depth) * rsin(angle)) >> EFFECT_DRAW_FRACTION_BITS;                              \
+    (scratch)->extent.corner.y = (((sizeNumerator) / (scratch)->depth) * rcos(angle)) >> EFFECT_DRAW_FRACTION_BITS;                              \
+    (quad)->x0                 = (scratch)->screenX + (u16)(scratch)->extent.corner.x;                                                           \
+    (quad)->x3                 = (scratch)->screenX - (u16)(scratch)->extent.corner.x;                                                           \
+    (quad)->y0                 = (scratch)->screenY - (u16)(scratch)->extent.corner.y;                                                           \
+    (quad)->y3                 = (scratch)->screenY + (u16)(scratch)->extent.corner.y;                                                           \
+    (scratch)->extent.corner.x = (((sizeNumerator) / (scratch)->depth) * rsin((angle) + EFFECT_DRAW_QUARTER_TURN)) >> EFFECT_DRAW_FRACTION_BITS; \
+    (scratch)->extent.corner.y = (((sizeNumerator) / (scratch)->depth) * rcos((angle) + EFFECT_DRAW_QUARTER_TURN)) >> EFFECT_DRAW_FRACTION_BITS; \
+    (quad)->x1                 = (scratch)->screenX + (u16)(scratch)->extent.corner.x;                                                           \
+    (quad)->x2                 = (scratch)->screenX - (u16)(scratch)->extent.corner.x;                                                           \
+    (quad)->y1                 = (scratch)->screenY - (u16)(scratch)->extent.corner.y;                                                           \
+    (quad)->y2                 = (scratch)->screenY + (u16)(scratch)->extent.corner.y;
+
 void effectSpriteTask55(Task* task)
 {
     enum {
@@ -1720,25 +1754,6 @@ void effectSpriteTask55(Task* task)
     s32                 ticksPerFrame;
     s32                 blendBits;
     SVECTOR*            velocity;
-
-/// Writes rotated screen corners using the live scratch, quad and work locals.
-///
-/// Use as a standalone statement in a braced block. Captures those three
-/// locals and the enclosing task's cell-size constant, retains repeated field
-/// reads and narrows each offset before adding it to the projected origin.
-#define EFFECT_HIT_PUFF_SET_CORNERS()                                                                                                                                        \
-    scratch->extent.corner.x = (((work->scale * (EFFECT_PUFF_CELL_SIZE - 1)) / scratch->depth) * rsin(work->angle)) >> EFFECT_DRAW_FRACTION_BITS;                            \
-    scratch->extent.corner.y = (((work->scale * (EFFECT_PUFF_CELL_SIZE - 1)) / scratch->depth) * rcos(work->angle)) >> EFFECT_DRAW_FRACTION_BITS;                            \
-    quad->x0                 = scratch->screenX + (u16)scratch->extent.corner.x;                                                                                             \
-    quad->x3                 = scratch->screenX - (u16)scratch->extent.corner.x;                                                                                             \
-    quad->y0                 = scratch->screenY - (u16)scratch->extent.corner.y;                                                                                             \
-    quad->y3                 = scratch->screenY + (u16)scratch->extent.corner.y;                                                                                             \
-    scratch->extent.corner.x = (((work->scale * (EFFECT_PUFF_CELL_SIZE - 1)) / scratch->depth) * rsin(work->angle + EFFECT_DRAW_QUARTER_TURN)) >> EFFECT_DRAW_FRACTION_BITS; \
-    scratch->extent.corner.y = (((work->scale * (EFFECT_PUFF_CELL_SIZE - 1)) / scratch->depth) * rcos(work->angle + EFFECT_DRAW_QUARTER_TURN)) >> EFFECT_DRAW_FRACTION_BITS; \
-    quad->x1                 = scratch->screenX + (u16)scratch->extent.corner.x;                                                                                             \
-    quad->x2                 = scratch->screenX - (u16)scratch->extent.corner.x;                                                                                             \
-    quad->y1                 = scratch->screenY - (u16)scratch->extent.corner.y;                                                                                             \
-    quad->y2                 = scratch->screenY + (u16)scratch->extent.corner.y;
 
     work          = task->spawnArg2.pointer;
     effectControl = gRoomEffectState->effectControl;
@@ -1819,7 +1834,7 @@ void effectSpriteTask55(Task* task)
             quad->v2    = EFFECT_PUFF_TEXTURE_V + EFFECT_PUFF_CELL_SIZE - 1;
             quad->u3    = ((work->age / work->period) * EFFECT_PUFF_CELL_SIZE) + EFFECT_PUFF_CELL_SIZE - 1;
             quad->v3    = EFFECT_PUFF_TEXTURE_V + EFFECT_PUFF_CELL_SIZE - 1;
-            EFFECT_HIT_PUFF_SET_CORNERS();
+            EFFECT_SET_ROTATED_SHAPE_CORNERS(scratch, quad, work->scale * (EFFECT_PUFF_CELL_SIZE - 1), work->angle);
             addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                     quad);
         }
@@ -1838,7 +1853,6 @@ void effectSpriteTask55(Task* task)
             effectKillTask(work, task);
         }
     }
-#undef EFFECT_HIT_PUFF_SET_CORNERS
 }
 
 void effectSpriteTask42(Task* task)
@@ -1869,25 +1883,6 @@ void effectSpriteTask42(Task* task)
     s32                 ticksPerFrame;
     s32                 blendBits;
     SVECTOR*            velocity;
-
-/// Writes rotated screen corners using the live scratch, quad and work locals.
-///
-/// Use as a standalone statement in a braced block. Captures those three
-/// locals and the enclosing task's cell-size constant, retains repeated field
-/// reads and narrows each offset before adding it to the projected origin.
-#define EFFECT_TRAIL_PUFF_SET_CORNERS()                                                                                                                                      \
-    scratch->extent.corner.x = (((work->scale * (EFFECT_PUFF_CELL_SIZE - 1)) / scratch->depth) * rsin(work->angle)) >> EFFECT_DRAW_FRACTION_BITS;                            \
-    scratch->extent.corner.y = (((work->scale * (EFFECT_PUFF_CELL_SIZE - 1)) / scratch->depth) * rcos(work->angle)) >> EFFECT_DRAW_FRACTION_BITS;                            \
-    quad->x0                 = scratch->screenX + (u16)scratch->extent.corner.x;                                                                                             \
-    quad->x3                 = scratch->screenX - (u16)scratch->extent.corner.x;                                                                                             \
-    quad->y0                 = scratch->screenY - (u16)scratch->extent.corner.y;                                                                                             \
-    quad->y3                 = scratch->screenY + (u16)scratch->extent.corner.y;                                                                                             \
-    scratch->extent.corner.x = (((work->scale * (EFFECT_PUFF_CELL_SIZE - 1)) / scratch->depth) * rsin(work->angle + EFFECT_DRAW_QUARTER_TURN)) >> EFFECT_DRAW_FRACTION_BITS; \
-    scratch->extent.corner.y = (((work->scale * (EFFECT_PUFF_CELL_SIZE - 1)) / scratch->depth) * rcos(work->angle + EFFECT_DRAW_QUARTER_TURN)) >> EFFECT_DRAW_FRACTION_BITS; \
-    quad->x1                 = scratch->screenX + (u16)scratch->extent.corner.x;                                                                                             \
-    quad->x2                 = scratch->screenX - (u16)scratch->extent.corner.x;                                                                                             \
-    quad->y1                 = scratch->screenY - (u16)scratch->extent.corner.y;                                                                                             \
-    quad->y2                 = scratch->screenY + (u16)scratch->extent.corner.y;
 
     work          = task->spawnArg2.pointer;
     effectControl = gRoomEffectState->effectControl;
@@ -1965,7 +1960,7 @@ void effectSpriteTask42(Task* task)
             quad->v2    = EFFECT_PUFF_TEXTURE_V + EFFECT_PUFF_CELL_SIZE - 1;
             quad->u3    = (work->age / work->period) * EFFECT_PUFF_CELL_SIZE - EFFECT_PUFF_TEXTURE_U_WRAP_OFFSET + EFFECT_PUFF_CELL_SIZE - 1;
             quad->v3    = EFFECT_PUFF_TEXTURE_V + EFFECT_PUFF_CELL_SIZE - 1;
-            EFFECT_TRAIL_PUFF_SET_CORNERS();
+            EFFECT_SET_ROTATED_SHAPE_CORNERS(scratch, quad, work->scale * (EFFECT_PUFF_CELL_SIZE - 1), work->angle);
             addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                     quad);
         }
@@ -1984,7 +1979,6 @@ void effectSpriteTask42(Task* task)
             effectKillTask(work, task);
         }
     }
-#undef EFFECT_TRAIL_PUFF_SET_CORNERS
 }
 
 /// Initializes a hit-puff emitter's parent-local placement and emission budget.
@@ -2168,21 +2162,28 @@ void effectGravityParticleTask(Task* task)
     SVECTOR     probeStartOrNormal;
     u8          tintRgb[3];
 
-/// Advances the particle once by its speed-scaled Q12 heading.
+/// Advances a gravity particle by its speed-scaled Q12 heading in its parent frame.
 ///
-/// Captures the live work/coord pointers and writable displacement vector.
-/// GTE saturation and signed-halfword stores are retained; translation advances
-/// in the coordinate's parent frame and is marked dirty. Use as a standalone
-/// statement in a braced block; the caller composes or rolls back the step.
-#define EFFECT_GRAVITY_PARTICLE_ADVANCE()  \
-    gte_lddp(work->scale);                 \
-    gte_ldsv(&work->move);                 \
-    gte_gpf12();                           \
-    gte_stsv(&displacement);               \
-    coord->coord.t[0]  += displacement.vx; \
-    coord->coord.t[1]  += displacement.vy; \
-    coord->coord.t[2]  += displacement.vz; \
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
+/// particleCoord is a writable `GfxCoord`; heading points to signed Q12 `SVECTOR`
+/// XYZ components. Spawn and bounce normalize them to length 4096; gravity
+/// changes Y between bounces, so unit length is not required here. speed is
+/// the whole-unit factor (0..256 in this task).
+/// displacement points to writable `SVECTOR` storage: GTE multiplication with
+/// 12 fractional bits saturates signed XYZ, leaving its fourth halfword intact.
+/// Adds XYZ to particleCoord's local translation and marks composition dirty.
+/// The caller composes it or keeps displacement for a rollback. Arguments
+/// must be stable, side-effect-free expressions and output storage disjoint.
+/// Clobbers GTE scalar/vector/result state; no caller locals are captured.
+/// Expand only as a standalone statement sequence inside a compound block.
+#define EFFECT_GRAVITY_PARTICLE_ADVANCE(particleCoord, speed, heading, displacement) \
+    gte_lddp(speed);                                                                 \
+    gte_ldsv(heading);                                                               \
+    gte_gpf12();                                                                     \
+    gte_stsv(displacement);                                                          \
+    (particleCoord)->coord.t[0]  += (displacement)->vx;                              \
+    (particleCoord)->coord.t[1]  += (displacement)->vy;                              \
+    (particleCoord)->coord.t[2]  += (displacement)->vz;                              \
+    (particleCoord)->composeStamp = GRAPHICS_COORD_DIRTY;
 
     work          = task->spawnArg2.pointer;
     effectControl = gRoomEffectState->effectControl;
@@ -2237,7 +2238,7 @@ void effectGravityParticleTask(Task* task)
             if (work->pos.vy != 0 && work->age % work->pos.vy == 0) {
                 work->index++;
             }
-            EFFECT_GRAVITY_PARTICLE_ADVANCE();
+            EFFECT_GRAVITY_PARTICLE_ADVANCE(coord, work->scale, &work->move, &displacement);
             gte_SetRotMatrix(&gGfxViewCoord.workm);
             gte_ldv0(&displacement);
             gte_rtv0();
@@ -2260,7 +2261,7 @@ void effectGravityParticleTask(Task* task)
                 VectorNormalSS(&work->move, &work->move);
                 work->scale  = work->scale >> 1;
                 work->period = work->period >> 1;
-                EFFECT_GRAVITY_PARTICLE_ADVANCE();
+                EFFECT_GRAVITY_PARTICLE_ADVANCE(coord, work->scale, &work->move, &displacement);
                 actorRenderComposeCoord(coord);
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                 if (((gRandomLcgState >> 16) & 1) != 0) {
@@ -2858,11 +2859,17 @@ void effectControlTaskAE(Task* task)
     s16         nextBandBrightness;
     u8          rgb[3];
 
-// Packs RGB bytes from work->scale; captures rgb and work and reads brightness three times.
-#define EFFECT_CHARGE_GLOW_SET_COLOR() \
-    rgb[0] = work->scale;              \
-    rgb[1] = work->scale >> 1;         \
-    rgb[2] = work->scale >> 2;
+/// Writes the charge glow's red-dominant RGB modulation bytes.
+///
+/// colorRgb is writable u8[3]; brightness is a stable signed-halfword value,
+/// evaluated three times. R receives its low byte, G its signed right shift
+/// by one and B its signed right shift by two, each narrowed to u8. Normal
+/// charging/fading uses 0..255. No caller locals are captured.
+/// Expand only as a standalone statement sequence inside a compound block.
+#define EFFECT_CHARGE_GLOW_SET_COLOR(colorRgb, brightness) \
+    (colorRgb)[0] = (brightness);                          \
+    (colorRgb)[1] = (brightness) >> 1;                     \
+    (colorRgb)[2] = (brightness) >> 2;
 
     work       = task->spawnArg2.pointer;
     coord      = task->extra.coordBody->coord;
@@ -2905,7 +2912,7 @@ void effectControlTaskAE(Task* task)
             if (nextRadius >= EFFECT_CHARGE_GLOW_MAX_RADIUS + 1) {
                 work->angle = EFFECT_CHARGE_GLOW_MAX_RADIUS;
             }
-            EFFECT_CHARGE_GLOW_SET_COLOR();
+            EFFECT_CHARGE_GLOW_SET_COLOR(rgb, work->scale);
             effectDrawGouraudDisc(coord, work->angle, rgb);
             effectDrawGouraudDisc(coord, (s16)(work->angle << 1), rgb);
             if (work->scale >= EFFECT_CHARGE_GLOW_BAND_THRESHOLD) {
@@ -2937,7 +2944,7 @@ void effectControlTaskAE(Task* task)
             if (work->angle <= 0) {
                 break;
             }
-            EFFECT_CHARGE_GLOW_SET_COLOR();
+            EFFECT_CHARGE_GLOW_SET_COLOR(rgb, work->scale);
             effectDrawGouraudDisc(coord, work->angle, rgb);
             effectDrawGouraudDisc(coord, (s16)(work->angle << 1), rgb);
             if (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN || gAttachmentState.effectPhase == ATTACHMENT_EFFECT_CANCELLED ||
@@ -2954,7 +2961,7 @@ void effectControlTaskAE(Task* task)
             if (work->scale < EFFECT_CHARGE_GLOW_FADE_STEP + 1) {
                 break;
             }
-            EFFECT_CHARGE_GLOW_SET_COLOR();
+            EFFECT_CHARGE_GLOW_SET_COLOR(rgb, work->scale);
             effectDrawGouraudDisc(coord, work->angle, rgb);
             effectDrawGouraudDisc(coord, (s16)(work->angle << 1), rgb);
             work->scale = work->scale - EFFECT_CHARGE_GLOW_FADE_STEP;
@@ -3713,36 +3720,41 @@ static void _effectDrawDeathFlame(Task* task)
     s32                       cosine;
     s32                       screenY;
 
-/// Queues the current death-flame quad only when its projection FLAG is accepted.
+/// Queues an accepted death-flame quad and its additive blend command.
 ///
-/// Use as a standalone statement inside a braced block. Captures initialized
-/// scratch, RGB bytes, writable quad/screenY locals and the depth-bias constant;
-/// reads current GTE depth and consumes the GPU cursor, retaining load/store order.
-#define EFFECT_DEATH_FLAME_QUEUE_QUAD()                                                                                                                     \
-    if (scratch->projectionFlags >= 0) {                                                                                                                    \
-        gte_stszotz(&scratch->depth);                                                                                                                       \
-        scratch->depth = scratch->depth + EFFECT_DEATH_FLAME_DEPTH_BIAS;                                                                                    \
-        quad           = gGpuPrimCursor;                                                                                                                    \
-        gGpuPrimCursor = quad + 1;                                                                                                                          \
-        setPolyF4(quad);                                                                                                                                    \
-        quad->r0 = red;                                                                                                                                     \
-        quad->g0 = green;                                                                                                                                   \
-        quad->b0 = blue;                                                                                                                                    \
-        quad->x0 = (u16)scratch->screenCorners[0].vx;                                                                                                       \
-        screenY  = scratch->screenCorners[0].vy;                                                                                                            \
-        quad->y0 = screenY;                                                                                                                                 \
-        quad->x1 = (u16)scratch->screenCorners[1].vx;                                                                                                       \
-        screenY  = scratch->screenCorners[1].vy;                                                                                                            \
-        quad->y1 = screenY;                                                                                                                                 \
-        quad->x2 = (u16)scratch->screenCorners[2].vx;                                                                                                       \
-        screenY  = scratch->screenCorners[2].vy;                                                                                                            \
-        quad->y2 = screenY;                                                                                                                                 \
-        quad->x3 = (u16)scratch->screenCorners[3].vx;                                                                                                       \
-        screenY  = scratch->screenCorners[3].vy;                                                                                                            \
-        quad->y3 = screenY;                                                                                                                                 \
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), \
-                quad);                                                                                                                                      \
-        gpuSetPrimitiveBlendMode(quad, GPU_BLEND_ADD, scratch->depth);                                                                                      \
+/// scratch is a live `_EffectDeathFlameScratch` with four projected corners and
+/// the RTPT FLAG; negative FLAG skips all allocation and output writes. Reads
+/// current GTE SZ3 / 4, adds depthBias, then consumes a `POLY_F4` from the frame
+/// arena. RGB arguments are bytes; quad and screenY are writable pointer/s32
+/// lvalues retaining packet and final Y. Coordinates narrow to GPU halfwords.
+/// Requires current ordering-table state and arena space for both packets;
+/// the arena stays live through GPU completion. Arguments repeat and must be
+/// stable and side-effect-free. Captures only renderer/GTE globals and constants.
+/// Expand only as a standalone statement sequence inside a compound block.
+#define EFFECT_DEATH_FLAME_QUEUE_QUAD(scratch, quad, screenY, red, green, blue, depthBias)                                                                             \
+    if ((scratch)->projectionFlags >= 0) {                                                                                                                             \
+        gte_stszotz(&(scratch)->depth);                                                                                                                                \
+        (scratch)->depth = (scratch)->depth + (depthBias);                                                                                                             \
+        (quad)           = gGpuPrimCursor;                                                                                                                             \
+        gGpuPrimCursor   = (quad) + 1;                                                                                                                                 \
+        setPolyF4(quad);                                                                                                                                               \
+        (quad)->r0 = (red);                                                                                                                                            \
+        (quad)->g0 = (green);                                                                                                                                          \
+        (quad)->b0 = (blue);                                                                                                                                           \
+        (quad)->x0 = (u16)(scratch)->screenCorners[0].vx;                                                                                                              \
+        (screenY)  = (scratch)->screenCorners[0].vy;                                                                                                                   \
+        (quad)->y0 = (screenY);                                                                                                                                        \
+        (quad)->x1 = (u16)(scratch)->screenCorners[1].vx;                                                                                                              \
+        (screenY)  = (scratch)->screenCorners[1].vy;                                                                                                                   \
+        (quad)->y1 = (screenY);                                                                                                                                        \
+        (quad)->x2 = (u16)(scratch)->screenCorners[2].vx;                                                                                                              \
+        (screenY)  = (scratch)->screenCorners[2].vy;                                                                                                                   \
+        (quad)->y2 = (screenY);                                                                                                                                        \
+        (quad)->x3 = (u16)(scratch)->screenCorners[3].vx;                                                                                                              \
+        (screenY)  = (scratch)->screenCorners[3].vy;                                                                                                                   \
+        (quad)->y3 = (screenY);                                                                                                                                        \
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)(scratch)->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), (quad)); \
+        gpuSetPrimitiveBlendMode((quad), GPU_BLEND_ADD, (scratch)->depth);                                                                                             \
     }
 
     // Pulse the height and red-dominant brightness from independent phases.
@@ -3809,7 +3821,7 @@ static void _effectDrawDeathFlame(Task* task)
         gte_rtpt();
         gte_stsxy3(&scratch->screenCorners[1], &scratch->screenCorners[2], &scratch->screenCorners[3]);
         gte_stflg(&scratch->projectionFlags);
-        EFFECT_DEATH_FLAME_QUEUE_QUAD();
+        EFFECT_DEATH_FLAME_QUEUE_QUAD(scratch, quad, screenY, red, green, blue, EFFECT_DEATH_FLAME_DEPTH_BIAS);
     }
 
     for (vertexIndex = 1; vertexIndex < EFFECT_DEATH_FLAME_VERTEX_COUNT; vertexIndex += 6) {
@@ -3820,7 +3832,7 @@ static void _effectDrawDeathFlame(Task* task)
         gte_rtpt();
         gte_stsxy3(&scratch->screenCorners[1], &scratch->screenCorners[2], &scratch->screenCorners[3]);
         gte_stflg(&scratch->projectionFlags);
-        EFFECT_DEATH_FLAME_QUEUE_QUAD();
+        EFFECT_DEATH_FLAME_QUEUE_QUAD(scratch, quad, screenY, red, green, blue, EFFECT_DEATH_FLAME_DEPTH_BIAS);
     }
 
     SCRATCH_STACK_RELEASE_BLOCK(_EffectDeathFlameScratch);
@@ -3847,24 +3859,29 @@ void effectSpriteTaskA7(Task* task)
     s16                     ticksPerFrame;
     s16                     nextVelocityY;
 
-/// Writes rotated screen corners using the live scratch, quad and work locals.
+/// Places a rising wisp's rotated screen diagonals using signed word offsets.
 ///
-/// Use as a standalone statement in a braced block. Captures those three
-/// locals and the enclosing task's cell-size constant, retains repeated field
-/// reads and narrows each offset before adding it to the projected origin.
-#define EFFECT_RISING_WISP_SET_CORNERS()                                                                                                                                          \
-    scratch->cornerOffsetX = (((work->angle * (EFFECT_RISING_WISP_CELL_SIZE - 1)) / scratch->depth) * rsin(work->scale)) >> EFFECT_DRAW_FRACTION_BITS;                            \
-    scratch->cornerOffsetY = (((work->angle * (EFFECT_RISING_WISP_CELL_SIZE - 1)) / scratch->depth) * rcos(work->scale)) >> EFFECT_DRAW_FRACTION_BITS;                            \
-    quad->x0               = scratch->screenX + scratch->cornerOffsetX;                                                                                                           \
-    quad->x3               = scratch->screenX - scratch->cornerOffsetX;                                                                                                           \
-    quad->y0               = scratch->screenY - scratch->cornerOffsetY;                                                                                                           \
-    quad->y3               = scratch->screenY + scratch->cornerOffsetY;                                                                                                           \
-    scratch->cornerOffsetX = (((work->angle * (EFFECT_RISING_WISP_CELL_SIZE - 1)) / scratch->depth) * rsin(work->scale + EFFECT_DRAW_QUARTER_TURN)) >> EFFECT_DRAW_FRACTION_BITS; \
-    scratch->cornerOffsetY = (((work->angle * (EFFECT_RISING_WISP_CELL_SIZE - 1)) / scratch->depth) * rcos(work->scale + EFFECT_DRAW_QUARTER_TURN)) >> EFFECT_DRAW_FRACTION_BITS; \
-    quad->x1               = scratch->screenX + scratch->cornerOffsetX;                                                                                                           \
-    quad->x2               = scratch->screenX - scratch->cornerOffsetX;                                                                                                           \
-    quad->y1               = scratch->screenY - scratch->cornerOffsetY;                                                                                                           \
-    quad->y2               = scratch->screenY + scratch->cornerOffsetY;
+/// scratch is a writable `EffectBillboardScratch` and quad a writable `POLY_FT4`.
+/// sizeNumerator is signed size times 31 texels; positive depth gives its screen
+/// half-diagonal in pixels. angle uses 4096 units per turn. Unlike the shape
+/// corner helper, offsets stay signed s32 through centre addition/subtraction
+/// and narrow only at GPU halfword stores. Products and sums must fit s32.
+/// Arguments repeat and must be stable, side-effect-free expressions; storage
+/// must be disjoint. No caller locals are captured or packet ownership changed.
+/// Expand only as a standalone statement sequence inside a compound block.
+#define EFFECT_RISING_WISP_SET_CORNERS(scratch, quad, sizeNumerator, angle)                                                                    \
+    (scratch)->cornerOffsetX = (((sizeNumerator) / (scratch)->depth) * rsin(angle)) >> EFFECT_DRAW_FRACTION_BITS;                              \
+    (scratch)->cornerOffsetY = (((sizeNumerator) / (scratch)->depth) * rcos(angle)) >> EFFECT_DRAW_FRACTION_BITS;                              \
+    (quad)->x0               = (scratch)->screenX + (scratch)->cornerOffsetX;                                                                  \
+    (quad)->x3               = (scratch)->screenX - (scratch)->cornerOffsetX;                                                                  \
+    (quad)->y0               = (scratch)->screenY - (scratch)->cornerOffsetY;                                                                  \
+    (quad)->y3               = (scratch)->screenY + (scratch)->cornerOffsetY;                                                                  \
+    (scratch)->cornerOffsetX = (((sizeNumerator) / (scratch)->depth) * rsin((angle) + EFFECT_DRAW_QUARTER_TURN)) >> EFFECT_DRAW_FRACTION_BITS; \
+    (scratch)->cornerOffsetY = (((sizeNumerator) / (scratch)->depth) * rcos((angle) + EFFECT_DRAW_QUARTER_TURN)) >> EFFECT_DRAW_FRACTION_BITS; \
+    (quad)->x1               = (scratch)->screenX + (scratch)->cornerOffsetX;                                                                  \
+    (quad)->x2               = (scratch)->screenX - (scratch)->cornerOffsetX;                                                                  \
+    (quad)->y1               = (scratch)->screenY - (scratch)->cornerOffsetY;                                                                  \
+    (quad)->y2               = (scratch)->screenY + (scratch)->cornerOffsetY;
 
     work          = task->spawnArg2.pointer;
     effectControl = gRoomEffectState->effectControl;
@@ -3923,7 +3940,7 @@ void effectSpriteTaskA7(Task* task)
         quad->v2    = EFFECT_RISING_WISP_TEXTURE_V + EFFECT_RISING_WISP_CELL_SIZE - 1;
         quad->u3    = ((work->age / ticksPerFrame) * EFFECT_RISING_WISP_CELL_SIZE) + EFFECT_RISING_WISP_CELL_SIZE - 1;
         quad->v3    = EFFECT_RISING_WISP_TEXTURE_V + EFFECT_RISING_WISP_CELL_SIZE - 1;
-        EFFECT_RISING_WISP_SET_CORNERS();
+        EFFECT_RISING_WISP_SET_CORNERS(scratch, quad, work->angle * (EFFECT_RISING_WISP_CELL_SIZE - 1), work->scale);
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 quad);
     }
@@ -4507,25 +4524,6 @@ void effectSpriteTask3F(Task* task)
     s32                 attachmentBits;
     s32                 size;
 
-/// Writes rotated screen corners using the live scratch, quad and work locals.
-///
-/// Use as a standalone statement in a braced block. Captures those three
-/// locals and the enclosing task's cell-size constant, retains repeated field
-/// reads and narrows each offset before adding it to the projected origin.
-#define EFFECT_PROJECTILE_BURST_PARTICLE_SET_CORNERS()                                                                                                                                 \
-    scratch->extent.corner.x = (((work->scale * (EFFECT_BURST_PARTICLE_CELL_SIZE - 1)) / scratch->depth) * rsin(work->angle)) >> EFFECT_DRAW_FRACTION_BITS;                            \
-    scratch->extent.corner.y = (((work->scale * (EFFECT_BURST_PARTICLE_CELL_SIZE - 1)) / scratch->depth) * rcos(work->angle)) >> EFFECT_DRAW_FRACTION_BITS;                            \
-    quad->x0                 = scratch->screenX + (u16)scratch->extent.corner.x;                                                                                                       \
-    quad->x3                 = scratch->screenX - (u16)scratch->extent.corner.x;                                                                                                       \
-    quad->y0                 = scratch->screenY - (u16)scratch->extent.corner.y;                                                                                                       \
-    quad->y3                 = scratch->screenY + (u16)scratch->extent.corner.y;                                                                                                       \
-    scratch->extent.corner.x = (((work->scale * (EFFECT_BURST_PARTICLE_CELL_SIZE - 1)) / scratch->depth) * rsin(work->angle + EFFECT_DRAW_QUARTER_TURN)) >> EFFECT_DRAW_FRACTION_BITS; \
-    scratch->extent.corner.y = (((work->scale * (EFFECT_BURST_PARTICLE_CELL_SIZE - 1)) / scratch->depth) * rcos(work->angle + EFFECT_DRAW_QUARTER_TURN)) >> EFFECT_DRAW_FRACTION_BITS; \
-    quad->x1                 = scratch->screenX + (u16)scratch->extent.corner.x;                                                                                                       \
-    quad->x2                 = scratch->screenX - (u16)scratch->extent.corner.x;                                                                                                       \
-    quad->y1                 = scratch->screenY - (u16)scratch->extent.corner.y;                                                                                                       \
-    quad->y2                 = scratch->screenY + (u16)scratch->extent.corner.y;
-
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
     if (gRoomEffectState->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
@@ -4582,7 +4580,7 @@ void effectSpriteTask3F(Task* task)
                    ((work->age / work->period) * EFFECT_BURST_PARTICLE_CELL_SIZE) + EFFECT_BURST_PARTICLE_CELL_SIZE - 1, EFFECT_BURST_PARTICLE_TEXTURE_V,
                    (work->age / work->period) * EFFECT_BURST_PARTICLE_CELL_SIZE, EFFECT_BURST_PARTICLE_TEXTURE_V + EFFECT_BURST_PARTICLE_CELL_SIZE - 1,
                    ((work->age / work->period) * EFFECT_BURST_PARTICLE_CELL_SIZE) + EFFECT_BURST_PARTICLE_CELL_SIZE - 1, EFFECT_BURST_PARTICLE_TEXTURE_V + EFFECT_BURST_PARTICLE_CELL_SIZE - 1);
-            EFFECT_PROJECTILE_BURST_PARTICLE_SET_CORNERS();
+            EFFECT_SET_ROTATED_SHAPE_CORNERS(scratch, quad, work->scale * (EFFECT_BURST_PARTICLE_CELL_SIZE - 1), work->angle);
             addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                     quad);
         }
@@ -4606,7 +4604,6 @@ void effectSpriteTask3F(Task* task)
         }
     }
     effectKillTask(work, task);
-#undef EFFECT_PROJECTILE_BURST_PARTICLE_SET_CORNERS
 }
 
 /// Attempts one independently placed flash or fading spark within an emitter cube.
@@ -4740,25 +4737,6 @@ void effectSpriteTaskE0(Task* task)
     s32                 frameAge;
     u16                 worldZ;
 
-/// Writes rotated screen corners using the live scratch, quad and work locals.
-///
-/// Use as a standalone statement in a braced block. Captures those three
-/// locals and the enclosing task's cell-size constant, retains repeated field
-/// reads and narrows each offset before adding it to the projected origin.
-#define EFFECT_FLASH_BURST_SET_CORNERS()                                                                                                                                      \
-    scratch->extent.corner.x = (((work->scale * (EFFECT_BURST_CELL_SIZE - 1)) / scratch->depth) * rsin(work->angle)) >> EFFECT_DRAW_FRACTION_BITS;                            \
-    scratch->extent.corner.y = (((work->scale * (EFFECT_BURST_CELL_SIZE - 1)) / scratch->depth) * rcos(work->angle)) >> EFFECT_DRAW_FRACTION_BITS;                            \
-    quad->x0                 = scratch->screenX + (u16)scratch->extent.corner.x;                                                                                              \
-    quad->x3                 = scratch->screenX - (u16)scratch->extent.corner.x;                                                                                              \
-    quad->y0                 = scratch->screenY - (u16)scratch->extent.corner.y;                                                                                              \
-    quad->y3                 = scratch->screenY + (u16)scratch->extent.corner.y;                                                                                              \
-    scratch->extent.corner.x = (((work->scale * (EFFECT_BURST_CELL_SIZE - 1)) / scratch->depth) * rsin(work->angle + EFFECT_DRAW_QUARTER_TURN)) >> EFFECT_DRAW_FRACTION_BITS; \
-    scratch->extent.corner.y = (((work->scale * (EFFECT_BURST_CELL_SIZE - 1)) / scratch->depth) * rcos(work->angle + EFFECT_DRAW_QUARTER_TURN)) >> EFFECT_DRAW_FRACTION_BITS; \
-    quad->x1                 = scratch->screenX + (u16)scratch->extent.corner.x;                                                                                              \
-    quad->x2                 = scratch->screenX - (u16)scratch->extent.corner.x;                                                                                              \
-    quad->y1                 = scratch->screenY - (u16)scratch->extent.corner.y;                                                                                              \
-    quad->y2                 = scratch->screenY + (u16)scratch->extent.corner.y;
-
     work          = task->spawnArg2.pointer;
     effectControl = gRoomEffectState->effectControl;
     coord         = task->extra.coordBody->coord;
@@ -4817,7 +4795,7 @@ void effectSpriteTaskE0(Task* task)
             frameAge    = work->age;
             quad->v3    = textureV;
             quad->u3    = frameAge * EFFECT_BURST_CELL_SIZE + EFFECT_BURST_CELL_SIZE - 1;
-            EFFECT_FLASH_BURST_SET_CORNERS();
+            EFFECT_SET_ROTATED_SHAPE_CORNERS(scratch, quad, work->scale * (EFFECT_BURST_CELL_SIZE - 1), work->angle);
             addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                     quad);
         }
@@ -4833,7 +4811,6 @@ void effectSpriteTaskE0(Task* task)
         return;
     }
     effectKillTask(work, task);
-#undef EFFECT_FLASH_BURST_SET_CORNERS
 }
 
 void effectSpriteTaskE1(Task* task)
@@ -4864,25 +4841,6 @@ void effectSpriteTaskE1(Task* task)
     s32                 textureValue;
     s32                 frameAge;
     u16                 worldZ;
-
-/// Writes rotated screen corners using the live scratch, quad and work locals.
-///
-/// Use as a standalone statement in a braced block. Captures those three
-/// locals and the enclosing task's cell-size constant, retains repeated field
-/// reads and narrows each offset before adding it to the projected origin.
-#define EFFECT_SPARK_FADE_SET_CORNERS()                                                                                                                                       \
-    scratch->extent.corner.x = (((work->scale * (EFFECT_BURST_CELL_SIZE - 1)) / scratch->depth) * rsin(work->angle)) >> EFFECT_DRAW_FRACTION_BITS;                            \
-    scratch->extent.corner.y = (((work->scale * (EFFECT_BURST_CELL_SIZE - 1)) / scratch->depth) * rcos(work->angle)) >> EFFECT_DRAW_FRACTION_BITS;                            \
-    quad->x0                 = scratch->screenX + (u16)scratch->extent.corner.x;                                                                                              \
-    quad->x3                 = scratch->screenX - (u16)scratch->extent.corner.x;                                                                                              \
-    quad->y0                 = scratch->screenY - (u16)scratch->extent.corner.y;                                                                                              \
-    quad->y3                 = scratch->screenY + (u16)scratch->extent.corner.y;                                                                                              \
-    scratch->extent.corner.x = (((work->scale * (EFFECT_BURST_CELL_SIZE - 1)) / scratch->depth) * rsin(work->angle + EFFECT_DRAW_QUARTER_TURN)) >> EFFECT_DRAW_FRACTION_BITS; \
-    scratch->extent.corner.y = (((work->scale * (EFFECT_BURST_CELL_SIZE - 1)) / scratch->depth) * rcos(work->angle + EFFECT_DRAW_QUARTER_TURN)) >> EFFECT_DRAW_FRACTION_BITS; \
-    quad->x1                 = scratch->screenX + (u16)scratch->extent.corner.x;                                                                                              \
-    quad->x2                 = scratch->screenX - (u16)scratch->extent.corner.x;                                                                                              \
-    quad->y1                 = scratch->screenY - (u16)scratch->extent.corner.y;                                                                                              \
-    quad->y2                 = scratch->screenY + (u16)scratch->extent.corner.y;
 
     work          = task->spawnArg2.pointer;
     effectControl = gRoomEffectState->effectControl;
@@ -4944,7 +4902,7 @@ void effectSpriteTaskE1(Task* task)
             frameAge     = work->age;
             quad->v3     = textureValue;
             quad->u3     = frameAge * EFFECT_BURST_CELL_SIZE + EFFECT_BURST_CELL_SIZE - 1;
-            EFFECT_SPARK_FADE_SET_CORNERS();
+            EFFECT_SET_ROTATED_SHAPE_CORNERS(scratch, quad, work->scale * (EFFECT_BURST_CELL_SIZE - 1), work->angle);
             addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                     quad);
         }
@@ -4958,8 +4916,9 @@ void effectSpriteTaskE1(Task* task)
         }
     }
     effectKillTask(work, task);
-#undef EFFECT_SPARK_FADE_SET_CORNERS
 }
+
+#undef EFFECT_SET_ROTATED_SHAPE_CORNERS
 
 /// Installs the spark burst's identity-oriented, parent-relative spawn placement.
 ///
@@ -5057,25 +5016,31 @@ static void _effectDrawSparkBurstBillboard(const GfxCoord* coord, u16 frame, u32
     s32                 perpendicularAngle;
     u16                 worldZ;
 
-/// Writes the spark-burst billboard's rotated screen corners.
+/// Places a spark-burst quad's rotated diagonals with unsigned perspective arithmetic.
 ///
-/// Captures scratch, quad, packedSizePalette, angle and perpendicularAngle,
-/// plus the enclosing cell-size constant. Retains unsigned perspective division
-/// and offset narrowing to u16; use as a standalone statement in a braced block.
-#define EFFECT_SPARK_BURST_BILLBOARD_SET_CORNERS()                                                                                                              \
-    scratch->extent.corner.x = (((packedSizePalette * (EFFECT_BURST_CELL_SIZE - 1)) / scratch->depth) * rsin(angle)) >> EFFECT_DRAW_FRACTION_BITS;              \
-    scratch->extent.corner.y = (((packedSizePalette * (EFFECT_BURST_CELL_SIZE - 1)) / scratch->depth) * rcos(angle)) >> EFFECT_DRAW_FRACTION_BITS;              \
-    quad->x0                 = scratch->screenX + (u16)scratch->extent.corner.x;                                                                                \
-    quad->x3                 = scratch->screenX - (u16)scratch->extent.corner.x;                                                                                \
-    quad->y0                 = scratch->screenY - (u16)scratch->extent.corner.y;                                                                                \
-    quad->y3                 = scratch->screenY + (u16)scratch->extent.corner.y;                                                                                \
-    perpendicularAngle       = angle + EFFECT_DRAW_QUARTER_TURN;                                                                                                \
-    scratch->extent.corner.x = (((packedSizePalette * (EFFECT_BURST_CELL_SIZE - 1)) / scratch->depth) * rsin(perpendicularAngle)) >> EFFECT_DRAW_FRACTION_BITS; \
-    scratch->extent.corner.y = (((packedSizePalette * (EFFECT_BURST_CELL_SIZE - 1)) / scratch->depth) * rcos(perpendicularAngle)) >> EFFECT_DRAW_FRACTION_BITS; \
-    quad->x1                 = scratch->screenX + (u16)scratch->extent.corner.x;                                                                                \
-    quad->x2                 = scratch->screenX - (u16)scratch->extent.corner.x;                                                                                \
-    quad->y1                 = scratch->screenY - (u16)scratch->extent.corner.y;                                                                                \
-    quad->y2                 = scratch->screenY + (u16)scratch->extent.corner.y;
+/// scratch is a writable `EffectShapeScratch` and quad a writable `POLY_FT4`.
+/// sizeNumerator is u32 size times 39 texels, after extracting the packed size;
+/// depth is positive (at least 16 here). Division, trig multiplication and the
+/// 12-bit right shift retain u32 promotions, including for negative trig results.
+/// angle uses 4096 units per turn; quarterTurnAngle is a writable s32 lvalue.
+/// Stores word offsets, then narrows to u16 before screen-centre arithmetic.
+/// Arguments repeat and must be stable, side-effect-free expressions. Scratch
+/// and packet are disjoint, borrowed storage; no caller locals are captured.
+/// Expand only as a standalone statement sequence inside a compound block.
+#define EFFECT_SPARK_BURST_BILLBOARD_SET_CORNERS(scratch, quad, sizeNumerator, angle, quarterTurnAngle)                        \
+    (scratch)->extent.corner.x = (((sizeNumerator) / (scratch)->depth) * rsin(angle)) >> EFFECT_DRAW_FRACTION_BITS;            \
+    (scratch)->extent.corner.y = (((sizeNumerator) / (scratch)->depth) * rcos(angle)) >> EFFECT_DRAW_FRACTION_BITS;            \
+    (quad)->x0                 = (scratch)->screenX + (u16)(scratch)->extent.corner.x;                                         \
+    (quad)->x3                 = (scratch)->screenX - (u16)(scratch)->extent.corner.x;                                         \
+    (quad)->y0                 = (scratch)->screenY - (u16)(scratch)->extent.corner.y;                                         \
+    (quad)->y3                 = (scratch)->screenY + (u16)(scratch)->extent.corner.y;                                         \
+    (quarterTurnAngle)         = (angle) + EFFECT_DRAW_QUARTER_TURN;                                                           \
+    (scratch)->extent.corner.x = (((sizeNumerator) / (scratch)->depth) * rsin(quarterTurnAngle)) >> EFFECT_DRAW_FRACTION_BITS; \
+    (scratch)->extent.corner.y = (((sizeNumerator) / (scratch)->depth) * rcos(quarterTurnAngle)) >> EFFECT_DRAW_FRACTION_BITS; \
+    (quad)->x1                 = (scratch)->screenX + (u16)(scratch)->extent.corner.x;                                         \
+    (quad)->x2                 = (scratch)->screenX - (u16)(scratch)->extent.corner.x;                                         \
+    (quad)->y1                 = (scratch)->screenY - (u16)(scratch)->extent.corner.y;                                         \
+    (quad)->y2                 = (scratch)->screenY + (u16)(scratch)->extent.corner.y;
 
     scratchEnd                               = SCRATCH_STACK_CURSOR(EffectShapeScratch);
     (scratchEnd - 1)->worldPoint.vx          = (u16)coord->workm.t[0];
@@ -5108,7 +5073,7 @@ static void _effectDrawSparkBurstBillboard(const GfxCoord* coord, u16 frame, u32
         quad->clut  = getClut(EFFECT_BURST_CLUT_X - (s16)palette * EFFECT_BURST_CLUT_X_STRIDE, palette + EFFECT_BURST_CLUT_Y);
         setUV4(quad, frame * EFFECT_BURST_CELL_SIZE, EFFECT_BURST_TEXTURE_V, frame * EFFECT_BURST_CELL_SIZE + EFFECT_BURST_CELL_SIZE - 1, EFFECT_BURST_TEXTURE_V, frame * EFFECT_BURST_CELL_SIZE, EFFECT_BURST_TEXTURE_V + EFFECT_BURST_CELL_SIZE - 1,
                frame * EFFECT_BURST_CELL_SIZE + EFFECT_BURST_CELL_SIZE - 1, EFFECT_BURST_TEXTURE_V + EFFECT_BURST_CELL_SIZE - 1);
-        EFFECT_SPARK_BURST_BILLBOARD_SET_CORNERS();
+        EFFECT_SPARK_BURST_BILLBOARD_SET_CORNERS(scratch, quad, packedSizePalette * (EFFECT_BURST_CELL_SIZE - 1), angle, perpendicularAngle);
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 quad);
     }
@@ -5359,13 +5324,20 @@ void playerActorInitWeaponCollision(Task* actorTask, s32 weaponId, s32 attackRow
     SCRATCH_STACK_RELEASE_BLOCK(VECTOR);
 }
 
-/// Steps a 16.16 value that has a fractional part one whole unit away from
-/// zero, so that its integer half rounds away from zero.
-#define GP_ROUND_FIXED_AWAY(x)                      \
-    do {                                            \
-        if (((x) & 0xFFFF) != 0) {                  \
-            (x) += ((x) >= 0) ? 0x10000 : -0x10000; \
-        }                                           \
+/// Adds one signed whole unit to a grid correction when its 16.16 fraction is nonzero.
+///
+/// fixedWord must be a stable writable s32 lvalue, evaluated repeatedly; the
+/// addition must fit s32. The fraction bits remain intact. Reading the signed
+/// high half afterward gives ceil for positive fractions and floor minus one
+/// for negative fractions: -0x8000 becomes -0x18000 and then -2, not -1.
+/// Integral corrections are untouched. No pointers or caller locals are captured.
+#define WORLD_COLLISION_BIAS_FRACTIONAL_PUSHBACK(fixedWord)                                                               \
+    do {                                                                                                                  \
+        enum { WORLD_COLLISION_PUSHBACK_FRACTION_MASK = 0xFFFF,                                                           \
+               WORLD_COLLISION_PUSHBACK_FIXED_ONE     = 0x10000 };                                                            \
+        if (((fixedWord) & WORLD_COLLISION_PUSHBACK_FRACTION_MASK) != 0) {                                                \
+            (fixedWord) += ((fixedWord) >= 0) ? WORLD_COLLISION_PUSHBACK_FIXED_ONE : -WORLD_COLLISION_PUSHBACK_FIXED_ONE; \
+        }                                                                                                                 \
     } while (0)
 
 s32 worldCollisionApplyResponsePushback(GfxCoord* coord, const WorldCollisionContact* contacts, s32 contactCount, s32* surfaceClassOut)
@@ -5377,9 +5349,9 @@ s32 worldCollisionApplyResponsePushback(GfxCoord* coord, const WorldCollisionCon
     response = worldCollisionResolveResponsePushback(contacts, delta, contactCount, surfaceClassOut);
     // Apply whole-unit correction, then turn the returned surface mask into a class.
     if (response != WORLD_COLLISION_PUSHBACK_NO_GRID_HIT) {
-        GP_ROUND_FIXED_AWAY(delta->fixed.vx.word);
-        GP_ROUND_FIXED_AWAY(delta->fixed.vy.word);
-        GP_ROUND_FIXED_AWAY(delta->fixed.vz.word);
+        WORLD_COLLISION_BIAS_FRACTIONAL_PUSHBACK(delta->fixed.vx.word);
+        WORLD_COLLISION_BIAS_FRACTIONAL_PUSHBACK(delta->fixed.vy.word);
+        WORLD_COLLISION_BIAS_FRACTIONAL_PUSHBACK(delta->fixed.vz.word);
         coord->coord.t[0] += delta->fixed.vx.halves.integer;
         coord->coord.t[1] += delta->fixed.vy.halves.integer;
         coord->coord.t[2] += delta->fixed.vz.halves.integer;
@@ -5393,6 +5365,8 @@ s32 worldCollisionApplyResponsePushback(GfxCoord* coord, const WorldCollisionCon
     SCRATCH_STACK_RELEASE_BLOCK(WorldCollisionDelta);
     return response;
 }
+
+#undef WORLD_COLLISION_BIAS_FRACTIONAL_PUSHBACK
 
 /// Walks the retained text-grid pen and colour state without drawing any text.
 ///
@@ -5803,22 +5777,29 @@ void playerActorStepMovement(Task* task)
     SCRATCH_STACK_RELEASE_BLOCK(_PlayerActorMoveStepScratch);
 }
 
-/// Eases `angle` back toward zero by an eighth of itself, at least 0x20 per
-/// call, and snaps it to zero once it is within 0x20; an angle that was not
-/// yet zero sets `moving`. `step` receives the amount taken off.
-#define GP_DECAY_ANGLE(angle, step, moving)           \
-    do {                                              \
-        if ((angle) != 0) {                           \
-            (moving) = 1;                             \
-            (step)   = (angle) >> 3;                  \
-            if (ABS(step) < 0x20) {                   \
-                (step) = ((step) < 0) ? -0x20 : 0x20; \
-            }                                         \
-            (angle) -= (step);                        \
-            if (ABS(angle) < 0x21) {                  \
-                (angle) = 0;                          \
-            }                                         \
-        }                                             \
+/// Eases one signed aim angle toward zero and latches whether decay was needed.
+///
+/// angle and step are stable writable s16 lvalues; moving is a writable s32
+/// latch initialized by the caller. Angles use 4096 units per turn. A nonzero
+/// entry sets moving to one, takes the signed arithmetic eighth with minimum
+/// magnitude 32, and snaps a narrowed residual within +/-32 to zero. A zero
+/// entry leaves step/moving untouched; moving is never cleared here, even if
+/// this call reaches zero. All arguments repeat and must have no side effects.
+#define PLAYER_ACTOR_DECAY_AIM_ANGLE(angle, step, moving)                                                   \
+    do {                                                                                                    \
+        enum { PLAYER_ACTOR_AIM_DECAY_SHIFT    = 3,                                                         \
+               PLAYER_ACTOR_AIM_DECAY_MIN_STEP = 32 };                                                      \
+        if ((angle) != 0) {                                                                                 \
+            (moving) = 1;                                                                                   \
+            (step)   = (angle) >> PLAYER_ACTOR_AIM_DECAY_SHIFT;                                             \
+            if (ABS(step) < PLAYER_ACTOR_AIM_DECAY_MIN_STEP) {                                              \
+                (step) = ((step) < 0) ? -PLAYER_ACTOR_AIM_DECAY_MIN_STEP : PLAYER_ACTOR_AIM_DECAY_MIN_STEP; \
+            }                                                                                               \
+            (angle) -= (step);                                                                              \
+            if (ABS(angle) < PLAYER_ACTOR_AIM_DECAY_MIN_STEP + 1) {                                         \
+                (angle) = 0;                                                                                \
+            }                                                                                               \
+        }                                                                                                   \
     } while (0)
 
 /// Invalidates a model part's cached composition and returns its local matrix.
@@ -5854,11 +5835,11 @@ void playerActorUpdateFacing(Task* task)
     MatrixNormal(&coord->coord, &coord->coord);
     // Ease residual aim offsets back to the ordinary pose before composing the parts.
     if (actor->aimTrackingState == GAME_ACTOR_AIM_TRACKING_DECAY) {
-        GP_DECAY_ANGLE(actor->part2Pitch, decayStep, aimAnglesMoving);
-        GP_DECAY_ANGLE(actor->part2Roll, decayStep, aimAnglesMoving);
-        GP_DECAY_ANGLE(actor->part3Pitch, decayStep, aimAnglesMoving);
-        GP_DECAY_ANGLE(actor->part3Roll, decayStep, aimAnglesMoving);
-        GP_DECAY_ANGLE(actor->part6Pitch, decayStep, aimAnglesMoving);
+        PLAYER_ACTOR_DECAY_AIM_ANGLE(actor->part2Pitch, decayStep, aimAnglesMoving);
+        PLAYER_ACTOR_DECAY_AIM_ANGLE(actor->part2Roll, decayStep, aimAnglesMoving);
+        PLAYER_ACTOR_DECAY_AIM_ANGLE(actor->part3Pitch, decayStep, aimAnglesMoving);
+        PLAYER_ACTOR_DECAY_AIM_ANGLE(actor->part3Roll, decayStep, aimAnglesMoving);
+        PLAYER_ACTOR_DECAY_AIM_ANGLE(actor->part6Pitch, decayStep, aimAnglesMoving);
         if (aimAnglesMoving == 0) {
             actor->aimTrackingState = GAME_ACTOR_AIM_TRACKING_OFF;
         }
@@ -5878,6 +5859,8 @@ void playerActorUpdateFacing(Task* task)
     gfxRotMatrixX(partMatrix, actor->part6Pitch, GRAPHICS_ROTATION_COMPOSE);
     MatrixNormal(partMatrix, partMatrix);
 }
+
+#undef PLAYER_ACTOR_DECAY_AIM_ANGLE
 
 /// Returns the shortest signed turn between two angles, in 4096 units per turn.
 ///
@@ -6030,21 +6013,26 @@ void playerActorAimPitchToLock(Task* task)
     _PlayerActorAimPitchScratch* scratch;
     GfxCoord*                    modelCoords;
 
-/// Clamps and applies a lock-pitch step, deriving roll for an accepted angle.
+/// Applies a bounded lock-pitch step and derives the joint's coupled roll.
 ///
-/// Arguments must be stable, side-effect-free lvalues/values: scratch and partPitch
-/// are evaluated repeatedly. Uses this function's PLAYER_ACTOR_LOCK_PITCH_STEP.
-#define PLAYER_ACTOR_APPLY_LOCK_PITCH(scratch, partPitch, partRoll, pitchLimit, rollWeight) \
-    do {                                                                                    \
-        if ((scratch)->pitch > PLAYER_ACTOR_LOCK_PITCH_STEP) {                              \
-            (scratch)->pitch = PLAYER_ACTOR_LOCK_PITCH_STEP;                                \
-        } else if ((scratch)->pitch < -PLAYER_ACTOR_LOCK_PITCH_STEP) {                      \
-            (scratch)->pitch = -PLAYER_ACTOR_LOCK_PITCH_STEP;                               \
-        }                                                                                   \
-        if (ABS((partPitch) + (scratch)->pitch) <= (pitchLimit)) {                          \
-            (partPitch) += (scratch)->pitch;                                                \
-            (partRoll)   = ((partPitch) / 5) * (rollWeight);                                \
-        }                                                                                   \
+/// pitchStep is a writable s32 delta, clamped in place to +/-48. partPitch and
+/// partRoll are writable s16 angles in 4096 units per turn. If the proposed
+/// pitch exceeds pitchLimit, both joint angles stay intact; the clamped delta
+/// remains. Otherwise roll is (the stored pitch / 5) * rollWeight, retaining
+/// signed division toward zero before multiplication (weights 3 or 2 here).
+/// Arguments repeat and must be stable and side-effect-free. Captures only
+/// the enclosing `PLAYER_ACTOR_LOCK_PITCH_STEP`; arithmetic must fit s32.
+#define PLAYER_ACTOR_APPLY_LOCK_PITCH(pitchStep, partPitch, partRoll, pitchLimit, rollWeight) \
+    do {                                                                                      \
+        if ((pitchStep) > PLAYER_ACTOR_LOCK_PITCH_STEP) {                                     \
+            (pitchStep) = PLAYER_ACTOR_LOCK_PITCH_STEP;                                       \
+        } else if ((pitchStep) < -PLAYER_ACTOR_LOCK_PITCH_STEP) {                             \
+            (pitchStep) = -PLAYER_ACTOR_LOCK_PITCH_STEP;                                      \
+        }                                                                                     \
+        if (ABS((partPitch) + (pitchStep)) <= (pitchLimit)) {                                 \
+            (partPitch) += (pitchStep);                                                       \
+            (partRoll)   = ((partPitch) / 5) * (rollWeight);                                  \
+        }                                                                                     \
     } while (0)
 
     actor   = task->work;
@@ -6060,13 +6048,13 @@ void playerActorAimPitchToLock(Task* task)
         scratch->targetDelta.vy >>= 1;
         scratch->pitch            = ratan2(-scratch->targetDelta.vy, scratch->groundDistance) / 7 * 4;
         scratch->pitch           -= actor->part2Pitch;
-        PLAYER_ACTOR_APPLY_LOCK_PITCH(scratch, actor->part2Pitch, actor->part2Roll, PLAYER_ACTOR_LOCK_PART2_PITCH_LIMIT, 3);
+        PLAYER_ACTOR_APPLY_LOCK_PITCH(scratch->pitch, actor->part2Pitch, actor->part2Roll, PLAYER_ACTOR_LOCK_PART2_PITCH_LIMIT, 3);
 
         _playerActorPlaceAimPitchOrigin(scratch, actor->equipmentTasks[1]->extra.tmd->coords, &_gPlayerActorWeaponAimOrigins[gPlayerStatus.weapon]);
         scratch->groundDistance = _playerActorGetAimPitchTargetDelta(actor, scratch);
         scratch->pitch          = ratan2(-scratch->targetDelta.vy, scratch->groundDistance) / 7 * 4;
         scratch->pitch         -= actor->part3Pitch;
-        PLAYER_ACTOR_APPLY_LOCK_PITCH(scratch, actor->part3Pitch, actor->part3Roll, PLAYER_ACTOR_LOCK_PART3_PITCH_LIMIT, 2);
+        PLAYER_ACTOR_APPLY_LOCK_PITCH(scratch->pitch, actor->part3Pitch, actor->part3Roll, PLAYER_ACTOR_LOCK_PART3_PITCH_LIMIT, 2);
     }
     SCRATCH_STACK_RELEASE_BLOCK(_PlayerActorAimPitchScratch);
 }
@@ -6091,22 +6079,23 @@ static void _playerActorAimRollToLock(Task* task)
     _PlayerActorAimPitchScratch* scratch;
     GfxCoord*                    modelCoords;
 
-/// Clamps a lock-elevation delta and applies it within a joint's absolute limit.
+/// Applies a bounded lock-elevation step to a joint only within its absolute limit.
 ///
-/// Arguments must be stable, side-effect-free values/lvalues; scratch and
-/// jointAngle are evaluated repeatedly. The joint is a signed halfword,
-/// the delta is s32 and their sum must fit s32. Angles use 4096 units per turn;
-/// uses the source-local PLAYER_ACTOR_LOCK_ELEVATION_STEP constant.
-#define PLAYER_ACTOR_APPLY_LOCK_ELEVATION_STEP(scratch, jointAngle, angleLimit) \
-    do {                                                                        \
-        if ((scratch)->pitch > PLAYER_ACTOR_LOCK_ELEVATION_STEP) {              \
-            (scratch)->pitch = PLAYER_ACTOR_LOCK_ELEVATION_STEP;                \
-        } else if ((scratch)->pitch < -PLAYER_ACTOR_LOCK_ELEVATION_STEP) {      \
-            (scratch)->pitch = -PLAYER_ACTOR_LOCK_ELEVATION_STEP;               \
-        }                                                                       \
-        if (ABS((jointAngle) + (scratch)->pitch) <= (angleLimit)) {             \
-            (jointAngle) += (scratch)->pitch;                                   \
-        }                                                                       \
+/// pitchStep is a writable s32 delta, clamped in place to +/-48. jointAngle is
+/// a writable s16 angle; angleLimit is a nonnegative bound in 4096 units per
+/// turn. An out-of-range sum leaves the joint intact but retains the clamped
+/// delta. Arguments repeat and must be stable and side-effect-free; captures
+/// only `PLAYER_ACTOR_LOCK_ELEVATION_STEP`, with s32 sums and s16 joint stores.
+#define PLAYER_ACTOR_APPLY_LOCK_ELEVATION_STEP(pitchStep, jointAngle, angleLimit) \
+    do {                                                                          \
+        if ((pitchStep) > PLAYER_ACTOR_LOCK_ELEVATION_STEP) {                     \
+            (pitchStep) = PLAYER_ACTOR_LOCK_ELEVATION_STEP;                       \
+        } else if ((pitchStep) < -PLAYER_ACTOR_LOCK_ELEVATION_STEP) {             \
+            (pitchStep) = -PLAYER_ACTOR_LOCK_ELEVATION_STEP;                      \
+        }                                                                         \
+        if (ABS((jointAngle) + (pitchStep)) <= (angleLimit)) {                    \
+            (jointAngle) += (pitchStep);                                          \
+        }                                                                         \
     } while (0)
 
     actor   = task->work;
@@ -6121,13 +6110,13 @@ static void _playerActorAimRollToLock(Task* task)
         scratch->targetDelta.vy >>= 1;
         scratch->pitch            = ratan2(-scratch->targetDelta.vy, scratch->groundDistance) / 7 * 4;
         scratch->pitch           -= actor->part2Roll;
-        PLAYER_ACTOR_APPLY_LOCK_ELEVATION_STEP(scratch, actor->part2Roll, PLAYER_ACTOR_LOCK_PART2_ROLL_LIMIT);
+        PLAYER_ACTOR_APPLY_LOCK_ELEVATION_STEP(scratch->pitch, actor->part2Roll, PLAYER_ACTOR_LOCK_PART2_ROLL_LIMIT);
 
         _playerActorPlaceAimPitchOrigin(scratch, actor->equipmentTasks[1]->extra.tmd->coords, &_gPlayerActorWeaponAimOrigins[gPlayerStatus.weapon]);
         scratch->groundDistance = _playerActorGetAimPitchTargetDelta(actor, scratch);
         scratch->pitch          = ratan2(-scratch->targetDelta.vy, scratch->groundDistance) / 7 * 4;
         scratch->pitch         -= actor->part3Roll;
-        PLAYER_ACTOR_APPLY_LOCK_ELEVATION_STEP(scratch, actor->part3Roll, PLAYER_ACTOR_LOCK_PART3_ROLL_LIMIT);
+        PLAYER_ACTOR_APPLY_LOCK_ELEVATION_STEP(scratch->pitch, actor->part3Roll, PLAYER_ACTOR_LOCK_PART3_ROLL_LIMIT);
     }
     SCRATCH_STACK_RELEASE_BLOCK(_PlayerActorAimPitchScratch);
 }
@@ -6150,7 +6139,7 @@ void playerActorAimPart6PitchToLock(Task* task, s32 weaponId, s32 minGroundDista
             scratch->pitch  = ratan2(-scratch->targetDelta.vy, scratch->groundDistance);
             scratch->pitch -= actor->part6Pitch;
             if (ABS(scratch->pitch) >= PLAYER_ACTOR_LOCK_PITCH_DEAD_ZONE) {
-                PLAYER_ACTOR_APPLY_LOCK_ELEVATION_STEP(scratch, actor->part6Pitch, PLAYER_ACTOR_LOCK_PART6_PITCH_LIMIT);
+                PLAYER_ACTOR_APPLY_LOCK_ELEVATION_STEP(scratch->pitch, actor->part6Pitch, PLAYER_ACTOR_LOCK_PART6_PITCH_LIMIT);
             }
         }
     }
@@ -6186,7 +6175,7 @@ static void _playerActorAimDirectPitchToLock(Task* task)
         scratch->pitch          = ratan2(-scratch->targetDelta.vy, scratch->groundDistance);
         scratch->pitch         -= actor->directAimPitch;
         if (ABS(scratch->pitch) >= PLAYER_ACTOR_DIRECT_PITCH_DEAD_ZONE) {
-            PLAYER_ACTOR_APPLY_LOCK_ELEVATION_STEP(scratch, actor->directAimPitch, PLAYER_ACTOR_DIRECT_PITCH_LIMIT);
+            PLAYER_ACTOR_APPLY_LOCK_ELEVATION_STEP(scratch->pitch, actor->directAimPitch, PLAYER_ACTOR_DIRECT_PITCH_LIMIT);
         }
     }
     SCRATCH_STACK_RELEASE_BLOCK(_PlayerActorAimPitchScratch);
@@ -7202,14 +7191,15 @@ s32 playerActorEndScripted(Task* task, s32 unusedMessageId, s32 resumeMode, s32 
     u16        actorMode;
     VECTOR     part1Offset;
 
-/// Transfers part 1's animated offset into root X/Z, preserving both Y translations.
+/// Transfers animated part-1 displacement into root X/Z, preserving both Y translations.
 ///
-/// Borrows live nodes and a writable VECTOR lvalue for staging. Arguments must
-/// be stable and side-effect-free; each is evaluated repeatedly. All XYZ are
-/// transformed by the root's local basis, then only X/Z are transferred and
-/// cleared. Does not compose or invalidate coordinate caches. No configuration
-/// bindings or captured locals are required. Expand only as a standalone
-/// statement sequence inside a compound block.
+/// rootCoord and part1Coord are distinct live writable `GfxCoord` pointers;
+/// part1Offset is a writable `VECTOR` lvalue in game-coordinate units, disjoint
+/// from both. Copies XYZ and rotates all three through the root's Q12 local
+/// basis in place, then adds only X/Z to the root and clears only child X/Z.
+/// Leaves vector metadata and coordinate caches intact. Arguments repeat and
+/// must be stable, side-effect-free expressions; no caller locals are captured.
+/// Expand only as a standalone statement sequence inside a compound block.
 #define PLAYER_ACTOR_BAKE_PART1_OFFSET(rootCoord, part1Coord, part1Offset) \
     (part1Offset).vx = (part1Coord)->coord.t[0];                           \
     (part1Offset).vy = (part1Coord)->coord.t[1];                           \
@@ -8566,12 +8556,17 @@ static void _playerActorNormalState2(Task* task)
     playerActorPlayFootstepCue(task);
 }
 
-/// Consumes a changed slot-1 record identity before interpreting reload cue flags.
+/// Consumes a new slot-1 animation record identity for reload cue processing.
 ///
-/// Both arguments repeat and must be stable pointers/lvalues without side
-/// effects. Requires live actor playback; record receives the borrowed result.
-/// Updates lastCueRecord even for records without cue flags. Defined only for
-/// this reload driver and undefined afterward.
+/// actorWork is live writable `GameActor` playback and cueRecord a writable
+/// const `AnimationRecord`* lvalue. Returns int 1 only for a non-NULL record
+/// different from `lastCueRecord`, updating that latch before flags are read.
+/// Returns 0 for NULL or the previous identity without changing the latch;
+/// cueRecord always receives the borrowed current record, including NULL.
+/// A record without cue flags is still consumed; revisiting the same address
+/// consecutively is suppressed. Native animation storage must remain live.
+/// Arguments repeat and must be stable and side-effect-free. Uses &&/comma
+/// sequencing as an expression; no caller locals or configuration are captured.
 #define PLAYER_ACTOR_CONSUME_RELOAD_RECORD(actorWork, cueRecord)                                                           \
     (((cueRecord) = animationGetCurrentRecord(&(actorWork)->animationContext, (actorWork)->animationSlots + 1)) != NULL && \
      (cueRecord) != (actorWork)->lastCueRecord &&                                                                          \
@@ -9535,23 +9530,27 @@ static void _playerActorUpdateAimEntry(Task* task)
     GameActor*       actor;
     WorldTargetNode* targetCandidate;
 
-/// Completes a nonzero aim-entry phase, consuming its pending target transition.
+/// Finishes a nonzero aim-entry phase and consumes its pending target transition.
 ///
-/// Arguments must be stable, side-effect-free pointers; all repeat. Requires
-/// live actor/native playback and a live candidate when non-NULL. Captures
-/// this function's three-frame blend constant; undefined after this function.
-#define PLAYER_ACTOR_COMPLETE_AIM_ENTRY(playerTask, playerWork, lockCandidate)                 \
-    do {                                                                                       \
-        if ((playerWork)->statePhase != 0) {                                                   \
-            sceneEngageBattle(1);                                                              \
-            if ((playerWork)->aimTransitionPending != 0) {                                     \
-                (playerWork)->aimTransitionPending = 0;                                        \
-                if ((lockCandidate) != NULL) {                                                 \
-                    playerActorSetLockTarget((playerTask), (lockCandidate));                   \
-                }                                                                              \
-            }                                                                                  \
-            _playerActorEnterAimLocomotion((playerTask), PLAYER_ACTOR_AIM_ENTRY_BLEND_FRAMES); \
-        }                                                                                      \
+/// playerWork must be playerTask's live writable `GameActor` with native playback.
+/// A zero phase does nothing. Otherwise engages an idle battle, clears any
+/// pending transition before adopting a non-NULL borrowed lockCandidate, then
+/// enters aim locomotion. No pending transition leaves the current lock intact.
+/// blendFrames counts whole normal-rate frames (three here); the adopted target
+/// must outlive the lock. Arguments repeat and must be stable, side-effect-free
+/// pointers/values. Captures no caller locals or configuration constants.
+#define PLAYER_ACTOR_COMPLETE_AIM_ENTRY(playerTask, playerWork, lockCandidate, blendFrames) \
+    do {                                                                                    \
+        if ((playerWork)->statePhase != 0) {                                                \
+            sceneEngageBattle(1);                                                           \
+            if ((playerWork)->aimTransitionPending != 0) {                                  \
+                (playerWork)->aimTransitionPending = 0;                                     \
+                if ((lockCandidate) != NULL) {                                              \
+                    playerActorSetLockTarget((playerTask), (lockCandidate));                \
+                }                                                                           \
+            }                                                                               \
+            _playerActorEnterAimLocomotion((playerTask), (blendFrames));                    \
+        }                                                                                   \
     } while (0)
 
     actor               = task->work;
@@ -9559,7 +9558,7 @@ static void _playerActorUpdateAimEntry(Task* task)
     actor->movementSign = 0;
     if ((targetCandidate != NULL && gSceneCombatState.signals.bytes.battlePhase < SCENE_COMBAT_BATTLE_FINISHED) || gSceneCombatState.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_ENGAGED ||
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.field_929 != 0) {
-        PLAYER_ACTOR_COMPLETE_AIM_ENTRY(task, actor, targetCandidate);
+        PLAYER_ACTOR_COMPLETE_AIM_ENTRY(task, actor, targetCandidate, PLAYER_ACTOR_AIM_ENTRY_BLEND_FRAMES);
     } else {
         _playerActorUpdateAimRequest(task);
         if (actor->aimControl & GAME_ACTOR_AIM_REQUEST_EXIT) {
@@ -10651,29 +10650,24 @@ static void _playerActorUpdateTurnYawOffset(Task* task)
     u16        heldButtons;
     s16        yawStep;
 
-    /// Recenters a nonzero relative turn yaw by an eighth, with a 64-unit minimum step.
-    ///
-    /// `actor` is a stable pointer to writable GameActor work; `yawStep` is a
-    /// writable s16 lvalue. Both arguments are evaluated repeatedly. Uses the
-    /// enclosing function's recenter constant; removed with #undef after this use.
-#define PLAYER_ACTOR_RECENTER_TURN_YAW(actor, yawStep)                       \
-    do {                                                                     \
-        s32 decayStep;                                                       \
-        s32 originalDecayStep;                                               \
-        decayStep         = (actor)->aimYaw >> 3;                            \
-        (yawStep)         = decayStep;                                       \
-        originalDecayStep = decayStep;                                       \
-        if (ABS(originalDecayStep) < PLAYER_ACTOR_TURN_YAW_RECENTER_MIN) {   \
-            decayStep = PLAYER_ACTOR_TURN_YAW_RECENTER_MIN;                  \
-            if (originalDecayStep < 0) {                                     \
-                decayStep = -PLAYER_ACTOR_TURN_YAW_RECENTER_MIN;             \
-            }                                                                \
-            (yawStep) = decayStep;                                           \
-        }                                                                    \
-        (actor)->aimYaw -= (yawStep);                                        \
-        if (ABS((actor)->aimYaw) < PLAYER_ACTOR_TURN_YAW_RECENTER_MIN + 1) { \
-            (actor)->aimYaw = 0;                                             \
-        }                                                                    \
+/// Recenters a relative turn yaw by its signed eighth with a 64-unit minimum step.
+///
+/// actor points to live writable `GameActor` work with nonzero aimYaw; yawStep
+/// is a writable s16 lvalue. Angles use 4096 units per turn. The residual is
+/// stored as s16 before snapping values within +/-64 to zero. The minimum
+/// step keeps the arithmetic shift's sign, including negative sub-eighth yaw.
+/// Arguments repeat and must be stable and side-effect-free. Captures only
+/// the enclosing `PLAYER_ACTOR_TURN_YAW_RECENTER_MIN` constant.
+#define PLAYER_ACTOR_RECENTER_TURN_YAW(actor, yawStep)                                                              \
+    do {                                                                                                            \
+        (yawStep) = (actor)->aimYaw >> 3;                                                                           \
+        if (ABS(yawStep) < PLAYER_ACTOR_TURN_YAW_RECENTER_MIN) {                                                    \
+            (yawStep) = ((yawStep) < 0) ? -PLAYER_ACTOR_TURN_YAW_RECENTER_MIN : PLAYER_ACTOR_TURN_YAW_RECENTER_MIN; \
+        }                                                                                                           \
+        (actor)->aimYaw -= (yawStep);                                                                               \
+        if (ABS((actor)->aimYaw) < PLAYER_ACTOR_TURN_YAW_RECENTER_MIN + 1) {                                        \
+            (actor)->aimYaw = 0;                                                                                    \
+        }                                                                                                           \
     } while (0)
 
     coords                                          = task->extra.tmd->coords;
