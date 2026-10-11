@@ -159,11 +159,13 @@ extern u16 gMapNeoArkMarkerFlags[MAP_NEO_ARK_MARKER_COUNT];
 /// for the stage; there is no count header or terminator.
 extern WorldCoordRoomLighting* gMapNeoArkRoomLightingTables[33];
 
-/// This stage's entries in `Gp_WarpTables`, `gViewCountTables` and
-/// `Gp_RoomObjTables`: each leads to
-/// one pointer per room, into that room's package or, for some rooms, at a
-/// record this overlay holds itself.
-extern DirectionWarpEntry* D_map_neo_ark_8017AA80[];
+/// Borrowed warp endpoint arrays for Shelter/Neo Ark.
+///
+/// Select area - 1 for IDs 1..33, then warp - 1 within that area's own
+/// endpoint extent; neither level has a terminator. Every area entry is populated.
+/// The map owns this directory. Keep it and the selected room overlay loaded
+/// during lookup; endpoints are copied by value and are independent of room ID.
+extern DirectionWarpEntry* gMapNeoArkAreaWarpEntries[MAP_NEO_ARK_AREA_ID_LIMIT];
 
 /// Directory of borrowed room view-count arrays for Shelter/Neo Ark areas 1..33.
 ///
@@ -173,7 +175,14 @@ extern DirectionWarpEntry* D_map_neo_ark_8017AA80[];
 /// selected room's count array loaded, and use an in-range 1-based room ID.
 extern ViewCountTable gMapNeoArkViewCountTable;
 
-extern WorldCollisionStageResources D_map_neo_ark_8017ACA0;
+/// Stage collision-resource directory for Shelter/Neo Ark.
+///
+/// Select `areaRooms[area - 1][room - 1]` with area IDs 1..33 and a room
+/// within that area's array. Every area entry is populated.
+/// Neither level has a terminator. This map owns the directory and some
+/// descriptors; selected room overlays own the mutable grids and linked
+/// trigger/occluder storage, which must remain loaded until retired.
+extern WorldCollisionStageResources gMapNeoArkWorldCollisionResources;
 
 /// Mapped-view cameras for the 33 Shelter/Neo Ark areas (stage 5).
 ///

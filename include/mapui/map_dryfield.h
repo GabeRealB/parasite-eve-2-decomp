@@ -78,8 +78,13 @@ extern u8 gMapDryfieldPageFlagIds[MAP_DRYFIELD_PAGE_COUNT + 1];
 /// pixels and scales use world units per pixel. Keep this overlay loaded for use.
 extern MenuMapArea gMapDryfieldAreas[GAME_AREA_DRYFIELD_UNDERPASS + 2];
 
-/// This stage's `Gp_MapMarkTables` entry: the area shapes, indexed by area.
-extern MenuMapAreaShape D_map_dryfield_80179E00[];
+/// Area shapes and icon-only page selections for daytime Dryfield.
+///
+/// Indexed directly by area ID 0..38; slot zero is hidden. There is no
+/// terminator: `Gp_MapMarkCounts` includes slot zero and covers this whole array.
+/// Keep this map loaded during drawing, and load the selected page's picture
+/// package before dereferencing a shape model from that page.
+extern MenuMapAreaShape gMapDryfieldAreaShapes[GAME_AREA_DRYFIELD_UNDERPASS + 1];
 
 /// Fixed map markers for daytime Dryfield, followed by a page-zero terminator.
 ///
@@ -136,7 +141,13 @@ extern u16 gMapDryfieldMarkerFlags[MAP_DRYFIELD_MARKER_COUNT];
 /// remain valid only while the corresponding room overlay is loaded.
 extern WorldCoordRoomLighting* gMapDryfieldRoomLightingTables[38];
 
-extern DirectionWarpEntry* D_map_dryfield_8017A8F8[];
+/// Borrowed warp endpoint arrays for daytime Dryfield.
+///
+/// Select area - 1 for IDs 1..38, then warp - 1 within that area's own
+/// endpoint extent; neither level has a terminator. Areas 10, 33, 35, 36, 37 are NULL and cannot be selected.
+/// The map owns this directory. Keep it and the selected room overlay loaded
+/// during lookup; endpoints are copied by value and are independent of room ID.
+extern DirectionWarpEntry* gMapDryfieldAreaWarpEntries[GAME_AREA_DRYFIELD_UNDERPASS];
 
 /// Logical-view search counts for daytime Dryfield areas 1..38.
 ///
@@ -147,7 +158,14 @@ extern DirectionWarpEntry* D_map_dryfield_8017A8F8[];
 /// slots and keep this map and the selected room overlay loaded during lookup.
 extern ViewCountTable gMapDryfieldViewCountTable;
 
-extern WorldCollisionStageResources D_map_dryfield_8017AAC4;
+/// Stage collision-resource directory for daytime Dryfield.
+///
+/// Select `areaRooms[area - 1][room - 1]` with area IDs 1..38 and a room
+/// within that area's array. Areas 10, 33, 35, 36, 37 are NULL and bind no resources.
+/// Neither level has a terminator. This map owns the directory and some
+/// descriptors; selected room overlays own the mutable grids and linked
+/// trigger/occluder storage, which must remain loaded until retired.
+extern WorldCollisionStageResources gMapDryfieldWorldCollisionResources;
 
 /// Daytime Dryfield's directory of camera arrays for areas 1..38.
 ///

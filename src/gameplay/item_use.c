@@ -113,7 +113,7 @@ InventoryBattleReward* D_8010F9F4[6] = {
     gMapAkropolisBattleRewards,
     gMapDryfieldBattleRewards,
     gMapDryfieldFullBattleRewards,
-    D_map_shelter_8017BB58,
+    gMapShelterBattleRewards,
     gMapNeoArkBattleRewards,
 };
 
@@ -122,7 +122,7 @@ InventoryBattleReward* D_8010FA0C[6] = {
     gMapAkropolisHardBattleRewards,
     gMapDryfieldHardBattleRewards,
     gMapDryfieldFullHardBattleRewards,
-    D_map_shelter_8017BD8C,
+    gMapShelterHardBattleRewards,
     gMapNeoArkHardBattleRewards,
 };
 

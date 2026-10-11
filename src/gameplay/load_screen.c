@@ -127,8 +127,8 @@ static inline u16 _loadingPollAreaResourcePasses(void)
 ViewCountTable*               gViewCountTables[5]              = { &gMapAkropolisViewCountTable, &gMapDryfieldViewCountTable, &gMapDryfieldFullViewCountTable, &gMapShelterViewCountTable, &gMapNeoArkViewCountTable };
 ViewIndexTable*               gViewIndexTables[5]              = { &gMapAkropolisViewIndexTable, &gMapDryfieldViewIndexTable, &gMapDryfieldFullViewIndexTable, &gMapShelterViewIndexTable, &gMapNeoArkViewIndexTable };
 SpriteAreaTable*              gSpriteAreaTables[5]             = { &gMapAkropolisSpriteAreaTable, &gMapDryfieldSpriteAreaTable, &gMapDryfieldFullSpriteAreaTable, &gMapShelterSpriteAreaTable, &gMapNeoArkSpriteAreaTable };
-WorldCollisionStageResources* Gp_RoomObjTables[5]              = { &gMapAkropolisWorldCollisionResources, &D_map_dryfield_8017AAC4, &D_map_dryfield_full_8017A9D8, &D_map_shelter_8017B3B8, &D_map_neo_ark_8017ACA0 };
-DirectionWarpEntry**          Gp_WarpTables[5]                 = { gMapAkropolisAreaWarpEntries, D_map_dryfield_8017A8F8, D_map_dryfield_full_8017A80C, D_map_shelter_8017AF88, D_map_neo_ark_8017AA80 };
+WorldCollisionStageResources* Gp_RoomObjTables[5]              = { &gMapAkropolisWorldCollisionResources, &gMapDryfieldWorldCollisionResources, &gMapDryfieldFullWorldCollisionResources, &gMapShelterWorldCollisionResources, &gMapNeoArkWorldCollisionResources };
+DirectionWarpEntry**          Gp_WarpTables[5]                 = { gMapAkropolisAreaWarpEntries, gMapDryfieldAreaWarpEntries, gMapDryfieldFullAreaWarpEntries, gMapShelterAreaWarpEntries, gMapNeoArkAreaWarpEntries };
 WorldCoordRoomLighting**      gWorldCoordRoomLightingTables[5] = {
     [GAME_STAGE_ACROPOLIS - 1]       = gMapAkropolisAreaRoomLightingTables,
     [GAME_STAGE_DRYFIELD - 1]        = gMapDryfieldRoomLightingTables,

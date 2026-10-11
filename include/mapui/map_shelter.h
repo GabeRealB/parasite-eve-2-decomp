@@ -68,8 +68,18 @@ extern u8 gMapShelterPageFlagIds[MAP_SHELTER_PAGE_COUNT + 1];
 /// pixels, and scales use world units per pixel. Keep this overlay loaded.
 extern MenuMapArea gMapShelterAreas[GAME_AREA_SHELTER_R49 + 2];
 
-/// This stage's `Gp_MapMarkTables` entry: the area shapes, indexed by area.
-extern MenuMapAreaShape D_map_shelter_80179FA4[];
+/// Area shapes and icon-only page selections for Mine/Shelter.
+///
+/// Indexed directly by area ID 0..49; slot zero is hidden. There is no
+/// terminator: `Gp_MapMarkCounts` includes slot zero and covers this whole array.
+/// Keep this map loaded during drawing, and load the selected page's picture
+/// package before dereferencing a shape model from that page.
+/// Areas 22 and 48 share the pod-bottom shape and name each other in
+/// pairedArea. The renderer retains each area's own 32-bit visit bank even
+/// for this cross-bank pair.
+/// Area 26 retains page B1 without a model, despite its coordinate mapping
+/// being hidden; no icon belongs to it. The intended mapping is unproven.
+extern MenuMapAreaShape gMapShelterAreaShapes[GAME_AREA_SHELTER_R49 + 1];
 
 /// Flag-controlled Mine/Shelter map markers in signed picture-centred pixels.
 ///
@@ -106,9 +116,13 @@ extern MenuMapAreaName gMapShelterAreaNames[GAME_AREA_SHELTER_R49];
 /// for lookup and borrowed room/actor callbacks and models loaded while in use.
 extern AreaObjectRoom gMapShelterObjectRooms[GAME_AREA_SHELTER_R49 + 2];
 
-/// This stage's `D_8010FABC` entry: the task each room starts, keyed by
-/// `GP_TASK_LOC_KEY` and ended by flags of 0xFFFF.
-extern TaskDesc D_map_shelter_8017AB30[];
+/// Default room-controller recipes for all 49 Mine/Shelter areas.
+///
+/// Location keys select the first matching `GP_TASK_LOC_KEY(stage, area, 0)`
+/// recipe, rather than indexing by area. Each bodyless task has priority 32.
+/// The fiftieth record closes lookup with `TASK_DESC_END`. Keep the map loaded
+/// through spawning and the selected room callback loaded for task execution.
+extern TaskDesc gMapShelterRoomTaskDescriptors[GAME_AREA_SHELTER_R49 + 1];
 
 /// Packed flag words parallel to Mine/Shelter's thirty live map markers.
 ///
@@ -128,12 +142,13 @@ extern u16 gMapShelterMarkerFlags[MAP_SHELTER_MARKER_COUNT];
 /// pointers into a room overlay require that specific overlay to remain loaded.
 extern WorldCoordRoomLighting* gMapShelterRoomLightingTables[49];
 
-/// This stage's entries in `Gp_WarpTables`,
-/// `gViewCountTables`, `Gp_RoomObjTables`, `gViewCameraTables`,
-/// `gViewIndexTables` and `gSpriteAreaTables`: each leads to
-/// one pointer per room into that room's package, except that some rooms'
-/// object records are this overlay's own.
-extern DirectionWarpEntry* D_map_shelter_8017AF88[];
+/// Borrowed warp endpoint arrays for Mine/Shelter.
+///
+/// Select area - 1 for IDs 1..49, then warp - 1 within that area's own
+/// endpoint extent; neither level has a terminator. Every area entry is populated.
+/// The map owns this directory. Keep it and the selected room overlay loaded
+/// during lookup; endpoints are copied by value and are independent of room ID.
+extern DirectionWarpEntry* gMapShelterAreaWarpEntries[GAME_AREA_SHELTER_R49];
 
 /// Mine/Shelter's directory of logical-view counts for all 49 areas.
 ///
@@ -144,7 +159,14 @@ extern DirectionWarpEntry* D_map_shelter_8017AF88[];
 /// Keep the map and selected room overlays loaded during lookup.
 extern ViewCountTable gMapShelterViewCountTable;
 
-extern WorldCollisionStageResources D_map_shelter_8017B3B8;
+/// Stage collision-resource directory for Mine/Shelter.
+///
+/// Select `areaRooms[area - 1][room - 1]` with area IDs 1..49 and a room
+/// within that area's array. Every area entry is populated.
+/// Neither level has a terminator. This map owns the directory and some
+/// descriptors; selected room overlays own the mutable grids and linked
+/// trigger/occluder storage, which must remain loaded until retired.
+extern WorldCollisionStageResources gMapShelterWorldCollisionResources;
 
 /// Mine/Shelter's camera directory for 49 areas.
 ///
@@ -177,12 +199,21 @@ extern SpriteAreaTable gMapShelterSpriteAreaTable;
 /// loaded; borrowed class tables and records require their owning room overlay.
 extern WorldCollisionSurfaceProperties** gMapShelterSurfacePropertiesByArea[49];
 
-/// This stage's `D_8010F9F4` and `D_8010FA0C` entries: items awarded
-/// for battles won at a location, each list ended by a key of
-/// `INVENTORY_BATTLE_REWARD_LIST_END`.
-extern InventoryBattleReward D_map_shelter_8017BB58[];
+/// Mine/Shelter battle rewards for normal, replay and Scavenger runs.
+///
+/// 46 rows keyed by stage, area and placement variant, followed by
+/// `INVENTORY_BATTLE_REWARD_LIST_END`. The first matching row grants one pack
+/// per nonzero slot; slot `INVENTORY_BATTLE_REWARD_BONUS_SLOT` additionally
+/// requires an attached Medicine Wheel. Keep this map loaded during lookup.
+extern InventoryBattleReward gMapShelterBattleRewards[47];
 
-extern InventoryBattleReward D_map_shelter_8017BD8C[];
+/// Mine/Shelter battle rewards for Bounty and Nightmare runs.
+///
+/// 12 rows keyed by stage, area and placement variant, followed by
+/// `INVENTORY_BATTLE_REWARD_LIST_END`. The first matching row grants one pack
+/// per nonzero slot; slot `INVENTORY_BATTLE_REWARD_BONUS_SLOT` additionally
+/// requires an attached Medicine Wheel. Keep this map loaded during lookup.
+extern InventoryBattleReward gMapShelterHardBattleRewards[13];
 
 /// Resolves a Mine/Shelter destination's room variant from game progress.
 ///

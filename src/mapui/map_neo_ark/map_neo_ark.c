@@ -850,40 +850,40 @@ WorldCoordRoomLighting* gMapNeoArkRoomLightingTables[33] = {
     [GAME_AREA_NEO_ARK_SUBSTATION - 1]           = gNeoArkSubstationRoomLighting,
 };
 
-DirectionWarpEntry* D_map_neo_ark_8017AA80[33] = {
-    gShelter1fParkingGarageWarps,
-    gShelter1fVehicularAirlockWarpEntries,
-    gShelter1fBulwarkWarpEntries,
-    gShelter1fHeliportWarpEntries,
-    gShelter1fAirlockWarpEntries,
-    gShelter1fGuardroomWarpEntries,
-    gNeoArkObservatoryWarpEntries,
-    gNeoArkEveAccessTunnelWarpEntries,
-    gNeoArkEveElevatorWarpEntries,
-    gNeoArkNorthPromenadeWarpEntries,
-    gNeoArkForestZoneWarpEntries,
-    gNeoArkSubmarineTunnelWarpEntries,
-    gNeoArkPavilionWarpEntries,
-    gNeoArkIslandWarpEntries,
-    gNeoArkGardenWarpEntries,
-    gNeoArkPowerPlant2WarpEntries,
-    gNeoArkPowerPlant1WarpEntries,
-    gNeoArkSavannaZoneWarpEntries,
-    gNeoArkSouthPromenadeWarpEntries,
-    gNeoArkAltarWarpEntries,
-    gNeoArkShrineWarpEntries,
-    gShelterB6NurseryWarpEntries,
-    gShelterB6GrowthRoomWarpEntries,
-    gShelterB6CorridorWarpEntries,
-    gShelterB6TrainingRoomWarpEntries,
-    gNeoArkR26Warps,
-    gNeoArkBridgeWarpEntries,
-    gShelter1fTentWarpEntries,
-    gNeoArkWoodlandPathWarpEntries,
-    gNeoArkSubmarineGalleryWarpEntries,
-    gNeoArkR31WarpEntries,
-    gNeoArkPyramidWarpEntries,
-    gNeoArkSubstationWarpEntries,
+DirectionWarpEntry* gMapNeoArkAreaWarpEntries[MAP_NEO_ARK_AREA_ID_LIMIT] = {
+    [GAME_AREA_SHELTER_1F_PARKING_GARAGE - 1]    = gShelter1fParkingGarageWarps,
+    [GAME_AREA_SHELTER_1F_VEHICULAR_AIRLOCK - 1] = gShelter1fVehicularAirlockWarpEntries,
+    [GAME_AREA_SHELTER_1F_BULWARK - 1]           = gShelter1fBulwarkWarpEntries,
+    [GAME_AREA_SHELTER_1F_HELIPORT - 1]          = gShelter1fHeliportWarpEntries,
+    [GAME_AREA_SHELTER_1F_AIRLOCK - 1]           = gShelter1fAirlockWarpEntries,
+    [GAME_AREA_SHELTER_1F_GUARDROOM - 1]         = gShelter1fGuardroomWarpEntries,
+    [GAME_AREA_NEO_ARK_OBSERVATORY - 1]          = gNeoArkObservatoryWarpEntries,
+    [GAME_AREA_NEO_ARK_EVE_ACCESS_TUNNEL - 1]    = gNeoArkEveAccessTunnelWarpEntries,
+    [GAME_AREA_NEO_ARK_EVE_ELEVATOR - 1]         = gNeoArkEveElevatorWarpEntries,
+    [GAME_AREA_NEO_ARK_NORTH_PROMENADE - 1]      = gNeoArkNorthPromenadeWarpEntries,
+    [GAME_AREA_NEO_ARK_FOREST_ZONE - 1]          = gNeoArkForestZoneWarpEntries,
+    [GAME_AREA_NEO_ARK_SUBMARINE_TUNNEL - 1]     = gNeoArkSubmarineTunnelWarpEntries,
+    [GAME_AREA_NEO_ARK_PAVILION - 1]             = gNeoArkPavilionWarpEntries,
+    [GAME_AREA_NEO_ARK_ISLAND - 1]               = gNeoArkIslandWarpEntries,
+    [GAME_AREA_NEO_ARK_GARDEN - 1]               = gNeoArkGardenWarpEntries,
+    [GAME_AREA_NEO_ARK_POWER_PLANT_2 - 1]        = gNeoArkPowerPlant2WarpEntries,
+    [GAME_AREA_NEO_ARK_POWER_PLANT_1 - 1]        = gNeoArkPowerPlant1WarpEntries,
+    [GAME_AREA_NEO_ARK_SAVANNA_ZONE - 1]         = gNeoArkSavannaZoneWarpEntries,
+    [GAME_AREA_NEO_ARK_SOUTH_PROMENADE - 1]      = gNeoArkSouthPromenadeWarpEntries,
+    [GAME_AREA_NEO_ARK_ALTAR - 1]                = gNeoArkAltarWarpEntries,
+    [GAME_AREA_NEO_ARK_SHRINE - 1]               = gNeoArkShrineWarpEntries,
+    [GAME_AREA_SHELTER_B6_NURSERY - 1]           = gShelterB6NurseryWarpEntries,
+    [GAME_AREA_SHELTER_B6_GROWTH_ROOM - 1]       = gShelterB6GrowthRoomWarpEntries,
+    [GAME_AREA_SHELTER_B6_CORRIDOR - 1]          = gShelterB6CorridorWarpEntries,
+    [GAME_AREA_SHELTER_B6_TRAINING_ROOM - 1]     = gShelterB6TrainingRoomWarpEntries,
+    [GAME_AREA_NEO_ARK_R26 - 1]                  = gNeoArkR26Warps,
+    [GAME_AREA_NEO_ARK_BRIDGE - 1]               = gNeoArkBridgeWarpEntries,
+    [GAME_AREA_SHELTER_1F_TENT - 1]              = gShelter1fTentWarpEntries,
+    [GAME_AREA_NEO_ARK_WOODLAND_PATH - 1]        = gNeoArkWoodlandPathWarpEntries,
+    [GAME_AREA_NEO_ARK_SUBMARINE_GALLERY - 1]    = gNeoArkSubmarineGalleryWarpEntries,
+    [GAME_AREA_NEO_ARK_R31 - 1]                  = gNeoArkR31WarpEntries,
+    [GAME_AREA_NEO_ARK_PYRAMID - 1]              = gNeoArkPyramidWarpEntries,
+    [GAME_AREA_NEO_ARK_SUBSTATION - 1]           = gNeoArkSubstationWarpEntries,
 };
 
 /// Per-area room view-count arrays borrowed by the stage view-count directory.
@@ -958,8 +958,19 @@ static WorldCollisionRoomResources _gMapNeoArkCorridorCollisionRooms[1] = {
     { .grid = &gShelterB6CorridorCollisionGrid, .viewBoundaryTriggers = gShelterB6CorridorViewBoundaryTriggers, .actionTriggers = gShelterB6CorridorActionTriggers, .occluders = NULL },
 };
 
-static WorldCollisionRoomResources D_map_neo_ark_8017ABBC[1] = {
-    { &gShelterB6TrainingRoomCollisionGrid, gShelterB6TrainingRoomViewBoundaryTriggers, gShelterB6TrainingRoomActionTriggers, NULL },
+/// Room-1 collision resources for Shelter B6 training room.
+///
+/// Area 25 selects this single descriptor; only room ID 1 is valid, with
+/// no terminator. Borrows the mutable room grid, view boundaries and actions;
+/// there are no sight occluders. Keep the room resources loaded until the
+/// active grid and linked lists are retired.
+static WorldCollisionRoomResources _gMapNeoArkTrainingRoomCollisionRooms[1] = {
+    {
+        .grid                 = &gShelterB6TrainingRoomCollisionGrid,
+        .viewBoundaryTriggers = gShelterB6TrainingRoomViewBoundaryTriggers,
+        .actionTriggers       = gShelterB6TrainingRoomActionTriggers,
+        .occluders            = NULL,
+    },
 };
 
 /// Room-1 collision resources for the Bridge area.
@@ -972,8 +983,19 @@ static WorldCollisionRoomResources _gMapNeoArkBridgeCollisionRooms[1] = {
     { .grid = &gNeoArkBridgeCollisionGrid, .viewBoundaryTriggers = gNeoArkBridgeViewBoundaryTriggers, .actionTriggers = gNeoArkBridgeActionTriggers, .occluders = NULL },
 };
 
-static WorldCollisionRoomResources D_map_neo_ark_8017ABDC[1] = {
-    { &gShelter1fTentCollisionGrid, gShelter1fTentViewBoundaryTriggers, gShelter1fTentActionTriggers, NULL },
+/// Room-1 collision resources for Shelter 1F tent.
+///
+/// Area 28 selects this single descriptor; only room ID 1 is valid, with
+/// no terminator. Borrows the mutable room grid, view boundaries and actions;
+/// there are no sight occluders. Keep the room resources loaded until the
+/// active grid and linked lists are retired.
+static WorldCollisionRoomResources _gMapNeoArkTentCollisionRooms[1] = {
+    {
+        .grid                 = &gShelter1fTentCollisionGrid,
+        .viewBoundaryTriggers = gShelter1fTentViewBoundaryTriggers,
+        .actionTriggers       = gShelter1fTentActionTriggers,
+        .occluders            = NULL,
+    },
 };
 
 /// Room-1 collision resources for the Woodland Path area.
@@ -1004,43 +1026,49 @@ static WorldCollisionRoomResources _gMapNeoArkR31CollisionRooms[1] = {
     { .grid = NULL, .viewBoundaryTriggers = NULL, .actionTriggers = NULL, .occluders = NULL },
 };
 
-static WorldCollisionRoomResources* D_map_neo_ark_8017AC1C[33] = {
-    gShelter1fParkingGarageCollisionRooms,
-    gShelter1fVehicularAirlockCollisionResources,
-    gShelter1fBulwarkCollisionResources,
-    gShelter1fHeliportCollisionResources,
-    gShelter1fAirlockRoomCollisionResources,
-    gShelter1fGuardroomRoomCollisionResources,
-    gNeoArkObservatoryRoomCollisionResources,
-    gNeoArkEveAccessTunnelCollisionRooms,
-    gNeoArkEveElevatorCollisionRooms,
-    gNeoArkNorthPromenadeRoomCollisionResources,
-    gNeoArkForestZoneRoomCollisionResources,
-    gNeoArkSubmarineTunnelRoomCollisionResources,
-    gNeoArkPavilionRoomCollisionResources,
-    gNeoArkIslandRoomCollisionResources,
-    gNeoArkGardenCollisionRooms,
-    gNeoArkPowerPlant2CollisionRooms,
-    gNeoArkPowerPlant1CollisionRooms,
-    gNeoArkSavannaZoneRoomCollisionResources,
-    gNeoArkSouthPromenadeCollisionResources,
-    gNeoArkAltarRoomCollisionResources,
-    gNeoArkShrineCollisionRooms,
-    _gMapNeoArkNurseryCollisionRooms,
-    _gMapNeoArkGrowthRoomCollisionRooms,
-    _gMapNeoArkCorridorCollisionRooms,
-    D_map_neo_ark_8017ABBC,
-    gNeoArkR26CollisionRooms,
-    _gMapNeoArkBridgeCollisionRooms,
-    D_map_neo_ark_8017ABDC,
-    _gMapNeoArkWoodlandPathCollisionRooms,
-    _gMapNeoArkSubmarineGalleryCollisionRooms,
-    _gMapNeoArkR31CollisionRooms,
-    gNeoArkPyramidRoomCollisionResources,
-    gNeoArkSubstationRoomCollisionResources,
+/// Per-area collision room arrays for Shelter/Neo Ark.
+///
+/// Select area - 1 for IDs 1..33. Every area entry is populated.
+/// Each array uses room - 1 within its own extent, without a terminator.
+/// Descriptors may be map-owned or borrowed; their mutable room resources must
+/// remain loaded until the active grid and linked lists are retired.
+static WorldCollisionRoomResources* _gMapNeoArkWorldCollisionAreaRooms[MAP_NEO_ARK_AREA_ID_LIMIT] = {
+    [GAME_AREA_SHELTER_1F_PARKING_GARAGE - 1]    = gShelter1fParkingGarageCollisionRooms,
+    [GAME_AREA_SHELTER_1F_VEHICULAR_AIRLOCK - 1] = gShelter1fVehicularAirlockCollisionResources,
+    [GAME_AREA_SHELTER_1F_BULWARK - 1]           = gShelter1fBulwarkCollisionResources,
+    [GAME_AREA_SHELTER_1F_HELIPORT - 1]          = gShelter1fHeliportCollisionResources,
+    [GAME_AREA_SHELTER_1F_AIRLOCK - 1]           = gShelter1fAirlockRoomCollisionResources,
+    [GAME_AREA_SHELTER_1F_GUARDROOM - 1]         = gShelter1fGuardroomRoomCollisionResources,
+    [GAME_AREA_NEO_ARK_OBSERVATORY - 1]          = gNeoArkObservatoryRoomCollisionResources,
+    [GAME_AREA_NEO_ARK_EVE_ACCESS_TUNNEL - 1]    = gNeoArkEveAccessTunnelCollisionRooms,
+    [GAME_AREA_NEO_ARK_EVE_ELEVATOR - 1]         = gNeoArkEveElevatorCollisionRooms,
+    [GAME_AREA_NEO_ARK_NORTH_PROMENADE - 1]      = gNeoArkNorthPromenadeRoomCollisionResources,
+    [GAME_AREA_NEO_ARK_FOREST_ZONE - 1]          = gNeoArkForestZoneRoomCollisionResources,
+    [GAME_AREA_NEO_ARK_SUBMARINE_TUNNEL - 1]     = gNeoArkSubmarineTunnelRoomCollisionResources,
+    [GAME_AREA_NEO_ARK_PAVILION - 1]             = gNeoArkPavilionRoomCollisionResources,
+    [GAME_AREA_NEO_ARK_ISLAND - 1]               = gNeoArkIslandRoomCollisionResources,
+    [GAME_AREA_NEO_ARK_GARDEN - 1]               = gNeoArkGardenCollisionRooms,
+    [GAME_AREA_NEO_ARK_POWER_PLANT_2 - 1]        = gNeoArkPowerPlant2CollisionRooms,
+    [GAME_AREA_NEO_ARK_POWER_PLANT_1 - 1]        = gNeoArkPowerPlant1CollisionRooms,
+    [GAME_AREA_NEO_ARK_SAVANNA_ZONE - 1]         = gNeoArkSavannaZoneRoomCollisionResources,
+    [GAME_AREA_NEO_ARK_SOUTH_PROMENADE - 1]      = gNeoArkSouthPromenadeCollisionResources,
+    [GAME_AREA_NEO_ARK_ALTAR - 1]                = gNeoArkAltarRoomCollisionResources,
+    [GAME_AREA_NEO_ARK_SHRINE - 1]               = gNeoArkShrineCollisionRooms,
+    [GAME_AREA_SHELTER_B6_NURSERY - 1]           = _gMapNeoArkNurseryCollisionRooms,
+    [GAME_AREA_SHELTER_B6_GROWTH_ROOM - 1]       = _gMapNeoArkGrowthRoomCollisionRooms,
+    [GAME_AREA_SHELTER_B6_CORRIDOR - 1]          = _gMapNeoArkCorridorCollisionRooms,
+    [GAME_AREA_SHELTER_B6_TRAINING_ROOM - 1]     = _gMapNeoArkTrainingRoomCollisionRooms,
+    [GAME_AREA_NEO_ARK_R26 - 1]                  = gNeoArkR26CollisionRooms,
+    [GAME_AREA_NEO_ARK_BRIDGE - 1]               = _gMapNeoArkBridgeCollisionRooms,
+    [GAME_AREA_SHELTER_1F_TENT - 1]              = _gMapNeoArkTentCollisionRooms,
+    [GAME_AREA_NEO_ARK_WOODLAND_PATH - 1]        = _gMapNeoArkWoodlandPathCollisionRooms,
+    [GAME_AREA_NEO_ARK_SUBMARINE_GALLERY - 1]    = _gMapNeoArkSubmarineGalleryCollisionRooms,
+    [GAME_AREA_NEO_ARK_R31 - 1]                  = _gMapNeoArkR31CollisionRooms,
+    [GAME_AREA_NEO_ARK_PYRAMID - 1]              = gNeoArkPyramidRoomCollisionResources,
+    [GAME_AREA_NEO_ARK_SUBSTATION - 1]           = gNeoArkSubstationRoomCollisionResources,
 };
 
-WorldCollisionStageResources D_map_neo_ark_8017ACA0 = { D_map_neo_ark_8017AC1C };
+WorldCollisionStageResources gMapNeoArkWorldCollisionResources = { .areaRooms = _gMapNeoArkWorldCollisionAreaRooms };
 
 /// Camera-array directory for Shelter/Neo Ark area IDs 1..33.
 ///

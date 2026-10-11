@@ -22,6 +22,7 @@
 #include "main/fs_types.h"
 #include "main/gameflag.h"
 #include "main/gfx_types.h"
+#include "main/mc_types.h"
 #include "main/session.h"
 #include "main/task_types.h"
 
@@ -299,57 +300,57 @@ MenuMapArea gMapShelterAreas[GAME_AREA_SHELTER_R49 + 2] = {
     [GAME_AREA_SHELTER_R49 + 1]                       = { 0, 0, 0, 0, 0, 0, MENU_MAP_AREA_PAGE_END },
 };
 
-MenuMapAreaShape D_map_shelter_80179FA4[50] = {
-    { NULL, MENU_MAP_AREA_SHAPE_PAGE_NONE, MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
-    { &gMappicS402MesaShape, 2, MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
-    [GAME_AREA_MINE_CAVERN] = { &gMappicS400CavernShape, MAP_SHELTER_PAGE_MINE_UNDERGROUND, MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
-    { &gMappicS402TunnelEntranceShape, 2, MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
-    { &gMappicS402TunnelShape, 2, MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
-    { &gMappicS402GorgeShape, 2, MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
-    { &gMappicS402RefugeShape, 2, MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
-    { &gMappicS402ForkedTunnelShape, 2, MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
-    [GAME_AREA_MINE_SECRET_PASSAGE] = { &gMappicS400SecretPassageShape, MAP_SHELTER_PAGE_MINE_UNDERGROUND, MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
-    { &gMappicS403B1ElevatorHallShape, 3, MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
-    { &gMappicS403B1SouthMaintenanceWalkwayShape, 3, MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
-    { &gMappicS403B1StoreroomShape, 3, MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
-    { &gMappicS403B1NorthMaintenanceWalkwayShape, 3, MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
-    { &gMappicS403B1ArmoryShape, 3, MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
-    { &gMappicS403B1SleepingQuartersShape, 3, MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
-    { &gMappicS403B1MainCorridorShape, 3, MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
-    { &gMappicS403B1SterilizationRoomShape, 3, MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
-    { &gMappicS403B1PodAccessTunnelShape, 3, MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
-    { &gMappicS403B1ControlRoomShape, 3, MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
-    { &gMappicS403B1AccessTunnelShape, 3, MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
-    { &gMappicS403B1UndergroundParkingShape, 3, MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
-    { &gMappicS403B1GolemFreezer1Shape, 3, MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
-    { &gMappicS404B2PodBottomShape, 4, 0x30 },
-    { NULL, MENU_MAP_AREA_SHAPE_PAGE_NONE, MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
-    { &gMappicS403B1TransferTunnelShape, 3, MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
-    { &gMappicS403B1ControlRoomAccessTunnelShape, 3, MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
-    { NULL, 3, MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
-    { &gMappicS404B2ElevatorHallShape, 4, MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
-    { &gMappicS404B2SouthMaintenanceWalkwayShape, 4, MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
-    { &gMappicS404B2OperatingRoomShape, 4, MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
-    { &gMappicS404B2NorthMaintenanceWalkwayShape, 4, MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
-    { &gMappicS404B2LaboratoryShape, 4, MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
-    { &gMappicS404B2BreedingRoomShape, 4, MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
-    { &gMappicS404B2MainCorridorShape, 4, MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
-    { &gMappicS404B2SepticTankShape, 4, MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
-    { &gMappicS404B2PodAccessTunnelShape, 4, MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
-    { NULL, MENU_MAP_AREA_SHAPE_PAGE_NONE, MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
-    { NULL, MENU_MAP_AREA_SHAPE_PAGE_NONE, MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
-    { NULL, MENU_MAP_AREA_SHAPE_PAGE_NONE, MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
-    { &gMappicS405DumpingHoleShape, 5, MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
-    { &gMappicS405GarbageIncineratorShape, 5, MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
-    { &gMappicS405IncineratorControlRoomShape, 5, MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
-    { &gMappicS405ElevatorHallShape, 5, MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
-    { &gMappicS406LowerSewerShape, 6, MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
-    { &gMappicS406UpperSewerShape, 6, MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
-    { &gMappicS406ReservoirShape, 6, MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
-    { &gMappicS406WaterSupplyShape, 6, MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
-    { &gMappicS403B1PodDeckShape, 3, MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
-    { &gMappicS404B2PodBottomShape, 4, 0x16 },
-    { NULL, MENU_MAP_AREA_SHAPE_PAGE_NONE, MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
+MenuMapAreaShape gMapShelterAreaShapes[GAME_AREA_SHELTER_R49 + 1] = {
+    [0]                                               = { .model = NULL, .page = MENU_MAP_AREA_SHAPE_PAGE_NONE, .pairedArea = MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
+    [GAME_AREA_MINE_MESA]                             = { .model = &gMappicS402MesaShape, .page = MAP_SHELTER_PAGE_MINE, .pairedArea = MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
+    [GAME_AREA_MINE_CAVERN]                           = { .model = &gMappicS400CavernShape, .page = MAP_SHELTER_PAGE_MINE_UNDERGROUND, .pairedArea = MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
+    [GAME_AREA_MINE_TUNNEL_ENTRANCE]                  = { .model = &gMappicS402TunnelEntranceShape, .page = MAP_SHELTER_PAGE_MINE, .pairedArea = MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
+    [GAME_AREA_MINE_TUNNEL]                           = { .model = &gMappicS402TunnelShape, .page = MAP_SHELTER_PAGE_MINE, .pairedArea = MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
+    [GAME_AREA_MINE_GORGE]                            = { .model = &gMappicS402GorgeShape, .page = MAP_SHELTER_PAGE_MINE, .pairedArea = MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
+    [GAME_AREA_MINE_REFUGE]                           = { .model = &gMappicS402RefugeShape, .page = MAP_SHELTER_PAGE_MINE, .pairedArea = MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
+    [GAME_AREA_MINE_FORKED_TUNNEL]                    = { .model = &gMappicS402ForkedTunnelShape, .page = MAP_SHELTER_PAGE_MINE, .pairedArea = MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
+    [GAME_AREA_MINE_SECRET_PASSAGE]                   = { .model = &gMappicS400SecretPassageShape, .page = MAP_SHELTER_PAGE_MINE_UNDERGROUND, .pairedArea = MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
+    [GAME_AREA_SHELTER_B1_ELEVATOR_HALL]              = { .model = &gMappicS403B1ElevatorHallShape, .page = MAP_SHELTER_PAGE_B1, .pairedArea = MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
+    [GAME_AREA_SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY]  = { .model = &gMappicS403B1SouthMaintenanceWalkwayShape, .page = MAP_SHELTER_PAGE_B1, .pairedArea = MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
+    [GAME_AREA_SHELTER_B1_STOREROOM]                  = { .model = &gMappicS403B1StoreroomShape, .page = MAP_SHELTER_PAGE_B1, .pairedArea = MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
+    [GAME_AREA_SHELTER_B1_NORTH_MAINTENANCE_WALKWAY]  = { .model = &gMappicS403B1NorthMaintenanceWalkwayShape, .page = MAP_SHELTER_PAGE_B1, .pairedArea = MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
+    [GAME_AREA_SHELTER_B1_ARMORY]                     = { .model = &gMappicS403B1ArmoryShape, .page = MAP_SHELTER_PAGE_B1, .pairedArea = MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
+    [GAME_AREA_SHELTER_B1_SLEEPING_QUARTERS]          = { .model = &gMappicS403B1SleepingQuartersShape, .page = MAP_SHELTER_PAGE_B1, .pairedArea = MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
+    [GAME_AREA_SHELTER_B1_MAIN_CORRIDOR]              = { .model = &gMappicS403B1MainCorridorShape, .page = MAP_SHELTER_PAGE_B1, .pairedArea = MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
+    [GAME_AREA_SHELTER_B1_STERILIZATION_ROOM]         = { .model = &gMappicS403B1SterilizationRoomShape, .page = MAP_SHELTER_PAGE_B1, .pairedArea = MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
+    [GAME_AREA_SHELTER_B1_POD_ACCESS_TUNNEL]          = { .model = &gMappicS403B1PodAccessTunnelShape, .page = MAP_SHELTER_PAGE_B1, .pairedArea = MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
+    [GAME_AREA_SHELTER_B1_CONTROL_ROOM]               = { .model = &gMappicS403B1ControlRoomShape, .page = MAP_SHELTER_PAGE_B1, .pairedArea = MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
+    [GAME_AREA_SHELTER_B1_ACCESS_TUNNEL]              = { .model = &gMappicS403B1AccessTunnelShape, .page = MAP_SHELTER_PAGE_B1, .pairedArea = MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
+    [GAME_AREA_SHELTER_B1_UNDERGROUND_PARKING]        = { .model = &gMappicS403B1UndergroundParkingShape, .page = MAP_SHELTER_PAGE_B1, .pairedArea = MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
+    [GAME_AREA_SHELTER_B1_GOLEM_FREEZER_1]            = { .model = &gMappicS403B1GolemFreezer1Shape, .page = MAP_SHELTER_PAGE_B1, .pairedArea = MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
+    [GAME_AREA_SHELTER_B2_POD_BOTTOM]                 = { .model = &gMappicS404B2PodBottomShape, .page = MAP_SHELTER_PAGE_B2, .pairedArea = GAME_AREA_SHELTER_R48 },
+    [GAME_AREA_SHELTER_B1_POD_SERVICE_GANTRY]         = { .model = NULL, .page = MENU_MAP_AREA_SHAPE_PAGE_NONE, .pairedArea = MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
+    [GAME_AREA_SHELTER_B1_TRANSFER_TUNNEL]            = { .model = &gMappicS403B1TransferTunnelShape, .page = MAP_SHELTER_PAGE_B1, .pairedArea = MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
+    [GAME_AREA_SHELTER_B1_CONTROL_ROOM_ACCESS_TUNNEL] = { .model = &gMappicS403B1ControlRoomAccessTunnelShape, .page = MAP_SHELTER_PAGE_B1, .pairedArea = MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
+    [GAME_AREA_SHELTER_B2_ELEVATOR]                   = { .model = NULL, .page = MAP_SHELTER_PAGE_B1, .pairedArea = MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
+    [GAME_AREA_SHELTER_B2_ELEVATOR_HALL]              = { .model = &gMappicS404B2ElevatorHallShape, .page = MAP_SHELTER_PAGE_B2, .pairedArea = MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
+    [GAME_AREA_SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY]  = { .model = &gMappicS404B2SouthMaintenanceWalkwayShape, .page = MAP_SHELTER_PAGE_B2, .pairedArea = MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
+    [GAME_AREA_SHELTER_B2_OPERATING_ROOM]             = { .model = &gMappicS404B2OperatingRoomShape, .page = MAP_SHELTER_PAGE_B2, .pairedArea = MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
+    [GAME_AREA_SHELTER_B2_NORTH_MAINTENANCE_WALKWAY]  = { .model = &gMappicS404B2NorthMaintenanceWalkwayShape, .page = MAP_SHELTER_PAGE_B2, .pairedArea = MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
+    [GAME_AREA_SHELTER_B2_LABORATORY]                 = { .model = &gMappicS404B2LaboratoryShape, .page = MAP_SHELTER_PAGE_B2, .pairedArea = MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
+    [GAME_AREA_SHELTER_B2_BREEDING_ROOM]              = { .model = &gMappicS404B2BreedingRoomShape, .page = MAP_SHELTER_PAGE_B2, .pairedArea = MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
+    [GAME_AREA_SHELTER_B2_MAIN_CORRIDOR]              = { .model = &gMappicS404B2MainCorridorShape, .page = MAP_SHELTER_PAGE_B2, .pairedArea = MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
+    [GAME_AREA_SHELTER_B2_SEPTIC_TANK]                = { .model = &gMappicS404B2SepticTankShape, .page = MAP_SHELTER_PAGE_B2, .pairedArea = MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
+    [GAME_AREA_SHELTER_B2_POD_ACCESS_TUNNEL]          = { .model = &gMappicS404B2PodAccessTunnelShape, .page = MAP_SHELTER_PAGE_B2, .pairedArea = MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
+    [GAME_AREA_SHELTER_R36]                           = { .model = NULL, .page = MENU_MAP_AREA_SHAPE_PAGE_NONE, .pairedArea = MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
+    [GAME_AREA_SHELTER_R37]                           = { .model = NULL, .page = MENU_MAP_AREA_SHAPE_PAGE_NONE, .pairedArea = MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
+    [GAME_AREA_SHELTER_1F_HELIPORT_S4]                = { .model = NULL, .page = MENU_MAP_AREA_SHAPE_PAGE_NONE, .pairedArea = MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
+    [GAME_AREA_SHELTER_B3_DUMPING_HOLE]               = { .model = &gMappicS405DumpingHoleShape, .page = MAP_SHELTER_PAGE_B3, .pairedArea = MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
+    [GAME_AREA_SHELTER_B3_GARBAGE_INCINERATOR]        = { .model = &gMappicS405GarbageIncineratorShape, .page = MAP_SHELTER_PAGE_B3, .pairedArea = MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
+    [GAME_AREA_SHELTER_B3_INCINERATOR_CONTROL_ROOM]   = { .model = &gMappicS405IncineratorControlRoomShape, .page = MAP_SHELTER_PAGE_B3, .pairedArea = MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
+    [GAME_AREA_SHELTER_B3_ELEVATOR_HALL]              = { .model = &gMappicS405ElevatorHallShape, .page = MAP_SHELTER_PAGE_B3, .pairedArea = MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
+    [GAME_AREA_SHELTER_B4_LOWER_SEWER]                = { .model = &gMappicS406LowerSewerShape, .page = MAP_SHELTER_PAGE_B4, .pairedArea = MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
+    [GAME_AREA_SHELTER_B4_UPPER_SEWER]                = { .model = &gMappicS406UpperSewerShape, .page = MAP_SHELTER_PAGE_B4, .pairedArea = MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
+    [GAME_AREA_SHELTER_B4_RESERVOIR]                  = { .model = &gMappicS406ReservoirShape, .page = MAP_SHELTER_PAGE_B4, .pairedArea = MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
+    [GAME_AREA_SHELTER_B4_WATER_SUPPLY]               = { .model = &gMappicS406WaterSupplyShape, .page = MAP_SHELTER_PAGE_B4, .pairedArea = MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
+    [GAME_AREA_SHELTER_R47]                           = { .model = &gMappicS403B1PodDeckShape, .page = MAP_SHELTER_PAGE_B1, .pairedArea = MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
+    [GAME_AREA_SHELTER_R48]                           = { .model = &gMappicS404B2PodBottomShape, .page = MAP_SHELTER_PAGE_B2, .pairedArea = GAME_AREA_SHELTER_B2_POD_BOTTOM },
+    [GAME_AREA_SHELTER_R49]                           = { .model = NULL, .page = MENU_MAP_AREA_SHAPE_PAGE_NONE, .pairedArea = MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
 };
 
 MenuMapMarker gMapShelterMarkers[MAP_SHELTER_MARKER_COUNT + 1] = {
@@ -728,57 +729,63 @@ AreaObjectRoom gMapShelterObjectRooms[GAME_AREA_SHELTER_R49 + 2] = {
     [GAME_AREA_SHELTER_R49 + 1]                       = { .places = { .sentinel = AREA_OBJECT_ROOM_END }, .spawns = NULL },
 };
 
-TaskDesc D_map_shelter_8017AB30[] = {
-    { { { TASK_BODY_NONE, 0x20 } }, mineMesaRoomTask, { .value = GP_TASK_LOC_KEY(4, 1, 0) } },
-    { { { TASK_BODY_NONE, 0x20 } }, mineCavernRoomTask, { .value = GP_TASK_LOC_KEY(4, 2, 0) } },
-    { { { TASK_BODY_NONE, 0x20 } }, mineTunnelEntranceRoomTask, { .value = GP_TASK_LOC_KEY(4, 3, 0) } },
-    { { { TASK_BODY_NONE, 0x20 } }, mineTunnelRoomTask, { .value = GP_TASK_LOC_KEY(4, 4, 0) } },
-    { { { TASK_BODY_NONE, 0x20 } }, mineGorgeRoomTask, { .value = GP_TASK_LOC_KEY(4, 5, 0) } },
-    { { { TASK_BODY_NONE, 0x20 } }, mineRefugeRoomTask, { .value = GP_TASK_LOC_KEY(4, 6, 0) } },
-    { { { TASK_BODY_NONE, 0x20 } }, mineForkedTunnelRoomTask, { .value = GP_TASK_LOC_KEY(4, 7, 0) } },
-    { { { TASK_BODY_NONE, 0x20 } }, mineSecretPassageRoomTask, { .value = GP_TASK_LOC_KEY(4, 8, 0) } },
-    { { { TASK_BODY_NONE, 0x20 } }, shelterB1ElevatorHallRoomTask, { .value = GP_TASK_LOC_KEY(4, 9, 0) } },
-    { { { TASK_BODY_NONE, 0x20 } }, shelterB1SouthMaintenanceWalkwayRoomTask, { .value = GP_TASK_LOC_KEY(4, 10, 0) } },
-    { { { TASK_BODY_NONE, 0x20 } }, shelterB1StoreroomTask, { .value = GP_TASK_LOC_KEY(4, 11, 0) } },
-    { { { TASK_BODY_NONE, 0x20 } }, shelterB1NorthMaintenanceWalkwayRoomTask, { .value = GP_TASK_LOC_KEY(4, 12, 0) } },
-    { { { TASK_BODY_NONE, 0x20 } }, shelterB1ArmoryRoomTask, { .value = GP_TASK_LOC_KEY(4, 13, 0) } },
-    { { { TASK_BODY_NONE, 0x20 } }, shelterB1SleepingQuartersRoomTask, { .value = GP_TASK_LOC_KEY(4, 14, 0) } },
-    { { { TASK_BODY_NONE, 0x20 } }, shelterB1MainCorridorRoomTask, { .value = GP_TASK_LOC_KEY(4, 15, 0) } },
-    { { { TASK_BODY_NONE, 0x20 } }, shelterB1SterilizationRoomTask, { .value = GP_TASK_LOC_KEY(4, 16, 0) } },
-    { { { TASK_BODY_NONE, 0x20 } }, shelterB1PodAccessTunnelRoomTask, { .value = GP_TASK_LOC_KEY(4, 17, 0) } },
-    { { { TASK_BODY_NONE, 0x20 } }, shelterB1AccessTunnelRoomTask, { .value = GP_TASK_LOC_KEY(4, 19, 0) } },
-    { { { TASK_BODY_NONE, 0x20 } }, shelterB1UndergroundParkingRoomTask, { .value = GP_TASK_LOC_KEY(4, 20, 0) } },
-    { { { TASK_BODY_NONE, 0x20 } }, shelterB1GolemFreezer1RoomTask, { .value = GP_TASK_LOC_KEY(4, 21, 0) } },
-    { { { TASK_BODY_NONE, 0x20 } }, shelterB1TransferTunnelRoomTask, { .value = GP_TASK_LOC_KEY(4, 24, 0) } },
-    { { { TASK_BODY_NONE, 0x20 } }, shelterB1ControlRoomAccessTunnelRoomTask, { .value = GP_TASK_LOC_KEY(4, 25, 0) } },
-    { { { TASK_BODY_NONE, 0x20 } }, shelterB2ElevatorRoomTask, { .value = GP_TASK_LOC_KEY(4, 26, 0) } },
-    { { { TASK_BODY_NONE, 0x20 } }, shelterB2ElevatorHallRoomTask, { .value = GP_TASK_LOC_KEY(4, 27, 0) } },
-    { { { TASK_BODY_NONE, 0x20 } }, shelterB2SouthMaintenanceWalkwayRoomTask, { .value = GP_TASK_LOC_KEY(4, 28, 0) } },
-    { { { TASK_BODY_NONE, 0x20 } }, shelterB2OperatingRoomTask, { .value = GP_TASK_LOC_KEY(4, 29, 0) } },
-    { { { TASK_BODY_NONE, 0x20 } }, shelterB2NorthMaintenanceWalkwayRoomTask, { .value = GP_TASK_LOC_KEY(4, 30, 0) } },
-    { { { TASK_BODY_NONE, 0x20 } }, shelterB2LaboratoryTask, { .value = GP_TASK_LOC_KEY(4, 31, 0) } },
-    { { { TASK_BODY_NONE, 0x20 } }, shelterB2BreedingRoomRoomTask, { .value = GP_TASK_LOC_KEY(4, 32, 0) } },
-    { { { TASK_BODY_NONE, 0x20 } }, shelterB2MainCorridorRoomTask, { .value = GP_TASK_LOC_KEY(4, 33, 0) } },
-    { { { TASK_BODY_NONE, 0x20 } }, shelterB2SepticTankRoomTask, { .value = GP_TASK_LOC_KEY(4, 34, 0) } },
-    { { { TASK_BODY_NONE, 0x20 } }, shelterB2PodAccessTunnelRoomTask, { .value = GP_TASK_LOC_KEY(4, 35, 0) } },
-    { { { TASK_BODY_NONE, 0x20 } }, shelterR36RoomTask, { .value = GP_TASK_LOC_KEY(4, 36, 0) } },
-    { { { TASK_BODY_NONE, 0x20 } }, shelterR37RoomTask, { .value = GP_TASK_LOC_KEY(4, 37, 0) } },
-    { { { TASK_BODY_NONE, 0x20 } }, shelter1fHeliportS4RoomTask, { .value = GP_TASK_LOC_KEY(4, 38, 0) } },
-    { { { TASK_BODY_NONE, 0x20 } }, shelterB3DumpingHoleRoomTask, { .value = GP_TASK_LOC_KEY(4, 39, 0) } },
-    { { { TASK_BODY_NONE, 0x20 } }, shelterB3GarbageIncineratorRoomTask, { .value = GP_TASK_LOC_KEY(4, 40, 0) } },
-    { { { TASK_BODY_NONE, 0x20 } }, shelterB3IncineratorControlRoomTask, { .value = GP_TASK_LOC_KEY(4, 41, 0) } },
-    { { { TASK_BODY_NONE, 0x20 } }, shelterB3ElevatorHallRoomTask, { .value = GP_TASK_LOC_KEY(4, 42, 0) } },
-    { { { TASK_BODY_NONE, 0x20 } }, shelterB4LowerSewerRoomTask, { .value = GP_TASK_LOC_KEY(4, 43, 0) } },
-    { { { TASK_BODY_NONE, 0x20 } }, shelterB4UpperSewerRoomTask, { .value = GP_TASK_LOC_KEY(4, 44, 0) } },
-    { { { TASK_BODY_NONE, 0x20 } }, shelterB4ReservoirRoomTask, { .value = GP_TASK_LOC_KEY(4, 45, 0) } },
-    { { { TASK_BODY_NONE, 0x20 } }, shelterB4WaterSupplyRoomTask, { .value = GP_TASK_LOC_KEY(4, 46, 0) } },
-    { { { TASK_BODY_NONE, 0x20 } }, shelterR48RoomTask, { .value = GP_TASK_LOC_KEY(4, 48, 0) } },
-    { { { TASK_BODY_NONE, 0x20 } }, shelterR47RoomTask, { .value = GP_TASK_LOC_KEY(4, 47, 0) } },
-    { { { TASK_BODY_NONE, 0x20 } }, shelterR49RoomTask, { .value = GP_TASK_LOC_KEY(4, 49, 0) } },
-    { { { TASK_BODY_NONE, 0x20 } }, shelterB1ControlRoomRoomTask, { .value = GP_TASK_LOC_KEY(4, 18, 0) } },
-    { { { TASK_BODY_NONE, 0x20 } }, shelterB1PodServiceGantryRoomTask, { .value = GP_TASK_LOC_KEY(4, 23, 0) } },
-    { { { TASK_BODY_NONE, 0x20 } }, shelterB2PodBottomRoomTask, { .value = GP_TASK_LOC_KEY(4, 22, 0) } },
-    { { { TASK_DESC_END, 0x20 } }, NULL, { 0 } },
+/// Priority and default-room selector for the Mine/Shelter room recipes.
+enum {
+    MAP_SHELTER_ROOM_TASK_PRIORITY     = 32,
+    MAP_SHELTER_ROOM_TASK_AREA_DEFAULT = 0,
+};
+
+TaskDesc gMapShelterRoomTaskDescriptors[GAME_AREA_SHELTER_R49 + 1] = {
+    { .header = { .fields = { TASK_BODY_NONE, MAP_SHELTER_ROOM_TASK_PRIORITY } }, .callback = mineMesaRoomTask, .data = { .value = GP_TASK_LOC_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_MINE_MESA, MAP_SHELTER_ROOM_TASK_AREA_DEFAULT) } },
+    { .header = { .fields = { TASK_BODY_NONE, MAP_SHELTER_ROOM_TASK_PRIORITY } }, .callback = mineCavernRoomTask, .data = { .value = GP_TASK_LOC_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_MINE_CAVERN, MAP_SHELTER_ROOM_TASK_AREA_DEFAULT) } },
+    { .header = { .fields = { TASK_BODY_NONE, MAP_SHELTER_ROOM_TASK_PRIORITY } }, .callback = mineTunnelEntranceRoomTask, .data = { .value = GP_TASK_LOC_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_MINE_TUNNEL_ENTRANCE, MAP_SHELTER_ROOM_TASK_AREA_DEFAULT) } },
+    { .header = { .fields = { TASK_BODY_NONE, MAP_SHELTER_ROOM_TASK_PRIORITY } }, .callback = mineTunnelRoomTask, .data = { .value = GP_TASK_LOC_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_MINE_TUNNEL, MAP_SHELTER_ROOM_TASK_AREA_DEFAULT) } },
+    { .header = { .fields = { TASK_BODY_NONE, MAP_SHELTER_ROOM_TASK_PRIORITY } }, .callback = mineGorgeRoomTask, .data = { .value = GP_TASK_LOC_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_MINE_GORGE, MAP_SHELTER_ROOM_TASK_AREA_DEFAULT) } },
+    { .header = { .fields = { TASK_BODY_NONE, MAP_SHELTER_ROOM_TASK_PRIORITY } }, .callback = mineRefugeRoomTask, .data = { .value = GP_TASK_LOC_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_MINE_REFUGE, MAP_SHELTER_ROOM_TASK_AREA_DEFAULT) } },
+    { .header = { .fields = { TASK_BODY_NONE, MAP_SHELTER_ROOM_TASK_PRIORITY } }, .callback = mineForkedTunnelRoomTask, .data = { .value = GP_TASK_LOC_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_MINE_FORKED_TUNNEL, MAP_SHELTER_ROOM_TASK_AREA_DEFAULT) } },
+    { .header = { .fields = { TASK_BODY_NONE, MAP_SHELTER_ROOM_TASK_PRIORITY } }, .callback = mineSecretPassageRoomTask, .data = { .value = GP_TASK_LOC_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_MINE_SECRET_PASSAGE, MAP_SHELTER_ROOM_TASK_AREA_DEFAULT) } },
+    { .header = { .fields = { TASK_BODY_NONE, MAP_SHELTER_ROOM_TASK_PRIORITY } }, .callback = shelterB1ElevatorHallRoomTask, .data = { .value = GP_TASK_LOC_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_ELEVATOR_HALL, MAP_SHELTER_ROOM_TASK_AREA_DEFAULT) } },
+    { .header = { .fields = { TASK_BODY_NONE, MAP_SHELTER_ROOM_TASK_PRIORITY } }, .callback = shelterB1SouthMaintenanceWalkwayRoomTask, .data = { .value = GP_TASK_LOC_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY, MAP_SHELTER_ROOM_TASK_AREA_DEFAULT) } },
+    { .header = { .fields = { TASK_BODY_NONE, MAP_SHELTER_ROOM_TASK_PRIORITY } }, .callback = shelterB1StoreroomTask, .data = { .value = GP_TASK_LOC_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_STOREROOM, MAP_SHELTER_ROOM_TASK_AREA_DEFAULT) } },
+    { .header = { .fields = { TASK_BODY_NONE, MAP_SHELTER_ROOM_TASK_PRIORITY } }, .callback = shelterB1NorthMaintenanceWalkwayRoomTask, .data = { .value = GP_TASK_LOC_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_NORTH_MAINTENANCE_WALKWAY, MAP_SHELTER_ROOM_TASK_AREA_DEFAULT) } },
+    { .header = { .fields = { TASK_BODY_NONE, MAP_SHELTER_ROOM_TASK_PRIORITY } }, .callback = shelterB1ArmoryRoomTask, .data = { .value = GP_TASK_LOC_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_ARMORY, MAP_SHELTER_ROOM_TASK_AREA_DEFAULT) } },
+    { .header = { .fields = { TASK_BODY_NONE, MAP_SHELTER_ROOM_TASK_PRIORITY } }, .callback = shelterB1SleepingQuartersRoomTask, .data = { .value = GP_TASK_LOC_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_SLEEPING_QUARTERS, MAP_SHELTER_ROOM_TASK_AREA_DEFAULT) } },
+    { .header = { .fields = { TASK_BODY_NONE, MAP_SHELTER_ROOM_TASK_PRIORITY } }, .callback = shelterB1MainCorridorRoomTask, .data = { .value = GP_TASK_LOC_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_MAIN_CORRIDOR, MAP_SHELTER_ROOM_TASK_AREA_DEFAULT) } },
+    { .header = { .fields = { TASK_BODY_NONE, MAP_SHELTER_ROOM_TASK_PRIORITY } }, .callback = shelterB1SterilizationRoomTask, .data = { .value = GP_TASK_LOC_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_STERILIZATION_ROOM, MAP_SHELTER_ROOM_TASK_AREA_DEFAULT) } },
+    { .header = { .fields = { TASK_BODY_NONE, MAP_SHELTER_ROOM_TASK_PRIORITY } }, .callback = shelterB1PodAccessTunnelRoomTask, .data = { .value = GP_TASK_LOC_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_POD_ACCESS_TUNNEL, MAP_SHELTER_ROOM_TASK_AREA_DEFAULT) } },
+    { .header = { .fields = { TASK_BODY_NONE, MAP_SHELTER_ROOM_TASK_PRIORITY } }, .callback = shelterB1AccessTunnelRoomTask, .data = { .value = GP_TASK_LOC_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_ACCESS_TUNNEL, MAP_SHELTER_ROOM_TASK_AREA_DEFAULT) } },
+    { .header = { .fields = { TASK_BODY_NONE, MAP_SHELTER_ROOM_TASK_PRIORITY } }, .callback = shelterB1UndergroundParkingRoomTask, .data = { .value = GP_TASK_LOC_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_UNDERGROUND_PARKING, MAP_SHELTER_ROOM_TASK_AREA_DEFAULT) } },
+    { .header = { .fields = { TASK_BODY_NONE, MAP_SHELTER_ROOM_TASK_PRIORITY } }, .callback = shelterB1GolemFreezer1RoomTask, .data = { .value = GP_TASK_LOC_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_GOLEM_FREEZER_1, MAP_SHELTER_ROOM_TASK_AREA_DEFAULT) } },
+    { .header = { .fields = { TASK_BODY_NONE, MAP_SHELTER_ROOM_TASK_PRIORITY } }, .callback = shelterB1TransferTunnelRoomTask, .data = { .value = GP_TASK_LOC_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_TRANSFER_TUNNEL, MAP_SHELTER_ROOM_TASK_AREA_DEFAULT) } },
+    { .header = { .fields = { TASK_BODY_NONE, MAP_SHELTER_ROOM_TASK_PRIORITY } }, .callback = shelterB1ControlRoomAccessTunnelRoomTask, .data = { .value = GP_TASK_LOC_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_CONTROL_ROOM_ACCESS_TUNNEL, MAP_SHELTER_ROOM_TASK_AREA_DEFAULT) } },
+    { .header = { .fields = { TASK_BODY_NONE, MAP_SHELTER_ROOM_TASK_PRIORITY } }, .callback = shelterB2ElevatorRoomTask, .data = { .value = GP_TASK_LOC_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_ELEVATOR, MAP_SHELTER_ROOM_TASK_AREA_DEFAULT) } },
+    { .header = { .fields = { TASK_BODY_NONE, MAP_SHELTER_ROOM_TASK_PRIORITY } }, .callback = shelterB2ElevatorHallRoomTask, .data = { .value = GP_TASK_LOC_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_ELEVATOR_HALL, MAP_SHELTER_ROOM_TASK_AREA_DEFAULT) } },
+    { .header = { .fields = { TASK_BODY_NONE, MAP_SHELTER_ROOM_TASK_PRIORITY } }, .callback = shelterB2SouthMaintenanceWalkwayRoomTask, .data = { .value = GP_TASK_LOC_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY, MAP_SHELTER_ROOM_TASK_AREA_DEFAULT) } },
+    { .header = { .fields = { TASK_BODY_NONE, MAP_SHELTER_ROOM_TASK_PRIORITY } }, .callback = shelterB2OperatingRoomTask, .data = { .value = GP_TASK_LOC_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_OPERATING_ROOM, MAP_SHELTER_ROOM_TASK_AREA_DEFAULT) } },
+    { .header = { .fields = { TASK_BODY_NONE, MAP_SHELTER_ROOM_TASK_PRIORITY } }, .callback = shelterB2NorthMaintenanceWalkwayRoomTask, .data = { .value = GP_TASK_LOC_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_NORTH_MAINTENANCE_WALKWAY, MAP_SHELTER_ROOM_TASK_AREA_DEFAULT) } },
+    { .header = { .fields = { TASK_BODY_NONE, MAP_SHELTER_ROOM_TASK_PRIORITY } }, .callback = shelterB2LaboratoryTask, .data = { .value = GP_TASK_LOC_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_LABORATORY, MAP_SHELTER_ROOM_TASK_AREA_DEFAULT) } },
+    { .header = { .fields = { TASK_BODY_NONE, MAP_SHELTER_ROOM_TASK_PRIORITY } }, .callback = shelterB2BreedingRoomRoomTask, .data = { .value = GP_TASK_LOC_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_BREEDING_ROOM, MAP_SHELTER_ROOM_TASK_AREA_DEFAULT) } },
+    { .header = { .fields = { TASK_BODY_NONE, MAP_SHELTER_ROOM_TASK_PRIORITY } }, .callback = shelterB2MainCorridorRoomTask, .data = { .value = GP_TASK_LOC_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_MAIN_CORRIDOR, MAP_SHELTER_ROOM_TASK_AREA_DEFAULT) } },
+    { .header = { .fields = { TASK_BODY_NONE, MAP_SHELTER_ROOM_TASK_PRIORITY } }, .callback = shelterB2SepticTankRoomTask, .data = { .value = GP_TASK_LOC_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_SEPTIC_TANK, MAP_SHELTER_ROOM_TASK_AREA_DEFAULT) } },
+    { .header = { .fields = { TASK_BODY_NONE, MAP_SHELTER_ROOM_TASK_PRIORITY } }, .callback = shelterB2PodAccessTunnelRoomTask, .data = { .value = GP_TASK_LOC_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_POD_ACCESS_TUNNEL, MAP_SHELTER_ROOM_TASK_AREA_DEFAULT) } },
+    { .header = { .fields = { TASK_BODY_NONE, MAP_SHELTER_ROOM_TASK_PRIORITY } }, .callback = shelterR36RoomTask, .data = { .value = GP_TASK_LOC_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_R36, MAP_SHELTER_ROOM_TASK_AREA_DEFAULT) } },
+    { .header = { .fields = { TASK_BODY_NONE, MAP_SHELTER_ROOM_TASK_PRIORITY } }, .callback = shelterR37RoomTask, .data = { .value = GP_TASK_LOC_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_R37, MAP_SHELTER_ROOM_TASK_AREA_DEFAULT) } },
+    { .header = { .fields = { TASK_BODY_NONE, MAP_SHELTER_ROOM_TASK_PRIORITY } }, .callback = shelter1fHeliportS4RoomTask, .data = { .value = GP_TASK_LOC_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_1F_HELIPORT_S4, MAP_SHELTER_ROOM_TASK_AREA_DEFAULT) } },
+    { .header = { .fields = { TASK_BODY_NONE, MAP_SHELTER_ROOM_TASK_PRIORITY } }, .callback = shelterB3DumpingHoleRoomTask, .data = { .value = GP_TASK_LOC_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B3_DUMPING_HOLE, MAP_SHELTER_ROOM_TASK_AREA_DEFAULT) } },
+    { .header = { .fields = { TASK_BODY_NONE, MAP_SHELTER_ROOM_TASK_PRIORITY } }, .callback = shelterB3GarbageIncineratorRoomTask, .data = { .value = GP_TASK_LOC_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B3_GARBAGE_INCINERATOR, MAP_SHELTER_ROOM_TASK_AREA_DEFAULT) } },
+    { .header = { .fields = { TASK_BODY_NONE, MAP_SHELTER_ROOM_TASK_PRIORITY } }, .callback = shelterB3IncineratorControlRoomTask, .data = { .value = GP_TASK_LOC_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B3_INCINERATOR_CONTROL_ROOM, MAP_SHELTER_ROOM_TASK_AREA_DEFAULT) } },
+    { .header = { .fields = { TASK_BODY_NONE, MAP_SHELTER_ROOM_TASK_PRIORITY } }, .callback = shelterB3ElevatorHallRoomTask, .data = { .value = GP_TASK_LOC_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B3_ELEVATOR_HALL, MAP_SHELTER_ROOM_TASK_AREA_DEFAULT) } },
+    { .header = { .fields = { TASK_BODY_NONE, MAP_SHELTER_ROOM_TASK_PRIORITY } }, .callback = shelterB4LowerSewerRoomTask, .data = { .value = GP_TASK_LOC_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B4_LOWER_SEWER, MAP_SHELTER_ROOM_TASK_AREA_DEFAULT) } },
+    { .header = { .fields = { TASK_BODY_NONE, MAP_SHELTER_ROOM_TASK_PRIORITY } }, .callback = shelterB4UpperSewerRoomTask, .data = { .value = GP_TASK_LOC_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B4_UPPER_SEWER, MAP_SHELTER_ROOM_TASK_AREA_DEFAULT) } },
+    { .header = { .fields = { TASK_BODY_NONE, MAP_SHELTER_ROOM_TASK_PRIORITY } }, .callback = shelterB4ReservoirRoomTask, .data = { .value = GP_TASK_LOC_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B4_RESERVOIR, MAP_SHELTER_ROOM_TASK_AREA_DEFAULT) } },
+    { .header = { .fields = { TASK_BODY_NONE, MAP_SHELTER_ROOM_TASK_PRIORITY } }, .callback = shelterB4WaterSupplyRoomTask, .data = { .value = GP_TASK_LOC_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B4_WATER_SUPPLY, MAP_SHELTER_ROOM_TASK_AREA_DEFAULT) } },
+    { .header = { .fields = { TASK_BODY_NONE, MAP_SHELTER_ROOM_TASK_PRIORITY } }, .callback = shelterR48RoomTask, .data = { .value = GP_TASK_LOC_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_R48, MAP_SHELTER_ROOM_TASK_AREA_DEFAULT) } },
+    { .header = { .fields = { TASK_BODY_NONE, MAP_SHELTER_ROOM_TASK_PRIORITY } }, .callback = shelterR47RoomTask, .data = { .value = GP_TASK_LOC_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_R47, MAP_SHELTER_ROOM_TASK_AREA_DEFAULT) } },
+    { .header = { .fields = { TASK_BODY_NONE, MAP_SHELTER_ROOM_TASK_PRIORITY } }, .callback = shelterR49RoomTask, .data = { .value = GP_TASK_LOC_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_R49, MAP_SHELTER_ROOM_TASK_AREA_DEFAULT) } },
+    { .header = { .fields = { TASK_BODY_NONE, MAP_SHELTER_ROOM_TASK_PRIORITY } }, .callback = shelterB1ControlRoomRoomTask, .data = { .value = GP_TASK_LOC_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_CONTROL_ROOM, MAP_SHELTER_ROOM_TASK_AREA_DEFAULT) } },
+    { .header = { .fields = { TASK_BODY_NONE, MAP_SHELTER_ROOM_TASK_PRIORITY } }, .callback = shelterB1PodServiceGantryRoomTask, .data = { .value = GP_TASK_LOC_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_POD_SERVICE_GANTRY, MAP_SHELTER_ROOM_TASK_AREA_DEFAULT) } },
+    { .header = { .fields = { TASK_BODY_NONE, MAP_SHELTER_ROOM_TASK_PRIORITY } }, .callback = shelterB2PodBottomRoomTask, .data = { .value = GP_TASK_LOC_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_POD_BOTTOM, MAP_SHELTER_ROOM_TASK_AREA_DEFAULT) } },
+    { .header = { .fields = { TASK_DESC_END, MAP_SHELTER_ROOM_TASK_PRIORITY } }, .callback = NULL, .data = { .value = 0 } },
 };
 
 /// Game-flag nibble IDs for marker words without a resident named ID.
@@ -1123,56 +1130,56 @@ WorldCoordRoomLighting* gMapShelterRoomLightingTables[49] = {
     [GAME_AREA_SHELTER_R49 - 1]                           = gShelterR49RoomLighting,
 };
 
-DirectionWarpEntry* D_map_shelter_8017AF88[49] = {
-    gMineMesaWarpEntries,
-    gMineCavernWarpEntries,
-    gMineTunnelEntranceWarpEntries,
-    gMineTunnelWarpEntries,
-    gMineGorgeWarpEntries,
-    gMineRefugeWarpEntries,
-    gMineForkedTunnelWarpEntries,
-    gMineSecretPassageWarpEntries,
-    gShelterB1ElevatorHallWarpEntries,
-    gShelterB1SouthMaintenanceWalkwayWarpEntries,
-    gShelterB1StoreroomWarpEntries,
-    gShelterB1NorthMaintenanceWalkwayWarpEntries,
-    gShelterB1ArmoryWarpEntries,
-    gShelterB1SleepingQuartersWarpEntries,
-    gShelterB1MainCorridorWarpEntries,
-    gShelterB1SterilizationRoomWarpEntries,
-    gShelterB1PodAccessTunnelWarpEntries,
-    gShelterB1ControlRoomWarpEntries,
-    gShelterB1AccessTunnelWarpEntries,
-    gShelterB1UndergroundParkingWarpEntries,
-    gShelterB1GolemFreezer1WarpEntries,
-    gShelterB2PodBottomWarpEntries,
-    gShelterB1PodServiceGantryWarpEntries,
-    gShelterB1TransferTunnelWarpEntries,
-    gShelterB1ControlRoomAccessTunnelWarpEntries,
-    gShelterB2ElevatorWarps,
-    gShelterB2ElevatorHallWarpEntries,
-    gShelterB2SouthMaintenanceWalkwayWarpEntries,
-    gShelterB2OperatingRoomWarpEntries,
-    gShelterB2NorthMaintenanceWalkwayWarpEntries,
-    gShelterB2LaboratoryWarpEntries,
-    gShelterB2BreedingRoomWarpEntries,
-    gShelterB2MainCorridorWarpEntries,
-    gShelterB2SepticTankWarpEntries,
-    gShelterB2PodAccessTunnelWarpEntries,
-    gShelterR36WarpEntries,
-    gShelterR37WarpEntries,
-    gShelter1fHeliportS4WarpEntries,
-    gShelterB3DumpingHoleWarpEntries,
-    gShelterB3GarbageIncineratorWarpEntries,
-    gShelterB3IncineratorControlRoomWarpEntries,
-    gShelterB3ElevatorHallWarpEntries,
-    gShelterB4LowerSewerWarpEntries,
-    gShelterB4UpperSewerWarpEntries,
-    gShelterB4ReservoirWarpEntries,
-    gShelterB4WaterSupplyWarpEntries,
-    gShelterR47WarpEntries,
-    gShelterR48WarpEntries,
-    gShelterR49WarpEntries,
+DirectionWarpEntry* gMapShelterAreaWarpEntries[GAME_AREA_SHELTER_R49] = {
+    [GAME_AREA_MINE_MESA - 1]                             = gMineMesaWarpEntries,
+    [GAME_AREA_MINE_CAVERN - 1]                           = gMineCavernWarpEntries,
+    [GAME_AREA_MINE_TUNNEL_ENTRANCE - 1]                  = gMineTunnelEntranceWarpEntries,
+    [GAME_AREA_MINE_TUNNEL - 1]                           = gMineTunnelWarpEntries,
+    [GAME_AREA_MINE_GORGE - 1]                            = gMineGorgeWarpEntries,
+    [GAME_AREA_MINE_REFUGE - 1]                           = gMineRefugeWarpEntries,
+    [GAME_AREA_MINE_FORKED_TUNNEL - 1]                    = gMineForkedTunnelWarpEntries,
+    [GAME_AREA_MINE_SECRET_PASSAGE - 1]                   = gMineSecretPassageWarpEntries,
+    [GAME_AREA_SHELTER_B1_ELEVATOR_HALL - 1]              = gShelterB1ElevatorHallWarpEntries,
+    [GAME_AREA_SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY - 1]  = gShelterB1SouthMaintenanceWalkwayWarpEntries,
+    [GAME_AREA_SHELTER_B1_STOREROOM - 1]                  = gShelterB1StoreroomWarpEntries,
+    [GAME_AREA_SHELTER_B1_NORTH_MAINTENANCE_WALKWAY - 1]  = gShelterB1NorthMaintenanceWalkwayWarpEntries,
+    [GAME_AREA_SHELTER_B1_ARMORY - 1]                     = gShelterB1ArmoryWarpEntries,
+    [GAME_AREA_SHELTER_B1_SLEEPING_QUARTERS - 1]          = gShelterB1SleepingQuartersWarpEntries,
+    [GAME_AREA_SHELTER_B1_MAIN_CORRIDOR - 1]              = gShelterB1MainCorridorWarpEntries,
+    [GAME_AREA_SHELTER_B1_STERILIZATION_ROOM - 1]         = gShelterB1SterilizationRoomWarpEntries,
+    [GAME_AREA_SHELTER_B1_POD_ACCESS_TUNNEL - 1]          = gShelterB1PodAccessTunnelWarpEntries,
+    [GAME_AREA_SHELTER_B1_CONTROL_ROOM - 1]               = gShelterB1ControlRoomWarpEntries,
+    [GAME_AREA_SHELTER_B1_ACCESS_TUNNEL - 1]              = gShelterB1AccessTunnelWarpEntries,
+    [GAME_AREA_SHELTER_B1_UNDERGROUND_PARKING - 1]        = gShelterB1UndergroundParkingWarpEntries,
+    [GAME_AREA_SHELTER_B1_GOLEM_FREEZER_1 - 1]            = gShelterB1GolemFreezer1WarpEntries,
+    [GAME_AREA_SHELTER_B2_POD_BOTTOM - 1]                 = gShelterB2PodBottomWarpEntries,
+    [GAME_AREA_SHELTER_B1_POD_SERVICE_GANTRY - 1]         = gShelterB1PodServiceGantryWarpEntries,
+    [GAME_AREA_SHELTER_B1_TRANSFER_TUNNEL - 1]            = gShelterB1TransferTunnelWarpEntries,
+    [GAME_AREA_SHELTER_B1_CONTROL_ROOM_ACCESS_TUNNEL - 1] = gShelterB1ControlRoomAccessTunnelWarpEntries,
+    [GAME_AREA_SHELTER_B2_ELEVATOR - 1]                   = gShelterB2ElevatorWarps,
+    [GAME_AREA_SHELTER_B2_ELEVATOR_HALL - 1]              = gShelterB2ElevatorHallWarpEntries,
+    [GAME_AREA_SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY - 1]  = gShelterB2SouthMaintenanceWalkwayWarpEntries,
+    [GAME_AREA_SHELTER_B2_OPERATING_ROOM - 1]             = gShelterB2OperatingRoomWarpEntries,
+    [GAME_AREA_SHELTER_B2_NORTH_MAINTENANCE_WALKWAY - 1]  = gShelterB2NorthMaintenanceWalkwayWarpEntries,
+    [GAME_AREA_SHELTER_B2_LABORATORY - 1]                 = gShelterB2LaboratoryWarpEntries,
+    [GAME_AREA_SHELTER_B2_BREEDING_ROOM - 1]              = gShelterB2BreedingRoomWarpEntries,
+    [GAME_AREA_SHELTER_B2_MAIN_CORRIDOR - 1]              = gShelterB2MainCorridorWarpEntries,
+    [GAME_AREA_SHELTER_B2_SEPTIC_TANK - 1]                = gShelterB2SepticTankWarpEntries,
+    [GAME_AREA_SHELTER_B2_POD_ACCESS_TUNNEL - 1]          = gShelterB2PodAccessTunnelWarpEntries,
+    [GAME_AREA_SHELTER_R36 - 1]                           = gShelterR36WarpEntries,
+    [GAME_AREA_SHELTER_R37 - 1]                           = gShelterR37WarpEntries,
+    [GAME_AREA_SHELTER_1F_HELIPORT_S4 - 1]                = gShelter1fHeliportS4WarpEntries,
+    [GAME_AREA_SHELTER_B3_DUMPING_HOLE - 1]               = gShelterB3DumpingHoleWarpEntries,
+    [GAME_AREA_SHELTER_B3_GARBAGE_INCINERATOR - 1]        = gShelterB3GarbageIncineratorWarpEntries,
+    [GAME_AREA_SHELTER_B3_INCINERATOR_CONTROL_ROOM - 1]   = gShelterB3IncineratorControlRoomWarpEntries,
+    [GAME_AREA_SHELTER_B3_ELEVATOR_HALL - 1]              = gShelterB3ElevatorHallWarpEntries,
+    [GAME_AREA_SHELTER_B4_LOWER_SEWER - 1]                = gShelterB4LowerSewerWarpEntries,
+    [GAME_AREA_SHELTER_B4_UPPER_SEWER - 1]                = gShelterB4UpperSewerWarpEntries,
+    [GAME_AREA_SHELTER_B4_RESERVOIR - 1]                  = gShelterB4ReservoirWarpEntries,
+    [GAME_AREA_SHELTER_B4_WATER_SUPPLY - 1]               = gShelterB4WaterSupplyWarpEntries,
+    [GAME_AREA_SHELTER_R47 - 1]                           = gShelterR47WarpEntries,
+    [GAME_AREA_SHELTER_R48 - 1]                           = gShelterR48WarpEntries,
+    [GAME_AREA_SHELTER_R49 - 1]                           = gShelterR49WarpEntries,
 };
 
 /// Borrowed per-room logical-view count arrays for all 49 Mine/Shelter areas.
@@ -1234,12 +1241,34 @@ static ViewCount* _gMapShelterAreaViewCounts[GAME_AREA_SHELTER_R49] = {
 
 ViewCountTable gMapShelterViewCountTable = { .viewCounts = _gMapShelterAreaViewCounts };
 
-static WorldCollisionRoomResources D_map_shelter_8017B114[1] = {
-    { &gShelterB1NorthMaintenanceWalkwayCollisionGrid, gShelterB1NorthMaintenanceWalkwayViewBoundaryTriggers, gShelterB1NorthMaintenanceWalkwayActionTriggers, gShelterB1NorthMaintenanceWalkwaySightOccluders },
+/// Room-1 collision resources for Shelter B1 north maintenance walkway.
+///
+/// Area 12 selects this single descriptor; only room ID 1 is valid, with
+/// no terminator. Borrows the mutable room grid, view boundaries and actions,
+/// plus sight occluders. Keep the room resources loaded until the
+/// active grid and linked lists are retired.
+static WorldCollisionRoomResources _gMapShelterB1NorthMaintenanceWalkwayRoomCollisionResources[1] = {
+    {
+        .grid                 = &gShelterB1NorthMaintenanceWalkwayCollisionGrid,
+        .viewBoundaryTriggers = gShelterB1NorthMaintenanceWalkwayViewBoundaryTriggers,
+        .actionTriggers       = gShelterB1NorthMaintenanceWalkwayActionTriggers,
+        .occluders            = gShelterB1NorthMaintenanceWalkwaySightOccluders,
+    },
 };
 
-static WorldCollisionRoomResources D_map_shelter_8017B124[1] = {
-    { &gShelterB1ArmoryCollisionGrid, gShelterB1ArmoryViewBoundaryTriggers, gShelterB1ArmoryActionTriggers, NULL },
+/// Room-1 collision resources for Shelter B1 armory.
+///
+/// Area 13 selects this single descriptor; only room ID 1 is valid, with
+/// no terminator. Borrows the mutable room grid, view boundaries and actions;
+/// there are no sight occluders. Keep the room resources loaded until the
+/// active grid and linked lists are retired.
+static WorldCollisionRoomResources _gMapShelterB1ArmoryRoomCollisionResources[1] = {
+    {
+        .grid                 = &gShelterB1ArmoryCollisionGrid,
+        .viewBoundaryTriggers = gShelterB1ArmoryViewBoundaryTriggers,
+        .actionTriggers       = gShelterB1ArmoryActionTriggers,
+        .occluders            = NULL,
+    },
 };
 
 /// Collision-resource descriptors for Shelter B1 sleeping quarters.
@@ -1285,8 +1314,19 @@ static WorldCollisionRoomResources _gMapShelterB1PodAccessTunnelRoomCollisionRes
     },
 };
 
-static WorldCollisionRoomResources D_map_shelter_8017B164[1] = {
-    { &gShelterB1ControlRoomRoomCollision, gShelterB1ControlRoomViewBoundaryTriggers, gShelterB1ControlRoomActionTriggers, NULL },
+/// Room-1 collision resources for Shelter B1 control room.
+///
+/// Area 18 selects this single descriptor; only room ID 1 is valid, with
+/// no terminator. Borrows the mutable room grid, view boundaries and actions;
+/// there are no sight occluders. Keep the room resources loaded until the
+/// active grid and linked lists are retired.
+static WorldCollisionRoomResources _gMapShelterB1ControlRoomRoomCollisionResources[1] = {
+    {
+        .grid                 = &gShelterB1ControlRoomRoomCollision,
+        .viewBoundaryTriggers = gShelterB1ControlRoomViewBoundaryTriggers,
+        .actionTriggers       = gShelterB1ControlRoomActionTriggers,
+        .occluders            = NULL,
+    },
 };
 
 /// Collision-resource descriptors for Shelter B1 access tunnel.
@@ -1392,8 +1432,19 @@ static WorldCollisionRoomResources _gMapShelterB2ElevatorHallRoomCollisionResour
     },
 };
 
-static WorldCollisionRoomResources D_map_shelter_8017B1E4[1] = {
-    { &gShelterB2SouthMaintenanceWalkwayCollisionGrid, gShelterB2SouthMaintenanceWalkwayViewBoundaryTriggers, gShelterB2SouthMaintenanceWalkwayActionTriggers, gShelterB2SouthMaintenanceWalkwaySightOccluders },
+/// Room-1 collision resources for Shelter B2 south maintenance walkway.
+///
+/// Area 28 selects this single descriptor; only room ID 1 is valid, with
+/// no terminator. Borrows the mutable room grid, view boundaries and actions,
+/// plus sight occluders. Keep the room resources loaded until the
+/// active grid and linked lists are retired.
+static WorldCollisionRoomResources _gMapShelterB2SouthMaintenanceWalkwayRoomCollisionResources[1] = {
+    {
+        .grid                 = &gShelterB2SouthMaintenanceWalkwayCollisionGrid,
+        .viewBoundaryTriggers = gShelterB2SouthMaintenanceWalkwayViewBoundaryTriggers,
+        .actionTriggers       = gShelterB2SouthMaintenanceWalkwayActionTriggers,
+        .occluders            = gShelterB2SouthMaintenanceWalkwaySightOccluders,
+    },
 };
 
 /// Collision-resource descriptors for Shelter B2 operating room.
@@ -1410,8 +1461,19 @@ static WorldCollisionRoomResources _gMapShelterB2OperatingRoomCollisionResources
     },
 };
 
-static WorldCollisionRoomResources D_map_shelter_8017B204[1] = {
-    { &gShelterB2NorthMaintenanceWalkwayCollisionGrid, gShelterB2NorthMaintenanceWalkwayViewBoundaryTriggers, gShelterB2NorthMaintenanceWalkwayActionTriggers, gShelterB2NorthMaintenanceWalkwaySightOccluders },
+/// Room-1 collision resources for Shelter B2 north maintenance walkway.
+///
+/// Area 30 selects this single descriptor; only room ID 1 is valid, with
+/// no terminator. Borrows the mutable room grid, view boundaries and actions,
+/// plus sight occluders. Keep the room resources loaded until the
+/// active grid and linked lists are retired.
+static WorldCollisionRoomResources _gMapShelterB2NorthMaintenanceWalkwayRoomCollisionResources[1] = {
+    {
+        .grid                 = &gShelterB2NorthMaintenanceWalkwayCollisionGrid,
+        .viewBoundaryTriggers = gShelterB2NorthMaintenanceWalkwayViewBoundaryTriggers,
+        .actionTriggers       = gShelterB2NorthMaintenanceWalkwayActionTriggers,
+        .occluders            = gShelterB2NorthMaintenanceWalkwaySightOccluders,
+    },
 };
 
 /// Collision-resource descriptors for Shelter B2 laboratory.
@@ -1596,63 +1658,80 @@ static WorldCollisionRoomResources _gMapShelterB4WaterSupplyRoomCollisionResourc
     },
 };
 
-static WorldCollisionRoomResources D_map_shelter_8017B2E4[1] = {
-    { &gShelterR47CollisionGrid, gShelterR47ViewBoundaryTriggers, gShelterR47ActionTriggers, NULL },
+/// Room-1 collision resources for Shelter area 47.
+///
+/// Area 47 selects this single descriptor; only room ID 1 is valid, with
+/// no terminator. Borrows the mutable room grid, view boundaries and actions;
+/// there are no sight occluders. Keep the room resources loaded until the
+/// active grid and linked lists are retired.
+static WorldCollisionRoomResources _gMapShelterR47RoomCollisionResources[1] = {
+    {
+        .grid                 = &gShelterR47CollisionGrid,
+        .viewBoundaryTriggers = gShelterR47ViewBoundaryTriggers,
+        .actionTriggers       = gShelterR47ActionTriggers,
+        .occluders            = NULL,
+    },
 };
 
-static WorldCollisionRoomResources* D_map_shelter_8017B2F4[49] = {
-    gMineMesaRoomCollisionResources,
-    gMineCavernRoomCollisionResources,
-    gMineTunnelEntranceRoomCollisionResources,
-    gMineTunnelRoomCollisionResources,
-    gMineGorgeRoomCollisionResources,
-    gMineRefugeRoomCollisionResources,
-    gMineForkedTunnelRoomCollisionResources,
-    gMineSecretPassageRoomCollisionResources,
-    gShelterB1ElevatorHallRoomCollisionResources,
-    gShelterB1SouthMaintenanceWalkwayRoomCollisionResources,
-    gShelterB1StoreroomRoomCollisionResources,
-    D_map_shelter_8017B114,
-    D_map_shelter_8017B124,
-    _gMapShelterB1SleepingQuartersRoomCollisionResources,
-    _gMapShelterB1MainCorridorRoomCollisionResources,
-    gShelterB1SterilizationRoomCollisionResources,
-    _gMapShelterB1PodAccessTunnelRoomCollisionResources,
-    D_map_shelter_8017B164,
-    _gMapShelterB1AccessTunnelRoomCollisionResources,
-    gShelterB1UndergroundParkingRoomCollisionResources,
-    _gMapShelterB1GolemFreezer1RoomCollisionResources,
-    gShelterB2PodBottomRoomCollisionResources,
-    _gMapShelterB1PodServiceGantryRoomCollisionResources,
-    _gMapShelterB1TransferTunnelRoomCollisionResources,
-    _gMapShelterB1ControlRoomAccessTunnelRoomCollisionResources,
-    _gMapShelterB2ElevatorRoomCollisionResources,
-    _gMapShelterB2ElevatorHallRoomCollisionResources,
-    D_map_shelter_8017B1E4,
-    _gMapShelterB2OperatingRoomCollisionResources,
-    D_map_shelter_8017B204,
-    _gMapShelterB2LaboratoryRoomCollisionResources,
-    _gMapShelterB2BreedingRoomCollisionResources,
-    _gMapShelterB2MainCorridorRoomCollisionResources,
-    _gMapShelterB2SepticTankRoomCollisionResources,
-    gShelterB2PodAccessTunnelRoomCollisionResources,
-    _gMapShelterR36RoomCollisionResources,
-    _gMapShelterR37RoomCollisionResources,
-    _gMapShelter1fHeliportS4RoomCollisionResources,
-    gShelterB3DumpingHoleRoomCollisionResources,
-    gShelterB3GarbageIncineratorRoomCollisionResources,
-    _gMapShelterB3IncineratorControlRoomCollisionResources,
-    _gMapShelterB3ElevatorHallRoomCollisionResources,
-    _gMapShelterB4LowerSewerRoomCollisionResources,
-    _gMapShelterB4UpperSewerRoomCollisionResources,
-    gShelterB4ReservoirRoomCollisionResources,
-    _gMapShelterB4WaterSupplyRoomCollisionResources,
-    D_map_shelter_8017B2E4,
-    gShelterR48RoomCollisionResources,
-    gShelterR49RoomCollisionResources,
+/// Per-area collision room arrays for Mine/Shelter.
+///
+/// Select area - 1 for IDs 1..49. Every area entry is populated.
+/// Each array uses room - 1 within its own extent, without a terminator.
+/// Descriptors may be map-owned or borrowed; their mutable room resources must
+/// remain loaded until the active grid and linked lists are retired.
+static WorldCollisionRoomResources* _gMapShelterWorldCollisionAreaRooms[GAME_AREA_SHELTER_R49] = {
+    [GAME_AREA_MINE_MESA - 1]                             = gMineMesaRoomCollisionResources,
+    [GAME_AREA_MINE_CAVERN - 1]                           = gMineCavernRoomCollisionResources,
+    [GAME_AREA_MINE_TUNNEL_ENTRANCE - 1]                  = gMineTunnelEntranceRoomCollisionResources,
+    [GAME_AREA_MINE_TUNNEL - 1]                           = gMineTunnelRoomCollisionResources,
+    [GAME_AREA_MINE_GORGE - 1]                            = gMineGorgeRoomCollisionResources,
+    [GAME_AREA_MINE_REFUGE - 1]                           = gMineRefugeRoomCollisionResources,
+    [GAME_AREA_MINE_FORKED_TUNNEL - 1]                    = gMineForkedTunnelRoomCollisionResources,
+    [GAME_AREA_MINE_SECRET_PASSAGE - 1]                   = gMineSecretPassageRoomCollisionResources,
+    [GAME_AREA_SHELTER_B1_ELEVATOR_HALL - 1]              = gShelterB1ElevatorHallRoomCollisionResources,
+    [GAME_AREA_SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY - 1]  = gShelterB1SouthMaintenanceWalkwayRoomCollisionResources,
+    [GAME_AREA_SHELTER_B1_STOREROOM - 1]                  = gShelterB1StoreroomRoomCollisionResources,
+    [GAME_AREA_SHELTER_B1_NORTH_MAINTENANCE_WALKWAY - 1]  = _gMapShelterB1NorthMaintenanceWalkwayRoomCollisionResources,
+    [GAME_AREA_SHELTER_B1_ARMORY - 1]                     = _gMapShelterB1ArmoryRoomCollisionResources,
+    [GAME_AREA_SHELTER_B1_SLEEPING_QUARTERS - 1]          = _gMapShelterB1SleepingQuartersRoomCollisionResources,
+    [GAME_AREA_SHELTER_B1_MAIN_CORRIDOR - 1]              = _gMapShelterB1MainCorridorRoomCollisionResources,
+    [GAME_AREA_SHELTER_B1_STERILIZATION_ROOM - 1]         = gShelterB1SterilizationRoomCollisionResources,
+    [GAME_AREA_SHELTER_B1_POD_ACCESS_TUNNEL - 1]          = _gMapShelterB1PodAccessTunnelRoomCollisionResources,
+    [GAME_AREA_SHELTER_B1_CONTROL_ROOM - 1]               = _gMapShelterB1ControlRoomRoomCollisionResources,
+    [GAME_AREA_SHELTER_B1_ACCESS_TUNNEL - 1]              = _gMapShelterB1AccessTunnelRoomCollisionResources,
+    [GAME_AREA_SHELTER_B1_UNDERGROUND_PARKING - 1]        = gShelterB1UndergroundParkingRoomCollisionResources,
+    [GAME_AREA_SHELTER_B1_GOLEM_FREEZER_1 - 1]            = _gMapShelterB1GolemFreezer1RoomCollisionResources,
+    [GAME_AREA_SHELTER_B2_POD_BOTTOM - 1]                 = gShelterB2PodBottomRoomCollisionResources,
+    [GAME_AREA_SHELTER_B1_POD_SERVICE_GANTRY - 1]         = _gMapShelterB1PodServiceGantryRoomCollisionResources,
+    [GAME_AREA_SHELTER_B1_TRANSFER_TUNNEL - 1]            = _gMapShelterB1TransferTunnelRoomCollisionResources,
+    [GAME_AREA_SHELTER_B1_CONTROL_ROOM_ACCESS_TUNNEL - 1] = _gMapShelterB1ControlRoomAccessTunnelRoomCollisionResources,
+    [GAME_AREA_SHELTER_B2_ELEVATOR - 1]                   = _gMapShelterB2ElevatorRoomCollisionResources,
+    [GAME_AREA_SHELTER_B2_ELEVATOR_HALL - 1]              = _gMapShelterB2ElevatorHallRoomCollisionResources,
+    [GAME_AREA_SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY - 1]  = _gMapShelterB2SouthMaintenanceWalkwayRoomCollisionResources,
+    [GAME_AREA_SHELTER_B2_OPERATING_ROOM - 1]             = _gMapShelterB2OperatingRoomCollisionResources,
+    [GAME_AREA_SHELTER_B2_NORTH_MAINTENANCE_WALKWAY - 1]  = _gMapShelterB2NorthMaintenanceWalkwayRoomCollisionResources,
+    [GAME_AREA_SHELTER_B2_LABORATORY - 1]                 = _gMapShelterB2LaboratoryRoomCollisionResources,
+    [GAME_AREA_SHELTER_B2_BREEDING_ROOM - 1]              = _gMapShelterB2BreedingRoomCollisionResources,
+    [GAME_AREA_SHELTER_B2_MAIN_CORRIDOR - 1]              = _gMapShelterB2MainCorridorRoomCollisionResources,
+    [GAME_AREA_SHELTER_B2_SEPTIC_TANK - 1]                = _gMapShelterB2SepticTankRoomCollisionResources,
+    [GAME_AREA_SHELTER_B2_POD_ACCESS_TUNNEL - 1]          = gShelterB2PodAccessTunnelRoomCollisionResources,
+    [GAME_AREA_SHELTER_R36 - 1]                           = _gMapShelterR36RoomCollisionResources,
+    [GAME_AREA_SHELTER_R37 - 1]                           = _gMapShelterR37RoomCollisionResources,
+    [GAME_AREA_SHELTER_1F_HELIPORT_S4 - 1]                = _gMapShelter1fHeliportS4RoomCollisionResources,
+    [GAME_AREA_SHELTER_B3_DUMPING_HOLE - 1]               = gShelterB3DumpingHoleRoomCollisionResources,
+    [GAME_AREA_SHELTER_B3_GARBAGE_INCINERATOR - 1]        = gShelterB3GarbageIncineratorRoomCollisionResources,
+    [GAME_AREA_SHELTER_B3_INCINERATOR_CONTROL_ROOM - 1]   = _gMapShelterB3IncineratorControlRoomCollisionResources,
+    [GAME_AREA_SHELTER_B3_ELEVATOR_HALL - 1]              = _gMapShelterB3ElevatorHallRoomCollisionResources,
+    [GAME_AREA_SHELTER_B4_LOWER_SEWER - 1]                = _gMapShelterB4LowerSewerRoomCollisionResources,
+    [GAME_AREA_SHELTER_B4_UPPER_SEWER - 1]                = _gMapShelterB4UpperSewerRoomCollisionResources,
+    [GAME_AREA_SHELTER_B4_RESERVOIR - 1]                  = gShelterB4ReservoirRoomCollisionResources,
+    [GAME_AREA_SHELTER_B4_WATER_SUPPLY - 1]               = _gMapShelterB4WaterSupplyRoomCollisionResources,
+    [GAME_AREA_SHELTER_R47 - 1]                           = _gMapShelterR47RoomCollisionResources,
+    [GAME_AREA_SHELTER_R48 - 1]                           = gShelterR48RoomCollisionResources,
+    [GAME_AREA_SHELTER_R49 - 1]                           = gShelterR49RoomCollisionResources,
 };
 
-WorldCollisionStageResources D_map_shelter_8017B3B8 = { D_map_shelter_8017B2F4 };
+WorldCollisionStageResources gMapShelterWorldCollisionResources = { .areaRooms = _gMapShelterWorldCollisionAreaRooms };
 
 /// Borrowed camera arrays for all 49 Mine/Shelter areas.
 ///
@@ -2121,70 +2200,90 @@ static AreaObjectPlace _gMapShelterR48ObjectPlaces[3] = {
     { .flagIndex = AREA_OBJECT_PLACE_END },
 };
 
-InventoryBattleReward D_map_shelter_8017BB58[47] = {
-    { GAME_LOCATION_KEY(4, 1, 1, 0), { 3, 0xA1, 0xAF, 0xA2 } },
-    { GAME_LOCATION_KEY(4, 2, 4, 0), { 2, 0x84, 0xA9, 0x45 } },
-    { GAME_LOCATION_KEY(4, 4, 1, 0), { 0xAD, 0, 0, 0xAE } },
-    { GAME_LOCATION_KEY(4, 5, 1, 0), { 6, 0, 0, 0 } },
-    { GAME_LOCATION_KEY(4, 8, 1, 0), { 0xD, 0xA2, 0, 7 } },
-    { GAME_LOCATION_KEY(4, 12, 1, 0), { 4, 0, 0, 0 } },
-    { GAME_LOCATION_KEY(4, 17, 4, 0), { 0xAF, 0, 0, 0 } },
-    { GAME_LOCATION_KEY(4, 27, 3, 0), { 0xAE, 0, 0, 0xAD } },
-    { GAME_LOCATION_KEY(4, 28, 2, 0), { 0x3C, 0, 0, 0 } },
-    { GAME_LOCATION_KEY(4, 32, 1, 0), { 7, 0, 0, 0 } },
-    { GAME_LOCATION_KEY(4, 32, 2, 0), { 8, 0, 0, 0 } },
-    { GAME_LOCATION_KEY(4, 33, 2, 0), { 0xAF, 0, 0, 0xA2 } },
-    { GAME_LOCATION_KEY(4, 33, 3, 0), { 0xAD, 0, 0, 0 } },
-    { GAME_LOCATION_KEY(4, 34, 1, 0), { 0xAD, 0, 0, 0 } },
-    { GAME_LOCATION_KEY(4, 34, 2, 0), { 2, 0, 0, 0 } },
-    { GAME_LOCATION_KEY(4, 35, 3, 0), { 0xAD, 0, 0, 0 } },
-    { GAME_LOCATION_KEY(4, 39, 1, 0), { 0xA9, 0xAF, 3, 0xAA } },
-    { GAME_LOCATION_KEY(4, 39, 2, 0), { 0x3C, 0xAF, 0, 0xAA } },
-    { GAME_LOCATION_KEY(4, 40, 1, 0), { 3, 0, 0, 7 } },
-    { GAME_LOCATION_KEY(4, 40, 2, 0), { 0xAD, 0xA2, 0, 0xD } },
-    { GAME_LOCATION_KEY(4, 40, 3, 0), { 3, 0xAA, 0x3E, 7 } },
-    { GAME_LOCATION_KEY(4, 44, 3, 0), { 0x3E, 0, 0, 0 } },
-    { GAME_LOCATION_KEY(4, 44, 4, 0), { 0xAD, 0, 0, 0 } },
-    { GAME_LOCATION_KEY(4, 9, 11, 0), { 0xAB, 0, 0, 0xAF } },
-    { GAME_LOCATION_KEY(4, 10, 11, 0), { 0xA2, 0, 0, 0 } },
-    { GAME_LOCATION_KEY(4, 11, 11, 0), { 0xAB, 0, 0, 0xA2 } },
-    { GAME_LOCATION_KEY(4, 12, 11, 0), { 0xAA, 0, 0, 0 } },
-    { GAME_LOCATION_KEY(4, 14, 11, 0), { 7, 0, 0, 8 } },
-    { GAME_LOCATION_KEY(4, 15, 11, 0), { 0xAA, 0, 0, 0xAB } },
-    { GAME_LOCATION_KEY(4, 17, 11, 0), { 0xAF, 0, 0, 0 } },
-    { GAME_LOCATION_KEY(4, 19, 11, 0), { 8, 0, 0, 7 } },
-    { GAME_LOCATION_KEY(4, 24, 11, 0), { 0xAF, 0, 0, 0 } },
-    { GAME_LOCATION_KEY(4, 25, 11, 0), { 0xA2, 0, 0, 0 } },
-    { GAME_LOCATION_KEY(4, 27, 11, 0), { 0xAA, 0, 0, 0 } },
-    { GAME_LOCATION_KEY(4, 28, 11, 0), { 0xD, 0, 0, 0 } },
-    { GAME_LOCATION_KEY(4, 33, 11, 0), { 0xAF, 0, 0, 0 } },
-    { GAME_LOCATION_KEY(4, 35, 11, 0), { 0xAF, 0, 0, 0 } },
-    { GAME_LOCATION_KEY(4, 27, 21, 0), { 0xAA, 0, 0, 0xA9 } },
-    { GAME_LOCATION_KEY(4, 28, 21, 0), { 0xAF, 0, 0, 0x44 } },
-    { GAME_LOCATION_KEY(4, 30, 21, 0), { 0xA2, 0, 0, 0xAF } },
-    { GAME_LOCATION_KEY(4, 32, 21, 0), { 0x3C, 0, 0, 0 } },
-    { GAME_LOCATION_KEY(4, 33, 21, 0), { 0xAA, 0, 0, 0 } },
-    { GAME_LOCATION_KEY(4, 34, 21, 0), { 0xA2, 0, 0, 0 } },
-    { GAME_LOCATION_KEY(4, 35, 21, 0), { 0xAB, 0, 0, 0 } },
-    { GAME_LOCATION_KEY(4, 35, 22, 0), { 0x3D, 0, 0, 0 } },
-    { GAME_LOCATION_KEY(4, 48, 1, 0), { 0x3D, 0xA9, 0xAE, 0xA2 } },
-    { INVENTORY_BATTLE_REWARD_LIST_END },
+/// Catalogue item IDs awarded by these battle lists, one pack per nonzero slot.
+enum {
+    MAP_SHELTER_REWARD_RECOVERY_2      = 0x2,
+    MAP_SHELTER_REWARD_RECOVERY_3      = 0x3,
+    MAP_SHELTER_REWARD_MP_BOOST_1      = 0x6,
+    MAP_SHELTER_REWARD_PENICILLIN      = 0x8,
+    MAP_SHELTER_REWARD_MD_PLAYER       = 0xe,
+    MAP_SHELTER_REWARD_PROTEIN_CAPSULE = 0x3c,
+    MAP_SHELTER_REWARD_PYKE            = 0x43,
+    MAP_SHELTER_REWARD_JAVELIN         = 0x44,
+    MAP_SHELTER_REWARD_M203            = 0x45,
+    MAP_SHELTER_REWARD_MONGOOSE        = 0x88,
+    MAP_SHELTER_REWARD_9MM_SPARTAN     = 0xa2,
+    MAP_SHELTER_REWARD_44_MAGNUM       = 0xa6,
+    MAP_SHELTER_REWARD_AIRBURST        = 0xaa,
+    MAP_SHELTER_REWARD_RIOT            = 0xab,
+    MAP_SHELTER_REWARD_FIREFLY         = 0xad,
+    MAP_SHELTER_REWARD_R_SLUG          = 0xae,
 };
 
-InventoryBattleReward D_map_shelter_8017BD8C[13] = {
-    { GAME_LOCATION_KEY(4, 1, 7, 0), { 0x3C, 0xE, 0, 6 } },
-    { GAME_LOCATION_KEY(4, 2, 4, 0), { 0x84, 0xA2, 0, 0 } },
-    { GAME_LOCATION_KEY(4, 8, 1, 0), { 0xAE, 0, 0, 0 } },
-    { GAME_LOCATION_KEY(4, 15, 7, 0), { 0x88, 8, 0, 0x3E } },
-    { GAME_LOCATION_KEY(4, 19, 11, 0), { 0xA6, 4, 0, 0xA2 } },
-    { GAME_LOCATION_KEY(4, 32, 7, 0), { 0x43, 0xAF, 0, 0 } },
-    { GAME_LOCATION_KEY(4, 39, 1, 0), { 0xA9, 0, 0, 0 } },
-    { GAME_LOCATION_KEY(4, 40, 3, 0), { 0xA9, 2, 6, 0 } },
-    { GAME_LOCATION_KEY(4, 14, 17, 0), { 0x3C, 0, 0, 0 } },
-    { GAME_LOCATION_KEY(4, 19, 17, 0), { 0xAA, 0, 0, 4 } },
-    { GAME_LOCATION_KEY(4, 35, 22, 0), { 2, 0, 0, 0 } },
-    { GAME_LOCATION_KEY(4, 48, 1, 0), { 3, 0, 0, 7 } },
-    { INVENTORY_BATTLE_REWARD_LIST_END },
+InventoryBattleReward gMapShelterBattleRewards[47] = {
+    { .areaLayoutKey = GAME_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_MINE_MESA, 1, 0), .items = { MAP_SHELTER_REWARD_RECOVERY_3, MAP_SHELTER_KIND_9MM_HYDRA, MAP_SHELTER_KIND_556_RIFLE_ROUND, MAP_SHELTER_REWARD_9MM_SPARTAN } },
+    { .areaLayoutKey = GAME_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_MINE_CAVERN, 4, 0), .items = { MAP_SHELTER_REWARD_RECOVERY_2, MAP_SHELTER_KIND_P229, MAP_SHELTER_KIND_GRENADE, MAP_SHELTER_REWARD_M203 } },
+    { .areaLayoutKey = GAME_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_MINE_TUNNEL, 1, 0), .items = { MAP_SHELTER_REWARD_FIREFLY, INVENTORY_ITEM_NONE, INVENTORY_ITEM_NONE, MAP_SHELTER_REWARD_R_SLUG } },
+    { .areaLayoutKey = GAME_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_MINE_GORGE, 1, 0), .items = { MAP_SHELTER_REWARD_MP_BOOST_1, INVENTORY_ITEM_NONE, INVENTORY_ITEM_NONE, INVENTORY_ITEM_NONE } },
+    { .areaLayoutKey = GAME_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_MINE_SECRET_PASSAGE, 1, 0), .items = { MAP_SHELTER_KIND_BELT_POUCH, MAP_SHELTER_REWARD_9MM_SPARTAN, INVENTORY_ITEM_NONE, MAP_SHELTER_KIND_MP_BOOST_2 } },
+    { .areaLayoutKey = GAME_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_NORTH_MAINTENANCE_WALKWAY, 1, 0), .items = { MAP_SHELTER_KIND_STIM, INVENTORY_ITEM_NONE, INVENTORY_ITEM_NONE, INVENTORY_ITEM_NONE } },
+    { .areaLayoutKey = GAME_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_POD_ACCESS_TUNNEL, 4, 0), .items = { MAP_SHELTER_KIND_556_RIFLE_ROUND, INVENTORY_ITEM_NONE, INVENTORY_ITEM_NONE, INVENTORY_ITEM_NONE } },
+    { .areaLayoutKey = GAME_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_ELEVATOR_HALL, 3, 0), .items = { MAP_SHELTER_REWARD_R_SLUG, INVENTORY_ITEM_NONE, INVENTORY_ITEM_NONE, MAP_SHELTER_REWARD_FIREFLY } },
+    { .areaLayoutKey = GAME_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY, 2, 0), .items = { MAP_SHELTER_REWARD_PROTEIN_CAPSULE, INVENTORY_ITEM_NONE, INVENTORY_ITEM_NONE, INVENTORY_ITEM_NONE } },
+    { .areaLayoutKey = GAME_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_BREEDING_ROOM, 1, 0), .items = { MAP_SHELTER_KIND_MP_BOOST_2, INVENTORY_ITEM_NONE, INVENTORY_ITEM_NONE, INVENTORY_ITEM_NONE } },
+    { .areaLayoutKey = GAME_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_BREEDING_ROOM, 2, 0), .items = { MAP_SHELTER_REWARD_PENICILLIN, INVENTORY_ITEM_NONE, INVENTORY_ITEM_NONE, INVENTORY_ITEM_NONE } },
+    { .areaLayoutKey = GAME_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_MAIN_CORRIDOR, 2, 0), .items = { MAP_SHELTER_KIND_556_RIFLE_ROUND, INVENTORY_ITEM_NONE, INVENTORY_ITEM_NONE, MAP_SHELTER_REWARD_9MM_SPARTAN } },
+    { .areaLayoutKey = GAME_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_MAIN_CORRIDOR, 3, 0), .items = { MAP_SHELTER_REWARD_FIREFLY, INVENTORY_ITEM_NONE, INVENTORY_ITEM_NONE, INVENTORY_ITEM_NONE } },
+    { .areaLayoutKey = GAME_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_SEPTIC_TANK, 1, 0), .items = { MAP_SHELTER_REWARD_FIREFLY, INVENTORY_ITEM_NONE, INVENTORY_ITEM_NONE, INVENTORY_ITEM_NONE } },
+    { .areaLayoutKey = GAME_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_SEPTIC_TANK, 2, 0), .items = { MAP_SHELTER_REWARD_RECOVERY_2, INVENTORY_ITEM_NONE, INVENTORY_ITEM_NONE, INVENTORY_ITEM_NONE } },
+    { .areaLayoutKey = GAME_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_POD_ACCESS_TUNNEL, 3, 0), .items = { MAP_SHELTER_REWARD_FIREFLY, INVENTORY_ITEM_NONE, INVENTORY_ITEM_NONE, INVENTORY_ITEM_NONE } },
+    { .areaLayoutKey = GAME_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B3_DUMPING_HOLE, 1, 0), .items = { MAP_SHELTER_KIND_GRENADE, MAP_SHELTER_KIND_556_RIFLE_ROUND, MAP_SHELTER_REWARD_RECOVERY_3, MAP_SHELTER_REWARD_AIRBURST } },
+    { .areaLayoutKey = GAME_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B3_DUMPING_HOLE, 2, 0), .items = { MAP_SHELTER_REWARD_PROTEIN_CAPSULE, MAP_SHELTER_KIND_556_RIFLE_ROUND, INVENTORY_ITEM_NONE, MAP_SHELTER_REWARD_AIRBURST } },
+    { .areaLayoutKey = GAME_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B3_GARBAGE_INCINERATOR, 1, 0), .items = { MAP_SHELTER_REWARD_RECOVERY_3, INVENTORY_ITEM_NONE, INVENTORY_ITEM_NONE, MAP_SHELTER_KIND_MP_BOOST_2 } },
+    { .areaLayoutKey = GAME_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B3_GARBAGE_INCINERATOR, 2, 0), .items = { MAP_SHELTER_REWARD_FIREFLY, MAP_SHELTER_REWARD_9MM_SPARTAN, INVENTORY_ITEM_NONE, MAP_SHELTER_KIND_BELT_POUCH } },
+    { .areaLayoutKey = GAME_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B3_GARBAGE_INCINERATOR, 3, 0), .items = { MAP_SHELTER_REWARD_RECOVERY_3, MAP_SHELTER_REWARD_AIRBURST, MAP_SHELTER_KIND_EAU_DE_TOILETTE, MAP_SHELTER_KIND_MP_BOOST_2 } },
+    { .areaLayoutKey = GAME_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B4_UPPER_SEWER, 3, 0), .items = { MAP_SHELTER_KIND_EAU_DE_TOILETTE, INVENTORY_ITEM_NONE, INVENTORY_ITEM_NONE, INVENTORY_ITEM_NONE } },
+    { .areaLayoutKey = GAME_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B4_UPPER_SEWER, 4, 0), .items = { MAP_SHELTER_REWARD_FIREFLY, INVENTORY_ITEM_NONE, INVENTORY_ITEM_NONE, INVENTORY_ITEM_NONE } },
+    { .areaLayoutKey = GAME_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_ELEVATOR_HALL, 11, 0), .items = { MAP_SHELTER_REWARD_RIOT, INVENTORY_ITEM_NONE, INVENTORY_ITEM_NONE, MAP_SHELTER_KIND_556_RIFLE_ROUND } },
+    { .areaLayoutKey = GAME_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY, 11, 0), .items = { MAP_SHELTER_REWARD_9MM_SPARTAN, INVENTORY_ITEM_NONE, INVENTORY_ITEM_NONE, INVENTORY_ITEM_NONE } },
+    { .areaLayoutKey = GAME_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_STOREROOM, 11, 0), .items = { MAP_SHELTER_REWARD_RIOT, INVENTORY_ITEM_NONE, INVENTORY_ITEM_NONE, MAP_SHELTER_REWARD_9MM_SPARTAN } },
+    { .areaLayoutKey = GAME_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_NORTH_MAINTENANCE_WALKWAY, 11, 0), .items = { MAP_SHELTER_REWARD_AIRBURST, INVENTORY_ITEM_NONE, INVENTORY_ITEM_NONE, INVENTORY_ITEM_NONE } },
+    { .areaLayoutKey = GAME_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_SLEEPING_QUARTERS, 11, 0), .items = { MAP_SHELTER_KIND_MP_BOOST_2, INVENTORY_ITEM_NONE, INVENTORY_ITEM_NONE, MAP_SHELTER_REWARD_PENICILLIN } },
+    { .areaLayoutKey = GAME_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_MAIN_CORRIDOR, 11, 0), .items = { MAP_SHELTER_REWARD_AIRBURST, INVENTORY_ITEM_NONE, INVENTORY_ITEM_NONE, MAP_SHELTER_REWARD_RIOT } },
+    { .areaLayoutKey = GAME_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_POD_ACCESS_TUNNEL, 11, 0), .items = { MAP_SHELTER_KIND_556_RIFLE_ROUND, INVENTORY_ITEM_NONE, INVENTORY_ITEM_NONE, INVENTORY_ITEM_NONE } },
+    { .areaLayoutKey = GAME_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_ACCESS_TUNNEL, 11, 0), .items = { MAP_SHELTER_REWARD_PENICILLIN, INVENTORY_ITEM_NONE, INVENTORY_ITEM_NONE, MAP_SHELTER_KIND_MP_BOOST_2 } },
+    { .areaLayoutKey = GAME_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_TRANSFER_TUNNEL, 11, 0), .items = { MAP_SHELTER_KIND_556_RIFLE_ROUND, INVENTORY_ITEM_NONE, INVENTORY_ITEM_NONE, INVENTORY_ITEM_NONE } },
+    { .areaLayoutKey = GAME_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_CONTROL_ROOM_ACCESS_TUNNEL, 11, 0), .items = { MAP_SHELTER_REWARD_9MM_SPARTAN, INVENTORY_ITEM_NONE, INVENTORY_ITEM_NONE, INVENTORY_ITEM_NONE } },
+    { .areaLayoutKey = GAME_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_ELEVATOR_HALL, 11, 0), .items = { MAP_SHELTER_REWARD_AIRBURST, INVENTORY_ITEM_NONE, INVENTORY_ITEM_NONE, INVENTORY_ITEM_NONE } },
+    { .areaLayoutKey = GAME_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY, 11, 0), .items = { MAP_SHELTER_KIND_BELT_POUCH, INVENTORY_ITEM_NONE, INVENTORY_ITEM_NONE, INVENTORY_ITEM_NONE } },
+    { .areaLayoutKey = GAME_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_MAIN_CORRIDOR, 11, 0), .items = { MAP_SHELTER_KIND_556_RIFLE_ROUND, INVENTORY_ITEM_NONE, INVENTORY_ITEM_NONE, INVENTORY_ITEM_NONE } },
+    { .areaLayoutKey = GAME_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_POD_ACCESS_TUNNEL, 11, 0), .items = { MAP_SHELTER_KIND_556_RIFLE_ROUND, INVENTORY_ITEM_NONE, INVENTORY_ITEM_NONE, INVENTORY_ITEM_NONE } },
+    { .areaLayoutKey = GAME_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_ELEVATOR_HALL, 21, 0), .items = { MAP_SHELTER_REWARD_AIRBURST, INVENTORY_ITEM_NONE, INVENTORY_ITEM_NONE, MAP_SHELTER_KIND_GRENADE } },
+    { .areaLayoutKey = GAME_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY, 21, 0), .items = { MAP_SHELTER_KIND_556_RIFLE_ROUND, INVENTORY_ITEM_NONE, INVENTORY_ITEM_NONE, MAP_SHELTER_REWARD_JAVELIN } },
+    { .areaLayoutKey = GAME_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_NORTH_MAINTENANCE_WALKWAY, 21, 0), .items = { MAP_SHELTER_REWARD_9MM_SPARTAN, INVENTORY_ITEM_NONE, INVENTORY_ITEM_NONE, MAP_SHELTER_KIND_556_RIFLE_ROUND } },
+    { .areaLayoutKey = GAME_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_BREEDING_ROOM, 21, 0), .items = { MAP_SHELTER_REWARD_PROTEIN_CAPSULE, INVENTORY_ITEM_NONE, INVENTORY_ITEM_NONE, INVENTORY_ITEM_NONE } },
+    { .areaLayoutKey = GAME_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_MAIN_CORRIDOR, 21, 0), .items = { MAP_SHELTER_REWARD_AIRBURST, INVENTORY_ITEM_NONE, INVENTORY_ITEM_NONE, INVENTORY_ITEM_NONE } },
+    { .areaLayoutKey = GAME_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_SEPTIC_TANK, 21, 0), .items = { MAP_SHELTER_REWARD_9MM_SPARTAN, INVENTORY_ITEM_NONE, INVENTORY_ITEM_NONE, INVENTORY_ITEM_NONE } },
+    { .areaLayoutKey = GAME_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_POD_ACCESS_TUNNEL, 21, 0), .items = { MAP_SHELTER_REWARD_RIOT, INVENTORY_ITEM_NONE, INVENTORY_ITEM_NONE, INVENTORY_ITEM_NONE } },
+    { .areaLayoutKey = GAME_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_POD_ACCESS_TUNNEL, 22, 0), .items = { MAP_SHELTER_KIND_RINGERS_SOLUTION, INVENTORY_ITEM_NONE, INVENTORY_ITEM_NONE, INVENTORY_ITEM_NONE } },
+    { .areaLayoutKey = GAME_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_R48, 1, 0), .items = { MAP_SHELTER_KIND_RINGERS_SOLUTION, MAP_SHELTER_KIND_GRENADE, MAP_SHELTER_REWARD_R_SLUG, MAP_SHELTER_REWARD_9MM_SPARTAN } },
+    { .areaLayoutKey = INVENTORY_BATTLE_REWARD_LIST_END },
+};
+
+InventoryBattleReward gMapShelterHardBattleRewards[13] = {
+    { .areaLayoutKey = GAME_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_MINE_MESA, 7, 0), .items = { MAP_SHELTER_REWARD_PROTEIN_CAPSULE, MAP_SHELTER_REWARD_MD_PLAYER, INVENTORY_ITEM_NONE, MAP_SHELTER_REWARD_MP_BOOST_1 } },
+    { .areaLayoutKey = GAME_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_MINE_CAVERN, 4, 0), .items = { MAP_SHELTER_KIND_P229, MAP_SHELTER_REWARD_9MM_SPARTAN, INVENTORY_ITEM_NONE, INVENTORY_ITEM_NONE } },
+    { .areaLayoutKey = GAME_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_MINE_SECRET_PASSAGE, 1, 0), .items = { MAP_SHELTER_REWARD_R_SLUG, INVENTORY_ITEM_NONE, INVENTORY_ITEM_NONE, INVENTORY_ITEM_NONE } },
+    { .areaLayoutKey = GAME_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_MAIN_CORRIDOR, 7, 0), .items = { MAP_SHELTER_REWARD_MONGOOSE, MAP_SHELTER_REWARD_PENICILLIN, INVENTORY_ITEM_NONE, MAP_SHELTER_KIND_EAU_DE_TOILETTE } },
+    { .areaLayoutKey = GAME_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_ACCESS_TUNNEL, 11, 0), .items = { MAP_SHELTER_REWARD_44_MAGNUM, MAP_SHELTER_KIND_STIM, INVENTORY_ITEM_NONE, MAP_SHELTER_REWARD_9MM_SPARTAN } },
+    { .areaLayoutKey = GAME_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_BREEDING_ROOM, 7, 0), .items = { MAP_SHELTER_REWARD_PYKE, MAP_SHELTER_KIND_556_RIFLE_ROUND, INVENTORY_ITEM_NONE, INVENTORY_ITEM_NONE } },
+    { .areaLayoutKey = GAME_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B3_DUMPING_HOLE, 1, 0), .items = { MAP_SHELTER_KIND_GRENADE, INVENTORY_ITEM_NONE, INVENTORY_ITEM_NONE, INVENTORY_ITEM_NONE } },
+    { .areaLayoutKey = GAME_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B3_GARBAGE_INCINERATOR, 3, 0), .items = { MAP_SHELTER_KIND_GRENADE, MAP_SHELTER_REWARD_RECOVERY_2, MAP_SHELTER_REWARD_MP_BOOST_1, INVENTORY_ITEM_NONE } },
+    { .areaLayoutKey = GAME_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_SLEEPING_QUARTERS, 17, 0), .items = { MAP_SHELTER_REWARD_PROTEIN_CAPSULE, INVENTORY_ITEM_NONE, INVENTORY_ITEM_NONE, INVENTORY_ITEM_NONE } },
+    { .areaLayoutKey = GAME_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_ACCESS_TUNNEL, 17, 0), .items = { MAP_SHELTER_REWARD_AIRBURST, INVENTORY_ITEM_NONE, INVENTORY_ITEM_NONE, MAP_SHELTER_KIND_STIM } },
+    { .areaLayoutKey = GAME_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_POD_ACCESS_TUNNEL, 22, 0), .items = { MAP_SHELTER_REWARD_RECOVERY_2, INVENTORY_ITEM_NONE, INVENTORY_ITEM_NONE, INVENTORY_ITEM_NONE } },
+    { .areaLayoutKey = GAME_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_R48, 1, 0), .items = { MAP_SHELTER_REWARD_RECOVERY_3, INVENTORY_ITEM_NONE, INVENTORY_ITEM_NONE, MAP_SHELTER_KIND_MP_BOOST_2 } },
+    { .areaLayoutKey = INVENTORY_BATTLE_REWARD_LIST_END },
 };
 
 StageMusicEntry gMapShelterAreaMusicEntries[(GAME_AREA_SHELTER_R49 + 1) * MAP_SHELTER_MUSIC_COLUMN_COUNT] = {

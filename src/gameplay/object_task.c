@@ -40,7 +40,7 @@ TaskDesc* D_8010FABC[6] = {
     gMapAkropolisRoomTaskDescriptors,
     gMapDryfieldRoomTaskDescriptors,
     gMapDryfieldFullRoomTaskDescriptors,
-    D_map_shelter_8017AB30,
+    gMapShelterRoomTaskDescriptors,
     gMapNeoArkRoomTaskDescriptors,
 };
 

@@ -342,20 +342,20 @@ u8* Gp_MapFlagIds[5] = {
 };
 
 MenuMapAreaShape* Gp_MapMarkTables[5] = {
-    D_map_akropolis_8017A288,
-    D_map_dryfield_80179E00,
-    D_map_dryfield_full_80179D10,
-    D_map_shelter_80179FA4,
+    gMapAkropolisAreaShapes,
+    gMapDryfieldAreaShapes,
+    gMapDryfieldFullAreaShapes,
+    gMapShelterAreaShapes,
     gMapNeoArkAreaShapes,
 };
 
 u8 D_8010F130[5] = { 2, 3, 3, 6, 3 };
 
 u8 Gp_MapMarkCounts[5] = {
-    21,
-    39,
-    39,
-    50,
+    ARRAY_SIZE(gMapAkropolisAreaShapes),
+    ARRAY_SIZE(gMapDryfieldAreaShapes),
+    ARRAY_SIZE(gMapDryfieldFullAreaShapes),
+    ARRAY_SIZE(gMapShelterAreaShapes),
     34,
 };
 

@@ -99,8 +99,14 @@ extern u8 gMapAkropolisPageFlagIds[8];
 /// scales use world units per pixel. Keep this overlay loaded for lookup.
 extern MenuMapArea gMapAkropolisAreas[GAME_AREA_MIST_SHOOTING_GALLERY + 2];
 
-/// This stage's `Gp_MapMarkTables` entry: the area shapes, indexed by area.
-extern MenuMapAreaShape D_map_akropolis_8017A288[];
+/// Area shapes and icon-only page selections for Acropolis and MIST.
+///
+/// Indexed directly by area ID 0..20; slot zero is hidden. There is no
+/// terminator: `Gp_MapMarkCounts` includes slot zero and covers this whole array.
+/// Keep this map loaded during drawing, and load the selected page's picture
+/// package before dereferencing a shape model from that page.
+/// MIST areas 19 and 20 have no shape model; only their icons are drawn.
+extern MenuMapAreaShape gMapAkropolisAreaShapes[GAME_AREA_MIST_SHOOTING_GALLERY + 1];
 
 /// Fixed map markers on Acropolis page 1, followed by a page-zero terminator.
 ///
