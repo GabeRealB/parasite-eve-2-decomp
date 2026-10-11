@@ -432,11 +432,21 @@ enum {
     ACTOR_503500_ATTACK_BEARING_BAND_COUNT = 4,
 };
 
-/// Four immutable weighted-list pointers in increasing absolute-bearing bands.
+/// One height band's four weighted attack lists, ordered by absolute bearing.
+///
+/// Band indices 0..3 correspond to `Actor503500AttackLimitsByBearing`.
+/// Each immutable pointer names a NULL-attack-terminated list; the lists and
+/// their callbacks remain live for the actor overlay lifetime.
 typedef const Actor503500AttackChoice* const Actor503500AttackChoicesByBearing[ACTOR_503500_ATTACK_BEARING_BAND_COUNT];
+STATIC_ASSERT_SIZEOF(Actor503500AttackChoicesByBearing, 0x10);
 
-/// Four inclusive absolute-bearing limits, at 4096 units per turn.
+/// One height band's four inclusive absolute-bearing upper limits.
+///
+/// Immutable signed halfwords use 4096 units per turn and ascend to 2048.
+/// The first limit >= the normalized bearing's magnitude selects band 0..3
+/// in `Actor503500AttackChoicesByBearing`, including the half-turn endpoint.
 typedef const s16 Actor503500AttackLimitsByBearing[ACTOR_503500_ATTACK_BEARING_BAND_COUNT];
+STATIC_ASSERT_SIZEOF(Actor503500AttackLimitsByBearing, 0x8);
 
 /// Weighted boss attack lists selected by fight set, player height and bearing.
 ///
@@ -549,10 +559,15 @@ extern SVECTOR gActor503500LargeOrbLaunchOffsets[ACTOR_503500_LARGE_ORB_LAUNCH_P
 /// launcher; their intended use is unproven.
 extern const SVECTOR gActor503500LargeOrbLaunchAngles[ACTOR_503500_LARGE_ORB_LAUNCH_POINT_COUNT * ACTOR_503500_LARGE_ORB_LAUNCH_ANGLE_COUNT];
 
-/// Source VRAM regions copied when one large-orb emitter is destroyed.
+/// Texture and palette sources for the boss's large-orb-emitter death repaint.
+///
+/// RECT X/width count VRAM words; Y/height count rows. Each texture source is
+/// a 128-by-256-pixel 8-bit region paired with its 256-color CLUT source.
+/// The rectangles are overlay-owned; source pixels must be present in VRAM
+/// when the copies run.
 typedef struct {
-    RECT textureRect; // 64-word-wide texture block copied into the boss texture page
-    RECT rowRect;     // 256-word row copied to the side's replacement VRAM row
+    RECT textureRect; // 64-word-wide texture source copied over the boss's side
+    RECT paletteRect; // 256-color CLUT source copied to that side's palette row
 } Actor503500LargeOrbRepaintSources;
 STATIC_ASSERT_SIZEOF(Actor503500LargeOrbRepaintSources, 0x10);
 

@@ -286,13 +286,16 @@ typedef struct {
 } _Actor401300ChargeScratch;
 STATIC_ASSERT_SIZEOF(_Actor401300ChargeScratch, 0x10);
 
-/// Scratch reservation of the leap into the room; only the final vector is accessed.
+/// One entrance-leap update's scratch reservation for a discarded player offset.
 ///
-/// The first sixteen bytes are reserved but untouched, with no established type.
-/// The player offset is written at signed-halfword width and never read back.
+/// The 24-byte block is released in the same update, after nested scratch users
+/// return. Only XYZ of the final vector are written, narrowing player-root minus
+/// actor-root translation to signed halfwords in their common parent frame.
+/// Neither the offset nor the leading sixteen bytes are read by this state;
+/// the leading bytes' role and original type remain unproven.
 typedef struct {
     byte    unknown_0[0x10]; // Reserved and untouched; role unproven
-    SVECTOR playerOffset;    // Player minus actor in parent-space units; pad is untouched
+    SVECTOR playerOffset;    // Player minus actor in signed 16-bit parent-frame game units; pad is untouched
 } _Actor401300LeapInScratch;
 STATIC_ASSERT_SIZEOF(_Actor401300LeapInScratch, 0x18);
 

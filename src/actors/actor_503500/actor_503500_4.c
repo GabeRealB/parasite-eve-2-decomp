@@ -1276,7 +1276,7 @@ static void _actor503500LargeOrbEmitterStepDying(Task* task)
                     repaintIndex = ACTOR_503500_LARGE_ORB_REPAINT_INDEX_SIDE_1;
                 }
                 MoveImage(&gActor503500LargeOrbEmitterDeathRepaintSources[side].textureRect, (repaintIndex << 6) + ACTOR_503500_LARGE_ORB_REPAINT_BASE_X, ACTOR_503500_LARGE_ORB_REPAINT_Y);
-                MoveImage(&gActor503500LargeOrbEmitterDeathRepaintSources[side].rowRect, 0, repaintIndex + ACTOR_503500_LARGE_ORB_REPAINT_ROW_BASE);
+                MoveImage(&gActor503500LargeOrbEmitterDeathRepaintSources[side].paletteRect, 0, repaintIndex + ACTOR_503500_LARGE_ORB_REPAINT_ROW_BASE);
             }
             break;
         default:

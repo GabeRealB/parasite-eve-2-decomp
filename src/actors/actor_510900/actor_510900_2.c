@@ -259,13 +259,20 @@ static s32 _actor510900SetModelDraw(Task* task, s32 messageId, s32 drawEnabled, 
 
 static s32 _actor510900IsPresent(Task* task, s32 messageId, s32 unusedFirstArg, s32 unusedSecondArg);
 
-/// Mapped views in which each of the three helipad lights runs.
+enum {
+    ACTOR_510900_HELIPAD_LIGHT_COUNT     = 3,
+    ACTOR_510900_HELIPAD_VIEWS_PER_LIGHT = 3,
+};
+
+/// Mapped camera-view IDs that enable each helipad light's active update.
 ///
-/// The blast source uses the first view of light 2. The final stored halfword
-/// has no observed reader and its role is unproven.
+/// Rows belong to light indices 0..2. A match with any entry enables the light;
+/// repeated IDs are allowed. The blast source shares the first entry of light 2.
+/// The table remains live for the actor overlay lifetime. The final two stored
+/// bytes have no observed access and their role is unproven.
 typedef struct {
-    u16 lightViews[3][3]; // Three mapped camera-view IDs per light, indexed by light 0..2
-    u16 field_12;         // Unread halfword; role unproven
+    u16  lightViews[ACTOR_510900_HELIPAD_LIGHT_COUNT][ACTOR_510900_HELIPAD_VIEWS_PER_LIGHT]; // Mapped camera-view IDs per light; compared with the current view's low byte
+    byte field_12[2];                                                                        // Unaccessed zero bytes; original type and role unproven
 } _Actor510900HelipadViews;
 STATIC_ASSERT_SIZEOF(_Actor510900HelipadViews, 0x14);
 
@@ -816,7 +823,7 @@ static u16 _gActor510900HelipadLightYaws[4] = {
 /// Mapped-view rows shared by the three helipad lights and the light-2 blast source.
 static _Actor510900HelipadViews _gActor510900HelipadViews = {
     { { 5, 6, 7 }, { 7, 8, 9 }, { 10, 10, 10 } },
-    0,
+    { 0 },
 };
 
 /// Status encodings emitted by the source/light pair; the flag's reader is unproven.
@@ -4436,7 +4443,6 @@ static void _actor510900HelipadLightTask(Task* task)
 /// The caller then advances animation without running the break state machine.
 static s32 _actor510900CheckHelipadLightView(Task* task)
 {
-    enum { ACTOR_510900_LIGHT_VIEW_COUNT = 3 };
     TmdObject*                    model;
     _Actor510900HelipadLightWork* work;
     Enemy*                        enemy;
@@ -4449,13 +4455,13 @@ static s32 _actor510900CheckHelipadLightView(Task* task)
     enemy      = task->spawnArg2.pointer;
     viewMisses = 0;
     mappedView = viewGetMappedIndex();
-    for (viewIndex = 0; viewIndex < ACTOR_510900_LIGHT_VIEW_COUNT; viewIndex++) {
+    for (viewIndex = 0; viewIndex < ARRAY_SIZE(_gActor510900HelipadViews.lightViews[0]); viewIndex++) {
         if (mappedView != _gActor510900HelipadViews.lightViews[work->lightIndex][viewIndex]) {
             viewMisses++;
         }
     }
 
-    if (viewMisses != ACTOR_510900_LIGHT_VIEW_COUNT) {
+    if (viewMisses != ARRAY_SIZE(_gActor510900HelipadViews.lightViews[0])) {
         return 1;
     }
 

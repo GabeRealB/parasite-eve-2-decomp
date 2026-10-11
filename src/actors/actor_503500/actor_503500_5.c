@@ -476,7 +476,7 @@ static const Actor503500AttackChoice _gActor503500AttackChoicesSet0LowerBearing3
 ///
 /// Indexed by bearing band 0..3; the matching limits select inclusive ends.
 /// Lists and callbacks remain live for the actor overlay lifetime.
-static const Actor503500AttackChoice* const _gActor503500AttackChoicesSet0Upper[ACTOR_503500_ATTACK_BEARING_BAND_COUNT] __attribute__((section(".data"))) = {
+static Actor503500AttackChoicesByBearing _gActor503500AttackChoicesSet0Upper __attribute__((section(".data"))) = {
     _gActor503500AttackChoicesSet0UpperBearing0,
     _gActor503500AttackChoicesSet0UpperBearing1And2,
     _gActor503500AttackChoicesSet0UpperBearing1And2,
@@ -487,7 +487,7 @@ static const Actor503500AttackChoice* const _gActor503500AttackChoicesSet0Upper[
 ///
 /// Four ordered bands at 4096 units per turn; the final half-turn limit
 /// covers the whole normalized bearing domain. Equality stays in that band.
-static const s16 _gActor503500AttackBearingLimitsSet0Upper[ACTOR_503500_ATTACK_BEARING_BAND_COUNT] __attribute__((section(".data"))) = {
+static Actor503500AttackLimitsByBearing _gActor503500AttackBearingLimitsSet0Upper __attribute__((section(".data"))) = {
     700,
     1000,
     1300,
@@ -498,7 +498,7 @@ static const s16 _gActor503500AttackBearingLimitsSet0Upper[ACTOR_503500_ATTACK_B
 ///
 /// Indexed by bearing band 0..3; the matching limits select inclusive ends.
 /// Lists and callbacks remain live for the actor overlay lifetime.
-static const Actor503500AttackChoice* const _gActor503500AttackChoicesSet0Middle[ACTOR_503500_ATTACK_BEARING_BAND_COUNT] __attribute__((section(".data"))) = {
+static Actor503500AttackChoicesByBearing _gActor503500AttackChoicesSet0Middle __attribute__((section(".data"))) = {
     _gActor503500AttackChoicesSet0MiddleBearing0,
     _gActor503500AttackChoicesSet0MiddleBearing1,
     _gActor503500AttackChoicesSet0MiddleBearing2,
@@ -509,7 +509,7 @@ static const Actor503500AttackChoice* const _gActor503500AttackChoicesSet0Middle
 ///
 /// Four ordered bands at 4096 units per turn; the final half-turn limit
 /// covers the whole normalized bearing domain. Equality stays in that band.
-static const s16 _gActor503500AttackBearingLimitsSet0Middle[ACTOR_503500_ATTACK_BEARING_BAND_COUNT] __attribute__((section(".data"))) = {
+static Actor503500AttackLimitsByBearing _gActor503500AttackBearingLimitsSet0Middle __attribute__((section(".data"))) = {
     700,
     1000,
     1300,
@@ -520,7 +520,7 @@ static const s16 _gActor503500AttackBearingLimitsSet0Middle[ACTOR_503500_ATTACK_
 ///
 /// Indexed by bearing band 0..3; the matching limits select inclusive ends.
 /// Lists and callbacks remain live for the actor overlay lifetime.
-static const Actor503500AttackChoice* const _gActor503500AttackChoicesSet0Lower[ACTOR_503500_ATTACK_BEARING_BAND_COUNT] __attribute__((section(".data"))) = {
+static Actor503500AttackChoicesByBearing _gActor503500AttackChoicesSet0Lower __attribute__((section(".data"))) = {
     _gActor503500AttackChoicesSet0LowerBearing0,
     _gActor503500AttackChoicesSet0LowerBearing1And2,
     _gActor503500AttackChoicesSet0LowerBearing1And2,
@@ -531,7 +531,7 @@ static const Actor503500AttackChoice* const _gActor503500AttackChoicesSet0Lower[
 ///
 /// Four ordered bands at 4096 units per turn; the final half-turn limit
 /// covers the whole normalized bearing domain. Equality stays in that band.
-static const s16 _gActor503500AttackBearingLimitsSet0Lower[ACTOR_503500_ATTACK_BEARING_BAND_COUNT] __attribute__((section(".data"))) = {
+static Actor503500AttackLimitsByBearing _gActor503500AttackBearingLimitsSet0Lower __attribute__((section(".data"))) = {
     300,
     1000,
     1300,
@@ -644,7 +644,7 @@ static const Actor503500AttackChoice _gActor503500AttackChoicesSet1LowerBearing3
 ///
 /// Indexed by bearing band 0..3; the matching limits select inclusive ends.
 /// Lists and callbacks remain live for the actor overlay lifetime.
-static const Actor503500AttackChoice* const _gActor503500AttackChoicesSet1Upper[ACTOR_503500_ATTACK_BEARING_BAND_COUNT] __attribute__((section(".data"))) = {
+static Actor503500AttackChoicesByBearing _gActor503500AttackChoicesSet1Upper __attribute__((section(".data"))) = {
     _gActor503500AttackChoicesSet1UpperBearing0,
     _gActor503500AttackChoicesSet1UpperBearing1And2,
     _gActor503500AttackChoicesSet1UpperBearing1And2,
@@ -655,7 +655,7 @@ static const Actor503500AttackChoice* const _gActor503500AttackChoicesSet1Upper[
 ///
 /// Four ordered bands at 4096 units per turn; the final half-turn limit
 /// covers the whole normalized bearing domain. Equality stays in that band.
-static const s16 _gActor503500AttackBearingLimitsSet1Upper[ACTOR_503500_ATTACK_BEARING_BAND_COUNT] __attribute__((section(".data"))) = {
+static Actor503500AttackLimitsByBearing _gActor503500AttackBearingLimitsSet1Upper __attribute__((section(".data"))) = {
     700,
     1000,
     1300,
@@ -666,7 +666,7 @@ static const s16 _gActor503500AttackBearingLimitsSet1Upper[ACTOR_503500_ATTACK_B
 ///
 /// Indexed by bearing band 0..3; the matching limits select inclusive ends.
 /// Lists and callbacks remain live for the actor overlay lifetime.
-static const Actor503500AttackChoice* const _gActor503500AttackChoicesSet1Middle[ACTOR_503500_ATTACK_BEARING_BAND_COUNT] __attribute__((section(".data"))) = {
+static Actor503500AttackChoicesByBearing _gActor503500AttackChoicesSet1Middle __attribute__((section(".data"))) = {
     _gActor503500AttackChoicesSet1MiddleBearing0,
     _gActor503500AttackChoicesSet1MiddleBearing1,
     _gActor503500AttackChoicesSet1MiddleBearing2,
@@ -677,7 +677,7 @@ static const Actor503500AttackChoice* const _gActor503500AttackChoicesSet1Middle
 ///
 /// Four ordered bands at 4096 units per turn; the final half-turn limit
 /// covers the whole normalized bearing domain. Equality stays in that band.
-static const s16 _gActor503500AttackBearingLimitsSet1Middle[ACTOR_503500_ATTACK_BEARING_BAND_COUNT] __attribute__((section(".data"))) = {
+static Actor503500AttackLimitsByBearing _gActor503500AttackBearingLimitsSet1Middle __attribute__((section(".data"))) = {
     700,
     1000,
     1300,
@@ -688,7 +688,7 @@ static const s16 _gActor503500AttackBearingLimitsSet1Middle[ACTOR_503500_ATTACK_
 ///
 /// Indexed by bearing band 0..3; the matching limits select inclusive ends.
 /// Lists and callbacks remain live for the actor overlay lifetime.
-static const Actor503500AttackChoice* const _gActor503500AttackChoicesSet1Lower[ACTOR_503500_ATTACK_BEARING_BAND_COUNT] __attribute__((section(".data"))) = {
+static Actor503500AttackChoicesByBearing _gActor503500AttackChoicesSet1Lower __attribute__((section(".data"))) = {
     _gActor503500AttackChoicesSet1LowerBearing0,
     _gActor503500AttackChoicesSet1LowerBearing1And2,
     _gActor503500AttackChoicesSet1LowerBearing1And2,
@@ -699,7 +699,7 @@ static const Actor503500AttackChoice* const _gActor503500AttackChoicesSet1Lower[
 ///
 /// Four ordered bands at 4096 units per turn; the final half-turn limit
 /// covers the whole normalized bearing domain. Equality stays in that band.
-static const s16 _gActor503500AttackBearingLimitsSet1Lower[ACTOR_503500_ATTACK_BEARING_BAND_COUNT] __attribute__((section(".data"))) = {
+static Actor503500AttackLimitsByBearing _gActor503500AttackBearingLimitsSet1Lower __attribute__((section(".data"))) = {
     500,
     1000,
     1300,
