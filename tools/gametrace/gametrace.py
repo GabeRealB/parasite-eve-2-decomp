@@ -7,6 +7,9 @@
     gametrace.py check [--config ...]     resolve the events, build the blob, show both; no connection
     gametrace.py blob  [--config ...]     write the assembled blob and its listing under local/gametrace/
 
+It needs nothing but Python: the blob is assembled by the small assembler in this file. Where the system has MIPS
+binutils, `blob` also assembles the same source with them and says whether the bytes agree.
+
 One config file lists the events. An event is a function: its entry, and its returns where the config gives them.
 Each is watched by a hook written into the running game - nothing stops when an event happens, and nothing in the
 game's files changes.
@@ -134,6 +137,8 @@ def load(path: Path) -> dict:
             event["_exit"] = [parse_capture(c) for c in event["exit_capture"]]
         except ValueError as error:
             problems.append(f"{event.get('name')}: {error}")
+    if blob["address"] % 16:
+        problems.append("blob.address must be a multiple of 16")
     if blob["bytes"] % 4 or blob["bytes"] < 0x1000:
         problems.append("blob.bytes must be a multiple of four, and at least 4096")
     if problems:
@@ -363,31 +368,172 @@ def stub_source(cfg: dict, sites: dict) -> str:
     return "\n".join(lines)
 
 
+# ---- an assembler for exactly what stub_source writes, so the tool needs nothing installed
+
+REG_NUMBER = {name: n for n, name in enumerate(REGS)}
+OPERAND = re.compile(r"\s*,\s*")
+
+
+class Assembler:
+    """Two passes over the blob's source: where every label is, then the words.
+
+    It knows the instructions the stubs use and no others: addiu addu and sltu srl ori xori lui, lw sw lwl lwr,
+    beq bne beqz bnez b, j jal jr, mfc0 mtc0, nop, li; `.word`, `.balign` and `.space`; labels, `%hi()` and
+    `%lo()`. Anything else stops with the line that has it."""
+
+    def __init__(self, base: int) -> None:
+        self.base = base
+        self.symbols: dict[str, int] = {}
+
+    def number(self, text: str) -> int:
+        text = text.strip()
+        m = re.fullmatch(r"%(hi|lo)\((\w+)\)", text)
+        if m:
+            address = self.symbols[m[2]]
+            return ((address + 0x8000) >> 16) & 0xFFFF if m[1] == "hi" else address & 0xFFFF
+        if text in self.symbols:
+            return self.symbols[text]
+        return int(text, 0)
+
+    @staticmethod
+    def reg(text: str) -> int:
+        return REG_NUMBER[text.strip().lstrip("$")]
+
+    def li(self, value: int) -> int:
+        """How many instructions `li` takes for this value, as an assembler chooses them."""
+        value &= 0xFFFFFFFF
+        return 1 if value < 0x10000 or value >= 0xFFFF8000 else (1 if not value & 0xFFFF else 2)
+
+    def size(self, op: str, args: list[str]) -> int:
+        if op == ".space":
+            return int(args[0], 0)
+        if op == "li":
+            return 4 * self.li(int(args[1], 0))
+        return 4
+
+    def encode(self, op: str, a: list[str], pc: int) -> list[int]:
+        R = self.reg
+        def itype(code: int, rs: int, rt: int, imm: int) -> int:
+            return (code << 26) | (rs << 21) | (rt << 16) | (imm & 0xFFFF)
+        def rtype(funct: int, rs: int, rt: int, rd: int, sa: int = 0) -> int:
+            return (rs << 21) | (rt << 16) | (rd << 11) | (sa << 6) | funct
+        def memory(code: int) -> int:
+            m = re.fullmatch(r"(.*)\(\s*(\$\w+)\s*\)", a[1].strip())
+            return itype(code, R(m[2]), R(a[0]), self.number(m[1] or "0"))
+        def branch(code: int, rs: int, rt: int, target: str) -> int:
+            return itype(code, rs, rt, (self.number(target) - (pc + 4)) >> 2)
+        if op == "nop":
+            return [0]
+        if op == ".word":
+            return [self.number(a[0]) & 0xFFFFFFFF]
+        if op in ("addiu", "ori", "xori"):
+            return [itype({"addiu": 9, "ori": 13, "xori": 14}[op], R(a[1]), R(a[0]), self.number(a[2]))]
+        if op == "lui":
+            return [itype(15, 0, R(a[0]), self.number(a[1]))]
+        if op in ("addu", "and", "sltu"):
+            return [rtype({"addu": 0x21, "and": 0x24, "sltu": 0x2B}[op], R(a[1]), R(a[2]), R(a[0]))]
+        if op == "srl":
+            return [rtype(0x02, 0, R(a[1]), R(a[0]), int(a[2], 0))]
+        if op in ("lw", "sw", "lwl", "lwr"):
+            return [memory({"lw": 0x23, "sw": 0x2B, "lwl": 0x22, "lwr": 0x26}[op])]
+        if op in ("beq", "bne"):
+            return [branch(4 if op == "beq" else 5, R(a[0]), R(a[1]), a[2])]
+        if op in ("beqz", "bnez"):
+            return [branch(4 if op == "beqz" else 5, R(a[0]), 0, a[1])]
+        if op == "b":
+            return [branch(4, 0, 0, a[0])]
+        if op in ("j", "jal"):
+            return [((2 if op == "j" else 3) << 26) | ((self.number(a[0]) >> 2) & 0x03FFFFFF)]
+        if op == "jr":
+            return [rtype(0x08, R(a[0]), 0, 0)]
+        if op in ("mfc0", "mtc0"):
+            return [(0x10 << 26) | ((0 if op == "mfc0" else 4) << 21) | (R(a[0]) << 16) | (int(a[1].strip().lstrip("$")) << 11)]
+        if op == "li":
+            value, rt = int(a[1], 0) & 0xFFFFFFFF, R(a[0])
+            if value >= 0xFFFF8000:
+                return [itype(9, 0, rt, value)]                       # addiu rt, $zero, value
+            if value < 0x10000:
+                return [itype(13, 0, rt, value)]                      # ori rt, $zero, value
+            return [itype(15, 0, rt, value >> 16)] + ([itype(13, rt, rt, value)] if value & 0xFFFF else [])
+        raise ValueError(f"the stub assembler has no instruction `{op}`")
+
+    def lines(self, source: str):
+        for number, raw in enumerate(source.splitlines(), 1):
+            text = raw.split("#", 1)[0].strip()
+            while True:
+                m = re.match(r"(\w+):\s*", text)
+                if not m:
+                    break
+                yield number, m[1], None, None
+                text = text[m.end():]
+            if text and not text.startswith((".set", ".text")):
+                op, _, rest = text.partition(" ")
+                yield number, None, op, [x for x in OPERAND.split(rest.strip()) if x] if rest.strip() else []
+
+    def assemble(self, source: str) -> tuple[bytes, list[tuple[int, int, str]]]:
+        """(the bytes up to the first `.space`, a listing of (address, word, source line))."""
+        pc = self.base
+        for number, label, op, args in self.lines(source):
+            if label:
+                self.symbols[label] = pc
+            elif op == ".balign":
+                pc = (pc + int(args[0], 0) - 1) & -int(args[0], 0)
+            else:
+                pc += self.size(op, args)
+        out, listing, pc, text = bytearray(), [], self.base, source.splitlines()
+        for number, label, op, args in self.lines(source):
+            if label:
+                continue
+            if op == ".balign":
+                aligned = (pc + int(args[0], 0) - 1) & -int(args[0], 0)
+                out += bytes(aligned - pc)
+                pc = aligned
+                continue
+            if op == ".space":
+                break                                  # the buffer: its place is known, its bytes are not written
+            try:
+                words = self.encode(op, args, pc)
+            except (KeyError, ValueError, AttributeError, IndexError) as error:
+                raise SystemExit(f"blob source line {number}: {text[number - 1].strip()}\n{error}")
+            for word in words:
+                listing.append((pc, word, text[number - 1].strip()))
+                out += struct.pack("<I", word)
+                pc += 4
+        return bytes(out), listing
+
+
 def assemble(cfg: dict, sites: dict) -> tuple[bytes, dict[str, int], str]:
-    """(the blob's code, symbol -> address, listing), with the system's MIPS binutils. The buffer is not part of
-    what is written into the game: only the cursor in front of it has to be right."""
-    OUT.mkdir(parents=True, exist_ok=True)
-    src, obj, elf, raw = OUT / "blob.s", OUT / "blob.o", OUT / "blob.elf", OUT / "blob.bin"
-    src.write_text(stub_source(cfg, sites), encoding="utf-8")
-    base = cfg["blob"]["address"]
-    for cmd in (["mipsel-linux-gnu-as", "-mips1", "-EL", "-o", str(obj), str(src)],
-                ["mipsel-linux-gnu-ld", "-EL", "-Ttext", f"{base:#x}", "-e", "gt_drain", "-o", str(elf), str(obj)]):
-        done = subprocess.run(cmd, capture_output=True, text=True)
-        if done.returncode:
-            raise SystemExit(f"{' '.join(cmd)}\n{done.stderr}")
-    symbols = {}
-    for line in subprocess.run(["mipsel-linux-gnu-nm", str(elf)], capture_output=True, text=True).stdout.splitlines():
-        cells = line.split()
-        if len(cells) == 3 and cells[2].startswith("gt_"):
-            symbols[cells[2]] = int(cells[0], 16)
-    end = symbols["gt_buffer"]
-    done = subprocess.run(["mipsel-linux-gnu-objcopy", "-O", "binary", "-j", ".text", str(elf), str(raw)], capture_output=True, text=True)
-    if done.returncode:
-        raise SystemExit(done.stderr)
-    code = raw.read_bytes()[: end - base]
-    raw.write_bytes(code)
-    listing = subprocess.run(["mipsel-linux-gnu-objdump", "-d", "--stop-address", f"{end:#x}", str(elf)], capture_output=True, text=True).stdout
-    return code, symbols, listing
+    """(the blob's code, symbol -> address, listing). The buffer is not part of what is written into the game:
+    only the cursor in front of it has to be right."""
+    source = stub_source(cfg, sites)
+    asm = Assembler(cfg["blob"]["address"])
+    code, rows = asm.assemble(source)
+    names = {address: name for name, address in asm.symbols.items()}
+    listing = "\n".join((f"\n{names[address]}:\n" if address in names else "") + f"{address:08x}:  {word:08x}  {line}" for address, word, line in rows) + "\n"
+    return code, {name: address for name, address in asm.symbols.items() if name.startswith("gt_")}, listing
+
+
+def binutils_agree(cfg: dict, sites: dict, code: bytes) -> str | None:
+    """Assemble the same source with the system's MIPS binutils, where they are installed, and compare.
+    None when they are not; otherwise a line saying whether the bytes are the same."""
+    import shutil
+    import tempfile
+    if not all(shutil.which(f"mipsel-linux-gnu-{tool}") for tool in ("as", "ld", "objcopy")):
+        return None
+    with tempfile.TemporaryDirectory() as tmp:
+        src, obj, elf, raw = (Path(tmp) / name for name in ("blob.s", "blob.o", "blob.elf", "blob.bin"))
+        src.write_text(stub_source(cfg, sites), encoding="utf-8")
+        for cmd in (["mipsel-linux-gnu-as", "-mips1", "-EL", "-o", str(obj), str(src)],
+                    ["mipsel-linux-gnu-ld", "-EL", "-Ttext", f"{cfg['blob']['address']:#x}", "-e", "gt_drain", "-o", str(elf), str(obj)],
+                    ["mipsel-linux-gnu-objcopy", "-O", "binary", "-j", ".text", str(elf), str(raw)]):
+            done = subprocess.run(cmd, capture_output=True, text=True)
+            if done.returncode:
+                return f"binutils could not assemble the blob: {done.stderr.strip()[:200]}"
+        theirs = raw.read_bytes()[: len(code)]
+    if theirs == code:
+        return f"the same {len(code)} bytes as the system's MIPS binutils produce"
+    first = next(n for n in range(0, len(code), 4) if theirs[n:n + 4] != code[n:n + 4])
+    return f"DIFFERS from the system's MIPS binutils at offset {first:#x}: {code[first:first + 4][::-1].hex()} here, {theirs[first:first + 4][::-1].hex()} there"
 
 
 # ---- what a hook replaces, read from the image on disc
@@ -836,8 +982,14 @@ def main() -> int:
         print(f"\nblob: {len(code)} bytes of code at {cfg['blob']['address']:#010x}, buffer of {cfg['blob']['bytes']} bytes at {symbols['gt_buffer']:#010x}; "
               f"the game stops only at {symbols['gt_full']:#010x}, when the buffer is full")
         if args.command == "blob":
+            OUT.mkdir(parents=True, exist_ok=True)
+            (OUT / "blob.bin").write_bytes(code)
+            (OUT / "blob.s").write_text(stub_source(cfg, sites_of(cfg)), encoding="utf-8")
             (OUT / "blob.lst").write_text(listing, encoding="utf-8")
             print(f"written: {OUT / 'blob.bin'}, {OUT / 'blob.s'}, {OUT / 'blob.lst'}")
+            agree = binutils_agree(cfg, sites_of(cfg), code)
+            if agree:
+                print(agree)
         return 0
     args.out.parent.mkdir(parents=True, exist_ok=True)
     try:
