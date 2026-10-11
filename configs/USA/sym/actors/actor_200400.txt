@@ -375,7 +375,7 @@ gShelterB2MainCorridorWaterY = 0x80182E28; // absolute:True owner=shelter_b2_mai
 gShelterB4LowerSewerDiverPatrolRings = 0x8018210C; // absolute:True owner=shelter_b4_lower_sewer shared=rooms
 gShelterB4LowerSewerDiverSurfaceSpots = 0x8018211C; // absolute:True owner=shelter_b4_lower_sewer shared=rooms
 gShelterB4LowerSewerWaterY = 0x80181E6C; // absolute:True owner=shelter_b4_lower_sewer shared=rooms
-Actor00400_D15F20 = 0x8015FD40; // size:0xF0 defined:True
+_gActor00400AreaConfigs = 0x8015FD40; // size:0xF0 defined:True
 _gActor00400Messages = 0x8015FE30; // size:0x18 defined:True
 gActor00400Tasks = 0x8015FE48; // size:0x24 defined:True
 _gActor00400AnimationBank = 0x8015FE6C; // size:0x50 defined:True

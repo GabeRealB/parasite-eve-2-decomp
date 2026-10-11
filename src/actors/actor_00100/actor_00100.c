@@ -148,12 +148,6 @@ typedef struct {
 } _Actor00100MesaPlacements;
 STATIC_ASSERT_SIZEOF(_Actor00100MesaPlacements, 0x20);
 
-extern DesertChaserVariant Actor00100_D0BDB4[4];
-
-extern EnemyParams Actor00100_D0BDA4;
-
-extern AnimationSet* Actor00100_D1B944[26];
-
 static TmdSource _gActor00100DesertChaserBurstLegRight;
 
 static TmdSource _gActor00100DesertChaserBurstLegLeft;
@@ -175,8 +169,6 @@ static inline SVECTOR* _actorContactGetLastPushStep(void)
 {
     return &ActorContact_ScratchPosition;
 }
-
-extern TaskMessageEntry Actor00100_D1BA54[6];
 
 static void _actor00100ResumePursuit(Task* task);
 
@@ -362,23 +354,49 @@ static __inline__ s16 _actor00100MovesTowardMesaDrop(Task* actor, VECTOR* motion
     return 0;
 }
 
-// Each handler receives the argument view used by its message ID.
+/// Stored all-bits-set fall power packs to the maximum 12-bit damage-key power.
+enum { ACTOR00100_FALL_ATTACK_POWER = 0xFFFF };
 
-DamageAttack Actor00100_D0BD90[5] = {
-    { 30, 0 },
-    { 30, 0 },
-    { 18, 0 },
-    { 18, 0 },
-    { 0xFFFF, 0 },
+/// Regular Desert Chaser capture and held-player fall damage rows.
+///
+/// Rows 0/1 are front/rear throws, 2/3 are front/rear close catches, and 4 is
+/// the held-player fall. All use the ordinary player hit reaction. The stored
+/// fall power 65535 packs to the maximum 12-bit attack power, 4095. Live enemy
+/// parameters borrow this table for the loaded package lifetime.
+static DamageAttack _gActor00100DesertChaserAttacks[5] = {
+    { 30, GAME_ACTOR_REACTION_ORDINARY },
+    { 30, GAME_ACTOR_REACTION_ORDINARY },
+    { 18, GAME_ACTOR_REACTION_ORDINARY },
+    { 18, GAME_ACTOR_REACTION_ORDINARY },
+    { ACTOR00100_FALL_ATTACK_POWER, GAME_ACTOR_REACTION_ORDINARY },
 };
 
-EnemyParams Actor00100_D0BDA4 = { Actor00100_D0BD90, 200, 75, 50, 4, 100, 10, 100, 0 };
+/// Combat parameters and release rewards shared by regular Desert Chasers.
+///
+/// The starting HP is 200; release credits 75 experience, 50 battle points and
+/// 4 magic points. Each live enemy borrows this record and its attack rows until
+/// teardown; the record remains resident with the actor package.
+static EnemyParams _gActor00100DesertChaserParams = { _gActor00100DesertChaserAttacks, 200, 75, 50, 4, 100, 10, 100, 0 };
 
-DesertChaserVariant Actor00100_D0BDB4[4] = {
-    { 60, 36, 10, 150 },
-    { 40, 26, 10, 120 },
-    { 20, 18, 10, 120 },
-    { 60, 60, 10, 150 },
+/// Regular-chaser timing-row identities; the downed duration orders the first three.
+enum {
+    ACTOR00100_VARIANT_LONG_DOWN   = 0,
+    ACTOR00100_VARIANT_MEDIUM_DOWN = 1,
+    ACTOR00100_VARIANT_SHORT_DOWN  = 2,
+    ACTOR00100_VARIANT_BREEZEWAY   = 3,
+    ACTOR00100_VARIANT_COUNT       = 4
+};
+
+/// Four timing profiles for regular Desert Chaser spawns and room commands.
+///
+/// Spawn low-nibble selectors 2/1/other choose rows 0/2/1. The Dryfield breezeway
+/// start command chooses row 3. Entries seed whole-frame down, windup, awareness
+/// and pursuit-holdoff durations; work retains copies rather than a row pointer.
+static DesertChaserVariant _gActor00100VariantTunings[ACTOR00100_VARIANT_COUNT] = {
+    [ACTOR00100_VARIANT_LONG_DOWN]   = { 60, 36, 10, 150 },
+    [ACTOR00100_VARIANT_MEDIUM_DOWN] = { 40, 26, 10, 120 },
+    [ACTOR00100_VARIANT_SHORT_DOWN]  = { 20, 18, 10, 120 },
+    [ACTOR00100_VARIANT_BREEZEWAY]   = { 60, 60, 10, 150 },
 };
 
 static TmdBone _gActor00100DesertChaserBodySkeleton[18] = {
@@ -1169,7 +1187,12 @@ static s8 _gDesertChaserClipBlendFrames[25][25] = {
     /* 24 */ { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-AnimationSet* Actor00100_D1B944[26] = {
+/// Body animation bank borrowed by both regular Desert Chaser rigs.
+///
+/// Clip IDs 0..21 select loaded sets; 21 reuses set 10. Stored entries 22..25
+/// are NULL and must not be played. Each context borrows the bank and its streams
+/// for the lifetime of the actor package and live model.
+static AnimationSet* _gActor00100AnimationSets[26] = {
     &_gActor00100Actor400100Animation129A4,
     &_gActor00100Actor400100Animation12C60,
     &_gActor00100Actor400100Animation13294,
@@ -1238,7 +1261,11 @@ static ActorHitAnchor _gDesertChaserHitAnchors[12] = {
     { .anchor = { -25, 0, 0, 2 } },
 };
 
-TaskMessageEntry Actor00100_D1BA54[6] = {
+/// Room-command, visibility, presence and placement messages for the regular chaser.
+///
+/// The ignored 2015 message is retained. The final end-ID/null row stops searches
+/// for unhandled IDs. The live body task borrows this table until teardown.
+static TaskMessageEntry _gActor00100Messages[6] = {
     { ACTOR_COMMAND_MESSAGE_APPLY, _actor00100ApplyCommand },
     { ACTOR00100_MESSAGE_IGNORE_2015, _actor00100IgnoreMessage2015 },
     { ACTOR_MESSAGE_SET_MODEL_DRAW, actorMsgSetVisibility },
@@ -1307,9 +1334,12 @@ static __inline__ void _actor00100SelectHitReaction(DesertChaserWork* work)
 
 #include "../../shared/player_detection_sight.inc.c"
 
-/// Where the Mine Mesa's command 1 puts the chaser: a pair of places at each
-/// of two ends of the Mesa.
-static const _Actor00100MesaPlacements Actor00100_D00004 = { {
+/// Mine Mesa leap-in placements selected by camera view and a random draw.
+///
+/// The four roots use parent-frame game coordinates and yaw in 4096 units per
+/// turn. Entries 0/1 and 2/3 form the two entrance pairs. The command handler
+/// copies the complete four-entry record before selecting an entry in 0..3.
+static const _Actor00100MesaPlacements _gActor00100MesaLeapPlacements = { {
     { 2247, 0, -7235, 0 },
     { 1247, 0, -6535, 256 },
     { 19000, 0, 4300, -800 },
@@ -1339,7 +1369,7 @@ static s32 _actor00100ApplyCommand(Task* task, s32 messageId, const ActorCommand
         ACTOR00100_MESA_COMMAND_LEAP_IN         = 1,
         ACTOR00100_ROOM_COMMAND_START           = 2,
         ACTOR00100_PACK_HOLDOFF_FRAMES          = 90,
-        ACTOR00100_BREEZEWAY_VARIANT            = 3,
+        ACTOR00100_BREEZEWAY_VARIANT            = ACTOR00100_VARIANT_BREEZEWAY,
         ACTOR00100_SOUND_BREEZEWAY_WAKE         = 0x52160009,
     };
     _Actor00100MesaPlacements placements;
@@ -1393,7 +1423,7 @@ static s32 _actor00100ApplyCommand(Task* task, s32 messageId, const ActorCommand
         work->lastCommand.fields.area    = request->context.loc.area;
         work->lastCommand.fields.command = (u8)request->command;
         if (request->context.key == ACTOR00100_MESA_CONTEXT) {
-            placements  = Actor00100_D00004;
+            placements  = _gActor00100MesaLeapPlacements;
             mesaCommand = request->command;
             switch (mesaCommand) {
                 case ACTOR00100_ROOM_COMMAND_HIDE:
@@ -1458,10 +1488,10 @@ static s32 _actor00100ApplyCommand(Task* task, s32 messageId, const ActorCommand
                     _desertChaserAnimTick(task);
                     _desertChaserAnimTick(task);
                     work->state              = ACTOR00100_STATE_PURSUE;
-                    work->windupFrames       = Actor00100_D0BDB4[ACTOR00100_BREEZEWAY_VARIANT].windupFrames;
-                    work->downFramesBase     = Actor00100_D0BDB4[ACTOR00100_BREEZEWAY_VARIANT].downFramesBase;
-                    work->roamLookDelay      = Actor00100_D0BDB4[ACTOR00100_BREEZEWAY_VARIANT].roamLookDelay;
-                    work->chaseHoldoffFrames = Actor00100_D0BDB4[ACTOR00100_BREEZEWAY_VARIANT].chaseHoldoffFrames;
+                    work->windupFrames       = _gActor00100VariantTunings[ACTOR00100_BREEZEWAY_VARIANT].windupFrames;
+                    work->downFramesBase     = _gActor00100VariantTunings[ACTOR00100_BREEZEWAY_VARIANT].downFramesBase;
+                    work->roamLookDelay      = _gActor00100VariantTunings[ACTOR00100_BREEZEWAY_VARIANT].roamLookDelay;
+                    work->chaseHoldoffFrames = _gActor00100VariantTunings[ACTOR00100_BREEZEWAY_VARIANT].chaseHoldoffFrames;
                     break;
             }
         }
@@ -1817,12 +1847,12 @@ static void _actor00100SpawnBattleState(Enemy* enemy, Task* task)
     worldTargetLinkNode(&enemy->node);
     enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
     enemy->reactionFlags          = 0;
-    enemy->hp                     = Actor00100_D0BDA4.hpMax;
-    enemy->param                  = &Actor00100_D0BDA4;
+    enemy->hp                     = _gActor00100DesertChaserParams.hpMax;
+    enemy->param                  = &_gActor00100DesertChaserParams;
     enemy->recs                   = work->spheres[DESERT_CHASER_SPHERE_FRONT].contacts;
     // Both rigs borrow the live model and this work block's pose storage.
-    animationInitContext(&work->rig.anim, Actor00100_D1B944, spawnModel, work->rig.poses, work->rig.slots);
-    animationInitContext(&work->blend.anim, Actor00100_D1B944, spawnModel, work->blend.poses, work->blend.slots);
+    animationInitContext(&work->rig.anim, _gActor00100AnimationSets, spawnModel, work->rig.poses, work->rig.slots);
+    animationInitContext(&work->blend.anim, _gActor00100AnimationSets, spawnModel, work->blend.poses, work->blend.slots);
     work->animRequest   = DESERT_CHASER_ANIM_REQUEST_RESET;
     work->blendActive   = 0;
     work->animId        = 0;
@@ -1914,7 +1944,7 @@ static void _actor00100SpawnBattleState(Enemy* enemy, Task* task)
     work->playerAnim.blend                = ANIMATION_BLEND_RESET;
     work->playerAnim.blendFrames          = 3;
     work->playerAnim.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
-    task->msgTable                        = Actor00100_D1BA54;
+    task->msgTable                        = _gActor00100Messages;
     root->parent                          = &gGfxViewCoord;
     root->composeStamp                    = GRAPHICS_COORD_DIRTY;
     actorRenderComposeCoord(root);
@@ -1950,23 +1980,23 @@ static void _actor00100SpawnBattleState(Enemy* enemy, Task* task)
     variantSelector = task->spawnArg1.value & 0xF;
     switch (variantSelector) {
         case 2:
-            work->windupFrames       = Actor00100_D0BDB4[0].windupFrames;
-            work->downFramesBase     = Actor00100_D0BDB4[0].downFramesBase;
-            work->roamLookDelay      = Actor00100_D0BDB4[0].roamLookDelay;
-            work->chaseHoldoffFrames = Actor00100_D0BDB4[0].chaseHoldoffFrames;
+            work->windupFrames       = _gActor00100VariantTunings[ACTOR00100_VARIANT_LONG_DOWN].windupFrames;
+            work->downFramesBase     = _gActor00100VariantTunings[ACTOR00100_VARIANT_LONG_DOWN].downFramesBase;
+            work->roamLookDelay      = _gActor00100VariantTunings[ACTOR00100_VARIANT_LONG_DOWN].roamLookDelay;
+            work->chaseHoldoffFrames = _gActor00100VariantTunings[ACTOR00100_VARIANT_LONG_DOWN].chaseHoldoffFrames;
             break;
         case 1:
-            work->windupFrames       = Actor00100_D0BDB4[2].windupFrames;
-            work->downFramesBase     = Actor00100_D0BDB4[2].downFramesBase;
-            work->roamLookDelay      = Actor00100_D0BDB4[2].roamLookDelay;
-            work->chaseHoldoffFrames = Actor00100_D0BDB4[2].chaseHoldoffFrames;
+            work->windupFrames       = _gActor00100VariantTunings[ACTOR00100_VARIANT_SHORT_DOWN].windupFrames;
+            work->downFramesBase     = _gActor00100VariantTunings[ACTOR00100_VARIANT_SHORT_DOWN].downFramesBase;
+            work->roamLookDelay      = _gActor00100VariantTunings[ACTOR00100_VARIANT_SHORT_DOWN].roamLookDelay;
+            work->chaseHoldoffFrames = _gActor00100VariantTunings[ACTOR00100_VARIANT_SHORT_DOWN].chaseHoldoffFrames;
             break;
         case 0:
         default:
-            work->windupFrames       = Actor00100_D0BDB4[1].windupFrames;
-            work->downFramesBase     = Actor00100_D0BDB4[1].downFramesBase;
-            work->roamLookDelay      = Actor00100_D0BDB4[1].roamLookDelay;
-            work->chaseHoldoffFrames = Actor00100_D0BDB4[1].chaseHoldoffFrames;
+            work->windupFrames       = _gActor00100VariantTunings[ACTOR00100_VARIANT_MEDIUM_DOWN].windupFrames;
+            work->downFramesBase     = _gActor00100VariantTunings[ACTOR00100_VARIANT_MEDIUM_DOWN].downFramesBase;
+            work->roamLookDelay      = _gActor00100VariantTunings[ACTOR00100_VARIANT_MEDIUM_DOWN].roamLookDelay;
+            work->chaseHoldoffFrames = _gActor00100VariantTunings[ACTOR00100_VARIANT_MEDIUM_DOWN].chaseHoldoffFrames;
             break;
     }
     // Only the first four bytes of each block are read by the CD queue.
@@ -2992,9 +3022,12 @@ static void _actor00100MesaFall(Task* task)
     SCRATCH_STACK_RELEASE_BYTES(ACTOR00100_MESA_FALL_UNUSED_SCRATCH_BYTES);
 }
 
-/// Per-state handlers the per-frame update calls, indexed by the work block's
-/// `state`, called unconditionally; a null entry is a state with no handler.
-static const DesertChaserStateTable Actor00100_D000F0 = { {
+/// Regular Desert Chaser behavior handlers indexed by its work state.
+///
+/// The frame update copies all DESERT_CHASER_STATE_COUNT entries before dispatch.
+/// Dispatch is unconditional: NULL entries are states that must never be selected.
+/// The handlers borrow the live actor task for one frame.
+static const DesertChaserStateTable _gActor00100StateHandlers = { {
     _actor00100HideState,
     _actor00100WaitInView,
     _actor00100IdleState2,
@@ -3123,7 +3156,7 @@ static void _actor00100FrameState(Enemy* enemy, Task* actor)
     work                                   = actor->work;
     player                                 = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     playerStatus                           = &gPlayerStatus;
-    states                                 = Actor00100_D000F0;
+    states                                 = _gActor00100StateHandlers;
     actor->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     actorRenderComposeCoord(actor->extra.tmd->coords);
     rootViewPosition.vx = actor->extra.tmd->coords->workm.t[0];

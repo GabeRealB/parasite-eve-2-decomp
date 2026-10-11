@@ -1,7 +1,7 @@
 // Overlay-local symbols for actor_405800.
 _gStalkerZebraIvoryDeathClipsByPose = 0x801514D8; // size:0x23 defined:True
 gActor405800IvoryStalkerTaskDesc = 0x801514CC; // size:0xC defined:True
-D_actor_405800_8015149C = 0x8015149C; // size:0x18 defined:True
+_gActor405800Messages = 0x8015149C; // size:0x18 defined:True
 _gActor405800ArmTaskDescs = 0x801514B4; // size:0x18 defined:True
 _gActor405800IvoryStalkerBodySkeleton = 0x8013A214; // size:0x288 defined:True
 _gActor405800IvoryStalkerBodyPartVerts = 0x8013A49C; // size:0x48 defined:True
@@ -52,7 +52,7 @@ _gActor405800StalkerBurstFootRightNormals = 0x80141514; // size:0xC8 defined:Tru
 _gActor405800StalkerBurstFootRightStream = 0x801415DC; // size:0x2F0 defined:True
 _gActor405800StalkerBurstFootRight = 0x801418CC; // size:0x24 defined:True
 _gActor405800IvoryStalkerAttacks = 0x801418F0; // size:0xC defined:True
-D_actor_405800_801418FC = 0x801418FC; // size:0x10 defined:True
+_gActor405800IvoryStalkerParams = 0x801418FC; // size:0x10 defined:True
 _gActor405800Animation107B4Bank1 = 0x8014190C; // size:0x138 defined:True
 _gActor405800Animation107B4Bank4 = 0x80141A44; // size:0x50C defined:True
 _gActor405800Animation107B4Records = 0x80141F50; // size:0x660 defined:True

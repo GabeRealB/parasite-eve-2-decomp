@@ -348,12 +348,6 @@ static void _actor548100SetLegComplete(s32 routeId, u8 stopNode);
 static void _actor548100DrawWires(void);
 static void _actor548100ResetWireStates(void);
 
-extern TaskDesc D_actor_548100_801351B4;
-// Handler views preserve the signatures used by this TU. The dispatcher
-// transports each argument in a word register.
-
-extern TaskMessageEntry D_actor_548100_801351C0[];
-
 static s32  _actor548100UseBattery(Task* task, s32 messageId, s32 itemId, s32 unused);
 static void _actor548100PromptTask(Task* task);
 
@@ -362,9 +356,21 @@ static const char D_actor_548100_80131E5C[5];
 static const char D_actor_548100_80131E64[5];
 static void       _actor548100PanelTask(Task* task);
 
-TaskDesc D_actor_548100_801351B4 = { { { TASK_BODY_NONE, 192 } }, _actor548100PromptTask, { .value = 0 } };
+enum { ACTOR_548100_PANEL_PROMPT_PRIORITY = 192 };
 
-TaskMessageEntry D_actor_548100_801351C0[2] = {
+/// Action-cursor child task recipe for the mine power panel.
+///
+/// The child has no automatic task body and runs at priority 192. The panel
+/// retains its borrowed handle until requesting completion on exit; cursor work
+/// and presentation are owned by the spawned prompt task.
+static TaskDesc _gActor548100PanelPromptTaskDesc = { { { TASK_BODY_NONE, ACTOR_548100_PANEL_PROMPT_PRIORITY } }, _actor548100PromptTask, { .value = 0 } };
+
+/// Forwarded key-item-use requests handled by the mine power panel.
+///
+/// The selected battery ID is latched into live panel work. Replies use
+/// ROOM_KEY_ITEM_USE_* to choose the item menu presentation; inventory changes
+/// are deferred to panel interaction. The final end-ID/null row rejects other IDs.
+static TaskMessageEntry _gActor548100PanelMessages[2] = {
     { ROOM_MESSAGE_USE_KEY_ITEM, _actor548100UseBattery },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
@@ -1161,8 +1167,8 @@ static void _actor548100InitPanel(Task* task)
         taskKill(task);
         return;
     }
-    task->spawnArg2.pointer                                    = taskSpawnFromTable(&D_actor_548100_801351B4, 0, 1, 0);
-    task->msgTable                                             = D_actor_548100_801351C0;
+    task->spawnArg2.pointer                                    = taskSpawnFromTable(&_gActor548100PanelPromptTaskDesc, 0, 1, 0);
+    task->msgTable                                             = _gActor548100PanelMessages;
     task->work                                                 = work;
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = ACTOR_548100_PANEL_SAVED_VIEW;
     task->state                                               += 1;

@@ -3,13 +3,13 @@
 // every symbol is named by *file offset*, which is the same in each copy.
 
 Actor00100_D00000 = 0x80131E20;
-Actor00100_D00004 = 0x80131E24;
+_gActor00100MesaLeapPlacements = 0x80131E24;
 Actor00100_Jt00024 = 0x80131E44;
 Actor00100_Jt00044 = 0x80131E64;
 Actor00100_Jt0005C = 0x80131E7C;
 Actor00100_Jt000AC = 0x80131ECC;
 Actor00100_D000D4 = 0x80131EF4;
-Actor00100_D000F0 = 0x80131F10;
+_gActor00100StateHandlers = 0x80131F10;
 Actor00100_Jt0018C = 0x80131FAC;
 _gDesertChaserTaskStates = 0x80131FC0;
 _actorRenderYawJointInWorld = 0x8013201C;
@@ -773,12 +773,12 @@ Actor00100_L0BD14 = 0x8013DB34; // type:label
 _desertChaserTask = 0x8013DB48;
 _gDesertChaserHitAnchors = 0x8014D814; // size:0x60 defined:True
 _actorContactApplyAvoidancePushback = 0x80132328;
-Actor00100_D1B944 = 0x8014D764; // size:0x68 defined:True
+_gActor00100AnimationSets = 0x8014D764; // size:0x68 defined:True
 _gDesertChaserFrontCatchPlayerAnimSets = 0x8014D7CC; // size:0x24 defined:True
 _gDesertChaserRearCatchPlayerAnimSets = 0x8014D7F0; // size:0x24 defined:True
-Actor00100_D0BD90 = 0x8013DBB0; // size:0x14 defined:True
-Actor00100_D0BDA4 = 0x8013DBC4; // size:0x10 defined:True
-Actor00100_D0BDB4 = 0x8013DBD4; // size:0x20 defined:True
+_gActor00100DesertChaserAttacks = 0x8013DBB0; // size:0x14 defined:True
+_gActor00100DesertChaserParams = 0x8013DBC4; // size:0x10 defined:True
+_gActor00100VariantTunings = 0x8013DBD4; // size:0x20 defined:True
 _gActor00100DesertChaserBodySkeleton = 0x8013DBF4; // size:0x288 defined:True
 _gActor00100DesertChaserBodyPartVerts = 0x8013DE7C; // size:0x48 defined:True
 _gActor00100DesertChaserBodyVerts = 0x8013DEC4; // size:0x850 defined:True
@@ -945,7 +945,7 @@ _gActor00100Actor400100Animation1B6A8Records = 0x8014D320; // size:0x180 defined
 _gActor00100Actor400100Animation1B6A8Indices = 0x8014D4A0; // size:0x28 defined:True
 _gActor00100Actor400100Animation1B6A8 = 0x8014D4C8; // size:0x28 defined:True
 _gDesertChaserClipBlendFrames = 0x8014D4F0; // size:0x271 defined:True
-Actor00100_D1BA54 = 0x8014D874; // size:0x30 defined:True
+_gActor00100Messages = 0x8014D874; // size:0x30 defined:True
 gActor00100DesertChaserTaskDesc = 0x8014D8A4; // size:0xC defined:True
 ActorContact_ScratchPosition = 0x8014D8B0; // size:0x8 defined:True
 

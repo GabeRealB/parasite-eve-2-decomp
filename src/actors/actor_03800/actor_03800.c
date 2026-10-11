@@ -216,8 +216,6 @@ static TmdSource _gActor03800BlackBeetleEffect3;
 static TmdSource _gActor03800BlackBeetleEffect4;
 static TmdSource _gActor03800BlackBeetleEffect5;
 
-extern s16 Actor03800_D05FA8[];
-
 static void        _actor03800ActionIdle(Task* task);
 static void        _actor03800ActionWander(Task* task);
 static void        _actor03800ActionCharge(Task* task);
@@ -759,7 +757,12 @@ static s16 _gActor03800AnimationBlendFrames[12] = {
     [ACTOR_03800_ANIM_LEAP]  = 3,
 };
 
-s16 Actor03800_D05FA8[2] = {
+/// Additional Beetle burst-fragment attempts by remaining battle-reference count.
+///
+/// After the dying actor releases its battle hold, counts 0/1 request 2/1 extra
+/// fragments in addition to the first attempt. Counts >= 2 add none. Entries
+/// count spawn attempts, including failed allocations, rather than live effects.
+static s16 _gActor03800ExtraBurstFragmentCounts[2] = {
     2,
     1,
 };
@@ -2360,8 +2363,8 @@ static void _actor03800SpawnBurstFragments(Task* task)
     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
     firstVariant    = (u16)((gRandomLcgState >> 16) % ACTOR_03800_BURST_VARIANT_COUNT);
     _actor03800SpawnBurstFragment(task, firstVariant);
-    if (gSceneCombatState.battleRefs < ARRAY_SIZE(Actor03800_D05FA8)) {
-        extraFragmentCount = Actor03800_D05FA8[gSceneCombatState.battleRefs];
+    if (gSceneCombatState.battleRefs < ARRAY_SIZE(_gActor03800ExtraBurstFragmentCounts)) {
+        extraFragmentCount = _gActor03800ExtraBurstFragmentCounts[gSceneCombatState.battleRefs];
         variantOut         = remainingVariants;
         for (variantIndex = 0; variantIndex < ACTOR_03800_BURST_VARIANT_COUNT; variantIndex++) {
             if (variantIndex != firstVariant) {

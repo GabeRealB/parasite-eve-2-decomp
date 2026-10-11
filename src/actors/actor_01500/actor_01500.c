@@ -198,12 +198,6 @@ typedef struct {
 } _Actor01500Work;
 STATIC_ASSERT_SIZEOF(_Actor01500Work, 0x384);
 
-/// Blend frames handed to `animationSeekSlotWithBlend` when an animation starts, indexed by `anim`.
-extern s16 Actor01500_D0A050[];
-
-/// Fifteen vertical bob offsets cycled by `bobPhase` while `anim` is `ACTOR_01500_ANIM_HOVER`.
-extern s16 Actor01500_D0A070[];
-
 MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 MATRIX* MulMatrix(MATRIX* m0, MATRIX* m1);
 
@@ -802,7 +796,12 @@ static AnimationSet* _gActor01500AnimSets[ACTOR_01500_ANIM_GROUNDED + 1] = {
     [ACTOR_01500_ANIM_GROUNDED]         = &_gActor01500Actor101500Animation09F8C,
 };
 
-s16 Actor01500_D0A050[16] = {
+/// Mind Suckler blend durations in whole normal-rate animation frames.
+///
+/// Changed clip requests 1..14 select the signed-halfword duration passed to
+/// each body slot. WALL_REST and the flinch/grounded clips blend for four frames;
+/// other clips switch immediately. Stored slots 0 and 15 are retained unused.
+static s16 _gActor01500AnimBlendFrames[16] = {
     0,
     0,
     0,
@@ -821,7 +820,12 @@ s16 Actor01500_D0A050[16] = {
     0,
 };
 
-s16 Actor01500_D0A070[16] = {
+/// Per-tick vertical displacement cycle for Mind Suckler hovering.
+///
+/// The hover action cycles indices 0..14; the sixteenth stored halfword is
+/// outside that cycle. Values are signed parent-frame game-coordinate steps,
+/// positive downward, added to vertical velocity rather than absolute heights.
+static s16 _gActor01500HoverBobOffsets[16] = {
     0,
     10,
     19,
@@ -1740,7 +1744,7 @@ static void _actor01500Move(Task* actor)
         if (work->bobPhase >= ACTOR_01500_HOVER_BOB_TICKS) {
             work->bobPhase = 0;
         }
-        bobOffset = Actor01500_D0A070[work->bobPhase];
+        bobOffset = _gActor01500HoverBobOffsets[work->bobPhase];
     }
     // Save the complete root position for the next contact pass's reset response.
     work->prevPos.vx       = rootCoord->coord.t[0];
@@ -2260,7 +2264,7 @@ static void _actor01500WallRestAction(Task* actor)
 /// Restarts a changed clip with its blend duration or advances the current clip.
 ///
 /// The action supplies a clip index in 1..14. Slots 1..6 drive the six parts
-/// below the root; slot zero is untouched. `Actor01500_D0A050` entries count
+/// below the root; slot zero is untouched. `_gActor01500AnimBlendFrames` entries count
 /// whole normal-rate blend frames. A restart resets `animFrame` and blends
 /// from each slot's ticked pose; otherwise the counter advances once per call.
 static void _actor01500UpdateAnimation(Task* actor)
@@ -2273,7 +2277,7 @@ static void _actor01500UpdateAnimation(Task* actor)
     if (work->anim != work->playingAnim) {
         work->playingAnim = work->anim;
         work->animFrame   = 0;
-        blendFrames       = Actor01500_D0A050[work->anim];
+        blendFrames       = _gActor01500AnimBlendFrames[work->anim];
         for (slotIndex = 1; slotIndex < ARRAY_SIZE(work->rig.slots); slotIndex++) {
             animationSeekSlotWithBlend(&work->rig.anim, slotIndex, work->anim, 0, blendFrames);
         }

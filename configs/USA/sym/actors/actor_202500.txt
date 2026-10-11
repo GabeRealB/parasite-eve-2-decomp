@@ -266,5 +266,5 @@ _gActor02500ScorpionBurstPincer1 = 0x8014E8F0; // size:0x24 defined:True
 Actor02500_D05B94 = 0x8014F9B4;
 gActor02500Tasks = 0x8014F9A8; // size:0x18 defined:True
 _gActor02500AnimationSets = 0x8014F9C0; // size:0x30 defined:True
-Actor02500_D05BD0 = 0x8014F9F0; // size:0x18 defined:True
+_gActor02500AnimBlendFrames = 0x8014F9F0; // size:0x18 defined:True
 _gActor02500DustDirections = 0x8014FA08; // size:0x20 defined:True

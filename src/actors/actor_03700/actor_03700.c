@@ -135,9 +135,6 @@ typedef struct {
 } _Actor03700TakeoffSegment;
 STATIC_ASSERT_SIZEOF(_Actor03700TakeoffSegment, 0x8);
 
-/// Halfword table indexed by the low 7 bits of a hit id; 3 cancels the damage.
-extern s16 Actor03700_D08074[];
-
 /// Scratch-stack block of the entrance actions, which fly the model's root in
 /// a straight line to `_Actor03700Work::targetPos`.
 ///
@@ -711,63 +708,69 @@ static _Actor03700TakeoffSegment _gActor03700BackTakeoffPath[9] = {
     { ACTOR_03700_TAKEOFF_LAST_TICK, 5, 0, 0 },
 };
 
-s16 Actor03700_D08074[56] = {
-    0,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    2,
-    2,
-    2,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    1,
-    0,
-    0,
-    3,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
+/// Bat death presentation or repulsion selected by a Parasite Energy attack row.
+///
+/// The low seven key bits select attachment rows 0..54; stored entry 55 is
+/// retained unused. Values are 0 body/wing burst, 1 additive puff, 2 two hit puffs,
+/// or 3 repel without HP damage. Weapon hits choose their presentation separately.
+/// The selected non-repel value is kept until the death action emits its effects.
+static s16 _gActor03700AttachmentHitResponses[56] = {
+    ACTOR_03700_DEATH_BURST_WING,
+    ACTOR_03700_DEATH_ADDITIVE_PUFF,
+    ACTOR_03700_DEATH_ADDITIVE_PUFF,
+    ACTOR_03700_DEATH_ADDITIVE_PUFF,
+    ACTOR_03700_DEATH_ADDITIVE_PUFF,
+    ACTOR_03700_DEATH_ADDITIVE_PUFF,
+    ACTOR_03700_DEATH_ADDITIVE_PUFF,
+    ACTOR_03700_DEATH_ADDITIVE_PUFF,
+    ACTOR_03700_DEATH_ADDITIVE_PUFF,
+    ACTOR_03700_DEATH_ADDITIVE_PUFF,
+    ACTOR_03700_DEATH_HIT_PUFFS,
+    ACTOR_03700_DEATH_HIT_PUFFS,
+    ACTOR_03700_DEATH_HIT_PUFFS,
+    ACTOR_03700_DEATH_BURST_WING,
+    ACTOR_03700_DEATH_BURST_WING,
+    ACTOR_03700_DEATH_BURST_WING,
+    ACTOR_03700_DEATH_BURST_WING,
+    ACTOR_03700_DEATH_BURST_WING,
+    ACTOR_03700_DEATH_BURST_WING,
+    ACTOR_03700_DEATH_BURST_WING,
+    ACTOR_03700_DEATH_BURST_WING,
+    ACTOR_03700_DEATH_BURST_WING,
+    ACTOR_03700_DEATH_BURST_WING,
+    ACTOR_03700_DEATH_BURST_WING,
+    ACTOR_03700_DEATH_BURST_WING,
+    ACTOR_03700_DEATH_BURST_WING,
+    ACTOR_03700_DEATH_BURST_WING,
+    ACTOR_03700_DEATH_BURST_WING,
+    ACTOR_03700_DEATH_BURST_WING,
+    ACTOR_03700_DEATH_BURST_WING,
+    ACTOR_03700_DEATH_BURST_WING,
+    ACTOR_03700_DEATH_BURST_WING,
+    ACTOR_03700_DEATH_BURST_WING,
+    ACTOR_03700_DEATH_BURST_WING,
+    ACTOR_03700_DEATH_BURST_WING,
+    ACTOR_03700_DEATH_BURST_WING,
+    ACTOR_03700_DEATH_BURST_WING,
+    ACTOR_03700_DEATH_BURST_WING,
+    ACTOR_03700_DEATH_BURST_WING,
+    ACTOR_03700_DEATH_BURST_WING,
+    ACTOR_03700_DEATH_BURST_WING,
+    ACTOR_03700_DEATH_BURST_WING,
+    ACTOR_03700_DEATH_BURST_WING,
+    ACTOR_03700_DEATH_BURST_WING,
+    ACTOR_03700_DEATH_BURST_WING,
+    ACTOR_03700_DEATH_BURST_WING,
+    ACTOR_03700_DEATH_ADDITIVE_PUFF,
+    ACTOR_03700_DEATH_BURST_WING,
+    ACTOR_03700_DEATH_BURST_WING,
+    ACTOR_03700_ATTACK_REPEL_ONLY,
+    ACTOR_03700_DEATH_BURST_WING,
+    ACTOR_03700_DEATH_BURST_WING,
+    ACTOR_03700_DEATH_BURST_WING,
+    ACTOR_03700_DEATH_BURST_WING,
+    ACTOR_03700_DEATH_BURST_WING,
+    ACTOR_03700_DEATH_BURST_WING,
 };
 
 /// Bat body clips indexed by `ACTOR_03700_ANIM_*` (1..5).
@@ -1089,7 +1092,7 @@ static void _actor03700ProcessContacts(Task* task, TmdObject* unusedModel, s32 u
                 hpDamage                 = damageComputePlayerAttack(work->contacts[contactIndex].key.value, SquareRoot0(attackerDeltaX * attackerDeltaX + attackerDeltaY * attackerDeltaY + attackerDeltaZ * attackerDeltaZ), 0, 0);
                 contactKey               = work->contacts[contactIndex].key.value;
                 if (contactKey & ACTOR_03700_ATTACK_ATTACHMENT) {
-                    if (Actor03700_D08074[contactKey & ACTOR_03700_ATTACK_ROW_MASK] == ACTOR_03700_ATTACK_REPEL_ONLY) {
+                    if (_gActor03700AttachmentHitResponses[contactKey & ACTOR_03700_ATTACK_ROW_MASK] == ACTOR_03700_ATTACK_REPEL_ONLY) {
                         repelOrHitEffect = 1;
                         hpDamage         = 0;
                     } else {
@@ -1098,7 +1101,7 @@ static void _actor03700ProcessContacts(Task* task, TmdObject* unusedModel, s32 u
                         if ((u32)(repelOrHitEffect - EFFECT_HIT_KIND_APOBIOSIS_SHARD) < 2) {
                             effectSpawnHit(repelOrHitEffect, coord, NULL, &work->hitEffectArg);
                         }
-                        work->deathEffect = Actor03700_D08074[work->contacts[contactIndex].key.value & ACTOR_03700_ATTACK_ROW_MASK];
+                        work->deathEffect = _gActor03700AttachmentHitResponses[work->contacts[contactIndex].key.value & ACTOR_03700_ATTACK_ROW_MASK];
                         repelOrHitEffect  = 0;
                     }
                 } else {

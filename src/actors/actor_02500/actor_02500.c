@@ -237,7 +237,6 @@ typedef struct {
     s16 z;
 } _Actor02500DustDirection;
 
-extern s16       Actor02500_D05BD0[];
 static TmdSource _gActor02500ScorpionBurstHead;
 static TmdSource _gActor02500ScorpionBurstPincer2;
 static TmdSource _gActor02500ScorpionBurstPincer1;
@@ -694,7 +693,12 @@ static AnimationSet* _gActor02500AnimationSets[ACTOR_02500_ANIM_BUILDUP + 1] = {
     &_gActor02500Actor102500Animation05B08,
 };
 
-s16 Actor02500_D05BD0[12] = {
+/// Scorpion clip blend durations in whole normal-rate animation frames.
+///
+/// Changed requests select STAND, WALK, RUN, STING, FLINCH, DIE, EMERGE or
+/// BUILDUP. FLINCH and EMERGE switch immediately, BUILDUP blends for four frames,
+/// and the other requested clips blend for eight. All twelve stored entries remain.
+static s16 _gActor02500AnimBlendFrames[ACTOR_02500_ANIM_BUILDUP + 1] = {
     0,
     8,
     8,
@@ -2022,7 +2026,7 @@ static void _actor02500TickAnimation(Task* actor)
     requestedAnim = work->anim;
     // A changed request reseeds every part before any subsequent playback tick.
     if (requestedAnim != work->playingAnim) {
-        blendFrames       = Actor02500_D05BD0[requestedAnim];
+        blendFrames       = _gActor02500AnimBlendFrames[requestedAnim];
         seekSlot          = 1;
         work->playingAnim = work->anim;
         work->animFrame   = 0;

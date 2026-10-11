@@ -629,13 +629,12 @@ static void _actor00400RoomIntroWaitForSurface(Task* task);
 static void _actor00400RoomIntroWaitAfterDischarge(Task* task);
 static void _actor00400RoomIntroWaitForFight(Task* task);
 
-extern _Actor00400AreaConfig Actor00400_D15F20[];
-static TmdSource             _gActor00400DiverBurstHead;
-static TmdSource             _gActor00400DiverBurstArmRight;
-static TmdSource             _gActor00400DiverBurstArmLeft1;
-static TmdSource             _gActor00400DiverBurstLegRight;
-static TmdSource             _gActor00400DiverBurstArmLeft2;
-static TmdSource             _gActor00400DiverEnergyBall;
+static TmdSource _gActor00400DiverBurstHead;
+static TmdSource _gActor00400DiverBurstArmRight;
+static TmdSource _gActor00400DiverBurstArmLeft1;
+static TmdSource _gActor00400DiverBurstLegRight;
+static TmdSource _gActor00400DiverBurstArmLeft2;
+static TmdSource _gActor00400DiverEnergyBall;
 
 /* Inline rotation traversal helpers. Every ancestor rotation is copied out
    and renormalised before it is fed to the GTE, instead of being loaded
@@ -1344,7 +1343,14 @@ static AnimationSet _gActor00400Actor100400Animation15EF8 = {
     { NULL, _gActor00400Actor100400Animation15EF8Bank1, NULL, NULL, _gActor00400Actor100400Animation15EF8Bank4, NULL, NULL, NULL },
 };
 
-_Actor00400AreaConfig Actor00400_D15F20[12] = {
+/// Room admission and borrowed navigation resources for Bog Diver spawns.
+///
+/// Eleven stage/area rows end with ACTOR_00400_AREA_CONFIG_END. A matching row
+/// admits the diver unless NO_DIVER is set; an absent row rejects it. NULL fields
+/// leave spawn defaults intact, so the water-supply row only admits the actor.
+/// Waypoint and mutable surface-spot storage belongs to the loaded room and must
+/// outlive its divers; water Y is sampled once in game-coordinate units.
+static _Actor00400AreaConfig _gActor00400AreaConfigs[12] = {
     { NULL, NULL, NULL, GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B4_WATER_SUPPLY, 0 },
     { gShelterB4ReservoirDiverPatrolRings, gShelterB4ReservoirDiverSurfaceSpots, &gShelterB4ReservoirMainWaterY, GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B4_RESERVOIR, ACTOR_00400_AREA_CONFIG_GRID_COLLISION },
     { gShelterB2SepticTankDiverPatrolRings, gShelterB2SepticTankDiverSurfaceSpots, &gShelterB2SepticTankWaterY, GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_SEPTIC_TANK, ACTOR_00400_AREA_CONFIG_GRID_COLLISION },
@@ -2812,7 +2818,7 @@ static __inline__ s32 _actor00400ApplyAreaConfig(Task* task)
 
     work     = task->work;
     location = &gGameSession->location.loc;
-    config   = Actor00400_D15F20;
+    config   = _gActor00400AreaConfigs;
     while (config->stage != ACTOR_00400_AREA_CONFIG_END) {
         if ((location->stage == config->stage) && (location->area == config->area)) {
             flags = config->flags;

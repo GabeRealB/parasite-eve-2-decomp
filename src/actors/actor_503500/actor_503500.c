@@ -54,7 +54,12 @@ static u32     _gActor503500Model15820Stream[459];
 static s32 _actor503500SliderSetModelDraw(Task* task, s32 messageId, s32 drawMode, s32 unusedArg);
 static s32 _actor503500SliderApplyCommand(Task* task, s32 messageId, const ActorCommand* command, s32 unusedArg);
 
-TaskMessageEntry D_actor_503500_80146888[4] = {
+/// Placement, model-draw and room-command messages for the boss-scene slider.
+///
+/// Placement borrows an ActorTransform; draw takes an integer mode and commands
+/// borrow an ActorCommand. The task borrows this table while the package is loaded.
+/// The final end-ID/null row stops searches for unhandled messages.
+static TaskMessageEntry _gActor503500SliderMessages[4] = {
     { ACTOR_MESSAGE_PLACE, actorMsgPlaceEuler },
     { ACTOR_MESSAGE_SET_MODEL_DRAW, _actor503500SliderSetModelDraw },
     { ACTOR_COMMAND_MESSAGE_APPLY, _actor503500SliderApplyCommand },
@@ -261,7 +266,7 @@ static void _actor503500SliderInit(Task* task)
     // The first update releases any existing buffer; a NULL buffer is a no-op.
     work->freeCountdown = 0;
     _actor503500SliderBindLighting(task);
-    task->msgTable     = D_actor_503500_80146888;
+    task->msgTable     = _gActor503500SliderMessages;
     task->exitCallback = _actor503500SliderExit;
     task->state       += 1;
 }

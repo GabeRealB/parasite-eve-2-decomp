@@ -94323,7 +94323,7 @@ then carries `value << 16` instead of the value.
 **Fix.** Drop the local and read the field directly in both places:
 
 ```c
-for (cfg = Actor00400_D15F20; cfg->stage != ACTOR_00400_AREA_CONFIG_END; cfg++) {
+for (cfg = _gActor00400AreaConfigs; cfg->stage != ACTOR_00400_AREA_CONFIG_END; cfg++) {
     if (ses->field_3 == cfg->stage && ses->field_2 == cfg->area) { ... }
 }
 ```

@@ -315,9 +315,23 @@ static void _actor503500UpdateBossPartScales(Task* task);
 
 static void _actor503500ExitBoss(Task* task);
 
-extern _Actor503500PinkFlashEmitterWork D_actor_503500_80176D88;
+/// Singleton storage borrowed by the pink-flash emitter in boss slot 1.
+///
+/// Initialization clears the full record before binding Task::work. Its target
+/// body and eight contacts remain live until teardown unlinks the body and clears
+/// the task pointer. Storage belongs to the package and is never heap-freed; only
+/// one emitter instance may use it at a time.
+static _Actor503500PinkFlashEmitterWork _gActor503500PinkFlashEmitterWork;
 
-extern _Actor503500LargeChainWork D_actor_503500_80176EE8[2];
+enum { ACTOR_503500_LARGE_CHAIN_WORK_COUNT = ACTOR_503500_SLOT_LARGE_CHAIN_1 - ACTOR_503500_SLOT_LARGE_CHAIN_0 + 1 };
+
+/// Persistent work storage for the two large chains in boss slots 2 and 3.
+///
+/// Index is the slot minus ACTOR_503500_SLOT_LARGE_CHAIN_0, hence 0..1. Each
+/// spawn clears its own complete record and lends it to Task::work; teardown
+/// unlinks the target body and clears that pointer without freeing this storage.
+/// Only one live task per slot may borrow a record.
+static _Actor503500LargeChainWork _gActor503500LargeChainWork[ACTOR_503500_LARGE_CHAIN_WORK_COUNT];
 
 static void _actor503500LargeChainExit(Task* task);
 
@@ -355,7 +369,7 @@ static const TaskFuncTable3 D_actor_503500_80131E44 = {
     },
 };
 
-Task* D_actor_503500_80176558 = NULL;
+Task* gActor503500FadeFromBlackTask = NULL;
 
 ActorTransform gActor503500SavedPlayerTransform = { 0 };
 
@@ -374,10 +388,6 @@ static _Actor503500WorkStorage _gActor503500BossWorkStorage = { 0 };
 /// Projectile costs are added/released for their lifetimes without a budget
 /// check. Storage is unsigned halfwords, retaining narrowing and wraparound.
 static u16 _gActor503500EffectBudgetCosts[ACTOR_503500_SLOT_COUNT + 1] = { 0 };
-
-_Actor503500PinkFlashEmitterWork D_actor_503500_80176D88;
-
-_Actor503500LargeChainWork D_actor_503500_80176EE8[2];
 
 static inline void _actor503500EnterBossState(Task* task, s16 state);
 static void        _actor503500SetSlotEffectReservation(s32 slot, s16 effectCost);
@@ -3018,8 +3028,8 @@ static void _actor503500PinkFlashEmitterInit(Task* task)
     parent      = task->parent;
     rootCoord   = model->coords;
     parentModel = parent->extra.tmd;
-    memFillBytes(&D_actor_503500_80176D88, 0, sizeof(D_actor_503500_80176D88));
-    task->work = &D_actor_503500_80176D88;
+    memFillBytes(&_gActor503500PinkFlashEmitterWork, 0, sizeof(_gActor503500PinkFlashEmitterWork));
+    task->work = &_gActor503500PinkFlashEmitterWork;
 
     rootCoord->parent       = &parent->extra.tmd->coords[ACTOR_503500_PINK_FLASH_EMITTER_PARENT_PART];
     rootCoord->coord.t[0]   = gActor503500PinkFlashEmitterRootOffset.vx;
@@ -3030,34 +3040,34 @@ static void _actor503500PinkFlashEmitterInit(Task* task)
     model->otOffset         = ACTOR_503500_PINK_FLASH_EMITTER_OT_OFFSET;
     rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
 
-    D_actor_503500_80176D88.bufferFreeCountdown = ACTOR_503500_PINK_FLASH_EMITTER_BUFFER_RELEASE_IDLE;
-    enemy->field_4                              = &rootCoord->coord;
-    enemy->field_48                             = 0;
+    _gActor503500PinkFlashEmitterWork.bufferFreeCountdown = ACTOR_503500_PINK_FLASH_EMITTER_BUFFER_RELEASE_IDLE;
+    enemy->field_4                                        = &rootCoord->coord;
+    enemy->field_48                                       = 0;
     worldTargetLinkNode(&enemy->node);
     enemy->coord                  = rootCoord;
     enemy->node.state.parts.flags = (enemy->node.state.parts.flags | WORLD_TARGET_HIDE_HP) & WORLD_TARGET_NOT_LOCKABLE_CLEAR;
     enemy->bodyPos.vx             = gActor503500PinkFlashEmitterTargetOffset.vx;
     enemy->bodyPos.vy             = gActor503500PinkFlashEmitterTargetOffset.vy;
     enemy->bodyPos.vz             = gActor503500PinkFlashEmitterTargetOffset.vz;
-    contacts                      = D_actor_503500_80176D88.contacts;
+    contacts                      = _gActor503500PinkFlashEmitterWork.contacts;
     enemy->param                  = &gActor503500EnemyParams[task->spawnArg1.value];
     enemy->recs                   = contacts;
     enemy->hp                     = enemy->param->hpMax;
 
-    D_actor_503500_80176D88.body.coord            = rootCoord;
-    D_actor_503500_80176D88.body.context.contacts = contacts;
-    D_actor_503500_80176D88.body.key              = ACTOR_503500_PART_BODY_KEY;
-    D_actor_503500_80176D88.body.radius           = ACTOR_503500_ATTACHED_TARGET_RADIUS;
-    D_actor_503500_80176D88.body.flags            = WORLD_COLLISION_BODY_SPHERE;
-    D_actor_503500_80176D88.body.pos.vx           = gActor503500PinkFlashEmitterTargetOffset.vx;
-    D_actor_503500_80176D88.body.pos.vy           = gActor503500PinkFlashEmitterTargetOffset.vy;
-    D_actor_503500_80176D88.body.pos.vz           = gActor503500PinkFlashEmitterTargetOffset.vz;
-    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, &D_actor_503500_80176D88.body);
-    worldCollisionInitContacts(contacts, ARRAY_SIZE(D_actor_503500_80176D88.contacts), 0);
-    D_actor_503500_80176D88.hitEffect.spawnArgLo = ACTOR_503500_PINK_FLASH_EMITTER_HIT_EFFECT_LOW_ARG;
-    D_actor_503500_80176D88.hitEffect.coord      = rootCoord;
-    D_actor_503500_80176D88.hitEffect.spawnArgHi = ACTOR_503500_PART_HIT_EFFECT_HIGH_ARG;
-    D_actor_503500_80176D88.body.flags          |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+    _gActor503500PinkFlashEmitterWork.body.coord            = rootCoord;
+    _gActor503500PinkFlashEmitterWork.body.context.contacts = contacts;
+    _gActor503500PinkFlashEmitterWork.body.key              = ACTOR_503500_PART_BODY_KEY;
+    _gActor503500PinkFlashEmitterWork.body.radius           = ACTOR_503500_ATTACHED_TARGET_RADIUS;
+    _gActor503500PinkFlashEmitterWork.body.flags            = WORLD_COLLISION_BODY_SPHERE;
+    _gActor503500PinkFlashEmitterWork.body.pos.vx           = gActor503500PinkFlashEmitterTargetOffset.vx;
+    _gActor503500PinkFlashEmitterWork.body.pos.vy           = gActor503500PinkFlashEmitterTargetOffset.vy;
+    _gActor503500PinkFlashEmitterWork.body.pos.vz           = gActor503500PinkFlashEmitterTargetOffset.vz;
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, &_gActor503500PinkFlashEmitterWork.body);
+    worldCollisionInitContacts(contacts, ARRAY_SIZE(_gActor503500PinkFlashEmitterWork.contacts), 0);
+    _gActor503500PinkFlashEmitterWork.hitEffect.spawnArgLo = ACTOR_503500_PINK_FLASH_EMITTER_HIT_EFFECT_LOW_ARG;
+    _gActor503500PinkFlashEmitterWork.hitEffect.coord      = rootCoord;
+    _gActor503500PinkFlashEmitterWork.hitEffect.spawnArgHi = ACTOR_503500_PART_HIT_EFFECT_HIGH_ARG;
+    _gActor503500PinkFlashEmitterWork.body.flags          |= WORLD_COLLISION_BODY_PAIR_ENABLED;
     _actor503500PinkFlashEmitterEnterState(task, ACTOR_503500_PINK_FLASH_EMITTER_STATE_IDLE);
     task->exitCallback = _actor503500PinkFlashEmitterExit;
     task->state       += 1;
@@ -3644,7 +3654,7 @@ static void _actor503500LargeChainInit(Task* task)
 
     chainIndex = task->spawnArg1.value - ACTOR_503500_SLOT_LARGE_CHAIN_0;
     enemy      = task->spawnArg2.pointer;
-    work       = &D_actor_503500_80176EE8[chainIndex];
+    work       = &_gActor503500LargeChainWork[chainIndex];
     rootCoord  = task->extra.tmd->coords;
     model      = task->extra.tmd;
     memFillBytes(work, 0, sizeof(*work));

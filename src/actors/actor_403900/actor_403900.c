@@ -58,16 +58,6 @@ static void _frameCaptureQueue(s32 orderingTableSlot);
 #define GOLEM_KNIGHT_BISHOP_KIND GOLEM_BISHOP
 #include "../../shared/golem_knight_bishop.h"
 
-/// Per-roll wait lengths the wait state of `_golemKnightBishopIdleSeq`
-/// scales by `16 - attackCount`, indexed by a 4-bit `gRandomLcgState` draw.
-extern s16 gGolemKnightBishopIdleWaits[];
-
-/// Per-roll state offsets the wait state adds to 2 when `feintBroken` is set.
-extern u16 gGolemKnightBishopIdleSteps[];
-
-/// Per-difficulty HP above which the player always breaks the grab.
-extern s16 gGolemKnightBishopGrabHpLimits[];
-
 /// Main-executable global with no module header yet: the remaining-enemy
 /// count. A grab only starts while it is positive.
 
@@ -815,7 +805,13 @@ static DamageAttack _gGolemKnightBishopAttacks[4] = {
 /// Shared by live enemies of this carrier; `hpMax` supplies their starting HP.
 static EnemyParams _gGolemKnightBishopParams = { _gGolemKnightBishopAttacks, 800, 400, 2500, 7, 100, 20, 0, 0 };
 
-s16 gGolemKnightBishopGrabHpLimits[6] = {
+/// Guaranteed fatal-grab HP thresholds indexed by scene difficulty.
+///
+/// At or below the selected threshold the hold starts its kill clip immediately;
+/// higher HP arms the later damage-tick/HP-dependent kill roll. Active difficulty
+/// rows 0..4 are normal, Bounty, Scavenger, Nightmare and replay. The sixth
+/// stored signed halfword is retained unused; values count HP, not percentages.
+static s16 _gGolemKnightBishopGrabKillHpThresholds[6] = {
     6,
     11,
     16,
@@ -846,7 +842,12 @@ static u16 _gGolemKnightBishopFeintRoll[16] = {
     GOLEM_KNIGHT_BISHOP_FEINT_ROLL_FEINT,
 };
 
-s16 gGolemKnightBishopIdleWaits[16] = {
+/// Weighted base idle waits in actor-running frames.
+///
+/// A uniform four-bit roll indexes sixteen signed-halfword waits. The hidden
+/// idle sequence scales the chosen duration by (16 - attackCount) / 16, using
+/// integer truncation. Knight/Bishop attack-count limits are 12/8 respectively.
+static s16 _gGolemKnightBishopIdleWaitFrames[16] = {
     10,
     15,
     20,
@@ -865,23 +866,28 @@ s16 gGolemKnightBishopIdleWaits[16] = {
     50,
 };
 
-u16 gGolemKnightBishopIdleSteps[16] = {
-    1,
-    1,
-    1,
-    1,
-    2,
-    2,
-    2,
-    2,
-    2,
-    2,
-    2,
-    2,
-    2,
-    2,
-    2,
-    2,
+/// Weighted counterattack choices after the player breaks a feint.
+///
+/// A uniform four-bit roll indexes sixteen offsets: twelve 1s choose the grab
+/// placement check and four 2s choose the strike placement check. The idle
+/// sequence adds its PICK_ATTACK step (2), yielding steps 3 and 4.
+static u16 _gGolemKnightBishopCounterattackStepOffsets[16] = {
+    GOLEM_KNIGHT_BISHOP_COUNTERATTACK_GRAB_OFFSET,
+    GOLEM_KNIGHT_BISHOP_COUNTERATTACK_GRAB_OFFSET,
+    GOLEM_KNIGHT_BISHOP_COUNTERATTACK_GRAB_OFFSET,
+    GOLEM_KNIGHT_BISHOP_COUNTERATTACK_GRAB_OFFSET,
+    GOLEM_KNIGHT_BISHOP_COUNTERATTACK_STRIKE_OFFSET,
+    GOLEM_KNIGHT_BISHOP_COUNTERATTACK_STRIKE_OFFSET,
+    GOLEM_KNIGHT_BISHOP_COUNTERATTACK_STRIKE_OFFSET,
+    GOLEM_KNIGHT_BISHOP_COUNTERATTACK_STRIKE_OFFSET,
+    GOLEM_KNIGHT_BISHOP_COUNTERATTACK_STRIKE_OFFSET,
+    GOLEM_KNIGHT_BISHOP_COUNTERATTACK_STRIKE_OFFSET,
+    GOLEM_KNIGHT_BISHOP_COUNTERATTACK_STRIKE_OFFSET,
+    GOLEM_KNIGHT_BISHOP_COUNTERATTACK_STRIKE_OFFSET,
+    GOLEM_KNIGHT_BISHOP_COUNTERATTACK_STRIKE_OFFSET,
+    GOLEM_KNIGHT_BISHOP_COUNTERATTACK_STRIKE_OFFSET,
+    GOLEM_KNIGHT_BISHOP_COUNTERATTACK_STRIKE_OFFSET,
+    GOLEM_KNIGHT_BISHOP_COUNTERATTACK_STRIKE_OFFSET,
 };
 
 static GolemKnightBishopRegion _gActor403900ShelterB2BreedingRoomRegions[5];

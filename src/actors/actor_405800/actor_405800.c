@@ -217,11 +217,6 @@ STATIC_ASSERT_SIZEOF(_Actor405800IvoryStalkerWork, 0x89C);
 /// this package's own. `stalker_zebra_ivory.h` lists the members they reach.
 typedef _Actor405800IvoryStalkerWork StalkerZebraIvoryWork;
 
-extern EnemyParams D_actor_405800_801418FC;
-// Message-table callbacks use the argument views required by this TU.
-
-extern TaskMessageEntry D_actor_405800_8015149C[3];
-
 /* The records closing four of the overlay's model streams, selected through
    `gTaskBank2Descs[TASK_BANK2_BURST_MODEL_PART_SLOT].data.model`. */
 static TmdSource _gActor405800IvoryStalkerBurstHead;
@@ -595,7 +590,12 @@ static DamageAttack _gActor405800IvoryStalkerAttacks[3] = {
     { 12, GAME_ACTOR_REACTION_PARALYSIS },
 };
 
-EnemyParams D_actor_405800_801418FC = { _gActor405800IvoryStalkerAttacks, 1000, 600, 300, 15, 100, 8, 0, 0 };
+/// Ivory Stalker combat parameters and release rewards.
+///
+/// Live enemies borrow this record and the three attack rows for the loaded
+/// package lifetime. Starting HP is 1000; each release credits 600 experience,
+/// 300 battle points and 15 magic points.
+static EnemyParams _gActor405800IvoryStalkerParams = { _gActor405800IvoryStalkerAttacks, 1000, 600, 300, 15, 100, 8, 0, 0 };
 
 static AnimationPackedPose _gActor405800Animation107B4Bank1[26] = {
 #include "assets/actor_405800_animation_107B4_bank1.inc"
@@ -1424,7 +1424,12 @@ static AnimationSet* _gActor405800BodyAnimationSets[35] = {
     &_gActor405800Animation1CAE4,
 };
 
-TaskMessageEntry D_actor_405800_8015149C[3] = {
+/// Room-command and player-hold-release messages for the Ivory Stalker body.
+///
+/// Commands borrow an ActorCommand during synchronous dispatch. Hold release
+/// notifies the current capture; the final end-ID/null row rejects other IDs.
+/// The body task borrows the table until teardown.
+static TaskMessageEntry _gActor405800Messages[3] = {
     { ACTOR_COMMAND_MESSAGE_APPLY, _stalkerZebraIvoryApplyRoomCommand },
     { ACTOR_MESSAGE_RELEASE_HOLD, _actor405800HandleHoldReleaseMessage },
     { TASK_MESSAGE_TABLE_END, NULL },
@@ -2059,7 +2064,7 @@ static void _actor405800InitEnemy(Task* task)
     model->lightMtx           = &work->lightMtx;
     model->colorMtx           = &work->colorMtx;
     model->flags              = 0;
-    task->msgTable            = D_actor_405800_8015149C;
+    task->msgTable            = _gActor405800Messages;
     enemy->field_4            = &rootCoord->coord;
     enemy->field_48           = 0;
     enemy->bodyPos.vx         = 0;
@@ -2068,12 +2073,12 @@ static void _actor405800InitEnemy(Task* task)
     enemy->coord              = &task->extra.tmd->coords[ACTOR_405800_PART_BODY];
     worldTargetLinkNode(&enemy->node);
     enemy->node.state.parts.flags = (WORLD_TARGET_NOT_LOCKABLE | WORLD_TARGET_KEEP_SCANNED);
-    enemy->param                  = &D_actor_405800_801418FC;
+    enemy->param                  = &_gActor405800IvoryStalkerParams;
     enemy->recs                   = work->bodyContacts;
     work->effectArg.coord         = &task->extra.tmd->coords[ACTOR_405800_PART_BODY];
     work->effectArg.spawnArgLo    = 0x100;
     work->effectArg.spawnArgHi    = 2;
-    enemy->hp = enemy->hpMax = D_actor_405800_801418FC.hpMax;
+    enemy->hp = enemy->hpMax = _gActor405800IvoryStalkerParams.hpMax;
     animationInitContext(&work->rig.anim, _gActor405800BodyAnimationSets, model, work->rig.poses, work->rig.slots);
 
     _actor405800SetRestartRequest(task, ACTOR_405800_CLIP_IDLE, ANIMATION_RATE_ONE);

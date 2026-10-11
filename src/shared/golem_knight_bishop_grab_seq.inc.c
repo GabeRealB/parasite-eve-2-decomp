@@ -168,7 +168,7 @@ static void _golemKnightBishopGrabSeq(Task* task)
                 framesLeft  = work->timer - 1;
                 work->timer = framesLeft;
                 if (framesLeft <= 0) {
-                    if (gPlayerStatus.hp > gGolemKnightBishopGrabHpLimits[gSceneCombatState.difficulty]) {
+                    if (gPlayerStatus.hp > _gGolemKnightBishopGrabKillHpThresholds[gSceneCombatState.difficulty]) {
                         if (work->grabKillRollArmed == 0) {
                             work->grabKillRollArmed = 1;
                         } else {

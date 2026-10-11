@@ -170,9 +170,6 @@ extern u8                  D_actor_421600_80151028[];
 
 extern TaskMessageEntry D_actor_421600_80151118[8];
 
-/// 4-byte table indexed by `(arg0 > 0) + ((arg1 < 1) << 1)`.
-extern s8 D_actor_421600_801511D0[];
-
 /// The records closing four of the overlay's model streams, which the
 /// death-tick frames point `gEffectBurstTaskDescriptors[5].data.model` at before each `effectSpawn`.
 static TmdSource _gActor421600DesertChaserBurstLegRight;
@@ -1309,7 +1306,12 @@ static s8 _gActor421600ArenaCellZones[16] = {
     9,
 };
 
-s8 D_actor_421600_801511D0[4] = {
+/// Sign-bucket map to Water Tower patrol-route rows.
+///
+/// Index is (X > 0) + 2 * (Z <= 0), always 0..3. Row IDs 0/1/2/3 denote
+/// +X/+Z, nonpositive X/+Z, +X/nonpositive Z and nonpositive X/Z. Coordinates
+/// are root-parent game units; zero belongs to the nonpositive half-plane.
+static s8 _gActor421600RouteQuadrants[4] = {
     1,
     0,
     3,
@@ -3703,7 +3705,7 @@ static __inline__ s32 _actor421600GetRouteQuadrant(s32 x, s32 z)
 {
     s32 positiveX    = x > 0;
     s32 nonPositiveZ = z < 1;
-    return D_actor_421600_801511D0[positiveX + (nonPositiveZ * 2)];
+    return _gActor421600RouteQuadrants[positiveX + (nonPositiveZ * 2)];
 }
 
 /// Loads both patrol points for one quadrant and this enemy's placement class.
@@ -4462,7 +4464,7 @@ static s8 _actor421600LookupRouteQuadrant(s32 x, s32 z)
     s32       positiveX;
     s32       nonPositiveZ;
 
-    quadrantMap  = D_actor_421600_801511D0;
+    quadrantMap  = _gActor421600RouteQuadrants;
     positiveX    = x > 0;
     nonPositiveZ = z < 1;
     return quadrantMap[positiveX + (nonPositiveZ << 1)];

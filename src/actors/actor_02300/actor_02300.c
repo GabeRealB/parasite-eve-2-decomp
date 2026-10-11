@@ -940,7 +940,13 @@ static s32 _gGolemPawnRookSilenceCue = SOUND_CHARACTER(GOLEM_PAWN_ROOK_SOUND_BAN
 /// Pawn carriers retain a no-op ID in the same cue slot.
 static s32 _gGolemPawnRookShieldBreakCue = SOUND_CHARACTER(GOLEM_PAWN_ROOK_SOUND_BANK, 21);
 
-u16 Actor02300_D15B0C[22] = {
+/// Rook Beam Sword GOLEM sound-bank selections for Acropolis areas.
+///
+/// Indexed by the saved one-based area ID; entry 0 is unused. Zero disables
+/// motion cues and their bank load. Values 1..4 choose the character-bank file
+/// and the footstep/fall cue set.
+/// The stage directory lends this complete stored row to spawn setup.
+static u16 _gActor02300AcropolisAreaSoundSets[22] = {
     0,
     0,
     0,
@@ -965,7 +971,13 @@ u16 Actor02300_D15B0C[22] = {
     0,
 };
 
-u16 Actor02300_D15B38[40] = {
+/// Rook Beam Sword GOLEM sound-bank selections for Dryfield areas.
+///
+/// Indexed by the saved one-based area ID; entry 0 is unused. Zero disables
+/// motion cues and their bank load. Values 1..4 choose the character-bank file
+/// and the footstep/fall cue set.
+/// The stage directory lends this complete stored row to spawn setup.
+static u16 _gActor02300DryfieldAreaSoundSets[40] = {
     0,
     0,
     4,
@@ -1008,7 +1020,13 @@ u16 Actor02300_D15B38[40] = {
     0,
 };
 
-u16 Actor02300_D15B88[40] = {
+/// Rook Beam Sword GOLEM sound-bank selections for Dryfield night areas.
+///
+/// Indexed by the saved one-based area ID; entry 0 is unused. Zero disables
+/// motion cues and their bank load. Values 1..4 choose the character-bank file
+/// and the footstep/fall cue set.
+/// The stage directory lends this complete stored row to spawn setup.
+static u16 _gActor02300DryfieldNightAreaSoundSets[40] = {
     0,
     4,
     0,
@@ -1051,7 +1069,13 @@ u16 Actor02300_D15B88[40] = {
     0,
 };
 
-u16 Actor02300_D15BD8[50] = {
+/// Rook Beam Sword GOLEM sound-bank selections for Mine/Shelter areas.
+///
+/// Indexed by the saved one-based area ID; entry 0 is unused. Zero disables
+/// motion cues and their bank load. Values 1..4 choose the character-bank file
+/// and the footstep/fall cue set.
+/// The stage directory lends this complete stored row to spawn setup.
+static u16 _gActor02300MineShelterAreaSoundSets[50] = {
     0,
     4,
     4,
@@ -1104,7 +1128,13 @@ u16 Actor02300_D15BD8[50] = {
     0,
 };
 
-u16 Actor02300_D15C3C[34] = {
+/// Rook Beam Sword GOLEM sound-bank selections for Shelter/Neo Ark areas.
+///
+/// Indexed by the saved one-based area ID; entry 0 is unused. Zero disables
+/// motion cues and their bank load. Values 1..4 choose the character-bank file
+/// and the footstep/fall cue set.
+/// The stage directory lends this complete stored row to spawn setup.
+static u16 _gActor02300ShelterNeoArkAreaSoundSets[34] = {
     0,
     0,
     2,
@@ -1143,11 +1173,11 @@ u16 Actor02300_D15C3C[34] = {
 
 u16* Actor02300_D15C80[6] = {
     NULL,
-    Actor02300_D15B0C,
-    Actor02300_D15B38,
-    Actor02300_D15B88,
-    Actor02300_D15BD8,
-    Actor02300_D15C3C,
+    _gActor02300AcropolisAreaSoundSets,
+    _gActor02300DryfieldAreaSoundSets,
+    _gActor02300DryfieldNightAreaSoundSets,
+    _gActor02300MineShelterAreaSoundSets,
+    _gActor02300ShelterNeoArkAreaSoundSets,
 };
 
 TaskDesc gActor02300RookGolemTasks[3] = {

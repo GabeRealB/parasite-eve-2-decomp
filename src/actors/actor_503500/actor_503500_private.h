@@ -374,7 +374,12 @@ extern EnemyParams gActor503500EnemyParams[ACTOR_503500_SLOT_COUNT];
 /// blocks lock-on but preserves scanning. All twenty stored bytes are retained.
 extern u8 gActor503500SlotTargetEligibilityMasks[20];
 
-extern Task* D_actor_503500_80176558;
+/// Borrowed handle published by the boss entry scene's fade-from-black spawn.
+///
+/// Spawn failure and explicit room reset publish NULL. Fade teardown does not
+/// clear the handle, so a non-NULL value may be stale and requires an independently
+/// live fade task before dereference. This cache owns no task or work storage.
+extern Task* gActor503500FadeFromBlackTask;
 
 /// Retained player-placement snapshot for Shelter R48's temporary scene.
 ///

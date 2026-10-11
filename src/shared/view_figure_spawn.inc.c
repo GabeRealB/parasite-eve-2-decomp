@@ -5,7 +5,7 @@
 /// Publishes newly allocated zeroed work through both the task and the carrier's
 /// global pointer; allocation failure destroys the enemy. Parents the untargetable
 /// model to the view, publishes the owner/helper task pointers, initializes its
-/// borrowed 20-slot clip bank and requests idle clip 1. The initial animation
+/// borrowed clip bank and 20-slot rig and requests idle clip 1. The initial animation
 /// update precedes the cached-root three-light query and message installation.
 /// Success advances task state 0 to 1. Requires live model/enemy, selected carrier
 /// tables and initialized room/scratch/GTE state; the singleton is replaced on
@@ -39,7 +39,7 @@ static void _viewFigureSpawnState(Enemy* enemy, Task* task)
     rootCoord->composeStamp          = GRAPHICS_COORD_DIRTY;
     ACTOR_MESSAGE_BODY_TASK          = task;
     _gActorMsgHelperTask             = taskSpawnFromTable(VIEW_FIGURE_TASK_DESCS, VIEW_FIGURE_TASK_HELPER, 0, 0);
-    animationInitContext(&_gViewFigureWork->rig.anim, (AnimationSet**)gViewFigureAnimSets, model,
+    animationInitContext(&_gViewFigureWork->rig.anim, _gViewFigureAnimSets, model,
                          _gViewFigureWork->rig.poses, _gViewFigureWork->rig.slots);
     _gViewFigureWork->st.animId = VIEW_FIGURE_ANIM_IDLE;
     _gViewFigureWork->st.state  = ACTOR_ENEMY_ANIM_RESET;
@@ -49,6 +49,6 @@ static void _viewFigureSpawnState(Enemy* enemy, Task* task)
     lightingSample.vz = rootCoord->workm.t[2];
     worldCoordSetModelLighting(model, &lightingSample, 0, VIEW_FIGURE_LIGHT_COUNT);
     _gViewFigureWork->st.field_6++;
-    task->msgTable = gViewFigureMessages;
+    task->msgTable = _gViewFigureMessages;
     task->state++;
 }

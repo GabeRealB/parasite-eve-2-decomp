@@ -2115,7 +2115,7 @@ static void _actor503500SpawnDriftSpriteEmitter(s32 positionIndex)
 /// Failure publishes NULL; task teardown owns the fade, whose handle may become stale.
 static void _actor503500SpawnFadeFromBlack(s32 holdFrames)
 {
-    D_actor_503500_80176558 = taskSpawnFromTable(gActor503500SceneEffectTaskDescs, ACTOR_503500_SCENE_TASK_FADE_FROM_BLACK, holdFrames, 0);
+    gActor503500FadeFromBlackTask = taskSpawnFromTable(gActor503500SceneEffectTaskDescs, ACTOR_503500_SCENE_TASK_FADE_FROM_BLACK, holdFrames, 0);
 }
 
 /// Requests cancellation of all room effects at an entry-script transition.
@@ -2276,5 +2276,5 @@ static void _actor503500HaltPadScript(void)
 
 void actor503500ClearFadeFromBlackHandle(s32 unused)
 {
-    D_actor_503500_80176558 = NULL;
+    gActor503500FadeFromBlackTask = NULL;
 }

@@ -50,16 +50,6 @@ static Task* _gActor110300BodyTask;
 /// published handle is cleared. Consumers require the current pair to be live.
 static Task* _gActorMsgHelperTask;
 
-/// Animation-set table bound to the work block's context by `animationInitContext`.
-extern u8 gViewFigureAnimSets[];
-
-/// Message table published as `Task::msgTable`: the 0x7D3 and 0x7D5 handlers
-/// and a terminator.
-// Handler views preserve the signatures used by this TU. The dispatcher
-// transports each argument in a word register.
-
-extern TaskMessageEntry gViewFigureMessages[];
-
 static void _actor110300UpdateViewFigure(Enemy* unusedEnemy, Task* task);
 
 static TmdSource _gActor110300SwatMember2Body;
@@ -241,7 +231,12 @@ static AnimationSet _gActor110300Animation0820C = {
     { NULL, _gActor110300Animation0820CBank1, NULL, NULL, _gActor110300Animation0820CBank4, NULL, NULL, NULL },
 };
 
-TaskMessageEntry gViewFigureMessages[3] = {
+/// Animation-request and paired model-visibility messages for the view figure.
+///
+/// PLAY_ANIMATION borrows an AnimationPlayRequest and restarts the current body;
+/// SET_MODEL_DRAW takes a mode applied to the body and attached model. The
+/// end-ID/null row stops unhandled requests. The live body borrows this table.
+static TaskMessageEntry _gViewFigureMessages[3] = {
     { ACTOR_MESSAGE_PLAY_ANIMATION, _viewFigurePlayMessage },
     { ACTOR_MESSAGE_SET_MODEL_DRAW, actorMsgSetPairVisibility },
     { TASK_MESSAGE_TABLE_END, NULL },
@@ -252,35 +247,20 @@ TaskDesc gActor110300ViewFigureTasks[VIEW_FIGURE_TASK_COUNT] = {
     { { { TASK_BODY_TMD, VIEW_FIGURE_TASK_PRIORITY } }, _actor110300AttachModelTask, { .model = &_gActor110300Model05E6C } },
 };
 
-u8 gViewFigureAnimSets[28] = {
-    0,
-    0,
-    0,
-    0,
-    188,
-    129,
-    19,
-    128,
-    24,
-    151,
-    19,
-    128,
-    120,
-    155,
-    19,
-    128,
-    4,
-    158,
-    19,
-    128,
-    44,
-    160,
-    19,
-    128,
-    0,
-    0,
-    0,
-    0,
+/// Body animation-set bank for this carrier's camera-parented scripted figure.
+///
+/// Seven native pointers retain NULL slots 0 and 6; loaded clips 1..5 support
+/// body slots 1..19. The context borrows this bank and its animation streams for
+/// the body task lifetime. Message requests must select a loaded clip even though
+/// the handler's signed upper-bound check also admits zero and negative IDs.
+static AnimationSet* _gViewFigureAnimSets[7] = {
+    NULL,
+    &_gActor110300Animation0639C,
+    &_gActor110300Animation078F8,
+    &_gActor110300Animation07D58,
+    &_gActor110300Animation07FE4,
+    &_gActor110300Animation0820C,
+    NULL,
 };
 
 /// Selects this package's public TaskDesc array for the shared spawn state.

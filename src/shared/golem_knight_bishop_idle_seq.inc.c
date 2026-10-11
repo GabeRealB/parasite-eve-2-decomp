@@ -28,12 +28,12 @@ static void _golemKnightBishopIdleSeq(Task* task)
             work->counterattacking = 0;
             if (work->feintBroken != 0) {
                 gRandomLcgState        = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                work->step             = gGolemKnightBishopIdleSteps[(gRandomLcgState >> 16) & 0xF] + GOLEM_KNIGHT_BISHOP_IDLE_PICK_ATTACK;
+                work->step             = _gGolemKnightBishopCounterattackStepOffsets[(gRandomLcgState >> 16) & (ARRAY_SIZE(_gGolemKnightBishopCounterattackStepOffsets) - 1)] + GOLEM_KNIGHT_BISHOP_IDLE_PICK_ATTACK;
                 work->counterattacking = 1;
                 _golemKnightBishopPlaceTarget(task);
                 work->feinting = 0;
             } else if (work->feinting == 0) {
-                work->timer = (gGolemKnightBishopIdleWaits[((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xF] * (GOLEM_KNIGHT_BISHOP_IDLE_WAIT_SCALE - work->attackCount)) / GOLEM_KNIGHT_BISHOP_IDLE_WAIT_SCALE;
+                work->timer = (_gGolemKnightBishopIdleWaitFrames[((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & (ARRAY_SIZE(_gGolemKnightBishopIdleWaitFrames) - 1)] * (GOLEM_KNIGHT_BISHOP_IDLE_WAIT_SCALE - work->attackCount)) / GOLEM_KNIGHT_BISHOP_IDLE_WAIT_SCALE;
                 work->step  = GOLEM_KNIGHT_BISHOP_IDLE_WAIT;
             } else {
                 work->timer    = 0;

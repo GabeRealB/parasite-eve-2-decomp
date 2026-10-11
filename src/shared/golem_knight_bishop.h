@@ -357,6 +357,12 @@ enum {
     GOLEM_KNIGHT_BISHOP_FEINT_ROLL_FEINT = 1,
 };
 
+/// Counterattack-table offsets added to the idle sequence's attack-pick step.
+enum {
+    GOLEM_KNIGHT_BISHOP_COUNTERATTACK_GRAB_OFFSET   = 1,
+    GOLEM_KNIGHT_BISHOP_COUNTERATTACK_STRIKE_OFFSET = 2,
+};
+
 /// Tests a player's world X/Z against a box region's four exclusive edges.
 ///
 /// The caller checks the region kind. `region` is a GolemKnightBishopRegion
