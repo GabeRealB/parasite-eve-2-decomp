@@ -1868,6 +1868,16 @@ RoomEventReq gRoomEventReq = { 0, 0, 0, 0, 0, 0 };
 /// unchanged and loaded until the prompt ends; cancellation leaves it intact.
 #define GENERAL_STORE_UNDERPASS_ARRIVAL_WARP _gGeneralStoreUnderpassArrivalWarp
 
+/// Selects the day store's writable underpass room-selector latch.
+///
+/// Bind the same stable `u8` lvalue without side effects through both departure
+/// and prompt fragments, then undefine the binding. Unblocked execution stores
+/// `RoomEventMsg::room` after resolving the reply: aliased records supply room
+/// 1..6, while distinct records retain the input room byte. Acceptance copies
+/// that byte to the live save without range validation. Keep the overlay loaded
+/// and the singleton unchanged until the prompt ends; cancellation leaves its
+/// value intact. Each access evaluates the lvalue once; the binding allocates
+/// no storage.
 #define GENERAL_STORE_UNDERPASS_ROOM _gGeneralStoreUnderpassRoom
 #include "../../shared/general_store_door_msg.inc.c"
 
