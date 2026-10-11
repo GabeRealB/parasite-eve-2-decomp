@@ -1303,26 +1303,34 @@ static AnimationSet _gHypervelocityUnarmedWalkAnimation = {
     .poseBanks         = { [1] = _gHypervelocityUnarmedWalkAnimationBank1, [4] = _gHypervelocityUnarmedWalkAnimationBank4 },
 };
 
-static AnimationPackedPose _gHypervelocityAnimation047D0Bank1[19] = {
+// Immutable payloads and their unused descriptor retain the serialized data-section layout.
+/// Translation/rotation poses for `_gHypervelocityUnusedBackwardWalkAnimation`.
+///
+/// Tracks 0 and 1 use local model units and 4096 angle units per turn.
+static const AnimationPackedPose _gHypervelocityUnusedBackwardWalkAnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/hypervelocity_animation_047D0_bank1.inc"
 };
 
-static AnimationPackedRotation _gHypervelocityAnimation047D0Bank4[193] = {
+/// Rotation-only poses for `_gHypervelocityUnusedBackwardWalkAnimation`.
+///
+/// Tracks 2..18 use eight-angle-unit steps and retain their local translations.
+static const AnimationPackedRotation _gHypervelocityUnusedBackwardWalkAnimationBank4[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/hypervelocity_animation_047D0_bank4.inc"
 };
 
-static AnimationRecord _gHypervelocityAnimation047D0Records[296] = {
+/// Keyframes, paired footstep cues and loop controls for the unused backward walk.
+///
+/// Durations count normal-rate frames; loop targets are absolute record indices.
+/// Each track's loop bypasses its following stop record.
+static const AnimationRecord _gHypervelocityUnusedBackwardWalkAnimationRecords[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/hypervelocity_animation_047D0_records.inc"
 };
 
-static u16 _gHypervelocityAnimation047D0Indices[20] = {
+/// Record starts for the unused backward walk's model-part tracks 0..18.
+///
+/// The final zero halfword is retained serialized data outside the track domain.
+static const u16 _gHypervelocityUnusedBackwardWalkAnimationIndices[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/hypervelocity_animation_047D0_indices.inc"
-};
-
-static AnimationSet _gHypervelocityAnimation047D0 = {
-    _gHypervelocityAnimation047D0Records,
-    _gHypervelocityAnimation047D0Indices,
-    { NULL, _gHypervelocityAnimation047D0Bank1, NULL, NULL, _gHypervelocityAnimation047D0Bank4, NULL, NULL, NULL },
 };
 
 /// Pose-bank selectors for the player clips' two supported track encodings.
@@ -1330,6 +1338,24 @@ enum {
     HYPERVELOCITY_ANIMATION_TRANSLATION_ROTATION_BANK = 1,
     HYPERVELOCITY_ANIMATION_PACKED_ROTATION_BANK      = 4,
 };
+
+/// Player backward-walk clip retained outside the Hypervelocity animation bank.
+///
+/// No bank slot selects this clip. Its moving part tracks repeat a 33-frame
+/// cycle after their entry keyframes; tracks 0 and 12 hold two-frame loops.
+/// Track 1 carries the paired footstep cues. Tracks 0 and 1 carry translation
+/// and rotation; tracks 2..18 carry rotation only. Track starts, control targets
+/// and complete pose reads fit the accompanying private arrays. Playback would
+/// borrow the arrays for as long as any slot or cached record refers to them.
+static const AnimationSet _gHypervelocityUnusedBackwardWalkAnimation __attribute__((section(".data"), aligned(4))) = {
+    .records           = _gHypervelocityUnusedBackwardWalkAnimationRecords,
+    .trackStartIndices = _gHypervelocityUnusedBackwardWalkAnimationIndices,
+    .poseBanks         = {
+        [HYPERVELOCITY_ANIMATION_TRANSLATION_ROTATION_BANK] = _gHypervelocityUnusedBackwardWalkAnimationBank1,
+        [HYPERVELOCITY_ANIMATION_PACKED_ROTATION_BANK]      = _gHypervelocityUnusedBackwardWalkAnimationBank4,
+    },
+};
+STATIC_ASSERT(ARRAY_SIZE(_gHypervelocityUnusedBackwardWalkAnimationIndices) == GAME_ACTOR_NORMAL_ANIMATION_SLOTS + 1, hypervelocity_unused_backward_walk_animation_track_starts);
 
 // Immutable clip payloads retain the exported package's data-section layout.
 /// Negative-turn encoding-1 poses in local model units and 1/4096-turn angles.
