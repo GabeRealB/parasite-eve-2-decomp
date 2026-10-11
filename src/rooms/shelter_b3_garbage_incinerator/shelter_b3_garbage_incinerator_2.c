@@ -69,8 +69,16 @@
 /// the private header. Its context is the blaze controller's embedded
 /// `blaze.wave`, which must outlive the final draw. Keep this binding through
 /// the grid fragment.
-#define SCREEN_WAVE_ACTIVE_CONTEXT     (gScreenWaveContext)
-#define SCREEN_WAVE_COLUMN_OSCILLATORS gScreenWaveColumnWaves
+#define SCREEN_WAVE_ACTIVE_CONTEXT (gScreenWaveContext)
+/// Writable column waves for the burn scene's horizontal heat-haze displacement.
+///
+/// Binds the grid renderer to `gScreenWaveColumnWaves`, the word-aligned
+/// `ScreenWaveGridOscillator[10]` defined in shelter_b3_garbage_incinerator_3.c.
+/// Only entries 0..8 are seeded, advanced and snapshotted; entry 9 is outside
+/// the mesh. Keep the binding through the grid fragment and the overlay loaded
+/// through the wave's final drawing tick. Only one wave may use this storage
+/// at a time.
+#define SCREEN_WAVE_COLUMN_OSCILLATORS (gScreenWaveColumnWaves)
 #define SCREEN_WAVE_ROW_OSCILLATORS    gScreenWaveRowWaves
 #include "../../shared/screen_wave.h"
 #include "../../shared/actor_messages.h"

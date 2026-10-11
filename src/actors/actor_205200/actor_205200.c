@@ -62,8 +62,15 @@
 /// The slot is defined in actor_205200_2.c and declared in the private header.
 /// The renderer borrows `gActor205200ScreenWaveSpawnCtx`; the controller steers
 /// that persistent ramp directly. Keep this binding through the grid fragment.
-#define SCREEN_WAVE_ACTIVE_CONTEXT     (gScreenWaveContext)
-#define SCREEN_WAVE_COLUMN_OSCILLATORS gScreenWaveColumnWaves
+#define SCREEN_WAVE_ACTIVE_CONTEXT (gScreenWaveContext)
+/// Writable column waves for the controller's horizontal screen pulses.
+///
+/// Binds the grid renderer to `gScreenWaveColumnWaves`, the word-aligned
+/// `ScreenWaveGridOscillator[10]` defined in actor_205200_2.c. Only entries
+/// 0..8 are seeded, advanced and snapshotted; entry 9 is outside the mesh.
+/// Keep the binding through the grid fragment and the overlay loaded through
+/// the wave's final drawing tick. Only one wave may use this storage at a time.
+#define SCREEN_WAVE_COLUMN_OSCILLATORS (gScreenWaveColumnWaves)
 #define SCREEN_WAVE_ROW_OSCILLATORS    gScreenWaveRowWaves
 #include "../../shared/screen_wave.h"
 

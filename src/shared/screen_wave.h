@@ -88,14 +88,29 @@
 #define SCREEN_WAVE_ACTIVE_CONTEXT (_gScreenWaveContext)
 #endif
 
-/// Addressable column-oscillator array used by the selected wave renderer.
+/// Writable sine-wave array controlling horizontal displacement at vertical mesh edges.
 ///
-/// Defaults to TU-local `_gScreenWaveColumnWaves`; split overlays bind
-/// `gScreenWaveColumnWaves`. Use ScreenWaveOscillator with at least 11 entries
-/// for the per-frame task, or ScreenWaveGridOscillator with at least 9 for the
-/// prebuilt-grid task. Expansion is indexed repeatedly and must have no side effects.
+/// Bind a side-effect-free, parenthesized array lvalue before including this
+/// header and retain it through the selected renderer fragment. The default
+/// names the carrier's static `_gScreenWaveColumnWaves`; actor_205200, the
+/// submarine tunnel and the garbage incinerator bind overlay-private
+/// `gScreenWaveColumnWaves` defined in another translation unit. Declare the
+/// storage in the carrier or its private header at the existing BSS position.
+///
+/// `_screenWaveTask` requires `ScreenWaveOscillator` elements 0..10 for its
+/// ten quad columns. `_screenWaveGridTask` requires word-aligned
+/// `ScreenWaveGridOscillator` elements 0..8 for its eight quad columns; it
+/// snapshots only each record's first four bytes (`phase` and `offset`).
+/// Extra declared elements are outside the active mesh, not additional waves.
+///
+/// The seed tick initializes each active record; drawing ticks add `speed`
+/// to its signed-halfword `phase`, with 4096 angle units per turn. The grid
+/// renderer pauses this advance while actors are frozen; the per-frame
+/// renderer always advances. Expansion is repeated for reads, writes and
+/// address-taking, so it must have no side effects. Storage must remain
+/// writable through the final drawing tick, with only one wave using it at a time.
 #ifndef SCREEN_WAVE_COLUMN_OSCILLATORS
-#define SCREEN_WAVE_COLUMN_OSCILLATORS _gScreenWaveColumnWaves
+#define SCREEN_WAVE_COLUMN_OSCILLATORS (_gScreenWaveColumnWaves)
 #endif
 
 /// Addressable row-oscillator array containing at least 30 active entries.

@@ -50,8 +50,16 @@
 /// The slot is defined in neo_ark_submarine_tunnel_2.c and declared in the
 /// private header. The renderer borrows `gScreenWaveSpawnCtx`, which event
 /// requests steer directly. Keep this binding through the per-frame fragment.
-#define SCREEN_WAVE_ACTIVE_CONTEXT     (gScreenWaveContext)
-#define SCREEN_WAVE_COLUMN_OSCILLATORS gScreenWaveColumnWaves
+#define SCREEN_WAVE_ACTIVE_CONTEXT (gScreenWaveContext)
+/// Writable column waves for the tunnel's scripted horizontal screen ripple.
+///
+/// Binds the per-frame renderer to `gScreenWaveColumnWaves`, the
+/// `ScreenWaveOscillator[13]` defined in neo_ark_submarine_tunnel_2.c.
+/// Only entries 0..10 are seeded, advanced and sampled; entries 11..12 are
+/// outside the mesh. Keep the binding through the per-frame fragment and the
+/// overlay loaded through the wave's final drawing tick. Only one wave may
+/// use this storage at a time.
+#define SCREEN_WAVE_COLUMN_OSCILLATORS (gScreenWaveColumnWaves)
 #define SCREEN_WAVE_ROW_OSCILLATORS    gScreenWaveRowWaves
 #include "../../shared/screen_wave.h"
 #include "../../shared/water_effects.h"
