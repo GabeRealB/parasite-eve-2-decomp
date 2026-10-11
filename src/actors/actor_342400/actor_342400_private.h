@@ -39,7 +39,16 @@ extern TmdSource gMadChaserBurstArm;
 /// Selects this overlay's cross-TU arm source for the included burst fragment.
 #define MAD_CHASER_BURST_ARM_SOURCE gMadChaserBurstArm
 
-extern TmdSource gMadChaserChunkModel2;
+/// Detached Mad Chaser tail thrown from body part 2 during a burst death.
+///
+/// One rigid part, with 18 textured triangles and 14 textured quads in each
+/// primitive-buffer half; there is no pre-transformed packet region. Instances
+/// borrow the writable geometry and resolved stream for this overlay's lifetime
+/// and inherit texture placement from the body after spawning.
+extern TmdSource gMadChaserBurstTail;
+
+/// Selects this overlay's cross-TU tail source for the included burst fragment.
+#define MAD_CHASER_BURST_TAIL_SOURCE gMadChaserBurstTail
 
 extern TmdSource gActor342400MadChaserBody;
 

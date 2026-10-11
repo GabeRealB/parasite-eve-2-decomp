@@ -62,6 +62,27 @@ enum {
 /// Body-coordinate index whose placement the detached-arm effect snapshots.
 enum { MAD_CHASER_BURST_ARM_BODY_PART = 8 };
 
+/// Selects the detached-tail source published for a burst model-effect spawn.
+///
+/// Bind to a writable TmdSource lvalue that outlives all effects borrowing it.
+/// The default is TU-local; actor_342400 binds its source shared between its
+/// data and spawn translation units. The spawn fragment takes its address once.
+#ifndef MAD_CHASER_BURST_TAIL_SOURCE
+#define MAD_CHASER_BURST_TAIL_SOURCE _gMadChaserBurstTail
+#endif
+
+/// Body-coordinate index whose placement the detached-tail effect snapshots.
+enum { MAD_CHASER_BURST_TAIL_BODY_PART = 2 };
+
+/// Initial handler state and packet counts in each detached-tail buffer half.
+///
+/// Model creation resolves the writable stream before allocating its buffers.
+enum {
+    MAD_CHASER_BURST_TAIL_HANDLERS_UNRESOLVED = 0,
+    MAD_CHASER_BURST_TAIL_TRIANGLE_COUNT      = 18,
+    MAD_CHASER_BURST_TAIL_QUAD_COUNT          = 14
+};
+
 /// Values of `MadChaserWork::animRequest`.
 enum {
     MAD_CHASER_ANIM_REQUEST_BLEND   = 1, // blend into `animId` over `animBlendFrames` frames

@@ -50,8 +50,8 @@ static void _madChaserSpawnGibs(Task* task)
         gTaskBank2Descs[TASK_BANK2_BURST_MODEL_PART_SLOT].data.model = &MAD_CHASER_BURST_ARM_SOURCE;
         secondaryEffect                                              = effectSpawn(EFFECT_BODY_CHUNK, &task->extra.tmd->coords[MAD_CHASER_BURST_ARM_BODY_PART], MAD_CHASER_GIB_PARTICLE_SIZE, NULL);
     } else {
-        gTaskBank2Descs[TASK_BANK2_BURST_MODEL_PART_SLOT].data.model = &gMadChaserChunkModel2;
-        secondaryEffect                                              = effectSpawn(EFFECT_BODY_CHUNK, &task->extra.tmd->coords[2], MAD_CHASER_GIB_PARTICLE_SIZE, NULL);
+        gTaskBank2Descs[TASK_BANK2_BURST_MODEL_PART_SLOT].data.model = &MAD_CHASER_BURST_TAIL_SOURCE;
+        secondaryEffect                                              = effectSpawn(EFFECT_BODY_CHUNK, &task->extra.tmd->coords[MAD_CHASER_BURST_TAIL_BODY_PART], MAD_CHASER_GIB_PARTICLE_SIZE, NULL);
     }
     if (secondaryEffect != NULL) {
         _madChaserBindGibTexture(task, secondaryEffect);

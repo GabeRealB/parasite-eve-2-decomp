@@ -293,36 +293,42 @@ static TmdSource _gMadChaserBurstArm = {
     _gMadChaserBurstArmStream,
 };
 
-static TmdBone _gActor341700MadChaserBurstTailSkeleton[1] = {
+static TmdBone _gMadChaserBurstTailSkeleton[] = {
 #include "assets/mad_chaser_burst_tail_skeleton.inc"
 };
 
-static u32 _gActor341700MadChaserBurstTailPartVerts[1] = {
+static u32 _gMadChaserBurstTailPartVerts[] = {
 #include "assets/mad_chaser_burst_tail_partVerts.inc"
 };
 
-static SVECTOR _gActor341700MadChaserBurstTailVerts[25] = {
+static SVECTOR _gMadChaserBurstTailVerts[] = {
 #include "assets/mad_chaser_burst_tail_verts.inc"
 };
 
-static SVECTOR _gActor341700MadChaserBurstTailNormals[32] = {
+static SVECTOR _gMadChaserBurstTailNormals[] = {
 #include "assets/mad_chaser_burst_tail_normals.inc"
 };
 
-static u32 _gActor341700MadChaserBurstTailStream[215] = {
+static u32 _gMadChaserBurstTailStream[] = {
 #include "assets/mad_chaser_burst_tail_stream.inc"
 };
 
-TmdSource gMadChaserChunkModel2 = {
-    0,
-    1448,
-    0,
-    1,
-    _gActor341700MadChaserBurstTailPartVerts,
-    _gActor341700MadChaserBurstTailVerts,
-    _gActor341700MadChaserBurstTailNormals,
-    _gActor341700MadChaserBurstTailSkeleton,
-    _gActor341700MadChaserBurstTailStream,
+/// Detached Mad Chaser tail thrown from body part 2 during a burst death.
+///
+/// One rigid part, with 18 textured triangles and 14 textured quads in each
+/// primitive-buffer half; there is no pre-transformed packet region. Instances
+/// borrow the writable geometry and resolved stream for this overlay's lifetime
+/// and inherit texture placement from the body after spawning.
+static TmdSource _gMadChaserBurstTail = {
+    .handlersResolved    = MAD_CHASER_BURST_TAIL_HANDLERS_UNRESOLVED,
+    .bufferHalfBytes     = MAD_CHASER_BURST_TAIL_TRIANGLE_COUNT * sizeof(POLY_GT3) + MAD_CHASER_BURST_TAIL_QUAD_COUNT * sizeof(POLY_GT4),
+    .preXformRegionBytes = 0,
+    .partCount           = ARRAY_SIZE(_gMadChaserBurstTailSkeleton),
+    .partVertexCounts    = _gMadChaserBurstTailPartVerts,
+    .verts               = _gMadChaserBurstTailVerts,
+    .normals             = _gMadChaserBurstTailNormals,
+    .skeleton            = _gMadChaserBurstTailSkeleton,
+    .stream              = _gMadChaserBurstTailStream,
 };
 
 static TmdBone _gActor341700MadChaserBodySkeleton[9] = {
@@ -895,8 +901,6 @@ static u8 _gMadChaserSettleAnims[19] = {
 
 /// Unreferenced bytes before this package's prop geometry; their role is unproven.
 static u8 _gActor341700Unknown12F90[20] = { 2, 70, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 80, 0, 62, 200, 210, 1 };
-
-extern TmdSource gMadChaserChunkModel2;
 
 static __inline__ void _madChaserResetBehaviorStateS16(Task* task, s16 behaviorState);
 

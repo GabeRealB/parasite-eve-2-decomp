@@ -255,36 +255,36 @@ TmdSource gMadChaserBurstArm = {
     _gMadChaserBurstArmStream,
 };
 
-static TmdBone _gActor342400MadChaserBurstTailSkeleton[1] = {
+static TmdBone _gMadChaserBurstTailSkeleton[] = {
 #include "assets/mad_chaser_burst_tail_skeleton.inc"
 };
 
-static u32 _gActor342400MadChaserBurstTailPartVerts[1] = {
+static u32 _gMadChaserBurstTailPartVerts[] = {
 #include "assets/mad_chaser_burst_tail_partVerts.inc"
 };
 
-static SVECTOR _gActor342400MadChaserBurstTailVerts[25] = {
+static SVECTOR _gMadChaserBurstTailVerts[] = {
 #include "assets/mad_chaser_burst_tail_verts.inc"
 };
 
-static SVECTOR _gActor342400MadChaserBurstTailNormals[32] = {
+static SVECTOR _gMadChaserBurstTailNormals[] = {
 #include "assets/mad_chaser_burst_tail_normals.inc"
 };
 
-static u32 _gActor342400MadChaserBurstTailStream[215] = {
+static u32 _gMadChaserBurstTailStream[] = {
 #include "assets/mad_chaser_burst_tail_stream.inc"
 };
 
-TmdSource gMadChaserChunkModel2 = {
-    0,
-    1448,
-    0,
-    1,
-    _gActor342400MadChaserBurstTailPartVerts,
-    _gActor342400MadChaserBurstTailVerts,
-    _gActor342400MadChaserBurstTailNormals,
-    _gActor342400MadChaserBurstTailSkeleton,
-    _gActor342400MadChaserBurstTailStream,
+TmdSource gMadChaserBurstTail = {
+    .handlersResolved    = MAD_CHASER_BURST_TAIL_HANDLERS_UNRESOLVED,
+    .bufferHalfBytes     = MAD_CHASER_BURST_TAIL_TRIANGLE_COUNT * sizeof(POLY_GT3) + MAD_CHASER_BURST_TAIL_QUAD_COUNT * sizeof(POLY_GT4),
+    .preXformRegionBytes = 0,
+    .partCount           = ARRAY_SIZE(_gMadChaserBurstTailSkeleton),
+    .partVertexCounts    = _gMadChaserBurstTailPartVerts,
+    .verts               = _gMadChaserBurstTailVerts,
+    .normals             = _gMadChaserBurstTailNormals,
+    .skeleton            = _gMadChaserBurstTailSkeleton,
+    .stream              = _gMadChaserBurstTailStream,
 };
 
 static TmdBone _gActor342400MadChaserBodySkeleton[9] = {
