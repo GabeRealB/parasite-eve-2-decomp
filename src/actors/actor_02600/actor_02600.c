@@ -54,11 +54,6 @@
 
 #include "overlay.h"
 #define MAGGOT_CATERPILLAR_KIND MAGGOT
-/// Selects the exported Maggot body descriptor for this shared-source instance.
-///
-/// The binding is a declared `TaskDesc` lvalue whose address seeds the body's
-/// task-table pointer; it must remain defined through the spawn fragment.
-#define MAGGOT_CATERPILLAR_BODY_TASK gActor02600MaggotCaterpillarBodyTask
 #include "../../shared/maggot_caterpillar.h"
 
 enum { MAGGOT_CATERPILLAR_BODY_PRIORITY = 96 };
@@ -724,8 +719,14 @@ static const EnemyTaskFuncTable3 _gMaggotCaterpillarStates = {
 
 #include "../../shared/maggot_caterpillar_draw_thread.inc.c"
 
+/// Selects this carrier's body/puff descriptor run for the shared spawn fragment.
+///
+/// Yields a `TaskDesc*` borrowed while the body lives; keep the package loaded
+/// while body or puff tasks live. The retained scalar body declaration does
+/// not cover index 1, which reaches the separately declared adjacent puff.
+#define MAGGOT_CATERPILLAR_TASK_TABLE (&gActor02600MaggotCaterpillarBodyTask)
 #include "../../shared/maggot_caterpillar_spawn.inc.c"
-#undef MAGGOT_CATERPILLAR_BODY_TASK
+#undef MAGGOT_CATERPILLAR_TASK_TABLE
 
 #include "../../shared/maggot_caterpillar_tick.inc.c"
 

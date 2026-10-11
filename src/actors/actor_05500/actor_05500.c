@@ -52,8 +52,6 @@
 
 #include "overlay.h"
 #define MAGGOT_CATERPILLAR_KIND CATERPILLAR
-/// Body descriptor lvalue whose address seeds the shared body/puff table.
-#define MAGGOT_CATERPILLAR_BODY_TASK gActor05500MaggotCaterpillarTasks[0]
 #include "../../shared/maggot_caterpillar.h"
 
 MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
@@ -706,8 +704,13 @@ static const EnemyTaskFuncTable3 _gMaggotCaterpillarStates = {
 
 #include "../../shared/maggot_caterpillar_draw_thread.inc.c"
 
+/// Selects this carrier's body/puff spawn table for the shared spawn fragment.
+///
+/// Yields a `TaskDesc*`: body at index 0, puff at index 1, no terminator.
+/// The body borrows the table; keep the package loaded while either task lives.
+#define MAGGOT_CATERPILLAR_TASK_TABLE gActor05500MaggotCaterpillarTasks
 #include "../../shared/maggot_caterpillar_spawn.inc.c"
-#undef MAGGOT_CATERPILLAR_BODY_TASK
+#undef MAGGOT_CATERPILLAR_TASK_TABLE
 
 #include "../../shared/maggot_caterpillar_tick.inc.c"
 

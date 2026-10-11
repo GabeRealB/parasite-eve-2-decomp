@@ -18,11 +18,11 @@
  * Include this header in the prologue and each fragment at its function's
  * position.
  *
- * Carriers of the spawn fragment define MAGGOT_CATERPILLAR_BODY_TASK to their
- * declared body TaskDesc lvalue: gActor02600MaggotCaterpillarBodyTask for
- * actor_02600, gActor05500MaggotCaterpillarTasks[0] for actor_05500. The spawn caches its
- * address for child spawns; keep the binding through that fragment and undefine
- * it afterwards. This binding does not change the descriptor's C linkage.
+ * Carriers bind MAGGOT_CATERPILLAR_TASK_TABLE around the spawn fragment to a
+ * TaskDesc* for their body/puff descriptor run: body at index 0, puff at index 1,
+ * no terminator. The body caches this borrowed pointer for child spawns; keep
+ * the package loaded while body or puff tasks live and undefine the binding
+ * after the fragment. The binding does not change the descriptors' C linkage.
  */
 
 #ifndef SRC_SHARED_MAGGOT_CATERPILLAR_H
