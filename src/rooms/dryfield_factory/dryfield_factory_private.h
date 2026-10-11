@@ -51,8 +51,6 @@ extern WorldCoordRoomAmbientEntry gDryfieldFactoryViewAmbientMinima[20];
 /// keep those snapshots and the room callback code live through session reload.
 extern TaskDesc gRoomEventTaskDesc;
 
-extern TaskDesc D_dryfield_factory_80186E94[1];
-
 // Callbacks referenced by the overlay's shared data tables.
 
 s32 func_dryfield_factory_8017DB08(Task*, s32, RoomEventMsg*, RoomEventMsg*);
