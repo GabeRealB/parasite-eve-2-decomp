@@ -41,13 +41,17 @@
 
 static const u16 _gM4a1GrenadeBlastRadii[4];
 
-/// One frame's M4A1 grenade launch vector and temporary pitched rotation.
+/// Position offset and temporary aiming transform for an M4A1 grenade launch.
 ///
-/// Reserved and released as one complete block during projectile initialization.
-/// The launch offset's unused fourth halfword is not initialized.
+/// Projectile initialization reserves one word-aligned block on the scratch
+/// stack and releases it on success or allocation failure; no pointer escapes.
+/// The offset's fourth halfword is left unset: the GTE loads its containing
+/// word but uses only XYZ. The matrix is copied in full from the projectile's
+/// transform relative to `gGfxViewCoord`, then pitched -1024 units (4096 per
+/// turn). Its Z axis supplies the flight direction without pitching the model.
 typedef struct {
-    SVECTOR launchOffset;   // Local muzzle-to-projectile offset, in game coordinates
-    MATRIX  launchRotation; // Projectile local basis pitched for its initial flight direction
+    SVECTOR launchOffset;   // Muzzle-local displacement in whole game units: (0, 544, 40)
+    MATRIX  launchRotation; // Pitched local transform in the view coordinate's frame; basis uses 4096 per unit
 } _M4a1GrenadeSpawnScratch;
 STATIC_ASSERT_SIZEOF(_M4a1GrenadeSpawnScratch, 0x28);
 
@@ -266,7 +270,6 @@ static void _m4a1GrenadeInitProjectile(Task* task)
         M4A1_GRENADE_PROJECTILE_RADIUS    = 0x94,
         M4A1_GRENADE_CAPSULE_TIMER_SHIFT  = 10,
     };
-    _M4a1GrenadeSpawnScratch* scratchEnd;
     _M4a1GrenadeSpawnScratch* scratch;
     SVECTOR*                  launchOffset;
     SVECTOR*                  gteLaunchOffset;
@@ -276,15 +279,13 @@ static void _m4a1GrenadeInitProjectile(Task* task)
     GfxCoord*                 muzzleCoord;
     WeaponGrenadeWork*        grenadeWork;
 
-    projectileModel                                = task->extra.tmd;
-    scratchEnd                                     = SCRATCH_STACK_CURSOR(_M4a1GrenadeSpawnScratch);
-    projectileCoord                                = projectileModel->coords;
-    scratch                                        = scratchEnd - 1;
-    launchOffset                                   = &scratch->launchOffset;
-    SCRATCH_STACK_CURSOR(_M4a1GrenadeSpawnScratch) = scratch;
-    muzzleCoord                                    = projectileCoord->parent;
-    grenadeWork                                    = memCalloc(sizeof(WeaponGrenadeWork), 0);
-    gteLaunchOffset                                = launchOffset;
+    projectileModel = task->extra.tmd;
+    scratch         = SCRATCH_STACK_RESERVE_BLOCK(_M4a1GrenadeSpawnScratch);
+    projectileCoord = projectileModel->coords;
+    launchOffset    = &scratch->launchOffset;
+    muzzleCoord     = projectileCoord->parent;
+    grenadeWork     = memCalloc(sizeof(WeaponGrenadeWork), 0);
+    gteLaunchOffset = launchOffset;
     if (grenadeWork == NULL) {
         SCRATCH_STACK_RELEASE_BLOCK(_M4a1GrenadeSpawnScratch);
         taskKill(task);
@@ -294,6 +295,7 @@ static void _m4a1GrenadeInitProjectile(Task* task)
     task->exitCallback = _grenadeShellExit;
     task->state++;
     memFillBytes(grenadeWork, 0, sizeof(*grenadeWork));
+    // Place the muzzle-local offset through the muzzle's composed transform.
     launchOffset->vx          = 0;
     launchOffset->vy          = M4A1_GRENADE_LAUNCH_Y;
     launchOffset->vz          = M4A1_GRENADE_LAUNCH_Z;
@@ -306,11 +308,12 @@ static void _m4a1GrenadeInitProjectile(Task* task)
     gte_rtv0tr();
     gte_stlvnl(projectileCoord->workm.t);
     gfxMakeRelativeTransform(&gGfxViewCoord.workm, &projectileCoord->workm, &projectileCoord->coord);
-    launchRotation                = &(scratchEnd - 1)->launchRotation;
+    launchRotation                = &scratch->launchRotation;
     projectileCoord->parent       = &gGfxViewCoord;
     projectileCoord->composeStamp = GRAPHICS_COORD_DIRTY;
     projectileModel->flags        = 0;
-    *launchRotation               = projectileCoord->coord;
+    // Aim with a pitched copy so the rendered grenade keeps the muzzle's basis.
+    *launchRotation = projectileCoord->coord;
     gfxRotMatrixX(launchRotation, M4A1_GRENADE_LAUNCH_PITCH, GRAPHICS_ROTATION_COMPOSE);
     gfxReadMatrixZAxis(launchRotation, &grenadeWork->dir);
     VectorNormalSS(&grenadeWork->dir, &grenadeWork->dir);
