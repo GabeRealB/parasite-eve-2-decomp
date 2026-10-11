@@ -32,6 +32,12 @@
 
 enum { M4A1_IMPACT_SOUND = SOUND_COMMON(0x17) };
 
+/// Encoding-indexed banks used by the running clip's player-part tracks.
+enum {
+    M4A1_ANIMATION_TRANSLATION_ROTATION_BANK = 1,
+    M4A1_ANIMATION_PACKED_ROTATION_BANK      = 4,
+};
+
 /// Ends an M4A1-family shot's contact tests and requests the chosen surface's impact effect and sound.
 ///
 /// Clears only the weapon body's grid/pair enables; keeps it linked and its
@@ -1275,26 +1281,40 @@ static AnimationSet _gM4a1BackwardWalkAnimation = {
     .poseBanks         = { NULL, _gM4a1BackwardWalkAnimationBank1, NULL, NULL, _gM4a1BackwardWalkAnimationBank4, NULL, NULL, NULL },
 };
 
-static AnimationPackedPose _gM4a1Animation0E7FCBank1[25] = {
+/// Translation/Euler keyframes for `_gM4a1RunAnimation`, in model units and 1/4096 turns.
+static const AnimationPackedPose _gM4a1RunAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_animation_0E7FC_bank1.inc"
 };
 
-static AnimationPackedRotation _gM4a1Animation0E7FCBank4[223] = {
+/// Rotation-only keyframes for `_gM4a1RunAnimation`, in eight-angle-unit steps.
+static const AnimationPackedRotation _gM4a1RunAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_animation_0E7FC_bank4.inc"
 };
 
-static AnimationRecord _gM4a1Animation0E7FCRecords[311] = {
+/// Keyframes, paired footstep cues and loop controls for `_gM4a1RunAnimation`.
+static const AnimationRecord _gM4a1RunAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_animation_0E7FC_records.inc"
 };
 
-static u16 _gM4a1Animation0E7FCIndices[20] = {
+/// Record starts for `_gM4a1RunAnimation`'s tracks 0..18, followed by an unused serialized halfword.
+static const u16 _gM4a1RunAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_animation_0E7FC_indices.inc"
 };
 
-static AnimationSet _gM4a1Animation0E7FC = {
-    _gM4a1Animation0E7FCRecords,
-    _gM4a1Animation0E7FCIndices,
-    { NULL, _gM4a1Animation0E7FCBank1, NULL, NULL, _gM4a1Animation0E7FCBank4, NULL, NULL, NULL },
+/// Player running clip in M4A1-family native-bank slot 4.
+///
+/// The base rifle and both upgrades supply this nineteen-track clip for normal
+/// locomotion and scripted run-to actions. Moving tracks repeat a 20-frame
+/// loop after their initial keyframes; track 1 carries paired footstep cues.
+/// Root displacement is applied by the actor separately. Keep the selected
+/// package's borrowed clip data loaded throughout playback.
+static AnimationSet _gM4a1RunAnimation = {
+    .records           = _gM4a1RunAnimationRecords,
+    .trackStartIndices = _gM4a1RunAnimationIndices,
+    .poseBanks         = {
+        [M4A1_ANIMATION_TRANSLATION_ROTATION_BANK] = _gM4a1RunAnimationBank1,
+        [M4A1_ANIMATION_PACKED_ROTATION_BANK]      = _gM4a1RunAnimationBank4,
+    },
 };
 
 AnimationBank D_m4a1_8012B9E4 = { { {
@@ -1302,7 +1322,7 @@ AnimationBank D_m4a1_8012B9E4 = { { {
     &_gM4a1IdleAnimation,
     &_gM4a1ForwardWalkAnimation,
     &_gM4a1BackwardWalkAnimation,
-    &_gM4a1Animation0E7FC,
+    &_gM4a1RunAnimation,
     &_gM4a1NegativeTurnAnimation,
     &_gM4a1PositiveTurnAnimation,
     &_gM4a1AimEntryAnimation,

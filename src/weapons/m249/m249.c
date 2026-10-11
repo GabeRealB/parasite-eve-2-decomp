@@ -1433,26 +1433,39 @@ static AnimationSet _gM249BackwardWalkAnimation = {
     },
 };
 
-static AnimationPackedPose _gM249Animation0FD70Bank1[25] = {
+/// Translation/Euler keyframes for `_gM249RunAnimation`, in model units and 1/4096 turns.
+static const AnimationPackedPose _gM249RunAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/m249_animation_0FD70_bank1.inc"
 };
 
-static AnimationPackedRotation _gM249Animation0FD70Bank4[223] = {
+/// Rotation-only keyframes for `_gM249RunAnimation`, in eight-angle-unit steps.
+static const AnimationPackedRotation _gM249RunAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/m249_animation_0FD70_bank4.inc"
 };
 
-static AnimationRecord _gM249Animation0FD70Records[311] = {
+/// Keyframes, paired footstep cues and loop controls for `_gM249RunAnimation`.
+static const AnimationRecord _gM249RunAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/m249_animation_0FD70_records.inc"
 };
 
-static u16 _gM249Animation0FD70Indices[20] = {
+/// Record starts for `_gM249RunAnimation`'s tracks 0..18, followed by an unused serialized halfword.
+static const u16 _gM249RunAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/m249_animation_0FD70_indices.inc"
 };
 
-static AnimationSet _gM249Animation0FD70 = {
-    _gM249Animation0FD70Records,
-    _gM249Animation0FD70Indices,
-    { NULL, _gM249Animation0FD70Bank1, NULL, NULL, _gM249Animation0FD70Bank4, NULL, NULL, NULL },
+/// Player running clip in M249 native-bank slot 4.
+///
+/// Normal locomotion and scripted run-to actions select this nineteen-track
+/// clip. Moving tracks repeat a 20-frame loop after their initial keyframes;
+/// track 1 carries paired footstep cues. Root displacement is applied by the
+/// actor separately. Keep the borrowed clip data loaded throughout playback.
+static AnimationSet _gM249RunAnimation = {
+    .records           = _gM249RunAnimationRecords,
+    .trackStartIndices = _gM249RunAnimationIndices,
+    .poseBanks         = {
+        [M249_ANIMATION_TRANSLATION_ROTATION_BANK] = _gM249RunAnimationBank1,
+        [M249_ANIMATION_PACKED_ROTATION_BANK]      = _gM249RunAnimationBank4,
+    },
 };
 
 AnimationBank D_m249_8012CF58 = { { {
@@ -1460,7 +1473,7 @@ AnimationBank D_m249_8012CF58 = { { {
     &_gM249IdleAnimation,
     &_gM249WalkAnimation,
     &_gM249BackwardWalkAnimation,
-    &_gM249Animation0FD70,
+    &_gM249RunAnimation,
     &_gM249TurnLeftAnimation,
     &_gM249TurnRightAnimation,
     &_gM249AimEntryAnimation,

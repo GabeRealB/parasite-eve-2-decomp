@@ -32,7 +32,6 @@ static GfxCoord _gGunbladeTrailFarHistory[8];
 #include "main/task_types.h"
 #include "main/tmd_types.h"
 #include "../../shared/blade_trail.h"
-#include "gameplay/animation.h"
 #include "types.h"
 
 /// The near end of the gunblade beam inside the muzzle frame, `(0, 0x60, 0x80)`;
@@ -1763,131 +1762,124 @@ static AnimationSet _gGunbladeAimExitAnimation = {
     },
 };
 
-static AnimationPackedPose _gGunbladeAnimation107ECBank1[16] = {
+/// Translation/Euler keyframes for `_gGunbladeBackwardWalkAnimation`, in model units and 1/4096 turns.
+static const AnimationPackedPose _gGunbladeBackwardWalkAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/gunblade_animation_107EC_bank1.inc"
 };
 
-static AnimationPackedRotation _gGunbladeAnimation107ECBank4[157] = {
+/// Rotation-only keyframes for `_gGunbladeBackwardWalkAnimation`, in eight-angle-unit steps.
+static const AnimationPackedRotation _gGunbladeBackwardWalkAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/gunblade_animation_107EC_bank4.inc"
 };
 
-static AnimationRecord _gGunbladeAnimation107ECRecords[263] = {
+/// Keyframes, paired footstep cues and loop controls for `_gGunbladeBackwardWalkAnimation`.
+static const AnimationRecord _gGunbladeBackwardWalkAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/gunblade_animation_107EC_records.inc"
 };
 
-static u16 _gGunbladeAnimation107ECIndices[20] = {
+/// Record starts for `_gGunbladeBackwardWalkAnimation`'s tracks 0..18, followed by an unused serialized halfword.
+static const u16 _gGunbladeBackwardWalkAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/gunblade_animation_107EC_indices.inc"
 };
 
-static AnimationSet _gGunbladeAnimation107EC = {
-    _gGunbladeAnimation107ECRecords,
-    _gGunbladeAnimation107ECIndices,
-    { NULL, _gGunbladeAnimation107ECBank1, NULL, NULL, _gGunbladeAnimation107ECBank4, NULL, NULL, NULL },
+/// Player backward-walk clip in Gunblade native-bank slot 3.
+///
+/// Backward locomotion selects this nineteen-track clip. Moving tracks repeat
+/// a 33-frame loop after their initial keyframes; track 1 carries paired
+/// footstep cues. Root displacement is applied by the actor separately.
+/// Keep the borrowed clip data loaded throughout playback.
+static AnimationSet _gGunbladeBackwardWalkAnimation = {
+    .records           = _gGunbladeBackwardWalkAnimationRecords,
+    .trackStartIndices = _gGunbladeBackwardWalkAnimationIndices,
+    .poseBanks         = {
+        [GUNBLADE_ANIMATION_TRANSLATION_ROTATION_BANK] = _gGunbladeBackwardWalkAnimationBank1,
+        [GUNBLADE_ANIMATION_PACKED_ROTATION_BANK]      = _gGunbladeBackwardWalkAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gGunbladeAnimation10F20Bank1[13] = {
+/// Translation/Euler keyframes for `_gGunbladeRunAnimation`, in model units and 1/4096 turns.
+static const AnimationPackedPose _gGunbladeRunAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/gunblade_animation_10F20_bank1.inc"
 };
 
-static AnimationPackedRotation _gGunbladeAnimation10F20Bank4[167] = {
+/// Rotation-only keyframes for `_gGunbladeRunAnimation`, in eight-angle-unit steps.
+static const AnimationPackedRotation _gGunbladeRunAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/gunblade_animation_10F20_bank4.inc"
 };
 
-static AnimationRecord _gGunbladeAnimation10F20Records[235] = {
+/// Keyframes, paired footstep cues and loop controls for `_gGunbladeRunAnimation`.
+static const AnimationRecord _gGunbladeRunAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/gunblade_animation_10F20_records.inc"
 };
 
-static u16 _gGunbladeAnimation10F20Indices[20] = {
+/// Record starts for `_gGunbladeRunAnimation`'s tracks 0..18, followed by an unused serialized halfword.
+static const u16 _gGunbladeRunAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/gunblade_animation_10F20_indices.inc"
 };
 
-static AnimationSet _gGunbladeAnimation10F20 = {
-    _gGunbladeAnimation10F20Records,
-    _gGunbladeAnimation10F20Indices,
-    { NULL, _gGunbladeAnimation10F20Bank1, NULL, NULL, _gGunbladeAnimation10F20Bank4, NULL, NULL, NULL },
+/// Player running clip in Gunblade native-bank slot 4.
+///
+/// Normal locomotion and scripted run-to actions select this nineteen-track
+/// clip. Moving tracks repeat a 19-frame loop after their initial keyframes;
+/// track 1 carries paired footstep cues. Root displacement is applied by the
+/// actor separately. Keep the borrowed clip data loaded throughout playback.
+static AnimationSet _gGunbladeRunAnimation = {
+    .records           = _gGunbladeRunAnimationRecords,
+    .trackStartIndices = _gGunbladeRunAnimationIndices,
+    .poseBanks         = {
+        [GUNBLADE_ANIMATION_TRANSLATION_ROTATION_BANK] = _gGunbladeRunAnimationBank1,
+        [GUNBLADE_ANIMATION_PACKED_ROTATION_BANK]      = _gGunbladeRunAnimationBank4,
+    },
 };
 
-AnimationBank D_gunblade_8012E108 = { { {
-    NULL,
-    &_gGunbladeIdleAnimation,
-    &_gGunbladeWalkAnimation,
-    &_gGunbladeAnimation107EC,
-    &_gGunbladeAnimation10F20,
-    &_gGunbladeNegativeTurnAnimation,
-    &_gGunbladePositiveTurnAnimation,
-    &_gGunbladeAimEntryAnimation,
-    &_gGunbladeAimExitAnimation,
-    &_gGunbladeAimHoldAnimation,
-    &_gGunbladeSlashAnimation,
-    &_gGunbladeShotAnimation,
-    &_gGunbladeAimForwardWalkAnimation,
-    &_gGunbladeAimBackwardTurnAnimation,
-    &_gGunbladeReloadAnimation,
-    &_gGunbladeReloadAnimation,
-    &_gGunbladePart4HitReactionAnimation,
-    &_gGunbladeOtherBodyHitReactionAnimation,
-    &_gGunbladeStoppedPoseAnimation,
-    &_gGunbladeWalkAnimation,
-    &_gGunbladeReloadAnimation,
-    &_gGunbladeIdleAnimation,
-    &_gGunbladeIdleAnimation,
-    &_gGunbladeHighHealthIdleAnimation,
-    &_gGunbladeMidHealthIdleAnimation,
-    &_gGunbladeLowHealthIdleAnimation,
-    &_gGunbladeParasiteEnergyReleaseFamily0Animation,
-    &_gGunbladeParasiteEnergyChargeFamily0Animation,
-    &_gGunbladeParasiteEnergyCastFamily0Animation,
-    &_gGunbladeParasiteEnergyReleaseFamily1Animation,
-    &_gGunbladeParasiteEnergyChargeFamily1Animation,
-    &_gGunbladeParasiteEnergyCastFamily1Animation,
-    &_gGunbladeEventEntryAnimation,
-    &_gGunbladeEventExitAnimation,
-    &_gGunbladeEventEntryAnimation,
-    &_gGunbladeEventExitAnimation,
-    &_gGunbladeStairAscentAnimation,
-    &_gGunbladeStairDescentAnimation,
-    &_gGunbladeStairAscentFinishEvenAnimation,
-    &_gGunbladeStairAscentFinishOddAnimation,
-    &_gGunbladeItemUseAnimation,
-    &_gGunbladeIdleAnimation,
-    &_gGunbladeParasiteEnergyReleaseFamily2Animation,
-    &_gGunbladeParasiteEnergyChargeFamily2Animation,
-    &_gGunbladeParasiteEnergyCastFamily2Animation,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-} } };
+AnimationBank gGunbladePlayerAnimationBank = {
+    .table = { .sets = {
+                   [1] = &_gGunbladeIdleAnimation,
+                   &_gGunbladeWalkAnimation,
+                   &_gGunbladeBackwardWalkAnimation,
+                   &_gGunbladeRunAnimation,
+                   &_gGunbladeNegativeTurnAnimation,
+                   &_gGunbladePositiveTurnAnimation,
+                   &_gGunbladeAimEntryAnimation,
+                   &_gGunbladeAimExitAnimation,
+                   &_gGunbladeAimHoldAnimation,
+                   &_gGunbladeSlashAnimation,
+                   &_gGunbladeShotAnimation,
+                   &_gGunbladeAimForwardWalkAnimation,
+                   &_gGunbladeAimBackwardTurnAnimation,
+                   &_gGunbladeReloadAnimation,
+                   &_gGunbladeReloadAnimation,
+                   &_gGunbladePart4HitReactionAnimation,
+                   &_gGunbladeOtherBodyHitReactionAnimation,
+                   &_gGunbladeStoppedPoseAnimation,
+                   &_gGunbladeWalkAnimation,
+                   &_gGunbladeReloadAnimation,
+                   &_gGunbladeIdleAnimation,
+                   &_gGunbladeIdleAnimation,
+                   &_gGunbladeHighHealthIdleAnimation,
+                   &_gGunbladeMidHealthIdleAnimation,
+                   &_gGunbladeLowHealthIdleAnimation,
+                   &_gGunbladeParasiteEnergyReleaseFamily0Animation,
+                   &_gGunbladeParasiteEnergyChargeFamily0Animation,
+                   &_gGunbladeParasiteEnergyCastFamily0Animation,
+                   &_gGunbladeParasiteEnergyReleaseFamily1Animation,
+                   &_gGunbladeParasiteEnergyChargeFamily1Animation,
+                   &_gGunbladeParasiteEnergyCastFamily1Animation,
+                   &_gGunbladeEventEntryAnimation,
+                   &_gGunbladeEventExitAnimation,
+                   &_gGunbladeEventEntryAnimation,
+                   &_gGunbladeEventExitAnimation,
+                   &_gGunbladeStairAscentAnimation,
+                   &_gGunbladeStairDescentAnimation,
+                   &_gGunbladeStairAscentFinishEvenAnimation,
+                   &_gGunbladeStairAscentFinishOddAnimation,
+                   &_gGunbladeItemUseAnimation,
+                   &_gGunbladeIdleAnimation,
+                   &_gGunbladeParasiteEnergyReleaseFamily2Animation,
+                   &_gGunbladeParasiteEnergyChargeFamily2Animation,
+                   &_gGunbladeParasiteEnergyCastFamily2Animation,
+               } },
+};
 
 /// The running beam task and its `EffectWork`, cached on entry to state 0 so
 /// `gunbladeRequestChargeFlash` can reach them from outside the task.

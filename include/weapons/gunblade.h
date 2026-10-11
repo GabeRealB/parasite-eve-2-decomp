@@ -1,7 +1,19 @@
 #ifndef INCLUDE_WEAPONS_GUNBLADE_H
 #define INCLUDE_WEAPONS_GUNBLADE_H
 
+#include "gameplay/animation.h"
+
 #include "main/task_types.h"
+
+/// Native player animation bank supplied by the loaded Gunblade package.
+///
+/// The primary character selects bank index 24 for equipped weapon 23.
+/// Base slots 1..44 contain nineteen-track player clips; slots 0, 45 and 46
+/// are NULL. The 32 extension words start cleared and remain writable for
+/// scripted copies, including payloads that are not clip pointers. Play an
+/// extension slot only after installing a clip pointer there. The bank and
+/// its borrowed clip data must stay loaded while playback refers to them.
+extern AnimationBank gGunbladePlayerAnimationBank;
 
 /// Records a Gunblade slash and draws its blue-white then yellow-white ribbon.
 ///

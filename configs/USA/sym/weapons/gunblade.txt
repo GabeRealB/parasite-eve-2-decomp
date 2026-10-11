@@ -7,3 +7,4 @@ gunbladeChargeFlashTask = 0x8011DAA4; // type:func
 _bladeTrailDraw = 0x8011D70C; // type:func
 gunbladeRequestChargeFlash = 0x8011e008; // type:func
 gunbladeAttackState = 0x8011e040; // type:func
+gGunbladePlayerAnimationBank = 0x8012e108;

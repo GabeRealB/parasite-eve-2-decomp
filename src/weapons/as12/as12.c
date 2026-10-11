@@ -6,7 +6,6 @@
 
 #include "common.h"
 
-#include "gameplay/animation.h"
 #include "gameplay/items.h"
 #include "gameplay/player_actor.h"
 #include "gameplay/room_effects.h"
@@ -284,26 +283,38 @@ static AnimationSet _gAs12UnarmedWalkAnimation = {
     },
 };
 
-static AnimationPackedPose _gAs12Animation01C60Bank1[19] = {
+/// Translation/Euler keyframes for `_gAs12UnusedBackwardWalkAnimation`, in model units and 1/4096 turns.
+static const AnimationPackedPose _gAs12UnusedBackwardWalkAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/as12_animation_01C60_bank1.inc"
 };
 
-static AnimationPackedRotation _gAs12Animation01C60Bank4[193] = {
+/// Rotation-only keyframes for `_gAs12UnusedBackwardWalkAnimation`, in eight-angle-unit steps.
+static const AnimationPackedRotation _gAs12UnusedBackwardWalkAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/as12_animation_01C60_bank4.inc"
 };
 
-static AnimationRecord _gAs12Animation01C60Records[296] = {
+/// Keyframes, paired footstep cues and loop controls for `_gAs12UnusedBackwardWalkAnimation`.
+static const AnimationRecord _gAs12UnusedBackwardWalkAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/as12_animation_01C60_records.inc"
 };
 
-static u16 _gAs12Animation01C60Indices[20] = {
+/// Record starts for `_gAs12UnusedBackwardWalkAnimation`'s tracks 0..18, followed by an unused serialized halfword.
+static const u16 _gAs12UnusedBackwardWalkAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/as12_animation_01C60_indices.inc"
 };
 
-static AnimationSet _gAs12Animation01C60 = {
-    _gAs12Animation01C60Records,
-    _gAs12Animation01C60Indices,
-    { NULL, _gAs12Animation01C60Bank1, NULL, NULL, _gAs12Animation01C60Bank4, NULL, NULL, NULL },
+/// Backward-walk clip retained in the AS12 package but absent from its native bank.
+///
+/// Nineteen player-part tracks borrow the loaded package's read-only payload.
+/// The moving tracks repeat a 33-frame loop after their initial keyframes;
+/// track 1 carries the paired footstep cues.
+static AnimationSet _gAs12UnusedBackwardWalkAnimation = {
+    .records           = _gAs12UnusedBackwardWalkAnimationRecords,
+    .trackStartIndices = _gAs12UnusedBackwardWalkAnimationIndices,
+    .poseBanks         = {
+        [AS12_ANIMATION_TRANSLATION_ROTATION_BANK] = _gAs12UnusedBackwardWalkAnimationBank1,
+        [AS12_ANIMATION_PACKED_ROTATION_BANK]      = _gAs12UnusedBackwardWalkAnimationBank4,
+    },
 };
 
 /// Translation/rotation keyframes for `_gAs12NegativeTurnAnimation`, in model units and 1/4096 turns.
@@ -1512,106 +1523,86 @@ static AnimationSet _gAs12BackwardWalkAnimation = {
     },
 };
 
-static AnimationPackedPose _gAs12Animation0F118Bank1[25] = {
+/// Translation/Euler keyframes for `_gAs12RunAnimation`, in model units and 1/4096 turns.
+static const AnimationPackedPose _gAs12RunAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/as12_animation_0F118_bank1.inc"
 };
 
-static AnimationPackedRotation _gAs12Animation0F118Bank4[223] = {
+/// Rotation-only keyframes for `_gAs12RunAnimation`, in eight-angle-unit steps.
+static const AnimationPackedRotation _gAs12RunAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/as12_animation_0F118_bank4.inc"
 };
 
-static AnimationRecord _gAs12Animation0F118Records[311] = {
+/// Keyframes, paired footstep cues and loop controls for `_gAs12RunAnimation`.
+static const AnimationRecord _gAs12RunAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/as12_animation_0F118_records.inc"
 };
 
-static u16 _gAs12Animation0F118Indices[20] = {
+/// Record starts for `_gAs12RunAnimation`'s tracks 0..18, followed by an unused serialized halfword.
+static const u16 _gAs12RunAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/as12_animation_0F118_indices.inc"
 };
 
-static AnimationSet _gAs12Animation0F118 = {
-    _gAs12Animation0F118Records,
-    _gAs12Animation0F118Indices,
-    { NULL, _gAs12Animation0F118Bank1, NULL, NULL, _gAs12Animation0F118Bank4, NULL, NULL, NULL },
+/// Player running clip in AS12 native-bank slot 4.
+///
+/// Normal locomotion and scripted run-to actions select this nineteen-track
+/// clip. Moving tracks repeat a 20-frame loop after their initial keyframes;
+/// track 1 carries paired footstep cues. Root displacement is applied by the
+/// actor separately. Keep the borrowed clip data loaded throughout playback.
+static AnimationSet _gAs12RunAnimation = {
+    .records           = _gAs12RunAnimationRecords,
+    .trackStartIndices = _gAs12RunAnimationIndices,
+    .poseBanks         = {
+        [AS12_ANIMATION_TRANSLATION_ROTATION_BANK] = _gAs12RunAnimationBank1,
+        [AS12_ANIMATION_PACKED_ROTATION_BANK]      = _gAs12RunAnimationBank4,
+    },
 };
 
-AnimationBank D_as12_8012C300 = { { {
-    NULL,
-    &_gAs12IdleAnimation,
-    &_gAs12WalkAnimation,
-    &_gAs12BackwardWalkAnimation,
-    &_gAs12Animation0F118,
-    &_gAs12NegativeTurnAnimation,
-    &_gAs12PositiveTurnAnimation,
-    &_gAs12AimEntryAnimation,
-    &_gAs12AimExitAnimation,
-    &_gAs12AimHoldAnimation,
-    &_gAs12FireAnimation,
-    &_gAs12FireAnimation,
-    &_gAs12AimForwardAnimation,
-    &_gAs12AimBackwardTurnAnimation,
-    &_gAs12ReloadAnimation,
-    &_gAs12ReloadAnimation,
-    &_gAs12Part4HitAnimation,
-    &_gAs12OtherBodyHitAnimation,
-    &_gAs12DeathAnimation,
-    &_gAs12UnarmedWalkAnimation,
-    &_gAs12ReloadAnimation,
-    &_gAs12IdleAnimation,
-    &_gAs12IdleAnimation,
-    &_gAs12HealthyIdleAnimation,
-    &_gAs12LowHealthIdleAnimation,
-    &_gAs12CriticalHealthIdleAnimation,
-    &_gAs12PeReleaseFamily0Animation,
-    &_gAs12PeChargeFamily0Animation,
-    &_gAs12PeCastFamily0Animation,
-    &_gAs12PeReleaseFamily1Animation,
-    &_gAs12PeChargeFamily1Animation,
-    &_gAs12PeCastFamily1Animation,
-    &_gAs12ScriptedPresentationEntryAnimation,
-    &_gAs12ScriptedPresentationExitAnimation,
-    &_gAs12ScriptedPresentationEntryAnimation,
-    &_gAs12ScriptedPresentationExitAnimation,
-    &_gAs12StairAscentAnimation,
-    &_gAs12StairDescentAnimation,
-    &_gAs12StairAscentFinishEvenAnimation,
-    &_gAs12StairAscentFinishOddAnimation,
-    &_gAs12ItemUseAnimation,
-    &_gAs12IdleAnimation,
-    &_gAs12PeReleaseFamily2Animation,
-    &_gAs12PeChargeFamily2Animation,
-    &_gAs12PeCastFamily2Animation,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-} } };
+AnimationBank gAs12PlayerAnimationBank = {
+    .table = { .sets = {
+                   [1] = &_gAs12IdleAnimation,
+                   &_gAs12WalkAnimation,
+                   &_gAs12BackwardWalkAnimation,
+                   &_gAs12RunAnimation,
+                   &_gAs12NegativeTurnAnimation,
+                   &_gAs12PositiveTurnAnimation,
+                   &_gAs12AimEntryAnimation,
+                   &_gAs12AimExitAnimation,
+                   &_gAs12AimHoldAnimation,
+                   &_gAs12FireAnimation,
+                   &_gAs12FireAnimation,
+                   &_gAs12AimForwardAnimation,
+                   &_gAs12AimBackwardTurnAnimation,
+                   &_gAs12ReloadAnimation,
+                   &_gAs12ReloadAnimation,
+                   &_gAs12Part4HitAnimation,
+                   &_gAs12OtherBodyHitAnimation,
+                   &_gAs12DeathAnimation,
+                   &_gAs12UnarmedWalkAnimation,
+                   &_gAs12ReloadAnimation,
+                   &_gAs12IdleAnimation,
+                   &_gAs12IdleAnimation,
+                   &_gAs12HealthyIdleAnimation,
+                   &_gAs12LowHealthIdleAnimation,
+                   &_gAs12CriticalHealthIdleAnimation,
+                   &_gAs12PeReleaseFamily0Animation,
+                   &_gAs12PeChargeFamily0Animation,
+                   &_gAs12PeCastFamily0Animation,
+                   &_gAs12PeReleaseFamily1Animation,
+                   &_gAs12PeChargeFamily1Animation,
+                   &_gAs12PeCastFamily1Animation,
+                   &_gAs12ScriptedPresentationEntryAnimation,
+                   &_gAs12ScriptedPresentationExitAnimation,
+                   &_gAs12ScriptedPresentationEntryAnimation,
+                   &_gAs12ScriptedPresentationExitAnimation,
+                   &_gAs12StairAscentAnimation,
+                   &_gAs12StairDescentAnimation,
+                   &_gAs12StairAscentFinishEvenAnimation,
+                   &_gAs12StairAscentFinishOddAnimation,
+                   &_gAs12ItemUseAnimation,
+                   &_gAs12IdleAnimation,
+                   &_gAs12PeReleaseFamily2Animation,
+                   &_gAs12PeChargeFamily2Animation,
+                   &_gAs12PeCastFamily2Animation,
+               } },
+};
