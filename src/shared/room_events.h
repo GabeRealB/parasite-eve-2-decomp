@@ -42,7 +42,7 @@
  *                       Cross-TU storage binds `gRoomEventMsg`; the gate copies
  *                       the entire eight-byte record and the task reads it
  *                       through reload.
- *   ROOM_EVENT_STAGED_MSG lvalue `RoomEventMsg`. Default `_gRoomEventStagedMsg`.
+ *   ROOM_EVENT_STAGED_DESTINATION lvalue `RoomEventMsg`. Default `_gRoomEventStagedMsg`.
  *                       Cross-TU storage binds `gRoomEventStagedDestination`.
  *                       The complete snapshot stays live through staged reload.
  *   ROOM_EVENT_ACTIVE   lvalue `u8`. Default `gRoomEventActive`, the byte
@@ -101,15 +101,24 @@ enum { ROOM_EVENT_TASK_PRIORITY = 32 };
 /// per copy or field access and allocates no storage.
 #define ROOM_EVENT_MSG _gRoomEventMsg
 #endif
-#ifndef ROOM_EVENT_STAGED_MSG
-/// Complete room-owned destination snapshot for staged scene playback and reload.
+#ifndef ROOM_EVENT_STAGED_DESTINATION
+/// Selects the room-owned destination retained during staged playback for session reload.
 ///
-/// Requires a writable `RoomEventMsg` lvalue declared by the carrier. Local
-/// instances use `_gRoomEventStagedMsg`; an overlay-private header can bind
-/// shared storage instead. Writers copy all eight bytes before spawning the
-/// staged task; keep them unchanged and loaded through its reload state.
-/// Each copy or field access evaluates the bound lvalue once.
-#define ROOM_EVENT_STAGED_MSG _gRoomEventStagedMsg
+/// Requires a writable `RoomEventMsg` lvalue naming stable storage without
+/// side effects. The carrier declares it before including the event fragments;
+/// the default is its static `_gRoomEventStagedMsg`. An overlay-private header
+/// may override this binding before including this header to share storage
+/// between room translation units. Writers and the staged task use the same
+/// binding; the macro declares no object and allocates no storage.
+///
+/// Eligible execution copies the complete eight-byte reply before spawning;
+/// queries leave this snapshot unchanged. Keep it loaded and unchanged through
+/// CAP/sound playback until reload is requested. A later accepted event replaces
+/// it. The task commits only area, warp and room within the current stage; the
+/// other bytes are retained by the copy but are not interpreted by that task.
+/// Each copy evaluates the lvalue once; reload evaluates it separately for each
+/// of its three field reads.
+#define ROOM_EVENT_STAGED_DESTINATION (_gRoomEventStagedMsg)
 #endif
 #ifndef ROOM_EVENT_ACTIVE
 /// Raised while the gate's event runs. The room's `gRoomEventActive` when that symbol is the byte.
@@ -144,7 +153,7 @@ static s32 _roomEventGate(const RoomEventReq* request, const RoomEventMsg* messa
 void roomEventTask(Task* task);
 /// Plays a latched room scene, optional blackout and sound before reloading.
 ///
-/// Requires stable room-owned `ROOM_EVENT_LATCHED` and `ROOM_EVENT_STAGED_MSG`
+/// Requires stable room-owned `ROOM_EVENT_LATCHED` and `ROOM_EVENT_STAGED_DESTINATION`
 /// through state 4; spawn arguments are unused and states are 0..4. Waits for
 /// CAP completion before starting a requested 30-frame subtractive fade, then
 /// plays the optional stage-relative sound and waits for its resolved voice.

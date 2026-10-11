@@ -642,8 +642,8 @@ static __inline__ s32 _shelterB2SouthMaintenanceWalkwayStartEvent(const RoomEven
     if (gameFlagGetNibble(event->flagId) == 0 || event->flagId == EVENT_NO_FLAG) {
         if (destination->queryOnly == ROOM_EVENT_EXECUTE) {
             // Own the caller's records before the staged task can consume them.
-            _gRoomEventStagedMsg = *destination;
-            gRoomEventLatched    = *event;
+            ROOM_EVENT_STAGED_DESTINATION = *destination;
+            gRoomEventLatched             = *event;
             if (event->flagId != EVENT_NO_FLAG) {
                 gameFlagSetNibble(event->flagId, EVENT_FLAG_LATCHED);
             }

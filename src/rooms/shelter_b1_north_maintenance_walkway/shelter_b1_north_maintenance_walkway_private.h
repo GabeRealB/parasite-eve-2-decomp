@@ -27,8 +27,14 @@ extern RoomFadeStorage gRoomEventFade;
 /// the live save and requests reload. A later accepted event replaces the snapshot.
 extern RoomEventMsg gRoomEventStagedDestination;
 
-/// Selects this overlay's cross-TU `RoomEventMsg` lvalue for staged playback.
-#define ROOM_EVENT_STAGED_MSG gRoomEventStagedDestination
+/// Binds this room's staged reload destination to storage shared by its translation units.
+///
+/// Include before `room_events.h` in both translation units. The event writer
+/// copies a complete `RoomEventMsg` into this lvalue before spawning; the staged
+/// task reads its area, warp and room after CAP/sound playback. Keep the snapshot
+/// unchanged and this overlay loaded until reload is requested. This binding
+/// allocates no storage and has no side effects when evaluated.
+#define ROOM_EVENT_STAGED_DESTINATION (gRoomEventStagedDestination)
 
 extern RoomLatchedEvent gRoomEventLatched;
 

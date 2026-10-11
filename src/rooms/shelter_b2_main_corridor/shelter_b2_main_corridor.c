@@ -1835,8 +1835,8 @@ static inline s32 _shelterB2MainCorridorStartEvent(RoomEventMsg* reply, const Ro
         if (reply->queryOnly != ROOM_EVENT_EXECUTE) {
             return ROOM_VARIANT_TRANSITION_HANDLED;
         }
-        _gRoomEventStagedMsg    = *reply;
-        gRoomEventLatched.event = *eventPtr;
+        ROOM_EVENT_STAGED_DESTINATION = *reply;
+        gRoomEventLatched.event       = *eventPtr;
         if (eventPtr->flagId != SHELTER_B2_MAIN_CORRIDOR_NO_EVENT_FLAG) {
             gameFlagSetNibble(eventPtr->flagId, SHELTER_B2_MAIN_CORRIDOR_EVENT_STARTED);
         }

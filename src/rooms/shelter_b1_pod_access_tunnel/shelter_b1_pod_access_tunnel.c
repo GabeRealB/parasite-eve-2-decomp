@@ -1489,8 +1489,8 @@ static __inline__ s32 _shelterB1PodAccessTunnelStartEvent(const RoomEventMsg* de
     _gShelterB1PodAccessTunnelEventStartAttempted = EVENT_NOT_STARTED;
     if (gameFlagGetNibble(event->flagId) == EVENT_FLAG_CLEAR || event->flagId == EVENT_NO_FLAG) {
         if (destination->queryOnly == ROOM_EVENT_EXECUTE) {
-            _gRoomEventStagedMsg = *destination;
-            gRoomEventLatched    = *event;
+            ROOM_EVENT_STAGED_DESTINATION = *destination;
+            gRoomEventLatched             = *event;
             if (event->flagId != EVENT_NO_FLAG) {
                 gameFlagSetNibble(event->flagId, EVENT_FLAG_LATCHED);
             }

@@ -56,8 +56,8 @@ static s32 _mainStreetResolveMessage(Task* task, s32 messageId, const RoomEventM
         _gMainStreetStagedSceneStartStorage.eventStarted = 0;                        \
         if (gameFlagGetNibble(stagedEvent.flagId) == 0 || stagedEvent.flagId == 0) { \
             if (reply->queryOnly == ROOM_EVENT_EXECUTE) {                            \
-                ROOM_EVENT_STAGED_MSG = *reply;                                      \
-                ROOM_EVENT_LATCHED    = stagedEvent;                                 \
+                ROOM_EVENT_STAGED_DESTINATION = *reply;                              \
+                ROOM_EVENT_LATCHED            = stagedEvent;                         \
                 if (stagedEvent.flagId != 0) {                                       \
                     gameFlagSetNibble(stagedEvent.flagId, 1);                        \
                 }                                                                    \

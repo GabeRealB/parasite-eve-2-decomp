@@ -941,8 +941,8 @@ static __inline__ s32 _walkwayStartEvent(RoomEventMsg* dst, RoomLatchedEvent* ev
     _gShelterB2NorthMaintenanceWalkwayStagedEventStart.eventStarted = false;
     if (gameFlagGetNibble(event->flagId) == 0 || event->flagId == 0) {
         if (dst->queryOnly == ROOM_EVENT_EXECUTE) {
-            _gRoomEventStagedMsg    = *dst;
-            gRoomEventLatched.event = *event;
+            ROOM_EVENT_STAGED_DESTINATION = *dst;
+            gRoomEventLatched.event       = *event;
             if (event->flagId != 0) {
                 gameFlagSetNibble(event->flagId, 1);
             }

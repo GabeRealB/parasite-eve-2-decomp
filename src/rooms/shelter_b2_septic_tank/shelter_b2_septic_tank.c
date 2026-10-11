@@ -1406,8 +1406,8 @@ static __inline__ s32 _shelterB2SepticTankStartEvent(const RoomEventMsg* destina
     if (gameFlagGetNibble(event->flagId) == SHELTER_B2_SEPTIC_TANK_EVENT_FLAG_CLEAR || event->flagId == SHELTER_B2_SEPTIC_TANK_EVENT_FLAG_NONE) {
         if (destination->queryOnly == ROOM_EVENT_EXECUTE) {
             // Own copies before starting the task that consumes them later.
-            _gRoomEventStagedMsg = *destination;
-            gRoomEventLatched    = *event;
+            ROOM_EVENT_STAGED_DESTINATION = *destination;
+            gRoomEventLatched             = *event;
             if (event->flagId != SHELTER_B2_SEPTIC_TANK_EVENT_FLAG_NONE) {
                 gameFlagSetNibble(event->flagId, SHELTER_B2_SEPTIC_TANK_EVENT_FLAG_LATCHED);
             }

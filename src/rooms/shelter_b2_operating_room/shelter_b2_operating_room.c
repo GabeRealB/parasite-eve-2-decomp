@@ -1119,8 +1119,8 @@ static __inline__ s32 _shelterB2OperatingRoomStartEvent(const RoomEventMsg* dest
     if (gameFlagGetNibble(event->flagId) == 0 || event->flagId == SHELTER_B2_OPERATING_ROOM_EVENT_NO_FLAG) {
         if (destination->queryOnly == ROOM_EVENT_EXECUTE) {
             // Own both records before the staged task can use the caller's stack data.
-            _gRoomEventStagedMsg = *destination;
-            gRoomEventLatched    = *event;
+            ROOM_EVENT_STAGED_DESTINATION = *destination;
+            gRoomEventLatched             = *event;
             if (event->flagId != SHELTER_B2_OPERATING_ROOM_EVENT_NO_FLAG) {
                 gameFlagSetNibble(event->flagId, SHELTER_B2_OPERATING_ROOM_EVENT_FLAG_LATCHED);
             }

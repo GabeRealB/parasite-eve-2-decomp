@@ -90,8 +90,8 @@ static s32 _roomVariantResolveDriveway(Task* task, s32 messageId, const RoomEven
         _gRoomVariantDrivewayFactoryEventRequested = ROOM_VARIANT_DRIVEWAY_FACTORY_EVENT_NONE;
         if (gameFlagGetNibble(eventRequest->flagId) == 0 || eventRequest->flagId == 0) {
             if (reply->queryOnly == ROOM_EVENT_EXECUTE) {
-                _gRoomEventStagedMsg = *reply;
-                gRoomEventLatched    = event;
+                ROOM_EVENT_STAGED_DESTINATION = *reply;
+                gRoomEventLatched             = event;
                 if (eventRequest->flagId != 0) {
                     gameFlagSetNibble(eventRequest->flagId, 1);
                 }

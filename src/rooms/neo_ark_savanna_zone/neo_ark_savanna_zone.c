@@ -576,8 +576,8 @@ static __inline__ s32 _neoArkSavannaZoneStartEvent(const RoomEventMsg* transitio
     _gNeoArkSavannaZoneEventStartRequested = ROOM_EVENT_NOT_STARTED;
     if (gameFlagGetNibble(event->flagId) == 0 || event->flagId == 0) {
         if (transition->queryOnly == ROOM_EVENT_EXECUTE) {
-            _gRoomEventStagedMsg = *transition;
-            gRoomEventLatched    = *event;
+            ROOM_EVENT_STAGED_DESTINATION = *transition;
+            gRoomEventLatched             = *event;
             if (event->flagId != 0) {
                 gameFlagSetNibble(event->flagId, ROOM_EVENT_FLAG_SEEN);
             }

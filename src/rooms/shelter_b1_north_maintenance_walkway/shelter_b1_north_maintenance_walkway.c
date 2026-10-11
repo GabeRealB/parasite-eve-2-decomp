@@ -149,8 +149,8 @@ static __inline__ s32 _shelterB1NorthMaintenanceWalkwayStartEvent(const RoomEven
     gShelterB1NorthMaintenanceWalkwayStagedEventStarted = false;
     if (gameFlagGetNibble(event->flagId) == ROOM_EVENT_FLAG_CLEAR || event->flagId == ROOM_EVENT_FLAG_NONE) {
         if (message->queryOnly == ROOM_EVENT_EXECUTE) {
-            gRoomEventStagedDestination = *message;
-            gRoomEventLatched           = *event;
+            ROOM_EVENT_STAGED_DESTINATION = *message;
+            gRoomEventLatched             = *event;
             if (event->flagId != ROOM_EVENT_FLAG_NONE) {
                 gameFlagSetNibble(event->flagId, ROOM_EVENT_FLAG_LATCHED);
             }
