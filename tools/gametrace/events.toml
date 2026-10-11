@@ -26,8 +26,7 @@ port = 2345
 [blob]
 address = 0x80200000     # where the patch stubs and the ring live: memory the game leaves alone (here, just above 2 MB)
 records = 1024           # ring size, a power of two
-drain = 0x80014C6C       # VSync: the ring is read, and patches re-applied, at this address
-drain_every = 30         # ... every this many hits
+drain_seconds = 1.0      # how often the game is interrupted to read the ring and re-apply patches
 
 [[event]]
 id = 1

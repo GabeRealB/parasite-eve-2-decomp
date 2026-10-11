@@ -3,6 +3,7 @@
 
     gametrace.py run   [--config tools/gametrace/events.toml] [--out local/gametrace/trace.jsonl]
                        [--host HOST] [--port PORT]      (these override the config's [gdb] section)
+                       [--now]                          (attach to a game already running: no install_at wait)
     gametrace.py check [--config ...]     resolve the events, build the patch blob, show both; no connection
     gametrace.py blob  [--config ...]     write the assembled blob and its listing under local/gametrace/
 
@@ -15,7 +16,7 @@ breakpoint or by a patch. Every event is recorded the same way - its id and the 
   patch       the function's first two instructions are replaced by a jump to a small stub at `blob.address` (the target
               must have memory there that the game leaves alone; by default that is just above 2 MB). The stub calls one shared handler, which appends a record to a ring
               buffer, then runs the two displaced instructions and returns to the third. This tool reads the ring
-              at the `drain` address, where it holds one breakpoint. It suits events too frequent to stop for.
+              every `drain_seconds`, by interrupting the game for a moment. It suits events too frequent to stop for.
 
 The tool expects to be started with the game paused, before it has run. It continues the game itself up to the
 first `install_at` address - a function by which memory is set up, such as the program's `main` - and only there
@@ -78,8 +79,7 @@ def load(path: Path) -> dict:
             problems.append(f"{event.get('name')}: ret, stack and mem are read by this tool at a breakpoint; a patch records the registers only")
     if blob["records"] & (blob["records"] - 1):
         problems.append("blob.records must be a power of two")
-    if any(e["patch"] for e in cfg.get("event", [])) and "drain" not in blob:
-        problems.append("patch events need blob.drain: the address of a function called every frame, where the ring is read")
+    blob.setdefault("drain_seconds", 1.0)
     if problems:
         raise SystemExit("\n".join(problems))
     return cfg
@@ -261,8 +261,10 @@ class Gdb:
     def __init__(self, host: str, port: int) -> None:
         self.sock = socket.create_connection((host, port), timeout=10)
         self.sock.settimeout(None)
+        self.sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)   # every packet is small and waits for its answer
         self.buf = b""
         self.set: set[int] = set()                    # the breakpoints in place
+        self.step_over: bool | None = None            # whether this server needs it; found out at the first stop
         self.sock.sendall(b"+")
 
     def _send(self, payload: str) -> None:
@@ -339,31 +341,69 @@ class Gdb:
             raise OSError(f"the GDB server refused a breakpoint at {address:#010x}: {reply!r}")
         (self.set.add if on else self.set.discard)(address)
 
-    def _go(self, command: str) -> str:
+    def _go(self, command: str, timeout: float | None = None) -> bool:
+        """Send a command that runs the target and wait for it to stop. With `timeout`, a target still running
+        after that many seconds is interrupted. Returns whether it stopped by itself."""
         while self._recv(0) is not None:              # nothing left over from the last stop may answer for this one
             pass
         self._send(command)
+        by_itself = True
         while True:
-            packet = self._recv()
-            if self._is_stop(packet):
+            packet = self._recv(timeout)
+            if packet is None:
+                self.sock.sendall(b"\x03")
+                by_itself, timeout = False, None
+            elif self._is_stop(packet):
                 break
-        while self._recv(0.02) is not None:           # the same stop, reported again
+        while self._recv(0.005) is not None:          # the same stop, reported again
             pass
-        return packet
+        return by_itself
 
-    def resume(self, stopped_at: int | None = None) -> None:
-        """Continue, and wait for the next stop. `stopped_at` is where the target is now.
+    def learn_step_over(self, here: int) -> None:
+        """Find out, once, what this server does when continued with a breakpoint under the program counter.
 
-        A server stops *before* the instruction under a breakpoint, and continuing from there stops at once on the
-        same breakpoint. So the instruction is stepped over with its breakpoint lifted, as a debugger does, and the
-        target continues from the next one - unless the step itself landed on another breakpoint."""
-        if stopped_at in self.set:
-            self.breakpoint(stopped_at, False)
-            self._go("s")
-            self.breakpoint(stopped_at)
-            if self.registers()[PC] in self.set:
-                return
+        Some stop again at once on the same instruction, and a client has to lift the breakpoint and single-step
+        past it; others move on by themselves. A second breakpoint on the next instruction tells them apart: the
+        target stops there if it moved, and at `here` again if it did not. An instruction that jumps or branches
+        cannot be tested this way; then stepping over is assumed, which is correct for both kinds, only slower."""
+        if self.step_over is not None:
+            return
+        word = struct.unpack("<I", self.read(here, 4))[0]
+        if movable(word) is not None or here + 4 in self.set:
+            self.step_over = True
+            return
+        self.breakpoint(here + 4)
         self._go("c")
+        landed = self.registers()[PC]
+        self.breakpoint(here + 4, False)
+        self.step_over = landed != here + 4
+        if self.step_over and landed == here:         # still on it: move past by hand this once
+            self.breakpoint(here, False)
+            self._go("s")
+            self.breakpoint(here)
+
+    def resume(self, stopped_at: int | None = None, timeout: float | None = None) -> bool:
+        """Continue and wait for the next stop; False when `timeout` ran out and the target was interrupted.
+        `stopped_at` is where the target is now, for a server that has to be stepped past a breakpoint there."""
+        if stopped_at in self.set:
+            self.learn_step_over(stopped_at)
+            if self.step_over and self.registers()[PC] == stopped_at:
+                self.breakpoint(stopped_at, False)
+                self._go("s")
+                self.breakpoint(stopped_at)
+                if self.registers()[PC] in self.set:
+                    return True
+        return self._go("c", timeout)
+
+    def release(self, running: bool) -> None:
+        """Take every breakpoint out and let the target run: a breakpoint left behind stops it with nobody listening."""
+        if running:
+            self.sock.sendall(b"\x03")
+            while not self._is_stop(self._recv() or ""):
+                pass
+        for address in sorted(self.set):
+            self.breakpoint(address, False)
+        self._send("c")
 
 
 # ---- a session
@@ -413,7 +453,8 @@ class Session:
                 self.gdb.write(base, self.code)
             except OSError as error:
                 raise SystemExit(f"{error}\nThe patch blob lives at {base:#010x} (blob.address): the target has to have writable memory there.")
-            self.gdb.breakpoint(self.cfg["blob"]["drain"])
+            if "drain" in self.cfg["blob"]:
+                self.gdb.breakpoint(self.cfg["blob"]["drain"])
             self.install()
         for address in self.by_address:
             self.gdb.breakpoint(address)
@@ -451,6 +492,28 @@ class Session:
                 stub = self.symbols[f"gt_stub_{event['id']}"]
                 jump = 0x08000000 | ((stub >> 2) & 0x03FFFFFF)
                 self.gdb.write(event["address"], struct.pack("<2I", jump, 0))
+
+    def remove(self) -> None:
+        """Put back the instructions the patches displaced, where the patches are still in place."""
+        for event in self.patched:
+            stub = self.symbols[f"gt_stub_{event['id']}"]
+            jump = 0x08000000 | ((stub >> 2) & 0x03FFFFFF)
+            if struct.unpack("<2I", self.gdb.read(event["address"], 8)) == (jump, 0):
+                self.gdb.write(event["address"], struct.pack("<2I", *self.originals[event["id"]]))
+
+    def close(self) -> None:
+        """Leave the game as it was found, running: no patch, no breakpoint. What the ring still holds is read first."""
+        if self.gdb.sock.fileno() < 0:
+            return
+        running = getattr(self, "running", False)
+        if running:
+            self.gdb.sock.sendall(b"\x03")
+            while not Gdb._is_stop(self.gdb._recv() or ""):
+                pass
+        if self.patched and self.ready:
+            self.drain()
+            self.remove()
+        self.gdb.release(False)
 
     def drain(self) -> None:
         base = self.cfg["blob"]["address"]
@@ -491,8 +554,16 @@ class Session:
         drain_at = self.cfg["blob"].get("drain") if self.patched else None
         every, frames = self.cfg["blob"].get("drain_every", 1), 0
         pc = None
+        period = self.cfg["blob"]["drain_seconds"] if self.patched and drain_at is None else None
         while True:
-            self.gdb.resume(pc)
+            self.running = True
+            by_itself = self.gdb.resume(pc, period if self.ready else None)
+            self.running = False
+            if not by_itself:                         # the timer: read the ring, put back any patch a load removed
+                pc = None
+                self.drain()
+                self.install()
+                continue
             regs = self.gdb.registers()
             pc = regs[PC]
             if pc in self.pending:                    # a watched function has returned
@@ -525,12 +596,15 @@ def main() -> int:
     ap.add_argument("--out", type=Path, default=OUT / "trace.jsonl")
     ap.add_argument("--host", help="the GDB server's address, instead of the config's gdb.host")
     ap.add_argument("--port", type=int, help="the GDB server's port, instead of the config's gdb.port")
+    ap.add_argument("--now", action="store_true", help="set up at once in the game as it stands, ignoring install_at: for attaching to a game already running")
     args = ap.parse_args()
     cfg = load(args.config)
     if args.host:
         cfg["gdb"]["host"] = args.host
     if args.port:
         cfg["gdb"]["port"] = args.port
+    if args.now:
+        cfg["install_at"] = []
     names = Names()
     if args.command in ("check", "blob"):
         for address in cfg["install_at"]:
@@ -539,7 +613,8 @@ def main() -> int:
             print(f"{event['id']:>4}  {event['name']:<28} {event['address']:#010x}  {'patch' if event['patch'] else 'breakpoint':<10} {names.at(event['address'])}")
         if any(e["patch"] for e in cfg.get("event", [])):
             code, symbols, listing = assemble(cfg, originals_of(cfg))
-            print(f"\nblob: {len(code)} bytes of code at {cfg['blob']['address']:#010x}, ring of {cfg['blob']['records']} records at {symbols['gt_ring']:#010x}; read at {cfg['blob']['drain']:#010x} ({names.at(cfg['blob']['drain'])})")
+            how = f"at {cfg['blob']['drain']:#010x} ({names.at(cfg['blob']['drain'])})" if "drain" in cfg["blob"] else f"every {cfg['blob']['drain_seconds']} s, by interrupting the game"
+            print(f"\nblob: {len(code)} bytes of code at {cfg['blob']['address']:#010x}, ring of {cfg['blob']['records']} records at {symbols['gt_ring']:#010x}; read {how}")
             if args.command == "blob":
                 (OUT / "blob.lst").write_text(listing, encoding="utf-8")
                 print(f"written: {OUT / 'blob.bin'}, {OUT / 'blob.s'}, {OUT / 'blob.lst'}")
@@ -554,7 +629,10 @@ def main() -> int:
         try:
             session.run()
         except KeyboardInterrupt:
-            pass
+            try:
+                session.close()
+            except (OSError, ConnectionError) as error:
+                print(f"could not restore the game: {error}", file=sys.stderr)
         except ConnectionError as error:
             print(error, file=sys.stderr)
         print(f"{session.count} records in {args.out}", file=sys.stderr)
