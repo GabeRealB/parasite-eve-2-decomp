@@ -515,7 +515,7 @@ static void _actor503500InitBoss(Task* task)
     }
     actor503500HandlePlayAnimation(task, ACTOR_MESSAGE_PLAY_ANIMATION, gActor503500BossAnimationPresets, 0);
     task->exitCallback = _actor503500ExitBoss;
-    task->msgTable     = D_actor_503500_8016EA2C;
+    task->msgTable     = gActor503500BossMessageHandlers;
     task->state       += 1;
 }
 

@@ -4387,6 +4387,7 @@ static void _actor503500LungingChainUpdatePose(Task* task)
     _Actor503500LungingChainWork* work;
     s32                           linkIndex;
     s32                           swayPitch;
+    const s16*                    curlPitchByPart;
 
     rootCoord = task->extra.tmd->coords;
     work      = task->work;
@@ -4431,11 +4432,12 @@ static void _actor503500LungingChainUpdatePose(Task* task)
         copyVector(&work->linkPoints[ACTOR_503500_LUNGING_CHAIN_TIP_PART - linkIndex], &samples[linkIndex]);
     }
     _actor503500LungingChainPlaceLinks(work->linkPoints, task->extra.tmd->coords);
+    curlPitchByPart = gActor503500LungingChainCurlPitchByPart;
     // Advance sway even on the tip, whose pitch is excluded by the pitch applicator.
     for (linkIndex = ACTOR_503500_LUNGING_CHAIN_TIP_PART; linkIndex >= 2; linkIndex--) {
         swayPitch                       = ((work->swayAmplitude * work->swayWeight >> ACTOR_503500_LUNGING_CHAIN_POSE_WEIGHT_FRACTION_BITS) * rsin(work->swayPhase[linkIndex])) >> ACTOR_503500_LUNGING_CHAIN_POSE_WEIGHT_FRACTION_BITS;
         work->linkAngles[linkIndex].vx  = swayPitch;
-        work->linkAngles[linkIndex].vx += D_actor_503500_8016F434[linkIndex] * work->curlWeight >> ACTOR_503500_LUNGING_CHAIN_POSE_WEIGHT_FRACTION_BITS;
+        work->linkAngles[linkIndex].vx += curlPitchByPart[linkIndex] * work->curlWeight >> ACTOR_503500_LUNGING_CHAIN_POSE_WEIGHT_FRACTION_BITS;
         work->linkAngles[linkIndex].vy  = 0;
         work->linkAngles[linkIndex].vz  = 0;
         work->swayPhase[linkIndex]      = (work->swayPhase[linkIndex] + ACTOR_503500_LUNGING_CHAIN_SWAY_PHASE_STEP) & ACTOR_TRANSFORM_ANGLE_MASK;
@@ -4871,6 +4873,7 @@ static void _actor503500ArmInit(Task* task)
     WorldCollisionContact* contacts;
     GfxCoord*              forearmCoords;
     GfxCoord*              handCoords;
+    const SVECTOR*         rootOffset;
 
     enemy     = task->spawnArg2.pointer;
     model     = task->extra.tmd;
@@ -4883,10 +4886,11 @@ static void _actor503500ArmInit(Task* task)
     task->work = work;
 
     // Keep the detached model hidden while the boss's own limb supplies the pose.
+    rootOffset          = &gActor503500ArmRootOffset;
     coord->parent       = &parent->extra.tmd->coords[gActor503500ArmParentParts[side]];
-    coord->coord.t[0]   = D_actor_503500_80171478.vx;
-    coord->coord.t[1]   = D_actor_503500_80171478.vy;
-    coord->coord.t[2]   = D_actor_503500_80171478.vz;
+    coord->coord.t[0]   = rootOffset->vx;
+    coord->coord.t[1]   = rootOffset->vy;
+    coord->coord.t[2]   = rootOffset->vz;
     work->side          = task->spawnArg1.value - ACTOR_503500_SLOT_ARM_0;
     model->lightMtx     = bossModel->lightMtx;
     model->colorMtx     = bossModel->colorMtx;
@@ -5184,7 +5188,7 @@ static void _actor503500ArmStepDying(Task* task)
                     fileKeyBytes[0] = ACTOR_503500_ARM_DEATH_FILE_SIDE_1;
                     loadArgBytes[2] = ACTOR_503500_ARM_DEATH_IMAGE_X_PAGE_OFFSET;
                     loadArgBytes[3] = ACTOR_503500_ARM_DEATH_IMAGE_Y_OFFSET_SIDE_1;
-                    MoveImage(&D_actor_503500_8017155C, 0, ACTOR_503500_ARM_DEATH_VRAM_ROW_Y);
+                    MoveImage(&gActor503500ArmDeathVramRowSourceRect, 0, ACTOR_503500_ARM_DEATH_VRAM_ROW_Y);
                 } else {
                     fileKeyBytes[0] = ACTOR_503500_ARM_DEATH_FILE_SIDE_0;
                     loadArgBytes[2] = ACTOR_503500_ARM_DEATH_IMAGE_X_PAGE_OFFSET;
@@ -5250,10 +5254,10 @@ static void _actor503500ArmStepDying(Task* task)
         case ACTOR_503500_ARM_DEATH_FALL:
             if (actor503500TryReserveSlotEffects(task->spawnArg1.value, ACTOR_503500_ARM_DEATH_FALL_EFFECT_COST) != 0) {
                 if (work->side != 0) {
-                    effectSpawn(EFFECT_HIT_PUFF, armCoords, ACTOR_503500_ARM_DEATH_FALL_PUFF_ARG, &D_actor_503500_80171594);
+                    effectSpawn(EFFECT_HIT_PUFF, armCoords, ACTOR_503500_ARM_DEATH_FALL_PUFF_ARG, &gActor503500ArmDeathFallPuffOffsetSide1);
                     work->spin.fixed.vz.word -= ACTOR_503500_ARM_DEATH_SPIN_ACCELERATION;
                 } else {
-                    effectSpawn(EFFECT_HIT_PUFF, armCoords, ACTOR_503500_ARM_DEATH_FALL_PUFF_ARG, &D_actor_503500_8017158C);
+                    effectSpawn(EFFECT_HIT_PUFF, armCoords, ACTOR_503500_ARM_DEATH_FALL_PUFF_ARG, &gActor503500ArmDeathFallPuffOffsetSide0);
                     work->spin.fixed.vz.word += ACTOR_503500_ARM_DEATH_SPIN_ACCELERATION;
                 }
             }
@@ -5306,9 +5310,9 @@ static void _actor503500ArmStepDying(Task* task)
     if (actor503500TryReserveSlotEffects(task->spawnArg1.value, ACTOR_503500_ARM_DEATH_SMOKE_EFFECT_COST) != 0) {
         if (!(gDisplayState.animFrame & (ACTOR_503500_ARM_DEATH_SMOKE_PERIOD - 1))) {
             for (partIndex = 0, smokeOffsetIndex = 0; partIndex < ACTOR_503500_ARM_DEATH_SMOKE_PARTS; partIndex++) {
-                effectSpawn(EFFECT_SMOKE_PUFF, &task->extra.tmd->coords[partIndex], ACTOR_503500_ARM_DEATH_SMOKE_ARG, &D_actor_503500_80171564[smokeOffsetIndex]);
+                effectSpawn(EFFECT_SMOKE_PUFF, &task->extra.tmd->coords[partIndex], ACTOR_503500_ARM_DEATH_SMOKE_ARG, &gActor503500ArmDeathSmokeOffsets[smokeOffsetIndex]);
                 smokeOffsetIndex++;
-                smokeOffsetIndex = smokeOffsetIndex < (s32)ARRAY_SIZE(D_actor_503500_80171564) ? smokeOffsetIndex : 0;
+                smokeOffsetIndex = smokeOffsetIndex < (s32)ARRAY_SIZE(gActor503500ArmDeathSmokeOffsets) ? smokeOffsetIndex : 0;
             }
         }
     }
@@ -5544,7 +5548,7 @@ static void _actor503500ArmApplyAttackContacts(Task* task, const WorldCollisionC
             playerTask  = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
             playerCoord = playerTask->extra.tmd->coords;
             if (((GameActor*)playerTask->work)->mode != GAME_ACTOR_MODE_SCRIPTED &&
-                TASK_MESSAGE_DISPATCH_POINTER(playerTask, GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, &D_actor_503500_80171544, 0) == 0) {
+                TASK_MESSAGE_DISPATCH_POINTER(playerTask, GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, &gActor503500PlayerKnockbackHoldRequest, 0) == 0) {
                 // Build the push direction from the boss, preserving translation.
                 bossCoord = task->parent->extra.tmd->coords;
                 ACTOR_503500_ARM_COPY_KNOCKBACK_ROTATION();
@@ -5564,9 +5568,9 @@ static void _actor503500ArmApplyAttackContacts(Task* task, const WorldCollisionC
                 gte_stsv(&armPosition);
                 fallDirection = armPosition.vz >= 0;
                 taskMessageDispatch(playerTask, GAME_ACTOR_MESSAGE_APPLY_DAMAGE, damagePackEnemyAttackKey(enemy, 0), 0);
-                TASK_MESSAGE_DISPATCH_POINTER(playerTask, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &D_actor_503500_801714E0[fallDirection], 0);
+                TASK_MESSAGE_DISPATCH_POINTER(playerTask, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &gActor503500PlayerKnockbackFallRequests[fallDirection], 0);
                 // The child copies this borrowed rotation on its first task update.
-                taskSpawnFromTable(&D_actor_503500_8017146C, 0, fallDirection, &work->knockbackRotation);
+                taskSpawnFromTable(&gActor503500KnockbackTaskDesc, 0, fallDirection, &work->knockbackRotation);
                 gAttachmentState.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
                 audioPan                = (s8)worldCoordGetOriginAudioPan(playerCoord);
                 sndEvtRequestScriptStart(SOUND_COMMON(ACTOR_503500_ARM_KNOCKBACK_SOUND), audioPan, (s8)(worldCoordGetOriginAudioDepth(playerCoord) / 2));
@@ -5631,7 +5635,7 @@ void actor503500KnockbackTask(Task* task)
             work->displacementCarry.fixed.vz.word = 0;
             ACTOR_503500_KNOCKBACK_COPY_ROTATION();
 #undef ACTOR_503500_KNOCKBACK_COPY_ROTATION
-            padScriptSpawn(D_actor_503500_8017159C, D_actor_503500_801715A4);
+            padScriptSpawn(gActor503500KnockbackPadScriptCommands, gActor503500KnockbackPadScriptSegments);
             work->shakeFrames = ACTOR_503500_KNOCKBACK_SHAKE_FRAMES;
             // An s32 temp: passed straight to the s8 parameter, the masked
             // expression is shortened into a byte load of the frame counter.
@@ -5684,7 +5688,7 @@ void actor503500KnockbackTask(Task* task)
         case ACTOR_503500_KNOCKBACK_RECOVER:
             // Finish the fall, recover by hit side, then restore the weapon pose.
             if (taskMessageDispatch(player, ANIMATION_MESSAGE_IS_PLAYING, 0, 0) == 0) {
-                TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &D_actor_503500_80171508[task->spawnArg1.value], 0);
+                TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &gActor503500PlayerKnockbackRecoveryRequests[task->spawnArg1.value], 0);
                 task->state++;
             }
             break;
@@ -5693,7 +5697,7 @@ void actor503500KnockbackTask(Task* task)
                 D_actor_503500_801714DC =
                     Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon]
                         ->table.sets[ACTOR_503500_KNOCKBACK_WEAPON_BANK_WORD];
-                TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &D_actor_503500_80171530, 0);
+                TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &gActor503500PlayerKnockbackRestoreRequest, 0);
                 task->state++;
             }
             break;
@@ -5928,9 +5932,9 @@ static inline void _actor503500BallisticShotLinkSphere(Task* task, _Actor503500B
     enum { ACTOR_503500_BALLISTIC_SHOT_FLIGHT_RADIUS = 300 };
     work->body.coord            = coord;
     work->body.context.contacts = contacts;
-    work->body.pos.vx           = D_actor_503500_801715AC.vx;
-    work->body.pos.vy           = D_actor_503500_801715AC.vy;
-    work->body.pos.vz           = D_actor_503500_801715AC.vz;
+    work->body.pos.vx           = gActor503500BallisticShotBodyOffset.vx;
+    work->body.pos.vy           = gActor503500BallisticShotBodyOffset.vy;
+    work->body.pos.vz           = gActor503500BallisticShotBodyOffset.vz;
     work->body.key              = damagePackAttackKey(gActor503500BallisticShotAttackTables[0], task->spawnArg1.value);
     work->body.radius           = ACTOR_503500_BALLISTIC_SHOT_FLIGHT_RADIUS;
     work->body.flags            = WORLD_COLLISION_BODY_SPHERE;
@@ -6182,9 +6186,9 @@ static inline void _actor503500LingeringShotLinkSphere(Task* task, _Actor503500L
     enum { ACTOR_503500_LINGERING_SHOT_RADIUS = 2200 };
     work->body.coord            = coord;
     work->body.context.contacts = contacts;
-    work->body.pos.vx           = D_actor_503500_801715B4.vx;
-    work->body.pos.vy           = D_actor_503500_801715B4.vy;
-    work->body.pos.vz           = D_actor_503500_801715B4.vz;
+    work->body.pos.vx           = gActor503500LingeringShotBodyOffset.vx;
+    work->body.pos.vy           = gActor503500LingeringShotBodyOffset.vy;
+    work->body.pos.vz           = gActor503500LingeringShotBodyOffset.vz;
     work->body.key              = damagePackAttackKey(gActor503500LingeringShotAttackTables[0], task->spawnArg1.value);
     work->body.radius           = ACTOR_503500_LINGERING_SHOT_RADIUS;
     work->body.flags            = WORLD_COLLISION_BODY_SPHERE;

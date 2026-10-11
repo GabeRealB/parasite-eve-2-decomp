@@ -668,7 +668,12 @@ extern SVECTOR gActor503500LungingChainTipAttackOffsets[ACTOR_503500_LUNGING_CHA
 /// Initialization seeds both tip position and target; idle steps restore the target.
 extern SVECTOR gActor503500LungingChainRestTipOffsets[ACTOR_503500_LUNGING_CHAIN_COUNT];
 
-extern s16 D_actor_503500_8016F434[10];
+/// Stored lunging-chain curl pitches by model part, in 4096ths of a turn.
+///
+/// Pose updates read parts 2..8 and scale by the Q12 curl weight; only parts
+/// 2..7 receive that pitch. Entries 0, 1 and 9 are not read by this package.
+/// All ten stored halfwords are retained; the unused entries' purpose is unproven.
+extern const s16 gActor503500LungingChainCurlPitchByPart[10];
 
 /// Three link-local smoke positions cycled from tip toward root on dying lunging chains.
 ///
@@ -678,9 +683,16 @@ extern SVECTOR gActor503500LungingChainDeathSmokeOffsets[3];
 /// Boss model mount-part indices for arm slots 10, 11 (parts 11, 5).
 extern s32 gActor503500ArmParentParts[ACTOR_503500_SIDE_COUNT];
 
-extern TaskDesc D_actor_503500_8017146C;
+/// Bodyless priority-192 recipe for the player's arm-strike knockback sequence.
+///
+/// Spawn at descriptor index 0 with fall direction 0/1 in argument 1 and a
+/// borrowed MATRIX rotation in argument 2. Keep that rotation live and unchanged
+/// until the task's first active update copies it. The callback requires this
+/// overlay and the player to remain live through recovery.
+extern TaskDesc gActor503500KnockbackTaskDesc;
 
-extern SVECTOR D_actor_503500_80171478;
+/// Detached arm model's root offset on its boss mount part, in local game units.
+extern const SVECTOR gActor503500ArmRootOffset;
 
 /// Arm target/sphere centers in arm-root local game units, ordered by slots 10, 11.
 extern SVECTOR gActor503500ArmTargetOffsets[ACTOR_503500_SIDE_COUNT];
@@ -701,29 +713,79 @@ extern AnimationSet* gActor503500PlayerKnockbackAnimationSets[ACTOR_503500_KNOCK
 /// Writable restore-clip view; an AnimationSet* lvalue with no separate storage.
 #define D_actor_503500_801714DC (gActor503500PlayerKnockbackAnimationSets[ACTOR_503500_KNOCKBACK_RESTORE_SET])
 
-extern AnimationPlayRequest D_actor_503500_801714E0[2];
+/// Number of player fall directions selected by the sign of the rotated arm Z.
+enum { ACTOR_503500_KNOCKBACK_FALL_DIRECTION_COUNT = 2 };
 
-extern AnimationPlayRequest D_actor_503500_80171508[2];
+/// Player fall requests selected by the arm position rotated into player axes.
+///
+/// Index 0 selects clip 1 for negative Z; index 1 selects clip 2 for nonnegative Z.
+/// Each resets playback and enables world collision. Dispatch reads the request
+/// synchronously; the clip table and data must remain loaded throughout playback.
+extern const AnimationPlayRequest gActor503500PlayerKnockbackFallRequests[ACTOR_503500_KNOCKBACK_FALL_DIRECTION_COUNT];
 
-extern AnimationPlayRequest D_actor_503500_80171530;
+/// Player recovery requests for the same fall-direction indices 0/1.
+///
+/// Selects clip 3/4 with a three-frame blend and world collision enabled after
+/// the fall finishes. Dispatch reads the request synchronously; playback borrows
+/// the clip table and data until the selected recovery finishes.
+extern const AnimationPlayRequest gActor503500PlayerKnockbackRecoveryRequests[ACTOR_503500_KNOCKBACK_FALL_DIRECTION_COUNT];
 
-extern GameActorButtonPressHold D_actor_503500_80171544;
+/// Restores the equipped weapon's player pose after knockback recovery.
+///
+/// Plays the writable restore-set slot with a three-frame blend and world
+/// collision enabled. The slot must first contain the live weapon bank's set 7;
+/// its table and loaded clip data must outlive playback.
+extern const AnimationPlayRequest gActor503500PlayerKnockbackRestoreRequest;
 
-extern RECT D_actor_503500_8017155C;
+/// Zero-press player hold request used to take scripted control for arm knockback.
+///
+/// The player ignores the embedded animation and copies only the zero press
+/// count during dispatch. Recovery can reject the hold; acceptance acquires
+/// the attachment event lock and the caller immediately starts the fall clip.
+extern const GameActorButtonPressHold gActor503500PlayerKnockbackHoldRequest;
 
-extern SVECTOR D_actor_503500_80171564[5];
+/// Source VRAM row copied to (0, 253) before side-1's dying arm resource load.
+///
+/// X and width count VRAM words; Y and height count rows. The source is
+/// (0, 261), 256 words wide and one row high; side 0 performs no row copy.
+extern RECT gActor503500ArmDeathVramRowSourceRect;
 
-extern SVECTOR D_actor_503500_8017158C;
+/// Five stored smoke positions in arm-part local game units.
+///
+/// The dying arm restarts the index at zero for each burst on parts 0 and 1,
+/// so it currently uses entries 0 and 1. Entries 2..4 remain unused. Effect work
+/// borrows these positions; storage lives with the actor overlay.
+extern SVECTOR gActor503500ArmDeathSmokeOffsets[5];
 
-extern SVECTOR D_actor_503500_80171594;
+/// Side-0 falling-arm puff position (-1000, 0, 0) in arm-root local game units.
+///
+/// The effect borrows this position for its lifetime; keep the overlay loaded.
+extern SVECTOR gActor503500ArmDeathFallPuffOffsetSide0;
 
-extern PadScriptCmd D_actor_503500_8017159C[2];
+/// Side-1 falling-arm puff position (1000, 0, 0) in arm-root local game units.
+///
+/// The effect borrows this position for its lifetime; keep the overlay loaded.
+extern SVECTOR gActor503500ArmDeathFallPuffOffsetSide1;
 
-extern PadScriptVibrationSegment D_actor_503500_801715A4[2];
+/// Two-lane knockback vibration script: play segments 0/1, then stop both motors.
+///
+/// The on/off lane selects segment 0 and the variable lane segment 1. Both
+/// command cursors visit entries 0 and 1 only. The independent script task
+/// borrows this array and its segment table until teardown.
+extern const PadScriptCmd gActor503500KnockbackPadScriptCommands[2];
 
-extern SVECTOR D_actor_503500_801715AC;
+/// Knockback motor segments: an eight-frame hold and eight frames at full intensity.
+///
+/// Segment 0 serves the binary motor, which ignores intensity; segment 1 serves
+/// the variable motor at 255 throughout. The stored fourth bytes 0/1 are not
+/// read by the interpreter. Storage must outlive the borrowed vibration script.
+extern const PadScriptVibrationSegment gActor503500KnockbackPadScriptSegments[2];
 
-extern SVECTOR D_actor_503500_801715B4;
+/// Ballistic shot attack-sphere center in shot-root local game units.
+extern const SVECTOR gActor503500BallisticShotBodyOffset;
+
+/// Lingering shot attack-sphere center in shot-root local game units.
+extern const SVECTOR gActor503500LingeringShotBodyOffset;
 
 enum { ACTOR_503500_LINGERING_SHOT_KIND_COUNT = 2 };
 
@@ -753,7 +815,12 @@ enum {
 /// callbacks and attack resources require this overlay to remain loaded.
 extern TaskDesc gActor503500AttackTaskDescs[ACTOR_503500_ATTACK_TASK_COUNT];
 
-extern TaskMessageEntry D_actor_503500_8016EA2C[];
+/// Boss message handlers for animation, placement, model draw mode and commands.
+///
+/// Four ID/callback entries followed by TASK_MESSAGE_TABLE_END. Unknown IDs
+/// return zero. The live boss borrows this read-only table and callback code
+/// from the actor overlay for its lifetime; payload types belong to each ID.
+extern const TaskMessageEntry gActor503500BossMessageHandlers[];
 
 /// Inherits an attached child's draw suppression, translucency and buffer policy.
 ///

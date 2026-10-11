@@ -245,30 +245,18 @@ STATIC_ASSERT_SIZEOF(_Actor503500Actor361100Model06038Work, 0x4CC);
 static void _actor503500ExitTentacle(Task* task);
 static void _actor503500BindTentacleLighting(Task* task);
 
-/// `taskMessageDispatch` handler table installed at `Task::msgTable` by
-/// `_actor503500InitTentacle`; terminator id `TASK_MESSAGE_TABLE_END`.
-// Handler views preserve the signatures used by this TU. The dispatcher
-// transports each argument in a word register.
+static void _actor503500PinkFlashAttackExit(Task* task);
+static void _actor503500PinkFlashAttackUpdatePhase(Task* task);
+static void _actor503500PinkFlashAttackSweepContacts(Task* task);
+static void _actor503500YellowFlashAttackUpdatePhase(Task* task);
+static void _actor503500YellowFlashAttackExit(Task* task);
+static void _actor503500YellowFlashAttackClearContacts(Task* task);
+static void _actor503500OrangeFlashAttackUpdatePhase(Task* task);
+static void _actor503500OrangeFlashAttackSweepContacts(Task* task);
 
-extern TaskMessageEntry D_actor_503500_80176530[];
-
-extern SVECTOR D_actor_503500_801715C4;
-/// Local offset of the display node `_actor503500YellowFlashAttackInit` links.
-extern SVECTOR D_actor_503500_801715D4;
-static void    _actor503500PinkFlashAttackExit(Task* task);
-static void    _actor503500PinkFlashAttackUpdatePhase(Task* task);
-static void    _actor503500PinkFlashAttackSweepContacts(Task* task);
-static void    _actor503500YellowFlashAttackUpdatePhase(Task* task);
-static void    _actor503500YellowFlashAttackExit(Task* task);
-static void    _actor503500YellowFlashAttackClearContacts(Task* task);
-static void    _actor503500OrangeFlashAttackUpdatePhase(Task* task);
-static void    _actor503500OrangeFlashAttackSweepContacts(Task* task);
-
-extern SVECTOR D_actor_503500_801715DC;
-extern SVECTOR D_actor_503500_801715E4;
-static void    _actor503500OrangeFlashAttackExit(Task* task);
-static void    _actor503500CollapseTentacle(Task* task);
-static void    _actor503500TentacleIdle(Task* unusedTask);
+static void _actor503500OrangeFlashAttackExit(Task* task);
+static void _actor503500CollapseTentacle(Task* task);
+static void _actor503500TentacleIdle(Task* unusedTask);
 
 static void _actor503500PinkFlashAttackInit(Task* task);
 static void _actor503500PinkFlashAttackUpdate(Task* task);
@@ -279,8 +267,10 @@ static void _actor503500OrangeFlashAttackUpdate(Task* task);
 static void _actor503500InitTentacle(Task* task);
 static void _actor503500TickTentacle(Task* task);
 
-/// `Task::state` handlers `actor503500PinkFlashAttackTask` dispatches through.
-static const TaskFuncTable3 D_actor_503500_801321F4 = {
+/// Pink-flash task handlers for states 0 initialize, 1 update and 2 exit.
+///
+/// Copied by value before unchecked state dispatch; every slot takes a live Task*.
+static const TaskFuncTable3 _gActor503500PinkFlashAttackStateHandlers = {
     {
         _actor503500PinkFlashAttackInit,
         _actor503500PinkFlashAttackUpdate,
@@ -301,7 +291,7 @@ static AnimationSet _gActor503500Animation3E5FC;
 static AnimationSet _gActor503500Animation3EE08;
 static AnimationSet _gActor503500Animation3F61C;
 
-TaskMessageEntry D_actor_503500_8016EA2C[5] = {
+const TaskMessageEntry gActor503500BossMessageHandlers[] SECTION(".data") = {
     { ACTOR_MESSAGE_PLAY_ANIMATION, actor503500HandlePlayAnimation },
     { ACTOR_MESSAGE_PLACE, actor503500HandlePlaceBoss },
     { ACTOR_MESSAGE_SET_MODEL_DRAW, actor503500HandleSetBossModelDraw },
@@ -1004,7 +994,7 @@ SVECTOR gActor503500LungingChainRestTipOffsets[ACTOR_503500_LUNGING_CHAIN_COUNT]
     { -3500, -3000, -5200, 0 },
 };
 
-s16 D_actor_503500_8016F434[10] = {
+const s16 gActor503500LungingChainCurlPitchByPart[10] SECTION(".data") = {
     0,
     10,
     30,
@@ -1116,9 +1106,11 @@ s32 gActor503500ArmParentParts[ACTOR_503500_SIDE_COUNT] = {
     ACTOR_503500_BOSS_ARM_MOUNT_PART_SIDE_1,
 };
 
-TaskDesc D_actor_503500_8017146C = { { { TASK_BODY_NONE, 192 } }, actor503500KnockbackTask, { .value = 0 } };
+enum { ACTOR_503500_KNOCKBACK_TASK_PRIORITY = 192 };
 
-SVECTOR D_actor_503500_80171478 = { 0 };
+TaskDesc gActor503500KnockbackTaskDesc = { { { TASK_BODY_NONE, ACTOR_503500_KNOCKBACK_TASK_PRIORITY } }, actor503500KnockbackTask, { .value = 0 } };
+
+const SVECTOR gActor503500ArmRootOffset SECTION(".data") = { 0 };
 
 SVECTOR gActor503500ArmTargetOffsets[ACTOR_503500_SIDE_COUNT] = {
     { 500, 0, 0, 0 },
@@ -1198,23 +1190,31 @@ AnimationSet* gActor503500PlayerKnockbackAnimationSets[ACTOR_503500_KNOCKBACK_SE
     NULL,
 };
 
-AnimationPlayRequest D_actor_503500_801714E0[2] = {
-    { { .sets = gActor503500PlayerKnockbackAnimationSets }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE },
-    { { .sets = gActor503500PlayerKnockbackAnimationSets }, 2, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE },
+enum {
+    ACTOR_503500_KNOCKBACK_FALL_SET_0     = 1,
+    ACTOR_503500_KNOCKBACK_FALL_SET_1     = 2,
+    ACTOR_503500_KNOCKBACK_RECOVERY_SET_0 = 3,
+    ACTOR_503500_KNOCKBACK_RECOVERY_SET_1 = 4,
+    ACTOR_503500_KNOCKBACK_BLEND_FRAMES   = 3,
 };
 
-AnimationPlayRequest D_actor_503500_80171508[2] = {
-    { { .sets = gActor503500PlayerKnockbackAnimationSets }, 3, ANIMATION_BLEND_INTERPOLATE, 3, ANIMATION_WORLD_COLLISION_ENABLE },
-    { { .sets = gActor503500PlayerKnockbackAnimationSets }, 4, ANIMATION_BLEND_INTERPOLATE, 3, ANIMATION_WORLD_COLLISION_ENABLE },
+const AnimationPlayRequest gActor503500PlayerKnockbackFallRequests[ACTOR_503500_KNOCKBACK_FALL_DIRECTION_COUNT] SECTION(".data") = {
+    { { .sets = gActor503500PlayerKnockbackAnimationSets }, ACTOR_503500_KNOCKBACK_FALL_SET_0, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE },
+    { { .sets = gActor503500PlayerKnockbackAnimationSets }, ACTOR_503500_KNOCKBACK_FALL_SET_1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE },
 };
 
-AnimationPlayRequest D_actor_503500_80171530 = { { .sets = gActor503500PlayerKnockbackAnimationSets }, 5, ANIMATION_BLEND_INTERPOLATE, 3, ANIMATION_WORLD_COLLISION_ENABLE };
+const AnimationPlayRequest gActor503500PlayerKnockbackRecoveryRequests[ACTOR_503500_KNOCKBACK_FALL_DIRECTION_COUNT] SECTION(".data") = {
+    { { .sets = gActor503500PlayerKnockbackAnimationSets }, ACTOR_503500_KNOCKBACK_RECOVERY_SET_0, ANIMATION_BLEND_INTERPOLATE, ACTOR_503500_KNOCKBACK_BLEND_FRAMES, ANIMATION_WORLD_COLLISION_ENABLE },
+    { { .sets = gActor503500PlayerKnockbackAnimationSets }, ACTOR_503500_KNOCKBACK_RECOVERY_SET_1, ANIMATION_BLEND_INTERPOLATE, ACTOR_503500_KNOCKBACK_BLEND_FRAMES, ANIMATION_WORLD_COLLISION_ENABLE },
+};
 
-GameActorButtonPressHold D_actor_503500_80171544 = { 0 };
+const AnimationPlayRequest gActor503500PlayerKnockbackRestoreRequest SECTION(".data") = { { .sets = gActor503500PlayerKnockbackAnimationSets }, ACTOR_503500_KNOCKBACK_RESTORE_SET, ANIMATION_BLEND_INTERPOLATE, ACTOR_503500_KNOCKBACK_BLEND_FRAMES, ANIMATION_WORLD_COLLISION_ENABLE };
 
-RECT D_actor_503500_8017155C = { 0, 261, 256, 1 };
+const GameActorButtonPressHold gActor503500PlayerKnockbackHoldRequest SECTION(".data") = { .pressCount = 0 };
 
-SVECTOR D_actor_503500_80171564[5] = {
+RECT gActor503500ArmDeathVramRowSourceRect = { 0, 261, 256, 1 };
+
+SVECTOR gActor503500ArmDeathSmokeOffsets[5] = {
     { 0, 0, 0, 0 },
     { 0, -500, 500, 0 },
     { 0, -1000, 0, 0 },
@@ -1222,20 +1222,30 @@ SVECTOR D_actor_503500_80171564[5] = {
     { -500, 0, 0, 0 },
 };
 
-SVECTOR D_actor_503500_8017158C = { -1000, 0, 0, 0 };
+SVECTOR gActor503500ArmDeathFallPuffOffsetSide0 = { -1000, 0, 0, 0 };
 
-SVECTOR D_actor_503500_80171594 = { 1000, 0, 0, 0 };
+SVECTOR gActor503500ArmDeathFallPuffOffsetSide1 = { 1000, 0, 0, 0 };
 
-PadScriptCmd D_actor_503500_8017159C[2] = {
-    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 1) },
+enum {
+    ACTOR_503500_KNOCKBACK_PAD_HOLD_SEGMENT   = 0,
+    ACTOR_503500_KNOCKBACK_PAD_FULL_SEGMENT   = 1,
+    ACTOR_503500_KNOCKBACK_PAD_SEGMENT_FRAMES = 8,
+    ACTOR_503500_KNOCKBACK_PAD_FULL_INTENSITY = 255,
+};
+
+const PadScriptCmd gActor503500KnockbackPadScriptCommands[] SECTION(".data") = {
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, ACTOR_503500_KNOCKBACK_PAD_HOLD_SEGMENT), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, ACTOR_503500_KNOCKBACK_PAD_FULL_SEGMENT) },
     { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) }
 };
 
-PadScriptVibrationSegment D_actor_503500_801715A4[2] = { { 0, 0, 8, 0 }, { 255, 255, 8, 1 } };
+const PadScriptVibrationSegment gActor503500KnockbackPadScriptSegments[] SECTION(".data") = {
+    { 0, 0, ACTOR_503500_KNOCKBACK_PAD_SEGMENT_FRAMES, 0 },
+    { ACTOR_503500_KNOCKBACK_PAD_FULL_INTENSITY, ACTOR_503500_KNOCKBACK_PAD_FULL_INTENSITY, ACTOR_503500_KNOCKBACK_PAD_SEGMENT_FRAMES, 1 },
+};
 
-SVECTOR D_actor_503500_801715AC = { 0 };
+const SVECTOR gActor503500BallisticShotBodyOffset SECTION(".data") = { 0 };
 
-SVECTOR D_actor_503500_801715B4 = { 0 };
+const SVECTOR gActor503500LingeringShotBodyOffset SECTION(".data") = { 0 };
 
 enum {
     ACTOR_503500_LINGERING_SHOT_ORB_FRAME_LIMIT        = 180,
@@ -1247,18 +1257,22 @@ const s32 gActor503500LingeringShotFrameLimits[ACTOR_503500_LINGERING_SHOT_KIND_
     ACTOR_503500_LINGERING_SHOT_PROJECTILE_FRAME_LIMIT,
 };
 
-SVECTOR D_actor_503500_801715C4 = { 0 };
+/// Pink-flash capsule body's origin in attack-root local game units.
+static SVECTOR _gActor503500PinkFlashAttackBodyOffset = { 0 };
 
 /// Unrotated far endpoint of the pink-flash capsule, in attack-root local game units.
 ///
 /// Initialization copies it; the sweep rotates it about Y into capsule end 0.
 static SVECTOR _gActor503500PinkFlashAttackFarEnd = { 0, 2000, 6000, 0 };
 
-SVECTOR D_actor_503500_801715D4 = { 0 };
+/// Yellow-flash attack sphere's center in player-root local game units.
+static SVECTOR _gActor503500YellowFlashAttackSphereOffset = { 0 };
 
-SVECTOR D_actor_503500_801715DC = { 0 };
+/// Orange-flash capsule body's origin in attack-root local game units.
+static SVECTOR _gActor503500OrangeFlashAttackBodyOffset = { 0 };
 
-SVECTOR D_actor_503500_801715E4 = { 0, 500, 6000, 0 };
+/// Orange-flash capsule end 0 in attack-root local game units; end 1 is the origin.
+static SVECTOR _gActor503500OrangeFlashAttackFarEnd = { 0, 500, 6000, 0 };
 
 static TmdBone _gActor503500Actor361100Model06038Skeleton[19] = {
 #include "assets/actor_361100_model_06038_skeleton.inc"
@@ -1357,7 +1371,13 @@ enum { ACTOR_503500_TENTACLE_TASK_PRIORITY = 192 };
 
 TaskDesc gActor503500TentacleTaskDesc = { { { TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER, ACTOR_503500_TENTACLE_TASK_PRIORITY } }, _actor503500TentacleTask, { .model = &_gActor503500Actor361100Model06038 } };
 
-TaskMessageEntry D_actor_503500_80176530[5] = {
+/// Scripted tentacle messages for animation, placement, model draw mode and commands.
+///
+/// Four ID/callback entries followed by TASK_MESSAGE_TABLE_END; unknown IDs
+/// return zero. The tentacle borrows this table and its overlay's callback code
+/// for its lifetime. Each callback accepts Task*, ID and two word-sized payloads
+/// interpreted by that ID; typed payload pointers retain the message ABI.
+static const TaskMessageEntry _gActor503500TentacleMessageHandlers[] SECTION(".data") = {
     { ACTOR_MESSAGE_PLAY_ANIMATION, _actorMotionPlayAnim19 },
     { ACTOR_MESSAGE_PLACE, _actorMsgPlaceEuler },
     { ACTOR_MESSAGE_SET_MODEL_DRAW, _actor503500SetTentacleDrawMode },
@@ -1382,9 +1402,9 @@ static inline void _actor503500PinkFlashAttackLinkCapsule(_Actor503500PinkFlashA
 
     work->body.coord           = coord;
     work->body.context.capsule = capsule;
-    work->body.pos.vx          = D_actor_503500_801715C4.vx;
-    work->body.pos.vy          = D_actor_503500_801715C4.vy;
-    work->body.pos.vz          = D_actor_503500_801715C4.vz;
+    work->body.pos.vx          = _gActor503500PinkFlashAttackBodyOffset.vx;
+    work->body.pos.vy          = _gActor503500PinkFlashAttackBodyOffset.vy;
+    work->body.pos.vz          = _gActor503500PinkFlashAttackBodyOffset.vz;
     work->body.key             = damagePackAttackKey(gActor503500FlashAttacks[ACTOR_503500_FLASH_ATTACK_PINK], 0);
     work->body.flags           = WORLD_COLLISION_BODY_CAPSULE;
     work->body.radius          = 0;
@@ -1632,12 +1652,14 @@ void actor503500PinkFlashAttackTask(Task* task)
 {
     TaskFuncTable3 handlers;
 
-    handlers = D_actor_503500_801321F4;
+    handlers = _gActor503500PinkFlashAttackStateHandlers;
     handlers.funcs[task->state](task);
 }
 
-/// `Task::state` handlers `actor503500YellowFlashAttackTask` dispatches through.
-static const TaskFuncTable3 D_actor_503500_80132218 = {
+/// Yellow-flash task handlers for states 0 initialize, 1 update and 2 exit.
+///
+/// Copied by value before unchecked state dispatch; every slot takes a live Task*.
+static const TaskFuncTable3 _gActor503500YellowFlashAttackStateHandlers = {
     {
         _actor503500YellowFlashAttackInit,
         _actor503500YellowFlashAttackUpdate,
@@ -1656,9 +1678,9 @@ static inline void _actor503500YellowFlashAttackLinkSphere(_Actor503500YellowFla
     };
     work->body.coord            = (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords;
     work->body.context.contacts = work->contacts;
-    work->body.pos.vx           = D_actor_503500_801715D4.vx;
-    work->body.pos.vy           = D_actor_503500_801715D4.vy;
-    work->body.pos.vz           = D_actor_503500_801715D4.vz;
+    work->body.pos.vx           = _gActor503500YellowFlashAttackSphereOffset.vx;
+    work->body.pos.vy           = _gActor503500YellowFlashAttackSphereOffset.vy;
+    work->body.pos.vz           = _gActor503500YellowFlashAttackSphereOffset.vz;
     work->body.key              = damagePackAttackKey(gActor503500FlashAttacks[ACTOR_503500_FLASH_ATTACK_YELLOW], 0);
     work->body.radius           = ACTOR_503500_YELLOW_FLASH_ATTACK_RADIUS;
     work->body.flags            = WORLD_COLLISION_BODY_SPHERE;
@@ -1832,12 +1854,14 @@ void actor503500YellowFlashAttackTask(Task* task)
 {
     TaskFuncTable3 handlers;
 
-    handlers = D_actor_503500_80132218;
+    handlers = _gActor503500YellowFlashAttackStateHandlers;
     handlers.funcs[task->state](task);
 }
 
-/// `Task::state` handlers `actor503500OrangeFlashAttackTask` dispatches through.
-static const TaskFuncTable3 D_actor_503500_80132224 = {
+/// Orange-flash task handlers for states 0 initialize, 1 update and 2 exit.
+///
+/// Copied by value before unchecked state dispatch; every slot takes a live Task*.
+static const TaskFuncTable3 _gActor503500OrangeFlashAttackStateHandlers = {
     {
         _actor503500OrangeFlashAttackInit,
         _actor503500OrangeFlashAttackUpdate,
@@ -1863,9 +1887,9 @@ static inline void _actor503500OrangeFlashAttackLinkCapsule(_Actor503500OrangeFl
 
     work->body.coord           = coord;
     work->body.context.capsule = capsule;
-    work->body.pos.vx          = D_actor_503500_801715DC.vx;
-    work->body.pos.vy          = D_actor_503500_801715DC.vy;
-    work->body.pos.vz          = D_actor_503500_801715DC.vz;
+    work->body.pos.vx          = _gActor503500OrangeFlashAttackBodyOffset.vx;
+    work->body.pos.vy          = _gActor503500OrangeFlashAttackBodyOffset.vy;
+    work->body.pos.vz          = _gActor503500OrangeFlashAttackBodyOffset.vz;
     work->body.key             = damagePackAttackKey(gActor503500OrangeFlashAttackTables[0], 0);
     work->body.flags           = WORLD_COLLISION_BODY_CAPSULE;
     work->body.radius          = 0;
@@ -1874,9 +1898,9 @@ static inline void _actor503500OrangeFlashAttackLinkCapsule(_Actor503500OrangeFl
     capsule->ends[1].vx = 0;
     capsule->ends[1].vy = 0;
     capsule->ends[1].vz = 0;
-    capsule->ends[0].vx = D_actor_503500_801715E4.vx;
-    capsule->ends[0].vy = D_actor_503500_801715E4.vy;
-    capsule->ends[0].vz = D_actor_503500_801715E4.vz;
+    capsule->ends[0].vx = _gActor503500OrangeFlashAttackFarEnd.vx;
+    capsule->ends[0].vy = _gActor503500OrangeFlashAttackFarEnd.vy;
+    capsule->ends[0].vz = _gActor503500OrangeFlashAttackFarEnd.vz;
     capsule->end1Radius = ACTOR_503500_ORANGE_FLASH_ATTACK_NEAR_RADIUS;
     capsule->end0Radius = ACTOR_503500_ORANGE_FLASH_ATTACK_FAR_RADIUS;
 
@@ -2072,12 +2096,15 @@ void actor503500OrangeFlashAttackTask(Task* task)
 {
     TaskFuncTable3 handlers;
 
-    handlers = D_actor_503500_80132224;
+    handlers = _gActor503500OrangeFlashAttackStateHandlers;
     handlers.funcs[task->state](task);
 }
 
-/// `Task::state` handlers `_actor503500TentacleTask` dispatches through.
-static const TaskFuncTable3 D_actor_503500_80132230 = {
+/// Scripted tentacle handlers for states 0 initialize, 1 update and 2 exit.
+///
+/// Copied by value before unchecked state dispatch while actor control is running;
+/// every slot takes a live Task*, and initialization and exit freeze with updates.
+static const TaskFuncTable3 _gActor503500TentacleStateHandlers = {
     {
         _actor503500InitTentacle,
         _actor503500TickTentacle,
@@ -2235,7 +2262,7 @@ static void _actor503500TentacleTask(Task* task)
 {
     TaskFuncTable3 handlers;
 
-    handlers = D_actor_503500_80132230;
+    handlers = _gActor503500TentacleStateHandlers;
     if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
         handlers.funcs[task->state](task);
     }
@@ -2277,7 +2304,7 @@ static void _actor503500InitTentacle(Task* task)
 
     _actor503500BindTentacleLighting(task);
 
-    task->msgTable     = D_actor_503500_80176530;
+    task->msgTable     = _gActor503500TentacleMessageHandlers;
     task->exitCallback = _actor503500ExitTentacle;
     task->state++;
 }
