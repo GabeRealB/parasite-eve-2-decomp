@@ -619,11 +619,9 @@ extern AnimationBank D_unused_86_8012A0D8;
 
 extern AnimationBank D_mongoose_8012A9C0;
 
-
 extern AnimationBank D_sp12_8012BCC8;
 
 extern AnimationBank D_m4a1_8012B9E4;
-
 
 extern AnimationBank D_mp5a5_8012B3CC;
 

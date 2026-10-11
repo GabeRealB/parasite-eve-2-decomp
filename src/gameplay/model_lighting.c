@@ -2818,7 +2818,7 @@ void gameDebugApplyInputOverride(s32 overrideMode, u16* buttons)
             gGameDebugReplayFramesRemaining = gGameDebugReplayCursor->durationFrames;
         }
         if (*buttons & PAD_BUTTON_START) {
-            *buttons                    = gGameDebugReplayButtons | PAD_BUTTON_START;
+            *buttons                                = gGameDebugReplayButtons | PAD_BUTTON_START;
             gGameMainPersistentState.skipTitleIntro = 1;
         } else {
             *buttons = gGameDebugReplayButtons;
@@ -2834,8 +2834,8 @@ void gameDebugApplyInputOverride(s32 overrideMode, u16* buttons)
             gGameDebugReplayButtons = GAME_DEBUG_REPLAY_BUTTONS_INVALID;
             gGameDebugReplayCursor  = nextRecord;
             if (*nextButtons == GAME_DEBUG_REPLAY_BUTTONS_END) {
-                gGameMainPersistentState.skipTitleIntro        = 0;
-                gGameDebugState->inputOverrideMode = GAME_DEBUG_INPUT_OVERRIDE_NONE;
+                gGameMainPersistentState.skipTitleIntro = 0;
+                gGameDebugState->inputOverrideMode      = GAME_DEBUG_INPUT_OVERRIDE_NONE;
             }
         }
     } else {

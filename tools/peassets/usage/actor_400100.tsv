@@ -67,7 +67,7 @@ spk_127	whole bank (in the garage's file 49, with bs_523)	actor_400100:_actor001
 # Not on the checklist, used through gameplay and not traced to asset keys here:
 #  - EFFECT_DUST_PUFF at the legs/root from animation cues, the lunge, the throw and _actor00100SpawnPartDust, only while gRoomEffectState->roomEffectMode == ROOM_EFFECT_VIEW_ENABLED (actor_00100.c:1560,3418; src/shared/desert_chaser_pursue.inc.c:348; desert_chaser_spawn_aim.inc.c:90).
 #  - EFFECT_CORPSE_BURN twice at death tick 15 (actor_00100.c:2332,2336); EFFECT_CRITICAL_HIT on a critical or doubled hit (actor_00100.c:2191).
-#  - effectSpawnHit(damageGetPlayerAttackEffectId(key)) on every hit, anchored by gDesertChaserHitOffsets (src/shared/desert_chaser_hit_effect.inc.c:76): the effect depends on the player's weapon.
+#  - effectSpawnHit(damageGetPlayerAttackEffectId(key)) on every hit, anchored by _gDesertChaserHitAnchors (src/shared/desert_chaser_hit_effect.inc.c:76): the effect depends on the player's weapon.
 #  - EFFECT_BURST_BODY_PART_BANK10: gameplay's burst-part effect; this package only supplies its four models by overwriting gEffectBurstTaskDescriptors[...].data.model before each spawn.
 #  - SOUND_COMMON(7) at the start of the throw (src/shared/desert_chaser_spawn_aim.inc.c:78): common bank, not traced.
 # Player clips: the six sets 19918/1A0B4/1A8C0/1B0D4/1B388/1B6A8 are Aya's animations, played on the player's rig, though the checklist files them under the actor's one animation key. Sets 21 of 27 are the chaser's.
