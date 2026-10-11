@@ -11,15 +11,18 @@
 #   exits         offsets of the function's `jr $ra` instructions, to record its returns as well.
 #                 `check` lists the ones it finds, ready to paste.
 #   exit_capture  what to record at a return; default ["v0"]
-#   image         the package holding the function, when it is in neither the executable nor gameplay
+#   image         the package holding the function, when it is in neither the executable nor gameplay. An event
+#                 outside the executable is hooked when a handler calls trace.resident(image), not before.
 #   drain         true: the buffer is read each time this event is over (at its returns if `exits` is given,
 #                 otherwise right after its entry). Give it to something rare, such as a file load; without any,
 #                 the log is only written when the buffer fills or the tracer detaches.
 #   render        the name of a renderer (see [renderer]) that writes this event instead of the raw captures
+#   handler       the name of a handler (same files): a function run at the end of this event's hook with the game
+#                 stopped. It is how the tracer learns that an image has been loaded - see "file_loaded" below.
 
 # Where the tool sets everything up. Start the game paused, then the tool: it continues the game to the first of
-# these addresses and only there writes the blob and the hooks - by then memory is initialised. Each later hit
-# applies the hooks again (for a function in an image that is loaded later). Leave it out to set up at once.
+# these addresses and only there writes the blob and the executable's hooks - by then memory is initialised.
+# Leave it out to set up at once.
 install_at = [0x80014300]     # main
 
 # The GDB server to connect to; --host and --port on the command line override these.
@@ -27,7 +30,8 @@ install_at = [0x80014300]     # main
 host = "127.0.0.1"
 port = 2345
 
-# Python files that register renderers (`@renderer("name")`); paths are beside this file or from the repository root.
+# Python files that register renderers (`@renderer("name")`) and handlers (`@handler("name")`); paths are beside
+# this file or from the repository root.
 [renderer]
 files = ["renderers/pe2.py"]
 
@@ -54,6 +58,14 @@ address = 0x8002265C     # fsLoadFile(key, mode, page offset, row offset)
 capture = ["a0:4", "a1", "a2", "a3", "ra"]
 drain = true             # a load pauses the game anyway: the log is brought up to date at each one
 render = "file_load"
+
+[[event]]
+id = 25
+name = "file_loaded"
+address = 0x8001C53C     # in _cdCmdHandleFileLoad, where a finished load is taken off the queue: every chunk of the file is in memory
+capture = []
+handler = "file_loaded"  # tells the tracer which image that makes resident, so its hooks can be written
+render = "file_loaded"
 
 [[event]]
 id = 6

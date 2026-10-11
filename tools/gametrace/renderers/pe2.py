@@ -6,7 +6,7 @@ The layouts are the decomp's own: FsFileLoadKey (src/main/fs_types.h), GameLocat
 """
 import struct
 
-from gametrace import renderer
+from gametrace import handler, renderer
 
 SOUND_TYPES = {0: "common", 1: "footstep", 2: "weapon", 4: "character", 5: "area"}
 
@@ -32,8 +32,39 @@ def file_load(record, trace):
         what = {"file": group * 10000 + hundreds * 100 + index}
     else:                                            # a stage's folder: the folder's id and the file's index in it
         what = {"stage": stage, "folder": group * 100 + hundreds, "index": index}
+    LOADING.clear()
+    LOADING.update(what)
     return {"event": "file_load", **what, "mode": record["a1"], "page_offset": signed(record["a2"]), "row_offset": signed(record["a3"]),
             "from": trace.symbol(record["ra"])}
+
+
+LOADING: dict = {}       # the file whose load was last begun; files load one at a time
+
+
+def packages_of(what: dict) -> list[str]:
+    """The packages a disc file carries, from the extractor's tables: the images that are in memory once it is loaded."""
+    import sys
+    from pathlib import Path
+    sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "peassets"))
+    import asset_data
+    if "file" in what:
+        nodes = [f for f in (asset_data.TREE[0].get("files") or {}).values() if f["id"] == what["file"]]
+    else:
+        folders = [f for f in (asset_data.TREE.get(what["stage"], {}).get("folders") or {}).values() if f["id"] == what["folder"]]
+        nodes = [f for folder in folders for f in (folder.get("files") or {}).values() if f["id"] == what["index"]]
+    return [name for node in nodes for name in node["chunks"].values() if asset_data.ASSETS.get(name, {}).get("type") == "pe2pkg"]
+
+
+@handler("file_loaded")
+def file_loaded(record, trace):
+    """The file whose load began last is in memory, every chunk of it: its packages are resident from here."""
+    for package in packages_of(LOADING):
+        trace.resident(package)
+
+
+@renderer("file_loaded")
+def file_loaded_line(record, trace):
+    return {"event": "file_loaded", **LOADING, "packages": packages_of(LOADING)}
 
 
 @renderer("sound_request")

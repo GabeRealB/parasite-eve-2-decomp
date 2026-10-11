@@ -38,10 +38,15 @@ cannot land inside another's record.
 
 The tool expects to be started with the game paused, before it has run. It continues the game itself up to the
 first `install_at` address - a function by which memory is set up, such as the program's `main` - and only there
-writes the blob and the hooks. Each later hit of an `install_at` address applies the hooks again, which is how a
-function in an image loaded later gets its hook; so does every read of the buffer. A hook is written only where
-the instructions it replaces are in memory as the image has them, so an address shared by several overlays is only
-ever hooked under the right one. An instruction a hook displaces must be free to move: `check` refuses a branch
+writes the blob and the hooks of the executable's events.
+
+An event in an image that is loaded later (`image = "..."`; by default gameplay for an address above the
+executable) gets its hooks when the tracer is told the image is in memory, and it does not work that out by itself:
+an event with `handler = "name"` runs a python function at the end of its hook, with the game stopped, and that
+function calls `trace.resident(image)` (see `handler`). Put it on the game's own "this file has finished loading"
+point. `--resident IMAGE` and the `resident` command say the same by hand. A hook is still only written where
+the instructions it replaces are in memory as the image has them. An event's address may be any instruction, not
+only a function's first. An instruction a hook displaces must be free to move: `check` refuses a branch
 or a jump there (see `movable`).
 
 Where the emulator publishes the console's memory as a shared mapping and the tool runs on the same machine, the
@@ -190,6 +195,27 @@ def renderer(name: str):
     return register
 
 
+HANDLERS: dict[str, object] = {}
+
+
+def handler(name: str):
+    """Register a function as the handler `name`. An event asks for it with `handler = "name"`.
+
+    Where a renderer says how an event is written, a handler acts on it: the game is stopped at the end of the
+    event's hook until the handler has returned. It gets the same `record` and `trace` as a renderer, and `trace`
+    then also offers
+
+        trace.resident("gameplay")     the image is in memory, whole, from now: write the hooks of its events
+        trace.read(address, length)    the console's memory as it is at this moment
+
+    The tracer does not work out by itself when an image is loaded: a handler on the game's own "this file has
+    finished loading" point tells it. What a handler returns is ignored."""
+    def register(function):
+        HANDLERS[name] = function
+        return function
+    return register
+
+
 def load_renderers(cfg: dict, config_path: Path) -> None:
     import importlib.util
     sys.modules.setdefault("gametrace", sys.modules[__name__])       # so a renderer file can `from gametrace import renderer`
@@ -204,6 +230,9 @@ def load_renderers(cfg: dict, config_path: Path) -> None:
     missing = sorted({e["render"] for e in cfg.get("event", []) if e.get("render") and e["render"] not in RENDERERS})
     if missing:
         raise SystemExit(f"no renderer named {', '.join(missing)}; the renderer files register: {', '.join(sorted(RENDERERS)) or 'none'}")
+    missing = sorted({e["handler"] for e in cfg.get("event", []) if e.get("handler") and e["handler"] not in HANDLERS})
+    if missing:
+        raise SystemExit(f"no handler named {', '.join(missing)}; the renderer files register: {', '.join(sorted(HANDLERS)) or 'none'}")
 
 
 def record_size(captures: list[dict]) -> int:
@@ -587,25 +616,6 @@ def image_words(address: int, count: int, image: str | None) -> tuple[int, ...] 
     return within(pkg.read_bytes(), load) if pkg.is_file() else None
 
 
-def image_tail(image: str) -> tuple[int, bytes] | None:
-    """(address, bytes) of the last 16 bytes of a package that are not all zero - what is in memory only once the
-    whole package has been inflated. None for the executable, which is in memory from the start."""
-    if not image:
-        return None
-    if image == "gameplay":
-        load = 0x80093800
-    else:
-        sys.path.insert(0, str(ROOT / "tools" / "peassets"))
-        import asset_residency
-        load = asset_residency.package_loads(tomllib.loads((ROOT / "configs/USA/overlays.toml").read_text())).get(image)
-    pkg = ROOT / "assets" / "USA" / "pe2pkg" / f"{image}.pe2pkg"
-    if load is None or not pkg.is_file():
-        return None
-    data = pkg.read_bytes()
-    end = len(data.rstrip(b"\x00")) & ~3
-    return (load + end - 16, data[end - 16:end]) if end >= 16 else None
-
-
 def sites_of(cfg: dict) -> dict:
     """Every place a hook goes and the two instructions there now: (id, "enter") and (id, "exit", offset)."""
     out, problems = {}, []
@@ -621,14 +631,17 @@ def sites_of(cfg: dict) -> dict:
         out[(event["id"], "enter")] = words
         # A hook replaces two instructions with a jump and a no-op. Code that branches to the second of them would
         # land on the no-op and skip the instruction that used to be there.
-        body = image_words(event["address"], 0x1000, image) or image_words(event["address"], 0x100, image) or ()
+        # An event's address need not be a function's first instruction, so the code before it is looked at too.
+        back = next((b for b in (0x2000, 0x800, 0x100, 0) if image_words(event["address"] - b, 1, image)), 0)
+        first = event["address"] - back
+        body = image_words(first, (back + 0x1000) // 4, image) or image_words(first, (back + 0x100) // 4, image) or ()
         ends = {event["address"] + 4} | {event["address"] + o + 4 for o in event["exits"]}
         for n, word in enumerate(body):
             op, rt = word >> 26, (word >> 16) & 0x1F
             if op in (4, 5, 6, 7) or (op == 1 and rt in (0, 1, 16, 17)):
-                target = event["address"] + 4 * n + 4 + ((word & 0xFFFF) - (0x10000 if word & 0x8000 else 0)) * 4
+                target = first + 4 * n + 4 + ((word & 0xFFFF) - (0x10000 if word & 0x8000 else 0)) * 4
                 if target in ends:
-                    problems.append(f"{name}: a branch at +{4 * n:#x} goes to {target:#010x}, the second instruction of a hook; that place cannot be hooked")
+                    problems.append(f"{name}: a branch at {first + 4 * n:#010x} goes to {target:#010x}, the second instruction of a hook; that place cannot be hooked")
         for offset in event["exits"]:
             pair = image_words(event["address"] + offset, 2, image)
             if pair is None or pair[0] != JR_RA:
@@ -931,9 +944,8 @@ class Session:
         self.layout = {}                              # a record's first word -> (event, phase, captures)
         self.hooks = []                               # (address, the two words there in the image, the stub)
         self.by_image: dict[str, list] = {}           # the same, by the image the address is in ("" = the executable)
-        self.known: dict[str, int] = {}               # image -> how many of its hooks were in place at the last full look
-        self.settled: set[str] = set()                # images that are never loaded again
-        self.tails: dict[str, tuple[int, bytes]] = {} # image -> where its last bytes go and what they are
+        self.deferred: list = []                      # handler calls waiting for the game to be stopped
+        self.halted = True                            # whether the game is stopped right now
         for event in self.events:
             self.layout[header(event, 0, event["_enter"])] = (event, "enter", event["_enter"])
             self.hooks.append((event["address"], self.sites[(event["id"], "enter")], self.symbols[f"gt_enter_{event['id']}"]))
@@ -943,10 +955,6 @@ class Session:
                 self.layout[header(event, 1, event["_exit"])] = (event, "exit", event["_exit"])
                 self.hooks.append((event["address"] + offset, self.sites[(event["id"], "exit", offset)], self.symbols[f"gt_exit_{event['id']}_{k}"]))
                 self.by_image[image].append(self.hooks[-1])
-        for image in self.by_image:
-            tail = image_tail(image)
-            if tail is not None:
-                self.tails[image] = tail
 
     def emit(self, record: dict) -> None:
         self.out.write(json.dumps(record) + "\n")
@@ -997,6 +1005,7 @@ class Session:
   n  name NAME        rename the current session
      drop             mark the current session as dropped (its records stay, a marker follows them) and stop the
                       game until `session NAME` begins the next one; plain `session` begins one of the same name
+     resident IMAGE   the image is in memory now: write the hooks of its events (a handler normally says so)
   d  drain            read the buffer into the log now
      status           where things stand
   q  quit             read the buffer, take the hooks out, let the game run, and leave
@@ -1029,13 +1038,18 @@ class Session:
             count = self.drop()
             self.awaiting, self.paused = self.session_name, True
             say(f"session {self.session_number} ({self.session_name}) marked dropped, {count} records kept; the game is stopped until `session NAME`, or `session` for the same name")
+        elif word == "resident" and rest:
+            if rest not in self.by_image:
+                say(f"no event is in an image called {rest}; the images are: {', '.join(n or 'the executable' for n in self.by_image)}")
+            elif self.ready:
+                self.resident(rest)
         elif word in ("drain", "d"):
             before = self.count
             if self.ready:
                 self.drain(reset=True)
             say(f"{self.count - before} records read")
         elif word == "status":
-            placed = self.install(everything=True) if self.ready else 0
+            placed = sum(struct.unpack("<2I", self.gdb.read(address, 8)) == (0x08000000 | ((stub >> 2) & 0x03FFFFFF), 0) for address, _o, stub in self.hooks) if self.ready else 0
             say(f"session {self.session_number}: {self.session_name} - {self.count - self.session_count} records in it, {self.count} in all; "
                 f"{placed} of {len(self.hooks)} hooks in place; {'stopped until the next session begins' if self.awaiting else 'paused' if self.paused else 'running'}" + ("" if self.ready else "; waiting for an install_at address"))
         elif word in ("quit", "q", "detach", "exit"):
@@ -1054,8 +1068,20 @@ class Session:
         self.out.write(text.rstrip("\n") + "\n")
         self.count += 1
 
+    def act(self, function, record: dict) -> None:
+        try:
+            function(record, self)
+        except Exception as error:  # noqa: BLE001 - a handler's mistake must not end the trace
+            print(f"handler for {record.get('name')}: {type(error).__name__}: {error}", file=sys.stderr)
+
     def log(self, event: dict, record: dict) -> None:
         """One captured event into the log: through its renderer, or as it is - registers in hex, memory as hex bytes."""
+        act = HANDLERS.get(event.get("handler") or "")
+        if act is not None:
+            if self.halted:
+                self.act(act, dict(record))
+            else:                                     # read while the game runs: it stops at the end of this event's hook in a moment
+                self.deferred.append((act, dict(record)))
         render = RENDERERS.get(event.get("render") or "")
         if render is not None:
             try:
@@ -1134,14 +1160,20 @@ class Session:
         # them, and otherwise straight after its entry record. With shared memory the buffer is read as the game
         # runs, and none of these stops is needed.
         self.drains = set()
-        for event in self.events if self.shared is None else ():
-            if event["drain"]:
+        for event in self.events:
+            if event.get("handler") or (event["drain"] and self.shared is None):
                 ends = [f"gt_exit_{event['id']}_{k}_done" for k in range(len(event["exits"]))] or [f"gt_enter_{event['id']}_done"]
                 self.drains |= {self.symbols[name] for name in ends}
         for address in self.drains:
             self.gdb.breakpoint(address)
         self.ready = True
-        print(f"{self.install()} of {len(self.hooks)} hooks in place; the rest are written when their code is loaded", file=sys.stderr)
+        placed = self.install("")
+        for image in self.cfg.get("resident", []):
+            placed += self.install(image)
+        others = sorted(name for name in self.by_image if name and name not in self.cfg.get("resident", []))
+        print(f"{placed} of {len(self.hooks)} hooks in place" + (f"; those in {', '.join(others)} are written when a handler says the image is resident" if others else ""), file=sys.stderr)
+        if others and not any(e.get("handler") for e in self.events):
+            print("no event has a handler, so nothing will say so: name the images already in memory with --resident, or use the `resident` command", file=sys.stderr)
 
     def refuse_mirror(self, base: int) -> None:
         """Stop before writing the blob into memory that is really somewhere else.
@@ -1166,49 +1198,32 @@ class Session:
                 break
             lower -= step
 
-    def install(self, everything: bool = False) -> int:
-        """Write each hook whose place holds the image's own instructions (a load may have put them back).
-        Returns how many hooks are in place.
-
-        A load replaces an image whole, so its hooks go together: one look at the first hook of each image says
-        whether that image's hooks are still there, and only an image that has lost them is gone through. Every
-        look is a round trip to the server, and this runs each time the buffer is read. The executable is never
-        loaded again; its hooks are looked at once."""
+    def install(self, image: str | None = None) -> int:
+        """Write the hooks of one image - all images when None - wherever the image's own instructions are in
+        memory. Returns how many of those hooks are in place. The game must be stopped."""
         placed = 0
-        for image, hooks in self.by_image.items():
-            if not everything and image in self.settled:
-                placed += len(hooks)
+        for name, hooks in self.by_image.items():
+            if image is not None and name != image:
                 continue
-            address, original, stub = hooks[0]
-            jump = (0x08000000 | ((stub >> 2) & 0x03FFFFFF), 0)
-            if not everything:
-                first = struct.unpack("<2I", self.peek(address, 8))
-                if first == jump and self.known.get(image):
-                    placed += self.known[image]       # still hooked
-                    continue
-                if first != jump and first != tuple(original):
-                    self.known[image] = 0             # something else is loaded there, or nothing yet
-                    continue
-            # A package is inflated in place, and the inflater copies from what it has already written: a hook put
-            # into a half-loaded image could be copied into the code after it. So an image is hooked only once its
-            # last bytes are there.
-            tail = self.tails.get(image)
-            if tail is not None and self.gdb.read(tail[0], len(tail[1])) != tail[1]:
-                self.known[image] = 0
-                continue
-            count = 0
             for address, original, stub in hooks:
                 jump = (0x08000000 | ((stub >> 2) & 0x03FFFFFF), 0)
                 now = struct.unpack("<2I", self.gdb.read(address, 8))
                 if now == tuple(original):
                     self.gdb.write(address, struct.pack("<2I", *jump))
                     now = jump
-                count += now == jump
-            self.known[image] = count if count == len(hooks) else 0     # an image only partly hooked is gone through again
-            if image == "" and count == len(hooks):
-                self.settled.add(image)
-            placed += count
+                placed += now == jump
         return placed
+
+    def resident(self, image: str) -> None:
+        """An image is in memory, whole: write the hooks of the events in it. For a handler, with the game stopped."""
+        if image not in self.by_image:
+            return                                    # no event is in it
+        placed = self.install(image)
+        print(f"{image}: {placed} of {len(self.by_image[image])} hooks in place", file=sys.stderr)
+
+    def read(self, address: int, length: int) -> bytes:
+        """The console's memory, for a handler."""
+        return self.peek(address, length)
 
     def remove(self) -> None:
         """Put back what the hooks replaced, where the hooks are still in place."""
@@ -1283,32 +1298,23 @@ class Session:
 
     def stopped(self) -> int:
         """The game has stopped: do what the place it stopped at asks for. Returns that place."""
+        self.halted = True
         pc = self.gdb.registers()[PC]
         if pc in self.installers:
             if not self.ready:
                 self.setup()
             else:
-                self.install()
+                self.install("")
         elif self.ready and pc == self.symbols["gt_full"]:
             self.drain(reset=False)
             self.read_at = self.symbols["gt_buffer"]  # the game's next instructions start the buffer again
-            self.install()
         elif self.ready and pc in self.drains:
-            self.drain(reset=True)
-            self.install()
+            self.drain(reset=self.shared is None)
+        if self.ready:
+            waiting, self.deferred = self.deferred, []
+            for function, record in waiting:
+                self.act(function, record)
         return pc
-
-    def lost_hooks(self) -> bool:
-        """Whether some image is in memory, whole, with a hook missing: a look that does not stop the game."""
-        for image, hooks in self.by_image.items():
-            if image in self.settled:
-                continue
-            tail = self.tails.get(image)
-            if tail is not None and self.peek(tail[0], len(tail[1])) != tail[1]:
-                continue                              # not loaded, or still being loaded
-            if any(struct.unpack("<2I", self.peek(address, 8)) == tuple(original) for address, original, _stub in hooks):
-                return True
-        return False
 
     def run(self, first_session: str | None = None) -> None:
         self.session(first_session)
@@ -1329,6 +1335,7 @@ class Session:
         print("type `help` for the commands; Ctrl-C detaches", file=sys.stderr)
         while True:
             if not self.running and not self.paused:
+                self.halted = False
                 self.running = self.gdb.go(pc)
                 if not self.running:
                     pc = self.stopped()
@@ -1341,11 +1348,6 @@ class Session:
                     continue
                 if what == "tick":                    # shared memory: bring the log up to date as the game runs
                     self.drain(reset=False)
-                    if self.lost_hooks():             # putting a hook back is a write: that needs the game stopped
-                        self.gdb.interrupt()
-                        self.running = False
-                        pc = self.stopped()
-                        self.install()
                     continue
             elif keyboard:
                 select.select(keyboard, [], [])
@@ -1375,6 +1377,7 @@ def main() -> int:
     ap.add_argument("--host", help="the GDB server's address, instead of the config's gdb.host")
     ap.add_argument("--port", type=int, help="the GDB server's port, instead of the config's gdb.port")
     ap.add_argument("--session", help="the name of the first session (a marker line in the log); more are begun with the `session` command")
+    ap.add_argument("--resident", action="append", metavar="IMAGE", help="an image already in memory at setup, whose hooks are written with the executable's (repeatable); with --now, usually gameplay")
     ap.add_argument("--now", action="store_true", help="set up at once in the game as it stands, ignoring install_at: for attaching to a game already running")
     args = ap.parse_args()
     cfg = load(args.config)
@@ -1385,6 +1388,7 @@ def main() -> int:
         cfg["gdb"]["port"] = args.port
     if args.now:
         cfg["install_at"] = []
+    cfg["resident"] = args.resident or []
     names = Names()
     if args.command in ("check", "blob"):
         for address in cfg["install_at"]:
