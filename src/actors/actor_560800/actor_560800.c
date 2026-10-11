@@ -296,33 +296,15 @@ enum {
     ACTOR_560800_CHAIN_BREAK            = 4,
 };
 
-extern ActorTransform D_actor_560800_80175314[];
-extern ActorTransform D_actor_560800_801753D4[];
-extern ActorTransform D_actor_560800_80175494[];
-extern ActorTransform D_actor_560800_80175554[];
-extern ActorTransform D_actor_560800_80175614[];
-
-extern ActorAnimChainLink D_actor_560800_8016EBE8[];
-
-/// Elapsed frames, one per phase id 1..3, written by
-/// `_actor560800FinishScenePhase` as the frames since that phase's timestamp.
-/// The counter has wrapped if the timestamp is ahead of `gDisplayState.frameCount`,
-/// which is the one case the elapsed count is short by one.
-extern s32 D_actor_560800_80175790;
-extern s32 D_actor_560800_80175794;
+static s32 _gActor560800FirstPhaseElapsedTicks;
+static s32 _gActor560800SecondPhaseElapsedTicks;
 static s32 _gActor560800ThirdPhaseElapsedTicks;
 
-/// Phase timestamps, one per phase id 1..3: `_actor560800StartScenePhasePlayback`
-/// stamps `gDisplayState.frameCount` (the frame counter) into the slot its argument
-/// selects, and `_actor560800FinishScenePhase` reads it back per phase and stores
-/// the elapsed frames in the matching slot of `D_actor_560800_80175790`.
-extern s32 D_actor_560800_8017579C;
-extern s32 D_actor_560800_801757A0;
+static s32 _gActor560800FirstPhaseStartTick;
+static s32 _gActor560800SecondPhaseStartTick;
 static s32 _gActor560800ThirdPhaseStartTick;
 
-/// Seed `_actor560800CutsceneTask` loads into `gRandomLcgState` before it hands
-/// control back to gameplay.
-extern u32 D_actor_560800_801757A8;
+static u32 _gActor560800SavedRandomState;
 
 /// Pair of blocks `_actor560800CutsceneTask` passes to `evsStartScriptWithSkip`.
 extern EvsCommand D_actor_560800_8016F5E0[];
@@ -335,17 +317,8 @@ static void _actor560800HandleEveCue(Task* task);
 static void _actor560800HandleNo9Cue(Task* task);
 static void _actor560800HandleKyleCue(Task* task);
 
-extern TaskDesc           D_actor_560800_8016EA28[];
-extern TaskDesc           D_actor_560800_8017575C[];
-extern AnimationSet*      D_actor_560800_8016EA74[];
-extern AnimationSet*      D_actor_560800_8016EB04[];
-extern AnimationSet*      D_actor_560800_8016EB30[];
-extern ActorAnimChainLink D_actor_560800_8016EC1C[36];
-extern ActorAnimChainLink D_actor_560800_8016ECAC[6];
 extern ActorAnimChainLink D_actor_560800_8016ECC4[46];
 // Message-table callbacks use the argument views required by this TU.
-
-extern s32 D_actor_560800_8016F57C[];
 
 static s32 _actor560800TickCastAnimationChain(Task* task);
 
@@ -2784,9 +2757,14 @@ static AnimationSet _gActor560800Animation3CBE0 = {
     { NULL, _gActor560800Animation3CBE0Bank1, NULL, NULL, _gActor560800Animation3CBE0Bank4, NULL, NULL, NULL },
 };
 
-TaskDesc D_actor_560800_8016EA28[2] = {
-    { { { TASK_BODY_NONE, 192 } }, _actor560800StartMovieTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, _actor560800MovieTask, { .value = 0 } },
+enum {
+    ACTOR_560800_MOVIE_TASK_PLAYBACK = 1,
+    ACTOR_560800_SCENE_TASK_PRIORITY = 192,
+};
+
+TaskDesc gActor560800MovieTaskDescriptors[2] = {
+    { { { TASK_BODY_NONE, ACTOR_560800_SCENE_TASK_PRIORITY } }, _actor560800StartMovieTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, ACTOR_560800_SCENE_TASK_PRIORITY } }, _actor560800MovieTask, { .value = 0 } },
 };
 
 /// Scene animation bank borrowed by Aya's player task.
@@ -2810,7 +2788,13 @@ static AnimationSet* _gActor560800PlayerAnimationSets[13] = {
     &_gActor560800Animation29B98,
 };
 
-AnimationSet* D_actor_560800_8016EA74[36] = {
+/// Clip bank borrowed by Kyle's twenty-slot scene rig.
+///
+/// Clip ids 0..35 index both this bank and `_gActor560800KyleAnimationChain`;
+/// 23 and 24 are absent and are never requested. Non-root slots 1..19 borrow
+/// the selected clip's tracks. Keep the bank and clip data loaded through
+/// body teardown.
+static AnimationSet* _gActor560800KyleAnimationSets[36] = {
     &_gActor560800Animation1EE00,
     &_gActor560800Animation1F0F8,
     &_gActor560800Animation1F2E4,
@@ -2849,7 +2833,12 @@ AnimationSet* D_actor_560800_8016EA74[36] = {
     &_gActor560800Animation26260,
 };
 
-AnimationSet* D_actor_560800_8016EB04[11] = {
+/// Clip bank shared by Eve's masked and replacement scene bodies.
+///
+/// The nineteen-slot rigs borrow clips 0..5; slots 6..10 are NULL and are
+/// never requested. The six live ids also index `_gActor560800EveAnimationChain`.
+/// Keep the bank and clip data loaded through teardown of both bodies.
+static AnimationSet* _gActor560800EveAnimationSets[11] = {
     &_gActor560800Animation2A7D0,
     &_gActor560800Animation2AABC,
     &_gActor560800Animation2AC68,
@@ -2863,7 +2852,12 @@ AnimationSet* D_actor_560800_8016EB04[11] = {
     NULL,
 };
 
-AnimationSet* D_actor_560800_8016EB30[46] = {
+/// Clip bank borrowed by No. 9's nineteen-slot scene rig.
+///
+/// Live clip ids are 0..41 and 45; 42..44 are absent and never requested.
+/// Ids also index the body's 46-link chain. Non-root slots 1..18 borrow the
+/// selected clip's tracks until body teardown.
+static AnimationSet* _gActor560800No9AnimationSets[46] = {
     &_gActor560800Animation2B9B4,
     &_gActor560800Animation2BD38,
     &_gActor560800Animation2BF38,
@@ -2912,68 +2906,95 @@ AnimationSet* D_actor_560800_8016EB30[46] = {
     &_gActor560800Animation3CBE0,
 };
 
-ActorAnimChainLink D_actor_560800_8016EBE8[13] = {
-    { 0, -1 },
-    { 0, 10 },
-    { 0, -1 },
-    { 0, -1 },
-    { 0, -1 },
-    { 0, -1 },
-    { 0, -1 },
-    { 0, -1 },
-    { 0, -1 },
-    { 0, -1 },
-    { 90, -1 },
-    { 0, -1 },
-    { 65535, -1 },
+/// Link modes and terminal successor for this scene's clip chains.
+///
+/// Zero hold waits for playback to settle. Maximum hold is 65535 updates for
+/// unsigned cast counters; Aya's signed counter cannot reach that value.
+enum {
+    ACTOR_560800_ANIMATION_CHAIN_WAIT_CLIP_END = 0,
+    ACTOR_560800_ANIMATION_CHAIN_MAX_HOLD      = 0xFFFF,
+    ACTOR_560800_ANIMATION_CHAIN_END           = -1,
 };
 
-ActorAnimChainLink D_actor_560800_8016EC1C[36] = {
-    { 65535, -1 },
-    { 0, 2 },
-    { 0, -1 },
-    { 0, 4 },
-    { 0, -1 },
+/// Successor and hold rules indexed by Aya's scene clip id.
+///
+/// The scene requests populated ids 0..5, 10 and 12; clip 1 advances to 10,
+/// which holds for 90 updates. Every other link is terminal. Zero hold waits
+/// for player playback to end; clip 12's maximum hold cannot be reached by
+/// the signed-halfword counter. Weapon-bank requests leave this scene id intact.
+static ActorAnimChainLink _gActor560800PlayerAnimationChain[ARRAY_SIZE(_gActor560800PlayerAnimationSets)] = {
+    { ACTOR_560800_ANIMATION_CHAIN_WAIT_CLIP_END, ACTOR_560800_ANIMATION_CHAIN_END },
+    { ACTOR_560800_ANIMATION_CHAIN_WAIT_CLIP_END, 10 },
+    { ACTOR_560800_ANIMATION_CHAIN_WAIT_CLIP_END, ACTOR_560800_ANIMATION_CHAIN_END },
+    { ACTOR_560800_ANIMATION_CHAIN_WAIT_CLIP_END, ACTOR_560800_ANIMATION_CHAIN_END },
+    { ACTOR_560800_ANIMATION_CHAIN_WAIT_CLIP_END, ACTOR_560800_ANIMATION_CHAIN_END },
+    { ACTOR_560800_ANIMATION_CHAIN_WAIT_CLIP_END, ACTOR_560800_ANIMATION_CHAIN_END },
+    { ACTOR_560800_ANIMATION_CHAIN_WAIT_CLIP_END, ACTOR_560800_ANIMATION_CHAIN_END },
+    { ACTOR_560800_ANIMATION_CHAIN_WAIT_CLIP_END, ACTOR_560800_ANIMATION_CHAIN_END },
+    { ACTOR_560800_ANIMATION_CHAIN_WAIT_CLIP_END, ACTOR_560800_ANIMATION_CHAIN_END },
+    { ACTOR_560800_ANIMATION_CHAIN_WAIT_CLIP_END, ACTOR_560800_ANIMATION_CHAIN_END },
+    { 90, ACTOR_560800_ANIMATION_CHAIN_END },
+    { ACTOR_560800_ANIMATION_CHAIN_WAIT_CLIP_END, ACTOR_560800_ANIMATION_CHAIN_END },
+    { ACTOR_560800_ANIMATION_CHAIN_MAX_HOLD, ACTOR_560800_ANIMATION_CHAIN_END },
+};
+
+/// Successor and hold rules indexed by Kyle's scene clip id.
+///
+/// One link per bank slot (0..35); absent clips 23/24 are never selected.
+/// Zero hold waits for the non-root tracks to settle; timed holds count visible,
+/// unpaused body updates. Links blend to their successor over ten frames,
+/// retaining the body's recorded rate. A negative successor is terminal.
+static ActorAnimChainLink _gActor560800KyleAnimationChain[ARRAY_SIZE(_gActor560800KyleAnimationSets)] = {
+    { ACTOR_560800_ANIMATION_CHAIN_MAX_HOLD, ACTOR_560800_ANIMATION_CHAIN_END },
+    { ACTOR_560800_ANIMATION_CHAIN_WAIT_CLIP_END, 2 },
+    { ACTOR_560800_ANIMATION_CHAIN_WAIT_CLIP_END, ACTOR_560800_ANIMATION_CHAIN_END },
+    { ACTOR_560800_ANIMATION_CHAIN_WAIT_CLIP_END, 4 },
+    { ACTOR_560800_ANIMATION_CHAIN_WAIT_CLIP_END, ACTOR_560800_ANIMATION_CHAIN_END },
     { 100, 6 },
-    { 0, 26 },
-    { 0, -1 },
-    { 65535, -1 },
-    { 0, -1 },
-    { 0, -1 },
-    { 0, -1 },
-    { 0, 13 },
-    { 0, -1 },
-    { 0, -1 },
-    { 0, -1 },
-    { 0, -1 },
-    { 0, -1 },
-    { 0, -1 },
-    { 0, -1 },
-    { 0, -1 },
-    { 0, -1 },
-    { 0, -1 },
-    { 0, -1 },
-    { 0, -1 },
-    { 0, -1 },
-    { 0, -1 },
+    { ACTOR_560800_ANIMATION_CHAIN_WAIT_CLIP_END, 26 },
+    { ACTOR_560800_ANIMATION_CHAIN_WAIT_CLIP_END, ACTOR_560800_ANIMATION_CHAIN_END },
+    { ACTOR_560800_ANIMATION_CHAIN_MAX_HOLD, ACTOR_560800_ANIMATION_CHAIN_END },
+    { ACTOR_560800_ANIMATION_CHAIN_WAIT_CLIP_END, ACTOR_560800_ANIMATION_CHAIN_END },
+    { ACTOR_560800_ANIMATION_CHAIN_WAIT_CLIP_END, ACTOR_560800_ANIMATION_CHAIN_END },
+    { ACTOR_560800_ANIMATION_CHAIN_WAIT_CLIP_END, ACTOR_560800_ANIMATION_CHAIN_END },
+    { ACTOR_560800_ANIMATION_CHAIN_WAIT_CLIP_END, 13 },
+    { ACTOR_560800_ANIMATION_CHAIN_WAIT_CLIP_END, ACTOR_560800_ANIMATION_CHAIN_END },
+    { ACTOR_560800_ANIMATION_CHAIN_WAIT_CLIP_END, ACTOR_560800_ANIMATION_CHAIN_END },
+    { ACTOR_560800_ANIMATION_CHAIN_WAIT_CLIP_END, ACTOR_560800_ANIMATION_CHAIN_END },
+    { ACTOR_560800_ANIMATION_CHAIN_WAIT_CLIP_END, ACTOR_560800_ANIMATION_CHAIN_END },
+    { ACTOR_560800_ANIMATION_CHAIN_WAIT_CLIP_END, ACTOR_560800_ANIMATION_CHAIN_END },
+    { ACTOR_560800_ANIMATION_CHAIN_WAIT_CLIP_END, ACTOR_560800_ANIMATION_CHAIN_END },
+    { ACTOR_560800_ANIMATION_CHAIN_WAIT_CLIP_END, ACTOR_560800_ANIMATION_CHAIN_END },
+    { ACTOR_560800_ANIMATION_CHAIN_WAIT_CLIP_END, ACTOR_560800_ANIMATION_CHAIN_END },
+    { ACTOR_560800_ANIMATION_CHAIN_WAIT_CLIP_END, ACTOR_560800_ANIMATION_CHAIN_END },
+    { ACTOR_560800_ANIMATION_CHAIN_WAIT_CLIP_END, ACTOR_560800_ANIMATION_CHAIN_END },
+    { ACTOR_560800_ANIMATION_CHAIN_WAIT_CLIP_END, ACTOR_560800_ANIMATION_CHAIN_END },
+    { ACTOR_560800_ANIMATION_CHAIN_WAIT_CLIP_END, ACTOR_560800_ANIMATION_CHAIN_END },
+    { ACTOR_560800_ANIMATION_CHAIN_WAIT_CLIP_END, ACTOR_560800_ANIMATION_CHAIN_END },
+    { ACTOR_560800_ANIMATION_CHAIN_WAIT_CLIP_END, ACTOR_560800_ANIMATION_CHAIN_END },
     { 40, 28 },
-    { 0, 26 },
-    { 0, 26 },
-    { 0, -1 },
-    { 0, -1 },
-    { 0, -1 },
-    { 0, 26 },
+    { ACTOR_560800_ANIMATION_CHAIN_WAIT_CLIP_END, 26 },
+    { ACTOR_560800_ANIMATION_CHAIN_WAIT_CLIP_END, 26 },
+    { ACTOR_560800_ANIMATION_CHAIN_WAIT_CLIP_END, ACTOR_560800_ANIMATION_CHAIN_END },
+    { ACTOR_560800_ANIMATION_CHAIN_WAIT_CLIP_END, ACTOR_560800_ANIMATION_CHAIN_END },
+    { ACTOR_560800_ANIMATION_CHAIN_WAIT_CLIP_END, ACTOR_560800_ANIMATION_CHAIN_END },
+    { ACTOR_560800_ANIMATION_CHAIN_WAIT_CLIP_END, 26 },
     { 60, 35 },
-    { 0, 26 },
+    { ACTOR_560800_ANIMATION_CHAIN_WAIT_CLIP_END, 26 },
 };
 
-ActorAnimChainLink D_actor_560800_8016ECAC[6] = {
-    { 0, -1 },
-    { 0, -1 },
-    { 0, -1 },
-    { 0, -1 },
-    { 0, -1 },
-    { 0, -1 },
+/// Terminal links for Eve's six populated scene clips.
+///
+/// Ids 0..5 are reached by body initialization, cues and scripted blends.
+/// Each link waits for the non-root tracks to settle and then reports completion;
+/// none selects another clip. Hidden updates leave playback unchanged.
+static ActorAnimChainLink _gActor560800EveAnimationChain[6] = {
+    { ACTOR_560800_ANIMATION_CHAIN_WAIT_CLIP_END, ACTOR_560800_ANIMATION_CHAIN_END },
+    { ACTOR_560800_ANIMATION_CHAIN_WAIT_CLIP_END, ACTOR_560800_ANIMATION_CHAIN_END },
+    { ACTOR_560800_ANIMATION_CHAIN_WAIT_CLIP_END, ACTOR_560800_ANIMATION_CHAIN_END },
+    { ACTOR_560800_ANIMATION_CHAIN_WAIT_CLIP_END, ACTOR_560800_ANIMATION_CHAIN_END },
+    { ACTOR_560800_ANIMATION_CHAIN_WAIT_CLIP_END, ACTOR_560800_ANIMATION_CHAIN_END },
+    { ACTOR_560800_ANIMATION_CHAIN_WAIT_CLIP_END, ACTOR_560800_ANIMATION_CHAIN_END },
 };
 
 ActorAnimChainLink D_actor_560800_8016ECC4[46] = {
@@ -3316,17 +3337,41 @@ static ActorTransform _gActor560800KyleCut22Placement = { { 6350, 0, 3200, 0 }, 
 /// per turn. The placement message borrows the record only during dispatch.
 static ActorTransform _gActor560800KyleCut25Placement = { { 6350, 0, 3200, 0 }, { 0, 796, 0, 0 } };
 
-ActorTransform D_actor_560800_8016F2BC = { { 8450, 0, 2850, 0 }, { 0, -1024, 0, 0 } };
+/// Root placement for Kyle in scene cut 26.
+///
+/// Position uses whole game units under the view coordinate; yaw uses 4096 units
+/// per turn. The placement message borrows the record only during dispatch.
+static ActorTransform _gActor560800KyleCut26Placement = { { 8450, 0, 2850, 0 }, { 0, -ACTOR_TRANSFORM_ANGLE_TURN / 4, 0, 0 } };
 
-ActorTransform D_actor_560800_8016F2D4 = { 0 };
+/// Hide marker for Kyle in scene cut 27.
+///
+/// Zero position X suppresses placement and hides his body, hands and handgun.
+/// The other components of this record are not consumed.
+static ActorTransform _gActor560800KyleCut27Hidden = { 0 };
 
-ActorTransform D_actor_560800_8016F2EC = { { 8450, 0, 2850, 0 }, { 0, -1024, 0, 0 } };
+/// Root placement for Kyle in scene cuts 28, 30 and 32.
+///
+/// Position uses whole game units under the view coordinate; yaw uses 4096 units
+/// per turn. The placement message borrows the record only during dispatch.
+static ActorTransform _gActor560800KyleCut28Placement = { { 8450, 0, 2850, 0 }, { 0, -ACTOR_TRANSFORM_ANGLE_TURN / 4, 0, 0 } };
 
-ActorTransform D_actor_560800_8016F304 = { 0 };
+/// Hide marker for Kyle in scene cuts 29 and 31.
+///
+/// Zero position X suppresses placement and hides his body, hands and handgun.
+/// The other components of this record are not consumed.
+static ActorTransform _gActor560800KyleCut29Hidden = { 0 };
 
-ActorTransform D_actor_560800_8016F31C = { { 8450, 0, 2850, 0 }, { 0, -512, 0, 0 } };
+/// Root placement for Kyle in scene cut 33.
+///
+/// Position uses whole game units under the view coordinate; yaw uses 4096 units
+/// per turn. The placement message borrows the record only during dispatch.
+static ActorTransform _gActor560800KyleCut33Placement = { { 8450, 0, 2850, 0 }, { 0, -ACTOR_TRANSFORM_ANGLE_TURN / 8, 0, 0 } };
 
-ActorTransform D_actor_560800_8016F334 = { { 10800, 0, 3200, 0 }, { 0, -1024, 0, 0 } };
+/// Starting root placement for Kyle's approach in scene cut 14.
+///
+/// Position uses whole game units under the view coordinate; yaw uses 4096 units
+/// per turn. The placement message borrows the record only during dispatch.
+static ActorTransform _gActor560800KyleCut14Placement = { { 10800, 0, 3200, 0 }, { 0, -ACTOR_TRANSFORM_ANGLE_TURN / 4, 0, 0 } };
 
 /// Messages accepted by the scene bodies and their hand/weapon attachments.
 ///
@@ -3340,7 +3385,14 @@ static TaskMessageEntry _gActor560800CastMessages[2] = {
     { ACTOR_MESSAGE_PLACE, actorMsgPlaceYawPitchRoll },
 };
 
-ActorTransform* D_actor_560800_8016F35C[34] = {
+/// Aya's root placement or hide marker indexed by scene cut.
+///
+/// Cuts 1..33 have non-NULL entries; slot 0 is NULL and must not be used.
+/// Nonzero position X shows and places the actor, while zero X hides it.
+/// Positions use whole game units under the view coordinate; Euler angles use
+/// 4096 units per turn. Entries borrow one record synchronously during dispatch;
+/// the table and records must remain loaded through scene teardown.
+static const ActorTransform* _gActor560800PlayerPlacementsByCut[34] = {
     NULL,
     &_gActor560800PlayerCut1Hidden,
     &_gActor560800PlayerCut2Hidden,
@@ -3377,7 +3429,14 @@ ActorTransform* D_actor_560800_8016F35C[34] = {
     &_gActor560800PlayerCut33Placement,
 };
 
-ActorTransform* D_actor_560800_8016F3E4[34] = {
+/// No. 9's root placement or hide marker indexed by scene cut.
+///
+/// Cuts 1..33 have non-NULL entries; slot 0 is NULL and must not be used.
+/// Nonzero position X shows and places the actor, while zero X hides it.
+/// Positions use whole game units under the view coordinate; Euler angles use
+/// 4096 units per turn. Entries borrow one record synchronously during dispatch;
+/// the table and records must remain loaded through scene teardown.
+static const ActorTransform* _gActor560800No9PlacementsByCut[34] = {
     NULL,
     &_gActor560800No9Cut1Placement,
     &_gActor560800No9Cut2Placement,
@@ -3414,7 +3473,14 @@ ActorTransform* D_actor_560800_8016F3E4[34] = {
     &_gActor560800No9Cut33Hidden,
 };
 
-ActorTransform* D_actor_560800_8016F46C[34] = {
+/// Kyle's root placement or hide marker indexed by scene cut.
+///
+/// Cuts 1..33 have non-NULL entries; slot 0 is NULL and must not be used.
+/// Nonzero position X shows and places the actor, while zero X hides it.
+/// Positions use whole game units under the view coordinate; Euler angles use
+/// 4096 units per turn. Entries borrow one record synchronously during dispatch;
+/// the table and records must remain loaded through scene teardown.
+static const ActorTransform* _gActor560800KylePlacementsByCut[34] = {
     NULL,
     _gActor560800KyleCutPlacements,
     &_gActor560800KyleCutPlacements[1],
@@ -3429,7 +3495,7 @@ ActorTransform* D_actor_560800_8016F46C[34] = {
     &_gActor560800KyleCutPlacements[3],
     &_gActor560800KyleCutPlacements[2],
     _gActor560800KyleCutPlacements,
-    &D_actor_560800_8016F334,
+    &_gActor560800KyleCut14Placement,
     &_gActor560800KyleCut15Placement,
     &_gActor560800KyleCutPlacements[ACTOR_560800_KYLE_APPROACH_PLACEMENT],
     &_gActor560800KyleCut15Placement,
@@ -3441,17 +3507,24 @@ ActorTransform* D_actor_560800_8016F46C[34] = {
     &_gActor560800KyleCutPlacements[1],
     &_gActor560800KyleCut22Placement,
     &_gActor560800KyleCut25Placement,
-    &D_actor_560800_8016F2BC,
-    &D_actor_560800_8016F2D4,
-    &D_actor_560800_8016F2EC,
-    &D_actor_560800_8016F304,
-    &D_actor_560800_8016F2EC,
-    &D_actor_560800_8016F304,
-    &D_actor_560800_8016F2EC,
-    &D_actor_560800_8016F31C,
+    &_gActor560800KyleCut26Placement,
+    &_gActor560800KyleCut27Hidden,
+    &_gActor560800KyleCut28Placement,
+    &_gActor560800KyleCut29Hidden,
+    &_gActor560800KyleCut28Placement,
+    &_gActor560800KyleCut29Hidden,
+    &_gActor560800KyleCut28Placement,
+    &_gActor560800KyleCut33Placement,
 };
 
-ActorTransform* D_actor_560800_8016F4F4[34] = {
+/// Eve's root placement or hide marker indexed by scene cut.
+///
+/// Cuts 1..33 have non-NULL entries; slot 0 is NULL and must not be used.
+/// Nonzero position X shows and places the actor, while zero X hides it.
+/// Positions use whole game units under the view coordinate; Euler angles use
+/// 4096 units per turn. Entries borrow one record synchronously during dispatch;
+/// the table and records must remain loaded through scene teardown.
+static const ActorTransform* _gActor560800EvePlacementsByCut[34] = {
     NULL,
     &_gActor560800EveCut1Placement,
     &_gActor560800EveCut2Placement,
@@ -3488,39 +3561,62 @@ ActorTransform* D_actor_560800_8016F4F4[34] = {
     &_gActor560800EveCut33Placement,
 };
 
-s32 D_actor_560800_8016F57C[19] = {
-    0,
-    0x404D0001,
-    0x404D0002,
-    0x404D0003,
-    0x404D0004,
-    0x404D0005,
-    0x404D0006,
-    0x404D0007,
-    0x404D0008,
-    0x404D0009,
-    0x404D000A,
-    0x404D000B,
-    0x404D000C,
-    0x404D000D,
-    0x404D000E,
-    0x404D000F,
-    0x404D0010,
-    0x404D0011,
-    0x404D0012,
+/// Bank 0x404D, instance zero, in the resident sound-script request encoding.
+enum { ACTOR_560800_SOUND_SCRIPT_BANK = 0x404D0000 };
+
+/// Scene sound-cue ids mapped to complete resident script requests.
+///
+/// Script callbacks use cues 1..18, selecting entries 1..18 of bank 0x404D
+/// with instance tag zero. Slot 0 is a no-op request. The bank must remain
+/// loaded through queued starts and resulting playback.
+static s32 _gActor560800SoundScriptsByCue[19] = {
+    SOUND_SCRIPT_REQUEST_NO_OP,
+    ACTOR_560800_SOUND_SCRIPT_BANK | 1,
+    ACTOR_560800_SOUND_SCRIPT_BANK | 2,
+    ACTOR_560800_SOUND_SCRIPT_BANK | 3,
+    ACTOR_560800_SOUND_SCRIPT_BANK | 4,
+    ACTOR_560800_SOUND_SCRIPT_BANK | 5,
+    ACTOR_560800_SOUND_SCRIPT_BANK | 6,
+    ACTOR_560800_SOUND_SCRIPT_BANK | 7,
+    ACTOR_560800_SOUND_SCRIPT_BANK | 8,
+    ACTOR_560800_SOUND_SCRIPT_BANK | 9,
+    ACTOR_560800_SOUND_SCRIPT_BANK | 10,
+    ACTOR_560800_SOUND_SCRIPT_BANK | 11,
+    ACTOR_560800_SOUND_SCRIPT_BANK | 12,
+    ACTOR_560800_SOUND_SCRIPT_BANK | 13,
+    ACTOR_560800_SOUND_SCRIPT_BANK | 14,
+    ACTOR_560800_SOUND_SCRIPT_BANK | 15,
+    ACTOR_560800_SOUND_SCRIPT_BANK | 16,
+    ACTOR_560800_SOUND_SCRIPT_BANK | 17,
+    ACTOR_560800_SOUND_SCRIPT_BANK | 18,
 };
 
-EvsSceneKey D_actor_560800_8016F5C8 = { 6, 8, 11 };
+/// Scene/audio stream selection for the first cutscene phase.
+///
+/// Group 6, stream 8, qualifier 11; the second stream qualifier is zero.
+/// The event script and CAP controller borrow this key while selecting playback;
+/// keep the package loaded through phase completion.
+static EvsSceneKey _gActor560800FirstPhaseSceneKey = { .group = 6, .streamId = 8, .subId = 11 };
 
-EvsSceneKey D_actor_560800_8016F5D0 = { 6, 8, 21 };
+/// Scene/audio stream selection for the second cutscene phase.
+///
+/// Group 6, stream 8, qualifier 21; the second stream qualifier is zero.
+/// The event script and CAP controller borrow this key while selecting playback;
+/// keep the package loaded through phase completion.
+static EvsSceneKey _gActor560800SecondPhaseSceneKey = { .group = 6, .streamId = 8, .subId = 21 };
 
-EvsSceneKey D_actor_560800_8016F5D8 = { 6, 8, 31 };
+/// Scene/audio stream selection for the third cutscene phase.
+///
+/// Group 6, stream 8, qualifier 31; the second stream qualifier is zero.
+/// The event script and CAP controller borrow this key while selecting playback;
+/// keep the package loaded through phase completion.
+static EvsSceneKey _gActor560800ThirdPhaseSceneKey = { .group = 6, .streamId = 8, .subId = 31 };
 
 EvsCommand D_actor_560800_8016F5E0[364] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor560800SendChainCommand }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor560800PlaceCastForCut }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SELECT_SCENE, { .sceneKey = &D_actor_560800_8016F5C8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SELECT_SCENE, { .sceneKey = &_gActor560800FirstPhaseSceneKey }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor560800StageSceneAudioStart }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -3669,7 +3765,7 @@ EvsCommand D_actor_560800_8016F5E0[364] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor560800PlaceCastForCut }, { .value = 14 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor560800PostCastCue }, { .value = 14 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SELECT_SCENE, { .sceneKey = &D_actor_560800_8016F5D0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SELECT_SCENE, { .sceneKey = &_gActor560800SecondPhaseSceneKey }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor560800StageSceneAudioStart }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor560800SpawnFadeIn }, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -3750,7 +3846,7 @@ EvsCommand D_actor_560800_8016F5E0[364] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor560800ApplyShotDamage }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor560800SpawnFadeIn }, { .value = 5 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SELECT_SCENE, { .sceneKey = &D_actor_560800_8016F5D8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SELECT_SCENE, { .sceneKey = &_gActor560800ThirdPhaseSceneKey }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor560800StageSceneAudioStart }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = SetDispMask }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -4215,7 +4311,12 @@ static AnimationSet* _gActor560800ChainAnimationSets[9] = {
     &_gActor560800Animation434A0,
 };
 
-ActorTransform D_actor_560800_80175314[8] = {
+/// First arrangement of the eight chain roots under the group coordinate.
+///
+/// Indexed by chain number minus one (0..7). Positions use whole game units;
+/// Euler angles use 4096 units per turn, with a quarter-turn added to root X
+/// when bends reset. The extension state also uses these Y values as its limits.
+static ActorTransform _gActor560800ChainFirstPlacements[8] = {
     { { 400, -2800, 900, 0 }, { 1360, 2048, 64, 0 } },
     { { 300, -2800, 800, 0 }, { 1430, 2048, 48, 0 } },
     { { 200, -2800, 800, 0 }, { 1070, 2048, 32, 0 } },
@@ -4226,7 +4327,12 @@ ActorTransform D_actor_560800_80175314[8] = {
     { { -300, -2800, 900, 0 }, { 1200, 2048, -48, 0 } },
 };
 
-ActorTransform D_actor_560800_801753D4[8] = {
+/// Retracted arrangement of the eight chain roots while targeting Eve.
+///
+/// Indexed by chain number minus one (0..7), in the group coordinate's space.
+/// Positions use whole game units; Euler angles use 4096 units per turn,
+/// with a quarter-turn added to root X when bends reset.
+static ActorTransform _gActor560800ChainSecondPlacements[8] = {
     { { 300, -3700, 900, 0 }, { 1280, 2048, 0, 0 } },
     { { 200, -3700, 800, 0 }, { 1280, 2048, 0, 0 } },
     { { 100, -3700, 800, 0 }, { 1280, 2048, 0, 0 } },
@@ -4237,7 +4343,13 @@ ActorTransform D_actor_560800_801753D4[8] = {
     { { -400, -3700, 900, 0 }, { 1280, 2048, 0, 0 } },
 };
 
-ActorTransform D_actor_560800_80175494[8] = {
+/// Third arrangement of the eight chain roots under the group coordinate.
+///
+/// Indexed by chain number minus one (0..7). Positions use whole game units;
+/// Euler angles use 4096 units per turn, with a quarter-turn added to root X
+/// when bends reset. Selecting this arrangement also sets each chain's
+/// otherwise unread pulse-direction flag.
+static ActorTransform _gActor560800ChainThirdPlacements[8] = {
     { { 250, -2800, 900, 0 }, { 1280, 2048, -80, 0 } },
     { { 200, -2800, 900, 0 }, { 1280, 2048, 64, 0 } },
     { { 150, -2800, 800, 0 }, { 1280, 2048, 48, 0 } },
@@ -4248,7 +4360,12 @@ ActorTransform D_actor_560800_80175494[8] = {
     { { -100, -2800, 900, 0 }, { 1280, 2048, -32, 0 } },
 };
 
-ActorTransform D_actor_560800_80175554[8] = {
+/// Offsets for the eight chain roots detached into view space for clip playback.
+///
+/// Indexed by chain number minus one (0..7). Each root is reparented to the view
+/// coordinate and takes the incoming placement plus the whole-unit table offset;
+/// rotations in these records are ignored and the root matrix starts at identity.
+static ActorTransform _gActor560800ChainDetachedPlacements[8] = {
     { { 0, -2710, 370, 0 }, { 0, 0, 0, 0 } },
     { { 0, -2710, 370, 0 }, { 0, 0, 0, 0 } },
     { { 0, -2710, 370, 0 }, { 0, 0, 0, 0 } },
@@ -4259,7 +4376,13 @@ ActorTransform D_actor_560800_80175554[8] = {
     { { 0, -2710, 370, 0 }, { 0, 0, 0, 0 } },
 };
 
-ActorTransform D_actor_560800_80175614[8] = {
+/// Chain-root arrangement parented to the carrier model.
+///
+/// The eight records use whole game units in carrier space and Euler angles
+/// with 4096 units per turn; root X receives an additional quarter-turn.
+/// Only records 0..3 are applied: chains 5..8 are removed before placement,
+/// leaving the last four records unused.
+static ActorTransform _gActor560800ChainCarrierPlacements[8] = {
     { { 0, -1100, -200, 0 }, { 1080, 2048, 0, 0 } },
     { { 0, -1100, -200, 0 }, { 968, 2048, 0, 0 } },
     { { 0, -1100, -200, 0 }, { 1137, 2048, 0, 0 } },
@@ -4320,11 +4443,21 @@ static TaskMessageEntry _gActor560800CarrierMessages[3] = {
     { ACTOR_COMMAND_MESSAGE_APPLY, _actor560800ApplyCarrierCommand },
 };
 
-TaskDesc D_actor_560800_8017575C[4] = {
-    { { { TASK_BODY_COORD, 192 } }, _actor560800ChainGroupTask, { .value = 0 } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _actor560800IntactChainTask, { .model = &_gActor560800Model40064 } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _actor560800CarrierTask, { .model = &_gActor560800Model41AC4 } },
-    { { { TASK_BODY_TMD, 192 } }, _actor560800FallingChainTask, { .model = &_gActor560800Model40E78 } },
+/// Task recipes for the cutscene's chain group, chains and carrier.
+///
+/// Four entries without a terminator, at priority 192: 0 coordinate-body group,
+/// 1 intact chain, 2 carrier, 3 falling chain copy. The group and carrier borrow
+/// the cutscene Task* in spawnArg2. Chains borrow their coordinate-body group
+/// in spawnArg2 and use spawnArg1 = 1..8 as their number. A falling copy receives
+/// the carrier's whole-unit Y in spawnArg1; its model matrices are copied from
+/// the intact chain immediately after spawning. All props join the cutscene
+/// teardown tree. Intact chains and the carrier skip automatic model buffering;
+/// falling copies use it.
+static TaskDesc _gActor560800PropTaskDescriptors[4] = {
+    { { { TASK_BODY_COORD, ACTOR_560800_SCENE_TASK_PRIORITY } }, _actor560800ChainGroupTask, { .value = 0 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_560800_SCENE_TASK_PRIORITY } }, _actor560800IntactChainTask, { .model = &_gActor560800Model40064 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_560800_SCENE_TASK_PRIORITY } }, _actor560800CarrierTask, { .model = &_gActor560800Model41AC4 } },
+    { { { TASK_BODY_TMD, ACTOR_560800_SCENE_TASK_PRIORITY } }, _actor560800FallingChainTask, { .model = &_gActor560800Model40E78 } },
 };
 
 /// Borrowed singleton task controlling the scene and owning its cast/props.
@@ -4334,9 +4467,19 @@ TaskDesc D_actor_560800_8017575C[4] = {
 /// clear it, so it may be used only while the controller and its work are live.
 static Task* _gActor560800CutsceneTask = NULL;
 
-s32 D_actor_560800_80175790;
+/// Recorded display ticks elapsed in the first streamed scene phase.
+///
+/// Written at phase completion from its saved start timestamp; no code reads
+/// this retained timing result. Signed subtraction preserves a result one tick
+/// shorter when unsigned comparison detects the display counter wrapping.
+static s32 _gActor560800FirstPhaseElapsedTicks;
 
-s32 D_actor_560800_80175794;
+/// Recorded display ticks elapsed in the second streamed scene phase.
+///
+/// Written at phase completion from its saved start timestamp; no code reads
+/// this retained timing result. Signed subtraction preserves a result one tick
+/// shorter when unsigned comparison detects the display counter wrapping.
+static s32 _gActor560800SecondPhaseElapsedTicks;
 
 /// Display ticks elapsed in the third streamed scene phase.
 ///
@@ -4345,9 +4488,19 @@ s32 D_actor_560800_80175794;
 /// wrapped past that start, the retained result is one tick shorter.
 static s32 _gActor560800ThirdPhaseElapsedTicks;
 
-s32 D_actor_560800_8017579C;
+/// Display-counter timestamp recorded before first-phase playback is queued.
+///
+/// A signed word copied from `gDisplayState.frameCount`, used at phase completion
+/// to record elapsed display ticks. It must be recorded before that subtraction;
+/// wrap detection compares its bit pattern as unsigned.
+static s32 _gActor560800FirstPhaseStartTick;
 
-s32 D_actor_560800_801757A0;
+/// Display-counter timestamp recorded before second-phase playback is queued.
+///
+/// A signed word copied from `gDisplayState.frameCount`, used at phase completion
+/// to record elapsed display ticks. It must be recorded before that subtraction;
+/// wrap detection compares its bit pattern as unsigned.
+static s32 _gActor560800SecondPhaseStartTick;
 
 /// Display-counter timestamp at the start of the third streamed scene phase.
 ///
@@ -4356,7 +4509,13 @@ s32 D_actor_560800_801757A0;
 /// as unsigned for wrap detection; it is not a playback-frame index.
 static s32 _gActor560800ThirdPhaseStartTick;
 
-u32 D_actor_560800_801757A8;
+/// Random-generator snapshot restored when the cutscene event script ends.
+///
+/// Successful chain-group initialization saves `gRandomLcgState` after the eight
+/// chain spawn attempts, then selects zero for the scripted sequence. The snapshot
+/// remains valid until event completion, including completion of the skip script,
+/// when gameplay resumes from that saved state.
+static u32 _gActor560800SavedRandomState;
 
 /// Borrowed singleton carrier task whose root parents the detached chains.
 ///
@@ -4365,14 +4524,6 @@ u32 D_actor_560800_801757A8;
 /// cutscene teardown tree. Teardown does not clear it; users require a live
 /// initialized carrier and must stop before scene teardown.
 static Task* _gActor560800CarrierTask;
-
-extern ActorTransform* D_actor_560800_8016F35C[];
-
-extern ActorTransform* D_actor_560800_8016F3E4[];
-
-extern ActorTransform* D_actor_560800_8016F46C[];
-
-extern ActorTransform* D_actor_560800_8016F4F4[];
 
 extern TaskMessageEntry D_actor_560800_801756D4[3];
 
@@ -4545,7 +4696,7 @@ static s32 _actor560800AdvancePlayerAnimChain(Task* task)
     if (work->player == NULL) {
         return 1;
     }
-    chain = D_actor_560800_8016EBE8;
+    chain = _gActor560800PlayerAnimationChain;
     link  = &chain[work->playerAnimId];
     // Timed links can finish before playback; untimed links wait for the player.
     if (link->holdFrames != 0) {
@@ -4562,7 +4713,7 @@ static s32 _actor560800AdvancePlayerAnimChain(Task* task)
         if (taskMessageDispatch(work->player, ANIMATION_MESSAGE_IS_PLAYING, 0, 0) != 0) {
             return 0;
         }
-        finishedLink = &D_actor_560800_8016EBE8[work->playerAnimId];
+        finishedLink = &_gActor560800PlayerAnimationChain[work->playerAnimId];
         if (finishedLink->nextAnimId < 0) {
             return 1;
         }
@@ -4762,10 +4913,10 @@ static void _actor560800EveBodyTask(Task* task)
             work                    = task->work;
             {
                 TmdObject* lightingModel = task->extra.tmd;
-                animationInitContext(&work->rig.anim, D_actor_560800_8016EB04, lightingModel, work->rig.poses, work->rig.slots);
+                animationInitContext(&work->rig.anim, _gActor560800EveAnimationSets, lightingModel, work->rig.poses, work->rig.slots);
             }
             work->slotCount = ACTOR_560800_EVE_NO9_RIG_SLOTS;
-            work->animChain = D_actor_560800_8016ECAC;
+            work->animChain = _gActor560800EveAnimationChain;
             if (task->spawnArg1.value == 0) {
                 _actor560800InitializeBodyAnimation(task, 0);
             } else {
@@ -4906,10 +5057,10 @@ static void _actor560800KyleBodyTask(Task* task)
         work = task->work;
         {
             TmdObject* lightingModel = task->extra.tmd;
-            animationInitContext(&work->rig.anim, D_actor_560800_8016EA74, lightingModel, work->rig.poses, work->rig.slots);
+            animationInitContext(&work->rig.anim, _gActor560800KyleAnimationSets, lightingModel, work->rig.poses, work->rig.slots);
         }
         work->slotCount = ACTOR_560800_KYLE_RIG_SLOTS;
-        work->animChain = D_actor_560800_8016EC1C;
+        work->animChain = _gActor560800KyleAnimationChain;
         _actor560800InitializeBodyAnimation(task, 0);
         task->state += 1;
     }
@@ -4962,7 +5113,7 @@ static void _actor560800No9BodyTask(Task* task)
         work = task->work;
         {
             TmdObject* lightingModel = task->extra.tmd;
-            animationInitContext(&work->rig.anim, D_actor_560800_8016EB30, lightingModel, work->rig.poses, work->rig.slots);
+            animationInitContext(&work->rig.anim, _gActor560800No9AnimationSets, lightingModel, work->rig.poses, work->rig.slots);
         }
         work->slotCount = ACTOR_560800_EVE_NO9_RIG_SLOTS;
         work->animChain = D_actor_560800_8016ECC4;
@@ -5144,14 +5295,14 @@ static void _actor560800PlaceCastForCut(s32 cutId)
 {
     enum { ACTOR_560800_PLACEMENT_HIDDEN_X = 0 };
     _Actor560800CutsceneWork* work;
-    ActorTransform*           placement;
+    const ActorTransform*     placement;
 
     work = _gActor560800CutsceneTask->work;
     if (work->keepEffects == 0) {
         roomEffectRequestCancelAll();
     }
     if (work->player != NULL) {
-        placement = D_actor_560800_8016F35C[cutId];
+        placement = _gActor560800PlayerPlacementsByCut[cutId];
         if (placement->pos.vx != ACTOR_560800_PLACEMENT_HIDDEN_X) {
             _actor560800ShowCastMember(ACTOR_560800_CAST_PLAYER);
             TASK_MESSAGE_DISPATCH_POINTER(work->player, GAME_ACTOR_MESSAGE_PLACE, placement, 0);
@@ -5160,7 +5311,7 @@ static void _actor560800PlaceCastForCut(s32 cutId)
         }
     }
     if (work->kyle != NULL) {
-        placement = D_actor_560800_8016F46C[cutId];
+        placement = _gActor560800KylePlacementsByCut[cutId];
         if (placement->pos.vx != ACTOR_560800_PLACEMENT_HIDDEN_X) {
             _actor560800ShowCastMember(ACTOR_560800_CAST_KYLE);
             TASK_MESSAGE_DISPATCH_POINTER(work->kyle, ACTOR_MESSAGE_PLACE, placement, 0);
@@ -5169,7 +5320,7 @@ static void _actor560800PlaceCastForCut(s32 cutId)
         }
     }
     if (work->no9 != NULL) {
-        placement = D_actor_560800_8016F3E4[cutId];
+        placement = _gActor560800No9PlacementsByCut[cutId];
         if (placement->pos.vx != ACTOR_560800_PLACEMENT_HIDDEN_X) {
             _actor560800ShowCastMember(ACTOR_560800_CAST_NO9);
             TASK_MESSAGE_DISPATCH_POINTER(work->no9, ACTOR_MESSAGE_PLACE, placement, 0);
@@ -5178,7 +5329,7 @@ static void _actor560800PlaceCastForCut(s32 cutId)
         }
     }
     if (work->eve != NULL) {
-        placement = D_actor_560800_8016F4F4[cutId];
+        placement = _gActor560800EvePlacementsByCut[cutId];
         if (placement->pos.vx != ACTOR_560800_PLACEMENT_HIDDEN_X) {
             _actor560800ShowCastMember(ACTOR_560800_CAST_EVE);
             TASK_MESSAGE_DISPATCH_POINTER(work->eve, ACTOR_MESSAGE_PLACE, placement, 0);
@@ -5957,9 +6108,9 @@ static void _actor560800FinishScenePhase(s32 phaseId)
         }                                                             \
     }
     if (phaseId == ACTOR_560800_SCENE_PHASE_FIRST) {
-        ACTOR_560800_RECORD_PHASE_TICKS(D_actor_560800_80175790, D_actor_560800_8017579C);
+        ACTOR_560800_RECORD_PHASE_TICKS(_gActor560800FirstPhaseElapsedTicks, _gActor560800FirstPhaseStartTick);
     } else if (phaseId == ACTOR_560800_SCENE_PHASE_SECOND) {
-        ACTOR_560800_RECORD_PHASE_TICKS(D_actor_560800_80175794, D_actor_560800_801757A0);
+        ACTOR_560800_RECORD_PHASE_TICKS(_gActor560800SecondPhaseElapsedTicks, _gActor560800SecondPhaseStartTick);
     } else if (phaseId == ACTOR_560800_SCENE_PHASE_THIRD) {
         ACTOR_560800_RECORD_PHASE_TICKS(_gActor560800ThirdPhaseElapsedTicks, _gActor560800ThirdPhaseStartTick);
     }
@@ -6003,8 +6154,8 @@ static void _actor560800InitializeCutscene(Task* task)
     no9                       = taskSpawnFromTable(gActor560800CutsceneTaskDescriptors, ACTOR_560800_TASK_NO9, 0, 0);
     work->no9                 = no9;
     work->no9Gunblade         = taskSpawnFromTable(gActor560800CutsceneTaskDescriptors, ACTOR_560800_TASK_NO9_GUNBLADE, ACTOR_560800_ATTACHMENT_GUNBLADE, no9);
-    work->chainGroup          = taskSpawnFromTable(D_actor_560800_8017575C, ACTOR_560800_PROP_TASK_CHAIN_GROUP, 0, task);
-    work->carrierModel        = taskSpawnFromTable(D_actor_560800_8017575C, ACTOR_560800_PROP_TASK_CARRIER, 0, task);
+    work->chainGroup          = taskSpawnFromTable(_gActor560800PropTaskDescriptors, ACTOR_560800_PROP_TASK_CHAIN_GROUP, 0, task);
+    work->carrierModel        = taskSpawnFromTable(_gActor560800PropTaskDescriptors, ACTOR_560800_PROP_TASK_CARRIER, 0, task);
     ambientColor.vx           = ACTOR_560800_SCENE_AMBIENT_LEVEL;
     ambientColor.vy           = ACTOR_560800_SCENE_AMBIENT_LEVEL;
     ambientColor.vz           = ACTOR_560800_SCENE_AMBIENT_LEVEL;
@@ -6016,7 +6167,7 @@ static void _actor560800InitializeCutscene(Task* task)
 /// Waits for attachment-wheel and display transitions before allocating cast
 /// work and selecting CAP file 0 at VRAM texture origin (384,0). Starts the event
 /// script with its skip sequence while retaining HUD state. When the event ends,
-/// restores the saved random seed, cancels effects, restarts equipped-weapon
+/// restores the saved random state, cancels effects, restarts equipped-weapon
 /// clip 1 with world collision disabled, and schedules scene-tree teardown.
 /// Actor cues run every active update; scene cue 1 replaces Eve after killing
 /// her old body. The player and loaded CAP/animation resources remain borrowed.
@@ -6053,8 +6204,8 @@ static void _actor560800CutsceneTask(Task* task)
             break;
         case ACTOR_560800_SCENE_RUN_SCRIPT:
             if (gGameSession->eventState == 0) {
-                // Restore the saved seed and weapon pose before scheduling teardown.
-                gRandomLcgState = D_actor_560800_801757A8;
+                // Restore the saved random state and weapon pose before scheduling teardown.
+                gRandomLcgState = _gActor560800SavedRandomState;
                 roomEffectRequestCancelAll();
                 weaponId                     = gPlayerStatus.weapon;
                 request.source.index         = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == ACTOR_560800_PRIMARY_CHARACTER) ? weaponId + ACTOR_560800_PRIMARY_WEAPON_BANK_BASE : weaponId + ACTOR_560800_ALTERNATE_WEAPON_BANK_BASE;
@@ -6094,7 +6245,7 @@ static void _actor560800CutsceneTask(Task* task)
 /// The display handoff also occurs when the spawn fails.
 static void _actor560800StartMovieTask(Task* task)
 {
-    displaySpawnTaskFromTable(D_actor_560800_8016EA28, 1, task->spawnArg1.value, 0);
+    displaySpawnTaskFromTable(gActor560800MovieTaskDescriptors, ACTOR_560800_MOVIE_TASK_PLAYBACK, task->spawnArg1.value, 0);
     gDisplayState.control.flags.flipMode = DISPLAY_FLIP_TASK_ONLY;
     viewQueueCurrentCameraAndPackets();
     taskKill(task);
@@ -6395,7 +6546,7 @@ static void _actor560800BlendKyleAnimation(u16 animationId)
 /// failure.
 static void _actor560800StartSoundCue(s32 cueId)
 {
-    sndEvtRequestScriptStart(D_actor_560800_8016F57C[cueId], 0, 0);
+    sndEvtRequestScriptStart(_gActor560800SoundScriptsByCue[cueId], 0, 0);
 }
 
 /// Replaces Eve's texture and body while scene display presentation is held.
@@ -6553,9 +6704,9 @@ static void _actor560800StageSceneAudioStart(void)
 static void _actor560800StartScenePhasePlayback(s32 phaseId)
 {
     if (phaseId == 1) {
-        D_actor_560800_8017579C = gDisplayState.frameCount;
+        _gActor560800FirstPhaseStartTick = gDisplayState.frameCount;
     } else if (phaseId == 2) {
-        D_actor_560800_801757A0 = gDisplayState.frameCount;
+        _gActor560800SecondPhaseStartTick = gDisplayState.frameCount;
     } else if (phaseId == 3) {
         _gActor560800ThirdPhaseStartTick = gDisplayState.frameCount;
     }
@@ -6990,7 +7141,7 @@ static void _actor560800IntactChainTask(Task* task)
         }
         case ACTOR_560800_CHAIN_BREAK:
             // Transfer the local pose before the falling copy's first update.
-            fallingTask = taskSpawnFromTable(D_actor_560800_8017575C, ACTOR_560800_CHAIN_FALLING_TASK,
+            fallingTask = taskSpawnFromTable(_gActor560800PropTaskDescriptors, ACTOR_560800_CHAIN_FALLING_TASK,
                                              (s32)_gActor560800CarrierTask->extra.tmd->coords->coord.t[1],
                                              task->spawnArg2.pointer);
             if (fallingTask == NULL) {
@@ -7177,18 +7328,18 @@ static void _actor560800PlaceChainGroup(Task* task, s32 messageId, const ActorTr
     pulseGrowing = 0;
     switch (work->placeMode) {
         case ACTOR_560800_CHAIN_PLACE_FIRST:
-            poses = D_actor_560800_80175314;
+            poses = _gActor560800ChainFirstPlacements;
             break;
         case ACTOR_560800_CHAIN_PLACE_SECOND:
-            poses = D_actor_560800_801753D4;
+            poses = _gActor560800ChainSecondPlacements;
             break;
         case ACTOR_560800_CHAIN_PLACE_THIRD:
-            poses        = D_actor_560800_80175494;
+            poses        = _gActor560800ChainThirdPlacements;
             pulseGrowing = 1;
             break;
         // Detached chains keep their arrangement independent of the group root.
         case ACTOR_560800_CHAIN_PLACE_DETACHED:
-            poses      = D_actor_560800_80175554;
+            poses      = _gActor560800ChainDetachedPlacements;
             chainIndex = 0;
             do {
                 if (work->chains[chainIndex & 0xFFFF] != NULL) {
@@ -7217,7 +7368,7 @@ static void _actor560800PlaceChainGroup(Task* task, s32 messageId, const ActorTr
                 }
                 chainIndex++;
             } while ((u32)(chainIndex & 0xFFFF) < ARRAY_SIZE(work->chains));
-            poses      = D_actor_560800_80175614;
+            poses      = _gActor560800ChainCarrierPlacements;
             chainIndex = 0;
             do {
                 if (work->chains[chainIndex & 0xFFFF] != NULL) {
@@ -7366,7 +7517,7 @@ static void _actor560800ApplyChainGroupCommand(Task* task, s32 messageId, const 
 /// Spawns and controls the scene's eight chains and their shared body target.
 ///
 /// spawnArg2 borrows the live cutscene task. Owns zeroed group work and child
-/// chains until cutscene teardown; saves the random seed before selecting zero.
+/// chains until cutscene teardown; saves the random state before selecting zero.
 /// State 1 follows the target, 2 raises each surviving chain to its first-pose
 /// Y limit, and 3 bursts and releases the first surviving chain, then returns
 /// to state 1. Individual spawn failures remain null entries.
@@ -7422,11 +7573,11 @@ static void _actor560800ChainGroupTask(Task* task)
                 taskReparent(spawnWork->cutscene, task);
                 do {
                     spawnWork->chains[spawnIndex] =
-                        taskSpawnFromTable(D_actor_560800_8017575C, ACTOR_560800_PROP_TASK_CHAIN, spawnIndex + 1, task);
+                        taskSpawnFromTable(_gActor560800PropTaskDescriptors, ACTOR_560800_PROP_TASK_CHAIN, spawnIndex + 1, task);
                     spawnIndex++;
                 } while (spawnIndex < ARRAY_SIZE(spawnWork->chains));
-                D_actor_560800_801757A8 = gRandomLcgState;
-                gRandomLcgState         = 0;
+                _gActor560800SavedRandomState = gRandomLcgState;
+                gRandomLcgState               = 0;
             }
             task->state++;
             break;
@@ -7441,8 +7592,8 @@ static void _actor560800ChainGroupTask(Task* task)
                     chainWork               = chainTask->work;
                     chainRoot               = chainTask->extra.tmd->coords;
                     chainWork->position.vy += D_actor_560800_801756EC[extendIndex];
-                    if (D_actor_560800_80175314[extendIndex].pos.vy < chainWork->position.vy) {
-                        chainWork->position.vy = D_actor_560800_80175314[extendIndex].pos.vy;
+                    if (_gActor560800ChainFirstPlacements[extendIndex].pos.vy < chainWork->position.vy) {
+                        chainWork->position.vy = _gActor560800ChainFirstPlacements[extendIndex].pos.vy;
                     }
                     chainRoot->composeStamp = GRAPHICS_COORD_DIRTY;
                 }

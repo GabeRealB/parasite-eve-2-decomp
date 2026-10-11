@@ -25,6 +25,20 @@ enum { ACTOR_560800_TASK_CUTSCENE = 0 };
 /// resources loaded through playback and teardown of every spawned task.
 extern TaskDesc gActor560800CutsceneTaskDescriptors[14];
 
+/// Movie launcher index used by the gantry after the scripted scene ends.
+enum { ACTOR_560800_MOVIE_TASK_LAUNCH = 0 };
+
+/// Task recipes for handing display control to movie playback and restoring play.
+///
+/// Two entries without a terminator, both with no body at priority 192:
+/// 0 launches the display task and immediately dies; 1 owns playback,
+/// cancellation and game-resource restoration. Spawn argument 1 selects
+/// movie 100 when zero, 101 otherwise, in the current location; argument 2
+/// is unused. Keep this actor package loaded until playback and restoration
+/// finish. The launcher's returned task pointer cannot be polled after its
+/// first update.
+extern TaskDesc gActor560800MovieTaskDescriptors[2];
+
 /// Carrier update counter supplying the gantry chains' alternating glow phase.
 ///
 /// Starts at 1 and advances once per carrier update after initialization,

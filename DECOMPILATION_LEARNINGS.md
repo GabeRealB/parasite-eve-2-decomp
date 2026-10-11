@@ -1245,8 +1245,8 @@ sltu v0,a0,a1                sltu v0,a0,a1      /* same compare, same regs */
 `do_compare` only swaps its operands when one is a constant, and `do_jump` emits
 the `sltu` with the operands in canonical order regardless, so the emitted
 compare is unchanged — only the expansion order and the resulting homes move.
-Writing `D_actor_560800_8017579C > gDisplayState.frameCount` instead of
-`gDisplayState.frameCount < D_actor_560800_8017579C` was the last 1.5% of
+Writing `_gActor560800FirstPhaseStartTick > gDisplayState.frameCount` instead of
+`gDisplayState.frameCount < _gActor560800FirstPhaseStartTick` was the last 1.5% of
 `_actor560800FinishScenePhase` (98.5% → 100%). When a `regs=` penalty shows both
 loads right but *swapped*, and both same-order spellings of the compare are
 available, try the swap before reaching for pins.

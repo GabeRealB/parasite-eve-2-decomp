@@ -66,8 +66,6 @@ typedef struct {
 } _ShelterB1PodServiceGantryWork;
 STATIC_ASSERT_SIZEOF(_ShelterB1PodServiceGantryWork, 8);
 
-extern TaskDesc D_actor_560800_8016EA28[];
-
 /// The room's message table, published in `Task::msgTable`.
 extern TaskMessageEntry D_shelter_b1_pod_service_gantry_8017FAF4[];
 
@@ -1946,7 +1944,7 @@ static void _shelterB1PodServiceGantryRunSceneSequence(Task* task)
             if (taskPollKill(work->sceneTask, &ignoredSceneResult) == 0) {
                 break;
             }
-            work->sceneTask = taskSpawnFromTable(D_actor_560800_8016EA28, 0, 0, 0);
+            work->sceneTask = taskSpawnFromTable(gActor560800MovieTaskDescriptors, ACTOR_560800_MOVIE_TASK_LAUNCH, 0, 0);
             work->step++;
             break;
         case SHELTER_B1_POD_SERVICE_GANTRY_STEP_LOAD_SECOND_SCENE:
