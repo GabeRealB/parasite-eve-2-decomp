@@ -1,0 +1,55 @@
+# What tools/gametrace/gametrace.py records. One line of the log per event hit.
+#
+#   id       a number of your choosing; it is what the patch stub writes into the ring
+#   name     what the log calls the event
+#   address  the function's entry (addresses do not move when a symbol is renamed; `check` prints the current name)
+#   patch    false: a breakpoint - nothing is written into the game, one round trip per hit
+#            true:  the entry is redirected to a stub above 2 MB that records the registers (8 MB mode needed)
+# For a breakpoint event only, read by the tool at the stop:
+#   ret = true        also v0 when the function returns
+#   stack = N         N words of stack arguments (the fifth argument onward)
+#   mem = ["a0:16"]   bytes at a register
+# For a patch event at an address outside the executable and gameplay, give its own first two instructions:
+#   words = [0x27BDFFE8, 0xAFBF0010]
+
+[gdb]
+host = "127.0.0.1"
+port = 2345
+
+[blob]
+address = 0x80200000     # where the patch stubs and the ring live
+records = 1024           # ring size, a power of two
+drain = 0x80014C6C       # VSync: the ring is read, and patches re-applied, at this address
+drain_every = 30         # ... every this many hits
+
+[[event]]
+id = 1
+name = "file_load"
+address = 0x8002265C     # fsLoadFile
+patch = false
+
+[[event]]
+id = 2
+name = "sound_request"
+address = 0x8005414C     # sndEvtRequestScriptStart
+patch = false
+ret = true
+
+[[event]]
+id = 3
+name = "sound_bank_find"
+address = 0x8004D150     # sndBankFind
+patch = true
+
+[[event]]
+id = 4
+name = "variant_set"
+address = 0x800B5B30     # areaSetPlacementVariant
+patch = false
+mem = ["a0:8"]
+
+[[event]]
+id = 5
+name = "caption_command"
+address = 0x800E34D8     # capRunCommand
+patch = false
