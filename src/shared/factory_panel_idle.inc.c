@@ -28,7 +28,7 @@ static void _factoryPanelIdle(Task* task)
     }
     prompt->cursorSpeed = ACTION_PROMPT_SPEED_AIM;
     if (ACTION_PROMPT_HIT_TEST(hotspot, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
-        prompt->mode = ACTION_PROMPT_MODE_HOTSPOT;
+        prompt->mode = ACTION_PROMPT_MODE_HIGHLIGHTED;
         if (prompt->buttons.slots[0].state == ACTION_PROMPT_BUTTON_PRESSED) {
             for (; hotspot->id != ACTION_PROMPT_HOTSPOT_END; hotspot++) {
                 if (hotspot->hit != 0) {
@@ -42,7 +42,7 @@ static void _factoryPanelIdle(Task* task)
             }
         }
     } else {
-        prompt->mode = ACTION_PROMPT_MODE_IDLE;
+        prompt->mode = ACTION_PROMPT_MODE_NORMAL;
     }
     if (prompt->buttons.slots[1].state == ACTION_PROMPT_BUTTON_PRESSED) {
         task->state = FACTORY_PANEL_STATE_EXIT;

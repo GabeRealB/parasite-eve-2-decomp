@@ -1151,7 +1151,7 @@ static void _dryfieldNightMotelLobbyCashRegisterArmCursor(Task* task)
     ActionPrompt* prompt = gActionPromptSlots;
 
     prompt->cursorSpeed = ACTION_PROMPT_SPEED_AIM;
-    prompt->mode        = ACTION_PROMPT_MODE_IDLE;
+    prompt->mode        = ACTION_PROMPT_MODE_NORMAL;
     prompt->screen.xy.x = 0;
     prompt->screen.xy.y = 0;
     task->state         = task->state + 1;

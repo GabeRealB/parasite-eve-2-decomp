@@ -2232,7 +2232,7 @@ static void _shelterR47MapTerminalSelectHotspotTask(Task* task)
     }
     prompt->cursorSpeed = ACTION_PROMPT_SPEED_AIM;
     if (_actionPromptHitTest(hotspot, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
-        prompt->mode = ACTION_PROMPT_MODE_HOTSPOT;
+        prompt->mode = ACTION_PROMPT_MODE_HIGHLIGHTED;
         if (prompt->buttons.slots[SHELTER_R47_MAP_CONFIRM_BUTTON].state == ACTION_PROMPT_BUTTON_PRESSED) {
             for (; hotspot->id != ACTION_PROMPT_HOTSPOT_END; hotspot++) {
                 if (hotspot->hit != 0) {
@@ -2242,7 +2242,7 @@ static void _shelterR47MapTerminalSelectHotspotTask(Task* task)
             }
         }
     } else {
-        prompt->mode = ACTION_PROMPT_MODE_IDLE;
+        prompt->mode = ACTION_PROMPT_MODE_NORMAL;
     }
     if (prompt->buttons.slots[SHELTER_R47_MAP_CANCEL_BUTTON].state == ACTION_PROMPT_BUTTON_PRESSED) {
         if (work->openMode == SHELTER_R47_MAP_MODE_USE) {
@@ -2548,7 +2548,7 @@ static void _shelterR47MapTerminalOpenTask(Task* task)
     } else {
         work->screenOnDelay = SHELTER_R47_MAP_SCREEN_ON_DELAY;
         prompt->cursorSpeed = ACTION_PROMPT_SPEED_AIM;
-        prompt->mode        = ACTION_PROMPT_MODE_IDLE;
+        prompt->mode        = ACTION_PROMPT_MODE_NORMAL;
         task->state++;
     }
     prompt->screen.xy.x = 0;

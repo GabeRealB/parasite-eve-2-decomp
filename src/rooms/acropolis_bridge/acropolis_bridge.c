@@ -3689,7 +3689,7 @@ static void _acropolisBridgeKeypadEnterCode(Task* task)
     } else {
         prompt->cursorSpeed = ACTION_PROMPT_SPEED_AIM;
         if (_actionPromptHitTestDefault(hotspot, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
-            prompt->mode = ACTION_PROMPT_MODE_HOTSPOT;
+            prompt->mode = ACTION_PROMPT_MODE_HIGHLIGHTED;
             if (prompt->buttons.slots[ACROPOLIS_BRIDGE_KEYPAD_CONFIRM_BUTTON].state == ACTION_PROMPT_BUTTON_PRESSED) {
                 while (hotspot->id != ACTION_PROMPT_HOTSPOT_END) {
                     if (hotspot->hit != 0) {
@@ -3717,7 +3717,7 @@ static void _acropolisBridgeKeypadEnterCode(Task* task)
                 }
             }
         } else {
-            prompt->mode = ACTION_PROMPT_MODE_IDLE;
+            prompt->mode = ACTION_PROMPT_MODE_NORMAL;
         }
         if (work->digitCount == ACROPOLIS_BRIDGE_KEYPAD_CODE_DIGITS) {
             task->state = ACROPOLIS_BRIDGE_KEYPAD_STATE_CHECK_CODE;
@@ -3782,9 +3782,9 @@ static void _acropolisBridgeKeypadBlinkAcceptedCode(Task* task)
     _acropolisBridgeKeypadStepResultBlink(work, 1);
 
     if (_actionPromptHitTestDefault(hotspots, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
-        prompt->mode = ACTION_PROMPT_MODE_HOTSPOT;
+        prompt->mode = ACTION_PROMPT_MODE_HIGHLIGHTED;
     } else {
-        prompt->mode = ACTION_PROMPT_MODE_IDLE;
+        prompt->mode = ACTION_PROMPT_MODE_NORMAL;
     }
 
     if (work->blinkCount == ACROPOLIS_BRIDGE_KEYPAD_BLINK_COUNT) {
@@ -3811,9 +3811,9 @@ static void _acropolisBridgeKeypadBlinkError(Task* task)
     _acropolisBridgeKeypadStepResultBlink(work, 0);
 
     if (_actionPromptHitTestDefault(hotspots, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
-        prompt->mode = ACTION_PROMPT_MODE_HOTSPOT;
+        prompt->mode = ACTION_PROMPT_MODE_HIGHLIGHTED;
     } else {
-        prompt->mode = ACTION_PROMPT_MODE_IDLE;
+        prompt->mode = ACTION_PROMPT_MODE_NORMAL;
     }
 
     if (work->blinkCount == ACROPOLIS_BRIDGE_KEYPAD_BLINK_COUNT) {
@@ -4086,7 +4086,7 @@ static void _acropolisBridgeKeypadArmCursor(Task* task)
     ActionPrompt* prompt = gActionPromptSlots;
 
     prompt->cursorSpeed = ACTION_PROMPT_SPEED_AIM;
-    prompt->mode        = ACTION_PROMPT_MODE_IDLE;
+    prompt->mode        = ACTION_PROMPT_MODE_NORMAL;
     prompt->screen.xy.x = 0;
     prompt->screen.xy.y = 0;
     _acropolisBridgeShowKeypadCode(ACROPOLIS_BRIDGE_KEYPAD_CODE_BLANK, 0);
@@ -4168,9 +4168,9 @@ static void _acropolisBridgeKeypadCheckCode(Task* task)
     }
     _acropolisBridgeShowKeypadCode(work->code, 0);
     if (_actionPromptHitTestDefault(hotspots, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
-        prompt->mode = ACTION_PROMPT_MODE_HOTSPOT;
+        prompt->mode = ACTION_PROMPT_MODE_HIGHLIGHTED;
     } else {
-        prompt->mode = ACTION_PROMPT_MODE_IDLE;
+        prompt->mode = ACTION_PROMPT_MODE_NORMAL;
     }
 }
 

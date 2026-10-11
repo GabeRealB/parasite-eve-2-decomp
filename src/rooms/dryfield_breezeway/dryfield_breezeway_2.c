@@ -824,7 +824,7 @@ static void _dryfieldBreezewayScanKeyItemHotspot(Task* task)
     }
     prompt->cursorSpeed = ACTION_PROMPT_SPEED_AIM;
     if (_actionPromptHitTestDefault(hotspot, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
-        prompt->mode = ACTION_PROMPT_MODE_HOTSPOT;
+        prompt->mode = ACTION_PROMPT_MODE_HIGHLIGHTED;
         if ((prompt->buttons.slots[0].state == ACTION_PROMPT_BUTTON_PRESSED) && (hotspot->id != ACTION_PROMPT_HOTSPOT_END)) {
             do {
                 if (hotspot->hit != 0) {
@@ -839,7 +839,7 @@ static void _dryfieldBreezewayScanKeyItemHotspot(Task* task)
             } while (hotspot->id != ACTION_PROMPT_HOTSPOT_END);
         }
     } else {
-        prompt->mode = ACTION_PROMPT_MODE_IDLE;
+        prompt->mode = ACTION_PROMPT_MODE_NORMAL;
     }
     if (prompt->buttons.slots[1].state == ACTION_PROMPT_BUTTON_PRESSED) {
         task->state = DRYFIELD_BREEZEWAY_KEY_ITEM_STATE_EXIT;
@@ -863,7 +863,7 @@ static void _dryfieldBreezewayLeadKeyItemLine(Task* task)
     _DryfieldBreezewayKeyItemEventWork* work    = task->work;
     ActionPromptHotspot*                hotspot = _gDryfieldBreezewayLineTargetHotspots;
 
-    prompt->mode        = ACTION_PROMPT_MODE_IDLE;
+    prompt->mode        = ACTION_PROMPT_MODE_NORMAL;
     prompt->cursorSpeed = ACTION_PROMPT_SPEED_AIM;
 
     gfxSetRotIdentity(&coord->coord);
@@ -871,7 +871,7 @@ static void _dryfieldBreezewayLeadKeyItemLine(Task* task)
     _dryfieldBreezewayUpdateKeyItemLine(task, prompt->screen.xy.x, prompt->screen.xy.y);
 
     if (_actionPromptHitTestDefault(hotspot, work->lineEndX, work->lineEndY) != 0) {
-        prompt->mode = ACTION_PROMPT_MODE_HOTSPOT;
+        prompt->mode = ACTION_PROMPT_MODE_HIGHLIGHTED;
         while (hotspot->id != ACTION_PROMPT_HOTSPOT_END) {
             if (hotspot->hit != 0) {
                 capRunCommandWithTransition(DRYFIELD_BREEZEWAY_CAP_LINE_TARGET_REACHED);
@@ -964,7 +964,7 @@ static void _dryfieldBreezewayUpdateKeyItemLine(Task* task, s16 leadX, s16 leadY
     cursorDistance = SquareRoot0(cursorDeltaX * cursorDeltaX + cursorDeltaY * cursorDeltaY);
     if (leadDistance >= DRYFIELD_BREEZEWAY_LINE_REACH || requestedY < DRYFIELD_BREEZEWAY_LINE_ANCHOR_Y + 1 || cursorDistance > DRYFIELD_BREEZEWAY_LINE_GRAB_RADIUS) {
         // Nothing leads the free end: it drops to its rest height and swings about the centre.
-        prompt->mode    = ACTION_PROMPT_MODE_IDLE;
+        prompt->mode    = ACTION_PROMPT_MODE_NORMAL;
         work->lineEndY += work->fallSpeed;
         leadDistance    = DRYFIELD_BREEZEWAY_LINE_REACH;
         if (work->lineEndY >= DRYFIELD_BREEZEWAY_LINE_REST_Y) {
@@ -989,7 +989,7 @@ static void _dryfieldBreezewayUpdateKeyItemLine(Task* task, s16 leadX, s16 leadY
         }
     } else {
         // The cursor leads the free end, which closes a quarter of the gap each frame.
-        prompt->mode           = ACTION_PROMPT_MODE_HOTSPOT;
+        prompt->mode           = ACTION_PROMPT_MODE_HIGHLIGHTED;
         work->swingDamping     = DRYFIELD_BREEZEWAY_LINE_SWING_DAMPING_START;
         work->swingSpeed       = 0;
         work->fallSpeed        = 0;
@@ -1258,7 +1258,7 @@ static void _dryfieldBreezewayArmKeyItemPrompt(Task* task)
     ActionPrompt* prompt = gActionPromptSlots;
 
     prompt->cursorSpeed = ACTION_PROMPT_SPEED_AIM;
-    prompt->mode        = ACTION_PROMPT_MODE_IDLE;
+    prompt->mode        = ACTION_PROMPT_MODE_NORMAL;
     prompt->screen.xy.x = 0;
     prompt->screen.xy.y = 0;
     task->killCountdown = 0;

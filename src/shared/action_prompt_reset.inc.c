@@ -3,12 +3,24 @@
 #ifndef ACTION_PROMPT_RESET_HELPERS_DEFINED
 #define ACTION_PROMPT_RESET_HELPERS_DEFINED
 
+/// Initial cursor-motion multiplier before the owner selects a scanning speed.
+///
+/// Stored in `ActionPrompt::cursorSpeed` on reset. The cardinal D-pad contribution
+/// is four pixels per nominal 60-Hz tick; stick motion adds its scaled response.
+#define ACTION_PROMPT_SPEED_RESET 0x100
+
+/// Exclusive double-press time limit installed when an action prompt is reset.
+///
+/// The unsigned arm counter must be below 15 nominal 60-Hz ticks, and the
+/// previously published cursor position must equal the latched position.
+#define ACTION_PROMPT_DOUBLE_PRESS_TICKS 15
+
 /// Prepares one port's action cursor and press timers for a new prompt.
 ///
 /// Borrows a non-NULL, writable `prompt` for this call. Sets its cursor to the
 /// screen center in 1/512-pixel units, its motion multiplier to
 /// `ACTION_PROMPT_SPEED_RESET`, its second-press window to
-/// `ACTION_PROMPT_DOUBLE_PRESS_FRAMES` nominal 60-Hz ticks and its sprite to idle.
+/// `ACTION_PROMPT_DOUBLE_PRESS_TICKS` nominal 60-Hz ticks and its sprite to idle.
 /// Both confirm and cancel arm counters start at zero. The published pixel
 /// position, button classifications and latched press positions are retained.
 /// The cursor-motion update classifies presses against the retained positions
@@ -23,10 +35,10 @@ static inline void _actionPromptResetPort(ActionPrompt* prompt)
     prompt->fixedX                                                   = 0;
     prompt->fixedY                                                   = 0;
     prompt->cursorSpeed                                              = ACTION_PROMPT_SPEED_RESET;
-    prompt->doublePressWindow                                        = ACTION_PROMPT_DOUBLE_PRESS_FRAMES;
+    prompt->doublePressWindow                                        = ACTION_PROMPT_DOUBLE_PRESS_TICKS;
     prompt->buttons.slots[ACTION_PROMPT_CONFIRM_SLOT].framesSinceArm = 0;
     prompt->buttons.slots[ACTION_PROMPT_CANCEL_SLOT].framesSinceArm  = 0;
-    prompt->mode                                                     = ACTION_PROMPT_MODE_IDLE;
+    prompt->mode                                                     = ACTION_PROMPT_MODE_NORMAL;
 }
 #endif
 

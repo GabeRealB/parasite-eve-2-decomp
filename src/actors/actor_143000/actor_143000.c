@@ -491,7 +491,7 @@ static void _actor143000HandleKeypadInput(Task* task)
     // Confirm latches a hotspot command, or a grid cell after the keypad was examined.
     work->selectedHotspot = ACTOR_143000_KEYPAD_HOTSPOT_NONE;
     if (_actor143000HitTestKeypadHotspots(hotspot, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
-        prompt->mode = ACTION_PROMPT_MODE_HOTSPOT;
+        prompt->mode = ACTION_PROMPT_MODE_HIGHLIGHTED;
         if (prompt->buttons.slots[ACTOR_143000_KEYPAD_CONFIRM_SLOT].state == ACTION_PROMPT_BUTTON_PRESSED) {
             for (; hotspot->id != ACTION_PROMPT_HOTSPOT_END; hotspot++) {
                 if (hotspot->hit != 0) {
@@ -553,7 +553,7 @@ static void _actor143000HandleKeypadInput(Task* task)
             }
         }
     } else {
-        prompt->mode = ACTION_PROMPT_MODE_IDLE;
+        prompt->mode = ACTION_PROMPT_MODE_NORMAL;
     }
     if (prompt->buttons.slots[ACTOR_143000_KEYPAD_CANCEL_SLOT].state == ACTION_PROMPT_BUTTON_PRESSED) {
         task->state = ACTOR_143000_KEYPAD_STATE_CLOSE;
@@ -896,7 +896,7 @@ static void _actor143000ArmKeypadCursor(Task* task)
     ActionPrompt* prompt = gActionPromptSlots;
 
     prompt->cursorSpeed = ACTION_PROMPT_SPEED_AIM;
-    prompt->mode        = ACTION_PROMPT_MODE_IDLE;
+    prompt->mode        = ACTION_PROMPT_MODE_NORMAL;
     prompt->screen.xy.x = 0;
     prompt->screen.xy.y = 0;
     task->state         = task->state + 1;

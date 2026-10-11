@@ -1665,7 +1665,7 @@ static void _acropolisSecurityRoomMonitorScanHotspots(Task* task)
     }
     prompt->cursorSpeed = ACTION_PROMPT_SPEED_AIM;
     if (_actionPromptHitTestDefault(hotspot, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
-        prompt->mode = ACTION_PROMPT_MODE_HOTSPOT;
+        prompt->mode = ACTION_PROMPT_MODE_HIGHLIGHTED;
         if ((prompt->buttons.slots[0].state == ACTION_PROMPT_BUTTON_PRESSED) && (hotspot->id != ACTION_PROMPT_HOTSPOT_END)) {
             do {
                 if (hotspot->hit != 0) {
@@ -1680,7 +1680,7 @@ static void _acropolisSecurityRoomMonitorScanHotspots(Task* task)
             } while (hotspot->id != ACTION_PROMPT_HOTSPOT_END);
         }
     } else {
-        prompt->mode = ACTION_PROMPT_MODE_IDLE;
+        prompt->mode = ACTION_PROMPT_MODE_NORMAL;
     }
     if (prompt->buttons.slots[1].state == ACTION_PROMPT_BUTTON_PRESSED) {
         task->state = ACROPOLIS_SECURITY_ROOM_MONITOR_STATE_CLOSE;
@@ -1950,7 +1950,7 @@ static void _acropolisSecurityRoomMonitorArmCursor(Task* task)
     ActionPrompt* prompt = gActionPromptSlots;
 
     prompt->cursorSpeed = ACTION_PROMPT_SPEED_AIM;
-    prompt->mode        = ACTION_PROMPT_MODE_IDLE;
+    prompt->mode        = ACTION_PROMPT_MODE_NORMAL;
     prompt->screen.xy.x = 0;
     prompt->screen.xy.y = 0;
     task->state         = task->state + 1;
@@ -2035,7 +2035,7 @@ static void _acropolisSecurityRoomMonitorScanRestrictedHotspots(Task* task)
     }
     prompt->cursorSpeed = ACTION_PROMPT_SPEED_AIM;
     if (_actionPromptHitTestDefault(hotspot, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
-        prompt->mode = ACTION_PROMPT_MODE_HOTSPOT;
+        prompt->mode = ACTION_PROMPT_MODE_HIGHLIGHTED;
         if (prompt->buttons.slots[0].state == ACTION_PROMPT_BUTTON_PRESSED) {
             for (; hotspot->id != ACTION_PROMPT_HOTSPOT_END; hotspot++) {
                 if (hotspot->hit != 0) {
@@ -2047,7 +2047,7 @@ static void _acropolisSecurityRoomMonitorScanRestrictedHotspots(Task* task)
             }
         }
     } else {
-        prompt->mode = ACTION_PROMPT_MODE_IDLE;
+        prompt->mode = ACTION_PROMPT_MODE_NORMAL;
     }
     if (prompt->buttons.slots[1].state == ACTION_PROMPT_BUTTON_PRESSED) {
         task->state = ACROPOLIS_SECURITY_ROOM_MONITOR_STATE_CLOSE;
@@ -2111,7 +2111,7 @@ static void _acropolisSecurityRoomPowerSupplyScanHotspots(Task* task)
     }
     prompt->cursorSpeed = ACTION_PROMPT_SPEED_AIM;
     if (_actionPromptHitTest(hotspot, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
-        prompt->mode = ACTION_PROMPT_MODE_HOTSPOT;
+        prompt->mode = ACTION_PROMPT_MODE_HIGHLIGHTED;
         if (prompt->buttons.slots[0].state == ACTION_PROMPT_BUTTON_PRESSED) {
             for (; hotspot->id != ACTION_PROMPT_HOTSPOT_END; hotspot++) {
                 if (hotspot->hit != 0) {
@@ -2126,7 +2126,7 @@ static void _acropolisSecurityRoomPowerSupplyScanHotspots(Task* task)
         }
     } else {
         work->usedKey = ACROPOLIS_SECURITY_ROOM_POWER_SUPPLY_KEY_NONE;
-        prompt->mode  = ACTION_PROMPT_MODE_IDLE;
+        prompt->mode  = ACTION_PROMPT_MODE_NORMAL;
     }
     if (prompt->buttons.slots[1].state == ACTION_PROMPT_BUTTON_PRESSED) {
         task->state = ACROPOLIS_SECURITY_ROOM_POWER_SUPPLY_STATE_CLOSE;
@@ -2333,7 +2333,7 @@ static void _acropolisSecurityRoomPowerSupplyArmCursor(Task* task)
     ActionPrompt* prompt = gActionPromptSlots;
 
     prompt->cursorSpeed = ACTION_PROMPT_SPEED_AIM;
-    prompt->mode        = ACTION_PROMPT_MODE_IDLE;
+    prompt->mode        = ACTION_PROMPT_MODE_NORMAL;
     prompt->screen.xy.x = 0;
     prompt->screen.xy.y = 0;
     task->state         = task->state + 1;

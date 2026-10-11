@@ -1533,7 +1533,7 @@ void shelterR47ConsoleSelectHotspotTask(Task* task)
     prompt->cursorSpeed = ACTION_PROMPT_SPEED_AIM;
     // Overlapping hotspots can be hit together; confirmation takes the first.
     if (shelterR47ConsoleHitTestHotspots(task, hotspot, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
-        prompt->mode = ACTION_PROMPT_MODE_HOTSPOT;
+        prompt->mode = ACTION_PROMPT_MODE_HIGHLIGHTED;
         if ((prompt->buttons.slots[SHELTER_R47_CONSOLE_CONFIRM_SLOT].state == ACTION_PROMPT_BUTTON_PRESSED) && (hotspot->id != ACTION_PROMPT_HOTSPOT_END)) {
             do {
                 if (hotspot->hit != 0) {
@@ -1544,7 +1544,7 @@ void shelterR47ConsoleSelectHotspotTask(Task* task)
             } while (hotspot->id != ACTION_PROMPT_HOTSPOT_END);
         }
     } else {
-        prompt->mode = ACTION_PROMPT_MODE_IDLE;
+        prompt->mode = ACTION_PROMPT_MODE_NORMAL;
     }
     if (work->guideStep == SHELTER_R47_CONSOLE_GUIDE_FREE && prompt->buttons.slots[SHELTER_R47_CONSOLE_CANCEL_SLOT].state == ACTION_PROMPT_BUTTON_PRESSED) {
         task->state = SHELTER_R47_CONSOLE_STATE_DISMISS;

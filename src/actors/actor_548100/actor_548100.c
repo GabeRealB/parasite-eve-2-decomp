@@ -1222,7 +1222,7 @@ static void _actor548100ScanHotspots(Task* task)
     prompt->cursorSpeed = ACTION_PROMPT_SPEED_AIM;
     work->choice        = 0;
     if (_actionPromptHitTestFirstChoice(hotspot, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
-        prompt->mode = ACTION_PROMPT_MODE_HOTSPOT;
+        prompt->mode = ACTION_PROMPT_MODE_HIGHLIGHTED;
         if (prompt->buttons.slots[0].state == ACTION_PROMPT_BUTTON_PRESSED) {
             for (; hotspot->id != ACTION_PROMPT_HOTSPOT_END; hotspot++) {
                 if (hotspot->hit != 0) {
@@ -1236,7 +1236,7 @@ static void _actor548100ScanHotspots(Task* task)
             }
         }
     } else {
-        prompt->mode = ACTION_PROMPT_MODE_IDLE;
+        prompt->mode = ACTION_PROMPT_MODE_NORMAL;
     }
     if (prompt->buttons.slots[1].state == ACTION_PROMPT_BUTTON_PRESSED) {
         task->state = ACTOR_548100_STATE_EXIT;
@@ -2451,7 +2451,7 @@ static void _actor548100ArmCursor(Task* task)
     ActionPrompt* prompt = gActionPromptSlots;
 
     prompt->cursorSpeed = ACTION_PROMPT_SPEED_AIM;
-    prompt->mode        = ACTION_PROMPT_MODE_IDLE;
+    prompt->mode        = ACTION_PROMPT_MODE_NORMAL;
     prompt->screen.xy.x = 0;
     prompt->screen.xy.y = 0;
     task->state         = task->state + (ACTOR_548100_STATE_SCAN_HOTSPOTS - ACTOR_548100_STATE_ARM_CURSOR);

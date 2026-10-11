@@ -2824,7 +2824,7 @@ static void _shelterB1UndergroundParkingPanelOpen(Task* task)
 
     _shelterB1UndergroundParkingDrawPanelIndicators();
     prompt->cursorSpeed = ACTION_PROMPT_SPEED_AIM;
-    prompt->mode        = ACTION_PROMPT_MODE_IDLE;
+    prompt->mode        = ACTION_PROMPT_MODE_NORMAL;
     prompt->screen.xy.x = 0;
     prompt->screen.xy.y = 0;
     capRunCommand(gameFlagGetNibble(GAME_FLAG_SHELTER_B1_UNDERGROUND_PARKING_0E7) == 0 ? SHELTER_B1_UNDERGROUND_PARKING_CAP_COMMAND_02 : SHELTER_B1_UNDERGROUND_PARKING_CAP_COMMAND_03, CAP_PLAYBACK_IN_PLACE);
@@ -2872,7 +2872,7 @@ static void _shelterB1UndergroundParkingPanelScanHotspots(Task* task)
     }
     prompt->cursorSpeed = ACTION_PROMPT_SPEED_AIM;
     if (_actionPromptHitTestDefault(hotspot, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
-        prompt->mode = ACTION_PROMPT_MODE_HOTSPOT;
+        prompt->mode = ACTION_PROMPT_MODE_HIGHLIGHTED;
         if (prompt->buttons.slots[SHELTER_B1_UNDERGROUND_PARKING_PANEL_BUTTON_CONFIRM].state == ACTION_PROMPT_BUTTON_PRESSED) {
             for (; hotspot->id != ACTION_PROMPT_HOTSPOT_END; hotspot++) {
                 if (hotspot->hit != 0) {
@@ -2882,7 +2882,7 @@ static void _shelterB1UndergroundParkingPanelScanHotspots(Task* task)
             }
         }
     } else {
-        prompt->mode = ACTION_PROMPT_MODE_IDLE;
+        prompt->mode = ACTION_PROMPT_MODE_NORMAL;
     }
     if (prompt->buttons.slots[SHELTER_B1_UNDERGROUND_PARKING_PANEL_BUTTON_CANCEL].state == ACTION_PROMPT_BUTTON_PRESSED) {
         task->state = SHELTER_B1_UNDERGROUND_PARKING_PANEL_STATE_CANCEL;

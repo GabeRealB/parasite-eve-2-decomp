@@ -17,7 +17,11 @@ typedef struct {
 } ActionPromptCursorPos;
 STATIC_ASSERT_SIZEOF(ActionPromptCursorPos, 4);
 
-/// `id` of the entry that ends an action-prompt hotspot table. Not a choice.
+/// Signed choice ID that terminates an action-prompt hotspot table.
+///
+/// A table must contain a readable entry with this ID after its choices. Scans
+/// stop before using that entry's rectangle or hit flag; other negative IDs
+/// remain valid choices.
 #define ACTION_PROMPT_HOTSPOT_END (-1)
 
 /// One entry of an action-prompt hotspot table.
@@ -71,48 +75,46 @@ typedef struct {
 } ActionPromptButton;
 STATIC_ASSERT_SIZEOF(ActionPromptButton, 0x8);
 
-/// Press classification stored in `ActionPromptButton::state`.
+/// Exclusive press classifications stored in `ActionPromptButton::state`.
 ///
-/// None means the button is up. Held means it is down and was already down.
-/// Pressed is the frame it went down. Released is the frame it went up.
-/// Double-press is a second press within `ActionPrompt::doublePressWindow`
-/// frames of the latched one, at the same cursor position.
-#define ACTION_PROMPT_BUTTON_NONE         0
-#define ACTION_PROMPT_BUTTON_HELD         1
-#define ACTION_PROMPT_BUTTON_PRESSED      2
-#define ACTION_PROMPT_BUTTON_RELEASED     3
-#define ACTION_PROMPT_BUTTON_DOUBLE_PRESS 4
+/// A pressed edge takes priority over a released edge, which takes priority
+/// over a held button. Each slot tests any button in its mask: Cross for confirm,
+/// Circle or Square for cancel. A press arms a new window unless the unsigned
+/// arm counter is strictly below `ActionPrompt::doublePressWindow` and the
+/// previously published pixel position equals the latched position. That case
+/// reports double-press instead and closes the window. Counters advance in
+/// nominal 60-Hz ticks and wrap at 16 bits; reset retains the latched positions.
+enum {
+    ACTION_PROMPT_BUTTON_NONE         = 0, // No pressed/released edge and no masked button held
+    ACTION_PROMPT_BUTTON_HELD         = 1, // A masked button held, without either edge
+    ACTION_PROMPT_BUTTON_PRESSED      = 2, // Press that latches the position and arms a new window
+    ACTION_PROMPT_BUTTON_RELEASED     = 3, // A masked button released, without a pressed edge
+    ACTION_PROMPT_BUTTON_DOUBLE_PRESS = 4, // Press within the open window at the latched position
+};
 
-/// Motion multiplier stored in `ActionPrompt::cursorSpeed`.
+/// Zero motion multiplier for an action cursor whose position is held.
 ///
-/// Stopped holds the cursor. Aiming is the speed a hotspot scan stores while
-/// the player can move the cursor. Reset is the speed stored when the prompt
-/// is reset, before a scan slows it.
+/// Stops the stick and D-pad contributions; button classification and cursor
+/// drawing continue independently.
 #define ACTION_PROMPT_SPEED_STOPPED 0
-#define ACTION_PROMPT_SPEED_AIM     0x80
-#define ACTION_PROMPT_SPEED_RESET   0x100
 
-/// Cursor sprite stored in `ActionPrompt::mode`.
+/// Motion multiplier for player-controlled hotspot selection.
 ///
-/// Hidden draws nothing. Idle is the cursor while it is not on a hotspot.
-/// Hotspot is the cursor while the point is inside a hotspot. Accepting a
-/// hotspot or leaving the scan stores hidden.
-#define ACTION_PROMPT_MODE_HIDDEN  0
-#define ACTION_PROMPT_MODE_IDLE    1
-#define ACTION_PROMPT_MODE_HOTSPOT 2
+/// Stored in `ActionPrompt::cursorSpeed`. The cardinal D-pad contribution is
+/// two pixels per nominal 60-Hz tick; stick motion adds its own scaled response.
+#define ACTION_PROMPT_SPEED_AIM 0x80
 
-/// Frames stored in `doublePressWindow` when the prompt is reset.
-#define ACTION_PROMPT_DOUBLE_PRESS_FRAMES 0xF
-
-/// Right shift from the 1/512-pixel position to pixels.
-#define ACTION_PROMPT_SUBPIXEL_SHIFT 9
-
-/// Clamp limits for the 1/512-pixel position. After the shift, X stays in
-/// [-160, 159] and Y in [-110, 110], in pixels from the screen center.
-#define ACTION_PROMPT_FIXED_X_MIN (-0x14000)
-#define ACTION_PROMPT_FIXED_X_MAX 0x13E00
-#define ACTION_PROMPT_FIXED_Y_MIN (-0xDC00)
-#define ACTION_PROMPT_FIXED_Y_MAX 0xDC00
+/// Cursor visibility and palette selections stored in `ActionPrompt::mode`.
+///
+/// These affect drawing only. Hidden leaves the packet arena untouched;
+/// highlighted selects the alternate palette. Normal and every other nonzero
+/// value use the ordinary palette. The owner can highlight a hotspot or another
+/// interactive target independently of cursor motion.
+enum {
+    ACTION_PROMPT_MODE_HIDDEN      = 0, // No cursor packet
+    ACTION_PROMPT_MODE_NORMAL      = 1, // Ordinary cursor palette
+    ACTION_PROMPT_MODE_HIGHLIGHTED = 2, // Highlighted cursor palette
+};
 
 /// One pad port's point-and-click action prompt.
 ///

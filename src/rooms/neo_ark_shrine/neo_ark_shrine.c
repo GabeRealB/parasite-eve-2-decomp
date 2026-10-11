@@ -523,12 +523,12 @@ void neoArkShrinePuzzleIdle(Task* task)
     prompt->cursorSpeed = ACTION_PROMPT_SPEED_AIM;
     // Confirmation takes precedence over cancel and selects the first marked hit.
     if (actionPromptHitTest(hotspot, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
-        prompt->mode = ACTION_PROMPT_MODE_HOTSPOT;
+        prompt->mode = ACTION_PROMPT_MODE_HIGHLIGHTED;
         if (prompt->buttons.slots[NEO_ARK_SHRINE_PUZZLE_CONFIRM_SLOT].state == ACTION_PROMPT_BUTTON_PRESSED) {
             NEO_ARK_SHRINE_ROUTE_PUZZLE_CONFIRMATION(task, prompt, work, hotspot);
         }
     } else {
-        prompt->mode = ACTION_PROMPT_MODE_IDLE;
+        prompt->mode = ACTION_PROMPT_MODE_NORMAL;
     }
     if (prompt->buttons.slots[NEO_ARK_SHRINE_PUZZLE_CANCEL_SLOT].state == ACTION_PROMPT_BUTTON_PRESSED) {
         task->state = NEO_ARK_SHRINE_PUZZLE_STATE_CLOSE;

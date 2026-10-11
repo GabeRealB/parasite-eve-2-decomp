@@ -338,7 +338,7 @@ void dryfieldNightMotelLobbyCashRegisterScanTask(Task* task)
     } else {
         prompt->cursorSpeed = ACTION_PROMPT_SPEED_AIM;
         if (actionPromptHitTest(hotspot, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
-            prompt->mode = ACTION_PROMPT_MODE_HOTSPOT;
+            prompt->mode = ACTION_PROMPT_MODE_HIGHLIGHTED;
             if (prompt->buttons.slots[CASH_REGISTER_CONFIRM_SLOT].state == ACTION_PROMPT_BUTTON_PRESSED) {
                 while (hotspot->id != ACTION_PROMPT_HOTSPOT_END) {
                     if (hotspot->hit != 0) {
@@ -368,7 +368,7 @@ void dryfieldNightMotelLobbyCashRegisterScanTask(Task* task)
                 }
             }
         } else {
-            prompt->mode = ACTION_PROMPT_MODE_IDLE;
+            prompt->mode = ACTION_PROMPT_MODE_NORMAL;
         }
         if (prompt->buttons.slots[CASH_REGISTER_CANCEL_SLOT].state == ACTION_PROMPT_BUTTON_PRESSED) {
             task->state = DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_STATE_CANCEL;

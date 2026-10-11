@@ -50,9 +50,9 @@ static inline void _actionPromptSetCursorVertices(POLY_FT4* cursorQuad, s32 curs
 /// `cursorX` and `cursorY` are pixels from the screen center, with Y increasing
 /// downward; callers supply X in [-160, 159] and Y in [-110, 110]. The quad starts
 /// two pixels above and left of that point; each vertex is narrowed to s16.
-/// `cursorMode` is `ACTION_PROMPT_MODE_HIDDEN` (0), `ACTION_PROMPT_MODE_IDLE` (1)
-/// or `ACTION_PROMPT_MODE_HOTSPOT` (2). Hidden queues nothing; hotspot selects
-/// its palette, and every other nonzero value uses the idle palette.
+/// `cursorMode` is `ACTION_PROMPT_MODE_HIDDEN` (0), `ACTION_PROMPT_MODE_NORMAL` (1)
+/// or `ACTION_PROMPT_MODE_HIGHLIGHTED` (2). Hidden queues nothing; highlighted
+/// selects its palette, and every other nonzero value uses the ordinary palette.
 ///
 /// Requires a word-aligned packet arena with room for one `POLY_FT4` and a
 /// writable current ordering-table tag, with the cursor texture and palettes
@@ -73,7 +73,7 @@ static void ACTION_PROMPT_DRAW_CURSOR(s32 cursorX, s32 cursorY, s32 cursorMode)
     _actionPromptSetCursorVertices(cursorQuad, cursorX, cursorY);
 
     cursorQuad->tpage = ACTION_PROMPT_CURSOR_TEXTURE_PAGE;
-    if (cursorMode == ACTION_PROMPT_MODE_HOTSPOT) {
+    if (cursorMode == ACTION_PROMPT_MODE_HIGHLIGHTED) {
         cursorQuad->clut = ACTION_PROMPT_CURSOR_HOTSPOT_CLUT;
     } else {
         cursorQuad->clut = ACTION_PROMPT_CURSOR_IDLE_CLUT;

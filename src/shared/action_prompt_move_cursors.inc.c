@@ -3,6 +3,23 @@
 #ifndef ACTION_PROMPT_CURSOR_MOTION_HELPERS_DEFINED
 #define ACTION_PROMPT_CURSOR_MOTION_HELPERS_DEFINED
 
+/// Fractional bits discarded when publishing signed 1/512-pixel coordinates.
+///
+/// The signed right shift rounds negative positions toward negative infinity.
+#define ACTION_PROMPT_SUBPIXEL_SHIFT 9
+
+/// Inclusive left limit, -160 screen-center pixels in 1/512-pixel units.
+#define ACTION_PROMPT_FIXED_X_MIN (-160 * (1 << ACTION_PROMPT_SUBPIXEL_SHIFT))
+
+/// Inclusive right limit, 159 screen-center pixels in 1/512-pixel units.
+#define ACTION_PROMPT_FIXED_X_MAX (159 * (1 << ACTION_PROMPT_SUBPIXEL_SHIFT))
+
+/// Inclusive top limit, -110 screen-center pixels in 1/512-pixel units.
+#define ACTION_PROMPT_FIXED_Y_MIN (-110 * (1 << ACTION_PROMPT_SUBPIXEL_SHIFT))
+
+/// Inclusive bottom limit, 110 screen-center pixels in 1/512-pixel units.
+#define ACTION_PROMPT_FIXED_Y_MAX (110 * (1 << ACTION_PROMPT_SUBPIXEL_SHIFT))
+
 /// Constrains an action-prompt cursor to its allowed screen region.
 ///
 /// `prompt` must be non-NULL and writable. Clamps its signed 1/512-pixel
