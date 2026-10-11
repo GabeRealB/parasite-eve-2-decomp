@@ -72,7 +72,11 @@ typedef struct {
 } RoomCutsceneSoundTaskStorage;
 STATIC_ASSERT_SIZEOF(RoomCutsceneSoundTaskStorage, 8);
 
-/// `facing` value that tells the departure task not to turn the player.
+/// Departure-facing sentinel that skips the player turn and its completion wait.
+///
+/// Stored in the signed halfword `RoomDeparture::facing` and tested before
+/// sending the yaw request. Other facing values request a turn in 4096 units
+/// per revolution; the sentinel leaves departure sound and reload processing active.
 #define ROOM_DEPARTURE_SKIP_FACING (-1)
 
 /// Destination a room stages before spawning its departure task.

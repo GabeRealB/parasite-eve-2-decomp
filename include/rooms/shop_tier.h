@@ -3,10 +3,19 @@
 
 #include "common.h"
 
-/// Rows in the shop's tier ladder, and bits in use in `McSaveState::shopTiers`.
+/// Number of replay-unlock rows in the shop tier ladder.
+///
+/// Row indices 0..12 are also bit positions in `McSaveState::shopTiers`.
+/// Bounds both the replay-award ladder and each room shop's copy; every row
+/// contributes three item IDs, independently of how many stock rows are offered.
 #define SHOP_TIER_COUNT 13
 
-/// `McSaveState::shopTiers` with every row of the ladder unlocked.
+/// Unlock mask with every shop-tier row enabled in `McSaveState::shopTiers`.
+///
+/// Sets bits 0..`SHOP_TIER_COUNT` - 1 (0x1FFF), with bit n selecting ladder row n.
+/// Replay selection tests exact equality with this mask to report no new tier;
+/// stored unlock masks must have no bits outside it. Demo shop sessions write
+/// it directly to the live save.
 #define SHOP_TIER_ALL_MASK ((1 << SHOP_TIER_COUNT) - 1)
 
 /// One row of the shop's tier ladder: three items the replay bonus adds to the

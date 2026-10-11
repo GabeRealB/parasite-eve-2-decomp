@@ -14,9 +14,11 @@
 #include "main/task_types.h"
 #include "main/ui_types.h"
 
-/// Number of target kinds the gallery scores: the low nibble of a target's
-/// spawn argument, indexing both `MistShootingGalleryWork::kills` and the RESULT
-/// panel's point table.
+/// Number of scored gallery target kinds, indexed 0..12.
+///
+/// The low spawn-argument nibble indexes `MistShootingGalleryWork::kills` and
+/// the RESULT panel's score rows. Civilian kind 9 is included and deducts points;
+/// the uncounted demonstration kind 13 is excluded from these arrays.
 #define MIST_SHOOTING_GALLERY_TARGET_KIND_COUNT 13
 
 /// Work block of the shooting gallery's controller task, which runs one course
