@@ -364,170 +364,188 @@ TmdSource gMappicS500AltarShape = {
     .stream           = _gMappicS500AltarShapeStream,
 };
 
-static TmdBone _gMappicS500Model00A14Skeleton[1] = {
+/// Identity transform and self-parented root for the Shrine shape.
+static TmdBone _gMappicS500ShrineShapeSkeleton[] = {
 #include "assets/mappic_s5_00_model_00A14_skeleton.inc"
 };
 
-static u32 _gMappicS500Model00A14PartVerts[1] = {
+/// Vertex count of the Shrine shape's sole part (sixteen vertices).
+static u32 _gMappicS500ShrineShapePartVerts[] = {
 #include "assets/mappic_s5_00_model_00A14_partVerts.inc"
 };
 
-static SVECTOR _gMappicS500Model00A14Verts[16] = {
+/// Shrine's map footprint in integer model X/Z coordinates, with Y zero.
+static SVECTOR _gMappicS500ShrineShapeVerts[] = {
 #include "assets/mappic_s5_00_model_00A14_verts.inc"
 };
 
-static u32 _gMappicS500Model00A14Stream[36] = {
+/// Four triangles and five quads with packed vertex byte offsets and unlit white colour.
+/// Two group ends and the stream end follow the polygon commands.
+static u32 _gMappicS500ShrineShapeStream[] = {
 #include "assets/mappic_s5_00_model_00A14_stream.inc"
 };
 
-TmdSource D_mappic_s5_00_8012F9D4 = {
-    0,
-    200,
-    0,
-    1,
-    _gMappicS500Model00A14PartVerts,
-    _gMappicS500Model00A14Verts,
-    &_gMappicS500Model00A14Verts[16],
-    _gMappicS500Model00A14Skeleton,
-    _gMappicS500Model00A14Stream,
+TmdSource gMappicS500ShrineShape = {
+    .bufferHalfBytes  = 4 * sizeof(POLY_F3) + 5 * sizeof(POLY_F4),
+    .partCount        = ARRAY_SIZE(_gMappicS500ShrineShapeSkeleton),
+    .partVertexCounts = _gMappicS500ShrineShapePartVerts,
+    .verts            = _gMappicS500ShrineShapeVerts,
+    .normals          = &_gMappicS500ShrineShapeVerts[ARRAY_SIZE(_gMappicS500ShrineShapeVerts)], // Empty normal pool at the vertex end.
+    .skeleton         = _gMappicS500ShrineShapeSkeleton,
+    .stream           = _gMappicS500ShrineShapeStream,
 };
 
-static TmdBone _gMappicS500Model00B50Skeleton[1] = {
+/// Identity transform and self-parented root for the Woodland path shape.
+static TmdBone _gMappicS500WoodlandPathShapeSkeleton[] = {
 #include "assets/mappic_s5_00_model_00B50_skeleton.inc"
 };
 
-static u32 _gMappicS500Model00B50PartVerts[1] = {
+/// Vertex count of the Woodland path shape's sole part (twelve vertices).
+static u32 _gMappicS500WoodlandPathShapePartVerts[] = {
 #include "assets/mappic_s5_00_model_00B50_partVerts.inc"
 };
 
-static SVECTOR _gMappicS500Model00B50Verts[12] = {
+/// Woodland path's map footprint in integer model X/Z coordinates, with Y zero.
+static SVECTOR _gMappicS500WoodlandPathShapeVerts[] = {
 #include "assets/mappic_s5_00_model_00B50_verts.inc"
 };
 
-static u32 _gMappicS500Model00B50Stream[21] = {
+/// Five quads with packed vertex byte offsets and unlit white colour.
+/// Two group ends and the stream end follow the polygon commands.
+static u32 _gMappicS500WoodlandPathShapeStream[] = {
 #include "assets/mappic_s5_00_model_00B50_stream.inc"
 };
 
-TmdSource D_mappic_s5_00_8012FAD4 = {
-    0,
-    120,
-    0,
-    1,
-    _gMappicS500Model00B50PartVerts,
-    _gMappicS500Model00B50Verts,
-    &_gMappicS500Model00B50Verts[12],
-    _gMappicS500Model00B50Skeleton,
-    _gMappicS500Model00B50Stream,
+TmdSource gMappicS500WoodlandPathShape = {
+    .bufferHalfBytes  = 5 * sizeof(POLY_F4),
+    .partCount        = ARRAY_SIZE(_gMappicS500WoodlandPathShapeSkeleton),
+    .partVertexCounts = _gMappicS500WoodlandPathShapePartVerts,
+    .verts            = _gMappicS500WoodlandPathShapeVerts,
+    .normals          = &_gMappicS500WoodlandPathShapeVerts[ARRAY_SIZE(_gMappicS500WoodlandPathShapeVerts)], // Empty normal pool at the vertex end.
+    .skeleton         = _gMappicS500WoodlandPathShapeSkeleton,
+    .stream           = _gMappicS500WoodlandPathShapeStream,
 };
 
-static TmdBone _gMappicS500MappicS202Model0091000C84Skeleton[1] = {
+/// Identity transform and self-parented root for the Bridge shape.
+static TmdBone _gMappicS500BridgeShapeSkeleton[] = {
 #include "assets/mappic_s2_02_model_00910_00C84_skeleton.inc"
 };
 
-static u32 _gMappicS500MappicS202Model0091000C84PartVerts[1] = {
+/// Vertex count of the Bridge shape's sole part (eight vertices).
+static u32 _gMappicS500BridgeShapePartVerts[] = {
 #include "assets/mappic_s2_02_model_00910_00C84_partVerts.inc"
 };
 
-static SVECTOR _gMappicS500MappicS202Model0091000C84Verts[8] = {
+/// Bridge's map footprint in integer model X/Z coordinates, with Y zero.
+static SVECTOR _gMappicS500BridgeShapeVerts[] = {
 #include "assets/mappic_s2_02_model_00910_00C84_verts.inc"
 };
 
-static u32 _gMappicS500MappicS202Model0091000C84Stream[21] = {
+/// Two triangles and two quads with packed vertex byte offsets and unlit white colour.
+/// Two group ends and the stream end follow the polygon commands.
+static u32 _gMappicS500BridgeShapeStream[] = {
 #include "assets/mappic_s2_02_model_00910_00C84_stream.inc"
 };
 
-TmdSource D_mappic_s5_00_8012FBB4 = {
-    0,
-    88,
-    0,
-    1,
-    _gMappicS500MappicS202Model0091000C84PartVerts,
-    _gMappicS500MappicS202Model0091000C84Verts,
-    &_gMappicS500MappicS202Model0091000C84Verts[8],
-    _gMappicS500MappicS202Model0091000C84Skeleton,
-    _gMappicS500MappicS202Model0091000C84Stream,
+TmdSource gMappicS500BridgeShape = {
+    .bufferHalfBytes  = 2 * sizeof(POLY_F3) + 2 * sizeof(POLY_F4),
+    .partCount        = ARRAY_SIZE(_gMappicS500BridgeShapeSkeleton),
+    .partVertexCounts = _gMappicS500BridgeShapePartVerts,
+    .verts            = _gMappicS500BridgeShapeVerts,
+    .normals          = &_gMappicS500BridgeShapeVerts[ARRAY_SIZE(_gMappicS500BridgeShapeVerts)], // Empty normal pool at the vertex end.
+    .skeleton         = _gMappicS500BridgeShapeSkeleton,
+    .stream           = _gMappicS500BridgeShapeStream,
 };
 
-static TmdBone _gMappicS500Model00D28Skeleton[1] = {
+/// Identity transform and self-parented root for the Island shape in the altar variant.
+static TmdBone _gMappicS500IslandAltarVariantShapeSkeleton[] = {
 #include "assets/mappic_s5_00_model_00D28_skeleton.inc"
 };
 
-static u32 _gMappicS500Model00D28PartVerts[1] = {
+/// Eleven vertices belong to the Island altar variant's sole part.
+static u32 _gMappicS500IslandAltarVariantShapePartVerts[] = {
 #include "assets/mappic_s5_00_model_00D28_partVerts.inc"
 };
 
-static SVECTOR _gMappicS500Model00D28Verts[11] = {
+/// Island's altar-variant footprint in integer model X/Z coordinates, with Y zero.
+static SVECTOR _gMappicS500IslandAltarVariantShapeVerts[] = {
 #include "assets/mappic_s5_00_model_00D28_verts.inc"
 };
 
-static u32 _gMappicS500Model00D28Stream[24] = {
+/// One triangle and four quads with packed vertex byte offsets and unlit white colour.
+/// Two group ends and the stream end follow the polygon commands.
+static u32 _gMappicS500IslandAltarVariantShapeStream[] = {
 #include "assets/mappic_s5_00_model_00D28_stream.inc"
 };
 
-TmdSource D_mappic_s5_00_8012FCB8 = {
-    0,
-    116,
-    0,
-    1,
-    _gMappicS500Model00D28PartVerts,
-    _gMappicS500Model00D28Verts,
-    &_gMappicS500Model00D28Verts[11],
-    _gMappicS500Model00D28Skeleton,
-    _gMappicS500Model00D28Stream,
+TmdSource gMappicS500IslandAltarVariantShape = {
+    .bufferHalfBytes  = sizeof(POLY_F3) + 4 * sizeof(POLY_F4),
+    .partCount        = ARRAY_SIZE(_gMappicS500IslandAltarVariantShapeSkeleton),
+    .partVertexCounts = _gMappicS500IslandAltarVariantShapePartVerts,
+    .verts            = _gMappicS500IslandAltarVariantShapeVerts,
+    .normals          = &_gMappicS500IslandAltarVariantShapeVerts[ARRAY_SIZE(_gMappicS500IslandAltarVariantShapeVerts)], // Empty normal pool at the vertex end.
+    .skeleton         = _gMappicS500IslandAltarVariantShapeSkeleton,
+    .stream           = _gMappicS500IslandAltarVariantShapeStream,
 };
 
-static TmdBone _gMappicS500Model00E0CSkeleton[1] = {
+/// Identity transform and self-parented root for the Bridge shape in the altar variant.
+static TmdBone _gMappicS500BridgeAltarVariantShapeSkeleton[] = {
 #include "assets/mappic_s5_00_model_00E0C_skeleton.inc"
 };
 
-static u32 _gMappicS500Model00E0CPartVerts[1] = {
+/// Seven vertices belong to the Bridge altar variant's sole part.
+static u32 _gMappicS500BridgeAltarVariantShapePartVerts[] = {
 #include "assets/mappic_s5_00_model_00E0C_partVerts.inc"
 };
 
-static SVECTOR _gMappicS500Model00E0CVerts[7] = {
+/// Bridge's altar-variant footprint in integer model X/Z coordinates, with Y zero.
+static SVECTOR _gMappicS500BridgeAltarVariantShapeVerts[] = {
 #include "assets/mappic_s5_00_model_00E0C_verts.inc"
 };
 
-static u32 _gMappicS500Model00E0CStream[18] = {
+/// One triangle and two quads with packed vertex byte offsets and unlit white colour.
+/// Two group ends and the stream end follow the polygon commands.
+static u32 _gMappicS500BridgeAltarVariantShapeStream[] = {
 #include "assets/mappic_s5_00_model_00E0C_stream.inc"
 };
 
-TmdSource D_mappic_s5_00_8012FD84 = {
-    0,
-    68,
-    0,
-    1,
-    _gMappicS500Model00E0CPartVerts,
-    _gMappicS500Model00E0CVerts,
-    &_gMappicS500Model00E0CVerts[7],
-    _gMappicS500Model00E0CSkeleton,
-    _gMappicS500Model00E0CStream,
+TmdSource gMappicS500BridgeAltarVariantShape = {
+    .bufferHalfBytes  = sizeof(POLY_F3) + 2 * sizeof(POLY_F4),
+    .partCount        = ARRAY_SIZE(_gMappicS500BridgeAltarVariantShapeSkeleton),
+    .partVertexCounts = _gMappicS500BridgeAltarVariantShapePartVerts,
+    .verts            = _gMappicS500BridgeAltarVariantShapeVerts,
+    .normals          = &_gMappicS500BridgeAltarVariantShapeVerts[ARRAY_SIZE(_gMappicS500BridgeAltarVariantShapeVerts)], // Empty normal pool at the vertex end.
+    .skeleton         = _gMappicS500BridgeAltarVariantShapeSkeleton,
+    .stream           = _gMappicS500BridgeAltarVariantShapeStream,
 };
 
-static TmdBone _gMappicS500MappicS202Model00CF800F1CSkeleton[1] = {
+/// Identity transform and self-parented root for the Pyramid shape.
+static TmdBone _gMappicS500PyramidShapeSkeleton[] = {
 #include "assets/mappic_s2_02_model_00CF8_00F1C_skeleton.inc"
 };
 
-static u32 _gMappicS500MappicS202Model00CF800F1CPartVerts[1] = {
+/// Vertex count of the Pyramid shape's sole part (eight vertices).
+static u32 _gMappicS500PyramidShapePartVerts[] = {
 #include "assets/mappic_s2_02_model_00CF8_00F1C_partVerts.inc"
 };
 
-static SVECTOR _gMappicS500MappicS202Model00CF800F1CVerts[8] = {
+/// Pyramid's map footprint in integer model X/Z coordinates, with Y zero.
+static SVECTOR _gMappicS500PyramidShapeVerts[] = {
 #include "assets/mappic_s2_02_model_00CF8_00F1C_verts.inc"
 };
 
-static u32 _gMappicS500MappicS202Model00CF800F1CStream[15] = {
+/// Three quads with packed vertex byte offsets and unlit white colour.
+/// Two group ends and the stream end follow the polygon commands.
+static u32 _gMappicS500PyramidShapeStream[] = {
 #include "assets/mappic_s2_02_model_00CF8_00F1C_stream.inc"
 };
 
-TmdSource D_mappic_s5_00_8012FE4C = {
-    0,
-    72,
-    0,
-    1,
-    _gMappicS500MappicS202Model00CF800F1CPartVerts,
-    _gMappicS500MappicS202Model00CF800F1CVerts,
-    &_gMappicS500MappicS202Model00CF800F1CVerts[8],
-    _gMappicS500MappicS202Model00CF800F1CSkeleton,
-    _gMappicS500MappicS202Model00CF800F1CStream,
+TmdSource gMappicS500PyramidShape = {
+    .bufferHalfBytes  = 3 * sizeof(POLY_F4),
+    .partCount        = ARRAY_SIZE(_gMappicS500PyramidShapeSkeleton),
+    .partVertexCounts = _gMappicS500PyramidShapePartVerts,
+    .verts            = _gMappicS500PyramidShapeVerts,
+    .normals          = &_gMappicS500PyramidShapeVerts[ARRAY_SIZE(_gMappicS500PyramidShapeVerts)], // Empty normal pool at the vertex end.
+    .skeleton         = _gMappicS500PyramidShapeSkeleton,
+    .stream           = _gMappicS500PyramidShapeStream,
 };

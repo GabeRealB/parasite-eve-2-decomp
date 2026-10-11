@@ -349,17 +349,59 @@ extern TmdSource gMappicS500SouthPromenadeShape;
 /// vertices and first stream group; keep mappic_s5_00 loaded during use.
 extern TmdSource gMappicS500AltarShape;
 
-extern TmdSource D_mappic_s5_00_8012F9D4;
+/// Shrine's area-fill shape on page 1 of the Neo Ark map.
+///
+/// Four triangles and five quads over sixteen vertices lie in the model X/Z plane.
+/// The map scales them by 1495/4096 and maps Z to inverted screen Y.
+/// Has no normal data. The map borrows the vertices and first stream group;
+/// keep mappic_s5_00 loaded during use.
+extern TmdSource gMappicS500ShrineShape;
 
-extern TmdSource D_mappic_s5_00_8012FAD4;
+/// Woodland path's area-fill shape on page 1 of the Neo Ark map.
+///
+/// Five quads over twelve vertices lie in the model X/Z plane.
+/// The map scales them by 1495/4096 and maps Z to inverted screen Y.
+/// Has no normal data. The map borrows the vertices and first stream group;
+/// keep mappic_s5_00 loaded during use.
+extern TmdSource gMappicS500WoodlandPathShape;
 
-extern TmdSource D_mappic_s5_00_8012FBB4;
+/// Bridge's area-fill shape on page 1 of the Neo Ark map.
+///
+/// Used while the altar switch state is not 1; the alternate picture uses
+/// `gMappicS500BridgeAltarVariantShape`.
+/// Two triangles and two quads over eight vertices lie in the model X/Z plane.
+/// The map scales them by 1495/4096 and maps Z to inverted screen Y.
+/// Has no normal data. The map borrows the vertices and first stream group;
+/// keep mappic_s5_00 loaded during use.
+extern TmdSource gMappicS500BridgeShape;
 
-extern TmdSource D_mappic_s5_00_8012FCB8;
+/// Island's area-fill shape for the altar-variant Neo Ark map picture.
+///
+/// Selected on page 1 when the altar switch state is 1.
+/// Files 30501 and 30504 carry the same mappic_s5_00 model package.
+/// One triangle and four quads over eleven vertices lie in the model X/Z plane.
+/// The map scales them by 1495/4096 and maps Z to inverted screen Y.
+/// Has no normal data. The map borrows the vertices and first stream group;
+/// keep mappic_s5_00 loaded during use.
+extern TmdSource gMappicS500IslandAltarVariantShape;
 
-extern TmdSource D_mappic_s5_00_8012FD84;
+/// Bridge's area-fill shape for the altar-variant Neo Ark map picture.
+///
+/// Selected on page 1 when the altar switch state is 1.
+/// Files 30501 and 30504 carry the same mappic_s5_00 model package.
+/// One triangle and two quads over seven vertices lie in the model X/Z plane.
+/// The map scales them by 1495/4096 and maps Z to inverted screen Y.
+/// Has no normal data. The map borrows the vertices and first stream group;
+/// keep mappic_s5_00 loaded during use.
+extern TmdSource gMappicS500BridgeAltarVariantShape;
 
-extern TmdSource D_mappic_s5_00_8012FE4C;
+/// Pyramid's area-fill shape on page 1 of the Neo Ark map.
+///
+/// Three quads over eight vertices lie in the model X/Z plane.
+/// The map scales them by 1495/4096 and maps Z to inverted screen Y.
+/// Has no normal data. The map borrows the vertices and first stream group;
+/// keep mappic_s5_00 loaded during use.
+extern TmdSource gMappicS500PyramidShape;
 
 // mappic_s5_02
 /// Nursery's area-fill mesh on page 2 (Shelter B6) of the Neo Ark map.

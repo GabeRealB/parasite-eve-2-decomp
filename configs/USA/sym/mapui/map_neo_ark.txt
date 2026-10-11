@@ -335,12 +335,12 @@ gMappicS500PowerPlantsShape = 0x8012F61C; // absolute:True owner=mappic_s5_00
 gMappicS500SavannaZoneShape = 0x8012F6AC; // absolute:True owner=mappic_s5_00 shared=mappic
 gMappicS500SouthPromenadeShape = 0x8012F7E8; // absolute:True owner=mappic_s5_00
 gMappicS500AltarShape = 0x8012F878; // absolute:True owner=mappic_s5_00
-D_mappic_s5_00_8012F9D4 = 0x8012F9D4; // absolute:True owner=mappic_s5_00
-D_mappic_s5_00_8012FAD4 = 0x8012FAD4; // absolute:True owner=mappic_s5_00
-D_mappic_s5_00_8012FBB4 = 0x8012FBB4; // absolute:True owner=mappic_s5_00 shared=mappic
-D_mappic_s5_00_8012FCB8 = 0x8012FCB8; // absolute:True owner=mappic_s5_00
-D_mappic_s5_00_8012FD84 = 0x8012FD84; // absolute:True owner=mappic_s5_00
-D_mappic_s5_00_8012FE4C = 0x8012FE4C; // absolute:True owner=mappic_s5_00
+gMappicS500ShrineShape = 0x8012F9D4; // absolute:True owner=mappic_s5_00
+gMappicS500WoodlandPathShape = 0x8012FAD4; // absolute:True owner=mappic_s5_00
+gMappicS500BridgeShape = 0x8012FBB4; // absolute:True owner=mappic_s5_00 shared=mappic
+gMappicS500IslandAltarVariantShape = 0x8012FCB8; // absolute:True owner=mappic_s5_00
+gMappicS500BridgeAltarVariantShape = 0x8012FD84; // absolute:True owner=mappic_s5_00
+gMappicS500PyramidShape = 0x8012FE4C; // absolute:True owner=mappic_s5_00
 gMappicS502NurseryShape = 0x8012F044; // absolute:True owner=mappic_s5_02
 gMappicS502GrowthRoomShape = 0x8012F124; // absolute:True owner=mappic_s5_02
 gMappicS502EveElevatorCorridorShape = 0x8012F224; // absolute:True owner=mappic_s5_02 shared=mappic

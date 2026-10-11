@@ -1134,7 +1134,7 @@ mappic_s4_05_model_00384	Face stream of the flat map outline of the Shelter B3 e
 mappic_s4_06	Four area-outline model records of the stage 4 page 6 map picture package, drawn by gameplay's map menu over that page's picture.	
 mappic_s4_06_model_0014C	Face stream of a flat map outline shared by the Shelter B1 elevator hall, the B4 upper sewer and the Neo Ark island.	
 mappic_s4_06_model_00214	Face stream of a flat map outline shared by five areas: the Shelter B1 control room and Golem freezer 1, the B4 water supply, the B6 growth room and the 1F bulwark.	
-mappic_s5_00	Area-outline model records of the stage 5 (Neo Ark) map picture package used for pages 1, 4 and 5, drawn by gameplay's map menu over the page's picture.	
+mappic_s5_00	Area-outline model records for page 1 of the stage 5 (Neo Ark) map, including alternate Island and Bridge shapes for the altar-variant picture. Both picture files carry this package.
 mappic_s5_00_model_000A4	Face stream of the flat map outline of the Neo Ark observatory, drawn on page 1 of the stage 5 map.	
 mappic_s5_00_model_00270	Face stream of the flat map outline of the Neo Ark north promenade, drawn on page 1 of the stage 5 map.	
 mappic_s5_00_model_005FC	Face stream of the flat map outline of the Neo Ark garden, drawn on page 1 of the stage 5 map.	
