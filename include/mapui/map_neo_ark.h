@@ -80,11 +80,25 @@ extern u8 gMapNeoArkPageFlagIds[8];
 /// using per-axis world units per pixel. Keep the map overlay loaded for use.
 extern MenuMapArea gMapNeoArkAreas[MAP_NEO_ARK_AREA_ID_LIMIT + 2];
 
-/// This stage's `Gp_MapMarkTables` entry: the area shapes, indexed by area.
-extern MenuMapAreaShape D_map_neo_ark_8017A110[];
+/// Area-fill shapes for the Shelter/Neo Ark menu map.
+///
+/// Slots 0..33 are indexed by area ID; slot 0 is empty. Slots 34 and 35
+/// substitute the Island and Bridge models on page 1 while the altar switch
+/// state is 1. Their stored page bytes (4, 5) are unused by the area walk.
+/// Substation retains a no-page, no-model record despite its
+/// coordinate mapping on page 1; the intent of that discrepancy is unproven.
+/// The map overlay and the selected page's mappic overlay must stay loaded.
+extern MenuMapAreaShape gMapNeoArkAreaShapes[MAP_NEO_ARK_AREA_ID_LIMIT + 3];
 
-/// This stage's `D_8010F0E0` entry, ended by a page of 0.
-extern MenuMapMarker D_map_neo_ark_8017A230[];
+/// Number of parallel marker and packed-flag entries, excluding the marker terminator.
+enum { MAP_NEO_ARK_MARKER_COUNT = 9 };
+
+/// Flag-controlled map markers in signed pixels from the picture centre.
+///
+/// Entries 0..8 correspond to `gMapNeoArkMarkerFlags`; entry 0 is never drawn,
+/// and entries 1..8 have no visited-area gate. The final page-zero record ends
+/// the list and has no flag entry. Keep the map overlay loaded during use.
+extern MenuMapMarker gMapNeoArkMarkers[MAP_NEO_ARK_MARKER_COUNT + 1];
 
 /// Fixed-picture and telephone icons for the Shelter/Neo Ark map.
 ///
@@ -94,8 +108,12 @@ extern MenuMapMarker D_map_neo_ark_8017A230[];
 /// The kind-0 picture's subject is unproven. Keep the map overlay loaded.
 extern MenuMapIcon gMapNeoArkIcons[4];
 
-/// This stage's `Gp_MapNameTables` entry: the room names, indexed by room - 1.
-extern MenuMapAreaName D_map_neo_ark_8017A28C[];
+/// Map-screen area labels for Shelter/Neo Ark area IDs 1..33.
+///
+/// Select area - 1; there is no terminator. Each record holds one NUL-terminated
+/// line of large-font UI text. Area 31 retains a single space, and the Oval
+/// Office label retains its authored byte sequence. Keep the map overlay loaded.
+extern MenuMapAreaName gMapNeoArkAreaNames[MAP_NEO_ARK_AREA_ID_LIMIT];
 
 /// Saved-object lists and spawn recipes for Shelter/Neo Ark areas 1..33.
 ///
@@ -116,12 +134,21 @@ extern AreaObjectRoom gMapNeoArkObjectRooms[35];
 /// read it. This is signed update-count storage, not saved game state.
 extern s32 gMapNeoArkCompanionDistressTicks;
 
-/// This stage's `D_8010FABC` entry: the task each room starts, keyed by
-/// `GP_TASK_LOC_KEY` and ended by flags of 0xFFFF.
-extern TaskDesc D_map_neo_ark_8017A804[];
+/// Room-task spawn recipes searched by location for the Shelter/Neo Ark stage.
+///
+/// The 33 live records use `GP_TASK_LOC_KEY(stage, area, 0)`, supplying an area
+/// default for every room. Records are searched in stored order, not indexed
+/// by area ID. Tasks have no body and priority 32; the final `TASK_DESC_END` record
+/// is never spawned. Keep the map and selected room overlays loaded through
+/// selection; the room's callback must remain loaded throughout its task.
+extern TaskDesc gMapNeoArkRoomTaskDescriptors[MAP_NEO_ARK_AREA_ID_LIMIT + 1];
 
-/// This stage's flag table for `menuMapGetMarkerState`.
-extern u16 D_map_neo_ark_8017A9A0[];
+/// Packed game-flag selectors parallel to the nine Shelter/Neo Ark markers.
+///
+/// Low 11 bits select a flag nibble; `MENU_MAP_MARKER_ALTERNATE_PICTURE` selects
+/// the second picture. State 2 draws the marker. No terminator is stored, and
+/// marker indices must be 0..8. Keep the map overlay loaded during lookup.
+extern u16 gMapNeoArkMarkerFlags[MAP_NEO_ARK_MARKER_COUNT];
 
 /// Per-area room-lighting directories for the 33 Shelter/Neo Ark areas.
 ///
@@ -138,7 +165,13 @@ extern WorldCoordRoomLighting* gMapNeoArkRoomLightingTables[33];
 /// record this overlay holds itself.
 extern DirectionWarpEntry* D_map_neo_ark_8017AA80[];
 
-extern ViewCountTable D_map_neo_ark_8017AB88;
+/// Directory of borrowed room view-count arrays for Shelter/Neo Ark areas 1..33.
+///
+/// Select `viewCounts[area - 1][room - 1]`; every area entry is populated.
+/// Counts are signed logical-view search lengths, independent of camera/image
+/// capacity. Neither level has a terminator. Keep the map directory and the
+/// selected room's count array loaded, and use an in-range 1-based room ID.
+extern ViewCountTable gMapNeoArkViewCountTable;
 
 extern WorldCollisionStageResources D_map_neo_ark_8017ACA0;
 
@@ -904,12 +937,20 @@ extern AreaPlacement gMapNeoArkPyramidVariant4Placements[4];
 /// borrowing these records.
 extern AreaPlacement gMapNeoArkPyramidVariant11Placements[3];
 
-/// This stage's `D_8010F9F4` and `D_8010FA0C` entries: items awarded
-/// for battles won at a location, each list ended by a key of
-/// `INVENTORY_BATTLE_REWARD_LIST_END`.
-extern InventoryBattleReward D_map_neo_ark_8017C9B0[];
+/// Shelter/Neo Ark battle rewards for normal, replay and Scavenger runs.
+///
+/// Search the 28 live rows by stage, area and placement variant, granting the
+/// first match; room/view do not participate. Zero item slots award nothing,
+/// and slot 3 requires a Medicine Wheel. The final key is
+/// `INVENTORY_BATTLE_REWARD_LIST_END`. Keep the map overlay loaded during lookup.
+extern InventoryBattleReward gMapNeoArkBattleRewards[29];
 
-extern InventoryBattleReward D_map_neo_ark_8017CB0C[];
+/// Shelter/Neo Ark battle rewards for Bounty and Nightmare runs.
+///
+/// Five live rows use the same location and item-slot contract as
+/// `gMapNeoArkBattleRewards`; the sixth is `INVENTORY_BATTLE_REWARD_LIST_END`.
+/// Keep the map overlay loaded during lookup.
+extern InventoryBattleReward gMapNeoArkHardBattleRewards[6];
 
 /// Places movie decode buffers for the Guardroom or Eve Elevator area.
 ///

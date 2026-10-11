@@ -308,7 +308,7 @@ MenuMapAreaName* Gp_MapNameTables[5] = {
     gMapDryfieldAreaNames,
     gMapDryfieldFullAreaNames,
     D_map_shelter_8017A268,
-    D_map_neo_ark_8017A28C,
+    gMapNeoArkAreaNames,
 };
 
 MenuMapIcon* D_8010F0CC[5] = {
@@ -324,7 +324,7 @@ MenuMapMarker* D_8010F0E0[5] = {
     gMapDryfieldMarkers,
     gMapDryfieldFullMarkers,
     D_map_shelter_8017A134,
-    D_map_neo_ark_8017A230,
+    gMapNeoArkMarkers,
 };
 
 MenuMapArea* Gp_MapRecTables[5] = {
@@ -348,7 +348,7 @@ MenuMapAreaShape* Gp_MapMarkTables[5] = {
     D_map_dryfield_80179E00,
     D_map_dryfield_full_80179D10,
     D_map_shelter_80179FA4,
-    D_map_neo_ark_8017A110,
+    gMapNeoArkAreaShapes,
 };
 
 u8 D_8010F130[5] = { 2, 3, 3, 6, 3 };

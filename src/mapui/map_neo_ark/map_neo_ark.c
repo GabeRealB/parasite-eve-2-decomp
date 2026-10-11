@@ -9,6 +9,7 @@
 #include "gameplay/battle_reward.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
+#include "gameplay/inventory.h"
 #include "gameplay/map.h"
 #include "gameplay/message.h"
 #include "gameplay/room.h"
@@ -419,6 +420,45 @@ enum {
     MAP_NEO_ARK_ICON_KIND_FIXED_PICTURE = 0,
 };
 
+/// Area-shape substitutions outside the ordinary area-ID slots.
+enum {
+    MAP_NEO_ARK_ALT_ISLAND_SHAPE_INDEX = MAP_NEO_ARK_AREA_ID_LIMIT + 1,
+    MAP_NEO_ARK_ALT_BRIDGE_SHAPE_INDEX = MAP_NEO_ARK_AREA_ID_LIMIT + 2,
+};
+
+/// Shared endpoint flag IDs not yet declared in the public game-flag catalogue.
+enum {
+    MAP_NEO_ARK_MARKER_FLAG_GARDEN_WARP_3             = 0x1B5,
+    MAP_NEO_ARK_MARKER_FLAG_EVE_ACCESS_TUNNEL_SHELTER = 0x1AF,
+    MAP_NEO_ARK_MARKER_FLAG_VEHICULAR_AIRLOCK_BULWARK = 0x1AC,
+};
+
+/// Execution priority of this stage's area-default room tasks.
+enum { MAP_NEO_ARK_ROOM_TASK_PRIORITY = 32 };
+
+/// Catalogue IDs used only by this stage's battle-reward lists.
+enum {
+    MAP_NEO_ARK_REWARD_RECOVERY_1      = 1,
+    MAP_NEO_ARK_REWARD_RECOVERY_2      = 2,
+    MAP_NEO_ARK_REWARD_RECOVERY_3      = 3,
+    MAP_NEO_ARK_REWARD_EAU_DE_TOILETTE = 0x3E,
+    MAP_NEO_ARK_REWARD_JAVELIN         = 0x44,
+    MAP_NEO_ARK_REWARD_M249            = 0x90,
+    MAP_NEO_ARK_REWARD_9MM_SPARTAN     = 0xA2,
+    MAP_NEO_ARK_REWARD_RIOT            = 0xAB,
+    MAP_NEO_ARK_REWARD_FIREFLY         = 0xAD,
+    MAP_NEO_ARK_REWARD_R_SLUG          = 0xAE,
+};
+
+/// Resource IDs shared by the two R26 scripted-walker recipes.
+enum {
+    MAP_NEO_ARK_SCENE_ACTOR_RESOURCE_FIRST_WALKER  = 111,
+    MAP_NEO_ARK_SCENE_ACTOR_RESOURCE_SECOND_WALKER = 112,
+};
+
+/// Page-zero record terminating this stage's marker list.
+enum { MAP_NEO_ARK_MARKER_PAGE_END = 0 };
+
 /// Spawn policies encoded by the room recipes used in these placement lists.
 ///
 /// Bog Diver mode's low nibble selects behavior and bits 4..5 select a room
@@ -489,58 +529,58 @@ MenuMapArea gMapNeoArkAreas[MAP_NEO_ARK_AREA_ID_LIMIT + 2] = {
     [MAP_NEO_ARK_AREA_ID_LIMIT + 1]          = { .originX = 0, .originZ = 0, .mapX = 0, .mapY = 0, .scaleX = 0, .scaleZ = 0, .page = MENU_MAP_AREA_PAGE_END },
 };
 
-MenuMapAreaShape D_map_neo_ark_8017A110[36] = {
-    { NULL, MENU_MAP_AREA_SHAPE_PAGE_NONE, MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
-    { &gMappicS503ParkingGarageShape, 3, MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
-    { &gMappicS503VehicularAirlockShape, 3, MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
-    { &gMappicS503BulwarkShape, 3, MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
-    { &gMappicS503HeliportShape, 3, 0x1C },
-    { &gMappicS503AirlockShape, 3, MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
-    { &gMappicS503GuardroomShape, 3, MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
-    { &gMappicS500ObservatoryShape, MAP_NEO_ARK_PAGE_NEO_ARK, MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
-    { &gMappicS500EveAccessTunnelShape, MAP_NEO_ARK_PAGE_NEO_ARK, MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
-    { &gMappicS502EveElevatorCorridorShape, MAP_NEO_ARK_PAGE_SHELTER_B6, GAME_AREA_SHELTER_B6_CORRIDOR },
-    { &gMappicS500NorthPromenadeShape, MAP_NEO_ARK_PAGE_NEO_ARK, MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
-    { &gMappicS500ForestZoneShape, MAP_NEO_ARK_PAGE_NEO_ARK, MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
-    { &gMappicS500SubmarineTunnelShape, MAP_NEO_ARK_PAGE_NEO_ARK, MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
-    { &gMappicS500PavilionShape, MAP_NEO_ARK_PAGE_NEO_ARK, MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
-    { &gMappicS500IslandShape, MAP_NEO_ARK_PAGE_NEO_ARK, GAME_AREA_NEO_ARK_SUBMARINE_GALLERY },
-    { &gMappicS500GardenShape, MAP_NEO_ARK_PAGE_NEO_ARK, MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
-    { &gMappicS500PowerPlantsShape, MAP_NEO_ARK_PAGE_NEO_ARK, GAME_AREA_NEO_ARK_POWER_PLANT_1 },
-    { &gMappicS500PowerPlantsShape, MAP_NEO_ARK_PAGE_NEO_ARK, GAME_AREA_NEO_ARK_POWER_PLANT_2 },
-    { &gMappicS500SavannaZoneShape, MAP_NEO_ARK_PAGE_NEO_ARK, MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
-    { &gMappicS500SouthPromenadeShape, MAP_NEO_ARK_PAGE_NEO_ARK, MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
-    { &gMappicS500AltarShape, MAP_NEO_ARK_PAGE_NEO_ARK, MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
-    { &gMappicS500ShrineShape, MAP_NEO_ARK_PAGE_NEO_ARK, MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
-    { &gMappicS502NurseryShape, MAP_NEO_ARK_PAGE_SHELTER_B6, MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
-    { &gMappicS502GrowthRoomShape, MAP_NEO_ARK_PAGE_SHELTER_B6, MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
-    { &gMappicS502EveElevatorCorridorShape, MAP_NEO_ARK_PAGE_SHELTER_B6, GAME_AREA_NEO_ARK_EVE_ELEVATOR },
-    { &gMappicS502TrainingRoomShape, MAP_NEO_ARK_PAGE_SHELTER_B6, MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
-    { NULL, MENU_MAP_AREA_SHAPE_PAGE_NONE, MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
-    { &gMappicS500BridgeShape, MAP_NEO_ARK_PAGE_NEO_ARK, MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
-    { NULL, 3, 4 },
-    { &gMappicS500WoodlandPathShape, MAP_NEO_ARK_PAGE_NEO_ARK, MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
-    { NULL, 1, 0xE },
-    { NULL, MENU_MAP_AREA_SHAPE_PAGE_NONE, MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
-    { &gMappicS500PyramidShape, MAP_NEO_ARK_PAGE_NEO_ARK, MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
-    { NULL, MENU_MAP_AREA_SHAPE_PAGE_NONE, MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
+MenuMapAreaShape gMapNeoArkAreaShapes[MAP_NEO_ARK_AREA_ID_LIMIT + 3] = {
+    [0]                                      = { .model = NULL, .page = MENU_MAP_AREA_SHAPE_PAGE_NONE, .pairedArea = MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
+    [GAME_AREA_SHELTER_1F_PARKING_GARAGE]    = { .model = &gMappicS503ParkingGarageShape, .page = MAP_NEO_ARK_PAGE_SHELTER_1F, .pairedArea = MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
+    [GAME_AREA_SHELTER_1F_VEHICULAR_AIRLOCK] = { .model = &gMappicS503VehicularAirlockShape, .page = MAP_NEO_ARK_PAGE_SHELTER_1F, .pairedArea = MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
+    [GAME_AREA_SHELTER_1F_BULWARK]           = { .model = &gMappicS503BulwarkShape, .page = MAP_NEO_ARK_PAGE_SHELTER_1F, .pairedArea = MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
+    [GAME_AREA_SHELTER_1F_HELIPORT]          = { .model = &gMappicS503HeliportShape, .page = MAP_NEO_ARK_PAGE_SHELTER_1F, .pairedArea = GAME_AREA_SHELTER_1F_TENT },
+    [GAME_AREA_SHELTER_1F_AIRLOCK]           = { .model = &gMappicS503AirlockShape, .page = MAP_NEO_ARK_PAGE_SHELTER_1F, .pairedArea = MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
+    [GAME_AREA_SHELTER_1F_GUARDROOM]         = { .model = &gMappicS503GuardroomShape, .page = MAP_NEO_ARK_PAGE_SHELTER_1F, .pairedArea = MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
+    [GAME_AREA_NEO_ARK_OBSERVATORY]          = { .model = &gMappicS500ObservatoryShape, .page = MAP_NEO_ARK_PAGE_NEO_ARK, .pairedArea = MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
+    [GAME_AREA_NEO_ARK_EVE_ACCESS_TUNNEL]    = { .model = &gMappicS500EveAccessTunnelShape, .page = MAP_NEO_ARK_PAGE_NEO_ARK, .pairedArea = MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
+    [GAME_AREA_NEO_ARK_EVE_ELEVATOR]         = { .model = &gMappicS502EveElevatorCorridorShape, .page = MAP_NEO_ARK_PAGE_SHELTER_B6, .pairedArea = GAME_AREA_SHELTER_B6_CORRIDOR },
+    [GAME_AREA_NEO_ARK_NORTH_PROMENADE]      = { .model = &gMappicS500NorthPromenadeShape, .page = MAP_NEO_ARK_PAGE_NEO_ARK, .pairedArea = MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
+    [GAME_AREA_NEO_ARK_FOREST_ZONE]          = { .model = &gMappicS500ForestZoneShape, .page = MAP_NEO_ARK_PAGE_NEO_ARK, .pairedArea = MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
+    [GAME_AREA_NEO_ARK_SUBMARINE_TUNNEL]     = { .model = &gMappicS500SubmarineTunnelShape, .page = MAP_NEO_ARK_PAGE_NEO_ARK, .pairedArea = MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
+    [GAME_AREA_NEO_ARK_PAVILION]             = { .model = &gMappicS500PavilionShape, .page = MAP_NEO_ARK_PAGE_NEO_ARK, .pairedArea = MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
+    [GAME_AREA_NEO_ARK_ISLAND]               = { .model = &gMappicS500IslandShape, .page = MAP_NEO_ARK_PAGE_NEO_ARK, .pairedArea = GAME_AREA_NEO_ARK_SUBMARINE_GALLERY },
+    [GAME_AREA_NEO_ARK_GARDEN]               = { .model = &gMappicS500GardenShape, .page = MAP_NEO_ARK_PAGE_NEO_ARK, .pairedArea = MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
+    [GAME_AREA_NEO_ARK_POWER_PLANT_2]        = { .model = &gMappicS500PowerPlantsShape, .page = MAP_NEO_ARK_PAGE_NEO_ARK, .pairedArea = GAME_AREA_NEO_ARK_POWER_PLANT_1 },
+    [GAME_AREA_NEO_ARK_POWER_PLANT_1]        = { .model = &gMappicS500PowerPlantsShape, .page = MAP_NEO_ARK_PAGE_NEO_ARK, .pairedArea = GAME_AREA_NEO_ARK_POWER_PLANT_2 },
+    [GAME_AREA_NEO_ARK_SAVANNA_ZONE]         = { .model = &gMappicS500SavannaZoneShape, .page = MAP_NEO_ARK_PAGE_NEO_ARK, .pairedArea = MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
+    [GAME_AREA_NEO_ARK_SOUTH_PROMENADE]      = { .model = &gMappicS500SouthPromenadeShape, .page = MAP_NEO_ARK_PAGE_NEO_ARK, .pairedArea = MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
+    [GAME_AREA_NEO_ARK_ALTAR]                = { .model = &gMappicS500AltarShape, .page = MAP_NEO_ARK_PAGE_NEO_ARK, .pairedArea = MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
+    [GAME_AREA_NEO_ARK_SHRINE]               = { .model = &gMappicS500ShrineShape, .page = MAP_NEO_ARK_PAGE_NEO_ARK, .pairedArea = MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
+    [GAME_AREA_SHELTER_B6_NURSERY]           = { .model = &gMappicS502NurseryShape, .page = MAP_NEO_ARK_PAGE_SHELTER_B6, .pairedArea = MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
+    [GAME_AREA_SHELTER_B6_GROWTH_ROOM]       = { .model = &gMappicS502GrowthRoomShape, .page = MAP_NEO_ARK_PAGE_SHELTER_B6, .pairedArea = MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
+    [GAME_AREA_SHELTER_B6_CORRIDOR]          = { .model = &gMappicS502EveElevatorCorridorShape, .page = MAP_NEO_ARK_PAGE_SHELTER_B6, .pairedArea = GAME_AREA_NEO_ARK_EVE_ELEVATOR },
+    [GAME_AREA_SHELTER_B6_TRAINING_ROOM]     = { .model = &gMappicS502TrainingRoomShape, .page = MAP_NEO_ARK_PAGE_SHELTER_B6, .pairedArea = MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
+    [GAME_AREA_NEO_ARK_R26]                  = { .model = NULL, .page = MENU_MAP_AREA_SHAPE_PAGE_NONE, .pairedArea = MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
+    [GAME_AREA_NEO_ARK_BRIDGE]               = { .model = &gMappicS500BridgeShape, .page = MAP_NEO_ARK_PAGE_NEO_ARK, .pairedArea = MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
+    [GAME_AREA_SHELTER_1F_TENT]              = { .model = NULL, .page = MAP_NEO_ARK_PAGE_SHELTER_1F, .pairedArea = GAME_AREA_SHELTER_1F_HELIPORT },
+    [GAME_AREA_NEO_ARK_WOODLAND_PATH]        = { .model = &gMappicS500WoodlandPathShape, .page = MAP_NEO_ARK_PAGE_NEO_ARK, .pairedArea = MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
+    [GAME_AREA_NEO_ARK_SUBMARINE_GALLERY]    = { .model = NULL, .page = MAP_NEO_ARK_PAGE_NEO_ARK, .pairedArea = GAME_AREA_NEO_ARK_ISLAND },
+    [GAME_AREA_NEO_ARK_R31]                  = { .model = NULL, .page = MENU_MAP_AREA_SHAPE_PAGE_NONE, .pairedArea = MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
+    [GAME_AREA_NEO_ARK_PYRAMID]              = { .model = &gMappicS500PyramidShape, .page = MAP_NEO_ARK_PAGE_NEO_ARK, .pairedArea = MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
+    [GAME_AREA_NEO_ARK_SUBSTATION]           = { .model = NULL, .page = MENU_MAP_AREA_SHAPE_PAGE_NONE, .pairedArea = MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
     // Alternate-picture models substitute for the Island and Bridge area models.
     // Their stored page bytes are unused: these rows lie beyond the area walk.
-    { &gMappicS500IslandAltarVariantShape, 4, MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
-    { &gMappicS500BridgeAltarVariantShape, 5, MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
+    [MAP_NEO_ARK_ALT_ISLAND_SHAPE_INDEX] = { .model = &gMappicS500IslandAltarVariantShape, .page = 4, .pairedArea = MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
+    [MAP_NEO_ARK_ALT_BRIDGE_SHAPE_INDEX] = { .model = &gMappicS500BridgeAltarVariantShape, .page = 5, .pairedArea = MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE },
 };
 
-MenuMapMarker D_map_neo_ark_8017A230[10] = {
-    { 1, MENU_MAP_MARKER_AREA_NEVER, 0, 0 },
-    { 2, MENU_MAP_MARKER_AREA_ANY, -47, 26 },
-    { 1, MENU_MAP_MARKER_AREA_ANY, -47, 59 },
-    { 1, MENU_MAP_MARKER_AREA_ANY, -80, 25 },
-    { 2, MENU_MAP_MARKER_AREA_ANY, 48, 16 },
-    { 3, MENU_MAP_MARKER_AREA_ANY, 109, 0 },
-    { 1, MENU_MAP_MARKER_AREA_ANY, 59, -75 },
-    { 1, MENU_MAP_MARKER_AREA_ANY, 109, 8 },
-    { 3, MENU_MAP_MARKER_AREA_ANY, 30, 0 },
-    { 0, 0, 0, 0 },
+MenuMapMarker gMapNeoArkMarkers[MAP_NEO_ARK_MARKER_COUNT + 1] = {
+    { .page = MAP_NEO_ARK_PAGE_NEO_ARK, .area = MENU_MAP_MARKER_AREA_NEVER, .x = 0, .y = 0 },
+    { .page = MAP_NEO_ARK_PAGE_SHELTER_B6, .area = MENU_MAP_MARKER_AREA_ANY, .x = -47, .y = 26 },
+    { .page = MAP_NEO_ARK_PAGE_NEO_ARK, .area = MENU_MAP_MARKER_AREA_ANY, .x = -47, .y = 59 },
+    { .page = MAP_NEO_ARK_PAGE_NEO_ARK, .area = MENU_MAP_MARKER_AREA_ANY, .x = -80, .y = 25 },
+    { .page = MAP_NEO_ARK_PAGE_SHELTER_B6, .area = MENU_MAP_MARKER_AREA_ANY, .x = 48, .y = 16 },
+    { .page = MAP_NEO_ARK_PAGE_SHELTER_1F, .area = MENU_MAP_MARKER_AREA_ANY, .x = 109, .y = 0 },
+    { .page = MAP_NEO_ARK_PAGE_NEO_ARK, .area = MENU_MAP_MARKER_AREA_ANY, .x = 59, .y = -75 },
+    { .page = MAP_NEO_ARK_PAGE_NEO_ARK, .area = MENU_MAP_MARKER_AREA_ANY, .x = 109, .y = 8 },
+    { .page = MAP_NEO_ARK_PAGE_SHELTER_1F, .area = MENU_MAP_MARKER_AREA_ANY, .x = 30, .y = 0 },
+    { .page = MAP_NEO_ARK_MARKER_PAGE_END },
 };
 
 MenuMapIcon gMapNeoArkIcons[4] = {
@@ -550,41 +590,43 @@ MenuMapIcon gMapNeoArkIcons[4] = {
     { .page = MAP_NEO_ARK_ICON_PAGE_END },
 };
 
-MenuMapAreaName D_map_neo_ark_8017A28C[33] = {
-    { "Parking garage" },
-    { "Vehicular airlock" },
-    { "Bulwark" },
-    { "Heliport" },
-    { "Airlock" },
-    { "Guardroom" },
-    { "Observatory" },
-    { "EVE access tunnel" },
-    { "EVE elevator" },
-    { "North promenade" },
-    { "Forest zone" },
-    { "Submarine tunnel" },
-    { "Pavilion" },
-    { "Island" },
-    { "Garden" },
-    { "Power plant 2" },
-    { "Power plant 1" },
-    { "Savanna zone" },
-    { "South promenade" },
-    { "Altar" },
-    { "Shrine" },
-    { "Nursery" },
-    { "Growth room" },
-    { "Corridor" },
-    { "Training room" },
-    /* The parentheses are Shift-JIS full-width characters. */
-    { "Oval Office\201ievening\201j" },
-    { "Bridge" },
-    { "Tent" },
-    { "Jungle zone" },
-    { "Submarine gallery" },
-    { " " },
-    { "Pyramid" },
-    { "Substation" },
+MenuMapAreaName gMapNeoArkAreaNames[MAP_NEO_ARK_AREA_ID_LIMIT] = {
+    [GAME_AREA_SHELTER_1F_PARKING_GARAGE - 1]    = { .text = "Parking garage" },
+    [GAME_AREA_SHELTER_1F_VEHICULAR_AIRLOCK - 1] = { .text = "Vehicular airlock" },
+    [GAME_AREA_SHELTER_1F_BULWARK - 1]           = { .text = "Bulwark" },
+    [GAME_AREA_SHELTER_1F_HELIPORT - 1]          = { .text = "Heliport" },
+    [GAME_AREA_SHELTER_1F_AIRLOCK - 1]           = { .text = "Airlock" },
+    [GAME_AREA_SHELTER_1F_GUARDROOM - 1]         = { .text = "Guardroom" },
+    [GAME_AREA_NEO_ARK_OBSERVATORY - 1]          = { .text = "Observatory" },
+    [GAME_AREA_NEO_ARK_EVE_ACCESS_TUNNEL - 1]    = { .text = "EVE access tunnel" },
+    [GAME_AREA_NEO_ARK_EVE_ELEVATOR - 1]         = { .text = "EVE elevator" },
+    [GAME_AREA_NEO_ARK_NORTH_PROMENADE - 1]      = { .text = "North promenade" },
+    [GAME_AREA_NEO_ARK_FOREST_ZONE - 1]          = { .text = "Forest zone" },
+    [GAME_AREA_NEO_ARK_SUBMARINE_TUNNEL - 1]     = { .text = "Submarine tunnel" },
+    [GAME_AREA_NEO_ARK_PAVILION - 1]             = { .text = "Pavilion" },
+    [GAME_AREA_NEO_ARK_ISLAND - 1]               = { .text = "Island" },
+    [GAME_AREA_NEO_ARK_GARDEN - 1]               = { .text = "Garden" },
+    [GAME_AREA_NEO_ARK_POWER_PLANT_2 - 1]        = { .text = "Power plant 2" },
+    [GAME_AREA_NEO_ARK_POWER_PLANT_1 - 1]        = { .text = "Power plant 1" },
+    [GAME_AREA_NEO_ARK_SAVANNA_ZONE - 1]         = { .text = "Savanna zone" },
+    [GAME_AREA_NEO_ARK_SOUTH_PROMENADE - 1]      = { .text = "South promenade" },
+    [GAME_AREA_NEO_ARK_ALTAR - 1]                = { .text = "Altar" },
+    [GAME_AREA_NEO_ARK_SHRINE - 1]               = { .text = "Shrine" },
+    [GAME_AREA_SHELTER_B6_NURSERY - 1]           = { .text = "Nursery" },
+    [GAME_AREA_SHELTER_B6_GROWTH_ROOM - 1]       = { .text = "Growth room" },
+    [GAME_AREA_SHELTER_B6_CORRIDOR - 1]          = { .text = "Corridor" },
+    [GAME_AREA_SHELTER_B6_TRAINING_ROOM - 1]     = { .text = "Training room" },
+    // Preserve bytes 81 69 / 81 6A: the large font does not decode Shift-JIS.
+    // Its 0x81 record has zero metrics; the following i/j are ordinary glyphs.
+    [GAME_AREA_NEO_ARK_R26 - 1]               = { .text = "Oval Office\x81\x69"
+                                                                        "evening\x81\x6A" },
+    [GAME_AREA_NEO_ARK_BRIDGE - 1]            = { .text = "Bridge" },
+    [GAME_AREA_SHELTER_1F_TENT - 1]           = { .text = "Tent" },
+    [GAME_AREA_NEO_ARK_WOODLAND_PATH - 1]     = { .text = "Jungle zone" },
+    [GAME_AREA_NEO_ARK_SUBMARINE_GALLERY - 1] = { .text = "Submarine gallery" },
+    [GAME_AREA_NEO_ARK_R31 - 1]               = { .text = " " },
+    [GAME_AREA_NEO_ARK_PYRAMID - 1]           = { .text = "Pyramid" },
+    [GAME_AREA_NEO_ARK_SUBSTATION - 1]        = { .text = "Substation" },
 };
 
 /// Terminator-only spawn recipes shared by seven saved-object lists.
@@ -649,55 +691,55 @@ AreaObjectRoom gMapNeoArkObjectRooms[35] = {
     [34]                                     = { { .sentinel = AREA_OBJECT_ROOM_END }, NULL },
 };
 
-TaskDesc D_map_neo_ark_8017A804[] = {
-    { { { TASK_BODY_NONE, 0x20 } }, shelter1fParkingGarageRoomTask, { .value = GP_TASK_LOC_KEY(5, 1, 0) } },
-    { { { TASK_BODY_NONE, 0x20 } }, shelter1fVehicularAirlockRoomTask, { .value = GP_TASK_LOC_KEY(5, 2, 0) } },
-    { { { TASK_BODY_NONE, 0x20 } }, shelter1fBulwarkRoomTask, { .value = GP_TASK_LOC_KEY(5, 3, 0) } },
-    { { { TASK_BODY_NONE, 0x20 } }, shelter1fAirlockRoomTask, { .value = GP_TASK_LOC_KEY(5, 5, 0) } },
-    { { { TASK_BODY_NONE, 0x20 } }, shelter1fGuardroomRoomTask, { .value = GP_TASK_LOC_KEY(5, 6, 0) } },
-    { { { TASK_BODY_NONE, 0x20 } }, neoArkObservatoryRoomTask, { .value = GP_TASK_LOC_KEY(5, 7, 0) } },
-    { { { TASK_BODY_NONE, 0x20 } }, neoArkEveAccessTunnelRoomTask, { .value = GP_TASK_LOC_KEY(5, 8, 0) } },
-    { { { TASK_BODY_NONE, 0x20 } }, neoArkEveElevatorRoomTask, { .value = GP_TASK_LOC_KEY(5, 9, 0) } },
-    { { { TASK_BODY_NONE, 0x20 } }, neoArkNorthPromenadeRoomTask, { .value = GP_TASK_LOC_KEY(5, 10, 0) } },
-    { { { TASK_BODY_NONE, 0x20 } }, neoArkForestZoneRoomTask, { .value = GP_TASK_LOC_KEY(5, 11, 0) } },
-    { { { TASK_BODY_NONE, 0x20 } }, neoArkSubmarineTunnelRoomTask, { .value = GP_TASK_LOC_KEY(5, 12, 0) } },
-    { { { TASK_BODY_NONE, 0x20 } }, neoArkPavilionRoomTask, { .value = GP_TASK_LOC_KEY(5, 13, 0) } },
-    { { { TASK_BODY_NONE, 0x20 } }, neoArkIslandRoomTask, { .value = GP_TASK_LOC_KEY(5, 14, 0) } },
-    { { { TASK_BODY_NONE, 0x20 } }, neoArkGardenRoomTask, { .value = GP_TASK_LOC_KEY(5, 15, 0) } },
-    { { { TASK_BODY_NONE, 0x20 } }, neoArkSavannaZoneRoomTask, { .value = GP_TASK_LOC_KEY(5, 18, 0) } },
-    { { { TASK_BODY_NONE, 0x20 } }, neoArkSouthPromenadeRoomTask, { .value = GP_TASK_LOC_KEY(5, 19, 0) } },
-    { { { TASK_BODY_NONE, 0x20 } }, neoArkAltarRoomTask, { .value = GP_TASK_LOC_KEY(5, 20, 0) } },
-    { { { TASK_BODY_NONE, 0x20 } }, neoArkShrineRoomTask, { .value = GP_TASK_LOC_KEY(5, 21, 0) } },
-    { { { TASK_BODY_NONE, 0x20 } }, shelterB6NurseryRoomTask, { .value = GP_TASK_LOC_KEY(5, 22, 0) } },
-    { { { TASK_BODY_NONE, 0x20 } }, shelterB6GrowthRoomTask, { .value = GP_TASK_LOC_KEY(5, 23, 0) } },
-    { { { TASK_BODY_NONE, 0x20 } }, shelterB6CorridorRoomTask, { .value = GP_TASK_LOC_KEY(5, 24, 0) } },
-    { { { TASK_BODY_NONE, 0x20 } }, shelterB6TrainingRoomRoomTask, { .value = GP_TASK_LOC_KEY(5, 25, 0) } },
-    { { { TASK_BODY_NONE, 0x20 } }, neoArkBridgeRoomTask, { .value = GP_TASK_LOC_KEY(5, 27, 0) } },
-    { { { TASK_BODY_NONE, 0x20 } }, neoArkR26RoomTask, { .value = GP_TASK_LOC_KEY(5, 26, 0) } },
-    { { { TASK_BODY_NONE, 0x20 } }, neoArkSubmarineGalleryMessageTask, { .value = GP_TASK_LOC_KEY(5, 30, 0) } },
-    { { { TASK_BODY_NONE, 0x20 } }, neoArkR31RoomTask, { .value = GP_TASK_LOC_KEY(5, 31, 0) } },
-    { { { TASK_BODY_NONE, 0x20 } }, shelter1fTentRoomTask, { .value = GP_TASK_LOC_KEY(5, 28, 0) } },
-    { { { TASK_BODY_NONE, 0x20 } }, neoArkWoodlandPathRoomTask, { .value = GP_TASK_LOC_KEY(5, 29, 0) } },
-    { { { TASK_BODY_NONE, 0x20 } }, neoArkPowerPlant2RoomTask, { .value = GP_TASK_LOC_KEY(5, 16, 0) } },
-    { { { TASK_BODY_NONE, 0x20 } }, neoArkPowerPlant1RoomTask, { .value = GP_TASK_LOC_KEY(5, 17, 0) } },
-    { { { TASK_BODY_NONE, 0x20 } }, shelter1fHeliportRoomTask, { .value = GP_TASK_LOC_KEY(5, 4, 0) } },
-    { { { TASK_BODY_NONE, 0x20 } }, neoArkPyramidRoomTask, { .value = GP_TASK_LOC_KEY(5, 32, 0) } },
-    { { { TASK_BODY_NONE, 0x20 } }, neoArkSubstationRoomTask, { .value = GP_TASK_LOC_KEY(5, 33, 0) } },
-    { { { TASK_DESC_END, 0x20 } }, NULL, { 0 } },
+TaskDesc gMapNeoArkRoomTaskDescriptors[MAP_NEO_ARK_AREA_ID_LIMIT + 1] = {
+    { { { TASK_BODY_NONE, MAP_NEO_ARK_ROOM_TASK_PRIORITY } }, shelter1fParkingGarageRoomTask, { .value = GP_TASK_LOC_KEY(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_SHELTER_1F_PARKING_GARAGE, 0) } },
+    { { { TASK_BODY_NONE, MAP_NEO_ARK_ROOM_TASK_PRIORITY } }, shelter1fVehicularAirlockRoomTask, { .value = GP_TASK_LOC_KEY(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_SHELTER_1F_VEHICULAR_AIRLOCK, 0) } },
+    { { { TASK_BODY_NONE, MAP_NEO_ARK_ROOM_TASK_PRIORITY } }, shelter1fBulwarkRoomTask, { .value = GP_TASK_LOC_KEY(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_SHELTER_1F_BULWARK, 0) } },
+    { { { TASK_BODY_NONE, MAP_NEO_ARK_ROOM_TASK_PRIORITY } }, shelter1fAirlockRoomTask, { .value = GP_TASK_LOC_KEY(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_SHELTER_1F_AIRLOCK, 0) } },
+    { { { TASK_BODY_NONE, MAP_NEO_ARK_ROOM_TASK_PRIORITY } }, shelter1fGuardroomRoomTask, { .value = GP_TASK_LOC_KEY(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_SHELTER_1F_GUARDROOM, 0) } },
+    { { { TASK_BODY_NONE, MAP_NEO_ARK_ROOM_TASK_PRIORITY } }, neoArkObservatoryRoomTask, { .value = GP_TASK_LOC_KEY(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_OBSERVATORY, 0) } },
+    { { { TASK_BODY_NONE, MAP_NEO_ARK_ROOM_TASK_PRIORITY } }, neoArkEveAccessTunnelRoomTask, { .value = GP_TASK_LOC_KEY(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_EVE_ACCESS_TUNNEL, 0) } },
+    { { { TASK_BODY_NONE, MAP_NEO_ARK_ROOM_TASK_PRIORITY } }, neoArkEveElevatorRoomTask, { .value = GP_TASK_LOC_KEY(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_EVE_ELEVATOR, 0) } },
+    { { { TASK_BODY_NONE, MAP_NEO_ARK_ROOM_TASK_PRIORITY } }, neoArkNorthPromenadeRoomTask, { .value = GP_TASK_LOC_KEY(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_NORTH_PROMENADE, 0) } },
+    { { { TASK_BODY_NONE, MAP_NEO_ARK_ROOM_TASK_PRIORITY } }, neoArkForestZoneRoomTask, { .value = GP_TASK_LOC_KEY(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_FOREST_ZONE, 0) } },
+    { { { TASK_BODY_NONE, MAP_NEO_ARK_ROOM_TASK_PRIORITY } }, neoArkSubmarineTunnelRoomTask, { .value = GP_TASK_LOC_KEY(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_SUBMARINE_TUNNEL, 0) } },
+    { { { TASK_BODY_NONE, MAP_NEO_ARK_ROOM_TASK_PRIORITY } }, neoArkPavilionRoomTask, { .value = GP_TASK_LOC_KEY(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_PAVILION, 0) } },
+    { { { TASK_BODY_NONE, MAP_NEO_ARK_ROOM_TASK_PRIORITY } }, neoArkIslandRoomTask, { .value = GP_TASK_LOC_KEY(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_ISLAND, 0) } },
+    { { { TASK_BODY_NONE, MAP_NEO_ARK_ROOM_TASK_PRIORITY } }, neoArkGardenRoomTask, { .value = GP_TASK_LOC_KEY(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_GARDEN, 0) } },
+    { { { TASK_BODY_NONE, MAP_NEO_ARK_ROOM_TASK_PRIORITY } }, neoArkSavannaZoneRoomTask, { .value = GP_TASK_LOC_KEY(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_SAVANNA_ZONE, 0) } },
+    { { { TASK_BODY_NONE, MAP_NEO_ARK_ROOM_TASK_PRIORITY } }, neoArkSouthPromenadeRoomTask, { .value = GP_TASK_LOC_KEY(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_SOUTH_PROMENADE, 0) } },
+    { { { TASK_BODY_NONE, MAP_NEO_ARK_ROOM_TASK_PRIORITY } }, neoArkAltarRoomTask, { .value = GP_TASK_LOC_KEY(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_ALTAR, 0) } },
+    { { { TASK_BODY_NONE, MAP_NEO_ARK_ROOM_TASK_PRIORITY } }, neoArkShrineRoomTask, { .value = GP_TASK_LOC_KEY(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_SHRINE, 0) } },
+    { { { TASK_BODY_NONE, MAP_NEO_ARK_ROOM_TASK_PRIORITY } }, shelterB6NurseryRoomTask, { .value = GP_TASK_LOC_KEY(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_SHELTER_B6_NURSERY, 0) } },
+    { { { TASK_BODY_NONE, MAP_NEO_ARK_ROOM_TASK_PRIORITY } }, shelterB6GrowthRoomTask, { .value = GP_TASK_LOC_KEY(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_SHELTER_B6_GROWTH_ROOM, 0) } },
+    { { { TASK_BODY_NONE, MAP_NEO_ARK_ROOM_TASK_PRIORITY } }, shelterB6CorridorRoomTask, { .value = GP_TASK_LOC_KEY(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_SHELTER_B6_CORRIDOR, 0) } },
+    { { { TASK_BODY_NONE, MAP_NEO_ARK_ROOM_TASK_PRIORITY } }, shelterB6TrainingRoomRoomTask, { .value = GP_TASK_LOC_KEY(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_SHELTER_B6_TRAINING_ROOM, 0) } },
+    { { { TASK_BODY_NONE, MAP_NEO_ARK_ROOM_TASK_PRIORITY } }, neoArkBridgeRoomTask, { .value = GP_TASK_LOC_KEY(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_BRIDGE, 0) } },
+    { { { TASK_BODY_NONE, MAP_NEO_ARK_ROOM_TASK_PRIORITY } }, neoArkR26RoomTask, { .value = GP_TASK_LOC_KEY(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_R26, 0) } },
+    { { { TASK_BODY_NONE, MAP_NEO_ARK_ROOM_TASK_PRIORITY } }, neoArkSubmarineGalleryMessageTask, { .value = GP_TASK_LOC_KEY(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_SUBMARINE_GALLERY, 0) } },
+    { { { TASK_BODY_NONE, MAP_NEO_ARK_ROOM_TASK_PRIORITY } }, neoArkR31RoomTask, { .value = GP_TASK_LOC_KEY(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_R31, 0) } },
+    { { { TASK_BODY_NONE, MAP_NEO_ARK_ROOM_TASK_PRIORITY } }, shelter1fTentRoomTask, { .value = GP_TASK_LOC_KEY(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_SHELTER_1F_TENT, 0) } },
+    { { { TASK_BODY_NONE, MAP_NEO_ARK_ROOM_TASK_PRIORITY } }, neoArkWoodlandPathRoomTask, { .value = GP_TASK_LOC_KEY(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_WOODLAND_PATH, 0) } },
+    { { { TASK_BODY_NONE, MAP_NEO_ARK_ROOM_TASK_PRIORITY } }, neoArkPowerPlant2RoomTask, { .value = GP_TASK_LOC_KEY(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_POWER_PLANT_2, 0) } },
+    { { { TASK_BODY_NONE, MAP_NEO_ARK_ROOM_TASK_PRIORITY } }, neoArkPowerPlant1RoomTask, { .value = GP_TASK_LOC_KEY(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_POWER_PLANT_1, 0) } },
+    { { { TASK_BODY_NONE, MAP_NEO_ARK_ROOM_TASK_PRIORITY } }, shelter1fHeliportRoomTask, { .value = GP_TASK_LOC_KEY(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_SHELTER_1F_HELIPORT, 0) } },
+    { { { TASK_BODY_NONE, MAP_NEO_ARK_ROOM_TASK_PRIORITY } }, neoArkPyramidRoomTask, { .value = GP_TASK_LOC_KEY(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_PYRAMID, 0) } },
+    { { { TASK_BODY_NONE, MAP_NEO_ARK_ROOM_TASK_PRIORITY } }, neoArkSubstationRoomTask, { .value = GP_TASK_LOC_KEY(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_SUBSTATION, 0) } },
+    { { { TASK_DESC_END, MAP_NEO_ARK_ROOM_TASK_PRIORITY } }, NULL, { 0 } },
 };
 
 s32 gMapNeoArkCompanionDistressTicks = 0;
 
-u16 D_map_neo_ark_8017A9A0[9] = {
-    0x1C4,
-    0x9BC,
-    0x1B8,
-    0x1B7,
-    0x1B5,
-    0x1B4,
-    0x1B2,
-    0x9AF,
-    0x1AC,
+u16 gMapNeoArkMarkerFlags[MAP_NEO_ARK_MARKER_COUNT] = {
+    GAME_FLAG_MAP_MARK_B2_MAIN_CORRIDOR,
+    GAME_FLAG_MAP_MARK_POWER_PLANT_2 | MENU_MAP_MARKER_ALTERNATE_PICTURE,
+    GAME_FLAG_MAP_MARK_SHRINE,
+    GAME_FLAG_MAP_MARK_ALTAR,
+    MAP_NEO_ARK_MARKER_FLAG_GARDEN_WARP_3,
+    GAME_FLAG_MAP_MARK_UNDERGROUND_PARKING,
+    GAME_FLAG_MAP_MARK_POWER_PLANT_1,
+    MAP_NEO_ARK_MARKER_FLAG_EVE_ACCESS_TUNNEL_SHELTER | MENU_MAP_MARKER_ALTERNATE_PICTURE,
+    MAP_NEO_ARK_MARKER_FLAG_VEHICULAR_AIRLOCK_BULWARK,
 };
 
 /// Room-1 Nursery lighting, borrowing its lights and ambient-by-view table.
@@ -844,78 +886,122 @@ DirectionWarpEntry* D_map_neo_ark_8017AA80[33] = {
     gNeoArkSubstationWarpEntries,
 };
 
-static ViewCount* D_map_neo_ark_8017AB04[33] = {
-    gShelter1fParkingGarageViewCounts,
-    gShelter1fVehicularAirlockViewCounts,
-    gShelter1fBulwarkRoomViewCounts,
-    gShelter1fHeliportViewCounts,
-    gShelter1fAirlockViewCounts,
-    gShelter1fGuardroomRoomViewCounts,
-    gNeoArkObservatoryViewCounts,
-    gNeoArkEveAccessTunnelViewCounts,
-    gNeoArkEveElevatorViewCounts,
-    gNeoArkNorthPromenadeViewCounts,
-    gNeoArkForestZoneViewCounts,
-    gNeoArkSubmarineTunnelViewCounts,
-    gNeoArkPavilionViewCounts,
-    gNeoArkIslandViewCounts,
-    gNeoArkGardenViewCounts,
-    gNeoArkPowerPlant2ViewCounts,
-    gNeoArkPowerPlant1ViewCounts,
-    gNeoArkSavannaZoneViewCounts,
-    gNeoArkSouthPromenadeViewCounts,
-    gNeoArkAltarViewCounts,
-    gNeoArkShrineViewCounts,
-    gShelterB6NurseryViewCounts,
-    gShelterB6GrowthRoomViewCounts,
-    gShelterB6CorridorViewCounts,
-    gShelterB6TrainingRoomRoomViewCounts,
-    gNeoArkR26ViewCounts,
-    gNeoArkBridgeViewCounts,
-    gShelter1fTentRoomViewCounts,
-    gNeoArkWoodlandPathViewCounts,
-    gNeoArkSubmarineGalleryViewCounts,
-    gNeoArkR31ViewCounts,
-    gNeoArkPyramidViewCounts,
-    gNeoArkSubstationRoomViewCounts,
+/// Per-area room view-count arrays borrowed by the stage view-count directory.
+///
+/// Select area - 1 for IDs 1..33. Every slot is populated, with no terminator;
+/// each selected array has its own room bound and must remain loaded during use.
+static ViewCount* _gMapNeoArkAreaViewCounts[MAP_NEO_ARK_AREA_ID_LIMIT] = {
+    [GAME_AREA_SHELTER_1F_PARKING_GARAGE - 1]    = gShelter1fParkingGarageViewCounts,
+    [GAME_AREA_SHELTER_1F_VEHICULAR_AIRLOCK - 1] = gShelter1fVehicularAirlockViewCounts,
+    [GAME_AREA_SHELTER_1F_BULWARK - 1]           = gShelter1fBulwarkRoomViewCounts,
+    [GAME_AREA_SHELTER_1F_HELIPORT - 1]          = gShelter1fHeliportViewCounts,
+    [GAME_AREA_SHELTER_1F_AIRLOCK - 1]           = gShelter1fAirlockViewCounts,
+    [GAME_AREA_SHELTER_1F_GUARDROOM - 1]         = gShelter1fGuardroomRoomViewCounts,
+    [GAME_AREA_NEO_ARK_OBSERVATORY - 1]          = gNeoArkObservatoryViewCounts,
+    [GAME_AREA_NEO_ARK_EVE_ACCESS_TUNNEL - 1]    = gNeoArkEveAccessTunnelViewCounts,
+    [GAME_AREA_NEO_ARK_EVE_ELEVATOR - 1]         = gNeoArkEveElevatorViewCounts,
+    [GAME_AREA_NEO_ARK_NORTH_PROMENADE - 1]      = gNeoArkNorthPromenadeViewCounts,
+    [GAME_AREA_NEO_ARK_FOREST_ZONE - 1]          = gNeoArkForestZoneViewCounts,
+    [GAME_AREA_NEO_ARK_SUBMARINE_TUNNEL - 1]     = gNeoArkSubmarineTunnelViewCounts,
+    [GAME_AREA_NEO_ARK_PAVILION - 1]             = gNeoArkPavilionViewCounts,
+    [GAME_AREA_NEO_ARK_ISLAND - 1]               = gNeoArkIslandViewCounts,
+    [GAME_AREA_NEO_ARK_GARDEN - 1]               = gNeoArkGardenViewCounts,
+    [GAME_AREA_NEO_ARK_POWER_PLANT_2 - 1]        = gNeoArkPowerPlant2ViewCounts,
+    [GAME_AREA_NEO_ARK_POWER_PLANT_1 - 1]        = gNeoArkPowerPlant1ViewCounts,
+    [GAME_AREA_NEO_ARK_SAVANNA_ZONE - 1]         = gNeoArkSavannaZoneViewCounts,
+    [GAME_AREA_NEO_ARK_SOUTH_PROMENADE - 1]      = gNeoArkSouthPromenadeViewCounts,
+    [GAME_AREA_NEO_ARK_ALTAR - 1]                = gNeoArkAltarViewCounts,
+    [GAME_AREA_NEO_ARK_SHRINE - 1]               = gNeoArkShrineViewCounts,
+    [GAME_AREA_SHELTER_B6_NURSERY - 1]           = gShelterB6NurseryViewCounts,
+    [GAME_AREA_SHELTER_B6_GROWTH_ROOM - 1]       = gShelterB6GrowthRoomViewCounts,
+    [GAME_AREA_SHELTER_B6_CORRIDOR - 1]          = gShelterB6CorridorViewCounts,
+    [GAME_AREA_SHELTER_B6_TRAINING_ROOM - 1]     = gShelterB6TrainingRoomRoomViewCounts,
+    [GAME_AREA_NEO_ARK_R26 - 1]                  = gNeoArkR26ViewCounts,
+    [GAME_AREA_NEO_ARK_BRIDGE - 1]               = gNeoArkBridgeViewCounts,
+    [GAME_AREA_SHELTER_1F_TENT - 1]              = gShelter1fTentRoomViewCounts,
+    [GAME_AREA_NEO_ARK_WOODLAND_PATH - 1]        = gNeoArkWoodlandPathViewCounts,
+    [GAME_AREA_NEO_ARK_SUBMARINE_GALLERY - 1]    = gNeoArkSubmarineGalleryViewCounts,
+    [GAME_AREA_NEO_ARK_R31 - 1]                  = gNeoArkR31ViewCounts,
+    [GAME_AREA_NEO_ARK_PYRAMID - 1]              = gNeoArkPyramidViewCounts,
+    [GAME_AREA_NEO_ARK_SUBSTATION - 1]           = gNeoArkSubstationRoomViewCounts,
 };
 
-ViewCountTable D_map_neo_ark_8017AB88 = { D_map_neo_ark_8017AB04 };
+ViewCountTable gMapNeoArkViewCountTable = { .viewCounts = _gMapNeoArkAreaViewCounts };
 
-static WorldCollisionRoomResources D_map_neo_ark_8017AB8C[1] = {
-    { &gShelterB6NurseryCollisionGrid, gShelterB6NurseryViewBoundaryTriggers, gShelterB6NurseryActionTriggers, NULL },
+/// Room-1 collision resources for the Nursery area.
+///
+/// Borrows the mutable grid, view boundaries and action triggers from its room
+/// overlay; there are no sight occluders.
+/// One live descriptor, with no terminator; only room ID 1 is valid. Keep the
+/// room resources loaded until the active grid and linked lists are retired.
+static WorldCollisionRoomResources _gMapNeoArkNurseryCollisionRooms[1] = {
+    { .grid = &gShelterB6NurseryCollisionGrid, .viewBoundaryTriggers = gShelterB6NurseryViewBoundaryTriggers, .actionTriggers = gShelterB6NurseryActionTriggers, .occluders = NULL },
 };
 
-static WorldCollisionRoomResources D_map_neo_ark_8017AB9C[1] = {
-    { &gShelterB6GrowthRoomCollisionGrid, gShelterB6GrowthRoomViewBoundaryTriggers, gShelterB6GrowthRoomActionTriggers, NULL },
+/// Room-1 collision resources for the Growth Room area.
+///
+/// Borrows the mutable grid, view boundaries and action triggers from its room
+/// overlay; there are no sight occluders.
+/// One live descriptor, with no terminator; only room ID 1 is valid. Keep the
+/// room resources loaded until the active grid and linked lists are retired.
+static WorldCollisionRoomResources _gMapNeoArkGrowthRoomCollisionRooms[1] = {
+    { .grid = &gShelterB6GrowthRoomCollisionGrid, .viewBoundaryTriggers = gShelterB6GrowthRoomViewBoundaryTriggers, .actionTriggers = gShelterB6GrowthRoomActionTriggers, .occluders = NULL },
 };
 
-static WorldCollisionRoomResources D_map_neo_ark_8017ABAC[1] = {
-    { &gShelterB6CorridorCollisionGrid, gShelterB6CorridorViewBoundaryTriggers, gShelterB6CorridorActionTriggers, NULL },
+/// Room-1 collision resources for the Corridor area.
+///
+/// Borrows the mutable grid, view boundaries and action triggers from its room
+/// overlay; there are no sight occluders.
+/// One live descriptor, with no terminator; only room ID 1 is valid. Keep the
+/// room resources loaded until the active grid and linked lists are retired.
+static WorldCollisionRoomResources _gMapNeoArkCorridorCollisionRooms[1] = {
+    { .grid = &gShelterB6CorridorCollisionGrid, .viewBoundaryTriggers = gShelterB6CorridorViewBoundaryTriggers, .actionTriggers = gShelterB6CorridorActionTriggers, .occluders = NULL },
 };
 
 static WorldCollisionRoomResources D_map_neo_ark_8017ABBC[1] = {
     { &gShelterB6TrainingRoomCollisionGrid, D_shelter_b6_training_room_80185780, D_shelter_b6_training_room_80185A44, NULL },
 };
 
-static WorldCollisionRoomResources D_map_neo_ark_8017ABCC[1] = {
-    { &gNeoArkBridgeCollisionGrid, gNeoArkBridgeViewBoundaryTriggers, gNeoArkBridgeActionTriggers, NULL },
+/// Room-1 collision resources for the Bridge area.
+///
+/// Borrows the mutable grid, view boundaries and action triggers from its room
+/// overlay; there are no sight occluders.
+/// One live descriptor, with no terminator; only room ID 1 is valid. Keep the
+/// room resources loaded until the active grid and linked lists are retired.
+static WorldCollisionRoomResources _gMapNeoArkBridgeCollisionRooms[1] = {
+    { .grid = &gNeoArkBridgeCollisionGrid, .viewBoundaryTriggers = gNeoArkBridgeViewBoundaryTriggers, .actionTriggers = gNeoArkBridgeActionTriggers, .occluders = NULL },
 };
 
 static WorldCollisionRoomResources D_map_neo_ark_8017ABDC[1] = {
     { &gShelter1fTentCollisionGrid, D_shelter_1f_tent_80183A94, D_shelter_1f_tent_80183CF4, NULL },
 };
 
-static WorldCollisionRoomResources D_map_neo_ark_8017ABEC[1] = {
-    { &gNeoArkWoodlandPathCollisionGrid, gNeoArkWoodlandPathViewBoundaryTriggers, gNeoArkWoodlandPathActionTriggers, gNeoArkWoodlandPathSightOccluders },
+/// Room-1 collision resources for the Woodland Path area.
+///
+/// Borrows the mutable grid, view boundaries and action triggers from its room
+/// overlay, plus sight occluders.
+/// One live descriptor, with no terminator; only room ID 1 is valid. Keep the
+/// room resources loaded until the active grid and linked lists are retired.
+static WorldCollisionRoomResources _gMapNeoArkWoodlandPathCollisionRooms[1] = {
+    { .grid = &gNeoArkWoodlandPathCollisionGrid, .viewBoundaryTriggers = gNeoArkWoodlandPathViewBoundaryTriggers, .actionTriggers = gNeoArkWoodlandPathActionTriggers, .occluders = gNeoArkWoodlandPathSightOccluders },
 };
 
-static WorldCollisionRoomResources D_map_neo_ark_8017ABFC[1] = {
-    { &gNeoArkSubmarineGalleryCollisionGrid, gNeoArkSubmarineGalleryViewBoundaryTriggers, gNeoArkSubmarineGalleryActionTriggers, NULL },
+/// Room-1 collision resources for the Submarine Gallery area.
+///
+/// Borrows the mutable grid, view boundaries and action triggers from its room
+/// overlay; there are no sight occluders.
+/// One live descriptor, with no terminator; only room ID 1 is valid. Keep the
+/// room resources loaded until the active grid and linked lists are retired.
+static WorldCollisionRoomResources _gMapNeoArkSubmarineGalleryCollisionRooms[1] = {
+    { .grid = &gNeoArkSubmarineGalleryCollisionGrid, .viewBoundaryTriggers = gNeoArkSubmarineGalleryViewBoundaryTriggers, .actionTriggers = gNeoArkSubmarineGalleryActionTriggers, .occluders = NULL },
 };
 
-static WorldCollisionRoomResources D_map_neo_ark_8017AC0C[1] = {
-    { NULL, NULL, NULL, NULL },
+/// Empty room-1 collision descriptor for the R31 scene area.
+///
+/// Supplies no grid, view boundaries, action triggers or occluders. The array
+/// contains one live descriptor and no terminator; only room ID 1 is valid.
+static WorldCollisionRoomResources _gMapNeoArkR31CollisionRooms[1] = {
+    { .grid = NULL, .viewBoundaryTriggers = NULL, .actionTriggers = NULL, .occluders = NULL },
 };
 
 static WorldCollisionRoomResources* D_map_neo_ark_8017AC1C[33] = {
@@ -940,16 +1026,16 @@ static WorldCollisionRoomResources* D_map_neo_ark_8017AC1C[33] = {
     gNeoArkSouthPromenadeCollisionResources,
     D_neo_ark_altar_8017F094,
     gNeoArkShrineCollisionRooms,
-    D_map_neo_ark_8017AB8C,
-    D_map_neo_ark_8017AB9C,
-    D_map_neo_ark_8017ABAC,
+    _gMapNeoArkNurseryCollisionRooms,
+    _gMapNeoArkGrowthRoomCollisionRooms,
+    _gMapNeoArkCorridorCollisionRooms,
     D_map_neo_ark_8017ABBC,
     gNeoArkR26CollisionRooms,
-    D_map_neo_ark_8017ABCC,
+    _gMapNeoArkBridgeCollisionRooms,
     D_map_neo_ark_8017ABDC,
-    D_map_neo_ark_8017ABEC,
-    D_map_neo_ark_8017ABFC,
-    D_map_neo_ark_8017AC0C,
+    _gMapNeoArkWoodlandPathCollisionRooms,
+    _gMapNeoArkSubmarineGalleryCollisionRooms,
+    _gMapNeoArkR31CollisionRooms,
     gNeoArkPyramidRoomCollisionResources,
     gNeoArkSubstationRoomCollisionResources,
 };
@@ -1659,10 +1745,15 @@ AreaPlacement gMapNeoArkTrainingRoomDefaultPlacements[6] = {
     { .entryId = AREA_PLACEMENT_END },
 };
 
-static AreaPlacement D_map_neo_ark_8017C1A0[3] = {
-    { 0x6F, 0, 0, 0, 0, 0xB22, 0x800, 0, 0, 2, 0 },
-    { 0x70, 0, 0, 0, 0, 0x352, 0, 0, 2, 4, 0 },
-    { AREA_PLACEMENT_END },
+/// Unreferenced two-actor placement list retained in the stage map.
+///
+/// Resource IDs match the two R26 scripted-walker recipes, with Z positions
+/// 2850 and 850 and yaw 2048 and 0 (4096 units per turn). No live layout selects
+/// this list, so its intended use is unproven. Ends with `AREA_PLACEMENT_END`.
+static AreaPlacement _gMapNeoArkUnreferencedSceneActorPlacements[3] = {
+    { .entryId = MAP_NEO_ARK_SCENE_ACTOR_RESOURCE_FIRST_WALKER, .variant = 0, .mode = 0, .x = 0, .y = 0, .z = 2850, .yaw = ACTOR_TRANSFORM_ANGLE_HALF_TURN, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = MAP_NEO_ARK_SCENE_ACTOR_RESOURCE_SECOND_WALKER, .variant = 0, .mode = 0, .x = 0, .y = 0, .z = 850, .yaw = 0, .fileIdLow = 0, .texturePageOffset = 2, .clutRowOffset = 4, .rowIndex = 0 },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
 AreaPlacement gMapNeoArkBridgeVariant1Placements[4] = {
@@ -1916,45 +2007,45 @@ static AreaObjectPlace _gMapNeoArkSubstationObjectPlaces[2] = {
     { AREA_OBJECT_PLACE_END },
 };
 
-InventoryBattleReward D_map_neo_ark_8017C9B0[29] = {
-    { GAME_LOCATION_KEY(5, 2, 1, 0), { 0xAA, 0, 0, 0xA2 } },
-    { GAME_LOCATION_KEY(5, 3, 1, 0), { 0xAA, 0, 0, 0xAF } },
-    { GAME_LOCATION_KEY(5, 5, 1, 0), { 0xAE, 0, 0, 0x3D } },
-    { GAME_LOCATION_KEY(5, 10, 3, 0), { 0xA2, 0, 0, 0xAF } },
-    { GAME_LOCATION_KEY(5, 11, 1, 0), { 3, 0, 0, 7 } },
-    { GAME_LOCATION_KEY(5, 11, 5, 0), { 0xA2, 0, 0, 0 } },
-    { GAME_LOCATION_KEY(5, 12, 2, 0), { 0x3E, 0, 0, 0 } },
-    { GAME_LOCATION_KEY(5, 16, 1, 0), { 0x3D, 0, 0, 7 } },
-    { GAME_LOCATION_KEY(5, 17, 1, 0), { 3, 0, 0, 7 } },
-    { GAME_LOCATION_KEY(5, 18, 5, 0), { 0xAB, 0, 0, 0xA2 } },
-    { GAME_LOCATION_KEY(5, 19, 5, 0), { 0xAB, 0, 0, 0xA9 } },
-    { GAME_LOCATION_KEY(5, 21, 1, 0), { 2, 0, 0, 7 } },
-    { GAME_LOCATION_KEY(5, 21, 5, 0), { 0xA2, 0, 0, 0xAF } },
-    { GAME_LOCATION_KEY(5, 24, 1, 0), { 7, 0, 0, 3 } },
-    { GAME_LOCATION_KEY(5, 25, 1, 0), { 7, 0x3E, 0, 0x3D } },
-    { GAME_LOCATION_KEY(5, 30, 1, 0), { 0x3C, 0, 0, 7 } },
-    { GAME_LOCATION_KEY(5, 30, 2, 0), { 0x3D, 0, 0, 0 } },
-    { GAME_LOCATION_KEY(5, 32, 4, 0), { 0xA2, 0, 0, 0xAF } },
-    { GAME_LOCATION_KEY(5, 10, 11, 0), { 0xAB, 0, 0, 0xA9 } },
-    { GAME_LOCATION_KEY(5, 11, 11, 0), { 0xAB, 0, 0, 0xA2 } },
-    { GAME_LOCATION_KEY(5, 13, 11, 0), { 0xAA, 0, 0, 0 } },
-    { GAME_LOCATION_KEY(5, 14, 11, 0), { 0xAA, 0, 0, 0 } },
-    { GAME_LOCATION_KEY(5, 16, 11, 0), { 0xAA, 0, 0, 0 } },
-    { GAME_LOCATION_KEY(5, 18, 11, 0), { 0xAA, 0, 0, 0xAB } },
-    { GAME_LOCATION_KEY(5, 19, 11, 0), { 0xAF, 0, 0, 0xA2 } },
-    { GAME_LOCATION_KEY(5, 21, 11, 0), { 0x3C, 0, 0, 0 } },
-    { GAME_LOCATION_KEY(5, 27, 11, 0), { 0xAF, 0, 0, 0xA2 } },
-    { GAME_LOCATION_KEY(5, 32, 11, 0), { 0xAA, 0, 0, 0xAF } },
-    { INVENTORY_BATTLE_REWARD_LIST_END },
+InventoryBattleReward gMapNeoArkBattleRewards[29] = {
+    { .areaLayoutKey = GAME_LOCATION_KEY(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_SHELTER_1F_VEHICULAR_AIRLOCK, 1, 0), .items = { MAP_NEO_ARK_KIND_AIRBURST, INVENTORY_ITEM_NONE, INVENTORY_ITEM_NONE, MAP_NEO_ARK_REWARD_9MM_SPARTAN } },
+    { .areaLayoutKey = GAME_LOCATION_KEY(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_SHELTER_1F_BULWARK, 1, 0), .items = { MAP_NEO_ARK_KIND_AIRBURST, INVENTORY_ITEM_NONE, INVENTORY_ITEM_NONE, MAP_NEO_ARK_KIND_556_RIFLE } },
+    { .areaLayoutKey = GAME_LOCATION_KEY(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_SHELTER_1F_AIRLOCK, 1, 0), .items = { MAP_NEO_ARK_REWARD_R_SLUG, INVENTORY_ITEM_NONE, INVENTORY_ITEM_NONE, MAP_NEO_ARK_KIND_RINGERS_SOLUTION } },
+    { .areaLayoutKey = GAME_LOCATION_KEY(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_NORTH_PROMENADE, 3, 0), .items = { MAP_NEO_ARK_REWARD_9MM_SPARTAN, INVENTORY_ITEM_NONE, INVENTORY_ITEM_NONE, MAP_NEO_ARK_KIND_556_RIFLE } },
+    { .areaLayoutKey = GAME_LOCATION_KEY(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_FOREST_ZONE, 1, 0), .items = { MAP_NEO_ARK_REWARD_RECOVERY_3, INVENTORY_ITEM_NONE, INVENTORY_ITEM_NONE, MAP_NEO_ARK_KIND_MP_BOOST_2 } },
+    { .areaLayoutKey = GAME_LOCATION_KEY(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_FOREST_ZONE, 5, 0), .items = { MAP_NEO_ARK_REWARD_9MM_SPARTAN, INVENTORY_ITEM_NONE, INVENTORY_ITEM_NONE, INVENTORY_ITEM_NONE } },
+    { .areaLayoutKey = GAME_LOCATION_KEY(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_SUBMARINE_TUNNEL, 2, 0), .items = { MAP_NEO_ARK_REWARD_EAU_DE_TOILETTE, INVENTORY_ITEM_NONE, INVENTORY_ITEM_NONE, INVENTORY_ITEM_NONE } },
+    { .areaLayoutKey = GAME_LOCATION_KEY(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_POWER_PLANT_2, 1, 0), .items = { MAP_NEO_ARK_KIND_RINGERS_SOLUTION, INVENTORY_ITEM_NONE, INVENTORY_ITEM_NONE, MAP_NEO_ARK_KIND_MP_BOOST_2 } },
+    { .areaLayoutKey = GAME_LOCATION_KEY(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_POWER_PLANT_1, 1, 0), .items = { MAP_NEO_ARK_REWARD_RECOVERY_3, INVENTORY_ITEM_NONE, INVENTORY_ITEM_NONE, MAP_NEO_ARK_KIND_MP_BOOST_2 } },
+    { .areaLayoutKey = GAME_LOCATION_KEY(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_SAVANNA_ZONE, 5, 0), .items = { MAP_NEO_ARK_REWARD_RIOT, INVENTORY_ITEM_NONE, INVENTORY_ITEM_NONE, MAP_NEO_ARK_REWARD_9MM_SPARTAN } },
+    { .areaLayoutKey = GAME_LOCATION_KEY(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_SOUTH_PROMENADE, 5, 0), .items = { MAP_NEO_ARK_REWARD_RIOT, INVENTORY_ITEM_NONE, INVENTORY_ITEM_NONE, MAP_NEO_ARK_KIND_GRENADE } },
+    { .areaLayoutKey = GAME_LOCATION_KEY(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_SHRINE, 1, 0), .items = { MAP_NEO_ARK_REWARD_RECOVERY_2, INVENTORY_ITEM_NONE, INVENTORY_ITEM_NONE, MAP_NEO_ARK_KIND_MP_BOOST_2 } },
+    { .areaLayoutKey = GAME_LOCATION_KEY(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_SHRINE, 5, 0), .items = { MAP_NEO_ARK_REWARD_9MM_SPARTAN, INVENTORY_ITEM_NONE, INVENTORY_ITEM_NONE, MAP_NEO_ARK_KIND_556_RIFLE } },
+    { .areaLayoutKey = GAME_LOCATION_KEY(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_SHELTER_B6_CORRIDOR, 1, 0), .items = { MAP_NEO_ARK_KIND_MP_BOOST_2, INVENTORY_ITEM_NONE, INVENTORY_ITEM_NONE, MAP_NEO_ARK_REWARD_RECOVERY_3 } },
+    { .areaLayoutKey = GAME_LOCATION_KEY(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_SHELTER_B6_TRAINING_ROOM, 1, 0), .items = { MAP_NEO_ARK_KIND_MP_BOOST_2, MAP_NEO_ARK_REWARD_EAU_DE_TOILETTE, INVENTORY_ITEM_NONE, MAP_NEO_ARK_KIND_RINGERS_SOLUTION } },
+    { .areaLayoutKey = GAME_LOCATION_KEY(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_SUBMARINE_GALLERY, 1, 0), .items = { MAP_NEO_ARK_KIND_PROTEIN_CAPSULE, INVENTORY_ITEM_NONE, INVENTORY_ITEM_NONE, MAP_NEO_ARK_KIND_MP_BOOST_2 } },
+    { .areaLayoutKey = GAME_LOCATION_KEY(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_SUBMARINE_GALLERY, 2, 0), .items = { MAP_NEO_ARK_KIND_RINGERS_SOLUTION, INVENTORY_ITEM_NONE, INVENTORY_ITEM_NONE, INVENTORY_ITEM_NONE } },
+    { .areaLayoutKey = GAME_LOCATION_KEY(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_PYRAMID, 4, 0), .items = { MAP_NEO_ARK_REWARD_9MM_SPARTAN, INVENTORY_ITEM_NONE, INVENTORY_ITEM_NONE, MAP_NEO_ARK_KIND_556_RIFLE } },
+    { .areaLayoutKey = GAME_LOCATION_KEY(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_NORTH_PROMENADE, 11, 0), .items = { MAP_NEO_ARK_REWARD_RIOT, INVENTORY_ITEM_NONE, INVENTORY_ITEM_NONE, MAP_NEO_ARK_KIND_GRENADE } },
+    { .areaLayoutKey = GAME_LOCATION_KEY(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_FOREST_ZONE, 11, 0), .items = { MAP_NEO_ARK_REWARD_RIOT, INVENTORY_ITEM_NONE, INVENTORY_ITEM_NONE, MAP_NEO_ARK_REWARD_9MM_SPARTAN } },
+    { .areaLayoutKey = GAME_LOCATION_KEY(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_PAVILION, 11, 0), .items = { MAP_NEO_ARK_KIND_AIRBURST, INVENTORY_ITEM_NONE, INVENTORY_ITEM_NONE, INVENTORY_ITEM_NONE } },
+    { .areaLayoutKey = GAME_LOCATION_KEY(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_ISLAND, 11, 0), .items = { MAP_NEO_ARK_KIND_AIRBURST, INVENTORY_ITEM_NONE, INVENTORY_ITEM_NONE, INVENTORY_ITEM_NONE } },
+    { .areaLayoutKey = GAME_LOCATION_KEY(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_POWER_PLANT_2, 11, 0), .items = { MAP_NEO_ARK_KIND_AIRBURST, INVENTORY_ITEM_NONE, INVENTORY_ITEM_NONE, INVENTORY_ITEM_NONE } },
+    { .areaLayoutKey = GAME_LOCATION_KEY(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_SAVANNA_ZONE, 11, 0), .items = { MAP_NEO_ARK_KIND_AIRBURST, INVENTORY_ITEM_NONE, INVENTORY_ITEM_NONE, MAP_NEO_ARK_REWARD_RIOT } },
+    { .areaLayoutKey = GAME_LOCATION_KEY(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_SOUTH_PROMENADE, 11, 0), .items = { MAP_NEO_ARK_KIND_556_RIFLE, INVENTORY_ITEM_NONE, INVENTORY_ITEM_NONE, MAP_NEO_ARK_REWARD_9MM_SPARTAN } },
+    { .areaLayoutKey = GAME_LOCATION_KEY(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_SHRINE, 11, 0), .items = { MAP_NEO_ARK_KIND_PROTEIN_CAPSULE, INVENTORY_ITEM_NONE, INVENTORY_ITEM_NONE, INVENTORY_ITEM_NONE } },
+    { .areaLayoutKey = GAME_LOCATION_KEY(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_BRIDGE, 11, 0), .items = { MAP_NEO_ARK_KIND_556_RIFLE, INVENTORY_ITEM_NONE, INVENTORY_ITEM_NONE, MAP_NEO_ARK_REWARD_9MM_SPARTAN } },
+    { .areaLayoutKey = GAME_LOCATION_KEY(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_PYRAMID, 11, 0), .items = { MAP_NEO_ARK_KIND_AIRBURST, INVENTORY_ITEM_NONE, INVENTORY_ITEM_NONE, MAP_NEO_ARK_KIND_556_RIFLE } },
+    { .areaLayoutKey = INVENTORY_BATTLE_REWARD_LIST_END },
 };
 
-InventoryBattleReward D_map_neo_ark_8017CB0C[6] = {
-    { GAME_LOCATION_KEY(5, 5, 7, 0), { 0x3C, 0, 0, 0 } },
-    { GAME_LOCATION_KEY(5, 21, 7, 0), { 0x44, 0xAF, 0, 3 } },
-    { GAME_LOCATION_KEY(5, 25, 1, 0), { 1, 0, 0, 0x3E } },
-    { GAME_LOCATION_KEY(5, 30, 1, 0), { 0xAD, 0, 0, 0xAE } },
-    { GAME_LOCATION_KEY(5, 16, 17, 0), { 0x90, 0xAF, 0xA7, 0xB } },
-    { INVENTORY_BATTLE_REWARD_LIST_END },
+InventoryBattleReward gMapNeoArkHardBattleRewards[6] = {
+    { .areaLayoutKey = GAME_LOCATION_KEY(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_SHELTER_1F_AIRLOCK, 7, 0), .items = { MAP_NEO_ARK_KIND_PROTEIN_CAPSULE, INVENTORY_ITEM_NONE, INVENTORY_ITEM_NONE, INVENTORY_ITEM_NONE } },
+    { .areaLayoutKey = GAME_LOCATION_KEY(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_SHRINE, 7, 0), .items = { MAP_NEO_ARK_REWARD_JAVELIN, MAP_NEO_ARK_KIND_556_RIFLE, INVENTORY_ITEM_NONE, MAP_NEO_ARK_REWARD_RECOVERY_3 } },
+    { .areaLayoutKey = GAME_LOCATION_KEY(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_SHELTER_B6_TRAINING_ROOM, 1, 0), .items = { MAP_NEO_ARK_REWARD_RECOVERY_1, INVENTORY_ITEM_NONE, INVENTORY_ITEM_NONE, MAP_NEO_ARK_REWARD_EAU_DE_TOILETTE } },
+    { .areaLayoutKey = GAME_LOCATION_KEY(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_SUBMARINE_GALLERY, 1, 0), .items = { MAP_NEO_ARK_REWARD_FIREFLY, INVENTORY_ITEM_NONE, INVENTORY_ITEM_NONE, MAP_NEO_ARK_REWARD_R_SLUG } },
+    { .areaLayoutKey = GAME_LOCATION_KEY(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_POWER_PLANT_2, 17, 0), .items = { MAP_NEO_ARK_REWARD_M249, MAP_NEO_ARK_KIND_556_RIFLE, MAP_NEO_ARK_KIND_44_MAEDA_SP, MAP_NEO_ARK_KIND_LIPSTICK } },
+    { .areaLayoutKey = INVENTORY_BATTLE_REWARD_LIST_END },
 };
 
 StageMusicEntry gMapNeoArkAreaMusicEntries[(MAP_NEO_ARK_AREA_ID_LIMIT + 1) * MAP_NEO_ARK_MUSIC_COLUMN_COUNT] = {

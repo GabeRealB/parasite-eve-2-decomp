@@ -114,7 +114,7 @@ InventoryBattleReward* D_8010F9F4[6] = {
     gMapDryfieldBattleRewards,
     gMapDryfieldFullBattleRewards,
     D_map_shelter_8017BB58,
-    D_map_neo_ark_8017C9B0,
+    gMapNeoArkBattleRewards,
 };
 
 InventoryBattleReward* D_8010FA0C[6] = {
@@ -123,7 +123,7 @@ InventoryBattleReward* D_8010FA0C[6] = {
     gMapDryfieldHardBattleRewards,
     gMapDryfieldFullHardBattleRewards,
     D_map_shelter_8017BD8C,
-    D_map_neo_ark_8017CB0C,
+    gMapNeoArkHardBattleRewards,
 };
 
 WorldCollisionFaceEdge gWorldCollisionFaceEdges[5] = {

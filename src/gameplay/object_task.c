@@ -42,7 +42,7 @@ TaskDesc* D_8010FABC[6] = {
     gMapDryfieldRoomTaskDescriptors,
     gMapDryfieldFullRoomTaskDescriptors,
     D_map_shelter_8017AB30,
-    D_map_neo_ark_8017A804,
+    gMapNeoArkRoomTaskDescriptors,
 };
 
 TaskMessageEntry D_8010FAD4[3] = {

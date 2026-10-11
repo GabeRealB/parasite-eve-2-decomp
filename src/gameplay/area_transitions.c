@@ -468,7 +468,7 @@ s16 menuMapGetMarkerState(s16 markerIndex)
         MENU_MAP_DRYFIELD_MARKER_COUNT             = ARRAY_SIZE(gMapDryfieldMarkerFlags),
         MENU_MAP_DRYFIELD_NIGHT_MARKER_COUNT       = ARRAY_SIZE(gMapDryfieldFullMarkerFlags),
         MENU_MAP_SHELTER_MARKER_COUNT              = 30,
-        MENU_MAP_NEO_ARK_MARKER_COUNT              = 9,
+        MENU_MAP_NEO_ARK_MARKER_COUNT              = ARRAY_SIZE(gMapNeoArkMarkerFlags),
         MENU_MAP_DRYFIELD_NIGHT_STORY_MARKER       = 29,
         MENU_MAP_SHELTER_ALTERNATE_PICTURE_CHAPTER = 6
     };
@@ -508,7 +508,7 @@ s16 menuMapGetMarkerState(s16 markerIndex)
             if (markerIndex >= MENU_MAP_NEO_ARK_MARKER_COUNT) {
                 break;
             }
-            return _menuMapReadMarkerState(D_map_neo_ark_8017A9A0, markerIndex);
+            return _menuMapReadMarkerState(gMapNeoArkMarkerFlags, markerIndex);
     }
     return MENU_MAP_MARKER_STATE_UNAVAILABLE;
 }
