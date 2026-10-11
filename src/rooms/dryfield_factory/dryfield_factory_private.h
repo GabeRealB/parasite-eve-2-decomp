@@ -51,8 +51,6 @@ extern WorldCoordRoomAmbientEntry gDryfieldFactoryViewAmbientMinima[20];
 /// keep those snapshots and the room callback code live through session reload.
 extern TaskDesc gRoomEventTaskDesc;
 
-extern TaskDesc D_dryfield_factory_801826BC[2];
-
 extern TaskMessageEntry D_dryfield_factory_801826D4[6];
 
 extern WorldCollisionGrid D_dryfield_factory_80186C68;
