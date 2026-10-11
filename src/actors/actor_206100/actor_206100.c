@@ -70,14 +70,6 @@
 /// The `worldCollisionLinkBody` record `_actor206100UnlinkForDeath` unlinks when it
 /// retires the actor, plus the area-record list that handler applies.
 
-/// Enemy parameters `_actor206100InitEnemy` parks in `Enemy::param`.
-/// `attacks` is `_gActor206100SeaDiverShotAttack` and `hpMax` is the actor's
-/// maximum hit points (2000), seeded into `field_40` / `field_42` at spawn.
-extern EnemyParams D_actor_206100_80155198;
-
-/// Animation bank handed to `animationInitContext` by `_actor206100InitEnemy`.
-extern AnimationSet* D_actor_206100_80158B24[];
-
 /// Placement records `_actor206100SpawnBogDiver` parks at `Enemy::place`
 /// -- the same slot `areaSpawnPlacements` fills from a room's own place list, so this
 /// is a local six-entry copy of one: `field_0` is 4 on the five live entries
@@ -284,11 +276,7 @@ typedef struct {
 } _Actor206100ShotWork;
 STATIC_ASSERT_SIZEOF(_Actor206100ShotWork, 0x68);
 
-/// The wave `_actor206100EntranceRelocateTick` arms: pale cyan modulation with a
-/// one-frame ramp.
-extern ScreenWaveCtx D_actor_206100_80158CCC;
-
-/// Child task `_actor206100EntranceRelocateTick` starts with the tint above as its
+/// Child task `_actor206100EntranceRelocateTick` starts with its wave context as its
 /// spawn arg.  Its callback is `_screenWaveTask`.
 extern TaskDesc D_actor_206100_80158AF0[];
 
@@ -631,7 +619,22 @@ enum { ACTOR_206100_SHOT_PLAYER_REACTION = 5 };
 /// for the actor package's lifetime; collision keys copy its values.
 static DamageAttack _gActor206100SeaDiverShotAttack = { 26, ACTOR_206100_SHOT_PLAYER_REACTION };
 
-EnemyParams D_actor_206100_80155198 = { &_gActor206100SeaDiverShotAttack, 2000, 400, 1000, 15, 200, 3, 100, 5 };
+/// Sea Diver health, rewards and hit-reaction tuning, with its single shot attack.
+///
+/// Live enemies borrow this record for their lifetime and start at 2000 HP.
+/// Rewards are 400 experience, 1000 battle points and 15 magic points; the
+/// base critical chance is 200 percent.
+static EnemyParams _gActor206100SeaDiverParams = {
+    .attacks              = &_gActor206100SeaDiverShotAttack,
+    .hpMax                = 2000,
+    .exp                  = 400,
+    .bp                   = 1000,
+    .mp                   = 15,
+    .critChance           = 200,
+    .buildupSteps         = 3,
+    .damageOverTimeChance = 100,
+    .damageOverTimeTicks  = 5,
+};
 
 static AnimationPackedPose _gActor206100Animation0B8F8Bank1[8] = {
 #include "assets/actor_206100_animation_0B8F8_bank1.inc"
@@ -881,7 +884,11 @@ TaskDesc gActor206100SeaDiverTaskDescriptors[2] = {
     },
 };
 
-AnimationSet* D_actor_206100_80158B24[17] = {
+/// Sea Diver clip sets indexed by its native animation selectors 0..16.
+///
+/// Slots 0, 2, 4, 6, 9, 12 and 13 supply no set. The live animation rig
+/// borrows this table and its loaded sets throughout actor playback.
+static AnimationSet* _gActor206100SeaDiverAnimationSets[17] = {
     NULL,
     &_gActor206100Animation0B8F8,
     NULL,
@@ -943,7 +950,12 @@ static ScreenWaveOscillator _gScreenWaveRowWaves[32] = { 0 };
 /// five divers summoned in total; they do not own the divers' tasks or work.
 static _Actor206100BogDiverSlot _gActor206100BogDiverSummonSlots[2] = { 0 };
 
-ScreenWaveCtx D_actor_206100_80158CCC = { 0 };
+/// Borrowed pale-cyan screen-wave context for the Sea Diver entrance.
+///
+/// Relocation seeds a one-frame ramp to strength 96 with RGB (64,128,128)
+/// modulation. Arrival finishes the ramp at tick 1 and kills the wave at tick 3;
+/// this package-owned writable record stays live through the final draw.
+static ScreenWaveCtx _gActor206100EntranceWaveContext = { 0 };
 
 static void _actor206100CirclingTick(Task* task);
 
@@ -1040,12 +1052,12 @@ static void _actor206100InitEnemy(Task* task)
     worldTargetLinkNode(&enemy->node);
     enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
     enemy->recs                   = work->hitContacts;
-    enemy->param                  = &D_actor_206100_80155198;
-    initialHp                     = D_actor_206100_80155198.hpMax;
+    enemy->param                  = &_gActor206100SeaDiverParams;
+    initialHp                     = _gActor206100SeaDiverParams.hpMax;
     enemy->hpMax                  = initialHp;
     enemy->hp                     = initialHp;
     rootCoord->parent             = &gGfxViewCoord;
-    animationInitContext(&work->rig.anim, D_actor_206100_80158B24, model, work->rig.poses, work->rig.slots);
+    animationInitContext(&work->rig.anim, _gActor206100SeaDiverAnimationSets, model, work->rig.poses, work->rig.slots);
     _actor206100InitHitBodies(task);
     work->rotation.vy = ratan2(-rootCoord->coord.m[2][0], rootCoord->coord.m[2][2]);
     work->targetPart  = 4;
@@ -1956,13 +1968,13 @@ static void _actor206100EntranceRelocateTick(Task* task)
         work->neckRetracted                                        = 0;
         work->subState                                             = work->subState + 1;
         // The cyan distortion masks the following entrance movement.
-        D_actor_206100_80158CCC.span            = ACTOR_206100_ENTRANCE_WAVE_FRAMES;
-        D_actor_206100_80158CCC.scale           = ACTOR_206100_ENTRANCE_WAVE_SCALE;
-        D_actor_206100_80158CCC.r               = ACTOR_206100_ENTRANCE_WAVE_RED;
-        D_actor_206100_80158CCC.modulateTexture = SCREEN_WAVE_MODULATE_TEXTURE;
-        D_actor_206100_80158CCC.g               = ACTOR_206100_ENTRANCE_WAVE_GREEN_BLUE;
-        D_actor_206100_80158CCC.b               = ACTOR_206100_ENTRANCE_WAVE_GREEN_BLUE;
-        work->waveTask                          = taskSpawnFromTable(D_actor_206100_80158AF0, 0, 0, &D_actor_206100_80158CCC);
+        _gActor206100EntranceWaveContext.span            = ACTOR_206100_ENTRANCE_WAVE_FRAMES;
+        _gActor206100EntranceWaveContext.scale           = ACTOR_206100_ENTRANCE_WAVE_SCALE;
+        _gActor206100EntranceWaveContext.r               = ACTOR_206100_ENTRANCE_WAVE_RED;
+        _gActor206100EntranceWaveContext.modulateTexture = SCREEN_WAVE_MODULATE_TEXTURE;
+        _gActor206100EntranceWaveContext.g               = ACTOR_206100_ENTRANCE_WAVE_GREEN_BLUE;
+        _gActor206100EntranceWaveContext.b               = ACTOR_206100_ENTRANCE_WAVE_GREEN_BLUE;
+        work->waveTask                                   = taskSpawnFromTable(D_actor_206100_80158AF0, 0, 0, &_gActor206100EntranceWaveContext);
     }
 }
 /// Moves the Sea Diver out of the entrance view and stages its reappearance.
@@ -2080,7 +2092,7 @@ static void _actor206100EntranceArrivalTick(Task* task)
     rootCoord                                      = task->extra.tmd->coords;
     work->stateFrames                              = work->stateFrames + 1;
     if (work->stateFrames == ACTOR_206100_ENTRANCE_STOP_WAVE_TICK) {
-        D_actor_206100_80158CCC.state = SCREEN_WAVE_RAMP_FINISHED;
+        _gActor206100EntranceWaveContext.state = SCREEN_WAVE_RAMP_FINISHED;
     }
     soundFrame = work->stateFrames;
     if (soundFrame == ACTOR_206100_ENTRANCE_RELEASE_WAVE_TICK) {

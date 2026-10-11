@@ -121,3 +121,4 @@ _gReverseWalkStepHandlers = 0x80161e30;
 _gActor350700KyleMadiganAttachmentStates = 0x80161e50;
 _gActor350700ReverseWalkTaskStates = 0x80161e24;
 _gActor350700KyleMadiganForwardWalkVelocity = 0x80161e78;
+_gActor350700KyleMadiganWalkSteps = 0x80161e68;

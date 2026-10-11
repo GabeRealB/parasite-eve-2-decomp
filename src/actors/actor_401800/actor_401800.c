@@ -130,12 +130,20 @@ static AnimationSet _gActor401800Animation210E0;
 static AnimationSet _gActor401800Animation21AB8;
 static AnimationSet _gActor401800Animation224A8;
 
-DamageAttack D_actor_401800_8013E6E8[2] = {
-    { 26, 7 },
-    { 18, 7 },
+enum { ACTOR_401800_PLAYER_REACTION_SPARK_AND_PUFFS = 7 };
+
+/// Odd Stranger's two damage-key rows, borrowed by its enemy parameter record.
+///
+/// Row 0 deals base damage 26 during the held-player strike; row 1 retains
+/// base damage 18. Both select the player's spark-and-puffs reaction without
+/// a status effect. Contact keys copy the row values; the parameter record
+/// borrows the table for this package's lifetime.
+static DamageAttack _gActor401800OddStrangerAttacks[2] = {
+    { 26, ACTOR_401800_PLAYER_REACTION_SPARK_AND_PUFFS },
+    { 18, ACTOR_401800_PLAYER_REACTION_SPARK_AND_PUFFS },
 };
 
-EnemyParams D_actor_401800_8013E6F0 = { D_actor_401800_8013E6E8, 180, 34, 34, 3, 100, 10, 100, 0 };
+EnemyParams D_actor_401800_8013E6F0 = { _gActor401800OddStrangerAttacks, 180, 34, 34, 3, 100, 10, 100, 0 };
 
 ActorStrangerVariant D_actor_401800_8013E700[3] = {
     { 40, 400, 7, 2000, { 0, 0, 0, 0 } },

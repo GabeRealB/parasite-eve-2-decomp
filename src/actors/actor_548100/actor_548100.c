@@ -353,9 +353,6 @@ extern TaskDesc D_actor_548100_801351B4;
 // transports each argument in a word register.
 
 extern TaskMessageEntry D_actor_548100_801351C0[];
-extern s8               D_actor_548100_80135B56;
-extern s8               D_actor_548100_80135B57;
-extern s8               D_actor_548100_80135B58;
 extern s8               D_actor_548100_80135B5A;
 extern s8               D_actor_548100_80135B5B;
 
@@ -1054,11 +1051,23 @@ static u8 _gActor548100FlowGreen = 0;
 /// Current frame's blue FLOW channel, stored as its low eight RGB bits.
 static u8 _gActor548100FlowBlue = 0;
 
-s8 D_actor_548100_80135B56 = 0;
+/// Current frame's stopped-wire red RGB byte, pulsed from authored brightness 60.
+///
+/// Recomputed before drawing; normal pulse levels 16..32 give 30..60.
+/// Stopped wires and the unpowered portion of a moving front read this byte.
+static u8 _gActor548100StopRed = 0;
 
-s8 D_actor_548100_80135B57 = 0;
+/// Current frame's stopped-wire green RGB byte, pulsed from authored brightness 60.
+///
+/// Normal pulse levels 16..32 give 30..60; decay brings it down to zero.
+/// The colour scaler writes its low eight bits through a signed-byte view.
+static u8 _gActor548100StopGreen = 0;
 
-s8 D_actor_548100_80135B58 = 0;
+/// Current frame's stopped-wire blue RGB byte, pulsed from authored brightness 16.
+///
+/// Normal pulse levels 16..32 give 8..16; decay brings it down to zero.
+/// The colour scaler writes its low eight bits through a signed-byte view.
+static u8 _gActor548100StopBlue = 0;
 
 /// Current frame's red RGB byte for short-circuit wires.
 ///
@@ -1394,7 +1403,7 @@ static void _actor548100DrawPanel(Task* task)
 
     // The signed-byte scaler writes the same low eight bits into the unsigned RGB storage.
     _actor548100ScaleFlowColor(_gActor548100ColorPulse, (s8*)&_gActor548100FlowRed, (s8*)&_gActor548100FlowGreen, (s8*)&_gActor548100FlowBlue);
-    _actor548100ScaleStopColor(_gActor548100ColorPulse, &D_actor_548100_80135B56, &D_actor_548100_80135B57, &D_actor_548100_80135B58);
+    _actor548100ScaleStopColor(_gActor548100ColorPulse, (s8*)&_gActor548100StopRed, (s8*)&_gActor548100StopGreen, (s8*)&_gActor548100StopBlue);
     _actor548100ScaleShortColor(_gActor548100ColorPulse, (s8*)&_gActor548100ShortRed, &D_actor_548100_80135B5A, &D_actor_548100_80135B5B);
     // Rebuild this frame from stopped wires before applying the selected circuit.
     _actor548100ResetWireStates();
@@ -1725,7 +1734,7 @@ static void _actor548100DrawEdge(const _Actor548100Edge* edge)
             _actor548100DrawWire(fromNode, toNode, _gActor548100FlowRed, _gActor548100FlowGreen, _gActor548100FlowBlue);
             break;
         case ACTOR_548100_EDGE_STATE_STOP:
-            _actor548100DrawWire(fromNode, toNode, D_actor_548100_80135B56, D_actor_548100_80135B57, D_actor_548100_80135B58);
+            _actor548100DrawWire(fromNode, toNode, _gActor548100StopRed, _gActor548100StopGreen, _gActor548100StopBlue);
             break;
         case ACTOR_548100_EDGE_STATE_FLOW_FROM_B:
             fromNode = edge->nodeB;
@@ -1759,7 +1768,7 @@ static void _actor548100DrawEdge(const _Actor548100Edge* edge)
                 rect.y += gDisplayState.drawBuffer * ACTOR_548100_DRAW_BUFFER_STRIDE_Y;
                 SetDrawArea(area, &rect);
                 addPrim(&gGpuCurrentOt[ACTOR_548100_OT_WIRES], area);
-                _actor548100DrawWire(fromNode, toNode, D_actor_548100_80135B56, D_actor_548100_80135B57, D_actor_548100_80135B58);
+                _actor548100DrawWire(fromNode, toNode, _gActor548100StopRed, _gActor548100StopGreen, _gActor548100StopBlue);
                 area           = gGpuPrimCursor;
                 gGpuPrimCursor = area + 1;
                 if (fromX < toX) {
@@ -1784,7 +1793,7 @@ static void _actor548100DrawEdge(const _Actor548100Edge* edge)
                 rect.y += gDisplayState.drawBuffer * ACTOR_548100_DRAW_BUFFER_STRIDE_Y;
                 SetDrawArea(area, &rect);
                 addPrim(&gGpuCurrentOt[ACTOR_548100_OT_WIRES], area);
-                _actor548100DrawWire(fromNode, toNode, D_actor_548100_80135B56, D_actor_548100_80135B57, D_actor_548100_80135B58);
+                _actor548100DrawWire(fromNode, toNode, _gActor548100StopRed, _gActor548100StopGreen, _gActor548100StopBlue);
                 area           = gGpuPrimCursor;
                 gGpuPrimCursor = area + 1;
                 if (fromY < toY) {

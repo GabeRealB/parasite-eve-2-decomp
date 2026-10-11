@@ -2,8 +2,8 @@
 _gScriptedWalkWork = 0x8013EFE0; // size:0x4 defined:True
 _gActor420700BodyTask = 0x8013EFE4; // size:0x4 defined:True
 _gActor420700HeadHatTask = 0x8013EFE8; // size:0x4 defined:True
-D_actor_420700_8013EFEC = 0x8013EFEC; // size:0x4 defined:True
-D_actor_420700_8013EFF0 = 0x8013EFF0; // size:0x4 defined:True
+_gActor420700ShotgunTask = 0x8013EFEC; // size:0x4 defined:True
+_gActor420700AutoHeadTurnStep = 0x8013EFF0; // size:0x4 defined:True
 D_actor_420700_8013EFF4 = 0x8013EFF4; // size:0x4 defined:True
 gActor420700GaryDouglasTaskDescriptors = 0x8013EF68; // size:0x24 defined:True
 _gActor420700AnimationSets = 0x8013EF8C; // size:0x54 defined:True

@@ -170,15 +170,6 @@ extern u8                  D_actor_421600_80151028[];
 
 extern TaskMessageEntry D_actor_421600_80151118[8];
 
-/// The overlay's pose table: 8-byte records of three halfwords at 0x0/0x2/0x4
-/// plus padding, i.e. `SVECTOR`s. Indexed by the low signed halfword of the
-/// caller's id. `actor_403000` keeps a table of the same shape at 0x80158CE0
-/// and reaches it with a body the shared-body index groups with this one; a
-/// body that reads its own overlay's data cannot be promoted, so each carrier
-/// keeps a plain-C copy -- `src/actors/actor_403000/actor_403000.c` for the
-/// other.
-extern SVECTOR D_actor_421600_80151158[];
-
 /// 4-byte table indexed by `(arg0 > 0) + ((arg1 < 1) << 1)`.
 extern s8 D_actor_421600_801511D0[];
 
@@ -1270,7 +1261,13 @@ TaskMessageEntry D_actor_421600_80151118[8] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-SVECTOR D_actor_421600_80151158[13] = {
+/// Thirteen Water Tower route waypoints in root-parent game-coordinate units.
+///
+/// Adjacent-zone routing and the standalone copy helper read XYZ at indices
+/// 0..12. Entries 0 and 1 share a position; entry 12 is the origin. The cell
+/// map also contains zones 13..15, which do not extend this table; the runtime
+/// invariant keeping route lookups in bounds is unproven.
+static SVECTOR _gActor421600ArenaWaypoints[13] = {
     { 1000, 0, 4500, 0 },
     { 1000, 0, 4500, 0 },
     { -1000, 0, 4500, 0 },
@@ -2786,9 +2783,9 @@ static void _actor421600TrackArenaRouteState(Task* task)
         nextZone = actorZone - 1;
     else
         nextZone = actorZone + 1;
-    savedCursor[-1].delta.vx = D_actor_421600_80151158[nextZone].vx;
-    routeTurn->delta.vy      = D_actor_421600_80151158[nextZone].vy;
-    routeTurn->delta.vz      = D_actor_421600_80151158[nextZone].vz;
+    savedCursor[-1].delta.vx = _gActor421600ArenaWaypoints[nextZone].vx;
+    routeTurn->delta.vy      = _gActor421600ArenaWaypoints[nextZone].vy;
+    routeTurn->delta.vz      = _gActor421600ArenaWaypoints[nextZone].vz;
     routeTurn->delta.vx      = routeTurn->delta.vx - (u16)task->extra.tmd->coords->coord.t[0];
     routeTurn->delta.vy      = 0;
     routeTurn->delta.vz      = routeTurn->delta.vz - (u16)task->extra.tmd->coords->coord.t[2];
@@ -3540,13 +3537,13 @@ static void _actor421600FleeState(Task* task)
     SCRATCH_STACK_RESERVE_BLOCK(ActorTurnScratch);
     routeTurn = savedCursor - 1;
     if ((s16)actorZone > work->fleeZone) {
-        savedCursor[-1].delta.vx = D_actor_421600_80151158[actorZone - 1].vx;
-        routeTurn->delta.vy      = D_actor_421600_80151158[actorZone - 1].vy;
-        routeTurn->delta.vz      = D_actor_421600_80151158[actorZone - 1].vz;
+        savedCursor[-1].delta.vx = _gActor421600ArenaWaypoints[actorZone - 1].vx;
+        routeTurn->delta.vy      = _gActor421600ArenaWaypoints[actorZone - 1].vy;
+        routeTurn->delta.vz      = _gActor421600ArenaWaypoints[actorZone - 1].vz;
     } else {
-        savedCursor[-1].delta.vx = D_actor_421600_80151158[actorZone + 1].vx;
-        routeTurn->delta.vy      = D_actor_421600_80151158[actorZone + 1].vy;
-        routeTurn->delta.vz      = D_actor_421600_80151158[actorZone + 1].vz;
+        savedCursor[-1].delta.vx = _gActor421600ArenaWaypoints[actorZone + 1].vx;
+        routeTurn->delta.vy      = _gActor421600ArenaWaypoints[actorZone + 1].vy;
+        routeTurn->delta.vz      = _gActor421600ArenaWaypoints[actorZone + 1].vz;
     }
     routeTurn->delta.vx = routeTurn->delta.vx - (u16)task->extra.tmd->coords->coord.t[0];
     routeTurn->delta.vy = 0;
@@ -3618,13 +3615,13 @@ static void _actor421600MoveToZone5State(Task* task)
     SCRATCH_STACK_RESERVE_BLOCK(ActorTurnScratch);
     routeTurn = savedCursor - 1;
     if ((s8)actorZone > destinationZone) {
-        savedCursor[-1].delta.vx = D_actor_421600_80151158[actorZone - 1].vx;
-        routeTurn->delta.vy      = D_actor_421600_80151158[actorZone - 1].vy;
-        routeTurn->delta.vz      = D_actor_421600_80151158[actorZone - 1].vz;
+        savedCursor[-1].delta.vx = _gActor421600ArenaWaypoints[actorZone - 1].vx;
+        routeTurn->delta.vy      = _gActor421600ArenaWaypoints[actorZone - 1].vy;
+        routeTurn->delta.vz      = _gActor421600ArenaWaypoints[actorZone - 1].vz;
     } else {
-        savedCursor[-1].delta.vx = D_actor_421600_80151158[actorZone + 1].vx;
-        routeTurn->delta.vy      = D_actor_421600_80151158[actorZone + 1].vy;
-        routeTurn->delta.vz      = D_actor_421600_80151158[actorZone + 1].vz;
+        savedCursor[-1].delta.vx = _gActor421600ArenaWaypoints[actorZone + 1].vx;
+        routeTurn->delta.vy      = _gActor421600ArenaWaypoints[actorZone + 1].vy;
+        routeTurn->delta.vz      = _gActor421600ArenaWaypoints[actorZone + 1].vz;
     }
     routeTurn->delta.vx = routeTurn->delta.vx - (u16)task->extra.tmd->coords->coord.t[0];
     routeTurn->delta.vy = 0;
@@ -4448,9 +4445,9 @@ static void _actor421600Exit(Task* task)
 /// This standalone body has no known C caller.
 static void _actor421600CopyArenaWaypoint(SVECTOR* position, s32 zone)
 {
-    position->vx = D_actor_421600_80151158[(s16)zone].vx;
-    position->vy = D_actor_421600_80151158[(s16)zone].vy;
-    position->vz = D_actor_421600_80151158[(s16)zone].vz;
+    position->vx = _gActor421600ArenaWaypoints[(s16)zone].vx;
+    position->vy = _gActor421600ArenaWaypoints[(s16)zone].vy;
+    position->vz = _gActor421600ArenaWaypoints[(s16)zone].vz;
 }
 
 /// Returns the arena patrol quadrant for an XZ position.

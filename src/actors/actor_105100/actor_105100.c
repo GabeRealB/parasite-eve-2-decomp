@@ -863,7 +863,11 @@ u8 D_actor_105100_80141488[44] = {
     128,
 };
 
-/// Borrowed player clips for the scripted attack; entry zero is unused.
+/// Player knockback and recovery clips borrowed during the training enemy's push.
+///
+/// Slot 0 is NULL. Front and behind pushes select clips 1 and 2; their
+/// recovery selects clips 3 and 4. The player installs this table for playback,
+/// so the table and its four sets must remain loaded until the reaction ends.
 static AnimationSet* _gActor105100PlayerAnimationSets[5] = {
     NULL,
     &_gActor105100Animation0DD7C,

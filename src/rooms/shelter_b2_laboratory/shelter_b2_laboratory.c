@@ -8,6 +8,7 @@
 #include "common.h"
 #include "gte.h"
 
+#include "actors/actor_143000.h"
 #include "actors/task_tables.h"
 
 #include "gameplay/actor_render.h"
@@ -100,8 +101,6 @@ typedef struct {
     u16 sy;         // Projected centre, y
 } _ShelterB2LaboratoryGlowDiamondScratch;
 STATIC_ASSERT_SIZEOF(_ShelterB2LaboratoryGlowDiamondScratch, 0x18);
-
-extern TaskDesc D_actor_143000_80134564;
 
 /// View saved when the cutscene starts and restored when it ends.
 
@@ -1533,7 +1532,7 @@ static void _shelterB2LaboratoryConsoleKeypadTask(Task* task)
 
     switch (task->state) {
         case SHELTER_B2_LABORATORY_KEYPAD_START:
-            _gShelterB2LaboratoryKeypadTask = taskSpawnFromTable(&D_actor_143000_80134564, 0, 0, 0);
+            _gShelterB2LaboratoryKeypadTask = taskSpawnFromTable(&gActor143000KeypadTaskDesc, 0, 0, 0);
             task->state                    += 1;
             return;
         case SHELTER_B2_LABORATORY_KEYPAD_WAIT:

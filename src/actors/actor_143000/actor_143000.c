@@ -165,10 +165,6 @@ typedef struct {
 } _Actor143000KeypadWork;
 STATIC_ASSERT_SIZEOF(_Actor143000KeypadWork, 0x1C);
 
-extern TaskDesc    D_actor_143000_80134558;
-extern u8          D_actor_143000_80134570[];
-extern const char* D_actor_143000_801345F8[3];
-
 static void _actionPromptResetDefault(Task* task);
 static void _actor143000CheckKeypadCode(Task* task);
 static void _actor143000ArmKeypadCursor(Task* task);
@@ -187,13 +183,31 @@ static void _actor143000KeypadTask(Task* task);
 
 static const char _gActor143000KeypadBottomRow[ACTOR_143000_KEYPAD_COLUMNS + 1];
 static const char _gActor143000KeypadMiddleRow[ACTOR_143000_KEYPAD_COLUMNS + 1];
-extern const char D_actor_143000_80131E74[14];
+static const char _gActor143000KeypadTopRow[ACTOR_143000_KEYPAD_COLUMNS + 1];
 
-TaskDesc D_actor_143000_80134558 = { { { TASK_BODY_NONE, 192 } }, _actor143000KeypadCursorTask, { .value = 0 } };
+enum {
+    ACTOR_143000_KEYPAD_CURSOR_TASK_PRIORITY = 192,
+    ACTOR_143000_KEYPAD_TASK_PRIORITY        = 32,
+};
 
-TaskDesc D_actor_143000_80134564 = { { { TASK_BODY_NONE, 32 } }, _actor143000KeypadTask, { .value = 0 } };
+/// Bodyless cursor companion of one keypad session, stopped when that session closes.
+static TaskDesc _gActor143000KeypadCursorTaskDesc = {
+    .header   = { .fields = { .flags = TASK_BODY_NONE, .priority = ACTOR_143000_KEYPAD_CURSOR_TASK_PRIORITY } },
+    .callback = _actor143000KeypadCursorTask,
+    .data     = { .value = 0 },
+};
 
-u8 D_actor_143000_80134570[16] = {
+TaskDesc gActor143000KeypadTaskDesc = {
+    .header   = { .fields = { .flags = TASK_BODY_NONE, .priority = ACTOR_143000_KEYPAD_TASK_PRIORITY } },
+    .callback = _actor143000KeypadTask,
+    .data     = { .value = 0 },
+};
+
+/// Repeating sixteen-step dog sequence, selecting atlas frames 0..2.
+///
+/// One sequence step spans sixteen phase units; the keypad adds its Q4
+/// marquee speed on each draw and wraps the step index through this table.
+static u8 _gActor143000KeypadDogFrames[16] = {
     0,
     0,
     0,
@@ -232,8 +246,13 @@ static ActionPromptHotspot _gActor143000KeypadHotspots[10] = {
     { 0, 0, 0, 0, ACTION_PROMPT_HOTSPOT_END, 0, 0 },
 };
 
-const char* D_actor_143000_801345F8[3] = {
-    D_actor_143000_80131E74,
+/// Character rows of the keypad, ordered from top to bottom.
+///
+/// Rows 0..2 each contain thirteen selectable characters and a trailing NUL.
+/// Columns 10 and 11 of the top row are Backspace ('-') and Clear ('#');
+/// column 12 inserts a space. The row strings remain loaded for the session.
+static const char* _gActor143000KeypadRows[3] = {
+    _gActor143000KeypadTopRow,
     _gActor143000KeypadMiddleRow,
     _gActor143000KeypadBottomRow,
 };
@@ -348,9 +367,17 @@ AnimationSet gActor143000Animation03248 = {
     { NULL, _gActor143000Animation03248Bank1, NULL, NULL, _gActor143000Animation03248Bank4, NULL, NULL, NULL },
 };
 
-Actor143000CaptureArgs D_actor_143000_80135090 = { { 129, 39, 164, 90 }, 10, 0 };
+Actor143000CaptureArgs gActor143000CompletionUpperCaptureBand = {
+    .band           = { 129, 39, 164, 90 },
+    .stripCount     = 10,
+    .stripsCaptured = 0,
+};
 
-Actor143000CaptureArgs D_actor_143000_801350A0 = { { 38, 138, 250, 75 }, 8, 0 };
+Actor143000CaptureArgs gActor143000CompletionLowerCaptureBand = {
+    .band           = { 38, 138, 250, 75 },
+    .stripCount     = 8,
+    .stripsCaptured = 0,
+};
 
 static void _actor143000InitializeKeypad(Task* task);
 static void _actor143000HandleKeypadInput(Task* task);
@@ -394,7 +421,7 @@ static void _actor143000InitializeKeypad(Task* task)
         taskKill(task);
         return;
     }
-    task->spawnArg2.pointer                                    = taskSpawnFromTable(&D_actor_143000_80134558, 0, 1, 0);
+    task->spawnArg2.pointer                                    = taskSpawnFromTable(&_gActor143000KeypadCursorTaskDesc, 0, 1, 0);
     task->work                                                 = work;
     previousView                                               = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view;
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = ACTOR_143000_KEYPAD_VIEW;
@@ -537,11 +564,14 @@ static void _actor143000HandleKeypadInput(Task* task)
 static const char _gActor143000KeypadBottomRow[ACTOR_143000_KEYPAD_COLUMNS + 1] = "NOPQRSTUVWXYZ";
 /// Middle keypad row: thirteen selectable uppercase letters A..M and a trailing NUL.
 static const char _gActor143000KeypadMiddleRow[ACTOR_143000_KEYPAD_COLUMNS + 1] = "ABCDEFGHIJKLM";
-const char        D_actor_143000_80131E74[]                                     = "0123456789-# ";
+/// Top keypad row: digits, Backspace, Clear and space, followed by a NUL.
+static const char _gActor143000KeypadTopRow[ACTOR_143000_KEYPAD_COLUMNS + 1] = "0123456789-# ";
 
-/// State table of the actor's callback, `_actor143000KeypadTask`, which
-/// copies it onto its stack and indexes it with `Task::state`.
-static const TaskFuncTable11 D_actor_143000_80131E84 = { {
+/// Eleven keypad states, ordered by `ACTOR_143000_KEYPAD_STATE_*`.
+///
+/// The dispatcher copies this complete value before indexing `Task::state`;
+/// states must be 0..10. Closing releases the cursor and the keypad work.
+static const TaskFuncTable11 _gActor143000KeypadStates = { {
     _actor143000InitializeKeypad,
     _actor143000ArmKeypadCursor,
     _actor143000HandleKeypadInput,
@@ -555,10 +585,14 @@ static const TaskFuncTable11 D_actor_143000_80131E84 = { {
     _actor143000WaitForKeypadFade,
 } };
 
-/// The codes `_actor143000CheckKeypadCode` accepts; the second only while
-/// `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene` is non-zero.
-static const char D_actor_143000_80131EB0[] = "A3EILM2S2Y";
-static const char D_actor_143000_80131EBC[] = "YSD";
+/// Laboratory login password, also copied in full by automatic entry.
+///
+/// Ten characters plus NUL; the entry drawer reveals the copied characters
+/// one at a time. Password comparison accepts this string in every session.
+static const char _gActor143000KeypadPassword[] = "A3EILM2S2Y";
+
+/// Alternative three-character login password accepted only in a nonzero demo scene.
+static const char _gActor143000KeypadDemoPassword[] = "YSD";
 
 /// Checks the entered password and presents its answer through tick 330.
 ///
@@ -598,7 +632,7 @@ static void _actor143000CheckKeypadCode(Task* task)
     if (task->killCountdown == 0) {
         s32 accepted = 0;
 
-        if ((strcmp(gActor143000KeypadCode, D_actor_143000_80131EB0) == 0) || ((strcmp(gActor143000KeypadCode, D_actor_143000_80131EBC) == 0) && (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene != 0))) {
+        if ((strcmp(gActor143000KeypadCode, _gActor143000KeypadPassword) == 0) || ((strcmp(gActor143000KeypadCode, _gActor143000KeypadDemoPassword) == 0) && (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene != 0))) {
             accepted = 1;
         }
         work->codeAccepted = accepted;
@@ -798,7 +832,7 @@ static void _actor143000DrawKeypad(Task* task)
     left       = work->marqueeX >> ACTOR_143000_KEYPAD_DOG_FRACTION_BITS;
     edgeY      = top + ACTOR_143000_KEYPAD_DOG_HEIGHT;
     edgeX      = left + ACTOR_143000_KEYPAD_DOG_WIDTH;
-    textureRow = D_actor_143000_80134570[(gActor143000KeypadDogPhaseQ4 / ACTOR_143000_KEYPAD_DOG_FRAME_UNITS) % (s32)ARRAY_SIZE(D_actor_143000_80134570)] * ACTOR_143000_KEYPAD_DOG_HEIGHT + ACTOR_143000_KEYPAD_DOG_TEXTURE_TOP - 0x100;
+    textureRow = _gActor143000KeypadDogFrames[(gActor143000KeypadDogPhaseQ4 / ACTOR_143000_KEYPAD_DOG_FRAME_UNITS) % (s32)ARRAY_SIZE(_gActor143000KeypadDogFrames)] * ACTOR_143000_KEYPAD_DOG_HEIGHT + ACTOR_143000_KEYPAD_DOG_TEXTURE_TOP - 0x100;
     bottomV    = textureRow + ACTOR_143000_KEYPAD_DOG_HEIGHT;
     clut       = ACTOR_143000_KEYPAD_CLUT_DOG;
     ACTOR_143000_RESERVE_KEYPAD_QUAD(quad);
@@ -848,7 +882,7 @@ static void _actor143000KeypadTask(Task* task)
 {
     TaskFuncTable11 states;
 
-    states = D_actor_143000_80131E84;
+    states = _gActor143000KeypadStates;
     states.funcs[task->state](task);
     _actor143000DrawKeypad(task);
 }
@@ -1003,8 +1037,8 @@ static void _actor143000TypeKeypadKey(Task* task)
 
     if ((u32)column < ACTOR_143000_KEYPAD_COLUMNS) {
         if (row >= 0) {
-            if (row < (s32)ARRAY_SIZE(D_actor_143000_801345F8)) {
-                keyCharacter = D_actor_143000_801345F8[row] + column;
+            if (row < (s32)ARRAY_SIZE(_gActor143000KeypadRows)) {
+                keyCharacter = _gActor143000KeypadRows[row] + column;
                 if ((s8)*keyCharacter == ACTOR_143000_KEYPAD_CLEAR_KEY) {
                     work->codeLength = 0;
                 } else if ((s8)*keyCharacter == ACTOR_143000_KEYPAD_BACKSPACE_KEY) {
@@ -1047,9 +1081,9 @@ static void _actor143000AutoTypeKeypadCode(Task* task)
             work->codeLength++;
             sndEvtRequestScriptStart(SOUND_SHELTER_B2_LAB_KEYPAD_KEY, 0, 0);
             // Copy the whole code; the drawer reveals only codeLength characters.
-            memcpy(gActor143000KeypadCode, D_actor_143000_80131EB0, sizeof(D_actor_143000_80131EB0));
+            memcpy(gActor143000KeypadCode, _gActor143000KeypadPassword, sizeof(_gActor143000KeypadPassword));
             revealedLength = work->codeLength;
-            if (revealedLength >= sizeof(D_actor_143000_80131EB0) - 1) {
+            if (revealedLength >= sizeof(_gActor143000KeypadPassword) - 1) {
                 task->state = ACTOR_143000_KEYPAD_STATE_INPUT;
             }
         }

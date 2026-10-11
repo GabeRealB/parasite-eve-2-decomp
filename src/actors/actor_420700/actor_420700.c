@@ -85,9 +85,7 @@ static Task* _gActor420700BodyTask;
 
 static Task* _gActor420700HeadHatTask;
 
-/// The second task the state-0 handler spawns, the frame-8 model task
-/// `_actor420700ShotgunTask`.
-extern Task* D_actor_420700_8013EFEC;
+static Task* _gActor420700ShotgunTask;
 
 static void _actor420700Exit(Task* task);
 static void _actor420700UpdateAnimation(Task* task);
@@ -101,7 +99,7 @@ enum {
 
 // Message-table callbacks use the argument views required by this TU.
 
-extern s32 D_actor_420700_8013EFF0;
+static s32 _gActor420700AutoHeadTurnStep;
 /// Word initialized to 150 at body spawn; no reader or further role is established.
 extern s32 D_actor_420700_8013EFF4;
 
@@ -122,7 +120,7 @@ static s32 _actor420700HandleHeadTurnCommand(Task* task, s32 messageId, const Ac
 /// automatic mode supplies +64 or -128 and keeps the result between 0 and `ONE`.
 static inline void _actor420700AdvanceAutoHeadTurn(void)
 {
-    _gScriptedWalkWork->st.turnWeight += D_actor_420700_8013EFF0;
+    _gScriptedWalkWork->st.turnWeight += _gActor420700AutoHeadTurnStep;
     if (_gScriptedWalkWork->st.turnWeight > ONE) {
         _gScriptedWalkWork->st.turnWeight = ONE;
     }
@@ -988,9 +986,19 @@ static Task* _gActor420700BodyTask;
 /// allocation must succeed before the spawning body continues.
 static Task* _gActor420700HeadHatTask;
 
-Task* D_actor_420700_8013EFEC;
+/// Retained shotgun-model task of the singleton Gary Douglas actor.
+///
+/// Spawn publishes it for draw messages, which require a live model. Its root
+/// borrows body part 8; the handle is not cleared on teardown. The body's exit
+/// does not stop this task, so the surrounding scene's release order is unproven.
+static Task* _gActor420700ShotgunTask;
 
-s32 D_actor_420700_8013EFF0;
+/// Signed Q12 automatic head-turn weight increment per body update.
+///
+/// Starts at zero; automatic aiming sets +64 when behind the player's facing
+/// and -128 otherwise or during events. Adding it narrows the weight to s16
+/// before clamping that weight to 0..4096.
+static s32 _gActor420700AutoHeadTurnStep;
 
 s32 D_actor_420700_8013EFF4;
 
@@ -1041,15 +1049,15 @@ static void _actor420700Spawn(Enemy* enemy, Task* task)
     // The head-and-hat must spawn successfully before its texture binding.
     _gActor420700BodyTask    = task;
     _gActor420700HeadHatTask = taskSpawnFromTable(gActor420700GaryDouglasTaskDescriptors, ACTOR_420700_SPAWN_HEAD_HAT_TASK, 0, NULL);
-    D_actor_420700_8013EFEC  = taskSpawnFromTable(gActor420700GaryDouglasTaskDescriptors, ACTOR_420700_SPAWN_SHOTGUN_TASK, 0, NULL);
+    _gActor420700ShotgunTask = taskSpawnFromTable(gActor420700GaryDouglasTaskDescriptors, ACTOR_420700_SPAWN_SHOTGUN_TASK, 0, NULL);
     _actorRenderApplyTaskPlacementTextureOffsets(_gActor420700HeadHatTask, enemy);
-    bodyModel->lightMtx     = &_gScriptedWalkWork->light;
-    bodyModel->colorMtx     = &_gScriptedWalkWork->color;
-    D_actor_420700_8013EFF0 = 0;
-    lightingPosition.vx     = rootCoord->workm.t[0];
-    lightingPosition.vy     = rootCoord->workm.t[1] + ACTOR_420700_LIGHTING_Y_OFFSET;
-    D_actor_420700_8013EFF4 = 150; // No reader is recovered; the stored value's role is unproven.
-    lightingPosition.vz     = rootCoord->workm.t[2];
+    bodyModel->lightMtx           = &_gScriptedWalkWork->light;
+    bodyModel->colorMtx           = &_gScriptedWalkWork->color;
+    _gActor420700AutoHeadTurnStep = 0;
+    lightingPosition.vx           = rootCoord->workm.t[0];
+    lightingPosition.vy           = rootCoord->workm.t[1] + ACTOR_420700_LIGHTING_Y_OFFSET;
+    D_actor_420700_8013EFF4       = 150; // No reader is recovered; the stored value's role is unproven.
+    lightingPosition.vz           = rootCoord->workm.t[2];
     worldCoordSetModelLighting(bodyModel, &lightingPosition, 0, ACTOR_420700_SPAWN_LIGHT_COUNT);
     animationInitContext(&_gScriptedWalkWork->rig.anim, _gActor420700AnimationSets, bodyModel,
                          _gScriptedWalkWork->rig.poses, _gScriptedWalkWork->rig.slots);
@@ -1134,15 +1142,15 @@ static void _actor420700Update(Enemy* enemy, Task* task)
             playerCosYaw = rcos(playerActor->rotation.vy);
             // A negative forward projection places Gary behind the player's facing.
             if (dx * rsin(playerActor->rotation.vy) + dz * playerCosYaw < 0) {
-                D_actor_420700_8013EFF0 = ACTOR_420700_HEAD_TURN_RISE;
+                _gActor420700AutoHeadTurnStep = ACTOR_420700_HEAD_TURN_RISE;
             } else {
-                D_actor_420700_8013EFF0 = -ACTOR_420700_HEAD_TURN_STEP;
+                _gActor420700AutoHeadTurnStep = -ACTOR_420700_HEAD_TURN_STEP;
             }
             if (_gScriptedWalkWork->st.turnWeight != 0) {
                 animationRate = 0;
             }
         } else {
-            D_actor_420700_8013EFF0 = -ACTOR_420700_HEAD_TURN_STEP;
+            _gActor420700AutoHeadTurnStep = -ACTOR_420700_HEAD_TURN_STEP;
         }
         _actor420700AdvanceAutoHeadTurn();
         animationAimHeadAtTask(task, gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ACTOR_420700_HEAD_MAX_YAW, ACTOR_420700_HEAD_MAX_PITCH, _gScriptedWalkWork->st.turnWeight);
@@ -1316,7 +1324,7 @@ static s32 _actor420700HandleModelDrawMessage(Task* task, s32 messageId, s32 dra
     };
     TmdObject* bodyModel    = _gActor420700BodyTask->extra.tmd;
     TmdObject* headHatModel = _gActor420700HeadHatTask->extra.tmd;
-    TmdObject* shotgunModel = D_actor_420700_8013EFEC->extra.tmd;
+    TmdObject* shotgunModel = _gActor420700ShotgunTask->extra.tmd;
 
     if (drawFlags & ACTOR_420700_DRAW_VISIBLE) {
         bodyModel->flags    = 0;

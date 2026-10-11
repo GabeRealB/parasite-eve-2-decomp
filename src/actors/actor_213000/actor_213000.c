@@ -58,8 +58,6 @@ STATIC_ASSERT_SIZEOF(_Actor213000EricBaldwinWork, 0x4C4);
 
 extern TaskMessageEntry D_actor_213000_80157E1C[];
 
-/// Animation bank table the 0x7D3 handler indexes with the preset's `field_0`.
-extern AnimationSet*  D_actor_213000_80157DB0[11];
 extern AnimationSet** D_actor_213000_80157DDC[1];
 
 static void _modelPlacementAttachPartTask(Task* childTask);
@@ -462,7 +460,12 @@ static AnimationSet _gActor213000Animation0DF68 = {
     { NULL, _gActor213000Animation0DF68Bank1, NULL, NULL, _gActor213000Animation0DF68Bank4, NULL, NULL, NULL },
 };
 
-AnimationSet* D_actor_213000_80157DB0[11] = {
+/// Eric Baldwin's bank-0 clip sets, with loaded clips at indices 1..10.
+///
+/// Slot 0 is NULL. Requests select bank 0 through the separate bank collection
+/// and then select a clip here by animationId. The rig borrows the table and
+/// its sets; the package must stay loaded throughout scripted playback.
+static AnimationSet* _gActor213000EricBaldwinAnimationSets[11] = {
     NULL,
     &_gActor213000Animation08080,
     &_gActor213000Animation0894C,
@@ -477,7 +480,7 @@ AnimationSet* D_actor_213000_80157DB0[11] = {
 };
 
 AnimationSet** D_actor_213000_80157DDC[1] = {
-    D_actor_213000_80157DB0,
+    _gActor213000EricBaldwinAnimationSets,
 };
 
 enum { ACTOR_213000_ERIC_TASK_PRIORITY = 192 };

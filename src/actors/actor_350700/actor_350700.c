@@ -106,10 +106,11 @@ static const TaskFuncTable3 D_actor_350700_80161E5C = { {
     _actor350700KyleMadiganWalkerExit,
 } };
 
-/// Step handlers of the parent block's motion sequence, indexed by
-/// `ActorWalkState::motionStep`: turn to face `target`, start walking
-/// forward, walk until arrival, then turn to the placement yaw.
-static const TaskFuncTable4 D_actor_350700_80161E68 = { {
+/// Kyle Madigan walk steps 0 face target, 1 begin motion, 2 arrive and 3 turn to final yaw.
+///
+/// The dispatcher copies all four callbacks before indexing `walk.motionStep`;
+/// the work's selector must remain in 0..3 and the callbacks require its live rig.
+static const TaskFuncTable4 _gActor350700KyleMadiganWalkSteps = { {
     _actorMotionFaceTarget,
     _actor350700KyleMadiganWalkerBeginMove,
     _actorMotionArrive,
@@ -904,7 +905,7 @@ static void _actor350700KyleMadiganWalkerRunStep(Task* task)
     TaskFuncTable4         handlers;
 
     work     = task->work;
-    handlers = D_actor_350700_80161E68;
+    handlers = _gActor350700KyleMadiganWalkSteps;
     handlers.funcs[work->walk.motionStep](task);
 }
 

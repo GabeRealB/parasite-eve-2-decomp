@@ -44,8 +44,8 @@ static s32  _pairWalkPlay(Task* task, s32 messageId, const AnimationPlayRequest*
 static void _pairWalkSubModelTask(Task* task);
 
 extern TaskDesc D_actor_150400_80132CF0;
-extern Task*    D_actor_150400_8013C924;
-extern Task*    D_actor_150400_8013C928;
+static Task*    _gActor150400FirstSlidingModelTask;
+static Task*    _gActor150400SecondSlidingModelTask;
 
 extern u8 D_actor_150400_8013C90C[];
 // Handler views preserve the signatures used by this TU. The dispatcher
@@ -379,9 +379,17 @@ u8 D_actor_150400_8013C90C[24] = {
     0,
 };
 
-Task* D_actor_150400_8013C924 = NULL;
+/// Retained first sliding-model task of the freezer scene, placed at Z = -4460.
+///
+/// Spawn replaces the handle; later scene cues require a successful, still-live
+/// task. Teardown does not clear it, and another spawn replaces the old handle.
+static Task* _gActor150400FirstSlidingModelTask = NULL;
 
-Task* D_actor_150400_8013C928;
+/// Retained second sliding-model task of the freezer scene, placed at Z = -4120.
+///
+/// Shares hold/slide cues with the first copy. Spawn must succeed and the task
+/// must remain live for those cues; the handle is left uncleared on teardown.
+static Task* _gActor150400SecondSlidingModelTask;
 
 static void _actor150400PairWalkSpawn(Enemy* enemy, Task* task);
 
@@ -490,8 +498,8 @@ static void _actor150400StartControlRoomMovie(void)
 /// 2 at its movement cue; this allocates no task or work.
 static void _actor150400SetSlidingModelState(s32 state)
 {
-    D_actor_150400_8013C924->state = state;
-    D_actor_150400_8013C928->state = state;
+    _gActor150400FirstSlidingModelTask->state  = state;
+    _gActor150400SecondSlidingModelTask->state = state;
 }
 
 void actor150400SpawnSlidingModels(void)
@@ -501,8 +509,8 @@ void actor150400SpawnSlidingModels(void)
         ACTOR_150400_SLIDING_SECOND_COPY = 2,
     };
 
-    D_actor_150400_8013C924 = taskSpawnFromTable(&D_actor_150400_80132CF0, 0, ACTOR_150400_SLIDING_FIRST_COPY, 0);
-    D_actor_150400_8013C928 = taskSpawnFromTable(&D_actor_150400_80132CF0, 0, ACTOR_150400_SLIDING_SECOND_COPY, 0);
+    _gActor150400FirstSlidingModelTask  = taskSpawnFromTable(&D_actor_150400_80132CF0, 0, ACTOR_150400_SLIDING_FIRST_COPY, 0);
+    _gActor150400SecondSlidingModelTask = taskSpawnFromTable(&D_actor_150400_80132CF0, 0, ACTOR_150400_SLIDING_SECOND_COPY, 0);
 }
 
 /// Binds the walker’s work matrices and samples its cached root lighting.

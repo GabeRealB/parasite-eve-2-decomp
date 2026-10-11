@@ -194,7 +194,6 @@ STATIC_ASSERT_SIZEOF(_Actor207200ContactScratch, 0x48);
 static TmdSource _gActor207200CreepingStrangerBurstLeg;
 static TmdSource _gActor207200CreepingStrangerBurstArm;
 static TmdSource _gActor207200CreepingStrangerBurstHead;
-extern SVECTOR   D_actor_207200_80153F18;
 
 MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 MATRIX* MulMatrix(MATRIX* m0, MATRIX* m1);
@@ -681,7 +680,14 @@ SVECTOR D_actor_207200_80153F08 = { 0 };
 
 SVECTOR D_actor_207200_80153F10 = { 0, -100, -150, 0 };
 
-SVECTOR D_actor_207200_80153F18 = { 0 };
+/// Head-loss splatter's zero local offset, also selecting a random spray heading.
+///
+/// Both lethal head damage and critical head bursts use it for two spray
+/// spawns at the Creeping Stranger's head origin. Spawning copies XYZ; the
+/// spray normalizes that copy or chooses random XYZ when all three are zero.
+/// The retained pointer is not followed by this spray callback, and the fourth
+/// halfword is not a coordinate component.
+static SVECTOR _gActor207200HeadLossSplatterOffset = { 0 };
 
 s16 D_actor_207200_80153F20[20] = {
     0,
@@ -1445,8 +1451,8 @@ static void _actor207200CreepingStrangerApplyHeadDamage(Task* task, s32 damage)
             enemy->hp = 1;
             ACTOR_207200_CREEPING_STRANGER_PLAY_HEAD_SOUND(ACTOR_207200_CREEPING_STRANGER_SOUND_HEAD_LOSS);
             headLossArg = &work->headLossEffectArg;
-            effectSpawnHit(EFFECT_HIT_KIND_SPLATTER, task->extra.tmd->coords + ACTOR_207200_CREEPING_STRANGER_HEAD_PART, &D_actor_207200_80153F18, headLossArg);
-            effectSpawnHit(EFFECT_HIT_KIND_SPLATTER, task->extra.tmd->coords + ACTOR_207200_CREEPING_STRANGER_HEAD_PART, &D_actor_207200_80153F18, headLossArg);
+            effectSpawnHit(EFFECT_HIT_KIND_SPLATTER, task->extra.tmd->coords + ACTOR_207200_CREEPING_STRANGER_HEAD_PART, &_gActor207200HeadLossSplatterOffset, headLossArg);
+            effectSpawnHit(EFFECT_HIT_KIND_SPLATTER, task->extra.tmd->coords + ACTOR_207200_CREEPING_STRANGER_HEAD_PART, &_gActor207200HeadLossSplatterOffset, headLossArg);
             work->frontAttackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
             work->sideAttackBody.flags  &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
             worldCollisionUnlinkBody(&work->headBody);
@@ -1690,8 +1696,8 @@ static void _actor207200CreepingStrangerBurstHead(Task* task)
         _actor207200CreepingStrangerCopyBurstTextures(burstEffect->task, task);
     }
     headLossArg = &work->headLossEffectArg;
-    effectSpawnHit(EFFECT_HIT_KIND_SPLATTER, task->extra.tmd->coords + ACTOR_207200_CREEPING_STRANGER_HEAD_PART, &D_actor_207200_80153F18, headLossArg);
-    effectSpawnHit(EFFECT_HIT_KIND_SPLATTER, task->extra.tmd->coords + ACTOR_207200_CREEPING_STRANGER_HEAD_PART, &D_actor_207200_80153F18, headLossArg);
+    effectSpawnHit(EFFECT_HIT_KIND_SPLATTER, task->extra.tmd->coords + ACTOR_207200_CREEPING_STRANGER_HEAD_PART, &_gActor207200HeadLossSplatterOffset, headLossArg);
+    effectSpawnHit(EFFECT_HIT_KIND_SPLATTER, task->extra.tmd->coords + ACTOR_207200_CREEPING_STRANGER_HEAD_PART, &_gActor207200HeadLossSplatterOffset, headLossArg);
     // Critical head loss redirects later hits without selecting a new behavior state.
     work->headBurst       = 1;
     work->animId          = ACTOR_207200_ANIM_RECOIL;

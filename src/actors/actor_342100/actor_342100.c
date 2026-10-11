@@ -128,11 +128,6 @@ static void _actor342100TriggerBlazeDeath(void);
 
 /// Main-executable global with no module header yet: the remaining-enemy count.
 
-/// Single-entry spawn table of the screen-wave task
-/// `_screenWaveGridTask`: `_actor342100StartBlazeHeatHaze` starts entry 0
-/// and hands it the address of the work block's `blaze.wave` as its ramp.
-extern TaskDesc D_actor_342100_801648DC[];
-
 /// Null-terminated table of the overlay's per-state message tables, counted
 /// and reported by `_actor342100UpdateBlazeScene` when it arms the encounter:
 /// three live entries and the null word that ends them.
@@ -240,8 +235,15 @@ static AnimationSet _gActor342100Animation02A94 = {
     { NULL, _gActor342100Animation02A94Bank1, NULL, NULL, _gActor342100Animation02A94Bank4, NULL, NULL, NULL },
 };
 
-TaskDesc D_actor_342100_801648DC[2] = {
-    { { { TASK_BODY_NONE, 192 } }, _screenWaveGridTask, { .value = 0 } },
+enum { ACTOR_342100_HEAT_HAZE_TASK_PRIORITY = 192 };
+
+/// Bodyless captured-frame heat-haze task for the blaze scene, followed by its end marker.
+///
+/// Spawn slot 0 with a live writable ScreenWaveCtx; the grid task borrows
+/// that context through its final draw. Only one wave may be active in this
+/// package because it shares the prebuilt grid and oscillator storage.
+static TaskDesc _gActor342100BlazeHeatHazeTaskDescs[2] = {
+    { { { TASK_BODY_NONE, ACTOR_342100_HEAT_HAZE_TASK_PRIORITY } }, _screenWaveGridTask, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
@@ -836,7 +838,7 @@ static void _actor342100StartBlazeHeatHaze(void)
 
     work->blaze.wave.span  = ACTOR_342100_HEAT_HAZE_RISE_FRAMES;
     work->blaze.wave.scale = ACTOR_342100_HEAT_HAZE_PEAK_STRENGTH;
-    taskSpawnFromTable(D_actor_342100_801648DC, 0, 0, &work->blaze.wave);
+    taskSpawnFromTable(_gActor342100BlazeHeatHazeTaskDescs, 0, 0, &work->blaze.wave);
 }
 
 /// Starts the blaze's body fire and stops the encounter, or spreads existing fire over the player.

@@ -217,9 +217,7 @@ STATIC_ASSERT_SIZEOF(_Actor405800IvoryStalkerWork, 0x89C);
 /// this package's own. `stalker_zebra_ivory.h` lists the members they reach.
 typedef _Actor405800IvoryStalkerWork StalkerZebraIvoryWork;
 
-extern TaskDesc      D_actor_405800_801514B4[];
-extern EnemyParams   D_actor_405800_801418FC;
-extern AnimationSet* D_actor_405800_801513F8[6];
+extern EnemyParams D_actor_405800_801418FC;
 // Message-table callbacks use the argument views required by this TU.
 
 extern TaskMessageEntry D_actor_405800_8015149C[3];
@@ -585,13 +583,19 @@ static TmdSource _gActor405800StalkerBurstFootRight = {
     _gActor405800StalkerBurstFootRightStream,
 };
 
-DamageAttack D_actor_405800_801418F0[3] = {
-    { 30, 3 },
-    { 25, 10 },
-    { 12, 2 },
+/// Ivory Stalker's three damage-key rows, borrowed by its enemy parameter record.
+///
+/// Row 0 supplies arm-strike spheres: base damage 30 and poison. Row 1 retains
+/// base damage 25 and confusion. Row 2 supplies each held-player bite: base
+/// damage 12 and paralysis. Keys copy the row values; live enemies borrow the
+/// parameter record and this table for the package's lifetime.
+static DamageAttack _gActor405800IvoryStalkerAttacks[3] = {
+    { 30, GAME_ACTOR_REACTION_POISON },
+    { 25, GAME_ACTOR_REACTION_CONFUSION },
+    { 12, GAME_ACTOR_REACTION_PARALYSIS },
 };
 
-EnemyParams D_actor_405800_801418FC = { D_actor_405800_801418F0, 1000, 600, 300, 15, 100, 8, 0, 0 };
+EnemyParams D_actor_405800_801418FC = { _gActor405800IvoryStalkerAttacks, 1000, 600, 300, 15, 100, 8, 0, 0 };
 
 static AnimationPackedPose _gActor405800Animation107B4Bank1[26] = {
 #include "assets/actor_405800_animation_107B4_bank1.inc"
@@ -1363,7 +1367,12 @@ static AnimationSet _gActor405800Animation1F5B0 = {
     { NULL, _gActor405800Animation1F5B0Bank1, NULL, NULL, _gActor405800Animation1F5B0Bank4, NULL, NULL, NULL },
 };
 
-AnimationSet* D_actor_405800_801513F8[6] = {
+/// Player clips borrowed during an Ivory Stalker hold and release.
+///
+/// Six slots retain NULL at 0 and loaded sets at 1..5. Hold requests select
+/// clip 4; release requests select clip 5. The player installs this table,
+/// so it and the sets must remain loaded through player playback.
+static AnimationSet* _gActor405800PlayerHoldAnimationSets[6] = {
     NULL,
     &_gActor405800Animation1D83C,
     &_gActor405800Animation1E084,
@@ -1421,9 +1430,16 @@ TaskMessageEntry D_actor_405800_8015149C[3] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-TaskDesc D_actor_405800_801514B4[2] = {
-    { { { TASK_BODY_TMD, 96 } }, _actor405800LeftArmTask, { .model = &_gActor405800IvoryStalkerBurstArmLeft } },
-    { { { TASK_BODY_TMD, 96 } }, _actor405800RightArmTask, { .model = &_gActor405800IvoryStalkerBurstArmRight } },
+enum { ACTOR_405800_ARM_TASK_PRIORITY = 96 };
+
+/// Left and right Ivory Stalker child-arm model recipes, with no terminator.
+///
+/// Slots `ACTOR_405800_ARM_LEFT` and `ACTOR_405800_ARM_RIGHT` select the two
+/// models. Spawned tasks borrow their sources and body-owned coordinates and
+/// lighting; both child spawns must succeed before binding them to the body.
+static TaskDesc _gActor405800ArmTaskDescs[2] = {
+    { { { TASK_BODY_TMD, ACTOR_405800_ARM_TASK_PRIORITY } }, _actor405800LeftArmTask, { .model = &_gActor405800IvoryStalkerBurstArmLeft } },
+    { { { TASK_BODY_TMD, ACTOR_405800_ARM_TASK_PRIORITY } }, _actor405800RightArmTask, { .model = &_gActor405800IvoryStalkerBurstArmRight } },
 };
 
 TaskDesc gActor405800IvoryStalkerTaskDesc = { { { TASK_BODY_TMD, 96 } }, _actor405800Task, { .model = &_gActor405800IvoryStalkerBody } };
@@ -2456,7 +2472,7 @@ static void _actor405800TryStartPlayerHold(Task* task)
     gAttachmentState.flags            |= ATTACHMENT_FLAG_EVENT_LOCK;
     work->holding                      = 1;
     work->leapY                        = work->floorY;
-    holdAnimation.source.sets          = D_actor_405800_801513F8;
+    holdAnimation.source.sets          = _gActor405800PlayerHoldAnimationSets;
     holdAnimation.blend                = ANIMATION_BLEND_RESET;
     holdAnimation.blendFrames          = 0;
     holdAnimation.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
@@ -2538,7 +2554,7 @@ static void _actor405800TickPlayerHoldBites(Task* task)
     if (work->playerDied == 1 || work->holdKilledPlayer == 1 || enemy->hp <= 0 || work->holdLoops >= ACTOR_405800_HOLD_BITE_LOOPS) {
         work->playerDied = 0;
         if (work->holdKilledPlayer == 0) {
-            releaseAnimation.source.sets          = D_actor_405800_801513F8;
+            releaseAnimation.source.sets          = _gActor405800PlayerHoldAnimationSets;
             releaseAnimation.blend                = ANIMATION_BLEND_INTERPOLATE;
             releaseAnimation.blendFrames          = ACTOR_405800_HOLD_RELEASE_BLEND_TICKS;
             releaseAnimation.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
@@ -2888,7 +2904,7 @@ static void _actor405800SpawnArmModels(Task* ownerTask)
     work                                  = ownerTask->work;
     rightArmParent                        = &bodyCoords[ACTOR_405800_PART_RIGHT_ARM];
     leftArmParent                         = &bodyCoords[ACTOR_405800_PART_LEFT_ARM];
-    armTask                               = taskSpawnFromTable(D_actor_405800_801514B4, ACTOR_405800_ARM_LEFT, 0, 0);
+    armTask                               = taskSpawnFromTable(_gActor405800ArmTaskDescs, ACTOR_405800_ARM_LEFT, 0, 0);
     work->armTasks[ACTOR_405800_ARM_LEFT] = armTask;
     armModel                              = armTask->extra.tmd;
     armCoord                              = armModel->coords;
@@ -2904,7 +2920,7 @@ static void _actor405800SpawnArmModels(Task* ownerTask)
     _actor405800CopyArmTexture(ownerTask, armTask);
     armModel->lightMtx = &work->lightMtx;
     armModel->colorMtx = &work->colorMtx;
-    armTask = work->armTasks[ACTOR_405800_ARM_RIGHT] = taskSpawnFromTable(D_actor_405800_801514B4, ACTOR_405800_ARM_RIGHT, 0, 0);
+    armTask = work->armTasks[ACTOR_405800_ARM_RIGHT] = taskSpawnFromTable(_gActor405800ArmTaskDescs, ACTOR_405800_ARM_RIGHT, 0, 0);
     armModel                                         = armTask->extra.tmd;
     armCoord                                         = armModel->coords;
     armModel->flags                                  = TMD_OBJECT_SKIP_ACTIVE_DRAW;

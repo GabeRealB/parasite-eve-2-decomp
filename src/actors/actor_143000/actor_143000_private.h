@@ -7,6 +7,7 @@
 
 #include "common.h"
 
+#include "actors/actor_143000.h"
 #include "actors/task_tables.h"
 
 #include "gameplay/animation.h"
@@ -72,9 +73,19 @@ extern char gActor143000KeypadCode[ACTOR_143000_KEYPAD_CODE_BUFFER_BYTES];
 /// Room view saved before the keypad selects view 11, restored on a rejected or cancelled login.
 extern u8 gActor143000KeypadPreviousView;
 
-extern Actor143000CaptureArgs D_actor_143000_80135090;
+/// Completion-scene capture of background rows 39..128 in ten strips.
+///
+/// The capture task resets and writes `stripsCaptured`. Only the band's Y and
+/// height select capture rows; every strip stores the full 320-pixel image width.
+/// This writable record must stay loaded until its one running capture ends.
+extern Actor143000CaptureArgs gActor143000CompletionUpperCaptureBand;
 
-extern Actor143000CaptureArgs D_actor_143000_801350A0;
+/// Completion-scene capture of background rows 138..212 in eight strips.
+///
+/// Follows the script's seventy-update wait after starting the upper band. The capture task
+/// resets and writes `stripsCaptured`; it stores full-width rows and borrows
+/// this writable record until that capture ends.
+extern Actor143000CaptureArgs gActor143000CompletionLowerCaptureBand;
 
 /// Captures a background band into the resident image workspace, one strip per six ticks.
 ///

@@ -84922,7 +84922,7 @@ offset, but only one of them means bytes:
 temp_a3 = _gActor342100BlazeControllerTask->work;      /* m2c types this _StageMusicSelection* */
 M2C_FIELD(temp_a3, s16 *, 0x20) = 0x258;       /* byte offset - correct */
 M2C_FIELD(temp_a3, s16 *, 0x22) = 0x100;
-taskSpawnFromTable(&D_actor_342100_801648DC, 0, 0, (s32) (temp_a3 + 0x20));
+taskSpawnFromTable(&_gActor342100BlazeHeatHazeTaskDescs, 0, 0, (s32) (temp_a3 + 0x20));
 ```
 
 `M2C_FIELD` takes a byte offset, but `temp_a3 + 0x20` is C pointer arithmetic on
@@ -84946,7 +84946,7 @@ call, exactly as the matched `(s32)&work->field_40` in `actor_503500_8.c` and
 _Actor342100BlazeWork* work = _gActor342100BlazeControllerTask->work;
 work->blaze.wave.span  = 0x258;
 work->blaze.wave.scale = 0x100;
-taskSpawnFromTable(&D_actor_342100_801648DC, 0, 0, (s32)&work->blaze.wave);
+taskSpawnFromTable(&_gActor342100BlazeHeatHazeTaskDescs, 0, 0, (s32)&work->blaze.wave);
 ```
 
 Do **not** "correct" the constant to `0x20` or reach for an empty-asm helper:
@@ -86138,10 +86138,10 @@ prescribes - land the body as plain C in each carrier.
 
 `_actor403000CopyArenaWaypoint` / `_actor421600CopyArenaWaypoint` is the smallest
 instance of the shape: 14 instructions, identical modulo the `lui`/`addiu` pair
-naming `_gActor403000ArenaWaypoints` against `D_actor_421600_80151158`, both 8-byte
+naming `_gActor403000ArenaWaypoints` against `_gActor421600ArenaWaypoints`, both 8-byte
 `SVECTOR` runs in the overlay's trailing data. The second copy is a mechanical
-transcription of the first - declare the table `SVECTOR <name>[]` in the
-carrier's *own* header and index it with `(s16)value` - and the overlay checksum
+transcription of the first - declare the table `static SVECTOR <name>[]` in the
+carrier's *own* source and index it with `(s16)value` - and the overlay checksum
 proves it byte-exact, so the cost is a two-line edit rather than the agent
 session the parking was protecting. Add `#include <psyq/libgte.h>` for the type:
 `common.h` does not pull it in, and the carrier header that compiles today may

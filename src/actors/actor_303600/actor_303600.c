@@ -940,9 +940,12 @@ static const TaskFuncTable3 D_actor_303600_80161E48 = { {
     _actor303600KillShaft,
 } };
 
-/// State table of the shaft's segment tasks: spawn, an empty per-frame tick and
-/// `taskKill`. Dispatched by `_actor303600ShaftSegmentTask`.
-static const TaskFuncTable3 D_actor_303600_80161E54 = { {
+/// Shaft-segment states 0 attach, 1 idle and 2 kill.
+///
+/// The dispatcher copies this complete three-handler value and requires a
+/// state in 0..2. Actor-control holds suspend dispatch; idle needs no movement
+/// because the segment's coordinate follows the scrolling shaft.
+static const TaskFuncTable3 _gActor303600ShaftSegmentStates = { {
     _actor303600SpawnShaftSegment,
     _actor303600IdleShaftSegment,
     taskKill,
@@ -958,7 +961,7 @@ static void _actor303600ShaftSegmentTask(Task* task)
 {
     TaskFuncTable3 stateHandlers;
 
-    stateHandlers = D_actor_303600_80161E54;
+    stateHandlers = _gActor303600ShaftSegmentStates;
     if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
         stateHandlers.funcs[task->state](task);
     }
