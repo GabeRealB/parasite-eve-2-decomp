@@ -29,30 +29,37 @@
 #include "main/task_types.h"
 #include "main/tmd_types.h"
 
-/// Vertices on each rim of one inferno fan band.
-///
-/// The texture row has one cell per vertex, so a segment index and its frame
-/// wrap with this count. `INFERNO_FAN_SEGMENT_YAW` is the angle between
-/// adjacent vertices, in the frame's 4096-per-turn units. Six steps close the
-/// band four units short of a full turn.
-#define INFERNO_FAN_SEGMENT_COUNT 6
-#define INFERNO_FAN_SEGMENT_YAW   0x2AA
+enum {
+    /// Vertices per Inferno fan rim and quads joining the two closed rims.
+    ///
+    /// Index domain is 0..5; each segment joins i to (i + 1) % 6. Also the
+    /// number of phase entries in each band column, independent of frame count.
+    INFERNO_FAN_SEGMENT_COUNT = 6,
 
-/// The two bands of one inferno fan, in shape-table and texture-phase order.
-///
-/// `INFERNO_FAN_RISING_BAND` is lifted by `EffectWork::period` plus the
-/// shape's lift and has base radius 0x100. `INFERNO_FAN_CONSTANT_LIFT_BAND`
-/// uses the shape's lift alone and has base radius 0x200.
-/// `INFERNO_FAN_BAND_COUNT` is how many of those columns the fan has.
-#define INFERNO_FAN_RISING_BAND        0
-#define INFERNO_FAN_CONSTANT_LIFT_BAND 1
-#define INFERNO_FAN_BAND_COUNT         2
+    /// Bearing increment between fan-rim vertices, in 4096 units per turn.
+    ///
+    /// Truncated sixth-turn step: the six vertices use i * 682, and the final
+    /// segment closes to vertex zero. The closing gap is 686 angle units.
+    INFERNO_FAN_SEGMENT_YAW_STEP = 0x2AA,
+
+    /// Shape and phase row for the fan band lifted by period plus the shape lift.
+    INFERNO_FAN_RISING_BAND = 0,
+
+    /// Shape and phase row for the fan band using only the shape's fixed lift.
+    INFERNO_FAN_CONSTANT_LIFT_BAND = 1,
+
+    /// Number of concurrent fan bands and band-major texture-phase columns.
+    INFERNO_FAN_BAND_COUNT = 2,
+
+    /// Animated 40-texel cells in the fan's horizontal texture row.
+    INFERNO_FAN_TEXTURE_FRAME_COUNT = 6,
+};
 
 /// Per-segment texture-cell phase for both bands of one inferno fan.
 ///
 /// The fan task allocates one as its `Task::work`. Each byte is the high
 /// half of an LCG draw. A drawer adds `EffectWork::age` and reduces modulo
-/// `INFERNO_FAN_SEGMENT_COUNT`; the residue selects that segment's cell on
+/// `INFERNO_FAN_TEXTURE_FRAME_COUNT`; the residue selects that segment's cell on
 /// the six-cell texture row.
 ///
 /// `band` names the two columns. `byBand` is those same bytes in band-major
@@ -73,7 +80,7 @@ STATIC_ASSERT_SIZEOF(_InfernoFanTexturePhase, 0xC);
 
 /// Scratch-stack workspace for one band of the inferno ground fan.
 ///
-/// A drawer places one vertex of each rim at every `INFERNO_FAN_SEGMENT_YAW`
+/// A drawer places one vertex of each rim at every `INFERNO_FAN_SEGMENT_YAW_STEP`
 /// in the effect coordinate's local frame, rotates it by that coordinate's
 /// `workm` and adds its translation. `topRing` is the wider rim, displaced by
 /// the band's lift along local -Y. `bottomRing` is the narrower rim and stays
@@ -124,60 +131,65 @@ static void _infernoDrawScreenWash(s16 intensity);
 static void _infernoDrawRisingFanBand(const EffectWork* work, const GfxCoord* coord, s32 bandIndex, const _InfernoFanTexturePhase* texturePhase);
 static void _infernoDrawConstantLiftFanBand(const EffectWork* work, const GfxCoord* coord, s32 bandIndex, const _InfernoFanTexturePhase* texturePhase);
 
-/// Builds both six-vertex fan rims in the caller's live scratch block.
+/// Builds a fan band's lifted and base rims in the composed projection frame.
 ///
-/// Expands to multiple statements; use only unconditionally in a drawer body.
-/// Arguments must be side-effect-free values and are read repeatedly:
-/// `scratch` is an `_InfernoFanScratch*`, `coord` is a composed `GfxCoord*`,
-/// radii are signed 16-bit coordinate distances, and lift is the unsigned
-/// 16-bit displacement along local -Y. Captures the caller's `s32`
-/// `segmentIndex` and `yaw`, its `SVECTOR* bottomVertex`, and `GsWSMATRIX`.
-#define INFERNO_BUILD_FAN_RIMS(scratch, coord, baseRadius, liftedRadius, lift)                                                      \
-    gte_SetTransMatrix(&GsWSMATRIX);                                                                                                \
-    /* Wider lifted rim, then the narrower rim in the local XZ plane. */                                                            \
-    for (segmentIndex = 0; segmentIndex < INFERNO_FAN_SEGMENT_COUNT; segmentIndex++) {                                              \
-        yaw                                 = segmentIndex * INFERNO_FAN_SEGMENT_YAW;                                               \
-        (scratch)->topRing[segmentIndex].vx = (rsin(yaw) * (liftedRadius)) >> INFERNO_FAN_TRIG_FRACTION_BITS;                       \
-        (scratch)->topRing[segmentIndex].vy = -(lift);                                                                              \
-        (scratch)->topRing[segmentIndex].vz = (rcos(yaw) * (liftedRadius)) >> INFERNO_FAN_TRIG_FRACTION_BITS;                       \
-        gte_SetRotMatrix(&(coord)->workm);                                                                                          \
-        gte_ldv0(&(scratch)->topRing[segmentIndex]);                                                                                \
-        gte_rtv0();                                                                                                                 \
-        gte_stsv(&(scratch)->topRing[segmentIndex]);                                                                                \
-        (scratch)->topRing[segmentIndex].vx    = (u16)(scratch)->topRing[segmentIndex].vx + (u16)(coord)->workm.t[0];               \
-        (scratch)->topRing[segmentIndex].vy    = (u16)(scratch)->topRing[segmentIndex].vy + (u16)(coord)->workm.t[1];               \
-        (scratch)->topRing[segmentIndex].vz    = (u16)(scratch)->topRing[segmentIndex].vz + (u16)(coord)->workm.t[2];               \
-        (scratch)->bottomRing[segmentIndex].vx = (rsin(yaw) * (baseRadius)) >> INFERNO_FAN_TRIG_FRACTION_BITS;                      \
-        /* Address the lower rim within the full workspace byte extent. */                                                          \
-        bottomVertex     = (SVECTOR*)((u8*)(scratch) + segmentIndex * sizeof(SVECTOR) + OFFSET_OF(_InfernoFanScratch, bottomRing)); \
-        bottomVertex->vy = 0;                                                                                                       \
-        bottomVertex->vz = (rcos(yaw) * (baseRadius)) >> INFERNO_FAN_TRIG_FRACTION_BITS;                                            \
-        gte_SetRotMatrix(&(coord)->workm);                                                                                          \
-        gte_ldv0(&(scratch)->bottomRing[segmentIndex]);                                                                             \
-        gte_rtv0();                                                                                                                 \
-        gte_stsv(&(scratch)->bottomRing[segmentIndex]);                                                                             \
-        (scratch)->bottomRing[segmentIndex].vx = (u16)(scratch)->bottomRing[segmentIndex].vx + (u16)(coord)->workm.t[0];            \
-        bottomVertex->vy                       = (u16)bottomVertex->vy + (u16)(coord)->workm.t[1];                                  \
-        bottomVertex->vz                       = (u16)bottomVertex->vz + (u16)(coord)->workm.t[2];                                  \
+/// Borrows live word-aligned _InfernoFanScratch and composed GfxCoord storage.
+/// baseRadius/liftedRadius are signed s16 distances; lift is a u16 distance
+/// along local -Y. Q12 trig and rotation narrow XYZ to s16; adding translation
+/// retains each low halfword. Fills exactly six SVECTORs in each rim.
+/// All inputs must be stable and side-effect-free, as they are read repeatedly.
+/// segmentIndex and yaw are writable s32 locals, and bottomVertex a writable
+/// SVECTOR* local. Leaves index at six, yaw at five steps and bottomVertex at
+/// the last lower vertex. Captures GsWSMATRIX and fan constants; replaces GTE
+/// matrix/vector registers. Scratch pointers expire when the caller releases it.
+/// Invoke inside a braced caller block.
+#define INFERNO_BUILD_FAN_RIMS(scratch, coord, baseRadius, liftedRadius, lift, segmentIndex, yaw, bottomVertex)                         \
+    gte_SetTransMatrix(&GsWSMATRIX);                                                                                                    \
+    /* Wider lifted rim, then the narrower rim in the local XZ plane. */                                                                \
+    for ((segmentIndex) = 0; (segmentIndex) < INFERNO_FAN_SEGMENT_COUNT; (segmentIndex)++) {                                            \
+        (yaw)                                 = (segmentIndex) * INFERNO_FAN_SEGMENT_YAW_STEP;                                          \
+        (scratch)->topRing[(segmentIndex)].vx = (rsin((yaw)) * (liftedRadius)) >> INFERNO_FAN_TRIG_FRACTION_BITS;                       \
+        (scratch)->topRing[(segmentIndex)].vy = -(lift);                                                                                \
+        (scratch)->topRing[(segmentIndex)].vz = (rcos((yaw)) * (liftedRadius)) >> INFERNO_FAN_TRIG_FRACTION_BITS;                       \
+        gte_SetRotMatrix(&(coord)->workm);                                                                                              \
+        gte_ldv0(&(scratch)->topRing[(segmentIndex)]);                                                                                  \
+        gte_rtv0();                                                                                                                     \
+        gte_stsv(&(scratch)->topRing[(segmentIndex)]);                                                                                  \
+        (scratch)->topRing[(segmentIndex)].vx    = (u16)(scratch)->topRing[(segmentIndex)].vx + (u16)(coord)->workm.t[0];               \
+        (scratch)->topRing[(segmentIndex)].vy    = (u16)(scratch)->topRing[(segmentIndex)].vy + (u16)(coord)->workm.t[1];               \
+        (scratch)->topRing[(segmentIndex)].vz    = (u16)(scratch)->topRing[(segmentIndex)].vz + (u16)(coord)->workm.t[2];               \
+        (scratch)->bottomRing[(segmentIndex)].vx = (rsin((yaw)) * (baseRadius)) >> INFERNO_FAN_TRIG_FRACTION_BITS;                      \
+        /* Address the lower rim within the complete scratch block's byte extent. */                                                    \
+        (bottomVertex)     = (SVECTOR*)((u8*)(scratch) + (segmentIndex) * sizeof(SVECTOR) + OFFSET_OF(_InfernoFanScratch, bottomRing)); \
+        (bottomVertex)->vy = 0;                                                                                                         \
+        (bottomVertex)->vz = (rcos((yaw)) * (baseRadius)) >> INFERNO_FAN_TRIG_FRACTION_BITS;                                            \
+        gte_SetRotMatrix(&(coord)->workm);                                                                                              \
+        gte_ldv0(&(scratch)->bottomRing[(segmentIndex)]);                                                                               \
+        gte_rtv0();                                                                                                                     \
+        gte_stsv(&(scratch)->bottomRing[(segmentIndex)]);                                                                               \
+        (scratch)->bottomRing[(segmentIndex)].vx = (u16)(scratch)->bottomRing[(segmentIndex)].vx + (u16)(coord)->workm.t[0];            \
+        (bottomVertex)->vy                       = (u16)(bottomVertex)->vy + (u16)(coord)->workm.t[1];                                  \
+        (bottomVertex)->vz                       = (u16)(bottomVertex)->vz + (u16)(coord)->workm.t[2];                                  \
     }
 
-/// Spawns the cast's offset fan ring, retaining move.vy and its final yaw.
+/// Attempts the cast's offset fan ring and advances its bearing past the last spawn.
 ///
-/// Arguments are side-effect-free live pointers/values used repeatedly; yaw is
-/// a writable s32 lvalue in 4096-per-turn units and yawStep is positive. Requires
-/// yaw < yawEnd and nonoverflowing additions. Radius is work->scale in coordinate
-/// units; Q12 trig products narrow to the signed-halfword offset. fanVariant is
-/// 0..5. Uses the cast's INFERNO_CAST_TRIG_FRACTION_BITS constant. Unlimited fans
-/// are independent tasks; their spawn failures are ignored.
-#define INFERNO_SPAWN_OFFSET_FANS(coord, work, yaw, yawStep, yawEnd, fanVariant)                                \
-    {                                                                                                           \
-        do {                                                                                                    \
-            (work)->move.vx = (rsin((yaw)) * (work)->scale) >> INFERNO_CAST_TRIG_FRACTION_BITS;                 \
-            (work)->move.vz = (rcos((yaw)) * (work)->scale) >> INFERNO_CAST_TRIG_FRACTION_BITS;                 \
-            (yaw)          += (yawStep);                                                                        \
-            effectSpawn((EFFECT_INFERNO_FLAME | EFFECT_SPAWN_UNLIMITED), (coord), (fanVariant), &(work)->move); \
-        } while ((yaw) < (yawEnd));                                                                             \
-    }
+/// coord/work are stable live pointers; work is writable and retains move.vy.
+/// Uses work->scale as the local XZ radius in coordinate units, storing narrowed
+/// Q12 trig products in move.vx/vz. yaw is a writable s32 local in 4096 units
+/// per turn; yawStep is positive and additions must not overflow. Requires
+/// yaw < yawEnd on entry. The increment precedes each unlimited fan spawn,
+/// and the returned task is independent; allocation failures are ignored.
+/// fanVariant is 0..5. All arguments are used repeatedly and must be stable
+/// and side-effect-free. Captures this cast's Q12 shift, with no caller locals.
+/// Expands to one spawning loop statement, executing at least one iteration.
+#define INFERNO_SPAWN_OFFSET_FANS(coord, work, yaw, yawStep, yawEnd, fanVariant)                            \
+    do {                                                                                                    \
+        (work)->move.vx = (rsin((yaw)) * (work)->scale) >> INFERNO_CAST_TRIG_FRACTION_BITS;                 \
+        (work)->move.vz = (rcos((yaw)) * (work)->scale) >> INFERNO_CAST_TRIG_FRACTION_BITS;                 \
+        (yaw)          += (yawStep);                                                                        \
+        effectSpawn((EFFECT_INFERNO_FLAME | EFFECT_SPAWN_UNLIMITED), (coord), (fanVariant), &(work)->move); \
+    } while ((yaw) < (yawEnd))
 
 void infernoCastTask(Task* task)
 {
@@ -544,13 +556,13 @@ static void _infernoDrawRisingFanBand(const EffectWork* work, const GfxCoord* co
     baseRadius   = work->angle + shape->baseRadius;
     liftedRadius = shape->spread + (baseRadius + work->step);
     scratch      = SCRATCH_STACK_RESERVE_BLOCK(_InfernoFanScratch);
-    INFERNO_BUILD_FAN_RIMS(scratch, coord, baseRadius, liftedRadius, lift);
+    INFERNO_BUILD_FAN_RIMS(scratch, coord, baseRadius, liftedRadius, lift, segmentIndex, yaw, bottomVertex);
     // Project adjacent rim pairs, then queue each valid textured segment.
     gte_SetRotMatrix(&GsWSMATRIX);
     for (segmentIndex = 0; segmentIndex < INFERNO_FAN_SEGMENT_COUNT; segmentIndex++) {
         gte_ldv0(&scratch->topRing[segmentIndex]);
         gte_rtps();
-        textureCell = (texturePhase->byBand[bandIndex][segmentIndex] + work->age) % INFERNO_FAN_SEGMENT_COUNT;
+        textureCell = (texturePhase->byBand[bandIndex][segmentIndex] + work->age) % INFERNO_FAN_TEXTURE_FRAME_COUNT;
         gte_stsxy(&scratch->sxy0);
         nextSegmentIndex = segmentIndex + 1;
         gte_ldv3(&scratch->topRing[nextSegmentIndex % INFERNO_FAN_SEGMENT_COUNT], &scratch->bottomRing[segmentIndex], &scratch->bottomRing[nextSegmentIndex % INFERNO_FAN_SEGMENT_COUNT]);
@@ -616,13 +628,13 @@ static void _infernoDrawConstantLiftFanBand(const EffectWork* work, const GfxCoo
     liftedRadius = shape->spread + (baseRadius + work->step);
     lift         = shape->lift;
     scratch      = SCRATCH_STACK_RESERVE_BLOCK(_InfernoFanScratch);
-    INFERNO_BUILD_FAN_RIMS(scratch, coord, baseRadius, liftedRadius, lift);
+    INFERNO_BUILD_FAN_RIMS(scratch, coord, baseRadius, liftedRadius, lift, segmentIndex, yaw, bottomVertex);
     // Project adjacent rim pairs, then queue each valid textured segment.
     gte_SetRotMatrix(&GsWSMATRIX);
     for (segmentIndex = 0; segmentIndex < INFERNO_FAN_SEGMENT_COUNT; segmentIndex++) {
         gte_ldv0(&scratch->topRing[segmentIndex]);
         gte_rtps();
-        textureCell = (texturePhase->byBand[bandIndex][segmentIndex] + work->age) % INFERNO_FAN_SEGMENT_COUNT;
+        textureCell = (texturePhase->byBand[bandIndex][segmentIndex] + work->age) % INFERNO_FAN_TEXTURE_FRAME_COUNT;
         gte_stsxy(&scratch->sxy0);
         nextSegmentIndex = segmentIndex + 1;
         gte_ldv3(&scratch->topRing[nextSegmentIndex % INFERNO_FAN_SEGMENT_COUNT], &scratch->bottomRing[segmentIndex], &scratch->bottomRing[nextSegmentIndex % INFERNO_FAN_SEGMENT_COUNT]);

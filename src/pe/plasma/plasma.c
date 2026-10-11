@@ -238,16 +238,22 @@ void plasmaCastTask(Task* task)
     effectKillTask(effect, task);
 }
 
-/// Projects one band quad and selects its six-frame texture cell.
+/// Projects one ring-band quad and selects its six-cell texture frame.
 ///
-/// Borrows complete live scratch storage with both rings initialized and
-/// segmentIndex in 0..15. The caller has installed the projection matrices.
-/// Saves corner zero before RTPT advances the screen FIFO; only the final
-/// RTPT FLAG is retained, and the last corner's SZ3 remains for the caller.
-/// Texture phase lookup stays between RTPS and saving the first corner.
-/// All input arguments are side-effect-free locals, used repeatedly; textureFrame
-/// is a writable s16 lvalue. Captures the selected package phase column and effect age.
-/// The scoped next-segment temporary is private to the expansion.
+/// Borrows a complete word-aligned EffectBandScratch with both sixteen-vertex
+/// rings initialized in the camera matrix's input frame. segmentIndex is 0..15;
+/// the next index wraps with the power-of-two EFFECT_BAND_SEGMENT_COUNT. Inputs are
+/// stable, side-effect-free values used repeatedly; textureFrame is a writable
+/// s16 local. The caller must have installed the camera projection matrices.
+/// Stores RTPS corner zero before RTPT shifts the screen FIFO, then corners
+/// one through three and only the final RTPT FLAG. The last corner's SZ3
+/// remains available for the caller's depth calculation.
+/// bandIndex is 0..2 and selects the package phase row. Adds the read-only
+/// effect's signed age to that phase with signed arithmetic, then takes the
+/// remainder modulo six; frame selection must not be converted to unsigned.
+/// The texture lookup stays between RTPS and its screen store. The next-index
+/// local belongs to the expansion; no caller-local identifiers are captured.
+/// Invoke inside a braced caller block.
 #define PLASMA_PROJECT_BAND_SEGMENT(scratch, segmentIndex, textureFrame, effect, bandIndex)                                                \
     {                                                                                                                                      \
         enum { PLASMA_BAND_FRAME_COUNT = 6 };                                                                                              \

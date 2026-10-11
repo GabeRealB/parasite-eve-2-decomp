@@ -112,21 +112,27 @@ static inline void _metabolismDrawGlow(const GfxCoord* coord, const EffectWork* 
     }
 }
 
-/// Seeds the selected level's 8, 12 or 16 fixed fan bearings.
+/// Seeds the active Metabolism fan bearings in successive quarter-turn sectors.
 ///
-/// levelIndex is a side-effect-free 0..2 expression and wedgeIndex a writable
-/// scalar local; both are evaluated repeatedly. Captures the level tuning,
-/// complete sixteen-angle table and shared LCG; 4096 angle units form a turn.
-#define METABOLISM_SEED_FAN_BEARINGS(levelIndex, wedgeIndex)                                                                               \
-    {                                                                                                                                      \
-        enum { METABOLISM_WEDGE_JITTER_MASK = 0x3FF };                                                                                     \
-        s32 bearingRoll;                                                                                                                   \
-                                                                                                                                           \
-        for ((wedgeIndex) = 0; (wedgeIndex) < _gMetabolismLevelTuning[((levelIndex))].wedgeCount; (wedgeIndex)++) {                        \
-            bearingRoll                                = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;                   \
-            _gMetabolismFanWedgeBearings[(wedgeIndex)] = ((wedgeIndex) << 10) + (((u32)bearingRoll >> 16) & METABOLISM_WEDGE_JITTER_MASK); \
-            gRandomLcgState                            = bearingRoll;                                                                      \
-        }                                                                                                                                  \
+/// levelIndex is a stable, side-effect-free expression in 0..2; wedgeIndex is
+/// a distinct writable s32 local reset to zero and left at the 8/12/16 count.
+/// Each entry consumes one shared-LCG draw: i * 1024 plus jitter 0..1023,
+/// in 4096 units per turn. Bearings are not wrapped here: the largest value
+/// is 16383 and fits the s16 table. Replaces only the active prefix; the later
+/// wedge draws reuse it. Captures the package tuning and bearing tables and
+/// shared RNG; the draw temporary is scoped to the expansion.
+/// Invoke inside a braced caller block.
+#define METABOLISM_SEED_FAN_BEARINGS(levelIndex, wedgeIndex)                                                                                                          \
+    {                                                                                                                                                                 \
+        enum { METABOLISM_WEDGE_JITTER_MASK  = 0x3FF,                                                                                                                 \
+               METABOLISM_WEDGE_SECTOR_SHIFT = 10 };                                                                                                                  \
+        s32 bearingRoll;                                                                                                                                              \
+                                                                                                                                                                      \
+        for ((wedgeIndex) = 0; (wedgeIndex) < _gMetabolismLevelTuning[(levelIndex)].wedgeCount; (wedgeIndex)++) {                                                     \
+            bearingRoll                                = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;                                              \
+            _gMetabolismFanWedgeBearings[(wedgeIndex)] = ((wedgeIndex) << METABOLISM_WEDGE_SECTOR_SHIFT) + (((u32)bearingRoll >> 16) & METABOLISM_WEDGE_JITTER_MASK); \
+            gRandomLcgState                            = bearingRoll;                                                                                                 \
+        }                                                                                                                                                             \
     }
 
 void metabolismCastTask(Task* task)

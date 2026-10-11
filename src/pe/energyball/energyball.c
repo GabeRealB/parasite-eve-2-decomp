@@ -121,19 +121,24 @@ static _EnergyballLevelTuning _gEnergyballLevelTuning[ENERGYBALL_PE_LEVEL_COUNT]
 /// cell; these values do not displace geometry. All balls share this storage.
 static s16 _gEnergyballChargeBandFrameOffsets[EFFECT_BAND_SEGMENT_COUNT];
 
-/// Seeds all sixteen charge-band phases in LCG order.
+/// Replaces every charge-band texture phase with one shared-LCG draw.
 ///
-/// segmentIndex and phaseRoll are writable scalar locals, evaluated repeatedly.
-/// Captures the shared LCG and the complete charge-band phase table; no validation.
+/// Writes bits 16..23 as values 0..255 to all sixteen s16 slots, in segment
+/// order. These are texture-frame offsets shared by every ball of the cast;
+/// they do not change geometry. segmentIndex and phaseRoll are stable,
+/// distinct writable s32 locals used repeatedly. Leaves segmentIndex at the
+/// table length and phaseRoll holding the final state bits. Captures the
+/// package phase table and shared random state; neither output is retained.
+/// Expands to one statement; the loop and RNG stores retain their original order.
 #define ENERGYBALL_SEED_CHARGE_BAND_PHASES(segmentIndex, phaseRoll)                                                              \
-    {                                                                                                                            \
+    do {                                                                                                                         \
         enum { ENERGYBALL_PHASE_JITTER_MASK = 0xFF };                                                                            \
         for ((segmentIndex) = 0; (segmentIndex) < ARRAY_SIZE(_gEnergyballChargeBandFrameOffsets); (segmentIndex)++) {            \
             (phaseRoll)                                        = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT; \
             _gEnergyballChargeBandFrameOffsets[(segmentIndex)] = ((u32)(phaseRoll) >> 16) & ENERGYBALL_PHASE_JITTER_MASK;        \
             gRandomLcgState                                    = (phaseRoll);                                                    \
         }                                                                                                                        \
-    }
+    } while (0)
 
 void energyballCastTask(Task* task)
 {
@@ -602,30 +607,35 @@ static void _energyballDrawGlowDisc(const GfxCoord* centreCoord, s16 radius, s16
 #define GROUND_GLOW_CLUT 0x428C
 #include "../../shared/ground_glow_draw.inc.c"
 
-/// Projects one band quad and selects its six-frame texture cell.
+/// Projects one charging-band quad and selects its six-cell texture frame.
 ///
-/// Borrows complete live scratch storage with both rings initialized and
-/// segmentIndex in 0..15. The caller has installed the projection matrices.
-/// Saves corner zero before RTPT advances the screen FIFO; only the final
-/// RTPT FLAG is retained, and the last corner's SZ3 remains for the caller.
-/// Texture phase lookup stays between RTPS and saving the first corner.
-/// All input arguments are side-effect-free locals, used repeatedly; textureFrame
-/// is a writable s16 lvalue. Captures display animation frame and the package phase table.
-/// The scoped next-segment temporary is private to the expansion.
-#define ENERGYBALL_PROJECT_BAND_SEGMENT(scratch, segmentIndex, textureFrame)                                                                \
-    {                                                                                                                                       \
-        enum { ENERGYBALL_BAND_FRAME_COUNT = 6 };                                                                                           \
-        s32 nextSegmentIndex;                                                                                                               \
-                                                                                                                                            \
-        gte_ldv0(&(scratch)->topRing[(segmentIndex)]);                                                                                      \
-        gte_rtps();                                                                                                                         \
-        (textureFrame) = (u32)(_gEnergyballChargeBandFrameOffsets[(segmentIndex)] + gDisplayState.animFrame) % ENERGYBALL_BAND_FRAME_COUNT; \
-        gte_stsxy(&(scratch)->sxy0);                                                                                                        \
-        nextSegmentIndex = ((segmentIndex) + 1) & (EFFECT_BAND_SEGMENT_COUNT - 1);                                                          \
-        gte_ldv3(&(scratch)->topRing[nextSegmentIndex], &(scratch)->bottomRing[(segmentIndex)], &(scratch)->bottomRing[nextSegmentIndex]);  \
-        gte_rtpt();                                                                                                                         \
-        gte_stsxy3(&(scratch)->sxy1, &(scratch)->sxy2, &(scratch)->sxy3);                                                                   \
-        gte_stflg(&(scratch)->projectionFlags);                                                                                             \
+/// Borrows a complete word-aligned EffectBandScratch with both sixteen-vertex
+/// rings initialized in the camera matrix's input frame. segmentIndex is 0..15;
+/// the next index wraps with the power-of-two EFFECT_BAND_SEGMENT_COUNT. Inputs are
+/// stable, side-effect-free values used repeatedly; textureFrame is a writable
+/// s16 local. The caller must have installed the camera projection matrices.
+/// Stores RTPS corner zero before RTPT shifts the screen FIFO, then corners
+/// one through three and only the final RTPT FLAG. The last corner's SZ3
+/// remains available for the caller's depth calculation.
+/// Adds the package phase to the u32 display animation frame, preserving
+/// unsigned wraparound before reducing modulo six, yielding frame 0..5.
+/// The texture lookup stays between RTPS and its screen store. The next-index
+/// local belongs to the expansion; no caller-local identifiers are captured.
+/// Invoke inside a braced caller block.
+#define ENERGYBALL_PROJECT_BAND_SEGMENT(scratch, segmentIndex, textureFrame)                                                               \
+    {                                                                                                                                      \
+        enum { ENERGYBALL_BAND_FRAME_COUNT = 6 };                                                                                          \
+        s32 nextSegmentIndex;                                                                                                              \
+                                                                                                                                           \
+        gte_ldv0(&(scratch)->topRing[(segmentIndex)]);                                                                                     \
+        gte_rtps();                                                                                                                        \
+        (textureFrame) = (_gEnergyballChargeBandFrameOffsets[(segmentIndex)] + gDisplayState.animFrame) % ENERGYBALL_BAND_FRAME_COUNT;     \
+        gte_stsxy(&(scratch)->sxy0);                                                                                                       \
+        nextSegmentIndex = ((segmentIndex) + 1) & (EFFECT_BAND_SEGMENT_COUNT - 1);                                                         \
+        gte_ldv3(&(scratch)->topRing[nextSegmentIndex], &(scratch)->bottomRing[(segmentIndex)], &(scratch)->bottomRing[nextSegmentIndex]); \
+        gte_rtpt();                                                                                                                        \
+        gte_stsxy3(&(scratch)->sxy1, &(scratch)->sxy2, &(scratch)->sxy3);                                                                  \
+        gte_stflg(&(scratch)->projectionFlags);                                                                                            \
     }
 
 /// Draws the charging ball's textured cylinder between two local-XZ rims.

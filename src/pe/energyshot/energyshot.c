@@ -83,28 +83,31 @@ static s16 _gEnergyshotBeamBandFrameOffsets[EFFECT_BAND_SEGMENT_COUNT];
 /// Capacity is the largest level's wedge count; a later cast replaces it.
 static s16 _gEnergyshotWedgeYaws[ENERGYSHOT_MAX_CAST_WEDGES];
 
-/// Draws the cast's 8/12/16 wedges at the current composed height.
+/// Draws every seeded cast wedge at six times the current radial growth.
 ///
-/// Arguments must be side-effect-free live pointers/values and are used repeatedly.
-/// radiusGrowth is reread for each wedge and multiplied by six before s16 narrowing.
-/// Work/tuning and three RGB bytes are borrowed read-only; work index is PE level
-/// 0..2. Captures the cast's s32 segmentIndex and the package yaw table; scoped
-/// count/tuning/yaw locals belong to each expansion. Requires a composed coordinate.
-#define ENERGYSHOT_DRAW_CAST_WEDGES(coord, work, radiusGrowth, levelTuning, rgb)     \
-    {                                                                                \
-        const _EnergyshotLevelTuning* wedgeTuning;                                   \
-        const s16*                    wedgeYaw;                                      \
-        s16                           wedgeCount;                                    \
-        segmentIndex = 0;                                                            \
-        wedgeCount   = (levelTuning)[(work)->index].wedgeCount;                      \
-        if (wedgeCount > 0) {                                                        \
-            wedgeTuning = (levelTuning);                                             \
-            wedgeYaw    = _gEnergyshotWedgeYaws;                                     \
-            do {                                                                     \
-                glowDrawWedge((coord), (s16)((radiusGrowth) * 6), *wedgeYaw, (rgb)); \
-                wedgeYaw += 1;                                                       \
-            } while (++segmentIndex < wedgeTuning[(work)->index].wedgeCount);        \
-        }                                                                            \
+/// Borrows a composed GfxCoord, read-only EffectWork, level-tuning table and
+/// three RGB bytes. Work index is 0..2 and selects 8, 12 or 16 initialized yaw
+/// entries in the captured package table. Radius multiplication precedes s16
+/// narrowing. All inputs must be stable and side-effect-free because they are
+/// reread across draw calls. wedgeIndex is a writable s32 counter, reset to
+/// zero and left at the wedge count. No caller-local loop counter is captured.
+/// Invoke inside a braced caller block.
+#define ENERGYSHOT_DRAW_CAST_WEDGES(coord, work, radiusGrowth, levelTuning, rgb, wedgeIndex)                               \
+    {                                                                                                                      \
+        enum { ENERGYSHOT_CAST_WEDGE_RADIUS_MULTIPLIER = 6 };                                                              \
+        const _EnergyshotLevelTuning* wedgeTuning;                                                                         \
+        const s16*                    wedgeYaw;                                                                            \
+        s16                           wedgeCount;                                                                          \
+        (wedgeIndex) = 0;                                                                                                  \
+        wedgeCount   = (levelTuning)[(work)->index].wedgeCount;                                                            \
+        if (wedgeCount > 0) {                                                                                              \
+            wedgeTuning = (levelTuning);                                                                                   \
+            wedgeYaw    = _gEnergyshotWedgeYaws;                                                                           \
+            do {                                                                                                           \
+                glowDrawWedge((coord), (s16)((radiusGrowth) * ENERGYSHOT_CAST_WEDGE_RADIUS_MULTIPLIER), *wedgeYaw, (rgb)); \
+                wedgeYaw += 1;                                                                                             \
+            } while (++(wedgeIndex) < wedgeTuning[(work)->index].wedgeCount);                                              \
+        }                                                                                                                  \
     }
 
 void energyshotCastTask(Task* task)
@@ -220,7 +223,7 @@ void energyshotCastTask(Task* task)
                 effectDrawGouraudDisc(coord, (s16)(work->scale * 4), rgb);
                 effectDrawGouraudDisc(coord, (s16)(work->scale * 8), rgb);
                 effectDrawGouraudDisc(coord, (s16)(work->scale * 0xC), rgb);
-                ENERGYSHOT_DRAW_CAST_WEDGES(coord, work, work->scale, levelTuning, rgb);
+                ENERGYSHOT_DRAW_CAST_WEDGES(coord, work, work->scale, levelTuning, rgb, segmentIndex);
                 coord->coord.t[1]   = 0;
                 coord->composeStamp = GRAPHICS_COORD_DIRTY;
                 actorRenderComposeCoord(coord);
@@ -274,7 +277,7 @@ void energyshotCastTask(Task* task)
                 effectDrawGouraudDisc(coord, (s16)(levelTuning[work->index].scaleLimit * 4), rgb);
                 effectDrawGouraudDisc(coord, (s16)(levelTuning[work->index].scaleLimit * 8), rgb);
                 effectDrawGouraudDisc(coord, (s16)(levelTuning[work->index].scaleLimit * 0xC), rgb);
-                ENERGYSHOT_DRAW_CAST_WEDGES(coord, work, work->period, levelTuning, rgb);
+                ENERGYSHOT_DRAW_CAST_WEDGES(coord, work, work->period, levelTuning, rgb, segmentIndex);
                 coord->coord.t[1]   = 0;
                 coord->composeStamp = GRAPHICS_COORD_DIRTY;
                 actorRenderComposeCoord(coord);
@@ -306,16 +309,21 @@ void energyshotCastTask(Task* task)
 
 #include "../../shared/glow_draw_wedge.inc.c"
 
-/// Projects one band quad and selects its six-frame texture cell.
+/// Projects one beam-band quad and selects its six-cell texture frame.
 ///
-/// Borrows complete live scratch storage with both rings initialized and
-/// segmentIndex in 0..15. The caller has installed the projection matrices.
-/// Saves corner zero before RTPT advances the screen FIFO; only the final
-/// RTPT FLAG is retained, and the last corner's SZ3 remains for the caller.
-/// Texture phase lookup stays between RTPS and saving the first corner.
-/// All input arguments are side-effect-free locals, used repeatedly; textureFrame
-/// is a writable s16 lvalue. Captures display animation frame and the package phase table.
-/// The scoped next-segment temporary is private to the expansion.
+/// Borrows a complete word-aligned EffectBandScratch with both sixteen-vertex
+/// rings initialized in the camera matrix's input frame. segmentIndex is 0..15;
+/// the next index wraps with the power-of-two EFFECT_BAND_SEGMENT_COUNT. Inputs are
+/// stable, side-effect-free values used repeatedly; textureFrame is a writable
+/// s16 local. The caller must have installed the camera projection matrices.
+/// Stores RTPS corner zero before RTPT shifts the screen FIFO, then corners
+/// one through three and only the final RTPT FLAG. The last corner's SZ3
+/// remains available for the caller's depth calculation.
+/// Adds the package phase to the u32 display animation frame, preserving
+/// unsigned wraparound before reducing modulo six, yielding frame 0..5.
+/// The texture lookup stays between RTPS and its screen store. The next-index
+/// local belongs to the expansion; no caller-local identifiers are captured.
+/// Invoke inside a braced caller block.
 #define ENERGYSHOT_PROJECT_BAND_SEGMENT(scratch, segmentIndex, textureFrame)                                                               \
     {                                                                                                                                      \
         enum { ENERGYSHOT_BAND_FRAME_COUNT = 6 };                                                                                          \
@@ -323,7 +331,7 @@ void energyshotCastTask(Task* task)
                                                                                                                                            \
         gte_ldv0(&(scratch)->topRing[(segmentIndex)]);                                                                                     \
         gte_rtps();                                                                                                                        \
-        (textureFrame) = (u32)(_gEnergyshotBeamBandFrameOffsets[(segmentIndex)] + gDisplayState.animFrame) % ENERGYSHOT_BAND_FRAME_COUNT;  \
+        (textureFrame) = (_gEnergyshotBeamBandFrameOffsets[(segmentIndex)] + gDisplayState.animFrame) % ENERGYSHOT_BAND_FRAME_COUNT;       \
         gte_stsxy(&(scratch)->sxy0);                                                                                                       \
         nextSegmentIndex = ((segmentIndex) + 1) & (EFFECT_BAND_SEGMENT_COUNT - 1);                                                         \
         gte_ldv3(&(scratch)->topRing[nextSegmentIndex], &(scratch)->bottomRing[(segmentIndex)], &(scratch)->bottomRing[nextSegmentIndex]); \

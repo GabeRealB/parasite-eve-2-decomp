@@ -207,6 +207,20 @@ static void _pepperSprayDrawOriginBillboard(GfxCoord* sprayCoord, s16 radiusScal
     SCRATCH_STACK_RELEASE_BLOCK(EffectBillboardScratch);
 }
 
+/// Rotates one reserved spray-cone corner in place into the composed view frame.
+///
+/// `scratchHead` is the cursor immediately above the live reserved quad block,
+/// and cornerIndex is 0..3. Borrows a word-aligned matrix and SVECTOR storage;
+/// the GTE loads eight vector bytes and stores only the signed XYZ halfwords.
+/// Replaces the GTE rotation matrix; the caller adds translation afterwards.
+static inline void _pepperSprayRotateConeCorner(const MATRIX* localToView, OverlayFlaggedQuadScratch* scratchHead, s32 cornerIndex)
+{
+    gte_SetRotMatrix(localToView);
+    gte_ldv0(&scratchHead[-1].corners[cornerIndex]);
+    gte_rtv0();
+    gte_stsv(&scratchHead[-1].corners[cornerIndex]);
+}
+
 /// Draws one additive Gouraud quad of the spray cone at a retained azimuth.
 ///
 /// `sprayCoord->workm` must be composed; `azimuth` uses 0x1000 units per turn
@@ -218,15 +232,6 @@ static void _pepperSprayDrawOriginBillboard(GfxCoord* sprayCoord, s16 radiusScal
 /// retains no scratch pointers.
 static void _pepperSprayDrawConeQuad(GfxCoord* sprayCoord, s16 azimuth, s16 brightness)
 {
-    // Rotate a live scratch corner into view space; translation is added below.
-    // Arguments must be side-effect-free: corner is evaluated twice. Changes GTE state.
-#define PEPPER_SPRAY_ROTATE_CONE_CORNER(localToView, corner) \
-    do {                                                     \
-        gte_SetRotMatrix(localToView);                       \
-        gte_ldv0(corner);                                    \
-        gte_rtv0();                                          \
-        gte_stsv(corner);                                    \
-    } while (0)
     enum {
         PEPPER_SPRAY_CONE_TIP_Z             = -512,
         PEPPER_SPRAY_CONE_HALF_ANGLE        = 0xC0,
@@ -256,7 +261,7 @@ static void _pepperSprayDrawConeQuad(GfxCoord* sprayCoord, s16 azimuth, s16 brig
     block->corners[0].vy = (u32)rcos(firstCornerAzimuth) >> PEPPER_SPRAY_CONE_BASE_RADIUS_SHIFT;
     block->corners[0].vz = 0;
     localToView          = &sprayCoord->workm;
-    PEPPER_SPRAY_ROTATE_CONE_CORNER(localToView, &scratchHead[-1].corners[0]);
+    _pepperSprayRotateConeCorner(localToView, scratchHead, 0);
     block->corners[0].vx = (u16)block->corners[0].vx + (u16)sprayCoord->workm.t[0];
     block->corners[0].vy = (u16)block->corners[0].vy + (u16)sprayCoord->workm.t[1];
     block->corners[0].vz = (u16)block->corners[0].vz + (u16)sprayCoord->workm.t[2];
@@ -264,7 +269,7 @@ static void _pepperSprayDrawConeQuad(GfxCoord* sprayCoord, s16 azimuth, s16 brig
     block->corners[1].vx = (u32)rsin(cornerAzimuth) >> PEPPER_SPRAY_CONE_TIP_RADIUS_SHIFT;
     block->corners[1].vy = (u32)rcos(cornerAzimuth) >> PEPPER_SPRAY_CONE_TIP_RADIUS_SHIFT;
     block->corners[1].vz = tipZ;
-    PEPPER_SPRAY_ROTATE_CONE_CORNER(localToView, &scratchHead[-1].corners[1]);
+    _pepperSprayRotateConeCorner(localToView, scratchHead, 1);
     block->corners[1].vx = (u16)block->corners[1].vx + (u16)sprayCoord->workm.t[0];
     block->corners[1].vy = (u16)block->corners[1].vy + (u16)sprayCoord->workm.t[1];
     block->corners[1].vz = (u16)block->corners[1].vz + (u16)sprayCoord->workm.t[2];
@@ -272,7 +277,7 @@ static void _pepperSprayDrawConeQuad(GfxCoord* sprayCoord, s16 azimuth, s16 brig
     block->corners[2].vx = (u32)rsin(cornerAzimuth) >> PEPPER_SPRAY_CONE_BASE_RADIUS_SHIFT;
     block->corners[2].vy = (u32)rcos(cornerAzimuth) >> PEPPER_SPRAY_CONE_BASE_RADIUS_SHIFT;
     block->corners[2].vz = 0;
-    PEPPER_SPRAY_ROTATE_CONE_CORNER(localToView, &scratchHead[-1].corners[2]);
+    _pepperSprayRotateConeCorner(localToView, scratchHead, 2);
     block->corners[2].vx = (u16)block->corners[2].vx + (u16)sprayCoord->workm.t[0];
     cornerAzimuth        = cornerAzimuth + PEPPER_SPRAY_CONE_HALF_ANGLE;
     block->corners[2].vy = (u16)block->corners[2].vy + (u16)sprayCoord->workm.t[1];
@@ -281,7 +286,7 @@ static void _pepperSprayDrawConeQuad(GfxCoord* sprayCoord, s16 azimuth, s16 brig
     block->corners[3].vx = (u32)rsin(cornerAzimuth) >> PEPPER_SPRAY_CONE_BASE_RADIUS_SHIFT;
     block->corners[3].vy = (u32)rcos(cornerAzimuth) >> PEPPER_SPRAY_CONE_BASE_RADIUS_SHIFT;
     block->corners[3].vz = 0;
-    PEPPER_SPRAY_ROTATE_CONE_CORNER(localToView, &scratchHead[-1].corners[3]);
+    _pepperSprayRotateConeCorner(localToView, scratchHead, 3);
     block->corners[3].vx = (u16)block->corners[3].vx + (u16)sprayCoord->workm.t[0];
     block->corners[3].vy = (u16)block->corners[3].vy + (u16)sprayCoord->workm.t[1];
     block->corners[3].vz = (u16)block->corners[3].vz + (u16)sprayCoord->workm.t[2];
@@ -313,5 +318,4 @@ static void _pepperSprayDrawConeQuad(GfxCoord* sprayCoord, s16 azimuth, s16 brig
         }
     }
     SCRATCH_STACK_RELEASE_BLOCK(OverlayFlaggedQuadScratch);
-#undef PEPPER_SPRAY_ROTATE_CONE_CORNER
 }

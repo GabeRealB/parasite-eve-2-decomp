@@ -346,7 +346,14 @@ static void _apobiosisDrawScreenFlash(s16 brightness)
     gpuSetPrimitiveBlendMode(quad, GPU_BLEND_ADD, APOBIOSIS_FLASH_DEPTH);
 }
 
-#define GLOW_DRAW_HALO_PULL 0x40
+/// Pulls the next included halo's sizing and sorting depth toward the camera.
+///
+/// Optional signed integer constant in SZ3 / 4 units. The halo subtracts 64
+/// instead of adding its default one, then clamps depth to 16 before division
+/// and ordering-table insertion. This changes screen size and sorting without
+/// moving the world centre. Apobiosis supplies it; Plasma leaves it undefined.
+/// Define before the halo fragment, which undefines it after the inclusion.
+#define GLOW_DRAW_HALO_DEPTH_PULL 0x40
 #include "../../shared/glow_draw_halo.inc.c"
 
 /// Seeds one apobiosis shard's strip displacement, fixed sprite rotation and PE level row.
@@ -488,11 +495,15 @@ static void _apobiosisDrawShardSprite(const GfxCoord* coord, s16 textureFrame, s
     s32                 uRight;
     s32                 quarterTurnAngle;
 
-    /// Resolves one perpendicular corner pair in signed pixels.
+    /// Resolves a perspective-scaled sprite corner into signed pixel offsets.
     ///
-    /// Arguments must be side-effect-free: the scratch pointer is used four
-    /// times, and scale and angle twice. Captures the local UV span and Q12 shift.
-    /// Expands to two statements; use inside a braced block. Scoped to this drawer.
+    /// `scratchBlock` is live EffectShapeScratch with depth = SZ3 / 4 + 1,
+    /// hence at least one. Scale is a signed sizing numerator; angle uses 4096
+    /// units per turn. Computes scale * 39 / depth before Q12 sine/cosine,
+    /// truncating the divide toward zero and storing s32 X/Y offsets. Arguments
+    /// must be stable and side-effect-free because each is read repeatedly.
+    /// Captures the drawer's UV span and the package's trigonometric shift.
+    /// Invoke inside a braced caller block.
 #define APOBIOSIS_SPRITE_SET_CORNER_OFFSET(scratchBlock, scale, angle)                                                                          \
     (scratchBlock)->extent.corner.x = ((((scale) * APOBIOSIS_SPRITE_UV_SPAN) / (scratchBlock)->depth) * rsin((angle))) >> APOBIOSIS_TRIG_SHIFT; \
     (scratchBlock)->extent.corner.y = ((((scale) * APOBIOSIS_SPRITE_UV_SPAN) / (scratchBlock)->depth) * rcos((angle))) >> APOBIOSIS_TRIG_SHIFT
@@ -551,6 +562,27 @@ static void _apobiosisDrawShardSprite(const GfxCoord* coord, s16 textureFrame, s
 
 #undef APOBIOSIS_SPRITE_SET_CORNER_OFFSET
 
+/// Projects the selected strip endpoint through the loaded GTE matrices.
+///
+/// Borrows one complete word-aligned scratch block. `projectEnd` selects
+/// worldEnd/screenEnd when true and worldStart/screenStart otherwise. Writes
+/// signed screen pixels and replaces projectionFlags. Leaves SZ3 available
+/// for the caller to capture before the next projection.
+static inline void _apobiosisProjectStripPoint(EffectStripScratch* scratch, bool projectEnd)
+{
+    if (projectEnd) {
+        gte_ldv0(&scratch->worldEnd);
+        gte_rtps();
+        gte_stsxy(&scratch->screenEnd);
+        gte_stflg(&scratch->projectionFlags);
+    } else {
+        gte_ldv0(&scratch->worldStart);
+        gte_rtps();
+        gte_stsxy(&scratch->screenStart);
+        gte_stflg(&scratch->projectionFlags);
+    }
+}
+
 /// Queues an additive apobiosis strip from a composed world origin to an offset endpoint.
 ///
 /// `endOffset` is an XYZ displacement in world units, without the coordinate's
@@ -580,18 +612,6 @@ static void _apobiosisDrawShardStrip(const GfxCoord* coord, const SVECTOR* endOf
     s32                 vBottom;
     s16                 screenAngle;
 
-    /// Projects an endpoint using the already-loaded GTE matrices, leaving SZ3 available.
-    ///
-    /// The complete SVECTOR and both output words are word-aligned live storage.
-    /// Writes signed screen pixels and the FLAG word. Each pointer expression
-    /// is evaluated once, in order; captures no caller identifiers. Expands to
-    /// four statements, so use in a braced block. Scoped to this drawer.
-#define APOBIOSIS_STRIP_PROJECT_POINT(worldPoint, screenPoint, projectionFlags) \
-    gte_ldv0((worldPoint));                                                     \
-    gte_rtps();                                                                 \
-    gte_stsxy((screenPoint));                                                   \
-    gte_stflg((projectionFlags))
-
     // Stage the world-space segment before loading the camera matrices.
     scratch              = SCRATCH_STACK_RESERVE_BLOCK(EffectStripScratch);
     scratch->worldEnd.vx = scratch->worldStart.vx = coord->workm.t[0];
@@ -603,11 +623,11 @@ static void _apobiosisDrawShardStrip(const GfxCoord* coord, const SVECTOR* endOf
 
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    APOBIOSIS_STRIP_PROJECT_POINT(&scratch->worldStart, &scratch->screenStart, &scratch->projectionFlags);
+    _apobiosisProjectStripPoint(scratch, false);
     if (scratch->projectionFlags >= 0) {
         gte_stszotz(&scratch->depth);
         scratch->depth += APOBIOSIS_STRIP_DEPTH_BIAS;
-        APOBIOSIS_STRIP_PROJECT_POINT(&scratch->worldEnd, &scratch->screenEnd, &scratch->projectionFlags);
+        _apobiosisProjectStripPoint(scratch, true);
         if (scratch->projectionFlags >= 0) {
             quad           = gGpuPrimCursor;
             gGpuPrimCursor = quad + 1;
@@ -648,5 +668,3 @@ static void _apobiosisDrawShardStrip(const GfxCoord* coord, const SVECTOR* endOf
     }
     SCRATCH_STACK_RELEASE_BLOCK(EffectStripScratch);
 }
-
-#undef APOBIOSIS_STRIP_PROJECT_POINT

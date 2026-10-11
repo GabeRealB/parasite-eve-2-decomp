@@ -26,14 +26,16 @@ void ofudaEffectTask(Task* task)
         OFUDA_FADE_BRIGHTNESS_STEP   = 8,
         OFUDA_FADE_RADIUS_STEP       = 0x30
     };
-    /// Queues two pink discs and writes their colour into three writable bytes.
+    /// Draws the two concentric Ofuda discs and writes their pink RGB modulation.
     ///
-    /// All arguments must be stable, side-effect-free pointers: each is evaluated
-    /// repeatedly. The live work's `scale` is byte brightness and `angle` is the
-    /// radial drawer's signed sizing input; doubling the radius truncates to s16.
-    /// The coordinate's view-space cache must be composed. Drawing requires the
-    /// current scratch stack, frame primitive arena and ordering table. Captures
-    /// no locals and is defined only for the two phases of this task.
+    /// Borrows a composed GfxCoord and read-only EffectWork. Scale supplies
+    /// red, with green one quarter and blue one half; writes all three u8
+    /// output channels for the caller's bands or screen tint. Angle is the
+    /// disc radius in coordinate units; doubling narrows to s16. Arguments
+    /// must be stable, side-effect-free pointers and are read repeatedly.
+    /// Uses the current scratch stack, frame arena and ordering table, with
+    /// no captured caller identifiers.
+    /// Invoke inside a braced caller block.
 #define OFUDA_DRAW_GLOW_DISCS(centreCoord, effectWork, rgbOutput)                           \
     {                                                                                       \
         (rgbOutput)[0] = (effectWork)->scale;                                               \

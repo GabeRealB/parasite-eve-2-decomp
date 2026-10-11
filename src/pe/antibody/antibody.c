@@ -309,32 +309,33 @@ void antibodyMoteTask(Task* task)
     s32         flashRng;
     s16         levelIndex;
 
-    /// Occasionally rerolls the current mote's size and spin in shared random draw order.
+    /// Occasionally replaces a mote's sprite size and rotation.
     ///
-    /// Captures this function's `work`, the level table, random state and masks.
-    /// `sizeMultiplier` must be the signed integer constant 1 (mote) or 2
-    /// (player-linked flash); it is evaluated once, only when the check succeeds.
-    /// Consumes one check draw, then separate size and angle draws on success.
-    /// Local random values belong to each expansion; store size before drawing
-    /// the angle. A single statement with no control flow into its caller;
-    /// defined only for this function and undefined immediately after its body.
-#define ANTIBODY_MOTE_REROLL_APPEARANCE(sizeMultiplier)                                                  \
-    do {                                                                                                 \
-        s32 rerollRng;                                                                                   \
-        s32 sizeRng;                                                                                     \
-        s32 angleRng;                                                                                    \
-                                                                                                         \
-        rerollRng       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;                \
-        gRandomLcgState = rerollRng;                                                                     \
-        if ((((u32)rerollRng >> 16) & ANTIBODY_MOTE_REROLL_MASK) == 0) {                                 \
-            sizeRng         = rerollRng * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;                  \
-            gRandomLcgState = sizeRng;                                                                   \
-            work->scale     = _gAntibodyLevelTuning[work->index].moteRerollSizeBase * (sizeMultiplier) + \
-                          (((u32)sizeRng >> 16) & ANTIBODY_MOTE_SIZE_JITTER_MASK);                       \
-            angleRng        = sizeRng * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;                    \
-            gRandomLcgState = angleRng;                                                                  \
-            work->angle     = ((u32)angleRng >> 16) & ANTIBODY_MOTE_ANGLE_MASK;                          \
-        }                                                                                                \
+    /// `work` is writable EffectWork with a PE-level index in 0..2. Both inputs
+    /// must be stable and side-effect-free; sizeMultiplier is the signed constant
+    /// 1 for a mote or 2 for a player flash. Only the tuning base is multiplied:
+    /// the added size jitter stays 0..511. Size narrows to s16, and rotation is
+    /// 0..4095 in 4096 units per turn. Advances the shared LCG once for the
+    /// one-in-eight check, then twice on success, storing size before rotation.
+    /// Captures the tuning table and this task's three masks; RNG locals belong
+    /// to the expansion. No caller-local work pointer is captured.
+#define ANTIBODY_MOTE_REROLL_APPEARANCE(work, sizeMultiplier)                                              \
+    do {                                                                                                   \
+        s32 rerollRng;                                                                                     \
+        s32 sizeRng;                                                                                       \
+        s32 angleRng;                                                                                      \
+                                                                                                           \
+        rerollRng       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;                  \
+        gRandomLcgState = rerollRng;                                                                       \
+        if ((((u32)rerollRng >> 16) & ANTIBODY_MOTE_REROLL_MASK) == 0) {                                   \
+            sizeRng         = rerollRng * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;                    \
+            gRandomLcgState = sizeRng;                                                                     \
+            (work)->scale   = _gAntibodyLevelTuning[(work)->index].moteRerollSizeBase * (sizeMultiplier) + \
+                            (((u32)sizeRng >> 16) & ANTIBODY_MOTE_SIZE_JITTER_MASK);                       \
+            angleRng        = sizeRng * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;                      \
+            gRandomLcgState = angleRng;                                                                    \
+            (work)->angle   = ((u32)angleRng >> 16) & ANTIBODY_MOTE_ANGLE_MASK;                            \
+        }                                                                                                  \
     } while (0)
 
     work                = task->spawnArg2.pointer;
@@ -366,7 +367,7 @@ void antibodyMoteTask(Task* task)
             work->angle     = ((u32)seedRng >> 16) & ANTIBODY_MOTE_ANGLE_MASK;
             /* fallthrough */
         case ANTIBODY_MOTE_CONVERGE:
-            ANTIBODY_MOTE_REROLL_APPEARANCE(1);
+            ANTIBODY_MOTE_REROLL_APPEARANCE(work, 1);
             coord->coord.t[0]  -= work->move.vx;
             coord->coord.t[1]  -= work->move.vy;
             coord->coord.t[2]  -= work->move.vz;
@@ -385,7 +386,7 @@ void antibodyMoteTask(Task* task)
             }
             return;
         case ANTIBODY_MOTE_RISE:
-            ANTIBODY_MOTE_REROLL_APPEARANCE(1);
+            ANTIBODY_MOTE_REROLL_APPEARANCE(work, 1);
             coord->coord.t[1]  += work->move.vy;
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
             actorRenderComposeCoord(coord);
@@ -397,7 +398,7 @@ void antibodyMoteTask(Task* task)
             break;
         case ANTIBODY_MOTE_PLAYER_FLASH:
             // Freeze the local position, then draw the larger sprite and its link to the player.
-            ANTIBODY_MOTE_REROLL_APPEARANCE(2);
+            ANTIBODY_MOTE_REROLL_APPEARANCE(work, 2);
             actorRenderComposeCoord(coord);
             spriteQuadDraw(coord, work->age, work->scale, work->angle);
             _antibodyDrawMoteStrip(coord, work->age, work->scale);
@@ -450,6 +451,27 @@ void antibodyMoteTask(Task* task)
 #define SPRITE_QUAD_SCALE (SPRITE_QUAD_CELL_WIDTH - 1)
 #include "../../shared/sprite_quad_draw.inc.c"
 
+/// Projects the selected strip endpoint through the loaded GTE matrices.
+///
+/// Borrows one complete word-aligned scratch block. `projectEnd` selects
+/// worldEnd/screenEnd when true and worldStart/screenStart otherwise. Writes
+/// signed screen pixels and replaces projectionFlags. Leaves SZ3 available
+/// for the caller to capture before the next projection.
+static inline void _antibodyProjectStripPoint(EffectStripScratch* scratch, bool projectEnd)
+{
+    if (projectEnd) {
+        gte_ldv0(&scratch->worldEnd);
+        gte_rtps();
+        gte_stsxy(&scratch->screenEnd);
+        gte_stflg(&scratch->projectionFlags);
+    } else {
+        gte_ldv0(&scratch->worldStart);
+        gte_rtps();
+        gte_stsxy(&scratch->screenStart);
+        gte_stflg(&scratch->projectionFlags);
+    }
+}
+
 /// Queues an additive textured strip from an Antibody mote to the player's second model coordinate.
 ///
 /// `coord` is borrowed read-only; its cached translation and the player's
@@ -491,19 +513,6 @@ static void _antibodyDrawMoteStrip(const GfxCoord* coord, s16 textureFrame, s16 
     s32                 vBottom;
     s16                 screenAngle;
 
-    /// Projects one endpoint with the already-loaded GTE matrices, leaving SZ3 available.
-    ///
-    /// Inputs and outputs are word-aligned; the complete SVECTOR is readable.
-    /// Writes signed screen pixels and the complete FLAG word for rejection.
-    /// Each pointer argument is evaluated once, in order; captures no caller
-    /// identifiers. Expands to several statements, so invoke in a braced block.
-    /// Defined only around this drawer and undefined immediately after its body.
-#define ANTIBODY_STRIP_PROJECT_POINT(worldPoint, screenPoint, projectionFlags) \
-    gte_ldv0((worldPoint));                                                    \
-    gte_rtps();                                                                \
-    gte_stsxy((screenPoint));                                                  \
-    gte_stflg((projectionFlags))
-
     // Stage both cached translations' low halves before loading the camera matrices.
     playerCoord            = &gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords[ANTIBODY_STRIP_PLAYER_PART];
     scratch                = SCRATCH_STACK_RESERVE_BLOCK(EffectStripScratch);
@@ -516,11 +525,11 @@ static void _antibodyDrawMoteStrip(const GfxCoord* coord, s16 textureFrame, s16 
 
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    ANTIBODY_STRIP_PROJECT_POINT(&scratch->worldStart, &scratch->screenStart, &scratch->projectionFlags);
+    _antibodyProjectStripPoint(scratch, false);
     if (scratch->projectionFlags >= 0) {
         gte_stszotz(&scratch->depth);
         scratch->depth += ANTIBODY_STRIP_DEPTH_BIAS;
-        ANTIBODY_STRIP_PROJECT_POINT(&scratch->worldEnd, &scratch->screenEnd, &scratch->projectionFlags);
+        _antibodyProjectStripPoint(scratch, true);
         if (scratch->projectionFlags >= 0) {
             quad           = gGpuPrimCursor;
             gGpuPrimCursor = quad + 1;
@@ -557,7 +566,5 @@ static void _antibodyDrawMoteStrip(const GfxCoord* coord, s16 textureFrame, s16 
     }
     SCRATCH_STACK_RELEASE_BLOCK(EffectStripScratch);
 }
-
-#undef ANTIBODY_STRIP_PROJECT_POINT
 
 #include "../../shared/glow_draw_wedge.inc.c"

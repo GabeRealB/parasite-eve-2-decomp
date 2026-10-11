@@ -57,9 +57,9 @@ static void _glowDrawHalo(const GfxCoord* coord, s32 innerRadiusScale, s32 width
     gte_stflg(&block->projectionFlags);
     if (block->projectionFlags >= 0) {
         gte_stszotz(&block->depth);
-#ifdef GLOW_DRAW_HALO_PULL
+#ifdef GLOW_DRAW_HALO_DEPTH_PULL
         // Pull both the sizing and sorting depth toward the eye.
-        block->depth -= GLOW_DRAW_HALO_PULL;
+        block->depth -= GLOW_DRAW_HALO_DEPTH_PULL;
         if (block->depth < GLOW_NEAR_DEPTH_CLAMP) {
             block->depth = GLOW_NEAR_DEPTH_CLAMP;
         }
@@ -85,4 +85,4 @@ static void _glowDrawHalo(const GfxCoord* coord, s32 innerRadiusScale, s32 width
     SCRATCH_STACK_RELEASE_BLOCK(EffectShapeScratch);
 }
 
-#undef GLOW_DRAW_HALO_PULL
+#undef GLOW_DRAW_HALO_DEPTH_PULL

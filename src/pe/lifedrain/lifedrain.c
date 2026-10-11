@@ -106,51 +106,56 @@ static s16 _gLifedrainWedgeYaws[LIFEDRAIN_MAX_CAST_WEDGES] = { 0 };
 /// clear the pointer, and the pointer owns no allocation.
 static Task* _gLifedrainCollectorTask = NULL;
 
-/// Draws the cast funnel and attenuates the caller's writable RGB bytes.
+/// Draws the Life Drain funnel's wedges, doubled disc and outer glow bands.
 ///
-/// Arguments are side-effect-free live coordinate/work pointers and a writable
-/// three-byte colour array, used repeatedly. Work is read-only: index is PE
-/// level 0..2, angle the radius, and age selects alternate broad bands.
-/// Captures the cast's s32 phaseIndex loop counter and the package yaw/tuning
-/// tables. The scoped tuning/yaw pointers are local to each expansion.
-#define LIFEDRAIN_DRAW_CAST_FUNNEL(coord, work, rgb)                                                          \
-    {                                                                                                         \
-        enum { LIFEDRAIN_CAST_GLOW_BAND_WIDTH = 128 };                                                        \
-        const _LifedrainLevelTuning* tuning;                                                                  \
-        const s16*                   wedgeYaw;                                                                \
-        phaseIndex = 0;                                                                                       \
-        if (_gLifedrainLevelTuning[(work)->index].wedgeCount > 0) {                                           \
-            tuning   = _gLifedrainLevelTuning;                                                                \
-            wedgeYaw = _gLifedrainWedgeYaws;                                                                  \
-            do {                                                                                              \
-                glowDrawWedge((coord), (work)->angle, *wedgeYaw, (rgb));                                      \
-                wedgeYaw += 1;                                                                                \
-            } while (++phaseIndex < tuning[(work)->index].wedgeCount);                                        \
-        }                                                                                                     \
-        effectDrawGouraudDisc((coord), (work)->angle >> 1, (rgb));                                            \
-        effectDrawGouraudDisc((coord), (work)->angle >> 1, (rgb));                                            \
-        (rgb)[0] >>= 1;                                                                                       \
-        (rgb)[1] >>= 1;                                                                                       \
-        (rgb)[2] >>= 1;                                                                                       \
-        effectDrawOuterGlowBand((coord), (work)->angle, LIFEDRAIN_CAST_GLOW_BAND_WIDTH, (rgb));               \
-        if ((work)->age & 1) {                                                                                \
-            effectDrawOuterGlowBand((coord), LIFEDRAIN_CAST_GLOW_BAND_WIDTH, (work)->angle, (rgb));           \
-        }                                                                                                     \
-        if ((work)->index != 0) {                                                                             \
-            (rgb)[0] >>= 1;                                                                                   \
-            (rgb)[1] >>= 1;                                                                                   \
-            (rgb)[2] >>= 1;                                                                                   \
-            effectDrawOuterGlowBand((coord),                                                                  \
-                                    (s16)((work)->angle + _gLifedrainLevelTuning[(work)->index].outerOffset), \
-                                    LIFEDRAIN_CAST_GLOW_BAND_WIDTH, (rgb));                                   \
-            if ((work)->index == 2) {                                                                         \
-                if ((work)->age & 1) {                                                                        \
-                    effectDrawOuterGlowBand((coord), LIFEDRAIN_CAST_GLOW_BAND_WIDTH,                          \
-                                            (s16)((work)->angle + _gLifedrainLevelTuning[2].outerOffset),     \
-                                            (rgb));                                                           \
-                }                                                                                             \
-            }                                                                                                 \
-        }                                                                                                     \
+/// Borrows a composed GfxCoord and read-only EffectWork; index is PE level
+/// 0..2, angle is a radius in coordinate units and odd age enables broad bands.
+/// rgb supplies three writable u8 channels: levels 1, 2/3 leave them shifted
+/// down once, twice respectively. Duplicate disc draws intentionally add light.
+/// Inputs must be stable and side-effect-free; all are evaluated repeatedly.
+/// wedgeIndex is a writable s32 local reset to zero and left at the seeded
+/// 8/12/16-wedge count. Captures the package tuning/yaw tables, with no implicit
+/// caller-local loop counter. Scoped pointers and constants belong to the expansion.
+/// Invoke inside a braced caller block.
+#define LIFEDRAIN_DRAW_CAST_FUNNEL(coord, work, rgb, wedgeIndex)                                                                         \
+    {                                                                                                                                    \
+        enum { LIFEDRAIN_CAST_GLOW_BAND_WIDTH   = 128,                                                                                   \
+               LIFEDRAIN_CAST_LEVEL_THREE_INDEX = 2 };                                                                                   \
+        const _LifedrainLevelTuning* tuning;                                                                                             \
+        const s16*                   wedgeYaw;                                                                                           \
+        (wedgeIndex) = 0;                                                                                                                \
+        if (_gLifedrainLevelTuning[(work)->index].wedgeCount > 0) {                                                                      \
+            tuning   = _gLifedrainLevelTuning;                                                                                           \
+            wedgeYaw = _gLifedrainWedgeYaws;                                                                                             \
+            do {                                                                                                                         \
+                glowDrawWedge((coord), (work)->angle, *wedgeYaw, (rgb));                                                                 \
+                wedgeYaw += 1;                                                                                                           \
+            } while (++(wedgeIndex) < tuning[(work)->index].wedgeCount);                                                                 \
+        }                                                                                                                                \
+        effectDrawGouraudDisc((coord), (work)->angle >> 1, (rgb));                                                                       \
+        effectDrawGouraudDisc((coord), (work)->angle >> 1, (rgb));                                                                       \
+        (rgb)[0] >>= 1;                                                                                                                  \
+        (rgb)[1] >>= 1;                                                                                                                  \
+        (rgb)[2] >>= 1;                                                                                                                  \
+        effectDrawOuterGlowBand((coord), (work)->angle, LIFEDRAIN_CAST_GLOW_BAND_WIDTH, (rgb));                                          \
+        if ((work)->age & 1) {                                                                                                           \
+            effectDrawOuterGlowBand((coord), LIFEDRAIN_CAST_GLOW_BAND_WIDTH, (work)->angle, (rgb));                                      \
+        }                                                                                                                                \
+        if ((work)->index != 0) {                                                                                                        \
+            (rgb)[0] >>= 1;                                                                                                              \
+            (rgb)[1] >>= 1;                                                                                                              \
+            (rgb)[2] >>= 1;                                                                                                              \
+            effectDrawOuterGlowBand((coord),                                                                                             \
+                                    (s16)((work)->angle + _gLifedrainLevelTuning[(work)->index].outerOffset),                            \
+                                    LIFEDRAIN_CAST_GLOW_BAND_WIDTH, (rgb));                                                              \
+            if ((work)->index == LIFEDRAIN_CAST_LEVEL_THREE_INDEX) {                                                                     \
+                if ((work)->age & 1) {                                                                                                   \
+                    effectDrawOuterGlowBand((coord), LIFEDRAIN_CAST_GLOW_BAND_WIDTH,                                                     \
+                                            (s16)((work)->angle + _gLifedrainLevelTuning[LIFEDRAIN_CAST_LEVEL_THREE_INDEX].outerOffset), \
+                                            (rgb));                                                                                      \
+                }                                                                                                                        \
+            }                                                                                                                            \
+        }                                                                                                                                \
     }
 
 void lifedrainCastTask(Task* task)
@@ -287,7 +292,7 @@ void lifedrainCastTask(Task* task)
             rgb[0]      = work->scale >> 1;
             rgb[1]      = work->scale >> 1;
             rgb[2]      = (u8)work->scale;
-            LIFEDRAIN_DRAW_CAST_FUNNEL(coord, work, rgb);
+            LIFEDRAIN_DRAW_CAST_FUNNEL(coord, work, rgb, phaseIndex);
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
             work->step      = (gRandomLcgState >> 16) & LIFEDRAIN_CAST_ANGLE_MASK;
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
@@ -320,7 +325,7 @@ void lifedrainCastTask(Task* task)
             rgb[0] = work->scale >> 1;
             rgb[1] = work->scale >> 1;
             rgb[2] = (u8)work->scale;
-            LIFEDRAIN_DRAW_CAST_FUNNEL(coord, work, rgb);
+            LIFEDRAIN_DRAW_CAST_FUNNEL(coord, work, rgb, phaseIndex);
             return;
         }
         case LIFEDRAIN_CAST_STATE_RELEASE:
@@ -338,34 +343,40 @@ void lifedrainRisingSparkTask(Task* task)
     _risingSparkTask(task);
 }
 
-/// Stores the player's transformed and Q12-scaled displacement in the mote's pos.
+/// Recomputes the mote's scaled displacement toward the player's second model coordinate.
 ///
-/// Arguments are side-effect-free live pointers, used repeatedly; work is writable.
-/// Requires composed coordinates in one frame and work age 15..29, making 30-age
-/// positive. Narrows the transposed displacement to s16 before the local rotation;
-/// there is no normalization. Captures the mote's GfxCoord* playerCoord and VECTOR
-/// playerOffset scratch locals, and uses the live player and GTE working registers.
-#define LIFEDRAIN_AIM_MOTE(coord, work)                                                        \
-    {                                                                                          \
-        enum { LIFEDRAIN_MOTE_RELEASE_AGE     = 30,                                            \
-               LIFEDRAIN_MOTE_HOMING_GAIN_Q12 = 0x1200 };                                      \
-        playerCoord     = &(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords[1];     \
-        playerOffset.vx = playerCoord->workm.t[0] - (coord)->workm.t[0];                       \
-        playerOffset.vy = playerCoord->workm.t[1] - (coord)->workm.t[1];                       \
-        playerOffset.vz = playerCoord->workm.t[2] - (coord)->workm.t[2];                       \
-        ApplyTransposeMatrixLV(&(coord)->workm, &playerOffset, &playerOffset);                 \
-        (work)->pos.vx = playerOffset.vx;                                                      \
-        (work)->pos.vy = playerOffset.vy;                                                      \
-        (work)->pos.vz = playerOffset.vz;                                                      \
-        gte_SetRotMatrix(&(coord)->coord);                                                     \
-        gte_ldv0(&(work)->pos);                                                                \
-        gte_rtv0();                                                                            \
-        gte_stsv(&(work)->pos);                                                                \
-        gte_lddp(LIFEDRAIN_MOTE_HOMING_GAIN_Q12 / (LIFEDRAIN_MOTE_RELEASE_AGE - (work)->age)); \
-        gte_ldsv(&(work)->pos);                                                                \
-        gte_gpf12();                                                                           \
-        gte_stsv(&(work)->pos);                                                                \
-    }
+/// moteCoord is composed and work is writable with age 15..29, before release at
+/// 30. The live player must have a model with coordinate 1 composed in the
+/// same frame. playerCoord is a writable GfxCoord* local; playerOffset is a
+/// writable VECTOR scratch lvalue. All arguments must be stable and free of
+/// side effects, and work/coordinate storage must not alias the scratch vector.
+/// Transposes the full-width offset through workm, narrows it into pos, rotates
+/// through moteCoord->coord and scales by (0x1200 / (30 - age)) in Q12. Each GTE
+/// result narrows to signed XYZ halfwords; there is no normalization. Replaces
+/// work->pos and GTE working registers, capturing only the live-player API.
+/// Expands to one statement; caller scratch lvalues are supplied explicitly.
+#define LIFEDRAIN_AIM_MOTE(moteCoord, work, playerCoord, playerOffset)                                                \
+    do {                                                                                                              \
+        enum { LIFEDRAIN_MOTE_PLAYER_PART     = 1,                                                                    \
+               LIFEDRAIN_MOTE_RELEASE_AGE     = 30,                                                                   \
+               LIFEDRAIN_MOTE_HOMING_GAIN_Q12 = 0x1200 };                                                             \
+        (playerCoord)     = &(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords[LIFEDRAIN_MOTE_PLAYER_PART]; \
+        (playerOffset).vx = (playerCoord)->workm.t[0] - (moteCoord)->workm.t[0];                                      \
+        (playerOffset).vy = (playerCoord)->workm.t[1] - (moteCoord)->workm.t[1];                                      \
+        (playerOffset).vz = (playerCoord)->workm.t[2] - (moteCoord)->workm.t[2];                                      \
+        ApplyTransposeMatrixLV(&(moteCoord)->workm, &(playerOffset), &(playerOffset));                                \
+        (work)->pos.vx = (playerOffset).vx;                                                                           \
+        (work)->pos.vy = (playerOffset).vy;                                                                           \
+        (work)->pos.vz = (playerOffset).vz;                                                                           \
+        gte_SetRotMatrix(&(moteCoord)->coord);                                                                        \
+        gte_ldv0(&(work)->pos);                                                                                       \
+        gte_rtv0();                                                                                                   \
+        gte_stsv(&(work)->pos);                                                                                       \
+        gte_lddp(LIFEDRAIN_MOTE_HOMING_GAIN_Q12 / (LIFEDRAIN_MOTE_RELEASE_AGE - (work)->age));                        \
+        gte_ldsv(&(work)->pos);                                                                                       \
+        gte_gpf12();                                                                                                  \
+        gte_stsv(&(work)->pos);                                                                                       \
+    } while (0)
 
 void lifedrainMoteTask(Task* task)
 {
@@ -431,7 +442,7 @@ void lifedrainMoteTask(Task* task)
                     }
                 }
                 if (work->age == LIFEDRAIN_MOTE_AIM_START_AGE) {
-                    LIFEDRAIN_AIM_MOTE(coord, work);
+                    LIFEDRAIN_AIM_MOTE(coord, work, playerCoord, playerOffset);
                     task->state = LIFEDRAIN_MOTE_STATE_HOMING;
                 }
                 return;
@@ -463,7 +474,7 @@ void lifedrainMoteTask(Task* task)
                         }
                     }
                 }
-                LIFEDRAIN_AIM_MOTE(coord, work);
+                LIFEDRAIN_AIM_MOTE(coord, work, playerCoord, playerOffset);
                 return;
             default:
                 return;
