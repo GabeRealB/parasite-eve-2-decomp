@@ -245,27 +245,32 @@ static void _replayBonusBuildItemList(UiList* list, UiObject* object)
         REPLAY_BONUS_COLLECTION_ID_LIMIT = 0x200,
         REPLAY_BONUS_LIST_VISIBLE_ROWS   = 9,
     };
-    /// Tests the fixed whitelist and writes a 0/1 membership result.
+    /// Writes whether a catalogue id earns Complete Bonus item credit (0 no, 1 yes).
     ///
-    /// Arguments are side-effect-free scalar/lvalue identifiers, evaluated
-    /// repeatedly; result, cursor and index must be distinct. `retryLabel` must
-    /// be unique in the function. The scan excludes the terminator and keeps
-    /// the two scan labels separate. Requires this function's whitelist-count enum.
-#define REPLAY_BONUS_FIND_ITEM_IN_WHITELIST(itemId, result, cursor, index, retryLabel) \
-    {                                                                                  \
-        (result) = 1;                                                                  \
-        (cursor) = gReplayBonusItemWhitelist;                                          \
-        (index)  = 0;                                                                  \
-    retryLabel:                                                                        \
-        if (*(cursor) != (itemId)) {                                                   \
-            (index)  += 1;                                                             \
-            (cursor) += 1;                                                             \
-            if ((index) >= REPLAY_BONUS_ITEM_WHITELIST_COUNT) {                        \
-                (result) = 0;                                                          \
-            } else {                                                                   \
-                goto retryLabel;                                                       \
-            }                                                                          \
-        }                                                                              \
+    /// Searches the first `REPLAY_BONUS_ITEM_WHITELIST_COUNT` entries of the
+    /// package's read-only `gReplayBonusItemWhitelist`, excluding both trailer
+    /// halfwords. `itemId` is a stable s32 expression, read up to 78 times;
+    /// `isWhitelisted` is an independent writable s32 lvalue. Neither argument
+    /// may refer to the block's `whitelistItem`, `whitelistIndex` or `whitelistId`.
+#define REPLAY_BONUS_TEST_ITEM_WHITELIST(itemId, isWhitelisted)        \
+    {                                                                  \
+        const u16* whitelistItem;                                      \
+        s32        whitelistIndex;                                     \
+        (isWhitelisted) = 1;                                           \
+        whitelistItem   = gReplayBonusItemWhitelist;                   \
+        whitelistIndex  = 0;                                           \
+        for (;;) {                                                     \
+            u16 whitelistId = *whitelistItem;                          \
+            if (whitelistId == (itemId)) {                             \
+                break;                                                 \
+            }                                                          \
+            whitelistIndex += 1;                                       \
+            whitelistItem  += 1;                                       \
+            if (whitelistIndex >= REPLAY_BONUS_ITEM_WHITELIST_COUNT) { \
+                (isWhitelisted) = 0;                                   \
+                break;                                                 \
+            }                                                          \
+        }                                                              \
     }
 
     const InventoryItemRow* savedRow;
@@ -274,10 +279,8 @@ static void _replayBonusBuildItemList(UiList* list, UiObject* object)
     s32                     itemCount;
     s32                     itemIndex;
     s32                     listed;
-    s32                     whitelistIndex;
-    const u16*              whitelistItem;
     u8                      consumableIndex;
-    u8                      itemId;
+    s32                     itemId;
 
     // Each eligible saved row contributes once, independent of quantity.
     savedRow   = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.itemRows;
@@ -291,7 +294,7 @@ static void _replayBonusBuildItemList(UiList* list, UiObject* object)
             consumableIndex -= INVENTORY_CONSUMABLE_ITEM_FIRST;
             if ((u8)consumableIndex >= (u32)INVENTORY_CONSUMABLE_ITEM_COUNT) {
                 itemId = savedRow->itemId;
-                REPLAY_BONUS_FIND_ITEM_IN_WHITELIST(itemId, listed, whitelistItem, whitelistIndex, scanSavedItem);
+                REPLAY_BONUS_TEST_ITEM_WHITELIST(itemId, listed);
                 if (listed != 0) {
                     itemCount  += 1;
                     *nextItemId = savedRow->itemId;
@@ -307,7 +310,7 @@ static void _replayBonusBuildItemList(UiList* list, UiObject* object)
     itemIndex = INVENTORY_COLLECTION_ID_PARTHENON_KEY;
     do {
         if (inventoryHasCollectedBit(itemIndex) != 0) {
-            REPLAY_BONUS_FIND_ITEM_IN_WHITELIST(itemIndex, listed, whitelistItem, whitelistIndex, scanCollectedItem);
+            REPLAY_BONUS_TEST_ITEM_WHITELIST(itemIndex, listed);
             if (listed != 0) {
                 itemIds[itemCount] = itemIndex;
                 itemCount         += 1;
@@ -323,7 +326,7 @@ static void _replayBonusBuildItemList(UiList* list, UiObject* object)
         list->firstVisibleItemIndex.unsignedValue = 0;
     }
     list->selectedItemIndex = list->firstVisibleItemIndex.signedValue;
-#undef REPLAY_BONUS_FIND_ITEM_IN_WHITELIST
+#undef REPLAY_BONUS_TEST_ITEM_WHITELIST
 }
 /// Title of the completed run's item-credit panel.
 static const char _gReplayBonusCompleteBonusTitle[] = "Complete Bonus";
@@ -412,24 +415,28 @@ void replayBonusCompleteBonusPanelTask(Task* task)
         REPLAY_BONUS_MODE_SCAVENGER         = 2,
         REPLAY_BONUS_MODE_NIGHTMARE         = 3,
     };
-    /// Builds and draws one small outlined Complete Bonus heading.
+    /// Draws a small outlined Complete Bonus column heading or total label.
     ///
-    /// Arguments must be side-effect-free identifiers or scalar expressions;
-    /// request and object are evaluated repeatedly. The request and index are
-    /// distinct writable lvalues. Offsets and Y bias are panel-relative pixels;
-    /// the index names the panel OT tag, and its following tag must exist.
-#define REPLAY_BONUS_DRAW_COMPLETE_HEADING(request, object, xOffset, textY, yBias, color, alignmentValue, index, caption) \
-    {                                                                                                                     \
-        (request).x          = (object)->panel.contentOriginX.unsignedValue + (xOffset);                                  \
-        (request).y          = (object)->panel.contentOriginY.unsignedValue - (yBias);                                    \
-        (request).y         += (textY);                                                                                   \
-        (index)              = (object)->panel.otIndex.signedValue;                                                       \
-        (request).colorRgb   = (color);                                                                                   \
-        (request).glyphTable = TEXT_GLYPH_TABLE_SMALL;                                                                    \
-        (request).alignment  = (alignmentValue);                                                                          \
-        (request).drawMode   = TEXT_DRAW_OUTLINED;                                                                        \
-        (request).otIndex    = (index) + 1;                                                                               \
-        textDrawString(&(request), (caption));                                                                            \
+    /// `request` is an independent writable TextDrawReq and `object` a live
+    /// UiObject pointer; both are evaluated repeatedly without side effects.
+    /// Offsets and Y bias are content-relative pixels. Y narrows to s16 before
+    /// and after adding `textY`; fill and outline use panel OT entries +1/+2.
+    /// `packedRgb` packs RGB in its low 24 bits; alignment selects TEXT_ALIGNMENT_*.
+    /// Drawing borrows the encoded caption and request, advances the pen and
+    /// initializes V bias. Arguments must not refer to the local `panelOtIndex`.
+#define REPLAY_BONUS_DRAW_COMPLETE_HEADING(request, object, xOffset, textY, yBias, packedRgb, alignmentValue, caption) \
+    {                                                                                                                  \
+        s32 panelOtIndex;                                                                                              \
+        (request).x          = (object)->panel.contentOriginX.unsignedValue + (xOffset);                               \
+        (request).y          = (object)->panel.contentOriginY.unsignedValue - (yBias);                                 \
+        (request).y         += (textY);                                                                                \
+        panelOtIndex         = (object)->panel.otIndex.signedValue;                                                    \
+        (request).colorRgb   = (packedRgb);                                                                            \
+        (request).glyphTable = TEXT_GLYPH_TABLE_SMALL;                                                                 \
+        (request).alignment  = (alignmentValue);                                                                       \
+        (request).drawMode   = TEXT_DRAW_OUTLINED;                                                                     \
+        (request).otIndex    = panelOtIndex + 1;                                                                       \
+        textDrawString(&(request), (caption));                                                                         \
     }
 
     u8                  bpText[0x20];
@@ -449,9 +456,6 @@ void replayBonusCompleteBonusPanelTask(Task* task)
     s32                 holdTicksLeft;
     s32                 leftInset;
     s32                 textY;
-    s32                 itemOtIndex;
-    s32                 bonusOtIndex;
-    s32                 totalOtIndex;
     s32                 textColor;
     s32                 balanceExp;
     s32                 earnedExp;
@@ -575,15 +579,15 @@ void replayBonusCompleteBonusPanelTask(Task* task)
     uiDrawHorizontalSeparator(&object->panel, leftInset, object->panel.contentRight.signedValue - 2, textY);
     textColor = REPLAY_BONUS_PANEL_TEXT_COLOR;
 
-    REPLAY_BONUS_DRAW_COMPLETE_HEADING(itemHeading, object, leftInset, textY, 4, textColor, TEXT_ALIGNMENT_LEFT, itemOtIndex, _gReplayBonusGetItemHeading);
+    REPLAY_BONUS_DRAW_COMPLETE_HEADING(itemHeading, object, leftInset, textY, 4, textColor, TEXT_ALIGNMENT_LEFT, _gReplayBonusGetItemHeading);
 
-    REPLAY_BONUS_DRAW_COMPLETE_HEADING(bonusHeading, object, -leftInset, textY, 4, textColor, TEXT_ALIGNMENT_RIGHT, bonusOtIndex, _gReplayBonusBonusBpHeading);
+    REPLAY_BONUS_DRAW_COMPLETE_HEADING(bonusHeading, object, -leftInset, textY, 4, textColor, TEXT_ALIGNMENT_RIGHT, _gReplayBonusBonusBpHeading);
 
     contentBottom = object->panel.contentBottom.signedValue;
     textY         = contentBottom - 1;
     uiDrawHorizontalSeparator(&object->panel, object->panel.contentLeft.signedValue + 2, object->panel.contentRight.signedValue - 2, contentBottom - 0x10);
 
-    REPLAY_BONUS_DRAW_COMPLETE_HEADING(totalHeading, object, 0x70 + leftInset, textY, 6, textColor, TEXT_ALIGNMENT_RIGHT, totalOtIndex, _gReplayBonusTotalBpHeading);
+    REPLAY_BONUS_DRAW_COMPLETE_HEADING(totalHeading, object, 0x70 + leftInset, textY, 6, textColor, TEXT_ALIGNMENT_RIGHT, _gReplayBonusTotalBpHeading);
 
     displayedTotalBp = _replayBonusGetDisplayedTotalBp(list, object);
     textDrawUiLine(object, -leftInset, textY, textItoaUnsigned(bpText, (u32)displayedTotalBp), REPLAY_BONUS_PANEL_TEXT_COLOR, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
@@ -609,22 +613,26 @@ void replayBonusBalancePanelTask(Task* task)
         REPLAY_BONUS_BALANCE_HOLD       = 1,
     };
 
-    /// Builds and draws a small outlined EXP/BP label using the caller's request.
+    /// Draws a left-aligned small outlined EXP/BP label on either balance panel.
     ///
-    /// Arguments are side-effect-free lvalues/scalars, evaluated repeatedly.
-    /// The request, object and OT index must refer to distinct objects. Pixel
-    /// coordinates are relative to the panel origin; preserves request order.
-#define REPLAY_BONUS_DRAW_BALANCE_LABEL(request, object, xOffset, yOffset, color, index, caption) \
-    {                                                                                             \
-        (request).x          = (object)->panel.contentOriginX.unsignedValue + (xOffset);          \
-        (request).y          = (object)->panel.contentOriginY.unsignedValue + (yOffset);          \
-        (index)              = (object)->panel.otIndex.signedValue;                               \
-        (request).colorRgb   = (color);                                                           \
-        (request).glyphTable = TEXT_GLYPH_TABLE_SMALL;                                            \
-        (request).alignment  = TEXT_ALIGNMENT_LEFT;                                               \
-        (request).drawMode   = TEXT_DRAW_OUTLINED;                                                \
-        (request).otIndex    = (index) + 1;                                                       \
-        textDrawString(&(request), (caption));                                                    \
+    /// `request` is an independent writable TextDrawReq and `object` a live
+    /// UiObject pointer; both are evaluated repeatedly without side effects.
+    /// Offsets are content-relative pixels, narrowed to s16. `packedRgb` packs
+    /// RGB in its low 24 bits. Fill and outline use panel OT entries +1/+2.
+    /// Drawing borrows the encoded caption and request, advances the pen and
+    /// initializes V bias. Arguments must not refer to the local `panelOtIndex`.
+#define REPLAY_BONUS_DRAW_BALANCE_LABEL(request, object, xOffset, yOffset, packedRgb, caption) \
+    {                                                                                          \
+        s32 panelOtIndex;                                                                      \
+        (request).x          = (object)->panel.contentOriginX.unsignedValue + (xOffset);       \
+        (request).y          = (object)->panel.contentOriginY.unsignedValue + (yOffset);       \
+        panelOtIndex         = (object)->panel.otIndex.signedValue;                            \
+        (request).colorRgb   = (packedRgb);                                                    \
+        (request).glyphTable = TEXT_GLYPH_TABLE_SMALL;                                         \
+        (request).alignment  = TEXT_ALIGNMENT_LEFT;                                            \
+        (request).drawMode   = TEXT_DRAW_OUTLINED;                                             \
+        (request).otIndex    = panelOtIndex + 1;                                               \
+        textDrawString(&(request), (caption));                                                 \
     }
 
     u8                  numberText[0x20];
@@ -639,8 +647,6 @@ void replayBonusBalancePanelTask(Task* task)
     s32                 textColor;
     s32                 balance;
     s32                 holdTicksLeft;
-    s32                 expOtIndex;
-    s32                 bpOtIndex;
     s32                 childResult;
 
     playerStatus = &gPlayerStatus;
@@ -657,14 +663,14 @@ void replayBonusBalancePanelTask(Task* task)
     }
     textColor = REPLAY_BONUS_PANEL_TEXT_COLOR;
     leftInset = object->panel.contentLeft.signedValue + 2;
-    REPLAY_BONUS_DRAW_BALANCE_LABEL(expLabel, object, leftInset, -8, textColor, expOtIndex, _gReplayBonusExpLabel);
+    REPLAY_BONUS_DRAW_BALANCE_LABEL(expLabel, object, leftInset, -8, textColor, _gReplayBonusExpLabel);
     balance = playerStatus->exp;
     if (task->spawnArg1.value == REPLAY_BONUS_BALANCE_NEXT) {
         balance = gReplayBonusTotals.nextExp;
     }
     rightInset = -leftInset;
     textDrawUiLine(object, rightInset, -2, textItoaSigned(numberText, balance), textColor, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
-    REPLAY_BONUS_DRAW_BALANCE_LABEL(bpLabel, object, leftInset, 0xB, textColor, bpOtIndex, _gReplayBonusBpLabel);
+    REPLAY_BONUS_DRAW_BALANCE_LABEL(bpLabel, object, leftInset, 0xB, textColor, _gReplayBonusBpLabel);
     balance = gReplayBonusTotals.totalBp;
     if (task->spawnArg1.value == REPLAY_BONUS_BALANCE_NEXT) {
         balance = gReplayBonusTotals.nextBp;
@@ -880,6 +886,27 @@ void replayBonusExtraBpPanelTask(Task* task)
     }
 }
 
+/// Retains the highest cleared-run PE ability level offered by the replay shop.
+///
+/// `abilitySlot` is 0..11 in attachment-wheel order. Borrows the completed run's
+/// saved level byte (0..3), which must remain live and not overlap the live stock.
+/// Raises its two-bit field in the live save without changing other slots or
+/// the upper eight bits. The live save already contains the prior shop stock.
+static inline void _replayBonusRetainShopAbilityLevel(s32 abilitySlot, const u8* learnedLevel)
+{
+    enum {
+        REPLAY_BONUS_SHOP_STOCK_LEVEL_BITS = 2,
+        REPLAY_BONUS_SHOP_STOCK_LEVEL_MASK = 3,
+    };
+    s32 stockLevelShift;
+
+    stockLevelShift = abilitySlot * REPLAY_BONUS_SHOP_STOCK_LEVEL_BITS;
+    if ((s32)((gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.shopStock >> stockLevelShift) & REPLAY_BONUS_SHOP_STOCK_LEVEL_MASK) < *learnedLevel) {
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.shopStock &= ~(REPLAY_BONUS_SHOP_STOCK_LEVEL_MASK << stockLevelShift);
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.shopStock |= *learnedLevel << stockLevelShift;
+    }
+}
+
 void replayBonusPrepareClearedSave(void)
 {
     enum {
@@ -892,24 +919,7 @@ void replayBonusPrepareClearedSave(void)
         REPLAY_BONUS_RANK_FIRST                = 1,
         REPLAY_BONUS_RANK_HIGH                 = 2,
         REPLAY_BONUS_CARRIED_ABILITY_USE_COUNT = 18,
-        REPLAY_BONUS_SHOP_STOCK_LEVEL_BITS     = 2,
-        REPLAY_BONUS_SHOP_STOCK_LEVEL_MASK     = 3,
     };
-    /// Retains the highest learned level in one packed two-bit shop slot.
-    ///
-    /// `slot` is 0..11 and `level` is 0..3; both must be side-effect-free.
-    /// `shift` is a separate writable s32 lvalue; `level` must not alias stock.
-    /// Arguments are evaluated
-    /// repeatedly. The live save owns the stock, which is updated in place.
-#define REPLAY_BONUS_RETAIN_SHOP_ABILITY_LEVEL(slot, level, shift)                                                                   \
-    {                                                                                                                                \
-        (shift) = (slot) * REPLAY_BONUS_SHOP_STOCK_LEVEL_BITS;                                                                       \
-        if ((s32)((gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.shopStock >> (shift)) & REPLAY_BONUS_SHOP_STOCK_LEVEL_MASK) < (level)) { \
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.shopStock &= ~(REPLAY_BONUS_SHOP_STOCK_LEVEL_MASK << (shift));                  \
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.shopStock |= (level) << (shift);                                                \
-        }                                                                                                                            \
-    }
-
     McSaveData    completedSave;
     McSaveData*   newSave;
     McSaveData*   saveData;
@@ -918,7 +928,6 @@ void replayBonusPrepareClearedSave(void)
     s32           historyIndex;
     s32           abilitySlot;
     s32           nextBp;
-    s32           stockLevelShift;
     s32           nextExp;
 
     // Reset run progress, then restore persistent options and history.
@@ -990,12 +999,11 @@ void replayBonusPrepareClearedSave(void)
     learnedLevel = completedSave.state.attachLevels;
     abilitySlot  = 0;
     do {
-        REPLAY_BONUS_RETAIN_SHOP_ABILITY_LEVEL(abilitySlot, *learnedLevel, stockLevelShift);
+        _replayBonusRetainShopAbilityLevel(abilitySlot, learnedLevel);
         abilitySlot  += 1;
         learnedLevel += 1;
     } while (abilitySlot < ATTACHMENT_SPELL_COUNT);
     if (gReplayBonusTotals.shopTier >= 0) {
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.shopTiers |= 1 << gReplayBonusTotals.shopTier;
     }
-#undef REPLAY_BONUS_RETAIN_SHOP_ABILITY_LEVEL
 }

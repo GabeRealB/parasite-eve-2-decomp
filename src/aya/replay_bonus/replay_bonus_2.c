@@ -803,23 +803,29 @@ static void _replayBonusDrawCreditsRow(s32 bottomY, ReplayBonusStfCommand* comma
         REPLAY_BONUS_STF_VRAM_X_MASK         = 0x3FF,
         REPLAY_BONUS_STF_VRAM_PAGE_X_SHIFT   = 6,
     };
-    /// Selects a run's left edge from the current relocated layout columns.
+    /// Sets a credits text, picture or sprite run's left edge from its column anchor.
     ///
-    /// Scalar arguments must be side-effect-free identifiers or constants;
-    /// `resultX` is a distinct s16 lvalue initialized to zero. Width narrows
-    /// to s16 for centring, and the assignment narrows the selected edge.
-    /// Uses this function's anchor constants and the live STF parameter table.
-#define REPLAY_BONUS_SELECT_CREDITS_ANCHOR(column, mode, width, resultX)                            \
-    switch ((u8)(mode)) {                                                                           \
-        case REPLAY_BONUS_STF_ANCHOR_CENTER:                                                        \
-            (resultX) = _gReplayBonusCreditsParams->columns[(column)].centerX - ((s16)(width) / 2); \
-            break;                                                                                  \
-        case REPLAY_BONUS_STF_ANCHOR_LEFT:                                                          \
-            (resultX) = _gReplayBonusCreditsParams->columns[(column)].leftX;                        \
-            break;                                                                                  \
-        case REPLAY_BONUS_STF_ANCHOR_RIGHT:                                                         \
-            (resultX) = _gReplayBonusCreditsParams->columns[(column)].rightX - (width);             \
-            break;                                                                                  \
+    /// Captures the live relocated `_gReplayBonusCreditsParams` and this function's
+    /// REPLAY_BONUS_STF_ANCHOR_* constants. `columnIndex` is 0..7; `anchorMode`'s
+    /// low byte selects 0 centre, 1 left or 2 right. Other modes leave the output
+    /// unchanged, so callers initialize their independent s16 `runLeftX` to zero.
+    /// Inputs are side-effect-free scalars, each read once on the selected path.
+    /// Width is a pixel span; anchors are pixels from the 640-pixel screen's left edge.
+    /// Only centring narrows width to s16, then halves it toward zero; every
+    /// output narrows to s16. Drawing later subtracts the screen's half-width.
+#define REPLAY_BONUS_SET_CREDITS_RUN_LEFT_X(columnIndex, anchorMode, widthPixels, runLeftX)                         \
+    {                                                                                                               \
+        switch ((u8)(anchorMode)) {                                                                                 \
+            case REPLAY_BONUS_STF_ANCHOR_CENTER:                                                                    \
+                (runLeftX) = _gReplayBonusCreditsParams->columns[(columnIndex)].centerX - ((s16)(widthPixels) / 2); \
+                break;                                                                                              \
+            case REPLAY_BONUS_STF_ANCHOR_LEFT:                                                                      \
+                (runLeftX) = _gReplayBonusCreditsParams->columns[(columnIndex)].leftX;                              \
+                break;                                                                                              \
+            case REPLAY_BONUS_STF_ANCHOR_RIGHT:                                                                     \
+                (runLeftX) = _gReplayBonusCreditsParams->columns[(columnIndex)].rightX - (widthPixels);             \
+                break;                                                                                              \
+        }                                                                                                           \
     }
 
     s32                        paletteIndex;
@@ -865,7 +871,7 @@ static void _replayBonusDrawCreditsRow(s32 bottomY, ReplayBonusStfCommand* comma
                         glyphOffset++;
                     }
                     penX = 0;
-                    REPLAY_BONUS_SELECT_CREDITS_ANCHOR(columnIndex, anchorMode, drawWidth, penX);
+                    REPLAY_BONUS_SET_CREDITS_RUN_LEFT_X(columnIndex, anchorMode, drawWidth, penX);
                     penX       -= REPLAY_BONUS_CREDITS_HALF_WIDTH;
                     glyphOffset = 0;
                     while (commands[commandIndex + glyphOffset].op == REPLAY_BONUS_STF_COMMAND_GLYPH) {
@@ -934,7 +940,7 @@ static void _replayBonusDrawCreditsRow(s32 bottomY, ReplayBonusStfCommand* comma
                     if (imageIndex != REPLAY_BONUS_STF_PICTURE_STARTED) {
                         // Mark before spawning: visible rows are interpreted again next frame.
                         commands[commandIndex].arg = REPLAY_BONUS_STF_PICTURE_STARTED;
-                        REPLAY_BONUS_SELECT_CREDITS_ANCHOR(columnIndex, anchorMode, REPLAY_BONUS_PICTURE_WIDTH, penX);
+                        REPLAY_BONUS_SET_CREDITS_RUN_LEFT_X(columnIndex, anchorMode, REPLAY_BONUS_PICTURE_WIDTH, penX);
                         _gReplayBonusCreditsPictureLeftX = penX;
                         taskSpawnFromTable(gReplayBonusCreditsTaskDescriptors, REPLAY_BONUS_CREDITS_PICTURE_TASK_INDEX, imageIndex + 1, 0);
                     }
@@ -943,7 +949,7 @@ static void _replayBonusDrawCreditsRow(s32 bottomY, ReplayBonusStfCommand* comma
                     imageIndex = commands[commandIndex].arg;
                     drawWidth  = _gReplayBonusCreditsSprites[imageIndex].width;
                     penX       = 0;
-                    REPLAY_BONUS_SELECT_CREDITS_ANCHOR(columnIndex, anchorMode, drawWidth, penX);
+                    REPLAY_BONUS_SET_CREDITS_RUN_LEFT_X(columnIndex, anchorMode, drawWidth, penX);
                     pixelsPerVramWordShift = 2;
                     texturePageX           = _gReplayBonusCreditsSprites[imageIndex].tpageX;
                     textureU               = _gReplayBonusCreditsSprites[imageIndex].u;
@@ -1001,7 +1007,7 @@ static void _replayBonusDrawCreditsRow(s32 bottomY, ReplayBonusStfCommand* comma
             commandIndex++;
         } while (commands[commandIndex].op != REPLAY_BONUS_STF_COMMAND_END);
     }
-#undef REPLAY_BONUS_SELECT_CREDITS_ANCHOR
+#undef REPLAY_BONUS_SET_CREDITS_RUN_LEFT_X
 }
 
 /// Relocates a writable STF credits file in place and publishes its drawing tables.
