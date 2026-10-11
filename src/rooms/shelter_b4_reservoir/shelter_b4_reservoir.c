@@ -506,11 +506,17 @@ static struct {
 } _gShelterB4ReservoirMainWaterPlacement = { 0, { 0xC3, 0x96 } };
 STATIC_ASSERT_SIZEOF(_gShelterB4ReservoirMainWaterPlacement, 4);
 
-/// World-coordinate geometry for the reservoir's ambient glow drawing.
+/// Endpoint pairs and event-disc centre for the reservoir's ambient glows.
+///
+/// Each capsule uses exactly two consecutive XYZ points; mapped view selects
+/// among six pairs. The disc tint reflects the reservoir event's completion.
+/// Coordinates are signed whole world units and borrowed only during drawing;
+/// fourth halfwords are not consumed. The last eight stored bytes have no consumer,
+/// so its role and membership in the glow geometry remain unproven.
 typedef struct {
     SVECTOR capsuleEndpoints[6][2]; // Six independent endpoint pairs, selected by mapped view
     SVECTOR eventIndicator;         // Disc centre whose tint reflects event completion
-    SVECTOR field_68;               // Retained vector with no reads; role unproven
+    byte    field_68[8];            // Retained bytes; format, role and object boundary unproven
 } _ShelterB4ReservoirGlowPoints;
 STATIC_ASSERT_SIZEOF(_ShelterB4ReservoirGlowPoints, 0x70);
 
@@ -528,7 +534,7 @@ static _ShelterB4ReservoirGlowPoints _gShelterB4ReservoirGlowPoints = {
         { { 3920, -2390, -3000, 0 }, { 5080, -2390, -3000, 0 } },
     },
     { -2640, -2980, 4900, 0 },
-    { -2640, -2980, 4800, 0 },
+    { 0xB0, 0xF5, 0x5C, 0xF4, 0xC0, 0x12, 0, 0 },
 };
 
 /// World-coordinate anchor for burst points scattered in the YZ plane.
@@ -537,14 +543,20 @@ static _ShelterB4ReservoirGlowPoints _gShelterB4ReservoirGlowPoints = {
 /// halfword is unused; scattering copies XYZ without retaining this pointer.
 static SVECTOR _gShelterB4ReservoirBurstAnchor = { -1000, -1000, -5000, 0 };
 
-/// Fixed spray origin and water-surface origin for view-10 particles.
+/// Spray and ripple placement inputs for mapped reservoir view 10.
+///
+/// The fixed origin emits rotated spray. The second emits upright spray and
+/// ripples at the current view-10 water-plane Y, refreshed before spawning.
+/// XYZ use signed whole game units in the current GsWSMATRIX's input space;
+/// spawning snapshots them and retains a borrowed pointer to the room storage.
+/// Neither origin's fourth halfword is consumed.
 typedef struct {
-    SVECTOR fixedSpray;   // Fixed source for rotated spray
-    SVECTOR waterSurface; // Upright spray/ripple source; Y follows the view-10 plane
+    SVECTOR fixedSpray;   // Fixed origin for rotated spray
+    SVECTOR waterSurface; // Upright spray/ripple origin; Y follows the view-10 water plane
 } _ShelterB4ReservoirView10WaterEffectPoints;
 STATIC_ASSERT_SIZEOF(_ShelterB4ReservoirView10WaterEffectPoints, 0x10);
 
-/// View-10 spray and ripple positions in signed world-coordinate units.
+/// View-10 spray and ripple placement in signed whole game units.
 ///
 /// The surface Y is refreshed before spawning. The effect spawner copies XYZ
 /// and retains borrowed offsets; this storage stays live with the room.

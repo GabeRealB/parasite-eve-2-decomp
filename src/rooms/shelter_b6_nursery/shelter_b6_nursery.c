@@ -89,15 +89,16 @@ typedef struct {
 } _ShelterB6NurseryEffectCues;
 STATIC_ASSERT_SIZEOF(_ShelterB6NurseryEffectCues, 0x4);
 
-/// Room-space origins used by the nursery's view-effect controller.
+/// Glint position and particle-placement inputs for the nursery's view effects.
 ///
-/// Coordinates are signed whole game units. Only `sparkShowerOrigin` is
-/// rewritten; each spawn snapshots XYZ while retaining the origin's address.
+/// XYZ are signed whole game units; the fourth halfwords are not consumed.
+/// The glint is projected from world space. Spawn origins are transformed by
+/// the current GsWSMATRIX, with XYZ copied before the next spawn changes them.
+/// Only `sparkShowerOrigin` is rewritten. The room owns all seven vectors.
 typedef struct {
     SVECTOR glint;                     // Glint centre for views 3, 6, 8, 10 and 17
     SVECTOR debrisOrigin;              // Three model chunks spawned on the first visit to view 12
-    SVECTOR latchedParticleOriginA;    // First emitter active after visiting view 13
-    SVECTOR latchedParticleOriginB;    // Second emitter active after visiting view 13
+    SVECTOR latchedParticleOrigins[2]; // Both emitters stay active after visiting view 13
     SVECTOR view17And18ParticleOrigin; // Particle emitter shared by views 17 and 18
     SVECTOR view15ParticleOrigin;      // Particle emitter active in view 15
     SVECTOR sparkShowerOrigin;         // Mutable origin rebuilt for each of the sixteen cued shards
@@ -260,8 +261,7 @@ static s8 _gShelterB6NurseryAmbienceDepthOverrides[24] = {
 static _ShelterB6NurseryEffectAnchors _gShelterB6NurseryEffectAnchors = {
     .glint                     = { 6170, -80, -860, 0 },
     .debrisOrigin              = { 3000, -1000, 0, 0 },
-    .latchedParticleOriginA    = { 5500, 0, 2500, 0 },
-    .latchedParticleOriginB    = { 6000, 0, 0, 0 },
+    .latchedParticleOrigins    = { { 5500, 0, 2500, 0 }, { 6000, 0, 0, 0 } },
     .view17And18ParticleOrigin = { 4000, 0, -1000, 0 },
     .view15ParticleOrigin      = { 2000, 0, 0, 0 },
     .sparkShowerOrigin         = { 7000, -1500, 2000, 0 },
@@ -1396,9 +1396,9 @@ void shelterB6NurseryViewEffectsTask(Task* task)
     // Visiting view 13 latches these two emitters for the rest of the task.
     if (task->state == VIEW_EFFECT_SHOWER_ANCHORS_ACTIVE && !(gDisplayState.animFrame & 1)) {
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        effectSpawn(EFFECT_1A4, NULL, ((gRandomLcgState >> 16) & AMBIENT_PARTICLE_RANDOM_MASK) + AMBIENT_PARTICLE_SPAWN_BASE, &_gShelterB6NurseryEffectAnchors.latchedParticleOriginA);
+        effectSpawn(EFFECT_1A4, NULL, ((gRandomLcgState >> 16) & AMBIENT_PARTICLE_RANDOM_MASK) + AMBIENT_PARTICLE_SPAWN_BASE, &_gShelterB6NurseryEffectAnchors.latchedParticleOrigins[0]);
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        effectSpawn(EFFECT_1A4, NULL, ((gRandomLcgState >> 16) & AMBIENT_PARTICLE_RANDOM_MASK) + AMBIENT_PARTICLE_SPAWN_BASE, &_gShelterB6NurseryEffectAnchors.latchedParticleOriginB);
+        effectSpawn(EFFECT_1A4, NULL, ((gRandomLcgState >> 16) & AMBIENT_PARTICLE_RANDOM_MASK) + AMBIENT_PARTICLE_SPAWN_BASE, &_gShelterB6NurseryEffectAnchors.latchedParticleOrigins[1]);
     }
 }
 

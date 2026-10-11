@@ -68,10 +68,12 @@ static void _roomCutsceneTask(Task* task);
 
 static void _roomCutsceneSoundTask(Task* task);
 
-/// Saved prompt view and the three retained bytes following it.
+/// Logical camera view held across the refuge's cutscene confirmation prompt.
 ///
-/// Only restoreView is accessed. The trailing nonzero bytes have no recovered
-/// use; their role and membership in this object remain unproven.
+/// Snapshots the live saved-location view before the prompt selects view 6.
+/// Refusal restores it; acceptance gives it to the cutscene for restoration
+/// on completion. Only one prompt may own this snapshot at a time. The three
+/// following stored bytes have no proven role or relationship to the snapshot.
 typedef struct {
     u8 restoreView;  // Logical view restored on refusal or passed to the accepted cutscene
     u8 unknown_1[3]; // Retained bytes; role and object boundary unproven

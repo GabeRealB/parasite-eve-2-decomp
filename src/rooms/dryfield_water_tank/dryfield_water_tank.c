@@ -144,14 +144,19 @@ enum {
     DRYFIELD_WATER_TANK_PLAYER_PATH_PRIORITY            = 192,
 };
 
-/// Player clip pointers and their copy request, also transferred as raw words.
+/// Player-path clips and the word span installed in the equipped animation bank.
 ///
-/// The source span includes the request's own source pointer, but not its count.
+/// The twenty-word transfer installs NULL and eighteen room clips at bank
+/// indices 47..65, followed by the request's own source address at index 66.
+/// That last entry is payload data and must not be played. The complete word
+/// view bounds the transfer across the clip table and request; only its final
+/// count word is excluded. Dispatch borrows the request synchronously, and the
+/// clips must remain loaded while the equipped bank plays them.
 typedef union {
     struct {
         AnimationSet*            sets[DRYFIELD_WATER_TANK_PLAYER_EXTENSION_SET_COUNT];                          // Slots 47..65; slot 47 is NULL
         AnimationBankCopyRequest copy;                                                                          // Installs slots 47..66 in the equipped bank
-    } data;                                                                                                     // Typed records sharing the transferred storage
+    } data;                                                                                                     // Clip table and self-referencing request
     s32 words[DRYFIELD_WATER_TANK_PLAYER_EXTENSION_SET_COUNT + sizeof(AnimationBankCopyRequest) / sizeof(s32)]; // Complete raw span; final count word is not copied
 } _DryfieldWaterTankPlayerAnimationBankExtensionStorage;
 STATIC_ASSERT_SIZEOF(_DryfieldWaterTankPlayerAnimationBankExtensionStorage, 0x54);

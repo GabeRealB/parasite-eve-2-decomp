@@ -56,10 +56,15 @@ typedef struct {
 } _DryfieldNightMotelLoftTriScratch;
 STATIC_ASSERT_SIZEOF(_DryfieldNightMotelLoftTriScratch, 0x20);
 
-/// Fixed light positions and the reusable coordinate passed to shard spawns.
+/// Ceiling-light centres and reusable falling-shard placement for the night loft.
+///
+/// The six flare centres are world-space inputs to projection. Shard XYZ are
+/// overwritten for each spawn and transformed by the current GsWSMATRIX;
+/// effects snapshot the position before the next overwrite. All coordinates
+/// use signed whole game units; none of the fourth halfwords is consumed.
 typedef struct {
-    SVECTOR flareAnchors[6]; // Fixed flare centres in integer world units
-    SVECTOR shardSpawn;      // Mutable world-matrix input; each spawn overwrites XYZ
+    const SVECTOR flareAnchors[6]; // Fixed world-space flare centres
+    SVECTOR       shardSpawn;      // Mutable GsWSMATRIX input; each spawn overwrites XYZ
 } _DryfieldNightMotelLoftFlareAndShardPoints;
 STATIC_ASSERT_SIZEOF(_DryfieldNightMotelLoftFlareAndShardPoints, 0x38);
 
@@ -635,7 +640,7 @@ void dryfieldNightMotelLoftFlaresAndShardsTask(Task* task)
             break;
         case 3:
         case 10: {
-            SVECTOR* viewFlarePoints = &_gDryfieldNightMotelLoftFlareAndShardPoints.flareAnchors[1];
+            const SVECTOR* viewFlarePoints = &_gDryfieldNightMotelLoftFlareAndShardPoints.flareAnchors[1];
 
             glowDrawFlareClipped(&viewFlarePoints[0], DRYFIELD_NIGHT_MOTEL_LOFT_FLARE_TEXTURE, DRYFIELD_NIGHT_MOTEL_LOFT_FLARE_RADIUS_SCALE);
             glowDrawFlareClipped(&viewFlarePoints[1], DRYFIELD_NIGHT_MOTEL_LOFT_FLARE_TEXTURE, DRYFIELD_NIGHT_MOTEL_LOFT_FLARE_RADIUS_SCALE);

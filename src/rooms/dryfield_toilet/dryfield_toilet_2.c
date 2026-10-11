@@ -92,15 +92,19 @@ enum { DRYFIELD_TOILET_LESSER_STRANGER_MORPH_NORMAL_COUNT = 1604 };
 static SVECTOR _gDryfieldToiletLesserStrangerMorphSavedVertices[326];
 static SVECTOR _gDryfieldToiletLesserStrangerMorphSavedNormals[DRYFIELD_TOILET_LESSER_STRANGER_MORPH_NORMAL_COUNT];
 
-/// Typed encounter clips and their request, also read as a contiguous raw-word source.
+/// Player encounter clips and the word span installed in the equipped animation bank.
 ///
-/// The four-word transfer includes the three clip pointers and the request's
-/// own source pointer. The fifth word is the request count and is not copied.
+/// Both encounter paths install four words at bank indices 47..50: NULL, two
+/// playable room clips and the copy request's own source address. Index 50 is
+/// payload data and must not be played. The word view keeps that transfer in
+/// bounds across the clip table and request; its fifth word is the uncopied
+/// count. Dispatch borrows the request synchronously, and playback borrows the
+/// room's clips for as long as the equipped bank uses them.
 typedef union {
     struct {
         AnimationSet*            sets[3]; // Player extension slots 47..49; slot 47 is empty
         AnimationBankCopyRequest copy;    // Borrowed four-word copy request sent by both scripts
-    } data;                               // Typed payloads occupying the same serialized word span
+    } data;                               // Clip table and self-referencing request
     s32 words[5];                         // Raw source view; only words 0..3 are copied
 } _DryfieldToiletPlayerAnimationBankExtensionStorage;
 STATIC_ASSERT_SIZEOF(_DryfieldToiletPlayerAnimationBankExtensionStorage, 0x14);

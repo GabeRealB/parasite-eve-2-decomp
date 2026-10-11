@@ -349,13 +349,15 @@ static DR_MOVE* _gAcropolisBridgeStreakMoveCursor;
 static void _actionPromptResetDefault(Task* task);
 static void _acropolisBridgeWaitForKeypadResult(Task* task);
 
-/// Captured movie frame with an adjacent halfword of unproven ownership.
+/// Keypad-movie position used to synchronize the bridge enemy's height.
 ///
-/// Only `frame` is accessed. The second halfword retains its nonzero image
-/// value; it is not a second frame record or established padding.
+/// The movie task snapshots the decoder's one-based frame number; zero is the
+/// initial value before its first update. Height lookup selects frame + 1 in
+/// the room's 190-point path, requiring movieFrame <= 188. The next two stored
+/// bytes have no established interpretation or containing-object relationship.
 typedef struct {
-    u16 frame;     // Captured STR frame, used at path index frame + 1
-    u16 unknown_2; // Initialized to 0xF222; no consumer or role established
+    u16  movieFrame;   // One-based encoded movie position (0 before the first movie-task update)
+    byte unknown_2[2]; // Retained bytes; format, role and object boundary unproven
 } _AcropolisBridgeMovieFrameStorage;
 STATIC_ASSERT_SIZEOF(_AcropolisBridgeMovieFrameStorage, 4);
 
@@ -3171,14 +3173,14 @@ static Task* _gAcropolisBridgeKeypadMovieTask = NULL;
 /// from the keypad's live exit-result accumulator and retained across spawns.
 static s32 _gAcropolisBridgeKeypadResult = ACROPOLIS_BRIDGE_KEYPAD_CANCELLED;
 
-/// Movie frame published to enemy presentation, with the adjacent stored halfword.
+/// Movie frame published to enemy presentation, with two retained bytes after it.
 ///
-/// The movie task writes `frame` on every non-exiting update, including its
+/// The movie task writes `movieFrame` on every non-exiting update, including its
 /// post-playback delay. It must stay below 189 for the height-path lookup.
-/// The retained second halfword has no established role or separate owner.
+/// The retained bytes have no established format, role or separate owner.
 static _AcropolisBridgeMovieFrameStorage _gAcropolisBridgeMovieFrameStorage = {
-    .frame     = 0,
-    .unknown_2 = 0xF222,
+    .movieFrame = 0,
+    .unknown_2  = { 0x22, 0xF2 },
 };
 
 static void            _acropolisBridgeOffsetArrivalSpriteFrame(s32 frame, s8 offsetX, s8 offsetY);
@@ -3605,7 +3607,7 @@ static void _acropolisBridgeKeypadMovieTask(Task* movieTask)
             break;
     }
     // Publish the STR frame for the enemies, including the post-playback delay.
-    _gAcropolisBridgeMovieFrameStorage.frame = queue->movieFrame;
+    _gAcropolisBridgeMovieFrameStorage.movieFrame = queue->movieFrame;
 }
 
 /// Returns the enemy presentation's signed root Y sample for the current movie frame.
@@ -3616,7 +3618,7 @@ static void _acropolisBridgeKeypadMovieTask(Task* movieTask)
 /// The room path and captured frame must remain live.
 static s16 _acropolisBridgeGetMovieEnemyHeight(void)
 {
-    return _gAcropolisBridgeMovieEnemyHeightPath[_gAcropolisBridgeMovieFrameStorage.frame + 1].vy;
+    return _gAcropolisBridgeMovieEnemyHeightPath[_gAcropolisBridgeMovieFrameStorage.movieFrame + 1].vy;
 }
 
 /// Opens the keypad with owned work and a separately spawned cursor task.
