@@ -30,8 +30,15 @@ enum {
     NEO_ARK_NORTH_PROMENADE_SURFACE_CLASS_COUNT = 8,
 };
 
-// neo_ark_north_promenade
-extern WorldCollisionRoomResources D_neo_ark_north_promenade_80181DB4[];
+/// Collision resources for the single room, indexed by room minus one.
+///
+/// The single room borrows its grid, eight view boundaries, six action triggers and one
+/// sight occluder.
+///
+/// The stage map borrows this directory while the room overlay is loaded. Keep the grid
+/// and its pools live while active, and the mutable trigger/occluder lists live until
+/// unlinked. This directory has no terminator or bounds check.
+extern WorldCollisionRoomResources gNeoArkNorthPromenadeRoomCollisionResources[1];
 
 /// Lighting for room 1: two directional lights and the default ambient minima.
 ///
@@ -51,7 +58,18 @@ extern u8* gNeoArkNorthPromenadeViewMaps[1];
 /// Borrow this signed halfword array only while the promenade overlay is loaded.
 extern ViewCount gNeoArkNorthPromenadeViewCounts[1];
 
-extern DirectionWarpEntry D_neo_ark_north_promenade_80181DD4[];
+/// Warp endpoint records for slots 1..2, indexed by warp minus one.
+///
+/// Slots 1 and 2 serve the Observatory and Forest Zone connections, with arrival views 6
+/// and 2. Slot 1 has no sounds or marker; slot 2 has arrival/departure/blocked sounds
+/// and the Power Plant 1 map marker.
+///
+/// Positions use signed whole world coordinates; yaw uses 4096 units per turn. The two
+/// byte spans have unproven roles and remain zero. The stage map borrows this array;
+/// keep the room overlay loaded through departure or arrival setup. Consumers copy
+/// complete entries and actor spawns borrow their transforms synchronously. There is
+/// no terminator or bounds check.
+extern DirectionWarpEntry gNeoArkNorthPromenadeWarpEntries[2];
 
 /// Cameras for mapped views 1..6, indexed by mapped view - 1.
 ///

@@ -29,6 +29,7 @@
 #include "main/gameflag.h"
 #include "main/gfx.h"
 #include "main/scratch.h"
+#include "main/sound_ids.h"
 #include "main/sound_types.h"
 #include "main/task_types.h"
 
@@ -73,11 +74,61 @@ u8* gShelterB1ArmoryRoomViewMaps[1] = {
 
 ViewCount gShelterB1ArmoryRoomViewCounts[1] = { 13 };
 
-DirectionWarpEntry D_shelter_b1_armory_80182588[4] = {
-    { { { .word = 1024 }, 0, 0, 2100 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 0, 0, 2100 }, { 0, 0, 0, 0 }, 0x540D0004, 0x540D0003, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
-    { { { .word = 2048 }, 6425, 0, 3054 }, { 0, 0, 0, 0 }, { { .word = 2048 }, 6425, 0, 3054 }, { 0, 0, 0, 0 }, 0x540D0002, 0x540D0001, DIRECTION_WARP_SOUND_NONE, 5, DIRECTION_WARP_FLAG_NONE, 460 },
-    { { { .word = 3072 }, 4700, 0, -1300 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 4700, 0, -1300 }, { 0, 0, 0, 0 }, 0x540D0007, 0x540D0006, 0x540D000A, 3, DIRECTION_WARP_FLAG_NONE, 429 },
-    { { { .word = 1024 }, 5900, 0, -1820 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 5900, 0, -1820 }, { 0, 0, 0, 0 }, 0x540D0007, 0x540D0006, 0x540D000A, 4, DIRECTION_WARP_FLAG_NONE, 429 },
+// Optional door map-marker nibble IDs stored by these endpoints.
+enum {
+    SHELTER_B1_ARMORY_STOREROOM_MAP_FLAG     = 460,
+    SHELTER_B1_ARMORY_INTERNAL_DOOR_MAP_FLAG = 429,
+};
+
+DirectionWarpEntry gShelterB1ArmoryWarpEntries[4] = {
+    {
+        .player         = { .yaw = { .word = (ACTOR_TRANSFORM_ANGLE_TURN / 4) }, .x = 0, .y = 0, .z = 2100 },
+        .unknown_10     = { 0 },
+        .companion      = { .yaw = { .word = (ACTOR_TRANSFORM_ANGLE_TURN / 4) }, .x = 0, .y = 0, .z = 2100 },
+        .unknown_24     = { 0 },
+        .arrivalSound   = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_ARMORY, 4),
+        .departureSound = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_ARMORY, 3),
+        .blockedSound   = DIRECTION_WARP_SOUND_NONE,
+        .initialView    = 2,
+        .flags          = DIRECTION_WARP_FLAG_NONE,
+        .mapFlagId      = DIRECTION_WARP_MAP_FLAG_NONE,
+    },
+    {
+        .player         = { .yaw = { .word = ACTOR_TRANSFORM_ANGLE_HALF_TURN }, .x = 6425, .y = 0, .z = 3054 },
+        .unknown_10     = { 0 },
+        .companion      = { .yaw = { .word = ACTOR_TRANSFORM_ANGLE_HALF_TURN }, .x = 6425, .y = 0, .z = 3054 },
+        .unknown_24     = { 0 },
+        .arrivalSound   = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_ARMORY, 2),
+        .departureSound = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_ARMORY, 1),
+        .blockedSound   = DIRECTION_WARP_SOUND_NONE,
+        .initialView    = 5,
+        .flags          = DIRECTION_WARP_FLAG_NONE,
+        .mapFlagId      = SHELTER_B1_ARMORY_STOREROOM_MAP_FLAG,
+    },
+    {
+        .player         = { .yaw = { .word = (ACTOR_TRANSFORM_ANGLE_TURN * 3 / 4) }, .x = 4700, .y = 0, .z = -1300 },
+        .unknown_10     = { 0 },
+        .companion      = { .yaw = { .word = (ACTOR_TRANSFORM_ANGLE_TURN * 3 / 4) }, .x = 4700, .y = 0, .z = -1300 },
+        .unknown_24     = { 0 },
+        .arrivalSound   = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_ARMORY, 7),
+        .departureSound = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_ARMORY, 6),
+        .blockedSound   = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_ARMORY, 10),
+        .initialView    = 3,
+        .flags          = DIRECTION_WARP_FLAG_NONE,
+        .mapFlagId      = SHELTER_B1_ARMORY_INTERNAL_DOOR_MAP_FLAG,
+    },
+    {
+        .player         = { .yaw = { .word = (ACTOR_TRANSFORM_ANGLE_TURN / 4) }, .x = 5900, .y = 0, .z = -1820 },
+        .unknown_10     = { 0 },
+        .companion      = { .yaw = { .word = (ACTOR_TRANSFORM_ANGLE_TURN / 4) }, .x = 5900, .y = 0, .z = -1820 },
+        .unknown_24     = { 0 },
+        .arrivalSound   = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_ARMORY, 7),
+        .departureSound = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_ARMORY, 6),
+        .blockedSound   = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_ARMORY, 10),
+        .initialView    = 4,
+        .flags          = DIRECTION_WARP_FLAG_NONE,
+        .mapFlagId      = SHELTER_B1_ARMORY_INTERNAL_DOOR_MAP_FLAG,
+    },
 };
 
 enum {

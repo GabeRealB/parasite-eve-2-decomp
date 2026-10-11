@@ -45,7 +45,19 @@ extern u8* gShelterB1ArmoryRoomViewMaps[1];
 /// is no terminator.
 extern ViewCount gShelterB1ArmoryRoomViewCounts[1];
 
-extern DirectionWarpEntry D_shelter_b1_armory_80182588[];
+/// Warp endpoint records for slots 1..4, indexed by warp minus one.
+///
+/// Slots 1/2 serve the Main Corridor and Storeroom connections, with arrival views 2/5.
+/// Slots 3/4 are opposing internal door endpoints in views 3/4, sharing
+/// arrival/departure/blocked sounds and a marker. Slot 2 marks the storeroom door; slot
+/// 1 has no marker.
+///
+/// Positions use signed whole world coordinates; yaw uses 4096 units per turn. The two
+/// byte spans have unproven roles and remain zero. The stage map borrows this array;
+/// keep the room overlay loaded through departure or arrival setup. Consumers copy
+/// complete entries and actor spawns borrow their transforms synchronously. There is
+/// no terminator or bounds check.
+extern DirectionWarpEntry gShelterB1ArmoryWarpEntries[4];
 
 /// The armory's room-space collision mesh and 4-by-3 XZ cell index.
 ///

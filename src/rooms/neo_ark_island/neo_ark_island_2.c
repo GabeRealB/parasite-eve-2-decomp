@@ -30,6 +30,7 @@
 #include "main/gfx.h"
 #include "main/mem.h"
 #include "main/scratch.h"
+#include "main/sound_ids.h"
 #include "main/task_types.h"
 #include "main/tmd_types.h"
 
@@ -83,8 +84,13 @@ TaskDesc gNeoArkIslandGalleryDepartureTaskDesc = {
 
 #include "../../shared/room_visual_effects_trail_data.inc.c"
 
-WorldCollisionRoomResources D_neo_ark_island_80181B94[1] = {
-    { &gNeoArkIslandCollisionGrid, gNeoArkIslandViewBoundaryTriggers, gNeoArkIslandActionTriggers, NULL },
+WorldCollisionRoomResources gNeoArkIslandRoomCollisionResources[1] = {
+    {
+        .grid                 = &gNeoArkIslandCollisionGrid,
+        .viewBoundaryTriggers = gNeoArkIslandViewBoundaryTriggers,
+        .actionTriggers       = gNeoArkIslandActionTriggers,
+        .occluders            = NULL,
+    },
 };
 
 WorldCoordRoomLighting gNeoArkIslandRoomLighting[1] = {
@@ -97,9 +103,31 @@ u8* gNeoArkIslandViewMaps[1] = {
 
 ViewCount gNeoArkIslandViewCounts[1] = { NEO_ARK_ISLAND_VIEW_RESOURCE_COUNT };
 
-DirectionWarpEntry D_neo_ark_island_80181BB4[2] = {
-    { { { .word = 2048 }, 3100, 0, 6464 }, { 0, 0, 0, 0 }, { { .word = 2048 }, 3100, 0, 6464 }, { 0, 0, 0, 0 }, 0x550E0002, 0x550E0001, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
-    { { { .word = ACTOR_SPAWN_YAW_KEEP_FACING }, 5300, 0, -1900 }, { 0, 0, 0, 0 }, { { .word = ACTOR_SPAWN_YAW_KEEP_FACING }, 5300, 0, -1900 }, { 0, 0, 0, 0 }, 0x550E0004, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 4, DIRECTION_WARP_FLAG_FADE_DEPARTURE, DIRECTION_WARP_MAP_FLAG_NONE },
+DirectionWarpEntry gNeoArkIslandWarpEntries[2] = {
+    {
+        .player         = { .yaw = { .word = ACTOR_TRANSFORM_ANGLE_HALF_TURN }, .x = 3100, .y = 0, .z = 6464 },
+        .unknown_10     = { 0 },
+        .companion      = { .yaw = { .word = ACTOR_TRANSFORM_ANGLE_HALF_TURN }, .x = 3100, .y = 0, .z = 6464 },
+        .unknown_24     = { 0 },
+        .arrivalSound   = SOUND_AREA(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_ISLAND, 2),
+        .departureSound = SOUND_AREA(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_ISLAND, 1),
+        .blockedSound   = DIRECTION_WARP_SOUND_NONE,
+        .initialView    = 2,
+        .flags          = DIRECTION_WARP_FLAG_NONE,
+        .mapFlagId      = DIRECTION_WARP_MAP_FLAG_NONE,
+    },
+    {
+        .player         = { .yaw = { .word = ACTOR_SPAWN_YAW_KEEP_FACING }, .x = 5300, .y = 0, .z = -1900 },
+        .unknown_10     = { 0 },
+        .companion      = { .yaw = { .word = ACTOR_SPAWN_YAW_KEEP_FACING }, .x = 5300, .y = 0, .z = -1900 },
+        .unknown_24     = { 0 },
+        .arrivalSound   = SOUND_AREA(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_ISLAND, 4),
+        .departureSound = DIRECTION_WARP_SOUND_NONE,
+        .blockedSound   = DIRECTION_WARP_SOUND_NONE,
+        .initialView    = 4,
+        .flags          = DIRECTION_WARP_FLAG_FADE_DEPARTURE,
+        .mapFlagId      = DIRECTION_WARP_MAP_FLAG_NONE,
+    },
 };
 
 #include "../../shared/water_ripple_task_fixed_coord.inc.c"

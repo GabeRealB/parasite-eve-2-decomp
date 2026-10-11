@@ -32,6 +32,7 @@
 #include "main/scratch.h"
 #include "main/session.h"
 #include "main/session_types.h"
+#include "main/sound_ids.h"
 #include "main/sound_types.h"
 #include "main/task.h"
 #include "main/task_types.h"
@@ -116,13 +117,43 @@ static s16 _gDryfieldNightUnderpassFlareViewMasks[ARRAY_SIZE(_gDryfieldNightUnde
     (1 << 5) | (1 << 7),
 };
 
-WorldCollisionRoomResources D_dryfield_night_underpass_8017DD70[6] = {
-    { &_gDryfieldNightUnderpassCollisionGrid, _gDryfieldNightUnderpassViewBoundaryTriggers, _gDryfieldNightUnderpassActionTriggers, _gDryfieldNightUnderpassSightOccluders },
-    { &_gDryfieldNightUnderpassCollisionGrid, _gDryfieldNightUnderpassViewBoundaryTriggers, _gDryfieldNightUnderpassActionTriggers, _gDryfieldNightUnderpassSightOccluders },
-    { &_gDryfieldNightUnderpassCollisionGrid, _gDryfieldNightUnderpassViewBoundaryTriggers, _gDryfieldNightUnderpassActionTriggers, _gDryfieldNightUnderpassSightOccluders },
-    { &_gDryfieldNightUnderpassCollisionGrid, _gDryfieldNightUnderpassViewBoundaryTriggers, _gDryfieldNightUnderpassActionTriggers, _gDryfieldNightUnderpassSightOccluders },
-    { &_gDryfieldNightUnderpassCollisionGrid, _gDryfieldNightUnderpassViewBoundaryTriggers, _gDryfieldNightUnderpassActionTriggers, _gDryfieldNightUnderpassSightOccluders },
-    { &_gDryfieldNightUnderpassCollisionGrid, _gDryfieldNightUnderpassViewBoundaryTriggers, _gDryfieldNightUnderpassActionTriggers, _gDryfieldNightUnderpassSightOccluders },
+WorldCollisionRoomResources gDryfieldNightUnderpassRoomCollisionResources[6] = {
+    {
+        .grid                 = &_gDryfieldNightUnderpassCollisionGrid,
+        .viewBoundaryTriggers = _gDryfieldNightUnderpassViewBoundaryTriggers,
+        .actionTriggers       = _gDryfieldNightUnderpassActionTriggers,
+        .occluders            = _gDryfieldNightUnderpassSightOccluders,
+    },
+    {
+        .grid                 = &_gDryfieldNightUnderpassCollisionGrid,
+        .viewBoundaryTriggers = _gDryfieldNightUnderpassViewBoundaryTriggers,
+        .actionTriggers       = _gDryfieldNightUnderpassActionTriggers,
+        .occluders            = _gDryfieldNightUnderpassSightOccluders,
+    },
+    {
+        .grid                 = &_gDryfieldNightUnderpassCollisionGrid,
+        .viewBoundaryTriggers = _gDryfieldNightUnderpassViewBoundaryTriggers,
+        .actionTriggers       = _gDryfieldNightUnderpassActionTriggers,
+        .occluders            = _gDryfieldNightUnderpassSightOccluders,
+    },
+    {
+        .grid                 = &_gDryfieldNightUnderpassCollisionGrid,
+        .viewBoundaryTriggers = _gDryfieldNightUnderpassViewBoundaryTriggers,
+        .actionTriggers       = _gDryfieldNightUnderpassActionTriggers,
+        .occluders            = _gDryfieldNightUnderpassSightOccluders,
+    },
+    {
+        .grid                 = &_gDryfieldNightUnderpassCollisionGrid,
+        .viewBoundaryTriggers = _gDryfieldNightUnderpassViewBoundaryTriggers,
+        .actionTriggers       = _gDryfieldNightUnderpassActionTriggers,
+        .occluders            = _gDryfieldNightUnderpassSightOccluders,
+    },
+    {
+        .grid                 = &_gDryfieldNightUnderpassCollisionGrid,
+        .viewBoundaryTriggers = _gDryfieldNightUnderpassViewBoundaryTriggers,
+        .actionTriggers       = _gDryfieldNightUnderpassActionTriggers,
+        .occluders            = _gDryfieldNightUnderpassSightOccluders,
+    },
 };
 
 WorldCoordRoomLighting gDryfieldNightUnderpassRoomLighting[6] = {
@@ -245,10 +276,49 @@ enum {
 
 ViewCount gDryfieldNightUnderpassViewCounts[6] = { DRYFIELD_NIGHT_UNDERPASS_MAPPED_VIEW_COUNT, DRYFIELD_NIGHT_UNDERPASS_RESTRICTED_LOGICAL_VIEW_COUNT, DRYFIELD_NIGHT_UNDERPASS_RESTRICTED_LOGICAL_VIEW_COUNT, DRYFIELD_NIGHT_UNDERPASS_RESTRICTED_LOGICAL_VIEW_COUNT, DRYFIELD_NIGHT_UNDERPASS_RESTRICTED_LOGICAL_VIEW_COUNT, DRYFIELD_NIGHT_UNDERPASS_RESTRICTED_LOGICAL_VIEW_COUNT };
 
-DirectionWarpEntry D_dryfield_night_underpass_8017DE60[3] = {
-    { { { .word = 0 }, 5303, -997, -0x2C94 }, { 0, 0, 0, 0 }, { { .word = 0 }, 5303, -997, -0x2C94 }, { 0, 0, 0, 0 }, 0x53260008, 0x53260007, DIRECTION_WARP_SOUND_NONE, 6, DIRECTION_WARP_FLAG_NONE, 463 },
-    { { { .word = 1024 }, 0x3D31, -1000, -4216 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 0x3D31, -1000, -4216 }, { 0, 0, 0, 0 }, 0x53260006, 0x53260005, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, 462 },
-    { { { .word = 2048 }, 1212, -1000, -7543 }, { 0, 0, 0, 0 }, { { .word = 2048 }, 1212, -1000, -7543 }, { 0, 0, 0, 0 }, 0x53260001, 0x53260001, DIRECTION_WARP_SOUND_NONE, 7, DIRECTION_WARP_FLAG_FADE_DEPARTURE, DIRECTION_WARP_MAP_FLAG_NONE },
+// Optional door map-marker nibble IDs stored by these endpoints.
+enum {
+    DRYFIELD_NIGHT_UNDERPASS_CELLAR_MAP_FLAG     = 463,
+    DRYFIELD_NIGHT_UNDERPASS_WATER_HOLE_MAP_FLAG = 462,
+};
+
+DirectionWarpEntry gDryfieldNightUnderpassWarpEntries[3] = {
+    {
+        .player         = { .yaw = { .word = 0 }, .x = 5303, .y = -997, .z = -0x2C94 },
+        .unknown_10     = { 0 },
+        .companion      = { .yaw = { .word = 0 }, .x = 5303, .y = -997, .z = -0x2C94 },
+        .unknown_24     = { 0 },
+        .arrivalSound   = SOUND_AREA(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_UNDERPASS, 8),
+        .departureSound = SOUND_AREA(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_UNDERPASS, 7),
+        .blockedSound   = DIRECTION_WARP_SOUND_NONE,
+        .initialView    = 6,
+        .flags          = DIRECTION_WARP_FLAG_NONE,
+        .mapFlagId      = DRYFIELD_NIGHT_UNDERPASS_CELLAR_MAP_FLAG,
+    },
+    {
+        .player         = { .yaw = { .word = (ACTOR_TRANSFORM_ANGLE_TURN / 4) }, .x = 0x3D31, .y = -1000, .z = -4216 },
+        .unknown_10     = { 0 },
+        .companion      = { .yaw = { .word = (ACTOR_TRANSFORM_ANGLE_TURN / 4) }, .x = 0x3D31, .y = -1000, .z = -4216 },
+        .unknown_24     = { 0 },
+        .arrivalSound   = SOUND_AREA(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_UNDERPASS, 6),
+        .departureSound = SOUND_AREA(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_UNDERPASS, 5),
+        .blockedSound   = DIRECTION_WARP_SOUND_NONE,
+        .initialView    = 2,
+        .flags          = DIRECTION_WARP_FLAG_NONE,
+        .mapFlagId      = DRYFIELD_NIGHT_UNDERPASS_WATER_HOLE_MAP_FLAG,
+    },
+    {
+        .player         = { .yaw = { .word = ACTOR_TRANSFORM_ANGLE_HALF_TURN }, .x = 1212, .y = -1000, .z = -7543 },
+        .unknown_10     = { 0 },
+        .companion      = { .yaw = { .word = ACTOR_TRANSFORM_ANGLE_HALF_TURN }, .x = 1212, .y = -1000, .z = -7543 },
+        .unknown_24     = { 0 },
+        .arrivalSound   = SOUND_AREA(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_UNDERPASS, 1),
+        .departureSound = SOUND_AREA(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_UNDERPASS, 1),
+        .blockedSound   = DIRECTION_WARP_SOUND_NONE,
+        .initialView    = 7,
+        .flags          = DIRECTION_WARP_FLAG_FADE_DEPARTURE,
+        .mapFlagId      = DIRECTION_WARP_MAP_FLAG_NONE,
+    },
 };
 
 /// Twelve room-space collision normals, with 4096 representing unit length.

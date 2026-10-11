@@ -66,8 +66,19 @@ enum {
 
 ViewCount gNeoArkR31ViewCounts[1] = { NEO_ARK_R31_LOGICAL_VIEW_COUNT };
 
-DirectionWarpEntry D_neo_ark_r31_8017DA24[1] = {
-    { { { .word = 2048 }, 0, 0, 0 }, { 0, 0, 0, 0 }, { { .word = 2048 }, 0, 0, 0 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 1, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+DirectionWarpEntry gNeoArkR31WarpEntries[1] = {
+    {
+        .player         = { .yaw = { .word = ACTOR_TRANSFORM_ANGLE_HALF_TURN }, .x = 0, .y = 0, .z = 0 },
+        .unknown_10     = { 0 },
+        .companion      = { .yaw = { .word = ACTOR_TRANSFORM_ANGLE_HALF_TURN }, .x = 0, .y = 0, .z = 0 },
+        .unknown_24     = { 0 },
+        .arrivalSound   = DIRECTION_WARP_SOUND_NONE,
+        .departureSound = DIRECTION_WARP_SOUND_NONE,
+        .blockedSound   = DIRECTION_WARP_SOUND_NONE,
+        .initialView    = 1,
+        .flags          = DIRECTION_WARP_FLAG_NONE,
+        .mapFlagId      = DIRECTION_WARP_MAP_FLAG_NONE,
+    },
 };
 
 ViewCamera gNeoArkR31ViewCameras[3] = {

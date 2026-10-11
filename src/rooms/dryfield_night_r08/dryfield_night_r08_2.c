@@ -112,8 +112,19 @@ u8* gDryfieldNightR08ViewMaps[1] = {
 
 ViewCount gDryfieldNightR08ViewCounts[1] = { ARRAY_SIZE(gDryfieldNightR08ViewCameras) };
 
-DirectionWarpEntry D_dryfield_night_r08_8018069C[1] = {
-    { { { .word = 0 }, 0, 0, -0x4650 }, { 0, 0, 0, 0 }, { { .word = 0 }, 0, 0, -0x4650 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 1, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+DirectionWarpEntry gDryfieldNightR08WarpEntries[1] = {
+    {
+        .player         = { .yaw = { .word = 0 }, .x = 0, .y = 0, .z = -0x4650 },
+        .unknown_10     = { 0 },
+        .companion      = { .yaw = { .word = 0 }, .x = 0, .y = 0, .z = -0x4650 },
+        .unknown_24     = { 0 },
+        .arrivalSound   = DIRECTION_WARP_SOUND_NONE,
+        .departureSound = DIRECTION_WARP_SOUND_NONE,
+        .blockedSound   = DIRECTION_WARP_SOUND_NONE,
+        .initialView    = 1,
+        .flags          = DIRECTION_WARP_FLAG_NONE,
+        .mapFlagId      = DIRECTION_WARP_MAP_FLAG_NONE,
+    },
 };
 
 /// Grid-local face normals, with 4096 representing unit length.

@@ -46,7 +46,17 @@ extern u8* gShelter1fTentViewMaps[1];
 /// is no terminator.
 extern ViewCount gShelter1fTentRoomViewCounts[1];
 
-extern DirectionWarpEntry D_shelter_1f_tent_80181D4C[];
+/// A single warp endpoint record, selected by warp ID 1.
+///
+/// Slot 1 serves the Heliport connection, with arrival view 2 and identical
+/// player/companion placement. It has no sounds, transition flags or map marker.
+///
+/// Positions use signed whole world coordinates; yaw uses 4096 units per turn. The two
+/// byte spans have unproven roles and remain zero. The stage map borrows this array;
+/// keep the room overlay loaded through departure or arrival setup. Consumers copy
+/// complete entries and actor spawns borrow their transforms synchronously. There is
+/// no terminator or bounds check.
+extern DirectionWarpEntry gShelter1fTentWarpEntries[1];
 
 /// The tent's collision mesh and 2-by-3 XZ cell index.
 ///

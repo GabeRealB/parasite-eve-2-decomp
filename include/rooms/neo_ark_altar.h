@@ -10,8 +10,15 @@
 
 #include "main/task_types.h"
 
-// neo_ark_altar
-extern WorldCollisionRoomResources D_neo_ark_altar_8017F094[];
+/// Collision resources for room selectors 1..3, indexed by room minus one.
+///
+/// All three room slots borrow the same grid and four action triggers; there are no
+/// view-boundary triggers or sight occluders.
+///
+/// The stage map borrows this directory while the room overlay is loaded. Keep the grid
+/// and its pools live while active, and the mutable trigger/occluder lists live until
+/// unlinked. This directory has no terminator or bounds check.
+extern WorldCollisionRoomResources gNeoArkAltarRoomCollisionResources[3];
 
 /// Extents of the altar's progress variants and shared mapped-view resources.
 enum {
@@ -42,7 +49,18 @@ extern u8* gNeoArkAltarViewMaps[NEO_ARK_ALTAR_ROOM_VARIANT_COUNT];
 /// independently. Requires the altar overlay to remain loaded.
 extern ViewCount gNeoArkAltarViewCounts[2];
 
-extern DirectionWarpEntry D_neo_ark_altar_8017F0FC[];
+/// A single warp endpoint record, selected by warp ID 1.
+///
+/// Slot 1 serves the Pyramid connection, with arrival view 2 and scripted player
+/// control. Player and companion have distinct world positions and facing. It
+/// has no sounds or map marker.
+///
+/// Positions use signed whole world coordinates; yaw uses 4096 units per turn. The two
+/// byte spans have unproven roles and remain zero. The stage map borrows this array;
+/// keep the room overlay loaded through departure or arrival setup. Consumers copy
+/// complete entries and actor spawns borrow their transforms synchronously. There is
+/// no terminator or bounds check.
+extern DirectionWarpEntry gNeoArkAltarWarpEntries[1];
 
 /// Cameras for the altar's eight mapped view files, indexed by file minus one.
 ///

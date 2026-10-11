@@ -44,6 +44,7 @@
 #include "main/session.h"
 #include "main/session_types.h"
 #include "main/sound.h"
+#include "main/sound_ids.h"
 #include "main/stage.h"
 #include "main/task.h"
 #include "main/task_types.h"
@@ -175,8 +176,13 @@ WorldCoordRoomLighting gMineRefugeRoomLighting[1] = {
     { &_gMineRefugeRoomLights, _gMineRefugeAmbientByView },
 };
 
-WorldCollisionRoomResources D_mine_refuge_801818F8[1] = {
-    { &_gMineRefugeCollisionGrid, _gMineRefugeViewBoundaryTriggers, _gMineRefugeActionTriggers, NULL },
+WorldCollisionRoomResources gMineRefugeRoomCollisionResources[1] = {
+    {
+        .grid                 = &_gMineRefugeCollisionGrid,
+        .viewBoundaryTriggers = _gMineRefugeViewBoundaryTriggers,
+        .actionTriggers       = _gMineRefugeActionTriggers,
+        .occluders            = NULL,
+    },
 };
 
 u8* gMineRefugeRoomViewMaps[1] = {
@@ -185,8 +191,19 @@ u8* gMineRefugeRoomViewMaps[1] = {
 
 ViewCount gMineRefugeRoomViewCounts[1] = { MINE_REFUGE_VIEW_COUNT };
 
-DirectionWarpEntry D_mine_refuge_80181910[1] = {
-    { { { .word = 0 }, 1472, 0, 288 }, { 0, 0, 0, 0 }, { { .word = 0 }, 1472, 0, 288 }, { 0, 0, 0, 0 }, 0x54060002, 0x54060001, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+DirectionWarpEntry gMineRefugeWarpEntries[1] = {
+    {
+        .player         = { .yaw = { .word = 0 }, .x = 1472, .y = 0, .z = 288 },
+        .unknown_10     = { 0 },
+        .companion      = { .yaw = { .word = 0 }, .x = 1472, .y = 0, .z = 288 },
+        .unknown_24     = { 0 },
+        .arrivalSound   = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_MINE_REFUGE, 2),
+        .departureSound = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_MINE_REFUGE, 1),
+        .blockedSound   = DIRECTION_WARP_SOUND_NONE,
+        .initialView    = 2,
+        .flags          = DIRECTION_WARP_FLAG_NONE,
+        .mapFlagId      = DIRECTION_WARP_MAP_FLAG_NONE,
+    },
 };
 
 /// Room-space face normals of the refuge collision grid, with ONE per unit.

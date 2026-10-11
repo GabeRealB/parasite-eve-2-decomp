@@ -13,7 +13,7 @@ gMapNeoArkIslandVariant2Placements = 0x8017B590; // absolute:True owner=map_neo_
 gMapNeoArkIslandVariant3Placements = 0x8017B5C0; // absolute:True owner=map_neo_ark
 gMapNeoArkIslandVariant4Placements = 0x8017B600; // absolute:True owner=map_neo_ark
 gMapNeoArkIslandVariant11Placements = 0x8017B610; // absolute:True owner=map_neo_ark shared=mapui
-D_neo_ark_island_80181B94 = 0x80181B94; // size:0x10 defined:True
+gNeoArkIslandRoomCollisionResources = 0x80181B94; // size:0x10 defined:True
 gNeoArkIslandRoomLighting = 0x80181BA4; // size:0x8 defined:True
 gNeoArkIslandViewMaps = 0x80181BAC; // size:0x4 defined:True
 gNeoArkIslandViewCounts = 0x80181BB0; // size:0x2 defined:True
@@ -45,7 +45,7 @@ _gNeoArkIslandVariant11Resources = 0x80183F30; // size:0x18 defined:True
 gActor100400Tasks = 0x80147E48; // absolute:True owner=actor_100400
 gActor05700RookGolemTasks = 0x801491F8; // absolute:True owner=actor_105700
 gActor01100Tasks = 0x8015F400; // absolute:True owner=actor_204900
-D_neo_ark_island_80181BB4 = 0x80181BB4; // size:0x70 defined:True
+gNeoArkIslandWarpEntries = 0x80181BB4; // size:0x70 defined:True
 _gRoomVisualEffectsTwinTrailEndpointOffsets = 0x80181B84; // size:0x10 defined:True
 gNeoArkIslandDiverWaterY = 0x80181C24; // size:0x2 defined:True
 _gNeoArkIslandDiverPatrolWaypoints0 = 0x80181C28; // size:0x40 defined:True

@@ -26,6 +26,7 @@
 #include "main/scratch.h"
 #include "main/session.h"
 #include "main/session_types.h"
+#include "main/sound_ids.h"
 #include "main/sound_types.h"
 #include "main/task_types.h"
 
@@ -65,8 +66,13 @@ WorldCoordRoomLighting gDryfieldNightMotelRoom3RoomLighting[1] = {
     { .lights = &_gDryfieldNightMotelRoom3RoomLights, .ambientTable = NULL },
 };
 
-WorldCollisionRoomResources D_dryfield_night_motel_room_3_8017DAA4[1] = {
-    { &_gDryfieldNightMotelRoom3CollisionGrid, _gDryfieldNightMotelRoom3ViewBoundaryTriggers, _gDryfieldNightMotelRoom3ActionTriggers, &_gDryfieldNightMotelRoom3SightOccluder },
+WorldCollisionRoomResources gDryfieldNightMotelRoom3RoomCollisionResources[1] = {
+    {
+        .grid                 = &_gDryfieldNightMotelRoom3CollisionGrid,
+        .viewBoundaryTriggers = _gDryfieldNightMotelRoom3ViewBoundaryTriggers,
+        .actionTriggers       = _gDryfieldNightMotelRoom3ActionTriggers,
+        .occluders            = &_gDryfieldNightMotelRoom3SightOccluder,
+    },
 };
 
 u8* gDryfieldNightMotelRoom3ViewMaps[1] = {
@@ -80,8 +86,24 @@ enum {
 
 ViewCount gDryfieldNightMotelRoom3ViewCounts[1] = { DRYFIELD_NIGHT_MOTEL_ROOM_3_LOGICAL_VIEW_COUNT };
 
-DirectionWarpEntry D_dryfield_night_motel_room_3_8017DABC[1] = {
-    { { { .word = 3072 }, 4462, 0, 1067 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 4462, 0, 1067 }, { 0, 0, 0, 0 }, 0x530D0002, 0x530D0001, DIRECTION_WARP_SOUND_NONE, 9, DIRECTION_WARP_FLAG_NONE, 484 },
+// Optional door map-marker nibble IDs stored by these endpoints.
+enum {
+    DRYFIELD_NIGHT_MOTEL_ROOM_3_MAIN_STREET_MAP_FLAG = 484,
+};
+
+DirectionWarpEntry gDryfieldNightMotelRoom3WarpEntries[1] = {
+    {
+        .player         = { .yaw = { .word = (ACTOR_TRANSFORM_ANGLE_TURN * 3 / 4) }, .x = 4462, .y = 0, .z = 1067 },
+        .unknown_10     = { 0 },
+        .companion      = { .yaw = { .word = (ACTOR_TRANSFORM_ANGLE_TURN * 3 / 4) }, .x = 4462, .y = 0, .z = 1067 },
+        .unknown_24     = { 0 },
+        .arrivalSound   = SOUND_AREA(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_MOTEL_ROOM_3, 2),
+        .departureSound = SOUND_AREA(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_MOTEL_ROOM_3, 1),
+        .blockedSound   = DIRECTION_WARP_SOUND_NONE,
+        .initialView    = 9,
+        .flags          = DIRECTION_WARP_FLAG_NONE,
+        .mapFlagId      = DRYFIELD_NIGHT_MOTEL_ROOM_3_MAIN_STREET_MAP_FLAG,
+    },
 };
 
 /// Room collision face normals in grid-local coordinates, with ONE per unit.

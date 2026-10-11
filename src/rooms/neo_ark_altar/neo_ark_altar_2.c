@@ -184,10 +184,25 @@ TaskDesc D_neo_ark_altar_8017F088[1] = {
     { { { TASK_BODY_NONE, 32 } }, _neoArkAltarTileSequenceTask, { .value = 0 } },
 };
 
-WorldCollisionRoomResources D_neo_ark_altar_8017F094[3] = {
-    { &_gNeoArkAltarCollisionGrid, NULL, _gNeoArkAltarActionTriggers, NULL },
-    { &_gNeoArkAltarCollisionGrid, NULL, _gNeoArkAltarActionTriggers, NULL },
-    { &_gNeoArkAltarCollisionGrid, NULL, _gNeoArkAltarActionTriggers, NULL },
+WorldCollisionRoomResources gNeoArkAltarRoomCollisionResources[3] = {
+    {
+        .grid                 = &_gNeoArkAltarCollisionGrid,
+        .viewBoundaryTriggers = NULL,
+        .actionTriggers       = _gNeoArkAltarActionTriggers,
+        .occluders            = NULL,
+    },
+    {
+        .grid                 = &_gNeoArkAltarCollisionGrid,
+        .viewBoundaryTriggers = NULL,
+        .actionTriggers       = _gNeoArkAltarActionTriggers,
+        .occluders            = NULL,
+    },
+    {
+        .grid                 = &_gNeoArkAltarCollisionGrid,
+        .viewBoundaryTriggers = NULL,
+        .actionTriggers       = _gNeoArkAltarActionTriggers,
+        .occluders            = NULL,
+    },
 };
 
 WorldCoordRoomLighting gNeoArkAltarRoomLighting[NEO_ARK_ALTAR_ROOM_VARIANT_COUNT] = {
@@ -231,8 +246,19 @@ ViewCount gNeoArkAltarViewCounts[2] = {
     ARRAY_SIZE(_gNeoArkAltarSecondSequenceViewMap),
 };
 
-DirectionWarpEntry D_neo_ark_altar_8017F0FC[1] = {
-    { { { .word = 1024 }, 7533, -3600, -7520 }, { 0, 0, 0, 0 }, { { .word = 2048 }, -2944, 0, -2035 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_SCRIPTED_PLAYER, DIRECTION_WARP_MAP_FLAG_NONE },
+DirectionWarpEntry gNeoArkAltarWarpEntries[1] = {
+    {
+        .player         = { .yaw = { .word = (ACTOR_TRANSFORM_ANGLE_TURN / 4) }, .x = 7533, .y = -3600, .z = -7520 },
+        .unknown_10     = { 0 },
+        .companion      = { .yaw = { .word = ACTOR_TRANSFORM_ANGLE_HALF_TURN }, .x = -2944, .y = 0, .z = -2035 },
+        .unknown_24     = { 0 },
+        .arrivalSound   = DIRECTION_WARP_SOUND_NONE,
+        .departureSound = DIRECTION_WARP_SOUND_NONE,
+        .blockedSound   = DIRECTION_WARP_SOUND_NONE,
+        .initialView    = 2,
+        .flags          = DIRECTION_WARP_FLAG_SCRIPTED_PLAYER,
+        .mapFlagId      = DIRECTION_WARP_MAP_FLAG_NONE,
+    },
 };
 
 /// Room-space normal pool of `_gNeoArkAltarCollisionGrid`, with ONE unit length.

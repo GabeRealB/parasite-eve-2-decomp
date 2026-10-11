@@ -40,6 +40,7 @@
 #include "main/session.h"
 #include "main/session_types.h"
 #include "main/sound.h"
+#include "main/sound_ids.h"
 #include "main/task.h"
 #include "main/task_types.h"
 #include "main/tmd_types.h"
@@ -252,10 +253,25 @@ static s16 _gDryfieldWarehouseBeamRadii[8] = {
     150,
 };
 
-WorldCollisionRoomResources D_dryfield_warehouse_8017FBBC[3] = {
-    { &_gDryfieldWarehouseBeforeEventCollisionGrid, gDryfieldWarehouseViewBoundaryTriggers, gDryfieldWarehouseBeforeEventActionTriggers, NULL },
-    { &_gDryfieldWarehouseAfterEventCollisionGrid, gDryfieldWarehouseViewBoundaryTriggers, gDryfieldWarehouseAfterEventActionTriggers, NULL },
-    { &_gDryfieldWarehouseRoom3CollisionGrid, gDryfieldWarehouseViewBoundaryTriggers, gDryfieldWarehouseBeforeEventActionTriggers, NULL },
+WorldCollisionRoomResources gDryfieldWarehouseRoomCollisionResources[3] = {
+    {
+        .grid                 = &_gDryfieldWarehouseBeforeEventCollisionGrid,
+        .viewBoundaryTriggers = gDryfieldWarehouseViewBoundaryTriggers,
+        .actionTriggers       = gDryfieldWarehouseBeforeEventActionTriggers,
+        .occluders            = NULL,
+    },
+    {
+        .grid                 = &_gDryfieldWarehouseAfterEventCollisionGrid,
+        .viewBoundaryTriggers = gDryfieldWarehouseViewBoundaryTriggers,
+        .actionTriggers       = gDryfieldWarehouseAfterEventActionTriggers,
+        .occluders            = NULL,
+    },
+    {
+        .grid                 = &_gDryfieldWarehouseRoom3CollisionGrid,
+        .viewBoundaryTriggers = gDryfieldWarehouseViewBoundaryTriggers,
+        .actionTriggers       = gDryfieldWarehouseBeforeEventActionTriggers,
+        .occluders            = NULL,
+    },
 };
 
 /// Camera/image/sprite mapping for room 2, after the Monkey Wrench event.
@@ -319,9 +335,36 @@ WorldCoordRoomLighting gDryfieldWarehouseRoomLighting[3] = {
     { &gDryfieldWarehouseLights, NULL },
 };
 
-DirectionWarpEntry D_dryfield_warehouse_8017FC30[2] = {
-    { { { .word = 0 }, 2631, 0, -3535 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 1721, 0, -2640 }, { 0, 0, 0, 0 }, 0x52070002, 0x52070001, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, 468 },
-    { { { .word = 3072 }, 5437, 2, -1084 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 4856, 2, -2146 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 4, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+// Optional door map-marker nibble IDs stored by these endpoints.
+enum {
+    DRYFIELD_WAREHOUSE_BACK_STREET_MAP_FLAG = 468,
+};
+
+DirectionWarpEntry gDryfieldWarehouseWarpEntries[2] = {
+    {
+        .player         = { .yaw = { .word = 0 }, .x = 2631, .y = 0, .z = -3535 },
+        .unknown_10     = { 0 },
+        .companion      = { .yaw = { .word = (ACTOR_TRANSFORM_ANGLE_TURN / 4) }, .x = 1721, .y = 0, .z = -2640 },
+        .unknown_24     = { 0 },
+        .arrivalSound   = SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_WAREHOUSE, 2),
+        .departureSound = SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_WAREHOUSE, 1),
+        .blockedSound   = DIRECTION_WARP_SOUND_NONE,
+        .initialView    = 2,
+        .flags          = DIRECTION_WARP_FLAG_NONE,
+        .mapFlagId      = DRYFIELD_WAREHOUSE_BACK_STREET_MAP_FLAG,
+    },
+    {
+        .player         = { .yaw = { .word = (ACTOR_TRANSFORM_ANGLE_TURN * 3 / 4) }, .x = 5437, .y = 2, .z = -1084 },
+        .unknown_10     = { 0 },
+        .companion      = { .yaw = { .word = (ACTOR_TRANSFORM_ANGLE_TURN * 3 / 4) }, .x = 4856, .y = 2, .z = -2146 },
+        .unknown_24     = { 0 },
+        .arrivalSound   = DIRECTION_WARP_SOUND_NONE,
+        .departureSound = DIRECTION_WARP_SOUND_NONE,
+        .blockedSound   = DIRECTION_WARP_SOUND_NONE,
+        .initialView    = 4,
+        .flags          = DIRECTION_WARP_FLAG_NONE,
+        .mapFlagId      = DIRECTION_WARP_MAP_FLAG_NONE,
+    },
 };
 
 /// Side length of every warehouse collision cell, in game-coordinate units.

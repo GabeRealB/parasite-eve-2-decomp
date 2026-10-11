@@ -31,6 +31,7 @@
 #include "main/scratch.h"
 #include "main/session.h"
 #include "main/session_types.h"
+#include "main/sound_ids.h"
 #include "main/sound_types.h"
 #include "main/task.h"
 #include "main/task_types.h"
@@ -138,10 +139,25 @@ WorldCoordRoomLighting gDryfieldNightWarehouseRoomLighting[3] = {
     { &_gDryfieldNightWarehouseRoomLights, _gDryfieldNightWarehouseAmbientByView },
 };
 
-WorldCollisionRoomResources D_dryfield_night_warehouse_8017E900[3] = {
-    { &_gDryfieldNightWarehouseCollisionGrid, _gDryfieldNightWarehouseViewBoundaryTriggers, _gDryfieldNightWarehouseActionTriggers, NULL },
-    { &_gDryfieldNightWarehouseCollisionGrid, _gDryfieldNightWarehouseViewBoundaryTriggers, _gDryfieldNightWarehouseActionTriggers, NULL },
-    { &_gDryfieldNightWarehouseCollisionGrid, _gDryfieldNightWarehouseViewBoundaryTriggers, _gDryfieldNightWarehouseActionTriggers, NULL },
+WorldCollisionRoomResources gDryfieldNightWarehouseRoomCollisionResources[3] = {
+    {
+        .grid                 = &_gDryfieldNightWarehouseCollisionGrid,
+        .viewBoundaryTriggers = _gDryfieldNightWarehouseViewBoundaryTriggers,
+        .actionTriggers       = _gDryfieldNightWarehouseActionTriggers,
+        .occluders            = NULL,
+    },
+    {
+        .grid                 = &_gDryfieldNightWarehouseCollisionGrid,
+        .viewBoundaryTriggers = _gDryfieldNightWarehouseViewBoundaryTriggers,
+        .actionTriggers       = _gDryfieldNightWarehouseActionTriggers,
+        .occluders            = NULL,
+    },
+    {
+        .grid                 = &_gDryfieldNightWarehouseCollisionGrid,
+        .viewBoundaryTriggers = _gDryfieldNightWarehouseViewBoundaryTriggers,
+        .actionTriggers       = _gDryfieldNightWarehouseActionTriggers,
+        .occluders            = NULL,
+    },
 };
 
 u8* gDryfieldNightWarehouseViewMaps[3] = {
@@ -156,9 +172,36 @@ ViewCount gDryfieldNightWarehouseRoomViewCounts[3] = {
     ARRAY_SIZE(gDryfieldNightWarehouseSpriteViews),
 };
 
-DirectionWarpEntry D_dryfield_night_warehouse_8017E944[2] = {
-    { { { .word = 0 }, 2631, 0, -3535 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 1721, 0, -2640 }, { 0, 0, 0, 0 }, 0x53070002, 0x53070001, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, 468 },
-    { { { .word = 3072 }, 5437, 2, -1084 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 4856, 2, -2146 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 4, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+// Optional door map-marker nibble IDs stored by these endpoints.
+enum {
+    DRYFIELD_NIGHT_WAREHOUSE_BACK_STREET_MAP_FLAG = 468,
+};
+
+DirectionWarpEntry gDryfieldNightWarehouseWarpEntries[2] = {
+    {
+        .player         = { .yaw = { .word = 0 }, .x = 2631, .y = 0, .z = -3535 },
+        .unknown_10     = { 0 },
+        .companion      = { .yaw = { .word = (ACTOR_TRANSFORM_ANGLE_TURN / 4) }, .x = 1721, .y = 0, .z = -2640 },
+        .unknown_24     = { 0 },
+        .arrivalSound   = SOUND_AREA(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_WAREHOUSE, 2),
+        .departureSound = SOUND_AREA(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_WAREHOUSE, 1),
+        .blockedSound   = DIRECTION_WARP_SOUND_NONE,
+        .initialView    = 2,
+        .flags          = DIRECTION_WARP_FLAG_NONE,
+        .mapFlagId      = DRYFIELD_NIGHT_WAREHOUSE_BACK_STREET_MAP_FLAG,
+    },
+    {
+        .player         = { .yaw = { .word = (ACTOR_TRANSFORM_ANGLE_TURN * 3 / 4) }, .x = 5437, .y = 2, .z = -1084 },
+        .unknown_10     = { 0 },
+        .companion      = { .yaw = { .word = (ACTOR_TRANSFORM_ANGLE_TURN * 3 / 4) }, .x = 4856, .y = 2, .z = -2146 },
+        .unknown_24     = { 0 },
+        .arrivalSound   = DIRECTION_WARP_SOUND_NONE,
+        .departureSound = DIRECTION_WARP_SOUND_NONE,
+        .blockedSound   = DIRECTION_WARP_SOUND_NONE,
+        .initialView    = 4,
+        .flags          = DIRECTION_WARP_FLAG_NONE,
+        .mapFlagId      = DIRECTION_WARP_MAP_FLAG_NONE,
+    },
 };
 
 /// Room-space collision face normals, with `ONE` representing unit length.

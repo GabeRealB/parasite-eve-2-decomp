@@ -28,6 +28,7 @@
 #include "main/display_types.h"
 #include "main/gfx.h"
 #include "main/scratch.h"
+#include "main/sound_ids.h"
 #include "main/sound_types.h"
 #include "main/task_types.h"
 
@@ -56,8 +57,13 @@ WorldCoordRoomLighting gMineTunnelRoomLighting[1] = {
     { &_gMineTunnelRoomLights, _gMineTunnelAmbientByView },
 };
 
-WorldCollisionRoomResources D_mine_tunnel_8017E15C[1] = {
-    { &_gMineTunnelCollisionGrid, _gMineTunnelViewBoundaryTriggers, _gMineTunnelActionTriggers, _gMineTunnelSightOccluders },
+WorldCollisionRoomResources gMineTunnelRoomCollisionResources[1] = {
+    {
+        .grid                 = &_gMineTunnelCollisionGrid,
+        .viewBoundaryTriggers = _gMineTunnelViewBoundaryTriggers,
+        .actionTriggers       = _gMineTunnelActionTriggers,
+        .occluders            = _gMineTunnelSightOccluders,
+    },
 };
 
 u8* gMineTunnelRoomViewMaps[1] = {
@@ -71,9 +77,31 @@ enum {
 
 ViewCount gMineTunnelRoomViewCounts[1] = { MINE_TUNNEL_LOGICAL_VIEW_COUNT };
 
-DirectionWarpEntry D_mine_tunnel_8017E174[2] = {
-    { { { .word = 3072 }, 0x3CF0, 0, 1200 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 0x3CF0, 0, 1200 }, { 0, 0, 0, 0 }, 0x54040002, 0x54040001, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
-    { { { .word = 1024 }, 500, 0, 1630 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 500, 0, 1630 }, { 0, 0, 0, 0 }, 0x54040004, 0x54040003, DIRECTION_WARP_SOUND_NONE, 5, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+DirectionWarpEntry gMineTunnelWarpEntries[2] = {
+    {
+        .player         = { .yaw = { .word = (ACTOR_TRANSFORM_ANGLE_TURN * 3 / 4) }, .x = 0x3CF0, .y = 0, .z = 1200 },
+        .unknown_10     = { 0 },
+        .companion      = { .yaw = { .word = (ACTOR_TRANSFORM_ANGLE_TURN * 3 / 4) }, .x = 0x3CF0, .y = 0, .z = 1200 },
+        .unknown_24     = { 0 },
+        .arrivalSound   = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_MINE_TUNNEL, 2),
+        .departureSound = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_MINE_TUNNEL, 1),
+        .blockedSound   = DIRECTION_WARP_SOUND_NONE,
+        .initialView    = 2,
+        .flags          = DIRECTION_WARP_FLAG_NONE,
+        .mapFlagId      = DIRECTION_WARP_MAP_FLAG_NONE,
+    },
+    {
+        .player         = { .yaw = { .word = (ACTOR_TRANSFORM_ANGLE_TURN / 4) }, .x = 500, .y = 0, .z = 1630 },
+        .unknown_10     = { 0 },
+        .companion      = { .yaw = { .word = (ACTOR_TRANSFORM_ANGLE_TURN / 4) }, .x = 500, .y = 0, .z = 1630 },
+        .unknown_24     = { 0 },
+        .arrivalSound   = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_MINE_TUNNEL, 4),
+        .departureSound = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_MINE_TUNNEL, 3),
+        .blockedSound   = DIRECTION_WARP_SOUND_NONE,
+        .initialView    = 5,
+        .flags          = DIRECTION_WARP_FLAG_NONE,
+        .mapFlagId      = DIRECTION_WARP_MAP_FLAG_NONE,
+    },
 };
 
 /// Dimensions of the tunnel collision index, in cells.

@@ -68,8 +68,15 @@ enum { NEO_ARK_ISLAND_AREA_VARIANT_COUNT = 13 };
 /// be loaded for spawning and model-policy updates.
 extern AreaVariant gNeoArkIslandAreaVariants[NEO_ARK_ISLAND_AREA_VARIANT_COUNT];
 
-// neo_ark_island
-extern WorldCollisionRoomResources D_neo_ark_island_80181B94[];
+/// Collision resources for the single room, indexed by room minus one.
+///
+/// The single room borrows its grid, four view boundaries and three action triggers;
+/// there are no sight occluders.
+///
+/// The stage map borrows this directory while the room overlay is loaded. Keep the grid
+/// and its pools live while active, and the mutable trigger/occluder lists live until
+/// unlinked. This directory has no terminator or bounds check.
+extern WorldCollisionRoomResources gNeoArkIslandRoomCollisionResources[1];
 
 /// Lighting for the island's single room selector, indexed by room minus one.
 ///
@@ -93,7 +100,20 @@ extern u8* gNeoArkIslandViewMaps[1];
 /// Borrow the array only while this room overlay is loaded.
 extern ViewCount gNeoArkIslandViewCounts[1];
 
-extern DirectionWarpEntry D_neo_ark_island_80181BB4[];
+/// Warp endpoint records for slots 1..2, indexed by warp minus one.
+///
+/// Slots 1 and 2 serve the Pavilion and Submarine Gallery connections, with arrival
+/// views 2 and 4. Slot 2 retains the special keep-facing yaw word, fades on permitted
+/// departure and has only an arrival sound. Neither has a map marker.
+/// Keep-facing uses the current player yaw for departure; arrival spawns copy
+/// the stored yaw's low halfword without resolving this special value.
+///
+/// Positions use signed whole world coordinates; yaw uses 4096 units per turn. The two
+/// byte spans have unproven roles and remain zero. The stage map borrows this array;
+/// keep the room overlay loaded through departure or arrival setup. Consumers copy
+/// complete entries and actor spawns borrow their transforms synchronously. There is
+/// no terminator or bounds check.
+extern DirectionWarpEntry gNeoArkIslandWarpEntries[2];
 
 /// The island's five cameras, indexed by mapped view minus one.
 ///

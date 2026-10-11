@@ -24,8 +24,15 @@ enum { DRYFIELD_NIGHT_UNDERPASS_AREA_VARIANT_COUNT = 12 };
 /// be loaded for spawning and model-policy updates.
 extern AreaVariant gDryfieldNightUnderpassAreaVariants[DRYFIELD_NIGHT_UNDERPASS_AREA_VARIANT_COUNT];
 
-// dryfield_night_underpass
-extern WorldCollisionRoomResources D_dryfield_night_underpass_8017DD70[];
+/// Collision resources for room selectors 1..6, indexed by room minus one.
+///
+/// All six room slots borrow the same grid, sixteen view boundaries, six action triggers
+/// and three sight occluders.
+///
+/// The stage map borrows this directory while the room overlay is loaded. Keep the grid
+/// and its pools live while active, and the mutable trigger/occluder lists live until
+/// unlinked. This directory has no terminator or bounds check.
+extern WorldCollisionRoomResources gDryfieldNightUnderpassRoomCollisionResources[6];
 
 /// Model lighting for nighttime underpass room IDs 1..6.
 ///
@@ -51,7 +58,18 @@ extern u8* gDryfieldNightUnderpassViewMaps[6];
 /// Borrow the array only while this room overlay is loaded.
 extern ViewCount gDryfieldNightUnderpassViewCounts[6];
 
-extern DirectionWarpEntry D_dryfield_night_underpass_8017DE60[];
+/// Warp endpoint records for slots 1..3, indexed by warp minus one.
+///
+/// Slots 1..3 serve the Cellar, Water Hole and General Store connections, with arrival
+/// views 6, 2 and 7. Slots 1/2 mark their doors; slot 3 fades on permitted departure and
+/// uses the same arrival/departure sound. None has a blocked sound.
+///
+/// Positions use signed whole world coordinates; yaw uses 4096 units per turn. The two
+/// byte spans have unproven roles and remain zero. The stage map borrows this array;
+/// keep the room overlay loaded through departure or arrival setup. Consumers copy
+/// complete entries and actor spawns borrow their transforms synchronously. There is
+/// no terminator or bounds check.
+extern DirectionWarpEntry gDryfieldNightUnderpassWarpEntries[3];
 
 /// Number of mapped camera/image/sprite slots in the nighttime underpass.
 enum { DRYFIELD_NIGHT_UNDERPASS_MAPPED_VIEW_COUNT = 26 };

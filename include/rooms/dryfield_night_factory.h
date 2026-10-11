@@ -55,7 +55,15 @@ extern WorldCoordRoomLighting gDryfieldNightFactoryRoomLighting[2];
 /// which must remain loaded while collision queries or factory tasks use it.
 extern WorldCollisionGrid gDryfieldNightFactoryCollisionGrid;
 
-extern WorldCollisionRoomResources D_dryfield_night_factory_80186F34[];
+/// Collision resources for room selectors 1..2, indexed by room minus one.
+///
+/// Both room slots borrow the same grid, fourteen view boundaries and nineteen action
+/// triggers; neither has sight occluders.
+///
+/// The stage map borrows this directory while the room overlay is loaded. Keep the grid
+/// and its pools live while active, and the mutable trigger/occluder lists live until
+/// unlinked. This directory has no terminator or bounds check.
+extern WorldCollisionRoomResources gDryfieldNightFactoryRoomCollisionResources[2];
 
 /// Nighttime factory logical-view search counts for rooms 1 and 2.
 ///
@@ -65,7 +73,18 @@ extern WorldCollisionRoomResources D_dryfield_night_factory_80186F34[];
 /// Borrow the array only while this room overlay is loaded.
 extern ViewCount gDryfieldNightFactoryViewCounts[2];
 
-extern DirectionWarpEntry D_dryfield_night_factory_80186F58[];
+/// Warp endpoint records for slots 1..3, indexed by warp minus one.
+///
+/// Slots 1..3 serve the Driveway, Breezeway and Garage connections, with arrival views
+/// 2, 7 and 6. All mark their doors; slot 2 has a blocked sound and slot 3 fades on
+/// permitted departure.
+///
+/// Positions use signed whole world coordinates; yaw uses 4096 units per turn. The two
+/// byte spans have unproven roles and remain zero. The stage map borrows this array;
+/// keep the room overlay loaded through departure or arrival setup. Consumers copy
+/// complete entries and actor spawns borrow their transforms synchronously. There is
+/// no terminator or bounds check.
+extern DirectionWarpEntry gDryfieldNightFactoryWarpEntries[3];
 
 /// Nineteen cameras shared by the nighttime factory's two room slots.
 ///

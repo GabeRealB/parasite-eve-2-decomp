@@ -28,7 +28,15 @@ extern AreaVariant gDryfieldNightMotelRoom3AreaVariants[13];
 /// coordinate composition and shading mutate the borrowed light records.
 extern WorldCoordRoomLighting gDryfieldNightMotelRoom3RoomLighting[1];
 
-extern WorldCollisionRoomResources D_dryfield_night_motel_room_3_8017DAA4[];
+/// Collision resources for the single room, indexed by room minus one.
+///
+/// The single room borrows its grid, eleven view boundaries, seven action triggers and
+/// one sight occluder.
+///
+/// The stage map borrows this directory while the room overlay is loaded. Keep the grid
+/// and its pools live while active, and the mutable trigger/occluder lists live until
+/// unlinked. This directory has no terminator or bounds check.
+extern WorldCollisionRoomResources gDryfieldNightMotelRoom3RoomCollisionResources[1];
 
 /// Night motel room 3's per-room logical-view maps, indexed by room minus one.
 ///
@@ -45,7 +53,17 @@ extern u8* gDryfieldNightMotelRoom3ViewMaps[1];
 /// Borrow the array only while this room overlay is loaded.
 extern ViewCount gDryfieldNightMotelRoom3ViewCounts[1];
 
-extern DirectionWarpEntry D_dryfield_night_motel_room_3_8017DABC[];
+/// A single warp endpoint record, selected by warp ID 1.
+///
+/// Slot 1 serves the Main Street connection, with arrival view 9, paired
+/// arrival/departure sounds and a door map marker.
+///
+/// Positions use signed whole world coordinates; yaw uses 4096 units per turn. The two
+/// byte spans have unproven roles and remain zero. The stage map borrows this array;
+/// keep the room overlay loaded through departure or arrival setup. Consumers copy
+/// complete entries and actor spawns borrow their transforms synchronously. There is
+/// no terminator or bounds check.
+extern DirectionWarpEntry gDryfieldNightMotelRoom3WarpEntries[1];
 
 /// Eleven cameras for nighttime motel room 3.
 ///

@@ -30,6 +30,7 @@
 #include "main/scratch.h"
 #include "main/session.h"
 #include "main/session_types.h"
+#include "main/sound_ids.h"
 #include "main/sound_types.h"
 #include "main/task.h"
 #include "main/task_types.h"
@@ -88,9 +89,19 @@ WorldCoordRoomLighting gDryfieldNightCellarRoomLighting[2] = {
     { .lights = &_gDryfieldNightCellarRoom2Lights, .ambientTable = NULL },
 };
 
-WorldCollisionRoomResources D_dryfield_night_cellar_8017DB00[2] = {
-    { &_gDryfieldNightCellarCollisionGrid, _gDryfieldNightCellarViewBoundaryTriggers, _gDryfieldNightCellarRoom1ActionTriggers, &_gDryfieldNightCellarSightOccluder },
-    { &_gDryfieldNightCellarCollisionGrid, _gDryfieldNightCellarViewBoundaryTriggers, _gDryfieldNightCellarRoom2ActionTriggers, &_gDryfieldNightCellarSightOccluder },
+WorldCollisionRoomResources gDryfieldNightCellarRoomCollisionResources[2] = {
+    {
+        .grid                 = &_gDryfieldNightCellarCollisionGrid,
+        .viewBoundaryTriggers = _gDryfieldNightCellarViewBoundaryTriggers,
+        .actionTriggers       = _gDryfieldNightCellarRoom1ActionTriggers,
+        .occluders            = &_gDryfieldNightCellarSightOccluder,
+    },
+    {
+        .grid                 = &_gDryfieldNightCellarCollisionGrid,
+        .viewBoundaryTriggers = _gDryfieldNightCellarViewBoundaryTriggers,
+        .actionTriggers       = _gDryfieldNightCellarRoom2ActionTriggers,
+        .occluders            = &_gDryfieldNightCellarSightOccluder,
+    },
 };
 
 /// Maps room 2's six logical views to the shared camera, image and sprite indices.
@@ -122,8 +133,24 @@ enum {
 
 ViewCount gDryfieldNightCellarViewCounts[2] = { DRYFIELD_NIGHT_CELLAR_ROOM_1_LOGICAL_VIEW_COUNT, DRYFIELD_NIGHT_CELLAR_ROOM_2_LOGICAL_VIEW_COUNT };
 
-DirectionWarpEntry D_dryfield_night_cellar_8017DB34[1] = {
-    { { { .word = 2048 }, 5611, 3, 3945 }, { 0, 0, 0, 0 }, { { .word = 2048 }, 5611, 3, 3945 }, { 0, 0, 0, 0 }, 0x53220002, 0x53220001, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, 463 },
+// Optional door map-marker nibble IDs stored by these endpoints.
+enum {
+    DRYFIELD_NIGHT_CELLAR_UNDERPASS_MAP_FLAG = 463,
+};
+
+DirectionWarpEntry gDryfieldNightCellarWarpEntries[1] = {
+    {
+        .player         = { .yaw = { .word = ACTOR_TRANSFORM_ANGLE_HALF_TURN }, .x = 5611, .y = 3, .z = 3945 },
+        .unknown_10     = { 0 },
+        .companion      = { .yaw = { .word = ACTOR_TRANSFORM_ANGLE_HALF_TURN }, .x = 5611, .y = 3, .z = 3945 },
+        .unknown_24     = { 0 },
+        .arrivalSound   = SOUND_AREA(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_CELLAR, 2),
+        .departureSound = SOUND_AREA(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_CELLAR, 1),
+        .blockedSound   = DIRECTION_WARP_SOUND_NONE,
+        .initialView    = 2,
+        .flags          = DIRECTION_WARP_FLAG_NONE,
+        .mapFlagId      = DRYFIELD_NIGHT_CELLAR_UNDERPASS_MAP_FLAG,
+    },
 };
 
 /// Room-axis collision normals, with 4096 representing unit length.

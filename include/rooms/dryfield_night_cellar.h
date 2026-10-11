@@ -28,7 +28,15 @@ extern AreaVariant gDryfieldNightCellarAreaVariants[12];
 /// while the nighttime cellar overlay is loaded; light updates mutate the arrays.
 extern WorldCoordRoomLighting gDryfieldNightCellarRoomLighting[2];
 
-extern WorldCollisionRoomResources D_dryfield_night_cellar_8017DB00[];
+/// Collision resources for room selectors 1..2, indexed by room minus one.
+///
+/// Rooms 1 and 2 share a grid, six view boundaries and one sight occluder. Each room
+/// selects its own ten-entry action-trigger list.
+///
+/// The stage map borrows this directory while the room overlay is loaded. Keep the grid
+/// and its pools live while active, and the mutable trigger/occluder lists live until
+/// unlinked. This directory has no terminator or bounds check.
+extern WorldCollisionRoomResources gDryfieldNightCellarRoomCollisionResources[2];
 
 /// Logical-view maps for nighttime cellar rooms 1 and 2, indexed by room - 1.
 ///
@@ -47,7 +55,17 @@ extern u8* gDryfieldNightCellarViewMaps[2];
 /// Borrow the array only while this room overlay is loaded.
 extern ViewCount gDryfieldNightCellarViewCounts[2];
 
-extern DirectionWarpEntry D_dryfield_night_cellar_8017DB34[];
+/// A single warp endpoint record, selected by warp ID 1.
+///
+/// Slot 1 serves the Underpass connection, with arrival view 2, paired arrival/departure
+/// sounds and a door map marker.
+///
+/// Positions use signed whole world coordinates; yaw uses 4096 units per turn. The two
+/// byte spans have unproven roles and remain zero. The stage map borrows this array;
+/// keep the room overlay loaded through departure or arrival setup. Consumers copy
+/// complete entries and actor spawns borrow their transforms synchronously. There is
+/// no terminator or bounds check.
+extern DirectionWarpEntry gDryfieldNightCellarWarpEntries[1];
 
 /// Eleven cameras shared by the nighttime cellar's two room slots.
 ///

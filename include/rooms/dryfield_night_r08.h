@@ -45,7 +45,17 @@ extern u8* gDryfieldNightR08ViewMaps[1];
 /// it does not describe the shared identity map's full capacity.
 extern ViewCount gDryfieldNightR08ViewCounts[1];
 
-extern DirectionWarpEntry D_dryfield_night_r08_8018069C[];
+/// A single warp endpoint record, selected by warp ID 1.
+///
+/// The single endpoint places both actors at (0, 0, -18000), facing yaw 0, in view 1. It
+/// has no sounds, transition flags or map marker.
+///
+/// Positions use signed whole world coordinates; yaw uses 4096 units per turn. The two
+/// byte spans have unproven roles and remain zero. The stage map borrows this array;
+/// keep the room overlay loaded through departure or arrival setup. Consumers copy
+/// complete entries and actor spawns borrow their transforms synchronously. There is
+/// no terminator or bounds check.
+extern DirectionWarpEntry gDryfieldNightR08WarpEntries[1];
 
 /// Room 8's nine cameras, selected by the mapped 1-based view index minus one.
 ///

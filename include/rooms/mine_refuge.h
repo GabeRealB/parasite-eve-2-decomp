@@ -34,7 +34,15 @@ enum { MINE_REFUGE_VIEW_COUNT = 7 };
 /// minima for logical views 1..7; all storage stays live with the refuge overlay.
 extern WorldCoordRoomLighting gMineRefugeRoomLighting[1];
 
-extern WorldCollisionRoomResources D_mine_refuge_801818F8[];
+/// Collision resources for the single room, indexed by room minus one.
+///
+/// The single room borrows its grid, two view boundaries and six action triggers; there
+/// are no sight occluders.
+///
+/// The stage map borrows this directory while the room overlay is loaded. Keep the grid
+/// and its pools live while active, and the mutable trigger/occluder lists live until
+/// unlinked. This directory has no terminator or bounds check.
+extern WorldCollisionRoomResources gMineRefugeRoomCollisionResources[1];
 
 /// Logical-view map directory for Mine Refuge room 1.
 ///
@@ -49,7 +57,17 @@ extern u8* gMineRefugeRoomViewMaps[1];
 /// the shared identity map's capacity; the array stays live with the refuge overlay.
 extern ViewCount gMineRefugeRoomViewCounts[1];
 
-extern DirectionWarpEntry D_mine_refuge_80181910[];
+/// A single warp endpoint record, selected by warp ID 1.
+///
+/// Slot 1 serves the Gorge connection, with arrival view 2 and paired arrival/departure
+/// sounds. It has no map marker.
+///
+/// Positions use signed whole world coordinates; yaw uses 4096 units per turn. The two
+/// byte spans have unproven roles and remain zero. The stage map borrows this array;
+/// keep the room overlay loaded through departure or arrival setup. Consumers copy
+/// complete entries and actor spawns borrow their transforms synchronously. There is
+/// no terminator or bounds check.
+extern DirectionWarpEntry gMineRefugeWarpEntries[1];
 
 /// Camera transforms and pixel projection distances for refuge mapped views 1..7.
 ///

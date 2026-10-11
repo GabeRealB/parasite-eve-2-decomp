@@ -45,6 +45,7 @@
 #include "main/session.h"
 #include "main/session_types.h"
 #include "main/sound.h"
+#include "main/sound_ids.h"
 #include "main/task.h"
 #include "main/task_types.h"
 #include "main/tmd_types.h"
@@ -352,9 +353,19 @@ WorldCoordRoomLighting gDryfieldNightFactoryRoomLighting[2] = {
     { .lights = &gDryfieldNightFactoryRoomLights, .ambientTable = gDryfieldNightFactoryAmbientByView },
 };
 
-WorldCollisionRoomResources D_dryfield_night_factory_80186F34[2] = {
-    { &gDryfieldNightFactoryCollisionGrid, gDryfieldNightFactoryViewBoundaryTriggers, gDryfieldNightFactoryActionTriggers, NULL },
-    { &gDryfieldNightFactoryCollisionGrid, gDryfieldNightFactoryViewBoundaryTriggers, gDryfieldNightFactoryActionTriggers, NULL },
+WorldCollisionRoomResources gDryfieldNightFactoryRoomCollisionResources[2] = {
+    {
+        .grid                 = &gDryfieldNightFactoryCollisionGrid,
+        .viewBoundaryTriggers = gDryfieldNightFactoryViewBoundaryTriggers,
+        .actionTriggers       = gDryfieldNightFactoryActionTriggers,
+        .occluders            = NULL,
+    },
+    {
+        .grid                 = &gDryfieldNightFactoryCollisionGrid,
+        .viewBoundaryTriggers = gDryfieldNightFactoryViewBoundaryTriggers,
+        .actionTriggers       = gDryfieldNightFactoryActionTriggers,
+        .occluders            = NULL,
+    },
 };
 
 // Logical entries searched in each room map, independent of its storage capacity.
@@ -364,10 +375,50 @@ enum {
 
 ViewCount gDryfieldNightFactoryViewCounts[2] = { DRYFIELD_NIGHT_FACTORY_LOGICAL_VIEW_COUNT, DRYFIELD_NIGHT_FACTORY_LOGICAL_VIEW_COUNT };
 
-DirectionWarpEntry D_dryfield_night_factory_80186F58[3] = {
-    { { { .word = 3072 }, 5178, 0, 1454 }, { 0, 0, 0, 0 }, { { .word = 768 }, 3952, 0, 1200 }, { 0, 0, 0, 0 }, 0x53170002, 0x53170001, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, 474 },
-    { { { .word = 1024 }, 642, 0, 7493 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 1100, 0, 7060 }, { 0, 0, 0, 0 }, 0x53170004, 0x53170003, 0x53170005, 7, DIRECTION_WARP_FLAG_NONE, 475 },
-    { { { .word = 3072 }, 5445, 1, 6866 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 1100, 0, 7060 }, { 0, 0, 0, 0 }, 0x53170014, 0x53170006, DIRECTION_WARP_SOUND_NONE, 6, DIRECTION_WARP_FLAG_FADE_DEPARTURE, 473 },
+// Optional door map-marker nibble IDs stored by these endpoints.
+enum {
+    DRYFIELD_NIGHT_FACTORY_DRIVEWAY_MAP_FLAG  = 474,
+    DRYFIELD_NIGHT_FACTORY_BREEZEWAY_MAP_FLAG = 475,
+    DRYFIELD_NIGHT_FACTORY_GARAGE_MAP_FLAG    = 473,
+};
+
+DirectionWarpEntry gDryfieldNightFactoryWarpEntries[3] = {
+    {
+        .player         = { .yaw = { .word = (ACTOR_TRANSFORM_ANGLE_TURN * 3 / 4) }, .x = 5178, .y = 0, .z = 1454 },
+        .unknown_10     = { 0 },
+        .companion      = { .yaw = { .word = 768 }, .x = 3952, .y = 0, .z = 1200 },
+        .unknown_24     = { 0 },
+        .arrivalSound   = SOUND_AREA(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_FACTORY, 2),
+        .departureSound = SOUND_AREA(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_FACTORY, 1),
+        .blockedSound   = DIRECTION_WARP_SOUND_NONE,
+        .initialView    = 2,
+        .flags          = DIRECTION_WARP_FLAG_NONE,
+        .mapFlagId      = DRYFIELD_NIGHT_FACTORY_DRIVEWAY_MAP_FLAG,
+    },
+    {
+        .player         = { .yaw = { .word = (ACTOR_TRANSFORM_ANGLE_TURN / 4) }, .x = 642, .y = 0, .z = 7493 },
+        .unknown_10     = { 0 },
+        .companion      = { .yaw = { .word = (ACTOR_TRANSFORM_ANGLE_TURN / 4) }, .x = 1100, .y = 0, .z = 7060 },
+        .unknown_24     = { 0 },
+        .arrivalSound   = SOUND_AREA(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_FACTORY, 4),
+        .departureSound = SOUND_AREA(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_FACTORY, 3),
+        .blockedSound   = SOUND_AREA(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_FACTORY, 5),
+        .initialView    = 7,
+        .flags          = DIRECTION_WARP_FLAG_NONE,
+        .mapFlagId      = DRYFIELD_NIGHT_FACTORY_BREEZEWAY_MAP_FLAG,
+    },
+    {
+        .player         = { .yaw = { .word = (ACTOR_TRANSFORM_ANGLE_TURN * 3 / 4) }, .x = 5445, .y = 1, .z = 6866 },
+        .unknown_10     = { 0 },
+        .companion      = { .yaw = { .word = (ACTOR_TRANSFORM_ANGLE_TURN / 4) }, .x = 1100, .y = 0, .z = 7060 },
+        .unknown_24     = { 0 },
+        .arrivalSound   = SOUND_AREA(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_FACTORY, 20),
+        .departureSound = SOUND_AREA(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_FACTORY, 6),
+        .blockedSound   = DIRECTION_WARP_SOUND_NONE,
+        .initialView    = 6,
+        .flags          = DIRECTION_WARP_FLAG_FADE_DEPARTURE,
+        .mapFlagId      = DRYFIELD_NIGHT_FACTORY_GARAGE_MAP_FLAG,
+    },
 };
 
 enum {

@@ -53,7 +53,17 @@ extern u8* gNeoArkR31ViewMaps[1];
 /// Borrow the array only while this room overlay is loaded.
 extern ViewCount gNeoArkR31ViewCounts[1];
 
-extern DirectionWarpEntry D_neo_ark_r31_8017DA24[];
+/// A single warp endpoint record, selected by warp ID 1.
+///
+/// The single endpoint places both actors at the world origin, facing yaw 2048, in view
+/// 1. It has no sounds, transition flags or map marker.
+///
+/// Positions use signed whole world coordinates; yaw uses 4096 units per turn. The two
+/// byte spans have unproven roles and remain zero. The stage map borrows this array;
+/// keep the room overlay loaded through departure or arrival setup. Consumers copy
+/// complete entries and actor spawns borrow their transforms synchronously. There is
+/// no terminator or bounds check.
+extern DirectionWarpEntry gNeoArkR31WarpEntries[1];
 
 /// Authored cameras for mapped view indices 1..3, stored at index minus one.
 ///

@@ -28,6 +28,7 @@
 #include "main/gfx.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/sound_ids.h"
 #include "main/task.h"
 #include "main/task_types.h"
 
@@ -141,8 +142,13 @@ static _Shelter1fAirlockGlowWorldPoints _gShelter1fAirlockGlowWorldPoints = {
     },
 };
 
-WorldCollisionRoomResources D_shelter_1f_airlock_8017E59C[1] = {
-    { &_gShelter1fAirlockCollisionGrid, _gShelter1fAirlockViewBoundaryTriggers, _gShelter1fAirlockActionTriggers, _gShelter1fAirlockSightOccluders },
+WorldCollisionRoomResources gShelter1fAirlockRoomCollisionResources[1] = {
+    {
+        .grid                 = &_gShelter1fAirlockCollisionGrid,
+        .viewBoundaryTriggers = _gShelter1fAirlockViewBoundaryTriggers,
+        .actionTriggers       = _gShelter1fAirlockActionTriggers,
+        .occluders            = _gShelter1fAirlockSightOccluders,
+    },
 };
 
 WorldCoordRoomLighting gShelter1fAirlockRoomLighting[1] = {
@@ -155,9 +161,31 @@ u8* gShelter1fAirlockViewMaps[1] = {
 
 ViewCount gShelter1fAirlockViewCounts[1] = { SHELTER_1F_AIRLOCK_VIEW_COUNT };
 
-DirectionWarpEntry D_shelter_1f_airlock_8017E5BC[2] = {
-    { { { .word = 0 }, 2051, 0, 3070 }, { 0, 0, 0, 0 }, { { .word = 0 }, 2100, 0, 3390 }, { 0, 0, 0, 0 }, 0x55050002, 0x55050001, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
-    { { { .word = 0 }, -5050, 0, 3070 }, { 0, 0, 0, 0 }, { { .word = 0 }, -5050, 0, 3070 }, { 0, 0, 0, 0 }, 0x55050002, 0x55050001, DIRECTION_WARP_SOUND_NONE, 5, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+DirectionWarpEntry gShelter1fAirlockWarpEntries[2] = {
+    {
+        .player         = { .yaw = { .word = 0 }, .x = 2051, .y = 0, .z = 3070 },
+        .unknown_10     = { 0 },
+        .companion      = { .yaw = { .word = 0 }, .x = 2100, .y = 0, .z = 3390 },
+        .unknown_24     = { 0 },
+        .arrivalSound   = SOUND_AREA(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_SHELTER_1F_AIRLOCK, 2),
+        .departureSound = SOUND_AREA(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_SHELTER_1F_AIRLOCK, 1),
+        .blockedSound   = DIRECTION_WARP_SOUND_NONE,
+        .initialView    = 2,
+        .flags          = DIRECTION_WARP_FLAG_NONE,
+        .mapFlagId      = DIRECTION_WARP_MAP_FLAG_NONE,
+    },
+    {
+        .player         = { .yaw = { .word = 0 }, .x = -5050, .y = 0, .z = 3070 },
+        .unknown_10     = { 0 },
+        .companion      = { .yaw = { .word = 0 }, .x = -5050, .y = 0, .z = 3070 },
+        .unknown_24     = { 0 },
+        .arrivalSound   = SOUND_AREA(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_SHELTER_1F_AIRLOCK, 2),
+        .departureSound = SOUND_AREA(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_SHELTER_1F_AIRLOCK, 1),
+        .blockedSound   = DIRECTION_WARP_SOUND_NONE,
+        .initialView    = 5,
+        .flags          = DIRECTION_WARP_FLAG_NONE,
+        .mapFlagId      = DIRECTION_WARP_MAP_FLAG_NONE,
+    },
 };
 
 /// Room-axis unit normals (4096 per unit) used by the collision grid's faces.

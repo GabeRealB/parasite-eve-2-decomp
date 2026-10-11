@@ -1,11 +1,11 @@
 // Overlay-local symbols for shelter_1f_airlock.
 _gShelter1fAirlockGlowWorldPoints = 0x8017E4BC; // size:0xE0 defined:True
 _gShelter1fAirlockRoomMessages = 0x8017E494; // size:0x28 defined:True
-D_shelter_1f_airlock_8017E59C = 0x8017E59C; // size:0x10 defined:True
+gShelter1fAirlockRoomCollisionResources = 0x8017E59C; // size:0x10 defined:True
 gShelter1fAirlockRoomLighting = 0x8017E5AC; // size:0x8 defined:True
 gShelter1fAirlockViewMaps = 0x8017E5B4; // size:0x4 defined:True
 gShelter1fAirlockViewCounts = 0x8017E5B8; // size:0x2 defined:True
-D_shelter_1f_airlock_8017E5BC = 0x8017E5BC; // size:0x70 defined:True
+gShelter1fAirlockWarpEntries = 0x8017E5BC; // size:0x70 defined:True
 _gShelter1fAirlockCollisionGridNormals = 0x8017E62C; // size:0x30 defined:True
 _gShelter1fAirlockCollisionGridVerts = 0x8017E65C; // size:0x100 defined:True
 _gShelter1fAirlockCollisionGridFaces = 0x8017E75C; // size:0x9C defined:True

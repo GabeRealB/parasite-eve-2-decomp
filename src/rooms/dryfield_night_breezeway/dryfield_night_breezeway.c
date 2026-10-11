@@ -30,6 +30,7 @@
 #include "main/scratch.h"
 #include "main/session.h"
 #include "main/session_types.h"
+#include "main/sound_ids.h"
 #include "main/sound_types.h"
 #include "main/task.h"
 #include "main/task_types.h"
@@ -44,14 +45,13 @@
 static void _dryfieldNightBreezewayInitRoomTask(Task* task);
 static void _dryfieldNightBreezewayIdleRoomTask(Task* task);
 
-/// The room's message table: 0x13EE, 0x13F1, 0x13EF and 0x13F0 to their
-/// handlers, terminated by `TASK_MESSAGE_TABLE_END`.
-extern TaskMessageEntry D_dryfield_night_breezeway_8017E67C[];
-
-/// The room's event task states: open the message table, idle, then kill the
-/// task.
-static const TaskFuncTable3 D_dryfield_night_breezeway_8017D5C4 = {
-    { _dryfieldNightBreezewayInitRoomTask, _dryfieldNightBreezewayIdleRoomTask, taskKill },
+/// Room receiver lifecycle: registration, idle and teardown.
+///
+/// `Task::state` selects 0 register messages, 1 idle or 2 kill. The dispatcher
+/// copies all three callbacks before selecting one; keep this overlay loaded
+/// through task teardown.
+static const TaskFuncTable3 _gDryfieldNightBreezewayRoomTaskStates = {
+    .funcs = { _dryfieldNightBreezewayInitRoomTask, _dryfieldNightBreezewayIdleRoomTask, taskKill },
 };
 
 static s32 _dryfieldNightBreezewayRejectKeyItemUse(Task* task, s32 messageId, s32 keyItemId, s32 unusedArg);
@@ -68,12 +68,21 @@ static WorldCollisionTrigger _gDryfieldNightBreezewayViewBoundaries[4];
 static WorldCollisionTrigger _gDryfieldNightBreezewayActionTriggers[3];
 static WorldCoordRoomLights  _gDryfieldNightBreezewayRoomLights;
 
-TaskMessageEntry D_dryfield_night_breezeway_8017E67C[5] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, _dryfieldNightBreezewayAcceptTransition },
-    { DRYFIELD_NIGHT_BREEZEWAY_MESSAGE_USE_KEY_ITEM, _dryfieldNightBreezewayRejectKeyItemUse },
-    { DIRECTION_MESSAGE_ROOM_ACTION, _dryfieldNightBreezewayIgnoreRoomAction },
-    { ROOM_MESSAGE_COMMAND, _dryfieldNightBreezewayHandleRoomCommand },
-    { TASK_MESSAGE_TABLE_END, NULL },
+/// Synchronous messages accepted by the night breezeway's room receiver.
+///
+/// Transition resolution borrows a readable `RoomEventMsg` and writable reply,
+/// which may alias, and returns 1. Key-item use carries an integer item ID and
+/// returns 0 to refuse it. Room actions borrow a `DirectionActionRequest` and
+/// are ignored; room commands carry an integer CAP command ID. Both return 0.
+/// The second word of key-item, action and command messages is unused.
+/// `TASK_MESSAGE_TABLE_END` makes other IDs return 0; never dispatch that ID.
+/// The task borrows this table and its callbacks until receiver teardown.
+static TaskMessageEntry _gDryfieldNightBreezewayRoomMessages[5] = {
+    { .messageId = ROOM_EVENT_MESSAGE_RESOLVE, .handler = _dryfieldNightBreezewayAcceptTransition },
+    { .messageId = DRYFIELD_NIGHT_BREEZEWAY_MESSAGE_USE_KEY_ITEM, .handler = _dryfieldNightBreezewayRejectKeyItemUse },
+    { .messageId = DIRECTION_MESSAGE_ROOM_ACTION, .handler = _dryfieldNightBreezewayIgnoreRoomAction },
+    { .messageId = ROOM_MESSAGE_COMMAND, .handler = _dryfieldNightBreezewayHandleRoomCommand },
+    { .messageId = TASK_MESSAGE_TABLE_END, .handler = NULL },
 };
 
 enum {
@@ -104,8 +113,13 @@ WorldCoordRoomLighting gDryfieldNightBreezewayRoomLighting[1] = {
     { .lights = &_gDryfieldNightBreezewayRoomLights, .ambientTable = NULL },
 };
 
-WorldCollisionRoomResources D_dryfield_night_breezeway_8017E6EC[1] = {
-    { &_gDryfieldNightBreezewayCollisionGrid, _gDryfieldNightBreezewayViewBoundaries, _gDryfieldNightBreezewayActionTriggers, NULL },
+WorldCollisionRoomResources gDryfieldNightBreezewayRoomCollisionResources[1] = {
+    {
+        .grid                 = &_gDryfieldNightBreezewayCollisionGrid,
+        .viewBoundaryTriggers = _gDryfieldNightBreezewayViewBoundaries,
+        .actionTriggers       = _gDryfieldNightBreezewayActionTriggers,
+        .occluders            = NULL,
+    },
 };
 
 u8* gDryfieldNightBreezewayViewMaps[1] = {
@@ -114,9 +128,37 @@ u8* gDryfieldNightBreezewayViewMaps[1] = {
 
 ViewCount gDryfieldNightBreezewayViewCounts[1] = { ARRAY_SIZE(gDryfieldNightBreezewayViewCameras) };
 
-DirectionWarpEntry D_dryfield_night_breezeway_8017E704[2] = {
-    { { { .word = 1024 }, 6656, 1, 1568 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 7940, 1, 1590 }, { 0, 0, 0, 0 }, 0x53160002, 0x53160001, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, 476 },
-    { { { .word = 3072 }, 0x44F3, 1, 2075 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 0x44F3, 1, 2075 }, { 0, 0, 0, 0 }, 0x53160004, 0x53160003, 0x53160005, 4, DIRECTION_WARP_FLAG_NONE, 475 },
+// Optional door map-marker nibble IDs stored by these endpoints.
+enum {
+    DRYFIELD_NIGHT_BREEZEWAY_WATER_TOWER_MAP_FLAG = 476,
+    DRYFIELD_NIGHT_BREEZEWAY_FACTORY_MAP_FLAG     = 475,
+};
+
+DirectionWarpEntry gDryfieldNightBreezewayWarpEntries[2] = {
+    {
+        .player         = { .yaw = { .word = (ACTOR_TRANSFORM_ANGLE_TURN / 4) }, .x = 6656, .y = 1, .z = 1568 },
+        .unknown_10     = { 0 },
+        .companion      = { .yaw = { .word = (ACTOR_TRANSFORM_ANGLE_TURN / 4) }, .x = 7940, .y = 1, .z = 1590 },
+        .unknown_24     = { 0 },
+        .arrivalSound   = SOUND_AREA(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_BREEZEWAY, 2),
+        .departureSound = SOUND_AREA(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_BREEZEWAY, 1),
+        .blockedSound   = DIRECTION_WARP_SOUND_NONE,
+        .initialView    = 2,
+        .flags          = DIRECTION_WARP_FLAG_NONE,
+        .mapFlagId      = DRYFIELD_NIGHT_BREEZEWAY_WATER_TOWER_MAP_FLAG,
+    },
+    {
+        .player         = { .yaw = { .word = (ACTOR_TRANSFORM_ANGLE_TURN * 3 / 4) }, .x = 0x44F3, .y = 1, .z = 2075 },
+        .unknown_10     = { 0 },
+        .companion      = { .yaw = { .word = (ACTOR_TRANSFORM_ANGLE_TURN * 3 / 4) }, .x = 0x44F3, .y = 1, .z = 2075 },
+        .unknown_24     = { 0 },
+        .arrivalSound   = SOUND_AREA(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_BREEZEWAY, 4),
+        .departureSound = SOUND_AREA(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_BREEZEWAY, 3),
+        .blockedSound   = SOUND_AREA(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_BREEZEWAY, 5),
+        .initialView    = 4,
+        .flags          = DIRECTION_WARP_FLAG_NONE,
+        .mapFlagId      = DRYFIELD_NIGHT_BREEZEWAY_FACTORY_MAP_FLAG,
+    },
 };
 
 /// Collision-grid normal pool, with 4096 units for unit length.
@@ -819,7 +861,7 @@ static s32 _dryfieldNightBreezewayIgnoreRoomAction(Task* task, s32 messageId, co
 /// Keep the overlay loaded while the registered receiver can be messaged.
 static void _dryfieldNightBreezewayInitRoomTask(Task* task)
 {
-    task->msgTable = D_dryfield_night_breezeway_8017E67C;
+    task->msgTable = _gDryfieldNightBreezewayRoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     task->state++;
 }
@@ -836,7 +878,7 @@ void dryfieldNightBreezewayRoomTask(Task* task)
 {
     TaskFuncTable3 handlers;
 
-    handlers = D_dryfield_night_breezeway_8017D5C4;
+    handlers = _gDryfieldNightBreezewayRoomTaskStates;
     handlers.funcs[task->state](task);
 }
 

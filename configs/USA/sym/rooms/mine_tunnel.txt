@@ -2,10 +2,10 @@
 _gMineTunnelFlareWorldPoints = 0x8017E12C; // size:0x28 defined:True
 D_mine_tunnel_8017DFC4 = 0x8017DFC4; // size:0x28 defined:True
 gMineTunnelRoomLighting = 0x8017E154; // size:0x8 defined:True
-D_mine_tunnel_8017E15C = 0x8017E15C; // size:0x10 defined:True
+gMineTunnelRoomCollisionResources = 0x8017E15C; // size:0x10 defined:True
 gMineTunnelRoomViewMaps = 0x8017E16C; // size:0x4 defined:True
 gMineTunnelRoomViewCounts = 0x8017E170; // size:0x2 defined:True
-D_mine_tunnel_8017E174 = 0x8017E174; // size:0x70 defined:True
+gMineTunnelWarpEntries = 0x8017E174; // size:0x70 defined:True
 _gMineTunnelCollisionGridNormals = 0x8017E1E4; // size:0xE8 defined:True
 _gMineTunnelCollisionGridVerts = 0x8017E2CC; // size:0x280 defined:True
 _gMineTunnelCollisionGridFaces = 0x8017E54C; // size:0x1BC defined:True

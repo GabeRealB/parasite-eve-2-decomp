@@ -27,7 +27,15 @@ extern AreaVariant gDryfieldNightBreezewayAreaVariants[22];
 /// The record and writable light transforms stay live while this overlay is loaded.
 extern WorldCoordRoomLighting gDryfieldNightBreezewayRoomLighting[1];
 
-extern WorldCollisionRoomResources D_dryfield_night_breezeway_8017E6EC[];
+/// Collision resources for the single room, indexed by room minus one.
+///
+/// The single room borrows its grid, four view boundaries and three action triggers;
+/// there are no sight occluders.
+///
+/// The stage map borrows this directory while the room overlay is loaded. Keep the grid
+/// and its pools live while active, and the mutable trigger/occluder lists live until
+/// unlinked. This directory has no terminator or bounds check.
+extern WorldCollisionRoomResources gDryfieldNightBreezewayRoomCollisionResources[1];
 
 /// Logical-view map directory for the single breezeway room, indexed by room minus one.
 ///
@@ -38,7 +46,17 @@ extern u8* gDryfieldNightBreezewayViewMaps[1];
 /// Logical-view reverse-search count for the single breezeway room: six entries.
 extern ViewCount gDryfieldNightBreezewayViewCounts[1];
 
-extern DirectionWarpEntry D_dryfield_night_breezeway_8017E704[];
+/// Warp endpoint records for slots 1..2, indexed by warp minus one.
+///
+/// Slots 1 and 2 serve the Water Tower and Factory connections, with arrival views 2 and
+/// 4. Both mark their door on later arrivals; slot 2 also has a blocked sound.
+///
+/// Positions use signed whole world coordinates; yaw uses 4096 units per turn. The two
+/// byte spans have unproven roles and remain zero. The stage map borrows this array;
+/// keep the room overlay loaded through departure or arrival setup. Consumers copy
+/// complete entries and actor spawns borrow their transforms synchronously. There is
+/// no terminator or bounds check.
+extern DirectionWarpEntry gDryfieldNightBreezewayWarpEntries[2];
 
 /// Six cameras selected by mapped view minus one while the breezeway overlay is loaded.
 ///

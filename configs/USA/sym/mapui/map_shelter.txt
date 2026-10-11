@@ -33,10 +33,10 @@ gMineTunnelEntranceSpriteViews = 0x8017EA4C; // absolute:True owner=mine_tunnel_
 gMineTunnelEntranceSurfacePropertiesByClass = 0x8017F3E8; // absolute:True owner=mine_tunnel_entrance
 mineTunnelRoomTask = 0x8017D77C; // type:func absolute:True owner=mine_tunnel shared=rooms
 gMineTunnelRoomLighting = 0x8017E154; // absolute:True owner=mine_tunnel
-D_mine_tunnel_8017E15C = 0x8017E15C; // absolute:True owner=mine_tunnel
+gMineTunnelRoomCollisionResources = 0x8017E15C; // absolute:True owner=mine_tunnel
 gMineTunnelRoomViewMaps = 0x8017E16C; // absolute:True owner=mine_tunnel
 gMineTunnelRoomViewCounts = 0x8017E170; // absolute:True owner=mine_tunnel
-D_mine_tunnel_8017E174 = 0x8017E174; // absolute:True owner=mine_tunnel
+gMineTunnelWarpEntries = 0x8017E174; // absolute:True owner=mine_tunnel
 gMineTunnelViewCameras = 0x8017E890; // absolute:True owner=mine_tunnel
 gMineTunnelSpriteViews = 0x8017F9A4; // absolute:True owner=mine_tunnel
 gMineTunnelSurfaceProperties = 0x8018032C; // absolute:True owner=mine_tunnel shared=rooms
@@ -51,10 +51,10 @@ gMineGorgeSpriteViews = 0x801827F8; // absolute:True owner=mine_gorge shared=roo
 gMineGorgeSurfacePropertiesByClass = 0x80183644; // absolute:True owner=mine_gorge shared=rooms
 mineRefugeRoomTask = 0x8017FFBC; // type:func absolute:True owner=mine_refuge
 gMineRefugeRoomLighting = 0x801818F0; // absolute:True owner=mine_refuge
-D_mine_refuge_801818F8 = 0x801818F8; // absolute:True owner=mine_refuge
+gMineRefugeRoomCollisionResources = 0x801818F8; // absolute:True owner=mine_refuge
 gMineRefugeRoomViewMaps = 0x80181908; // absolute:True owner=mine_refuge
 gMineRefugeRoomViewCounts = 0x8018190C; // absolute:True owner=mine_refuge
-D_mine_refuge_80181910 = 0x80181910; // absolute:True owner=mine_refuge
+gMineRefugeWarpEntries = 0x80181910; // absolute:True owner=mine_refuge
 gMineRefugeViewCameras = 0x80181BC8; // absolute:True owner=mine_refuge shared=rooms
 gMineRefugeSpriteViews = 0x8018264C; // absolute:True owner=mine_refuge
 gMineRefugeSurfacePropertiesByClass = 0x80182AB4; // absolute:True owner=mine_refuge shared=rooms
@@ -120,7 +120,7 @@ gShelterB1NorthMaintenanceWalkwaySurfacePropertiesByClass = 0x80185B4C; // absol
 shelterB1ArmoryRoomTask = 0x8018078C; // type:func absolute:True owner=shelter_b1_armory
 gShelterB1ArmoryRoomViewMaps = 0x80182580; // absolute:True owner=shelter_b1_armory
 gShelterB1ArmoryRoomViewCounts = 0x80182584; // absolute:True owner=shelter_b1_armory
-D_shelter_b1_armory_80182588 = 0x80182588; // absolute:True owner=shelter_b1_armory
+gShelterB1ArmoryWarpEntries = 0x80182588; // absolute:True owner=shelter_b1_armory
 gShelterB1ArmoryCollisionGrid = 0x80182ED0; // absolute:True owner=shelter_b1_armory
 gShelterB1ArmoryViewCameras = 0x80182EF4; // absolute:True owner=shelter_b1_armory
 gShelterB1ArmorySpriteViews = 0x80184220; // absolute:True owner=shelter_b1_armory

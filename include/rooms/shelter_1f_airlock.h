@@ -24,8 +24,15 @@ enum { SHELTER_1F_AIRLOCK_AREA_VARIANT_COUNT = 12 };
 /// Selectors must be in 0..11; there is no terminator or bounds check.
 extern AreaVariant gShelter1fAirlockAreaVariants[SHELTER_1F_AIRLOCK_AREA_VARIANT_COUNT];
 
-// shelter_1f_airlock
-extern WorldCollisionRoomResources D_shelter_1f_airlock_8017E59C[];
+/// Collision resources for the single room, indexed by room minus one.
+///
+/// The single room borrows its grid, six view boundaries, four action triggers and two
+/// sight occluders.
+///
+/// The stage map borrows this directory while the room overlay is loaded. Keep the grid
+/// and its pools live while active, and the mutable trigger/occluder lists live until
+/// unlinked. This directory has no terminator or bounds check.
+extern WorldCollisionRoomResources gShelter1fAirlockRoomCollisionResources[1];
 
 /// Number of identity-mapped camera, image and sprite views in the airlock.
 enum { SHELTER_1F_AIRLOCK_VIEW_COUNT = 5 };
@@ -44,7 +51,18 @@ extern u8* gShelter1fAirlockViewMaps[1];
 /// Room 1's five logical views, limiting reverse searches of its view map.
 extern ViewCount gShelter1fAirlockViewCounts[1];
 
-extern DirectionWarpEntry D_shelter_1f_airlock_8017E5BC[];
+/// Warp endpoint records for slots 1..2, indexed by warp minus one.
+///
+/// Slots 1 and 2 serve the Parking Garage and Vehicular Airlock connections, with
+/// arrival views 2 and 5. Both use the area's paired arrival/departure sounds and have
+/// no map markers.
+///
+/// Positions use signed whole world coordinates; yaw uses 4096 units per turn. The two
+/// byte spans have unproven roles and remain zero. The stage map borrows this array;
+/// keep the room overlay loaded through departure or arrival setup. Consumers copy
+/// complete entries and actor spawns borrow their transforms synchronously. There is
+/// no terminator or bounds check.
+extern DirectionWarpEntry gShelter1fAirlockWarpEntries[2];
 
 /// Cameras selected by the airlock's mapped 1-based view index minus one.
 ///

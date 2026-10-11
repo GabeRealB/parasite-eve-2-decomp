@@ -41,6 +41,7 @@
 #include "main/mem.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/sound_ids.h"
 #include "main/sound_types.h"
 #include "main/task.h"
 #include "main/task_types.h"
@@ -102,8 +103,13 @@ static inline const RoomFxShade* _roomVisualEffectsGetHaloShades(void)
 
 #include "../../shared/room_visual_effects_trail_data.inc.c"
 
-WorldCollisionRoomResources D_neo_ark_north_promenade_80181DB4[1] = {
-    { &_gNeoArkNorthPromenadeCollisionGrid, _gNeoArkNorthPromenadeViewBoundaryTriggers, _gNeoArkNorthPromenadeActionTriggers, &_gNeoArkNorthPromenadeSightOccluder },
+WorldCollisionRoomResources gNeoArkNorthPromenadeRoomCollisionResources[1] = {
+    {
+        .grid                 = &_gNeoArkNorthPromenadeCollisionGrid,
+        .viewBoundaryTriggers = _gNeoArkNorthPromenadeViewBoundaryTriggers,
+        .actionTriggers       = _gNeoArkNorthPromenadeActionTriggers,
+        .occluders            = &_gNeoArkNorthPromenadeSightOccluder,
+    },
 };
 
 WorldCoordRoomLighting gNeoArkNorthPromenadeRoomLighting[1] = {
@@ -116,9 +122,31 @@ u8* gNeoArkNorthPromenadeViewMaps[1] = {
 
 ViewCount gNeoArkNorthPromenadeViewCounts[1] = { NEO_ARK_NORTH_PROMENADE_VIEW_COUNT };
 
-DirectionWarpEntry D_neo_ark_north_promenade_80181DD4[2] = {
-    { { { .word = 3072 }, 0x2A43, 0, 1354 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 0x2A43, 0, 1354 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 6, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
-    { { { .word = 1024 }, 1193, 0, 0x2C19 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 1193, 0, 0x2C19 }, { 0, 0, 0, 0 }, 0x550A0002, 0x550A0001, 0x550A0003, 2, DIRECTION_WARP_FLAG_NONE, GAME_FLAG_MAP_MARK_POWER_PLANT_1 },
+DirectionWarpEntry gNeoArkNorthPromenadeWarpEntries[2] = {
+    {
+        .player         = { .yaw = { .word = (ACTOR_TRANSFORM_ANGLE_TURN * 3 / 4) }, .x = 0x2A43, .y = 0, .z = 1354 },
+        .unknown_10     = { 0 },
+        .companion      = { .yaw = { .word = (ACTOR_TRANSFORM_ANGLE_TURN * 3 / 4) }, .x = 0x2A43, .y = 0, .z = 1354 },
+        .unknown_24     = { 0 },
+        .arrivalSound   = DIRECTION_WARP_SOUND_NONE,
+        .departureSound = DIRECTION_WARP_SOUND_NONE,
+        .blockedSound   = DIRECTION_WARP_SOUND_NONE,
+        .initialView    = 6,
+        .flags          = DIRECTION_WARP_FLAG_NONE,
+        .mapFlagId      = DIRECTION_WARP_MAP_FLAG_NONE,
+    },
+    {
+        .player         = { .yaw = { .word = (ACTOR_TRANSFORM_ANGLE_TURN / 4) }, .x = 1193, .y = 0, .z = 0x2C19 },
+        .unknown_10     = { 0 },
+        .companion      = { .yaw = { .word = (ACTOR_TRANSFORM_ANGLE_TURN / 4) }, .x = 1193, .y = 0, .z = 0x2C19 },
+        .unknown_24     = { 0 },
+        .arrivalSound   = SOUND_AREA(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_NORTH_PROMENADE, 2),
+        .departureSound = SOUND_AREA(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_NORTH_PROMENADE, 1),
+        .blockedSound   = SOUND_AREA(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_NORTH_PROMENADE, 3),
+        .initialView    = 2,
+        .flags          = DIRECTION_WARP_FLAG_NONE,
+        .mapFlagId      = GAME_FLAG_MAP_MARK_POWER_PLANT_1,
+    },
 };
 
 /// Room-space face normals for the promenade grid, with `ONE` for unit length.

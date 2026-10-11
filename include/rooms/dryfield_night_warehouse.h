@@ -31,7 +31,15 @@ extern AreaVariant gDryfieldNightWarehouseAreaVariants[DRYFIELD_NIGHT_WAREHOUSE_
 /// Borrow these records and their resources only while the room overlay is loaded.
 extern WorldCoordRoomLighting gDryfieldNightWarehouseRoomLighting[3];
 
-extern WorldCollisionRoomResources D_dryfield_night_warehouse_8017E900[];
+/// Collision resources for room selectors 1..3, indexed by room minus one.
+///
+/// All three room slots borrow the same grid, four view boundaries and ten action
+/// triggers; there are no sight occluders.
+///
+/// The stage map borrows this directory while the room overlay is loaded. Keep the grid
+/// and its pools live while active, and the mutable trigger/occluder lists live until
+/// unlinked. This directory has no terminator or bounds check.
+extern WorldCollisionRoomResources gDryfieldNightWarehouseRoomCollisionResources[3];
 
 /// Room slots 1..3's logical-view maps, indexed by room minus one.
 ///
@@ -46,7 +54,17 @@ extern u8* gDryfieldNightWarehouseViewMaps[3];
 /// while this overlay is loaded; they do not describe the camera array's extent.
 extern ViewCount gDryfieldNightWarehouseRoomViewCounts[3];
 
-extern DirectionWarpEntry D_dryfield_night_warehouse_8017E944[];
+/// Warp endpoint records for slots 1..2, indexed by warp minus one.
+///
+/// Slots 1 and 2 serve the Back Street and Dilapidated House connections, with arrival
+/// views 2 and 4. Only slot 1 has arrival/departure sounds and a door marker.
+///
+/// Positions use signed whole world coordinates; yaw uses 4096 units per turn. The two
+/// byte spans have unproven roles and remain zero. The stage map borrows this array;
+/// keep the room overlay loaded through departure or arrival setup. Consumers copy
+/// complete entries and actor spawns borrow their transforms synchronously. There is
+/// no terminator or bounds check.
+extern DirectionWarpEntry gDryfieldNightWarehouseWarpEntries[2];
 
 /// Eight authored cameras; mapped view slots 1..4 use the first four records.
 ///
