@@ -100,7 +100,10 @@ typedef struct {
 } _DryfieldWaterTowerActorSceneWork;
 STATIC_ASSERT_SIZEOF(_DryfieldWaterTowerActorSceneWork, 0x18);
 
-/// Frames in one unit of `_DryfieldWaterTowerTimeLimit::duration`.
+/// Driver frames per stored mechanism-run duration unit (30).
+///
+/// Multiplying the selected u16 duration produces a u16 limit of 750..1200
+/// frames. These are task updates; no conversion to wall-clock seconds is made.
 #define DRYFIELD_WATER_TOWER_TIME_LIMIT_UNIT_FRAMES 30
 
 /// `_DryfieldWaterTowerTimeLimit::maxTimeouts` of the entry that ends the table.
@@ -118,7 +121,10 @@ typedef struct {
 } _DryfieldWaterTowerTimeLimit;
 STATIC_ASSERT_SIZEOF(_DryfieldWaterTowerTimeLimit, 0x4);
 
-/// `_DryfieldWaterTowerViewVolume::viewIndex` of the record that ends the table.
+/// Unsigned view-index sentinel ending the mechanism's running-sound volume table.
+///
+/// The sentinel row's percentage is never read. Unlisted view indices use full
+/// script volume, so the lookup must test this marker before accessing a mix.
 #define DRYFIELD_WATER_TOWER_VIEW_VOLUME_END 0xFFFF
 
 /// One entry of the room's per-view volume table for the mechanism's running

@@ -1501,6 +1501,10 @@ static void _shelterB4UpperSewerDrawWaterSurfaces(Task* task, const _ShelterB4Up
     /// DR_MODE's unused second slot while sending one word. Call as a statement
     /// after a valid projection inside braces; expands to a statement list that
     /// updates the cursor and links both packets, with no additional control flow.
+    /// RGB is (0, blueIntensity / 4, blueIntensity) and both packets use the
+    /// projected depth + 96. Head insertion makes the mode execute before the
+    /// quad. Packed XY words contain signed pixel halfwords; no vector overlay
+    /// is implied by those word stores. Packets stay live through GPU consumption.
 #define SHELTER_B4_UPPER_SEWER_EMIT_WATER_QUAD()                                                                                                                                                   \
     waterQuad                              = (POLY_F4*)_gShelterB4UpperSewerWaterPacketCursor;                                                                                                     \
     _gShelterB4UpperSewerWaterPacketCursor = (u8*)(waterQuad + 1);                                                                                                                                 \

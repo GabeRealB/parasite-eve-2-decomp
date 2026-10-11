@@ -128,7 +128,10 @@ static s32 _actionPromptHitTestDefault(ActionPromptHotspot* hotspots, s16 cursor
 /// cycle is two halves, and the frame after them counts the cycle.
 #define ACROPOLIS_BRIDGE_KEYPAD_BLINK_PHASE_FRAMES 10
 
-/// Blink cycles the result display runs after a code is checked.
+/// Counted blink cycles at which the keypad finishes displaying its result.
+///
+/// Both result states compare for equality after stepping the retained counter;
+/// entry to the accepted state does not reset a previous rejection's count.
 #define ACROPOLIS_BRIDGE_KEYPAD_BLINK_COUNT 3
 
 /// Wrong codes after which the keypad closes instead of taking another entry.

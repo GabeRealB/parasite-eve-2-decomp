@@ -110,8 +110,10 @@ enum {
 ///
 /// Grid pointers must be side-effect-free expressions with live, disjoint pools;
 /// they are evaluated repeatedly. The room pools are writable and contain three
-/// normals/faces and eight vertices. Vector fourth words and later entries are
-/// retained. The index argument is a writable s32 cursor, left at eight.
+/// normals/faces and eight vertices. Vector pad halfwords and later entries are
+/// retained; each face copies its full twelve bytes, including surface flags.
+/// The index argument is a writable s32 cursor, left at eight. Invoke inside
+/// braces; the subsequent caller loop applies the selected room-axis offset.
 #define MINE_FORKED_TUNNEL_COPY_AREA_OBJECT_COLLISION_BOX(roomGrid, templateGrid, entryIndex)                          \
     {                                                                                                                  \
         for ((entryIndex) = 0; (entryIndex) < MINE_FORKED_TUNNEL_AREA_OBJECT_COLLISION_FACE_COUNT; (entryIndex)++) {   \

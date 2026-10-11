@@ -269,7 +269,7 @@ def declared_collisions(manifest: dict) -> list[dict]:
                         grid=int(str(objects[i - 1]["at"]), 16),
                         source=int(str(obj["at"]), 16),
                         in_c=bool(obj.get("in_c")),
-                        cell_ref_macro=obj.get("cell_ref_macro", "GRID_CELL"),
+                        cell_face_list_macro=obj.get("cell_face_list_macro", "GRID_CELL"),
                     ))
     return rows
 

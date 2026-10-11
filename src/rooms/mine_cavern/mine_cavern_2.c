@@ -143,15 +143,18 @@ STATIC_ASSERT_SIZEOF(_MineCavernTargetHitScratch, 0x28);
 ///
 /// taskPtr must be a stable Task* and position a writable VECTOR lvalue;
 /// both are evaluated repeatedly without other argument side effects. Writes
-/// XYZ in whole world-coordinate units and borrows live model/work/room data.
+/// XYZ in whole composed-coordinate units, retaining the VECTOR's fourth word,
+/// and borrows live model/work/room data. Populates the model's three light rows.
 /// Expands to a braced block; invoke only within a braced statement block.
-#define MINE_CAVERN_TARGET_UPDATE_LIGHTING(taskPtr, position)                \
-    {                                                                        \
-        actorRenderComposeCoord((taskPtr)->extra.tmd->coords);               \
-        (position).vx = (taskPtr)->extra.tmd->coords->workm.t[0];            \
-        (position).vy = (taskPtr)->extra.tmd->coords->workm.t[1];            \
-        (position).vz = (taskPtr)->extra.tmd->coords->workm.t[2];            \
-        worldCoordSetModelLighting((taskPtr)->extra.tmd, &(position), 0, 3); \
+#define MINE_CAVERN_TARGET_UPDATE_LIGHTING(taskPtr, position)                                                                          \
+    {                                                                                                                                  \
+        enum { MINE_CAVERN_TARGET_LIGHT_FIRST = 0,                                                                                     \
+               MINE_CAVERN_TARGET_LIGHT_COUNT = 3 };                                                                                   \
+        actorRenderComposeCoord((taskPtr)->extra.tmd->coords);                                                                         \
+        (position).vx = (taskPtr)->extra.tmd->coords->workm.t[0];                                                                      \
+        (position).vy = (taskPtr)->extra.tmd->coords->workm.t[1];                                                                      \
+        (position).vz = (taskPtr)->extra.tmd->coords->workm.t[2];                                                                      \
+        worldCoordSetModelLighting((taskPtr)->extra.tmd, &(position), MINE_CAVERN_TARGET_LIGHT_FIRST, MINE_CAVERN_TARGET_LIGHT_COUNT); \
     }
 
 static WorldCollisionGrid     _gMineCavernCollisionGrid;
@@ -2841,6 +2844,8 @@ static inline void _mineCavernRegisterRoomEffects(void)
 ///
 /// Arguments are stable expressions: each is evaluated once per sound request.
 /// `soundCoord` borrows a composed coordinate; `attenuation` is 0..127 in script attenuation units.
+/// Start precedes mix; each samples pan separately even when queue admission
+/// fails. The casts intentionally narrow the pan to its low signed byte.
 #define MINE_CAVERN_START_AND_MIX_TARGET_SOUND(scriptId, soundCoord, attenuation)                           \
     do {                                                                                                    \
         sndEvtRequestScriptStart((scriptId), (s8)worldCoordGetOriginAudioPan((soundCoord)), (attenuation)); \
@@ -3073,10 +3078,12 @@ void mineCavernRoomVisualEffectsSparkEmitterTask(Task* task)
 /// Requires caller locals `triangle` (POLY_G3*), `blendMode` (DR_TPAGE*) and
 /// `wedgeIndex` (s32), and live frame packet/OT storage. Positions preserve
 /// unsigned halfword wrapping, radius is pixels, RGB expressions are bytes,
-/// and `trigShift` is the Q12 trigonometric scale. Arguments are evaluated
+/// and `trigShift` is the fractional-bit count (12) for Q12 sine/cosine. Arguments are evaluated
 /// repeatedly, including rim colours twice per wedge, and must be stable.
 /// Reservations retain POLY_GT3/DR_MODE extents. Each blend command is linked
 /// after its triangle and therefore executes first in the GPU's linked list.
+/// The byte reservations are 40 + 12 bytes, larger than the submitted G3 and
+/// tpage packets; retain those extents and require 416 free bytes per full fan.
 #define MINE_CAVERN_DRAW_GLOW_FAN(screenX, screenY, pixelRadius, depthQuarterZ, trigShift, centerRed, centerGreen, centerBlue, rimRed, rimGreen, rimBlue) \
     for (wedgeIndex = 0; wedgeIndex < MINE_CAVERN_GLOW_WEDGES; wedgeIndex++) {                                                                            \
         triangle       = gGpuPrimCursor;                                                                                                                  \

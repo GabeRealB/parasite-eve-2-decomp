@@ -171,20 +171,6 @@ enum {
 /// 2 bytes past its last accessed field.
 enum { SHELTER_B3_DUMPING_HOLE_SPRITE_WORK_BYTES = 0x24 };
 
-/// Spawns one debris task and gives it a work block seeded with `seed`.
-#define DUMPING_HOLE_SPAWN_DEBRIS(seed)                                                                                                                               \
-    {                                                                                                                                                                 \
-        Task*                            t = taskSpawnFromTable(_gShelterB3DumpingHoleSpriteTaskDescriptors, SHELTER_B3_DUMPING_HOLE_DEBRIS_SPRITE_TASK_INDEX, 0, 0); \
-        _ShelterB3DumpingHoleSpriteWork* w = memMalloc(SHELTER_B3_DUMPING_HOLE_SPRITE_WORK_BYTES, false);                                                             \
-        t->work                            = w;                                                                                                                       \
-        if (w == NULL) {                                                                                                                                              \
-            taskKill(t);                                                                                                                                              \
-        } else {                                                                                                                                                      \
-            memFillBytes(w, 0, SHELTER_B3_DUMPING_HOLE_SPRITE_WORK_BYTES);                                                                                            \
-            w->seed = seed;                                                                                                                                           \
-        }                                                                                                                                                             \
-    }
-
 static void _shelterB3DumpingHoleShowTimedCaption(s16 commandIndex, s16 key, s16 durationTicks);
 #include "../../shared/cap_captions.h"
 
@@ -1384,14 +1370,20 @@ static s16 _gShelterB3DumpingHoleCollisionGridCells[412] = {
 #include "assets/shelter_b3_dumping_hole_collision_0EE2C_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gShelterB3DumpingHoleCollisionGridCells[i])
+/// Face-list start at a halfword offset into the room's 412-element signed pool.
+///
+/// The generated cell directory supplies 23 offsets (0..396); NULL represents
+/// its empty cell. This is a pool offset, not an XZ cell index. Evaluate the
+/// offset once; it must be in bounds and start a list ending in -1. The manifest
+/// selects this binding for the table include, which borrows the loaded pool.
+#define SHELTER_B3_DUMPING_HOLE_CELL_FACE_LIST_AT_OFFSET(faceListOffset) (&_gShelterB3DumpingHoleCollisionGridCells[(faceListOffset)])
 /// X-major 6-by-4 cell directory borrowing the packed face-index lists.
 ///
 /// Indexed by X * cellCountZ + Z; NULL denotes an empty cell.
 static s16* _gShelterB3DumpingHoleCollisionGridTable[SHELTER_B3_DUMPING_HOLE_GRID_CELLS_X * SHELTER_B3_DUMPING_HOLE_GRID_CELLS_Z] = {
 #include "assets/shelter_b3_dumping_hole_collision_0EE2C_table.inc"
 };
-#undef GRID_CELL
+#undef SHELTER_B3_DUMPING_HOLE_CELL_FACE_LIST_AT_OFFSET
 
 /// Collision mesh and XZ cell index shared by dumping-hole rooms 1 and 2.
 ///
@@ -3262,23 +3254,25 @@ static void _shelterB3DumpingHoleDebrisEventHandlePlayerCommand(Task* directorTa
 
     /// Builds and synchronously dispatches a debris player's equipped-bank animation.
     ///
-    /// `task` must be a stable director pointer and `message` a side-effect-free
-    /// union lvalue with an AnimationPlayRequest member named animation. The task is
-    /// evaluated once; the message repeatedly. Scalar arguments are evaluated once.
-    /// Reloads task work, reads the saved character/weapon and disables world collision.
-#define SHELTER_B3_DUMPING_HOLE_PLAY_DEBRIS_PLAYER_ANIMATION(task, message, clipId, blendMode, blendFrameCount) \
-    {                                                                                                           \
-        _ShelterB3DumpingHoleDebrisEventWork* animationWork = (task)->work;                                     \
-        s32                                   weaponId      = gPlayerStatus.weapon;                             \
-        (message).animation.source.index =                                                                      \
-            (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == SHELTER_B3_DUMPING_HOLE_PRIMARY_CHARACTER) \
-                ? weaponId + SHELTER_B3_DUMPING_HOLE_PRIMARY_ANIMATION_BANK_OFFSET                              \
-                : weaponId + SHELTER_B3_DUMPING_HOLE_NONPRIMARY_ANIMATION_BANK_OFFSET;                          \
-        (message).animation.animationId          = (clipId);                                                    \
-        (message).animation.blend                = (blendMode);                                                 \
-        (message).animation.blendFrames          = (blendFrameCount);                                           \
-        (message).animation.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;                           \
-        TASK_MESSAGE_DISPATCH_POINTER(animationWork->player, ANIMATION_MESSAGE_PLAY, &(message), 0);            \
+    /// `directorTaskValue` is a stable director pointer, evaluated once.
+    /// `animationRequest` points to writable 20-byte AnimationPlayRequest storage;
+    /// it is evaluated repeatedly and must have no side effects. Scalar arguments
+    /// are evaluated once. Uses weapon + 1 for character 1 and weapon + 34 otherwise.
+    /// blendFrameCount counts normal-rate frames. World collision is disabled;
+    /// synchronous dispatch borrows the request and does not retain its address.
+#define SHELTER_B3_DUMPING_HOLE_PLAY_DEBRIS_PLAYER_ANIMATION(directorTaskValue, animationRequest, clipId, blendMode, blendFrameCount) \
+    {                                                                                                                                 \
+        _ShelterB3DumpingHoleDebrisEventWork* animationWork = (directorTaskValue)->work;                                              \
+        s32                                   weaponId      = gPlayerStatus.weapon;                                                   \
+        (animationRequest)->source.index =                                                                                            \
+            (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == SHELTER_B3_DUMPING_HOLE_PRIMARY_CHARACTER)                       \
+                ? weaponId + SHELTER_B3_DUMPING_HOLE_PRIMARY_ANIMATION_BANK_OFFSET                                                    \
+                : weaponId + SHELTER_B3_DUMPING_HOLE_NONPRIMARY_ANIMATION_BANK_OFFSET;                                                \
+        (animationRequest)->animationId          = (clipId);                                                                          \
+        (animationRequest)->blend                = (blendMode);                                                                       \
+        (animationRequest)->blendFrames          = (blendFrameCount);                                                                 \
+        (animationRequest)->enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;                                                 \
+        TASK_MESSAGE_DISPATCH_POINTER(animationWork->player, ANIMATION_MESSAGE_PLAY, (animationRequest), 0);                          \
     }
 
     if (work->player != NULL) {
@@ -3304,14 +3298,14 @@ static void _shelterB3DumpingHoleDebrisEventHandlePlayerCommand(Task* directorTa
                     if (++work->playerTimer < SHELTER_B3_DUMPING_HOLE_DEBRIS_PREPARE_DELAY_TICKS) {
                         return;
                     }
-                    SHELTER_B3_DUMPING_HOLE_PLAY_DEBRIS_PLAYER_ANIMATION(directorTask, request, SHELTER_B3_DUMPING_HOLE_DEBRIS_CLIP_47, ANIMATION_BLEND_INTERPOLATE, SHELTER_B3_DUMPING_HOLE_DEBRIS_BLEND_FRAMES);
+                    SHELTER_B3_DUMPING_HOLE_PLAY_DEBRIS_PLAYER_ANIMATION(directorTask, &request.animation, SHELTER_B3_DUMPING_HOLE_DEBRIS_CLIP_47, ANIMATION_BLEND_INTERPOLATE, SHELTER_B3_DUMPING_HOLE_DEBRIS_BLEND_FRAMES);
                     break;
                 default:
                     return;
             }
             break;
         case SHELTER_B3_DUMPING_HOLE_DEBRIS_PLAYER_COMMAND_PLAY_ANIMATION_50:
-            SHELTER_B3_DUMPING_HOLE_PLAY_DEBRIS_PLAYER_ANIMATION(directorTask, request, SHELTER_B3_DUMPING_HOLE_DEBRIS_CLIP_50, ANIMATION_BLEND_RESET, 0);
+            SHELTER_B3_DUMPING_HOLE_PLAY_DEBRIS_PLAYER_ANIMATION(directorTask, &request.animation, SHELTER_B3_DUMPING_HOLE_DEBRIS_CLIP_50, ANIMATION_BLEND_RESET, 0);
             break;
         case SHELTER_B3_DUMPING_HOLE_DEBRIS_PLAYER_COMMAND_HIDE_MODEL:
             taskMessageDispatch(work->player, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, PLAYER_ACTOR_MODEL_DRAW_HIDE_RELEASE, 0);
@@ -3319,7 +3313,7 @@ static void _shelterB3DumpingHoleDebrisEventHandlePlayerCommand(Task* directorTa
         case SHELTER_B3_DUMPING_HOLE_DEBRIS_PLAYER_COMMAND_RESTORE_PLAYER:
             taskMessageDispatch(work->player, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO, 0);
             TASK_MESSAGE_DISPATCH_POINTER(work->player, GAME_ACTOR_MESSAGE_PLACE, &_gShelterB3DumpingHoleDebrisPlayerFinalTransform, 0);
-            SHELTER_B3_DUMPING_HOLE_PLAY_DEBRIS_PLAYER_ANIMATION(directorTask, request, SHELTER_B3_DUMPING_HOLE_DEBRIS_RESTORE_CLIP, ANIMATION_BLEND_RESET, 0);
+            SHELTER_B3_DUMPING_HOLE_PLAY_DEBRIS_PLAYER_ANIMATION(directorTask, &request.animation, SHELTER_B3_DUMPING_HOLE_DEBRIS_RESTORE_CLIP, ANIMATION_BLEND_RESET, 0);
             break;
         case SHELTER_B3_DUMPING_HOLE_DEBRIS_PLAYER_COMMAND_PLAY_ANIMATION_48:
             switch (work->playerStep) {
@@ -3336,24 +3330,44 @@ static void _shelterB3DumpingHoleDebrisEventHandlePlayerCommand(Task* directorTa
                     if (++work->playerTimer < SHELTER_B3_DUMPING_HOLE_DEBRIS_RISE_DELAY_TICKS) {
                         return;
                     }
-                    SHELTER_B3_DUMPING_HOLE_PLAY_DEBRIS_PLAYER_ANIMATION(directorTask, request, SHELTER_B3_DUMPING_HOLE_DEBRIS_CLIP_48, ANIMATION_BLEND_INTERPOLATE, SHELTER_B3_DUMPING_HOLE_DEBRIS_BLEND_FRAMES);
+                    SHELTER_B3_DUMPING_HOLE_PLAY_DEBRIS_PLAYER_ANIMATION(directorTask, &request.animation, SHELTER_B3_DUMPING_HOLE_DEBRIS_CLIP_48, ANIMATION_BLEND_INTERPOLATE, SHELTER_B3_DUMPING_HOLE_DEBRIS_BLEND_FRAMES);
                     break;
                 default:
                     return;
             }
             break;
         case SHELTER_B3_DUMPING_HOLE_DEBRIS_PLAYER_COMMAND_PLAY_ANIMATION_51_DOUBLE_RATE:
-            SHELTER_B3_DUMPING_HOLE_PLAY_DEBRIS_PLAYER_ANIMATION(directorTask, request, SHELTER_B3_DUMPING_HOLE_DEBRIS_CLIP_51, ANIMATION_BLEND_INTERPOLATE, SHELTER_B3_DUMPING_HOLE_DEBRIS_BLEND_FRAMES);
+            SHELTER_B3_DUMPING_HOLE_PLAY_DEBRIS_PLAYER_ANIMATION(directorTask, &request.animation, SHELTER_B3_DUMPING_HOLE_DEBRIS_CLIP_51, ANIMATION_BLEND_INTERPOLATE, SHELTER_B3_DUMPING_HOLE_DEBRIS_BLEND_FRAMES);
             taskMessageDispatch(work->player, ANIMATION_MESSAGE_SET_RATE, 2 * ANIMATION_RATE_ONE, 0);
             break;
         case SHELTER_B3_DUMPING_HOLE_DEBRIS_PLAYER_COMMAND_PLAY_ANIMATION_49:
-            SHELTER_B3_DUMPING_HOLE_PLAY_DEBRIS_PLAYER_ANIMATION(directorTask, request, SHELTER_B3_DUMPING_HOLE_DEBRIS_CLIP_49, ANIMATION_BLEND_INTERPOLATE, SHELTER_B3_DUMPING_HOLE_DEBRIS_BLEND_FRAMES);
+            SHELTER_B3_DUMPING_HOLE_PLAY_DEBRIS_PLAYER_ANIMATION(directorTask, &request.animation, SHELTER_B3_DUMPING_HOLE_DEBRIS_CLIP_49, ANIMATION_BLEND_INTERPOLATE, SHELTER_B3_DUMPING_HOLE_DEBRIS_BLEND_FRAMES);
             break;
     }
     work->playerCommand = SHELTER_B3_DUMPING_HOLE_DEBRIS_PLAYER_COMMAND_NONE;
 }
 
 #undef SHELTER_B3_DUMPING_HOLE_PLAY_DEBRIS_PLAYER_ANIMATION
+
+/// Spawns one rising debris sprite with an immediately copied world-position seed.
+///
+/// The seed is borrowed only for this call; the task owns the cleared 0x24-byte
+/// work allocation. Its final two bytes have no established role, so the full
+/// capacity is retained separately from the accessed work type. Work-allocation
+/// failure kills this sprite and allows the caller to continue its ring. The
+/// sprite recipe's task spawn must succeed, as its result is dereferenced.
+static inline void _shelterB3DumpingHoleSpawnDebrisSprite(const _ShelterB3DumpingHoleSpriteSeed* seedValue)
+{
+    Task*                            spriteTask = taskSpawnFromTable(_gShelterB3DumpingHoleSpriteTaskDescriptors, SHELTER_B3_DUMPING_HOLE_DEBRIS_SPRITE_TASK_INDEX, 0, 0);
+    _ShelterB3DumpingHoleSpriteWork* spriteWork = memMalloc(SHELTER_B3_DUMPING_HOLE_SPRITE_WORK_BYTES, false);
+    spriteTask->work                            = spriteWork;
+    if (spriteWork == NULL) {
+        taskKill(spriteTask);
+    } else {
+        memFillBytes(spriteWork, 0, SHELTER_B3_DUMPING_HOLE_SPRITE_WORK_BYTES);
+        spriteWork->seed = *seedValue;
+    }
+}
 
 /// Advances the debris event's pending scene command and clears it once complete.
 ///
@@ -3392,6 +3406,8 @@ static void _shelterB3DumpingHoleDebrisEventHandleSceneCommand(Task* directorTas
     /// function's seed and ringPlacement locals; sprite seeds narrow XYZ to signed
     /// halfwords and are copied immediately, while the model borrows the transform
     /// through its first tick. No early return is added on a sprite allocation failure.
+    /// The sprite order is centre, (+Y,+Z), (+Y,-Z), (-Y,+Z), (-Y,-Z), all at
+    /// the entry's X; scale is Q12 unity and the seed's unread halfword stays 1.
 #define SHELTER_B3_DUMPING_HOLE_SPAWN_RINGED_DEBRIS_PLACEMENT(entry)                                                                                                                              \
     {                                                                                                                                                                                             \
         taskSpawnFromTable(_gShelterB3DumpingHoleDebrisEventTaskDescriptors, SHELTER_B3_DUMPING_HOLE_DEBRIS_MODEL2_TASK_INDEX, SHELTER_B3_DUMPING_HOLE_DEBRIS_X_SPEED_SLOW, &(entry)->transform); \
@@ -3402,19 +3418,19 @@ static void _shelterB3DumpingHoleDebrisEventHandleSceneCommand(Task* directorTas
             seed.pos.vz   = ringPlacement->transform.pos.vz;                                                                                                                                      \
             seed.scale    = ONE;                                                                                                                                                                  \
             seed.field_A  = 1;                                                                                                                                                                    \
-            DUMPING_HOLE_SPAWN_DEBRIS(seed);                                                                                                                                                      \
+            _shelterB3DumpingHoleSpawnDebrisSprite(&seed);                                                                                                                                        \
             seed.pos.vy = ringPlacement->transform.pos.vy + SHELTER_B3_DUMPING_HOLE_SPRITE_RING_OFFSET;                                                                                           \
             seed.pos.vz = ringPlacement->transform.pos.vz + SHELTER_B3_DUMPING_HOLE_SPRITE_RING_OFFSET;                                                                                           \
-            DUMPING_HOLE_SPAWN_DEBRIS(seed);                                                                                                                                                      \
+            _shelterB3DumpingHoleSpawnDebrisSprite(&seed);                                                                                                                                        \
             seed.pos.vy = ringPlacement->transform.pos.vy + SHELTER_B3_DUMPING_HOLE_SPRITE_RING_OFFSET;                                                                                           \
             seed.pos.vz = ringPlacement->transform.pos.vz - SHELTER_B3_DUMPING_HOLE_SPRITE_RING_OFFSET;                                                                                           \
-            DUMPING_HOLE_SPAWN_DEBRIS(seed);                                                                                                                                                      \
+            _shelterB3DumpingHoleSpawnDebrisSprite(&seed);                                                                                                                                        \
             seed.pos.vy = ringPlacement->transform.pos.vy - SHELTER_B3_DUMPING_HOLE_SPRITE_RING_OFFSET;                                                                                           \
             seed.pos.vz = ringPlacement->transform.pos.vz + SHELTER_B3_DUMPING_HOLE_SPRITE_RING_OFFSET;                                                                                           \
-            DUMPING_HOLE_SPAWN_DEBRIS(seed);                                                                                                                                                      \
+            _shelterB3DumpingHoleSpawnDebrisSprite(&seed);                                                                                                                                        \
             seed.pos.vy = ringPlacement->transform.pos.vy - SHELTER_B3_DUMPING_HOLE_SPRITE_RING_OFFSET;                                                                                           \
             seed.pos.vz = ringPlacement->transform.pos.vz - SHELTER_B3_DUMPING_HOLE_SPRITE_RING_OFFSET;                                                                                           \
-            DUMPING_HOLE_SPAWN_DEBRIS(seed);                                                                                                                                                      \
+            _shelterB3DumpingHoleSpawnDebrisSprite(&seed);                                                                                                                                        \
         }                                                                                                                                                                                         \
     }
 
@@ -3809,6 +3825,8 @@ static void _shelterB3DumpingHoleDebrisEventSkip(void)
     /// once. Reads the live player weapon and saved character; expands to a compound
     /// statement without retaining a pointer or changing control flow. Undefined
     /// immediately after the debris skip callback's use.
+    /// Writes all five s32 words (20 bytes); character 1 selects weapon + 1 and
+    /// other characters weapon + 34. The bank and bank-local clip must be loaded.
 #define SHELTER_B3_DUMPING_HOLE_BUILD_PLAYER_RESET_ANIMATION_REQUEST(request, clipId)                                                \
     {                                                                                                                                \
         (request)->source.index = gPlayerStatus.weapon +                                                                             \
@@ -4070,19 +4088,23 @@ static void _shelterB3DumpingHoleCollapseEventHandleCommand(Task* task)
     } effectScratch;
     AnimationPlayRequest animation;
 
-    /// Pre-rotates an authored offset, then spawns a smoke/flash sprite that transforms it again.
+    /// Pre-rotates a collapse offset before effect spawning applies the parent's placement again.
     ///
     /// Offset arguments are distinct writable SVECTOR lvalues without side effects,
-    /// evaluated repeatedly. Scalar arguments are evaluated once. Captures the live
-    /// director task; spriteSize is a low-twelve-bit base size with palette zero.
+    /// evaluated repeatedly. Scalar arguments are evaluated once. Borrows the live
+    /// director supplied as a stable pointer; spriteSize is a low-twelve-bit base size
+    /// with palette zero. Input XYZ and the pre-rotation result narrow to signed
+    /// halfwords; the spawn's parent transform produces full-word translation.
     /// These two sprite callbacks use the copied position, not the retained offset pointer.
-#define SHELTER_B3_DUMPING_HOLE_SPAWN_COLLAPSE_ROTATED_EFFECT(localOffset, rotatedOffset, offsetZ, effectId, spriteSize) \
-    {                                                                                                                    \
-        (localOffset).vx = 200;                                                                                          \
-        (localOffset).vy = 400;                                                                                          \
-        (localOffset).vz = (offsetZ);                                                                                    \
-        ApplyMatrixSV(&task->extra.tmd->coords->coord, &(localOffset), &(rotatedOffset));                                \
-        effectSpawn((effectId), task->extra.tmd->coords, (spriteSize), &(rotatedOffset));                                \
+#define SHELTER_B3_DUMPING_HOLE_SPAWN_COLLAPSE_ROTATED_EFFECT(directorTaskValue, localOffset, rotatedOffset, offsetZ, effectId, spriteSize) \
+    {                                                                                                                                       \
+        enum { SHELTER_B3_DUMPING_HOLE_COLLAPSE_EFFECT_LOCAL_X = 200,                                                                       \
+               SHELTER_B3_DUMPING_HOLE_COLLAPSE_EFFECT_LOCAL_Y = 400 };                                                                     \
+        (localOffset).vx = SHELTER_B3_DUMPING_HOLE_COLLAPSE_EFFECT_LOCAL_X;                                                                 \
+        (localOffset).vy = SHELTER_B3_DUMPING_HOLE_COLLAPSE_EFFECT_LOCAL_Y;                                                                 \
+        (localOffset).vz = (offsetZ);                                                                                                       \
+        ApplyMatrixSV(&(directorTaskValue)->extra.tmd->coords->coord, &(localOffset), &(rotatedOffset));                                    \
+        effectSpawn((effectId), (directorTaskValue)->extra.tmd->coords, (spriteSize), &(rotatedOffset));                                    \
     }
 
     work = task->work;
@@ -4144,8 +4166,8 @@ static void _shelterB3DumpingHoleCollapseEventHandleCommand(Task* task)
                         }
                     }
                     if (work->timer >= SHELTER_B3_DUMPING_HOLE_COLLAPSE_SHAKE_END_TICK) {
-                        SHELTER_B3_DUMPING_HOLE_SPAWN_COLLAPSE_ROTATED_EFFECT(scratch.effects.smokeOffset, scratch.effects.smokeRotatedOffset, -0xC8, EFFECT_SMOKE_PUFF, SHELTER_B3_DUMPING_HOLE_COLLAPSE_SMOKE_SIZE);
-                        SHELTER_B3_DUMPING_HOLE_SPAWN_COLLAPSE_ROTATED_EFFECT(scratch.effects.smokeOffset, scratch.effects.smokeRotatedOffset, -0x320, EFFECT_SMOKE_PUFF, SHELTER_B3_DUMPING_HOLE_COLLAPSE_SMOKE_SIZE);
+                        SHELTER_B3_DUMPING_HOLE_SPAWN_COLLAPSE_ROTATED_EFFECT(task, scratch.effects.smokeOffset, scratch.effects.smokeRotatedOffset, -0xC8, EFFECT_SMOKE_PUFF, SHELTER_B3_DUMPING_HOLE_COLLAPSE_SMOKE_SIZE);
+                        SHELTER_B3_DUMPING_HOLE_SPAWN_COLLAPSE_ROTATED_EFFECT(task, scratch.effects.smokeOffset, scratch.effects.smokeRotatedOffset, -0x320, EFFECT_SMOKE_PUFF, SHELTER_B3_DUMPING_HOLE_COLLAPSE_SMOKE_SIZE);
                         work->timer      = 0;
                         work->part1Pitch = 0;
                         work->field_9A   = 0x80;
@@ -4165,8 +4187,8 @@ static void _shelterB3DumpingHoleCollapseEventHandleCommand(Task* task)
                             gfxSetRotIdentity(&task->extra.tmd->coords[3].coord);
                         }
                         if (!(gDisplayState.animFrame & (SHELTER_B3_DUMPING_HOLE_COLLAPSE_BURST_PERIOD_FRAMES - 1))) {
-                            SHELTER_B3_DUMPING_HOLE_SPAWN_COLLAPSE_ROTATED_EFFECT(scratch.effects.flashOffset, effectScratch.effectOffset, -0xC8, EFFECT_FLASH_BURST, SHELTER_B3_DUMPING_HOLE_COLLAPSE_FLASH_SIZE);
-                            SHELTER_B3_DUMPING_HOLE_SPAWN_COLLAPSE_ROTATED_EFFECT(scratch.effects.flashOffset, effectScratch.effectOffset, -0x320, EFFECT_FLASH_BURST, SHELTER_B3_DUMPING_HOLE_COLLAPSE_FLASH_SIZE);
+                            SHELTER_B3_DUMPING_HOLE_SPAWN_COLLAPSE_ROTATED_EFFECT(task, scratch.effects.flashOffset, effectScratch.effectOffset, -0xC8, EFFECT_FLASH_BURST, SHELTER_B3_DUMPING_HOLE_COLLAPSE_FLASH_SIZE);
+                            SHELTER_B3_DUMPING_HOLE_SPAWN_COLLAPSE_ROTATED_EFFECT(task, scratch.effects.flashOffset, effectScratch.effectOffset, -0x320, EFFECT_FLASH_BURST, SHELTER_B3_DUMPING_HOLE_COLLAPSE_FLASH_SIZE);
                         }
                     }
                     if (gDisplayState.animFrame & 1) {

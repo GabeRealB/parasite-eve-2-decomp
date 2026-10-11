@@ -173,8 +173,11 @@ AnimationSet gDryfieldToiletAnimation035A4 = {
 /// 2000 whole room-coordinate units toward negative X after restoration.
 static void _dryfieldToiletInitEventCollision(void)
 {
-    // Copy XYZ while retaining the fourth component. Each argument is evaluated
-    // three times and must be a stable, side-effect-free SVECTOR lvalue.
+    /// Restores a template normal or vertex's signed-halfword XYZ in the live grid.
+    ///
+    /// Both arguments are stable SVECTOR lvalues in disjoint grid pools, evaluated
+    /// three times. Keeps the pad halfword intact; a whole-vector assignment would
+    /// overwrite it. Invoke inside braces; this helper does not copy face records.
 #define DRYFIELD_TOILET_COPY_INITIAL_COLLISION_XYZ(destination, source) \
     {                                                                   \
         (destination).vx = (source).vx;                                 \

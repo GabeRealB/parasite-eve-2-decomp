@@ -63,16 +63,20 @@ enum {
     ACROPOLIS_FOUNTAIN_WATER_LOOP_APPLY = 2
 };
 
-/// Encoded frames of the fountain movie, numbered from 1.
-///
-/// The loop may be commanded on `[FIRST, FADE)`. From `FADE` a running loop
-/// fades out. `WINDOW` is the exclusive bound of `(frame - FIRST)` and still
-/// covers `FADE`; the fade test is taken first.
+/// First encoded movie frame that admits a fountain-loop request (frame 15).
 #define ACROPOLIS_FOUNTAIN_WATER_LOOP_FRAME_FIRST 0xF
-#define ACROPOLIS_FOUNTAIN_WATER_LOOP_FRAME_FADE  0xF0
-#define ACROPOLIS_FOUNTAIN_WATER_LOOP_WINDOW      0xE2
 
-/// Audio updates over which the loop fades once the movie leaves the window.
+/// First encoded movie frame that fades a requested fountain loop (frame 240).
+#define ACROPOLIS_FOUNTAIN_WATER_LOOP_FRAME_FADE 0xF0
+
+/// Exclusive unsigned-halfword bound on the movie frame minus its first frame.
+///
+/// The 226-frame span includes frame 240, but the preceding fade test consumes
+/// that frame: only frames 15..239 can advance the request state. Keep the u16
+/// subtraction so frames before 15 wrap outside the admitted span.
+#define ACROPOLIS_FOUNTAIN_WATER_LOOP_WINDOW (ACROPOLIS_FOUNTAIN_WATER_LOOP_FRAME_FADE - ACROPOLIS_FOUNTAIN_WATER_LOOP_FRAME_FIRST + 1)
+
+/// Audio updates in the fountain loop's requested fade (20, independent of movie frames).
 #define ACROPOLIS_FOUNTAIN_WATER_LOOP_FADE_TICKS 0x14
 
 /// Task work for the fountain's waterfall loop.

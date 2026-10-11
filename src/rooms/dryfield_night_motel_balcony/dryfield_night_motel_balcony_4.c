@@ -124,7 +124,10 @@ static inline void _dryfieldNightMotelBalconyDisableBrokenLamp(void)
 ///
 /// Writes XYZ only: X -127..128, Y -639..-384 and Z 1409..1664. The writable
 /// vector pointer is evaluated three times and must have no side effects.
-/// Captures and advances `gRandomLcgState`; leaves the fourth halfword intact.
+/// Advances `gRandomLcgState` once per axis in XYZ order; the flame loop takes
+/// a fourth draw for size, while the smoke loop takes only these three.
+/// Leaves the vector's pad halfword intact. Y uses unsigned arithmetic with
+/// the encoded base 0xFE80, then narrows to signed 16 bits. Invoke inside braces.
 #define DRYFIELD_NIGHT_MOTEL_BALCONY_CHOOSE_FLAME_BURST_OFFSET(offset)                    \
     {                                                                                     \
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT; \

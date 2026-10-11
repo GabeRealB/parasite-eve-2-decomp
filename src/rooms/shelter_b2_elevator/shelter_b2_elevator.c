@@ -45,14 +45,18 @@
 
 #include "mapui/map_shelter.h"
 
-/// World Z of both elevator-door leaves when the door is shut: the line the
-/// two leaves meet on.
+/// Room-coordinate Z translation of both door-leaf roots at zero travel (-500).
 #define SHELTER_B2_ELEVATOR_DOOR_CLOSED_Z (-500)
 
-/// World units a door leaf slides per frame while the door opens or closes.
+/// Whole room-coordinate units added to leaf travel per door-task tick (10).
+///
+/// The motion request supplies -1, 0 or 1; the leaf's side sign is applied only
+/// when travel is converted to root Z.
 #define SHELTER_B2_ELEVATOR_DOOR_LEAF_SPEED 10
 
-/// Travel of a fully retracted door leaf, in world units: one leaf's width.
+/// Maximum door-leaf travel from its shut position, in room-coordinate units (500).
+///
+/// Travel clamps to 0..500 before the side sign and shut-root Z are applied.
 #define SHELTER_B2_ELEVATOR_DOOR_LEAF_TRAVEL_MAX 500
 
 /// Work block of one leaf of the elevator's sliding door, held in `Task::work`.

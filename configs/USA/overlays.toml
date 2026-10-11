@@ -74,6 +74,8 @@
 #       gives the grid's size; the room's records name it
 #       `in_c = true` on both means a code unit declares the arrays and header;
 #       the arrays' initializers are generated (tools/gen_collision_inc.py).
+#       `cell_face_list_macro` on a C collisionSource optionally names its
+#       halfword-offset-to-face-list macro; the default binding is GRID_CELL.
 #   { kind = "collisionPatch", at = "...", pieces = ["vectors N", "faces N", ...] }
 #       headerless collision geometry that code copies into a live grid (a
 #       moving part); each piece is one array, of SVECTORs or WorldCollisionGridFaces
@@ -2662,7 +2664,7 @@ objects = [
   { kind = "animation", at = "0xA7D8", sets = ["0xAAB4"], in_c = true },
   { kind = "animation", at = "0xC534", sets = ["0xC810", "0xCCB4", "0xD9C4"], in_c = true },
   { kind = "collision", at = "0xE40C", in_c = true },
-  { kind = "collisionSource", at = "0xEE2C", in_c = true },
+  { kind = "collisionSource", at = "0xEE2C", in_c = true, cell_face_list_macro = "SHELTER_B3_DUMPING_HOLE_CELL_FACE_LIST_AT_OFFSET" },
 ]
 
 [rooms.overlays.shelter_b3_garbage_incinerator]
@@ -3057,7 +3059,7 @@ objects = [
   { unit = "shelter_b6_training_room/shelter_b6_training_room_3", rodata = "0x2C", text = "0x828", data = "0x5534" },
   { kind = "animation", at = "0x5568", sets = ["0x5844", "0x5F74", "0x61B8", "0x63C0"], in_c = true },
   { kind = "collision", at = "0x6ED0", in_c = true },
-  { kind = "collisionSource", at = "0x7174", in_c = true, cell_ref_macro = "SHELTER_B6_TRAINING_ROOM_CELL_FACE_LIST_AT_OFFSET" },
+  { kind = "collisionSource", at = "0x7174", in_c = true, cell_face_list_macro = "SHELTER_B6_TRAINING_ROOM_CELL_FACE_LIST_AT_OFFSET" },
   { unit = "shelter_b6_training_room/shelter_b6_training_room", rodata = "0x4", text = "0x78", data = "0x6E58", bss = "0x8698", tail = true },
 ]
 

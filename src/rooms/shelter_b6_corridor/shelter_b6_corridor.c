@@ -1164,8 +1164,12 @@ void shelterB6CorridorSetPartDestroyedSprites(u8 partSlot, u8 destroyed)
     s32                    slot = partSlot;
     s32                    destroyedState;
 
-    // Updates the middle part in both views; captures views and batches.
-    // isHidden must be a side-effect-free 0/1 value: it is evaluated twice.
+    /// Sets the middle part's destroyed-scenery batch visibility in both views.
+    ///
+    /// Captures SpriteView* views and writable SpriteBatch* batches, leaving
+    /// batches at view 2's table. Requires at least three views, with batch 2
+    /// writable in views 1 and 2. isHidden is a stable 0/1 expression evaluated
+    /// twice: intact parts hide these batches; destroyed parts reveal them.
 #define SHELTER_B6_CORRIDOR_SET_PART_1_SPRITES_HIDDEN(isHidden) \
     do {                                                        \
         batches           = views[1].batches;                   \

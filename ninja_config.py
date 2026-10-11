@@ -319,9 +319,8 @@ def collision_includes(version: str) -> list[tuple[Path, list[Path], int, int, l
         parts = components(raw.read_bytes(), grid["load"], grid["source"])
         prefix = f"{grid['package']}_collision_{grid['source']:05X}"
         outputs = [BUILD_DIR / "include" / "assets" / f"{prefix}_{part['name']}.inc" for part in parts]
-        options = ([f"--cell-ref-macro={grid['cell_ref_macro']}"]
-                   if grid["cell_ref_macro"] != "GRID_CELL" else [])
-        out.append((raw, outputs, grid["load"], grid["source"], options))
+        out.append((raw, outputs, grid["load"], grid["source"],
+                    ["--cell-face-list-macro", grid["cell_face_list_macro"]]))
     from tools.gen_collision_inc import patch_pieces
     from tools.gen_overlay_configs import declared_collision_patches
     for patch in declared_collision_patches(manifest):

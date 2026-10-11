@@ -850,14 +850,6 @@ static void _neoArkPyramidDrawRotationPuzzleQuad(s32 angle)
     DVECTOR   rotatedCorners[4];
     s32       cornerIndex;
 
-    // One loop statement capturing sourceCorners, rotatedCorners, angle and cornerIndex.
-    // Writes four rotated pixel pairs and leaves cornerIndex at the source array's end.
-#define NEO_ARK_PYRAMID_ROTATE_PUZZLE_CORNERS()                                                                                                                                    \
-    for (cornerIndex = 0; cornerIndex < ARRAY_SIZE(sourceCorners); cornerIndex++) {                                                                                                \
-        rotatedCorners[cornerIndex].vx = (sourceCorners[cornerIndex].vx * rcos(angle) - sourceCorners[cornerIndex].vy * rsin(angle)) >> NEO_ARK_PYRAMID_PUZZLE_TRIG_FRACTION_BITS; \
-        rotatedCorners[cornerIndex].vy = (sourceCorners[cornerIndex].vx * rsin(angle) + sourceCorners[cornerIndex].vy * rcos(angle)) >> NEO_ARK_PYRAMID_PUZZLE_TRIG_FRACTION_BITS; \
-    }
-
     // Rotate screen-space corners, narrowing the Q12 result to signed pixels.
     sourceCorners[0].vx = -NEO_ARK_PYRAMID_PUZZLE_HALF_EXTENT;
     sourceCorners[0].vy = -NEO_ARK_PYRAMID_PUZZLE_HALF_EXTENT;
@@ -867,8 +859,10 @@ static void _neoArkPyramidDrawRotationPuzzleQuad(s32 angle)
     sourceCorners[2].vy = NEO_ARK_PYRAMID_PUZZLE_HALF_EXTENT;
     sourceCorners[3].vx = NEO_ARK_PYRAMID_PUZZLE_HALF_EXTENT;
     sourceCorners[3].vy = NEO_ARK_PYRAMID_PUZZLE_HALF_EXTENT;
-    NEO_ARK_PYRAMID_ROTATE_PUZZLE_CORNERS();
-#undef NEO_ARK_PYRAMID_ROTATE_PUZZLE_CORNERS
+    for (cornerIndex = 0; cornerIndex < ARRAY_SIZE(sourceCorners); cornerIndex++) {
+        rotatedCorners[cornerIndex].vx = (sourceCorners[cornerIndex].vx * rcos(angle) - sourceCorners[cornerIndex].vy * rsin(angle)) >> NEO_ARK_PYRAMID_PUZZLE_TRIG_FRACTION_BITS;
+        rotatedCorners[cornerIndex].vy = (sourceCorners[cornerIndex].vx * rsin(angle) + sourceCorners[cornerIndex].vy * rcos(angle)) >> NEO_ARK_PYRAMID_PUZZLE_TRIG_FRACTION_BITS;
+    }
     quad           = gGpuPrimCursor;
     gGpuPrimCursor = quad + 1;
     setPolyFT4(quad);

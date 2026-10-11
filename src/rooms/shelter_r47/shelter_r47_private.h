@@ -135,9 +135,14 @@ enum {
 #define SHELTER_R47_MAP_PANEL_WIDTH  0x50
 #define SHELTER_R47_MAP_PANEL_HEIGHT 0x60
 
-/// On-screen x of the page labels, and the x they take while a page change
-/// slides them off to the left. Pixels from the display centre.
-#define SHELTER_R47_MAP_LABEL_X      (-0x9C)
+/// Visible left-edge X of the map page title and both captions, in centred pixels (-156).
+#define SHELTER_R47_MAP_LABEL_X (-0x9C)
+
+/// Left-edge X used to slide the map labels off the screen to the left (-260 pixels).
+///
+/// All three sprites are 80 pixels wide, so this target leaves their right
+/// edges at -180, beyond the display's -160 left edge. The title update eases
+/// the shared signed-halfword position one quarter of the remaining distance.
 #define SHELTER_R47_MAP_LABEL_X_AWAY (-0x104)
 
 /// Room view selected on entry. It is the B1 page's view.
