@@ -838,136 +838,233 @@ static AnimationSet _gUnused85CriticalHealthIdleAnimation = {
     },
 };
 
-static AnimationPackedPose _gUnused85Animation09264Bank1[9] = {
+/// Medium-health idle translation/rotation poses for player-model tracks 0 and 1.
+///
+/// Translations use model units; Euler angles use 4096 units per turn.
+static const AnimationPackedPose _gUnused85MediumHealthIdleAnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/unused_85_animation_09264_bank1.inc"
 };
 
-static AnimationPackedRotation _gUnused85Animation09264Bank4[144] = {
+/// Medium-health idle rotations for player-model tracks 2..18, in eight-angle-unit steps.
+static const AnimationPackedRotation _gUnused85MediumHealthIdleAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/unused_85_animation_09264_bank4.inc"
 };
 
-static AnimationRecord _gUnused85Animation09264Records[264] = {
+/// Medium-health idle keyframes and loop/stop controls; durations count normal-rate frames.
+///
+/// Forward playback takes each track's backward jump before its retained stop record.
+static const AnimationRecord _gUnused85MediumHealthIdleAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/unused_85_animation_09264_records.inc"
 };
 
-static u16 _gUnused85Animation09264Indices[20] = {
+/// Medium-health idle absolute record starts for player-model parts 0..18.
+///
+/// The twentieth halfword is retained export data, not another track.
+static const u16 _gUnused85MediumHealthIdleAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/unused_85_animation_09264_indices.inc"
 };
 
-static AnimationSet _gUnused85Animation09264 = {
-    _gUnused85Animation09264Records,
-    _gUnused85Animation09264Indices,
-    { NULL, _gUnused85Animation09264Bank1, NULL, NULL, _gUnused85Animation09264Bank4, NULL, NULL, NULL },
+/// Player idle loop above one quarter and at or below one half maximum HP, for unused weapon index 6.
+///
+/// Native-bank set 24, blended in after 300 direction-free ticks.
+/// All 19 tracks enter repeating tails and borrow the loaded package's data.
+static AnimationSet _gUnused85MediumHealthIdleAnimation = {
+    .records           = _gUnused85MediumHealthIdleAnimationRecords,
+    .trackStartIndices = _gUnused85MediumHealthIdleAnimationIndices,
+    .poseBanks         = {
+        [UNUSED_85_ANIMATION_TRANSLATION_ROTATION_BANK] = _gUnused85MediumHealthIdleAnimationBank1,
+        [UNUSED_85_ANIMATION_PACKED_ROTATION_BANK]      = _gUnused85MediumHealthIdleAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gUnused85Animation096E4Bank1[6] = {
+/// Scripted-entry translation/rotation poses for player-model tracks 0 and 1.
+///
+/// Translations use model units; Euler angles use 4096 units per turn.
+static const AnimationPackedPose _gUnused85ScriptedPresentationEnterAnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/unused_85_animation_096E4_bank1.inc"
 };
 
-static AnimationPackedRotation _gUnused85Animation096E4Bank4[107] = {
+/// Scripted-entry rotations for player-model tracks 2..18, in eight-angle-unit steps.
+static const AnimationPackedRotation _gUnused85ScriptedPresentationEnterAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/unused_85_animation_096E4_bank4.inc"
 };
 
-static AnimationRecord _gUnused85Animation096E4Records[143] = {
+/// Scripted-entry keyframes and stop controls; durations count normal-rate frames.
+static const AnimationRecord _gUnused85ScriptedPresentationEnterAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/unused_85_animation_096E4_records.inc"
 };
 
-static u16 _gUnused85Animation096E4Indices[20] = {
+/// Scripted-entry absolute record starts for player-model parts 0..18.
+///
+/// The twentieth halfword is retained export data, not another track.
+static const u16 _gUnused85ScriptedPresentationEnterAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/unused_85_animation_096E4_indices.inc"
 };
 
-static AnimationSet _gUnused85Animation096E4 = {
-    _gUnused85Animation096E4Records,
-    _gUnused85Animation096E4Indices,
-    { NULL, _gUnused85Animation096E4Bank1, NULL, NULL, _gUnused85Animation096E4Bank4, NULL, NULL, NULL },
+/// Player presentation entering a scripted event, for unused weapon index 6.
+///
+/// Native-bank set 32; set 34 selects the same clip.
+/// All 19 tracks stop at their final pose and borrow the loaded package's data.
+static AnimationSet _gUnused85ScriptedPresentationEnterAnimation = {
+    .records           = _gUnused85ScriptedPresentationEnterAnimationRecords,
+    .trackStartIndices = _gUnused85ScriptedPresentationEnterAnimationIndices,
+    .poseBanks         = {
+        [UNUSED_85_ANIMATION_TRANSLATION_ROTATION_BANK] = _gUnused85ScriptedPresentationEnterAnimationBank1,
+        [UNUSED_85_ANIMATION_PACKED_ROTATION_BANK]      = _gUnused85ScriptedPresentationEnterAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gUnused85Animation098BCBank1[3] = {
+/// Scripted-exit translation/rotation poses for player-model tracks 0 and 1.
+///
+/// Translations use model units; Euler angles use 4096 units per turn.
+static const AnimationPackedPose _gUnused85ScriptedPresentationLeaveAnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/unused_85_animation_098BC_bank1.inc"
 };
 
-static AnimationPackedRotation _gUnused85Animation098BCBank4[32] = {
+/// Scripted-exit rotations for player-model tracks 2..18, in eight-angle-unit steps.
+static const AnimationPackedRotation _gUnused85ScriptedPresentationLeaveAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/unused_85_animation_098BC_bank4.inc"
 };
 
-static AnimationRecord _gUnused85Animation098BCRecords[57] = {
+/// Scripted-exit keyframes and stop controls; durations count normal-rate frames.
+static const AnimationRecord _gUnused85ScriptedPresentationLeaveAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/unused_85_animation_098BC_records.inc"
 };
 
-static u16 _gUnused85Animation098BCIndices[20] = {
+/// Scripted-exit absolute record starts for player-model parts 0..18.
+///
+/// The twentieth halfword is retained export data, not another track.
+static const u16 _gUnused85ScriptedPresentationLeaveAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/unused_85_animation_098BC_indices.inc"
 };
 
-static AnimationSet _gUnused85Animation098BC = {
-    _gUnused85Animation098BCRecords,
-    _gUnused85Animation098BCIndices,
-    { NULL, _gUnused85Animation098BCBank1, NULL, NULL, _gUnused85Animation098BCBank4, NULL, NULL, NULL },
+/// Player presentation leaving a scripted event, for unused weapon index 6.
+///
+/// Native-bank set 33; set 35 selects the same clip.
+/// All 19 tracks stop at their final pose and borrow the loaded package's data.
+static AnimationSet _gUnused85ScriptedPresentationLeaveAnimation = {
+    .records           = _gUnused85ScriptedPresentationLeaveAnimationRecords,
+    .trackStartIndices = _gUnused85ScriptedPresentationLeaveAnimationIndices,
+    .poseBanks         = {
+        [UNUSED_85_ANIMATION_TRANSLATION_ROTATION_BANK] = _gUnused85ScriptedPresentationLeaveAnimationBank1,
+        [UNUSED_85_ANIMATION_PACKED_ROTATION_BANK]      = _gUnused85ScriptedPresentationLeaveAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gUnused85Animation09E20Bank1[11] = {
+/// PE-family-2 release translation/rotation poses for player-model tracks 0 and 1.
+///
+/// Translations use model units; Euler angles use 4096 units per turn.
+static const AnimationPackedPose _gUnused85PeReleaseFamily2AnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/unused_85_animation_09E20_bank1.inc"
 };
 
-static AnimationPackedRotation _gUnused85Animation09E20Bank4[125] = {
+/// PE-family-2 release rotations for player-model tracks 2..18, in eight-angle-unit steps.
+static const AnimationPackedRotation _gUnused85PeReleaseFamily2AnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/unused_85_animation_09E20_bank4.inc"
 };
 
-static AnimationRecord _gUnused85Animation09E20Records[167] = {
+/// PE-family-2 release keyframes and stop controls; durations count normal-rate frames.
+static const AnimationRecord _gUnused85PeReleaseFamily2AnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/unused_85_animation_09E20_records.inc"
 };
 
-static u16 _gUnused85Animation09E20Indices[20] = {
+/// PE-family-2 release absolute record starts for player-model parts 0..18.
+///
+/// The twentieth halfword is retained export data, not another track.
+static const u16 _gUnused85PeReleaseFamily2AnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/unused_85_animation_09E20_indices.inc"
 };
 
-static AnimationSet _gUnused85Animation09E20 = {
-    _gUnused85Animation09E20Records,
-    _gUnused85Animation09E20Indices,
-    { NULL, _gUnused85Animation09E20Bank1, NULL, NULL, _gUnused85Animation09E20Bank4, NULL, NULL, NULL },
+/// Player Parasite Energy release clip for family 2 and unused weapon index 6.
+///
+/// Native-bank set 42, played before the charge loop with a six-frame blend.
+/// Family 2 serves spell IDs below 601 whose decimal tens digit is 3.
+/// All 19 tracks stop at their final pose and borrow the loaded package's data.
+static AnimationSet _gUnused85PeReleaseFamily2Animation = {
+    .records           = _gUnused85PeReleaseFamily2AnimationRecords,
+    .trackStartIndices = _gUnused85PeReleaseFamily2AnimationIndices,
+    .poseBanks         = {
+        [UNUSED_85_ANIMATION_TRANSLATION_ROTATION_BANK] = _gUnused85PeReleaseFamily2AnimationBank1,
+        [UNUSED_85_ANIMATION_PACKED_ROTATION_BANK]      = _gUnused85PeReleaseFamily2AnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gUnused85Animation0A014Bank1[3] = {
+/// PE-family-2 charge translation/rotation poses for player-model tracks 0 and 1.
+///
+/// Translations use model units; Euler angles use 4096 units per turn.
+static const AnimationPackedPose _gUnused85PeChargeFamily2AnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/unused_85_animation_0A014_bank1.inc"
 };
 
-static AnimationPackedRotation _gUnused85Animation0A014Bank4[20] = {
+/// PE-family-2 charge rotations for player-model tracks 2..18, in eight-angle-unit steps.
+static const AnimationPackedRotation _gUnused85PeChargeFamily2AnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/unused_85_animation_0A014_bank4.inc"
 };
 
-static AnimationRecord _gUnused85Animation0A014Records[76] = {
+/// PE-family-2 charge keyframes and loop/stop controls; durations count normal-rate frames.
+///
+/// Forward playback takes each track's backward jump before its retained stop record.
+static const AnimationRecord _gUnused85PeChargeFamily2AnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/unused_85_animation_0A014_records.inc"
 };
 
-static u16 _gUnused85Animation0A014Indices[20] = {
+/// PE-family-2 charge absolute record starts for player-model parts 0..18.
+///
+/// The twentieth halfword is retained export data, not another track.
+static const u16 _gUnused85PeChargeFamily2AnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/unused_85_animation_0A014_indices.inc"
 };
 
-static AnimationSet _gUnused85Animation0A014 = {
-    _gUnused85Animation0A014Records,
-    _gUnused85Animation0A014Indices,
-    { NULL, _gUnused85Animation0A014Bank1, NULL, NULL, _gUnused85Animation0A014Bank4, NULL, NULL, NULL },
+/// Player Parasite Energy charge loop for family 2 and unused weapon index 6.
+///
+/// Native-bank set 43, reset after release and played until the attachment duration reaches zero.
+/// Family 2 serves spell IDs below 601 whose decimal tens digit is 3.
+/// All 19 tracks loop and borrow the loaded package's data.
+static AnimationSet _gUnused85PeChargeFamily2Animation = {
+    .records           = _gUnused85PeChargeFamily2AnimationRecords,
+    .trackStartIndices = _gUnused85PeChargeFamily2AnimationIndices,
+    .poseBanks         = {
+        [UNUSED_85_ANIMATION_TRANSLATION_ROTATION_BANK] = _gUnused85PeChargeFamily2AnimationBank1,
+        [UNUSED_85_ANIMATION_PACKED_ROTATION_BANK]      = _gUnused85PeChargeFamily2AnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gUnused85Animation0A494Bank1[8] = {
+/// PE-family-2 cast translation/rotation poses for player-model tracks 0 and 1.
+///
+/// Translations use model units; Euler angles use 4096 units per turn.
+static const AnimationPackedPose _gUnused85PeCastFamily2AnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/unused_85_animation_0A494_bank1.inc"
 };
 
-static AnimationPackedRotation _gUnused85Animation0A494Bank4[105] = {
+/// PE-family-2 cast rotations for player-model tracks 2..18, in eight-angle-unit steps.
+static const AnimationPackedRotation _gUnused85PeCastFamily2AnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/unused_85_animation_0A494_bank4.inc"
 };
 
-static AnimationRecord _gUnused85Animation0A494Records[139] = {
+/// PE-family-2 cast keyframes and stop controls; durations count normal-rate frames.
+static const AnimationRecord _gUnused85PeCastFamily2AnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/unused_85_animation_0A494_records.inc"
 };
 
-static u16 _gUnused85Animation0A494Indices[20] = {
+/// PE-family-2 cast absolute record starts for player-model parts 0..18.
+///
+/// The twentieth halfword is retained export data, not another track.
+static const u16 _gUnused85PeCastFamily2AnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/unused_85_animation_0A494_indices.inc"
 };
 
-static AnimationSet _gUnused85Animation0A494 = {
-    _gUnused85Animation0A494Records,
-    _gUnused85Animation0A494Indices,
-    { NULL, _gUnused85Animation0A494Bank1, NULL, NULL, _gUnused85Animation0A494Bank4, NULL, NULL, NULL },
+/// Player Parasite Energy cast clip for family 2 and unused weapon index 6.
+///
+/// Native-bank set 44, reset when the charge countdown reaches zero.
+/// Family 2 serves spell IDs below 601 whose decimal tens digit is 3.
+/// All 19 tracks stop at their final pose and borrow the loaded package's data.
+static AnimationSet _gUnused85PeCastFamily2Animation = {
+    .records           = _gUnused85PeCastFamily2AnimationRecords,
+    .trackStartIndices = _gUnused85PeCastFamily2AnimationIndices,
+    .poseBanks         = {
+        [UNUSED_85_ANIMATION_TRANSLATION_ROTATION_BANK] = _gUnused85PeCastFamily2AnimationBank1,
+        [UNUSED_85_ANIMATION_PACKED_ROTATION_BANK]      = _gUnused85PeCastFamily2AnimationBank4,
+    },
 };
 
 static AnimationPackedPose _gUnused85Animation0A670Bank1[2] = {
@@ -1149,7 +1246,7 @@ AnimationBank D_unused_85_8012A474 = { { {
     &_gUnused85IdleAnimation,
     &_gUnused85IdleAnimation,
     &_gUnused85HealthyIdleAnimation,
-    &_gUnused85Animation09264,
+    &_gUnused85MediumHealthIdleAnimation,
     &_gUnused85CriticalHealthIdleAnimation,
     &_gUnused85PeReleaseFamily0Animation,
     &_gUnused85PeChargeFamily0Animation,
@@ -1157,19 +1254,19 @@ AnimationBank D_unused_85_8012A474 = { { {
     &_gUnused85PeReleaseFamily1Animation,
     &_gUnused85PeChargeFamily1Animation,
     &_gUnused85PeCastFamily1Animation,
-    &_gUnused85Animation096E4,
-    &_gUnused85Animation098BC,
-    &_gUnused85Animation096E4,
-    &_gUnused85Animation098BC,
+    &_gUnused85ScriptedPresentationEnterAnimation,
+    &_gUnused85ScriptedPresentationLeaveAnimation,
+    &_gUnused85ScriptedPresentationEnterAnimation,
+    &_gUnused85ScriptedPresentationLeaveAnimation,
     &_gUnused85StairAscentAnimation,
     &_gUnused85StairDescentAnimation,
     &_gUnused85StairAscentFinishEvenAnimation,
     &_gUnused85StairAscentFinishOddAnimation,
     &_gUnused85ItemUseAnimation,
     &_gUnused85IdleAnimation,
-    &_gUnused85Animation09E20,
-    &_gUnused85Animation0A014,
-    &_gUnused85Animation0A494,
+    &_gUnused85PeReleaseFamily2Animation,
+    &_gUnused85PeChargeFamily2Animation,
+    &_gUnused85PeCastFamily2Animation,
     NULL,
     NULL,
     NULL,
