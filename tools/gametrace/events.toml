@@ -31,8 +31,9 @@ records = 1024           # ring size, a power of two. The ring is read at every 
 [[event]]
 id = 1
 name = "file_load"
-address = 0x8002265C     # fsLoadFile
+address = 0x8002265C     # fsLoadFile(key, mode, page offset, row offset)
 patch = false
+mem = ["a0:8"]           # the key a0 points at: which file
 
 [[event]]
 id = 2
