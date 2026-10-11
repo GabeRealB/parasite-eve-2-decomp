@@ -165,7 +165,7 @@
 /// The signature adds a pointer to this type. The default `const GfxCoord`
 /// reads `workm.t[0..2]`; `const long` reads three consecutive signed 32-bit
 /// translation words, as supplied by Hammer's charge sprite and Javelin.
-/// A custom binding must also define `SPRITE_QUAD_POS` to read components
+/// A custom binding must also define `SPRITE_QUAD_TRANSLATION_COMPONENT` to read components
 /// 0, 1 and 2 from a pointer to that type.
 ///
 /// Supply components in the input space of `GsWSMATRIX`, in game-coordinate
@@ -176,10 +176,25 @@
 ///
 /// Bind before this header for the first instance's declaration. The binding
 /// persists across `sprite_quad_draw.inc.c` inclusions; changing an instance
-/// requires undefining and redefining both the type and `SPRITE_QUAD_POS`,
+/// requires undefining and redefining both the type and `SPRITE_QUAD_TRANSLATION_COMPONENT`,
 /// with a consistent forward declaration. The flicker drawer has a fixed type.
 #define SPRITE_QUAD_POSITION_SOURCE_TYPE const GfxCoord
-#define SPRITE_QUAD_POS(p, i)            ((p)->workm.t[i])
+/// Reads one cached translation component for an included sprite-quad drawer.
+///
+/// `source` points to `SPRITE_QUAD_POSITION_SOURCE_TYPE`; `componentIndex` is
+/// an element index: 0 (X), 1 (Y) or 2 (Z). The default reads a signed 32-bit
+/// `GfxCoord::workm.t` word in integer game-coordinate units, in the input
+/// space of `GsWSMATRIX`. The cache must already contain the intended
+/// translation; this accessor does not compose or transform it. The drawer
+/// narrows each result to its low 16 bits for the signed projection vector.
+///
+/// Each argument is evaluated once, with unspecified evaluation order; no
+/// caller identifiers are captured. The source is neither modified nor
+/// retained. A custom source type must supply a compatible accessor with
+/// the same component, units and evaluation contract. Both bindings persist
+/// across drawer inclusions and must be rebound together when the source
+/// representation changes. The fixed-signature flicker drawer uses neither.
+#define SPRITE_QUAD_TRANSLATION_COMPONENT(source, componentIndex) ((source)->workm.t[(componentIndex)])
 #endif
 #ifndef SPRITE_QUAD_SIZE_T
 /// Integer type of the perspective-size argument for an included sprite-quad drawer.

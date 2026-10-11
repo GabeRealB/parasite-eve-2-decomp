@@ -1,5 +1,9 @@
 /* Part of the sprite quad library; see sprite_quad.h. */
 
+#ifndef SPRITE_QUAD_TRANSLATION_COMPONENT
+#error Define SPRITE_QUAD_TRANSLATION_COMPONENT for the configured sprite position source type
+#endif
+
 #ifndef SPRITE_QUAD_CELL_WIDTH
 #error Define SPRITE_QUAD_CELL_WIDTH before including the sprite quad drawer
 #endif
@@ -85,10 +89,10 @@ static void SPRITE_QUAD_FUNC(SPRITE_QUAD_POSITION_SOURCE_TYPE* pos, SPRITE_QUAD_
 
     // Project the source translation's low 16 bits without changing its coordinate cache.
     head                                     = SCRATCH_STACK_CURSOR(EffectShapeScratch);
-    (head - 1)->worldPoint.vx                = (u16)SPRITE_QUAD_POS(pos, 0);
+    (head - 1)->worldPoint.vx                = (u16)SPRITE_QUAD_TRANSLATION_COMPONENT(pos, 0);
     block                                    = head - 1;
-    block->worldPoint.vy                     = (u16)SPRITE_QUAD_POS(pos, 1);
-    vz                                       = (u16)SPRITE_QUAD_POS(pos, 2);
+    block->worldPoint.vy                     = (u16)SPRITE_QUAD_TRANSLATION_COMPONENT(pos, 1);
+    vz                                       = (u16)SPRITE_QUAD_TRANSLATION_COMPONENT(pos, 2);
     block->worldPoint.vz                     = vz;
     SCRATCH_STACK_CURSOR(EffectShapeScratch) = block;
     vec                                      = &block->worldPoint;

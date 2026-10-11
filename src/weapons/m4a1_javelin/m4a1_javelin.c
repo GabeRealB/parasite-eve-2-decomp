@@ -55,7 +55,15 @@ static bool    _gM4a1JavelinTrackedImpactValid;
 
 /// Read-only XYZ translation words from the launch sprite's `GfxCoord::workm.t`.
 #define SPRITE_QUAD_POSITION_SOURCE_TYPE const long
-#define SPRITE_QUAD_POS(p, i)            ((p)[i])
+/// Reads one cached XYZ translation word for Javelin's sprite drawer.
+///
+/// `source` borrows three readable signed 32-bit words from `GfxCoord::workm.t`;
+/// `componentIndex` is 0 (X), 1 (Y) or 2 (Z), in elements. Values are integer
+/// game coordinates in `GsWSMATRIX` input space; the drawer projects their low
+/// 16 bits. Each argument is evaluated once, no caller identifiers are captured,
+/// and the source is neither modified nor retained. Bind alongside the source
+/// type before the header; both remain bound through the drawer inclusion.
+#define SPRITE_QUAD_TRANSLATION_COMPONENT(source, componentIndex) ((source)[(componentIndex)])
 /// Signed texture-frame index for the eight-frame launch sprite.
 #define SPRITE_QUAD_FRAME_T s16
 #include "../../shared/sprite_quad.h"

@@ -237,12 +237,20 @@ void m4a1HammerGlowTask(Task* task)
 #undef M4A1_HAMMER_COMPOSE_SPARK_POSITION
 
 #undef SPRITE_QUAD_POSITION_SOURCE_TYPE
-#undef SPRITE_QUAD_POS
+#undef SPRITE_QUAD_TRANSLATION_COMPONENT
 #undef SPRITE_QUAD_FRAME_T
 #undef SPRITE_QUAD_SIZE_T
 /// Read-only XYZ translation words from the charge sprite's `GfxCoord::workm.t`.
 #define SPRITE_QUAD_POSITION_SOURCE_TYPE const long
-#define SPRITE_QUAD_POS(p, i)            ((p)[i])
+/// Reads one cached XYZ translation word for the charge-flare drawer.
+///
+/// `source` borrows three readable signed 32-bit words from `GfxCoord::workm.t`;
+/// `componentIndex` is 0 (X), 1 (Y) or 2 (Z), in elements. Values are integer
+/// game coordinates in `GsWSMATRIX` input space; the drawer projects their low
+/// 16 bits. Each argument is evaluated once, no caller identifiers are captured,
+/// and the source is neither modified nor retained. This binding persists
+/// through the charge drawer inclusion and is rebound for the six-cell drawer.
+#define SPRITE_QUAD_TRANSLATION_COMPONENT(source, componentIndex) ((source)[(componentIndex)])
 /// Unsigned texture-frame counter, masked to the charge sprite's eight cells.
 #define SPRITE_QUAD_FRAME_T u16
 /// Unsigned 16-bit perspective size for the charge flare, matching its forward declaration.
@@ -268,12 +276,21 @@ void m4a1HammerGlowTask(Task* task)
 #define SPRITE_QUAD_SCALE (SPRITE_QUAD_CELL_WIDTH - 1)
 #include "../../shared/sprite_quad_draw.inc.c"
 #undef SPRITE_QUAD_POSITION_SOURCE_TYPE
-#undef SPRITE_QUAD_POS
+#undef SPRITE_QUAD_TRANSLATION_COMPONENT
 #undef SPRITE_QUAD_FRAME_T
 #undef SPRITE_QUAD_SIZE_T
 /// Read-only coordinate source for the six-cell sprite's cached translation.
 #define SPRITE_QUAD_POSITION_SOURCE_TYPE const GfxCoord
-#define SPRITE_QUAD_POS(p, i)            ((p)->workm.t[i])
+/// Reads one cached translation component for Hammer's six-cell sprite drawer.
+///
+/// `source` borrows a live `const GfxCoord*` with an already composed cache;
+/// `componentIndex` is 0 (X), 1 (Y) or 2 (Z), in elements. The signed 32-bit
+/// word is in integer game-coordinate units and `GsWSMATRIX` input space;
+/// the drawer projects its low 16 bits. Each argument is evaluated once,
+/// no caller identifiers are captured, and the source is neither modified
+/// nor retained. This restores the header's accessor alongside its source type
+/// and remains bound through the six-cell drawer inclusion.
+#define SPRITE_QUAD_TRANSLATION_COMPONENT(source, componentIndex) ((source)->workm.t[(componentIndex)])
 /// Restore the signed counter for the repeating six-cell sprite strip.
 #define SPRITE_QUAD_FRAME_T s16
 /// Restore signed 16-bit perspective sizing for the six-cell sprite strip.
