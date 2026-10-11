@@ -9,11 +9,14 @@
 
 #include "gameplay/actor_render.h"
 #include "gameplay/animation.h"
+#include "gameplay/captions.h"
+#include "gameplay/display.h"
 #include "gameplay/effect_tasks.h"
 #include "gameplay/enemy.h"
 #include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
 #include "gameplay/message.h"
+#include "gameplay/player_actor.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_coords.h"
 
@@ -39,23 +42,8 @@ enum {
     ACTOR_160700_MEETING_THIRD_SEEN  = 3,
 };
 
-extern u8 D_actor_160700_801416C0[];
-// Message-table callbacks use the argument views required by this TU.
-
-extern TaskMessageEntry D_actor_160700_80141678[6];
-
-extern EvsCommand D_actor_160700_80135664[];
-extern EvsCommand D_actor_160700_80135ACC[];
-extern EvsCommand D_actor_160700_80135BD4[];
-extern EvsCommand D_actor_160700_801362F4[];
-extern EvsCommand D_actor_160700_80136414[];
-
 static void _actorRenderWalkerFrame(Enemy* unusedEnemy, Task* task);
 static void _actor160700Exit(Task* task);
-
-extern AnimationPlayRequest D_actor_160700_80135490;
-extern AnimationPlayRequest D_actor_160700_801354A4;
-extern AnimationPlayRequest D_actor_160700_801354B8;
 
 static TmdSource _gActor160700PierceCarradineBody;
 static TmdSource _gActor160700Actor113100Model07960;
@@ -530,7 +518,30 @@ static _Actor160700PlayerMeetingAnimationData _gActor160700PlayerMeetingAnimatio
     { { .index = ACTOR_160700_REQUEST_BANK_INDEX }, ACTOR_160700_PLAYER_BASE_CLIP, ANIMATION_BLEND_INTERPOLATE, ACTOR_160700_PLAYER_BLEND_FRAMES, ANIMATION_WORLD_COLLISION_DISABLE },
 };
 
-AnimationPlayRequest D_actor_160700_80135274 = { { .index = 1 }, 47, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Clip indices selected by Pierce's meeting requests.
+enum {
+    ACTOR_160700_PIERCE_CLIP_3  = 3,
+    ACTOR_160700_PIERCE_CLIP_4  = 4,
+    ACTOR_160700_PIERCE_CLIP_5  = 5,
+    ACTOR_160700_PIERCE_CLIP_8  = 8,
+    ACTOR_160700_PIERCE_CLIP_9  = 9,
+    ACTOR_160700_PIERCE_CLIP_10 = 10,
+    ACTOR_160700_PIERCE_CLIP_12 = 12,
+    ACTOR_160700_PIERCE_CLIP_13 = 13,
+    ACTOR_160700_PIERCE_CLIP_14 = 14,
+    ACTOR_160700_PIERCE_CLIP_15 = 15,
+    ACTOR_160700_PIERCE_CLIP_16 = 16,
+    ACTOR_160700_PIERCE_CLIP_17 = 17,
+    ACTOR_160700_PIERCE_CLIP_21 = 21,
+    ACTOR_160700_PIERCE_CLIP_22 = 22,
+    ACTOR_160700_PIERCE_CLIP_23 = 23,
+};
+
+/// Unreferenced reset request for clip 47 with world-grid participation disabled.
+///
+/// Stores bank selector 1. Its recipient is unproven; retain this separate
+/// instance even though the live player clip-47 request has identical values.
+static AnimationPlayRequest _gActor160700UnusedClip47Request = { { .index = ACTOR_160700_REQUEST_BANK_INDEX }, ANIMATION_BANK_BASE_SET_COUNT, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
 /// Restarts player meeting clip 47 with world-grid participation disabled.
 ///
@@ -646,13 +657,17 @@ static AnimationPlayRequest _gActor160700PlayerClip64Request = { { .index = ACTO
 /// request; the clip is meeting-table entry 18, borrowed from this overlay.
 static AnimationPlayRequest _gActor160700PlayerClip65Request = { { .index = ACTOR_160700_REQUEST_BANK_INDEX }, ANIMATION_BANK_BASE_SET_COUNT + 18, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-AnimationPlayRequest D_actor_160700_80135404[6] = {
-    { { .index = 1 }, 66, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
-    { { .index = 1 }, 67, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
-    { { .index = 1 }, 68, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
-    { { .index = 1 }, 69, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
-    { { .index = 1 }, 0, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
-    { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
+/// Unreferenced reset requests for clip IDs 66..69, 0 and 1.
+///
+/// Every record stores bank selector 1 and disables world-grid participation.
+/// Their recipient and original grouping are unproven; retain the full run.
+static AnimationPlayRequest _gActor160700UnusedClipRequests[] = {
+    { { .index = ACTOR_160700_REQUEST_BANK_INDEX }, 66, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
+    { { .index = ACTOR_160700_REQUEST_BANK_INDEX }, 67, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
+    { { .index = ACTOR_160700_REQUEST_BANK_INDEX }, 68, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
+    { { .index = ACTOR_160700_REQUEST_BANK_INDEX }, 69, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
+    { { .index = ACTOR_160700_REQUEST_BANK_INDEX }, 0, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
+    { { .index = ACTOR_160700_REQUEST_BANK_INDEX }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
 };
 
 /// Restarts Pierce's meeting clip 2 on the placed paced walker.
@@ -661,11 +676,23 @@ AnimationPlayRequest D_actor_160700_80135404[6] = {
 /// words. Dispatch consumes this request synchronously; the clips stay loaded.
 static AnimationPlayRequest _gActor160700PierceClip2Request = { { .index = ACTOR_160700_REQUEST_BANK_INDEX }, ACTOR_160700_PIERCE_CLIP_2, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-AnimationPlayRequest D_actor_160700_80135490 = { { .index = 1 }, 3, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Restarts Pierce's meeting clip 3 on the placed paced walker.
+///
+/// The receiver uses its own clip table and ignores the bank and collision
+/// words. Dispatch consumes this request synchronously; the clips stay loaded.
+static AnimationPlayRequest _gActor160700PierceClip3Request = { { .index = ACTOR_160700_REQUEST_BANK_INDEX }, ACTOR_160700_PIERCE_CLIP_3, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-AnimationPlayRequest D_actor_160700_801354A4 = { { .index = 1 }, 4, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Restarts Pierce's meeting clip 4 on the placed paced walker.
+///
+/// The receiver uses its own clip table and ignores the bank and collision
+/// words. Dispatch consumes this request synchronously; the clips stay loaded.
+static AnimationPlayRequest _gActor160700PierceClip4Request = { { .index = ACTOR_160700_REQUEST_BANK_INDEX }, ACTOR_160700_PIERCE_CLIP_4, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-AnimationPlayRequest D_actor_160700_801354B8 = { { .index = 1 }, 5, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Restarts Pierce's meeting clip 5 on the placed paced walker.
+///
+/// The receiver uses its own clip table and ignores the bank and collision
+/// words. Dispatch consumes this request synchronously; the clips stay loaded.
+static AnimationPlayRequest _gActor160700PierceClip5Request = { { .index = ACTOR_160700_REQUEST_BANK_INDEX }, ACTOR_160700_PIERCE_CLIP_5, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
 /// Restarts Pierce's meeting clip 6, including his post-meeting restoration.
 ///
@@ -679,11 +706,23 @@ static AnimationPlayRequest _gActor160700PierceClip6Request = { { .index = ACTOR
 /// words. Dispatch consumes this request synchronously; the clips stay loaded.
 static AnimationPlayRequest _gActor160700PierceClip7Request = { { .index = ACTOR_160700_REQUEST_BANK_INDEX }, ACTOR_160700_PIERCE_CLIP_7, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-AnimationPlayRequest D_actor_160700_801354F4 = { { .index = 1 }, 8, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Restarts Pierce's meeting clip 8 on the placed paced walker.
+///
+/// The receiver uses its own clip table and ignores the bank and collision
+/// words. Dispatch consumes this request synchronously; the clips stay loaded.
+static AnimationPlayRequest _gActor160700PierceClip8Request = { { .index = ACTOR_160700_REQUEST_BANK_INDEX }, ACTOR_160700_PIERCE_CLIP_8, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-AnimationPlayRequest D_actor_160700_80135508 = { { .index = 1 }, 9, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Restarts Pierce's meeting clip 9 on the placed paced walker.
+///
+/// The receiver uses its own clip table and ignores the bank and collision
+/// words. Dispatch consumes this request synchronously; the clips stay loaded.
+static AnimationPlayRequest _gActor160700PierceClip9Request = { { .index = ACTOR_160700_REQUEST_BANK_INDEX }, ACTOR_160700_PIERCE_CLIP_9, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-AnimationPlayRequest D_actor_160700_8013551C = { { .index = 1 }, 10, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Restarts Pierce's meeting clip 10 on the placed paced walker.
+///
+/// The receiver uses its own clip table and ignores the bank and collision
+/// words. Dispatch consumes this request synchronously; the clips stay loaded.
+static AnimationPlayRequest _gActor160700PierceClip10Request = { { .index = ACTOR_160700_REQUEST_BANK_INDEX }, ACTOR_160700_PIERCE_CLIP_10, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
 /// Restarts Pierce's meeting clip 11 on the placed paced walker.
 ///
@@ -691,17 +730,41 @@ AnimationPlayRequest D_actor_160700_8013551C = { { .index = 1 }, 10, ANIMATION_B
 /// words. Dispatch consumes this request synchronously; the clips stay loaded.
 static AnimationPlayRequest _gActor160700PierceClip11Request = { { .index = ACTOR_160700_REQUEST_BANK_INDEX }, ACTOR_160700_PIERCE_CLIP_11, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-AnimationPlayRequest D_actor_160700_80135544 = { { .index = 1 }, 12, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Restarts Pierce's meeting clip 12 on the placed paced walker.
+///
+/// The receiver uses its own clip table and ignores the bank and collision
+/// words. Dispatch consumes this request synchronously; the clips stay loaded.
+static AnimationPlayRequest _gActor160700PierceClip12Request = { { .index = ACTOR_160700_REQUEST_BANK_INDEX }, ACTOR_160700_PIERCE_CLIP_12, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-AnimationPlayRequest D_actor_160700_80135558 = { { .index = 1 }, 13, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Restarts Pierce's meeting clip 13 on the placed paced walker.
+///
+/// The receiver uses its own clip table and ignores the bank and collision
+/// words. Dispatch consumes this request synchronously; the clips stay loaded.
+static AnimationPlayRequest _gActor160700PierceClip13Request = { { .index = ACTOR_160700_REQUEST_BANK_INDEX }, ACTOR_160700_PIERCE_CLIP_13, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-AnimationPlayRequest D_actor_160700_8013556C = { { .index = 1 }, 14, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Restarts Pierce's meeting clip 14 on the placed paced walker.
+///
+/// The receiver uses its own clip table and ignores the bank and collision
+/// words. Dispatch consumes this request synchronously; the clips stay loaded.
+static AnimationPlayRequest _gActor160700PierceClip14Request = { { .index = ACTOR_160700_REQUEST_BANK_INDEX }, ACTOR_160700_PIERCE_CLIP_14, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-AnimationPlayRequest D_actor_160700_80135580 = { { .index = 1 }, 15, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Restarts Pierce's meeting clip 15 on the placed paced walker.
+///
+/// The receiver uses its own clip table and ignores the bank and collision
+/// words. Dispatch consumes this request synchronously; the clips stay loaded.
+static AnimationPlayRequest _gActor160700PierceClip15Request = { { .index = ACTOR_160700_REQUEST_BANK_INDEX }, ACTOR_160700_PIERCE_CLIP_15, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-AnimationPlayRequest D_actor_160700_80135594 = { { .index = 1 }, 16, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Restarts Pierce's meeting clip 16 on the placed paced walker.
+///
+/// The receiver uses its own clip table and ignores the bank and collision
+/// words. Dispatch consumes this request synchronously; the clips stay loaded.
+static AnimationPlayRequest _gActor160700PierceClip16Request = { { .index = ACTOR_160700_REQUEST_BANK_INDEX }, ACTOR_160700_PIERCE_CLIP_16, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-AnimationPlayRequest D_actor_160700_801355A8 = { { .index = 1 }, 17, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Restarts Pierce's meeting clip 17 on the placed paced walker.
+///
+/// The receiver uses its own clip table and ignores the bank and collision
+/// words. Dispatch consumes this request synchronously; the clips stay loaded.
+static AnimationPlayRequest _gActor160700PierceClip17Request = { { .index = ACTOR_160700_REQUEST_BANK_INDEX }, ACTOR_160700_PIERCE_CLIP_17, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
 /// Restarts Pierce's meeting clip 18 on the placed paced walker.
 ///
@@ -721,11 +784,23 @@ static AnimationPlayRequest _gActor160700PierceClip19Request = { { .index = ACTO
 /// words. Dispatch consumes this request synchronously; the clips stay loaded.
 static AnimationPlayRequest _gActor160700PierceClip20Request = { { .index = ACTOR_160700_REQUEST_BANK_INDEX }, ACTOR_160700_PIERCE_CLIP_20, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-AnimationPlayRequest D_actor_160700_801355F8 = { { .index = 1 }, 21, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Restarts Pierce's meeting clip 21 on the placed paced walker.
+///
+/// The receiver uses its own clip table and ignores the bank and collision
+/// words. Dispatch consumes this request synchronously; the clips stay loaded.
+static AnimationPlayRequest _gActor160700PierceClip21Request = { { .index = ACTOR_160700_REQUEST_BANK_INDEX }, ACTOR_160700_PIERCE_CLIP_21, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-AnimationPlayRequest D_actor_160700_8013560C = { { .index = 1 }, 22, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Restarts Pierce's meeting clip 22 on the placed paced walker.
+///
+/// The receiver uses its own clip table and ignores the bank and collision
+/// words. Dispatch consumes this request synchronously; the clips stay loaded.
+static AnimationPlayRequest _gActor160700PierceClip22Request = { { .index = ACTOR_160700_REQUEST_BANK_INDEX }, ACTOR_160700_PIERCE_CLIP_22, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-AnimationPlayRequest D_actor_160700_80135620 = { { .index = 1 }, 23, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Restarts Pierce's meeting clip 23 on the placed paced walker.
+///
+/// The receiver uses its own clip table and ignores the bank and collision
+/// words. Dispatch consumes this request synchronously; the clips stay loaded.
+static AnimationPlayRequest _gActor160700PierceClip23Request = { { .index = ACTOR_160700_REQUEST_BANK_INDEX }, ACTOR_160700_PIERCE_CLIP_23, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
 /// Player placement used by the first two meetings and their common skip script.
 ///
@@ -734,10 +809,31 @@ AnimationPlayRequest D_actor_160700_80135620 = { { .index = 1 }, 23, ANIMATION_B
 /// all six meaningful components synchronously and retains no pointer here.
 static ActorTransform _gActor160700PlayerMeetingTransform = { { 2250, 0, 790, 0 }, { 0, -853, 0, 0 } };
 
-ActorTransform D_actor_160700_8013564C = { { 2000, 0, 750, 0 }, { 0, -739, 0, 0 } };
+/// Player placement used midway through the second Pierce meeting.
+///
+/// Position (2000, 0, 750) uses whole room-coordinate units; yaw -739 uses
+/// 4096 units per turn, with zero pitch and roll. The player's placement
+/// message consumes the transform synchronously without retaining its address.
+static ActorTransform _gActor160700PlayerSecondMeetingTransform = { { 2000, 0, 750, 0 }, { 0, -739, 0, 0 } };
 
-EvsCommand D_actor_160700_80135664[47] = {
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 3 }, { .value = 0 } },
+/// CAP command slots, placed-actor index and restoration choices of these scripts.
+enum {
+    ACTOR_160700_FIRST_MEETING_CAP_COMMAND  = 3,
+    ACTOR_160700_SECOND_MEETING_CAP_COMMAND = 4,
+    ACTOR_160700_THIRD_MEETING_CAP_COMMAND  = 5,
+    ACTOR_160700_REPEAT_MEETING_CAP_COMMAND = 6,
+    ACTOR_160700_MEETING_ACTOR_INDEX        = 0,
+    ACTOR_160700_POST_MEETING_VIEW          = 3,
+    ACTOR_160700_USE_DEFAULT_FADE_DURATION  = 0, // Runtime selects its seven-frame ramp
+};
+
+/// First Pierce meeting choreography, synchronized to CAP command 3.
+///
+/// Installs the player meeting-bank extension and cues player and placed actor
+/// 0's clips. Restores view 3 and normal player control at the end. The command
+/// stream, payloads and clip storage stay loaded through playback and recovery.
+static EvsCommand _gActor160700FirstMeetingScript[] = {
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_START }, { .value = ACTOR_160700_FIRST_MEETING_CAP_COMMAND }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &_gActor160700PlayerMeetingAnimationData.bankCopy } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor160700PlayerMeetingAnimationData.resetRequest }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -746,11 +842,11 @@ EvsCommand D_actor_160700_80135664[47] = {
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 33 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor160700PlayerClip47Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor160700PierceClip2Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_160700_MEETING_ACTOR_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor160700PierceClip2Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_actor_160700_8013560C } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_160700_MEETING_ACTOR_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor160700PierceClip22Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_actor_160700_80135620 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_160700_MEETING_ACTOR_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor160700PierceClip23Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor160700PlayerClip49Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -758,152 +854,173 @@ EvsCommand D_actor_160700_80135664[47] = {
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 14 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor160700PlayerClip47Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_actor_160700_80135490 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_160700_MEETING_ACTOR_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor160700PierceClip3Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 70 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor160700PlayerClip51Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 23 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor160700PlayerClip52Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_actor_160700_801354A4 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_160700_MEETING_ACTOR_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor160700PierceClip4Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_actor_160700_801354B8 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_160700_MEETING_ACTOR_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor160700PierceClip5Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor160700PlayerClip53Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 18 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor160700PierceClip6Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_160700_MEETING_ACTOR_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor160700PierceClip6Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor160700PlayerClip54Request }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor160700PierceClip7Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_160700_MEETING_ACTOR_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor160700PierceClip7Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 17 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor160700PlayerClip52Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_actor_160700_801354F4 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_160700_MEETING_ACTOR_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor160700PierceClip8Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 19 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor160700PierceClip6Request } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_160700_MEETING_ACTOR_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor160700PierceClip6Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = ACTOR_160700_POST_MEETING_VIEW }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor160700PlayerMeetingAnimationData.resetRequest }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = PLAYER_ACTOR_END_SCRIPTED_DEFAULT }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-EvsCommand D_actor_160700_80135ACC[11] = {
-    { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+/// Shared recovery when either of the first two Pierce meetings is skipped.
+///
+/// Fades over scene cleanup, restores view 3 and the common player placement,
+/// resets the player and Pierce to their resting clips, then returns the fade
+/// and player control. Borrows the already installed meeting-bank extension;
+/// this stream and its payloads stay loaded until the terminating command.
+static EvsCommand _gActor160700MeetingSkipScript[] = {
+    { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = SCREEN_FADE_SUBTRACT }, { .value = ACTOR_160700_USE_DEFAULT_FADE_DURATION }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = ACTOR_160700_POST_MEETING_VIEW }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gActor160700PlayerMeetingTransform } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor160700PlayerMeetingAnimationData.resetRequest }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor160700PierceClip6Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_160700_MEETING_ACTOR_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor160700PierceClip6Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = PLAYER_ACTOR_END_SCRIPTED_DEFAULT }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-EvsCommand D_actor_160700_80135BD4[76] = {
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 4 }, { .value = 0 } },
+/// Second Pierce meeting choreography, synchronized to CAP command 4.
+///
+/// Installs the player meeting-bank extension, cues both actors and moves the
+/// player during a secondary fade. Restores view 3 and normal player control
+/// at the end. Keep commands, payloads and clip storage loaded through recovery.
+static EvsCommand _gActor160700SecondMeetingScript[] = {
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_START }, { .value = ACTOR_160700_SECOND_MEETING_CAP_COMMAND }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &_gActor160700PlayerMeetingAnimationData.bankCopy } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor160700PlayerMeetingAnimationData.resetRequest }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gActor160700PlayerMeetingTransform } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor160700PlayerClip52Request }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_actor_160700_80135508 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_160700_MEETING_ACTOR_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor160700PierceClip9Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_actor_160700_8013551C } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_160700_MEETING_ACTOR_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor160700PierceClip10Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor160700PlayerClip55Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 18 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor160700PierceClip6Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_160700_MEETING_ACTOR_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor160700PierceClip6Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor160700PierceClip11Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_160700_MEETING_ACTOR_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor160700PierceClip11Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor160700PlayerClip56Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 17 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor160700PlayerClip57Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_actor_160700_80135544 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_160700_MEETING_ACTOR_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor160700PierceClip12Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_actor_160700_80135558 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_160700_MEETING_ACTOR_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor160700PierceClip13Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_actor_160700_8013556C } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_160700_MEETING_ACTOR_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor160700PierceClip14Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 20 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor160700PierceClip6Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_160700_MEETING_ACTOR_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor160700PierceClip6Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_actor_160700_80135580 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_160700_MEETING_ACTOR_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor160700PierceClip15Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor160700PlayerClip58Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_actor_160700_80135594 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_160700_MEETING_ACTOR_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor160700PierceClip16Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_actor_160700_801355A8 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_160700_MEETING_ACTOR_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor160700PierceClip17Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor160700PlayerClip59Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = 0 }, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = SCREEN_FADE_SUBTRACT }, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor160700PierceClip6Request } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_actor_160700_8013564C } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_160700_MEETING_ACTOR_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor160700PierceClip6Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gActor160700PlayerSecondMeetingTransform } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_SECONDARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor160700PlayerClip61Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor160700PlayerClip62Request }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor160700PierceClip11Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_160700_MEETING_ACTOR_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor160700PierceClip11Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 18 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor160700PlayerClip60Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor160700PierceClip18Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_160700_MEETING_ACTOR_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor160700PierceClip18Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 20 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor160700PierceClip6Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_160700_MEETING_ACTOR_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor160700PierceClip6Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor160700PierceClip7Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_160700_MEETING_ACTOR_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor160700PierceClip7Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor160700PierceClip19Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_160700_MEETING_ACTOR_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor160700PierceClip19Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor160700PierceClip20Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_160700_MEETING_ACTOR_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor160700PierceClip20Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor160700PlayerClip63Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 20 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor160700PierceClip6Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_160700_MEETING_ACTOR_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor160700PierceClip6Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_actor_160700_801355F8 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_160700_MEETING_ACTOR_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor160700PierceClip21Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor160700PlayerClip64Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor160700PlayerClip65Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor160700PierceClip6Request } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_160700_MEETING_ACTOR_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor160700PierceClip6Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = ACTOR_160700_POST_MEETING_VIEW }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor160700PlayerMeetingAnimationData.resetRequest }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = PLAYER_ACTOR_END_SCRIPTED_DEFAULT }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-EvsCommand D_actor_160700_801362F4[12] = {
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 5 }, { .value = 0 } },
+/// Third Pierce meeting choreography, synchronized to CAP command 5.
+///
+/// Installs the player meeting-bank extension and blends to the player's base
+/// idle while cueing placed actor 0. Finishes with Pierce clip 6 and normal
+/// player control. The command stream and borrowed clip storage stay loaded.
+static EvsCommand _gActor160700ThirdMeetingScript[] = {
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_START }, { .value = ACTOR_160700_THIRD_MEETING_CAP_COMMAND }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &_gActor160700PlayerMeetingAnimationData.bankCopy } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor160700PlayerMeetingAnimationData.blendRequest }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor160700PierceClip7Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_160700_MEETING_ACTOR_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor160700PierceClip7Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor160700PierceClip19Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_160700_MEETING_ACTOR_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor160700PierceClip19Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor160700PierceClip20Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_160700_MEETING_ACTOR_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor160700PierceClip20Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 20 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor160700PierceClip6Request } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_160700_MEETING_ACTOR_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor160700PierceClip6Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = PLAYER_ACTOR_END_SCRIPTED_DEFAULT }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-EvsCommand D_actor_160700_80136414[10] = {
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 6 }, { .value = 0 } },
+/// Repeat Pierce conversation choreography, synchronized to CAP command 6.
+///
+/// Installs the player meeting-bank extension and blends to the player's base
+/// idle while cueing placed actor 0. Finishes with Pierce clip 6 and normal
+/// player control. The command stream and borrowed clip storage stay loaded.
+static EvsCommand _gActor160700RepeatMeetingScript[] = {
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_START }, { .value = ACTOR_160700_REPEAT_MEETING_CAP_COMMAND }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &_gActor160700PlayerMeetingAnimationData.bankCopy } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor160700PlayerMeetingAnimationData.blendRequest }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor160700PierceClip11Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_160700_MEETING_ACTOR_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor160700PierceClip11Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor160700PierceClip18Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_160700_MEETING_ACTOR_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor160700PierceClip18Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 20 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor160700PierceClip6Request } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_160700_MEETING_ACTOR_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor160700PierceClip6Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = PLAYER_ACTOR_END_SCRIPTED_DEFAULT }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
@@ -1477,7 +1594,12 @@ static AnimationSet _gActor160700Animation0F830 = {
     { NULL, _gActor160700Animation0F830Bank1, NULL, NULL, _gActor160700Animation0F830Bank4, NULL, NULL, NULL },
 };
 
-TaskMessageEntry D_actor_160700_80141678[6] = {
+/// Synchronous message table for Pierce's paced walker.
+///
+/// Five handlers accept animation, paired draw flags, placement, ignored actor
+/// commands and horizontal walk targets. The end marker makes other IDs return
+/// zero. The task borrows this table and its callbacks for its whole lifetime.
+static TaskMessageEntry _gActor160700PierceMessages[] = {
     { ACTOR_MESSAGE_PLAY_ANIMATION, _pacedWalkPlayAnimation },
     { ACTOR_MESSAGE_SET_MODEL_DRAW, _pacedWalkSetPairModelDraw },
     { ACTOR_MESSAGE_PLACE, _pacedWalkPlace },
@@ -1491,107 +1613,37 @@ TaskDesc gActor160700PierceCarradineTasks[ACTOR_160700_TASK_COUNT] = {
     { { { TASK_BODY_TMD, ACTOR_160700_CARRIED_MODEL_PRIORITY } }, _pacedWalkSubModelTask, { .model = &_gActor160700Actor113100Model07960 } },
 };
 
-u8 D_actor_160700_801416C0[100] = {
-    0,
-    0,
-    0,
-    0,
-    60,
-    203,
-    19,
-    128,
-    12,
-    206,
-    19,
-    128,
-    36,
-    223,
-    19,
-    128,
-    20,
-    226,
-    19,
-    128,
-    240,
-    227,
-    19,
-    128,
-    120,
-    230,
-    19,
-    128,
-    172,
-    232,
-    19,
-    128,
-    144,
-    234,
-    19,
-    128,
-    48,
-    241,
-    19,
-    128,
-    88,
-    244,
-    19,
-    128,
-    160,
-    247,
-    19,
-    128,
-    56,
-    250,
-    19,
-    128,
-    88,
-    253,
-    19,
-    128,
-    248,
-    255,
-    19,
-    128,
-    4,
-    3,
-    20,
-    128,
-    220,
-    6,
-    20,
-    128,
-    148,
-    8,
-    20,
-    128,
-    120,
-    10,
-    20,
-    128,
-    84,
-    13,
-    20,
-    128,
-    56,
-    15,
-    20,
-    128,
-    240,
-    17,
-    20,
-    128,
-    124,
-    20,
-    20,
-    128,
-    80,
-    22,
-    20,
-    128,
-    0,
-    0,
-    0,
-    0,
+/// Pierce's twenty-five-entry animation-set bank, indexed by clip ID.
+///
+/// IDs 1..23 hold loaded clips for the twenty-part rig; 0 and 24 are NULL and
+/// must not be played. The animation context and its slots borrow this table
+/// and the clip storage until walker teardown; keep the overlay loaded.
+static AnimationSet* _gActor160700PierceAnimationSets[] = {
+    NULL,
+    &_gActor160700Animation0AD1C,
+    &_gActor160700Animation0AFEC,
+    &_gActor160700Animation0C104,
+    &_gActor160700Animation0C3F4,
+    &_gActor160700Animation0C5D0,
+    &_gActor160700Animation0C858,
+    &_gActor160700Animation0CA8C,
+    &_gActor160700Animation0CC70,
+    &_gActor160700Animation0D310,
+    &_gActor160700Animation0D638,
+    &_gActor160700Animation0D980,
+    &_gActor160700Animation0DC18,
+    &_gActor160700Animation0DF38,
+    &_gActor160700Animation0E1D8,
+    &_gActor160700Animation0E4E4,
+    &_gActor160700Animation0E8BC,
+    &_gActor160700Animation0EA74,
+    &_gActor160700Animation0EC58,
+    &_gActor160700Animation0EF34,
+    &_gActor160700Animation0F118,
+    &_gActor160700Animation0F3D0,
+    &_gActor160700Animation0F65C,
+    &_gActor160700Animation0F830,
+    NULL,
 };
 
 static void _actor160700PacedWalkSpawn(Enemy* enemy, Task* task);
@@ -1619,21 +1671,21 @@ void actor160700StartMeetingScript(void)
     // Progress advances when playback starts, including a skipped conversation.
     switch (gameFlagGetNibble(GAME_FLAG_ACTOR_160700_MEETING_PROGRESS)) {
         case ACTOR_160700_MEETING_UNMET:
-            evsStartScriptWithSkip(D_actor_160700_80135664, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_160700_80135ACC);
+            evsStartScriptWithSkip(_gActor160700FirstMeetingScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, _gActor160700MeetingSkipScript);
             gameFlagSetNibble(GAME_FLAG_ACTOR_160700_MEETING_PROGRESS, ACTOR_160700_MEETING_FIRST_SEEN);
             gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, ACTOR_160700_FOLLOW_UP_NOT_STARTED);
             gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, ACTOR_160700_STORY_DIALOGUE_AFTER_FIRST_MEETING);
             break;
         case ACTOR_160700_MEETING_FIRST_SEEN:
-            evsStartScriptWithSkip(D_actor_160700_80135BD4, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_160700_80135ACC);
+            evsStartScriptWithSkip(_gActor160700SecondMeetingScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, _gActor160700MeetingSkipScript);
             gameFlagSetNibble(GAME_FLAG_ACTOR_160700_MEETING_PROGRESS, ACTOR_160700_MEETING_SECOND_SEEN);
             break;
         case ACTOR_160700_MEETING_SECOND_SEEN:
-            evsStartScript(D_actor_160700_801362F4, EVENT_SCRIPT_HUD_HIDE_RESTORE);
+            evsStartScript(_gActor160700ThirdMeetingScript, EVENT_SCRIPT_HUD_HIDE_RESTORE);
             gameFlagSetNibble(GAME_FLAG_ACTOR_160700_MEETING_PROGRESS, ACTOR_160700_MEETING_THIRD_SEEN);
             break;
         case ACTOR_160700_MEETING_THIRD_SEEN:
-            evsStartScript(D_actor_160700_80136414, EVENT_SCRIPT_HUD_HIDE_RESTORE);
+            evsStartScript(_gActor160700RepeatMeetingScript, EVENT_SCRIPT_HUD_HIDE_RESTORE);
             break;
     }
 }
@@ -1700,10 +1752,10 @@ static void _actor160700PacedWalkSpawn(Enemy* enemy, Task* task)
     work->pairTask  = attachmentEnemy->task;
     work->st.animId = ACTOR_160700_SPAWN_CLIP;
     ACTOR_160700_INITIALIZE_MODEL_LIGHTING(model, work, rootCoord, lightPosition);
-    animationInitContext(&work->rig.anim, (AnimationSet**)D_actor_160700_801416C0, model,
+    animationInitContext(&work->rig.anim, _gActor160700PierceAnimationSets, model,
                          work->rig.poses, work->rig.slots);
     work->st.state = ACTOR_ENEMY_ANIM_RESET;
-    task->msgTable = D_actor_160700_80141678;
+    task->msgTable = _gActor160700PierceMessages;
     _pacedWalkUpdate(task);
     task->state += 1;
 }
