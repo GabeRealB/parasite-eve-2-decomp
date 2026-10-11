@@ -162,10 +162,17 @@ void m4a1BayonetTrailTask(Task* task)
     }
 }
 
-#define BLADE_TRAIL_BASE_HISTORY gBladeTrailBase
-#define BLADE_TRAIL_TIP_HISTORY  gBladeTrailTip
+/// Binds the bayonet's far-endpoint ring to the first side of the thrust ribbon.
+///
+/// Supplies a side-effect-free `GfxCoord[8]` array identifier, paired by slot
+/// with `BLADE_TRAIL_TIP_HISTORY`. The drawer borrows composed view-space
+/// `workm.t` translations in game-coordinate units for corners 0 and 2;
+/// the task seeds every slot and refreshes the caches before drawing.
+/// This binding exists only around the shared drawer inclusion.
+#define BLADE_TRAIL_FIRST_ENDPOINT_HISTORY gBladeTrailBase
+#define BLADE_TRAIL_TIP_HISTORY            gBladeTrailTip
 #include "../../shared/blade_trail_draw.inc.c"
-#undef BLADE_TRAIL_BASE_HISTORY
+#undef BLADE_TRAIL_FIRST_ENDPOINT_HISTORY
 #undef BLADE_TRAIL_TIP_HISTORY
 
 /// Identity root pose for the held rifle and bayonet; model instances copy this transform.
