@@ -123,7 +123,19 @@ def sound_bank_load(record, trace):
 @renderer("sound_bank_free")
 def sound_bank_free(record, trace):
     bank = struct.unpack_from("<H", record["a0:16"], 8)[0]          # SndBank.bankId
+    if bank == 0xFFFF:                                                # the descriptor was free already: nothing is released
+        return {"event": "sound_bank_free", "bank": None, "note": "an empty slot", "from": trace.symbol(record["ra"])}
     return {"event": "sound_bank_free", "bank": f"{bank:#06x}", "type": SOUND_TYPES.get(bank >> 12, bank >> 12), "from": trace.symbol(record["ra"])}
+
+
+@renderer("image_chunk")
+def image_chunk(record, trace):
+    """fsUploadImageChunk: the chunk's header gives where it goes. Height is stored before width (FsImageChunk)."""
+    if record["phase"] == "exit":
+        return {"event": "image_chunk_upload", "phase": "exit", "status": record["v0"] & 0xFF}
+    x, y, h, w = struct.unpack_from("<4H", record["a0:8"])
+    return {"event": "image_chunk_upload", "phase": "enter", "x": x, "y": y, "w": w, "h": h, "kind": "palette" if h <= 16 and w in (16, 256) else "image",
+            "from": trace.symbol(record["ra"])}
 
 
 @renderer("rect")

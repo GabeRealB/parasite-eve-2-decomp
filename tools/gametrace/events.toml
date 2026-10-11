@@ -197,10 +197,14 @@ capture = ["a0", "a1", "a2", "ra"]
 
 [[event]]
 id = 20
-name = "image_upload"
-address = 0x80017F44     # LoadImage(rect, pixels): the rectangle is x, y, w, h
+name = "image_chunk_upload"
+address = 0x800246B0     # fsUploadImageChunk(chunk, ignoreGpuTimeLimit): an image or palette out of a file; the header is x, y, h, w
 capture = ["a0:8", "a1", "ra"]
-render = "rect"
+exits = [0x1FC]          # it is called again until it says the upload is done: v0 is that status
+render = "image_chunk"
+
+# LoadImage itself is not hooked: nearly every call is frame traffic - a movie's strips, the background redrawn into
+# the frame buffer each frame, a still picture's strips - which says nothing about what is resident.
 
 [[event]]
 id = 21
