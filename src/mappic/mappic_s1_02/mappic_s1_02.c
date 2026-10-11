@@ -1,33 +1,35 @@
-#include <psyq/sys/types.h>
+#include "mappic/mappic.h"
 
-#include "types.h"
+#include <psyq/libgpu.h>
 
-#include "main/tmd_types.h"
+#include "common.h"
 
-static TmdBone _gMappicS102MappicS202Model00C4800070Skeleton[1] = {
+/// Identity transform and self-parented root for the Helicopter landing pad shape.
+static TmdBone _gMappicS102HelicopterLandingPadShapeSkeleton[] = {
 #include "assets/mappic_s2_02_model_00C48_00070_skeleton.inc"
 };
 
-static u32 _gMappicS102MappicS202Model00C4800070PartVerts[1] = {
+/// Vertex count of the Helicopter landing pad shape's sole part (four vertices).
+static u32 _gMappicS102HelicopterLandingPadShapePartVerts[] = {
 #include "assets/mappic_s2_02_model_00C48_00070_partVerts.inc"
 };
 
-static SVECTOR _gMappicS102MappicS202Model00C4800070Verts[4] = {
+/// Helicopter landing pad's map footprint in integer model X/Z coordinates, with Y zero.
+static SVECTOR _gMappicS102HelicopterLandingPadShapeVerts[] = {
 #include "assets/mappic_s2_02_model_00C48_00070_verts.inc"
 };
 
-static u32 _gMappicS102MappicS202Model00C4800070Stream[9] = {
+/// One unlit quad's packed vertex byte offsets and white colour, then two group ends and the stream end.
+static u32 _gMappicS102HelicopterLandingPadShapeStream[] = {
 #include "assets/mappic_s2_02_model_00C48_00070_stream.inc"
 };
 
-TmdSource D_mappic_s1_02_8012EFA0 = {
-    0,
-    24,
-    0,
-    1,
-    _gMappicS102MappicS202Model00C4800070PartVerts,
-    _gMappicS102MappicS202Model00C4800070Verts,
-    &_gMappicS102MappicS202Model00C4800070Verts[4],
-    _gMappicS102MappicS202Model00C4800070Skeleton,
-    _gMappicS102MappicS202Model00C4800070Stream,
+TmdSource gMappicS102HelicopterLandingPadShape = {
+    .bufferHalfBytes  = sizeof(POLY_F4),
+    .partCount        = ARRAY_SIZE(_gMappicS102HelicopterLandingPadShapeSkeleton),
+    .partVertexCounts = _gMappicS102HelicopterLandingPadShapePartVerts,
+    .verts            = _gMappicS102HelicopterLandingPadShapeVerts,
+    .normals          = &_gMappicS102HelicopterLandingPadShapeVerts[ARRAY_SIZE(_gMappicS102HelicopterLandingPadShapeVerts)], // Empty normal pool at the vertex end.
+    .skeleton         = _gMappicS102HelicopterLandingPadShapeSkeleton,
+    .stream           = _gMappicS102HelicopterLandingPadShapeStream,
 };

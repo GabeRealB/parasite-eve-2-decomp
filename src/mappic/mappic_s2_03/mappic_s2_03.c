@@ -64,30 +64,32 @@ TmdSource gMappicS203CellarShape = {
     .stream           = _gMappicS203CellarShapeStream,
 };
 
-static TmdBone _gMappicS203Model001F0Skeleton[1] = {
+/// Identity transform and self-parented root for the Underpass shape.
+static TmdBone _gMappicS203UnderpassShapeSkeleton[] = {
 #include "assets/mappic_s2_03_model_001F0_skeleton.inc"
 };
 
-static u32 _gMappicS203Model001F0PartVerts[1] = {
+/// Vertex count of the Underpass shape's sole part (ten vertices).
+static u32 _gMappicS203UnderpassShapePartVerts[] = {
 #include "assets/mappic_s2_03_model_001F0_partVerts.inc"
 };
 
-static SVECTOR _gMappicS203Model001F0Verts[10] = {
+/// Underpass's map footprint in integer model X/Z coordinates, with Y zero.
+static SVECTOR _gMappicS203UnderpassShapeVerts[] = {
 #include "assets/mappic_s2_03_model_001F0_verts.inc"
 };
 
-static u32 _gMappicS203Model001F0Stream[24] = {
+/// Two unlit triangles and three unlit quads, with packed vertex byte offsets and white colour, then two group ends and the stream end.
+static u32 _gMappicS203UnderpassShapeStream[] = {
 #include "assets/mappic_s2_03_model_001F0_stream.inc"
 };
 
-TmdSource D_mappic_s2_03_8012F180 = {
-    0,
-    112,
-    0,
-    1,
-    _gMappicS203Model001F0PartVerts,
-    _gMappicS203Model001F0Verts,
-    &_gMappicS203Model001F0Verts[10],
-    _gMappicS203Model001F0Skeleton,
-    _gMappicS203Model001F0Stream,
+TmdSource gMappicS203UnderpassShape = {
+    .bufferHalfBytes  = 2 * sizeof(POLY_F3) + 3 * sizeof(POLY_F4),
+    .partCount        = ARRAY_SIZE(_gMappicS203UnderpassShapeSkeleton),
+    .partVertexCounts = _gMappicS203UnderpassShapePartVerts,
+    .verts            = _gMappicS203UnderpassShapeVerts,
+    .normals          = &_gMappicS203UnderpassShapeVerts[ARRAY_SIZE(_gMappicS203UnderpassShapeVerts)], // Empty normal pool at the vertex end.
+    .skeleton         = _gMappicS203UnderpassShapeSkeleton,
+    .stream           = _gMappicS203UnderpassShapeStream,
 };

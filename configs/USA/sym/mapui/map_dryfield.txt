@@ -311,7 +311,7 @@ gMappicS202GeneralStoreShape = 0x8012F0DC; // absolute:True owner=mappic_s2_02 s
 gMappicS202BackStreetShape = 0x8012F188; // absolute:True owner=mappic_s2_02 shared=mappic
 gMappicS202SouvenirShopShape = 0x8012F218; // absolute:True owner=mappic_s2_02 shared=mappic
 gMappicS202WarehouseShape = 0x8012F2A8; // absolute:True owner=mappic_s2_02 shared=mappic
-D_mappic_s2_02_8012F354 = 0x8012F354; // absolute:True owner=mappic_s2_02
+gMappicS202DilapidatedHouseShape = 0x8012F354; // absolute:True owner=mappic_s2_02
 gMappicS202MotelRoom1Shape = 0x8012F3E4; // absolute:True owner=mappic_s2_02
 gMappicS202MotelRoom2Shape = 0x8012F474; // absolute:True owner=mappic_s2_02
 gMappicS202MotelRoom3Shape = 0x8012F504; // absolute:True owner=mappic_s2_02
@@ -330,7 +330,7 @@ gMappicS202JunkYardShape = 0x8012FD60; // absolute:True owner=mappic_s2_02
 gMappicS202TrailerCoachShape = 0x8012FDF0; // absolute:True owner=mappic_s2_02
 gMappicS203WaterHoleShape = 0x8012EFD8; // absolute:True owner=mappic_s2_03 shared=mappic
 gMappicS203CellarShape = 0x8012F084; // absolute:True owner=mappic_s2_03 shared=mappic
-D_mappic_s2_03_8012F180 = 0x8012F180; // absolute:True owner=mappic_s2_03 shared=mappic
+gMappicS203UnderpassShape = 0x8012F180; // absolute:True owner=mappic_s2_03 shared=mappic
 mapDryfieldSetupMovieBuffers = 0x80179954; // type:func
 _gMapDryfieldAreaViewMaps = 0x8017ab64;
 _gMapDryfieldAreaSpriteViews = 0x8017ac00;

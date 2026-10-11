@@ -94,14 +94,35 @@ extern TmdSource gMappicS100SanctuaryShape;
 /// vertices and first stream group; keep mappic_s1_00 loaded during use.
 extern TmdSource gMappicS100RoofGardenShape;
 
-extern TmdSource D_mappic_s1_00_8012F91C;
+/// Bridge's area-fill quad on page 1 of the Acropolis map.
+///
+/// Four vertices in the model X/Z plane are scaled by 2107/4096, with Z
+/// mapped to inverted screen Y. Has no normal data. The map borrows the
+/// vertices and first stream group; keep mappic_s1_00 loaded during use.
+extern TmdSource gMappicS100BridgeShape;
 
-extern TmdSource D_mappic_s1_00_8012F9AC;
+/// Fire escape's area-fill quad on page 1 of the Acropolis map.
+///
+/// Four vertices in the model X/Z plane are scaled by 2107/4096, with Z
+/// mapped to inverted screen Y. Has no normal data. The map borrows the
+/// vertices and first stream group; keep mappic_s1_00 loaded during use.
+extern TmdSource gMappicS100FireEscapeShape;
 
-extern TmdSource D_mappic_s1_00_8012FAFC;
+/// West elevator hall's area-fill mesh on page 1 of the Acropolis map.
+///
+/// Sixteen vertices in the model X/Z plane form two triangles and six quads;
+/// the map scales them by 2107/4096 and maps Z to inverted screen Y.
+/// Has no normal data. The map borrows the vertices and first stream group;
+/// keep mappic_s1_00 loaded during use.
+extern TmdSource gMappicS100WestElevatorHallShape;
 
 // mappic_s1_02
-extern TmdSource D_mappic_s1_02_8012EFA0;
+/// Helicopter landing pad's area-fill quad on page 2 of the Acropolis map.
+///
+/// Four vertices in the model X/Z plane are scaled by 2107/4096, with Z
+/// mapped to inverted screen Y. Has no normal data. The map borrows the
+/// vertices and first stream group; keep mappic_s1_02 loaded during use.
+extern TmdSource gMappicS102HelicopterLandingPadShape;
 
 // mappic_s2_00
 /// Motel room 6's area-fill quad on page 1 of the daytime Dryfield map.
@@ -188,7 +209,12 @@ extern TmdSource gMappicS202SouvenirShopShape;
 /// mappic_s2_02 package loaded while these are used.
 extern TmdSource gMappicS202WarehouseShape;
 
-extern TmdSource D_mappic_s2_02_8012F354;
+/// Dilapidated house's two-quad area fill on page 2 of the daytime Dryfield map.
+///
+/// Six vertices in the model X/Z plane are scaled by 1495/4096, with Z
+/// mapped to inverted screen Y. Has no normal data. The map borrows the
+/// vertices and first stream group; keep mappic_s2_02 loaded during use.
+extern TmdSource gMappicS202DilapidatedHouseShape;
 
 /// Motel room 1's area-fill quad on page 2 of the daytime Dryfield map.
 ///
@@ -334,7 +360,13 @@ extern TmdSource gMappicS203WaterHoleShape;
 /// keep the mappic_s2_03 package loaded while these are used.
 extern TmdSource gMappicS203CellarShape;
 
-extern TmdSource D_mappic_s2_03_8012F180;
+/// Underpass's area-fill mesh on page 3 of the daytime Dryfield map.
+///
+/// Ten vertices in the model X/Z plane form two triangles and three quads;
+/// the map scales them by 1495/4096 and maps Z to inverted screen Y.
+/// Has no normal data. The map borrows the vertices and first stream group;
+/// keep mappic_s2_03 loaded during use.
+extern TmdSource gMappicS203UnderpassShape;
 
 // mappic_s5_00
 /// Observatory's area-fill mesh on page 1 of the Neo Ark map.

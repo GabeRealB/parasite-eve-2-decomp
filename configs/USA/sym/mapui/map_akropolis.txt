@@ -214,10 +214,10 @@ gMappicS100ObservatoryShape = 0x8012F684; // absolute:True owner=mappic_s1_00
 gMappicS100PromenadeShape = 0x8012F76C; // absolute:True owner=mappic_s1_00
 gMappicS100SanctuaryShape = 0x8012F7FC; // absolute:True owner=mappic_s1_00
 gMappicS100RoofGardenShape = 0x8012F88C; // absolute:True owner=mappic_s1_00
-D_mappic_s1_00_8012F91C = 0x8012F91C; // absolute:True owner=mappic_s1_00
-D_mappic_s1_00_8012F9AC = 0x8012F9AC; // absolute:True owner=mappic_s1_00
-D_mappic_s1_00_8012FAFC = 0x8012FAFC; // absolute:True owner=mappic_s1_00
-D_mappic_s1_02_8012EFA0 = 0x8012EFA0; // absolute:True owner=mappic_s1_02 shared=mappic
+gMappicS100BridgeShape = 0x8012F91C; // absolute:True owner=mappic_s1_00
+gMappicS100FireEscapeShape = 0x8012F9AC; // absolute:True owner=mappic_s1_00
+gMappicS100WestElevatorHallShape = 0x8012FAFC; // absolute:True owner=mappic_s1_00
+gMappicS102HelicopterLandingPadShape = 0x8012EFA0; // absolute:True owner=mappic_s1_02 shared=mappic
 mapAkropolisSetupMovieBuffers = 0x80179988; // type:func
 _mapAkropolisDrawKeyItemRow = 0x80179c50; // type:func
 _mapAkropolisKeyItemPanelTask = 0x80179d78; // type:func
