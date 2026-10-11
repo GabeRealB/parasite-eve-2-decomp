@@ -77,12 +77,46 @@ def file_load(record, trace):
     LOADING["mode"] = mode
     # The offsets are signed bytes: pages of 64 across for images high in video memory or relocated, rows for
     # palettes whose header says row 245..255.
-    return {"event": "file_load", **what, "mode": mode, "policy": named(mode, "include/main/fs_types.h", "CD_COMMAND_LOAD_"),
+    return {"event": "file_load", **what, **named_file(what), "mode": mode, "policy": named(mode, "include/main/fs_types.h", "CD_COMMAND_LOAD_"),
             "takes": LOAD_MODES.get(mode, LOAD_MODES[0]), "page_offset": signed(record["a2"]), "row_offset": signed(record["a3"]),
             "from": trace.symbol(record["ra"])}
 
 
 LOADING: dict = {}       # the file whose load was last begun; files load one at a time
+
+
+def tree():
+    """The extractor's table of the disc: stages, their folders and files, by the names given to them so far."""
+    import sys
+    from pathlib import Path
+    sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "peassets"))
+    import asset_data
+    return asset_data.TREE
+
+
+def named_file(what: dict) -> dict:
+    """The names of the stage, folder and file a load's numbers stand for. They come from the extractor's table
+    and the area header each run, so they follow as things are renamed; a part with no name yet is left out."""
+    out: dict = {}
+    if "file" in what:                               # stage zero: the library every stage shares, one flat list of files
+        out["stage_name"] = "library"
+        name = next((n for n, f in (tree()[0].get("files") or {}).items() if f["id"] == what["file"]), None)
+    elif "stage" in what:
+        stage = constants("include/main/areas.h", "GAME_STAGE_").get(what["stage"])
+        if stage:
+            out["stage_name"] = stage[len("GAME_STAGE_"):].lower()
+        folder = next(((n, f) for n, f in (tree().get(what["stage"], {}).get("folders") or {}).items() if f["id"] == what["folder"]), None)
+        if folder:
+            out["folder_name"] = folder[0]
+        name = next((n for n, f in ((folder[1].get("files") or {}).items() if folder else ()) if f["id"] == what["index"]), None)
+    else:
+        return out
+    if name:
+        out["file_name"] = name
+        out["path"] = "/".join(part for part in (out.get("stage_name"), out.get("folder_name"), name) if part)
+    else:
+        out["file_name"] = None                      # the number names no file on the disc: such a load reads nothing
+    return out
 
 
 def packages_of(what: dict) -> list[str]:
@@ -110,7 +144,7 @@ def file_loaded(record, trace):
 
 @renderer("file_loaded")
 def file_loaded_line(record, trace):
-    return {"event": "file_loaded", **LOADING, "policy": named(LOADING.get("mode", 0), "include/main/fs_types.h", "CD_COMMAND_LOAD_"), "packages": packages_of(LOADING)}
+    return {"event": "file_loaded", **LOADING, **named_file(LOADING), "policy": named(LOADING.get("mode", 0), "include/main/fs_types.h", "CD_COMMAND_LOAD_"), "packages": packages_of(LOADING)}
 
 
 @renderer("sound_request")
@@ -218,6 +252,7 @@ def cd_command(record, trace):
     if record["a0"] & 0xFF == 0x21 and any(record["a1:4"]):
         index, hundreds, group, stage = record["a1:4"]
         out.update({"file": group * 10000 + hundreds * 100 + index} if stage == 0 else {"stage": stage, "folder": group * 100 + hundreds, "index": index})
+        out.update(named_file(out))
     out["from"] = trace.symbol(record["ra"])
     return out
 
