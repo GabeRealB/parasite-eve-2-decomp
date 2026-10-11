@@ -46,10 +46,13 @@ enum {
     TITLE_MENU_DEBUG_OPTION,
 };
 
-/// Packed title-screen request: bit 31 suppresses fading on the setup tick;
-/// the remaining bits count ticks to wait before allocating screen work.
-#define TITLE_SCREEN_SKIP_FADE  0x80000000
-#define TITLE_SCREEN_DELAY_MASK 0x7FFFFFFF
+/// Spawn-payload bit that disables the title screen's subtractive black fades.
+///
+/// Consumed on the first initialization attempt; suppression takes effect only
+/// if screen work is allocated on that attempt. A delay or allocation failure
+/// loses the request. Prompt/menu brightness ramps and idle timing still run.
+/// The unsigned word also selects `taskSpawn`'s unsigned argument member.
+#define TITLE_SCREEN_SKIP_BLACK_FADE 0x80000000U
 
 /// Prompt and menu slots in the title-screen state dispatcher.
 enum {
@@ -65,18 +68,19 @@ enum {
     TITLE_START_SESSION_DEMO_ARG  = 2,
 };
 
-/// Frames a black fade of the title screen lasts. The idle count starts this
-/// far below zero to fade in, and runs this far past the timeout to fade out.
-#define TITLE_SCREEN_FADE_FRAMES 16
+/// Counter span of the title screen's subtractive black fades, in update ticks.
+///
+/// The idle count starts at the negative span and increments before drawing.
+/// Fade-in draws at -15..-1; fade-out draws at timeout+1..timeout+15 and hands
+/// off at timeout+16. Suppressing the tiles preserves these counter intervals.
+enum { TITLE_SCREEN_BLACK_FADE_TICKS = 16 };
 
-/// Idle frames after which the title screen fades out and gives way to the
-/// attract demo.
-#define TITLE_SCREEN_IDLE_TIMEOUT 900
-
-/// Brightness of a title-screen row that has fully faded in, and the step a
-/// fading row rises by each frame.
-#define TITLE_SCREEN_FADE_FULL 0x80
-#define TITLE_SCREEN_FADE_STEP 8
+/// Unscaled RGB modulation of an additive title-chrome sprite row.
+///
+/// The prompt/menu ramps range from zero (invisible) to this value; the prompt
+/// and copyright use its complement while the menu appears. This signed int
+/// constant participates in brightness subtraction and slide calculations.
+enum { TITLE_CHROME_FULL_BRIGHTNESS = 0x80 };
 
 /// Page-local V origins, in texels, of the title chrome's 256-by-16 rows.
 enum {
@@ -102,10 +106,10 @@ enum {
 /// The title screen task's work: the PRESS START BUTTON prompt and the menu
 /// that replaces it, with the idle count that fades the screen in and out.
 typedef struct {
-    s32 idleFrames;        // Frames since the last input, starting at -TITLE_SCREEN_FADE_FRAMES
+    s32 idleFrames;        // Idle update ticks, starting at -TITLE_SCREEN_BLACK_FADE_TICKS
     s32 selection;         // Highlighted entry (a TITLE_MENU_ value)
     s32 screenFadeEnabled; // Nonzero to fade the screen in from black and back out to it
-    s32 promptFade;        // Brightness of the prompt as it slides in (0..TITLE_SCREEN_FADE_FULL)
+    s32 promptFade;        // Brightness of the prompt as it slides in (0..TITLE_CHROME_FULL_BRIGHTNESS)
     s32 menuFade;          // Brightness of the menu; the prompt and copyright fade out by its complement
     s32 menuCount;         // Entries the cursor wraps over (5, leaving Debug Option out)
 } _TitleScreenWork;
@@ -219,9 +223,9 @@ static void _titleDrawChromeRow(s32 screenY, s32 atlasV, s32 brightness);
 /// Initializes the title prompt after its packed spawn delay expires.
 ///
 /// Requires state 0, a loaded title background and initialized primary heap.
-/// The high no-fade bit is consumed before counting down the low 31 bits; a
-/// delayed request therefore enables fades again on the next tick. Allocation
-/// failure leaves state 0 for retry. Success gives the task ownership of its
+/// The high no-fade bit is consumed before the delay and allocation; a delayed
+/// request or failed allocation therefore enables fades again on retry.
+/// Allocation failure leaves state 0. Success gives the task ownership of its
 /// cleared screen work and runs the first prompt update immediately.
 static void _titleInitializeScreenTask(Task* task)
 {
@@ -229,6 +233,11 @@ static void _titleInitializeScreenTask(Task* task)
         TITLE_SCREEN_MENU_RESOURCE_HUNDREDS = 1,
         TITLE_SCREEN_MENU_RESOURCE_INDEX    = 0,
     };
+    /// Low-31-bit mask for the spawn payload's initialization-tick countdown.
+    ///
+    /// A delay in 0..0x7FFFFFFF defers allocation for that many attempts. Clearing
+    /// the high flag leaves a nonnegative signed value for the countdown tests.
+    enum { TITLE_SCREEN_DELAY_MASK = 0x7FFFFFFF };
     bool              screenFadeEnabled;
     DisplayState*     display;
     _TitleScreenWork* work;
@@ -237,7 +246,7 @@ static void _titleInitializeScreenTask(Task* task)
     display                            = &gDisplayState;
     display->control.flags.imageSource = DISPLAY_IMAGE_NONE;
     gUiPromptObject                    = NULL;
-    if (task->spawnArg1.value < 0) {
+    if ((task->spawnArg1.unsignedValue & TITLE_SCREEN_SKIP_BLACK_FADE) != 0) {
         screenFadeEnabled      = false;
         task->spawnArg1.value &= TITLE_SCREEN_DELAY_MASK;
     }
@@ -258,7 +267,7 @@ static void _titleInitializeScreenTask(Task* task)
         textUploadPalettes();
         displayConfigureFramebuffers(DISPLAY_SETUP_DEFAULT | DISPLAY_SETUP_KEEP_VIEW);
         display->holdState                 = DISPLAY_HOLD_INITIAL;
-        work->idleFrames                   = -TITLE_SCREEN_FADE_FRAMES;
+        work->idleFrames                   = -TITLE_SCREEN_BLACK_FADE_TICKS;
         display->control.flags.imageSource = DISPLAY_IMAGE_STRIPS;
         if (display->debugMode != 0) {
             func_807246B4();
@@ -291,7 +300,7 @@ static inline void _titlePrependChromeDrawMode(void)
 ///
 /// `screenY` is the top edge in draw-environment pixels; `atlasV` is a
 /// TITLE_CHROME_ATLAS_V_ origin in page-local texels. `brightness` is normally
-/// 0..TITLE_SCREEN_FADE_FULL (0 invisible, 0x80 unscaled); packing keeps its
+/// 0..TITLE_CHROME_FULL_BRIGHTNESS (0 invisible, 0x80 unscaled); packing keeps its
 /// low byte. Coordinates retain the sprite's signed-halfword/unsigned-byte
 /// truncation. The chrome texture and palette must already be loaded.
 /// Requires a current ordering tag and word-aligned space for one SPRT plus
@@ -360,6 +369,19 @@ static inline void _titlePrependScreenFadeDrawMode(void)
 /// handler, which may release it. Disc 2 requests a game restart after timeout.
 static void _titleUpdateScreenTask(Task* task)
 {
+    /// Idle update-tick threshold after which input gives way to the black fade.
+    ///
+    /// The incremented count must exceed this value: 900 still processes input,
+    /// 901 starts the exit interval and 916 starts a disc-1 attract demo or
+    /// requests a disc-2 restart. Prompt confirmation and navigation reset it.
+    enum { TITLE_SCREEN_IDLE_TIMEOUT_TICKS = 900 };
+
+    /// RGB modulation added to the prompt or menu on each eligible update tick.
+    ///
+    /// Cleared work starts at zero, so sixteen increments reach
+    /// `TITLE_CHROME_FULL_BRIGHTNESS` exactly without clamping or overshoot.
+    /// Menu input waits for that endpoint; prompt confirmation need not wait.
+    enum { TITLE_CHROME_BRIGHTNESS_STEP_PER_TICK = 8 };
     enum {
         TITLE_SCREEN_WIDTH_PIXELS          = 320,
         TITLE_SCREEN_HEIGHT_PIXELS         = 240,
@@ -377,15 +399,15 @@ static void _titleUpdateScreenTask(Task* task)
     // Let the idle fade finish before replacing the title presentation.
     idleFrames       = work->idleFrames + 1;
     work->idleFrames = idleFrames;
-    if (idleFrames > TITLE_SCREEN_IDLE_TIMEOUT) {
-        if (idleFrames < TITLE_SCREEN_IDLE_TIMEOUT + TITLE_SCREEN_FADE_FRAMES) {
+    if (idleFrames > TITLE_SCREEN_IDLE_TIMEOUT_TICKS) {
+        if (idleFrames < TITLE_SCREEN_IDLE_TIMEOUT_TICKS + TITLE_SCREEN_BLACK_FADE_TICKS) {
             if (work->screenFadeEnabled != 0) {
                 TILE* tile;
 
                 tile           = gGpuPrimCursor;
                 gGpuPrimCursor = tile + 1;
                 setTile(tile);
-                tile->r0 = tile->g0 = tile->b0 = (idleFrames - TITLE_SCREEN_IDLE_TIMEOUT) * TITLE_SCREEN_FADE_BRIGHTNESS_STEP - 1;
+                tile->r0 = tile->g0 = tile->b0 = (idleFrames - TITLE_SCREEN_IDLE_TIMEOUT_TICKS) * TITLE_SCREEN_FADE_BRIGHTNESS_STEP - 1;
                 tile->x0                       = -TITLE_SCREEN_WIDTH_PIXELS / 2;
                 tile->y0                       = -TITLE_SCREEN_HEIGHT_PIXELS / 2;
                 tile->w                        = TITLE_SCREEN_WIDTH_PIXELS;
@@ -435,8 +457,8 @@ static void _titleUpdateScreenTask(Task* task)
 
     // Fade the menu in over the prompt, then accept navigation and selection.
     if (task->state == TITLE_SCREEN_STATE_MENU) {
-        if (work->menuFade < TITLE_SCREEN_FADE_FULL) {
-            work->menuFade += TITLE_SCREEN_FADE_STEP;
+        if (work->menuFade < TITLE_CHROME_FULL_BRIGHTNESS) {
+            work->menuFade += TITLE_CHROME_BRIGHTNESS_STEP_PER_TICK;
         }
         for (menuRow = 0; menuRow < TITLE_CHROME_MENU_ROW_COUNT; menuRow++) {
             _titleDrawChromeRow(menuRow * TITLE_CHROME_MENU_ROW_STEP + TITLE_CHROME_MENU_FIRST_Y,
@@ -445,9 +467,9 @@ static void _titleUpdateScreenTask(Task* task)
         _titleDrawChromeRow((work->selection - TITLE_MENU_NEW_GAME) * TITLE_CHROME_MENU_ROW_STEP + TITLE_CHROME_MENU_FIRST_Y,
                             TITLE_CHROME_ATLAS_V_CURSOR, work->menuFade);
         _titleDrawChromeRow(work->menuFade / TITLE_SCREEN_BRIGHTNESS_PER_PIXEL + TITLE_CHROME_PROMPT_Y, TITLE_CHROME_ATLAS_V_PROMPT,
-                            TITLE_SCREEN_FADE_FULL - work->menuFade);
-        _titleDrawChromeRow(TITLE_CHROME_COPYRIGHT_Y, TITLE_CHROME_ATLAS_V_COPYRIGHT, TITLE_SCREEN_FADE_FULL - work->menuFade);
-        if (work->menuFade < TITLE_SCREEN_FADE_FULL) {
+                            TITLE_CHROME_FULL_BRIGHTNESS - work->menuFade);
+        _titleDrawChromeRow(TITLE_CHROME_COPYRIGHT_Y, TITLE_CHROME_ATLAS_V_COPYRIGHT, TITLE_CHROME_FULL_BRIGHTNESS - work->menuFade);
+        if (work->menuFade < TITLE_CHROME_FULL_BRIGHTNESS) {
             return;
         }
 
@@ -485,12 +507,12 @@ static void _titleUpdateScreenTask(Task* task)
         }
     } else {
         // Slide the prompt into place; confirmation opens the menu immediately.
-        if (work->promptFade < TITLE_SCREEN_FADE_FULL) {
-            work->promptFade += TITLE_SCREEN_FADE_STEP;
+        if (work->promptFade < TITLE_CHROME_FULL_BRIGHTNESS) {
+            work->promptFade += TITLE_CHROME_BRIGHTNESS_STEP_PER_TICK;
         }
-        _titleDrawChromeRow(TITLE_CHROME_PROMPT_Y - (TITLE_SCREEN_FADE_FULL - work->promptFade) / TITLE_SCREEN_BRIGHTNESS_PER_PIXEL,
+        _titleDrawChromeRow(TITLE_CHROME_PROMPT_Y - (TITLE_CHROME_FULL_BRIGHTNESS - work->promptFade) / TITLE_SCREEN_BRIGHTNESS_PER_PIXEL,
                             TITLE_CHROME_ATLAS_V_PROMPT, work->promptFade);
-        _titleDrawChromeRow(TITLE_CHROME_COPYRIGHT_Y, TITLE_CHROME_ATLAS_V_COPYRIGHT, TITLE_SCREEN_FADE_FULL);
+        _titleDrawChromeRow(TITLE_CHROME_COPYRIGHT_Y, TITLE_CHROME_ATLAS_V_COPYRIGHT, TITLE_CHROME_FULL_BRIGHTNESS);
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask | PAD_BUTTON_START) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
             work->idleFrames = 0;
@@ -733,7 +755,7 @@ static void _titleStartupTask(Task* startupTask)
             return;
         case TITLE_STARTUP_SPAWN_SCREEN:
             if (_gTitleScreenSkipFade != 0) {
-                taskSpawn(TITLE_RESIDENT_TASK_BANK, TITLE_SCREEN_TASK_SLOT, TITLE_SCREEN_SKIP_FADE, 0);
+                taskSpawn(TITLE_RESIDENT_TASK_BANK, TITLE_SCREEN_TASK_SLOT, TITLE_SCREEN_SKIP_BLACK_FADE, 0);
             } else {
                 taskSpawn(TITLE_RESIDENT_TASK_BANK, TITLE_SCREEN_TASK_SLOT, 0, 0);
             }

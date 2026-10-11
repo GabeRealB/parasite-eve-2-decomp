@@ -42,10 +42,12 @@ void titleEnqueueAttractDemoFile(s32 demoIndex);
 ///
 /// Requires the title overlay and `task->state` in 0..4 (initialize, show
 /// background, prompt, menu, release). A new task starts at state 0;
-/// `spawnArg1.value` holds a frame delay in its low 31 bits. Its high bit is
-/// cleared when tested and suppresses the screen fade only if the remaining
-/// delay is zero on that tick. Initialization owns the menu work;
-/// later states require it to remain live, and release can destroy the task.
+/// `spawnArg1.value` holds an initialization-tick delay in its low 31 bits.
+/// Its high bit is consumed on the first attempt and disables black fades only
+/// if work is allocated on that attempt; delay or allocation failure loses it.
+/// Prompt/menu brightness ramps and idle timing still run. Initialization owns
+/// the menu work; later states require it to remain live, and release can destroy
+/// the task.
 void titleScreenTask(Task* task);
 
 /// Runs the installed exit handler of the title's bank-0 slot-6 task.
