@@ -1469,7 +1469,7 @@ gDryfieldNightGarageAreaVariants = 0x801874BC; // absolute:True owner=dryfield_n
 
 gDryfieldNightGeneralStoreAreaVariants = 0x8018572C; // absolute:True owner=dryfield_night_general_store
 
-gDryfieldNightJunkYardAreaVariants = 0x801843F0; // absolute:True owner=dryfield_night_junk_yard shared=rooms
+gDryfieldNightJunkYardAreaVariants = 0x801843F0; // absolute:True owner=dryfield_night_junk_yard
 
 gDryfieldNightMainStreetAreaVariants = 0x80188A08; // absolute:True owner=dryfield_night_main_street
 
@@ -1561,7 +1561,7 @@ gNeoArkForestZoneAreaVariants = 0x80182968; // absolute:True owner=neo_ark_fores
 
 D_neo_ark_garden_80182B54 = 0x80182B54; // absolute:True owner=neo_ark_garden shared=rooms
 
-D_neo_ark_island_80183F48 = 0x80183F48; // absolute:True owner=neo_ark_island shared=rooms
+D_neo_ark_island_80183F48 = 0x80183F48; // absolute:True owner=neo_ark_island
 
 D_neo_ark_north_promenade_8018305C = 0x8018305C; // absolute:True owner=neo_ark_north_promenade
 
