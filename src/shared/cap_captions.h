@@ -7,7 +7,7 @@
  * exported schedule declarations belong in its public header. Retained caret
  * bytes stay with that instance's storage. CAP_CAPTION_DRAW_CURRENT selects the
  * current-caption drawer; its default is private to each carrier. A carrier
- * exporting its drawer binds the name and leaves its linkage binding empty.
+ * exporting its drawer binds the name and selects external linkage.
  *
  * Include this header in the prologue and the _settings and _schedule storage
  * fragments at their data positions. At the function run, include
@@ -142,13 +142,22 @@ STATIC_ASSERT_SIZEOF(CapCaptionScheduleWindow, 0x10);
 ///
 /// Bind a function identifier before this header and retain it through
 /// `cap_captions.inc.c`. Room carriers use the default static instance; actor_215100
-/// binds its public export and an empty `CAP_CAPTION_DRAW_CURRENT_LINKAGE`.
+/// binds its public export and `extern` through `CAP_CAPTION_DRAW_CURRENT_LINKAGE`.
 /// All selected definitions take no arguments and return no value; the name
 /// binding does not determine linkage. Each carrier owns independent state.
 /// The alias has no arguments, captures or token construction.
 #ifndef CAP_CAPTION_DRAW_CURRENT
 #define CAP_CAPTION_DRAW_CURRENT _capCaptionDrawCurrent
 #endif
+/// Storage-class specifier for the current-caption drawer's prototype and definition.
+///
+/// Defaults to `static` for the two Shelter room carriers. An exporting carrier
+/// binds `extern` before the first inclusion of this header and retains it
+/// through `cap_captions.inc.c`, with `CAP_CAPTION_DRAW_CURRENT` selecting an
+/// identifier declared as void(void) in its interface header. Both sites must
+/// use the same binding; it selects linkage without changing the signature.
+/// This object-like declaration binding has no arguments, captured identifiers,
+/// runtime evaluation or token construction.
 #ifndef CAP_CAPTION_DRAW_CURRENT_LINKAGE
 #define CAP_CAPTION_DRAW_CURRENT_LINKAGE static
 #endif

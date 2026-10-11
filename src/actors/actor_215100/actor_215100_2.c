@@ -93,11 +93,17 @@ static void _actor215100ShowTimedCaption(s16 commandIndex, s16 key, s16 duration
 /// `actors/actor_215100.h`. This object-like alias captures no arguments and
 /// constructs no tokens.
 #define CAP_CAPTION_SELECT_RECORD actor215100CapCaptionSelectRecord
-#define CAP_CAPTION_DRAW_CURRENT_LINKAGE
+/// Exports this actor's current-caption drawer to the shooting-gallery room.
+///
+/// Supplies `extern` to the shared void(void) prototype and definition selected
+/// by `CAP_CAPTION_DRAW_CURRENT`, matching `actors/actor_215100.h`. Define before
+/// `cap_captions.h` and retain through `cap_captions.inc.c`. This object-like
+/// binding has no arguments, captured identifiers or token construction.
+#define CAP_CAPTION_DRAW_CURRENT_LINKAGE extern
 /// Binds shared caption drawing to this actor's exported void(void) instance.
 ///
 /// Define before cap_captions.h and retain through cap_captions.inc.c. The
-/// empty linkage binding exports the copy called by mist_shooting_gallery.
+/// linkage binding exports the copy called by mist_shooting_gallery.
 /// This object-like alias captures no arguments and constructs no tokens.
 #define CAP_CAPTION_DRAW_CURRENT actor215100CapCaptionDrawCurrent
 #include "../../shared/cap_captions.h"
