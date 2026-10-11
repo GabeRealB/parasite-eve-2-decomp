@@ -7,10 +7,10 @@ _gNeoArkGardenSurface4FootstepSounds = 0x80182BBC; // size:0xC defined:True
 _gNeoArkGardenDefaultSurfaceProperties = 0x80182BC8; // size:0x8 defined:True
 _gNeoArkGardenSurface4Properties = 0x80182BD0; // size:0x8 defined:True
 gNeoArkGardenSurfacePropertiesByClass = 0x80182BD8; // size:0x20 defined:True
-D_map_neo_ark_8017B630 = 0x8017B630; // absolute:True owner=map_neo_ark
-D_map_neo_ark_8017B6E0 = 0x8017B6E0; // absolute:True owner=map_neo_ark
-D_map_neo_ark_8017B700 = 0x8017B700; // absolute:True owner=map_neo_ark
-D_map_neo_ark_8017B780 = 0x8017B780; // absolute:True owner=map_neo_ark
+gMapNeoArkGardenVariant1Placements = 0x8017B630; // absolute:True owner=map_neo_ark
+gMapNeoArkGardenVariant2Placements = 0x8017B6E0; // absolute:True owner=map_neo_ark
+gMapNeoArkGardenVariant3Placements = 0x8017B700; // absolute:True owner=map_neo_ark
+gMapNeoArkGardenVariant4Placements = 0x8017B780; // absolute:True owner=map_neo_ark
 _gRoomVisualEffectsGlowDiscShades = 0x80181400; // size:0xC defined:True
 gNeoArkGardenCollisionRooms = 0x8018140C; // size:0x10 defined:True
 gNeoArkGardenRoomLighting = 0x8018141C; // size:0x8 defined:True

@@ -386,17 +386,17 @@ AreaResource D_neo_ark_savanna_zone_80180840[3] = {
 
 AreaVariant D_neo_ark_savanna_zone_80180864[13] = {
     { NULL, NULL },
-    { D_map_neo_ark_8017BB70, _gNeoArkSavannaZoneVariant1Resources },
-    { D_map_neo_ark_8017BBF0, _gNeoArkSavannaZoneVariant2Resources },
-    { D_map_neo_ark_8017BC70, _gNeoArkSavannaZoneVariant3Resources },
-    { D_map_neo_ark_8017BCE0, _gNeoArkSavannaZoneVariant4Resources },
-    { D_map_neo_ark_8017BD50, _gNeoArkSavannaZoneVariant5Resources },
+    { gMapNeoArkSavannaZoneVariant1Placements, _gNeoArkSavannaZoneVariant1Resources },
+    { gMapNeoArkSavannaZoneVariant2Placements, _gNeoArkSavannaZoneVariant2Resources },
+    { gMapNeoArkSavannaZoneVariant3Placements, _gNeoArkSavannaZoneVariant3Resources },
+    { gMapNeoArkSavannaZoneVariant4Placements, _gNeoArkSavannaZoneVariant4Resources },
+    { gMapNeoArkSavannaZoneVariant5Placements, _gNeoArkSavannaZoneVariant5Resources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
-    { D_map_neo_ark_8017BD80, D_neo_ark_savanna_zone_80180840 },
+    { gMapNeoArkSavannaZoneVariant11Placements, D_neo_ark_savanna_zone_80180840 },
     { NULL, NULL },
 };
 

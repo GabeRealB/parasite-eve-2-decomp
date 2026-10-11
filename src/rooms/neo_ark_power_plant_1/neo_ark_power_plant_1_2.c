@@ -886,17 +886,17 @@ static AreaResource _gNeoArkPowerPlant1Variant11Resources[2] = {
 
 AreaVariant D_neo_ark_power_plant_1_80181AF8[13] = {
     { NULL, NULL },
-    { D_map_neo_ark_8017B8D0, _gNeoArkPowerPlant1Variant1Resources },
-    { D_map_neo_ark_8017B950, _gNeoArkPowerPlant1Variant2Resources },
-    { D_map_neo_ark_8017B9E0, _gNeoArkPowerPlant1Variant3Resources },
-    { D_map_neo_ark_8017BA60, _gNeoArkPowerPlant1Variant4Resources },
+    { gMapNeoArkPowerPlant1Variant1Placements, _gNeoArkPowerPlant1Variant1Resources },
+    { gMapNeoArkPowerPlant1Variant2Placements, _gNeoArkPowerPlant1Variant2Resources },
+    { gMapNeoArkPowerPlant1Variant3Placements, _gNeoArkPowerPlant1Variant3Resources },
+    { gMapNeoArkPowerPlant1Variant4Placements, _gNeoArkPowerPlant1Variant4Resources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
-    { D_map_neo_ark_8017BB00, _gNeoArkPowerPlant1Variant11Resources },
+    { gMapNeoArkPowerPlant1Variant11Placements, _gNeoArkPowerPlant1Variant11Resources },
     { NULL, NULL },
 };
 

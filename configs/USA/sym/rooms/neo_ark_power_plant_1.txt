@@ -55,11 +55,11 @@ gActor103800BlackBeetleTaskDesc = 0x80137D74; // absolute:True owner=actor_10380
 gActor105400GeneratorTasks = 0x8013CEA0; // absolute:True owner=actor_105400
 gActor202100WatcherTaskDesc = 0x8014DC30; // absolute:True owner=actor_202100
 gActor203800BlackBeetleTaskDesc = 0x8014FD74; // absolute:True owner=actor_203800
-D_map_neo_ark_8017B8D0 = 0x8017B8D0; // absolute:True owner=map_neo_ark
-D_map_neo_ark_8017B950 = 0x8017B950; // absolute:True owner=map_neo_ark
-D_map_neo_ark_8017B9E0 = 0x8017B9E0; // absolute:True owner=map_neo_ark
-D_map_neo_ark_8017BA60 = 0x8017BA60; // absolute:True owner=map_neo_ark
-D_map_neo_ark_8017BB00 = 0x8017BB00; // absolute:True owner=map_neo_ark
+gMapNeoArkPowerPlant1Variant1Placements = 0x8017B8D0; // absolute:True owner=map_neo_ark
+gMapNeoArkPowerPlant1Variant2Placements = 0x8017B950; // absolute:True owner=map_neo_ark
+gMapNeoArkPowerPlant1Variant3Placements = 0x8017B9E0; // absolute:True owner=map_neo_ark
+gMapNeoArkPowerPlant1Variant4Placements = 0x8017BA60; // absolute:True owner=map_neo_ark
+gMapNeoArkPowerPlant1Variant11Placements = 0x8017BB00; // absolute:True owner=map_neo_ark
 _gNeoArkPowerPlant1PlayerBattleEntryTransform = 0x8017EECC; // size:0x18 defined:True
 gNeoArkPowerPlant1BattleEntryScript = 0x8017EEE4; // size:0x138 defined:True
 gNeoArkPowerPlant1ViewSoundDelayFrames = 0x8017F01C; // size:0x4 defined:True

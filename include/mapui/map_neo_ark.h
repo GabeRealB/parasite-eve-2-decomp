@@ -132,8 +132,8 @@ extern u16 D_map_neo_ark_8017A9A0[];
 /// for the stage; there is no count header or terminator.
 extern WorldCoordRoomLighting* gMapNeoArkRoomLightingTables[33];
 
-/// This stage's entries in `Gp_WarpTables`, `Gp_ViewCountTables`,
-/// `Gp_RoomObjTables` and `Gp_ViewTables`: each leads to
+/// This stage's entries in `Gp_WarpTables`, `Gp_ViewCountTables` and
+/// `Gp_RoomObjTables`: each leads to
 /// one pointer per room, into that room's package or, for some rooms, at a
 /// record this overlay holds itself.
 extern DirectionWarpEntry* D_map_neo_ark_8017AA80[];
@@ -142,7 +142,13 @@ extern ViewCountTable D_map_neo_ark_8017AB88;
 
 extern WorldCollisionStageResources D_map_neo_ark_8017ACA0;
 
-extern ViewCameraTable D_map_neo_ark_8017AD28;
+/// Mapped-view cameras for the 33 Shelter/Neo Ark areas (stage 5).
+///
+/// Select area - 1, then mapped camera index - 1. Every area slot is populated;
+/// the selected room's camera-array extent bounds the mapped index. Neither
+/// level has a count header or terminator. The map owns the directory and
+/// borrows room camera arrays; keep both overlays loaded during use.
+extern ViewCameraTable gMapNeoArkViewCameraTable;
 
 /// Logical-view mapping directory for the 33 Shelter/Neo Ark areas.
 ///
@@ -471,65 +477,215 @@ extern AreaPlacement gMapNeoArkIslandVariant3Placements[4];
 /// Ends with `AREA_PLACEMENT_END`. Keep the map overlay loaded during use.
 extern AreaPlacement gMapNeoArkIslandVariant4Placements[1];
 
-extern AreaPlacement D_map_neo_ark_8017B610[];
+/// One patrolling Rook GOLEM for Island placement variant 11.
+///
+/// Its patrol spans 8000 world units; the room recipe selects the grenade launcher.
+/// Ends with `AREA_PLACEMENT_END`; transforms and texture offsets use
+/// `AreaPlacement` units. Keep the map overlay loaded while actors borrow records.
+extern AreaPlacement gMapNeoArkIslandVariant11Placements[2];
 
-extern AreaPlacement D_map_neo_ark_8017B630[];
+/// Ten Black Beetles for Garden placement variant 1.
+///
+/// Four start idle on the floor and six start wandering.
+/// Ends with `AREA_PLACEMENT_END`; transforms and texture offsets use
+/// `AreaPlacement` units. Keep the map overlay loaded while actors borrow records.
+extern AreaPlacement gMapNeoArkGardenVariant1Placements[11];
 
-extern AreaPlacement D_map_neo_ark_8017B6E0[];
+/// One scripted footstep walker for Garden placement variant 2.
+///
+/// Entry 132 binds the room's walker recipe; the character identity is unproven.
+/// Ends with `AREA_PLACEMENT_END`; transforms and texture offsets use
+/// `AreaPlacement` units. Keep the map overlay loaded while actors borrow records.
+extern AreaPlacement gMapNeoArkGardenVariant2Placements[2];
 
-extern AreaPlacement D_map_neo_ark_8017B700[];
+/// One Brute Mossback and six Black Beetles for Garden placement variant 3.
+///
+/// Two beetles start on walls; four start idle on the floor using a separate texture bank.
+/// Ends with `AREA_PLACEMENT_END`; transforms and texture offsets use
+/// `AreaPlacement` units. Keep the map overlay loaded while actors borrow records.
+extern AreaPlacement gMapNeoArkGardenVariant3Placements[8];
 
-extern AreaPlacement D_map_neo_ark_8017B780[];
+/// Four Amoebae for Garden placement variant 4.
+///
+/// Each selects the actor's default mode.
+/// Ends with `AREA_PLACEMENT_END`; transforms and texture offsets use
+/// `AreaPlacement` units. Keep the map overlay loaded while actors borrow records.
+extern AreaPlacement gMapNeoArkGardenVariant4Placements[5];
 
-extern AreaPlacement D_map_neo_ark_8017B7D0[];
+/// One Beta Generator and six Watchers for Power Plant 2 placement variant 1.
+///
+/// Watcher variants select weapons; sight rows select 5000- or 8000-unit acquisition ranges.
+/// Ends with `AREA_PLACEMENT_END`; transforms and texture offsets use
+/// `AreaPlacement` units. Keep the map overlay loaded while actors borrow records.
+extern AreaPlacement gMapNeoArkPowerPlant2Variant1Placements[8];
 
-extern AreaPlacement D_map_neo_ark_8017B850[];
+/// Four Watchers and one Rook GOLEM for Power Plant 2 placement variant 11.
+///
+/// The Rook patrol spans 5000 world units; Watchers use a 5000-unit sight range.
+/// Ends with `AREA_PLACEMENT_END`; transforms and texture offsets use
+/// `AreaPlacement` units. Keep the map overlay loaded while actors borrow records.
+extern AreaPlacement gMapNeoArkPowerPlant2Variant11Placements[6];
 
-extern AreaPlacement D_map_neo_ark_8017B8B0[];
+/// One Bishop GOLEM for Power Plant 2 placement variant 17.
+///
+/// The room binds its actor-slot-4 recipe.
+/// Ends with `AREA_PLACEMENT_END`; transforms and texture offsets use
+/// `AreaPlacement` units. Keep the map overlay loaded while actors borrow records.
+extern AreaPlacement gMapNeoArkPowerPlant2Variant17Placements[2];
 
-extern AreaPlacement D_map_neo_ark_8017B8D0[];
+/// One Proto Generator and six Watchers for Power Plant 1 placement variant 1.
+///
+/// Watchers use 4500- or 8000-unit sight ranges; two select the gun weapon.
+/// Ends with `AREA_PLACEMENT_END`; transforms and texture offsets use
+/// `AreaPlacement` units. Keep the map overlay loaded while actors borrow records.
+extern AreaPlacement gMapNeoArkPowerPlant1Variant1Placements[8];
 
-extern AreaPlacement D_map_neo_ark_8017B950[];
+/// Eight Black Beetles for Power Plant 1 placement variant 2.
+///
+/// One starts on a wall and seven start on the ceiling.
+/// Ends with `AREA_PLACEMENT_END`; transforms and texture offsets use
+/// `AreaPlacement` units. Keep the map overlay loaded while actors borrow records.
+extern AreaPlacement gMapNeoArkPowerPlant1Variant2Placements[9];
 
-extern AreaPlacement D_map_neo_ark_8017B9E0[];
+/// Seven Black Beetles for Power Plant 1 placement variant 3.
+///
+/// Five start idle on the floor, one on a wall and one on the ceiling.
+/// Ends with `AREA_PLACEMENT_END`; transforms and texture offsets use
+/// `AreaPlacement` units. Keep the map overlay loaded while actors borrow records.
+extern AreaPlacement gMapNeoArkPowerPlant1Variant3Placements[8];
 
-extern AreaPlacement D_map_neo_ark_8017BA60[];
+/// Four Scorpions and five Black Beetles for Power Plant 1 placement variant 4.
+///
+/// Scorpions roam with movement row 3; idle floor beetles use a separate texture bank.
+/// Ends with `AREA_PLACEMENT_END`; transforms and texture offsets use
+/// `AreaPlacement` units. Keep the map overlay loaded while actors borrow records.
+extern AreaPlacement gMapNeoArkPowerPlant1Variant4Placements[10];
 
-extern AreaPlacement D_map_neo_ark_8017BB00[];
+/// Six ceiling Black Beetles for Power Plant 1 placement variant 11.
+///
+/// All select the room's actor-slot-1 beetle recipe.
+/// Ends with `AREA_PLACEMENT_END`; transforms and texture offsets use
+/// `AreaPlacement` units. Keep the map overlay loaded while actors borrow records.
+extern AreaPlacement gMapNeoArkPowerPlant1Variant11Placements[7];
 
-extern AreaPlacement D_map_neo_ark_8017BB70[];
+/// Two Desert Chasers and five Scorpions for Savanna Zone placement variant 1.
+///
+/// Chasers start steering with tuning row 2; Scorpions wait as ambush followers with movement row 3.
+/// Ends with `AREA_PLACEMENT_END`; transforms and texture offsets use
+/// `AreaPlacement` units. Keep the map overlay loaded while actors borrow records.
+extern AreaPlacement gMapNeoArkSavannaZoneVariant1Placements[8];
 
-extern AreaPlacement D_map_neo_ark_8017BBF0[];
+/// Seven wandering floor Black Beetles for Savanna Zone placement variant 2.
+///
+/// All select the room's actor-slot-1 beetle recipe.
+/// Ends with `AREA_PLACEMENT_END`; transforms and texture offsets use
+/// `AreaPlacement` units. Keep the map overlay loaded while actors borrow records.
+extern AreaPlacement gMapNeoArkSavannaZoneVariant2Placements[8];
 
-extern AreaPlacement D_map_neo_ark_8017BC70[];
+/// One Desert Chaser and five Maggots for Savanna Zone placement variant 3.
+///
+/// Maggots use ambush-follower mode and movement row 1; the Chaser starts steering with tuning row 2.
+/// Ends with `AREA_PLACEMENT_END`; transforms and texture offsets use
+/// `AreaPlacement` units. Keep the map overlay loaded while actors borrow records.
+extern AreaPlacement gMapNeoArkSavannaZoneVariant3Placements[7];
 
-extern AreaPlacement D_map_neo_ark_8017BCE0[];
+/// Five Scorpions and one Desert Chaser for Savanna Zone placement variant 4.
+///
+/// Four Scorpions wait for the ambush leader, all using movement row 0; the Chaser uses a separate texture bank.
+/// Ends with `AREA_PLACEMENT_END`; transforms and texture offsets use
+/// `AreaPlacement` units. Keep the map overlay loaded while actors borrow records.
+extern AreaPlacement gMapNeoArkSavannaZoneVariant4Placements[7];
 
-extern AreaPlacement D_map_neo_ark_8017BD50[];
+/// Two Pawn GOLEMs for Savanna Zone placement variant 5.
+///
+/// The first patrols 3000 world units; the second starts idle with the other actor-slot recipe.
+/// Ends with `AREA_PLACEMENT_END`; transforms and texture offsets use
+/// `AreaPlacement` units. Keep the map overlay loaded while actors borrow records.
+extern AreaPlacement gMapNeoArkSavannaZoneVariant5Placements[3];
 
-extern AreaPlacement D_map_neo_ark_8017BD80[];
+/// One Pawn and one Rook GOLEM for Savanna Zone placement variant 11.
+///
+/// The Pawn patrols 3000 world units; the Rook starts idle with a separate texture bank.
+/// Ends with `AREA_PLACEMENT_END`; transforms and texture offsets use
+/// `AreaPlacement` units. Keep the map overlay loaded while actors borrow records.
+extern AreaPlacement gMapNeoArkSavannaZoneVariant11Placements[3];
 
-extern AreaPlacement D_map_neo_ark_8017BDB0[];
+/// Terminator-only placements for South Promenade placement variant 2.
+///
+/// Paired with an empty resource list; the present variant spawns no actors.
+/// Ends with `AREA_PLACEMENT_END`; transforms and texture offsets use
+/// `AreaPlacement` units. Keep the map overlay loaded while actors borrow records.
+extern AreaPlacement gMapNeoArkSouthPromenadeVariant2Placements[1];
 
-extern AreaPlacement D_map_neo_ark_8017BDC0[];
+/// Terminator-only placements for South Promenade placement variant 3.
+///
+/// Paired with a distinct empty resource list; the present variant spawns no actors.
+/// Ends with `AREA_PLACEMENT_END`; transforms and texture offsets use
+/// `AreaPlacement` units. Keep the map overlay loaded while actors borrow records.
+extern AreaPlacement gMapNeoArkSouthPromenadeVariant3Placements[1];
 
-extern AreaPlacement D_map_neo_ark_8017BDD0[];
+/// Six Black Beetles for South Promenade placement variant 4.
+///
+/// One starts idle on the floor, four on walls and one on the ceiling.
+/// Ends with `AREA_PLACEMENT_END`; transforms and texture offsets use
+/// `AreaPlacement` units. Keep the map overlay loaded while actors borrow records.
+extern AreaPlacement gMapNeoArkSouthPromenadeVariant4Placements[7];
 
-extern AreaPlacement D_map_neo_ark_8017BE40[];
+/// Two Pawn GOLEMs for South Promenade placement variant 5.
+///
+/// One patrols 5000 world units; the other starts idle.
+/// Ends with `AREA_PLACEMENT_END`; transforms and texture offsets use
+/// `AreaPlacement` units. Keep the map overlay loaded while actors borrow records.
+extern AreaPlacement gMapNeoArkSouthPromenadeVariant5Placements[3];
 
-extern AreaPlacement D_map_neo_ark_8017BE70[];
+/// Two Pawn GOLEMs and one Rook for South Promenade placement variant 11.
+///
+/// The beam-sword Pawns patrol 6000 and 4000 world units; the beam-sword Rook starts idle.
+/// Ends with `AREA_PLACEMENT_END`; transforms and texture offsets use
+/// `AreaPlacement` units. Keep the map overlay loaded while actors borrow records.
+extern AreaPlacement gMapNeoArkSouthPromenadeVariant11Placements[4];
 
-extern AreaPlacement D_map_neo_ark_8017BEB0[];
+/// Three script-hidden Black Beetles for Shrine placement variant 1.
+///
+/// Their shrine mode waits for the room script to reveal them.
+/// Ends with `AREA_PLACEMENT_END`; transforms and texture offsets use
+/// `AreaPlacement` units. Keep the map overlay loaded while actors borrow records.
+extern AreaPlacement gMapNeoArkShrineVariant1Placements[4];
 
-extern AreaPlacement D_map_neo_ark_8017BEF0[];
+/// Four roaming Scorpions for Shrine placement variant 2.
+///
+/// All use movement row 0 and initial yaw 0.
+/// Ends with `AREA_PLACEMENT_END`; transforms and texture offsets use
+/// `AreaPlacement` units. Keep the map overlay loaded while actors borrow records.
+extern AreaPlacement gMapNeoArkShrineVariant2Placements[5];
 
-extern AreaPlacement D_map_neo_ark_8017BF40[];
+/// Four roaming Scorpions for Shrine placement variant 3.
+///
+/// All use movement row 0 and initial yaw 3072 (three quarters of a turn).
+/// Ends with `AREA_PLACEMENT_END`; transforms and texture offsets use
+/// `AreaPlacement` units. Keep the map overlay loaded while actors borrow records.
+extern AreaPlacement gMapNeoArkShrineVariant3Placements[5];
 
-extern AreaPlacement D_map_neo_ark_8017BF90[];
+/// Four Scorpions and four Black Beetles for Shrine placement variant 4.
+///
+/// Scorpions roam with movement row 3; wandering floor beetles use a separate texture bank.
+/// Ends with `AREA_PLACEMENT_END`; transforms and texture offsets use
+/// `AreaPlacement` units. Keep the map overlay loaded while actors borrow records.
+extern AreaPlacement gMapNeoArkShrineVariant4Placements[9];
 
-extern AreaPlacement D_map_neo_ark_8017C020[];
+/// Two beam-sword Pawn GOLEMs for Shrine placement variant 5.
+///
+/// One starts idle and one patrols 3000 world units.
+/// Ends with `AREA_PLACEMENT_END`; transforms and texture offsets use
+/// `AreaPlacement` units. Keep the map overlay loaded while actors borrow records.
+extern AreaPlacement gMapNeoArkShrineVariant5Placements[3];
 
-extern AreaPlacement D_map_neo_ark_8017C050[];
+/// One Knight GOLEM for Shrine placement variant 7.
+///
+/// The room binds its actor-slot-4 recipe.
+/// Ends with `AREA_PLACEMENT_END`; transforms and texture offsets use
+/// `AreaPlacement` units. Keep the map overlay loaded while actors borrow records.
+extern AreaPlacement gMapNeoArkShrineVariant7Placements[2];
 
 /// One Bishop GOLEM for Shrine placement variant 11.
 ///

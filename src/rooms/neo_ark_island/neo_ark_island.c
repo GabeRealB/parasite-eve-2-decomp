@@ -570,7 +570,7 @@ AreaVariant D_neo_ark_island_80183F48[13] = {
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
-    { D_map_neo_ark_8017B610, _gNeoArkIslandVariant11Resources },
+    { gMapNeoArkIslandVariant11Placements, _gNeoArkIslandVariant11Resources },
     { NULL, NULL },
 };
 

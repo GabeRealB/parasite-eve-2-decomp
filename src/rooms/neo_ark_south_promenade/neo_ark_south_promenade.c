@@ -399,16 +399,16 @@ static AreaResource _gNeoArkSouthPromenadeVariant11Resources[] = {
 AreaVariant D_neo_ark_south_promenade_801808E4[13] = {
     { NULL, NULL },
     { NULL, NULL },
-    { D_map_neo_ark_8017BDB0, _gNeoArkSouthPromenadeVariant2Resources },
-    { D_map_neo_ark_8017BDC0, _gNeoArkSouthPromenadeVariant3Resources },
-    { D_map_neo_ark_8017BDD0, _gNeoArkSouthPromenadeVariant4Resources },
-    { D_map_neo_ark_8017BE40, _gNeoArkSouthPromenadeVariant5Resources },
+    { gMapNeoArkSouthPromenadeVariant2Placements, _gNeoArkSouthPromenadeVariant2Resources },
+    { gMapNeoArkSouthPromenadeVariant3Placements, _gNeoArkSouthPromenadeVariant3Resources },
+    { gMapNeoArkSouthPromenadeVariant4Placements, _gNeoArkSouthPromenadeVariant4Resources },
+    { gMapNeoArkSouthPromenadeVariant5Placements, _gNeoArkSouthPromenadeVariant5Resources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
-    { D_map_neo_ark_8017BE70, _gNeoArkSouthPromenadeVariant11Resources },
+    { gMapNeoArkSouthPromenadeVariant11Placements, _gNeoArkSouthPromenadeVariant11Resources },
     { NULL, NULL },
 };
 

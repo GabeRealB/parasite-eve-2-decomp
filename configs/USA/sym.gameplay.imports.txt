@@ -381,7 +381,7 @@ gMapAkropolisViewCameraTable = 0x8017AC14; // absolute:True owner=map_akropolis
 gMapDryfieldViewCameraTable = 0x8017AB60; // absolute:True owner=map_dryfield
 gMapDryfieldFullViewCameraTable = 0x8017AA74; // absolute:True owner=map_dryfield_full
 gMapShelterViewCameraTable = 0x8017B480; // absolute:True owner=map_shelter
-D_map_neo_ark_8017AD28 = 0x8017AD28; // absolute:True owner=map_neo_ark
+gMapNeoArkViewCameraTable = 0x8017AD28; // absolute:True owner=map_neo_ark
 gMapAkropolisViewCountTable = 0x8017ABC0; // absolute:True owner=map_akropolis
 D_map_dryfield_8017AA28 = 0x8017AA28; // absolute:True owner=map_dryfield shared=mapui
 D_map_dryfield_full_8017A93C = 0x8017A93C; // absolute:True owner=map_dryfield_full

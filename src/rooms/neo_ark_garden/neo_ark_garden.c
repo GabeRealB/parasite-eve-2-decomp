@@ -106,10 +106,10 @@ static AreaResource _gNeoArkGardenVariant4Resources[2] = {
 
 AreaVariant D_neo_ark_garden_80182B54[13] = {
     { NULL, NULL },
-    { D_map_neo_ark_8017B630, _gNeoArkGardenVariant1Resources },
-    { D_map_neo_ark_8017B6E0, _gNeoArkGardenVariant2Resources },
-    { D_map_neo_ark_8017B700, _gNeoArkGardenVariant3Resources },
-    { D_map_neo_ark_8017B780, _gNeoArkGardenVariant4Resources },
+    { gMapNeoArkGardenVariant1Placements, _gNeoArkGardenVariant1Resources },
+    { gMapNeoArkGardenVariant2Placements, _gNeoArkGardenVariant2Resources },
+    { gMapNeoArkGardenVariant3Placements, _gNeoArkGardenVariant3Resources },
+    { gMapNeoArkGardenVariant4Placements, _gNeoArkGardenVariant4Resources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },

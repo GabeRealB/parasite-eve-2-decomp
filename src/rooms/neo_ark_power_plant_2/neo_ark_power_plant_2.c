@@ -888,7 +888,7 @@ static AreaResource _gNeoArkPowerPlant2BishopResources[] = {
 
 AreaVariant D_neo_ark_power_plant_2_80182DE0[19] = {
     { NULL, NULL },
-    { D_map_neo_ark_8017B7D0, _gNeoArkPowerPlant2GeneratorResources },
+    { gMapNeoArkPowerPlant2Variant1Placements, _gNeoArkPowerPlant2GeneratorResources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
@@ -898,13 +898,13 @@ AreaVariant D_neo_ark_power_plant_2_80182DE0[19] = {
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
-    { D_map_neo_ark_8017B850, _gNeoArkPowerPlant2RookResources },
+    { gMapNeoArkPowerPlant2Variant11Placements, _gNeoArkPowerPlant2RookResources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
-    { D_map_neo_ark_8017B8B0, _gNeoArkPowerPlant2BishopResources },
+    { gMapNeoArkPowerPlant2Variant17Placements, _gNeoArkPowerPlant2BishopResources },
     { NULL, NULL },
 };
 

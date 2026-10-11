@@ -12,7 +12,7 @@ gMapNeoArkIslandVariant1Placements = 0x8017B550; // absolute:True owner=map_neo_
 gMapNeoArkIslandVariant2Placements = 0x8017B590; // absolute:True owner=map_neo_ark
 gMapNeoArkIslandVariant3Placements = 0x8017B5C0; // absolute:True owner=map_neo_ark
 gMapNeoArkIslandVariant4Placements = 0x8017B600; // absolute:True owner=map_neo_ark
-D_map_neo_ark_8017B610 = 0x8017B610; // absolute:True owner=map_neo_ark shared=mapui
+gMapNeoArkIslandVariant11Placements = 0x8017B610; // absolute:True owner=map_neo_ark shared=mapui
 D_neo_ark_island_80181B94 = 0x80181B94; // size:0x10 defined:True
 gNeoArkIslandRoomLighting = 0x80181BA4; // size:0x8 defined:True
 gNeoArkIslandViewMaps = 0x80181BAC; // size:0x4 defined:True
