@@ -1354,136 +1354,258 @@ static AnimationSet _gM950PlayerPeCastFamily2Animation = {
     },
 };
 
-static AnimationPackedPose _gM950Animation0B49CBank1[19] = {
+/// Forward-aim translations in model units and Euler angles in 1/4096 turns for tracks 0 and 1.
+///
+/// Read-only clip tables retain their serialized positions in .data;
+/// pose banks are word-aligned for playback's word offsets.
+static const AnimationPackedPose _gM950PlayerAimForwardAnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/m950_animation_0B49C_bank1.inc"
 };
 
-static AnimationPackedRotation _gM950Animation0B49CBank4[269] = {
+/// Forward-aim joint rotations for player tracks 2..18, in eight-angle-unit steps.
+static const AnimationPackedRotation _gM950PlayerAimForwardAnimationBank4[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/m950_animation_0B49C_bank4.inc"
 };
 
-static AnimationRecord _gM950Animation0B49CRecords[336] = {
+/// Forward-aim keyframes, loop jumps and retained terminal stops.
+///
+/// Durations count normal-rate frames, pose offsets count u32 words and jumps
+/// select absolute record indices. Track 1 carries the paired footstep cues
+/// `ANIMATION_RECORD_CUE_2` and `ANIMATION_RECORD_CUE_1`.
+static const AnimationRecord _gM950PlayerAimForwardAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/m950_animation_0B49C_records.inc"
 };
 
-static u16 _gM950Animation0B49CIndices[20] = {
+/// Absolute forward-aim record starts for tracks 0..18, followed by a serialized zero halfword.
+static const u16 _gM950PlayerAimForwardAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/m950_animation_0B49C_indices.inc"
 };
+STATIC_ASSERT(ARRAY_SIZE(_gM950PlayerAimForwardAnimationIndices) == GAME_ACTOR_NORMAL_ANIMATION_SLOTS + 1, m950_aim_forward_track_starts);
 
-static AnimationSet _gM950Animation0B49C = {
-    _gM950Animation0B49CRecords,
-    _gM950Animation0B49CIndices,
-    { NULL, _gM950Animation0B49CBank1, NULL, NULL, _gM950Animation0B49CBank4, NULL, NULL, NULL },
+/// Player forward movement while aiming with the M950, at native clip id 12.
+///
+/// All nineteen tracks loop, with paired footstep cues on track 1. Child
+/// playback uses tracks 1..18; tracks 0/1 use bank 1 and 2..18 use bank 4.
+/// Playback borrows the descriptor and tables; keep the M950 package loaded
+/// while any slot or cached record pointer refers to them.
+static AnimationSet _gM950PlayerAimForwardAnimation = {
+    .records           = _gM950PlayerAimForwardAnimationRecords,
+    .trackStartIndices = _gM950PlayerAimForwardAnimationIndices,
+    .poseBanks         = {
+        [M950_ANIMATION_TRANSLATION_ROTATION_BANK] = _gM950PlayerAimForwardAnimationBank1,
+        [M950_ANIMATION_PACKED_ROTATION_BANK]      = _gM950PlayerAimForwardAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gM950Animation0B674Bank1[2] = {
+/// Aim-idle translations in model units and Euler angles in 1/4096 turns for tracks 0 and 1.
+///
+/// Read-only clip tables retain their serialized positions in .data;
+/// pose banks are word-aligned for playback's word offsets.
+static const AnimationPackedPose _gM950PlayerAimIdleAnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/m950_animation_0B674_bank1.inc"
 };
 
-static AnimationPackedRotation _gM950Animation0B674Bank4[16] = {
+/// Aim-idle joint rotations for player tracks 2..18, in eight-angle-unit steps.
+static const AnimationPackedRotation _gM950PlayerAimIdleAnimationBank4[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/m950_animation_0B674_bank4.inc"
 };
 
-static AnimationRecord _gM950Animation0B674Records[76] = {
+/// Identical aim-idle keyframes, loop jumps and retained terminal stops, with no cue flags.
+///
+/// Durations count normal-rate frames, pose offsets count u32 words and jumps
+/// select absolute record indices.
+static const AnimationRecord _gM950PlayerAimIdleAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/m950_animation_0B674_records.inc"
 };
 
-static u16 _gM950Animation0B674Indices[20] = {
+/// Absolute aim-idle record starts for tracks 0..18, followed by a serialized zero halfword.
+static const u16 _gM950PlayerAimIdleAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/m950_animation_0B674_indices.inc"
 };
+STATIC_ASSERT(ARRAY_SIZE(_gM950PlayerAimIdleAnimationIndices) == GAME_ACTOR_NORMAL_ANIMATION_SLOTS + 1, m950_aim_idle_track_starts);
 
-static AnimationSet _gM950Animation0B674 = {
-    _gM950Animation0B674Records,
-    _gM950Animation0B674Indices,
-    { NULL, _gM950Animation0B674Bank1, NULL, NULL, _gM950Animation0B674Bank4, NULL, NULL, NULL },
+/// Player stationary aiming loop and attack-ready pose in the M950 bank, at native clip id 9.
+///
+/// All nineteen tracks loop between identical poses. Child playback uses
+/// tracks 1..18; tracks 0/1 use bank 1 and 2..18 use bank 4. The same set is
+/// borrowed by enemy-driven player recovery playback. Keep the M950 package
+/// loaded while any slot or cached record pointer refers to its descriptor or tables.
+static AnimationSet _gM950PlayerAimIdleAnimation = {
+    .records           = _gM950PlayerAimIdleAnimationRecords,
+    .trackStartIndices = _gM950PlayerAimIdleAnimationIndices,
+    .poseBanks         = {
+        [M950_ANIMATION_TRANSLATION_ROTATION_BANK] = _gM950PlayerAimIdleAnimationBank1,
+        [M950_ANIMATION_PACKED_ROTATION_BANK]      = _gM950PlayerAimIdleAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gM950Animation0BDA8Bank1[12] = {
+/// Backward/turn aim translations in model units and Euler angles in 1/4096 turns for tracks 0 and 1.
+///
+/// Read-only clip tables retain their serialized positions in .data;
+/// pose banks are word-aligned for playback's word offsets.
+static const AnimationPackedPose _gM950PlayerAimBackwardOrTurnAnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/m950_animation_0BDA8_bank1.inc"
 };
 
-static AnimationPackedRotation _gM950Animation0BDA8Bank4[165] = {
+/// Backward/turn aim joint rotations for player tracks 2..18, in eight-angle-unit steps.
+static const AnimationPackedRotation _gM950PlayerAimBackwardOrTurnAnimationBank4[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/m950_animation_0BDA8_bank4.inc"
 };
 
-static AnimationRecord _gM950Animation0BDA8Records[240] = {
+/// Backward/turn aim keyframes, loop jumps and retained terminal stops.
+///
+/// Durations count normal-rate frames, pose offsets count u32 words and jumps
+/// select absolute record indices. Track 1 carries the paired footstep cues
+/// `ANIMATION_RECORD_CUE_2` and `ANIMATION_RECORD_CUE_1`.
+static const AnimationRecord _gM950PlayerAimBackwardOrTurnAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/m950_animation_0BDA8_records.inc"
 };
 
-static u16 _gM950Animation0BDA8Indices[20] = {
+/// Absolute backward/turn aim record starts for tracks 0..18, followed by a serialized zero halfword.
+static const u16 _gM950PlayerAimBackwardOrTurnAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/m950_animation_0BDA8_indices.inc"
 };
+STATIC_ASSERT(ARRAY_SIZE(_gM950PlayerAimBackwardOrTurnAnimationIndices) == GAME_ACTOR_NORMAL_ANIMATION_SLOTS + 1, m950_aim_backward_or_turn_track_starts);
 
-static AnimationSet _gM950Animation0BDA8 = {
-    _gM950Animation0BDA8Records,
-    _gM950Animation0BDA8Indices,
-    { NULL, _gM950Animation0BDA8Bank1, NULL, NULL, _gM950Animation0BDA8Bank4, NULL, NULL, NULL },
+/// Player backward movement or stationary turning while aiming with the M950, at native clip id 13.
+///
+/// All nineteen tracks loop, with paired footstep cues on track 1. Child
+/// playback uses tracks 1..18; tracks 0/1 use bank 1 and 2..18 use bank 4.
+/// Playback borrows the descriptor and tables; keep the M950 package loaded
+/// while any slot or cached record pointer refers to them.
+static AnimationSet _gM950PlayerAimBackwardOrTurnAnimation = {
+    .records           = _gM950PlayerAimBackwardOrTurnAnimationRecords,
+    .trackStartIndices = _gM950PlayerAimBackwardOrTurnAnimationIndices,
+    .poseBanks         = {
+        [M950_ANIMATION_TRANSLATION_ROTATION_BANK] = _gM950PlayerAimBackwardOrTurnAnimationBank1,
+        [M950_ANIMATION_PACKED_ROTATION_BANK]      = _gM950PlayerAimBackwardOrTurnAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gM950Animation0D914Bank1[50] = {
+/// Reload translations in model units and Euler angles in 1/4096 turns for tracks 0 and 1.
+///
+/// Read-only clip tables retain their serialized positions in .data;
+/// pose banks are word-aligned for playback's word offsets.
+static const AnimationPackedPose _gM950PlayerReloadAnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/m950_animation_0D914_bank1.inc"
 };
 
-static AnimationPackedRotation _gM950Animation0D914Bank4[712] = {
+/// Reload joint rotations for player tracks 2..18, in eight-angle-unit steps.
+static const AnimationPackedRotation _gM950PlayerReloadAnimationBank4[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/m950_animation_0D914_bank4.inc"
 };
 
-static AnimationRecord _gM950Animation0D914Records[873] = {
+/// Reload keyframes and terminal stops, with two full-mask cues on track 1.
+///
+/// The first `ANIMATION_RECORD_CUE_MASK` cue starts the reload sound; the second
+/// applies ammunition and plays the loading sound. Pose offsets count u32
+/// words and durations count normal-rate frames.
+static const AnimationRecord _gM950PlayerReloadAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/m950_animation_0D914_records.inc"
 };
 
-static u16 _gM950Animation0D914Indices[20] = {
+/// Absolute reload record starts for tracks 0..18, followed by a serialized zero halfword.
+static const u16 _gM950PlayerReloadAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/m950_animation_0D914_indices.inc"
 };
+STATIC_ASSERT(ARRAY_SIZE(_gM950PlayerReloadAnimationIndices) == GAME_ACTOR_NORMAL_ANIMATION_SLOTS + 1, m950_reload_track_starts);
 
-static AnimationSet _gM950Animation0D914 = {
-    _gM950Animation0D914Records,
-    _gM950Animation0D914Indices,
-    { NULL, _gM950Animation0D914Bank1, NULL, NULL, _gM950Animation0D914Bank4, NULL, NULL, NULL },
+/// Player M950 reload clip shared by native ids 14, 15 and 20.
+///
+/// Primary-load reload selects id 14 and battle-end reload selects id 20.
+/// All nineteen tracks stop; child playback uses tracks 1..18, with the two
+/// sound/loading cues on track 1. Tracks 0/1 use bank 1 and 2..18 use bank 4.
+/// Playback borrows the descriptor and tables; keep the M950 package loaded
+/// while any slot or cached record pointer refers to them.
+static AnimationSet _gM950PlayerReloadAnimation = {
+    .records           = _gM950PlayerReloadAnimationRecords,
+    .trackStartIndices = _gM950PlayerReloadAnimationIndices,
+    .poseBanks         = {
+        [M950_ANIMATION_TRANSLATION_ROTATION_BANK] = _gM950PlayerReloadAnimationBank1,
+        [M950_ANIMATION_PACKED_ROTATION_BANK]      = _gM950PlayerReloadAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gM950Animation0DE14Bank1[9] = {
+/// Firing translations in model units and Euler angles in 1/4096 turns for tracks 0 and 1.
+///
+/// Read-only clip tables retain their serialized positions in .data;
+/// pose banks are word-aligned for playback's word offsets.
+static const AnimationPackedPose _gM950PlayerFireAnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/m950_animation_0DE14_bank1.inc"
 };
 
-static AnimationPackedRotation _gM950Animation0DE14Bank4[120] = {
+/// Firing joint rotations for player tracks 2..18, in eight-angle-unit steps.
+static const AnimationPackedRotation _gM950PlayerFireAnimationBank4[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/m950_animation_0DE14_bank4.inc"
 };
 
-static AnimationRecord _gM950Animation0DE14Records[153] = {
+/// Firing keyframes and terminal stops for nineteen tracks, with no cue flags.
+///
+/// Pose offsets count u32 words and durations count normal-rate frames.
+static const AnimationRecord _gM950PlayerFireAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/m950_animation_0DE14_records.inc"
 };
 
-static u16 _gM950Animation0DE14Indices[20] = {
+/// Absolute firing record starts for tracks 0..18, followed by a serialized zero halfword.
+static const u16 _gM950PlayerFireAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/m950_animation_0DE14_indices.inc"
 };
+STATIC_ASSERT(ARRAY_SIZE(_gM950PlayerFireAnimationIndices) == GAME_ACTOR_NORMAL_ANIMATION_SLOTS + 1, m950_fire_track_starts);
 
-static AnimationSet _gM950Animation0DE14 = {
-    _gM950Animation0DE14Records,
-    _gM950Animation0DE14Indices,
-    { NULL, _gM950Animation0DE14Bank1, NULL, NULL, _gM950Animation0DE14Bank4, NULL, NULL, NULL },
+/// Player M950 firing clip shared by native ids 10 and 11.
+///
+/// Each shot restarts id 10 on the child tracks with a two-frame blend.
+/// All nineteen tracks stop; child playback uses tracks 1..18, with tracks
+/// 0/1 in bank 1 and 2..18 in bank 4. Playback borrows the descriptor and tables;
+/// keep the M950 package loaded while any slot or cached record pointer refers to them.
+static AnimationSet _gM950PlayerFireAnimation = {
+    .records           = _gM950PlayerFireAnimationRecords,
+    .trackStartIndices = _gM950PlayerFireAnimationIndices,
+    .poseBanks         = {
+        [M950_ANIMATION_TRANSLATION_ROTATION_BANK] = _gM950PlayerFireAnimationBank1,
+        [M950_ANIMATION_PACKED_ROTATION_BANK]      = _gM950PlayerFireAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gM950Animation0E304Bank1[9] = {
+/// Aim-entry translations in model units and Euler angles in 1/4096 turns for tracks 0 and 1.
+///
+/// Read-only clip tables retain their serialized positions in .data;
+/// pose banks are word-aligned for playback's word offsets.
+static const AnimationPackedPose _gM950PlayerAimEntryAnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/m950_animation_0E304_bank1.inc"
 };
 
-static AnimationPackedRotation _gM950Animation0E304Bank4[116] = {
+/// Aim-entry joint rotations for player tracks 2..18, in eight-angle-unit steps.
+static const AnimationPackedRotation _gM950PlayerAimEntryAnimationBank4[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/m950_animation_0E304_bank4.inc"
 };
 
-static AnimationRecord _gM950Animation0E304Records[153] = {
+/// Aim-entry keyframes and terminal stops for nineteen tracks, with no cue flags.
+///
+/// Pose offsets count u32 words and durations count normal-rate frames.
+static const AnimationRecord _gM950PlayerAimEntryAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/m950_animation_0E304_records.inc"
 };
 
-static u16 _gM950Animation0E304Indices[20] = {
+/// Absolute aim-entry record starts for tracks 0..18, followed by a serialized zero halfword.
+static const u16 _gM950PlayerAimEntryAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/m950_animation_0E304_indices.inc"
 };
+STATIC_ASSERT(ARRAY_SIZE(_gM950PlayerAimEntryAnimationIndices) == GAME_ACTOR_NORMAL_ANIMATION_SLOTS + 1, m950_aim_entry_track_starts);
 
-static AnimationSet _gM950Animation0E304 = {
-    _gM950Animation0E304Records,
-    _gM950Animation0E304Indices,
-    { NULL, _gM950Animation0E304Bank1, NULL, NULL, _gM950Animation0E304Bank4, NULL, NULL, NULL },
+/// Player transition into M950 aiming, at native clip id 7.
+///
+/// All nineteen tracks stop; child playback uses tracks 1..18, with tracks
+/// 0/1 in bank 1 and 2..18 in bank 4. The same set is borrowed by enemy-driven
+/// player recovery playback. Keep the M950 package loaded while any slot or
+/// cached record pointer refers to the descriptor or tables.
+static AnimationSet _gM950PlayerAimEntryAnimation = {
+    .records           = _gM950PlayerAimEntryAnimationRecords,
+    .trackStartIndices = _gM950PlayerAimEntryAnimationIndices,
+    .poseBanks         = {
+        [M950_ANIMATION_TRANSLATION_ROTATION_BANK] = _gM950PlayerAimEntryAnimationBank1,
+        [M950_ANIMATION_PACKED_ROTATION_BANK]      = _gM950PlayerAimEntryAnimationBank4,
+    },
 };
 
 static AnimationPackedPose _gM950Animation0E890Bank1[10] = {
@@ -1516,20 +1638,20 @@ AnimationBank D_m950_8012BA78 = { { {
     &_gM950PlayerRunAnimation,
     &_gM950PlayerTurnLeftAnimation,
     &_gM950PlayerTurnRightAnimation,
-    &_gM950Animation0E304,
+    &_gM950PlayerAimEntryAnimation,
     &_gM950Animation0E890,
-    &_gM950Animation0B674,
-    &_gM950Animation0DE14,
-    &_gM950Animation0DE14,
-    &_gM950Animation0B49C,
-    &_gM950Animation0BDA8,
-    &_gM950Animation0D914,
-    &_gM950Animation0D914,
+    &_gM950PlayerAimIdleAnimation,
+    &_gM950PlayerFireAnimation,
+    &_gM950PlayerFireAnimation,
+    &_gM950PlayerAimForwardAnimation,
+    &_gM950PlayerAimBackwardOrTurnAnimation,
+    &_gM950PlayerReloadAnimation,
+    &_gM950PlayerReloadAnimation,
     &_gM950PlayerHitPart4Animation,
     &_gM950PlayerHitOtherBodyAnimation,
     &_gM950PlayerStoppedPoseAnimation,
     &_gM950PlayerUnarmedWalkAnimation,
-    &_gM950Animation0D914,
+    &_gM950PlayerReloadAnimation,
     &_gM950PlayerIdleAnimation,
     &_gM950PlayerIdleAnimation,
     &_gM950PlayerHealthyIdleAnimation,
