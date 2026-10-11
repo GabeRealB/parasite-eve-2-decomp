@@ -84,9 +84,6 @@ MATRIX* TransposeMatrix(MATRIX*, MATRIX*);
 
 extern EvsCommand D_actor_503500_8014CAF8[];
 
-/// The room's message table, installed on the room task.
-extern TaskMessageEntry D_shelter_r48_80182FB8[];
-
 /// Three ring-wall bands followed by three shockwave bands.
 enum { SHELTER_R48_RING_BAND_COUNT = 6 };
 
@@ -149,7 +146,12 @@ static TmdSource _gShelterR48WaterRefractionSource = {
 
 TaskDesc D_shelter_r48_80182FAC = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _shelterR48WaterRefractionTask, { .model = &_gShelterR48WaterRefractionSource } };
 
-TaskMessageEntry D_shelter_r48_80182FB8[6] = {
+/// Room-task handlers for transitions, staff cards, actions, commands and boss events.
+///
+/// The setup state installs this borrowed six-record table for the room task's
+/// lifetime. Payloads are native pointers or integer words as each message
+/// requires. The final marker makes unsupported message IDs return zero.
+static TaskMessageEntry _gShelterR48RoomMessages[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _shelterR48ResolveTransitionMessage },
     { SHELTER_R48_MESSAGE_USE_KEY_ITEM, _shelterR48UseStaffCard },
     { DIRECTION_MESSAGE_ROOM_ACTION, _shelterR48RoomActionMsg },
@@ -2502,7 +2504,7 @@ static s32 _shelterR48AdvanceBossSceneMsg(Task* unusedTask, s32 unusedMessageId,
 static void _shelterR48RoomSetupState(Task* task)
 {
     enum { SHELTER_R48_SCENE_BATTLE = 1 };
-    task->msgTable = D_shelter_r48_80182FB8;
+    task->msgTable = _gShelterR48RoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     actor503500ClearFadeFromBlackHandle(0);
     evsStartScriptWithSkip(gActor503500BossIntroScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, gActor503500BossIntroSkipScript);

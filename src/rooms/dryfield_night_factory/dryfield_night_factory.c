@@ -103,9 +103,13 @@ static const FactoryHatchStateFuncTable _gFactoryHatchStates = {
       [FACTORY_HATCH_STATE_CLOSE] = _factoryHatchClose },
 };
 
-SpriteBatch D_dryfield_night_factory_80189A14[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Unselected empty sprite list retained before the night factory's view directory.
+///
+/// Contains a decoded-background header and an end marker, with no source
+/// ranges. All nineteen view slots select other batch lists.
+static SpriteBatch _gDryfieldNightFactoryUnusedEmptySpriteBatches[2] = {
+    { .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
 SpriteView gDryfieldNightFactorySpriteViews[19] = {

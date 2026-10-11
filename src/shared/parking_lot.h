@@ -13,11 +13,6 @@
 
 #include "main/task_types.h"
 
-/// The area records the 0x11 event applies when it fires. The night room
-/// defines them; in the day build the address lies past the package's end, so
-/// the linker resolves it as an absolute symbol.
-extern AreaApplyRec gParkingLotAreaRecs[];
-
 /// Resolves parking-lot departures and gates the lobby and saloon door events.
 ///
 /// Handles `ROOM_EVENT_MESSAGE_RESOLVE`; receiver and message ID are unused.

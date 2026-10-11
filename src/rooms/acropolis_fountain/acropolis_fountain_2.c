@@ -1393,9 +1393,13 @@ static SpriteBatch _gAcropolisFountainView14SpriteBatches[] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_acropolis_fountain_801833E0[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Unselected empty sprite list retained between the view-14 and view-16 resources.
+///
+/// Contains a decoded-background header and an end marker, with no source
+/// ranges. Mapped view 15 instead borrows view 7's resources.
+static SpriteBatch _gAcropolisFountainUnusedEmptySpriteBatches[2] = {
+    { .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
 /// Sprite ranges for mapped view 16, followed by `SPRITE_BATCH_END`.
@@ -1641,7 +1645,8 @@ u8 gAcropolisFountainPatioArrivalWarp = 0;
 
 u8 gAcropolisFountainPatioRequestedRoom = 0;
 
-u16 D_acropolis_fountain_80183BB2 = 8192;
+/// Unreferenced halfword retained as 0x2000; its role and units are unproven.
+static u16 D_acropolis_fountain_80183BB2 = 8192;
 
 /// Borrowed singleton task handle for the fountain movie and water-loop updater.
 ///

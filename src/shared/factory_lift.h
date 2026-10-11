@@ -306,7 +306,6 @@ extern Task** gFactoryPanelSlot;
  * panel descriptor and view-sprite routines, and names the other build's by
  * address; the code picks between the two by stage. */
 extern TaskDesc                  gFactoryNightSpawnTable[];
-extern TaskDesc                  gFactoryNightPanelDesc[];
 extern PadScriptCmd              gFactoryNightJoltCmds[3];
 extern PadScriptVibrationSegment gFactoryNightJoltRecs[3];
 

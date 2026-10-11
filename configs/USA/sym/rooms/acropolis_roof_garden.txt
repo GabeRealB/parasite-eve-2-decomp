@@ -54,7 +54,7 @@ gMapAkropolisRoofGardenVariant8Placements = 0x8017BBFC; // absolute:True owner=m
 _gAcropolisRoofGardenMaggotCaterpillarEntranceScript = 0x80184B08; // size:0xF0 defined:True
 _gAcropolisRoofGardenEntranceStartPlayerAnimation = 0x80184ACC; // size:0x14 defined:True
 _gAcropolisRoofGardenEntranceEndPlayerAnimation = 0x80184AE0; // size:0x14 defined:True
-D_acropolis_roof_garden_80184AF4 = 0x80184AF4; // size:0x14 defined:True
+_gAcropolisRoofGardenUnusedBank1Animation9Request = 0x80184AF4; // size:0x14 defined:True
 _gAcropolisRoofGardenModel09868Skeleton = 0x80186DD0; // size:0x24 defined:True
 _gAcropolisRoofGardenModel09868PartVerts = 0x80186DF4; // size:0x4 defined:True
 _gAcropolisRoofGardenModel09868Verts = 0x80186DF8; // size:0x20 defined:True
@@ -78,7 +78,7 @@ _gAcropolisRoofGardenAnimation074BCIndices = 0x80184A54; // size:0x28 defined:Tr
 _gAcropolisRoofGardenAnimation074BC = 0x80184A7C; // size:0x28 defined:True
 _gAcropolisRoofGardenEntrancePlayerAnimationSets = 0x80184AA4; // size:0xC defined:True
 _gAcropolisRoofGardenEntrancePlayerBankCopy = 0x80184AB0; // size:0x8 defined:True
-D_acropolis_roof_garden_80184AB8 = 0x80184AB8; // size:0x14 defined:True
+_gAcropolisRoofGardenUnusedBank1Animation1Request = 0x80184AB8; // size:0x14 defined:True
 _gAcropolisRoofGardenArrivalEndPlayerPlacement = 0x80183CA0; // size:0x18 defined:True
 _gAcropolisRoofGardenArrivalPlayerAnimationSets = 0x80183CB8; // size:0xC defined:True
 _gAcropolisRoofGardenArrivalPlayerBankCopy = 0x80183CC4; // size:0x8 defined:True

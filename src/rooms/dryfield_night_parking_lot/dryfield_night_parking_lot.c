@@ -39,9 +39,11 @@ extern RoomEventActiveBytes gRoomEventActive;
 /// The request the event gate latched for its event task.
 extern RoomEventReq gRoomEventReq;
 
-AreaApplyRec gParkingLotAreaRecs[2] = {
-    { 3, 24, 2, 0 },
-    { 255, 0, 0, 0 },
+enum { DRYFIELD_NIGHT_PARKING_LOT_LOBBY_UNLOCK_GARAGE_LAYOUT = 2 };
+
+AreaApplyRec gDryfieldNightParkingLotLobbyUnlockAreaUpdates[2] = {
+    { GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_GARAGE, DRYFIELD_NIGHT_PARKING_LOT_LOBBY_UNLOCK_GARAGE_LAYOUT, AREA_APPLY_MODE_ALWAYS },
+    { AREA_APPLY_END, 0, 0, 0 },
 };
 
 /// Snapshot of the accepted transition for the deferred room event.

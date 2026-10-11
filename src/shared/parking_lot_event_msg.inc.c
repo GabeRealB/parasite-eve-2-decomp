@@ -51,7 +51,7 @@ s32 parkingLotResolveMessage(Task* task, s32 messageId, const RoomEventMsg* requ
             transitionResult = PARKING_LOT_TRANSITION_HANDLED;
         }
         if (ROOM_EVENT_ACTIVE != 0) {
-            areaApplySavedUpdates(gParkingLotAreaRecs);
+            areaApplySavedUpdates(gDryfieldNightParkingLotLobbyUnlockAreaUpdates);
             gameFlagSetNibble(GAME_FLAG_046, 1);
             gameFlagSetNibble(GAME_FLAG_097, 1);
         }

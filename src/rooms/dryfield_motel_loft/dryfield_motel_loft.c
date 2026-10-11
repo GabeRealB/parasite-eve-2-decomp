@@ -17,6 +17,7 @@
 #include "main/coord.h"
 #include "main/session.h"
 #include "main/sound_ids.h"
+#include "main/sound_types.h"
 #include "main/task.h"
 #include "main/task_types.h"
 
@@ -463,10 +464,19 @@ static WorldCoordRoomLights _gDryfieldMotelLoftRoomLights = {
     .coneLights            = NULL,
 };
 
-s32 D_dryfield_motel_loft_8017E62C[3] = {
-    0x10000035,
-    0x10000037,
-    0x10000035,
+enum {
+    DRYFIELD_MOTEL_LOFT_RETAINED_WALK_SOUND_ENTRY = 0x35,
+    DRYFIELD_MOTEL_LOFT_RETAINED_RUN_SOUND_ENTRY  = 0x37,
+};
+
+/// Unused walk, run and scripted-jump footstep cue bases retained in the loft image.
+///
+/// Walk and scripted jump share entry 0x35; running uses 0x37 in the loaded
+/// type-1 bank. Neither of the loft's surface policies selects this record.
+static WorldCollisionFootstepSounds _gDryfieldMotelLoftUnusedFootstepSounds = {
+    .walk         = SOUND_SCRIPT_REQUEST_TYPE_1 | DRYFIELD_MOTEL_LOFT_RETAINED_WALK_SOUND_ENTRY,
+    .run          = SOUND_SCRIPT_REQUEST_TYPE_1 | DRYFIELD_MOTEL_LOFT_RETAINED_RUN_SOUND_ENTRY,
+    .scriptedJump = SOUND_SCRIPT_REQUEST_TYPE_1 | DRYFIELD_MOTEL_LOFT_RETAINED_WALK_SOUND_ENTRY,
 };
 
 /// Shared policy for loft surface classes 0 and 2..7, without footstep cues.

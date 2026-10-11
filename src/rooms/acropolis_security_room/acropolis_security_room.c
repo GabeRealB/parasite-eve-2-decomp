@@ -526,7 +526,16 @@ static TaskMessageEntry _gAcropolisSecurityRoomRoomMessages[5] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-AnimationPlayRequest D_acropolis_security_room_80182604 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Unused bank-1 clip-1 reset request retained before the panel task recipes.
+///
+/// Requests disabled world collision; neither panel nor room scripts select it.
+static AnimationPlayRequest _gAcropolisSecurityRoomUnusedBank1Animation1Request = {
+    .source               = { .index = 1 },
+    .animationId          = 1,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
 /// Ascending execution priorities of the panel openers and their cursor/scene children.
 enum {
@@ -1085,23 +1094,19 @@ static SpriteBatch _gAcropolisSecurityRoomView7SpriteBatches[2] = {
     { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_acropolis_security_room_801844C8[16] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Eight unselected empty sprite lists retained before the right-unlock resources.
+///
+/// Each pair is its own decoded-background header and end marker, with no
+/// source ranges. Views 8..15 select other resources in the view directory.
+static SpriteBatch _gAcropolisSecurityRoomUnusedEmptySpriteBatchLists[8][2] = {
+    { { .spriteCount = 0 }, { .firstSprite = SPRITE_BATCH_END } },
+    { { .spriteCount = 0 }, { .firstSprite = SPRITE_BATCH_END } },
+    { { .spriteCount = 0 }, { .firstSprite = SPRITE_BATCH_END } },
+    { { .spriteCount = 0 }, { .firstSprite = SPRITE_BATCH_END } },
+    { { .spriteCount = 0 }, { .firstSprite = SPRITE_BATCH_END } },
+    { { .spriteCount = 0 }, { .firstSprite = SPRITE_BATCH_END } },
+    { { .spriteCount = 0 }, { .firstSprite = SPRITE_BATCH_END } },
+    { { .spriteCount = 0 }, { .firstSprite = SPRITE_BATCH_END } },
 };
 
 /// Foreground rectangles layered over the right-lock unlock presentation in view 16.
@@ -1496,10 +1501,17 @@ static void _acropolisSecurityRoomOpenMonitorTask(Task* task)
     }
 }
 
-/// The debug line `_acropolisSecurityRoomOpenPowerSupplyTask` prints. The two bytes
-/// after its terminator are non-zero in the ROM (0x40, 0x11), so the array is
-/// declared at 16 bytes to carry them.
-static const char PowerSupplyMsg[16] = "power supply\n\0@\021";
+/// Power-supply debug line and the two non-text bytes retained after its terminator.
+///
+/// Only the NUL-terminated text is printed; the following bytes have no reader.
+/// Keep this definition here to preserve literal and jump-table emission order.
+static const struct {
+    char text[sizeof("power supply\n")]; // Debug line, including its NUL terminator.
+    u8   retainedBytes[2];               // Serialized non-text bytes; original role unproven.
+} _gAcropolisSecurityRoomPowerSupplyDebugText = {
+    .text          = "power supply\n",
+    .retainedBytes = { 0x40, 0x11 },
+};
 
 /// Holds the player and releases its model buffers while the power-supply panel is open.
 ///
@@ -1514,7 +1526,7 @@ static void _acropolisSecurityRoomOpenPowerSupplyTask(Task* task)
 
     switch (task->state) {
         case ACROPOLIS_SECURITY_ROOM_PANEL_OPENER_STATE_START:
-            printf(PowerSupplyMsg);
+            printf(_gAcropolisSecurityRoomPowerSupplyDebugText.text);
             _gAcropolisSecurityRoomPowerSupplyTask = taskSpawn(ACROPOLIS_SECURITY_ROOM_PANEL_TASK_BANK, ACROPOLIS_SECURITY_ROOM_POWER_SUPPLY_TASK, 0, 0);
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
             playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_HIDE_RELEASE);

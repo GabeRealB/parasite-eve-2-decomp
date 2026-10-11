@@ -18,7 +18,7 @@ _gShelterR48Variant3Resources = 0x8018BB78; // size:0x18 defined:True
 gActor403600TaskTable = 0x80160514; // absolute:True owner=actor_403600
 gActor503500EnemyTaskDescs = 0x8016E924; // absolute:True owner=actor_503500
 gActor503500TentacleTaskDesc = 0x80176524; // absolute:True owner=actor_503500
-D_shelter_r48_80182FB8 = 0x80182FB8; // size:0x30 defined:True
+_gShelterR48RoomMessages = 0x80182FB8; // size:0x30 defined:True
 _gShelterR48RingBandShapes = 0x80182FE8; // size:0x24 defined:True
 _gShelterR48GlowWorldPosition = 0x8018300C; // size:0x8 defined:True
 gShelterR48RoomLighting = 0x80183014; // size:0x8 defined:True

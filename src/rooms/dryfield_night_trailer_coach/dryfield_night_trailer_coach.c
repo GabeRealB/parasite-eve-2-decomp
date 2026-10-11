@@ -436,7 +436,8 @@ ActorTransform gDryfieldNightTrailerCoachPlayerDialogueTransform = {
     .rot = { 0, -1536, 0, 0 },
 };
 
-ActorTransform D_dryfield_night_trailer_coach_801879A0 = { { 4600, 0, -1300, 0 }, { 0, -1479, 0, 0 } };
+/// Unreferenced transform-shaped record; its receiver and coordinate frame are unproven.
+static ActorTransform D_dryfield_night_trailer_coach_801879A0 = { { 4600, 0, -1300, 0 }, { 0, -1479, 0, 0 } };
 
 /// Arrival placement of a present companion in room-coordinate units.
 ///
@@ -457,7 +458,17 @@ const AnimationPlayRequest gDryfieldNightTrailerCoachPlayerIdleAnimation SECTION
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE,
 };
 
-AnimationPlayRequest D_dryfield_night_trailer_coach_801879E4 = { { .index = 1 }, 47, ANIMATION_BLEND_INTERPOLATE, 8, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Unused bank-1 clip-47 request, separate from the live story-closing lead-in.
+///
+/// Requests an eight-frame blend and disabled world collision. Its bytes equal
+/// the live request, but no script or message selects this retained copy.
+static AnimationPlayRequest _gDryfieldNightTrailerCoachUnusedBank1Animation47Request = {
+    .source               = { .index = 1 },
+    .animationId          = 47,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = 8,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
 enum {
     DRYFIELD_NIGHT_TRAILER_COACH_PLAYER_EQUIPPED_BANK_SEED         = 1,
@@ -517,11 +528,15 @@ const AnimationPlayRequest gDryfieldNightTrailerCoachPlayerStoryDialogueAnimatio
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
 };
 
-AnimationPlayRequest D_dryfield_night_trailer_coach_80187A48[4] = {
-    { { .index = 1 }, 49, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
-    { { .index = 1 }, 50, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
-    { { .index = 1 }, 51, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
-    { { .index = 1 }, 55, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
+/// Four unused bank-1 reset requests for clips 49, 50, 51 and 55.
+///
+/// Every record requests disabled world collision. No dialogue script selects
+/// these retained records; the array has four entries and no terminator.
+static AnimationPlayRequest _gDryfieldNightTrailerCoachUnusedBank1AnimationRequests[4] = {
+    { .source = { .index = 1 }, .animationId = 49, .blend = ANIMATION_BLEND_RESET, .blendFrames = 0, .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE },
+    { .source = { .index = 1 }, .animationId = 50, .blend = ANIMATION_BLEND_RESET, .blendFrames = 0, .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE },
+    { .source = { .index = 1 }, .animationId = 51, .blend = ANIMATION_BLEND_RESET, .blendFrames = 0, .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE },
+    { .source = { .index = 1 }, .animationId = 55, .blend = ANIMATION_BLEND_RESET, .blendFrames = 0, .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE },
 };
 
 const AnimationPlayRequest gDryfieldNightTrailerCoachPlayerChapter4DialogueAnimation SECTION(".data") = {
@@ -540,7 +555,16 @@ const AnimationPlayRequest gDryfieldNightTrailerCoachPlayerStoryReplyAnimation S
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
 };
 
-AnimationPlayRequest D_dryfield_night_trailer_coach_80187AC0 = { { .index = 0 }, 0, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Unused bank-0 clip-0 reset request retained before the Gary animation requests.
+///
+/// Requests disabled world collision; no script or message selects this record.
+static AnimationPlayRequest _gDryfieldNightTrailerCoachUnusedBank0Animation0Request = {
+    .source               = { .index = 0 },
+    .animationId          = 0,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
 enum {
     DRYFIELD_NIGHT_TRAILER_COACH_GARY_BASE_BANK                 = 0,
@@ -562,9 +586,13 @@ AnimationPlayRequest gDryfieldNightTrailerCoachGaryStoryLeadInAnimation = {
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
 };
 
-AnimationPlayRequest D_dryfield_night_trailer_coach_80187AE8[2] = {
-    { { .index = 0 }, 2, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
-    { { .index = 0 }, 3, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
+/// Two unused bank-0 reset requests for clips 2 and 3.
+///
+/// Both request disabled world collision. Neither retained record is selected
+/// by the dialogue scripts; the array has two entries and no terminator.
+static AnimationPlayRequest _gDryfieldNightTrailerCoachUnusedBank0AnimationRequests[2] = {
+    { .source = { .index = 0 }, .animationId = 2, .blend = ANIMATION_BLEND_RESET, .blendFrames = 0, .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE },
+    { .source = { .index = 0 }, .animationId = 3, .blend = ANIMATION_BLEND_RESET, .blendFrames = 0, .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE },
 };
 
 AnimationPlayRequest gDryfieldNightTrailerCoachGaryTalkClosingAnimation = {

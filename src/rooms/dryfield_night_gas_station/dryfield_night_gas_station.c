@@ -742,8 +742,16 @@ static AnimationBankCopyRequest _gDryfieldNightGasStationPlayerCutsceneAnimation
     .wordCount = ARRAY_SIZE(_gDryfieldNightGasStationPlayerCutsceneAnimationSets),
 };
 
-// Retained data: Same five-field layout as the following animation arguments; retained unreferenced entry.
-AnimationPlayRequest D_dryfield_night_gas_station_801888F0 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
+/// Unused bank-1 clip-1 reset request retained before the player cutscene requests.
+///
+/// Requests enabled world collision; no script or message selects this record.
+static AnimationPlayRequest _gDryfieldNightGasStationUnusedBank1Animation1Request = {
+    .source               = { .index = 1 },
+    .animationId          = 1,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE,
+};
 
 /// Player cutscene request for animation 48 in the equipped weapon's bank.
 ///
@@ -784,8 +792,16 @@ static AnimationPlayRequest _gDryfieldNightGasStationPlayerWeaponAnimation50 = {
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE,
 };
 
-// Retained parameter record; layout follows the adjacent script arguments.
-AnimationPlayRequest D_dryfield_night_gas_station_80188940 = { { .index = 1 }, 51, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_ENABLE };
+/// Unused bank-1 clip-51 request retained among the player cutscene requests.
+///
+/// Requests a ten-frame blend and enabled world collision; no script selects it.
+static AnimationPlayRequest _gDryfieldNightGasStationUnusedBank1Animation51Request = {
+    .source               = { .index = 1 },
+    .animationId          = 51,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = 10,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE,
+};
 
 /// Restarts player clip 52 at the encounter's battle placement with grid collision.
 ///
@@ -963,8 +979,16 @@ static AnimationPlayRequest _gDryfieldNightGasStationCompanionAnimation52 = {
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE,
 };
 
-// Retained parameter record; layout follows the adjacent script arguments.
-AnimationPlayRequest D_dryfield_night_gas_station_80188A90 = { { .index = 1 }, 53, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE };
+/// Unused bank-1 clip-53 request retained among the companion cutscene requests.
+///
+/// Requests a twenty-frame blend and enabled world collision; no script selects it.
+static AnimationPlayRequest _gDryfieldNightGasStationUnusedBank1Animation53Request = {
+    .source               = { .index = 1 },
+    .animationId          = 53,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = 20,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE,
+};
 
 /// Companion clip 54 for the room-action interaction, blended over eight frames without grid collision.
 ///
@@ -992,8 +1016,16 @@ static AnimationPlayRequest _gDryfieldNightGasStationCompanionAnimation55 = {
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE,
 };
 
-// Retained parameter record; layout follows the adjacent script arguments.
-AnimationPlayRequest D_dryfield_night_gas_station_80188ACC = { { .index = 1 }, 56, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE };
+/// Unused bank-1 clip-56 request retained among the companion cutscene requests.
+///
+/// Requests a twenty-frame blend and enabled world collision; no script selects it.
+static AnimationPlayRequest _gDryfieldNightGasStationUnusedBank1Animation56Request = {
+    .source               = { .index = 1 },
+    .animationId          = 56,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = 20,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE,
+};
 
 /// Restarts companion clip 57 at the encounter's battle placement with grid collision.
 ///

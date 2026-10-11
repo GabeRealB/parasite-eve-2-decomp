@@ -52,7 +52,7 @@ _gAcropolisSecurityRoomView7SpriteBatches = 0x801844B8; // size:0x10 defined:Tru
 gActor311900SwatTaskDesc = 0x8016EC00; // absolute:True owner=actor_311900
 gActor311900RupertTaskDesc = 0x8016EC0C; // absolute:True owner=actor_311900
 gMapAkropolisSecurityRoomVariant1Placements = 0x8017B01C; // absolute:True owner=map_akropolis
-D_acropolis_security_room_801844C8 = 0x801844C8; // size:0x80 defined:True
+_gAcropolisSecurityRoomUnusedEmptySpriteBatchLists = 0x801844C8; // size:0x80 defined:True
 _gAcropolisSecurityRoomRightUnlockSpriteSources = 0x80184548; // size:0x690 defined:True
 _gAcropolisSecurityRoomRightUnlockSpriteBatches = 0x80184BD8; // size:0x78 defined:True
 gAcropolisSecurityRoomSpriteViews = 0x80184C50; // size:0xC0 defined:True
@@ -75,7 +75,7 @@ _gAcropolisSecurityRoomMonitorPanelTask = 0x801855A8; // size:0x4 defined:True
 _gAcropolisSecurityRoomPowerSupplyTask = 0x801855AC; // size:0x4 defined:True
 ActorContact_ScratchPosition = 0x801855B0; // size:0x8 defined:True
 _gAcropolisSecurityRoomRoomMessages = 0x801825DC; // size:0x28 defined:True
-D_acropolis_security_room_80182604 = 0x80182604; // size:0x14 defined:True
+_gAcropolisSecurityRoomUnusedBank1Animation1Request = 0x80182604; // size:0x14 defined:True
 
 acropolisSecurityRoomMonitorFeedsTask = 0x801805A4; // type:func
 

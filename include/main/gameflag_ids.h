@@ -182,7 +182,7 @@ enum {
     GAME_FLAG_DILAPIDATED_HOUSE_DOOR_UNLOCKED = 0x03F,
     /// Dryfield parking-lot door to the motel lobby (area 0x11): clear means locked;
     /// opening it needs collected bit 0x12 (else CAP 1), runs CAP 6, sets the flag,
-    /// applies gParkingLotAreaRecs and sets nibbles 0x46 and 0x97.
+    /// applies `gDryfieldNightParkingLotLobbyUnlockAreaUpdates` and sets nibbles 0x46 and 0x97.
     GAME_FLAG_PARKING_LOT_LOBBY_DOOR_UNLOCKED = 0x040,
     /// Main-street door to motel room 3 (area 0xD): locked while clear; opened with
     /// collected bit 0x13 (else CAP 5), running CAP 0xA, and the key swap clears

@@ -44398,14 +44398,20 @@ A plain `printf("power supply\n")` is then 99.84% in the scratch env (the only
 diff is `%hi(.rodata)` vs `%hi(D_…)`, an artifact of the local literal) but the
 overlay checksum fails on exactly those two pad bytes.
 
-Declare the constant with the block's full size and spell the pad bytes into
-the initializer. A char array whose initializer is exactly its length drops the
-terminating NUL, so the object emits the block byte for byte:
+Declare the constant with the block's full size and spell the retained bytes into
+the initializer. Keep the NUL-terminated text separate from the following bytes,
+so the object emits the block byte for byte:
 
 ```c
-static const char PowerSupplyMsg[16] = "power supply\n\0@\021";
+static const struct {
+    char text[sizeof("power supply\n")];
+    u8 retainedBytes[2];
+} _gAcropolisSecurityRoomPowerSupplyDebugText = {
+    .text = "power supply\n",
+    .retainedBytes = { 0x40, 0x11 },
+};
 ...
-printf(PowerSupplyMsg);
+printf(_gAcropolisSecurityRoomPowerSupplyDebugText.text);
 ```
 
 GCC 2.8.1 emits a file-scope `static const` at its declaration point, after the
@@ -48381,7 +48387,7 @@ new units and retarget the path strings - so the rodata set is preserved by
 construction.
 
 The head half keeps the file's non-chunk text; the tail half may take only its
-*declarations*. Carrying `static const char PowerSupplyMsg[16] = "power supply\n…"`
+*declarations*. Carrying the initialized `_gAcropolisSecurityRoomPowerSupplyDebugText` record
 into both halves of `acropolis_security_room` emitted the string twice, and the
 16 extra bytes moved the whole `.text` down: it compiled, it linked, and only
 the checksum said so. Classify by content, not by keyword - a top-level line
@@ -51850,7 +51856,7 @@ Placement matters as much as the bytes. The block sat *before* an earlier
 function's compiler-generated jump table in `.rodata`, so it cannot be emitted
 from the dispatcher's own position at the end of the unit. Defining it as a
 file-scope `static const` at the point the `INCLUDE_RODATA` line occupied keeps
-GCC's emission order right — the same trick `PowerSupplyMsg` uses in that file.
+GCC's emission order right — the same trick `_gAcropolisSecurityRoomPowerSupplyDebugText` uses in that file.
 `acropolisSecurityRoomMonitorTask`.
 
 ### m2c reads the frame-table dispatch as a ten-argument call through `sp`

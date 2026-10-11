@@ -17,13 +17,14 @@
 
 #include "mapui/map_shelter.h"
 
-extern TaskMessageEntry D_shelter_r49_8017D9D8[];
-
 static void _shelterR49InitializeRoomTask(Task* task);
 static void _shelterR49RoomIdle(Task* unusedTask);
 
-/// The room task's states: set up, idle, then `taskKill`.
-static const TaskFuncTable3 D_shelter_r49_8017D5C4 = {
+/// Setup, idle and teardown callbacks indexed by the room task's state 0..2.
+///
+/// Copied by value each tick before dispatch. All three entries are callable;
+/// there is no end marker or bounds check. The room must remain loaded.
+static const TaskFuncTable3 _gShelterR49RoomStates = {
     { _shelterR49InitializeRoomTask, _shelterR49RoomIdle, taskKill },
 };
 
@@ -32,7 +33,12 @@ static s32 _shelterR49ResolveRoomTransition(Task* unusedTask, s32 unusedMessageI
 static s32 _shelterR49IgnoreRoomCommand(Task* unusedTask, s32 unusedMessageId, s32 commandId, s32 commandMode);
 static s32 _shelterR49IgnoreDirectionAction(Task* unusedTask, s32 unusedMessageId, const DirectionActionRequest* request, s32 unusedSecondArg);
 
-TaskMessageEntry D_shelter_r49_8017D9D8[5] = {
+/// Room-task handlers for transitions, key items, direction actions and commands.
+///
+/// Initialization lends the five-record table to the room task for its
+/// lifetime. Transition payloads are borrowed request/reply pointers; the
+/// other handlers ignore their payloads. The final marker ends unsupported lookup.
+static TaskMessageEntry _gShelterR49RoomMessages[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _shelterR49ResolveRoomTransition },
     { ROOM_MESSAGE_USE_KEY_ITEM, _shelterR49RejectKeyItem },
     { DIRECTION_MESSAGE_ROOM_ACTION, _shelterR49IgnoreDirectionAction },
@@ -93,7 +99,7 @@ static void _shelterR49InitializeRoomTask(Task* task)
 {
     enum { SHELTER_R49_ATTRACT_DEMO_SCENE = 9 };
 
-    task->msgTable = D_shelter_r49_8017D9D8;
+    task->msgTable = _gShelterR49RoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene != SHELTER_R49_ATTRACT_DEMO_SCENE) {
         evsStartScriptWithSkip(gActor143900ObservatoryEntryScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, gActor143900ObservatoryEntrySkipScript);
@@ -113,6 +119,6 @@ void shelterR49RoomTask(Task* task)
 {
     TaskFuncTable3 stateHandlers;
 
-    stateHandlers = D_shelter_r49_8017D5C4;
+    stateHandlers = _gShelterR49RoomStates;
     stateHandlers.funcs[task->state](task);
 }

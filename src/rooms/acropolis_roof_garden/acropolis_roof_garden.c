@@ -237,7 +237,8 @@ static TaskDesc _gAcropolisRoofGardenSoundTaskDescriptors[4] = {
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
-ActorCommand D_acropolis_roof_garden_80183C40 = { { .loc = { 1, 13 } }, 0 };
+/// Unreferenced four-byte record retained as {1, 13, 0, 0}; its command role is unproven.
+static ActorCommand D_acropolis_roof_garden_80183C40 = { { .loc = { 1, 13 } }, 0 };
 
 /// Player clip 1 restarted at the arrival scene's end and by its skip path.
 ///
@@ -268,7 +269,8 @@ static ActorTransform _gAcropolisRoofGardenArrivalStartPlayerPlacement = {
     .rot = { 0, 0, 0, 0 },
 };
 
-ActorTransform D_acropolis_roof_garden_80183C88 = { { 0, 128, 0, 0 }, { 0, 407, 0, 0 } };
+/// Unreferenced transform-shaped record; its receiver and coordinate frame are unproven.
+static ActorTransform D_acropolis_roof_garden_80183C88 = { { 0, 128, 0, 0 }, { 0, 407, 0, 0 } };
 
 /// Player placement shared by the arrival scene's normal and skipped endings.
 ///
@@ -396,7 +398,8 @@ static AnimationPlayRequest _gAcropolisRoofGardenArrivalFigureAnimation5 = {
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
 };
 
-EvsSceneKey D_acropolis_roof_garden_80183D6C = { 1, 8, 11 };
+/// Unreferenced halfword triplet {1, 8, 11}; its scene-selection role is unproven.
+static EvsSceneKey D_acropolis_roof_garden_80183D6C = { 1, 8, 11 };
 
 // Arrival waits count interpreter ticks; sound cues use type-3 bank 0x108.
 enum {
@@ -566,7 +569,16 @@ static AnimationBankCopyRequest _gAcropolisRoofGardenEntrancePlayerBankCopy = {
     .wordCount = ARRAY_SIZE(_gAcropolisRoofGardenEntrancePlayerAnimationSets),
 };
 
-AnimationPlayRequest D_acropolis_roof_garden_80184AB8 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Unused bank-1 clip-1 reset request retained with the entrance animation data.
+///
+/// Requests disabled world collision. Neither entrance nor arrival scripts use it.
+static AnimationPlayRequest _gAcropolisRoofGardenUnusedBank1Animation1Request = {
+    .source               = { .index = 1 },
+    .animationId          = 1,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
 enum {
     ACROPOLIS_ROOF_GARDEN_ENTRANCE_START_SET    = ANIMATION_BANK_BASE_SET_COUNT + 1,
@@ -598,8 +610,16 @@ static AnimationPlayRequest _gAcropolisRoofGardenEntranceEndPlayerAnimation = {
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
 };
 
-// Retained parameter record; layout follows the adjacent script arguments.
-AnimationPlayRequest D_acropolis_roof_garden_80184AF4 = { { .index = 1 }, 9, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Unused bank-1 clip-9 request retained with the entrance animation data.
+///
+/// Requests a ten-frame blend and disabled world collision; no script selects it.
+static AnimationPlayRequest _gAcropolisRoofGardenUnusedBank1Animation9Request = {
+    .source               = { .index = 1 },
+    .animationId          = 9,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = 10,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
 /// Releases the Maggot/Caterpillar entrance, stages the player and engages battle.
 ///

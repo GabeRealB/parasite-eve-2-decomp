@@ -167,7 +167,16 @@ static AnimationBankCopyRequest _gAcropolisForkedRoadLockReleaseBankCopyRequest 
     .wordCount = ARRAY_SIZE(_gAcropolisForkedRoadLockReleaseAnimationSets),
 };
 
-AnimationPlayRequest D_acropolis_forked_road_80182068 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Unused bank-1 clip-1 reset request retained in the room image.
+///
+/// Requests disabled world collision. No script or message selects this record.
+static AnimationPlayRequest _gAcropolisForkedRoadUnusedBank1Animation1Request = {
+    .source               = { .index = 1 },
+    .animationId          = 1,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
 enum {
     ACROPOLIS_FORKED_ROAD_LOCK_RELEASE_PLAYER_CLIP  = 48,
@@ -189,9 +198,13 @@ static AnimationPlayRequest _gAcropolisForkedRoadLockReleasePlayerClip48Request 
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
 };
 
-AnimationPlayRequest D_acropolis_forked_road_80182090[2] = {
-    { { .index = 1 }, 49, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_DISABLE },
-    { { .index = 1 }, 9, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_DISABLE },
+/// Two unused bank-1 playback requests retained after the lock-release request.
+///
+/// Clips 49 and 9 request blends of 20 and 10 frames respectively, with world
+/// collision disabled. Neither record is selected by the room's scripts.
+static AnimationPlayRequest _gAcropolisForkedRoadUnusedBank1AnimationRequests[2] = {
+    { .source = { .index = 1 }, .animationId = 49, .blend = ANIMATION_BLEND_INTERPOLATE, .blendFrames = 20, .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE },
+    { .source = { .index = 1 }, .animationId = 9, .blend = ANIMATION_BLEND_INTERPOLATE, .blendFrames = 10, .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE },
 };
 
 EvsCommand gAcropolisForkedRoadLockReleaseScript[8] = {
@@ -819,9 +832,13 @@ static SpriteBatch _gAcropolisForkedRoadView6SpriteBatches[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_acropolis_forked_road_80183AD8[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Unselected empty sprite list retained between the view-6 and views-7/8 resources.
+///
+/// The zero-count header requests decoded background strips; the next record
+/// ends the list without selecting source sprites. No view descriptor uses it.
+static SpriteBatch _gAcropolisForkedRoadUnusedEmptySpriteBatches1[2] = {
+    { .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
 /// Opaque and semitransparent source sprites shared by mapped views 7 and 8.
@@ -1011,9 +1028,13 @@ static SpriteBatch _gAcropolisForkedRoadView11SpriteBatches[7] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_acropolis_forked_road_801844D0[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Unselected empty sprite list retained after the view-11 resources.
+///
+/// Contains a decoded-background header and an end marker, with no source
+/// ranges. Mapped view 12 instead shares view 3's populated resources.
+static SpriteBatch _gAcropolisForkedRoadUnusedEmptySpriteBatches2[2] = {
+    { .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
 SpriteView gAcropolisForkedRoadSpriteViews[12] = {

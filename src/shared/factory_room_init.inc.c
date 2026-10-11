@@ -30,7 +30,7 @@ static void _factoryRoomInit(Task* task)
     if (gGameSession->location.loc.stage == GAME_STAGE_DRYFIELD) {
         gFactoryPanelDesc = &gFactoryDayPanelDesc;
     } else {
-        gFactoryPanelDesc = gFactoryNightPanelDesc;
+        gFactoryPanelDesc = &gDryfieldNightFactoryPanelTaskDesc;
     }
     taskSpawnFromTable(gFactorySpawnTable, FACTORY_ROOM_LIFT_SPAWN_INDEX, 0, gFactoryPanelSlot);
     taskSpawnFromTable(gFactorySpawnTable, FACTORY_ROOM_BARRIER_SPAWN_INDEX, 0, 0);

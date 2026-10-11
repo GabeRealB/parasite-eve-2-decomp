@@ -54,8 +54,6 @@ static s32  _underpassSwitchMsg(Task* unusedTask, s32 unusedMessageId, s32 switc
 
 static s32 _underpassSoundMsg(Task* unusedTask, s32 unusedMessageId, s32 cueKey, s32 unusedSecondArg);
 
-extern TaskDesc gUnderpassSwitchTaskDesc[];
-
 static WorldCollisionGrid     _gDryfieldUnderpassCollisionGrid;
 static WorldCollisionOccluder _gDryfieldUnderpassOccluders[3];
 static WorldCollisionTrigger  _gDryfieldUnderpassPostEventViewBoundaries[16];
@@ -117,8 +115,15 @@ static AnimationSet _gDryfieldUnderpassAnimation01230 = {
     { NULL, _gDryfieldUnderpassAnimation01230Bank1, NULL, NULL, _gDryfieldUnderpassAnimation01230Bank4, NULL, NULL, NULL },
 };
 
-TaskDesc gUnderpassSwitchTaskDesc[2] = {
-    { { { TASK_BODY_NONE, 32 } }, _underpassSwitchTask, { .value = 0 } },
+enum { UNDERPASS_SWITCH_TASK_PRIORITY = 32 };
+
+/// Bodyless switch-prompt recipe at index zero, followed by the descriptor end marker.
+///
+/// The command handler supplies a flag nibble index and CAP command in the
+/// two spawn words. Spawning reads the recipe synchronously; the room and CAP
+/// resources must remain loaded until the prompt task completes.
+static TaskDesc _gUnderpassSwitchTaskDescriptors[2] = {
+    { { { TASK_BODY_NONE, UNDERPASS_SWITCH_TASK_PRIORITY } }, _underpassSwitchTask, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 

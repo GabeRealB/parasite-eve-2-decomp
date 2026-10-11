@@ -1534,9 +1534,13 @@ static SpriteBatch _gDryfieldNightMainStreetView23SpriteBatches[] = {
     { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_dryfield_night_main_street_801875D4[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Unselected empty sprite list retained after the view-23 resources.
+///
+/// Contains a decoded-background header and an end marker, with no source
+/// ranges. View 24 instead shares view 13's populated batch list.
+static SpriteBatch _gDryfieldNightMainStreetUnusedEmptySpriteBatches[2] = {
+    { .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
 SpriteView gDryfieldNightMainStreetSpriteViews[24] = {

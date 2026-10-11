@@ -16,6 +16,13 @@
 
 #include "main/task_types.h"
 
+/// Bodyless priority-192 recipe for the nighttime factory's operator panel.
+///
+/// Room setup borrows its address for the selected panel descriptor; spawning
+/// reads the single recipe at index zero with unused payload words. There is
+/// no terminator. Keep the night factory loaded until the panel exits.
+extern TaskDesc gDryfieldNightFactoryPanelTaskDesc;
+
 /// Dryfield night factory placement/resource directory indexed by `GameLocationKey.variant` 0..10.
 ///
 /// All eleven slots are absent (NULL, NULL), so this room publishes no actor

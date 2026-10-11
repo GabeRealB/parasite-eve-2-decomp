@@ -16,10 +16,10 @@ static s32 _underpassSwitchMsg(Task* unusedTask, s32 unusedMessageId, s32 switch
     };
     switch (switchId) {
         case UNDERPASS_SWITCH_COMMAND_FIRST:
-            taskSpawnFromTable(gUnderpassSwitchTaskDesc, UNDERPASS_SWITCH_TASK_INDEX, GAME_FLAG_UNDERPASS_SWITCH_1, UNDERPASS_SWITCH_COMMAND_FIRST);
+            taskSpawnFromTable(_gUnderpassSwitchTaskDescriptors, UNDERPASS_SWITCH_TASK_INDEX, GAME_FLAG_UNDERPASS_SWITCH_1, UNDERPASS_SWITCH_COMMAND_FIRST);
             break;
         case UNDERPASS_SWITCH_COMMAND_SECOND:
-            taskSpawnFromTable(gUnderpassSwitchTaskDesc, UNDERPASS_SWITCH_TASK_INDEX, GAME_FLAG_UNDERPASS_SWITCH_2, UNDERPASS_SWITCH_COMMAND_SECOND);
+            taskSpawnFromTable(_gUnderpassSwitchTaskDescriptors, UNDERPASS_SWITCH_TASK_INDEX, GAME_FLAG_UNDERPASS_SWITCH_2, UNDERPASS_SWITCH_COMMAND_SECOND);
             break;
     }
     return 0;

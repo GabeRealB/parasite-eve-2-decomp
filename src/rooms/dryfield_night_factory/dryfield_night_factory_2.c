@@ -304,8 +304,10 @@ static TaskMessageEntry _gFactoryMsgTable[6] = {
 /// task until exit; no table terminator or model resource is stored.
 static TaskDesc _gFactoryPanelCursorDesc = { { { TASK_BODY_NONE, FACTORY_TASK_PRIORITY } }, _factoryPromptTask, { .value = 0 } };
 
-TaskDesc gFactoryNightPanelDesc[1] = {
-    { { { TASK_BODY_NONE, 192 } }, _factoryPanelRun, { .value = 0 } },
+TaskDesc gDryfieldNightFactoryPanelTaskDesc = {
+    .header   = { .fields = { .flags = TASK_BODY_NONE, .priority = FACTORY_TASK_PRIORITY } },
+    .callback = _factoryPanelRun,
+    .data     = { .value = 0 },
 };
 
 /// Lift-completion notification followed by the task-message end marker.

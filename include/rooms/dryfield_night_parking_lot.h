@@ -11,7 +11,14 @@
 #include "gameplay/view.h"
 
 #include "main/task_types.h"
-extern AreaApplyRec gParkingLotAreaRecs[2];
+
+/// Saved-area update applied when the parking-lot lobby-unlock event starts.
+///
+/// In every save mode, sets the night garage's placement layout to 2, removes
+/// its saved enemy poses and clears its map mark. The second record ends the
+/// synchronous scan. Both parking-lot builds borrow this night-owned list;
+/// the day build imports its fixed address beyond the daytime package.
+extern AreaApplyRec gDryfieldNightParkingLotLobbyUnlockAreaUpdates[2];
 
 /// Dryfield night parking lot placement/resource directory indexed by `GameLocationKey.variant` 0..21.
 ///

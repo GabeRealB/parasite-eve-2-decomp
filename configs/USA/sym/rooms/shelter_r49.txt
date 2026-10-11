@@ -1,5 +1,5 @@
 // Overlay-local symbols for shelter_r49.
-D_shelter_r49_8017D9D8 = 0x8017D9D8; // size:0x28 defined:True
+_gShelterR49RoomMessages = 0x8017D9D8; // size:0x28 defined:True
 gShelterR49ObservatoryTransitionTasks = 0x8017DA00; // size:0x18 defined:True
 gShelterR49RoomCollisionResources = 0x8017DA18; // size:0x10 defined:True
 gShelterR49RoomViewMaps = 0x8017DA28; // size:0x4 defined:True
@@ -40,3 +40,4 @@ _shelterR49RoomIdle = 0x8017d6b4; // type:func
 shelterR49RoomTask = 0x8017d6c4; // type:func
 _shelterR49EnterObservatoryTask = 0x8017d8d8; // type:func
 _shelterR49InitializeRoomTask = 0x8017d648; // type:func
+_gShelterR49RoomStates = 0x8017d5c4;
