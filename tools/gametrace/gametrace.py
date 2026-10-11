@@ -75,7 +75,7 @@ and stops the game until the next session begins (`session` alone begins one of 
 
 A record is one JSON line: id, name, phase ("enter" or "exit"), then each capture under its own text; a captured
 `ra` also gives `from`, the function it returns into. An event with `render = "name"` is written by a renderer
-instead: a python function, registered under that name by one of the files the config's `[renderer]` section
+instead: a python function, registered under that name by one of the files the config's `[hooks]` section
 lists, which gets the captures as numbers and bytes and returns what the log should say (see `renderer`).
 """
 from __future__ import annotations
@@ -170,7 +170,8 @@ def load(path: Path) -> dict:
     return cfg
 
 
-# ---- renderers: python the config names, which turns an event's captures into what the log should say
+# ---- python hooks: files the config names, whose functions the tracer calls for an event.
+# A renderer turns an event's captures into what the log should say; a handler acts on the event, game stopped.
 
 RENDERERS: dict[str, object] = {}
 
@@ -216,23 +217,23 @@ def handler(name: str):
     return register
 
 
-def load_renderers(cfg: dict, config_path: Path) -> None:
+def load_hooks(cfg: dict, config_path: Path) -> None:
     import importlib.util
-    sys.modules.setdefault("gametrace", sys.modules[__name__])       # so a renderer file can `from gametrace import renderer`
-    files = (cfg.get("renderer") or {}).get("files", [])
+    sys.modules.setdefault("gametrace", sys.modules[__name__])       # so a hooks file can `from gametrace import renderer, handler`
+    files = (cfg.get("hooks") or {}).get("files", [])
     for n, name in enumerate([files] if isinstance(files, str) else files):
         path = next((p for p in (config_path.parent / name, ROOT / name, Path(name)) if p.is_file()), None)
         if path is None:
-            raise SystemExit(f"renderer file {name} not found (looked beside the config and from the repository root)")
-        spec = importlib.util.spec_from_file_location(f"gametrace_renderer_{n}", path)
+            raise SystemExit(f"hooks file {name} not found (looked beside the config and from the repository root)")
+        spec = importlib.util.spec_from_file_location(f"gametrace_hooks_{n}", path)
         module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(module)
     missing = sorted({e["render"] for e in cfg.get("event", []) if e.get("render") and e["render"] not in RENDERERS})
     if missing:
-        raise SystemExit(f"no renderer named {', '.join(missing)}; the renderer files register: {', '.join(sorted(RENDERERS)) or 'none'}")
+        raise SystemExit(f"no renderer named {', '.join(missing)}; the hooks files register: {', '.join(sorted(RENDERERS)) or 'none'}")
     missing = sorted({e["handler"] for e in cfg.get("event", []) if e.get("handler") and e["handler"] not in HANDLERS})
     if missing:
-        raise SystemExit(f"no handler named {', '.join(missing)}; the renderer files register: {', '.join(sorted(HANDLERS)) or 'none'}")
+        raise SystemExit(f"no handler named {', '.join(missing)}; the hooks files register: {', '.join(sorted(HANDLERS)) or 'none'}")
 
 
 def record_size(captures: list[dict]) -> int:
@@ -1381,7 +1382,7 @@ def main() -> int:
     ap.add_argument("--now", action="store_true", help="set up at once in the game as it stands, ignoring install_at: for attaching to a game already running")
     args = ap.parse_args()
     cfg = load(args.config)
-    load_renderers(cfg, args.config)
+    load_hooks(cfg, args.config)
     if args.host:
         cfg["gdb"]["host"] = args.host
     if args.port:

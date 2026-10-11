@@ -1,8 +1,12 @@
-"""Renderers for tools/gametrace/events.toml: what the captured numbers mean in this game.
+"""Python hooks for tools/gametrace/events.toml: what the tracer's events mean in this game.
 
-A renderer gets the event as captured - registers as ints, memory as bytes - and returns what the log should say.
+Renderers say how an event is written: they get it as captured - registers as ints, memory as bytes - and return
+what the log should say. Handlers act when one happens, with the game stopped: `file_loaded` tells the tracer
+which packages a finished load has put in memory, so that the events in them can be hooked.
+
 The layouts are the decomp's own: FsFileLoadKey (src/main/fs_types.h), GameLocationKey
-(include/main/session_types.h), SOUND_ID (include/main/sound_ids.h).
+(include/main/session_types.h), SOUND_ID (include/main/sound_ids.h); which packages a disc file carries comes from
+the extractor's tables (tools/peassets/asset_data.py).
 """
 import struct
 

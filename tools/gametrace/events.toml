@@ -16,7 +16,7 @@
 #   drain         true: the buffer is read each time this event is over (at its returns if `exits` is given,
 #                 otherwise right after its entry). Give it to something rare, such as a file load; without any,
 #                 the log is only written when the buffer fills or the tracer detaches.
-#   render        the name of a renderer (see [renderer]) that writes this event instead of the raw captures
+#   render        the name of a renderer (see [hooks]) that writes this event instead of the raw captures
 #   handler       the name of a handler (same files): a function run at the end of this event's hook with the game
 #                 stopped. It is how the tracer learns that an image has been loaded - see "file_loaded" below.
 
@@ -30,10 +30,10 @@ install_at = [0x80014300]     # main
 host = "127.0.0.1"
 port = 2345
 
-# Python files that register renderers (`@renderer("name")`) and handlers (`@handler("name")`); paths are beside
-# this file or from the repository root.
-[renderer]
-files = ["renderers/pe2.py"]
+# Python files with the functions events name: renderers (`@renderer("name")`, how an event is written) and
+# handlers (`@handler("name")`, what is done when it happens). Paths are beside this file or from the repository root.
+[hooks]
+files = ["hooks/pe2.py"]
 
 # The console's memory as the emulator shares it with other programs, where it does (DuckStation: "Export Shared
 # Memory", a mapping called duckstation_<pid>). "auto" looks for one; a name picks one; false reads everything
