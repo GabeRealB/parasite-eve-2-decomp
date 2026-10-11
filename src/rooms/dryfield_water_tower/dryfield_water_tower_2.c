@@ -18,6 +18,7 @@
 #include "gameplay/captions.h"
 #include "gameplay/direction.h"
 #include "gameplay/direction_input.h"
+#include "gameplay/display.h"
 #include "gameplay/enemy.h"
 #include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
@@ -273,9 +274,6 @@ static SVECTOR                _gDryfieldWaterTowerCollision045F8[2];
 static SVECTOR                _gDryfieldWaterTowerCollision04608[8];
 static SVECTOR                _gDryfieldWaterTowerCollision04648[8];
 static WorldCollisionGridFace _gDryfieldWaterTowerCollision04688[2];
-
-/// Input skip stream paired with `_gDryfieldWaterTowerActorSceneScript`.
-extern EvsCommand D_dryfield_water_tower_80182674[];
 
 static u16 _dryfieldWaterTowerStepTimedRun(Task* task);
 static s32 _dryfieldWaterTowerStepPropDrop(Task* task);
@@ -819,17 +817,25 @@ static EvsCommand _gDryfieldWaterTowerActorSceneScript[22] = {
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-EvsCommand D_dryfield_water_tower_80182674[11] = {
-    { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+enum { DRYFIELD_WATER_TOWER_ACTOR_SCENE_SKIP_FADE_WAIT_FRAMES = 8 };
+
+/// Skips the introductory actor scene to its final marks and starts the chaser battle.
+///
+/// Under the primary fade, places both actors and the player, cancels streaming
+/// and refreshes mapped view 4. Returns the fade before starting the battle once
+/// and releasing player control. Eleven records include END; the paired normal
+/// stream's actor-scene work and all three actors must remain live until completion.
+static EvsCommand _gDryfieldWaterTowerActorSceneSkipScript[11] = {
+    { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = SCREEN_FADE_SUBTRACT }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = DRYFIELD_WATER_TOWER_ACTOR_SCENE_SKIP_FADE_WAIT_FRAMES }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _dryfieldWaterTowerSkipActorScene }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = DRYFIELD_WATER_TOWER_ACTOR_SCENE_SKIP_FADE_WAIT_FRAMES }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _dryfieldWaterTowerStartChaserBattleOnce }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
@@ -3399,7 +3405,7 @@ static void _dryfieldWaterTowerActorSceneTask(Task* task)
             task->state++;
             break;
         case DRYFIELD_WATER_TOWER_ACTOR_SCENE_STATE_START_SCRIPT:
-            evsStartScriptWithSkip(_gDryfieldWaterTowerActorSceneScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_dryfield_water_tower_80182674);
+            evsStartScriptWithSkip(_gDryfieldWaterTowerActorSceneScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, _gDryfieldWaterTowerActorSceneSkipScript);
             task->state++;
             break;
         case DRYFIELD_WATER_TOWER_ACTOR_SCENE_STATE_WAIT_SCRIPT:

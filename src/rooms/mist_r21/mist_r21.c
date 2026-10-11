@@ -121,8 +121,11 @@ static void _mistR21CheckPlazaReloadShortcut(Task* task)
     }
 }
 
-/// The room task's three states.
-static const TaskFuncTable3 D_mist_r21_8017D5C4 = {
+/// M.I.S.T. room callbacks: 0 register/spawn idle task, 1 poll the plaza shortcut, 2 release.
+///
+/// Copies all three pointers for unchecked `Task::state` dispatch in 0..2.
+/// There is no terminator; this room's callbacks must stay loaded through exit.
+static const TaskFuncTable3 _gMistR21RoomTaskStates = {
     { _mistR21InitializeRoomTask, _mistR21CheckPlazaReloadShortcut, taskKill },
 };
 
@@ -136,7 +139,7 @@ void mistR21RoomTask(Task* task)
 {
     TaskFuncTable3 stateHandlers;
 
-    stateHandlers = D_mist_r21_8017D5C4;
+    stateHandlers = _gMistR21RoomTaskStates;
     stateHandlers.funcs[task->state](task);
 }
 

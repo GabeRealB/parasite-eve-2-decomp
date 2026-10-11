@@ -77,3 +77,4 @@ _neoArkNorthPromenadeRoomIdleState = 0x8017d6c0; // type:func
 _neoArkNorthPromenadeInitializeRoom = 0x8017d67c; // type:func
 neoArkNorthPromenadeRoomTask = 0x8017d6c8; // type:func
 _neoArkNorthPromenadeResolveRoomTransition = 0x8017d5d8; // type:func
+_gNeoArkNorthPromenadeRoomTaskStates = 0x8017d5c4;

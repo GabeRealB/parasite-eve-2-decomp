@@ -10,3 +10,4 @@ _mistR21IdleAuxiliaryTask = 0x8017d760; // type:func
 _mistR21InitializeRoomTask = 0x8017d61c; // type:func
 _mistR21CheckPlazaReloadShortcut = 0x8017d678; // type:func
 mistR21RoomTask = 0x8017d708; // type:func
+_gMistR21RoomTaskStates = 0x8017d5c4;

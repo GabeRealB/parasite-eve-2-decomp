@@ -396,7 +396,7 @@ static void _dryfieldWarehouseInitializeRoomTask(Task* task)
 {
     enum { WAREHOUSE_AMBIENCE_TASK = 1 };
 
-    task->msgTable = D_dryfield_warehouse_8017F554;
+    task->msgTable = gDryfieldWarehouseRoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     taskSpawnFromTable(gDryfieldWarehouseRoomTaskDescs, WAREHOUSE_AMBIENCE_TASK, 0, 0);
     task->state = task->state + 1;

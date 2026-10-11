@@ -27,23 +27,15 @@
 
 #include "mapui/map_neo_ark.h"
 
-/// The room's own `TaskMessageEntry[]` - the message table this task publishes.
-extern TaskMessageEntry D_neo_ark_altar_8017EF98[];
-
-/// Single-entry spawn table for the altar's cutscene-driver task
-/// (`_neoArkAltarSwitchSceneTask`).
-extern TaskDesc D_neo_ark_altar_8017EF8C;
-
 static void _neoArkAltarInitializeRoomTask(Task* task);
 static void _neoArkAltarRoomIdleState(Task* unusedTask);
 
-/// State table of the room's message task: set-up
-/// (`_neoArkAltarInitializeRoomTask`), an empty per-frame state and `taskKill`.
-/// Its bytes open the room's rodata, ahead of the cutscene driver's jump table.
-static const TaskFuncTable3 D_neo_ark_altar_8017D5C4 = {
-    _neoArkAltarInitializeRoomTask,
-    _neoArkAltarRoomIdleState,
-    taskKill,
+/// Altar room callbacks: 0 register/restore switch/start tile puzzle, 1 idle, 2 release.
+///
+/// Dispatch copies three pointers and requires `Task::state` in 0..2. No bounds
+/// check or terminator; retain the room and callbacks through task teardown.
+static const TaskFuncTable3 _gNeoArkAltarRoomTaskStates = {
+    { _neoArkAltarInitializeRoomTask, _neoArkAltarRoomIdleState, taskKill },
 };
 
 static void _neoArkAltarSwitchSceneTask(Task* task);
@@ -52,9 +44,22 @@ static s32  _neoArkAltarResolveRoomVariant(Task* unusedTask, s32 unusedMessageId
 static s32  _neoArkAltarIgnoreRoomCommand(Task* unusedTask, s32 unusedMessageId, s32 unusedCommandId, s32 unusedCommandArg);
 static s32  _neoArkAltarHandleActionMessage(Task* unusedTask, s32 unusedMessageId, const DirectionActionRequest* request, s32 unusedSecondArg);
 
-TaskDesc D_neo_ark_altar_8017EF8C = { { { TASK_BODY_NONE, 32 } }, _neoArkAltarSwitchSceneTask, { .value = 0 } };
+enum { NEO_ARK_ALTAR_SWITCH_SCENE_TASK_PRIORITY = 32 };
 
-TaskMessageEntry D_neo_ark_altar_8017EF98[5] = {
+/// Bodyless priority-32 recipe for the altar switch choice and its movie sequence.
+///
+/// One descriptor, addressed at index 0 with zero spawn arguments; no terminator.
+/// Spawning copies the recipe. Its callback borrows altar/CAP/movie resources
+/// until the task restores presentation and releases itself.
+static TaskDesc _gNeoArkAltarSwitchSceneTaskDesc = {
+    { { TASK_BODY_NONE, NEO_ARK_ALTAR_SWITCH_SCENE_TASK_PRIORITY } }, _neoArkAltarSwitchSceneTask, { .value = 0 }
+};
+
+/// Altar transition, key-item refusal, switch-action and ignored command handlers, then END.
+///
+/// The room task borrows five records and their callback code until teardown.
+/// TASK_MESSAGE_TABLE_END makes unsupported IDs return zero.
+static const TaskMessageEntry _gNeoArkAltarRoomMessages[5] SECTION(".data") = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _neoArkAltarResolveRoomVariant },
     { ROOM_MESSAGE_USE_KEY_ITEM, _neoArkAltarRejectKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, _neoArkAltarHandleActionMessage },
@@ -152,7 +157,7 @@ static void _neoArkAltarSwitchSceneTask(Task* task)
         case NEO_ARK_ALTAR_SWITCH_COMMIT_CHOICE:
             if ((gameFlagGetNibble(GAME_FLAG_NEO_ARK_ALTAR_0F9) == 0) && (gameFlagGetNibble(GAME_FLAG_NEO_ARK_POWER_PLANT_2_CLEARED) == 0)) {
                 gameFlagSetNibble(GAME_FLAG_NEO_ARK_ALTAR_0F9, 1);
-                areaApplySavedUpdates(D_neo_ark_altar_801800A0);
+                areaApplySavedUpdates(gNeoArkAltarFirstSwitchAreaUpdates);
             }
             sndEvtRequestScriptStart(SOUND_NEO_ARK_ALTAR_SWITCH_TOGGLE, 0, 0);
             task->killCountdown = NEO_ARK_ALTAR_SWITCH_ANIMATION_FRAMES;
@@ -232,7 +237,7 @@ static s32 _neoArkAltarHandleActionMessage(Task* unusedTask, s32 unusedMessageId
         if (gGameSession->location.loc.room == request->actionId) {
             capRunCommandWithTransition(NEO_ARK_ALTAR_ROOM_1_CAP_COMMAND);
         } else {
-            taskSpawnFromTable(&D_neo_ark_altar_8017EF8C, 0, 0, 0);
+            taskSpawnFromTable(&_gNeoArkAltarSwitchSceneTaskDesc, 0, 0, 0);
         }
     }
     return 0;
@@ -246,10 +251,10 @@ static s32 _neoArkAltarHandleActionMessage(Task* unusedTask, s32 unusedMessageId
 /// the registered room-task pointer remains borrowed through normal teardown.
 static void _neoArkAltarInitializeRoomTask(Task* task)
 {
-    task->msgTable = D_neo_ark_altar_8017EF98;
+    task->msgTable = _gNeoArkAltarRoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     neoArkAltarStepSwitchSprites(gameFlagGetNibble(GAME_FLAG_NEO_ARK_ALTAR_SWITCH_STATE) & 0xFF);
-    taskSpawnFromTable(D_neo_ark_altar_8017F088, 0, 0, 0);
+    taskSpawnFromTable(&gNeoArkAltarTileSequenceTaskDesc, 0, 0, 0);
     task->state = (s32)(task->state + 1);
 }
 
@@ -264,6 +269,6 @@ void neoArkAltarRoomTask(Task* task)
 {
     TaskFuncTable3 handlers;
 
-    handlers = D_neo_ark_altar_8017D5C4;
+    handlers = _gNeoArkAltarRoomTaskStates;
     handlers.funcs[task->state](task);
 }

@@ -58,9 +58,11 @@
 static void _neoArkNorthPromenadeInitializeRoom(Task* task);
 static void _neoArkNorthPromenadeRoomIdleState(Task* task);
 
-/// State table of the room's message-driven task, indexed by `Task::state`:
-/// install the message table, idle, then kill the task.
-static const TaskFuncTable3 D_neo_ark_north_promenade_8017D5C4 = {
+/// North promenade room callbacks: 0 register, 1 idle, 2 release.
+///
+/// Three pointers copied for unchecked `Task::state` dispatch in 0..2; no
+/// terminator. Keep this room's callback code loaded until the task exits.
+static const TaskFuncTable3 _gNeoArkNorthPromenadeRoomTaskStates = {
     { _neoArkNorthPromenadeInitializeRoom, _neoArkNorthPromenadeRoomIdleState, taskKill },
 };
 
@@ -609,7 +611,7 @@ void neoArkNorthPromenadeRoomTask(Task* task)
 {
     TaskFuncTable3 handlers;
 
-    handlers = D_neo_ark_north_promenade_8017D5C4;
+    handlers = _gNeoArkNorthPromenadeRoomTaskStates;
     handlers.funcs[task->state](task);
 }
 

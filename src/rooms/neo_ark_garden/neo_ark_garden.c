@@ -49,8 +49,6 @@ s32     rcos(s32);
 s32     rsin(s32);
 MATRIX* TransposeMatrix(MATRIX*, MATRIX*);
 
-extern AreaApplyRec D_neo_ark_garden_80182BF8[];
-
 /// Placement-entry keys and decimal file numbers for this room's resource recipes.
 enum {
     NEO_ARK_GARDEN_RESOURCE_BLACK_BEETLE = 38,
@@ -161,10 +159,17 @@ WorldCollisionSurfaceProperties* gNeoArkGardenSurfacePropertiesByClass[8] = {
     &_gNeoArkGardenDefaultSurfaceProperties,
 };
 
-AreaApplyRec D_neo_ark_garden_80182BF8[3] = {
-    { 5, 11, 2, 1 },
-    { 5, 27, 2, 1 },
-    { 255, 0, 0, 0 },
+enum { NEO_ARK_GARDEN_AREA_MAP_MARK_SET = 1 };
+
+/// Forest and bridge saved-area updates on the garden's first command-4 event.
+///
+/// Applies only while the first altar sequence is unsolved. Two updates plus
+/// AREA_APPLY_END select layout 2, discard saved enemy poses and set map marks
+/// in every mode. The synchronous apply call borrows these room-owned records.
+static const AreaApplyRec _gNeoArkGardenCommand4AreaUpdates[3] SECTION(".data") = {
+    { GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_FOREST_ZONE, 2, AREA_APPLY_MODE_ALWAYS | NEO_ARK_GARDEN_AREA_MAP_MARK_SET },
+    { GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_BRIDGE, 2, AREA_APPLY_MODE_ALWAYS | NEO_ARK_GARDEN_AREA_MAP_MARK_SET },
+    { AREA_APPLY_END, 0, 0, 0 },
 };
 
 static void _neoArkGardenInitializeRoom(Task* task);
@@ -218,7 +223,7 @@ s32 neoArkGardenHandleCommand(Task* unusedTask, s32 unusedMessageId, s32 command
         capRunCommandWithTransition(gameFlagGetNibble(GAME_FLAG_141) != 0 ? NEO_ARK_GARDEN_CAP_AREA_UPDATE_ALTERNATE : NEO_ARK_GARDEN_COMMAND_AREA_UPDATE);
         if ((gameFlagGetNibble(GAME_FLAG_NEO_ARK_GARDEN_0FA) == 0) && (gameFlagGetNibble(GAME_FLAG_NEO_ARK_ALTAR_SEQUENCE_1_SOLVED) == 0)) {
             gameFlagSetNibble(GAME_FLAG_NEO_ARK_GARDEN_0FA, NEO_ARK_GARDEN_AREA_UPDATES_APPLIED);
-            areaApplySavedUpdates(D_neo_ark_garden_80182BF8);
+            areaApplySavedUpdates(_gNeoArkGardenCommand4AreaUpdates);
         }
     }
     if (commandId == NEO_ARK_GARDEN_COMMAND_7) {
@@ -266,8 +271,11 @@ static void _neoArkGardenRoomIdleState(Task* unusedTask)
     char stackFrame[0x10];
 }
 
-/// State handlers of the room's entry task: set-up, idle, then kill.
-static const TaskFuncTable3 D_neo_ark_garden_8017D614 = {
+/// Garden room callbacks: 0 register/conditional arrival scene, 1 idle, 2 release.
+///
+/// Dispatch copies all three callbacks and requires `Task::state` in 0..2.
+/// No bounds check or terminator; keep the room loaded through task teardown.
+static const TaskFuncTable3 _gNeoArkGardenRoomTaskStates = {
     { _neoArkGardenInitializeRoom, _neoArkGardenRoomIdleState, taskKill }
 };
 
@@ -275,6 +283,6 @@ void neoArkGardenRoomTask(Task* task)
 {
     TaskFuncTable3 handlers;
 
-    handlers = D_neo_ark_garden_8017D614;
+    handlers = _gNeoArkGardenRoomTaskStates;
     handlers.funcs[task->state](task);
 }

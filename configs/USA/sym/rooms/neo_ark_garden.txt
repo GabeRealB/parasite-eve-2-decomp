@@ -1,5 +1,5 @@
 // Overlay-local symbols for neo_ark_garden.
-D_neo_ark_garden_80182BF8 = 0x80182BF8; // size:0xC defined:True
+_gNeoArkGardenCommand4AreaUpdates = 0x80182BF8; // size:0xC defined:True
 _gNeoArkGardenStarPosition = 0x801813D8; // size:0x8 defined:True
 _gNeoArkGardenAmbiencePositions = 0x801813E0; // size:0x20 defined:True
 gNeoArkGardenAreaVariants = 0x80182B54; // size:0x68 defined:True
@@ -74,3 +74,4 @@ neoArkGardenRoomTask = 0x8017ea44; // type:func
 neoArkGardenResolveTransition = 0x8017e848; // type:func
 neoArkGardenHandleCommand = 0x8017e8dc; // type:func
 _neoArkGardenInitializeRoom = 0x8017e9b4; // type:func
+_gNeoArkGardenRoomTaskStates = 0x8017d614;

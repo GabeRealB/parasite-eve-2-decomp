@@ -54,7 +54,12 @@ extern Task* gNeoArkForestZoneRoamerPoolBTask;
 /// script, payloads and clip resources must remain loaded through execution.
 extern EvsCommand gNeoArkForestZoneFirstVisitScript[23];
 
-extern TaskDesc D_neo_ark_forest_zone_80182E18;
+/// Bodyless priority-32 recipe for the forest's roaming-enemy pool-B controller.
+///
+/// Address this single descriptor at index 0 with zero spawn arguments; there
+/// is no terminator. The spawned controller shares the room's reserve/cooldown
+/// storage and borrows its placements, callbacks and enemy resources through exit.
+extern TaskDesc gNeoArkForestZoneRoamerPoolBTaskDesc;
 
 // Callbacks referenced by the overlay's shared data tables.
 

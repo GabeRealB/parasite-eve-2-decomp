@@ -27101,7 +27101,7 @@ splat's `migrate_rodata_to_functions` attaches each rodata symbol to the
 function that *references* it, and writes that function's whole entry -
 `.rodata` included - as one `.s`. So a room's dispatch table is owned by the
 unit whose code reads it, not by the unit whose `.rodata` subsegment holds it:
-`D_neo_ark_altar_8017D648` sits in `neo_ark_altar_5`'s rodata subsegment but
+`_gNeoArkAltarTileSequenceTaskStates` sits in `neo_ark_altar_5`'s rodata subsegment but
 was written into `_neoArkAltarTileSequenceTask.s` because that function loads
 it. Match that function and the file moves to
 `asm/<ver>/<family>/matchings/<overlay>/<unit>/`, which nothing assembles: the
@@ -49402,7 +49402,7 @@ prototype from the shared header (`main/session.h` here) and pass the pointer:
 ```c
 static void _dryfieldWarehouseInitializeRoomTask(Task* task)
 {
-    task->msgTable = D_dryfield_warehouse_8017F554;
+    task->msgTable = gDryfieldWarehouseRoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     ...
 }

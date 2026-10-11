@@ -26,10 +26,6 @@
 #include "../../shared/room_variants.h"
 static s32 _toiletSoundMsg(Task* unusedTask, s32 unusedMessageId, s32 cueKey, s32 unusedSecondArg);
 
-/// The four-byte payload the room task's entry state broadcasts to the scene's
-/// actors.
-extern s32 D_dryfield_toilet_801802D4;
-
 static void _dryfieldToiletInitRoom(Task* task);
 static void _dryfieldToiletIdleRoom(Task* unusedTask);
 
@@ -67,7 +63,17 @@ static const TaskMessageEntry _gDryfieldToiletRoomMessages[6] SECTION(".data") =
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-s32 D_dryfield_toilet_801802D4 = 4098;
+enum { DRYFIELD_TOILET_ACTOR_COMMAND_PREPARE_ENCOUNTER = 0 };
+
+/// Prepares the placed actors for the unseen toilet encounter.
+///
+/// Command 0 shows the scripted woman and hides the Odd Stranger in the
+/// Dryfield/toilet namespace. The scene borrows all four bytes synchronously;
+/// the record remains room-owned and retains its original word alignment.
+static const ActorCommand _gDryfieldToiletPrepareEncounterActorsCommand __attribute__((aligned(4))) SECTION(".data") = {
+    .context = { .loc = { GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_TOILET } },
+    .command = DRYFIELD_TOILET_ACTOR_COMMAND_PREPARE_ENCOUNTER,
+};
 
 /// Q12 room-space normal restored into the room grid's reserved event face.
 static SVECTOR _gDryfieldToiletEventCollisionTemplateNormals[1] = {
@@ -240,7 +246,7 @@ static void _dryfieldToiletInitRoom(Task* task)
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     if (gameFlagGetNibble(GAME_FLAG_TOILET_EVENT_SEEN) == 0 && gGameSession->location.loc.variant == DRYFIELD_TOILET_EVENT_VARIANT) {
         // Prepare placed actors before installing the event's collision face.
-        TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &D_dryfield_toilet_801802D4, ACTOR_COMMAND_MESSAGE_APPLY);
+        TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &_gDryfieldToiletPrepareEncounterActorsCommand, ACTOR_COMMAND_MESSAGE_APPLY);
         _dryfieldToiletInitEventCollision();
     }
     task->state = task->state + 1;

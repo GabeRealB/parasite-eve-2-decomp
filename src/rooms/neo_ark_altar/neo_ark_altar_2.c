@@ -101,9 +101,6 @@ typedef struct {
 } _NeoArkAltarTileSequenceWork;
 STATIC_ASSERT_SIZEOF(_NeoArkAltarTileSequenceWork, 0x10);
 
-extern _NeoArkAltarTile D_neo_ark_altar_8017EFD8[];
-extern AreaApplyRec     D_neo_ark_altar_8018007C[];
-
 static void _neoArkAltarDrawTileWallSide(const SVECTOR* floorStart, const SVECTOR* floorEnd, const SVECTOR* raisedStart, const SVECTOR* unusedRaisedEnd);
 static s16  _neoArkAltarFindTile(const _NeoArkAltarTile* table, s16 x, s16 z);
 static s16  _neoArkAltarEvaluateTileSequence(Task* task);
@@ -122,7 +119,13 @@ TaskDesc gNeoArkAltarMovieTaskDescs[2] = {
     { { { TASK_BODY_NONE, 192 } }, _neoArkAltarPlayMovieTask, { .value = 0 } },
 };
 
-_NeoArkAltarTile D_neo_ark_altar_8017EFD8[5] = {
+/// Inclusive world-space walk-on rectangles for altar pads 1..4, followed by END.
+///
+/// Player root X/Z, narrowed to signed halfwords, is tested in table order.
+/// All pads are 700 units wide; pads 3/4 are 750 units deep, extending beyond
+/// their separate 700-unit wall footprints. The fifth rectangle is not tested.
+/// The tile controller borrows this read-only room-owned table through its life.
+static const _NeoArkAltarTile _gNeoArkAltarWalkOnRectangles[5] SECTION(".data") = {
     { 8640, -9840, 700, 700, 1, 0 },
     { 8640, -5830, 700, 700, 2, 0 },
     { 0x2C9C, -9870, 700, 750, 3, 0 },
@@ -185,8 +188,10 @@ static s16 _gNeoArkAltarSecondTileSolution[16] = {
     4,
 };
 
-TaskDesc D_neo_ark_altar_8017F088[1] = {
-    { { { TASK_BODY_NONE, 32 } }, _neoArkAltarTileSequenceTask, { .value = 0 } },
+enum { NEO_ARK_ALTAR_TILE_SEQUENCE_TASK_PRIORITY = 32 };
+
+TaskDesc gNeoArkAltarTileSequenceTaskDesc = {
+    { { TASK_BODY_NONE, NEO_ARK_ALTAR_TILE_SEQUENCE_TASK_PRIORITY } }, _neoArkAltarTileSequenceTask, { .value = 0 }
 };
 
 WorldCollisionRoomResources gNeoArkAltarRoomCollisionResources[3] = {
@@ -612,22 +617,31 @@ WorldCollisionSurfaceProperties* gNeoArkAltarSurfaceProperties[8] = {
     &_gNeoArkAltarSilentSurfaceProperties,
 };
 
-AreaApplyRec D_neo_ark_altar_8018007C[9] = {
-    { 5, 11, 3, 1 },
-    { 5, 13, 3, 1 },
-    { 5, 15, 3, 1 },
-    { 5, 27, 3, 17 },
-    { 5, 27, 11, 33 },
-    { 5, 29, 2, 1 },
-    { 5, 32, 2, 16 },
-    { 5, 32, 11, 33 },
-    { 255, 0, 0, 0 },
+enum { NEO_ARK_ALTAR_AREA_MAP_MARK_CLEAR = 0,
+       NEO_ARK_ALTAR_AREA_MAP_MARK_SET   = 1 };
+
+/// Saved-area layout and map-mark updates after solving the first altar sequence.
+///
+/// Eight updates plus AREA_APPLY_END. Forest, pavilion, garden and woodland
+/// updates apply in every mode; bridge and pyramid have separate mode policies.
+/// Pyramid's replay/Scavenger update clears its mark. Applying a layout discards
+/// that area's saved enemy poses; the synchronous walk borrows these records.
+static const AreaApplyRec _gNeoArkAltarFirstSequenceAreaUpdates[9] SECTION(".data") = {
+    { GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_FOREST_ZONE, 3, AREA_APPLY_MODE_ALWAYS | NEO_ARK_ALTAR_AREA_MAP_MARK_SET },
+    { GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_PAVILION, 3, AREA_APPLY_MODE_ALWAYS | NEO_ARK_ALTAR_AREA_MAP_MARK_SET },
+    { GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_GARDEN, 3, AREA_APPLY_MODE_ALWAYS | NEO_ARK_ALTAR_AREA_MAP_MARK_SET },
+    { GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_BRIDGE, 3, AREA_APPLY_MODE_REPLAY_SCAVENGER | NEO_ARK_ALTAR_AREA_MAP_MARK_SET },
+    { GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_BRIDGE, 11, AREA_APPLY_MODE_BOUNTY_NIGHTMARE | NEO_ARK_ALTAR_AREA_MAP_MARK_SET },
+    { GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_WOODLAND_PATH, 2, AREA_APPLY_MODE_ALWAYS | NEO_ARK_ALTAR_AREA_MAP_MARK_SET },
+    { GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_PYRAMID, 2, AREA_APPLY_MODE_REPLAY_SCAVENGER | NEO_ARK_ALTAR_AREA_MAP_MARK_CLEAR },
+    { GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_PYRAMID, 11, AREA_APPLY_MODE_BOUNTY_NIGHTMARE | NEO_ARK_ALTAR_AREA_MAP_MARK_SET },
+    { AREA_APPLY_END, 0, 0, 0 },
 };
 
-AreaApplyRec D_neo_ark_altar_801800A0[3] = {
-    { 5, 17, 2, 1 },
-    { 5, 18, 3, 1 },
-    { 255, 0, 0, 0 },
+const AreaApplyRec gNeoArkAltarFirstSwitchAreaUpdates[3] SECTION(".data") = {
+    { GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_POWER_PLANT_1, 2, AREA_APPLY_MODE_ALWAYS | NEO_ARK_ALTAR_AREA_MAP_MARK_SET },
+    { GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_SAVANNA_ZONE, 3, AREA_APPLY_MODE_ALWAYS | NEO_ARK_ALTAR_AREA_MAP_MARK_SET },
+    { AREA_APPLY_END, 0, 0, 0 },
 };
 
 /// Number of recorded no-tile-to-tile entries in the current altar sequence.
@@ -930,7 +944,7 @@ static void _neoArkAltarTrackTileSequence(Task* task)
     work->previousTile = work->currentTile;
     raiseWalls         = 0;
     playerRoot         = playerTask->extra.tmd->coords;
-    currentTile        = _neoArkAltarFindTile(D_neo_ark_altar_8017EFD8, (s16)playerRoot->coord.t[0], (s16)playerRoot->coord.t[2]);
+    currentTile        = _neoArkAltarFindTile(_gNeoArkAltarWalkOnRectangles, (s16)playerRoot->coord.t[0], (s16)playerRoot->coord.t[2]);
     previousTile       = work->previousTile;
     work->currentTile  = currentTile;
     // Record only entry from outside a tile, not a direct tile-to-tile crossing.
@@ -948,7 +962,7 @@ static void _neoArkAltarTrackTileSequence(Task* task)
             sndEvtRequestScriptStop(SOUND_AREA(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_ALTAR, NEO_ARK_ALTAR_FIRST_SOLVED_STOP_SOUND_ENTRY), SOUND_SCRIPT_STOP_NO_FADE);
             sndEvtRequestScriptStart(SOUND_NEO_ARK_ALTAR_SEQUENCE_1_SOLVED, 0, 0);
             capRunCommandWithTransition(NEO_ARK_ALTAR_FIRST_SOLVED_CAP_COMMAND);
-            areaApplySavedUpdates(D_neo_ark_altar_8018007C);
+            areaApplySavedUpdates(_gNeoArkAltarFirstSequenceAreaUpdates);
             break;
         case NEO_ARK_ALTAR_SEQUENCE_SECOND_SOLVED:
             gameFlagSetNibble(GAME_FLAG_NEO_ARK_ALTAR_SEQUENCE_2_SOLVED, 1);
@@ -1319,20 +1333,22 @@ static s16 _neoArkAltarFindTile(const _NeoArkAltarTile* table, s16 x, s16 z)
     return NEO_ARK_ALTAR_TILE_NONE;
 }
 
-/// State handlers of the altar task, dispatched by
-/// `_neoArkAltarTileSequenceTask` off `Task::state`: allocation and set-up,
-/// a short wait, the tile sequence (`_neoArkAltarTrackTileSequence`), then, once
-/// the sequence completes, a fade-out, a spawn from `gNeoArkAltarMovieTaskDescs`
-/// and a view change before control returns to the tile sequence.
-static const TaskFuncTable8 D_neo_ark_altar_8017D648 = {
-    _neoArkAltarInitializeTileSequence,
-    _neoArkAltarWaitForTileSequence,
-    _neoArkAltarTrackTileSequence,
-    _neoArkAltarBeginSequenceMovieFade,
-    _neoArkAltarFadeToBlack,
-    _neoArkAltarStartSequenceMovie,
-    _neoArkAltarSelectPostSequenceRoom,
-    _neoArkAltarResumeTileSequence,
+/// Altar tile-controller callbacks for puzzle tracking and its second-solution movie.
+///
+/// States 0..7 initialize, wait, track, hold the player, fade, launch the movie,
+/// select the post-movie room and resume tracking at state 2. All eight pointers
+/// are copied for unchecked dispatch; callback and room storage must remain live.
+static const TaskFuncTable8 _gNeoArkAltarTileSequenceTaskStates = {
+    {
+        _neoArkAltarInitializeTileSequence,
+        _neoArkAltarWaitForTileSequence,
+        _neoArkAltarTrackTileSequence,
+        _neoArkAltarBeginSequenceMovieFade,
+        _neoArkAltarFadeToBlack,
+        _neoArkAltarStartSequenceMovie,
+        _neoArkAltarSelectPostSequenceRoom,
+        _neoArkAltarResumeTileSequence,
+    },
 };
 
 /// Runs the altar's tile puzzle and its second-sequence movie transition.
@@ -1344,7 +1360,7 @@ static const TaskFuncTable8 D_neo_ark_altar_8017D648 = {
 /// normal task teardown; an allocation failure may kill the task during dispatch.
 static void _neoArkAltarTileSequenceTask(Task* task)
 {
-    TaskFuncTable8 stateHandlers = D_neo_ark_altar_8017D648;
+    TaskFuncTable8 stateHandlers = _gNeoArkAltarTileSequenceTaskStates;
 
     stateHandlers.funcs[task->state](task);
 }

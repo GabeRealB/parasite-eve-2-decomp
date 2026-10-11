@@ -83,9 +83,6 @@ STATIC_ASSERT_SIZEOF(_MineRefugePromptViewStorage, 4);
 
 /// View saved when the cutscene starts and restored when it ends.
 
-/// Message table of the room's message task.
-extern TaskMessageEntry D_mine_refuge_80181884[];
-
 /// The cutscene's sound task, killed when the scene is skipped.
 extern Task* gRoomCutsceneSoundTask;
 
@@ -149,7 +146,12 @@ static TaskDesc _gRoomCutsceneTaskDescs[ROOM_CUTSCENE_TASK_DESCRIPTOR_COUNT] = {
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
-TaskMessageEntry D_mine_refuge_80181884[6] = {
+/// Refuge transition, key-item, circuit-panel, cutscene-command and sound handlers, then END.
+///
+/// Six ordered records are borrowed by the live room receiver. Payloads follow
+/// each message's contract; the final TASK_MESSAGE_TABLE_END returns zero for
+/// unsupported IDs. Keep this overlay and its callbacks loaded until teardown.
+static const TaskMessageEntry _gMineRefugeRoomMessages[6] SECTION(".data") = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _mineRefugeResolveRoomEventMsg },
     { ROOM_MESSAGE_USE_KEY_ITEM, _mineRefugeUseKeyItemMsg },
     { DIRECTION_MESSAGE_ROOM_ACTION, _mineRefugeCircuitPanelActionMsg },
@@ -623,9 +625,11 @@ void mineRefugeTelephoneMenuTask(Task* task)
 
 #include "../../shared/room_cutscene_task.inc.c"
 
-/// States of the room's message task, run by `mineRefugeRoomTask`:
-/// install the message table, idle, die.
-static const TaskFuncTable3 D_mine_refuge_8017D6A4 = {
+/// Refuge room callbacks: 0 register/music/CAP sound setup, 1 idle, 2 release.
+///
+/// Dispatch copies all three callbacks and requires `Task::state` in 0..2.
+/// No terminator or bounds check; keep the room overlay loaded through exit.
+static const TaskFuncTable3 _gMineRefugeRoomTaskStates = {
     {
         _mineRefugeInitRoomTask,
         _mineRefugeIdleRoomTask,
@@ -910,7 +914,7 @@ static void _mineRefugeInitRoomTask(Task* task)
         MINE_REFUGE_CAP_COMPLETION_SOUNDS_ENABLED = 1,
     };
 
-    task->msgTable = D_mine_refuge_80181884;
+    task->msgTable = _gMineRefugeRoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     _gMineRefugeCircuitPanelTask    = NULL;
     gStageCountdownMusicEntry       = MINE_REFUGE_SCENE_MUSIC_ENTRY;
@@ -929,7 +933,7 @@ void mineRefugeRoomTask(Task* task)
 {
     TaskFuncTable3 stateHandlers;
 
-    stateHandlers = D_mine_refuge_8017D6A4;
+    stateHandlers = _gMineRefugeRoomTaskStates;
     stateHandlers.funcs[task->state](task);
 }
 

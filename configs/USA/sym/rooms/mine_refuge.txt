@@ -37,7 +37,7 @@ _gTelephoneMenuRowCallbacks = 0x8018182C; // size:0x10 defined:True
 _gTelephoneMenuList = 0x8018183C; // size:0x24 defined:True
 gAcropolisSquarePostCutsceneAreaUpdates = 0x80188888; // absolute:True owner=acropolis_square
 _gRoomCutsceneTaskDescs = 0x80181860; // size:0x24 defined:True
-D_mine_refuge_80181884 = 0x80181884; // size:0x30 defined:True
+_gMineRefugeRoomMessages = 0x80181884; // size:0x30 defined:True
 _gMineRefugeSceneTaskDescs = 0x801818B4; // size:0x24 defined:True
 _gMineRefugePoweredPanelGlowPosition = 0x801818E8; // size:0x8 defined:True
 gMineRefugeRoomLighting = 0x801818F0; // size:0x8 defined:True
@@ -119,3 +119,4 @@ _mineRefugeRoomCommandMsg = 0x8017fc2c; // type:func
 _mineRefugeCircuitPanelActionMsg = 0x8017fcd0; // type:func
 _mineRefugeInitRoomTask = 0x8017ff4c; // type:func
 mineRefugeRoomTask = 0x8017ffbc; // type:func
+_gMineRefugeRoomTaskStates = 0x8017d6a4;

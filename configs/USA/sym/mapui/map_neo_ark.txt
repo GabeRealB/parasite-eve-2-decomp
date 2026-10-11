@@ -162,7 +162,7 @@ neoArkSavannaZoneRoomTask = 0x8017D954; // type:func absolute:True owner=neo_ark
 gNeoArkSavannaZoneRoomCollisionResources = 0x8017F9E4; // absolute:True owner=neo_ark_savanna_zone
 gNeoArkSavannaZoneRoomLighting = 0x8017F9F4; // absolute:True owner=neo_ark_savanna_zone
 gNeoArkSavannaZoneViewMaps = 0x8017F9FC; // absolute:True owner=neo_ark_savanna_zone
-gNeoArkSavannaZoneViewCounts = 0x8017FA00; // absolute:True owner=neo_ark_savanna_zone shared=rooms
+gNeoArkSavannaZoneViewCounts = 0x8017FA00; // absolute:True owner=neo_ark_savanna_zone
 gNeoArkSavannaZoneWarpEntries = 0x8017FA04; // absolute:True owner=neo_ark_savanna_zone
 gNeoArkSavannaZoneViewCameras = 0x8017FBF4; // absolute:True owner=neo_ark_savanna_zone
 gNeoArkSavannaZoneSpriteViews = 0x801803F4; // absolute:True owner=neo_ark_savanna_zone shared=rooms

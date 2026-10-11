@@ -43,13 +43,14 @@ static void _mineSecretPassageInitRoomTask(Task* task);
 static void _mineSecretPassageTryIntroEvent(Task* task);
 static void _mineSecretPassageIdleRoomTask(Task* unusedTask);
 
-/// State handlers of the room task `mineSecretPassageRoomTask` drives:
-/// set-up, the one-shot state, the idle state and `taskKill`.
-static const TaskFuncTable4 D_mine_secret_passage_8017D5C4 = {
-    _mineSecretPassageInitRoomTask,
-    _mineSecretPassageTryIntroEvent,
-    _mineSecretPassageIdleRoomTask,
-    taskKill,
+/// Passage room callbacks: 0 register/music, 1 attempt the intro, 2 idle, 3 release.
+///
+/// The intro state consumes its one-shot gate even if playback cannot start.
+/// Dispatch copies four pointers and requires Task::state in 0..3 without a
+/// bounds check or terminator; callbacks borrow the loaded room through exit.
+static const TaskFuncTable4 _gMineSecretPassageRoomTaskStates = {
+    { _mineSecretPassageInitRoomTask, _mineSecretPassageTryIntroEvent,
+      _mineSecretPassageIdleRoomTask, taskKill },
 };
 
 /// Starts the persistent subtractive departure fade and exit-transit sound.
@@ -232,6 +233,6 @@ static void _mineSecretPassageIdleRoomTask(Task* unusedTask)
 
 void mineSecretPassageRoomTask(Task* task)
 {
-    TaskFuncTable4 stateHandlers = D_mine_secret_passage_8017D5C4;
+    TaskFuncTable4 stateHandlers = _gMineSecretPassageRoomTaskStates;
     stateHandlers.funcs[task->state](task);
 }

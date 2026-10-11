@@ -18,6 +18,7 @@
 #include "gameplay/actor_presentation.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
+#include "gameplay/display.h"
 #include "gameplay/effect_tasks.h"
 #include "gameplay/enemy.h"
 #include "gameplay/evs.h"
@@ -56,12 +57,6 @@
 #include "../../shared/glow_draw.h"
 #include "../../shared/actor_messages.h"
 
-/// Two-entry `TaskDesc` table `_mineForkedTunnelInitAreaObject` spawns the
-/// child part from; `taskSpawnFromTable` picks entry 1.
-extern TaskDesc D_mine_forked_tunnel_80181B74[];
-
-extern TaskMessageEntry D_mine_forked_tunnel_80181B8C[3];
-
 /// Work block of the room's area object, the model the switch event sends
 /// rolling down the tunnel slope; allocated zeroed and kept at `Task::work`.
 ///
@@ -74,10 +69,6 @@ typedef struct {
     s32    freeCountdown; // frames until the hidden model's primitive buffers are freed, releasing them when it reaches 0 (-1 idle)
 } _MineForkedTunnelAreaObjectWork;
 STATIC_ASSERT_SIZEOF(_MineForkedTunnelAreaObjectWork, 0x48);
-
-extern TaskMessageEntry D_mine_forked_tunnel_80181C80[];
-extern EvsCommand       D_mine_forked_tunnel_801831AC[];
-extern EvsCommand       D_mine_forked_tunnel_801834F4[];
 
 static void _mineForkedTunnelInitAreaObject(Task* task);
 static void _mineForkedTunnelTickAreaObject(Task* task);
@@ -165,9 +156,11 @@ static const TaskFuncTable3 _gMineForkedTunnelAreaObjectChildStateHandlers = {
     { _mineForkedTunnelAttachAreaObjectChild, _mineForkedTunnelTiltAreaObjectChild, taskKill },
 };
 
-/// State table of the room's message-driven task, indexed by `Task::state`:
-/// set-up, an idle state, and `taskKill`.
-static const TaskFuncTable3 D_mine_forked_tunnel_8017D5DC = {
+/// Tunnel room callbacks: 0 register/music/board visibility, 1 idle, 2 release.
+///
+/// All three pointers are copied for unchecked `Task::state` dispatch. There is
+/// no terminator; keep this room's callback code loaded until the task exits.
+static const TaskFuncTable3 _gMineForkedTunnelRoomTaskStates = {
     { _mineForkedTunnelInitRoomTask, _mineForkedTunnelIdleRoomTask, taskKill },
 };
 
@@ -281,12 +274,28 @@ static SVECTOR _gMineForkedTunnelAreaObjectChildRotationPath[54] = {
 #include "assets/mine_forked_tunnel_motion_04404.inc"
 };
 
-TaskDesc D_mine_forked_tunnel_80181B74[2] = {
-    { { { TASK_BODY_TMD, 192 } }, mineForkedTunnelAreaObjectTask, { .model = &gMineForkedTunnelModel01B48 } },
-    { { { TASK_BODY_TMD, 192 } }, _mineForkedTunnelAreaObjectChildTask, { .model = &_gMineForkedTunnelModel03340 } },
+enum {
+    MINE_FORKED_TUNNEL_AREA_OBJECT_TASK_PARENT   = 0,
+    MINE_FORKED_TUNNEL_AREA_OBJECT_TASK_CHILD    = 1,
+    MINE_FORKED_TUNNEL_AREA_OBJECT_TASK_PRIORITY = 192,
 };
 
-TaskMessageEntry D_mine_forked_tunnel_80181B8C[3] = {
+/// TMD recipes for the rolling area-object parent (0) and its tilting child (1).
+///
+/// Both run at priority 192; there is no terminator. The child's spawnArg2
+/// borrows the live parent task, whose coordinate and lighting it shares.
+/// Spawning copies a recipe; model resources and callbacks remain room-owned.
+static TaskDesc _gMineForkedTunnelAreaObjectTaskDescs[2] = {
+    [MINE_FORKED_TUNNEL_AREA_OBJECT_TASK_PARENT] = { { { TASK_BODY_TMD, MINE_FORKED_TUNNEL_AREA_OBJECT_TASK_PRIORITY } }, mineForkedTunnelAreaObjectTask, { .model = &gMineForkedTunnelModel01B48 } },
+    [MINE_FORKED_TUNNEL_AREA_OBJECT_TASK_CHILD]  = { { { TASK_BODY_TMD, MINE_FORKED_TUNNEL_AREA_OBJECT_TASK_PRIORITY } }, _mineForkedTunnelAreaObjectChildTask, { .model = &_gMineForkedTunnelModel03340 } },
+};
+
+/// Draw-mode and motion-command handlers for the rolling area object, then END.
+///
+/// The parent task borrows these three records and callbacks until teardown.
+/// Draw requests carry an integer mode; commands borrow an ActorCommand whose
+/// context is ignored and whose command selects reset, child tilt, path or park.
+static const TaskMessageEntry _gMineForkedTunnelAreaObjectMessages[3] SECTION(".data") = {
     { ACTOR_MESSAGE_SET_MODEL_DRAW, _mineForkedTunnelSetAreaObjectDrawMode },
     { ACTOR_COMMAND_MESSAGE_APPLY, _mineForkedTunnelApplyAreaObjectCommand },
     { TASK_MESSAGE_TABLE_END, NULL },
@@ -367,7 +376,11 @@ static WorldCollisionGrid _gMineForkedTunnelAreaObjectCollisionBox = {
     .faceCount   = ARRAY_SIZE(_gMineForkedTunnelAreaObjectCollisionBoxFaces),
 };
 
-TaskMessageEntry D_mine_forked_tunnel_80181C80[5] = {
+/// Tunnel transition, key-item refusal, switch-action and board-command handlers, then END.
+///
+/// The room receiver borrows these five ordered records and callback code
+/// while loaded. TASK_MESSAGE_TABLE_END returns zero for unsupported IDs.
+static const TaskMessageEntry _gMineForkedTunnelRoomMessages[5] SECTION(".data") = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _mineForkedTunnelResolveRoomVariant },
     { MINE_FORKED_TUNNEL_MESSAGE_USE_KEY_ITEM, _mineForkedTunnelRejectKeyItemMessage },
     { DIRECTION_MESSAGE_ROOM_ACTION, _mineForkedTunnelHandleSwitchAction },
@@ -576,56 +589,78 @@ static ActorCommand _gMineForkedTunnelAreaObjectParkCommand = {
     .command = MINE_FORKED_TUNNEL_AREA_OBJECT_COMMAND_PARK,
 };
 
-EvsCommand D_mine_forked_tunnel_801831AC[35] = {
+/// Scene selectors and timing shared by the normal and skipped switch motion.
+enum {
+    MINE_FORKED_TUNNEL_SWITCH_SCENE_OBJECT_ID             = 55,
+    MINE_FORKED_TUNNEL_SWITCH_SCENE_CHILD_TILT_VIEW       = 6,
+    MINE_FORKED_TUNNEL_SWITCH_SCENE_PATH_START_VIEW       = 7,
+    MINE_FORKED_TUNNEL_SWITCH_SCENE_PATH_END_VIEW         = 2,
+    MINE_FORKED_TUNNEL_SWITCH_SCENE_RETURN_VIEW           = 3,
+    MINE_FORKED_TUNNEL_SWITCH_SCENE_SKIP_FADE_WAIT_FRAMES = 8,
+};
+
+/// Switch-motion scene: animate the player, tilt/roll/park the prop and restore presentation.
+///
+/// Installs the player's extension clips and sends four area-object commands
+/// in order. View cuts and frame waits synchronize sound and motion; END follows
+/// control/equipment restoration. All 35 commands, payloads and model/animation
+/// resources are borrowed through normal or skipped execution.
+static EvsCommand _gMineForkedTunnelSwitchSceneScript[35] = {
     { EVENT_SCRIPT_OPCODE_STOP_AREA_MUSIC, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_HIDE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &_gMineForkedTunnelSwitchSceneAnimationBankCopy } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gMineForkedTunnelSwitchScenePlayerClip49Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gMineForkedTunnelSwitchScenePlayerTransform } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = EVENT_SCRIPT_MESSAGE_TARGET_OTHER_SCENE_CHILD }, { .value = 55 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gMineForkedTunnelAreaObjectResetCommand } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 6 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = EVENT_SCRIPT_MESSAGE_TARGET_OTHER_SCENE_CHILD }, { .value = 55 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gMineForkedTunnelAreaObjectTiltChildCommand } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = EVENT_SCRIPT_MESSAGE_TARGET_OTHER_SCENE_CHILD }, { .value = MINE_FORKED_TUNNEL_SWITCH_SCENE_OBJECT_ID }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gMineForkedTunnelAreaObjectResetCommand } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = MINE_FORKED_TUNNEL_SWITCH_SCENE_CHILD_TILT_VIEW }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = EVENT_SCRIPT_MESSAGE_TARGET_OTHER_SCENE_CHILD }, { .value = MINE_FORKED_TUNNEL_SWITCH_SCENE_OBJECT_ID }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gMineForkedTunnelAreaObjectTiltChildCommand } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x54070003 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_MINE_FORKED_TUNNEL, 3) }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 7 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = MINE_FORKED_TUNNEL_SWITCH_SCENE_PATH_START_VIEW }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gMineForkedTunnelSwitchScenePlayerClip50Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x54070005 }, { .value = 0 }, { .value = 32 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = SOUND_MINE_FORKED_TUNNEL_OBJECT_MOVE }, { .value = 0 }, { .value = 32 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 20 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = EVENT_SCRIPT_MESSAGE_TARGET_OTHER_SCENE_CHILD }, { .value = 55 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gMineForkedTunnelAreaObjectStartPathCommand } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = EVENT_SCRIPT_MESSAGE_TARGET_OTHER_SCENE_CHILD }, { .value = MINE_FORKED_TUNNEL_SWITCH_SCENE_OBJECT_ID }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gMineForkedTunnelAreaObjectStartPathCommand } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 50 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = MINE_FORKED_TUNNEL_SWITCH_SCENE_PATH_END_VIEW }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gMineForkedTunnelSwitchScenePlayerClip48Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _mineForkedTunnelRestoreAreaObjectSoundMix }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 59 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = 0 }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_STOP_SOUND, { .value = 0x54070005 }, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = SCREEN_FADE_SUBTRACT }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_STOP_SOUND, { .value = SOUND_MINE_FORKED_TUNNEL_OBJECT_MOVE }, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_SECONDARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RESTORE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = EVENT_SCRIPT_MESSAGE_TARGET_OTHER_SCENE_CHILD }, { .value = 55 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gMineForkedTunnelAreaObjectParkCommand } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = EVENT_SCRIPT_MESSAGE_TARGET_OTHER_SCENE_CHILD }, { .value = MINE_FORKED_TUNNEL_SWITCH_SCENE_OBJECT_ID }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gMineForkedTunnelAreaObjectParkCommand } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = MINE_FORKED_TUNNEL_SWITCH_SCENE_RETURN_VIEW }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x54070006 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_MINE_FORKED_TUNNEL, 6) }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-EvsCommand D_mine_forked_tunnel_801834F4[12] = {
-    { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_STOP_SOUND, { .value = 0x54070005 }, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+/// Input-skip stream that parks the switch prop and restores the closing room view.
+///
+/// Stops movement sound, fades to black, resumes the player and weapons, parks
+/// the prop and dirties view 3 before scene cleanup and fade return. Twelve
+/// commands include END; the player, prop and referenced room records must live
+/// through execution. The switch-used flag is already set by the spawning task.
+static EvsCommand _gMineForkedTunnelSwitchSceneSkipScript[12] = {
+    { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = SCREEN_FADE_SUBTRACT }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_STOP_SOUND, { .value = SOUND_MINE_FORKED_TUNNEL_OBJECT_MOVE }, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = MINE_FORKED_TUNNEL_SWITCH_SCENE_SKIP_FADE_WAIT_FRAMES }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RESTORE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = EVENT_SCRIPT_MESSAGE_TARGET_OTHER_SCENE_CHILD }, { .value = 55 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gMineForkedTunnelAreaObjectParkCommand } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SET_DIRTY_VIEW, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x54070006 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = EVENT_SCRIPT_MESSAGE_TARGET_OTHER_SCENE_CHILD }, { .value = MINE_FORKED_TUNNEL_SWITCH_SCENE_OBJECT_ID }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gMineForkedTunnelAreaObjectParkCommand } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SET_DIRTY_VIEW, { .value = MINE_FORKED_TUNNEL_SWITCH_SCENE_RETURN_VIEW }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_MINE_FORKED_TUNNEL, 6) }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = MINE_FORKED_TUNNEL_SWITCH_SCENE_SKIP_FADE_WAIT_FRAMES }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
@@ -1364,8 +1399,8 @@ static void _mineForkedTunnelInitAreaObject(Task* task)
     _mineForkedTunnelSetAreaObjectDrawMode(task, ACTOR_MESSAGE_SET_MODEL_DRAW, MINE_FORKED_TUNNEL_MODEL_DRAW_SHOW_AUTO, 0);
     _mineForkedTunnelBindAreaObjectLighting(task);
     // The child borrows the parent's coordinate and work-owned lighting matrices.
-    work->child    = taskSpawnFromTable(D_mine_forked_tunnel_80181B74, MINE_FORKED_TUNNEL_AREA_OBJECT_CHILD_DESCRIPTOR, 0, task);
-    task->msgTable = D_mine_forked_tunnel_80181B8C;
+    work->child    = taskSpawnFromTable(_gMineForkedTunnelAreaObjectTaskDescs, MINE_FORKED_TUNNEL_AREA_OBJECT_CHILD_DESCRIPTOR, 0, task);
+    task->msgTable = _gMineForkedTunnelAreaObjectMessages;
     _mineForkedTunnelUpdateAreaObjectCollision(gameFlagGetNibble(GAME_FLAG_MINE_FORKED_TUNNEL_SWITCH_USED));
     task->exitCallback = _mineForkedTunnelExitAreaObject;
     task->state++;
@@ -1786,7 +1821,7 @@ static void _mineForkedTunnelInitRoomTask(Task* task)
         MINE_FORKED_TUNNEL_OAK_BOARD_COLLECTED   = 2,
     };
 
-    task->msgTable = D_mine_forked_tunnel_80181C80;
+    task->msgTable = _gMineForkedTunnelRoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     gStageCountdownMusicEntry = MINE_FORKED_TUNNEL_COUNTDOWN_MUSIC_ENTRY;
     _mineForkedTunnelSetSpriteBatchesHidden(areaGetCurrentObjectState(MINE_FORKED_TUNNEL_OAK_BOARD_OBJECT_ID) == MINE_FORKED_TUNNEL_OAK_BOARD_COLLECTED);
@@ -1802,7 +1837,7 @@ static void _mineForkedTunnelIdleRoomTask(Task* unusedTask)
 
 void mineForkedTunnelRoomTask(Task* task)
 {
-    const TaskFuncTable3 stateHandlers = D_mine_forked_tunnel_8017D5DC;
+    const TaskFuncTable3 stateHandlers = _gMineForkedTunnelRoomTaskStates;
 
     stateHandlers.funcs[task->state](task);
 }
@@ -1841,7 +1876,7 @@ static void _mineForkedTunnelSwitchInteractionTask(Task* task)
             if (capIsBusy() == 0) {
                 // The wait state and accepted CAP key both have value 1.
                 if (capGetVariantKey() == promptState) {
-                    evsStartScriptWithSkip(D_mine_forked_tunnel_801831AC, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_mine_forked_tunnel_801834F4);
+                    evsStartScriptWithSkip(_gMineForkedTunnelSwitchSceneScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, _gMineForkedTunnelSwitchSceneSkipScript);
                     gameFlagSetNibble(GAME_FLAG_MINE_FORKED_TUNNEL_SWITCH_USED, MINE_FORKED_TUNNEL_SWITCH_USED);
                 }
                 taskKill(task);

@@ -910,7 +910,11 @@ static const RoamerSpawnPoint _gNeoArkForestZoneRoamerPoolBSpawnPointEnd SECTION
     .yaw = ROAMER_SPAWN_POINT_END,
 };
 
-TaskDesc D_neo_ark_forest_zone_80182E18 = { { { TASK_BODY_NONE, 32 } }, _neoArkForestZoneRoamerPoolBTask, { .value = 0 } };
+enum { NEO_ARK_FOREST_ZONE_POOL_B_TASK_PRIORITY = 32 };
+
+TaskDesc gNeoArkForestZoneRoamerPoolBTaskDesc = {
+    { { TASK_BODY_NONE, NEO_ARK_FOREST_ZONE_POOL_B_TASK_PRIORITY } }, _neoArkForestZoneRoamerPoolBTask, { .value = 0 }
+};
 
 enum { NEO_ARK_FOREST_ZONE_UNUSED_POOL_A_PRIORITY = 32 };
 

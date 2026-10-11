@@ -71,7 +71,11 @@ extern Task* gDryfieldWarehouseFadeOutTask;
 /// Storage remains a signed halfword.
 extern s16 gDryfieldWarehouseSkipRoomChanged;
 
-extern TaskMessageEntry D_dryfield_warehouse_8017F554[3];
+/// Warehouse room-event and key-item handlers, followed by TASK_MESSAGE_TABLE_END.
+///
+/// The live room receiver borrows all three records and their callbacks;
+/// retain this overlay until the receiver is released. Unsupported IDs return zero.
+extern const TaskMessageEntry gDryfieldWarehouseRoomMessages[3];
 
 /// Bodyless priority-32 recipes for the warehouse event and its independent ambience.
 ///

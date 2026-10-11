@@ -90,9 +90,11 @@ RoomEventReq gRoomEventReq;
 
 #include "../../shared/room_event_task.inc.c"
 
-/// The room entry task's three states: install the room and spawn the cap
-/// script, idle, and `taskKill`.
-static const TaskFuncTable3 D_dryfield_water_tower_8017D5DC = {
+/// Water-tower room callbacks: 0 register/start the prop-scene driver, 1 idle, 2 release.
+///
+/// Dispatch copies all three pointers and indexes by `Task::state` without a
+/// bounds check or terminator. Keep the room overlay loaded through task teardown.
+static const TaskFuncTable3 _gDryfieldWaterTowerRoomTaskStates = {
     { _dryfieldWaterTowerInitializeRoomTask, _dryfieldWaterTowerIdleRoomTask, taskKill },
 };
 
@@ -241,6 +243,6 @@ void dryfieldWaterTowerRoomTask(Task* task)
 {
     TaskFuncTable3 stateHandlers;
 
-    stateHandlers = D_dryfield_water_tower_8017D5DC;
+    stateHandlers = _gDryfieldWaterTowerRoomTaskStates;
     stateHandlers.funcs[task->state](task);
 }

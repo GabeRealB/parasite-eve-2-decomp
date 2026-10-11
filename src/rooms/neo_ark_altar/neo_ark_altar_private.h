@@ -15,9 +15,19 @@
 /// room code loaded until playback restores game presentation.
 extern TaskDesc gNeoArkAltarMovieTaskDescs[2];
 
-extern TaskDesc D_neo_ark_altar_8017F088[1];
+/// Bodyless priority-32 recipe for the altar tile-sequence controller.
+///
+/// Address at index 0 with zero spawn arguments. Spawning copies this single
+/// descriptor, with no terminator, and creates a task owning its puzzle work.
+/// Keep the room's callbacks, tile and movie resources loaded through teardown.
+extern TaskDesc gNeoArkAltarTileSequenceTaskDesc;
 
-extern AreaApplyRec D_neo_ark_altar_801800A0[3];
+/// First accepted altar-switch updates for Power Plant 1 and the Savanna Zone.
+///
+/// Two updates plus AREA_APPLY_END, applied only before Power Plant 2 is cleared.
+/// In every save mode they set layouts 2/3 and map marks, discarding saved enemy
+/// poses. The synchronous apply call borrows these room-owned records.
+extern const AreaApplyRec gNeoArkAltarFirstSwitchAreaUpdates[3];
 
 /// Advances the altar's switch sprites one animation step towards the saved choice.
 ///

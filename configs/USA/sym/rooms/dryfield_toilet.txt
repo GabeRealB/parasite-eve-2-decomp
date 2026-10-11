@@ -1,5 +1,5 @@
 // Overlay-local symbols for dryfield_toilet.
-D_dryfield_toilet_801802D4 = 0x801802D4; // size:0x4 defined:True
+_gDryfieldToiletPrepareEncounterActorsCommand = 0x801802D4; // size:0x4 defined:True
 _gDryfieldToiletEventCollisionTemplateNormals = 0x801802D8; // size:0x8 defined:True
 _gDryfieldToiletEventCollisionTemplateVerts = 0x801802E0; // size:0x20 defined:True
 _gDryfieldToiletEventCollisionTemplateFaces = 0x80180300; // size:0xC defined:True

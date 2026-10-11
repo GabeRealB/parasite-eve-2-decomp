@@ -16,6 +16,7 @@
 #include "gameplay/attachment_state.h"
 #include "gameplay/attachments.h"
 #include "gameplay/actor_presentation.h"
+#include "gameplay/captions.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
 #include "gameplay/effects.h"
@@ -108,9 +109,6 @@ typedef struct {
 } _DryfieldWarehouseCutsceneWork;
 STATIC_ASSERT_SIZEOF(_DryfieldWarehouseCutsceneWork, 0x10);
 
-extern EvsCommand D_dryfield_warehouse_8017F880[];
-extern EvsCommand D_dryfield_warehouse_8017FA00[];
-
 /// Points in the space of the coordinate drawn under: ring centres, one per
 /// circle, for the ring drawer, and prism corners for the prism drawer, which
 /// the room's only caller points at `[8..15]`.
@@ -130,7 +128,7 @@ enum { DRYFIELD_WAREHOUSE_SKIP_RESTORE = 0,
 static void _dryfieldWarehouseSkipCutscene(s32 phase);
 static void _dryfieldWarehouseSetCutsceneCommand(s16 command);
 
-TaskMessageEntry D_dryfield_warehouse_8017F554[3] = {
+const TaskMessageEntry gDryfieldWarehouseRoomMessages[3] SECTION(".data") = {
     { ROOM_EVENT_MESSAGE_RESOLVE, dryfieldWarehouseResolveRoomEvent },
     { ROOM_MESSAGE_USE_KEY_ITEM, dryfieldWarehouseUseKeyItem },
     { TASK_MESSAGE_TABLE_END, NULL },
@@ -186,8 +184,19 @@ static ActorTransform _gDryfieldWarehouseCutscenePlayerTransform = { { 5540, 0, 
 /// Placement messages borrow this record only during synchronous dispatch.
 static ActorTransform _gDryfieldWarehouseClosingPlayerTransform = { { 4654, 0, -1968, 0 }, { 0, 512, 0, 0 } };
 
-EvsCommand D_dryfield_warehouse_8017F880[16] = {
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 5 }, { .value = 0 } },
+/// CAP command and fade wait used by the Monkey Wrench scene streams.
+enum {
+    DRYFIELD_WAREHOUSE_CUTSCENE_CAP_COMMAND  = 5,
+    DRYFIELD_WAREHOUSE_SKIP_FADE_WAIT_FRAMES = 8,
+};
+
+/// Monkey Wrench scene, advancing player, fades and room changes at CAP cues.
+///
+/// Starts CAP command 5, posts deferred cutscene commands, then releases
+/// scripted player control. Sixteen records include END. The interpreter
+/// borrows this stream and its live cutscene task through completion.
+static EvsCommand _gDryfieldWarehouseCutsceneScript[16] = {
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_START }, { .value = DRYFIELD_WAREHOUSE_CUTSCENE_CAP_COMMAND }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _dryfieldWarehouseSetCutsceneCommand }, { .value = DRYFIELD_WAREHOUSE_CUTSCENE_COMMAND_BLACKOUT_AND_LOOP_SOUND }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -201,21 +210,26 @@ EvsCommand D_dryfield_warehouse_8017F880[16] = {
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-EvsCommand D_dryfield_warehouse_8017FA00[11] = {
-    { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+/// Input-skip restoration for the Monkey Wrench scene, under a primary fade.
+///
+/// Restores equipment and the closing player mark, commits room 2, then
+/// refreshes changed room objects one script tick later. Eleven records include
+/// END. The cutscene work, player and room resources must remain live.
+static EvsCommand _gDryfieldWarehouseCutsceneSkipScript[11] = {
+    { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = SCREEN_FADE_SUBTRACT }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = DRYFIELD_WAREHOUSE_SKIP_FADE_WAIT_FRAMES }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _dryfieldWarehouseSkipCutscene }, { .value = DRYFIELD_WAREHOUSE_SKIP_RESTORE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _dryfieldWarehouseSkipCutscene }, { .value = DRYFIELD_WAREHOUSE_SKIP_REFRESH }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = DRYFIELD_WAREHOUSE_SKIP_FADE_WAIT_FRAMES }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
@@ -949,8 +963,8 @@ static void _dryfieldWarehouseCutsceneTask(Task* task)
             }
             // Start the script in the same update as initialization.
         case DRYFIELD_WAREHOUSE_SCENE_START_SCRIPT:
-            evsStartScriptWithSkip(D_dryfield_warehouse_8017F880, EVENT_SCRIPT_HUD_HIDE_RESTORE,
-                                   D_dryfield_warehouse_8017FA00);
+            evsStartScriptWithSkip(_gDryfieldWarehouseCutsceneScript, EVENT_SCRIPT_HUD_HIDE_RESTORE,
+                                   _gDryfieldWarehouseCutsceneSkipScript);
             task->state = task->state + 1;
             return;
         case DRYFIELD_WAREHOUSE_SCENE_EXECUTE:

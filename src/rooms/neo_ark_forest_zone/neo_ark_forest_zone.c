@@ -226,7 +226,7 @@ static void _neoArkForestZoneInitializeRoom(Task* task)
     task->msgTable = gNeoArkForestZoneRoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     sndEvtRequestScriptStart(SOUND_NEO_ARK_FOREST_ZONE_AMBIENCE, 0, 0);
-    gNeoArkForestZoneRoamerPoolBTask = taskSpawnFromTable(&D_neo_ark_forest_zone_80182E18, 0, 0, 0);
+    gNeoArkForestZoneRoamerPoolBTask = taskSpawnFromTable(&gNeoArkForestZoneRoamerPoolBTaskDesc, 0, 0, 0);
     if (gGameSession->location.loc.variant == NEO_ARK_FOREST_ZONE_FIRST_VISIT_VARIANT && gameFlagGetNibble(GAME_FLAG_NEO_ARK_FOREST_ZONE_EVENT_SEEN) == 0) {
         TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &gNeoArkForestZoneFirstVisitPauseCommand, ACTOR_COMMAND_MESSAGE_APPLY);
     }
@@ -255,8 +255,11 @@ static void _neoArkForestZoneSetupIdleState(Task* task)
     char stackFrame[0x10];
 }
 
-/// State table of the room setup task, indexed by `Task::state`.
-static const TaskFuncTable4 D_neo_ark_forest_zone_8017D5D8 = { {
+/// Forest room callbacks: 0 register/ambience/pool B, 1 pause first-visit roamers, 2 idle, 3 release.
+///
+/// Copies all four pointers and indexes `Task::state` in 0..3 without a bounds
+/// check or terminator. Room and roamer callbacks must remain loaded through exit.
+static const TaskFuncTable4 _gNeoArkForestZoneRoomTaskStates = { {
     _neoArkForestZoneInitializeRoom,
     _neoArkForestZonePauseRoamersState,
     _neoArkForestZoneSetupIdleState,
@@ -267,7 +270,7 @@ void neoArkForestZoneRoomTask(Task* task)
 {
     TaskFuncTable4 handlers;
 
-    handlers = D_neo_ark_forest_zone_8017D5D8;
+    handlers = _gNeoArkForestZoneRoomTaskStates;
     handlers.funcs[task->state](task);
 }
 

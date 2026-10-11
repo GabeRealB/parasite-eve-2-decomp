@@ -107,30 +107,21 @@ typedef struct {
 } _MistShootingGallerySpawn;
 STATIC_ASSERT_SIZEOF(_MistShootingGallerySpawn, 0xC);
 
-/// The second course's wave script, walked exactly like
-/// `_gMistShootingGalleryCourse1WaveScriptRef` but by the bonus-round state machine.
-extern _MistShootingGallerySpawn* D_mist_shooting_gallery_80186910;
-/// The first bonus course's wave script, walked exactly like
-/// `_gMistShootingGalleryCourse1WaveScriptRef` but by the bonus-round state machine.
-extern _MistShootingGallerySpawn* D_mist_shooting_gallery_8018690C;
-/// The second bonus course's wave script, walked exactly like
-/// `_gMistShootingGalleryCourse1WaveScriptRef` but by the bonus-round state machine.
-extern _MistShootingGallerySpawn* D_mist_shooting_gallery_80186908;
-static void                       _mistShootingGalleryExitCourse(Task* task);
-static void                       _mistShootingGalleryDrawCountdownClock(MistShootingGalleryWork* work);
-static u16                        _mistShootingGalleryTickCourseClock(MistShootingGalleryWork* work);
-static void                       _mistShootingGalleryShowCaption(s16 commandIndex, s16 captionKey, s16 dismissButtons);
-static Enemy*                     _mistShootingGallerySpawnTarget(Task* controller, const _MistShootingGallerySpawn* spawn);
-static void                       _mistShootingGalleryDrawClockGlyph(s32 screenX, s16 screenY, s32 glyph);
-static void                       _mistShootingGalleryDrawRedFlash(u8 redIntensity);
-static void                       _mistShootingGalleryInitCourse(Task* controller);
-static void                       _mistShootingGalleryRunCourse0(Task* controller);
-static void                       _mistShootingGalleryRunCourse1(Task* controller);
-static void                       _mistShootingGalleryRunCourse2(Task* controller);
-static void                       _mistShootingGalleryRunCourse3(Task* controller);
-static void                       _mistShootingGalleryRunCourse4(Task* controller);
-static void                       _mistShootingGalleryFinishCourse(Task* controller);
-static void                       _mistShootingGalleryRunCourse(Task* controller);
+static void   _mistShootingGalleryExitCourse(Task* task);
+static void   _mistShootingGalleryDrawCountdownClock(MistShootingGalleryWork* work);
+static u16    _mistShootingGalleryTickCourseClock(MistShootingGalleryWork* work);
+static void   _mistShootingGalleryShowCaption(s16 commandIndex, s16 captionKey, s16 dismissButtons);
+static Enemy* _mistShootingGallerySpawnTarget(Task* controller, const _MistShootingGallerySpawn* spawn);
+static void   _mistShootingGalleryDrawClockGlyph(s32 screenX, s16 screenY, s32 glyph);
+static void   _mistShootingGalleryDrawRedFlash(u8 redIntensity);
+static void   _mistShootingGalleryInitCourse(Task* controller);
+static void   _mistShootingGalleryRunCourse0(Task* controller);
+static void   _mistShootingGalleryRunCourse1(Task* controller);
+static void   _mistShootingGalleryRunCourse2(Task* controller);
+static void   _mistShootingGalleryRunCourse3(Task* controller);
+static void   _mistShootingGalleryRunCourse4(Task* controller);
+static void   _mistShootingGalleryFinishCourse(Task* controller);
+static void   _mistShootingGalleryRunCourse(Task* controller);
 
 /// Controller state handlers: 0 initialize, 1 run the course, 2 finish and show results.
 ///
@@ -621,11 +612,26 @@ static const _MistShootingGallerySpawn* _gMistShootingGalleryCourse0WaveScriptRe
 /// both the slot and records remain live while the gallery overlay is loaded.
 static const _MistShootingGallerySpawn* _gMistShootingGalleryCourse1WaveScriptRef = _gMistShootingGalleryCourse1WaveScript;
 
-_MistShootingGallerySpawn* D_mist_shooting_gallery_80186908 = _gMistShootingGalleryCourse2WaveScript;
+/// Borrowed wave-script pointer for zero-based course 2's GPS tutorial.
+///
+/// Refers to 75 records including WAIT_CLEAR and END; seeds three targets and
+/// repeats from record 14/frame 240 after the final clearance. The independent
+/// slot and read-only records remain live throughout this gallery visit.
+static const _MistShootingGallerySpawn* _gMistShootingGalleryCourse2WaveScriptRef = _gMistShootingGalleryCourse2WaveScript;
 
-_MistShootingGallerySpawn* D_mist_shooting_gallery_8018690C = _gMistShootingGalleryCourse3WaveScript;
+/// Borrowed wave-script pointer for zero-based course 3's weapon-swap tutorial.
+///
+/// Refers to 106 records including WAIT_CLEAR and END; seeds two targets and
+/// repeats from record 9/frame 144 after the final clearance. The independent
+/// slot and read-only records remain live throughout this gallery visit.
+static const _MistShootingGallerySpawn* _gMistShootingGalleryCourse3WaveScriptRef = _gMistShootingGalleryCourse3WaveScript;
 
-_MistShootingGallerySpawn* D_mist_shooting_gallery_80186910 = _gMistShootingGalleryCourse4WaveScript;
+/// Borrowed wave-script pointer for zero-based course 4's combat tutorial.
+///
+/// Refers to 80 records including WAIT_CLEAR and END; repeats from record 11/
+/// frame 688 after the final clearance. The independent slot and read-only
+/// records remain live throughout this gallery visit.
+static const _MistShootingGallerySpawn* _gMistShootingGalleryCourse4WaveScriptRef = _gMistShootingGalleryCourse4WaveScript;
 
 static TmdBone _gMistShootingGalleryModel093FCSkeleton[1] = {
 #include "assets/mist_shooting_gallery_model_093FC_skeleton.inc"
@@ -3193,7 +3199,7 @@ static void _mistShootingGalleryRunCourse2(Task* controller)
         case MIST_SHOOTING_GALLERY_COURSE_2_SEED_TARGETS:
             work->timer--;
             if ((s32)(work->timer << 16) <= 0) {
-                _mistShootingGallerySpawnTarget(controller, &D_mist_shooting_gallery_80186908[work->spawnIndex]);
+                _mistShootingGallerySpawnTarget(controller, &_gMistShootingGalleryCourse2WaveScriptRef[work->spawnIndex]);
                 work->spawnIndex++;
                 if (work->spawnIndex == MIST_SHOOTING_GALLERY_COURSE_2_INITIAL_TARGET_COUNT) {
                     work->timer = MIST_SHOOTING_GALLERY_COURSE_2_TARGET_SETTLE_FRAMES;
@@ -3228,7 +3234,7 @@ static void _mistShootingGalleryRunCourse2(Task* controller)
             }
             break;
         case MIST_SHOOTING_GALLERY_COURSE_2_WAVES:
-            _mistShootingGalleryStepRepeatingWaves(controller, work, D_mist_shooting_gallery_80186908, MIST_SHOOTING_GALLERY_COURSE_2_LOOP_RESTART_THRESHOLD, MIST_SHOOTING_GALLERY_COURSE_2_LOOP_START_INDEX, MIST_SHOOTING_GALLERY_COURSE_2_LOOP_START_FRAME);
+            _mistShootingGalleryStepRepeatingWaves(controller, work, _gMistShootingGalleryCourse2WaveScriptRef, MIST_SHOOTING_GALLERY_COURSE_2_LOOP_RESTART_THRESHOLD, MIST_SHOOTING_GALLERY_COURSE_2_LOOP_START_INDEX, MIST_SHOOTING_GALLERY_COURSE_2_LOOP_START_FRAME);
             _mistShootingGalleryDrawCountdownClock(work);
             if (_mistShootingGalleryTickCourseClock(work) == 0) {
                 work->phase = MIST_SHOOTING_GALLERY_COURSE_2_INITIALIZE;
@@ -3339,7 +3345,7 @@ static void _mistShootingGalleryRunCourse3(Task* controller)
         case MIST_SHOOTING_GALLERY_COURSE_3_SEED_TARGETS:
             work->timer--;
             if ((s32)(work->timer << 16) <= 0) {
-                _mistShootingGallerySpawnTarget(controller, &D_mist_shooting_gallery_8018690C[work->spawnIndex]);
+                _mistShootingGallerySpawnTarget(controller, &_gMistShootingGalleryCourse3WaveScriptRef[work->spawnIndex]);
                 work->spawnIndex++;
                 if (work->spawnIndex == MIST_SHOOTING_GALLERY_COURSE_3_INITIAL_TARGET_COUNT) {
                     work->captionStep = MIST_SHOOTING_GALLERY_COURSE_3_TURN_FIRST_KEY;
@@ -3399,7 +3405,7 @@ static void _mistShootingGalleryRunCourse3(Task* controller)
             }
             break;
         case MIST_SHOOTING_GALLERY_COURSE_3_WAVES:
-            _mistShootingGalleryStepRepeatingWaves(controller, work, D_mist_shooting_gallery_8018690C, MIST_SHOOTING_GALLERY_COURSE_3_LOOP_RESTART_THRESHOLD, MIST_SHOOTING_GALLERY_COURSE_3_LOOP_START_INDEX, MIST_SHOOTING_GALLERY_COURSE_3_LOOP_START_FRAME);
+            _mistShootingGalleryStepRepeatingWaves(controller, work, _gMistShootingGalleryCourse3WaveScriptRef, MIST_SHOOTING_GALLERY_COURSE_3_LOOP_RESTART_THRESHOLD, MIST_SHOOTING_GALLERY_COURSE_3_LOOP_START_INDEX, MIST_SHOOTING_GALLERY_COURSE_3_LOOP_START_FRAME);
             _mistShootingGalleryDrawCountdownClock(work);
             if (_mistShootingGalleryTickCourseClock(work) == 0) {
                 work->phase = MIST_SHOOTING_GALLERY_COURSE_3_INITIALIZE;
@@ -3561,7 +3567,7 @@ static void _mistShootingGalleryRunCourse4(Task* controller)
             break;
         case MIST_SHOOTING_GALLERY_COURSE_4_WAVES:
             // Advance the script before drawing and ticking the combat clock.
-            _mistShootingGalleryStepRepeatingWaves(controller, work, D_mist_shooting_gallery_80186910, MIST_SHOOTING_GALLERY_COURSE_4_LOOP_RESTART_THRESHOLD, MIST_SHOOTING_GALLERY_COURSE_4_LOOP_START_INDEX, MIST_SHOOTING_GALLERY_COURSE_4_LOOP_START_FRAME);
+            _mistShootingGalleryStepRepeatingWaves(controller, work, _gMistShootingGalleryCourse4WaveScriptRef, MIST_SHOOTING_GALLERY_COURSE_4_LOOP_RESTART_THRESHOLD, MIST_SHOOTING_GALLERY_COURSE_4_LOOP_START_INDEX, MIST_SHOOTING_GALLERY_COURSE_4_LOOP_START_FRAME);
             _mistShootingGalleryDrawCountdownClock(work);
             if (_mistShootingGalleryTickCourseClock(work) == 0) {
                 work->phase = MIST_SHOOTING_GALLERY_COURSE_4_INITIALIZE;
