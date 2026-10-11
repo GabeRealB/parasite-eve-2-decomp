@@ -385,36 +385,6 @@ typedef struct {
 STATIC_ASSERT_SIZEOF(_AcropolisPlazaEventWork, 0x8);
 
 static WorldCollisionTrigger _gAcropolisPlazaStreamSceneTrigger;
-extern WorldCollisionTrigger D_acropolis_plaza_801991F0;
-extern WorldCollisionTrigger D_acropolis_plaza_8019923C[4];
-
-/// The block `_acropolisPlazaStreamSceneTask` runs once its stream reports in.
-extern EvsCommand D_acropolis_plaza_80182B24[];
-
-/// The pair of blocks `_acropolisPlazaFirstSceneTask` hands to `evsStartScriptWithSkip`
-/// once the streamed scene it waits on has finished.
-extern EvsCommand D_acropolis_plaza_80182734[];
-extern EvsCommand D_acropolis_plaza_80182A34[];
-
-/// The pair of blocks the opening sequence hands to `evsStartScriptWithSkip` in state 4,
-/// and the two it runs on its own with `evsStartScript` in states 10 and 14.
-extern EvsCommand D_acropolis_plaza_80182C90[];
-extern EvsCommand D_acropolis_plaza_80182F18[];
-extern EvsCommand D_acropolis_plaza_801830DC[];
-extern EvsCommand D_acropolis_plaza_801834B4[];
-
-/// The three blocks `_acropolisPlazaRepeatSceneTask` picks between with
-/// `Task::spawnArg1` before handing one to `evsStartScript`.
-extern EvsCommand D_acropolis_plaza_80183554[];
-extern EvsCommand D_acropolis_plaza_8018365C[];
-extern EvsCommand D_acropolis_plaza_80183764[];
-
-/// Ambient-effect anchor points, one `SVECTOR` per effect slot. The plaza's
-/// three effect bursts index this table with the same slot number they pass to
-/// `effectSpawn`, so entries 1-6, 7-0xA and 0xC-0x12 belong to the 0x60098,
-/// 0x60099 and 0x60096 flavours respectively. The block runs well past entry
-/// 0x12, so this declaration is left unsized.
-extern SVECTOR D_acropolis_plaza_80198820[];
 
 static void _acropolisPlazaFadeToWhiteTask(Task* task);
 static void _acropolisPlazaMovieDisplayTask(Task* task);
@@ -482,8 +452,18 @@ static AnimationPlayRequest _gAcropolisPlazaOfficer2Animation2Request = {
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
 };
 
-// Retained parameter record; layout follows the adjacent script arguments.
-AnimationPlayRequest D_acropolis_plaza_80182658 = { { .index = 2 }, 3, ANIMATION_BLEND_INTERPOLATE, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Retained request for officer 2's scene clip 3.
+///
+/// Source 2 selects officer 2's follow-up table. The controller ignores
+/// the stored duration and collision words.
+/// No remaining script sends this request, and its animation-bank slot is NULL.
+static AnimationPlayRequest _gAcropolisPlazaOfficer2Animation3Request = {
+    .source               = { .index = ACROPOLIS_PLAZA_ANIMATION_TARGET_OFFICER_2 },
+    .animationId          = 3,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
 /// Selects officer 2's scene clip 4 with an eight-frame blend.
 ///
@@ -614,56 +594,100 @@ static AnimationPlayRequest _gAcropolisPlazaPlayerAnimation0Request = {
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
 };
 
-EvsCommand D_acropolis_plaza_80182734[32] = {
-    { EVENT_SCRIPT_OPCODE_SET_SKIP_KEEP_SOUND, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 1 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = 0 }, { .message = { .animation = &_gAcropolisPlazaOfficer2Animation24Request } } },
+/// Scene-child selectors and body modes used by the plaza's event scripts.
+///
+/// Child 0 is officer 2 and child 1 is officer 1; body-swap selectors use
+/// the same order. The culled-body message also accepts mode 3 to freeze
+/// the current model. These messages borrow their payloads synchronously.
+enum {
+    ACROPOLIS_PLAZA_SCRIPT_OFFICER_2            = 0,
+    ACROPOLIS_PLAZA_SCRIPT_OFFICER_1            = 1,
+    ACROPOLIS_PLAZA_OFFICER_MESSAGE_STOP        = 2002,
+    ACROPOLIS_PLAZA_OFFICER_MESSAGE_CULLED_BODY = 2007,
+    ACROPOLIS_PLAZA_OFFICER_BODY_2              = 0,
+    ACROPOLIS_PLAZA_OFFICER_BODY_1              = 1,
+    ACROPOLIS_PLAZA_OFFICER_BODY_FREEZE         = 3,
+};
+
+/// CAP command indices of the plaza's scripted conversations and caption triggers.
+enum {
+    ACROPOLIS_PLAZA_CAP_FIRST_SCENE             = 1,
+    ACROPOLIS_PLAZA_CAP_FIRST_REPEAT_SCENE      = 2,
+    ACROPOLIS_PLAZA_CAP_SECOND_REPEAT_SCENE     = 3,
+    ACROPOLIS_PLAZA_CAP_FINAL_SCENE_LEAD_IN     = 4,
+    ACROPOLIS_PLAZA_CAP_FINAL_SCENE_OFFICERS    = 5,
+    ACROPOLIS_PLAZA_CAP_FIRST_INTERACTION       = 6,
+    ACROPOLIS_PLAZA_CAP_SECOND_INTERACTION      = 7,
+    ACROPOLIS_PLAZA_CAP_SUBSEQUENT_REPEAT_SCENE = 8,
+    ACROPOLIS_PLAZA_CAP_STREAM_SCENE            = 9,
+    ACROPOLIS_PLAZA_CAP_FINAL_SCENE_CLOSING     = 10,
+};
+
+/// First-scene conversation and paired player/officer 2 choreography.
+///
+/// Starts CAP command 1, advances on seven CAP cues and releases scripted
+/// player control before returning officer 2 to its culled body. The first-
+/// scene task installs the separate skip script. Ends with an END command.
+static EvsCommand _gAcropolisPlazaFirstSceneScript[] = {
+    { EVENT_SCRIPT_OPCODE_SET_SKIP_KEEP_SOUND, { .value = true }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_START }, { .value = ACROPOLIS_PLAZA_CAP_FIRST_SCENE }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACROPOLIS_PLAZA_SCRIPT_OFFICER_2 }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = ACROPOLIS_PLAZA_OFFICER_BODY_2 }, { .message = { .animation = &_gAcropolisPlazaOfficer2Animation24Request } } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gAcropolisPlazaOfficer2PlayerAnimation0ResetRequest } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACROPOLIS_PLAZA_SCRIPT_OFFICER_2 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gAcropolisPlazaOfficer2PlayerAnimation0ResetRequest } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .pointer = &_gAcropolisPlazaPlayerAnimation1Request } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gAcropolisPlazaOfficer2Animation24Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACROPOLIS_PLAZA_SCRIPT_OFFICER_2 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gAcropolisPlazaPlayerAnimation1Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACROPOLIS_PLAZA_SCRIPT_OFFICER_2 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gAcropolisPlazaOfficer2Animation24Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 90 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gAcropolisPlazaOfficer2PlayerAnimation2ResetRequest } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACROPOLIS_PLAZA_SCRIPT_OFFICER_2 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gAcropolisPlazaOfficer2PlayerAnimation2ResetRequest } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gAcropolisPlazaOfficer2Animation2Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACROPOLIS_PLAZA_SCRIPT_OFFICER_2 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gAcropolisPlazaOfficer2Animation2Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gAcropolisPlazaOfficer2Animation4Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACROPOLIS_PLAZA_SCRIPT_OFFICER_2 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gAcropolisPlazaOfficer2Animation4Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gAcropolisPlazaPlayerAnimation3Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACROPOLIS_PLAZA_SCRIPT_OFFICER_2 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gAcropolisPlazaPlayerAnimation3Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gAcropolisPlazaPlayerAnimation5Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACROPOLIS_PLAZA_SCRIPT_OFFICER_2 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gAcropolisPlazaPlayerAnimation5Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gAcropolisPlazaOfficer2Animation6Request } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gAcropolisPlazaOfficer2Animation7Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACROPOLIS_PLAZA_SCRIPT_OFFICER_2 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gAcropolisPlazaOfficer2Animation6Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACROPOLIS_PLAZA_SCRIPT_OFFICER_2 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gAcropolisPlazaOfficer2Animation7Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gAcropolisPlazaOfficer2Animation8Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACROPOLIS_PLAZA_SCRIPT_OFFICER_2 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gAcropolisPlazaOfficer2Animation8Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gAcropolisPlazaPlayerAnimation6Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACROPOLIS_PLAZA_SCRIPT_OFFICER_2 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gAcropolisPlazaPlayerAnimation6Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 48 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .pointer = &_gAcropolisPlazaPlayerAnimation0Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACROPOLIS_PLAZA_SCRIPT_OFFICER_2 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gAcropolisPlazaPlayerAnimation0Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 1 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2007 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = PLAYER_ACTOR_END_SCRIPTED_RESET_ANIMATION }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACROPOLIS_PLAZA_SCRIPT_OFFICER_2 }, { .value = ACROPOLIS_PLAZA_OFFICER_MESSAGE_CULLED_BODY }, { .value = ACROPOLIS_PLAZA_OFFICER_BODY_2 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-EvsCommand D_acropolis_plaza_80182A34[10] = {
+/// Skip cleanup for the first-scene conversation.
+///
+/// Hides the transition behind the primary fade, restores the paired
+/// player idle clip, clears event presentation and restores officer 2
+/// before releasing scripted player control. Ends with an END command.
+static EvsCommand _gAcropolisPlazaFirstSceneSkipScript[] = {
     { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .pointer = &_gAcropolisPlazaPlayerAnimation0Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACROPOLIS_PLAZA_SCRIPT_OFFICER_2 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gAcropolisPlazaPlayerAnimation0Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2007 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACROPOLIS_PLAZA_SCRIPT_OFFICER_2 }, { .value = ACROPOLIS_PLAZA_OFFICER_MESSAGE_CULLED_BODY }, { .value = ACROPOLIS_PLAZA_OFFICER_BODY_2 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 1 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = PLAYER_ACTOR_END_SCRIPTED_RESET_ANIMATION }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-EvsCommand D_acropolis_plaza_80182B24[6] = {
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 9 }, { .value = 0 } },
+/// Caption synchronization for the stream-scene movie.
+///
+/// Starts CAP command 9 after movie readiness and waits for two cues.
+/// The owning task handles player placement and stream completion.
+/// Ends with an END command.
+static EvsCommand _gAcropolisPlazaStreamSceneScript[] = {
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_START }, { .value = ACROPOLIS_PLAZA_CAP_STREAM_SCENE }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -815,37 +839,47 @@ static AnimationPlayRequest _gAcropolisPlazaOfficer1PlayerAnimation2ResetRequest
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
 };
 
-EvsCommand D_acropolis_plaza_80182C90[27] = {
-    { EVENT_SCRIPT_OPCODE_SET_SKIP_KEEP_SOUND, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 4 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = 1 }, { .message = { .animation = &_gAcropolisPlazaOfficer1Animation2Request } } },
+/// Lead-in conversation and player/officer 1 choreography for the final scene.
+///
+/// Starts CAP command 4 after the lead-in movie and advances on eight
+/// CAP cues. The final-scene task installs a separate skip cleanup.
+/// Ends with an END command.
+static EvsCommand _gAcropolisPlazaFinalSceneLeadInScript[] = {
+    { EVENT_SCRIPT_OPCODE_SET_SKIP_KEEP_SOUND, { .value = true }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_START }, { .value = ACROPOLIS_PLAZA_CAP_FINAL_SCENE_LEAD_IN }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACROPOLIS_PLAZA_SCRIPT_OFFICER_1 }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = ACROPOLIS_PLAZA_OFFICER_BODY_1 }, { .message = { .animation = &_gAcropolisPlazaOfficer1Animation2Request } } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gAcropolisPlazaOfficer1PlayerAnimation0ResetRequest } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gAcropolisPlazaOfficer1Animation3Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACROPOLIS_PLAZA_SCRIPT_OFFICER_1 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gAcropolisPlazaOfficer1PlayerAnimation0ResetRequest } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACROPOLIS_PLAZA_SCRIPT_OFFICER_1 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gAcropolisPlazaOfficer1Animation3Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gAcropolisPlazaOfficer1PlayerAnimation1Request } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gAcropolisPlazaOfficer1Animation2Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACROPOLIS_PLAZA_SCRIPT_OFFICER_1 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gAcropolisPlazaOfficer1PlayerAnimation1Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACROPOLIS_PLAZA_SCRIPT_OFFICER_1 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gAcropolisPlazaOfficer1Animation2Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gAcropolisPlazaOfficer1PlayerAnimation2ResetRequest } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACROPOLIS_PLAZA_SCRIPT_OFFICER_1 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gAcropolisPlazaOfficer1PlayerAnimation2ResetRequest } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gAcropolisPlazaPlayerAnimation9Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACROPOLIS_PLAZA_SCRIPT_OFFICER_1 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gAcropolisPlazaPlayerAnimation9Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gAcropolisPlazaOfficer1Animation5Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACROPOLIS_PLAZA_SCRIPT_OFFICER_1 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gAcropolisPlazaOfficer1Animation5Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gAcropolisPlazaPlayerAnimation7Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACROPOLIS_PLAZA_SCRIPT_OFFICER_1 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gAcropolisPlazaPlayerAnimation7Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gAcropolisPlazaPlayerAnimation8Request } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gAcropolisPlazaOfficer1Animation6Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACROPOLIS_PLAZA_SCRIPT_OFFICER_1 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gAcropolisPlazaPlayerAnimation8Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACROPOLIS_PLAZA_SCRIPT_OFFICER_1 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gAcropolisPlazaOfficer1Animation6Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 118 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gAcropolisPlazaOfficer1PlayerAnimation0BlendRequest } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACROPOLIS_PLAZA_SCRIPT_OFFICER_1 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gAcropolisPlazaOfficer1PlayerAnimation0BlendRequest } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-EvsCommand D_acropolis_plaza_80182F18[6] = {
+/// Skip cleanup for the final scene's lead-in conversation.
+///
+/// Fades out, clears event presentation and cancels the primary fade.
+/// The final-scene task then takes its graphics-rebuild route.
+/// Ends with an END command.
+static EvsCommand _gAcropolisPlazaFinalSceneLeadInSkipScript[] = {
     { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -960,111 +994,230 @@ static AnimationPlayRequest _gAcropolisPlazaOfficer2Animation16Request = {
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
 };
 
-AnimationPlayRequest D_acropolis_plaza_80183048 = { { .index = 2 }, 17, ANIMATION_BLEND_INTERPOLATE, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Selects officer 2's scene clip 17 with an eight-frame blend.
+///
+/// Source 2 selects officer 2's follow-up table. The controller ignores
+/// the stored duration and collision words.
+/// The script borrows this record for synchronous message dispatch.
+static AnimationPlayRequest _gAcropolisPlazaOfficer2Animation17Request = {
+    .source               = { .index = ACROPOLIS_PLAZA_ANIMATION_TARGET_OFFICER_2 },
+    .animationId          = 17,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
-AnimationPlayRequest D_acropolis_plaza_8018305C = { { .index = 2 }, 23, ANIMATION_BLEND_INTERPOLATE, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Selects officer 2's scene clip 23 with an eight-frame blend.
+///
+/// Source 2 selects officer 2's follow-up table. The controller ignores
+/// the stored duration and collision words.
+/// The script borrows this record for synchronous message dispatch.
+static AnimationPlayRequest _gAcropolisPlazaOfficer2Animation23Request = {
+    .source               = { .index = ACROPOLIS_PLAZA_ANIMATION_TARGET_OFFICER_2 },
+    .animationId          = 23,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
-AnimationPlayRequest D_acropolis_plaza_80183070 = { { .index = 2 }, 19, ANIMATION_BLEND_INTERPOLATE, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Selects officer 2's scene clip 19 with an eight-frame blend.
+///
+/// Source 2 selects officer 2's follow-up table. The controller ignores
+/// the stored duration and collision words.
+/// The script borrows this record for synchronous message dispatch.
+static AnimationPlayRequest _gAcropolisPlazaOfficer2Animation19Request = {
+    .source               = { .index = ACROPOLIS_PLAZA_ANIMATION_TARGET_OFFICER_2 },
+    .animationId          = 19,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
-AnimationPlayRequest D_acropolis_plaza_80183084 = { { .index = 2 }, 21, ANIMATION_BLEND_INTERPOLATE, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Selects officer 2's scene clip 21 with an eight-frame blend.
+///
+/// Source 2 selects officer 2's follow-up table. The controller ignores
+/// the stored duration and collision words.
+/// The script borrows this record for synchronous message dispatch.
+static AnimationPlayRequest _gAcropolisPlazaOfficer2Animation21Request = {
+    .source               = { .index = ACROPOLIS_PLAZA_ANIMATION_TARGET_OFFICER_2 },
+    .animationId          = 21,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
-AnimationPlayRequest D_acropolis_plaza_80183098 = { { .index = 2 }, 22, ANIMATION_BLEND_INTERPOLATE, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Selects officer 2's scene clip 22 with an eight-frame blend.
+///
+/// Source 2 selects officer 2's follow-up table. The controller ignores
+/// the stored duration and collision words.
+/// The script borrows this record for synchronous message dispatch.
+static AnimationPlayRequest _gAcropolisPlazaOfficer2Animation22Request = {
+    .source               = { .index = ACROPOLIS_PLAZA_ANIMATION_TARGET_OFFICER_2 },
+    .animationId          = 22,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
-ActorTransform D_acropolis_plaza_801830AC = { { 0x489E, 0, 4040, 0 }, { 0, 2048, 0, 0 } };
+/// Officer 1's placement for the final scene's joint officer sequence.
+///
+/// Translation uses the model root's parent-frame game units. The receiver
+/// uses only yaw (a half turn in 4096 units per turn) and borrows this record
+/// synchronously; pitch, roll and the vector's fourth components are unused.
+static ActorTransform _gAcropolisPlazaFinalSceneOfficer1Placement = {
+    .pos = { 18590, 0, 4040, 0 },
+    .rot = { 0, ACTOR_TRANSFORM_ANGLE_HALF_TURN, 0, 0 },
+};
 
-ActorTransform D_acropolis_plaza_801830C4 = { { 0x4CAE, 0, 4250, 0 }, { 0, 2048, 0, 0 } };
+/// Officer 2's placement for the final scene's joint officer sequence.
+///
+/// Translation uses the model root's parent-frame game units. The receiver
+/// uses only yaw (a half turn in 4096 units per turn) and borrows this record
+/// synchronously; pitch, roll and the vector's fourth components are unused.
+static ActorTransform _gAcropolisPlazaFinalSceneOfficer2Placement = {
+    .pos = { 19630, 0, 4250, 0 },
+    .rot = { 0, ACTOR_TRANSFORM_ANGLE_HALF_TURN, 0, 0 },
+};
 
-EvsCommand D_acropolis_plaza_801830DC[41] = {
-    { EVENT_SCRIPT_OPCODE_SET_SKIP_KEEP_SOUND, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 5 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2002 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2002 }, { .value = 0 }, { .value = 0 } },
+/// Joint officer choreography after the final scene's graphics rebuild.
+///
+/// Starts CAP command 5, replaces and places both officer models, and
+/// advances their clips on eleven CAP cues. Finally freezes both models.
+/// Ends with an END command.
+static EvsCommand _gAcropolisPlazaFinalSceneOfficerScript[] = {
+    { EVENT_SCRIPT_OPCODE_SET_SKIP_KEEP_SOUND, { .value = true }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_START }, { .value = ACROPOLIS_PLAZA_CAP_FINAL_SCENE_OFFICERS }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACROPOLIS_PLAZA_SCRIPT_OFFICER_1 }, { .value = ACROPOLIS_PLAZA_OFFICER_MESSAGE_STOP }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACROPOLIS_PLAZA_SCRIPT_OFFICER_2 }, { .value = ACROPOLIS_PLAZA_OFFICER_MESSAGE_STOP }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = 1 }, { .message = { .animation = &_gAcropolisPlazaOfficer1Animation9Request } } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACROPOLIS_PLAZA_SCRIPT_OFFICER_1 }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = ACROPOLIS_PLAZA_OFFICER_BODY_1 }, { .message = { .animation = &_gAcropolisPlazaOfficer1Animation9Request } } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = 0 }, { .message = { .animation = &_gAcropolisPlazaOfficer2Animation14Request } } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACROPOLIS_PLAZA_SCRIPT_OFFICER_2 }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = ACROPOLIS_PLAZA_OFFICER_BODY_2 }, { .message = { .animation = &_gAcropolisPlazaOfficer2Animation14Request } } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2004 }, { .message = { .pointer = &D_acropolis_plaza_801830AC } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2004 }, { .message = { .pointer = &D_acropolis_plaza_801830C4 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gAcropolisPlazaOfficer1Animation9Request } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gAcropolisPlazaOfficer2Animation14Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACROPOLIS_PLAZA_SCRIPT_OFFICER_1 }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gAcropolisPlazaFinalSceneOfficer1Placement } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACROPOLIS_PLAZA_SCRIPT_OFFICER_2 }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gAcropolisPlazaFinalSceneOfficer2Placement } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACROPOLIS_PLAZA_SCRIPT_OFFICER_1 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gAcropolisPlazaOfficer1Animation9Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACROPOLIS_PLAZA_SCRIPT_OFFICER_2 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gAcropolisPlazaOfficer2Animation14Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gAcropolisPlazaOfficer1Animation10Request } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gAcropolisPlazaOfficer2Animation15Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACROPOLIS_PLAZA_SCRIPT_OFFICER_1 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gAcropolisPlazaOfficer1Animation10Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACROPOLIS_PLAZA_SCRIPT_OFFICER_2 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gAcropolisPlazaOfficer2Animation15Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gAcropolisPlazaOfficer1Animation13Request } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gAcropolisPlazaOfficer2Animation16Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACROPOLIS_PLAZA_SCRIPT_OFFICER_1 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gAcropolisPlazaOfficer1Animation13Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACROPOLIS_PLAZA_SCRIPT_OFFICER_2 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gAcropolisPlazaOfficer2Animation16Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_acropolis_plaza_80183048 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACROPOLIS_PLAZA_SCRIPT_OFFICER_2 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gAcropolisPlazaOfficer2Animation17Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_acropolis_plaza_8018305C } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACROPOLIS_PLAZA_SCRIPT_OFFICER_2 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gAcropolisPlazaOfficer2Animation23Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gAcropolisPlazaOfficer1Animation12Request } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gAcropolisPlazaOfficer2Animation16Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACROPOLIS_PLAZA_SCRIPT_OFFICER_1 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gAcropolisPlazaOfficer1Animation12Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACROPOLIS_PLAZA_SCRIPT_OFFICER_2 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gAcropolisPlazaOfficer2Animation16Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_acropolis_plaza_80183070 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACROPOLIS_PLAZA_SCRIPT_OFFICER_2 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gAcropolisPlazaOfficer2Animation19Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gAcropolisPlazaOfficer1Animation12Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACROPOLIS_PLAZA_SCRIPT_OFFICER_1 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gAcropolisPlazaOfficer1Animation12Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_acropolis_plaza_80183084 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACROPOLIS_PLAZA_SCRIPT_OFFICER_2 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gAcropolisPlazaOfficer2Animation21Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gAcropolisPlazaOfficer1Animation14Request } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_acropolis_plaza_80183098 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACROPOLIS_PLAZA_SCRIPT_OFFICER_1 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gAcropolisPlazaOfficer1Animation14Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACROPOLIS_PLAZA_SCRIPT_OFFICER_2 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gAcropolisPlazaOfficer2Animation22Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2007 }, { .value = 3 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2007 }, { .value = 3 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACROPOLIS_PLAZA_SCRIPT_OFFICER_2 }, { .value = ACROPOLIS_PLAZA_OFFICER_MESSAGE_CULLED_BODY }, { .value = ACROPOLIS_PLAZA_OFFICER_BODY_FREEZE }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACROPOLIS_PLAZA_SCRIPT_OFFICER_1 }, { .value = ACROPOLIS_PLAZA_OFFICER_MESSAGE_CULLED_BODY }, { .value = ACROPOLIS_PLAZA_OFFICER_BODY_FREEZE }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-EvsCommand D_acropolis_plaza_801834B4[5] = {
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 10 }, { .value = 0 } },
+/// Closing caption synchronization for the final-scene movie.
+///
+/// Starts CAP command 10 and waits for two cues after closing-movie
+/// readiness. Ends with an END command.
+static EvsCommand _gAcropolisPlazaFinalSceneClosingScript[] = {
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_START }, { .value = ACROPOLIS_PLAZA_CAP_FINAL_SCENE_CLOSING }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-AnimationPlayRequest D_acropolis_plaza_8018352C = { { .index = 1 }, 9, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Selects clip 9 for officer 2 in the repeat scene, with reset playback.
+///
+/// The body swap reads only the clip ID. Playback selects officer 1's
+/// follow-up table while the receiver's rig keeps officer 2's animation
+/// sets. The duration and collision words are ignored; dispatch borrows
+/// this record synchronously.
+static AnimationPlayRequest _gAcropolisPlazaRepeatSceneAnimation9Request = {
+    .source               = { .index = ACROPOLIS_PLAZA_ANIMATION_TARGET_OFFICER_1 },
+    .animationId          = 9,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
-AnimationPlayRequest D_acropolis_plaza_80183540 = { { .index = 1 }, 10, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Selects clip 10 for officer 2 in the repeat scene, with reset playback.
+///
+/// The body swap reads only the clip ID. Playback selects officer 1's
+/// follow-up table while the receiver's rig keeps officer 2's animation
+/// sets. The duration and collision words are ignored; dispatch borrows
+/// this record synchronously.
+static AnimationPlayRequest _gAcropolisPlazaRepeatSceneAnimation10Request = {
+    .source               = { .index = ACROPOLIS_PLAZA_ANIMATION_TARGET_OFFICER_1 },
+    .animationId          = 10,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
-EvsCommand D_acropolis_plaza_80183554[11] = {
-    { EVENT_SCRIPT_OPCODE_SET_SKIP_KEEP_SOUND, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 2 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 0 }, { .message = { .pointer = &D_acropolis_plaza_8018352C } } },
+/// First repeat-event conversation with officer 2.
+///
+/// Variant 0 starts CAP command 2 and resets the officer to clip 9.
+/// One CAP cue precedes player release and culled-body restoration.
+/// Ends with an END command.
+static EvsCommand _gAcropolisPlazaFirstRepeatSceneScript[] = {
+    { EVENT_SCRIPT_OPCODE_SET_SKIP_KEEP_SOUND, { .value = true }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_START }, { .value = ACROPOLIS_PLAZA_CAP_FIRST_REPEAT_SCENE }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACROPOLIS_PLAZA_SCRIPT_OFFICER_2 }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = ACROPOLIS_PLAZA_OFFICER_BODY_2 }, { .message = { .animation = &_gAcropolisPlazaRepeatSceneAnimation9Request } } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .pointer = &_gAcropolisPlazaPlayerAnimation0Request } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_acropolis_plaza_8018352C } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACROPOLIS_PLAZA_SCRIPT_OFFICER_2 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gAcropolisPlazaPlayerAnimation0Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACROPOLIS_PLAZA_SCRIPT_OFFICER_2 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gAcropolisPlazaRepeatSceneAnimation9Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 1 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2007 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = PLAYER_ACTOR_END_SCRIPTED_RESET_ANIMATION }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACROPOLIS_PLAZA_SCRIPT_OFFICER_2 }, { .value = ACROPOLIS_PLAZA_OFFICER_MESSAGE_CULLED_BODY }, { .value = ACROPOLIS_PLAZA_OFFICER_BODY_2 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-EvsCommand D_acropolis_plaza_8018365C[11] = {
-    { EVENT_SCRIPT_OPCODE_SET_SKIP_KEEP_SOUND, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 3 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 0 }, { .message = { .pointer = &D_acropolis_plaza_80183540 } } },
+/// Second repeat-event conversation with officer 2.
+///
+/// Variant 1 starts CAP command 3 and resets the officer to clip 10.
+/// One CAP cue precedes player release and culled-body restoration.
+/// Ends with an END command.
+static EvsCommand _gAcropolisPlazaSecondRepeatSceneScript[] = {
+    { EVENT_SCRIPT_OPCODE_SET_SKIP_KEEP_SOUND, { .value = true }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_START }, { .value = ACROPOLIS_PLAZA_CAP_SECOND_REPEAT_SCENE }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACROPOLIS_PLAZA_SCRIPT_OFFICER_2 }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = ACROPOLIS_PLAZA_OFFICER_BODY_2 }, { .message = { .animation = &_gAcropolisPlazaRepeatSceneAnimation10Request } } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .pointer = &_gAcropolisPlazaPlayerAnimation0Request } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_acropolis_plaza_80183540 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACROPOLIS_PLAZA_SCRIPT_OFFICER_2 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gAcropolisPlazaPlayerAnimation0Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACROPOLIS_PLAZA_SCRIPT_OFFICER_2 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gAcropolisPlazaRepeatSceneAnimation10Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 1 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2007 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = PLAYER_ACTOR_END_SCRIPTED_RESET_ANIMATION }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACROPOLIS_PLAZA_SCRIPT_OFFICER_2 }, { .value = ACROPOLIS_PLAZA_OFFICER_MESSAGE_CULLED_BODY }, { .value = ACROPOLIS_PLAZA_OFFICER_BODY_2 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-EvsCommand D_acropolis_plaza_80183764[8] = {
-    { EVENT_SCRIPT_OPCODE_SET_SKIP_KEEP_SOUND, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 8 }, { .value = 0 } },
+/// Conversation used for every subsequent repeat event.
+///
+/// Variant 2 starts CAP command 8, restores the paired player idle clip
+/// and releases scripted control after one CAP cue, without replacing an
+/// officer model. Ends with an END command.
+static EvsCommand _gAcropolisPlazaSubsequentRepeatSceneScript[] = {
+    { EVENT_SCRIPT_OPCODE_SET_SKIP_KEEP_SOUND, { .value = true }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_START }, { .value = ACROPOLIS_PLAZA_CAP_SUBSEQUENT_REPEAT_SCENE }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .pointer = &_gAcropolisPlazaPlayerAnimation0Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACROPOLIS_PLAZA_SCRIPT_OFFICER_2 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gAcropolisPlazaPlayerAnimation0Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 1 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = PLAYER_ACTOR_END_SCRIPTED_RESET_ANIMATION }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
@@ -1086,8 +1239,6 @@ TaskDesc gAcropolisPlazaSequenceTaskDescriptors[ACROPOLIS_PLAZA_TASK_COUNT] = {
     [ACROPOLIS_PLAZA_TASK_LETTERBOX]      = { { { TASK_BODY_NONE, ACROPOLIS_PLAZA_SEQUENCE_TASK_PRIORITY } }, _acropolisPlazaLetterboxTask, { .value = 0 } },
 };
 
-s32 D_acropolis_plaza_801838B4 = 800;
-
 /// Stored camera-path lengths in scene frames; each frame has two consecutive samples.
 enum {
     ACROPOLIS_PLAZA_CAMERA_SAMPLES_PER_FRAME         = 2,
@@ -1097,6 +1248,12 @@ enum {
     ACROPOLIS_PLAZA_CAMERA_FINAL_LEAD_IN_FRAME_COUNT = 16,
     ACROPOLIS_PLAZA_CAMERA_OFFICER_SCENE_FRAME_COUNT = 50
 };
+
+/// Retained sample-count header of the traversal camera path.
+///
+/// Counts complete camera samples, with two per scene frame.
+/// Playback indexes the following path without reading this word.
+static s32 _gAcropolisPlazaTraversalCameraSampleCount = ACROPOLIS_PLAZA_CAMERA_TRAVERSAL_FRAME_COUNT * ACROPOLIS_PLAZA_CAMERA_SAMPLES_PER_FRAME;
 
 /// Traversal camera path shared by selectors 0..3.
 ///
@@ -1117,7 +1274,11 @@ static ViewCamera _gAcropolisPlazaStreamSceneCameraSamples[ACROPOLIS_PLAZA_CAMER
 #include "assets/acropolis_plaza_path_0D378.inc"
 };
 
-s32 D_acropolis_plaza_8018CAF8 = 300;
+/// Retained sample-count header of the closing-scene camera path.
+///
+/// Counts complete camera samples, with two per scene frame.
+/// Playback indexes the following path without reading this word.
+static s32 _gAcropolisPlazaClosingSceneCameraSampleCount = ACROPOLIS_PLAZA_CAMERA_CLOSING_SCENE_FRAME_COUNT * ACROPOLIS_PLAZA_CAMERA_SAMPLES_PER_FRAME;
 
 /// Closing camera path of the final scene (camera selector 5).
 ///
@@ -1129,7 +1290,11 @@ static ViewCamera _gAcropolisPlazaClosingSceneCameraSamples[ACROPOLIS_PLAZA_CAME
 #include "assets/acropolis_plaza_path_0F53C.inc"
 };
 
-s32 D_acropolis_plaza_8018F52C = 32;
+/// Retained sample-count header of the final lead-in camera path.
+///
+/// Counts complete camera samples, with two per scene frame.
+/// Playback indexes the following path without reading this word.
+static s32 _gAcropolisPlazaFinalSceneLeadInCameraSampleCount = ACROPOLIS_PLAZA_CAMERA_FINAL_LEAD_IN_FRAME_COUNT * ACROPOLIS_PLAZA_CAMERA_SAMPLES_PER_FRAME;
 
 /// Lead-in camera path of the final scene (camera selector 6).
 ///
@@ -1141,8 +1306,11 @@ static ViewCamera _gAcropolisPlazaFinalSceneLeadInCameraSamples[ACROPOLIS_PLAZA_
 #include "assets/acropolis_plaza_path_11F70.inc"
 };
 
-// Retained data: Retained word 100 between the camera table and script data; no reference found.
-s32 D_acropolis_plaza_8018F9B0 = 100;
+/// Retained sample-count header of the officer-scene camera path.
+///
+/// Counts complete camera samples, with two per scene frame.
+/// Playback indexes the following path without reading this word.
+static s32 _gAcropolisPlazaOfficerSceneCameraSampleCount = ACROPOLIS_PLAZA_CAMERA_OFFICER_SCENE_FRAME_COUNT * ACROPOLIS_PLAZA_CAMERA_SAMPLES_PER_FRAME;
 
 /// Officer camera path of the final scene (camera selector 7).
 ///
@@ -1972,7 +2140,13 @@ static s16 _gAcropolisPlazaLightRingSamples[2 * ACROPOLIS_PLAZA_LIGHT_FAN_SAMPLE
     -3784,
 };
 
-SVECTOR D_acropolis_plaza_80198820[19] = {
+/// Local-frame anchor positions for the plaza's ambient-light placement slots.
+///
+/// Slots 1..6 supply siren beams, 7..10 flares and 12..18 glows; 0 and 11
+/// have no remaining consumer. Coordinates use signed-halfword game units
+/// relative to the emitter's coordinate. Effects retain the borrowed anchor
+/// pointer, so this overlay storage must stay live through their teardown.
+static SVECTOR _gAcropolisPlazaAmbientLightPlacements[] = {
     { 0x5F5A, -710, 450, 0 },
     { 0x6608, -1540, 2110, 0 },
     { 0x66A8, -1540, 1960, 0 },
@@ -2118,13 +2292,95 @@ static WorldCollisionTrigger _gAcropolisPlazaStreamSceneTrigger = {
     .hit          = 0,
 };
 
-WorldCollisionTrigger D_acropolis_plaza_801991F0 = { NULL, NULL, NULL, { 0x4336, -32, 3038, 0 }, { { 1967, 0, 3691, 0 }, { -3037, 0, -2925, 0 }, { 3036, 0, 2925, 0 }, { -1968, 0, -3691, 0 } }, { 0, 4098, 0, 0 }, { 2106, 0, -3513, 0 }, 4190, WORLD_COLLISION_TRIGGER_ACTION_CLEAR | WORLD_COLLISION_TRIGGER_AUTOMATIC, 1, 0, WORLD_COLLISION_TRIGGER_QUAD, 0 };
+/// Automatic one-shot quad selecting the plaza's first conversation.
+///
+/// The sequence accepts this scene before the other scene events and unlinks
+/// the trigger when it completes. Geometry uses local game coordinates and
+/// Q12 normals; parameter1 is latched but not read back.
+static WorldCollisionTrigger _gAcropolisPlazaFirstSceneTrigger = {
+    .next         = NULL,
+    .prevLink     = NULL,
+    .coord        = NULL,
+    .origin       = { 17206, -32, 3038, 0 },
+    .vertices     = { { 1967, 0, 3691, 0 }, { -3037, 0, -2925, 0 }, { 3036, 0, 2925, 0 }, { -1968, 0, -3691, 0 } },
+    .normal       = { 0, 4098, 0, 0 },
+    .facingNormal = { 2106, 0, -3513, 0 },
+    .radius       = 4190,
+    .control      = WORLD_COLLISION_TRIGGER_ACTION_CLEAR | WORLD_COLLISION_TRIGGER_AUTOMATIC,
+    .parameter0   = ACROPOLIS_PLAZA_EVENT_FIRST_SCENE,
+    .parameter1   = 0,
+    .flags        = WORLD_COLLISION_TRIGGER_QUAD,
+    .hit          = 0,
+};
 
-WorldCollisionTrigger D_acropolis_plaza_8019923C[4] = {
-    { NULL, NULL, NULL, { 928, -16, 0x3370, 0 }, { { 2575, 0, 3297, 0 }, { -3632, 0, -2207, 0 }, { 3632, 0, 2208, 0 }, { -2575, 0, -3296, 0 } }, { 0, 4107, 0, 0 }, { 2106, 0, -3513, 0 }, 4222, WORLD_COLLISION_TRIGGER_ACTION_CLEAR | WORLD_COLLISION_TRIGGER_AUTOMATIC, 2, 0, WORLD_COLLISION_TRIGGER_QUAD, 0 },
-    { NULL, NULL, NULL, { 0x352F, 0, 5313, 0 }, { { 573, 0, 1873, 0 }, { -1312, 0, -558, 0 }, { 1601, 0, 143, 0 }, { -860, 0, -1457, 0 } }, { 0, 4106, 0, 0 }, { 2910, 0, -2886, 0 }, 1958, WORLD_COLLISION_TRIGGER_ACTION_CLEAR, 3, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 0x4C3F, -32, 574, 0 }, { { 1781, 0, -112, 0 }, { -480, 0, 1609, 0 }, { 481, 0, -1607, 0 }, { -1748, 0, 1137, 0 } }, { 0, 4108, 0, 0 }, { 2106, 0, -3513, 0 }, 2079, WORLD_COLLISION_TRIGGER_ACTION_CLEAR, 6, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 0x5AA0, -32, 2048, 0 }, { { 2418, 0, 652, 0 }, { -2420, 0, 505, 0 }, { 2419, 0, -506, 0 }, { -2419, 0, -653, 0 } }, { 0, 4096, 0, 0 }, { -201, 0, -4092, 0 }, 2495, WORLD_COLLISION_TRIGGER_ACTION_CLEAR, 7, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
+/// Final-scene, repeat-conversation and two caption action triggers, in that order.
+///
+/// Entry 0 fires automatically and is unlinked after the final scene; entries
+/// 1..3 require a fresh interaction press. Their event kinds are respectively
+/// final scene, repeat scene, CAP command 6 and CAP command 7. The last record
+/// terminates the room's action-trigger resource run. Geometry uses local game
+/// coordinates and Q12 normals; loader/linker mutations require writable storage.
+static WorldCollisionTrigger _gAcropolisPlazaFinalSceneAndInteractionTriggers[] = {
+    {
+        .next         = NULL,
+        .prevLink     = NULL,
+        .coord        = NULL,
+        .origin       = { 928, -16, 0x3370, 0 },
+        .vertices     = { { 2575, 0, 3297, 0 }, { -3632, 0, -2207, 0 }, { 3632, 0, 2208, 0 }, { -2575, 0, -3296, 0 } },
+        .normal       = { 0, 4107, 0, 0 },
+        .facingNormal = { 2106, 0, -3513, 0 },
+        .radius       = 4222,
+        .control      = WORLD_COLLISION_TRIGGER_ACTION_CLEAR | WORLD_COLLISION_TRIGGER_AUTOMATIC,
+        .parameter0   = ACROPOLIS_PLAZA_EVENT_FINAL_SCENE,
+        .parameter1   = 0,
+        .flags        = WORLD_COLLISION_TRIGGER_QUAD,
+        .hit          = 0,
+    },
+    {
+        .next         = NULL,
+        .prevLink     = NULL,
+        .coord        = NULL,
+        .origin       = { 0x352F, 0, 5313, 0 },
+        .vertices     = { { 573, 0, 1873, 0 }, { -1312, 0, -558, 0 }, { 1601, 0, 143, 0 }, { -860, 0, -1457, 0 } },
+        .normal       = { 0, 4106, 0, 0 },
+        .facingNormal = { 2910, 0, -2886, 0 },
+        .radius       = 1958,
+        .control      = WORLD_COLLISION_TRIGGER_ACTION_CLEAR,
+        .parameter0   = ACROPOLIS_PLAZA_EVENT_REPEAT_SCENE,
+        .parameter1   = 0,
+        .flags        = WORLD_COLLISION_TRIGGER_FACING_QUAD,
+        .hit          = 0,
+    },
+    {
+        .next         = NULL,
+        .prevLink     = NULL,
+        .coord        = NULL,
+        .origin       = { 0x4C3F, -32, 574, 0 },
+        .vertices     = { { 1781, 0, -112, 0 }, { -480, 0, 1609, 0 }, { 481, 0, -1607, 0 }, { -1748, 0, 1137, 0 } },
+        .normal       = { 0, 4108, 0, 0 },
+        .facingNormal = { 2106, 0, -3513, 0 },
+        .radius       = 2079,
+        .control      = WORLD_COLLISION_TRIGGER_ACTION_CLEAR,
+        .parameter0   = ACROPOLIS_PLAZA_CAP_FIRST_INTERACTION,
+        .parameter1   = 0,
+        .flags        = WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD,
+        .hit          = 0,
+    },
+    {
+        .next         = NULL,
+        .prevLink     = NULL,
+        .coord        = NULL,
+        .origin       = { 0x5AA0, -32, 2048, 0 },
+        .vertices     = { { 2418, 0, 652, 0 }, { -2420, 0, 505, 0 }, { 2419, 0, -506, 0 }, { -2419, 0, -653, 0 } },
+        .normal       = { 0, 4096, 0, 0 },
+        .facingNormal = { -201, 0, -4092, 0 },
+        .radius       = 2495,
+        .control      = WORLD_COLLISION_TRIGGER_ACTION_CLEAR,
+        .parameter0   = ACROPOLIS_PLAZA_CAP_SECOND_INTERACTION,
+        .parameter1   = 0,
+        .flags        = WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST,
+        .hit          = 0,
+    },
 };
 
 /// Resource-entry keys and controller recipe used by the plaza's two officers.
@@ -3365,7 +3621,7 @@ static void _acropolisPlazaFirstSceneTask(Task* task)
             }
             ((_AcropolisPlazaSequenceWork*)task->spawnArg2.pointer)->resumeFrame = queue->sceneFrame;
             taskKill(((_AcropolisPlazaSequenceWork*)task->spawnArg2.pointer)->sceneTask);
-            evsStartScriptWithSkip(D_acropolis_plaza_80182734, EVENT_SCRIPT_HUD_KEEP, D_acropolis_plaza_80182A34);
+            evsStartScriptWithSkip(_gAcropolisPlazaFirstSceneScript, EVENT_SCRIPT_HUD_KEEP, _gAcropolisPlazaFirstSceneSkipScript);
             task->state = task->state + 1;
             return;
         case ACROPOLIS_PLAZA_FIRST_SCENE_WAIT_SCRIPT:
@@ -3556,7 +3812,7 @@ static void _acropolisPlazaStreamSceneTask(Task* task)
             if (queue->movieReady == 0) {
                 return;
             }
-            evsStartScript(D_acropolis_plaza_80182B24, EVENT_SCRIPT_HUD_KEEP);
+            evsStartScript(_gAcropolisPlazaStreamSceneScript, EVENT_SCRIPT_HUD_KEEP);
             task->state = task->state + 1;
             return;
         case ACROPOLIS_PLAZA_STREAM_SCENE_WAIT_REJOIN:
@@ -3689,7 +3945,7 @@ static void _acropolisPlazaFinalSceneTask(Task* task)
             return;
         case ACROPOLIS_PLAZA_FINAL_WAIT_FIRST_STREAM:
             if (cdCmdIsIdle() != 0) {
-                evsStartScriptWithSkip(D_acropolis_plaza_80182C90, EVENT_SCRIPT_HUD_KEEP, D_acropolis_plaza_80182F18);
+                evsStartScriptWithSkip(_gAcropolisPlazaFinalSceneLeadInScript, EVENT_SCRIPT_HUD_KEEP, _gAcropolisPlazaFinalSceneLeadInSkipScript);
                 task->state = task->state + 1;
                 return;
             }
@@ -3768,7 +4024,7 @@ static void _acropolisPlazaFinalSceneTask(Task* task)
             if (cdCmdIsIdle() == 0) {
                 return;
             }
-            evsStartScript(D_acropolis_plaza_801830DC, EVENT_SCRIPT_HUD_KEEP);
+            evsStartScript(_gAcropolisPlazaFinalSceneOfficerScript, EVENT_SCRIPT_HUD_KEEP);
             work->elapsedFrames = 0;
             task->state         = task->state + 1;
             return;
@@ -3806,7 +4062,7 @@ static void _acropolisPlazaFinalSceneTask(Task* task)
             return;
         case ACROPOLIS_PLAZA_FINAL_WAIT_CLOSING_STREAM:
             if (queue->movieReady != 0) {
-                evsStartScript(D_acropolis_plaza_801834B4, EVENT_SCRIPT_HUD_KEEP);
+                evsStartScript(_gAcropolisPlazaFinalSceneClosingScript, EVENT_SCRIPT_HUD_KEEP);
                 task->state = task->state + 1;
             }
             _acropolisPlazaApplyStreamCamera(ACROPOLIS_PLAZA_FINAL_CLOSING_CAMERA);
@@ -3852,13 +4108,13 @@ static void _acropolisPlazaRepeatSceneTask(Task* task)
                 taskKill(((_AcropolisPlazaSequenceWork*)task->spawnArg2.pointer)->sceneTask);
                 switch (task->spawnArg1.value) {
                     case 0:
-                        evsStartScript(D_acropolis_plaza_80183554, EVENT_SCRIPT_HUD_KEEP);
+                        evsStartScript(_gAcropolisPlazaFirstRepeatSceneScript, EVENT_SCRIPT_HUD_KEEP);
                         break;
                     case 1:
-                        evsStartScript(D_acropolis_plaza_8018365C, EVENT_SCRIPT_HUD_KEEP);
+                        evsStartScript(_gAcropolisPlazaSecondRepeatSceneScript, EVENT_SCRIPT_HUD_KEEP);
                         break;
                     case 2:
-                        evsStartScript(D_acropolis_plaza_80183764, EVENT_SCRIPT_HUD_KEEP);
+                        evsStartScript(_gAcropolisPlazaSubsequentRepeatSceneScript, EVENT_SCRIPT_HUD_KEEP);
                         break;
                 }
                 task->state = task->state + 1;
@@ -4102,7 +4358,7 @@ static u16 _acropolisPlazaUpdateSequenceEvent(Task* task)
         case ACROPOLIS_PLAZA_STEP_RUN_FIRST_SCENE:
             if (taskPollKill(work->eventTask, &firstSceneResult) != 0) {
                 _acropolisPlazaResumeSequenceStream(work);
-                worldCollisionUnlinkTrigger(0, &D_acropolis_plaza_801991F0);
+                worldCollisionUnlinkTrigger(WORLD_COLLISION_TRIGGER_LIST_ACTION, &_gAcropolisPlazaFirstSceneTrigger);
                 work->step = work->step + 1;
             }
             break;
@@ -4152,7 +4408,7 @@ static u16 _acropolisPlazaUpdateSequenceEvent(Task* task)
                 if (latchedKind16 == ACROPOLIS_PLAZA_EVENT_STREAM_SCENE) {
                     worldCollisionUnlinkTrigger(0, &_gAcropolisPlazaStreamSceneTrigger);
                 } else if ((u16)(s8)latchedKind == ACROPOLIS_PLAZA_EVENT_FINAL_SCENE) {
-                    worldCollisionUnlinkTrigger(0, D_acropolis_plaza_8019923C);
+                    worldCollisionUnlinkTrigger(WORLD_COLLISION_TRIGGER_LIST_ACTION, _gAcropolisPlazaFinalSceneAndInteractionTriggers);
                 }
                 work->step = work->step - 1;
                 if ((s8)work->eventKind == ACROPOLIS_PLAZA_EVENT_FINAL_SCENE) {
@@ -4760,7 +5016,7 @@ void acropolisPlazaSpawnAmbientLightsTask(Task* task)
     enum {
         ACROPOLIS_PLAZA_AMBIENT_LIGHTS_INITIAL = 0,
         ACROPOLIS_PLAZA_AMBIENT_GLOW_FIRST     = 12,
-        ACROPOLIS_PLAZA_AMBIENT_GLOW_END       = 19,
+        ACROPOLIS_PLAZA_AMBIENT_GLOW_END       = ARRAY_SIZE(_gAcropolisPlazaAmbientLightPlacements),
         ACROPOLIS_PLAZA_AMBIENT_FLARE_FIRST    = 7,
         ACROPOLIS_PLAZA_AMBIENT_FLARE_END      = 11,
         ACROPOLIS_PLAZA_AMBIENT_SIREN_FIRST    = 1,
@@ -4772,13 +5028,13 @@ void acropolisPlazaSpawnAmbientLightsTask(Task* task)
     roomCoord = task->extra.coordBody->coord;
     if (task->state == ACROPOLIS_PLAZA_AMBIENT_LIGHTS_INITIAL) {
         for (placementIndex = ACROPOLIS_PLAZA_AMBIENT_GLOW_FIRST; placementIndex < ACROPOLIS_PLAZA_AMBIENT_GLOW_END; placementIndex++) {
-            effectSpawn(EFFECT_ACROPOLIS_PLAZA_LIGHT_GLOW, roomCoord, placementIndex, &D_acropolis_plaza_80198820[placementIndex]);
+            effectSpawn(EFFECT_ACROPOLIS_PLAZA_LIGHT_GLOW, roomCoord, placementIndex, &_gAcropolisPlazaAmbientLightPlacements[placementIndex]);
         }
         for (placementIndex = ACROPOLIS_PLAZA_AMBIENT_FLARE_FIRST; placementIndex < ACROPOLIS_PLAZA_AMBIENT_FLARE_END; placementIndex++) {
-            effectSpawn(EFFECT_ACROPOLIS_PLAZA_LIGHT_FLARE, roomCoord, placementIndex, &D_acropolis_plaza_80198820[placementIndex]);
+            effectSpawn(EFFECT_ACROPOLIS_PLAZA_LIGHT_FLARE, roomCoord, placementIndex, &_gAcropolisPlazaAmbientLightPlacements[placementIndex]);
         }
         for (placementIndex = ACROPOLIS_PLAZA_AMBIENT_SIREN_FIRST; placementIndex < ACROPOLIS_PLAZA_AMBIENT_SIREN_END; placementIndex++) {
-            effectSpawn(EFFECT_ACROPOLIS_PLAZA_SIREN_LIGHT, roomCoord, placementIndex, &D_acropolis_plaza_80198820[placementIndex]);
+            effectSpawn(EFFECT_ACROPOLIS_PLAZA_SIREN_LIGHT, roomCoord, placementIndex, &_gAcropolisPlazaAmbientLightPlacements[placementIndex]);
         }
         task->state = task->state + 1;
     }
