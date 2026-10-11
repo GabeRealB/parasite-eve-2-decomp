@@ -20,7 +20,12 @@ extern TaskDesc D_shelter_b2_north_maintenance_walkway_80183B48;
 /// keep those snapshots and the room callback code live through session reload.
 extern TaskDesc gRoomEventTaskDesc;
 
-extern TaskMessageEntry D_shelter_b2_north_maintenance_walkway_80183B60[6];
+/// Room-message routes: resolve departures, refuse key items, start the entry scene, ignore commands, play sound cues.
+///
+/// 5 live entries followed by TASK_MESSAGE_TABLE_END/NULL. The room controller
+/// borrows this table; message-specific payloads are consumed synchronously.
+/// Keep the room overlay and callback code loaded while the receiver is live.
+extern TaskMessageEntry gShelterB2NorthMaintenanceWalkwayRoomMessages[6];
 
 // Callbacks referenced by the overlay's shared data tables.
 

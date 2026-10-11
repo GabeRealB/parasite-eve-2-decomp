@@ -1,6 +1,5 @@
 // Overlay-local symbols for shelter_b1_golem_freezer_1.
-D_shelter_b1_golem_freezer_1_8017E738 = 0x8017E738; // size:0x8 defined:True
-D_shelter_b1_golem_freezer_1_8017E740 = 0x8017E740; // size:0x50 defined:True
+_gShelterB1GolemFreezer1AmbientEffectPoints = 0x8017E738; // size:0x58 defined:True
 _gShelterB1GolemFreezer1MeetingObstacleCollisionNormals = 0x8017E6D8; // size:0x8 defined:True
 _gShelterB1GolemFreezer1MeetingObstacleCollisionVerts = 0x8017E6E0; // size:0x20 defined:True
 _gShelterB1GolemFreezer1MeetingObstacleCollisionFaces = 0x8017E700; // size:0xC defined:True
@@ -41,7 +40,7 @@ _gShelterB1GolemFreezer1DefaultSurface = 0x8017F280; // size:0x8 defined:True
 _gShelterB1GolemFreezer1FloorSurface = 0x8017F288; // size:0x8 defined:True
 gShelterB1GolemFreezer1SurfacePropertiesByClass = 0x8017F290; // size:0x20 defined:True
 gActor160700PierceCarradineTasks = 0x801416A8; // absolute:True owner=actor_160700
-D_shelter_b1_golem_freezer_1_8017E6A8 = 0x8017E6A8; // size:0x28 defined:True
+_gShelterB1GolemFreezer1RoomMessages = 0x8017E6A8; // size:0x28 defined:True
 D_shelter_b1_golem_freezer_1_8017E6D0 = 0x8017E6D0; // size:0x6 defined:True
 
 shelterB1GolemFreezer1FloorMistTask = 0x8017DFFC; // type:func
@@ -58,3 +57,4 @@ _shelterB1GolemFreezer1ResolveRoomVariant = 0x8017d5d8; // type:func
 _shelterB1GolemFreezer1HandleRoomAction = 0x8017d624; // type:func
 _shelterB1GolemFreezer1InitRoomState = 0x8017d66c; // type:func
 shelterB1GolemFreezer1RoomTask = 0x8017d6ec; // type:func
+_gShelterB1GolemFreezer1StateHandlers = 0x8017d5c4;

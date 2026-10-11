@@ -60,9 +60,6 @@
 #define SPRITE_QUAD_FRAME_T s16
 #include "../../shared/sprite_quad.h"
 
-extern EvsCommand D_shelter_b1_sterilization_room_80188C94[];
-extern EvsCommand D_shelter_b1_sterilization_room_80188E14[];
-
 static void _shelterB1SterilizationRoomDrawPulsingGlow(const SVECTOR* worldPoint, s16 pulseRate, s16 radiusScale);
 
 static WorldCoordRoomAmbientEntry _gShelterB1SterilizationRoomAmbientByView[25];
@@ -111,96 +108,135 @@ DamageAttack gShelterB1SterilizationRoomTrapAttack = {
     .reaction = SHELTER_B1_STERILIZATION_ROOM_TRAP_REACTION_NORMAL,
 };
 
-EvsCommand D_shelter_b1_sterilization_room_8018873C[37] = {
-    { EVENT_SCRIPT_OPCODE_SET_SKIP_KEEP_SOUND, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &gShelterB1SterilizationRoomTrapAnimationBankCopyRequest } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &gShelterB1SterilizationRoomTrapEntryBeginAnimationRequest }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x54100005 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x54100007 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = shelterB1SterilizationRoomSpawnTaskOnce }, { .value = SHELTER_B1_STERILIZATION_ROOM_TASK_CROSSFADE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 11 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SET_AMBIENT_RGB, { .value = 100 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 16 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &gShelterB1SterilizationRoomTrapEntryView11AnimationRequest }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 14 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_HIDE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &gShelterB1SterilizationRoomTrapEntryPlayerPlacement } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &gShelterB1SterilizationRoomTrapEntryPlacedAnimationRequest }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x54100006 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 15 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 90 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 16 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 7 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &gShelterB1SterilizationRoomTrapEntryCapCueAnimationRequest }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x54100010 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = shelterB1SterilizationRoomSpawnTaskOnce }, { .value = SHELTER_B1_STERILIZATION_ROOM_TASK_SWITCH_ROOM }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _shelterB1SterilizationRoomSpawnTrapDamageOnce }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_RESTORE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_RESTORE_VIEW, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _shelterB1SterilizationRoomAttenuateTrapSounds }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_AREA_MUSIC, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+/// Trap-script view ids, CAP command and persistent sound-skip policy.
+enum {
+    SHELTER_B1_STERILIZATION_ROOM_TRAP_KEEP_SOUND_ON_SKIP = 1,
+    SHELTER_B1_STERILIZATION_ROOM_TRAP_ENTRY_CAP_COMMAND  = 7,
+    SHELTER_B1_STERILIZATION_ROOM_TRAP_CROSSFADE_VIEW     = 11,
+    SHELTER_B1_STERILIZATION_ROOM_TRAP_PLACEMENT_VIEW     = 14,
+    SHELTER_B1_STERILIZATION_ROOM_TRAP_WAIT_VIEW          = 15,
+    SHELTER_B1_STERILIZATION_ROOM_TRAP_CAP_VIEW           = 16,
+    SHELTER_B1_STERILIZATION_ROOM_TRAP_ESCAPE_BEGIN_VIEW  = 17,
+    SHELTER_B1_STERILIZATION_ROOM_TRAP_ESCAPE_EXIT_VIEW   = 18,
+    SHELTER_B1_STERILIZATION_ROOM_TRAP_AMBIENT_RED        = 100,
+};
+
+/// Interpreter-update delays and sound/music fade ticks used by the trap scripts.
+enum {
+    SHELTER_B1_STERILIZATION_ROOM_TRAP_CROSSFADE_WAIT_FRAMES       = 16,
+    SHELTER_B1_STERILIZATION_ROOM_TRAP_ENTRY_ANIMATION_WAIT_FRAMES = 30,
+    SHELTER_B1_STERILIZATION_ROOM_TRAP_ENTRY_VIEW_WAIT_FRAMES      = 90,
+    SHELTER_B1_STERILIZATION_ROOM_TRAP_ROOM_SWITCH_WAIT_FRAMES     = 3,
+    SHELTER_B1_STERILIZATION_ROOM_TRAP_ESCAPE_BEGIN_WAIT_FRAMES    = 90,
+    SHELTER_B1_STERILIZATION_ROOM_TRAP_ESCAPE_EXIT_WAIT_FRAMES     = 100,
+    SHELTER_B1_STERILIZATION_ROOM_TRAP_SKIP_WAIT_FRAMES            = 8,
+    SHELTER_B1_STERILIZATION_ROOM_TRAP_SKIP_PLACEMENT_WAIT_FRAMES  = 2,
+    SHELTER_B1_STERILIZATION_ROOM_TRAP_ENTRY_SOUND_FADE_TICKS      = 8,
+    SHELTER_B1_STERILIZATION_ROOM_TRAP_MUSIC_FADE_TICKS            = 1,
+};
+
+EvsCommand gShelterB1SterilizationRoomTrapEntryScript[37] = {
+    { .opcode = EVENT_SCRIPT_OPCODE_SET_SKIP_KEEP_SOUND, .operand0 = { .value = SHELTER_B1_STERILIZATION_ROOM_TRAP_KEEP_SOUND_ON_SKIP } },
+    { .opcode = EVENT_SCRIPT_OPCODE_SEND_MESSAGE, .operand0 = { .value = GAME_TASK_SLOT_PLAYER }, .operand2 = { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, .operand3 = { .message = { .animationBankCopy = &gShelterB1SterilizationRoomTrapAnimationBankCopyRequest } } },
+    { .opcode = EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, .operand0 = { .value = GAME_TASK_SLOT_PLAYER }, .operand2 = { .value = ANIMATION_MESSAGE_PLAY }, .operand3 = { .animation = &gShelterB1SterilizationRoomTrapEntryBeginAnimationRequest } },
+    { .opcode = EVENT_SCRIPT_OPCODE_START_SOUND, .operand0 = { .value = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_STERILIZATION_ROOM, 0x5) } },
+    { .opcode = EVENT_SCRIPT_OPCODE_START_SOUND, .operand0 = { .value = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_STERILIZATION_ROOM, 0x7) } },
+    { .opcode = EVENT_SCRIPT_OPCODE_CALLBACK, .operand0 = { .callback = shelterB1SterilizationRoomSpawnTaskOnce }, .operand1 = { .value = SHELTER_B1_STERILIZATION_ROOM_TASK_CROSSFADE } },
+    { .opcode = EVENT_SCRIPT_OPCODE_WAIT_FRAMES },
+    { .opcode = EVENT_SCRIPT_OPCODE_SET_VIEW, .operand0 = { .value = SHELTER_B1_STERILIZATION_ROOM_TRAP_CROSSFADE_VIEW } },
+    { .opcode = EVENT_SCRIPT_OPCODE_SET_AMBIENT_RGB, .operand0 = { .value = SHELTER_B1_STERILIZATION_ROOM_TRAP_AMBIENT_RED } },
+    { .opcode = EVENT_SCRIPT_OPCODE_WAIT_FRAMES, .operand0 = { .value = SHELTER_B1_STERILIZATION_ROOM_TRAP_CROSSFADE_WAIT_FRAMES } },
+    { .opcode = EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, .operand0 = { .value = GAME_TASK_SLOT_PLAYER }, .operand2 = { .value = ANIMATION_MESSAGE_PLAY }, .operand3 = { .animation = &gShelterB1SterilizationRoomTrapEntryView11AnimationRequest } },
+    { .opcode = EVENT_SCRIPT_OPCODE_WAIT_FRAMES, .operand0 = { .value = SHELTER_B1_STERILIZATION_ROOM_TRAP_ENTRY_ANIMATION_WAIT_FRAMES } },
+    { .opcode = EVENT_SCRIPT_OPCODE_SET_VIEW, .operand0 = { .value = SHELTER_B1_STERILIZATION_ROOM_TRAP_PLACEMENT_VIEW } },
+    { .opcode = EVENT_SCRIPT_OPCODE_HIDE_WEAPONS },
+    { .opcode = EVENT_SCRIPT_OPCODE_SEND_MESSAGE, .operand0 = { .value = GAME_TASK_SLOT_PLAYER }, .operand2 = { .value = GAME_ACTOR_MESSAGE_PLACE }, .operand3 = { .message = { .transform = &gShelterB1SterilizationRoomTrapEntryPlayerPlacement } } },
+    { .opcode = EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, .operand0 = { .value = GAME_TASK_SLOT_PLAYER }, .operand2 = { .value = ANIMATION_MESSAGE_PLAY }, .operand3 = { .animation = &gShelterB1SterilizationRoomTrapEntryPlacedAnimationRequest } },
+    { .opcode = EVENT_SCRIPT_OPCODE_WAIT_FRAMES },
+    { .opcode = EVENT_SCRIPT_OPCODE_START_SOUND, .operand0 = { .value = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_STERILIZATION_ROOM, 0x6) } },
+    { .opcode = EVENT_SCRIPT_OPCODE_WAIT_FRAMES, .operand0 = { .value = SHELTER_B1_STERILIZATION_ROOM_TRAP_ENTRY_ANIMATION_WAIT_FRAMES } },
+    { .opcode = EVENT_SCRIPT_OPCODE_SET_VIEW, .operand0 = { .value = SHELTER_B1_STERILIZATION_ROOM_TRAP_WAIT_VIEW } },
+    { .opcode = EVENT_SCRIPT_OPCODE_WAIT_FRAMES, .operand0 = { .value = SHELTER_B1_STERILIZATION_ROOM_TRAP_ENTRY_VIEW_WAIT_FRAMES } },
+    { .opcode = EVENT_SCRIPT_OPCODE_SET_VIEW, .operand0 = { .value = SHELTER_B1_STERILIZATION_ROOM_TRAP_CAP_VIEW } },
+    { .opcode = EVENT_SCRIPT_OPCODE_SEND_MESSAGE, .operand0 = { .value = GAME_TASK_SLOT_CAP_CONTROL }, .operand2 = { .value = CAP_CONTROL_MESSAGE_START }, .operand3 = { .value = SHELTER_B1_STERILIZATION_ROOM_TRAP_ENTRY_CAP_COMMAND } },
+    { .opcode = EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE },
+    { .opcode = EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, .operand0 = { .value = GAME_TASK_SLOT_PLAYER }, .operand2 = { .value = ANIMATION_MESSAGE_PLAY }, .operand3 = { .animation = &gShelterB1SterilizationRoomTrapEntryCapCueAnimationRequest } },
+    { .opcode = EVENT_SCRIPT_OPCODE_START_SOUND, .operand0 = { .value = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_STERILIZATION_ROOM, 0x10) } },
+    { .opcode = EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE },
+    { .opcode = EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE },
+    { .opcode = EVENT_SCRIPT_OPCODE_CALLBACK, .operand0 = { .callback = shelterB1SterilizationRoomSpawnTaskOnce }, .operand1 = { .value = SHELTER_B1_STERILIZATION_ROOM_TASK_SWITCH_ROOM } },
+    { .opcode = EVENT_SCRIPT_OPCODE_WAIT_FRAMES, .operand0 = { .value = SHELTER_B1_STERILIZATION_ROOM_TRAP_ROOM_SWITCH_WAIT_FRAMES } },
+    { .opcode = EVENT_SCRIPT_OPCODE_CALLBACK, .operand0 = { .callbackNoArg = _shelterB1SterilizationRoomSpawnTrapDamageOnce } },
+    { .opcode = EVENT_SCRIPT_OPCODE_SEND_MESSAGE, .operand0 = { .value = GAME_TASK_SLOT_PLAYER }, .operand2 = { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED } },
+    { .opcode = EVENT_SCRIPT_OPCODE_RESTORE_WEAPONS },
+    { .opcode = EVENT_SCRIPT_OPCODE_RESTORE_VIEW },
+    { .opcode = EVENT_SCRIPT_OPCODE_CALLBACK, .operand0 = { .callbackNoArg = _shelterB1SterilizationRoomAttenuateTrapSounds } },
+    { .opcode = EVENT_SCRIPT_OPCODE_START_AREA_MUSIC, .operand0 = { .value = SHELTER_B1_STERILIZATION_ROOM_TRAP_MUSIC_FADE_TICKS } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-EvsCommand D_shelter_b1_sterilization_room_80188AB4[20] = {
-    { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SET_SKIP_KEEP_SOUND, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _shelterB1SterilizationRoomAttenuateTrapSounds }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_STOP_SOUND, { .value = 0x54100010 }, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = shelterB1SterilizationRoomSpawnTaskOnce }, { .value = SHELTER_B1_STERILIZATION_ROOM_TASK_SWITCH_ROOM }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _shelterB1SterilizationRoomSpawnTrapDamageOnce }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &gShelterB1SterilizationRoomTrapAnimationBankCopyRequest } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &gShelterB1SterilizationRoomTrapEntryPlayerPlacement } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_RESTORE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SET_AMBIENT_RGB, { .value = 100 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 14 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_RESTORE_VIEW, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_AREA_MUSIC, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+EvsCommand gShelterB1SterilizationRoomTrapEntrySkipScript[20] = {
+    { .opcode = EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, .operand0 = { .value = SCREEN_FADE_SUBTRACT } },
+    { .opcode = EVENT_SCRIPT_OPCODE_SET_SKIP_KEEP_SOUND, .operand0 = { .value = SHELTER_B1_STERILIZATION_ROOM_TRAP_KEEP_SOUND_ON_SKIP } },
+    { .opcode = EVENT_SCRIPT_OPCODE_CALLBACK, .operand0 = { .callbackNoArg = _shelterB1SterilizationRoomAttenuateTrapSounds } },
+    { .opcode = EVENT_SCRIPT_OPCODE_STOP_SOUND, .operand0 = { .value = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_STERILIZATION_ROOM, 0x10) }, .operand1 = { .value = SHELTER_B1_STERILIZATION_ROOM_TRAP_ENTRY_SOUND_FADE_TICKS } },
+    { .opcode = EVENT_SCRIPT_OPCODE_WAIT_FRAMES, .operand0 = { .value = SHELTER_B1_STERILIZATION_ROOM_TRAP_SKIP_WAIT_FRAMES } },
+    { .opcode = EVENT_SCRIPT_OPCODE_CALLBACK, .operand0 = { .callback = shelterB1SterilizationRoomSpawnTaskOnce }, .operand1 = { .value = SHELTER_B1_STERILIZATION_ROOM_TASK_SWITCH_ROOM } },
+    { .opcode = EVENT_SCRIPT_OPCODE_CALLBACK, .operand0 = { .callbackNoArg = _shelterB1SterilizationRoomSpawnTrapDamageOnce } },
+    { .opcode = EVENT_SCRIPT_OPCODE_SEND_MESSAGE, .operand0 = { .value = GAME_TASK_SLOT_PLAYER }, .operand2 = { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, .operand3 = { .message = { .animationBankCopy = &gShelterB1SterilizationRoomTrapAnimationBankCopyRequest } } },
+    { .opcode = EVENT_SCRIPT_OPCODE_SEND_MESSAGE, .operand0 = { .value = GAME_TASK_SLOT_PLAYER }, .operand2 = { .value = GAME_ACTOR_MESSAGE_PLACE }, .operand3 = { .message = { .transform = &gShelterB1SterilizationRoomTrapEntryPlayerPlacement } } },
+    { .opcode = EVENT_SCRIPT_OPCODE_RESTORE_WEAPONS },
+    { .opcode = EVENT_SCRIPT_OPCODE_SET_AMBIENT_RGB, .operand0 = { .value = SHELTER_B1_STERILIZATION_ROOM_TRAP_AMBIENT_RED } },
+    { .opcode = EVENT_SCRIPT_OPCODE_SET_VIEW, .operand0 = { .value = SHELTER_B1_STERILIZATION_ROOM_TRAP_PLACEMENT_VIEW } },
+    { .opcode = EVENT_SCRIPT_OPCODE_WAIT_FRAMES, .operand0 = { .value = SHELTER_B1_STERILIZATION_ROOM_TRAP_SKIP_PLACEMENT_WAIT_FRAMES } },
+    { .opcode = EVENT_SCRIPT_OPCODE_RESTORE_VIEW },
+    { .opcode = EVENT_SCRIPT_OPCODE_CLEANUP_SCENE },
+    { .opcode = EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE },
+    { .opcode = EVENT_SCRIPT_OPCODE_START_AREA_MUSIC, .operand0 = { .value = SHELTER_B1_STERILIZATION_ROOM_TRAP_MUSIC_FADE_TICKS } },
+    { .opcode = EVENT_SCRIPT_OPCODE_WAIT_FRAMES, .operand0 = { .value = SHELTER_B1_STERILIZATION_ROOM_TRAP_SKIP_WAIT_FRAMES } },
+    { .opcode = EVENT_SCRIPT_OPCODE_SEND_MESSAGE, .operand0 = { .value = GAME_TASK_SLOT_PLAYER }, .operand2 = { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-EvsCommand D_shelter_b1_sterilization_room_80188C94[16] = {
-    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x54100008 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &gShelterB1SterilizationRoomTrapAnimationBankCopyRequest } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &gShelterB1SterilizationRoomTrapEscapeBeginAnimationRequest }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &gShelterB1SterilizationRoomTrapEscapePlayerPlacement } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SET_AMBIENT_RGB, { .value = 100 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 17 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 90 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 18 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &gShelterB1SterilizationRoomTrapEscapeView18AnimationRequest }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x54100009 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 100 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CLEAR_AMBIENT_RGB, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _shelterB1SterilizationRoomReloadDumpingHole }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+/// Accepted trap-escape scene ending with a captured-frame Dumping Hole reload.
+///
+/// Sixteen commands including END. Places and animates the player in views
+/// 17/18, clears the red ambient override and requests the destination reload.
+/// The escape prompt starts this with HUD hide/restore and its paired skip
+/// completion; keep the room, player, animation and sound resources loaded.
+static EvsCommand _gShelterB1SterilizationRoomTrapEscapeScript[16] = {
+    { .opcode = EVENT_SCRIPT_OPCODE_START_SOUND, .operand0 = { .value = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_STERILIZATION_ROOM, 0x8) } },
+    { .opcode = EVENT_SCRIPT_OPCODE_SEND_MESSAGE, .operand0 = { .value = GAME_TASK_SLOT_PLAYER }, .operand2 = { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, .operand3 = { .message = { .animationBankCopy = &gShelterB1SterilizationRoomTrapAnimationBankCopyRequest } } },
+    { .opcode = EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, .operand0 = { .value = GAME_TASK_SLOT_PLAYER }, .operand2 = { .value = ANIMATION_MESSAGE_PLAY }, .operand3 = { .animation = &gShelterB1SterilizationRoomTrapEscapeBeginAnimationRequest } },
+    { .opcode = EVENT_SCRIPT_OPCODE_SEND_MESSAGE, .operand0 = { .value = GAME_TASK_SLOT_PLAYER }, .operand2 = { .value = GAME_ACTOR_MESSAGE_PLACE }, .operand3 = { .message = { .transform = &gShelterB1SterilizationRoomTrapEscapePlayerPlacement } } },
+    { .opcode = EVENT_SCRIPT_OPCODE_SET_AMBIENT_RGB, .operand0 = { .value = SHELTER_B1_STERILIZATION_ROOM_TRAP_AMBIENT_RED } },
+    { .opcode = EVENT_SCRIPT_OPCODE_SET_VIEW, .operand0 = { .value = SHELTER_B1_STERILIZATION_ROOM_TRAP_ESCAPE_BEGIN_VIEW } },
+    { .opcode = EVENT_SCRIPT_OPCODE_WAIT_FRAMES, .operand0 = { .value = SHELTER_B1_STERILIZATION_ROOM_TRAP_ESCAPE_BEGIN_WAIT_FRAMES } },
+    { .opcode = EVENT_SCRIPT_OPCODE_SET_VIEW, .operand0 = { .value = SHELTER_B1_STERILIZATION_ROOM_TRAP_ESCAPE_EXIT_VIEW } },
+    { .opcode = EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, .operand0 = { .value = GAME_TASK_SLOT_PLAYER }, .operand2 = { .value = ANIMATION_MESSAGE_PLAY }, .operand3 = { .animation = &gShelterB1SterilizationRoomTrapEscapeView18AnimationRequest } },
+    { .opcode = EVENT_SCRIPT_OPCODE_WAIT_FRAMES },
+    { .opcode = EVENT_SCRIPT_OPCODE_START_SOUND, .operand0 = { .value = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_STERILIZATION_ROOM, 0x9) } },
+    { .opcode = EVENT_SCRIPT_OPCODE_WAIT_FRAMES, .operand0 = { .value = SHELTER_B1_STERILIZATION_ROOM_TRAP_ESCAPE_EXIT_WAIT_FRAMES } },
+    { .opcode = EVENT_SCRIPT_OPCODE_SEND_MESSAGE, .operand0 = { .value = GAME_TASK_SLOT_PLAYER }, .operand2 = { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED } },
+    { .opcode = EVENT_SCRIPT_OPCODE_CLEAR_AMBIENT_RGB },
+    { .opcode = EVENT_SCRIPT_OPCODE_CALLBACK, .operand0 = { .callbackNoArg = _shelterB1SterilizationRoomReloadDumpingHole } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-EvsCommand D_shelter_b1_sterilization_room_80188E14[8] = {
-    { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &gShelterB1SterilizationRoomTrapEscapePlayerPlacement } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CLEAR_AMBIENT_RGB, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _shelterB1SterilizationRoomReloadDumpingHole }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+/// Skip completion for trap escape, preserving its placement and destination.
+///
+/// Eight commands including END. Fades before ending player scripting,
+/// applying the escape placement and clearing ambient light, then requests
+/// the same Dumping Hole reload and releases scene control. Storage is borrowed
+/// until the interpreter ends; it owns no payload or callback resources.
+static EvsCommand _gShelterB1SterilizationRoomTrapEscapeSkipScript[8] = {
+    { .opcode = EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, .operand0 = { .value = SCREEN_FADE_SUBTRACT } },
+    { .opcode = EVENT_SCRIPT_OPCODE_WAIT_FRAMES, .operand0 = { .value = SHELTER_B1_STERILIZATION_ROOM_TRAP_SKIP_WAIT_FRAMES } },
+    { .opcode = EVENT_SCRIPT_OPCODE_SEND_MESSAGE, .operand0 = { .value = GAME_TASK_SLOT_PLAYER }, .operand2 = { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED } },
+    { .opcode = EVENT_SCRIPT_OPCODE_SEND_MESSAGE, .operand0 = { .value = GAME_TASK_SLOT_PLAYER }, .operand2 = { .value = GAME_ACTOR_MESSAGE_PLACE }, .operand3 = { .message = { .transform = &gShelterB1SterilizationRoomTrapEscapePlayerPlacement } } },
+    { .opcode = EVENT_SCRIPT_OPCODE_CLEAR_AMBIENT_RGB },
+    { .opcode = EVENT_SCRIPT_OPCODE_CALLBACK, .operand0 = { .callbackNoArg = _shelterB1SterilizationRoomReloadDumpingHole } },
+    { .opcode = EVENT_SCRIPT_OPCODE_CLEANUP_SCENE },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
@@ -226,14 +262,14 @@ EvsCommand gShelterB1SterilizationRoomTrapExchangeScript[11] = {
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-EvsCommand D_shelter_b1_sterilization_room_80188FDC[8] = {
-    { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SET_SKIP_KEEP_SOUND, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _shelterB1SterilizationRoomResetCapResource }, { .value = SHELTER_B1_STERILIZATION_ROOM_CAP_DEFAULT }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+EvsCommand gShelterB1SterilizationRoomTrapExchangeSkipScript[8] = {
+    { .opcode = EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, .operand0 = { .value = SCREEN_FADE_SUBTRACT } },
+    { .opcode = EVENT_SCRIPT_OPCODE_SET_SKIP_KEEP_SOUND, .operand0 = { .value = SHELTER_B1_STERILIZATION_ROOM_TRAP_KEEP_SOUND_ON_SKIP } },
+    { .opcode = EVENT_SCRIPT_OPCODE_WAIT_FRAMES, .operand0 = { .value = SHELTER_B1_STERILIZATION_ROOM_TRAP_SKIP_WAIT_FRAMES } },
+    { .opcode = EVENT_SCRIPT_OPCODE_SEND_MESSAGE, .operand0 = { .value = GAME_TASK_SLOT_PLAYER }, .operand2 = { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED } },
+    { .opcode = EVENT_SCRIPT_OPCODE_CLEANUP_SCENE },
+    { .opcode = EVENT_SCRIPT_OPCODE_CALLBACK, .operand0 = { .callback = _shelterB1SterilizationRoomResetCapResource }, .operand1 = { .value = SHELTER_B1_STERILIZATION_ROOM_CAP_DEFAULT } },
+    { .opcode = EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
@@ -1261,16 +1297,19 @@ WorldCollisionSurfaceProperties* gShelterB1SterilizationRoomSurfacePropertiesByC
     &_gShelterB1SterilizationRoomDefaultSurfaceProperties,
 };
 
-AreaApplyRec D_shelter_b1_sterilization_room_8018C334[2] = {
-    { 4, 20, 21, 0 },
-    { 255, 0, 0, 0 },
+/// Parking layout selected when the first variant-5 actor event begins.
+enum { SHELTER_B1_STERILIZATION_ROOM_ACTOR_EVENT_PARKING_VARIANT = 21 };
+
+AreaApplyRec gShelterB1SterilizationRoomActorEventAreaUpdates[2] = {
+    { GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_UNDERGROUND_PARKING, SHELTER_B1_STERILIZATION_ROOM_ACTOR_EVENT_PARKING_VARIANT, AREA_APPLY_MODE_ALWAYS },
+    { AREA_APPLY_END, 0, 0, 0 },
 };
 
 Task* gRoomCutsceneSoundTask = NULL;
 
 s32 gShelterB1SterilizationRoomOnceSpawnMask = 0;
 
-RoomCutsceneRec D_shelter_b1_sterilization_room_8018C344 = { 0 };
+RoomCutsceneRec gShelterB1SterilizationRoomRepeatCutscene = { 0 };
 
 static void _glowDrawCapsule(const SVECTOR worldPoints[2], s32 radiusScale, s32 packedColor);
 static void _glowDrawDiamond(const SVECTOR* worldPoint, s32 pulseRate, s32 radiusScale);
@@ -1303,7 +1342,7 @@ void shelterB1SterilizationRoomTrapEscapePromptTask(Task* task)
         // The queued CAP transition has completed before this choice is read.
         case ESCAPE_PROMPT_RESOLVE:
             if (capGetVariantKey() == ESCAPE_CHOICE_ACCEPT) {
-                evsStartScriptWithSkip(D_shelter_b1_sterilization_room_80188C94, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_shelter_b1_sterilization_room_80188E14);
+                evsStartScriptWithSkip(_gShelterB1SterilizationRoomTrapEscapeScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, _gShelterB1SterilizationRoomTrapEscapeSkipScript);
                 gameFlagSetNibble(GAME_FLAG_STERILIZATION_ROOM_TRAP_STOPPED, TRAP_ESCAPE_STARTED);
                 gGameSession->restartMode = GAME_SESSION_RESTART_NORMAL;
             } else {

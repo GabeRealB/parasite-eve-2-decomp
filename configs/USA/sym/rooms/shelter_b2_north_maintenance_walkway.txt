@@ -1,5 +1,5 @@
 // Overlay-local symbols for shelter_b2_north_maintenance_walkway.
-D_shelter_b2_north_maintenance_walkway_80186380 = 0x80186380; // size:0x20 defined:True
+_gShelterB2NorthMaintenanceWalkwaySceneAreaUpdates = 0x80186380; // size:0x20 defined:True
 _gShelterB2NorthMaintenanceWalkwayGlowPoints = 0x80183B90; // size:0x98 defined:True
 _gShelterB2NorthMaintenanceWalkwayUnlockedDoorGlowCentre = 0x80183C28; // size:0x8 defined:True
 _gShelterB2NorthMaintenanceWalkwayLockedDoorGlowCentre = 0x80183C30; // size:0x8 defined:True
@@ -68,7 +68,7 @@ gRoomEventLatched = 0x801863C4; // size:0x10 defined:True
 gRoomEventReq = 0x801863D4; // size:0x14 defined:True
 D_shelter_b2_north_maintenance_walkway_80183B48 = 0x80183B48; // size:0xC defined:True
 gRoomEventTaskDesc = 0x80183B54; // size:0xC defined:True
-D_shelter_b2_north_maintenance_walkway_80183B60 = 0x80183B60; // size:0x30 defined:True
+gShelterB2NorthMaintenanceWalkwayRoomMessages = 0x80183B60; // size:0x30 defined:True
 
 shelterB2NorthMaintenanceWalkwayRoomVisualEffectsFlashTask = 0x80181BB4; // type:func
 
@@ -109,3 +109,4 @@ shelterB2NorthMaintenanceWalkwayResolveRoomEvent = 0x8017da88; // type:func
 shelterB2NorthMaintenanceWalkwayHandleRoomAction = 0x8017dc54; // type:func
 _shelterB2NorthMaintenanceWalkwayInitRoomTask = 0x8017dd18; // type:func
 shelterB2NorthMaintenanceWalkwayRoomTask = 0x8017dd90; // type:func
+_gShelterB2NorthMaintenanceWalkwayStateHandlers = 0x8017d5f4;

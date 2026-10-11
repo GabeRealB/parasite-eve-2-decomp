@@ -32,6 +32,7 @@
 #include "gameplay/light.h"
 #include "gameplay/loading.h"
 #include "gameplay/message.h"
+#include "gameplay/player_actor.h"
 #include "gameplay/room.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
@@ -81,10 +82,7 @@ STATIC_ASSERT_SIZEOF(_ShelterB2SepticTankGlowPoints, 0x248);
 static void _waterDrawSpin(const GfxCoord* coord, s16 textureColumn, s16 radiusScale, s16 spinAngle);
 static void _waterDrawTile(const GfxCoord* coord, s16 frameIndex, s16 radiusScale);
 
-/// The room's message table, installed by its first task state.
-extern TaskMessageEntry D_shelter_b2_septic_tank_80182F4C[];
-extern EvsCommand       D_shelter_b2_septic_tank_80183004[];
-extern EvsCommand       D_shelter_b2_septic_tank_8018310C[];
+extern EvsCommand D_shelter_b2_septic_tank_8018310C[];
 
 /// Tasks the room's first task state spawns.
 extern TaskDesc D_shelter_b2_septic_tank_801832C0[];
@@ -174,7 +172,12 @@ static AnimationSet _gShelterB2SepticTankAnimation05958 = {
 /// records until the task finishes CAP/sound playback and requests reload.
 static TaskDesc _gShelterB2SepticTankStagedEventTaskDesc = { { { TASK_BODY_NONE, SHELTER_B2_SEPTIC_TANK_STAGED_EVENT_PRIORITY } }, roomEventStagedTask, { .value = 0 } };
 
-TaskMessageEntry D_shelter_b2_septic_tank_80182F4C[5] = {
+/// Room-message routes: resolve departures, refuse key items, handle encounter actions, ignore commands.
+///
+/// 4 live entries followed by TASK_MESSAGE_TABLE_END/NULL. The room controller
+/// borrows this table; message-specific payloads are consumed synchronously.
+/// Keep the room overlay and callback code loaded while the receiver is live.
+static TaskMessageEntry _gShelterB2SepticTankRoomMessages[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _shelterB2SepticTankResolveRoomEvent },
     { SHELTER_B2_SEPTIC_TANK_MESSAGE_USE_KEY_ITEM, _shelterB2SepticTankRejectKeyItem },
     { DIRECTION_MESSAGE_ROOM_ACTION, _shelterB2SepticTankHandleRoomAction },
@@ -248,17 +251,31 @@ static ActorTransform _gShelterB2SepticTankCombatPlayerPlacement = { .pos = { 25
 /// dispatch; the full transform remains allocated for the overlay's lifetime.
 static ActorTransform _gShelterB2SepticTankEncounterFacingRequest = { 0 };
 
-EvsCommand D_shelter_b2_septic_tank_80183004[11] = {
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &_gShelterB2SepticTankEncounterAnimationBankCopy } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 1 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gShelterB2SepticTankIntroAnimationRequest }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SET_CAP_DIRECT_VIEW_IDS, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = EVENT_SCRIPT_MESSAGE_SELECT_SCENE_MANAGER }, { .value = SCENE_MESSAGE_BROADCAST_TO_ACTORS }, { .message = { .command = &_gShelterB2SepticTankIntroSwimCommand } }, { .value = ACTOR_COMMAND_MESSAGE_APPLY } },
-    { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 1 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _shelterB2SepticTankSetEncounterPhase }, { .value = SHELTER_B2_SEPTIC_TANK_ENCOUNTER_INTRO_COMPLETE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+/// Introductory CAP selection, its direct view-id policy and interpreter settling delay.
+enum {
+    SHELTER_B2_SEPTIC_TANK_INTRO_CAP_COMMAND         = 1,
+    SHELTER_B2_SEPTIC_TANK_INTRO_CAP_DIRECT_VIEW_IDS = 1,
+    SHELTER_B2_SEPTIC_TANK_INTRO_SETTLE_FRAMES       = 3,
+};
+
+/// Bog Diver introduction synchronized to CAP command 1 and its swim cue.
+///
+/// Eleven commands including END. Installs the player intro clip, uses direct
+/// CAP view ids and broadcasts the swim command between CAP cues. Ends player
+/// scripting with an animation reset, waits a three-update countdown, then
+/// records encounter phase 1. The room monitor starts it once with HUD
+/// hide/restore; room, player, scene, CAP and animation resources stay borrowed.
+static EvsCommand _gShelterB2SepticTankEncounterIntroScript[11] = {
+    { .opcode = EVENT_SCRIPT_OPCODE_SEND_MESSAGE, .operand0 = { .value = GAME_TASK_SLOT_PLAYER }, .operand2 = { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, .operand3 = { .message = { .animationBankCopy = &_gShelterB2SepticTankEncounterAnimationBankCopy } } },
+    { .opcode = EVENT_SCRIPT_OPCODE_SEND_MESSAGE, .operand0 = { .value = GAME_TASK_SLOT_CAP_CONTROL }, .operand2 = { .value = CAP_CONTROL_MESSAGE_START }, .operand3 = { .value = SHELTER_B2_SEPTIC_TANK_INTRO_CAP_COMMAND } },
+    { .opcode = EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, .operand0 = { .value = GAME_TASK_SLOT_PLAYER }, .operand2 = { .value = ANIMATION_MESSAGE_PLAY }, .operand3 = { .animation = &_gShelterB2SepticTankIntroAnimationRequest } },
+    { .opcode = EVENT_SCRIPT_OPCODE_SET_CAP_DIRECT_VIEW_IDS, .operand0 = { .value = SHELTER_B2_SEPTIC_TANK_INTRO_CAP_DIRECT_VIEW_IDS } },
+    { .opcode = EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE },
+    { .opcode = EVENT_SCRIPT_OPCODE_SEND_MESSAGE, .operand0 = { .value = GAME_TASK_SLOT_SCENE }, .operand1 = { .value = EVENT_SCRIPT_MESSAGE_SELECT_SCENE_MANAGER }, .operand2 = { .value = SCENE_MESSAGE_BROADCAST_TO_ACTORS }, .operand3 = { .message = { .command = &_gShelterB2SepticTankIntroSwimCommand } }, .operand4 = { .value = ACTOR_COMMAND_MESSAGE_APPLY } },
+    { .opcode = EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE },
+    { .opcode = EVENT_SCRIPT_OPCODE_SEND_MESSAGE, .operand0 = { .value = GAME_TASK_SLOT_PLAYER }, .operand2 = { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, .operand3 = { .value = PLAYER_ACTOR_END_SCRIPTED_RESET_ANIMATION } },
+    { .opcode = EVENT_SCRIPT_OPCODE_WAIT_FRAMES, .operand0 = { .value = SHELTER_B2_SEPTIC_TANK_INTRO_SETTLE_FRAMES } },
+    { .opcode = EVENT_SCRIPT_OPCODE_CALLBACK, .operand0 = { .callback = _shelterB2SepticTankSetEncounterPhase }, .operand1 = { .value = SHELTER_B2_SEPTIC_TANK_ENCOUNTER_INTRO_COMPLETE } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
@@ -1489,7 +1506,7 @@ static void _shelterB2SepticTankPrepareEncounterFacing(void)
 /// either task is dispatched.
 static void _shelterB2SepticTankInitializeRoom(Task* task)
 {
-    task->msgTable = D_shelter_b2_septic_tank_80182F4C;
+    task->msgTable = _gShelterB2SepticTankRoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     taskSpawnFromTable(D_shelter_b2_septic_tank_801832C0, 0, 0, 0);
     task->state = task->state + 1;
@@ -1515,16 +1532,18 @@ static void _shelterB2SepticTankMonitorEncounterIntro(Task* task)
         variant = gGameSession->location.loc.variant;
         if (variant == SHELTER_B2_SEPTIC_TANK_INTRO_VARIANT && gAttachmentState.mode != ATTACHMENT_MODE_WHEEL && gDisplayState.pendingMode == DISPLAY_MODE_NONE && D_shelter_b2_septic_tank_80187045 == SHELTER_B2_SEPTIC_TANK_INTRO_STAGE_PENDING) {
             if (gameFlagGetNibble(GAME_FLAG_0EB) == SHELTER_B2_SEPTIC_TANK_ENCOUNTER_PHASE_PENDING) {
-                evsStartScript(D_shelter_b2_septic_tank_80183004, EVENT_SCRIPT_HUD_HIDE_RESTORE);
+                evsStartScript(_gShelterB2SepticTankEncounterIntroScript, EVENT_SCRIPT_HUD_HIDE_RESTORE);
             }
             D_shelter_b2_septic_tank_80187045 = variant;
         }
     }
 }
 
-/// The room task's state table, dispatched by
-/// `shelterB2SepticTankRoomTask` from a stack copy.
-static const TaskFuncTable3 D_shelter_b2_septic_tank_8017D5D8 = {
+/// Room-controller states 0..2: initialize the receiver and water task, monitor the encounter intro, teardown.
+///
+/// The controller copies all three callbacks before unchecked state dispatch.
+/// No terminator; keep the room overlay loaded while the controller is live.
+static const TaskFuncTable3 _gShelterB2SepticTankStateHandlers = {
     {
         _shelterB2SepticTankInitializeRoom,
         _shelterB2SepticTankMonitorEncounterIntro,
@@ -1536,7 +1555,7 @@ void shelterB2SepticTankRoomTask(Task* task)
 {
     TaskFuncTable3 states;
 
-    states = D_shelter_b2_septic_tank_8017D5D8;
+    states = _gShelterB2SepticTankStateHandlers;
     states.funcs[task->state](task);
 }
 

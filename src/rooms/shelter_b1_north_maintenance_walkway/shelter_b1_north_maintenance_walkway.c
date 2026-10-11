@@ -39,9 +39,6 @@
 
 extern s8 D_shelter_b1_north_maintenance_walkway_80185B7C;
 
-extern TaskMessageEntry D_shelter_b1_north_maintenance_walkway_80184A84[];
-extern TaskDesc         D_shelter_b1_north_maintenance_walkway_80184AAC[];
-
 static void _shelterB1NorthMaintenanceWalkwaySetSceneSpriteVisibility(u8 sceneSeen);
 
 extern TaskDesc D_shelter_b1_north_maintenance_walkway_80184A78;
@@ -58,7 +55,12 @@ enum { SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_MESSAGE_USE_KEY_ITEM = 0x13F1 };
 
 TaskDesc D_shelter_b1_north_maintenance_walkway_80184A78 = { { { TASK_BODY_NONE, 32 } }, roomEventStagedTask, { .value = 0 } };
 
-TaskMessageEntry D_shelter_b1_north_maintenance_walkway_80184A84[5] = {
+/// Room-message routes: stage eligible departures, refuse key items, ignore actions and commands.
+///
+/// 4 live entries followed by TASK_MESSAGE_TABLE_END/NULL. The room controller
+/// borrows this table; message-specific payloads are consumed synchronously.
+/// Keep the room overlay and callback code loaded while the receiver is live.
+static TaskMessageEntry _gShelterB1NorthMaintenanceWalkwayRoomMessages[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _shelterB1NorthMaintenanceWalkwayResolveRoomTransition },
     { SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_MESSAGE_USE_KEY_ITEM, _shelterB1NorthMaintenanceWalkwayRejectKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, _shelterB1NorthMaintenanceWalkwayIgnoreRoomAction },
@@ -66,9 +68,15 @@ TaskMessageEntry D_shelter_b1_north_maintenance_walkway_80184A84[5] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-TaskDesc D_shelter_b1_north_maintenance_walkway_80184AAC[1] = {
-    { { { TASK_BODY_NONE, 32 } }, _shelterB1NorthMaintenanceWalkwayPostBattleSceneTask, { .value = 0 } },
-};
+/// Scheduler priority byte of the bodyless scene task.
+enum { SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_POST_BATTLE_TASK_PRIORITY = 32 };
+
+/// Bodyless post-battle scene watcher spawned on entry to placement variant 2.
+///
+/// A single priority-32 descriptor, spawned at index 0 with zero payloads.
+/// Watches battle engagement, actor completion and the display handoff before
+/// requesting CAP command 1. Borrows this room's callback and scene resources.
+static TaskDesc _gShelterB1NorthMaintenanceWalkwayPostBattleSceneTaskDesc = { { { TASK_BODY_NONE, SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_POST_BATTLE_TASK_PRIORITY } }, _shelterB1NorthMaintenanceWalkwayPostBattleSceneTask, { .value = 0 } };
 
 /// World-space lamp endpoint pairs followed by the red disc centre.
 ///
@@ -277,10 +285,10 @@ static void _shelterB1NorthMaintenanceWalkwayInitRoomTask(Task* task)
            SCENE_STARTED          = 1,
            CAP_COMMAND_ROOM_ENTRY = 4 };
 
-    task->msgTable = D_shelter_b1_north_maintenance_walkway_80184A84;
+    task->msgTable = _gShelterB1NorthMaintenanceWalkwayRoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     if (gGameSession->location.loc.variant == SCENE_ROOM_VARIANT) {
-        taskSpawnFromTable(D_shelter_b1_north_maintenance_walkway_80184AAC, 0, 0, 0);
+        taskSpawnFromTable(&_gShelterB1NorthMaintenanceWalkwayPostBattleSceneTaskDesc, 0, 0, 0);
         if (gameFlagGetNibble(GAME_FLAG_NORTH_MAINTENANCE_WALKWAY_SCENE) == SCENE_NOT_STARTED) {
             gameFlagSetNibble(GAME_FLAG_NORTH_MAINTENANCE_WALKWAY_SCENE, SCENE_STARTED);
             capSpawnEventIfIdle(CAP_COMMAND_ROOM_ENTRY, CAP_EVENT_NO_FLAGS);
@@ -295,8 +303,11 @@ static void _shelterB1NorthMaintenanceWalkwayRoomIdle(Task* task)
 {
 }
 
-/// The room task's three states: set-up, idle and exit.
-static const TaskFuncTable3 D_shelter_b1_north_maintenance_walkway_8017D5D8 = {
+/// Room-controller states 0..2: initialize the receiver and variant-2 scenes, idle, teardown.
+///
+/// The controller copies all three callbacks before unchecked state dispatch.
+/// No terminator; keep the room overlay loaded while the controller is live.
+static const TaskFuncTable3 _gShelterB1NorthMaintenanceWalkwayStateHandlers = {
     { _shelterB1NorthMaintenanceWalkwayInitRoomTask, _shelterB1NorthMaintenanceWalkwayRoomIdle, taskKill },
 };
 
@@ -304,7 +315,7 @@ void shelterB1NorthMaintenanceWalkwayRoomTask(Task* task)
 {
     TaskFuncTable3 stateHandlers;
 
-    stateHandlers = D_shelter_b1_north_maintenance_walkway_8017D5D8;
+    stateHandlers = _gShelterB1NorthMaintenanceWalkwayStateHandlers;
     stateHandlers.funcs[task->state](task);
 }
 

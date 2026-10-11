@@ -72,8 +72,11 @@ extern TaskMessageEntry D_shelter_b1_pod_service_gantry_8017FAF4[];
 static void _shelterB1PodServiceGantryRunSceneSequence(Task* task);
 static void _shelterB1PodServiceGantryInitRoomState(Task* task);
 
-/// The room task's three states: set-up, the step sequence below, and exit.
-static const TaskFuncTable3 D_shelter_b1_pod_service_gantry_8017D5C4 = {
+/// Room-controller states 0..2: initialize scene work, run the two-scene sequence, teardown.
+///
+/// The controller copies all three callbacks before unchecked state dispatch.
+/// No terminator; keep the room overlay loaded while the controller is live.
+static const TaskFuncTable3 _gShelterB1PodServiceGantryStateHandlers = {
     { _shelterB1PodServiceGantryInitRoomState, _shelterB1PodServiceGantryRunSceneSequence, taskKill },
 };
 
@@ -1948,7 +1951,7 @@ static void _shelterB1PodServiceGantryRunSceneSequence(Task* task)
                 break;
             }
             work->sceneTask = taskSpawnFromTable(gActor160900TaskDescriptors, 0, 0, 0);
-            areaApplySavedUpdates(D_shelter_b1_pod_service_gantry_80182540);
+            areaApplySavedUpdates(gShelterB1PodServiceGantrySecondSceneAreaUpdates);
             gameFlagSetNibble(GAME_FLAG_118, GANTRY_RETURN_PENDING);
             work->step++;
             break;
@@ -2049,6 +2052,6 @@ void shelterB1PodServiceGantryRoomTask(Task* task)
 {
     TaskFuncTable3 stateHandlers;
 
-    stateHandlers = D_shelter_b1_pod_service_gantry_8017D5C4;
+    stateHandlers = _gShelterB1PodServiceGantryStateHandlers;
     stateHandlers.funcs[task->state](task);
 }

@@ -221,9 +221,11 @@ s32 shelterB2PodAccessTunnelResolveRoomEventMessage(Task* unusedTask, s32 messag
     return DEPARTURE_DIRECT;
 }
 
-/// The three states `shelterB2PodAccessTunnelRoomTask` dispatches
-/// the room task through: set-up, an idle tick, and removal.
-static const TaskFuncTable3 D_shelter_b2_pod_access_tunnel_8017D5D8 = {
+/// Room-controller states 0..2: initialize the receiver and variant music policy, idle, teardown.
+///
+/// The controller copies all three callbacks before unchecked state dispatch.
+/// No terminator; keep the room overlay loaded while the controller is live.
+static const TaskFuncTable3 _gShelterB2PodAccessTunnelStateHandlers = {
     { _shelterB2PodAccessTunnelInitializeRoomTask, _shelterB2PodAccessTunnelIdleRoomTask, taskKill },
 };
 
@@ -355,6 +357,6 @@ void shelterB2PodAccessTunnelRoomTask(Task* task)
 {
     TaskFuncTable3 handlers;
 
-    handlers = D_shelter_b2_pod_access_tunnel_8017D5D8;
+    handlers = _gShelterB2PodAccessTunnelStateHandlers;
     handlers.funcs[task->state](task);
 }

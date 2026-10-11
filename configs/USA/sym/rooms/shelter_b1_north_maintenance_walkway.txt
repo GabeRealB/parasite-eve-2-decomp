@@ -2,8 +2,8 @@
 _gShelterB1NorthMaintenanceWalkwayGlowPoints = 0x80184AB8; // size:0x98 defined:True
 _gRoomVisualEffectsGlowDiscShades = 0x80184B74; // size:0xC defined:True
 D_shelter_b1_north_maintenance_walkway_80184A78 = 0x80184A78; // size:0xC defined:True
-D_shelter_b1_north_maintenance_walkway_80184A84 = 0x80184A84; // size:0x28 defined:True
-D_shelter_b1_north_maintenance_walkway_80184AAC = 0x80184AAC; // size:0xC defined:True
+_gShelterB1NorthMaintenanceWalkwayRoomMessages = 0x80184A84; // size:0x28 defined:True
+_gShelterB1NorthMaintenanceWalkwayPostBattleSceneTaskDesc = 0x80184AAC; // size:0xC defined:True
 gShelterB1NorthMaintenanceWalkwayViewMaps = 0x80184B80; // size:0x4 defined:True
 gShelterB1NorthMaintenanceWalkwayRoomViewCounts = 0x80184B84; // size:0x2 defined:True
 D_shelter_b1_north_maintenance_walkway_80184B88 = 0x80184B88; // size:0x70 defined:True
@@ -108,3 +108,4 @@ _shelterB1NorthMaintenanceWalkwayResolveRoomTransition = 0x8017d7a4; // type:fun
 _shelterB1NorthMaintenanceWalkwayPostBattleSceneTask = 0x8017d918; // type:func
 _shelterB1NorthMaintenanceWalkwayInitRoomTask = 0x8017da4c; // type:func
 shelterB1NorthMaintenanceWalkwayRoomTask = 0x8017dafc; // type:func
+_gShelterB1NorthMaintenanceWalkwayStateHandlers = 0x8017d5d8;

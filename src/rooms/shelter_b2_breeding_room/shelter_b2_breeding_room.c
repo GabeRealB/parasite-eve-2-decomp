@@ -24,13 +24,6 @@
 
 #include "rooms/room.h"
 
-/// Completion task requested by `_shelterB2BreedingRoomCommandMessage`
-/// immediately after it starts the first-entry scene.
-extern TaskDesc D_shelter_b2_breeding_room_80180444[];
-
-/// Message table `_shelterB2BreedingRoomInitializeRoomTask` installs on its task.
-extern TaskMessageEntry D_shelter_b2_breeding_room_80180414[];
-
 static s32  _shelterB2BreedingRoomRefuseKeyItemUse(Task* task, s32 messageId, s32 keyItemId, s32 unusedArg);
 static s32  _shelterB2BreedingRoomResolveRoomTransition(Task* task, s32 messageId, RoomEventMsg* request, RoomEventMsg* reply);
 static s32  _shelterB2BreedingRoomCommandMessage(Task* task, s32 messageId, s32 commandId, s32 unusedArg);
@@ -61,7 +54,12 @@ static u32 _gShelterB2BreedingRoomModel02E04Stream[11] = {
 
 TmdSource gShelterB2BreedingRoomModel02E04 = { 0, 40, 0, 1, _gShelterB2BreedingRoomModel02E04PartVerts, _gShelterB2BreedingRoomModel02E04Verts, &_gShelterB2BreedingRoomModel02E04Verts[4], _gShelterB2BreedingRoomModel02E04Skeleton, _gShelterB2BreedingRoomModel02E04Stream };
 
-TaskMessageEntry D_shelter_b2_breeding_room_80180414[6] = {
+/// Room-message routes: resolve departures, refuse key items, ignore actions, select scenes and sound cues.
+///
+/// 5 live entries followed by TASK_MESSAGE_TABLE_END/NULL. The room controller
+/// borrows this table; message-specific payloads are consumed synchronously.
+/// Keep the room overlay and callback code loaded while the receiver is live.
+static TaskMessageEntry _gShelterB2BreedingRoomMessages[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _shelterB2BreedingRoomResolveRoomTransition },
     { ROOM_MESSAGE_USE_KEY_ITEM, _shelterB2BreedingRoomRefuseKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, _shelterB2BreedingRoomIgnoreAction },
@@ -70,9 +68,15 @@ TaskMessageEntry D_shelter_b2_breeding_room_80180414[6] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-TaskDesc D_shelter_b2_breeding_room_80180444[1] = {
-    { { { TASK_BODY_NONE, 32 } }, _shelterB2BreedingRoomFinishFirstSceneTask, { .value = 0 } },
-};
+/// Scheduler priority byte of the bodyless scene task.
+enum { SHELTER_B2_BREEDING_ROOM_FIRST_SCENE_COMPLETION_TASK_PRIORITY = 32 };
+
+/// Bodyless watcher restoring CAP and player control after first-entry playback.
+///
+/// A single priority-32 descriptor, spawned at index 0 with zero payloads
+/// immediately after playback is requested. It waits for idle CAP before
+/// restoring the default resource; keep the room and CAP resources loaded.
+static TaskDesc _gShelterB2BreedingRoomFirstSceneCompletionTaskDesc = { { { TASK_BODY_NONE, SHELTER_B2_BREEDING_ROOM_FIRST_SCENE_COMPLETION_TASK_PRIORITY } }, _shelterB2BreedingRoomFinishFirstSceneTask, { .value = 0 } };
 
 void shelterB2BreedingRoomAreaObjectTask(Task* task)
 {
@@ -149,7 +153,7 @@ static s32 _shelterB2BreedingRoomCommandMessage(Task* task, s32 messageId, s32 c
             capSetTexturePage(SHELTER_B2_BREEDING_ROOM_CAP_TEXTURE_X, SHELTER_B2_BREEDING_ROOM_CAP_TEXTURE_Y);
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
             capRunCommandWithTransition(SHELTER_B2_BREEDING_ROOM_CAP_FIRST_SCENE);
-            taskSpawnFromTable(D_shelter_b2_breeding_room_80180444, SHELTER_B2_BREEDING_ROOM_TASK_FINISH_FIRST_SCENE, 0, 0);
+            taskSpawnFromTable(&_gShelterB2BreedingRoomFirstSceneCompletionTaskDesc, SHELTER_B2_BREEDING_ROOM_TASK_FINISH_FIRST_SCENE, 0, 0);
         }
     }
     return 0;
@@ -210,7 +214,7 @@ static void _shelterB2BreedingRoomInitializeRoomTask(Task* task)
 {
     enum { SHELTER_B2_BREEDING_ROOM_CAP_COMPLETION_SOUNDS_ENABLED = 1 };
 
-    task->msgTable = D_shelter_b2_breeding_room_80180414;
+    task->msgTable = _gShelterB2BreedingRoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     task->state++;
     gCapRoomCompletionSoundsEnabled = SHELTER_B2_BREEDING_ROOM_CAP_COMPLETION_SOUNDS_ENABLED;
@@ -221,10 +225,11 @@ static void _shelterB2BreedingRoomIdleRoomTask(Task* task)
 {
 }
 
-/// The room task's three states, dispatched by
-/// `shelterB2BreedingRoomRoomTask`: install the message table, idle,
-/// end.
-static const TaskFuncTable3 D_shelter_b2_breeding_room_8017D5C4 = {
+/// Room-controller states 0..2: initialize the receiver and CAP sound cues, idle, teardown.
+///
+/// The controller copies all three callbacks before unchecked state dispatch.
+/// No terminator; keep the room overlay loaded while the controller is live.
+static const TaskFuncTable3 _gShelterB2BreedingRoomStateHandlers = {
     { _shelterB2BreedingRoomInitializeRoomTask, _shelterB2BreedingRoomIdleRoomTask, taskKill }
 };
 
@@ -232,6 +237,6 @@ void shelterB2BreedingRoomRoomTask(Task* task)
 {
     TaskFuncTable3 stateHandlers;
 
-    stateHandlers = D_shelter_b2_breeding_room_8017D5C4;
+    stateHandlers = _gShelterB2BreedingRoomStateHandlers;
     stateHandlers.funcs[task->state](task);
 }

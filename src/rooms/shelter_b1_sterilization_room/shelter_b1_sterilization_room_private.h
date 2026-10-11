@@ -92,9 +92,22 @@ extern ActorTransform gShelterB1SterilizationRoomTrapEscapePlayerPlacement;
 /// single record at index zero; it remains borrowed from the room overlay.
 extern DamageAttack gShelterB1SterilizationRoomTrapAttack;
 
-extern EvsCommand D_shelter_b1_sterilization_room_8018873C[37];
+/// Trap-entry scene that places the player and starts the room's repeating damage.
+///
+/// Thirty-seven commands including END. Installs the trap animation extension,
+/// crossfades through views 11/14/15/16 and synchronizes CAP command 7 to cues.
+/// Starts the room switch and damage task once, then restores player scripting,
+/// weapon presentation and the saved view. Sound playback survives skipping;
+/// use the paired skip script with HUD hide/restore and keep resources loaded.
+extern EvsCommand gShelterB1SterilizationRoomTrapEntryScript[37];
 
-extern EvsCommand D_shelter_b1_sterilization_room_80188AB4[20];
+/// Skip completion for the trap-entry scene, establishing its live trap state.
+///
+/// Twenty commands including END. Fades, attenuates the trap sounds, starts
+/// the room switch and damage once, and applies the same animation bank and
+/// player placement. Restores weapons, event presentation, music and player
+/// scripting. Borrows room resources until the event interpreter finishes.
+extern EvsCommand gShelterB1SterilizationRoomTrapEntrySkipScript[20];
 
 /// First trap exchange, synchronized to scene CAP command 10 and two sound cues.
 ///
@@ -104,7 +117,12 @@ extern EvsCommand D_shelter_b1_sterilization_room_80188AB4[20];
 /// skip script. Requires live player, CAP, sound and room resources through exit.
 extern EvsCommand gShelterB1SterilizationRoomTrapExchangeScript[11];
 
-extern EvsCommand D_shelter_b1_sterilization_room_80188FDC[8];
+/// Skip completion for the first trap exchange, restoring ordinary CAP playback.
+///
+/// Eight commands including END. Preserves sounds, waits through the fade,
+/// ends player scripting, releases scene control and restores CAP resource 0
+/// before returning the fade. Keep this room and its CAP data loaded until exit.
+extern EvsCommand gShelterB1SterilizationRoomTrapExchangeSkipScript[8];
 
 /// Writable room collision mesh shared by all three room resource descriptors.
 ///
@@ -124,11 +142,23 @@ extern WorldCollisionGrid gShelterB1SterilizationRoomCollisionGrid;
 /// and writable until unlinked. Positions/radii use game units, normals Q12.
 extern WorldCollisionTrigger gShelterB1SterilizationRoomActionTriggers[28];
 
-extern AreaApplyRec D_shelter_b1_sterilization_room_8018C334[2];
+/// Saved parking-area change accompanying the first variant-5 actor event.
+///
+/// One update and AREA_APPLY_END. Selects Underground Parking variant 21 in
+/// every save mode, clearing its map mark and saved enemy poses. The room's
+/// initializer borrows the complete list for its synchronous update call.
+extern AreaApplyRec gShelterB1SterilizationRoomActorEventAreaUpdates[2];
 
 extern Task* gRoomCutsceneSoundTask;
 
-extern RoomCutsceneRec D_shelter_b1_sterilization_room_8018C344;
+/// Reusable configuration for the room's repeat command-17 cutscene.
+///
+/// Configured for view 19, CAP file 2/slot 1 and four room sound cues before
+/// each spawn; zero texture coordinates select the runner's default CAP page.
+/// Full scene playback is enabled and input skipping remains available. The
+/// scene task borrows this 24-byte record through completion, including its
+/// follow-up CAP command 6. Do not overwrite it while that task is live.
+extern RoomCutsceneRec gShelterB1SterilizationRoomRepeatCutscene;
 
 /// Entries of the room's event-task table used by message and script callbacks.
 enum {

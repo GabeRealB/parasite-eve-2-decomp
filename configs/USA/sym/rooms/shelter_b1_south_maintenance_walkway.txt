@@ -1,7 +1,7 @@
 // Overlay-local symbols for shelter_b1_south_maintenance_walkway.
 _gRoomVisualEffectsGlowDiscShades = 0x801823E8; // size:0xC defined:True
 D_shelter_b1_south_maintenance_walkway_801822FC = 0x801822FC; // size:0xC defined:True
-D_shelter_b1_south_maintenance_walkway_80182308 = 0x80182308; // size:0x28 defined:True
+_gShelterB1SouthMaintenanceWalkwayRoomMessages = 0x80182308; // size:0x28 defined:True
 _gShelterB1SouthMaintenanceWalkwayGlowGeometry = 0x80182330; // size:0xA8 defined:True
 gShelterB1SouthMaintenanceWalkwayRoomLighting = 0x801823F4; // size:0x8 defined:True
 D_shelter_b1_south_maintenance_walkway_801823FC = 0x801823FC; // size:0x10 defined:True
@@ -88,3 +88,4 @@ _shelterB1SouthMaintenanceWalkwayIdle = 0x8017da2c; // type:func
 _shelterB1SouthMaintenanceWalkwayResolveDepartureMessage = 0x8017d790; // type:func
 _shelterB1SouthMaintenanceWalkwayInitializeRoomTask = 0x8017d9e8; // type:func
 shelterB1SouthMaintenanceWalkwayRoomTask = 0x8017da34; // type:func
+_gShelterB1SouthMaintenanceWalkwayStateHandlers = 0x8017d5d8;

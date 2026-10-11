@@ -1,7 +1,7 @@
 // Overlay-local symbols for shelter_b2_breeding_room.
 _gShelterB2BreedingRoomGlowPoints = 0x80180450; // size:0x100 defined:True
-D_shelter_b2_breeding_room_80180414 = 0x80180414; // size:0x30 defined:True
-D_shelter_b2_breeding_room_80180444 = 0x80180444; // size:0xC defined:True
+_gShelterB2BreedingRoomMessages = 0x80180414; // size:0x30 defined:True
+_gShelterB2BreedingRoomFirstSceneCompletionTaskDesc = 0x80180444; // size:0xC defined:True
 _gRoomVisualEffectsGlowDiscShades = 0x80180550; // size:0xC defined:True
 gShelterB2BreedingRoomRoomViewMaps = 0x8018055C; // size:0x4 defined:True
 gShelterB2BreedingRoomRoomViewCounts = 0x80180560; // size:0x2 defined:True
@@ -101,3 +101,4 @@ _shelterB2BreedingRoomInitializeRoomTask = 0x8017d7ec; // type:func
 _shelterB2BreedingRoomIdleRoomTask = 0x8017d838; // type:func
 shelterB2BreedingRoomRoomTask = 0x8017d840; // type:func
 _shelterB2BreedingRoomCommandMessage = 0x8017d6a4; // type:func
+_gShelterB2BreedingRoomStateHandlers = 0x8017d5c4;

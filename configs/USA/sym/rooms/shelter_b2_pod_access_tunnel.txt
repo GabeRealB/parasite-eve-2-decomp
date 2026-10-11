@@ -115,3 +115,4 @@ shelterB2PodAccessTunnelRideToB1Task = 0x8017d9a8; // type:func
 shelterB2PodAccessTunnelHandleCommandMessage = 0x8017db30; // type:func
 _shelterB2PodAccessTunnelInitializeRoomTask = 0x8017dba8; // type:func
 shelterB2PodAccessTunnelRoomTask = 0x8017dc14; // type:func
+_gShelterB2PodAccessTunnelStateHandlers = 0x8017d5d8;

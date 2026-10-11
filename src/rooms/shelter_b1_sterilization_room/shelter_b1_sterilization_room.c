@@ -610,7 +610,7 @@ static void _shelterB1SterilizationRoomInitializeState(Task* task)
     // Start the first variant-5 event before installing its actor obstacle.
     if (gGameSession->location.loc.variant == SHELTER_B1_STERILIZATION_ROOM_ACTOR_EVENT_VARIANT && gameFlagGetNibble(GAME_FLAG_STERILIZATION_ROOM_EVENT_STATE) == ENTRY_EVENT_UNSEEN) {
         gameFlagSetNibble(GAME_FLAG_UNDERGROUND_PARKING_STATE, PARKING_PROGRESS_EVENT_STARTED);
-        areaApplySavedUpdates(D_shelter_b1_sterilization_room_8018C334);
+        areaApplySavedUpdates(gShelterB1SterilizationRoomActorEventAreaUpdates);
         if (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != NULL) {
             gameFlagSetNibble(GAME_FLAG_SOLDIER_B_REMARK_STATE, COMPANION_REMARK_PRESENT);
             gameFlagSetNibble(GAME_FLAG_STERILIZATION_ROOM_EVENT_STATE, ENTRY_EVENT_WITH_COMPANION);
@@ -714,8 +714,8 @@ static s32 _shelterB1SterilizationRoomHandleActionMessage(Task* task, s32 messag
         case ACTION_START_TRAP:
             if (gameFlagGetNibble(GAME_FLAG_STERILIZATION_ROOM_TRAP_TRIGGERED) == TRAP_DORMANT) {
                 if (gameFlagGetNibble(GAME_FLAG_B2_NORTH_WALKWAY_SCENE_SEEN) != 0) {
-                    evsStartScriptWithSkip(D_shelter_b1_sterilization_room_8018873C, EVENT_SCRIPT_HUD_HIDE_RESTORE,
-                                           D_shelter_b1_sterilization_room_80188AB4);
+                    evsStartScriptWithSkip(gShelterB1SterilizationRoomTrapEntryScript, EVENT_SCRIPT_HUD_HIDE_RESTORE,
+                                           gShelterB1SterilizationRoomTrapEntrySkipScript);
                     gameFlagSetNibble(GAME_FLAG_STERILIZATION_ROOM_TRAP_TRIGGERED, TRAP_TRIGGERED);
                 }
             }
@@ -835,15 +835,15 @@ static s32 _shelterB1SterilizationRoomHandleCommandMessage(Task* task, s32 messa
             return;
         }
         // Reuse the overlay-owned cutscene record for subsequent requests.
-        D_shelter_b1_sterilization_room_8018C344.view            = CUTSCENE_VIEW;
-        D_shelter_b1_sterilization_room_8018C344.capSlot         = CUTSCENE_CAP_SLOT;
-        D_shelter_b1_sterilization_room_8018C344.capFile         = CUTSCENE_CAP_FILE;
-        D_shelter_b1_sterilization_room_8018C344.skipScene       = CUTSCENE_SKIP_DISABLED;
-        D_shelter_b1_sterilization_room_8018C344.startSound      = CUTSCENE_START_SOUND;
-        D_shelter_b1_sterilization_room_8018C344.endSound        = CUTSCENE_END_SOUND;
-        D_shelter_b1_sterilization_room_8018C344.sceneSound      = CUTSCENE_SCENE_SOUND;
-        D_shelter_b1_sterilization_room_8018C344.afterSceneSound = CUTSCENE_AFTER_SCENE_SOUND;
-        taskSpawnFromTable(_gRoomCutsceneTaskDescs, ROOM_CUTSCENE_TASK_SCENE, CUTSCENE_FOLLOWUP_CAP_COMMAND, &D_shelter_b1_sterilization_room_8018C344);
+        gShelterB1SterilizationRoomRepeatCutscene.view            = CUTSCENE_VIEW;
+        gShelterB1SterilizationRoomRepeatCutscene.capSlot         = CUTSCENE_CAP_SLOT;
+        gShelterB1SterilizationRoomRepeatCutscene.capFile         = CUTSCENE_CAP_FILE;
+        gShelterB1SterilizationRoomRepeatCutscene.skipScene       = CUTSCENE_SKIP_DISABLED;
+        gShelterB1SterilizationRoomRepeatCutscene.startSound      = CUTSCENE_START_SOUND;
+        gShelterB1SterilizationRoomRepeatCutscene.endSound        = CUTSCENE_END_SOUND;
+        gShelterB1SterilizationRoomRepeatCutscene.sceneSound      = CUTSCENE_SCENE_SOUND;
+        gShelterB1SterilizationRoomRepeatCutscene.afterSceneSound = CUTSCENE_AFTER_SCENE_SOUND;
+        taskSpawnFromTable(_gRoomCutsceneTaskDescs, ROOM_CUTSCENE_TASK_SCENE, CUTSCENE_FOLLOWUP_CAP_COMMAND, &gShelterB1SterilizationRoomRepeatCutscene);
     }
     if (command == COMMAND_CAP_21) {
         capRunCommandWithTransition(command);
@@ -858,7 +858,7 @@ static s32 _shelterB1SterilizationRoomHandleCommandMessage(Task* task, s32 messa
         if (gameFlagGetNibble(GAME_FLAG_STERILIZATION_ROOM_TRAP_TRIGGERED) == TRAP_TRIGGERED && gameFlagGetNibble(GAME_FLAG_STERILIZATION_ROOM_TRAP_STOPPED) == TRAP_RUNNING) {
             if (gameFlagGetNibble(GAME_FLAG_SHELTER_B1_STERILIZATION_ROOM_14F) == SCENE_NOT_STARTED) {
                 playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-                evsStartScriptWithSkip(gShelterB1SterilizationRoomTrapExchangeScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_shelter_b1_sterilization_room_80188FDC);
+                evsStartScriptWithSkip(gShelterB1SterilizationRoomTrapExchangeScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, gShelterB1SterilizationRoomTrapExchangeSkipScript);
                 gameFlagSetNibble(GAME_FLAG_SHELTER_B1_STERILIZATION_ROOM_14F, SCENE_FIRST_STARTED);
             } else {
                 taskSpawnFromTable(gShelterB1SterilizationRoomEventTaskDescs, SHELTER_B1_STERILIZATION_ROOM_TASK_SCENE_DIALOGUE, SCENE_REPEAT_TRAP_EXCHANGE, 0);

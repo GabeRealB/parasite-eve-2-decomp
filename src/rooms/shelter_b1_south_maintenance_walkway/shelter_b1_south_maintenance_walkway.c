@@ -65,9 +65,6 @@ extern s8 D_shelter_b1_south_maintenance_walkway_80183644;
 /// Descriptor of the event task the message handler spawns.
 extern TaskDesc D_shelter_b1_south_maintenance_walkway_801822FC;
 
-/// The room's message table.
-extern TaskMessageEntry D_shelter_b1_south_maintenance_walkway_80182308[];
-
 /// Spawn payload of the task 0x31 the event task may start.
 extern RoomFadeStorage  gRoomEventFade;
 static RoomEventMsg     _gRoomEventStagedMsg;
@@ -87,7 +84,12 @@ enum { SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY_MESSAGE_USE_KEY_ITEM = 0x13F1 };
 
 TaskDesc D_shelter_b1_south_maintenance_walkway_801822FC = { { { TASK_BODY_NONE, 32 } }, roomEventStagedTask, { .value = 0 } };
 
-TaskMessageEntry D_shelter_b1_south_maintenance_walkway_80182308[5] = {
+/// Room-message routes: stage eligible departures, refuse key items, ignore actions and commands.
+///
+/// 4 live entries followed by TASK_MESSAGE_TABLE_END/NULL. The room controller
+/// borrows this table; message-specific payloads are consumed synchronously.
+/// Keep the room overlay and callback code loaded while the receiver is live.
+static TaskMessageEntry _gShelterB1SouthMaintenanceWalkwayRoomMessages[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _shelterB1SouthMaintenanceWalkwayResolveDepartureMessage },
     { SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY_MESSAGE_USE_KEY_ITEM, _shelterB1SouthMaintenanceWalkwayRejectKeyItem },
     { DIRECTION_MESSAGE_ROOM_ACTION, _shelterB1SouthMaintenanceWalkwayIgnoreRoomAction },
@@ -698,7 +700,7 @@ static s32 _shelterB1SouthMaintenanceWalkwayIgnoreRoomAction(Task* task, s32 mes
 /// must remain live while messages can reach that slot.
 static void _shelterB1SouthMaintenanceWalkwayInitializeRoomTask(Task* task)
 {
-    task->msgTable = D_shelter_b1_south_maintenance_walkway_80182308;
+    task->msgTable = _gShelterB1SouthMaintenanceWalkwayRoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     task->state++;
 }
@@ -708,8 +710,11 @@ static void _shelterB1SouthMaintenanceWalkwayIdle(Task* task)
 {
 }
 
-/// The room task's three states: set-up, idle and exit.
-static const TaskFuncTable3 D_shelter_b1_south_maintenance_walkway_8017D5D8 = {
+/// Room-controller states 0..2: initialize the receiver, idle, teardown.
+///
+/// The controller copies all three callbacks before unchecked state dispatch.
+/// No terminator; keep the room overlay loaded while the controller is live.
+static const TaskFuncTable3 _gShelterB1SouthMaintenanceWalkwayStateHandlers = {
     { _shelterB1SouthMaintenanceWalkwayInitializeRoomTask, _shelterB1SouthMaintenanceWalkwayIdle, taskKill },
 };
 
@@ -717,7 +722,7 @@ void shelterB1SouthMaintenanceWalkwayRoomTask(Task* task)
 {
     TaskFuncTable3 stateHandlers;
 
-    stateHandlers = D_shelter_b1_south_maintenance_walkway_8017D5D8;
+    stateHandlers = _gShelterB1SouthMaintenanceWalkwayStateHandlers;
     stateHandlers.funcs[task->state](task);
 }
 

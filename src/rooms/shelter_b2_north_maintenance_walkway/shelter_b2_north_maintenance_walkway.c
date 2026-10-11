@@ -54,9 +54,6 @@
 #include "../../shared/room_events.h"
 #include "../../shared/room_variants.h"
 
-/// Area records applied once the walkway's scene has started.
-extern AreaApplyRec D_shelter_b2_north_maintenance_walkway_80186380[];
-
 /// Spawn payload of the task 0x31 the event task may start.
 extern RoomFadeStorage gRoomEventFade;
 
@@ -843,15 +840,30 @@ WorldCollisionSurfaceProperties* gShelterB2NorthMaintenanceWalkwaySurfacePropert
     &_gShelterB2NorthMaintenanceWalkwaySilentSurfaceProperties,
 };
 
-AreaApplyRec D_shelter_b2_north_maintenance_walkway_80186380[8] = {
-    { 4, 30, 2, 0 },
-    { 4, 32, 2, 17 },
-    { 4, 32, 7, 33 },
-    { 4, 33, 2, 17 },
-    { 4, 33, 21, 33 },
-    { 4, 34, 2, 17 },
-    { 4, 34, 21, 33 },
-    { 255, 0, 0, 0 },
+/// Placement layouts and the nonzero map-mark policy for the entry-scene updates.
+enum {
+    SHELTER_B2_NORTH_MAINTENANCE_WALKWAY_POST_SCENE_VARIANT                    = 2,
+    SHELTER_B2_NORTH_MAINTENANCE_WALKWAY_BREEDING_ALTERNATE_VARIANT            = 7,
+    SHELTER_B2_NORTH_MAINTENANCE_WALKWAY_CORRIDOR_AND_SEPTIC_ALTERNATE_VARIANT = 21,
+    SHELTER_B2_NORTH_MAINTENANCE_WALKWAY_MARK_ON_MAP                           = 1,
+};
+
+/// Saved-area changes committed when the walkway's one-shot entry scene starts.
+///
+/// Seven updates and AREA_APPLY_END. Walkway variant 2 applies in every mode
+/// and clears its map mark. Breeding Room, Main Corridor and Septic Tank are
+/// marked and receive variant 2 in normal/replay and Scavenger, or variants
+/// 7/21/21 in Bounty and Nightmare. Each accepted update clears saved enemy
+/// poses; the action handler borrows this list only for the synchronous call.
+static AreaApplyRec _gShelterB2NorthMaintenanceWalkwaySceneAreaUpdates[8] = {
+    { GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_NORTH_MAINTENANCE_WALKWAY, SHELTER_B2_NORTH_MAINTENANCE_WALKWAY_POST_SCENE_VARIANT, AREA_APPLY_MODE_ALWAYS },
+    { GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_BREEDING_ROOM, SHELTER_B2_NORTH_MAINTENANCE_WALKWAY_POST_SCENE_VARIANT, AREA_APPLY_MODE_REPLAY_SCAVENGER | SHELTER_B2_NORTH_MAINTENANCE_WALKWAY_MARK_ON_MAP },
+    { GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_BREEDING_ROOM, SHELTER_B2_NORTH_MAINTENANCE_WALKWAY_BREEDING_ALTERNATE_VARIANT, AREA_APPLY_MODE_BOUNTY_NIGHTMARE | SHELTER_B2_NORTH_MAINTENANCE_WALKWAY_MARK_ON_MAP },
+    { GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_MAIN_CORRIDOR, SHELTER_B2_NORTH_MAINTENANCE_WALKWAY_POST_SCENE_VARIANT, AREA_APPLY_MODE_REPLAY_SCAVENGER | SHELTER_B2_NORTH_MAINTENANCE_WALKWAY_MARK_ON_MAP },
+    { GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_MAIN_CORRIDOR, SHELTER_B2_NORTH_MAINTENANCE_WALKWAY_CORRIDOR_AND_SEPTIC_ALTERNATE_VARIANT, AREA_APPLY_MODE_BOUNTY_NIGHTMARE | SHELTER_B2_NORTH_MAINTENANCE_WALKWAY_MARK_ON_MAP },
+    { GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_SEPTIC_TANK, SHELTER_B2_NORTH_MAINTENANCE_WALKWAY_POST_SCENE_VARIANT, AREA_APPLY_MODE_REPLAY_SCAVENGER | SHELTER_B2_NORTH_MAINTENANCE_WALKWAY_MARK_ON_MAP },
+    { GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_SEPTIC_TANK, SHELTER_B2_NORTH_MAINTENANCE_WALKWAY_CORRIDOR_AND_SEPTIC_ALTERNATE_VARIANT, AREA_APPLY_MODE_BOUNTY_NIGHTMARE | SHELTER_B2_NORTH_MAINTENANCE_WALKWAY_MARK_ON_MAP },
+    { AREA_APPLY_END, 0, 0, 0 },
 };
 
 RoomFadeStorage gRoomEventFade = { 0 };
@@ -979,7 +991,7 @@ s32 shelterB2NorthMaintenanceWalkwayHandleRoomAction(Task* unusedTask, s32 unuse
         evsStartScriptWithSkip(gActor341300WalkwaySceneScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, gActor341300WalkwaySceneSkipScript);
         gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, SHELTER_B2_NORTH_MAINTENANCE_WALKWAY_OBJECTIVE_AFTER_SCENE);
         gameFlagSetNibble(GAME_FLAG_B2_NORTH_WALKWAY_SCENE_SEEN, SHELTER_B2_NORTH_MAINTENANCE_WALKWAY_SCENE_SEEN);
-        areaApplySavedUpdates(D_shelter_b2_north_maintenance_walkway_80186380);
+        areaApplySavedUpdates(_gShelterB2NorthMaintenanceWalkwaySceneAreaUpdates);
     }
     return 0;
 }
@@ -1006,7 +1018,7 @@ static void _shelterB2NorthMaintenanceWalkwayInitRoomTask(Task* task)
 {
     enum { SHELTER_B2_NORTH_MAINTENANCE_WALKWAY_SCRIPTED_ACTOR_VARIANT = 1 };
 
-    task->msgTable = D_shelter_b2_north_maintenance_walkway_80183B60;
+    task->msgTable = gShelterB2NorthMaintenanceWalkwayRoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     if (gGameSession->location.loc.variant == SHELTER_B2_NORTH_MAINTENANCE_WALKWAY_SCRIPTED_ACTOR_VARIANT) {
         actor341300ResetScriptTaskHandle();
@@ -1022,8 +1034,11 @@ static void _shelterB2NorthMaintenanceWalkwayIdleRoomTask(Task* unusedTask)
     char unusedStackSpace[0x10];
 }
 
-/// The room task's three states: setup, idle and exit.
-static const TaskFuncTable3 D_shelter_b2_north_maintenance_walkway_8017D5F4 = {
+/// Room-controller states 0..2: initialize the receiver and actor-script handle, idle, teardown.
+///
+/// The controller copies all three callbacks before unchecked state dispatch.
+/// No terminator; keep the room overlay loaded while the controller is live.
+static const TaskFuncTable3 _gShelterB2NorthMaintenanceWalkwayStateHandlers = {
     { _shelterB2NorthMaintenanceWalkwayInitRoomTask, _shelterB2NorthMaintenanceWalkwayIdleRoomTask, taskKill },
 };
 
@@ -1031,6 +1046,6 @@ void shelterB2NorthMaintenanceWalkwayRoomTask(Task* task)
 {
     TaskFuncTable3 states;
 
-    states = D_shelter_b2_north_maintenance_walkway_8017D5F4;
+    states = _gShelterB2NorthMaintenanceWalkwayStateHandlers;
     states.funcs[task->state](task);
 }

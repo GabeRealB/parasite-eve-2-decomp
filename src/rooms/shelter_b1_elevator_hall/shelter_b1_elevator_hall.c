@@ -85,9 +85,11 @@ s32 shelterB1ElevatorHallResolveRoomTransition(Task* task, s32 messageId, RoomEv
     return TRANSITION_DIRECT;
 }
 
-/// The room task's state table, dispatched by
-/// `shelterB1ElevatorHallRoomTask` from a stack copy.
-static const TaskFuncTable3 D_shelter_b1_elevator_hall_8017D5D8 = {
+/// Room-controller states 0..2: initialize the receiver and first-visit flags, idle, teardown.
+///
+/// The controller copies all three callbacks before unchecked state dispatch.
+/// No terminator; keep the room overlay loaded while the controller is live.
+static const TaskFuncTable3 _gShelterB1ElevatorHallStateHandlers = {
     {
         _shelterB1ElevatorHallInitRoomTask,
         _shelterB1ElevatorHallIdleRoomTask,
@@ -234,6 +236,6 @@ void shelterB1ElevatorHallRoomTask(Task* task)
 {
     TaskFuncTable3 stateHandlers;
 
-    stateHandlers = D_shelter_b1_elevator_hall_8017D5D8;
+    stateHandlers = _gShelterB1ElevatorHallStateHandlers;
     stateHandlers.funcs[task->state](task);
 }

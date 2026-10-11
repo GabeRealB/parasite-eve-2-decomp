@@ -24,11 +24,6 @@
 
 static void _shelterB1SleepingQuartersPlayAlternateCapTask(Task* task);
 
-extern TaskDesc D_shelter_b1_sleeping_quarters_80180540;
-
-/// The room's message table, which its cap scripts index.
-extern TaskMessageEntry D_shelter_b1_sleeping_quarters_80180518[];
-
 static s32 _shelterB1SleepingQuartersRejectKeyItemUse(Task* task, s32 messageId, s32 keyItemId, s32 unusedArg);
 static s32 _shelterB1SleepingQuartersResolveRoomEvent(Task* task, s32 messageId, RoomEventMsg* request, RoomEventMsg* reply);
 static s32 _shelterB1SleepingQuartersHandleCapCommand(Task* task, s32 messageId, s32 commandIndex, s32 unusedArg);
@@ -68,7 +63,12 @@ TmdSource gShelterB1SleepingQuartersModel02DFC = {
     _gShelterB1SleepingQuartersModel02DFCStream,
 };
 
-TaskMessageEntry D_shelter_b1_sleeping_quarters_80180518[5] = {
+/// Room-message routes: resolve or intercept departures, refuse key items, ignore actions, select CAP playback.
+///
+/// 4 live entries followed by TASK_MESSAGE_TABLE_END/NULL. The room controller
+/// borrows this table; message-specific payloads are consumed synchronously.
+/// Keep the room overlay and callback code loaded while the receiver is live.
+static TaskMessageEntry _gShelterB1SleepingQuartersRoomMessages[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _shelterB1SleepingQuartersResolveRoomEvent },
     { ROOM_MESSAGE_USE_KEY_ITEM, _shelterB1SleepingQuartersRejectKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, _shelterB1SleepingQuartersIgnoreRoomAction },
@@ -76,7 +76,15 @@ TaskMessageEntry D_shelter_b1_sleeping_quarters_80180518[5] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-TaskDesc D_shelter_b1_sleeping_quarters_80180540 = { { { TASK_BODY_NONE, 192 } }, _shelterB1SleepingQuartersPlayAlternateCapTask, { .value = 0 } };
+/// Scheduler priority byte of the bodyless scene task.
+enum { SHELTER_B1_SLEEPING_QUARTERS_ALTERNATE_CAP_TASK_PRIORITY = 192 };
+
+/// Bodyless task recipe for alternate-resource CAP playback and control restoration.
+///
+/// A single priority-192 descriptor, spawned at index 0. The first argument
+/// is a valid alternate CAP command (the room sends 8); the second is unused.
+/// Keep both CAP resources and this callback loaded until playback completes.
+static TaskDesc _gShelterB1SleepingQuartersAlternateCapTaskDesc = { { { TASK_BODY_NONE, SHELTER_B1_SLEEPING_QUARTERS_ALTERNATE_CAP_TASK_PRIORITY } }, _shelterB1SleepingQuartersPlayAlternateCapTask, { .value = 0 } };
 
 static void _shelterB1SleepingQuartersInitializeRoom(Task* task);
 static void _shelterB1SleepingQuartersIdleRoomState(Task* task);
@@ -155,7 +163,7 @@ static s32 _shelterB1SleepingQuartersHandleCapCommand(Task* task, s32 messageId,
 
     if (commandIndex == SHELTER_B1_SLEEPING_QUARTERS_ALTERNATE_FILE_CAP) {
         playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-        taskSpawnFromTable(&D_shelter_b1_sleeping_quarters_80180540, 0, SHELTER_B1_SLEEPING_QUARTERS_ALTERNATE_FILE_CAP, 0);
+        taskSpawnFromTable(&_gShelterB1SleepingQuartersAlternateCapTaskDesc, 0, SHELTER_B1_SLEEPING_QUARTERS_ALTERNATE_FILE_CAP, 0);
     }
     if (commandIndex == SHELTER_B1_SLEEPING_QUARTERS_SELECT_CAP_EVENT) {
         capSpawnEventIfIdle(gameFlagGetNibble(GAME_FLAG_SLEEPING_QUARTERS_16F) == 0 ? SHELTER_B1_SLEEPING_QUARTERS_CAP_EVENT_FLAG_CLEAR : SHELTER_B1_SLEEPING_QUARTERS_CAP_EVENT_FLAG_SET, CAP_EVENT_NO_FLAGS);
@@ -231,7 +239,7 @@ static void _shelterB1SleepingQuartersPlayAlternateCapTask(Task* task)
 /// in `GAME_TASK_SLOT_ROOM` and advances to idle state 1 without allocating work.
 static void _shelterB1SleepingQuartersInitializeRoom(Task* task)
 {
-    task->msgTable = D_shelter_b1_sleeping_quarters_80180518;
+    task->msgTable = _gShelterB1SleepingQuartersRoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     task->state++;
 }
@@ -241,10 +249,11 @@ static void _shelterB1SleepingQuartersIdleRoomState(Task* task)
 {
 }
 
-/// The room task's three states, run from a stack copy by
-/// `shelterB1SleepingQuartersRoomTask`: the entry tick, the idle
-/// state, then `taskKill`.
-static const TaskFuncTable3 D_shelter_b1_sleeping_quarters_8017D5C4 = {
+/// Room-controller states 0..2: initialize the receiver, idle, teardown.
+///
+/// The controller copies all three callbacks before unchecked state dispatch.
+/// No terminator; keep the room overlay loaded while the controller is live.
+static const TaskFuncTable3 _gShelterB1SleepingQuartersStateHandlers = {
     { _shelterB1SleepingQuartersInitializeRoom, _shelterB1SleepingQuartersIdleRoomState, taskKill },
 };
 
@@ -252,6 +261,6 @@ void shelterB1SleepingQuartersRoomTask(Task* task)
 {
     TaskFuncTable3 stateHandlers;
 
-    stateHandlers = D_shelter_b1_sleeping_quarters_8017D5C4;
+    stateHandlers = _gShelterB1SleepingQuartersStateHandlers;
     stateHandlers.funcs[task->state](task);
 }
