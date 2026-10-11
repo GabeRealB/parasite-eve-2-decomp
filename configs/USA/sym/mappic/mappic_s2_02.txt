@@ -2,3 +2,4 @@
 gMappicS202WarehouseShape = 0x8012f2a8;
 gMappicS202MotelRoom1Shape = 0x8012f3e4;
 gMappicS202MotelRoom2Shape = 0x8012f474;
+gMappicS202MotelRoom3Shape = 0x8012f504;
