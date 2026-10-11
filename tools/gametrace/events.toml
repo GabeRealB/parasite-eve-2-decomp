@@ -12,6 +12,12 @@
 # For a patch event at an address outside the executable and gameplay, give its own first two instructions:
 #   words = [0x27BDFFE8, 0xAFBF0010]
 
+# Where the tool sets everything up. Start the game paused, then the tool: it continues the game to the first of
+# these addresses and only there writes the blob, the patches and the breakpoints - by then memory is initialised.
+# Each later hit applies the patches again (for a function in an image that is loaded later). Leave it out to set
+# up at once, in the game as it stands.
+install_at = [0x80014300]     # main
+
 # The GDB server to connect to; --host and --port on the command line override these.
 [gdb]
 host = "127.0.0.1"

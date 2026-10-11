@@ -17,6 +17,12 @@ breakpoint or by a patch. Every event is recorded the same way - its id and the 
               buffer, then runs the two displaced instructions and returns to the third. This tool reads the ring
               at the `drain` address, where it holds one breakpoint. It suits events too frequent to stop for.
 
+The tool expects to be started with the game paused, before it has run. It continues the game itself up to the
+first `install_at` address - a function by which memory is set up, such as the program's `main` - and only there
+writes the blob, the patches and the event breakpoints. Each later hit of an `install_at` address applies the
+patches again, which is how a function in an image loaded later gets its patch. Without `install_at` everything is
+written at once, into the game as it stands.
+
 A patch is written only where the function's own first two instructions are in memory, and is written again when
 an image load has replaced them, so an address shared by several overlays is only ever patched under the right one.
 The two instructions it displaces must be free to move: `check` refuses a branch, a jump, or a load that follows
@@ -57,6 +63,8 @@ def load(path: Path) -> dict:
     gdb.setdefault("port", 2345)
     blob.setdefault("address", 0x80200000)
     blob.setdefault("records", 1024)
+    at = cfg.get("install_at", blob.get("install_at", []))
+    cfg["install_at"] = [at] if isinstance(at, int) else list(at)
     problems, seen = [], {}
     for event in cfg.get("event", []):
         for field in ("id", "name", "address"):
@@ -385,7 +393,19 @@ class Session:
         self.count += 1
 
     def start(self) -> None:
+        """Wait for the game to reach the first `install_at` address (it is continued to there), then set up."""
         self.gdb.halt_reason()
+        self.installers = set(self.cfg["install_at"])
+        self.ready = not self.installers
+        if self.ready:
+            self.setup()
+        else:
+            for address in self.installers:
+                self.gdb.breakpoint(address)
+            print(f"waiting for the game to reach {', '.join(self.names.at(a) for a in sorted(self.installers))}", file=sys.stderr)
+
+    def setup(self) -> None:
+        self.ready = True
         if self.patched:
             base = self.cfg["blob"]["address"]
             self.refuse_mirror(base)
@@ -479,8 +499,16 @@ class Session:
                 for record in self.pending.pop(pc):
                     record["ret"] = regs[2]
                     self.emit(record)
-                if pc not in self.by_address and pc != drain_at:
+                if pc not in self.by_address and pc != drain_at and pc not in self.installers:
                     self.gdb.breakpoint(pc, False)
+            if pc in self.installers:
+                if not self.ready:
+                    self.setup()
+                    self.emit({"note": f"set up at {self.names.at(pc)}", "patches": len(self.patched), "breakpoints": len(self.by_address)})
+                elif self.patched:
+                    self.install()
+            if not self.ready:
+                continue
             if pc == drain_at:
                 frames += 1
                 if frames % every == 0:
@@ -505,6 +533,8 @@ def main() -> int:
         cfg["gdb"]["port"] = args.port
     names = Names()
     if args.command in ("check", "blob"):
+        for address in cfg["install_at"]:
+            print(f"set up at {address:#010x}  {names.at(address)}")
         for event in cfg.get("event", []):
             print(f"{event['id']:>4}  {event['name']:<28} {event['address']:#010x}  {'patch' if event['patch'] else 'breakpoint':<10} {names.at(event['address'])}")
         if any(e["patch"] for e in cfg.get("event", [])):
