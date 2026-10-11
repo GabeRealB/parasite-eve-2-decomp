@@ -15,10 +15,21 @@
 
 #include "main/task_types.h"
 
-// Room data exported to the shared waypoint actor.
-extern SVECTOR* D_shelter_b2_main_corridor_80182EEC[4];
+/// Four borrowed Bog Diver patrol rings selected by spawn-argument bits 4..5.
+///
+/// Each ring has eight points and wraps at index 7. Slots 1/3 share a ring;
+/// slots 0 and 2 each have their own. X/Z use room units; swimming goal Y adds
+/// unsigned waypoint Y to the sampled water height. There is no terminator.
+/// Keep this overlay loaded while any diver holds a ring pointer.
+extern SVECTOR* gShelterB2MainCorridorDiverPatrolWaypointSets[4];
 
-extern SVECTOR D_shelter_b2_main_corridor_80182EFC[12];
+/// Writable Bog Diver emergence spots with entry 0 reserved as the claim fallback.
+///
+/// Entries 1..10 supply room-space XZ; their Y is not read by spot searches.
+/// SVECTOR.pad is a mutable claim mark (0 free, 1 claimed, -1 terminator).
+/// Entry 11 ends the list and is never a spot. Divers release claims when
+/// moving or despawning; keep this overlay loaded through every claim's lifetime.
+extern SVECTOR gShelterB2MainCorridorDiverSurfaceSpots[12];
 
 /// Undisplaced water-surface Y in signed world units, shared with the room's actors.
 extern s16 gShelterB2MainCorridorWaterY;

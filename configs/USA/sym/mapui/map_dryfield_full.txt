@@ -243,7 +243,7 @@ gDryfieldNightMotelBalconyRoomLighting = 0x80182E00; // absolute:True owner=dryf
 gDryfieldNightMotelBalconyRoomCollisionResources = 0x80182E18; // absolute:True owner=dryfield_night_motel_balcony shared=rooms
 gDryfieldNightMotelBalconyViewMaps = 0x80182E98; // absolute:True owner=dryfield_night_motel_balcony
 gDryfieldNightMotelBalconyRoomViewCounts = 0x80182EA4; // absolute:True owner=dryfield_night_motel_balcony
-gDryfieldNightMotelBalconyWarpEntries = 0x80182EAC; // absolute:True owner=dryfield_night_motel_balcony shared=rooms
+gDryfieldNightMotelBalconyWarpEntries = 0x80182EAC; // absolute:True owner=dryfield_night_motel_balcony
 gDryfieldNightMotelBalconyViewCameras = 0x80184004; // absolute:True owner=dryfield_night_motel_balcony
 gDryfieldNightMotelBalconySpriteViews = 0x8018D078; // absolute:True owner=dryfield_night_motel_balcony
 gDryfieldNightMotelBalconySurfacePropertiesByClass = 0x8018F2AC; // absolute:True owner=dryfield_night_motel_balcony

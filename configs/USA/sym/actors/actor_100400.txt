@@ -369,8 +369,8 @@ gNeoArkPavilionDiverWaterY = 0x801839A0; // absolute:True owner=neo_ark_pavilion
 D_neo_ark_island_80181CE8 = 0x80181CE8; // absolute:True owner=neo_ark_island
 D_neo_ark_island_80181CF8 = 0x80181CF8; // absolute:True owner=neo_ark_island
 D_neo_ark_island_80181C24 = 0x80181C24; // absolute:True owner=neo_ark_island
-D_shelter_b2_main_corridor_80182EEC = 0x80182EEC; // absolute:True owner=shelter_b2_main_corridor shared=rooms
-D_shelter_b2_main_corridor_80182EFC = 0x80182EFC; // absolute:True owner=shelter_b2_main_corridor
+gShelterB2MainCorridorDiverPatrolWaypointSets = 0x80182EEC; // absolute:True owner=shelter_b2_main_corridor shared=rooms
+gShelterB2MainCorridorDiverSurfaceSpots = 0x80182EFC; // absolute:True owner=shelter_b2_main_corridor
 gShelterB2MainCorridorWaterY = 0x80182E28; // absolute:True owner=shelter_b2_main_corridor
 gShelterB4LowerSewerDiverPatrolRings = 0x8018210C; // absolute:True owner=shelter_b4_lower_sewer shared=rooms
 gShelterB4LowerSewerDiverSurfaceSpots = 0x8018211C; // absolute:True owner=shelter_b4_lower_sewer shared=rooms
