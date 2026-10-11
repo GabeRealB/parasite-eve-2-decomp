@@ -51,8 +51,14 @@
 #include "rooms/room.h"
 
 #include "rooms/room_common.h"
+
+/// Selects the forest's twin-trail endpoint table defined in neo_ark_forest_zone_2.c.
+///
+/// Empty presence flag needed only while including the shared header, which
+/// declares the external table of two SVECTOR entries and binds the task's accesses.
 #define ROOM_VISUAL_EFFECTS_SHARED_TRAIL_ENDPOINT_OFFSETS
 #include "../../shared/room_visual_effects.h"
+#undef ROOM_VISUAL_EFFECTS_SHARED_TRAIL_ENDPOINT_OFFSETS
 #include "../../shared/room_events.h"
 #include "../../shared/falling_leaves.h"
 

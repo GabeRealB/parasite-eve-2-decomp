@@ -57,8 +57,14 @@
 #include "overlay.h"
 
 #include "rooms/room_common.h"
+
+/// Selects the cafeteria's twin-trail endpoint table defined in acropolis_cafeteria.c.
+///
+/// Empty presence flag needed only while including the shared header, which
+/// declares the external table of two SVECTOR entries and binds the task's accesses.
 #define ROOM_VISUAL_EFFECTS_SHARED_TRAIL_ENDPOINT_OFFSETS
 #include "../../shared/room_visual_effects.h"
+#undef ROOM_VISUAL_EFFECTS_SHARED_TRAIL_ENDPOINT_OFFSETS
 #include "../../shared/actor_contacts.h"
 #include "../../shared/streamed_scene.h"
 

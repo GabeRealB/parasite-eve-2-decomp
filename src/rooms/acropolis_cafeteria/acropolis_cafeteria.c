@@ -57,6 +57,11 @@
 #include "main/wipsys_types.h"
 
 #include "mapui/map_akropolis.h"
+
+/// Shares the cafeteria's twin-trail endpoint table with its effect-task TU.
+///
+/// Empty presence flag: keep it defined through the shared header and the
+/// single trail-data inclusion here; acropolis_cafeteria_2.c reads the table.
 #define ROOM_VISUAL_EFFECTS_SHARED_TRAIL_ENDPOINT_OFFSETS
 #include "../../shared/room_visual_effects.h"
 
@@ -1034,6 +1039,7 @@ TmdSource gAcropolisCafeteriaModel077D8 = {
 };
 
 #include "../../shared/room_visual_effects_trail_data.inc.c"
+#undef ROOM_VISUAL_EFFECTS_SHARED_TRAIL_ENDPOINT_OFFSETS
 
 static TmdBone _gAcropolisCafeteriaModel07CA8Skeleton[1] = {
 #include "assets/acropolis_cafeteria_model_07CA8_skeleton.inc"

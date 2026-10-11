@@ -43,6 +43,11 @@
 #include "main/tmd_types.h"
 
 #include "mapui/map_neo_ark.h"
+
+/// Shares the forest's twin-trail endpoint table with its effect-task TU.
+///
+/// Empty presence flag: keep it defined through the shared header and the
+/// single trail-data inclusion here; neo_ark_forest_zone.c reads the table.
 #define ROOM_VISUAL_EFFECTS_SHARED_TRAIL_ENDPOINT_OFFSETS
 #include "../../shared/room_visual_effects.h"
 #include "../../shared/room_events.h"
@@ -261,6 +266,7 @@ EvsCommand gNeoArkForestZoneFirstVisitScript[23] = {
 };
 
 #include "../../shared/room_visual_effects_trail_data.inc.c"
+#undef ROOM_VISUAL_EFFECTS_SHARED_TRAIL_ENDPOINT_OFFSETS
 
 WorldCollisionRoomResources gNeoArkForestZoneRoomCollisionResources[1] = {
     { .grid = &_gNeoArkForestZoneCollisionGrid, .viewBoundaryTriggers = _gNeoArkForestZoneViewBoundaryTriggers, .actionTriggers = _gNeoArkForestZoneActionTriggers, .occluders = NULL },
