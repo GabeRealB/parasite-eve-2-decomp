@@ -191,36 +191,36 @@ static s16 _gActor342400EncounterSpotChoices[6][4] = {
     { 9, 15, 9, 15 },
 };
 
-static TmdBone _gActor342400MadChaserBurstHeadSkeleton[1] = {
+static TmdBone _gMadChaserBurstHeadSkeleton[] = {
 #include "assets/mad_chaser_burst_head_skeleton.inc"
 };
 
-static u32 _gActor342400MadChaserBurstHeadPartVerts[1] = {
+static u32 _gMadChaserBurstHeadPartVerts[] = {
 #include "assets/mad_chaser_burst_head_partVerts.inc"
 };
 
-static SVECTOR _gActor342400MadChaserBurstHeadVerts[48] = {
+static SVECTOR _gMadChaserBurstHeadVerts[] = {
 #include "assets/mad_chaser_burst_head_verts.inc"
 };
 
-static SVECTOR _gActor342400MadChaserBurstHeadNormals[53] = {
+static SVECTOR _gMadChaserBurstHeadNormals[] = {
 #include "assets/mad_chaser_burst_head_normals.inc"
 };
 
-static u32 _gActor342400MadChaserBurstHeadStream[486] = {
+static u32 _gMadChaserBurstHeadStream[] = {
 #include "assets/mad_chaser_burst_head_stream.inc"
 };
 
-TmdSource gMadChaserChunkModel0 = {
-    0,
-    3260,
-    0,
-    1,
-    _gActor342400MadChaserBurstHeadPartVerts,
-    _gActor342400MadChaserBurstHeadVerts,
-    _gActor342400MadChaserBurstHeadNormals,
-    _gActor342400MadChaserBurstHeadSkeleton,
-    _gActor342400MadChaserBurstHeadStream,
+TmdSource gMadChaserBurstHead = {
+    .handlersResolved    = MAD_CHASER_BURST_HEAD_HANDLERS_UNRESOLVED,
+    .bufferHalfBytes     = MAD_CHASER_BURST_HEAD_TRIANGLE_COUNT * sizeof(POLY_GT3) + MAD_CHASER_BURST_HEAD_QUAD_COUNT * sizeof(POLY_GT4),
+    .preXformRegionBytes = 0,
+    .partCount           = ARRAY_SIZE(_gMadChaserBurstHeadSkeleton),
+    .partVertexCounts    = _gMadChaserBurstHeadPartVerts,
+    .verts               = _gMadChaserBurstHeadVerts,
+    .normals             = _gMadChaserBurstHeadNormals,
+    .skeleton            = _gMadChaserBurstHeadSkeleton,
+    .stream              = _gMadChaserBurstHeadStream,
 };
 
 static TmdBone _gMadChaserBurstArmSkeleton[1] = {

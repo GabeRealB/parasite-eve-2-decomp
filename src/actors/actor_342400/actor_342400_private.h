@@ -17,7 +17,16 @@ extern EnemyParams gActor342400MadChaserEnemyParams;
 /// Selects this overlay's cross-TU record for the included spawn fragments.
 #define MAD_CHASER_ENEMY_PARAMS gActor342400MadChaserEnemyParams
 
-extern TmdSource gMadChaserChunkModel0;
+/// Detached Mad Chaser head thrown from body part 6 during a burst death.
+///
+/// One rigid part, with 62 textured triangles and 15 textured quads in each
+/// primitive-buffer half; there is no pre-transformed packet region. Instances
+/// borrow the writable geometry and resolved stream for this overlay's lifetime
+/// and inherit texture placement from the body after spawning.
+extern TmdSource gMadChaserBurstHead;
+
+/// Selects this overlay's cross-TU head source for the included burst fragment.
+#define MAD_CHASER_BURST_HEAD_SOURCE gMadChaserBurstHead
 
 /// Detached Mad Chaser arm thrown from body part 8 during a burst death.
 ///

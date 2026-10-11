@@ -99,43 +99,48 @@ static void _madChaserShrinkDeathStart(Task* task);
 static void _madChaserShrinkDeathTurnTranslucent(Task* task);
 static void _madChaserShrinkDeathStartDespawn(Task* task);
 
-extern TmdSource gMadChaserChunkModel0;
 extern TmdSource gMadChaserChunkModel2;
 
 static const TaskFuncTable3 gMadChaserWalkSteps;
 
 static TmdSource _gActor04400MadChaserBody;
 
-static TmdBone _gActor04400MadChaserBurstHeadSkeleton[1] = {
+static TmdBone _gMadChaserBurstHeadSkeleton[] = {
 #include "assets/mad_chaser_burst_head_skeleton.inc"
 };
 
-static u32 _gActor04400MadChaserBurstHeadPartVerts[1] = {
+static u32 _gMadChaserBurstHeadPartVerts[] = {
 #include "assets/mad_chaser_burst_head_partVerts.inc"
 };
 
-static SVECTOR _gActor04400MadChaserBurstHeadVerts[48] = {
+static SVECTOR _gMadChaserBurstHeadVerts[] = {
 #include "assets/mad_chaser_burst_head_verts.inc"
 };
 
-static SVECTOR _gActor04400MadChaserBurstHeadNormals[53] = {
+static SVECTOR _gMadChaserBurstHeadNormals[] = {
 #include "assets/mad_chaser_burst_head_normals.inc"
 };
 
-static u32 _gActor04400MadChaserBurstHeadStream[486] = {
+static u32 _gMadChaserBurstHeadStream[] = {
 #include "assets/mad_chaser_burst_head_stream.inc"
 };
 
-TmdSource gMadChaserChunkModel0 = {
-    0,
-    3260,
-    0,
-    1,
-    _gActor04400MadChaserBurstHeadPartVerts,
-    _gActor04400MadChaserBurstHeadVerts,
-    _gActor04400MadChaserBurstHeadNormals,
-    _gActor04400MadChaserBurstHeadSkeleton,
-    _gActor04400MadChaserBurstHeadStream,
+/// Detached Mad Chaser head thrown from body part 6 during a burst death.
+///
+/// One rigid part, with 62 textured triangles and 15 textured quads in each
+/// primitive-buffer half; there is no pre-transformed packet region. Instances
+/// borrow the writable geometry and resolved stream for this overlay's lifetime
+/// and inherit texture placement from the body after spawning.
+static TmdSource _gMadChaserBurstHead = {
+    .handlersResolved    = MAD_CHASER_BURST_HEAD_HANDLERS_UNRESOLVED,
+    .bufferHalfBytes     = MAD_CHASER_BURST_HEAD_TRIANGLE_COUNT * sizeof(POLY_GT3) + MAD_CHASER_BURST_HEAD_QUAD_COUNT * sizeof(POLY_GT4),
+    .preXformRegionBytes = 0,
+    .partCount           = ARRAY_SIZE(_gMadChaserBurstHeadSkeleton),
+    .partVertexCounts    = _gMadChaserBurstHeadPartVerts,
+    .verts               = _gMadChaserBurstHeadVerts,
+    .normals             = _gMadChaserBurstHeadNormals,
+    .skeleton            = _gMadChaserBurstHeadSkeleton,
+    .stream              = _gMadChaserBurstHeadStream,
 };
 
 static TmdBone _gMadChaserBurstArmSkeleton[1] = {

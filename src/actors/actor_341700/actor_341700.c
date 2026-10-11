@@ -217,36 +217,42 @@ static const TaskFuncTable4 _gMadChaserDangleSteps = { {
 
 static TmdSource _gActor341700MadChaserBody;
 
-static TmdBone _gActor341700MadChaserBurstHeadSkeleton[1] = {
+static TmdBone _gMadChaserBurstHeadSkeleton[] = {
 #include "assets/mad_chaser_burst_head_skeleton.inc"
 };
 
-static u32 _gActor341700MadChaserBurstHeadPartVerts[1] = {
+static u32 _gMadChaserBurstHeadPartVerts[] = {
 #include "assets/mad_chaser_burst_head_partVerts.inc"
 };
 
-static SVECTOR _gActor341700MadChaserBurstHeadVerts[48] = {
+static SVECTOR _gMadChaserBurstHeadVerts[] = {
 #include "assets/mad_chaser_burst_head_verts.inc"
 };
 
-static SVECTOR _gActor341700MadChaserBurstHeadNormals[53] = {
+static SVECTOR _gMadChaserBurstHeadNormals[] = {
 #include "assets/mad_chaser_burst_head_normals.inc"
 };
 
-static u32 _gActor341700MadChaserBurstHeadStream[486] = {
+static u32 _gMadChaserBurstHeadStream[] = {
 #include "assets/mad_chaser_burst_head_stream.inc"
 };
 
-TmdSource gMadChaserChunkModel0 = {
-    0,
-    3260,
-    0,
-    1,
-    _gActor341700MadChaserBurstHeadPartVerts,
-    _gActor341700MadChaserBurstHeadVerts,
-    _gActor341700MadChaserBurstHeadNormals,
-    _gActor341700MadChaserBurstHeadSkeleton,
-    _gActor341700MadChaserBurstHeadStream,
+/// Detached Mad Chaser head thrown from body part 6 during a burst death.
+///
+/// One rigid part, with 62 textured triangles and 15 textured quads in each
+/// primitive-buffer half; there is no pre-transformed packet region. Instances
+/// borrow the writable geometry and resolved stream for this overlay's lifetime
+/// and inherit texture placement from the body after spawning.
+static TmdSource _gMadChaserBurstHead = {
+    .handlersResolved    = MAD_CHASER_BURST_HEAD_HANDLERS_UNRESOLVED,
+    .bufferHalfBytes     = MAD_CHASER_BURST_HEAD_TRIANGLE_COUNT * sizeof(POLY_GT3) + MAD_CHASER_BURST_HEAD_QUAD_COUNT * sizeof(POLY_GT4),
+    .preXformRegionBytes = 0,
+    .partCount           = ARRAY_SIZE(_gMadChaserBurstHeadSkeleton),
+    .partVertexCounts    = _gMadChaserBurstHeadPartVerts,
+    .verts               = _gMadChaserBurstHeadVerts,
+    .normals             = _gMadChaserBurstHeadNormals,
+    .skeleton            = _gMadChaserBurstHeadSkeleton,
+    .stream              = _gMadChaserBurstHeadStream,
 };
 
 static TmdBone _gMadChaserBurstArmSkeleton[1] = {
@@ -889,8 +895,6 @@ static u8 _gMadChaserSettleAnims[19] = {
 
 /// Unreferenced bytes before this package's prop geometry; their role is unproven.
 static u8 _gActor341700Unknown12F90[20] = { 2, 70, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 80, 0, 62, 200, 210, 1 };
-
-extern TmdSource gMadChaserChunkModel0;
 
 extern TmdSource gMadChaserChunkModel2;
 

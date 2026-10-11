@@ -29,6 +29,27 @@
 #define MAD_CHASER_ENEMY_PARAMS _gMadChaserEnemyParams
 #endif
 
+/// Selects the detached-head source published for a burst model-effect spawn.
+///
+/// Bind to a writable TmdSource lvalue that outlives all effects borrowing it.
+/// The default is TU-local; actor_342400 binds its source shared between its
+/// data and spawn translation units. The spawn fragment takes its address once.
+#ifndef MAD_CHASER_BURST_HEAD_SOURCE
+#define MAD_CHASER_BURST_HEAD_SOURCE _gMadChaserBurstHead
+#endif
+
+/// Body-coordinate index whose placement the detached-head effect snapshots.
+enum { MAD_CHASER_BURST_HEAD_BODY_PART = 6 };
+
+/// Initial handler state and packet counts in each detached-head buffer half.
+///
+/// Model creation resolves the writable stream before allocating its buffers.
+enum {
+    MAD_CHASER_BURST_HEAD_HANDLERS_UNRESOLVED = 0,
+    MAD_CHASER_BURST_HEAD_TRIANGLE_COUNT      = 62,
+    MAD_CHASER_BURST_HEAD_QUAD_COUNT          = 15
+};
+
 /// Selects the detached-arm source published for a burst model-effect spawn.
 ///
 /// Bind to a writable TmdSource lvalue that outlives all effects borrowing it.
