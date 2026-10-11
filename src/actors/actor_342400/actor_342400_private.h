@@ -40,8 +40,13 @@ extern TmdSource gMadChaserBurstHead;
 /// and inherit texture placement from the body after spawning.
 extern TmdSource gMadChaserBurstArm;
 
-/// Selects this overlay's cross-TU arm source for the included burst fragment.
-#define MAD_CHASER_BURST_ARM_SOURCE gMadChaserBurstArm
+/// Selects this overlay's detached-arm source for Mad Chaser burst effects.
+///
+/// This writable `TmdSource` lvalue names the data unit's object borrowed by
+/// chunks spawned in the behavior unit. Include before `mad_chaser.h` to
+/// suppress its TU-local default, and retain through `mad_chaser_spawn_gibs.inc.c`.
+/// The source, geometry and stream must outlive every borrowing chunk model.
+#define MAD_CHASER_BURST_ARM_SOURCE (gMadChaserBurstArm)
 
 /// Detached Mad Chaser tail thrown from body part 2 during a burst death.
 ///

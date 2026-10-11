@@ -55,13 +55,20 @@ enum {
     MAD_CHASER_BURST_HEAD_QUAD_COUNT          = 15
 };
 
-/// Selects the detached-arm source published for a burst model-effect spawn.
-///
-/// Bind to a writable TmdSource lvalue that outlives all effects borrowing it.
-/// The default is TU-local; actor_342400 binds its source shared between its
-/// data and spawn translation units. The spawn fragment takes its address once.
 #ifndef MAD_CHASER_BURST_ARM_SOURCE
-#define MAD_CHASER_BURST_ARM_SOURCE _gMadChaserBurstArm
+/// Selects the detached-arm model source for a Mad Chaser burst-death effect.
+///
+/// Must expand to a stable, side-effect-free writable `TmdSource` lvalue.
+/// The burst fragment takes its address once when choosing the arm rather than
+/// the tail, for a synchronous `EFFECT_BODY_CHUNK` spawn at body part 8.
+/// Model creation may rewrite its stream and handler state; the source,
+/// geometry and stream must remain loaded until every borrowing model is freed.
+///
+/// Override before including this header and retain through
+/// `mad_chaser_spawn_gibs.inc.c`. The default selects the TU-local source in
+/// `actor_04400` and `actor_341700`; `actor_342400_private.h` supplies the
+/// source shared by that overlay's data and behavior translation units.
+#define MAD_CHASER_BURST_ARM_SOURCE (_gMadChaserBurstArm)
 #endif
 
 /// Body-coordinate index whose placement the detached-arm effect snapshots.
