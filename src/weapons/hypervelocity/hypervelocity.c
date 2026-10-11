@@ -2115,137 +2115,290 @@ static AnimationSet _gHypervelocityLowHealthIdleAnimation = {
 };
 STATIC_ASSERT(ARRAY_SIZE(_gHypervelocityLowHealthIdleAnimationIndices) == GAME_ACTOR_NORMAL_ANIMATION_SLOTS + 1, hypervelocity_low_health_idle_animation_track_starts);
 
-static AnimationPackedPose _gHypervelocityAnimation0B508Bank1[9] = {
+/// Translation and rotation poses for `_gHypervelocityMidHealthIdleAnimation`.
+///
+/// Tracks 0 and 1 use local model units and 4096 angle units per turn.
+static const AnimationPackedPose _gHypervelocityMidHealthIdleAnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/hypervelocity_animation_0B508_bank1.inc"
 };
 
-static AnimationPackedRotation _gHypervelocityAnimation0B508Bank4[144] = {
+/// Packed rotation poses for `_gHypervelocityMidHealthIdleAnimation`.
+///
+/// Tracks 2..18 use 512 angle steps per turn and retain their local translations.
+static const AnimationPackedRotation _gHypervelocityMidHealthIdleAnimationBank4[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/hypervelocity_animation_0B508_bank4.inc"
 };
 
-static AnimationRecord _gHypervelocityAnimation0B508Records[264] = {
+/// Keyframes and controls for `_gHypervelocityMidHealthIdleAnimation`.
+///
+/// Durations count normal-rate frames. Each track loops before its stop record;
+/// moving tracks play an introduction before their repeated suffix. No action cues.
+static const AnimationRecord _gHypervelocityMidHealthIdleAnimationRecords[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/hypervelocity_animation_0B508_records.inc"
 };
 
-static u16 _gHypervelocityAnimation0B508Indices[20] = {
+/// Track-start record indices for `_gHypervelocityMidHealthIdleAnimation`.
+///
+/// Entries 0..18 select model-part tracks; the final zero halfword is retained
+/// serialized data, outside the nineteen-track playback domain.
+static const u16 _gHypervelocityMidHealthIdleAnimationIndices[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/hypervelocity_animation_0B508_indices.inc"
 };
 
-static AnimationSet _gHypervelocityAnimation0B508 = {
-    _gHypervelocityAnimation0B508Records,
-    _gHypervelocityAnimation0B508Indices,
-    { NULL, _gHypervelocityAnimation0B508Bank1, NULL, NULL, _gHypervelocityAnimation0B508Bank4, NULL, NULL, NULL },
+/// Player idle clip above one quarter and at or below half maximum HP, in slot 24.
+///
+/// Selected after 300 direction-free idle ticks in the middle health band.
+/// Moving tracks play an introduction before repeating a 73-frame suffix.
+/// Tracks 0 and 1 carry translation and rotation; tracks 2..18 carry rotation
+/// only. Playback borrows these word-aligned arrays, which must remain loaded
+/// while any slot or cached record refers to them.
+static AnimationSet _gHypervelocityMidHealthIdleAnimation = {
+    .records           = _gHypervelocityMidHealthIdleAnimationRecords,
+    .trackStartIndices = _gHypervelocityMidHealthIdleAnimationIndices,
+    .poseBanks         = {
+        [HYPERVELOCITY_ANIMATION_TRANSLATION_ROTATION_BANK] = _gHypervelocityMidHealthIdleAnimationBank1,
+        [HYPERVELOCITY_ANIMATION_PACKED_ROTATION_BANK]      = _gHypervelocityMidHealthIdleAnimationBank4,
+    },
 };
+STATIC_ASSERT(ARRAY_SIZE(_gHypervelocityMidHealthIdleAnimationIndices) == GAME_ACTOR_NORMAL_ANIMATION_SLOTS + 1, hypervelocity_mid_health_idle_animation_track_starts);
 
-static AnimationPackedPose _gHypervelocityAnimation0B988Bank1[6] = {
+/// Translation and rotation poses for `_gHypervelocityEventEntryAnimation`.
+///
+/// Tracks 0 and 1 use local model units and 4096 angle units per turn.
+static const AnimationPackedPose _gHypervelocityEventEntryAnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/hypervelocity_animation_0B988_bank1.inc"
 };
 
-static AnimationPackedRotation _gHypervelocityAnimation0B988Bank4[107] = {
+/// Packed rotation poses for `_gHypervelocityEventEntryAnimation`.
+///
+/// Tracks 2..18 use 512 angle steps per turn and retain their local translations.
+static const AnimationPackedRotation _gHypervelocityEventEntryAnimationBank4[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/hypervelocity_animation_0B988_bank4.inc"
 };
 
-static AnimationRecord _gHypervelocityAnimation0B988Records[143] = {
+/// Keyframes and controls for `_gHypervelocityEventEntryAnimation`.
+///
+/// Durations count normal-rate frames. Child tracks run for 30 frames and stop;
+/// their final poses hold until another clip is requested. No action cues.
+static const AnimationRecord _gHypervelocityEventEntryAnimationRecords[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/hypervelocity_animation_0B988_records.inc"
 };
 
-static u16 _gHypervelocityAnimation0B988Indices[20] = {
+/// Track-start record indices for `_gHypervelocityEventEntryAnimation`.
+///
+/// Entries 0..18 select model-part tracks; the final zero halfword is retained
+/// serialized data, outside the nineteen-track playback domain.
+static const u16 _gHypervelocityEventEntryAnimationIndices[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/hypervelocity_animation_0B988_indices.inc"
 };
 
-static AnimationSet _gHypervelocityAnimation0B988 = {
-    _gHypervelocityAnimation0B988Records,
-    _gHypervelocityAnimation0B988Indices,
-    { NULL, _gHypervelocityAnimation0B988Bank1, NULL, NULL, _gHypervelocityAnimation0B988Bank4, NULL, NULL, NULL },
+/// Player entry presentation for scripted events, in bank slots 32 and 34.
+///
+/// Scripted presentation with a zero variant selects slot 32 before CAP playback.
+/// Child tracks animate for 30 normal-rate frames, then hold their final poses.
+/// Tracks 0 and 1 carry translation and rotation; tracks 2..18 carry rotation
+/// only. Playback borrows these word-aligned arrays, which must remain loaded
+/// while any slot or cached record refers to them.
+static AnimationSet _gHypervelocityEventEntryAnimation = {
+    .records           = _gHypervelocityEventEntryAnimationRecords,
+    .trackStartIndices = _gHypervelocityEventEntryAnimationIndices,
+    .poseBanks         = {
+        [HYPERVELOCITY_ANIMATION_TRANSLATION_ROTATION_BANK] = _gHypervelocityEventEntryAnimationBank1,
+        [HYPERVELOCITY_ANIMATION_PACKED_ROTATION_BANK]      = _gHypervelocityEventEntryAnimationBank4,
+    },
 };
+STATIC_ASSERT(ARRAY_SIZE(_gHypervelocityEventEntryAnimationIndices) == GAME_ACTOR_NORMAL_ANIMATION_SLOTS + 1, hypervelocity_event_entry_animation_track_starts);
 
-static AnimationPackedPose _gHypervelocityAnimation0BB60Bank1[3] = {
+/// Translation and rotation poses for `_gHypervelocityEventExitAnimation`.
+///
+/// Tracks 0 and 1 use local model units and 4096 angle units per turn.
+static const AnimationPackedPose _gHypervelocityEventExitAnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/hypervelocity_animation_0BB60_bank1.inc"
 };
 
-static AnimationPackedRotation _gHypervelocityAnimation0BB60Bank4[32] = {
+/// Packed rotation poses for `_gHypervelocityEventExitAnimation`.
+///
+/// Tracks 2..18 use 512 angle steps per turn and retain their local translations.
+static const AnimationPackedRotation _gHypervelocityEventExitAnimationBank4[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/hypervelocity_animation_0BB60_bank4.inc"
 };
 
-static AnimationRecord _gHypervelocityAnimation0BB60Records[57] = {
+/// Keyframes and controls for `_gHypervelocityEventExitAnimation`.
+///
+/// Durations count normal-rate frames. Child tracks run for 13 frames and stop;
+/// their final poses hold until another clip is requested. No action cues.
+static const AnimationRecord _gHypervelocityEventExitAnimationRecords[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/hypervelocity_animation_0BB60_records.inc"
 };
 
-static u16 _gHypervelocityAnimation0BB60Indices[20] = {
+/// Track-start record indices for `_gHypervelocityEventExitAnimation`.
+///
+/// Entries 0..18 select model-part tracks; the final zero halfword is retained
+/// serialized data, outside the nineteen-track playback domain.
+static const u16 _gHypervelocityEventExitAnimationIndices[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/hypervelocity_animation_0BB60_indices.inc"
 };
 
-static AnimationSet _gHypervelocityAnimation0BB60 = {
-    _gHypervelocityAnimation0BB60Records,
-    _gHypervelocityAnimation0BB60Indices,
-    { NULL, _gHypervelocityAnimation0BB60Bank1, NULL, NULL, _gHypervelocityAnimation0BB60Bank4, NULL, NULL, NULL },
+/// Player exit presentation for scripted events, in bank slots 33 and 35.
+///
+/// Scripted presentation with a nonzero variant selects slot 33 after CAP playback.
+/// Child tracks animate for 13 normal-rate frames, then hold their final poses.
+/// Tracks 0 and 1 carry translation and rotation; tracks 2..18 carry rotation
+/// only. Playback borrows these word-aligned arrays, which must remain loaded
+/// while any slot or cached record refers to them.
+static AnimationSet _gHypervelocityEventExitAnimation = {
+    .records           = _gHypervelocityEventExitAnimationRecords,
+    .trackStartIndices = _gHypervelocityEventExitAnimationIndices,
+    .poseBanks         = {
+        [HYPERVELOCITY_ANIMATION_TRANSLATION_ROTATION_BANK] = _gHypervelocityEventExitAnimationBank1,
+        [HYPERVELOCITY_ANIMATION_PACKED_ROTATION_BANK]      = _gHypervelocityEventExitAnimationBank4,
+    },
 };
+STATIC_ASSERT(ARRAY_SIZE(_gHypervelocityEventExitAnimationIndices) == GAME_ACTOR_NORMAL_ANIMATION_SLOTS + 1, hypervelocity_event_exit_animation_track_starts);
 
-static AnimationPackedPose _gHypervelocityAnimation0C0C4Bank1[11] = {
+/// Translation and rotation poses for `_gHypervelocityParasiteEnergyFamily2ReleaseAnimation`.
+///
+/// Tracks 0 and 1 use local model units and 4096 angle units per turn.
+static const AnimationPackedPose _gHypervelocityParasiteEnergyFamily2ReleaseAnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/hypervelocity_animation_0C0C4_bank1.inc"
 };
 
-static AnimationPackedRotation _gHypervelocityAnimation0C0C4Bank4[125] = {
+/// Packed rotation poses for `_gHypervelocityParasiteEnergyFamily2ReleaseAnimation`.
+///
+/// Tracks 2..18 use 512 angle steps per turn and retain their local translations.
+static const AnimationPackedRotation _gHypervelocityParasiteEnergyFamily2ReleaseAnimationBank4[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/hypervelocity_animation_0C0C4_bank4.inc"
 };
 
-static AnimationRecord _gHypervelocityAnimation0C0C4Records[167] = {
+/// Keyframes and controls for `_gHypervelocityParasiteEnergyFamily2ReleaseAnimation`.
+///
+/// Durations count normal-rate frames. Moving child tracks run for 21 frames
+/// and stop at their final poses. No action cues.
+static const AnimationRecord _gHypervelocityParasiteEnergyFamily2ReleaseAnimationRecords[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/hypervelocity_animation_0C0C4_records.inc"
 };
 
-static u16 _gHypervelocityAnimation0C0C4Indices[20] = {
+/// Track-start record indices for `_gHypervelocityParasiteEnergyFamily2ReleaseAnimation`.
+///
+/// Entries 0..18 select model-part tracks; the final zero halfword is retained
+/// serialized data, outside the nineteen-track playback domain.
+static const u16 _gHypervelocityParasiteEnergyFamily2ReleaseAnimationIndices[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/hypervelocity_animation_0C0C4_indices.inc"
 };
 
-static AnimationSet _gHypervelocityAnimation0C0C4 = {
-    _gHypervelocityAnimation0C0C4Records,
-    _gHypervelocityAnimation0C0C4Indices,
-    { NULL, _gHypervelocityAnimation0C0C4Bank1, NULL, NULL, _gHypervelocityAnimation0C0C4Bank4, NULL, NULL, NULL },
+/// Player Parasite Energy family-2 release clip, in bank slot 42.
+///
+/// Selected for spell IDs below 601 whose decimal tens digit is 3.
+/// Starts with the attachment release countdown; moving child tracks run for
+/// 21 normal-rate frames and hold before the charge clip starts.
+/// Tracks 0 and 1 carry translation and rotation; tracks 2..18 carry rotation
+/// only. Playback borrows these word-aligned arrays, which must remain loaded
+/// while any slot or cached record refers to them.
+static AnimationSet _gHypervelocityParasiteEnergyFamily2ReleaseAnimation = {
+    .records           = _gHypervelocityParasiteEnergyFamily2ReleaseAnimationRecords,
+    .trackStartIndices = _gHypervelocityParasiteEnergyFamily2ReleaseAnimationIndices,
+    .poseBanks         = {
+        [HYPERVELOCITY_ANIMATION_TRANSLATION_ROTATION_BANK] = _gHypervelocityParasiteEnergyFamily2ReleaseAnimationBank1,
+        [HYPERVELOCITY_ANIMATION_PACKED_ROTATION_BANK]      = _gHypervelocityParasiteEnergyFamily2ReleaseAnimationBank4,
+    },
 };
+STATIC_ASSERT(ARRAY_SIZE(_gHypervelocityParasiteEnergyFamily2ReleaseAnimationIndices) == GAME_ACTOR_NORMAL_ANIMATION_SLOTS + 1, hypervelocity_parasite_energy_family2_release_animation_track_starts);
 
-static AnimationPackedPose _gHypervelocityAnimation0C2B8Bank1[3] = {
+/// Translation and rotation poses for `_gHypervelocityParasiteEnergyFamily2ChargeAnimation`.
+///
+/// Tracks 0 and 1 use local model units and 4096 angle units per turn.
+static const AnimationPackedPose _gHypervelocityParasiteEnergyFamily2ChargeAnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/hypervelocity_animation_0C2B8_bank1.inc"
 };
 
-static AnimationPackedRotation _gHypervelocityAnimation0C2B8Bank4[20] = {
+/// Packed rotation poses for `_gHypervelocityParasiteEnergyFamily2ChargeAnimation`.
+///
+/// Tracks 2..18 use 512 angle steps per turn and retain their local translations.
+static const AnimationPackedRotation _gHypervelocityParasiteEnergyFamily2ChargeAnimationBank4[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/hypervelocity_animation_0C2B8_bank4.inc"
 };
 
-static AnimationRecord _gHypervelocityAnimation0C2B8Records[76] = {
+/// Keyframes and controls for `_gHypervelocityParasiteEnergyFamily2ChargeAnimation`.
+///
+/// Durations count normal-rate frames. Each track loops two one-frame keyframes,
+/// bypassing the following stop record. No action cues.
+static const AnimationRecord _gHypervelocityParasiteEnergyFamily2ChargeAnimationRecords[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/hypervelocity_animation_0C2B8_records.inc"
 };
 
-static u16 _gHypervelocityAnimation0C2B8Indices[20] = {
+/// Track-start record indices for `_gHypervelocityParasiteEnergyFamily2ChargeAnimation`.
+///
+/// Entries 0..18 select model-part tracks; the final zero halfword is retained
+/// serialized data, outside the nineteen-track playback domain.
+static const u16 _gHypervelocityParasiteEnergyFamily2ChargeAnimationIndices[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/hypervelocity_animation_0C2B8_indices.inc"
 };
 
-static AnimationSet _gHypervelocityAnimation0C2B8 = {
-    _gHypervelocityAnimation0C2B8Records,
-    _gHypervelocityAnimation0C2B8Indices,
-    { NULL, _gHypervelocityAnimation0C2B8Bank1, NULL, NULL, _gHypervelocityAnimation0C2B8Bank4, NULL, NULL, NULL },
+/// Player Parasite Energy family-2 charge loop, in bank slot 43.
+///
+/// Selected for spell IDs below 601 whose decimal tens digit is 3.
+/// Repeats a two-frame pose loop until the attachment countdown reaches zero
+/// and the cast clip starts.
+/// Tracks 0 and 1 carry translation and rotation; tracks 2..18 carry rotation
+/// only. Playback borrows these word-aligned arrays, which must remain loaded
+/// while any slot or cached record refers to them.
+static AnimationSet _gHypervelocityParasiteEnergyFamily2ChargeAnimation = {
+    .records           = _gHypervelocityParasiteEnergyFamily2ChargeAnimationRecords,
+    .trackStartIndices = _gHypervelocityParasiteEnergyFamily2ChargeAnimationIndices,
+    .poseBanks         = {
+        [HYPERVELOCITY_ANIMATION_TRANSLATION_ROTATION_BANK] = _gHypervelocityParasiteEnergyFamily2ChargeAnimationBank1,
+        [HYPERVELOCITY_ANIMATION_PACKED_ROTATION_BANK]      = _gHypervelocityParasiteEnergyFamily2ChargeAnimationBank4,
+    },
 };
+STATIC_ASSERT(ARRAY_SIZE(_gHypervelocityParasiteEnergyFamily2ChargeAnimationIndices) == GAME_ACTOR_NORMAL_ANIMATION_SLOTS + 1, hypervelocity_parasite_energy_family2_charge_animation_track_starts);
 
-static AnimationPackedPose _gHypervelocityAnimation0C738Bank1[8] = {
+/// Translation and rotation poses for `_gHypervelocityParasiteEnergyFamily2CastAnimation`.
+///
+/// Tracks 0 and 1 use local model units and 4096 angle units per turn.
+static const AnimationPackedPose _gHypervelocityParasiteEnergyFamily2CastAnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/hypervelocity_animation_0C738_bank1.inc"
 };
 
-static AnimationPackedRotation _gHypervelocityAnimation0C738Bank4[105] = {
+/// Packed rotation poses for `_gHypervelocityParasiteEnergyFamily2CastAnimation`.
+///
+/// Tracks 2..18 use 512 angle steps per turn and retain their local translations.
+static const AnimationPackedRotation _gHypervelocityParasiteEnergyFamily2CastAnimationBank4[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/hypervelocity_animation_0C738_bank4.inc"
 };
 
-static AnimationRecord _gHypervelocityAnimation0C738Records[139] = {
+/// Keyframes and controls for `_gHypervelocityParasiteEnergyFamily2CastAnimation`.
+///
+/// Durations count normal-rate frames. Moving child tracks run for 41 frames
+/// and stop at their final poses. No action cues.
+static const AnimationRecord _gHypervelocityParasiteEnergyFamily2CastAnimationRecords[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/hypervelocity_animation_0C738_records.inc"
 };
 
-static u16 _gHypervelocityAnimation0C738Indices[20] = {
+/// Track-start record indices for `_gHypervelocityParasiteEnergyFamily2CastAnimation`.
+///
+/// Entries 0..18 select model-part tracks; the final zero halfword is retained
+/// serialized data, outside the nineteen-track playback domain.
+static const u16 _gHypervelocityParasiteEnergyFamily2CastAnimationIndices[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/hypervelocity_animation_0C738_indices.inc"
 };
 
-static AnimationSet _gHypervelocityAnimation0C738 = {
-    _gHypervelocityAnimation0C738Records,
-    _gHypervelocityAnimation0C738Indices,
-    { NULL, _gHypervelocityAnimation0C738Bank1, NULL, NULL, _gHypervelocityAnimation0C738Bank4, NULL, NULL, NULL },
+/// Player Parasite Energy family-2 cast clip, in bank slot 44.
+///
+/// Selected for spell IDs below 601 whose decimal tens digit is 3.
+/// Starts when the attachment countdown reaches zero. Moving child tracks run
+/// for 41 normal-rate frames and hold while normal control resumes.
+/// Tracks 0 and 1 carry translation and rotation; tracks 2..18 carry rotation
+/// only. Playback borrows these word-aligned arrays, which must remain loaded
+/// while any slot or cached record refers to them.
+static AnimationSet _gHypervelocityParasiteEnergyFamily2CastAnimation = {
+    .records           = _gHypervelocityParasiteEnergyFamily2CastAnimationRecords,
+    .trackStartIndices = _gHypervelocityParasiteEnergyFamily2CastAnimationIndices,
+    .poseBanks         = {
+        [HYPERVELOCITY_ANIMATION_TRANSLATION_ROTATION_BANK] = _gHypervelocityParasiteEnergyFamily2CastAnimationBank1,
+        [HYPERVELOCITY_ANIMATION_PACKED_ROTATION_BANK]      = _gHypervelocityParasiteEnergyFamily2CastAnimationBank4,
+    },
 };
+STATIC_ASSERT(ARRAY_SIZE(_gHypervelocityParasiteEnergyFamily2CastAnimationIndices) == GAME_ACTOR_NORMAL_ANIMATION_SLOTS + 1, hypervelocity_parasite_energy_family2_cast_animation_track_starts);
 
 static AnimationPackedPose _gHypervelocityAnimation0C914Bank1[2] = {
 #include "assets/hypervelocity_animation_0C914_bank1.inc"
@@ -2538,7 +2691,7 @@ AnimationBank gHypervelocityPlayerAnimationBank = {
             &_gHypervelocityIdleAnimation,
             &_gHypervelocityIdleAnimation,
             &_gHypervelocityHighHealthIdleAnimation,
-            &_gHypervelocityAnimation0B508,
+            &_gHypervelocityMidHealthIdleAnimation,
             &_gHypervelocityLowHealthIdleAnimation,
             &_gHypervelocityParasiteEnergyFamily0ReleaseAnimation,
             &_gHypervelocityParasiteEnergyFamily0ChargeAnimation,
@@ -2546,19 +2699,19 @@ AnimationBank gHypervelocityPlayerAnimationBank = {
             &_gHypervelocityParasiteEnergyFamily1ReleaseAnimation,
             &_gHypervelocityParasiteEnergyFamily1ChargeAnimation,
             &_gHypervelocityParasiteEnergyFamily1CastAnimation,
-            &_gHypervelocityAnimation0B988,
-            &_gHypervelocityAnimation0BB60,
-            &_gHypervelocityAnimation0B988,
-            &_gHypervelocityAnimation0BB60,
+            &_gHypervelocityEventEntryAnimation,
+            &_gHypervelocityEventExitAnimation,
+            &_gHypervelocityEventEntryAnimation,
+            &_gHypervelocityEventExitAnimation,
             &_gHypervelocityStairAscentAnimation,
             &_gHypervelocityStairDescentAnimation,
             &_gHypervelocityStairAscentFinishEvenAnimation,
             &_gHypervelocityStairAscentFinishOddAnimation,
             &_gHypervelocityItemUseAnimation,
             &_gHypervelocityIdleAnimation,
-            &_gHypervelocityAnimation0C0C4,
-            &_gHypervelocityAnimation0C2B8,
-            &_gHypervelocityAnimation0C738,
+            &_gHypervelocityParasiteEnergyFamily2ReleaseAnimation,
+            &_gHypervelocityParasiteEnergyFamily2ChargeAnimation,
+            &_gHypervelocityParasiteEnergyFamily2CastAnimation,
             NULL,
             NULL,
         },
