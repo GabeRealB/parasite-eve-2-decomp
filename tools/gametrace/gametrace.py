@@ -32,9 +32,10 @@ an image load has replaced them, so an address shared by several overlays is onl
 The two instructions it displaces must be free to move: `check` refuses a branch, a jump, or a load that follows
 one (see `movable`).
 
-A record is one JSON line: seq, id, name, a0..a3, ra, sp, the name of the function `ra` returns into, and for a
-breakpoint event whatever the event asks for besides: `ret` (v0 on return), `stack` (words above the frame),
-`mem` (bytes at a register, "a0:16").
+A record is one JSON line, written when the thing happens. A function's entry is `"phase": "enter"`: id, name,
+a0..a3, ra, sp, and the name of the function `ra` returns into; a breakpoint event adds what it asks for besides -
+`stack` (words above the frame), `mem` (bytes at a register, "a0:16"). With `ret = true` the function's return is
+a second record, `"phase": "exit"`, with `ret` (v0); the two share a `call` number.
 """
 from __future__ import annotations
 
@@ -79,7 +80,7 @@ def load(path: Path) -> dict:
             problems.append(f"event id {event['id']} is used by {seen[event['id']]} and {event.get('name')}")
         seen[event.get("id")] = event.get("name")
         if event["patch"] and any(k in event for k in ("ret", "stack", "mem")):
-            problems.append(f"{event.get('name')}: ret, stack and mem are read by this tool at a breakpoint; a patch records the registers only")
+            problems.append(f"{event.get('name')}: ret, stack and mem are read by this tool at a breakpoint; a patch records a function's entry only")
     if blob["records"] & (blob["records"] - 1):
         problems.append("blob.records must be a power of two")
     if blob["records"] > 0x8000:
@@ -429,7 +430,8 @@ class Session:
         self.events = cfg.get("event", [])
         self.by_address = {e["address"]: e for e in self.events if not e["patch"]}
         self.patched = [e for e in self.events if e["patch"]]
-        self.pending: dict[int, list[dict]] = {}       # return address -> records waiting for their v0
+        self.pending: dict[int, list[dict]] = {}       # return address -> exit records waiting for the return
+        self.calls = 0                                # numbers the enter/exit pairs
         self.seen: int | None = 0                     # the sequence number the next ring record should carry
         self.count = 0
         if self.patched:
@@ -546,13 +548,13 @@ class Session:
             if stamp != self.seen and self.seen is not None:
                 self.emit({"lost": (stamp - self.seen) & 0xFFFFFFFF, "note": "records are missing here: the ring filled with no tracer stopped on it, or two hooks ran into each other"})
             self.seen = (stamp + 1) & 0xFFFFFFFF
-            self.emit({"seq": stamp, "id": ident, "name": names.get(ident, "?"), "a0": a0, "a1": a1, "a2": a2, "a3": a3, "ra": ra, "sp": sp, "from": self.names.at(ra), "by": "patch"})
+            self.emit({"seq": stamp, "id": ident, "name": names.get(ident, "?"), "a0": a0, "a1": a1, "a2": a2, "a3": a3, "ra": ra, "sp": sp, "from": self.names.at(ra), "by": "patch", "phase": "enter"})
         if not at_full:
             self.gdb.write(base + 4, struct.pack("<I", 0))
 
     def hit(self, event: dict, regs: list[int]) -> None:
         r = dict(zip(REGS, regs))
-        record = {"id": event["id"], "name": event["name"], "a0": r["a0"], "a1": r["a1"], "a2": r["a2"], "a3": r["a3"], "ra": r["ra"], "sp": r["sp"], "from": self.names.at(r["ra"]), "by": "breakpoint"}
+        record = {"id": event["id"], "name": event["name"], "a0": r["a0"], "a1": r["a1"], "a2": r["a2"], "a3": r["a3"], "ra": r["ra"], "sp": r["sp"], "from": self.names.at(r["ra"]), "by": "breakpoint", "phase": "enter"}
         if event.get("stack"):
             words = struct.unpack(f"<{event['stack']}I", self.gdb.read(r["sp"] + 0x10, 4 * event["stack"]))
             record["stack"] = list(words)
@@ -563,11 +565,13 @@ class Session:
             except (OSError, KeyError, ValueError) as error:
                 record.setdefault("mem", {})[spec] = f"unreadable: {error}"
         if event.get("ret"):
+            # The return is an event of its own, written when it happens: a breakpoint where the call returns to.
+            self.calls += 1
+            record["call"] = self.calls
             if r["ra"] not in self.pending:
                 self.gdb.breakpoint(r["ra"])
-            self.pending.setdefault(r["ra"], []).append(record)
-        else:
-            self.emit(record)
+            self.pending.setdefault(r["ra"], []).append({"id": event["id"], "name": event["name"], "phase": "exit", "call": self.calls, "sp": r["sp"]})
+        self.emit(record)
 
     def run(self) -> None:
         self.start()
@@ -578,12 +582,22 @@ class Session:
             self.running = False
             regs = self.gdb.registers()
             pc = regs[PC]
-            if pc in self.pending:                    # a watched function has returned
-                for record in self.pending.pop(pc):
+            if pc in self.pending:
+                # A watched function has returned - if the stack is back where its call left it. The same address
+                # is reached by other paths too, and by an outer call of a function that calls itself.
+                waiting = self.pending[pc]
+                back = [record for record in waiting if record["sp"] == regs[29]]
+                if back:
+                    record = back[-1]
+                    waiting.remove(record)
+                    if self.patched:                  # what the patches recorded during the call came first
+                        self.drain()
                     record["ret"] = regs[2]
                     self.emit(record)
-                if pc not in self.by_address and pc not in self.installers:
-                    self.gdb.breakpoint(pc, False)
+                if not waiting:
+                    del self.pending[pc]
+                    if pc not in self.by_address and pc not in self.installers:
+                        self.gdb.breakpoint(pc, False)
             if pc in self.installers:
                 if not self.ready:
                     self.setup()

@@ -6,7 +6,7 @@
 #   patch    false: a breakpoint - nothing is written into the game, one round trip per hit
 #            true:  the entry is redirected to a stub at blob.address that records the registers
 # For a breakpoint event only, read by the tool at the stop:
-#   ret = true        also v0 when the function returns
+#   ret = true        the function's return is logged too, as an "exit" record with v0, when it happens
 #   stack = N         N words of stack arguments (the fifth argument onward)
 #   mem = ["a0:16"]   bytes at a register
 # For a patch event at an address outside the executable and gameplay, give its own first two instructions:
