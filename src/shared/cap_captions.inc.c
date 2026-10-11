@@ -266,7 +266,7 @@ static inline void _capCaptionCacheSelectedRecordLayout(s16 recordIndex, s32 bot
 /// bottomBaselineY is the last baseline in screen pixels, narrowed to s16.
 /// Returns 0 after selection, without drawing, playback or task creation.
 /// The selected sequence and glyph cells borrow the CAP file through caption use.
-CAP_CAPTION_SELECT_SCRIPT_LINKAGE s32 CAP_CAPTION_SELECT_RECORD(s16 commandIndex, s16 key, s32 bottomBaselineY)
+CAP_CAPTION_SELECT_RECORD_LINKAGE s32 CAP_CAPTION_SELECT_RECORD(s16 commandIndex, s16 key, s32 bottomBaselineY)
 {
     enum {
         CAP_CAPTION_FIRST_RECORD_INDEX = 1,

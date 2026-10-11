@@ -84,8 +84,15 @@ static void _actorRenderWalkerFrame(Enemy* unusedEnemy, Task* task);
 static void _pacedWalkExit(Task* task);
 
 static void _actor215100ShowTimedCaption(s16 commandIndex, s16 key, s16 durationTicks);
-// The gallery selects and draws captions using this actor's loaded CAP state.
-#define CAP_CAPTION_SELECT_SCRIPT_LINKAGE
+/// Gives this actor's caption record selector external linkage for the gallery.
+///
+/// The empty replacement supplies no storage-class specifier to the shared
+/// prototype and definition. Define before the first `cap_captions.h` inclusion
+/// and retain through `cap_captions.inc.c`. `CAP_CAPTION_SELECT_RECORD` names the
+/// s32(s16, s16, s32) export declared in `actors/actor_215100.h`; the gallery uses
+/// this actor's loaded CAP state. This object-like binding has no arguments,
+/// captured identifiers, runtime evaluation or token construction.
+#define CAP_CAPTION_SELECT_RECORD_LINKAGE
 /// Binds shared record selection to this actor's exported selector.
 ///
 /// Define before `cap_captions.h` and retain through both caption source fragments.

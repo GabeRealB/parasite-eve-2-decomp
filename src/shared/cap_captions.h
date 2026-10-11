@@ -29,7 +29,7 @@
 /// source fragments. It takes (s16 commandIndex, s16 key, s32 bottomBaselineY)
 /// and returns s32: 0 selected, 1 null command entry. Room carriers keep the
 /// default static instance; actor_215100 binds its public export and an empty
-/// `CAP_CAPTION_SELECT_SCRIPT_LINKAGE`. Each carrier owns independent CAP state.
+/// `CAP_CAPTION_SELECT_RECORD_LINKAGE`. Each carrier owns independent CAP state.
 /// The object-like alias has no arguments, captures, side effects or token
 /// construction; linkage is selected separately. commandIndex must be a valid
 /// relocated command-table index; a non-NULL sequence requires an existing
@@ -38,10 +38,19 @@
 #ifndef CAP_CAPTION_SELECT_RECORD
 #define CAP_CAPTION_SELECT_RECORD _capCaptionSelectRecord
 #endif
-#ifndef CAP_CAPTION_SELECT_SCRIPT_LINKAGE
-#define CAP_CAPTION_SELECT_SCRIPT_LINKAGE static
+/// Storage-class binding for the caption record selector's prototype and definition.
+///
+/// Defaults to `static` for the two Shelter room carriers. An exporting carrier
+/// supplies an empty replacement before the first inclusion of this header and
+/// retains it through `cap_captions.inc.c`. `CAP_CAPTION_SELECT_RECORD` must name
+/// the same s32(s16, s16, s32) function in the carrier's interface header.
+/// The prototype and definition require the same linkage binding. This
+/// object-like binding has no arguments, captured identifiers, runtime
+/// evaluation or token construction; it does not change the function signature.
+#ifndef CAP_CAPTION_SELECT_RECORD_LINKAGE
+#define CAP_CAPTION_SELECT_RECORD_LINKAGE static
 #endif
-CAP_CAPTION_SELECT_SCRIPT_LINKAGE s32 CAP_CAPTION_SELECT_RECORD(s16 commandIndex, s16 key, s32 bottomBaselineY);
+CAP_CAPTION_SELECT_RECORD_LINKAGE s32 CAP_CAPTION_SELECT_RECORD(s16 commandIndex, s16 key, s32 bottomBaselineY);
 
 // Selection resets the continuation-caret delay in eligible drawer calls.
 enum {
