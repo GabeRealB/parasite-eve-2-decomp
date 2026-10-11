@@ -70,14 +70,6 @@
 #define ROOM_EVENT_TASK_DESC _gRoomEventTaskDesc
 #include "../../shared/room_events.h"
 
-// Preserve the following nonzero bytes with this scalar's storage.
-// No separate references identify them; their role (including padding) is unresolved.
-extern u8 D_shelter_b2_south_maintenance_walkway_801838F4[4];
-
-/// Descriptors of the two event tasks: the one the event gate spawns, and the
-/// one the walkway's handler spawns for its own event.
-extern TaskDesc D_shelter_b2_south_maintenance_walkway_80182544;
-
 /// The walkway's message table, installed as the room task's `msgTable`.
 extern TaskMessageEntry D_shelter_b2_south_maintenance_walkway_80182550[];
 
@@ -111,7 +103,12 @@ enum { SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_MESSAGE_USE_KEY_ITEM = 0x13F1 };
 /// live through the deferred transition.
 static TaskDesc _gRoomEventTaskDesc = { { { TASK_BODY_NONE, ROOM_EVENT_TASK_PRIORITY } }, roomEventTask, { .value = 0 } };
 
-TaskDesc D_shelter_b2_south_maintenance_walkway_80182544 = { { { TASK_BODY_NONE, 32 } }, roomEventStagedTask, { .value = 0 } };
+/// Bodyless priority-32 recipe for this room's staged departure task.
+///
+/// The gate reads index 0 synchronously with zero metadata and unused payloads.
+/// The deferred task borrows the latched event and destination through CAP,
+/// optional sound/fade and reload; retain them and the loaded room throughout.
+static TaskDesc _gShelterB2SouthMaintenanceWalkwayStagedEventTaskDesc = { { { TASK_BODY_NONE, ROOM_EVENT_TASK_PRIORITY } }, roomEventStagedTask, { .value = 0 } };
 
 TaskMessageEntry D_shelter_b2_south_maintenance_walkway_80182550[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _shelterB2SouthMaintenanceWalkwayResolveRoomEventMessage },
@@ -602,11 +599,14 @@ RoomEventStartStorage gRoomEventActive = { 0 };
 /// the room. A later accepted start replaces it; no separate queue is stored.
 static RoomEventMsg _gRoomEventStagedMsg = { 0 };
 
-u8 D_shelter_b2_south_maintenance_walkway_801838F4[4] = {
-    0,
-    7,
-    123,
-    189,
+/// Four-byte storage for the latest staged-event gate's start indication.
+///
+/// Every call clears eventStarted, including queries; execution raises it
+/// after the unchecked spawn. The task does not update it. The three nonzero
+/// trailing bytes have no recovered access or established role.
+static RoomEventActiveBytes _gShelterB2SouthMaintenanceWalkwayStagedEventStart = {
+    .eventStarted = false,
+    .unknown      = { 7, 123, 189 },
 };
 
 RoomEventReqStorage gRoomEventReq;
@@ -634,7 +634,7 @@ static __inline__ s32 _shelterB2SouthMaintenanceWalkwayStartEvent(const RoomEven
            EVENT_ORDINARY_DEPARTURE = 1,
            EVENT_STAGED_DEPARTURE   = 2 };
 
-    D_shelter_b2_south_maintenance_walkway_801838F4[0] = false;
+    _gShelterB2SouthMaintenanceWalkwayStagedEventStart.eventStarted = false;
     if (gameFlagGetNibble(event->flagId) == 0 || event->flagId == EVENT_NO_FLAG) {
         if (destination->queryOnly == ROOM_EVENT_EXECUTE) {
             // Own the caller's records before the staged task can consume them.
@@ -643,8 +643,8 @@ static __inline__ s32 _shelterB2SouthMaintenanceWalkwayStartEvent(const RoomEven
             if (event->flagId != EVENT_NO_FLAG) {
                 gameFlagSetNibble(event->flagId, EVENT_FLAG_LATCHED);
             }
-            taskSpawnFromTable(&D_shelter_b2_south_maintenance_walkway_80182544, 0, 0, 0);
-            D_shelter_b2_south_maintenance_walkway_801838F4[0] = true;
+            taskSpawnFromTable(&_gShelterB2SouthMaintenanceWalkwayStagedEventTaskDesc, 0, 0, 0);
+            _gShelterB2SouthMaintenanceWalkwayStagedEventStart.eventStarted = true;
         }
         return EVENT_STAGED_DEPARTURE;
     }

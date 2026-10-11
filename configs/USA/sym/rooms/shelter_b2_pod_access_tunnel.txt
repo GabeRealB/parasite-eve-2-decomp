@@ -2,7 +2,7 @@
 gRoomEventLatched = 0x8018570C; // size:0xC defined:True
 _gShelterB2PodAccessTunnelBeamEndpoints = 0x80183C08; // size:0x1C0 defined:True
 _gRoomEventStagedMsg = 0x80185700; // size:0x8 defined:True
-D_shelter_b2_pod_access_tunnel_80185708 = 0x80185708; // size:0x1 defined:True
+_gShelterB2PodAccessTunnelStagedEventStarted = 0x80185708; // size:0x1 defined:True
 D_shelter_b2_pod_access_tunnel_80185709 = 0x80185709; // size:0x1 defined:True
 D_shelter_b2_pod_access_tunnel_8018570A = 0x8018570A; // size:0x1 defined:True
 D_shelter_b2_pod_access_tunnel_8018570B = 0x8018570B; // size:0x1 defined:True

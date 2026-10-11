@@ -1,7 +1,7 @@
 // Overlay-local symbols for shelter_b3_garbage_incinerator.
 gShelterB3GarbageIncineratorDoorEventSuspended = 0x801855DE; // size:0x2 defined:True
 CapCaption_Data_8015E66A = 0x8018FC5A; // type:u16 size:0x2 defined:True
-D_shelter_b3_garbage_incinerator_801855D8 = 0x801855D8; // size:0x4 defined:True
+_gShelterB3GarbageIncineratorSpawnedLiftTask = 0x801855D8; // size:0x4 defined:True
 _gShelterB3GarbageIncineratorSwitchNoticeTicks = 0x801855DC; // size:0x2 defined:True
 _gCapCaptionSceneClockSchedule = 0x801871A8; // size:0xD0 defined:True
 _gCapCaptionCaretPulseLevel = 0x80187278; // size:0x4 defined:True
@@ -191,7 +191,7 @@ _gShelterB3GarbageIncineratorBlazeAnimationSets = 0x80186F78; // size:0x10 defin
 _gShelterB3GarbageIncineratorBlazeAnimationSuccessors = 0x80186F88; // size:0x6 defined:True
 _gBlazePlayerFireArg = 0x80186F90; // size:0x8 defined:True
 _gBlazePlayerFireParts = 0x80186F98; // size:0x20 defined:True
-D_shelter_b3_garbage_incinerator_80186FB8 = 0x80186FB8; // size:0x198 defined:True
+_gShelterB3GarbageIncineratorBlazeScript = 0x80186FB8; // size:0x198 defined:True
 gShelterB3GarbageIncineratorBlazeTaskDescs = 0x80187150; // size:0x30 defined:True
 _gCapCaptionTexturePageX = 0x80187180; // size:0x2 defined:True
 _gCapCaptionTexturePageY = 0x80187182; // size:0x2 defined:True

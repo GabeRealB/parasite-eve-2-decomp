@@ -61,7 +61,6 @@ extern RoomFadeStorage gRoomEventFade;
 /// The message and the event the walkway's handler latched for its event task,
 /// and the flag saying its last call did so.
 static RoomEventMsg            _gRoomEventStagedMsg;
-extern RoomEventStartStorage   D_shelter_b2_north_maintenance_walkway_801863B0;
 extern RoomLatchedEventStorage gRoomEventLatched;
 
 /// The request the event gate latched for the event task.
@@ -903,7 +902,12 @@ RoomFadeStorage gRoomEventFade = { 0 };
 /// the room. A later accepted start replaces it; no separate queue is stored.
 static RoomEventMsg _gRoomEventStagedMsg = { 0 };
 
-RoomEventStartStorage D_shelter_b2_north_maintenance_walkway_801863B0 = { 0 };
+/// Eight-byte storage for the latest staged-event gate's start indication.
+///
+/// The gate clears eventStarted on every call, including queries, and raises
+/// it after an unchecked executing spawn. The task does not update it. The
+/// seven trailing zero bytes have no recovered access or established grouping.
+static RoomEventStartStorage _gShelterB2NorthMaintenanceWalkwayStagedEventStart = { 0 };
 
 /// Snapshot of the accepted transition for the deferred room event.
 ///
@@ -934,7 +938,7 @@ static void           _shelterB2NorthMaintenanceWalkwayIdleRoomTask(Task* unused
 /// sets the flag and spawns the room's event task.
 static __inline__ s32 _walkwayStartEvent(RoomEventMsg* dst, RoomLatchedEvent* event)
 {
-    D_shelter_b2_north_maintenance_walkway_801863B0.eventStarted = 0;
+    _gShelterB2NorthMaintenanceWalkwayStagedEventStart.eventStarted = false;
     if (gameFlagGetNibble(event->flagId) == 0 || event->flagId == 0) {
         if (dst->queryOnly == ROOM_EVENT_EXECUTE) {
             _gRoomEventStagedMsg    = *dst;
@@ -942,8 +946,8 @@ static __inline__ s32 _walkwayStartEvent(RoomEventMsg* dst, RoomLatchedEvent* ev
             if (event->flagId != 0) {
                 gameFlagSetNibble(event->flagId, 1);
             }
-            taskSpawnFromTable(&D_shelter_b2_north_maintenance_walkway_80183B48, 0, 0, 0);
-            D_shelter_b2_north_maintenance_walkway_801863B0.eventStarted = 1;
+            taskSpawnFromTable(&gShelterB2NorthMaintenanceWalkwayStagedEventTaskDesc, 0, 0, 0);
+            _gShelterB2NorthMaintenanceWalkwayStagedEventStart.eventStarted = true;
         }
         return 2;
     }

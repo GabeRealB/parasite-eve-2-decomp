@@ -50,7 +50,7 @@ static void _factoryLiftInit(Task* task)
     if (gGameSession->location.loc.stage == GAME_STAGE_DRYFIELD) {
         taskSpawnFromTable(gFactoryDaySpawnTable, FACTORY_LIFT_HATCH_SPAWN_INDEX, 0, task);
     } else {
-        taskSpawnFromTable(gFactoryNightSpawnTable, FACTORY_LIFT_HATCH_SPAWN_INDEX, 0, task);
+        taskSpawnFromTable(gDryfieldNightFactoryTaskDescs, FACTORY_LIFT_HATCH_SPAWN_INDEX, 0, task);
     }
     task->exitCallback  = _factoryLiftExit;
     task->killCountdown = 0;

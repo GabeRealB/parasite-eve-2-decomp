@@ -37,11 +37,7 @@
 #include "../../shared/glow_draw.h"
 #include "../../shared/room_events.h"
 
-extern s8 D_shelter_b1_north_maintenance_walkway_80185B7C;
-
 static void _shelterB1NorthMaintenanceWalkwaySetSceneSpriteVisibility(u8 sceneSeen);
-
-extern TaskDesc D_shelter_b1_north_maintenance_walkway_80184A78;
 
 static s32  _shelterB1NorthMaintenanceWalkwayResolveRoomTransition(Task* task, s32 messageId, RoomEventMsg* request, RoomEventMsg* reply);
 static void _shelterB1NorthMaintenanceWalkwayPostBattleSceneTask(Task* task);
@@ -53,7 +49,12 @@ static s32  _shelterB1NorthMaintenanceWalkwayIgnoreRoomAction(Task* task, s32 me
 /// Requests use of the key item in the first payload word.
 enum { SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_MESSAGE_USE_KEY_ITEM = 0x13F1 };
 
-TaskDesc D_shelter_b1_north_maintenance_walkway_80184A78 = { { { TASK_BODY_NONE, 32 } }, roomEventStagedTask, { .value = 0 } };
+/// Bodyless priority-32 recipe for this room's staged departure task.
+///
+/// The gate reads index 0 synchronously with zero metadata and unused payloads.
+/// The deferred task borrows the latched event and destination through CAP,
+/// optional sound/fade and reload; retain them and the loaded room throughout.
+static TaskDesc _gShelterB1NorthMaintenanceWalkwayStagedEventTaskDesc = { { { TASK_BODY_NONE, ROOM_EVENT_TASK_PRIORITY } }, roomEventStagedTask, { .value = 0 } };
 
 /// Room-message routes: stage eligible departures, refuse key items, ignore actions and commands.
 ///
@@ -145,7 +146,7 @@ static __inline__ s32 _shelterB1NorthMaintenanceWalkwayStartEvent(const RoomEven
            ROOM_EVENT_DEPARTURE_DIRECT  = 1,
            ROOM_EVENT_DEPARTURE_HANDLED = 2 };
 
-    D_shelter_b1_north_maintenance_walkway_80185B7C = false;
+    gShelterB1NorthMaintenanceWalkwayStagedEventStarted = false;
     if (gameFlagGetNibble(event->flagId) == ROOM_EVENT_FLAG_CLEAR || event->flagId == ROOM_EVENT_FLAG_NONE) {
         if (message->queryOnly == ROOM_EVENT_EXECUTE) {
             gRoomEventStagedDestination = *message;
@@ -153,8 +154,8 @@ static __inline__ s32 _shelterB1NorthMaintenanceWalkwayStartEvent(const RoomEven
             if (event->flagId != ROOM_EVENT_FLAG_NONE) {
                 gameFlagSetNibble(event->flagId, ROOM_EVENT_FLAG_LATCHED);
             }
-            taskSpawnFromTable(&D_shelter_b1_north_maintenance_walkway_80184A78, 0, 0, 0);
-            D_shelter_b1_north_maintenance_walkway_80185B7C = true;
+            taskSpawnFromTable(&_gShelterB1NorthMaintenanceWalkwayStagedEventTaskDesc, 0, 0, 0);
+            gShelterB1NorthMaintenanceWalkwayStagedEventStarted = true;
         }
         return ROOM_EVENT_DEPARTURE_HANDLED;
     }

@@ -49,8 +49,6 @@
 
 #define GOLEM_RAND() ((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16)
 
-extern s16 D_shelter_b1_golem_freezer_1_8017E6D0[3];
-
 static void _shelterB1GolemFreezer1InitMeetingObstacle(s32 unusedArg);
 static void _shelterB1GolemFreezer1RebuildMeetingObstacle(const GfxCoord* modelRoot, const s16* roomOffset);
 static void _shelterB1GolemFreezer1InitRoomState(Task* task);
@@ -98,7 +96,12 @@ static TaskMessageEntry _gShelterB1GolemFreezer1RoomMessages[5] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-s16 D_shelter_b1_golem_freezer_1_8017E6D0[3] = {
+/// XYZ room-axis offset added to the meeting obstacle's transformed vertices.
+///
+/// Three signed halfwords in game-coordinate units. X/Z remain zero; Y is zero
+/// for a present meeting actor in variant 21, otherwise 10000 hides the obstacle.
+/// The rebuild borrows all three elements synchronously and retains no pointer.
+static s16 _gShelterB1GolemFreezer1MeetingObstacleOffset[3] = {
     0,
     0,
     0,
@@ -598,14 +601,14 @@ static void _shelterB1GolemFreezer1InitMeetingObstacle(s32 unusedArg)
     }
     if (placedActor != NULL) {
         if (gGameSession->location.loc.variant == SHELTER_B1_GOLEM_FREEZER_1_MEETING_VARIANT) {
-            D_shelter_b1_golem_freezer_1_8017E6D0[1] = 0;
+            _gShelterB1GolemFreezer1MeetingObstacleOffset[1] = 0;
         } else {
-            D_shelter_b1_golem_freezer_1_8017E6D0[1] = SHELTER_B1_GOLEM_FREEZER_1_OBSTACLE_HIDDEN_Y;
+            _gShelterB1GolemFreezer1MeetingObstacleOffset[1] = SHELTER_B1_GOLEM_FREEZER_1_OBSTACLE_HIDDEN_Y;
         }
     } else {
-        D_shelter_b1_golem_freezer_1_8017E6D0[1] = SHELTER_B1_GOLEM_FREEZER_1_OBSTACLE_HIDDEN_Y;
+        _gShelterB1GolemFreezer1MeetingObstacleOffset[1] = SHELTER_B1_GOLEM_FREEZER_1_OBSTACLE_HIDDEN_Y;
     }
-    _shelterB1GolemFreezer1RebuildMeetingObstacle(obstacleAnchor->extra.tmd->coords, D_shelter_b1_golem_freezer_1_8017E6D0);
+    _shelterB1GolemFreezer1RebuildMeetingObstacle(obstacleAnchor->extra.tmd->coords, _gShelterB1GolemFreezer1MeetingObstacleOffset);
 }
 
 /// Rebuilds the meeting quad at the start of the room grid from a model's local matrix.

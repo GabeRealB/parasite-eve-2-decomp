@@ -66,8 +66,6 @@
 #include "../../shared/glow_draw.h"
 #include "../../shared/streamed_scene.h"
 
-extern s8 D_shelter_1f_bulwark_80180ECC;
-
 extern ScreenFade       gRoomEventFade;
 static RoomEventMsg     _gRoomEventStagedMsg;
 extern RoomLatchedEvent gRoomEventLatched;
@@ -412,7 +410,12 @@ static ScreenFade _gShelter1fBulwarkHeliportFade = { 0 };
 /// the room. A later accepted start replaces it; no separate queue is stored.
 static RoomEventMsg _gRoomEventStagedMsg = { 0 };
 
-s8 D_shelter_1f_bulwark_80180ECC = 0;
+/// Whether the latest staged-event gate call attempted an event spawn (0 no, 1 yes).
+///
+/// Every call clears this byte, including queries. Execution raises it after
+/// the unchecked spawn; the task does not clear it on completion. No reader
+/// is recovered, so this records the latest call rather than a running lifetime.
+static s8 _gShelter1fBulwarkStagedEventStarted = 0;
 
 /// Retained, unreferenced bytes after the event-start byte; their role and grouping are unproven.
 static u8 D_shelter_1f_bulwark_80180ECD = 33;
@@ -443,7 +446,7 @@ static __inline__ s32 _shelter1fBulwarkStartEvent(const RoomEventMsg* transition
         ROOM_EVENT_ELIGIBLE     = 2
     };
 
-    D_shelter_1f_bulwark_80180ECC = ROOM_EVENT_NOT_STARTED;
+    _gShelter1fBulwarkStagedEventStarted = ROOM_EVENT_NOT_STARTED;
     if (gameFlagGetNibble(event->flagId) == 0 || event->flagId == 0) {
         if (transition->queryOnly == ROOM_EVENT_EXECUTE) {
             _gRoomEventStagedMsg = *transition;
@@ -452,7 +455,7 @@ static __inline__ s32 _shelter1fBulwarkStartEvent(const RoomEventMsg* transition
                 gameFlagSetNibble(event->flagId, ROOM_EVENT_FLAG_SEEN);
             }
             taskSpawnFromTable(&_gShelter1fBulwarkStagedEventTaskDesc, 0, 0, 0);
-            D_shelter_1f_bulwark_80180ECC = ROOM_EVENT_STARTED;
+            _gShelter1fBulwarkStagedEventStarted = ROOM_EVENT_STARTED;
         }
         return ROOM_EVENT_ELIGIBLE;
     }

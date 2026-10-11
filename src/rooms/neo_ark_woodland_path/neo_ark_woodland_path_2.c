@@ -59,11 +59,6 @@ static void _roamerBankRetreat(Task* task, s32 messageId, s32 hp, s32 unusedArg)
 
 /// The distance between `a` and `b`, spelled as a conditional subtraction.
 
-/// The second arming sequence's spawn placements, which
-/// `_roamerTickPoolB` picks from by `_gRoamerPendingSpawnPoint - 1`. Five of them; any
-/// request past the fourth takes the last.
-extern RoamerSpawnPoint D_neo_ark_woodland_path_80184A14[5];
-
 static s32 _neoArkWoodlandPathIgnoreRoamerCommand(Task* task, s32 messageId, const ActorCommand* command, s32 secondArg);
 static s32 _roamerExtendCooldown(Task* unusedTask, s32 unusedMessageId, s32 unusedEventValue, s32 unusedSecondArg);
 static s32 _roamerLatchSpawnRequestPoolA(Task* unusedTask, s32 unusedMessageId, const DirectionActionRequest* request, s32 unusedSecondArg);
@@ -239,7 +234,13 @@ static TaskMessageEntry _gRoamerPoolBMessages[4] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-RoamerSpawnPoint D_neo_ark_woodland_path_80184A14[5] = {
+/// Five live woodland placements for revived pool-B roamers.
+///
+/// Request selectors 1..4 choose rows 0..3; 5 and the woodland selector 6 use
+/// row 4. X/Z use signed room-coordinate units; yaw uses 4096 units per turn.
+/// Stored Y is zero and unused: placement forces height zero. The following
+/// unread marker is separate storage; no code walks this table to a terminator.
+static RoamerSpawnPoint _gNeoArkWoodlandPathRoamerPoolBSpawnPoints[5] = {
     { 8884, 0, 2200, 2048 },
     { 0, 0, -2000, 200 },
     { -4200, 0, -3000, 0 },
@@ -446,17 +447,17 @@ static void _roamerTickPoolB(Task* task)
 /// they are evaluated repeatedly. dirtyBeforeTurn must be constant 0 or 1 and
 /// preserves the row's dirty-stamp ordering. Uses the room's borrowed spawn
 /// table; expands to statements and must be invoked as the complete statements of a switch arm.
-#define ROAMER_PLACE_POOL_B_ENEMY(actorIndex, pointIndex, dirtyBeforeTurn)                                            \
-    sceneFindPlacedActor(actorIndex)->extra.tmd->coords->coord.t[0] = D_neo_ark_woodland_path_80184A14[pointIndex].x; \
-    sceneFindPlacedActor(actorIndex)->extra.tmd->coords->coord.t[1] = 0;                                              \
-    sceneFindPlacedActor(actorIndex)->extra.tmd->coords->coord.t[2] = D_neo_ark_woodland_path_80184A14[pointIndex].z; \
-    if (dirtyBeforeTurn) {                                                                                            \
-        sceneFindPlacedActor(actorIndex)->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;                     \
-    }                                                                                                                 \
-    gfxRotMatrixY(&sceneFindPlacedActor(actorIndex)->extra.tmd->coords->coord,                                        \
-                  D_neo_ark_woodland_path_80184A14[pointIndex].yaw, GRAPHICS_ROTATION_REPLACE);                       \
-    if (!(dirtyBeforeTurn)) {                                                                                         \
-        sceneFindPlacedActor(actorIndex)->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;                     \
+#define ROAMER_PLACE_POOL_B_ENEMY(actorIndex, pointIndex, dirtyBeforeTurn)                                                      \
+    sceneFindPlacedActor(actorIndex)->extra.tmd->coords->coord.t[0] = _gNeoArkWoodlandPathRoamerPoolBSpawnPoints[pointIndex].x; \
+    sceneFindPlacedActor(actorIndex)->extra.tmd->coords->coord.t[1] = 0;                                                        \
+    sceneFindPlacedActor(actorIndex)->extra.tmd->coords->coord.t[2] = _gNeoArkWoodlandPathRoamerPoolBSpawnPoints[pointIndex].z; \
+    if (dirtyBeforeTurn) {                                                                                                      \
+        sceneFindPlacedActor(actorIndex)->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;                               \
+    }                                                                                                                           \
+    gfxRotMatrixY(&sceneFindPlacedActor(actorIndex)->extra.tmd->coords->coord,                                                  \
+                  _gNeoArkWoodlandPathRoamerPoolBSpawnPoints[pointIndex].yaw, GRAPHICS_ROTATION_REPLACE);                       \
+    if (!(dirtyBeforeTurn)) {                                                                                                   \
+        sceneFindPlacedActor(actorIndex)->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;                               \
     }
 
     gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);

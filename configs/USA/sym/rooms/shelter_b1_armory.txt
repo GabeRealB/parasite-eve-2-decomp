@@ -125,7 +125,7 @@ _gShelterB1ArmorySurface1Properties = 0x8018554C; // size:0x8 defined:True
 gShelterB1ArmorySurfacePropertiesByClass = 0x80185554; // size:0x20 defined:True
 gShopRefillDisplayQuantityFixed = 0x80185574; // size:0x4 defined:True
 gShopRefillSupply = 0x80185578; // size:0x4 defined:True
-D_shelter_b1_armory_8018557C = 0x8018557C; // size:0x8 defined:True
+gShelterB1ArmoryShopSavedView = 0x8018557C; // size:0x8 defined:True
 _gShopCategoryRowCallbacks = 0x80182380; // size:0x4 defined:True
 _gShopCategoryList = 0x80182384; // size:0x24 defined:True
 _gShopPurchasePromptRowCallbacks = 0x801823A8; // size:0x8 defined:True
@@ -144,7 +144,7 @@ _gShopItemPreviewDescriptor = 0x80182498; // size:0x1C defined:True
 _gShopPurchaseQuantityDescriptor = 0x801824B4; // size:0x1C defined:True
 gShelterB1ArmoryShopSessionTaskDesc = 0x801824D0; // size:0xC defined:True
 _gRoomEventTaskDesc = 0x801824DC; // size:0xC defined:True
-D_shelter_b1_armory_801824E8 = 0x801824E8; // size:0x18 defined:True
+_gShelterB1ArmorySceneTaskDescs = 0x801824E8; // size:0x18 defined:True
 _gShelterB1ArmoryRoomMessages = 0x80182500; // size:0x28 defined:True
 
 shelterB1ArmoryDrawGlowsTask = 0x801807E4; // type:func

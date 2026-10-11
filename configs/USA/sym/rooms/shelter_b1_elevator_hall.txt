@@ -1,5 +1,5 @@
 // Overlay-local symbols for shelter_b1_elevator_hall.
-D_shelter_b1_elevator_hall_801849F8 = 0x801849F8; // size:0x8 defined:True
+_gShelterB1ElevatorHallMineDestination = 0x801849F8; // size:0x8 defined:True
 _gShelterB1ElevatorHallGlowEndpointPairs = 0x80182CF4; // size:0xE0 defined:True
 _gRoomVisualEffectsHaloShades = 0x80182DD4; // size:0x14 defined:True
 gShelterB1ElevatorHallRoomLighting = 0x80182DF8; // size:0x8 defined:True

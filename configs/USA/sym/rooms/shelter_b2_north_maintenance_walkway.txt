@@ -61,12 +61,12 @@ gActor341300ScriptTaskDescriptors = 0x80165208; // absolute:True owner=actor_341
 _gRoomVisualEffectsTwinTrailEndpointOffsets = 0x80183C4C; // size:0x10 defined:True
 _gRoomVisualEffectsHaloShades = 0x80183C38; // size:0x14 defined:True
 _gRoomEventStagedMsg = 0x801863A8; // size:0x8 defined:True
-D_shelter_b2_north_maintenance_walkway_801863B0 = 0x801863B0; // size:0x8 defined:True
+_gShelterB2NorthMaintenanceWalkwayStagedEventStart = 0x801863B0; // size:0x8 defined:True
 _gRoomEventMsg = 0x801863B8; // size:0x8 defined:True
 gRoomEventActive = 0x801863C0; // size:0x1 defined:True
 gRoomEventLatched = 0x801863C4; // size:0x10 defined:True
 gRoomEventReq = 0x801863D4; // size:0x14 defined:True
-D_shelter_b2_north_maintenance_walkway_80183B48 = 0x80183B48; // size:0xC defined:True
+gShelterB2NorthMaintenanceWalkwayStagedEventTaskDesc = 0x80183B48; // size:0xC defined:True
 gRoomEventTaskDesc = 0x80183B54; // size:0xC defined:True
 gShelterB2NorthMaintenanceWalkwayRoomMessages = 0x80183B60; // size:0x30 defined:True
 

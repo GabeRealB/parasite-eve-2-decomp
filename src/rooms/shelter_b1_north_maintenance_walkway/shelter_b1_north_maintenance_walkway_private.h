@@ -12,6 +12,12 @@
 
 #include "rooms/room_common.h"
 
+/// Whether the latest staged-event gate call attempted to spawn its event (0 no, 1 yes).
+///
+/// Every call clears this byte, including queries. Execution raises it after
+/// the unchecked spawn; the task does not clear it on completion.
+extern s8 gShelterB1NorthMaintenanceWalkwayStagedEventStarted;
+
 extern RoomFadeStorage gRoomEventFade;
 
 /// Destination snapshot shared by this overlay's staged-event writer and task.

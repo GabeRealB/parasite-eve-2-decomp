@@ -105,7 +105,6 @@ static AnimationPlayRequest D_shelter_r47_80186F5C;
 static TaskDesc             _gShelterR47AuxiliaryTaskDescs[3];
 static TaskDesc             D_shelter_r47_80186F94[2];
 static ActionPromptHotspot  _gShelterR47ConsoleHotspots[9];
-static TaskDesc             D_shelter_r47_80187020;
 static s32                  _shelterR47HandleDirectionAction(Task* unusedTask, s32 unusedMessageId, const DirectionActionRequest* request, s32 unusedSecondArg);
 static s32                  _shelterR47HandleRoomCommand(Task* unusedTask, s32 unusedMessageId, s32 command, s32 unusedMode);
 static void                 _shelterR47AmbienceTask(Task* task);
@@ -242,7 +241,14 @@ static ActionPromptHotspot _gShelterR47ConsoleHotspots[9] = {
     { 0, 0, 0, 0, ACTION_PROMPT_HOTSPOT_END, 0, 0 },
 };
 
-static TaskDesc D_shelter_r47_80187020 = { { { TASK_BODY_NONE, 192 } }, shelterR47ConsoleTask, { .value = 0 } };
+enum { SHELTER_R47_CONSOLE_TASK_PRIORITY = 192 };
+
+/// Bodyless priority-192 recipe for the R47 console, with zero metadata.
+///
+/// SpawnArg1 selects the guided tour (1) or ordinary console (0); spawnArg2
+/// is unused. Spawning reads this single recipe synchronously. Console code
+/// and room resources must remain loaded until the console task ends.
+static TaskDesc _gShelterR47ConsoleTaskDesc = { { { TASK_BODY_NONE, SHELTER_R47_CONSOLE_TASK_PRIORITY } }, shelterR47ConsoleTask, { .value = 0 } };
 
 /// Console header: one 72x24-pixel piece followed by the list terminator.
 static _ShelterR47SpritePart _gShelterR47ConsoleHeaderParts[2] = {
@@ -698,7 +704,7 @@ static void _shelterR47AdvanceTerminalTour(Task* unusedTask)
         // Let each terminal release its hold before starting the next scripted phase.
         case SHELTER_R47_TOUR_OPEN_CONSOLE:
             if (gGameSession->eventState == 0) {
-                gShelterR47TerminalTask = taskSpawnFromTable(&D_shelter_r47_80187020, 0, 1, 0);
+                gShelterR47TerminalTask = taskSpawnFromTable(&_gShelterR47ConsoleTaskDesc, 0, 1, 0);
                 playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE);
                 playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
                 sceneSetPlacedActorDrawMode(0, 0);
@@ -862,7 +868,7 @@ static s32 _shelterR47HandleDirectionAction(Task* unusedTask, s32 unusedMessageI
                 }
                 break;
             case SHELTER_R47_ACTION_OPEN_CONSOLE:
-                tourConsoleTask         = taskSpawnFromTable(&D_shelter_r47_80187020, 0, 0, 0);
+                tourConsoleTask         = taskSpawnFromTable(&_gShelterR47ConsoleTaskDesc, 0, 0, 0);
                 gShelterR47TerminalTask = tourConsoleTask;
                 if (tourConsoleTask != NULL) {
                     _shelterR47HideActorsForTourTerminal();
@@ -895,7 +901,7 @@ static s32 _shelterR47HandleDirectionAction(Task* unusedTask, s32 unusedMessageI
                 }
                 break;
             case SHELTER_R47_ACTION_OPEN_CONSOLE:
-                companionConsoleTask    = taskSpawnFromTable(&D_shelter_r47_80187020, 0, 0, 0);
+                companionConsoleTask    = taskSpawnFromTable(&_gShelterR47ConsoleTaskDesc, 0, 0, 0);
                 gShelterR47TerminalTask = companionConsoleTask;
                 if (companionConsoleTask != NULL) {
                     _shelterR47HoldTerminalActors();
@@ -913,7 +919,7 @@ static s32 _shelterR47HandleDirectionAction(Task* unusedTask, s32 unusedMessageI
                 }
                 break;
             case SHELTER_R47_ACTION_OPEN_CONSOLE:
-                consoleTask             = taskSpawnFromTable(&D_shelter_r47_80187020, 0, 0, 0);
+                consoleTask             = taskSpawnFromTable(&_gShelterR47ConsoleTaskDesc, 0, 0, 0);
                 gShelterR47TerminalTask = consoleTask;
                 if (consoleTask != NULL) {
                     _shelterR47HoldTerminalActors();

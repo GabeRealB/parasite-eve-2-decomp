@@ -35,6 +35,11 @@ extern const AreaApplyRec gShelter1fTentGolemFreezer1AfterItemFollowupAreaUpdate
 
 extern Task* gRoomCutsceneSoundTask;
 
-extern RoomCutsceneRec D_shelter_1f_tent_801843C4;
+/// Singleton request for the tent's replay of CAP slot/file 1 in view 5.
+///
+/// The room fills the scene and sound fields before spawning its runner. The
+/// runner borrows this record through completion; leave it unchanged and keep
+/// the tent and CAP resources loaded while the scene or its sound task runs.
+extern RoomCutsceneRec gShelter1fTentReplayCutscene;
 
 #endif // SRC_ROOMS_SHELTER_1F_TENT_SHELTER_1F_TENT_PRIVATE_H

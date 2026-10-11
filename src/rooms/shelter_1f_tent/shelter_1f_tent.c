@@ -211,15 +211,15 @@ static inline void _shelter1fTentStartReplayCutscene(s32 capSlot)
         CUTSCENE_SCENE_SOUND       = SOUND_AREA(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_SHELTER_1F_TENT, 4),
         CUTSCENE_AFTER_SCENE_SOUND = SOUND_AREA(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_SHELTER_1F_TENT, 5)
     };
-    D_shelter_1f_tent_801843C4.view            = CUTSCENE_VIEW;
-    D_shelter_1f_tent_801843C4.capSlot         = capSlot;
-    D_shelter_1f_tent_801843C4.capFile         = capSlot;
-    D_shelter_1f_tent_801843C4.skipScene       = CUTSCENE_PLAY;
-    D_shelter_1f_tent_801843C4.startSound      = CUTSCENE_START_SOUND;
-    D_shelter_1f_tent_801843C4.endSound        = CUTSCENE_END_SOUND;
-    D_shelter_1f_tent_801843C4.sceneSound      = CUTSCENE_SCENE_SOUND;
-    D_shelter_1f_tent_801843C4.afterSceneSound = CUTSCENE_AFTER_SCENE_SOUND;
-    taskSpawnFromTable(_gRoomCutsceneTaskDescs, CUTSCENE_RUNNER_TASK, CUTSCENE_FOLLOWUP_COMMAND, &D_shelter_1f_tent_801843C4);
+    gShelter1fTentReplayCutscene.view            = CUTSCENE_VIEW;
+    gShelter1fTentReplayCutscene.capSlot         = capSlot;
+    gShelter1fTentReplayCutscene.capFile         = capSlot;
+    gShelter1fTentReplayCutscene.skipScene       = CUTSCENE_PLAY;
+    gShelter1fTentReplayCutscene.startSound      = CUTSCENE_START_SOUND;
+    gShelter1fTentReplayCutscene.endSound        = CUTSCENE_END_SOUND;
+    gShelter1fTentReplayCutscene.sceneSound      = CUTSCENE_SCENE_SOUND;
+    gShelter1fTentReplayCutscene.afterSceneSound = CUTSCENE_AFTER_SCENE_SOUND;
+    taskSpawnFromTable(_gRoomCutsceneTaskDescs, CUTSCENE_RUNNER_TASK, CUTSCENE_FOLLOWUP_COMMAND, &gShelter1fTentReplayCutscene);
 }
 
 /// Handles the tent's scene command, choosing the first scene or its replay.

@@ -117,7 +117,7 @@ neoArkPavilionRoomTask = 0x8017EBF4; // type:func absolute:True owner=neo_ark_pa
 gNeoArkPavilionRoomCollisionResources = 0x801838B4; // absolute:True owner=neo_ark_pavilion shared=rooms
 gNeoArkPavilionRoomLighting = 0x801838D4; // absolute:True owner=neo_ark_pavilion shared=rooms
 gNeoArkPavilionViewMaps = 0x801838EC; // absolute:True owner=neo_ark_pavilion
-gNeoArkPavilionViewCounts = 0x801838F4; // absolute:True owner=neo_ark_pavilion shared=rooms
+gNeoArkPavilionViewCounts = 0x801838F4; // absolute:True owner=neo_ark_pavilion
 gNeoArkPavilionWarpEntries = 0x801838F8; // absolute:True owner=neo_ark_pavilion shared=rooms
 gNeoArkPavilionViewCameras = 0x80184208; // absolute:True owner=neo_ark_pavilion
 gNeoArkPavilionSpriteViews = 0x801873B8; // absolute:True owner=neo_ark_pavilion

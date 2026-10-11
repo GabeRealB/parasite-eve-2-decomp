@@ -41,7 +41,7 @@ _gShelterB1GolemFreezer1FloorSurface = 0x8017F288; // size:0x8 defined:True
 gShelterB1GolemFreezer1SurfacePropertiesByClass = 0x8017F290; // size:0x20 defined:True
 gActor160700PierceCarradineTasks = 0x801416A8; // absolute:True owner=actor_160700
 _gShelterB1GolemFreezer1RoomMessages = 0x8017E6A8; // size:0x28 defined:True
-D_shelter_b1_golem_freezer_1_8017E6D0 = 0x8017E6D0; // size:0x6 defined:True
+_gShelterB1GolemFreezer1MeetingObstacleOffset = 0x8017E6D0; // size:0x6 defined:True
 
 shelterB1GolemFreezer1FloorMistTask = 0x8017DFFC; // type:func
 

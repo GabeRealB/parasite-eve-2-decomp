@@ -87,8 +87,6 @@ extern EvsCommand D_shelter_b2_septic_tank_8018310C[];
 /// Tasks the room's first task state spawns.
 extern TaskDesc D_shelter_b2_septic_tank_801832C0[];
 
-extern u8 D_shelter_b2_septic_tank_80187045;
-
 static __inline__ s32 _shelterB2SepticTankStartEvent(const RoomEventMsg* destination, const RoomLatchedEvent* event);
 static void           _shelterB2SepticTankInitializeRoom(Task* task);
 static void           _shelterB2SepticTankMonitorEncounterIntro(Task* task);
@@ -98,7 +96,6 @@ static void _shelterB2SepticTankDrawWater(Task* task);
 
 extern RoomFadeStorage  gRoomEventFade;
 static RoomEventMsg     _gRoomEventStagedMsg;
-extern u8               D_shelter_b2_septic_tank_80187044;
 extern RoomLatchedEvent gRoomEventLatched;
 
 /// Next byte for mixed water quad and draw-mode packets in a borrowed actor-load buffer.
@@ -1352,9 +1349,19 @@ RoomFadeStorage gRoomEventFade = { 0 };
 /// the room. A later accepted start replaces it; no separate queue is stored.
 static RoomEventMsg _gRoomEventStagedMsg = { 0 };
 
-u8 D_shelter_b2_septic_tank_80187044 = 0;
+/// Whether the latest staged-event gate call attempted an event spawn (0 no, 1 yes).
+///
+/// Every call clears this byte, including queries. Execution raises it after
+/// the unchecked spawn; the task does not clear it on completion. No reader
+/// is recovered, so this records the latest call rather than a running lifetime.
+static u8 _gShelterB2SepticTankStagedEventStarted = 0;
 
-u8 D_shelter_b2_septic_tank_80187045 = 0;
+/// Room-local encounter scene stage (0 intro pending, 1 intro considered, 2 combat setup started).
+///
+/// The view-4 monitor advances to 1 even if saved progress suppresses playback.
+/// Arrival action 2 advances to 2 after requesting combat setup. This byte lasts
+/// for the loaded room visit and is separate from the saved encounter phase.
+static u8 _gShelterB2SepticTankEncounterSceneStage = 0;
 
 u16 D_shelter_b2_septic_tank_80187046 = 0x5868;
 
@@ -1378,7 +1385,7 @@ static __inline__ s32 _shelterB2SepticTankStartEvent(const RoomEventMsg* destina
         SHELTER_B2_SEPTIC_TANK_EVENT_FLAG_CLEAR      = 0,
         SHELTER_B2_SEPTIC_TANK_EVENT_FLAG_LATCHED    = 1
     };
-    D_shelter_b2_septic_tank_80187044 = false;
+    _gShelterB2SepticTankStagedEventStarted = false;
     if (gameFlagGetNibble(event->flagId) == SHELTER_B2_SEPTIC_TANK_EVENT_FLAG_CLEAR || event->flagId == SHELTER_B2_SEPTIC_TANK_EVENT_FLAG_NONE) {
         if (destination->queryOnly == ROOM_EVENT_EXECUTE) {
             // Own copies before starting the task that consumes them later.
@@ -1388,7 +1395,7 @@ static __inline__ s32 _shelterB2SepticTankStartEvent(const RoomEventMsg* destina
                 gameFlagSetNibble(event->flagId, SHELTER_B2_SEPTIC_TANK_EVENT_FLAG_LATCHED);
             }
             taskSpawnFromTable(&_gShelterB2SepticTankStagedEventTaskDesc, 0, 0, 0);
-            D_shelter_b2_septic_tank_80187044 = true;
+            _gShelterB2SepticTankStagedEventStarted = true;
         }
         return SHELTER_B2_SEPTIC_TANK_EVENT_ELIGIBLE;
     }
@@ -1459,9 +1466,9 @@ static s32 _shelterB2SepticTankHandleRoomAction(Task* task, s32 messageId, const
     actionId = request->actionId;
     if (actionId == SHELTER_B2_SEPTIC_TANK_ACTION_START_COMBAT) {
         encounterPhase = gameFlagGetNibble(GAME_FLAG_0EB);
-        if (encounterPhase == SHELTER_B2_SEPTIC_TANK_ENCOUNTER_INTRO_COMPLETE && D_shelter_b2_septic_tank_80187045 == encounterPhase) {
+        if (encounterPhase == SHELTER_B2_SEPTIC_TANK_ENCOUNTER_INTRO_COMPLETE && _gShelterB2SepticTankEncounterSceneStage == encounterPhase) {
             evsStartScript(D_shelter_b2_septic_tank_8018310C, EVENT_SCRIPT_HUD_HIDE_RESTORE);
-            D_shelter_b2_septic_tank_80187045 = actionId;
+            _gShelterB2SepticTankEncounterSceneStage = actionId;
         }
     }
     return 0;
@@ -1530,11 +1537,11 @@ static void _shelterB2SepticTankMonitorEncounterIntro(Task* task)
 
     if (gGameSession->location.loc.view == SHELTER_B2_SEPTIC_TANK_INTRO_VIEW) {
         variant = gGameSession->location.loc.variant;
-        if (variant == SHELTER_B2_SEPTIC_TANK_INTRO_VARIANT && gAttachmentState.mode != ATTACHMENT_MODE_WHEEL && gDisplayState.pendingMode == DISPLAY_MODE_NONE && D_shelter_b2_septic_tank_80187045 == SHELTER_B2_SEPTIC_TANK_INTRO_STAGE_PENDING) {
+        if (variant == SHELTER_B2_SEPTIC_TANK_INTRO_VARIANT && gAttachmentState.mode != ATTACHMENT_MODE_WHEEL && gDisplayState.pendingMode == DISPLAY_MODE_NONE && _gShelterB2SepticTankEncounterSceneStage == SHELTER_B2_SEPTIC_TANK_INTRO_STAGE_PENDING) {
             if (gameFlagGetNibble(GAME_FLAG_0EB) == SHELTER_B2_SEPTIC_TANK_ENCOUNTER_PHASE_PENDING) {
                 evsStartScript(_gShelterB2SepticTankEncounterIntroScript, EVENT_SCRIPT_HUD_HIDE_RESTORE);
             }
-            D_shelter_b2_septic_tank_80187045 = variant;
+            _gShelterB2SepticTankEncounterSceneStage = variant;
         }
     }
 }

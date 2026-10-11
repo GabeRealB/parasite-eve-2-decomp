@@ -3,7 +3,12 @@
 #include "main/task_types.h"
 
 /* GCC orders BSS by first declaration; keep this prologue before the API headers. */
-Task* D_shelter_b3_garbage_incinerator_801855D8;
+/// Lift task returned by room setup and addressed by the Glutton's carried-move event.
+///
+/// This borrowed pointer must still denote a live lift when event 0 arrives.
+/// Spawning is unchecked and the stored pointer is not cleared on lift teardown;
+/// a non-NULL value alone does not establish lifetime.
+static Task* _gShelterB3GarbageIncineratorSpawnedLiftTask;
 
 /// Elapsed room-controller ticks since the last blocked exit-switch notice.
 ///
@@ -259,7 +264,7 @@ static s32 _shelterB3GarbageIncineratorHandleActorEvent(Task* task, s32 messageI
 
     switch (eventId) {
         case SHELTER_B3_GARBAGE_INCINERATOR_EVENT_START_CARRIED_MOVE:
-            taskMessageDispatch(D_shelter_b3_garbage_incinerator_801855D8, ROOM_MESSAGE_ACTOR_EVENT, 0, 0);
+            taskMessageDispatch(_gShelterB3GarbageIncineratorSpawnedLiftTask, ROOM_MESSAGE_ACTOR_EVENT, 0, 0);
             break;
         case SHELTER_B3_GARBAGE_INCINERATOR_EVENT_REPLACE_GLUTTON:
             gGameSession->skipEventIntro = 1;
@@ -310,7 +315,7 @@ static void _shelterB3GarbageIncineratorInitializeRoom(Task* task)
     task->msgTable = D_shelter_b3_garbage_incinerator_80185594;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     shelterB3GarbageIncineratorSelectCaptionResource(SHELTER_B3_GARBAGE_INCINERATOR_CAPTION_TEXTURE_X, 0, 0);
-    D_shelter_b3_garbage_incinerator_801855D8 = taskSpawnFromTable(&D_shelter_b3_garbage_incinerator_80185BA0, 0, 0, 0);
+    _gShelterB3GarbageIncineratorSpawnedLiftTask = taskSpawnFromTable(&D_shelter_b3_garbage_incinerator_80185BA0, 0, 0, 0);
     if (gGameSession->location.loc.room >= SHELTER_B3_GARBAGE_INCINERATOR_ENCOUNTER_FIRST_ROOM) {
         taskSpawnFromTable(gShelterB3GarbageIncineratorBlazeTaskDescs, SHELTER_B3_GARBAGE_INCINERATOR_BLAZE_CONTROLLER_TASK, SHELTER_B3_GARBAGE_INCINERATOR_BLAZE_PLAY_ALERT, 0);
     }

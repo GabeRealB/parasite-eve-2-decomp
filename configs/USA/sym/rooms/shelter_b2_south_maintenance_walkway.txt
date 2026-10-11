@@ -1,7 +1,7 @@
 // Overlay-local symbols for shelter_b2_south_maintenance_walkway.
 _gRoomVisualEffectsGlowDiscShades = 0x80182630; // size:0xC defined:True
 _gRoomEventTaskDesc = 0x80182538; // size:0xC defined:True
-D_shelter_b2_south_maintenance_walkway_80182544 = 0x80182544; // size:0xC defined:True
+_gShelterB2SouthMaintenanceWalkwayStagedEventTaskDesc = 0x80182544; // size:0xC defined:True
 D_shelter_b2_south_maintenance_walkway_80182550 = 0x80182550; // size:0x28 defined:True
 _gShelterB2SouthMaintenanceWalkwayGlowAnchors = 0x80182578; // size:0xA8 defined:True
 gShelterB2SouthMaintenanceWalkwayRoomViewMaps = 0x8018263C; // size:0x4 defined:True
@@ -55,7 +55,7 @@ _gRoomVisualEffectsTwinTrailEndpointOffsets = 0x80182620; // size:0x10 defined:T
 _gRoomEventMsg = 0x801838DC; // size:0x8 defined:True
 gRoomEventActive = 0x801838E4; // size:0x8 defined:True
 _gRoomEventStagedMsg = 0x801838EC; // size:0x8 defined:True
-D_shelter_b2_south_maintenance_walkway_801838F4 = 0x801838F4; // size:0x4 defined:True
+_gShelterB2SouthMaintenanceWalkwayStagedEventStart = 0x801838F4; // size:0x4 defined:True
 gRoomEventReq = 0x801838F8; // size:0x20 defined:True
 gRoomEventLatched = 0x80183918; // size:0xC defined:True
 

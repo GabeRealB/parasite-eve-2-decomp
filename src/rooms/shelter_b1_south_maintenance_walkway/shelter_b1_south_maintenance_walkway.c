@@ -61,11 +61,6 @@
 #include "../../shared/glow_draw.h"
 #include "../../shared/room_events.h"
 
-extern s8 D_shelter_b1_south_maintenance_walkway_80183644;
-
-/// Descriptor of the event task the message handler spawns.
-extern TaskDesc D_shelter_b1_south_maintenance_walkway_801822FC;
-
 /// Spawn payload of the task 0x31 the event task may start.
 extern RoomFadeStorage  gRoomEventFade;
 static RoomEventMsg     _gRoomEventStagedMsg;
@@ -83,7 +78,12 @@ static s32                    _shelterB1SouthMaintenanceWalkwayIgnoreRoomAction(
 
 enum { SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY_MESSAGE_USE_KEY_ITEM = 0x13F1 };
 
-TaskDesc D_shelter_b1_south_maintenance_walkway_801822FC = { { { TASK_BODY_NONE, 32 } }, roomEventStagedTask, { .value = 0 } };
+/// Bodyless priority-32 recipe for this room's staged departure task.
+///
+/// The gate reads index 0 synchronously with zero metadata and unused payloads.
+/// The deferred task borrows the latched event and destination through CAP,
+/// optional sound/fade and reload; retain them and the loaded room throughout.
+static TaskDesc _gShelterB1SouthMaintenanceWalkwayStagedEventTaskDesc = { { { TASK_BODY_NONE, ROOM_EVENT_TASK_PRIORITY } }, roomEventStagedTask, { .value = 0 } };
 
 /// Room-message routes: stage eligible departures, refuse key items, ignore actions and commands.
 ///
@@ -592,7 +592,12 @@ RoomFadeStorage gRoomEventFade = { 0 };
 /// the room. A later accepted start replaces it; no separate queue is stored.
 static RoomEventMsg _gRoomEventStagedMsg = { 0 };
 
-s8 D_shelter_b1_south_maintenance_walkway_80183644 = 0;
+/// Whether the latest staged-event gate call attempted an event spawn (0 no, 1 yes).
+///
+/// Every call clears this byte, including queries. Execution raises it after
+/// the unchecked spawn; the task does not clear it on completion. No reader
+/// is recovered, so this records the latest call rather than a running lifetime.
+static s8 _gShelterB1SouthMaintenanceWalkwayStagedEventStarted = 0;
 
 /// Retained, unreferenced bytes after the event-start byte; their role and grouping are unproven.
 static u8 D_shelter_b1_south_maintenance_walkway_80183645 = 26;
@@ -640,7 +645,7 @@ static __inline__ s32 _shelterB1SouthMaintenanceWalkwayStartEvent(
            ROOM_EVENT_DEPARTURE_DIRECT  = 1,
            ROOM_EVENT_DEPARTURE_HANDLED = 2 };
 
-    D_shelter_b1_south_maintenance_walkway_80183644 = false;
+    _gShelterB1SouthMaintenanceWalkwayStagedEventStarted = false;
     if (gameFlagGetNibble(event->flagId) == ROOM_EVENT_FLAG_CLEAR || event->flagId == ROOM_EVENT_FLAG_NONE) {
         if (message->queryOnly == ROOM_EVENT_EXECUTE) {
             _gRoomEventStagedMsg = *message;
@@ -648,8 +653,8 @@ static __inline__ s32 _shelterB1SouthMaintenanceWalkwayStartEvent(
             if (event->flagId != ROOM_EVENT_FLAG_NONE) {
                 gameFlagSetNibble(event->flagId, ROOM_EVENT_FLAG_LATCHED);
             }
-            taskSpawnFromTable(&D_shelter_b1_south_maintenance_walkway_801822FC, 0, 0, 0);
-            D_shelter_b1_south_maintenance_walkway_80183644 = true;
+            taskSpawnFromTable(&_gShelterB1SouthMaintenanceWalkwayStagedEventTaskDesc, 0, 0, 0);
+            _gShelterB1SouthMaintenanceWalkwayStagedEventStarted = true;
         }
         return ROOM_EVENT_DEPARTURE_HANDLED;
     }

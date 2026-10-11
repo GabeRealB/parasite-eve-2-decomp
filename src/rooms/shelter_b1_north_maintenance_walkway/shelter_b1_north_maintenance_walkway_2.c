@@ -485,7 +485,7 @@ RoomFadeStorage gRoomEventFade = { 0 };
 
 RoomEventMsg gRoomEventStagedDestination = { 0 };
 
-s8 D_shelter_b1_north_maintenance_walkway_80185B7C = 0;
+s8 gShelterB1NorthMaintenanceWalkwayStagedEventStarted = 0;
 
 /// Retained, unreferenced bytes after the event-start byte; their role and grouping are unproven.
 static u8 D_shelter_b1_north_maintenance_walkway_80185B7D = 89;

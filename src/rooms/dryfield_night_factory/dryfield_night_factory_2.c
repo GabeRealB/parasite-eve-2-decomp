@@ -256,15 +256,17 @@ WorldCollisionGrid gFactoryLiftTurnedTemplate = {
     .faceCount   = ARRAY_SIZE(_gFactoryLiftTurnedTemplateFaces),
 };
 
-TaskDesc gFactoryNightSpawnTable[8] = {
-    { { { TASK_BODY_NONE, 192 } }, factoryPowerScene, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, factoryLampScene, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, factoryCapScene, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, factoryBarrierTransitionScene, { .value = 0 } },
-    { { { TASK_BODY_TMD, 192 } }, factoryLiftRun, { .model = &_gDryfieldNightFactoryDryfieldFactoryModel06604 } },
-    { { { TASK_BODY_COORD, 192 } }, factoryBarrierCollision, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, factoryHatchScene, { .value = 0 } },
-    { { { TASK_BODY_TMD, 192 } }, factoryHatchRun, { .model = &_gDryfieldNightFactoryDryfieldFactoryModel093E4 } },
+enum { DRYFIELD_NIGHT_FACTORY_TASK_PRIORITY = 192 };
+
+TaskDesc gDryfieldNightFactoryTaskDescs[8] = {
+    { { { TASK_BODY_NONE, DRYFIELD_NIGHT_FACTORY_TASK_PRIORITY } }, factoryPowerScene, { .value = 0 } },
+    { { { TASK_BODY_NONE, DRYFIELD_NIGHT_FACTORY_TASK_PRIORITY } }, factoryLampScene, { .value = 0 } },
+    { { { TASK_BODY_NONE, DRYFIELD_NIGHT_FACTORY_TASK_PRIORITY } }, factoryCapScene, { .value = 0 } },
+    { { { TASK_BODY_NONE, DRYFIELD_NIGHT_FACTORY_TASK_PRIORITY } }, factoryBarrierTransitionScene, { .value = 0 } },
+    { { { TASK_BODY_TMD, DRYFIELD_NIGHT_FACTORY_TASK_PRIORITY } }, factoryLiftRun, { .model = &_gDryfieldNightFactoryDryfieldFactoryModel06604 } },
+    { { { TASK_BODY_COORD, DRYFIELD_NIGHT_FACTORY_TASK_PRIORITY } }, factoryBarrierCollision, { .value = 0 } },
+    { { { TASK_BODY_NONE, DRYFIELD_NIGHT_FACTORY_TASK_PRIORITY } }, factoryHatchScene, { .value = 0 } },
+    { { { TASK_BODY_TMD, DRYFIELD_NIGHT_FACTORY_TASK_PRIORITY } }, factoryHatchRun, { .model = &_gDryfieldNightFactoryDryfieldFactoryModel093E4 } },
 };
 
 /// Bodyless transition task spawned by this room's event gate at priority 32.

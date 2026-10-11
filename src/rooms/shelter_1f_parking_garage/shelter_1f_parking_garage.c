@@ -60,8 +60,6 @@
 
 static s32 _roomVariantResolveShelter(RoomEventMsg* request, RoomEventMsg* reply);
 
-extern u8 D_shelter_1f_parking_garage_80181984;
-
 extern ScreenFade       gRoomEventFade;
 static RoomEventMsg     _gRoomEventStagedMsg;
 extern RoomDeparture    gRoomDeparture;
@@ -455,7 +453,12 @@ static ScreenFade _gShelter1fParkingGarageUndergroundDepartureFade = { 0 };
 /// the room. A later accepted start replaces it; no separate queue is stored.
 static RoomEventMsg _gRoomEventStagedMsg = { 0 };
 
-u8 D_shelter_1f_parking_garage_80181984 = 0;
+/// Whether the latest staged-event gate call attempted an event spawn (0 no, 1 yes).
+///
+/// Every call clears this byte, including queries. Execution raises it after
+/// the unchecked spawn; the task does not clear it on completion. No reader
+/// is recovered, so this records the latest call rather than a running lifetime.
+static u8 _gShelter1fParkingGarageStagedEventStarted = 0;
 
 /// Retained, unreferenced bytes after the event-start byte; their role and grouping are unproven.
 static u8 D_shelter_1f_parking_garage_80181985 = 25;
@@ -487,7 +490,7 @@ static __inline__ s32 _shelter1fParkingGarageStartEvent(const RoomEventMsg* mess
            ROOM_EVENT_DEPARTURE_DIRECT  = 1,
            ROOM_EVENT_DEPARTURE_HANDLED = 2 };
 
-    D_shelter_1f_parking_garage_80181984 = false;
+    _gShelter1fParkingGarageStagedEventStarted = false;
     if (gameFlagGetNibble(event->flagId) == ROOM_EVENT_FLAG_CLEAR || event->flagId == ROOM_EVENT_FLAG_NONE) {
         if (message->queryOnly == ROOM_EVENT_EXECUTE) {
             _gRoomEventStagedMsg = *message;
@@ -496,7 +499,7 @@ static __inline__ s32 _shelter1fParkingGarageStartEvent(const RoomEventMsg* mess
                 gameFlagSetNibble(event->flagId, ROOM_EVENT_FLAG_LATCHED);
             }
             taskSpawnFromTable(&_gShelter1fParkingGarageStagedEventTaskDesc, 0, 0, 0);
-            D_shelter_1f_parking_garage_80181984 = true;
+            _gShelter1fParkingGarageStagedEventStarted = true;
         }
         return ROOM_EVENT_DEPARTURE_HANDLED;
     }

@@ -57,13 +57,6 @@ MATRIX* TransposeMatrix(MATRIX*, MATRIX*);
 
 static s32 _gScreenWaveAmplitude;
 
-/// Message handlers this room's task answers, installed into pointer slot 7.
-extern TaskMessageEntry D_neo_ark_submarine_tunnel_80181A50[];
-
-/// The tunnel's own script blob and the byte recording which of its scenes has
-/// already been staged.
-extern EvsCommand D_neo_ark_submarine_tunnel_80181AF0[];
-
 static void _neoArkSubmarineTunnelInitializeRoom(Task* task);
 static void _neoArkSubmarineTunnelMessageTaskIdle(Task* task);
 
@@ -81,13 +74,10 @@ enum { NEO_ARK_SUBMARINE_TUNNEL_EVENT_SEEN = 1 };
 
 enum { NEO_ARK_SUBMARINE_TUNNEL_WATER_REFRACTION_TASK_PRIORITY = 192 };
 
-TaskDesc gNeoArkSubmarineTunnelWaterRefractionTaskDesc = {
-    .header   = { .fields = { .flags = TASK_BODY_NONE, .priority = NEO_ARK_SUBMARINE_TUNNEL_WATER_REFRACTION_TASK_PRIORITY } },
-    .callback = waterRefractionTask,
-    .data     = { .value = 0 },
+TaskDesc gNeoArkSubmarineTunnelWaterRefractionTaskDesc[2] = {
+    { { { TASK_BODY_NONE, NEO_ARK_SUBMARINE_TUNNEL_WATER_REFRACTION_TASK_PRIORITY } }, waterRefractionTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, NEO_ARK_SUBMARINE_TUNNEL_WATER_REFRACTION_TASK_PRIORITY } }, waterDistortBandTask, { .value = 0 } },
 };
-
-TaskDesc D_neo_ark_submarine_tunnel_801810F0 = { { { TASK_BODY_NONE, 192 } }, waterDistortBandTask, { .value = 0 } };
 
 static AnimationPackedPose _gNeoArkSubmarineTunnelAnimation03EE0Bank1[6] = {
 #include "assets/neo_ark_submarine_tunnel_animation_03EE0_bank1.inc"
@@ -149,7 +139,11 @@ static TaskDesc _gScreenWaveTaskDescs[2] = {
 /// the initial 256 to zero; the context must have a positive span while drawing.
 static s32 _gScreenWaveAmplitude = 256;
 
-TaskMessageEntry D_neo_ark_submarine_tunnel_80181A50[5] = {
+/// Tunnel room-message routes for transitions, key-item refusal, actions and CAP commands.
+///
+/// Four native-payload handlers followed by TASK_MESSAGE_TABLE_END. The room
+/// controller borrows the table and callback code until teardown.
+static const TaskMessageEntry _gNeoArkSubmarineTunnelRoomMessages[5] SECTION(".data") = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _neoArkSubmarineTunnelResolveRoomEvent },
     { ROOM_MESSAGE_USE_KEY_ITEM, _neoArkSubmarineTunnelRejectKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, _neoArkSubmarineTunnelHandleRoomAction },
@@ -177,11 +171,13 @@ static AnimationBankCopyRequest _gNeoArkSubmarineTunnelEncounterAnimationBankCop
 };
 
 enum {
-    NEO_ARK_SUBMARINE_TUNNEL_ENCOUNTER_REQUEST_BANK   = 1,
-    NEO_ARK_SUBMARINE_TUNNEL_ENCOUNTER_PLAYER_CLIP_47 = ANIMATION_BANK_BASE_SET_COUNT,
-    NEO_ARK_SUBMARINE_TUNNEL_ENCOUNTER_PLAYER_CLIP_48 = ANIMATION_BANK_BASE_SET_COUNT + 1,
-    NEO_ARK_SUBMARINE_TUNNEL_ENCOUNTER_BLEND_FRAMES   = 8,
-    NEO_ARK_SUBMARINE_TUNNEL_DIVER_COMMAND_SWIM       = 1,
+    NEO_ARK_SUBMARINE_TUNNEL_ENCOUNTER_REQUEST_BANK      = 1,
+    NEO_ARK_SUBMARINE_TUNNEL_ENCOUNTER_PLAYER_CLIP_47    = ANIMATION_BANK_BASE_SET_COUNT,
+    NEO_ARK_SUBMARINE_TUNNEL_ENCOUNTER_PLAYER_CLIP_48    = ANIMATION_BANK_BASE_SET_COUNT + 1,
+    NEO_ARK_SUBMARINE_TUNNEL_ENCOUNTER_BLEND_FRAMES      = 8,
+    NEO_ARK_SUBMARINE_TUNNEL_DIVER_COMMAND_SWIM          = 1,
+    NEO_ARK_SUBMARINE_TUNNEL_DIVER_COMMAND_PATROL        = 2,
+    NEO_ARK_SUBMARINE_TUNNEL_ENCOUNTER_PLAYER_RESET_CLIP = 1,
 };
 
 /// Later player clip request for the Diver encounter, interpolating extension clip 47.
@@ -210,7 +206,8 @@ static AnimationPlayRequest _gNeoArkSubmarineTunnelEncounterPlayerClip48Request 
     ANIMATION_WORLD_COLLISION_DISABLE,
 };
 
-ActorCommand D_neo_ark_submarine_tunnel_80181AB0 = { { .loc = { 5, 12 } }, 0 };
+/// Unreferenced command 0 in the tunnel actor-command namespace; intended action unproven.
+static ActorCommand D_neo_ark_submarine_tunnel_80181AB0 = { { .loc = { GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_SUBMARINE_TUNNEL } }, 0 };
 
 /// Releases the Bog Divers' tunnel-introduction wait into their timed forward swim.
 ///
@@ -221,24 +218,61 @@ static ActorCommand _gNeoArkSubmarineTunnelDiverSwimCommand = {
     .command = NEO_ARK_SUBMARINE_TUNNEL_DIVER_COMMAND_SWIM,
 };
 
-ActorCommand D_neo_ark_submarine_tunnel_80181AB8 = { { .loc = { 5, 12 } }, 2 };
+/// Releases the Bog Divers from the introduction into their waypoint patrol.
+///
+/// Broadcast synchronously in the tunnel namespace. Divers latch command 2
+/// without reading context and retain no pointer to this record.
+static ActorCommand _gNeoArkSubmarineTunnelDiverPatrolCommand = {
+    .context = { .loc = { GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_SUBMARINE_TUNNEL } },
+    .command = NEO_ARK_SUBMARINE_TUNNEL_DIVER_COMMAND_PATROL,
+};
 
-AnimationPlayRequest D_neo_ark_submarine_tunnel_80181ABC = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Resets player clip 1 before and after the tunnel's Diver encounter clips.
+///
+/// No blend frames; grid collision stays disabled. The script copies this
+/// request and resolves the equipped weapon bank before synchronous dispatch.
+static AnimationPlayRequest _gNeoArkSubmarineTunnelEncounterPlayerResetRequest = {
+    .source               = { .index = NEO_ARK_SUBMARINE_TUNNEL_ENCOUNTER_REQUEST_BANK },
+    .animationId          = NEO_ARK_SUBMARINE_TUNNEL_ENCOUNTER_PLAYER_RESET_CLIP,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
-ActorTransform D_neo_ark_submarine_tunnel_80181AD0 = { { 4544, 3001, 0, 0 }, { 0, -1024, 0, 0 } };
+/// Player placement during the Diver introduction, in room-coordinate units.
+///
+/// Position is (4544, 3001, 0), facing -X at -1024 units of yaw (4096 per turn).
+/// The player copies position and rotation during synchronous script dispatch.
+static ActorTransform _gNeoArkSubmarineTunnelEncounterPlayerPlacement = { { 4544, 3001, 0, 0 }, { 0, -1024, 0, 0 } };
 
-EvsSceneKey D_neo_ark_submarine_tunnel_80181AE8 = { 5, 60, 11 };
+/// Stream selection key for the tunnel's Diver introduction: group 5, stream 60, qualifier 11.
+///
+/// Group is a stream-table selector, not a stage ID. The script and scene audio
+/// borrow this key until the selected scene is finished.
+static EvsSceneKey _gNeoArkSubmarineTunnelDiverEncounterSceneKey = { 5, 60, 11 };
 
-EvsCommand D_neo_ark_submarine_tunnel_80181AF0[32] = {
-    { EVENT_SCRIPT_OPCODE_SELECT_SCENE, { .sceneKey = &D_neo_ark_submarine_tunnel_80181AE8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+enum {
+    NEO_ARK_SUBMARINE_TUNNEL_ENCOUNTER_CAP_COMMAND = 1,
+    NEO_ARK_SUBMARINE_TUNNEL_ENCOUNTER_RESUME_VIEW = 2,
+    NEO_ARK_SUBMARINE_TUNNEL_ENCOUNTER_FADE_FRAMES = 30,
+};
+
+/// Thirty-one instructions and END for the tunnel's first Diver encounter.
+///
+/// Variant 1/action 2 starts it while the seen flag is clear. It installs player
+/// clips, coordinates CAP/audio, water distortion and Diver swim/patrol cues,
+/// restores play and records the seen flag. Script and referenced room records
+/// stay loaded until completion; waits are measured in task frames or CAP cues.
+static EvsCommand _gNeoArkSubmarineTunnelDiverEncounterScript[32] = {
+    { EVENT_SCRIPT_OPCODE_SELECT_SCENE, { .sceneKey = &_gNeoArkSubmarineTunnelDiverEncounterSceneKey }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SCENE_AUDIO, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &_gNeoArkSubmarineTunnelEncounterAnimationBankCopy } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_neo_ark_submarine_tunnel_80181ABC }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SET_CAP_DIRECT_VIEW_IDS, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 1 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gNeoArkSubmarineTunnelEncounterPlayerResetRequest }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SET_CAP_DIRECT_VIEW_IDS, { .value = true }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_START }, { .value = NEO_ARK_SUBMARINE_TUNNEL_ENCOUNTER_CAP_COMMAND }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_HIDE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_neo_ark_submarine_tunnel_80181AD0 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gNeoArkSubmarineTunnelEncounterPlayerPlacement } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _screenWaveRun }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gNeoArkSubmarineTunnelEncounterPlayerClip48Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -246,21 +280,21 @@ EvsCommand D_neo_ark_submarine_tunnel_80181AF0[32] = {
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = EVENT_SCRIPT_MESSAGE_SELECT_SCENE_MANAGER }, { .value = SCENE_MESSAGE_BROADCAST_TO_ACTORS }, { .message = { .command = &_gNeoArkSubmarineTunnelDiverSwimCommand } }, { .value = ACTOR_COMMAND_MESSAGE_APPLY } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1021 }, { .value = 8 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_SET_RATE }, { .value = ANIMATION_RATE_ONE / 2 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gNeoArkSubmarineTunnelEncounterPlayerClip47Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = 0 }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = 0 }, { .value = NEO_ARK_SUBMARINE_TUNNEL_ENCOUNTER_FADE_FRAMES }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = NEO_ARK_SUBMARINE_TUNNEL_ENCOUNTER_FADE_FRAMES }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RESTORE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_FINISH_SCENE_STREAM, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = EVENT_SCRIPT_MESSAGE_SELECT_SCENE_MANAGER }, { .value = SCENE_MESSAGE_BROADCAST_TO_ACTORS }, { .message = { .command = &D_neo_ark_submarine_tunnel_80181AB8 } }, { .value = ACTOR_COMMAND_MESSAGE_APPLY } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_neo_ark_submarine_tunnel_80181ABC }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = NEO_ARK_SUBMARINE_TUNNEL_ENCOUNTER_RESUME_VIEW }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = EVENT_SCRIPT_MESSAGE_SELECT_SCENE_MANAGER }, { .value = SCENE_MESSAGE_BROADCAST_TO_ACTORS }, { .message = { .command = &_gNeoArkSubmarineTunnelDiverPatrolCommand } }, { .value = ACTOR_COMMAND_MESSAGE_APPLY } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gNeoArkSubmarineTunnelEncounterPlayerResetRequest }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _screenWaveRun }, { .value = SCREEN_WAVE_RAMP_FINISHED }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_SECONDARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = NEO_ARK_SUBMARINE_TUNNEL_ENCOUNTER_FADE_FRAMES }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _neoArkSubmarineTunnelSetEventSeen }, { .value = NEO_ARK_SUBMARINE_TUNNEL_EVENT_SEEN }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
@@ -268,11 +302,11 @@ EvsCommand D_neo_ark_submarine_tunnel_80181AF0[32] = {
 
 #include "../../shared/water_distort_band_task.inc.c"
 
-/// State handlers of the room task `neoArkSubmarineTunnelRoomTask`
-/// runs: `_neoArkSubmarineTunnelInitializeRoom` sets it up,
-/// `_neoArkSubmarineTunnelMessageTaskIdle` runs every later tick, and
-/// `taskKill` ends it.
-static const TaskFuncTable3 D_neo_ark_submarine_tunnel_8017D614 = {
+/// Room-controller states 0 initialize, 1 idle, 2 teardown.
+///
+/// The controller copies all three callbacks before unchecked state dispatch.
+/// There is no terminator; keep the room overlay loaded while it is live.
+static const TaskFuncTable3 _gNeoArkSubmarineTunnelRoomStateHandlers = {
     { _neoArkSubmarineTunnelInitializeRoom, _neoArkSubmarineTunnelMessageTaskIdle, taskKill }
 };
 
@@ -321,7 +355,7 @@ static s32 _neoArkSubmarineTunnelHandleRoomAction(Task* unusedTask, s32 unusedMe
     if ((request->actionId == ACTION_EVENT_OR_WARP_1) && (gameFlagGetNibble(GAME_FLAG_SUBMARINE_TUNNEL_EVENT_SEEN) == 0)) {
         eventVariant = gGameSession->location.loc.variant;
         if (eventVariant == EVENT_VARIANT) {
-            evsStartScript(D_neo_ark_submarine_tunnel_80181AF0, EVENT_SCRIPT_HUD_HIDE_RESTORE);
+            evsStartScript(_gNeoArkSubmarineTunnelDiverEncounterScript, EVENT_SCRIPT_HUD_HIDE_RESTORE);
             gNeoArkSubmarineTunnelEntryActionHandled = eventVariant;
         }
     }
@@ -406,7 +440,7 @@ static void _neoArkSubmarineTunnelSetEventSeen(s32 seenValue)
 /// Registers the borrowed task in `GAME_TASK_SLOT_ROOM` and advances to state 1.
 static void _neoArkSubmarineTunnelInitializeRoom(Task* task)
 {
-    task->msgTable = D_neo_ark_submarine_tunnel_80181A50;
+    task->msgTable = _gNeoArkSubmarineTunnelRoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     sndEvtRequestScriptStart(SOUND_NEO_ARK_SUBMARINE_TUNNEL_AMBIENCE, 0, 0);
     task->state = task->state + 1;
@@ -424,6 +458,6 @@ void neoArkSubmarineTunnelRoomTask(Task* task)
 {
     TaskFuncTable3 stateHandlers;
 
-    stateHandlers = D_neo_ark_submarine_tunnel_8017D614;
+    stateHandlers = _gNeoArkSubmarineTunnelRoomStateHandlers;
     stateHandlers.funcs[task->state](task);
 }

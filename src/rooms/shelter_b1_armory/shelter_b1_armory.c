@@ -57,10 +57,6 @@ static const u16 _gShopStandardDefaultItemsStock[];
 
 static s32 _gShopPreviewRowId;
 
-/// Descriptor of the event task the door gate spawns, and the table the
-/// room's own tasks are spawned from.
-extern TaskDesc D_shelter_b1_armory_801824E8[];
-
 static void _shelterB1ArmoryInitRoomState(Task* task);
 static void _shelterB1ArmoryRoomIdleState(Task* task);
 
@@ -106,9 +102,17 @@ TaskDesc gShelterB1ArmoryShopSessionTaskDesc = { { { TASK_BODY_NONE, 192 } }, _s
 /// live through the deferred transition.
 static TaskDesc _gRoomEventTaskDesc = { { { TASK_BODY_NONE, ROOM_EVENT_TASK_PRIORITY } }, roomEventTask, { .value = 0 } };
 
-TaskDesc D_shelter_b1_armory_801824E8[2] = {
-    { { { TASK_BODY_NONE, 192 } }, _shelterB1ArmoryCardkeyEventTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, _shelterB1ArmoryShopSceneTask, { .value = 0 } },
+enum { SHELTER_B1_ARMORY_SCENE_TASK_PRIORITY = 192 };
+
+/// Two bodyless priority-192 recipes for cardkey responses and the shop scene.
+///
+/// Index 0 takes a CAP slot in spawnArg1 bits 16..31 and a result in bits 0..15;
+/// index 1 uses no payloads. Both have zero metadata and no terminator. Spawning
+/// reads a recipe synchronously; room callbacks and saved-view storage outlive
+/// the resulting task.
+static TaskDesc _gShelterB1ArmorySceneTaskDescs[2] = {
+    { { { TASK_BODY_NONE, SHELTER_B1_ARMORY_SCENE_TASK_PRIORITY } }, _shelterB1ArmoryCardkeyEventTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, SHELTER_B1_ARMORY_SCENE_TASK_PRIORITY } }, _shelterB1ArmoryShopSceneTask, { .value = 0 } },
 };
 
 /// Armory handlers for exits, cardkey use, shop actions and progress-dependent captions.
@@ -217,10 +221,10 @@ static inline void _shelterB1ArmorySelectShopView(void)
     McSaveData* liveSave;
     u8          savedView;
 
-    liveSave                          = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
-    savedView                         = liveSave->state.location.loc.view;
-    liveSave->state.location.loc.view = SHELTER_B1_ARMORY_SHOP_VIEW;
-    D_shelter_b1_armory_8018557C.view = savedView;
+    liveSave                           = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
+    savedView                          = liveSave->state.location.loc.view;
+    liveSave->state.location.loc.view  = SHELTER_B1_ARMORY_SHOP_VIEW;
+    gShelterB1ArmoryShopSavedView.view = savedView;
 }
 
 /// Presents the armory shop's caption and view, then restores the saved view.
@@ -268,7 +272,7 @@ static void _shelterB1ArmoryShopSceneTask(Task* task)
             gGameSession->hideHud    = SHELTER_B1_ARMORY_HUD_VISIBLE;
             playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO);
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = D_shelter_b1_armory_8018557C.view;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = gShelterB1ArmoryShopSavedView.view;
             task->state                                                = task->state + 1;
             break;
     }
@@ -313,10 +317,10 @@ static s32 _shelterB1ArmoryUseKeyItem(Task* unusedTask, s32 unusedMessageId, s32
         if (itemId == INVENTORY_COLLECTION_ID_ARMORY_CARDKEY) {
             gGameSession->eventState = SHELTER_B1_ARMORY_EVENT_ACTIVE;
             if (gameFlagGetNibble(GAME_FLAG_SHELTER_B1_ARMORY_UNLOCKED) != 0) {
-                taskSpawnFromTableOnDefaultList(D_shelter_b1_armory_801824E8, SHELTER_B1_ARMORY_TASK_CARDKEY_EVENT,
+                taskSpawnFromTableOnDefaultList(_gShelterB1ArmorySceneTaskDescs, SHELTER_B1_ARMORY_TASK_CARDKEY_EVENT,
                                                 (SHELTER_B1_ARMORY_CAP_ALREADY_OPEN << SHELTER_B1_ARMORY_CARD_CAP_SHIFT) | SHELTER_B1_ARMORY_CARD_RESULT_ALREADY_OPEN, 0);
             } else {
-                taskSpawnFromTableOnDefaultList(D_shelter_b1_armory_801824E8, SHELTER_B1_ARMORY_TASK_CARDKEY_EVENT,
+                taskSpawnFromTableOnDefaultList(_gShelterB1ArmorySceneTaskDescs, SHELTER_B1_ARMORY_TASK_CARDKEY_EVENT,
                                                 (SHELTER_B1_ARMORY_CAP_UNLOCK << SHELTER_B1_ARMORY_CARD_CAP_SHIFT) | SHELTER_B1_ARMORY_CARD_RESULT_UNLOCKED, 0);
                 gameFlagSetNibble(GAME_FLAG_SHELTER_B1_ARMORY_UNLOCKED, SHELTER_B1_ARMORY_UNLOCK_FLAG_SET);
             }
@@ -325,10 +329,10 @@ static s32 _shelterB1ArmoryUseKeyItem(Task* unusedTask, s32 unusedMessageId, s32
         if (itemId == INVENTORY_COLLECTION_ID_BOWMANS_CARD || itemId == SHELTER_B1_ARMORY_ITEM_YOSHIDAS_CARD) {
             gGameSession->eventState = SHELTER_B1_ARMORY_EVENT_ACTIVE;
             if (gameFlagGetNibble(GAME_FLAG_SHELTER_B1_ARMORY_UNLOCKED) != 0) {
-                taskSpawnFromTableOnDefaultList(D_shelter_b1_armory_801824E8, SHELTER_B1_ARMORY_TASK_CARDKEY_EVENT,
+                taskSpawnFromTableOnDefaultList(_gShelterB1ArmorySceneTaskDescs, SHELTER_B1_ARMORY_TASK_CARDKEY_EVENT,
                                                 (SHELTER_B1_ARMORY_CAP_ALREADY_OPEN << SHELTER_B1_ARMORY_CARD_CAP_SHIFT) | SHELTER_B1_ARMORY_CARD_RESULT_ALREADY_OPEN, 0);
             } else {
-                taskSpawnFromTableOnDefaultList(D_shelter_b1_armory_801824E8, SHELTER_B1_ARMORY_TASK_CARDKEY_EVENT,
+                taskSpawnFromTableOnDefaultList(_gShelterB1ArmorySceneTaskDescs, SHELTER_B1_ARMORY_TASK_CARDKEY_EVENT,
                                                 (SHELTER_B1_ARMORY_CAP_REFUSE_CARD << SHELTER_B1_ARMORY_CARD_CAP_SHIFT) | SHELTER_B1_ARMORY_CARD_RESULT_REFUSED, 0);
             }
             return ROOM_KEY_ITEM_USE_SHOW_USED_NOTICE;
@@ -425,7 +429,7 @@ static s32 _shelterB1ArmoryHandleRoomAction(Task* unusedTask, s32 unusedMessageI
 
     if (actionRequest->actionId == SHELTER_B1_ARMORY_ACTION_OPEN_SHOP) {
         playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-        taskSpawnFromTable(D_shelter_b1_armory_801824E8, SHELTER_B1_ARMORY_TASK_SHOP_SCENE, 0, 0);
+        taskSpawnFromTable(_gShelterB1ArmorySceneTaskDescs, SHELTER_B1_ARMORY_TASK_SHOP_SCENE, 0, 0);
     }
     return 0;
 }

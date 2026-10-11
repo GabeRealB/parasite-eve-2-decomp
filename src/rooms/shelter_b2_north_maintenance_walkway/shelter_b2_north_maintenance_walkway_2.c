@@ -50,7 +50,7 @@
 /// Per-palette channel shifts for the halo, indexed by the palette the spawn
 /// argument selects.
 
-TaskDesc D_shelter_b2_north_maintenance_walkway_80183B48 = { { { TASK_BODY_NONE, 32 } }, roomEventStagedTask, { .value = 0 } };
+TaskDesc gShelterB2NorthMaintenanceWalkwayStagedEventTaskDesc = { { { TASK_BODY_NONE, ROOM_EVENT_TASK_PRIORITY } }, roomEventStagedTask, { .value = 0 } };
 
 TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, ROOM_EVENT_TASK_PRIORITY } }, roomEventTask, { .value = 0 } };
 

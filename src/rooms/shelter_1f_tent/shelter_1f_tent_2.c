@@ -768,7 +768,7 @@ const AreaApplyRec gShelter1fTentGolemFreezer1AfterItemFollowupAreaUpdates[2] SE
 
 Task* gRoomCutsceneSoundTask = NULL;
 
-RoomCutsceneRec D_shelter_1f_tent_801843C4 = { 0 };
+RoomCutsceneRec gShelter1fTentReplayCutscene = { 0 };
 
 static void _glowDrawCapsule(const SVECTOR worldPoints[2], s32 radiusScale, s32 packedColor);
 static void _glowDrawPulsingDisc(const SVECTOR* worldPoint, s32 pulseRate, s32 radiusScale);

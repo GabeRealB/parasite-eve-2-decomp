@@ -11,7 +11,12 @@
 
 #include "main/task_types.h"
 
-extern TaskDesc D_shelter_b2_north_maintenance_walkway_80183B48;
+/// Bodyless priority-32 recipe for the walkway's staged departure task.
+///
+/// The gate reads index 0 synchronously with zero metadata and unused payloads.
+/// The deferred task borrows the room's latched event and destination through
+/// CAP/sound playback and reload; retain them and the loaded room throughout.
+extern TaskDesc gShelterB2NorthMaintenanceWalkwayStagedEventTaskDesc;
 
 /// Bodyless transition-task recipe shared by this overlay's gate and event task.
 ///

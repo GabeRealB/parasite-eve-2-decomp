@@ -16,6 +16,15 @@
 
 #include "main/task_types.h"
 
+/// Eight nighttime factory recipes, indexed 0..7 with no terminator.
+///
+/// Slots are power, lamp, CAP, barrier transition, lift model, barrier collision,
+/// hatch scene and hatch model. All use priority 192 and zero unused metadata.
+/// Both factory overlays select this table outside daytime Dryfield. Spawning
+/// reads recipes synchronously; keep the night factory callbacks and borrowed
+/// lift/hatch model resources loaded through task teardown.
+extern TaskDesc gDryfieldNightFactoryTaskDescs[8];
+
 /// Two-lane controller-vibration commands for a jammed nighttime factory lift turn.
 ///
 /// The binary motor plays segment 2 then stops; the variable motor plays

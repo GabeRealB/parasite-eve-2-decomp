@@ -36,6 +36,8 @@
 
 #include "main/task_types.h"
 
+#include "rooms/dryfield_night_factory.h"
+
 #include "dryfield_time.h"
 
 /// Lifecycle slots in the room-entry, lift and hatch task handler tables.
@@ -301,12 +303,6 @@ extern TaskDesc* gFactoryPanelDesc;
 /// that a non-NULL value still denotes a live panel. NULL before room setup,
 /// and this global itself is not cleared when the room releases its work.
 extern Task** gFactoryPanelSlot;
-/* The room is built once per stage, day (stage 2) and night, from the same
- * source. Each build defines its own spawn table, collision grid, jolt script,
- * panel descriptor and view-sprite routines, and names the other build's by
- * address; the code picks between the two by stage. */
-extern TaskDesc gFactoryNightSpawnTable[];
-
 /// Binds the factory glow callback definition to this carrier's exported task.
 ///
 /// `DRYFIELD_TIME` must select `DRYFIELD_DAY` or `DRYFIELD_NIGHT` before this

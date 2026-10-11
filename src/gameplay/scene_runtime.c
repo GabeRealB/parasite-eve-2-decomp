@@ -2211,8 +2211,8 @@ void sceneStartRoomTasks(void)
             taskSpawnFromTable(&gNeoArkPavilionWaterRefractionTaskDesc, 0, 0, 0);
             break;
         case GAME_LOCATION_KEY(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_SUBMARINE_TUNNEL, 0, 0):
-            // Index one reaches the adjacent water-distortion descriptor.
-            taskSpawnFromTable(&gNeoArkSubmarineTunnelWaterRefractionTaskDesc, SCENE_ROOM_WATER_DISTORTION_TASK_INDEX, 0, 0);
+            // Index one selects the tunnel's water-distortion recipe.
+            taskSpawnFromTable(gNeoArkSubmarineTunnelWaterRefractionTaskDesc, SCENE_ROOM_WATER_DISTORTION_TASK_INDEX, 0, 0);
             break;
         case GAME_LOCATION_KEY(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_OBSERVATORY, 0, 0):
             taskSpawnFromTable(gNeoArkObservatoryReflectionTaskDescs, 0, SCENE_ROOM_REFLECTION_MODE_FLOOR, 0);

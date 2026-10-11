@@ -708,7 +708,7 @@ s32 gShopRefillDisplayQuantityFixed = 0;
 
 const EquipmentWeaponSupply* gShopRefillSupply = NULL;
 
-RoomSavedViewStorage D_shelter_b1_armory_8018557C = { 0 };
+RoomSavedViewStorage gShelterB1ArmoryShopSavedView = { 0 };
 
 RoomEventMsg gRoomEventMsg = { 0, 0, 0, 0, 0, 0 };
 

@@ -33,6 +33,11 @@ extern RoomEventMsg gRoomEventMsg;
 extern RoomEventActiveBytes gRoomEventActive;
 extern RoomEventReq         gRoomEventReq;
 
-extern RoomSavedViewStorage D_shelter_b1_armory_8018557C;
+/// View slot saved while the armory shop scene temporarily selects view 13.
+///
+/// The scene writes the live-save view byte before opening the shop and restores
+/// it afterward. This singleton must remain intact until restoration. The seven
+/// trailing zero bytes have no recovered role; preserve the eight-byte storage.
+extern RoomSavedViewStorage gShelterB1ArmoryShopSavedView;
 
 #endif // SRC_ROOMS_SHELTER_B1_ARMORY_SHELTER_B1_ARMORY_PRIVATE_H

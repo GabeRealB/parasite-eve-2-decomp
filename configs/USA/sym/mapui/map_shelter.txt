@@ -48,7 +48,7 @@ gMineGorgeRoomViewCounts = 0x8017E7EC; // absolute:True owner=mine_gorge shared=
 gMineGorgeWarpEntries = 0x8017E7F0; // absolute:True owner=mine_gorge
 gMineGorgeViewCameras = 0x8017FA14; // absolute:True owner=mine_gorge
 gMineGorgeSpriteViews = 0x801827F8; // absolute:True owner=mine_gorge shared=rooms
-gMineGorgeSurfacePropertiesByClass = 0x80183644; // absolute:True owner=mine_gorge shared=rooms
+gMineGorgeSurfacePropertiesByClass = 0x80183644; // absolute:True owner=mine_gorge
 mineRefugeRoomTask = 0x8017FFBC; // type:func absolute:True owner=mine_refuge
 gMineRefugeRoomLighting = 0x801818F0; // absolute:True owner=mine_refuge
 gMineRefugeRoomCollisionResources = 0x801818F8; // absolute:True owner=mine_refuge

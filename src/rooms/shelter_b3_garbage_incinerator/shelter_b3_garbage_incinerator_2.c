@@ -203,9 +203,6 @@ typedef struct {
 } _ShelterB3GarbageIncineratorBlazeWork;
 STATIC_ASSERT_SIZEOF(_ShelterB3GarbageIncineratorBlazeWork, 0x40);
 
-/// Event script started with `evsStartScript` on arming.
-extern EvsCommand D_shelter_b3_garbage_incinerator_80186FB8[];
-
 static s32 _shelterB3GarbageIncineratorAdvanceBlazeAnimation(Task* task);
 
 static CapCaptionScheduleWindow _gCapCaptionSceneClockSchedule[];
@@ -440,7 +437,12 @@ static u16 _gBlazePlayerFireParts[16] = {
     18,
 };
 
-EvsCommand D_shelter_b3_garbage_incinerator_80186FB8[17] = {
+/// Incinerator burn-death script: player clips, body fire, colour ramps and heat haze.
+///
+/// Sixteen instructions and END. Frame waits sequence the three extension clips
+/// before killing the player. The scene controller, callbacks and borrowed
+/// room clip resources must remain loaded through script completion.
+static EvsCommand _gShelterB3GarbageIncineratorBlazeScript[17] = {
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _shelterB3GarbageIncineratorPlayBlazeClip }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _shelterB3GarbageIncineratorSetBodyFirePhase }, { .value = SHELTER_B3_GARBAGE_INCINERATOR_BODY_FIRE_START }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -1301,7 +1303,7 @@ static s16 _shelterB3GarbageIncineratorRunBlazeScene(Task* task)
             _shelterB3GarbageIncineratorInstallBlazeClips(task);
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
             gAttachmentState.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
-            evsStartScript(D_shelter_b3_garbage_incinerator_80186FB8, EVENT_SCRIPT_HUD_HIDE_RESTORE);
+            evsStartScript(_gShelterB3GarbageIncineratorBlazeScript, EVENT_SCRIPT_HUD_HIDE_RESTORE);
             taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), CAP_CONTROL_MESSAGE_HIDE_HUD, 0, 0);
             work->fadeTask   = taskSpawnFromTable(gShelterB3GarbageIncineratorBlazeTaskDescs, SHELTER_B3_GARBAGE_INCINERATOR_BLAZE_FADE_TASK, 0, task);
             work->sceneState = work->sceneState + 1;

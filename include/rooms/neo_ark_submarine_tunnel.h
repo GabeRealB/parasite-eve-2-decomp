@@ -36,12 +36,12 @@ extern SVECTOR* gNeoArkSubmarineTunnelDiverWaypointSets[NEO_ARK_SUBMARINE_TUNNEL
 /// normal patrol heights. The room publishes no live water-height controller.
 extern s16 gNeoArkSubmarineTunnelDiverWaterY;
 
-/// Bodyless water-refraction recipe preceding the tunnel's distortion recipe.
+/// Two bodyless water recipes: index 0 refraction, index 1 band distortion.
 ///
-/// Priority 192 and zero metadata. Room-entry dispatch uses this address as
-/// a descriptor-table base and selects index 1, the adjacent distortion record.
-/// Both callbacks borrow the loaded tunnel overlay for their lifetime.
-extern TaskDesc gNeoArkSubmarineTunnelWaterRefractionTaskDesc;
+/// Both use priority 192 and zero metadata; there is no terminator. Room-entry
+/// dispatch selects index 1. Spawning reads the recipe synchronously; both
+/// callbacks borrow the loaded tunnel overlay throughout their task lifetime.
+extern TaskDesc gNeoArkSubmarineTunnelWaterRefractionTaskDesc[2];
 
 /// Number of retained placement-variant slots, including absent slots.
 enum { NEO_ARK_SUBMARINE_TUNNEL_AREA_VARIANT_COUNT = 13 };
