@@ -389,32 +389,37 @@ TmdSource gMappicS302ParkingLotShape = {
     .stream           = _gMappicS302ParkingLotShapeStream,
 };
 
-static TmdBone _gMappicS302MappicS202Model00C48007F4Skeleton[1] = {
+/// Identity transform and self-parented root for the Toilet shape.
+static TmdBone _gMappicS302ToiletShapeSkeleton[] = {
 #include "assets/mappic_s2_02_model_00C48_007F4_skeleton.inc"
 };
 
-static u32 _gMappicS302MappicS202Model00C48007F4PartVerts[1] = {
+/// Vertex count of the Toilet shape's sole part (four vertices).
+static u32 _gMappicS302ToiletShapePartVerts[] = {
 #include "assets/mappic_s2_02_model_00C48_007F4_partVerts.inc"
 };
 
-static SVECTOR _gMappicS302MappicS202Model00C48007F4Verts[4] = {
+/// Toilet's map footprint in integer model X/Z coordinates, with Y zero.
+static SVECTOR _gMappicS302ToiletShapeVerts[] = {
 #include "assets/mappic_s2_02_model_00C48_007F4_verts.inc"
 };
 
-static u32 _gMappicS302MappicS202Model00C48007F4Stream[9] = {
+/// Packed command stream for the Toilet shape's unlit quad.
+///
+/// Four SVECTOR byte offsets and white colour precede two group ends and
+/// the stream end. The map reads only the first group.
+static u32 _gMappicS302ToiletShapeStream[] = {
 #include "assets/mappic_s2_02_model_00C48_007F4_stream.inc"
 };
 
-TmdSource D_mappic_s3_02_8012F73C = {
-    0,
-    24,
-    0,
-    1,
-    _gMappicS302MappicS202Model00C48007F4PartVerts,
-    _gMappicS302MappicS202Model00C48007F4Verts,
-    &_gMappicS302MappicS202Model00C48007F4Verts[4],
-    _gMappicS302MappicS202Model00C48007F4Skeleton,
-    _gMappicS302MappicS202Model00C48007F4Stream,
+TmdSource gMappicS302ToiletShape = {
+    .bufferHalfBytes  = sizeof(POLY_F4),
+    .partCount        = ARRAY_SIZE(_gMappicS302ToiletShapeSkeleton),
+    .partVertexCounts = _gMappicS302ToiletShapePartVerts,
+    .verts            = _gMappicS302ToiletShapeVerts,
+    .normals          = &_gMappicS302ToiletShapeVerts[ARRAY_SIZE(_gMappicS302ToiletShapeVerts)], // Empty normal pool at the vertex end.
+    .skeleton         = _gMappicS302ToiletShapeSkeleton,
+    .stream           = _gMappicS302ToiletShapeStream,
 };
 
 static TmdBone _gMappicS302MappicS202Model00C4800884Skeleton[1] = {

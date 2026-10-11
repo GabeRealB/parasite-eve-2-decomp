@@ -389,32 +389,37 @@ TmdSource gMappicS202ParkingLotShape = {
     .stream           = _gMappicS202ParkingLotShapeStream,
 };
 
-static TmdBone _gMappicS202Model00C48007F4Skeleton[1] = {
+/// Identity transform and self-parented root for the Toilet shape.
+static TmdBone _gMappicS202ToiletShapeSkeleton[] = {
 #include "assets/mappic_s2_02_model_00C48_007F4_skeleton.inc"
 };
 
-static u32 _gMappicS202Model00C48007F4PartVerts[1] = {
+/// Vertex count of the Toilet shape's sole part (four vertices).
+static u32 _gMappicS202ToiletShapePartVerts[] = {
 #include "assets/mappic_s2_02_model_00C48_007F4_partVerts.inc"
 };
 
-static SVECTOR _gMappicS202Model00C48007F4Verts[4] = {
+/// Toilet's map footprint in integer model X/Z coordinates, with Y zero.
+static SVECTOR _gMappicS202ToiletShapeVerts[] = {
 #include "assets/mappic_s2_02_model_00C48_007F4_verts.inc"
 };
 
-static u32 _gMappicS202Model00C48007F4Stream[9] = {
+/// Packed command stream for the Toilet shape's unlit quad.
+///
+/// Four SVECTOR byte offsets and white colour precede two group ends and
+/// the stream end. The map reads only the first group.
+static u32 _gMappicS202ToiletShapeStream[] = {
 #include "assets/mappic_s2_02_model_00C48_007F4_stream.inc"
 };
 
-TmdSource D_mappic_s2_02_8012F724 = {
-    0,
-    24,
-    0,
-    1,
-    _gMappicS202Model00C48007F4PartVerts,
-    _gMappicS202Model00C48007F4Verts,
-    &_gMappicS202Model00C48007F4Verts[4],
-    _gMappicS202Model00C48007F4Skeleton,
-    _gMappicS202Model00C48007F4Stream,
+TmdSource gMappicS202ToiletShape = {
+    .bufferHalfBytes  = sizeof(POLY_F4),
+    .partCount        = ARRAY_SIZE(_gMappicS202ToiletShapeSkeleton),
+    .partVertexCounts = _gMappicS202ToiletShapePartVerts,
+    .verts            = _gMappicS202ToiletShapeVerts,
+    .normals          = &_gMappicS202ToiletShapeVerts[ARRAY_SIZE(_gMappicS202ToiletShapeVerts)], // Empty normal pool at the vertex end.
+    .skeleton         = _gMappicS202ToiletShapeSkeleton,
+    .stream           = _gMappicS202ToiletShapeStream,
 };
 
 static TmdBone _gMappicS202Model00C4800884Skeleton[1] = {

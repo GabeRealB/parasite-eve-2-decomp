@@ -5,3 +5,4 @@ gMappicS302MotelRoom2Shape = 0x8012f48c;
 gMappicS302MotelRoom3Shape = 0x8012f51c;
 gMappicS302MotelRoom4Shape = 0x8012f5ac;
 gMappicS302ParkingLotShape = 0x8012f6ac;
+gMappicS302ToiletShape = 0x8012f73c;
