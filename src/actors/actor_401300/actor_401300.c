@@ -1805,9 +1805,12 @@ static void _actor401300TickBlendedAnimation(Task* actor)
 
 /// Ticks both rigs for one part and applies primary translation with mixed rotation.
 ///
-/// All arguments must be side-effect-free; work, slot and pose arguments occur
-/// repeatedly. Both writable poses must stay live through the three calls.
-/// primaryShare is a rotation weight in 1/4096 units. Captures no locals.
+/// actorWork is a live `_Actor401300Work*` with both animation contexts bound
+/// to their rigs; slot indexes an initialized track in both. The callers blend
+/// slots 1..10 except fixed joints 7/8. primary and secondary are distinct writable
+/// AnimationPose* outputs, borrowed through the three calls. Arguments must be
+/// side-effect-free because they are evaluated repeatedly. primaryShare is in
+/// 0..ONE (4096); the secondary rotation share is complementary. Captures no locals.
 #define ACTOR_401300_TICK_BLENDED_PART(actorWork, slot, primary, secondary, primaryShare)                                                    \
     do {                                                                                                                                     \
         animationTickSlotPose(&(actorWork)->rig.anim, (slot), (primary), NULL);                                                              \
@@ -1843,18 +1846,24 @@ static void _actor401300TickBlendedAnimation(Task* actor)
 /// Animation 28 retains its different repeat-gate record.
 static s32 _actor401300GetAnimationSoundCue(_Actor401300Work* work)
 {
+    enum { ACTOR_401300_CHARGE_CLOSE_REPEAT_GATE_RECORD = 14 };
 
-/// Latches the current cue record and returns a sound when the repeat gate differs.
+/// Latches the current cue record and returns its sound when the repeat gate differs.
 ///
-/// Use only in a braced cue branch of this function. Captures writable work
-/// and may return from the enclosing function. repeatGate is evaluated once;
-/// cueSound is evaluated only on a new cue. Both must be side-effect-free.
-#define ACTOR_401300_SELECT_SOUND_CUE(repeatGate, cueSound)                                                      \
-    if (work->lastCueFrame != (repeatGate)) {                                                                    \
-        work->lastCueFrame = work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK; \
-        return (cueSound);                                                                                       \
-    }                                                                                                            \
-    work->lastCueFrame = work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK
+/// Captures this function's live writable work pointer. repeatGate is evaluated
+/// once; cueSound only when returning from the enclosing s32 function. Arguments
+/// must be side-effect-free. Always records slot 1's low-ten-bit cue index, including
+/// on a suppressed cue. The repeat gate can differ from that index: charge-close
+/// compares record 14 while latching record 18, so a held record 18 keeps emitting.
+/// Statement-only GNU expression; its value is not part of the interface.
+#define ACTOR_401300_SELECT_SOUND_CUE(repeatGate, cueSound)                                                          \
+    ({                                                                                                               \
+        if (work->lastCueFrame != (repeatGate)) {                                                                    \
+            work->lastCueFrame = work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK; \
+            return (cueSound);                                                                                       \
+        }                                                                                                            \
+        work->lastCueFrame = work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;     \
+    })
 
     switch ((s16)(work->animId - ACTOR_401300_ANIM_WALK)) {
         case ACTOR_401300_ANIM_RUN - ACTOR_401300_ANIM_WALK:
@@ -1949,7 +1958,7 @@ static s32 _actor401300GetAnimationSoundCue(_Actor401300Work* work)
         case ACTOR_401300_ANIM_CHARGE_CLOSE - ACTOR_401300_ANIM_WALK:
             if ((work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) == 0x12) {
                 // The retained repeat gate compares record 14 while the cue is record 18.
-                ACTOR_401300_SELECT_SOUND_CUE(0xE, ACTOR_401300_SOUND_RUN_STEP15);
+                ACTOR_401300_SELECT_SOUND_CUE(ACTOR_401300_CHARGE_CLOSE_REPEAT_GATE_RECORD, ACTOR_401300_SOUND_RUN_STEP15);
                 break;
             }
             work->lastCueFrame = 0;

@@ -61,18 +61,25 @@ typedef struct {
 } _Actor511000No9GolemWork;
 STATIC_ASSERT_SIZEOF(_Actor511000No9GolemWork, 0x488);
 
-/// Colours in the helicopter's faded palette row.
+/// RGB555/STP words in the helicopter's flashing palette row and VRAM upload.
 #define ACTOR_511000_PALETTE_COLORS 16
 
-/// Bytes of a palette row: each colour is a 15-bit value stored low byte
-/// first, which is how the fade reads and writes it.
-#define ACTOR_511000_PALETTE_BYTES (ACTOR_511000_PALETTE_COLORS * 2)
+/// Byte extent of the helicopter's flashing palette row.
+///
+/// Each VRAM colour occupies one 16-bit RGB555/STP word, serialized low byte
+/// first. Byte arrays retain that representation without requiring halfword alignment.
+#define ACTOR_511000_PALETTE_BYTES (ACTOR_511000_PALETTE_COLORS * sizeof(u16))
 
-/// `_Actor511000HelicopterWork::paletteFade` with the palette fully faded,
-/// 1.0 in 4.12 fixed point.
-#define ACTOR_511000_PALETTE_FADE_FULL 0x1000
+/// Dark-palette weight at full fade, in the GTE's twelve-fractional-bit scale.
+///
+/// Zero selects the lit palette; this value selects the dark palette and starts
+/// consuming the hold counter. The complementary lit weight uses the same scale.
+#define ACTOR_511000_PALETTE_FADE_FULL ONE
 
-/// Ticks the helicopter's palette is held fully faded before it snaps back.
+/// Update ticks spent at the dark palette before snapping back to the lit palette.
+///
+/// The update reaching full fade counts as the first held tick. The following
+/// update after the counter reaches zero restores the lit palette and rearms it.
 #define ACTOR_511000_PALETTE_HOLD_TICKS 30
 
 /// Work block of the helicopter.
@@ -1746,34 +1753,37 @@ static void _actor511000DrawHelicopterSearchlightGlow(Task* task, const CVECTOR*
     DVECTOR*  rimPoint;
     DVECTOR*  unitOffset;
 
-/// Emits one Gouraud triangle from the searchlight centre to two rim points.
+/// Allocates and links one semitransparent Gouraud triangle in the searchlight fan.
 ///
-/// `endPoint` is a live DVECTOR lvalue, evaluated twice without side effects.
-/// Captures `triangle` (overwritten), `rimPoint`, `centerX`, `centerY`,
-/// `centerColor`, `rimRgb`, `orderingTag` and `gGpuPrimCursor` (advanced by one
-/// POLY_G3). Requires a live OT tag and packet space. Expands to standalone
-/// statements inside a compound block and is undefined after the two uses.
+/// endPoint is a stable DVECTOR lvalue evaluated twice. Captures triangle
+/// (overwritten), rimPoint, centerX/centerY in pixels, centerColor, the three-byte
+/// rimRgb and orderingTag. Advances gGpuPrimCursor by one POLY_G3; requires aligned
+/// packet space and a live OT tag. Centre colour applies to vertex 0 and rim colour
+/// to vertices 1/2. The caller supplies additive draw mode for the complete fan.
+/// Statement-only GNU expression; its value is not part of the interface.
 #define ACTOR_511000_EMIT_SEARCHLIGHT_TRIANGLE(endPoint) \
-    triangle       = gGpuPrimCursor;                     \
-    gGpuPrimCursor = triangle + 1;                       \
-    setPolyG3(triangle);                                 \
-    setSemiTrans(triangle, 1);                           \
-    triangle->x0 = centerX;                              \
-    triangle->y0 = centerY;                              \
-    triangle->x1 = rimPoint->vx;                         \
-    triangle->y1 = rimPoint->vy;                         \
-    triangle->x2 = (endPoint).vx;                        \
-    triangle->y2 = (endPoint).vy;                        \
-    triangle->r0 = centerColor->r;                       \
-    triangle->g0 = centerColor->g;                       \
-    triangle->b0 = centerColor->b;                       \
-    triangle->r1 = rimRgb[0];                            \
-    triangle->g1 = rimRgb[1];                            \
-    triangle->b1 = rimRgb[2];                            \
-    triangle->r2 = rimRgb[0];                            \
-    triangle->g2 = rimRgb[1];                            \
-    triangle->b2 = rimRgb[2];                            \
-    addPrim(orderingTag, triangle);
+    ({                                                   \
+        triangle       = gGpuPrimCursor;                 \
+        gGpuPrimCursor = triangle + 1;                   \
+        setPolyG3(triangle);                             \
+        setSemiTrans(triangle, 1);                       \
+        triangle->x0 = centerX;                          \
+        triangle->y0 = centerY;                          \
+        triangle->x1 = rimPoint->vx;                     \
+        triangle->y1 = rimPoint->vy;                     \
+        triangle->x2 = (endPoint).vx;                    \
+        triangle->y2 = (endPoint).vy;                    \
+        triangle->r0 = centerColor->r;                   \
+        triangle->g0 = centerColor->g;                   \
+        triangle->b0 = centerColor->b;                   \
+        triangle->r1 = rimRgb[0];                        \
+        triangle->g1 = rimRgb[1];                        \
+        triangle->b1 = rimRgb[2];                        \
+        triangle->r2 = rimRgb[0];                        \
+        triangle->g2 = rimRgb[1];                        \
+        triangle->b2 = rimRgb[2];                        \
+        addPrim(orderingTag, triangle);                  \
+    })
 
     // Project the lamp origin; the halo radius stays fixed in screen pixels.
     gfxComposeNodeWorldTransform(task->extra.tmd->coords, &worldTransform, &worldOrigin);
@@ -2429,8 +2439,13 @@ static void _actor511000TickNo9Golem(Enemy* enemy, Task* task)
     s32                       column;
     s32                       animationId;
 
-// Scale both borrowed matrices together; captures work, loopIndex and column.
-// The counters traverse all nine coefficients and ambient translations are retained.
+/// Scales the golem's shared light and colour bases by 15/16 for one fade step.
+///
+/// Captures the live `_Actor511000No9GolemWork*` work and writable s32 counters
+/// loopIndex and column, leaving both counters at three. Requires the two
+/// ACTOR_511000_GOLEM_FADE_* constants in scope. Signed products are shifted
+/// arithmetically; all nine coefficients change while translation and alignment
+/// bytes remain intact. Attached models borrow these same matrices.
 #define ACTOR_511000_FADE_GOLEM_LIGHTING()                                                                                                                          \
     do {                                                                                                                                                            \
         for (loopIndex = 0; loopIndex < ARRAY_SIZE(work->color.m); loopIndex++) {                                                                                   \

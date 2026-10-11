@@ -2044,13 +2044,15 @@ void actor361100ClearHeadAimTaskHandle(s32 unused)
 
 /// Applies one signed 16.16 root translation step and retains fractional carry.
 ///
-/// rootCoord and work must be side-effect-free pointer expressions to live,
-/// disjoint writable storage. work is either package model's work block;
-/// velocity is in the root parent's frame and its fourth word is unused.
-/// Both arguments are evaluated repeatedly. The block captures no identifiers,
-/// has no return or jump, and is undefined after the two model tick consumers.
+/// rootCoord and work are side-effect-free pointers to live, separate writable
+/// storage. Either model's work provides three Fixed16 carries and a VECTOR velocity
+/// in its root parent's frame; velocity's fourth word is unused. Arguments are
+/// evaluated repeatedly. Adds the signed high half to translation, preserves the
+/// unsigned low half for the next update and invalidates composition, including
+/// on zero velocity. No caller locals are captured.
+/// Statement-only GNU expression; its value is not part of the interface.
 #define ACTOR_361100_INTEGRATE_ROOT_TRANSLATION(rootCoord, work)      \
-    {                                                                 \
+    ({                                                                \
         (work)->carry[0].word    += (work)->velocity.vx;              \
         (work)->carry[1].word    += (work)->velocity.vy;              \
         (work)->carry[2].word    += (work)->velocity.vz;              \
@@ -2061,7 +2063,7 @@ void actor361100ClearHeadAimTaskHandle(s32 unused)
         (work)->carry[0].word     = (work)->carry[0].halves.fraction; \
         (work)->carry[1].word     = (work)->carry[1].halves.fraction; \
         (work)->carry[2].word     = (work)->carry[2].halves.fraction; \
-    }
+    })
 
 /// Advances the tentacle's scripted translation, animation and model lighting.
 ///

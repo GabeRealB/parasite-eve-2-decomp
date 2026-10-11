@@ -488,16 +488,16 @@ STATIC_ASSERT_SIZEOF(_Actor403000ButtonPressHoldStorage, 32);
 /// Turn joint `coord` by `yaw` about Y in view space, keeping it expressed in
 /// its parent's frame.
 
-/// Eases a joint-angle lvalue toward a symmetrically clamped target.
+/// Steps a joint angle toward a symmetrically clamped target.
 ///
-/// `sway` and `target` must be distinct, side-effect-free writable s16 lvalues.
-/// The target is captured once, then replaced by its clamped value; both
-/// lvalues are evaluated repeatedly. `limit` and `step` must be positive,
-/// side-effect-free angle quantities fitting s16 and are evaluated repeatedly.
-/// All quantities use the same angle units. Captures no caller locals and
-/// forms one compound statement; callers provide the trailing semicolon.
+/// sway and target are distinct writable s16 lvalues, evaluated repeatedly without
+/// side effects. The original target is saved before clamping; both target and sway
+/// are updated. limit and step are positive side-effect-free values fitting s16;
+/// all arguments use 4096 angle units per turn. Argument expressions must not name
+/// the internal requestedTarget or difference locals. No coordinate is invalidated.
+/// Statement-only GNU expression; its value is not part of the interface.
 #define ACTOR_403000_EASE_JOINT_ANGLE(sway, target, limit, step) \
-    {                                                            \
+    ({                                                           \
         s16 requestedTarget;                                     \
         s32 difference;                                          \
                                                                  \
@@ -526,7 +526,7 @@ STATIC_ASSERT_SIZEOF(_Actor403000ButtonPressHoldStorage, 32);
                 (sway) = (target);                               \
             }                                                    \
         }                                                        \
-    }
+    })
 
 /// Arena geometry and caught-player control identities.
 enum {

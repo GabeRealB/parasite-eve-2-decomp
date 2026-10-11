@@ -1434,14 +1434,17 @@ void actor510900FlameSpriteTask45(Task* task)
     s32                 framesLeft;
     s32                 fadeBrightness;
 
-    /// Draws the flame's ground glow in its coordinate's parent frame.
-    ///
-    /// Arguments must be side-effect-free pointer expressions, a coordinate
-    /// lvalue and a brightness value: coordinate arguments are used repeatedly.
-    /// Expands as a compound statement; use within braced control flow.
-    /// The glow consumes only the composed translation of groundCoord.
+/// Draws a half-scale flame glow at Y zero in the flame's parent frame.
+///
+/// Requires stable live flameCoord/flameEffect pointers, a separate writable
+/// GfxCoord groundCoord lvalue and a brightness value. Coordinate arguments are
+/// evaluated repeatedly; all arguments must be side-effect-free. Composes the
+/// new translation beneath flameCoord's parent, then draws at scale >> 1. Only
+/// the composed translation is consumed; this helper does not initialize a basis
+/// or query a collision floor. It retains no caller-owned storage.
+/// Statement-only GNU expression; its value is not part of the interface.
 #define ACTOR_510900_DRAW_FLAME_GROUND_GLOW(flameCoord, groundCoord, flameEffect, brightness) \
-    {                                                                                         \
+    ({                                                                                        \
         (groundCoord).parent       = (flameCoord)->parent;                                    \
         (groundCoord).coord.t[0]   = (flameCoord)->coord.t[0];                                \
         (groundCoord).coord.t[1]   = 0;                                                       \
@@ -1449,7 +1452,7 @@ void actor510900FlameSpriteTask45(Task* task)
         (groundCoord).composeStamp = GRAPHICS_COORD_DIRTY;                                    \
         actorRenderComposeCoord(&(groundCoord));                                              \
         effectDrawGroundGlow(&(groundCoord), (flameEffect)->scale >> 1, (brightness));        \
-    }
+    })
 
     effect        = task->spawnArg2.pointer;
     effectControl = gRoomEffectState->effectControl;

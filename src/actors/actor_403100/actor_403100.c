@@ -7108,15 +7108,19 @@ static inline void _actor403100RequestAnimationBlendInline(s16 animationId, s16 
     _gActor403100Work->animationRequest     = ACTOR_403100_ANIMATION_REQUEST_BLEND;
 }
 
-/// Transforms an arm sample and latches contact with the player.
+/// Transforms an arm sample to world space and latches its cylindrical player contact.
 ///
-/// Coordinate pointers must be stable and side-effect-free; vector lvalues are
-/// writable and separate. deltaX/deltaZ/contactFlag are writable scalar lvalues.
-/// Arguments may be evaluated repeatedly; a miss leaves contactFlag unchanged.
-/// Requires the three ACTOR_403100_ARM_CONTACT_* constants in the caller's scope.
-/// Expands to a braced block; use the invocation as a standalone statement.
+/// Requires live coordinate chains beneath the view, separate writable SVECTOR
+/// point/playerOffset lvalues, s16 deltaX/deltaZ and a writable contactFlag.
+/// Arguments must be stable and side-effect-free; most are evaluated repeatedly.
+/// XYZ differences wrap to signed halfwords. The XZ squared sum must fit s32;
+/// range equality meets the radius and the inclusive Y band is centred at
+/// point.vy + ACTOR_403100_ARM_CONTACT_CENTER_Y.
+/// A hit sets contactFlag to 1 and a miss retains it. Requires the three
+/// ACTOR_403100_ARM_CONTACT_* constants in the caller's scope.
+/// Statement-only GNU expression; its value is not part of the interface.
 #define ACTOR_403100_LATCH_ARM_CONTACT(limbCoord, playerCoord, point, playerOffset, deltaX, deltaZ, contactFlag)                                                                                                                                           \
-    {                                                                                                                                                                                                                                                      \
+    ({                                                                                                                                                                                                                                                     \
         _actor403100PointToWorld((limbCoord), &(point));                                                                                                                                                                                                   \
         (deltaX)          = (u16)(playerCoord)->coord.t[0] - (u16)(point).vx;                                                                                                                                                                              \
         (playerOffset).vx = (deltaX);                                                                                                                                                                                                                      \
@@ -7126,7 +7130,7 @@ static inline void _actor403100RequestAnimationBlendInline(s16 animationId, s16 
         if ((SquareRoot0(((deltaX) * (deltaX)) + ((deltaZ) * (deltaZ))) < (ACTOR_403100_ARM_CONTACT_RADIUS + 1)) && ((u32)(((u16)(playerOffset).vy + ACTOR_403100_ARM_CONTACT_HALF_HEIGHT) & 0xFFFF) < (2U * ACTOR_403100_ARM_CONTACT_HALF_HEIGHT + 1))) { \
             (contactFlag) = 1;                                                                                                                                                                                                                             \
         }                                                                                                                                                                                                                                                  \
-    }
+    })
 
 /// Latches hand/forearm contact with the player at a one-tick-ahead arm pose.
 ///

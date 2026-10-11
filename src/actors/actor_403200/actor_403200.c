@@ -158,15 +158,16 @@ enum {
     ACTOR_403200_VIEW_FAR_X         = 30,
 };
 
-/// Measures player-root range after signed-halfword XYZ narrowing.
+/// Measures root-to-player XYZ range after signed-halfword coordinate narrowing.
 ///
-/// Invoke as a standalone statement in a braced block, with stable lvalues:
-/// a borrowed live Task* hostTask,
-/// an SVECTOR offset and an s32 distanceOut. Offset and distanceOut are evaluated
-/// repeatedly; the squared sum must fit s32. Reads both roots in their common
-/// parent frame without composing them; leaves the vector's pad untouched.
+/// hostTask is a live Task* evaluated once. offset is a writable SVECTOR and
+/// distanceOut a writable s32, both evaluated repeatedly without side effects.
+/// Both roots must share a parent frame; their local translations are subtracted
+/// without composition. The squared sum must fit s32. Vector pad is untouched.
+/// Argument expressions must not name the internal offsetPointer or hostRoot locals.
+/// Statement-only GNU expression; its value is not part of the interface.
 #define ACTOR_403200_MEASURE_PLAYER_DISTANCE(hostTask, offset, distanceOut)                 \
-    {                                                                                       \
+    ({                                                                                      \
         SVECTOR*  offsetPointer = &(offset);                                                \
         GfxCoord* hostRoot      = (hostTask)->extra.tmd->coords;                            \
         offsetPointer->vx       = gPlayerStatus.coordMtx->t[0] - hostRoot->coord.t[0];      \
@@ -175,7 +176,7 @@ enum {
         offsetPointer->vz       = gPlayerStatus.coordMtx->t[2] - hostRoot->coord.t[2];      \
         (distanceOut)          += (offset).vy * (offset).vy;                                \
         (distanceOut)           = SquareRoot0((distanceOut) + ((offset).vz * (offset).vz)); \
-    }
+    })
 
 /// Domains of the dumping-hole host's private banks and dispatch tables.
 enum {
@@ -3250,21 +3251,23 @@ static __inline__ void _actor403200FreeModelBuffers(Task* host)
     }
 }
 
-/// Copies the host model's flags to live escorts from escortIndex onward.
+/// Copies all host model flags to non-NULL escorts from the supplied index onward.
 ///
-/// Invoke as a standalone statement in a braced block or switch case.
-/// hostTask and hostWork must be stable, borrowed Task*
-/// and GluttonWork* pointers with live models on every non-NULL escort. Both
-/// pointers are evaluated repeatedly. escortIndex must be a signed-halfword
-/// local initialized in 0..7; it is advanced to seven. No pointer is retained.
+/// hostTask and hostWork are stable live Task*/GluttonWork* pointers, evaluated
+/// repeatedly. Each non-NULL escort must own a live task and TMD model. escortIndex
+/// is a writable s16 local initially in 0..ARRAY_SIZE(hostWork->escorts); it ends
+/// at the array extent. Copies the whole flag word, including draw and
+/// automatic-buffer controls,
+/// without retaining pointers or changing escort ownership.
+/// Statement-only GNU expression; its value is not part of the interface.
 #define ACTOR_403200_COPY_ESCORT_MODEL_FLAGS(hostTask, hostWork, escortIndex)                              \
-    {                                                                                                      \
+    ({                                                                                                     \
         for (; (escortIndex) < ARRAY_SIZE((hostWork)->escorts); (escortIndex)++) {                         \
             if ((hostWork)->escorts[(escortIndex)] != NULL) {                                              \
                 (hostWork)->escorts[(escortIndex)]->task->extra.tmd->flags = (hostTask)->extra.tmd->flags; \
             }                                                                                              \
         }                                                                                                  \
-    }
+    })
 
 /// Advances the boss root 25 coordinate units along its normalized local Z axis.
 ///

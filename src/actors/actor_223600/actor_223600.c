@@ -164,16 +164,16 @@ enum {
     ACTOR_223600_ANIM_REQUEST_LAND    = 15,
 };
 
-/// Applies one signed root-axis step within `_actor223600DropIn`.
+/// Adds a signed displacement along a normalized root axis during the drop-in.
 ///
-/// Captures its live `task`, reserved `scratchTop` block and the `axisStep` /
-/// `gteStep` views of that block's vector. `readAxis` must be a matrix-axis
-/// reader; it and `stepDistance` are evaluated once. Distance uses parent-
-/// coordinate units. Normalization removes matrix scale; GTE state is overwritten.
-/// The step includes Y, ignores the freeze gate and leaves invalidation to the caller.
-/// Expands to a compound block; invoke only within an already braced body.
+/// Captures the live task, scratchTop, axisStep and gteStep: both vector pointers
+/// must alias scratchTop[-1].step in the reserved scratch block. readAxis is a
+/// matrix-axis reader and stepDistance is in parent-coordinate units; each is
+/// evaluated once. Normalization uses 4096 as one before GTE scaling. Includes
+/// Y and bypasses the freeze gate; the caller invalidates the composed root.
+/// Statement-only GNU expression; its value is not part of the interface.
 #define ACTOR_223600_STEP_LOCAL_AXIS(readAxis, stepDistance)           \
-    {                                                                  \
+    ({                                                                 \
         (readAxis)(&task->extra.tmd->coords->coord, axisStep);         \
         VectorNormalSS(axisStep, axisStep);                            \
         gte_lddp(stepDistance);                                        \
@@ -183,7 +183,7 @@ enum {
         task->extra.tmd->coords->coord.t[0] += scratchTop[-1].step.vx; \
         task->extra.tmd->coords->coord.t[1] += axisStep->vy;           \
         task->extra.tmd->coords->coord.t[2] += axisStep->vz;           \
-    }
+    })
 
 static TmdSource _gActor223600BloodSucklerBody;
 

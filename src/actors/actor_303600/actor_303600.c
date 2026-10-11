@@ -620,15 +620,15 @@ static void _actor303600CutsceneTask(Task* task)
     }
 }
 
-/// Allocates, initializes and advances one white-fade task into its draw state.
+/// Allocates task-owned RGB state and advances a white-fade task to drawing.
 ///
-/// Scoped to the two white-fade callbacks below. fadeTask is a live Task*;
-/// fadeWork and allocatedFadeWork are distinct ScreenFadeWork* local lvalues.
-/// Arguments are used repeatedly and must have no side effects. On allocation
-/// failure this kills fadeTask and returns from the containing void callback.
-/// initialIntensity must be zero or 255 and is evaluated once per channel.
+/// Requires a live Task* fadeTask and distinct writable ScreenFadeWork* locals
+/// fadeWork and allocatedFadeWork. All arguments must be side-effect-free because
+/// they are evaluated repeatedly; initialIntensity is evaluated for each channel.
+/// The callers use 0 or 255. Allocation failure kills the task and returns from
+/// the enclosing void callback; success leaves the new state ready for fallthrough.
 #define ACTOR_303600_BEGIN_WHITE_FADE(fadeTask, fadeWork, allocatedFadeWork, initialIntensity) \
-    {                                                                                          \
+    do {                                                                                       \
         (allocatedFadeWork) = memMalloc(sizeof(*(allocatedFadeWork)), false);                  \
         (fadeTask)->work    = (allocatedFadeWork);                                             \
         if ((allocatedFadeWork) == NULL) {                                                     \
@@ -640,7 +640,7 @@ static void _actor303600CutsceneTask(Task* task)
         (fadeWork)->g      = (initialIntensity);                                               \
         (fadeWork)->r      = (initialIntensity);                                               \
         (fadeTask)->state += 1;                                                                \
-    }
+    } while (0)
 
 /// Removes an additive white flash, starting at intensity 255.
 ///

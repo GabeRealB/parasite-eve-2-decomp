@@ -34,9 +34,13 @@
 #include "main/task.h"
 #include "main/tmd_types.h"
 
-#define ACTOR_341300_RAND() ((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16)
-
-/// One step of gameplay's LCG, `state = state * 5 + 0x71357911`, as its high half.
+/// Advances the shared random sequence once and returns its high 16 bits for a shard draw.
+///
+/// Returns a u32 in 0..65535. The multiplication and addition wrap unsigned
+/// at 32 bits, and the updated `gRandomLcgState` is visible to other consumers.
+/// Each invocation consumes a draw, including separate sign and magnitude draws;
+/// evaluating this expression again advances the sequence again.
+#define ACTOR_341300_DRAW_RANDOM_U16() ((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16)
 
 /// Work block of a debris shard task: one flat triangle that tumbles and falls
 /// under gravity until its origin drops below y 0.
@@ -509,40 +513,44 @@ static TaskDesc _gActor341300PairedDebrisEmitterTaskDescriptor = { { { TASK_BODY
 /// still-live task, then clear the slot. This handle does not extend task lifetime.
 static Task* _gActor341300ScriptTaskHandle = NULL;
 
-/// Fills a three-corner POLY_G3 packet with the shard's dark-to-light grey ramp.
+/// Initializes a shard's POLY_G3 packet with projected corners and a grey ramp.
 ///
-/// `triangle` must be a writable packet; screen arrays contain three s16 pixel
-/// coordinates. Arguments must have no side effects: the packet and arrays are
-/// evaluated repeatedly. Uses the source's shard colour constants and does not
-/// allocate or link a packet. Expands as a statement sequence: invoke inside
-/// an existing block, never as an unbraced control-flow body.
-#define ACTOR_341300_FILL_SHARD_TRIANGLE(triangle, screenX, screenY)                  \
-    setPolyG3(triangle);                                                              \
-    (triangle)->r0 = (triangle)->g0 = (triangle)->b0 = ACTOR_341300_SHARD_DARK_RGB;   \
-    (triangle)->r1 = (triangle)->g1 = (triangle)->b1 = ACTOR_341300_SHARD_MIDDLE_RGB; \
-    (triangle)->r2 = (triangle)->g2 = (triangle)->b2 = ACTOR_341300_SHARD_LIGHT_RGB;  \
-    (triangle)->x0                                   = (screenX)[0];                  \
-    (triangle)->y0                                   = (screenY)[0];                  \
-    (triangle)->x1                                   = (screenX)[1];                  \
-    (triangle)->y1                                   = (screenY)[1];                  \
-    (triangle)->x2                                   = (screenX)[2];                  \
-    (triangle)->y2                                   = (screenY)[2];
+/// triangle points to a writable packet, and screenX/screenY each provide three
+/// s16 pixel coordinates. Arguments are evaluated repeatedly and must have no
+/// side effects. Sets the packet kind and all three vertex colours and positions;
+/// the caller allocates it and links it into the ordering table.
+/// Statement-only GNU expression; its value is not part of the interface.
+#define ACTOR_341300_FILL_SHARD_TRIANGLE(triangle, screenX, screenY)                      \
+    ({                                                                                    \
+        setPolyG3(triangle);                                                              \
+        (triangle)->r0 = (triangle)->g0 = (triangle)->b0 = ACTOR_341300_SHARD_DARK_RGB;   \
+        (triangle)->r1 = (triangle)->g1 = (triangle)->b1 = ACTOR_341300_SHARD_MIDDLE_RGB; \
+        (triangle)->r2 = (triangle)->g2 = (triangle)->b2 = ACTOR_341300_SHARD_LIGHT_RGB;  \
+        (triangle)->x0                                   = (screenX)[0];                  \
+        (triangle)->y0                                   = (screenY)[0];                  \
+        (triangle)->x1                                   = (screenX)[1];                  \
+        (triangle)->y1                                   = (screenY)[1];                  \
+        (triangle)->x2                                   = (screenX)[2];                  \
+        (triangle)->y2                                   = (screenY)[2];                  \
+    })
 
-/// Advances halfword tumble angles and rebuilds the shard's local Y-X-Z rotation.
+/// Advances a shard's halfword tumble angles and rebuilds its Y-X-Z rotation.
 ///
-/// Arguments must be live writable task storage without side effects: both are
-/// evaluated repeatedly. Translation is preserved and the composed matrix is
-/// marked dirty for the following frame. Captures no caller locals. Expands
-/// as a statement sequence: invoke inside an existing block, never as an
-/// unbraced control-flow body.
-#define ACTOR_341300_ADVANCE_SHARD_TUMBLE(shardCoord, work)                         \
-    (work)->rot.vx += (work)->spin.vx;                                              \
-    (work)->rot.vy += (work)->spin.vy;                                              \
-    (work)->rot.vz += (work)->spin.vz;                                              \
-    gfxRotMatrixY(&(shardCoord)->coord, (work)->rot.vy, GRAPHICS_ROTATION_REPLACE); \
-    gfxRotMatrixX(&(shardCoord)->coord, (work)->rot.vx, GRAPHICS_ROTATION_COMPOSE); \
-    gfxRotMatrixZ(&(shardCoord)->coord, (work)->rot.vz, GRAPHICS_ROTATION_COMPOSE); \
-    (shardCoord)->composeStamp = GRAPHICS_COORD_DIRTY;
+/// shardCoord and work are stable pointers to the live GfxCoord and shard work,
+/// evaluated repeatedly. Spin counts angle units per update, with 4096 per turn;
+/// each stored angle narrows to s16. Replaces the basis while preserving translation
+/// and invalidates composition. The callers apply this after drawing the current pose.
+/// Statement-only GNU expression; its value is not part of the interface.
+#define ACTOR_341300_ADVANCE_SHARD_TUMBLE(shardCoord, work)                             \
+    ({                                                                                  \
+        (work)->rot.vx += (work)->spin.vx;                                              \
+        (work)->rot.vy += (work)->spin.vy;                                              \
+        (work)->rot.vz += (work)->spin.vz;                                              \
+        gfxRotMatrixY(&(shardCoord)->coord, (work)->rot.vy, GRAPHICS_ROTATION_REPLACE); \
+        gfxRotMatrixX(&(shardCoord)->coord, (work)->rot.vx, GRAPHICS_ROTATION_COMPOSE); \
+        gfxRotMatrixZ(&(shardCoord)->coord, (work)->rot.vz, GRAPHICS_ROTATION_COMPOSE); \
+        (shardCoord)->composeStamp = GRAPHICS_COORD_DIRTY;                              \
+    })
 
 /// Draws two fixed world-space quads with an unmodulated 8-bit texture.
 ///
@@ -639,10 +647,12 @@ static void _actor341300TurnPlayerTowardScenePlacementTask(Task* task)
     s32        yawStep;
     s32        wrappedYawDelta;
 
-    /// Unwraps a yaw difference by at most one 4096-unit turn, retaining half-turn ties.
+    /// Wraps a signed yaw difference by at most one turn, retaining half-turn ties.
     ///
-    /// Arguments must be distinct writable s32 locals without side effects; they
-    /// are evaluated repeatedly. `magnitude` and `wrapped` are scratch outputs.
+    /// Arguments must be distinct writable s32 locals without side effects,
+    /// evaluated repeatedly. magnitude receives ABS of the original delta;
+    /// wrapped is written only when that magnitude exceeds 2048. The corrected
+    /// delta subtracts or adds one 4096-unit turn; this is not general modulo reduction.
 #define ACTOR_341300_UNWRAP_YAW_DELTA(delta, magnitude, wrapped)  \
     do {                                                          \
         (magnitude) = ABS(delta);                                 \
@@ -964,12 +974,12 @@ static void _actor341300Emitter0ShardTask(Task* task)
             coord->coord.t[0] = _gActor341300Emitter0ShardSpawnPositions[task->spawnArg1.value].vx;
             coord->coord.t[1] = _gActor341300Emitter0ShardSpawnPositions[task->spawnArg1.value].vy;
             coord->coord.t[2] = _gActor341300Emitter0ShardSpawnPositions[task->spawnArg1.value].vz;
-            work->vel.vx      = (ACTOR_341300_RAND() & 1) ? (ACTOR_341300_RAND() & ACTOR_341300_SHARD_VELOCITY_MASK) : -(ACTOR_341300_RAND() & ACTOR_341300_SHARD_VELOCITY_MASK);
-            work->vel.vy      = (ACTOR_341300_RAND() & 1) ? (ACTOR_341300_RAND() & ACTOR_341300_SHARD_VELOCITY_MASK) : -(ACTOR_341300_RAND() & ACTOR_341300_SHARD_VELOCITY_MASK);
-            work->vel.vz      = (ACTOR_341300_RAND() & 1) ? (ACTOR_341300_RAND() & ACTOR_341300_SHARD_VELOCITY_MASK) : -(ACTOR_341300_RAND() & ACTOR_341300_SHARD_VELOCITY_MASK);
-            work->spin.vx     = (ACTOR_341300_RAND() & 1) ? (ACTOR_341300_RAND() & ACTOR_341300_SHARD_SPIN_MASK) : -(ACTOR_341300_RAND() & ACTOR_341300_SHARD_SPIN_MASK);
-            work->spin.vy     = (ACTOR_341300_RAND() & 1) ? (ACTOR_341300_RAND() & ACTOR_341300_SHARD_SPIN_MASK) : -(ACTOR_341300_RAND() & ACTOR_341300_SHARD_SPIN_MASK);
-            work->spin.vz     = (ACTOR_341300_RAND() & 1) ? (ACTOR_341300_RAND() & ACTOR_341300_SHARD_SPIN_MASK) : -(ACTOR_341300_RAND() & ACTOR_341300_SHARD_SPIN_MASK);
+            work->vel.vx      = (ACTOR_341300_DRAW_RANDOM_U16() & 1) ? (ACTOR_341300_DRAW_RANDOM_U16() & ACTOR_341300_SHARD_VELOCITY_MASK) : -(ACTOR_341300_DRAW_RANDOM_U16() & ACTOR_341300_SHARD_VELOCITY_MASK);
+            work->vel.vy      = (ACTOR_341300_DRAW_RANDOM_U16() & 1) ? (ACTOR_341300_DRAW_RANDOM_U16() & ACTOR_341300_SHARD_VELOCITY_MASK) : -(ACTOR_341300_DRAW_RANDOM_U16() & ACTOR_341300_SHARD_VELOCITY_MASK);
+            work->vel.vz      = (ACTOR_341300_DRAW_RANDOM_U16() & 1) ? (ACTOR_341300_DRAW_RANDOM_U16() & ACTOR_341300_SHARD_VELOCITY_MASK) : -(ACTOR_341300_DRAW_RANDOM_U16() & ACTOR_341300_SHARD_VELOCITY_MASK);
+            work->spin.vx     = (ACTOR_341300_DRAW_RANDOM_U16() & 1) ? (ACTOR_341300_DRAW_RANDOM_U16() & ACTOR_341300_SHARD_SPIN_MASK) : -(ACTOR_341300_DRAW_RANDOM_U16() & ACTOR_341300_SHARD_SPIN_MASK);
+            work->spin.vy     = (ACTOR_341300_DRAW_RANDOM_U16() & 1) ? (ACTOR_341300_DRAW_RANDOM_U16() & ACTOR_341300_SHARD_SPIN_MASK) : -(ACTOR_341300_DRAW_RANDOM_U16() & ACTOR_341300_SHARD_SPIN_MASK);
+            work->spin.vz     = (ACTOR_341300_DRAW_RANDOM_U16() & 1) ? (ACTOR_341300_DRAW_RANDOM_U16() & ACTOR_341300_SHARD_SPIN_MASK) : -(ACTOR_341300_DRAW_RANDOM_U16() & ACTOR_341300_SHARD_SPIN_MASK);
             if (work->spin.vx > 0) {
                 work->spin.vx += ACTOR_341300_SHARD_MIN_SPIN;
             } else {
@@ -987,26 +997,26 @@ static void _actor341300Emitter0ShardTask(Task* task)
             }
             // Form a radius-20 triangle, jittering each nonzero coordinate outward.
             work->verts[0].vx = 0;
-            work->verts[0].vy = (ACTOR_341300_RAND() & 1) ? ACTOR_341300_SHARD_RADIUS + ACTOR_341300_SHARD_JITTER : ACTOR_341300_SHARD_RADIUS;
+            work->verts[0].vy = (ACTOR_341300_DRAW_RANDOM_U16() & 1) ? ACTOR_341300_SHARD_RADIUS + ACTOR_341300_SHARD_JITTER : ACTOR_341300_SHARD_RADIUS;
             work->verts[0].vz = 0;
             rightCornerX      = rsin(ACTOR_TRANSFORM_ANGLE_TURN / 6) * ACTOR_341300_SHARD_RADIUS / ONE;
-            if (ACTOR_341300_RAND() & 1) {
+            if (ACTOR_341300_DRAW_RANDOM_U16() & 1) {
                 rightCornerX += ACTOR_341300_SHARD_JITTER;
             }
             work->verts[1].vx = rightCornerX;
             rightCornerY      = -(rsin(ACTOR_TRANSFORM_ANGLE_TURN / 12) * ACTOR_341300_SHARD_RADIUS / ONE);
-            if (ACTOR_341300_RAND() & 1) {
+            if (ACTOR_341300_DRAW_RANDOM_U16() & 1) {
                 rightCornerY -= ACTOR_341300_SHARD_JITTER;
             }
             work->verts[1].vy = rightCornerY;
             work->verts[1].vz = 0;
             leftCornerX       = -(rsin(ACTOR_TRANSFORM_ANGLE_TURN / 6) * ACTOR_341300_SHARD_RADIUS / ONE);
-            if (ACTOR_341300_RAND() & 1) {
+            if (ACTOR_341300_DRAW_RANDOM_U16() & 1) {
                 leftCornerX -= ACTOR_341300_SHARD_JITTER;
             }
             work->verts[2].vx = leftCornerX;
             leftCornerY       = -(rsin(ACTOR_TRANSFORM_ANGLE_TURN / 12) * ACTOR_341300_SHARD_RADIUS / ONE);
-            if (ACTOR_341300_RAND() & 1) {
+            if (ACTOR_341300_DRAW_RANDOM_U16() & 1) {
                 leftCornerY -= ACTOR_341300_SHARD_JITTER;
             }
             work->verts[2].vy = leftCornerY;
@@ -1147,15 +1157,15 @@ static void _actor341300Emitter2ShardTask(Task* task)
             coord->coord.t[1] = _gActor341300Emitter2ShardSpawnPositions[task->spawnArg1.value].vy;
             coord->coord.t[2] = _gActor341300Emitter2ShardSpawnPositions[task->spawnArg1.value].vz;
             if (task->spawnArg1.value == 0) {
-                work->vel.vx = ACTOR_341300_RAND() & ACTOR_341300_SHARD_VELOCITY_MASK;
+                work->vel.vx = ACTOR_341300_DRAW_RANDOM_U16() & ACTOR_341300_SHARD_VELOCITY_MASK;
             } else {
-                work->vel.vx = -(ACTOR_341300_RAND() & ACTOR_341300_SHARD_VELOCITY_MASK);
+                work->vel.vx = -(ACTOR_341300_DRAW_RANDOM_U16() & ACTOR_341300_SHARD_VELOCITY_MASK);
             }
-            work->vel.vy  = (ACTOR_341300_RAND() & 1) ? (ACTOR_341300_RAND() & ACTOR_341300_SHARD_VELOCITY_MASK) : -(ACTOR_341300_RAND() & ACTOR_341300_SHARD_VELOCITY_MASK);
-            work->vel.vz  = (ACTOR_341300_RAND() & 1) ? (ACTOR_341300_RAND() & ACTOR_341300_SHARD_VELOCITY_MASK) : -(ACTOR_341300_RAND() & ACTOR_341300_SHARD_VELOCITY_MASK);
-            work->spin.vx = (ACTOR_341300_RAND() & 1) ? (ACTOR_341300_RAND() & ACTOR_341300_SHARD_SPIN_MASK) : -(ACTOR_341300_RAND() & ACTOR_341300_SHARD_SPIN_MASK);
-            work->spin.vy = (ACTOR_341300_RAND() & 1) ? (ACTOR_341300_RAND() & ACTOR_341300_SHARD_SPIN_MASK) : -(ACTOR_341300_RAND() & ACTOR_341300_SHARD_SPIN_MASK);
-            work->spin.vz = (ACTOR_341300_RAND() & 1) ? (ACTOR_341300_RAND() & ACTOR_341300_SHARD_SPIN_MASK) : -(ACTOR_341300_RAND() & ACTOR_341300_SHARD_SPIN_MASK);
+            work->vel.vy  = (ACTOR_341300_DRAW_RANDOM_U16() & 1) ? (ACTOR_341300_DRAW_RANDOM_U16() & ACTOR_341300_SHARD_VELOCITY_MASK) : -(ACTOR_341300_DRAW_RANDOM_U16() & ACTOR_341300_SHARD_VELOCITY_MASK);
+            work->vel.vz  = (ACTOR_341300_DRAW_RANDOM_U16() & 1) ? (ACTOR_341300_DRAW_RANDOM_U16() & ACTOR_341300_SHARD_VELOCITY_MASK) : -(ACTOR_341300_DRAW_RANDOM_U16() & ACTOR_341300_SHARD_VELOCITY_MASK);
+            work->spin.vx = (ACTOR_341300_DRAW_RANDOM_U16() & 1) ? (ACTOR_341300_DRAW_RANDOM_U16() & ACTOR_341300_SHARD_SPIN_MASK) : -(ACTOR_341300_DRAW_RANDOM_U16() & ACTOR_341300_SHARD_SPIN_MASK);
+            work->spin.vy = (ACTOR_341300_DRAW_RANDOM_U16() & 1) ? (ACTOR_341300_DRAW_RANDOM_U16() & ACTOR_341300_SHARD_SPIN_MASK) : -(ACTOR_341300_DRAW_RANDOM_U16() & ACTOR_341300_SHARD_SPIN_MASK);
+            work->spin.vz = (ACTOR_341300_DRAW_RANDOM_U16() & 1) ? (ACTOR_341300_DRAW_RANDOM_U16() & ACTOR_341300_SHARD_SPIN_MASK) : -(ACTOR_341300_DRAW_RANDOM_U16() & ACTOR_341300_SHARD_SPIN_MASK);
             if (work->spin.vx > 0) {
                 work->spin.vx += ACTOR_341300_SHARD_MIN_SPIN;
             } else {
@@ -1173,26 +1183,26 @@ static void _actor341300Emitter2ShardTask(Task* task)
             }
             // Form a radius-20 triangle, jittering each nonzero coordinate outward.
             work->verts[0].vx = 0;
-            work->verts[0].vy = (ACTOR_341300_RAND() & 1) ? ACTOR_341300_SHARD_RADIUS + ACTOR_341300_SHARD_JITTER : ACTOR_341300_SHARD_RADIUS;
+            work->verts[0].vy = (ACTOR_341300_DRAW_RANDOM_U16() & 1) ? ACTOR_341300_SHARD_RADIUS + ACTOR_341300_SHARD_JITTER : ACTOR_341300_SHARD_RADIUS;
             work->verts[0].vz = 0;
             rightCornerX      = rsin(ACTOR_TRANSFORM_ANGLE_TURN / 6) * ACTOR_341300_SHARD_RADIUS / ONE;
-            if (ACTOR_341300_RAND() & 1) {
+            if (ACTOR_341300_DRAW_RANDOM_U16() & 1) {
                 rightCornerX += ACTOR_341300_SHARD_JITTER;
             }
             work->verts[1].vx = rightCornerX;
             rightCornerY      = -(rsin(ACTOR_TRANSFORM_ANGLE_TURN / 12) * ACTOR_341300_SHARD_RADIUS / ONE);
-            if (ACTOR_341300_RAND() & 1) {
+            if (ACTOR_341300_DRAW_RANDOM_U16() & 1) {
                 rightCornerY -= ACTOR_341300_SHARD_JITTER;
             }
             work->verts[1].vy = rightCornerY;
             work->verts[1].vz = 0;
             leftCornerX       = -(rsin(ACTOR_TRANSFORM_ANGLE_TURN / 6) * ACTOR_341300_SHARD_RADIUS / ONE);
-            if (ACTOR_341300_RAND() & 1) {
+            if (ACTOR_341300_DRAW_RANDOM_U16() & 1) {
                 leftCornerX -= ACTOR_341300_SHARD_JITTER;
             }
             work->verts[2].vx = leftCornerX;
             leftCornerY       = -(rsin(ACTOR_TRANSFORM_ANGLE_TURN / 12) * ACTOR_341300_SHARD_RADIUS / ONE);
-            if (ACTOR_341300_RAND() & 1) {
+            if (ACTOR_341300_DRAW_RANDOM_U16() & 1) {
                 leftCornerY -= ACTOR_341300_SHARD_JITTER;
             }
             work->verts[2].vy = leftCornerY;

@@ -548,18 +548,20 @@ static TaskMessageEntry _gActor210700Messages[5] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-/// Fills the model-relative rectangle replaced by an eye-texture upload.
+/// Fills the model-relative rectangle for Rupert's eye-texture replacement.
 ///
-/// Expands to four statements. Invoke as a standalone statement in a braced
-/// block, never as an unbraced conditional or loop body.
-/// Requires a stable writable RECT lvalue without evaluation side effects,
-/// evaluated four times. X counts two positions per VRAM word. No caller
-/// locals are captured, and no address is retained.
-#define ACTOR_210700_INIT_EYE_TEXTURE_RECT(eyeRect)     \
-    (eyeRect).x = 0;                                    \
-    (eyeRect).y = ACTOR_210700_EYE_TEXTURE_Y_ROWS;      \
-    (eyeRect).w = ACTOR_210700_EYE_TEXTURE_WIDTH_WORDS; \
-    (eyeRect).h = ACTOR_210700_EYE_TEXTURE_HEIGHT_ROWS
+/// Requires a writable RECT lvalue without evaluation side effects, evaluated
+/// four times. X uses two positions per VRAM word, width uses VRAM words and
+/// Y/height use rows. The uploader applies the actor's texture-page displacement.
+/// Captures no caller locals and retains no address.
+/// Statement-only GNU expression; its value is not part of the interface.
+#define ACTOR_210700_INIT_EYE_TEXTURE_RECT(eyeRect)         \
+    ({                                                      \
+        (eyeRect).x = 0;                                    \
+        (eyeRect).y = ACTOR_210700_EYE_TEXTURE_Y_ROWS;      \
+        (eyeRect).w = ACTOR_210700_EYE_TEXTURE_WIDTH_WORDS; \
+        (eyeRect).h = ACTOR_210700_EYE_TEXTURE_HEIGHT_ROWS; \
+    })
 
 /// Projects model part 1 onto the ground and draws its shadow when a floor is found.
 ///

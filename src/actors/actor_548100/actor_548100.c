@@ -163,14 +163,13 @@ enum {
 /// switch-on animation, in the units of `_Actor548100Edge::length`.
 #define ACTOR_548100_FLOW_SPEED 4
 
-/// Game flag of battery socket `socket`, counted from 1 as the socket hotspots
-/// are (`_Actor548100Work::choice`).
+/// Maps a battery socket number in 1..4 to its saved contents flag.
 ///
-/// The four flags are consecutive and end at
-/// `GAME_FLAG_MINE_POWER_PANEL_SOCKET_4`. Each holds 0 while its socket is empty
-/// and otherwise which of the two battery key items sits in it: 1 for item
-/// 0x120, 2 for item 0x12C.
-#define ACTOR_548100_SOCKET_FLAG(socket) (GAME_FLAG_MINE_POWER_PANEL_SOCKET_4 - 4 + (socket))
+/// Evaluates socket once and returns the flag index, without reading its value.
+/// The consecutive flags end at `GAME_FLAG_MINE_POWER_PANEL_SOCKET_4`; their
+/// nibbles hold `ACTOR_548100_SOCKET_EMPTY`, `_FIRST_BATTERY` or `_SECOND_BATTERY`.
+/// Panel hotspot choices use the same one-based socket domain.
+#define ACTOR_548100_SOCKET_FLAG(socket) (GAME_FLAG_MINE_POWER_PANEL_SOCKET_4 - ACTOR_548100_SOCKET_COUNT + (socket))
 
 /// One stretch of current in an `_Actor548100Circuit`: the route it runs along
 /// and how far along it the current gets.

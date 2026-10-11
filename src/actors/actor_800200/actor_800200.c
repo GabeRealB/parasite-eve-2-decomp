@@ -1427,19 +1427,20 @@ static void _actor800200TickFreeIdle(Task* task)
     SCRATCH_STACK_RELEASE_BYTES(ACTOR_800200_IDLE_SCRATCH_BYTES);
 }
 
-/// Sets a route stop in X/Z while retaining the root's current translation Y.
+/// Selects a route stop's X/Z and the root's current Y as the destination.
 ///
-/// All inputs must be side-effect-free expressions: actor is evaluated three
-/// times, and routeTable and stopIndex twice. The selected stop must be in
-/// bounds. The root and destination share the root node's parent coordinates.
-/// Expands to a compound statement; call inside a braced block, never as
-/// an unbraced if/else arm.
+/// actor is a stable writable GameActor*, evaluated three times; rootCoord is
+/// read once. routeTable and stopIndex are evaluated twice without side effects,
+/// and the selected waypoint must be in bounds. All coordinates use game units
+/// in the root's parent frame. Destination pad, route progress and root placement
+/// remain untouched.
+/// Statement-only GNU expression; its value is not part of the interface.
 #define ACTOR_800200_SET_ROUTE_DESTINATION(actor, rootCoord, routeTable, stopIndex) \
-    {                                                                               \
+    ({                                                                              \
         (actor)->destination.vx = (routeTable)[(stopIndex)].x;                      \
         (actor)->destination.vy = (rootCoord)->coord.t[1];                          \
         (actor)->destination.vz = (routeTable)[(stopIndex)].z;                      \
-    }
+    })
 
 /// Advances the four-stop area-26 route selected by spawn mode 1.
 ///
@@ -2487,15 +2488,17 @@ static void _actor800200TickActionBurst(Task* task)
     SCRATCH_STACK_RELEASE_BYTES(ACTOR_800200_FOCUS_SCRATCH_BYTES);
 }
 
-/// Steps root yaw toward the parent-frame destination and records the signed step.
+/// Steps the companion's stored yaw toward its destination and records the turn.
 ///
-/// actor/rootCoord/scratch must be live, turnDelta a writable s32 local, and
-/// maxTurnStep a positive angle-unit limit (4096 per turn). Inputs are evaluated
-/// repeatedly and must be side-effect-free. No identifiers are captured.
-/// Writes XYZ delta, target yaw, clamped step, wrapped root yaw and the initial
-/// turning phase. Expands to a compound statement; invoke only in braced blocks.
+/// Requires live GameActor*/GfxCoord*/PlayerActorApproachScratch* inputs, a writable
+/// s32 turnDelta and a positive maxTurnStep, all without evaluation side effects.
+/// Arguments are evaluated repeatedly. Destination and root share a parent frame;
+/// XYZ deltas narrow to s16 before yaw calculation. Turns use 4096 units per turn;
+/// the signed shortest turn is clamped and stored yaw wraps to twelve bits. A turn
+/// within the limit advances only the initial phase. The caller rebuilds the matrix.
+/// Statement-only GNU expression; its value is not part of the interface.
 #define ACTOR_800200_STEP_DESTINATION_TURN(actor, rootCoord, scratch, turnDelta, maxTurnStep)                             \
-    {                                                                                                                     \
+    ({                                                                                                                    \
         (scratch)->targetDelta.vx       = (actor)->destination.vx - (rootCoord)->coord.t[0];                              \
         (scratch)->targetDelta.vy       = (actor)->destination.vy - (rootCoord)->coord.t[1];                              \
         (scratch)->targetDelta.vz       = (actor)->destination.vz - (rootCoord)->coord.t[2];                              \
@@ -2510,7 +2513,7 @@ static void _actor800200TickActionBurst(Task* task)
             (actor)->statePhase = ACTOR_800200_DESTINATION_TURN_PHASE;                                                    \
         }                                                                                                                 \
         (actor)->rotation.vy = ((actor)->rotation.vy + (scratch)->turnStep) & ACTOR_TRANSFORM_ANGLE_MASK;                 \
-    }
+    })
 
 /// Turns and walks or runs toward the stored route or target destination.
 ///

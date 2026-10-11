@@ -3518,6 +3518,25 @@ static void _actor400600SpawnArmModels(Task* bodyTask)
 #undef ACTOR_400600_COPY_ARM_ROTATION
 }
 
+/// Converts a normal-rate walking frame bound to update ticks at the current rate.
+///
+/// actorTask is a live Task* evaluated once; its current work block is borrowed
+/// as `_Actor400600ZebraStalkerWork`. normalFrame is a nonnegative signed frame
+/// count whose eight-bit left shift fits s32, evaluated only at nonzero rate.
+/// result is a writable u8/u32 lvalue, assigned once. Signed division precedes
+/// the unsigned four-bit shift and destination-width narrowing; zero rate gives zero.
+/// Argument expressions must not name the internal boundWork pointer.
+/// Statement-only GNU expression; its value is not part of the interface.
+#define ACTOR_400600_CONVERT_WALK_BOUND(actorTask, result, normalFrame)                                                                     \
+    ({                                                                                                                                      \
+        const _Actor400600ZebraStalkerWork* boundWork = (actorTask)->work;                                                                  \
+        if (boundWork->animStep == 0) {                                                                                                     \
+            (result) = 0;                                                                                                                   \
+        } else {                                                                                                                            \
+            (result) = (u32)(((normalFrame) << ACTOR_400600_FRAME_FRACTION_BITS) / boundWork->animStep) >> ACTOR_400600_RATE_FRACTION_BITS; \
+        }                                                                                                                                   \
+    })
+
 /// Advances the hand-anchored walking cycle on the floor or ceiling.
 ///
 /// Starts clip 2 at normal rate when needed. Each completed loop resets the
@@ -3552,21 +3571,6 @@ static void _actor400600TickHorizontalWalk(Task* task, s16 nextLoopRate)
     s32     soundPan;
     SVECTOR rippleOffset;
 
-    /// Converts a normal-rate walking frame bound to update ticks.
-    ///
-    /// `taskArg` is a side-effect-free live Task pointer, read once on the zero
-    /// path and twice otherwise. `normalFrame` is a nonnegative s32 frame count
-    /// whose eight-bit left shift fits s32; it is evaluated once only at nonzero
-    /// rate. `result` is a writable u8/u32 local, assigned once in either arm.
-    /// Keeps signed division, unsigned shifting and destination-width narrowing.
-    /// Expands one complete if/else statement; invoke in explicit braces.
-#define ACTOR_400600_CONVERT_WALK_BOUND(taskArg, result, normalFrame)                                                                                                          \
-    if (((_Actor400600ZebraStalkerWork*)(taskArg)->work)->animStep == 0) {                                                                                                     \
-        (result) = 0;                                                                                                                                                          \
-    } else {                                                                                                                                                                   \
-        (result) = (u32)(((normalFrame) << ACTOR_400600_FRAME_FRACTION_BITS) / ((_Actor400600ZebraStalkerWork*)(taskArg)->work)->animStep) >> ACTOR_400600_RATE_FRACTION_BITS; \
-    }
-
     work      = task->work;
     rootCoord = task->extra.tmd->coords;
     if (work->animClip != ACTOR_400600_CLIP_WALK) {
@@ -3581,7 +3585,6 @@ static void _actor400600TickHorizontalWalk(Task* task, s16 nextLoopRate)
     secondStart = secondStartTicks;
     ACTOR_400600_CONVERT_WALK_BOUND(task, secondEndTicks, ACTOR_400600_WALK_SECOND_END_FRAME);
     secondEnd = secondEndTicks;
-#undef ACTOR_400600_CONVERT_WALK_BOUND
     if ((s16)_actor400600ClipWasDone(task) != 0) {
         work->animFrame = 0;
         work->animStep  = nextLoopRate;
@@ -3668,21 +3671,6 @@ static void _actor400600TickWallWalk(Task* task)
     u8  firstStart;
     u32 soundId;
     s32 soundPan;
-
-    /// Converts a normal-rate walking frame bound to update ticks.
-    ///
-    /// `taskArg` is a side-effect-free live Task pointer, read once on the zero
-    /// path and twice otherwise. `normalFrame` is a nonnegative s32 frame count
-    /// whose eight-bit left shift fits s32; it is evaluated once only at nonzero
-    /// rate. `result` is a writable u8/u32 local, assigned once in either arm.
-    /// Keeps signed division, unsigned shifting and destination-width narrowing.
-    /// Expands one complete if/else statement; invoke in explicit braces.
-#define ACTOR_400600_CONVERT_WALK_BOUND(taskArg, result, normalFrame)                                                                                                          \
-    if (((_Actor400600ZebraStalkerWork*)(taskArg)->work)->animStep == 0) {                                                                                                     \
-        (result) = 0;                                                                                                                                                          \
-    } else {                                                                                                                                                                   \
-        (result) = (u32)(((normalFrame) << ACTOR_400600_FRAME_FRACTION_BITS) / ((_Actor400600ZebraStalkerWork*)(taskArg)->work)->animStep) >> ACTOR_400600_RATE_FRACTION_BITS; \
-    }
 
     work      = task->work;
     rootCoord = task->extra.tmd->coords;

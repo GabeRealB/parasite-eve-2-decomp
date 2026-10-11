@@ -3648,14 +3648,16 @@ static inline void _actor400500CopyCrawlResetRotation(const MATRIX* source, MATR
     destination->m[2][2] = source->m[2][2];
 }
 
-/// Consumes a ceiling-fall request through the caller's live work cursor.
+/// Consumes a pending ceiling-fall request and reports whether fall was entered.
 ///
-/// `task`, `workCursor` and `taken` must be side-effect-free identifiers. The
-/// cursor is refreshed, the request is cleared and `taken` receives 0 or 1;
-/// entering fall evaluates `task` again. The caller supplies a writable work
-/// pointer and s32 result. No pointer is retained.
+/// Requires stable task, workCursor and taken identifiers: a live Task*, a writable
+/// _Actor400500GrayStalkerWork* local and an s32 result. Refreshes the work cursor
+/// and clears a pending request even on the floor. Returns its result through taken:
+/// 0 for no request or an actor already on the floor, 1 after entering fall otherwise.
+/// Arguments are evaluated repeatedly and no pointer is retained.
+/// Statement-only GNU expression; its value is not part of the interface.
 #define ACTOR_400500_TAKE_CEILING_FALL(task, workCursor, taken)          \
-    {                                                                    \
+    ({                                                                   \
         (workCursor) = (task)->work;                                     \
         if ((workCursor)->ceilingFallPending != 0) {                     \
             (workCursor)->ceilingFallPending = 0;                        \
@@ -3668,7 +3670,7 @@ static inline void _actor400500CopyCrawlResetRotation(const MATRIX* source, MATR
         } else {                                                         \
             (taken) = 0;                                                 \
         }                                                                \
-    }
+    })
 
 /// Chooses a crawl direction from the room zone and current target offset.
 ///
