@@ -13,3 +13,4 @@ gMappicS302WaterTowerShape = 0x8012f9e8;
 gMappicS302BreezewayShape = 0x8012fa94;
 gMappicS302FactoryShape = 0x8012fb24;
 gMappicS302GarageShape = 0x8012fbb4;
+gMappicS302DrivewayShape = 0x8012fc7c;

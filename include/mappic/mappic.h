@@ -295,7 +295,13 @@ extern TmdSource gMappicS202FactoryShape;
 /// `mappic_s2_02` package loaded while these are used.
 extern TmdSource gMappicS202GarageShape;
 
-extern TmdSource D_mappic_s2_02_8012FC64;
+/// Driveway's three-quad area fill on page 2 of the daytime Dryfield map.
+///
+/// Eight vertices lie in the model X/Z plane; the map scales them by
+/// 1495/4096 and maps Z to inverted screen Y. Has no normal data. The map
+/// borrows the vertices and first stream group to cover an unvisited area
+/// or tint a visited marked area; keep `mappic_s2_02` loaded during use.
+extern TmdSource gMappicS202DrivewayShape;
 
 extern TmdSource D_mappic_s2_02_8012FD60;
 
@@ -735,7 +741,13 @@ extern TmdSource gMappicS302FactoryShape;
 /// `mappic_s3_02` package loaded while these are used.
 extern TmdSource gMappicS302GarageShape;
 
-extern TmdSource D_mappic_s3_02_8012FC7C;
+/// Driveway's three-quad area fill on page 2 of the nighttime Dryfield map.
+///
+/// Eight vertices lie in the model X/Z plane; the map scales them by
+/// 1495/4096 and maps Z to inverted screen Y. Has no normal data. The map
+/// borrows the vertices and first stream group to cover an unvisited area
+/// or tint a visited marked area; keep `mappic_s3_02` loaded during use.
+extern TmdSource gMappicS302DrivewayShape;
 
 extern TmdSource D_mappic_s3_02_8012FD78;
 

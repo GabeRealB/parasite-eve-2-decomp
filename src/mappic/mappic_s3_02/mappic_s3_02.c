@@ -653,32 +653,37 @@ TmdSource gMappicS302GarageShape = {
     .stream           = _gMappicS302GarageShapeStream,
 };
 
-static TmdBone _gMappicS302MappicS202Model00CF800D34Skeleton[1] = {
+/// Identity transform and self-parented root for the Driveway shape.
+static TmdBone _gMappicS302DrivewayShapeSkeleton[] = {
 #include "assets/mappic_s2_02_model_00CF8_00D34_skeleton.inc"
 };
 
-static u32 _gMappicS302MappicS202Model00CF800D34PartVerts[1] = {
+/// Vertex count of the Driveway shape's sole part (eight vertices).
+static u32 _gMappicS302DrivewayShapePartVerts[] = {
 #include "assets/mappic_s2_02_model_00CF8_00D34_partVerts.inc"
 };
 
-static SVECTOR _gMappicS302MappicS202Model00CF800D34Verts[8] = {
+/// Driveway's map footprint in integer model X/Z coordinates, with Y zero.
+static SVECTOR _gMappicS302DrivewayShapeVerts[] = {
 #include "assets/mappic_s2_02_model_00CF8_00D34_verts.inc"
 };
 
-static u32 _gMappicS302MappicS202Model00CF800D34Stream[15] = {
+/// Packed command stream for the Driveway shape's three unlit quads.
+///
+/// Each quad has four vertex byte offsets and white colour. Two group ends
+/// and the stream end follow; the map reads only the first group.
+static u32 _gMappicS302DrivewayShapeStream[] = {
 #include "assets/mappic_s2_02_model_00CF8_00D34_stream.inc"
 };
 
-TmdSource D_mappic_s3_02_8012FC7C = {
-    0,
-    72,
-    0,
-    1,
-    _gMappicS302MappicS202Model00CF800D34PartVerts,
-    _gMappicS302MappicS202Model00CF800D34Verts,
-    &_gMappicS302MappicS202Model00CF800D34Verts[8],
-    _gMappicS302MappicS202Model00CF800D34Skeleton,
-    _gMappicS302MappicS202Model00CF800D34Stream,
+TmdSource gMappicS302DrivewayShape = {
+    .bufferHalfBytes  = 3 * sizeof(POLY_F4),
+    .partCount        = ARRAY_SIZE(_gMappicS302DrivewayShapeSkeleton),
+    .partVertexCounts = _gMappicS302DrivewayShapePartVerts,
+    .verts            = _gMappicS302DrivewayShapeVerts,
+    .normals          = &_gMappicS302DrivewayShapeVerts[ARRAY_SIZE(_gMappicS302DrivewayShapeVerts)], // Empty normal pool at the vertex end.
+    .skeleton         = _gMappicS302DrivewayShapeSkeleton,
+    .stream           = _gMappicS302DrivewayShapeStream,
 };
 
 static TmdBone _gMappicS302MappicS202Model00DD0Skeleton[1] = {
