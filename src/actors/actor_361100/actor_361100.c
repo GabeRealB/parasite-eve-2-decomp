@@ -14,6 +14,7 @@
 
 #include "gameplay/actor_render.h"
 #include "gameplay/animation.h"
+#include "gameplay/captions.h"
 #include "gameplay/display.h"
 #include "gameplay/effect_tasks.h"
 #include "gameplay/enemy.h"
@@ -21,6 +22,7 @@
 #include "gameplay/evs_scripts.h"
 #include "gameplay/message.h"
 #include "gameplay/pad_script.h"
+#include "gameplay/player_actor.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
 #include "gameplay/scene_combat.h"
@@ -110,10 +112,6 @@ STATIC_ASSERT_SIZEOF(_Actor361100AyaBreaWork, 0x4A4);
 /// the room's reset only forgets it, so reset requires any prior task to be gone.
 static Task* _gActor361100HeadAimTask;
 
-/// Script pair handed to `padScriptSpawn` on every even frame of the blink.
-extern PadScriptCmd              D_actor_361100_80166AD0[2];
-extern PadScriptVibrationSegment D_actor_361100_80166AD8;
-
 static void _actor361100DrawStreamRefraction(Task* task);
 
 /// Draw modes with deferred primitive-buffer release or manual buffer recovery.
@@ -171,6 +169,48 @@ enum {
 /// Authored exit selector of both scripted models; each receiver exits on any unknown command.
 enum { ACTOR_361100_COMMAND_EXIT = 0xFFFF };
 
+/// View selectors and CAP command slot authored for the pod-bottom entry script.
+enum {
+    ACTOR_361100_SCENE_VIEW_REFRACTION = 11,
+    ACTOR_361100_SCENE_VIEW_FIGHT      = 10,
+    ACTOR_361100_SCENE_SKIP_VIEW_LOAD  = 13,
+    ACTOR_361100_SCENE_CAP_COMMAND     = 2,
+};
+
+/// Indexed clips selected by the scene's two nineteen-part model requests.
+enum {
+    ACTOR_361100_SCENE_MODEL_BANK      = 0,
+    ACTOR_361100_TENTACLE_SCENE_CLIP_1 = 1,
+    ACTOR_361100_TENTACLE_SCENE_CLIP_2 = 2,
+    ACTOR_361100_TENTACLE_SCENE_CLIP_3 = 3,
+    ACTOR_361100_AYA_SCENE_CLIP_1      = 1,
+    ACTOR_361100_AYA_SCENE_CLIP_2      = 2,
+    ACTOR_361100_AYA_SCENE_CLIP_3      = 3,
+    ACTOR_361100_AYA_SCENE_CLIP_4      = 4,
+};
+
+/// Receiver-specific selectors stored in the pod scene's actor-command records.
+///
+/// Boss hide also parks control and disables lock-on. Tentacle stop preserves
+/// its carry/countdown; Aya stop clears her countdown while preserving carry.
+enum {
+    ACTOR_361100_SCENE_BOSS_HIDE           = 8,
+    ACTOR_361100_SCENE_TENTACLE_STOP       = 0,
+    ACTOR_361100_SCENE_TENTACLE_FIRST_LEG  = 1,
+    ACTOR_361100_SCENE_TENTACLE_SECOND_LEG = 2,
+    ACTOR_361100_SCENE_TENTACLE_THIRD_LEG  = 3,
+    ACTOR_361100_SCENE_AYA_STOP            = 0,
+    ACTOR_361100_SCENE_AYA_RISE            = 1,
+};
+
+/// Segment indices and full-scale byte intensity used by the scene's vibration scripts.
+enum {
+    ACTOR_361100_VIBRATION_RAMP_UP        = 0,
+    ACTOR_361100_VIBRATION_RAMP_DOWN      = 1,
+    ACTOR_361100_VIBRATION_BINARY_HOLD    = 2,
+    ACTOR_361100_VIBRATION_FULL_INTENSITY = 255,
+};
+
 static void _actor361100TickTentacle(Task* task);
 static void _actor361100InitTentacle(Task* task);
 static void _actor361100ExitTentacle(Task* task);
@@ -220,24 +260,8 @@ static void         _actor361100AyaBreaTask(Task* task);
 static void _actor361100SetHeadAimMode(s32 mode);
 static void _actor361100AddFlowFlags(s32 bits);
 
-extern AnimationPlayRequest      D_actor_361100_80165DF0;
-extern AnimationPlayRequest      D_actor_361100_80165E04;
-extern AnimationPlayRequest      D_actor_361100_80165E18;
-extern AnimationPlayRequest      D_actor_361100_80165E9C;
-extern AnimationPlayRequest      D_actor_361100_80165EB0;
-extern AnimationPlayRequest      D_actor_361100_80165EC4;
-extern AnimationPlayRequest      D_actor_361100_80165ED8;
-extern ActorCommand              D_actor_361100_80165DD8;
-extern ActorCommand              D_actor_361100_80165E78;
-extern ActorCommand              D_actor_361100_80165E7C;
-extern ActorCommand              D_actor_361100_80165E80;
-extern PadScriptCmd              D_actor_361100_80166AB8[3];
-extern PadScriptVibrationSegment D_actor_361100_80166AC4[3];
-extern ActorTransform            D_actor_361100_80165E2C;
-extern ActorTransform            D_actor_361100_80165E5C;
-extern ActorTransform            D_actor_361100_80165EEC;
-extern ActorTransform            D_actor_361100_80165F04;
-extern ActorTransform            D_actor_361100_80165F1C;
+static PadScriptCmd              _gActor361100TentacleFirstLegVibrationCommands[3];
+static PadScriptVibrationSegment _gActor361100TentacleFirstLegVibrationSegments[3];
 static void                      _actor361100StageSceneAudioStart(void);
 static void                      _actor361100StartScenePlayback(void);
 static void                      _actor361100FinishScene(void);
@@ -571,7 +595,18 @@ static AnimationPlayRequest _gActor361100PlayerSceneAnimation53 = {
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
 };
 
-AnimationPlayRequest D_actor_361100_80165D2C = { { .index = 1 }, 54, ANIMATION_BLEND_INTERPOLATE, 4, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Retained player clip-54 request, unused by the pod scene's command streams.
+///
+/// Selects the installed scene-bank extension with four whole blend frames and
+/// no grid participation. The approach instead selects clip 54 by its move-
+/// animation record; no code or assembly takes this request's address.
+static AnimationPlayRequest _gActor361100PlayerSceneAnimation54 = {
+    .source               = { .index = ACTOR_361100_PLAYER_INITIAL_BANK },
+    .animationId          = ACTOR_361100_PLAYER_SCENE_CLIP_54,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = 4,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
 /// Player clip 55 requested as the boss is told to ascend to the arena.
 ///
@@ -650,29 +685,117 @@ static ActorCommand _gActor361100BossStartFightCommand = {
     .command = ACTOR_403600_COMMAND_START_FIGHT,
 };
 
-ActorCommand D_actor_361100_80165DD8 = { { .loc = { 4, 22 } }, 8 };
+/// Hides and parks the placed boss before pod-scene playback, disabling lock-on.
+///
+/// Context identifies the pod-bottom area; the boss reads only the command word
+/// during synchronous dispatch and retains no pointer to this record.
+static ActorCommand _gActor361100BossHideCommand = {
+    .context = { .loc = { GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_POD_BOTTOM } },
+    .command = ACTOR_361100_SCENE_BOSS_HIDE,
+};
 
+/// Unreferenced zero-filled storage; its animation-request type and role are unproven.
 AnimationPlayRequest D_actor_361100_80165DDC = { 0 };
 
-AnimationPlayRequest D_actor_361100_80165DF0 = { { .index = 0 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Resets tentacle bank-0 clip 1 before the first translation leg.
+///
+/// Dispatch consumes this request synchronously; the rig borrows the clip data
+/// during playback. The tentacle ignores the world-collision choice.
+static AnimationPlayRequest _gActor361100TentacleSceneAnimation1 = {
+    .source               = { .index = ACTOR_361100_SCENE_MODEL_BANK },
+    .animationId          = ACTOR_361100_TENTACLE_SCENE_CLIP_1,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
-AnimationPlayRequest D_actor_361100_80165E04 = { { .index = 0 }, 2, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Resets tentacle bank-0 clip 2 after placement for the second translation leg.
+///
+/// Dispatch consumes this request synchronously; the rig borrows the clip data
+/// during playback. The tentacle ignores the world-collision choice.
+static AnimationPlayRequest _gActor361100TentacleSceneAnimation2 = {
+    .source               = { .index = ACTOR_361100_SCENE_MODEL_BANK },
+    .animationId          = ACTOR_361100_TENTACLE_SCENE_CLIP_2,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
-AnimationPlayRequest D_actor_361100_80165E18 = { { .index = 0 }, 3, ANIMATION_BLEND_INTERPOLATE, 4, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Blends tentacle bank-0 clip 3 over four whole frames before the third leg.
+///
+/// Dispatch consumes this request synchronously; the ticking rig blends from
+/// its current pose and borrows the clip data. World-collision choice is ignored.
+static AnimationPlayRequest _gActor361100TentacleSceneAnimation3 = {
+    .source               = { .index = ACTOR_361100_SCENE_MODEL_BANK },
+    .animationId          = ACTOR_361100_TENTACLE_SCENE_CLIP_3,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = 4,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
-ActorTransform D_actor_361100_80165E2C = { { 8200, 9270, 4060, 0 }, { 0, 1536, 0, 0 } };
+/// Tentacle root placement before its first translation leg.
+///
+/// XYZ uses root-parent game units and yaw is three eighths of a turn.
+/// Synchronous placement applies all Euler angles and clears velocity/carry.
+static ActorTransform _gActor361100TentacleFirstLegPlacement = {
+    .pos = { 8200, 9270, 4060, 0 },
+    .rot = { 0, 3 * ACTOR_TRANSFORM_ANGLE_TURN / 8, 0, 0 },
+};
 
-ActorTransform D_actor_361100_80165E44 = { { 7970, 1300, 4350, 0 }, { 0, 1536, 0, 0 } };
+/// Retained nominal first-leg destination, unused by the pod-scene scripts.
+///
+/// XYZ uses root-parent game units; yaw is three eighths of a turn. This is the
+/// first-leg placement plus its authored displacement, not the actual endpoint:
+/// the retained movement code applies one extra velocity step.
+static ActorTransform _gActor361100TentacleFirstLegDestination = {
+    .pos = { 7970, 1300, 4350, 0 },
+    .rot = { 0, 3 * ACTOR_TRANSFORM_ANGLE_TURN / 8, 0, 0 },
+};
 
-ActorTransform D_actor_361100_80165E5C = { { 4460, 470, 8650, 0 }, { 1024, -341, 0, 0 } };
+/// Tentacle root placement before its second translation leg.
+///
+/// XYZ uses root-parent game units; Euler angles use 4096 units per turn.
+/// Synchronous placement applies Rz * Ry * Rx and clears velocity/carry.
+static ActorTransform _gActor361100TentacleSecondLegPlacement = {
+    .pos = { 4460, 470, 8650, 0 },
+    .rot = { ACTOR_TRANSFORM_ANGLE_TURN / 4, -341, 0, 0 },
+};
 
-ActorCommand D_actor_361100_80165E74 = { { .loc = { 4, 22 } }, 0 };
+/// Retained tentacle stop command, unused by the pod-scene scripts.
+///
+/// Selector 0 clears velocity while preserving fractional carry and countdown.
+/// Pod-bottom context tags are stored but ignored by the tentacle receiver.
+static ActorCommand _gActor361100TentacleStopCommand = {
+    .context = { .loc = { GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_POD_BOTTOM } },
+    .command = ACTOR_361100_SCENE_TENTACLE_STOP,
+};
 
-ActorCommand D_actor_361100_80165E78 = { { .loc = { 4, 22 } }, 1 };
+/// Starts the tentacle's first leg with displacement (-230,-7970,290) over 25 ticks.
+///
+/// The receiver retains fractional carry and applies 26 truncated 16.16 velocity
+/// steps, including the tick finding zero. Dispatch reads only the command word.
+static ActorCommand _gActor361100TentacleFirstLegCommand = {
+    .context = { .loc = { GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_POD_BOTTOM } },
+    .command = ACTOR_361100_SCENE_TENTACLE_FIRST_LEG,
+};
 
-ActorCommand D_actor_361100_80165E7C = { { .loc = { 4, 22 } }, 2 };
+/// Starts the tentacle's second leg with displacement (-1350,-4430,740) over 26 ticks.
+///
+/// The receiver retains fractional carry and applies 27 truncated 16.16 velocity
+/// steps, including the tick finding zero. Dispatch reads only the command word.
+static ActorCommand _gActor361100TentacleSecondLegCommand = {
+    .context = { .loc = { GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_POD_BOTTOM } },
+    .command = ACTOR_361100_SCENE_TENTACLE_SECOND_LEG,
+};
 
-ActorCommand D_actor_361100_80165E80 = { { .loc = { 4, 22 } }, 3 };
+/// Starts the tentacle's third leg with displacement (1350,6340,-4140) over 14 ticks.
+///
+/// The receiver retains fractional carry and applies 15 truncated 16.16 velocity
+/// steps, including the tick finding zero. Dispatch reads only the command word.
+static ActorCommand _gActor361100TentacleThirdLegCommand = {
+    .context = { .loc = { GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_POD_BOTTOM } },
+    .command = ACTOR_361100_SCENE_TENTACLE_THIRD_LEG,
+};
 
 /// Exits the tentacle task at the end of normal playback or scene skip.
 ///
@@ -683,25 +806,101 @@ static ActorCommand _gActor361100TentacleExitCommand = {
     .command = ACTOR_361100_COMMAND_EXIT,
 };
 
+/// Unreferenced zero-filled storage; its animation-request type and role are unproven.
 AnimationPlayRequest D_actor_361100_80165E88 = { 0 };
 
-AnimationPlayRequest D_actor_361100_80165E9C = { { .index = 0 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Resets Aya-body bank-0 clip 1 after the first cut and again before her rise.
+///
+/// Each synchronous request restarts the clip, even when it is already playing.
+/// The rig borrows clip data during playback; world-collision choice is ignored.
+static AnimationPlayRequest _gActor361100AyaBreaSceneAnimation1 = {
+    .source               = { .index = ACTOR_361100_SCENE_MODEL_BANK },
+    .animationId          = ACTOR_361100_AYA_SCENE_CLIP_1,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
-AnimationPlayRequest D_actor_361100_80165EB0 = { { .index = 0 }, 2, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Resets Aya-body bank-0 clip 2 when the figure is first shown.
+///
+/// Dispatch consumes this request synchronously; the rig borrows the clip data
+/// during playback. The body ignores the world-collision choice.
+static AnimationPlayRequest _gActor361100AyaBreaSceneAnimation2 = {
+    .source               = { .index = ACTOR_361100_SCENE_MODEL_BANK },
+    .animationId          = ACTOR_361100_AYA_SCENE_CLIP_2,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
-AnimationPlayRequest D_actor_361100_80165EC4 = { { .index = 0 }, 3, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Resets Aya-body bank-0 clip 3 after the reveal's forty-frame wait.
+///
+/// Dispatch consumes this request synchronously; the rig borrows the clip data
+/// during playback. The body ignores the world-collision choice.
+static AnimationPlayRequest _gActor361100AyaBreaSceneAnimation3 = {
+    .source               = { .index = ACTOR_361100_SCENE_MODEL_BANK },
+    .animationId          = ACTOR_361100_AYA_SCENE_CLIP_3,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
-AnimationPlayRequest D_actor_361100_80165ED8 = { { .index = 0 }, 4, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Resets Aya-body bank-0 clip 4 on the next CAP cue before the tentacle is shown.
+///
+/// Dispatch consumes this request synchronously; the rig borrows the clip data
+/// during playback. The body ignores the world-collision choice.
+static AnimationPlayRequest _gActor361100AyaBreaSceneAnimation4 = {
+    .source               = { .index = ACTOR_361100_SCENE_MODEL_BANK },
+    .animationId          = ACTOR_361100_AYA_SCENE_CLIP_4,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
-ActorTransform D_actor_361100_80165EEC = { { 4440, -0x3250, 6960, 0 }, { 0, 0, 0, 0 } };
+/// Aya-body root placement when the figure is first shown in the pod scene.
+///
+/// XYZ uses root-parent game units with zero Euler rotation. Synchronous
+/// placement does not stop any existing scripted body translation.
+static ActorTransform _gActor361100AyaBreaRevealPlacement = {
+    .pos = { 4440, -12880, 6960, 0 },
+    .rot = { 0, 0, 0, 0 },
+};
 
-ActorTransform D_actor_361100_80165F04 = { { 6870, 1830, 5310, 0 }, { 0, 0, 0, 0 } };
+/// Aya-body root placement at the first faded scene cut.
+///
+/// XYZ uses root-parent game units with zero Euler rotation. Synchronous
+/// placement does not stop any existing scripted body translation.
+static ActorTransform _gActor361100AyaBreaFirstCutPlacement = {
+    .pos = { 6870, 1830, 5310, 0 },
+    .rot = { 0, 0, 0, 0 },
+};
 
-ActorTransform D_actor_361100_80165F1C = { { 7370, 2550, 6228, 0 }, { 371, 885, -450, 0 } };
+/// Aya-body root placement immediately before the figure's rise command.
+///
+/// XYZ uses root-parent game units and Euler angles use 4096 units per turn.
+/// Dispatch applies all Euler angles and retains existing scripted translation.
+static ActorTransform _gActor361100AyaBreaRisePlacement = {
+    .pos = { 7370, 2550, 6228, 0 },
+    .rot = { 371, 885, -450, 0 },
+};
 
-ActorCommand D_actor_361100_80165F34 = { { .loc = { 4, 22 } }, 0 };
+/// Retained Aya-body stop command, unused by the pod-scene scripts.
+///
+/// Selector 0 clears velocity/countdown while preserving fractional carry.
+/// Pod-bottom context tags are stored but ignored by the body receiver.
+static ActorCommand _gActor361100AyaBreaStopCommand = {
+    .context = { .loc = { GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_POD_BOTTOM } },
+    .command = ACTOR_361100_SCENE_AYA_STOP,
+};
 
-ActorCommand D_actor_361100_80165F38 = { { .loc = { 4, 22 } }, 1 };
+/// Starts Aya's body moving 450 root-parent game units along +Y over 160 ticks.
+///
+/// The receiver applies 160 truncated 16.16 velocity steps, retaining carry
+/// from earlier movement. Synchronous dispatch reads only the command word.
+static ActorCommand _gActor361100AyaBreaRiseCommand = {
+    .context = { .loc = { GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_POD_BOTTOM } },
+    .command = ACTOR_361100_SCENE_AYA_RISE,
+};
 
 /// Exits Aya's scripted body task at the end of normal playback or scene skip.
 ///
@@ -712,21 +911,32 @@ static ActorCommand _gActor361100AyaBreaExitCommand = {
     .command = ACTOR_361100_COMMAND_EXIT,
 };
 
-EvsSceneKey D_actor_361100_80165F40 = { 6, 11, 21 };
+/// Scene/audio stream key selected for the pod-bottom entry presentation.
+///
+/// Group 6 selects the current folder's stream table, ID 11 and first qualifier
+/// 21, with second qualifier zero. The interpreter retains this key through
+/// playback; the selected resources and this overlay must remain loaded.
+static EvsSceneKey _gActor361100PodSceneKey = {
+    .group    = 6,
+    .streamId = 11,
+    .subId    = 21,
+};
 
-EvsCommand D_actor_361100_80165F48[96] = {
-    { EVENT_SCRIPT_OPCODE_SELECT_SCENE, { .sceneKey = &D_actor_361100_80165F40 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+EvsCommand gActor361100PodSceneScript[96] = {
+    // Select playback, install player clips and park the boss for the presentation.
+    { EVENT_SCRIPT_OPCODE_SELECT_SCENE, { .sceneKey = &_gActor361100PodSceneKey }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor361100StageSceneAudioStart }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_AMBIENT_RGB, { .value = 100 }, { .value = 100 }, { .value = 100 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &_gActor361100CopyPlayerSceneAnimations } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor361100PlayerSceneOpeningAnimation }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gActor361100PlayerSceneOpeningPlacement } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_361100_80165DD8 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 11 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_361100_SCENE_BOSS_INDEX }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gActor361100BossHideCommand } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = ACTOR_361100_SCENE_VIEW_REFRACTION }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    // Yield once before starting the staged scene playback.
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor361100StartScenePlayback }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor361100SpawnHeadAimTask }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 2 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_START }, { .value = ACTOR_361100_SCENE_CAP_COMMAND }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_RUN_TO }, { .message = { .transform = &_gActor361100PlayerSceneRunDestination } }, { .message = { .moveAnimation = &_gActor361100PlayerSceneRunAnimations } } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_361100_SCENE_AYA_BREA_INDEX }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gActor361100AyaBreaSceneOpeningPlacement } }, { .value = 0 } },
@@ -734,67 +944,71 @@ EvsCommand D_actor_361100_80165F48[96] = {
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 70 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor361100PlayerSceneAnimation53 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 2 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 2 }, { .value = 2004 }, { .message = { .pointer = &D_actor_361100_80165EEC } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 2 }, { .value = 2003 }, { .message = { .pointer = &D_actor_361100_80165EB0 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_361100_SCENE_AYA_BREA_INDEX }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = ACTOR_MESSAGE_DRAW_SHOW }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_361100_SCENE_AYA_BREA_INDEX }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gActor361100AyaBreaRevealPlacement } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_361100_SCENE_AYA_BREA_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor361100AyaBreaSceneAnimation2 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor361100SetHeadAimMode }, { .value = ACTOR_361100_HEAD_AIM_KILL }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 40 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 2 }, { .value = 2003 }, { .message = { .pointer = &D_actor_361100_80165EC4 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_361100_SCENE_AYA_BREA_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor361100AyaBreaSceneAnimation3 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 2 }, { .value = 2003 }, { .message = { .pointer = &D_actor_361100_80165ED8 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_361100_SCENE_AYA_BREA_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor361100AyaBreaSceneAnimation4 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor361100PlayerSceneAnimation49 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2004 }, { .message = { .pointer = &D_actor_361100_80165E2C } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2003 }, { .message = { .pointer = &D_actor_361100_80165DF0 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_361100_80165E78 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_VIBRATION, { .padCommands = D_actor_361100_80166AB8 }, { .vibrationSegments = D_actor_361100_80166AC4 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    // Play the tentacle's three translation legs against CAP cues.
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_361100_SCENE_TENTACLE_INDEX }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = ACTOR_MESSAGE_DRAW_SHOW }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_361100_SCENE_TENTACLE_INDEX }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gActor361100TentacleFirstLegPlacement } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_361100_SCENE_TENTACLE_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor361100TentacleSceneAnimation1 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_361100_SCENE_TENTACLE_INDEX }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gActor361100TentacleFirstLegCommand } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_START_VIBRATION, { .padCommands = _gActor361100TentacleFirstLegVibrationCommands }, { .vibrationSegments = _gActor361100TentacleFirstLegVibrationSegments }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 5 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor361100PlayerSceneAnimation50 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2004 }, { .message = { .pointer = &D_actor_361100_80165E5C } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2003 }, { .message = { .pointer = &D_actor_361100_80165E04 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_361100_80165E7C } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_361100_SCENE_TENTACLE_INDEX }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gActor361100TentacleSecondLegPlacement } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_361100_SCENE_TENTACLE_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor361100TentacleSceneAnimation2 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_361100_SCENE_TENTACLE_INDEX }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gActor361100TentacleSecondLegCommand } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2003 }, { .message = { .pointer = &D_actor_361100_80165E18 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_361100_80165E80 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 2 }, { .value = 2005 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_361100_SCENE_TENTACLE_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor361100TentacleSceneAnimation3 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_361100_SCENE_TENTACLE_INDEX }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gActor361100TentacleThirdLegCommand } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_361100_SCENE_AYA_BREA_INDEX }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = ACTOR_MESSAGE_DRAW_HIDE }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = 0 }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    // Fade across a scene cut while restoring the next actor presentation.
+    { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = SCREEN_FADE_SUBTRACT }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_SECONDARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gActor361100PlayerSceneExitPlacement } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor361100PlayerSceneAnimation52 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2005 }, { .value = 2 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 2 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 2 }, { .value = 2004 }, { .message = { .pointer = &D_actor_361100_80165F04 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 2 }, { .value = 2003 }, { .message = { .pointer = &D_actor_361100_80165E9C } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_361100_SCENE_TENTACLE_INDEX }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = ACTOR_361100_DRAW_HIDE_RELEASE }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_361100_SCENE_AYA_BREA_INDEX }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = ACTOR_MESSAGE_DRAW_SHOW }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_361100_SCENE_AYA_BREA_INDEX }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gActor361100AyaBreaFirstCutPlacement } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_361100_SCENE_AYA_BREA_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor361100AyaBreaSceneAnimation1 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 35 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor361100PlayerSceneAnimation51 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 2 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 2 }, { .value = 2004 }, { .message = { .pointer = &D_actor_361100_80165F1C } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 2 }, { .value = 2003 }, { .message = { .pointer = &D_actor_361100_80165E9C } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 2 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_361100_80165F38 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_361100_SCENE_AYA_BREA_INDEX }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = ACTOR_MESSAGE_DRAW_SHOW }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_361100_SCENE_AYA_BREA_INDEX }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gActor361100AyaBreaRisePlacement } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_361100_SCENE_AYA_BREA_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor361100AyaBreaSceneAnimation1 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_361100_SCENE_AYA_BREA_INDEX }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gActor361100AyaBreaRiseCommand } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 2 }, { .value = 2005 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_361100_SCENE_AYA_BREA_INDEX }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = ACTOR_MESSAGE_DRAW_HIDE }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor361100SpawnShakeTask }, { .value = 120 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 90 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = 0 }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    // Fade across a scene cut while restoring the next actor presentation.
+    { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = SCREEN_FADE_SUBTRACT }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_SECONDARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor361100PlayerSceneAnimation56 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SET_FRAMEBUFFER_BLEND, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SET_FRAMEBUFFER_BLEND, { .value = true }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_AREA_MUSIC, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor361100PlayerSceneAnimation55 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_361100_SCENE_BOSS_INDEX }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gActor361100BossAscendCommand } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    // Restore ordinary presentation and hand control to the boss fight.
     { EVENT_SCRIPT_OPCODE_CLEAR_AMBIENT_RGB, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SET_FRAMEBUFFER_BLEND, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SET_FRAMEBUFFER_BLEND, { .value = false }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor361100FinishScene }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor361100CancelScene }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -802,32 +1016,33 @@ EvsCommand D_actor_361100_80165F48[96] = {
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor361100AddFlowFlags }, { .value = GAME_SESSION_FLOW_SKIP_AREA_MUSIC }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = sceneEngageBattle }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 2 }, { .value = 2005 }, { .value = 2 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_361100_SCENE_AYA_BREA_INDEX }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = ACTOR_361100_DRAW_HIDE_RELEASE }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_SKIP_TARGET, { .commands = NULL }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 10 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = ACTOR_361100_SCENE_VIEW_FIGHT }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_361100_SCENE_BOSS_INDEX }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gActor361100BossStartFightCommand } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_361100_SCENE_AYA_BREA_INDEX }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gActor361100AyaBreaExitCommand } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_361100_SCENE_TENTACLE_INDEX }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gActor361100TentacleExitCommand } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 2 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = PLAYER_ACTOR_END_SCRIPTED_KEEP_ROOT_OFFSET }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-EvsCommand D_actor_361100_80166848[26] = {
-    { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+EvsCommand gActor361100PodSceneSkipScript[26] = {
+    // Restore the fight placement under a fade before releasing scene resources.
+    { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = SCREEN_FADE_SUBTRACT }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2005 }, { .value = 2 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 2 }, { .value = 2005 }, { .value = 2 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_361100_SCENE_TENTACLE_INDEX }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = ACTOR_361100_DRAW_HIDE_RELEASE }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_361100_SCENE_AYA_BREA_INDEX }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = ACTOR_361100_DRAW_HIDE_RELEASE }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_361100_SCENE_BOSS_INDEX }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gActor361100BossStartFightCommand } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gActor361100PlayerSceneExitPlacement } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor361100PlayerSkipAnimation }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEAR_AMBIENT_RGB, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SET_FRAMEBUFFER_BLEND, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SET_FRAMEBUFFER_BLEND, { .value = false }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor361100CancelScene }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor361100SetHeadAimMode }, { .value = ACTOR_361100_HEAD_AIM_KILL }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SET_DIRTY_VIEW, { .value = 13 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SET_DIRTY_VIEW, { .value = ACTOR_361100_SCENE_SKIP_VIEW_LOAD }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 10 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = ACTOR_361100_SCENE_VIEW_FIGHT }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_AREA_MUSIC, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -838,28 +1053,57 @@ EvsCommand D_actor_361100_80166848[26] = {
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_361100_SCENE_AYA_BREA_INDEX }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gActor361100AyaBreaExitCommand } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_361100_SCENE_TENTACLE_INDEX }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gActor361100TentacleExitCommand } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 2 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = PLAYER_ACTOR_END_SCRIPTED_KEEP_ROOT_OFFSET }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-PadScriptCmd D_actor_361100_80166AB8[3] = {
-    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_WAIT, 11), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 0) },
-    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 2), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 1) },
+/// Two-lane controller vibration started with the tentacle's first translation leg.
+///
+/// The binary motor waits eleven script frames then holds for eight. The
+/// variable motor plays the fifteen-frame rise and fall segments in order.
+/// Both lanes reach the third STOP entry without jumps; PLAY indices are 0..2.
+/// The spawned task borrows commands and segments until teardown.
+static PadScriptCmd _gActor361100TentacleFirstLegVibrationCommands[3] = {
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_WAIT, 11), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, ACTOR_361100_VIBRATION_RAMP_UP) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, ACTOR_361100_VIBRATION_BINARY_HOLD), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, ACTOR_361100_VIBRATION_RAMP_DOWN) },
     { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) }
 };
 
-PadScriptVibrationSegment D_actor_361100_80166AC4[3] = {
-    { 3, 255, 15, 1 },
-    { 255, 107, 15, 1 },
-    { 0, 0, 8, 0 },
+/// Three timed segments for the tentacle's first-leg controller vibration.
+///
+/// Entries 0 and 1 ramp byte intensity 3 toward 255 and 255 toward 107 over
+/// fifteen script frames each; the ramp stops short of the target. Entry 2
+/// supplies an eight-frame binary hold, whose zero intensities are ignored.
+/// The fourth byte's role is unproven and the interpreter never reads it.
+/// This table stays borrowed by the vibration task until teardown.
+static PadScriptVibrationSegment _gActor361100TentacleFirstLegVibrationSegments[3] = {
+    { .startIntensity = 3, .endIntensity = ACTOR_361100_VIBRATION_FULL_INTENSITY, .durationFrames = 15, .field_3 = 1 },
+    { .startIntensity = ACTOR_361100_VIBRATION_FULL_INTENSITY, .endIntensity = 107, .durationFrames = 15, .field_3 = 1 },
+    { .startIntensity = 0, .endIntensity = 0, .durationFrames = 8, .field_3 = 0 },
 };
 
-PadScriptCmd D_actor_361100_80166AD0[2] = {
+/// Single variable-motor pulse requested on every positive countdown tick of scene shake.
+///
+/// The binary lane stops immediately; the variable lane plays segment 0 for
+/// one script frame and then stops at command 1. No command or segment index
+/// can escape the two-entry stream and its one segment. Each spawned task
+/// borrows this pair until teardown, including after the shake task ends.
+static PadScriptCmd _gActor361100ShakeVibrationCommands[2] = {
     { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 0) },
     { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) }
 };
 
-PadScriptVibrationSegment D_actor_361100_80166AD8 = { 255, 255, 1, 1 };
+/// Full-intensity one-script-frame variable-motor pulse used by scene shake.
+///
+/// Both byte intensities are 255; duration 1 posts one eligible motor refresh.
+/// The fourth byte's role is unproven and the interpreter never reads it.
+/// Each spawned vibration task borrows this record until teardown.
+static PadScriptVibrationSegment _gActor361100ShakeVibrationSegment = {
+    .startIntensity = ACTOR_361100_VIBRATION_FULL_INTENSITY,
+    .endIntensity   = ACTOR_361100_VIBRATION_FULL_INTENSITY,
+    .durationFrames = 1,
+    .field_3        = 1,
+};
 
 static TmdBone _gActor361100Model06038Skeleton[19] = {
 #include "assets/actor_361100_model_06038_skeleton.inc"
@@ -1774,7 +2018,7 @@ static void _actor361100ShakeTask(Task* task)
     task->spawnArg1.value = countdown;
     if (countdown > 0) {
         displaySetShakeY((countdown & 1) ? 0 : ACTOR_361100_SHAKE_Y_PIXELS);
-        padScriptSpawn(D_actor_361100_80166AD0, &D_actor_361100_80166AD8);
+        padScriptSpawn(_gActor361100ShakeVibrationCommands, &_gActor361100ShakeVibrationSegment);
     }
     // Check skip after producing this tick's shake and vibration.
     if ((task->spawnArg1.value <= 0) || (gGameSession->evtSkipped != 0)) {

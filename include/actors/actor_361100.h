@@ -3,7 +3,31 @@
 
 #include "types.h"
 
+#include "gameplay/evs.h"
+
 #include "main/task_types.h"
+
+/// Pod-bottom entry scene that presents the tentacle and Aya's body before combat.
+///
+/// Shelter pod-bottom placement variant 1 starts this 96-instruction stream
+/// with `gActor361100PodSceneSkipScript` and `EVENT_SCRIPT_HUD_HIDE_RESTORE`.
+/// Requires initialized player, CAP and scene tasks, with boss, tentacle and
+/// Aya-body actors at placements 0, 1 and 2. actor_361100 and actor_403600,
+/// their animation data and the selected CAP/scene resources must stay loaded
+/// through playback and actor teardown. Installs player-bank clips 47..56,
+/// waits for CAP cues, then releases scripted control and starts the boss fight.
+/// The stream has no calls or jumps and ends with `EVENT_SCRIPT_OPCODE_END`.
+extern EvsCommand gActor361100PodSceneScript[96];
+
+/// Input-skip continuation that restores the pod scene's boss-fight state.
+///
+/// This 26-instruction stream is the initial skip target of
+/// `gActor361100PodSceneScript`; it requires that scene's live tasks/resources.
+/// Hides and releases the scripted models, places the player at the scene exit,
+/// cancels scene playback and head aim, restores view/music/HUD state, starts
+/// combat and exits the two scripted actors. Borrowed storage must remain loaded
+/// until `EVENT_SCRIPT_OPCODE_END`; there are no calls or jumps.
+extern EvsCommand gActor361100PodSceneSkipScript[26];
 
 /// Water presentation recipe for the pod-bottom scene while actor data streams.
 ///

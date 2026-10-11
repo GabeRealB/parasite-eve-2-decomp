@@ -606,8 +606,8 @@ gActor341300WalkwaySceneScript = 0x80165354; // absolute:True owner=actor_341300
 gActor335800BalconyBattleStartScript = 0x80165720; // absolute:True owner=actor_335800
 gActor335800BalconyEntrySkipScript = 0x80165798; // absolute:True owner=actor_335800
 gActor341300WalkwaySceneSkipScript = 0x80165834; // absolute:True owner=actor_341300
-D_actor_361100_80165F48 = 0x80165F48; // absolute:True owner=actor_361100
-D_actor_361100_80166848 = 0x80166848; // absolute:True owner=actor_361100
+gActor361100PodSceneScript = 0x80165F48; // absolute:True owner=actor_361100
+gActor361100PodSceneSkipScript = 0x80166848; // absolute:True owner=actor_361100
 gActor342400EncounterTaskDescs = 0x8016BFE0; // absolute:True owner=actor_342400
 D_actor_560800_8016EA28 = 0x8016EA28; // absolute:True owner=actor_560800
 gActor560800CutsceneTaskDescriptors = 0x801718F0; // absolute:True owner=actor_560800

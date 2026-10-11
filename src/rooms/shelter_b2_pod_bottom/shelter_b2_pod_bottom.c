@@ -15,7 +15,6 @@
 #include "gameplay/areaplace.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
-#include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
 #include "gameplay/light.h"
 #include "gameplay/message.h"
@@ -32,9 +31,6 @@
 #include "main/task_types.h"
 
 #include "mapui/map_shelter.h"
-
-extern EvsCommand D_actor_361100_80165F48[];
-extern EvsCommand D_actor_361100_80166848[];
 
 static void _shelterB2PodBottomInitializeRoomTask(Task* task);
 static void _shelterB2PodBottomIdleRoomTask(Task* unusedTask);
@@ -1293,7 +1289,7 @@ static void _shelterB2PodBottomInitializeRoomTask(Task* task)
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     if (gGameSession->location.loc.variant == ROOM_VARIANT_ENTRY_SCENE) {
         actor361100ClearHeadAimTaskHandle(0);
-        evsStartScriptWithSkip(D_actor_361100_80165F48, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_361100_80166848);
+        evsStartScriptWithSkip(gActor361100PodSceneScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, gActor361100PodSceneSkipScript);
     } else {
         // This boss command ignores its context; keep the complete record initialized.
         command.context.loc.stage = GAME_STAGE_NONE;
