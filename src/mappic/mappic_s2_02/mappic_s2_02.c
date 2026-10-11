@@ -554,32 +554,37 @@ TmdSource gMappicS202WaterTowerShape = {
     .stream           = _gMappicS202WaterTowerShapeStream,
 };
 
-static TmdBone _gMappicS202MappicS400Model0005C00B4CSkeleton[1] = {
+/// Identity transform and self-parented root for the Breezeway shape.
+static TmdBone _gMappicS202BreezewayShapeSkeleton[] = {
 #include "assets/mappic_s4_00_model_0005C_00B4C_skeleton.inc"
 };
 
-static u32 _gMappicS202MappicS400Model0005C00B4CPartVerts[1] = {
+/// Vertex count of the Breezeway shape's sole part (six vertices).
+static u32 _gMappicS202BreezewayShapePartVerts[] = {
 #include "assets/mappic_s4_00_model_0005C_00B4C_partVerts.inc"
 };
 
-static SVECTOR _gMappicS202MappicS400Model0005C00B4CVerts[6] = {
+/// Breezeway's map footprint in integer model X/Z coordinates, with Y zero.
+static SVECTOR _gMappicS202BreezewayShapeVerts[] = {
 #include "assets/mappic_s4_00_model_0005C_00B4C_verts.inc"
 };
 
-static u32 _gMappicS202MappicS400Model0005C00B4CStream[12] = {
+/// Packed command stream for the Breezeway shape's two unlit quads.
+///
+/// Each quad has four packed SVECTOR byte offsets and white colour; two group
+/// ends precede the stream end. The map reads only the first group.
+static u32 _gMappicS202BreezewayShapeStream[] = {
 #include "assets/mappic_s4_00_model_0005C_00B4C_stream.inc"
 };
 
-TmdSource D_mappic_s2_02_8012FA7C = {
-    0,
-    48,
-    0,
-    1,
-    _gMappicS202MappicS400Model0005C00B4CPartVerts,
-    _gMappicS202MappicS400Model0005C00B4CVerts,
-    &_gMappicS202MappicS400Model0005C00B4CVerts[6],
-    _gMappicS202MappicS400Model0005C00B4CSkeleton,
-    _gMappicS202MappicS400Model0005C00B4CStream,
+TmdSource gMappicS202BreezewayShape = {
+    .bufferHalfBytes  = 2 * sizeof(POLY_F4),
+    .partCount        = ARRAY_SIZE(_gMappicS202BreezewayShapeSkeleton),
+    .partVertexCounts = _gMappicS202BreezewayShapePartVerts,
+    .verts            = _gMappicS202BreezewayShapeVerts,
+    .normals          = &_gMappicS202BreezewayShapeVerts[ARRAY_SIZE(_gMappicS202BreezewayShapeVerts)], // Empty normal pool at the vertex end.
+    .skeleton         = _gMappicS202BreezewayShapeSkeleton,
+    .stream           = _gMappicS202BreezewayShapeStream,
 };
 
 static TmdBone _gMappicS202Model00C4800BDCSkeleton[1] = {
