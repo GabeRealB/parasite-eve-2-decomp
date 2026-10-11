@@ -306,7 +306,7 @@ gMappicS302SouvenirShopShape = 0x8012F218; // absolute:True owner=mappic_s3_02 s
 gMappicS302WarehouseShape = 0x8012F2A8; // absolute:True owner=mappic_s3_02 shared=mappic
 D_mappic_s3_02_8012F36C = 0x8012F36C; // absolute:True owner=mappic_s3_02
 gMappicS302MotelRoom1Shape = 0x8012F3FC; // absolute:True owner=mappic_s3_02
-D_mappic_s3_02_8012F48C = 0x8012F48C; // absolute:True owner=mappic_s3_02
+gMappicS302MotelRoom2Shape = 0x8012F48C; // absolute:True owner=mappic_s3_02
 D_mappic_s3_02_8012F51C = 0x8012F51C; // absolute:True owner=mappic_s3_02
 D_mappic_s3_02_8012F5AC = 0x8012F5AC; // absolute:True owner=mappic_s3_02
 D_mappic_s3_02_8012F6AC = 0x8012F6AC; // absolute:True owner=mappic_s3_02 shared=mappic
