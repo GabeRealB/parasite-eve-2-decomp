@@ -4,38 +4,48 @@
     gametrace.py run   [--config tools/gametrace/events.toml] [--out local/gametrace/trace.jsonl]
                        [--host HOST] [--port PORT]      (these override the config's [gdb] section)
                        [--now]                          (attach to a game already running: no install_at wait)
-    gametrace.py check [--config ...]     resolve the events, build the patch blob, show both; no connection
+    gametrace.py check [--config ...]     resolve the events, build the blob, show both; no connection
     gametrace.py blob  [--config ...]     write the assembled blob and its listing under local/gametrace/
 
-One config file lists the events: an id, a name, the address of a function, and whether it is watched by a
-breakpoint or by a patch. Every event is recorded the same way - its id and the registers at the function's entry
-- and what the numbers mean is decided afterwards, by whoever reads the log. Nothing in the game's files changes.
+One config file lists the events. An event is a function: its entry, and its returns where the config gives them.
+Each is watched by a hook written into the running game - nothing stops when an event happens, and nothing in the
+game's files changes.
 
-  breakpoint  the target stops at the address, this tool reads the registers and continues. Nothing is written
-              into the game. Each hit is a round trip, so it suits events that happen a few times a second.
-  patch       the function's first two instructions are replaced by a jump to a small stub at `blob.address` (the target
-              must have memory there that the game leaves alone; by default that is just above 2 MB). The stub calls one shared handler, which appends a record to a ring
-              buffer, then runs the two displaced instructions and returns to the third. The ring is read
-              whenever the game is stopped anyway: at each breakpoint event, before that event is written, so the
-              log keeps the order things happened in; and at a breakpoint inside the handler that is reached only
-              when the ring is full. It suits events too frequent to stop for.
-              With no patch event in the config, no blob is written and nothing above applies.
+  entry   the function's first two instructions are replaced by a jump to a stub in the blob. The stub writes
+          the event's captures into a buffer, runs the two displaced instructions and jumps back to the third.
+  exit    `exits` lists the offsets of the function's `jr $ra` instructions. Each, with its delay slot, is
+          replaced by a jump to a stub that runs the delay-slot instruction, writes the exit captures, and
+          returns to the caller itself.
+
+What an event records is its `capture` list (and `exit_capture` for its returns), each item one of
+
+  "a0"            a register
+  "a0:16"         16 bytes at the address a register holds;  "sp+16:4" adds an offset first
+  "0x800714C4:8"  8 bytes at a fixed address
+
+so records differ in length. The buffer is one stretch of bytes (`blob.bytes`, 1 MB by default) that the stubs fill
+front to back. A stub first checks that its record fits; if not it calls the one place in the blob where the tool
+holds a breakpoint, the tool reads everything written so far, and the buffer starts again. It checks once more
+after writing. That breakpoint, and the `install_at` ones, are the only times the game stops; Ctrl-C reads what
+is left, takes the hooks out and lets the game run.
+
+A pointer capture is only read when the register holds an address inside the console's memory; otherwise the bytes
+are recorded as zero. Interrupts are held off while a record is written, so a hook reached from an interrupt
+cannot land inside another's record.
 
 The tool expects to be started with the game paused, before it has run. It continues the game itself up to the
 first `install_at` address - a function by which memory is set up, such as the program's `main` - and only there
-writes the blob, the patches and the event breakpoints. Each later hit of an `install_at` address applies the
-patches again, which is how a function in an image loaded later gets its patch. Without `install_at` everything is
-written at once, into the game as it stands.
+writes the blob and the hooks. Each later hit of an `install_at` address applies the hooks again, which is how a
+function in an image loaded later gets its hook; so does every read of the buffer. A hook is written only where
+the instructions it replaces are in memory as the image has them, so an address shared by several overlays is only
+ever hooked under the right one. An instruction a hook displaces must be free to move: `check` refuses a branch
+or a jump there (see `movable`).
 
-A patch is written only where the function's own first two instructions are in memory, and is written again when
-an image load has replaced them, so an address shared by several overlays is only ever patched under the right one.
-The two instructions it displaces must be free to move: `check` refuses a branch, a jump, or a load that follows
-one (see `movable`).
+The blob needs memory of its own (`blob.address`); by default just above 2 MB, which a target has only with more
+than the console's 2 MB. The tool refuses to write where that memory is a mirror of lower memory.
 
-A record is one JSON line, written when the thing happens. A function's entry is `"phase": "enter"`: id, name,
-a0..a3, ra, sp, and the name of the function `ra` returns into; a breakpoint event adds what it asks for besides -
-`stack` (words above the frame), `mem` (bytes at a register, "a0:16"). With `ret = true` the function's return is
-a second record, `"phase": "exit"`, with `ret` (v0); the two share a `call` number.
+A record is one JSON line: id, name, phase ("enter" or "exit"), then each capture under its own text; a captured
+`ra` also gives `from`, the function it returns into.
 """
 from __future__ import annotations
 
@@ -55,11 +65,38 @@ ROOT = Path(__file__).resolve().parents[2]
 OUT = ROOT / "local" / "gametrace"
 REGS = ["zero", "at", "v0", "v1", "a0", "a1", "a2", "a3", "t0", "t1", "t2", "t3", "t4", "t5", "t6", "t7",
         "s0", "s1", "s2", "s3", "s4", "s5", "s6", "s7", "t8", "t9", "k0", "k1", "gp", "sp", "fp", "ra"]
-RECORD = 32      # bytes of one ring record: id, a0, a1, a2, a3, ra, sp, seq
 PC = 37          # the program counter's place in the `g` packet, after r0..r31, sr, lo, hi, bad, cause
+JR_RA = 0x03E00008
+FRAME = 32       # a stub's stack frame: ra, t0, t1, t2, the status register
+SAVED = {"ra": 0, "t0": 4, "t1": 8, "t2": 12}
+CAPTURE = re.compile(r"^(?:(?P<reg>[a-z][a-z0-9]{1,3})(?:\+(?P<off>0x[0-9A-Fa-f]+|\d+))?|(?P<addr>0x[0-9A-Fa-f]{8}))(?::(?P<len>0x[0-9A-Fa-f]+|\d+))?$")
+MAX_BYTES = 256  # of one memory capture: it is copied by straight-line code
 
 
 # ---- the config
+
+def parse_capture(text: str) -> dict:
+    m = CAPTURE.match(text.strip())
+    if not m:
+        raise ValueError(f"capture {text!r} is not a register (\"a0\"), bytes at one (\"a0:16\", \"sp+16:4\") or bytes at an address (\"0x80012345:8\")")
+    length = int(m["len"], 0) if m["len"] else None
+    if m["addr"]:
+        if length is None:
+            raise ValueError(f"capture {text!r} needs a length: \"{m['addr']}:4\"")
+        item = {"text": text, "kind": "fixed", "address": int(m["addr"], 16), "length": length}
+    elif m["reg"] not in REGS or m["reg"] in ("zero", "at", "k0", "k1"):
+        raise ValueError(f"capture {text!r}: {m['reg']} is not a register a hook can read")
+    elif length is None:
+        if m["off"]:
+            raise ValueError(f"capture {text!r}: an offset only makes sense with a length, for bytes at the address")
+        item = {"text": text, "kind": "reg", "reg": m["reg"], "length": 4}
+    else:
+        item = {"text": text, "kind": "mem", "reg": m["reg"], "offset": int(m["off"] or "0", 0), "length": length}
+    if item["kind"] != "reg" and not 0 < item["length"] <= MAX_BYTES:
+        raise ValueError(f"capture {text!r}: between 1 and {MAX_BYTES} bytes")
+    item["size"] = (item["length"] + 3) & ~3
+    return item
+
 
 def load(path: Path) -> dict:
     cfg = tomllib.loads(path.read_text(encoding="utf-8"))
@@ -67,27 +104,44 @@ def load(path: Path) -> dict:
     gdb.setdefault("host", "127.0.0.1")
     gdb.setdefault("port", 2345)
     blob.setdefault("address", 0x80200000)
-    blob.setdefault("records", 1024)
-    at = cfg.get("install_at", blob.get("install_at", []))
+    blob.setdefault("bytes", 0x100000)
+    at = cfg.get("install_at", [])
     cfg["install_at"] = [at] if isinstance(at, int) else list(at)
     problems, seen = [], {}
     for event in cfg.get("event", []):
         for field in ("id", "name", "address"):
             if field not in event:
                 problems.append(f"an event lacks `{field}`: {event}")
-        event.setdefault("patch", False)
+        if not 0 < event.get("id", 0) < 0x10000:
+            problems.append(f"{event.get('name')}: id must be between 1 and 65535")
         if event.get("id") in seen:
             problems.append(f"event id {event['id']} is used by {seen[event['id']]} and {event.get('name')}")
         seen[event.get("id")] = event.get("name")
-        if event["patch"] and any(k in event for k in ("ret", "stack", "mem")):
-            problems.append(f"{event.get('name')}: ret, stack and mem are read by this tool at a breakpoint; a patch records a function's entry only")
-    if blob["records"] & (blob["records"] - 1):
-        problems.append("blob.records must be a power of two")
-    if blob["records"] > 0x8000:
-        problems.append("blob.records must be at most 32768")
+        for old in ("patch", "ret", "stack", "mem"):
+            if old in event:
+                problems.append(f"{event.get('name')}: `{old}` is gone - every event is a hook now; list what to record in `capture`, and returns in `exits`")
+        event.setdefault("capture", ["a0", "a1", "a2", "a3", "ra"])
+        event.setdefault("exits", [])
+        event.setdefault("exit_capture", ["v0"])
+        try:
+            event["_enter"] = [parse_capture(c) for c in event["capture"]]
+            event["_exit"] = [parse_capture(c) for c in event["exit_capture"]]
+        except ValueError as error:
+            problems.append(f"{event.get('name')}: {error}")
+    if blob["bytes"] % 4 or blob["bytes"] < 0x1000:
+        problems.append("blob.bytes must be a multiple of four, and at least 4096")
     if problems:
         raise SystemExit("\n".join(problems))
     return cfg
+
+
+def record_size(captures: list[dict]) -> int:
+    return 4 + sum(c["size"] for c in captures)
+
+
+def header(event: dict, phase: int, captures: list[dict]) -> int:
+    """A record's first word: the event's id, whether it is an exit, and the record's whole length in bytes."""
+    return event["id"] | (phase << 16) | (record_size(captures) << 17)
 
 
 # ---- names, from the symbol maps: only to say where a call came from
@@ -131,94 +185,145 @@ def movable(word: int) -> str | None:
     return None
 
 
-def stub_source(cfg: dict, originals: dict[int, tuple[int, int]]) -> str:
-    """The blob as assembly: the ring's header, one shared handler, and a stub per patched event."""
+
+# ---- the blob: the buffer's cursor, the one place the game stops when the buffer is full, and a stub per hook
+
+def capture_code(captures: list[dict], tag: str) -> list[str]:
+    """Instructions that store each capture at its place in the record. In: t1 = the record's address; the hooked
+    code's ra, t0, t1, t2 are in the stub's frame and its sp is FRAME above. t0 and t2 are free."""
+    lines, at = [], 4
+    def value(reg: str, into: str) -> list[str]:
+        if reg in SAVED:
+            return [f"    lw    ${into}, {SAVED[reg]}($sp)", "    nop"]
+        if reg == "sp":
+            return [f"    addiu ${into}, $sp, {FRAME}"]
+        return [f"    addu  ${into}, ${reg}, $zero"]
+    for n, c in enumerate(captures):
+        lines.append(f"    # {c['text']}")
+        if c["kind"] == "reg":
+            if c["reg"] in SAVED or c["reg"] == "sp":
+                lines += value(c["reg"], "t0") + [f"    sw    $t0, {at}($t1)"]
+            else:
+                lines.append(f"    sw    ${c['reg']}, {at}($t1)")
+        else:
+            words = range(0, c["size"], 4)
+            if c["kind"] == "fixed":
+                lines.append(f"    li    $t0, {c['address']:#010x}")
+            else:
+                lines += value(c["reg"], "t0")
+                if c["offset"]:
+                    lines.append(f"    addiu $t0, $t0, {c['offset']}")
+                # Only an address inside the console's memory is read; anything else would fault.
+                lines += ["    srl   $t2, $t0, 23", "    xori  $t2, $t2, 0x100", f"    bnez  $t2, {tag}_zero{n}", "    nop"]
+            for w in words:                            # unaligned, a word at a time; a load is not usable in the next instruction
+                lines += [f"    lwr   $t2, {w}($t0)", f"    lwl   $t2, {w + 3}($t0)", "    nop", f"    sw    $t2, {at + w}($t1)"]
+            if c["kind"] == "mem":
+                lines += [f"    b     {tag}_done{n}", "    nop", f"{tag}_zero{n}:"]
+                lines += [f"    sw    $zero, {at + w}($t1)" for w in words]
+                lines.append(f"{tag}_done{n}:")
+        at += c["size"]
+    return lines
+
+
+def record_code(event: dict, phase: int, captures: list[dict], tag: str, largest: int) -> list[str]:
+    """A stub's middle: save what it uses, make room, write the record, restore."""
+    size = record_size(captures)
+    return [
+        f"    addiu $sp, $sp, -{FRAME}",
+        "    sw    $ra, 0($sp)",
+        "    sw    $t0, 4($sp)",
+        "    sw    $t1, 8($sp)",
+        "    sw    $t2, 12($sp)",
+        "    mfc0  $t0, $12              # no interrupt lands in the middle of a record",
+        "    nop",
+        "    sw    $t0, 16($sp)",
+        "    addiu $t2, $zero, -2",
+        "    and   $t0, $t0, $t2",
+        "    mtc0  $t0, $12",
+        "    nop",
+        "    lui   $t0, %hi(gt_cursor)",
+        "    lw    $t1, %lo(gt_cursor)($t0)",
+        "    lui   $t2, %hi(gt_end)",
+        "    addiu $t2, $t2, %lo(gt_end)",
+        f"    addiu $t0, $t1, {size}",
+        "    sltu  $t0, $t2, $t0         # does this record fit?",
+        f"    beqz  $t0, {tag}_room",
+        "    nop",
+        "    jal   gt_drain",
+        "    nop",
+        f"{tag}_room:",
+        f"    li    $t0, {header(event, phase, captures):#010x}",
+        "    sw    $t0, 0($t1)",
+        *capture_code(captures, tag),
+        f"    addiu $t1, $t1, {size}",
+        "    lui   $t0, %hi(gt_cursor)",
+        "    sw    $t1, %lo(gt_cursor)($t0)",
+        "    lui   $t2, %hi(gt_end)",
+        "    addiu $t2, $t2, %lo(gt_end)",
+        f"    addiu $t0, $t1, {largest}",
+        "    sltu  $t0, $t2, $t0         # and is there room for the largest record after it?",
+        f"    beqz  $t0, {tag}_out",
+        "    nop",
+        "    jal   gt_drain",
+        "    nop",
+        f"{tag}_out:",
+        "    lw    $t0, 16($sp)",
+        "    nop",
+        "    mtc0  $t0, $12",
+        "    lw    $ra, 0($sp)",
+        "    lw    $t0, 4($sp)",
+        "    lw    $t1, 8($sp)",
+        "    lw    $t2, 12($sp)",
+        f"    addiu $sp, $sp, {FRAME}",
+    ]
+
+
+def stub_source(cfg: dict, sites: dict) -> str:
     blob = cfg["blob"]
+    events = cfg.get("event", [])
+    largest = max([record_size(e["_enter"]) for e in events] + [record_size(e["_exit"]) for e in events if e["exits"]] + [4])
     lines = [
         ".set noreorder", ".set noat", ".text",
-        "# header: the next sequence number, how many records the ring holds now, and how many it can hold",
-        "gt_seq:    .word 0",
-        "gt_fill:   .word 0",
-        f"gt_count:  .word {blob['records']}",
+        "# where the next record goes",
+        "gt_cursor: .word gt_buffer",
         "",
-        "# The one handler. In: t0 = the event's id, and the stub's frame at sp (the caller's ra at 0, t0 at 4).",
-        "# Everything else is as the hooked function received it, and is left so.",
-        "gt_handler:",
-        "    addiu $sp, $sp, -16",
-        "    sw    $t1, 0($sp)",
-        "    sw    $t2, 4($sp)",
-        "    sw    $t3, 8($sp)",
-        "    lui   $t1, %hi(gt_fill)",
-        "    lw    $t2, %lo(gt_fill)($t1)",
-        f"    li    $t3, {blob['records']}",
-        "    bne   $t2, $t3, 1f",
-        "    nop",
-        "# The ring is full. The tracer holds a breakpoint here and reads every record before this instruction",
-        "# starts the ring again from its first slot; with no tracer attached the old records are simply dropped.",
+        "# The buffer cannot take the record. The tracer holds a breakpoint on gt_full and reads everything from",
+        "# gt_buffer to the cursor before the next instruction starts the buffer again; with no tracer attached the",
+        "# old records are simply dropped. Out: t1 = where to write. Uses t0.",
+        "gt_drain:",
         "gt_full:",
-        "    addu  $t2, $zero, $zero",
-        "1:",
-        "    sll   $t3, $t2, 5",
-        "    addiu $t2, $t2, 1",
-        "    sw    $t2, %lo(gt_fill)($t1)",
-        "    lui   $t1, %hi(gt_ring)",
-        "    addiu $t1, $t1, %lo(gt_ring)",
-        "    addu  $t3, $t3, $t1",
-        "    lui   $t1, %hi(gt_seq)",
-        "    lw    $t2, %lo(gt_seq)($t1)",
-        "    sw    $t0, 0($t3)",
-        "    sw    $a0, 4($t3)",
-        "    sw    $a1, 8($t3)",
-        "    sw    $a2, 12($t3)",
-        "    sw    $a3, 16($t3)",
-        "    lw    $t0, 16($sp)          # the caller's return address, saved by the stub",
-        "    sw    $t2, 28($t3)",
-        "    addiu $t2, $t2, 1",
-        "    sw    $t2, %lo(gt_seq)($t1)",
-        "    addiu $t1, $sp, 32          # the stack pointer the function was entered with",
-        "    sw    $t0, 20($t3)",
-        "    sw    $t1, 24($t3)",
-        "    lw    $t1, 0($sp)",
-        "    lw    $t2, 4($sp)",
-        "    lw    $t3, 8($sp)",
+        "    lui   $t1, %hi(gt_buffer)",
+        "    addiu $t1, $t1, %lo(gt_buffer)",
+        "    lui   $t0, %hi(gt_cursor)",
         "    jr    $ra",
-        "    addiu $sp, $sp, 16",
+        "    sw    $t1, %lo(gt_cursor)($t0)",
         "",
     ]
-    for event in cfg.get("event", []):
-        if not event["patch"]:
-            continue
-        first, second = originals[event["id"]]
-        lines += [
-            f"# event {event['id']}: {event['name']} at {event['address']:#010x}",
-            f"gt_stub_{event['id']}:",
-            "    addiu $sp, $sp, -16",
-            "    sw    $ra, 0($sp)",
-            "    sw    $t0, 4($sp)",
-            "    jal   gt_handler",
-            f"    ori   $t0, $zero, {event['id']}",
-            "    lw    $ra, 0($sp)",
-            "    lw    $t0, 4($sp)",
-            "    addiu $sp, $sp, 16",
-            f"    .word {first:#010x}          # the function's own first instruction",
-            f"    .word {second:#010x}          # and its second",
-            f"    j     {event['address'] + 8:#010x}",
-            "    nop",
-            "",
-        ]
-    lines += ["    .balign 32", "gt_ring:", f"    .space {blob['records'] * RECORD}", ""]
+    for event in events:
+        first, second = sites[(event["id"], "enter")]
+        lines += [f"# event {event['id']}: {event['name']} at {event['address']:#010x}", f"gt_enter_{event['id']}:"]
+        lines += record_code(event, 0, event["_enter"], f"e{event['id']}", largest)
+        lines += [f"    .word {first:#010x}          # the function's own first instruction", f"    .word {second:#010x}          # and its second",
+                  f"    j     {event['address'] + 8:#010x}", "    nop", ""]
+        for k, offset in enumerate(event["exits"]):
+            _jr, delay = sites[(event["id"], "exit", offset)]
+            lines += [f"# event {event['id']}: {event['name']} returns at +{offset:#x}", f"gt_exit_{event['id']}_{k}:",
+                      f"    .word {delay:#010x}          # the return's delay-slot instruction, which ran before the return did"]
+            lines += record_code(event, 1, event["_exit"], f"x{event['id']}_{k}", largest)
+            lines += ["    jr    $ra", "    nop", ""]
+    lines += ["    .balign 4", "gt_buffer:", f"    .space {blob['bytes']}", "gt_end:", ""]
     return "\n".join(lines)
 
 
-def assemble(cfg: dict, originals: dict[int, tuple[int, int]]) -> tuple[bytes, dict[str, int], str]:
-    """(blob bytes, symbol -> address, listing), with the system's MIPS binutils."""
+def assemble(cfg: dict, sites: dict) -> tuple[bytes, dict[str, int], str]:
+    """(the blob's code, symbol -> address, listing), with the system's MIPS binutils. The buffer is not part of
+    what is written into the game: only the cursor in front of it has to be right."""
     OUT.mkdir(parents=True, exist_ok=True)
     src, obj, elf, raw = OUT / "blob.s", OUT / "blob.o", OUT / "blob.elf", OUT / "blob.bin"
-    src.write_text(stub_source(cfg, originals), encoding="utf-8")
+    src.write_text(stub_source(cfg, sites), encoding="utf-8")
     base = cfg["blob"]["address"]
     for cmd in (["mipsel-linux-gnu-as", "-mips1", "-EL", "-o", str(obj), str(src)],
-                ["mipsel-linux-gnu-ld", "-EL", "-Ttext", f"{base:#x}", "-e", "gt_handler", "-o", str(elf), str(obj)],
-                ["mipsel-linux-gnu-objcopy", "-O", "binary", "-j", ".text", str(elf), str(raw)]):
+                ["mipsel-linux-gnu-ld", "-EL", "-Ttext", f"{base:#x}", "-e", "gt_drain", "-o", str(elf), str(obj)]):
         done = subprocess.run(cmd, capture_output=True, text=True)
         if done.returncode:
             raise SystemExit(f"{' '.join(cmd)}\n{done.stderr}")
@@ -227,47 +332,78 @@ def assemble(cfg: dict, originals: dict[int, tuple[int, int]]) -> tuple[bytes, d
         cells = line.split()
         if len(cells) == 3 and cells[2].startswith("gt_"):
             symbols[cells[2]] = int(cells[0], 16)
-    listing = subprocess.run(["mipsel-linux-gnu-objdump", "-d", "--stop-address", f"{symbols['gt_ring']:#x}", str(elf)], capture_output=True, text=True).stdout
-    code = raw.read_bytes()[: symbols["gt_ring"] - base]      # the ring itself is not sent: the game's memory there is zero or stale, and seq says what is valid
+    end = symbols["gt_buffer"]
+    done = subprocess.run(["mipsel-linux-gnu-objcopy", "-O", "binary", "-j", ".text", str(elf), str(raw)], capture_output=True, text=True)
+    if done.returncode:
+        raise SystemExit(done.stderr)
+    code = raw.read_bytes()[: end - base]
+    raw.write_bytes(code)
+    listing = subprocess.run(["mipsel-linux-gnu-objdump", "-d", "--stop-address", f"{end:#x}", str(elf)], capture_output=True, text=True).stdout
     return code, symbols, listing
 
 
-# ---- where a function's first instructions are, without a running game: the image on disc
+# ---- what a hook replaces, read from the image on disc
 
-def image_words(address: int) -> tuple[int, int] | None:
-    """The two words at `address` in the executable or gameplay, the images always resident."""
-    exe = ROOT / "assets" / "USA" / "main.exe"
-    if exe.is_file():
-        data = exe.read_bytes()
-        load, size = struct.unpack_from("<2I", data, 0x18)
-        if load <= address < load + size - 8:
-            return struct.unpack_from("<2I", data, 0x800 + address - load)
-    pkg = ROOT / "assets" / "USA" / "pe2pkg" / "gameplay.pe2pkg"
-    if pkg.is_file():
-        data, load = pkg.read_bytes(), 0x80093800
-        if load <= address < load + len(data) - 8:
-            return struct.unpack_from("<2I", data, address - load)
-    return None
+def image_words(address: int, count: int, image: str | None) -> tuple[int, ...] | None:
+    """`count` instructions at `address` in the executable, gameplay, or the package the event names."""
+    def within(data: bytes, load: int, skip: int = 0) -> tuple[int, ...] | None:
+        if load <= address and address + 4 * count <= load + len(data) - skip:
+            return struct.unpack_from(f"<{count}I", data, skip + address - load)
+        return None
+    if image is None:
+        exe = ROOT / "assets" / "USA" / "main.exe"
+        if exe.is_file():
+            data = exe.read_bytes()
+            found = within(data, struct.unpack_from("<I", data, 0x18)[0], 0x800)
+            if found:
+                return found
+        image, load = "gameplay", 0x80093800
+    else:
+        sys.path.insert(0, str(ROOT / "tools" / "peassets"))
+        import asset_residency
+        load = asset_residency.package_loads(tomllib.loads((ROOT / "configs/USA/overlays.toml").read_text())).get(image)
+        if load is None:
+            raise SystemExit(f"image {image!r} is not a package of configs/USA/overlays.toml")
+    pkg = ROOT / "assets" / "USA" / "pe2pkg" / f"{image}.pe2pkg"
+    return within(pkg.read_bytes(), load) if pkg.is_file() else None
 
 
-def originals_of(cfg: dict) -> dict[int, tuple[int, int]]:
-    """Each patch event's own first two instructions: stated in the config (`words`), or read from the image."""
+def sites_of(cfg: dict) -> dict:
+    """Every place a hook goes and the two instructions there now: (id, "enter") and (id, "exit", offset)."""
     out, problems = {}, []
     for event in cfg.get("event", []):
-        if not event["patch"]:
-            continue
-        words = tuple(event["words"]) if "words" in event else image_words(event["address"])
-        if words is None or len(words) != 2:
-            problems.append(f"{event['name']}: {event['address']:#010x} is in neither the executable nor gameplay; give its first two instructions as `words = [0x..., 0x...]`")
+        name, image = event["name"], event.get("image")
+        words = image_words(event["address"], 2, image)
+        if words is None:
+            problems.append(f"{name}: {event['address']:#010x} is in neither the executable nor gameplay; name its package with `image = \"...\"`")
             continue
         for n, word in enumerate(words):
-            why = movable(word)
-            if why:
-                problems.append(f"{event['name']}: instruction {n + 1} at its entry ({word:#010x}) is {why} and cannot be displaced; watch it with a breakpoint instead")
-        out[event["id"]] = words
+            if movable(word):
+                problems.append(f"{name}: instruction {n + 1} at its entry ({word:#010x}) is {movable(word)} and cannot be displaced")
+        out[(event["id"], "enter")] = words
+        for offset in event["exits"]:
+            pair = image_words(event["address"] + offset, 2, image)
+            if pair is None or pair[0] != JR_RA:
+                problems.append(f"{name}: no `jr $ra` at +{offset:#x} ({'outside the image' if pair is None else f'{pair[0]:#010x}'}); `check` lists where they are")
+            elif movable(pair[1]):
+                problems.append(f"{name}: the delay slot of the return at +{offset:#x} ({pair[1]:#010x}) is {movable(pair[1])}")
+            elif offset in (0, 4):
+                problems.append(f"{name}: the return at +{offset:#x} overlaps the entry hook")
+            else:
+                out[(event["id"], "exit", offset)] = pair
     if problems:
         raise SystemExit("\n".join(problems))
     return out
+
+
+def returns_in(event: dict, names: "Names") -> list[int]:
+    """The offsets of the `jr $ra` instructions between the event's address and the next symbol."""
+    image = event.get("image")
+    table = names.by_image.get(image or "main", []) + (names.by_image.get("gameplay", []) if image is None else [])
+    later = sorted(a for a, _ in table if a > event["address"])
+    span = min((later[0] - event["address"]) if later else 0x400, 0x4000)
+    words = image_words(event["address"], span // 4, image) or ()
+    return [4 * n for n, word in enumerate(words) if word == JR_RA]
 
 
 # ---- the GDB remote protocol. Only the packets every stub has are used: ? g m M c Z z
@@ -281,6 +417,7 @@ class Gdb:
         self.buf = b""
         self.set: set[int] = set()                    # the breakpoints in place
         self.step_over: bool | None = None            # whether this server needs it; found out at the first stop
+        self.chunk = 0x400                            # bytes per memory read; raised to what the server's packets hold
         self.sock.sendall(b"+")
 
     def _send(self, payload: str) -> None:
@@ -319,6 +456,9 @@ class Gdb:
                 return packet
 
     def halt_reason(self) -> str:
+        size = re.search(r"PacketSize=([0-9a-fA-F]+)", self.ask("qSupported") or "")
+        if size:                                      # a reply is two hex digits a byte, plus its frame
+            self.chunk = max(0x100, min(0x4000, int(size[1], 16) // 2 - 16))
         self._send("?")
         return self._recv()
 
@@ -337,7 +477,7 @@ class Gdb:
     def read(self, address: int, length: int) -> bytes:
         out = b""
         while len(out) < length:                      # in pieces: a reply is twice its length in hex
-            n = min(0x400, length - len(out))
+            n = min(self.chunk, length - len(out))
             reply = self.ask(f"m{address + len(out):x},{n:x}")
             if reply.startswith("E") or not reply:
                 raise OSError(f"the GDB server refused to read {n} bytes at {address + len(out):#010x}: {reply!r}")
@@ -428,33 +568,28 @@ class Session:
     def __init__(self, cfg: dict, gdb: Gdb, out) -> None:
         self.cfg, self.gdb, self.out, self.names = cfg, gdb, out, Names()
         self.events = cfg.get("event", [])
-        self.by_address = {e["address"]: e for e in self.events if not e["patch"]}
-        self.patched = [e for e in self.events if e["patch"]]
-        self.pending: dict[int, list[dict]] = {}       # return address -> exit records waiting for the return
-        self.calls = 0                                # numbers the enter/exit pairs
-        self.seen: int | None = 0                     # the sequence number the next ring record should carry
         self.count = 0
-        if self.patched:
-            self.originals = originals_of(cfg)
-            self.code, self.symbols, _ = assemble(cfg, self.originals)
+        self.ready = self.running = False
+        self.sites = sites_of(cfg)
+        self.code, self.symbols, _ = assemble(cfg, self.sites)
+        self.layout = {}                              # a record's first word -> (event, phase, captures)
+        self.hooks = []                               # (address, the two words there in the image, the stub)
+        for event in self.events:
+            self.layout[header(event, 0, event["_enter"])] = (event, "enter", event["_enter"])
+            self.hooks.append((event["address"], self.sites[(event["id"], "enter")], self.symbols[f"gt_enter_{event['id']}"]))
+            for k, offset in enumerate(event["exits"]):
+                self.layout[header(event, 1, event["_exit"])] = (event, "exit", event["_exit"])
+                self.hooks.append((event["address"] + offset, self.sites[(event["id"], "exit", offset)], self.symbols[f"gt_exit_{event['id']}_{k}"]))
 
     def emit(self, record: dict) -> None:
-        # Registers are addresses and packed ids more often than counts: written in hex.
-        for key in ("a0", "a1", "a2", "a3", "ra", "sp", "ret"):
-            if isinstance(record.get(key), int):
-                record[key] = f"{record[key]:#010x}"
-        if "stack" in record:
-            record["stack"] = [f"{word:#010x}" for word in record["stack"]]
         self.out.write(json.dumps(record) + "\n")
-        self.out.flush()
         self.count += 1
 
     def start(self) -> None:
         """Wait for the game to reach the first `install_at` address (it is continued to there), then set up."""
         self.gdb.halt_reason()
         self.installers = set(self.cfg["install_at"])
-        self.ready = not self.installers
-        if self.ready:
+        if not self.installers:
             self.setup()
         else:
             for address in self.installers:
@@ -462,18 +597,15 @@ class Session:
             print(f"waiting for the game to reach {', '.join(self.names.at(a) for a in sorted(self.installers))}", file=sys.stderr)
 
     def setup(self) -> None:
+        base = self.cfg["blob"]["address"]
+        self.refuse_mirror(base)
+        try:
+            self.gdb.write(base, self.code)
+        except OSError as error:
+            raise SystemExit(f"{error}\nThe blob lives at {base:#010x} (blob.address): the target has to have writable memory there.")
+        self.gdb.breakpoint(self.symbols["gt_full"])
         self.ready = True
-        if self.patched:
-            base = self.cfg["blob"]["address"]
-            self.refuse_mirror(base)
-            try:
-                self.gdb.write(base, self.code)
-            except OSError as error:
-                raise SystemExit(f"{error}\nThe patch blob lives at {base:#010x} (blob.address): the target has to have writable memory there.")
-            self.gdb.breakpoint(self.symbols["gt_full"])
-            self.install()
-        for address in self.by_address:
-            self.gdb.breakpoint(address)
+        print(f"{self.install()} of {len(self.hooks)} hooks in place; the rest are written when their code is loaded", file=sys.stderr)
 
     def refuse_mirror(self, base: int) -> None:
         """Stop before writing the blob into memory that is really somewhere else.
@@ -485,93 +617,82 @@ class Session:
         span, step = 0x200, 0x200000
         here = self.gdb.read(base, span)
         lower = base - step
-        while (lower & 0x1FFFFFFF) >= 0:
+        while True:
             try:
                 below = self.gdb.read(lower, span)
             except OSError:
                 break
             if below == here:
                 what = "is empty, like the memory below it: start once the game has booted" if not any(here) else f"is the same memory as {lower:#010x}"
-                raise SystemExit(f"blob.address {base:#010x} {what}.\nNothing was written. The patch blob needs memory of its own - "
-                                 "a target with memory above 2 MB (an 8 MB mode), or an address inside the 2 MB that the game leaves free. "
-                                 "Events with patch = false need none of this.")
+                raise SystemExit(f"blob.address {base:#010x} {what}.\nNothing was written. The blob needs memory of its own - "
+                                 "a target with memory above 2 MB (an 8 MB mode), or an address inside the 2 MB that the game leaves free.")
             if (lower & 0x1FFFFFFF) < step:
                 break
             lower -= step
 
-    def install(self) -> None:
-        """Write each patch whose function is in memory unpatched (a load may have put it back)."""
-        for event in self.patched:
-            first, second = self.originals[event["id"]]
-            now = struct.unpack("<2I", self.gdb.read(event["address"], 8))
-            if now == (first, second):
-                stub = self.symbols[f"gt_stub_{event['id']}"]
-                jump = 0x08000000 | ((stub >> 2) & 0x03FFFFFF)
-                self.gdb.write(event["address"], struct.pack("<2I", jump, 0))
+    def install(self) -> int:
+        """Write each hook whose place holds the image's own instructions (a load may have put them back).
+        Returns how many hooks are in place."""
+        placed = 0
+        for address, original, stub in self.hooks:
+            jump = (0x08000000 | ((stub >> 2) & 0x03FFFFFF), 0)
+            now = struct.unpack("<2I", self.gdb.read(address, 8))
+            if now == tuple(original):
+                self.gdb.write(address, struct.pack("<2I", *jump))
+                now = jump
+            placed += now == jump
+        return placed
 
     def remove(self) -> None:
-        """Put back the instructions the patches displaced, where the patches are still in place."""
-        for event in self.patched:
-            stub = self.symbols[f"gt_stub_{event['id']}"]
-            jump = 0x08000000 | ((stub >> 2) & 0x03FFFFFF)
-            if struct.unpack("<2I", self.gdb.read(event["address"], 8)) == (jump, 0):
-                self.gdb.write(event["address"], struct.pack("<2I", *self.originals[event["id"]]))
+        """Put back what the hooks replaced, where the hooks are still in place."""
+        for address, original, stub in self.hooks:
+            jump = (0x08000000 | ((stub >> 2) & 0x03FFFFFF), 0)
+            if struct.unpack("<2I", self.gdb.read(address, 8)) == jump:
+                self.gdb.write(address, struct.pack("<2I", *original))
+
+    def drain(self, reset: bool) -> None:
+        """Write out everything the buffer holds. `reset` starts it again from here; where the game is stopped on
+        gt_full its own next instructions do that."""
+        start = self.symbols["gt_buffer"]
+        cursor = struct.unpack("<I", self.gdb.read(self.symbols["gt_cursor"], 4))[0]
+        if not start < cursor <= self.symbols["gt_end"]:
+            return
+        data, at = self.gdb.read(start, cursor - start), 0
+        while at + 4 <= len(data):
+            word = struct.unpack_from("<I", data, at)[0]
+            known = self.layout.get(word)
+            if known is None:
+                self.emit({"note": f"the buffer does not parse from byte {at} of {len(data)} (first word {word:#010x}); the rest of this read is dropped"})
+                break
+            event, phase, captures = known
+            record, field = {"id": event["id"], "name": event["name"], "phase": phase}, at + 4
+            for c in captures:
+                if c["kind"] == "reg":
+                    value = struct.unpack_from("<I", data, field)[0]
+                    record[c["text"]] = f"{value:#010x}"
+                    if c["reg"] == "ra":
+                        record["from"] = self.names.at(value)
+                else:
+                    record[c["text"]] = data[field:field + c["length"]].hex()
+                field += c["size"]
+            self.emit(record)
+            at = field
+        self.out.flush()
+        if reset:
+            self.gdb.write(self.symbols["gt_cursor"], struct.pack("<I", start))
 
     def close(self) -> None:
-        """Leave the game as it was found, running: no patch, no breakpoint. What the ring still holds is read first."""
+        """Leave the game as it was found, running: no hook, no breakpoint. What the buffer still holds is read first."""
         if self.gdb.sock.fileno() < 0:
             return
-        running = getattr(self, "running", False)
-        if running:
+        if self.running:
             self.gdb.sock.sendall(b"\x03")
             while not Gdb._is_stop(self.gdb._recv() or ""):
                 pass
-        if self.patched and self.ready:
-            self.drain()
+        if self.ready:
+            self.drain(reset=True)
             self.remove()
         self.gdb.release(False)
-
-    def drain(self, at_full: bool = False) -> None:
-        """Write out what the ring holds and empty it. Called with the game stopped: before a breakpoint event is
-        recorded, so that the log stays in the order things happened, and where the handler found the ring full
-        (`at_full`; the handler itself starts the ring again there)."""
-        base = self.cfg["blob"]["address"]
-        _seq, fill, count = struct.unpack("<3I", self.gdb.read(base, 12))
-        fill = min(fill, count)
-        if not fill:
-            return
-        ring = self.symbols["gt_ring"]
-        data = self.gdb.read(ring, fill * RECORD)
-        names = {e["id"]: e["name"] for e in self.patched}
-        for n in range(fill):
-            ident, a0, a1, a2, a3, ra, sp, stamp = struct.unpack_from("<8I", data, n * RECORD)
-            if stamp != self.seen and self.seen is not None:
-                self.emit({"lost": (stamp - self.seen) & 0xFFFFFFFF, "note": "records are missing here: the ring filled with no tracer stopped on it, or two hooks ran into each other"})
-            self.seen = (stamp + 1) & 0xFFFFFFFF
-            self.emit({"seq": stamp, "id": ident, "name": names.get(ident, "?"), "a0": a0, "a1": a1, "a2": a2, "a3": a3, "ra": ra, "sp": sp, "from": self.names.at(ra), "by": "patch", "phase": "enter"})
-        if not at_full:
-            self.gdb.write(base + 4, struct.pack("<I", 0))
-
-    def hit(self, event: dict, regs: list[int]) -> None:
-        r = dict(zip(REGS, regs))
-        record = {"id": event["id"], "name": event["name"], "a0": r["a0"], "a1": r["a1"], "a2": r["a2"], "a3": r["a3"], "ra": r["ra"], "sp": r["sp"], "from": self.names.at(r["ra"]), "by": "breakpoint", "phase": "enter"}
-        if event.get("stack"):
-            words = struct.unpack(f"<{event['stack']}I", self.gdb.read(r["sp"] + 0x10, 4 * event["stack"]))
-            record["stack"] = list(words)
-        for spec in event.get("mem", []):
-            reg, _, length = spec.partition(":")
-            try:
-                record.setdefault("mem", {})[spec] = self.gdb.read(r[reg], int(length, 0)).hex()
-            except (OSError, KeyError, ValueError) as error:
-                record.setdefault("mem", {})[spec] = f"unreadable: {error}"
-        if event.get("ret"):
-            # The return is an event of its own, written when it happens: a breakpoint where the call returns to.
-            self.calls += 1
-            record["call"] = self.calls
-            if r["ra"] not in self.pending:
-                self.gdb.breakpoint(r["ra"])
-            self.pending.setdefault(r["ra"], []).append({"id": event["id"], "name": event["name"], "phase": "exit", "call": self.calls, "sp": r["sp"]})
-        self.emit(record)
 
     def run(self) -> None:
         self.start()
@@ -580,40 +701,15 @@ class Session:
             self.running = True
             self.gdb.resume(pc)
             self.running = False
-            regs = self.gdb.registers()
-            pc = regs[PC]
-            if pc in self.pending:
-                # A watched function has returned - if the stack is back where its call left it. The same address
-                # is reached by other paths too, and by an outer call of a function that calls itself.
-                waiting = self.pending[pc]
-                back = [record for record in waiting if record["sp"] == regs[29]]
-                if back:
-                    record = back[-1]
-                    waiting.remove(record)
-                    if self.patched:                  # what the patches recorded during the call came first
-                        self.drain()
-                    record["ret"] = regs[2]
-                    self.emit(record)
-                if not waiting:
-                    del self.pending[pc]
-                    if pc not in self.by_address and pc not in self.installers:
-                        self.gdb.breakpoint(pc, False)
+            pc = self.gdb.registers()[PC]
             if pc in self.installers:
                 if not self.ready:
                     self.setup()
-                    self.emit({"note": f"set up at {self.names.at(pc)}", "patches": len(self.patched), "breakpoints": len(self.by_address)})
-                elif self.patched:
+                else:
                     self.install()
-            if not self.ready:
-                continue
-            if self.patched and pc == self.symbols["gt_full"]:
-                self.drain(at_full=True)
+            elif self.ready and pc == self.symbols["gt_full"]:
+                self.drain(reset=False)
                 self.install()
-            if pc in self.by_address:
-                if self.patched:                      # what the patches recorded up to here came first
-                    self.drain()
-                    self.install()
-                self.hit(self.by_address[pc], regs)
 
 
 def main() -> int:
@@ -637,14 +733,20 @@ def main() -> int:
         for address in cfg["install_at"]:
             print(f"set up at {address:#010x}  {names.at(address)}")
         for event in cfg.get("event", []):
-            print(f"{event['id']:>4}  {event['name']:<28} {event['address']:#010x}  {'patch' if event['patch'] else 'breakpoint':<10} {names.at(event['address'])}")
-        if any(e["patch"] for e in cfg.get("event", [])):
-            code, symbols, listing = assemble(cfg, originals_of(cfg))
-            print(f"\nblob: {len(code)} bytes of code at {cfg['blob']['address']:#010x}, ring of {cfg['blob']['records']} records at {symbols['gt_ring']:#010x}; "
-                  f"read at every breakpoint event, and at {symbols['gt_full']:#010x} when it is full")
-            if args.command == "blob":
-                (OUT / "blob.lst").write_text(listing, encoding="utf-8")
-                print(f"written: {OUT / 'blob.bin'}, {OUT / 'blob.s'}, {OUT / 'blob.lst'}")
+            found = returns_in(event, names)
+            print(f"{event['id']:>5}  {event['name']:<24} {event['address']:#010x}  {names.at(event['address'])}")
+            print(f"       enter: {', '.join(event['capture'])}  ({record_size(event['_enter'])} bytes)")
+            if event["exits"]:
+                print(f"       exit at {', '.join(f'+{o:#x}' for o in event['exits'])}: {', '.join(event['exit_capture'])}  ({record_size(event['_exit'])} bytes)")
+            missing = [o for o in found if o not in event["exits"]]
+            if missing:
+                print(f"       returns not hooked: {', '.join(f'{o:#x}' for o in missing)}   (exits = [{', '.join(f'{o:#x}' for o in found)}] hooks them all)")
+        code, symbols, listing = assemble(cfg, sites_of(cfg))
+        print(f"\nblob: {len(code)} bytes of code at {cfg['blob']['address']:#010x}, buffer of {cfg['blob']['bytes']} bytes at {symbols['gt_buffer']:#010x}; "
+              f"the game stops only at {symbols['gt_full']:#010x}, when the buffer is full")
+        if args.command == "blob":
+            (OUT / "blob.lst").write_text(listing, encoding="utf-8")
+            print(f"written: {OUT / 'blob.bin'}, {OUT / 'blob.s'}, {OUT / 'blob.lst'}")
         return 0
     args.out.parent.mkdir(parents=True, exist_ok=True)
     try:

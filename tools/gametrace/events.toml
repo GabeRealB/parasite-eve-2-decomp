@@ -1,21 +1,21 @@
-# What tools/gametrace/gametrace.py records. One line of the log per event hit.
+# What tools/gametrace/gametrace.py records. Every event is a function, watched by a hook written into the
+# running game: nothing stops when it happens.
 #
-#   id       a number of your choosing; it is what the patch stub writes into the ring
-#   name     what the log calls the event
-#   address  the function's entry (addresses do not move when a symbol is renamed; `check` prints the current name)
-#   patch    false: a breakpoint - nothing is written into the game, one round trip per hit
-#            true:  the entry is redirected to a stub at blob.address that records the registers
-# For a breakpoint event only, read by the tool at the stop:
-#   ret = true        the function's return is logged too, as an "exit" record with v0, when it happens
-#   stack = N         N words of stack arguments (the fifth argument onward)
-#   mem = ["a0:16"]   bytes at a register
-# For a patch event at an address outside the executable and gameplay, give its own first two instructions:
-#   words = [0x27BDFFE8, 0xAFBF0010]
+#   id            a number of your choosing, 1..65535; it is what the hook writes in front of its record
+#   name          what the log calls the event
+#   address       the function's entry (addresses do not move when a symbol is renamed; `check` prints the name)
+#   capture       what to record at the entry; default ["a0", "a1", "a2", "a3", "ra"]. Each item is
+#                   "a0"             a register
+#                   "a0:16"          16 bytes at the address the register holds ("sp+16:4": with an offset)
+#                   "0x800714C4:8"   8 bytes at a fixed address
+#   exits         offsets of the function's `jr $ra` instructions, to record its returns as well.
+#                 `check` lists the ones it finds, ready to paste.
+#   exit_capture  what to record at a return; default ["v0"]
+#   image         the package holding the function, when it is in neither the executable nor gameplay
 
 # Where the tool sets everything up. Start the game paused, then the tool: it continues the game to the first of
-# these addresses and only there writes the blob, the patches and the breakpoints - by then memory is initialised.
-# Each later hit applies the patches again (for a function in an image that is loaded later). Leave it out to set
-# up at once, in the game as it stands.
+# these addresses and only there writes the blob and the hooks - by then memory is initialised. Each later hit
+# applies the hooks again (for a function in an image that is loaded later). Leave it out to set up at once.
 install_at = [0x80014300]     # main
 
 # The GDB server to connect to; --host and --port on the command line override these.
@@ -23,40 +23,37 @@ install_at = [0x80014300]     # main
 host = "127.0.0.1"
 port = 2345
 
-# Only used when some event has patch = true; with none, nothing is written into the game at all.
 [blob]
-address = 0x80200000     # where the patch stubs and the ring live: memory the game leaves alone (here, just above 2 MB)
-records = 1024           # ring size, a power of two. The ring is read at every breakpoint event, and when it fills
+address = 0x80200000     # where the stubs and the buffer live: memory the game leaves alone (here, just above 2 MB)
+bytes = 0x100000         # the buffer. The game stops only when it is full, for as long as reading it takes
 
 [[event]]
 id = 1
 name = "file_load"
 address = 0x8002265C     # fsLoadFile(key, mode, page offset, row offset)
-patch = false
-mem = ["a0:8"]           # the key a0 points at: which file
+capture = ["a0:8", "a1", "a2", "a3", "ra"]
 
 [[event]]
 id = 2
 name = "sound_request"
-address = 0x8005414C     # sndEvtRequestScriptStart
-patch = false
-ret = true
+address = 0x8005414C     # sndEvtRequestScriptStart(id, pan, depth)
+capture = ["a0", "a1", "a2", "ra"]
+exits = [0x17C]          # its one return: v0 is the id when the request was taken
 
 [[event]]
 id = 3
 name = "sound_bank_find"
-address = 0x8004D150     # sndBankFind
-patch = true
+address = 0x8004D150     # sndBankFind(bankId)
+capture = ["a0", "ra"]
 
 [[event]]
 id = 4
 name = "variant_set"
-address = 0x800B5B30     # areaSetPlacementVariant
-patch = false
-mem = ["a0:8"]
+address = 0x800B5B30     # areaSetPlacementVariant(key, variant, resetMode)
+capture = ["a0:8", "a1", "a2", "ra"]
 
 [[event]]
 id = 5
 name = "caption_command"
-address = 0x800E34D8     # capRunCommand
-patch = false
+address = 0x800E34D8     # capRunCommand(command)
+capture = ["a0", "ra"]
