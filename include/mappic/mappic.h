@@ -278,7 +278,13 @@ extern TmdSource gMappicS202WaterTowerShape;
 /// `mappic_s2_02` package loaded while these are used.
 extern TmdSource gMappicS202BreezewayShape;
 
-extern TmdSource D_mappic_s2_02_8012FB0C;
+/// Factory's area-fill quad on page 2 of the daytime Dryfield map.
+///
+/// Four vertices lie in the model X/Z plane; the map applies its 1495/4096
+/// page scale and maps Z to inverted screen Y. Has no normal data.
+/// The map borrows the vertices and first stream group; keep the
+/// `mappic_s2_02` package loaded while these are used.
+extern TmdSource gMappicS202FactoryShape;
 
 extern TmdSource D_mappic_s2_02_8012FB9C;
 
@@ -705,7 +711,13 @@ extern TmdSource gMappicS302WaterTowerShape;
 /// `mappic_s3_02` package loaded while these are used.
 extern TmdSource gMappicS302BreezewayShape;
 
-extern TmdSource D_mappic_s3_02_8012FB24;
+/// Factory's area-fill quad on page 2 of the nighttime Dryfield map.
+///
+/// Four vertices lie in the model X/Z plane; the map applies its 1495/4096
+/// page scale and maps Z to inverted screen Y. Has no normal data.
+/// The map borrows the vertices and first stream group; keep the
+/// `mappic_s3_02` package loaded while these are used.
+extern TmdSource gMappicS302FactoryShape;
 
 extern TmdSource D_mappic_s3_02_8012FBB4;
 

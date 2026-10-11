@@ -11,3 +11,4 @@ gMappicS302SaloonGRShape = 0x8012f8ac;
 gMappicS302GRKitchenShape = 0x8012f93c;
 gMappicS302WaterTowerShape = 0x8012f9e8;
 gMappicS302BreezewayShape = 0x8012fa94;
+gMappicS302FactoryShape = 0x8012fb24;

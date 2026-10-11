@@ -587,32 +587,37 @@ TmdSource gMappicS302BreezewayShape = {
     .stream           = _gMappicS302BreezewayShapeStream,
 };
 
-static TmdBone _gMappicS302MappicS202Model00C4800BDCSkeleton[1] = {
+/// Identity transform and self-parented root for the Factory shape.
+static TmdBone _gMappicS302FactoryShapeSkeleton[] = {
 #include "assets/mappic_s2_02_model_00C48_00BDC_skeleton.inc"
 };
 
-static u32 _gMappicS302MappicS202Model00C4800BDCPartVerts[1] = {
+/// Vertex count of the Factory shape's sole part (four vertices).
+static u32 _gMappicS302FactoryShapePartVerts[] = {
 #include "assets/mappic_s2_02_model_00C48_00BDC_partVerts.inc"
 };
 
-static SVECTOR _gMappicS302MappicS202Model00C4800BDCVerts[4] = {
+/// Factory's map footprint in integer model X/Z coordinates, with Y zero.
+static SVECTOR _gMappicS302FactoryShapeVerts[] = {
 #include "assets/mappic_s2_02_model_00C48_00BDC_verts.inc"
 };
 
-static u32 _gMappicS302MappicS202Model00C4800BDCStream[9] = {
+/// Packed command stream for the Factory shape's single unlit quad.
+///
+/// Four vertex byte offsets and white colour are followed by two group ends
+/// and the stream end. The map reads only the first group.
+static u32 _gMappicS302FactoryShapeStream[] = {
 #include "assets/mappic_s2_02_model_00C48_00BDC_stream.inc"
 };
 
-TmdSource D_mappic_s3_02_8012FB24 = {
-    0,
-    24,
-    0,
-    1,
-    _gMappicS302MappicS202Model00C4800BDCPartVerts,
-    _gMappicS302MappicS202Model00C4800BDCVerts,
-    &_gMappicS302MappicS202Model00C4800BDCVerts[4],
-    _gMappicS302MappicS202Model00C4800BDCSkeleton,
-    _gMappicS302MappicS202Model00C4800BDCStream,
+TmdSource gMappicS302FactoryShape = {
+    .bufferHalfBytes  = sizeof(POLY_F4),
+    .partCount        = ARRAY_SIZE(_gMappicS302FactoryShapeSkeleton),
+    .partVertexCounts = _gMappicS302FactoryShapePartVerts,
+    .verts            = _gMappicS302FactoryShapeVerts,
+    .normals          = &_gMappicS302FactoryShapeVerts[ARRAY_SIZE(_gMappicS302FactoryShapeVerts)], // Empty normal pool at the vertex end.
+    .skeleton         = _gMappicS302FactoryShapeSkeleton,
+    .stream           = _gMappicS302FactoryShapeStream,
 };
 
 static TmdBone _gMappicS302MappicS202Model00C4800C6CSkeleton[1] = {

@@ -587,32 +587,37 @@ TmdSource gMappicS202BreezewayShape = {
     .stream           = _gMappicS202BreezewayShapeStream,
 };
 
-static TmdBone _gMappicS202Model00C4800BDCSkeleton[1] = {
+/// Identity transform and self-parented root for the Factory shape.
+static TmdBone _gMappicS202FactoryShapeSkeleton[] = {
 #include "assets/mappic_s2_02_model_00C48_00BDC_skeleton.inc"
 };
 
-static u32 _gMappicS202Model00C4800BDCPartVerts[1] = {
+/// Vertex count of the Factory shape's sole part (four vertices).
+static u32 _gMappicS202FactoryShapePartVerts[] = {
 #include "assets/mappic_s2_02_model_00C48_00BDC_partVerts.inc"
 };
 
-static SVECTOR _gMappicS202Model00C4800BDCVerts[4] = {
+/// Factory's map footprint in integer model X/Z coordinates, with Y zero.
+static SVECTOR _gMappicS202FactoryShapeVerts[] = {
 #include "assets/mappic_s2_02_model_00C48_00BDC_verts.inc"
 };
 
-static u32 _gMappicS202Model00C4800BDCStream[9] = {
+/// Packed command stream for the Factory shape's single unlit quad.
+///
+/// Four vertex byte offsets and white colour are followed by two group ends
+/// and the stream end. The map reads only the first group.
+static u32 _gMappicS202FactoryShapeStream[] = {
 #include "assets/mappic_s2_02_model_00C48_00BDC_stream.inc"
 };
 
-TmdSource D_mappic_s2_02_8012FB0C = {
-    0,
-    24,
-    0,
-    1,
-    _gMappicS202Model00C4800BDCPartVerts,
-    _gMappicS202Model00C4800BDCVerts,
-    &_gMappicS202Model00C4800BDCVerts[4],
-    _gMappicS202Model00C4800BDCSkeleton,
-    _gMappicS202Model00C4800BDCStream,
+TmdSource gMappicS202FactoryShape = {
+    .bufferHalfBytes  = sizeof(POLY_F4),
+    .partCount        = ARRAY_SIZE(_gMappicS202FactoryShapeSkeleton),
+    .partVertexCounts = _gMappicS202FactoryShapePartVerts,
+    .verts            = _gMappicS202FactoryShapeVerts,
+    .normals          = &_gMappicS202FactoryShapeVerts[ARRAY_SIZE(_gMappicS202FactoryShapeVerts)], // Empty normal pool at the vertex end.
+    .skeleton         = _gMappicS202FactoryShapeSkeleton,
+    .stream           = _gMappicS202FactoryShapeStream,
 };
 
 static TmdBone _gMappicS202Model00C4800C6CSkeleton[1] = {
