@@ -404,14 +404,27 @@ typedef struct {
 } _Actor403000StateTable;
 STATIC_ASSERT_SIZEOF(_Actor403000StateTable, 0x8C);
 
-/// Arena cells in ring order, followed by six bytes with no established use.
+/// Ring-map dimensions and band boundaries in parent-coordinate game units.
+enum {
+    ACTOR_403000_RING_Z_BAND_COUNT = 2,
+    ACTOR_403000_RING_X_BAND_COUNT = 5,
+    ACTOR_403000_RING_X_SPLIT_1    = 3400,
+    ACTOR_403000_RING_X_SPLIT_2    = 6800,
+    ACTOR_403000_RING_X_SPLIT_3    = 11000,
+    ACTOR_403000_RING_X_SPLIT_4    = 15500,
+    ACTOR_403000_RING_Z_SPLIT      = 4200,
+};
+
+/// Arena X/Z bands mapped to the ten cells of the Blizzard Chaser's waypoint ring.
 ///
-/// Rows split Z at 4200 game units. Columns run from the highest X band to
-/// the lowest, split at 15500, 11000, 6800 and 3400. The retained suffix has
-/// no proven ownership or meaning; it is neither another row nor padding.
+/// Rows 0/1 are Z below/at least 4200 parent-coordinate game units. Columns
+/// 0..4 run from greatest to least X, split at 15500, 11000, 6800 and 3400;
+/// boundaries belong to the greater-coordinate band. Each row reverses the
+/// other row's ring direction. Both consumers index only the ten `cells` bytes.
+/// The subsequent six image bytes have unproven meaning and object boundaries.
 typedef struct {
-    u8 cells[2][5];  // Arena cell/waypoint index, 0..9; the second row reverses X order
-    u8 unknown_A[6]; // Image bytes after the ten used entries; role and object boundary unproven
+    u8 cells[ACTOR_403000_RING_Z_BAND_COUNT][ACTOR_403000_RING_X_BAND_COUNT]; // Ring-cell/waypoint indices 0..9, by Z row and descending X band
+    u8 unknown_A[6];                                                          // Retained image suffix; meaning and object boundaries unproven
 } _Actor403000RingCellMap;
 STATIC_ASSERT_SIZEOF(_Actor403000RingCellMap, 16);
 
@@ -2614,16 +2627,16 @@ static s32 _actor403000ChooseRingDirection(GfxCoord* rootCoord)
     positionX = coord->coord.t[0];
     positionZ = coord->coord.t[2];
     column    = 4;
-    if (positionX >= 0xD48) {
+    if (positionX >= ACTOR_403000_RING_X_SPLIT_1) {
         column = 3;
-        if (positionX >= 0x1A90) {
+        if (positionX >= ACTOR_403000_RING_X_SPLIT_2) {
             column = 2;
-            if (positionX >= 0x2AF8) {
-                column = positionX < 0x3C8C;
+            if (positionX >= ACTOR_403000_RING_X_SPLIT_3) {
+                column = positionX < ACTOR_403000_RING_X_SPLIT_4;
             }
         }
     }
-    row               = positionZ >= 0x1068;
+    row               = positionZ >= ACTOR_403000_RING_Z_SPLIT;
     scratch->waypoint = _gActor403000RingCellMap.cells[row][column] + 1;
     if (scratch->waypoint == ACTOR_403000_RING_WAYPOINT_COUNT) {
         scratch->waypoint = 0;
@@ -3733,16 +3746,16 @@ static inline s8 _actor403000GetRingCell(GfxCoord* coord)
 
     positionX = coord->coord.t[0];
     positionZ = coord->coord.t[2];
-    if (positionX < 0xD48) {
+    if (positionX < ACTOR_403000_RING_X_SPLIT_1) {
         column = 4;
-    } else if (positionX < 0x1A90) {
+    } else if (positionX < ACTOR_403000_RING_X_SPLIT_2) {
         column = 3;
-    } else if (positionX < 0x2AF8) {
+    } else if (positionX < ACTOR_403000_RING_X_SPLIT_3) {
         column = 2;
     } else {
-        column = positionX < 0x3C8C;
+        column = positionX < ACTOR_403000_RING_X_SPLIT_4;
     }
-    row      = positionZ >= 0x1068;
+    row      = positionZ >= ACTOR_403000_RING_Z_SPLIT;
     ringCell = (s8)_gActor403000RingCellMap.cells[row][column];
     return ringCell;
 }

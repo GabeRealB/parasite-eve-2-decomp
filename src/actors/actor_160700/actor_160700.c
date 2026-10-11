@@ -490,20 +490,22 @@ enum {
     ACTOR_160700_CARRIED_MODEL_PRIORITY    = 192,
 };
 
-/// Player clip pointers and requests sharing the meeting bank's raw copy source.
+/// Player meeting clips and playback requests in one bank-extension copy source.
 ///
-/// The copy consumes the first 32 words of this 35-word record: 23 clip pointers,
-/// the copy request, the reset request and the first two words of the blend
-/// request. Only bank indices 47..65 are playable extension entries; 66..69 are
-/// NULL and 70..78 contain request data. The scripts play base clip 1 or 47..65.
-/// The event runtime resolves the stored bank index in a request copy.
+/// A 32-word copy installs clips at bank IDs 47..65, four NULL entries at
+/// 66..69, and request words at 70..78. Those last nine words are data, not clips:
+/// they comprise `bankCopy`, `resetRequest`, and `blendRequest` through its
+/// animation ID. The complete record holds 35 words, so the transfer is in bounds.
+/// Scripts play base clip 1 or meeting clips 47..65 and resolve the weapon-bank
+/// selector in a temporary request. Clip storage stays loaded during playback.
 typedef struct {
     AnimationSet*            clips[ACTOR_160700_PLAYER_MEETING_SET_COUNT]; // Bank ids 47..65, then four NULL entries
-    AnimationBankCopyRequest bankCopy;                                     // Installs the first 32 raw words of this record
+    AnimationBankCopyRequest bankCopy;                                     // Copies the first 32 words, including this request, into the player bank
     AnimationPlayRequest     resetRequest;                                 // Restarts base clip 1; disables world-grid participation
-    AnimationPlayRequest     blendRequest;                                 // Blends into base clip 1 over 15 frames; disables world-grid participation
+    AnimationPlayRequest     blendRequest;                                 // Returns to base clip 1 with a 15-frame blend; disables world-grid participation
 } _Actor160700PlayerMeetingAnimationData;
 STATIC_ASSERT_SIZEOF(_Actor160700PlayerMeetingAnimationData, 0x8C);
+STATIC_ASSERT(OFFSET_OF(_Actor160700PlayerMeetingAnimationData, blendRequest) + OFFSET_OF(AnimationPlayRequest, blend) == ANIMATION_BANK_EXTENSION_CAPACITY * sizeof(s32), Actor160700MeetingCopyEnd);
 
 /// Player animation storage borrowed by all four Pierce meeting scripts.
 ///

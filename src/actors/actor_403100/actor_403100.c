@@ -1445,10 +1445,13 @@ static AnimationSet* _gActor403100AnimationSets[26] = {
     NULL,
 };
 
-/// One floor-puff emission point in the spawned coordinate's parent frame.
+/// Fixed horizontal placement of a floor puff in its root's parent frame.
+///
+/// Signed halfwords widen to the coordinate's translation words in game units.
+/// Placement supplies Y = 0; this record contains no height or rotation.
 typedef struct {
-    s16 x; // X translation in game-coordinate units
-    s16 z; // Z translation in game-coordinate units; Y is zero
+    s16 x; // Parent-frame X translation in game units
+    s16 z; // Parent-frame Z translation in game units
 } _Actor403100FloorPuffPoint;
 STATIC_ASSERT_SIZEOF(_Actor403100FloorPuffPoint, 4);
 

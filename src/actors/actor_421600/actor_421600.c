@@ -150,17 +150,25 @@ typedef struct {
 } _Actor421600RouteRoamScratch;
 STATIC_ASSERT_SIZEOF(_Actor421600RouteRoamScratch, 0x3C);
 
-/// One full-word X/Z waypoint, narrowed to halfwords when installed in patrol work.
+/// Two source words whose low halfwords form a planar patrol waypoint.
+///
+/// The loader reads both words, then stores only their low 16 bits in an
+/// `ActorPatrolPoint`. Those signed halfwords are root-parent game coordinates;
+/// the upper halfwords have no established meaning and do not affect patrol.
 typedef struct {
-    s32 x; // Root-parent X coordinate; copied as a word before narrowing
-    s32 z; // Root-parent Z coordinate; copied as a word before narrowing
-} _Actor421600PatrolPoint32;
-STATIC_ASSERT_SIZEOF(_Actor421600PatrolPoint32, 8);
+    s32 xWord; // Low halfword is signed X; upper halfword is 1 in every stored point, role unproven
+    s32 zWord; // Low halfword is signed Z; upper halfword is 0 in every stored point, role unproven
+} _Actor421600PatrolPointWords;
+STATIC_ASSERT_SIZEOF(_Actor421600PatrolPointWords, 8);
 
-/// Two-point routes for the two placement classes in one player quadrant.
+/// Two alternating patrol endpoints for each placement class in one player quadrant.
+///
+/// Rows 0..3 correspond to +X/+Z, nonpositive X/+Z, +X/nonpositive Z and
+/// nonpositive X/Z. The loader chooses the pair from the enemy's placement
+/// index and narrows each source component to a signed halfword.
 typedef struct {
-    _Actor421600PatrolPoint32 placementZero[2];   // Enemy placement index 0
-    _Actor421600PatrolPoint32 otherPlacements[2]; // Every other enemy placement index
+    _Actor421600PatrolPointWords placementZero[2];   // Endpoint pair for enemy placement index 0
+    _Actor421600PatrolPointWords otherPlacements[2]; // Endpoint pair for every nonzero enemy placement index
 } _Actor421600PatrolRouteRow;
 STATIC_ASSERT_SIZEOF(_Actor421600PatrolRouteRow, 32);
 
@@ -1255,11 +1263,11 @@ static s8 _gActor421600RouteQuadrants[4] = {
     2,
 };
 
-/// Two authored patrol routes per player quadrant, in full-word root-parent units.
+/// Two authored patrol routes per player quadrant, stored as pairs of source words.
 ///
 /// Rows are +X/+Z, nonpositive X/+Z, +X/nonpositive Z, nonpositive X/Z.
 /// Each route has two alternating points; its placement class chooses the pair.
-/// Word values deliberately narrow to signed halfwords in the consumer.
+/// Only the low halfwords supply signed root-parent coordinates in game units.
 static _Actor421600PatrolRouteRow _gActor421600PatrolRoutes[4] = {
     { { { 0x1F948, 538 }, { 0x1FAC1, 2373 } }, { { 0x1038C, 0xF78A }, { 0x108BC, 0xF930 } } },
     { { { 0x102D1, 751 }, { 0x101C1, 2219 } }, { { 0x1022D, 2329 }, { 0x106DC, 0xFB69 } } },
@@ -3650,20 +3658,20 @@ static __inline__ s32 _actor421600GetRouteQuadrant(s32 x, s32 z)
 /// `playerQuadrant` must point to a live signed-halfword row index 0..3.
 /// Placement zero uses `placementZero`; every other placement index uses
 /// `otherPlacements`. Rereads the row for each component and copies both XZ points into the work;
-/// source words narrow to signed halfwords in root-parent coordinate units.
+/// only the low halfwords of the source words supply signed root-parent coordinates.
 /// Does not change the current patrol target or retain the borrowed pointers.
 static inline void _actor421600SelectPatrolRoute(DesertChaserWork* work, const Enemy* enemy, const s16* playerQuadrant)
 {
     if ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) == 0) {
-        work->patrolPoints[0].x = _gActor421600PatrolRoutes[*playerQuadrant].placementZero[0].x;
-        work->patrolPoints[0].z = _gActor421600PatrolRoutes[*playerQuadrant].placementZero[0].z;
-        work->patrolPoints[1].x = _gActor421600PatrolRoutes[*playerQuadrant].placementZero[1].x;
-        work->patrolPoints[1].z = _gActor421600PatrolRoutes[*playerQuadrant].placementZero[1].z;
+        work->patrolPoints[0].x = (s16)_gActor421600PatrolRoutes[*playerQuadrant].placementZero[0].xWord;
+        work->patrolPoints[0].z = (s16)_gActor421600PatrolRoutes[*playerQuadrant].placementZero[0].zWord;
+        work->patrolPoints[1].x = (s16)_gActor421600PatrolRoutes[*playerQuadrant].placementZero[1].xWord;
+        work->patrolPoints[1].z = (s16)_gActor421600PatrolRoutes[*playerQuadrant].placementZero[1].zWord;
     } else {
-        work->patrolPoints[0].x = _gActor421600PatrolRoutes[*playerQuadrant].otherPlacements[0].x;
-        work->patrolPoints[0].z = _gActor421600PatrolRoutes[*playerQuadrant].otherPlacements[0].z;
-        work->patrolPoints[1].x = _gActor421600PatrolRoutes[*playerQuadrant].otherPlacements[1].x;
-        work->patrolPoints[1].z = _gActor421600PatrolRoutes[*playerQuadrant].otherPlacements[1].z;
+        work->patrolPoints[0].x = (s16)_gActor421600PatrolRoutes[*playerQuadrant].otherPlacements[0].xWord;
+        work->patrolPoints[0].z = (s16)_gActor421600PatrolRoutes[*playerQuadrant].otherPlacements[0].zWord;
+        work->patrolPoints[1].x = (s16)_gActor421600PatrolRoutes[*playerQuadrant].otherPlacements[1].xWord;
+        work->patrolPoints[1].z = (s16)_gActor421600PatrolRoutes[*playerQuadrant].otherPlacements[1].zWord;
     }
 }
 

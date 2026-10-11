@@ -232,18 +232,18 @@ extern AnimationSet* gActor521100GrabPlayerAnimationSets[14];
 /// requests one additional puff for primary fire. The record owns no coordinate.
 extern EffectSpawnArg gActor521100GrabKillEffectArg;
 
-/// Shared halfword storage for native GOLEM clip blends and event-fire part choices.
+/// Overlapping GOLEM animation-blend durations and body-fire attachment choices.
 ///
-/// Native clip IDs 0..20 read `blendFrames`. Its last value is also the first
-/// fire-part choice: animation 20 blends for one frame and fire can select part 1.
-/// `tables.eventFireParts` supplies all eight fire choices after the twenty
-/// native blend durations, sharing that first choice with clip 20's duration.
+/// `blendFrames` is indexed by clip IDs 0..20; higher IDs use no blend.
+/// Durations are animation frames and also delay the attack's frame cues.
+/// `tables.eventFireParts` selects one of eight coordinates of the 19-part body.
+/// The lists share one halfword: clip 20's one-frame blend is part choice 1.
 typedef union {
     struct {
-        s16 blendFrames[20];   // Blend durations in normal-rate frames for native clip IDs 0..19
-        s16 eventFireParts[8]; // Coordinate indices into the nineteen-part body model, selected uniformly
-    } tables;
-    s16 blendFrames[21];       // Native clip durations, including the shared fire-part halfword at ID 20
+        s16 blendFrames[20];   // Blend durations for clip IDs 0..19, in animation frames
+        s16 eventFireParts[8]; // Body-coordinate indices (1, 4, 6, 10, 13, 14, 16, 17), chosen uniformly
+    } tables;                  // Authored lists; the first fire choice also supplies clip 20's blend
+    s16 blendFrames[21];       // Blend durations for clip IDs 0..20, including the shared halfword
 } Actor521100AnimationFireTables;
 STATIC_ASSERT_SIZEOF(Actor521100AnimationFireTables, 0x38);
 

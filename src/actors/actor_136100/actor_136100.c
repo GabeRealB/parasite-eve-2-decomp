@@ -54,13 +54,16 @@ static void _screenFadeInTask(Task* task);
 #include "../../shared/screen_fade.h"
 #include "../../shared/actor_messages.h"
 
-/// Start placement and walk destination for a player's street-scene entrance.
+/// Player placements at the two ends of a scripted street-scene entrance.
 ///
-/// Positions use the player's root-parent coordinate frame in game units;
-/// Euler angles use 4096 units per turn. Messages consume the records synchronously.
+/// The entrance applies `start`'s XYZ and Euler angles, then walks to
+/// `destination`'s XYZ without applying its angles. Scene resets and later
+/// staging can apply either complete placement. Positions use the player's
+/// root-parent frame in game units; angles use 4096 units per turn.
+/// Dispatch consumes the values synchronously and retains no record pointer.
 typedef struct {
-    ActorTransform start;       // Placement applied before starting the walk
-    ActorTransform destination; // Walk target, also used by scene resets or follow-up staging
+    ActorTransform start;       // Initial placement and facing; also the before-Burner reset placement
+    ActorTransform destination; // Walk target XYZ; full placement for the after-Burner reset and before-Burner staging
 } _Actor136100PlayerEntrance;
 STATIC_ASSERT_SIZEOF(_Actor136100PlayerEntrance, 2 * sizeof(ActorTransform));
 
@@ -1726,7 +1729,8 @@ static void _actor136100RifleTask(Task* task)
 /// Requires live controller work and its borrowed player task. `path` contains
 /// the immediate start placement and scripted-walk destination in
 /// the player's root-parent frame, with Euler angles in 4096 units per turn.
-/// Synchronous messages copy both records; the path need only survive the call.
+/// Placement consumes XYZ and rotation; walking copies only destination XYZ.
+/// Neither message retains the path, which need only survive the call.
 /// Clears the entrance delay and advances request step 0 to the walk wait.
 static inline void _actor136100BeginPlayerEntrance(_Actor136100Work* work, const _Actor136100PlayerEntrance* path)
 {

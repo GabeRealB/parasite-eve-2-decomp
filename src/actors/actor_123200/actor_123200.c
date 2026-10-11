@@ -130,13 +130,14 @@ STATIC_ASSERT_SIZEOF(_Actor123200Work, 0x22C);
 STATIC_ASSERT(OFFSET_OF(_Actor123200Work, rig) == OFFSET_OF(AnimDriverWork, rig), Actor123200Work_rig);
 STATIC_ASSERT(OFFSET_OF(_Actor123200Work, driver) == OFFSET_OF(AnimDriverWork, state), Actor123200Work_driver);
 
-/// Staged Bone Suckler animation resource with an established loaded-clip prefix.
+/// Clip bank and uninterpreted image suffix for the staged Bone Suckler.
 ///
-/// The remaining bytes have no recovered consumer; their original format and the
-/// extent of any additional NULL table entries are unproven.
+/// Playback borrows `sets`: entry 0 is NULL and entries 1..10 are six-track clips.
+/// The staging states request only clips 1 and 2. The following 148 bytes have
+/// no recovered reader; their format and membership in this resource are unproven.
 typedef struct {
-    AnimationSet* sets[11];        // NULL at 0, loaded six-track clips at 1..10
-    u8            unknown_2C[148]; // Retained resource bytes; role and internal boundaries unproven
+    AnimationSet* sets[11];        // Borrowed playback bank: 0 NULL, 1..10 loaded clips
+    u8            unknown_2C[148]; // Retained image suffix; meaning and object boundaries unproven
 } _Actor123200AnimationResource;
 STATIC_ASSERT_SIZEOF(_Actor123200AnimationResource, 0xC0);
 
