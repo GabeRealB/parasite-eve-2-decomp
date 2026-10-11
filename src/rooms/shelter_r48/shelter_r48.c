@@ -83,8 +83,6 @@ s32     rcos(s32);
 s32     rsin(s32);
 MATRIX* TransposeMatrix(MATRIX*, MATRIX*);
 
-extern EvsCommand D_actor_503500_8014CAF8[];
-
 /// Three ring-wall bands followed by three shockwave bands.
 enum { SHELTER_R48_RING_BAND_COUNT = 6 };
 
@@ -2489,7 +2487,7 @@ static s32 _shelterR48AdvanceBossSceneMsg(Task* unusedTask, s32 unusedMessageId,
         gameFlagSetNibble(GAME_FLAG_SHELTER_R48_SCENE_STATE, SHELTER_R48_SCENE_INTERRUPTED);
     } else {
         // Queue the scene before the drift emitters at its three fixed positions.
-        evsStartScriptWithSkip(gActor503500BossDefeatScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_503500_8014CAF8);
+        evsStartScriptWithSkip(gActor503500BossDefeatScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, gActor503500BossDefeatSkipScript);
         taskSpawnFromTable(gActor503500SceneEffectTaskDescs, ACTOR_503500_SCENE_TASK_DRIFT_EMITTER, 0, 0);
         taskSpawnFromTable(gActor503500SceneEffectTaskDescs, ACTOR_503500_SCENE_TASK_DRIFT_EMITTER, 1, 0);
         taskSpawnFromTable(gActor503500SceneEffectTaskDescs, ACTOR_503500_SCENE_TASK_DRIFT_EMITTER, 3, 0);

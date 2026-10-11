@@ -96,4 +96,13 @@ void actor503500SliderTask(Task* task);
 /// the room calls this before starting its entry script. `unused` is ignored.
 void actor503500ClearFadeFromBlackHandle(s32 unused);
 
+/// Skip path establishing the boss defeat's staff-card-ready room state.
+///
+/// Twenty-eight commands including END. Fades, restores player placement/clips,
+/// releases battle and both scene actors, cancels effects, hides both slabs and
+/// enables staff-card use. Pair with `gActor503500BossDefeatScript`; keep the actor
+/// and R48 overlays, callbacks and borrowed clip resources loaded through
+/// completion. Player control resumes with the default scripted-end mode.
+extern EvsCommand gActor503500BossDefeatSkipScript[28];
+
 #endif // INCLUDE_ACTORS_ACTOR_503500_H

@@ -450,8 +450,6 @@ static void _actor403100FinishStagger(void);
 static void _actor403100BreakBalconyAtArm(Task* task);
 static void _actor403100ProbeArmPlayerContact(Task* task);
 
-extern u8 D_actor_403100_801557A8[];
-
 static void _actor403100SceneIdleState0(Task* unusedTask);
 static void _actor403100DispatchSceneEntrance(Task* task);
 static void _actor403100DispatchSceneAimAndImpact(Task* task);
@@ -1322,7 +1320,16 @@ TaskDesc gActor403100TaskDescriptors[2] = {
     { { { TASK_BODY_COORD, ACTOR_403100_TASK_PRIORITY } }, _actor403100FloorPuffEmitterTask, { .value = 0 } },
 };
 
-TaskDesc D_actor_403100_80155624 = { { { TASK_BODY_COORD, 96 } }, _actor403100DriftPuffEmitterTask, { .value = 0 } };
+/// Retained spawn recipe for a coordinate-body drift-puff emitter.
+///
+/// Priority 96; descriptor data is unused. The callback owns its coordinate body
+/// and advances setup, emission and expiration. No spawn consumer is established;
+/// the descriptor and callback remain stored in this overlay.
+static TaskDesc _gActor403100DriftPuffEmitterTaskDesc = {
+    .header   = { .fields = { TASK_BODY_COORD, ACTOR_403100_TASK_PRIORITY } },
+    .callback = _actor403100DriftPuffEmitterTask,
+    .data     = { .value = 0 },
+};
 
 enum {
     ACTOR_403100_HIT_EFFECT_ARGUMENT = 1536,
@@ -1456,15 +1463,22 @@ static _Actor403100FloorPuffPoint _gActor403100FloorPuffPoints[5] = {
     { -2016, 1952 },
 };
 
-u8 D_actor_403100_801557A8[8] = {
-    0,
-    1,
-    2,
-    1,
-    2,
-    1,
-    0,
-    0,
+enum { ACTOR_403100_BALCONY_IMPACT_SPRITE_CUE_2 = 2 };
+
+/// Balcony impact sprite choices for the seven updates from tick 14 through 20.
+///
+/// Values 0/1/2 hide both breakaway batches or select the first/second batch in
+/// view 22; view 19 also updates its own batches. The eighth stored zero is not
+/// consumed by the impact sequence. Indexing requires auxFrames initially zero.
+static u8 _gActor403100BalconyImpactSpriteCues[8] = {
+    ACTOR_403100_SCENE_SPRITE_CUE_0,
+    ACTOR_403100_SCENE_SPRITE_CUE_1,
+    ACTOR_403100_BALCONY_IMPACT_SPRITE_CUE_2,
+    ACTOR_403100_SCENE_SPRITE_CUE_1,
+    ACTOR_403100_BALCONY_IMPACT_SPRITE_CUE_2,
+    ACTOR_403100_SCENE_SPRITE_CUE_1,
+    ACTOR_403100_SCENE_SPRITE_CUE_0,
+    ACTOR_403100_SCENE_SPRITE_CUE_0,
 };
 
 /// Combat behavior indices stored in the attack-odds rows.
@@ -3564,7 +3578,7 @@ static void _actor403100StepSceneBalconyImpact(Task* task)
         _gActor403100Work->shakeFrames = ACTOR_403100_FOOTFALL_FEEDBACK_FRAMES;
     }
     if ((u32)(_gActor403100Work->stateFrames - ACTOR_403100_BALCONY_IMPACT_TICK) < ACTOR_403100_BALCONY_IMPACT_SPRITE_TICKS) {
-        dryfieldNightMotelBalconyUpdateSceneSprites(D_actor_403100_801557A8[_gActor403100Work->auxFrames]);
+        dryfieldNightMotelBalconyUpdateSceneSprites(_gActor403100BalconyImpactSpriteCues[_gActor403100Work->auxFrames]);
         _gActor403100Work->auxFrames += 1;
     }
     if ((s16)_gActor403100Work->stateFrames >= ACTOR_403100_BALCONY_IMPACT_END_TICK) {
@@ -6594,9 +6608,13 @@ static const TaskFuncTable11 _gActor403100GrabAndSqueezeSteps = {
     },
 };
 
-/// Steps of the behaviour mode `_actor403100StepSideFlameAttack`, indexed by `subState`.
-static const TaskFuncTable5 D_actor_403100_80132000 = {
-    {
+/// Side-flame attack phases: begin, emit, wait, and start/finish contact recovery.
+///
+/// Indexed by `Actor403100Work::subState` in 0..4, with no terminator.
+/// The dispatcher copies the table before its hit gate; callbacks borrow the live
+/// Burner model and work, and animation advances in the enclosing fight update.
+static const TaskFuncTable5 _gActor403100SideFlameSteps = {
+    .funcs = {
         _actor403100BeginSideFlameAttack,
         _actor403100StepSideFlameBreath,
         _actor403100WaitAfterSideFlameAttack,
@@ -6605,9 +6623,13 @@ static const TaskFuncTable5 D_actor_403100_80132000 = {
     },
 };
 
-/// Steps of the behaviour mode `_actor403100StepGrabAndDrag`, indexed by `subState`.
-static const TaskFuncTable4 D_actor_403100_80132014 = {
-    {
+/// Grab-and-drag phases: begin, reach, drag the player, then release.
+///
+/// Indexed by `Actor403100Work::subState` in 0..3, with no terminator.
+/// The dispatcher copies the table; callbacks require the live Burner and player
+/// and manage their own hit gates and player-control transitions.
+static const TaskFuncTable4 _gActor403100GrabAndDragSteps = {
+    .funcs = {
         _actor403100BeginGrabAndDrag,
         _actor403100StepGrabAndDragReach,
         _actor403100StepPlayerDrag,
@@ -7842,7 +7864,7 @@ static void _actor403100StepSideFlameAttack(Task* task)
 {
     TaskFuncTable5 handlers;
 
-    handlers = D_actor_403100_80132000;
+    handlers = _gActor403100SideFlameSteps;
     if (_actor403100HandleHitReaction() == 0) {
         handlers.funcs[(s16)_gActor403100Work->subState](task);
     }
@@ -7856,7 +7878,7 @@ static void _actor403100StepGrabAndDrag(Task* task)
 {
     TaskFuncTable4 handlers;
 
-    handlers = D_actor_403100_80132014;
+    handlers = _gActor403100GrabAndDragSteps;
     handlers.funcs[(s16)_gActor403100Work->subState](task);
 }
 /// Dispatches the start or completion of a hit-induced stagger.

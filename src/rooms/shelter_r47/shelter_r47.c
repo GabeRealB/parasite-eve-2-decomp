@@ -73,9 +73,6 @@ static void _roomCutsceneTask(Task* task);
 
 static void _roomCutsceneSoundTask(Task* task);
 
-extern EvsCommand D_actor_443500_801432FC[];
-extern EvsCommand D_actor_443500_80143494[];
-
 /// `clutX` value that ends a sprite's piece list. That record is not drawn.
 enum { SHELTER_R47_SPRITE_PART_END = 0xFFFF };
 
@@ -720,7 +717,7 @@ static void _shelterR47AdvanceTerminalTour(Task* unusedTask)
             break;
         case SHELTER_R47_TOUR_MAP_FOLLOWUP:
             if (gGameSession->cutsceneHold == 0) {
-                evsStartScriptWithSkip(gActor443500MapFollowupScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_443500_801432FC);
+                evsStartScriptWithSkip(gActor443500MapFollowupScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, gActor443500MapFollowupSkipScript);
                 gameFlagSetNibble(GAME_FLAG_SHELTER_R47_EVENT_PROGRESS, SHELTER_R47_TOUR_DONE);
             }
             break;
@@ -849,7 +846,7 @@ static s32 _shelterR47HandleDirectionAction(Task* unusedTask, s32 unusedMessageI
                 break;
             case SHELTER_R47_ACTION_MAP_OR_TOUR_FOLLOWUP:
                 if ((gameFlagGetNibble(GAME_FLAG_083) == 1) && (gameFlagGetNibble(GAME_FLAG_SHELTER_R47_EVENT_PROGRESS) >= SHELTER_R47_TOUR_MAP_FOLLOWUP)) {
-                    evsStartScript(D_actor_443500_80143494, EVENT_SCRIPT_HUD_HIDE_RESTORE);
+                    evsStartScript(gActor443500PowerPlantProgressDialogueScript, EVENT_SCRIPT_HUD_HIDE_RESTORE);
                 }
                 break;
             case SHELTER_R47_ACTION_OPEN_MAP:

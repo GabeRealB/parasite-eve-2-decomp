@@ -1,7 +1,7 @@
 // Overlay-local symbols for actor_421600.
 _gDesertChaserClipBlendFrames = 0x80150DB4; // size:0x274 defined:True
-D_actor_421600_80151028 = 0x80151028; // size:0x68 defined:True
-D_actor_421600_8013EF48 = 0x8013EF48; // size:0x20 defined:True
+_gActor421600AnimationSets = 0x80151028; // size:0x68 defined:True
+_gActor421600VariantTunings = 0x8013EF48; // size:0x20 defined:True
 _gActor421600DesertChaserBodySkeleton = 0x8013EF68; // size:0x288 defined:True
 _gActor421600DesertChaserBodyPartVerts = 0x8013F1F0; // size:0x48 defined:True
 _gActor421600DesertChaserBodyVerts = 0x8013F238; // size:0x850 defined:True
@@ -187,7 +187,7 @@ _gActor421600EnemyParams = 0x8013EF38; // size:0x10 defined:True
 _gDesertChaserFrontCatchPlayerAnimSets = 0x80151090; // size:0x14 defined:True
 _gDesertChaserRearCatchPlayerAnimSets = 0x801510A4; // size:0x14 defined:True
 _gDesertChaserHitAnchors = 0x801510B8; // size:0x60 defined:True
-D_actor_421600_80151118 = 0x80151118; // size:0x40 defined:True
+_gActor421600Messages = 0x80151118; // size:0x40 defined:True
 _gActor421600ArenaWaypoints = 0x80151158; // size:0x68 defined:True
 _gActor421600ArenaCellZones = 0x801511C0; // size:0x10 defined:True
 _gActor421600RouteQuadrants = 0x801511D0; // size:0x4 defined:True
@@ -255,3 +255,4 @@ _actor421600LungeRecoveryState = 0x8013e9d8; // type:func
 _actor421600ResumePursuitState = 0x8013eaac; // type:func
 _actor421600RiseState = 0x8013eb7c; // type:func
 _actor421600FrameState = 0x8013d658; // type:func
+_gActor421600StateHandlers = 0x80131efc;

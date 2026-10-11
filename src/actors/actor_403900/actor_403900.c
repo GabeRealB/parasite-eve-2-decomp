@@ -1230,14 +1230,17 @@ static AnimationSet* _gGolemKnightBishopAnimSets[GOLEM_KNIGHT_BISHOP_ANIM_COUNT]
 
 #include "../../shared/golem_knight_bishop_kneel_hit.inc.c"
 
-/// The enemy task's three state handlers, which `_actor403900GolemTask`
-/// picks by `Task::state`: the spawn setup, the frame handler that runs the
-/// sequences, and the frame handler that unlinks the enemy and saves its pose
-/// before running its own short sequence.
-static const EnemyTaskFuncTable3 D_actor_403900_80131F18 = {
-    _golemKnightBishopSpawn,
-    _golemKnightBishopFrameState,
-    _golemKnightBishopDeadState,
+/// Bishop GOLEM task phases: spawn setup, living frame and death frame.
+///
+/// Indexed by `Task::state` in 0..2; the table has no terminator and is copied
+/// before dispatch. Each callback receives the borrowed Enemy followed by Task.
+/// The live model, work and this overlay must survive through the selected phase.
+static const EnemyTaskFuncTable3 _gActor403900GolemTaskStates = {
+    .funcs = {
+        _golemKnightBishopSpawn,
+        _golemKnightBishopFrameState,
+        _golemKnightBishopDeadState,
+    },
 };
 
 #include "../../shared/golem_knight_bishop_collapse_death.inc.c"
@@ -1298,6 +1301,6 @@ static void _actor403900GolemTask(Task* task)
 {
     EnemyTaskFuncTable3 stateHandlers;
 
-    stateHandlers = D_actor_403900_80131F18;
+    stateHandlers = _gActor403900GolemTaskStates;
     stateHandlers.funcs[task->state](task->spawnArg2.pointer, task);
 }

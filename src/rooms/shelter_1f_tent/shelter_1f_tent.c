@@ -55,9 +55,6 @@ static void _roomCutsceneTask(Task* task);
 
 static void _roomCutsceneSoundTask(Task* task);
 
-extern EvsCommand D_actor_460200_801362B8[];
-extern EvsCommand D_actor_460200_80137890[];
-
 /// The save's `companionType` byte under a symbol of its own; the cutscene's
 /// end reads it through this name rather than through `gMcSaveData`.
 
@@ -150,7 +147,7 @@ static void _shelter1fTentInitializeRoom(Task* task)
         gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, ARRIVAL_OBJECTIVE);
         playerStateRestoreFullHpMp();
         areaApplySavedUpdates(gShelter1fTentFirstArrivalAreaUpdates);
-        evsStartScriptWithSkip(D_actor_460200_801362B8, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_460200_80137890);
+        evsStartScriptWithSkip(gActor460200TentArrivalScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, gActor460200TentArrivalSkipScript);
         if (gameFlagGetNibble(GAME_FLAG_ITEM_125_FOLLOWUP_SEEN) != 0) {
             areaApplySavedUpdates(gShelter1fTentHeliportAfterItemFollowupAreaUpdates);
             areaApplySavedUpdates(gShelter1fTentGolemFreezer1AfterItemFollowupAreaUpdates);

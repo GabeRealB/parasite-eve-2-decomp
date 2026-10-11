@@ -20,6 +20,7 @@
 #include "gameplay/areaplace.h"
 #include "gameplay/attachment_state.h"
 #include "gameplay/attachments.h"
+#include "gameplay/captions.h"
 #include "gameplay/actor_presentation.h"
 #include "gameplay/collision.h"
 #include "gameplay/damage.h"
@@ -261,10 +262,6 @@ STATIC_ASSERT_SIZEOF(_GluttonHostTaskStorage, 8);
 /// Spawn tables `evsStartScriptWithSkip` forwards to `taskSpawn`, taken as raw
 /// addresses: the first pair is used by the `spawnArg1` fast path in state 0
 /// and the second by state 2.
-extern EvsCommand D_actor_444000_80144634[];
-extern EvsCommand D_actor_444000_8014488C[];
-extern EvsCommand D_actor_444000_8014431C[];
-extern EvsCommand D_actor_444000_801444E4[];
 
 extern SVECTOR ActorContact_ScratchPosition;
 
@@ -460,9 +457,20 @@ static AnimationSet* _gActor444000EventPlayerAnimationSets[4] = {
     &gActor444000Animation2EE14,
 };
 
-EvsCommand D_actor_444000_8014431C[19] = {
-    { EVENT_SCRIPT_OPCODE_SET_SKIP_KEEP_SOUND, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 4 }, { .value = 0 } },
+enum {
+    ACTOR_444000_CAP_POST_BOSS_ALERT = 4,
+    ACTOR_444000_CAP_DESCENT         = 8,
+};
+
+/// Post-boss incinerator alert and room-descent event, synchronized by CAP command 4.
+///
+/// Nineteen commands including END. Requires the published event task/work, live
+/// player, incinerator room resources and CAP loaded. Dismisses the Mad Chasers,
+/// restores player drawing, applies the descent room and ends player scripting.
+/// The event task consumes the queued player actions while this script runs.
+static EvsCommand _gActor444000PostBossAlertScript[19] = {
+    { EVENT_SCRIPT_OPCODE_SET_SKIP_KEEP_SOUND, { .value = true }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_START }, { .value = ACTOR_444000_CAP_POST_BOSS_ALERT }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor444000EventRequestPlayerAction }, { .value = ACTOR_444000_PLAYER_ACTION_WEAPON_CLIP_BLENDED }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor444000EventPlayAlertOnce }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor444000EventDismissMadChasers }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -478,12 +486,17 @@ EvsCommand D_actor_444000_8014431C[19] = {
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor444000EventStopFramebufferBlend }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_STOP_AREA_MUSIC, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = PLAYER_ACTOR_END_SCRIPTED_DEFAULT }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-EvsCommand D_actor_444000_801444E4[14] = {
-    { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+/// Skip path establishing the post-boss alert event's final room and player state.
+///
+/// Fourteen commands including END; borrows the same live event task and room
+/// resources as the normal script. Fades across descent updates, dismisses the
+/// Mad Chasers, clears blending, plays the alert once and ends player scripting.
+static EvsCommand _gActor444000PostBossAlertSkipScript[14] = {
+    { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = GPU_BLEND_AVERAGE }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor444000EventDismissMadChasers }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor444000EventUpdateDescentRoom }, { .value = ACTOR_444000_DESCENT_UPDATE_SKIPPED }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -495,13 +508,19 @@ EvsCommand D_actor_444000_801444E4[14] = {
     { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_STOP_AREA_MUSIC, { .value = 10 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor444000EventPlayAlertOnce }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = PLAYER_ACTOR_END_SCRIPTED_DEFAULT }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-EvsCommand D_actor_444000_80144634[25] = {
-    { EVENT_SCRIPT_OPCODE_SET_SKIP_KEEP_SOUND, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 8 }, { .value = 0 } },
+/// Later-phase incinerator descent event, synchronized by CAP command 8.
+///
+/// Twenty-five commands including END. A nonzero event-task spawn argument selects
+/// this path. Borrows its published event work, player, event clips and room/CAP
+/// resources; ends combat once, plays the alert clip, updates the descent room
+/// and releases player scripting. The event task advances queued player actions.
+static EvsCommand _gActor444000DescentScript[25] = {
+    { EVENT_SCRIPT_OPCODE_SET_SKIP_KEEP_SOUND, { .value = true }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_START }, { .value = ACTOR_444000_CAP_DESCENT }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor444000EventRequestPlayerAction }, { .value = ACTOR_444000_PLAYER_ACTION_EVENT_CLIP_0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -523,12 +542,17 @@ EvsCommand D_actor_444000_80144634[25] = {
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor444000EventStopFramebufferBlend }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 15 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = PLAYER_ACTOR_END_SCRIPTED_DEFAULT }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-EvsCommand D_actor_444000_8014488C[15] = {
-    { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+/// Skip path completing the later-phase collapse and incinerator descent.
+///
+/// Fifteen commands including END. Borrows the live event task and room resources.
+/// Updates the room, broadcasts skip-collapse, clears blending, restores player
+/// drawing, ends combat and plays the alert once before ending player scripting.
+static EvsCommand _gActor444000DescentSkipScript[15] = {
+    { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = GPU_BLEND_AVERAGE }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor444000EventUpdateDescentRoom }, { .value = ACTOR_444000_DESCENT_UPDATE_SKIPPED }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor444000EventBroadcastCommand }, { .value = ACTOR_444000_COMMAND_SKIP_COLLAPSE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -541,11 +565,17 @@ EvsCommand D_actor_444000_8014488C[15] = {
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor444000EventEndBattleOnce }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 15 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor444000EventPlayAlertOnce }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = PLAYER_ACTOR_END_SCRIPTED_DEFAULT }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-TaskDesc D_actor_444000_801449F4 = { { { TASK_BODY_NONE, 192 } }, _actor444000IncineratorEventTask, { .value = 0 } };
+enum { ACTOR_444000_INCINERATOR_EVENT_PRIORITY = 192 };
+
+TaskDesc gActor444000IncineratorEventTaskDesc = {
+    .header   = { .fields = { TASK_BODY_NONE, ACTOR_444000_INCINERATOR_EVENT_PRIORITY } },
+    .callback = _actor444000IncineratorEventTask,
+    .data     = { .value = 0 },
+};
 
 /// Contact attacks shared by the host and attached-part parameter records.
 ///
@@ -3170,7 +3200,7 @@ static void _actor444000IncineratorEventTask(Task* task)
                 work            = task->work;
                 work->savedView = gGameSession->location.loc.view;
                 playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-                evsStartScriptWithSkip(D_actor_444000_80144634, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_444000_8014488C);
+                evsStartScriptWithSkip(_gActor444000DescentScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, _gActor444000DescentSkipScript);
                 task->state = ACTOR_444000_EVENT_WAIT_SCRIPT;
             } else {
                 task->state += 1;
@@ -3193,7 +3223,7 @@ static void _actor444000IncineratorEventTask(Task* task)
             task->killCountdown = nextTick;
             if (nextTick >= ACTOR_444000_EVENT_ENDING_WAIT_FRAMES) {
                 work->savedView = gGameSession->location.loc.view;
-                evsStartScriptWithSkip(D_actor_444000_8014431C, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_444000_801444E4);
+                evsStartScriptWithSkip(_gActor444000PostBossAlertScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, _gActor444000PostBossAlertSkipScript);
                 task->state += 1;
             }
             break;

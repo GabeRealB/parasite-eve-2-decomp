@@ -164,12 +164,6 @@ typedef struct {
 } _Actor421600PatrolRouteRow;
 STATIC_ASSERT_SIZEOF(_Actor421600PatrolRouteRow, 32);
 
-extern DesertChaserVariant D_actor_421600_8013EF48[];
-extern u8                  D_actor_421600_80151028[];
-// Message-table callbacks use the argument views required by this TU.
-
-extern TaskMessageEntry D_actor_421600_80151118[8];
-
 /// The records closing four of the overlay's model streams, which the
 /// death-tick frames point `gEffectBurstTaskDescriptors[5].data.model` at before each `effectSpawn`.
 static TmdSource _gActor421600DesertChaserBurstLegRight;
@@ -236,7 +230,18 @@ static EnemyParams _gActor421600EnemyParams = {
     .damageOverTimeTicks  = 0,
 };
 
-DesertChaserVariant D_actor_421600_8013EF48[4] = {
+enum {
+    ACTOR_421600_TUNING_SLOW   = 0,
+    ACTOR_421600_TUNING_MEDIUM = 1,
+    ACTOR_421600_TUNING_FAST   = 2,
+};
+
+/// Four stored Water Tower chaser timing profiles, in actor-update ticks.
+///
+/// Spawn selector 2 chooses the slow profile, 1 the fast profile, and every other
+/// low-nibble value the medium profile. The fourth row is retained but not read
+/// by this build. Rows seed down time, lunge windup, roam look and chase holdoff.
+static DesertChaserVariant _gActor421600VariantTunings[4] = {
     { 60, 36, 10, 150 },
     { 40, 26, 10, 120 },
     { 20, 18, 10, 120 },
@@ -1096,111 +1101,38 @@ static s8 _gDesertChaserClipBlendFrames[25][25] = {
     /* 24 */ { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-u8 D_actor_421600_80151028[104] = {
-    56,
-    91,
-    20,
-    128,
-    244,
-    93,
-    20,
-    128,
-    40,
-    100,
-    20,
-    128,
-    0,
-    106,
-    20,
-    128,
-    52,
-    110,
-    20,
-    128,
-    12,
-    117,
-    20,
-    128,
-    12,
-    123,
-    20,
-    128,
-    104,
-    125,
-    20,
-    128,
-    140,
-    131,
-    20,
-    128,
-    220,
-    135,
-    20,
-    128,
-    192,
-    141,
-    20,
-    128,
-    60,
-    143,
-    20,
-    128,
-    224,
-    149,
-    20,
-    128,
-    188,
-    222,
-    20,
-    128,
-    192,
-    228,
-    20,
-    128,
-    80,
-    236,
-    20,
-    128,
-    80,
-    238,
-    20,
-    128,
-    140,
-    13,
-    21,
-    128,
-    164,
-    152,
-    20,
-    128,
-    168,
-    157,
-    20,
-    128,
-    40,
-    163,
-    20,
-    128,
-    216,
-    168,
-    20,
-    128,
-    152,
-    175,
-    20,
-    128,
-    44,
-    180,
-    20,
-    128,
-    192,
-    141,
-    20,
-    128,
-    0,
-    0,
-    0,
-    0,
+/// Water Tower chaser clip directory borrowed by both animation contexts.
+///
+/// Entries 0..24 are native AnimationSet pointers; entry 24 repeats entry 10.
+/// Entry 25 is a stored NULL, not a playable clip. The descriptors and packed
+/// streams must remain loaded while either rig or blend context uses the directory.
+static AnimationSet* _gActor421600AnimationSets[26] = {
+    &_gActor421600Animation13D18,
+    &_gActor421600Animation13FD4,
+    &_gActor421600Animation14608,
+    &_gActor421600Animation14BE0,
+    &_gActor421600Animation15014,
+    &_gActor421600Animation156EC,
+    &_gActor421600Animation15CEC,
+    &_gActor421600Animation15F48,
+    &_gActor421600Animation1656C,
+    &_gActor421600Animation169BC,
+    &_gActor421600Animation16FA0,
+    &_gActor421600Animation1711C,
+    &_gActor421600Animation177C0,
+    &_gActor421600Animation1C09C,
+    &_gActor421600Animation1C6A0,
+    &_gActor421600Animation1CE30,
+    &_gActor421600Animation1D030,
+    &_gActor421600Animation1EF6C,
+    &_gActor421600Animation17A84,
+    &_gActor421600Animation17F88,
+    &_gActor421600Animation18508,
+    &_gActor421600Animation18AB8,
+    &_gActor421600Animation19178,
+    &_gActor421600Animation1960C,
+    &_gActor421600Animation16FA0,
+    NULL,
 };
 
 /// Player animation-set bank for a player facing the Desert Chaser.
@@ -1247,7 +1179,12 @@ static ActorHitAnchor _gDesertChaserHitAnchors[12] = {
     { .anchor = { -25, 0, 0, 2 } },
 };
 
-TaskMessageEntry D_actor_421600_80151118[8] = {
+/// Water Tower chaser synchronous message table with seven handlers and an end marker.
+///
+/// Draw and presence use integer payloads; placement, command and playback borrow
+/// their typed records. The room event has an integer payload. Message 2015 is
+/// ignored and defines no reply. The live task borrows the table and callbacks.
+static TaskMessageEntry _gActor421600Messages[8] = {
     { ACTOR421600_MESSAGE_IGNORE_2015, _actor421600IgnoreMessage2015 },
     { ACTOR_MESSAGE_SET_MODEL_DRAW, actorMsgSetVisibility },
     { ACTOR_MESSAGE_IS_PRESENT, _actor421600IsPresent },
@@ -2104,8 +2041,8 @@ static void _actor421600Spawn(Enemy* enemy, Task* task)
     enemy->param                  = &_gActor421600EnemyParams;
     enemy->recs                   = work->spheres[DESERT_CHASER_SPHERE_FRONT].contacts;
     // Both rigs borrow the same clip bank and own separate pose storage.
-    animationInitContext(&work->rig.anim, (AnimationSet**)D_actor_421600_80151028, model, work->rig.poses, work->rig.slots);
-    animationInitContext(&work->blend.anim, (AnimationSet**)D_actor_421600_80151028, model, work->blend.poses, work->blend.slots);
+    animationInitContext(&work->rig.anim, _gActor421600AnimationSets, model, work->rig.poses, work->rig.slots);
+    animationInitContext(&work->blend.anim, _gActor421600AnimationSets, model, work->blend.poses, work->blend.slots);
     work->animRequest   = DESERT_CHASER_ANIM_REQUEST_RESET;
     work->blendActive   = 0;
     work->animId        = ACTOR421600_INITIAL_CLIP;
@@ -2192,7 +2129,7 @@ static void _actor421600Spawn(Enemy* enemy, Task* task)
     work->playerAnim.animationId          = 1;
     work->playerAnim.blend                = ANIMATION_BLEND_RESET;
     work->playerAnim.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
-    task->msgTable                        = D_actor_421600_80151118;
+    task->msgTable                        = _gActor421600Messages;
     rootCoord->parent                     = &gGfxViewCoord;
     rootCoord->composeStamp               = GRAPHICS_COORD_DIRTY;
     actorRenderComposeCoord(rootCoord);
@@ -2224,26 +2161,26 @@ static void _actor421600Spawn(Enemy* enemy, Task* task)
 
     switch (task->spawnArg1.value & ACTOR421600_SPAWN_ARGUMENT_MASK) {
         case 2:
-            work->windupFrames       = D_actor_421600_8013EF48[0].windupFrames;
-            work->downFramesBase     = D_actor_421600_8013EF48[0].downFramesBase;
-            work->roamLookDelay      = D_actor_421600_8013EF48[0].roamLookDelay;
-            work->chaseHoldoffFrames = D_actor_421600_8013EF48[0].chaseHoldoffFrames;
+            work->windupFrames       = _gActor421600VariantTunings[ACTOR_421600_TUNING_SLOW].windupFrames;
+            work->downFramesBase     = _gActor421600VariantTunings[ACTOR_421600_TUNING_SLOW].downFramesBase;
+            work->roamLookDelay      = _gActor421600VariantTunings[ACTOR_421600_TUNING_SLOW].roamLookDelay;
+            work->chaseHoldoffFrames = _gActor421600VariantTunings[ACTOR_421600_TUNING_SLOW].chaseHoldoffFrames;
             break;
 
         case 1:
-            work->windupFrames       = D_actor_421600_8013EF48[2].windupFrames;
-            work->downFramesBase     = D_actor_421600_8013EF48[2].downFramesBase;
-            work->roamLookDelay      = D_actor_421600_8013EF48[2].roamLookDelay;
-            work->chaseHoldoffFrames = D_actor_421600_8013EF48[2].chaseHoldoffFrames;
+            work->windupFrames       = _gActor421600VariantTunings[ACTOR_421600_TUNING_FAST].windupFrames;
+            work->downFramesBase     = _gActor421600VariantTunings[ACTOR_421600_TUNING_FAST].downFramesBase;
+            work->roamLookDelay      = _gActor421600VariantTunings[ACTOR_421600_TUNING_FAST].roamLookDelay;
+            work->chaseHoldoffFrames = _gActor421600VariantTunings[ACTOR_421600_TUNING_FAST].chaseHoldoffFrames;
             break;
 
         case 0:
 
         default:
-            work->windupFrames       = D_actor_421600_8013EF48[1].windupFrames;
-            work->downFramesBase     = D_actor_421600_8013EF48[1].downFramesBase;
-            work->roamLookDelay      = D_actor_421600_8013EF48[1].roamLookDelay;
-            work->chaseHoldoffFrames = D_actor_421600_8013EF48[1].chaseHoldoffFrames;
+            work->windupFrames       = _gActor421600VariantTunings[ACTOR_421600_TUNING_MEDIUM].windupFrames;
+            work->downFramesBase     = _gActor421600VariantTunings[ACTOR_421600_TUNING_MEDIUM].downFramesBase;
+            work->roamLookDelay      = _gActor421600VariantTunings[ACTOR_421600_TUNING_MEDIUM].roamLookDelay;
+            work->chaseHoldoffFrames = _gActor421600VariantTunings[ACTOR_421600_TUNING_MEDIUM].chaseHoldoffFrames;
             break;
     }
 
@@ -4016,46 +3953,55 @@ static void _actor421600BurstDeathState(Task* task)
 
 #include "../../shared/desert_chaser_turn_step_probe.inc.c"
 
-static const DesertChaserStateTable D_actor_421600_80131EFC = { { _actor421600HideState,
-                                                                  _actor421600ScriptAnimationState,
-                                                                  _actor421600TrackArenaRouteState,
-                                                                  _actor421600EntranceLungeState,
-                                                                  _desertChaserStunned,
-                                                                  _actor421600FleeState,
-                                                                  _actor421600MoveToZone5State,
-                                                                  _actor421600ArenaTransitionState,
-                                                                  _actor421600BurstDeathState,
-                                                                  _desertChaserTurnRightState,
-                                                                  _desertChaserTurnLeftState,
-                                                                  _desertChaserStagger,
-                                                                  _desertChaserCollapse,
-                                                                  NULL,
-                                                                  NULL,
-                                                                  NULL,
-                                                                  NULL,
-                                                                  _actor421600DownedWaitState,
-                                                                  NULL,
-                                                                  NULL,
-                                                                  _desertChaserKnockDown,
-                                                                  _actor421600ShrinkDeathState,
-                                                                  _actor421600WaitToRespawnState,
-                                                                  NULL,
-                                                                  _desertChaserPatrol,
-                                                                  NULL,
-                                                                  NULL,
-                                                                  NULL,
-                                                                  _desertChaserPursue,
-                                                                  _actor421600LungeRecoveryState,
-                                                                  _desertChaserThrowPlayer,
-                                                                  _actor421600LeapBackState,
-                                                                  _actor421600WatchRunPlayerState,
-                                                                  _desertChaserSteer,
-                                                                  _actor421600ResumePursuitState,
-                                                                  _actor421600WallKnockDownState,
-                                                                  _actor421600RiseState,
-                                                                  _desertChaserCloseCatchState,
-                                                                  _desertChaserRoam,
-                                                                  _actor421600RouteRoamState } };
+/// Water Tower Desert Chaser behavior handlers in the shared forty-slot state domain.
+///
+/// The frame driver copies this table and indexes it by `DesertChaserWork::state`.
+/// Slots 13..16, 18..19, 23 and 25..27 are NULL and must never be dispatched.
+/// All live entries receive the initialized chaser Task; there is no terminator.
+static const DesertChaserStateTable _gActor421600StateHandlers = {
+    .handlers = {
+        _actor421600HideState,
+        _actor421600ScriptAnimationState,
+        _actor421600TrackArenaRouteState,
+        _actor421600EntranceLungeState,
+        _desertChaserStunned,
+        _actor421600FleeState,
+        _actor421600MoveToZone5State,
+        _actor421600ArenaTransitionState,
+        _actor421600BurstDeathState,
+        _desertChaserTurnRightState,
+        _desertChaserTurnLeftState,
+        _desertChaserStagger,
+        _desertChaserCollapse,
+        NULL,
+        NULL,
+        NULL,
+        NULL,
+        _actor421600DownedWaitState,
+        NULL,
+        NULL,
+        _desertChaserKnockDown,
+        _actor421600ShrinkDeathState,
+        _actor421600WaitToRespawnState,
+        NULL,
+        _desertChaserPatrol,
+        NULL,
+        NULL,
+        NULL,
+        _desertChaserPursue,
+        _actor421600LungeRecoveryState,
+        _desertChaserThrowPlayer,
+        _actor421600LeapBackState,
+        _actor421600WatchRunPlayerState,
+        _desertChaserSteer,
+        _actor421600ResumePursuitState,
+        _actor421600WallKnockDownState,
+        _actor421600RiseState,
+        _desertChaserCloseCatchState,
+        _desertChaserRoam,
+        _actor421600RouteRoamState,
+    },
+};
 /// Snaps the held player to the chaser's height when vertical separation exceeds 300 units.
 ///
 /// Requires live chaser work/model and, when present, the player's live model in
@@ -4135,7 +4081,7 @@ static void _actor421600FrameState(Enemy* enemy, Task* task)
     player       = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     playerStatus = &gPlayerStatus;
     frameView    = viewGetMappedIndex() & 0xFF;
-    states       = D_actor_421600_80131EFC;
+    states       = _gActor421600StateHandlers;
     // Relight from the composed root before honoring pause or hide controls.
     task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     actorRenderComposeCoord(task->extra.tmd->coords);

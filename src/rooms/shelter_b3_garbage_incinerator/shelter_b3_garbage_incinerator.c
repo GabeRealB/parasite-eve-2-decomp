@@ -16,6 +16,7 @@ static u16 _gShelterB3GarbageIncineratorSwitchNoticeTicks;
 
 #include "shelter_b3_garbage_incinerator_private.h"
 
+#include "actors/actor_444000.h"
 #include "actors/task_tables.h"
 
 #include "gameplay/companion_load.h"
@@ -38,7 +39,6 @@ static u16 _gShelterB3GarbageIncineratorSwitchNoticeTicks;
 
 #include "mapui/map_shelter.h"
 
-extern TaskDesc         D_actor_444000_801449F4;
 extern TaskMessageEntry D_shelter_b3_garbage_incinerator_80185594[];
 
 extern TaskDesc D_shelter_b3_garbage_incinerator_801855CC;
@@ -263,12 +263,12 @@ static s32 _shelterB3GarbageIncineratorHandleActorEvent(Task* task, s32 messageI
             break;
         case SHELTER_B3_GARBAGE_INCINERATOR_EVENT_REPLACE_GLUTTON:
             gGameSession->skipEventIntro = 1;
-            taskSpawnFromTable(&D_actor_444000_801449F4, 0, SHELTER_B3_GARBAGE_INCINERATOR_GLUTTON_NORMAL_SPAWN, 0);
+            taskSpawnFromTable(&gActor444000IncineratorEventTaskDesc, 0, SHELTER_B3_GARBAGE_INCINERATOR_GLUTTON_NORMAL_SPAWN, 0);
             break;
         case SHELTER_B3_GARBAGE_INCINERATOR_EVENT_REPLACE_LATE_GLUTTON:
             gGameSession->skipEventIntro                   = 1;
             gShelterB3GarbageIncineratorDoorEventSuspended = SHELTER_B3_GARBAGE_INCINERATOR_DOOR_EVENT_SUSPENDED;
-            taskSpawnFromTable(&D_actor_444000_801449F4, 0, SHELTER_B3_GARBAGE_INCINERATOR_GLUTTON_LATE_SPAWN, 0);
+            taskSpawnFromTable(&gActor444000IncineratorEventTaskDesc, 0, SHELTER_B3_GARBAGE_INCINERATOR_GLUTTON_LATE_SPAWN, 0);
             break;
     }
     return 0;

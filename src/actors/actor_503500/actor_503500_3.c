@@ -360,9 +360,13 @@ static void _actor503500PinkFlashEmitterEnterState(Task* task, s32 state);
 static void _actor503500LargeChainSteerTip(Task* task);
 static void _actor503500LargeChainBlendPose(Task* task);
 
-/// `Task::state` handlers `actor503500BossTask` dispatches through.
-static const TaskFuncTable3 D_actor_503500_80131E44 = {
-    {
+/// Boss task phases: initialize, frame update and teardown.
+///
+/// Indexed by Task state 0..2 and copied before dispatch, with no terminator.
+/// Callbacks borrow the boss singleton and its attached-part resources; teardown
+/// may destroy the task.
+static const TaskFuncTable3 _gActor503500BossTaskStates = {
+    .funcs = {
         _actor503500InitBoss,
         _actor503500UpdateBoss,
         _actor503500ExitBoss,
@@ -2976,7 +2980,7 @@ void actor503500BossTask(Task* task)
 {
     TaskFuncTable3 handlers;
 
-    handlers = D_actor_503500_80131E44;
+    handlers = _gActor503500BossTaskStates;
     handlers.funcs[task->state](task);
 }
 
@@ -2992,9 +2996,12 @@ void actor503500ReleaseProjectileEffectCost(s32 effectCost)
     _gActor503500EffectBudgetCosts[ACTOR_503500_PROJECTILE_EFFECT_COST_INDEX] -= effectCost;
 }
 
-/// `Task::state` handlers `actor503500PinkFlashEmitterTask` dispatches through.
-static const TaskFuncTable3 D_actor_503500_80131F4C = {
-    {
+/// Pink-flash emitter task phases: initialize, frame update and teardown.
+///
+/// Indexed by Task state 0..2 and copied before dispatch. The emitter borrows
+/// boss part 8, slot-1 work and lighting while attached; no terminator.
+static const TaskFuncTable3 _gActor503500PinkFlashEmitterTaskStates = {
+    .funcs = {
         _actor503500PinkFlashEmitterInit,
         _actor503500PinkFlashEmitterUpdate,
         _actor503500PinkFlashEmitterExit,
@@ -3612,13 +3619,16 @@ void actor503500PinkFlashEmitterTask(Task* task)
 {
     TaskFuncTable3 handlers;
 
-    handlers = D_actor_503500_80131F4C;
+    handlers = _gActor503500PinkFlashEmitterTaskStates;
     handlers.funcs[task->state](task);
 }
 
-/// `Task::state` handlers `actor503500LargeChainTask` dispatches through.
-static const TaskFuncTable3 D_actor_503500_80131F9C = {
-    {
+/// Large-chain task phases: initialize, frame update and teardown.
+///
+/// Indexed by Task state 0..2 and copied before dispatch. Slots 2/3 borrow their
+/// boss attachment, singleton work and chain resources; no terminator.
+static const TaskFuncTable3 _gActor503500LargeChainTaskStates = {
+    .funcs = {
         _actor503500LargeChainInit,
         _actor503500LargeChainUpdate,
         _actor503500LargeChainExit,
@@ -4804,6 +4814,6 @@ void actor503500LargeChainTask(Task* task)
 {
     TaskFuncTable3 handlers;
 
-    handlers = D_actor_503500_80131F9C;
+    handlers = _gActor503500LargeChainTaskStates;
     handlers.funcs[task->state](task);
 }

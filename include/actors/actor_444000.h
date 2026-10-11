@@ -8,6 +8,7 @@
 #include "gameplay/animation.h"
 #include "gameplay/pad_script.h"
 
+#include "main/task_types.h"
 #include "main/tmd_types.h"
 
 /// Requests a vertical screen shake from the garbage-incinerator Glutton host.
@@ -88,5 +89,14 @@ extern TmdSource gActor444000Model1D36C;
 extern TmdSource gActor444000Model1DC9C;
 
 extern TmdSource gActor444000Model1E14C;
+
+/// Bodyless priority-192 controller for the incinerator post-boss event.
+///
+/// Spawn argument 1 selects the delayed alert path when zero, or the immediate
+/// later-phase descent when nonzero; argument 2 is unused. The callback allocates
+/// and publishes owned work, drives queued player actions and hands completion
+/// back to the room. Requires the loaded actor and incinerator room overlays and
+/// live player through event completion; the descriptor is borrowed during spawn.
+extern TaskDesc gActor444000IncineratorEventTaskDesc;
 
 #endif // INCLUDE_ACTORS_ACTOR_444000_H

@@ -41,10 +41,6 @@ STATIC_ASSERT_SIZEOF(_Actor503500SliderWork, 0x48);
 
 static void _actor503500SliderExit(Task* task);
 static void _actor503500SliderBindLighting(Task* task);
-/// Two 360-entry X/Z paths `_actor503500SliderUpdate` walks the model along,
-/// selected by `_Actor503500SliderWork::path` (1 or 2).
-extern DVECTOR_XZ D_actor_503500_80147D90[];
-extern DVECTOR_XZ D_actor_503500_80148330[];
 
 static u32     _gActor503500Model15820PartVerts[1];
 static SVECTOR _gActor503500Model15820Verts[92];
@@ -140,11 +136,23 @@ TmdSource gActor503500Model15820 = {
     _gActor503500Model15820Stream,
 };
 
-DVECTOR_XZ D_actor_503500_80147D90[360] = {
+enum { ACTOR_503500_SLIDER_PATH_SAMPLES = 360 };
+
+/// First slab's 360 X/Z positions for the staff-card scene, one per actor update.
+///
+/// Signed halfwords are absolute coordinates in the model root's parent frame.
+/// Path selector 1 resets the timer to zero; the update consumes samples 0..359
+/// and then stops. Y is left unchanged; the table remains separate from path 2.
+static DVECTOR_XZ _gActor503500SliderPathFirst[ACTOR_503500_SLIDER_PATH_SAMPLES] = {
 #include "assets/actor_503500_motion_15F70.inc"
 };
 
-DVECTOR_XZ D_actor_503500_80148330[360] = {
+/// Second slab's 360 X/Z positions for the staff-card scene, one per actor update.
+///
+/// Signed halfwords are absolute coordinates in the model root's parent frame.
+/// Path selector 2 resets the timer to zero; the update uses path 1's equal extent
+/// as its bound and leaves Y unchanged. Stored separately from the first path.
+static DVECTOR_XZ _gActor503500SliderPathSecond[ACTOR_503500_SLIDER_PATH_SAMPLES] = {
 #include "assets/actor_503500_motion_16510.inc"
 };
 
@@ -202,11 +210,11 @@ static void _actor503500SliderUpdate(Task* task)
     rootCoord = model->coords;
     // Motion and shake share the timer, with opposite counting directions.
     if (work->path != ACTOR_503500_SLIDER_PATH_NONE) {
-        if (work->timer < ARRAY_SIZE(D_actor_503500_80147D90)) {
+        if (work->timer < ARRAY_SIZE(_gActor503500SliderPathFirst)) {
             if (work->path == ACTOR_503500_SLIDER_PATH_FIRST) {
-                pathSample = &D_actor_503500_80147D90[work->timer];
+                pathSample = &_gActor503500SliderPathFirst[work->timer];
             } else {
-                pathSample = &D_actor_503500_80148330[work->timer];
+                pathSample = &_gActor503500SliderPathSecond[work->timer];
             }
             rootCoord->coord.t[0] = pathSample->vx;
             rootCoord->coord.t[2] = pathSample->vz;
@@ -395,9 +403,12 @@ static s32 _actor503500SliderApplyCommand(Task* task, s32 messageId, const Actor
     return 0;
 }
 
-/// `Task::state` handlers `actor503500SliderTask` dispatches through.
-static const TaskFuncTable3 D_actor_503500_80131E24 = {
-    {
+/// Slab-slider task phases: initialize, follow the selected path or shake, then exit.
+///
+/// Indexed by Task state 0..2 and copied before the scene-control gate.
+/// The update requires initialized work and a live model/enemy; no terminator.
+static const TaskFuncTable3 _gActor503500SliderTaskStates = {
+    .funcs = {
         _actor503500SliderInit,
         _actor503500SliderUpdate,
         _actor503500SliderExit,
@@ -408,7 +419,7 @@ void actor503500SliderTask(Task* task)
 {
     TaskFuncTable3 handlers;
 
-    handlers = D_actor_503500_80131E24;
+    handlers = _gActor503500SliderTaskStates;
     if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
         handlers.funcs[task->state](task);
     }

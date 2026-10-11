@@ -2121,9 +2121,13 @@ static void _actor405800InitEnemy(Task* task)
     _stalkerZebraIvorySelectState(task, ACTOR_405800_STATE_HIDE);
 }
 
-/// Death-sequence handlers `_actor405800RunDeathSequence` runs by `state`.
-static const TaskFuncTable12 D_actor_405800_80131E24 = {
-    {
+/// Ivory Stalker death phases for floor burning, blast bursting or a ceiling drop.
+///
+/// Task phase 2 indexes these twelve handlers by the work state in 0..11.
+/// The first phase chooses a branch; the last three land a ceiling corpse before
+/// entering the floor sequence. Copied before dispatch; no terminator.
+static const TaskFuncTable12 _gActor405800DeathStates = {
+    .funcs = {
         _actor405800ChooseDeathSequence,
         _stalkerZebraIvoryStartDeathClip,
         _stalkerZebraIvoryTickDeathClip,
@@ -2139,9 +2143,12 @@ static const TaskFuncTable12 D_actor_405800_80131E24 = {
     },
 };
 
-/// The task's four state handlers, run by `_actor405800Task`.
-static const TaskFuncTable4 D_actor_405800_80131E54 = {
-    {
+/// Ivory Stalker task phases: initialize, combat, death and final teardown.
+///
+/// Indexed by `Task::state` in 0..3 and copied before dispatch. Initialization
+/// creates work; teardown may release the enemy, work and task. No terminator.
+static const TaskFuncTable4 _gActor405800TaskStates = {
+    .funcs = {
         _actor405800InitEnemy,
         _actor405800RunCombat,
         _actor405800RunDeathSequence,
@@ -2149,9 +2156,13 @@ static const TaskFuncTable4 D_actor_405800_80131E54 = {
     },
 };
 
-/// Behaviour handlers `_actor405800RunCombat` runs by `state`.
-static const TaskFuncTable18 D_actor_405800_80131E64 = {
-    {
+/// Ivory Stalker combat behaviors, from target waiting through strikes and ceiling movement.
+///
+/// The work state selects slots 0..17 while the task is in combat phase 1.
+/// Slot 15 runs the shared pending-action substate dispatcher. The complete table
+/// is copied before dispatch; every entry requires initialized actor work/model.
+static const TaskFuncTable18 _gActor405800CombatStates = {
+    .funcs = {
         _actor405800EnterTargetWait,
         _actor405800WaitForTarget,
         _actor405800WalkState,
@@ -2185,9 +2196,13 @@ static const TaskFuncTable3 _gActor405800StunPhases = {
     },
 };
 
-/// Sub-state handlers of `_actor405800PlayerHoldState`, by `subState`.
-static const TaskFuncTable5 D_actor_405800_80131EB8 = {
-    {
+/// Ivory Stalker player-hold phases: probe, catch, bite, release hop and release.
+///
+/// The combat hold behavior indexes these five handlers by subState in 0..4.
+/// The complete table is copied before dispatch and has no terminator; callbacks
+/// borrow the live player and Stalker work through the hold and its recovery.
+static const TaskFuncTable5 _gActor405800PlayerHoldPhases = {
+    .funcs = {
         _actor405800StartGrabProbe,
         _actor405800TryStartPlayerHold,
         _actor405800TickPlayerHoldBites,
@@ -2316,7 +2331,7 @@ static void _actor405800RunCombat(Task* task)
     Enemy*                        enemy        = task->spawnArg2.pointer;
     GfxCoord*                     captureCoord = &bodyCoords[ACTOR_405800_PART_FRAME_CAPTURE];
     GfxCoord*                     rootCoord    = bodyCoords;
-    TaskFuncTable18               combatStates = D_actor_405800_80131E64;
+    TaskFuncTable18               combatStates = _gActor405800CombatStates;
 
     switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_HIDDEN:
@@ -3865,7 +3880,7 @@ static void _actor405800RightStrikeState(Task* task)
 static void _actor405800PlayerHoldState(Task* task)
 {
     _Actor405800IvoryStalkerWork* work      = task->work;
-    TaskFuncTable5                subStates = D_actor_405800_80131EB8;
+    TaskFuncTable5                subStates = _gActor405800PlayerHoldPhases;
 
     _stalkerZebraIvoryFoldArms(task);
     subStates.funcs[work->subState](task);
@@ -4018,7 +4033,7 @@ static void _actor405800Task(Task* task)
 {
     TaskFuncTable4 states;
 
-    states = D_actor_405800_80131E54;
+    states = _gActor405800TaskStates;
     states.funcs[task->state](task);
 }
 
@@ -4032,7 +4047,7 @@ static void _actor405800RunDeathSequence(Task* task)
 {
     TmdObject*                    model       = task->extra.tmd;
     _Actor405800IvoryStalkerWork* work        = task->work;
-    TaskFuncTable12               deathStates = D_actor_405800_80131E24;
+    TaskFuncTable12               deathStates = _gActor405800DeathStates;
 
     switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_HIDDEN:

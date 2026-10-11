@@ -1,6 +1,10 @@
 #ifndef ACTORS_ACTOR_460200_H
 #define ACTORS_ACTOR_460200_H
 
+#include "gameplay/evs.h"
+
+#include "gameplay/evs.h"
+
 #include "main/task_types.h"
 
 /// Spawn recipe for Soldier A, placed as actor 2 in the Shelter 1F tent.
@@ -48,5 +52,25 @@ void actor460200TalkToSoldierC(void);
 /// Has `actor460200TalkToSoldierC`'s storage and counter contract, with its own
 /// saved counter and scripts for placed actor 2.
 void actor460200TalkToSoldierA(void);
+
+/// First-arrival conversation and presentation in the Shelter 1F tent.
+///
+/// All 233 commands, including END, are borrowed. Selects CAP resource 2/command 1,
+/// installs player extension clips, stages Soldiers C/B/A, and synchronizes the
+/// conversation and negative-frame effect with CAP cues. Restores view 2, player
+/// and soldier placement, weapons, room CAP and ambience, then selects scene event
+/// 28 and ends player scripting. Pair with `gActor460200TentArrivalSkipScript`;
+/// keep both overlays, live actors and borrowed clip/pad resources loaded until
+/// the event and any retained playback finish.
+extern EvsCommand gActor460200TentArrivalScript[233];
+
+/// Skip path restoring the tent arrival's settled playable arrangement.
+///
+/// Twenty-two commands including END. Stops the two arrival sound cues, fades
+/// across scene cleanup, restores view 2, places Aya and Soldier C, hides Soldier B,
+/// shows Soldier A and restores weapons, room CAP and ambience. Sets scene event
+/// 28 and ends player scripting. Requires the live scene and this package's
+/// borrowed placement, clip and CAP resources through execution and playback.
+extern EvsCommand gActor460200TentArrivalSkipScript[22];
 
 #endif // ACTORS_ACTOR_460200_H

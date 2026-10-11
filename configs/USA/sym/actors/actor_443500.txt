@@ -1,7 +1,7 @@
 // Overlay-local symbols for actor_443500.
 _gActor443500PierceDefaultAnimationRequest = 0x80158728; // size:0x14 defined:True
 gActor443500PierceTaskDescs = 0x8015873C; // size:0x18 defined:True
-D_actor_443500_80158754 = 0x80158754; // size:0x20 defined:True
+_gActor443500PierceMessages = 0x80158754; // size:0x20 defined:True
 _gActor443500PierceCollisionNormals = 0x80158774; // size:0x10 defined:True
 _gActor443500PierceCollisionVerts = 0x80158784; // size:0x30 defined:True
 _gActor443500PierceCollisionFaces = 0x801587B4; // size:0x18 defined:True
@@ -240,8 +240,8 @@ gActor443500TourOpeningSkipScript = 0x80141C1C; // size:0x180 defined:True
 gActor443500ConsoleFollowupScript = 0x80141D9C; // size:0xCD8 defined:True
 gActor443500ConsoleFollowupSkipScript = 0x80142A74; // size:0x1B0 defined:True
 gActor443500MapFollowupScript = 0x80142C24; // size:0x6D8 defined:True
-D_actor_443500_801432FC = 0x801432FC; // size:0x198 defined:True
-D_actor_443500_80143494 = 0x80143494; // size:0xF0 defined:True
+gActor443500MapFollowupSkipScript = 0x801432FC; // size:0x198 defined:True
+gActor443500PowerPlantProgressDialogueScript = 0x80143494; // size:0xF0 defined:True
 _gActor443500TerminalFollowupPlayerClip69Request = 0x801411A8; // size:0x14 defined:True
 _gActor443500TerminalFollowupPlayerClip70Request = 0x801411BC; // size:0x14 defined:True
 _gActor443500TerminalFollowupPlayerClip71Request = 0x801411D0; // size:0x14 defined:True

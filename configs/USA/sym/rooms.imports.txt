@@ -530,12 +530,12 @@ gActor142600IncineratorArrivalScript = 0x801360E4; // absolute:True owner=actor_
 gActor451100SubmarineTunnelEntryScript = 0x80136108; // absolute:True owner=actor_451100
 gActor450900EntryScript = 0x80136110; // absolute:True owner=actor_450900
 gActor160600SceneSkipScript = 0x80136258; // absolute:True owner=actor_160600
-D_actor_460200_801362B8 = 0x801362B8; // absolute:True owner=actor_460200
+gActor460200TentArrivalScript = 0x801362B8; // absolute:True owner=actor_460200
 gActor450900EntrySkipScript = 0x80136308; // absolute:True owner=actor_450900
 gActor142600IncineratorArrivalSkipScript = 0x80136804; // absolute:True owner=actor_142600
 gActor161500CompleteCompanionRequestTaskDesc = 0x80136CDC; // absolute:True owner=actor_161500
 gActor146300IceBagHandoverTaskDesc = 0x8013788C; // absolute:True owner=actor_146300
-D_actor_460200_80137890 = 0x80137890; // absolute:True owner=actor_460200
+gActor460200TentArrivalSkipScript = 0x80137890; // absolute:True owner=actor_460200
 gActor142900ElevatorFirstVisitScript = 0x801378D0; // absolute:True owner=actor_142900
 gActor146300WaterTankEventScript = 0x80137C28; // absolute:True owner=actor_146300
 gActor450200CompanionSceneScript = 0x80137EE4; // absolute:True owner=actor_450200
@@ -566,9 +566,9 @@ gActor443500ConsoleFollowupScript = 0x80141D9C; // absolute:True owner=actor_443
 gActor04400MadChaserTaskDescs = 0x80142604; // absolute:True owner=actor_104400
 gActor443500ConsoleFollowupSkipScript = 0x80142A74; // absolute:True owner=actor_443500
 gActor443500MapFollowupScript = 0x80142C24; // absolute:True owner=actor_443500
-D_actor_443500_801432FC = 0x801432FC; // absolute:True owner=actor_443500
-D_actor_443500_80143494 = 0x80143494; // absolute:True owner=actor_443500
-D_actor_444000_801449F4 = 0x801449F4; // absolute:True owner=actor_444000
+gActor443500MapFollowupSkipScript = 0x801432FC; // absolute:True owner=actor_443500
+gActor443500PowerPlantProgressDialogueScript = 0x80143494; // absolute:True owner=actor_443500
+gActor444000IncineratorEventTaskDesc = 0x801449F4; // absolute:True owner=actor_444000
 actor260400StartHeliportConversation = 0x80149E38; // type:func absolute:True owner=actor_260400
 actor260500RestoreHeliportPlacement = 0x80149E80; // type:func absolute:True owner=actor_260500 shared=actors
 actor260500StartHeliportConversation = 0x80149EBC; // type:func absolute:True owner=actor_260500
@@ -587,7 +587,7 @@ gActor503500BossIntroScript = 0x8014BD48; // absolute:True owner=actor_503500
 gActor503500BossIntroSkipScript = 0x8014C288; // absolute:True owner=actor_503500
 gActor503500BossDefeatScript = 0x8014C540; // absolute:True owner=actor_503500
 actor215100SelectCaptionResource = 0x8014C5E0; // type:func absolute:True owner=actor_215100
-D_actor_503500_8014CAF8 = 0x8014CAF8; // absolute:True owner=actor_503500
+gActor503500BossDefeatSkipScript = 0x8014CAF8; // absolute:True owner=actor_503500
 gActor215100GalleryTrainingActive = 0x8014D038; // absolute:True owner=actor_215100
 gActor503500BossPhaseTransitionScript = 0x8014D158; // absolute:True owner=actor_503500
 gActor00100DesertChaserTaskDesc = 0x8014D8A4; // absolute:True owner=actor_400100

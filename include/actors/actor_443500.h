@@ -63,4 +63,23 @@ extern EvsCommand gActor443500ConsoleFollowupSkipScript[18];
 /// and borrowed clip playback.
 extern EvsCommand gActor443500MapFollowupScript[73];
 
+/// Skip path restoring the map-terminal follow-up's settled scene.
+///
+/// Seventeen commands including END. Shows and places Aya and Pierce, restores
+/// Pierce's fallback clip, weapons, lighting and view 5, cleans up CAP and applies
+/// Shelter saved-area updates. Pair with `gActor443500MapFollowupScript`; keep
+/// both overlays, live actors and borrowed clip/CAP resources loaded through
+/// execution and remaining playback.
+extern EvsCommand gActor443500MapFollowupSkipScript[17];
+
+/// Map-terminal dialogue selected by power-plant-2 progress.
+///
+/// Ten commands including END. Installs player terminal clips, plays Aya clip 48
+/// and Pierce clip 29, and waits for CAP command 6 before completion or 9 after.
+/// Completed progress selects this package's event CAP; otherwise the loaded room
+/// CAP remains active. Restores room CAP, requests Pierce clip 30 and ends player
+/// scripting. Keep R47, the actor overlay and borrowed resources live through
+/// execution and clip playback.
+extern EvsCommand gActor443500PowerPlantProgressDialogueScript[10];
+
 #endif // INCLUDE_ACTORS_ACTOR_443500_H

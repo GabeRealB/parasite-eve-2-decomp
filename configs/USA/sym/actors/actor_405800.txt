@@ -356,3 +356,7 @@ _gActor405800BackLeapPhases = 0x80131ecc;
 _gActor405800CeilingLeapPhases = 0x80131edc;
 _gActor405800CeilingDropPhases = 0x80131ee8;
 _gActor405800CeilingFallPhases = 0x80131ef4;
+_gActor405800DeathStates = 0x80131e24;
+_gActor405800TaskStates = 0x80131e54;
+_gActor405800CombatStates = 0x80131e64;
+_gActor405800PlayerHoldPhases = 0x80131eb8;
