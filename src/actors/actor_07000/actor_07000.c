@@ -1896,19 +1896,21 @@ static void _actor07000SlouchBurst(Task* task)
 {
     enum { ACTOR_07000_SLOUCH_BODY_PART_EFFECT_SLOT = TASK_BANK8_BURST_MODEL_PART_SLOT,
            ACTOR_07000_SLOUCH_BURST_PARTICLE_SIZE   = 768 };
-    /// Spawns a detached model from a part and copies its texture placement.
-    ///
-    /// Expands multiple statements: use as a full switch arm followed by break,
-    /// or inside a braced block.
-    /// modelSource and partIndex are evaluated once, sourceTask once, or twice
-    /// on success, and effectLocal twice, or three times on success. Supply
-    /// stable values and a modifiable EffectWork pointer local without side
-    /// effects. The source model and coordinate must stay live for the spawn.
-#define ACTOR_07000_SLOUCH_SPAWN_BURST_PART(modelSource, partIndex, sourceTask, effectLocal)                                                                                  \
-    gTaskBank8Descs[ACTOR_07000_SLOUCH_BODY_PART_EFFECT_SLOT].data.model = (modelSource);                                                                                     \
-    (effectLocal)                                                        = effectSpawn(EFFECT_BURST_BODY_PART_BANK8, (sourceTask)->extra.tmd->coords + (partIndex), 0, NULL); \
-    if ((effectLocal) != NULL) {                                                                                                                                              \
-        _actor07000SlouchCopyTexturePlacement((effectLocal)->task, (sourceTask));                                                                                             \
+/// Spawns a Slouch part model and copies the source actor's texture placement.
+///
+/// Requires live model data and a coordinate in the seven-part source rig; current
+/// calls use parts 1, 5 and 4. Publishes the model to bank 8 before synchronous spawn.
+/// Stable modelSource/partIndex arguments evaluate once; sourceTask once, or twice
+/// on success, and the writable EffectWork* effectLocal twice, or three times on
+/// success. Captures the local descriptor-slot constant and package texture copier.
+/// Expands to one compound statement; failed allocation skips the texture copy.
+#define ACTOR_07000_SLOUCH_SPAWN_BURST_PART(modelSource, partIndex, sourceTask, effectLocal)                                                                                      \
+    {                                                                                                                                                                             \
+        gTaskBank8Descs[ACTOR_07000_SLOUCH_BODY_PART_EFFECT_SLOT].data.model = (modelSource);                                                                                     \
+        (effectLocal)                                                        = effectSpawn(EFFECT_BURST_BODY_PART_BANK8, (sourceTask)->extra.tmd->coords + (partIndex), 0, NULL); \
+        if ((effectLocal) != NULL) {                                                                                                                                              \
+            _actor07000SlouchCopyTexturePlacement((effectLocal)->task, (sourceTask));                                                                                             \
+        }                                                                                                                                                                         \
     }
     EffectWork* effect;
     s32         variant;

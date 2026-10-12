@@ -6536,20 +6536,20 @@ static void _actor444000ClampPlayerToArena(void)
     Task* player;
     s32   playerZ;
 
-    /// Clamps the live player's X translation to an inclusive interval.
-    ///
-    /// Captures the live Task* local `player`; both bounds must be ordered,
-    /// side-effect-free expressions in parent-coordinate units. Expands to
-    /// one block; each bound occurs twice and the player is read up to four
-    /// times. Leaves composition stamps untouched and retains no pointer.
-#define ACTOR_444000_CLAMP_PLAYER_X(minimumX, maximumX)           \
-    {                                                             \
-        if (player->extra.tmd->coords->coord.t[0] < (minimumX)) { \
-            player->extra.tmd->coords->coord.t[0] = (minimumX);   \
-        }                                                         \
-        if (player->extra.tmd->coords->coord.t[0] > (maximumX)) { \
-            player->extra.tmd->coords->coord.t[0] = (maximumX);   \
-        }                                                         \
+/// Clamps the player's root X translation to an inclusive arena interval.
+///
+/// Requires a live player model and ordered signed bounds in root-parent units.
+/// Arguments must have no side effects: playerTask occurs up to four times and
+/// each bound once, or twice when its clamp fires. Retains Y/Z and composition
+/// stamps. Captures no identifiers; forms one compound statement.
+#define ACTOR_444000_CLAMP_PLAYER_X(playerTask, minimumX, maximumX)     \
+    {                                                                   \
+        if ((playerTask)->extra.tmd->coords->coord.t[0] < (minimumX)) { \
+            (playerTask)->extra.tmd->coords->coord.t[0] = (minimumX);   \
+        }                                                               \
+        if ((playerTask)->extra.tmd->coords->coord.t[0] > (maximumX)) { \
+            (playerTask)->extra.tmd->coords->coord.t[0] = (maximumX);   \
+        }                                                               \
     }
 
     player = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
@@ -6562,21 +6562,21 @@ static void _actor444000ClampPlayerToArena(void)
     if (playerZ > 0) {
         player->extra.tmd->coords->coord.t[2] = 0;
     } else if (playerZ > ACTOR_444000_ARENA_FRONT_BAND_BACK_Z) {
-        ACTOR_444000_CLAMP_PLAYER_X(0, ACTOR_444000_ARENA_CORRIDOR_RIGHT_X);
+        ACTOR_444000_CLAMP_PLAYER_X(player, 0, ACTOR_444000_ARENA_CORRIDOR_RIGHT_X);
     } else if (playerZ > ACTOR_444000_ARENA_WIDE_APPROACH_BACK_Z) {
-        ACTOR_444000_CLAMP_PLAYER_X(0, ACTOR_444000_ARENA_CORRIDOR_RIGHT_X);
+        ACTOR_444000_CLAMP_PLAYER_X(player, 0, ACTOR_444000_ARENA_CORRIDOR_RIGHT_X);
     } else if (playerZ > ACTOR_444000_ARENA_TURN_BACK_Z) {
-        ACTOR_444000_CLAMP_PLAYER_X(ACTOR_444000_ARENA_TURN_LEFT_X, ACTOR_444000_ARENA_CORRIDOR_RIGHT_X);
+        ACTOR_444000_CLAMP_PLAYER_X(player, ACTOR_444000_ARENA_TURN_LEFT_X, ACTOR_444000_ARENA_CORRIDOR_RIGHT_X);
     } else if (playerZ > ACTOR_444000_ARENA_FIRST_WIDENING_FRONT_Z) {
-        ACTOR_444000_CLAMP_PLAYER_X(ACTOR_444000_ARENA_CORRIDOR_LEFT_X, ACTOR_444000_ARENA_CORRIDOR_RIGHT_X);
+        ACTOR_444000_CLAMP_PLAYER_X(player, ACTOR_444000_ARENA_CORRIDOR_LEFT_X, ACTOR_444000_ARENA_CORRIDOR_RIGHT_X);
     } else if (playerZ > ACTOR_444000_ARENA_FIRST_WIDENING_BACK_Z) {
-        ACTOR_444000_CLAMP_PLAYER_X(ACTOR_444000_ARENA_CORRIDOR_LEFT_X, ACTOR_444000_ARENA_WIDENING_RIGHT_X);
+        ACTOR_444000_CLAMP_PLAYER_X(player, ACTOR_444000_ARENA_CORRIDOR_LEFT_X, ACTOR_444000_ARENA_WIDENING_RIGHT_X);
     } else if (playerZ > ACTOR_444000_ARENA_SECOND_WIDENING_FRONT_Z) {
-        ACTOR_444000_CLAMP_PLAYER_X(ACTOR_444000_ARENA_CORRIDOR_LEFT_X, ACTOR_444000_ARENA_CORRIDOR_RIGHT_X);
+        ACTOR_444000_CLAMP_PLAYER_X(player, ACTOR_444000_ARENA_CORRIDOR_LEFT_X, ACTOR_444000_ARENA_CORRIDOR_RIGHT_X);
     } else if (playerZ > ACTOR_444000_ARENA_SECOND_WIDENING_BACK_Z) {
-        ACTOR_444000_CLAMP_PLAYER_X(ACTOR_444000_ARENA_CORRIDOR_LEFT_X, ACTOR_444000_ARENA_WIDENING_RIGHT_X);
+        ACTOR_444000_CLAMP_PLAYER_X(player, ACTOR_444000_ARENA_CORRIDOR_LEFT_X, ACTOR_444000_ARENA_WIDENING_RIGHT_X);
     } else if (playerZ > ACTOR_444000_ARENA_BACK_Z) {
-        ACTOR_444000_CLAMP_PLAYER_X(ACTOR_444000_ARENA_CORRIDOR_LEFT_X, ACTOR_444000_ARENA_CORRIDOR_RIGHT_X);
+        ACTOR_444000_CLAMP_PLAYER_X(player, ACTOR_444000_ARENA_CORRIDOR_LEFT_X, ACTOR_444000_ARENA_CORRIDOR_RIGHT_X);
     } else {
         player->extra.tmd->coords->coord.t[2] = ACTOR_444000_ARENA_BACK_Z;
     }

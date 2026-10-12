@@ -398,7 +398,7 @@ Preprocessed inputs: `base_7.c`
 
 Target: `lw s2,0x1c(a0)` / `li v0,2` / `sh v0,0x4a0(s2)` / `li s0,1` / `li s3,0xa`, then the loop. Plain C puts both `li`s above the `lw`. sched1 gives the `sh` priority 2 (it depends on the `lw`, which has a load delay), and the loop-init `i = 1` and hoisted `10` only priority 1, so the store is scheduled last in the block. The tree held the order with `SCHED_BARRIER()`.
 
-Writing the store as a one-statement macro, `#define SET_ANIM_ID(w, a) do { (w)->animSet = (a); } while (0)`, matches with no barrier. The macro's loop notes make everything after them depend on everything before, so sched1 keeps the source order. The mechanism is the same fence as the `func_actor_104900_8013279C` entry above. Its loop-weighted refs on the work pointer and the animation id did not move the allocation here, but check `.lreg` where they might. A `static inline` setter does *not* work, because its return label is deleted before sched1.
+Writing the store as a one-statement macro, `#define ACTOR_121300_RECORD_BODY_ANIMATION_SET(w, a) do { (w)->animSet = (a); } while (0)`, matches with no barrier. The macro's loop notes make everything after them depend on everything before, so sched1 keeps the source order. The mechanism is the same fence as the `func_actor_104900_8013279C` entry above. Its loop-weighted refs on the work pointer and the animation id did not move the allocation here, but check `.lreg` where they might. A `static inline` setter does *not* work, because its return label is deleted before sched1.
 
 ## Separate conditional stores preserve a global reload; declaration order breaks a global priority tie (_actor420700HandleAnimationMessage, 2026-09-20)
 
@@ -564,11 +564,11 @@ and takes `$s0`, and `global-alloc` gives the shared variable `$s1`.
 
 ```c
 /* one quantity: the chain outranks pan and takes $s0 */
-#define STOP_SOUND ... { s32 sound; sound = (x << 8) | K; play(sound, pan, depth); }
+#define ACTOR_02100_END_PATROL_LEG ... { s32 sound; sound = (x << 8) | K; play(sound, pan, depth); }
 
 /* sound is multi-block, no tie: chain stays $v0, pan takes $s0, sound $s1 */
 s32 sound;                       /* function scope, shared by both expansions */
-#define STOP_SOUND ... sound = (x << 8) | K; play(sound, pan, depth);
+#define ACTOR_02100_END_PATROL_LEG ... sound = (x << 8) | K; play(sound, pan, depth);
 ```
 
 The reverse move is equally real and was tried first on this function: hoisting

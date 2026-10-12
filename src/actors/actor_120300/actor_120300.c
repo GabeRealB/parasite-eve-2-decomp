@@ -1906,14 +1906,21 @@ static void _actor120300RunPlayerRequest(Task* task)
 }
 #undef ACTOR_120300_PLAY_PLAYER_WEAPON_ANIMATION
 
-/// Cross-fades body slots 1..19 of `work`'s animation context to animation
-/// `id` over `frames` frames.
-#define _ACTOR120300_BLEND_SLOTS(work, id, frames)                                \
-    do {                                                                          \
-        u16 _i;                                                                   \
-        for (_i = 1; _i < ARRAY_SIZE((work)->rig.slots); _i++) {                  \
-            animationSeekSlotWithBlend(&(work)->rig.anim, _i, (id), 0, (frames)); \
-        }                                                                         \
+/// Captures the current body poses and blends tracks 1..19 to a selected set's start.
+///
+/// work, animationId and blendFrames must have no side effects and are evaluated
+/// on every iteration; sizeof inspects work unevaluated for the bound. Requires live slots,
+/// loaded clip data and pose buffers through the transition. Retains playback
+/// rates and slot 0; capture ticks consume the existing rate and retain flags.
+/// blendFrames counts normal-rate frames (0 immediate, 0..2047 without signed-time
+/// wrapping). Captures no caller identifiers and forms one statement with its
+/// own u16 slotIndex; arguments must not refer to that local.
+#define ACTOR_120300_BLEND_BODY_SLOTS(work, animationId, blendFrames)                                  \
+    do {                                                                                               \
+        u16 slotIndex;                                                                                 \
+        for (slotIndex = 1; slotIndex < ARRAY_SIZE((work)->rig.slots); slotIndex++) {                  \
+            animationSeekSlotWithBlend(&(work)->rig.anim, slotIndex, (animationId), 0, (blendFrames)); \
+        }                                                                                              \
     } while (0)
 
 /// Blends the body's animated parts into a selected clip over ten normal-rate frames.
@@ -1926,8 +1933,9 @@ static inline void _actor120300BlendBodyAnimation(Task* task, u16 animationId)
     _Actor120300Work* work = task->work;
 
     work->bodyAnimation = animationId;
-    _ACTOR120300_BLEND_SLOTS(work, animationId, ACTOR_120300_ANIMATION_BLEND_FRAMES);
+    ACTOR_120300_BLEND_BODY_SLOTS(work, animationId, ACTOR_120300_ANIMATION_BLEND_FRAMES);
 }
+#undef ACTOR_120300_BLEND_BODY_SLOTS
 
 /// Restarts the body's animated parts on a selected clip at normal playback rate.
 ///

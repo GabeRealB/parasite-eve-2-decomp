@@ -863,23 +863,25 @@ static void _actor120500PostScreenRequest(s16 requestId)
 /// follows animation installation. The enclosing skip script handles scene teardown.
 static void _actor120500SkipScene(void)
 {
-    /// Reloads the player task and installs a scene animation when present.
-    ///
-    /// Captures task, animWork and writable request storage. Requires live work
-    /// and loaded scene sets. requestedAnimation is evaluated once only when the player
-    /// is present; dispatch borrows the request synchronously. Restarts without
-    /// blending and enables world collision.
-#define ACTOR_120500_INSTALL_PLAYER_ANIMATION(requestedAnimation)                                                 \
-    {                                                                                                             \
-        animWork = task->work;                                                                                    \
-        if (animWork->playerTask != NULL) {                                                                       \
-            request.source.sets          = _gActor120500PlayerSceneAnimationSets;                                 \
-            request.animationId          = (requestedAnimation);                                                  \
-            request.blend                = ANIMATION_BLEND_RESET;                                                 \
-            request.blendFrames          = 0;                                                                     \
-            request.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;                                      \
-            TASK_MESSAGE_DISPATCH_POINTER(animWork->playerTask, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &request, 0); \
-        }                                                                                                         \
+/// Reloads scene work and restarts the player's selected scene clip when present.
+///
+/// Requires a live Task* and writable _Actor120500Work* playerWork lvalue, plus
+/// AnimationPlayRequest storage. Arguments must have no side effects: actorTask
+/// occurs once, playerWork three times, playRequest six times when a player is
+/// present, and requestedAnimation once only on that path. Sets remain loaded
+/// through playback; dispatch borrows the request synchronously. Enables collision,
+/// captures only the package animation table, and forms one compound statement.
+#define ACTOR_120500_INSTALL_PLAYER_ANIMATION(actorTask, playerWork, playRequest, requestedAnimation)                       \
+    {                                                                                                                       \
+        (playerWork) = (actorTask)->work;                                                                                   \
+        if ((playerWork)->playerTask != NULL) {                                                                             \
+            (playRequest).source.sets          = _gActor120500PlayerSceneAnimationSets;                                     \
+            (playRequest).animationId          = (requestedAnimation);                                                      \
+            (playRequest).blend                = ANIMATION_BLEND_RESET;                                                     \
+            (playRequest).blendFrames          = 0;                                                                         \
+            (playRequest).enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;                                          \
+            TASK_MESSAGE_DISPATCH_POINTER((playerWork)->playerTask, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &(playRequest), 0); \
+        }                                                                                                                   \
     }
 
     enum { ACTOR_120500_SKIP_SOUND_FADE_UPDATES = 10,
@@ -897,7 +899,7 @@ static void _actor120500SkipScene(void)
     work->playerRequest = ACTOR_120500_PLAYER_REQUEST_NONE;
     work->bodyRequest   = ACTOR_120500_BODY_REQUEST_NONE;
     work->screenRequest = ACTOR_120500_SCREEN_REQUEST_NONE;
-    ACTOR_120500_INSTALL_PLAYER_ANIMATION(ACTOR_120500_SKIP_PLAYER_ANIMATION);
+    ACTOR_120500_INSTALL_PLAYER_ANIMATION(task, animWork, request, ACTOR_120500_SKIP_PLAYER_ANIMATION);
     work = task->work;
     worldCoordSetAmbientColorOverride(NULL);
     taskMessageDispatch(work->playerTask, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, ACTOR_MESSAGE_DRAW_SHOW, 0);

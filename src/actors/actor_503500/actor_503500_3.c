@@ -1398,23 +1398,29 @@ static void _actor503500StepCollapseState(Task* task)
     Enemy*           enemy;
     TmdObject*       model;
     GfxCoord*        coord;
-    const s32*       sourceWords;
-    s32*             destinationWords;
-    s32              wordIndex;
     VECTOR           scale;
 
-    /// Copies exactly nine rotation halfwords, preserving translation and alignment bytes.
-    ///
-    /// Arguments must be word-aligned MATRIX::m arrays without side effects;
-    /// each is evaluated twice. Captures destinationWords, sourceWords and
-    /// wordIndex. Expands to multiple statements; invoke within a braced block.
-#define ACTOR_503500_BOSS_COPY_ROTATION(destinationRotation, sourceRotation)                                  \
-    destinationWords = (s32*)(destinationRotation);                                                           \
-    sourceWords      = (const s32*)(sourceRotation);                                                          \
-    for (wordIndex = 0; wordIndex < (s32)(sizeof(destinationRotation) / sizeof(*sourceWords)); wordIndex++) { \
-        *destinationWords++ = *sourceWords++;                                                                 \
-    }                                                                                                         \
-    (destinationRotation)[2][2] = (sourceRotation)[2][2];
+/// Copies the boss's nine Q12 rotation coefficients without translation or alignment bytes.
+///
+/// Arguments must be complete word-aligned MATRIX::m arrays in live disjoint
+/// matrices, with a writable destination and no side effects. Each evaluates twice;
+/// sizeof inspects the complete destination array without evaluating it. The casts
+/// are packed transfer views: four words and one halfword copy exactly 18 bytes.
+/// Forms one compound statement with private temporaries and no caller captures;
+/// arguments must not name destinationWords, sourceWords or wordIndex. The caller
+/// manages composition stamps. A whole MATRIX or GfxRotationWords copy is too wide.
+#define ACTOR_503500_BOSS_COPY_ROTATION(destinationRotation, sourceRotation)                                      \
+    {                                                                                                             \
+        s32*       destinationWords;                                                                              \
+        const s32* sourceWords;                                                                                   \
+        s32        wordIndex;                                                                                     \
+        destinationWords = (s32*)(destinationRotation);                                                           \
+        sourceWords      = (const s32*)(sourceRotation);                                                          \
+        for (wordIndex = 0; wordIndex < (s32)(sizeof(destinationRotation) / sizeof(*sourceWords)); wordIndex++) { \
+            *destinationWords++ = *sourceWords++;                                                                 \
+        }                                                                                                         \
+        (destinationRotation)[2][2] = (sourceRotation)[2][2];                                                     \
+    }
 
     coord = task->extra.tmd->coords;
     model = task->extra.tmd;
@@ -3176,30 +3182,33 @@ static void _actor503500PinkFlashEmitterStepDying(Task* task)
     _Actor503500PinkFlashEmitterWork* work;
     Enemy*                            enemy;
     GfxCoord*                         coord;
-    const s32*                        sourceWords;
-    s32*                              destinationWords;
-    s32                               wordIndex;
 
-    /// Detaches the root onto the view while preserving its composed world pose.
-    ///
-    /// Requires the task's live model root. Captures task, coord, rotationMatrix,
-    /// spinAngles (temporarily the composed world position), sourceWords,
-    /// destinationWords and wordIndex. The word-aligned rotation transfer writes
-    /// exactly 18 bytes, preserving alignment bytes. Expands to multiple statements;
-    /// invoke once as a standalone statement within a braced block.
-#define ACTOR_503500_PINK_FLASH_EMITTER_DETACH_ROOT()                                                    \
-    sourceWords = (const s32*)rotationMatrix.m;                                                          \
-    coord       = task->extra.tmd->coords;                                                               \
-    gfxComposeNodeWorldTransform(coord, &rotationMatrix, &spinAngles);                                   \
-    destinationWords = (s32*)coord->coord.m;                                                             \
-    for (wordIndex = 0; wordIndex < (s32)(sizeof(coord->coord.m) / sizeof(*sourceWords)); wordIndex++) { \
-        *destinationWords++ = *sourceWords++;                                                            \
-    }                                                                                                    \
-    coord->coord.m[2][2] = rotationMatrix.m[2][2];                                                       \
-    coord->coord.t[0]    = spinAngles.vx;                                                                \
-    coord->coord.t[1]    = spinAngles.vy;                                                                \
-    coord->coord.t[2]    = spinAngles.vz;                                                                \
-    coord->parent        = &gGfxViewCoord;
+/// Detaches the pink-flash emitter root at its composed world pose.
+///
+/// Captures live task, writable coord, rotationMatrix and spinAngles staging;
+/// spinAngles temporarily holds the composed signed-halfword world position.
+/// Copies exactly 18 rotation bytes via aligned word views, preserves alignment
+/// bytes and installs XYZ before reparenting to gGfxViewCoord. Copy pointers and
+/// index are private to the compound statement. The caller recomposes afterward;
+/// rotationMatrix remains available for the subsequent launch-vector transform.
+#define ACTOR_503500_PINK_FLASH_EMITTER_DETACH_ROOT()                                                        \
+    {                                                                                                        \
+        const s32* sourceWords;                                                                              \
+        s32*       destinationWords;                                                                         \
+        s32        wordIndex;                                                                                \
+        sourceWords = (const s32*)rotationMatrix.m;                                                          \
+        coord       = task->extra.tmd->coords;                                                               \
+        gfxComposeNodeWorldTransform(coord, &rotationMatrix, &spinAngles);                                   \
+        destinationWords = (s32*)coord->coord.m;                                                             \
+        for (wordIndex = 0; wordIndex < (s32)(sizeof(coord->coord.m) / sizeof(*sourceWords)); wordIndex++) { \
+            *destinationWords++ = *sourceWords++;                                                            \
+        }                                                                                                    \
+        coord->coord.m[2][2] = rotationMatrix.m[2][2];                                                       \
+        coord->coord.t[0]    = spinAngles.vx;                                                                \
+        coord->coord.t[1]    = spinAngles.vy;                                                                \
+        coord->coord.t[2]    = spinAngles.vz;                                                                \
+        coord->parent        = &gGfxViewCoord;                                                               \
+    }
 
     work  = task->work;
     enemy = task->spawnArg2.pointer;
@@ -3875,37 +3884,41 @@ static void _actor503500LargeChainStepShoot(Task* task)
     GfxCoord*                   chainCoords;
     GfxCoord*                   shotCoord;
     Task*                       shotTask;
-    const s32*                  sourceWords;
-    s32*                        destinationWords;
     s32                         playerDistance;
-    s32                         wordIndex;
 
-    /// Places the ballistic shot beyond the chain tip and copies its Q12 rotation.
-    ///
-    /// Requires the live chain tip and spawned coordinate-body shot. Captures
-    /// chainCoords, shotTask, shotCoord, worldMatrix, position, offset, sourceWords,
-    /// destinationWords and wordIndex. Reuses the aim scratch; the word view
-    /// transfers exactly 18 rotation bytes and preserves alignment and translation.
-    /// Expands to multiple statements; invoke once inside a braced block.
-#define ACTOR_503500_LARGE_CHAIN_PLACE_SHOT()                                                               \
-    gfxComposeNodeWorldTransform(&chainCoords[ACTOR_503500_LARGE_CHAIN_TIP_PART], &worldMatrix, &position); \
-    sourceWords = (const s32*)worldMatrix.m;                                                                \
-    shotCoord   = shotTask->extra.coordBody->coord;                                                         \
-    offset.vx   = 0;                                                                                        \
-    offset.vy   = 0;                                                                                        \
-    offset.vz   = ACTOR_503500_CHAIN_SHOOT_MUZZLE_OFFSET;                                                   \
-    gte_SetRotMatrix(sourceWords);                                                                          \
-    gte_ldv0(&offset);                                                                                      \
-    gte_rtv0();                                                                                             \
-    gte_stsv(&offset);                                                                                      \
-    shotCoord->coord.t[0] = position.vx + offset.vx;                                                        \
-    shotCoord->coord.t[1] = position.vy + offset.vy;                                                        \
-    shotCoord->coord.t[2] = position.vz + offset.vz;                                                        \
-    destinationWords      = (s32*)shotCoord->coord.m;                                                       \
-    for (wordIndex = 0; wordIndex < (s32)(sizeof(worldMatrix.m) / sizeof(*sourceWords)); wordIndex++) {     \
-        *destinationWords++ = *sourceWords++;                                                               \
-    }                                                                                                       \
-    shotCoord->coord.m[2][2] = worldMatrix.m[2][2];
+/// Places the ballistic shot at the large-chain muzzle with its composed Q12 rotation.
+///
+/// Captures live chainCoords, shotTask and writable shotCoord, worldMatrix, position
+/// and offset staging. The composed tip position and rotated 1600-unit local-Z
+/// offset narrow separately to signed halfwords before their full-word sum.
+/// Copies exactly 18 rotation bytes through aligned word views, leaving alignment
+/// bytes intact. Copy pointers and index are private to the compound statement;
+/// GTE state is clobbered. Requires the live nine-part chain and coordinate-body
+/// shot; the caller manages composition, and no scratch pointer is retained.
+#define ACTOR_503500_LARGE_CHAIN_PLACE_SHOT()                                                                   \
+    {                                                                                                           \
+        const s32* sourceWords;                                                                                 \
+        s32*       destinationWords;                                                                            \
+        s32        wordIndex;                                                                                   \
+        gfxComposeNodeWorldTransform(&chainCoords[ACTOR_503500_LARGE_CHAIN_TIP_PART], &worldMatrix, &position); \
+        sourceWords = (const s32*)worldMatrix.m;                                                                \
+        shotCoord   = shotTask->extra.coordBody->coord;                                                         \
+        offset.vx   = 0;                                                                                        \
+        offset.vy   = 0;                                                                                        \
+        offset.vz   = ACTOR_503500_CHAIN_SHOOT_MUZZLE_OFFSET;                                                   \
+        gte_SetRotMatrix(sourceWords);                                                                          \
+        gte_ldv0(&offset);                                                                                      \
+        gte_rtv0();                                                                                             \
+        gte_stsv(&offset);                                                                                      \
+        shotCoord->coord.t[0] = position.vx + offset.vx;                                                        \
+        shotCoord->coord.t[1] = position.vy + offset.vy;                                                        \
+        shotCoord->coord.t[2] = position.vz + offset.vz;                                                        \
+        destinationWords      = (s32*)shotCoord->coord.m;                                                       \
+        for (wordIndex = 0; wordIndex < (s32)(sizeof(worldMatrix.m) / sizeof(*sourceWords)); wordIndex++) {     \
+            *destinationWords++ = *sourceWords++;                                                               \
+        }                                                                                                       \
+        shotCoord->coord.m[2][2] = worldMatrix.m[2][2];                                                         \
+    }
 
     work        = task->work;
     chainCoords = task->extra.tmd->coords;
@@ -4009,30 +4022,34 @@ static void _actor503500LargeChainStepDying(Task* task)
     s32                         linkIndex;
     s32                         elementIndex;
 
-    /// Eases the link's three signed Euler angles toward zero without overshooting.
-    ///
-    /// Captures linkAngles, angleComponent and elementIndex, and requires this
-    /// handler's angle-step/component constants. Angles use 4096 units per turn;
-    /// only the SDK vector's XYZ halfwords are visited. Reuses elementIndex with
-    /// the later smoke-offset walk. Expands to multiple statements; invoke as a
-    /// standalone statement within a braced block.
-#define ACTOR_503500_LARGE_CHAIN_EASE_DYING_ANGLES()                      \
-    angleComponent = &linkAngles.vx;                                      \
-    elementIndex   = 1;                                                   \
-    do {                                                                  \
-        if (*angleComponent > 0) {                                        \
-            *angleComponent -= ACTOR_503500_LARGE_CHAIN_DYING_ANGLE_STEP; \
-            if (*angleComponent < 0) {                                    \
-                *angleComponent = 0;                                      \
-            }                                                             \
-        } else {                                                          \
-            *angleComponent += ACTOR_503500_LARGE_CHAIN_DYING_ANGLE_STEP; \
-            if (*angleComponent > 0) {                                    \
-                *angleComponent = 0;                                      \
-            }                                                             \
-        }                                                                 \
-        angleComponent++;                                                 \
-    } while (elementIndex++ < ACTOR_503500_LARGE_CHAIN_DYING_ANGLE_COMPONENTS);
+/// Straightens a dying link's Euler angles by two units per component, without overshoot.
+///
+/// angles is a writable SVECTOR lvalue evaluated once, in 4096 units per turn.
+/// Visits exactly the three contiguous XYZ halfwords and leaves the fourth intact.
+/// angleCursor and componentIndex are writable s16* and s32 lvalues evaluated
+/// repeatedly; arguments must have no other side effects. On exit the cursor is
+/// past XYZ and the index is four. Captures the handler's step/component constants,
+/// forms one compound statement and retains no pointer. The caller later reuses
+/// the index for its smoke-offset walk.
+#define ACTOR_503500_LARGE_CHAIN_EASE_DYING_ANGLES(angles, angleCursor, componentIndex) \
+    {                                                                                   \
+        (angleCursor)    = &(angles).vx;                                                \
+        (componentIndex) = 1;                                                           \
+        do {                                                                            \
+            if (*(angleCursor) > 0) {                                                   \
+                *(angleCursor) -= ACTOR_503500_LARGE_CHAIN_DYING_ANGLE_STEP;            \
+                if (*(angleCursor) < 0) {                                               \
+                    *(angleCursor) = 0;                                                 \
+                }                                                                       \
+            } else {                                                                    \
+                *(angleCursor) += ACTOR_503500_LARGE_CHAIN_DYING_ANGLE_STEP;            \
+                if (*(angleCursor) > 0) {                                               \
+                    *(angleCursor) = 0;                                                 \
+                }                                                                       \
+            }                                                                           \
+            (angleCursor)++;                                                            \
+        } while ((componentIndex)++ < ACTOR_503500_LARGE_CHAIN_DYING_ANGLE_COMPONENTS); \
+    }
 
     work      = task->work;
     enemy     = task->spawnArg2.pointer;
@@ -4075,7 +4092,7 @@ static void _actor503500LargeChainStepDying(Task* task)
             for (linkIndex = 1; linkIndex < ACTOR_503500_LARGE_CHAIN_PART_COUNT; linkIndex++) {
                 linkCoord = &coord[linkIndex];
                 gfxExtractSmallestEuler(&linkAngles, &linkCoord->coord);
-                ACTOR_503500_LARGE_CHAIN_EASE_DYING_ANGLES();
+                ACTOR_503500_LARGE_CHAIN_EASE_DYING_ANGLES(linkAngles, angleComponent, elementIndex);
                 gfxSetRotIdentity(&coord[linkIndex].coord);
                 RotMatrix(&linkAngles, &linkCoord->coord);
                 linkCoord->composeStamp = GRAPHICS_COORD_DIRTY;

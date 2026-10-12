@@ -891,24 +891,31 @@ static void _actor02100UpdateCombatContacts(Task* task)
     SCRATCH_STACK_RELEASE_BLOCK(_Actor02100VectorScratch);
 }
 
-/// Stops the looping effect, clears the offset vector and starts the tail
-/// sound. Expanded at the end of both active steps, which the compiler emits
-/// as one shared tail; `tailSound` is deliberately a caller-scope variable, since
-/// both expansions must name the same object.
-#define STOP_SOUND                                                                                                        \
-    work->velocity.vx = 0;                                                                                                \
-    work->velocity.vy = 0;                                                                                                \
-    work->velocity.vz = 0;                                                                                                \
-    sndEvtRequestScriptStop(work->loopSound, SOUND_SCRIPT_STOP_KEEP_RELEASE);                                             \
-    work->loopSoundKind = ACTOR_02100_LOOP_SOUND_NONE;                                                                    \
-    tailSound           = (((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40150008); \
-    {                                                                                                                     \
-        s32 pan;                                                                                                          \
-        s32 depth;                                                                                                        \
-                                                                                                                          \
-        pan   = (s8)worldCoordGetOriginAudioPan(coord);                                                                   \
-        depth = (s8)worldCoordGetOriginAudioDepth(coord);                                                                 \
-        sndEvtRequestScriptStart(tailSound, pan, depth);                                                                  \
+/// Ends a patrol leg's motion and looping sound, then starts its spatial tail script.
+///
+/// Requires live actor work, its Enemy in spawnArg2, and a composed audio origin.
+/// Arguments must be stable and have no side effects: actorWork repeats five times,
+/// audioOrigin and tailRequest twice, actorTask once. tailRequest is a caller-owned
+/// s32 lvalue receiving the tagged script ID; pan/depth narrow to signed bytes. Captures no
+/// caller locals. Supply arguments that do not name the block's pan/depth locals.
+/// Expands to one compound statement; sound requests retain no pointer.
+#define ACTOR_02100_END_PATROL_LEG(actorWork, actorTask, audioOrigin, tailRequest)                                                                                                                   \
+    {                                                                                                                                                                                                \
+        enum { ACTOR_02100_PATROL_TAIL_SOUND           = SOUND_CHARACTER(0x15, 8),                                                                                                                   \
+               ACTOR_02100_PATROL_SOUND_INSTANCE_SHIFT = 8 };                                                                                                                                        \
+        (actorWork)->velocity.vx = 0;                                                                                                                                                                \
+        (actorWork)->velocity.vy = 0;                                                                                                                                                                \
+        (actorWork)->velocity.vz = 0;                                                                                                                                                                \
+        sndEvtRequestScriptStop((actorWork)->loopSound, SOUND_SCRIPT_STOP_KEEP_RELEASE);                                                                                                             \
+        (actorWork)->loopSoundKind = ACTOR_02100_LOOP_SOUND_NONE;                                                                                                                                    \
+        (tailRequest)              = (((((Enemy*)(actorTask)->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << ACTOR_02100_PATROL_SOUND_INSTANCE_SHIFT) | ACTOR_02100_PATROL_TAIL_SOUND); \
+        {                                                                                                                                                                                            \
+            s32 pan;                                                                                                                                                                                 \
+            s32 depth;                                                                                                                                                                               \
+            pan   = (s8)worldCoordGetOriginAudioPan(audioOrigin);                                                                                                                                    \
+            depth = (s8)worldCoordGetOriginAudioDepth(audioOrigin);                                                                                                                                  \
+            sndEvtRequestScriptStart((tailRequest), pan, depth);                                                                                                                                     \
+        }                                                                                                                                                                                            \
     }
 
 /// Advances the Watcher's out-and-back patrol and its movement sound.
@@ -964,7 +971,7 @@ static void _actor02100TickPatrol(Task* task)
             }
             work->patrolFrames = 0;
             work->patrolStep   = ACTOR_02100_PATROL_STEP_OUT_PAUSE;
-            STOP_SOUND;
+            ACTOR_02100_END_PATROL_LEG(work, task, coord, tailSound);
             break;
 
         case ACTOR_02100_PATROL_STEP_OUT_PAUSE:
@@ -1008,7 +1015,7 @@ static void _actor02100TickPatrol(Task* task)
             }
             work->patrolFrames = 0;
             work->patrolStep   = ACTOR_02100_PATROL_STEP_BACK_PAUSE;
-            STOP_SOUND;
+            ACTOR_02100_END_PATROL_LEG(work, task, coord, tailSound);
             break;
 
         case ACTOR_02100_PATROL_STEP_BACK_PAUSE:
@@ -1024,7 +1031,7 @@ static void _actor02100TickPatrol(Task* task)
     }
 }
 
-#undef STOP_SOUND
+#undef ACTOR_02100_END_PATROL_LEG
 
 /// Acquires a visible target and stops movement to begin the weapon's attack.
 ///

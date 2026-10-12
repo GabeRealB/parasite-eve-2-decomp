@@ -1295,32 +1295,9 @@ static void _actor401800Initialize(Enemy* enemy, Task* actor)
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, attackBody);
     worldCollisionInitContacts(attackBody->context.contacts, ARRAY_SIZE(work->attackContacts), 0);
 
-/// Seeds a patrol segment with caller-owned forward-axis scratch.
-///
-/// Invoke inside a braced function body with side-effect-free task/work pointers,
-/// a writable SVECTOR lvalue forwardVector, and vectorScratch == &forwardVector.
-/// Arguments are evaluated repeatedly; no identifiers are captured. Clears Y,
-/// normalizes and scales to 2000 game units, narrows the two waypoints to s16,
-/// and clobbers the GTE. Expands to one compound statement.
-#define ACTOR_401800_INITIALIZE_PATROL_POINTS(actorTask, actorWork, vectorScratch, forwardVector)         \
-    {                                                                                                     \
-        enum { ACTOR_401800_PATROL_LENGTH = 2000 };                                                       \
-        (actorWork)->patrolTarget      = 0;                                                               \
-        (actorWork)->patrolPoints[0].x = (actorTask)->extra.tmd->coords->coord.t[0];                      \
-        (actorWork)->patrolPoints[0].z = (actorTask)->extra.tmd->coords->coord.t[2];                      \
-        gfxReadMatrixZAxis(&(actorTask)->extra.tmd->coords->coord, (vectorScratch));                      \
-        (forwardVector).vy = 0;                                                                           \
-        VectorNormalSS((vectorScratch), (vectorScratch));                                                 \
-        gte_lddp(ACTOR_401800_PATROL_LENGTH);                                                             \
-        gte_ldsv((vectorScratch));                                                                        \
-        gte_gpf12();                                                                                      \
-        gte_stsv((vectorScratch));                                                                        \
-        (actorWork)->patrolPoints[1].x = (actorTask)->extra.tmd->coords->coord.t[0] + (forwardVector).vx; \
-        (actorWork)->patrolPoints[1].z = (actorTask)->extra.tmd->coords->coord.t[2] + (forwardVector).vz; \
-    }
-
-    ACTOR_401800_INITIALIZE_PATROL_POINTS(actor, work, directionScratch, direction);
-#undef ACTOR_401800_INITIALIZE_PATROL_POINTS
+#include "../../shared/odd_stranger_patrol_points.h"
+    ODD_STRANGER_INITIALIZE_PATROL_POINTS(actor, work, direction, directionScratch);
+#undef ODD_STRANGER_INITIALIZE_PATROL_POINTS
 
     actor->msgTable         = _gActor401800OddStrangerMessages;
     rootCoord->parent       = &gGfxViewCoord;
@@ -1562,30 +1539,30 @@ static __inline__ void _actor401800PlayerJointOffsetXZ(const GfxCoord* reference
     transformedPoint->vy          = playerOrigin->vy;
     transformedPoint->vz          = playerOrigin->vz;
 
-/// Transforms a joint point and narrows XYZ before walking to the next parent.
+/// Transforms and narrows one joint point before the hierarchy walk advances.
 ///
-/// `localMatrix` is a stable, readable, word-aligned Q12 matrix pointer,
-/// evaluated twice. `point` is a stable writable word-aligned SVECTOR pointer,
-/// evaluated four times, disjoint from the matrix; its pad stays intact.
-/// Captures this helper's `longPoint`, `longPointOutput` (its address) and
-/// `gteFlagsOutput` (the discarded FLAG output). These staging outputs must
-/// remain live throughout the parent walk; overflow flags do not affect XYZ.
-/// Changes GTE state and expands to one compound statement inside braces.
-#define ACTOR_401800_TRANSFORM_JOINT_POINT(localMatrix, point)  \
-    {                                                           \
-        gte_SetTransMatrix((localMatrix));                      \
-        gte_SetRotMatrix((localMatrix));                        \
-        gte_RotTrans((point), longPointOutput, gteFlagsOutput); \
-        (point)->vx = longPoint.vx;                             \
-        (point)->vy = longPoint.vy;                             \
-        (point)->vz = longPoint.vz;                             \
+/// Requires a stable readable word-aligned Q12 MATRIX pointer, a writable SVECTOR
+/// pointer disjoint from it, and VECTOR longPoint storage with longPointOutput ==
+/// &longPoint. gteFlagsOutput addresses a writable s32 flag word; the caller discards
+/// it. All arguments must have no side effects: matrix occurs twice, point four
+/// times, longPoint three times, and each output pointer once. Preserves the fourth
+/// point halfword, clobbers GTE transform state, and captures no caller identifiers.
+/// XYZ narrows after each parent step, not only after the complete transform.
+#define ACTOR_401800_TRANSFORM_JOINT_POINT(localMatrix, point, longPoint, longPointOutput, gteFlagsOutput) \
+    {                                                                                                      \
+        gte_SetTransMatrix((localMatrix));                                                                 \
+        gte_SetRotMatrix((localMatrix));                                                                   \
+        gte_RotTrans((point), (longPointOutput), (gteFlagsOutput));                                        \
+        (point)->vx = (longPoint).vx;                                                                      \
+        (point)->vy = (longPoint).vy;                                                                      \
+        (point)->vz = (longPoint).vz;                                                                      \
     }
 
     // Commit the origin only after reaching the excluded view node.
     for (;;) {
         if (currentCoord->parent != NULL) {
             if (currentCoord != viewCoord) {
-                ACTOR_401800_TRANSFORM_JOINT_POINT(&currentCoord->coord, transformedPoint);
+                ACTOR_401800_TRANSFORM_JOINT_POINT(&currentCoord->coord, transformedPoint, longPoint, longPointOutput, gteFlagsOutput);
                 currentCoord = currentCoord->parent;
                 continue;
             }

@@ -1130,35 +1130,39 @@ static void _actor206100UpdateNeckRetraction(Task* task, u8 unusedNeckRetracted)
     GfxCoord*         headCoord;
     s32               inverseNeckScale;
 
-    /// Rebuilds both neck bases and inverse-scales the head, retaining translations.
-    ///
-    /// Captures work, lowerNeckCoord, upperNeckCoord, headCoord, headAngles,
-    /// axisScale, the three basis matrices, rotationMatrix and inverseNeckScale.
-    /// Requires positive Q12 neckScale and initialized headAngles; expands as
-    /// statements at braced call sites, with no arguments or retained pointers.
-#define ACTOR_206100_APPLY_NECK_SCALE()                                \
-    gfxSetRotIdentity(&lowerNeckBasis);                                \
-    axisScale.vx = ONE;                                                \
-    axisScale.vy = ONE;                                                \
-    axisScale.vz = work->neckScale;                                    \
-    ScaleMatrix(&lowerNeckBasis, &axisScale);                          \
-    _actor206100CopyRotation(&lowerNeckBasis, &lowerNeckCoord->coord); \
-    gfxSetRotIdentity(&upperNeckBasis);                                \
-    axisScale.vx = ONE;                                                \
-    axisScale.vy = ONE;                                                \
-    axisScale.vz = ONE;                                                \
-    ScaleMatrix(&upperNeckBasis, &axisScale);                          \
-    _actor206100CopyRotation(&upperNeckBasis, &upperNeckCoord->coord); \
-    gfxSetRotIdentity(&headBasis);                                     \
-    axisScale.vx     = ONE;                                            \
-    axisScale.vy     = ONE;                                            \
-    inverseNeckScale = (ONE * ONE) / work->neckScale;                  \
-    axisScale.vz     = inverseNeckScale;                               \
-    ScaleMatrix(&headBasis, &axisScale);                               \
-    gfxSetRotIdentity(&rotationMatrix);                                \
-    RotMatrix(&headAngles, &rotationMatrix);                           \
-    MulMatrix(&headBasis, &rotationMatrix);                            \
-    _actor206100CopyRotation(&headBasis, &headCoord->coord);
+/// Rebuilds the shortened neck and compensates the head's scale, preserving translations.
+///
+/// Captures live work, lowerNeckCoord (part 2), upperNeckCoord (3), headCoord (4),
+/// initialized headAngles, axisScale, lowerNeckBasis, upperNeckBasis, headBasis,
+/// rotationMatrix and inverseNeckScale. neckScale is positive Q12 (ONE unit scale).
+/// The lower neck gets that Z scale, the upper neck unit scale, and the head its
+/// Q12 reciprocal followed by its saved Euler rotation (4096 units per turn).
+/// Forms one compound statement; the caller dirties and recomposes the hierarchy.
+#define ACTOR_206100_APPLY_NECK_SCALE()                                    \
+    {                                                                      \
+        gfxSetRotIdentity(&lowerNeckBasis);                                \
+        axisScale.vx = ONE;                                                \
+        axisScale.vy = ONE;                                                \
+        axisScale.vz = work->neckScale;                                    \
+        ScaleMatrix(&lowerNeckBasis, &axisScale);                          \
+        _actor206100CopyRotation(&lowerNeckBasis, &lowerNeckCoord->coord); \
+        gfxSetRotIdentity(&upperNeckBasis);                                \
+        axisScale.vx = ONE;                                                \
+        axisScale.vy = ONE;                                                \
+        axisScale.vz = ONE;                                                \
+        ScaleMatrix(&upperNeckBasis, &axisScale);                          \
+        _actor206100CopyRotation(&upperNeckBasis, &upperNeckCoord->coord); \
+        gfxSetRotIdentity(&headBasis);                                     \
+        axisScale.vx     = ONE;                                            \
+        axisScale.vy     = ONE;                                            \
+        inverseNeckScale = (ONE * ONE) / work->neckScale;                  \
+        axisScale.vz     = inverseNeckScale;                               \
+        ScaleMatrix(&headBasis, &axisScale);                               \
+        gfxSetRotIdentity(&rotationMatrix);                                \
+        RotMatrix(&headAngles, &rotationMatrix);                           \
+        MulMatrix(&headBasis, &rotationMatrix);                            \
+        _actor206100CopyRotation(&headBasis, &headCoord->coord);           \
+    }
 
     coords         = task->extra.tmd->coords;
     work           = task->work;

@@ -975,15 +975,21 @@ static void _actor207200CreepingStrangerActiveTick(Task* task)
     Enemy*                            soundEnemy;
     s32                               soundEventId;
 
-    /// Starts one action sound tagged with this enemy's placement index.
-    ///
-    /// Captures task, rootCoord, soundEnemy and soundEventId in this handler.
-    /// soundId is evaluated once; the pointers must be live and stable.
-    /// Pan/depth narrow to signed bytes. Use within a compound statement.
-#define ACTOR_207200_CREEPING_STRANGER_PLAY_ACTIVE_SOUND(soundId)                                                                          \
-    soundEnemy   = task->spawnArg2.pointer;                                                                                                \
-    soundEventId = ((soundEnemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << ACTOR_207200_CREEPING_STRANGER_SOUND_INSTANCE_SHIFT) | (soundId); \
-    sndEvtRequestScriptStart(soundEventId, (s8)worldCoordGetOriginAudioPan(rootCoord), (s8)worldCoordGetOriginAudioDepth(rootCoord))
+/// Starts a spatial Creeping Stranger script tagged with the live placement index.
+///
+/// Requires the actor's live Enemy payload and composed audio origin; reloads the
+/// payload at every use, including after damage callbacks. Stable actorTask/scriptId
+/// arguments occur once, audioOrigin twice, and the writable Enemy* enemyLocal and
+/// s32 requestId lvalues twice. Arguments must have no side effects. Script bits
+/// 8..15 must be clear for the placement tag; pan/depth narrow to signed bytes.
+/// Captures the package instance shift, forms one compound statement and retains
+/// no pointers. The action and head-damage handlers use the same operation.
+#define ACTOR_207200_CREEPING_STRANGER_PLAY_PLACEMENT_SOUND(actorTask, audioOrigin, scriptId, enemyLocal, requestId)                              \
+    {                                                                                                                                             \
+        (enemyLocal) = (actorTask)->spawnArg2.pointer;                                                                                            \
+        (requestId)  = (((enemyLocal)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << ACTOR_207200_CREEPING_STRANGER_SOUND_INSTANCE_SHIFT) | (scriptId); \
+        sndEvtRequestScriptStart((requestId), (s8)worldCoordGetOriginAudioPan(audioOrigin), (s8)worldCoordGetOriginAudioDepth(audioOrigin));      \
+    }
 
     work      = task->work;
     rootCoord = task->extra.tmd->coords;
@@ -1101,7 +1107,7 @@ static void _actor207200CreepingStrangerActiveTick(Task* task)
             work->forwardSpeed = 0;
             if (work->animFrames == ACTOR_207200_CREEPING_STRANGER_FRONT_ATTACK_SOUND_FRAME) {
                 work->frontAttackLanded = 0;
-                ACTOR_207200_CREEPING_STRANGER_PLAY_ACTIVE_SOUND(ACTOR_207200_CREEPING_STRANGER_SOUND_FRONT_ATTACK);
+                ACTOR_207200_CREEPING_STRANGER_PLAY_PLACEMENT_SOUND(task, rootCoord, ACTOR_207200_CREEPING_STRANGER_SOUND_FRONT_ATTACK, soundEnemy, soundEventId);
             }
             // Pair tests run only during the strike; sound a registered hit afterward.
             if (work->animFrames == ACTOR_207200_CREEPING_STRANGER_FRONT_STRIKE_FIRST_FRAME) {
@@ -1111,7 +1117,7 @@ static void _actor207200CreepingStrangerActiveTick(Task* task)
                 work->frontAttackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
             }
             if (work->frontAttackLanded != 0 && work->animFrames == ACTOR_207200_CREEPING_STRANGER_FRONT_STRIKE_END_FRAME) {
-                ACTOR_207200_CREEPING_STRANGER_PLAY_ACTIVE_SOUND(ACTOR_207200_CREEPING_STRANGER_SOUND_FRONT_HIT);
+                ACTOR_207200_CREEPING_STRANGER_PLAY_PLACEMENT_SOUND(task, rootCoord, ACTOR_207200_CREEPING_STRANGER_SOUND_FRONT_HIT, soundEnemy, soundEventId);
             }
             if (work->animId == ACTOR_207200_ANIM_FRONT_ATTACK && work->animFrames >= ACTOR_207200_CREEPING_STRANGER_FRONT_ATTACK_FRAMES) {
                 if (work->headLost != 0) {
@@ -1155,7 +1161,7 @@ static void _actor207200CreepingStrangerActiveTick(Task* task)
             work->animId       = ACTOR_207200_ANIM_CRY;
             work->forwardSpeed = 0;
             if (work->animFrames == ACTOR_207200_CREEPING_STRANGER_CRY_SOUND_FRAME) {
-                ACTOR_207200_CREEPING_STRANGER_PLAY_ACTIVE_SOUND(ACTOR_207200_CREEPING_STRANGER_SOUND_CRY);
+                ACTOR_207200_CREEPING_STRANGER_PLAY_PLACEMENT_SOUND(task, rootCoord, ACTOR_207200_CREEPING_STRANGER_SOUND_CRY, soundEnemy, soundEventId);
             }
             if (work->animFrames >= ACTOR_207200_CREEPING_STRANGER_CRY_FRAMES) {
                 if (work->headLost != 0) {
@@ -1169,8 +1175,6 @@ static void _actor207200CreepingStrangerActiveTick(Task* task)
             }
             break;
     }
-
-#undef ACTOR_207200_CREEPING_STRANGER_PLAY_ACTIVE_SOUND
 }
 
 /// Applies Creeping Stranger grid correction or restores the pre-movement root.
@@ -1427,16 +1431,6 @@ static void _actor207200CreepingStrangerScanContacts(Task* task)
 /// tags are read again after the HP/readout operations.
 static void _actor207200CreepingStrangerApplyHeadDamage(Task* task, s32 damage)
 {
-    /// Voices one head-hit outcome for the current enemy placement.
-    ///
-    /// scriptId is evaluated once. Captures task, rootCoord and writable
-    /// soundEnemy/soundId; the root must have a composed audio frame. Reloads
-    /// the Enemy after damage callbacks and expands to standalone statements.
-#define ACTOR_207200_CREEPING_STRANGER_PLAY_HEAD_SOUND(scriptId)                                                                          \
-    soundEnemy = task->spawnArg2.pointer;                                                                                                 \
-    soundId    = ((soundEnemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << ACTOR_207200_CREEPING_STRANGER_SOUND_INSTANCE_SHIFT) | (scriptId); \
-    sndEvtRequestScriptStart(soundId, (s8)worldCoordGetOriginAudioPan(rootCoord), (s8)worldCoordGetOriginAudioDepth(rootCoord));
-
     enum {
         ACTOR_207200_CREEPING_STRANGER_SOUND_HEAD_LOSS   = 0x40480003,
         ACTOR_207200_CREEPING_STRANGER_SOUND_IDLE_RECOIL = 0x40480006,
@@ -1460,7 +1454,7 @@ static void _actor207200CreepingStrangerApplyHeadDamage(Task* task, s32 damage)
     if ((s16)enemy->hp <= 0) {
         if (work->headLost == 0) {
             enemy->hp = 1;
-            ACTOR_207200_CREEPING_STRANGER_PLAY_HEAD_SOUND(ACTOR_207200_CREEPING_STRANGER_SOUND_HEAD_LOSS);
+            ACTOR_207200_CREEPING_STRANGER_PLAY_PLACEMENT_SOUND(task, rootCoord, ACTOR_207200_CREEPING_STRANGER_SOUND_HEAD_LOSS, soundEnemy, soundId);
             headLossArg = &work->headLossEffectArg;
             effectSpawnHit(EFFECT_HIT_KIND_SPLATTER, task->extra.tmd->coords + ACTOR_207200_CREEPING_STRANGER_HEAD_PART, &_gActor207200HeadLossSplatterOffset, headLossArg);
             effectSpawnHit(EFFECT_HIT_KIND_SPLATTER, task->extra.tmd->coords + ACTOR_207200_CREEPING_STRANGER_HEAD_PART, &_gActor207200HeadLossSplatterOffset, headLossArg);
@@ -1474,7 +1468,7 @@ static void _actor207200CreepingStrangerApplyHeadDamage(Task* task, s32 damage)
         }
     } else {
         if (work->animId == ACTOR_207200_ANIM_IDLE) {
-            ACTOR_207200_CREEPING_STRANGER_PLAY_HEAD_SOUND(ACTOR_207200_CREEPING_STRANGER_SOUND_IDLE_RECOIL);
+            ACTOR_207200_CREEPING_STRANGER_PLAY_PLACEMENT_SOUND(task, rootCoord, ACTOR_207200_CREEPING_STRANGER_SOUND_IDLE_RECOIL, soundEnemy, soundId);
             work->animId        = ACTOR_207200_ANIM_RECOIL;
             work->animFrames    = 0;
             work->state         = ACTOR_207200_STATE_RECOIL;
@@ -1482,10 +1476,10 @@ static void _actor207200CreepingStrangerApplyHeadDamage(Task* task, s32 damage)
             work->wakeRequested = 0;
             return;
         }
-        ACTOR_207200_CREEPING_STRANGER_PLAY_HEAD_SOUND(ACTOR_207200_CREEPING_STRANGER_SOUND_HIT);
+        ACTOR_207200_CREEPING_STRANGER_PLAY_PLACEMENT_SOUND(task, rootCoord, ACTOR_207200_CREEPING_STRANGER_SOUND_HIT, soundEnemy, soundId);
     }
 
-#undef ACTOR_207200_CREEPING_STRANGER_PLAY_HEAD_SOUND
+#undef ACTOR_207200_CREEPING_STRANGER_PLAY_PLACEMENT_SOUND
 }
 
 /// Applies a changed animation request or advances the six animated parts.
@@ -1729,16 +1723,21 @@ static void _actor207200CreepingStrangerBurstHead(Task* task)
 /// 768 in their normalized-direction step. The caller selects death and hasBurst.
 static void _actor207200CreepingStrangerBurstRandomPart(Task* task)
 {
-    /// Selects and spawns a part model, then copies its texture placement.
-    ///
-    /// Each argument is evaluated once. Captures task and writable burstEffect;
-    /// modelSource and the rig part must remain loaded for the spawned effect.
-    /// Spawn reads the descriptor synchronously. Expands to standalone statements.
-#define ACTOR_207200_CREEPING_STRANGER_SPAWN_BURST_PART(modelSource, partIndex)                                                                               \
-    gTaskBank8Descs[TASK_BANK8_BURST_MODEL_PART_SLOT].data.model = (modelSource);                                                                             \
-    burstEffect                                                  = effectSpawn(EFFECT_BURST_BODY_PART_BANK8, task->extra.tmd->coords + (partIndex), 0, NULL); \
-    if (burstEffect != NULL) {                                                                                                                                \
-        _actor207200CreepingStrangerCopyBurstTextures(burstEffect->task, task);                                                                               \
+/// Spawns a Creeping Stranger part model and copies the actor's texture placement.
+///
+/// Requires loaded modelSource and a live sourceTask with seven model coordinates;
+/// current calls select parts 1, 5 or 4. Publishes the model before synchronous
+/// bank-8 spawn. Stable modelSource/partIndex occur once; sourceTask once, or twice
+/// on success, and writable EffectWork* effectLocal twice, or three times on success.
+/// Arguments must have no side effects. Captures only the package texture copier,
+/// forms one compound statement, and skips texture copying on allocation failure.
+#define ACTOR_207200_CREEPING_STRANGER_SPAWN_BURST_PART(modelSource, partIndex, sourceTask, effectLocal)                                                                  \
+    {                                                                                                                                                                     \
+        gTaskBank8Descs[TASK_BANK8_BURST_MODEL_PART_SLOT].data.model = (modelSource);                                                                                     \
+        (effectLocal)                                                = effectSpawn(EFFECT_BURST_BODY_PART_BANK8, (sourceTask)->extra.tmd->coords + (partIndex), 0, NULL); \
+        if ((effectLocal) != NULL) {                                                                                                                                      \
+            _actor207200CreepingStrangerCopyBurstTextures((effectLocal)->task, (sourceTask));                                                                             \
+        }                                                                                                                                                                 \
     }
 
     enum {
@@ -1753,13 +1752,13 @@ static void _actor207200CreepingStrangerBurstRandomPart(Task* task)
     switch (partRoll) {
         case 0:
         case 1:
-            ACTOR_207200_CREEPING_STRANGER_SPAWN_BURST_PART(&_gActor207200CreepingStrangerBurstHead, ACTOR_207200_CREEPING_STRANGER_HEAD_PART);
+            ACTOR_207200_CREEPING_STRANGER_SPAWN_BURST_PART(&_gActor207200CreepingStrangerBurstHead, ACTOR_207200_CREEPING_STRANGER_HEAD_PART, task, burstEffect);
             break;
         case 2:
-            ACTOR_207200_CREEPING_STRANGER_SPAWN_BURST_PART(&_gActor207200CreepingStrangerBurstArm, ACTOR_207200_CREEPING_STRANGER_ARM_PART);
+            ACTOR_207200_CREEPING_STRANGER_SPAWN_BURST_PART(&_gActor207200CreepingStrangerBurstArm, ACTOR_207200_CREEPING_STRANGER_ARM_PART, task, burstEffect);
             break;
         case 3:
-            ACTOR_207200_CREEPING_STRANGER_SPAWN_BURST_PART(&_gActor207200CreepingStrangerBurstLeg, ACTOR_207200_CREEPING_STRANGER_LEG_PART);
+            ACTOR_207200_CREEPING_STRANGER_SPAWN_BURST_PART(&_gActor207200CreepingStrangerBurstLeg, ACTOR_207200_CREEPING_STRANGER_LEG_PART, task, burstEffect);
             break;
     }
     effectSpawn(EFFECT_030, task->extra.tmd->coords + ACTOR_207200_CREEPING_STRANGER_HEAD_PART, ACTOR_207200_CREEPING_STRANGER_BURST_PARTICLE_SPEED, NULL);

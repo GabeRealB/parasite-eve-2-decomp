@@ -1422,10 +1422,14 @@ static void _actor121300ShatterLamps(Task* task)
     }
 }
 
-/// Records `anim` as the animation the actor's slots are playing.
-#define SET_ANIM_ID(work, anim)   \
-    do {                          \
-        (work)->animSet = (anim); \
+/// Records the body animation-set index in the work block's unsigned halfword.
+///
+/// Both arguments evaluate once; work must address live double work. The low
+/// 16 bits are retained without clamping. Current requests select loaded sets 1..3.
+/// Captures no identifiers and does not seek tracks or change their playback rates.
+#define ACTOR_121300_RECORD_BODY_ANIMATION_SET(work, animationSet) \
+    do {                                                           \
+        (work)->animSet = (animationSet);                          \
     } while (0)
 
 /// Blends the double's driven slots into one animation set over ten frames.
@@ -1439,7 +1443,7 @@ static inline void _actor121300BlendAnimationSet(Task* task, s32 animSet)
 
     work = task->work;
     // The existing statement macro keeps the set store ahead of loop setup.
-    SET_ANIM_ID(work, animSet);
+    ACTOR_121300_RECORD_BODY_ANIMATION_SET(work, animSet);
     for (slotIndex = 1; slotIndex < ARRAY_SIZE(work->rig.slots); slotIndex++) {
         animationSeekSlotWithBlend(&work->rig.anim, slotIndex, animSet, 0, ACTOR_121300_ANIMATION_BLEND_FRAMES);
     }

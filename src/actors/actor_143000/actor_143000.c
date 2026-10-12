@@ -47,7 +47,11 @@ enum { ACTOR_143000_KEYPAD_CODE_CAPACITY = 20 };
 /// flashes. Zero affects only the banner, leaving the independent status line visible.
 #define ACTOR_143000_KEYPAD_BANNER_NONE 0
 
-#define ACTOR_143000_KEYPAD_BANNER_ACCEPTED 1
+/// Accepted-code artwork selected during the password-check result flash.
+///
+/// Stored in the byte resultBanner, independently of codeAccepted and statusLine.
+/// The drawer selects the accepted texture and palette only for this value.
+enum { ACTOR_143000_KEYPAD_BANNER_ACCEPTED = 1 };
 #define ACTOR_143000_KEYPAD_BANNER_REJECTED 2
 
 /// States selected by the keypad task's eleven-entry callback table.
@@ -402,16 +406,21 @@ static void _actor143000DrawKeypad(Task* task);
 /// the keypad task and returns before acquiring the hold.
 static void _actor143000InitializeKeypad(Task* task)
 {
-    /// Clears hit latches through the first hotspot sentinel.
-    ///
-    /// Captures and advances hotspot, which must reach a writable table ending
-    /// with ACTION_PROMPT_HOTSPOT_END; expands to one conditional statement.
-#define ACTOR_143000_CLEAR_KEYPAD_HITS()                    \
-    if (hotspot->id != ACTION_PROMPT_HOTSPOT_END) {         \
-        do {                                                \
-            hotspot->hit = 0;                               \
-            hotspot++;                                      \
-        } while (hotspot->id != ACTION_PROMPT_HOTSPOT_END); \
+/// Clears the keypad's hit latches up to its hotspot-table sentinel.
+///
+/// hotspotCursor is a writable ActionPromptHotspot* lvalue, evaluated repeatedly
+/// without other side effects. The live writable table must terminate with
+/// ACTION_PROMPT_HOTSPOT_END. Leaves the cursor at that record and its hit byte
+/// untouched; an empty table performs no write. Captures no caller identifiers
+/// and expands to one compound statement.
+#define ACTOR_143000_CLEAR_KEYPAD_HITS(hotspotCursor)                   \
+    {                                                                   \
+        if ((hotspotCursor)->id != ACTION_PROMPT_HOTSPOT_END) {         \
+            do {                                                        \
+                (hotspotCursor)->hit = 0;                               \
+                (hotspotCursor)++;                                      \
+            } while ((hotspotCursor)->id != ACTION_PROMPT_HOTSPOT_END); \
+        }                                                               \
     }
 
     enum {
@@ -436,7 +445,7 @@ static void _actor143000InitializeKeypad(Task* task)
     task->state                                               += ACTOR_143000_KEYPAD_STATE_ARM_CURSOR - ACTOR_143000_KEYPAD_STATE_INITIALIZE;
     work->field_4                                              = 0;
     displayAcquireMenuHold();
-    ACTOR_143000_CLEAR_KEYPAD_HITS();
+    ACTOR_143000_CLEAR_KEYPAD_HITS(hotspot);
     work->keypadExamined       = 0;
     work->statusLine           = ACTOR_143000_KEYPAD_STATUS_ENTER_PASSWORD;
     work->resultBanner         = ACTOR_143000_KEYPAD_BANNER_NONE;

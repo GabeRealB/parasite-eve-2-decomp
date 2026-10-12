@@ -3191,16 +3191,20 @@ static void _actor110600ShudderState(Task* task)
     // Normalize the root's side axis so displacement is in parent-coordinate units.
     gfxReadMatrixXAxis(&task->extra.tmd->coords->coord, &sideStep);
     VectorNormalSS(&sideStep, &sideStep);
-/// Scales a writable Q12 direction by signed parent-coordinate distance.
+/// Scales a Q12 shudder direction by a signed parent-coordinate distance.
 ///
-/// Standalone statement sequence for this handler; arguments must have no side
-/// effects. `direction` is evaluated twice and `distance` once. Narrows XYZ to
-/// signed halfwords, clobbers the GTE and changes no coordinate by itself.
+/// Requires a writable SVECTOR pointer and distance representable by the GTE's
+/// signed halfword IR0 register. Stable direction occurs twice, distance once;
+/// arguments must have no side effects. Overwrites XYZ as signed halfwords,
+/// preserves the vector's fourth halfword, and clobbers GTE state. Captures no
+/// caller identifiers; expands to one compound statement.
 #define ACTOR_110600_SCALE_SHUDDER_STEP(direction, distance) \
-    gte_lddp(distance);                                      \
-    gte_ldsv(direction);                                     \
-    gte_gpf12();                                             \
-    gte_stsv(direction)
+    {                                                        \
+        gte_lddp(distance);                                  \
+        gte_ldsv(direction);                                 \
+        gte_gpf12();                                         \
+        gte_stsv(direction);                                 \
+    }
     switch (_gActor110600ShudderStep) {
         case 0:
             ACTOR_110600_SCALE_SHUDDER_STEP(&sideStep, ACTOR_110600_SHUDDER_PUSH0);

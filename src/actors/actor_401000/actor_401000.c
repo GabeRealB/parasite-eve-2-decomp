@@ -1303,31 +1303,9 @@ static void _actor401000Spawn(Enemy* enemy, Task* actor)
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, attackBody);
     worldCollisionInitContacts(attackBody->context.contacts, ARRAY_SIZE(work->attackContacts), 0);
 
-    /// Seeds the patrol pair from the root axis using caller-owned direction storage.
-    ///
-    /// Arguments must be side-effect-free locals. directionVector is an SVECTOR
-    /// lvalue, directionPtr addresses it, and actorTask/spawnWork are live pointers.
-    /// Normalizes and overwrites that direction, then stores a 2000-unit XZ span.
-#define ACTOR_401000_INIT_PATROL_POINTS(actorTask, spawnWork, directionVector, directionPtr)                \
-    {                                                                                                       \
-        enum {                                                                                              \
-            ACTOR_401000_PATROL_SPAN = 2000,                                                                \
-        };                                                                                                  \
-        (spawnWork)->patrolTarget      = 0;                                                                 \
-        (spawnWork)->patrolPoints[0].x = (actorTask)->extra.tmd->coords->coord.t[0];                        \
-        (spawnWork)->patrolPoints[0].z = (actorTask)->extra.tmd->coords->coord.t[2];                        \
-        gfxReadMatrixZAxis(&(actorTask)->extra.tmd->coords->coord, directionPtr);                           \
-        (directionVector).vy = 0;                                                                           \
-        VectorNormalSS(directionPtr, directionPtr);                                                         \
-        gte_lddp(ACTOR_401000_PATROL_SPAN);                                                                 \
-        gte_ldsv(directionPtr);                                                                             \
-        gte_gpf12();                                                                                        \
-        gte_stsv(directionPtr);                                                                             \
-        (spawnWork)->patrolPoints[1].x = (actorTask)->extra.tmd->coords->coord.t[0] + (directionVector).vx; \
-        (spawnWork)->patrolPoints[1].z = (actorTask)->extra.tmd->coords->coord.t[2] + (directionVector).vz; \
-    }
-    ACTOR_401000_INIT_PATROL_POINTS(actor, work, patrolDirection, direction);
-#undef ACTOR_401000_INIT_PATROL_POINTS
+#include "../../shared/odd_stranger_patrol_points.h"
+    ODD_STRANGER_INITIALIZE_PATROL_POINTS(actor, work, patrolDirection, direction);
+#undef ODD_STRANGER_INITIALIZE_PATROL_POINTS
 
     actor->msgTable         = _gActor401000Messages;
     rootCoord->parent       = &gGfxViewCoord;
