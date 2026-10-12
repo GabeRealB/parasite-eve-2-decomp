@@ -29,7 +29,7 @@ def constants(header: str, prefix: str) -> dict[int, str]:
             text = (REPO / header).read_text(errors="replace")
         except OSError:
             text = ""
-        for name, value in re.findall(r"^\s*(%s\w*)\s*=\s*\(?(?:s32\))?\(?(-?0x[0-9A-Fa-f]+|-?\d+)\)?\s*[,}/]" % prefix, text, re.M):
+        for name, value in re.findall(r"(?:^\s*|\benum\s*\{\s*)(%s\w*)\s*=\s*\(?(?:s32\))?\(?(-?0x[0-9A-Fa-f]+|-?\d+)\)?\s*[,}/]" % prefix, text, re.M):
             found.setdefault(int(value, 0) & 0xFFFFFFFF, name)
         _CONSTANTS[key] = found
     return _CONSTANTS[key]
@@ -251,12 +251,21 @@ def room_of(stage: int, area: int) -> str | None:
 
 @renderer("cd_command")
 def cd_command(record, trace):
-    """cdCmdEnqueue(command, fileKey, commandArgs): the request's opcode; a file load's key says which file."""
-    out = {"event": "cd_command", "command": named(record["a0"], "include/main/fs_types.h", "CD_COMMAND_"), "opcode": f"{record['a0'] & 0xFF:#04x}"}
-    if record["a0"] & 0xFF == 0x21 and any(record["a1:4"]):
-        index, hundreds, group, stage = record["a1:4"]
+    """cdCmdEnqueue(command, fileKey, commandArgs): the request's opcode; for a file load, which file and how.
+
+    A file's id is split over the two blocks (include/main/fs_types.h): the key has the index, group and stage -
+    its second byte is never read - and the arguments have the hundreds, the load policy and the image offsets."""
+    opcode = record["a0"] & 0xFF
+    command = constants("include/main/fs_types.h", "CD_COMMAND_").get(opcode) or constants("include/main/fs.h", "CD_COMMAND_").get(opcode)
+    out = {"event": "cd_command", "command": command[len("CD_COMMAND_"):].lower().replace("_", " ") if command else str(opcode), "opcode": f"{opcode:#04x}"}
+    if opcode == 0x21:
+        index, _unread, group, stage = record["a1:4"]
+        hundreds, mode = record["a2:4"][0], record["a2:4"][1]
         out.update({"file": group * 10000 + hundreds * 100 + index} if stage == 0 else {"stage": stage, "folder": group * 100 + hundreds, "index": index})
         out.update(named_file(out))
+        out.update({"mode": mode, "policy": named(mode, "include/main/fs_types.h", "CD_COMMAND_LOAD_"),
+                    "page_offset": signed(record["a2:4"][2] | (0xFFFFFF00 if record["a2:4"][2] & 0x80 else 0)),
+                    "row_offset": signed(record["a2:4"][3] | (0xFFFFFF00 if record["a2:4"][3] & 0x80 else 0))})
     out["from"] = trace.symbol(record["ra"])
     return out
 

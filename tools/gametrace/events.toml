@@ -80,7 +80,7 @@ render = "file_loaded"
 id = 6
 name = "cd_command"
 address = 0x8001D2B0     # cdCmdEnqueue(command, fileKey, commandArgs)
-capture = ["a0", "a1:4", "a2", "ra"]
+capture = ["a0", "a1:4", "a2:4", "ra"]     # the key, and the four bytes of arguments beside it
 
 # ---- where the player is
 render = "cd_command"
