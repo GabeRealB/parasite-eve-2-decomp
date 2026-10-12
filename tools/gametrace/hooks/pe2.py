@@ -1,7 +1,7 @@
 """Python hooks for tools/gametrace/events.toml: what the tracer's events mean in this game.
 
 Renderers say how an event is written: they get it as captured - registers as ints, memory as bytes - and return
-what the log should say. Handlers act when one happens, with the game stopped: `file_loaded` tells the tracer
+what the log should say. Handlers act when one happens, with the game stopped: `package_loaded` tells the tracer
 which packages a finished load has put in memory, so that the events in them can be hooked.
 
 The layouts are the decomp's own: FsFileLoadKey (src/main/fs_types.h), GameLocationKey
@@ -93,7 +93,7 @@ def tree():
     """The extractor's table of the disc: stages, their folders and files, by the names given to them so far."""
     import sys
     from pathlib import Path
-    sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "peassets"))
+    sys.path.insert(0, str(REPO / "tools" / "peassets"))
     import asset_data
     return asset_data.TREE
 
@@ -127,7 +127,7 @@ def packages_of(what: dict) -> list[str]:
     """The packages a disc file carries, from the extractor's tables: the images that are in memory once it is loaded."""
     import sys
     from pathlib import Path
-    sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "peassets"))
+    sys.path.insert(0, str(REPO / "tools" / "peassets"))
     import asset_data
     if not what or what.get("mode", 0) not in LOADS_PACKAGE:     # no load seen to begin, or one that reads no package
         return []
@@ -139,11 +139,77 @@ def packages_of(what: dict) -> list[str]:
     return [name for node in nodes for name in node["chunks"].values() if asset_data.ASSETS.get(name, {}).get("type") == "pe2pkg"]
 
 
-@handler("file_loaded")
-def file_loaded(record, trace):
-    """The file whose load began last is in memory, every chunk of it: its packages are resident from here."""
-    for package in packages_of(LOADING):
-        trace.resident(package)
+# ---- a package arriving in memory: seen in the loader itself, where the package chunk is inflated
+#
+# `_fsReadChunkHeaderSector` inflates what a package chunk's first sector holds; `_fsReadChunkPayloadSector` goes on
+# with the sectors after it (src/main/fs.c). A package is whole in memory at one of two places: in the first
+# function where the decompressor reports the end of the stream at once (a package that fits one sector), or in
+# the second where the stream ends later. Both are events with a handler, so both are breakpoints: the game stops,
+# the package's id is read from the image itself, and the tracer is told the image is resident. `package_begin`,
+# a hook straight after the first sector is inflated, only keeps the address the chunk's header gives, which is
+# gone from the sector buffer by the time a longer package ends.
+
+PACKAGE: dict = {}       # the package chunk being inflated: where it goes, and - once known - which package it is
+PACKAGE_IDS: dict = {}   # the id every package starts with -> its name
+
+
+def package_ids() -> dict:
+    """Every package begins with its own id, a number no other has (the first word of the image)."""
+    if not PACKAGE_IDS:
+        for path in (REPO / "assets" / "USA" / "pe2pkg").glob("*.pe2pkg"):
+            with path.open("rb") as handle:
+                head = handle.read(4)
+            if len(head) == 4:
+                PACKAGE_IDS[struct.unpack("<I", head)[0]] = path.name[:-len(".pe2pkg")]
+    return PACKAGE_IDS
+
+
+@renderer("package_begin")
+def package_begin(record, trace):
+    """The first sector of a package chunk has been inflated to the address its header gives."""
+    load = struct.unpack("<I", record["0x8006C4E0:4"])[0]
+    status = struct.unpack("<I", record["0x8006D748:4"])[0] & 0xFFFF
+    PACKAGE.clear()
+    PACKAGE.update({"load": load})
+    # The decompressor's status: 0 wants more input, 0xFFFF could not run (the load is restarted), anything else is
+    # the end of the stream - and then the breakpoint for a one-sector package is the next thing reached.
+    if status == 0xFFFF:
+        return {"event": "package_begin", "load": f"{load:#010x}", "result": "the decompressor was busy: the load restarts"}
+    return None
+
+
+@handler("package_loaded")
+def package_arrived(record, trace):
+    """A package's stream has ended: the image is whole in memory. Which package it is is read from the image
+    itself - its first word is its id - and the tracer is told it is resident, so its hooks are written."""
+    if "0x8006C4E0:4" in record:                     # a one-sector package: the chunk's header is still in the sector buffer
+        PACKAGE.clear()
+        PACKAGE.update({"load": struct.unpack("<I", record["0x8006C4E0:4"])[0], "sectors": 1})
+    load = PACKAGE.get("load")
+    if load is None:
+        return
+    ident = struct.unpack("<I", trace.read(load, 4))[0]
+    name = package_ids().get(ident)
+    PACKAGE.update({"id": ident, "name": name})
+    if name is not None and trace.extent(name)[1] == load:
+        trace.resident(name)
+
+
+@renderer("package_loaded")
+def package_loaded(record, trace):
+    end = struct.unpack("<I", record["0x8006D4D8:4"])[0]
+    load, name = PACKAGE.get("load"), PACKAGE.get("name")
+    out = {"event": "package_loaded", "package": name, "id": PACKAGE.get("id"), "load": f"{load:#010x}" if load is not None else None,
+           "end": f"{end:#010x}", "bank": record["0x8006ADF4:4"][0]}
+    if PACKAGE.get("sectors") == 1:
+        out["sectors"] = 1
+    if name is None:
+        out["note"] = "no package has this id"
+    elif trace.extent(name)[2] == 0:
+        out["note"] = "not among the images the hooks declare, so its addresses are not named"
+    elif trace.extent(name)[1] != load:
+        out["note"] = f"the package is declared to load at {trace.extent(name)[1]:#010x}: not marked resident"
+    return out
 
 
 @renderer("file_loaded")
@@ -241,7 +307,7 @@ def room_of(stage: int, area: int) -> str | None:
     """The room a stage and area number name: a room folder's disc id is its area times 100, plus one."""
     import sys
     from pathlib import Path
-    sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "peassets"))
+    sys.path.insert(0, str(REPO / "tools" / "peassets"))
     import asset_data
     for name, folder in (asset_data.TREE.get(stage, {}).get("folders") or {}).items():
         if folder["id"] // 100 == area:
@@ -400,7 +466,7 @@ def project(cfg):
         with exe.open("rb") as handle:
             load = struct.unpack_from("<I", handle.read(0x20), 0x18)[0]
         image("main", load, exe, maps.get("main", ()), skip=0x800, start=True)
-    loads = {"gameplay": 0x80093800}
+    loads = {"gameplay": 0x80093800, "title": 0x80093800}       # the title screen's program takes gameplay's place
     loads.update(asset_residency.package_loads(tomllib.loads((REPO / "configs" / "USA" / "overlays.toml").read_text())))
     for name, load in loads.items():
         image(name, load, REPO / "assets" / "USA" / "pe2pkg" / f"{name}.pe2pkg", maps.get(name, ()))

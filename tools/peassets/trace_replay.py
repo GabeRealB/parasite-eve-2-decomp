@@ -81,6 +81,7 @@ def num(r: dict, *keys, default=0) -> int:
     return default
 
 
+EXPAND_REPEATS = 256      # a repeated run of up to this many lines is replayed line for line
 STRIP_ROWS = 32          # an image is uploaded in strips of this many rows (fsUploadImageStrips)
 
 
@@ -296,7 +297,17 @@ class Replay:
                 record = json.loads(line)
             except ValueError:
                 record = {"text": line}
-            records.append(record if isinstance(record, dict) else {"text": line})
+            record = record if isinstance(record, dict) else {"text": line}
+            # The tracer writes a run of lines that repeats only once, followed by a count (its `repeats`
+            # filter): the `last` lines before the marker came `times` more times. A short run is put back
+            # line for line. A long one - something said every frame - stays one record: by then it repeats
+            # what has already been replayed, and a load can never be part of one.
+            if record.get("event") == "repeated" and isinstance(record.get("last"), int) and isinstance(record.get("times"), int):
+                if 0 < record["last"] <= len(records) and record["last"] * record["times"] <= EXPAND_REPEATS:
+                    records += records[-record["last"]:] * record["times"]
+                    continue
+                record = {"text": f"the last {record['last']} records came {record['times']} more times", **record}
+            records.append(record)
         self.records = records
         for n, r in enumerate(records):
             kind, text, extra = self.step(n, r)

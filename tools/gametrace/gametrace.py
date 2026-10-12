@@ -47,6 +47,9 @@ does in `[[image]]` tables (`name`, `load`, `file`, and optionally `skip`, `symb
 `start` is in memory when the tracer sets up. An event without `image = "..."` belongs to the start image holding
 its address. `[log] dir` is where logs go, from the config's directory.
 
+An event with a handler is not a hook but a breakpoint on its own address: it has to stop the game anyway, and
+a breakpoint displaces nothing, so it may sit on any instruction. Its captures are read when it stops there.
+
 An event in an image that is loaded later (`image = "..."`) gets its hooks when the tracer is told the image is in memory, and it does not work that out by itself:
 an event with `handler = "name"` runs a python function at the end of its hook, with the game stopped, and that
 function calls `trace.resident(image)` (see `handler`). Put it on the game's own "this file has finished loading"
@@ -70,9 +73,10 @@ much memory it has, after which anything above faults. `blob.poke` lists words, 
 stub writes before it touches the blob's memory - such as the register that says how much memory there is.
 
 Between the events and the log sit filters (`[log] filters = [...]`, see `filter`): every line about to be written
-goes through them. `repeats`, built in, is for an event that says the same thing over and over: mark the event
-`collapse = true` and a run of its lines that repeats the last one, or the last few in order, is written once,
-followed by `{"event": "repeated", "last": N, "times": T}` - the N lines before this one came T more times.
+goes through them. `repeats`, built in, writes a run of lines that repeats the last one, or the last few in order,
+only once, followed by `{"event": "repeated", "last": N, "times": T}` - the N lines before this one came T more
+times. Every event takes part unless it says `collapse = false` or has a handler; a line of one that does not
+ends the run, so it keeps its exact place.
 
 The buffer is read when it is full, when the tracer detaches (Ctrl-C: what is left is read, the hooks are taken
 out and the game runs on), and after every event marked `drain = true` - at its returns where the config gives
@@ -169,6 +173,11 @@ def load(path: Path) -> dict:
         event.setdefault("exits", [])
         event.setdefault("exit_capture", ["v0"])
         event.setdefault("drain", False)
+        # An event with a handler stops the game whatever else it does, so it needs no hook: it is a breakpoint
+        # on its own address. Nothing is displaced, so any instruction will do - a jump or a branch included.
+        event["_break"] = bool(event.get("handler"))
+        if event["_break"] and event["exits"]:
+            problems.append(f"{event.get('name')}: an event with a handler is a breakpoint at its address and has no exits; give its returns to a second event")
         try:
             event["_enter"] = [parse_capture(c) for c in event["capture"]]
             event["_exit"] = [parse_capture(c) for c in event["exit_capture"]]
@@ -512,7 +521,7 @@ def record_code(event: dict, phase: int, captures: list[dict], tag: str, largest
 
 def stub_source(cfg: dict, sites: dict) -> str:
     blob = cfg["blob"]
-    events = cfg.get("event", [])
+    events = [e for e in cfg.get("event", []) if not e["_break"]]
     largest = max([record_size(e["_enter"]) for e in events] + [record_size(e["_exit"]) for e in events if e["exits"]] + [4])
     lines = [
         ".set noreorder", ".set noat", ".text",
@@ -728,6 +737,10 @@ def sites_of(cfg: dict) -> dict:
     out, problems = {}, []
     for event in cfg.get("event", []):
         name, image = event["name"], event["image"]
+        if event["_break"]:
+            if image_words(event["address"], 1, image) is None:
+                problems.append(f"{name}: {event['address']:#010x} is not in the image {image} as it is on disc")
+            continue
         words = image_words(event["address"], 2, image)
         if words is None:
             problems.append(f"{name}: {event['address']:#010x} is not in the image {image} as it is on disc")
@@ -1058,12 +1071,15 @@ class Shared:
 
 @filter("repeats")
 class Repeats:
-    """A filter for the events marked `collapse = true`. It keeps a short history of the lines written for the events marked `collapse`. When new lines keep matching the
-    last one, or the last few in the same order, they are held back and counted instead of written. The first
-    line that does not fit ends it, and three things are written in order: a line saying the last N events were
-    repeated so many times, the lines held of a repetition that was only partly through, and the new line. So
-    nothing is lost. A line of any other event passes straight through, except in the middle of a repetition,
-    where what is held is written first to keep the order."""
+    """Writes a run of lines that repeats once, with a count. It keeps a short history of the lines written.
+    When new lines keep matching the last one, or the last few in the same order, they are held back and counted
+    instead of written. The first line that does not fit ends the run, and three things are written in order:
+    `{"event": "repeated", "last": N, "times": T}` - the N lines before this one came T more times - then the
+    lines held of a repetition that was only partly through, then the new line. Nothing is lost, and expanding
+    each marker in place gives back every line in its order.
+
+    Every event takes part unless it says `collapse = false`, or has a handler: a line of such an event always
+    ends the run before it is written, so it keeps its exact place among the others."""
 
     def __init__(self, longest: int = 8) -> None:
         self.longest = longest
@@ -1073,9 +1089,9 @@ class Repeats:
         self.times = 0                     # whole repetitions not written
 
     def line(self, line: dict, event: dict, trace) -> list[dict]:
-        if event.get("collapse"):
+        if event.get("collapse", True) and not event.get("handler"):
             return self.offer(line)
-        return (self.end() if self.held else []) + [line]
+        return self.end() + [line]         # a marker counts the lines just before it: nothing may match across this one
 
     def offer(self, line: dict) -> list[dict]:
         """A new line of a collapsed event; returns the lines to write now."""
@@ -1086,7 +1102,7 @@ class Repeats:
                 if len(self.held) == len(self.pattern):
                     self.times, self.held = self.times + 1, []
                 return []
-            out = self.end()
+            out = self.flush()
         else:
             out = []
         for length in range(1, min(self.longest, len(self.history)) + 1):      # does it begin the last few again?
@@ -1099,10 +1115,19 @@ class Repeats:
         return out + [line]
 
     def end(self, trace=None) -> list[dict]:
+        """For the tracer, before it writes a line of its own (a session's marker): give up what is held, and
+        match nothing across that line."""
+        out = self.flush()
+        self.history = []
+        return out
+
+    def flush(self) -> list[dict]:
         """Stop holding back: the count of what was repeated, then what was held of an unfinished repetition."""
         out = [{"event": "repeated", "last": len(self.pattern), "times": self.times}] if self.times else []
         out += self.held
-        self.history = (self.history + [json.dumps(line, sort_keys=True) for line in self.held])[-self.longest:]
+        # The history is the end of the lines as they would read with every marker expanded: the repeats just
+        # counted belong to it, or a later marker's "the N lines before this one" would name the wrong lines.
+        self.history = (self.history + self.pattern * self.times + [json.dumps(line, sort_keys=True) for line in self.held])[-self.longest:]
         self.pattern, self.held, self.times = [], [], 0
         return out
 
@@ -1122,6 +1147,8 @@ class Session:
         self.shared: Shared | None = None
         self.waiting = None                           # (where, since when, the event): the reader is held at a handler's record until the game stops
         self.bad_cursor = None
+        self.count_records = 0
+        self.read_by: dict[str, int] = {}             # records read while the game was "running" and while it was "stopped"
         self.late_stops = 0
         self.before_stop = 0
         self.read_at = 0                              # how far into the buffer the log has got
@@ -1132,7 +1159,12 @@ class Session:
         self.by_image: dict[str, list] = {}           # the same, by the image the address is in
         self.halted = True                            # whether the game is stopped right now
         self.residents: dict = {}                     # load address -> the image a handler last said is there
+        self.breaks: dict[int, dict] = {}             # address -> the event with a handler whose breakpoint is set there
+        self.breaks_by_image: dict[str, list] = {}
         for event in self.events:
+            if event["_break"]:
+                self.breaks_by_image.setdefault(event["image"], []).append(event)
+                continue
             self.layout[header(event, 0, event["_enter"])] = (event, "enter", event["_enter"])
             self.hooks.append((event["address"], self.sites[(event["id"], "enter")], self.symbols[f"gt_enter_{event['id']}"]))
             image = event["image"]
@@ -1366,7 +1398,7 @@ class Session:
         # runs, and none of these stops is needed.
         self.drains = set()
         for event in self.events:
-            if event.get("handler") or (event["drain"] and self.shared is None):
+            if event["drain"] and self.shared is None and not event["_break"]:
                 ends = [f"gt_exit_{event['id']}_{k}_done" for k in range(len(event["exits"]))] or [f"gt_enter_{event['id']}_done"]
                 self.drains |= {self.symbols[name] for name in ends}
         for address in self.drains:
@@ -1376,8 +1408,8 @@ class Session:
         placed = sum(self.install(name) for name in there)
         for name in self.cfg.get("resident", []):
             self.residents[IMAGES[name].load if name in IMAGES else name] = name
-        others = sorted(name for name in self.by_image if name not in there)
-        print(f"{placed} of {len(self.hooks)} hooks in place" + (f"; those in {', '.join(others)} are written when a handler says the image is resident" if others else ""), file=sys.stderr)
+        others = sorted(name for name in {*self.by_image, *self.breaks_by_image} if name not in there)
+        print(f"{placed} of {len(self.hooks)} hooks in place, {len(self.breaks)} breakpoints for events with a handler" + (f"; those in {', '.join(others)} are written when a handler says the image is resident" if others else ""), file=sys.stderr)
         if others and not any(e.get("handler") for e in self.events):
             print("no event has a handler, so nothing will say so: name the images already in memory with --resident, or use the `resident` command", file=sys.stderr)
 
@@ -1418,7 +1450,34 @@ class Session:
                     self.gdb.write(address, struct.pack("<2I", *jump))
                     now = jump
                 placed += now == jump
+        for name, events in self.breaks_by_image.items():
+            if image is not None and name != image:
+                continue
+            for event in events:                      # a breakpoint only where the image's own instruction is in memory
+                if struct.unpack("<I", self.gdb.read(event["address"], 4)) == image_words(event["address"], 1, name):
+                    self.gdb.breakpoint(event["address"])
+                    self.breaks[event["address"]] = event
         return placed
+
+    def hit(self, event: dict, regs: list[int]) -> None:
+        """The game is stopped on the breakpoint of an event with a handler: make its record from the registers and
+        memory as they stand, then log it like any other (its handler runs first)."""
+        if struct.unpack("<I", self.gdb.read(event["address"], 4)) != image_words(event["address"], 1, event["image"]):
+            return                                    # another image is at this address now: not this event
+        record = {"id": event["id"], "name": event["name"], "phase": "enter"}
+        for c in event["_enter"]:
+            if c["kind"] == "reg":
+                record[c["text"]] = regs[REGS.index(c["reg"])]
+                continue
+            address = c["address"] if c["kind"] == "fixed" else (regs[REGS.index(c["reg"])] + c["offset"]) & 0xFFFFFFFF
+            readable = 0x80000000 <= address and address + c["length"] <= 0x80800000
+            record[c["text"]] = self.peek(address, c["length"]) if readable else bytes(c["length"])
+        self.log(event, record)
+        self.out.flush()
+        try:
+            os.fsync(self.out.fileno())
+        except (AttributeError, OSError, ValueError):
+            pass
 
     def resident(self, image: str) -> None:
         """An image is in memory, whole, from here on: its symbols name addresses in the log, and the hooks of the
@@ -1459,6 +1518,7 @@ class Session:
         if cursor < self.read_at:                     # the game started the buffer again since the last look
             self.read_at = start
         data, at = self.peek(self.read_at, cursor - self.read_at), 0
+        records_before, began_at = self.count_records, self.read_at
         while at + 4 <= len(data):
             word = struct.unpack_from("<I", data, at)[0]
             known = self.layout.get(word)
@@ -1481,7 +1541,22 @@ class Session:
             self.log(event, record)
             at = field
             self.waiting = None
+            self.count_records += 1
         self.out.flush()
+        if self.count_records != records_before:
+            # Flushed is not yet visible: Windows shows a file's new length to other programs only once the
+            # writer has pushed it to the disc (or closed the file), so a viewer following the log sees
+            # nothing new until then.
+            try:
+                os.fsync(self.out.fileno())
+            except (AttributeError, OSError, ValueError):
+                pass
+        # For --protocol: every look at the buffer that found something, with the time, whether the game was
+        # running (a look as it runs) or stopped, and how far it got. A log that only moves at stops shows here.
+        how = "stopped" if self.halted else "running"
+        if cursor != began_at or self.count_records != records_before:
+            self.read_by[how] = self.read_by.get(how, 0) + self.count_records - records_before
+            self.gdb.note("#", f"buffer read while {how}: {self.count_records - records_before} records, {began_at:#010x} -> {self.read_at + at:#010x}, written to {cursor:#010x}" + (f", held at {self.waiting[2]}" if self.waiting else ""))
         self.read_at = cursor
         # Starting the buffer again is only done where no stub is part-way through a record: a stub holds its own
         # copy of the cursor, and would put the old value back when it finished. Elsewhere the buffer simply goes
@@ -1498,6 +1573,7 @@ class Session:
         return (f"\n  buffer: read to {self.read_at:#010x}, written to {cursor:#010x} ({max(cursor - self.read_at, 0)} bytes unread) of {self.symbols['gt_buffer']:#010x}..{self.symbols['gt_end']:#010x}"
                 + (f"; held at a {self.waiting[2]} record for its stop" if self.waiting else "")
                 + (f"\n  {held} repeated lines counted and not written (the repeats filter writes them as one line when the run ends)" if held else "")
+                + f"\n  records read while the game ran: {self.read_by.get('running', 0)}; while it was stopped: {self.read_by.get('stopped', 0)}"
                 + (f"\n  {self.late_stops} stops that did not come by themselves" if self.late_stops else ""))
 
     def between_records(self) -> bool:
@@ -1532,12 +1608,17 @@ class Session:
     def stopped(self) -> int:
         """The game has stopped: do what the place it stopped at asks for. Returns that place."""
         self.halted = True
-        pc = self.gdb.registers()[PC]
-        if pc in self.installers:
+        regs = self.gdb.registers()
+        pc = regs[PC]
+        if self.ready and pc in self.breaks:
+            self.drain(reset=self.shared is None)     # what led up to it first, so the log keeps its order
+            self.hit(self.breaks[pc], regs)
+        elif pc in self.installers:
             if not self.ready:
                 self.setup()
             else:
-                self.install("")
+                for item in started():
+                    self.install(item.name)
         elif self.ready and pc == self.symbols["gt_full"]:
             self.drain(reset=False)
             self.read_at = self.symbols["gt_buffer"]  # the game's next instructions start the buffer again
@@ -1678,8 +1759,11 @@ def main() -> int:
         for address in cfg["install_at"]:
             print(f"set up at {address:#010x}  {name_at(address, started())}")
         for event in cfg.get("event", []):
-            found = returns_in(event)
             print(f"{event['id']:>5}  {event['name']:<24} {event['address']:#010x}  {name_at(event['address'], [IMAGES[event['image']]])}")
+            if event["_break"]:
+                print(f"       a breakpoint: the game stops here for the handler {event['handler']}; read then: {', '.join(event['capture'])}" + (f"   rendered by {event['render']}" if event.get("render") else ""))
+                continue
+            found = returns_in(event)
             print(f"       enter: {', '.join(event['capture'])}  ({record_size(event['_enter'])} bytes)" + (f"   rendered by {event['render']}" if event.get("render") else "") + ("   drains the buffer" if event["drain"] else ""))
             if event["exits"]:
                 print(f"       exit at {', '.join(f'+{o:#x}' for o in event['exits'])}: {', '.join(event['exit_capture'])}  ({record_size(event['_exit'])} bytes)")

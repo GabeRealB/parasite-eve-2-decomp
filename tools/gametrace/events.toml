@@ -47,7 +47,7 @@ process = "duckstation"
 # Where logs and the `blob` command's files go, from this file's directory.
 [log]
 dir = "../../local/gametrace"
-filters = ["repeats"]    # lines of events marked `collapse = true` that repeat are written once, with a count
+filters = ["repeats"]    # a run of lines that repeats is written once, with a count; an event opts out with `collapse = false`
 
 [blob]
 address = 0x80200000     # where the stubs and the buffer live: memory the game leaves alone (here, just above 2 MB)
@@ -73,8 +73,33 @@ id = 25
 name = "file_loaded"
 address = 0x8001C53C     # in _cdCmdHandleFileLoad, where a finished load is taken off the queue: every chunk of the file is in memory
 capture = []
-handler = "file_loaded"  # tells the tracer which image that makes resident, so its hooks can be written
 render = "file_loaded"
+
+# A package chunk in the loader. A package is whole in memory at one of two places, and both are events with a
+# handler - breakpoints, where the game stops, the package's id is read from the image and the tracer is told it
+# is resident. `package_begin` is a hook that only keeps the address the chunk's header gives.
+[[event]]
+id = 26
+name = "package_begin"
+address = 0x80022DF8     # in _fsReadChunkHeaderSector, after fsDecompressStream() for a package chunk
+capture = ["0x8006C4E0:4", "0x8006D748:4"]      # the chunk header's loadAddr; gFsLzssDecodeStatus
+render = "package_begin"
+
+[[event]]
+id = 27
+name = "package_loaded"
+address = 0x8002329C     # in _fsReadChunkPayloadSector, where a package's stream has ended (the output size is recorded next)
+capture = ["0x8006D4D8:4", "0x8006ADF4:4"]      # gFsPayloadWriteCursor: one past the image; _gFsLoadBank
+handler = "package_loaded"
+render = "package_loaded"
+
+[[event]]
+id = 28
+name = "package_loaded_one_sector"
+address = 0x80022E10     # in _fsReadChunkHeaderSector, where the first sector already held the whole stream
+capture = ["0x8006C4E0:4", "0x8006D4D8:4", "0x8006ADF4:4"]      # the chunk header's loadAddr, still in the sector buffer; the cursor; the bank
+handler = "package_loaded"
+render = "package_loaded"
 
 [[event]]
 id = 6
@@ -260,7 +285,6 @@ render = "movie_start"
 [[event]]
 id = 24
 name = "task_message"
-collapse = true          # most are one sender saying the same two things every frame: see the repeats filter
 address = 0x800AC464     # taskMessageDispatch(receiver, messageId, firstArg, secondArg)
 image = "gameplay"
 capture = ["a0", "a1", "a2", "a3", "ra"]
