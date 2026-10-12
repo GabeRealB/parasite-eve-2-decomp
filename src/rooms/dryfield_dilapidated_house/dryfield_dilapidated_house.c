@@ -4191,8 +4191,17 @@ static void _dryfieldDilapidatedHouseDrawCurveSamples(Task* task)
 /// after geometry is built, then resets angles at or above a half turn.
 /// The fragment undefines the binding; an absent binding leaves phase unchanged
 /// before that same reset (as in actor_141000).
-#define GLOW_CAPPED_BEAM_PHASE_STEP   0x40
-#define GLOW_DRAW_RING_BEAM_OT_OFFSET 3
+#define GLOW_CAPPED_BEAM_PHASE_STEP 0x40
+/// Ordering-table tag bias for the morph attachment's capped-beam core and halo.
+///
+/// Required signed integer constant configuration for `glow_draw_ring_beam.inc.c`.
+/// Adds three tags to the quantized depth entry for every quad and draw-mode
+/// packet. Applied after byte-offset conversion to `u_long*`, so each unit is
+/// one four-byte DMA tag. The selected table must contain the resulting entry;
+/// the drawer neither clamps nor wraps the biased index. Has no arguments,
+/// captured identifiers or side effects. Define before the fragment, which
+/// undefines it after the draw function.
+#define GLOW_CAPPED_BEAM_ORDERING_TABLE_TAG_BIAS 3
 /// Complete quarter-additive GPU draw-mode word for the capped beam's halo.
 ///
 /// Required 32-bit constant configuration for `glow_draw_ring_beam.inc.c`:

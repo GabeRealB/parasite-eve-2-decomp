@@ -14,8 +14,8 @@
 ///
 /// Queues six core quads and ten halo quads, each with a draw-mode packet,
 /// without projection rejection. All sort at the quantized `sortingDepth`
-/// (camera Z / 4) plus a carrier offset measured in OT tags. The selected OT
-/// must contain that entry: actor_141000 uses -20, Dryfield uses +3. The core
+/// (camera Z / 4) plus `GLOW_CAPPED_BEAM_ORDERING_TABLE_TAG_BIAS` tags. The selected
+/// OT must contain that entry: actor_141000 uses -20, Dryfield uses +3. The core
 /// is additive; Dryfield's halo is quarter-additive, the actor's additive.
 ///
 /// The task's signed-halfword `killCountdown` is a geometry angle, in 4096
@@ -100,22 +100,22 @@ static void _glowDrawCappedBeam(Task* task, const SVECTOR screenPoints[24], s32 
     colors = scaledColors;
     for (index = 0; index < GLOW_CAPPED_BEAM_CORE_QUAD_COUNT; index++) {
         GLOW_CAPPED_BEAM_ALLOC_QUAD(quad, *quadIndices, colors, screenPoints);
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET((((u32)(sortingDepth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) + GLOW_DRAW_RING_BEAM_OT_OFFSET, quad);
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET((((u32)(sortingDepth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) + GLOW_CAPPED_BEAM_ORDERING_TABLE_TAG_BIAS, quad);
         drawMode       = gGpuPrimCursor;
         gGpuPrimCursor = drawMode + 1;
         setlen(drawMode, ARRAY_SIZE(drawMode->code));
         drawMode->code[0] = GLOW_CAPPED_BEAM_CORE_DRAW_MODE;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET((((u32)(sortingDepth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) + GLOW_DRAW_RING_BEAM_OT_OFFSET, drawMode);
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET((((u32)(sortingDepth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) + GLOW_CAPPED_BEAM_ORDERING_TABLE_TAG_BIAS, drawMode);
         quadIndices++;
     }
     for (index = GLOW_CAPPED_BEAM_CORE_QUAD_COUNT; index < (s32)ARRAY_SIZE(_gGlowCappedBeamQuadIndices); index++) {
         GLOW_CAPPED_BEAM_ALLOC_QUAD(quad, *quadIndices, colors, screenPoints);
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET((((u32)(sortingDepth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) + GLOW_DRAW_RING_BEAM_OT_OFFSET, quad);
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET((((u32)(sortingDepth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) + GLOW_CAPPED_BEAM_ORDERING_TABLE_TAG_BIAS, quad);
         drawMode       = gGpuPrimCursor;
         gGpuPrimCursor = drawMode + 1;
         setlen(drawMode, ARRAY_SIZE(drawMode->code));
         drawMode->code[0] = GLOW_CAPPED_BEAM_HALO_DRAW_MODE;
-        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET((((u32)(sortingDepth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) + GLOW_DRAW_RING_BEAM_OT_OFFSET, drawMode);
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET((((u32)(sortingDepth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) + GLOW_CAPPED_BEAM_ORDERING_TABLE_TAG_BIAS, drawMode);
         quadIndices++;
     }
 #undef GLOW_CAPPED_BEAM_ALLOC_QUAD
@@ -123,5 +123,5 @@ static void _glowDrawCappedBeam(Task* task, const SVECTOR screenPoints[24], s32 
 
 #undef GLOW_CAPPED_BEAM_BRIGHTNESS
 #undef GLOW_CAPPED_BEAM_PHASE_STEP
-#undef GLOW_DRAW_RING_BEAM_OT_OFFSET
+#undef GLOW_CAPPED_BEAM_ORDERING_TABLE_TAG_BIAS
 #undef GLOW_CAPPED_BEAM_HALO_DRAW_MODE

@@ -779,7 +779,16 @@ static void _actor141000BuildRingBeamPoints(Task* task, SVECTOR screenPoints[ACT
 /// Define before including `glow_draw_ring_beam.inc.c`, which undefines it.
 #define GLOW_CAPPED_BEAM_BRIGHTNESS(beamTask) \
     (((const Actor141000CtrlWork*)((const Task*)(beamTask)->spawnArg2.pointer)->work)->beamLevel)
-#define GLOW_DRAW_RING_BEAM_OT_OFFSET (-20)
+/// Ordering-table tag bias for the flight controller's capped-beam core and halo.
+///
+/// Required signed integer constant configuration for `glow_draw_ring_beam.inc.c`.
+/// Subtracts 20 tags from the quantized depth entry for every quad and draw-mode
+/// packet. Applied after byte-offset conversion to `u_long*`, so each unit is
+/// one four-byte DMA tag. The selected table must contain the resulting entry;
+/// the drawer neither clamps nor wraps the biased index. Has no arguments,
+/// captured identifiers or side effects. Define before the fragment, which
+/// undefines it after the draw function.
+#define GLOW_CAPPED_BEAM_ORDERING_TABLE_TAG_BIAS (-20)
 /// Complete additive GPU draw-mode word for the capped beam's halo.
 ///
 /// Required 32-bit constant configuration for `glow_draw_ring_beam.inc.c`:
