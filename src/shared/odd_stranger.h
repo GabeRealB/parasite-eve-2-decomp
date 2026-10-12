@@ -15,12 +15,18 @@
 
 /// Build discriminator for actor_401000's Odd Stranger.
 ///
-/// Its work retains the hit-effect offset and the later grab-cooldown byte.
+/// Preprocessor integer for ODD_STRANGER_BUILD, bound before this guarded
+/// header and kept through all fragments. Selects the compiled work layout,
+/// state dispatch and combat/animation behavior, independently of spawn tuning.
+/// Includes effectOffset and places grabCooldown after commandBytes.
 #define ODD_STRANGER_BUILD_401000 1
 
 /// Build discriminator for actor_401800's Odd Stranger.
 ///
-/// Its work omits the hit-effect offset and keeps grab cooldown before the bodies.
+/// Preprocessor integer for ODD_STRANGER_BUILD, bound before this guarded
+/// header and kept through all fragments. Selects the compiled work layout,
+/// state dispatch and combat/animation behavior, independently of spawn tuning.
+/// Omits effectOffset and places grabCooldown before the collision bodies.
 #define ODD_STRANGER_BUILD_401800 2
 
 /// Requires one fixed Odd Stranger build for the shared interface and fragments.

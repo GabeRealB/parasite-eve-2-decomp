@@ -111,23 +111,24 @@ static void _roomVisualEffectsDrawTwinTrail(const GfxCoord firstTrail[ROOM_VISUA
 
 /// Chooses a smoke puff's spawn offset in the spawning coordinate's local space.
 ///
-/// `spawnOffset` must be a side-effect-free expression for a writable `SVECTOR*`.
+/// `spawnOffset` must be a side-effect-free writable `SVECTOR` lvalue.
 /// It is evaluated three times and must stay stable across the LCG updates.
 /// Writes signed XYZ components in -255..256 game-coordinate units, leaving
 /// `pad` unchanged. Consumes three successive shared LCG draws in X/Y/Z order.
 /// Requires the shared LCG declarations from `main/random.h`.
-/// Expands to a braced block; invoke only inside a braced block.
-#define ROOM_VISUAL_EFFECTS_CHOOSE_SMOKE_SPAWN_OFFSET(spawnOffset)                                                                           \
-    {                                                                                                                                        \
-        enum { ROOM_VISUAL_EFFECTS_SMOKE_OFFSET_MAX         = 0x100,                                                                         \
-               ROOM_VISUAL_EFFECTS_SMOKE_OFFSET_RANDOM_MASK = 0x1FF };                                                                       \
-        gRandomLcgState   = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;                                                  \
-        (spawnOffset)->vx = ROOM_VISUAL_EFFECTS_SMOKE_OFFSET_MAX - ((gRandomLcgState >> 16) & ROOM_VISUAL_EFFECTS_SMOKE_OFFSET_RANDOM_MASK); \
-        gRandomLcgState   = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;                                                  \
-        (spawnOffset)->vy = ROOM_VISUAL_EFFECTS_SMOKE_OFFSET_MAX - ((gRandomLcgState >> 16) & ROOM_VISUAL_EFFECTS_SMOKE_OFFSET_RANDOM_MASK); \
-        gRandomLcgState   = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;                                                  \
-        (spawnOffset)->vz = ROOM_VISUAL_EFFECTS_SMOKE_OFFSET_MAX - ((gRandomLcgState >> 16) & ROOM_VISUAL_EFFECTS_SMOKE_OFFSET_RANDOM_MASK); \
-    }
+/// Captures only shared LCG state and constants; expands to one statement.
+/// Does not choose puff velocity. The binding is undefined after this fragment.
+#define ROOM_VISUAL_EFFECTS_CHOOSE_SMOKE_SPAWN_OFFSET(spawnOffset)                                                                          \
+    (void)({                                                                                                                                \
+        enum { ROOM_VISUAL_EFFECTS_SMOKE_OFFSET_MAX         = 0x100,                                                                        \
+               ROOM_VISUAL_EFFECTS_SMOKE_OFFSET_RANDOM_MASK = 0x1FF };                                                                      \
+        gRandomLcgState  = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;                                                  \
+        (spawnOffset).vx = ROOM_VISUAL_EFFECTS_SMOKE_OFFSET_MAX - ((gRandomLcgState >> 16) & ROOM_VISUAL_EFFECTS_SMOKE_OFFSET_RANDOM_MASK); \
+        gRandomLcgState  = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;                                                  \
+        (spawnOffset).vy = ROOM_VISUAL_EFFECTS_SMOKE_OFFSET_MAX - ((gRandomLcgState >> 16) & ROOM_VISUAL_EFFECTS_SMOKE_OFFSET_RANDOM_MASK); \
+        gRandomLcgState  = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;                                                  \
+        (spawnOffset).vz = ROOM_VISUAL_EFFECTS_SMOKE_OFFSET_MAX - ((gRandomLcgState >> 16) & ROOM_VISUAL_EFFECTS_SMOKE_OFFSET_RANDOM_MASK); \
+    })
 
 /// Runs an impact flash followed by smoke puffs or fading orange rings and bouncing sparks.
 ///
@@ -193,7 +194,7 @@ static inline void _roomVisualEffectsSparkBurstTask(Task* task)
 
         case SPARK_BURST_SMOKE:
             // The vector is a spawn offset; the child chooses its own random motion.
-            ROOM_VISUAL_EFFECTS_CHOOSE_SMOKE_SPAWN_OFFSET(&work->move);
+            ROOM_VISUAL_EFFECTS_CHOOSE_SMOKE_SPAWN_OFFSET(work->move);
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
             effectSpawn(EFFECT_SMOKE_PUFF, coord, ((gRandomLcgState >> 16) & SPARK_BURST_RANDOM_MASK) | SPARK_BURST_JITTERED_SMOKE_ARG,
                         &work->move);

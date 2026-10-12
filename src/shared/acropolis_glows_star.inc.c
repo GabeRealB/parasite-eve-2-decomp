@@ -1,10 +1,17 @@
 /* Part of the Acropolis glows library; see acropolis_glows.h. */
 
-// Select the core quad's half-height storage for this included instance.
+/// Pixel half-height of the upright star core in this fragment instance.
+///
+/// Captures the live OverlaySpriteScratch* local `block` and yields a signed
+/// word lvalue. A nonzero numeric GLOW_STAR_STORE_HALF_HEIGHT selects cornerDy,
+/// initialized separately by the Promenade; zero or omission selects cornerDx,
+/// reusing the Bridge's half-width. Select the switch before including this
+/// fragment and keep it fixed through the body. Both bindings are undefined
+/// afterwards; the later rotating flare assigns the members independently.
 #if defined(GLOW_STAR_STORE_HALF_HEIGHT) && GLOW_STAR_STORE_HALF_HEIGHT
-#define ACROPOLIS_GLOWS_STAR_HALF_HEIGHT block->cornerDy
+#define GLOW_STAR_CORE_HALF_HEIGHT (block->cornerDy)
 #else
-#define ACROPOLIS_GLOWS_STAR_HALF_HEIGHT block->cornerDx
+#define GLOW_STAR_CORE_HALF_HEIGHT (block->cornerDx)
 #endif
 
 /// Reserves and initializes one textured quad in the current frame's packet arena.
@@ -14,6 +21,9 @@
 /// aligned space for the packet. The caller fills and links it; the arena must
 /// remain live until GPU completion. Requires the SDK's `setPolyFT4` macro.
 /// The comma expression returns the assigned packet-code byte; use it as a statement.
+/// Advances by sizeof(POLY_FT4) without checking capacity and writes only the
+/// DMA length and polygon code, leaving tag, colour, UVs and vertices to the
+/// caller. Reservation precedes clipping and is not rolled back for a clipped core.
 #define GLOW_STAR_RESERVE_QUAD(quad) \
     ((quad) = gGpuPrimCursor, gGpuPrimCursor = (quad) + 1, setPolyFT4(quad))
 
@@ -78,8 +88,8 @@ void GLOW_STAR_TASK(Task* task)
 #endif
         quad->x0 = quad->x2 = block->screenPos.vx - block->cornerDx;
         quad->x1 = quad->x3 = block->screenPos.vx + block->cornerDx;
-        quad->y0 = quad->y1 = block->screenPos.vy - ACROPOLIS_GLOWS_STAR_HALF_HEIGHT;
-        quad->y2 = quad->y3 = block->screenPos.vy + ACROPOLIS_GLOWS_STAR_HALF_HEIGHT;
+        quad->y0 = quad->y1 = block->screenPos.vy - GLOW_STAR_CORE_HALF_HEIGHT;
+        quad->y2 = quad->y3 = block->screenPos.vy + GLOW_STAR_CORE_HALF_HEIGHT;
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                 quad);
 
@@ -126,4 +136,4 @@ void GLOW_STAR_TASK(Task* task)
 #undef GLOW_STAR_TASK
 #undef GLOW_STAR_RESERVE_QUAD
 #undef GLOW_STAR_STORE_HALF_HEIGHT
-#undef ACROPOLIS_GLOWS_STAR_HALF_HEIGHT
+#undef GLOW_STAR_CORE_HALF_HEIGHT

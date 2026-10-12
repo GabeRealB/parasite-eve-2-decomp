@@ -19,7 +19,7 @@ static void _stalkerZebraIvoryPinPartXZ(Task* task, s16 partIndex, const SVECTOR
     gGfxViewCoord.composeStamp = GRAPHICS_COORD_DIRTY;
     partCoord                  = &parts[partIndex];
     actorRenderComposeCoord(&gGfxViewCoord);
-#if !STALKER_ZEBRA_IVORY_PIN_UPDATES_ROOT
+#if !STALKER_ZEBRA_IVORY_PIN_RECOMPOSES_ROOT
     parts[0].composeStamp = GRAPHICS_COORD_DIRTY;
 #endif
     partCoord->composeStamp = GRAPHICS_COORD_DIRTY;
@@ -32,7 +32,7 @@ static void _stalkerZebraIvoryPinPartXZ(Task* task, s16 partIndex, const SVECTOR
     parts[0].composeStamp   = GRAPHICS_COORD_DIRTY;
     partCoord->composeStamp = GRAPHICS_COORD_DIRTY;
     actorRenderComposeCoord(partCoord);
-#if STALKER_ZEBRA_IVORY_PIN_UPDATES_ROOT
+#if STALKER_ZEBRA_IVORY_PIN_RECOMPOSES_ROOT
     actorRenderComposeCoord(parts);
 #endif
 }

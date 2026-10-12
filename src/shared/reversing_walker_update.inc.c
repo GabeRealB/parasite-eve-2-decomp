@@ -6,6 +6,7 @@
 /// writable model-root `GfxCoord`. The walk lvalue is evaluated repeatedly and
 /// must be a stable expression without side effects; the root pointer is
 /// evaluated once. The storage is borrowed. Invoke as a standalone statement.
+/// The root argument must not use the block-local name `integratedRoot`.
 /// Velocity is signed 16.16 parent-coordinate units per update; the three carry
 /// words enter with only fractional residues (zero on spawn).
 /// Each accumulated signed integer half advances its XYZ translation, then
@@ -13,8 +14,10 @@
 /// whole units and leave a nonnegative residue.
 /// Invalidates the root's cached composition even when velocity is zero.
 /// No pointer is retained; velocity and root rotation remain unchanged.
+/// Accumulated words and coordinate additions must fit s32. Uses the target's
+/// little-endian Fixed16 halves and is undefined after this fragment.
 #define REVERSE_WALK_INTEGRATE_VELOCITY(walk, rootCoord)                \
-    {                                                                   \
+    (void)({                                                            \
         GfxCoord* integratedRoot     = (rootCoord);                     \
         (walk).carry[0].word        += (walk).velocity.vx;              \
         (walk).carry[1].word        += (walk).velocity.vy;              \
@@ -26,7 +29,7 @@
         (walk).carry[0].word         = (walk).carry[0].halves.fraction; \
         (walk).carry[1].word         = (walk).carry[1].halves.fraction; \
         (walk).carry[2].word         = (walk).carry[2].halves.fraction; \
-    }
+    })
 
 /// Advances the reversing walker's motion, animation and model presentation.
 ///

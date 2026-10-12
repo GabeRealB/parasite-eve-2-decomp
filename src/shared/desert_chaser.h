@@ -69,14 +69,27 @@
 #define DESERT_CHASER_BLEND_DONE ANIMATION_SLOT_SETTLED
 #endif
 
-/// What the animation tick does differently per build: the regular build's
-/// cue step returns a bare sound id, so the tick adds the placement index; the
-/// cutscene and Water Tower builds reset the blend rate and turn defaults when
-/// the blend context starts; the armed builds tip joint 4 forward in state
-/// 0x26 while no clip is queued.
-#define DESERT_CHASER_CUE_NEEDS_PLACE  (DESERT_CHASER_BUILD == DESERT_CHASER_REGULAR)
-#define DESERT_CHASER_BLEND_RATE_RESET (DESERT_CHASER_BUILD != DESERT_CHASER_REGULAR)
-#define DESERT_CHASER_STATE26_TILT     (DESERT_CHASER_BUILD != DESERT_CHASER_CUTSCENE)
+/// Adds the enemy placement index to regular-build animation sound cues.
+///
+/// Boolean preprocessor expression derived from the fixed DESERT_CHASER_BUILD
+/// binding. Regular cues gain placeKey's index in sound-id bits 8..15; cutscene
+/// and Water Tower cue IDs pass through unchanged. Keep the build binding
+/// through every fragment; this switch is not a runtime flag.
+#define DESERT_CHASER_CUE_USES_PLACE_INDEX (DESERT_CHASER_BUILD == DESERT_CHASER_REGULAR)
+
+/// Resets secondary-animation rate and weight when restarting its clip.
+///
+/// Boolean preprocessor expression: cutscene and Water Tower use twice normal
+/// rate and half blend weight; regular retains the caller-selected values.
+/// Requires the fixed DESERT_CHASER_BUILD binding through the animation tick.
+#define DESERT_CHASER_RESET_BLEND_DEFAULTS (DESERT_CHASER_BUILD != DESERT_CHASER_REGULAR)
+
+/// Adds joint 4's forward pitch to the armed builds' clip-zero roam pose.
+///
+/// Boolean preprocessor expression: regular and Water Tower enable the 640/4096
+/// turn X rotation in DESERT_CHASER_STATE_ROAM; cutscene omits it. The animation
+/// tick also refreshes that part's composition. Requires the fixed build binding.
+#define DESERT_CHASER_ROAM_TILT (DESERT_CHASER_BUILD != DESERT_CHASER_CUTSCENE)
 
 /// The Desert Chaser enemy task's handlers, indexed by `Task::state`.
 ///

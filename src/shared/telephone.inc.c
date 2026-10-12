@@ -94,12 +94,18 @@ static void _telephonePromptTaskExit(Task* task);
 
 /// Shifts a digit string and its NUL to open a decimal-point slot.
 ///
-/// All arguments are simple writable locals, evaluated repeatedly. The cursor
-/// starts at the first digit, digitCount at zero, and trailingDigits positive.
-/// The string needs one spare byte. digitCount and shiftIndex may be the same
-/// local: the length is no longer needed when the byte-shifting loop begins.
+/// digitCursor is a writable u8* local at the first digit of a NUL-terminated
+/// string with one spare byte after its terminator. digitCount starts at zero;
+/// trailingDigits is a positive s32 count clamped to the digit length, then
+/// increased to include the terminator. All arguments are stable writable
+/// locals evaluated repeatedly, with counts fitting s32. Only digitCount and
+/// shiftIndex may alias: the length is no longer used once shifting begins.
+/// The cursor finishes immediately before the inserted point. If all digits
+/// move, that address precedes the first digit and must still belong to the
+/// caller's buffer. Captures no locals; expands to one void expression and
+/// remains defined through telephone_panels.inc.c.
 #define TELEPHONE_SHIFT_DECIMAL_DIGITS(digitCursor, digitCount, trailingDigits, shiftIndex) \
-    {                                                                                       \
+    (void)({                                                                                \
         while (*(digitCursor) != 0) {                                                       \
             (digitCursor)++;                                                                \
             (digitCount)++;                                                                 \
@@ -113,7 +119,7 @@ static void _telephonePromptTaskExit(Task* task);
             (digitCursor)--;                                                                \
         }                                                                                   \
         (digitCursor)[1] = '.';                                                             \
-    }
+    })
 
 /// Draws the selected play-data statistic and supplies its row help text.
 ///

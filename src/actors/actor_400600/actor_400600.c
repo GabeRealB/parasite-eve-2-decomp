@@ -52,7 +52,7 @@
 #include "overlay.h"
 
 #include "rooms/dryfield_night_junk_yard.h"
-#define STALKER_ZEBRA_IVORY_KIND STALKER_ZEBRA
+#define STALKER_ZEBRA_IVORY_KIND STALKER_ZEBRA_IVORY_KIND_ZEBRA
 #include "../../shared/stalker_zebra_ivory.h"
 
 /// Psy-Q `RotMatrixY`, taking the angle as a `long`.

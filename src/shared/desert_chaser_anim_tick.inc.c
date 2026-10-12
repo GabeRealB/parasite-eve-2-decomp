@@ -97,7 +97,7 @@ static void _desertChaserAnimTick(Task* task)
     u16               updatedTurnBits;
     s32               delta;
     s32               sound;
-#if DESERT_CHASER_CUE_NEEDS_PLACE
+#if DESERT_CHASER_CUE_USES_PLACE_INDEX
     s32 soundId;
 #endif
     s32 pan;
@@ -137,7 +137,7 @@ static void _desertChaserAnimTick(Task* task)
     if (work->blendRequest == DESERT_CHASER_ANIM_REQUEST_RESET) {
         secondaryWork  = task->work;
         secondaryIndex = 1;
-#if DESERT_CHASER_BLEND_RATE_RESET
+#if DESERT_CHASER_RESET_BLEND_DEFAULTS
         secondaryWork->blendRate   = 2 * ANIMATION_RATE_ONE;
         secondaryWork->blendWeight = DESERT_CHASER_BLEND_WEIGHT_HALF;
 #endif
@@ -167,7 +167,7 @@ static void _desertChaserAnimTick(Task* task)
         }
     }
     _desertChaserApplyLookTurn(task, work);
-#if DESERT_CHASER_STATE26_TILT
+#if DESERT_CHASER_ROAM_TILT
     if ((work->animId == 0) && (work->state == DESERT_CHASER_STATE_ROAM)) {
         gfxRotMatrixX(&task->extra.tmd->coords[4].coord, 0x280, GRAPHICS_ROTATION_COMPOSE);
         task->extra.tmd->coords[4].composeStamp = GRAPHICS_COORD_DIRTY;
@@ -210,7 +210,7 @@ static void _desertChaserAnimTick(Task* task)
     task->extra.tmd->coords[10].composeStamp = GRAPHICS_COORD_DIRTY;
     sound                                    = _desertChaserAnimCues(task, work);
     if (sound != 0) {
-#if DESERT_CHASER_CUE_NEEDS_PLACE
+#if DESERT_CHASER_CUE_USES_PLACE_INDEX
         soundId = sound | ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
         pan     = (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords);
         sndEvtRequestScriptStart(soundId, (s32)pan, (s32)(s8)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));

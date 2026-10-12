@@ -17,13 +17,12 @@
 static s32 _playerDetectionOutOfReach(const GfxCoord* actorCoord, s16 stopDistance, s16 forwardStep)
 {
     enum { PLAYER_DETECTION_REACH_MARGIN = 150 };
-    SVECTOR  stepPoint;
-    SVECTOR  toPlayer;
-    VECTOR   remainingDelta;
-    Task*    player;
-    s16      playerTurn;
-    SVECTOR* stepVector;
-    s32      playerTurnHigh;
+    SVECTOR stepPoint;
+    SVECTOR toPlayer;
+    VECTOR  remainingDelta;
+    Task*   player;
+    s16     playerTurn;
+    s32     playerTurnHigh;
 
     // Choose the facing half-plane from the direction of the proposed step.
     player      = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
@@ -45,21 +44,27 @@ static s32 _playerDetectionOutOfReach(const GfxCoord* actorCoord, s16 stopDistan
     // Project the signed step along the normalized local Z axis, then measure clearance.
 /// Builds a signed local-Z step point in parent-frame game units.
 ///
-/// Captures the writable `stepVector` alias. Arguments must be side-effect-free:
-/// `root` is a live coordinate, `step` a signed halfword, `point` an SVECTOR lvalue.
-/// The point is written in place; arguments are evaluated repeatedly. Use only
-/// as a standalone statement sequence in this function; GTE state is clobbered.
+/// Arguments must be side-effect-free: `root` is a live coordinate, `step` a
+/// signed-halfword distance, and `point` a word-aligned SVECTOR lvalue separate
+/// from the coordinate. Requires a nonzero Z axis with squared length in positive
+/// s32 range. Normalizes it to Q12 before scaling by the signed step, then adds
+/// parent-frame translation with low-halfword wrap. Preserves point.pad and
+/// clobbers GTE state. Declares the private alias `stepVector`; arguments must
+/// not use that name. Captures no locals and expands to one statement.
 #define PLAYER_DETECTION_STEP_POINT(root, step, point) \
-    gfxReadMatrixZAxis(&(root)->coord, &(point));      \
-    stepVector = &(point);                             \
-    VectorNormalSS(stepVector, stepVector);            \
-    gte_lddp(step);                                    \
-    gte_ldsv(stepVector);                              \
-    gte_gpf12();                                       \
-    gte_stsv(stepVector);                              \
-    (point).vx += (u16)(root)->coord.t[0];             \
-    (point).vy += (u16)(root)->coord.t[1];             \
-    (point).vz += (u16)(root)->coord.t[2]
+    (void)({                                           \
+        SVECTOR* stepVector;                           \
+        gfxReadMatrixZAxis(&(root)->coord, &(point));  \
+        stepVector = &(point);                         \
+        VectorNormalSS(stepVector, stepVector);        \
+        gte_lddp(step);                                \
+        gte_ldsv(stepVector);                          \
+        gte_gpf12();                                   \
+        gte_stsv(stepVector);                          \
+        (point).vx += (u16)(root)->coord.t[0];         \
+        (point).vy += (u16)(root)->coord.t[1];         \
+        (point).vz += (u16)(root)->coord.t[2];         \
+    })
     PLAYER_DETECTION_STEP_POINT(actorCoord, forwardStep, stepPoint);
 #undef PLAYER_DETECTION_STEP_POINT
     remainingDelta.vx = player->extra.tmd->coords->coord.t[0] - stepPoint.vx;

@@ -51,7 +51,7 @@
 #include "main/wipsys_types.h"
 
 #include "overlay.h"
-#define MAGGOT_CATERPILLAR_KIND CATERPILLAR
+#define MAGGOT_CATERPILLAR_KIND MAGGOT_CATERPILLAR_KIND_CATERPILLAR
 #include "../../shared/maggot_caterpillar.h"
 
 MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);

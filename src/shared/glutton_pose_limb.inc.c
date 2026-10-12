@@ -1,25 +1,30 @@
 /* Part of the Glutton library; see glutton.h. */
 
-/// Installs the selected limb pitches, walking each by its per-tick step.
+/// Steps escort 4's non-root limb pitches toward their targets and installs them.
 ///
-/// Function-local binding: work must be a side-effect-free GluttonWork pointer;
-/// partIndex is a simple writable s16 loop counter. Both arguments are used
-/// repeatedly.
-/// Invoke as a standalone statement; the binding is undefined after this function.
-#define GLUTTON_APPLY_LIMB_PITCH(work, partIndex)                                                                                                      \
-    {                                                                                                                                                  \
-        for ((partIndex) = 1; (partIndex) < GLUTTON_LIMB_PARTS; (partIndex)++) {                                                                       \
-            if (abs((work)->limbPitch[(partIndex)] - (work)->limbPitchTarget[(partIndex)]) < (work)->limbPitchStep) {                                  \
-                (work)->limbPitch[(partIndex)] = (work)->limbPitchTarget[(partIndex)];                                                                 \
-            } else if ((work)->limbPitch[(partIndex)] < (work)->limbPitchTarget[(partIndex)]) {                                                        \
-                (work)->limbPitch[(partIndex)] = (work)->limbPitch[(partIndex)] + (work)->limbPitchStep;                                               \
-            } else {                                                                                                                                   \
-                (work)->limbPitch[(partIndex)] = (work)->limbPitch[(partIndex)] - (work)->limbPitchStep;                                               \
-            }                                                                                                                                          \
-            gfxRotMatrixX(&(work)->escorts[4]->task->extra.tmd->coords[(partIndex)].coord, (work)->limbPitch[(partIndex)], GRAPHICS_ROTATION_REPLACE); \
-            (work)->escorts[4]->task->extra.tmd->coords[(partIndex)].composeStamp = GRAPHICS_COORD_DIRTY;                                              \
-        }                                                                                                                                              \
-    }
+/// `work` is a stable writable GluttonWork pointer with a live escort-4 model
+/// containing GLUTTON_LIMB_PARTS coordinates. `partIndex` is a distinct writable
+/// s16 local; both arguments are evaluated repeatedly. Drives parts 1..6 and
+/// leaves the counter at 7. Positive limbPitchStep and both pitch arrays use
+/// 4096 units per turn; differences promote to s32 and stored steps narrow to s16.
+/// Replaces each driven part's rotation at unit scale, retains its translation,
+/// and invalidates composition. Requires gfxRotMatrixX's initialized scratch
+/// stack. Captures no locals; expands to one statement and is undefined below.
+#define GLUTTON_APPLY_LIMB_PITCH(work, partIndex)                                                                                                                              \
+    (void)({                                                                                                                                                                   \
+        enum { GLUTTON_LIMB_ESCORT_INDEX = 4 };                                                                                                                                \
+        for ((partIndex) = 1; (partIndex) < GLUTTON_LIMB_PARTS; (partIndex)++) {                                                                                               \
+            if (abs((work)->limbPitch[(partIndex)] - (work)->limbPitchTarget[(partIndex)]) < (work)->limbPitchStep) {                                                          \
+                (work)->limbPitch[(partIndex)] = (work)->limbPitchTarget[(partIndex)];                                                                                         \
+            } else if ((work)->limbPitch[(partIndex)] < (work)->limbPitchTarget[(partIndex)]) {                                                                                \
+                (work)->limbPitch[(partIndex)] = (work)->limbPitch[(partIndex)] + (work)->limbPitchStep;                                                                       \
+            } else {                                                                                                                                                           \
+                (work)->limbPitch[(partIndex)] = (work)->limbPitch[(partIndex)] - (work)->limbPitchStep;                                                                       \
+            }                                                                                                                                                                  \
+            gfxRotMatrixX(&(work)->escorts[GLUTTON_LIMB_ESCORT_INDEX]->task->extra.tmd->coords[(partIndex)].coord, (work)->limbPitch[(partIndex)], GRAPHICS_ROTATION_REPLACE); \
+            (work)->escorts[GLUTTON_LIMB_ESCORT_INDEX]->task->extra.tmd->coords[(partIndex)].composeStamp = GRAPHICS_COORD_DIRTY;                                              \
+        }                                                                                                                                                                      \
+    })
 
 /// Extends and curls escort 4's seven-part limb for the requested pose.
 ///

@@ -4,16 +4,21 @@
 ///
 /// `workArg` must be a side-effect-free pointer to the initialized carrier work;
 /// `slotIndexArg` must be a writable s32 local used only as the loop index here.
-/// Both expressions are evaluated repeatedly. Invoke as a standalone phase inside
-/// explicit braces; the expansion contains multiple statements and captures no
-/// other caller locals.
-#define STALKER_ZEBRA_IVORY_BLEND_BODY_TRACKS(workArg, slotIndexArg)                                                    \
-    (slotIndexArg) = 1;                                                                                                 \
-    do {                                                                                                                \
-        (workArg)->rig.slots[(slotIndexArg)].rate = (workArg)->animStep;                                                \
-        animationSeekSlotWithBlend(&(workArg)->rig.anim, (slotIndexArg), (workArg)->animClip, 0, (workArg)->animBlend); \
-        (slotIndexArg)++;                                                                                               \
-    } while ((slotIndexArg) < ARRAY_SIZE((workArg)->rig.slots))
+/// Both expressions are evaluated repeatedly. Slots 1..17 require a loaded
+/// clip with a track for each driven model part. animStep narrows to each slot's
+/// signed byte rate (16 means one frame per tick); animBlend is measured in
+/// whole normal-rate frames. Leaves slotIndexArg at 18 and preserves root slot 0.
+/// Does not consume animBlend or latch animPlaying; the caller does that.
+/// Captures no locals and expands to one statement; undefined after this fragment.
+#define STALKER_ZEBRA_IVORY_BLEND_BODY_TRACKS(workArg, slotIndexArg)                                                        \
+    (void)({                                                                                                                \
+        (slotIndexArg) = 1;                                                                                                 \
+        do {                                                                                                                \
+            (workArg)->rig.slots[(slotIndexArg)].rate = (workArg)->animStep;                                                \
+            animationSeekSlotWithBlend(&(workArg)->rig.anim, (slotIndexArg), (workArg)->animClip, 0, (workArg)->animBlend); \
+            (slotIndexArg)++;                                                                                               \
+        } while ((slotIndexArg) < ARRAY_SIZE((workArg)->rig.slots));                                                        \
+    })
 
 /// Applies the requested body clip with a transition measured in normal-rate frames.
 ///

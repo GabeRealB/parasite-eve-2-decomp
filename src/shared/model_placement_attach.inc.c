@@ -53,16 +53,18 @@ static void _modelPlacementAttachChild(Task* childTask)
 /// a writable lvalue advanced to the selected part. `parentPartIndex` is
 /// evaluated once and must be in [0, parentModel->partCount). The root and model
 /// arguments occur twice. Ancestry must remain acyclic, and the parent coordinate
-/// and lighting storage must outlive the child's uses. Uses `GRAPHICS_COORD_DIRTY`
-/// and captures no caller locals. Expands to five statements without an enclosing
-/// block; use only as a standalone sequence in a compound body. It is undefined
-/// immediately after this use.
+/// and lighting storage must outlive the child's uses. Retains the child's local
+/// transform; only its parent and composition stamp change. Uses
+/// `GRAPHICS_COORD_DIRTY` and captures no caller locals. Expands to one statement
+/// and is undefined immediately after this use.
 #define MODEL_PLACEMENT_LINK_CHILD_ROOT(childRoot, parentCoords, parentPartIndex, childModel, parentModel) \
-    (parentCoords)           += (parentPartIndex);                                                         \
-    (childRoot)->composeStamp = GRAPHICS_COORD_DIRTY;                                                      \
-    (childRoot)->parent       = (parentCoords);                                                            \
-    (childModel)->lightMtx    = (parentModel)->lightMtx;                                                   \
-    (childModel)->colorMtx    = (parentModel)->colorMtx
+    (void)({                                                                                               \
+        (parentCoords)           += (parentPartIndex);                                                     \
+        (childRoot)->composeStamp = GRAPHICS_COORD_DIRTY;                                                  \
+        (childRoot)->parent       = (parentCoords);                                                        \
+        (childModel)->lightMtx    = (parentModel)->lightMtx;                                               \
+        (childModel)->colorMtx    = (parentModel)->colorMtx;                                               \
+    })
 
     MODEL_PLACEMENT_LINK_CHILD_ROOT(childRoot, parentCoords, childTask->spawnArg1.value, childModel, parentModel);
 #undef MODEL_PLACEMENT_LINK_CHILD_ROOT

@@ -37,19 +37,24 @@ static void _glowDrawTwinShafts(const GfxCoord* coord)
 
     /// Transforms one shaft corner into a signed-halfword world position.
     ///
-    /// Captures the composed coord and live scratch block. point is evaluated
-    /// once and may alias the output corner; index is used four times and
-    /// must be a pure value 0..3. Expands to a statement sequence without a
-    /// scope, so invoke it only as a standalone sequence in a braced block.
-    /// Unsigned additions preserve wrapping for full-width translations.
-#define GLOW_TWIN_SHAFT_TRANSFORM_CORNER(point, index)     \
-    gte_SetRotMatrix(&coord->workm);                       \
-    gte_ldv0((point));                                     \
-    gte_rtv0();                                            \
-    gte_stsv(&block->vertices[(index)]);                   \
-    block->vertices[(index)].vx += (u32)coord->workm.t[0]; \
-    block->vertices[(index)].vy += (u32)coord->workm.t[1]; \
-    block->vertices[(index)].vz += (u32)coord->workm.t[2]
+    /// Captures the live `const GfxCoord* coord` and `EffectQuadCornersScratch* block`.
+    /// `point` is a word-aligned SVECTOR pointer evaluated once and may alias
+    /// the output corner; `index` is evaluated four times and must be a stable
+    /// value 0..3. Loads the composed rotation, takes signed saturated IR output,
+    /// then adds world translation
+    /// with unsigned word arithmetic and signed-halfword narrowing. Preserves
+    /// each corner's pad halfword; clobbers GTE state without projecting.
+    /// Expands to one statement; the binding is undefined after this body.
+#define GLOW_TWIN_SHAFT_TRANSFORM_CORNER(point, index)         \
+    (void)({                                                   \
+        gte_SetRotMatrix(&coord->workm);                       \
+        gte_ldv0((point));                                     \
+        gte_rtv0();                                            \
+        gte_stsv(&block->vertices[(index)]);                   \
+        block->vertices[(index)].vx += (u32)coord->workm.t[0]; \
+        block->vertices[(index)].vy += (u32)coord->workm.t[1]; \
+        block->vertices[(index)].vz += (u32)coord->workm.t[2]; \
+    })
 
     block = SCRATCH_STACK_RESERVE_BLOCK(EffectQuadCornersScratch);
 

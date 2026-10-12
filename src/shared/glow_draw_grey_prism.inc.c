@@ -33,17 +33,24 @@ static void _glowDrawGreyPrism(const GfxCoord* coord, s16 firstCorner)
     block = SCRATCH_STACK_CURSOR(EffectQuadCornersScratch);
     gte_SetTransMatrix(&GsWSMATRIX);
     brightness = (rsin(gDisplayState.animFrame << GLOW_GREY_PRISM_PULSE_PHASE_SHIFT) >> GLOW_GREY_PRISM_PULSE_TRIG_SHIFT) + GLOW_GREY_PRISM_BRIGHTNESS_BASE;
-    // Place one local corner with coord rotation already loaded. Captures coord and
-    // block; source is evaluated once. destinationIndex is repeated and must be
-    // a side-effect-free index 0..3. Use only as statements in braced bodies.
-    // This binding is confined to this function and is undefined before return.
-#define GLOW_GREY_PRISM_TRANSFORM_CORNER(source, destinationIndex)                                             \
-    gte_ldv0((source));                                                                                        \
-    gte_rtv0();                                                                                                \
-    gte_stsv(&block->vertices[destinationIndex]);                                                              \
-    block->vertices[destinationIndex].vx = (u16)block->vertices[destinationIndex].vx + (u16)coord->workm.t[0]; \
-    block->vertices[destinationIndex].vy = (u16)block->vertices[destinationIndex].vy + (u16)coord->workm.t[1]; \
-    block->vertices[destinationIndex].vz = (u16)block->vertices[destinationIndex].vz + (u16)coord->workm.t[2];
+    /// Rotates a local prism corner and adds its composed world translation.
+    ///
+    /// Captures the live `const GfxCoord* coord` and `EffectQuadCornersScratch* block`.
+    /// The caller loads coord's rotation first; this operation does not project.
+    /// `source` is a word-aligned SVECTOR pointer evaluated once; destinationIndex
+    /// is a side-effect-free index 0..3 evaluated seven times. Rotation uses the
+    /// GTE's signed saturated IR output; adding unsigned low translation halves
+    /// then narrows XYZ to signed halfwords. The corner's pad halfword is preserved.
+    /// GTE state is clobbered. Expands to one statement and is undefined below.
+#define GLOW_GREY_PRISM_TRANSFORM_CORNER(source, destinationIndex)                                                     \
+    (void)({                                                                                                           \
+        gte_ldv0((source));                                                                                            \
+        gte_rtv0();                                                                                                    \
+        gte_stsv(&block->vertices[(destinationIndex)]);                                                                \
+        block->vertices[(destinationIndex)].vx = (u16)block->vertices[(destinationIndex)].vx + (u16)coord->workm.t[0]; \
+        block->vertices[(destinationIndex)].vy = (u16)block->vertices[(destinationIndex)].vy + (u16)coord->workm.t[1]; \
+        block->vertices[(destinationIndex)].vz = (u16)block->vertices[(destinationIndex)].vz + (u16)coord->workm.t[2]; \
+    })
 
     // Fade the four sides from the lit ring to the dark rim.
     for (cornerIndex = 0; cornerIndex < GLOW_GREY_PRISM_RING_CORNERS; cornerIndex++) {

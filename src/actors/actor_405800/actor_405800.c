@@ -58,7 +58,7 @@ static void _frameCaptureQueue(s32 orderingTableSlot);
 #define FRAME_CAPTURE_QUEUE _frameCaptureQueue
 #include "../../shared/frame_capture.h"
 #include "../../shared/limb_shadows.h"
-#define STALKER_ZEBRA_IVORY_KIND STALKER_IVORY
+#define STALKER_ZEBRA_IVORY_KIND STALKER_ZEBRA_IVORY_KIND_IVORY
 #include "../../shared/stalker_zebra_ivory.h"
 
 /// Psy-Q `RotMatrixY`, taking the angle as a `long`.

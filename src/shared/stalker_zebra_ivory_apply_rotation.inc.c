@@ -6,7 +6,7 @@
 /// `_stalkerZebraIvoryApplyRotationInline`; preserves root translation.
 static void _stalkerZebraIvoryApplyRotation(Task* task)
 {
-    STALKER_ZEBRA_IVORY_REBUILD_ROOT_ROTATION(task)
+    STALKER_ZEBRA_IVORY_REBUILD_ROOT_ROTATION(task);
 }
 
 #undef STALKER_ZEBRA_IVORY_REBUILD_ROOT_ROTATION

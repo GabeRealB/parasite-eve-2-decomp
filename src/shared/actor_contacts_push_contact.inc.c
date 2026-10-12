@@ -30,8 +30,12 @@ static s32 _actorContactApplyGridPushback(GfxCoord* coord, const WorldCollisionC
     /// `correctionWord` is a side-effect-free signed 16.16 value, read up to
     /// twice. `translation` and `savedStep` are writable signed word/halfword lvalues,
     /// each evaluated once on the selected fractional path, in that order.
+    /// Requires this body's `ACTOR_CONTACT_PUSH_FRACTION_MASK`. The caller has
+    /// already added the arithmetic integer part: a negative fraction subtracts
+    /// one more unit from that floor. Translation must stay in s32 range; the
+    /// saved halfword keeps the target's narrowing. Expands to one statement.
 #define ACTOR_CONTACT_APPLY_FRACTIONAL_PUSH(correctionWord, translation, savedStep) \
-    {                                                                               \
+    (void)({                                                                        \
         if (((correctionWord) & ACTOR_CONTACT_PUSH_FRACTION_MASK) != 0) {           \
             if ((correctionWord) > 0) {                                             \
                 (translation)++;                                                    \
@@ -41,7 +45,7 @@ static s32 _actorContactApplyGridPushback(GfxCoord* coord, const WorldCollisionC
                 (savedStep)--;                                                      \
             }                                                                       \
         }                                                                           \
-    }
+    })
 
     ActorContactPushScratch* scratch;
     s32                      correctionWord;

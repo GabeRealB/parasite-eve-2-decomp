@@ -1,6 +1,11 @@
 /* Part of the reversing walker library; see reversing_walker.h. */
 
 /// Signed scale of the forward velocity while backing toward the destination.
+///
+/// Dimensionless double constant: each signed-16.16 component is multiplied
+/// by -0.4 and converted back to s32 with truncation toward zero. Keep the
+/// double precision; a float suffix or integer approximation changes rounding.
+/// Applies only when walksForward is zero and is undefined after this fragment.
 #define REVERSE_WALK_BACKWARD_VELOCITY_SCALE (-0.4)
 
 /// Starts movement along the root's forward or backward axis.

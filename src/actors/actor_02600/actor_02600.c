@@ -53,7 +53,7 @@
 #include "main/wipsys_types.h"
 
 #include "overlay.h"
-#define MAGGOT_CATERPILLAR_KIND MAGGOT
+#define MAGGOT_CATERPILLAR_KIND MAGGOT_CATERPILLAR_KIND_MAGGOT
 #include "../../shared/maggot_caterpillar.h"
 
 enum { MAGGOT_CATERPILLAR_BODY_PRIORITY = 96 };

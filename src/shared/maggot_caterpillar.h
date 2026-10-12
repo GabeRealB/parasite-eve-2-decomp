@@ -12,8 +12,9 @@
  * leaving a husk model lit with the room's texture page.
  *
  * Each package states which enemy it builds before including this header:
- * MAGGOT_CATERPILLAR_KIND is MAGGOT (actor_02600) or CATERPILLAR
- * (actor_05500); the parameters below follow from it.
+ * MAGGOT_CATERPILLAR_KIND is MAGGOT_CATERPILLAR_KIND_MAGGOT (actor_02600)
+ * or MAGGOT_CATERPILLAR_KIND_CATERPILLAR (actor_05500); the parameters below
+ * follow from it.
  *
  * Include this header in the prologue and each fragment at its function's
  * position.
@@ -28,17 +29,28 @@
 #ifndef SRC_SHARED_MAGGOT_CATERPILLAR_H
 #define SRC_SHARED_MAGGOT_CATERPILLAR_H
 
-#define MAGGOT      1
-#define CATERPILLAR 2
+/// Preprocessor build selector for actor_02600's Maggot implementation.
+///
+/// Bind MAGGOT_CATERPILLAR_KIND before this guarded header and retain it through
+/// the fragments. Selects collision type 0x1A, the spray-capable behavior and
+/// Maggot's wake/drop/pounce ranges. This value is not a runtime enemy type ID.
+#define MAGGOT_CATERPILLAR_KIND_MAGGOT 1
+
+/// Preprocessor build selector for actor_05500's Caterpillar implementation.
+///
+/// Bind MAGGOT_CATERPILLAR_KIND before this guarded header and retain it through
+/// the fragments. Selects collision type 0x37, behavior without spray and
+/// Caterpillar's wake/drop/pounce ranges. This value is not a runtime enemy type ID.
+#define MAGGOT_CATERPILLAR_KIND_CATERPILLAR 2
 #ifndef MAGGOT_CATERPILLAR_KIND
-#error "define MAGGOT_CATERPILLAR_KIND (MAGGOT or CATERPILLAR) before including maggot_caterpillar.h"
+#error "define MAGGOT_CATERPILLAR_KIND (MAGGOT_CATERPILLAR_KIND_MAGGOT or MAGGOT_CATERPILLAR_KIND_CATERPILLAR) before including maggot_caterpillar.h"
 #endif
 
 /* Per kind: the type id (in its collision keys, 0x30000 | id); the flag the
  * spawn stores in `isCaterpillar`, which the dying sequence reads back for the
  * id and which keeps the Caterpillar from spraying; and the player distances
  * at which it wakes, drops from its ambush, and pounces. */
-#if MAGGOT_CATERPILLAR_KIND == MAGGOT
+#if MAGGOT_CATERPILLAR_KIND == MAGGOT_CATERPILLAR_KIND_MAGGOT
 #define MAGGOT_CATERPILLAR_ID             0x1A
 #define MAGGOT_CATERPILLAR_IS_CATERPILLAR 0
 /// Strict horizontal wake radius in root-parent units for a dormant Maggot.
