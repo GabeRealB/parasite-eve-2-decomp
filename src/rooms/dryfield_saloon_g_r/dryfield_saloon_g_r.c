@@ -237,12 +237,19 @@ static s16 _gDryfieldSaloonGRCollisionGridCells[280] = {
 #include "assets/dryfield_saloon_g_r_collision_021C0_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gDryfieldSaloonGRCollisionGridCells[i])
+/// Supplies this grid's cell face-list addresses to its generated table.
+///
+/// Captures `_gDryfieldSaloonGRCollisionGridCells`.
+/// `halfwordOffset` is a constant s16-element offset in 0..279 to a list's
+/// first entry, evaluated once; the list ends at WORLD_COLLISION_GRID_CELL_END.
+/// Returns a borrowed s16* without modifying the pool. `cell_face_list_macro`
+/// selects this binding for the table include; it is undefined afterwards.
+#define DRYFIELD_SALOON_G_R_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gDryfieldSaloonGRCollisionGridCells[(halfwordOffset)])
 /// X-major pointers to three rows of four Z-cell face lists.
 static s16* _gDryfieldSaloonGRCollisionGridTable[12] = {
 #include "assets/dryfield_saloon_g_r_collision_021C0_table.inc"
 };
-#undef GRID_CELL
+#undef DRYFIELD_SALOON_G_R_CELL_FACE_LIST_AT_OFFSET
 
 /// Saloon floor/wall collision mesh shared by both daytime room selectors.
 ///

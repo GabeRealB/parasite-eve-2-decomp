@@ -135,12 +135,19 @@ static s16 _gDryfieldSouvenirShopCollisionGridCells[108] = {
 #include "assets/dryfield_souvenir_shop_collision_0101C_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gDryfieldSouvenirShopCollisionGridCells[i])
+/// Supplies this grid's cell face-list addresses to its generated table.
+///
+/// Captures `_gDryfieldSouvenirShopCollisionGridCells`.
+/// `halfwordOffset` is a constant s16-element offset in 0..107 to a list's
+/// first entry, evaluated once; the list ends at WORLD_COLLISION_GRID_CELL_END.
+/// Returns a borrowed s16* without modifying the pool. `cell_face_list_macro`
+/// selects this binding for the table include; it is undefined afterwards.
+#define DRYFIELD_SOUVENIR_SHOP_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gDryfieldSouvenirShopCollisionGridCells[(halfwordOffset)])
 /// X-major 2-by-2 directory of face-index lists within the collision-cell pool.
 static s16* _gDryfieldSouvenirShopCollisionGridTable[4] = {
 #include "assets/dryfield_souvenir_shop_collision_0101C_table.inc"
 };
-#undef GRID_CELL
+#undef DRYFIELD_SOUVENIR_SHOP_CELL_FACE_LIST_AT_OFFSET
 
 /// The souvenir shop's room collision mesh and 4000-unit XZ cell index.
 ///

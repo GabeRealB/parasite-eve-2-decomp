@@ -210,12 +210,19 @@ static s16 _gDryfieldR08CollisionGridCells[86] = {
 
 // Bind the generated table's halfword offsets to this grid's face-index pool.
 // Each constant offset is evaluated once; the binding ends after the include.
-#define GRID_CELL(i) (&_gDryfieldR08CollisionGridCells[i])
+/// Supplies this grid's cell face-list addresses to its generated table.
+///
+/// Captures `_gDryfieldR08CollisionGridCells`.
+/// `halfwordOffset` is a constant s16-element offset in 0..85 to a list's
+/// first entry, evaluated once; the list ends at WORLD_COLLISION_GRID_CELL_END.
+/// Returns a borrowed s16* without modifying the pool. `cell_face_list_macro`
+/// selects this binding for the table include; it is undefined afterwards.
+#define DRYFIELD_R08_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gDryfieldR08CollisionGridCells[(halfwordOffset)])
 /// X-major cell pointers, indexed by x * cellCountZ + z in the 4 by 2 grid.
 static s16* _gDryfieldR08CollisionGridTable[DRYFIELD_R08_COLLISION_CELL_COUNT_X * DRYFIELD_R08_COLLISION_CELL_COUNT_Z] = {
 #include "assets/dryfield_r08_collision_025D8_table.inc"
 };
-#undef GRID_CELL
+#undef DRYFIELD_R08_CELL_FACE_LIST_AT_OFFSET
 
 /// Shared collision mesh for both room variants and its 4 by 2 XZ cell index.
 ///

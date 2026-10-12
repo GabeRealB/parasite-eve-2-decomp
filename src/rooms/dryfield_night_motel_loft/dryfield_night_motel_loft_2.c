@@ -194,11 +194,18 @@ static s16 _gDryfieldNightMotelLoftJerryCanBarrierTemplateCells[4] = {
 #include "assets/dryfield_night_motel_loft_collision_01794_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gDryfieldNightMotelLoftJerryCanBarrierTemplateCells[i])
+/// Supplies this grid's cell face-list addresses to its generated table.
+///
+/// Captures `_gDryfieldNightMotelLoftJerryCanBarrierTemplateCells`.
+/// `halfwordOffset` is a constant s16-element offset in 0..3 to a list's
+/// first entry, evaluated once; the list ends at WORLD_COLLISION_GRID_CELL_END.
+/// Returns a borrowed s16* without modifying the pool. `cell_face_list_macro`
+/// selects this binding for the table include; it is undefined afterwards.
+#define DRYFIELD_NIGHT_MOTEL_LOFT_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gDryfieldNightMotelLoftJerryCanBarrierTemplateCells[(halfwordOffset)])
 static s16* _gDryfieldNightMotelLoftJerryCanBarrierTemplateTable[2] = {
 #include "assets/dryfield_night_motel_loft_collision_01794_table.inc"
 };
-#undef GRID_CELL
+#undef DRYFIELD_NIGHT_MOTEL_LOFT_CELL_FACE_LIST_AT_OFFSET
 
 /// One-face wall template beside the Jerry Can, copied into the live room mesh.
 ///
@@ -322,11 +329,18 @@ static s16 _gDryfieldNightMotelLoftCollisionGridCells[82] = {
 #include "assets/dryfield_night_motel_loft_collision_01B60_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gDryfieldNightMotelLoftCollisionGridCells[i])
+/// Supplies this grid's cell face-list addresses to its generated table.
+///
+/// Captures `_gDryfieldNightMotelLoftCollisionGridCells`.
+/// `halfwordOffset` is a constant s16-element offset in 0..81 to a list's
+/// first entry, evaluated once; the list ends at WORLD_COLLISION_GRID_CELL_END.
+/// Returns a borrowed s16* without modifying the pool. `cell_face_list_macro`
+/// selects this binding for the table include; it is undefined afterwards.
+#define DRYFIELD_NIGHT_MOTEL_LOFT_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gDryfieldNightMotelLoftCollisionGridCells[(halfwordOffset)])
 static s16* _gDryfieldNightMotelLoftCollisionGridTable[6] = {
 #include "assets/dryfield_night_motel_loft_collision_01B60_table.inc"
 };
-#undef GRID_CELL
+#undef DRYFIELD_NIGHT_MOTEL_LOFT_CELL_FACE_LIST_AT_OFFSET
 
 /// Full room collision mesh shared by the two loft room selectors.
 ///

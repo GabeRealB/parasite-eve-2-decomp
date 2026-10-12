@@ -332,12 +332,19 @@ static s16 _gDryfieldNightGasStationCompanionWaitingCollisionGridCells[6] = {
 #include "assets/dryfield_night_gas_station_collision_06DB4_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gDryfieldNightGasStationCompanionWaitingCollisionGridCells[i])
+/// Supplies this grid's cell face-list addresses to its generated table.
+///
+/// Captures `_gDryfieldNightGasStationCompanionWaitingCollisionGridCells`.
+/// `halfwordOffset` is a constant s16-element offset in 0..5 to a list's
+/// first entry, evaluated once; the list ends at WORLD_COLLISION_GRID_CELL_END.
+/// Returns a borrowed s16* without modifying the pool. `cell_face_list_macro`
+/// selects this binding for the table include; it is undefined afterwards.
+#define DRYFIELD_NIGHT_GAS_STATION_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gDryfieldNightGasStationCompanionWaitingCollisionGridCells[(halfwordOffset)])
 /// Directory of the obstacle template's single XZ cell.
 static s16* _gDryfieldNightGasStationCompanionWaitingCollisionGridTable[1] = {
 #include "assets/dryfield_night_gas_station_collision_06DB4_table.inc"
 };
-#undef GRID_CELL
+#undef DRYFIELD_NIGHT_GAS_STATION_CELL_FACE_LIST_AT_OFFSET
 
 /// Collision-source box enclosing the companion's stationary waiting placement.
 ///
@@ -1669,12 +1676,19 @@ static s16 _gDryfieldNightGasStationRooms1To3CollisionGridCells[456] = {
 #include "assets/dryfield_night_gas_station_collision_0D5FC_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gDryfieldNightGasStationRooms1To3CollisionGridCells[i])
+/// Supplies this grid's cell face-list addresses to its generated table.
+///
+/// Captures `_gDryfieldNightGasStationRooms1To3CollisionGridCells`.
+/// `halfwordOffset` is a constant s16-element offset in 0..455 to a list's
+/// first entry, evaluated once; the list ends at WORLD_COLLISION_GRID_CELL_END.
+/// Returns a borrowed s16* without modifying the pool. `cell_face_list_macro`
+/// selects this binding for the table include; it is undefined afterwards.
+#define DRYFIELD_NIGHT_GAS_STATION_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gDryfieldNightGasStationRooms1To3CollisionGridCells[(halfwordOffset)])
 /// X-major cell-list directory for six X cells by four Z cells.
 static s16* _gDryfieldNightGasStationRooms1To3CollisionGridTable[24] = {
 #include "assets/dryfield_night_gas_station_collision_0D5FC_table.inc"
 };
-#undef GRID_CELL
+#undef DRYFIELD_NIGHT_GAS_STATION_CELL_FACE_LIST_AT_OFFSET
 
 /// Live room collision mesh shared by night gas station room variants 1..3.
 ///
@@ -1717,12 +1731,19 @@ static s16 _gDryfieldNightGasStationRoom4CollisionGridCells[370] = {
 #include "assets/dryfield_night_gas_station_collision_0E19C_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gDryfieldNightGasStationRoom4CollisionGridCells[i])
+/// Supplies this grid's cell face-list addresses to its generated table.
+///
+/// Captures `_gDryfieldNightGasStationRoom4CollisionGridCells`.
+/// `halfwordOffset` is a constant s16-element offset in 0..369 to a list's
+/// first entry, evaluated once; the list ends at WORLD_COLLISION_GRID_CELL_END.
+/// Returns a borrowed s16* without modifying the pool. `cell_face_list_macro`
+/// selects this binding for the table include; it is undefined afterwards.
+#define DRYFIELD_NIGHT_GAS_STATION_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gDryfieldNightGasStationRoom4CollisionGridCells[(halfwordOffset)])
 /// X-major directory for room variant 4's six X cells by four Z cells.
 static s16* _gDryfieldNightGasStationRoom4CollisionGridTable[24] = {
 #include "assets/dryfield_night_gas_station_collision_0E19C_table.inc"
 };
-#undef GRID_CELL
+#undef DRYFIELD_NIGHT_GAS_STATION_CELL_FACE_LIST_AT_OFFSET
 
 /// Collision mesh used only by night gas station room variant 4.
 ///

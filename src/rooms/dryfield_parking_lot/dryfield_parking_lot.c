@@ -223,13 +223,19 @@ static s16 _gDryfieldParkingLotCollisionGridCells[436] = {
 #include "assets/dryfield_parking_lot_collision_0131C_cells.inc"
 };
 
-// The generated table requires GRID_CELL to address an element of its list pool.
-#define GRID_CELL(i) (&_gDryfieldParkingLotCollisionGridCells[i])
+/// Supplies this grid's cell face-list addresses to its generated table.
+///
+/// Captures `_gDryfieldParkingLotCollisionGridCells`.
+/// `halfwordOffset` is a constant s16-element offset in 0..435 to a list's
+/// first entry, evaluated once; the list ends at WORLD_COLLISION_GRID_CELL_END.
+/// Returns a borrowed s16* without modifying the pool. `cell_face_list_macro`
+/// selects this binding for the table include; it is undefined afterwards.
+#define DRYFIELD_PARKING_LOT_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gDryfieldParkingLotCollisionGridCells[(halfwordOffset)])
 /// X-major directory of the grid's 9 by 5 face-index lists.
 static s16* _gDryfieldParkingLotCollisionGridTable[45] = {
 #include "assets/dryfield_parking_lot_collision_0131C_table.inc"
 };
-#undef GRID_CELL
+#undef DRYFIELD_PARKING_LOT_CELL_FACE_LIST_AT_OFFSET
 
 /// The daytime parking lot's 55-face mesh and 9 by 5 broad-phase grid.
 ///

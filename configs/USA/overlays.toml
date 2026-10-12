@@ -1495,7 +1495,7 @@ objects = [
   { kind = "packageId" },
   { unit = "dryfield_r04/dryfield_r04", data = "0x4" },
   { kind = "collision", at = "0x5C", in_c = true },
-  { kind = "collisionSource", at = "0xC34", in_c = true },
+  { kind = "collisionSource", at = "0xC34", in_c = true, cell_face_list_macro = "DRYFIELD_R04_CELL_FACE_LIST_AT_OFFSET" },
   { unit = "dryfield_r04/dryfield_r04_2", data = "0xC58" },
 ]
 
@@ -1516,7 +1516,7 @@ objects = [
   { kind = "packageId" },
   { unit = "dryfield_souvenir_shop/dryfield_souvenir_shop", rodata = "0x4", text = "0x10", data = "0xA54" },
   { kind = "collision", at = "0xB54", in_c = true },
-  { kind = "collisionSource", at = "0x101C", in_c = true },
+  { kind = "collisionSource", at = "0x101C", in_c = true, cell_face_list_macro = "DRYFIELD_SOUVENIR_SHOP_CELL_FACE_LIST_AT_OFFSET" },
 ]
 
 [rooms.overlays.dryfield_warehouse]
@@ -1541,7 +1541,7 @@ objects = [
   { kind = "packageId" },
   { unit = "dryfield_r08/dryfield_r08", rodata = "0x4", text = "0x38", data = "0x1EA4" },
   { kind = "collision", at = "0x2190", in_c = true },
-  { kind = "collisionSource", at = "0x25D8", in_c = true },
+  { kind = "collisionSource", at = "0x25D8", in_c = true, cell_face_list_macro = "DRYFIELD_R08_CELL_FACE_LIST_AT_OFFSET" },
 ]
 
 [rooms.overlays.dryfield_dilapidated_house]
@@ -1608,7 +1608,7 @@ objects = [
   { kind = "packageId" },
   { unit = "dryfield_parking_lot/dryfield_parking_lot", rodata = "0x4", text = "0x28", data = "0x638" },
   { kind = "collision", at = "0x7BC", in_c = true },
-  { kind = "collisionSource", at = "0x131C", in_c = true },
+  { kind = "collisionSource", at = "0x131C", in_c = true, cell_face_list_macro = "DRYFIELD_PARKING_LOT_CELL_FACE_LIST_AT_OFFSET" },
 ]
 
 [rooms.overlays.dryfield_toilet]
@@ -1619,9 +1619,9 @@ objects = [
   { unit = "dryfield_toilet/dryfield_toilet_2", rodata = "0x10", text = "0x730", data = "0x35CC" },
   { kind = "animation", at = "0x2D78", sets = ["0x3054", "0x35A4"], in_c = true },
   { kind = "collision", at = "0x2D18", in_c = true },
-  { kind = "collisionSource", at = "0x2D54", in_c = true },
+  { kind = "collisionSource", at = "0x2D54", in_c = true, cell_face_list_macro = "DRYFIELD_TOILET_EVENT_CELL_FACE_LIST_AT_OFFSET" },
   { kind = "collision", at = "0x3BC4", in_c = true },
-  { kind = "collisionSource", at = "0x3E44", in_c = true },
+  { kind = "collisionSource", at = "0x3E44", in_c = true, cell_face_list_macro = "DRYFIELD_TOILET_ROOM_CELL_FACE_LIST_AT_OFFSET" },
 ]
 
 [rooms.overlays.dryfield_motel_lobby]
@@ -1639,7 +1639,7 @@ objects = [
   { kind = "packageId" },
   { unit = "dryfield_saloon_g_r/dryfield_saloon_g_r", rodata = "0x4", text = "0x28", data = "0x16F0", bss = "0x4628" },
   { kind = "collision", at = "0x189C", in_c = true },
-  { kind = "collisionSource", at = "0x21C0", in_c = true },
+  { kind = "collisionSource", at = "0x21C0", in_c = true, cell_face_list_macro = "DRYFIELD_SALOON_G_R_CELL_FACE_LIST_AT_OFFSET" },
 ]
 
 [rooms.overlays.dryfield_g_r_kitchen]
@@ -1755,7 +1755,7 @@ objects = [
   { kind = "modelSource", at = "0x6F94", in_c = true },
   { kind = "animation", at = "0x72D8", sets = ["0x7668", "0x7994"], in_c = true },
   { kind = "collision", at = "0x9C9C", in_c = true },
-  { kind = "collisionSource", at = "0xA0F4", in_c = true },
+  { kind = "collisionSource", at = "0xA0F4", in_c = true, cell_face_list_macro = "DRYFIELD_TRAILER_COACH_CELL_FACE_LIST_AT_OFFSET" },
 ]
 
 [rooms.overlays.dryfield_motel_room_5]
@@ -1838,11 +1838,11 @@ objects = [
   { unit = "dryfield_night_gas_station/dryfield_night_gas_station", rodata = "0x4", text = "0xA0", data = "0x6754", bss = "0x131E8" },
   { kind = "animation", at = "0x6DD8", sets = ["0x70B4", "0x73A4", "0x77A4", "0x7A58", "0x7CFC", "0x7F78", "0x8148", "0x8318", "0x885C", "0x9344", "0x9D80", "0xA3FC", "0xA698", "0xAA3C", "0xAF98"], in_c = true },
   { kind = "collision", at = "0x6D14", in_c = true },
-  { kind = "collisionSource", at = "0x6DB4", in_c = true },
+  { kind = "collisionSource", at = "0x6DB4", in_c = true, cell_face_list_macro = "DRYFIELD_NIGHT_GAS_STATION_CELL_FACE_LIST_AT_OFFSET" },
   { kind = "collision", at = "0xC970", in_c = true },
-  { kind = "collisionSource", at = "0xD5FC", in_c = true },
+  { kind = "collisionSource", at = "0xD5FC", in_c = true, cell_face_list_macro = "DRYFIELD_NIGHT_GAS_STATION_CELL_FACE_LIST_AT_OFFSET" },
   { kind = "collision", at = "0xD620", in_c = true },
-  { kind = "collisionSource", at = "0xE19C", in_c = true },
+  { kind = "collisionSource", at = "0xE19C", in_c = true, cell_face_list_macro = "DRYFIELD_NIGHT_GAS_STATION_CELL_FACE_LIST_AT_OFFSET" },
 ]
 
 [rooms.overlays.dryfield_night_main_street]
@@ -1851,9 +1851,9 @@ objects = [
   { kind = "packageId" },
   { unit = "dryfield_night_main_street/dryfield_night_main_street", rodata = "0x4", text = "0x40", data = "0x4ACC", bss = "0xB608" },
   { kind = "collision", at = "0x4ED8", in_c = true },
-  { kind = "collisionSource", at = "0x5E10", in_c = true },
+  { kind = "collisionSource", at = "0x5E10", in_c = true, cell_face_list_macro = "DRYFIELD_NIGHT_MAIN_STREET_CELL_FACE_LIST_AT_OFFSET" },
   { kind = "collision", at = "0x5E34", in_c = true },
-  { kind = "collisionSource", at = "0x6F80", in_c = true },
+  { kind = "collisionSource", at = "0x6F80", in_c = true, cell_face_list_macro = "DRYFIELD_NIGHT_MAIN_STREET_CELL_FACE_LIST_AT_OFFSET" },
 ]
 
 [rooms.overlays.dryfield_night_general_store]
@@ -1863,7 +1863,7 @@ objects = [
   { unit = "dryfield_night_general_store/dryfield_night_general_store", rodata = "0x4", text = "0x70", data = "0x11CC" },
   { unit = "dryfield_night_general_store/dryfield_night_general_store_2", rodata = "0x40", text = "0x920", data = "0x122C", bss = "0x8308" },
   { kind = "collision", at = "0x1334", in_c = true },
-  { kind = "collisionSource", at = "0x1EC4", in_c = true },
+  { kind = "collisionSource", at = "0x1EC4", in_c = true, cell_face_list_macro = "DRYFIELD_NIGHT_GENERAL_STORE_CELL_FACE_LIST_AT_OFFSET" },
 ]
 
 [rooms.overlays.dryfield_night_back_street]
@@ -1885,7 +1885,7 @@ objects = [
   { kind = "packageId" },
   { unit = "dryfield_night_souvenir_shop/dryfield_night_souvenir_shop", rodata = "0x4", text = "0x10", data = "0xA7C" },
   { kind = "collision", at = "0xB7C", in_c = true },
-  { kind = "collisionSource", at = "0x1044", in_c = true },
+  { kind = "collisionSource", at = "0x1044", in_c = true, cell_face_list_macro = "DRYFIELD_NIGHT_SOUVENIR_SHOP_CELL_FACE_LIST_AT_OFFSET" },
 ]
 
 [rooms.overlays.dryfield_night_warehouse]
@@ -1896,7 +1896,7 @@ objects = [
   { kind = "packageId" },
   { unit = "dryfield_night_warehouse/dryfield_night_warehouse", rodata = "0x4", text = "0x10", data = "0x1270" },
   { kind = "collision", at = "0x13F4", in_c = true },
-  { kind = "collisionSource", at = "0x1948", in_c = true },
+  { kind = "collisionSource", at = "0x1948", in_c = true, cell_face_list_macro = "DRYFIELD_NIGHT_WAREHOUSE_CELL_FACE_LIST_AT_OFFSET" },
 ]
 
 [rooms.overlays.dryfield_night_r08]
@@ -1908,7 +1908,7 @@ objects = [
   { unit = "dryfield_night_r08/dryfield_night_r08", rodata = "0x4", text = "0x30", data = "0x2F84" },
   { unit = "dryfield_night_r08/dryfield_night_r08_2", rodata = "0x10", text = "0x158", data = "0x2FAC" },
   { kind = "collision", at = "0x3114", in_c = true },
-  { kind = "collisionSource", at = "0x3EB4", in_c = true },
+  { kind = "collisionSource", at = "0x3EB4", in_c = true, cell_face_list_macro = "DRYFIELD_NIGHT_R08_CELL_FACE_LIST_AT_OFFSET" },
 ]
 
 [rooms.overlays.dryfield_night_dilapidated_house]
@@ -1931,7 +1931,7 @@ objects = [
   { unit = "dryfield_night_motel_room_1/dryfield_night_motel_room_1", rodata = "0x4", text = "0x30", data = "0x46C" },
   { unit = "dryfield_night_motel_room_1/dryfield_night_motel_room_1_2", rodata = "0x10", text = "0x3F0", data = "0x494" },
   { kind = "collision", at = "0x520", in_c = true },
-  { kind = "collisionSource", at = "0xAD8", in_c = true },
+  { kind = "collisionSource", at = "0xAD8", in_c = true, cell_face_list_macro = "DRYFIELD_NIGHT_MOTEL_ROOM_1_CELL_FACE_LIST_AT_OFFSET" },
 ]
 
 [rooms.overlays.dryfield_night_motel_room_2]
@@ -1942,7 +1942,7 @@ objects = [
   { kind = "packageId" },
   { unit = "dryfield_night_motel_room_2/dryfield_night_motel_room_2", rodata = "0x4", text = "0x10", data = "0x45C" },
   { kind = "collision", at = "0x4F4", in_c = true },
-  { kind = "collisionSource", at = "0xBC4", in_c = true },
+  { kind = "collisionSource", at = "0xBC4", in_c = true, cell_face_list_macro = "DRYFIELD_NIGHT_MOTEL_ROOM_2_CELL_FACE_LIST_AT_OFFSET" },
 ]
 
 [rooms.overlays.dryfield_night_motel_room_3]
@@ -1954,7 +1954,7 @@ objects = [
   { unit = "dryfield_night_motel_room_3/dryfield_night_motel_room_3", rodata = "0x4", text = "0x34", data = "0x49C" },
   { unit = "dryfield_night_motel_room_3/dryfield_night_motel_room_3_2", rodata = "0x10", text = "0x178", data = "0x4C4" },
   { kind = "collision", at = "0x534", in_c = true },
-  { kind = "collisionSource", at = "0xBC0", in_c = true },
+  { kind = "collisionSource", at = "0xBC0", in_c = true, cell_face_list_macro = "DRYFIELD_NIGHT_MOTEL_ROOM_3_CELL_FACE_LIST_AT_OFFSET" },
 ]
 
 [rooms.overlays.dryfield_night_motel_room_4]
@@ -1965,7 +1965,7 @@ objects = [
   { kind = "packageId" },
   { unit = "dryfield_night_motel_room_4/dryfield_night_motel_room_4", rodata = "0x4", text = "0x10", data = "0x488" },
   { kind = "collision", at = "0x528", in_c = true },
-  { kind = "collisionSource", at = "0xC10", in_c = true },
+  { kind = "collisionSource", at = "0xC10", in_c = true, cell_face_list_macro = "DRYFIELD_NIGHT_MOTEL_ROOM_4_CELL_FACE_LIST_AT_OFFSET" },
 ]
 
 [rooms.overlays.dryfield_night_parking_lot]
@@ -1976,7 +1976,7 @@ objects = [
   { unit = "dryfield_night_parking_lot/dryfield_night_parking_lot_2", rodata = "0x28", text = "0x6C8", data = "0x1224" },
   { kind = "animation", at = "0x1224", sets = ["0x166C"], in_c = true },
   { kind = "collision", at = "0x19B0", in_c = true },
-  { kind = "collisionSource", at = "0x2510", in_c = true },
+  { kind = "collisionSource", at = "0x2510", in_c = true, cell_face_list_macro = "DRYFIELD_NIGHT_PARKING_LOT_CELL_FACE_LIST_AT_OFFSET" },
 ]
 
 [rooms.overlays.dryfield_night_toilet]
@@ -1985,7 +1985,7 @@ objects = [
   { kind = "packageId" },
   { unit = "dryfield_night_toilet/dryfield_night_toilet", rodata = "0x4", text = "0x10", data = "0x4B0" },
   { kind = "collision", at = "0x548", in_c = true },
-  { kind = "collisionSource", at = "0x7C8", in_c = true },
+  { kind = "collisionSource", at = "0x7C8", in_c = true, cell_face_list_macro = "DRYFIELD_NIGHT_TOILET_CELL_FACE_LIST_AT_OFFSET" },
 ]
 
 [rooms.overlays.dryfield_night_motel_lobby]
@@ -1995,7 +1995,7 @@ objects = [
   { unit = "dryfield_night_motel_lobby/dryfield_night_motel_lobby", rodata = "0x4", text = "0x188", data = "0x4EC8" },
   { unit = "dryfield_night_motel_lobby/dryfield_night_motel_lobby_2", rodata = "0xF0", text = "0x2CE8", data = "0x5254", bss = "0x6F10" },
   { kind = "collision", at = "0x53A0", in_c = true },
-  { kind = "collisionSource", at = "0x57F4", in_c = true },
+  { kind = "collisionSource", at = "0x57F4", in_c = true, cell_face_list_macro = "DRYFIELD_NIGHT_MOTEL_LOBBY_CELL_FACE_LIST_AT_OFFSET" },
 ]
 
 [rooms.overlays.dryfield_night_saloon_g_r]
@@ -2005,7 +2005,7 @@ objects = [
   { unit = "dryfield_night_saloon_g_r/dryfield_night_saloon_g_r", rodata = "0x4", text = "0x2E0", data = "0x234C", bss = "0xB9F8" },
   { kind = "animation", at = "0x238C", sets = ["0x2668", "0x2A3C", "0x2E2C", "0x3198", "0x36B8", "0x3998", "0x3E80", "0x4238", "0x4430", "0x4784", "0x497C", "0x4C24", "0x4F58", "0x53C0", "0x570C", "0x5B7C", "0x631C"], in_c = true },
   { kind = "collision", at = "0x7C6C", in_c = true },
-  { kind = "collisionSource", at = "0x8590", in_c = true },
+  { kind = "collisionSource", at = "0x8590", in_c = true, cell_face_list_macro = "DRYFIELD_NIGHT_SALOON_G_R_CELL_FACE_LIST_AT_OFFSET" },
 ]
 
 [rooms.overlays.dryfield_night_g_r_kitchen]
@@ -2024,7 +2024,7 @@ objects = [
   { unit = "dryfield_night_water_tower/dryfield_night_water_tower", rodata = "0x4", text = "0x4C", data = "0x5690" },
   { unit = "dryfield_night_water_tower/dryfield_night_water_tower_2", rodata = "0x28", text = "0x5C0", data = "0x1120" },
   { kind = "collision", at = "0x128C", in_c = true },
-  { kind = "collisionSource", at = "0x1E34", in_c = true },
+  { kind = "collisionSource", at = "0x1E34", in_c = true, cell_face_list_macro = "DRYFIELD_NIGHT_WATER_TOWER_CELL_FACE_LIST_AT_OFFSET" },
 ]
 
 [rooms.overlays.dryfield_night_water_tank]
@@ -2035,9 +2035,9 @@ objects = [
   { kind = "model", at = "0xAF0", in_c = true },
   { kind = "modelSource", at = "0x1844", in_c = true },
   { kind = "collision", at = "0xA68", in_c = true },
-  { kind = "collisionSource", at = "0xACC", in_c = true },
+  { kind = "collisionSource", at = "0xACC", in_c = true, cell_face_list_macro = "DRYFIELD_NIGHT_WATER_TANK_CELL_FACE_LIST_AT_OFFSET" },
   { kind = "collision", at = "0x192C", in_c = true },
-  { kind = "collisionSource", at = "0x1EF0", in_c = true },
+  { kind = "collisionSource", at = "0x1EF0", in_c = true, cell_face_list_macro = "DRYFIELD_NIGHT_WATER_TANK_CELL_FACE_LIST_AT_OFFSET" },
 ]
 
 [rooms.overlays.dryfield_night_breezeway]
@@ -2107,7 +2107,7 @@ objects = [
   { unit = "dryfield_night_junk_yard/dryfield_night_junk_yard", rodata = "0x4", text = "0x34", data = "0x2F9C" },
   { unit = "dryfield_night_junk_yard/dryfield_night_junk_yard_2", rodata = "0x10", text = "0x454", data = "0x317C" },
   { kind = "collision", at = "0x32B4", in_c = true },
-  { kind = "collisionSource", at = "0x3BF8", in_c = true },
+  { kind = "collisionSource", at = "0x3BF8", in_c = true, cell_face_list_macro = "DRYFIELD_NIGHT_JUNK_YARD_CELL_FACE_LIST_AT_OFFSET" },
 ]
 
 [rooms.overlays.dryfield_night_trailer_coach]
@@ -2122,7 +2122,7 @@ objects = [
   { kind = "modelSource", at = "0x76E0", in_c = true },
   { kind = "animation", at = "0x7A48", sets = ["0x7DD8", "0x7FD0", "0x8324", "0x851C", "0x8820", "0x8C48", "0x9284", "0x959C", "0x98C8", "0x9E10", "0xA364"], in_c = true },
   { kind = "collision", at = "0xC008", in_c = true },
-  { kind = "collisionSource", at = "0xC460", in_c = true },
+  { kind = "collisionSource", at = "0xC460", in_c = true, cell_face_list_macro = "DRYFIELD_NIGHT_TRAILER_COACH_CELL_FACE_LIST_AT_OFFSET" },
 ]
 
 [rooms.overlays.dryfield_night_motel_room_5]
@@ -2134,7 +2134,7 @@ objects = [
   { unit = "dryfield_night_motel_room_5/dryfield_night_motel_room_5", rodata = "0x4", text = "0x30", data = "0x470" },
   { unit = "dryfield_night_motel_room_5/dryfield_night_motel_room_5_2", rodata = "0x10", text = "0x3E4", data = "0x498" },
   { kind = "collision", at = "0x530", in_c = true },
-  { kind = "collisionSource", at = "0xA7C", in_c = true },
+  { kind = "collisionSource", at = "0xA7C", in_c = true, cell_face_list_macro = "DRYFIELD_NIGHT_MOTEL_ROOM_5_CELL_FACE_LIST_AT_OFFSET" },
 ]
 
 [rooms.overlays.dryfield_night_motel_balcony]
@@ -2146,9 +2146,9 @@ objects = [
   { unit = "dryfield_night_motel_balcony/dryfield_night_motel_balcony_3", rodata = "0x4C", text = "0xB08", data = "0x5298" },
   { unit = "dryfield_night_motel_balcony/dryfield_night_motel_balcony_4", rodata = "0x70", text = "0xF94", data = "0x56D8" },
   { kind = "collision", at = "0x5A04", in_c = true },
-  { kind = "collisionSource", at = "0x6190", in_c = true },
+  { kind = "collisionSource", at = "0x6190", in_c = true, cell_face_list_macro = "DRYFIELD_NIGHT_MOTEL_BALCONY_CELL_FACE_LIST_AT_OFFSET" },
   { kind = "collision", at = "0x61B4", in_c = true },
-  { kind = "collisionSource", at = "0x6A20", in_c = true },
+  { kind = "collisionSource", at = "0x6A20", in_c = true, cell_face_list_macro = "DRYFIELD_NIGHT_MOTEL_BALCONY_CELL_FACE_LIST_AT_OFFSET" },
 ]
 
 [rooms.overlays.dryfield_night_motel_room_6]
@@ -2157,7 +2157,7 @@ objects = [
   { kind = "packageId" },
   { unit = "dryfield_night_motel_room_6/dryfield_night_motel_room_6", rodata = "0x4", text = "0x11C", data = "0x5590", bss = "0x8CF8" },
   { kind = "collision", at = "0x59D0", in_c = true },
-  { kind = "collisionSource", at = "0x63C4", in_c = true },
+  { kind = "collisionSource", at = "0x63C4", in_c = true, cell_face_list_macro = "DRYFIELD_NIGHT_MOTEL_ROOM_6_CELL_FACE_LIST_AT_OFFSET" },
 ]
 
 [rooms.overlays.dryfield_night_motel_loft]
@@ -2171,9 +2171,9 @@ objects = [
   { kind = "model", at = "0x12C8", in_c = true },
   { kind = "modelSource", at = "0x1538", in_c = true },
   { kind = "collision", at = "0x1750", in_c = true },
-  { kind = "collisionSource", at = "0x1794", in_c = true },
+  { kind = "collisionSource", at = "0x1794", in_c = true, cell_face_list_macro = "DRYFIELD_NIGHT_MOTEL_LOFT_CELL_FACE_LIST_AT_OFFSET" },
   { kind = "collision", at = "0x1874", in_c = true },
-  { kind = "collisionSource", at = "0x1B60", in_c = true },
+  { kind = "collisionSource", at = "0x1B60", in_c = true, cell_face_list_macro = "DRYFIELD_NIGHT_MOTEL_LOFT_CELL_FACE_LIST_AT_OFFSET" },
 ]
 
 [rooms.overlays.dryfield_night_water_hole]
@@ -2183,7 +2183,7 @@ objects = [
   { unit = "dryfield_night_water_hole/dryfield_night_water_hole", rodata = "0x4", text = "0xEC", data = "0x2C60", bss = "0x6070" },
   { kind = "animation", at = "0x2C60", sets = ["0x3004"], in_c = true },
   { kind = "collision", at = "0x3594", in_c = true },
-  { kind = "collisionSource", at = "0x3990", in_c = true },
+  { kind = "collisionSource", at = "0x3990", in_c = true, cell_face_list_macro = "DRYFIELD_NIGHT_WATER_HOLE_CELL_FACE_LIST_AT_OFFSET" },
 ]
 
 [rooms.overlays.dryfield_night_cellar]
@@ -2201,7 +2201,7 @@ objects = [
   { kind = "packageId" },
   { unit = "dryfield_night_underpass/dryfield_night_underpass", rodata = "0x4", text = "0x10", data = "0x718" },
   { kind = "collision", at = "0x948", in_c = true },
-  { kind = "collisionSource", at = "0x1114", in_c = true },
+  { kind = "collisionSource", at = "0x1114", in_c = true, cell_face_list_macro = "DRYFIELD_NIGHT_UNDERPASS_CELL_FACE_LIST_AT_OFFSET" },
 ]
 
 [rooms.overlays.mine_mesa]

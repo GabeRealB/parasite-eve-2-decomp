@@ -540,12 +540,19 @@ static s16 _gDryfieldNightMainStreetRoom1CollisionGridCells[] = {
 #include "assets/dryfield_night_main_street_collision_05E10_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gDryfieldNightMainStreetRoom1CollisionGridCells[i])
+/// Supplies this grid's cell face-list addresses to its generated table.
+///
+/// Captures `_gDryfieldNightMainStreetRoom1CollisionGridCells`.
+/// `halfwordOffset` is a constant s16-element offset in 0..553 to a list's
+/// first entry, evaluated once; the list ends at WORLD_COLLISION_GRID_CELL_END.
+/// Returns a borrowed s16* without modifying the pool. `cell_face_list_macro`
+/// selects this binding for the table include; it is undefined afterwards.
+#define DRYFIELD_NIGHT_MAIN_STREET_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gDryfieldNightMainStreetRoom1CollisionGridCells[(halfwordOffset)])
 /// Room-1 cell-list pointers in X-major order, with seven Z cells per X row.
 static s16* _gDryfieldNightMainStreetRoom1CollisionGridTable[] = {
 #include "assets/dryfield_night_main_street_collision_05E10_table.inc"
 };
-#undef GRID_CELL
+#undef DRYFIELD_NIGHT_MAIN_STREET_CELL_FACE_LIST_AT_OFFSET
 
 /// Collision mesh and 6-by-7 XZ cell index for main-street room selector 1.
 ///
@@ -583,12 +590,19 @@ static s16 _gDryfieldNightMainStreetRooms2And3CollisionGridCells[720] = {
 #include "assets/dryfield_night_main_street_collision_06F80_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gDryfieldNightMainStreetRooms2And3CollisionGridCells[i])
+/// Supplies this grid's cell face-list addresses to its generated table.
+///
+/// Captures `_gDryfieldNightMainStreetRooms2And3CollisionGridCells`.
+/// `halfwordOffset` is a constant s16-element offset in 0..719 to a list's
+/// first entry, evaluated once; the list ends at WORLD_COLLISION_GRID_CELL_END.
+/// Returns a borrowed s16* without modifying the pool. `cell_face_list_macro`
+/// selects this binding for the table include; it is undefined afterwards.
+#define DRYFIELD_NIGHT_MAIN_STREET_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gDryfieldNightMainStreetRooms2And3CollisionGridCells[(halfwordOffset)])
 /// Room-2/3 cell-list pointers in X-major order, with seven Z cells per X row.
 static s16* _gDryfieldNightMainStreetRooms2And3CollisionGridTable[42] = {
 #include "assets/dryfield_night_main_street_collision_06F80_table.inc"
 };
-#undef GRID_CELL
+#undef DRYFIELD_NIGHT_MAIN_STREET_CELL_FACE_LIST_AT_OFFSET
 
 /// Collision mesh and 6-by-7 XZ cell index shared by room selectors 2 and 3.
 ///

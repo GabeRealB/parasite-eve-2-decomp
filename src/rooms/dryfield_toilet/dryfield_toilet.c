@@ -95,12 +95,19 @@ static s16 _gDryfieldToiletEventCollisionTemplateCells[2] = {
 #include "assets/dryfield_toilet_collision_02D54_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gDryfieldToiletEventCollisionTemplateCells[i])
+/// Supplies this grid's cell face-list addresses to its generated table.
+///
+/// Captures `_gDryfieldToiletEventCollisionTemplateCells`.
+/// `halfwordOffset` is a constant s16-element offset in 0..1 to a list's
+/// first entry, evaluated once; the list ends at WORLD_COLLISION_GRID_CELL_END.
+/// Returns a borrowed s16* without modifying the pool. `cell_face_list_macro`
+/// selects this binding for the table include; it is undefined afterwards.
+#define DRYFIELD_TOILET_EVENT_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gDryfieldToiletEventCollisionTemplateCells[(halfwordOffset)])
 /// The sole cell's borrowed face-index list; this template is never bound live.
 static s16* _gDryfieldToiletEventCollisionTemplateTable[1] = {
 #include "assets/dryfield_toilet_collision_02D54_table.inc"
 };
-#undef GRID_CELL
+#undef DRYFIELD_TOILET_EVENT_CELL_FACE_LIST_AT_OFFSET
 
 /// Source geometry for the room grid's reserved event-collision head.
 ///

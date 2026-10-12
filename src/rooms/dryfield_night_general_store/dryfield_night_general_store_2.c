@@ -130,12 +130,19 @@ static s16 _gDryfieldNightGeneralStoreCollisionGridCells[310] = {
 #include "assets/dryfield_night_general_store_collision_01EC4_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gDryfieldNightGeneralStoreCollisionGridCells[i])
+/// Supplies this grid's cell face-list addresses to its generated table.
+///
+/// Captures `_gDryfieldNightGeneralStoreCollisionGridCells`.
+/// `halfwordOffset` is a constant s16-element offset in 0..309 to a list's
+/// first entry, evaluated once; the list ends at WORLD_COLLISION_GRID_CELL_END.
+/// Returns a borrowed s16* without modifying the pool. `cell_face_list_macro`
+/// selects this binding for the table include; it is undefined afterwards.
+#define DRYFIELD_NIGHT_GENERAL_STORE_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gDryfieldNightGeneralStoreCollisionGridCells[(halfwordOffset)])
 /// X-major 3-by-3 cell directory into the collision grid's face-index pool.
 static s16* _gDryfieldNightGeneralStoreCollisionGridTable[9] = {
 #include "assets/dryfield_night_general_store_collision_01EC4_table.inc"
 };
-#undef GRID_CELL
+#undef DRYFIELD_NIGHT_GENERAL_STORE_CELL_FACE_LIST_AT_OFFSET
 
 /// Room 1's collision mesh and XZ face-selection grid.
 ///

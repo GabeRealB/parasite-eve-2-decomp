@@ -181,12 +181,19 @@ static s16 _gDryfieldNightSouvenirShopCollisionGridCells[108] = {
 
 /// Asset initializer binding: i is an in-bounds element offset into the cell lists.
 /// Evaluates i once; defined only while including this grid's table initializer.
-#define GRID_CELL(i) (&_gDryfieldNightSouvenirShopCollisionGridCells[i])
+/// Supplies this grid's cell face-list addresses to its generated table.
+///
+/// Captures `_gDryfieldNightSouvenirShopCollisionGridCells`.
+/// `halfwordOffset` is a constant s16-element offset in 0..107 to a list's
+/// first entry, evaluated once; the list ends at WORLD_COLLISION_GRID_CELL_END.
+/// Returns a borrowed s16* without modifying the pool. `cell_face_list_macro`
+/// selects this binding for the table include; it is undefined afterwards.
+#define DRYFIELD_NIGHT_SOUVENIR_SHOP_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gDryfieldNightSouvenirShopCollisionGridCells[(halfwordOffset)])
 /// X-major pointers for the grid's two-by-two cells; every cell is nonempty.
 static s16* _gDryfieldNightSouvenirShopCollisionGridTable[4] = {
 #include "assets/dryfield_night_souvenir_shop_collision_01044_table.inc"
 };
-#undef GRID_CELL
+#undef DRYFIELD_NIGHT_SOUVENIR_SHOP_CELL_FACE_LIST_AT_OFFSET
 
 /// The shop's room collision mesh and two-by-two spatial index.
 ///

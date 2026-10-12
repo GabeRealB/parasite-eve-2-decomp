@@ -202,13 +202,19 @@ static s16 _gDryfieldNightWaterTowerCollisionGridCells[310] = {
 #include "assets/dryfield_night_water_tower_collision_01E34_cells.inc"
 };
 
-// The generated table requires GRID_CELL(i) to address halfword i in this pool.
-#define GRID_CELL(i) (&_gDryfieldNightWaterTowerCollisionGridCells[i])
+/// Supplies this grid's cell face-list addresses to its generated table.
+///
+/// Captures `_gDryfieldNightWaterTowerCollisionGridCells`.
+/// `halfwordOffset` is a constant s16-element offset in 0..309 to a list's
+/// first entry, evaluated once; the list ends at WORLD_COLLISION_GRID_CELL_END.
+/// Returns a borrowed s16* without modifying the pool. `cell_face_list_macro`
+/// selects this binding for the table include; it is undefined afterwards.
+#define DRYFIELD_NIGHT_WATER_TOWER_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gDryfieldNightWaterTowerCollisionGridCells[(halfwordOffset)])
 /// X-major 4-by-4 directory of face-index lists borrowed by the collision grid.
 static s16* _gDryfieldNightWaterTowerCollisionGridTable[DRYFIELD_NIGHT_WATER_TOWER_COLLISION_CELL_COUNT_X * DRYFIELD_NIGHT_WATER_TOWER_COLLISION_CELL_COUNT_Z] = {
 #include "assets/dryfield_night_water_tower_collision_01E34_table.inc"
 };
-#undef GRID_CELL
+#undef DRYFIELD_NIGHT_WATER_TOWER_CELL_FACE_LIST_AT_OFFSET
 
 /// Mutable room collision mesh and its 4-by-4 XZ face index.
 ///

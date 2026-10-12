@@ -187,12 +187,19 @@ static s16 _gDryfieldNightJunkYardCollisionGridCells[] = {
 #include "assets/dryfield_night_junk_yard_collision_03BF8_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gDryfieldNightJunkYardCollisionGridCells[i])
+/// Supplies this grid's cell face-list addresses to its generated table.
+///
+/// Captures `_gDryfieldNightJunkYardCollisionGridCells`.
+/// `halfwordOffset` is a constant s16-element offset in 0..229 to a list's
+/// first entry, evaluated once; the list ends at WORLD_COLLISION_GRID_CELL_END.
+/// Returns a borrowed s16* without modifying the pool. `cell_face_list_macro`
+/// selects this binding for the table include; it is undefined afterwards.
+#define DRYFIELD_NIGHT_JUNK_YARD_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gDryfieldNightJunkYardCollisionGridCells[(halfwordOffset)])
 /// X-major cell directory for the collision grid's seven-by-two XZ cells.
 static s16* _gDryfieldNightJunkYardCollisionGridTable[] = {
 #include "assets/dryfield_night_junk_yard_collision_03BF8_table.inc"
 };
-#undef GRID_CELL
+#undef DRYFIELD_NIGHT_JUNK_YARD_CELL_FACE_LIST_AT_OFFSET
 
 /// Shared collision mesh and spatial index for junk-yard rooms 1 and 2.
 ///

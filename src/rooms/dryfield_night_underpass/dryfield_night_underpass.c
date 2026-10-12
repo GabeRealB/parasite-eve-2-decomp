@@ -344,12 +344,19 @@ static s16 _gDryfieldNightUnderpassCollisionGridCells[346] = {
 };
 
 // The generated table supplies halfword offsets into this grid's cell-list pool.
-#define GRID_CELL(i) (&_gDryfieldNightUnderpassCollisionGridCells[i])
+/// Supplies this grid's cell face-list addresses to its generated table.
+///
+/// Captures `_gDryfieldNightUnderpassCollisionGridCells`.
+/// `halfwordOffset` is a constant s16-element offset in 0..345 to a list's
+/// first entry, evaluated once; the list ends at WORLD_COLLISION_GRID_CELL_END.
+/// Returns a borrowed s16* without modifying the pool. `cell_face_list_macro`
+/// selects this binding for the table include; it is undefined afterwards.
+#define DRYFIELD_NIGHT_UNDERPASS_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gDryfieldNightUnderpassCollisionGridCells[(halfwordOffset)])
 /// The six-by-four X-major directory of cell face-index lists.
 static s16* _gDryfieldNightUnderpassCollisionGridTable[24] = {
 #include "assets/dryfield_night_underpass_collision_01114_table.inc"
 };
-#undef GRID_CELL
+#undef DRYFIELD_NIGHT_UNDERPASS_CELL_FACE_LIST_AT_OFFSET
 
 /// The collision mesh shared by nighttime underpass rooms 1..6.
 ///

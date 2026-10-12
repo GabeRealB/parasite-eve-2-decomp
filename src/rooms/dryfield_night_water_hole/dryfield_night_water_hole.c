@@ -508,13 +508,19 @@ static s16 _gDryfieldNightWaterHoleCollisionGridCells[92] = {
 #include "assets/dryfield_night_water_hole_collision_03990_cells.inc"
 };
 
-// The generated table requires GRID_CELL(i) to address halfword i in the pool.
-#define GRID_CELL(i) (&_gDryfieldNightWaterHoleCollisionGridCells[i])
+/// Supplies this grid's cell face-list addresses to its generated table.
+///
+/// Captures `_gDryfieldNightWaterHoleCollisionGridCells`.
+/// `halfwordOffset` is a constant s16-element offset in 0..91 to a list's
+/// first entry, evaluated once; the list ends at WORLD_COLLISION_GRID_CELL_END.
+/// Returns a borrowed s16* without modifying the pool. `cell_face_list_macro`
+/// selects this binding for the table include; it is undefined afterwards.
+#define DRYFIELD_NIGHT_WATER_HOLE_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gDryfieldNightWaterHoleCollisionGridCells[(halfwordOffset)])
 /// X-major cell-list starts, indexed by x * cellCountZ + z.
 static s16* _gDryfieldNightWaterHoleCollisionGridTable[DRYFIELD_NIGHT_WATER_HOLE_GRID_CELL_COUNT_X * DRYFIELD_NIGHT_WATER_HOLE_GRID_CELL_COUNT_Z] = {
 #include "assets/dryfield_night_water_hole_collision_03990_table.inc"
 };
-#undef GRID_CELL
+#undef DRYFIELD_NIGHT_WATER_HOLE_CELL_FACE_LIST_AT_OFFSET
 
 /// Collision mesh shared by the night water hole's four room selectors.
 ///

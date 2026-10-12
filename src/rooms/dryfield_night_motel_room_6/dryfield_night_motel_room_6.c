@@ -278,12 +278,19 @@ static s16 _gDryfieldNightMotelRoom6CollisionGridCells[198] = {
 #include "assets/dryfield_night_motel_room_6_collision_063C4_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gDryfieldNightMotelRoom6CollisionGridCells[i])
+/// Supplies this grid's cell face-list addresses to its generated table.
+///
+/// Captures `_gDryfieldNightMotelRoom6CollisionGridCells`.
+/// `halfwordOffset` is a constant s16-element offset in 0..197 to a list's
+/// first entry, evaluated once; the list ends at WORLD_COLLISION_GRID_CELL_END.
+/// Returns a borrowed s16* without modifying the pool. `cell_face_list_macro`
+/// selects this binding for the table include; it is undefined afterwards.
+#define DRYFIELD_NIGHT_MOTEL_ROOM_6_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gDryfieldNightMotelRoom6CollisionGridCells[(halfwordOffset)])
 /// X-major directory of six face lists, indexed as x * 3 + z.
 static s16* _gDryfieldNightMotelRoom6CollisionGridTable[6] = {
 #include "assets/dryfield_night_motel_room_6_collision_063C4_table.inc"
 };
-#undef GRID_CELL
+#undef DRYFIELD_NIGHT_MOTEL_ROOM_6_CELL_FACE_LIST_AT_OFFSET
 
 /// Motel room 6's collision mesh and its 2-by-3 XZ cell directory.
 ///

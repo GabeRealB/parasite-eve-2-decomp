@@ -138,12 +138,19 @@ static s16 _gDryfieldNightToiletCollisionGridCells[36] = {
 #include "assets/dryfield_night_toilet_collision_007C8_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gDryfieldNightToiletCollisionGridCells[i])
+/// Supplies this grid's cell face-list addresses to its generated table.
+///
+/// Captures `_gDryfieldNightToiletCollisionGridCells`.
+/// `halfwordOffset` is a constant s16-element offset in 0..35 to a list's
+/// first entry, evaluated once; the list ends at WORLD_COLLISION_GRID_CELL_END.
+/// Returns a borrowed s16* without modifying the pool. `cell_face_list_macro`
+/// selects this binding for the table include; it is undefined afterwards.
+#define DRYFIELD_NIGHT_TOILET_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gDryfieldNightToiletCollisionGridCells[(halfwordOffset)])
 /// X-major cell-list directory for one X cell and two Z cells.
 static s16* _gDryfieldNightToiletCollisionGridTable[2] = {
 #include "assets/dryfield_night_toilet_collision_007C8_table.inc"
 };
-#undef GRID_CELL
+#undef DRYFIELD_NIGHT_TOILET_CELL_FACE_LIST_AT_OFFSET
 
 /// The night toilet's writable collision mesh and two-cell spatial index.
 ///

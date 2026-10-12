@@ -250,12 +250,19 @@ static s16 _gDryfieldNightMotelLobbyCollisionGridCells[] = {
 };
 
 // The generated table supplies constant halfword offsets into the cell-list pool.
-#define GRID_CELL(i) (&_gDryfieldNightMotelLobbyCollisionGridCells[i])
+/// Supplies this grid's cell face-list addresses to its generated table.
+///
+/// Captures `_gDryfieldNightMotelLobbyCollisionGridCells`.
+/// `halfwordOffset` is a constant s16-element offset in 0..99 to a list's
+/// first entry, evaluated once; the list ends at WORLD_COLLISION_GRID_CELL_END.
+/// Returns a borrowed s16* without modifying the pool. `cell_face_list_macro`
+/// selects this binding for the table include; it is undefined afterwards.
+#define DRYFIELD_NIGHT_MOTEL_LOBBY_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gDryfieldNightMotelLobbyCollisionGridCells[(halfwordOffset)])
 /// X-major cell pointers, with Z as the inner index.
 static s16* _gDryfieldNightMotelLobbyCollisionGridTable[DRYFIELD_NIGHT_MOTEL_LOBBY_COLLISION_GRID_CELLS_X * DRYFIELD_NIGHT_MOTEL_LOBBY_COLLISION_GRID_CELLS_Z] = {
 #include "assets/dryfield_night_motel_lobby_collision_057F4_table.inc"
 };
-#undef GRID_CELL
+#undef DRYFIELD_NIGHT_MOTEL_LOBBY_CELL_FACE_LIST_AT_OFFSET
 
 /// Full collision mesh for the nighttime motel lobby's sole room.
 ///

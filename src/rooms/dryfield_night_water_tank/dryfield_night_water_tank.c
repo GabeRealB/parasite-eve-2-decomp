@@ -182,12 +182,19 @@ static s16 _gDryfieldNightWaterTankObstacleCollisionGridCells[4] = {
 };
 
 // The generated table uses element offsets into this template's cell list.
-#define GRID_CELL(i) (&_gDryfieldNightWaterTankObstacleCollisionGridCells[i])
+/// Supplies this grid's cell face-list addresses to its generated table.
+///
+/// Captures `_gDryfieldNightWaterTankObstacleCollisionGridCells`.
+/// `halfwordOffset` is a constant s16-element offset in 0..3 to a list's
+/// first entry, evaluated once; the list ends at WORLD_COLLISION_GRID_CELL_END.
+/// Returns a borrowed s16* without modifying the pool. `cell_face_list_macro`
+/// selects this binding for the table include; it is undefined afterwards.
+#define DRYFIELD_NIGHT_WATER_TANK_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gDryfieldNightWaterTankObstacleCollisionGridCells[(halfwordOffset)])
 /// The template's single cell points at the list containing both obstacle faces.
 static s16* _gDryfieldNightWaterTankObstacleCollisionGridTable[1] = {
 #include "assets/dryfield_night_water_tank_collision_00ACC_table.inc"
 };
-#undef GRID_CELL
+#undef DRYFIELD_NIGHT_WATER_TANK_CELL_FACE_LIST_AT_OFFSET
 
 /// Collision template restoring the tank obstacle in placement variants 10 and 11.
 ///
@@ -322,12 +329,19 @@ static s16 _gDryfieldNightWaterTankCollisionGridCells[126] = {
 };
 
 // The generated table uses element offsets into the room grid's face-index lists.
-#define GRID_CELL(i) (&_gDryfieldNightWaterTankCollisionGridCells[i])
+/// Supplies this grid's cell face-list addresses to its generated table.
+///
+/// Captures `_gDryfieldNightWaterTankCollisionGridCells`.
+/// `halfwordOffset` is a constant s16-element offset in 0..125 to a list's
+/// first entry, evaluated once; the list ends at WORLD_COLLISION_GRID_CELL_END.
+/// Returns a borrowed s16* without modifying the pool. `cell_face_list_macro`
+/// selects this binding for the table include; it is undefined afterwards.
+#define DRYFIELD_NIGHT_WATER_TANK_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gDryfieldNightWaterTankCollisionGridCells[(halfwordOffset)])
 /// Four cell lists in X-major order, indexed as x * 2 + z.
 static s16* _gDryfieldNightWaterTankCollisionGridTable[4] = {
 #include "assets/dryfield_night_water_tank_collision_01EF0_table.inc"
 };
-#undef GRID_CELL
+#undef DRYFIELD_NIGHT_WATER_TANK_CELL_FACE_LIST_AT_OFFSET
 
 /// Live room collision mesh, including the tank's reserved geometry prefix.
 ///

@@ -509,12 +509,19 @@ static s16 _gDryfieldNightMotelBalconyRooms1And2CollisionGridCells[342] = {
 #include "assets/dryfield_night_motel_balcony_collision_06190_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gDryfieldNightMotelBalconyRooms1And2CollisionGridCells[i])
+/// Supplies this grid's cell face-list addresses to its generated table.
+///
+/// Captures `_gDryfieldNightMotelBalconyRooms1And2CollisionGridCells`.
+/// `halfwordOffset` is a constant s16-element offset in 0..341 to a list's
+/// first entry, evaluated once; the list ends at WORLD_COLLISION_GRID_CELL_END.
+/// Returns a borrowed s16* without modifying the pool. `cell_face_list_macro`
+/// selects this binding for the table include; it is undefined afterwards.
+#define DRYFIELD_NIGHT_MOTEL_BALCONY_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gDryfieldNightMotelBalconyRooms1And2CollisionGridCells[(halfwordOffset)])
 /// X-major 8-by-8 cell directory into the rooms 1 and 2 collision face-index lists.
 static s16* _gDryfieldNightMotelBalconyRooms1And2CollisionGridTable[64] = {
 #include "assets/dryfield_night_motel_balcony_collision_06190_table.inc"
 };
-#undef GRID_CELL
+#undef DRYFIELD_NIGHT_MOTEL_BALCONY_CELL_FACE_LIST_AT_OFFSET
 
 /// Collision grid shared by nighttime motel balcony rooms 1 and 2.
 ///
@@ -555,12 +562,19 @@ static s16 _gDryfieldNightMotelBalconyRoom3CollisionGridCells[360] = {
 #include "assets/dryfield_night_motel_balcony_collision_06A20_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gDryfieldNightMotelBalconyRoom3CollisionGridCells[i])
+/// Supplies this grid's cell face-list addresses to its generated table.
+///
+/// Captures `_gDryfieldNightMotelBalconyRoom3CollisionGridCells`.
+/// `halfwordOffset` is a constant s16-element offset in 0..359 to a list's
+/// first entry, evaluated once; the list ends at WORLD_COLLISION_GRID_CELL_END.
+/// Returns a borrowed s16* without modifying the pool. `cell_face_list_macro`
+/// selects this binding for the table include; it is undefined afterwards.
+#define DRYFIELD_NIGHT_MOTEL_BALCONY_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gDryfieldNightMotelBalconyRoom3CollisionGridCells[(halfwordOffset)])
 /// X-major 8-by-8 cell directory into the room 3 collision face-index lists.
 static s16* _gDryfieldNightMotelBalconyRoom3CollisionGridTable[64] = {
 #include "assets/dryfield_night_motel_balcony_collision_06A20_table.inc"
 };
-#undef GRID_CELL
+#undef DRYFIELD_NIGHT_MOTEL_BALCONY_CELL_FACE_LIST_AT_OFFSET
 
 /// Collision grid for nighttime motel balcony room 3.
 ///

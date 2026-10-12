@@ -231,12 +231,19 @@ static s16 _gDryfieldNightParkingLotCollisionGridCells[436] = {
 #include "assets/dryfield_night_parking_lot_collision_02510_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gDryfieldNightParkingLotCollisionGridCells[i])
+/// Supplies this grid's cell face-list addresses to its generated table.
+///
+/// Captures `_gDryfieldNightParkingLotCollisionGridCells`.
+/// `halfwordOffset` is a constant s16-element offset in 0..435 to a list's
+/// first entry, evaluated once; the list ends at WORLD_COLLISION_GRID_CELL_END.
+/// Returns a borrowed s16* without modifying the pool. `cell_face_list_macro`
+/// selects this binding for the table include; it is undefined afterwards.
+#define DRYFIELD_NIGHT_PARKING_LOT_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gDryfieldNightParkingLotCollisionGridCells[(halfwordOffset)])
 /// X-major 9-by-5 directory into the grid's packed cell face-index lists.
 static s16* _gDryfieldNightParkingLotCollisionGridTable[45] = {
 #include "assets/dryfield_night_parking_lot_collision_02510_table.inc"
 };
-#undef GRID_CELL
+#undef DRYFIELD_NIGHT_PARKING_LOT_CELL_FACE_LIST_AT_OFFSET
 
 /// Collision mesh shared by both logical rooms, with 4000-unit square XZ cells.
 ///

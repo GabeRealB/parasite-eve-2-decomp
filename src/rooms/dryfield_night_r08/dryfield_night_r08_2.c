@@ -151,12 +151,19 @@ static s16 _gDryfieldNightR08CollisionGridCells[392] = {
 };
 
 /// Asset-initializer binding: a halfword index selects a cell list in this grid.
-#define GRID_CELL(i) (&_gDryfieldNightR08CollisionGridCells[i])
+/// Supplies this grid's cell face-list addresses to its generated table.
+///
+/// Captures `_gDryfieldNightR08CollisionGridCells`.
+/// `halfwordOffset` is a constant s16-element offset in 0..391 to a list's
+/// first entry, evaluated once; the list ends at WORLD_COLLISION_GRID_CELL_END.
+/// Returns a borrowed s16* without modifying the pool. `cell_face_list_macro`
+/// selects this binding for the table include; it is undefined afterwards.
+#define DRYFIELD_NIGHT_R08_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gDryfieldNightR08CollisionGridCells[(halfwordOffset)])
 /// X-major pointers to the 3 by 6 grid's face-index lists.
 static s16* _gDryfieldNightR08CollisionGridTable[18] = {
 #include "assets/dryfield_night_r08_collision_03EB4_table.inc"
 };
-#undef GRID_CELL
+#undef DRYFIELD_NIGHT_R08_CELL_FACE_LIST_AT_OFFSET
 
 /// Room 8's collision mesh and 3 by 6 XZ index of 4000-unit square cells.
 ///

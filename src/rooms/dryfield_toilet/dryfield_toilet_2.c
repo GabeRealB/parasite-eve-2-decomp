@@ -304,12 +304,19 @@ static s16 _gDryfieldToiletRoomCollisionGridCells[34] = {
 };
 
 // The generated initializer supplies a constant index into the signed cell lists.
-#define GRID_CELL(i) (&_gDryfieldToiletRoomCollisionGridCells[i])
+/// Supplies this grid's cell face-list addresses to its generated table.
+///
+/// Captures `_gDryfieldToiletRoomCollisionGridCells`.
+/// `halfwordOffset` is a constant s16-element offset in 0..33 to a list's
+/// first entry, evaluated once; the list ends at WORLD_COLLISION_GRID_CELL_END.
+/// Returns a borrowed s16* without modifying the pool. `cell_face_list_macro`
+/// selects this binding for the table include; it is undefined afterwards.
+#define DRYFIELD_TOILET_ROOM_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gDryfieldToiletRoomCollisionGridCells[(halfwordOffset)])
 /// X-major cell-list pointers for the grid's one-by-two XZ partition.
 static s16* _gDryfieldToiletRoomCollisionGridTable[2] = {
 #include "assets/dryfield_toilet_collision_03E44_table.inc"
 };
-#undef GRID_CELL
+#undef DRYFIELD_TOILET_ROOM_CELL_FACE_LIST_AT_OFFSET
 
 WorldCollisionGrid gDryfieldToiletRoomCollisionGrid = {
     .viewCoord   = NULL,

@@ -224,12 +224,19 @@ static s16 _gDryfieldNightWarehouseCollisionGridCells[104] = {
 #include "assets/dryfield_night_warehouse_collision_01948_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gDryfieldNightWarehouseCollisionGridCells[i])
+/// Supplies this grid's cell face-list addresses to its generated table.
+///
+/// Captures `_gDryfieldNightWarehouseCollisionGridCells`.
+/// `halfwordOffset` is a constant s16-element offset in 0..103 to a list's
+/// first entry, evaluated once; the list ends at WORLD_COLLISION_GRID_CELL_END.
+/// Returns a borrowed s16* without modifying the pool. `cell_face_list_macro`
+/// selects this binding for the table include; it is undefined afterwards.
+#define DRYFIELD_NIGHT_WAREHOUSE_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gDryfieldNightWarehouseCollisionGridCells[(halfwordOffset)])
 /// X-major cell pointers for the warehouse's 2-by-2 collision grid.
 static s16* _gDryfieldNightWarehouseCollisionGridTable[4] = {
 #include "assets/dryfield_night_warehouse_collision_01948_table.inc"
 };
-#undef GRID_CELL
+#undef DRYFIELD_NIGHT_WAREHOUSE_CELL_FACE_LIST_AT_OFFSET
 
 /// Shared collision mesh for room slots 1..3, bound to the view while active.
 ///

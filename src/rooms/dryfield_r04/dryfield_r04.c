@@ -55,12 +55,19 @@ static s16 _gDryfieldR04CollisionGridCells[642] = {
 #include "assets/dryfield_r04_collision_00C34_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gDryfieldR04CollisionGridCells[i])
+/// Supplies this grid's cell face-list addresses to its generated table.
+///
+/// Captures `_gDryfieldR04CollisionGridCells`.
+/// `halfwordOffset` is a constant s16-element offset in 0..641 to a list's
+/// first entry, evaluated once; the list ends at WORLD_COLLISION_GRID_CELL_END.
+/// Returns a borrowed s16* without modifying the pool. `cell_face_list_macro`
+/// selects this binding for the table include; it is undefined afterwards.
+#define DRYFIELD_R04_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gDryfieldR04CollisionGridCells[(halfwordOffset)])
 /// X-major 9-by-9 directory of the grid's face-index lists.
 static s16* _gDryfieldR04CollisionGridTable[81] = {
 #include "assets/dryfield_r04_collision_00C34_table.inc"
 };
-#undef GRID_CELL
+#undef DRYFIELD_R04_CELL_FACE_LIST_AT_OFFSET
 
 /// Mutable room collision mesh with a 9-by-9 index of 4000-unit XZ cells.
 ///

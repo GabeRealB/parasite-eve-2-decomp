@@ -1412,11 +1412,18 @@ static s16 _gDryfieldTrailerCoachRoomCollisionGridCells[58] = {
 #include "assets/dryfield_trailer_coach_collision_0A0F4_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gDryfieldTrailerCoachRoomCollisionGridCells[i])
+/// Supplies this grid's cell face-list addresses to its generated table.
+///
+/// Captures `_gDryfieldTrailerCoachRoomCollisionGridCells`.
+/// `halfwordOffset` is a constant s16-element offset in 0..57 to a list's
+/// first entry, evaluated once; the list ends at WORLD_COLLISION_GRID_CELL_END.
+/// Returns a borrowed s16* without modifying the pool. `cell_face_list_macro`
+/// selects this binding for the table include; it is undefined afterwards.
+#define DRYFIELD_TRAILER_COACH_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gDryfieldTrailerCoachRoomCollisionGridCells[(halfwordOffset)])
 static s16* _gDryfieldTrailerCoachRoomCollisionGridTable[3] = {
 #include "assets/dryfield_trailer_coach_collision_0A0F4_table.inc"
 };
-#undef GRID_CELL
+#undef DRYFIELD_TRAILER_COACH_CELL_FACE_LIST_AT_OFFSET
 
 /// Room-space collision mesh with a three-by-one XZ cell directory.
 ///

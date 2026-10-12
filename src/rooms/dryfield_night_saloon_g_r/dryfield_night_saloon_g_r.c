@@ -1686,12 +1686,19 @@ static s16 _gDryfieldNightSaloonGRCollisionGridCells[] = {
 };
 
 // The generated initializer supplies halfword offsets into this grid's cell pool.
-#define GRID_CELL(i) (&_gDryfieldNightSaloonGRCollisionGridCells[i])
+/// Supplies this grid's cell face-list addresses to its generated table.
+///
+/// Captures `_gDryfieldNightSaloonGRCollisionGridCells`.
+/// `halfwordOffset` is a constant s16-element offset in 0..279 to a list's
+/// first entry, evaluated once; the list ends at WORLD_COLLISION_GRID_CELL_END.
+/// Returns a borrowed s16* without modifying the pool. `cell_face_list_macro`
+/// selects this binding for the table include; it is undefined afterwards.
+#define DRYFIELD_NIGHT_SALOON_G_R_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gDryfieldNightSaloonGRCollisionGridCells[(halfwordOffset)])
 /// X-major 3-by-4 table of borrowed, sentinel-terminated cell face-index lists.
 static s16* _gDryfieldNightSaloonGRCollisionGridTable[DRYFIELD_NIGHT_SALOON_G_R_COLLISION_CELL_COUNT_X * DRYFIELD_NIGHT_SALOON_G_R_COLLISION_CELL_COUNT_Z] = {
 #include "assets/dryfield_night_saloon_g_r_collision_08590_table.inc"
 };
-#undef GRID_CELL
+#undef DRYFIELD_NIGHT_SALOON_G_R_CELL_FACE_LIST_AT_OFFSET
 
 /// Collision mesh and spatial index shared by both night-saloon room entries.
 ///
