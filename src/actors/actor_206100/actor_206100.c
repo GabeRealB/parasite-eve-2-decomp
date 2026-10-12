@@ -70,9 +70,6 @@
 /// The `worldCollisionLinkBody` record `_actor206100UnlinkForDeath` unlinks when it
 /// retires the actor, plus the area-record list that handler applies.
 
-/// Frames a Bog Diver slot stays empty after the diver in it has died.
-#define ACTOR_206100_BOG_DIVER_SUMMON_COOLDOWN 0xB4
-
 /// One of the two Bog Divers the Sea Diver keeps summoned while it circles.
 ///
 /// A slot holds one summoned diver at a time. While it is empty, and fewer
@@ -230,28 +227,27 @@ STATIC_ASSERT_SIZEOF(_Actor206100Work, 0x558);
 /// The Diver library's name for this package's work block (see diver.h).
 typedef _Actor206100Work DiverWork;
 
-/// Distance ahead of the head, along its forward axis, at which a shot appears.
-#define ACTOR_206100_SHOT_MUZZLE_DISTANCE 0x15E
-
-/// Distance a shot moves along the head's forward axis every frame.
-#define ACTOR_206100_SHOT_SPEED 0x5A
-
 /// Added to a shot's vertical speed every frame.
 #define ACTOR_206100_SHOT_GRAVITY 2
 
 /// Frame count at which a shot still flying bursts by itself.
 #define ACTOR_206100_SHOT_LIFETIME 0x5B
 
-/// `_Actor206100ShotWork::burstSize` at launch, and what it grows by a frame.
-#define ACTOR_206100_SHOT_BURST_SIZE_STEP 0x100
+/// Initial spark size and growth per running Sea Diver shot tick, in game units.
+///
+/// The size starts at 256 and grows by 256 to 1536. It occupies bits 0..11 of
+/// _diverImpactBurst's sizeAndSprayBias word, without a fixed-point scale.
+enum { ACTOR_206100_SHOT_BURST_SIZE_STEP = 0x100 };
 
 /// Value `_Actor206100ShotWork::burstSize` stops growing at.
 #define ACTOR_206100_SHOT_BURST_SIZE_MAX 0x600
 
-/// Added to `_Actor206100ShotWork::burstSize` to make the size word handed to
-/// `_diverImpactBurst`: a room-particle size bias of 2 in bits 12..15. Bit 28
-/// is set as well; the burst ignores bits 16..31.
-#define ACTOR_206100_SHOT_BURST_VARIANT 0x10002000
+/// Packed additive spray-size bias combined with the Sea Diver shot's spark size.
+///
+/// Bits 12..15 encode a bias of two game units for room particles. The retained
+/// bit 28 is ignored by `_diverImpactBurst`, which consumes only bits 0..15.
+/// Addition is safe for the shot's established spark-size range 256..1536.
+enum { ACTOR_206100_SHOT_PACKED_SPRAY_SIZE_BIAS = 0x10002000 };
 
 /// Work block of a shot of the Sea Diver's attack.
 ///
@@ -1376,7 +1372,7 @@ static void _actor206100FlyShot(Task* task)
         } else {
             shot->burstSize = ACTOR_206100_SHOT_BURST_SIZE_MAX;
         }
-        _diverImpactBurst(shotCoord, shot->burstPhase, burstKind, shot->burstSize + ACTOR_206100_SHOT_BURST_VARIANT);
+        _diverImpactBurst(shotCoord, shot->burstPhase, burstKind, shot->burstSize + ACTOR_206100_SHOT_PACKED_SPRAY_SIZE_BIAS);
     }
 }
 /// Applies player-attack contacts and pending status damage to the Sea Diver.
@@ -1720,6 +1716,19 @@ static inline void _actor206100ApplyRootRotation(Task* task)
 /// work-allocation failure kills the new task. No parent or source pointer is retained.
 static inline void _actor206100SpawnShot(Task* task)
 {
+    /// Initial shot velocity span along the head's local +Z axis per running tick.
+    ///
+    /// Transforms a 90-unit local point and subtracts the transformed head origin.
+    /// Head/ancestor scale affects the world velocity; each transform narrows XYZ
+    /// to signed halfwords. Subsequent gravity changes the vertical component.
+    enum { ACTOR_206100_SHOT_SPEED = 0x5A };
+
+    /// Initial shot offset along the head's local +Z axis, in game units.
+    ///
+    /// The 350-unit local point is transformed through the head's parent chain;
+    /// head/ancestor scale affects the final world distance, with halfword narrowing.
+    enum { ACTOR_206100_SHOT_MUZZLE_DISTANCE = 0x15E };
+
     enum { ACTOR_206100_SHOT_HEAD_PART  = 4,
            ACTOR_206100_SHOT_TASK_INDEX = 1 };
     _Actor206100ShotWork* shotWork;
@@ -1761,10 +1770,6 @@ static inline void _actor206100SpawnShot(Task* task)
     }
 }
 
-/// Depth under the water surface past which the Sea Diver cannot be locked
-/// onto.
-#define ACTOR_206100_LOCKABLE_DEPTH 0x190
-
 /// Transforms a lock point into its parent frame, narrowing the result to halfwords.
 ///
 /// Borrows a Q12 local-to-parent matrix and signed-halfword game coordinates.
@@ -1793,6 +1798,12 @@ static inline void _actor206100TransformLockPointToParent(const MATRIX* localToP
 /// units below waterLevel, zero otherwise. Changes GTE state; flags are ignored.
 static inline void _actor206100UpdateLockable(Task* task, u8 partIndex)
 {
+    /// Maximum world-coordinate depth below the water surface that permits lock-on.
+    ///
+    /// Positive Y points downward. The selected part remains lockable at exactly
+    /// waterLevel + 400; only greater world Y disables it.
+    enum { ACTOR_206100_LOCKABLE_DEPTH = 0x190 };
+
     _Actor206100Work* work;
     Enemy*            enemy;
     GfxCoord*         currentCoord;
@@ -2532,6 +2543,12 @@ static void _actor206100CirclingTick(Task* task)
 /// Slot pointers are borrowed Enemy records and are cleared as soon as HP is zero.
 static void _actor206100SummonBogDiversTick(Task* task)
 {
+    /// Eligible summon-maintenance ticks an empty Bog Diver slot waits after death.
+    ///
+    /// Counts down from 180 only while the slot is empty and fewer than five divers
+    /// have spawned. The next fill attempt occurs after the counter reaches zero.
+    enum { ACTOR_206100_BOG_DIVER_SUMMON_COOLDOWN = 0xB4 };
+
     enum {
         ACTOR_206100_RING_ENGAGE_TICK       = 30,
         ACTOR_206100_BOG_DIVER_SUMMON_COUNT = 5
@@ -3065,7 +3082,7 @@ static void _actor206100LaunchShot(Task* task)
     worldCollisionInitContacts(contacts, ARRAY_SIZE(shot->contacts), 0);
     shot->strike.attackBody.flags |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
     actorRenderComposeCoord(shotCoord);
-    _diverImpactBurst(shotCoord, (u16)shot->burstPhase, DIVER_BURST_LAUNCH, shot->burstSize + ACTOR_206100_SHOT_BURST_VARIANT);
+    _diverImpactBurst(shotCoord, (u16)shot->burstPhase, DIVER_BURST_LAUNCH, shot->burstSize + ACTOR_206100_SHOT_PACKED_SPRAY_SIZE_BIAS);
     task->state++;
 }
 

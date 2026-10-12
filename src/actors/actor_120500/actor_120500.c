@@ -479,13 +479,14 @@ static void _actor120500MovieTask(Task* task)
 /// All codes except the first-animation request clear after this tick.
 static void _actor120500RunPlayerRequest(Task* task)
 {
-    /// Restores equipped-weapon playback with world collision disabled.
-    ///
-    /// Captures work, request, weaponId, animationBank and the local bank/clip
-    /// constants. Uses the current weapon and saved character at dispatch time;
-    /// primary character 1 requires weapon 0..32. Retains the alternate +34
-    /// selector, whose runtime reachability is unproven. Borrows request only
-    /// through synchronous message dispatch. Undefined after this function.
+/// Restores equipped-weapon clip 1 immediately with world collision disabled.
+///
+/// Captures live work->playerTask, writable request/weaponId/animationBank locals,
+/// the local character/bank/clip constants, and the live weapon/save state.
+/// Character 1 with weapon 0..32 selects valid banks 1..33. The retained alternate
+/// +34 selector has no established backing in the current bank table. The loaded
+/// weapon resources must outlive playback; dispatch borrows request synchronously.
+/// Expands to a compound statement and is undefined after this consumer.
 #define ACTOR_120500_PLAY_PLAYER_WEAPON_ANIMATION()                                                   \
     {                                                                                                 \
         weaponId = gPlayerStatus.weapon;                                                              \

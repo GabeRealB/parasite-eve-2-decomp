@@ -1173,18 +1173,17 @@ static void _actor207200CreepingStrangerActiveTick(Task* task)
 #undef ACTOR_207200_CREEPING_STRANGER_PLAY_ACTIVE_SOUND
 }
 
-/// Applies a Creeping Stranger sphere's grid correction or rolls back its root.
+/// Applies Creeping Stranger grid correction or restores the pre-movement root.
 ///
-/// Reads contactCount records (six at both callers) without clearing them.
-/// pushback receives signed 16.16 correction; only its integer halves are added
-/// in root-parent game units. Opposed normals restore the saved pre-movement
-/// root and latch blocked for a headed actor. After head loss the saved position
-/// stops updating, but rollback still uses it. Composition is left to the caller.
-/// Requires live work/root, a writable `WorldCollisionDelta` disjoint from the
-/// readable contacts, and an element count in 0..32768 within their extent. Pointer expressions
-/// must be stable and side-effect-free: work, rootCoord and pushback are evaluated
-/// repeatedly. Captures no caller locals. Invoke as a compound statement; the
-/// binding is undefined after its sole consumer.
+/// Requires live work/rootCoord and readable contactCount records (six at each
+/// caller); the signed count is in 0..32768 within their extent. contacts and
+/// contactCount are evaluated once, and contacts are not cleared. pushback is
+/// writable disjoint WorldCollisionDelta storage: grid hits add signed 16.16
+/// integer halves in root-parent units; opposed normals restore prevRootPos
+/// and latch blocked only while headed. Head loss stops refreshing prevRootPos,
+/// but rollback still uses it. Other results leave the root unchanged. Stable
+/// pointer arguments are required because work/rootCoord/pushback repeat.
+/// Captures no locals; leaves composition to the caller. Invoke within braces.
 #define ACTOR_207200_CREEPING_STRANGER_RESOLVE_GRID_CONTACTS(work, rootCoord, pushback, contacts, contactCount) \
     {                                                                                                           \
         switch (worldCollisionResolvePushback((contacts), (pushback), (contactCount), NULL)) {                  \

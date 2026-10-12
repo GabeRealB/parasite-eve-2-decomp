@@ -943,23 +943,28 @@ static void _actor02500ResolveContacts(Task* actor)
     s32                      hitCooldown;
     s32                      soundId;
 
-/// Keeps the strongest body overlap and its room-axis direction.
+/// Keeps the deepest positive body overlap and its Q12 room-axis direction.
 ///
-/// Captures rootCoord, work, scratch, separationNormal, overlap and maxOverlap.
-/// contactIndex is evaluated repeatedly and must be a side-effect-free index
-/// in work->hitContacts. Expands to statements; use as a standalone switch arm.
-#define ACTOR_02500_RETAIN_BODY_OVERLAP(contactIndex)                                                                                 \
-    scratch->delta.vector.vx = rootCoord->workm.t[0] - work->hitContacts[contactIndex].point.vx;                                      \
-    scratch->delta.vector.vy = rootCoord->workm.t[1] - work->hitContacts[contactIndex].point.vy;                                      \
-    scratch->delta.vector.vz = rootCoord->workm.t[2] - work->hitContacts[contactIndex].point.vz;                                      \
-    overlap                  = work->hitContacts[contactIndex].distance -                                                             \
-              SquareRoot0(scratch->delta.vector.vx * scratch->delta.vector.vx + scratch->delta.vector.vy * scratch->delta.vector.vy + \
-                          scratch->delta.vector.vz * scratch->delta.vector.vz);                                                       \
-    overlap = (overlap <= 0) ? 0 : overlap;                                                                                           \
-    if (maxOverlap < overlap) {                                                                                                       \
-        maxOverlap = overlap;                                                                                                         \
-        VectorNormal(&scratch->delta.vector, separationNormal);                                                                       \
-        ApplyTransposeMatrixLV(&gWorldCollisionActiveGrid->viewCoord->workm, separationNormal, &scratch->pushDirection);              \
+/// contactIndex is a side-effect-free index into the three hitContacts. Captures
+/// live rootCoord, work, scratch and separationNormal, plus writable signed-word
+/// overlap and maxOverlap locals. Root workm and contact points must share the
+/// view frame, and the active grid's view transform must be valid. Normalizes
+/// root minus contact only for a strictly greater depth: zero and ties retain
+/// the previous direction. Changes GTE state; invoke within braces.
+#define ACTOR_02500_RETAIN_BODY_OVERLAP(contactIndex)                                                                                     \
+    {                                                                                                                                     \
+        scratch->delta.vector.vx = rootCoord->workm.t[0] - work->hitContacts[(contactIndex)].point.vx;                                    \
+        scratch->delta.vector.vy = rootCoord->workm.t[1] - work->hitContacts[(contactIndex)].point.vy;                                    \
+        scratch->delta.vector.vz = rootCoord->workm.t[2] - work->hitContacts[(contactIndex)].point.vz;                                    \
+        overlap                  = work->hitContacts[(contactIndex)].distance -                                                           \
+                  SquareRoot0(scratch->delta.vector.vx * scratch->delta.vector.vx + scratch->delta.vector.vy * scratch->delta.vector.vy + \
+                              scratch->delta.vector.vz * scratch->delta.vector.vz);                                                       \
+        overlap = (overlap <= 0) ? 0 : overlap;                                                                                           \
+        if (maxOverlap < overlap) {                                                                                                       \
+            maxOverlap = overlap;                                                                                                         \
+            VectorNormal(&scratch->delta.vector, separationNormal);                                                                       \
+            ApplyTransposeMatrixLV(&gWorldCollisionActiveGrid->viewCoord->workm, separationNormal, &scratch->pushDirection);              \
+        }                                                                                                                                 \
     }
 
     maxOverlap       = 0;
@@ -1572,47 +1577,51 @@ static void _actor02500SpawnBurstFragments(Task* actor)
     EffectWork*     pincer2Effect;
     EffectWork*     pincer1Effect;
 
-/// Copies a spawned fragment's placement texture offsets and refreshes both halves.
+/// Binds a detached scorpion fragment to its owner's placement textures.
 ///
-/// Captures actor, location and viewId. fragmentEffect is evaluated repeatedly
-/// and must be a side-effect-free pointer to live effect work or NULL.
-/// A NULL effect skips the lookup. Expands to statements; invoke standalone.
-#define ACTOR_02500_APPLY_FRAGMENT_TEXTURE(fragmentEffect)                                                           \
-    if ((fragmentEffect) != NULL) {                                                                                  \
-        const GameLocationKey* sessionLocation;                                                                      \
-        u32                    placementKey;                                                                         \
-        TmdObject*             fragmentModel;                                                                        \
-        u32                    placementIndex;                                                                       \
-        const AreaPlacement*   placement;                                                                            \
-        sessionLocation = &gGameSession->location.loc;                                                               \
-        placementKey    = ((Enemy*)actor->spawnArg2.pointer)->placeKey;                                              \
-        fragmentModel   = (fragmentEffect)->task->extra.tmd;                                                         \
-        location.stage  = sessionLocation->stage;                                                                    \
-        location.area   = sessionLocation->area;                                                                     \
-        location.room   = sessionLocation->room;                                                                     \
-        viewId          = gGameSession->location.loc.view;                                                           \
-        placementIndex  = placementKey >> ENEMY_PLACE_INDEX_SHIFT;                                                   \
-        location.view   = viewId;                                                                                    \
-        areaSyncLocationVariant(&location);                                                                          \
-        placement                        = AREA_PLACEMENT_AT(areaGetVariant(&location)->placements, placementIndex); \
-        fragmentModel->texturePageOffset = placement->texturePageOffset;                                             \
-        fragmentModel->clutRowOffset     = placement->clutRowOffset;                                                 \
-        if (fragmentModel->buffer != NULL) {                                                                         \
-            tmdBuildBufferHalf(fragmentModel);                                                                       \
-            tmdBuildBufferHalf(fragmentModel);                                                                       \
-        }                                                                                                            \
+/// fragmentEffect is NULL or live EffectWork; NULL skips the lookup. ownerTask
+/// must have a live Enemy in spawnArg2, whose placeKey high nibble selects a
+/// loaded placement in the session's current area variant. locationKey and
+/// viewIndexResult are writable GameLocationKey and u8 lvalues. Stable arguments
+/// are required: effect and both result lvalues occur repeatedly. No caller
+/// locals are captured. Rebuilds both halves of an existing model buffer after
+/// copying texture-page and CLUT-row offsets. Invoke within braces.
+#define ACTOR_02500_APPLY_FRAGMENT_TEXTURE(fragmentEffect, ownerTask, locationKey, viewIndexResult)                       \
+    if ((fragmentEffect) != NULL) {                                                                                       \
+        const GameLocationKey* sessionLocation;                                                                           \
+        u32                    placementKey;                                                                              \
+        TmdObject*             fragmentModel;                                                                             \
+        u32                    placementIndex;                                                                            \
+        const AreaPlacement*   placement;                                                                                 \
+        sessionLocation     = &gGameSession->location.loc;                                                                \
+        placementKey        = ((Enemy*)(ownerTask)->spawnArg2.pointer)->placeKey;                                         \
+        fragmentModel       = (fragmentEffect)->task->extra.tmd;                                                          \
+        (locationKey).stage = sessionLocation->stage;                                                                     \
+        (locationKey).area  = sessionLocation->area;                                                                      \
+        (locationKey).room  = sessionLocation->room;                                                                      \
+        (viewIndexResult)   = gGameSession->location.loc.view;                                                            \
+        placementIndex      = placementKey >> ENEMY_PLACE_INDEX_SHIFT;                                                    \
+        (locationKey).view  = (viewIndexResult);                                                                          \
+        areaSyncLocationVariant(&(locationKey));                                                                          \
+        placement                        = AREA_PLACEMENT_AT(areaGetVariant(&(locationKey))->placements, placementIndex); \
+        fragmentModel->texturePageOffset = placement->texturePageOffset;                                                  \
+        fragmentModel->clutRowOffset     = placement->clutRowOffset;                                                      \
+        if (fragmentModel->buffer != NULL) {                                                                              \
+            tmdBuildBufferHalf(fragmentModel);                                                                            \
+            tmdBuildBufferHalf(fragmentModel);                                                                            \
+        }                                                                                                                 \
     }
 
     // Each descriptor payload is consumed by the following model allocation.
     gTaskBank4Descs[TASK_BANK4_BURST_MODEL_PART_SLOT].data.model = &_gActor02500ScorpionBurstHead;
     headEffect                                                   = effectSpawn(EFFECT_BURST_BODY_PART_BANK4, &actor->extra.tmd->coords[ACTOR_02500_BURST_ANCHOR_COORD], ACTOR_02500_BURST_EFFECT_ARGUMENT, NULL);
-    ACTOR_02500_APPLY_FRAGMENT_TEXTURE(headEffect);
+    ACTOR_02500_APPLY_FRAGMENT_TEXTURE(headEffect, actor, location, viewId);
     gTaskBank4Descs[TASK_BANK4_BURST_MODEL_PART_SLOT].data.model = &_gActor02500ScorpionBurstPincer2;
     pincer2Effect                                                = effectSpawn(EFFECT_BURST_BODY_PART_BANK4, &actor->extra.tmd->coords[ACTOR_02500_BURST_ANCHOR_COORD], ACTOR_02500_BURST_EFFECT_ARGUMENT, NULL);
-    ACTOR_02500_APPLY_FRAGMENT_TEXTURE(pincer2Effect);
+    ACTOR_02500_APPLY_FRAGMENT_TEXTURE(pincer2Effect, actor, location, viewId);
     gTaskBank4Descs[TASK_BANK4_BURST_MODEL_PART_SLOT].data.model = &_gActor02500ScorpionBurstPincer1;
     pincer1Effect                                                = effectSpawn(EFFECT_BURST_BODY_PART_BANK4, &actor->extra.tmd->coords[ACTOR_02500_BURST_ANCHOR_COORD], ACTOR_02500_BURST_EFFECT_ARGUMENT, NULL);
-    ACTOR_02500_APPLY_FRAGMENT_TEXTURE(pincer1Effect);
+    ACTOR_02500_APPLY_FRAGMENT_TEXTURE(pincer1Effect, actor, location, viewId);
 
 #undef ACTOR_02500_APPLY_FRAGMENT_TEXTURE
 }

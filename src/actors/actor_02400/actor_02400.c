@@ -547,16 +547,20 @@ static void _actor02400InitBody(Enemy* enemy, Task* task)
 /// A kill selects death for the next task tick; this call keeps processing.
 static void _actor02400ResolveBodyContacts(Task* task)
 {
-    /// Writes the selected attack actor's local displacement for the damage roll.
-    ///
-    /// Captures work, contactIndex, attackerCoord, rootCoord and scratch; their
-    /// selected task and coordinates must be live in the same parent frame.
-#define ACTOR_02400_GET_ATTACK_DELTA()                                                                                                                       \
-    {                                                                                                                                                        \
-        attackerCoord            = gPlayerActorTasks[(work->bodyContacts[contactIndex].key.value >> ACTOR_02400_ATTACK_OWNER_SHIFT) & 1]->extra.tmd->coords; \
-        scratch->delta.vector.vx = attackerCoord->coord.t[0] - rootCoord->coord.t[0];                                                                        \
-        scratch->delta.vector.vy = attackerCoord->coord.t[1] - rootCoord->coord.t[1];                                                                        \
-        scratch->delta.vector.vz = attackerCoord->coord.t[2] - rootCoord->coord.t[2];                                                                        \
+/// Writes the attacking player or companion's displacement from the amoeba root.
+///
+/// attackKey bit 7 selects one of the two live gPlayerActorTasks. bodyCoord and
+/// the selected root must share a parent frame; neither is composed here.
+/// attackerCoordResult is a writable GfxCoord* lvalue, and delta a writable
+/// VECTOR pointer. XYZ differences retain full signed-word coordinate arithmetic.
+/// Arguments occur repeatedly and must be side-effect-free. Captures the local
+/// ACTOR_02400_ATTACK_OWNER_SHIFT. Invoke within a braced statement body.
+#define ACTOR_02400_GET_ATTACK_DELTA(attackKey, bodyCoord, attackerCoordResult, delta)                                     \
+    {                                                                                                                      \
+        (attackerCoordResult) = gPlayerActorTasks[((attackKey) >> ACTOR_02400_ATTACK_OWNER_SHIFT) & 1]->extra.tmd->coords; \
+        (delta)->vx           = (attackerCoordResult)->coord.t[0] - (bodyCoord)->coord.t[0];                               \
+        (delta)->vy           = (attackerCoordResult)->coord.t[1] - (bodyCoord)->coord.t[1];                               \
+        (delta)->vz           = (attackerCoordResult)->coord.t[2] - (bodyCoord)->coord.t[2];                               \
     }
 
     enum {
@@ -650,7 +654,7 @@ static void _actor02400ResolveBodyContacts(Task* task)
                 switch (hitResponse) {
                     case ACTOR_02400_HIT_STAGGER:
                         // Takes no HP: the roll adds to the stagger total, which stuns once it reaches 20.
-                        ACTOR_02400_GET_ATTACK_DELTA();
+                        ACTOR_02400_GET_ATTACK_DELTA(work->bodyContacts[contactIndex].key.value, rootCoord, attackerCoord, &scratch->delta.vector);
                         work->staggerDamage += damageComputePlayerAttack(work->bodyContacts[contactIndex].key.value, SquareRoot0(scratch->delta.vector.vx * scratch->delta.vector.vx + scratch->delta.vector.vy * scratch->delta.vector.vy + scratch->delta.vector.vz * scratch->delta.vector.vz), 0, 0);
                         if (work->staggerDamage >= ACTOR_02400_STAGGER_LIMIT || work->mode == ACTOR_02400_MODE_STUNNED) {
                             work->mode          = ACTOR_02400_MODE_STUNNED;
@@ -668,7 +672,7 @@ static void _actor02400ResolveBodyContacts(Task* task)
                         work->armOut   = 0;
                         break;
                     case ACTOR_02400_HIT_NORMAL:
-                        ACTOR_02400_GET_ATTACK_DELTA();
+                        ACTOR_02400_GET_ATTACK_DELTA(work->bodyContacts[contactIndex].key.value, rootCoord, attackerCoord, &scratch->delta.vector);
                         damage         = damageComputePlayerAttack(work->bodyContacts[contactIndex].key.value, SquareRoot0(scratch->delta.vector.vx * scratch->delta.vector.vx + scratch->delta.vector.vy * scratch->delta.vector.vy + scratch->delta.vector.vz * scratch->delta.vector.vz), 0, 0);
                         work->mode     = ACTOR_02400_MODE_HURT;
                         work->phase    = 0;
@@ -683,7 +687,7 @@ static void _actor02400ResolveBodyContacts(Task* task)
                         }
                         break;
                     case ACTOR_02400_HIT_AMPLIFIED:
-                        ACTOR_02400_GET_ATTACK_DELTA();
+                        ACTOR_02400_GET_ATTACK_DELTA(work->bodyContacts[contactIndex].key.value, rootCoord, attackerCoord, &scratch->delta.vector);
                         damage         = (s16)damageComputePlayerAttack(work->bodyContacts[contactIndex].key.value, SquareRoot0(scratch->delta.vector.vx * scratch->delta.vector.vx + scratch->delta.vector.vy * scratch->delta.vector.vy + scratch->delta.vector.vz * scratch->delta.vector.vz), 0, 0) * 5;
                         work->mode     = ACTOR_02400_MODE_HURT;
                         work->phase    = 0;

@@ -112,9 +112,6 @@ STATIC_ASSERT_SIZEOF(_Actor00400GroundStainWork, 0x28);
 /// Vertical speed the shot leaves with; negative is up.
 #define ACTOR_00400_SHOT_LAUNCH_SPEED_Y (-0x14)
 
-/// Added to the shot's vertical speed every frame.
-#define ACTOR_00400_SHOT_GRAVITY 2
-
 /// Frame count at which a shot still flying bursts by itself.
 #define ACTOR_00400_SHOT_LIFETIME 0x3D
 
@@ -1868,22 +1865,23 @@ static void _actor00400UpdateStrandedLook(Task* task, s32 lookDisabled)
     gfxSetRotIdentity(&headYawRotation);
 
     RotMatrixY((s16)work->lookYaw / ACTOR_00400_LOOK_JOINT_COUNT, &headYawRotation);
-    /// Converts a desired head basis into the trunk and neck's local frame.
-    ///
-    /// Each argument is a live MATRIX pointer evaluated once in statement order.
-    /// Captures the three separate writable inverse*Rotation matrices declared
-    /// above; they must not alias any argument. Transposes the Q12 trunk and
-    /// neck bases, then multiplies them in that order and copies nine resulting
-    /// coefficients, preserving head translation. An inverse requires
-    /// orthonormal inputs. Expands as statements in this block; changes GTE state.
+/// Converts a desired head yaw to a basis relative to the trunk and both neck joints.
+///
+/// Requires orthonormal Q12 MATRIX inputs and three disjoint writable captured
+/// matrices: inverseTrunkRotation, inverseLowerNeckRotation and
+/// inverseUpperNeckRotation. Arguments are evaluated once, in statement order.
+/// Copies only the nine head coefficients; translation and composition stamps
+/// are unchanged. Overwrites GTE state. Invoke within a braced statement body.
 #define ACTOR_00400_LOCALIZE_HEAD_YAW(trunkRotation, lowerRotation, upperRotation, desiredRotation, headRotation) \
-    TransposeMatrix((trunkRotation), &inverseTrunkRotation);                                                      \
-    TransposeMatrix((lowerRotation), &inverseLowerNeckRotation);                                                  \
-    TransposeMatrix((upperRotation), &inverseUpperNeckRotation);                                                  \
-    MulMatrix(&inverseTrunkRotation, &inverseLowerNeckRotation);                                                  \
-    MulMatrix(&inverseTrunkRotation, &inverseUpperNeckRotation);                                                  \
-    MulMatrix(&inverseTrunkRotation, (desiredRotation));                                                          \
-    _actor00400CopyRotation(&inverseTrunkRotation, (headRotation));
+    {                                                                                                             \
+        TransposeMatrix((trunkRotation), &inverseTrunkRotation);                                                  \
+        TransposeMatrix((lowerRotation), &inverseLowerNeckRotation);                                              \
+        TransposeMatrix((upperRotation), &inverseUpperNeckRotation);                                              \
+        MulMatrix(&inverseTrunkRotation, &inverseLowerNeckRotation);                                              \
+        MulMatrix(&inverseTrunkRotation, &inverseUpperNeckRotation);                                              \
+        MulMatrix(&inverseTrunkRotation, (desiredRotation));                                                      \
+        _actor00400CopyRotation(&inverseTrunkRotation, (headRotation));                                           \
+    }
 
     ACTOR_00400_LOCALIZE_HEAD_YAW(&trunkCoord->coord, lowerNeckRotation, upperNeckRotation,
                                   &headYawRotation, &headCoord->coord);
@@ -2499,6 +2497,9 @@ static void _actor00400UpdateNeckRetraction(Task* task, s32 unusedNeckRetracted)
 /// The caller owns composition invalidation, contact tests and lifetime expiry.
 static inline void _actor00400AdvanceShotFlight(_Actor00400ShotWork* work, GfxCoord* rootCoord)
 {
+    /// Downward acceleration in root-parent units per running tick squared.
+    enum { ACTOR_00400_SHOT_GRAVITY = 2 };
+
     work->frames          += 1;
     work->velocity.vy     += ACTOR_00400_SHOT_GRAVITY;
     rootCoord->coord.t[0] += work->velocity.vx;

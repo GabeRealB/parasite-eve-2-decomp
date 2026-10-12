@@ -2651,12 +2651,14 @@ static void _actor07000SlouchFlatten(Task* task)
 /// and leaves its translation intact.
 static void _actor07000SlouchStretch(Task* task)
 {
-    /// Scales one local rotation column by a signed 12-fractional-bit stretch.
-    ///
-    /// `column` must be a compile-time constant in 0..2. `matrix` is evaluated
-    /// twice and `columnVector` four times: supply stable live pointers with no
-    /// side effects. `scaleDelta` is evaluated once after reading the column;
-    /// 4096 is unity. Translation and composition stamps stay unchanged.
+/// Scales one Slouch part basis column by ONE plus its signed Q12 stretch.
+///
+/// column is a compile-time constant in 0..2. matrix and columnVector are
+/// stable pointers to disjoint, halfword-aligned MATRIX and SVECTOR storage;
+/// they occur twice and four times respectively. scaleDelta is evaluated once
+/// after reading the column. The low signed halfword of scaleDelta + ONE is the
+/// factor; GTE products shift by 12 and saturate to signed halfwords. Leaves
+/// translation, stamps and vector pad untouched; overwrites GTE arithmetic state.
 #define ACTOR_07000_SLOUCH_SCALE_PART_COLUMN(matrix, column, scaleDelta, columnVector) \
     do {                                                                               \
         gte_ReadMatrixColumn((matrix), (column), (columnVector));                      \

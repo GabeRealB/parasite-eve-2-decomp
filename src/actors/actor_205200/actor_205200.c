@@ -723,9 +723,16 @@ static void _actor205200ScanPartHits(Task* task, s32 unusedArg)
     s32               hitCooldown;
     s32               sparkDamage;
 
-    // Marks destruction now; the down handler later unlinks and releases the battle hold.
-    // Arguments are evaluated repeatedly: use side-effect-free pointers and a writable s32 soundResult.
-    // Captures the local effect/rumble constants above; scoped to this function and undefined below.
+/// Marks an electric-generator part destroyed and emits its explosion, sound and rumble.
+///
+/// Requires matching live Enemy, part Task/work/coordinate, and a controller
+/// parent whose work owns the three slot entries; partWork->slot is in 0..2.
+/// Clears controller liveness and coordinate before spawning three drift-1 and
+/// two drift-2 explosions. Failure of an effect does not suppress later cues.
+/// The destroyed down state owns later unlinking and release of the battle hold;
+/// this operation frees nothing. Arguments occur repeatedly and must be stable,
+/// side-effect-free pointers plus a writable s32 soundResult lvalue. Captures the
+/// local state/effect/sound/rumble constants. Invoke within braces.
 #define ACTOR_205200_DESTROY_PART(enemyRecord, partTask, partWork, partCoord, soundResult)                                                                      \
     {                                                                                                                                                           \
         (partTask)->state                                                               = ACTOR_205200_PART_TASK_DOWN;                                          \

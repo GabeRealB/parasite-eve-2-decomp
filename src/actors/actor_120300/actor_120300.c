@@ -1684,25 +1684,6 @@ static inline void _actor120300ResetPlayerAnimation(Task* task, u16 animationId)
     }
 }
 
-/// Sends an equipped-weapon playback request, with world collision disabled.
-///
-/// All arguments are evaluated once. The bank selector depends on the current
-/// weapon and save character; `frames` is a whole-frame blend duration.
-/// Dispatch consumes the block-local request synchronously.
-#define ACTOR_120300_PLAY_PLAYER_WEAPON_ANIMATION(target, blendChoice, frames)                                                       \
-    {                                                                                                                                \
-        AnimationPlayRequest request;                                                                                                \
-        s32                  weaponId;                                                                                               \
-                                                                                                                                     \
-        weaponId                     = gPlayerStatus.weapon;                                                                         \
-        request.source.index         = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22; \
-        request.animationId          = 1;                                                                                            \
-        request.blend                = (blendChoice);                                                                                \
-        request.blendFrames          = (frames);                                                                                     \
-        request.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;                                                            \
-        TASK_MESSAGE_DISPATCH_POINTER((target), ANIMATION_MESSAGE_PLAY, &request, 0);                                                \
-    }
-
 /// Computes the garage scene's relative player aiming yaw toward this actor.
 ///
 /// Returns 4096 angle units per turn for the player's part-4 yaw. Both live
@@ -1735,6 +1716,33 @@ static inline s16 _actor120300GetPlayerAimYaw(const GfxCoord* actorCoord, const 
 /// The other numbered beats are defined by the scripts and animation data.
 static void _actor120300RunPlayerRequest(Task* task)
 {
+/// Restores equipped-weapon clip 1 with world collision disabled.
+///
+/// Requires a live player target and its loaded weapon package. Character 1 and
+/// weapon ids 0..32 select banks 1..33; the retained alternate +34 selector has
+/// no established backing in the current bank table. blendChoice is reset or
+/// interpolate; frames is 0..2047 whole normal-rate frames when interpolating.
+/// Arguments are evaluated once in request-fill/dispatch order. Every expansion
+/// owns a separate stack request, borrowed synchronously by dispatch. Invoke
+/// within braces; captures the current saved character and equipped weapon.
+#define ACTOR_120300_PLAY_PLAYER_WEAPON_ANIMATION(target, blendChoice, frames)                                                                                                                                                                  \
+    {                                                                                                                                                                                                                                           \
+        AnimationPlayRequest request;                                                                                                                                                                                                           \
+        s32                  weaponId;                                                                                                                                                                                                          \
+        enum { ACTOR_120300_WEAPON_PRIMARY_CHARACTER   = 1,                                                                                                                                                                                     \
+               ACTOR_120300_WEAPON_PRIMARY_BANK_BASE   = 1,                                                                                                                                                                                     \
+               ACTOR_120300_WEAPON_ALTERNATE_BANK_BASE = 34,                                                                                                                                                                                    \
+               ACTOR_120300_WEAPON_ANIMATION           = 1 };                                                                                                                                                                                             \
+                                                                                                                                                                                                                                                \
+        weaponId                     = gPlayerStatus.weapon;                                                                                                                                                                                    \
+        request.source.index         = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == ACTOR_120300_WEAPON_PRIMARY_CHARACTER) ? weaponId + ACTOR_120300_WEAPON_PRIMARY_BANK_BASE : weaponId + ACTOR_120300_WEAPON_ALTERNATE_BANK_BASE; \
+        request.animationId          = ACTOR_120300_WEAPON_ANIMATION;                                                                                                                                                                           \
+        request.blend                = (blendChoice);                                                                                                                                                                                           \
+        request.blendFrames          = (frames);                                                                                                                                                                                                \
+        request.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;                                                                                                                                                                       \
+        TASK_MESSAGE_DISPATCH_POINTER((target), ANIMATION_MESSAGE_PLAY, &request, 0);                                                                                                                                                           \
+    }
+
     enum {
         PLAYER_ANIMATION_DELAY_TICKS = 16,
         PLAYER_AIM_STEP              = 48, // Angle units per update, 4096 units per turn.
@@ -1896,6 +1904,7 @@ static void _actor120300RunPlayerRequest(Task* task)
     }
     work->playerRequest = ACTOR_120300_PLAYER_REQUEST_NONE;
 }
+#undef ACTOR_120300_PLAY_PLAYER_WEAPON_ANIMATION
 
 /// Cross-fades body slots 1..19 of `work`'s animation context to animation
 /// `id` over `frames` frames.

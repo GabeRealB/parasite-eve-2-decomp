@@ -498,19 +498,23 @@ static void _actor303600DispatchCutsceneCue(Task* task)
     _Actor303600CutsceneWork* publishedWork;
     ActorCommand              request;
 
-    /// Broadcasts an actor cue and latches it after synchronous message dispatch.
-    ///
-    /// Scoped to this dispatcher. cue must be a side-effect-free cue constant
-    /// (1..5), evaluated twice. Captures writable request/publishedWork locals,
-    /// the current stage/area and the live published controller. Only stage,
-    /// area and command are initialized because the actor receivers read those.
-#define ACTOR_303600_BROADCAST_ACTOR_CUE(cue)                                                                                                       \
-    publishedWork             = _gActor303600CutsceneControllerTask->work;                                                                          \
-    request.context.loc.stage = gGameSession->location.loc.stage;                                                                                   \
-    request.context.loc.area  = gGameSession->location.loc.area;                                                                                    \
-    request.command           = (cue);                                                                                                              \
-    TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &request, ACTOR_COMMAND_MESSAGE_APPLY); \
-    publishedWork->lastActorCommand = (cue);
+/// Broadcasts a scene actor cue, then records the cue on the published controller.
+///
+/// cue is a side-effect-free command constant in 1..5, evaluated twice. Captures
+/// the live _gActor303600CutsceneControllerTask, writable publishedWork and
+/// ActorCommand request locals, plus the session's current stage/area. Only stage,
+/// area and command are initialized; these scene receivers must not read the
+/// remaining context bytes. Dispatch borrows request synchronously. The cached
+/// controller work receives lastActorCommand after dispatch. Invoke within braces.
+#define ACTOR_303600_BROADCAST_ACTOR_CUE(cue)                                                                                                           \
+    {                                                                                                                                                   \
+        publishedWork             = _gActor303600CutsceneControllerTask->work;                                                                          \
+        request.context.loc.stage = gGameSession->location.loc.stage;                                                                                   \
+        request.context.loc.area  = gGameSession->location.loc.area;                                                                                    \
+        request.command           = (cue);                                                                                                              \
+        TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &request, ACTOR_COMMAND_MESSAGE_APPLY); \
+        publishedWork->lastActorCommand = (cue);                                                                                                        \
+    }
 
     switch (work->command) {
         case ACTOR_303600_CUTSCENE_CUE_NONE:

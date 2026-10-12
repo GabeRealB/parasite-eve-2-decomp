@@ -1582,13 +1582,15 @@ static void _actor160900UpdatePlayerCue(Task* task)
     s32                       animationBankIndex;
     s32                       weaponId;
 
-    /// Reloads cutscene work, restarts a clip immediately and resets its hold.
-    ///
-    /// task is a live Task pointer, clipId a valid u16 player-clip id, cueWork a
-    /// writable work-pointer local and request a writable AnimationPlayRequest
-    /// lvalue. Arguments must be stable locals/constants without side effects;
-    /// cueWork, clipId and request are evaluated repeatedly. The request is
-    /// borrowed synchronously, and the package's loaded sets through playback.
+/// Restarts a player scene clip with collision enabled and clears its chain hold.
+///
+/// Reloads task->work into the writable cueWork pointer before checking player.
+/// Requires live cutscene work and loaded player sets. clipId selects a valid
+/// u16 clip; request is a writable AnimationPlayRequest lvalue borrowed only for
+/// synchronous dispatch, while the player borrows the set table during playback.
+/// Stable side-effect-free arguments are required: cueWork, clipId and request
+/// occur repeatedly. An absent player leaves the request and clip/hold unchanged.
+/// The hold is cleared after dispatch; overwrites no caller locals implicitly.
 #define ACTOR_160900_RESET_PLAYER_CUE_CLIP(task, clipId, cueWork, request)                                       \
     do {                                                                                                         \
         (cueWork) = (task)->work;                                                                                \

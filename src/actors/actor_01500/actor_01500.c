@@ -1775,13 +1775,16 @@ static void _actor01500SpawnBurstParts(Task* actor)
     enum { ACTOR_01500_BURST_PUFF_SIZE = 256 };
     GameLocationKey location;
 
-    /// Spawns one bank-4 part and applies the owner's current placement textures.
-    ///
-    /// Actor/source arguments must be stable, side-effect-free expressions, and
-    /// locationKey a writable GameLocationKey lvalue; actor/key are used repeatedly.
-    /// Each invocation has private locals and rebinds the descriptor before spawn.
-    /// Uses ACTOR_01500_BURST_PUFF_SIZE from this function and the live session.
-    /// Expands to a standalone statement block; it retains no local pointers.
+/// Spawns one detached Mind Suckler part with the owner's area-placement textures.
+///
+/// Requires a live actor model with coordinate 1, an Enemy spawn argument and a
+/// loaded placement selected by its placeKey high nibble. source is a borrowed
+/// TmdSource pointer; the bank-4 descriptor is rebound before each synchronous
+/// spawn. Failure skips only this part. Successful effects own their model and
+/// buffers, and both buffer halves are rebuilt after texture offsets change.
+/// actor and writable GameLocationKey locationKey occur repeatedly and must be
+/// side-effect-free; source is evaluated once. Captures the live session and the
+/// local ACTOR_01500_BURST_PUFF_SIZE. Invoke within a braced statement body.
 #define ACTOR_01500_SPAWN_BURST_PART(actor, source, locationKey)                                                                                                                     \
     {                                                                                                                                                                                \
         u8               viewIndex;                                                                                                                                                  \

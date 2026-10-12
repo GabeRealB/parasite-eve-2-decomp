@@ -1811,28 +1811,6 @@ static void _actor136100UpdateAfterBurnerPlayerRequest(Task* task)
     work->playerRequest = ACTOR_136100_REQUEST_NONE;
 }
 
-/// Installs the linked actor's animation table and requests a blended clip.
-///
-/// `record` is accessed repeatedly and must be a side-effect-free request
-/// lvalue. `anim` is evaluated twice and must be side-effect-free; `task` is
-/// evaluated once. Dispatch consumes the request synchronously.
-/// A null linked task suppresses evaluation of the clip and record arguments.
-/// Per-expansion work pointers preserve the original call scheduling.
-#define ACTOR_136100_PLAY_LINKED_ANIMATION(task, anim, blendChoice, frames, record)                                   \
-    {                                                                                                                 \
-        _Actor136100Work* animWork = (task)->work;                                                                    \
-                                                                                                                      \
-        if (animWork->companionTask != NULL) {                                                                        \
-            (record).source.sets          = _gActor136100CompanionAnimationSets;                                      \
-            animWork->companionAnimation  = anim;                                                                     \
-            (record).animationId          = anim;                                                                     \
-            (record).blend                = (blendChoice);                                                            \
-            (record).blendFrames          = (frames);                                                                 \
-            (record).enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;                                        \
-            TASK_MESSAGE_DISPATCH_POINTER(animWork->companionTask, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &(record), 0); \
-        }                                                                                                             \
-    }
-
 /// Record `id` as the work block's current animation (`bodyAnimation`).
 #define _actor136100SetAnimId(work, id) \
     do {                                \
@@ -1886,6 +1864,31 @@ static inline void _actor136100ResetBodyTracks(Task* task, s32 setIndex)
 /// untouched. Player and companion messages consume stack requests synchronously.
 static void _actor136100UpdateAfterBurnerBodyRequest(Task* task)
 {
+/// Installs the scene companion's animation sets and plays a selected clip.
+///
+/// Reloads _Actor136100Work from the live task once. A NULL companionTask
+/// suppresses the remaining argument evaluations. Otherwise clipId is a valid
+/// clip in 0..5 and is evaluated twice; record is caller-owned writable
+/// AnimationPlayRequest storage used repeatedly. All must be side-effect-free.
+/// blendChoice selects reset or interpolation over frames normal-rate frames;
+/// frames is 0..2047 when blending. Caches the companion selection, disables
+/// world collision and dispatches synchronously. The companion borrows the
+/// loaded set table throughout playback. Invoke within braces.
+#define ACTOR_136100_PLAY_COMPANION_ANIMATION(task, clipId, blendChoice, frames, record)                              \
+    {                                                                                                                 \
+        _Actor136100Work* animWork = (task)->work;                                                                    \
+                                                                                                                      \
+        if (animWork->companionTask != NULL) {                                                                        \
+            (record).source.sets          = _gActor136100CompanionAnimationSets;                                      \
+            animWork->companionAnimation  = (clipId);                                                                 \
+            (record).animationId          = (clipId);                                                                 \
+            (record).blend                = (blendChoice);                                                            \
+            (record).blendFrames          = (frames);                                                                 \
+            (record).enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;                                        \
+            TASK_MESSAGE_DISPATCH_POINTER(animWork->companionTask, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &(record), 0); \
+        }                                                                                                             \
+    }
+
     enum { BEGIN_REQUEST                   = 0,
            WAIT_FOR_CUE                    = 1,
            COMPANION_CUE_FRAMES            = 61,
@@ -1913,7 +1916,7 @@ static void _actor136100UpdateAfterBurnerBodyRequest(Task* task)
                     if (++work->bodyRequestFrames < COMPANION_CUE_FRAMES) {
                         return;
                     }
-                    ACTOR_136100_PLAY_LINKED_ANIMATION(task, 3, ANIMATION_BLEND_INTERPOLATE, ACTOR_136100_ANIMATION_BLEND_FRAMES, request);
+                    ACTOR_136100_PLAY_COMPANION_ANIMATION(task, 3, ANIMATION_BLEND_INTERPOLATE, ACTOR_136100_ANIMATION_BLEND_FRAMES, request);
                     break;
                 default:
                     return;
@@ -1934,7 +1937,7 @@ static void _actor136100UpdateAfterBurnerBodyRequest(Task* task)
                         return;
                     }
                     ACTOR_136100_PLAY_PLAYER_WEAPON_ANIMATION(task, ANIMATION_BANK_BASE_SET_COUNT + 1, ANIMATION_BLEND_INTERPOLATE, ACTOR_136100_ANIMATION_BLEND_FRAMES, request);
-                    ACTOR_136100_PLAY_LINKED_ANIMATION(task, 4, ANIMATION_BLEND_INTERPOLATE, ACTOR_136100_ANIMATION_BLEND_FRAMES, request);
+                    ACTOR_136100_PLAY_COMPANION_ANIMATION(task, 4, ANIMATION_BLEND_INTERPOLATE, ACTOR_136100_ANIMATION_BLEND_FRAMES, request);
                     break;
                 default:
                     return;
@@ -1969,6 +1972,7 @@ static void _actor136100UpdateAfterBurnerBodyRequest(Task* task)
     }
     work->bodyRequest = ACTOR_136100_REQUEST_NONE;
 }
+#undef ACTOR_136100_PLAY_COMPANION_ANIMATION
 
 /// Installs the scene's companion sets and starts the selected animation.
 ///

@@ -148709,7 +148709,7 @@ BARRIER, and a `NOTE_INSN_LOOP_END` counts. Writing the three preceding
 `case 0:` tails as `do { [counter = 0;] step++; return; } while (0);` puts
 that note between the BARRIER and the label; with it the two
 `BlendSlotsFirst` calls become the existing `_actor560800BlendCastAnimation`, the
-hand-expanded loop becomes `_ACTOR560800_BLEND_SLOTS(blend, 0x20, 5)`, and the
+hand-expanded loop becomes `ACTOR_560800_BLEND_CAST_SLOTS(blend, 0x20, 5)`, and the
 image matches (scoped build). It was not committed: it trades four counted
 sites for three phony loops, and the wrapper is not a uniform macro - of the
 six other `step++; return;` tails in the function three accept it and three
@@ -152882,7 +152882,7 @@ The branch is `beqz work` (no compare insn), survives to sched2, and jump2
 cross-jumps the arms and deletes it; nothing is left in the image. With it the
 natural loop matches, `Actor560800_BlendSlotsFirst` is the existing
 `_actor560800BlendCastAnimation`, and the hand-expanded site is
-`_actor560800ResetAnimHold(blend); _ACTOR560800_BLEND_SLOTS(blend, 0x20, 5);`.
+`_actor560800ResetAnimHold(blend); ACTOR_560800_BLEND_CAST_SLOTS(blend, 0x20, 5);`.
 The whole TU's `.text` is unchanged, including the other callers of
 `_actor560800BlendCastAnimation`.
 

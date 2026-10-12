@@ -314,35 +314,6 @@ static inline void _actor311500SpawnHitEffect(Task* task);
 static s32         _actor311500TickHitReaction(Task* actorTask);
 static s32         _actor311500TickDeath(Task* actorTask);
 
-/// Installs all nine Q12 root coefficients and invalidates composition.
-///
-/// `rootCoord` and the MATRIX value `rotation` must be side-effect-free locals;
-/// `matrixElement` is a caller-owned u16 temporary. Arguments are repeated.
-/// Translation is retained; the dirty stamp precedes the final halfword store.
-/// Use as a standalone block, not as an unbraced if/else arm.
-#define ACTOR_311500_INSTALL_ROOT_ROTATION(rootCoord, rotation, matrixElement) \
-    {                                                                          \
-        (matrixElement)            = (u16)(rotation).m[0][0];                  \
-        (rootCoord)->coord.m[0][0] = (matrixElement);                          \
-        (matrixElement)            = (u16)(rotation).m[0][1];                  \
-        (rootCoord)->coord.m[0][1] = (matrixElement);                          \
-        (matrixElement)            = (u16)(rotation).m[0][2];                  \
-        (rootCoord)->coord.m[0][2] = (matrixElement);                          \
-        (matrixElement)            = (u16)(rotation).m[1][0];                  \
-        (rootCoord)->coord.m[1][0] = (matrixElement);                          \
-        (matrixElement)            = (u16)(rotation).m[1][1];                  \
-        (rootCoord)->coord.m[1][1] = (matrixElement);                          \
-        (matrixElement)            = (u16)(rotation).m[1][2];                  \
-        (rootCoord)->coord.m[1][2] = (matrixElement);                          \
-        (matrixElement)            = (u16)(rotation).m[2][0];                  \
-        (rootCoord)->coord.m[2][0] = (matrixElement);                          \
-        (matrixElement)            = (u16)(rotation).m[2][1];                  \
-        (rootCoord)->coord.m[2][1] = (matrixElement);                          \
-        (matrixElement)            = (u16)(rotation).m[2][2];                  \
-        (rootCoord)->composeStamp  = GRAPHICS_COORD_DIRTY;                     \
-        (rootCoord)->coord.m[2][2] = (matrixElement);                          \
-    }
-
 #include "../../shared/actor_contacts_find_push.inc.c"
 
 #include "../../shared/actor_contacts_steer.inc.c"
@@ -639,6 +610,37 @@ static s32 _actor311500TickHitReaction(Task* actorTask)
 /// scale. Returns 1 at burn tick 260, otherwise 0; the task stays allocated.
 static s32 _actor311500TickDeath(Task* actorTask)
 {
+/// Installs the corpse root's nine scaled Q12 basis coefficients.
+///
+/// Requires a live writable GfxCoord rootCoord, a readable MATRIX rotation
+/// lvalue and a writable u16 matrixElement temporary. All occur repeatedly and
+/// must be side-effect-free. Each source halfword passes through the unsigned
+/// temporary before the signed matrix store, preserving its bits. Translation
+/// is retained; composition becomes dirty before the last coefficient is stored.
+/// Invoke within a braced statement body.
+#define ACTOR_311500_INSTALL_ROOT_ROTATION(rootCoord, rotation, matrixElement) \
+    {                                                                          \
+        (matrixElement)            = (u16)(rotation).m[0][0];                  \
+        (rootCoord)->coord.m[0][0] = (matrixElement);                          \
+        (matrixElement)            = (u16)(rotation).m[0][1];                  \
+        (rootCoord)->coord.m[0][1] = (matrixElement);                          \
+        (matrixElement)            = (u16)(rotation).m[0][2];                  \
+        (rootCoord)->coord.m[0][2] = (matrixElement);                          \
+        (matrixElement)            = (u16)(rotation).m[1][0];                  \
+        (rootCoord)->coord.m[1][0] = (matrixElement);                          \
+        (matrixElement)            = (u16)(rotation).m[1][1];                  \
+        (rootCoord)->coord.m[1][1] = (matrixElement);                          \
+        (matrixElement)            = (u16)(rotation).m[1][2];                  \
+        (rootCoord)->coord.m[1][2] = (matrixElement);                          \
+        (matrixElement)            = (u16)(rotation).m[2][0];                  \
+        (rootCoord)->coord.m[2][0] = (matrixElement);                          \
+        (matrixElement)            = (u16)(rotation).m[2][1];                  \
+        (rootCoord)->coord.m[2][1] = (matrixElement);                          \
+        (matrixElement)            = (u16)(rotation).m[2][2];                  \
+        (rootCoord)->composeStamp  = GRAPHICS_COORD_DIRTY;                     \
+        (rootCoord)->coord.m[2][2] = (matrixElement);                          \
+    }
+
     enum {
         ACTOR_311500_DEATH_BURN_FRAME        = 10,
         ACTOR_311500_DEATH_BLACK_FRAME       = 22,
@@ -726,6 +728,7 @@ static s32 _actor311500TickDeath(Task* actorTask)
     }
     return 0;
 }
+#undef ACTOR_311500_INSTALL_ROOT_ROTATION
 
 /// Composes the body coordinate and refreshes lighting from the root's cached view position.
 ///

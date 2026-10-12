@@ -275,16 +275,20 @@ static void _actor202900SpawnBody(Enemy* enemy, Task* task)
     GfxCoord*  rootCoord;
     TmdObject* model;
 
-    /// Samples all three lights 800 world units above the composed root.
-    ///
-    /// Scoped to spawn; captures model, rootCoord and writable lightPosition.
-    /// The model borrows writable matrices. Only XYZ are consumed; no pointer
-    /// survives the synchronous lighting query. Evaluates no macro arguments.
-#define ACTOR_202900_RELIGHT_SPAWN_MODEL()                                             \
-    lightPosition.vx = rootCoord->workm.t[0];                                          \
-    lightPosition.vy = rootCoord->workm.t[1] - ACTOR_202900_SPAWN_LIGHT_SAMPLE_HEIGHT; \
-    lightPosition.vz = rootCoord->workm.t[2];                                          \
-    worldCoordSetModelLighting(model, &lightPosition, 0, ARRAY_SIZE(model->lightMtx->m));
+/// Samples all three model lights from cached root XYZ with Y decreased by 800.
+///
+/// Captures live model/rootCoord, writable VECTOR lightPosition and the local
+/// ACTOR_202900_SPAWN_LIGHT_SAMPLE_HEIGHT. Does not compose the root or refresh
+/// workm; XYZ must already be suitable for the lighting query. The model borrows
+/// work-owned writable light/color matrices until teardown. Only sample XYZ are
+/// consumed, synchronously. Invoke within a braced statement body.
+#define ACTOR_202900_RELIGHT_SPAWN_MODEL()                                                    \
+    {                                                                                         \
+        lightPosition.vx = rootCoord->workm.t[0];                                             \
+        lightPosition.vy = rootCoord->workm.t[1] - ACTOR_202900_SPAWN_LIGHT_SAMPLE_HEIGHT;    \
+        lightPosition.vz = rootCoord->workm.t[2];                                             \
+        worldCoordSetModelLighting(model, &lightPosition, 0, ARRAY_SIZE(model->lightMtx->m)); \
+    }
 
     model      = task->extra.tmd;
     rootCoord  = model->coords;

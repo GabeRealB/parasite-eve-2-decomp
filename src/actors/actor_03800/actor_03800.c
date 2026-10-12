@@ -1037,19 +1037,6 @@ static void _actor03800ApplyReactions(Task* task)
     }
 }
 
-/// Keeps the deepest contact seen so far: when `depth` beats `best`, it
-/// becomes the new `best`, and `frame->pushDirection` the direction to push
-/// out along - the offset in `frame->delta` normalised and carried into the
-/// collision grid's frame.
-#define _ACTOR03800_KEEP_DEEPEST(best, depth, frame)                                                                         \
-    do {                                                                                                                     \
-        if ((best) < (depth)) {                                                                                              \
-            (best) = (depth);                                                                                                \
-            VectorNormal(&(frame)->delta.vector, &(frame)->normal);                                                          \
-            ApplyTransposeMatrixLV(&gWorldCollisionActiveGrid->viewCoord->workm, &(frame)->normal, &(frame)->pushDirection); \
-        }                                                                                                                    \
-    } while (0)
-
 /// Consumes room, hit and attack contacts to correct position and choose reactions.
 ///
 /// Requires the three initialized work-owned contact arrays and a composed root.
@@ -1059,6 +1046,24 @@ static void _actor03800ApplyReactions(Task* task)
 /// Clears all three arrays and releases its temporary scratch block before return.
 static void _actor03800ProcessContacts(Task* task)
 {
+/// Keeps a strictly deeper body overlap and its Q12 grid-axis separation direction.
+///
+/// best is a writable signed-word lvalue initialized to zero; depth is a
+/// nonnegative game-unit overlap. frame is a live ActorOverlapPushScratch
+/// pointer with delta.vector set to root minus contact in the view frame.
+/// Arguments repeat and must be stable and side-effect-free. Requires the
+/// active grid's valid view transform. Equal or smaller depths retain the
+/// previous normal/pushDirection; otherwise normalizes delta and rotates it
+/// through the transpose of the grid view basis. Overwrites GTE state.
+/// Invoke within a braced statement body; no caller locals are captured.
+#define ACTOR_03800_RETAIN_DEEPEST_BODY_OVERLAP(best, depth, frame)                                                          \
+    do {                                                                                                                     \
+        if ((best) < (depth)) {                                                                                              \
+            (best) = (depth);                                                                                                \
+            VectorNormal(&(frame)->delta.vector, &(frame)->normal);                                                          \
+            ApplyTransposeMatrixLV(&gWorldCollisionActiveGrid->viewCoord->workm, &(frame)->normal, &(frame)->pushDirection); \
+        }                                                                                                                    \
+    } while (0)
     enum {
         ACTOR_03800_FLOOR_NORMAL_Y                     = -3546,
         ACTOR_03800_CONTACT_KIND_SHIFT                 = 16,
@@ -1246,7 +1251,7 @@ static void _actor03800ProcessContacts(Task* task)
                     clampedDepth = 0;
                 }
                 overlapDepth = clampedDepth;
-                _ACTOR03800_KEEP_DEEPEST(deepestOverlap, overlapDepth, scratch);
+                ACTOR_03800_RETAIN_DEEPEST_BODY_OVERLAP(deepestOverlap, overlapDepth, scratch);
                 break;
             case WORLD_COLLISION_CONTACT_ENEMY_BODY >> ACTOR_03800_CONTACT_KIND_SHIFT:
                 dx                       = rootCoord->workm.t[0] - work->hitContacts[contactIndex].point.vx;
@@ -1261,7 +1266,7 @@ static void _actor03800ProcessContacts(Task* task)
                     clampedDepth = 0;
                 }
                 overlapDepth = clampedDepth;
-                _ACTOR03800_KEEP_DEEPEST(deepestOverlap, overlapDepth, scratch);
+                ACTOR_03800_RETAIN_DEEPEST_BODY_OVERLAP(deepestOverlap, overlapDepth, scratch);
                 break;
         }
     }
@@ -1285,6 +1290,7 @@ static void _actor03800ProcessContacts(Task* task)
     worldCollisionClearContacts(work->attackContacts);
     SCRATCH_STACK_RELEASE_BLOCK(ActorOverlapPushScratch);
 }
+#undef ACTOR_03800_RETAIN_DEEPEST_BODY_OVERLAP
 
 /// Waits and turns on the spot, wandering once alerted or charging at a combat signal.
 static void _actor03800ActionIdle(Task* task)

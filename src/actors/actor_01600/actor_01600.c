@@ -56,23 +56,6 @@
 
 #include "overlay.h"
 
-/// Restores an unscaled corpse transform and applies Q12 Y scale in borrowed scratch.
-///
-/// Arguments must be stable, side-effect-free expressions: coordinate and scratch
-/// are evaluated repeatedly. The matrix is copied before scaling, translation is
-/// retained, and composition becomes dirty. Expands to a standalone statement block.
-#define ACTOR_01600_APPLY_CORPSE_SCALE(rootCoord, unscaled, scaleY, scratch) \
-    {                                                                        \
-        (scratch)->scale.vx = ONE;                                           \
-        (scratch)->scale.vy = (scaleY);                                      \
-        (scratch)->scale.vz = ONE;                                           \
-        (rootCoord)->coord  = *(unscaled);                                   \
-        gfxSetRotIdentity(&(scratch)->matrix);                               \
-        ScaleMatrix(&(scratch)->matrix, &(scratch)->scale);                  \
-        MulMatrix(&(rootCoord)->coord, &(scratch)->matrix);                  \
-        (rootCoord)->composeStamp = GRAPHICS_COORD_DIRTY;                    \
-    }
-
 /// Spawns a detached part and applies its source actor's texture offsets.
 ///
 /// Actor, model source and coordinate index must be stable, side-effect-free
@@ -5104,7 +5087,27 @@ static void _actor01600SquashCorpse(Task* actor)
     if (work->deathScaleY >= ACTOR_01600_CORPSE_MIN_SCALE_Y + 1) {
         work->deathScaleY = (u16)work->deathScaleY - ACTOR_01600_CORPSE_SCALE_STEP;
     }
+/// Applies corpse Y squash from the saved unscaled transform.
+///
+/// rootCoord is a live GfxCoord pointer, unscaled a readable MATRIX pointer,
+/// scaleY a signed Q12 factor (ONE is unity), and scratch a disjoint writable
+/// ActorScaleScratch pointer. Stable pointer arguments are required; rootCoord
+/// and scratch occur repeatedly. Restores the full transform before multiplying
+/// by the Y-only scale, preserving translation and avoiding compounded squash.
+/// Marks composition dirty and overwrites GTE state. Invoke within braces.
+#define ACTOR_01600_APPLY_CORPSE_SCALE(rootCoord, unscaled, scaleY, scratch) \
+    {                                                                        \
+        (scratch)->scale.vx = ONE;                                           \
+        (scratch)->scale.vy = (scaleY);                                      \
+        (scratch)->scale.vz = ONE;                                           \
+        (rootCoord)->coord  = *(unscaled);                                   \
+        gfxSetRotIdentity(&(scratch)->matrix);                               \
+        ScaleMatrix(&(scratch)->matrix, &(scratch)->scale);                  \
+        MulMatrix(&(rootCoord)->coord, &(scratch)->matrix);                  \
+        (rootCoord)->composeStamp = GRAPHICS_COORD_DIRTY;                    \
+    }
     ACTOR_01600_APPLY_CORPSE_SCALE(rootCoord, &work->deathMatrix, work->deathScaleY, scratch);
+#undef ACTOR_01600_APPLY_CORPSE_SCALE
     SCRATCH_STACK_RELEASE_BLOCK(ActorScaleScratch);
 }
 

@@ -1979,16 +1979,20 @@ static void _actor146300ApplyHandoverChoice(s32 phase)
     }
 }
 
-/// Samples all three lights at cached root XYZ with Y minus 800.
+/// Samples three model light rows at cached root XYZ with Y decreased by 800.
 ///
-/// Use as standalone statements; model/root/sample are side-effect-free lvalues.
-/// Captures the spawn's sample offset and row count. The caller owns the VECTOR;
-/// root composition and matrices are already valid and no pointer is retained.
-#define ACTOR_146300_RELIGHT_SPAWN(model, rootCoord, lightPosition)                    \
-    (lightPosition).vx = (rootCoord)->workm.t[0];                                      \
-    (lightPosition).vy = (rootCoord)->workm.t[1] - ACTOR_146300_LIGHT_SAMPLE_Y_OFFSET; \
-    (lightPosition).vz = (rootCoord)->workm.t[2];                                      \
-    worldCoordSetModelLighting((model), &(lightPosition), 0, ACTOR_146300_LIGHT_COUNT)
+/// Requires a live model with writable light/color matrices and stable
+/// MATRIX-bearing rootCoord; workm is read without composition. lightPosition
+/// is a writable VECTOR lvalue. Root/sample occur repeatedly; model occurs
+/// once. Captures the local Y-offset and light-count constants. The query
+/// consumes XYZ synchronously; invoke within a braced statement body.
+#define ACTOR_146300_RELIGHT_SPAWN(model, rootCoord, lightPosition)                         \
+    {                                                                                       \
+        (lightPosition).vx = (rootCoord)->workm.t[0];                                       \
+        (lightPosition).vy = (rootCoord)->workm.t[1] - ACTOR_146300_LIGHT_SAMPLE_Y_OFFSET;  \
+        (lightPosition).vz = (rootCoord)->workm.t[2];                                       \
+        worldCoordSetModelLighting((model), &(lightPosition), 0, ACTOR_146300_LIGHT_COUNT); \
+    }
 
 /// Initializes the ice-bag handover scripted walker and creates its attachment task.
 ///

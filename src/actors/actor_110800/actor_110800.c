@@ -281,14 +281,15 @@ static void _actor110800UpdateViewFigure(Enemy* unusedEnemy, Task* task);
 #include "../../shared/view_figure_spawn.inc.c"
 #undef VIEW_FIGURE_TASK_DESCS
 
-/// Emits a loaded area sound at one track record and updates the shared cue latch.
+/// Emits an area sound once when a figure track reaches the selected cue record.
 ///
-/// Requires the live singleton rig. Track/record/script arguments select one
-/// of this carrier's established cues; held records compare against the single
-/// latch shared by both tracks. Playback and sound resources must be loaded.
-/// Standalone compound statements only; captures _gViewFigureWork. trackIndex
-/// is read repeatedly and must be side-effect-free; cueRecordIndex is evaluated
-/// once and soundScript only on a new cue. No argument or payload is retained.
+/// Captures the live _gViewFigureWork singleton and its shared cueRecord latch.
+/// trackIndex must select a live slot in 0..19 and be side-effect-free: it occurs
+/// three times. cueRecordIndex is evaluated once and matches the low ten
+/// record-index bits. soundScript is evaluated only for a matching record that
+/// differs from the latch; loaded sound resources are required. Matching records
+/// update the latch even when already held. Other records leave it unchanged.
+/// Both tracks share one latch. Invoke within a braced statement body.
 #define ACTOR_110800_CUE_ANIMATION_SOUND(trackIndex, cueRecordIndex, soundScript)                                                                                \
     {                                                                                                                                                            \
         if ((_gViewFigureWork->rig.slots[(trackIndex)].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) == (cueRecordIndex)) {                   \

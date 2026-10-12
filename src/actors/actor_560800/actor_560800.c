@@ -4715,13 +4715,15 @@ static s32 _actor560800AdvancePlayerAnimChain(Task* task)
     u16                       nextAnimationId;
     u16                       finishedAnimationId;
 
-    /// Starts a successor in the scene bank and resets its hold after dispatch.
-    ///
-    /// work and clipId must be stable, side-effect-free locals; request is a
-    /// writable AnimationPlayRequest lvalue. The expansion uses them repeatedly.
-    /// Use as a standalone statement in this function's block, not an unbraced
-    /// if/else arm. Dispatch borrows the request synchronously; clip data stays
-    /// borrowed by the player. The binding ends with this function.
+/// Starts a successor player scene clip with blending and clears its hold.
+///
+/// Requires live scene work and a non-NULL player, loaded player animation sets,
+/// a valid u16 clipId and a writable AnimationPlayRequest request lvalue.
+/// Arguments repeat and must be stable and side-effect-free. Caches the clip,
+/// requests interpolation over ACTOR_560800_ANIMATION_BLEND_FRAMES normal-rate
+/// frames with collision enabled, then clears playerAnimHold after synchronous
+/// dispatch. The player borrows the set table throughout playback. Invoke within
+/// braces; the binding is undefined after this consumer.
 #define ACTOR_560800_START_PLAYER_CHAIN_CLIP(work, clipId, request)                                       \
     {                                                                                                     \
         (request).source.sets          = _gActor560800PlayerAnimationSets;                                \
@@ -4770,14 +4772,20 @@ static s32 _actor560800AdvancePlayerAnimChain(Task* task)
     return 0;
 }
 
-/// Cross-fades slots 1..`slotCount` - 1 of `work`'s animation context to animation
-/// `id` over `frames` frames.
-#define _ACTOR560800_BLEND_SLOTS(work, id, frames)                                \
-    do {                                                                          \
-        u16 _i;                                                                   \
-        for (_i = 1; _i < (work)->slotCount; _i++) {                              \
-            animationSeekSlotWithBlend(&(work)->rig.anim, _i, (id), 0, (frames)); \
-        }                                                                         \
+/// Blends the cast body's non-root animation slots into a selected clip.
+///
+/// Requires initialized _Actor560800CastWork, live playback storage and loaded
+/// animation data. Slots 1..slotCount-1 are used: 19 for Kyle, 18 for Eve/No. 9.
+/// work, animationId and blendFrames must be stable and side-effect-free; they are evaluated
+/// per slot. blendFrames is 0..2047 whole normal-rate frames. Each slot seeks to
+/// frame zero, retaining its rate. Does not change animId, animRate or animHold;
+/// callers maintain those separately. Captures no caller locals.
+#define ACTOR_560800_BLEND_CAST_SLOTS(work, animationId, blendFrames)                                  \
+    do {                                                                                               \
+        u16 slotIndex;                                                                                 \
+        for (slotIndex = 1; slotIndex < (work)->slotCount; slotIndex++) {                              \
+            animationSeekSlotWithBlend(&(work)->rig.anim, slotIndex, (animationId), 0, (blendFrames)); \
+        }                                                                                              \
     } while (0)
 
 /// Clears a cast clip's timed-chain hold count.
@@ -4813,16 +4821,6 @@ static inline void _actor560800BlendCastAnimation(Task* task, u16 animationId, s
         animationSeekSlotWithBlend(&work->rig.anim, slotIndex, animationId, 0, ACTOR_560800_ANIMATION_BLEND_FRAMES);
     }
 }
-
-/// Cross-fades animation slots 1..`slotCount` - 1 of `work`'s rig to animation
-/// `id` over `frames` frames.
-#define _ACTOR560800_BLEND_SLOTS(work, id, frames)                                \
-    do {                                                                          \
-        u16 _i;                                                                   \
-        for (_i = 1; _i < (work)->slotCount; _i++) {                              \
-            animationSeekSlotWithBlend(&(work)->rig.anim, _i, (id), 0, (frames)); \
-        }                                                                         \
-    } while (0)
 
 /// Advances a visible cast body's non-root animations and follows its clip chain.
 ///
@@ -5195,12 +5193,13 @@ static void _actor560800RelightCast(void)
         ActorCommand command;
     } scratch;
 
-    /// Relights one model from its cached position without composing it.
-    ///
-    /// modelTask is a side-effect-free live Task* expression; samplePosition is
-    /// a writable VECTOR lvalue. Both occur repeatedly. Expands as a scoped
-    /// block; invoke inside braces. The lighting query borrows samplePosition
-    /// only during the call.
+/// Relights one scene body or attachment from its cached root translation.
+///
+/// modelTask is a stable live Task* expression with a live model and writable
+/// lighting matrices. samplePosition is a writable VECTOR lvalue; both arguments
+/// occur repeatedly. Reads XYZ from workm without composition and samples all
+/// three light rows. The query borrows samplePosition synchronously, while the
+/// model's matrices remain borrowed from its owning work. Invoke within braces.
 #define ACTOR_560800_RELIGHT_MODEL(modelTask, samplePosition)                                    \
     {                                                                                            \
         TmdObject* model    = (modelTask)->extra.tmd;                                            \
@@ -5897,7 +5896,7 @@ static void _actor560800HandleKyleCue(Task* task)
                     blendWork->animId        = 1;
                     blendWork->animRate      = ANIMATION_RATE_ONE;
                     blendWork->animHold      = 0;
-                    _ACTOR560800_BLEND_SLOTS(blendWork, 1, ACTOR_560800_ANIMATION_BLEND_FRAMES);
+                    ACTOR_560800_BLEND_CAST_SLOTS(blendWork, 1, ACTOR_560800_ANIMATION_BLEND_FRAMES);
                     work->kyleCue.step++;
                     return;
                 }
@@ -6038,7 +6037,7 @@ static void _actor560800HandleKyleCue(Task* task)
                     blendWork->animId   = 7;
                     blendWork->animRate = ANIMATION_RATE_ONE;
                     blendWork->animHold = 0;
-                    _ACTOR560800_BLEND_SLOTS(blendWork, 7, ACTOR_560800_ANIMATION_BLEND_FRAMES);
+                    ACTOR_560800_BLEND_CAST_SLOTS(blendWork, 7, ACTOR_560800_ANIMATION_BLEND_FRAMES);
                     work->kyleCue.counter = 0;
                     work->kyleCue.step++;
                     return;
@@ -6071,7 +6070,7 @@ static void _actor560800HandleKyleCue(Task* task)
                     hitWork->animId   = 0x20;
                     hitWork->animRate = ANIMATION_RATE_ONE / 2;
                     _actor560800ResetAnimHold(hitWork);
-                    _ACTOR560800_BLEND_SLOTS(hitWork, 0x20, 5);
+                    ACTOR_560800_BLEND_CAST_SLOTS(hitWork, 0x20, 5);
                     work->kyleCue.counter = 0;
                     work->kyleCue.step++;
                     return;
@@ -6102,7 +6101,7 @@ static void _actor560800HandleKyleCue(Task* task)
                     returnClipWork->animId   = 3;
                     returnClipWork->animRate = ANIMATION_RATE_ONE;
                     returnClipWork->animHold = 0;
-                    _ACTOR560800_BLEND_SLOTS(returnClipWork, 3, ACTOR_560800_ANIMATION_BLEND_FRAMES);
+                    ACTOR_560800_BLEND_CAST_SLOTS(returnClipWork, 3, ACTOR_560800_ANIMATION_BLEND_FRAMES);
                     work->kyleCue.step++;
                     return;
                 case 1:
@@ -6122,6 +6121,7 @@ static void _actor560800HandleKyleCue(Task* task)
     }
     work->kyleCue.id = ACTOR_560800_CUE_NONE;
 }
+#undef ACTOR_560800_BLEND_CAST_SLOTS
 
 /// Records a phase's elapsed display ticks and finishes its streamed scene.
 ///
@@ -6832,10 +6832,14 @@ static void _actor560800BendChainTowardTarget(Task* task)
     s16                         angleStep;
     s32                         targetPitch;
 
-    /// Multiplies three joint basis columns by the current GTE chain rotation.
-    ///
-    /// Both matrix pointers must be side-effect-free; each is evaluated three
-    /// times. Writes only basis columns, leaving destination translation intact.
+/// Multiplies a chain joint's Q12 basis by the rotation already loaded in the GTE.
+///
+/// Requires stable halfword-aligned MATRIX pointers result and joint, each used
+/// three times. They may alias: each column is read before that column is stored.
+/// The caller must load the intended GTE rotation first. Uses signed IR values
+/// and GTE saturation for all three columns; translation and composition stamps
+/// are untouched. Overwrites GTE vector/arithmetic registers and CPU scratch
+/// registers through SDK macros. Invoke within a braced statement body.
 #define ACTOR_560800_ROTATE_CHAIN_BASIS(result, joint) \
     {                                                  \
         gte_ldclmv((joint));                           \

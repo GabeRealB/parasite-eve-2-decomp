@@ -1692,19 +1692,23 @@ void actor160700StartMeetingScript(void)
     }
 }
 
-/// Binds the walker’s work matrices and samples its cached root lighting.
+/// Binds work-owned light/color matrices and samples cached root lighting.
 ///
-/// Standalone statements only. All four arguments must be side-effect-free
-/// lvalues; model/work/root are read repeatedly and sample is a writable VECTOR.
-/// Captures the spawn’s 800-unit Y offset and three-row light count. The model
-/// borrows the matrices until teardown; root composition is not refreshed.
-#define ACTOR_160700_INITIALIZE_MODEL_LIGHTING(model, work, rootCoord, sample)        \
-    (model)->lightMtx = &(work)->light;                                               \
-    (model)->colorMtx = &(work)->color;                                               \
-    (sample).vx       = (rootCoord)->workm.t[0];                                      \
-    (sample).vy       = (rootCoord)->workm.t[1] - ACTOR_160700_LIGHT_SAMPLE_Y_OFFSET; \
-    (sample).vz       = (rootCoord)->workm.t[2];                                      \
-    worldCoordSetModelLighting((model), &(sample), 0, ACTOR_160700_LIGHT_COUNT)
+/// Requires live model/work/root pointers with stable, side-effect-free
+/// expressions; model, work and rootCoord occur repeatedly. sample is a
+/// writable VECTOR lvalue, also repeated. The model borrows both matrices
+/// until teardown. Reads workm without composition, with Y decreased by the
+/// captured 800-unit sample offset, and initializes all three light rows.
+/// The query consumes sample XYZ synchronously. Invoke within braces.
+#define ACTOR_160700_INITIALIZE_MODEL_LIGHTING(model, work, rootCoord, sample)            \
+    {                                                                                     \
+        (model)->lightMtx = &(work)->light;                                               \
+        (model)->colorMtx = &(work)->color;                                               \
+        (sample).vx       = (rootCoord)->workm.t[0];                                      \
+        (sample).vy       = (rootCoord)->workm.t[1] - ACTOR_160700_LIGHT_SAMPLE_Y_OFFSET; \
+        (sample).vz       = (rootCoord)->workm.t[2];                                      \
+        worldCoordSetModelLighting((model), &(sample), 0, ACTOR_160700_LIGHT_COUNT);      \
+    }
 
 /// Initializes the Pierce paced walker and creates its attachment task.
 ///
