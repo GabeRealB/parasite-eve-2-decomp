@@ -7199,10 +7199,15 @@ static void _actor444000ReturnToAdvanceState(Task* task)
 
 #include "../../shared/glutton_spinner_wait.inc.c"
 
-/// Selects this carrier's 4-state spinner callback table.
+/// Binds the incinerator spinner dispatcher to its task-state callback table.
 ///
-/// Must name a live const `EnemyTaskFuncTable4` object, copied before
-/// dispatch. Bind only around this fragment inclusion, then undefine it.
+/// Must expand to the identifier of an overlay-local const `EnemyTaskFuncTable4`
+/// object, ordered by `Task::state`: 0 spawn, 1 wait for release, 2 chase,
+/// 3 destroy. The dispatcher reads it once and copies all four callbacks before
+/// checking combat control. Each callback has signature `void(Enemy*, Task*)`
+/// and may destroy the live enemy and task. Keep the table and callback code
+/// loaded for dispatch. Bind only around `glutton_spinner_task.inc.c`, then
+/// undefine it; the alias has no arguments or runtime side effects.
 #define GLUTTON_SPINNER_STATES _gGluttonSpinnerStates
 #include "../../shared/glutton_spinner_task.inc.c"
 #undef GLUTTON_SPINNER_STATES
