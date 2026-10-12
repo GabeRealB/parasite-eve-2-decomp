@@ -1163,7 +1163,16 @@ static void _dryfieldGasStationSetCutsceneCommand(s16 command)
 /// Use as a statement. Requires `setRGB2` from `psyq/libgpu.h`. Define before
 /// including `glow_draw_ray_star.inc.c`, which undefines this binding afterwards.
 #define GLOW_DRAW_RAY_STAR_INNER(primitive, intensity, halfIntensity) (setRGB2((primitive), 0, (intensity), (intensity)))
-#define GLOW_DRAW_RAY_STAR_RAY(p, c)                                  setRGB2(p, 0, c, c)
+/// Sets the ray-star rays' centres to half-intensity cyan.
+///
+/// Writes only vertex 2's RGB bytes of a writable `POLY_G4*`. Green and blue
+/// use the supplied `halfIntensity`, already halved and normally 0..120; red
+/// is zero. Stores retain the intensity's low byte. Arguments must have no
+/// side effects: `primitive` is evaluated three times and `halfIntensity`
+/// twice. Use as a statement. Requires `setRGB2` from `psyq/libgpu.h`.
+/// Define before including `glow_draw_ray_star.inc.c`, which undefines this
+/// binding afterwards.
+#define GLOW_DRAW_RAY_STAR_RAY(primitive, halfIntensity) (setRGB2((primitive), 0, (halfIntensity), (halfIntensity)))
 #include "../../shared/glow_draw_ray_star.inc.c"
 
 void dryfieldGasStationCyanGlowTask(Task* task)
