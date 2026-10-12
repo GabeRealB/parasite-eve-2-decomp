@@ -63,8 +63,17 @@
 #include "overlay.h"
 
 #include "rooms/room_common.h"
-static s32 _actionPromptHitTestDefault(ActionPromptHotspot* hotspots, s16 cursorX, s16 cursorY);
+
+/// Selects the private hotspot test used by the key-item cursor and line tip.
+///
+/// Bind a function identifier with signature
+/// `s32(ActionPromptHotspot* hotspots, s16 cursorX, s16 cursorY)`; coordinates
+/// are screen-centred pixels. The static prototype establishes local linkage
+/// before the shared header. Keep the binding through the hit-test fragment,
+/// then undefine it. This alias captures no arguments, evaluates nothing and
+/// uses neither stringification nor token pasting.
 #define ACTION_PROMPT_HIT_TEST _actionPromptHitTestDefault
+static s32 ACTION_PROMPT_HIT_TEST(ActionPromptHotspot* hotspots, s16 cursorX, s16 cursorY);
 #include "../../shared/action_prompt.h"
 #include "../../shared/room_events.h"
 #include "../../shared/glow_draw.h"
@@ -1258,6 +1267,7 @@ static void _dryfieldBreezewayKeyItemEventTask(Task* task)
 }
 
 #include "../../shared/action_prompt_hit_test.inc.c"
+#undef ACTION_PROMPT_HIT_TEST
 
 /// Arms the key-item event's cursor at screen centre and advances to model selection.
 ///

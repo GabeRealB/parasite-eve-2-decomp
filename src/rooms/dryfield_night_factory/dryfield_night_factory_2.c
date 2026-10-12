@@ -58,8 +58,16 @@
 static void _factoryRoomInit(Task* task);
 static void _factoryPanelPrompt(Task* task);
 
-static s32 _actionPromptHitTestDefault(ActionPromptHotspot* hotspots, s16 cursorX, s16 cursorY);
+/// Selects the nighttime operator panel's private action-prompt hotspot test.
+///
+/// Bind a function identifier with signature
+/// `s32(ActionPromptHotspot* hotspots, s16 cursorX, s16 cursorY)`; coordinates
+/// are screen-centred pixels. The static prototype establishes local linkage
+/// before the shared header. Keep the binding through both the panel-idle
+/// caller and the hit-test fragment, then undefine it. This alias captures no
+/// arguments, evaluates nothing and uses neither stringification nor token pasting.
 #define ACTION_PROMPT_HIT_TEST _actionPromptHitTestDefault
+static s32 ACTION_PROMPT_HIT_TEST(ActionPromptHotspot* hotspots, s16 cursorX, s16 cursorY);
 #include "../../shared/action_prompt.h"
 #include "../../shared/glow_draw.h"
 #define ROOM_EVENT_TASK_DESC _gRoomEventTaskDesc
@@ -1051,6 +1059,7 @@ static const TaskFuncTable7 _gFactoryPanelStates = {
 #include "../../shared/factory_panel_trigger.inc.c"
 
 #include "../../shared/action_prompt_hit_test.inc.c"
+#undef ACTION_PROMPT_HIT_TEST
 
 #include "../../shared/factory_panel_init.inc.c"
 
