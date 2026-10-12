@@ -12,10 +12,13 @@
  *
  * Include this header in the prologue and each fragment at its function's
  * position. Each carrier declares its private function instances there and
- * defines FOOTSTEP_WALK_WORK_T when including the walk-target fragment, as
- * its allocated work type (FootstepWalkWork or FootstepWalkQuietWork). That
- * fragment uses the selected type at
- * Task::work. This binding is a type name, with no argument evaluation.
+ * binds FOOTSTEP_WALK_WORK_T only around footstep_walk_to.inc.c, then undefines
+ * it. Bind to the receiver's allocated work type: FootstepWalkWork in
+ * actor_151000, actor_461800 and actor_535700, or FootstepWalkQuietWork in
+ * actor_451100. The fragment borrows Task::work as that type and writes only
+ * the signed-halfword st.yaw and st.travel members. The allocation must be live
+ * throughout dispatch. This type-name binding evaluates no expressions and
+ * uses no stringification or token pasting; it is not needed by this header.
  * The sound-enabled walker's state belongs to its carrier, which defines it at
  * its own positions under these names:
  *

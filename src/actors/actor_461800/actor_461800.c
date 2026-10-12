@@ -40,7 +40,6 @@
 #include "main/tmd_types.h"
 
 #include "rooms/neo_ark_r31.h"
-#define FOOTSTEP_WALK_WORK_T FootstepWalkWork
 #include "../../shared/footstep_walk.h"
 #include "../../shared/scripted_walk.h"
 
@@ -1674,7 +1673,14 @@ static s32 _actor461800ApplyFootstepWalkerCommand(Task* unusedTask, s32 messageI
     return 0;
 }
 
+/// Selects this sound walker's allocated work type for the walk-target handler.
+///
+/// The receiver owns a live `FootstepWalkWork`; the fragment writes its
+/// signed-halfword `st.yaw` (4096 units per turn) and `st.travel` (whole moving
+/// updates). This type-name alias evaluates no expressions and lasts one inclusion.
+#define FOOTSTEP_WALK_WORK_T FootstepWalkWork
 #include "../../shared/footstep_walk_to.inc.c"
+#undef FOOTSTEP_WALK_WORK_T
 
 /// Selects this overlay's private second-walker ground-shadow drawer.
 ///

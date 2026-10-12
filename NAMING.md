@@ -1163,6 +1163,13 @@ borrowed pointer, its signed-halfword `_gFootstepWalkMode`, and its whole-frame
 publishes the live work for singleton message and animation handlers; task
 teardown releases the block without clearing the published pointer.
 
+`FOOTSTEP_WALK_WORK_T` selects the receiving task's allocated work type only
+for `footstep_walk_to.inc.c`: `FootstepWalkWork` in actor_151000, actor_461800
+and actor_535700, or `FootstepWalkQuietWork` in actor_451100. Bind it around
+that fragment inclusion and undefine it afterwards; the header does not need
+the binding. The fragment borrows the live task-owned block and writes its
+signed-halfword heading and remaining moving-update count.
+
 The footstep walk's yaw-placement fragment is reusable without the rest of its
 walker. `FOOTSTEP_WALK_PLACE_WORK` selects the live published work pointer whose
 `st.yaw` it records; the default is `_gFootstepWalkWork`. Bind it around that

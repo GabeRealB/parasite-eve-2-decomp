@@ -1,5 +1,9 @@
 /* Part of the footstep walk library; see footstep_walk.h. */
 
+#ifndef FOOTSTEP_WALK_WORK_T
+#error "Bind FOOTSTEP_WALK_WORK_T to the receiver's allocated work type before including this fragment."
+#endif
+
 /// Faces a planar target and schedules the whole moving updates needed to approach it.
 ///
 /// Handles `ACTOR_MESSAGE_WALK_TO` for a live task with a

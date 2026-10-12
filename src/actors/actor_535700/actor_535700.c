@@ -37,7 +37,6 @@
 #include "main/task.h"
 #include "main/task_types.h"
 #include "main/tmd_types.h"
-#define FOOTSTEP_WALK_WORK_T FootstepWalkWork
 #include "../../shared/footstep_walk.h"
 #include "../../shared/pair_walk.h"
 
@@ -1574,7 +1573,14 @@ static s32 _actor535700ApplyWalkerCommand(Task* unusedTask, s32 messageId, const
     return 0;
 }
 
+/// Selects this sound walker's allocated work type for the walk-target handler.
+///
+/// The receiver owns a live `FootstepWalkWork`; the fragment writes its
+/// signed-halfword `st.yaw` (4096 units per turn) and `st.travel` (whole moving
+/// updates). This type-name alias evaluates no expressions and lasts one inclusion.
+#define FOOTSTEP_WALK_WORK_T FootstepWalkWork
 #include "../../shared/footstep_walk_to.inc.c"
+#undef FOOTSTEP_WALK_WORK_T
 
 /// Names this carrier's private room-shaded shadow function for one inclusion.
 ///
