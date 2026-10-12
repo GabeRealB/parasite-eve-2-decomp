@@ -61,11 +61,6 @@ enum {
     CD_STREAM_SPU_IRQ = 8,
 };
 
-/// `CdStreamState::flags0`. Bit 7 is unread.
-#define CD_STREAM_ENGAGED   2    // the opening read finished; the voices are not keyed yet
-#define CD_STREAM_VOICES_ON 0x10 // the voices are keyed on
-#define CD_STREAM_STOP      0x40 // stop was requested
-
 /// Received-chunk and deferred-key-on flags, and playback latch indices in `CdStreamState::flags0`.
 enum {
     /// Zero-based bit index of the received-chunk latch.
@@ -89,14 +84,40 @@ enum {
     CD_STREAM_VOICES_ON_BIT = 4,
 };
 
-/// Shift index of a `flags0` test.
-#define CD_STREAM_SPU_IRQ_BIT 3
-#define CD_STREAM_KEY_ON_BIT  5
-#define CD_STREAM_STOP_BIT    6
+/// Playback latches, requests and test indices in `CdStreamState::flags0`.
+enum {
+    /// Zero-based bit index of a received SPU ring-boundary event, independent of IRQ arming.
+    CD_STREAM_SPU_IRQ_BIT = 3,
 
-/// Byte mask that clears one `flags0` bit.
-#define CD_STREAM_CLEAR_ENGAGED   0xFD
-#define CD_STREAM_CLEAR_VOICES_ON 0xEF
+    /// Zero-based bit index requesting voice-pair key-on at an even chunk boundary.
+    CD_STREAM_KEY_ON_BIT = 5,
+
+    /// Zero-based bit index of the deferred playback-stop request.
+    CD_STREAM_STOP_BIT = 6,
+
+    /// Playback has entered the stage that services voices, volume edits and ring boundaries.
+    ///
+    /// Set after an opening read is ready or a requested playhead is applied.
+    /// Retained through key-on, recovery and shutdown; beginning playback clears
+    /// it so the opening-read stage runs again. It does not imply voices are on.
+    CD_STREAM_ENGAGED = 1 << CD_STREAM_ENGAGED_BIT,
+
+    /// Software latch recording that the streaming voice pair has been keyed on.
+    ///
+    /// Cleared when the stream releases the pair; it is not a hardware key-status query.
+    CD_STREAM_VOICES_ON = 1 << CD_STREAM_VOICES_ON_BIT,
+
+    /// Requests voice release and read cancellation on the next active playback poll.
+    ///
+    /// The requester separately disables the SPU interrupt; this bit performs no shutdown.
+    CD_STREAM_STOP = 1 << CD_STREAM_STOP_BIT,
+
+    /// Eight-bit AND mask reentering the opening-read stage when playback begins.
+    CD_STREAM_CLEAR_ENGAGED = 0xFF & ~CD_STREAM_ENGAGED,
+
+    /// Eight-bit AND mask clearing the software voice-pair latch after release.
+    CD_STREAM_CLEAR_VOICES_ON = 0xFF & ~CD_STREAM_VOICES_ON,
+};
 
 /// Eight-bit AND masks consuming playback requests and received events in `CdStreamState::flags0`.
 enum {
@@ -160,15 +181,40 @@ enum {
     CD_STREAM_END_THROUGH = 0x40,
 };
 
-/// `CdStreamState::flags1`.
-#define CD_STREAM_SEEK         8    // a requested playhead is waiting to be applied
-#define CD_STREAM_SEEK_ENABLED 0x80 // a playhead request may be accepted
+/// Playhead requests and final-chunk policy test indices in `CdStreamState::flags1`.
+enum {
+    /// Zero-based bit index of a pending requested playhead, measured in vsyncs.
+    CD_STREAM_SEEK_BIT = 3,
 
-/// Shift index of a `flags1` test.
-#define CD_STREAM_SEEK_BIT         3
-#define CD_STREAM_END_ON_ENTRY_BIT 4
-#define CD_STREAM_END_THROUGH_BIT  6
-#define CD_STREAM_SEEK_ENABLED_BIT 7
+    /// Zero-based bit index selecting shutdown on entering the final chunk.
+    ///
+    /// Takes precedence over play-through if both policies accumulated from channel headers.
+    CD_STREAM_END_ON_ENTRY_BIT = 4,
+
+    /// Zero-based bit index selecting playback through the final chunk.
+    ///
+    /// With stop-on-entry clear, zero selects halfway shutdown and one selects
+    /// the end of the chunk. The separately stored halfway-policy bit is unread.
+    CD_STREAM_END_THROUGH_BIT = 6,
+
+    /// Zero-based bit index permitting new playhead requests after initial key-on.
+    ///
+    /// This is the highest bit of the byte, so shifting the saved unsigned
+    /// flags by this index yields a boolean without an additional AND mask.
+    CD_STREAM_SEEK_ENABLED_BIT = 7,
+
+    /// A caller's requested vsync playhead awaits application by active playback service.
+    ///
+    /// Applying it releases the voices, cancels the old read and discards ready
+    /// audio before replacing the playhead. The request is neither clamped nor applied here.
+    CD_STREAM_SEEK = 1 << CD_STREAM_SEEK_BIT,
+
+    /// Software latch permitting playhead requests after playback keys on at playhead zero.
+    ///
+    /// Retained through stops and recovery, until opening or resetting a stream
+    /// clears its flags. It does not track whether playback is currently active.
+    CD_STREAM_SEEK_ENABLED = 1 << CD_STREAM_SEEK_ENABLED_BIT,
+};
 
 /// Zero-based bit index of the software drive-mode latch in `CdStreamState::flags1`.
 ///
@@ -176,9 +222,14 @@ enum {
 /// it does not prove that the mode command returned `CdlComplete`.
 enum { CD_STREAM_MODE_SET_BIT = 1 };
 
-/// Byte mask that clears one `flags1` bit.
-#define CD_STREAM_CLEAR_VOICE_COPY 0xFE
-#define CD_STREAM_CLEAR_SEEK       0xF7
+/// Eight-bit AND masks consuming voice edits and playhead requests in `CdStreamState::flags1`.
+enum {
+    /// Consumes pending attribute edits after both channel records are copied to the SPU queue.
+    CD_STREAM_CLEAR_VOICE_COPY = 0xFF & ~CD_STREAM_VOICE_COPY,
+
+    /// Consumes a playhead request after its vsync position has been applied.
+    CD_STREAM_CLEAR_SEEK = 0xFF & ~CD_STREAM_SEEK,
+};
 
 /// Playback recovery request in `CdStreamState::flags2`.
 enum {
@@ -189,17 +240,36 @@ enum {
     CD_STREAM_FAULT = 2,
 };
 
-/// `CdStreamState::flags2`. Bits 4–7 are unread. Bits 1 and 2 are independent flags.
-#define CD_STREAM_REQUEUE       1 // arm another opening read
-#define CD_STREAM_CHUNK_ADVANCE 4 // the tick should advance to the next chunk
-#define CD_STREAM_HALT          8 // a stream error has raised the game halt
+/// Recovery requests and deferred boundary service in `CdStreamState::flags2`.
+enum {
+    /// Zero-based bit index of a read/callback fault awaiting active playback recovery.
+    CD_STREAM_FAULT_BIT = 1,
 
-/// Shift index of a `flags2` test.
-#define CD_STREAM_FAULT_BIT         1
-#define CD_STREAM_CHUNK_ADVANCE_BIT 2
+    /// Zero-based bit index requesting boundary service after a recovered chunk is received.
+    CD_STREAM_CHUNK_ADVANCE_BIT = 2,
 
-/// Byte mask that clears one `flags2` bit.
-#define CD_STREAM_CLEAR_REQUEUE 0xFE
+    /// Requests a restart read from the retained next-read sector and vsync playhead.
+    ///
+    /// Recovery consumes it while releasing voices and replacing the queued read.
+    /// Stop also sets it after disabling playback, leaving it pending until a
+    /// later restart path consumes it; setting the bit does not enqueue a job.
+    CD_STREAM_REQUEUE = 1,
+
+    /// Requests service of the received chunk's ring boundary after underrun recovery.
+    ///
+    /// Survives the restart read and selects even/odd service from the received
+    /// chunk index, bypassing the normal delay before it is consumed. Independent of fault.
+    CD_STREAM_CHUNK_ADVANCE = 1 << CD_STREAM_CHUNK_ADVANCE_BIT,
+
+    /// Software latch recording a reported stream-error halt that may need releasing.
+    ///
+    /// Set after reporting a playback fault or underrun. Recovery and shutdown
+    /// release the scene error separately before clearing the latch.
+    CD_STREAM_HALT = 8,
+
+    /// Eight-bit AND mask consuming a restart-read request before replacing its queued job.
+    CD_STREAM_CLEAR_REQUEUE = 0xFF & ~CD_STREAM_REQUEUE,
+};
 
 /// Playback recovery latch index and eight-bit AND masks in `CdStreamState::flags2`.
 enum {
@@ -488,16 +558,6 @@ typedef struct {
     _CdReadyEntry  entries[4];        // the ring
 } _CdReadyQueue;
 STATIC_ASSERT_SIZEOF(_CdReadyQueue, 0x58);
-
-/// Clears `count` words at `dst`, in place like `_memClearByteSpan`.
-#define MEM_CLEAR_WORDS(dst, count)                       \
-    {                                                     \
-        s32* _clearPtr = (s32*)(dst);                     \
-        u32  _clearI;                                     \
-        for (_clearI = 0; _clearI < (count); _clearI++) { \
-            *_clearPtr++ = 0;                             \
-        }                                                 \
-    }
 
 /// Stream-read failures produced by the polling and sector callbacks.
 ///
@@ -2792,12 +2852,29 @@ static void _cdReadyClearCallback(void)
     }
 }
 
+/// Clears a caller-owned word-aligned span using 32-bit stores.
+///
+/// `destination` must provide `wordCount` writable words, including all bytes
+/// between fields when clearing a complete object. A zero count performs no
+/// access and permits NULL. The word view does not describe the object's member
+/// types; clearing must run while its users and callbacks are inactive. No
+/// pointer is retained.
+static inline void _memClearWordSpan(void* destination, u32 wordCount)
+{
+    s32* wordCursor = destination;
+    u32  wordIndex;
+
+    for (wordIndex = 0; wordIndex < wordCount; wordIndex++) {
+        *wordCursor++ = 0;
+    }
+}
+
 void cdStreamReset(void)
 {
     enum { CD_STREAM_TRANSFER_TIMER_LIMIT = 0xFFFF };
 
-    MEM_CLEAR_WORDS(&_gCdReadyQueue, sizeof(_gCdReadyQueue) / sizeof(u32));
-    MEM_CLEAR_WORDS(&_gCdStreamRuntime, sizeof(_gCdStreamRuntime) / sizeof(u32));
+    _memClearWordSpan(&_gCdReadyQueue, sizeof(_gCdReadyQueue) / sizeof(s32));
+    _memClearWordSpan(&_gCdStreamRuntime, sizeof(_gCdStreamRuntime) / sizeof(s32));
 
     SetRCnt(RCntCNT2, CD_STREAM_TRANSFER_TIMER_LIMIT, RCntMdNOINTR);
     StartRCnt(RCntCNT2);
