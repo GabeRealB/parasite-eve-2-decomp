@@ -239,8 +239,17 @@ static const EnemyTaskFuncTable3 _gMothStateHandlers = {
 /// Points to the single `DamageAttack` entry also selected by the enemy parameters.
 /// Spawn reads entry zero once and retains only its packed collision key.
 /// Define before including the fragment and undefine afterwards; see `rat.h`.
-#define RAT_BITE_ATTACK  (&gRatAttack)
-#define RAT_ENEMY_PARAMS gRatParams
+#define RAT_BITE_ATTACK (&gRatAttack)
+
+/// Enemy-kind parameter record supplied to the shared rat spawner.
+///
+/// Binds the addressable, non-const `EnemyParams` object shared by this
+/// overlay's two TUs. Spawn retains its address in `Enemy::param` and copies
+/// `hpMax` to the rat's hit points. Rats borrow the same record for damage
+/// reactions and battle rewards; it must remain loaded until enemy teardown.
+/// Both uses must select the same object without side effects. Define before
+/// including `rat_spawn.inc.c` and undefine afterwards; see `rat.h`.
+#define RAT_ENEMY_PARAMS (gRatParams)
 
 /// Animation-set table supplied to the shared rat spawn fragment.
 ///

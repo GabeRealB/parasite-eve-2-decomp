@@ -601,8 +601,17 @@ static ActorSpriteUv _gMothBurstUvs[MOTH_BURST_CELL_COUNT] = {
 /// Points to the single `DamageAttack` entry also selected by the enemy parameters.
 /// Spawn reads entry zero once and retains only its packed collision key.
 /// Define before including the fragment and undefine afterwards; see `rat.h`.
-#define RAT_BITE_ATTACK  (&_gRatAttack)
-#define RAT_ENEMY_PARAMS _gRatParams
+#define RAT_BITE_ATTACK (&_gRatAttack)
+
+/// Enemy-kind parameter record supplied to the shared rat spawner.
+///
+/// Binds this TU's addressable, non-const `EnemyParams` object. Spawn retains
+/// its address in `Enemy::param` and copies `hpMax` to the rat's hit points.
+/// Rats borrow the same record for damage reactions and battle rewards; it
+/// must remain loaded until enemy teardown. Both uses must select the same
+/// object without side effects. Define before including `rat_spawn.inc.c`
+/// and undefine afterwards; see `rat.h`.
+#define RAT_ENEMY_PARAMS (_gRatParams)
 
 /// Animation-set table supplied to the shared rat spawn fragment.
 ///

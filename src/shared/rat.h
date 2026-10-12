@@ -72,8 +72,13 @@ enum { RAT_BITE_REACTION_POISON = 3 };
 // parameters' `attacks` pointer. Spawn evaluates the binding once and copies
 // the packed collision key; it neither writes nor retains the descriptor.
 // The descriptor must remain live through that read; the binding has no side effects.
-// `RAT_ENEMY_PARAMS` names a writable `EnemyParams` object;
-// bind it as a plain identifier without side effects.
+// `RAT_ENEMY_PARAMS` supplies an addressable, non-const `EnemyParams` object.
+// Spawn takes its address for `Enemy::param` and separately reads `hpMax` to
+// initialize the rat's hit points; both uses must select the same object
+// without side effects. Enemies borrow the record without copying or freeing
+// it, and damage reactions and battle rewards read it until enemy teardown.
+// The record must remain loaded for that lifetime; its `attacks` pointer
+// selects the same bite entry as `RAT_BITE_ATTACK`.
 // `RAT_ANIM_SETS` names an `AnimationSet*` array of `RAT_ANIM_SET_COUNT`
 // entries, indexed by `RAT_ANIM_*`: entry 0 is NULL and entries 1..10
 // supply tracks 1..6 of the seven-part model. Bind it as a plain identifier
