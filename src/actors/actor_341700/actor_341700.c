@@ -1228,25 +1228,34 @@ static __inline__ void _madChaserResetBehaviorStateS16(Task* task, s16 behaviorS
 
 /// Selects this carrier's declared static void(Task*) light-recoil dispatcher.
 #define MAD_CHASER_REACTION_STATE_HANDLER _madChaserRecoilLightState
+/// Selects the light-recoil entry callback for this reaction instance.
+///
+/// Must name a declared void(Task*) callback for subState 0. Entry borrows the
+/// live task, requests the reaction pose and advances subState to 1.
+/// Bind only for this fragment inclusion, then undefine; there is no default.
+#define MAD_CHASER_REACTION_ENTRY_HANDLER _madChaserRecoilLight
 #include "../../shared/mad_chaser_recoil_light_state.inc.c"
 #undef MAD_CHASER_REACTION_STATE_HANDLER
+#undef MAD_CHASER_REACTION_ENTRY_HANDLER
 
 /// Selects this carrier's declared static void(Task*) heavy-recoil dispatcher.
 #define MAD_CHASER_REACTION_STATE_HANDLER _madChaserRecoilHeavyState
-#define _madChaserRecoilLight             _madChaserRecoilHeavy
+/// Selects the declared void(Task*) entry that starts heavy recoil at subState 0.
+#define MAD_CHASER_REACTION_ENTRY_HANDLER _madChaserRecoilHeavy
 #define _madChaserRecoilLightRecover      _madChaserRecoilHeavyEnd
 #include "../../shared/mad_chaser_recoil_light_state.inc.c"
 #undef MAD_CHASER_REACTION_STATE_HANDLER
-#undef _madChaserRecoilLight
+#undef MAD_CHASER_REACTION_ENTRY_HANDLER
 #undef _madChaserRecoilLightRecover
 
 /// Selects this carrier's declared static void(Task*) buildup-status dispatcher.
 #define MAD_CHASER_REACTION_STATE_HANDLER _madChaserStatusHoldState
-#define _madChaserRecoilLight             _madChaserStatusHoldStart
+/// Selects the declared void(Task*) entry that starts status hold at subState 0.
+#define MAD_CHASER_REACTION_ENTRY_HANDLER _madChaserStatusHoldStart
 #define _madChaserRecoilLightRecover      _madChaserStatusHold
 #include "../../shared/mad_chaser_recoil_light_state.inc.c"
 #undef MAD_CHASER_REACTION_STATE_HANDLER
-#undef _madChaserRecoilLight
+#undef MAD_CHASER_REACTION_ENTRY_HANDLER
 #undef _madChaserRecoilLightRecover
 
 #include "../../shared/mad_chaser_knockdown_state.inc.c"

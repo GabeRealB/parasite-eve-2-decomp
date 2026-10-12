@@ -4,9 +4,17 @@
 // void(Task*) callback before inclusion, then undefines it. Its prior declaration
 // establishes linkage. The object-like binding names only the definition;
 // it evaluates no arguments, captures no values and constructs no tokens.
-// The carrier's _madChaserRecoilLight and _madChaserRecoilLightRecover bindings
-// select the entry and continuation callbacks for light recoil, heavy recoil
-// or buildup-status hold. Both must have the TaskFunc signature.
+// MAD_CHASER_REACTION_ENTRY_HANDLER selects the declared void(Task*) callback
+// for subState 0. Each carrier explicitly binds its light-recoil, heavy-recoil
+// or buildup-status entry around this inclusion, then undefines it; no default
+// is provided. Entry borrows the live task, requests the reaction pose and
+// advances subState to 1. The binding names a function without evaluating
+// arguments, capturing values or constructing tokens.
+// The carrier's _madChaserRecoilLightRecover binding selects the continuation.
+
+#ifndef MAD_CHASER_REACTION_ENTRY_HANDLER
+#error "Bind MAD_CHASER_REACTION_ENTRY_HANDLER to this instance's void(Task*) entry before inclusion"
+#endif
 
 /// Dispatches the entry or continuation of a Mad Chaser combat hit reaction.
 ///
@@ -33,7 +41,7 @@ void MAD_CHASER_REACTION_STATE_HANDLER(Task* task)
 {
     MadChaserWork* work           = task->work;
     TaskFunc       stepHandlers[] = {
-        _madChaserRecoilLight,
+        MAD_CHASER_REACTION_ENTRY_HANDLER,
         _madChaserRecoilLightRecover,
     };
 
