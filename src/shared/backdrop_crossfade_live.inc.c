@@ -24,21 +24,22 @@ static void _crossfadeDrawLive(s32 shade)
     u8    textureU;
     u8    textureV;
 
-    /// Reserves and initializes one opaque, greyscale-modulated live-frame sprite.
+    /// Reserves one opaque live-frame sprite with equal RGB modulation bytes.
     ///
-    /// `spritePacket` must be a writable `SPRT*` local; `shadeValue` must have
-    /// no side effects, since it is read three times. Uses the current frame's
-    /// packet cursor; dimensions, texture coordinates and linkage remain unset.
-    /// The arena must have room for one `SPRT`, retained until the GPU finishes.
+    /// Requires a disjoint writable `SPRT*` lvalue and a stable integer shade;
+    /// both expressions are evaluated repeatedly. Shade stores retain the low
+    /// byte (0 black, 128 neutral). Captures `gGpuPrimCursor`, advancing it by
+    /// sizeof(SPRT); the frame arena must have that much space through GPU use.
+    /// Geometry, texture and OT linkage are supplied afterwards. One statement.
 #define CROSSFADE_ALLOCATE_LIVE_SPRITE(spritePacket, shadeValue) \
-    {                                                            \
+    (void)({                                                     \
         (spritePacket) = gGpuPrimCursor;                         \
         gGpuPrimCursor = (spritePacket) + 1;                     \
         setSprt(spritePacket);                                   \
         (spritePacket)->r0 = (shadeValue);                       \
         (spritePacket)->g0 = (shadeValue);                       \
         (spritePacket)->b0 = (shadeValue);                       \
-    }
+    })
 
     // The lower framebuffer starts sixteen rows into its texture page.
     if (gDisplayState.drawBuffer == 0) {

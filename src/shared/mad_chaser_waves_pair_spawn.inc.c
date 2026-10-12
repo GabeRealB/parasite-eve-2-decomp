@@ -22,13 +22,17 @@ static void _overlayEncounterPairSpawn(Task* waveTask)
     Task*                     enemyTask;
     TmdObject*                model;
 
-/// Applies the encounter identity, palette and HP to one live Sucklerceph.
+/// Assigns one spawned Sucklerceph its encounter identity, palette and one HP.
 ///
-/// Used only in this spawner. Evaluates member once; captures its enemy,
-/// enemyTask and model locals, gActor342400EncounterNextPlaceIndex and the pair constants.
-/// The member and its model task must be live. Expands to one compound statement.
+/// `member` is a non-NULL Enemy* expression evaluated once, with a live TMD
+/// task. Overwrites the caller's `enemy`, `enemyTask` and `model` locals and
+/// reads the `OVERLAY_ENCOUNTER_PAIR_*` constants. Consumes and increments
+/// `gActor342400EncounterNextPlaceIndex` modulo 65536; the u16 place key retains
+/// only the counter's low four bits shifted by `ENEMY_PLACE_INDEX_SHIFT`.
+/// Model texture/CLUT offsets are set before HP. Borrows the enemy and model;
+/// neither is allocated or retained here. Expands to one statement.
 #define OVERLAY_ENCOUNTER_PREPARE_PAIR_MEMBER(member)                                     \
-    {                                                                                     \
+    do {                                                                                  \
         enemy           = (member);                                                       \
         enemy->placeKey = gActor342400EncounterNextPlaceIndex << ENEMY_PLACE_INDEX_SHIFT; \
         gActor342400EncounterNextPlaceIndex++;                                            \
@@ -37,7 +41,7 @@ static void _overlayEncounterPairSpawn(Task* waveTask)
         model->texturePageOffset = OVERLAY_ENCOUNTER_PAIR_TEXTURE_PAGE_OFFSET;            \
         model->clutRowOffset     = OVERLAY_ENCOUNTER_PAIR_CLUT_ROW_OFFSET;                \
         enemy->hp                = OVERLAY_ENCOUNTER_PAIR_INITIAL_HP;                     \
-    }
+    } while (0)
 
     work = memCalloc(sizeof(*work), false);
     if (work == NULL) {

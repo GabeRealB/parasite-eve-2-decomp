@@ -26,33 +26,37 @@ static void _underpassSwitchTask(Task* task)
         UNDERPASS_SWITCH_ROOM_BEFORE_EVENT_ON  = 5,
         UNDERPASS_SWITCH_ROOM_BEFORE_EVENT_OFF = 6,
     };
-    /// Resolves the local switch request into its reply's room selector.
+    /// Selects underpass room 1..6 after a switch-1 toggle according to story progress.
     ///
-    /// Captures `requestPtr`, `replyPtr` and `reply`; `replyPtr` must address
-    /// `reply`. Reads only the initialized execution byte and writes only the
-    /// room byte (1..6). Queries leave the reply untouched. The pointer and
-    /// record access paths preserve the selector's compiled byte accesses.
-    /// Expands to one conditional statement, takes no arguments and is
-    /// undefined at the end of this function.
-#define UNDERPASS_SELECT_SWITCH_ROOM()                                      \
-    if (requestPtr->queryOnly == ROOM_EVENT_EXECUTE) {                      \
-        if (gameFlagGetNibble(GAME_FLAG_UNDERPASS_EVENT_SEEN) != 0) {       \
-            if (gameFlagGetNibble(GAME_FLAG_053) != 0) {                    \
-                replyPtr->room = UNDERPASS_SWITCH_ROOM_AFTER_EVENT_053;     \
-            } else {                                                        \
-                replyPtr->room = UNDERPASS_SWITCH_ROOM_AFTER_EVENT;         \
-            }                                                               \
-            if (gameFlagGetNibble(GAME_FLAG_UNDERPASS_SWITCH_1) == 0) {     \
-                reply.room = reply.room + UNDERPASS_SWITCH_OFF_ROOM_OFFSET; \
-            }                                                               \
-        } else {                                                            \
-            if (gameFlagGetNibble(GAME_FLAG_UNDERPASS_SWITCH_1) != 0) {     \
-                replyPtr->room = UNDERPASS_SWITCH_ROOM_BEFORE_EVENT_ON;     \
-            } else {                                                        \
-                replyPtr->room = UNDERPASS_SWITCH_ROOM_BEFORE_EVENT_OFF;    \
-            }                                                               \
-        }                                                                   \
-    }
+    /// Captures `requestPtr`, `replyPtr`, `reply` and the function's
+    /// `UNDERPASS_SWITCH_*` room constants; `replyPtr` must address writable
+    /// RoomEventMsg `reply`. Only request.queryOnly needs initialization.
+    /// Execution chooses 1/2 after the event (flag 053 selects 2), plus two
+    /// when switch 1 is off; before the event it chooses 5 on or 6 off.
+    /// Query requests perform no flag reads or writes. Only reply.room changes;
+    /// committing session/save state remains the caller's responsibility.
+    /// Expands to one statement and is undefined after the function.
+#define UNDERPASS_SELECT_SWITCH_ROOM()                                          \
+    (void)({                                                                    \
+        if (requestPtr->queryOnly == ROOM_EVENT_EXECUTE) {                      \
+            if (gameFlagGetNibble(GAME_FLAG_UNDERPASS_EVENT_SEEN) != 0) {       \
+                if (gameFlagGetNibble(GAME_FLAG_053) != 0) {                    \
+                    replyPtr->room = UNDERPASS_SWITCH_ROOM_AFTER_EVENT_053;     \
+                } else {                                                        \
+                    replyPtr->room = UNDERPASS_SWITCH_ROOM_AFTER_EVENT;         \
+                }                                                               \
+                if (gameFlagGetNibble(GAME_FLAG_UNDERPASS_SWITCH_1) == 0) {     \
+                    reply.room = reply.room + UNDERPASS_SWITCH_OFF_ROOM_OFFSET; \
+                }                                                               \
+            } else {                                                            \
+                if (gameFlagGetNibble(GAME_FLAG_UNDERPASS_SWITCH_1) != 0) {     \
+                    replyPtr->room = UNDERPASS_SWITCH_ROOM_BEFORE_EVENT_ON;     \
+                } else {                                                        \
+                    replyPtr->room = UNDERPASS_SWITCH_ROOM_BEFORE_EVENT_OFF;    \
+                }                                                               \
+            }                                                                   \
+        }                                                                       \
+    })
 
     RoomEventMsg  request;
     RoomEventMsg  reply;

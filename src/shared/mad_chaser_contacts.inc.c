@@ -27,13 +27,17 @@ static void _madChaserApplyContacts(Task* task, s16 ignorePlayerBody)
         MAD_CHASER_PUSH_FRACTION_BITS        = 16,
         MAD_CHASER_PUSH_FRACTION_MASK        = 0xFFFF
     };
-    /// Adds the signed 16.16 correction's sign to its floored halfword step.
+    /// Adds a fractional Q16 correction's sign to its integer halfword step.
     ///
-    /// Both arguments are side-effect-free scalar lvalues. correctionWord is
-    /// read up to twice and gridStep once on the selected path; increments
-    /// narrow to s16. Negative fractions subtract one below their integer half.
+    /// `gridStep` is a writable s16 initialized from the integer half of the
+    /// stable s32 `correctionWord`; the arguments must be disjoint and have no
+    /// side effects. The word is read twice when its low half is nonzero.
+    /// Exact integers stay unchanged; positive fractions increment the step,
+    /// negative fractions decrement it: -0.5 changes -1 to -2. Narrowing back
+    /// to s16 retains halfword wrap. Captures `MAD_CHASER_PUSH_FRACTION_MASK`;
+    /// expands to one statement and performs no division or frame conversion.
 #define MAD_CHASER_ADJUST_FRACTIONAL_GRID_STEP(gridStep, correctionWord) \
-    {                                                                    \
+    (void)({                                                             \
         if ((correctionWord) & MAD_CHASER_PUSH_FRACTION_MASK) {          \
             if ((correctionWord) > 0) {                                  \
                 (gridStep)++;                                            \
@@ -41,7 +45,7 @@ static void _madChaserApplyContacts(Task* task, s16 ignorePlayerBody)
                 (gridStep)--;                                            \
             }                                                            \
         }                                                                \
-    }
+    })
     WorldCollisionDelta gridCorrection;
     SVECTOR             contactPush;
     s16                 strongestPushX;

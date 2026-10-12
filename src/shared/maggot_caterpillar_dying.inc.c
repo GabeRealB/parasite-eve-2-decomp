@@ -28,8 +28,18 @@ static void _maggotCaterpillarDyingState(Enemy* enemy, Task* actor)
     TmdObject*             model;
     s32                    rewardKindArg;
 
-    // Stable local arguments are evaluated repeatedly; the VECTOR pad is untouched.
-#define MAGGOT_CATERPILLAR_UPDATE_CORPSE_POSE(actor, colorCoord, colorPosition)         \
+    /// Advances corpse animation and samples lighting at the cached root translation.
+    ///
+    /// `actor` is a live TMD task with initialized MaggotCaterpillarWork, slots
+    /// 1..7 and a valid requested clip/blend-table index. It is evaluated three
+    /// times; `colorCoord` is a writable GfxCoord* lvalue assigned once and read
+    /// three times, and `colorPosition` a writable VECTOR lvalue with its pad
+    /// untouched. All expressions must be stable and disjoint from inputs.
+    /// Changed requests reset/blend the slots; unchanged requests tick them.
+    /// Then full-width cached XYZ is sampled without composing or converting
+    /// its frame. spawnArg2 borrows the Enemy to colour; no temporary pointer
+    /// escapes the lighting query. Captures no caller locals. One statement.
+#define MAGGOT_CATERPILLAR_ANIMATE_AND_LIGHT_CORPSE(actor, colorCoord, colorPosition)   \
     do {                                                                                \
         _maggotCaterpillarTickAnimInline(actor);                                        \
         (colorCoord)       = (actor)->extra.tmd->coords;                                \
@@ -78,7 +88,7 @@ static void _maggotCaterpillarDyingState(Enemy* enemy, Task* actor)
                         model->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
                     }
                     work->animId = MAGGOT_CATERPILLAR_ANIM_HURT;
-                    MAGGOT_CATERPILLAR_UPDATE_CORPSE_POSE(actor, colorCoord, colorPosition);
+                    MAGGOT_CATERPILLAR_ANIMATE_AND_LIGHT_CORPSE(actor, colorCoord, colorPosition);
                     return;
                 case MAGGOT_CATERPILLAR_DEATH_COLLAPSE:
                     // Burst replacement owns a separate effect; the corpse task still times teardown.
@@ -106,7 +116,7 @@ static void _maggotCaterpillarDyingState(Enemy* enemy, Task* actor)
                         work->stateCounter = 0;
                         model->flags       = TMD_OBJECT_SKIP_ACTIVE_DRAW;
                     }
-                    MAGGOT_CATERPILLAR_UPDATE_CORPSE_POSE(actor, colorCoord, colorPosition);
+                    MAGGOT_CATERPILLAR_ANIMATE_AND_LIGHT_CORPSE(actor, colorCoord, colorPosition);
                     return;
                 case MAGGOT_CATERPILLAR_DEATH_WAIT:
                     work->stateCounter++;
@@ -117,5 +127,5 @@ static void _maggotCaterpillarDyingState(Enemy* enemy, Task* actor)
             }
             break;
     }
-#undef MAGGOT_CATERPILLAR_UPDATE_CORPSE_POSE
+#undef MAGGOT_CATERPILLAR_ANIMATE_AND_LIGHT_CORPSE
 }

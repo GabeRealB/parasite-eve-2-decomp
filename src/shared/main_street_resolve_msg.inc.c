@@ -44,15 +44,20 @@ static s32 _mainStreetResolveMessage(Task* task, s32 messageId, const RoomEventM
     RoomLatchedEvent stagedEvent;
     s32              transitionResult;
 
-/// Checks and commits one staged-scene request, returning its transition reply.
+/// Returns the departure result for a staged scene, latching it on execution.
 ///
-/// Used only in this resolver. Captures stagedEvent and reply plus the room's
-/// event snapshots, descriptor and start indication. Evaluates the flag lookup
-/// before the zero sentinel; queries clear only the indication. Returns from
-/// the containing handler (2 eligible, 1 already latched); spawn failure still
-/// commits the flag and indication. Expands to one compound statement.
-#define MAIN_STREET_LATCH_STAGED_SCENE()                                             \
-    {                                                                                \
+/// Captures initialized RoomLatchedEvent `stagedEvent`, a live RoomEventMsg*
+/// `reply`, the `MAIN_STREET_TRANSITION_*` constants, writable room-event
+/// snapshot bindings and `_gMainStreetStagedSceneStartStorage`/task descriptor.
+/// Clears the start indication before eligibility; the nibble lookup executes
+/// even for flag ID zero. An unset or zero flag returns HANDLED (2); executing
+/// requests first copy destination/event, set a nonzero flag, request the task
+/// and mark started, in that order. Queries only clear the indication. An
+/// already-set flag returns ORDINARY (1). Every path returns from the caller.
+/// Spawn failure still commits; keep the latched records and room loaded until
+/// the spawned task finishes. One statement, with no loop break/continue.
+#define MAIN_STREET_RETURN_STAGED_SCENE_RESULT()                                     \
+    (void)({                                                                         \
         _gMainStreetStagedSceneStartStorage.eventStarted = 0;                        \
         if (gameFlagGetNibble(stagedEvent.flagId) == 0 || stagedEvent.flagId == 0) { \
             if (reply->queryOnly == ROOM_EVENT_EXECUTE) {                            \
@@ -68,7 +73,7 @@ static s32 _mainStreetResolveMessage(Task* task, s32 messageId, const RoomEventM
             return MAIN_STREET_TRANSITION_HANDLED;                                   \
         }                                                                            \
         return MAIN_STREET_TRANSITION_ORDINARY;                                      \
-    }
+    })
 
     // Resolve ordinary departures before a gate latches the destination.
     *reply = *request;
@@ -111,13 +116,13 @@ static s32 _mainStreetResolveMessage(Task* task, s32 messageId, const RoomEventM
         stagedEvent.stageSnd = SOUND_MAIN_STREET_MOTEL_DOOR_OPEN;
         stagedEvent.flagId   = GAME_FLAG_MAIN_STREET_TO_MOTEL_ROOM_1_SCENE;
         stagedEvent.fade     = 0;
-        MAIN_STREET_LATCH_STAGED_SCENE();
+        MAIN_STREET_RETURN_STAGED_SCENE_RESULT();
     } else if (request->areaId == GAME_AREA_DRYFIELD_MOTEL_ROOM_2) {
         stagedEvent.capCmd   = MAIN_STREET_CAP_MOTEL_ROOM_2_SCENE;
         stagedEvent.stageSnd = SOUND_MAIN_STREET_MOTEL_DOOR_OPEN;
         stagedEvent.flagId   = GAME_FLAG_MAIN_STREET_TO_MOTEL_ROOM_2_SCENE;
         stagedEvent.fade     = 0;
-        MAIN_STREET_LATCH_STAGED_SCENE();
+        MAIN_STREET_RETURN_STAGED_SCENE_RESULT();
     } else if (request->areaId == GAME_AREA_DRYFIELD_MOTEL_ROOM_3) {
         eventRequest.capCmd        = MAIN_STREET_CAP_UNLOCK_MOTEL_ROOM_3;
         eventRequest.missingCapCmd = MAIN_STREET_CAP_ROOM_3_KEY_MISSING;
@@ -158,4 +163,4 @@ static s32 _mainStreetResolveMessage(Task* task, s32 messageId, const RoomEventM
     return MAIN_STREET_TRANSITION_ORDINARY;
 }
 
-#undef MAIN_STREET_LATCH_STAGED_SCENE
+#undef MAIN_STREET_RETURN_STAGED_SCENE_RESULT

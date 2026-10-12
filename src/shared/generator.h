@@ -21,10 +21,21 @@
 
 #include "main/task_types.h"
 
-/* Each package builds the library for one kind, selected before this header
- * is included; the kind also indexes the per-kind tables. */
-#define GENERATOR_BETA  0
-#define GENERATOR_PROTO 1
+/// Runtime kind/table index for actor_105300's Beta Generator in Power Plant 2.
+///
+/// Stored in the body and Life Support work's s16 kind; selects row 0 of each
+/// two-entry position/offset table and the Power Plant 2 sprite/part-down flag.
+/// A carrier may bind `GENERATOR_KIND` to this C integer constant before the
+/// header; that binding is expanded only in C expressions, never in #if.
+enum { GENERATOR_BETA = 0 };
+
+/// Runtime kind/table index for actor_105400's Proto Generator in Power Plant 1.
+///
+/// Stored in the body and Life Support work's s16 kind; selects row 1 of each
+/// two-entry position/offset table and the Power Plant 1 sprite/part-down flag.
+/// A carrier may bind `GENERATOR_KIND` to this C integer constant before the
+/// header; that binding is expanded only in C expressions, never in #if.
+enum { GENERATOR_PROTO = 1 };
 #ifndef GENERATOR_KIND
 #error "define GENERATOR_KIND (GENERATOR_BETA or GENERATOR_PROTO) before including generator.h"
 #endif

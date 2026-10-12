@@ -44,14 +44,20 @@ static void _skullStalkerProcessContacts(Task* task)
     u32                       damage;
     s32                       soundId;
 
-    /// Queues one placement-tagged spatial sound.
+    /// Queues a contact sound tagged with the enemy's placement instance.
     ///
-    /// Captures the live task, composed rootCoord and soundId (overwritten).
-    /// scriptId is evaluated once; rootCoord is sampled by both audio queries.
+    /// `scriptId` is an s32 packed bank/entry ID evaluated once, with zero
+    /// instance bits 8..15. Captures `task`, `rootCoord` and writable `soundId`;
+    /// the task must borrow a live Enemy and the root must be composed in the
+    /// current view. The placement index supplies the instance byte. Audio pan
+    /// and attenuation narrow to signed bytes; their query order is unspecified
+    /// by C. Admission failure is discarded; the bank must remain loaded through
+    /// playback. The block-local `soundEnemy` is borrowed. One statement.
 #define SKULL_STALKER_PLAY_CONTACT_SOUND(scriptId)                                                                                   \
     do {                                                                                                                             \
+        enum { SKULL_STALKER_SOUND_INSTANCE_SHIFT = 8 };                                                                             \
         Enemy* soundEnemy = task->spawnArg2.pointer;                                                                                 \
-        soundId           = ((soundEnemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | (scriptId);                                   \
+        soundId           = ((soundEnemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << SKULL_STALKER_SOUND_INSTANCE_SHIFT) | (scriptId);  \
         sndEvtRequestScriptStart(soundId, (s8)worldCoordGetOriginAudioPan(rootCoord), (s8)worldCoordGetOriginAudioDepth(rootCoord)); \
     } while (0)
 

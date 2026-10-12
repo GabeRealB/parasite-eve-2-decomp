@@ -131,21 +131,30 @@ static void _telephonePromptTaskExit(Task* task);
 /// storage; its 32-byte temporary buffer holds every formatted saved value.
 static void _telephoneDrawPlayDataRow(UiList* list, UiObject* object)
 {
-    // Draw a medium-font caption at the row's baseline. Captures list/object
-    // and each case's captionRequest/captionBaseY. The
-    // caption expression is evaluated once; row and panel reads stay ordered.
-#define TELEPHONE_DRAW_PLAY_DATA_CAPTION(caption)                                                              \
-    {                                                                                                          \
-        captionRequest.x          = object->panel.contentOriginX.unsignedValue + list->rowTextX.unsignedValue; \
-        captionBaseY              = object->panel.contentOriginY.unsignedValue - 6;                            \
-        captionRequest.y          = list->rowTextY.unsignedValue + captionBaseY;                               \
-        captionRequest.otIndex    = object->panel.otIndex.signedValue + 1;                                     \
-        captionRequest.colorRgb   = list->colorRgb;                                                            \
-        captionRequest.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;                                                   \
-        captionRequest.alignment  = TEXT_ALIGNMENT_LEFT;                                                       \
-        captionRequest.drawMode   = TEXT_DRAW_OUTLINED;                                                        \
-        textDrawString(&captionRequest, (caption));                                                            \
-    }
+    /// Draws one outlined play-statistic label at the current list-row baseline.
+    ///
+    /// `caption` is a const u8* NUL-terminated medium-font string, evaluated once.
+    /// Captures live `list` and `object` plus writable TextDrawReq `captionRequest`
+    /// and s32 `captionBaseY` locals in each case. Positions add the unsigned
+    /// panel/row halfwords, then narrow to signed pixel coordinates; Y is six
+    /// pixels above the row pen. The panel's signed OT index advances one tag;
+    /// outlined text also needs the next tag. Uses the row's RGB and left alignment.
+    /// Text resources and frame packet space must be ready; the draw mutates
+    /// the request's pen but retains neither the request nor string. One statement.
+#define TELEPHONE_DRAW_PLAY_DATA_CAPTION(caption)                                                                                    \
+    (void)({                                                                                                                         \
+        enum { TELEPHONE_PLAY_DATA_CAPTION_BASELINE_OFFSET_PIXELS = 6 };                                                             \
+        enum { TELEPHONE_PLAY_DATA_CAPTION_OT_OFFSET = 1 };                                                                          \
+        captionRequest.x          = object->panel.contentOriginX.unsignedValue + list->rowTextX.unsignedValue;                       \
+        captionBaseY              = object->panel.contentOriginY.unsignedValue - TELEPHONE_PLAY_DATA_CAPTION_BASELINE_OFFSET_PIXELS; \
+        captionRequest.y          = list->rowTextY.unsignedValue + captionBaseY;                                                     \
+        captionRequest.otIndex    = object->panel.otIndex.signedValue + TELEPHONE_PLAY_DATA_CAPTION_OT_OFFSET;                       \
+        captionRequest.colorRgb   = list->colorRgb;                                                                                  \
+        captionRequest.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;                                                                         \
+        captionRequest.alignment  = TEXT_ALIGNMENT_LEFT;                                                                             \
+        captionRequest.drawMode   = TEXT_DRAW_OUTLINED;                                                                              \
+        textDrawString(&captionRequest, (caption));                                                                                  \
+    })
 
     u8  valueText[0x20];
     u8* formatBuffer;

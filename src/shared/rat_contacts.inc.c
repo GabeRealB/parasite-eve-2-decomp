@@ -22,12 +22,19 @@ static void _ratContacts(Task* actor)
         RAT_GRID_FRACTION_BITS    = 16,
         RAT_CRITICAL_DAMAGE_SCALE = 4
     };
-    // Retain the deepest positive body overlap and rotate its Q12 direction
-    // out of the grid view. Captures rootCoord, scratch, deepestPush and the
-    // delta/depth locals below; contact is a readable record expression,
-    // evaluated repeatedly, so it must have no side effects.
+    /// Keeps the deepest positive body overlap and its room-axis Q12 direction.
+    ///
+    /// `contact` is a stable WorldCollisionContact record evaluated four times;
+    /// its point and the cached root translation use the same composition frame.
+    /// `distance` is the summed sphere radii, in whole coordinate units. Captures
+    /// `rootCoord`, `scratch`, `deepestPush`, `deltaX/Y/Z`, `overlapDepth` and
+    /// `nonnegativeDepth`, plus the live `gWorldCollisionActiveGrid` view basis.
+    /// The scratch vectors and depth must be writable and disjoint from inputs.
+    /// Nonpositive overlaps are clamped to zero; equal depths retain the earlier
+    /// direction. All squared-distance arithmetic stays s32. No body is moved
+    /// here; the caller applies the selected horizontal push. One statement.
 #define RAT_KEEP_DEEPEST_BODY_PUSH(contact)                                                                                     \
-    {                                                                                                                           \
+    (void)({                                                                                                                    \
         deltaX                   = rootCoord->workm.t[0] - (contact).point.vx;                                                  \
         scratch->delta.vector.vx = deltaX;                                                                                      \
         deltaY                   = rootCoord->workm.t[1] - (contact).point.vy;                                                  \
@@ -45,7 +52,7 @@ static void _ratContacts(Task* actor)
             VectorNormal(&scratch->delta.vector, &scratch->normal);                                                             \
             ApplyTransposeMatrixLV(&gWorldCollisionActiveGrid->viewCoord->workm, &scratch->normal, &scratch->pushDirection);    \
         }                                                                                                                       \
-    }
+    })
 
     RatWork*                 work;
     ActorOverlapPushScratch* scratch;

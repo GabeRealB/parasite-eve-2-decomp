@@ -4,14 +4,16 @@
 
 /* Part of the incinerator blaze library; see incinerator_blaze.h. */
 
-/// Binds the shared fire argument to a selected player part and emits one blast.
+/// Spawns a body-fire blast attached to a selected player-model coordinate.
 ///
-/// Requires the carrier's sixteen-entry _gBlazePlayerFireParts and reusable
-/// _gBlazePlayerFireArg, plus a live player model containing the selected part.
-/// playerTask is evaluated twice; partIndex and fireSize once. Arguments must
-/// be stable, side-effect-free expressions. fireSize narrows to the signed low
-/// half of the spawn word. The stored coordinate is borrowed by the effect;
-/// the macro owns no storage and expands to one statement.
+/// `playerTask` is a live TMD task, evaluated twice; `partIndex` is 0..15 and
+/// `fireSize` is a spawn magnitude, each evaluated once. All must be stable
+/// and independent of the writable `_gBlazePlayerFireArg`. The carrier supplies
+/// that record and `_gBlazePlayerFireParts[16]`; the model must cover its indices
+/// (up to 18). The size narrows to s16 and the record's high half stays intact.
+/// The blast uses the record's selected part even though the call passes the
+/// root. Spawning snapshots the record but borrows the part for effect lifetime.
+/// No storage is allocated by the macro itself. Expands to one statement.
 #define BLAZE_SPAWN_PLAYER_FIRE(playerTask, partIndex, fireSize)                                                 \
     do {                                                                                                         \
         _gBlazePlayerFireArg.spawnArgLo = (fireSize);                                                            \

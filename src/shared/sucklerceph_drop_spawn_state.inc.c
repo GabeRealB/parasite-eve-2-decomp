@@ -81,19 +81,27 @@ static void _sucklercephDropSpawnState(Enemy* enemy, Task* task)
     work->hitEffectArg.spawnArgLo = SUCKLERCEPH_DROP_HIT_EFFECT_ARG_LO;
     work->hitEffectArg.spawnArgHi = SUCKLERCEPH_DROP_HIT_EFFECT_ARG_HI;
     // Link sensing, body and burst spheres without enabling their passes.
-    // Shape setup only. work is evaluated eight times; other value arguments
-    // once. Supply stable, side-effect-free pointers; member selects a sphere
-    // field. Expands statements, so use only standalone
-    // in a braced body. Linking and pass flags remain in their original order.
+    /// Initializes one unlinked drop sphere and its borrowed coordinate/contact pointers.
+    ///
+    /// `work` is a live SucklercephWork* evaluated eight times; `member` is its
+    /// WorldCollisionBody field name. Other arguments are evaluated once and
+    /// must be stable and independent of the destination. `root` and
+    /// `contactTable` remain borrowed until unlink/teardown; the caller links
+    /// the body and initializes that table afterwards. Centre Y narrows to s16,
+    /// radius to u16, both in root-local coordinate units; key is a packed s32.
+    /// Leaves pos.pad untouched and replaces flags with sphere kind only,
+    /// disabling every collision pass. Captures no locals. One statement.
 #define SUCKLERCEPH_INIT_DROP_SPHERE(work, member, root, contactTable, centreY, sphereRadius, contactKey) \
-    (work)->member.coord            = (root);                                                             \
-    (work)->member.context.contacts = (contactTable);                                                     \
-    (work)->member.pos.vx           = 0;                                                                  \
-    (work)->member.pos.vy           = (centreY);                                                          \
-    (work)->member.pos.vz           = 0;                                                                  \
-    (work)->member.key              = (contactKey);                                                       \
-    (work)->member.radius           = (sphereRadius);                                                     \
-    (work)->member.flags            = WORLD_COLLISION_BODY_SPHERE
+    (void)({                                                                                              \
+        (work)->member.coord            = (root);                                                         \
+        (work)->member.context.contacts = (contactTable);                                                 \
+        (work)->member.pos.vx           = 0;                                                              \
+        (work)->member.pos.vy           = (centreY);                                                      \
+        (work)->member.pos.vz           = 0;                                                              \
+        (work)->member.key              = (contactKey);                                                   \
+        (work)->member.radius           = (sphereRadius);                                                 \
+        (work)->member.flags            = WORLD_COLLISION_BODY_SPHERE;                                    \
+    })
     SUCKLERCEPH_INIT_DROP_SPHERE(work, senseBody, rootCoord, &work->senseContact, 0, SUCKLERCEPH_DROP_SENSE_RADIUS, 0);
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->senseBody);
     worldCollisionInitContacts(&work->senseContact, 1, 0);

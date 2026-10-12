@@ -50,41 +50,48 @@ static void _generatorDeathState(Enemy* enemy, Task* task)
     s32                  smokeX;
     s32                  smokeZ;
 
-/// Emits the death flash/smoke pair using this handler's root and offset locals.
+/// Emits a flash followed by smoke at random offsets beneath the Generator root.
 ///
-/// Invoke as a standalone statement in a braced block. Captures rootCoord,
-/// effectOffset and flashX/flashZ/smokeX/smokeZ; consumes four ordered LCG draws.
-/// Spawn snapshots each offset; these two effect callbacks never read the
-/// retained offset address. Repeated global reads preserve the random sequence.
-#define GENERATOR_DEATH_SPAWN_EFFECTS()                                                        \
-    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;          \
-    flashX          = (gRandomLcgState >> 16) & GENERATOR_DEATH_OFFSET_MAGNITUDE_MASK;         \
-    if (!((gRandomLcgState >> 16) & GENERATOR_DEATH_OFFSET_SIGN_BIT)) {                        \
-        flashX = -flashX;                                                                      \
-    }                                                                                          \
-    effectOffset.vx = flashX;                                                                  \
-    effectOffset.vy = GENERATOR_DEATH_FLASH_Y;                                                 \
-    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;          \
-    flashZ          = (gRandomLcgState >> 16) & GENERATOR_DEATH_OFFSET_MAGNITUDE_MASK;         \
-    if (!((gRandomLcgState >> 16) & GENERATOR_DEATH_OFFSET_SIGN_BIT)) {                        \
-        flashZ = -flashZ;                                                                      \
-    }                                                                                          \
-    effectOffset.vz = flashZ;                                                                  \
-    effectSpawn(EFFECT_FLASH_BURST, rootCoord, GENERATOR_DEATH_FLASH_ARGUMENT, &effectOffset); \
-    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;          \
-    smokeX          = (gRandomLcgState >> 16) & GENERATOR_DEATH_OFFSET_MAGNITUDE_MASK;         \
-    if (!((gRandomLcgState >> 16) & GENERATOR_DEATH_OFFSET_SIGN_BIT)) {                        \
-        smokeX = -smokeX;                                                                      \
-    }                                                                                          \
-    effectOffset.vx = smokeX;                                                                  \
-    effectOffset.vy = GENERATOR_DEATH_SMOKE_Y;                                                 \
-    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;          \
-    smokeZ          = (gRandomLcgState >> 16) & GENERATOR_DEATH_OFFSET_MAGNITUDE_MASK;         \
-    if (!((gRandomLcgState >> 16) & GENERATOR_DEATH_OFFSET_SIGN_BIT)) {                        \
-        smokeZ = -smokeZ;                                                                      \
-    }                                                                                          \
-    effectOffset.vz = smokeZ;                                                                  \
-    effectSpawn(EFFECT_SMOKE_PUFF, rootCoord, GENERATOR_DEATH_SMOKE_ARGUMENT, &effectOffset);
+/// Captures live `rootCoord`, writable SVECTOR `effectOffset`, s32
+/// `flashX/flashZ/smokeX/smokeZ` and the handler's `GENERATOR_DEATH_*` constants.
+/// Each X/Z component advances the shared u32 LCG, selecting a signed magnitude
+/// 0..1023 in root-local units; Y is -2500 for flash and -2400 for smoke.
+/// The flash spawn precedes the smoke draws, preserving any random consumption
+/// inside spawning. Offset XYZ narrows to s16 and its pad is untouched.
+/// Spawning snapshots XYZ; both callbacks ignore the retained offset address.
+/// The root remains borrowed for effect lifetime. Spawn failures do not stop
+/// the second effect or undo random draws. Expands to one statement.
+#define GENERATOR_DEATH_SPAWN_EFFECTS()                                                            \
+    do {                                                                                           \
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;          \
+        flashX          = (gRandomLcgState >> 16) & GENERATOR_DEATH_OFFSET_MAGNITUDE_MASK;         \
+        if (!((gRandomLcgState >> 16) & GENERATOR_DEATH_OFFSET_SIGN_BIT)) {                        \
+            flashX = -flashX;                                                                      \
+        }                                                                                          \
+        effectOffset.vx = flashX;                                                                  \
+        effectOffset.vy = GENERATOR_DEATH_FLASH_Y;                                                 \
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;          \
+        flashZ          = (gRandomLcgState >> 16) & GENERATOR_DEATH_OFFSET_MAGNITUDE_MASK;         \
+        if (!((gRandomLcgState >> 16) & GENERATOR_DEATH_OFFSET_SIGN_BIT)) {                        \
+            flashZ = -flashZ;                                                                      \
+        }                                                                                          \
+        effectOffset.vz = flashZ;                                                                  \
+        effectSpawn(EFFECT_FLASH_BURST, rootCoord, GENERATOR_DEATH_FLASH_ARGUMENT, &effectOffset); \
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;          \
+        smokeX          = (gRandomLcgState >> 16) & GENERATOR_DEATH_OFFSET_MAGNITUDE_MASK;         \
+        if (!((gRandomLcgState >> 16) & GENERATOR_DEATH_OFFSET_SIGN_BIT)) {                        \
+            smokeX = -smokeX;                                                                      \
+        }                                                                                          \
+        effectOffset.vx = smokeX;                                                                  \
+        effectOffset.vy = GENERATOR_DEATH_SMOKE_Y;                                                 \
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;          \
+        smokeZ          = (gRandomLcgState >> 16) & GENERATOR_DEATH_OFFSET_MAGNITUDE_MASK;         \
+        if (!((gRandomLcgState >> 16) & GENERATOR_DEATH_OFFSET_SIGN_BIT)) {                        \
+            smokeZ = -smokeZ;                                                                      \
+        }                                                                                          \
+        effectOffset.vz = smokeZ;                                                                  \
+        effectSpawn(EFFECT_SMOKE_PUFF, rootCoord, GENERATOR_DEATH_SMOKE_ARGUMENT, &effectOffset);  \
+    } while (0)
 
     model     = task->extra.tmd;
     work      = task->work;

@@ -46,13 +46,19 @@
 #error "define MAGGOT_CATERPILLAR_KIND (MAGGOT_CATERPILLAR_KIND_MAGGOT or MAGGOT_CATERPILLAR_KIND_CATERPILLAR) before including maggot_caterpillar.h"
 #endif
 
-/* Per kind: the type id (in its collision keys, 0x30000 | id); the flag the
- * spawn stores in `isCaterpillar`, which the dying sequence reads back for the
- * id and which keeps the Caterpillar from spraying; and the player distances
- * at which it wakes, drops from its ambush, and pounces. */
 #if MAGGOT_CATERPILLAR_KIND == MAGGOT_CATERPILLAR_KIND_MAGGOT
-#define MAGGOT_CATERPILLAR_ID             0x1A
-#define MAGGOT_CATERPILLAR_IS_CATERPILLAR 0
+/// Maggot identity in the low halfword of grid/body enemy-contact keys.
+///
+/// Selected at compile time by `MAGGOT_CATERPILLAR_KIND`; OR with
+/// `WORLD_COLLISION_CONTACT_ENEMY_BODY` for both linked body spheres.
+/// This C integer constant is separate from the 1/2 build selector.
+enum { MAGGOT_CATERPILLAR_COLLISION_TYPE_ID = 0x1A };
+
+/// Maggot's runtime form flag, copied into the work's s16 isCaterpillar.
+///
+/// Zero permits spray selection and chooses death release argument 26.
+/// The preprocessor kind selects this C integer constant before spawning.
+enum { MAGGOT_CATERPILLAR_IS_CATERPILLAR = 0 };
 /// Strict horizontal wake radius in root-parent units for a dormant Maggot.
 ///
 /// Selected by MAGGOT_CATERPILLAR_KIND before this header; a hit or scene
@@ -68,8 +74,18 @@ enum { MAGGOT_CATERPILLAR_AMBUSH_RANGE = 2000 };
 /// Both aim and roam use 2500; their independent facing tests still apply.
 enum { MAGGOT_CATERPILLAR_POUNCE_RANGE = 2500 };
 #else
-#define MAGGOT_CATERPILLAR_ID             0x37
-#define MAGGOT_CATERPILLAR_IS_CATERPILLAR 1
+/// Caterpillar identity in the low halfword of grid/body enemy-contact keys.
+///
+/// Selected at compile time by `MAGGOT_CATERPILLAR_KIND`; OR with
+/// `WORLD_COLLISION_CONTACT_ENEMY_BODY` for both linked body spheres.
+/// This C integer constant is separate from the 1/2 build selector.
+enum { MAGGOT_CATERPILLAR_COLLISION_TYPE_ID = 0x37 };
+
+/// Caterpillar's runtime form flag, copied into the work's s16 isCaterpillar.
+///
+/// One suppresses spray selection and chooses death release argument 55.
+/// The preprocessor kind selects this C integer constant before spawning.
+enum { MAGGOT_CATERPILLAR_IS_CATERPILLAR = 1 };
 /// Strict horizontal wake radius in root-parent units for a dormant Caterpillar.
 ///
 /// Selected by MAGGOT_CATERPILLAR_KIND before this header; a hit or scene

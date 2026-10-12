@@ -162,21 +162,31 @@ typedef struct {
 } RoomFxHaloStorage;
 STATIC_ASSERT_SIZEOF(RoomFxHaloStorage, 0x14);
 
-/// Selects the twin-trail offset table's linkage for the complete translation unit.
+/// Binds the twin-trail task to its carrier's two parent-local endpoint offsets.
 ///
-/// Define `ROOM_VISUAL_EFFECTS_SHARED_TRAIL_ENDPOINT_OFFSETS` before this header
-/// in both the provider and reader TUs of Acropolis Cafeteria or Neo Ark Forest
-/// Zone. Other carriers define their private table before including the task body.
-/// `ROOM_VISUAL_EFFECTS_TWIN_TRAIL_ENDPOINT_OFFSETS` is an array-name binding:
-/// indexing it evaluates the index once and retains the signed SVECTOR components.
+/// Resolves to SVECTOR[2], with signed whole-coordinate XYZ and an unread pad.
+/// Index 0 is copied to the task coordinate on initialization; index 1 is read
+/// on initialization and every recording tick to reconstruct the second endpoint.
+/// Both offsets use the borrowed effect parent's local axes before composition.
+/// The expression remains an array lvalue, preserving indexing, address-taking
+/// and sizeof; it neither evaluates arguments nor allocates or owns storage.
+///
+/// Define `ROOM_VISUAL_EFFECTS_SHARED_TRAIL_ENDPOINT_OFFSETS` before this guarded
+/// header in provider and reader TUs of Acropolis Cafeteria or Neo Ark Forest
+/// Zone to select the externally linked table. Other carriers provide the static
+/// table from the data fragment before including the task body. Keep the table
+/// loaded for the trail task's lifetime; changing the selector after including
+/// this header does not change this binding.
 #ifdef ROOM_VISUAL_EFFECTS_SHARED_TRAIL_ENDPOINT_OFFSETS
 /// Twin-trail endpoint positions in whole units along the borrowed parent's axes.
 ///
 /// Entry 0 places the task's coordinate; entry 1 places the second endpoint.
 /// Both are composed into world space before recording the trail histories.
 extern SVECTOR gRoomVisualEffectsTwinTrailEndpointOffsets[2];
+/// Array-lvalue binding to the overlay-shared endpoint table; contract above.
 #define ROOM_VISUAL_EFFECTS_TWIN_TRAIL_ENDPOINT_OFFSETS gRoomVisualEffectsTwinTrailEndpointOffsets
 #else
+/// Array-lvalue binding to this TU's private endpoint table; contract above.
 #define ROOM_VISUAL_EFFECTS_TWIN_TRAIL_ENDPOINT_OFFSETS _gRoomVisualEffectsTwinTrailEndpointOffsets
 #endif
 

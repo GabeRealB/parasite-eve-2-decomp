@@ -42,20 +42,29 @@ static void _maggotCaterpillarSpawn(Enemy* enemy, Task* actor)
     GfxCoord*              coord;
     TmdObject*             model;
 
-    // A standalone statement sequence: do not use under an unbraced conditional.
-    // Arguments must be stable; sphere is an lvalue evaluated repeatedly.
-    // Its coordinate and contact pointer must already be set to live storage;
-    // contactCount covers that table. Y narrows to s16 and radius to u16.
-    // Preserve shape stores, list insertion, then contact-table initialization.
+    /// Sets a local sphere's shape, links it, then initializes its contact table.
+    ///
+    /// `sphere` is an unlinked writable WorldCollisionBody lvalue, evaluated
+    /// seven times; its coord/context.contacts must already borrow live storage.
+    /// Other arguments are evaluated once and must be stable and independent of
+    /// the destination. `contacts` must be that body's contact table, with
+    /// positive `contactCount` measured in elements and covering its full extent.
+    /// Centre Y narrows to s16, radius to u16 in local coordinate units; the
+    /// packed key stays s32. Leaves pos.pad untouched; replaces flags with
+    /// sphere kind before linking to `listIndex`. The caller enables passes
+    /// afterwards and keeps the body, transform and contacts alive until unlink.
+    /// Captures no locals; expands to one statement.
 #define MAGGOT_CATERPILLAR_LINK_SPHERE(sphere, offsetY, collisionKey, sphereRadius, listIndex, contacts, contactCount) \
-    (sphere).pos.vx = 0;                                                                                               \
-    (sphere).pos.vy = (offsetY);                                                                                       \
-    (sphere).pos.vz = 0;                                                                                               \
-    (sphere).key    = (collisionKey);                                                                                  \
-    (sphere).radius = (sphereRadius);                                                                                  \
-    (sphere).flags  = WORLD_COLLISION_BODY_SPHERE;                                                                     \
-    worldCollisionLinkBody((listIndex), &(sphere));                                                                    \
-    worldCollisionInitContacts((contacts), (contactCount), 0)
+    (void)({                                                                                                           \
+        (sphere).pos.vx = 0;                                                                                           \
+        (sphere).pos.vy = (offsetY);                                                                                   \
+        (sphere).pos.vz = 0;                                                                                           \
+        (sphere).key    = (collisionKey);                                                                              \
+        (sphere).radius = (sphereRadius);                                                                              \
+        (sphere).flags  = WORLD_COLLISION_BODY_SPHERE;                                                                 \
+        worldCollisionLinkBody((listIndex), &(sphere));                                                                \
+        worldCollisionInitContacts((contacts), (contactCount), 0);                                                     \
+    })
 
     model = actor->extra.tmd;
     coord = model->coords;
@@ -176,12 +185,12 @@ static void _maggotCaterpillarSpawn(Enemy* enemy, Task* actor)
     gridContacts                    = work->gridContacts;
     work->gridBody.coord            = coord;
     work->gridBody.context.contacts = gridContacts;
-    MAGGOT_CATERPILLAR_LINK_SPHERE(work->gridBody, -MAGGOT_CATERPILLAR_GRID_SPHERE_RADIUS, WORLD_COLLISION_CONTACT_ENEMY_BODY | MAGGOT_CATERPILLAR_ID, MAGGOT_CATERPILLAR_GRID_SPHERE_RADIUS, WORLD_COLLISION_LIST_ENEMY_BODIES, gridContacts, ARRAY_SIZE(work->gridContacts));
+    MAGGOT_CATERPILLAR_LINK_SPHERE(work->gridBody, -MAGGOT_CATERPILLAR_GRID_SPHERE_RADIUS, WORLD_COLLISION_CONTACT_ENEMY_BODY | MAGGOT_CATERPILLAR_COLLISION_TYPE_ID, MAGGOT_CATERPILLAR_GRID_SPHERE_RADIUS, WORLD_COLLISION_LIST_ENEMY_BODIES, gridContacts, ARRAY_SIZE(work->gridContacts));
     work->gridBody.flags       |= (WORLD_COLLISION_BODY_FLOOR_QUERY | WORLD_COLLISION_BODY_GRID_ENABLED);
     work->body.coord            = actor->extra.tmd->coords + 1;
     bodyContacts                = work->bodyContacts;
     work->body.context.contacts = bodyContacts;
-    MAGGOT_CATERPILLAR_LINK_SPHERE(work->body, MAGGOT_CATERPILLAR_HIT_SPHERE_OFFSET_Y, WORLD_COLLISION_CONTACT_ENEMY_BODY | MAGGOT_CATERPILLAR_ID, MAGGOT_CATERPILLAR_HIT_SPHERE_RADIUS, WORLD_COLLISION_LIST_ENEMY_BODIES, bodyContacts, ARRAY_SIZE(work->bodyContacts));
+    MAGGOT_CATERPILLAR_LINK_SPHERE(work->body, MAGGOT_CATERPILLAR_HIT_SPHERE_OFFSET_Y, WORLD_COLLISION_CONTACT_ENEMY_BODY | MAGGOT_CATERPILLAR_COLLISION_TYPE_ID, MAGGOT_CATERPILLAR_HIT_SPHERE_RADIUS, WORLD_COLLISION_LIST_ENEMY_BODIES, bodyContacts, ARRAY_SIZE(work->bodyContacts));
     work->body.flags                 |= WORLD_COLLISION_BODY_PAIR_ENABLED;
     work->attackBody.coord            = actor->extra.tmd->coords + 4;
     attackContacts                    = work->attackContacts;

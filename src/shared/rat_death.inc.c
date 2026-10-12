@@ -19,11 +19,19 @@ static void _ratDeath(Enemy* enemy, Task* actor)
         RAT_DEATH_DESTROY_FRAME = 60,
         RAT_SOUND_DEATH         = 0x40070005
     };
-    // Advance slots 1..6 and sample cached root XYZ after animation, without
-    // composing it. Captures actor, animationWork, animationSlot, blendFrames,
-    // colorCoord and colorPosition; work/model remain live throughout.
+    /// Advances the corpse's animation request and samples lighting at its cached root.
+    ///
+    /// Captures the live `actor` TMD task and overwrites `animationWork`,
+    /// `animationSlot`, `blendFrames`, `colorCoord` and `colorPosition` locals.
+    /// Requires a RatWork rig with slots 1..6 and a valid `animId` indexing the
+    /// carrier's `_gRatAnimBlendFrames` and clip table. A changed request resets
+    /// the s16 frame count and blends from frame zero with an s16 duration;
+    /// otherwise it increments the count and ticks each slot. Slot 0 is skipped.
+    /// Lighting uses full-width cached XYZ after playback, without composing or
+    /// changing frame. The task's spawnArg2 must borrow the live Enemy to colour.
+    /// Expands to one statement; no pointer to temporary storage is retained.
 #define RAT_ANIMATE_AND_LIGHT_CORPSE()                                                                                      \
-    {                                                                                                                       \
+    (void)({                                                                                                                \
         animationWork = actor->work;                                                                                        \
         if (animationWork->animId != animationWork->appliedAnimId) {                                                        \
             animationWork->appliedAnimId = animationWork->animId;                                                           \
@@ -43,7 +51,7 @@ static void _ratDeath(Enemy* enemy, Task* actor)
         colorPosition.vy = colorCoord->workm.t[1];                                                                          \
         colorPosition.vz = colorCoord->workm.t[2];                                                                          \
         worldCoordUpdateActorColor(actor->spawnArg2.pointer, &colorPosition, 0, 0);                                         \
-    }
+    })
 
     RatWork*   work;
     TmdObject* model;
