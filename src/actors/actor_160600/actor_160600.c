@@ -1572,6 +1572,13 @@ static void _actor160600DismissCompanion(void)
     }
 }
 
+/// Selects the paced walker's fixed-shade ground-shadow drawer.
+///
+/// Bind the static `void(Task*)` function identifier declared in `walker.h`
+/// and use the same identifier for `walker_shadow.inc.c`. The frame calls it
+/// once after movement and animation, borrowing its live TMD task and composed
+/// root cache. This object-like alias captures no locals; undefine it after
+/// the inclusion.
 #define ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW _actorRenderDrawFixedWalkerGroundShadow
 #include "../../shared/paced_walk_frame.inc.c"
 #undef ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW
@@ -1605,6 +1612,11 @@ static void _pacedWalkExit(Task* task)
     enemyDestroy(task->spawnArg2.pointer, task);
 }
 
+/// Selects the fixed-shade drawer definition used by the paced walker frame.
+///
+/// Use the same function identifier as the frame binding. The fragment defines
+/// `static void(Task*)` at this text position, so keep the identifier alias
+/// unparenthesized and undefine it after the inclusion.
 #define ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW _actorRenderDrawFixedWalkerGroundShadow
 #include "../../shared/walker_shadow.inc.c"
 #undef ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW

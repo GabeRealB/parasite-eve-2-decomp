@@ -2180,12 +2180,24 @@ static void _actor161500StrideWalkerTask(Task* task)
     stateHandlers[task->state](task->spawnArg2.pointer, task);
 }
 
+/// Selects the stride walker's fixed-shade ground-shadow drawer.
+///
+/// Bind the static `void(Task*)` function identifier declared in `walker.h`
+/// and use the same identifier for `walker_shadow.inc.c`. The frame calls it
+/// once after movement, animation and head aim, borrowing its live TMD task
+/// and composed root cache. This object-like alias captures no locals;
+/// undefine it after the inclusion.
 #define ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW _actorRenderDrawFixedWalkerGroundShadow
 #include "../../shared/stride_walk_frame.inc.c"
 #undef ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW
 
 #include "../../shared/stride_walk_exit.inc.c"
 
+/// Selects the fixed-shade drawer definition used by the stride walker frame.
+///
+/// Use the same function identifier as the frame binding. The fragment defines
+/// `static void(Task*)` at this text position, so keep the identifier alias
+/// unparenthesized and undefine it after the inclusion.
 #define ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW _actorRenderDrawFixedWalkerGroundShadow
 #include "../../shared/walker_shadow.inc.c"
 #undef ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW
