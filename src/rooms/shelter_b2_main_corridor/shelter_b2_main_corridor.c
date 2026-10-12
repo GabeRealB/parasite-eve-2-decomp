@@ -2395,13 +2395,21 @@ void shelterB2MainCorridorWaterRippleTask(Task* task)
 
 #include "../../shared/water_splash.inc.c"
 
-/// Binds the uncomposed water-drift body's public void (Task*) callback to this room.
+/// Selects this room's exported water-spray callback using the cached draw matrix.
 ///
-/// The public room header supplies its prototype. This binding names a function,
-/// has no arguments or side effects, and is used only by the following include.
-#define WATER_DRIFT_UNCOMPOSED_TASK shelterB2MainCorridorWaterDriftTask
+/// Expands to a single externally linked function identifier, declared as
+/// `void (Task*)` in the public room header before the fragment is included.
+/// `water_drift_task_no_update.inc.c` requires the `_waterDrawSpinU16` and
+/// `_waterDrawTileU16` declarations from `water_effects.h` and their bodies
+/// in this translation unit. Their cell index is unsigned 16-bit; size scale
+/// and the spin drawer's angle are signed 16-bit.
+///
+/// The task updates local translation while its drawers read `GfxCoord::workm`
+/// without composing it. This binding takes no arguments and evaluates no
+/// expressions; keep it defined only around this fragment's include.
+#define WATER_SPRAY_CACHED_COORD_TASK shelterB2MainCorridorWaterDriftTask
 #include "../../shared/water_drift_task_no_update.inc.c"
-#undef WATER_DRIFT_UNCOMPOSED_TASK
+#undef WATER_SPRAY_CACHED_COORD_TASK
 
 #include "../../shared/water_spin_u16.inc.c"
 

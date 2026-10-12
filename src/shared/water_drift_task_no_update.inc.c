@@ -4,6 +4,10 @@
 
 /* Part of the water effects library; see water_effects.h. */
 
+#ifndef WATER_SPRAY_CACHED_COORD_TASK
+#error "Define WATER_SPRAY_CACHED_COORD_TASK to the package's declared void (Task*) callback"
+#endif
+
 /// Initializes a water-spray particle's parent-space velocity from its launch direction.
 ///
 /// Borrows a live, writable `particleWork`. Its signed `move` components
@@ -29,13 +33,7 @@ static inline void _waterInitializeLaunchVelocity(EffectWork* particleWork)
     gte_stsv(launchVelocity);
 }
 
-/* WATER_DRIFT_UNCOMPOSED_TASK must name the carrier's externally linked
- * void (Task*) callback, declared in its public room header. The carrier
- * supplies the unsigned-index water drawers and undefines this binding
- * after including the body. This task draws the cached coordinate matrix
- * without composing the local translation it updates.
- */
-void WATER_DRIFT_UNCOMPOSED_TASK(Task* task)
+void WATER_SPRAY_CACHED_COORD_TASK(Task* task)
 {
     enum {
         WATER_DRIFT_STATE_NEW              = 0,
