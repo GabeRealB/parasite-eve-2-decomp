@@ -520,12 +520,16 @@ static Task* _modelObjectFindTaskByCoord(const GfxCoord* targetCoord)
 {
     /// Scans a model's owned part coordinates by pointer identity.
     ///
-    /// `result` is a writable boolean lvalue, initially false, set true only
-    /// on a match. `cursor` is a writable coordinate-pointer lvalue and receives
-    /// the matched coordinate or the end of the owned array. All
-    /// arguments must be side-effect-free: the model is read twice, the target
-    /// is compared per part, and the cursor is assigned and advanced in place.
-    /// The model must own its nonnegative partCount coordinates.
+    /// `model` borrows a live TmdObject with a nonnegative partCount-element
+    /// coordinate array. `target` is compared without dereferencing it or
+    /// following parents. `result` is a distinct bool lvalue, set true on a
+    /// match and otherwise unchanged; initialize it to false for a predicate.
+    /// `cursor` is a writable GfxCoord-pointer lvalue, left at the match or the
+    /// array end (the base for an empty array). No pointer is retained.
+    /// Arguments must be stable and side-effect-free: model occurs twice,
+    /// target once per visited part, and cursor is assigned and advanced.
+    /// Arguments must not name the helper locals partCount or partIndex.
+    /// Captures no caller locals. Expands to one statement; undefined below.
 #define MODEL_OBJECT_SCAN_PART_COORDS(model, target, cursor, result) \
     do {                                                             \
         u32 partCount;                                               \
@@ -1449,23 +1453,29 @@ static u32* _tmdXformStreamVertsEnvMapLit(TmdStreamWorkspace* workspace, s32 obj
         TMD_ENV_MAP_XY_TO_U_BYTES          = OFFSET_OF(POLY_GT3, u0) - OFFSET_OF(POLY_GT3, x0),
         TMD_ENV_MAP_V_TO_PAGE_MARKER_BYTES = OFFSET_OF(POLY_GT3, v0) - OFFSET_OF(POLY_GT3, code)
     };
-    /// Blends one aligned RGB group toward neutral grey; caller gates blend < 4096.
+    /// Blends an environment-map corner's lit RGB toward a borrowed grey reference.
     ///
-    /// Arguments must be side-effect-free workspace/record/reference pointers and
-    /// a writable cursor lvalue. The cursor is assigned after the first blend
-    /// load; the object's 12-fraction-bit weight is read separately for each
-    /// term. Evaluates workspace, refs and cursor repeatedly, captures no locals,
-    /// clobbers GTE interpolation state and writes RGB. This multi-statement
-    /// expansion requires an enclosing compound block.
-#define TMD_BLEND_ENV_MAP_COLOR_TO_GREY(workspace, refs, cursor, reference)      \
-    gte_lddp((workspace)->obj->shading.colorBlend);                              \
-    (cursor) = (workspace)->preXformWrite + (refs)->rgbByteOffset;               \
-    gte_ldcv(cursor);                                                            \
-    gte_gpf12();                                                                 \
-    gte_lddp(TMD_OBJECT_COLOR_BLEND_ONE - (workspace)->obj->shading.colorBlend); \
-    gte_ldcv(reference);                                                         \
-    gte_gpl12();                                                                 \
-    gte_stcv(cursor)
+    /// `workspace` and `cornerRefs` borrow TmdStreamWorkspace/TmdLitCornerRefs
+    /// selecting three writable RGB bytes in the first packet region;
+    /// `referenceColor` supplies three readable grey RGB bytes. `colorCursor`
+    /// is a distinct writable u8-pointer lvalue, assigned after the first weight
+    /// load. The caller gates a Q12 colorBlend of 0..4095; it is loaded separately
+    /// for both terms. Retains GPF12/GPL12 rounding and saturation, writes only
+    /// RGB and preserves the packet command byte. Clobbers GTE interpolation
+    /// state; retains no pointers. All arguments must be stable and side-effect-free;
+    /// workspace and colorCursor occur repeatedly. Captures no caller locals.
+    /// Expands to a compound statement; use inside braces. Undefined below.
+#define MODEL_LIGHTING_BLEND_ENVIRONMENT_MAP_COLOR_TO_GREY(workspace, cornerRefs, colorCursor, referenceColor) \
+    {                                                                                                          \
+        gte_lddp((workspace)->obj->shading.colorBlend);                                                        \
+        (colorCursor) = (workspace)->preXformWrite + (cornerRefs)->rgbByteOffset;                              \
+        gte_ldcv((colorCursor));                                                                               \
+        gte_gpf12();                                                                                           \
+        gte_lddp(TMD_OBJECT_COLOR_BLEND_ONE - (workspace)->obj->shading.colorBlend);                           \
+        gte_ldcv((referenceColor));                                                                            \
+        gte_gpl12();                                                                                           \
+        gte_stcv((colorCursor));                                                                               \
+    }
 
     s32                     previousVertexRef;
     s32                     initialElementCount;
@@ -1515,7 +1525,7 @@ static u32* _tmdXformStreamVertsEnvMapLit(TmdStreamWorkspace* workspace, s32 obj
             gte_strgb(workspace->preXformWrite + cornerRefs->rgbByteOffset);
             // Fade lit colour toward the grey reference before deriving texture displacement.
             if (workspace->obj->shading.colorBlend < TMD_OBJECT_COLOR_BLEND_ONE) {
-                TMD_BLEND_ENV_MAP_COLOR_TO_GREY(workspace, cornerRefs, colorDestination, &referenceColor);
+                MODEL_LIGHTING_BLEND_ENVIRONMENT_MAP_COLOR_TO_GREY(workspace, cornerRefs, colorDestination, &referenceColor);
             }
             // Store U/V and the page marker separately; keep the cursor increments in order.
             screenComponent   = &workspace->texCoord.vx;
@@ -1551,5 +1561,5 @@ static u32* _tmdXformStreamVertsEnvMapLit(TmdStreamWorkspace* workspace, s32 obj
         } while (workspace->elemCount-- > 0);
     }
     return elements;
-#undef TMD_BLEND_ENV_MAP_COLOR_TO_GREY
+#undef MODEL_LIGHTING_BLEND_ENVIRONMENT_MAP_COLOR_TO_GREY
 }

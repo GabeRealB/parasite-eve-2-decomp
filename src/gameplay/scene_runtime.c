@@ -2581,18 +2581,23 @@ static void _animationBlendPackedRotation(const _AnimationBlendRequest* request,
 /// Model, resource, scratch and GTE requirements follow `animationTickSlotPose`.
 static void _animationAdvanceSlotToBoundary(AnimationContext* context, s32 slotIndex)
 {
-    /// Resolves advance-walk control records, accumulating jump/boundary flags.
+    /// Resolves forward control records and accumulates the slot's walk flags.
     ///
-    /// candidateIndex is a writable u16 lvalue distinct from the slot endpoints.
-    /// Visited records must fit the live array and jump chains must terminate.
-    /// A stop retains the old next index.
-    /// Arguments must be stable and side-effect-free: all are evaluated repeatedly.
-    /// Captures no caller locals and leaves endpoint installation to the caller.
+    /// `playbackSlot` borrows a writable AnimationSlot; `recordArray` borrows
+    /// its selected set's AnimationRecords. `candidateIndex` is a separate u16
+    /// lvalue holding an absolute element index. Every visited record must fit
+    /// the loaded set; control chains must reach a keyframe or stop.
+    /// CONTROL without STOP jumps to wordOffset; CONTROL with STOP restores
+    /// the prior next index. A jump to that index also reports a boundary,
+    /// comparing record indices only. Leaves endpoint/time installation to
+    /// the caller. Arguments must be stable and side-effect-free: all occur
+    /// repeatedly and must not name the helper local controlRecord. Captures
+    /// no caller locals. Expands to one statement; undefined after its use.
 #define ANIMATION_RESOLVE_ADVANCE_RECORD(playbackSlot, recordArray, candidateIndex)                  \
     do {                                                                                             \
         const AnimationRecord* controlRecord;                                                        \
         while ((s8)(recordArray)[(candidateIndex)].flags < 0) {                                      \
-            controlRecord = (recordArray) - -(s32)(candidateIndex);                                  \
+            controlRecord = (recordArray) - -(candidateIndex);                                       \
             if (controlRecord->flags < ANIMATION_RECORD_END_THRESHOLD) {                             \
                 (candidateIndex) = controlRecord->wordOffset;                                        \
                 if ((candidateIndex) == (playbackSlot)->nextPose.indices.recordIndex) {              \

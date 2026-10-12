@@ -1647,13 +1647,19 @@ void worldCoordUpdateActorColor(Enemy* enemy, const void* worldPosition, s32 unu
 /// are part of the retained calculation.
 static void _worldCoordEvaluatePointLightAtParentOrigin(WorldCoordPointLight* light)
 {
-/// Applies the inner-relative squared-distance fade to a point-light score.
-///
-/// falloff is a side-effect-free scratch pointer expression with all four
-/// scalars initialized, the sample inside outerLimit and attenuation ONE.
-/// contributionScore is a distinct s32 lvalue, overwritten with the result.
-/// Expands to a compound statement; use only as a standalone statement inside
-/// braces. Updates the scratch scalars using unsigned Q12 span arithmetic.
+    /// Attenuates an origin-sampled point-light score between its squared radii.
+    ///
+    /// `falloff` borrows initialized _WorldCoordPointLightFalloffScratch with
+    /// distanceSquared <= outerLimit, innerRadiusSquared <= outerLimit and
+    /// attenuation ONE. Squares count quarter squared game-coordinate units.
+    /// `contributionScore` is a distinct writable s32 lvalue. Converts distance
+    /// and outerLimit to inner-relative spans, reduces both in four-bit steps
+    /// until the span fits 16 bits, then stores Q12 attenuation and scales the
+    /// score with an unsigned 32-bit product and logical shift. At/below the
+    /// inner radius, or for zero span, score and attenuation remain unchanged.
+    /// Both arguments must be stable and side-effect-free: they occur repeatedly.
+    /// Captures no caller locals and retains no pointers. Expands to a compound
+    /// statement; use inside braces. Undefined after its only invocation.
 #define WORLD_COORDINATE_APPLY_POINT_LIGHT_FADE(falloff, contributionScore)                                                                                              \
     {                                                                                                                                                                    \
         if ((falloff)->distanceSquared > (falloff)->innerRadiusSquared) {                                                                                                \

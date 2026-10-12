@@ -826,13 +826,17 @@ void equipmentEquipCarriedWeapon(s32 weaponItemId)
     }
 }
 
-/// Stores the range's stack quantity minus its weapons' live-save loads.
+/// Stores the range's first consumable stack less its weapons' live-save loads.
 ///
-/// Borrows a readable, in-bounds inventory range; invalid consumable ids yield
-/// zero. Quantities count rounds or supply units. Signed stack conversion and
-/// duplicate weapon-row counting are inherited from the inventory queries.
-/// Expands to a standalone block; quantity must be an s32 lvalue and all three
-/// arguments must be side-effect-free because each is evaluated twice.
+/// `range` borrows a readable InventoryItemRange within its backing table;
+/// `consumableItemId` is an inventory consumable id, with other ids yielding
+/// zero. Counts rounds or supply units without clamping. The first stack's
+/// quantity narrows through s16; each weapon row subtracts both matching loads
+/// from the live save, including repeated rows for the same weapon.
+/// `quantity` is a distinct writable s32 lvalue. All arguments must be stable
+/// and side-effect-free: each occurs twice, and the stack query precedes the
+/// load query. Captures no caller locals. Expands to a compound statement;
+/// use as a standalone statement inside braces. Undefined after its consumer.
 #define ITEM_MENU_GET_UNLOADED_CONSUMABLE_QUANTITY(quantity, range, consumableItemId)    \
     {                                                                                    \
         (quantity)  = inventoryGetConsumableStackQuantity((range), (consumableItemId));  \

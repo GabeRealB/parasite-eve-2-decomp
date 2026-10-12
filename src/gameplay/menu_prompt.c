@@ -128,12 +128,20 @@ static inline s32 _equipmentIsActiveItem(s32 itemId);
 u8 gItemMenuEmptyPromptText[]   = "";
 u8 gItemMenuReleasePeHelpText[] = "Release Parasite Energy.";
 
-/// Draws a borrowed text/P.E. payload under `itemMenuDrawTaskPrompt`'s contract.
+/// Draws a command caption's borrowed text or packed Parasite Energy payload.
 ///
-/// objectArg and payloadArg must be side-effect-free: both are evaluated repeatedly.
-/// Arguments must not use the helper-local names secondLine or textColorRgb.
-/// Captures no caller locals. Use as a standalone block statement with no else.
-/// Undefined after the command dispatcher.
+/// `objectArg` is a live UiObject pointer and `payloadArg` a TaskSpawnArg value.
+/// Words above 0xFFFF select encoded text; 0x300..0x3FF select P.E. descriptions
+/// and costs, with the catalogue bounds required by `itemMenuDrawTaskPrompt`.
+/// Other words draw nothing. Text is borrowed until the prompt is replaced;
+/// its two outlined lines use normal text colour at panel-relative (2,15) and
+/// (2,30) pixels. Hidden panels still scan the text. Requires loaded menu/font
+/// resources and writable primitive/OT storage, including the text scanner's
+/// readable predecessor-byte contract.
+/// Both arguments must be stable and side-effect-free: they occur repeatedly
+/// and must not name secondLine, textColorRgb or the block's enum constants.
+/// Captures no caller locals. Expands to a compound statement; use as a
+/// standalone statement inside braces. Undefined after the command dispatcher.
 #define ITEM_MENU_DRAW_DISPATCH_PROMPT(objectArg, payloadArg)                                                                                                                                                                                                                              \
     {                                                                                                                                                                                                                                                                                      \
         enum { ITEM_MENU_PROMPT_INLINE_VALUE_MAX  = 0xFFFF,                                                                                                                                                                                                                                \
@@ -1281,16 +1289,25 @@ static inline InventoryItemRow* _inventoryFindNthReorderableRow(const InventoryI
     return foundRow;
 }
 
-/// Shows `item`'s name in the holder (the empty-slot text for item 0) and
-/// makes it the preview in slot 0.
-#define GP_SHOW_ITEM_IN_HOLDER(item)                                                    \
-    do {                                                                                \
-        if ((item) == 0) {                                                              \
-            uiSetPromptText(gItemMenuEmptyPromptText, 0, 0);                            \
-        } else {                                                                        \
-            uiSetPromptText(itemGetText((item), ITEM_TEXT_DESCRIPTION_FIRST, 0), 0, 0); \
-        }                                                                               \
-        itemMenuSetPreviewItem((item), CD_COMMAND_DISPLAY_LOAD_MENU);                   \
+/// Selects an item's description suffix and requests its normal menu preview.
+///
+/// `itemId` must satisfy `itemGetText`'s catalogue bounds, or be
+/// `INVENTORY_ITEM_NONE` for empty text and a preview request for id zero. The
+/// live save's identification state selects the text form; the borrowed suffix
+/// includes both description lines and must remain loaded while displayed.
+/// Updates the registered prompt before requesting display load profile
+/// `CD_COMMAND_DISPLAY_LOAD_MENU`; resource readiness is checked by the drawer.
+/// The argument must be stable and side-effect-free: it is evaluated twice for
+/// an empty item, three times otherwise. Captures no caller locals. Expands to
+/// one statement and is undefined after its only consumer.
+#define ITEM_MENU_SET_DESCRIPTION_AND_PREVIEW(itemId)                                     \
+    do {                                                                                  \
+        if ((itemId) == INVENTORY_ITEM_NONE) {                                            \
+            uiSetPromptText(gItemMenuEmptyPromptText, 0, 0);                              \
+        } else {                                                                          \
+            uiSetPromptText(itemGetText((itemId), ITEM_TEXT_DESCRIPTION_FIRST, 0), 0, 0); \
+        }                                                                                 \
+        itemMenuSetPreviewItem((itemId), CD_COMMAND_DISPLAY_LOAD_MENU);                   \
     } while (0)
 
 /// Draws a carried consumable's unloaded stock at the current row baseline.
@@ -1353,7 +1370,7 @@ void itemMenuDrawReorderableItemRow(UiList* list, UiObject* object)
     if (((controlWord >> ITEM_MENU_ROW_SUSPENDED_CONTROL_SHIFT) == USER_INTERFACE_PANEL_ACTIVE) || (controlWord == USER_INTERFACE_PANEL_ACTIVE)) {
         if (list->selectedItemIndex == list->currentItemIndex) {
             if (gItemMenuDestinationSelectionMode == ITEM_MENU_ROW_MODE_SELECT) {
-                GP_SHOW_ITEM_IN_HOLDER(itemId);
+                ITEM_MENU_SET_DESCRIPTION_AND_PREVIEW(itemId);
             } else {
                 uiSetPromptText(gItemMenuSelectDestinationText, 0, 0);
             }
@@ -1401,6 +1418,8 @@ void itemMenuDrawReorderableItemRow(UiList* list, UiObject* object)
         }
     }
 }
+
+#undef ITEM_MENU_SET_DESCRIPTION_AND_PREVIEW
 
 void itemMenuSetWeaponChoiceRows(UiList* list, s32 consumableItemId)
 {

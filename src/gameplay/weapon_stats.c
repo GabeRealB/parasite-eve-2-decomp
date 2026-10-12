@@ -731,13 +731,18 @@ void itemMenuWeaponChoiceListTask(Task* task)
     }
 }
 
-/// Sets bit 0x100 in `flags`, which makes `itemMenuDrawPreview` skip drawing the
-/// item preview, while the CD queue is still busy loading it.
-#define GP_HIDE_PREVIEW_WHILE_CD_BUSY(flags)     \
-    do {                                         \
-        if (cdCmdIsIdle() == 0) {                \
-            (flags) |= ITEM_MENU_PREVIEW_HIDDEN; \
-        }                                        \
+/// Suppresses the item preview until the CD command queue is idle.
+///
+/// `previewFlags` is a writable s32 flag lvalue for `itemMenuDrawPreview`.
+/// ORs in `ITEM_MENU_PREVIEW_HIDDEN` while any CD command is pending, preserving
+/// other flags; an idle queue leaves it unchanged and does not clear the bit.
+/// Calls `cdCmdIsIdle` once and evaluates the lvalue only on the busy branch.
+/// Captures no caller locals. Expands to one statement; undefined below.
+#define ITEM_MENU_HIDE_PREVIEW_WHILE_CD_BUSY(previewFlags) \
+    do {                                                   \
+        if (cdCmdIsIdle() == 0) {                          \
+            (previewFlags) |= ITEM_MENU_PREVIEW_HIDDEN;    \
+        }                                                  \
     } while (0)
 
 void itemMenuWeaponSelectionTask(Task* task)
@@ -779,7 +784,7 @@ void itemMenuWeaponSelectionTask(Task* task)
             goto drawPreview;
         }
     }
-    GP_HIDE_PREVIEW_WHILE_CD_BUSY(previewFlags);
+    ITEM_MENU_HIDE_PREVIEW_WHILE_CD_BUSY(previewFlags);
 drawPreview:
     itemMenuDrawPreview(object, object->panel.contentLeft.signedValue + 2, object->panel.contentTop.signedValue + 2, previewFlags);
     itemMenuDrawEquipmentStats(object, weaponItemId, ITEM_MENU_EQUIPMENT_STATS_COMPARE, 0);
@@ -790,6 +795,8 @@ drawPreview:
         object->result = USER_INTERFACE_RESULT_CONFIRM;
     }
 }
+
+#undef ITEM_MENU_HIDE_PREVIEW_WHILE_CD_BUSY
 
 void itemMenuDrawConsumableChoiceRow(UiList* list, UiObject* object)
 {
