@@ -53,7 +53,11 @@
 #include "main/wipsys_types.h"
 #include "../../shared/player_detection.h"
 /// Selects Pawn behavior for this Grenade Launcher GOLEM carrier.
-#define GOLEM_PAWN_ROOK_KIND   GOLEM_PAWN_ROOK_KIND_PAWN
+#define GOLEM_PAWN_ROOK_KIND GOLEM_PAWN_ROOK_KIND_PAWN
+/// Selects the shared Grenade Launcher build for this Pawn GOLEM carrier.
+///
+/// Keep this binding through all GOLEM fragments, with matching weapon tasks,
+/// behavior callbacks and animation tables.
 #define GOLEM_PAWN_ROOK_WEAPON GOLEM_PAWN_ROOK_WEAPON_GRENADE_LAUNCHER
 #include "../../shared/golem_pawn_rook.h"
 

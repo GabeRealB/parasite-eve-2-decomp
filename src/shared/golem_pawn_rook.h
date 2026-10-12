@@ -13,9 +13,14 @@
  * `GOLEM_PAWN_ROOK_KIND_ROOK` (2). These are preprocessor selectors, independent
  * of actor IDs and the weapon. Keep the kind binding unchanged through every
  * GOLEM fragment inclusion: it selects attack tuning and the Rook's shield
- * and Silence scream. `GOLEM_PAWN_ROOK_WEAPON` must be
- * `GOLEM_PAWN_ROOK_WEAPON_BEAM_SWORD` (actor_02000, actor_02300) or
- * `GOLEM_PAWN_ROOK_WEAPON_GRENADE_LAUNCHER` (actor_05600, actor_05700).
+ * and Silence scream. `GOLEM_PAWN_ROOK_WEAPON` must expand to
+ * `GOLEM_PAWN_ROOK_WEAPON_BEAM_SWORD` (1; actor_02000, actor_02300) or
+ * `GOLEM_PAWN_ROOK_WEAPON_GRENADE_LAUNCHER` (2; actor_05600, actor_05700).
+ * This independent compile-time selector fixes attack tuning, the knockdown
+ * HP threshold and weapon-specific declarations; it is not a runtime weapon
+ * or item ID. The carrier's weapon tasks, behavior callbacks, animation tables
+ * and included fragments must agree with it. Keep the weapon binding unchanged
+ * through every GOLEM fragment inclusion.
  * Selector replacement tokens are expanded after their definitions below.
  * All slot variants of a carrier use the same kind/weapon pair.
  *
@@ -55,6 +60,12 @@
 #define GOLEM_PAWN_ROOK_WEAPON_BEAM_SWORD 1
 /// Weapon selector for the launcher carriers actor_05600/actor_05700.
 #define GOLEM_PAWN_ROOK_WEAPON_GRENADE_LAUNCHER 2
+
+#ifndef GOLEM_PAWN_ROOK_WEAPON
+#error "Define GOLEM_PAWN_ROOK_WEAPON before including golem_pawn_rook.h"
+#elif GOLEM_PAWN_ROOK_WEAPON != GOLEM_PAWN_ROOK_WEAPON_BEAM_SWORD && GOLEM_PAWN_ROOK_WEAPON != GOLEM_PAWN_ROOK_WEAPON_GRENADE_LAUNCHER
+#error "GOLEM_PAWN_ROOK_WEAPON must select GOLEM_PAWN_ROOK_WEAPON_BEAM_SWORD or GOLEM_PAWN_ROOK_WEAPON_GRENADE_LAUNCHER"
+#endif
 
 #if GOLEM_PAWN_ROOK_WEAPON == GOLEM_PAWN_ROOK_WEAPON_BEAM_SWORD
 /// Engagement tracking step per call, in angular units (4096 per turn).

@@ -43,7 +43,11 @@
 #include "main/wipsys.h"
 #include "main/wipsys_types.h"
 /// Selects Pawn behavior for this Beam Sword GOLEM carrier.
-#define GOLEM_PAWN_ROOK_KIND   GOLEM_PAWN_ROOK_KIND_PAWN
+#define GOLEM_PAWN_ROOK_KIND GOLEM_PAWN_ROOK_KIND_PAWN
+/// Selects the shared Beam Sword build for this Pawn GOLEM carrier.
+///
+/// Keep this binding through all GOLEM fragments, with matching weapon tasks,
+/// behavior callbacks and animation tables.
 #define GOLEM_PAWN_ROOK_WEAPON GOLEM_PAWN_ROOK_WEAPON_BEAM_SWORD
 #include "../../shared/player_detection.h"
 #include "../../shared/golem_pawn_rook.h"
