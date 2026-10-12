@@ -6,6 +6,10 @@
  * SPRITE_QUAD_SET_FLICKER_ODD_CELL / SPRITE_QUAD_SET_FLICKER_EVEN_CELL plus its own tint and blend
  * flags. */
 
+#ifndef SPRITE_QUAD_SCALE
+#error Define SPRITE_QUAD_SCALE before including the flicker sprite quad drawer
+#endif
+
 #ifndef SPRITE_QUAD_RESERVE_BEFORE_PROJECTION_CHECK
 /// Selects when a flicker draw reserves and initializes its `POLY_FT4` packet.
 ///
@@ -31,8 +35,12 @@ static inline void _spriteQuadComputeFlickerCornerOffset(EffectShapeScratch* scr
 {
     enum { SPRITE_QUAD_FLICKER_TRIG_FRACTION_BITS = 12 };
 
-    scratch->extent.corner.x = (((sizeFactor * SPRITE_QUAD_SCALE) / scratch->depth) * rsin(cornerAngle)) >> SPRITE_QUAD_FLICKER_TRIG_FRACTION_BITS;
-    scratch->extent.corner.y = (((sizeFactor * SPRITE_QUAD_SCALE) / scratch->depth) * rcos(cornerAngle)) >> SPRITE_QUAD_FLICKER_TRIG_FRACTION_BITS;
+    // Check in C so a carrier may bind an enum constant as well as a literal.
+    STATIC_ASSERT((SPRITE_QUAD_SCALE) > 0, sprite_quad_flicker_scale_is_positive);
+    STATIC_ASSERT(sizeof(SPRITE_QUAD_SCALE) <= sizeof(s32) && (SPRITE_QUAD_SCALE) * -1 < 0, sprite_quad_flicker_scale_uses_signed_word_arithmetic);
+
+    scratch->extent.corner.x = (((sizeFactor * (SPRITE_QUAD_SCALE)) / scratch->depth) * rsin(cornerAngle)) >> SPRITE_QUAD_FLICKER_TRIG_FRACTION_BITS;
+    scratch->extent.corner.y = (((sizeFactor * (SPRITE_QUAD_SCALE)) / scratch->depth) * rcos(cornerAngle)) >> SPRITE_QUAD_FLICKER_TRIG_FRACTION_BITS;
 }
 
 /// Places the flicker quad's opposite corner pairs around its projected centre.

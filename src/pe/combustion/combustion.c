@@ -563,7 +563,13 @@ static void _combustionDrawEmber(const GfxCoord* coord, s32 animationFrame, s16 
     SCRATCH_STACK_RELEASE_BLOCK(EffectCentreScratch);
 }
 
-#define SPRITE_QUAD_SCALE 55
+/// Perspective-sizing multiplier for Combustion's wide-flame billboard.
+///
+/// Uses the endpoint span of each fixed 56-texel flicker cell.
+/// `sizeFactor * SPRITE_QUAD_SCALE / (SZ3 / 4 + 1)` gives the signed pixel
+/// half-diagonal, truncated before Q12 rotation. The next flicker inclusion
+/// requires a positive signed integer constant and undefines this binding.
+#define SPRITE_QUAD_SCALE (56 - 1)
 #define SPRITE_QUAD_ODD_LOOK(p)          \
     setRGB0(p, 0xC0, 0x70, 0x40);        \
     SPRITE_QUAD_SET_FLICKER_ODD_CELL(p); \

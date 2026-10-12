@@ -45,7 +45,9 @@
  * includes it twice.
  *
  * SPRITE_QUAD_SCALE must be a positive signed integer constant, bound before
- * each sprite_quad_draw.inc.c inclusion. A C enum constant is valid. It
+ * each sprite_quad_draw.inc.c or sprite_quad_draw_flicker.inc.c inclusion.
+ * A C enum constant is valid. The binding has no arguments or captured locals;
+ * it is expanded four times per emitted quad and must have no side effects. It
  * multiplies the 16-bit size argument after promotion to signed 32-bit
  * arithmetic: size * scale / depth is the screen-space half-diagonal in
  * pixels before rotation. Integer division truncates toward zero before the
@@ -56,7 +58,8 @@
  * Current carriers choose the inclusive horizontal UV span, cell width - 1:
  * 23, 31, 39, 47 or 55 for cells 24, 32, 40, 48 or 56 texels wide. The atlas
  * instance uses EFFECT_SPRITE_ATLAS_UV_SPAN. This binding sets geometry;
- * texture addressing still uses SPRITE_QUAD_CELL_WIDTH independently.
+ * texture addressing still uses SPRITE_QUAD_CELL_WIDTH independently in the
+ * ordinary drawer, or the fixed odd/even cell bindings in the flicker drawer.
  * The fragment undefines the scale after each instance, including both
  * instances in antibody and m4a1_hammer; each inclusion needs its own binding.
  * The flicker drawer uses the same sizing formula with a fixed signed size

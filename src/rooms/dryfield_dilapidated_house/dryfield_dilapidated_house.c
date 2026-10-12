@@ -5373,7 +5373,13 @@ void dryfieldDilapidatedHouseFireBlastTask(Task* task)
 
 #include "../../shared/glow_draw_flame_star.inc.c"
 
-#define SPRITE_QUAD_SCALE 55
+/// Perspective-sizing multiplier for the dilapidated house's fire-blast billboard.
+///
+/// Uses the endpoint span of each fixed 56-texel flicker cell.
+/// `sizeFactor * SPRITE_QUAD_SCALE / (SZ3 / 4 + 1)` gives the signed pixel
+/// half-diagonal, truncated before Q12 rotation. The next flicker inclusion
+/// requires a positive signed integer constant and undefines this binding.
+#define SPRITE_QUAD_SCALE (56 - 1)
 /// Reserves a flicker packet even when the GTE rejects the quad's projection.
 #define SPRITE_QUAD_RESERVE_BEFORE_PROJECTION_CHECK 1
 #define SPRITE_QUAD_ODD_LOOK(p)          \

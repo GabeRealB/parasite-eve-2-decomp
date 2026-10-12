@@ -596,7 +596,13 @@ static void _energyballDrawGlowDisc(const GfxCoord* centreCoord, s16 radius, s16
     SCRATCH_STACK_RELEASE_BLOCK(EffectCentreScratch);
 }
 
-#define SPRITE_QUAD_SCALE 55
+/// Perspective-sizing multiplier for Energy Ball's projectile billboard.
+///
+/// Uses the endpoint span of each fixed 56-texel flicker cell.
+/// `sizeFactor * SPRITE_QUAD_SCALE / (SZ3 / 4 + 1)` gives the signed pixel
+/// half-diagonal, truncated before Q12 rotation. The next flicker inclusion
+/// requires a positive signed integer constant and undefines this binding.
+#define SPRITE_QUAD_SCALE (56 - 1)
 #define SPRITE_QUAD_ODD_LOOK(p) \
     setSemiTrans(p, 1);         \
     setShadeTex(p, 1);          \
