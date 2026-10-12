@@ -77,17 +77,25 @@
 enum { ROOM_EVENT_TASK_PRIORITY = 32 };
 
 #ifndef ROOM_EVENT_TASK_DESC
-/// Bodyless transition-task recipe selected by the room's event gate.
+/// Selects the room-owned descriptor for the gate's deferred transition task.
 ///
-/// Requires a live `TaskDesc` lvalue using `roomEventTask`, priority
-/// `ROOM_EVENT_TASK_PRIORITY`, and zero metadata. The gate spawns entry 0
-/// with two zero payloads after latching the room-owned request/destination.
-/// Spawning reads the descriptor synchronously; the latched records and room
-/// callback code remain loaded until the deferred task requests session reload.
-/// The default is the cross-TU `gRoomEventTaskDesc`; a single-TU carrier binds
-/// its static `_gRoomEventTaskDesc` before including this header. The binding
-/// allocates no storage and its lvalue is evaluated once per spawn.
-#define ROOM_EVENT_TASK_DESC gRoomEventTaskDesc
+/// Bind an addressable `TaskDesc` lvalue, declared before including the gate
+/// fragment. Its recipe uses `TASK_BODY_NONE`, `ROOM_EVENT_TASK_PRIORITY` and
+/// `roomEventTask`; its zero metadata is unused. The gate takes its address
+/// and selects index 0 with two unused zero payloads after latching the request
+/// and destination. The address expression is evaluated once per spawn.
+///
+/// Spawning reads the descriptor synchronously without retaining its address
+/// or invoking the callback. Keep the room's callback code and latched records
+/// loaded and unchanged until the deferred transition requests session reload.
+/// Allocation failure still leaves the request, destination and flag committed.
+///
+/// The default names the cross-TU recipe declared in the room's private header.
+/// A carrier with a TU-local recipe overrides this binding before including
+/// this header and keeps it through `room_event_gate.inc.c`, even when other
+/// event storage is shared between room translation units. The binding itself
+/// declares no object and allocates no storage.
+#define ROOM_EVENT_TASK_DESC (gRoomEventTaskDesc)
 #endif
 
 #ifndef ROOM_EVENT_DESTINATION

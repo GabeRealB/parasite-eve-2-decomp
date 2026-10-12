@@ -65,8 +65,12 @@
 #include "../../shared/glow_draw.h"
 
 // The latched-event symbol carries four unproven bytes after the event.
-#define ROOM_EVENT_LATCHED   gRoomEventLatched.event
-#define ROOM_EVENT_TASK_DESC _gRoomEventTaskDesc
+#define ROOM_EVENT_LATCHED gRoomEventLatched.event
+/// Selects the gate's TU-local room-transition task descriptor.
+///
+/// Addressable `TaskDesc` lvalue; see `room_events.h` for the spawn contract.
+/// Bind before that header and keep through `room_event_gate.inc.c`.
+#define ROOM_EVENT_TASK_DESC (_gRoomEventTaskDesc)
 #include "../../shared/room_events.h"
 /// Binds the shared puff task to this package's public void (Task*) effect callback.
 /// Must precede main_street.h and remain defined through main_street_puff_task.inc.c.

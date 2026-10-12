@@ -64,8 +64,12 @@
 // The flag symbol carries seven unproven bytes after the flag.
 #define ROOM_EVENT_ACTIVE gRoomEventActive.eventStarted
 // The request symbol carries twelve unproven bytes after the request.
-#define ROOM_EVENT_REQ       gRoomEventReq.request
-#define ROOM_EVENT_TASK_DESC _gRoomEventTaskDesc
+#define ROOM_EVENT_REQ gRoomEventReq.request
+/// Selects the gate's TU-local room-transition task descriptor.
+///
+/// Addressable `TaskDesc` lvalue; see `room_events.h` for the spawn contract.
+/// Bind before that header and keep through `room_event_gate.inc.c`.
+#define ROOM_EVENT_TASK_DESC (_gRoomEventTaskDesc)
 #include "../../shared/room_events.h"
 
 /// Spawn descriptor of the exit gate's transition task.

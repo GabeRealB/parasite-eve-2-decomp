@@ -70,7 +70,11 @@ static void _factoryPanelPrompt(Task* task);
 static s32 ACTION_PROMPT_HIT_TEST(ActionPromptHotspot* hotspots, s16 cursorX, s16 cursorY);
 #include "../../shared/action_prompt.h"
 #include "../../shared/glow_draw.h"
-#define ROOM_EVENT_TASK_DESC _gRoomEventTaskDesc
+/// Selects the gate's TU-local room-transition task descriptor.
+///
+/// Addressable `TaskDesc` lvalue; see `room_events.h` for the spawn contract.
+/// Bind before that header and keep through `room_event_gate.inc.c`.
+#define ROOM_EVENT_TASK_DESC (_gRoomEventTaskDesc)
 #include "../../shared/room_events.h"
 #include "../../shared/room_variants.h"
 /// Selects the nighttime factory instance for shared room declarations and code.

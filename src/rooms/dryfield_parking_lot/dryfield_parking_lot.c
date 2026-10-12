@@ -45,8 +45,12 @@
 
 #include "rooms/room_common.h"
 // The flag symbol is four bytes; the gate writes the first.
-#define ROOM_EVENT_ACTIVE    gRoomEventActive.eventStarted
-#define ROOM_EVENT_TASK_DESC _gRoomEventTaskDesc
+#define ROOM_EVENT_ACTIVE gRoomEventActive.eventStarted
+/// Selects the gate's TU-local room-transition task descriptor.
+///
+/// Addressable `TaskDesc` lvalue; see `room_events.h` for the spawn contract.
+/// Bind before that header and keep through `room_event_gate.inc.c`.
+#define ROOM_EVENT_TASK_DESC (_gRoomEventTaskDesc)
 #include "../../shared/room_events.h"
 #include "../../shared/parking_lot.h"
 

@@ -45,7 +45,11 @@
 #include "mapui/map_dryfield.h"
 
 #include "rooms/room_common.h"
-#define ROOM_EVENT_TASK_DESC _gRoomEventTaskDesc
+/// Selects the gate's TU-local room-transition task descriptor.
+///
+/// Addressable `TaskDesc` lvalue; see `room_events.h` for the spawn contract.
+/// Bind before that header and keep through `room_event_gate.inc.c`.
+#define ROOM_EVENT_TASK_DESC (_gRoomEventTaskDesc)
 #include "../../shared/room_events.h"
 #include "../../shared/room_variants.h"
 
