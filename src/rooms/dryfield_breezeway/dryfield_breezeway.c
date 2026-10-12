@@ -121,12 +121,23 @@ static s16 _gDryfieldBreezewayCollisionGridCells[126] = {
 #include "assets/dryfield_breezeway_collision_06068_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gDryfieldBreezewayCollisionGridCells[i])
+/// Selects a collision cell's face-index list for the generated directory.
+///
+/// Captures `_gDryfieldBreezewayCollisionGridCells` (126 s16 elements).
+/// `halfwordOffset` must be a constant s16-element offset to a list start
+/// within that pool; the list must also end there at
+/// `WORLD_COLLISION_GRID_CELL_END`. Evaluates the offset once and returns a
+/// borrowed `s16*` without reading or changing the list.
+/// The pool must stay loaded while the directory is used.
+/// This grid's `cell_face_list_macro` manifest setting selects the binding;
+/// it is defined only around the table include.
+#define DRYFIELD_BREEZEWAY_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gDryfieldBreezewayCollisionGridCells[(halfwordOffset)])
+
 /// X-major 4-by-2 directory into the borrowed collision face-index lists.
 static s16* _gDryfieldBreezewayCollisionGridTable[8] = {
 #include "assets/dryfield_breezeway_collision_06068_table.inc"
 };
-#undef GRID_CELL
+#undef DRYFIELD_BREEZEWAY_CELL_FACE_LIST_AT_OFFSET
 
 /// The breezeway's room collision mesh and 4-by-2 XZ cell index.
 ///

@@ -110,16 +110,23 @@ static s16 _gDryfieldFactoryCollisionGridCells[288] = {
 #include "assets/dryfield_factory_collision_0A638_cells.inc"
 };
 
-/// Binds generated halfword offsets to the live grid's face-index storage.
+/// Selects a collision cell's face-index list for the generated directory.
 ///
-/// The generated table supplies constant offsets within the 288-element pool;
-/// the argument is evaluated once. This binding ends after the table include.
-#define GRID_CELL(i) (&_gDryfieldFactoryCollisionGridCells[i])
+/// Captures `_gDryfieldFactoryCollisionGridCells` (288 s16 elements).
+/// `halfwordOffset` must be a constant s16-element offset to a list start
+/// within that pool; the list must also end there at
+/// `WORLD_COLLISION_GRID_CELL_END`. Evaluates the offset once and returns a
+/// borrowed `s16*` without reading or changing the list.
+/// The pool must stay loaded while the directory is used.
+/// This grid's `cell_face_list_macro` manifest setting selects the binding;
+/// it is defined only around the table include.
+#define DRYFIELD_FACTORY_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gDryfieldFactoryCollisionGridCells[(halfwordOffset)])
+
 /// X-major cell pointers, indexed by x * cellCountZ + z.
 static s16* _gDryfieldFactoryCollisionGridTable[DRYFIELD_FACTORY_COLLISION_CELL_COUNT_X * DRYFIELD_FACTORY_COLLISION_CELL_COUNT_Z] = {
 #include "assets/dryfield_factory_collision_0A638_table.inc"
 };
-#undef GRID_CELL
+#undef DRYFIELD_FACTORY_CELL_FACE_LIST_AT_OFFSET
 
 WorldCollisionGrid gDryfieldFactoryCollisionGrid = {
     .viewCoord   = NULL,

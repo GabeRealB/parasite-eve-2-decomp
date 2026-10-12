@@ -399,12 +399,23 @@ static s16 _gDryfieldGasStationCollisionGridCells[502] = {
 #include "assets/dryfield_gas_station_collision_068E4_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gDryfieldGasStationCollisionGridCells[i])
+/// Selects a collision cell's face-index list for the generated directory.
+///
+/// Captures `_gDryfieldGasStationCollisionGridCells` (502 s16 elements).
+/// `halfwordOffset` must be a constant s16-element offset to a list start
+/// within that pool; the list must also end there at
+/// `WORLD_COLLISION_GRID_CELL_END`. Evaluates the offset once and returns a
+/// borrowed `s16*` without reading or changing the list.
+/// The pool must stay loaded while the directory is used.
+/// This grid's `cell_face_list_macro` manifest setting selects the binding;
+/// it is defined only around the table include.
+#define DRYFIELD_GAS_STATION_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gDryfieldGasStationCollisionGridCells[(halfwordOffset)])
+
 /// X-major directory of cell lists, indexed by X * cellCountZ + Z.
 static s16* _gDryfieldGasStationCollisionGridTable[DRYFIELD_GAS_STATION_COLLISION_CELLS_X * DRYFIELD_GAS_STATION_COLLISION_CELLS_Z] = {
 #include "assets/dryfield_gas_station_collision_068E4_table.inc"
 };
-#undef GRID_CELL
+#undef DRYFIELD_GAS_STATION_CELL_FACE_LIST_AT_OFFSET
 
 /// The gas station's collision mesh and 8-by-6 spatial cell directory.
 ///

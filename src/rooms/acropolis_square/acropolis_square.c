@@ -394,12 +394,23 @@ static s16 _gAcropolisSquareCollisionGridCells[] = {
 #include "assets/acropolis_square_collision_07BDC_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gAcropolisSquareCollisionGridCells[i])
+/// Selects a collision cell's face-index list for the generated directory.
+///
+/// Captures `_gAcropolisSquareCollisionGridCells` (506 s16 elements).
+/// `halfwordOffset` must be a constant s16-element offset to a list start
+/// within that pool; the list must also end there at
+/// `WORLD_COLLISION_GRID_CELL_END`. Evaluates the offset once and returns a
+/// borrowed `s16*` without reading or changing the list.
+/// The pool must stay loaded while the directory is used.
+/// This grid's `cell_face_list_macro` manifest setting selects the binding;
+/// it is defined only around the table include.
+#define ACROPOLIS_SQUARE_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gAcropolisSquareCollisionGridCells[(halfwordOffset)])
+
 /// X-major 4-by-4 directory of face lists in `_gAcropolisSquareCollisionGridCells`.
 static s16* _gAcropolisSquareCollisionGridTable[] = {
 #include "assets/acropolis_square_collision_07BDC_table.inc"
 };
-#undef GRID_CELL
+#undef ACROPOLIS_SQUARE_CELL_FACE_LIST_AT_OFFSET
 
 /// The square's collision mesh and its 4-by-4 spatial index in the room XZ plane.
 ///

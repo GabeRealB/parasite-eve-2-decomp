@@ -113,13 +113,23 @@ static s16 _gDryfieldMotelRoom5CollisionGridCells[68] = {
 #include "assets/dryfield_motel_room_5_collision_006DC_cells.inc"
 };
 
-// Generated cell-table initializers use element offsets into the face-index pool.
-#define GRID_CELL(i) (&_gDryfieldMotelRoom5CollisionGridCells[i])
+/// Selects a collision cell's face-index list for the generated directory.
+///
+/// Captures `_gDryfieldMotelRoom5CollisionGridCells` (68 s16 elements).
+/// `halfwordOffset` must be a constant s16-element offset to a list start
+/// within that pool; the list must also end there at
+/// `WORLD_COLLISION_GRID_CELL_END`. Evaluates the offset once and returns a
+/// borrowed `s16*` without reading or changing the list.
+/// The pool must stay loaded while the directory is used.
+/// This grid's `cell_face_list_macro` manifest setting selects the binding;
+/// it is defined only around the table include.
+#define DRYFIELD_MOTEL_ROOM_5_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gDryfieldMotelRoom5CollisionGridCells[(halfwordOffset)])
+
 /// X-major 2-by-2 table borrowing the grid's terminated face-index lists.
 static s16* _gDryfieldMotelRoom5CollisionGridTable[4] = {
 #include "assets/dryfield_motel_room_5_collision_006DC_table.inc"
 };
-#undef GRID_CELL
+#undef DRYFIELD_MOTEL_ROOM_5_CELL_FACE_LIST_AT_OFFSET
 
 /// Motel room 5's collision mesh and 2-by-2 XZ cell index.
 ///

@@ -365,12 +365,23 @@ static s16 _gDryfieldGeneralStoreCollisionGridCells[292] = {
 #include "assets/dryfield_general_store_collision_01C78_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gDryfieldGeneralStoreCollisionGridCells[i])
+/// Selects a collision cell's face-index list for the generated directory.
+///
+/// Captures `_gDryfieldGeneralStoreCollisionGridCells` (292 s16 elements).
+/// `halfwordOffset` must be a constant s16-element offset to a list start
+/// within that pool; the list must also end there at
+/// `WORLD_COLLISION_GRID_CELL_END`. Evaluates the offset once and returns a
+/// borrowed `s16*` without reading or changing the list.
+/// The pool must stay loaded while the directory is used.
+/// This grid's `cell_face_list_macro` manifest setting selects the binding;
+/// it is defined only around the table include.
+#define DRYFIELD_GENERAL_STORE_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gDryfieldGeneralStoreCollisionGridCells[(halfwordOffset)])
+
 /// X-major directory of the collision grid's three-by-three cells.
 static s16* _gDryfieldGeneralStoreCollisionGridTable[9] = {
 #include "assets/dryfield_general_store_collision_01C78_table.inc"
 };
-#undef GRID_CELL
+#undef DRYFIELD_GENERAL_STORE_CELL_FACE_LIST_AT_OFFSET
 
 /// The General Store's room collision mesh and XZ cell index.
 ///

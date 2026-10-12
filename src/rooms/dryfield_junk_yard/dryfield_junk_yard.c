@@ -555,12 +555,23 @@ static s16 _gDryfieldJunkYardCollisionGridCells[] = {
 #include "assets/dryfield_junk_yard_collision_01F08_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gDryfieldJunkYardCollisionGridCells[i])
+/// Selects a collision cell's face-index list for the generated directory.
+///
+/// Captures `_gDryfieldJunkYardCollisionGridCells` (166 s16 elements).
+/// `halfwordOffset` must be a constant s16-element offset to a list start
+/// within that pool; the list must also end there at
+/// `WORLD_COLLISION_GRID_CELL_END`. Evaluates the offset once and returns a
+/// borrowed `s16*` without reading or changing the list.
+/// The pool must stay loaded while the directory is used.
+/// This grid's `cell_face_list_macro` manifest setting selects the binding;
+/// it is defined only around the table include.
+#define DRYFIELD_JUNK_YARD_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gDryfieldJunkYardCollisionGridCells[(halfwordOffset)])
+
 /// Fourteen X-major cell lists for the seven-by-two room grid.
 static s16* _gDryfieldJunkYardCollisionGridTable[] = {
 #include "assets/dryfield_junk_yard_collision_01F08_table.inc"
 };
-#undef GRID_CELL
+#undef DRYFIELD_JUNK_YARD_CELL_FACE_LIST_AT_OFFSET
 
 /// The junk yard's sole collision mesh and its seven-by-two XZ cell index.
 ///

@@ -193,11 +193,22 @@ static s16 _gFactoryBarrierTemplateCells[4] = {
 #include "assets/dryfield_factory_collision_096A8_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gFactoryBarrierTemplateCells[i])
+/// Selects a collision cell's face-index list for the generated directory.
+///
+/// Captures `_gFactoryBarrierTemplateCells` (4 s16 elements).
+/// `halfwordOffset` must be a constant s16-element offset to a list start
+/// within that pool; the list must also end there at
+/// `WORLD_COLLISION_GRID_CELL_END`. Evaluates the offset once and returns a
+/// borrowed `s16*` without reading or changing the list.
+/// The pool must stay loaded while the directory is used.
+/// This grid's `cell_face_list_macro` manifest setting selects the binding;
+/// it is defined only around the table include.
+#define DRYFIELD_FACTORY_TEMPLATE_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gFactoryBarrierTemplateCells[(halfwordOffset)])
+
 static s16* _gFactoryBarrierTemplateTable[1] = {
 #include "assets/dryfield_factory_collision_096A8_table.inc"
 };
-#undef GRID_CELL
+#undef DRYFIELD_FACTORY_TEMPLATE_CELL_FACE_LIST_AT_OFFSET
 
 WorldCollisionGrid gFactoryBarrierTemplate = {
     .viewCoord   = NULL,
@@ -229,11 +240,22 @@ static s16 _gFactoryLiftTemplateCells[10] = {
 #include "assets/dryfield_factory_collision_09778_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gFactoryLiftTemplateCells[i])
+/// Selects a collision cell's face-index list for the generated directory.
+///
+/// Captures `_gFactoryLiftTemplateCells` (10 s16 elements).
+/// `halfwordOffset` must be a constant s16-element offset to a list start
+/// within that pool; the list must also end there at
+/// `WORLD_COLLISION_GRID_CELL_END`. Evaluates the offset once and returns a
+/// borrowed `s16*` without reading or changing the list.
+/// The pool must stay loaded while the directory is used.
+/// This grid's `cell_face_list_macro` manifest setting selects the binding;
+/// it is defined only around the table include.
+#define DRYFIELD_FACTORY_TEMPLATE_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gFactoryLiftTemplateCells[(halfwordOffset)])
+
 static s16* _gFactoryLiftTemplateTable[2] = {
 #include "assets/dryfield_factory_collision_09778_table.inc"
 };
-#undef GRID_CELL
+#undef DRYFIELD_FACTORY_TEMPLATE_CELL_FACE_LIST_AT_OFFSET
 
 WorldCollisionGrid gFactoryLiftTemplate = {
     .viewCoord   = NULL,
@@ -265,11 +287,22 @@ static s16 _gFactoryLiftTurnedTemplateCells[8] = {
 #include "assets/dryfield_factory_collision_09844_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gFactoryLiftTurnedTemplateCells[i])
+/// Selects a collision cell's face-index list for the generated directory.
+///
+/// Captures `_gFactoryLiftTurnedTemplateCells` (8 s16 elements).
+/// `halfwordOffset` must be a constant s16-element offset to a list start
+/// within that pool; the list must also end there at
+/// `WORLD_COLLISION_GRID_CELL_END`. Evaluates the offset once and returns a
+/// borrowed `s16*` without reading or changing the list.
+/// The pool must stay loaded while the directory is used.
+/// This grid's `cell_face_list_macro` manifest setting selects the binding;
+/// it is defined only around the table include.
+#define DRYFIELD_FACTORY_TEMPLATE_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gFactoryLiftTurnedTemplateCells[(halfwordOffset)])
+
 static s16* _gFactoryLiftTurnedTemplateTable[2] = {
 #include "assets/dryfield_factory_collision_09844_table.inc"
 };
-#undef GRID_CELL
+#undef DRYFIELD_FACTORY_TEMPLATE_CELL_FACE_LIST_AT_OFFSET
 
 WorldCollisionGrid gFactoryLiftTurnedTemplate = {
     .viewCoord   = NULL,

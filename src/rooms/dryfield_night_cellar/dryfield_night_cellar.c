@@ -181,12 +181,23 @@ enum {
     DRYFIELD_NIGHT_CELLAR_COLLISION_GRID_CELL_SIZE = 4000
 };
 
-#define GRID_CELL(i) (&_gDryfieldNightCellarCollisionGridCells[i])
+/// Selects a collision cell's face-index list for the generated directory.
+///
+/// Captures `_gDryfieldNightCellarCollisionGridCells` (62 s16 elements).
+/// `halfwordOffset` must be a constant s16-element offset to a list start
+/// within that pool; the list must also end there at
+/// `WORLD_COLLISION_GRID_CELL_END`. Evaluates the offset once and returns a
+/// borrowed `s16*` without reading or changing the list.
+/// The pool must stay loaded while the directory is used.
+/// This grid's `cell_face_list_macro` manifest setting selects the binding;
+/// it is defined only around the table include.
+#define DRYFIELD_NIGHT_CELLAR_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gDryfieldNightCellarCollisionGridCells[(halfwordOffset)])
+
 /// X-major cell directory for the cellar's 3 by 2 collision grid.
 static s16* _gDryfieldNightCellarCollisionGridTable[DRYFIELD_NIGHT_CELLAR_COLLISION_GRID_CELLS_X * DRYFIELD_NIGHT_CELLAR_COLLISION_GRID_CELLS_Z] = {
 #include "assets/dryfield_night_cellar_collision_008A0_table.inc"
 };
-#undef GRID_CELL
+#undef DRYFIELD_NIGHT_CELLAR_CELL_FACE_LIST_AT_OFFSET
 
 /// Collision mesh shared by both nighttime cellar rooms.
 ///

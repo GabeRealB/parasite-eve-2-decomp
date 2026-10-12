@@ -150,11 +150,22 @@ static s16 _gDryfieldMotelLobbyCollisionGridCells[64] = {
 #include "assets/dryfield_motel_lobby_collision_02624_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gDryfieldMotelLobbyCollisionGridCells[i])
+/// Selects a collision cell's face-index list for the generated directory.
+///
+/// Captures `_gDryfieldMotelLobbyCollisionGridCells` (64 s16 elements).
+/// `halfwordOffset` must be a constant s16-element offset to a list start
+/// within that pool; the list must also end there at
+/// `WORLD_COLLISION_GRID_CELL_END`. Evaluates the offset once and returns a
+/// borrowed `s16*` without reading or changing the list.
+/// The pool must stay loaded while the directory is used.
+/// This grid's `cell_face_list_macro` manifest setting selects the binding;
+/// it is defined only around the table include.
+#define DRYFIELD_MOTEL_LOBBY_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gDryfieldMotelLobbyCollisionGridCells[(halfwordOffset)])
+
 static s16* _gDryfieldMotelLobbyCollisionGridTable[DRYFIELD_MOTEL_LOBBY_GRID_CELLS_X * DRYFIELD_MOTEL_LOBBY_GRID_CELLS_Z] = {
 #include "assets/dryfield_motel_lobby_collision_02624_table.inc"
 };
-#undef GRID_CELL
+#undef DRYFIELD_MOTEL_LOBBY_CELL_FACE_LIST_AT_OFFSET
 
 /// The lobby's room-coordinate collision mesh and four XZ face-index lists.
 ///

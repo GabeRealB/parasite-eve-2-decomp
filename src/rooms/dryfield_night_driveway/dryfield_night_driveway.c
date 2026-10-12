@@ -857,12 +857,23 @@ static s16 _gDryfieldNightDrivewayCollisionGridCells[154] = {
 #include "assets/dryfield_night_driveway_collision_0364C_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gDryfieldNightDrivewayCollisionGridCells[i])
+/// Selects a collision cell's face-index list for the generated directory.
+///
+/// Captures `_gDryfieldNightDrivewayCollisionGridCells` (154 s16 elements).
+/// `halfwordOffset` must be a constant s16-element offset to a list start
+/// within that pool; the list must also end there at
+/// `WORLD_COLLISION_GRID_CELL_END`. Evaluates the offset once and returns a
+/// borrowed `s16*` without reading or changing the list.
+/// The pool must stay loaded while the directory is used.
+/// This grid's `cell_face_list_macro` manifest setting selects the binding;
+/// it is defined only around the table include.
+#define DRYFIELD_NIGHT_DRIVEWAY_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gDryfieldNightDrivewayCollisionGridCells[(halfwordOffset)])
+
 /// X-major cell pointers into the face-index lists; NULL denotes the final empty cell.
 static s16* _gDryfieldNightDrivewayCollisionGridTable[DRYFIELD_NIGHT_DRIVEWAY_GRID_CELL_COUNT_X * DRYFIELD_NIGHT_DRIVEWAY_GRID_CELL_COUNT_Z] = {
 #include "assets/dryfield_night_driveway_collision_0364C_table.inc"
 };
-#undef GRID_CELL
+#undef DRYFIELD_NIGHT_DRIVEWAY_CELL_FACE_LIST_AT_OFFSET
 
 /// Driveway collision mesh shared by rooms 1 and 2, with an X-major 7 by 3 cell index.
 ///

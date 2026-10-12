@@ -168,12 +168,23 @@ static s16 _gDryfieldGarageCollisionGridCells[214] = {
 #include "assets/dryfield_garage_collision_0108C_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gDryfieldGarageCollisionGridCells[i])
+/// Selects a collision cell's face-index list for the generated directory.
+///
+/// Captures `_gDryfieldGarageCollisionGridCells` (214 s16 elements).
+/// `halfwordOffset` must be a constant s16-element offset to a list start
+/// within that pool; the list must also end there at
+/// `WORLD_COLLISION_GRID_CELL_END`. Evaluates the offset once and returns a
+/// borrowed `s16*` without reading or changing the list.
+/// The pool must stay loaded while the directory is used.
+/// This grid's `cell_face_list_macro` manifest setting selects the binding;
+/// it is defined only around the table include.
+#define DRYFIELD_GARAGE_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gDryfieldGarageCollisionGridCells[(halfwordOffset)])
+
 /// X-major 3-by-3 directory into the grid's face-index lists.
 static s16* _gDryfieldGarageCollisionGridTable[9] = {
 #include "assets/dryfield_garage_collision_0108C_table.inc"
 };
-#undef GRID_CELL
+#undef DRYFIELD_GARAGE_CELL_FACE_LIST_AT_OFFSET
 
 /// The garage's room collision mesh and 3-by-3 XZ cell index.
 ///

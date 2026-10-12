@@ -162,13 +162,23 @@ static s16 _gDryfieldCellarCollisionGridCells[62] = {
 #include "assets/dryfield_cellar_collision_00994_cells.inc"
 };
 
-// GRID_CELL selects a list start within the cell array and evaluates its index once.
-#define GRID_CELL(i) (&_gDryfieldCellarCollisionGridCells[i])
+/// Selects a collision cell's face-index list for the generated directory.
+///
+/// Captures `_gDryfieldCellarCollisionGridCells` (62 s16 elements).
+/// `halfwordOffset` must be a constant s16-element offset to a list start
+/// within that pool; the list must also end there at
+/// `WORLD_COLLISION_GRID_CELL_END`. Evaluates the offset once and returns a
+/// borrowed `s16*` without reading or changing the list.
+/// The pool must stay loaded while the directory is used.
+/// This grid's `cell_face_list_macro` manifest setting selects the binding;
+/// it is defined only around the table include.
+#define DRYFIELD_CELLAR_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gDryfieldCellarCollisionGridCells[(halfwordOffset)])
+
 /// Six cell-list starts, indexed by X * 2 + Z in the 3-by-2 grid.
 static s16* _gDryfieldCellarCollisionGridTable[6] = {
 #include "assets/dryfield_cellar_collision_00994_table.inc"
 };
-#undef GRID_CELL
+#undef DRYFIELD_CELLAR_CELL_FACE_LIST_AT_OFFSET
 
 /// Collision mesh shared by both cellar rooms, with 4000-unit XZ cells.
 ///

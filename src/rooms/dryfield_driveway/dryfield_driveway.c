@@ -343,13 +343,23 @@ static s16 _gDryfieldDrivewayCollisionGridCells[154] = {
 #include "assets/dryfield_driveway_collision_017B4_cells.inc"
 };
 
-// Generated offsets count halfword elements in this grid's face-list pool.
-#define GRID_CELL(i) (&_gDryfieldDrivewayCollisionGridCells[i])
+/// Selects a collision cell's face-index list for the generated directory.
+///
+/// Captures `_gDryfieldDrivewayCollisionGridCells` (154 s16 elements).
+/// `halfwordOffset` must be a constant s16-element offset to a list start
+/// within that pool; the list must also end there at
+/// `WORLD_COLLISION_GRID_CELL_END`. Evaluates the offset once and returns a
+/// borrowed `s16*` without reading or changing the list.
+/// The pool must stay loaded while the directory is used.
+/// This grid's `cell_face_list_macro` manifest setting selects the binding;
+/// it is defined only around the table include.
+#define DRYFIELD_DRIVEWAY_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gDryfieldDrivewayCollisionGridCells[(halfwordOffset)])
+
 /// X-major face-list pointers for the seven by three XZ cells; NULL is empty.
 static s16* _gDryfieldDrivewayCollisionGridTable[21] = {
 #include "assets/dryfield_driveway_collision_017B4_table.inc"
 };
-#undef GRID_CELL
+#undef DRYFIELD_DRIVEWAY_CELL_FACE_LIST_AT_OFFSET
 
 /// Driveway collision mesh and its seven by three XZ cell index.
 ///

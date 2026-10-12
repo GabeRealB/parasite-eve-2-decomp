@@ -235,13 +235,23 @@ static s16 _gDryfieldMotelBalconyCollisionGridCells[342] = {
 #include "assets/dryfield_motel_balcony_collision_0559C_cells.inc"
 };
 
-// Generated table offsets count s16 elements in the cell-list pool.
-#define GRID_CELL(i) (&_gDryfieldMotelBalconyCollisionGridCells[i])
+/// Selects a collision cell's face-index list for the generated directory.
+///
+/// Captures `_gDryfieldMotelBalconyCollisionGridCells` (342 s16 elements).
+/// `halfwordOffset` must be a constant s16-element offset to a list start
+/// within that pool; the list must also end there at
+/// `WORLD_COLLISION_GRID_CELL_END`. Evaluates the offset once and returns a
+/// borrowed `s16*` without reading or changing the list.
+/// The pool must stay loaded while the directory is used.
+/// This grid's `cell_face_list_macro` manifest setting selects the binding;
+/// it is defined only around the table include.
+#define DRYFIELD_MOTEL_BALCONY_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gDryfieldMotelBalconyCollisionGridCells[(halfwordOffset)])
+
 /// X-major pointers into the cell-list pool for the mesh's 8 by 8 cells.
 static s16* _gDryfieldMotelBalconyCollisionGridTable[64] = {
 #include "assets/dryfield_motel_balcony_collision_0559C_table.inc"
 };
-#undef GRID_CELL
+#undef DRYFIELD_MOTEL_BALCONY_CELL_FACE_LIST_AT_OFFSET
 
 /// The balcony's collision mesh and its 8 by 8 XZ cell index.
 ///

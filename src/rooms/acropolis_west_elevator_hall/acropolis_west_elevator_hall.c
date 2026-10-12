@@ -501,12 +501,23 @@ static s16 _gAcropolisWestElevatorHallCollisionGridCells[52] = {
 #include "assets/acropolis_west_elevator_hall_collision_07D3C_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gAcropolisWestElevatorHallCollisionGridCells[i])
+/// Selects a collision cell's face-index list for the generated directory.
+///
+/// Captures `_gAcropolisWestElevatorHallCollisionGridCells` (52 s16 elements).
+/// `halfwordOffset` must be a constant s16-element offset to a list start
+/// within that pool; the list must also end there at
+/// `WORLD_COLLISION_GRID_CELL_END`. Evaluates the offset once and returns a
+/// borrowed `s16*` without reading or changing the list.
+/// The pool must stay loaded while the directory is used.
+/// This grid's `cell_face_list_macro` manifest setting selects the binding;
+/// it is defined only around the table include.
+#define ACROPOLIS_WEST_ELEVATOR_HALL_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gAcropolisWestElevatorHallCollisionGridCells[(halfwordOffset)])
+
 /// X-major cell directory: three X cells by two Z cells, pointing into the lists.
 static s16* _gAcropolisWestElevatorHallCollisionGridTable[6] = {
 #include "assets/acropolis_west_elevator_hall_collision_07D3C_table.inc"
 };
-#undef GRID_CELL
+#undef ACROPOLIS_WEST_ELEVATOR_HALL_CELL_FACE_LIST_AT_OFFSET
 
 /// Room collision mesh covering a 3-by-2 XZ grid of 4000-unit cells.
 ///

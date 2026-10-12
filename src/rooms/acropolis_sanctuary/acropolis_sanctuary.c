@@ -1077,12 +1077,23 @@ static s16 _gAcropolisSanctuaryBlockerCollisionGridCells[6] = {
 #include "assets/acropolis_sanctuary_collision_04D2C_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gAcropolisSanctuaryBlockerCollisionGridCells[i])
+/// Selects a collision cell's face-index list for the generated directory.
+///
+/// Captures `_gAcropolisSanctuaryBlockerCollisionGridCells` (6 s16 elements).
+/// `halfwordOffset` must be a constant s16-element offset to a list start
+/// within that pool; the list must also end there at
+/// `WORLD_COLLISION_GRID_CELL_END`. Evaluates the offset once and returns a
+/// borrowed `s16*` without reading or changing the list.
+/// The pool must stay loaded while the directory is used.
+/// This grid's `cell_face_list_macro` manifest setting selects the binding;
+/// it is defined only around the table include.
+#define ACROPOLIS_SANCTUARY_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gAcropolisSanctuaryBlockerCollisionGridCells[(halfwordOffset)])
+
 /// Single template cell pointing at the start of its terminated face-ID list.
 static s16* _gAcropolisSanctuaryBlockerCollisionGridTable[1] = {
 #include "assets/acropolis_sanctuary_collision_04D2C_table.inc"
 };
-#undef GRID_CELL
+#undef ACROPOLIS_SANCTUARY_CELL_FACE_LIST_AT_OFFSET
 
 /// Authored collision template for the sanctuary's movable blocker.
 ///
@@ -1340,12 +1351,23 @@ static s16 _gAcropolisSanctuaryCollisionGridCells[386] = {
 #include "assets/acropolis_sanctuary_collision_05FA8_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gAcropolisSanctuaryCollisionGridCells[i])
+/// Selects a collision cell's face-index list for the generated directory.
+///
+/// Captures `_gAcropolisSanctuaryCollisionGridCells` (386 s16 elements).
+/// `halfwordOffset` must be a constant s16-element offset to a list start
+/// within that pool; the list must also end there at
+/// `WORLD_COLLISION_GRID_CELL_END`. Evaluates the offset once and returns a
+/// borrowed `s16*` without reading or changing the list.
+/// The pool must stay loaded while the directory is used.
+/// This grid's `cell_face_list_macro` manifest setting selects the binding;
+/// it is defined only around the table include.
+#define ACROPOLIS_SANCTUARY_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gAcropolisSanctuaryCollisionGridCells[(halfwordOffset)])
+
 /// Cell-list starts indexed by x * 3 + z, for cell coordinates 0..2.
 static s16* _gAcropolisSanctuaryCollisionGridTable[9] = {
 #include "assets/acropolis_sanctuary_collision_05FA8_table.inc"
 };
-#undef GRID_CELL
+#undef ACROPOLIS_SANCTUARY_CELL_FACE_LIST_AT_OFFSET
 
 /// Live sanctuary collision mesh and its nine X-major cell lists.
 ///

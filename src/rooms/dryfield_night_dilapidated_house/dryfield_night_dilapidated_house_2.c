@@ -1670,12 +1670,23 @@ static s16 _gDryfieldNightDilapidatedHouseCollisionGridCells[208] = {
 #include "assets/dryfield_night_dilapidated_house_collision_0A784_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gDryfieldNightDilapidatedHouseCollisionGridCells[i])
+/// Selects a collision cell's face-index list for the generated directory.
+///
+/// Captures `_gDryfieldNightDilapidatedHouseCollisionGridCells` (208 s16 elements).
+/// `halfwordOffset` must be a constant s16-element offset to a list start
+/// within that pool; the list must also end there at
+/// `WORLD_COLLISION_GRID_CELL_END`. Evaluates the offset once and returns a
+/// borrowed `s16*` without reading or changing the list.
+/// The pool must stay loaded while the directory is used.
+/// This grid's `cell_face_list_macro` manifest setting selects the binding;
+/// it is defined only around the table include.
+#define DRYFIELD_NIGHT_DILAPIDATED_HOUSE_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gDryfieldNightDilapidatedHouseCollisionGridCells[(halfwordOffset)])
+
 /// X-major cell directory, indexed as cellX * 2 + cellZ for the 3-by-2 grid.
 static s16* _gDryfieldNightDilapidatedHouseCollisionGridTable[6] = {
 #include "assets/dryfield_night_dilapidated_house_collision_0A784_table.inc"
 };
-#undef GRID_CELL
+#undef DRYFIELD_NIGHT_DILAPIDATED_HOUSE_CELL_FACE_LIST_AT_OFFSET
 
 /// The house's room collision mesh and six-cell XZ face directory.
 ///
