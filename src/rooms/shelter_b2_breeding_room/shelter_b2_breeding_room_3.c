@@ -107,13 +107,20 @@ static s16 _gShelterB2BreedingRoomCollisionGridCells[326] = {
 #include "assets/shelter_b2_breeding_room_collision_03B34_cells.inc"
 };
 
-// The generated table supplies in-bounds offsets into this room's cell lists.
-#define GRID_CELL(i) (&_gShelterB2BreedingRoomCollisionGridCells[i])
+/// Resolves a generated halfword offset to a breeding-room cell's face-index list.
+///
+/// Captures `_gShelterB2BreedingRoomCollisionGridCells`, returning a borrowed
+/// `s16*`. `halfwordOffset` is evaluated once; these initializers require a
+/// constant list start in 0..325, with `WORLD_COLLISION_GRID_CELL_END` inside
+/// the pool. The grid's `cell_face_list_macro` manifest entry selects this
+/// binding for its table include. Keep the pool live while the grid is active.
+#define SHELTER_B2_BREEDING_ROOM_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gShelterB2BreedingRoomCollisionGridCells[(halfwordOffset)])
+
 /// Twelve cell-list pointers in X-major order, with three Z cells per X row.
 static s16* _gShelterB2BreedingRoomCollisionGridTable[12] = {
 #include "assets/shelter_b2_breeding_room_collision_03B34_table.inc"
 };
-#undef GRID_CELL
+#undef SHELTER_B2_BREEDING_ROOM_CELL_FACE_LIST_AT_OFFSET
 
 WorldCollisionGrid gShelterB2BreedingRoomCollisionGrid = {
     .viewCoord   = NULL,

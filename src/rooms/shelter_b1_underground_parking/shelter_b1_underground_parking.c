@@ -735,14 +735,22 @@ static s16 _gShelterB1UndergroundParkingRoom1CollisionGridCells[150] = {
 #include "assets/shelter_b1_underground_parking_collision_0A890_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gShelterB1UndergroundParkingRoom1CollisionGridCells[i])
+/// Resolves a generated halfword offset to a room-1 cell's face-index list.
+///
+/// Captures `_gShelterB1UndergroundParkingRoom1CollisionGridCells`, returning a
+/// borrowed `s16*`. `halfwordOffset` is evaluated once; these initializers require
+/// a constant list start in 0..149, with `WORLD_COLLISION_GRID_CELL_END` inside
+/// the pool. The grid's `cell_face_list_macro` manifest entry selects this
+/// binding for its table include. Keep the pool live while the grid is active.
+#define SHELTER_B1_UNDERGROUND_PARKING_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gShelterB1UndergroundParkingRoom1CollisionGridCells[(halfwordOffset)])
+
 /// X-major 5-by-4 cell directory for the room-1 collision grid.
 ///
 /// Indexed by cellX * 4 + cellZ; each entry borrows a terminated list from Cells.
 static s16* _gShelterB1UndergroundParkingRoom1CollisionGridTable[20] = {
 #include "assets/shelter_b1_underground_parking_collision_0A890_table.inc"
 };
-#undef GRID_CELL
+#undef SHELTER_B1_UNDERGROUND_PARKING_CELL_FACE_LIST_AT_OFFSET
 
 /// Collision mesh and spatial index selected by underground parking room 1.
 ///
@@ -777,14 +785,23 @@ static s16 _gShelterB1UndergroundParkingRooms2And4And5CollisionGridCells[210] = 
 #include "assets/shelter_b1_underground_parking_collision_0AF14_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gShelterB1UndergroundParkingRooms2And4And5CollisionGridCells[i])
+/// Resolves a generated halfword offset to a rooms-2/4/5 cell's face-index list.
+///
+/// Captures `_gShelterB1UndergroundParkingRooms2And4And5CollisionGridCells`,
+/// returning a borrowed `s16*`. `halfwordOffset` is evaluated once; these
+/// initializers require a constant list start in 0..209, with
+/// `WORLD_COLLISION_GRID_CELL_END` inside the pool. The grid's
+/// `cell_face_list_macro` manifest entry selects this binding for its table
+/// include. Keep the pool live while the grid is active.
+#define SHELTER_B1_UNDERGROUND_PARKING_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gShelterB1UndergroundParkingRooms2And4And5CollisionGridCells[(halfwordOffset)])
+
 /// X-major 5-by-4 cell directory for the rooms-2/4/5 collision grid.
 ///
 /// Indexed by cellX * 4 + cellZ; each entry borrows a terminated list from Cells.
 static s16* _gShelterB1UndergroundParkingRooms2And4And5CollisionGridTable[20] = {
 #include "assets/shelter_b1_underground_parking_collision_0AF14_table.inc"
 };
-#undef GRID_CELL
+#undef SHELTER_B1_UNDERGROUND_PARKING_CELL_FACE_LIST_AT_OFFSET
 
 /// Collision mesh and spatial index shared by underground parking rooms 2, 4 and 5.
 ///
@@ -819,15 +836,22 @@ static s16 _gShelterB1UndergroundParkingRoom3CollisionGridCells[222] = {
 #include "assets/shelter_b1_underground_parking_collision_0B604_cells.inc"
 };
 
-/// Binds generated cell offsets to this pool; indices are constant halfword offsets.
-#define GRID_CELL(i) (&_gShelterB1UndergroundParkingRoom3CollisionGridCells[(i)])
+/// Resolves a generated halfword offset to a room-3 cell's face-index list.
+///
+/// Captures `_gShelterB1UndergroundParkingRoom3CollisionGridCells`, returning a
+/// borrowed `s16*`. `halfwordOffset` is evaluated once; these initializers require
+/// a constant list start in 0..221, with `WORLD_COLLISION_GRID_CELL_END` inside
+/// the pool. The grid's `cell_face_list_macro` manifest entry selects this
+/// binding for its table include. Keep the pool live while the grid is active.
+#define SHELTER_B1_UNDERGROUND_PARKING_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gShelterB1UndergroundParkingRoom3CollisionGridCells[(halfwordOffset)])
+
 /// X-major 5-by-4 cell directory for the room-3 collision grid.
 ///
 /// Indexed by cellX * 4 + cellZ; each entry borrows a terminated list from Cells.
 static s16* _gShelterB1UndergroundParkingRoom3CollisionGridTable[20] = {
 #include "assets/shelter_b1_underground_parking_collision_0B604_table.inc"
 };
-#undef GRID_CELL
+#undef SHELTER_B1_UNDERGROUND_PARKING_CELL_FACE_LIST_AT_OFFSET
 
 /// Collision mesh and spatial index selected by underground parking room 3.
 ///
@@ -862,15 +886,22 @@ static s16 _gShelterB1UndergroundParkingRooms6And7CollisionGridCells[176] = {
 #include "assets/shelter_b1_underground_parking_collision_0BB6C_cells.inc"
 };
 
-/// Binds generated cell offsets to this pool; indices are constant halfword offsets.
-#define GRID_CELL(i) (&_gShelterB1UndergroundParkingRooms6And7CollisionGridCells[(i)])
+/// Resolves a generated halfword offset to a rooms-6/7 cell's face-index list.
+///
+/// Captures `_gShelterB1UndergroundParkingRooms6And7CollisionGridCells`, returning
+/// a borrowed `s16*`. `halfwordOffset` is evaluated once; these initializers
+/// require a constant list start in 0..175, with `WORLD_COLLISION_GRID_CELL_END`
+/// inside the pool. The grid's `cell_face_list_macro` manifest entry selects
+/// this binding for its table include. Keep the pool live while the grid is active.
+#define SHELTER_B1_UNDERGROUND_PARKING_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gShelterB1UndergroundParkingRooms6And7CollisionGridCells[(halfwordOffset)])
+
 /// X-major 5-by-4 cell directory for the rooms-6/7 collision grid.
 ///
 /// Indexed by cellX * 4 + cellZ; each entry borrows a terminated list from Cells.
 static s16* _gShelterB1UndergroundParkingRooms6And7CollisionGridTable[20] = {
 #include "assets/shelter_b1_underground_parking_collision_0BB6C_table.inc"
 };
-#undef GRID_CELL
+#undef SHELTER_B1_UNDERGROUND_PARKING_CELL_FACE_LIST_AT_OFFSET
 
 /// Collision mesh and spatial index shared by underground parking rooms 6 and 7.
 ///
@@ -905,15 +936,22 @@ static s16 _gShelterB1UndergroundParkingRoom8CollisionGridCells[186] = {
 #include "assets/shelter_b1_underground_parking_collision_0C194_cells.inc"
 };
 
-/// Binds generated cell offsets to this pool; indices are constant halfword offsets.
-#define GRID_CELL(i) (&_gShelterB1UndergroundParkingRoom8CollisionGridCells[(i)])
+/// Resolves a generated halfword offset to a room-8 cell's face-index list.
+///
+/// Captures `_gShelterB1UndergroundParkingRoom8CollisionGridCells`, returning a
+/// borrowed `s16*`. `halfwordOffset` is evaluated once; these initializers require
+/// a constant list start in 0..185, with `WORLD_COLLISION_GRID_CELL_END` inside
+/// the pool. The grid's `cell_face_list_macro` manifest entry selects this
+/// binding for its table include. Keep the pool live while the grid is active.
+#define SHELTER_B1_UNDERGROUND_PARKING_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gShelterB1UndergroundParkingRoom8CollisionGridCells[(halfwordOffset)])
+
 /// X-major 5-by-4 cell directory for the room-8 collision grid.
 ///
 /// Indexed by cellX * 4 + cellZ; each entry borrows a terminated list from Cells.
 static s16* _gShelterB1UndergroundParkingRoom8CollisionGridTable[20] = {
 #include "assets/shelter_b1_underground_parking_collision_0C194_table.inc"
 };
-#undef GRID_CELL
+#undef SHELTER_B1_UNDERGROUND_PARKING_CELL_FACE_LIST_AT_OFFSET
 
 /// Collision mesh and spatial index selected by underground parking room 8.
 ///

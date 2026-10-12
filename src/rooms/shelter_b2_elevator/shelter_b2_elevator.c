@@ -254,12 +254,20 @@ static s16 _gShelterB2ElevatorCollisionGridCells[8] = {
 #include "assets/shelter_b2_elevator_collision_00B24_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gShelterB2ElevatorCollisionGridCells[i])
+/// Resolves a generated halfword offset to the elevator cell's face-index list.
+///
+/// Captures `_gShelterB2ElevatorCollisionGridCells`, returning a borrowed `s16*`.
+/// `halfwordOffset` is evaluated once; this initializer requires the constant 0
+/// selecting the six face indices followed by `WORLD_COLLISION_GRID_CELL_END`.
+/// The grid's `cell_face_list_macro` manifest entry selects this binding for its
+/// table include. Keep the pool live while the grid is active.
+#define SHELTER_B2_ELEVATOR_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gShelterB2ElevatorCollisionGridCells[(halfwordOffset)])
+
 /// X-major directory of the cab grid's single face-index list.
 static s16* _gShelterB2ElevatorCollisionGridTable[1] = {
 #include "assets/shelter_b2_elevator_collision_00B24_table.inc"
 };
-#undef GRID_CELL
+#undef SHELTER_B2_ELEVATOR_CELL_FACE_LIST_AT_OFFSET
 
 WorldCollisionGrid gShelterB2ElevatorCollisionGrid = { NULL, _gShelterB2ElevatorCollisionGridNormals, _gShelterB2ElevatorCollisionGridVerts, _gShelterB2ElevatorCollisionGridFaces, _gShelterB2ElevatorCollisionGridTable, -0x2AF8, 1450, 1, 1, 4000, ARRAY_SIZE(_gShelterB2ElevatorCollisionGridFaces) };
 

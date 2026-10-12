@@ -2428,15 +2428,15 @@ id = 390
 objects = [
   { kind = "packageId" },
   { kind = "collision", at = "0xA3FC", in_c = true },
-  { kind = "collisionSource", at = "0xA890", in_c = true },
+  { kind = "collisionSource", at = "0xA890", in_c = true, cell_face_list_macro = "SHELTER_B1_UNDERGROUND_PARKING_CELL_FACE_LIST_AT_OFFSET" },
   { kind = "collision", at = "0xA8B4", in_c = true },
-  { kind = "collisionSource", at = "0xAF14", in_c = true },
+  { kind = "collisionSource", at = "0xAF14", in_c = true, cell_face_list_macro = "SHELTER_B1_UNDERGROUND_PARKING_CELL_FACE_LIST_AT_OFFSET" },
   { kind = "collision", at = "0xAF38", in_c = true },
-  { kind = "collisionSource", at = "0xB604", in_c = true },
+  { kind = "collisionSource", at = "0xB604", in_c = true, cell_face_list_macro = "SHELTER_B1_UNDERGROUND_PARKING_CELL_FACE_LIST_AT_OFFSET" },
   { kind = "collision", at = "0xB628", in_c = true },
-  { kind = "collisionSource", at = "0xBB6C", in_c = true },
+  { kind = "collisionSource", at = "0xBB6C", in_c = true, cell_face_list_macro = "SHELTER_B1_UNDERGROUND_PARKING_CELL_FACE_LIST_AT_OFFSET" },
   { kind = "collision", at = "0xBB90", in_c = true },
-  { kind = "collisionSource", at = "0xC194", in_c = true },
+  { kind = "collisionSource", at = "0xC194", in_c = true, cell_face_list_macro = "SHELTER_B1_UNDERGROUND_PARKING_CELL_FACE_LIST_AT_OFFSET" },
   { unit = "shelter_b1_underground_parking/shelter_b1_underground_parking", rodata = "0x4", text = "0x490", data = "0x92DC", tail = true },
 ]
 
@@ -2516,7 +2516,7 @@ objects = [
   { kind = "model", at = "0x7B4", in_c = true },
   { kind = "modelSource", at = "0x98C", in_c = true },
   { kind = "collision", at = "0xA58", in_c = true },
-  { kind = "collisionSource", at = "0xB24", in_c = true },
+  { kind = "collisionSource", at = "0xB24", in_c = true, cell_face_list_macro = "SHELTER_B2_ELEVATOR_CELL_FACE_LIST_AT_OFFSET" },
 ]
 
 [rooms.overlays.shelter_b2_elevator_hall]
@@ -2577,7 +2577,7 @@ objects = [
   { kind = "model", at = "0x2DBC", in_c = true },
   { kind = "modelSource", at = "0x2E30", in_c = true },
   { kind = "collision", at = "0x3014", in_c = true },
-  { kind = "collisionSource", at = "0x3B34", in_c = true },
+  { kind = "collisionSource", at = "0x3B34", in_c = true, cell_face_list_macro = "SHELTER_B2_BREEDING_ROOM_CELL_FACE_LIST_AT_OFFSET" },
 ]
 
 [rooms.overlays.shelter_b2_main_corridor]
