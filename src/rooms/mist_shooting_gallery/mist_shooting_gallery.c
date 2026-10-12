@@ -1548,18 +1548,24 @@ static void _mistShootingGalleryModeStatusPanelTask(Task* task)
     s16         contentTop;
     s32         rowY;
 
-    // Draws a STATUS caption, capturing object, captionX and rowY. The request
-    // must be a plain local lvalue; the text argument is evaluated once.
-#define MIST_SHOOTING_GALLERY_DRAW_STATUS_CAPTION(caption, captionText)                      \
-    {                                                                                        \
-        (caption).x          = object->panel.contentOriginX.unsignedValue + captionX;        \
-        (caption).y          = (s16)(object->panel.contentOriginY.unsignedValue - 8) + rowY; \
-        (caption).otIndex    = object->panel.otIndex.signedValue + 1;                        \
-        (caption).colorRgb   = MIST_SHOOTING_GALLERY_MODE_TEXT_COLOR;                        \
-        (caption).glyphTable = TEXT_GLYPH_TABLE_SMALL;                                       \
-        (caption).alignment  = TEXT_ALIGNMENT_LEFT;                                          \
-        (caption).drawMode   = TEXT_DRAW_OUTLINED;                                           \
-        textDrawString(&(caption), captionText);                                             \
+    /// Draws one left-aligned outlined STATUS caption at the current row.
+    ///
+    /// Captures object, captionX and rowY in panel-relative pixels. caption
+    /// must be a plain writable TextDrawReq local, evaluated repeatedly;
+    /// captionText is evaluated once and borrowed through the draw call.
+    /// Invoke inside a braced caller context; expansion is a compound statement.
+#define MIST_SHOOTING_GALLERY_DRAW_STATUS_CAPTION(caption, captionText)                                                                \
+    {                                                                                                                                  \
+        enum { MIST_SHOOTING_GALLERY_STATUS_BASELINE_INSET = 8,                                                                        \
+               MIST_SHOOTING_GALLERY_STATUS_TEXT_OT_BIAS   = 1 };                                                                        \
+        (caption).x          = object->panel.contentOriginX.unsignedValue + captionX;                                                  \
+        (caption).y          = (s16)(object->panel.contentOriginY.unsignedValue - MIST_SHOOTING_GALLERY_STATUS_BASELINE_INSET) + rowY; \
+        (caption).otIndex    = object->panel.otIndex.signedValue + MIST_SHOOTING_GALLERY_STATUS_TEXT_OT_BIAS;                          \
+        (caption).colorRgb   = MIST_SHOOTING_GALLERY_MODE_TEXT_COLOR;                                                                  \
+        (caption).glyphTable = TEXT_GLYPH_TABLE_SMALL;                                                                                 \
+        (caption).alignment  = TEXT_ALIGNMENT_LEFT;                                                                                    \
+        (caption).drawMode   = TEXT_DRAW_OUTLINED;                                                                                     \
+        textDrawString(&(caption), captionText);                                                                                       \
     }
 
     object = task->spawnArg2.pointer;
@@ -1666,29 +1672,37 @@ static void _mistShootingGalleryModeDataPanelTask(Task* task)
     s32                               captionX;
     s32                               rowY;
 
-    // Finishes a positioned caption and draws its rating word and gauge.
-    // Captures object, rowY, rating and gaugeByLevel. Requests must be plain
-    // local lvalues, ratings a four-entry array and captionText readable text.
-    // The table and text are evaluated once; request lvalues occur repeatedly.
-#define MIST_SHOOTING_GALLERY_DRAW_MODE_RATING(caption, ratingText, ratings, captionText)                                                                                       \
-    {                                                                                                                                                                           \
-        (caption).otIndex    = object->panel.otIndex.signedValue + 1;                                                                                                           \
-        rating               = &(ratings)[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.gameMode];                                                                                   \
-        (caption).colorRgb   = MIST_SHOOTING_GALLERY_MODE_TEXT_COLOR;                                                                                                           \
-        (caption).glyphTable = TEXT_GLYPH_TABLE_SMALL;                                                                                                                          \
-        (caption).alignment  = TEXT_ALIGNMENT_LEFT;                                                                                                                             \
-        (caption).drawMode   = TEXT_DRAW_OUTLINED;                                                                                                                              \
-        textDrawString(&(caption), captionText);                                                                                                                                \
-                                                                                                                                                                                \
-        (ratingText).x          = object->panel.contentOriginX.unsignedValue + 0x41;                                                                                            \
-        (ratingText).y          = (s16)(object->panel.contentOriginY.unsignedValue - 3) + rowY;                                                                                 \
-        (ratingText).otIndex    = object->panel.otIndex.signedValue + 1;                                                                                                        \
-        (ratingText).colorRgb   = MIST_SHOOTING_GALLERY_MODE_TEXT_COLOR;                                                                                                        \
-        (ratingText).glyphTable = TEXT_GLYPH_TABLE_MEDIUM;                                                                                                                      \
-        (ratingText).alignment  = TEXT_ALIGNMENT_RIGHT;                                                                                                                         \
-        (ratingText).drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;                                                                                                               \
-        textDrawString(&(ratingText), rating->name);                                                                                                                            \
-        textDrawUiLine(object, 0x46, rowY, (const u8*)gaugeByLevel[rating->level], MIST_SHOOTING_GALLERY_MODE_TEXT_COLOR, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_LEFT); \
+    /// Draws a positioned mode caption, its rating word and a level gauge.
+    ///
+    /// Captures object, rowY, rating and gaugeByLevel. Requests must be plain
+    /// writable TextDrawReq locals; caption X/Y are already set. ratings is a
+    /// four-entry table indexed by live gameMode 0..3; levels 1..5 select the
+    /// six-entry gauge table. Table/text arguments are evaluated once, requests
+    /// repeatedly. Text uses the font's byte view, borrowed through each draw.
+    /// Invoke inside a braced caller context; expansion is a compound statement.
+#define MIST_SHOOTING_GALLERY_DRAW_MODE_RATING(caption, ratingText, ratings, captionText)                                                                                                                       \
+    {                                                                                                                                                                                                           \
+        enum { MIST_SHOOTING_GALLERY_RATING_RIGHT_X        = 65,                                                                                                                                                \
+               MIST_SHOOTING_GALLERY_RATING_BASELINE_INSET = 3,                                                                                                                                                 \
+               MIST_SHOOTING_GALLERY_RATING_GAUGE_X        = 70,                                                                                                                                                \
+               MIST_SHOOTING_GALLERY_RATING_TEXT_OT_BIAS   = 1 };                                                                                                                                                 \
+        (caption).otIndex    = object->panel.otIndex.signedValue + MIST_SHOOTING_GALLERY_RATING_TEXT_OT_BIAS;                                                                                                   \
+        rating               = &(ratings)[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.gameMode];                                                                                                                   \
+        (caption).colorRgb   = MIST_SHOOTING_GALLERY_MODE_TEXT_COLOR;                                                                                                                                           \
+        (caption).glyphTable = TEXT_GLYPH_TABLE_SMALL;                                                                                                                                                          \
+        (caption).alignment  = TEXT_ALIGNMENT_LEFT;                                                                                                                                                             \
+        (caption).drawMode   = TEXT_DRAW_OUTLINED;                                                                                                                                                              \
+        textDrawString(&(caption), captionText);                                                                                                                                                                \
+                                                                                                                                                                                                                \
+        (ratingText).x          = object->panel.contentOriginX.unsignedValue + MIST_SHOOTING_GALLERY_RATING_RIGHT_X;                                                                                            \
+        (ratingText).y          = (s16)(object->panel.contentOriginY.unsignedValue - MIST_SHOOTING_GALLERY_RATING_BASELINE_INSET) + rowY;                                                                       \
+        (ratingText).otIndex    = object->panel.otIndex.signedValue + MIST_SHOOTING_GALLERY_RATING_TEXT_OT_BIAS;                                                                                                \
+        (ratingText).colorRgb   = MIST_SHOOTING_GALLERY_MODE_TEXT_COLOR;                                                                                                                                        \
+        (ratingText).glyphTable = TEXT_GLYPH_TABLE_MEDIUM;                                                                                                                                                      \
+        (ratingText).alignment  = TEXT_ALIGNMENT_RIGHT;                                                                                                                                                         \
+        (ratingText).drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;                                                                                                                                               \
+        textDrawString(&(ratingText), rating->name);                                                                                                                                                            \
+        textDrawUiLine(object, MIST_SHOOTING_GALLERY_RATING_GAUGE_X, rowY, (const u8*)gaugeByLevel[rating->level], MIST_SHOOTING_GALLERY_MODE_TEXT_COLOR, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_LEFT); \
     }
 
     uiDrawTitle(&(object)->panel, "DATA");

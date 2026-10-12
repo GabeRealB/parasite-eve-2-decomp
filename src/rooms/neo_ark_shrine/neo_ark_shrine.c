@@ -464,45 +464,6 @@ void neoArkShrineRoomTask(Task* task)
     states.funcs[task->state](task);
 }
 
-/// Routes the first marked hotspot and returns from the caller when confirmed.
-///
-/// Invoke in a braced statement context inside a void function, after hit
-/// testing and a confirm press. `task`, `prompt` and `work` must be stable
-/// live pointers; they are evaluated only for a hit, possibly repeatedly.
-/// `hotspot` must be a modifiable, stable `ActionPromptHotspot*` lvalue into
-/// a marked, terminated table; it advances while scanning. No argument may
-/// name the local `hotspotId`. Captures no caller identifiers. A hit latches
-/// its id and prompt kind and changes state; command mode also hides/stops
-/// the cursor. The return skips the caller's remaining input processing.
-#define NEO_ARK_SHRINE_ROUTE_PUZZLE_CONFIRMATION(task, prompt, work, hotspot)                          \
-    {                                                                                                  \
-        enum { NEO_ARK_SHRINE_PUZZLE_STATE_COMMANDS = 3,                                               \
-               NEO_ARK_SHRINE_PUZZLE_STATE_SLIDE    = 6 };                                                \
-        s16 hotspotId;                                                                                 \
-                                                                                                       \
-        hotspotId = (hotspot)->id;                                                                     \
-        if ((hotspot)->id != ACTION_PROMPT_HOTSPOT_END) {                                              \
-            do {                                                                                       \
-                if ((hotspot)->hit != 0) {                                                             \
-                    if (hotspotId == NEO_ARK_SHRINE_HOTSPOT_OFF_BOARD || (work)->boardExamined == 0) { \
-                        (prompt)->mode        = ACTION_PROMPT_MODE_HIDDEN;                             \
-                        (prompt)->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;                           \
-                        (work)->selection     = (hotspot)->id;                                         \
-                        (work)->promptKind    = (hotspot)->promptKind;                                 \
-                        (task)->state         = NEO_ARK_SHRINE_PUZZLE_STATE_COMMANDS;                  \
-                        return;                                                                        \
-                    }                                                                                  \
-                    (work)->selection  = hotspotId;                                                    \
-                    (work)->promptKind = (hotspot)->promptKind;                                        \
-                    (task)->state      = NEO_ARK_SHRINE_PUZZLE_STATE_SLIDE;                            \
-                    return;                                                                            \
-                }                                                                                      \
-                (hotspot)++;                                                                           \
-                hotspotId = (hotspot)->id;                                                             \
-            } while ((hotspot)->id != ACTION_PROMPT_HOTSPOT_END);                                      \
-        }                                                                                              \
-    }
-
 void neoArkShrinePuzzleIdle(Task* task)
 {
     enum { NEO_ARK_SHRINE_PUZZLE_STATE_CLOSE  = 5,
@@ -525,7 +486,34 @@ void neoArkShrinePuzzleIdle(Task* task)
     if (actionPromptHitTest(hotspot, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
         prompt->mode = ACTION_PROMPT_MODE_HIGHLIGHTED;
         if (prompt->buttons.slots[NEO_ARK_SHRINE_PUZZLE_CONFIRM_SLOT].state == ACTION_PROMPT_BUTTON_PRESSED) {
-            NEO_ARK_SHRINE_ROUTE_PUZZLE_CONFIRMATION(task, prompt, work, hotspot);
+            // Route the first marked hit; confirmation returns before cancel.
+            {
+                enum { NEO_ARK_SHRINE_PUZZLE_STATE_COMMANDS = 3,
+                       NEO_ARK_SHRINE_PUZZLE_STATE_SLIDE    = 6 };
+                s16 hotspotId;
+
+                hotspotId = (hotspot)->id;
+                if ((hotspot)->id != ACTION_PROMPT_HOTSPOT_END) {
+                    do {
+                        if ((hotspot)->hit != 0) {
+                            if (hotspotId == NEO_ARK_SHRINE_HOTSPOT_OFF_BOARD || (work)->boardExamined == 0) {
+                                (prompt)->mode        = ACTION_PROMPT_MODE_HIDDEN;
+                                (prompt)->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
+                                (work)->selection     = (hotspot)->id;
+                                (work)->promptKind    = (hotspot)->promptKind;
+                                (task)->state         = NEO_ARK_SHRINE_PUZZLE_STATE_COMMANDS;
+                                return;
+                            }
+                            (work)->selection  = hotspotId;
+                            (work)->promptKind = (hotspot)->promptKind;
+                            (task)->state      = NEO_ARK_SHRINE_PUZZLE_STATE_SLIDE;
+                            return;
+                        }
+                        (hotspot)++;
+                        hotspotId = (hotspot)->id;
+                    } while ((hotspot)->id != ACTION_PROMPT_HOTSPOT_END);
+                }
+            }
         }
     } else {
         prompt->mode = ACTION_PROMPT_MODE_NORMAL;
@@ -534,8 +522,6 @@ void neoArkShrinePuzzleIdle(Task* task)
         task->state = NEO_ARK_SHRINE_PUZZLE_STATE_CLOSE;
     }
 }
-
-#undef NEO_ARK_SHRINE_ROUTE_PUZZLE_CONFIRMATION
 
 /// Records the solved shrine puzzle and starts its completion presentation.
 ///

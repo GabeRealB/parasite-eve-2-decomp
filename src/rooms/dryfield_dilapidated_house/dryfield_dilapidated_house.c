@@ -110,8 +110,10 @@ typedef struct {
 } _DryfieldDilapidatedHouseCurveDebugWork;
 STATIC_ASSERT_SIZEOF(_DryfieldDilapidatedHouseCurveDebugWork, 0x24);
 
-/// One turn of a `_DryfieldDilapidatedHouseConeWork::rimPhase` entry, which
-/// counts in quarters of the 4096-per-turn angle unit `rsin` takes.
+/// One full cone-rim ripple turn, in 16384-unit phase coordinates.
+///
+/// Entries of `_DryfieldDilapidatedHouseConeWork::rimPhase` wrap with
+/// period - 1 as a mask and shift right by two before `rsin` (4096 units/turn).
 #define DRYFIELD_DILAPIDATED_HOUSE_CONE_RIM_PHASE_PERIOD 0x4000
 
 /// Work block of one of the two cones the morphing model spawns as children:
@@ -4172,9 +4174,16 @@ static void _dryfieldDilapidatedHouseDrawCurveSamples(Task* task)
 #include "../../shared/bezier_curve_evaluate.inc.c"
 
 #define GLOW_DRAW_RING_BEAM_BRIGHTNESS(t) ((_DryfieldDilapidatedHouseMorphWork*)((Task*)(t)->spawnArg2.pointer)->work)->beamLevel
-#define GLOW_DRAW_RING_BEAM_PHASE_STEP    0x40
-#define GLOW_DRAW_RING_BEAM_OT_OFFSET     3
-#define GLOW_DRAW_RING_BEAM_HALO_TPAGE    0xE1000465
+/// Halo angle increment for the morph's capped beam, in 4096 units/turn per draw.
+///
+/// Optional integer configuration for `glow_draw_ring_beam.inc.c`; only this
+/// carrier supplies it. The drawer adds it to signed-halfword killCountdown
+/// after geometry is built, then resets angles at or above a half turn.
+/// The fragment undefines the binding; an absent binding leaves phase unchanged
+/// before that same reset (as in actor_141000).
+#define GLOW_CAPPED_BEAM_PHASE_STEP    0x40
+#define GLOW_DRAW_RING_BEAM_OT_OFFSET  3
+#define GLOW_DRAW_RING_BEAM_HALO_TPAGE 0xE1000465
 #include "../../shared/glow_draw_ring_beam.inc.c"
 
 /// Builds the morph attachment's projected core and halo beam caps.

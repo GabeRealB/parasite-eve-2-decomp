@@ -2013,27 +2013,18 @@ static void _mistParkingOpenOptionDialog(Task* task)
     task->work            = dialog;
     task->exitCallback    = _mistParkingExitOptionDialogTask;
 
-    /// Labels and links both rows before the UI borrows the dialog.
-    ///
-    /// Captures task, dialog, option, labelCursor, alternatePairSelector and
-    /// optionIndex. Advances both cursors past the two rows, leaves optionIndex
-    /// at two and terminates the last link. Takes no arguments.
-#define MIST_PARKING_LINK_OPTION_LABELS()                                                         \
-    {                                                                                             \
-        for (; optionIndex < ARRAY_SIZE(dialog->options); optionIndex++) {                        \
-            if (task->spawnArg1.value == alternatePairSelector) {                                 \
-                option->text = _gMistParkingOptionLabelPairs[alternatePairSelector][optionIndex]; \
-            } else {                                                                              \
-                option->text = *labelCursor;                                                      \
-            }                                                                                     \
-            option->next = option + 1;                                                            \
-            option++;                                                                             \
-            labelCursor++;                                                                        \
-        }                                                                                         \
-        option[-1].next = NULL;                                                                   \
+    // Link both labelled options before the UI borrows the dialog.
+    for (; optionIndex < ARRAY_SIZE(dialog->options); optionIndex++) {
+        if (task->spawnArg1.value == alternatePairSelector) {
+            option->text = _gMistParkingOptionLabelPairs[alternatePairSelector][optionIndex];
+        } else {
+            option->text = *labelCursor;
+        }
+        option->next = option + 1;
+        option++;
+        labelCursor++;
     }
-    MIST_PARKING_LINK_OPTION_LABELS();
-#undef MIST_PARKING_LINK_OPTION_LABELS
+    option[-1].next = NULL;
 
     dialog->request.optionCount = ARRAY_SIZE(dialog->options);
     dialog->request.options     = dialog->options;

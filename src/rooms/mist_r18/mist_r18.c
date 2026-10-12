@@ -1794,30 +1794,6 @@ static void _mistR18CaptionTask(Task* task)
     TextStream*    stream;
     s32            byteIndex;
 
-    /// Draws the revealed prefix, leaving the pen after its final glyph.
-    ///
-    /// Uses this function's `stream`, `draw` and `byteIndex` locals, updating
-    /// the pen and loop index. Borrows script/glyph data and emits sprite
-    /// packets; glyph bytes must index the cell table directly. No early exits.
-#define MIST_R18_DRAW_CAPTION_PREFIX()                                                                              \
-    {                                                                                                               \
-        for (byteIndex = 0; byteIndex < stream->cursor; byteIndex++) {                                              \
-            if (stream->chars[byteIndex] == TEXT_STREAM_LINE_BREAK) {                                               \
-                draw.x  = stream->x;                                                                                \
-                draw.y += stream->lineHeight;                                                                       \
-            } else {                                                                                                \
-                draw.u = stream->glyphs[stream->chars[byteIndex]].u + (stream->tpageX & MIST_R18_FONT_PAGE_U_MASK); \
-                draw.v = stream->glyphs[stream->chars[byteIndex]].v + (u8)stream->tpageY;                           \
-                draw.w = stream->glyphs[stream->chars[byteIndex]].width;                                            \
-                draw.h = stream->glyphs[stream->chars[byteIndex]].height;                                           \
-                if (draw.h != 0) {                                                                                  \
-                    _mistR18DrawSprite(&draw, stream->clutX, stream->clutY);                                        \
-                }                                                                                                   \
-                draw.x += stream->glyphs[stream->chars[byteIndex]].width;                                           \
-            }                                                                                                       \
-        }                                                                                                           \
-    }
-
     stream = task->spawnArg2.pointer;
     if (gGameSession->eventState == 0) {
         task->state = MIST_R18_CAPTION_FINISHED;
@@ -1855,7 +1831,24 @@ static void _mistR18CaptionTask(Task* task)
             draw.unused_12 = ONE;
 
             if (stream->chars[stream->cursor - 1] != TEXT_STREAM_END) {
-                MIST_R18_DRAW_CAPTION_PREFIX();
+                // Glyph bytes directly index the font; line breaks reset the pen.
+                {
+                    for (byteIndex = 0; byteIndex < stream->cursor; byteIndex++) {
+                        if (stream->chars[byteIndex] == TEXT_STREAM_LINE_BREAK) {
+                            draw.x  = stream->x;
+                            draw.y += stream->lineHeight;
+                        } else {
+                            draw.u = stream->glyphs[stream->chars[byteIndex]].u + (stream->tpageX & MIST_R18_FONT_PAGE_U_MASK);
+                            draw.v = stream->glyphs[stream->chars[byteIndex]].v + (u8)stream->tpageY;
+                            draw.w = stream->glyphs[stream->chars[byteIndex]].width;
+                            draw.h = stream->glyphs[stream->chars[byteIndex]].height;
+                            if (draw.h != 0) {
+                                _mistR18DrawSprite(&draw, stream->clutX, stream->clutY);
+                            }
+                            draw.x += stream->glyphs[stream->chars[byteIndex]].width;
+                        }
+                    }
+                }
 
                 _mistR18SetTexturePage(GPU_BLEND_ADD, stream->tpageX, stream->tpageY, MIST_R18_CAPTION_SPRITE_OT_SLOT);
 
@@ -1888,7 +1881,6 @@ static void _mistR18CaptionTask(Task* task)
             break;
     }
     taskKill(task);
-#undef MIST_R18_DRAW_CAPTION_PREFIX
 }
 
 /// Starts a skippable briefing event and commits the cursor for its successor.
@@ -2128,12 +2120,15 @@ static void _crossfadeDrawBackdrop(s32 shade)
     /// `spritePacket` must be a writable SPRT pointer local and `shadeValue` a
     /// side-effect-free value, read three times. Uses the current frame arena;
     /// the caller fills geometry and linkage and retains storage for the GPU.
+    /// Captures gGpuPrimCursor, advancing by sizeof(SPRT) bytes without a
+    /// capacity check. RGB keeps the shade's low byte; 0x80 is unity modulation.
+    /// Invoke inside a braced caller context; expansion is a compound statement.
 #define CROSSFADE_ALLOCATE_BACKDROP_SPRITE(spritePacket, shadeValue) \
     {                                                                \
         (spritePacket) = gGpuPrimCursor;                             \
         gGpuPrimCursor = (spritePacket) + 1;                         \
-        setSprt(spritePacket);                                       \
-        setSemiTrans(spritePacket, 1);                               \
+        setSprt((spritePacket));                                     \
+        setSemiTrans((spritePacket), 1);                             \
         (spritePacket)->r0 = (shadeValue);                           \
         (spritePacket)->g0 = (shadeValue);                           \
         (spritePacket)->b0 = (shadeValue);                           \

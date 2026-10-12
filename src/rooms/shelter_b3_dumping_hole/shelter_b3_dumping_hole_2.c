@@ -102,24 +102,32 @@
 static void _effectSpriteDrawBanked(const GfxCoord* coord, u16 frameAndPalette, s16 size, s16 angle);
 static void _effectSpriteDrawRotated(const GfxCoord* coord, u16 frameAndPalette, s16 size, s16 angle);
 
-#define DUMPING_HOLE_RAND() ((s32)((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16))
+/// Advances the shared LCG once and returns its upper sixteen bits as s32 (0..65535).
+///
+/// Captures gRandomLcgState and the resident LCG coefficients. Multiplication
+/// and addition wrap unsigned at 32 bits before the logical shift. Each
+/// invocation consumes one draw; conditional jitter consumes only its chosen
+/// branch's draw. Keep separate invocations in their existing evaluation order.
+#define SHELTER_B3_DUMPING_HOLE_RANDOM_U16() ((s32)((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16))
 
 /// Advances a sprite frame and returns from its task after killing the closing frame.
 ///
 /// Arguments must be side-effect-free task/work pointers and a twelve-entry
-/// timer-threshold table. Expands to a compound statement in braced case arms.
+/// timer-threshold table. Each threshold is exceeded, rather than met: a frame
+/// starting with timer zero lasts threshold + 1 animation ticks.
 /// Work fields are read and written repeatedly; the task is evaluated only
 /// on completion. Uses this room's frame table `_gShelterB3DumpingHoleSpriteFrames`. The frame starts in 0-11 and advances at most
 /// once, advancing only after the timer exceeds its threshold and testing the
-/// sentinel before a later tick could read its duration.
-#define SHELTER_B3_DUMPING_HOLE_ADVANCE_SPRITE_FRAME(task, work, frameDurations)                                       \
+/// sentinel before a later tick could read its threshold. Invoke in a braced
+/// caller context; completion returns from the calling void task.
+#define SHELTER_B3_DUMPING_HOLE_ADVANCE_SPRITE_FRAME(task, work, frameThresholds)                                      \
     {                                                                                                                  \
         (work)->frameTimer++;                                                                                          \
-        if ((frameDurations)[(work)->frame] < (work)->frameTimer) {                                                    \
+        if ((frameThresholds)[(work)->frame] < (work)->frameTimer) {                                                   \
             (work)->frame++;                                                                                           \
             (work)->frameTimer = 0;                                                                                    \
             if (_gShelterB3DumpingHoleSpriteFrames[(work)->frame].vramX == SHELTER_B3_DUMPING_HOLE_SPRITE_FRAME_END) { \
-                taskKill(task);                                                                                        \
+                taskKill((task));                                                                                      \
                 return;                                                                                                \
             }                                                                                                          \
         }                                                                                                              \
@@ -129,7 +137,7 @@ static void _effectSpriteDrawRotated(const GfxCoord* coord, u16 frameAndPalette,
 ///
 /// Arguments must be side-effect-free task, signed pixel coordinates and signed
 /// SZ3/4 depth expressions. Tests the origin against inclusive centre-relative
-/// bounds, retaining five separate exits. Expands to a compound statement;
+/// bounds, retaining five separate exits. Invoke in a braced caller context;
 /// completion returns from the calling void callback after task teardown.
 #define SHELTER_B3_DUMPING_HOLE_CULL_DEBRIS_MODEL(task, screenX, screenY, depth) \
     {                                                                            \
@@ -2667,8 +2675,8 @@ static inline s32 _shelterB3DumpingHoleRandomDebrisSpin(void)
         SHELTER_B3_DUMPING_HOLE_SPIN_MAGNITUDE_MASK = 0x7F,
         SHELTER_B3_DUMPING_HOLE_SPIN_SIGN_BIT       = 0x8000,
     };
-    s32 spin = DUMPING_HOLE_RAND() & SHELTER_B3_DUMPING_HOLE_SPIN_MAGNITUDE_MASK;
-    if (DUMPING_HOLE_RAND() & SHELTER_B3_DUMPING_HOLE_SPIN_SIGN_BIT) {
+    s32 spin = SHELTER_B3_DUMPING_HOLE_RANDOM_U16() & SHELTER_B3_DUMPING_HOLE_SPIN_MAGNITUDE_MASK;
+    if (SHELTER_B3_DUMPING_HOLE_RANDOM_U16() & SHELTER_B3_DUMPING_HOLE_SPIN_SIGN_BIT) {
         spin = -spin;
     }
     return spin;
@@ -3179,17 +3187,17 @@ static void _shelterB3DumpingHoleDebrisModelTask(Task* task)
             SHELTER_B3_DUMPING_HOLE_CULL_DEBRIS_MODEL(task, screenX, screenY, depth);
             // Spread in YZ from the projected centre while the tier drives motion along +X.
             spreadAngle  = ratan2(screenY, screenX);
-            work->vel.vz = rcos(spreadAngle) * ((DUMPING_HOLE_RAND() & SHELTER_B3_DUMPING_HOLE_DEBRIS_SPREAD_JITTER_MASK) + SHELTER_B3_DUMPING_HOLE_DEBRIS_Z_SPREAD) / ONE;
-            work->vel.vy = rsin(spreadAngle) * ((DUMPING_HOLE_RAND() & SHELTER_B3_DUMPING_HOLE_DEBRIS_SPREAD_JITTER_MASK) + SHELTER_B3_DUMPING_HOLE_DEBRIS_Y_SPREAD) / ONE;
+            work->vel.vz = rcos(spreadAngle) * ((SHELTER_B3_DUMPING_HOLE_RANDOM_U16() & SHELTER_B3_DUMPING_HOLE_DEBRIS_SPREAD_JITTER_MASK) + SHELTER_B3_DUMPING_HOLE_DEBRIS_Z_SPREAD) / ONE;
+            work->vel.vy = rsin(spreadAngle) * ((SHELTER_B3_DUMPING_HOLE_RANDOM_U16() & SHELTER_B3_DUMPING_HOLE_DEBRIS_SPREAD_JITTER_MASK) + SHELTER_B3_DUMPING_HOLE_DEBRIS_Y_SPREAD) / ONE;
             switch (task->spawnArg1.value) {
                 case SHELTER_B3_DUMPING_HOLE_DEBRIS_FAST:
-                    work->vel.vx = (DUMPING_HOLE_RAND() & SHELTER_B3_DUMPING_HOLE_DEBRIS_SPEED_JITTER_MASK) + SHELTER_B3_DUMPING_HOLE_DEBRIS_FAST_X_SPEED;
+                    work->vel.vx = (SHELTER_B3_DUMPING_HOLE_RANDOM_U16() & SHELTER_B3_DUMPING_HOLE_DEBRIS_SPEED_JITTER_MASK) + SHELTER_B3_DUMPING_HOLE_DEBRIS_FAST_X_SPEED;
                     break;
                 case SHELTER_B3_DUMPING_HOLE_DEBRIS_MEDIUM:
-                    work->vel.vx = (DUMPING_HOLE_RAND() & SHELTER_B3_DUMPING_HOLE_DEBRIS_SPEED_JITTER_MASK) + SHELTER_B3_DUMPING_HOLE_DEBRIS_MEDIUM_X_SPEED;
+                    work->vel.vx = (SHELTER_B3_DUMPING_HOLE_RANDOM_U16() & SHELTER_B3_DUMPING_HOLE_DEBRIS_SPEED_JITTER_MASK) + SHELTER_B3_DUMPING_HOLE_DEBRIS_MEDIUM_X_SPEED;
                     break;
                 case SHELTER_B3_DUMPING_HOLE_DEBRIS_SLOW:
-                    work->vel.vx = (DUMPING_HOLE_RAND() & SHELTER_B3_DUMPING_HOLE_DEBRIS_SPEED_JITTER_MASK) + SHELTER_B3_DUMPING_HOLE_DEBRIS_SLOW_X_SPEED;
+                    work->vel.vx = (SHELTER_B3_DUMPING_HOLE_RANDOM_U16() & SHELTER_B3_DUMPING_HOLE_DEBRIS_SPEED_JITTER_MASK) + SHELTER_B3_DUMPING_HOLE_DEBRIS_SLOW_X_SPEED;
                     break;
             }
             spinX         = _shelterB3DumpingHoleRandomDebrisSpin();
@@ -3938,13 +3946,13 @@ static void _shelterB3DumpingHoleShardTask(Task* task)
             coord->coord.t[0] = emitterWorldPos.vx + spawn->offset.vx;
             coord->coord.t[1] = emitterWorldPos.vy + spawn->offset.vy;
             coord->coord.t[2] = emitterWorldPos.vz + spawn->offset.vz;
-            work->vel.vx      = spawn->vel.vx + ((DUMPING_HOLE_RAND() & 1) ? (DUMPING_HOLE_RAND() & SHELTER_B3_DUMPING_HOLE_SHARD_VELOCITY_JITTER_MASK) : -(DUMPING_HOLE_RAND() & SHELTER_B3_DUMPING_HOLE_SHARD_VELOCITY_JITTER_MASK));
-            work->vel.vy      = spawn->vel.vy + ((DUMPING_HOLE_RAND() & 1) ? (DUMPING_HOLE_RAND() & SHELTER_B3_DUMPING_HOLE_SHARD_VELOCITY_JITTER_MASK) : -(DUMPING_HOLE_RAND() & SHELTER_B3_DUMPING_HOLE_SHARD_VELOCITY_JITTER_MASK));
-            work->vel.vz      = spawn->vel.vz + ((DUMPING_HOLE_RAND() & 1) ? (DUMPING_HOLE_RAND() & SHELTER_B3_DUMPING_HOLE_SHARD_VELOCITY_JITTER_MASK) : -(DUMPING_HOLE_RAND() & SHELTER_B3_DUMPING_HOLE_SHARD_VELOCITY_JITTER_MASK));
+            work->vel.vx      = spawn->vel.vx + ((SHELTER_B3_DUMPING_HOLE_RANDOM_U16() & 1) ? (SHELTER_B3_DUMPING_HOLE_RANDOM_U16() & SHELTER_B3_DUMPING_HOLE_SHARD_VELOCITY_JITTER_MASK) : -(SHELTER_B3_DUMPING_HOLE_RANDOM_U16() & SHELTER_B3_DUMPING_HOLE_SHARD_VELOCITY_JITTER_MASK));
+            work->vel.vy      = spawn->vel.vy + ((SHELTER_B3_DUMPING_HOLE_RANDOM_U16() & 1) ? (SHELTER_B3_DUMPING_HOLE_RANDOM_U16() & SHELTER_B3_DUMPING_HOLE_SHARD_VELOCITY_JITTER_MASK) : -(SHELTER_B3_DUMPING_HOLE_RANDOM_U16() & SHELTER_B3_DUMPING_HOLE_SHARD_VELOCITY_JITTER_MASK));
+            work->vel.vz      = spawn->vel.vz + ((SHELTER_B3_DUMPING_HOLE_RANDOM_U16() & 1) ? (SHELTER_B3_DUMPING_HOLE_RANDOM_U16() & SHELTER_B3_DUMPING_HOLE_SHARD_VELOCITY_JITTER_MASK) : -(SHELTER_B3_DUMPING_HOLE_RANDOM_U16() & SHELTER_B3_DUMPING_HOLE_SHARD_VELOCITY_JITTER_MASK));
             work->gravity     = spawn->gravity;
-            work->spin.vx     = (DUMPING_HOLE_RAND() & 1) ? (DUMPING_HOLE_RAND() & SHELTER_B3_DUMPING_HOLE_SHARD_SPIN_JITTER_MASK) : -(DUMPING_HOLE_RAND() & SHELTER_B3_DUMPING_HOLE_SHARD_SPIN_JITTER_MASK);
-            work->spin.vy     = (DUMPING_HOLE_RAND() & 1) ? (DUMPING_HOLE_RAND() & SHELTER_B3_DUMPING_HOLE_SHARD_SPIN_JITTER_MASK) : -(DUMPING_HOLE_RAND() & SHELTER_B3_DUMPING_HOLE_SHARD_SPIN_JITTER_MASK);
-            work->spin.vz     = (DUMPING_HOLE_RAND() & 1) ? (DUMPING_HOLE_RAND() & SHELTER_B3_DUMPING_HOLE_SHARD_SPIN_JITTER_MASK) : -(DUMPING_HOLE_RAND() & SHELTER_B3_DUMPING_HOLE_SHARD_SPIN_JITTER_MASK);
+            work->spin.vx     = (SHELTER_B3_DUMPING_HOLE_RANDOM_U16() & 1) ? (SHELTER_B3_DUMPING_HOLE_RANDOM_U16() & SHELTER_B3_DUMPING_HOLE_SHARD_SPIN_JITTER_MASK) : -(SHELTER_B3_DUMPING_HOLE_RANDOM_U16() & SHELTER_B3_DUMPING_HOLE_SHARD_SPIN_JITTER_MASK);
+            work->spin.vy     = (SHELTER_B3_DUMPING_HOLE_RANDOM_U16() & 1) ? (SHELTER_B3_DUMPING_HOLE_RANDOM_U16() & SHELTER_B3_DUMPING_HOLE_SHARD_SPIN_JITTER_MASK) : -(SHELTER_B3_DUMPING_HOLE_RANDOM_U16() & SHELTER_B3_DUMPING_HOLE_SHARD_SPIN_JITTER_MASK);
+            work->spin.vz     = (SHELTER_B3_DUMPING_HOLE_RANDOM_U16() & 1) ? (SHELTER_B3_DUMPING_HOLE_RANDOM_U16() & SHELTER_B3_DUMPING_HOLE_SHARD_SPIN_JITTER_MASK) : -(SHELTER_B3_DUMPING_HOLE_RANDOM_U16() & SHELTER_B3_DUMPING_HOLE_SHARD_SPIN_JITTER_MASK);
             if (work->spin.vx > 0) {
                 work->spin.vx += SHELTER_B3_DUMPING_HOLE_SHARD_MIN_SPIN;
             } else {
@@ -3962,13 +3970,13 @@ static void _shelterB3DumpingHoleShardTask(Task* task)
             }
             // Equilateral corners receive outward jitter of one tenth of the radius.
             work->verts[0].vx = 0;
-            work->verts[0].vy = spawn->radius + ((DUMPING_HOLE_RAND() & 1) ? spawn->radius / 10 : 0);
+            work->verts[0].vy = spawn->radius + ((SHELTER_B3_DUMPING_HOLE_RANDOM_U16() & 1) ? spawn->radius / 10 : 0);
             work->verts[0].vz = 0;
-            work->verts[1].vx = spawn->radius * rsin(SHELTER_B3_DUMPING_HOLE_SHARD_ANGLE_60) / ONE + ((DUMPING_HOLE_RAND() & 1) ? spawn->radius / 10 : 0);
-            work->verts[1].vy = -(spawn->radius * rsin(SHELTER_B3_DUMPING_HOLE_SHARD_ANGLE_30) / ONE) - ((DUMPING_HOLE_RAND() & 1) ? spawn->radius / 10 : 0);
+            work->verts[1].vx = spawn->radius * rsin(SHELTER_B3_DUMPING_HOLE_SHARD_ANGLE_60) / ONE + ((SHELTER_B3_DUMPING_HOLE_RANDOM_U16() & 1) ? spawn->radius / 10 : 0);
+            work->verts[1].vy = -(spawn->radius * rsin(SHELTER_B3_DUMPING_HOLE_SHARD_ANGLE_30) / ONE) - ((SHELTER_B3_DUMPING_HOLE_RANDOM_U16() & 1) ? spawn->radius / 10 : 0);
             work->verts[1].vz = 0;
-            work->verts[2].vx = -(spawn->radius * rsin(SHELTER_B3_DUMPING_HOLE_SHARD_ANGLE_60) / ONE) - ((DUMPING_HOLE_RAND() & 1) ? spawn->radius / 10 : 0);
-            work->verts[2].vy = -(spawn->radius * rsin(SHELTER_B3_DUMPING_HOLE_SHARD_ANGLE_30) / ONE) - ((DUMPING_HOLE_RAND() & 1) ? spawn->radius / 10 : 0);
+            work->verts[2].vx = -(spawn->radius * rsin(SHELTER_B3_DUMPING_HOLE_SHARD_ANGLE_60) / ONE) - ((SHELTER_B3_DUMPING_HOLE_RANDOM_U16() & 1) ? spawn->radius / 10 : 0);
+            work->verts[2].vy = -(spawn->radius * rsin(SHELTER_B3_DUMPING_HOLE_SHARD_ANGLE_30) / ONE) - ((SHELTER_B3_DUMPING_HOLE_RANDOM_U16() & 1) ? spawn->radius / 10 : 0);
             work->verts[2].vz = 0;
             task->state++;
             break;

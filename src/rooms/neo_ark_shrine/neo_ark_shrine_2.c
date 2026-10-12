@@ -101,8 +101,9 @@ enum {
 /// `task` must be a stable, live `Task*` with owned `NeoArkShrinePuzzleWork`;
 /// it is evaluated three times. `active` is evaluated once and must be 0 or 1.
 /// Borrows port 0's action prompt and requires the puzzle drawing resources.
-/// Expands to a braced block with locals `prompt` and `work`; arguments must
-/// not name either local. Invoke inside a braced statement context.
+/// Expands as a block with locals `prompt` and `work`; arguments must
+/// not name either local. Increments the caller's task state after clearing
+/// the timer; no task or work ownership transfers. Invoke in a braced caller context.
 #define NEO_ARK_SHRINE_BEGIN_LAYOUT(task, active)                                                              \
     {                                                                                                          \
         ActionPrompt*           prompt = gActionPromptSlots;                                                   \
@@ -125,8 +126,10 @@ enum {
 /// counts puzzle frames with wraparound. The two layout arguments must be
 /// stable byte-valued room selectors; only the selected one is evaluated, twice.
 /// Borrows port 0's action prompt and requires the puzzle drawing resources.
-/// Expands to a braced block with locals `prompt` and `work`; arguments must
-/// not name either local. Invoke inside a braced statement context.
+/// Expands as a block with locals `prompt` and `work`; arguments must
+/// not name either local. Publishes both saved and live room selectors before
+/// requesting the object rebuild; no task or work ownership transfers.
+/// Invoke in a braced caller context.
 #define NEO_ARK_SHRINE_WAIT_LAYOUT(task, beforeRevealLayout, afterRevealLayout)                    \
     {                                                                                              \
         ActionPrompt*           prompt = gActionPromptSlots;                                       \
@@ -449,12 +452,18 @@ static s16 _gNeoArkShrineBaseCollisionGridCells[] = {
 #include "assets/neo_ark_shrine_collision_0576C_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gNeoArkShrineBaseCollisionGridCells[i])
+/// Binds a generated base-grid table entry to its packed face-list start.
+///
+/// halfwordOffset is an element offset into the captured s16 pool, evaluated
+/// once; it must lie inside that pool at a sentinel-terminated list start.
+/// Configure collisionSource.cell_face_list_macro to this identifier and
+/// keep the binding through the table include, then undefine it.
+#define NEO_ARK_SHRINE_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gNeoArkShrineBaseCollisionGridCells[(halfwordOffset)])
 /// X-major directory of base-layout face lists, indexed as x * 3 + z.
 static s16* _gNeoArkShrineBaseCollisionGridTable[NEO_ARK_SHRINE_BASE_COLLISION_CELLS_X * NEO_ARK_SHRINE_BASE_COLLISION_CELLS_Z] = {
 #include "assets/neo_ark_shrine_collision_0576C_table.inc"
 };
-#undef GRID_CELL
+#undef NEO_ARK_SHRINE_CELL_FACE_LIST_AT_OFFSET
 
 /// Mutable collision mesh for the shrine's base layout, used by room selectors 1 and 4.
 ///
@@ -500,12 +509,18 @@ static s16 _gNeoArkShrineActiveCollisionGridCells[] = {
 #include "assets/neo_ark_shrine_collision_05C18_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gNeoArkShrineActiveCollisionGridCells[i])
+/// Binds a generated active-grid entry to its packed face-list start.
+///
+/// halfwordOffset is an in-bounds s16 element offset, evaluated once, into
+/// the captured active-grid pool at a sentinel-terminated list start. The
+/// collisionSource binding name and the table include must agree; undefine
+/// after the include.
+#define NEO_ARK_SHRINE_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gNeoArkShrineActiveCollisionGridCells[(halfwordOffset)])
 /// X-major directory of active-layout face lists, indexed as x * 3 + z.
 static s16* _gNeoArkShrineActiveCollisionGridTable[NEO_ARK_SHRINE_ACTIVE_COLLISION_CELLS_X * NEO_ARK_SHRINE_ACTIVE_COLLISION_CELLS_Z] = {
 #include "assets/neo_ark_shrine_collision_05C18_table.inc"
 };
-#undef GRID_CELL
+#undef NEO_ARK_SHRINE_CELL_FACE_LIST_AT_OFFSET
 
 /// Mutable collision mesh for the puzzle's active layout, used by room selectors 2 and 5.
 ///
@@ -551,12 +566,18 @@ static s16 _gNeoArkShrineEnemyReleaseCollisionGridCells[] = {
 #include "assets/neo_ark_shrine_collision_060D8_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gNeoArkShrineEnemyReleaseCollisionGridCells[i])
+/// Binds a generated enemy-release-grid entry to its packed face-list start.
+///
+/// halfwordOffset is an in-bounds s16 element offset, evaluated once, into
+/// the captured enemy-release pool at a sentinel-terminated list start. The
+/// collisionSource binding name and the table include must agree; undefine
+/// after the include.
+#define NEO_ARK_SHRINE_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gNeoArkShrineEnemyReleaseCollisionGridCells[(halfwordOffset)])
 /// X-major directory of enemy-release face lists, indexed as x * 3 + z.
 static s16* _gNeoArkShrineEnemyReleaseCollisionGridTable[NEO_ARK_SHRINE_ENEMY_RELEASE_COLLISION_CELLS_X * NEO_ARK_SHRINE_ENEMY_RELEASE_COLLISION_CELLS_Z] = {
 #include "assets/neo_ark_shrine_collision_060D8_table.inc"
 };
-#undef GRID_CELL
+#undef NEO_ARK_SHRINE_CELL_FACE_LIST_AT_OFFSET
 
 /// Mutable collision mesh for the enemy-release layout, used by room selectors 3 and 6.
 ///

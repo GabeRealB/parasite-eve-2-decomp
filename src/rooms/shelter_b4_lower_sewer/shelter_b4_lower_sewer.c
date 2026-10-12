@@ -31,6 +31,12 @@
 
 #include "rooms/room.h"
 
+/// GPU draw mode and ordering-tag bias for this room's water quad packets.
+enum {
+    SHELTER_B4_LOWER_SEWER_WATER_OT_BIAS = 1,
+    SHELTER_B4_LOWER_SEWER_WATER_TPAGE   = getTPage(0, GPU_BLEND_SUBTRACT, 640, 0),
+};
+
 static void _shelterB4LowerSewerInitializeWater(Task* task);
 static void _shelterB4LowerSewerDrawWater(Task* task);
 
@@ -202,15 +208,17 @@ static void _shelterB4LowerSewerDrawXWaveStrips(Task* task)
     /// Queues the completed quad and its subtractive mode in the same depth bucket.
     ///
     /// Captures `quad`, `depth`, `drawMode`, the byte cursor and display state.
-    /// Takes no arguments; invoke only within a braced block. The one-tag bias
+    /// Takes no arguments; invoke only in a braced caller context. The one-tag bias
     /// follows depth quantization. Prepending the mode last makes the GPU
-    /// consume it before the quad. Undefined before leaving this function.
-#define SHELTER_B4_LOWER_SEWER_QUEUE_WATER_QUAD()                                                                                                           \
-    addPrim((GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET((((u32)(depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) + 1), quad); \
-    drawMode                              = (DR_MODE*)gShelterB4LowerSewerWaterPacketCursor;                                                                \
-    gShelterB4LowerSewerWaterPacketCursor = (u8*)(drawMode + 1);                                                                                            \
-    setDrawTPage(drawMode, 0, 0, getTPage(0, GPU_BLEND_SUBTRACT, 640, 0));                                                                                  \
-    addPrim((GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET((((u32)(depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) + 1), drawMode)
+    /// consume it before the quad. Requires a word-aligned byte cursor with
+    /// sizeof(DR_MODE) bytes available through GPU completion. The casts switch
+    /// between packet and byte-arena views. Undefined after both drawers.
+#define SHELTER_B4_LOWER_SEWER_QUEUE_WATER_QUAD()                                                                                                                                              \
+    addPrim((GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET((((u32)(depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) + SHELTER_B4_LOWER_SEWER_WATER_OT_BIAS), quad); \
+    drawMode                              = (DR_MODE*)gShelterB4LowerSewerWaterPacketCursor;                                                                                                   \
+    gShelterB4LowerSewerWaterPacketCursor = (u8*)(drawMode + 1);                                                                                                                               \
+    setDrawTPage(drawMode, 0, 0, SHELTER_B4_LOWER_SEWER_WATER_TPAGE);                                                                                                                          \
+    addPrim((GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET((((u32)(depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) + SHELTER_B4_LOWER_SEWER_WATER_OT_BIAS), drawMode)
 
     surface                    = _gShelterB4LowerSewerXWaveSurfaces;
     gGfxViewCoord.composeStamp = GRAPHICS_COORD_DIRTY;
@@ -313,7 +321,6 @@ static void _shelterB4LowerSewerDrawXWaveStrips(Task* task)
         }
     }
     SCRATCH_STACK_RELEASE_BLOCK(WaterQuadScratch);
-#undef SHELTER_B4_LOWER_SEWER_QUEUE_WATER_QUAD
 }
 
 /// Draws the second water rectangle as one X-running strip with a waving far edge.
@@ -340,19 +347,6 @@ static void _shelterB4LowerSewerDrawXWaveStrip(Task* task)
     DR_MODE*                       drawMode;
     s32                            depth;
     s32                            segment;
-
-    /// Queues the completed quad and its subtractive mode in the same depth bucket.
-    ///
-    /// Captures `quad`, `depth`, `drawMode`, the byte cursor and display state.
-    /// Takes no arguments; invoke only within a braced block. The one-tag bias
-    /// follows depth quantization. Prepending the mode last makes the GPU
-    /// consume it before the quad. Undefined before leaving this function.
-#define SHELTER_B4_LOWER_SEWER_QUEUE_WATER_QUAD()                                                                                                           \
-    addPrim((GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET((((u32)(depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) + 1), quad); \
-    drawMode                              = (DR_MODE*)gShelterB4LowerSewerWaterPacketCursor;                                                                \
-    gShelterB4LowerSewerWaterPacketCursor = (u8*)(drawMode + 1);                                                                                            \
-    setDrawTPage(drawMode, 0, 0, getTPage(0, GPU_BLEND_SUBTRACT, 640, 0));                                                                                  \
-    addPrim((GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET((((u32)(depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) + 1), drawMode)
 
     surface                    = _gShelterB4LowerSewerSingleStripWaterSurfaces;
     gGfxViewCoord.composeStamp = GRAPHICS_COORD_DIRTY;

@@ -57,8 +57,7 @@
 
 #include "rooms/room_common.h"
 
-/// World X of both elevator-door leaves when the door is shut: the line the
-/// two leaves meet on.
+/// Room-coordinate X where both elevator-door leaves meet when shut, in whole units.
 #define ACROPOLIS_WEST_ELEVATOR_HALL_DOOR_CLOSED_X (-1000)
 
 /// World units a door leaf slides per frame while the door opens or closes.

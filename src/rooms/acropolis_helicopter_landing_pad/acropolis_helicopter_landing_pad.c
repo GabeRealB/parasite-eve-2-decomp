@@ -32,10 +32,10 @@
 /// Frames one scripted run of the landing pad's lift lasts.
 #define ACROPOLIS_HELICOPTER_LANDING_PAD_LIFT_TRAVEL_FRAMES 120
 
-/// World units the lift moves per frame of a run.
+/// Magnitude of the lift's Y step in parent-coordinate units per update tick.
 ///
-/// Over `ACROPOLIS_HELICOPTER_LANDING_PAD_LIFT_TRAVEL_FRAMES` this covers the
-/// 3000 units between the lift's lower stop and the landing pad.
+/// Negative raises the platform; positive lowers it. The 120-tick run covers
+/// the 3000 units between the lower stop and the pad.
 #define ACROPOLIS_HELICOPTER_LANDING_PAD_LIFT_TRAVEL_STEP 25
 
 /// Work block of the landing pad's lift, the railed platform that carries the

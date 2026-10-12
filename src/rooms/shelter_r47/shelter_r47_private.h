@@ -122,17 +122,24 @@ enum {
     SHELTER_R47_MAP_HOTSPOT_TITLE = 4, // page title
 };
 
-/// Open size of the map quad, in pixels. A width at or above
+/// Full map-page width in texels and fully open screen pixels (232).
+///
+/// A width at or above
 /// `SHELTER_R47_MAP_WIDTH_SETTLED` snaps to this size. While a page change
 /// reopens the map, the side panel starts opening once the width reaches
 /// `SHELTER_R47_MAP_WIDTH_PANEL`.
-#define SHELTER_R47_MAP_WIDTH         0xE8
-#define SHELTER_R47_MAP_HEIGHT        0xCE
+#define SHELTER_R47_MAP_WIDTH 0xE8
+
+/// Full map-page height in texels and fully open screen pixels (206).
+#define SHELTER_R47_MAP_HEIGHT 0xCE
+
 #define SHELTER_R47_MAP_WIDTH_SETTLED 0xE5
 #define SHELTER_R47_MAP_WIDTH_PANEL   0xB5
 
-/// Open size of the panel left of the map, in pixels.
-#define SHELTER_R47_MAP_PANEL_WIDTH  0x50
+/// Left panel's texture width and fully open screen width, in pixels (80).
+#define SHELTER_R47_MAP_PANEL_WIDTH 0x50
+
+/// Left panel's texture height and fully open screen height, in pixels (96).
 #define SHELTER_R47_MAP_PANEL_HEIGHT 0x60
 
 /// Visible left-edge X of the map page title and both captions, in centred pixels (-156).

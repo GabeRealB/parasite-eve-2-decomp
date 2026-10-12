@@ -4051,22 +4051,30 @@ static void _dryfieldNightGasStationRestoreBalconySpriteVisibility(void)
 /// to be loaded and selected by the current session.
 static void _dryfieldNightGasStationSetFlickerSpritesVisible(s16 visible)
 {
-    // Applies the hide flag to the three flicker sprite groups.
-    // viewArray and hiddenValue are evaluated repeatedly and must have no side effects.
-    // batchCursor is writable SpriteBatch* scratch shared by both switch arms.
-#define DRYFIELD_NIGHT_GAS_STATION_WRITE_FLICKER_SPRITE_VISIBILITY(viewArray, batchCursor, hiddenValue) \
-    do {                                                                                                \
-        (batchCursor)            = (viewArray)[13].batches;                                             \
-        (batchCursor)[8].hidden  = (hiddenValue);                                                       \
-        (batchCursor)[9].hidden  = (hiddenValue);                                                       \
-        (batchCursor)            = (viewArray)[14].batches;                                             \
-        (batchCursor)[8].hidden  = (hiddenValue);                                                       \
-        (batchCursor)[9].hidden  = (hiddenValue);                                                       \
-        (batchCursor)[10].hidden = (hiddenValue);                                                       \
-        (batchCursor)            = (viewArray)[16].batches;                                             \
-        (batchCursor)[8].hidden  = (hiddenValue);                                                       \
-        (batchCursor)[9].hidden  = (hiddenValue);                                                       \
-        (batchCursor)[10].hidden = (hiddenValue);                                                       \
+    /// Applies a hidden flag to the eight background batches used by the timed flashes.
+    ///
+    /// viewArray supplies writable views through slot 16; slots 13, 14 and 16
+    /// need batches through 9, 10 and 10 respectively. Both it and hiddenValue
+    /// are evaluated repeatedly and must have no side effects. hiddenValue is
+    /// 0 visible or 1 hidden. batchCursor is writable SpriteBatch* scratch,
+    /// left pointing at slot 16's batch array. Captures no caller identifiers.
+#define DRYFIELD_NIGHT_GAS_STATION_WRITE_FLICKER_SPRITE_VISIBILITY(viewArray, batchCursor, hiddenValue)                                                 \
+    do {                                                                                                                                                \
+        enum { DRYFIELD_NIGHT_GAS_STATION_FLICKER_FIRST_VIEW  = 13,                                                                                     \
+               DRYFIELD_NIGHT_GAS_STATION_FLICKER_SECOND_VIEW = 14,                                                                                     \
+               DRYFIELD_NIGHT_GAS_STATION_FLICKER_THIRD_VIEW  = 16,                                                                                     \
+               DRYFIELD_NIGHT_GAS_STATION_FLICKER_FIRST_BATCH = 8 };                                                                                    \
+        (batchCursor)                                                            = (viewArray)[DRYFIELD_NIGHT_GAS_STATION_FLICKER_FIRST_VIEW].batches;  \
+        (batchCursor)[DRYFIELD_NIGHT_GAS_STATION_FLICKER_FIRST_BATCH].hidden     = (hiddenValue);                                                       \
+        (batchCursor)[DRYFIELD_NIGHT_GAS_STATION_FLICKER_FIRST_BATCH + 1].hidden = (hiddenValue);                                                       \
+        (batchCursor)                                                            = (viewArray)[DRYFIELD_NIGHT_GAS_STATION_FLICKER_SECOND_VIEW].batches; \
+        (batchCursor)[DRYFIELD_NIGHT_GAS_STATION_FLICKER_FIRST_BATCH].hidden     = (hiddenValue);                                                       \
+        (batchCursor)[DRYFIELD_NIGHT_GAS_STATION_FLICKER_FIRST_BATCH + 1].hidden = (hiddenValue);                                                       \
+        (batchCursor)[DRYFIELD_NIGHT_GAS_STATION_FLICKER_FIRST_BATCH + 2].hidden = (hiddenValue);                                                       \
+        (batchCursor)                                                            = (viewArray)[DRYFIELD_NIGHT_GAS_STATION_FLICKER_THIRD_VIEW].batches;  \
+        (batchCursor)[DRYFIELD_NIGHT_GAS_STATION_FLICKER_FIRST_BATCH].hidden     = (hiddenValue);                                                       \
+        (batchCursor)[DRYFIELD_NIGHT_GAS_STATION_FLICKER_FIRST_BATCH + 1].hidden = (hiddenValue);                                                       \
+        (batchCursor)[DRYFIELD_NIGHT_GAS_STATION_FLICKER_FIRST_BATCH + 2].hidden = (hiddenValue);                                                       \
     } while (0)
 
     GameLocationKey* location = &gGameSession->location.loc;

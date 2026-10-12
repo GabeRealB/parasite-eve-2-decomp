@@ -83,8 +83,8 @@ static void _glowDrawCappedBeam(Task* task, const SVECTOR screenPoints[24], s32 
     // Snapshot the parent brightness before advancing the next geometry phase.
     quadIndices   = _gGlowCappedBeamQuadIndices;
     brightnessQ12 = GLOW_DRAW_RING_BEAM_BRIGHTNESS(task);
-#ifdef GLOW_DRAW_RING_BEAM_PHASE_STEP
-    task->killCountdown += GLOW_DRAW_RING_BEAM_PHASE_STEP;
+#ifdef GLOW_CAPPED_BEAM_PHASE_STEP
+    task->killCountdown += GLOW_CAPPED_BEAM_PHASE_STEP;
 #endif
     if (task->killCountdown >= GLOW_HALF_TURN) {
         task->killCountdown = 0;
@@ -122,6 +122,6 @@ static void _glowDrawCappedBeam(Task* task, const SVECTOR screenPoints[24], s32 
 }
 
 #undef GLOW_DRAW_RING_BEAM_BRIGHTNESS
-#undef GLOW_DRAW_RING_BEAM_PHASE_STEP
+#undef GLOW_CAPPED_BEAM_PHASE_STEP
 #undef GLOW_DRAW_RING_BEAM_OT_OFFSET
 #undef GLOW_DRAW_RING_BEAM_HALO_TPAGE

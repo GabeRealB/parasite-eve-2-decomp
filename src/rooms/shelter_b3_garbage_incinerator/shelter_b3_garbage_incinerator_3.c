@@ -3191,12 +3191,12 @@ static void _shelterB3GarbageIncineratorSetVariant2Walls(void)
     /// vertices, and `index` also addresses its normal. Pool, index and stride
     /// expressions are evaluated repeatedly and must have no side effects.
     /// Surface class is evaluated once. Captures no locals; use as a statement.
-#define SHELTER_B3_GARBAGE_INCINERATOR_INIT_WALL_FACE(pool, index, vertexCount, propertyIndex) \
-    ((pool)[(index)].vertexIndices[1] = (index) * (vertexCount) + 1,                           \
-     (pool)[(index)].vertexIndices[0] = (index) * (vertexCount),                               \
-     (pool)[(index)].vertexIndices[2] = (index) * (vertexCount) + 2,                           \
-     (pool)[(index)].vertexIndices[3] = (index) * (vertexCount) + 3,                           \
-     (pool)[(index)].surfaceClass     = (propertyIndex),                                       \
+#define SHELTER_B3_GARBAGE_INCINERATOR_INIT_WALL_FACE(pool, index, vertexCount, wallSurfaceClass) \
+    ((pool)[(index)].vertexIndices[1] = (index) * (vertexCount) + 1,                              \
+     (pool)[(index)].vertexIndices[0] = (index) * (vertexCount),                                  \
+     (pool)[(index)].vertexIndices[2] = (index) * (vertexCount) + 2,                              \
+     (pool)[(index)].vertexIndices[3] = (index) * (vertexCount) + 3,                              \
+     (pool)[(index)].surfaceClass     = (wallSurfaceClass),                                       \
      (pool)[(index)].normalIndex      = (index))
 
     normals  = gWorldCollisionActiveGrid->normals;

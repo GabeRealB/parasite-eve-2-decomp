@@ -1819,14 +1819,16 @@ void acropolisHelicopterLandingPadTurnPlayerYawTask(Task* task)
         ACROPOLIS_HELICOPTER_LANDING_PAD_TURN_STEP       = 256,
     };
 
-    /// Compares absolute target distances, overwriting the wrapped-distance scratch with the result.
+    /// Tests whether the wrapped yaw is strictly closer to the target than the current yaw.
     ///
     /// All arguments must be side-effect-free s32 values or local lvalues.
     /// The two scratch arguments must be distinct and must not alias the inputs.
-    /// Repeatedly evaluates inputs; expands to a compound statement and captures
-    /// no identifiers. The caller reuses the result scratch for the next yaw.
+    /// Yaws use 4096 units per turn; the caller supplies current/target in
+    /// 0..4095 and a wrapped yaw one turn away, so signed differences fit s32.
+    /// Ties produce zero. Leaves currentDistance at the absolute current-path
+    /// distance and comparison at 0 or 1. Captures no caller identifiers.
 #define ACROPOLIS_HELICOPTER_LANDING_PAD_COMPARE_YAW_DISTANCES(wrapped, current, target, comparison, currentDistance) \
-    {                                                                                                                 \
+    do {                                                                                                              \
         (comparison) = (wrapped) - (target);                                                                          \
         if ((comparison) < 0) {                                                                                       \
             (comparison) = -(comparison);                                                                             \
@@ -1836,7 +1838,7 @@ void acropolisHelicopterLandingPadTurnPlayerYawTask(Task* task)
             (currentDistance) = -(currentDistance);                                                                   \
         }                                                                                                             \
         (comparison) = (comparison) < (currentDistance);                                                              \
-    }
+    } while (0)
 
     switch (task->state) {
         case ACROPOLIS_HELICOPTER_LANDING_PAD_TURN_INITIALIZE:

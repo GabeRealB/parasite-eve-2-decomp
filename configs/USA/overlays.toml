@@ -3007,11 +3007,11 @@ objects = [
   { kind = "model", at = "0x48B8", in_c = true },
   { kind = "modelSource", at = "0x4B90", in_c = true },
   { kind = "collision", at = "0x52FC", in_c = true },
-  { kind = "collisionSource", at = "0x576C", in_c = true },
+  { kind = "collisionSource", at = "0x576C", in_c = true, cell_face_list_macro = "NEO_ARK_SHRINE_CELL_FACE_LIST_AT_OFFSET" },
   { kind = "collision", at = "0x5790", in_c = true },
-  { kind = "collisionSource", at = "0x5C18", in_c = true },
+  { kind = "collisionSource", at = "0x5C18", in_c = true, cell_face_list_macro = "NEO_ARK_SHRINE_CELL_FACE_LIST_AT_OFFSET" },
   { kind = "collision", at = "0x5C3C", in_c = true },
-  { kind = "collisionSource", at = "0x60D8", in_c = true },
+  { kind = "collisionSource", at = "0x60D8", in_c = true, cell_face_list_macro = "NEO_ARK_SHRINE_CELL_FACE_LIST_AT_OFFSET" },
 ]
 
 [rooms.overlays.shelter_b6_nursery]

@@ -37,7 +37,10 @@
 #include "overlay.h"
 #include "../../shared/action_prompt.h"
 
-/// `_ShelterR47MapMark.stage` of the entry closing a marker table.
+/// Stage sentinel (255) ending an area's terminal-marker list before lookup.
+///
+/// Stored in signed-halfword `_ShelterR47MapMark::stage`; it is distinct from
+/// valid game stages. The reader stops before inspecting the other fields.
 #define SHELTER_R47_MAP_MARK_END 0xFF
 
 /// Where the room's map terminal draws the marker of one area.
@@ -1392,20 +1395,32 @@ static void _shelterR47MapTerminalDrawPageOverlay(Task* task)
     /// and level a writable u8 lvalue. All must be stable and side-effect-free;
     /// each is evaluated repeatedly. Uses this function's marker size and
     /// brightness constants, the current packet cursor and OT entry 10.
+    /// The arena must have sizeof(POLY_FT4) bytes available until GPU completion;
+    /// brightness wraps at 256. Coordinates are display-centred screen pixels.
+    /// Invoke inside a braced caller context; expansion is a compound statement.
 #define SHELTER_R47_MAP_DRAW_AREA_MARKER(markerQuad, areaMark, level)                                                                                                                                                                                                                                                        \
     {                                                                                                                                                                                                                                                                                                                        \
+        enum { SHELTER_R47_MAP_MARK_TEXTURE_U    = 80,                                                                                                                                                                                                                                                                       \
+               SHELTER_R47_MAP_MARK_TEXTURE_V    = 32,                                                                                                                                                                                                                                                                       \
+               SHELTER_R47_MAP_MARK_TEXTURE_SIZE = 8,                                                                                                                                                                                                                                                                        \
+               SHELTER_R47_MAP_MARK_TPAGE        = getTPage(0, GPU_BLEND_ADD, 960, 0),                                                                                                                                                                                                                                       \
+               SHELTER_R47_MAP_MARK_CLUT         = getClut(96, 255),                                                                                                                                                                                                                                                         \
+               SHELTER_R47_MAP_MARK_OT_TAG       = 10 };                                                                                                                                                                                                                                                                           \
         (markerQuad)   = gGpuPrimCursor;                                                                                                                                                                                                                                                                                     \
         (level)       += SHELTER_R47_MAP_MARK_BRIGHTNESS_STEP;                                                                                                                                                                                                                                                               \
         gGpuPrimCursor = (markerQuad) + 1;                                                                                                                                                                                                                                                                                   \
         setPolyFT4((markerQuad));                                                                                                                                                                                                                                                                                            \
-        setUV4((markerQuad), 0x50, 0x20, 0x58, 0x20, 0x50, 0x28, 0x58, 0x28);                                                                                                                                                                                                                                                \
+        setUV4((markerQuad), SHELTER_R47_MAP_MARK_TEXTURE_U, SHELTER_R47_MAP_MARK_TEXTURE_V,                                                                                                                                                                                                                                 \
+               SHELTER_R47_MAP_MARK_TEXTURE_U + SHELTER_R47_MAP_MARK_TEXTURE_SIZE, SHELTER_R47_MAP_MARK_TEXTURE_V,                                                                                                                                                                                                           \
+               SHELTER_R47_MAP_MARK_TEXTURE_U, SHELTER_R47_MAP_MARK_TEXTURE_V + SHELTER_R47_MAP_MARK_TEXTURE_SIZE,                                                                                                                                                                                                           \
+               SHELTER_R47_MAP_MARK_TEXTURE_U + SHELTER_R47_MAP_MARK_TEXTURE_SIZE, SHELTER_R47_MAP_MARK_TEXTURE_V + SHELTER_R47_MAP_MARK_TEXTURE_SIZE);                                                                                                                                                                      \
         setRGB0((markerQuad), (level), (level), (level));                                                                                                                                                                                                                                                                    \
-        (markerQuad)->tpage = 0x2F;                                                                                                                                                                                                                                                                                          \
-        (markerQuad)->clut  = 0x3FC6;                                                                                                                                                                                                                                                                                        \
+        (markerQuad)->tpage = SHELTER_R47_MAP_MARK_TPAGE;                                                                                                                                                                                                                                                                    \
+        (markerQuad)->clut  = SHELTER_R47_MAP_MARK_CLUT;                                                                                                                                                                                                                                                                     \
         setSemiTrans((markerQuad), 1);                                                                                                                                                                                                                                                                                       \
         setXY4((markerQuad), (areaMark)->x - SHELTER_R47_MAP_MARK_HALF_SIZE, (areaMark)->y - SHELTER_R47_MAP_MARK_HALF_SIZE, (areaMark)->x + SHELTER_R47_MAP_MARK_HALF_SIZE, (areaMark)->y - SHELTER_R47_MAP_MARK_HALF_SIZE, (areaMark)->x - SHELTER_R47_MAP_MARK_HALF_SIZE, (areaMark)->y + SHELTER_R47_MAP_MARK_HALF_SIZE, \
                (areaMark)->x + SHELTER_R47_MAP_MARK_HALF_SIZE, (areaMark)->y + SHELTER_R47_MAP_MARK_HALF_SIZE);                                                                                                                                                                                                              \
-        addPrim(&gGpuCurrentOt[10], (markerQuad));                                                                                                                                                                                                                                                                           \
+        addPrim(&gGpuCurrentOt[SHELTER_R47_MAP_MARK_OT_TAG], (markerQuad));                                                                                                                                                                                                                                                  \
     }
 
     work       = task->work;

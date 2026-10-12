@@ -3855,7 +3855,8 @@ static void _acropolisBridgeShowKeypadCode(s32 code, s16 hidePrompt)
     /// selected digit and first/blank indices are read repeatedly. The selected
     /// batch must be one of the ten digits or the band's separate blank. `batchIndex`
     /// must be a writable s32 local and is left one past the band's last digit.
-    /// Use only as a standalone statement, since expansion is a complete if/else.
+    /// Captures no caller identifiers. Invoke as a standalone statement inside
+    /// a braced caller context: expansion is a complete if/else.
 #define ACROPOLIS_BRIDGE_SELECT_KEYPAD_DIGIT(batches, digitBatch, firstBatch, blankBatch, batchIndex)                                \
     if ((digitBatch) == (blankBatch)) {                                                                                              \
         for ((batchIndex) = (firstBatch); (batchIndex) < (firstBatch) + ACROPOLIS_BRIDGE_KEYPAD_DIGIT_BATCH_COUNT; (batchIndex)++) { \
