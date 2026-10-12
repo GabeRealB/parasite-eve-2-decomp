@@ -1189,7 +1189,7 @@ static SVECTOR _gMineCavernRoomLightPoints[13] = {
 /// Initializes this overlay's three halo tint rows and retained trailing halfword.
 ///
 /// Rows 0..2 give RGB right shifts of brightness (0 full, 1 half, 2 quarter).
-/// Requires `ROOM_FX_HALO_STORAGE_TYPE` = `RoomFxHaloStorage` and an empty
+/// Requires `ROOM_VISUAL_EFFECTS_HALO_STORAGE_TYPE` = `RoomFxHaloStorage` and an empty
 /// `ROOM_VISUAL_EFFECTS_HALO_STORAGE_BOUND`. The trailing u16 is preserved
 /// verbatim; its role is unproven and it is not a fourth tint row.
 /// Bind around `room_visual_effects_halo_data.inc.c`, then undefine.
@@ -1202,10 +1202,18 @@ static SVECTOR _gMineCavernRoomLightPoints[13] = {
     },                                                 \
     .alignmentFill = 0x3C95,                           \
 }
-#define ROOM_FX_HALO_STORAGE_TYPE RoomFxHaloStorage
+/// Selects the halo tint storage record, including its retained trailing halfword.
+///
+/// Expands to the `RoomFxHaloStorage` type token; requires an empty
+/// `ROOM_VISUAL_EFFECTS_HALO_STORAGE_BOUND` and a
+/// `ROOM_VISUAL_EFFECTS_HALO_STORAGE_INITIALIZER` for `entries` and `alignmentFill`.
+/// Only the three RGB-shift rows are read, at indices 0..2; the halfword's
+/// role is unproven. Include `room_visual_effects.h` first, bind around
+/// `room_visual_effects_halo_data.inc.c`, then undefine.
+#define ROOM_VISUAL_EFFECTS_HALO_STORAGE_TYPE RoomFxHaloStorage
 /// Declares one halo storage record, retaining the halfword after its tint rows.
 ///
-/// This empty suffix requires `ROOM_FX_HALO_STORAGE_TYPE` to be
+/// This empty suffix requires `ROOM_VISUAL_EFFECTS_HALO_STORAGE_TYPE` to be
 /// `RoomFxHaloStorage`. Bind around `room_visual_effects_halo_data.inc.c`.
 #define ROOM_VISUAL_EFFECTS_HALO_STORAGE_BOUND
 #include "../../shared/room_visual_effects_halo_data.inc.c"
@@ -1219,7 +1227,7 @@ static inline const RoomFxShade* _roomVisualEffectsGetHaloShades(void)
     return _gRoomVisualEffectsHaloShades.entries;
 }
 #undef ROOM_VISUAL_EFFECTS_HALO_STORAGE_INITIALIZER
-#undef ROOM_FX_HALO_STORAGE_TYPE
+#undef ROOM_VISUAL_EFFECTS_HALO_STORAGE_TYPE
 #undef ROOM_VISUAL_EFFECTS_HALO_STORAGE_BOUND
 
 WorldCollisionRoomResources gMineCavernRoomCollisionResources[3] = {

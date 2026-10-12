@@ -25,12 +25,15 @@
  * Include _halo_data, _trail_data and _disc_data for the room's sections, at
  * the tables' position in the data. The halo shades have the same three readable
  * rows. Some carriers also preserve a following unread halfword whose role is
- * unproven, so the room sets
- * ROOM_FX_HALO_STORAGE_TYPE, ROOM_VISUAL_EFFECTS_HALO_STORAGE_BOUND and
- * ROOM_VISUAL_EFFECTS_HALO_STORAGE_INITIALIZER before including
- * _halo_data - RoomFxShade [3], or RoomFxHaloStorage to retain that halfword - and
- * defines _roomVisualEffectsGetHaloShades, the array view the halo code reads, where its
- * halo code is.
+ * unproven. After including this header and before _halo_data, each carrier
+ * binds ROOM_VISUAL_EFFECTS_HALO_STORAGE_TYPE with its matching
+ * ROOM_VISUAL_EFFECTS_HALO_STORAGE_BOUND and
+ * ROOM_VISUAL_EFFECTS_HALO_STORAGE_INITIALIZER. RoomFxShade with
+ * [ROOM_VISUAL_EFFECTS_HALO_SHADE_COUNT] declares the three-row array;
+ * RoomFxHaloStorage with an empty suffix declares entries plus the retained
+ * halfword. The initializer must match that form. Undefine the bindings after
+ * the data inclusion. Each carrier defines _roomVisualEffectsGetHaloShades
+ * as the read-only array view of just those three rows, live for its overlay.
  */
 
 #ifndef SRC_SHARED_ROOM_VISUAL_EFFECTS_H

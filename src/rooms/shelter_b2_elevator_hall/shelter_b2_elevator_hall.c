@@ -187,7 +187,7 @@ static SVECTOR _gShelterB2ElevatorHallLockedDoorIndicatorPoint = { 9901, -1195, 
 /// Initializes this overlay's three halo tint rows.
 ///
 /// Rows 0..2 give RGB right shifts of brightness (0 full, 1 half, 2 quarter).
-/// Requires `ROOM_FX_HALO_STORAGE_TYPE` = `RoomFxShade` and
+/// Requires `ROOM_VISUAL_EFFECTS_HALO_STORAGE_TYPE` = `RoomFxShade` and
 /// `ROOM_VISUAL_EFFECTS_HALO_STORAGE_BOUND` =
 /// `[ROOM_VISUAL_EFFECTS_HALO_SHADE_COUNT]`; supplies exactly three elements.
 /// Bind around `room_visual_effects_halo_data.inc.c`, then undefine.
@@ -197,11 +197,19 @@ static SVECTOR _gShelterB2ElevatorHallLockedDoorIndicatorPoint = { 9901, -1195, 
     { .rShift = 2, .gShift = 1, .bShift = 0 },         \
     { .rShift = 0, .gShift = 2, .bShift = 1 },         \
 }
-#define ROOM_FX_HALO_STORAGE_TYPE RoomFxShade
+/// Selects the element type of this overlay's three-row halo tint array.
+///
+/// Expands to the `RoomFxShade` type token; requires
+/// `ROOM_VISUAL_EFFECTS_HALO_STORAGE_BOUND` =
+/// `[ROOM_VISUAL_EFFECTS_HALO_SHADE_COUNT]` and a
+/// `ROOM_VISUAL_EFFECTS_HALO_STORAGE_INITIALIZER` containing three RGB-shift rows.
+/// Read indices are 0..2. Include `room_visual_effects.h` first, bind around
+/// `room_visual_effects_halo_data.inc.c`, then undefine.
+#define ROOM_VISUAL_EFFECTS_HALO_STORAGE_TYPE RoomFxShade
 /// Declares the three-row halo tint array.
 ///
 /// Supplies an array bound in `RoomFxShade` elements; requires
-/// `ROOM_FX_HALO_STORAGE_TYPE` to be `RoomFxShade`. Bind around
+/// `ROOM_VISUAL_EFFECTS_HALO_STORAGE_TYPE` to be `RoomFxShade`. Bind around
 /// `room_visual_effects_halo_data.inc.c`.
 #define ROOM_VISUAL_EFFECTS_HALO_STORAGE_BOUND [ROOM_VISUAL_EFFECTS_HALO_SHADE_COUNT]
 #include "../../shared/room_visual_effects_halo_data.inc.c"
@@ -215,7 +223,7 @@ static inline const RoomFxShade* _roomVisualEffectsGetHaloShades(void)
     return _gRoomVisualEffectsHaloShades;
 }
 #undef ROOM_VISUAL_EFFECTS_HALO_STORAGE_INITIALIZER
-#undef ROOM_FX_HALO_STORAGE_TYPE
+#undef ROOM_VISUAL_EFFECTS_HALO_STORAGE_TYPE
 #undef ROOM_VISUAL_EFFECTS_HALO_STORAGE_BOUND
 
 #include "../../shared/room_visual_effects_trail_data.inc.c"
