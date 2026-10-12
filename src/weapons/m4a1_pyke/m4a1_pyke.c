@@ -164,7 +164,13 @@ void m4a1PykeNozzleTask(Task* task)
 
 #include "../../shared/pyke_flame_nozzle.inc.c"
 
-#define PYKE_FLAME_KEY 0x21C1E
+/// Category-2 weapon attack key for the player's flying Pyke flame.
+///
+/// Selects attack row 30 and distance/critical row 28. The companion bit is
+/// clear, allowing player-only weapon damage bonuses. This s32-compatible
+/// integer constant is consumed and undefined by `pyke_flame_task.inc.c`.
+#define PYKE_FLAME_ATTACK_KEY \
+    (WORLD_COLLISION_CONTACT_ATTACK | (PYKE_FLAME_DISTANCE_ROW << PYKE_FLAME_DISTANCE_ROW_SHIFT) | PYKE_FLAME_ATTACK_ROW)
 #include "../../shared/pyke_flame_task.inc.c"
 
 void m4a1PykeFlameTask(Task* task)

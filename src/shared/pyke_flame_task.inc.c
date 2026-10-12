@@ -1,5 +1,9 @@
 /* Part of the Pyke flame library; see pyke_flame.h. */
 
+#ifndef PYKE_FLAME_ATTACK_KEY
+#error "Define PYKE_FLAME_ATTACK_KEY to the carrier's category-2 weapon attack key"
+#endif
+
 #ifndef PYKE_FLAME_REDRAW_UPDATES_COORD
 /// Selects whether nonrunning flame redraws refresh the composed transform.
 ///
@@ -120,7 +124,7 @@ static inline void _pykeFlameTask(Task* task)
             task->work                   = flame;
             flame->body.coord            = coord;
             flame->body.context.contacts = flame->contacts;
-            flame->body.key              = PYKE_FLAME_KEY;
+            flame->body.key              = PYKE_FLAME_ATTACK_KEY;
             flame->body.radius           = work->scale >> 1;
             gRandomLcgState              = spinRandom;
             flame->body.flags            = WORLD_COLLISION_BODY_SPHERE;
@@ -186,4 +190,5 @@ static inline void _pykeFlameTask(Task* task)
     }
 }
 
+#undef PYKE_FLAME_ATTACK_KEY
 #undef PYKE_FLAME_REDRAW_UPDATES_COORD

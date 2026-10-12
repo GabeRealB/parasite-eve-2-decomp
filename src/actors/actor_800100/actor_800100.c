@@ -885,7 +885,13 @@ void actor800100PykeEmitterTask(Task* task)
 
 #include "../../shared/pyke_flame_nozzle.inc.c"
 
-#define PYKE_FLAME_KEY 0x21C9E
+/// Category-2 weapon attack key for the companion's flying Pyke flame.
+///
+/// Selects attack row 30 and distance/critical row 28, with the companion bit
+/// suppressing player-only weapon damage bonuses. This s32-compatible integer
+/// constant is consumed and undefined by `pyke_flame_task.inc.c`.
+#define PYKE_FLAME_ATTACK_KEY \
+    (WORLD_COLLISION_CONTACT_ATTACK | (PYKE_FLAME_DISTANCE_ROW << PYKE_FLAME_DISTANCE_ROW_SHIFT) | PYKE_FLAME_COMPANION_BIT | PYKE_FLAME_ATTACK_ROW)
 /// Selects composed-transform refresh for the companion's nonrunning flame redraws.
 ///
 /// Consumed and undefined by `pyke_flame_task.inc.c`; flight remains stopped.

@@ -8,7 +8,8 @@
  * position. The task is an entry point gameplay's effect table names by
  * address, so each package keeps its own name for it and calls the inline
  * body. The two builds differ in:
- *   PYKE_FLAME_KEY                    the flame body's collision key
+ *   PYKE_FLAME_ATTACK_KEY             required s32-compatible collision key;
+ *                                     consumed by pyke_flame_task.inc.c
  *   PYKE_FLAME_REDRAW_UPDATES_COORD   optional nonrunning-redraw cache policy;
  *                                     values and scope: pyke_flame_task.inc.c
  * Splash increment/store ordering is configured at the splash fragment;
@@ -28,6 +29,19 @@
 /// Sizing numerator for the nozzle billboard; projected half-side is 31 * scale / depth.
 enum { PYKE_FLAME_NOZZLE_SIZE_SCALE = 0x80 };
 
+/// Fields of the category-2 weapon key shared by player and companion flames.
+///
+/// Attack row 30 selects Pyke damage, reaction, hit effect and cooldown;
+/// distance row 28 independently selects distance and critical-hit scaling.
+/// The companion bit disables player-only weapon damage bonuses. Bit 15 stays
+/// clear, selecting weapon attack rows rather than Parasite Energy rows.
+enum {
+    PYKE_FLAME_ATTACK_ROW         = 30,
+    PYKE_FLAME_DISTANCE_ROW       = 28,
+    PYKE_FLAME_DISTANCE_ROW_SHIFT = 8,
+    PYKE_FLAME_COMPANION_BIT      = 0x80,
+};
+
 static void _pykeFlameDrawNozzle(const VECTOR3* worldPosition, u16 animationFrame, u16 sizeScale);
 static void _pykeFlameDrawBlob(const VECTOR3* worldPosition, u16 animationFrame, u16 sizeScale, s16 spinAngle);
 
@@ -36,7 +50,7 @@ static void _pykeFlameDrawBlob(const VECTOR3* worldPosition, u16 animationFrame,
 ///
 /// The sphere is linked on collision list 1. Its radius is half the width
 /// seeded at spawn; later growth of the drawn flame leaves that radius
-/// unchanged. Its packed key is the carrier's `PYKE_FLAME_KEY` (contact
+/// unchanged. Its packed key is the carrier's `PYKE_FLAME_ATTACK_KEY` (contact
 /// category 2), and its centre stays the origin of the coordinate the flame
 /// flies on. The sphere takes pair tests. Room geometry is a separate segment
 /// test along the flight. An occupied contact whose key has category 3 in the
