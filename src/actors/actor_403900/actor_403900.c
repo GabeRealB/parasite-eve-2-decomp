@@ -55,8 +55,13 @@
 static void _frameCaptureQueue(s32 orderingTableSlot);
 #define FRAME_CAPTURE_QUEUE _frameCaptureQueue
 #include "../../shared/frame_capture.h"
+/// Selects Bishop identity and combat tuning for the shared GOLEM implementation.
+///
+/// Bind to `GOLEM_KNIGHT_BISHOP_KIND_BISHOP` before the shared header and undefine
+/// after it; the fragments use the selected constants, not this selector.
 #define GOLEM_KNIGHT_BISHOP_KIND GOLEM_KNIGHT_BISHOP_KIND_BISHOP
 #include "../../shared/golem_knight_bishop.h"
+#undef GOLEM_KNIGHT_BISHOP_KIND
 
 /// Main-executable global with no module header yet: the remaining-enemy
 /// count. A grab only starts while it is positive.

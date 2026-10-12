@@ -13,11 +13,13 @@
  * sound cues and the grab release update complete the frame. The dead state uses
  * inline animation, tint and shadow helpers from the inline fragment.
  *
- * Each package builds the library for its own type: it defines
- * GOLEM_KNIGHT_BISHOP_KIND as GOLEM_KNIGHT_BISHOP_KIND_KNIGHT (actor_402200)
- * or GOLEM_KNIGHT_BISHOP_KIND_BISHOP
- * (actor_403900) before including this header, and the parameters below
- * follow from it.
+ * Before this header, actor_402200 binds `GOLEM_KNIGHT_BISHOP_KIND` to
+ * `GOLEM_KNIGHT_BISHOP_KIND_KNIGHT`, and actor_403900 binds it to
+ * `GOLEM_KNIGHT_BISHOP_KIND_BISHOP`. Only those two values are accepted.
+ * The header selects the actor ID, grab-check interval, box interruption
+ * damage, aim duration, attack-count limit and recovery base. Undefine the
+ * binding after this include; the fragments use the selected constants.
+ * Selector values are separate from runtime actor IDs.
  *
  * Include this header in the prologue and each fragment at its function's
  * position.
@@ -36,9 +38,7 @@
 #define GOLEM_KNIGHT_BISHOP_KIND_BISHOP 2
 #ifndef GOLEM_KNIGHT_BISHOP_KIND
 #error "define GOLEM_KNIGHT_BISHOP_KIND (GOLEM_KNIGHT_BISHOP_KIND_KNIGHT or GOLEM_KNIGHT_BISHOP_KIND_BISHOP) before including golem_knight_bishop.h"
-#endif
-
-#if GOLEM_KNIGHT_BISHOP_KIND == GOLEM_KNIGHT_BISHOP_KIND_KNIGHT
+#elif GOLEM_KNIGHT_BISHOP_KIND == GOLEM_KNIGHT_BISHOP_KIND_KNIGHT
 /// Knight actor-kind ID, also the low bits of its enemy-body collision keys.
 ///
 /// Selected at compilation by GOLEM_KNIGHT_BISHOP_KIND and stored as a signed
@@ -57,7 +57,7 @@ enum {
     /// Recovery wait before the random 0..31 extra sequence updates.
     GOLEM_KNIGHT_BISHOP_RECOVERY_BASE_FRAMES = 75
 };
-#else
+#elif GOLEM_KNIGHT_BISHOP_KIND == GOLEM_KNIGHT_BISHOP_KIND_BISHOP
 /// Bishop actor-kind ID, also the low bits of its enemy-body collision keys.
 ///
 /// Selected at compilation by GOLEM_KNIGHT_BISHOP_KIND and stored in work.
@@ -75,6 +75,8 @@ enum {
     /// Recovery wait before the random 0..31 extra sequence updates.
     GOLEM_KNIGHT_BISHOP_RECOVERY_BASE_FRAMES = 45
 };
+#else
+#error "GOLEM_KNIGHT_BISHOP_KIND must be GOLEM_KNIGHT_BISHOP_KIND_KNIGHT or GOLEM_KNIGHT_BISHOP_KIND_BISHOP"
 #endif
 
 #include "types.h"
