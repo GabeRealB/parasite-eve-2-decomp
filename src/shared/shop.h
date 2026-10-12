@@ -5,8 +5,9 @@
  * overlay header. The descriptor's storage wrapper, when present, stays there.
  * Refill work belongs to its existing overlay TU; another TU imports it through
  * the overlay's private header. Refill-state bindings select the carrier-owned lvalues.
- * SHOP_CHARGE_TITLE_BYTES preserves all eight title bytes, including the byte
- * after the terminator. Visible text and behaviour are shared.
+ * Each carrier binds SHOP_WEAPON_SUPPLY_REFILL_TITLE_TRAILING_BYTES only around
+ * shop.inc.c. It supplies a one-byte string literal retained after the common
+ * refill title's NUL terminator; label drawing does not read that byte.
  *
  * Include this header in the prologue, shop_data.inc.c and shop_panels.inc.c
  * at their data positions, and shop.inc.c at the function run.

@@ -77,8 +77,7 @@ static void _shelterB1ArmoryRoomIdleState(Task* task);
 /// `shelter_b1_armory_2.c` and declared in the private header. Keep this binding
 /// through `shop.inc.c`; `shop.h` specifies selection, lifetime and use by one
 /// panel at a time.
-#define SHOP_REFILL_SUPPLY      gShopRefillSupply
-#define SHOP_CHARGE_TITLE_BYTES "Charge\0\xD3"
+#define SHOP_REFILL_SUPPLY gShopRefillSupply
 #include "../../shared/shop.h"
 
 static s32 _shelterB1ArmoryUseKeyItem(Task* unusedTask, s32 unusedMessageId, s32 itemId, s32 unusedSecondArg);
@@ -143,11 +142,14 @@ static const TaskMessageEntry _gShelterB1ArmoryRoomMessages[5] SECTION(".data") 
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
+/// Retained byte following this room's weapon-supply refill title terminator.
+///
+/// One-byte string-literal binding for `shop.inc.c`; label drawing does not read it.
+#define SHOP_WEAPON_SUPPLY_REFILL_TITLE_TRAILING_BYTES "\xD3"
 #include "../../shared/shop.inc.c"
+#undef SHOP_WEAPON_SUPPLY_REFILL_TITLE_TRAILING_BYTES
 #undef SHOP_REFILL_DISPLAY_QUANTITY
 #undef SHOP_REFILL_SUPPLY
-
-#undef SHOP_CHARGE_TITLE_BYTES
 
 #include "../../shared/room_event_gate.inc.c"
 

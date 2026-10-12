@@ -638,11 +638,14 @@ static const u8 _gShopCarriedRowCapacityLabel[] = "TOTAL";
 /// NUL-terminated title of the shop's purchase-error notices.
 static const char _gShopNoticeTitle[] = "Notice";
 
+STATIC_ASSERT(sizeof(SHOP_WEAPON_SUPPLY_REFILL_TITLE_TRAILING_BYTES) == 2, shopWeaponSupplyRefillTitleTrailingBytes);
+
 /// NUL-terminated title of the built-in weapon-supply refill panel.
 ///
-/// `SHOP_CHARGE_TITLE_BYTES` supplies "Charge", its terminator and one retained
-/// carrier-specific byte. Panel-label drawing reads only through the terminator.
-static const char _gShopWeaponSupplyRefillTitle[8] = SHOP_CHARGE_TITLE_BYTES;
+/// The eight stored bytes hold "Charge", its NUL and one retained byte supplied
+/// by `SHOP_WEAPON_SUPPLY_REFILL_TITLE_TRAILING_BYTES`. Label drawing stops at the
+/// NUL; the string literal's final terminator is excluded from the array.
+static const char _gShopWeaponSupplyRefillTitle[8] = "Charge\0" SHOP_WEAPON_SUPPLY_REFILL_TITLE_TRAILING_BYTES;
 
 /// Runs the offered-item list and its preview and purchase child panels.
 ///

@@ -82,8 +82,7 @@ static const u16 _gShopStandardDefaultItemsStock[];
 /// Expands to the writable `const EquipmentWeaponSupply*` defined in
 /// `mist_parking_5.c` and declared in the private header. Keep this binding through
 /// `shop.inc.c`; `shop.h` specifies selection, lifetime and use by one panel at a time.
-#define SHOP_REFILL_SUPPLY      gShopRefillSupply
-#define SHOP_CHARGE_TITLE_BYTES "Charge\0\xE2"
+#define SHOP_REFILL_SUPPLY gShopRefillSupply
 #include "../../shared/shop.h"
 
 static s32  _mistParkingHandleCommand(Task* task, s32 messageId, s32 commandId, s32 unusedArg);
@@ -823,11 +822,14 @@ static void _mistParkingInitializeRoomTask(Task* task);
 
 static void _mistParkingIdleRoomState(Task* task);
 
+/// Retained byte following this room's weapon-supply refill title terminator.
+///
+/// One-byte string-literal binding for `shop.inc.c`; label drawing does not read it.
+#define SHOP_WEAPON_SUPPLY_REFILL_TITLE_TRAILING_BYTES "\xE2"
 #include "../../shared/shop.inc.c"
+#undef SHOP_WEAPON_SUPPLY_REFILL_TITLE_TRAILING_BYTES
 #undef SHOP_REFILL_DISPLAY_QUANTITY
 #undef SHOP_REFILL_SUPPLY
-
-#undef SHOP_CHARGE_TITLE_BYTES
 
 /// Retained bytes following this room's telephone menu title terminator.
 ///

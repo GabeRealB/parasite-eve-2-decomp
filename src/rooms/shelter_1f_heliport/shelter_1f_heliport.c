@@ -88,8 +88,6 @@ static void _shelter1fHeliportInitializeRoomTask(Task* task);
 static void _shelter1fHeliportUpdateRoom(Task* unusedTask);
 static void _shelter1fHeliportUpdatePlacedActorVisibility(void);
 
-#define SHOP_CHARGE_TITLE_BYTES "Charge\0" \
-                                "2"
 #include "../../shared/shop.h"
 #include "../../shared/cap_dialogue.h"
 
@@ -686,11 +684,14 @@ u8 D_shelter_1f_heliport_80182CB3 = 224;
 
 RoomLatchedEvent gRoomEventLatched = { 0 };
 
+/// Retained byte following this room's weapon-supply refill title terminator.
+///
+/// One-byte string-literal binding for `shop.inc.c`; label drawing does not read it.
+#define SHOP_WEAPON_SUPPLY_REFILL_TITLE_TRAILING_BYTES "\x32"
 #include "../../shared/shop.inc.c"
+#undef SHOP_WEAPON_SUPPLY_REFILL_TITLE_TRAILING_BYTES
 #undef SHOP_REFILL_DISPLAY_QUANTITY
 #undef SHOP_REFILL_SUPPLY
-
-#undef SHOP_CHARGE_TITLE_BYTES
 
 #include "../../shared/room_event_staged_task.inc.c"
 

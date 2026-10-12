@@ -96,7 +96,6 @@ static const u16 _gShopStandardDefaultAmmunitionStock[];
 static const u16 _gShopStandardDefaultArmorStock[];
 static const u16 _gShopStandardDefaultItemsStock[];
 
-#define SHOP_CHARGE_TITLE_BYTES "Charge\0\xEF"
 #include "../../shared/shop.h"
 
 static s32  _dryfieldTrailerCoachRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unusedSecondArg);
@@ -2111,11 +2110,14 @@ static void _dryfieldTrailerCoachInitializeRoomTask(Task* task);
 
 static void _dryfieldTrailerCoachOpenTopicChoice(Task* task);
 
+/// Retained byte following this room's weapon-supply refill title terminator.
+///
+/// One-byte string-literal binding for `shop.inc.c`; label drawing does not read it.
+#define SHOP_WEAPON_SUPPLY_REFILL_TITLE_TRAILING_BYTES "\xEF"
 #include "../../shared/shop.inc.c"
+#undef SHOP_WEAPON_SUPPLY_REFILL_TITLE_TRAILING_BYTES
 #undef SHOP_REFILL_DISPLAY_QUANTITY
 #undef SHOP_REFILL_SUPPLY
-
-#undef SHOP_CHARGE_TITLE_BYTES
 
 /// Retained bytes following this room's telephone menu title terminator.
 ///

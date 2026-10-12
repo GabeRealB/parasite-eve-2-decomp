@@ -312,7 +312,6 @@ static void _shelterB1UndergroundParkingSetFastLightPulse(s16 fastPulse);
 
 #include "../../shared/telephone.h"
 
-#define SHOP_CHARGE_TITLE_BYTES "Charge\0o"
 #include "../../shared/shop.h"
 #include "../../shared/cap_dialogue.h"
 
@@ -1939,11 +1938,14 @@ void shelterB1UndergroundParkingTelephoneMenuTask(Task* task)
 
 #include "../../shared/telephone_panels.inc.c"
 
+/// Retained byte following this room's weapon-supply refill title terminator.
+///
+/// One-byte string-literal binding for `shop.inc.c`; label drawing does not read it.
+#define SHOP_WEAPON_SUPPLY_REFILL_TITLE_TRAILING_BYTES "\x6F"
 #include "../../shared/shop.inc.c"
+#undef SHOP_WEAPON_SUPPLY_REFILL_TITLE_TRAILING_BYTES
 #undef SHOP_REFILL_DISPLAY_QUANTITY
 #undef SHOP_REFILL_SUPPLY
-
-#undef SHOP_CHARGE_TITLE_BYTES
 
 #include "../../shared/room_event_departure_task.inc.c"
 

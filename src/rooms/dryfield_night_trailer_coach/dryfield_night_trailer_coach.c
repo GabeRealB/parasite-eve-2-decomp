@@ -89,8 +89,7 @@ static const u16 _gShopStandardDefaultItemsStock[];
 /// `dryfield_night_trailer_coach_2.c` and declared in the private header. Keep this
 /// binding through `shop.inc.c`; `shop.h` specifies selection, lifetime and use by
 /// one panel at a time.
-#define SHOP_REFILL_SUPPLY      gShopRefillSupply
-#define SHOP_CHARGE_TITLE_BYTES "Charge\0\xFD"
+#define SHOP_REFILL_SUPPLY gShopRefillSupply
 #include "../../shared/shop.h"
 
 enum { DRYFIELD_NIGHT_TRAILER_COACH_LATE_CHAPTER = 4 };
@@ -1041,11 +1040,14 @@ static EvsCommand _gDryfieldNightTrailerCoachChapter4ShopGreetingScript[] = {
 
 static void _dryfieldNightTrailerCoachInitRoomTask(Task* task);
 
+/// Retained byte following this room's weapon-supply refill title terminator.
+///
+/// One-byte string-literal binding for `shop.inc.c`; label drawing does not read it.
+#define SHOP_WEAPON_SUPPLY_REFILL_TITLE_TRAILING_BYTES "\xFD"
 #include "../../shared/shop.inc.c"
+#undef SHOP_WEAPON_SUPPLY_REFILL_TITLE_TRAILING_BYTES
 #undef SHOP_REFILL_DISPLAY_QUANTITY
 #undef SHOP_REFILL_SUPPLY
-
-#undef SHOP_CHARGE_TITLE_BYTES
 
 /// Retained bytes following this room's telephone menu title terminator.
 ///
