@@ -7005,10 +7005,16 @@ static void _actor403200DeathHandoffState(Task* task)
 #include "../../shared/glutton_prop_task.inc.c"
 #undef GLUTTON_PROP_TASK
 
-/// Selects this carrier's 3-state thrown-sphere callback table.
+/// Binds the dumping-hole thrown-sphere dispatcher to its lifecycle callback table.
 ///
-/// Must name a live const `EnemyTaskFuncTable3` object, copied before
-/// dispatch. Bind only around this fragment inclusion, then undefine it.
+/// Must expand to the identifier of an overlay-local const `EnemyTaskFuncTable3`
+/// object, indexed by `Task::state`: 0 spawn, 1 flight, 2 destroy. All three
+/// callbacks are copied once before checking combat control; there is no
+/// terminator or index check. Each callback has signature `void(Enemy*, Task*)`
+/// and may destroy the live enemy and its coordinate-body task. The table and
+/// callback code must remain loaded for dispatch. Bind only around
+/// `glutton_throw_task.inc.c`, then undefine it. This identifier alias takes no
+/// arguments, captures no locals and adds no runtime side effects.
 #define GLUTTON_THROW_STATES gGluttonThrowStates
 #include "../../shared/glutton_throw_task.inc.c"
 #undef GLUTTON_THROW_STATES
