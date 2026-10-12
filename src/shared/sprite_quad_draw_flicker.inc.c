@@ -2,12 +2,16 @@
  *
  * The flicker form: the frame's low bit alternates two looks of the flame
  * strip (tpage 0x29, v 0xC8-0xFF) - SPRITE_QUAD_ODD_LOOK(prim) and
- * SPRITE_QUAD_EVEN_LOOK(prim), statements the including unit defines from
- * SPRITE_QUAD_SET_FLICKER_ODD_CELL / SPRITE_QUAD_SET_FLICKER_EVEN_CELL plus its own tint and blend
- * flags. */
+ * SPRITE_QUAD_CONFIGURE_FLICKER_EVEN_PACKET(prim), statements the including
+ * unit defines from SPRITE_QUAD_SET_FLICKER_ODD_CELL /
+ * SPRITE_QUAD_SET_FLICKER_EVEN_CELL plus its own tint and blend flags. */
 
 #ifndef SPRITE_QUAD_SCALE
 #error Define SPRITE_QUAD_SCALE before including the flicker sprite quad drawer
+#endif
+
+#ifndef SPRITE_QUAD_CONFIGURE_FLICKER_EVEN_PACKET
+#error Define SPRITE_QUAD_CONFIGURE_FLICKER_EVEN_PACKET before including the flicker sprite quad drawer
 #endif
 
 #ifndef SPRITE_QUAD_RESERVE_BEFORE_PROJECTION_CHECK
@@ -113,7 +117,7 @@ static void _spriteQuadDrawFlicker(const GfxCoord* coord, s16 frame, s16 sizeFac
         if (frame & 1) {
             SPRITE_QUAD_ODD_LOOK(prim);
         } else {
-            SPRITE_QUAD_EVEN_LOOK(prim);
+            SPRITE_QUAD_CONFIGURE_FLICKER_EVEN_PACKET(prim);
         }
         _spriteQuadSetFlickerCorners(block, prim, sizeFactor, spinAngle);
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
@@ -123,6 +127,6 @@ static void _spriteQuadDrawFlicker(const GfxCoord* coord, s16 frame, s16 sizeFac
 }
 
 #undef SPRITE_QUAD_ODD_LOOK
-#undef SPRITE_QUAD_EVEN_LOOK
+#undef SPRITE_QUAD_CONFIGURE_FLICKER_EVEN_PACKET
 #undef SPRITE_QUAD_RESERVE_BEFORE_PROJECTION_CHECK
 #undef SPRITE_QUAD_SCALE

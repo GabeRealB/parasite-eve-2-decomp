@@ -574,9 +574,21 @@ static void _combustionDrawEmber(const GfxCoord* coord, s32 animationFrame, s16 
     setRGB0(p, 0xC0, 0x70, 0x40);        \
     SPRITE_QUAD_SET_FLICKER_ODD_CELL(p); \
     setSemiTrans(p, 1)
-#define SPRITE_QUAD_EVEN_LOOK(p) \
-    setcode(p, 0x2F);            \
-    SPRITE_QUAD_SET_FLICKER_EVEN_CELL(p)
+/// Selects Combustion's additive raw texture on even wide-flame frames.
+///
+/// `quad` points to a writable, complete `POLY_FT4` initialized by `setPolyFT4`.
+/// `SPRITE_QUAD_SET_FLICKER_EVEN_CELL` supplies the fixed cell and palette;
+/// semitransparency uses that cell's additive texture page. Raw texture mode
+/// ignores the packet's RGB bytes, which this binding leaves untouched.
+/// The argument is evaluated repeatedly: supply a stable expression without
+/// side effects. Captures no locals; invoke inside a braced caller block.
+/// Bind before the next flicker-drawer inclusion, which undefines the binding.
+#define SPRITE_QUAD_CONFIGURE_FLICKER_EVEN_PACKET(quad) \
+    {                                                   \
+        setSemiTrans((quad), 1);                        \
+        setShadeTex((quad), 1);                         \
+        SPRITE_QUAD_SET_FLICKER_EVEN_CELL((quad));      \
+    }
 #include "../../shared/sprite_quad_draw_flicker.inc.c"
 
 /// Draws an additive square billboard from Combustion's twelve-cell large-flame sheet.

@@ -607,10 +607,25 @@ static void _energyballDrawGlowDisc(const GfxCoord* centreCoord, s16 radius, s16
     setSemiTrans(p, 1);         \
     setShadeTex(p, 1);          \
     SPRITE_QUAD_SET_FLICKER_ODD_CELL(p)
-#define SPRITE_QUAD_EVEN_LOOK(p)          \
-    setRGB0(p, 0x40, 0xC0, 0x60);         \
-    SPRITE_QUAD_SET_FLICKER_EVEN_CELL(p); \
-    setSemiTrans(p, 1)
+/// Selects Energy Ball's additive green tint on even projectile frames.
+///
+/// `quad` points to a writable, complete `POLY_FT4` initialized by `setPolyFT4`,
+/// with texture modulation enabled. Colour bytes use 128 as unity: red scales
+/// by one half, green by three halves and blue by three quarters.
+/// `SPRITE_QUAD_SET_FLICKER_EVEN_CELL` supplies the fixed cell, palette and
+/// additive texture page; this binding enables semitransparency.
+/// The argument is evaluated repeatedly: supply a stable expression without
+/// side effects. Captures no locals; invoke inside a braced caller block.
+/// Bind before the next flicker-drawer inclusion, which undefines the binding.
+#define SPRITE_QUAD_CONFIGURE_FLICKER_EVEN_PACKET(quad)                                                            \
+    {                                                                                                              \
+        enum { ENERGYBALL_FLICKER_EVEN_RED   = 0x40,                                                               \
+               ENERGYBALL_FLICKER_EVEN_GREEN = 0xC0,                                                               \
+               ENERGYBALL_FLICKER_EVEN_BLUE  = 0x60 };                                                              \
+        setRGB0((quad), ENERGYBALL_FLICKER_EVEN_RED, ENERGYBALL_FLICKER_EVEN_GREEN, ENERGYBALL_FLICKER_EVEN_BLUE); \
+        SPRITE_QUAD_SET_FLICKER_EVEN_CELL((quad));                                                                 \
+        setSemiTrans((quad), 1);                                                                                   \
+    }
 #include "../../shared/sprite_quad_draw_flicker.inc.c"
 
 #define GROUND_GLOW_R 0x20
