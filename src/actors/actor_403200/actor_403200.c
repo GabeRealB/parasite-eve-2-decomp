@@ -4942,54 +4942,58 @@ static void _actor403200InhaleState(Task* hostTask)
         sndEvtRequestScriptStop((((u16)enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | SOUND_CHARACTER(SOUND_BANK_GLUTTON, 0x0A), SOUND_SCRIPT_STOP_KEEP_RELEASE);
     }
 
-    /// Scales a borrowed, word-aligned SVECTOR with GTE Q12 multiplication.
+    /// Converts the inhale's normalized offset to a pull or a placement displacement.
     ///
-    /// Invoke as a statement with a stable pointer and a signed-halfword-range
-    /// factor. The pointer is evaluated by both load and store; the factor once.
-    /// A normalized Q12 vector becomes a coordinate-unit displacement.
-#define ACTOR_403200_SCALE_PULL_VECTOR(direction, factor) \
-    {                                                     \
-        gte_lddp(factor);                                 \
-        gte_ldsv(direction);                              \
-        gte_gpf12();                                      \
-        gte_stsv(direction);                              \
+    /// direction points to writable SVECTOR XYZ in Q12; factor is a signed
+    /// coordinate-unit distance that fits GTE IR0. Negative factors pull toward
+    /// the mouth; the catch uses positive 900 to place the player away from it.
+    /// GTE multiplication shifts by 12 and saturates each result to s16. The
+    /// pointer is evaluated once by load and again by store; factor once. Supply
+    /// side-effect-free arguments. Clobbers GTE IR0, IR1..3, MAC1..3, flags and
+    /// the colour FIFO; pad is untouched and no pointer is retained.
+#define ACTOR_403200_SCALE_INHALE_OFFSET(direction, factor) \
+    {                                                       \
+        gte_lddp((factor));                                 \
+        gte_ldsv((direction));                              \
+        gte_gpf12();                                        \
+        gte_stsv((direction));                              \
     }
 
     // Scale the normalized player direction to this cue's pull in coordinate units.
     work->hostExposed = 1;
     switch (work->hostRig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) {
         case 9:
-            ACTOR_403200_SCALE_PULL_VECTOR(&scratch->offset, -(scratch->phasePull + ACTOR_403200_INHALE_BASE_PULL) / 4);
+            ACTOR_403200_SCALE_INHALE_OFFSET(&scratch->offset, -(scratch->phasePull + ACTOR_403200_INHALE_BASE_PULL) / 4);
             work->neckPitchTarget = 0x180;
             break;
         case 10:
-            ACTOR_403200_SCALE_PULL_VECTOR(&scratch->offset, -(scratch->phasePull + ACTOR_403200_INHALE_BASE_PULL) / 2);
+            ACTOR_403200_SCALE_INHALE_OFFSET(&scratch->offset, -(scratch->phasePull + ACTOR_403200_INHALE_BASE_PULL) / 2);
             break;
         case 11:
         case 13:
         case 15:
-            ACTOR_403200_SCALE_PULL_VECTOR(&scratch->offset, -(scratch->phasePull + ACTOR_403200_INHALE_BASE_PULL));
+            ACTOR_403200_SCALE_INHALE_OFFSET(&scratch->offset, -(scratch->phasePull + ACTOR_403200_INHALE_BASE_PULL));
             work->neckPitchTarget = 0x2B2;
             break;
         case 12:
         case 14:
-            ACTOR_403200_SCALE_PULL_VECTOR(&scratch->offset, -((scratch->phasePull + ACTOR_403200_INHALE_BASE_PULL) * 3) / 2);
+            ACTOR_403200_SCALE_INHALE_OFFSET(&scratch->offset, -((scratch->phasePull + ACTOR_403200_INHALE_BASE_PULL) * 3) / 2);
             work->neckPitchTarget = 0x500;
             break;
         case 16:
-            ACTOR_403200_SCALE_PULL_VECTOR(&scratch->offset, -(scratch->phasePull + ACTOR_403200_INHALE_BASE_PULL) / 3);
+            ACTOR_403200_SCALE_INHALE_OFFSET(&scratch->offset, -(scratch->phasePull + ACTOR_403200_INHALE_BASE_PULL) / 3);
             work->neckPitchTarget = 0x100;
             break;
         case 17:
         case 18:
-            ACTOR_403200_SCALE_PULL_VECTOR(&scratch->offset, -(scratch->phasePull + ACTOR_403200_INHALE_BASE_PULL) / 3);
+            ACTOR_403200_SCALE_INHALE_OFFSET(&scratch->offset, -(scratch->phasePull + ACTOR_403200_INHALE_BASE_PULL) / 3);
             work->neckPitchTarget = 0x400;
             break;
         case 19:
         case 20:
             scratch->offset.vz = 0;
             scratch->offset.vx = 0;
-            ACTOR_403200_SCALE_PULL_VECTOR(&scratch->offset, -(scratch->phasePull + ACTOR_403200_INHALE_BASE_PULL) / 6);
+            ACTOR_403200_SCALE_INHALE_OFFSET(&scratch->offset, -(scratch->phasePull + ACTOR_403200_INHALE_BASE_PULL) / 6);
             work->neckPitchTarget = 0;
             break;
         default:
@@ -5019,7 +5023,7 @@ static void _actor403200InhaleState(Task* hostTask)
         directionPointer    = &scratch->offset;
         work->neckYawTarget = playerYaw;
         VectorNormalSS(directionPointer, directionPointer);
-        ACTOR_403200_SCALE_PULL_VECTOR(directionPointer, ACTOR_403200_INHALE_PLACEMENT_RADIUS);
+        ACTOR_403200_SCALE_INHALE_OFFSET(directionPointer, ACTOR_403200_INHALE_PLACEMENT_RADIUS);
 
         _gActor403200GluttonCaughtPlayerPlacement.placement.pos.vx = scratch->pullCentre.vx + scratch->offset.vx;
         _gActor403200GluttonCaughtPlayerPlacement.placement.pos.vy = playerTask->extra.tmd->coords->coord.t[1];
@@ -5087,7 +5091,7 @@ static void _actor403200InhaleState(Task* hostTask)
         work->viewSelector = ACTOR_403200_VIEW_SELECTOR_INHALE;
     }
 
-#undef ACTOR_403200_SCALE_PULL_VECTOR
+#undef ACTOR_403200_SCALE_INHALE_OFFSET
 
     SCRATCH_STACK_RELEASE_BLOCK(_Actor403200DragScratch);
 }

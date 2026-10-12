@@ -952,13 +952,17 @@ static void _actor800100InitTask(Task* task)
     s32                    bodyCategory;
     u8                     savedResourceVariant;
 
-/// Publishes and links a companion sphere with radius in game units.
+/// Links a companion motion sphere with its player-body category and identity.
 ///
-/// Supply an unlinked sphere with its coordinate/context already installed.
-/// Arguments are side-effect-free live pointers/scalars; sphere is evaluated
-/// repeatedly. Radius/flags narrow to u16; the category supplies the high key
-/// halfword. Captures the initializer's established companion-key bit.
-/// Expands to a braced block and retains no save pointer.
+/// Requires an unlinked WorldCollisionBody with live coord, local centre and
+/// motion context already installed; linking borrows that body until unlink.
+/// Radius is in game units and radius/flags narrow to u16. category is already
+/// shifted into the key's high halfword (PLAYER_BODY here). The low halfword
+/// combines save->state.characterId with the captured companion bit 0x80;
+/// body-index bits, when present, remain in bodyFlags. sphere is evaluated
+/// repeatedly; save and scalar arguments once. All must be side-effect-free.
+/// The statement block adds LINKED through the list API, retains the body in
+/// the player-body list and retains no save pointer.
 #define ACTOR_800100_LINK_COMPANION_BODY(sphere, save, radiusValue, bodyFlags, category) \
     {                                                                                    \
         s32 characterId  = (save)->state.characterId;                                    \

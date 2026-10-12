@@ -3412,11 +3412,15 @@ static void _actor400500TickCombatTask(Task* task)
     GfxCoord*                    rootCoord;
     GfxCoord*                    playerRoot;
 
-    /// Refreshes cached-position lighting and the combat room's Q12 ambient tint.
+    /// Samples the Stalker's cached part position and applies its combat-room tint.
     ///
-    /// actorTask must be a side-effect-free live Task pointer; it is read repeatedly.
-    /// Borrows one VECTOR scratch block plus nested lighting storage and releases
-    /// it before leaving the block. Uses this function's coordinate and ambient constants.
+    /// Requires a live Task, Enemy and model with part 1 already composed in the
+    /// lighting query's frame. Reads that cached XYZ without refreshing it.
+    /// Rooms 1, 3, 5 and 6 use Q12 grey (512,512,512); other rooms use green
+    /// (1024,4096,1024). Captures this handler's part and tint constants plus the
+    /// live session. actorTask is evaluated repeatedly and must be side-effect-free.
+    /// Borrows one VECTOR scratch block plus nested lighting workspace, releasing
+    /// the block before leaving; no pointer is retained.
 #define ACTOR_400500_UPDATE_COMBAT_COLOR(actorTask)                                                 \
     {                                                                                               \
         TmdObject* lightingModel;                                                                   \

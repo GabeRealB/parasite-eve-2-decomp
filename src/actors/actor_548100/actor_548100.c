@@ -162,10 +162,6 @@ enum {
         (previousNode) = *(cursor);                               \
     }
 
-/// Distance the current advances along a route on each frame of the panel's
-/// switch-on animation, in the units of `_Actor548100Edge::length`.
-#define ACTOR_548100_FLOW_SPEED 4
-
 /// Maps a battery socket number in 1..4 to its saved contents flag.
 ///
 /// Evaluates socket once and returns the flag index, without reading its value.
@@ -203,8 +199,8 @@ STATIC_ASSERT_SIZEOF(_Actor548100Leg, 0x2);
 ///
 /// Throwing the switch plays current flowing out along the legs of the
 /// `_Actor548100Circuit` that matches the filled sockets. Each leg's route is
-/// measured once, and the three `...Progress` distances then grow by
-/// `ACTOR_548100_FLOW_SPEED` a frame until every leg has run its length. The
+/// measured once, and the long and third progress distances then grow by
+/// `ACTOR_548100_FLOW_SPEED` per tick until every leg has run its length. The
 /// two battery legs are kept ordered by length rather than by socket, and the
 /// shorter one's distance is scaled from the longer one's, so both arrive on
 /// the same frame. An unused leg measures 1, which keeps that scaling defined
@@ -2577,6 +2573,14 @@ static void _actor548100WaitBatteryReturn(Task* task)
 /// The completion tick retains the previous shortProgress rather than rescaling.
 static void _actor548100AnimateCircuitFlow(Task* task)
 {
+    /// Current-front advance per switch-on tick, in dominant-axis diagram pixels.
+    ///
+    /// Route lengths sum each wire's dominant-axis pixel span less its two end
+    /// margins. The long and third legs advance by this amount; the short leg is
+    /// scaled from the long leg's progress. Progress narrows to s16 before
+    /// completion tests and clamping to the measured route lengths.
+    enum { ACTOR_548100_FLOW_SPEED = 4 };
+
     enum { ACTOR_548100_CAP_COMMAND_CIRCUIT_COMPLETE = 12 };
     _Actor548100Work* work = task->work;
 

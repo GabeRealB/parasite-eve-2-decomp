@@ -3272,13 +3272,19 @@ static s16 _gActor443500PierceCollisionCells[4] = {
 #include "assets/actor_443500_collision_269B8_cells.inc"
 };
 
-// Asset include binding: each index is an element offset into the cell lists.
-#define GRID_CELL(i) (&_gActor443500PierceCollisionCells[i])
+/// Addresses a face list in Pierce's packed collision-template halfword pool.
+///
+/// The generated table supplies a halfword offset, not a grid-cell index. It
+/// evaluates the offset once and returns an s16* into the captured private pool;
+/// the selected list must reach its -1 terminator within that pool. This asset's
+/// sole entry uses offset 0 for faces 0 and 1. The collisionSource manifest entry
+/// selects this binding for the include producer; it is undefined after the table.
+#define ACTOR_443500_PIERCE_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gActor443500PierceCollisionCells[(halfwordOffset)])
 /// Cell table of Pierce's collision template, borrowing its face-index list.
 static s16* _gActor443500PierceCollisionTable[1] = {
 #include "assets/actor_443500_collision_269B8_table.inc"
 };
-#undef GRID_CELL
+#undef ACTOR_443500_PIERCE_CELL_FACE_LIST_AT_OFFSET
 
 /// Pierce's obstacle mesh template for the leading entries of room 47's grid.
 ///

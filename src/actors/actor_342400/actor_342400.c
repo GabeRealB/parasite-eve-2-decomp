@@ -655,11 +655,15 @@ static void _actor342400WaveInitialize(Task* controllerTask)
     controllerTask->state++;
 }
 
-/// Selects the private incinerator row spawner for the encounter opening.
+/// Binds the encounter opening's row-spawn operation to the incinerator spawner.
 ///
-/// Requires a declared `void (s16 slotIndex, s16 enemyKind, s16 command)`
-/// callback and its live descriptor/placement resources. The opening fragment
-/// evaluates each argument once and undefines this identifier binding.
+/// The value is a declared void(s16 slotIndex, s16 enemyKind, s16 command)
+/// function identifier, with live descriptor and placement resources. The
+/// opening fragment calls it for slots 0..2: kinds 0/1/2 select a Mad Chaser,
+/// a Slouch or a Sucklerceph pair, and command is the packed signed-halfword
+/// emergence command. Each call argument is evaluated once and narrowed to s16.
+/// The controller advances its cursor even if spawning fails. The fragment
+/// undefines this inclusion-local binding after its body.
 #define OVERLAY_ENCOUNTER_SPAWN_SLOT _actor342400SpawnEncounterSlot
 #include "../../shared/mad_chaser_waves_open.inc.c"
 

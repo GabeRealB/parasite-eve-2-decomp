@@ -2450,11 +2450,15 @@ static __inline__ void _actor401300InitializePoseAndCombat(GfxCoord* coord, _Act
     SCRATCH_STACK_RELEASE_BLOCK(ActorScaleRotScratch);
 }
 
-/// Seeds two horizontal patrol endpoints from the placed facing, in game units.
+/// Seeds the Horned Stranger's patrol segment along its placed horizontal facing.
 ///
-/// actor and work must be live; direction must point to the writable forward
-/// SVECTOR. Arguments occur repeatedly and must be side-effect-free. The block
-/// writes temporary XYZ, patrol endpoints and their selector; it retains no pointer.
+/// Requires a live Task/model and writable work with two patrolPoints. direction
+/// must equal &forward for the writable SVECTOR scratch; its XYZ are overwritten
+/// while pad is untouched. Endpoint 0 copies root XZ, endpoint 1 adds the facing
+/// normalized to Q12 and scaled to 2000 game units; both endpoints narrow to s16.
+/// Resets patrolTarget to 0 without moving the actor. Clobbers the GTE scaling
+/// registers and colour FIFO. Arguments are evaluated repeatedly and must be
+/// side-effect-free; the statement block retains no pointer.
 #define ACTOR_401300_SEED_PATROL_POINTS(actor, work, forward, direction)                   \
     {                                                                                      \
         enum { ACTOR_401300_PATROL_STEP = 2000 };                                          \
@@ -3951,16 +3955,18 @@ static void _actor401300StateGrab(Task* actor)
     }
 }
 
-/// Places the held player and separates the actor horizontally for the strike.
+/// Sets up the grab-pull clip and places the held player facing the separated actor.
 ///
-/// Requires live actor/Enemy/work storage and the held player's model in the
-/// same parent-coordinate frame. Player placement copies the original XYZ;
-/// separation is 1000 horizontal game units and angles use 4096ths of a turn.
-/// The caller supplies writable Task*, SVECTOR and SVECTOR* temporaries as
-/// playerTask, fromPlayer and separation. Requires local constants
-/// `ACTOR_401300_ANIM_GRAB_PULL` and `ACTOR_401300_GRAB_SEPARATION`.
-/// Arguments occur repeatedly and must be side-effect-free.
-/// Expands to one block; the placement payload is borrowed through dispatch.
+/// Requires live Task/Enemy/work storage and a held player model in the same
+/// parent frame. Fetches the player Task into playerTask, preserves the player's
+/// XYZ in the work-owned placement and moves only actor XZ to a normalized
+/// nominal 1000-unit separation; the narrowed SVECTOR offset supplies the player's yaw
+/// in 4096 units per turn. Resets attack pairing, enables grid collision and
+/// requests the grab-pull clip at normal rate. The caller supplies writable
+/// Task*, SVECTOR and SVECTOR* temporaries; separation becomes &fromPlayer.
+/// Captures the handler's GRAB_PULL and GRAB_SEPARATION constants plus GTE state.
+/// Arguments are repeated and must be side-effect-free. The statement block
+/// sends a synchronously borrowed placement payload and retains no scratch pointer.
 #define ACTOR_401300_PLACE_GRAB_PAIR(actor, work, enemy, playerTask, fromPlayer, separation)                                   \
     {                                                                                                                          \
         (playerTask)                                  = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);                                \
@@ -4238,16 +4244,16 @@ static __inline__ void _actorRenderRescaleYawXZ(GfxCoord* coord, s32 horizontalS
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
-/// Anchors the corpse burn under the body in world coordinates at root height.
+/// Starts the corpse burn at part 2's world XZ and the model root's height.
 ///
-/// Requires live actor/Enemy/work storage, model part 2 and gGfxViewCoord.
-/// XZ comes from the part's world origin, narrowed to halfwords; Y comes from
-/// the root's parent-space height. Attaches the resulting anchor to the view
-/// coordinate, composes it and starts weighted-color burn playback. The caller
-/// supplies a writable SVECTOR burnOrigin and local
-/// `ACTOR_401300_BURN_BURST_COUNT`.
-/// Arguments occur repeatedly and must be side-effect-free. Expands to one block;
-/// the work-owned burnCoord must outlive the spawned effect's use of it.
+/// Requires live Task/Enemy/work storage, model part 2 and the root under
+/// gGfxViewCoord. burnOrigin is writable SVECTOR scratch: the local zero point
+/// is transformed through the part's parents, narrowing at each level. Uses
+/// its world XZ and root Y for an identity-rotation anchor under the view,
+/// then composes it and selects weighted actor colour. Captures the handler's
+/// BURN_BURST_COUNT (3) spawn argument. Arguments are repeated and must be
+/// side-effect-free. The statement block borrows render scratch/GTE state;
+/// work-owned burnCoord must remain live while the spawned effect uses it.
 #define ACTOR_401300_START_CORPSE_BURN(actor, work, enemy, burnOrigin)                            \
     {                                                                                             \
         gfxSetRotIdentity(&(work)->burnCoord.coord);                                              \
@@ -4332,14 +4338,16 @@ static void _actor401300StateDeathBurn(Task* actor)
 
 #undef ACTOR_401300_START_CORPSE_BURN
 
-/// Checks horizontal player proximity and combat noise for ordinary dormancy.
+/// Selects ALERT when the dormant Stranger notices the player or combat noise.
 ///
-/// Requires live actor/player roots in the same parent-coordinate frame and
-/// writable work. Reads gPlayerStatus and gSceneCombatState; narrows the player
-/// offset to an SVECTOR and tests XZ within 3000 game units. Noise additionally
-/// engages battle. rootCoord, delta and toPlayer are writable GfxCoord*, SVECTOR
-/// and SVECTOR* caller temporaries. Arguments occur repeatedly and must be
-/// side-effect-free. Expands to one block and releases nested range scratch.
+/// Requires live actor/player roots in the same parent frame and writable work.
+/// Stores the root in rootCoord and &delta in toPlayer; all XYZ differences
+/// narrow to s16 before the inclusive 3000-unit XZ test. Proximity only selects
+/// ALERT; the separate noise test also engages battle, even if already alerted.
+/// Captures gPlayerStatus and gSceneCombatState. rootCoord, delta and toPlayer
+/// are writable GfxCoord*, SVECTOR and SVECTOR* caller temporaries. Repeated
+/// arguments must be side-effect-free. The statement block releases its nested
+/// range scratch and retains no temporary pointer.
 #define ACTOR_401300_CHECK_DORMANT_ALERT(actor, work, rootCoord, delta, toPlayer)          \
     {                                                                                      \
         (rootCoord)    = (actor)->extra.tmd->coords;                                       \
@@ -4423,15 +4431,17 @@ static void _actor401300StateDormant(Task* actor)
 
 #undef ACTOR_401300_CHECK_DORMANT_ALERT
 
-/// Stops the dormant sound on proximity and alerts on proximity or combat noise.
+/// Alerts the scripted dormant Stranger and stops its idle sound on proximity.
 ///
-/// Requires live actor/player roots in the same parent-coordinate frame and
-/// writable work. Reads gPlayerStatus and gSceneCombatState; narrows the player
-/// offset and tests XZ within 3000 game units. Proximity stops the base sound;
-/// both proximity and noise engage battle and alert. rootCoord, delta and
-/// toPlayer are writable GfxCoord*, SVECTOR and SVECTOR* caller temporaries.
-/// Arguments occur repeatedly and must be side-effect-free. Expands to one block
-/// and releases nested range scratch.
+/// Requires live actor/player roots in the same parent frame and writable work.
+/// Stores the root in rootCoord and &delta in toPlayer, narrowing XYZ differences
+/// to s16 before the inclusive 3000-unit XZ test. Proximity stops the base patio
+/// idle script with its release preserved and engages battle; noise independently
+/// engages battle without stopping that sound. Both select ALERT, and both
+/// branches run when both triggers are present. Captures gPlayerStatus and
+/// gSceneCombatState. The GfxCoord*, SVECTOR and SVECTOR* outputs are caller
+/// temporaries. Repeated arguments must be side-effect-free. The statement block
+/// releases nested range scratch and retains no temporary pointer.
 #define ACTOR_401300_CHECK_SCRIPTED_DORMANT_ALERT(actor, work, rootCoord, delta, toPlayer)                   \
     {                                                                                                        \
         (rootCoord)    = (actor)->extra.tmd->coords;                                                         \
@@ -4510,13 +4520,15 @@ static void _actor401300StateDormantScripted(Task* actor)
 
 #undef ACTOR_401300_CHECK_SCRIPTED_DORMANT_ALERT
 
-/// Limits the patrol turn and replaces the model root heading.
+/// Applies the patrol's bounded relative yaw and restores the model's root scale.
 ///
-/// Requires live actor/model storage and reserved ActorTurnScratch with a signed
-/// relative yaw; turnLimit is positive in 4096ths of a turn. Translation stays
-/// intact; the scratch yaw becomes absolute. Restores the uniform root scale.
-/// Arguments must be side-effect-free: pointers and limit occur repeatedly.
-/// headingRoot must be a writable GfxCoord* local. Expands to one block.
+/// Requires a live Task/model and ActorTurnScratch whose angle is the relative
+/// yaw in 4096 units per turn. turnLimit is positive (32 in patrol). Clamps both
+/// signs, adds the current root heading and narrows the absolute yaw back to s16.
+/// Replaces pitch/roll/yaw, restores the captured Q12 ROOT_SCALE and marks the
+/// root dirty; translation is unchanged. headingRoot is a writable GfxCoord*
+/// caller temporary. Repeated pointers and limit must be side-effect-free.
+/// The statement block borrows nested render scratch and retains no pointer.
 #define ACTOR_401300_TURN_PATROL_ROOT(actor, scratch, headingRoot, turnLimit)                           \
     {                                                                                                   \
         if ((scratch)->angle > (turnLimit)) {                                                           \
@@ -4629,13 +4641,15 @@ static void _actor401300StatePatrol(Task* actor)
 
 #undef ACTOR_401300_TURN_PATROL_ROOT
 
-/// Limits the slide turn and replaces the model root heading.
+/// Applies the slide's bounded relative yaw with an unscaled root rotation.
 ///
-/// Requires live actor/model storage and reserved ActorTurnScratch with a signed
-/// relative yaw; turnLimit is positive in 4096ths of a turn. Translation stays
-/// intact; the scratch yaw becomes absolute. Leaves the root unscaled.
-/// Arguments must be side-effect-free: pointers and limit occur repeatedly.
-/// headingRoot must be a writable GfxCoord* local. Expands to one block.
+/// Requires a live Task/model and ActorTurnScratch whose angle is the relative
+/// yaw in 4096 units per turn. turnLimit is positive (64 in slide). Clamps both
+/// signs, adds the current heading and narrows the absolute yaw back to s16.
+/// Replaces pitch/roll/scale with a pure Y rotation, preserving translation.
+/// This block does not change composeStamp. headingRoot is a writable GfxCoord*
+/// temporary, and the caller manages subsequent coordinate invalidation.
+/// Repeated arguments must be side-effect-free; no pointer is retained.
 #define ACTOR_401300_TURN_SLIDE_ROOT(actor, scratch, headingRoot, turnLimit)                            \
     {                                                                                                   \
         if ((scratch)->angle > (turnLimit)) {                                                           \
@@ -4715,15 +4729,17 @@ static void _actor401300StateSlide(Task* actor)
 
 #undef ACTOR_401300_TURN_SLIDE_ROOT
 
-/// Limits the backoff turn and replaces the model root heading.
+/// Applies the backoff's asymmetric turn limit and restores the root scale.
 ///
-/// Positive turns are clamped then halved; turns below the negative limit
-/// retain that full limit. The remaining turns are arithmetically halved.
-/// Requires live actor/model storage and reserved ActorChaseScratch with a signed
-/// relative yaw; turnLimit is positive in 4096ths of a turn. Translation stays
-/// intact; the scratch yaw becomes absolute. Restores the uniform root scale.
-/// Arguments must be side-effect-free: pointers and limit occur repeatedly.
-/// headingRoot must be a writable GfxCoord* local. Expands to one block.
+/// Requires a live Task/model and ActorChaseScratch with relative turn in 4096
+/// units per revolution. turnLimit is positive (128 in backoff). Turns below
+/// -turnLimit use the full negative clamp; every other turn, including equality
+/// at -turnLimit, is clamped at the positive end and arithmetically halved.
+/// Adds the current heading and narrows the absolute turn to s16, replaces
+/// root rotation, restores the captured Q12 ROOT_SCALE and marks it dirty.
+/// Translation stays intact. headingRoot is a writable GfxCoord* caller local.
+/// Repeated arguments must be side-effect-free. The statement block borrows
+/// nested render scratch and retains no pointer.
 #define ACTOR_401300_TURN_BACK_OFF_ROOT(actor, scratch, headingRoot, turnLimit)                        \
     {                                                                                                  \
         if ((scratch)->turn > (turnLimit)) {                                                           \
@@ -4816,13 +4832,15 @@ static void _actor401300StateBackOff(Task* actor)
 
 #undef ACTOR_401300_TURN_BACK_OFF_ROOT
 
-/// Limits the grabwindup turn and replaces the model root heading.
+/// Applies the grab windup's bounded relative yaw and restores the root scale.
 ///
-/// Requires live actor/model storage and reserved ActorChaseScratch with a signed
-/// relative yaw; turnLimit is positive in 4096ths of a turn. Translation stays
-/// intact; the scratch yaw becomes absolute. Restores the uniform root scale.
-/// Arguments must be side-effect-free: pointers and limit occur repeatedly.
-/// headingRoot must be a writable GfxCoord* local. Expands to one block.
+/// Requires a live Task/model and ActorChaseScratch whose turn is relative yaw
+/// in 4096 units per revolution. turnLimit is positive (32 in grab windup).
+/// Clamps both signs, adds current root heading and narrows the absolute turn
+/// to s16. Replaces pitch/roll/yaw, restores the captured Q12 ROOT_SCALE and
+/// marks the root dirty; translation stays intact. headingRoot is a writable
+/// GfxCoord* caller temporary. Repeated arguments must be side-effect-free.
+/// The statement block borrows nested render scratch and retains no pointer.
 #define ACTOR_401300_TURN_GRAB_WINDUP_ROOT(actor, scratch, headingRoot, turnLimit)                     \
     {                                                                                                  \
         if ((scratch)->turn > (turnLimit)) {                                                           \
@@ -4891,15 +4909,18 @@ static void _actor401300StateGrabWindup(Task* actor)
 
 /// Adds an X bend to one joint and refreshes the separately selected coordinate.
 ///
-/// Requires both part indices in the live model array. Angles use 4096 units
-/// per turn. Arguments must be side-effect-free: actor occurs three times,
-/// composedPart twice, bentPart/bendAngle once. Expands to one statement block;
-/// composition may walk parents. Undefined after its only state handler.
-#define ACTOR_401300_COMPOSE_JOINT_BEND(actor, bentPart, composedPart, bendAngle)                           \
-    {                                                                                                       \
-        gfxRotMatrixX(&(actor)->extra.tmd->coords[bentPart].coord, (bendAngle), GRAPHICS_ROTATION_COMPOSE); \
-        (actor)->extra.tmd->coords[composedPart].composeStamp = GRAPHICS_COORD_DIRTY;                       \
-        actorRenderComposeCoord(&(actor)->extra.tmd->coords[composedPart]);                                 \
+/// Requires a live Task/model, with both part indices in its coordinate array.
+/// bendAngle is an X rotation in 4096 units per turn. bentPart and composedPart
+/// are independent: the bend-over state bends part 5 while refreshing part 4.
+/// Invalidates only composedPart, then composes through its live parent chain.
+/// actor is evaluated three times, composedPart twice, bentPart and bendAngle
+/// once. Arguments must be side-effect-free. The statement block borrows nested
+/// render scratch and GTE state and is undefined after the bend-over handler.
+#define ACTOR_401300_COMPOSE_JOINT_BEND(actor, bentPart, composedPart, bendAngle)                             \
+    {                                                                                                         \
+        gfxRotMatrixX(&(actor)->extra.tmd->coords[(bentPart)].coord, (bendAngle), GRAPHICS_ROTATION_COMPOSE); \
+        (actor)->extra.tmd->coords[(composedPart)].composeStamp = GRAPHICS_COORD_DIRTY;                       \
+        actorRenderComposeCoord(&(actor)->extra.tmd->coords[(composedPart)]);                                 \
     }
 
 /// Bends the upper joints, then straightens while turning back toward the player.

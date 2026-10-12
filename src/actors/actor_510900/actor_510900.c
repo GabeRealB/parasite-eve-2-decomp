@@ -1163,19 +1163,23 @@ DamageAttack gActor510900Attacks[6] = {
     { 1, 6 },
 };
 
-/// Chooses a flame-particle velocity and advances the draw used for its size.
+/// Chooses a flame-jet particle's local velocity and draws its subsequent size bits.
 ///
-/// Standalone block; effect must be a stable pointer lvalue and the numeric
-/// arguments side-effect-free: horizontalRange is positive, verticalStep fits
-/// s16. Velocity is in parent-coordinate units, X lies in [-range-127,-128].
-/// Captures/updates the resident LCG state twice and retains no pointer.
-#define ACTOR_510900_PREPARE_FLAME_JET_PARTICLE_VELOCITY(effect, horizontalRange, verticalStep) \
-    {                                                                                           \
-        gRandomLcgState   = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;     \
-        (effect)->move.vx = -((gRandomLcgState >> 16) % (horizontalRange)) - 0x80;              \
-        (effect)->move.vy = (verticalStep);                                                     \
-        (effect)->move.vz = 0;                                                                  \
-        gRandomLcgState   = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;     \
+/// Requires live EffectWork and side-effect-free arguments; effect is evaluated
+/// repeatedly, horizontalRange and verticalStep once. horizontalRange is positive
+/// (640 or 704 here), verticalStep fits s16, and XYZ use emitter-local game units
+/// per particle tick. X lies in [-horizontalRange-127,-128], Y is verticalStep,
+/// and Z is zero. Advances the shared LCG twice: the first draw selects X and the
+/// second is left in gRandomLcgState for the following spawn's size. The block
+/// retains no pointer and leaves the vector pad untouched.
+#define ACTOR_510900_PREPARE_FLAME_JET_PARTICLE_VELOCITY(effect, horizontalRange, verticalStep)                  \
+    {                                                                                                            \
+        enum { ACTOR_510900_FLAME_JET_MIN_X_SPEED = 128 };                                                       \
+        gRandomLcgState   = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;                      \
+        (effect)->move.vx = -((gRandomLcgState >> 16) % (horizontalRange)) - ACTOR_510900_FLAME_JET_MIN_X_SPEED; \
+        (effect)->move.vy = (verticalStep);                                                                      \
+        (effect)->move.vz = 0;                                                                                   \
+        gRandomLcgState   = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;                      \
     }
 
 void actor510900FlameJetTask(Task* task)
@@ -2077,32 +2081,39 @@ void actor510900ExplosionTask185(Task* task)
     }
 }
 
-/// Builds the fireball's random drift, scaled by size and motion in its parent basis.
+/// Builds the fireball's random drift and rotates it from the borrowed parent basis.
 ///
-/// Standalone block; effect must be a stable pointer lvalue. Captures the LCG
-/// state, GTE and the enclosing task's two FIREBALL_*SHIFT/FRACTION_BITS
-/// constants. The borrowed parent matrix must remain live; each GTE scale
-/// saturates to signed halfwords before the parent rotation.
-#define ACTOR_510900_MAKE_FIREBALL_DRIFT(effect)                                            \
-    {                                                                                       \
-        gRandomLcgState   = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT; \
-        (effect)->move.vx = 0x10 - ((gRandomLcgState >> 16) & 0x1F);                        \
-        gRandomLcgState   = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT; \
-        (effect)->move.vy = 0x10 - ((gRandomLcgState >> 16) & 0x1F);                        \
-        gRandomLcgState   = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT; \
-        (effect)->move.vz = 0x10 - ((gRandomLcgState >> 16) & 0x1F);                        \
-        gte_lddp((effect)->scale << ACTOR_510900_FIREBALL_DRIFT_SCALE_SHIFT);               \
-        gte_ldsv(&(effect)->move);                                                          \
-        gte_gpf12();                                                                        \
-        gte_stsv(&(effect)->move);                                                          \
-        gte_lddp((effect)->index << ACTOR_510900_FIREBALL_ROTATION_FRACTION_BITS);          \
-        gte_ldsv(&(effect)->move);                                                          \
-        gte_gpf12();                                                                        \
-        gte_stsv(&(effect)->move);                                                          \
-        gte_SetRotMatrix(&(effect)->parent->coord);                                         \
-        gte_ldv0(&(effect)->move);                                                          \
-        gte_rtv0();                                                                         \
-        gte_stsv(&(effect)->move);                                                          \
+/// Requires live EffectWork, writable move XYZ and a live parent coordinate.
+/// Advances the shared LCG three times, drawing each component in [-15,16].
+/// Applies successive GTE Q12 factors scale<<3 and index<<12, storing s16
+/// results after each operation, then rotates by parent->coord without adding
+/// translation. Retains GTE saturation and IR0 narrowing at each scale rather
+/// than combining the factors. Captures the enclosing task's two shift constants
+/// and clobbers the GTE rotation matrix, vector/MAC registers, flags and colour
+/// FIFO. effect is evaluated repeatedly and must be side-effect-free; the block
+/// leaves move.pad untouched and retains no pointer.
+#define ACTOR_510900_MAKE_FIREBALL_DRIFT(effect)                                                                                             \
+    {                                                                                                                                        \
+        enum { ACTOR_510900_FIREBALL_DRIFT_RANDOM_CENTRE = 16,                                                                               \
+               ACTOR_510900_FIREBALL_DRIFT_RANDOM_MASK   = 31 };                                                                               \
+        gRandomLcgState   = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;                                                  \
+        (effect)->move.vx = ACTOR_510900_FIREBALL_DRIFT_RANDOM_CENTRE - ((gRandomLcgState >> 16) & ACTOR_510900_FIREBALL_DRIFT_RANDOM_MASK); \
+        gRandomLcgState   = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;                                                  \
+        (effect)->move.vy = ACTOR_510900_FIREBALL_DRIFT_RANDOM_CENTRE - ((gRandomLcgState >> 16) & ACTOR_510900_FIREBALL_DRIFT_RANDOM_MASK); \
+        gRandomLcgState   = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;                                                  \
+        (effect)->move.vz = ACTOR_510900_FIREBALL_DRIFT_RANDOM_CENTRE - ((gRandomLcgState >> 16) & ACTOR_510900_FIREBALL_DRIFT_RANDOM_MASK); \
+        gte_lddp((effect)->scale << ACTOR_510900_FIREBALL_DRIFT_SCALE_SHIFT);                                                                \
+        gte_ldsv(&(effect)->move);                                                                                                           \
+        gte_gpf12();                                                                                                                         \
+        gte_stsv(&(effect)->move);                                                                                                           \
+        gte_lddp((effect)->index << ACTOR_510900_FIREBALL_ROTATION_FRACTION_BITS);                                                           \
+        gte_ldsv(&(effect)->move);                                                                                                           \
+        gte_gpf12();                                                                                                                         \
+        gte_stsv(&(effect)->move);                                                                                                           \
+        gte_SetRotMatrix(&(effect)->parent->coord);                                                                                          \
+        gte_ldv0(&(effect)->move);                                                                                                           \
+        gte_rtv0();                                                                                                                          \
+        gte_stsv(&(effect)->move);                                                                                                           \
     }
 
 void actor510900ExplosionFireballTask184(Task* task)

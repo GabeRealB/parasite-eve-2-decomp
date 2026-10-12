@@ -733,9 +733,6 @@ extern const s8 gActor503500ArmDestroyingAttachmentRows[56];
 /// bank immediately before playing it. Keep both overlays loaded during playback.
 extern AnimationSet* gActor503500PlayerKnockbackAnimationSets[ACTOR_503500_KNOCKBACK_SET_COUNT];
 
-/// Writable restore-clip view; an AnimationSet* lvalue with no separate storage.
-#define D_actor_503500_801714DC (gActor503500PlayerKnockbackAnimationSets[ACTOR_503500_KNOCKBACK_RESTORE_SET])
-
 /// Number of player fall directions selected by the sign of the rotated arm Z.
 enum { ACTOR_503500_KNOCKBACK_FALL_DIRECTION_COUNT = 2 };
 

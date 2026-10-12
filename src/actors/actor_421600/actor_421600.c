@@ -3258,24 +3258,30 @@ static void _actor421600EntranceLungeState(Task* task)
     Enemy*                    enemy;
     _Actor421600LungeScratch* scratch;
 
-    /// Starts a catch clip and a stopped collision-enabled scripted move.
+    /// Starts the selected player catch clip and resets the held-player movement.
     ///
-    /// Work/player arguments must be live, side-effect-free pointer expressions:
-    /// each is evaluated repeatedly. `clipId` is evaluated once. Invoke within
-    /// an already braced statement block. Dispatch consumes the borrowed
-    /// animation request synchronously; no value is returned.
-#define ACTOR421600_BEGIN_PLAYER_CATCH(chaserWork, caughtPlayer, clipId)              \
-    (chaserWork)->playerAnim.animationId         = (clipId);                          \
-    (chaserWork)->playerAnim.blend               = ANIMATION_BLEND_RESET;             \
-    (chaserWork)->playerAnim.blendFrames         = 0;                                 \
-    (chaserWork)->playerMove.displacement.vx     = 0;                                 \
-    (chaserWork)->playerMove.displacement.vy     = 0;                                 \
-    (chaserWork)->playerMove.displacement.vz     = 0;                                 \
-    (chaserWork)->playerMove.collisionRequests   = GAME_ACTOR_COLLISION_REQUEST_MASK; \
-    (chaserWork)->playerMove.keepControl         = 1;                                 \
-    (chaserWork)->playerHeld                     = 1;                                 \
-    (chaserWork)->lastCommand.fields.catchFrames = 0;                                 \
-    TASK_MESSAGE_DISPATCH_POINTER((caughtPlayer), ANIMATION_MESSAGE_REPLACE_AND_PLAY, &(chaserWork)->playerAnim, 0)
+    /// Requires live DesertChaserWork and player Task pointers, a selected
+    /// playerAnim source table and the player's accepted button-press hold.
+    /// clipId is 3 for the close catch or 1 for the throw. Resets blending,
+    /// the held-frame count and displacement, enabling all movement collision
+    /// requests while keeping scripted control. Work is evaluated repeatedly;
+    /// player and clipId once. Arguments must be side-effect-free. Dispatch
+    /// reads the work-owned animation payload synchronously; its table remains
+    /// borrowed throughout playback. Expands to one statement block.
+#define ACTOR_421600_BEGIN_PLAYER_CATCH(chaserWork, caughtPlayer, clipId)                                                \
+    {                                                                                                                    \
+        (chaserWork)->playerAnim.animationId         = (clipId);                                                         \
+        (chaserWork)->playerAnim.blend               = ANIMATION_BLEND_RESET;                                            \
+        (chaserWork)->playerAnim.blendFrames         = 0;                                                                \
+        (chaserWork)->playerMove.displacement.vx     = 0;                                                                \
+        (chaserWork)->playerMove.displacement.vy     = 0;                                                                \
+        (chaserWork)->playerMove.displacement.vz     = 0;                                                                \
+        (chaserWork)->playerMove.collisionRequests   = GAME_ACTOR_COLLISION_REQUEST_MASK;                                \
+        (chaserWork)->playerMove.keepControl         = 1;                                                                \
+        (chaserWork)->playerHeld                     = 1;                                                                \
+        (chaserWork)->lastCommand.fields.catchFrames = 0;                                                                \
+        TASK_MESSAGE_DISPATCH_POINTER((caughtPlayer), ANIMATION_MESSAGE_REPLACE_AND_PLAY, &(chaserWork)->playerAnim, 0); \
+    }
 
     work   = task->work;
     enemy  = task->spawnArg2.pointer;
@@ -3353,7 +3359,7 @@ static void _actor421600EntranceLungeState(Task* task)
                     }
                 }
                 if (scratch->playerKilled != 1) {
-                    ACTOR421600_BEGIN_PLAYER_CATCH(work, player, ACTOR421600_PLAYER_CLIP_CLOSE_CATCH);
+                    ACTOR_421600_BEGIN_PLAYER_CATCH(work, player, ACTOR421600_PLAYER_CLIP_CLOSE_CATCH);
                 }
                 nextState = ACTOR421600_STATE_CLOSE_CATCH;
             } else {
@@ -3369,7 +3375,7 @@ static void _actor421600EntranceLungeState(Task* task)
                 if (scratch->playerKilled == 1) {
                     ((GameActor*)player->work)->state = ACTOR421600_PLAYER_DEATH_STATE;
                 }
-                ACTOR421600_BEGIN_PLAYER_CATCH(work, player, ACTOR421600_PLAYER_CLIP_THROW);
+                ACTOR_421600_BEGIN_PLAYER_CATCH(work, player, ACTOR421600_PLAYER_CLIP_THROW);
                 nextState = ACTOR421600_STATE_THROW_PLAYER;
             }
             work->state = nextState;
@@ -3438,7 +3444,7 @@ static void _actor421600EntranceLungeState(Task* task)
         }
     }
     SCRATCH_STACK_RELEASE_BLOCK(_Actor421600LungeScratch);
-#undef ACTOR421600_BEGIN_PLAYER_CATCH
+#undef ACTOR_421600_BEGIN_PLAYER_CATCH
 }
 
 /// Runs along adjacent arena waypoints to the end farthest from the player's zone.
