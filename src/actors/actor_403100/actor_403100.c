@@ -2271,26 +2271,38 @@ static void _actor403100TurnUpperArm(Task* task)
 /// Queues a subtractive arm-shadow quad from accepted packed XY/depth outputs.
 ///
 /// Requires the current primitive arena (one POLY_FT4 free) and ordering table.
-/// Arguments are evaluated once; screen words and depth must be scalar values.
+/// Arguments are evaluated once; screen words pack signed pixel X/Y and depth
+/// is the successful projection's sorting Z/4. Requires the loaded 4-bit atlas
+/// at page (512,0), palette (48,266), UV rectangle (192,152)..(247,207).
 /// Captures the current graphics globals, advances the arena and links the packet.
 /// Expands to a braced block, used as a standalone statement. Depth wraps at
 /// the ordering-table mask; the packet stays live until frame DMA completes.
-#define ACTOR_403100_QUEUE_ARM_SHADOW(screen0, screen1, screen2, screen3, depth)                                                                                      \
-    {                                                                                                                                                                 \
-        POLY_FT4* shadowQuad;                                                                                                                                         \
-        shadowQuad     = gGpuPrimCursor;                                                                                                                              \
-        gGpuPrimCursor = shadowQuad + 1;                                                                                                                              \
-        setPolyFT4(shadowQuad);                                                                                                                                       \
-        setSemiTrans(shadowQuad, true);                                                                                                                               \
-        GPU_PRIMITIVE_XY_WORD(shadowQuad, 0) = (screen0);                                                                                                             \
-        shadowQuad->tpage                    = getTPage(0, GPU_BLEND_SUBTRACT, 512, 0);                                                                               \
-        GPU_PRIMITIVE_XY_WORD(shadowQuad, 1) = (screen1);                                                                                                             \
-        shadowQuad->clut                     = getClut(48, 266);                                                                                                      \
-        GPU_PRIMITIVE_XY_WORD(shadowQuad, 2) = (screen2);                                                                                                             \
-        GPU_PRIMITIVE_XY_WORD(shadowQuad, 3) = (screen3);                                                                                                             \
-        setUV4(shadowQuad, 0xC0, 0x98, 0xF7, 0x98, 0xC0, 0xCF, 0xF7, 0xCF);                                                                                           \
-        setRGB0(shadowQuad, 0xFF, 0xFF, 0xFF);                                                                                                                        \
-        addPrim((&gGpuCurrentOt[((((u32)((depth) << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) / sizeof(*gGpuCurrentOt)]), shadowQuad); \
+#define ACTOR_403100_QUEUE_ARM_SHADOW(screen0, screen1, screen2, screen3, depth)                                                                                                                                                                    \
+    {                                                                                                                                                                                                                                               \
+        enum { ACTOR_403100_SHADOW_TEXTURE_4_BIT = 0,                                                                                                                                                                                               \
+               ACTOR_403100_SHADOW_PAGE_X        = 512,                                                                                                                                                                                             \
+               ACTOR_403100_SHADOW_PAGE_Y        = 0,                                                                                                                                                                                               \
+               ACTOR_403100_SHADOW_CLUT_X        = 48,                                                                                                                                                                                              \
+               ACTOR_403100_SHADOW_CLUT_Y        = 266,                                                                                                                                                                                             \
+               ACTOR_403100_SHADOW_U_MIN         = 0xC0,                                                                                                                                                                                            \
+               ACTOR_403100_SHADOW_U_MAX         = 0xF7,                                                                                                                                                                                            \
+               ACTOR_403100_SHADOW_V_MIN         = 0x98,                                                                                                                                                                                            \
+               ACTOR_403100_SHADOW_V_MAX         = 0xCF,                                                                                                                                                                                            \
+               ACTOR_403100_SHADOW_MODULATION    = 0xFF };                                                                                                                                                                                             \
+        POLY_FT4* shadowQuad;                                                                                                                                                                                                                       \
+        shadowQuad     = gGpuPrimCursor;                                                                                                                                                                                                            \
+        gGpuPrimCursor = shadowQuad + 1;                                                                                                                                                                                                            \
+        setPolyFT4(shadowQuad);                                                                                                                                                                                                                     \
+        setSemiTrans(shadowQuad, true);                                                                                                                                                                                                             \
+        GPU_PRIMITIVE_XY_WORD(shadowQuad, 0) = (screen0);                                                                                                                                                                                           \
+        shadowQuad->tpage                    = getTPage(ACTOR_403100_SHADOW_TEXTURE_4_BIT, GPU_BLEND_SUBTRACT, ACTOR_403100_SHADOW_PAGE_X, ACTOR_403100_SHADOW_PAGE_Y);                                                                             \
+        GPU_PRIMITIVE_XY_WORD(shadowQuad, 1) = (screen1);                                                                                                                                                                                           \
+        shadowQuad->clut                     = getClut(ACTOR_403100_SHADOW_CLUT_X, ACTOR_403100_SHADOW_CLUT_Y);                                                                                                                                     \
+        GPU_PRIMITIVE_XY_WORD(shadowQuad, 2) = (screen2);                                                                                                                                                                                           \
+        GPU_PRIMITIVE_XY_WORD(shadowQuad, 3) = (screen3);                                                                                                                                                                                           \
+        setUV4(shadowQuad, ACTOR_403100_SHADOW_U_MIN, ACTOR_403100_SHADOW_V_MIN, ACTOR_403100_SHADOW_U_MAX, ACTOR_403100_SHADOW_V_MIN, ACTOR_403100_SHADOW_U_MIN, ACTOR_403100_SHADOW_V_MAX, ACTOR_403100_SHADOW_U_MAX, ACTOR_403100_SHADOW_V_MAX); \
+        setRGB0(shadowQuad, ACTOR_403100_SHADOW_MODULATION, ACTOR_403100_SHADOW_MODULATION, ACTOR_403100_SHADOW_MODULATION);                                                                                                                        \
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((u32)((depth) << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK), shadowQuad);                                                                                     \
     }
 
 /// Draws one elongated ground-shadow strip under two arm joints on the balcony.
@@ -3044,12 +3056,14 @@ static void _actor403100BreakBalconyAtArm(Task* task)
     };
     /// Breaks the section under one arm sample, then advances the section cursor.
     ///
-    /// Requires a signed cursor starting at 3, live singleton section latches,
+    /// Requires a signed cursor in 3..8, live singleton section latches,
     /// stable coordinate/vector lvalues and world-space X/Z. Arguments are
     /// evaluated repeatedly; the cursor is modified. Captures the two local
     /// ACTOR_403100_BALCONY_BREAK_* effect selectors and the singleton work.
     /// The spawned break handler uses its owned coordinate, so stack offsets
-    /// are consumed synchronously. Expands to a standalone for statement.
+    /// are consumed synchronously. Scans through the end of the nine latches,
+    /// leaving the cursor at 9 even when the point has no matching section.
+    /// Reset it before another point. Expands to a standalone for statement.
 #define ACTOR_403100_BREAK_BALCONY_AT_POINT(limbCoord, localOffset, worldPoint, sectionIndex)                                            \
     for (; (sectionIndex) < (s32)ARRAY_SIZE(_gActor403100Work->sectionDamaged); (sectionIndex)++) {                                      \
         if (_actor403100FindBalconySection((worldPoint).vx, (worldPoint).vz) == (sectionIndex)) {                                        \

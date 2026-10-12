@@ -350,11 +350,13 @@ static void _actor342400WaveCullPair(Task* waveTask)
     GfxCoord*                 enemyCoord;
     ActorCommand              request;
 
-    // Tests and releases one pair member, then records its gone bit a tick later.
-    // enemyMember is an Enemy* member token of work; goneBit is an s16-compatible
-    // bit expression evaluated once only on the null-pointer arm. Use standalone.
-    // Captures work,
-    // enemy, enemyTask, enemyCoord and request, which are scratch locals above.
+    /// Releases a dead or culled pair member, recording its gone bit on a later call.
+    ///
+    /// `enemyMember` is an Enemy* member token of live `work`; `goneBit` is
+    /// evaluated once only when that pointer was already NULL at entry.
+    /// Captures work, enemy, enemyTask, enemyCoord and request. The command
+    /// dispatch consumes request synchronously. Use as a standalone statement;
+    /// clearing the borrowed pointer does not destroy the enemy task.
 #define ACTOR_342400_WAVE_CULL_PAIR_ENEMY(enemyMember, goneBit)                                                           \
     if (work->enemyMember != NULL) {                                                                                      \
         enemy      = work->enemyMember;                                                                                   \

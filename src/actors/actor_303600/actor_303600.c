@@ -64,9 +64,11 @@ typedef struct {
 } _Actor303600CutsceneWork;
 STATIC_ASSERT_SIZEOF(_Actor303600CutsceneWork, 0x10);
 
-/// Height of one shaft segment's model in world units, and so the pitch the
-/// segments are stacked at.
-#define ACTOR_303600_SHAFT_SEGMENT_HEIGHT 8000
+/// Y spacing and scroll-repeat period of the five shaft segments, in parent units.
+///
+/// Converted to signed 16.16 units for scrolling; wrapping occurs beyond
+/// either half-period endpoint. This is the placement pitch, not an asset bound.
+enum { ACTOR_303600_SHAFT_SEGMENT_HEIGHT = 8000 };
 
 /// Work block of one segment of the package's scrolling shaft: the light
 /// matrices its model draws with.

@@ -760,7 +760,9 @@ static void _actor01200Spawn(Enemy* enemy, Task* task)
     ///
     /// Captures task/work and writable localVector/patrolOffset locals. Model
     /// coordinates and work must be live. Uses the caller's vector storage and
-    /// changes GTE state; endpoint distances are parent-coordinate units.
+    /// changes GTE state; endpoint distances are parent-coordinate units. The
+    /// root needs a nonzero horizontal forward axis for normalization. Endpoints
+    /// narrow XYZ to signed halfwords; the root translation stays unchanged.
 #define ACTOR_01200_SET_PATROL_POINTS()                                                  \
     {                                                                                    \
         gfxReadMatrixZAxis(&task->extra.tmd->coords->coord, &localVector);               \

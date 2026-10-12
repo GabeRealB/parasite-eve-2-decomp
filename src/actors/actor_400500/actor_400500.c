@@ -1708,10 +1708,19 @@ enum { ACTOR_400500_PART_RIGHT_ARM = 7,
 /// task teardown unlinks them. Reinitializing a linked work block is invalid.
 static void _actor400500InitCollisionBodies(Task* task)
 {
-    // Captures task; sphere is a stable body lvalue and contactArray a complete array.
-    // Arguments are evaluated repeatedly and must have no side effects. Links a
-    // disabled sphere and reinitializes its pair's shared contacts intentionally.
-    // Expands a braced statement block and is undefined after its four uses.
+    /// Part-local arm attack centres and radii; X is mirrored between sides.
+    enum { ACTOR_400500_ARM_OUTER_X      = 0x460,
+           ACTOR_400500_ARM_INNER_X      = 0x200,
+           ACTOR_400500_ARM_OUTER_RADIUS = 0x290,
+           ACTOR_400500_ARM_INNER_RADIUS = 0x250 };
+
+    /// Links an inactive arm sphere and clears its borrowed contact array.
+    ///
+    /// Captures live task; sphere is an unlinked body lvalue and contactArray
+    /// must be a complete array, not a pointer. Both are evaluated repeatedly
+    /// without side effects; the scalar arguments are evaluated once. X and
+    /// radius use part-local game units. Each arm pair intentionally clears the
+    /// same contacts twice. Use as a standalone block; teardown must unlink it.
 #define ACTOR_400500_INIT_ARM_ATTACK_SPHERE(sphere, contactArray, partIndex, localX, localRadius) \
     {                                                                                             \
         (sphere).key              = damagePackEnemyAttackKey(task->spawnArg2.pointer, 0);         \
@@ -1745,13 +1754,13 @@ static void _actor400500InitCollisionBodies(Task* task)
     work->body.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
 
     // Each pair shares its arm contact record and attack identity.
-    ACTOR_400500_INIT_ARM_ATTACK_SPHERE(work->rightArmOuter, work->rightArmContacts, ACTOR_400500_PART_RIGHT_ARM, -0x460, 0x290);
+    ACTOR_400500_INIT_ARM_ATTACK_SPHERE(work->rightArmOuter, work->rightArmContacts, ACTOR_400500_PART_RIGHT_ARM, -ACTOR_400500_ARM_OUTER_X, ACTOR_400500_ARM_OUTER_RADIUS);
 
-    ACTOR_400500_INIT_ARM_ATTACK_SPHERE(work->rightArmInner, work->rightArmContacts, ACTOR_400500_PART_RIGHT_ARM, -0x200, 0x250);
+    ACTOR_400500_INIT_ARM_ATTACK_SPHERE(work->rightArmInner, work->rightArmContacts, ACTOR_400500_PART_RIGHT_ARM, -ACTOR_400500_ARM_INNER_X, ACTOR_400500_ARM_INNER_RADIUS);
 
-    ACTOR_400500_INIT_ARM_ATTACK_SPHERE(work->leftArmOuter, work->leftArmContacts, ACTOR_400500_PART_LEFT_ARM, 0x460, 0x290);
+    ACTOR_400500_INIT_ARM_ATTACK_SPHERE(work->leftArmOuter, work->leftArmContacts, ACTOR_400500_PART_LEFT_ARM, ACTOR_400500_ARM_OUTER_X, ACTOR_400500_ARM_OUTER_RADIUS);
 
-    ACTOR_400500_INIT_ARM_ATTACK_SPHERE(work->leftArmInner, work->leftArmContacts, ACTOR_400500_PART_LEFT_ARM, 0x200, 0x250);
+    ACTOR_400500_INIT_ARM_ATTACK_SPHERE(work->leftArmInner, work->leftArmContacts, ACTOR_400500_PART_LEFT_ARM, ACTOR_400500_ARM_INNER_X, ACTOR_400500_ARM_INNER_RADIUS);
 #undef ACTOR_400500_INIT_ARM_ATTACK_SPHERE
 }
 
@@ -1958,11 +1967,13 @@ static void _actor400500DrawLimbShadow(Task* task, s16 firstJoint, s16 secondJoi
     u8        room;
     u8        modulation;
 
-    // Captures screen0..3, depth, shade, modulation, poly and room. Invoke only
-    // inside this projection's success block; it expands one braced statement block.
-    // Inputs are packed screen halves, sorting Z/4 and byte-range modulation.
-    // Requires the loaded shadow texture and room for POLY_FT4 in the frame arena;
-    // queues a subtractive packet in the 1024-tag OT, live through frame DMA.
+    /// Queues a subtractive limb shadow with the current room's colour modulation.
+    ///
+    /// Captures screen0..3, depth, shade, modulation, poly and room. Invoke as
+    /// a standalone block after successful projection. Inputs are packed screen
+    /// X/Y words, sorting Z/4 and byte-range modulation. Requires the loaded
+    /// texture and one free POLY_FT4 in the frame arena. Advances the cursor
+    /// without a bounds check; packet storage must survive frame DMA.
 #define ACTOR_400500_QUEUE_LIMB_SHADOW()                                                                                                                \
     {                                                                                                                                                   \
         poly           = gGpuPrimCursor;                                                                                                                \

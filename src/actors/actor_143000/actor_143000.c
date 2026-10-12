@@ -35,8 +35,11 @@
 #include "main/task_types.h"
 #include "../../shared/action_prompt.h"
 
-/// Most characters the keypad's entry line holds.
-#define ACTOR_143000_KEYPAD_CODE_CAPACITY 20
+/// Maximum entered characters, excluding the trailing NUL written by the drawer.
+///
+/// Bounds input and suppresses the caret at capacity. The backing buffer must
+/// provide at least one additional byte; this limit does not size that allocation.
+enum { ACTOR_143000_KEYPAD_CODE_CAPACITY = 20 };
 
 /// No result banner: the keypad drawer emits neither accepted nor rejected artwork.
 ///

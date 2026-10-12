@@ -1821,6 +1821,11 @@ static inline void _actor400600SetCoordYaw(GfxCoord* coord, s16 yaw);
 /// and contact array until unlinking during death; nothing is allocated here.
 static void _actor400600InitCollisionBodies(Task* task)
 {
+    /// Model-coordinate parents and mirrored X offset of the arm attack spheres.
+    enum { ACTOR_400600_ATTACK_PART_RIGHT_ARM = 7,
+           ACTOR_400600_ATTACK_PART_LEFT_ARM  = 10,
+           ACTOR_400600_ARM_ATTACK_X          = 512 };
+
     enum { ACTOR_400600_BODY_ID = 6 };
     _Actor400600ZebraStalkerWork* work;
 
@@ -1833,13 +1838,14 @@ static void _actor400600InitCollisionBodies(Task* task)
 /// use only as a standalone statement here. Undefined after the two calls.
 #define ACTOR_400600_INIT_ARM_ATTACK_SPHERE(body, contactArray, partIndex, centerX)                \
     {                                                                                              \
+        enum { ACTOR_400600_ARM_ATTACK_RADIUS = 400 };                                             \
         work->body.key              = damagePackAttackKey(_gActor400600Attacks, 0);                \
         work->body.coord            = &task->extra.tmd->coords[(partIndex)];                       \
         work->body.context.contacts = work->contactArray;                                          \
         work->body.pos.vx           = (centerX);                                                   \
         work->body.pos.vy           = 0;                                                           \
         work->body.pos.vz           = 0;                                                           \
-        work->body.radius           = 400;                                                         \
+        work->body.radius           = ACTOR_400600_ARM_ATTACK_RADIUS;                              \
         work->body.flags            = WORLD_COLLISION_BODY_SPHERE;                                 \
         worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->body);                   \
         worldCollisionInitContacts(work->contactArray, ARRAY_SIZE(work->contactArray), 0);         \
@@ -1882,8 +1888,8 @@ static void _actor400600InitCollisionBodies(Task* task)
     worldCollisionInitContacts(work->capsuleContacts, ARRAY_SIZE(work->capsuleContacts), 0);
     work->capsuleBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
     // Both arm spheres use the first attack entry and stay inactive until a strike.
-    ACTOR_400600_INIT_ARM_ATTACK_SPHERE(rightArmBody, rightArmContacts, 7, -512);
-    ACTOR_400600_INIT_ARM_ATTACK_SPHERE(leftArmBody, leftArmContacts, 10, 512);
+    ACTOR_400600_INIT_ARM_ATTACK_SPHERE(rightArmBody, rightArmContacts, ACTOR_400600_ATTACK_PART_RIGHT_ARM, -ACTOR_400600_ARM_ATTACK_X);
+    ACTOR_400600_INIT_ARM_ATTACK_SPHERE(leftArmBody, leftArmContacts, ACTOR_400600_ATTACK_PART_LEFT_ARM, ACTOR_400600_ARM_ATTACK_X);
 #undef ACTOR_400600_INIT_ARM_ATTACK_SPHERE
 }
 
@@ -3428,6 +3434,23 @@ static inline void _actor400600CopyModelTextureOffsets(const TmdObject* sourceMo
     }
 }
 
+/// Copies an arm attachment's nine Q12 basis coefficients, retaining translation.
+///
+/// Both matrices must be live; they may be identical. Does not invalidate a
+/// coordinate's composition cache; storage outside the nine coefficients stays intact.
+static __inline__ void _actor400600CopyArmRotation(MATRIX* destination, const MATRIX* source)
+{
+    destination->m[0][0] = source->m[0][0];
+    destination->m[0][1] = source->m[0][1];
+    destination->m[0][2] = source->m[0][2];
+    destination->m[1][0] = source->m[1][0];
+    destination->m[1][1] = source->m[1][1];
+    destination->m[1][2] = source->m[1][2];
+    destination->m[2][0] = source->m[2][0];
+    destination->m[2][1] = source->m[2][1];
+    destination->m[2][2] = source->m[2][2];
+}
+
 /// Creates the two arm models attached to the Zebra Stalker's body.
 ///
 /// Requires live body work, at least eleven body coordinates and loaded arm
@@ -3457,22 +3480,6 @@ static void _actor400600SpawnArmModels(Task* bodyTask)
     MATRIX*                       rightRotation;
     MATRIX                        rotation;
 
-/// Copies the nine Q12 coefficients while retaining both matrices' translations.
-///
-/// Arguments are side-effect-free MATRIX pointers, each evaluated nine times.
-/// Coordinate stamps and all state outside the destination rotation stay intact.
-/// Expands to assignment statements; use inside a braced block. Captures no locals.
-#define ACTOR_400600_COPY_ARM_ROTATION(destinationMatrix, sourceMatrix) \
-    (destinationMatrix)->m[0][0] = (sourceMatrix)->m[0][0];             \
-    (destinationMatrix)->m[0][1] = (sourceMatrix)->m[0][1];             \
-    (destinationMatrix)->m[0][2] = (sourceMatrix)->m[0][2];             \
-    (destinationMatrix)->m[1][0] = (sourceMatrix)->m[1][0];             \
-    (destinationMatrix)->m[1][1] = (sourceMatrix)->m[1][1];             \
-    (destinationMatrix)->m[1][2] = (sourceMatrix)->m[1][2];             \
-    (destinationMatrix)->m[2][0] = (sourceMatrix)->m[2][0];             \
-    (destinationMatrix)->m[2][1] = (sourceMatrix)->m[2][1];             \
-    (destinationMatrix)->m[2][2] = (sourceMatrix)->m[2][2];
-
     // Each arm keeps a separate local transform under its body joint.
     bodyCoords                            = bodyTask->extra.tmd->coords;
     work                                  = bodyTask->work;
@@ -3492,7 +3499,7 @@ static void _actor400600SpawnArmModels(Task* bodyTask)
         gfxSetRotIdentity(leftRotation);
         RotMatrixY(-ACTOR_400600_ARM_REST_YAW, leftRotation);
         armMatrix = &armCoord->coord;
-        ACTOR_400600_COPY_ARM_ROTATION(armMatrix, leftRotation);
+        _actor400600CopyArmRotation(armMatrix, leftRotation);
         textureSource      = bodyTask->extra.tmd;
         textureDestination = armTask->extra.tmd;
         _actor400600CopyModelTextureOffsets(textureSource, textureDestination);
@@ -3515,12 +3522,10 @@ static void _actor400600SpawnArmModels(Task* bodyTask)
         gfxSetRotIdentity(rightRotation);
         RotMatrixY(ACTOR_400600_ARM_REST_YAW, rightRotation);
         armMatrix = &armCoord->coord;
-        ACTOR_400600_COPY_ARM_ROTATION(armMatrix, rightRotation);
+        _actor400600CopyArmRotation(armMatrix, rightRotation);
         armModel->lightMtx = &work->lightMtx;
         armModel->colorMtx = &work->colorMtx;
     }
-
-#undef ACTOR_400600_COPY_ARM_ROTATION
 }
 
 /// Converts a normal-rate walking frame bound to update ticks at the current rate.

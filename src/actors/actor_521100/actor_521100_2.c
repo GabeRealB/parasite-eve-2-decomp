@@ -58,16 +58,20 @@ enum {
     ACTOR_521100_ANMC_WOMAN_FLATTEN_DONE   = 2, // The height has reached its floor: the model is left as it is and no longer animated
 };
 
-/// What `_Actor521100AnmcWomanState::flattenScaleY` loses each frame of the
-/// shrink, and the height the shrink stops at, 4096 being full height.
-#define ACTOR_521100_ANMC_WOMAN_FLATTEN_SCALE_STEP  0x10
-#define ACTOR_521100_ANMC_WOMAN_FLATTEN_SCALE_FLOOR 0x100
+/// Q12 Y-scale decrement per shrink update (1/256 of full height).
+enum { ACTOR_521100_ANMC_WOMAN_FLATTEN_SCALE_STEP = ONE / 256 };
 
-/// Values of `_Actor521100AnmcWomanState::flattenFrames` at which the shrinking
-/// model turns semi-transparent and at which the burn effect is spawned
-/// beside it.
-#define ACTOR_521100_ANMC_WOMAN_FLATTEN_FADE_FRAMES 10
-#define ACTOR_521100_ANMC_WOMAN_FLATTEN_BURN_FRAMES 15
+/// Q12 Y-scale floor (1/16 of full height), tested before each decrement.
+///
+/// Starting at ONE with the fixed step reaches this value exactly; the next
+/// update marks completion without another decrement.
+enum { ACTOR_521100_ANMC_WOMAN_FLATTEN_SCALE_FLOOR = ONE / 16 };
+
+/// Completed shrink-update count at which the model becomes semi-transparent.
+enum { ACTOR_521100_ANMC_WOMAN_FLATTEN_SEMI_TRANS_FRAME = 10 };
+
+/// Completed shrink-update count at which the adjacent corpse-burn effect spawns.
+enum { ACTOR_521100_ANMC_WOMAN_FLATTEN_BURN_FRAME = 15 };
 
 /// The animation request, the walk and the flatten the ANMC woman keeps right
 /// after her rig.
@@ -636,10 +640,10 @@ static void _actor521100AnmcWomanFlattenState(Enemy* enemy, Task* task)
         case ACTOR_521100_ANMC_WOMAN_FLATTEN_SHRINK:
             _actor521100AnmcWomanFlatten(task);
             work->st.flattenFrames++;
-            if (work->st.flattenFrames == ACTOR_521100_ANMC_WOMAN_FLATTEN_FADE_FRAMES) {
+            if (work->st.flattenFrames == ACTOR_521100_ANMC_WOMAN_FLATTEN_SEMI_TRANS_FRAME) {
                 model->flags = TMD_OBJECT_SEMI_TRANS;
             }
-            if (work->st.flattenFrames == ACTOR_521100_ANMC_WOMAN_FLATTEN_BURN_FRAMES) {
+            if (work->st.flattenFrames == ACTOR_521100_ANMC_WOMAN_FLATTEN_BURN_FRAME) {
                 // Preserve the root's parent link in the temporary effect anchor.
                 burnAnchor.coord.t[0] -= ACTOR_521100_ANMC_WOMAN_BURN_OFFSET_X;
                 burnAnchor.coord.t[2] -= ACTOR_521100_ANMC_WOMAN_BURN_OFFSET_Z;

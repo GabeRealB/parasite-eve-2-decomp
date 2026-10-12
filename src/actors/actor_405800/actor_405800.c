@@ -1731,6 +1731,12 @@ static __inline__ void _actor405800PlayStrikeSound(Task* task)
 /// one contact. Centres, endpoint offsets and radii use local game units.
 static void _actor405800InitCollision(Task* task)
 {
+    /// Part-local arm attack centres and radii; X is mirrored between sides.
+    enum { ACTOR_405800_ARM_OUTER_X      = 0x460,
+           ACTOR_405800_ARM_INNER_X      = 0x200,
+           ACTOR_405800_ARM_OUTER_RADIUS = 0x290,
+           ACTOR_405800_ARM_INNER_RADIUS = 0x250 };
+
     enum { ACTOR_405800_BODY_COLLISION_KEY  = WORLD_COLLISION_CONTACT_ENEMY_BODY | 0x3A,
            ACTOR_405800_PROBE_COLLISION_KEY = WORLD_COLLISION_CONTACT_ENEMY_BODY | 5 };
     _Actor405800IvoryStalkerWork* work;
@@ -1776,13 +1782,16 @@ static void _actor405800InitCollision(Task* task)
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, &work->capsuleBody);
     worldCollisionInitContacts(work->capsuleContacts, ARRAY_SIZE(work->capsuleContacts), 0);
     work->capsuleBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
-    // Initializes a disabled arm sphere from attack entry zero. bodyMember and
-    // contactsMember are work-member identifiers; partIndex, centreX and sphereRadius
-    // are side-effect-free scalar expressions, each evaluated once. Captures
-    // the live task and work locals. Use as a straight-line statement sequence.
+    /// Links an inactive arm sphere and clears its pair's borrowed contact array.
+    ///
+    /// Captures live task and work; bodyMember selects an unlinked sphere and
+    /// contactsMember a complete embedded array, not a pointer. Scalar arguments
+    /// are evaluated once, with X/radius in part-local game units. Uses enemy
+    /// attack entry zero; each arm pair intentionally clears its array twice.
+    /// Use only inside a braced block. The caller must unlink before work expires.
 #define ACTOR_405800_INIT_ARM_ATTACK(bodyMember, partIndex, contactsMember, centreX, sphereRadius) \
     work->bodyMember.key              = damagePackEnemyAttackKey(task->spawnArg2.pointer, 0);      \
-    work->bodyMember.coord            = &task->extra.tmd->coords[partIndex];                       \
+    work->bodyMember.coord            = &task->extra.tmd->coords[(partIndex)];                     \
     work->bodyMember.context.contacts = work->contactsMember;                                      \
     work->bodyMember.pos.vx           = (centreX);                                                 \
     work->bodyMember.pos.vy           = 0;                                                         \
@@ -1793,10 +1802,10 @@ static void _actor405800InitCollision(Task* task)
     worldCollisionInitContacts(work->contactsMember, ARRAY_SIZE(work->contactsMember), 0);         \
     work->bodyMember.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED)
 
-    ACTOR_405800_INIT_ARM_ATTACK(rightArmOuter, ACTOR_405800_PART_RIGHT_ARM, rightArmContacts, -0x460, 0x290);
-    ACTOR_405800_INIT_ARM_ATTACK(rightArmInner, ACTOR_405800_PART_RIGHT_ARM, rightArmContacts, -0x200, 0x250);
-    ACTOR_405800_INIT_ARM_ATTACK(leftArmOuter, ACTOR_405800_PART_LEFT_ARM, leftArmContacts, 0x460, 0x290);
-    ACTOR_405800_INIT_ARM_ATTACK(leftArmInner, ACTOR_405800_PART_LEFT_ARM, leftArmContacts, 0x200, 0x250);
+    ACTOR_405800_INIT_ARM_ATTACK(rightArmOuter, ACTOR_405800_PART_RIGHT_ARM, rightArmContacts, -ACTOR_405800_ARM_OUTER_X, ACTOR_405800_ARM_OUTER_RADIUS);
+    ACTOR_405800_INIT_ARM_ATTACK(rightArmInner, ACTOR_405800_PART_RIGHT_ARM, rightArmContacts, -ACTOR_405800_ARM_INNER_X, ACTOR_405800_ARM_INNER_RADIUS);
+    ACTOR_405800_INIT_ARM_ATTACK(leftArmOuter, ACTOR_405800_PART_LEFT_ARM, leftArmContacts, ACTOR_405800_ARM_OUTER_X, ACTOR_405800_ARM_OUTER_RADIUS);
+    ACTOR_405800_INIT_ARM_ATTACK(leftArmInner, ACTOR_405800_PART_LEFT_ARM, leftArmContacts, ACTOR_405800_ARM_INNER_X, ACTOR_405800_ARM_INNER_RADIUS);
 #undef ACTOR_405800_INIT_ARM_ATTACK
 }
 

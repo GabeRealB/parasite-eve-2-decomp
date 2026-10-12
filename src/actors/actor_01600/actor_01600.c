@@ -61,6 +61,8 @@
 /// Actor, model source and coordinate index must be stable, side-effect-free
 /// expressions; actor and the writable EffectWork* result local are used
 /// repeatedly. Rebinds the bank-8 descriptor synchronously before spawning.
+/// The selected TmdSource and overlay must outlive the effect. On failure the
+/// result is NULL and texture binding is skipped; the descriptor is not restored.
 #define ACTOR_01600_SPAWN_BURST_PART(actor, modelSource, coordIndex, effectResult)                                                                                    \
     {                                                                                                                                                                 \
         gTaskBank8Descs[TASK_BANK8_BURST_MODEL_PART_SLOT].data.model = (modelSource);                                                                                 \

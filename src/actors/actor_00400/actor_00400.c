@@ -361,8 +361,8 @@ STATIC_ASSERT_SIZEOF(_Actor00400Work, 0x668);
 /// The Diver library's name for this package's work block (see diver.h).
 typedef _Actor00400Work DiverWork;
 
-/// Value of `_Actor00400AreaConfig::stage` on the row that ends the table.
-#define ACTOR_00400_AREA_CONFIG_END 0xFF
+/// Stage value 255 ending the area configuration scan; not a playable stage.
+enum { ACTOR_00400_AREA_CONFIG_END = 0xFF };
 
 /// Bits of `_Actor00400AreaConfig::flags`.
 enum {
@@ -2363,31 +2363,34 @@ static void _actor00400UpdateNeckRetraction(Task* task, s32 unusedNeckRetracted)
 
     /// Rebuilds both neck bases and inverse-scales the head, retaining translations.
     ///
-    /// Captures work, coords, headCoord, headAngles, axisScale, the three basis
-    /// matrices, rotationMatrix and inverseNeckScale. Requires positive Q12
-    /// neckScale and initialized headAngles; expands as statements in this block.
-#define ACTOR_00400_APPLY_NECK_SCALE()                          \
-    gfxSetRotIdentity(&lowerNeckBasis);                         \
-    axisScale.vx = ONE;                                         \
-    axisScale.vy = ONE;                                         \
-    axisScale.vz = work->neckScale;                             \
-    ScaleMatrix(&lowerNeckBasis, &axisScale);                   \
-    _actor00400CopyRotation(&lowerNeckBasis, &coords[2].coord); \
-    gfxSetRotIdentity(&upperNeckBasis);                         \
-    axisScale.vx = ONE;                                         \
-    axisScale.vy = ONE;                                         \
-    axisScale.vz = ONE;                                         \
-    ScaleMatrix(&upperNeckBasis, &axisScale);                   \
-    _actor00400CopyRotation(&upperNeckBasis, &coords[3].coord); \
-    gfxSetRotIdentity(&headBasis);                              \
-    axisScale.vx     = ONE;                                     \
-    axisScale.vy     = ONE;                                     \
-    inverseNeckScale = (ONE * ONE) / work->neckScale;           \
-    axisScale.vz     = inverseNeckScale;                        \
-    ScaleMatrix(&headBasis, &axisScale);                        \
-    gfxSetRotIdentity(&rotationMatrix);                         \
-    RotMatrix(&headAngles, &rotationMatrix);                    \
-    MulMatrix(&headBasis, &rotationMatrix);                     \
+    /// Captures work, lowerNeckCoord, upperNeckCoord, headCoord, headAngles,
+    /// axisScale, the three basis matrices, rotationMatrix and inverseNeckScale.
+    /// Requires live neck/head coordinates, positive Q12 neckScale and captured
+    /// head angles in 4096 units per turn. Neither translations nor cache stamps
+    /// change; the caller invalidates and recomposes the hierarchy afterwards.
+    /// Expands as statements in this braced block and changes GTE state.
+#define ACTOR_00400_APPLY_NECK_SCALE()                                \
+    gfxSetRotIdentity(&lowerNeckBasis);                               \
+    axisScale.vx = ONE;                                               \
+    axisScale.vy = ONE;                                               \
+    axisScale.vz = work->neckScale;                                   \
+    ScaleMatrix(&lowerNeckBasis, &axisScale);                         \
+    _actor00400CopyRotation(&lowerNeckBasis, &lowerNeckCoord->coord); \
+    gfxSetRotIdentity(&upperNeckBasis);                               \
+    axisScale.vx = ONE;                                               \
+    axisScale.vy = ONE;                                               \
+    axisScale.vz = ONE;                                               \
+    ScaleMatrix(&upperNeckBasis, &axisScale);                         \
+    _actor00400CopyRotation(&upperNeckBasis, &upperNeckCoord->coord); \
+    gfxSetRotIdentity(&headBasis);                                    \
+    axisScale.vx     = ONE;                                           \
+    axisScale.vy     = ONE;                                           \
+    inverseNeckScale = (ONE * ONE) / work->neckScale;                 \
+    axisScale.vz     = inverseNeckScale;                              \
+    ScaleMatrix(&headBasis, &axisScale);                              \
+    gfxSetRotIdentity(&rotationMatrix);                               \
+    RotMatrix(&headAngles, &rotationMatrix);                          \
+    MulMatrix(&headBasis, &rotationMatrix);                           \
     _actor00400CopyRotation(&headBasis, &headCoord->coord);
 
     coords         = task->extra.tmd->coords;

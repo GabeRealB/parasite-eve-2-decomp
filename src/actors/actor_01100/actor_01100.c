@@ -3286,27 +3286,39 @@ static __inline__ void _actor01100WriteScratchCursor(u8* cursor)
     SCRATCH_STACK_CURSOR(u8) = cursor;
 }
 
-#define Actor104900_DistToPlayer(arg0, out)                                    \
-    {                                                                          \
-        u8*       head;                                                        \
-        SVECTOR*  vec;                                                         \
-        GfxCoord* coord;                                                       \
-        Task*     slot;                                                        \
-                                                                               \
-        slot = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);                         \
-        if (slot == NULL) {                                                    \
-            out = 0x7FFFFFFF;                                                  \
-        } else {                                                               \
-            coord   = slot->extra.tmd->coords;                                 \
-            head    = _actor01100ReadScratchCursor();                          \
-            vec     = (SVECTOR*)(head - 8);                                    \
-            vec->vx = (u16)coord->workm.t[0] - (u16)arg0->workm.t[0];          \
-            vec->vy = (u16)coord->workm.t[1] - (u16)arg0->workm.t[1];          \
-            _actor01100WriteScratchCursor((u8*)vec);                           \
-            vec->vz = (u16)coord->workm.t[2] - (u16)arg0->workm.t[2];          \
-            out     = gfxDotProduct(vec, vec);                                 \
-            _actor01100WriteScratchCursor(_actor01100ReadScratchCursor() + 8); \
-        }                                                                      \
+/// Measures squared XYZ separation from cached transforms, or INT_MAX without a player.
+///
+/// `referenceCoord` must share the player's composition frame; neither cache
+/// is refreshed here. Each difference wraps to a signed halfword before the
+/// dot product, whose signed 32-bit result is not clamped. The coordinate
+/// expression occurs three times and must have no side effects; distanceSquared
+/// is a writable s32 lvalue evaluated once on the selected branch. Use as a
+/// standalone block; no caller locals are captured. With a player, reserves
+/// one word-aligned SVECTOR on the initialized scratch stack and releases it after
+/// the synchronous dot product. XYZ are initialized; the unused pad is left
+/// unchanged. The GTE loads that pad but it cannot affect the returned component.
+/// Clobbers GTE arithmetic and rotation state. Arguments must not refer to the
+/// block-local names scratchHead, playerDelta, playerCoord or playerTask.
+#define ACTOR_01100_MEASURE_PLAYER_DISTANCE_SQUARED(referenceCoord, distanceSquared)              \
+    {                                                                                             \
+        SVECTOR*  scratchHead;                                                                    \
+        SVECTOR*  playerDelta;                                                                    \
+        GfxCoord* playerCoord;                                                                    \
+        Task*     playerTask;                                                                     \
+        playerTask = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);                                      \
+        if (playerTask == NULL) {                                                                 \
+            (distanceSquared) = INT_MAX;                                                          \
+        } else {                                                                                  \
+            playerCoord     = playerTask->extra.tmd->coords;                                      \
+            scratchHead     = (SVECTOR*)_actor01100ReadScratchCursor();                           \
+            playerDelta     = scratchHead - 1;                                                    \
+            playerDelta->vx = (u16)playerCoord->workm.t[0] - (u16)(referenceCoord)->workm.t[0];   \
+            playerDelta->vy = (u16)playerCoord->workm.t[1] - (u16)(referenceCoord)->workm.t[1];   \
+            _actor01100WriteScratchCursor((u8*)playerDelta);                                      \
+            playerDelta->vz   = (u16)playerCoord->workm.t[2] - (u16)(referenceCoord)->workm.t[2]; \
+            (distanceSquared) = gfxDotProduct(playerDelta, playerDelta);                          \
+            _actor01100WriteScratchCursor(_actor01100ReadScratchCursor() + sizeof(*playerDelta)); \
+        }                                                                                         \
     }
 
 /// Scales a model rotation's forward axis into a signed-halfword displacement.
@@ -3389,7 +3401,7 @@ static void _actor01100Advance(Enemy* enemy, Task* task, _Actor01100Work* work, 
 
     if (work->stateStep == 0) {
         modelCoords = task->extra.tmd->coords;
-        Actor104900_DistToPlayer(modelCoords, initialDistanceSquared);
+        ACTOR_01100_MEASURE_PLAYER_DISTANCE_SQUARED(modelCoords, initialDistanceSquared);
         if ((task->spawnArg1.value == 0) && (initialDistanceSquared <= (ACTOR_01100_PUNCH_RANGE_SQUARED - 1))) {
             rand();
             work->state     = ACTOR_01100_STATE_FACE_PLAYER;
@@ -3446,7 +3458,7 @@ static void _actor01100Advance(Enemy* enemy, Task* task, _Actor01100Work* work, 
     }
     if (work->strideFrame == ACTOR_01100_STRIDE_LAST_FRAME) {
         modelCoords = task->extra.tmd->coords;
-        Actor104900_DistToPlayer(modelCoords, arrivalDistanceSquared);
+        ACTOR_01100_MEASURE_PLAYER_DISTANCE_SQUARED(modelCoords, arrivalDistanceSquared);
         if (rand() & 7) {
             if (work->blockedFrames >= ACTOR_01100_STRIDE_BLOCKED_LIMIT || work->playerBearing < -ACTOR_01100_STRIDE_PUNCH_YAW_LIMIT || work->playerBearing >= ACTOR_01100_STRIDE_PUNCH_YAW_LIMIT + 1) {
                 if (arrivalDistanceSquared <= (ACTOR_01100_SPIT_RANGE_SQUARED - 1)) {

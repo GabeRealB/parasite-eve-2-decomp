@@ -897,6 +897,9 @@ static void _actor03800ApplyPlacementMode(Task* task)
     /// must be stable pointer locals; each occurs more than once. Captures
     /// `perchAngles`/`perchRotation` and clobbers the GTE; pitch is evaluated once
     /// and narrowed to a signed halfword in 4096-per-turn units.
+    /// Copies the original root basis/translation into the perch before
+    /// multiplying in the pitch. The work-owned perch must outlive its child
+    /// model root; cache invalidation remains the caller's responsibility.
 #define ACTOR_03800_ATTACH_PERCH(workBlock, root, pitch)         \
     {                                                            \
         (workBlock)->savedRootMtx = (root)->coord;               \

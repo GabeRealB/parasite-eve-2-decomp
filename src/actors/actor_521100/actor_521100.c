@@ -2665,7 +2665,9 @@ static void _actor521100StanceAttack(Task* task)
 /// Captures the live `scratch` and `playerTask` locals of the grab handler.
 /// `playerAnimationId` is evaluated once and must select a loaded entry in
 /// the fourteen-entry package player bank. The request remains live only for
-/// dispatch. Expands to a braced statement block.
+/// dispatch; the set table must remain loaded throughout playback. Resets
+/// blending with zero duration and enables world collision. Expands to a
+/// braced statement block; existing calls deliberately omit a semicolon.
 #define ACTOR_521100_PLAY_GRAB_PLAYER_ANIMATION(playerAnimationId)                                              \
     {                                                                                                           \
         scratch->playerAnim.source.sets          = gActor521100GrabPlayerAnimationSets;                         \

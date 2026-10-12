@@ -1705,27 +1705,35 @@ static void _actor136100RifleTask(Task* task)
 
 /// Builds and sends the player's equipped-weapon animation request.
 ///
-/// `record` is accessed repeatedly and must be a side-effect-free request
-/// lvalue. `anim` is evaluated twice and must be side-effect-free; `task` is
-/// evaluated once. Dispatch consumes the request synchronously.
-/// The bank selector depends on the current weapon and save character.
-/// Per-expansion work pointers preserve the original call scheduling.
-#define ACTOR_136100_PLAY_PLAYER_WEAPON_ANIMATION(task, anim, blendChoice, frames, record)                                            \
-    {                                                                                                                                 \
-        _Actor136100Work* msgWork;                                                                                                    \
-        s32               weaponId;                                                                                                   \
-        s32               id;                                                                                                         \
-                                                                                                                                      \
-        msgWork                       = (task)->work;                                                                                 \
-        weaponId                      = gPlayerStatus.weapon;                                                                         \
-        id                            = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22; \
-        (record).source.index         = id;                                                                                           \
-        msgWork->playerAnimation      = anim;                                                                                         \
-        (record).animationId          = anim;                                                                                         \
-        (record).blend                = (blendChoice);                                                                                \
-        (record).blendFrames          = (frames);                                                                                     \
-        (record).enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;                                                            \
-        TASK_MESSAGE_DISPATCH_POINTER(msgWork->playerTask, ANIMATION_MESSAGE_PLAY, &(record), 0);                                     \
+/// `controllerTask` is evaluated once and must own live controller work with
+/// a borrowed player task. `request` is a writable AnimationPlayRequest lvalue,
+/// evaluated repeatedly; `clipId` is evaluated twice. Both must have no side
+/// effects. Blend mode and duration are evaluated once; duration counts normal
+/// animation frames. Writes the unsigned animation cache before filling the
+/// signed request clip. Disables world collision and dispatches synchronously.
+/// Bank selection is weapon+1 for saved character 1, weapon+34 otherwise;
+/// backing banks for the alternate range are unproven. Loaded clip data must
+/// outlive playback. Expands to a standalone block with its own work reload.
+#define ACTOR_136100_PLAY_PLAYER_WEAPON_ANIMATION(controllerTask, clipId, blendMode, blendDuration, request)                      \
+    {                                                                                                                             \
+        enum { ACTOR_136100_PRIMARY_CHARACTER          = 1,                                                                       \
+               ACTOR_136100_PRIMARY_WEAPON_BANK_BASE   = 1,                                                                       \
+               ACTOR_136100_ALTERNATE_WEAPON_BANK_BASE = 34 };                                                                    \
+        _Actor136100Work* animationWork;                                                                                          \
+        s32               weaponId;                                                                                               \
+        s32               bankIndex;                                                                                              \
+        animationWork                  = (controllerTask)->work;                                                                  \
+        weaponId                       = gPlayerStatus.weapon;                                                                    \
+        bankIndex                      = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == ACTOR_136100_PRIMARY_CHARACTER) \
+                                             ? weaponId + ACTOR_136100_PRIMARY_WEAPON_BANK_BASE                                   \
+                                             : weaponId + ACTOR_136100_ALTERNATE_WEAPON_BANK_BASE;                                \
+        (request).source.index         = bankIndex;                                                                               \
+        animationWork->playerAnimation = (clipId);                                                                                \
+        (request).animationId          = (clipId);                                                                                \
+        (request).blend                = (blendMode);                                                                             \
+        (request).blendFrames          = (blendDuration);                                                                         \
+        (request).enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;                                                       \
+        TASK_MESSAGE_DISPATCH_POINTER(animationWork->playerTask, ANIMATION_MESSAGE_PLAY, &(request), 0);                          \
     }
 
 /// Places the player at a scene entrance and starts its scripted walk.
@@ -1811,10 +1819,14 @@ static void _actor136100UpdateAfterBurnerPlayerRequest(Task* task)
     work->playerRequest = ACTOR_136100_REQUEST_NONE;
 }
 
-/// Record `id` as the work block's current animation (`bodyAnimation`).
-#define _actor136100SetAnimId(work, id) \
-    do {                                \
-        (work)->bodyAnimation = (id);   \
+/// Records the selected body set without changing the rig's playback state.
+///
+/// Both arguments are evaluated once; bodyWork must point to live writable
+/// controller work. The stored selection narrows to a signed halfword. Captures
+/// no caller locals and forms one statement, requiring a trailing semicolon.
+#define ACTOR_136100_SET_BODY_ANIMATION(bodyWork, setIndex) \
+    do {                                                    \
+        (bodyWork)->bodyAnimation = (setIndex);             \
     } while (0)
 
 /// Blends body tracks 1 to 19 into `setIndex` and records that selection.
@@ -1828,7 +1840,7 @@ static inline void _actor136100BlendBodyAnimation(Task* task, s16 setIndex)
     _Actor136100Work* work = task->work;
     s32               slotIndex;
 
-    _actor136100SetAnimId(work, setIndex);
+    ACTOR_136100_SET_BODY_ANIMATION(work, setIndex);
     for (slotIndex = 1; (u16)slotIndex < ARRAY_SIZE(work->rig.slots); slotIndex++) {
         animationSeekSlotWithBlend(&work->rig.anim, (u16)slotIndex, setIndex, 0, ACTOR_136100_ANIMATION_BLEND_FRAMES);
     }
