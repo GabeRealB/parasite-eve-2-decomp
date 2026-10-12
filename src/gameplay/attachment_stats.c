@@ -40,12 +40,57 @@
 #include "main/ui.h"
 #include "main/wipsys.h"
 
+/// Byte mask that consumes the PE task's target/self-effect application request.
+///
+/// Positive int 0xF7 preserves the other seven bits when stored back to flags.
+#define ATTACHMENT_FLAG_CLEAR_APPLY_STATS (0xFF ^ ATTACHMENT_FLAG_APPLY_STATS)
+
+/// Byte mask that removes the script cast/wheel-entry lock after HUD handling.
+///
+/// Positive int 0xFE preserves the other seven bits when stored back to flags.
+#define ATTACHMENT_FLAG_CLEAR_EVENT_LOCK (0xFF ^ ATTACHMENT_FLAG_EVENT_LOCK)
+
+/// Byte mask that consumes the script's forced wheel-entry request.
+///
+/// Positive int 0xEF preserves the other seven bits when stored back to flags.
+#define ATTACHMENT_FLAG_CLEAR_FORCE_OPEN_WHEEL (0xFF ^ ATTACHMENT_FLAG_FORCE_OPEN_WHEEL)
+
+/// Byte mask that consumes the player's cast-countdown start request.
+///
+/// Positive int 0xFB preserves the other seven bits when stored back to flags.
+#define ATTACHMENT_FLAG_CLEAR_START_CAST (0xFF ^ ATTACHMENT_FLAG_START_CAST)
+
+/// Minimum positive cast duration, in eligible attachment-HUD updates.
+///
+/// Replaces a nonpositive signed-byte duration when arming, and holds an expired
+/// cast at one update while waiting for the sound-loading gate to become ready.
+#define ATTACHMENT_DURATION_MIN 1
+
+/// Armed cast awaiting its delayed sound-file load in `AttachmentState.soundStep`.
+///
+/// Arming clears the queue tick counter; the first positive increment requests
+/// the PE file in battle, or skips loading outside battle, then consumes this state.
+#define ATTACHMENT_SOUND_QUEUED 1
+
+/// Wheel-open notification for room event gates, in `AttachmentState.menuOpen`.
+///
+/// Set on wheel entry and cleared on cancellation, arming or battle transitions;
+/// it does not describe the later armed/countdown modes.
+#define ATTACHMENT_MENU_OPEN 1
+
 /// Handled cast sound-load request in `AttachmentState::soundStep`.
 ///
 /// Set after the queue delay: battle casts request their PE sound file and
 /// other casts skip loading. Records handling independently of CD completion
 /// or sound-script playback; later HUD updates leave the request consumed.
 enum { ATTACHMENT_SOUND_LOAD_REQUEST_HANDLED = 2 };
+
+/// Area-table selector that routes preview/release through the self-effect dispatcher.
+///
+/// Performs no geometric target scan. Metabolism, Healing, Antibody and Energy
+/// Shot apply here; Energy Ball also uses this shape but its PE task owns the
+/// projectile, so release does nothing in the self-effect dispatcher for that ID.
+#define ATTACHMENT_AREA_SELF 0
 
 /// Area-table selector for a projectile corridor preview; release hits belong to the PE task.
 ///
@@ -1438,9 +1483,9 @@ static void _attachmentUpdateAndDrawHud(HudState* hud)
         canOpenWheel = _hudCanSwitchCategory(0);
         if ((canOpenWheel != 0 && (gGameSession->padPressed & PAD_BUTTON_TRIANGLE) && gDisplayState.pendingMode == DISPLAY_MODE_NONE &&
              !(gAttachmentState.flags & ATTACHMENT_FLAG_EVENT_LOCK)) ||
-            (gAttachmentState.flags & ATTACHMENT_FLAG_OPEN_WHEEL)) {
+            (gAttachmentState.flags & ATTACHMENT_FLAG_FORCE_OPEN_WHEEL)) {
             gAttachmentState.menuOpen      = ATTACHMENT_MENU_OPEN;
-            gAttachmentState.flags        &= ATTACHMENT_FLAG_CLEAR_OPEN_WHEEL;
+            gAttachmentState.flags        &= ATTACHMENT_FLAG_CLEAR_FORCE_OPEN_WHEEL;
             wheelMode                      = gAttachmentState.mode ^ ATTACHMENT_MODE_WHEEL;
             gAttachmentState.mode          = wheelMode;
             gPlayerActorStateTickHeld      = wheelMode;
@@ -1468,8 +1513,8 @@ static void _attachmentUpdateAndDrawHud(HudState* hud)
     // Armed and casting. Release starts the countdown; expiry publishes the effect.
     mode = gAttachmentState.mode;
     if (mode == ATTACHMENT_MODE_ARMED || mode == ATTACHMENT_MODE_CAST) {
-        if (gAttachmentState.flags & ATTACHMENT_FLAG_RELEASE) {
-            gAttachmentState.flags      &= ATTACHMENT_FLAG_CLEAR_RELEASE;
+        if (gAttachmentState.flags & ATTACHMENT_FLAG_START_CAST) {
+            gAttachmentState.flags      &= ATTACHMENT_FLAG_CLEAR_START_CAST;
             gAttachmentState.effectPhase = ATTACHMENT_EFFECT_CHARGE;
             gAttachmentState.mode        = ATTACHMENT_MODE_CAST;
         }

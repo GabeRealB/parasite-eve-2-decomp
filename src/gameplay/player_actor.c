@@ -18,6 +18,7 @@
 #include "gameplay/area_entry.h"
 #include "gameplay/attachment_state.h"
 #include "gameplay/attachments.h"
+#include "attachments.h"
 #include "damage.h"
 #include "gameplay/effect_tasks.h"
 #include "effect_tasks.h"
@@ -78,6 +79,32 @@
 
 #include "main/areas.h"
 #include "main/task_types.h"
+
+/// Inclusive lower packed-ID bound for the distinct PE cast action stimulus.
+///
+/// IDs 300..600 publish SCENE_COMBAT_ACTION_SIGNAL_PE_CAST_300_TO_600.
+/// The encoder places Water/Earth spells and item slots 12..14 in this range;
+/// this signed int boundary preserves the promoted-u16 comparison.
+#define PLAYER_ACTOR_PE_CAST_SIGNAL_ID_MIN 300
+
+/// Inclusive upper packed-ID bound for the distinct PE cast action stimulus.
+///
+/// Includes item IDs 511/521/531 as well as Water/Earth spells. IDs above 600
+/// publish SCENE_COMBAT_ACTION_SIGNAL_PE_CAST_OTHER; 600 is not a spell ID.
+#define PLAYER_ACTOR_PE_CAST_SIGNAL_ID_MAX 600
+
+/// Unsigned packed-ID split at the Water group for PE clip-family selection.
+///
+/// After the tens-digit-three exception, lower IDs use clip family 1 and
+/// IDs at or above this split use family 0. Retains unsigned-int comparisons.
+#define PLAYER_ACTOR_PE_CLIP_WATER_ID_MIN 0x12CU
+
+/// Unsigned packed-ID split for the final three item abilities' PE clip families.
+///
+/// At or above 601, tens digit one selects family 0 and other digits family 1.
+/// Slots 15..17 encode as 611/621/631; earlier item slots encode as 511/521/531
+/// and follow the lower-ID rules. This is not the first item-ability ID.
+#define PLAYER_ACTOR_PE_CLIP_LATE_ITEM_ID_MIN 0x259U
 
 /// Healing family selector, the decimal quotient `AttachmentState::attachId / 10`.
 ///
@@ -9027,7 +9054,7 @@ static void _playerActorNormalState6(Task* task)
             // Start the attachment countdown while the release clip plays.
             actor->animationState   = PLAYER_ACTOR_PE_ANIMATION_ADVANCE_PHASE;
             actor->statePhase      += 1;
-            gAttachmentState.flags |= ATTACHMENT_FLAG_RELEASE;
+            gAttachmentState.flags |= ATTACHMENT_FLAG_START_CAST;
             setIndex                = _playerActorSelectPeSet(actor, PLAYER_ACTOR_PE_RELEASE_SET_VARIANT0, PLAYER_ACTOR_PE_RELEASE_SET_VARIANT1, PLAYER_ACTOR_PE_RELEASE_SET_OTHER);
             playerActorPlayChildSlotsWithBlend(task, setIndex, 0, PLAYER_ACTOR_PE_RELEASE_BLEND_FRAMES);
             sceneLatchActionSignal(SCENE_COMBAT_ACTION_SIGNAL_PE_ACTIVE);
@@ -9043,7 +9070,7 @@ static void _playerActorNormalState6(Task* task)
                 actor->animationState = PLAYER_ACTOR_PE_ANIMATION_ADVANCE_PHASE;
                 actor->statePhase    += 1;
                 actionSignal          = SCENE_COMBAT_ACTION_SIGNAL_PE_CAST_300_TO_600;
-                if (gAttachmentState.attachId < ATTACHMENT_ID_EARLY_SPELL_LIMIT || gAttachmentState.attachId > ATTACHMENT_ID_LAST_SPELL) {
+                if (gAttachmentState.attachId < PLAYER_ACTOR_PE_CAST_SIGNAL_ID_MIN || gAttachmentState.attachId > PLAYER_ACTOR_PE_CAST_SIGNAL_ID_MAX) {
                     actionSignal = SCENE_COMBAT_ACTION_SIGNAL_PE_CAST_OTHER;
                 }
                 sceneLatchActionSignal(actionSignal);
@@ -9874,9 +9901,10 @@ void playerActorEnterReload(Task* task, s32 loadSelection, s32 reloadSource)
 ///
 /// Borrows writable `GameActor` work and the live attachment's u16 packed ID.
 /// Its decimal tens digit is 0..9, independent of the level in the ones digit.
-/// IDs at or above 601 select family 0 for digit 1, family 1 otherwise;
+/// IDs at or above 601 (item slots 15..17) select family 0 for digit 1, family 1 otherwise;
 /// lower IDs select family 2 for digit 3, otherwise family 1 below 300 or 0
-/// at or above 300. Writes `actionArgument` in 0..2 without starting playback.
+/// at or above 300, including item IDs 511/521/531. Writes `actionArgument`
+/// in 0..2 without starting playback.
 /// Families 0, 1 and 2 supply release, charge and cast sets 26..28, 29..31
 /// and 42..44 respectively; subsequent playback requires the native bank.
 static inline void _playerActorChoosePeClipFamily(GameActor* actor)
@@ -9891,7 +9919,7 @@ static inline void _playerActorChoosePeClipFamily(GameActor* actor)
     s32 attachmentTensDigit;
 
     attachmentTensDigit = gAttachmentState.attachId % 100 / 10;
-    if (gAttachmentState.attachId >= ATTACHMENT_ID_ITEM) {
+    if (gAttachmentState.attachId >= PLAYER_ACTOR_PE_CLIP_LATE_ITEM_ID_MIN) {
         if (attachmentTensDigit == PLAYER_ACTOR_PE_ITEM_FAMILY0_TENS_DIGIT) {
             actor->actionArgument = PLAYER_ACTOR_PE_CLIP_FAMILY0;
         } else {
@@ -9899,7 +9927,7 @@ static inline void _playerActorChoosePeClipFamily(GameActor* actor)
         }
     } else if (attachmentTensDigit == PLAYER_ACTOR_PE_SPELL_FAMILY2_TENS_DIGIT) {
         actor->actionArgument = PLAYER_ACTOR_PE_CLIP_FAMILY2;
-    } else if (gAttachmentState.attachId < ATTACHMENT_ID_EARLY_SPELL_LIMIT_U) {
+    } else if (gAttachmentState.attachId < PLAYER_ACTOR_PE_CLIP_WATER_ID_MIN) {
         actor->actionArgument = PLAYER_ACTOR_PE_CLIP_FAMILY1;
     } else {
         actor->actionArgument = PLAYER_ACTOR_PE_CLIP_FAMILY0;
@@ -10397,8 +10425,9 @@ static void _playerActorUpdateMovementInput(Task* task)
 /// Returns 0 and changes nothing unless effectPhase is HELD; accepting returns 1,
 /// saves the previous normal state and enters state 6 with displacement stopped,
 /// turn/controller/phase reset and aim decay requested. actionArgument selects
-/// native release/charge/cast clip family 0, 1 or 2: item IDs use 0 for tens digit
-/// 1 and 1 otherwise; spells use 2 for digit 3, otherwise 1 below 300 and 0 at or above it.
+/// native release/charge/cast clip family 0, 1 or 2: IDs at or above 601 use 0
+/// for tens digit 1 and 1 otherwise; lower IDs use 2 for digit 3, otherwise 1
+/// below 300 and 0 at or above it, including the earlier item IDs 511/521/531.
 /// Requires live GameActor work and attachment state; later playback requires
 /// the native bank. Does not release the target or change attachment ownership.
 static s32 _playerActorTryEnterPeAction(Task* task)
@@ -10434,7 +10463,7 @@ static s32 _playerActorTryEnterPeAction(Task* task)
         actor->aimTrackingState = GAME_ACTOR_AIM_TRACKING_DECAY;
         actor->stateAux         = previousState;
         attachmentTensDigit     = (u16)(gAttachmentState.attachId % 100 / 10);
-        if (gAttachmentState.attachId >= ATTACHMENT_ID_ITEM) {
+        if (gAttachmentState.attachId >= PLAYER_ACTOR_PE_CLIP_LATE_ITEM_ID_MIN) {
             if (attachmentTensDigit == PLAYER_ACTOR_PE_ITEM_FAMILY0_TENS_DIGIT) {
                 actor->actionArgument = PLAYER_ACTOR_PE_CLIP_FAMILY0;
             } else {
@@ -10442,7 +10471,7 @@ static s32 _playerActorTryEnterPeAction(Task* task)
             }
         } else if (attachmentTensDigit == PLAYER_ACTOR_PE_SPELL_FAMILY2_TENS_DIGIT) {
             actor->actionArgument = PLAYER_ACTOR_PE_CLIP_FAMILY2;
-        } else if (gAttachmentState.attachId < ATTACHMENT_ID_EARLY_SPELL_LIMIT_U) {
+        } else if (gAttachmentState.attachId < PLAYER_ACTOR_PE_CLIP_WATER_ID_MIN) {
             actor->actionArgument = PLAYER_ACTOR_PE_CLIP_FAMILY1;
         } else {
             actor->actionArgument = PLAYER_ACTOR_PE_CLIP_FAMILY0;

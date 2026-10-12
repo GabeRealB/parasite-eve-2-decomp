@@ -11,6 +11,55 @@
 
 #include "main/wipsys.h"
 
+/// Low-nibble mask for the stack count in the packed attachment combo byte.
+///
+/// Refresh retains these four bits and replaces the high-nibble cast level.
+/// Valid counts are 0..2 for Antibody/Energy Shot and 0..1 for Metabolism;
+/// extraction also retains pre-existing values outside those domains.
+#define ATTACHMENT_COMBO_STACK_MASK 0xF
+
+/// Maximum stack reached by refreshing a valid Antibody or Energy Shot combo.
+///
+/// Counts below two increment; counts already at or above two are retained.
+/// This does not clamp malformed low-nibble values back to two.
+#define ATTACHMENT_COMBO_STACK_CAP 2
+
+/// Packed Metabolism cast ID: water group, first ability, level one.
+#define ATTACHMENT_ID_METABOLISM_1 311
+
+/// Packed Metabolism cast ID: water group, first ability, level two.
+#define ATTACHMENT_ID_METABOLISM_2 312
+
+/// Packed Metabolism cast ID: water group, first ability, level three.
+#define ATTACHMENT_ID_METABOLISM_3 313
+
+/// Packed Healing cast ID: water group, second ability, level one.
+#define ATTACHMENT_ID_HEALING_1 321
+
+/// Packed Healing cast ID: water group, second ability, level two.
+#define ATTACHMENT_ID_HEALING_2 322
+
+/// Packed Healing cast ID: water group, second ability, level three.
+#define ATTACHMENT_ID_HEALING_3 323
+
+/// Packed Antibody cast ID: earth group, first ability, level one.
+#define ATTACHMENT_ID_ANTIBODY_1 411
+
+/// Packed Antibody cast ID: earth group, first ability, level two.
+#define ATTACHMENT_ID_ANTIBODY_2 412
+
+/// Packed Antibody cast ID: earth group, first ability, level three.
+#define ATTACHMENT_ID_ANTIBODY_3 413
+
+/// Packed Energy Shot cast ID: earth group, second ability, level one.
+#define ATTACHMENT_ID_ENERGY_SHOT_1 421
+
+/// Packed Energy Shot cast ID: earth group, second ability, level two.
+#define ATTACHMENT_ID_ENERGY_SHOT_2 422
+
+/// Packed Energy Shot cast ID: earth group, second ability, level three.
+#define ATTACHMENT_ID_ENERGY_SHOT_3 423
+
 s32 gAttachmentPlayerLightPulsePending;
 
 /// Inline copy of `sceneIsBattleActive`.

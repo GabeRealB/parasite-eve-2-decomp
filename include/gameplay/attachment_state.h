@@ -89,28 +89,22 @@ STATIC_ASSERT_SIZEOF(AttachmentLevelTable, 0x370);
 /// Category checks may explicitly bypass it; it does not itself cancel a cast.
 #define ATTACHMENT_FLAG_SWAP_LOCK 2
 
-#define ATTACHMENT_FLAG_RELEASE 4
-
 /// PE task request to apply the current ability's target or self effects on the next HUD update.
 ///
 /// The HUD dispatches release targeting, then clears this bit. Multiple requests
 /// before that update coalesce; resource spending occurs separately at cast release.
 #define ATTACHMENT_FLAG_APPLY_STATS 8
 
-#define ATTACHMENT_FLAG_OPEN_WHEEL 0x10
-
-/// Clears one flag and leaves the rest of the byte. Each value is the mask
-/// the clear sites store.
-#define ATTACHMENT_FLAG_CLEAR_EVENT_LOCK 0xFE
+/// Script request to open the PE wheel on an idle, unqueued HUD update.
+///
+/// Bypasses the pad, category-switch, display and event-lock entry gates.
+/// Opening consumes this bit; a non-idle mode or queued selection retains it.
+#define ATTACHMENT_FLAG_FORCE_OPEN_WHEEL 0x10
 
 /// Byte mask for `flags &= mask`: removes only the HUD category-switch lock.
 ///
 /// Its positive int value is 0xFD, preserving the other seven stored flag bits.
 #define ATTACHMENT_FLAG_CLEAR_SWAP_LOCK (0xFF ^ ATTACHMENT_FLAG_SWAP_LOCK)
-
-#define ATTACHMENT_FLAG_CLEAR_RELEASE     0xFB
-#define ATTACHMENT_FLAG_CLEAR_APPLY_STATS 0xF7
-#define ATTACHMENT_FLAG_CLEAR_OPEN_WHEEL  0xEF
 
 /// No open wheel or armed/counting cast; a selection may be queued and released PE tasks may run.
 #define ATTACHMENT_MODE_IDLE 0
@@ -134,12 +128,8 @@ STATIC_ASSERT_SIZEOF(AttachmentLevelTable, 0x370);
 /// phase signals to idle before the next update; this is independent of cast mode.
 #define ATTACHMENT_EFFECT_HELD (-2)
 
-#define ATTACHMENT_EFFECT_CHARGE -1
-
 /// No phase signal for this update; ongoing PE tasks and cast mode may remain active.
 #define ATTACHMENT_EFFECT_IDLE 0
-
-#define ATTACHMENT_EFFECT_RELEASED 1
 
 /// Cancellation signal for the player's PE action and its charge visuals.
 ///
@@ -147,13 +137,8 @@ STATIC_ASSERT_SIZEOF(AttachmentLevelTable, 0x370);
 /// resets the signal to idle. Running release effects also obey room-effect control.
 #define ATTACHMENT_EFFECT_CANCELLED 2
 
-/// `AttachmentState.soundStep`.
-#define ATTACHMENT_SOUND_IDLE   0
-#define ATTACHMENT_SOUND_QUEUED 1
-
 /// Wheel menu is closed; room event gates may proceed, subject to their other holds.
 #define ATTACHMENT_MENU_CLOSED 0
-#define ATTACHMENT_MENU_OPEN   1
 
 /// Pyrokinesis ability slot: fire group's first spell, decimal cast family 11.
 #define ATTACHMENT_INDEX_PYROKINESIS 0
@@ -168,8 +153,6 @@ STATIC_ASSERT_SIZEOF(AttachmentLevelTable, 0x370);
 /// The wheel's only spell cast outside combat; its amount restores HP.
 #define ATTACHMENT_INDEX_HEALING 7
 
-#define ATTACHMENT_INDEX_ANTIBODY 9
-
 /// Energy Shot ability slot: earth group's second spell, decimal cast family 42.
 #define ATTACHMENT_INDEX_ENERGY_SHOT 0xA
 
@@ -178,39 +161,11 @@ STATIC_ASSERT_SIZEOF(AttachmentLevelTable, 0x370);
 /// Its cast eligibility also checks the live projectile count.
 #define ATTACHMENT_INDEX_ENERGY_BALL 0xB
 
-/// Shortest cast `duration`, in frames.
-#define ATTACHMENT_DURATION_MIN 1
-
-/// Low nibble of a combo byte is the stack; the high nibble is the level.
-#define ATTACHMENT_COMBO_STACK_MASK 0xF
-
 /// Bit position of cast level 1..3 in a combo byte; the low nibble retains the stack count.
 ///
 /// Refresh replaces the high nibble. Dividing a nonzero byte by `1 << shift`
 /// recovers the level for damage scaling; the stored values fit in signed bytes.
 #define ATTACHMENT_COMBO_LEVEL_SHIFT 4
-
-#define ATTACHMENT_COMBO_STACK_CAP 2
-
-/// Packed attachment ids. The opening six spells are below 300, the twelve
-/// spells end at 600, and item attachments start at 601.
-#define ATTACHMENT_ID_EARLY_SPELL_LIMIT   300
-#define ATTACHMENT_ID_EARLY_SPELL_LIMIT_U 0x12CU
-#define ATTACHMENT_ID_LAST_SPELL          600
-#define ATTACHMENT_ID_ITEM                0x259U
-
-#define ATTACHMENT_ID_METABOLISM_1  311
-#define ATTACHMENT_ID_METABOLISM_2  312
-#define ATTACHMENT_ID_METABOLISM_3  313
-#define ATTACHMENT_ID_HEALING_1     321
-#define ATTACHMENT_ID_HEALING_2     322
-#define ATTACHMENT_ID_HEALING_3     323
-#define ATTACHMENT_ID_ANTIBODY_1    411
-#define ATTACHMENT_ID_ANTIBODY_2    412
-#define ATTACHMENT_ID_ANTIBODY_3    413
-#define ATTACHMENT_ID_ENERGY_SHOT_1 421
-#define ATTACHMENT_ID_ENERGY_SHOT_2 422
-#define ATTACHMENT_ID_ENERGY_SHOT_3 423
 
 /// Parasite Energy attachment being aimed, cast, or still applying.
 ///
@@ -231,7 +186,7 @@ typedef struct {
     s8   effectPhase;     // -2 held, -1 charging, 0 idle, 1 released, 2 cancelled
     byte field_4;         // Unread. Role unproven
     s8   activeIndex;     // Spell in use. Below 12 is a spell; 12 still draws the gauge and consumes an item
-    u8   flags;           // Bit 0 event lock, 1 swap lock, 2 release, 3 apply stats, 4 force the wheel open
+    u8   flags;           // Bit 0 event lock, 1 swap lock, 2 start cast, 3 apply stats, 4 force the wheel open
     s8   previewSound;    // Wheel preview sound; cleared once that play returns
     s8   soundStep;       // 0 idle, 1 queued, 2 load request handled
     s8   menuOpen;        // 1 while the wheel is open
@@ -248,9 +203,6 @@ typedef struct {
     s8   bodyWard;        // Set while darkness, paralysis and poison are blocked
 } AttachmentState;
 STATIC_ASSERT_SIZEOF(AttachmentState, 0x18);
-
-/// `AttachmentAreaParam.shape`: how an ability picks its targets.
-#define ATTACHMENT_AREA_SELF 0 // No area; the combo or healing update applies the effect
 
 /// Area-of-effect view of an `AttachmentAreaRow`: the region an ability at one
 /// level covers, previewed while aiming and used to pick its targets on release.

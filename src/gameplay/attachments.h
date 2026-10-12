@@ -14,6 +14,37 @@ struct Enemy;
 
 // Attachment parameters, combination state and menu support.
 
+/// Player request to start an armed attachment's cast countdown on the next HUD update.
+///
+/// The HUD consumes this bit in armed/casting mode and publishes the charge phase.
+/// Target effects and resource spending wait for countdown expiry.
+#define ATTACHMENT_FLAG_START_CAST 4
+
+/// One-update signal to start the current attachment's charge visuals.
+///
+/// Stored in `AttachmentState.effectPhase` when the countdown starts; the player
+/// effect dispatcher spawns the level-selected charge task. The next HUD update
+/// resets the signal to idle independently of the running countdown or PE tasks.
+#define ATTACHMENT_EFFECT_CHARGE (-1)
+
+/// One-update signal to spawn the current attachment's released PE effect.
+///
+/// Published after countdown expiry and sound-load readiness, alongside resource
+/// spending. Applying target/self effects is a separate request from the PE task;
+/// the next HUD update resets this phase signal to idle.
+#define ATTACHMENT_EFFECT_RELEASED 1
+
+/// No pending or handled cast sound-file load in `AttachmentState.soundStep`.
+///
+/// Cast completion, cancellation and battle transitions restore this value.
+/// It describes the request state, not sound-script playback or CD completion.
+#define ATTACHMENT_SOUND_IDLE 0
+
+/// Antibody ability slot: earth group's first spell, decimal cast family 41.
+///
+/// Levels 1..3 select this area's rows 0..2 to refresh its stacked protection timer.
+#define ATTACHMENT_INDEX_ANTIBODY 9
+
 /// Records a Parasite Energy attack in an enemy's borrowed contact table.
 ///
 /// `enemy` must be non-NULL; a NULL contact table leaves it and the cast's

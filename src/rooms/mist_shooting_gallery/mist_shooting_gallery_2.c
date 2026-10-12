@@ -3386,7 +3386,7 @@ static void _mistShootingGalleryRunCourse3(Task* controller)
                     gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0, PLAYER_ACTOR_END_SCRIPTED_KEEP_ROOT_OFFSET, 0);
                 work->phase++;
                 dismissButtons          = PAD_BUTTON_TRIANGLE;
-                gAttachmentState.flags |= ATTACHMENT_FLAG_OPEN_WHEEL;
+                gAttachmentState.flags |= ATTACHMENT_FLAG_FORCE_OPEN_WHEEL;
                 work->timer             = MIST_SHOOTING_GALLERY_COURSE_3_SWAP_DELAY_FRAMES;
                 work->captionStep       = MIST_SHOOTING_GALLERY_COURSE_3_SWAP_FIRST_KEY;
                 if (buttonLayout == 2) {
