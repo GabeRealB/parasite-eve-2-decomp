@@ -148,9 +148,12 @@ enum {
 ///
 /// `cursor` must be a `const u8*` local and `previousNode` a distinct `u8` local;
 /// `isGap` is a side-effect-free flag (0 node, nonzero gap). Use this compound
-/// statement inside a braced branch. The cursor is evaluated again
-/// after a gap increment; the node is reread after preceding wire-state stores.
-/// The escaped byte must exist. No identifiers are captured.
+/// statement inside a braced branch. The cursor is evaluated again after a gap
+/// increment; the node is reread after preceding wire-state stores. A gap marker
+/// must be followed by a valid node byte in the same route. This selects the next
+/// disconnected segment's start without adding an edge; the caller owns the
+/// ordinary advance and end/stop tests. No caller locals are captured and the
+/// macro does not validate the flag against the current byte.
 #define ACTOR_548100_READ_ROUTE_NODE(cursor, previousNode, isGap) \
     {                                                             \
         if ((isGap) != 0) {                                       \

@@ -22,9 +22,12 @@
 #include "main/task_types.h"
 #include "main/tmd_types.h"
 
-/// Length of one side of the square lap the golem walks, corner to corner, in
-/// world units. `Actor510900Work::lapDistance` counts along four of them.
-#define ACTOR_510900_LAP_SIDE 13200
+/// Length of one No. 9 patrol-lap side, corner to corner in world X/Z units.
+///
+/// Divides lapDistance into a side index and distance along it; the four
+/// authored corners are separated by 13200 units. The 200..46700 distance
+/// clamp keeps quotient 0..3 and remainder 0..13199 within the route tables.
+#define ACTOR_510900_LAP_SIDE_LENGTH 13200
 
 /// Values of `Actor510900Work::state`: the behaviour the fighting golem runs
 /// each frame. Each one steps through its own `subState` values.
@@ -58,7 +61,7 @@ enum {
 /// model's task.
 ///
 /// The golem fights on a lap: one pass around a square of side
-/// `ACTOR_510900_LAP_SIDE` on the
+/// `ACTOR_510900_LAP_SIDE_LENGTH` on the
 /// helicopter landing pad, measured by `lapDistance` from the first corner.
 /// Each frame the state handler picks the animation and the speed along the
 /// lap, and the common tail turns the body to the side's heading, places it,
@@ -111,7 +114,7 @@ typedef struct {
     s16                   lapSpeed;           // Distance added to `lapDistance` this frame; negative when driven back
     s16                   activation;         // Set by message 2007 (0 put away: the frame handler does nothing, 1 shown, 2 fight started)
     u16                   lapDistance;        // Distance covered around the lap, clamped to 0xC8..0xB66C
-    s16                   lapSide;            // Side of the lap the golem is on (0..3), `lapDistance / ACTOR_510900_LAP_SIDE`
+    s16                   lapSide;            // Side of the lap the golem is on (0..3), `lapDistance / ACTOR_510900_LAP_SIDE_LENGTH`
     s16                   playerSide;         // Side whose strip of the pad last held the player
     s16                   playerDistance;     // Horizontal distance from the body to the player
     s16                   sideRemaining;      // Distance left to the end of the current side

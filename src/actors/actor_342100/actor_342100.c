@@ -102,7 +102,12 @@ STATIC_ASSERT_SIZEOF(_Actor342100BlazeWork, 0x44);
 /// local AnimationPlayRequest. Arguments must be stable and side-effect-free: `workValue`
 /// and `animationIdValue` are evaluated twice, and `requestValue` six times.
 /// The receiver borrows the request only until dispatch returns. This compound
-/// statement captures no caller identifiers and produces no result.
+/// statement captures no caller identifiers and discards the dispatch result.
+/// animationIdValue is the caller's already narrowed s16 bank-relative ID;
+/// bankIndexValue selects a live player bank and blendFramesValue counts normal
+/// animation frames. Both are evaluated once. Only source.index and the four
+/// request words are initialized, covering the complete AnimationPlayRequest.
+/// The controller cache is written before the request ID and synchronous call.
 #define ACTOR_342100_SEND_BLAZE_ANIMATION(workValue, requestValue, animationIdValue, bankIndexValue, blendFramesValue) \
     {                                                                                                                  \
         (requestValue).source.index         = (bankIndexValue);                                                        \

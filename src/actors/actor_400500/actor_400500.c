@@ -3109,7 +3109,10 @@ static void _actor400500SpawnDeathFragments(Task* task)
 /// `task` is evaluated once. `workCursor` and `requestValue` must be writable,
 /// side-effect-free identifiers of work-pointer and s32 type, respectively.
 /// Refreshes the cursor and forms the full-width request before byte truncation;
-/// a matching running fade retains its phase. Neither pointer is retained.
+/// a matching running hide retains its phase. An idle request or a running
+/// non-hide request can restart HIDE only at zero cooldown. Stores 0x80 as a
+/// negative s8 request and resets to the first ramp; otherwise requestValue is
+/// untouched. Captures no caller locals; the work pointer is borrowed.
 #define ACTOR_400500_REQUEST_HIDE(task, workCursor, requestValue)                              \
     {                                                                                          \
         (workCursor) = (task)->work;                                                           \
@@ -5985,8 +5988,11 @@ static s32 _actor400500LocalizeWorldRotation(const GfxCoord* joint, MATRIX* worl
     ///
     /// Arguments must be side-effect-free, disjoint pointers to live word-aligned
     /// matrices. Rotation is evaluated three times, normalized storage twice.
-    /// Only the 3x3 result is valid; the complete copy leaves other bytes unspecified.
-    /// No caller identifiers are captured; the macro is undefined after this function.
+    /// parentBasis is loaded into the GTE before MulRotMatrix replaces rotation
+    /// with parentBasis*rotation. MatrixNormal writes normalized's 3x3 basis;
+    /// the complete MATRIX copy leaves its translation and other bytes unspecified.
+    /// Only that basis may be consumed afterwards. No caller locals or scratch
+    /// allocation; clobbers GTE state. Undefined after this function.
 #define ACTOR_400500_PREMULTIPLY_NORMALIZED_ROTATION(parentBasis, rotation, normalized) \
     do {                                                                                \
         gte_SetRotMatrix(parentBasis);                                                  \

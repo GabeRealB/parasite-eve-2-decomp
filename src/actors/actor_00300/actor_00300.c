@@ -80,16 +80,30 @@ typedef struct {
 } _Actor00300PatrolRoom;
 STATIC_ASSERT_SIZEOF(_Actor00300PatrolRoom, 8);
 
-/// Ticks `_Actor00300Work::alertTimer` is reloaded with: how long the actor
-/// keeps after the player once it has lost sight of them.
+/// Pursuit-memory countdown reloaded on a clear sight line, engagement or recovery.
+///
+/// Counts contact-resolution ticks, not animation frames or wall-clock time.
+/// A sight contact blocked by an occluder clears the countdown immediately;
+/// without a sight contact it decreases towards zero.
 #define ACTOR_00300_ALERT_TICKS 450
 
-/// Amounts `_Actor00300Work::mp` changes by.
-#define ACTOR_00300_MP_AT_SPAWN      40
-#define ACTOR_00300_MP_DRAINED       20 // taken from the player by a touch of the drain attack
-#define ACTOR_00300_MP_HEAL_COST     20
+/// Initial enemy MP balance, stored in signed-halfword work after allocation.
+#define ACTOR_00300_MP_AT_SPAWN 40
+
+/// MP requested from the player and credited to the enemy on one drain contact.
+///
+/// The player loses at most this amount; the enemy gains the full amount even
+/// when the player cannot pay. The enemy's signed-halfword balance is not capped.
+#define ACTOR_00300_MP_DRAINED 20
+
+/// Enemy MP spent when healing is selected, before the charge can be interrupted.
+#define ACTOR_00300_MP_HEAL_COST 20
+
+/// Enemy MP spent on a fireball selection, including a draw that cancels the attack.
 #define ACTOR_00300_MP_FIREBALL_COST 5
-#define ACTOR_00300_MP_RECHARGED     5 // gained by `ACTOR_00300_ACTION_RECHARGE`
+
+/// Enemy MP credited after the recharge's 91 active wait ticks, without a cap.
+#define ACTOR_00300_MP_RECHARGED 5
 
 /// Values of `_Actor00300Work::action`: the handler the per-frame tick runs.
 ///
@@ -204,7 +218,7 @@ typedef struct {
     WorldCollisionBody    gridBody;          // sphere of radius 500, 500 above the root, that the room grid tests and that rests on the floor; the grid leaves it alone from the fatal knock-down on
     WorldCollisionContact gridContacts[4];   // contacts of `gridBody`, which push the root out of the room's faces
     WorldCollisionBody    drainBody;         // sphere of radius 700 on the drain model, keyed with the package's first attack; pair tests are on only while the drain attack reaches out
-    WorldCollisionContact drainContacts[1];  // contact of `drainBody`; a touch takes `ACTOR_00300_MP_DRAINED` from the player into `mp`
+    WorldCollisionContact drainContacts[1];  // contact of `drainBody`; a touch requests `ACTOR_00300_MP_DRAINED` from the player and credits that full amount to `mp`
     EffectSpawnArg        hitEffectArg;      // argument record of the effect a hit spawns, hung off body part 3
     VECTOR3               prevPos;           // root position before the tick's movement, restored when the grid cannot resolve a contact
     byte                  pad_604[4];        // never accessed
@@ -250,10 +264,16 @@ typedef struct {
 } _Actor00300Work;
 STATIC_ASSERT_SIZEOF(_Actor00300Work, 0x6A4);
 
-/// Ticks a fireball flies before it bursts by itself.
+/// Maximum running flight ticks before a fireball bursts, including its final move.
+///
+/// The countdown starts after launch; paused and hidden actor control leave it
+/// unchanged. Attack contacts or a blocking sweep surface can end flight earlier.
 #define ACTOR_00300_FIREBALL_FLIGHT_TICKS 30
 
-/// Ticks a burst fireball's task is kept before it is destroyed.
+/// Teardown countdown ticks retaining a burst fireball's work and coordinate body.
+///
+/// Loaded on the first teardown call after unlinking both collision bodies;
+/// destruction occurs on the sixtieth subsequent call, independently of actor control.
 #define ACTOR_00300_FIREBALL_LINGER_TICKS 60
 
 /// Values of `_Actor00300FireballWork::teardownStep`.
@@ -1503,27 +1523,31 @@ static void            _actor00300FlyFireball(Enemy* enemy, Task* task);
 ///
 /// Scoped to `_actor00300InitEnemy`: captures live enemy/drainEnemy pointers and
 /// the caller's drainModel, locationKey, sessionLocation, placementKey,
-/// placementIndex, currentView and placement temporaries. Uses the placement
-/// index in 0..15, and rebuilds both buffer halves if a buffer is present.
-/// Invoke as a standalone statement; no argument evaluation or early exit.
-#define ACTOR_00300_BIND_DRAIN_TEXTURE()                                             \
-    placementKey      = enemy->placeKey;                                             \
-    drainModel        = drainEnemy->task->extra.tmd;                                 \
-    sessionLocation   = &gGameSession->location.loc;                                 \
-    locationKey.stage = sessionLocation->stage;                                      \
-    locationKey.area  = sessionLocation->area;                                       \
-    locationKey.room  = sessionLocation->room;                                       \
-    currentView       = gGameSession->location.loc.view;                             \
-    placementIndex    = placementKey >> ENEMY_PLACE_INDEX_SHIFT;                     \
-    locationKey.view  = currentView;                                                 \
-    areaSyncLocationVariant(&locationKey);                                           \
-    placement =                                                                      \
-        AREA_PLACEMENT_AT(areaGetVariant(&locationKey)->placements, placementIndex); \
-    drainModel->texturePageOffset = placement->texturePageOffset;                    \
-    drainModel->clutRowOffset     = placement->clutRowOffset;                        \
-    if (drainModel->buffer != NULL) {                                                \
-        tmdBuildBufferHalf(drainModel);                                              \
-        tmdBuildBufferHalf(drainModel);                                              \
+/// placementIndex, currentView and placement temporaries. The live placement
+/// index is in 0..15; the synchronized location selects its variant. The child
+/// and placement must exist. Rebuilds both primitive-buffer halves in sequence
+/// if a buffer is present. No allocation, argument evaluation or early exit.
+/// Invoke as a standalone compound statement inside a braced context.
+#define ACTOR_00300_BIND_DRAIN_TEXTURE()                                                 \
+    {                                                                                    \
+        placementKey      = enemy->placeKey;                                             \
+        drainModel        = drainEnemy->task->extra.tmd;                                 \
+        sessionLocation   = &gGameSession->location.loc;                                 \
+        locationKey.stage = sessionLocation->stage;                                      \
+        locationKey.area  = sessionLocation->area;                                       \
+        locationKey.room  = sessionLocation->room;                                       \
+        currentView       = gGameSession->location.loc.view;                             \
+        placementIndex    = placementKey >> ENEMY_PLACE_INDEX_SHIFT;                     \
+        locationKey.view  = currentView;                                                 \
+        areaSyncLocationVariant(&locationKey);                                           \
+        placement =                                                                      \
+            AREA_PLACEMENT_AT(areaGetVariant(&locationKey)->placements, placementIndex); \
+        drainModel->texturePageOffset = placement->texturePageOffset;                    \
+        drainModel->clutRowOffset     = placement->clutRowOffset;                        \
+        if (drainModel->buffer != NULL) {                                                \
+            tmdBuildBufferHalf(drainModel);                                              \
+            tmdBuildBufferHalf(drainModel);                                              \
+        }                                                                                \
     }
 
 /// Allocates the enemy's rig and collision work, spawns its drain attachment and enters active state.
@@ -1688,11 +1712,18 @@ static void _actor00300InitEnemy(Enemy* enemy, Task* task)
 }
 #undef ACTOR_00300_BIND_DRAIN_TEXTURE
 
-/// Copies the world positions of two coordinates into the scratch block and
-/// runs `_playerDetectionSegmentOccluded` on the segment between them. When it reports no
-/// hit, `alertTimer` is rearmed to `ACTOR_00300_ALERT_TICKS` and `playerSeen`
-/// raised; otherwise `alertTimer` is cleared.
-#define _ACTOR00300_TEST_SIGHT_LINE(work, scratch, start, end)                        \
+/// Refreshes pursuit memory when the player-to-enemy segment has no room occluder.
+///
+/// start and end borrow composed GfxCoord caches in the same view frame;
+/// scratch borrows writable `_Actor00300HitScratch` from/to vectors and work
+/// borrows live `_Actor00300Work`. All pointers must be side-effect-free and
+/// disjoint: scratch is evaluated eight times and each coordinate three times.
+/// Endpoint coordinates narrow to s16; their delta must fit s16 with a nonzero
+/// squared length no greater than 0x7FFFFFFF for the occlusion normalization.
+/// A clear segment reloads `ACTOR_00300_ALERT_TICKS` and sets playerSeen to 1;
+/// an occluder clears only the timer. The caller clears playerSeen beforehand.
+/// Captures no caller locals; the occlusion query borrows both vectors for the call.
+#define ACTOR_00300_TEST_SIGHT_LINE(work, scratch, start, end)                        \
     do {                                                                              \
         (scratch)->from.vx = (start)->workm.t[0];                                     \
         (scratch)->from.vy = (start)->workm.t[1];                                     \
@@ -1720,12 +1751,14 @@ static inline s16 _actor00300TiltMagnitude(s8 randomByte)
     return (randomByte & ACTOR_00300_HIT_TWIST_RANDOM_MASK) + ACTOR_00300_HIT_TWIST_MIN;
 }
 
-/// Chooses signed pitch and yaw recoil from one LCG draw.
+/// Chooses pitch and yaw hit recoil from the two upper bytes of one LCG draw.
 ///
 /// enemyWork is a side-effect-free live `_Actor00300Work*`, read repeatedly.
 /// yawResult is a repeatedly read/written s32 lvalue, disjoint from enemyWork
 /// and the LCG state. Use as a standalone statement. Changes the work's
-/// hit-twist fields, yawResult and the shared LCG.
+/// hit-twist fields, yawResult and the shared LCG. Each angle uses 4096 units
+/// per turn: even magnitudes 64..190 are negative and odd magnitudes 65..191
+/// positive. The helper intentionally narrows each byte to s8 before masking.
 #define ACTOR_00300_CHOOSE_HIT_TWIST(enemyWork, yawResult)                                \
     {                                                                                     \
         s16 randomHalfword;                                                               \
@@ -1968,7 +2001,7 @@ static void _actor00300ResolveContacts(Task* task)
     work->playerSeen = 0;
     if ((work->sightContacts[0].key.value & WORLD_COLLISION_CONTACT_KIND_MASK) == WORLD_COLLISION_CONTACT_PLAYER_BODY) {
         contactCoord = &gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords[ACTOR_00300_HIT_PART];
-        _ACTOR00300_TEST_SIGHT_LINE(work, scratch, contactCoord, rootCoord);
+        ACTOR_00300_TEST_SIGHT_LINE(work, scratch, contactCoord, rootCoord);
     } else if (work->alertTimer > 0) {
         work->alertTimer--;
     }
@@ -1976,6 +2009,7 @@ static void _actor00300ResolveContacts(Task* task)
     SCRATCH_STACK_RELEASE_BLOCK(_Actor00300HitScratch);
 }
 #undef ACTOR_00300_CHOOSE_HIT_TWIST
+#undef ACTOR_00300_TEST_SIGHT_LINE
 
 /// Advances the room patrol and switches to pursuit when the actor is alerted.
 ///
@@ -2557,7 +2591,10 @@ static void _actor00300TickDrainAttack(Task* task)
 /// shared LCG state. Captures the room mote id and shared
 /// LCG state, advancing it once for the decision and again for the angle on a
 /// one-in-four success. The caller must gate room effect control. The packed
-/// word supplies half-extent/palette, upward speed and lifetime. Offset storage
+/// word supplies half-extent/palette, upward speed and lifetime. The offset is
+/// in coord's local X/Z plane, at radius 640 on one of 32 bearings. The Q12
+/// trigonometric products are shifted unsigned then narrowed to s16, preserving
+/// negative offsets; the cleared Y and fourth halfword remain zero. Offset storage
 /// lasts through spawn only and must not be followed after the caller returns.
 #define ACTOR_00300_SPAWN_CHARGE_MOTE(coord, packedArg, spawnRandom, angleRandom, moteAngle, radialOffset, moteOffset) \
     do {                                                                                                               \
@@ -3013,9 +3050,12 @@ static void _actor00300ApplyHitTwist(Task* task)
 
     /// Eases one hit-twist angle, raising the shared latch while another tick is needed.
     ///
-    /// All arguments must be side-effect-free lvalues and the temporaries must
-    /// be distinct signed words. Uses this function's angle-unit return step;
-    /// the caller initializes the shared latch to zero before easing both axes.
+    /// angle is a signed-halfword angle in 4096-unit turns. The three temporaries
+    /// are distinct s32 lvalues, disjoint from angle and the s32 latch. All
+    /// arguments are side-effect-free and evaluated repeatedly. Steps by 32
+    /// toward zero, snapping within that distance. Zero leaves temporaries
+    /// untouched except angleValue; a snap leaves nextAngle untouched. Only
+    /// raises the latch, so the caller clears it once before easing both axes.
 #define ACTOR_00300_EASE_HIT_TWIST(angle, angleValue, magnitude, nextAngle, activeLatch) \
     {                                                                                    \
         (angleValue) = (angle);                                                          \
@@ -3066,31 +3106,36 @@ static void _actor00300ApplyHitTwist(Task* task)
 /// Scoped to `_actor00300SpawnBurstFragments`: captures task, locationKey and
 /// currentView, all live locals. fragment must be a side-effect-free EffectWork*
 /// expression; it is read repeatedly. A NULL fragment performs no lookup.
-/// The loaded placement and model resources must outlive both buffer rebuilds.
-#define ACTOR_00300_BIND_BURST_TEXTURE(fragment)                                                                        \
-    if ((fragment) != NULL) {                                                                                           \
-        u32              placementKey, placementIndex;                                                                  \
-        TmdObject*       fragmentModel;                                                                                 \
-        AreaPlacement*   placement;                                                                                     \
-        GameLocationKey* sessionLocation;                                                                               \
-        sessionLocation   = &gGameSession->location.loc;                                                                \
-        placementKey      = ((Enemy*)task->spawnArg2.pointer)->placeKey;                                                \
-        fragmentModel     = (fragment)->task->extra.tmd;                                                                \
-        locationKey.stage = sessionLocation->stage;                                                                     \
-        locationKey.area  = sessionLocation->area;                                                                      \
-        locationKey.room  = sessionLocation->room;                                                                      \
-        currentView       = gGameSession->location.loc.view;                                                            \
-        placementIndex    = placementKey >> ENEMY_PLACE_INDEX_SHIFT;                                                    \
-        locationKey.view  = currentView;                                                                                \
-        areaSyncLocationVariant(&locationKey);                                                                          \
-        placement                        = AREA_PLACEMENT_AT(areaGetVariant(&locationKey)->placements, placementIndex); \
-        fragmentModel->texturePageOffset = placement->texturePageOffset;                                                \
-        fragmentModel->clutRowOffset     = placement->clutRowOffset;                                                    \
-        if (fragmentModel->buffer != NULL) {                                                                            \
-            tmdBuildBufferHalf(fragmentModel);                                                                          \
-            tmdBuildBufferHalf(fragmentModel);                                                                          \
-        }                                                                                                               \
-    }
+/// Captures no other caller locals. The synchronized current location selects
+/// the live placement at index 0..15 from the enemy's placement key. Updates
+/// both texture offsets and, if allocated, both primitive-buffer halves in order.
+/// The loaded placement and model resources must outlive those rebuilds.
+#define ACTOR_00300_BIND_BURST_TEXTURE(fragment)                                                                            \
+    do {                                                                                                                    \
+        if ((fragment) != NULL) {                                                                                           \
+            u32              placementKey, placementIndex;                                                                  \
+            TmdObject*       fragmentModel;                                                                                 \
+            AreaPlacement*   placement;                                                                                     \
+            GameLocationKey* sessionLocation;                                                                               \
+            sessionLocation   = &gGameSession->location.loc;                                                                \
+            placementKey      = ((Enemy*)task->spawnArg2.pointer)->placeKey;                                                \
+            fragmentModel     = (fragment)->task->extra.tmd;                                                                \
+            locationKey.stage = sessionLocation->stage;                                                                     \
+            locationKey.area  = sessionLocation->area;                                                                      \
+            locationKey.room  = sessionLocation->room;                                                                      \
+            currentView       = gGameSession->location.loc.view;                                                            \
+            placementIndex    = placementKey >> ENEMY_PLACE_INDEX_SHIFT;                                                    \
+            locationKey.view  = currentView;                                                                                \
+            areaSyncLocationVariant(&locationKey);                                                                          \
+            placement                        = AREA_PLACEMENT_AT(areaGetVariant(&locationKey)->placements, placementIndex); \
+            fragmentModel->texturePageOffset = placement->texturePageOffset;                                                \
+            fragmentModel->clutRowOffset     = placement->clutRowOffset;                                                    \
+            if (fragmentModel->buffer != NULL) {                                                                            \
+                tmdBuildBufferHalf(fragmentModel);                                                                          \
+                tmdBuildBufferHalf(fragmentModel);                                                                          \
+            }                                                                                                               \
+        }                                                                                                                   \
+    } while (0)
 
 /// Spawns the five detached models of a bursting enemy with its placement texture offsets.
 ///
@@ -3171,13 +3216,17 @@ static void _actor00300PlayAnimationCueSounds(Task* task)
 ///
 /// Scoped to `_actor00300TickDeath`: captures live task and writable VECTOR3
 /// worldPosition locals. coord is a side-effect-free composed GfxCoord* read
-/// three times. The query reads XYZ only and retains no pointer. Invoke as a
-/// standalone statement; no early exit occurs.
-#define ACTOR_00300_UPDATE_DEATH_COLOR(coord) \
-    worldPosition.vx = (coord)->workm.t[0];   \
-    worldPosition.vy = (coord)->workm.t[1];   \
-    worldPosition.vz = (coord)->workm.t[2];   \
-    worldCoordUpdateActorColor(task->spawnArg2.pointer, &worldPosition, 0, 0)
+/// three times; its cached XYZ is copied unchanged to the lighting query. The
+/// task must carry a live Enemy in spawnArg2.pointer. The last two arguments
+/// are unused by the colour query, which borrows XYZ only for the call.
+/// Invoke as a standalone compound statement inside a braced context.
+#define ACTOR_00300_UPDATE_DEATH_COLOR(coord)                                      \
+    {                                                                              \
+        worldPosition.vx = (coord)->workm.t[0];                                    \
+        worldPosition.vy = (coord)->workm.t[1];                                    \
+        worldPosition.vz = (coord)->workm.t[2];                                    \
+        worldCoordUpdateActorColor(task->spawnArg2.pointer, &worldPosition, 0, 0); \
+    }
 
 /// Retires the enemy from combat and advances its collapse or fragment-burst death.
 ///

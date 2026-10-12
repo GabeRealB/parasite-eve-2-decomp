@@ -978,9 +978,13 @@ static void _madChaserApplyContacts(Task* task, s16 ignorePlayerBody)
     };
     /// Adds the signed 16.16 correction's sign to its floored halfword step.
     ///
-    /// Both arguments are side-effect-free scalar lvalues. correctionWord is
-    /// read up to twice and gridStep once on the selected path; increments
-    /// narrow to s16. Negative fractions subtract one below their integer half.
+    /// gridStep is a writable s16 containing the correction's integer half;
+    /// correctionWord is its s32 Q16 word. Both expressions are side-effect-free,
+    /// disjoint lvalues. A zero low half leaves the step unchanged; otherwise
+    /// adds +1 for positive words and -1 for negative words, narrowing to s16.
+    /// Thus -0.5 becomes -2 rather than -1; this is not rounding towards zero.
+    /// correctionWord is read up to twice. Captures the function's fraction-mask
+    /// enum, with no caller locals; invoke as a standalone compound statement.
 #define MAD_CHASER_ADJUST_FRACTIONAL_GRID_STEP(gridStep, correctionWord) \
     {                                                                    \
         if ((correctionWord) & MAD_CHASER_PUSH_FRACTION_MASK) {          \

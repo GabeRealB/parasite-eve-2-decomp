@@ -1338,13 +1338,16 @@ static void _actor04000StateScriptedFall(Enemy* enemy, Task* task);
 static void _actor04000StateScriptedLeap(Enemy* enemy, Task* task);
 static void _actor04000Tick(Enemy* enemy, Task* task);
 
-/// Clamps a wrapped turn and rebuilds the root yaw in 4096ths of a turn.
+/// Applies a bounded relative turn to the model root's current yaw.
 ///
 /// The task and scratch arguments must be stable, side-effect-free expressions;
-/// each is evaluated more than once. The limit is a nonnegative signed constant within
-/// the signed-halfword yaw range. Reads and replaces `scratchArg->angle`, uses
-/// the live model root, and leaves dirty marking to its movement caller.
-/// Expands to a compound statement; use only as a standalone statement.
+/// each is evaluated more than once. scratchArg borrows writable ActorTurnScratch
+/// with angle already wrapped to -2048..2048 (4096 units per turn). maxTurn is a
+/// nonnegative signed constant in that range, evaluated repeatedly. Clamping
+/// precedes addition of the matrix yaw; the sum narrows back to the s16 angle.
+/// Replaces root rotation with pure Y rotation, preserving translation; caller
+/// owns dirty marking. Captures no locals and changes GTE state. Invoke as a
+/// standalone compound statement.
 #define ACTOR_04000_APPLY_LIMITED_YAW_TURN(taskArg, scratchArg, maxTurn)                                                          \
     {                                                                                                                             \
         if ((scratchArg)->angle > (maxTurn)) {                                                                                    \

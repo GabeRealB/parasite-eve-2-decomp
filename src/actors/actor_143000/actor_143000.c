@@ -38,8 +38,12 @@
 /// Most characters the keypad's entry line holds.
 #define ACTOR_143000_KEYPAD_CODE_CAPACITY 20
 
-/// Banner stored in `_Actor143000KeypadWork::resultBanner`.
-#define ACTOR_143000_KEYPAD_BANNER_NONE     0
+/// No result banner: the keypad drawer emits neither accepted nor rejected artwork.
+///
+/// Stored in the byte resultBanner at initialization and between timed result
+/// flashes. Zero affects only the banner, leaving the independent status line visible.
+#define ACTOR_143000_KEYPAD_BANNER_NONE 0
+
 #define ACTOR_143000_KEYPAD_BANNER_ACCEPTED 1
 #define ACTOR_143000_KEYPAD_BANNER_REJECTED 2
 

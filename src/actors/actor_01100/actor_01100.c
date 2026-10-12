@@ -345,15 +345,25 @@ static s32 _gActor01100SpitSoundPlacementIndex;
 static TmdSource _gActor01100BruteMossbackBurstArm;
 static TmdSource _gActor01100BruteMossbackBurstHead;
 
-/// Scales column `col` of `m` by `fac` through the GTE's GPF, using `sv` as
-/// the working vector.
-#define SCALE_COL(m, sv, col, fac)    \
-    gte_ReadMatrixColumn(m, col, sv); \
-    gte_lddp(fac);                    \
-    gte_ldsv(sv);                     \
-    gte_gpf12();                      \
-    gte_stsv(sv);                     \
-    gte_WriteMatrixColumn(sv, m, col)
+/// Scales one model-basis column by a signed Q12 factor using GTE saturation.
+///
+/// axis is an integer constant 0..2 for the GTE load/store displacements.
+/// factor is evaluated once after gathering the original column; its low signed
+/// halfword is the multiplier (ONE is unity). Products shift by 12 and saturate
+/// to s16. matrix and column are disjoint halfword-aligned MATRIX*/SVECTOR*
+/// storage, evaluated twice and four times respectively without side effects.
+/// Only selected basis coefficients and workspace XYZ change; translation and
+/// the fourth vector halfword stay intact. Clobbers GTE working registers and
+/// CPU $12..$14. Captures no caller locals and reserves no scratch storage.
+#define ACTOR_01100_SCALE_MATRIX_COLUMN(matrix, column, axis, factor) \
+    do {                                                              \
+        gte_ReadMatrixColumn((matrix), (axis), (column));             \
+        gte_lddp((factor));                                           \
+        gte_ldsv((column));                                           \
+        gte_gpf12();                                                  \
+        gte_stsv((column));                                           \
+        gte_WriteMatrixColumn((column), (matrix), (axis));            \
+    } while (0)
 
 static void _actor01100Init(Enemy* enemy, Task* task, _Actor01100Work* unusedWork, _Actor01100Scratch* unusedScratch);
 static void _actor01100ArmCollisionBodies(Enemy* enemy, Task* task, _Actor01100Work* work, _Actor01100Scratch* unusedScratch);
@@ -1500,9 +1510,12 @@ static s32 _actor01100ProcessHits(Enemy* enemy, Task* task, _Actor01100Work* wor
 
 /// Requests the hit cue for living work at the sampled pan/depth.
 ///
-/// Used only in this handler. Captures its s32 soundId local and hit-sound enum;
-/// workPtr and scratchPtr occur repeatedly and must have no side effects.
-/// Invoke as a standalone statement in a braced block; retains no pointers.
+/// Captures the handler's s32 soundId and hit-sound enum. workPtr borrows live
+/// `_Actor01100Work`; scratchPtr borrows its sampled `_Actor01100Scratch`.
+/// Both are side-effect-free expressions. Living work combines the water-room
+/// selector at bit 22 with the low placement byte at bits 8..15; pan/depth
+/// intentionally narrow to s8. Dead work leaves soundId untouched and emits
+/// nothing. Invoke as a standalone statement in a braced block; retains no pointers.
 #define ACTOR_01100_REQUEST_HIT_SOUND(workPtr, scratchPtr)                                                      \
     {                                                                                                           \
         if ((workPtr)->hp > 0) {                                                                                \
@@ -1975,9 +1988,9 @@ static void _actor01100UpdateAwareness(Enemy* enemy, Task* task, _Actor01100Work
 /// the caller invalidates coordinate composition. Clobbers the GTE and scratch.
 static __inline__ void _actor01100StretchArmBasis(MATRIX* armMatrix, SVECTOR* columnScratch, const s16* stretch)
 {
-    SCALE_COL(armMatrix, columnScratch, 0, *stretch + ONE);
-    SCALE_COL(armMatrix, columnScratch, 1, (*stretch >> 2) + ONE);
-    SCALE_COL(armMatrix, columnScratch, 2, (*stretch >> 2) + ONE);
+    ACTOR_01100_SCALE_MATRIX_COLUMN(armMatrix, columnScratch, 0, *stretch + ONE);
+    ACTOR_01100_SCALE_MATRIX_COLUMN(armMatrix, columnScratch, 1, (*stretch >> 2) + ONE);
+    ACTOR_01100_SCALE_MATRIX_COLUMN(armMatrix, columnScratch, 2, (*stretch >> 2) + ONE);
 }
 
 /// Adds the look twist, shoulder swelling and arm stretch to the current animated pose.
@@ -4096,12 +4109,13 @@ static void _actor01100ScaleMatrixColumns(MATRIX* matrix, VECTOR* scale)
     column                                       = SCRATCH_STACK_CURSOR_AT(cursorSlot, SVECTOR) - 1;
     SCRATCH_STACK_CURSOR_AT(cursorSlot, SVECTOR) = column;
 
-    SCALE_COL(matrix, column, 0, scale->vx);
-    SCALE_COL(matrix, column, 1, scale->vy);
-    SCALE_COL(matrix, column, 2, scale->vz);
+    ACTOR_01100_SCALE_MATRIX_COLUMN(matrix, column, 0, scale->vx);
+    ACTOR_01100_SCALE_MATRIX_COLUMN(matrix, column, 1, scale->vy);
+    ACTOR_01100_SCALE_MATRIX_COLUMN(matrix, column, 2, scale->vz);
 
     SCRATCH_STACK_RELEASE_BLOCK_AT(cursorSlot, SVECTOR);
 }
+#undef ACTOR_01100_SCALE_MATRIX_COLUMN
 
 /// Returns a player or companion slot's bearing about `self`'s cached axes.
 ///

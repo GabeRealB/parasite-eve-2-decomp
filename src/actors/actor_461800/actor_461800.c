@@ -1075,8 +1075,11 @@ static void _actor461800SceneDistortionTask(Task* task)
     ///
     /// ramp and increasing are distinct writable `s32` lvalues without side
     /// effects; both are evaluated repeatedly. maximum is positive and has no
-    /// side effects, with ramp initially in 0..maximum. No locals are
-    /// captured. This compound-statement macro is used only in this body.
+    /// side effects, with ramp initially in 0..maximum. The direction flips
+    /// only on an update already at an endpoint; a full cycle takes
+    /// 2*(maximum+1) calls. Direction uses zero for falling, nonzero for rising.
+    /// No caller locals are captured. The two scene ramps step independently;
+    /// this macro publishes no framebuffer shift itself.
 #define ACTOR_461800_STEP_SCENE_RAMP(ramp, increasing, maximum) \
     {                                                           \
         if ((increasing) != 0) {                                \

@@ -85,8 +85,12 @@ typedef struct {
 } _Actor206100BogDiverSlot;
 STATIC_ASSERT_SIZEOF(_Actor206100BogDiverSlot, 0x8);
 
-/// Farthest from the origin, in the XZ plane, that a step of the fight may
-/// leave the root.
+/// Maximum root-parent X/Z distance from the origin allowed by a fight step.
+///
+/// Equality is accepted. The distance test narrows root offsets to s16 before
+/// squaring; normal positions must fit that domain. An outside step restores
+/// frame-start X/Z, rather than projecting to this 400-unit circle or undoing
+/// just the latest step. This does not bound other placement operations.
 #define ACTOR_206100_FIGHT_AREA_RADIUS 0x190
 
 /// Scratch-stack block of the fight's bounded step: where the root stands

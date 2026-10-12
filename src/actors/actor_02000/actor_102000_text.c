@@ -1481,13 +1481,17 @@ static void _golemPawnRookEngageState(Task* task)
     GolemPawnRookWork* work;
     GfxCoord*          rootCoord;
 
-    /// Updates player/current yaw and measures the shortest 4096-unit gap.
+    /// Stores player/current headings and measures their nonnegative shortest gap.
     ///
-    /// All arguments must be side-effect-free lvalues or pointers; expressions
-    /// are evaluated repeatedly. Inputs are live work, root and X/Z offset;
-    /// yawValue, deltaValue, wrappedValue and errorValue are s16; magnitudeValue
-    /// is s32. Captures no identifiers. Expands to a compound statement and is
-    /// undefined below.
+    /// work borrows live GOLEM body work; rootCoord and toPlayer supply facing
+    /// and X/Z offset in the same parent frame. Bearing deliberately narrows
+    /// offsets to s16. Headings use 4096 units per turn, mask to 0..4095 and
+    /// overwrite targetYaw/yaw. yawValue, deltaValue, wrappedValue and errorValue
+    /// are distinct writable s16 lvalues; magnitudeValue is a distinct s32.
+    /// deltaValue is -4095..4095 and errorValue is 0..2048. At exactly half a
+    /// turn the wrap branch runs; only that branch writes wrappedValue.
+    /// Arguments are side-effect-free and evaluated repeatedly. Captures no
+    /// caller locals. Invoke as a standalone compound statement; undefined below.
 #define GOLEM_PAWN_ROOK_MEASURE_PLAYER_YAW_GAP(work, rootCoord, toPlayer, yawValue, deltaValue, magnitudeValue, wrappedValue, errorValue) \
     {                                                                                                                                     \
         (work)->targetYaw = ratan2((s16)(toPlayer)->vx, (s16)(toPlayer)->vz) & ACTOR_TRANSFORM_ANGLE_MASK;                                \

@@ -2476,8 +2476,8 @@ static void _actor510900UpdatePlayerRange(Task* task)
         }
     }
 
-    work->sideTravelled = __builtin_abs(work->lapSide * ACTOR_510900_LAP_SIDE - work->lapDistance);
-    work->sideRemaining = __builtin_abs((work->lapSide + 1) * ACTOR_510900_LAP_SIDE - work->lapDistance);
+    work->sideTravelled = __builtin_abs(work->lapSide * ACTOR_510900_LAP_SIDE_LENGTH - work->lapDistance);
+    work->sideRemaining = __builtin_abs((work->lapSide + 1) * ACTOR_510900_LAP_SIDE_LENGTH - work->lapDistance);
 
     deltaX               = gPlayerStatus.coordMtx->t[0] - bodyCoord->coord.t[0];
     playerOffset->vx     = deltaX;
@@ -2581,9 +2581,9 @@ static void _actor510900AdvanceAlongLap(Task* task)
         work->lapDistance = ACTOR_510900_LAP_MAX_DISTANCE;
     }
 
-    lapSide       = work->lapDistance / ACTOR_510900_LAP_SIDE;
+    lapSide       = work->lapDistance / ACTOR_510900_LAP_SIDE_LENGTH;
     work->lapSide = lapSide;
-    sideDistance  = work->lapDistance % ACTOR_510900_LAP_SIDE;
+    sideDistance  = work->lapDistance % ACTOR_510900_LAP_SIDE_LENGTH;
 
     bodyCoord->coord.t[0] = _gActor510900LapCorners[lapSide].x + (sideDistance * _gActor510900LapDirections[lapSide].x);
     bodyCoord->coord.t[1] = 0;

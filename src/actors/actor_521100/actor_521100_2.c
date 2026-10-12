@@ -37,13 +37,17 @@
 #include "../../shared/actor_messages.h"
 #include "../../shared/footstep_walk.h"
 
-/// Clip of `_Actor521100AnmcWomanState::animId` the woman is spawned in, and
-/// the only one a walk moves her under.
+/// Animation-bank clip selecting the scripted ANMC woman's forward walk.
+///
+/// Spawn requests this clip; only its ticking state consumes nonzero travel
+/// and attempts movement. Reset/blend updates reseed it without taking a step.
 #define ACTOR_521100_ANMC_WOMAN_ANIM_WALK 1
 
-/// Distance the woman's walk covers each frame, along the root coordinate's
-/// local Z axis. A walk request divides the ground distance to its target by
-/// this to get `_Actor521100AnmcWomanState::travel`.
+/// Forward distance per active walk tick in the root parent's coordinate units.
+///
+/// Uses local +Z and a Q12 basis; a request floors X/Z target distance divided
+/// by this step into signed-halfword travel ticks. An actor freeze suppresses
+/// translation but still consumes a tick of travel. It is independent of clip rate.
 #define ACTOR_521100_ANMC_WOMAN_WALK_STRIDE 20
 
 /// Values of `_Actor521100AnmcWomanState::flattenStep`: how far the flatten

@@ -234,22 +234,28 @@ STATIC_ASSERT_SIZEOF(_Actor110600Work, 0xBEC);
 
 /// Stops steering and starts an idle speed ramp from the current step.
 ///
-/// Standalone statement sequence requiring a braced context and arguments free
-/// of side effects. `actorWork` is live work, `walkerAlias` is a writable walker
-/// pointer and `savedSpeed` a writable u16. Target and step values narrow to
-/// unsigned halfword game units per tick. Arguments are evaluated repeatedly;
-/// current speed is retained and turn/look are cleared. The walker compares
-/// speed gaps as signed halfwords and applies target 0xFFFE as a step of -2.
+/// actorWork borrows live `_Actor110600Work`; walkerAlias is a writable
+/// BossStrangerWalker* local and savedSpeed a disjoint writable u16 local.
+/// Arguments must have no side effects: actorWork and both outputs are evaluated
+/// repeatedly; targetValue and stepValue once each. Target narrows to unsigned
+/// halfword game units per tick and step to unsigned halfword speed change per tick.
+/// Saves current speed before exposing the embedded walker, selects IDLE and
+/// retains that speed while clearing turn/look. The movement core compares the
+/// speed gap as s16 and applies target 0xFFFE as a signed step of -2. No captured
+/// caller locals; output locals must not alias the work's members.
+/// Invoke as a standalone compound statement inside a braced context.
 #define ACTOR_110600_ENTER_IDLE_WALKER(actorWork, walkerAlias, savedSpeed, targetValue, stepValue) \
-    (savedSpeed)                  = (actorWork)->walker.speed;                                     \
-    (walkerAlias)                 = &(actorWork)->walker;                                          \
-    (actorWork)->walker.state     = BOSS_STRANGER_WALKER_IDLE;                                     \
-    (walkerAlias)->speedTarget    = (targetValue);                                                 \
-    (walkerAlias)->speed          = (savedSpeed);                                                  \
-    (walkerAlias)->speedStep      = (stepValue);                                                   \
-    (actorWork)->walker.turnLimit = 0;                                                             \
-    (actorWork)->lookYaw          = 0;                                                             \
-    (actorWork)->lookYawTarget    = 0
+    {                                                                                              \
+        (savedSpeed)                  = (actorWork)->walker.speed;                                 \
+        (walkerAlias)                 = &(actorWork)->walker;                                      \
+        (actorWork)->walker.state     = BOSS_STRANGER_WALKER_IDLE;                                 \
+        (walkerAlias)->speedTarget    = (targetValue);                                             \
+        (walkerAlias)->speed          = (savedSpeed);                                              \
+        (walkerAlias)->speedStep      = (stepValue);                                               \
+        (actorWork)->walker.turnLimit = 0;                                                         \
+        (actorWork)->lookYaw          = 0;                                                         \
+        (actorWork)->lookYawTarget    = 0;                                                         \
+    }
 
 /// Scratch-stack block of the damage step, which runs each tick the actor has
 /// health left and no hit cooldown running, and reserves a block only while

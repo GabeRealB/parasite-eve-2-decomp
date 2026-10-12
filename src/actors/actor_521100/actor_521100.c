@@ -85,7 +85,12 @@ enum {
 /// `bodyWork` must be a side-effect-free pointer expression to the live work
 /// block; it is evaluated repeatedly. `waitFrameTable` is evaluated once and
 /// supplies sixteen read-only frame counts. Consumes one LCG draw. Expands
-/// to a braced block; use only as a statement inside an existing block.
+/// to a braced block; use only as a statement inside an existing block. A zero
+/// resumeRoute selects APPROACH step zero; any nonzero value restores WALK_ROUTE
+/// at resumeRouteLeg (a valid route leg). Selects idle animation but leaves speed
+/// and attack flags to the reaction's entry. The upper random halfword selects
+/// index 0..15, and the u16 wait narrows to s16 stateCounter; normal waits must
+/// fit 0..32767 ticks. Captures shared LCG state, but no caller locals or pointers.
 #define ACTOR_521100_RESUME_AFTER_HIT(bodyWork, waitFrameTable)                                             \
     {                                                                                                       \
         const u16* waitFrames;                                                                              \
