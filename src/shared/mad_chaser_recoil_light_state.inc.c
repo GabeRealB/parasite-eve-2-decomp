@@ -10,10 +10,20 @@
 // is provided. Entry borrows the live task, requests the reaction pose and
 // advances subState to 1. The binding names a function without evaluating
 // arguments, capturing values or constructing tokens.
-// The carrier's _madChaserRecoilLightRecover binding selects the continuation.
+// MAD_CHASER_REACTION_CONTINUE_HANDLER selects the declared void(Task*) callback
+// for subState 1. Each carrier explicitly binds its light-recoil, heavy-recoil
+// or buildup-status continuation around this inclusion, then undefines it; no
+// default is provided. Continuation borrows the live task-owned work and manages
+// recovery or behavior changes; animation ticking belongs to the combat frame
+// callback. The binding names a function without evaluating arguments, capturing
+// values or constructing tokens.
 
 #ifndef MAD_CHASER_REACTION_ENTRY_HANDLER
 #error "Bind MAD_CHASER_REACTION_ENTRY_HANDLER to this instance's void(Task*) entry before inclusion"
+#endif
+
+#ifndef MAD_CHASER_REACTION_CONTINUE_HANDLER
+#error "Bind MAD_CHASER_REACTION_CONTINUE_HANDLER to this instance's void(Task*) continuation before inclusion"
 #endif
 
 /// Dispatches the entry or continuation of a Mad Chaser combat hit reaction.
@@ -42,7 +52,7 @@ void MAD_CHASER_REACTION_STATE_HANDLER(Task* task)
     MadChaserWork* work           = task->work;
     TaskFunc       stepHandlers[] = {
         MAD_CHASER_REACTION_ENTRY_HANDLER,
-        _madChaserRecoilLightRecover,
+        MAD_CHASER_REACTION_CONTINUE_HANDLER,
     };
 
     stepHandlers[(s16)work->subState](task);

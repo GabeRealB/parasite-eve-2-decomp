@@ -1517,32 +1517,40 @@ static const TaskFuncTable7 _gMadChaserShrinkDeathStates = { {
 /// live task, requests the reaction pose and advances subState to 1.
 /// Bind only for this fragment inclusion, then undefine; there is no default.
 #define MAD_CHASER_REACTION_ENTRY_HANDLER _madChaserRecoilLight
-/// Use this carrier's signed-halfword behavior setter during recoil recovery.
-#define _madChaserRecoilLightRecover _madChaserRecoilRecover
+/// Selects this carrier's light-recoil continuation for this reaction instance.
+///
+/// Must name a declared void(Task*) callback for subState 1, borrowing live
+/// task-owned MadChaserWork. Continues recovery or changes behavior and resets
+/// subState; animation ticking belongs to the combat frame callback. This
+/// carrier's light recovery uses its signed-halfword behavior setter.
+/// Bind only for this fragment inclusion, then undefine; there is no default.
+#define MAD_CHASER_REACTION_CONTINUE_HANDLER _madChaserRecoilRecover
 #include "../../shared/mad_chaser_recoil_light_state.inc.c"
 #undef MAD_CHASER_REACTION_STATE_HANDLER
 #undef MAD_CHASER_REACTION_ENTRY_HANDLER
-#undef _madChaserRecoilLightRecover
+#undef MAD_CHASER_REACTION_CONTINUE_HANDLER
 
 /// Selects this carrier's declared static void(Task*) heavy-recoil dispatcher.
 #define MAD_CHASER_REACTION_STATE_HANDLER _madChaserRecoilHeavyState
 /// Selects the declared void(Task*) entry that starts heavy recoil at subState 0.
 #define MAD_CHASER_REACTION_ENTRY_HANDLER _madChaserRecoilHeavy
-#define _madChaserRecoilLightRecover      _madChaserRecoilHeavyEnd
+/// Selects the declared void(Task*) heavy-recoil continuation at subState 1.
+#define MAD_CHASER_REACTION_CONTINUE_HANDLER _madChaserRecoilHeavyEnd
 #include "../../shared/mad_chaser_recoil_light_state.inc.c"
 #undef MAD_CHASER_REACTION_STATE_HANDLER
 #undef MAD_CHASER_REACTION_ENTRY_HANDLER
-#undef _madChaserRecoilLightRecover
+#undef MAD_CHASER_REACTION_CONTINUE_HANDLER
 
 /// Selects this carrier's declared static void(Task*) buildup-status dispatcher.
 #define MAD_CHASER_REACTION_STATE_HANDLER _madChaserStatusHoldState
 /// Selects the declared void(Task*) entry that starts status hold at subState 0.
 #define MAD_CHASER_REACTION_ENTRY_HANDLER _madChaserStatusHoldStart
-#define _madChaserRecoilLightRecover      _madChaserStatusHold
+/// Selects the declared void(Task*) buildup-status continuation at subState 1.
+#define MAD_CHASER_REACTION_CONTINUE_HANDLER _madChaserStatusHold
 #include "../../shared/mad_chaser_recoil_light_state.inc.c"
 #undef MAD_CHASER_REACTION_STATE_HANDLER
 #undef MAD_CHASER_REACTION_ENTRY_HANDLER
-#undef _madChaserRecoilLightRecover
+#undef MAD_CHASER_REACTION_CONTINUE_HANDLER
 
 #include "../../shared/mad_chaser_knockdown_state.inc.c"
 
