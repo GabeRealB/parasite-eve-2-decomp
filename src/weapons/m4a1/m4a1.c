@@ -26,7 +26,7 @@
 ///
 /// Required integer preprocessor expression: 16 M4A1, 20 M4A1(+1), 21 M4A1(+2).
 /// Selects the firing sound bank and rifle-flash muzzle/casing profile;
-/// `WEAPON_ITEM` converts it to the weapon item whose load is consumed.
+/// `WEAPON_ITEM_ID` converts it to the weapon item whose load is consumed.
 #ifndef WEAPON_INDEX
 #error "WEAPON_INDEX is a per-package build parameter"
 #endif
@@ -129,7 +129,7 @@ void m4a1AttackState(Task* playerTask)
                     actor->stateTimer                                     = M4A1_SHOT_DELAY_FRAMES;
                     actor->rumblePosted                                   = 0;
                     actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
-                    equipmentConsumeWeaponLoad(WEAPON_ITEM(WEAPON_INDEX), EQUIPMENT_WEAPON_LOAD_CONSUME_PRIMARY);
+                    equipmentConsumeWeaponLoad(WEAPON_ITEM_ID(WEAPON_INDEX), EQUIPMENT_WEAPON_LOAD_CONSUME_PRIMARY);
                     if (playerActorQueryWeaponLoads(PLAYER_ACTOR_WEAPON_LOAD_PRIMARY) == 0) {
                         actor->actionValue = 0;
                     }

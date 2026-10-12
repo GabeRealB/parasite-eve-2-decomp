@@ -46,7 +46,7 @@
 ///
 /// Required integer preprocessor expression: 30 MP5A5, 31 MP5A5(+1), 32 MP5A5(+2).
 /// Occupies contact-key bits 8..15 and sound-bank bits 16..23, and selects the
-/// muzzle/casing profile. `WEAPON_ITEM` converts it to the weapon item whose
+/// muzzle/casing profile. `WEAPON_ITEM_ID` converts it to the weapon item whose
 /// primary or secondary load is consumed.
 #ifndef WEAPON_INDEX
 #error "WEAPON_INDEX is a per-package build parameter"
@@ -152,7 +152,7 @@ void mp5a5AttackState(Task* playerTask)
                     effectSpawn(EFFECT_HANDGUN_MUZZLE_FLASH,
                                 actor->equipmentTasks[1]->extra.tmd->coords,
                                 WEAPON_INDEX, NULL);
-                    equipmentConsumeWeaponLoad(WEAPON_ITEM(WEAPON_INDEX), EQUIPMENT_WEAPON_LOAD_CONSUME_PRIMARY);
+                    equipmentConsumeWeaponLoad(WEAPON_ITEM_ID(WEAPON_INDEX), EQUIPMENT_WEAPON_LOAD_CONSUME_PRIMARY);
                     playerActorPlayChildSlotsWithBlend(playerTask, MP5A5_ANIMATION_PRIMARY, 0, 2);
                 } else {
                     actor->statePhase                                     = MP5A5_PHASE_SECONDARY_IMPACT;
@@ -163,7 +163,7 @@ void mp5a5AttackState(Task* playerTask)
                     actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_SINGLE_CONTACT);
                     playerActorSetWeaponAttackFlags(playerTask, 0, 0);
                     worldCoordPlaySound(playerTask->extra.tmd->coords, MP5A5_SECONDARY_SOUND_BASE | (WEAPON_INDEX << 16), 0);
-                    equipmentConsumeWeaponLoad(WEAPON_ITEM(WEAPON_INDEX), EQUIPMENT_WEAPON_LOAD_CONSUME_SECONDARY);
+                    equipmentConsumeWeaponLoad(WEAPON_ITEM_ID(WEAPON_INDEX), EQUIPMENT_WEAPON_LOAD_CONSUME_SECONDARY);
                     flashWork = effectSpawn(EFFECT_MP5A5_ALT_FIRE_MUZZLE_FLASH,
                                             actor->equipmentTasks[1]->extra.tmd->coords,
                                             WEAPON_INDEX, NULL);

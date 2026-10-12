@@ -124,7 +124,7 @@ void m4a1HammerAttackState(Task* playerTask)
                 if (glowTask != NULL) {
                     glowTask->spawnArg1.value = M4A1_HAMMER_GLOW_CHARGED;
                 }
-                equipmentConsumeWeaponLoad(WEAPON_ITEM(M4A1_HAMMER_WEAPON_ID), EQUIPMENT_WEAPON_LOAD_CONSUME_SECONDARY);
+                equipmentConsumeWeaponLoad(WEAPON_ITEM_ID(M4A1_HAMMER_WEAPON_ID), EQUIPMENT_WEAPON_LOAD_CONSUME_SECONDARY);
                 worldCoordPlaySound(playerTask->extra.tmd->coords, M4A1_HAMMER_DISCHARGE_SOUND, 1);
                 playerActorPlayChildSlotsWithBlend(playerTask, M4A1_HAMMER_ANIMATION_SECONDARY, 0, 2);
                 break;
@@ -138,7 +138,7 @@ void m4a1HammerAttackState(Task* playerTask)
                     actor->stateTimer                                     = M4A1_HAMMER_BURST_DELAY_FRAMES;
                     actor->rumblePosted                                   = 0;
                     actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
-                    equipmentConsumeWeaponLoad(WEAPON_ITEM(M4A1_HAMMER_WEAPON_ID), EQUIPMENT_WEAPON_LOAD_CONSUME_PRIMARY);
+                    equipmentConsumeWeaponLoad(WEAPON_ITEM_ID(M4A1_HAMMER_WEAPON_ID), EQUIPMENT_WEAPON_LOAD_CONSUME_PRIMARY);
                     if (playerActorQueryWeaponLoads(PLAYER_ACTOR_WEAPON_LOAD_PRIMARY) == 0) {
                         actor->actionValue = 0;
                     }

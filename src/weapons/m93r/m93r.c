@@ -299,7 +299,7 @@ void m93rAttackState(Task* playerTask)
                     actor->stateTimer                                     = M93R_BURST_DELAY_FRAMES;
                     actor->rumblePosted                                   = 0;
                     actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
-                    equipmentConsumeWeaponLoad(WEAPON_ITEM(M93R_WEAPON_ID), EQUIPMENT_WEAPON_LOAD_CONSUME_PRIMARY);
+                    equipmentConsumeWeaponLoad(WEAPON_ITEM_ID(M93R_WEAPON_ID), EQUIPMENT_WEAPON_LOAD_CONSUME_PRIMARY);
                     if (playerActorQueryWeaponLoads(PLAYER_ACTOR_WEAPON_LOAD_PRIMARY) == 0) {
                         actor->actionValue = 0;
                     }

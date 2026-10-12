@@ -8,7 +8,9 @@
 
 #include "gameplay/actor.h"
 #include "gameplay/geometry.h"
+#include "gameplay/inventory.h"
 
+#include "main/mc_types.h"
 #include "main/session_types.h"
 #include "main/task_types.h"
 #include "main/tmd_types.h"
@@ -35,20 +37,26 @@ typedef struct {
 } WeaponGrenadeWork;
 STATIC_ASSERT_SIZEOF(WeaponGrenadeWork, 0xA0);
 
-/// Added to `flightTimer` each flight frame, in 16.16 units.
+/// Increase of the grenade's flight divisor per flight tick, in signed 16.16 units.
 ///
-/// The integer half of the resulting word divides `dir` to produce that
-/// frame's step, so the shell slows as the word climbs. The shared
-/// grenade-shell flight and the M4A1 grenade both add this; the word that
-/// ends the flight differs between them.
-#define GRENADE_SHELL_FLIGHT_STEP 0x1800
+/// 0x1800 represents 3/32 of a whole divisor unit. Translation divides each
+/// direction component by the positive integer half of
+/// `WeaponGrenadeWork::flightTimer` before adding this increment; increasing
+/// the divisor slows subsequent steps. Shared launcher shells and M4A1 grenades
+/// use the same increment with different flight limits. Applies only in flight;
+/// detonation reuses the timer word as a whole-frame blast countdown.
+#define GRENADE_SHELL_FLIGHT_DIVISOR_STEP 0x1800
 
-/// The index a weapon load's consumable is known by once it is fired: its item
-/// id minus 0x9F, so the first consumable (item 0xA0) is 1.
+/// Converts a loaded consumable item id to its one-based weapon ammunition index.
 ///
-/// `itemId` is evaluated once. An empty load, whose item id is 0, gives a
-/// negative value unless the result is narrowed to a byte.
-#define WEAPON_AMMUNITION_INDEX(itemId) ((itemId) - 0x9F)
+/// Item ids 0xA0..0xBF map to indices 1..32, used in weapon attack keys and
+/// projectile/sound variants. This is independent of inventory row position
+/// and load quantity. With a byte item id, an empty load (0) produces -159 and
+/// an unavailable secondary slot (0xFF) produces 96; callers handle sentinels.
+/// `itemId` is evaluated once with normal integer promotions, without range
+/// checks or narrowing. An integer constant argument gives an integer constant
+/// expression, suitable for ammunition enumerators.
+#define WEAPON_AMMUNITION_INDEX(itemId) ((itemId) - (INVENTORY_CONSUMABLE_ITEM_FIRST - 1))
 
 /// The 40mm grenade rounds, as `WEAPON_AMMUNITION_INDEX` of their items.
 ///
@@ -63,10 +71,15 @@ enum {
     GRENADE_ROUND_RIOT          = 0xC  // Riot (item 0xAB)
 };
 
-/// The item a weapon's rounds are taken from, given the weapon's index. Weapon
-/// items follow item 0x7F in weapon order, so every weapon consumes item
-/// `index + 0x7F`.
-#define WEAPON_ITEM(index) ((index) + 0x7F)
+/// Converts a one-based weapon index to the weapon's inventory item id.
+///
+/// Indices 1..32 map to ids 0x80..0x9F, selecting the saved weapon-load record
+/// passed to `equipmentGetWeaponLoad` or `equipmentConsumeWeaponLoad`.
+/// Index 0 produces 0x7F, which is outside the weapon-load domain.
+/// `weaponIndex` is evaluated once with normal integer promotions, without
+/// range checks or narrowing. An integer constant argument gives an integer
+/// constant expression.
+#define WEAPON_ITEM_ID(weaponIndex) ((weaponIndex) + (EQUIPMENT_WEAPON_ITEM_FIRST - 1))
 
 /// Held-weapon model for unused weapon index 6 (item 0x85).
 ///

@@ -141,7 +141,7 @@ void m4a1GrenadeAttackState(Task* playerTask)
 
     actor       = playerTask->work;
     playerCoord = playerTask->extra.tmd->coords;
-    weaponLoad  = equipmentGetWeaponLoad(WEAPON_ITEM(gPlayerStatus.weapon));
+    weaponLoad  = equipmentGetWeaponLoad(WEAPON_ITEM_ID(gPlayerStatus.weapon));
     // The impact query supplies only cached translation; the remaining node is untouched.
     impactCoord     = SCRATCH_STACK_RESERVE_BLOCK(GfxCoord);
     ammunitionIndex = WEAPON_AMMUNITION_INDEX(weaponLoad->secondaryItemId);
@@ -181,7 +181,7 @@ void m4a1GrenadeAttackState(Task* playerTask)
                 actor->statePhase                  = M4A1_GRENADE_PHASE_GRENADE_IMPACT;
                 actor->attackControl.cooldownTicks = M4A1_GRENADE_LAUNCH_COOLDOWN_TICKS;
                 actor->attackCancelTicks           = M4A1_GRENADE_LAUNCH_CANCEL_TICKS;
-                equipmentConsumeWeaponLoad(WEAPON_ITEM(M4A1_GRENADE_WEAPON_INDEX), EQUIPMENT_WEAPON_LOAD_CONSUME_SECONDARY);
+                equipmentConsumeWeaponLoad(WEAPON_ITEM_ID(M4A1_GRENADE_WEAPON_INDEX), EQUIPMENT_WEAPON_LOAD_CONSUME_SECONDARY);
                 worldCoordPlaySound(playerTask->extra.tmd->coords,
                                     ((ammunitionIndex - GRENADE_ROUND_FIRST) << 24) | M4A1_GRENADE_LAUNCH_SOUND, 1);
                 effectSpawn(EFFECT_GRENADE_MUZZLE_FLASH,
@@ -202,7 +202,7 @@ void m4a1GrenadeAttackState(Task* playerTask)
                     actor->stateTimer                                     = M4A1_GRENADE_RIFLE_SHOT_TICKS;
                     actor->rumblePosted                                   = 0;
                     actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
-                    equipmentConsumeWeaponLoad(WEAPON_ITEM(M4A1_GRENADE_WEAPON_INDEX), EQUIPMENT_WEAPON_LOAD_CONSUME_PRIMARY);
+                    equipmentConsumeWeaponLoad(WEAPON_ITEM_ID(M4A1_GRENADE_WEAPON_INDEX), EQUIPMENT_WEAPON_LOAD_CONSUME_PRIMARY);
                     if (playerActorQueryWeaponLoads(PLAYER_ACTOR_WEAPON_LOAD_PRIMARY) == 0) {
                         actor->actionValue = 0;
                     }
@@ -359,7 +359,7 @@ static void _m4a1GrenadeInitProjectile(Task* task)
 ///
 /// Requires task state 1 and initialized `WeaponGrenadeWork`. Flight uses a
 /// 16.16 clock whose integer half divides the 4096-scaled direction; each tick
-/// adds `GRENADE_SHELL_FLIGHT_STEP` and detonates above 0xFFFFF. Enemy contacts
+/// adds `GRENADE_SHELL_FLIGHT_DIVISOR_STEP` and detonates above 0xFFFFF. Enemy contacts
 /// detonate immediately. Capsule grid contacts take precedence over sphere
 /// grid contacts; blocking surfaces either detonate or select teardown. Class
 /// 1 in the day/night Dryfield Water Tower also detonates on pass-through.
@@ -376,7 +376,7 @@ static void _m4a1GrenadeFlyProjectile(Task* task)
     /// `GfxCoord`, and `deltaOut` is writable `WorldCollisionDelta`. The clock's
     /// integer half must be nonzero; direction uses 4096 per unit and the output
     /// step uses whole game-coordinate units. Uses the enclosing
-    /// `M4A1_GRENADE_CAPSULE_TIMER_SHIFT` and shared `GRENADE_SHELL_FLIGHT_STEP`.
+    /// `M4A1_GRENADE_CAPSULE_TIMER_SHIFT` and shared `GRENADE_SHELL_FLIGHT_DIVISOR_STEP`.
     /// Expands to a compound statement and is undefined after this function.
 #define M4A1_GRENADE_STEP_PROJECTILE(grenade, coordNode, deltaOut)                                          \
     {                                                                                                       \
@@ -387,7 +387,7 @@ static void _m4a1GrenadeFlyProjectile(Task* task)
         (coordNode)->coord.t[1]      += (deltaOut)->vector.vy;                                              \
         (coordNode)->coord.t[2]      += (deltaOut)->vector.vz;                                              \
         (grenade)->capsule.ends[1].vy = -((grenade)->flightTimer.word >> M4A1_GRENADE_CAPSULE_TIMER_SHIFT); \
-        (grenade)->flightTimer.word  += GRENADE_SHELL_FLIGHT_STEP;                                          \
+        (grenade)->flightTimer.word  += GRENADE_SHELL_FLIGHT_DIVISOR_STEP;                                  \
     }
 
     enum {
@@ -415,7 +415,7 @@ static void _m4a1GrenadeFlyProjectile(Task* task)
 
     grenadeWork                   = task->work;
     projectileCoord               = task->extra.tmd->coords;
-    weaponLoad                    = equipmentGetWeaponLoad(WEAPON_ITEM(gPlayerStatus.weapon));
+    weaponLoad                    = equipmentGetWeaponLoad(WEAPON_ITEM_ID(gPlayerStatus.weapon));
     scratch                       = SCRATCH_STACK_RESERVE_BLOCK(_M4a1GrenadeFlightScratch);
     projectileCoord->composeStamp = GRAPHICS_COORD_DIRTY;
     if (worldCollisionCountContactsByKind(grenadeWork->sphereContacts, WORLD_COLLISION_CONTACT_ENEMY_BODY) != 0) {

@@ -121,7 +121,7 @@ void as12AttackState(Task* playerTask)
         case AS12_PHASE_FIRE:
             actor->statePhase++;
             actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
-            equipmentConsumeWeaponLoad(WEAPON_ITEM(AS12_WEAPON_ID), EQUIPMENT_WEAPON_LOAD_CONSUME_PRIMARY);
+            equipmentConsumeWeaponLoad(WEAPON_ITEM_ID(AS12_WEAPON_ID), EQUIPMENT_WEAPON_LOAD_CONSUME_PRIMARY);
             worldCoordPlaySound(playerTask->extra.tmd->coords,
                                 ((gPlayerStatus.weaponSlotItem - AS12_AMMUNITION_BUCKSHOT) << 0x18) | AS12_FIRE_SOUND, 1);
             effectSpawn(EFFECT_SHOTGUN_MUZZLE_FLASH,

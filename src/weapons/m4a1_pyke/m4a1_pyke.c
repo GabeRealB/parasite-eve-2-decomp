@@ -265,7 +265,7 @@ void m4a1PykeAttackState(Task* playerTask)
                 if (nozzleTask != NULL) {
                     nozzleTask->spawnArg1.value = M4A1_PYKE_NOZZLE_FIRE;
                 }
-                equipmentConsumeWeaponLoad(WEAPON_ITEM(M4A1_PYKE_WEAPON_ID), EQUIPMENT_WEAPON_LOAD_CONSUME_SECONDARY);
+                equipmentConsumeWeaponLoad(WEAPON_ITEM_ID(M4A1_PYKE_WEAPON_ID), EQUIPMENT_WEAPON_LOAD_CONSUME_SECONDARY);
                 worldCoordPlaySound(playerTask->extra.tmd->coords, M4A1_PYKE_FLAME_SOUND, 1);
                 playerActorPlayChildSlotsWithBlend(playerTask, M4A1_PYKE_ANIMATION_SECONDARY, 0, 2);
                 break;
@@ -279,7 +279,7 @@ void m4a1PykeAttackState(Task* playerTask)
                     actor->stateTimer                                     = M4A1_PYKE_BURST_DELAY_FRAMES;
                     actor->rumblePosted                                   = 0;
                     actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
-                    equipmentConsumeWeaponLoad(WEAPON_ITEM(M4A1_PYKE_WEAPON_ID), EQUIPMENT_WEAPON_LOAD_CONSUME_PRIMARY);
+                    equipmentConsumeWeaponLoad(WEAPON_ITEM_ID(M4A1_PYKE_WEAPON_ID), EQUIPMENT_WEAPON_LOAD_CONSUME_PRIMARY);
                     if (playerActorQueryWeaponLoads(PLAYER_ACTOR_WEAPON_LOAD_PRIMARY) == 0) {
                         actor->actionValue = 0;
                     }
@@ -313,7 +313,7 @@ void m4a1PykeAttackState(Task* playerTask)
                 remainingFuel = playerActorQueryWeaponLoads(PLAYER_ACTOR_WEAPON_LOAD_SECONDARY);
                 if (playerActorReadAttackButton(playerTask) == PLAYER_ACTOR_ATTACK_BUTTON_SECONDARY && remainingFuel != 0) {
                     actor->actionValue = M4A1_PYKE_FUEL_INTERVAL_FRAMES;
-                    equipmentConsumeWeaponLoad(WEAPON_ITEM(M4A1_PYKE_WEAPON_ID), EQUIPMENT_WEAPON_LOAD_CONSUME_SECONDARY);
+                    equipmentConsumeWeaponLoad(WEAPON_ITEM_ID(M4A1_PYKE_WEAPON_ID), EQUIPMENT_WEAPON_LOAD_CONSUME_SECONDARY);
                 } else {
                     nozzleTask        = actor->weaponEffectTask;
                     actor->statePhase = M4A1_PYKE_PHASE_RECOVER;

@@ -151,7 +151,7 @@ trySphereContacts:
 move:
     _grenadeShellIntegrateFlight(work, coord, scratch);
     work->capsule.ends[1].vz = -(work->flightTimer.word >> GRENADE_SHELL_CAPSULE_REACH_SHIFT);
-    work->flightTimer.word  += GRENADE_SHELL_FLIGHT_STEP;
+    work->flightTimer.word  += GRENADE_SHELL_FLIGHT_DIVISOR_STEP;
     if (work->flightTimer.word > GRENADE_SHELL_FLIGHT_TIMEOUT) {
         goto explode;
     }

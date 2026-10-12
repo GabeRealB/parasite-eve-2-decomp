@@ -836,7 +836,7 @@ void m4a1JavelinAttackState(Task* playerTask)
                 actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].key    = M4A1_JAVELIN_BEAM_KEY;
                 actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_SINGLE_CONTACT);
                 playerActorSetWeaponAttackFlags(playerTask, 0, 0);
-                equipmentConsumeWeaponLoad(WEAPON_ITEM(M4A1_JAVELIN_WEAPON_ID), EQUIPMENT_WEAPON_LOAD_CONSUME_SECONDARY);
+                equipmentConsumeWeaponLoad(WEAPON_ITEM_ID(M4A1_JAVELIN_WEAPON_ID), EQUIPMENT_WEAPON_LOAD_CONSUME_SECONDARY);
                 effectWork = effectSpawn(EFFECT_JAVELIN_GUIDE_BEAM,
                                          actor->equipmentTasks[1]->extra.tmd->coords,
                                          0x1D, NULL);
@@ -857,7 +857,7 @@ void m4a1JavelinAttackState(Task* playerTask)
                     actor->stateTimer                                     = M4A1_JAVELIN_BURST_DELAY_FRAMES;
                     actor->rumblePosted                                   = 0;
                     actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
-                    equipmentConsumeWeaponLoad(WEAPON_ITEM(M4A1_JAVELIN_WEAPON_ID), EQUIPMENT_WEAPON_LOAD_CONSUME_PRIMARY);
+                    equipmentConsumeWeaponLoad(WEAPON_ITEM_ID(M4A1_JAVELIN_WEAPON_ID), EQUIPMENT_WEAPON_LOAD_CONSUME_PRIMARY);
                     if (playerActorQueryWeaponLoads(PLAYER_ACTOR_WEAPON_LOAD_PRIMARY) == 0) {
                         actor->actionValue = 0;
                     }

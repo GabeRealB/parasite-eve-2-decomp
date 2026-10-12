@@ -89,7 +89,7 @@ void m950AttackState(Task* playerTask)
             if (--actor->stateTimer == 0) {
                 actor->statePhase++;
                 actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
-                equipmentConsumeWeaponLoad(WEAPON_ITEM(M950_WEAPON_ID), EQUIPMENT_WEAPON_LOAD_CONSUME_PRIMARY);
+                equipmentConsumeWeaponLoad(WEAPON_ITEM_ID(M950_WEAPON_ID), EQUIPMENT_WEAPON_LOAD_CONSUME_PRIMARY);
                 worldCoordPlaySound(playerTask->extra.tmd->coords, M950_FIRE_SOUND, 1);
                 effectSpawn(EFFECT_HANDGUN_MUZZLE_FLASH, weaponCoord, 3, NULL);
                 playerActorPlayChildSlotsWithBlend(playerTask, M950_ANIMATION_PRIMARY, 0, 2);

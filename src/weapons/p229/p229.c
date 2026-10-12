@@ -140,7 +140,7 @@ void p229AttackState(Task* playerTask)
                 weaponShape->end0Radius                               = weaponShape->end1Radius;
                 actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= WORLD_COLLISION_BODY_SINGLE_CONTACT;
                 playerActorSetWeaponAttackFlags(playerTask, 0, 0);
-                equipmentConsumeWeaponLoad(WEAPON_ITEM(P229_WEAPON_ID), EQUIPMENT_WEAPON_LOAD_CONSUME_PRIMARY);
+                equipmentConsumeWeaponLoad(WEAPON_ITEM_ID(P229_WEAPON_ID), EQUIPMENT_WEAPON_LOAD_CONSUME_PRIMARY);
                 worldCoordPlaySound(playerTask->extra.tmd->coords, P229_PRIMARY_SOUND, 0);
                 effectSpawn(EFFECT_HANDGUN_MUZZLE_FLASH,
                             actor->equipmentTasks[1]->extra.tmd->coords, P229_WEAPON_ID,
@@ -153,7 +153,7 @@ void p229AttackState(Task* playerTask)
                 weaponShape->end0Radius                               = P229_SECONDARY_SPREAD_RADIUS;
                 actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_SINGLE_CONTACT);
                 playerActorSetWeaponAttackFlags(playerTask, 0, 1);
-                equipmentConsumeWeaponLoad(WEAPON_ITEM(P229_WEAPON_ID), EQUIPMENT_WEAPON_LOAD_CONSUME_SECONDARY);
+                equipmentConsumeWeaponLoad(WEAPON_ITEM_ID(P229_WEAPON_ID), EQUIPMENT_WEAPON_LOAD_CONSUME_SECONDARY);
                 worldCoordPlaySound(playerTask->extra.tmd->coords, P229_SECONDARY_SOUND, 0);
                 flashWork = effectSpawn(EFFECT_P229_MUZZLE_FLASH,
                                         actor->equipmentTasks[1]->extra.tmd->coords, P229_WEAPON_ID,

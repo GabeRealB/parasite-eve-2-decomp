@@ -1071,7 +1071,7 @@ void hypervelocityAttackState(Task* playerTask)
                     actor->statePhase++;
                     weaponTask->spawnArg1.value = 0;
                     actor->stateTimer           = HYPERVELOCITY_RECOIL_FRAMES;
-                    equipmentConsumeWeaponLoad(WEAPON_ITEM(HYPERVELOCITY_WEAPON_ID), EQUIPMENT_WEAPON_LOAD_CONSUME_PRIMARY);
+                    equipmentConsumeWeaponLoad(WEAPON_ITEM_ID(HYPERVELOCITY_WEAPON_ID), EQUIPMENT_WEAPON_LOAD_CONSUME_PRIMARY);
                     sndEvtRequestScriptStop(SOUND_HYPERVELOCITY_CHARGE_LOOP, SOUND_SCRIPT_STOP_KEEP_RELEASE);
                     worldCoordPlaySound(playerTask->extra.tmd->coords, HYPERVELOCITY_FIRE_SOUND, 1);
                     playerActorResetChildSlots(playerTask, HYPERVELOCITY_ANIMATION_SECONDARY);

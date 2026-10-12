@@ -114,7 +114,7 @@ void grenadePistolAttackState(Task* playerTask)
             effectSpawn(EFFECT_GRENADE_MUZZLE_FLASH,
                         actor->equipmentTasks[1]->extra.tmd->coords, GRENADE_WEAPON,
                         NULL);
-            equipmentConsumeWeaponLoad(WEAPON_ITEM(GRENADE_WEAPON), EQUIPMENT_WEAPON_LOAD_CONSUME_PRIMARY);
+            equipmentConsumeWeaponLoad(WEAPON_ITEM_ID(GRENADE_WEAPON), EQUIPMENT_WEAPON_LOAD_CONSUME_PRIMARY);
             // Both the projectile package and its launch-tuning row follow this build.
             playerActorSpawnGrenadeProjectile(playerTask, PLAYER_ACTOR_GRENADE_PLAYER, PLAYER_ACTOR_GRENADE_PISTOL + GRENADE_PISTOL_VARIANT,
                                               gPlayerStatus.weaponSlotItem | (GRENADE_PISTOL_VARIANT << PLAYER_ACTOR_GRENADE_MUZZLE_ROW_SHIFT) | (GRENADE_WEAPON << PLAYER_ACTOR_GRENADE_WEAPON_SHIFT));

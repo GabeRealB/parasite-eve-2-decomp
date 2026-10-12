@@ -212,7 +212,7 @@ void gunbladeAttackState(Task* playerTask)
             } else {
                 actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_SINGLE_CONTACT);
             }
-            equipmentConsumeWeaponLoad(WEAPON_ITEM(GUNBLADE_WEAPON_ID), EQUIPMENT_WEAPON_LOAD_CONSUME_PRIMARY);
+            equipmentConsumeWeaponLoad(WEAPON_ITEM_ID(GUNBLADE_WEAPON_ID), EQUIPMENT_WEAPON_LOAD_CONSUME_PRIMARY);
             actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
             worldCoordPlaySound(playerTask->extra.tmd->coords, ammunitionSoundBits | GUNBLADE_FIRE_SOUND, 1);
             effectSpawn(EFFECT_SHOTGUN_MUZZLE_FLASH, actor->equipmentTasks[1]->extra.tmd->coords,
@@ -248,7 +248,7 @@ void gunbladeAttackState(Task* playerTask)
                         chargedAttackKey = GUNBLADE_CHARGED_SLUG_KEY_LOW;
                     }
                     actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].key = chargedAttackKey | GUNBLADE_ATTACK_KEY_BASE;
-                    equipmentConsumeWeaponLoad(WEAPON_ITEM(GUNBLADE_WEAPON_ID), EQUIPMENT_WEAPON_LOAD_CONSUME_PRIMARY);
+                    equipmentConsumeWeaponLoad(WEAPON_ITEM_ID(GUNBLADE_WEAPON_ID), EQUIPMENT_WEAPON_LOAD_CONSUME_PRIMARY);
                     worldCoordPlaySound(playerTask->extra.tmd->coords, ammunitionSoundBits | GUNBLADE_CHARGE_SOUND, 1);
                     gunbladeRequestChargeFlash(gPlayerStatus.weaponSlotItem);
                 } else {

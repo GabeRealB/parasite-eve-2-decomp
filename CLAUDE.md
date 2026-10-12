@@ -247,7 +247,7 @@ offsets, and `aliases` where the resident images need a name of its own for
 that package's copy of a definition (`DEFINE_ALIAS` in
 `include/decomp/common.h`; the alias has to be made in the object that defines
 the symbol, so the source ends with `PACKAGE_ALIASES`). Declare a parameter only where the bytes show it varies, derive what
-follows from it (a weapon's item is always its index + 0x7F, `WEAPON_ITEM` in
+follows from it (a weapon's item is always its index + 0x7F, `WEAPON_ITEM_ID` in
 `include/weapons/weapon.h`), and keep a value that merely looks derivable as a
 declared one when the original did not follow the pattern.
 

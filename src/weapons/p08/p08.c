@@ -37,7 +37,7 @@ enum {
 /// Manifest-selected weapon index, equal to its inventory item ID minus 0x7F.
 ///
 /// Required integer preprocessor expression: 4 P08, 1 snail-magazine P08 or
-/// 9 Mongoose. It selects assets and the firing sound bank; `WEAPON_ITEM`
+/// 9 Mongoose. It selects assets and the firing sound bank; `WEAPON_ITEM_ID`
 /// converts it to the weapon item whose load is consumed.
 #ifndef WEAPON_INDEX
 #error "WEAPON_INDEX is a per-package build parameter"
@@ -124,7 +124,7 @@ void p08AttackState(Task* playerTask)
             actor->statePhase++;
             playerActorSetWeaponAttackFlags(playerTask, 0, 0);
             actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= (WORLD_COLLISION_BODY_CLIP_TO_GRID_CONTACT | WORLD_COLLISION_BODY_SINGLE_CONTACT | WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
-            equipmentConsumeWeaponLoad(WEAPON_ITEM(WEAPON_INDEX), EQUIPMENT_WEAPON_LOAD_CONSUME_PRIMARY);
+            equipmentConsumeWeaponLoad(WEAPON_ITEM_ID(WEAPON_INDEX), EQUIPMENT_WEAPON_LOAD_CONSUME_PRIMARY);
             worldCoordPlaySound(playerTask->extra.tmd->coords, P08_PRIMARY_SOUND_BASE | (WEAPON_INDEX << 16), 1);
             effectSpawn(P08_MUZZLE_FLASH_EFFECT,
                         actor->equipmentTasks[1]->extra.tmd->coords,

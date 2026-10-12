@@ -34,7 +34,7 @@
 ///
 /// Required integer preprocessor expression: 13 PA3 or 14 SP12. It selects
 /// assets, the firing/pump sound bank and the shotgun flash profile;
-/// `WEAPON_ITEM` converts it to the weapon item whose load is consumed.
+/// `WEAPON_ITEM_ID` converts it to the weapon item whose load is consumed.
 #ifndef WEAPON_INDEX
 #error "WEAPON_INDEX is a per-package build parameter"
 #elif WEAPON_INDEX != PA3_WEAPON_INDEX_STANDARD && WEAPON_INDEX != PA3_WEAPON_INDEX_SP12
@@ -117,7 +117,7 @@ void pa3AttackState(Task* playerTask)
         case PA3_PHASE_FIRE:
             actor->statePhase++;
             actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
-            equipmentConsumeWeaponLoad(WEAPON_ITEM(WEAPON_INDEX), EQUIPMENT_WEAPON_LOAD_CONSUME_PRIMARY);
+            equipmentConsumeWeaponLoad(WEAPON_ITEM_ID(WEAPON_INDEX), EQUIPMENT_WEAPON_LOAD_CONSUME_PRIMARY);
             worldCoordPlaySound(playerTask->extra.tmd->coords,
                                 ((gPlayerStatus.weaponSlotItem - PA3_AMMUNITION_BUCKSHOT) << 0x18) | PA3_FIRE_SOUND_BASE | (WEAPON_INDEX << 16), 1);
             effectSpawn(EFFECT_SHOTGUN_MUZZLE_FLASH,
