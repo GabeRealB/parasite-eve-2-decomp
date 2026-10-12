@@ -13,12 +13,20 @@
 #define EFFECT_SPRITE_BANKED_FIRST_TEXEL_ROW 104
 #endif
 
-#ifndef EFFECT_SPRITE_BANKED_DEPTH_BIAS
-/// Compile-time depth bias: 1 adds one SZ3/4 unit before sizing and sorting.
+#ifndef EFFECT_SPRITE_BANKED_INCREMENT_DEPTH
+/// Enables a one-unit increment to the banked sprite's projected depth.
 ///
-/// Pod bottom binds 1 before this fragment; the other carriers use 0.
-/// Supply the integer preprocessor constant 0 or 1. Cleared after use.
-#define EFFECT_SPRITE_BANKED_DEPTH_BIAS 0
+/// Bind the integer preprocessor constant 0 or 1 before including this fragment.
+/// Value 0 keeps SZ3 >> 2; value 1 adds one after that division, keeping the
+/// perspective-sizing divisor nonzero. The same depth feeds ordering-table
+/// quantization, so the increment counts depth units rather than table entries.
+/// The GTE's SZ3 register is unchanged. Pod bottom binds 1; pod access tunnel,
+/// dumping hole and garbage incinerator use the default 0 and require nonzero
+/// depth for accepted projections. This object-like switch has no arguments,
+/// captures or runtime evaluation; the fragment undefines it after the drawer.
+#define EFFECT_SPRITE_BANKED_INCREMENT_DEPTH 0
+#elif (EFFECT_SPRITE_BANKED_INCREMENT_DEPTH != 0) && (EFFECT_SPRITE_BANKED_INCREMENT_DEPTH != 1)
+#error "EFFECT_SPRITE_BANKED_INCREMENT_DEPTH must be 0 or 1"
 #endif
 
 /// Computes the signed pixel displacement to one corner of a depth-scaled sprite.
@@ -64,12 +72,12 @@ static __inline__ void _effectSpriteBankedRotateCorner(EffectShapeScratch* scrat
 /// 12..15. Callers animate cells 0..11 of a five-column, 48-texel grid; the drawer
 /// does not check that range. Banks 0 and 1 select per-cell palettes on VRAM rows
 /// 270 and 271 (X = cell * 16 for these frames); banks 2..15 select X=240, Y=266.
-/// The carrier selects the sheet's first texel row and optional depth bias above.
+/// The carrier selects the sheet's first texel row and optional depth increment above.
 ///
 /// `size` is a signed perspective-sizing numerator, not a pixel half-extent:
 /// `size * 47 / depth` is the screen-space half-diagonal in pixels, with integer
-/// division before Q12 rotation. `depth` is SZ3/4 plus the carrier's bias and must
-/// be nonzero for an accepted projection. `angle` uses 4096 units per turn.
+/// division before Q12 rotation. `depth` is SZ3 >> 2, optionally incremented by
+/// one, and must be nonzero for an accepted projection. `angle` uses 4096 units per turn.
 ///
 /// A nonnegative GTE FLAG emits one raw-texture, semi-transparent `POLY_FT4`
 /// using additive blending on the 4-bit texture page at VRAM X=704, Y=0.
@@ -145,7 +153,8 @@ static void _effectSpriteDrawBanked(const GfxCoord* coord, u16 frameAndPalette, 
     gte_stflg(&(scratchTop - 1)->projectionFlags);
     if (scratch->projectionFlags >= 0) {
         gte_stszotz(&(scratchTop - 1)->depth);
-#if EFFECT_SPRITE_BANKED_DEPTH_BIAS
+#if EFFECT_SPRITE_BANKED_INCREMENT_DEPTH
+        // Use the incremented depth for both perspective sizing and sorting.
         scratch->depth++;
 #endif
         quad           = gGpuPrimCursor;
@@ -194,4 +203,4 @@ static void _effectSpriteDrawBanked(const GfxCoord* coord, u16 frameAndPalette, 
 }
 
 #undef EFFECT_SPRITE_BANKED_FIRST_TEXEL_ROW
-#undef EFFECT_SPRITE_BANKED_DEPTH_BIAS
+#undef EFFECT_SPRITE_BANKED_INCREMENT_DEPTH

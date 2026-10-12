@@ -401,7 +401,13 @@ void shelterB2PodBottomShadowTask(Task* task)
 /// their inclusive endpoints reach 255. Bind before the banked drawer fragment,
 /// which undefines the binding afterwards. Palette selection is independent.
 #define EFFECT_SPRITE_BANKED_FIRST_TEXEL_ROW 112
-#define EFFECT_SPRITE_BANKED_DEPTH_BIAS      1
+
+/// Enables the pod bottom's one-unit depth increment for banked sprites.
+///
+/// The integer preprocessor value 1 selects (SZ3 >> 2) + 1 for both perspective
+/// sizing and ordering-table quantization, keeping the sizing divisor nonzero.
+/// Bind immediately before the banked drawer fragment, which undefines it.
+#define EFFECT_SPRITE_BANKED_INCREMENT_DEPTH 1
 #include "../../shared/effect_sprite_draw_banked.inc.c"
 
 #define EFFECT_SPRITE_ROTATED_DEPTH_BIAS 1
