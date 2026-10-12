@@ -2476,7 +2476,15 @@ void dryfieldTrailerCoachRoomTask(Task* task)
 /// the early half intensity, while rays halve the saved full intensity. This
 /// mode takes precedence over unsigned ray intensity and is cleared afterwards.
 #define GLOW_DRAW_RAY_STAR_EARLY_SIGNED_HALF_INTENSITY 1
-#define GLOW_DRAW_RAY_STAR_OUTER(p, c, h)              setRGB2(p, 0, h, h)
+/// Sets the outer ray-star disc's centre to half-intensity cyan.
+///
+/// Writes only vertex 2's RGB bytes of a writable `POLY_G4*`. Green and blue
+/// use the supplied `halfIntensity`, already halved and normally 0..120;
+/// stores retain its low byte. Arguments must have no side effects:
+/// `primitive` is evaluated three times and `halfIntensity` twice. Use as a
+/// statement. Requires `setRGB2` from `psyq/libgpu.h`. Define before including
+/// `glow_draw_ray_star.inc.c`, which undefines this binding afterwards.
+#define GLOW_DRAW_RAY_STAR_OUTER(primitive, halfIntensity) (setRGB2((primitive), 0, (halfIntensity), (halfIntensity)))
 /// Sets the inner ray-star disc's centre to green with half-intensity blue.
 ///
 /// Writes only vertex 2's RGB bytes of a writable `POLY_G4*`. Green uses

@@ -1534,7 +1534,15 @@ static void _dryfieldBreezewayDrawRedDiamondGlow(GfxCoord* coord, const SVECTOR*
     SCRATCH_STACK_RELEASE_BLOCK(RoomGlowSpriteScratch);
 }
 
-#define GLOW_DRAW_RAY_STAR_OUTER(p, c, h) setRGB2(p, h, 0, 0)
+/// Sets the outer ray-star disc's centre to half-intensity red.
+///
+/// Writes only vertex 2's RGB bytes of a writable `POLY_G4*`. The supplied
+/// `halfIntensity` is already halved, normally 0..120; stores retain its low
+/// byte. Arguments must have no side effects: `primitive` is evaluated three
+/// times and `halfIntensity` once. Use as a statement. Requires `setRGB2` from
+/// `psyq/libgpu.h`. Define before including `glow_draw_ray_star.inc.c`, which
+/// undefines this binding afterwards.
+#define GLOW_DRAW_RAY_STAR_OUTER(primitive, halfIntensity) (setRGB2((primitive), (halfIntensity), 0, 0))
 /// Sets the inner ray-star disc's centre to pulsing red.
 ///
 /// Writes only vertex 2's RGB bytes of a writable `POLY_G4*`. `intensity`

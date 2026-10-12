@@ -17,7 +17,7 @@
 /// and rays use half intensity. Queues twenty quads and their additive blend
 /// commands in the current frame arena.
 ///
-/// The carrier supplies `GLOW_DRAW_RAY_STAR_OUTER(primitive, intensity, half)`
+/// The carrier supplies `GLOW_DRAW_RAY_STAR_OUTER(primitive, halfIntensity)`
 /// and `GLOW_DRAW_RAY_STAR_INNER(primitive, intensity, half)` for disc colours,
 /// and `GLOW_DRAW_RAY_STAR_RAY(primitive, intensity)` for the half-bright rays.
 /// Each binding must set only vertex 2's RGB bytes; its arguments have no side
@@ -84,7 +84,7 @@ static void _glowDrawRayStar(GfxCoord* coord, const SVECTOR* localPoint, s16 pul
 #endif
             setRGB0(primitive, 0, 0, 0);
             setRGB1(primitive, 0, 0, 0);
-            GLOW_DRAW_RAY_STAR_OUTER(primitive, intensity, halfIntensity);
+            GLOW_DRAW_RAY_STAR_OUTER(primitive, halfIntensity);
             setRGB3(primitive, 0, 0, 0);
             primitive->x0 = block->screenPos.vx + ((block->outerRadius * rsin(angle)) >> GLOW_TRIG_SHIFT);
             middleAngle   = angle + GLOW_SIXTEENTH_TURN;
