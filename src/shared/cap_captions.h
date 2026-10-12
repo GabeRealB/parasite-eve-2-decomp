@@ -113,7 +113,20 @@ STATIC_ASSERT_SIZEOF(CapCaptionScheduleWindow, 0x10);
 #ifndef CAP_CAPTION_COMMAND_REFS
 #define CAP_CAPTION_COMMAND_REFS _gCapCaptionCommandRefs
 #endif
-/// Signed-halfword key selected for the current sequence's nonterminal text record.
+/// Selects the writable signed-halfword slot holding the caption's variant key.
+///
+/// Bind a stable `s16` lvalue before the first inclusion of this header and
+/// retain it through `cap_captions.inc.c`. The default names independent
+/// TU-local slots in actor_215100 and the dumping hole; the incinerator supplies
+/// overlay-private storage. The slot must remain live through caption use.
+/// Non-identifier replacements must be parenthesized and have no side effects.
+/// This object-like alias has no arguments or token construction.
+///
+/// Selecting a non-NULL sequence stores the caller's key unchanged, then scans
+/// from record slot one for an equal `CapSequenceRecord.key` (an unsigned byte).
+/// Valid selections use 0..255, including 0, and require a matching nonterminal
+/// record in the loaded CAP file; the key is not a record or command index.
+/// Selecting a NULL sequence hides captions without changing this slot.
 #ifndef CAP_CAPTION_SELECTED_KEY
 #define CAP_CAPTION_SELECTED_KEY _gCapCaptionSelectedKey
 #endif

@@ -176,6 +176,15 @@ static s32 _gCapCaptionCaretPulseFalling;
 /// index bounds and NULL-sequence behavior apply. This object-like identifier
 /// alias has no arguments, runtime side effects or token construction.
 #define CAP_CAPTION_COMMAND_REFS CapCaption_Data_8015E650
+/// Binds caption variant selection to this overlay's writable signed-halfword slot.
+///
+/// Names the `s16` declared in the overlay's private header and defined in
+/// shelter_b3_garbage_incinerator_3.c. Define before the first `cap_captions.h`
+/// inclusion and retain through `cap_captions.inc.c`; keep the overlay loaded
+/// through caption use. The shared binding's 0..255 key domain and nonterminal
+/// record requirement apply, including key 0. NULL-sequence selection preserves
+/// the stored key. This object-like identifier alias has no arguments, runtime
+/// side effects or token construction.
 #define CAP_CAPTION_SELECTED_KEY CapCaption_Data_8015E666
 /// Writable pointer lvalue borrowing readable glyph cells from the loaded CAP file.
 ///
