@@ -1370,7 +1370,7 @@ objects = [
   { kind = "modelSource", at = "0x1C9C", in_c = true },
   { kind = "animation", at = "0x1CC0", sets = ["0x2274", "0x30E8", "0x375C", "0x3C90", "0x478C", "0x4DD4", "0x5AA4", "0x7230", "0x75CC", "0x78C0"], in_c = true },
   { kind = "collision", at = "0x90A4", in_c = true },
-  { kind = "collisionSource", at = "0x9138", in_c = true },
+  { kind = "collisionSource", at = "0x9138", in_c = true, cell_face_list_macro = "MIST_R18_CELL_FACE_LIST_AT_OFFSET" },
 ]
 
 [rooms.overlays.mist_parking]
@@ -1390,9 +1390,9 @@ objects = [
   { kind = "animation", at = "0x9CF8", sets = ["0x9FD4", "0xA774", "0xAC5C", "0xB138", "0xB700", "0xBAB4", "0xC1B0", "0xC688", "0xCD80", "0xD060", "0xD3E4", "0xD6A4", "0xDA94", "0xDE94", "0xE1D0", "0xE6E0", "0xEA0C", "0xEDE0", "0xF14C", "0xF574", "0xF7F0", "0xFC60", "0xFE5C", "0x10174"], in_c = true },
   { kind = "animation", at = "0x1271C", sets = ["0x129F8", "0x12DCC", "0x1323C"], in_c = true },
   { kind = "collision", at = "0x12694", in_c = true },
-  { kind = "collisionSource", at = "0x126F8", in_c = true },
+  { kind = "collisionSource", at = "0x126F8", in_c = true, cell_face_list_macro = "MIST_PARKING_PIERCE_CELL_FACE_LIST_AT_OFFSET" },
   { kind = "collision", at = "0x14108", in_c = true },
-  { kind = "collisionSource", at = "0x14C44", in_c = true },
+  { kind = "collisionSource", at = "0x14C44", in_c = true, cell_face_list_macro = "MIST_PARKING_CELL_FACE_LIST_AT_OFFSET" },
 ]
 
 [rooms.overlays.mist_shooting_gallery]
@@ -1440,11 +1440,11 @@ objects = [
   { kind = "model", at = "0xB5F8", in_c = true },
   { kind = "modelSource", at = "0xB7C4", in_c = true },
   { kind = "collision", at = "0x7B50", in_c = true },
-  { kind = "collisionSource", at = "0x7BD8", in_c = true },
+  { kind = "collisionSource", at = "0x7BD8", in_c = true, cell_face_list_macro = "MIST_SHOOTING_GALLERY_BARRIER_CELL_FACE_LIST_AT_OFFSET" },
   { kind = "collision", at = "0x7BFC", in_c = true },
-  { kind = "collisionSource", at = "0x7C38", in_c = true },
+  { kind = "collisionSource", at = "0x7C38", in_c = true, cell_face_list_macro = "MIST_SHOOTING_GALLERY_BARRIER_CELL_FACE_LIST_AT_OFFSET" },
   { kind = "collision", at = "0xB7E8", in_c = true },
-  { kind = "collisionSource", at = "0xC3A8", in_c = true },
+  { kind = "collisionSource", at = "0xC3A8", in_c = true, cell_face_list_macro = "MIST_SHOOTING_GALLERY_CELL_FACE_LIST_AT_OFFSET" },
 ]
 
 [rooms.overlays.mist_r21]
@@ -1526,11 +1526,11 @@ objects = [
   { unit = "dryfield_warehouse/dryfield_warehouse_2", rodata = "0x10", text = "0x498", data = "0x1F94" },
   { kind = "animation", at = "0x1FC4", sets = ["0x2260"], in_c = true },
   { kind = "collision", at = "0x26E0", in_c = true },
-  { kind = "collisionSource", at = "0x2CE8", in_c = true },
+  { kind = "collisionSource", at = "0x2CE8", in_c = true, cell_face_list_macro = "DRYFIELD_WAREHOUSE_CELL_FACE_LIST_AT_OFFSET" },
   { kind = "collision", at = "0x2D0C", in_c = true },
-  { kind = "collisionSource", at = "0x33EC", in_c = true },
+  { kind = "collisionSource", at = "0x33EC", in_c = true, cell_face_list_macro = "DRYFIELD_WAREHOUSE_CELL_FACE_LIST_AT_OFFSET" },
   { kind = "collision", at = "0x3410", in_c = true },
-  { kind = "collisionSource", at = "0x3A78", in_c = true },
+  { kind = "collisionSource", at = "0x3A78", in_c = true, cell_face_list_macro = "DRYFIELD_WAREHOUSE_CELL_FACE_LIST_AT_OFFSET" },
   { unit = "dryfield_warehouse/dryfield_warehouse", rodata = "0x4", text = "0x28", data = "0x4038", bss = "0x4BF8", tail = true },
 ]
 
@@ -1662,7 +1662,7 @@ objects = [
   { kind = "model", at = "0x382C", in_c = true },
   { kind = "modelSource", at = "0x445C", in_c = true },
   { kind = "collision", at = "0x530C", in_c = true },
-  { kind = "collisionSource", at = "0x6004", in_c = true },
+  { kind = "collisionSource", at = "0x6004", in_c = true, cell_face_list_macro = "DRYFIELD_WATER_TOWER_CELL_FACE_LIST_AT_OFFSET" },
   { kind = "collisionPatch", at = "0x4550", pieces = ["vectors 2", "vectors 8", "vectors 8", "faces 2", "vectors 2", "vectors 8", "vectors 8", "faces 2"], in_c = true },
 ]
 
@@ -1679,7 +1679,7 @@ objects = [
   { kind = "animation", at = "0x29E0", sets = ["0x2B70", "0x2F04"], in_c = true },
   { kind = "animation", at = "0x31E0", sets = ["0x34BC", "0x377C", "0x3A60", "0x3CB4", "0x4000", "0x47BC", "0x4AA0", "0x4C98", "0x4FEC", "0x51E4", "0x5704", "0x59E4", "0x5DB8", "0x61A8", "0x6514", "0x6840", "0x6C68", "0x6F48"], in_c = true },
   { kind = "collision", at = "0x93B0", in_c = true },
-  { kind = "collisionSource", at = "0x98FC", in_c = true },
+  { kind = "collisionSource", at = "0x98FC", in_c = true, cell_face_list_macro = "DRYFIELD_WATER_TANK_CELL_FACE_LIST_AT_OFFSET" },
 ]
 
 [rooms.overlays.dryfield_breezeway]
@@ -1808,7 +1808,7 @@ objects = [
   { kind = "packageId" },
   { unit = "dryfield_water_hole/dryfield_water_hole_2", rodata = "0x10", text = "0x1B58" },
   { kind = "collision", at = "0x28A4", in_c = true },
-  { kind = "collisionSource", at = "0x2CA0", in_c = true },
+  { kind = "collisionSource", at = "0x2CA0", in_c = true, cell_face_list_macro = "DRYFIELD_WATER_HOLE_CELL_FACE_LIST_AT_OFFSET" },
   { unit = "dryfield_water_hole/dryfield_water_hole", rodata = "0x4", text = "0x28", data = "0x269C", bss = "0x5310", tail = true },
 ]
 
@@ -1828,7 +1828,7 @@ objects = [
   { unit = "dryfield_underpass/dryfield_underpass", rodata = "0x4", text = "0x10", data = "0x920" },
   { kind = "animation", at = "0x920", sets = ["0xE64", "0x1230"], in_c = true },
   { kind = "collision", at = "0x16F8", in_c = true },
-  { kind = "collisionSource", at = "0x1EC4", in_c = true },
+  { kind = "collisionSource", at = "0x1EC4", in_c = true, cell_face_list_macro = "DRYFIELD_UNDERPASS_CELL_FACE_LIST_AT_OFFSET" },
 ]
 
 [rooms.overlays.dryfield_night_gas_station]
@@ -2227,7 +2227,7 @@ objects = [
   { kind = "modelSource", at = "0x114FC", in_c = true },
   { kind = "animation", at = "0x66FC", sets = ["0x69D8", "0x7178", "0x7544", "0x7784", "0x7958", "0x7BA4", "0x8178", "0x8420", "0x8AC0", "0x8CB4", "0x92C4", "0x96E4", "0x99C8", "0x9C2C", "0x9F1C", "0xA38C"], in_c = true },
   { kind = "collision", at = "0xBB24", in_c = true },
-  { kind = "collisionSource", at = "0xC25C", in_c = true },
+  { kind = "collisionSource", at = "0xC25C", in_c = true, cell_face_list_macro = "MINE_CAVERN_CELL_FACE_LIST_AT_OFFSET" },
   { unit = "mine_cavern/mine_cavern", rodata = "0x4", text = "0x348", data = "0x10DA0", bss = "0x11590", tail = true },
 ]
 
@@ -2239,7 +2239,7 @@ objects = [
   { kind = "packageId" },
   { unit = "mine_tunnel_entrance/mine_tunnel_entrance", rodata = "0x4", text = "0x28", data = "0x530" },
   { kind = "collision", at = "0x660", in_c = true },
-  { kind = "collisionSource", at = "0xB00", in_c = true },
+  { kind = "collisionSource", at = "0xB00", in_c = true, cell_face_list_macro = "MINE_TUNNEL_ENTRANCE_CELL_FACE_LIST_AT_OFFSET" },
 ]
 
 [rooms.overlays.mine_tunnel]
@@ -2252,7 +2252,7 @@ objects = [
   { unit = "mine_tunnel/mine_tunnel_2", rodata = "0x10", text = "0x214", data = "0xB6C" },
   { kind = "animation", at = "0x594", sets = ["0x9DC"], in_c = true },
   { kind = "collision", at = "0xC24", in_c = true },
-  { kind = "collisionSource", at = "0x12AC", in_c = true },
+  { kind = "collisionSource", at = "0x12AC", in_c = true, cell_face_list_macro = "MINE_TUNNEL_CELL_FACE_LIST_AT_OFFSET" },
 ]
 
 [rooms.overlays.mine_gorge]
@@ -2263,9 +2263,9 @@ objects = [
   { unit = "mine_gorge/mine_gorge_2", rodata = "0x10", text = "0x438", data = "0x11A0" },
   { kind = "animation", at = "0x850", sets = ["0xC98"], in_c = true },
   { kind = "collision", at = "0x12D8", in_c = true },
-  { kind = "collisionSource", at = "0x1BC4", in_c = true },
+  { kind = "collisionSource", at = "0x1BC4", in_c = true, cell_face_list_macro = "MINE_GORGE_CELL_FACE_LIST_AT_OFFSET" },
   { kind = "collision", at = "0x1BE8", in_c = true },
-  { kind = "collisionSource", at = "0x2430", in_c = true },
+  { kind = "collisionSource", at = "0x2430", in_c = true, cell_face_list_macro = "MINE_GORGE_CELL_FACE_LIST_AT_OFFSET" },
 ]
 
 [rooms.overlays.mine_refuge]
@@ -2274,7 +2274,7 @@ objects = [
   { kind = "packageId" },
   { unit = "mine_refuge/mine_refuge", rodata = "0x4", text = "0x120", data = "0x3F80", bss = "0x5520" },
   { kind = "collision", at = "0x4388", in_c = true },
-  { kind = "collisionSource", at = "0x45E4", in_c = true },
+  { kind = "collisionSource", at = "0x45E4", in_c = true, cell_face_list_macro = "MINE_REFUGE_CELL_FACE_LIST_AT_OFFSET" },
 ]
 
 [rooms.overlays.mine_forked_tunnel]
@@ -2288,9 +2288,9 @@ objects = [
   { kind = "modelSource", at = "0x34E0", in_c = true },
   { kind = "animation", at = "0x46E8", sets = ["0x49C4", "0x4C50", "0x5B1C"], in_c = true },
   { kind = "collision", at = "0x4614", in_c = true },
-  { kind = "collisionSource", at = "0x469C", in_c = true },
+  { kind = "collisionSource", at = "0x469C", in_c = true, cell_face_list_macro = "MINE_FORKED_TUNNEL_CELL_FACE_LIST_AT_OFFSET" },
   { kind = "collision", at = "0x60CC", in_c = true },
-  { kind = "collisionSource", at = "0x67B0", in_c = true },
+  { kind = "collisionSource", at = "0x67B0", in_c = true, cell_face_list_macro = "MINE_FORKED_TUNNEL_CELL_FACE_LIST_AT_OFFSET" },
 ]
 
 [rooms.overlays.mine_secret_passage]
@@ -2300,7 +2300,7 @@ objects = [
   { unit = "mine_secret_passage/mine_secret_passage", rodata = "0x4", text = "0x4C", bss = "0x5E88" },
   { unit = "mine_secret_passage/mine_secret_passage_2", rodata = "0x30", text = "0x414", data = "0x38CC", bss = "0x5E80" },
   { kind = "collision", at = "0x3A6C", in_c = true },
-  { kind = "collisionSource", at = "0x4020", in_c = true },
+  { kind = "collisionSource", at = "0x4020", in_c = true, cell_face_list_macro = "MINE_SECRET_PASSAGE_CELL_FACE_LIST_AT_OFFSET" },
 ]
 
 [rooms.overlays.shelter_b1_elevator_hall]
@@ -2850,9 +2850,9 @@ objects = [
   { kind = "packageId" },
   { kind = "animation", at = "0x3820", sets = ["0x3BC4"], in_c = true },
   { kind = "collision", at = "0x3DB0", in_c = true },
-  { kind = "collisionSource", at = "0x3E50", in_c = true },
+  { kind = "collisionSource", at = "0x3E50", in_c = true, cell_face_list_macro = "NEO_ARK_OBSERVATORY_CELL_FACE_LIST_AT_OFFSET" },
   { kind = "collision", at = "0x40D0", in_c = true },
-  { kind = "collisionSource", at = "0x49E4", in_c = true },
+  { kind = "collisionSource", at = "0x49E4", in_c = true, cell_face_list_macro = "NEO_ARK_OBSERVATORY_CELL_FACE_LIST_AT_OFFSET" },
   { unit = "neo_ark_observatory/neo_ark_observatory", rodata = "0x4", text = "0x134", data = "0x37F8", bss = "0xA470", tail = true },
 ]
 
@@ -2864,7 +2864,7 @@ objects = [
   { unit = "neo_ark_eve_access_tunnel/neo_ark_eve_access_tunnel", rodata = "0x4", text = "0x114", data = "0x1BCC", bss = "0x31E0" },
   { unit = "neo_ark_eve_access_tunnel/neo_ark_eve_access_tunnel_2", rodata = "0x100", text = "0xAD0", data = "0x14C8" },
   { kind = "collision", at = "0x1648", in_c = true },
-  { kind = "collisionSource", at = "0x1A9C", in_c = true },
+  { kind = "collisionSource", at = "0x1A9C", in_c = true, cell_face_list_macro = "NEO_ARK_EVE_ACCESS_TUNNEL_CELL_FACE_LIST_AT_OFFSET" },
 ]
 
 [rooms.overlays.neo_ark_eve_elevator]
@@ -2875,7 +2875,7 @@ objects = [
   { kind = "packageId" },
   { unit = "neo_ark_eve_elevator/neo_ark_eve_elevator", rodata = "0x4", text = "0x10", data = "0x164" },
   { kind = "collision", at = "0x1E4", in_c = true },
-  { kind = "collisionSource", at = "0x46C", in_c = true },
+  { kind = "collisionSource", at = "0x46C", in_c = true, cell_face_list_macro = "NEO_ARK_EVE_ELEVATOR_CELL_FACE_LIST_AT_OFFSET" },
 ]
 
 [rooms.overlays.neo_ark_north_promenade]
@@ -2886,7 +2886,7 @@ objects = [
   { kind = "packageId" },
   { unit = "neo_ark_north_promenade/neo_ark_north_promenade", rodata = "0x4", text = "0x10", data = "0x47A8" },
   { kind = "collision", at = "0x4884", in_c = true },
-  { kind = "collisionSource", at = "0x4E2C", in_c = true },
+  { kind = "collisionSource", at = "0x4E2C", in_c = true, cell_face_list_macro = "NEO_ARK_NORTH_PROMENADE_CELL_FACE_LIST_AT_OFFSET" },
 ]
 
 [rooms.overlays.neo_ark_forest_zone]
@@ -2896,7 +2896,7 @@ objects = [
   { unit = "neo_ark_forest_zone/neo_ark_forest_zone_2", rodata = "0x28", text = "0x2DF4", data = "0x3FC0" },
   { kind = "animation", at = "0x3FC0", sets = ["0x4364", "0x47D4"], in_c = true },
   { kind = "collision", at = "0x4BAC", in_c = true },
-  { kind = "collisionSource", at = "0x4CB4", in_c = true },
+  { kind = "collisionSource", at = "0x4CB4", in_c = true, cell_face_list_macro = "NEO_ARK_FOREST_ZONE_CELL_FACE_LIST_AT_OFFSET" },
   { unit = "neo_ark_forest_zone/neo_ark_forest_zone", rodata = "0x4", text = "0x84", data = "0x5870", tail = true },
 ]
 
@@ -2917,7 +2917,7 @@ objects = [
   { kind = "packageId" },
   { unit = "neo_ark_pavilion/neo_ark_pavilion", rodata = "0x4", text = "0xA0", data = "0x628C", bss = "0xA460" },
   { kind = "collision", at = "0x64F4", in_c = true },
-  { kind = "collisionSource", at = "0x6C24", in_c = true },
+  { kind = "collisionSource", at = "0x6C24", in_c = true, cell_face_list_macro = "NEO_ARK_PAVILION_CELL_FACE_LIST_AT_OFFSET" },
 ]
 
 [rooms.overlays.neo_ark_island]
@@ -2928,7 +2928,7 @@ objects = [
   { unit = "neo_ark_island/neo_ark_island", rodata = "0x4", text = "0x90", data = "0x4664", bss = "0x6A48" },
   { unit = "neo_ark_island/neo_ark_island_2", rodata = "0x78", text = "0x15A8", data = "0x4570" },
   { kind = "collision", at = "0x4770", in_c = true },
-  { kind = "collisionSource", at = "0x5108", in_c = true },
+  { kind = "collisionSource", at = "0x5108", in_c = true, cell_face_list_macro = "NEO_ARK_ISLAND_CELL_FACE_LIST_AT_OFFSET" },
 ]
 
 [rooms.overlays.neo_ark_garden]
@@ -2938,7 +2938,7 @@ objects = [
   { unit = "neo_ark_garden/neo_ark_garden", rodata = "0x4", text = "0x8C", data = "0x5528" },
   { unit = "neo_ark_garden/neo_ark_garden_2", rodata = "0x60", text = "0x14DC", data = "0x3DD8" },
   { kind = "collision", at = "0x3F14", in_c = true },
-  { kind = "collisionSource", at = "0x4104", in_c = true },
+  { kind = "collisionSource", at = "0x4104", in_c = true, cell_face_list_macro = "NEO_ARK_GARDEN_CELL_FACE_LIST_AT_OFFSET" },
 ]
 
 [rooms.overlays.neo_ark_power_plant_2]
@@ -2950,7 +2950,7 @@ objects = [
   { unit = "neo_ark_power_plant_2/neo_ark_power_plant_2", rodata = "0x4", text = "0x10", data = "0x2830" },
   { kind = "animation", at = "0x2830", sets = ["0x2A4C", "0x2C10"], in_c = true },
   { kind = "collision", at = "0x3128", in_c = true },
-  { kind = "collisionSource", at = "0x3804", in_c = true },
+  { kind = "collisionSource", at = "0x3804", in_c = true, cell_face_list_macro = "NEO_ARK_POWER_PLANT_2_CELL_FACE_LIST_AT_OFFSET" },
 ]
 
 [rooms.overlays.neo_ark_power_plant_1]
@@ -2961,7 +2961,7 @@ objects = [
   { unit = "neo_ark_power_plant_1/neo_ark_power_plant_1_2", rodata = "0x10", text = "0x458", data = "0xFEC" },
   { kind = "animation", at = "0xFEC", sets = ["0x1530"], in_c = true },
   { kind = "collision", at = "0x25D8", in_c = true },
-  { kind = "collisionSource", at = "0x2AD0", in_c = true },
+  { kind = "collisionSource", at = "0x2AD0", in_c = true, cell_face_list_macro = "NEO_ARK_POWER_PLANT_1_CELL_FACE_LIST_AT_OFFSET" },
 ]
 
 [rooms.overlays.neo_ark_savanna_zone]
@@ -2970,7 +2970,7 @@ objects = [
   { kind = "packageId" },
   { unit = "neo_ark_savanna_zone/neo_ark_savanna_zone", rodata = "0x4", text = "0x24", data = "0x23E0" },
   { kind = "collision", at = "0x24B4", in_c = true },
-  { kind = "collisionSource", at = "0x2610", in_c = true },
+  { kind = "collisionSource", at = "0x2610", in_c = true, cell_face_list_macro = "NEO_ARK_SAVANNA_ZONE_CELL_FACE_LIST_AT_OFFSET" },
 ]
 
 [rooms.overlays.neo_ark_south_promenade]
@@ -2991,7 +2991,7 @@ objects = [
   { unit = "neo_ark_altar/neo_ark_altar", rodata = "0x4", text = "0xA8", data = "0x19CC" },
   { unit = "neo_ark_altar/neo_ark_altar_2", rodata = "0x40", text = "0x480", data = "0x1A00", bss = "0x2AF0" },
   { kind = "collision", at = "0x1B74", in_c = true },
-  { kind = "collisionSource", at = "0x1FBC", in_c = true },
+  { kind = "collisionSource", at = "0x1FBC", in_c = true, cell_face_list_macro = "NEO_ARK_ALTAR_CELL_FACE_LIST_AT_OFFSET" },
 ]
 
 [rooms.overlays.neo_ark_shrine]
@@ -3070,7 +3070,7 @@ objects = [
   { kind = "packageId" },
   { unit = "neo_ark_r26/neo_ark_r26", rodata = "0x4", text = "0x10", data = "0x1C0" },
   { kind = "collision", at = "0xB64", in_c = true },
-  { kind = "collisionSource", at = "0xBDC", in_c = true },
+  { kind = "collisionSource", at = "0xBDC", in_c = true, cell_face_list_macro = "NEO_ARK_R26_CELL_FACE_LIST_AT_OFFSET" },
 ]
 
 [rooms.overlays.neo_ark_bridge]
@@ -3081,7 +3081,7 @@ objects = [
   { unit = "neo_ark_bridge/neo_ark_bridge", rodata = "0x4", text = "0x78", data = "0x4958" },
   { unit = "neo_ark_bridge/neo_ark_bridge_2", rodata = "0x60", text = "0x1394", data = "0x4998" },
   { kind = "collision", at = "0x4B54", in_c = true },
-  { kind = "collisionSource", at = "0x5254", in_c = true },
+  { kind = "collisionSource", at = "0x5254", in_c = true, cell_face_list_macro = "NEO_ARK_BRIDGE_CELL_FACE_LIST_AT_OFFSET" },
 ]
 
 [rooms.overlays.shelter_1f_tent]
@@ -3132,7 +3132,7 @@ objects = [
   { kind = "packageId" },
   { unit = "neo_ark_pyramid/neo_ark_pyramid", rodata = "0x4", text = "0x40", data = "0x2624" },
   { kind = "collision", at = "0x271C", in_c = true },
-  { kind = "collisionSource", at = "0x2D04", in_c = true },
+  { kind = "collisionSource", at = "0x2D04", in_c = true, cell_face_list_macro = "NEO_ARK_PYRAMID_CELL_FACE_LIST_AT_OFFSET" },
 ]
 
 [rooms.overlays.neo_ark_substation]

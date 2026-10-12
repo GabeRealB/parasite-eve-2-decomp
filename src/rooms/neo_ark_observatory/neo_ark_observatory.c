@@ -280,12 +280,20 @@ static s16 _gNeoArkObservatoryCompanionObstacleTemplateCells[6] = {
 #include "assets/neo_ark_observatory_collision_03E50_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gNeoArkObservatoryCompanionObstacleTemplateCells[i])
+/// Supplies this grid's cell face-list addresses to its generated table.
+///
+/// `halfwordOffset` is an integer constant measured in `s16` elements of
+/// `_gNeoArkObservatoryCompanionObstacleTemplateCells` and occurs once in the expansion.
+/// It must start a complete `WORLD_COLLISION_GRID_CELL_END`-terminated list
+/// within the pool. Returns a borrowed `s16*` valid while this overlay is loaded.
+/// Set `collisionSource.cell_face_list_macro` to this identifier; keep the
+/// binding through the table include, then undefine it.
+#define NEO_ARK_OBSERVATORY_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gNeoArkObservatoryCompanionObstacleTemplateCells[(halfwordOffset)])
 /// One-cell directory retained with the obstacle template; the rebuild uses only its mesh.
 static s16* _gNeoArkObservatoryCompanionObstacleTemplateTable[1] = {
 #include "assets/neo_ark_observatory_collision_03E50_table.inc"
 };
-#undef GRID_CELL
+#undef NEO_ARK_OBSERVATORY_CELL_FACE_LIST_AT_OFFSET
 
 /// Model-local companion obstacle template restored into the room grid's leading slots.
 ///
@@ -434,12 +442,20 @@ static s16 _gNeoArkObservatoryCollisionGridCells[306] = {
 #include "assets/neo_ark_observatory_collision_049E4_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gNeoArkObservatoryCollisionGridCells[i])
+/// Supplies this grid's cell face-list addresses to its generated table.
+///
+/// `halfwordOffset` is an integer constant measured in `s16` elements of
+/// `_gNeoArkObservatoryCollisionGridCells` and occurs once in the expansion.
+/// It must start a complete `WORLD_COLLISION_GRID_CELL_END`-terminated list
+/// within the pool. Returns a borrowed `s16*` valid while this overlay is loaded.
+/// Set `collisionSource.cell_face_list_macro` to this identifier; keep the
+/// binding through the table include, then undefine it.
+#define NEO_ARK_OBSERVATORY_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gNeoArkObservatoryCollisionGridCells[(halfwordOffset)])
 /// X-major cell directory; every cell includes the four companion-obstacle face slots.
 static s16* _gNeoArkObservatoryCollisionGridTable[NEO_ARK_OBSERVATORY_COLLISION_CELLS_X * NEO_ARK_OBSERVATORY_COLLISION_CELLS_Z] = {
 #include "assets/neo_ark_observatory_collision_049E4_table.inc"
 };
-#undef GRID_CELL
+#undef NEO_ARK_OBSERVATORY_CELL_FACE_LIST_AT_OFFSET
 
 /// Complete room collision grid, including the mutable companion-obstacle slots.
 ///

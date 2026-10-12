@@ -64,11 +64,19 @@ static s16 _gMistParkingPierceCollisionPatchCells[4] = {
 #include "assets/mist_parking_collision_126F8_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gMistParkingPierceCollisionPatchCells[i])
+/// Supplies this grid's cell face-list addresses to its generated table.
+///
+/// `halfwordOffset` is an integer constant measured in `s16` elements of
+/// `_gMistParkingPierceCollisionPatchCells` and occurs once in the expansion.
+/// It must start a complete `WORLD_COLLISION_GRID_CELL_END`-terminated list
+/// within the pool. Returns a borrowed `s16*` valid while this overlay is loaded.
+/// Set `collisionSource.cell_face_list_macro` to this identifier; keep the
+/// binding through the table include, then undefine it.
+#define MIST_PARKING_PIERCE_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gMistParkingPierceCollisionPatchCells[(halfwordOffset)])
 static s16* _gMistParkingPierceCollisionPatchTable[1] = {
 #include "assets/mist_parking_collision_126F8_table.inc"
 };
-#undef GRID_CELL
+#undef MIST_PARKING_PIERCE_CELL_FACE_LIST_AT_OFFSET
 
 WorldCollisionGrid gMistParkingPierceCollisionPatch = {
     .viewCoord   = NULL,

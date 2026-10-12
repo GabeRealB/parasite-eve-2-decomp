@@ -140,12 +140,20 @@ static s16 _gNeoArkSavannaZoneCollisionGridCells[32] = {
 #include "assets/neo_ark_savanna_zone_collision_02610_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gNeoArkSavannaZoneCollisionGridCells[i])
+/// Supplies this grid's cell face-list addresses to its generated table.
+///
+/// `halfwordOffset` is an integer constant measured in `s16` elements of
+/// `_gNeoArkSavannaZoneCollisionGridCells` and occurs once in the expansion.
+/// It must start a complete `WORLD_COLLISION_GRID_CELL_END`-terminated list
+/// within the pool. Returns a borrowed `s16*` valid while this overlay is loaded.
+/// Set `collisionSource.cell_face_list_macro` to this identifier; keep the
+/// binding through the table include, then undefine it.
+#define NEO_ARK_SAVANNA_ZONE_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gNeoArkSavannaZoneCollisionGridCells[(halfwordOffset)])
 /// X-major directory into the grid's four face-index lists.
 static s16* _gNeoArkSavannaZoneCollisionGridTable[4] = {
 #include "assets/neo_ark_savanna_zone_collision_02610_table.inc"
 };
-#undef GRID_CELL
+#undef NEO_ARK_SAVANNA_ZONE_CELL_FACE_LIST_AT_OFFSET
 
 /// Savanna collision mesh and its 4-by-1 XZ grid of 4000-unit cells.
 ///

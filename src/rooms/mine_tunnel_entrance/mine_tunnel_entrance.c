@@ -205,12 +205,20 @@ static s16 _gMineTunnelEntranceCollisionGridCells[84] = {
 #include "assets/mine_tunnel_entrance_collision_00B00_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gMineTunnelEntranceCollisionGridCells[i])
+/// Supplies this grid's cell face-list addresses to its generated table.
+///
+/// `halfwordOffset` is an integer constant measured in `s16` elements of
+/// `_gMineTunnelEntranceCollisionGridCells` and occurs once in the expansion.
+/// It must start a complete `WORLD_COLLISION_GRID_CELL_END`-terminated list
+/// within the pool. Returns a borrowed `s16*` valid while this overlay is loaded.
+/// Set `collisionSource.cell_face_list_macro` to this identifier; keep the
+/// binding through the table include, then undefine it.
+#define MINE_TUNNEL_ENTRANCE_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gMineTunnelEntranceCollisionGridCells[(halfwordOffset)])
 /// X-major cell directory borrowing one terminated face-index list per cell.
 static s16* _gMineTunnelEntranceCollisionGridTable[MINE_TUNNEL_ENTRANCE_COLLISION_GRID_CELL_COUNT_X * MINE_TUNNEL_ENTRANCE_COLLISION_GRID_CELL_COUNT_Z] = {
 #include "assets/mine_tunnel_entrance_collision_00B00_table.inc"
 };
-#undef GRID_CELL
+#undef MINE_TUNNEL_ENTRANCE_CELL_FACE_LIST_AT_OFFSET
 
 /// Tunnel entrance floor and walls, partitioned into five by two square XZ cells.
 ///

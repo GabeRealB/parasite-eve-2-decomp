@@ -372,12 +372,20 @@ static s16 _gNeoArkPowerPlant2CollisionGridCells[] = {
 #include "assets/neo_ark_power_plant_2_collision_03804_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gNeoArkPowerPlant2CollisionGridCells[i])
+/// Supplies this grid's cell face-list addresses to its generated table.
+///
+/// `halfwordOffset` is an integer constant measured in `s16` elements of
+/// `_gNeoArkPowerPlant2CollisionGridCells` and occurs once in the expansion.
+/// It must start a complete `WORLD_COLLISION_GRID_CELL_END`-terminated list
+/// within the pool. Returns a borrowed `s16*` valid while this overlay is loaded.
+/// Set `collisionSource.cell_face_list_macro` to this identifier; keep the
+/// binding through the table include, then undefine it.
+#define NEO_ARK_POWER_PLANT_2_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gNeoArkPowerPlant2CollisionGridCells[(halfwordOffset)])
 /// Twelve cell-list pointers in X-major order, four Z cells per X row.
 static s16* _gNeoArkPowerPlant2CollisionGridTable[] = {
 #include "assets/neo_ark_power_plant_2_collision_03804_table.inc"
 };
-#undef GRID_CELL
+#undef NEO_ARK_POWER_PLANT_2_CELL_FACE_LIST_AT_OFFSET
 
 enum { NEO_ARK_POWER_PLANT_2_COLLISION_GRID_Z_CELL_COUNT = 4 };
 

@@ -120,12 +120,20 @@ static s16 _gNeoArkEveElevatorCollisionGridCells[26] = {
 #include "assets/neo_ark_eve_elevator_collision_0046C_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gNeoArkEveElevatorCollisionGridCells[i])
+/// Supplies this grid's cell face-list addresses to its generated table.
+///
+/// `halfwordOffset` is an integer constant measured in `s16` elements of
+/// `_gNeoArkEveElevatorCollisionGridCells` and occurs once in the expansion.
+/// It must start a complete `WORLD_COLLISION_GRID_CELL_END`-terminated list
+/// within the pool. Returns a borrowed `s16*` valid while this overlay is loaded.
+/// Set `collisionSource.cell_face_list_macro` to this identifier; keep the
+/// binding through the table include, then undefine it.
+#define NEO_ARK_EVE_ELEVATOR_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gNeoArkEveElevatorCollisionGridCells[(halfwordOffset)])
 /// One X-major cell-list pointer covering the entire platform mesh.
 static s16* _gNeoArkEveElevatorCollisionGridTable[1] = {
 #include "assets/neo_ark_eve_elevator_collision_0046C_table.inc"
 };
-#undef GRID_CELL
+#undef NEO_ARK_EVE_ELEVATOR_CELL_FACE_LIST_AT_OFFSET
 
 /// Writable platform collision mesh with a single 4000-unit square cell.
 ///

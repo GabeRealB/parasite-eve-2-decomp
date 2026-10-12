@@ -341,13 +341,20 @@ static s16 _gNeoArkForestZoneCollisionGridCells[] = {
 #include "assets/neo_ark_forest_zone_collision_04CB4_cells.inc"
 };
 
-// The generated table supplies element offsets into the face-index storage.
-#define GRID_CELL(i) (&_gNeoArkForestZoneCollisionGridCells[i])
+/// Supplies this grid's cell face-list addresses to its generated table.
+///
+/// `halfwordOffset` is an integer constant measured in `s16` elements of
+/// `_gNeoArkForestZoneCollisionGridCells` and occurs once in the expansion.
+/// It must start a complete `WORLD_COLLISION_GRID_CELL_END`-terminated list
+/// within the pool. Returns a borrowed `s16*` valid while this overlay is loaded.
+/// Set `collisionSource.cell_face_list_macro` to this identifier; keep the
+/// binding through the table include, then undefine it.
+#define NEO_ARK_FOREST_ZONE_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gNeoArkForestZoneCollisionGridCells[(halfwordOffset)])
 /// Five X-major cells in one Z row, borrowing terminated face-index lists.
 static s16* _gNeoArkForestZoneCollisionGridTable[] = {
 #include "assets/neo_ark_forest_zone_collision_04CB4_table.inc"
 };
-#undef GRID_CELL
+#undef NEO_ARK_FOREST_ZONE_CELL_FACE_LIST_AT_OFFSET
 
 /// Forest zone collision box and its five-by-one XZ cell index.
 ///

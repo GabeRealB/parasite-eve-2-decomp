@@ -201,12 +201,20 @@ static s16 _gNeoArkNorthPromenadeCollisionGridCells[] = {
 #include "assets/neo_ark_north_promenade_collision_04E2C_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gNeoArkNorthPromenadeCollisionGridCells[i])
+/// Supplies this grid's cell face-list addresses to its generated table.
+///
+/// `halfwordOffset` is an integer constant measured in `s16` elements of
+/// `_gNeoArkNorthPromenadeCollisionGridCells` and occurs once in the expansion.
+/// It must start a complete `WORLD_COLLISION_GRID_CELL_END`-terminated list
+/// within the pool. Returns a borrowed `s16*` valid while this overlay is loaded.
+/// Set `collisionSource.cell_face_list_macro` to this identifier; keep the
+/// binding through the table include, then undefine it.
+#define NEO_ARK_NORTH_PROMENADE_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gNeoArkNorthPromenadeCollisionGridCells[(halfwordOffset)])
 /// X-major 4-by-4 cell directory; NULL denotes the one empty cell.
 static s16* _gNeoArkNorthPromenadeCollisionGridTable[] = {
 #include "assets/neo_ark_north_promenade_collision_04E2C_table.inc"
 };
-#undef GRID_CELL
+#undef NEO_ARK_NORTH_PROMENADE_CELL_FACE_LIST_AT_OFFSET
 
 /// Promenade room collision mesh and 4000-game-unit XZ cell index.
 ///

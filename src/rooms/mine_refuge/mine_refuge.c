@@ -241,12 +241,20 @@ static s16 _gMineRefugeCollisionGridCells[24] = {
 #include "assets/mine_refuge_collision_045E4_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gMineRefugeCollisionGridCells[i])
+/// Supplies this grid's cell face-list addresses to its generated table.
+///
+/// `halfwordOffset` is an integer constant measured in `s16` elements of
+/// `_gMineRefugeCollisionGridCells` and occurs once in the expansion.
+/// It must start a complete `WORLD_COLLISION_GRID_CELL_END`-terminated list
+/// within the pool. Returns a borrowed `s16*` valid while this overlay is loaded.
+/// Set `collisionSource.cell_face_list_macro` to this identifier; keep the
+/// binding through the table include, then undefine it.
+#define MINE_REFUGE_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gMineRefugeCollisionGridCells[(halfwordOffset)])
 /// X-major cell directory borrowing the two terminated face-index lists.
 static s16* _gMineRefugeCollisionGridTable[MINE_REFUGE_COLLISION_GRID_CELL_COUNT_X * MINE_REFUGE_COLLISION_GRID_CELL_COUNT_Z] = {
 #include "assets/mine_refuge_collision_045E4_table.inc"
 };
-#undef GRID_CELL
+#undef MINE_REFUGE_CELL_FACE_LIST_AT_OFFSET
 
 /// Room collision mesh indexed by a 1-by-2 XZ grid with origin (-200, -200).
 ///

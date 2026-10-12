@@ -423,12 +423,20 @@ enum {
     NEO_ARK_POWER_PLANT_1_COLLISION_CELLS_Z = 4,
 };
 
-#define GRID_CELL(i) (&_gNeoArkPowerPlant1CollisionGridCells[i])
+/// Supplies this grid's cell face-list addresses to its generated table.
+///
+/// `halfwordOffset` is an integer constant measured in `s16` elements of
+/// `_gNeoArkPowerPlant1CollisionGridCells` and occurs once in the expansion.
+/// It must start a complete `WORLD_COLLISION_GRID_CELL_END`-terminated list
+/// within the pool. Returns a borrowed `s16*` valid while this overlay is loaded.
+/// Set `collisionSource.cell_face_list_macro` to this identifier; keep the
+/// binding through the table include, then undefine it.
+#define NEO_ARK_POWER_PLANT_1_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gNeoArkPowerPlant1CollisionGridCells[(halfwordOffset)])
 /// X-major cell directory; each pointer selects a list in the face-index pool.
 static s16* _gNeoArkPowerPlant1CollisionGridTable[NEO_ARK_POWER_PLANT_1_COLLISION_CELLS_X * NEO_ARK_POWER_PLANT_1_COLLISION_CELLS_Z] = {
 #include "assets/neo_ark_power_plant_1_collision_02AD0_table.inc"
 };
-#undef GRID_CELL
+#undef NEO_ARK_POWER_PLANT_1_CELL_FACE_LIST_AT_OFFSET
 
 /// Power Plant 1's collision mesh and 3-by-4 room-space cell index.
 ///

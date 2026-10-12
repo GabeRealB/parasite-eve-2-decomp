@@ -228,12 +228,20 @@ static s16 _gMineSecretPassageCollisionGridCells[172] = {
 #include "assets/mine_secret_passage_collision_04020_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gMineSecretPassageCollisionGridCells[i])
+/// Supplies this grid's cell face-list addresses to its generated table.
+///
+/// `halfwordOffset` is an integer constant measured in `s16` elements of
+/// `_gMineSecretPassageCollisionGridCells` and occurs once in the expansion.
+/// It must start a complete `WORLD_COLLISION_GRID_CELL_END`-terminated list
+/// within the pool. Returns a borrowed `s16*` valid while this overlay is loaded.
+/// Set `collisionSource.cell_face_list_macro` to this identifier; keep the
+/// binding through the table include, then undefine it.
+#define MINE_SECRET_PASSAGE_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gMineSecretPassageCollisionGridCells[(halfwordOffset)])
 /// X-major cell pointers: four Z cells per X row, each borrowing a terminated list.
 static s16* _gMineSecretPassageCollisionGridTable[MINE_SECRET_PASSAGE_COLLISION_CELL_COUNT_X * MINE_SECRET_PASSAGE_COLLISION_CELL_COUNT_Z] = {
 #include "assets/mine_secret_passage_collision_04020_table.inc"
 };
-#undef GRID_CELL
+#undef MINE_SECRET_PASSAGE_CELL_FACE_LIST_AT_OFFSET
 
 /// Passage collision mesh and its 6-by-4 spatial index of 4000-unit square cells.
 ///

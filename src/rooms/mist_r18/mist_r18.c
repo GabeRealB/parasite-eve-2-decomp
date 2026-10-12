@@ -1499,11 +1499,19 @@ static s16 _gMistR18FloorCollisionGridCells[24] = {
 #include "assets/mist_r18_collision_09138_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gMistR18FloorCollisionGridCells[i])
+/// Supplies this grid's cell face-list addresses to its generated table.
+///
+/// `halfwordOffset` is an integer constant measured in `s16` elements of
+/// `_gMistR18FloorCollisionGridCells` and occurs once in the expansion.
+/// It must start a complete `WORLD_COLLISION_GRID_CELL_END`-terminated list
+/// within the pool. Returns a borrowed `s16*` valid while this overlay is loaded.
+/// Set `collisionSource.cell_face_list_macro` to this identifier; keep the
+/// binding through the table include, then undefine it.
+#define MIST_R18_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gMistR18FloorCollisionGridCells[(halfwordOffset)])
 static s16* _gMistR18FloorCollisionGridTable[12] = {
 #include "assets/mist_r18_collision_09138_table.inc"
 };
-#undef GRID_CELL
+#undef MIST_R18_CELL_FACE_LIST_AT_OFFSET
 
 /// The briefing room's class-1 floor and its X-major collision-cell index.
 ///

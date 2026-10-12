@@ -133,13 +133,20 @@ static s16 _gMineTunnelCollisionGridCells[158] = {
 #include "assets/mine_tunnel_collision_012AC_cells.inc"
 };
 
-// The generated table requires GRID_CELL to resolve a signed-element offset.
-#define GRID_CELL(i) (&_gMineTunnelCollisionGridCells[i])
+/// Supplies this grid's cell face-list addresses to its generated table.
+///
+/// `halfwordOffset` is an integer constant measured in `s16` elements of
+/// `_gMineTunnelCollisionGridCells` and occurs once in the expansion.
+/// It must start a complete `WORLD_COLLISION_GRID_CELL_END`-terminated list
+/// within the pool. Returns a borrowed `s16*` valid while this overlay is loaded.
+/// Set `collisionSource.cell_face_list_macro` to this identifier; keep the
+/// binding through the table include, then undefine it.
+#define MINE_TUNNEL_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gMineTunnelCollisionGridCells[(halfwordOffset)])
 /// X-major starts of the grid's 5 by 2 cell lists, with Z as the inner index.
 static s16* _gMineTunnelCollisionGridTable[MINE_TUNNEL_COLLISION_CELL_COUNT_X * MINE_TUNNEL_COLLISION_CELL_COUNT_Z] = {
 #include "assets/mine_tunnel_collision_012AC_table.inc"
 };
-#undef GRID_CELL
+#undef MINE_TUNNEL_CELL_FACE_LIST_AT_OFFSET
 
 /// The tunnel's room-space collision mesh and 4000-unit square-cell index.
 ///

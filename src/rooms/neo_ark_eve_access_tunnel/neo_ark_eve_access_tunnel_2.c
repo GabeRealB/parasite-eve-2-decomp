@@ -171,13 +171,20 @@ static s16 _gNeoArkEveAccessTunnelCollisionGridCells[82] = {
 #include "assets/neo_ark_eve_access_tunnel_collision_01A9C_cells.inc"
 };
 
-// The asset include supplies constant halfword indices into the cell-list pool.
-#define GRID_CELL(i) (&_gNeoArkEveAccessTunnelCollisionGridCells[i])
+/// Supplies this grid's cell face-list addresses to its generated table.
+///
+/// `halfwordOffset` is an integer constant measured in `s16` elements of
+/// `_gNeoArkEveAccessTunnelCollisionGridCells` and occurs once in the expansion.
+/// It must start a complete `WORLD_COLLISION_GRID_CELL_END`-terminated list
+/// within the pool. Returns a borrowed `s16*` valid while this overlay is loaded.
+/// Set `collisionSource.cell_face_list_macro` to this identifier; keep the
+/// binding through the table include, then undefine it.
+#define NEO_ARK_EVE_ACCESS_TUNNEL_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gNeoArkEveAccessTunnelCollisionGridCells[(halfwordOffset)])
 /// X-major 2-by-2 cell directory; every entry borrows one terminated face list.
 static s16* _gNeoArkEveAccessTunnelCollisionGridTable[NEO_ARK_EVE_ACCESS_TUNNEL_GRID_CELLS_X * NEO_ARK_EVE_ACCESS_TUNNEL_GRID_CELLS_Z] = {
 #include "assets/neo_ark_eve_access_tunnel_collision_01A9C_table.inc"
 };
-#undef GRID_CELL
+#undef NEO_ARK_EVE_ACCESS_TUNNEL_CELL_FACE_LIST_AT_OFFSET
 
 /// The tunnel's room collision mesh and 2-by-2 XZ face index.
 ///

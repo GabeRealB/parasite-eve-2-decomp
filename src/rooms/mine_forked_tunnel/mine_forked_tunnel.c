@@ -350,13 +350,20 @@ static s16 _gMineForkedTunnelAreaObjectCollisionBoxCells[MINE_FORKED_TUNNEL_AREA
 #include "assets/mine_forked_tunnel_collision_0469C_cells.inc"
 };
 
-// The generated include supplies halfword offsets into this template's cell list.
-#define GRID_CELL(i) (&_gMineForkedTunnelAreaObjectCollisionBoxCells[i])
+/// Supplies this grid's cell face-list addresses to its generated table.
+///
+/// `halfwordOffset` is an integer constant measured in `s16` elements of
+/// `_gMineForkedTunnelAreaObjectCollisionBoxCells` and occurs once in the expansion.
+/// It must start a complete `WORLD_COLLISION_GRID_CELL_END`-terminated list
+/// within the pool. Returns a borrowed `s16*` valid while this overlay is loaded.
+/// Set `collisionSource.cell_face_list_macro` to this identifier; keep the
+/// binding through the table include, then undefine it.
+#define MINE_FORKED_TUNNEL_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gMineForkedTunnelAreaObjectCollisionBoxCells[(halfwordOffset)])
 /// Single-cell directory retained with the authored collision-box grid.
 static s16* _gMineForkedTunnelAreaObjectCollisionBoxTable[MINE_FORKED_TUNNEL_AREA_OBJECT_COLLISION_CELL_COUNT_X * MINE_FORKED_TUNNEL_AREA_OBJECT_COLLISION_CELL_COUNT_Z] = {
 #include "assets/mine_forked_tunnel_collision_0469C_table.inc"
 };
-#undef GRID_CELL
+#undef MINE_FORKED_TUNNEL_CELL_FACE_LIST_AT_OFFSET
 
 /// Collision-box template for the switch-controlled area object.
 ///
@@ -750,13 +757,20 @@ enum {
     MINE_FORKED_TUNNEL_COLLISION_GRID_CELL_SIZE    = 4000,
 };
 
-// The generated table supplies halfword offsets into the packed cell lists.
-#define GRID_CELL(i) (&_gMineForkedTunnelCollisionGridCells[i])
+/// Supplies this grid's cell face-list addresses to its generated table.
+///
+/// `halfwordOffset` is an integer constant measured in `s16` elements of
+/// `_gMineForkedTunnelCollisionGridCells` and occurs once in the expansion.
+/// It must start a complete `WORLD_COLLISION_GRID_CELL_END`-terminated list
+/// within the pool. Returns a borrowed `s16*` valid while this overlay is loaded.
+/// Set `collisionSource.cell_face_list_macro` to this identifier; keep the
+/// binding through the table include, then undefine it.
+#define MINE_FORKED_TUNNEL_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gMineForkedTunnelCollisionGridCells[(halfwordOffset)])
 /// X-major cell directory, indexed by x * cellCountZ + z.
 static s16* _gMineForkedTunnelCollisionGridTable[MINE_FORKED_TUNNEL_COLLISION_GRID_CELL_COUNT_X * MINE_FORKED_TUNNEL_COLLISION_GRID_CELL_COUNT_Z] = {
 #include "assets/mine_forked_tunnel_collision_067B0_table.inc"
 };
-#undef GRID_CELL
+#undef MINE_FORKED_TUNNEL_CELL_FACE_LIST_AT_OFFSET
 
 /// Active tunnel collision grid with reserved storage for the switch-controlled prop box.
 ///

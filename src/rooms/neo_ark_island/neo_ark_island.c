@@ -150,12 +150,20 @@ static s16 _gNeoArkIslandCollisionGridCells[262] = {
 #include "assets/neo_ark_island_collision_05108_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gNeoArkIslandCollisionGridCells[i])
+/// Supplies this grid's cell face-list addresses to its generated table.
+///
+/// `halfwordOffset` is an integer constant measured in `s16` elements of
+/// `_gNeoArkIslandCollisionGridCells` and occurs once in the expansion.
+/// It must start a complete `WORLD_COLLISION_GRID_CELL_END`-terminated list
+/// within the pool. Returns a borrowed `s16*` valid while this overlay is loaded.
+/// Set `collisionSource.cell_face_list_macro` to this identifier; keep the
+/// binding through the table include, then undefine it.
+#define NEO_ARK_ISLAND_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gNeoArkIslandCollisionGridCells[(halfwordOffset)])
 /// X-major pointers to the grid's 4-by-5 cell face-index lists.
 static s16* _gNeoArkIslandCollisionGridTable[NEO_ARK_ISLAND_GRID_CELL_COUNT_X * NEO_ARK_ISLAND_GRID_CELL_COUNT_Z] = {
 #include "assets/neo_ark_island_collision_05108_table.inc"
 };
-#undef GRID_CELL
+#undef NEO_ARK_ISLAND_CELL_FACE_LIST_AT_OFFSET
 
 WorldCollisionGrid gNeoArkIslandCollisionGrid = {
     .viewCoord   = NULL,

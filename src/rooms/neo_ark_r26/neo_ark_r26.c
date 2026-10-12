@@ -434,12 +434,20 @@ static s16 _gNeoArkR26FloorCollisionGridCells[16] = {
 #include "assets/neo_ark_r26_collision_00BDC_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gNeoArkR26FloorCollisionGridCells[i])
+/// Supplies this grid's cell face-list addresses to its generated table.
+///
+/// `halfwordOffset` is an integer constant measured in `s16` elements of
+/// `_gNeoArkR26FloorCollisionGridCells` and occurs once in the expansion.
+/// It must start a complete `WORLD_COLLISION_GRID_CELL_END`-terminated list
+/// within the pool. Returns a borrowed `s16*` valid while this overlay is loaded.
+/// Set `collisionSource.cell_face_list_macro` to this identifier; keep the
+/// binding through the table include, then undefine it.
+#define NEO_ARK_R26_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gNeoArkR26FloorCollisionGridCells[(halfwordOffset)])
 /// X-major 3x3 cell directory: eight floor lists followed by one empty cell.
 static s16* _gNeoArkR26FloorCollisionGridTable[9] = {
 #include "assets/neo_ark_r26_collision_00BDC_table.inc"
 };
-#undef GRID_CELL
+#undef NEO_ARK_R26_CELL_FACE_LIST_AT_OFFSET
 
 /// The room's floor quad at Y=0, spanning -4000..4000 on both horizontal axes.
 ///

@@ -950,12 +950,20 @@ static s16 _gDryfieldWaterTowerRoomCollisionGridCells[374] = {
 #include "assets/dryfield_water_tower_collision_06004_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gDryfieldWaterTowerRoomCollisionGridCells[i])
+/// Supplies this grid's cell face-list addresses to its generated table.
+///
+/// `halfwordOffset` is an integer constant measured in `s16` elements of
+/// `_gDryfieldWaterTowerRoomCollisionGridCells` and occurs once in the expansion.
+/// It must start a complete `WORLD_COLLISION_GRID_CELL_END`-terminated list
+/// within the pool. Returns a borrowed `s16*` valid while this overlay is loaded.
+/// Set `collisionSource.cell_face_list_macro` to this identifier; keep the
+/// binding through the table include, then undefine it.
+#define DRYFIELD_WATER_TOWER_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gDryfieldWaterTowerRoomCollisionGridCells[(halfwordOffset)])
 /// X-major cell directory for the room's four-by-four collision grid.
 static s16* _gDryfieldWaterTowerRoomCollisionGridTable[16] = {
 #include "assets/dryfield_water_tower_collision_06004_table.inc"
 };
-#undef GRID_CELL
+#undef DRYFIELD_WATER_TOWER_CELL_FACE_LIST_AT_OFFSET
 
 /// Live collision mesh and four-by-four spatial index for the water tower room.
 ///

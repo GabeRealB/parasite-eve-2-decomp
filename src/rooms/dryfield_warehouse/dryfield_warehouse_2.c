@@ -417,11 +417,19 @@ static s16 _gDryfieldWarehouseBeforeEventCollisionGridCells[80] = {
 #include "assets/dryfield_warehouse_collision_02CE8_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gDryfieldWarehouseBeforeEventCollisionGridCells[i])
+/// Supplies this grid's cell face-list addresses to its generated table.
+///
+/// `halfwordOffset` is an integer constant measured in `s16` elements of
+/// `_gDryfieldWarehouseBeforeEventCollisionGridCells` and occurs once in the expansion.
+/// It must start a complete `WORLD_COLLISION_GRID_CELL_END`-terminated list
+/// within the pool. Returns a borrowed `s16*` valid while this overlay is loaded.
+/// Set `collisionSource.cell_face_list_macro` to this identifier; keep the
+/// binding through the table include, then undefine it.
+#define DRYFIELD_WAREHOUSE_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gDryfieldWarehouseBeforeEventCollisionGridCells[(halfwordOffset)])
 static s16* _gDryfieldWarehouseBeforeEventCollisionGridTable[2] = {
 #include "assets/dryfield_warehouse_collision_02CE8_table.inc"
 };
-#undef GRID_CELL
+#undef DRYFIELD_WAREHOUSE_CELL_FACE_LIST_AT_OFFSET
 
 /// Warehouse collision mesh for room 1, before the Monkey Wrench event.
 ///
@@ -458,11 +466,19 @@ static s16 _gDryfieldWarehouseAfterEventCollisionGridCells[112] = {
 #include "assets/dryfield_warehouse_collision_033EC_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gDryfieldWarehouseAfterEventCollisionGridCells[i])
+/// Supplies this grid's cell face-list addresses to its generated table.
+///
+/// `halfwordOffset` is an integer constant measured in `s16` elements of
+/// `_gDryfieldWarehouseAfterEventCollisionGridCells` and occurs once in the expansion.
+/// It must start a complete `WORLD_COLLISION_GRID_CELL_END`-terminated list
+/// within the pool. Returns a borrowed `s16*` valid while this overlay is loaded.
+/// Set `collisionSource.cell_face_list_macro` to this identifier; keep the
+/// binding through the table include, then undefine it.
+#define DRYFIELD_WAREHOUSE_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gDryfieldWarehouseAfterEventCollisionGridCells[(halfwordOffset)])
 static s16* _gDryfieldWarehouseAfterEventCollisionGridTable[4] = {
 #include "assets/dryfield_warehouse_collision_033EC_table.inc"
 };
-#undef GRID_CELL
+#undef DRYFIELD_WAREHOUSE_CELL_FACE_LIST_AT_OFFSET
 
 /// Warehouse collision mesh for room 2, after the Monkey Wrench event.
 ///
@@ -499,11 +515,19 @@ static s16 _gDryfieldWarehouseRoom3CollisionGridCells[108] = {
 #include "assets/dryfield_warehouse_collision_03A78_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gDryfieldWarehouseRoom3CollisionGridCells[i])
+/// Supplies this grid's cell face-list addresses to its generated table.
+///
+/// `halfwordOffset` is an integer constant measured in `s16` elements of
+/// `_gDryfieldWarehouseRoom3CollisionGridCells` and occurs once in the expansion.
+/// It must start a complete `WORLD_COLLISION_GRID_CELL_END`-terminated list
+/// within the pool. Returns a borrowed `s16*` valid while this overlay is loaded.
+/// Set `collisionSource.cell_face_list_macro` to this identifier; keep the
+/// binding through the table include, then undefine it.
+#define DRYFIELD_WAREHOUSE_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gDryfieldWarehouseRoom3CollisionGridCells[(halfwordOffset)])
 static s16* _gDryfieldWarehouseRoom3CollisionGridTable[4] = {
 #include "assets/dryfield_warehouse_collision_03A78_table.inc"
 };
-#undef GRID_CELL
+#undef DRYFIELD_WAREHOUSE_CELL_FACE_LIST_AT_OFFSET
 
 /// Collision mesh for the third configured warehouse room.
 ///

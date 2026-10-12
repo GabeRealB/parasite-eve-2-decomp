@@ -188,12 +188,20 @@ static s16 _gMineGorgeRoom1CollisionCells[224] = {
 #include "assets/mine_gorge_collision_01BC4_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gMineGorgeRoom1CollisionCells[i])
+/// Supplies this grid's cell face-list addresses to its generated table.
+///
+/// `halfwordOffset` is an integer constant measured in `s16` elements of
+/// `_gMineGorgeRoom1CollisionCells` and occurs once in the expansion.
+/// It must start a complete `WORLD_COLLISION_GRID_CELL_END`-terminated list
+/// within the pool. Returns a borrowed `s16*` valid while this overlay is loaded.
+/// Set `collisionSource.cell_face_list_macro` to this identifier; keep the
+/// binding through the table include, then undefine it.
+#define MINE_GORGE_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gMineGorgeRoom1CollisionCells[(halfwordOffset)])
 /// Room-1 X-major cell directory, indexed as x * 2 + z for x in 0..5 and z in 0..1.
 static s16* _gMineGorgeRoom1CollisionTable[12] = {
 #include "assets/mine_gorge_collision_01BC4_table.inc"
 };
-#undef GRID_CELL
+#undef MINE_GORGE_CELL_FACE_LIST_AT_OFFSET
 
 /// Room-1 collision mesh before the oak board is laid.
 ///
@@ -234,12 +242,20 @@ static s16 _gMineGorgeRoom2CollisionCells[216] = {
 #include "assets/mine_gorge_collision_02430_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gMineGorgeRoom2CollisionCells[i])
+/// Supplies this grid's cell face-list addresses to its generated table.
+///
+/// `halfwordOffset` is an integer constant measured in `s16` elements of
+/// `_gMineGorgeRoom2CollisionCells` and occurs once in the expansion.
+/// It must start a complete `WORLD_COLLISION_GRID_CELL_END`-terminated list
+/// within the pool. Returns a borrowed `s16*` valid while this overlay is loaded.
+/// Set `collisionSource.cell_face_list_macro` to this identifier; keep the
+/// binding through the table include, then undefine it.
+#define MINE_GORGE_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gMineGorgeRoom2CollisionCells[(halfwordOffset)])
 /// Room-2 X-major cell directory, indexed as x * 2 + z for x in 0..5 and z in 0..1.
 static s16* _gMineGorgeRoom2CollisionTable[12] = {
 #include "assets/mine_gorge_collision_02430_table.inc"
 };
-#undef GRID_CELL
+#undef MINE_GORGE_CELL_FACE_LIST_AT_OFFSET
 
 /// Room-2 collision mesh after the oak board is laid.
 ///

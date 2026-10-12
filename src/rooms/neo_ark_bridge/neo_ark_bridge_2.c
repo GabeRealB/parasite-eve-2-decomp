@@ -200,12 +200,20 @@ static s16 _gNeoArkBridgeCollisionGridCells[] = {
 #include "assets/neo_ark_bridge_collision_05254_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gNeoArkBridgeCollisionGridCells[i])
+/// Supplies this grid's cell face-list addresses to its generated table.
+///
+/// `halfwordOffset` is an integer constant measured in `s16` elements of
+/// `_gNeoArkBridgeCollisionGridCells` and occurs once in the expansion.
+/// It must start a complete `WORLD_COLLISION_GRID_CELL_END`-terminated list
+/// within the pool. Returns a borrowed `s16*` valid while this overlay is loaded.
+/// Set `collisionSource.cell_face_list_macro` to this identifier; keep the
+/// binding through the table include, then undefine it.
+#define NEO_ARK_BRIDGE_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gNeoArkBridgeCollisionGridCells[(halfwordOffset)])
 /// X-major 3-by-7 cell directory; NULL entries are empty cells.
 static s16* _gNeoArkBridgeCollisionGridTable[] = {
 #include "assets/neo_ark_bridge_collision_05254_table.inc"
 };
-#undef GRID_CELL
+#undef NEO_ARK_BRIDGE_CELL_FACE_LIST_AT_OFFSET
 
 WorldCollisionGrid gNeoArkBridgeCollisionGrid = {
     .viewCoord   = NULL,

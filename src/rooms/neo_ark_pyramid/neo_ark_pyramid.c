@@ -172,16 +172,20 @@ static s16 _gNeoArkPyramidCollisionGridCells[194] = {
 #include "assets/neo_ark_pyramid_collision_02D04_cells.inc"
 };
 
-/// Generated table binding: i is a halfword index into the packed cell lists.
+/// Supplies this grid's cell face-list addresses to its generated table.
 ///
-/// Evaluates i once; each index must begin a complete sentinel-terminated list.
-/// The generated initializer requires this spelling; it is undefined afterwards.
-#define GRID_CELL(i) (&_gNeoArkPyramidCollisionGridCells[(i)])
+/// `halfwordOffset` is an integer constant measured in `s16` elements of
+/// `_gNeoArkPyramidCollisionGridCells` and occurs once in the expansion.
+/// It must start a complete `WORLD_COLLISION_GRID_CELL_END`-terminated list
+/// within the pool. Returns a borrowed `s16*` valid while this overlay is loaded.
+/// Set `collisionSource.cell_face_list_macro` to this identifier; keep the
+/// binding through the table include, then undefine it.
+#define NEO_ARK_PYRAMID_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gNeoArkPyramidCollisionGridCells[(halfwordOffset)])
 /// X-major 5-by-3 directory of the pyramid's collision cell lists.
 static s16* _gNeoArkPyramidCollisionGridTable[15] = {
 #include "assets/neo_ark_pyramid_collision_02D04_table.inc"
 };
-#undef GRID_CELL
+#undef NEO_ARK_PYRAMID_CELL_FACE_LIST_AT_OFFSET
 
 /// Collision mesh shared by both pyramid room variants.
 ///

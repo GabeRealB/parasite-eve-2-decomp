@@ -254,12 +254,20 @@ static s16 _gDryfieldWaterHoleCollisionGridCells[92] = {
 #include "assets/dryfield_water_hole_collision_02CA0_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gDryfieldWaterHoleCollisionGridCells[i])
+/// Supplies this grid's cell face-list addresses to its generated table.
+///
+/// `halfwordOffset` is an integer constant measured in `s16` elements of
+/// `_gDryfieldWaterHoleCollisionGridCells` and occurs once in the expansion.
+/// It must start a complete `WORLD_COLLISION_GRID_CELL_END`-terminated list
+/// within the pool. Returns a borrowed `s16*` valid while this overlay is loaded.
+/// Set `collisionSource.cell_face_list_macro` to this identifier; keep the
+/// binding through the table include, then undefine it.
+#define DRYFIELD_WATER_HOLE_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gDryfieldWaterHoleCollisionGridCells[(halfwordOffset)])
 /// Twelve cell-list pointers in X-major order, with two Z cells per X row.
 static s16* _gDryfieldWaterHoleCollisionGridTable[12] = {
 #include "assets/dryfield_water_hole_collision_02CA0_table.inc"
 };
-#undef GRID_CELL
+#undef DRYFIELD_WATER_HOLE_CELL_FACE_LIST_AT_OFFSET
 
 /// The collision mesh and cell partition shared by all four water-hole room variants.
 ///

@@ -468,12 +468,20 @@ static s16 _gMistShootingGalleryStoryBarrierCollisionTemplateCells[4] = {
 #include "assets/mist_shooting_gallery_collision_07BD8_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gMistShootingGalleryStoryBarrierCollisionTemplateCells[i])
+/// Supplies this grid's cell face-list addresses to its generated table.
+///
+/// `halfwordOffset` is an integer constant measured in `s16` elements of
+/// `_gMistShootingGalleryStoryBarrierCollisionTemplateCells` and occurs once in the expansion.
+/// It must start a complete `WORLD_COLLISION_GRID_CELL_END`-terminated list
+/// within the pool. Returns a borrowed `s16*` valid while this overlay is loaded.
+/// Set `collisionSource.cell_face_list_macro` to this identifier; keep the
+/// binding through the table include, then undefine it.
+#define MIST_SHOOTING_GALLERY_BARRIER_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gMistShootingGalleryStoryBarrierCollisionTemplateCells[(halfwordOffset)])
 /// Single-cell XZ lookup borrowing the template's terminated face list.
 static s16* _gMistShootingGalleryStoryBarrierCollisionTemplateTable[1] = {
 #include "assets/mist_shooting_gallery_collision_07BD8_table.inc"
 };
-#undef GRID_CELL
+#undef MIST_SHOOTING_GALLERY_BARRIER_CELL_FACE_LIST_AT_OFFSET
 
 /// Original collision patch for the story-controlled barrier at the firing lane.
 ///
@@ -515,12 +523,20 @@ static s16 _gMistShootingGalleryTrainingBarrierCollisionTemplateCells[2] = {
 #include "assets/mist_shooting_gallery_collision_07C38_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gMistShootingGalleryTrainingBarrierCollisionTemplateCells[i])
+/// Supplies this grid's cell face-list addresses to its generated table.
+///
+/// `halfwordOffset` is an integer constant measured in `s16` elements of
+/// `_gMistShootingGalleryTrainingBarrierCollisionTemplateCells` and occurs once in the expansion.
+/// It must start a complete `WORLD_COLLISION_GRID_CELL_END`-terminated list
+/// within the pool. Returns a borrowed `s16*` valid while this overlay is loaded.
+/// Set `collisionSource.cell_face_list_macro` to this identifier; keep the
+/// binding through the table include, then undefine it.
+#define MIST_SHOOTING_GALLERY_BARRIER_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gMistShootingGalleryTrainingBarrierCollisionTemplateCells[(halfwordOffset)])
 /// Single-cell XZ table borrowing the barrier template's terminated face list.
 static s16* _gMistShootingGalleryTrainingBarrierCollisionTemplateTable[1] = {
 #include "assets/mist_shooting_gallery_collision_07C38_table.inc"
 };
-#undef GRID_CELL
+#undef MIST_SHOOTING_GALLERY_BARRIER_CELL_FACE_LIST_AT_OFFSET
 
 /// Training barrier's restoration mesh: one +X normal, four vertices and one quad.
 ///

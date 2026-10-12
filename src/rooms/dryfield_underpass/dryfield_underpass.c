@@ -536,13 +536,20 @@ static s16 _gDryfieldUnderpassCollisionGridCells[346] = {
 #include "assets/dryfield_underpass_collision_01EC4_cells.inc"
 };
 
-// The generated table supplies element offsets into the cell-list pool.
-#define GRID_CELL(i) (&_gDryfieldUnderpassCollisionGridCells[i])
+/// Supplies this grid's cell face-list addresses to its generated table.
+///
+/// `halfwordOffset` is an integer constant measured in `s16` elements of
+/// `_gDryfieldUnderpassCollisionGridCells` and occurs once in the expansion.
+/// It must start a complete `WORLD_COLLISION_GRID_CELL_END`-terminated list
+/// within the pool. Returns a borrowed `s16*` valid while this overlay is loaded.
+/// Set `collisionSource.cell_face_list_macro` to this identifier; keep the
+/// binding through the table include, then undefine it.
+#define DRYFIELD_UNDERPASS_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gDryfieldUnderpassCollisionGridCells[(halfwordOffset)])
 /// X-major cell-list pointers for the grid's six-by-four XZ cells.
 static s16* _gDryfieldUnderpassCollisionGridTable[24] = {
 #include "assets/dryfield_underpass_collision_01EC4_table.inc"
 };
-#undef GRID_CELL
+#undef DRYFIELD_UNDERPASS_CELL_FACE_LIST_AT_OFFSET
 
 /// Collision mesh shared by all six underpass rooms.
 ///

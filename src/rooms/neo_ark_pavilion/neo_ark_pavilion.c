@@ -308,12 +308,20 @@ static s16 _gNeoArkPavilionCollisionGridCells[156] = {
 #include "assets/neo_ark_pavilion_collision_06C24_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gNeoArkPavilionCollisionGridCells[i])
+/// Supplies this grid's cell face-list addresses to its generated table.
+///
+/// `halfwordOffset` is an integer constant measured in `s16` elements of
+/// `_gNeoArkPavilionCollisionGridCells` and occurs once in the expansion.
+/// It must start a complete `WORLD_COLLISION_GRID_CELL_END`-terminated list
+/// within the pool. Returns a borrowed `s16*` valid while this overlay is loaded.
+/// Set `collisionSource.cell_face_list_macro` to this identifier; keep the
+/// binding through the table include, then undefine it.
+#define NEO_ARK_PAVILION_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gNeoArkPavilionCollisionGridCells[(halfwordOffset)])
 /// X-major table of the grid's 3 by 2 cell lists.
 static s16* _gNeoArkPavilionCollisionGridTable[6] = {
 #include "assets/neo_ark_pavilion_collision_06C24_table.inc"
 };
-#undef GRID_CELL
+#undef NEO_ARK_PAVILION_CELL_FACE_LIST_AT_OFFSET
 
 /// Collision mesh shared by both pavilion rooms, with 4000-unit square XZ cells.
 ///
