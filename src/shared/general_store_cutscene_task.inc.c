@@ -1,16 +1,17 @@
 /* Included General Store underpass transition; each carrier declares its static instance.
  * GENERAL_STORE_UNDERPASS_FADE selects a writable room-owned ScreenFade lvalue.
- * GENERAL_STORE_UNDERPASS_SAVED_VIEW, GENERAL_STORE_UNDERPASS_ARRIVAL_WARP and
- * GENERAL_STORE_UNDERPASS_ROOM select writable u8 singleton latches. Day binds
- * private storage; night binds its overlay-private interface. Keep all storage
- * loaded through the prompt and the fade record through the resident fade task.
+ * GENERAL_STORE_UNDERPASS_SAVED_VIEW selects a writable u8 logical-view capture.
+ * GENERAL_STORE_UNDERPASS_ARRIVAL_WARP and GENERAL_STORE_UNDERPASS_ROOM select
+ * writable u8 destination latches. Day binds private storage; night binds its
+ * overlay-private interface. Keep all storage loaded through the prompt and
+ * the fade record through the resident fade task.
  */
 
 /// Cancels the underpass prompt by restoring actor control and the saved view.
 ///
-/// Requires the live saved-view slot and `GENERAL_STORE_UNDERPASS_SAVED_VIEW` captured before the
-/// prompt. Resumes player scripted control and automatic model drawing, enables
-/// actor updates and requests the cancellation sound. This restores the saved
+/// Requires `GENERAL_STORE_UNDERPASS_SAVED_VIEW` to hold the live save's
+/// pre-prompt logical view. Resumes player scripted control and automatic model
+/// drawing, enables actor updates and requests the cancellation sound. This restores the saved
 /// view selector without requesting a reload; the caller ends the prompt task.
 static inline void _generalStoreCancelUnderpassTransition(void)
 {

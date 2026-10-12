@@ -1856,10 +1856,6 @@ RoomEventReq gRoomEventReq = { 0, 0, 0, 0, 0, 0 };
 
 #include "../../shared/room_event_task.inc.c"
 
-/// Bind writable u8 latches for this carrier's singleton underpass prompt.
-/// Keep them live through prompt completion and bind both shared fragments alike.
-#define GENERAL_STORE_UNDERPASS_SAVED_VIEW _gGeneralStoreUnderpassSavedView
-
 /// Selects the day store's writable underpass arrival ID latch.
 ///
 /// Bind the same `u8` lvalue for both departure and prompt fragments. Executing
@@ -1881,6 +1877,16 @@ RoomEventReq gRoomEventReq = { 0, 0, 0, 0, 0, 0 };
 #define GENERAL_STORE_UNDERPASS_ROOM _gGeneralStoreUnderpassRoom
 #include "../../shared/general_store_door_msg.inc.c"
 
+/// Selects the day store's writable capture of the pre-prompt logical view.
+///
+/// Bind a stable `u8` lvalue without side effects around the shared underpass
+/// prompt fragment, then undefine it. State 0 saves the live save's room-local
+/// view before switching to view 16; cancellation restores the byte verbatim.
+/// Acceptance neither restores the view nor clears the capture before reload.
+/// One pending prompt owns the slot: keep it loaded and unchanged after capture
+/// until the prompt ends. Each read or write evaluates the binding once; it
+/// allocates no storage and does not validate the view ID.
+#define GENERAL_STORE_UNDERPASS_SAVED_VIEW (_gGeneralStoreUnderpassSavedView)
 #include "../../shared/general_store_cutscene_task.inc.c"
 #undef GENERAL_STORE_UNDERPASS_SAVED_VIEW
 #undef GENERAL_STORE_UNDERPASS_ARRIVAL_WARP
