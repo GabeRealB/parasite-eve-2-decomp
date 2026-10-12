@@ -150,13 +150,19 @@ static s16 _gShelterB2PodBottomCollisionGridCells[498] = {
 #include "assets/shelter_b2_pod_bottom_collision_0559C_cells.inc"
 };
 
-// The generated cell table supplies constant element offsets into the face-index pool.
-#define GRID_CELL(i) (&_gShelterB2PodBottomCollisionGridCells[i])
+/// Resolves a generated cell-directory entry's halfword offset to its face list.
+///
+/// Captures this grid's packed s16 pool. `halfwordOffset` is evaluated once
+/// and must be a constant element offset in 0..497, at a list's first face.
+/// The table producer selects this binding through `cell_face_list_macro`;
+/// list termination is supplied by WORLD_COLLISION_GRID_CELL_END in the pool.
+/// Defined only around this grid's table include; returns a borrowed s16*.
+#define SHELTER_B2_POD_BOTTOM_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gShelterB2PodBottomCollisionGridCells[(halfwordOffset)])
 /// X-major cell directory: entry x * cellCountZ + z selects a terminated face list.
 static s16* _gShelterB2PodBottomCollisionGridTable[SHELTER_B2_POD_BOTTOM_COLLISION_GRID_CELL_COUNT_X * SHELTER_B2_POD_BOTTOM_COLLISION_GRID_CELL_COUNT_Z] = {
 #include "assets/shelter_b2_pod_bottom_collision_0559C_table.inc"
 };
-#undef GRID_CELL
+#undef SHELTER_B2_POD_BOTTOM_CELL_FACE_LIST_AT_OFFSET
 
 /// The pod-bottom room's collision mesh and 5-by-7 XZ spatial index.
 ///

@@ -320,11 +320,14 @@ static EffectUnitQuadCorner _gAcropolisSecurityRoomFallingQuadUnitCorners[4];
     (line)->g0 = (green);                                                                            \
     (line)->b0 = (blue);
 
-/// Initializes a reserved semitransparent grey quad over the monitor picture.
+/// Initializes one reserved POLY_F4 with a semitransparent grey monitor rectangle.
 ///
 /// Requires the caller's ACROPOLIS_SECURITY_ROOM_MONITOR_* geometry constants.
+/// `intensity` is the per-channel byte level; its low eight bits are stored.
 /// The packet must be writable and both arguments side-effect-free; each is
-/// evaluated repeatedly. Expands to standalone statements without linking.
+/// evaluated repeatedly. No packet is allocated or linked, and additive versus
+/// subtractive blending is selected by the caller's separate draw-mode packet.
+/// Expands to standalone statements without restoring other packet fields.
 #define ACROPOLIS_SECURITY_ROOM_INIT_MONITOR_WASH(quad, intensity) \
     setPolyF4(quad);                                               \
     setSemiTrans(quad, true);                                      \

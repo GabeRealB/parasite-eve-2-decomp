@@ -106,8 +106,10 @@ static s32 _actionPromptHitTestDefault(ActionPromptHotspot* hotspots, s16 cursor
 #include "../../shared/bridge_model.h"
 #include "../../shared/acropolis_glows.h"
 
-/// `ActionPromptHotspot::id` of the keypad's clear key. The ten digit keys
-/// carry their own digit, 0..9, as their id.
+/// Keypad hotspot ID that clears all entered digits.
+///
+/// The ten digit hotspots use IDs 0..9. ID 10 selects clearing the packed
+/// code to three blank nibbles and resetting the entered-digit count.
 #define ACROPOLIS_BRIDGE_KEYPAD_KEY_CLEAR 0xA
 
 /// Digits in a complete bridge code; the keypad checks the entry once this
@@ -124,8 +126,11 @@ static s32 _actionPromptHitTestDefault(ActionPromptHotspot* hotspots, s16 cursor
 /// Frames a complete entry stays on the display before it is checked.
 #define ACROPOLIS_BRIDGE_KEYPAD_CHECK_DELAY_FRAMES 10
 
-/// Frames in each half of one blink of the keypad's result display. A blink
-/// cycle is two halves, and the frame after them counts the cycle.
+/// Display updates in each visible/blank phase of a keypad result blink.
+///
+/// Timer values 0..9 select the first phase and 10..19 the second. The next
+/// update resets the timer and counts the blink without changing the display;
+/// the full cycle therefore takes 21 updates.
 #define ACROPOLIS_BRIDGE_KEYPAD_BLINK_PHASE_FRAMES 10
 
 /// Counted blink cycles at which the keypad finishes displaying its result.

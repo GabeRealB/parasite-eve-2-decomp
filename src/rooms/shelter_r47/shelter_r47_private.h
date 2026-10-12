@@ -133,8 +133,7 @@ enum {
 /// Full map-page height in texels and fully open screen pixels (206).
 #define SHELTER_R47_MAP_HEIGHT 0xCE
 
-#define SHELTER_R47_MAP_WIDTH_SETTLED 0xE5
-#define SHELTER_R47_MAP_WIDTH_PANEL   0xB5
+#define SHELTER_R47_MAP_WIDTH_PANEL 0xB5
 
 /// Left panel's texture width and fully open screen width, in pixels (80).
 #define SHELTER_R47_MAP_PANEL_WIDTH 0x50

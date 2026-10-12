@@ -568,31 +568,21 @@ void shelterB6GrowthRoomResetCollisionBox(s32 useYOffset)
     SVECTOR                   offset;
     s32                       geometryIndex;
 
-    /// Copies the reserved box from disjoint template pools, preserving vector fourth components.
-    ///
-    /// Captures liveGrid, boxTemplate and geometryIndex; reevaluates the two local
-    /// grid pointers and uses the signed index for both loops. Requires four
-    /// normals/faces and eight vertices. Leaves descriptors and cell lists intact.
-#define SHELTER_B6_GROWTH_ROOM_COPY_COLLISION_BOX()                                                         \
-    {                                                                                                       \
-        for (geometryIndex = 0; geometryIndex < SHELTER_B6_GROWTH_ROOM_BOX_FACE_COUNT; geometryIndex++) {   \
-            liveGrid->normals[geometryIndex].vx = boxTemplate->normals[geometryIndex].vx;                   \
-            liveGrid->normals[geometryIndex].vy = boxTemplate->normals[geometryIndex].vy;                   \
-            liveGrid->normals[geometryIndex].vz = boxTemplate->normals[geometryIndex].vz;                   \
-            liveGrid->faces[geometryIndex]      = boxTemplate->faces[geometryIndex];                        \
-        }                                                                                                   \
-        for (geometryIndex = 0; geometryIndex < SHELTER_B6_GROWTH_ROOM_BOX_VERTEX_COUNT; geometryIndex++) { \
-            liveGrid->vertices[geometryIndex].vx = boxTemplate->vertices[geometryIndex].vx;                 \
-            liveGrid->vertices[geometryIndex].vy = boxTemplate->vertices[geometryIndex].vy;                 \
-            liveGrid->vertices[geometryIndex].vz = boxTemplate->vertices[geometryIndex].vz;                 \
-        }                                                                                                   \
-    }
-
     liveGrid    = &gShelterB6GrowthRoomCollisionGrid;
     boxTemplate = &_gShelterB6GrowthRoomCollisionBoxTemplate;
 
-    SHELTER_B6_GROWTH_ROOM_COPY_COLLISION_BOX();
-#undef SHELTER_B6_GROWTH_ROOM_COPY_COLLISION_BOX
+    // Restore complete faces and vector XYZs while retaining fourth halfwords and cell lists.
+    for (geometryIndex = 0; geometryIndex < SHELTER_B6_GROWTH_ROOM_BOX_FACE_COUNT; geometryIndex++) {
+        liveGrid->normals[geometryIndex].vx = boxTemplate->normals[geometryIndex].vx;
+        liveGrid->normals[geometryIndex].vy = boxTemplate->normals[geometryIndex].vy;
+        liveGrid->normals[geometryIndex].vz = boxTemplate->normals[geometryIndex].vz;
+        liveGrid->faces[geometryIndex]      = boxTemplate->faces[geometryIndex];
+    }
+    for (geometryIndex = 0; geometryIndex < SHELTER_B6_GROWTH_ROOM_BOX_VERTEX_COUNT; geometryIndex++) {
+        liveGrid->vertices[geometryIndex].vx = boxTemplate->vertices[geometryIndex].vx;
+        liveGrid->vertices[geometryIndex].vy = boxTemplate->vertices[geometryIndex].vy;
+        liveGrid->vertices[geometryIndex].vz = boxTemplate->vertices[geometryIndex].vz;
+    }
 
     if (useYOffset == 0) {
         offset.vx = 0;

@@ -243,8 +243,13 @@ void neoArkEveAccessTunnelSetPartDestroyedSprites(u8 partSlot, u8 destroyed)
     s32                    slot = partSlot;
     s32                    destroyedState;
 
-    // Updates both views of part 1; captures views and the shared batches temp.
-    // The isHidden argument must be a side-effect-free byte value, used twice.
+    /// Sets the visibility of the scenery exposed by destruction of model part slot 1.
+    ///
+    /// Captures the current area's `views` and overwrites `batches`, leaving it
+    /// at view slot 4. Requires batch 3 in view slot 3 and batch 2 in view slot 4.
+    /// `isHidden` is evaluated twice and stored as a byte (true hidden, false
+    /// visible); require a stable expression without side effects. Slot 0's
+    /// separate scenery is outside this helper. No packets are allocated.
 #define NEO_ARK_EVE_ACCESS_TUNNEL_SET_PART_1_SPRITES_HIDDEN(isHidden) \
     do {                                                              \
         batches           = views[3].batches;                         \

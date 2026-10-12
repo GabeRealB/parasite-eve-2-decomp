@@ -3030,9 +3030,12 @@ static void _dryfieldNightSaloonGRJukeboxMenuTask(Task* task)
     ///
     /// `fileKey` and `args` must be side-effect-free writable byte arrays of at
     /// least four bytes; both expressions are evaluated repeatedly. `sequence`
-    /// and `hundreds` are evaluated once and narrowed to bytes; `hundreds` is 1
-    /// here. Uses this function's music category constants. Byte 1 of `fileKey`
-    /// is ignored; all load arguments are initialized and copied synchronously.
+    /// and `hundreds` are evaluated once and narrowed to bytes. The selected
+    /// sequence is 0..240; this caller supplies its load state, which is 1,
+    /// as the file ID's hundreds byte. Uses this function's music category
+    /// constants. Byte 1 of `fileKey` is ignored; all four load arguments are
+    /// initialized and copied synchronously, so neither pointer is retained.
+    /// Queue admission is unchecked. Invoke as a standalone compound statement.
 #define JUKEBOX_MENU_QUEUE_TRACK_LOAD(fileKey, args, sequence, hundreds) \
     {                                                                    \
         (fileKey)[3] = JUKEBOX_MUSIC_CDF_STAGE;                          \

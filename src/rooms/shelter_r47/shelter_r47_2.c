@@ -37,6 +37,13 @@
 #include "overlay.h"
 #include "../../shared/action_prompt.h"
 
+/// Map width in screen pixels at which opening snaps to its full size (229).
+///
+/// Quarter-gap integer easing stops advancing in the last three pixels before
+/// the 232-pixel target. Reaching this threshold snaps both map dimensions,
+/// reveals the page overlay and enables the prompt.
+#define SHELTER_R47_MAP_WIDTH_SETTLED (SHELTER_R47_MAP_WIDTH - 3)
+
 /// Stage sentinel (255) ending an area's terminal-marker list before lookup.
 ///
 /// Stored in signed-halfword `_ShelterR47MapMark::stage`; it is distinct from

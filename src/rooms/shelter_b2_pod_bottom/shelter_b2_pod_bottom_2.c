@@ -43,14 +43,16 @@
 static void _effectSpriteDrawBanked(const GfxCoord* coord, u16 frameAndPalette, s16 size, s16 angle);
 static void _effectSpriteDrawRotated(const GfxCoord* coord, u16 frameAndPalette, s16 size, s16 angle);
 
-/// Number of points round the rim of a `_ShelterB2PodBottomDiscScratch`. A
-/// power of two: the drawer wraps a rim index with
-/// `& (SHELTER_B2_POD_BOTTOM_DISC_RIM_POINT_COUNT - 1)`.
+/// Rim samples in the white disc's scratch workspace, forming sixteen two-step quads.
+///
+/// Must be an even power of two dividing the 4096-unit turn. Even indices
+/// 0..30 pair with the following point and the point two steps ahead; the last
+/// pair wraps to point zero using the count-minus-one mask.
 #define SHELTER_B2_POD_BOTTOM_DISC_RIM_POINT_COUNT 32
 
 /// Angle between neighbouring rim points, in the 4096-per-turn units of
 /// `rsin` and `rcos`.
-#define SHELTER_B2_POD_BOTTOM_DISC_RIM_ANGLE_STEP (0x1000 / SHELTER_B2_POD_BOTTOM_DISC_RIM_POINT_COUNT)
+#define SHELTER_B2_POD_BOTTOM_DISC_RIM_ANGLE_STEP (ACTOR_TRANSFORM_ANGLE_TURN / SHELTER_B2_POD_BOTTOM_DISC_RIM_POINT_COUNT)
 
 /// Scratch-stack workspace for drawing a filled disc as a fan of quads.
 ///
@@ -1096,7 +1098,10 @@ static void _shelterB2PodBottomDrawWhiteDisc(const GfxCoord* coord, s16 radius, 
     ///
     /// coord is evaluated once, point twice; both must be stable expressions
     /// for a composed const GfxCoord* and a writable SVECTOR*. It does not
-    /// translate. Use as a standalone statement inside a braced block.
+    /// translate or refresh the coordinate cache. Matrix and vector storage
+    /// must be word-aligned for GTE loads. Stores XYZ only, retaining the fourth
+    /// halfword, and leaves the GTE rotation/vector/arithmetic state changed.
+    /// Use as a standalone statement inside a braced block.
 #define SHELTER_B2_POD_BOTTOM_ROTATE_DISC_POINT(coord, point) \
     {                                                         \
         gte_SetRotMatrix(&(coord)->workm);                    \

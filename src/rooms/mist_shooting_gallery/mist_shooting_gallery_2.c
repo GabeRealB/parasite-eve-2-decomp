@@ -3782,7 +3782,11 @@ static void _mistShootingGalleryDrawCountdownClock(MistShootingGalleryWork* work
     ///
     /// Captures work, remainingFrames and the clock Y constant. Pass a digit local,
     /// a positive constant framesPerPlace and a constant pixel offset. The first two
-    /// arguments occur repeatedly; the quotient must be in 0..9. Expands to several
+    /// arguments occur repeatedly; remainingFrames must be nonnegative and the
+    /// quotient in 0..9. Leaves the sub-place remainder for the next digit and
+    /// draws zero digits too. The glyph drawer allocates the sprite and page
+    /// packets; this expansion only updates the digit and remaining frame count.
+    /// Expands to several
     /// statements and must be invoked inside an explicit brace-delimited block.
 #define MIST_SHOOTING_GALLERY_DRAW_CLOCK_PLACE(digit, framesPerPlace, xOffset) \
     (digit) = remainingFrames / (framesPerPlace);                              \

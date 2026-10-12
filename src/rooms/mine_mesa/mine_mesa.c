@@ -4385,29 +4385,6 @@ static void _mineMesaResetSceneTaskHandles(void)
     _gMineMesaFadeFromBlackTask    = NULL;
 }
 
-/// Restores the live grid's reserved three-face mesh from its template.
-///
-/// Both grids must cover three normals/faces and eight vertices. Copy XYZ
-/// only for vectors, retaining destination pad words; faces copy completely.
-/// Pointer arguments must be stable, side-effect-free `WorldCollisionGrid*`
-/// expressions, with disjoint source and destination pools. `elementIndex`
-/// is a writable s32 lvalue evaluated repeatedly and left at eight. The fixed
-/// template array extents select the copy lengths. Use as a complete statement.
-#define MINE_MESA_RESTORE_SCENE_COLLISION(liveGrid, templateGrid, elementIndex)                                               \
-    {                                                                                                                         \
-        for ((elementIndex) = 0; (elementIndex) < (s32)ARRAY_SIZE(_gMineMesaSceneCollisionTemplateFaces); (elementIndex)++) { \
-            (liveGrid)->normals[(elementIndex)].vx = (templateGrid)->normals[(elementIndex)].vx;                              \
-            (liveGrid)->normals[(elementIndex)].vy = (templateGrid)->normals[(elementIndex)].vy;                              \
-            (liveGrid)->normals[(elementIndex)].vz = (templateGrid)->normals[(elementIndex)].vz;                              \
-            (liveGrid)->faces[(elementIndex)]      = (templateGrid)->faces[(elementIndex)];                                   \
-        }                                                                                                                     \
-        for ((elementIndex) = 0; (elementIndex) < (s32)ARRAY_SIZE(_gMineMesaSceneCollisionTemplateVerts); (elementIndex)++) { \
-            (liveGrid)->vertices[(elementIndex)].vx = (templateGrid)->vertices[(elementIndex)].vx;                            \
-            (liveGrid)->vertices[(elementIndex)].vy = (templateGrid)->vertices[(elementIndex)].vy;                            \
-            (liveGrid)->vertices[(elementIndex)].vz = (templateGrid)->vertices[(elementIndex)].vz;                            \
-        }                                                                                                                     \
-    }
-
 /// Restores and places the room's three-face scene collision mesh.
 ///
 /// Copies three normals/faces and eight XYZ vertices from the template into the
@@ -4427,7 +4404,17 @@ static void _mineMesaSetSceneCollisionLowered(s32 lowered)
     s32                 elementIndex;
 
     // Restore the reserved mesh before applying its room-space placement.
-    MINE_MESA_RESTORE_SCENE_COLLISION(liveGrid, templateGrid, elementIndex);
+    for (elementIndex = 0; elementIndex < (s32)ARRAY_SIZE(_gMineMesaSceneCollisionTemplateFaces); elementIndex++) {
+        liveGrid->normals[elementIndex].vx = templateGrid->normals[elementIndex].vx;
+        liveGrid->normals[elementIndex].vy = templateGrid->normals[elementIndex].vy;
+        liveGrid->normals[elementIndex].vz = templateGrid->normals[elementIndex].vz;
+        liveGrid->faces[elementIndex]      = templateGrid->faces[elementIndex];
+    }
+    for (elementIndex = 0; elementIndex < (s32)ARRAY_SIZE(_gMineMesaSceneCollisionTemplateVerts); elementIndex++) {
+        liveGrid->vertices[elementIndex].vx = templateGrid->vertices[elementIndex].vx;
+        liveGrid->vertices[elementIndex].vy = templateGrid->vertices[elementIndex].vy;
+        liveGrid->vertices[elementIndex].vz = templateGrid->vertices[elementIndex].vz;
+    }
     if (lowered == MINE_MESA_SCENE_COLLISION_NORMAL) {
         translation.vx = SCENE_COLLISION_X;
         translation.vy = SCENE_COLLISION_NORMAL_Y;
@@ -4442,8 +4429,6 @@ static void _mineMesaSetSceneCollisionLowered(s32 lowered)
         liveGrid->vertices[elementIndex].vz += translation.vz;
     }
 }
-
-#undef MINE_MESA_RESTORE_SCENE_COLLISION
 
 void mineMesaDrawViewFlaresTask(Task* task)
 {

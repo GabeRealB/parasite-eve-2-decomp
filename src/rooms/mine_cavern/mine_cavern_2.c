@@ -2856,11 +2856,14 @@ static inline void _mineCavernRegisterRoomEffects(void)
         sndEvtRequestScriptMix((scriptId), (s8)worldCoordGetOriginAudioPan((soundCoord)), (attenuation));   \
     } while (0)
 
-/// Adds the saved nibble's destroyed-target bits to a caller's byte count.
+/// Adds the four saved destroyed-target bits to the caller's count.
 ///
-/// `destroyedCount` starts at zero; `bitIndex` is a writable signed word,
-/// overwritten by the loop. `destroyedMask` is a stable signed word.
-/// Arguments are evaluated repeatedly and must have no access side effects.
+/// `destroyedMask` is a stable s32 nibble; only its low four bits are tested.
+/// `destroyedCount` is a writable u8 or s16, incremented once per set bit;
+/// callers initialize it to zero to obtain a count in 0..4. `bitIndex` is a
+/// distinct writable s32 or s16, overwritten by the loop and left at four.
+/// Captures the four-point table for its bound. All arguments are evaluated
+/// repeatedly and must have no access side effects; use as a standalone loop.
 #define MINE_CAVERN_COUNT_DESTROYED_TARGETS(destroyedMask, destroyedCount, bitIndex)             \
     for ((bitIndex) = 0; (bitIndex) < ARRAY_SIZE(gMineCavernTargetEffectPoints); (bitIndex)++) { \
         if (((destroyedMask) >> (bitIndex)) & 1) {                                               \
@@ -3398,6 +3401,8 @@ static void _mineCavernDrawDarknessAndEffects(void)
     _mineCavernDrawFixedGlows();
     _mineCavernUpdateTargetEffects();
 }
+
+#undef MINE_CAVERN_COUNT_DESTROYED_TARGETS
 
 enum {
     MINE_CAVERN_TARGET_EFFECTS_STATE_SPAWN   = 0,

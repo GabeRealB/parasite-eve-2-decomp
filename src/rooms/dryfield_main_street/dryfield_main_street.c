@@ -1501,23 +1501,6 @@ static void _dryfieldMainStreetTurnPlayerTowardAreaActorTask(Task* task)
     s32        yawStep;
     s32        wrappedYawDelta;
 
-    /// Unwraps one yaw difference to the shorter turn, retaining exact half-turn ties.
-    ///
-    /// Angles use 4096 units per turn and require at most one wrapping correction.
-    /// Arguments must be distinct writable s32 locals without side effects: all
-    /// are evaluated repeatedly; magnitude and wrapped are scratch outputs.
-#define DRYFIELD_MAIN_STREET_UNWRAP_YAW_DELTA(delta, magnitude, wrapped) \
-    do {                                                                 \
-        (magnitude) = ABS(delta);                                        \
-        if ((magnitude) >= ACTOR_TRANSFORM_ANGLE_HALF_TURN + 1) {        \
-            (wrapped) = (delta) - ACTOR_TRANSFORM_ANGLE_TURN;            \
-            if ((delta) < 0) {                                           \
-                (wrapped) = (delta) + ACTOR_TRANSFORM_ANGLE_TURN;        \
-            }                                                            \
-            (delta) = (wrapped);                                         \
-        }                                                                \
-    } while (0)
-
     playerTask  = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     playerActor = playerTask->work;
     areaActor   = sceneFindEnemyByPlaceKey(gGameSession->location.loc.area | (gGameSession->location.loc.stage << 8));
@@ -1526,8 +1509,15 @@ static void _dryfieldMainStreetTurnPlayerTowardAreaActorTask(Task* task)
         targetCoord = &areaActor->task->extra.tmd->coords[1];
         targetYaw   = ratan2(targetCoord->coord.t[0] - playerCoord->coord.t[0], targetCoord->coord.t[2] - playerCoord->coord.t[2]);
         yawDelta    = targetYaw - playerActor->rotation.vy;
-        DRYFIELD_MAIN_STREET_UNWRAP_YAW_DELTA(yawDelta, absoluteYawDelta, wrappedYawDelta);
-#undef DRYFIELD_MAIN_STREET_UNWRAP_YAW_DELTA
+        // Choose the shorter turn with one correction, retaining both half-turn ties.
+        absoluteYawDelta = ABS(yawDelta);
+        if (absoluteYawDelta >= ACTOR_TRANSFORM_ANGLE_HALF_TURN + 1) {
+            wrappedYawDelta = yawDelta - ACTOR_TRANSFORM_ANGLE_TURN;
+            if (yawDelta < 0) {
+                wrappedYawDelta = yawDelta + ACTOR_TRANSFORM_ANGLE_TURN;
+            }
+            yawDelta = wrappedYawDelta;
+        }
         absoluteYawDelta = ABS(yawDelta);
         if (absoluteYawDelta >= DRYFIELD_MAIN_STREET_PLAYER_YAW_STEP + 1) {
             yawStep = DRYFIELD_MAIN_STREET_PLAYER_YAW_STEP;

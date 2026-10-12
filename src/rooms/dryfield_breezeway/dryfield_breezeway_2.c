@@ -900,9 +900,16 @@ static void _dryfieldBreezewayLeadKeyItemLine(Task* task)
 /// The initialized work, TMD body, prompt and primitive arena must be live.
 static void _dryfieldBreezewayUpdateKeyItemLine(Task* task, s16 leadX, s16 leadY)
 {
-    // Advance to the drawn tip and steer toward the target in wrapped 4096-unit angles.
-    // Arguments have no side effects and may be read repeatedly. The angle and combined
-    // angle are s16 lvalues, turnError an s32 lvalue, and both points SVECTOR lvalues.
+    /// Advances the segment start to the drawn tip and steers the next segment toward its target.
+    ///
+    /// Coordinates are centred screen pixels; angles use 4096 units per turn.
+    /// `segmentAngle` and `combinedAngle` are distinct s16 lvalues; the sum
+    /// narrows to s16 before its low twelve bits are sign-extended to the s32
+    /// `turnError`. The SVECTOR start/tip must be disjoint and writable as
+    /// appropriate. All arguments are stable expressions without side effects.
+    /// Small errors snap to the bearing; larger errors step by 128/256/512.
+    /// Recomputes the bearing in the snap branch and copies the whole tip vector,
+    /// including its fourth halfword. Does not draw or advance the tip itself.
 #define DRYFIELD_BREEZEWAY_ADVANCE_LINE_SEGMENT(segmentAngle, segmentStart, segmentTip, targetX, targetY, combinedAngle, turnError)      \
     {                                                                                                                                    \
         (combinedAngle) = (segmentAngle) + _dryfieldBreezewayGetLineBearing((segmentTip).vx, (segmentTip).vy, (targetX), (targetY));     \
@@ -1067,9 +1074,13 @@ static void _dryfieldBreezewayUpdateKeyItemLine(Task* task, s16 leadX, s16 leadY
 /// reserved from the live primitive arena and linked at the line's fixed depth.
 static void _dryfieldBreezewayDrawKeyItemLineSegment(s16 angle, s16 length, const SVECTOR* start, SVECTOR* tipOut, _DryfieldBreezewayLineEdge* edge)
 {
-    // Build an XY point and transform it through the installed GTE matrices.
-    // localPoint is evaluated four times; arguments must have no side effects.
-    // The input/output vectors and long flags word are borrowed writable storage.
+    /// Builds one local XY point and rotates it through the installed line-segment matrix.
+    ///
+    /// X/Y are screen-pixel offsets narrowed to s16; Z is zero and the input's
+    /// fourth halfword is retained. The caller installs the Z rotation and zero
+    /// translation first. Borrows distinct writable input/output SVECTORs and a
+    /// long GTE FLAG output. `localPoint` is evaluated four times; the other
+    /// arguments once. Use stable expressions without side effects as a statement.
 #define DRYFIELD_BREEZEWAY_ROTATE_LINE_POINT(localPoint, x, y, rotatedPoint, flags) \
     {                                                                               \
         (localPoint)->vx = (x);                                                     \

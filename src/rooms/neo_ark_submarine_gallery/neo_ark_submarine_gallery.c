@@ -304,32 +304,6 @@ static void _neoArkSubmarineGalleryDrawRedDisc(u16 radius)
     s16      segmentIndex;
     s16      planeY;
 
-    /// Queues the projected wedge and makes additive blending execute before it.
-    ///
-    /// Captures the packed `screenCenter`/`screenStart`/`screenEnd`, `depth`, `triangle`,
-    /// `drawMode`, the disc constants, `gGpuPrimCursor` and `gGpuCurrentOt`.
-    /// Requires one POLY_G3 and one DR_MODE of free arena storage and a valid biased OT
-    /// depth. Writes both pointer locals and advances the arena twice; no arguments
-    /// are evaluated. The compound statement is undefined after this loop.
-#define NEO_ARK_SUBMARINE_GALLERY_QUEUE_DISC_WEDGE()                                                                                          \
-    {                                                                                                                                         \
-        triangle       = gGpuPrimCursor;                                                                                                      \
-        gGpuPrimCursor = triangle + 1;                                                                                                        \
-        setPolyG3(triangle);                                                                                                                  \
-        setRGB0(triangle, 0xFF, 0, 0);                                                                                                        \
-        setRGB1(triangle, 0, 0, 0);                                                                                                           \
-        setRGB2(triangle, 0, 0, 0);                                                                                                           \
-        setSemiTrans(triangle, 1);                                                                                                            \
-        GPU_PRIMITIVE_XY_WORD(triangle, 0) = screenCenter;                                                                                    \
-        GPU_PRIMITIVE_XY_WORD(triangle, 1) = screenStart;                                                                                     \
-        GPU_PRIMITIVE_XY_WORD(triangle, 2) = screenEnd;                                                                                       \
-        addPrim(&gGpuCurrentOt[(depth >> NEO_ARK_SUBMARINE_GALLERY_DISC_DEPTH_SHIFT) + NEO_ARK_SUBMARINE_GALLERY_DISC_DEPTH_BIAS], triangle); \
-        drawMode       = gGpuPrimCursor;                                                                                                      \
-        gGpuPrimCursor = drawMode + 1;                                                                                                        \
-        setDrawTPage(drawMode, 0, 0, NEO_ARK_SUBMARINE_GALLERY_DISC_ADDITIVE_TPAGE);                                                          \
-        addPrim(&gGpuCurrentOt[(depth >> NEO_ARK_SUBMARINE_GALLERY_DISC_DEPTH_SHIFT) + NEO_ARK_SUBMARINE_GALLERY_DISC_DEPTH_BIAS], drawMode); \
-    }
-
     gGfxViewCoord.composeStamp = GRAPHICS_COORD_DIRTY;
     actorRenderComposeCoord(&gGfxViewCoord);
     planeY = NEO_ARK_SUBMARINE_GALLERY_DISC_ROOM_Y;
@@ -351,10 +325,24 @@ static void _neoArkSubmarineGalleryDrawRedDisc(u16 radius)
         rimEnd.vz   = (rcos(angle) * radius) >> NEO_ARK_SUBMARINE_GALLERY_DISC_TRIG_FRACTION_BITS;
         depth       = RotTransPers3(&center, &rimStart, &rimEnd, &screenCenter, &screenStart, &screenEnd, &perspective, &projectionFlags);
         if (projectionFlags >= 0) {
-            NEO_ARK_SUBMARINE_GALLERY_QUEUE_DISC_WEDGE();
+            triangle       = gGpuPrimCursor;
+            gGpuPrimCursor = triangle + 1;
+            setPolyG3(triangle);
+            setRGB0(triangle, 0xFF, 0, 0);
+            setRGB1(triangle, 0, 0, 0);
+            setRGB2(triangle, 0, 0, 0);
+            setSemiTrans(triangle, 1);
+            GPU_PRIMITIVE_XY_WORD(triangle, 0) = screenCenter;
+            GPU_PRIMITIVE_XY_WORD(triangle, 1) = screenStart;
+            GPU_PRIMITIVE_XY_WORD(triangle, 2) = screenEnd;
+            addPrim(&gGpuCurrentOt[(depth >> NEO_ARK_SUBMARINE_GALLERY_DISC_DEPTH_SHIFT) + NEO_ARK_SUBMARINE_GALLERY_DISC_DEPTH_BIAS], triangle);
+            drawMode       = gGpuPrimCursor;
+            gGpuPrimCursor = drawMode + 1;
+            // Head insertion makes the additive mode execute before its wedge.
+            setDrawTPage(drawMode, 0, 0, NEO_ARK_SUBMARINE_GALLERY_DISC_ADDITIVE_TPAGE);
+            addPrim(&gGpuCurrentOt[(depth >> NEO_ARK_SUBMARINE_GALLERY_DISC_DEPTH_SHIFT) + NEO_ARK_SUBMARINE_GALLERY_DISC_DEPTH_BIAS], drawMode);
         }
     }
-#undef NEO_ARK_SUBMARINE_GALLERY_QUEUE_DISC_WEDGE
 }
 
 /// Initializes the red-disc radius and enters the disc's per-frame state.

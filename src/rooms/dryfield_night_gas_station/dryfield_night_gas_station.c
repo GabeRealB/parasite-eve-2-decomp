@@ -3470,10 +3470,13 @@ static void _dryfieldNightGasStationDrawTrackRedStreak(s32 frameIndex)
     LINE_G2*  streak;
     DR_TPAGE* drawMode;
 
-    /// Projects the track point using this drawer's rotation, offset and SDK output locals.
+    /// Converts the baked track sample to room coordinates and projects it into the view.
     ///
     /// Captures trackRotation, trackPoint, worldOffset, worldPoint, screenXY, perspective
-    /// and projectionFlags; writes the last four and changes the GTE. No arguments.
+    /// and projectionFlags; writes the last four and changes the GTE. Rotation
+    /// narrows XYZ to s16 before the room-offset additions narrow them again.
+    /// `screenXY` packs signed pixel X/Y; `perspective` is the SDK interpolation
+    /// output and `projectionFlags` the GTE FLAG word. No arguments.
     /// Use only as a complete statement sequence inside an explicit braced block.
 #define DRYFIELD_NIGHT_GAS_STATION_PROJECT_TRACK_RED_POINT() \
     ApplyMatrixSV(&trackRotation, trackPoint, &worldPoint);  \
@@ -3575,10 +3578,12 @@ static void _dryfieldNightGasStationDrawCompanionRedStreak(s32 unusedFrame)
     LINE_G2*  streak;
     DR_TPAGE* drawMode;
 
-    /// Converts one endpoint using partRotation, localOffset and partPosition.
+    /// Converts a companion-part local endpoint into signed-halfword room coordinates.
     ///
     /// endpoint is an SVECTOR lvalue evaluated four times; pass a stable local.
-    /// Writes endpoint XYZ and changes the GTE. Use as a complete statement
+    /// Captures partRotation, localOffset and partPosition. Rotation narrows
+    /// XYZ first, then each position addition narrows again. Writes endpoint
+    /// XYZ and changes the GTE. Use as a complete statement
     /// sequence inside an explicit braced block.
 #define DRYFIELD_NIGHT_GAS_STATION_TRANSFORM_COMPANION_STREAK_POINT(endpoint) \
     ApplyMatrixSV(&partRotation, &localOffset, &(endpoint));                  \

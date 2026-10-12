@@ -1941,7 +1941,9 @@ static void _shelterB1PodAccessTunnelDrawImageScroll(Task* task)
     /// Captures `sprite` and the image-scroll constants in this function.
     /// Arguments are evaluated once and must have no side effects; the final
     /// call's page-argument order is unspecified. Coordinates/dimensions are
-    /// pixels; texture V wraps to a byte.
+    /// centred pixels; coordinates and dimensions narrow to signed halfwords,
+    /// and texture V wraps to a byte. Requires space for an SPRT and
+    /// the page helper's DR_TPAGE; packet links survive until GPU consumption.
     /// `palette` is an encoded CLUT ID, page X is VRAM words and page Y is rows.
     /// Expands to a braced block; invoke inside a braced block only.
 #define SHELTER_B1_POD_ACCESS_TUNNEL_DRAW_IMAGE_SCROLL_STRIP(screenX, screenY, width, height, textureV, palette, pageX, pageY) \

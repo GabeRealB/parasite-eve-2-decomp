@@ -2334,27 +2334,15 @@ static void _shelterB1UndergroundParkingAmbienceTask(Task* task)
     s32 attenuation;
     u8  viewIndex;
 
-    /// Gets the view slot's pan offset and halved attenuation in sound-script units.
-    ///
-    /// Captures this room's ambience table. `index` must be a side-effect-free
-    /// unsigned-byte expression; it is evaluated up to three times. Outputs
-    /// must be distinct writable s32 lvalues, each assigned once. Unlisted
-    /// slots use the base pan and full level. Expands to a compound statement;
-    /// use as a standalone statement. Local to this task; undefined below.
-#define SHELTER_B1_UNDERGROUND_PARKING_GET_VIEW_AMBIENCE_MIX(index, outPanOffset, outAttenuation)       \
-    {                                                                                                   \
-        if ((index) < ARRAY_SIZE(_gShelterB1UndergroundParkingAmbienceMixByView)) {                     \
-            (outPanOffset)   = _gShelterB1UndergroundParkingAmbienceMixByView[(index)].panOffset;       \
-            (outAttenuation) = _gShelterB1UndergroundParkingAmbienceMixByView[(index)].attenuation / 2; \
-        } else {                                                                                        \
-            (outPanOffset)   = 0;                                                                       \
-            (outAttenuation) = 0;                                                                       \
-        }                                                                                               \
-    }
-
     viewIndex = gGameSession->location.loc.view;
-    SHELTER_B1_UNDERGROUND_PARKING_GET_VIEW_AMBIENCE_MIX(viewIndex, panOffset, attenuation);
-#undef SHELTER_B1_UNDERGROUND_PARKING_GET_VIEW_AMBIENCE_MIX
+    // Logical view slots outside the table retain base pan and full level.
+    if (viewIndex < ARRAY_SIZE(_gShelterB1UndergroundParkingAmbienceMixByView)) {
+        panOffset   = _gShelterB1UndergroundParkingAmbienceMixByView[viewIndex].panOffset;
+        attenuation = _gShelterB1UndergroundParkingAmbienceMixByView[viewIndex].attenuation / 2;
+    } else {
+        panOffset   = 0;
+        attenuation = 0;
+    }
 
     switch (task->state) {
         case SHELTER_B1_UNDERGROUND_PARKING_AMBIENCE_STATE_START:

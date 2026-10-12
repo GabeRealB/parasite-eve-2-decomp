@@ -2470,7 +2470,7 @@ objects = [
   { kind = "model", at = "0xACC8", in_c = true },
   { kind = "modelSource", at = "0xB08C", in_c = true },
   { kind = "collision", at = "0x47AC", in_c = true },
-  { kind = "collisionSource", at = "0x559C", in_c = true },
+  { kind = "collisionSource", at = "0x559C", in_c = true, cell_face_list_macro = "SHELTER_B2_POD_BOTTOM_CELL_FACE_LIST_AT_OFFSET" },
 ]
 
 [rooms.overlays.shelter_b1_pod_service_gantry]

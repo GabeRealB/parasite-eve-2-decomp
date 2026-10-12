@@ -110,8 +110,12 @@ STATIC_ASSERT_SIZEOF(_DryfieldWaterTowerActorSceneWork, 0x18);
 /// frames. These are task updates; no conversion to wall-clock seconds is made.
 #define DRYFIELD_WATER_TOWER_TIME_LIMIT_UNIT_FRAMES 30
 
-/// `_DryfieldWaterTowerTimeLimit::maxTimeouts` of the entry that ends the table.
-#define DRYFIELD_WATER_TOWER_TIME_LIMIT_LAST 0xFFFF
+/// Inclusive timeout-count threshold covering every remaining mechanism run.
+///
+/// The last time-limit entry uses the maximum u16 count so the ascending
+/// threshold scan always finds a duration. This entry is consumed normally;
+/// its value is a timeout count, not a frame limit or a skipped terminator.
+#define DRYFIELD_WATER_TOWER_TIME_LIMIT_ALL_TIMEOUTS 0xFFFF
 
 /// One entry of the mechanism's time limits: how long a timed run lasts, by how
 /// many earlier runs have timed out.
@@ -120,7 +124,7 @@ STATIC_ASSERT_SIZEOF(_DryfieldWaterTowerActorSceneWork, 0x18);
 /// the thresholds ascend and the last entry serves every later run. Each
 /// timeout therefore buys the next run a longer limit, up to the last entry's.
 typedef struct {
-    u16 maxTimeouts; // Highest count of timed-out runs the entry serves (DRYFIELD_WATER_TOWER_TIME_LIMIT_LAST in the last entry)
+    u16 maxTimeouts; // Highest count of timed-out runs the entry serves (DRYFIELD_WATER_TOWER_TIME_LIMIT_ALL_TIMEOUTS in the last entry)
     u16 duration;    // Length of the run, in units of DRYFIELD_WATER_TOWER_TIME_LIMIT_UNIT_FRAMES
 } _DryfieldWaterTowerTimeLimit;
 STATIC_ASSERT_SIZEOF(_DryfieldWaterTowerTimeLimit, 0x4);
@@ -2165,7 +2169,7 @@ static _DryfieldWaterTowerTimeLimit _gDryfieldWaterTowerRunTimeLimits[4] = {
     { 0, 25 },
     { 1, 30 },
     { 2, 35 },
-    { DRYFIELD_WATER_TOWER_TIME_LIMIT_LAST, 40 },
+    { DRYFIELD_WATER_TOWER_TIME_LIMIT_ALL_TIMEOUTS, 40 },
 };
 
 static void       _dryfieldWaterTowerStepPropFall(Task* task);
@@ -2718,7 +2722,7 @@ static void _dryfieldWaterTowerDispatchPropSceneRequest(Task* task)
 /// Returns the next mechanism run's time limit in frames, based on earlier timeouts.
 ///
 /// `task` must carry the initialized prop-scene driver's work. The ascending
-/// thresholds end at `DRYFIELD_WATER_TOWER_TIME_LIMIT_LAST`, covering every
+/// thresholds end at `DRYFIELD_WATER_TOWER_TIME_LIMIT_ALL_TIMEOUTS`, covering every
 /// 16-bit timeout count. The four entries yield 750, 900, 1050 or 1200 frames.
 static inline u16 _dryfieldWaterTowerGetRunTimeLimitFrames(const Task* task)
 {

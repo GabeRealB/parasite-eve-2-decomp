@@ -84,7 +84,10 @@ static inline SVECTOR* _actorContactGetLastPushStep(void)
 ///
 /// Borrows an EffectLineScratch block, index 0 or 1, and a composed GfxCoord.
 /// Arguments are evaluated repeatedly and must be side-effect-free; captures
-/// no locals. Changes GTE state and narrows XYZ sums to s16. Expands to several
+/// no locals. Requires word-aligned vector/matrix storage for the GTE loads.
+/// Rotation stores narrowed XYZ before each translation sum narrows again;
+/// the fourth vector halfword is retained and transform flags are not tested.
+/// Changes GTE rotation/vector/arithmetic state. Expands to several
 /// statements and is used only at standalone call sites in the two drawers.
 #define ACROPOLIS_HELICOPTER_LANDING_PAD_TRANSFORM_SPARK_ENDPOINT(line, endpointIndex, coord) \
     gte_SetRotMatrix(&(coord)->workm);                                                        \

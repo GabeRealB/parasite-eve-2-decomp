@@ -60,11 +60,17 @@
 /// Room-coordinate X where both elevator-door leaves meet when shut, in whole units.
 #define ACROPOLIS_WEST_ELEVATOR_HALL_DOOR_CLOSED_X (-1000)
 
-/// World units a door leaf slides per frame while the door opens or closes.
+/// Whole room-coordinate units added to a door leaf's travel per motion update.
+///
+/// The task's signed direction multiplies this step: -1 closes, 0 rests and
+/// 1 opens. Mirroring affects placement along X, not the accumulated travel.
 #define ACROPOLIS_WEST_ELEVATOR_HALL_DOOR_LEAF_SPEED 20
 
-/// Travel of a fully retracted door leaf, in world units; a leaf is 710 wide,
-/// so this clears the opening.
+/// Inclusive upper clamp of a retracted door leaf's travel, in room-coordinate units.
+///
+/// Travel is clamped to 0..720 before the selected side (-1 or 1) places the
+/// leaf along X from its shut position. At 20 units per update this takes
+/// 36 motion updates from shut to fully open.
 #define ACROPOLIS_WEST_ELEVATOR_HALL_DOOR_LEAF_TRAVEL_MAX 720
 
 /// Work block of one leaf of the elevator's sliding door, held in `Task::work`.

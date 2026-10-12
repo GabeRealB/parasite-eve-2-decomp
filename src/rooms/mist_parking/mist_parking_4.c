@@ -381,18 +381,11 @@ void mistParkingSetPierceCollisionPatchLowered(s32 lowerPatch)
     }
     translation.vz = 0;
 
-    /// Translates the restored six-vertex prefix in world-coordinate units.
-    ///
-    /// Captures liveGrid and translation and resets/advances elementIndex to six.
-    /// Takes no arguments; XYZ additions retain 16 bits and fourth halfwords stay intact.
-#define MIST_PARKING_TRANSLATE_PIERCE_PATCH()                                                       \
-    for (elementIndex = 0; elementIndex < MIST_PARKING_PIERCE_PATCH_VERTEX_COUNT; elementIndex++) { \
-        liveGrid->vertices[elementIndex].vx += translation.vx;                                      \
-        liveGrid->vertices[elementIndex].vy += translation.vy;                                      \
-        liveGrid->vertices[elementIndex].vz += translation.vz;                                      \
+    for (elementIndex = 0; elementIndex < MIST_PARKING_PIERCE_PATCH_VERTEX_COUNT; elementIndex++) {
+        liveGrid->vertices[elementIndex].vx += translation.vx;
+        liveGrid->vertices[elementIndex].vy += translation.vy;
+        liveGrid->vertices[elementIndex].vz += translation.vz;
     }
-    MIST_PARKING_TRANSLATE_PIERCE_PATCH();
-#undef MIST_PARKING_TRANSLATE_PIERCE_PATCH
 }
 
 /// Ramps the player's head aim toward the variant-1 shop/departure talk partner.

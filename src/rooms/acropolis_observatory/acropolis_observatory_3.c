@@ -1244,49 +1244,6 @@ static void _acropolisObservatoryScriptedBattleTask(Task* task)
     s32                             weaponIndex;
     s32                             animationBankIndex;
 
-    /// Allocates owned scene work and captures the player without exiting the caller.
-    ///
-    /// Captures allocatedWork and allocationCheckOrClip. Evaluates sceneTask to
-    /// store work and, on failure, kill it: require a stable, side-effect-free Task*.
-    /// Expands statements in this task body's braced scope; failure still continues.
-#define ACROPOLIS_OBSERVATORY_ALLOCATE_SCENE_WORK(sceneTask)                \
-    allocatedWork         = memCalloc(sizeof(*allocatedWork), 0);           \
-    allocationCheckOrClip = (allocatedWork == NULL);                        \
-    (sceneTask)->work     = allocatedWork;                                  \
-    if (allocationCheckOrClip) {                                            \
-        taskKill(sceneTask);                                                \
-    } else {                                                                \
-        memFillBytes(allocatedWork, 0, sizeof(*allocatedWork));             \
-        allocatedWork->playerTask = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER); \
-    }
-
-    /// Starts a nonnegative follow-up clip when the captured player is idle.
-    ///
-    /// Captures followUpRequest/followUpMessage, idleWork, playbackWork,
-    /// followUpEntry, followUpAnimationId, allocationCheckOrClip and the blend
-    /// constant. Borrows the room's clip/set tables; sceneTask is read up to
-    /// twice and must be a stable, side-effect-free Task*. Expands statements in
-    /// this task body's braced scope, retaining both work reloads and entry loads.
-#define ACROPOLIS_OBSERVATORY_PLAY_IDLE_FOLLOW_UP(sceneTask)                                                                     \
-    idleWork        = (sceneTask)->work;                                                                                         \
-    followUpMessage = &followUpRequest;                                                                                          \
-    if (idleWork->playerTask != NULL && taskMessageDispatch(idleWork->playerTask, ANIMATION_MESSAGE_IS_PLAYING, 0, 0) == 0) {    \
-        followUpEntry         = &_gAcropolisObservatorySceneFollowUpClips[idleWork->followUpIndex];                              \
-        allocationCheckOrClip = *followUpEntry;                                                                                  \
-        followUpAnimationId   = *followUpEntry;                                                                                  \
-        if (allocationCheckOrClip >= 0) {                                                                                        \
-            playbackWork = (sceneTask)->work;                                                                                    \
-            if (playbackWork->playerTask != NULL) {                                                                              \
-                followUpRequest.source.sets           = gAcropolisObservatoryPlayerAnimationSets;                                \
-                followUpRequest.animationId           = followUpAnimationId;                                                     \
-                followUpMessage->blend                = ANIMATION_BLEND_INTERPOLATE;                                             \
-                followUpMessage->blendFrames          = ACROPOLIS_OBSERVATORY_SCENE_FOLLOW_UP_BLEND_FRAMES;                      \
-                followUpMessage->enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;                                        \
-                TASK_MESSAGE_DISPATCH_POINTER(playbackWork->playerTask, ANIMATION_MESSAGE_INSTALL_AND_PLAY, followUpMessage, 0); \
-            }                                                                                                                    \
-        }                                                                                                                        \
-    }
-
     sceneWork = task->work;
     switch (task->state) {
         case ACROPOLIS_OBSERVATORY_SCENE_INITIALIZE:
@@ -1294,7 +1251,15 @@ static void _acropolisObservatoryScriptedBattleTask(Task* task)
                 return;
             }
             // Capture the player once; teardown owns the eight-byte work allocation.
-            ACROPOLIS_OBSERVATORY_ALLOCATE_SCENE_WORK(task);
+            allocatedWork         = memCalloc(sizeof(*allocatedWork), 0);
+            allocationCheckOrClip = (allocatedWork == NULL);
+            task->work            = allocatedWork;
+            if (allocationCheckOrClip) {
+                taskKill(task);
+            } else {
+                memFillBytes(allocatedWork, 0, sizeof(*allocatedWork));
+                allocatedWork->playerTask = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+            }
             sceneWork = task->work;
             if (sceneWork->playerTask != NULL) {
                 playbackRequest.source.sets          = gAcropolisObservatoryPlayerAnimationSets;
@@ -1340,9 +1305,24 @@ static void _acropolisObservatoryScriptedBattleTask(Task* task)
     }
 
     // The original also runs the idle tail after task teardown.
-    ACROPOLIS_OBSERVATORY_PLAY_IDLE_FOLLOW_UP(task);
-#undef ACROPOLIS_OBSERVATORY_PLAY_IDLE_FOLLOW_UP
-#undef ACROPOLIS_OBSERVATORY_ALLOCATE_SCENE_WORK
+    idleWork        = task->work;
+    followUpMessage = &followUpRequest;
+    if (idleWork->playerTask != NULL && taskMessageDispatch(idleWork->playerTask, ANIMATION_MESSAGE_IS_PLAYING, 0, 0) == 0) {
+        followUpEntry         = &_gAcropolisObservatorySceneFollowUpClips[idleWork->followUpIndex];
+        allocationCheckOrClip = *followUpEntry;
+        followUpAnimationId   = *followUpEntry;
+        if (allocationCheckOrClip >= 0) {
+            playbackWork = task->work;
+            if (playbackWork->playerTask != NULL) {
+                followUpRequest.source.sets           = gAcropolisObservatoryPlayerAnimationSets;
+                followUpRequest.animationId           = followUpAnimationId;
+                followUpMessage->blend                = ANIMATION_BLEND_INTERPOLATE;
+                followUpMessage->blendFrames          = ACROPOLIS_OBSERVATORY_SCENE_FOLLOW_UP_BLEND_FRAMES;
+                followUpMessage->enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
+                TASK_MESSAGE_DISPATCH_POINTER(playbackWork->playerTask, ANIMATION_MESSAGE_INSTALL_AND_PLAY, followUpMessage, 0);
+            }
+        }
+    }
 }
 
 /// Sets the screen-aligned square corners of a glow quad around its projected centre.
