@@ -58,9 +58,6 @@
 #include "rooms/room_common.h"
 #include "../../shared/glow_draw.h"
 #include "../../shared/room_events.h"
-// Bind this overlay's private scripts and spawn recipes to the shared controllers.
-/// Selects this room's END-terminated encounter stream for the shared controller.
-#define DRIVEWAY_ENCOUNTER_SCRIPT _gDryfieldNightDrivewayEncounterScript
 /// Selects this room's blackout/encounter/end task recipes for the shared resolver.
 #define DRIVEWAY_SCENE_TASKS _gDryfieldNightDrivewaySceneTasks
 #include "../../shared/dryfield_driveway.h"
@@ -1428,6 +1425,17 @@ static const TaskFuncTable3 _gDryfieldNightDrivewayRoomStates = {
 #undef DRIVEWAY_BLACKOUT_SKIP_SCRIPT
 #undef DRIVEWAY_BLACKOUT_SCRIPT
 
+/// Selects this room's retained bat-encounter stream for the shared controller.
+///
+/// Expands to a private END-terminated `EvsCommand` array, passed as
+/// `EvsCommand*` to `evsStartScript` with HUD hide/restore and no input skip
+/// target. The interpreter borrows the stream and callbacks until it ends;
+/// the installed player animation data stays borrowed during bank playback.
+/// The script releases the bat waves and restores player control; the resolver
+/// starts this retained daytime scene only in `GAME_STAGE_DRYFIELD`.
+/// This identifier binding has no arguments or side effects and is needed
+/// only by the following fragment.
+#define DRIVEWAY_ENCOUNTER_SCRIPT _gDryfieldNightDrivewayEncounterScript
 #include "../../shared/dryfield_driveway_cutscene.inc.c"
 #undef DRIVEWAY_ENCOUNTER_SCRIPT
 #undef DRIVEWAY_SCENE_TASKS
