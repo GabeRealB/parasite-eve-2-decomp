@@ -104,8 +104,18 @@ static const TaskMessageEntry _gDryfieldNightGeneralStoreMessageTable[6] SECTION
 #define GENERAL_STORE_UNDERPASS_ROOM gGeneralStoreUnderpassRoom
 #include "../../shared/general_store_door_msg.inc.c"
 
-/// Selects this carrier's writable `ScreenFade`, kept live for the resident fade task.
-#define GENERAL_STORE_UNDERPASS_FADE gGeneralStoreUnderpassFade
+/// Binds the night store's fade control for an accepted underpass departure.
+///
+/// Supply a stable, addressable, writable `ScreenFade` lvalue without side
+/// effects around `general_store_cutscene_task.inc.c`, then undefine it.
+/// Acceptance sets subtractive blend, running phase and an eight-frame ramp,
+/// passing the record's address as the bank-1 fade task's second spawn payload.
+/// Cancellation leaves it untouched. The prompt requests reload on its next
+/// tick without waiting for the fade or requesting a return ramp.
+/// Keep the singleton writable, loaded and reserved for that departure until
+/// the fade task is retired by reload. Each occurrence evaluates the binding
+/// once; the binding allocates no storage and copies no record.
+#define GENERAL_STORE_UNDERPASS_FADE (gGeneralStoreUnderpassFade)
 
 /// Selects the night store's writable capture of the pre-prompt logical view.
 ///
