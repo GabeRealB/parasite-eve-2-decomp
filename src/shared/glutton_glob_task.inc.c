@@ -1,5 +1,9 @@
 /* Part of the Glutton library; see glutton.h. */
 
+#ifndef GLUTTON_GLOB_STATES
+#error "define GLUTTON_GLOB_STATES as the carrier's EnemyTaskFuncTable5 object before including glutton_glob_task.inc.c"
+#endif
+
 #include "glutton_projectile_state.h"
 
 /// Dispatches the catching glob and records entry into each task state.

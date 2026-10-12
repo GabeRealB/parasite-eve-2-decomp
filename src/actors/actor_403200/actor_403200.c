@@ -7013,10 +7013,16 @@ static void _actor403200DeathHandoffState(Task* task)
 #include "../../shared/glutton_throw_task.inc.c"
 #undef GLUTTON_THROW_STATES
 
-/// Selects this carrier's 5-state catching-glob callback table.
+/// Binds the dumping-hole glob dispatcher to its lifecycle callback table.
 ///
-/// Must name a live const `EnemyTaskFuncTable5` object, copied before
-/// dispatch. Bind only around this fragment inclusion, then undefine it.
+/// Must expand to the identifier of an overlay-local const `EnemyTaskFuncTable5`
+/// object, indexed by `Task::state`: 0 spawn, 1 descend, 2 engulf, 3 release the
+/// player, 4 destroy. All five callbacks are copied once before checking combat
+/// control; there is no terminator or index check. Each callback has signature
+/// `void(Enemy*, Task*)` and may destroy the live enemy and task. The table and
+/// callback code must remain loaded for dispatch. Bind only around
+/// `glutton_glob_task.inc.c`, then undefine it. This identifier alias takes no
+/// arguments, captures no locals and adds no runtime side effects.
 #define GLUTTON_GLOB_STATES gGluttonGlobStates
 #include "../../shared/glutton_glob_task.inc.c"
 #undef GLUTTON_GLOB_STATES
