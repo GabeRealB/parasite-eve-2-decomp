@@ -106,10 +106,18 @@ static const _ShelterB1StoreroomLampGlowPoints _gShelterB1StoreroomLampGlowPoint
     },
 };
 
-#define ROOM_FX_HALO_STORAGE_INITIALIZER { \
-    { 0, 1, 2 },                           \
-    { 2, 1, 0 },                           \
-    { 0, 2, 1 },                           \
+/// Initializes this overlay's three halo tint rows.
+///
+/// Rows 0..2 give RGB right shifts of brightness (0 full, 1 half, 2 quarter).
+/// Requires `ROOM_FX_HALO_STORAGE_TYPE` = `RoomFxShade` and
+/// `ROOM_VISUAL_EFFECTS_HALO_STORAGE_BOUND` =
+/// `[ROOM_VISUAL_EFFECTS_HALO_SHADE_COUNT]`; supplies exactly three elements.
+/// Bind around `room_visual_effects_halo_data.inc.c`, then undefine.
+/// Expands to a constant braced initializer, with no arguments or side effects.
+#define ROOM_VISUAL_EFFECTS_HALO_STORAGE_INITIALIZER { \
+    { .rShift = 0, .gShift = 1, .bShift = 2 },         \
+    { .rShift = 2, .gShift = 1, .bShift = 0 },         \
+    { .rShift = 0, .gShift = 2, .bShift = 1 },         \
 }
 #define ROOM_FX_HALO_STORAGE_TYPE RoomFxShade
 /// Declares the three-row halo tint array.
@@ -129,7 +137,7 @@ static inline const RoomFxShade* _roomVisualEffectsGetHaloShades(void)
 {
     return _gRoomVisualEffectsHaloShades;
 }
-#undef ROOM_FX_HALO_STORAGE_INITIALIZER
+#undef ROOM_VISUAL_EFFECTS_HALO_STORAGE_INITIALIZER
 #undef ROOM_FX_HALO_STORAGE_TYPE
 #undef ROOM_VISUAL_EFFECTS_HALO_STORAGE_BOUND
 

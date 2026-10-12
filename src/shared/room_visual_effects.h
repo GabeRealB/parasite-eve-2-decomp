@@ -27,7 +27,7 @@
  * rows. Some carriers also preserve a following unread halfword whose role is
  * unproven, so the room sets
  * ROOM_FX_HALO_STORAGE_TYPE, ROOM_VISUAL_EFFECTS_HALO_STORAGE_BOUND and
- * ROOM_FX_HALO_STORAGE_INITIALIZER before including
+ * ROOM_VISUAL_EFFECTS_HALO_STORAGE_INITIALIZER before including
  * _halo_data - RoomFxShade [3], or RoomFxHaloStorage to retain that halfword - and
  * defines _roomVisualEffectsGetHaloShades, the array view the halo code reads, where its
  * halo code is.

@@ -159,8 +159,23 @@ static SVECTOR _gShelterB2PodAccessTunnelBeamEndpoints[56] = {
     { 4150, 410, -2520, 0 },
 };
 
-#define ROOM_FX_HALO_STORAGE_INITIALIZER { { { 0, 1, 2 }, { 2, 1, 0 }, { 0, 2, 1 } }, 0xA041 }
-#define ROOM_FX_HALO_STORAGE_TYPE        RoomFxHaloStorage
+/// Initializes this overlay's three halo tint rows and retained trailing halfword.
+///
+/// Rows 0..2 give RGB right shifts of brightness (0 full, 1 half, 2 quarter).
+/// Requires `ROOM_FX_HALO_STORAGE_TYPE` = `RoomFxHaloStorage` and an empty
+/// `ROOM_VISUAL_EFFECTS_HALO_STORAGE_BOUND`. The trailing u16 is preserved
+/// verbatim; its role is unproven and it is not a fourth tint row.
+/// Bind around `room_visual_effects_halo_data.inc.c`, then undefine.
+/// Expands to a constant braced initializer, with no arguments or side effects.
+#define ROOM_VISUAL_EFFECTS_HALO_STORAGE_INITIALIZER { \
+    .entries = {                                       \
+        { .rShift = 0, .gShift = 1, .bShift = 2 },     \
+        { .rShift = 2, .gShift = 1, .bShift = 0 },     \
+        { .rShift = 0, .gShift = 2, .bShift = 1 },     \
+    },                                                 \
+    .alignmentFill = 0xA041,                           \
+}
+#define ROOM_FX_HALO_STORAGE_TYPE RoomFxHaloStorage
 /// Declares one halo storage record, retaining the halfword after its tint rows.
 ///
 /// This empty suffix requires `ROOM_FX_HALO_STORAGE_TYPE` to be
@@ -173,7 +188,7 @@ static inline const RoomFxShade* _roomVisualEffectsGetHaloShades(void)
 {
     return _gRoomVisualEffectsHaloShades.entries;
 }
-#undef ROOM_FX_HALO_STORAGE_INITIALIZER
+#undef ROOM_VISUAL_EFFECTS_HALO_STORAGE_INITIALIZER
 #undef ROOM_FX_HALO_STORAGE_TYPE
 #undef ROOM_VISUAL_EFFECTS_HALO_STORAGE_BOUND
 

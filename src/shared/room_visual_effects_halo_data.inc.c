@@ -6,4 +6,4 @@
 /// The carrier supplies either a three-row array or `RoomFxHaloStorage`.
 /// Only those rows are read; the latter also preserves an unread halfword
 /// whose role is unproven. Storage remains live while the overlay is loaded.
-static ROOM_FX_HALO_STORAGE_TYPE _gRoomVisualEffectsHaloShades ROOM_VISUAL_EFFECTS_HALO_STORAGE_BOUND = ROOM_FX_HALO_STORAGE_INITIALIZER;
+static ROOM_FX_HALO_STORAGE_TYPE _gRoomVisualEffectsHaloShades ROOM_VISUAL_EFFECTS_HALO_STORAGE_BOUND = ROOM_VISUAL_EFFECTS_HALO_STORAGE_INITIALIZER;
