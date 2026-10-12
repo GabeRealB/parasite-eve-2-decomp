@@ -10,13 +10,20 @@
 #define MAD_CHASER_FOUR_STEP_STATE _madChaserDangleState
 #endif
 
-/// Selects the four ordered phase callbacks copied by this dispatcher.
+/// Selects the four phase handlers for one Mad Chaser dispatcher instance.
 ///
-/// Names a complete, readable `TaskFuncTable4` object, defaulting to the dangle
-/// table. Carriers bind the lurk-shift table for their second inclusion. Copying
-/// retains no reference to the table; all four void(Task*) callbacks must be
-/// non-NULL and remain loaded through dispatch. There are no macro arguments or
-/// manufactured tokens, and the fragment undefines the binding after use.
+/// Bind to a declared, readable `TaskFuncTable4` object identifier before
+/// including this fragment; const tables are allowed. Each dispatcher call
+/// evaluates the binding once and copies all four callback pointers, then
+/// selects by the signed halfword of `MadChaserWork::subState` (0..3, with no
+/// terminator or bounds check). Entries must be non-NULL void(Task*) callbacks.
+/// Table storage is borrowed only for the copy; callback code stays loaded
+/// through the call. There are no arguments or manufactured tokens.
+///
+/// Defaults to `_gMadChaserDangleSteps`. `actor_04400`, `actor_341700` and
+/// `actor_342400` pair the lurk-shift table with `MAD_CHASER_FOUR_STEP_STATE`
+/// for their second inclusion. Both bindings are undefined at the end of
+/// each inclusion; rebind any overrides for the next instance.
 #ifndef MAD_CHASER_FOUR_STEP_HANDLERS
 #define MAD_CHASER_FOUR_STEP_HANDLERS _gMadChaserDangleSteps
 #endif
