@@ -166,6 +166,15 @@ static s32 _gCapCaptionCaretPulseLevel;
 static s32 _gCapCaptionCaretPulseFalling;
 
 // This carrier borrows the caption storage defined by its third translation unit.
+/// Binds caption command entries to this overlay's writable borrowed-pointer slot.
+///
+/// Names the `CapCommandRef*` declared in the overlay's private header and
+/// defined in shelter_b3_garbage_incinerator_3.c. Define before the first
+/// `cap_captions.h` inclusion and retain through `cap_captions.inc.c`.
+/// Successful relocation replaces the pointer; selection reads the relocated
+/// entries while their CAP file remains loaded. The shared binding's command
+/// index bounds and NULL-sequence behavior apply. This object-like identifier
+/// alias has no arguments, runtime side effects or token construction.
 #define CAP_CAPTION_COMMAND_REFS CapCaption_Data_8015E650
 #define CAP_CAPTION_SELECTED_KEY CapCaption_Data_8015E666
 /// Writable pointer lvalue borrowing readable glyph cells from the loaded CAP file.

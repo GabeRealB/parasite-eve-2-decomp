@@ -95,10 +95,21 @@ STATIC_ASSERT_SIZEOF(CapCaptionScheduleWindow, 0x10);
 #ifndef CAP_CAPTION_GLYPH_CELLS
 #define CAP_CAPTION_GLYPH_CELLS _gCapCaptionGlyphCells
 #endif
-/// Writable pointer lvalue borrowing relocated command references from the CAP file.
+/// Selects the writable pointer slot for borrowed CAP command-table entries.
 ///
-/// Entries are read by command index through this view; relocation writes
-/// them through the loaded file before publishing the pointer.
+/// Bind a stable `const CapCommandRef*` or `CapCommandRef*` lvalue before the
+/// first inclusion of this header and retain it through `cap_captions.inc.c`.
+/// The default names independent TU-local slots in actor_215100 and the dumping
+/// hole; the incinerator supplies storage shared between its translation units.
+/// Non-identifier replacements must be parenthesized and have no side effects.
+/// This object-like alias has no arguments or token construction.
+///
+/// Successful relocation publishes `CapCommandTable.entries` after rebasing its
+/// nonzero words; caption selection only reads this view. `commandIndex` counts
+/// entries, is a nonnegative s16 and must be below `CapCommandTable.count`.
+/// An entry whose sequence is NULL hides captions. The file owns the entries
+/// and sequences and must remain loaded through caption use. Failed resource
+/// selection leaves the previous pointer intact; no file storage is owned here.
 #ifndef CAP_CAPTION_COMMAND_REFS
 #define CAP_CAPTION_COMMAND_REFS _gCapCaptionCommandRefs
 #endif
