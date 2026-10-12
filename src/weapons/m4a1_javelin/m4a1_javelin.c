@@ -130,14 +130,17 @@ static const u16 _gM4a1JavelinBeamFadeColours[] SECTION(".data") = { 0x12, 0x124
 
 static void _m4a1JavelinSetTrackedImpactPoint(const long* worldTranslation);
 
-/// Allocates and initializes a Gouraud quad for a beam cap or connecting strip.
+/// Reserves a Gouraud beam quad with black edges and supplied centre colours.
 ///
-/// `quad` must be a simple POLY_G4* local lvalue, assigned once and read
-/// repeatedly. Each colour argument is evaluated once; supply zero for the
-/// second centre of a cap. The macro captures and advances `gGpuPrimCursor`
-/// by one packet. Use as a standalone statement inside a braced control body;
-/// it expands to a scoped block. Callers fill positions and link the packet
-/// before submission.
+/// `quad` is a simple writable POLY_G4* lvalue, assigned then read repeatedly.
+/// Each colour expression is evaluated once and narrowed to a byte, in RGB2
+/// then RGB3 order. Caps use black for RGB3; strips colour both centres.
+/// Requires word-aligned frame-arena space for sizeof(POLY_G4); captures and
+/// advances `gGpuPrimCursor` without checking its end. Sets length, command
+/// and four colours only. The caller supplies XY, ordering-table linkage and
+/// blending before GPU submission; the packet lives until the GPU finishes.
+/// Captures no caller locals. Expands to a block with no control transfer;
+/// invoke as a standalone statement inside a braced control body.
 #define M4A1_JAVELIN_ALLOCATE_BEAM_QUAD(quad, red, green, blue, secondRed, secondGreen, secondBlue) \
     {                                                                                               \
         (quad)         = gGpuPrimCursor;                                                            \
@@ -145,8 +148,8 @@ static void _m4a1JavelinSetTrackedImpactPoint(const long* worldTranslation);
         setPolyG4(quad);                                                                            \
         setRGB0(quad, 0, 0, 0);                                                                     \
         setRGB1(quad, 0, 0, 0);                                                                     \
-        setRGB2(quad, red, green, blue);                                                            \
-        setRGB3(quad, secondRed, secondGreen, secondBlue);                                          \
+        setRGB2(quad, (red), (green), (blue));                                                      \
+        setRGB3(quad, (secondRed), (secondGreen), (secondBlue));                                    \
     }
 
 void m4a1JavelinGuideBeamTask(Task* task)

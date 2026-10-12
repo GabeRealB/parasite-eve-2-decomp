@@ -47,11 +47,15 @@ static u8        _gGrenadeShellInitialFlightDivisors[4];
 static void _grenadeShellExit(Task* task);
 static void _grenadeShellSpawn(Task* task);
 
-#define GRENADE_WEAPON (0xB + GRENADE_PISTOL_VARIANT)
-
-/// Build selectors for the two packages sharing the Grenade Pistol source.
+/// Grenade Pistol discriminator for `GRENADE_PISTOL_VARIANT` and launch-tuning row 0.
+///
+/// Integer preprocessor constant; selects this package's models and animation bank.
 #define GRENADE_PISTOL_VARIANT_PISTOL 0
-#define GRENADE_PISTOL_VARIANT_MM1    1
+
+/// MM1 discriminator for `GRENADE_PISTOL_VARIANT` and launch-tuning row 1.
+///
+/// Integer preprocessor constant; selects the MM1 models and animation bank.
+#define GRENADE_PISTOL_VARIANT_MM1 1
 
 /// Manifest-selected launcher build and projectile launch-tuning row.
 ///
@@ -65,6 +69,13 @@ static void _grenadeShellSpawn(Task* task);
 #elif GRENADE_PISTOL_VARIANT != GRENADE_PISTOL_VARIANT_PISTOL && GRENADE_PISTOL_VARIANT != GRENADE_PISTOL_VARIANT_MM1
 #error "GRENADE_PISTOL_VARIANT must select a Grenade Pistol or MM1 build"
 #endif
+
+/// One-based weapon index for this launcher build: 11 Grenade Pistol or 12 MM1.
+///
+/// Parenthesized int constant expression from the validated build selector.
+/// Selects the sound bank, muzzle-flash profile and projectile distance row;
+/// `WEAPON_ITEM_ID` converts it to the saved weapon-load item ID.
+#define GRENADE_PISTOL_WEAPON_INDEX (11 + (GRENADE_PISTOL_VARIANT))
 
 void grenadePistolAttackState(Task* playerTask)
 {
@@ -110,14 +121,14 @@ void grenadePistolAttackState(Task* playerTask)
             actor->rumblePosted                = 0;
             actor->attackControl.cooldownTicks = GRENADE_PISTOL_SHOT_COOLDOWN_TICKS;
             worldCoordPlaySound(playerTask->extra.tmd->coords,
-                                ((gPlayerStatus.weaponSlotItem - GRENADE_ROUND_FIRST) << 24) | SOUND_WEAPON(GRENADE_WEAPON, 4), 1);
+                                ((gPlayerStatus.weaponSlotItem - GRENADE_ROUND_FIRST) << 24) | SOUND_WEAPON(GRENADE_PISTOL_WEAPON_INDEX, 4), 1);
             effectSpawn(EFFECT_GRENADE_MUZZLE_FLASH,
-                        actor->equipmentTasks[1]->extra.tmd->coords, GRENADE_WEAPON,
+                        actor->equipmentTasks[1]->extra.tmd->coords, GRENADE_PISTOL_WEAPON_INDEX,
                         NULL);
-            equipmentConsumeWeaponLoad(WEAPON_ITEM_ID(GRENADE_WEAPON), EQUIPMENT_WEAPON_LOAD_CONSUME_PRIMARY);
+            equipmentConsumeWeaponLoad(WEAPON_ITEM_ID(GRENADE_PISTOL_WEAPON_INDEX), EQUIPMENT_WEAPON_LOAD_CONSUME_PRIMARY);
             // Both the projectile package and its launch-tuning row follow this build.
             playerActorSpawnGrenadeProjectile(playerTask, PLAYER_ACTOR_GRENADE_PLAYER, PLAYER_ACTOR_GRENADE_PISTOL + GRENADE_PISTOL_VARIANT,
-                                              gPlayerStatus.weaponSlotItem | (GRENADE_PISTOL_VARIANT << PLAYER_ACTOR_GRENADE_MUZZLE_ROW_SHIFT) | (GRENADE_WEAPON << PLAYER_ACTOR_GRENADE_WEAPON_SHIFT));
+                                              gPlayerStatus.weaponSlotItem | (GRENADE_PISTOL_VARIANT << PLAYER_ACTOR_GRENADE_MUZZLE_ROW_SHIFT) | (GRENADE_PISTOL_WEAPON_INDEX << PLAYER_ACTOR_GRENADE_WEAPON_SHIFT));
             playerActorPlayChildSlotsWithBlend(playerTask, GRENADE_PISTOL_ANIMATION_FIRE, 0, GRENADE_PISTOL_FIRE_BLEND_FRAMES);
             break;
         case GRENADE_PISTOL_PHASE_RECOVER:

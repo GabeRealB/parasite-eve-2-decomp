@@ -369,25 +369,29 @@ static void _m4a1GrenadeInitProjectile(Task* task)
 /// receives this frame's movement before the next dispatch releases the task.
 static void _m4a1GrenadeFlyProjectile(Task* task)
 {
-    /// Advances translation, capsule length and the 16.16 flight clock for one tick.
+    /// Advances translation, capsule reach and the 16.16 flight clock for one tick.
     ///
     /// All arguments must be stable live pointers without side effects; they are
-    /// evaluated repeatedly. `grenade` is `WeaponGrenadeWork`, `coordNode` is its
-    /// `GfxCoord`, and `deltaOut` is writable `WorldCollisionDelta`. The clock's
-    /// integer half must be nonzero; direction uses 4096 per unit and the output
-    /// step uses whole game-coordinate units. Uses the enclosing
-    /// `M4A1_GRENADE_CAPSULE_TIMER_SHIFT` and shared `GRENADE_SHELL_FLIGHT_DIVISOR_STEP`.
-    /// Expands to a compound statement and is undefined after this function.
-#define M4A1_GRENADE_STEP_PROJECTILE(grenade, coordNode, deltaOut)                                          \
-    {                                                                                                       \
-        (deltaOut)->vector.vx         = (grenade)->dir.vx / (grenade)->flightTimer.halves.integer;          \
-        (deltaOut)->vector.vy         = (grenade)->dir.vy / (grenade)->flightTimer.halves.integer;          \
-        (deltaOut)->vector.vz         = (grenade)->dir.vz / (grenade)->flightTimer.halves.integer;          \
-        (coordNode)->coord.t[0]      += (deltaOut)->vector.vx;                                              \
-        (coordNode)->coord.t[1]      += (deltaOut)->vector.vy;                                              \
-        (coordNode)->coord.t[2]      += (deltaOut)->vector.vz;                                              \
-        (grenade)->capsule.ends[1].vy = -((grenade)->flightTimer.word >> M4A1_GRENADE_CAPSULE_TIMER_SHIFT); \
-        (grenade)->flightTimer.word  += GRENADE_SHELL_FLIGHT_DIVISOR_STEP;                                  \
+    /// evaluated repeatedly. `grenade` is writable WeaponGrenadeWork*,
+    /// `coordNode` its GfxCoord*, and `deltaOut` disjoint WorldCollisionDelta*.
+    /// The clock's integer half must be positive; signed division truncates
+    /// each Q12 direction component toward zero into a whole-coordinate step.
+    /// Only delta XYZ and local translation XYZ are written, leaving pads and
+    /// composition stamp intact. `capsuleTimerShift` is the int constant 10:
+    /// the negative shifted pre-increment clock sets the capsule's far Y end.
+    /// Finally adds `GRENADE_SHELL_FLIGHT_DIVISOR_STEP` to the clock. Captures
+    /// no caller locals and retains no pointer; the caller owns cache invalidation.
+    /// Expands to a block with no control transfer; invoke only inside braces.
+#define M4A1_GRENADE_STEP_PROJECTILE(grenade, coordNode, deltaOut, capsuleTimerShift)              \
+    {                                                                                              \
+        (deltaOut)->vector.vx         = (grenade)->dir.vx / (grenade)->flightTimer.halves.integer; \
+        (deltaOut)->vector.vy         = (grenade)->dir.vy / (grenade)->flightTimer.halves.integer; \
+        (deltaOut)->vector.vz         = (grenade)->dir.vz / (grenade)->flightTimer.halves.integer; \
+        (coordNode)->coord.t[0]      += (deltaOut)->vector.vx;                                     \
+        (coordNode)->coord.t[1]      += (deltaOut)->vector.vy;                                     \
+        (coordNode)->coord.t[2]      += (deltaOut)->vector.vz;                                     \
+        (grenade)->capsule.ends[1].vy = -((grenade)->flightTimer.word >> (capsuleTimerShift));     \
+        (grenade)->flightTimer.word  += GRENADE_SHELL_FLIGHT_DIVISOR_STEP;                         \
     }
 
     enum {
@@ -469,7 +473,7 @@ trySphereContacts:
     }
 advanceFlight:
     // The growing flight divisor slows translation while gravity lowers the trajectory.
-    M4A1_GRENADE_STEP_PROJECTILE(grenadeWork, projectileCoord, &scratch->delta);
+    M4A1_GRENADE_STEP_PROJECTILE(grenadeWork, projectileCoord, &scratch->delta, M4A1_GRENADE_CAPSULE_TIMER_SHIFT);
     if (grenadeWork->flightTimer.word > M4A1_GRENADE_FLIGHT_TIMER_LIMIT) {
         goto detonate;
     }

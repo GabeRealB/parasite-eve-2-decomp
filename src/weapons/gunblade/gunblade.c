@@ -225,13 +225,18 @@ enum {
     GUNBLADE_FLASH_SLUG_SPARK_ARGUMENT       = 1,
 };
 
-/// Draws the bright charge bands and screen tint, then advances their fade and radius.
+/// Draws the charge flash's additive bands and screen tint, then steps its fade.
 ///
-/// Borrows live effect work and a composed centre; RGB has three already
-/// narrowed bytes. The odd-age band swaps inner radius and width deliberately.
-/// Keeps signed-halfword radius narrowing and writes period/step after drawing.
-/// Pointer arguments repeat and must have no side effects; captures no locals.
-/// The block has no return/break and updates only this flash's period/step.
+/// `effectWork` is live writable EffectWork; `coord` borrows a composed
+/// view-space GfxCoord and `rgb` three readable tint bytes. The first band has
+/// inner radius 3 * step / 2 and width 96 game units; odd ages draw a second
+/// band with those dimensions swapped. Radius narrows to s16 before drawing.
+/// After all draws, period loses 16 brightness units and step gains 64 game
+/// units. The caller prepares RGB and checks period >= 17 before this phase.
+/// Requires the drawers' scratch/GTE state and unchecked frame-arena space;
+/// input storage must stay clear of their workspace. Retains no input pointer.
+/// Pointer expressions repeat and must have no side effects. Captures no caller
+/// locals. Expands to a block with no control transfer; use inside braces.
 #define GUNBLADE_DRAW_CHARGE_BANDS(effectWork, coord, rgb)                                                     \
     {                                                                                                          \
         effectDrawOuterGlowBand(coord, (s16)((effectWork)->step * 3 / 2), GUNBLADE_FLASH_BAND_WIDTH, rgb);     \

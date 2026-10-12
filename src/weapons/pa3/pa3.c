@@ -26,9 +26,17 @@
 
 #include "weapons/weapon.h"
 
-/// Weapon indices selecting this source's held model and player animation bank.
+/// One-based weapon index 13 (item 0x8C), selecting the PA3 build.
+///
+/// Integer preprocessor constant for `WEAPON_INDEX` tests. Selects the held
+/// model, player animation bank, sound bank and shotgun muzzle-flash profile.
 #define PA3_WEAPON_INDEX_STANDARD 0xD
-#define PA3_WEAPON_INDEX_SP12     0xE
+
+/// One-based weapon index 14 (item 0x8D), selecting the SP12 build.
+///
+/// Integer preprocessor constant for `WEAPON_INDEX` tests. Selects the SP12
+/// model, player animation bank, sound bank and shotgun muzzle-flash profile.
+#define PA3_WEAPON_INDEX_SP12 0xE
 
 /// Manifest-selected weapon index, equal to its inventory item ID minus 0x7F.
 ///

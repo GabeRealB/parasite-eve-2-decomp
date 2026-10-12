@@ -73,12 +73,12 @@ typedef struct {
 } _HypervelocityRecoilScratch;
 STATIC_ASSERT_SIZEOF(_HypervelocityRecoilScratch, 0x18);
 
-/// Vertices in each of the discharge cone's two squares, one per corner of
-/// the unit quad both are scaled from. The collar's vertices follow the
-/// mouth's at this distance in `_HypervelocityDischargeConeScratch::vertices`.
-#define HYPERVELOCITY_DISCHARGE_CONE_SQUARE_VERTEX_COUNT 4
-/// Walls drawn for one discharge cone: the local -X side, then the +X side.
-#define HYPERVELOCITY_DISCHARGE_CONE_WALL_COUNT 2
+enum {
+    /// Vertices per mouth/collar square; also the collar's offset in vertex elements.
+    HYPERVELOCITY_DISCHARGE_CONE_SQUARE_VERTEX_COUNT = 4,
+    /// Opposed walls drawn from corner pairs (0, 2) and (1, 3), on local -X and +X.
+    HYPERVELOCITY_DISCHARGE_CONE_WALL_COUNT = 2,
+};
 
 /// Scratch-stack workspace for drawing the hypervelocity discharge cone.
 ///
@@ -111,14 +111,20 @@ STATIC_ASSERT_SIZEOF(_HypervelocityDischargeConeScratch, 0x58);
 // The drawer stages one mouth and one collar vertex per unit-quad corner.
 STATIC_ASSERT(ARRAY_SIZE(gEffectUnitQuadCorners) == HYPERVELOCITY_DISCHARGE_CONE_SQUARE_VERTEX_COUNT, hypervelocity_discharge_cone_square_vertex_count);
 
-/// Packed collision key of the round in flight.
+enum {
+    HYPERVELOCITY_ROUND_ATTACK_ROW         = 26,
+    HYPERVELOCITY_ROUND_DISTANCE_ROW       = 22,
+    HYPERVELOCITY_ROUND_DISTANCE_ROW_SHIFT = 8,
+};
+
+/// Category-2 weapon-attack key carried by the Hypervelocity round's sphere.
 ///
-/// The high halfword is contact category 2, the category of the player's
-/// weapon bodies. The identity follows the packing of the player's weapon
-/// capsule key: the Hypervelocity's weapon index 0x16 in bits 8..15 and 0x1A
-/// in the byte where that key carries the weapon-slot item. What 0x1A selects
-/// for the bodies the round touches is unproven.
-#define HYPERVELOCITY_ROUND_COLLISION_KEY 0x2161A
+/// Int constant expression: low seven bits select weapon attack row 26
+/// (2000 base damage, stagger, spark burst, 10-frame hit cooldown); bits 8..13
+/// select distance/critical row 22, the Hypervelocity weapon index. Attachment,
+/// companion and alternate-critical bits are clear. Independent of live ammunition.
+#define HYPERVELOCITY_ROUND_COLLISION_KEY \
+    (WORLD_COLLISION_CONTACT_ATTACK | (HYPERVELOCITY_ROUND_DISTANCE_ROW << HYPERVELOCITY_ROUND_DISTANCE_ROW_SHIFT) | HYPERVELOCITY_ROUND_ATTACK_ROW)
 
 /// Collision block of one hypervelocity round in flight, allocated zeroed on
 /// its first tick and kept at `Task::work`.
@@ -627,16 +633,19 @@ void hypervelocityRoundTask(Task* task)
 /// packets live through GPU drawing. Changes GTE state; retains no inputs.
 static void _hypervelocityDrawDischargeCone(const GfxCoord* coord, s16 ageFrames, s32 halfExtent, const u8* rgb)
 {
-/// Rotates one cone vertex in place, narrowing the result to signed 16 bits.
+/// Rotates and saturates one local cone vertex in place, without translation.
 ///
-/// Captures the initialized local worldRotation (4096 per unit); vertex must
-/// be a side-effect-free pointer because it is evaluated twice. Expands to
-/// four statements: use only as a standalone sequence inside this function.
-/// Translation is added separately. Changes GTE state; retains no pointers.
-#define HYPERVELOCITY_ROTATE_CONE_VERTEX(vertex) \
-    gte_SetRotMatrix(worldRotation);             \
-    gte_ldv0((vertex));                          \
-    gte_rtv0();                                  \
+/// `rotation` borrows a word-aligned const MATRIX with 4096 per unit;
+/// `vertex` is a disjoint word-aligned writable SVECTOR. XYZ saturate to
+/// signed 16 bits; the fourth halfword is loaded but unchanged. Changes GTE
+/// rotation, V0, MAC/IR and FLAG, leaving translation registers unchanged.
+/// The matrix argument is evaluated once, the vertex twice; both must be
+/// side-effect-free pointers. Captures no caller locals and retains no pointer.
+/// Expands to four statements; invoke only inside a braced control body.
+#define HYPERVELOCITY_ROTATE_CONE_VERTEX(rotation, vertex) \
+    gte_SetRotMatrix((rotation));                          \
+    gte_ldv0((vertex));                                    \
+    gte_rtv0();                                            \
     gte_stsv((vertex))
 
     // Geometry is in local game units; the animation occupies six 40-texel cells.
@@ -679,7 +688,7 @@ static void _hypervelocityDrawDischargeCone(const GfxCoord* coord, s16 ageFrames
         scratch->vertices[cornerIndex].vx = (u16)unitCorners[cornerIndex].axis0Sign * mouthHalfWidth;
         scratch->vertices[cornerIndex].vy = mouthHeight;
         scratch->vertices[cornerIndex].vz = (u16)unitCorners[cornerIndex].axis1Sign * depthHalfExtent;
-        HYPERVELOCITY_ROTATE_CONE_VERTEX(&scratch->vertices[cornerIndex]);
+        HYPERVELOCITY_ROTATE_CONE_VERTEX(worldRotation, &scratch->vertices[cornerIndex]);
         scratch->vertices[cornerIndex].vx += (u16)coord->workm.t[0];
         scratch->vertices[cornerIndex].vy += (u16)coord->workm.t[1];
         scratch->vertices[cornerIndex].vz += (u16)coord->workm.t[2];
@@ -687,7 +696,7 @@ static void _hypervelocityDrawDischargeCone(const GfxCoord* coord, s16 ageFrames
         collarVertex->vx                   = (u16)unitCorners[cornerIndex].axis0Sign * halfExtent;
         collarVertex->vy                   = HYPERVELOCITY_DISCHARGE_CONE_COLLAR_HEIGHT;
         collarVertex->vz                   = (u16)unitCorners[cornerIndex].axis1Sign * depthHalfExtent;
-        HYPERVELOCITY_ROTATE_CONE_VERTEX(&scratch->vertices[cornerIndex + HYPERVELOCITY_DISCHARGE_CONE_SQUARE_VERTEX_COUNT]);
+        HYPERVELOCITY_ROTATE_CONE_VERTEX(worldRotation, &scratch->vertices[cornerIndex + HYPERVELOCITY_DISCHARGE_CONE_SQUARE_VERTEX_COUNT]);
         collarVertex->vx += (u16)coord->workm.t[0];
         cornerIndex++;
         collarVertex->vy += (u16)coord->workm.t[1];

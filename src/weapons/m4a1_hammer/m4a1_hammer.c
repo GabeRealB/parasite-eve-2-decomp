@@ -59,28 +59,27 @@ static SVECTOR _gM4a1HammerAttachmentOrigin;
 /// Attachment glow origin in weapon-local integer coordinates.
 static SVECTOR _gM4a1HammerGlowLocalOffset = { 0, 0x280, 0x20, 0 };
 
-/// Converts a charged spark's local offset into a beam endpoint in place.
+/// Rotates a charged spark offset and adds the cached attachment origin in place.
 ///
-/// `glowCoord` points to a cached graphics coordinate with Q12 rotation.
-/// `sparkPosition` is a word-aligned, readable full `SVECTOR` lvalue with writable
-/// xyz in signed game-coordinate units. `attachmentOrigin` is a readable `SVECTOR`
-/// lvalue in composition-root space, published before this update's composition.
-/// Rotation saturates to -32768..32767; adding the origin wraps each component
-/// to 16 bits. The result is in composition-root space (`GsWSMATRIX` input).
-/// `glowCoord` is evaluated once; both vector arguments are evaluated repeatedly
-/// and must have no side effects. The writable vector must not overlap either
-/// input. Its fourth halfword is read but unchanged. Captures no caller identifiers.
-/// Overwrites GTE RT, V0, MAC1..3, IR1..3 and FLAG; translation registers are unchanged.
-/// Expands to several statements; invoke only within a braced block. Defined only
-/// around the glow task and undefined after it; no carrier configuration is needed.
+/// `glowCoord` borrows a composed GfxCoord with Q12 rotation. `sparkPosition`
+/// points to a writable word-aligned SVECTOR in local game-coordinate units;
+/// `attachmentOrigin` borrows a disjoint const SVECTOR in composition-root space.
+/// Rotation saturates XYZ to signed 16 bits; origin addition then wraps to
+/// 16 bits. The origin is the cache published before this update's composition.
+/// The result is a beam endpoint in GsWSMATRIX input space. The position's fourth
+/// halfword is loaded but unchanged. Changes GTE rotation, V0, MAC/IR and FLAG;
+/// translation registers stay unchanged. Inputs are borrowed only for this call.
+/// The coordinate argument is evaluated once; the vector pointers repeat and
+/// must have no side effects. Captures no caller locals. Expands to seven
+/// statements; invoke only inside a braced control body.
 #define M4A1_HAMMER_COMPOSE_SPARK_POSITION(glowCoord, sparkPosition, attachmentOrigin) \
     gte_SetRotMatrix(&(glowCoord)->workm);                                             \
-    gte_ldv0(&(sparkPosition));                                                        \
+    gte_ldv0((sparkPosition));                                                         \
     gte_rtv0();                                                                        \
-    gte_stsv(&(sparkPosition));                                                        \
-    (sparkPosition).vx = (sparkPosition).vx + (u16)(attachmentOrigin).vx;              \
-    (sparkPosition).vy = (sparkPosition).vy + (u16)(attachmentOrigin).vy;              \
-    (sparkPosition).vz = (sparkPosition).vz + (u16)(attachmentOrigin).vz
+    gte_stsv((sparkPosition));                                                         \
+    (sparkPosition)->vx = (sparkPosition)->vx + (u16)(attachmentOrigin)->vx;           \
+    (sparkPosition)->vy = (sparkPosition)->vy + (u16)(attachmentOrigin)->vy;           \
+    (sparkPosition)->vz = (sparkPosition)->vz + (u16)(attachmentOrigin)->vz
 
 void m4a1HammerGlowTask(Task* task)
 {
@@ -207,7 +206,7 @@ void m4a1HammerGlowTask(Task* task)
                                 work->pos.vz =
                                     (_gM4a1HammerSparkState[sparkIndex + M4A1_HAMMER_SPARK_RADIUS_BASE] * rcos(_gM4a1HammerSparkState[sparkIndex])) >> M4A1_HAMMER_TRIG_SHIFT;
                                 work->pos.vy = _gM4a1HammerSparkState[heightIndex];
-                                M4A1_HAMMER_COMPOSE_SPARK_POSITION(glowCoord, work->pos, _gM4a1HammerAttachmentOrigin);
+                                M4A1_HAMMER_COMPOSE_SPARK_POSITION(glowCoord, &work->pos, &_gM4a1HammerAttachmentOrigin);
                                 _beamStripDraw(glowCoord, &work->pos, work->age, M4A1_HAMMER_BEAM_WIDTH_SCALE);
                             }
                         }

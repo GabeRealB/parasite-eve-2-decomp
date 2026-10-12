@@ -23,9 +23,22 @@
 
 #include "weapons/weapon.h"
 
-/// Weapon indices selecting this source's held model and player animation bank.
+/// One-based weapon index 4 (item 0x83), selecting the ordinary P08 build.
+///
+/// Integer preprocessor constant for `WEAPON_INDEX` tests. Uses the P08 held
+/// model and player animation bank; firing selects this index's sound bank.
 #define P08_WEAPON_INDEX_STANDARD 0x4
-#define P08_WEAPON_INDEX_SNAIL    0x1
+
+/// One-based weapon index 1 (item 0x80), selecting the snail-magazine P08 build.
+///
+/// Integer preprocessor constant for `WEAPON_INDEX` tests. Carries its own
+/// held-model record and the ordinary P08's player animation bank.
+#define P08_WEAPON_INDEX_SNAIL 0x1
+
+/// One-based weapon index 9 (item 0x88), selecting the Mongoose build.
+///
+/// Integer preprocessor constant for `WEAPON_INDEX` tests. Selects the Mongoose
+/// held model, player animation bank and firing sound bank.
 #define P08_WEAPON_INDEX_MONGOOSE 0x9
 
 /// Muzzle-offset and flash profiles passed to the gameplay flash controllers.
