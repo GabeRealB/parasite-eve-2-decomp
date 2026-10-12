@@ -46,11 +46,6 @@
 #include "../../shared/actor_motion.h"
 #include "../../shared/actor_messages.h"
 
-/// Frames the yellow-flash attack charges before its sphere is switched on.
-#define ACTOR_503500_YELLOW_FLASH_ATTACK_CHARGE_FRAMES 95
-/// Frames the yellow-flash attack's sphere stays switched on.
-#define ACTOR_503500_YELLOW_FLASH_ATTACK_STRIKE_FRAMES 4
-
 /// Values of `_Actor503500YellowFlashAttackWork::phase`.
 enum {
     ACTOR_503500_YELLOW_FLASH_ATTACK_CHARGE,   // Counting the charge; the sphere is off
@@ -76,29 +71,10 @@ typedef struct {
 } _Actor503500YellowFlashAttackWork;
 STATIC_ASSERT_SIZEOF(_Actor503500YellowFlashAttackWork, 0x44);
 
-/// Frames the pink-flash attack charges before the first of its two capsules
-/// is switched on.
-#define ACTOR_503500_PINK_FLASH_ATTACK_CHARGE_FRAMES 31
-/// Frames the pink-flash attack then holds straight ahead before it sweeps;
-/// the second capsule is switched on when they end.
-#define ACTOR_503500_PINK_FLASH_ATTACK_HOLD_FRAMES 21
-/// Change of `_Actor503500PinkFlashAttackWork::sweepAngularVelocity` per frame
-/// of the sweep: two angle units, in 16.16.
-#define ACTOR_503500_PINK_FLASH_ATTACK_SWEEP_ACCELERATION 0x20000
-/// Sweep angle past which the pink-flash attack's capsule stops speeding up
-/// and slows down again (4096 to the turn, so 22.5 degrees). It is passed at
-/// 272 and the slowing adds 240, so a sweep ends at 512: 45 degrees.
-#define ACTOR_503500_PINK_FLASH_ATTACK_SWEEP_TURNOVER_ANGLE 0x100
-/// Radii of the pink-flash attack's capsule at its far end and at its origin
-/// while `_Actor503500PinkFlashAttackWork::radiusScale` is `ONE`.
-#define ACTOR_503500_PINK_FLASH_ATTACK_FAR_RADIUS  3000
-#define ACTOR_503500_PINK_FLASH_ATTACK_NEAR_RADIUS 1000
-/// Amount `_Actor503500PinkFlashAttackWork::radiusScale` loses each frame from
-/// the sweep on, the value it stops at, and the value at or below which the
-/// capsule is switched off.
-#define ACTOR_503500_PINK_FLASH_ATTACK_RADIUS_SCALE_STEP 0x50
-#define ACTOR_503500_PINK_FLASH_ATTACK_RADIUS_SCALE_MIN  (ONE / 8)
-#define ACTOR_503500_PINK_FLASH_ATTACK_RADIUS_SCALE_OFF  (ONE / 4)
+/// Pink capsule radius at its origin, in game-coordinate units, at full Q12 scale.
+///
+/// Used both at initialization and as the near-end base during shrinking.
+enum { ACTOR_503500_PINK_FLASH_ATTACK_NEAR_RADIUS = 1000 };
 
 /// Values of `_Actor503500PinkFlashAttackWork::phase`.
 enum {
@@ -138,14 +114,6 @@ STATIC_ASSERT_SIZEOF(_Actor503500PinkFlashAttackWork, 0xD0);
 
 /// Sound selector in SOUND_BANK_BRAHMAN used while the pink capsules sweep.
 enum { ACTOR_503500_PINK_FLASH_ATTACK_SWEEP_SOUND = 0x0B };
-
-/// Frames the orange-flash attack charges before its capsule is switched on.
-#define ACTOR_503500_ORANGE_FLASH_ATTACK_CHARGE_FRAMES 91
-/// Frames the orange-flash attack's capsule stays switched on, unless it
-/// touches the player first.
-#define ACTOR_503500_ORANGE_FLASH_ATTACK_STRIKE_FRAMES 56
-/// Frames the orange-flash attack task outlives its strike by.
-#define ACTOR_503500_ORANGE_FLASH_ATTACK_LINGER_FRAMES 36
 
 /// Values of `_Actor503500OrangeFlashAttackWork::phase`.
 enum {
@@ -187,20 +155,6 @@ enum {
     ACTOR_503500_ACTOR_361100_MODEL_06038_COLLAPSE_STEP_WAIT,   // Holds the model at full height
     ACTOR_503500_ACTOR_361100_MODEL_06038_COLLAPSE_STEP_SQUASH, // Rebuilds the root rotation squashed every frame and fires the cues
 };
-
-/// Frames the collapse holds the model at full height before squashing it.
-#define ACTOR_503500_ACTOR_361100_MODEL_06038_COLLAPSE_WAIT_FRAMES 31
-/// Amount `_Actor503500Actor361100Model06038Work::collapseScaleY` loses each
-/// frame of the squash, and the value it stops at.
-#define ACTOR_503500_ACTOR_361100_MODEL_06038_COLLAPSE_SCALE_STEP 0x10
-#define ACTOR_503500_ACTOR_361100_MODEL_06038_COLLAPSE_SCALE_MIN  (ONE / 8)
-/// Frames of the squash at which the model turns semi-transparent under
-/// weighted lighting, the corpse-burn effect is spawned on it, its lighting
-/// goes black, and the task moves on to its exit state.
-#define ACTOR_503500_ACTOR_361100_MODEL_06038_COLLAPSE_FADE_FRAME  20
-#define ACTOR_503500_ACTOR_361100_MODEL_06038_COLLAPSE_BURN_FRAME  30
-#define ACTOR_503500_ACTOR_361100_MODEL_06038_COLLAPSE_BLACK_FRAME 100
-#define ACTOR_503500_ACTOR_361100_MODEL_06038_COLLAPSE_EXIT_FRAME  150
 
 /// Work block of the actor drawn with `_gActor503500Actor361100Model06038`,
 /// the nineteen-part model this package shares with actor_361100.
@@ -768,11 +722,18 @@ static s16 _gActor503500BossBodyCollisionGridCells[10] = {
 #include "assets/actor_503500_collision_3D21C_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gActor503500BossBodyCollisionGridCells[i])
+/// Resolves a halfword offset into the boss-body grid's packed face-list pool.
+///
+/// Returns an s16* to a list of face indices ending in -1. The generated table
+/// supplies list starts 0 and 6 within the ten-halfword pool. Evaluates
+/// `halfwordOffset` once and captures the private pool. The collisionSource's
+/// `cell_face_list_macro` binding selects this name for the included initializer;
+/// the binding is undefined after the table.
+#define ACTOR_503500_BOSS_BODY_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gActor503500BossBodyCollisionGridCells[(halfwordOffset)])
 static s16* _gActor503500BossBodyCollisionGridTable[2] = {
 #include "assets/actor_503500_collision_3D21C_table.inc"
 };
-#undef GRID_CELL
+#undef ACTOR_503500_BOSS_BODY_CELL_FACE_LIST_AT_OFFSET
 
 WorldCollisionGrid gActor503500BossBodyCollisionGrid = { NULL, _gActor503500BossBodyCollisionGridNormals, _gActor503500BossBodyCollisionGridVerts, _gActor503500BossBodyCollisionGridFaces, _gActor503500BossBodyCollisionGridTable, 2393, 1502, 2, 1, 4000, ARRAY_SIZE(_gActor503500BossBodyCollisionGridFaces) };
 
@@ -1495,8 +1456,32 @@ static inline void _actor503500PinkFlashAttackAdvanceSweep(_Actor503500PinkFlash
 /// advances the task to its exit state without freeing it here.
 static void _actor503500PinkFlashAttackUpdatePhase(Task* task)
 {
-    // Dividing the base radii by eight leaves nine fractional scale bits.
-    enum { ACTOR_503500_PINK_FLASH_ATTACK_RADIUS_FRACTION_BITS = 9 };
+    enum {
+        /// Updating ticks before the negative-sweep capsule can begin pair testing.
+        ACTOR_503500_PINK_FLASH_ATTACK_CHARGE_FRAMES = 31,
+        /// Updating ticks held straight before sweeping and enabling the positive capsule.
+        ACTOR_503500_PINK_FLASH_ATTACK_HOLD_FRAMES = 21,
+        /// Angular acceleration magnitude in 16.16 angle units per squared updating tick.
+        ///
+        /// Two whole units per squared tick, with 4096 whole units per turn;
+        /// the task's sweep side determines its sign.
+        ACTOR_503500_PINK_FLASH_ATTACK_SWEEP_ACCELERATION = 0x20000,
+        /// Exclusive absolute sweep-angle threshold for deceleration, in 4096 units per turn.
+        ACTOR_503500_PINK_FLASH_ATTACK_SWEEP_TURNOVER_ANGLE = 0x100,
+        /// Far-end radius in game units at full Q12 scale during shrinking (initially 2000).
+        ACTOR_503500_PINK_FLASH_ATTACK_FAR_RADIUS = 3000,
+        /// Q12 radius-scale decrement per update from entry into the sweep through exit.
+        ACTOR_503500_PINK_FLASH_ATTACK_RADIUS_SCALE_STEP = 0x50,
+        /// Q12 lower clamp for shrinking radii; normal task completion precedes this floor.
+        ACTOR_503500_PINK_FLASH_ATTACK_RADIUS_SCALE_MIN = ONE / 8,
+        /// Q12 scale at or below which the fade phase disables capsule pair testing.
+        ///
+        /// Tested before that update's decrement; earlier player contact can
+        /// already have disabled testing.
+        ACTOR_503500_PINK_FLASH_ATTACK_RADIUS_SCALE_DISABLE_THRESHOLD = ONE / 4,
+        // Dividing the base radii by eight leaves nine fractional scale bits.
+        ACTOR_503500_PINK_FLASH_ATTACK_RADIUS_FRACTION_BITS = 9,
+    };
     _Actor503500PinkFlashAttackWork* work;
     WorldCollisionCapsule*           capsule;
     GfxCoord*                        coord;
@@ -1561,7 +1546,7 @@ static void _actor503500PinkFlashAttackUpdatePhase(Task* task)
             _actor503500PinkFlashAttackAdvanceSweep(work);
             break;
         case ACTOR_503500_PINK_FLASH_ATTACK_FADE:
-            if (work->radiusScale <= ACTOR_503500_PINK_FLASH_ATTACK_RADIUS_SCALE_OFF) {
+            if (work->radiusScale <= ACTOR_503500_PINK_FLASH_ATTACK_RADIUS_SCALE_DISABLE_THRESHOLD) {
                 work->body.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                 work->phase++;
             }
@@ -1757,6 +1742,12 @@ static inline void _actor503500YellowFlashAttackPlayCue(Task* task, s32 soundId)
 static void _actor503500YellowFlashAttackUpdatePhase(Task* task)
 {
     enum {
+        /// Updating ticks of charge before testing the player's height to enable the sphere.
+        ACTOR_503500_YELLOW_FLASH_ATTACK_CHARGE_FRAMES = 95,
+        /// Updating ticks of the strike phase before disabling the height-gated sphere.
+        ///
+        /// A boss interruption can end the attack sooner.
+        ACTOR_503500_YELLOW_FLASH_ATTACK_STRIKE_FRAMES    = 4,
         ACTOR_503500_YELLOW_FLASH_ATTACK_FIRST_CUE_FRAME  = 62,
         ACTOR_503500_YELLOW_FLASH_ATTACK_SECOND_CUE_FRAME = 90,
         ACTOR_503500_YELLOW_FLASH_ATTACK_FIRST_CUE_SOUND  = 0x14,
@@ -1970,6 +1961,17 @@ static void _actor503500OrangeFlashAttackInit(Task* task)
 static void _actor503500OrangeFlashAttackUpdatePhase(Task* task)
 {
     enum {
+        /// Updating ticks of charge before enabling the capsule outside scripted events.
+        ACTOR_503500_ORANGE_FLASH_ATTACK_CHARGE_FRAMES = 91,
+        /// Updating ticks of the strike phase before disabling the capsule and its sound.
+        ///
+        /// Player contact can disable pair testing sooner; scripted events
+        /// suppress activation altogether.
+        ACTOR_503500_ORANGE_FLASH_ATTACK_STRIKE_FRAMES = 56,
+        /// Updating ticks after the strike before advancing the task to its exit state.
+        ///
+        /// A boss interruption can end the task before this count completes.
+        ACTOR_503500_ORANGE_FLASH_ATTACK_LINGER_FRAMES          = 36,
         ACTOR_503500_ORANGE_FLASH_ATTACK_CHARGE_MOTOR_INTENSITY = 150,
         ACTOR_503500_ORANGE_FLASH_ATTACK_STRIKE_MOTOR_INTENSITY = 255,
         ACTOR_503500_ORANGE_FLASH_ATTACK_STRIKE_SOUND           = 0x0F,
@@ -2180,28 +2182,55 @@ static void _actor503500TickTentacle(Task* task)
 /// lighting; tick 150 advances to exit. Translation is left to the frame tick.
 static void _actor503500CollapseTentacle(Task* task)
 {
-    enum { ACTOR_503500_TENTACLE_CORPSE_BURN_BURSTS = 2 };
+    enum {
+        /// Updating ticks at full height after saving the rotation, before squashing begins.
+        ACTOR_503500_TENTACLE_COLLAPSE_WAIT_FRAMES = 31,
+        /// Q12 Y-scale decrement per squash update, applied to the saved root rotation.
+        ACTOR_503500_TENTACLE_COLLAPSE_SCALE_STEP = 0x10,
+        /// Q12 Y scale at or below which squash updates stop decrementing it.
+        ///
+        /// The exit cue at squash tick 150 sees scale 1696, above this guard.
+        ACTOR_503500_TENTACLE_COLLAPSE_SCALE_MIN = ONE / 8,
+        /// One-based squash tick enabling translucency and selecting weighted actor colour.
+        ACTOR_503500_TENTACLE_COLLAPSE_FADE_FRAME = 20,
+        /// One-based squash tick spawning the corpse-burn effect on the tentacle root.
+        ACTOR_503500_TENTACLE_COLLAPSE_BURN_FRAME = 30,
+        /// One-based squash tick selecting the black actor colour mode.
+        ACTOR_503500_TENTACLE_COLLAPSE_BLACK_FRAME = 100,
+        /// One-based squash tick advancing the task to its exit state.
+        ACTOR_503500_TENTACLE_COLLAPSE_EXIT_FRAME = 150,
+        ACTOR_503500_TENTACLE_CORPSE_BURN_BURSTS  = 2,
+    };
     VECTOR                                 scale;
     GfxCoord*                              coord;
     _Actor503500Actor361100Model06038Work* work;
     TmdObject*                             model;
     Enemy*                                 enemy;
-    const s32*                             sourceWords;
-    s32*                                   destinationWords;
-    s32                                    wordIndex;
 
-    /// Copies exactly nine rotation halfwords, preserving translation and alignment bytes.
+    /// Copies the tentacle's nine Q12 rotation coefficients, preserving translation.
     ///
-    /// Arguments must be word-aligned MATRIX::m arrays with no side effects;
-    /// each is evaluated twice. Captures sourceWords, destinationWords and
-    /// wordIndex. Expands to multiple statements; invoke within a braced block.
-#define ACTOR_503500_TENTACLE_COPY_ROTATION(destinationRotation, sourceRotation)                              \
-    destinationWords = (s32*)(destinationRotation);                                                           \
-    sourceWords      = (const s32*)(sourceRotation);                                                          \
-    for (wordIndex = 0; wordIndex < (s32)(sizeof(destinationRotation) / sizeof(*sourceWords)); wordIndex++) { \
-        *destinationWords++ = *sourceWords++;                                                                 \
-    }                                                                                                         \
-    (destinationRotation)[2][2] = (sourceRotation)[2][2];
+    /// Arguments must be complete, word-aligned MATRIX::m arrays in live,
+    /// disjoint matrices, with a writable destination and no side effects.
+    /// Each is evaluated twice; sizeof also inspects the destination's array
+    /// extent without evaluating it. Transfers four words and a final halfword,
+    /// leaving the alignment bytes before translation untouched. The word casts
+    /// are packed transfer views of SDK halfwords. Expands to a braced statement
+    /// block with its own temporaries, captures no caller locals, and retains no
+    /// pointer. The caller manages any containing coordinate's composition stamp.
+    /// Arguments must not refer to destinationWords, sourceWords or wordIndex.
+    /// Invoke only as a standalone statement within a braced block.
+#define ACTOR_503500_TENTACLE_COPY_ROTATION(destinationRotation, sourceRotation)                                  \
+    {                                                                                                             \
+        s32*       destinationWords;                                                                              \
+        const s32* sourceWords;                                                                                   \
+        s32        wordIndex;                                                                                     \
+        destinationWords = (s32*)(destinationRotation);                                                           \
+        sourceWords      = (const s32*)(sourceRotation);                                                          \
+        for (wordIndex = 0; wordIndex < (s32)(sizeof(destinationRotation) / sizeof(*sourceWords)); wordIndex++) { \
+            *destinationWords++ = *sourceWords++;                                                                 \
+        }                                                                                                         \
+        (destinationRotation)[2][2] = (sourceRotation)[2][2];                                                     \
+    }
 
     coord = task->extra.tmd->coords;
     work  = task->work;
@@ -2217,14 +2246,14 @@ static void _actor503500CollapseTentacle(Task* task)
             break;
         case ACTOR_503500_ACTOR_361100_MODEL_06038_COLLAPSE_STEP_WAIT:
             work->motionStepFrames++;
-            if (work->motionStepFrames >= ACTOR_503500_ACTOR_361100_MODEL_06038_COLLAPSE_WAIT_FRAMES) {
+            if (work->motionStepFrames >= ACTOR_503500_TENTACLE_COLLAPSE_WAIT_FRAMES) {
                 work->motionStepFrames = 0;
                 work->motionStep++;
             }
             break;
         case ACTOR_503500_ACTOR_361100_MODEL_06038_COLLAPSE_STEP_SQUASH:
-            if (work->collapseScaleY > ACTOR_503500_ACTOR_361100_MODEL_06038_COLLAPSE_SCALE_MIN) {
-                work->collapseScaleY -= ACTOR_503500_ACTOR_361100_MODEL_06038_COLLAPSE_SCALE_STEP;
+            if (work->collapseScaleY > ACTOR_503500_TENTACLE_COLLAPSE_SCALE_MIN) {
+                work->collapseScaleY -= ACTOR_503500_TENTACLE_COLLAPSE_SCALE_STEP;
             }
             // Scaling compounds, so each frame starts again from the saved rotation.
             ACTOR_503500_TENTACLE_COPY_ROTATION(coord->coord.m, work->unscaledRotation.m);
@@ -2235,17 +2264,17 @@ static void _actor503500CollapseTentacle(Task* task)
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
             work->motionStepFrames++;
             switch (work->motionStepFrames) {
-                case ACTOR_503500_ACTOR_361100_MODEL_06038_COLLAPSE_FADE_FRAME:
+                case ACTOR_503500_TENTACLE_COLLAPSE_FADE_FRAME:
                     model->flags |= TMD_OBJECT_SEMI_TRANS;
                     worldCoordSetActorColorMode(enemy, ENEMY_COLOR_WEIGHTED);
                     break;
-                case ACTOR_503500_ACTOR_361100_MODEL_06038_COLLAPSE_BURN_FRAME:
+                case ACTOR_503500_TENTACLE_COLLAPSE_BURN_FRAME:
                     effectSpawn(EFFECT_CORPSE_BURN, coord, ACTOR_503500_TENTACLE_CORPSE_BURN_BURSTS, NULL);
                     break;
-                case ACTOR_503500_ACTOR_361100_MODEL_06038_COLLAPSE_BLACK_FRAME:
+                case ACTOR_503500_TENTACLE_COLLAPSE_BLACK_FRAME:
                     worldCoordSetActorColorMode(enemy, ENEMY_COLOR_BLACK);
                     break;
-                case ACTOR_503500_ACTOR_361100_MODEL_06038_COLLAPSE_EXIT_FRAME:
+                case ACTOR_503500_TENTACLE_COLLAPSE_EXIT_FRAME:
                     task->state++;
                     break;
             }
