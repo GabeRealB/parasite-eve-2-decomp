@@ -102,6 +102,7 @@ import socket
 import struct
 import subprocess
 import sys
+import time
 import tomllib
 from bisect import bisect_right
 from pathlib import Path
@@ -1095,6 +1096,10 @@ class Session:
         self.session_name = self.awaiting = ""          # awaiting: the name of a session just dropped, until the next begins
         self.drains: set[int] = set()
         self.shared: Shared | None = None
+        self.waiting = None                           # (where, since when, the event): the reader is held at a handler's record until the game stops
+        self.bad_cursor = None
+        self.late_stops = 0
+        self.before_stop = 0
         self.read_at = 0                              # how far into the buffer the log has got
         self.sites = sites_of(cfg)
         self.code, self.symbols, _ = assemble(cfg, self.sites)
@@ -1203,14 +1208,14 @@ class Session:
             elif self.ready:
                 self.resident(rest)
         elif word in ("drain", "d"):
-            before = self.count
+            before = self.before_stop                 # stopping for the command already read the buffer: count from before that
             if self.ready:
                 self.drain(reset=True)
             say(f"{self.count - before} records read")
         elif word == "status":
             placed = sum(struct.unpack("<2I", self.gdb.read(address, 8)) == (0x08000000 | ((stub >> 2) & 0x03FFFFFF), 0) for address, _o, stub in self.hooks) if self.ready else 0
             say(f"session {self.session_number}: {self.session_name} - {self.count - self.session_count} records in it, {self.count} in all; "
-                f"{placed} of {len(self.hooks)} hooks in place; {'stopped until the next session begins' if self.awaiting else 'paused' if self.paused else 'running'}" + ("" if self.ready else "; waiting for an install_at address"))
+                f"{placed} of {len(self.hooks)} hooks in place; {'stopped until the next session begins' if self.awaiting else 'paused' if self.paused else 'running'}" + (self.reader_state() if self.ready else "; waiting for an install_at address"))
         elif word in ("quit", "q", "detach", "exit"):
             raise KeyboardInterrupt
         elif word in ("help", "h", "?"):
@@ -1423,6 +1428,9 @@ class Session:
                 break
             cursor = again
         if not start <= cursor <= self.symbols["gt_end"] or (cursor - start) % 4:
+            if cursor != self.bad_cursor:             # said once per value: nothing can be read while it lasts
+                self.bad_cursor = cursor
+                print(f"the buffer's cursor reads {cursor:#010x}, which is not a place in the buffer ({start:#010x}..{self.symbols['gt_end']:#010x}); nothing is read until it is", file=sys.stderr)
             return
         if cursor < self.read_at:                     # the game started the buffer again since the last look
             self.read_at = start
@@ -1439,6 +1447,8 @@ class Session:
                 # may depend on what it does; the game stops at the end of this event's hook in a moment, and
                 # the rest is read then.
                 cursor = self.read_at + at
+                if self.waiting is None or self.waiting[0] != cursor:
+                    self.waiting = (cursor, time.monotonic(), event["name"])
                 break
             record, field = {"id": event["id"], "name": event["name"], "phase": phase}, at + 4
             for c in captures:
@@ -1446,6 +1456,7 @@ class Session:
                 field += c["size"]
             self.log(event, record)
             at = field
+            self.waiting = None
         self.out.flush()
         self.read_at = cursor
         # Starting the buffer again is only done where no stub is part-way through a record: a stub holds its own
@@ -1455,6 +1466,15 @@ class Session:
             if cursor != start:
                 self.gdb.write(self.symbols["gt_cursor"], struct.pack("<I", start))
             self.read_at = start
+
+    def reader_state(self) -> str:
+        """Where the log stands against the buffer, for `status`: how much is unread, what is held back and why."""
+        cursor = struct.unpack("<I", self.peek(self.symbols["gt_cursor"], 4))[0]
+        held = sum(len(getattr(step, "held", ())) + getattr(step, "times", 0) * len(getattr(step, "pattern", ())) for step in self.filters)
+        return (f"\n  buffer: read to {self.read_at:#010x}, written to {cursor:#010x} ({max(cursor - self.read_at, 0)} bytes unread) of {self.symbols['gt_buffer']:#010x}..{self.symbols['gt_end']:#010x}"
+                + (f"; held at a {self.waiting[2]} record for its stop" if self.waiting else "")
+                + (f"\n  {held} repeated lines counted and not written (the repeats filter writes them as one line when the run ends)" if held else "")
+                + (f"\n  {self.late_stops} stops that did not come by themselves" if self.late_stops else ""))
 
     def between_records(self) -> bool:
         """Whether the stopped game is outside the stubs, or at one of the places in them where the record is done."""
@@ -1535,6 +1555,16 @@ class Session:
                     continue
                 if what == "tick":                    # shared memory: bring the log up to date as the game runs
                     self.drain(reset=False)
+                    # The reader holds at a handler's record until the game stops at the end of that event's
+                    # hook, which is a matter of microseconds. If the stop has not come, it is not coming -
+                    # and everything after the record would wait for the next stop of any kind. Stop the game
+                    # here instead: the handler then runs a little late, which is better than not at all.
+                    if self.waiting and time.monotonic() - self.waiting[1] > 1.0:
+                        print(f"no stop came for {self.waiting[2]} (record at {self.waiting[0]:#010x}); stopping the game to carry on from it", file=sys.stderr)
+                        self.late_stops += 1
+                        self.gdb.interrupt()
+                        self.running = False
+                        pc = self.stopped()
                     continue
             elif keyboard:
                 select.select(keyboard, [], [])
@@ -1548,6 +1578,7 @@ class Session:
                 continue
             if not line.strip():
                 continue
+            self.before_stop = self.count
             if self.running:                          # a command is carried out with the game stopped
                 self.gdb.interrupt()
                 self.running = False
