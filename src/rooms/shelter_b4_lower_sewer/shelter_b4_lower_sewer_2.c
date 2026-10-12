@@ -197,12 +197,19 @@ static s16 _gShelterB4LowerSewerCollisionGridCells[] = {
 #include "assets/shelter_b4_lower_sewer_collision_05324_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gShelterB4LowerSewerCollisionGridCells[i])
+/// Supplies a cell face-list address for the generated collision table.
+///
+/// Captures `_gShelterB4LowerSewerCollisionGridCells`.
+/// `halfwordOffset` is evaluated once and must be a constant in 0..261
+/// selecting a list start in `s16` elements. Returns a borrowed `s16*`
+/// valid while this room is loaded; lists end at `WORLD_COLLISION_GRID_CELL_END`.
+/// The producer selects this binding through `cell_face_list_macro`.
+#define SHELTER_B4_LOWER_SEWER_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gShelterB4LowerSewerCollisionGridCells[(halfwordOffset)])
 /// X-major face-list starts for eight X cells and two Z cells.
 static s16* _gShelterB4LowerSewerCollisionGridTable[] = {
 #include "assets/shelter_b4_lower_sewer_collision_05324_table.inc"
 };
-#undef GRID_CELL
+#undef SHELTER_B4_LOWER_SEWER_CELL_FACE_LIST_AT_OFFSET
 
 WorldCollisionGrid gShelterB4LowerSewerCollisionGrid = {
     .viewCoord   = NULL,

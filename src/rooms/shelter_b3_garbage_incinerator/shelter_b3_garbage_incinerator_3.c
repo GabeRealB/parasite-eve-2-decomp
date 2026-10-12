@@ -260,12 +260,19 @@ static s16 _gShelterB3GarbageIncineratorCollisionGridCells[604] = {
 #include "assets/shelter_b3_garbage_incinerator_collision_0ADC8_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gShelterB3GarbageIncineratorCollisionGridCells[i])
+/// Supplies a cell face-list address for the generated collision table.
+///
+/// Captures `_gShelterB3GarbageIncineratorCollisionGridCells`.
+/// `halfwordOffset` is evaluated once and must be a constant in 0..603
+/// selecting a list start in `s16` elements. Returns a borrowed `s16*`
+/// valid while this room is loaded; lists end at `WORLD_COLLISION_GRID_CELL_END`.
+/// The producer selects this binding through `cell_face_list_macro`.
+#define SHELTER_B3_GARBAGE_INCINERATOR_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gShelterB3GarbageIncineratorCollisionGridCells[(halfwordOffset)])
 /// X-major cell pointers into the face-index pool for the 5 by 7 grid.
 static s16* _gShelterB3GarbageIncineratorCollisionGridTable[35] = {
 #include "assets/shelter_b3_garbage_incinerator_collision_0ADC8_table.inc"
 };
-#undef GRID_CELL
+#undef SHELTER_B3_GARBAGE_INCINERATOR_CELL_FACE_LIST_AT_OFFSET
 
 WorldCollisionGrid gShelterB3GarbageIncineratorCollisionGrid = {
     .viewCoord   = NULL,

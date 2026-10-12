@@ -271,13 +271,19 @@ enum {
     SHELTER_B2_OPERATING_ROOM_COLLISION_GRID_CELL_SIZE    = 4000,
 };
 
-// The generated include supplies halfword indices into this grid's cell lists.
-#define GRID_CELL(i) (&_gShelterB2OperatingRoomCollisionGridCells[i])
+/// Supplies a cell face-list address for the generated collision table.
+///
+/// Captures `_gShelterB2OperatingRoomCollisionGridCells`.
+/// `halfwordOffset` is evaluated once and must be a constant in 0..149
+/// selecting a list start in `s16` elements. Returns a borrowed `s16*`
+/// valid while this room is loaded; lists end at `WORLD_COLLISION_GRID_CELL_END`.
+/// The producer selects this binding through `cell_face_list_macro`.
+#define SHELTER_B2_OPERATING_ROOM_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gShelterB2OperatingRoomCollisionGridCells[(halfwordOffset)])
 /// X-major collision-cell directory, indexed by x * cellCountZ + z.
 static s16* _gShelterB2OperatingRoomCollisionGridTable[SHELTER_B2_OPERATING_ROOM_COLLISION_GRID_CELL_COUNT_X * SHELTER_B2_OPERATING_ROOM_COLLISION_GRID_CELL_COUNT_Z] = {
 #include "assets/shelter_b2_operating_room_collision_03DA4_table.inc"
 };
-#undef GRID_CELL
+#undef SHELTER_B2_OPERATING_ROOM_CELL_FACE_LIST_AT_OFFSET
 
 WorldCollisionGrid gShelterB2OperatingRoomCollisionGrid = {
     .viewCoord   = NULL,

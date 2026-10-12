@@ -91,12 +91,19 @@ static s16 _gShelterB6GrowthRoomCollisionBoxTemplateCells[6] = {
 #include "assets/shelter_b6_growth_room_collision_01C74_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gShelterB6GrowthRoomCollisionBoxTemplateCells[i])
+/// Supplies a cell face-list address for the generated collision table.
+///
+/// Captures `_gShelterB6GrowthRoomCollisionBoxTemplateCells`.
+/// `halfwordOffset` is evaluated once and must be a constant in 0..5
+/// selecting a list start in `s16` elements. Returns a borrowed `s16*`
+/// valid while this room is loaded; lists end at `WORLD_COLLISION_GRID_CELL_END`.
+/// The producer selects this binding through `cell_face_list_macro`.
+#define SHELTER_B6_GROWTH_ROOM_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gShelterB6GrowthRoomCollisionBoxTemplateCells[(halfwordOffset)])
 /// The template's sole cell; retained although box resets do not read cell indices.
 static s16* _gShelterB6GrowthRoomCollisionBoxTemplateTable[1] = {
 #include "assets/shelter_b6_growth_room_collision_01C74_table.inc"
 };
-#undef GRID_CELL
+#undef SHELTER_B6_GROWTH_ROOM_CELL_FACE_LIST_AT_OFFSET
 
 /// Authored box geometry used to reset the leading faces of the live room grid.
 ///
@@ -215,13 +222,19 @@ static s16 _gShelterB6GrowthRoomCollisionGridCells[208] = {
 #include "assets/shelter_b6_growth_room_collision_02530_cells.inc"
 };
 
-// The generated table supplies element offsets into this room's cell-list pool.
-#define GRID_CELL(i) (&_gShelterB6GrowthRoomCollisionGridCells[i])
+/// Supplies a cell face-list address for the generated collision table.
+///
+/// Captures `_gShelterB6GrowthRoomCollisionGridCells`.
+/// `halfwordOffset` is evaluated once and must be a constant in 0..207
+/// selecting a list start in `s16` elements. Returns a borrowed `s16*`
+/// valid while this room is loaded; lists end at `WORLD_COLLISION_GRID_CELL_END`.
+/// The producer selects this binding through `cell_face_list_macro`.
+#define SHELTER_B6_GROWTH_ROOM_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gShelterB6GrowthRoomCollisionGridCells[(halfwordOffset)])
 /// Eight X-major cell-list pointers, four Z cells per X column.
 static s16* _gShelterB6GrowthRoomCollisionGridTable[8] = {
 #include "assets/shelter_b6_growth_room_collision_02530_table.inc"
 };
-#undef GRID_CELL
+#undef SHELTER_B6_GROWTH_ROOM_CELL_FACE_LIST_AT_OFFSET
 
 WorldCollisionGrid gShelterB6GrowthRoomCollisionGrid = {
     .viewCoord   = NULL,

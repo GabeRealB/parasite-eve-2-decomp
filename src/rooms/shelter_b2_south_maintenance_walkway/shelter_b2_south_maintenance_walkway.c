@@ -215,12 +215,19 @@ static s16 _gShelterB2SouthMaintenanceWalkwayCollisionGridCells[82] = {
 #include "assets/shelter_b2_south_maintenance_walkway_collision_05428_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gShelterB2SouthMaintenanceWalkwayCollisionGridCells[i])
+/// Supplies a cell face-list address for the generated collision table.
+///
+/// Captures `_gShelterB2SouthMaintenanceWalkwayCollisionGridCells`.
+/// `halfwordOffset` is evaluated once and must be a constant in 0..81
+/// selecting a list start in `s16` elements. Returns a borrowed `s16*`
+/// valid while this room is loaded; lists end at `WORLD_COLLISION_GRID_CELL_END`.
+/// The producer selects this binding through `cell_face_list_macro`.
+#define SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gShelterB2SouthMaintenanceWalkwayCollisionGridCells[(halfwordOffset)])
 /// X-major cell pointers, indexed as x * 3 + z for x in 0..1 and z in 0..2.
 static s16* _gShelterB2SouthMaintenanceWalkwayCollisionGridTable[6] = {
 #include "assets/shelter_b2_south_maintenance_walkway_collision_05428_table.inc"
 };
-#undef GRID_CELL
+#undef SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_CELL_FACE_LIST_AT_OFFSET
 
 WorldCollisionGrid gShelterB2SouthMaintenanceWalkwayCollisionGrid = {
     .viewCoord   = NULL,

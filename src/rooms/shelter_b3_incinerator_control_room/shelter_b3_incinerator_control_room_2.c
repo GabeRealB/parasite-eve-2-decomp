@@ -157,13 +157,19 @@ static s16 _gShelterB3IncineratorControlRoomCollisionGridCells[68] = {
 #include "assets/shelter_b3_incinerator_control_room_collision_04700_cells.inc"
 };
 
-// Asset initializer binding: a halfword element offset in the signed face-index pool.
-#define GRID_CELL(i) (&_gShelterB3IncineratorControlRoomCollisionGridCells[i])
+/// Supplies a cell face-list address for the generated collision table.
+///
+/// Captures `_gShelterB3IncineratorControlRoomCollisionGridCells`.
+/// `halfwordOffset` is evaluated once and must be a constant in 0..67
+/// selecting a list start in `s16` elements. Returns a borrowed `s16*`
+/// valid while this room is loaded; lists end at `WORLD_COLLISION_GRID_CELL_END`.
+/// The producer selects this binding through `cell_face_list_macro`.
+#define SHELTER_B3_INCINERATOR_CONTROL_ROOM_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gShelterB3IncineratorControlRoomCollisionGridCells[(halfwordOffset)])
 /// X-major 4-by-2 cell directory; NULL cells contain no faces.
 static s16* _gShelterB3IncineratorControlRoomCollisionGridTable[8] = {
 #include "assets/shelter_b3_incinerator_control_room_collision_04700_table.inc"
 };
-#undef GRID_CELL
+#undef SHELTER_B3_INCINERATOR_CONTROL_ROOM_CELL_FACE_LIST_AT_OFFSET
 
 WorldCollisionGrid gShelterB3IncineratorControlRoomCollisionGrid = {
     .viewCoord   = NULL,

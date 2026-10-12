@@ -685,14 +685,19 @@ static s16 _gShelterR36FloorCollisionGridCells[18] = {
 #include "assets/shelter_r36_collision_014F0_cells.inc"
 };
 
-// Bind the generated table's halfword offsets to this grid's face-index pool.
-// Each constant offset is evaluated once; the binding ends after the include.
-#define GRID_CELL(i) (&_gShelterR36FloorCollisionGridCells[i])
+/// Supplies a cell face-list address for the generated collision table.
+///
+/// Captures `_gShelterR36FloorCollisionGridCells`.
+/// `halfwordOffset` is evaluated once and must be a constant in 0..17
+/// selecting a list start in `s16` elements. Returns a borrowed `s16*`
+/// valid while this room is loaded; lists end at `WORLD_COLLISION_GRID_CELL_END`.
+/// The producer selects this binding through `cell_face_list_macro`.
+#define SHELTER_R36_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gShelterR36FloorCollisionGridCells[(halfwordOffset)])
 /// X-major cell pointers, indexed by x * cellCountZ + z in the 3 by 3 grid.
 static s16* _gShelterR36FloorCollisionGridTable[SHELTER_R36_FLOOR_GRID_CELL_COUNT_X * SHELTER_R36_FLOOR_GRID_CELL_COUNT_Z] = {
 #include "assets/shelter_r36_collision_014F0_table.inc"
 };
-#undef GRID_CELL
+#undef SHELTER_R36_CELL_FACE_LIST_AT_OFFSET
 
 WorldCollisionGrid gShelterR36FloorCollisionGrid = {
     .viewCoord   = NULL,

@@ -219,13 +219,19 @@ static s16 _gShelterR48CollisionGridCells[584] = {
 #include "assets/shelter_r48_collision_0692C_cells.inc"
 };
 
-// The generated table supplies in-bounds offsets in signed-halfword elements.
-#define GRID_CELL(i) (&_gShelterR48CollisionGridCells[i])
+/// Supplies a cell face-list address for the generated collision table.
+///
+/// Captures `_gShelterR48CollisionGridCells`.
+/// `halfwordOffset` is evaluated once and must be a constant in 0..583
+/// selecting a list start in `s16` elements. Returns a borrowed `s16*`
+/// valid while this room is loaded; lists end at `WORLD_COLLISION_GRID_CELL_END`.
+/// The producer selects this binding through `cell_face_list_macro`.
+#define SHELTER_R48_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gShelterR48CollisionGridCells[(halfwordOffset)])
 /// X-major cell directory; each entry borrows a terminated face-index list.
 static s16* _gShelterR48CollisionGridTable[SHELTER_R48_COLLISION_CELL_COUNT_X * SHELTER_R48_COLLISION_CELL_COUNT_Z] = {
 #include "assets/shelter_r48_collision_0692C_table.inc"
 };
-#undef GRID_CELL
+#undef SHELTER_R48_CELL_FACE_LIST_AT_OFFSET
 
 WorldCollisionGrid gShelterR48CollisionGrid = {
     .viewCoord   = NULL,

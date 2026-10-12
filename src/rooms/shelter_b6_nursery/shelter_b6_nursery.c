@@ -354,13 +354,19 @@ static s16 _gShelterB6NurseryCollisionGridCells[120] = {
 #include "assets/shelter_b6_nursery_collision_082E0_cells.inc"
 };
 
-// The generated table supplies halfword offsets into this grid's face lists.
-#define GRID_CELL(i) (&_gShelterB6NurseryCollisionGridCells[i])
+/// Supplies a cell face-list address for the generated collision table.
+///
+/// Captures `_gShelterB6NurseryCollisionGridCells`.
+/// `halfwordOffset` is evaluated once and must be a constant in 0..119
+/// selecting a list start in `s16` elements. Returns a borrowed `s16*`
+/// valid while this room is loaded; lists end at `WORLD_COLLISION_GRID_CELL_END`.
+/// The producer selects this binding through `cell_face_list_macro`.
+#define SHELTER_B6_NURSERY_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gShelterB6NurseryCollisionGridCells[(halfwordOffset)])
 /// X-major pointers into the nursery grid's four face-index lists.
 static s16* _gShelterB6NurseryCollisionGridTable[4] = {
 #include "assets/shelter_b6_nursery_collision_082E0_table.inc"
 };
-#undef GRID_CELL
+#undef SHELTER_B6_NURSERY_CELL_FACE_LIST_AT_OFFSET
 
 WorldCollisionGrid gShelterB6NurseryCollisionGrid = {
     .viewCoord   = NULL,

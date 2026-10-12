@@ -119,13 +119,19 @@ static s16 _gShelterB3ElevatorHallCollisionGridCells[236] = {
 #include "assets/shelter_b3_elevator_hall_collision_05F08_cells.inc"
 };
 
-// Asset initializer binding: an element offset into the signed face-index pool.
-#define GRID_CELL(i) (&_gShelterB3ElevatorHallCollisionGridCells[i])
+/// Supplies a cell face-list address for the generated collision table.
+///
+/// Captures `_gShelterB3ElevatorHallCollisionGridCells`.
+/// `halfwordOffset` is evaluated once and must be a constant in 0..235
+/// selecting a list start in `s16` elements. Returns a borrowed `s16*`
+/// valid while this room is loaded; lists end at `WORLD_COLLISION_GRID_CELL_END`.
+/// The producer selects this binding through `cell_face_list_macro`.
+#define SHELTER_B3_ELEVATOR_HALL_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gShelterB3ElevatorHallCollisionGridCells[(halfwordOffset)])
 /// X-major 5-by-3 cell directory; NULL entries contain no collision faces.
 static s16* _gShelterB3ElevatorHallCollisionGridTable[15] = {
 #include "assets/shelter_b3_elevator_hall_collision_05F08_table.inc"
 };
-#undef GRID_CELL
+#undef SHELTER_B3_ELEVATOR_HALL_CELL_FACE_LIST_AT_OFFSET
 
 WorldCollisionGrid gShelterB3ElevatorHallCollisionGrid = {
     .viewCoord   = NULL,

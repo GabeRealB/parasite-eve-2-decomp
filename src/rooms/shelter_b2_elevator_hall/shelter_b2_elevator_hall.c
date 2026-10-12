@@ -303,12 +303,19 @@ static s16 _gShelterB2ElevatorHallRoomCollisionCells[124] = {
 #include "assets/shelter_b2_elevator_hall_collision_067F4_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gShelterB2ElevatorHallRoomCollisionCells[i])
+/// Supplies a cell face-list address for the generated collision table.
+///
+/// Captures `_gShelterB2ElevatorHallRoomCollisionCells`.
+/// `halfwordOffset` is evaluated once and must be a constant in 0..123
+/// selecting a list start in `s16` elements. Returns a borrowed `s16*`
+/// valid while this room is loaded; lists end at `WORLD_COLLISION_GRID_CELL_END`.
+/// The producer selects this binding through `cell_face_list_macro`.
+#define SHELTER_B2_ELEVATOR_HALL_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gShelterB2ElevatorHallRoomCollisionCells[(halfwordOffset)])
 /// Face-list starts for the 5-by-2 grid, indexed by X times 2 plus Z.
 static s16* _gShelterB2ElevatorHallRoomCollisionTable[10] = {
 #include "assets/shelter_b2_elevator_hall_collision_067F4_table.inc"
 };
-#undef GRID_CELL
+#undef SHELTER_B2_ELEVATOR_HALL_CELL_FACE_LIST_AT_OFFSET
 
 WorldCollisionGrid gShelterB2ElevatorHallRoomCollision = {
     .viewCoord   = NULL,

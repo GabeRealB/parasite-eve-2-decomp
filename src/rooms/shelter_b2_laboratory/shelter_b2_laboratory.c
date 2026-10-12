@@ -340,12 +340,19 @@ static s16 _gShelterB2LaboratoryCollisionGridCells[220] = {
 #include "assets/shelter_b2_laboratory_collision_05F9C_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gShelterB2LaboratoryCollisionGridCells[i])
+/// Supplies a cell face-list address for the generated collision table.
+///
+/// Captures `_gShelterB2LaboratoryCollisionGridCells`.
+/// `halfwordOffset` is evaluated once and must be a constant in 0..219
+/// selecting a list start in `s16` elements. Returns a borrowed `s16*`
+/// valid while this room is loaded; lists end at `WORLD_COLLISION_GRID_CELL_END`.
+/// The producer selects this binding through `cell_face_list_macro`.
+#define SHELTER_B2_LABORATORY_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gShelterB2LaboratoryCollisionGridCells[(halfwordOffset)])
 /// X-major 4-by-3 directory of face-index lists in the cell pool.
 static s16* _gShelterB2LaboratoryCollisionGridTable[12] = {
 #include "assets/shelter_b2_laboratory_collision_05F9C_table.inc"
 };
-#undef GRID_CELL
+#undef SHELTER_B2_LABORATORY_CELL_FACE_LIST_AT_OFFSET
 
 WorldCollisionGrid gShelterB2LaboratoryCollisionGrid = {
     .viewCoord   = NULL,

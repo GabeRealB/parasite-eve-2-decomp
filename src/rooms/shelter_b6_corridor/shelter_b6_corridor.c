@@ -442,12 +442,19 @@ static s16 _gShelterB6CorridorCollisionGridCells[28] = {
 #include "assets/shelter_b6_corridor_collision_024D0_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gShelterB6CorridorCollisionGridCells[i])
+/// Supplies a cell face-list address for the generated collision table.
+///
+/// Captures `_gShelterB6CorridorCollisionGridCells`.
+/// `halfwordOffset` is evaluated once and must be a constant in 0..27
+/// selecting a list start in `s16` elements. Returns a borrowed `s16*`
+/// valid while this room is loaded; lists end at `WORLD_COLLISION_GRID_CELL_END`.
+/// The producer selects this binding through `cell_face_list_macro`.
+#define SHELTER_B6_CORRIDOR_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gShelterB6CorridorCollisionGridCells[(halfwordOffset)])
 /// X-major cell directory borrowing the three lists at element offsets 0, 10 and 18.
 static s16* _gShelterB6CorridorCollisionGridTable[3] = {
 #include "assets/shelter_b6_corridor_collision_024D0_table.inc"
 };
-#undef GRID_CELL
+#undef SHELTER_B6_CORRIDOR_CELL_FACE_LIST_AT_OFFSET
 
 WorldCollisionGrid gShelterB6CorridorCollisionGrid = {
     .viewCoord   = NULL,

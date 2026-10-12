@@ -490,13 +490,19 @@ static s16 _gShelterB2SepticTankCollisionGridCells[270] = {
 #include "assets/shelter_b2_septic_tank_collision_0684C_cells.inc"
 };
 
-/// Asset-table binding: a constant halfword-element index into the room cell lists.
-#define GRID_CELL(i) (&_gShelterB2SepticTankCollisionGridCells[i])
+/// Supplies a cell face-list address for the generated collision table.
+///
+/// Captures `_gShelterB2SepticTankCollisionGridCells`.
+/// `halfwordOffset` is evaluated once and must be a constant in 0..269
+/// selecting a list start in `s16` elements. Returns a borrowed `s16*`
+/// valid while this room is loaded; lists end at `WORLD_COLLISION_GRID_CELL_END`.
+/// The producer selects this binding through `cell_face_list_macro`.
+#define SHELTER_B2_SEPTIC_TANK_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gShelterB2SepticTankCollisionGridCells[(halfwordOffset)])
 /// X-major cell directory: three rows of six terminated face-index lists.
 static s16* _gShelterB2SepticTankCollisionGridTable[18] = {
 #include "assets/shelter_b2_septic_tank_collision_0684C_table.inc"
 };
-#undef GRID_CELL
+#undef SHELTER_B2_SEPTIC_TANK_CELL_FACE_LIST_AT_OFFSET
 
 WorldCollisionGrid gShelterB2SepticTankCollisionGrid = { NULL, _gShelterB2SepticTankCollisionGridNormals, _gShelterB2SepticTankCollisionGridVerts, _gShelterB2SepticTankCollisionGridFaces, _gShelterB2SepticTankCollisionGridTable, 5374, 0x47A9, 3, 6, 4000, ARRAY_SIZE(_gShelterB2SepticTankCollisionGridFaces) };
 

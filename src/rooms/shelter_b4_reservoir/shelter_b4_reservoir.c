@@ -702,11 +702,18 @@ enum {
     SHELTER_B4_RESERVOIR_GRID_CELL_SIZE = 4000,
 };
 
-#define GRID_CELL(i) (&_gShelterB4ReservoirRoomCollisionGridCells[i])
+/// Supplies a cell face-list address for the generated collision table.
+///
+/// Captures `_gShelterB4ReservoirRoomCollisionGridCells`.
+/// `halfwordOffset` is evaluated once and must be a constant in 0..309
+/// selecting a list start in `s16` elements. Returns a borrowed `s16*`
+/// valid while this room is loaded; lists end at `WORLD_COLLISION_GRID_CELL_END`.
+/// The producer selects this binding through `cell_face_list_macro`.
+#define SHELTER_B4_RESERVOIR_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gShelterB4ReservoirRoomCollisionGridCells[(halfwordOffset)])
 static s16* _gShelterB4ReservoirRoomCollisionGridTable[SHELTER_B4_RESERVOIR_GRID_X_CELLS * SHELTER_B4_RESERVOIR_GRID_Z_CELLS] = {
 #include "assets/shelter_b4_reservoir_collision_084F8_table.inc"
 };
-#undef GRID_CELL
+#undef SHELTER_B4_RESERVOIR_CELL_FACE_LIST_AT_OFFSET
 
 /// Collision mesh and X-major cell index shared by reservoir room IDs 1 and 2.
 ///

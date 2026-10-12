@@ -313,12 +313,19 @@ static s16 _gShelterB2PodAccessTunnelCollisionGridCells[72] = {
 #include "assets/shelter_b2_pod_access_tunnel_collision_06BF4_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gShelterB2PodAccessTunnelCollisionGridCells[i])
+/// Supplies a cell face-list address for the generated collision table.
+///
+/// Captures `_gShelterB2PodAccessTunnelCollisionGridCells`.
+/// `halfwordOffset` is evaluated once and must be a constant in 0..71
+/// selecting a list start in `s16` elements. Returns a borrowed `s16*`
+/// valid while this room is loaded; lists end at `WORLD_COLLISION_GRID_CELL_END`.
+/// The producer selects this binding through `cell_face_list_macro`.
+#define SHELTER_B2_POD_ACCESS_TUNNEL_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gShelterB2PodAccessTunnelCollisionGridCells[(halfwordOffset)])
 /// X-major 2-by-3 directory into the collision grid's face-index lists.
 static s16* _gShelterB2PodAccessTunnelCollisionGridTable[6] = {
 #include "assets/shelter_b2_pod_access_tunnel_collision_06BF4_table.inc"
 };
-#undef GRID_CELL
+#undef SHELTER_B2_POD_ACCESS_TUNNEL_CELL_FACE_LIST_AT_OFFSET
 
 /// Tunnel collision mesh and its 2-by-3 XZ spatial index, shared by both rooms.
 ///

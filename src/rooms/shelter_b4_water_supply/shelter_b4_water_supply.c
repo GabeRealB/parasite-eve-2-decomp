@@ -249,12 +249,19 @@ static s16 _gShelterB4WaterSupplyCollisionGridCells[] = {
 #include "assets/shelter_b4_water_supply_collision_0587C_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gShelterB4WaterSupplyCollisionGridCells[i])
+/// Supplies a cell face-list address for the generated collision table.
+///
+/// Captures `_gShelterB4WaterSupplyCollisionGridCells`.
+/// `halfwordOffset` is evaluated once and must be a constant in 0..221
+/// selecting a list start in `s16` elements. Returns a borrowed `s16*`
+/// valid while this room is loaded; lists end at `WORLD_COLLISION_GRID_CELL_END`.
+/// The producer selects this binding through `cell_face_list_macro`.
+#define SHELTER_B4_WATER_SUPPLY_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gShelterB4WaterSupplyCollisionGridCells[(halfwordOffset)])
 /// X-major 4-by-4 collision-cell directory; NULL entries contain no faces.
 static s16* _gShelterB4WaterSupplyCollisionGridTable[] = {
 #include "assets/shelter_b4_water_supply_collision_0587C_table.inc"
 };
-#undef GRID_CELL
+#undef SHELTER_B4_WATER_SUPPLY_CELL_FACE_LIST_AT_OFFSET
 
 WorldCollisionGrid gShelterB4WaterSupplyCollisionGrid = {
     .viewCoord   = NULL,

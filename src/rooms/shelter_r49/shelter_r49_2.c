@@ -95,11 +95,18 @@ static s16 _gShelterR49CollisionGridCells[2] = {
 #include "assets/shelter_r49_collision_004EC_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gShelterR49CollisionGridCells[i])
+/// Supplies a cell face-list address for the generated collision table.
+///
+/// Captures `_gShelterR49CollisionGridCells`.
+/// `halfwordOffset` is evaluated once and must be a constant in 0..1
+/// selecting a list start in `s16` elements. Returns a borrowed `s16*`
+/// valid while this room is loaded; lists end at `WORLD_COLLISION_GRID_CELL_END`.
+/// The producer selects this binding through `cell_face_list_macro`.
+#define SHELTER_R49_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gShelterR49CollisionGridCells[(halfwordOffset)])
 static s16* _gShelterR49CollisionGridTable[SHELTER_R49_GRID_CELL_COUNT_X * SHELTER_R49_GRID_CELL_COUNT_Z] = {
 #include "assets/shelter_r49_collision_004EC_table.inc"
 };
-#undef GRID_CELL
+#undef SHELTER_R49_CELL_FACE_LIST_AT_OFFSET
 
 /// Floor quad at Y=0 spanning X/Z -4000..4000, with surface class 1.
 ///

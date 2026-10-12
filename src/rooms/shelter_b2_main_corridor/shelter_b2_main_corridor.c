@@ -499,12 +499,19 @@ static s16 _gShelterB2MainCorridorCollisionGridCells[550] = {
 #include "assets/shelter_b2_main_corridor_collision_06E80_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gShelterB2MainCorridorCollisionGridCells[i])
+/// Supplies a cell face-list address for the generated collision table.
+///
+/// Captures `_gShelterB2MainCorridorCollisionGridCells`.
+/// `halfwordOffset` is evaluated once and must be a constant in 0..549
+/// selecting a list start in `s16` elements. Returns a borrowed `s16*`
+/// valid while this room is loaded; lists end at `WORLD_COLLISION_GRID_CELL_END`.
+/// The producer selects this binding through `cell_face_list_macro`.
+#define SHELTER_B2_MAIN_CORRIDOR_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gShelterB2MainCorridorCollisionGridCells[(halfwordOffset)])
 /// X-major cell directory; NULL cells contain no collision faces.
 static s16* _gShelterB2MainCorridorCollisionGridTable[SHELTER_B2_MAIN_CORRIDOR_GRID_CELLS_X * SHELTER_B2_MAIN_CORRIDOR_GRID_CELLS_Z] = {
 #include "assets/shelter_b2_main_corridor_collision_06E80_table.inc"
 };
-#undef GRID_CELL
+#undef SHELTER_B2_MAIN_CORRIDOR_CELL_FACE_LIST_AT_OFFSET
 
 WorldCollisionGrid gShelterB2MainCorridorCollisionGrid = {
     .viewCoord   = NULL,

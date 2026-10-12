@@ -363,15 +363,19 @@ enum {
     SHELTER_B4_UPPER_SEWER_COLLISION_CELL_COUNT_Z = 5
 };
 
-/// Asset-table binding: i is an in-bounds halfword index into the cell-list pool.
+/// Supplies a cell face-list address for the generated collision table.
 ///
-/// Evaluates i once and produces a writable s16*; defined only for this include.
-#define GRID_CELL(i) (&_gShelterB4UpperSewerCollisionGridCells[(i)])
+/// Captures `_gShelterB4UpperSewerCollisionGridCells`.
+/// `halfwordOffset` is evaluated once and must be a constant in 0..291
+/// selecting a list start in `s16` elements. Returns a borrowed `s16*`
+/// valid while this room is loaded; lists end at `WORLD_COLLISION_GRID_CELL_END`.
+/// The producer selects this binding through `cell_face_list_macro`.
+#define SHELTER_B4_UPPER_SEWER_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gShelterB4UpperSewerCollisionGridCells[(halfwordOffset)])
 /// X-major cell table, indexed by x * cellCountZ + z.
 static s16* _gShelterB4UpperSewerCollisionGridTable[] = {
 #include "assets/shelter_b4_upper_sewer_collision_09938_table.inc"
 };
-#undef GRID_CELL
+#undef SHELTER_B4_UPPER_SEWER_CELL_FACE_LIST_AT_OFFSET
 
 STATIC_ASSERT_SIZEOF(_gShelterB4UpperSewerCollisionGridTable,
                      sizeof(s16*) * SHELTER_B4_UPPER_SEWER_COLLISION_CELL_COUNT_X * SHELTER_B4_UPPER_SEWER_COLLISION_CELL_COUNT_Z);

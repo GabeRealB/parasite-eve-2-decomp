@@ -79,12 +79,19 @@ static s16 _gShelterR37RoomCollisionCells[48] = {
 #include "assets/shelter_r37_collision_00360_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gShelterR37RoomCollisionCells[i])
+/// Supplies a cell face-list address for the generated collision table.
+///
+/// Captures `_gShelterR37RoomCollisionCells`.
+/// `halfwordOffset` is evaluated once and must be a constant in 0..47
+/// selecting a list start in `s16` elements. Returns a borrowed `s16*`
+/// valid while this room is loaded; lists end at `WORLD_COLLISION_GRID_CELL_END`.
+/// The producer selects this binding through `cell_face_list_macro`.
+#define SHELTER_R37_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gShelterR37RoomCollisionCells[(halfwordOffset)])
 /// X-major cell directory; each X row contains two Z cells.
 static s16* _gShelterR37RoomCollisionTable[6] = {
 #include "assets/shelter_r37_collision_00360_table.inc"
 };
-#undef GRID_CELL
+#undef SHELTER_R37_CELL_FACE_LIST_AT_OFFSET
 
 enum { SHELTER_R37_COLLISION_CELL_COUNT_Z = 2 };
 
