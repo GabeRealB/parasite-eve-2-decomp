@@ -58,8 +58,6 @@
 #include "rooms/room_common.h"
 #include "../../shared/glow_draw.h"
 #include "../../shared/room_events.h"
-/// Selects this room's blackout/encounter/end task recipes for the shared resolver.
-#define DRIVEWAY_SCENE_TASKS _gDryfieldNightDrivewaySceneTasks
 #include "../../shared/dryfield_driveway.h"
 
 static void _drivewaySetViewDirty(s16 viewDirty);
@@ -1400,7 +1398,18 @@ static const TaskFuncTable3 _gDryfieldNightDrivewayRoomStates = {
     { _dryfieldNightDrivewayInitializeRoom, _dryfieldNightDrivewayRoomIdle, taskKill },
 };
 
+/// Supplies the night room's scene task table for driveway departure resolution.
+///
+/// Expands to a private three-entry `TaskDesc` array, passed as `TaskDesc*`.
+/// Slot 1 is the retained bodyless priority-32 scripted encounter, eligible only in
+/// `GAME_STAGE_DRYFIELD`; slot 0 is the blackout and slot 2 the terminator.
+/// Spawning reads the selected recipe synchronously with unused payload words.
+/// Keep its callback code and borrowed resources loaded while used. This
+/// identifier binding has no arguments or side effects and is required only
+/// by the following resolver fragment.
+#define ROOM_VARIANT_DRIVEWAY_SCENE_TASK_TABLE _gDryfieldNightDrivewaySceneTasks
 #include "../../shared/dryfield_driveway_resolve.inc.c"
+#undef ROOM_VARIANT_DRIVEWAY_SCENE_TASK_TABLE
 
 /// Selects this room's retained wire-rope blackout entry stream for the shared controller.
 ///
@@ -1438,7 +1447,6 @@ static const TaskFuncTable3 _gDryfieldNightDrivewayRoomStates = {
 #define DRIVEWAY_ENCOUNTER_SCRIPT _gDryfieldNightDrivewayEncounterScript
 #include "../../shared/dryfield_driveway_cutscene.inc.c"
 #undef DRIVEWAY_ENCOUNTER_SCRIPT
-#undef DRIVEWAY_SCENE_TASKS
 
 static void _glowDrawShaft(const SVECTOR worldPoints[2], s32 radiusScale);
 

@@ -54,7 +54,7 @@ static s32 _roomVariantResolveDriveway(Task* task, s32 messageId, const RoomEven
                 if (gGameSession->location.loc.stage == GAME_STAGE_DRYFIELD) {
                     if (gGameSession->location.loc.variant == 1) {
                         if (gameFlagGetNibble(GAME_FLAG_050) == 0) {
-                            taskSpawnFromTable(DRIVEWAY_SCENE_TASKS, ROOM_VARIANT_DRIVEWAY_CUTSCENE_INDEX, 0, 0);
+                            taskSpawnFromTable(ROOM_VARIANT_DRIVEWAY_SCENE_TASK_TABLE, ROOM_VARIANT_DRIVEWAY_CUTSCENE_INDEX, 0, 0);
                             return ROOM_VARIANT_DRIVEWAY_STAY;
                         }
                     }

@@ -21,12 +21,12 @@
 
 #include "main/task_types.h"
 
-// Define DRIVEWAY_SCENE_TASKS before this header and retain it through the
-// event fragments. Script bindings select complete END-terminated `EvsCommand` arrays.
-// DRIVEWAY_SCENE_TASKS selects a three-entry TaskDesc table (0 blackout,
-// 1 encounter, 2 end). They only select identifiers, with no storage, argument
-// evaluation or side effects. The script arrays and their borrowed resources
-// remain loaded through playback; task spawning reads recipes synchronously.
+// Bind ROOM_VARIANT_DRIVEWAY_SCENE_TASK_TABLE immediately before the resolver
+// fragment and undefine it immediately afterwards. The day and night driveway
+// carriers each supply their own private TaskDesc array with a live encounter
+// recipe at index 1. Spawning reads that recipe synchronously; its callback code
+// and borrowed resources must remain loaded while used. This header and the
+// other fragments do not require the identifier binding.
 // Bind DRIVEWAY_ENCOUNTER_SCRIPT immediately before the cutscene fragment and
 // undefine it immediately afterwards. The day and night driveway carriers each
 // supply their own private END-terminated EvsCommand array, borrowed as

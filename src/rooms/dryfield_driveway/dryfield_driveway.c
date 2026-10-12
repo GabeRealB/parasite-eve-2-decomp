@@ -52,8 +52,6 @@
 
 #include "rooms/room_common.h"
 #include "../../shared/room_events.h"
-/// Selects this room's blackout/encounter/end task recipes for the shared resolver.
-#define DRIVEWAY_SCENE_TASKS _gDryfieldDrivewaySceneTasks
 #include "../../shared/dryfield_driveway.h"
 
 static void _drivewaySetViewDirty(s16 viewDirty);
@@ -847,7 +845,17 @@ RoomLatchedEvent gRoomEventLatched = { 0 };
 
 #include "../../shared/room_event_staged_task.inc.c"
 
+/// Supplies the daytime room's scene task table for driveway departure resolution.
+///
+/// Expands to a private three-entry `TaskDesc` array, passed as `TaskDesc*`.
+/// Slot 1 is the bodyless priority-32 scripted encounter; slot 0 is the wire-rope
+/// blackout and slot 2 the terminator. Spawning reads the selected recipe
+/// synchronously with unused payload words. Keep its callback code and borrowed
+/// resources loaded while used. This identifier binding has no arguments or
+/// side effects and is required only by the following resolver fragment.
+#define ROOM_VARIANT_DRIVEWAY_SCENE_TASK_TABLE _gDryfieldDrivewaySceneTasks
 #include "../../shared/dryfield_driveway_resolve.inc.c"
+#undef ROOM_VARIANT_DRIVEWAY_SCENE_TASK_TABLE
 
 /// Selects the wire-rope blackout entry stream for this room's shared controller.
 ///
@@ -882,7 +890,6 @@ RoomLatchedEvent gRoomEventLatched = { 0 };
 #define DRIVEWAY_ENCOUNTER_SCRIPT _gDryfieldDrivewayEncounterScript
 #include "../../shared/dryfield_driveway_cutscene.inc.c"
 #undef DRIVEWAY_ENCOUNTER_SCRIPT
-#undef DRIVEWAY_SCENE_TASKS
 
 /// Sets the actor 03700 encounter's entrance and wave stage from an event script.
 ///
