@@ -66,8 +66,15 @@ static void _shelterB1ArmoryRoomIdleState(Task* task);
 /// Uses eight fractional bits; keep the binding through shop.inc.c and the
 /// storage alive through panel closure. Only one refill panel may use it.
 #define SHOP_REFILL_DISPLAY_QUANTITY gShopRefillDisplayQuantityFixed
-#define SHOP_REFILL_SUPPLY           gShopRefillSupply
-#define SHOP_CHARGE_TITLE_BYTES      "Charge\0\xD3"
+
+/// Binds the refill panel's borrowed catalogue selection to this room's pointer storage.
+///
+/// Expands to the writable `const EquipmentWeaponSupply*` defined in
+/// `shelter_b1_armory_2.c` and declared in the private header. Keep this binding
+/// through `shop.inc.c`; `shop.h` specifies selection, lifetime and use by one
+/// panel at a time.
+#define SHOP_REFILL_SUPPLY      gShopRefillSupply
+#define SHOP_CHARGE_TITLE_BYTES "Charge\0\xD3"
 #include "../../shared/shop.h"
 
 static s32 _shelterB1ArmoryUseKeyItem(Task* unusedTask, s32 unusedMessageId, s32 itemId, s32 unusedSecondArg);

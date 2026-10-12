@@ -77,8 +77,14 @@ static const u16 _gShopStandardDefaultItemsStock[];
 /// Uses eight fractional bits; keep the binding through shop.inc.c and the
 /// storage alive through panel closure. Only one refill panel may use it.
 #define SHOP_REFILL_DISPLAY_QUANTITY gShopRefillDisplayQuantityFixed
-#define SHOP_REFILL_SUPPLY           gShopRefillSupply
-#define SHOP_CHARGE_TITLE_BYTES      "Charge\0\xE2"
+
+/// Binds the refill panel's borrowed catalogue selection to this room's pointer storage.
+///
+/// Expands to the writable `const EquipmentWeaponSupply*` defined in
+/// `mist_parking_5.c` and declared in the private header. Keep this binding through
+/// `shop.inc.c`; `shop.h` specifies selection, lifetime and use by one panel at a time.
+#define SHOP_REFILL_SUPPLY      gShopRefillSupply
+#define SHOP_CHARGE_TITLE_BYTES "Charge\0\xE2"
 #include "../../shared/shop.h"
 
 static s32  _mistParkingHandleCommand(Task* task, s32 messageId, s32 commandId, s32 unusedArg);

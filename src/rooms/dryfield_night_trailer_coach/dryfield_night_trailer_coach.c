@@ -83,8 +83,15 @@ static const u16 _gShopStandardDefaultItemsStock[];
 /// Uses eight fractional bits; keep the binding through shop.inc.c and the
 /// storage alive through panel closure. Only one refill panel may use it.
 #define SHOP_REFILL_DISPLAY_QUANTITY gShopRefillDisplayQuantityFixed
-#define SHOP_REFILL_SUPPLY           gShopRefillSupply
-#define SHOP_CHARGE_TITLE_BYTES      "Charge\0\xFD"
+
+/// Binds the refill panel's borrowed catalogue selection to this room's pointer storage.
+///
+/// Expands to the writable `const EquipmentWeaponSupply*` defined in
+/// `dryfield_night_trailer_coach_2.c` and declared in the private header. Keep this
+/// binding through `shop.inc.c`; `shop.h` specifies selection, lifetime and use by
+/// one panel at a time.
+#define SHOP_REFILL_SUPPLY      gShopRefillSupply
+#define SHOP_CHARGE_TITLE_BYTES "Charge\0\xFD"
 #include "../../shared/shop.h"
 
 enum { DRYFIELD_NIGHT_TRAILER_COACH_LATE_CHAPTER = 4 };

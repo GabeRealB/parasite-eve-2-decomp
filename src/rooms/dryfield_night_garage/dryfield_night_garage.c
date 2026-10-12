@@ -73,8 +73,15 @@ static void _dryfieldNightGarageResetTallCollisionBox(s32 useYOffset);
 /// Uses eight fractional bits; keep the binding through shop.inc.c and the
 /// storage alive through panel closure. Only one refill panel may use it.
 #define SHOP_REFILL_DISPLAY_QUANTITY gShopRefillDisplayQuantityFixed
-#define SHOP_REFILL_SUPPLY           gShopRefillSupply
-#define SHOP_CHARGE_TITLE_BYTES      "Charge\0\xF0"
+
+/// Binds the refill panel's borrowed catalogue selection to this room's pointer storage.
+///
+/// Expands to the writable `const EquipmentWeaponSupply*` defined in
+/// `dryfield_night_garage_2.c` and declared in the private header. Keep this binding
+/// through `shop.inc.c`; `shop.h` specifies selection, lifetime and use by one
+/// panel at a time.
+#define SHOP_REFILL_SUPPLY      gShopRefillSupply
+#define SHOP_CHARGE_TITLE_BYTES "Charge\0\xF0"
 #include "../../shared/shop.h"
 
 static s32 _dryfieldNightGarageHandleRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedSecondArg);

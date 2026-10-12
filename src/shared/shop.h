@@ -43,13 +43,26 @@ enum {
 #define SHOP_REFILL_DISPLAY_QUANTITY _gShopRefillDisplayQuantityFixed
 #endif
 
-/// Writable const EquipmentWeaponSupply* lvalue borrowing the currently displayed catalogue row.
-///
-/// Defaults to TU-private storage, selected before refill drawing and retained
-/// through panel closure. The same four split-TU carriers bind their room-local
-/// externally linked copy before this header and undefine it after shop.inc.c.
-/// The gameplay catalogue must remain loaded throughout the shop session.
 #ifndef SHOP_REFILL_SUPPLY
+/// Selects the borrowed weapon supply catalogue row displayed by the refill panel.
+///
+/// Expand to a single identifier naming a writable `const EquipmentWeaponSupply*`
+/// object. Repeated assignments and reads must select the same storage without
+/// side effects. The callback replaces the pointer and only reads the row's
+/// weapon item id, supply item id and primary/secondary load selector.
+///
+/// The panel must start with at least one carried rechargeable weapon: the first
+/// selection initializes the pointer before drawing, with no `NULL` check. Each
+/// subsequent selection replaces it; exhaustion retains the last row so drawing
+/// continues through panel closure. Keep the pointer storage and gameplay
+/// catalogue alive until closure finishes; the panel never copies or frees a row.
+/// Pair the storage with `SHOP_REFILL_DISPLAY_QUANTITY` in the same carrier and
+/// allow only one refill panel to use that pair at a time.
+///
+/// The default names TU-private storage declared by the carrier. Mist Parking,
+/// night trailer coach, night garage and Shelter B1 armory instead bind storage
+/// defined in another room TU and declared in their private header. Bind before
+/// this header, retain through `shop.inc.c`, then undefine it.
 #define SHOP_REFILL_SUPPLY _gShopRefillSupply
 #endif
 
