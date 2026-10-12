@@ -52,10 +52,15 @@
 #include "overlay.h"
 
 #include "rooms/dryfield_night_junk_yard.h"
+
+/// Selects the Zebra policy for this package's shared Stalker helpers.
+///
+/// Uses Zebra's sound bank and pinning; repeated clips keep their cursor.
+/// Timer bases are s32 update counts, and zero still seeds a random timer.
+/// Bind before the first inclusion of `stalker_zebra_ivory.h`.
+/// The package separately supplies its work layout as `StalkerZebraIvoryWork`.
 #define STALKER_ZEBRA_IVORY_KIND STALKER_ZEBRA_IVORY_KIND_ZEBRA
 #include "../../shared/stalker_zebra_ivory.h"
-
-/// Psy-Q `RotMatrixY`, taking the angle as a `long`.
 
 /// Work block of the Zebra Stalker task.
 ///

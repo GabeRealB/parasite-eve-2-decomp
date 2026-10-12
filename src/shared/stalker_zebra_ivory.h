@@ -31,7 +31,13 @@
  *               (WorldCollisionContact[8]), `distanceMode` (u8)
  *
  * Include this header in the prologue and each fragment at its function's
- * position.
+ * position. Before the first inclusion, bind `STALKER_ZEBRA_IVORY_KIND` to
+ * `STALKER_ZEBRA_IVORY_KIND_ZEBRA` (actor_400600) or
+ * `STALKER_ZEBRA_IVORY_KIND_IVORY` (actor_405800). The binding is a fixed
+ * preprocessor integer selector: the guarded header derives the sound bank,
+ * pinning, repeated-clip blending and timer policies once, including the
+ * timer's parameter type. Keep those policies fixed through every fragment;
+ * the work-type alias remains the carrier's responsibility.
  *
  * The death-start fragment also requires the carrier-private u8 array
  * `_gStalkerZebraIvoryDeathClipsByPose`, one entry per body-bank clip selector
@@ -101,7 +107,7 @@ enum { STALKER_ZEBRA_IVORY_SOUND_BANK = 0x40060000 };
 /// Boolean preprocessor switch selected by the kind binding. Both LCG draws
 /// are consumed for every base; zero therefore seeds 0..78 update ticks.
 #define STALKER_ZEBRA_IVORY_TIMER_ZERO_STOPS 0
-#else
+#elif STALKER_ZEBRA_IVORY_KIND == STALKER_ZEBRA_IVORY_KIND_IVORY
 /// Ivory actor sound-bank prefix for footsteps and landings.
 ///
 /// OR a low-halfword script selector into this signed-word constant: 1/2 are
@@ -134,6 +140,8 @@ enum { STALKER_ZEBRA_IVORY_SOUND_BANK = 0x40050000 };
 /// Boolean preprocessor switch selected by the kind binding. Nonzero bases
 /// still consume the two draws and add their 0..63 and 0..15 update-tick spreads.
 #define STALKER_ZEBRA_IVORY_TIMER_ZERO_STOPS    1
+#else
+#error "STALKER_ZEBRA_IVORY_KIND must be STALKER_ZEBRA_IVORY_KIND_ZEBRA or STALKER_ZEBRA_IVORY_KIND_IVORY"
 #endif
 
 #include <psyq/sys/types.h>

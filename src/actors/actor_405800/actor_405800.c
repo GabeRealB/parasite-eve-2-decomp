@@ -58,10 +58,15 @@ static void _frameCaptureQueue(s32 orderingTableSlot);
 #define FRAME_CAPTURE_QUEUE _frameCaptureQueue
 #include "../../shared/frame_capture.h"
 #include "../../shared/limb_shadows.h"
+
+/// Selects the Ivory policy for this package's shared Stalker helpers.
+///
+/// Uses Ivory's sound bank and pinning; repeated clips restart their blend.
+/// Timer bases narrow to s16 update counts; zero stops without random draws.
+/// Bind before the first inclusion of `stalker_zebra_ivory.h`.
+/// The package separately supplies its work layout as `StalkerZebraIvoryWork`.
 #define STALKER_ZEBRA_IVORY_KIND STALKER_ZEBRA_IVORY_KIND_IVORY
 #include "../../shared/stalker_zebra_ivory.h"
-
-/// Psy-Q `RotMatrixY`, taking the angle as a `long`.
 
 /// Values of `_Actor405800IvoryStalkerWork::cloakRequest`.
 enum {
