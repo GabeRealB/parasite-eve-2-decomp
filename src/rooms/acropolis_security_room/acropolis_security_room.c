@@ -345,18 +345,20 @@ static EffectUnitQuadCorner _gAcropolisSecurityRoomFallingQuadUnitCorners[4];
 
 /// Converts a sweep endpoint from the task's local frame to 16-bit projection-input coordinates.
 ///
-/// `endpoint` is the member token start or end; line is a live scratch block,
-/// and coord has a composed workm. Pointer arguments are evaluated repeatedly
-/// and must be side-effect-free. Changes GTE rotation/V0/IR state and expands
-/// to standalone statements, retaining XYZ translation order.
-#define ACROPOLIS_SECURITY_ROOM_TRANSFORM_SWEEP_ENDPOINT(line, endpoint, coord) \
-    gte_SetRotMatrix(&(coord)->workm);                                          \
-    gte_ldv0(&(line)->endpoint);                                                \
-    gte_rtv0();                                                                 \
-    gte_stsv(&(line)->endpoint);                                                \
-    (line)->endpoint.vx += (coord)->workm.t[0];                                 \
-    (line)->endpoint.vy += (coord)->workm.t[1];                                 \
-    (line)->endpoint.vz += (coord)->workm.t[2];
+/// `point` is a writable SVECTOR lvalue and coord has a composed workm, whose
+/// rotation uses Q12 and translation uses whole coordinate units. Both arguments
+/// are evaluated repeatedly and must be stable and side-effect-free. GTE rotation
+/// narrows XYZ to signed halfwords before each translated component narrows again;
+/// the vector's fourth halfword is preserved. Changes GTE rotation/V0/IR state.
+/// Expands to standalone statements; invoke inside a braced scope.
+#define ACROPOLIS_SECURITY_ROOM_TRANSFORM_SWEEP_ENDPOINT(point, coord) \
+    gte_SetRotMatrix(&(coord)->workm);                                 \
+    gte_ldv0(&(point));                                                \
+    gte_rtv0();                                                        \
+    gte_stsv(&(point));                                                \
+    (point).vx += (coord)->workm.t[0];                                 \
+    (point).vy += (coord)->workm.t[1];                                 \
+    (point).vz += (coord)->workm.t[2];
 
 /// Blends a complete 256-colour monitor palette in sixteen-colour spans.
 ///
@@ -2883,11 +2885,11 @@ static void _acropolisSecurityRoomDrawSweepLine(Task* task)
         line->start.vx = ACROPOLIS_SECURITY_ROOM_SWEEP_START_X;
         line->start.vy = (gDisplayState.animFrame * ACROPOLIS_SECURITY_ROOM_SWEEP_SPEED) % ACROPOLIS_SECURITY_ROOM_SWEEP_TRAVEL + ACROPOLIS_SECURITY_ROOM_SWEEP_BASE_Y;
         line->start.vz = ACROPOLIS_SECURITY_ROOM_SWEEP_Z;
-        ACROPOLIS_SECURITY_ROOM_TRANSFORM_SWEEP_ENDPOINT(line, start, coord);
+        ACROPOLIS_SECURITY_ROOM_TRANSFORM_SWEEP_ENDPOINT(line->start, coord);
         line->end.vx = ACROPOLIS_SECURITY_ROOM_SWEEP_END_X;
         line->end.vy = (gDisplayState.animFrame * ACROPOLIS_SECURITY_ROOM_SWEEP_SPEED) % ACROPOLIS_SECURITY_ROOM_SWEEP_TRAVEL + ACROPOLIS_SECURITY_ROOM_SWEEP_BASE_Y;
         line->end.vz = ACROPOLIS_SECURITY_ROOM_SWEEP_Z;
-        ACROPOLIS_SECURITY_ROOM_TRANSFORM_SWEEP_ENDPOINT(line, end, coord);
+        ACROPOLIS_SECURITY_ROOM_TRANSFORM_SWEEP_ENDPOINT(line->end, coord);
         // Project both ends; the second endpoint supplies the culling and sorting depth.
         gte_SetTransMatrix(&GsWSMATRIX);
         gte_SetRotMatrix(&GsWSMATRIX);

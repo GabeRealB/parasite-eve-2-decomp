@@ -1265,35 +1265,38 @@ static void _dryfieldUnderpassRefreshRoomVariant(void)
 
     /// Selects the underpass room for an execution request.
     ///
-    /// Captures requestPtr, destinationPtr and destination, all RoomEventMsg
-    /// views; destinationPtr must equal &destination. Writes only the room byte,
-    /// leaving queries unchanged, and reads flags once in branch order. The
-    /// pointer and direct accesses retain the binary's query and room reloads.
-#define DRYFIELD_UNDERPASS_RESOLVE_ROOM()                                                        \
-    if (requestPtr->queryOnly == ROOM_EVENT_EXECUTE) {                                           \
-        if (gameFlagGetNibble(GAME_FLAG_UNDERPASS_EVENT_SEEN) != 0) {                            \
-            if (gameFlagGetNibble(GAME_FLAG_053) != 0) {                                         \
-                destinationPtr->room = DRYFIELD_UNDERPASS_ROOM_AFTER_EVENT_FLAG_053;             \
-            } else {                                                                             \
-                destinationPtr->room = DRYFIELD_UNDERPASS_ROOM_AFTER_EVENT;                      \
-            }                                                                                    \
-            if (gameFlagGetNibble(GAME_FLAG_UNDERPASS_SWITCH_1) == 0) {                          \
-                destination.room = destination.room + DRYFIELD_UNDERPASS_SWITCH_OFF_ROOM_OFFSET; \
-            }                                                                                    \
-        } else {                                                                                 \
-            if (gameFlagGetNibble(GAME_FLAG_UNDERPASS_SWITCH_1) != 0) {                          \
-                destinationPtr->room = DRYFIELD_UNDERPASS_ROOM_BEFORE_EVENT_SWITCH_ON;           \
-            } else {                                                                             \
-                destinationPtr->room = DRYFIELD_UNDERPASS_ROOM_BEFORE_EVENT_SWITCH_OFF;          \
-            }                                                                                    \
-        }                                                                                        \
+    /// `requestPtr` and `destinationPtr` are stable RoomEventMsg pointers, and
+    /// `destination` is the writable object addressed by destinationPtr. Arguments
+    /// are evaluated repeatedly and must be side-effect-free. Writes only the
+    /// room byte for execution requests: 1/2 after the event, plus two with
+    /// switch 1 off, or 5/6 before the event with switch 1 on/off. Flag 0x53
+    /// chooses the second post-event room; its story meaning is unproven.
+    /// The pointer and direct accesses preserve query and room reload order.
+#define DRYFIELD_UNDERPASS_RESOLVE_ROOM(requestPtr, destinationPtr, destination)                     \
+    if ((requestPtr)->queryOnly == ROOM_EVENT_EXECUTE) {                                             \
+        if (gameFlagGetNibble(GAME_FLAG_UNDERPASS_EVENT_SEEN) != 0) {                                \
+            if (gameFlagGetNibble(GAME_FLAG_053) != 0) {                                             \
+                (destinationPtr)->room = DRYFIELD_UNDERPASS_ROOM_AFTER_EVENT_FLAG_053;               \
+            } else {                                                                                 \
+                (destinationPtr)->room = DRYFIELD_UNDERPASS_ROOM_AFTER_EVENT;                        \
+            }                                                                                        \
+            if (gameFlagGetNibble(GAME_FLAG_UNDERPASS_SWITCH_1) == 0) {                              \
+                (destination).room = (destination).room + DRYFIELD_UNDERPASS_SWITCH_OFF_ROOM_OFFSET; \
+            }                                                                                        \
+        } else {                                                                                     \
+            if (gameFlagGetNibble(GAME_FLAG_UNDERPASS_SWITCH_1) != 0) {                              \
+                (destinationPtr)->room = DRYFIELD_UNDERPASS_ROOM_BEFORE_EVENT_SWITCH_ON;             \
+            } else {                                                                                 \
+                (destinationPtr)->room = DRYFIELD_UNDERPASS_ROOM_BEFORE_EVENT_SWITCH_OFF;            \
+            }                                                                                        \
+        }                                                                                            \
     }
 
     destinationPtr    = &destination;
     requestPtr        = &request;
     request.areaId    = GAME_AREA_DRYFIELD_UNDERPASS;
     request.queryOnly = ROOM_EVENT_EXECUTE;
-    DRYFIELD_UNDERPASS_RESOLVE_ROOM();
+    DRYFIELD_UNDERPASS_RESOLVE_ROOM(requestPtr, destinationPtr, destination);
 #undef DRYFIELD_UNDERPASS_RESOLVE_ROOM
 
     // Commit the same selector to the live session and its save before relinking.

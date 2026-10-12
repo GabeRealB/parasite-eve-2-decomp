@@ -650,23 +650,24 @@ static void _neoArkSubstationAmbienceTask(Task* task)
 
     /// Selects the current view's unscaled ambience mix, or the base mix.
     ///
-    /// Captures `viewIndex`, `panOffset`, `attenuation` and the room's complete
-    /// ambience table. Slots 0..8 index the table; higher slots select zero for
-    /// both outputs. Writes both s32 locals with signed-halfword loads and
-    /// evaluates no arguments. Undefined immediately after its sole expansion.
-#define NEO_ARK_SUBSTATION_READ_AMBIENCE_MIX()                                          \
-    {                                                                                   \
-        if (viewIndex < ARRAY_SIZE(_gNeoArkSubstationAmbienceMixesByView)) {            \
-            panOffset   = _gNeoArkSubstationAmbienceMixesByView[viewIndex].panOffset;   \
-            attenuation = _gNeoArkSubstationAmbienceMixesByView[viewIndex].attenuation; \
-        } else {                                                                        \
-            panOffset   = 0;                                                            \
-            attenuation = 0;                                                            \
-        }                                                                               \
+    /// `viewIndex` is a stable u8 slot, evaluated up to three times. The outputs
+    /// are disjoint writable s32 lvalues, evaluated once on the selected arm.
+    /// Captures the room's complete nine-entry table: slots 0..8 yield signed
+    /// halfwords, other slots yield zero. Pan is in three-SPU-step units;
+    /// attenuation is subtracted from the script volume (127 is silent).
+#define NEO_ARK_SUBSTATION_READ_AMBIENCE_MIX(viewIndex, outputPanOffset, outputAttenuation)       \
+    {                                                                                             \
+        if ((viewIndex) < ARRAY_SIZE(_gNeoArkSubstationAmbienceMixesByView)) {                    \
+            (outputPanOffset)   = _gNeoArkSubstationAmbienceMixesByView[(viewIndex)].panOffset;   \
+            (outputAttenuation) = _gNeoArkSubstationAmbienceMixesByView[(viewIndex)].attenuation; \
+        } else {                                                                                  \
+            (outputPanOffset)   = 0;                                                              \
+            (outputAttenuation) = 0;                                                              \
+        }                                                                                         \
     }
 
     viewIndex = gGameSession->location.loc.view;
-    NEO_ARK_SUBSTATION_READ_AMBIENCE_MIX();
+    NEO_ARK_SUBSTATION_READ_AMBIENCE_MIX(viewIndex, panOffset, attenuation);
 #undef NEO_ARK_SUBSTATION_READ_AMBIENCE_MIX
 
     switch (task->state) {

@@ -120,10 +120,12 @@ static s32 _actionPromptHitTestDefault(ActionPromptHotspot* hotspots, s16 cursor
 /// draws as an empty digit, so this value blanks all three.
 #define ACROPOLIS_BRIDGE_KEYPAD_CODE_BLANK 0xFFF
 
-/// The code the keypad accepts, one digit per nibble in the order typed.
+/// Accepted bridge code 561, packed as hundreds/tens/ones in bits 8..11/4..7/0..3.
 #define ACROPOLIS_BRIDGE_KEYPAD_CODE_CORRECT 0x561
 
-/// Frames a complete entry stays on the display before it is checked.
+/// Waiting updates before a complete entry is checked on the following update.
+///
+/// Entry starts the timer at zero; ten callbacks increment it and return.
 #define ACROPOLIS_BRIDGE_KEYPAD_CHECK_DELAY_FRAMES 10
 
 /// Display updates in each visible/blank phase of a keypad result blink.
@@ -139,7 +141,10 @@ static s32 _actionPromptHitTestDefault(ActionPromptHotspot* hotspots, s16 cursor
 /// entry to the accepted state does not reset a previous rejection's count.
 #define ACROPOLIS_BRIDGE_KEYPAD_BLINK_COUNT 3
 
-/// Wrong codes after which the keypad closes instead of taking another entry.
+/// Completed rejection displays after which the keypad closes with cancellation.
+///
+/// The byte counter increments after the error blink finishes, not when a
+/// wrong code is first detected. Counts below three permit another entry.
 #define ACROPOLIS_BRIDGE_KEYPAD_REJECTED_LIMIT 3
 
 /// Dispatch indices of the keypad task; stored in `Task::state`.

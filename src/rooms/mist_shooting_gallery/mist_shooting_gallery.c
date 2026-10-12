@@ -1165,16 +1165,19 @@ static void _mistShootingGalleryResultPanelTask(Task* task)
     s32                      totalValueBaseline;
     Task*                    bonusTask;
 
-    // Set one result line's style; placement is already in the request.
-    // Captures object. request must be a plain local lvalue (evaluated repeatedly);
-    // selector arguments are each evaluated once and narrow to signed bytes.
-#define MIST_SHOOTING_GALLERY_SET_RESULT_TEXT_STYLE(request, glyph, align, mode) \
-    {                                                                            \
-        (request).otIndex    = object->panel.otIndex.signedValue + 1;            \
-        (request).colorRgb   = MIST_SHOOTING_GALLERY_RESULT_TEXT_COLOR;          \
-        (request).glyphTable = (glyph);                                          \
-        (request).alignment  = (align);                                          \
-        (request).drawMode   = (mode);                                           \
+    /// Sets a result line's colour, font and draw style above its owning panel.
+    ///
+    /// `request` is a writable TextDrawReq lvalue, evaluated five times; its X/Y
+    /// placement is retained. `panelObject` is a live UiObject pointer, evaluated
+    /// once. Selector arguments are evaluated once in field order and narrow to
+    /// signed bytes. Arguments must be stable and side-effect-free; no captures.
+#define MIST_SHOOTING_GALLERY_SET_RESULT_TEXT_STYLE(request, panelObject, glyph, align, mode) \
+    {                                                                                         \
+        (request).otIndex    = (panelObject)->panel.otIndex.signedValue + 1;                  \
+        (request).colorRgb   = MIST_SHOOTING_GALLERY_RESULT_TEXT_COLOR;                       \
+        (request).glyphTable = (glyph);                                                       \
+        (request).alignment  = (align);                                                       \
+        (request).drawMode   = (mode);                                                        \
     }
 
     targetKind   = 0;
@@ -1199,23 +1202,23 @@ static void _mistShootingGalleryResultPanelTask(Task* task)
 
                 nameText.x = object->panel.contentOriginX.unsignedValue + contentInset;
                 nameText.y = object->panel.contentOriginY.unsignedValue + rowY;
-                MIST_SHOOTING_GALLERY_SET_RESULT_TEXT_STYLE(nameText, TEXT_GLYPH_TABLE_MEDIUM, TEXT_ALIGNMENT_LEFT, TEXT_DRAW_TRANSLUCENT_OUTLINED);
+                MIST_SHOOTING_GALLERY_SET_RESULT_TEXT_STYLE(nameText, object, TEXT_GLYPH_TABLE_MEDIUM, TEXT_ALIGNMENT_LEFT, TEXT_DRAW_TRANSLUCENT_OUTLINED);
                 textDrawString(&nameText, _gMistShootingGalleryTargetScores[targetKind].name);
 
                 pointsText.x = object->panel.contentOriginX.unsignedValue + 0x6E + contentInset;
                 pointsText.y = object->panel.contentOriginY.unsignedValue + rowY;
-                MIST_SHOOTING_GALLERY_SET_RESULT_TEXT_STYLE(pointsText, TEXT_GLYPH_TABLE_MEDIUM, TEXT_ALIGNMENT_RIGHT, TEXT_DRAW_TRANSLUCENT_OUTLINED);
+                MIST_SHOOTING_GALLERY_SET_RESULT_TEXT_STYLE(pointsText, object, TEXT_GLYPH_TABLE_MEDIUM, TEXT_ALIGNMENT_RIGHT, TEXT_DRAW_TRANSLUCENT_OUTLINED);
                 textDrawString(&pointsText, textItoaSigned(numberText, pointsPerKill));
 
                 killsText.x = object->panel.contentOriginX.unsignedValue + 0x91 + contentInset;
                 killsText.y = object->panel.contentOriginY.unsignedValue + rowY;
-                MIST_SHOOTING_GALLERY_SET_RESULT_TEXT_STYLE(killsText, TEXT_GLYPH_TABLE_MEDIUM, TEXT_ALIGNMENT_RIGHT, TEXT_DRAW_TRANSLUCENT_OUTLINED);
+                MIST_SHOOTING_GALLERY_SET_RESULT_TEXT_STYLE(killsText, object, TEXT_GLYPH_TABLE_MEDIUM, TEXT_ALIGNMENT_RIGHT, TEXT_DRAW_TRANSLUCENT_OUTLINED);
                 textDrawString(&killsText, textItoaSigned(numberText, killCount));
                 kindScore = killCount * pointsPerKill;
 
                 subtotalText.x = object->panel.contentOriginX.unsignedValue - 5 - contentInset;
                 subtotalText.y = object->panel.contentOriginY.unsignedValue + rowY;
-                MIST_SHOOTING_GALLERY_SET_RESULT_TEXT_STYLE(subtotalText, TEXT_GLYPH_TABLE_MEDIUM, TEXT_ALIGNMENT_RIGHT, TEXT_DRAW_TRANSLUCENT_OUTLINED);
+                MIST_SHOOTING_GALLERY_SET_RESULT_TEXT_STYLE(subtotalText, object, TEXT_GLYPH_TABLE_MEDIUM, TEXT_ALIGNMENT_RIGHT, TEXT_DRAW_TRANSLUCENT_OUTLINED);
                 textDrawString(&subtotalText, textItoaSigned(numberText, kindScore));
                 totalScore += kindScore;
                 rowY       += 0xB;
@@ -1237,13 +1240,13 @@ static void _mistShootingGalleryResultPanelTask(Task* task)
         totalCaption.x       = object->panel.contentOriginX.unsignedValue + 0x78 + contentInset;
         totalCaptionBaseline = object->panel.contentOriginY.unsignedValue - 6;
         totalCaption.y       = object->panel.contentBottom.unsignedValue + totalCaptionBaseline;
-        MIST_SHOOTING_GALLERY_SET_RESULT_TEXT_STYLE(totalCaption, TEXT_GLYPH_TABLE_SMALL, TEXT_ALIGNMENT_RIGHT, TEXT_DRAW_OUTLINED);
+        MIST_SHOOTING_GALLERY_SET_RESULT_TEXT_STYLE(totalCaption, object, TEXT_GLYPH_TABLE_SMALL, TEXT_ALIGNMENT_RIGHT, TEXT_DRAW_OUTLINED);
         textDrawString(&totalCaption, _gMistShootingGalleryTotalScoreCaption);
 
         totalText.x        = object->panel.contentOriginX.unsignedValue - 5 - contentInset;
         totalValueBaseline = object->panel.contentOriginY.unsignedValue - 4;
         totalText.y        = object->panel.contentBottom.unsignedValue + totalValueBaseline;
-        MIST_SHOOTING_GALLERY_SET_RESULT_TEXT_STYLE(totalText, TEXT_GLYPH_TABLE_MEDIUM, TEXT_ALIGNMENT_RIGHT, TEXT_DRAW_TRANSLUCENT_OUTLINED);
+        MIST_SHOOTING_GALLERY_SET_RESULT_TEXT_STYLE(totalText, object, TEXT_GLYPH_TABLE_MEDIUM, TEXT_ALIGNMENT_RIGHT, TEXT_DRAW_TRANSLUCENT_OUTLINED);
         textDrawString(&totalText, textItoaSigned(numberText, totalScore));
 
         uiDrawHorizontalSeparator(&object->panel, contentInset, -contentInset, object->panel.contentTop.signedValue + 0xA);
@@ -1251,22 +1254,22 @@ static void _mistShootingGalleryResultPanelTask(Task* task)
         rowY          = object->panel.contentTop.signedValue + 6;
         nameHeading.x = object->panel.contentOriginX.unsignedValue + 0x1E + contentInset;
         nameHeading.y = object->panel.contentOriginY.unsignedValue + rowY;
-        MIST_SHOOTING_GALLERY_SET_RESULT_TEXT_STYLE(nameHeading, TEXT_GLYPH_TABLE_SMALL, TEXT_ALIGNMENT_CENTER, TEXT_DRAW_OUTLINED);
+        MIST_SHOOTING_GALLERY_SET_RESULT_TEXT_STYLE(nameHeading, object, TEXT_GLYPH_TABLE_SMALL, TEXT_ALIGNMENT_CENTER, TEXT_DRAW_OUTLINED);
         textDrawString(&nameHeading, "NMC");
 
         pointsHeading.x = object->panel.contentOriginX.unsignedValue + 0x73 + contentInset;
         pointsHeading.y = object->panel.contentOriginY.unsignedValue + rowY;
-        MIST_SHOOTING_GALLERY_SET_RESULT_TEXT_STYLE(pointsHeading, TEXT_GLYPH_TABLE_SMALL, TEXT_ALIGNMENT_RIGHT, TEXT_DRAW_OUTLINED);
+        MIST_SHOOTING_GALLERY_SET_RESULT_TEXT_STYLE(pointsHeading, object, TEXT_GLYPH_TABLE_SMALL, TEXT_ALIGNMENT_RIGHT, TEXT_DRAW_OUTLINED);
         textDrawString(&pointsHeading, "SCORE");
 
         killsHeading.x = object->panel.contentOriginX.unsignedValue + 0x96 + contentInset;
         killsHeading.y = object->panel.contentOriginY.unsignedValue + rowY;
-        MIST_SHOOTING_GALLERY_SET_RESULT_TEXT_STYLE(killsHeading, TEXT_GLYPH_TABLE_SMALL, TEXT_ALIGNMENT_RIGHT, TEXT_DRAW_OUTLINED);
+        MIST_SHOOTING_GALLERY_SET_RESULT_TEXT_STYLE(killsHeading, object, TEXT_GLYPH_TABLE_SMALL, TEXT_ALIGNMENT_RIGHT, TEXT_DRAW_OUTLINED);
         textDrawString(&killsHeading, "KILL");
 
         subtotalHeading.x = object->panel.contentOriginX.unsignedValue - contentInset;
         subtotalHeading.y = object->panel.contentOriginY.unsignedValue + rowY;
-        MIST_SHOOTING_GALLERY_SET_RESULT_TEXT_STYLE(subtotalHeading, TEXT_GLYPH_TABLE_SMALL, TEXT_ALIGNMENT_RIGHT, TEXT_DRAW_OUTLINED);
+        MIST_SHOOTING_GALLERY_SET_RESULT_TEXT_STYLE(subtotalHeading, object, TEXT_GLYPH_TABLE_SMALL, TEXT_ALIGNMENT_RIGHT, TEXT_DRAW_OUTLINED);
         textDrawString(&subtotalHeading, "TOTAL");
     }
 

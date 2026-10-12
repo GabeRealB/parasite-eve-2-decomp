@@ -125,12 +125,18 @@ static s16 _gNeoArkWoodlandPathCollisionGridCells[190] = {
 #include "assets/neo_ark_woodland_path_collision_0479C_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gNeoArkWoodlandPathCollisionGridCells[i])
+/// Face-list address at a halfword offset in the woodland collision grid's pool.
+///
+/// Captures the 190-element s16 pool. `halfwordOffset` is evaluated once and
+/// must select a list start in 0..189, not a cell-directory slot or byte offset.
+/// Each list ends with WORLD_COLLISION_GRID_CELL_END. The generated table include
+/// selects this binding through the grid's `cell_face_list_macro` configuration.
+#define NEO_ARK_WOODLAND_PATH_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gNeoArkWoodlandPathCollisionGridCells[(halfwordOffset)])
 /// X-major directory of 4-by-5 collision cells; NULL marks an empty cell.
 static s16* _gNeoArkWoodlandPathCollisionGridTable[20] = {
 #include "assets/neo_ark_woodland_path_collision_0479C_table.inc"
 };
-#undef GRID_CELL
+#undef NEO_ARK_WOODLAND_PATH_CELL_FACE_LIST_AT_OFFSET
 
 WorldCollisionGrid gNeoArkWoodlandPathCollisionGrid = {
     .viewCoord   = NULL,

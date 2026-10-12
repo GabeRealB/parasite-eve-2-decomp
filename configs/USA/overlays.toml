@@ -3102,7 +3102,7 @@ objects = [
   { kind = "packageId" },
   { unit = "neo_ark_woodland_path/neo_ark_woodland_path", rodata = "0x4", text = "0xD4", data = "0x4078" },
   { kind = "collision", at = "0x414C", in_c = true },
-  { kind = "collisionSource", at = "0x479C", in_c = true },
+  { kind = "collisionSource", at = "0x479C", in_c = true, cell_face_list_macro = "NEO_ARK_WOODLAND_PATH_CELL_FACE_LIST_AT_OFFSET" },
   { unit = "neo_ark_woodland_path/neo_ark_woodland_path_2", rodata = "0x60", text = "0x1448", data = "0x7370", bss = "0x74A0", tail = true },
 ]
 

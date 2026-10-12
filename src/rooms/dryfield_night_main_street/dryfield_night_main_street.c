@@ -106,41 +106,11 @@ enum {
     DRYFIELD_NIGHT_MAIN_STREET_ROOM_STATE_RELEASE    = 2,
 };
 
+/// Advances the shared random sequence once and yields an unsigned draw in 0..65535.
+///
+/// Captures `gRandomLcgState`; multiplication and addition wrap modulo 2^32.
+/// Each invocation consumes one draw, so callers must preserve draw order.
 #define DRYFIELD_NIGHT_MAIN_STREET_RAND() ((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16)
-
-/// Advances the gameplay LCG and yields the high half of the new state.
-
-/// Applies the patch list `table[gameFlagGetNibble(nibble)]` to the current
-/// area's view sprite commands. The list is a stream of byte pairs ended by a
-/// 0xFF first byte: `(view, 0xFF)` selects that view's command list, and any
-/// other `(cmd, value)` stores `value` in that batch's `hidden` byte. The list
-/// starts on the view named by its first byte.
-#define DRYFIELD_NIGHT_MAIN_STREET_APPLY_SPRT_PATCH(table, nibble)                         \
-    {                                                                                      \
-        GameLocationKey*          sess;                                                    \
-        SpriteView*               rec;                                                     \
-        SpriteBatch*              batches;                                                 \
-        SpriteVisibilityCommand*  p;                                                       \
-        s16                       idx;                                                     \
-        SpriteVisibilityCommand** tbl;                                                     \
-                                                                                           \
-        idx     = gameFlagGetNibble(nibble);                                               \
-        tbl     = table;                                                                   \
-        p       = tbl[idx];                                                                \
-        sess    = &gGameSession->location.loc;                                             \
-        rec     = gSpriteAreaTables[sess->stage - 1]->areaViews[sess->area - 1];           \
-        batches = rec[p->slotIndex].batches;                                               \
-        if (p->slotIndex != DRYFIELD_NIGHT_MAIN_STREET_SPRITE_PATCH_END) {                 \
-            do {                                                                           \
-                if (p->operation == DRYFIELD_NIGHT_MAIN_STREET_SPRITE_PATCH_SELECT_VIEW) { \
-                    batches = rec[p->slotIndex].batches;                                   \
-                    p++;                                                                   \
-                }                                                                          \
-                batches[p->slotIndex].hidden = p->operation;                               \
-                p++;                                                                       \
-            } while (p->slotIndex != DRYFIELD_NIGHT_MAIN_STREET_SPRITE_PATCH_END);         \
-        }                                                                                  \
-    }
 
 /// The room effect mode of each view, indexed by view - 1.
 
@@ -1948,6 +1918,43 @@ void dryfieldNightMainStreetRoomTask(Task* task)
     roomStates.funcs[task->state](task);
 }
 
+/// Restores a balcony section's sprite visibility from its saved state.
+///
+/// `stateFlag` must yield 0 or 1 for the two-list directory. Borrows the address
+/// of its stored root so the directory is loaded after reading the saved flag.
+/// Uses the live session and stage's first sprite variant; slots start at zero.
+/// Each stream begins with (view slot, 255), immediately followed by a batch
+/// write (batch slot, hidden byte). A selector's following write is consumed
+/// without another selector/end check; consecutive selectors are unsupported.
+/// Slot 255 ends the stream, but the first view lookup precedes that check, so
+/// a terminator-only stream is invalid. All selected batches must be writable.
+/// Neither the directory address nor any command pointer is retained.
+static inline void _dryfieldNightMainStreetApplySectionSpriteVisibility(SpriteVisibilityCommand** const* commandListsAddress, s32 stateFlag)
+{
+    GameLocationKey*          location;
+    SpriteView*               areaViews;
+    SpriteBatch*              batches;
+    SpriteVisibilityCommand*  command;
+    s16                       savedState;
+    SpriteVisibilityCommand** directory;
+    savedState = gameFlagGetNibble(stateFlag);
+    directory  = *commandListsAddress;
+    command    = directory[savedState];
+    location   = &gGameSession->location.loc;
+    areaViews  = gSpriteAreaTables[location->stage - 1]->areaViews[location->area - 1];
+    batches    = areaViews[command->slotIndex].batches;
+    if (command->slotIndex != DRYFIELD_NIGHT_MAIN_STREET_SPRITE_PATCH_END) {
+        do {
+            if (command->operation == DRYFIELD_NIGHT_MAIN_STREET_SPRITE_PATCH_SELECT_VIEW) {
+                batches = areaViews[command->slotIndex].batches;
+                command++;
+            }
+            batches[command->slotIndex].hidden = command->operation;
+            command++;
+        } while (command->slotIndex != DRYFIELD_NIGHT_MAIN_STREET_SPRITE_PATCH_END);
+    }
+}
+
 /// Restores main-street background visibility from four saved balcony-section states.
 ///
 /// Requires loaded writable sprite batches and saved states for sections 3,
@@ -1956,10 +1963,10 @@ void dryfieldNightMainStreetRoomTask(Task* task)
 /// The room entry task calls this after installing its message receiver.
 static void _dryfieldNightMainStreetRestoreSectionSpriteVisibility(void)
 {
-    DRYFIELD_NIGHT_MAIN_STREET_APPLY_SPRT_PATCH(_gDryfieldNightMainStreetBalconySection3SpritePatchTable, GAME_FLAG_NIGHT_MOTEL_BALCONY_SECTION_3_STATE);
-    DRYFIELD_NIGHT_MAIN_STREET_APPLY_SPRT_PATCH(_gDryfieldNightMainStreetBalconySection4SpritePatchTable, GAME_FLAG_NIGHT_MOTEL_BALCONY_SECTION_4_STATE);
-    DRYFIELD_NIGHT_MAIN_STREET_APPLY_SPRT_PATCH(_gDryfieldNightMainStreetBalconySection5SpritePatchTable, GAME_FLAG_NIGHT_MOTEL_BALCONY_SECTION_5_STATE);
-    DRYFIELD_NIGHT_MAIN_STREET_APPLY_SPRT_PATCH(_gDryfieldNightMainStreetBalconySection7SpritePatchTable, GAME_FLAG_NIGHT_MOTEL_BALCONY_SECTION_7_STATE);
+    _dryfieldNightMainStreetApplySectionSpriteVisibility(&_gDryfieldNightMainStreetBalconySection3SpritePatchTable, GAME_FLAG_NIGHT_MOTEL_BALCONY_SECTION_3_STATE);
+    _dryfieldNightMainStreetApplySectionSpriteVisibility(&_gDryfieldNightMainStreetBalconySection4SpritePatchTable, GAME_FLAG_NIGHT_MOTEL_BALCONY_SECTION_4_STATE);
+    _dryfieldNightMainStreetApplySectionSpriteVisibility(&_gDryfieldNightMainStreetBalconySection5SpritePatchTable, GAME_FLAG_NIGHT_MOTEL_BALCONY_SECTION_5_STATE);
+    _dryfieldNightMainStreetApplySectionSpriteVisibility(&_gDryfieldNightMainStreetBalconySection7SpritePatchTable, GAME_FLAG_NIGHT_MOTEL_BALCONY_SECTION_7_STATE);
 }
 
 /// Chooses the next puff's spawn point with three ordered LCG draws.
@@ -2044,6 +2051,8 @@ void dryfieldNightMainStreetAmbientEffectsTask(Task* task)
     }
     task->spawnArg1.value = viewGetMappedIndex() & 0xFF;
 }
+
+#undef DRYFIELD_NIGHT_MAIN_STREET_RAND
 
 #include "../../shared/glow_draw_shaft.inc.c"
 

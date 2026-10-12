@@ -151,9 +151,6 @@ enum {
 /// the shared signed-halfword position one quarter of the remaining distance.
 #define SHELTER_R47_MAP_LABEL_X_AWAY (-0x104)
 
-/// Room view selected on entry. It is the B1 page's view.
-#define SHELTER_R47_MAP_ENTRY_VIEW 0x25
-
 /// Frames the timed viewing stays up before it closes, unless the event is skipped.
 #define SHELTER_R47_MAP_SHOW_LIMIT 300
 

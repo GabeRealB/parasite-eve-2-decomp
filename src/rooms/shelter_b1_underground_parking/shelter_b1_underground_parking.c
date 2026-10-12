@@ -128,7 +128,10 @@ enum {
 /// each one toggles in that pattern instead (8, 4, 2, 1).
 #define SHELTER_B1_UNDERGROUND_PARKING_PANEL_HOTSPOT_ENTER 16
 
-/// Amount the selector panel's closing fade darkens each frame.
+/// RGB intensity units added to the selector panel's subtractive fade per update.
+///
+/// The signed-halfword level is clamped to black at 255 after addition; from
+/// zero, six units per callback reaches black on call 43.
 #define SHELTER_B1_UNDERGROUND_PARKING_PANEL_FADE_STEP 6
 
 /// Selector panel phases stored in the task's byte-sized state.

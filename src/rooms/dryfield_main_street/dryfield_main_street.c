@@ -84,9 +84,11 @@ static void _mainStreetFinishIceBagEvent(Task* task);
 
 static s32 _mainStreetCapSoundCue(Task* unusedTask, s32 unusedMessageId, s32 cueKey, s32 unusedSecondArg);
 
+/// Advances the shared random sequence once and yields an unsigned draw in 0..65535.
+///
+/// Captures `gRandomLcgState`; multiplication and addition wrap modulo 2^32.
+/// Each invocation consumes one draw, so callers must preserve draw order.
 #define DRYFIELD_MAIN_STREET_RAND() ((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16)
-
-/// Advances the gameplay LCG and yields the high half of the new state.
 
 extern RoomEventActiveBytes gRoomEventActive;
 
@@ -1694,6 +1696,8 @@ void dryfieldMainStreetRoomEffectsTask(Task* task)
     }
     task->spawnArg1.value = viewGetMappedIndex() & 0xFF;
 }
+
+#undef DRYFIELD_MAIN_STREET_RAND
 
 #include "../../shared/main_street_puff_task.inc.c"
 

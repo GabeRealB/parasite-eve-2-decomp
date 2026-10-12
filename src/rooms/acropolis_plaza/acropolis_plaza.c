@@ -4168,16 +4168,21 @@ static void _acropolisPlazaCaptionEventTask(Task* task)
     }
 }
 
-/// Start an idle voice silently and finish this tick; its volume envelope
-/// begins on the next call. Already-active voices continue to the update.
-#define _acropolisPlazaStartAmbience(state, sndId)      \
-    do {                                                \
-        if (*(state) == 0) {                            \
-            sndEvtRequestScriptStart((sndId), 0, 0x7F); \
-            sndEvtRequestScriptVolume((sndId), 0);      \
-            *(state) = 1;                               \
-            return;                                     \
-        }                                               \
+/// Requests a silent ambience start and returns from the enclosing voice update.
+///
+/// `startFlag` points to a writable u16 flag (0 idle, 1 start requested), evaluated
+/// twice on startup. `soundId` is evaluated once per request; both arguments must be
+/// stable and side-effect-free. Records the start even if queue admission fails.
+/// A set flag continues the caller's envelope update on this invocation.
+#define ACROPOLIS_PLAZA_START_AMBIENCE(startFlag, soundId)                                       \
+    do {                                                                                         \
+        enum { ACROPOLIS_PLAZA_AMBIENCE_SILENT_ATTENUATION = 127 };                              \
+        if (*(startFlag) == false) {                                                             \
+            sndEvtRequestScriptStart((soundId), 0, ACROPOLIS_PLAZA_AMBIENCE_SILENT_ATTENUATION); \
+            sndEvtRequestScriptVolume((soundId), 0);                                             \
+            *(startFlag) = true;                                                                 \
+            return;                                                                              \
+        }                                                                                        \
     } while (0)
 
 /// Starts, envelopes or stops one plaza ambience script against the current scene frame.
@@ -4198,7 +4203,7 @@ static void _acropolisPlazaUpdateAmbienceVoice(u16 firstFrame, u16 lastFrame, u1
 
     sceneFrame = queue->sceneFrame;
     if (sceneFrame >= firstFrame && sceneFrame <= lastFrame) {
-        _acropolisPlazaStartAmbience(startRequested, soundId);
+        ACROPOLIS_PLAZA_START_AMBIENCE(startRequested, soundId);
         if (envelope == ACROPOLIS_PLAZA_AMBIENCE_TRIANGLE) {
             if (sceneFrame < peakFrame) {
                 volume = ((queue->sceneFrame - firstFrame) * ACROPOLIS_PLAZA_AMBIENCE_FULL_VOLUME) / (peakFrame - firstFrame);
@@ -4225,7 +4230,7 @@ static void _acropolisPlazaUpdateAmbienceVoice(u16 firstFrame, u16 lastFrame, u1
     }
 }
 
-#undef _acropolisPlazaStartAmbience
+#undef ACROPOLIS_PLAZA_START_AMBIENCE
 
 /// Updates the plaza's four traversal ambience voices or the stream-scene voice envelope.
 ///

@@ -1012,9 +1012,12 @@ static void _dryfieldNightWaterTankRestoreTankCollision(s32 offsetTank)
     roomGrid     = &_gDryfieldNightWaterTankCollisionGrid;
     tankTemplate = &_gDryfieldNightWaterTankObstacleCollisionGrid;
 
-    // Restores the reserved obstacle prefix without rebuilding the room's cells.
-    // Grid arguments are stable pointers, evaluated repeatedly; index is writable
-    // s32 scratch. The enclosing constants select two faces/normals and six vertices.
+    /// Restores two obstacle faces/normal XYZs and six vertex XYZs in the room grid.
+    ///
+    /// Grid arguments are stable pointers to disjoint pools, evaluated repeatedly;
+    /// `index` is writable s32 scratch left at six. Captures this function's two
+    /// geometry counts. Copies complete face records but preserves vector pads,
+    /// later geometry and cell lists; both pools must cover the copied prefixes.
 #define DRYFIELD_NIGHT_WATER_TANK_COPY_OBSTACLE_GEOMETRY(destination, source, index)              \
     {                                                                                             \
         for ((index) = 0; (index) < DRYFIELD_NIGHT_WATER_TANK_OBSTACLE_FACE_COUNT; (index)++) {   \

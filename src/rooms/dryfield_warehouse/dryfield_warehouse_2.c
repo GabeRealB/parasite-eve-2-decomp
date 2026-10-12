@@ -92,10 +92,16 @@ enum {
     DRYFIELD_WAREHOUSE_CUTSCENE_COMMAND_BLACKOUT_AND_LOOP_SOUND = 5,
 };
 
-/// Updates between two plays of the cutscene's looping area sound.
+/// Callback-count modulus for repeating the cutscene's looping area sound.
+///
+/// The two loop commands test the unsigned-halfword counter before incrementing
+/// it; zero requests a play too. Counts divisible by 60 restart the script.
 #define DRYFIELD_WAREHOUSE_CUTSCENE_SOUND_LOOP_FRAMES 60
 
-/// Updates the restore command spends raising dust before it clears itself.
+/// Dust updates before the restore-and-fade-in command clears its pending command.
+///
+/// Setup zeroes the unsigned-halfword count; dust updates increment before the
+/// comparison, so update 36 emits its eligible puffs and then ends the command.
 #define DRYFIELD_WAREHOUSE_CUTSCENE_DUST_FRAMES 36
 
 /// Work block of the warehouse cutscene task.
@@ -750,11 +756,14 @@ static void _dryfieldWarehouseExecuteCutsceneCommand(Task* task)
     s32 weaponSlot;
     s32 animationBankIndex;
 
-    // Restores equipment, builds the weapon request and places the player.
-    // Work is a stable pointer; request and both indices are writable locals,
-    // evaluated repeatedly. Uses this function's character/bank/clip constants,
-    // the live player/save and the room's closing transform. Requests are borrowed
-    // synchronously; the supplied work may differ from task->work.
+    /// Restores equipment, plays the weapon-bank scene clip and places the player.
+    ///
+    /// Work must hold a live player; it may differ from the caller's task work.
+    /// Request and both indices are writable locals, evaluated repeatedly. All
+    /// arguments must be stable and side-effect-free. Captures this function's
+    /// character/bank/clip constants, live player/save and closing transform.
+    /// Equipment restoration clears its pending flag before scripted hold resumes.
+    /// The two dispatches borrow their payloads synchronously, with collision enabled.
 #define DRYFIELD_WAREHOUSE_RESTORE_COMMAND_PLAYER(cutsceneWork, animationRequest, weaponSlot, bankIndex)                                                                                                                                                                  \
     {                                                                                                                                                                                                                                                                     \
         if ((cutsceneWork)->playerEffectsSuppressed != 0) {                                                                                                                                                                                                               \

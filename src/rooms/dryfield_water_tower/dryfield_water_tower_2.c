@@ -195,7 +195,10 @@ enum {
     DRYFIELD_WATER_TOWER_PROP_SLIDE_SETTLING, // Held at the end placement until the settle count runs out
 };
 
-/// Frames the sliding prop is held at the end of a slide before it reports arrival.
+/// Settling updates before either slide direction applies its final placement.
+///
+/// Prop commands reset the signed-halfword counter to zero. It increments before
+/// comparison, so final placement occurs on settling call 61 in either direction.
 #define DRYFIELD_WATER_TOWER_PROP_SLIDE_SETTLE_FRAMES 61
 
 /// Phases of the falling prop's fall to its hanging height, held in

@@ -53,6 +53,12 @@
 #include "../../shared/room_cutscene.h"
 #include "../../shared/action_prompt.h"
 
+/// One-based saved view for the map terminal's initial B1 page (37).
+///
+/// The terminal preserves the previous saved view in its work before selecting
+/// this page; closing restores that view. This is a view selector, not a page index.
+#define SHELTER_R47_MAP_ENTRY_VIEW 0x25
+
 static void _shelterR47MapTerminalTask(Task* task);
 static void _shelterR47MapTerminalPromptTask(Task* task);
 

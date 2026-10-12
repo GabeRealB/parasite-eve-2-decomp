@@ -55,9 +55,13 @@ static void _roamerArmPoolA(Task* task);
 static s32  _roamerAmbushMsg(Task* task, s32 messageId, struct ActorCommand* msg, s32 unusedArg);
 static void _roamerBankRetreat(Task* task, s32 messageId, s32 hp, s32 unusedArg);
 
+/// Absolute displacement between two signed coordinate components.
+///
+/// Both arguments are evaluated twice and must be stable and side-effect-free.
+/// Their promoted type must be signed, with both subtraction orders representable;
+/// this is not an unsigned-distance or saturating-arithmetic helper.
+/// The caller sums XYZ displacements in whole game-coordinate units.
 #define ABS_DIFF(a, b) ((a) - (b) >= 0 ? (a) - (b) : (b) - (a))
-
-/// The distance between `a` and `b`, spelled as a conditional subtraction.
 
 static s32 _neoArkWoodlandPathIgnoreRoamerCommand(Task* task, s32 messageId, const ActorCommand* command, s32 secondArg);
 static s32 _roamerExtendCooldown(Task* unusedTask, s32 unusedMessageId, s32 unusedEventValue, s32 unusedSecondArg);
@@ -308,10 +312,16 @@ void neoArkWoodlandPathPlayerWaterSplashTask(Task* task)
 
 /// Rolls ripple then spray for one tracked player part and advances its history.
 ///
-/// Captures work, playerTask, playerRoot, trackedPart and surfaceCoord from
-/// this function. sampleIndex must be a side-effect-free index 0 or 1 and is
-/// evaluated repeatedly. Expands to statements for a braced loop body; the
-/// coordinate is copied by spawn and the emitted children do not follow it.
+/// Captures work, playerTask, playerRoot, trackedPart, surfaceCoord and this
+/// function's WATER_SPLASH_* constants. sampleIndex is a stable, side-effect-free
+/// index 0 or 1, evaluated repeatedly; the player rig must include parts 15 and 18.
+/// Sums absolute cached XYZ displacement in game units, adds 32 for ripple odds,
+/// then narrows to work->angle's signed halfword. Each roll is in 0..511; spray
+/// uses the threshold after subtracting 32 with another halfword narrowing.
+/// Always consumes two ordered LCG draws and then narrows cached XYZ into history.
+/// Surface Y=200 is in the root's parent frame. Spawn snapshots the coordinate
+/// but retains its address; these ripple/spray children never read that pointer.
+/// Expands to standalone statements for a braced loop body.
 #define NEO_ARK_WOODLAND_PATH_EMIT_PART_WATER_EFFECTS(sampleIndex)                                                                                                                                                                                                                                                                                                \
     trackedPart               = &playerTask->extra.tmd->coords[(sampleIndex) * WATER_SPLASH_PART_STRIDE + WATER_SPLASH_FIRST_PART];                                                                                                                                                                                                                               \
     work->angle               = ABS_DIFF(gNeoArkWoodlandPathPlayerWaterPartHistory[(sampleIndex)].vx, trackedPart->workm.t[0]) + ABS_DIFF(gNeoArkWoodlandPathPlayerWaterPartHistory[(sampleIndex)].vy, trackedPart->workm.t[1]) + ABS_DIFF(gNeoArkWoodlandPathPlayerWaterPartHistory[(sampleIndex)].vz, trackedPart->workm.t[2]) + WATER_SPLASH_RIPPLE_ODDS_BIAS; \
@@ -359,6 +369,7 @@ void neoArkWoodlandPathPlayerWaterSplashTask(Task* task)
     }
 
 #undef NEO_ARK_WOODLAND_PATH_EMIT_PART_WATER_EFFECTS
+#undef ABS_DIFF
 }
 
 #include "../../shared/falling_leaves_task.inc.c"
@@ -446,7 +457,9 @@ static void _roamerTickPoolB(Task* task)
 /// actorIndex and pointIndex are side-effect-free indices in 0..1 and 0..4;
 /// they are evaluated repeatedly. dirtyBeforeTurn must be constant 0 or 1 and
 /// preserves the row's dirty-stamp ordering. Uses the room's borrowed spawn
-/// table; expands to statements and must be invoked as the complete statements of a switch arm.
+/// table (X/Z in whole room units, yaw at 4096 units per turn), and requires a
+/// live revived model. Each lookup is retained, including after the yaw call.
+/// Expands to statements for a braced switch arm; no actor pointer is retained.
 #define ROAMER_PLACE_POOL_B_ENEMY(actorIndex, pointIndex, dirtyBeforeTurn)                                                      \
     sceneFindPlacedActor(actorIndex)->extra.tmd->coords->coord.t[0] = _gNeoArkWoodlandPathRoamerPoolBSpawnPoints[pointIndex].x; \
     sceneFindPlacedActor(actorIndex)->extra.tmd->coords->coord.t[1] = 0;                                                        \

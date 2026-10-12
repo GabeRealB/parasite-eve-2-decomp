@@ -81,7 +81,10 @@ enum {
     DRYFIELD_WATER_TANK_PROP_SLIDE_SETTLING, // Held at the end placement until the settle count runs out
 };
 
-/// Frames the prop is held at the end of its slide before it reports arrival.
+/// Settling-update threshold at which the sliding prop applies its final placement.
+///
+/// The signed-halfword counter is incremented before comparison. A fresh zero
+/// count takes 61 calls; restarting a slide retains any earlier settling count.
 #define DRYFIELD_WATER_TANK_PROP_SETTLE_FRAMES 61
 
 /// Work block of each task in the water tank room's prop scene, kept at `Task::work`.
