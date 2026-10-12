@@ -113,13 +113,31 @@
 #define SCREEN_WAVE_COLUMN_OSCILLATORS (_gScreenWaveColumnWaves)
 #endif
 
-/// Addressable row-oscillator array containing at least 30 active entries.
+/// Writable sine-wave array controlling vertical displacement along horizontal mesh edges.
 ///
-/// Defaults to TU-local `_gScreenWaveRowWaves`; split overlays bind
-/// `gScreenWaveRowWaves`. Its element type must match the column array's type.
-/// Expansion is indexed repeatedly and must have no side effects.
+/// Bind a side-effect-free, parenthesized array lvalue before including this
+/// header and retain it through the selected renderer fragment. The default
+/// names the carrier's static `_gScreenWaveRowWaves`; actor_205200, the
+/// submarine tunnel and the garbage incinerator bind overlay-private
+/// `gScreenWaveRowWaves` defined in another translation unit. Declare storage
+/// in the carrier or its private header at the existing BSS position.
+///
+/// Both renderers require elements 0..29, one for each horizontal edge below
+/// the pinned top edge; no oscillator is indexed at -1. `_screenWaveTask`
+/// requires `ScreenWaveOscillator` elements. `_screenWaveGridTask` requires
+/// word-aligned `ScreenWaveGridOscillator` elements and snapshots only their
+/// first four bytes (`phase` and `offset`), leaving speed and the unknown tail
+/// uncopied. Extra declared elements are outside the active mesh.
+///
+/// The seed tick initializes each active phase, offset and speed. Drawing
+/// ticks add speed to the signed-halfword phase, with 4096 angle units per
+/// turn; the grid renderer pauses this advance while actors are frozen, and
+/// the per-frame renderer always advances. Expansion is repeated for reads,
+/// writes and address-taking, so it must have no side effects. Storage must
+/// remain writable through the final drawing tick, with only one wave using
+/// it at a time.
 #ifndef SCREEN_WAVE_ROW_OSCILLATORS
-#define SCREEN_WAVE_ROW_OSCILLATORS _gScreenWaveRowWaves
+#define SCREEN_WAVE_ROW_OSCILLATORS (_gScreenWaveRowWaves)
 #endif
 
 static void _screenWaveTask(Task* task);
