@@ -908,6 +908,20 @@ def build_data(db: sqlite3.Connection, out: Path, pixels: str) -> dict:
                     if slot["what"] == "dialogue":
                         found = cap_dialogue.commands(data[slot["offset"]:slot["offset"] + slot["length"]])
                         dialogue[name] = [line for command in found for line in cap_dialogue.describe(command)]
+    # A scene's audio stream carries scene images between its audio chunks, each with up to three palettes that
+    # `_mdecStepSceneImageDecode` uploads when the view it is for arrives (trace_replay.scene_images reads them from
+    # the stream's bytes). A trace's playback names one as the file `scene:<name>`, as it names a bundle's palette.
+    import trace_replay
+    for stem, image, chunk in trace_replay.all_scene_palettes():
+        name = trace_replay.scene_palette_name(stem, image, chunk)
+        catalogue[name] = ["clut", {"source": stem, "x": chunk["x"], "y": chunk["y"], "w": chunk["w"], "h": chunk["h"],
+                                    "notes": f"image chunk {chunk['k']} of the scene image for view {image['view']} in the stream {stem} (sector {image['sector']}): uploaded by the scene image decoder when that view arrives"
+                                             + (", relocated: three rows up and one down" if chunk["relocated"] else "")}]
+        files.append(f"scene:{name}")
+        footprint[len(files) - 1].append([name, "c", "", chunk["x"], chunk["y"], chunk["w"], chunk["h"], 0])
+        if pixels:
+            (out.with_name(pixels) / f"{name}.js").write_text(
+                f"PIX({json.dumps(name)},{json.dumps([[chunk['x'], chunk['y'], chunk['w'], chunk['h'], base64.b64encode(trace_replay.scene_palette_words(chunk)).decode()]])});\n", encoding="utf-8")
     # A room's collision grid is an asset too: the overlay manifest declares where it sits in the package.
     import tomllib as _toml
     from gen_overlay_configs import declared_collisions
