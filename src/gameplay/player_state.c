@@ -415,26 +415,28 @@ void playerStateTickStatusEffects(Task* task)
 
     /// Decrements a status duration and removes its flag after signed-halfword expiry.
     ///
-    /// Local to this update; uses its s32 `remainingTicks` temporary. Both lvalue
-    /// arguments must have no side effects: the duration is read and written,
-    /// and the flags are updated only at expiry. The mask is evaluated once.
-#define PLAYER_STATE_TICK_STATUS_DURATION(durationTicks, statusFlags, effectMask) \
-    {                                                                             \
-        remainingTicks  = (u16)(durationTicks) - 1;                               \
-        (durationTicks) = remainingTicks;                                         \
-        if ((s16)remainingTicks <= 0) {                                           \
-            (statusFlags) &= ~(effectMask);                                       \
-        }                                                                         \
+    /// The duration and flags are writable halfword/integer lvalues; remainingTicks
+    /// is a separate writable s32 temporary. All must have no evaluation side effects.
+    /// Duration reads zero-extend before subtraction and writes retain the low halfword;
+    /// expiry tests that halfword as signed. The mask is evaluated only at expiry.
+    /// No caller locals are captured; storage is borrowed for this statement.
+#define PLAYER_STATE_TICK_STATUS_DURATION(durationTicks, statusFlags, effectMask, remainingTicks) \
+    {                                                                                             \
+        (remainingTicks) = (u16)(durationTicks) - 1;                                              \
+        (durationTicks)  = (remainingTicks);                                                      \
+        if ((s16)(remainingTicks) <= 0) {                                                         \
+            (statusFlags) &= ~(effectMask);                                                       \
+        }                                                                                         \
     }
 
     statusFlags = gPlayerStatus.statusFlags;
     actor       = task->work;
     if (statusFlags != 0) {
         if (statusFlags & PLAYER_STATUS_DARKNESS) {
-            PLAYER_STATE_TICK_STATUS_DURATION(actor->effectTimer.darknessTicks, statusFlags, PLAYER_STATUS_DARKNESS);
+            PLAYER_STATE_TICK_STATUS_DURATION(actor->effectTimer.darknessTicks, statusFlags, PLAYER_STATUS_DARKNESS, remainingTicks);
         }
         if (statusFlags & PLAYER_STATUS_PARALYSIS) {
-            PLAYER_STATE_TICK_STATUS_DURATION(actor->paralysisTicks, statusFlags, PLAYER_STATUS_PARALYSIS);
+            PLAYER_STATE_TICK_STATUS_DURATION(actor->paralysisTicks, statusFlags, PLAYER_STATUS_PARALYSIS, remainingTicks);
         }
         if (statusFlags & PLAYER_STATUS_POISON) {
             remainingTicks           = actor->poisonDamageTicks - 1;
@@ -450,21 +452,21 @@ void playerStateTickStatusEffects(Task* task)
                     actor->poisonDamageTicks = PLAYER_STATE_POISON_OTHER_INTERVAL;
                 }
             }
-            PLAYER_STATE_TICK_STATUS_DURATION(actor->poisonTicks, statusFlags, PLAYER_STATUS_POISON);
+            PLAYER_STATE_TICK_STATUS_DURATION(actor->poisonTicks, statusFlags, PLAYER_STATUS_POISON, remainingTicks);
         }
         if (statusFlags & PLAYER_STATUS_SILENCE) {
-            PLAYER_STATE_TICK_STATUS_DURATION(actor->silenceTicks, statusFlags, PLAYER_STATUS_SILENCE);
+            PLAYER_STATE_TICK_STATUS_DURATION(actor->silenceTicks, statusFlags, PLAYER_STATUS_SILENCE, remainingTicks);
         }
         if (statusFlags & PLAYER_STATE_TIMED_EFFECT_20) {
-            PLAYER_STATE_TICK_STATUS_DURATION(actor->status20Ticks, statusFlags, PLAYER_STATE_TIMED_EFFECT_20);
+            PLAYER_STATE_TICK_STATUS_DURATION(actor->status20Ticks, statusFlags, PLAYER_STATE_TIMED_EFFECT_20, remainingTicks);
         }
         if (statusFlags & PLAYER_STATUS_CONFUSION) {
-            PLAYER_STATE_TICK_STATUS_DURATION(actor->confusionTicks, statusFlags, PLAYER_STATUS_CONFUSION);
+            PLAYER_STATE_TICK_STATUS_DURATION(actor->confusionTicks, statusFlags, PLAYER_STATUS_CONFUSION, remainingTicks);
         }
         if (statusFlags & PLAYER_STATUS_BERSERKER) {
             // Active attachment modes keep Berserker's remaining duration intact.
             if ((u32)((u8)gAttachmentState.mode - ATTACHMENT_MODE_ARMED) >= 2U) {
-                PLAYER_STATE_TICK_STATUS_DURATION(actor->berserkerTicks, statusFlags, PLAYER_STATUS_BERSERKER);
+                PLAYER_STATE_TICK_STATUS_DURATION(actor->berserkerTicks, statusFlags, PLAYER_STATUS_BERSERKER, remainingTicks);
             }
         }
         gPlayerStatus.statusFlags = statusFlags;
@@ -1428,18 +1430,22 @@ void companionRemoveEquipment(Task* task)
         ///
         /// Requires a live GameActor pointer expression without side effects;
         /// each store evaluates it. Playback is selected after this reset.
-#define COMPANION_REMOVE_EQUIPMENT_RESET_IDLE(actor)      \
-    {                                                     \
-        (actor)->mode           = GAME_ACTOR_MODE_NORMAL; \
-        (actor)->state          = 0;                      \
-        (actor)->movementMode   = 0;                      \
-        (actor)->turnRateIndex  = 0;                      \
-        (actor)->animationState = 0;                      \
-        (actor)->statePhase     = 0;                      \
-        (actor)->idleTicks      = 0;                      \
-        (actor)->actionValue    = 0;                      \
-        (actor)->movementSign   = 0;                      \
-        (actor)->turnSign       = 0;                      \
+#define COMPANION_REMOVE_EQUIPMENT_RESET_IDLE(actor)                                    \
+    {                                                                                   \
+        enum { COMPANION_REMOVE_EQUIPMENT_IDLE_STATE                = 0,                \
+               COMPANION_REMOVE_EQUIPMENT_MOVEMENT_STOPPED          = 0,                \
+               COMPANION_REMOVE_EQUIPMENT_TURN_DISABLED             = 0,                \
+               COMPANION_REMOVE_EQUIPMENT_ANIMATION_CONTROLLER_NONE = 0 };              \
+        (actor)->mode           = GAME_ACTOR_MODE_NORMAL;                               \
+        (actor)->state          = COMPANION_REMOVE_EQUIPMENT_IDLE_STATE;                \
+        (actor)->movementMode   = COMPANION_REMOVE_EQUIPMENT_MOVEMENT_STOPPED;          \
+        (actor)->turnRateIndex  = COMPANION_REMOVE_EQUIPMENT_TURN_DISABLED;             \
+        (actor)->animationState = COMPANION_REMOVE_EQUIPMENT_ANIMATION_CONTROLLER_NONE; \
+        (actor)->statePhase     = 0;                                                    \
+        (actor)->idleTicks      = 0;                                                    \
+        (actor)->actionValue    = 0;                                                    \
+        (actor)->movementSign   = 0;                                                    \
+        (actor)->turnSign       = 0;                                                    \
     }
         COMPANION_REMOVE_EQUIPMENT_RESET_IDLE(idleActor);
 #undef COMPANION_REMOVE_EQUIPMENT_RESET_IDLE

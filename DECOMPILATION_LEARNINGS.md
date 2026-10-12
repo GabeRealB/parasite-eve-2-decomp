@@ -31901,7 +31901,7 @@ appear after the branch:
 ```c
 if (itemId != gItemMenuPreviewItemIds[0]) {
     profileIndex   = 0;
-    emptyPreviewId = ITEM_MENU_COLLECTED_PREVIEW_EMPTY;
+    emptyPreviewId = ITEM_MENU_PREVIEW_EMPTY;
     for (; profileIndex < ITEM_MENU_COLLECTED_PREVIEW_PROFILE_COUNT; profileIndex++) {
         if (profileIndex == 0) {
             gItemMenuPreviewItemIds[0] = itemId;
@@ -143657,7 +143657,7 @@ The join also loses the shared byte constant `1`, so that change alone adds a
 second materialization before the first attachment-slot store.
 
 The exact C form puts the starting-item sequence, through the ammo slot-2
-store, in `_gpInitStartingItems`, a `do { } while (0)` macro invoked in both
+store, in `INVENTORY_INITIALIZE_STARTING_LOADOUT`, a `do { } while (0)` macro invoked in both
 arms. The byte-one uses now share a constant within each arm, while the macro
 bounds scheduling between the BP store and the clear-call argument setup.
 Late cross-jumping merges the two initialization tails. The final save-location

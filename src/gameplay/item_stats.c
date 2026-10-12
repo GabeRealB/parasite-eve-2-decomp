@@ -825,7 +825,6 @@ void itemMenuDrawCollectedItemRow(UiList* list, UiObject* object)
 {
     enum {
         ITEM_MENU_COLLECTED_PREVIEW_PROFILE_COUNT = 3,
-        ITEM_MENU_COLLECTED_PREVIEW_EMPTY         = -1,
         ITEM_MENU_COLLECTED_USE_COMMAND_PANEL     = 43,
         ITEM_MENU_COLLECTED_USE_NOTICE_PANEL      = 44,
         ITEM_MENU_COLLECTED_INFO_PANEL            = 45
@@ -849,43 +848,48 @@ void itemMenuDrawCollectedItemRow(UiList* list, UiObject* object)
     /// Captures object, rowX/rowY, itemId, colorRgb, nameRequest, textBaseY and
     /// energyLevelIndex from this callback. They must be live, side-effect-free
     /// lvalues with their declared widths. Hidden panels draw nothing; origin Y
-    /// uses signed word arithmetic before request narrowing. Standalone block
-    /// statement only; undefined after the callback.
-#define ITEM_MENU_DRAW_COLLECTED_ROW_CONTENTS()                                                                           \
-    if (object->panel.state != USER_INTERFACE_PANEL_HIDDEN) {                                                             \
-        nameRequest.x          = object->panel.contentOriginX.unsignedValue + 0x11 + rowX;                                \
-        textBaseY              = object->panel.contentOriginY.unsignedValue - 6;                                          \
-        nameRequest.y          = textBaseY + rowY;                                                                        \
-        nameRequest.otIndex    = object->panel.otIndex.signedValue + 1;                                                   \
-        nameRequest.colorRgb   = colorRgb;                                                                                \
-        nameRequest.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;                                                                 \
-        nameRequest.alignment  = TEXT_ALIGNMENT_LEFT;                                                                     \
-        nameRequest.drawMode   = TEXT_DRAW_OUTLINED;                                                                      \
-        textDrawString(&nameRequest, itemGetText(itemId, ITEM_TEXT_NAME, 0));                                             \
-        energyLevelIndex = itemId - ITEM_MENU_PARASITE_ENERGY_ITEM_FIRST;                                                 \
-        if ((u32)energyLevelIndex < (u32)ITEM_MENU_PARASITE_ENERGY_ITEM_COUNT) {                                          \
-            itemMenuDrawParasiteEnergyLevel(object, rowX, rowY, energyLevelIndex % ATTACHMENT_LEVEL_COUNT + 1, colorRgb); \
-        }                                                                                                                 \
-        itemMenuDrawItemIcon(object, rowX, rowY, itemId, ITEM_MENU_ICON_DEFAULT);                                         \
+    /// uses signed word arithmetic before request narrowing. Use as one
+    /// statement; undefined after the callback.
+#define ITEM_MENU_DRAW_COLLECTED_ROW_CONTENTS()                                                                               \
+    {                                                                                                                         \
+        if (object->panel.state != USER_INTERFACE_PANEL_HIDDEN) {                                                             \
+            nameRequest.x          = object->panel.contentOriginX.unsignedValue + 0x11 + rowX;                                \
+            textBaseY              = object->panel.contentOriginY.unsignedValue - 6;                                          \
+            nameRequest.y          = textBaseY + rowY;                                                                        \
+            nameRequest.otIndex    = object->panel.otIndex.signedValue + 1;                                                   \
+            nameRequest.colorRgb   = colorRgb;                                                                                \
+            nameRequest.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;                                                                 \
+            nameRequest.alignment  = TEXT_ALIGNMENT_LEFT;                                                                     \
+            nameRequest.drawMode   = TEXT_DRAW_OUTLINED;                                                                      \
+            textDrawString(&nameRequest, itemGetText(itemId, ITEM_TEXT_NAME, 0));                                             \
+            energyLevelIndex = itemId - ITEM_MENU_PARASITE_ENERGY_ITEM_FIRST;                                                 \
+            if ((u32)energyLevelIndex < (u32)ITEM_MENU_PARASITE_ENERGY_ITEM_COUNT) {                                          \
+                itemMenuDrawParasiteEnergyLevel(object, rowX, rowY, energyLevelIndex % ATTACHMENT_LEVEL_COUNT + 1, colorRgb); \
+            }                                                                                                                 \
+            itemMenuDrawItemIcon(object, rowX, rowY, itemId, ITEM_MENU_ICON_DEFAULT);                                         \
+        }                                                                                                                     \
     }
 
     /// Publishes the primary preview and invalidates profiles one and two.
     ///
     /// Captures itemId, profileIndex and emptyPreviewId from this callback,
     /// plus the live preview cache/loader; leaves cache slots three/four intact.
-    /// Use as a standalone compound statement; undefined after this callback.
-#define ITEM_MENU_SET_COLLECTED_ROW_PREVIEW()                                              \
-    if (itemId != gItemMenuPreviewItemIds[0]) {                                            \
-        profileIndex   = 0;                                                                \
-        emptyPreviewId = ITEM_MENU_COLLECTED_PREVIEW_EMPTY;                                \
-        for (; profileIndex < ITEM_MENU_COLLECTED_PREVIEW_PROFILE_COUNT; profileIndex++) { \
-            if (profileIndex == 0) {                                                       \
-                gItemMenuPreviewItemIds[0] = itemId;                                       \
-            } else {                                                                       \
-                gItemMenuPreviewItemIds[profileIndex] = emptyPreviewId;                    \
-            }                                                                              \
-        }                                                                                  \
-        itemMenuEnqueuePreviewLoad(itemId, 0);                                             \
+    /// An unchanged item id skips publication and loading. Use as one
+    /// statement; undefined after this callback.
+#define ITEM_MENU_SET_COLLECTED_ROW_PREVIEW()                                                  \
+    {                                                                                          \
+        if (itemId != gItemMenuPreviewItemIds[0]) {                                            \
+            profileIndex   = 0;                                                                \
+            emptyPreviewId = ITEM_MENU_PREVIEW_EMPTY;                                          \
+            for (; profileIndex < ITEM_MENU_COLLECTED_PREVIEW_PROFILE_COUNT; profileIndex++) { \
+                if (profileIndex == 0) {                                                       \
+                    gItemMenuPreviewItemIds[0] = itemId;                                       \
+                } else {                                                                       \
+                    gItemMenuPreviewItemIds[profileIndex] = emptyPreviewId;                    \
+                }                                                                              \
+            }                                                                                  \
+            itemMenuEnqueuePreviewLoad(itemId, 0);                                             \
+        }                                                                                      \
     }
 
     itemId   = inventoryGetCollectedItemId(list->currentItemIndex, 0);

@@ -64,67 +64,94 @@ static inline s32 _itemIsArmorItem(u8 itemId)
     return (u32)(itemId - ITEM_MENU_ARMOR_ITEM_FIRST) < ITEM_MENU_EQUIPMENT_ITEM_COUNT_U;
 }
 
-#define GP_SET_PREVIEW_ITEM(item, slot)             \
-    do {                                            \
-        s32* _p;                                    \
-        s32  _i;                                    \
-                                                    \
-        _p = gItemMenuPreviewItemIds;               \
-        if ((item) != _p[slot]) {                   \
-            for (_i = 0; _i < 3; _i++, _p++) {      \
-                if (_i == (slot)) {                 \
-                    *_p = (item);                   \
-                } else {                            \
-                    *_p = ITEM_MENU_PREVIEW_EMPTY;  \
-                }                                   \
-            }                                       \
-            itemMenuEnqueuePreviewLoad(item, slot); \
-        }                                           \
+/// Publishes a changed selection in one preview profile and requests its load.
+///
+/// `itemId` is a catalogue id and `profile` is 0..2, a display-load profile.
+/// Both must be stable and side-effect-free, and must not name previewSlot or
+/// profileIndex. Only the first three requested ids are written; slots 3/4
+/// survive. An unchanged id makes no stores or request. Publication precedes
+/// loading even if the loader declines. The request narrows the profile to u8.
+/// Borrows the gameplay cache/loader; captures no caller locals.
+#define ITEM_MENU_SET_SELECTION_PREVIEW(itemId, profile)                                                                      \
+    do {                                                                                                                      \
+        enum { ITEM_MENU_SELECTION_PREVIEW_PROFILE_COUNT = 3 };                                                               \
+        s32* previewSlot;                                                                                                     \
+        s32  profileIndex;                                                                                                    \
+                                                                                                                              \
+        previewSlot = gItemMenuPreviewItemIds;                                                                                \
+        if ((itemId) != previewSlot[(profile)]) {                                                                             \
+            for (profileIndex = 0; profileIndex < ITEM_MENU_SELECTION_PREVIEW_PROFILE_COUNT; profileIndex++, previewSlot++) { \
+                if (profileIndex == (profile)) {                                                                              \
+                    *previewSlot = (itemId);                                                                                  \
+                } else {                                                                                                      \
+                    *previewSlot = ITEM_MENU_PREVIEW_EMPTY;                                                                   \
+                }                                                                                                             \
+            }                                                                                                                 \
+            itemMenuEnqueuePreviewLoad((itemId), (profile));                                                                  \
+        }                                                                                                                     \
     } while (0)
-#define GP_FIND_SPARE_ARMOR(found, index)                                                 \
-    do {                                                                                  \
-        PlayerStatus*       _cfg;                                                         \
-        InventoryItemRange* _scan;                                                        \
-        InventoryItemRow*   _rec;                                                         \
-        s32                 _i;                                                           \
-        s32                 _n;                                                           \
-                                                                                          \
-        _scan   = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;                 \
-        _cfg    = &gPlayerStatus;                                                         \
-        _n      = (index);                                                                \
-        _rec    = inventoryGetRangeTable(_scan);                                          \
-        (found) = _i = 0;                                                                 \
-        _rec         = &_rec[_scan->firstRow];                                            \
-        for (; _i < _scan->rowCount; _i++) {                                              \
-            if (_itemIsArmorItem(_rec->itemId) && (_cfg->armor != _rec->itemId - 0x5F)) { \
-                _n--;                                                                     \
-                if (_n < 0) {                                                             \
-                    (found) = _rec->itemId;                                               \
-                    break;                                                                \
-                }                                                                         \
-            }                                                                             \
-            _rec++;                                                                       \
-        }                                                                                 \
+/// Finds an item id at a zero-based position in the carried unequipped-armor list.
+///
+/// Counts each armor row (ids 0x60..0x7F), excluding every row with the equipped
+/// armor id; quantity and attachment markers do not affect eligibility. Negative
+/// positions select the first eligible row. No match writes INVENTORY_ITEM_NONE.
+/// The carried range must fit its readable table. listIndex is evaluated once;
+/// armorItemIdOut is a separate writable integer lvalue evaluated on each store.
+/// Arguments must not name playerStatus, carriedRange, row, rowIndex or remainingRows.
+/// Borrows live save/player storage without modifying it or retaining a pointer.
+#define ITEM_MENU_FIND_UNEQUIPPED_ARMOR_ITEM(armorItemIdOut, listIndex)                                                     \
+    do {                                                                                                                    \
+        const PlayerStatus*       playerStatus;                                                                             \
+        const InventoryItemRange* carriedRange;                                                                             \
+        const InventoryItemRow*   row;                                                                                      \
+        s32                       rowIndex;                                                                                 \
+        s32                       remainingRows;                                                                            \
+                                                                                                                            \
+        carriedRange     = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;                                          \
+        playerStatus     = &gPlayerStatus;                                                                                  \
+        remainingRows    = (listIndex);                                                                                     \
+        row              = inventoryGetRangeTable(carriedRange);                                                            \
+        (armorItemIdOut) = INVENTORY_ITEM_NONE;                                                                             \
+        rowIndex         = 0;                                                                                               \
+        row              = &row[carriedRange->firstRow];                                                                    \
+        for (; rowIndex < carriedRange->rowCount; rowIndex++) {                                                             \
+            if (_itemIsArmorItem(row->itemId) && (playerStatus->armor != row->itemId - (ITEM_MENU_ARMOR_ITEM_FIRST - 1))) { \
+                remainingRows--;                                                                                            \
+                if (remainingRows < 0) {                                                                                    \
+                    (armorItemIdOut) = row->itemId;                                                                         \
+                    break;                                                                                                  \
+                }                                                                                                           \
+            }                                                                                                               \
+            row++;                                                                                                          \
+        }                                                                                                                   \
     } while (0)
-#define GP_COUNT_SPARE_ARMOR(count)                                                       \
-    do {                                                                                  \
-        PlayerStatus*       _cfg;                                                         \
-        InventoryItemRange* _scan;                                                        \
-        InventoryItemRow*   _rec;                                                         \
-        s32                 _i;                                                           \
-                                                                                          \
-        (count) = 0;                                                                      \
-        _scan   = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;                 \
-        _cfg    = &gPlayerStatus;                                                         \
-        _rec    = inventoryGetRangeTable(_scan);                                          \
-        _i      = 0;                                                                      \
-        _rec    = &_rec[_scan->firstRow];                                                 \
-        for (; _i < _scan->rowCount; _i++) {                                              \
-            if (_itemIsArmorItem(_rec->itemId) && (_cfg->armor != _rec->itemId - 0x5F)) { \
-                (count)++;                                                                \
-            }                                                                             \
-            _rec++;                                                                       \
-        }                                                                                 \
+/// Counts carried armor rows other than rows of the equipped armor id.
+///
+/// Reads the live carried range in row order; ids 0x60..0x7F are armor.
+/// Duplicate ids count separately; quantity and attachment markers are ignored.
+/// The range must fit its readable table. rowCountOut is a writable integer
+/// lvalue without evaluation side effects; it is cleared and incremented.
+/// It must not name playerStatus, carriedRange, row or rowIndex. Borrows save
+/// and player storage for this statement, with no captured caller locals.
+#define ITEM_MENU_COUNT_UNEQUIPPED_ARMOR_ROWS(rowCountOut)                                                                  \
+    do {                                                                                                                    \
+        const PlayerStatus*       playerStatus;                                                                             \
+        const InventoryItemRange* carriedRange;                                                                             \
+        const InventoryItemRow*   row;                                                                                      \
+        s32                       rowIndex;                                                                                 \
+                                                                                                                            \
+        (rowCountOut) = 0;                                                                                                  \
+        carriedRange  = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;                                             \
+        playerStatus  = &gPlayerStatus;                                                                                     \
+        row           = inventoryGetRangeTable(carriedRange);                                                               \
+        rowIndex      = 0;                                                                                                  \
+        row           = &row[carriedRange->firstRow];                                                                       \
+        for (; rowIndex < carriedRange->rowCount; rowIndex++) {                                                             \
+            if (_itemIsArmorItem(row->itemId) && (playerStatus->armor != row->itemId - (ITEM_MENU_ARMOR_ITEM_FIRST - 1))) { \
+                (rowCountOut)++;                                                                                            \
+            }                                                                                                               \
+            row++;                                                                                                          \
+        }                                                                                                                   \
     } while (0)
 /// Returns the armor item id at a zero-based position in the unequipped list, or 0.
 ///
@@ -449,7 +476,7 @@ void itemMenuAmmoSelectionTask(Task* task)
             previewFlags = ITEM_MENU_PREVIEW_TEXTURE_RELOCATED | ITEM_MENU_PREVIEW_SCALE_EQUIPMENT | ITEM_MENU_PREVIEW_HIDDEN;
         } else {
             if (((object->panel.control.word >> ITEM_MENU_SELECTION_SUSPENDED_CONTROL_SHIFT) == USER_INTERFACE_PANEL_ACTIVE) || (object->panel.control.word == USER_INTERFACE_PANEL_ACTIVE)) {
-                GP_SET_PREVIEW_ITEM(consumableItemId, CD_COMMAND_DISPLAY_LOAD_RELOCATED_PREVIEW);
+                ITEM_MENU_SET_SELECTION_PREVIEW(consumableItemId, CD_COMMAND_DISPLAY_LOAD_RELOCATED_PREVIEW);
             }
             if (cdCmdIsIdle() == 0) {
                 previewFlags |= ITEM_MENU_PREVIEW_HIDDEN;
@@ -564,7 +591,7 @@ void itemMenuArmorSelectionTask(Task* task)
 
     // Reserve the comparison area before rows and hide the previous command panel.
     if (task->state == ITEM_MENU_ARMOR_SELECTION_INITIAL) {
-        GP_COUNT_SPARE_ARMOR(armorRowCount);
+        ITEM_MENU_COUNT_UNEQUIPPED_ARMOR_ROWS(armorRowCount);
         list->itemCount                     = armorRowCount;
         list->visibleRowCount.unsignedValue = ITEM_MENU_ARMOR_SELECTION_VISIBLE_ROWS;
         uiFitPanelToList(list, &object->panel);
@@ -582,7 +609,7 @@ void itemMenuArmorSelectionTask(Task* task)
     uiDrawHorizontalSeparator(&object->panel, object->panel.contentLeft.signedValue, object->panel.contentRight.signedValue, object->panel.contentTop.signedValue + ITEM_MENU_SELECTION_SEPARATOR_Y_PIXELS);
     uiUpdateList(list, &object->panel);
 
-    GP_FIND_SPARE_ARMOR(foundArmorItemId, list->selectedItemIndex);
+    ITEM_MENU_FIND_UNEQUIPPED_ARMOR_ITEM(foundArmorItemId, list->selectedItemIndex);
     armorItemId = foundArmorItemId;
     itemMenuDrawEquipmentStats(object, armorItemId, ITEM_MENU_EQUIPMENT_STATS_COMPARE, 0);
 
@@ -591,7 +618,7 @@ void itemMenuArmorSelectionTask(Task* task)
         previewFlags = ITEM_MENU_PREVIEW_TEXTURE_RELOCATED | ITEM_MENU_PREVIEW_SCALE_EQUIPMENT | ITEM_MENU_PREVIEW_HIDDEN;
     } else {
         if (((object->panel.control.word >> ITEM_MENU_SELECTION_SUSPENDED_CONTROL_SHIFT) == USER_INTERFACE_PANEL_ACTIVE) || (object->panel.control.word == USER_INTERFACE_PANEL_ACTIVE)) {
-            GP_SET_PREVIEW_ITEM(armorItemId, CD_COMMAND_DISPLAY_LOAD_RELOCATED_PREVIEW);
+            ITEM_MENU_SET_SELECTION_PREVIEW(armorItemId, CD_COMMAND_DISPLAY_LOAD_RELOCATED_PREVIEW);
         }
         if (cdCmdIsIdle() == 0) {
             previewFlags |= ITEM_MENU_PREVIEW_HIDDEN;
@@ -615,6 +642,10 @@ void itemMenuArmorSelectionTask(Task* task)
         object->result = USER_INTERFACE_RESULT_CONFIRM;
     }
 }
+
+#undef ITEM_MENU_SET_SELECTION_PREVIEW
+#undef ITEM_MENU_FIND_UNEQUIPPED_ARMOR_ITEM
+#undef ITEM_MENU_COUNT_UNEQUIPPED_ARMOR_ROWS
 
 void itemMenuReloadNoticeTask(Task* task)
 {

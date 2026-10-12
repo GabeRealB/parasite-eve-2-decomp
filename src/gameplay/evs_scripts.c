@@ -288,16 +288,20 @@ static inline void _evsCancelSecondaryFade(_EvsInterpreterWork* work)
 /// `request` must be a side-effect-free TextDrawReq lvalue; it is evaluated
 /// eight times and overwritten. `label` is evaluated once and borrows a
 /// zero-terminated byte-encoded string. Requires current frame packet storage.
-#define EVENT_SCRIPT_DRAW_DEMO_STATUS(request, label)   \
-    {                                                   \
-        (request).x          = -0x8C;                   \
-        (request).y          = 0x50;                    \
-        (request).otIndex    = 4;                       \
-        (request).colorRgb   = 0x808008;                \
-        (request).glyphTable = TEXT_GLYPH_TABLE_MEDIUM; \
-        (request).alignment  = TEXT_ALIGNMENT_LEFT;     \
-        (request).drawMode   = TEXT_DRAW_FILL_ONLY;     \
-        textDrawString(&(request), (label));            \
+#define EVENT_SCRIPT_DRAW_DEMO_STATUS(request, label)              \
+    {                                                              \
+        enum { EVENT_SCRIPT_DEMO_STATUS_X_PIXELS  = -140,          \
+               EVENT_SCRIPT_DEMO_STATUS_Y_PIXELS  = 80,            \
+               EVENT_SCRIPT_DEMO_STATUS_OT_INDEX  = 4,             \
+               EVENT_SCRIPT_DEMO_STATUS_COLOR_RGB = 0x808008 };    \
+        (request).x          = EVENT_SCRIPT_DEMO_STATUS_X_PIXELS;  \
+        (request).y          = EVENT_SCRIPT_DEMO_STATUS_Y_PIXELS;  \
+        (request).otIndex    = EVENT_SCRIPT_DEMO_STATUS_OT_INDEX;  \
+        (request).colorRgb   = EVENT_SCRIPT_DEMO_STATUS_COLOR_RGB; \
+        (request).glyphTable = TEXT_GLYPH_TABLE_MEDIUM;            \
+        (request).alignment  = TEXT_ALIGNMENT_LEFT;                \
+        (request).drawMode   = TEXT_DRAW_FILL_ONLY;                \
+        textDrawString(&(request), (label));                       \
     }
 
 /// Executes an event script until it ends or yields to a later task update.

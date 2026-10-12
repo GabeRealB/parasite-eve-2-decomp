@@ -1519,15 +1519,17 @@ static s32 _viewQueueCoord(GfxCoord* cameraCoord, const VECTOR* offset)
     /// Writes the pose components used by the translation-before-rotation view chain.
     ///
     /// Requires disjoint word-aligned matrices. Transposes ONE-scaled rotation
-    /// and negates origin XYZ, preserving alignment bytes. An orthonormal pose
-    /// gives the inverse view. Arguments are evaluated repeatedly and must have
-    /// no side effects; captures no locals and does not invalidate either cache.
-#define VIEW_WRITE_INVERSE_POSE(cameraPose, viewPose)  \
-    {                                                  \
-        gte_TransposeMatrix((cameraPose), (viewPose)); \
-        (viewPose)->t[0] = -(cameraPose)->t[0];        \
-        (viewPose)->t[1] = -(cameraPose)->t[1];        \
-        (viewPose)->t[2] = -(cameraPose)->t[2];        \
+    /// and negates origin XYZ, preserving alignment bytes. The consumer installs
+    /// those components in separate translation and rotation nodes to apply
+    /// R-transpose * (point - origin); the stored translation remains -origin.
+    /// Arguments are evaluated repeatedly and must have no side effects.
+    /// Captures no locals and does not invalidate either cache.
+#define VIEW_WRITE_INVERSE_POSE_COMPONENTS(cameraPose, viewPose) \
+    {                                                            \
+        gte_TransposeMatrix((cameraPose), (viewPose));           \
+        (viewPose)->t[0] = -(cameraPose)->t[0];                  \
+        (viewPose)->t[1] = -(cameraPose)->t[1];                  \
+        (viewPose)->t[2] = -(cameraPose)->t[2];                  \
     }
     enum { VIEW_COORD_TASK_BANK = 0,
            VIEW_COORD_TASK_TYPE = 0xE };
@@ -1563,13 +1565,13 @@ static s32 _viewQueueCoord(GfxCoord* cameraCoord, const VECTOR* offset)
     cameraParent = cameraCoord->parent;
     viewOrigin   = &gGfxViewCoord;
     if (cameraParent == viewOrigin) {
-        VIEW_WRITE_INVERSE_POSE(&cameraCoord->coord, &inverseCamera->coord);
+        VIEW_WRITE_INVERSE_POSE_COMPONENTS(&cameraCoord->coord, &inverseCamera->coord);
     } else {
         _gfxCoordToReference(cameraCoord, viewOrigin, &relative);
-        VIEW_WRITE_INVERSE_POSE(&relative.coord, &inverseCamera->coord);
+        VIEW_WRITE_INVERSE_POSE_COMPONENTS(&relative.coord, &inverseCamera->coord);
     }
     return 1;
-#undef VIEW_WRITE_INVERSE_POSE
+#undef VIEW_WRITE_INVERSE_POSE_COMPONENTS
 }
 
 void viewApplyCoordTask(Task* task)

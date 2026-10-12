@@ -396,22 +396,24 @@ enum { EFFECT_ROTATED_SPRITE_TRIG_FRACTION_BITS = 12 };
 /// size * span / depth pixels before Q12 rotation. Writes quad XY, narrowing
 /// to signed halfwords, and scratch corner offsets; leaves the quarter-turn
 /// pair there. Borrows storage and queues no packet. Arguments occur
-/// repeatedly, no caller locals are captured, and the expansion is several
-/// statements: invoke only in a braced block. A constant span stays visible
-/// to multiplication folding at each use.
-#define EFFECT_SET_PUFF_CORNERS(quad, scratch, work, uvSpan)                                                                                                                     \
-    (scratch)->extent.corner.x = ((((work)->scale * (uvSpan)) / (scratch)->depth) * rsin((work)->angle)) >> EFFECT_ROTATED_SPRITE_TRIG_FRACTION_BITS;                            \
-    (scratch)->extent.corner.y = ((((work)->scale * (uvSpan)) / (scratch)->depth) * rcos((work)->angle)) >> EFFECT_ROTATED_SPRITE_TRIG_FRACTION_BITS;                            \
-    (quad)->x0                 = (scratch)->screenX + (scratch)->extent.corner.x;                                                                                                \
-    (quad)->x3                 = (scratch)->screenX - (scratch)->extent.corner.x;                                                                                                \
-    (quad)->y0                 = (scratch)->screenY - (scratch)->extent.corner.y;                                                                                                \
-    (quad)->y3                 = (scratch)->screenY + (scratch)->extent.corner.y;                                                                                                \
-    (scratch)->extent.corner.x = ((((work)->scale * (uvSpan)) / (scratch)->depth) * rsin((work)->angle + EFFECT_DRAW_QUARTER_TURN)) >> EFFECT_ROTATED_SPRITE_TRIG_FRACTION_BITS; \
-    (scratch)->extent.corner.y = ((((work)->scale * (uvSpan)) / (scratch)->depth) * rcos((work)->angle + EFFECT_DRAW_QUARTER_TURN)) >> EFFECT_ROTATED_SPRITE_TRIG_FRACTION_BITS; \
-    (quad)->x1                 = (scratch)->screenX + (scratch)->extent.corner.x;                                                                                                \
-    (quad)->x2                 = (scratch)->screenX - (scratch)->extent.corner.x;                                                                                                \
-    (quad)->y1                 = (scratch)->screenY - (scratch)->extent.corner.y;                                                                                                \
-    (quad)->y2                 = (scratch)->screenY + (scratch)->extent.corner.y;
+/// repeatedly; no caller locals are captured. Use as a standalone compound statement inside braces. A constant
+/// span stays visible to multiplication folding at each use. Signed word
+/// intermediates must fit before the final packet-coordinate truncation.
+#define EFFECT_SET_PUFF_CORNERS(quad, scratch, work, uvSpan)                                                                                                                         \
+    {                                                                                                                                                                                \
+        (scratch)->extent.corner.x = ((((work)->scale * (uvSpan)) / (scratch)->depth) * rsin((work)->angle)) >> EFFECT_ROTATED_SPRITE_TRIG_FRACTION_BITS;                            \
+        (scratch)->extent.corner.y = ((((work)->scale * (uvSpan)) / (scratch)->depth) * rcos((work)->angle)) >> EFFECT_ROTATED_SPRITE_TRIG_FRACTION_BITS;                            \
+        (quad)->x0                 = (scratch)->screenX + (scratch)->extent.corner.x;                                                                                                \
+        (quad)->x3                 = (scratch)->screenX - (scratch)->extent.corner.x;                                                                                                \
+        (quad)->y0                 = (scratch)->screenY - (scratch)->extent.corner.y;                                                                                                \
+        (quad)->y3                 = (scratch)->screenY + (scratch)->extent.corner.y;                                                                                                \
+        (scratch)->extent.corner.x = ((((work)->scale * (uvSpan)) / (scratch)->depth) * rsin((work)->angle + EFFECT_DRAW_QUARTER_TURN)) >> EFFECT_ROTATED_SPRITE_TRIG_FRACTION_BITS; \
+        (scratch)->extent.corner.y = ((((work)->scale * (uvSpan)) / (scratch)->depth) * rcos((work)->angle + EFFECT_DRAW_QUARTER_TURN)) >> EFFECT_ROTATED_SPRITE_TRIG_FRACTION_BITS; \
+        (quad)->x1                 = (scratch)->screenX + (scratch)->extent.corner.x;                                                                                                \
+        (quad)->x2                 = (scratch)->screenX - (scratch)->extent.corner.x;                                                                                                \
+        (quad)->y1                 = (scratch)->screenY - (scratch)->extent.corner.y;                                                                                                \
+        (quad)->y2                 = (scratch)->screenY + (scratch)->extent.corner.y;                                                                                                \
+    }
 
 /// Texture-cell side in texels, shared by the dust animation and corner sizing.
 enum { EFFECT_DUST_PUFF_CELL_SIZE = 32 };
@@ -462,17 +464,19 @@ static __inline__ void _effectInitializeHandgunLight(const GfxCoord* spawnCoord,
 /// argument is evaluated repeatedly, preserving separate index reads between
 /// translation stores. Borrows all storage and the work's live parent, retains
 /// rotation and invalidates composition without composing. Offsets use signed
-/// parent-local coordinate units. No caller locals are captured; invoke in a
-/// braced block because the expansion contains several statements.
-#define EFFECT_ATTACH_RELOAD_EMITTER(ejectionCoord, work, weaponProfile)               \
-    (ejectionCoord)->parent       = (work)->parent;                                    \
-    (ejectionCoord)->coord.t[0]   = _gEffectWeaponEmissionOffsets[(weaponProfile)].vx; \
-    (ejectionCoord)->coord.t[1]   = _gEffectWeaponEmissionOffsets[(weaponProfile)].vy; \
-    (ejectionCoord)->coord.t[2]   = _gEffectWeaponEmissionOffsets[(weaponProfile)].vz; \
-    (ejectionCoord)->coord.t[0]  += (work)->pos.vx;                                    \
-    (ejectionCoord)->coord.t[1]  += (work)->pos.vy;                                    \
-    (ejectionCoord)->coord.t[2]  += (work)->pos.vz;                                    \
-    (ejectionCoord)->composeStamp = GRAPHICS_COORD_DIRTY;
+/// parent-local coordinate units. No caller locals are captured. Use as one
+/// statement; the parent remains borrowed for the emitter's lifetime.
+#define EFFECT_ATTACH_RELOAD_EMITTER(ejectionCoord, work, weaponProfile)                   \
+    {                                                                                      \
+        (ejectionCoord)->parent       = (work)->parent;                                    \
+        (ejectionCoord)->coord.t[0]   = _gEffectWeaponEmissionOffsets[(weaponProfile)].vx; \
+        (ejectionCoord)->coord.t[1]   = _gEffectWeaponEmissionOffsets[(weaponProfile)].vy; \
+        (ejectionCoord)->coord.t[2]   = _gEffectWeaponEmissionOffsets[(weaponProfile)].vz; \
+        (ejectionCoord)->coord.t[0]  += (work)->pos.vx;                                    \
+        (ejectionCoord)->coord.t[1]  += (work)->pos.vy;                                    \
+        (ejectionCoord)->coord.t[2]  += (work)->pos.vz;                                    \
+        (ejectionCoord)->composeStamp = GRAPHICS_COORD_DIRTY;                              \
+    }
 
 // Preserve the initialized-data placement of the read-only metadata tables.
 const EffectUnitQuadCorner gEffectUnitQuadCorners[4] __attribute__((section(".data"))) = {
@@ -822,14 +826,17 @@ void effectControlTaskA1(Task* task)
 /// ends at twelve and is reset between loops. Children use zero payload and
 /// offset, consume no draws here, and own independent work. Uses the local
 /// EFFECT_SHOTGUN_FLASH_PELLET_COUNT constant; captures no caller variable.
-/// Expands to two loops; invoke inside a braced block.
-#define EFFECT_SPAWN_SHOTGUN_PELLET_SPARKS(muzzleCoord, sparkIndex)                            \
-    for (; (sparkIndex) < EFFECT_SHOTGUN_FLASH_PELLET_COUNT; (sparkIndex)++) {                 \
-        effectSpawn(EFFECT_PIXEL_SPARK, (muzzleCoord), 0, 0);                                  \
-    }                                                                                          \
-    for ((sparkIndex) = 0; (sparkIndex) < EFFECT_SHOTGUN_FLASH_PELLET_COUNT; (sparkIndex)++) { \
-        effectSpawn(EFFECT_SHOTGUN_SPARK_LINE, (muzzleCoord), 0, 0);                           \
-    }
+/// Both loops form one statement. The input counter controls the first loop;
+/// a nonzero value would emit fewer pixel sparks while still emitting twelve lines.
+#define EFFECT_SPAWN_SHOTGUN_PELLET_SPARKS(muzzleCoord, sparkIndex)                                \
+    do {                                                                                           \
+        for (; (sparkIndex) < EFFECT_SHOTGUN_FLASH_PELLET_COUNT; (sparkIndex)++) {                 \
+            effectSpawn(EFFECT_PIXEL_SPARK, (muzzleCoord), 0, 0);                                  \
+        }                                                                                          \
+        for ((sparkIndex) = 0; (sparkIndex) < EFFECT_SHOTGUN_FLASH_PELLET_COUNT; (sparkIndex)++) { \
+            effectSpawn(EFFECT_SHOTGUN_SPARK_LINE, (muzzleCoord), 0, 0);                           \
+        }                                                                                          \
+    } while (0)
 
     work           = task->spawnArg2.pointer;
     muzzleCoord    = task->extra.coordBody->coord;

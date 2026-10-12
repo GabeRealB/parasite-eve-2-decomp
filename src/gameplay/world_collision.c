@@ -223,20 +223,22 @@ enum {
 /// Writes the Q12 unit edge direction and outward cross-product normal into
 /// geometry.edgeDirection/edgeWork; pad words are untouched. Clobbers GTE
 /// rotation and arithmetic state. Both arguments must be stable expressions,
-/// as they are evaluated repeatedly. Expands to multiple statements: invoke
-/// only within a braced block. No caller-local identifiers are captured.
-#define WORLD_COLLISION_BUILD_SPHERE_GRID_EDGE_PLANE(sphereScratch, edgePairIndex)                                                                                                                         \
-    (sphereScratch)->geometry.edgeWork.vx =                                                                                                                                                                \
-        (sphereScratch)->geometry.corners[gWorldCollisionFaceEdges[(edgePairIndex)].endCornerIndex].vx - (sphereScratch)->geometry.corners[gWorldCollisionFaceEdges[(edgePairIndex)].startCornerIndex].vx; \
-    (sphereScratch)->geometry.edgeWork.vy =                                                                                                                                                                \
-        (sphereScratch)->geometry.corners[gWorldCollisionFaceEdges[(edgePairIndex)].endCornerIndex].vy - (sphereScratch)->geometry.corners[gWorldCollisionFaceEdges[(edgePairIndex)].startCornerIndex].vy; \
-    (sphereScratch)->geometry.edgeWork.vz =                                                                                                                                                                \
-        (sphereScratch)->geometry.corners[gWorldCollisionFaceEdges[(edgePairIndex)].endCornerIndex].vz - (sphereScratch)->geometry.corners[gWorldCollisionFaceEdges[(edgePairIndex)].startCornerIndex].vz; \
-    VectorNormal(&(sphereScratch)->geometry.edgeWork, &(sphereScratch)->geometry.edgeDirection);                                                                                                           \
-    gte_ldopv1(&(sphereScratch)->geometry.faceNormal);                                                                                                                                                     \
-    gte_ldopv2(&(sphereScratch)->geometry.edgeDirection);                                                                                                                                                  \
-    gte_op12();                                                                                                                                                                                            \
-    gte_stlvnl(&(sphereScratch)->geometry.edgeWork);
+/// as they are evaluated repeatedly. Use as a standalone compound statement inside braces. No caller-local
+/// identifiers are captured; no scratch storage is reserved or released.
+#define WORLD_COLLISION_BUILD_SPHERE_GRID_EDGE_PLANE(sphereScratch, edgePairIndex)                                                                                                                             \
+    {                                                                                                                                                                                                          \
+        (sphereScratch)->geometry.edgeWork.vx =                                                                                                                                                                \
+            (sphereScratch)->geometry.corners[gWorldCollisionFaceEdges[(edgePairIndex)].endCornerIndex].vx - (sphereScratch)->geometry.corners[gWorldCollisionFaceEdges[(edgePairIndex)].startCornerIndex].vx; \
+        (sphereScratch)->geometry.edgeWork.vy =                                                                                                                                                                \
+            (sphereScratch)->geometry.corners[gWorldCollisionFaceEdges[(edgePairIndex)].endCornerIndex].vy - (sphereScratch)->geometry.corners[gWorldCollisionFaceEdges[(edgePairIndex)].startCornerIndex].vy; \
+        (sphereScratch)->geometry.edgeWork.vz =                                                                                                                                                                \
+            (sphereScratch)->geometry.corners[gWorldCollisionFaceEdges[(edgePairIndex)].endCornerIndex].vz - (sphereScratch)->geometry.corners[gWorldCollisionFaceEdges[(edgePairIndex)].startCornerIndex].vz; \
+        VectorNormal(&(sphereScratch)->geometry.edgeWork, &(sphereScratch)->geometry.edgeDirection);                                                                                                           \
+        gte_ldopv1(&(sphereScratch)->geometry.faceNormal);                                                                                                                                                     \
+        gte_ldopv2(&(sphereScratch)->geometry.edgeDirection);                                                                                                                                                  \
+        gte_op12();                                                                                                                                                                                            \
+        gte_stlvnl(&(sphereScratch)->geometry.edgeWork);                                                                                                                                                       \
+    }
 
 /// Prepares the other sphere's centre and radius sum for a pair-contact writer.
 ///
@@ -244,16 +246,18 @@ enum {
 /// disjoint `VECTOR` in the receiving body's query frame, and `radiusSum` game
 /// units. Narrows XYZ/radius to signed halfwords and zeroes response XYZ;
 /// pad halfwords are untouched. Arguments must be stable, side-effect-free
-/// expressions; evaluated repeatedly. Expands to multiple statements: invoke
-/// only within a braced block. Captures no caller-local identifiers.
+/// expressions; evaluated repeatedly. Use as a standalone compound statement inside braces. Captures no caller
+/// locals and neither claims a contact-table slot nor changes its occupancy.
 #define WORLD_COLLISION_PREPARE_SPHERE_PAIR_CONTACT(contact, otherCentre, radiusSum) \
-    (contact)->point.vx              = (otherCentre)->vx;                            \
-    (contact)->point.vy              = (otherCentre)->vy;                            \
-    (contact)->point.vz              = (otherCentre)->vz;                            \
-    (contact)->response.direction.vx = 0;                                            \
-    (contact)->response.direction.vy = 0;                                            \
-    (contact)->response.direction.vz = 0;                                            \
-    (contact)->distance              = (radiusSum);
+    {                                                                                \
+        (contact)->point.vx              = (otherCentre)->vx;                        \
+        (contact)->point.vy              = (otherCentre)->vy;                        \
+        (contact)->point.vz              = (otherCentre)->vz;                        \
+        (contact)->response.direction.vx = 0;                                        \
+        (contact)->response.direction.vy = 0;                                        \
+        (contact)->response.direction.vz = 0;                                        \
+        (contact)->distance              = (radiusSum);                              \
+    }
 
 /// Extends a placed capsule segment by the sphere radius along its reverse axis.
 ///

@@ -2391,25 +2391,45 @@ ItemDesc gItemKeyDescriptors[ITEM_KEY_DESCRIPTOR_COUNT] = {
     { 0, 0, 0x00, _gItemEmptyTextFields },
 };
 
-/* Gives `scan` one `weapon` and loads it with `ammo`. */
-#define GP_GIVE_LOADED(scan, weapon, ammo)                                                    \
-    do {                                                                                      \
-        inventoryGiveItem(scan, weapon, 1);                                                   \
-        equipmentLoadWeaponConsumable(scan, weapon, ammo, EQUIPMENT_WEAPON_LOAD_TO_CAPACITY); \
+/// Grants one weapon, then loads its selected consumable to capacity.
+///
+/// itemRange must fit a live writable table; weaponItemId is 0x80..0x9F and
+/// consumableItemId is a compatible id in 0xA0..0xBF. Loading uses saved weapon
+/// loads and available stock already in the range; it does not grant stock.
+/// Grant/load failures are deliberately ignored. Arguments must have no side
+/// effects: range and weapon are evaluated twice, consumable once. Retains no pointer.
+#define INVENTORY_GIVE_LOADED_WEAPON(itemRange, weaponItemId, consumableItemId)                                            \
+    do {                                                                                                                   \
+        inventoryGiveItem((itemRange), (weaponItemId), 1);                                                                 \
+        equipmentLoadWeaponConsumable((itemRange), (weaponItemId), (consumableItemId), EQUIPMENT_WEAPON_LOAD_TO_CAPACITY); \
     } while (0)
 
-/* Clears the carried inventory, equips the starting armour, restores HP/MP,
- * and gives the initial supplies and their attachment slots. */
-#define _gpInitStartingItems(scan, cfg)                      \
-    do {                                                     \
-        inventoryClearItems(scan);                           \
-        inventoryGiveItem(scan, 0x60, 1);                    \
-        equipmentEquipCarriedArmor(0x60);                    \
-        (cfg)->hp = (cfg)->hpMax;                            \
-        (cfg)->mp = (cfg)->mpMax;                            \
-        inventoryGiveItem(scan, 0x92, 1);                    \
-        inventoryGiveItem(scan, 0x40, 1)->attachSlot    = 1; \
-        inventoryGiveItem(scan, 0xA0, 0x64)->attachSlot = 2; \
+/// Replaces carried items with the base new-game loadout and restores HP/MP.
+///
+/// itemRange must describe the live save's writable carried rows, with room for
+/// the Leather Jacket, Tonfa Baton, GPS and 100 9mm PB rounds. playerStatus must
+/// be the live player: equipping the jacket recomputes its maxima before refill.
+/// GPS and ammunition take attachment positions 1/2; the baton is not equipped.
+/// The GPS/ammunition grants must succeed, since their returned rows are written
+/// without a null check. Arguments are side-effect-free pointers evaluated repeatedly.
+/// Captures no caller locals, allocates no storage and keeps no returned pointer.
+#define INVENTORY_INITIALIZE_STARTING_LOADOUT(itemRange, playerStatus)                                                                                  \
+    do {                                                                                                                                                \
+        enum { INVENTORY_STARTING_ITEM_LEATHER_JACKET = 0x60,                                                                                           \
+               INVENTORY_STARTING_ITEM_TONFA_BATON    = 0x92,                                                                                           \
+               INVENTORY_STARTING_ITEM_GPS            = 0x40,                                                                                           \
+               INVENTORY_STARTING_ITEM_9MM_PB         = 0xA0,                                                                                           \
+               INVENTORY_STARTING_9MM_ROUNDS          = 100,                                                                                            \
+               INVENTORY_STARTING_GPS_ATTACHMENT      = 1,                                                                                              \
+               INVENTORY_STARTING_AMMO_ATTACHMENT     = 2 };                                                                                                \
+        inventoryClearItems((itemRange));                                                                                                               \
+        inventoryGiveItem((itemRange), INVENTORY_STARTING_ITEM_LEATHER_JACKET, 1);                                                                      \
+        equipmentEquipCarriedArmor(INVENTORY_STARTING_ITEM_LEATHER_JACKET);                                                                             \
+        (playerStatus)->hp = (playerStatus)->hpMax;                                                                                                     \
+        (playerStatus)->mp = (playerStatus)->mpMax;                                                                                                     \
+        inventoryGiveItem((itemRange), INVENTORY_STARTING_ITEM_TONFA_BATON, 1);                                                                         \
+        inventoryGiveItem((itemRange), INVENTORY_STARTING_ITEM_GPS, 1)->attachSlot                                = INVENTORY_STARTING_GPS_ATTACHMENT;  \
+        inventoryGiveItem((itemRange), INVENTORY_STARTING_ITEM_9MM_PB, INVENTORY_STARTING_9MM_ROUNDS)->attachSlot = INVENTORY_STARTING_AMMO_ATTACHMENT; \
     } while (0)
 
 /// Clears identification storage and identifies catalogue entries without an unknown name.
@@ -2542,11 +2562,11 @@ void inventoryInitializeNewGame(void)
     playerStatus                = &gPlayerStatus;
     if (save->state.clearCount == 0) {
         playerStatus->bp = INVENTORY_NEW_GAME_STARTING_BP;
-        _gpInitStartingItems(itemRange, playerStatus);
+        INVENTORY_INITIALIZE_STARTING_LOADOUT(itemRange, playerStatus);
     } else {
-        _gpInitStartingItems(itemRange, playerStatus);
+        INVENTORY_INITIALIZE_STARTING_LOADOUT(itemRange, playerStatus);
     }
-    GP_GIVE_LOADED(itemRange, INVENTORY_NEW_GAME_ITEM_M93R, INVENTORY_NEW_GAME_ITEM_9MM_PB);
+    INVENTORY_GIVE_LOADED_WEAPON(itemRange, INVENTORY_NEW_GAME_ITEM_M93R, INVENTORY_NEW_GAME_ITEM_9MM_PB);
     inventoryGiveItem(itemRange, INVENTORY_NEW_GAME_ITEM_RECOVERY_2, 1)->attachSlot = INVENTORY_NEW_GAME_RECOVERY_ATTACHMENT;
     // Seed separate container ranges; repeated grants preserve their original row behavior.
     containerRanges = gInventoryContainerRanges;
@@ -2580,6 +2600,9 @@ void inventoryInitializeNewGame(void)
         equipmentEquipCarriedWeapon(INVENTORY_NEW_GAME_ITEM_M93R);
     }
 }
+
+#undef INVENTORY_GIVE_LOADED_WEAPON
+#undef INVENTORY_INITIALIZE_STARTING_LOADOUT
 
 /* Item table a scan window lies in. */
 static inline InventoryItemRow* _gpScanTable(const InventoryItemRange* scan)

@@ -20,9 +20,6 @@
 #include "gameplay/starter_inventory.h"
 #include "gameplay/world_coords.h"
 
-/// Selects stage, area and room-local view while ignoring the room byte.
-#define GAME_LOCATION_STAGE_AREA_VIEW_MASK GAME_LOCATION_KEY(0xFF, 0xFF, 0, 0xFF)
-
 #include "main/display.h"
 #include "main/fs.h"
 #include "main/gfx.h"
@@ -1535,6 +1532,12 @@ static inline void _itemPickupPlayLidSound(const Task* task, s32 soundEventId)
 
 void itemPickupContainerLidTask(Task* task)
 {
+    /// Word mask retaining stage, area and room-local view while clearing room.
+    ///
+    /// Used by this lid task's initial location snapshot. Its later stage/area
+    /// mask clears the retained view byte before room-specific comparisons.
+#define GAME_LOCATION_STAGE_AREA_VIEW_MASK GAME_LOCATION_KEY(0xFF, 0xFF, 0, 0xFF)
+
     enum {
         ITEM_PICKUP_LID_INITIAL                  = 0,
         ITEM_PICKUP_LID_WAIT_REQUEST             = 1,
@@ -1711,6 +1714,7 @@ void itemPickupContainerLidTask(Task* task)
     lightPosition = _gItemPickupLidLightSamplePosition;
     actorRenderComposeCoord(task->extra.tmd->coords);
     worldCoordSetModelLighting(model, &lightPosition, 0, ARRAY_SIZE(model->colorMtx->m[0]));
+#undef GAME_LOCATION_STAGE_AREA_VIEW_MASK
 }
 
 /// Visits the task-owned UI objects in a parent's circular child ring.
