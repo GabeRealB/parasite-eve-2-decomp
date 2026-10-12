@@ -53,7 +53,11 @@
 #include "rooms/room_common.h"
 
 static void _screenFadeInTask(Task* task);
-/// Selects this translation unit's private fade-in callback.
+/// Binds the shared fade-in declaration and definition to this file's private task.
+///
+/// Requires the bare identifier of the preceding static `void (Task*)` callback.
+/// Keep defined from `screen_fade.h` through `screen_fade_in.inc.c`, then undefine.
+/// This object-like binding has no arguments, captures or token construction.
 #define SCREEN_FADE_IN_TASK _screenFadeInTask
 #include "../../shared/screen_fade.h"
 #include "../../shared/glow_draw.h"
@@ -979,6 +983,7 @@ static void _dryfieldWarehouseCutsceneTask(Task* task)
 }
 
 #include "../../shared/screen_fade_in.inc.c"
+#undef SCREEN_FADE_IN_TASK
 
 /// Advances all fade channels by a borrowed unsigned intensity step.
 ///
