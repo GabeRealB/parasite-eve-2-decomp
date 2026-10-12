@@ -127,13 +127,11 @@ enum {
 /// A width at or above
 /// `SHELTER_R47_MAP_WIDTH_SETTLED` snaps to this size. While a page change
 /// reopens the map, the side panel starts opening once the width reaches
-/// `SHELTER_R47_MAP_WIDTH_PANEL`.
+/// `SHELTER_R47_MAP_PANEL_OPEN_WIDTH_THRESHOLD`.
 #define SHELTER_R47_MAP_WIDTH 0xE8
 
 /// Full map-page height in texels and fully open screen pixels (206).
 #define SHELTER_R47_MAP_HEIGHT 0xCE
-
-#define SHELTER_R47_MAP_WIDTH_PANEL 0xB5
 
 /// Left panel's texture width and fully open screen width, in pixels (80).
 #define SHELTER_R47_MAP_PANEL_WIDTH 0x50
@@ -150,12 +148,6 @@ enum {
 /// edges at -180, beyond the display's -160 left edge. The title update eases
 /// the shared signed-halfword position one quarter of the remaining distance.
 #define SHELTER_R47_MAP_LABEL_X_AWAY (-0x104)
-
-/// Frames the timed viewing stays up before it closes, unless the event is skipped.
-#define SHELTER_R47_MAP_SHOW_LIMIT 300
-
-/// Frames from the start of player use until the screen-on sound.
-#define SHELTER_R47_MAP_SCREEN_ON_DELAY 6
 
 /// Work block of the room's map terminal, stored at `Task::work`.
 ///

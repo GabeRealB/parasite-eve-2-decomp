@@ -2969,9 +2969,10 @@ void acropolisPatioSpawnLightEffectsTask(Task* task)
 /// must be stable and side-effect-free: position is evaluated six times and
 /// anchorIndex three times. Advances gRandomLcgState three times in XYZ order,
 /// with jitter -1023..1024 coordinate units and s16 narrowing before and after
-/// anchor addition. Writes only XYZ; the following effect spawn copies them.
+/// anchor addition. Replaces the previous XYZ, preserving pad; the following
+/// effect spawn copies the chosen position.
 /// Use as a statement inside a braced block.
-#define ACROPOLIS_PATIO_OFFSET_LIGHT_MOTE(position, anchorIndex)                             \
+#define ACROPOLIS_PATIO_CHOOSE_LIGHT_MOTE_POSITION(position, anchorIndex)                    \
     {                                                                                        \
         enum { MOTE_JITTER_CENTRE = 1024,                                                    \
                MOTE_JITTER_MASK   = 2047 };                                                    \
@@ -3004,12 +3005,12 @@ void acropolisPatioSpawnLightEffectsTask(Task* task)
         // Each child snapshots XYZ; these point tasks never read the retained offset pointer.
         for (anchorIndex = 0; anchorIndex < LARGE_LIGHT_END; anchorIndex++) {
             for (moteIndex = 0; moteIndex < MOTES_PER_LARGE_LIGHT; moteIndex++) {
-                ACROPOLIS_PATIO_OFFSET_LIGHT_MOTE(&scratchWork->move, anchorIndex);
+                ACROPOLIS_PATIO_CHOOSE_LIGHT_MOTE_POSITION(&scratchWork->move, anchorIndex);
                 effectSpawn(EFFECT_ACROPOLIS_PATIO_FOUNTAIN_MIST, parentCoord, anchorIndex, &scratchWork->move);
             }
         }
     }
-#undef ACROPOLIS_PATIO_OFFSET_LIGHT_MOTE
+#undef ACROPOLIS_PATIO_CHOOSE_LIGHT_MOTE_POSITION
 }
 
 /// Positions a patio light glow as a square around its projected screen centre.

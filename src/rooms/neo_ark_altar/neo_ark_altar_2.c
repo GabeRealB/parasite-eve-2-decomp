@@ -1062,6 +1062,9 @@ static void _neoArkAltarResetTileSequence(void)
 /// `solution` is stable readable storage through the current last-entry index;
 /// `prefixMismatch` is a stable 0/1 flag. Each argument is evaluated at most
 /// once, only for a newly entered tile; an entry mismatch skips the flag test.
+/// The expected entry is read before the flag even for an already-invalid
+/// prefix. The twelve-entry first solution's longer feedback reads depend on
+/// adjacent storage; its C object does not establish that complete extent.
 /// Expands to one braced block and preserves separate sound tests for tile IDs.
 #define NEO_ARK_ALTAR_PLAY_ENTERED_TILE_FEEDBACK(solution, prefixMismatch)                                                                                \
     {                                                                                                                                                     \

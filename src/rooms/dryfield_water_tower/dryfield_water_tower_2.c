@@ -219,7 +219,11 @@ enum {
     DRYFIELD_WATER_TOWER_PROP_DROP_SETTLING, // Shaking at the ground placement until the settle count runs out
 };
 
-/// Frames the falling prop shakes on the ground before its drop reports arrival.
+/// Settling updates until the dropped prop installs collision and reports arrival.
+///
+/// The command clears the signed-halfword counter. Settling increments it
+/// before testing >=, so arrival is reported on update 11; the first ten
+/// settling updates apply the ground shake.
 #define DRYFIELD_WATER_TOWER_PROP_DROP_SETTLE_FRAMES 11
 
 /// Work block of each task in the water tower room's prop scene, kept at `Task::work`.

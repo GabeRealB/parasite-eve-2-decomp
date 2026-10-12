@@ -1404,18 +1404,22 @@ void acropolisWestElevatorHallViewEffectsTask(Task* task)
     /// Emits all three view-2 beacons, snapshotting each position before reuse.
     ///
     /// Captures the writable SVECTOR `beaconPosition` and live GfxCoord pointer
-    /// `parentCoord`. Expands to statements; invoke in an explicit braced block.
-#define ACROPOLIS_WEST_ELEVATOR_HALL_SPAWN_VIEW_BEACONS()                                                                                                                                                      \
-    beaconPosition = _gAcropolisWestElevatorHallFirstBeaconPosition;                                                                                                                                           \
-    effectSpawn(EFFECT_ACROPOLIS_WEST_ELEVATOR_HALL_RED_BEACON, parentCoord, RED_BEACON_ARG(ACROPOLIS_WEST_ELEVATOR_HALL_BEACON_LARGE_RATE, ACROPOLIS_WEST_ELEVATOR_HALL_BEACON_LARGE_SIZE), &beaconPosition); \
-    beaconPosition.vx = -0x1800;                                                                                                                                                                               \
-    beaconPosition.vy = -0x4F0;                                                                                                                                                                                \
-    beaconPosition.vz = -0x600;                                                                                                                                                                                \
-    effectSpawn(EFFECT_ACROPOLIS_WEST_ELEVATOR_HALL_RED_BEACON, parentCoord, RED_BEACON_ARG(ACROPOLIS_WEST_ELEVATOR_HALL_BEACON_SMALL_RATE, ACROPOLIS_WEST_ELEVATOR_HALL_BEACON_SMALL_SIZE), &beaconPosition); \
-    beaconPosition.vx = -0x1800;                                                                                                                                                                               \
-    beaconPosition.vy = -0x4F0;                                                                                                                                                                                \
-    beaconPosition.vz = -0x2C0;                                                                                                                                                                                \
-    effectSpawn(EFFECT_ACROPOLIS_WEST_ELEVATOR_HALL_RED_BEACON, parentCoord, RED_BEACON_ARG(ACROPOLIS_WEST_ELEVATOR_HALL_BEACON_SMALL_RATE, ACROPOLIS_WEST_ELEVATOR_HALL_BEACON_SMALL_SIZE), &beaconPosition);
+    /// `parentCoord` and this function's rate/size constants. Positions count
+    /// parent-coordinate units; spawn copies XYZ and borrows the parent.
+    /// Expands to one statement block and leaves beaconPosition at the last beacon.
+#define ACROPOLIS_WEST_ELEVATOR_HALL_SPAWN_VIEW_BEACONS()                                                                                                                                                          \
+    {                                                                                                                                                                                                              \
+        beaconPosition = _gAcropolisWestElevatorHallFirstBeaconPosition;                                                                                                                                           \
+        effectSpawn(EFFECT_ACROPOLIS_WEST_ELEVATOR_HALL_RED_BEACON, parentCoord, RED_BEACON_ARG(ACROPOLIS_WEST_ELEVATOR_HALL_BEACON_LARGE_RATE, ACROPOLIS_WEST_ELEVATOR_HALL_BEACON_LARGE_SIZE), &beaconPosition); \
+        beaconPosition.vx = -0x1800;                                                                                                                                                                               \
+        beaconPosition.vy = -0x4F0;                                                                                                                                                                                \
+        beaconPosition.vz = -0x600;                                                                                                                                                                                \
+        effectSpawn(EFFECT_ACROPOLIS_WEST_ELEVATOR_HALL_RED_BEACON, parentCoord, RED_BEACON_ARG(ACROPOLIS_WEST_ELEVATOR_HALL_BEACON_SMALL_RATE, ACROPOLIS_WEST_ELEVATOR_HALL_BEACON_SMALL_SIZE), &beaconPosition); \
+        beaconPosition.vx = -0x1800;                                                                                                                                                                               \
+        beaconPosition.vy = -0x4F0;                                                                                                                                                                                \
+        beaconPosition.vz = -0x2C0;                                                                                                                                                                                \
+        effectSpawn(EFFECT_ACROPOLIS_WEST_ELEVATOR_HALL_RED_BEACON, parentCoord, RED_BEACON_ARG(ACROPOLIS_WEST_ELEVATOR_HALL_BEACON_SMALL_RATE, ACROPOLIS_WEST_ELEVATOR_HALL_BEACON_SMALL_SIZE), &beaconPosition); \
+    }
 
     parentCoord = task->extra.coordBody->coord;
     switch (task->state) {

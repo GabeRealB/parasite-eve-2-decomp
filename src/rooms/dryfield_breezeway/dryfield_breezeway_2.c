@@ -1588,37 +1588,45 @@ void dryfieldBreezewayBouncingParticleTask(Task* task)
     SVECTOR     viewStartOrNormal;
     u8          fadeRgb[3];
 
-/// Applies a Q12 direction-times-speed step and writes its XYZ for collision undo.
+/// Applies a direction-times-speed step and saves the displacement for collision undo.
 ///
-/// Arguments must be side-effect-free work, coordinate and writable SVECTOR
-/// pointers. Repeated evaluation preserves the same live objects throughout.
-/// Leaves coordinate composition to the caller; changes the GTE vector registers.
-/// Expands to statements; invoke only in a braced block.
+/// The work's move is a Q12 direction and scale is speed in parent-coordinate
+/// units per update. GTE gpf12 produces signed-halfword XYZ in a separate writable
+/// SVECTOR, then adds them to the full-width local translation. Inputs must be
+/// stable, side-effect-free pointers; stepOut must not alias the direction.
+/// Preserves stepOut.pad. Leaves cache invalidation/composition to the caller
+/// and changes GTE DP/IR state. Expands to one statement block.
 #define DRYFIELD_BREEZEWAY_ADVANCE_PARTICLE(effectWork, particleCoord, stepOut) \
-    gte_lddp((effectWork)->scale);                                              \
-    gte_ldsv(&(effectWork)->move);                                              \
-    gte_gpf12();                                                                \
-    gte_stsv(stepOut);                                                          \
-    (particleCoord)->coord.t[0] += (stepOut)->vx;                               \
-    (particleCoord)->coord.t[1] += (stepOut)->vy;                               \
-    (particleCoord)->coord.t[2] += (stepOut)->vz
+    {                                                                           \
+        gte_lddp((effectWork)->scale);                                          \
+        gte_ldsv(&(effectWork)->move);                                          \
+        gte_gpf12();                                                            \
+        gte_stsv(stepOut);                                                      \
+        (particleCoord)->coord.t[0] += (stepOut)->vx;                           \
+        (particleCoord)->coord.t[1] += (stepOut)->vy;                           \
+        (particleCoord)->coord.t[2] += (stepOut)->vz;                           \
+    }
 
 /// Draws the age-dependent fade or releases the particle at its lifetime limit.
 ///
 /// Arguments must be side-effect-free task/work pointers and a writable RGB
 /// byte array of length three. The drawer consumes the bytes synchronously.
-/// Expands to an if/else chain; invoke only in a braced block. Teardown ends
-/// the task/work lifetime, so callers must not use them afterward.
+/// Ages below 30 draw without a tint; ages 30..59 draw with byte intensity
+/// (60 - age) * 4; age 60 or later retires the task. Reads age without advancing
+/// it. Captures the fade constants and drawer; expands to one statement block.
+/// Teardown ends the task/work lifetime, so callers must not use them afterward.
 #define DRYFIELD_BREEZEWAY_DRAW_OR_RETIRE_PARTICLE(particleTask, effectWork, rgbOut) \
-    if ((effectWork)->age < DRYFIELD_BREEZEWAY_PARTICLE_FADE_START) {                \
-        _dryfieldBreezewayDrawBouncingParticle((particleTask), NULL);                \
-    } else if ((effectWork)->age < DRYFIELD_BREEZEWAY_PARTICLE_LIFETIME) {           \
-        (rgbOut)[0] = (rgbOut)[1] = (rgbOut)[2] =                                    \
-            (DRYFIELD_BREEZEWAY_PARTICLE_LIFETIME - (effectWork)->age) *             \
-            DRYFIELD_BREEZEWAY_PARTICLE_FADE_STEP;                                   \
-        _dryfieldBreezewayDrawBouncingParticle((particleTask), (rgbOut));            \
-    } else {                                                                         \
-        effectKillTask((effectWork), (particleTask));                                \
+    {                                                                                \
+        if ((effectWork)->age < DRYFIELD_BREEZEWAY_PARTICLE_FADE_START) {            \
+            _dryfieldBreezewayDrawBouncingParticle((particleTask), NULL);            \
+        } else if ((effectWork)->age < DRYFIELD_BREEZEWAY_PARTICLE_LIFETIME) {       \
+            (rgbOut)[0] = (rgbOut)[1] = (rgbOut)[2] =                                \
+                (DRYFIELD_BREEZEWAY_PARTICLE_LIFETIME - (effectWork)->age) *         \
+                DRYFIELD_BREEZEWAY_PARTICLE_FADE_STEP;                               \
+            _dryfieldBreezewayDrawBouncingParticle((particleTask), (rgbOut));        \
+        } else {                                                                     \
+            effectKillTask((effectWork), (particleTask));                            \
+        }                                                                            \
     }
 
     if (gRoomEffectState->effectControl >= ROOM_EFFECT_CONTROL_HIDDEN) {

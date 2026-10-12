@@ -2757,7 +2757,7 @@ objects = [
   { unit = "shelter_r47/shelter_r47_2", rodata = "0x108", text = "0x410C", data = "0x9E44" },
   { unit = "shelter_r47/shelter_r47_3", rodata = "0x21C", text = "0x6D5C", data = "0xA04C", bss = "0xD0D0" },
   { kind = "collision", at = "0xA758", in_c = true },
-  { kind = "collisionSource", at = "0xACCC", in_c = true },
+  { kind = "collisionSource", at = "0xACCC", in_c = true, cell_face_list_macro = "SHELTER_R47_CELL_FACE_LIST_AT_OFFSET" },
 ]
 
 [rooms.overlays.shelter_r48]

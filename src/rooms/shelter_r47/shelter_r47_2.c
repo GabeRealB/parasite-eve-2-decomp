@@ -485,16 +485,6 @@ static void _shelterR47ConsoleHandleCommandTask(Task* task)
     task->state = SHELTER_R47_CONSOLE_STATE_SELECT_HOTSPOT;
 }
 
-/// Sets the task's `status` to `st` and draws sprite `id` at (`messageX`,
-/// `messageY`).
-#define SHELTER_R47_DRAW_STEP(id, st)                                  \
-    {                                                                  \
-        s16 x_                                       = work->messageX; \
-        s16 y_                                       = work->messageY; \
-        ((ShelterR47ConsoleWork*)task->work)->status = (st);           \
-        shelterR47ConsoleDrawSprite(x_, y_, (id));                     \
-    }
-
 void shelterR47ConsoleUpdateAndDraw(Task* task, s16 changingView)
 {
     enum {

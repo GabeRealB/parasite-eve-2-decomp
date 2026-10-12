@@ -4121,10 +4121,13 @@ static void _dryfieldNightGasStationSetFlickerSpritesVisible(s16 visible)
 
 void dryfieldNightGasStationAmbientEffectsTask(Task* task)
 {
-    // Writes move's XYZ around a room anchor using two consecutive LCG draws.
-    // Both arguments are evaluated repeatedly and must be stable, side-effect-free
-    // expressions. effectWork supplies writable EffectWork; pointIndex is 19 or 20.
-    // XYZ narrow to signed halfwords; move.pad is retained. Invoke in a braced block.
+    /// Chooses an ambient spawn position around one of the room's two scatter anchors.
+    ///
+    /// `effectWork` supplies writable EffectWork; `pointIndex` is 19 or 20.
+    /// Both arguments are evaluated repeatedly and must be stable and side-effect-free.
+    /// Captures the anchor table and this function's scatter constants. Two ordered
+    /// LCG draws add X/Z jitter -255..256 parent-coordinate units, preserving anchor
+    /// Y. XYZ narrow to s16 and move.pad is retained. Expands to one block.
 #define DRYFIELD_NIGHT_GAS_STATION_CHOOSE_SCATTER_OFFSET(effectWork, pointIndex)                                                                                                                                             \
     {                                                                                                                                                                                                                        \
         gRandomLcgState       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;                                                                                                                              \

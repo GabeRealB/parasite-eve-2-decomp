@@ -2964,18 +2964,29 @@ void acropolisSanctuaryMosaicTask(Task* task)
     s32                            spawnIndex;
     s32                            tileIndex;
 
-/// Places and spawns the selected mosaic tile in whole coordinate units.
+/// Places a mosaic tile's centre from its texture origin and attempts its spawn.
 ///
 /// Captures `tile`, `sizeClass`, `mosaicWork` and `mosaicCoord` in this function.
-/// Writes `sizeClass` and the work's temporary offset; evaluates tileIndex once.
-/// The captured pointers and argument must have no side effects. Expands to
-/// statements and requires a braced call site; placement is copied at spawn.
-#define ACROPOLIS_SANCTUARY_SPAWN_MOSAIC_TILE(tileIndex)                                                           \
-    sizeClass           = tile->sizeClass;                                                                         \
-    mosaicWork->move.vx = 0;                                                                                       \
-    mosaicWork->move.vy = ((tile->originV * 1145) >> 7) - _gAcropolisSanctuaryMosaicTileCorners[sizeClass][0].vy;  \
-    mosaicWork->move.vz = -((tile->originU * 2147) >> 8) - _gAcropolisSanctuaryMosaicTileCorners[sizeClass][0].vz; \
-    effectSpawn(EFFECT_ACROPOLIS_SANCTUARY_MOSAIC_TILE, mosaicCoord, (tileIndex), &mosaicWork->move)
+/// `tileIndex` is 0..71 and must identify `tile`, whose size class is 0 or 1.
+/// U/V texels map to -Z/+Y parent-coordinate units at Q8/Q7 scales; subtracting
+/// corner 0 changes the origin placement into a centre placement. XYZ narrow
+/// to s16 and move.pad is preserved. Writes `sizeClass` and the work's temporary
+/// offset; evaluates tileIndex once. Inputs must be stable and side-effect-free.
+/// Expands to one block; spawn copies XYZ and borrows the live parent coordinate.
+#define ACROPOLIS_SANCTUARY_SPAWN_MOSAIC_TILE(tileIndex)                                                                                                                                              \
+    {                                                                                                                                                                                                 \
+        enum {                                                                                                                                                                                        \
+            ACROPOLIS_SANCTUARY_MOSAIC_V_TO_Y_SCALE_Q7 = 1145,                                                                                                                                        \
+            ACROPOLIS_SANCTUARY_MOSAIC_V_FRACTION_BITS = 7,                                                                                                                                           \
+            ACROPOLIS_SANCTUARY_MOSAIC_U_TO_Z_SCALE_Q8 = 2147,                                                                                                                                        \
+            ACROPOLIS_SANCTUARY_MOSAIC_U_FRACTION_BITS = 8                                                                                                                                            \
+        };                                                                                                                                                                                            \
+        sizeClass           = tile->sizeClass;                                                                                                                                                        \
+        mosaicWork->move.vx = 0;                                                                                                                                                                      \
+        mosaicWork->move.vy = ((tile->originV * ACROPOLIS_SANCTUARY_MOSAIC_V_TO_Y_SCALE_Q7) >> ACROPOLIS_SANCTUARY_MOSAIC_V_FRACTION_BITS) - _gAcropolisSanctuaryMosaicTileCorners[sizeClass][0].vy;  \
+        mosaicWork->move.vz = -((tile->originU * ACROPOLIS_SANCTUARY_MOSAIC_U_TO_Z_SCALE_Q8) >> ACROPOLIS_SANCTUARY_MOSAIC_U_FRACTION_BITS) - _gAcropolisSanctuaryMosaicTileCorners[sizeClass][0].vz; \
+        effectSpawn(EFFECT_ACROPOLIS_SANCTUARY_MOSAIC_TILE, mosaicCoord, (tileIndex), &mosaicWork->move);                                                                                             \
+    }
 
     mosaicWork  = task->spawnArg2.pointer;
     mosaicCoord = task->extra.coordBody->coord;

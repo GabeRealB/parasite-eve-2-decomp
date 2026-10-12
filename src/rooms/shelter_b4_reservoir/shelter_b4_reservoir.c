@@ -86,7 +86,14 @@
 static void _waterDrawSpin(const GfxCoord* coord, s16 textureColumn, s16 radiusScale, s16 spinAngle);
 static void _waterDrawTile(const GfxCoord* coord, s16 frameIndex, s16 radiusScale);
 
-#define RAND() ((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16)
+/// Advances the shared LCG once and yields its upper 16 bits as a u32.
+///
+/// Captures and writes `gRandomLcgState` with unsigned 32-bit wraparound;
+/// the expression result is 0..65535, with no narrowing cast. Every evaluated
+/// invocation consumes one draw, including draws followed by failed spawns.
+/// Do not combine unsequenced invocations in a single expression. This room
+/// uses the same resident sequence as other loaded gameplay effects.
+#define SHELTER_B4_RESERVOIR_NEXT_RANDOM_U16() ((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16)
 
 enum {
     SHELTER_B4_RESERVOIR_BURST_CHANCE_SCALE     = 100,
@@ -2310,8 +2317,8 @@ static inline void _shelterB4ReservoirScatterBurstPoint(EffectWork* work, s32 po
         SHELTER_B4_RESERVOIR_BURST_X_OFFSET     = 2048,
     };
 
-    work->scale                                    = RAND() & SHELTER_B4_RESERVOIR_BURST_RADIUS_MASK;
-    work->angle                                    = (RAND() & SHELTER_B4_RESERVOIR_BURST_ANGLE_MASK) + (pointIndex << SHELTER_B4_RESERVOIR_BURST_SECTOR_SHIFT);
+    work->scale                                    = SHELTER_B4_RESERVOIR_NEXT_RANDOM_U16() & SHELTER_B4_RESERVOIR_BURST_RADIUS_MASK;
+    work->angle                                    = (SHELTER_B4_RESERVOIR_NEXT_RANDOM_U16() & SHELTER_B4_RESERVOIR_BURST_ANGLE_MASK) + (pointIndex << SHELTER_B4_RESERVOIR_BURST_SECTOR_SHIFT);
     _gShelterB4ReservoirBurstPoints[pointIndex].vx = _gShelterB4ReservoirBurstAnchor.vx + SHELTER_B4_RESERVOIR_BURST_X_OFFSET;
     _gShelterB4ReservoirBurstPoints[pointIndex].vy =
         _gShelterB4ReservoirBurstAnchor.vy + ((work->scale * rsin(work->angle)) >> SHELTER_B4_RESERVOIR_BURST_Q12_SHIFT);
@@ -2403,11 +2410,11 @@ void shelterB4ReservoirAmbientEffectsTask(Task* task)
                     splashCoord.coord.t[1]   = gGameSession->waterY;
                     splashCoord.composeStamp = GRAPHICS_COORD_DIRTY;
                     actorRenderComposeCoord(&splashCoord);
-                    if ((s32)(RAND() & SHELTER_B4_RESERVOIR_SPLASH_CHANCE_MASK) < work->angle) {
+                    if ((s32)(SHELTER_B4_RESERVOIR_NEXT_RANDOM_U16() & SHELTER_B4_RESERVOIR_SPLASH_CHANCE_MASK) < work->angle) {
                         effectSpawn(gRoomEffectWaterRippleId, &splashCoord, SHELTER_B4_RESERVOIR_PLAYER_RIPPLE_HALF_SIZE, NULL);
                     }
                     work->angle -= SHELTER_B4_RESERVOIR_RIPPLE_CHANCE_BIAS;
-                    if ((s32)(RAND() & SHELTER_B4_RESERVOIR_SPLASH_CHANCE_MASK) < work->angle) {
+                    if ((s32)(SHELTER_B4_RESERVOIR_NEXT_RANDOM_U16() & SHELTER_B4_RESERVOIR_SPLASH_CHANCE_MASK) < work->angle) {
                         effectSpawn(gRoomEffectWaterSprayId, &splashCoord, SHELTER_B4_RESERVOIR_PLAYER_SPRAY_ARGS, NULL);
                     }
                     _gShelterB4ReservoirPlayerSamplePositions[loopIndex].vx = sampledPlayerCoord->workm.t[0];
@@ -2420,12 +2427,12 @@ void shelterB4ReservoirAmbientEffectsTask(Task* task)
         // Emit independently at each active point, occasionally moving its position.
         if (_gShelterB4ReservoirBurstConfig.pointCount != 0 && _gShelterB4ReservoirBurstConfig.spawnChancePercent != 0) {
             for (loopIndex = 0; loopIndex < _gShelterB4ReservoirBurstConfig.pointCount; loopIndex++) {
-                if ((RAND() & SHELTER_B4_RESERVOIR_BURST_REPOSITION_MASK) == 0) {
+                if ((SHELTER_B4_RESERVOIR_NEXT_RANDOM_U16() & SHELTER_B4_RESERVOIR_BURST_REPOSITION_MASK) == 0) {
                     _shelterB4ReservoirScatterBurstPoint(work, loopIndex);
                 }
-                if ((u16)(RAND() % SHELTER_B4_RESERVOIR_BURST_CHANCE_SCALE) < _gShelterB4ReservoirBurstConfig.spawnChancePercent) {
+                if ((u16)(SHELTER_B4_RESERVOIR_NEXT_RANDOM_U16() % SHELTER_B4_RESERVOIR_BURST_CHANCE_SCALE) < _gShelterB4ReservoirBurstConfig.spawnChancePercent) {
                     baseHalfExtent      = _gShelterB4ReservoirBurstConfig.baseHalfExtent;
-                    randomizedSpawnArgs = (RAND() & SHELTER_B4_RESERVOIR_BURST_VARIATION_MASK) + SHELTER_B4_RESERVOIR_BURST_MOTION_ARGS;
+                    randomizedSpawnArgs = (SHELTER_B4_RESERVOIR_NEXT_RANDOM_U16() & SHELTER_B4_RESERVOIR_BURST_VARIATION_MASK) + SHELTER_B4_RESERVOIR_BURST_MOTION_ARGS;
                     effectSpawn(EFFECT_SHELTER_B4_RESERVOIR_BURST_SPRITE, NULL, baseHalfExtent + randomizedSpawnArgs,
                                 &_gShelterB4ReservoirBurstPoints[loopIndex]);
                 }
@@ -2435,14 +2442,14 @@ void shelterB4ReservoirAmbientEffectsTask(Task* task)
     // View spray and glow drawing continue independently of effect-control pause.
     if ((u8)viewGetMappedIndex() == SHELTER_B4_RESERVOIR_WATER_SPRAY_VIEW) {
         _gShelterB4ReservoirView10WaterEffectPoints.waterSurface.vy = _gShelterB4ReservoirView10WaterY;
-        if ((RAND() & SHELTER_B4_RESERVOIR_SPRAY_CHANCE_MASK) == 0) {
-            effectSpawn(gRoomEffectWaterSprayId, NULL, (RAND() & SHELTER_B4_RESERVOIR_SPRAY_PERIOD_VARIATION) + SHELTER_B4_RESERVOIR_VIEW10_ROTATED_SPRAY_ARGS, &_gShelterB4ReservoirView10WaterEffectPoints.fixedSpray);
+        if ((SHELTER_B4_RESERVOIR_NEXT_RANDOM_U16() & SHELTER_B4_RESERVOIR_SPRAY_CHANCE_MASK) == 0) {
+            effectSpawn(gRoomEffectWaterSprayId, NULL, (SHELTER_B4_RESERVOIR_NEXT_RANDOM_U16() & SHELTER_B4_RESERVOIR_SPRAY_PERIOD_VARIATION) + SHELTER_B4_RESERVOIR_VIEW10_ROTATED_SPRAY_ARGS, &_gShelterB4ReservoirView10WaterEffectPoints.fixedSpray);
         }
-        if ((RAND() & SHELTER_B4_RESERVOIR_SPRAY_CHANCE_MASK) == 0) {
-            effectSpawn(gRoomEffectWaterSprayId, NULL, (RAND() & SHELTER_B4_RESERVOIR_SPRAY_SIZE_PERIOD_VARIATION) | SHELTER_B4_RESERVOIR_VIEW10_UPRIGHT_SPRAY_ARGS, &_gShelterB4ReservoirView10WaterEffectPoints.waterSurface);
+        if ((SHELTER_B4_RESERVOIR_NEXT_RANDOM_U16() & SHELTER_B4_RESERVOIR_SPRAY_CHANCE_MASK) == 0) {
+            effectSpawn(gRoomEffectWaterSprayId, NULL, (SHELTER_B4_RESERVOIR_NEXT_RANDOM_U16() & SHELTER_B4_RESERVOIR_SPRAY_SIZE_PERIOD_VARIATION) | SHELTER_B4_RESERVOIR_VIEW10_UPRIGHT_SPRAY_ARGS, &_gShelterB4ReservoirView10WaterEffectPoints.waterSurface);
         }
-        if ((RAND() & SHELTER_B4_RESERVOIR_RIPPLE_CHANCE_MASK) == 0) {
-            effectSpawn(gRoomEffectWaterRippleId, NULL, (RAND() & SHELTER_B4_RESERVOIR_VIEW10_RIPPLE_SIZE_MASK) | SHELTER_B4_RESERVOIR_VIEW10_RIPPLE_MIN_HALF_SIZE, &_gShelterB4ReservoirView10WaterEffectPoints.waterSurface);
+        if ((SHELTER_B4_RESERVOIR_NEXT_RANDOM_U16() & SHELTER_B4_RESERVOIR_RIPPLE_CHANCE_MASK) == 0) {
+            effectSpawn(gRoomEffectWaterRippleId, NULL, (SHELTER_B4_RESERVOIR_NEXT_RANDOM_U16() & SHELTER_B4_RESERVOIR_VIEW10_RIPPLE_SIZE_MASK) | SHELTER_B4_RESERVOIR_VIEW10_RIPPLE_MIN_HALF_SIZE, &_gShelterB4ReservoirView10WaterEffectPoints.waterSurface);
         }
     }
     // Per-view point pairs supply capsule glow; the event flag changes the disc tint.

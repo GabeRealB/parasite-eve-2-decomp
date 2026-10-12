@@ -309,16 +309,20 @@ static EffectUnitQuadCorner _gAcropolisSecurityRoomFallingQuadUnitCorners[4];
 /// Initializes one reserved prompt edge from signed screen coordinates and RGB bytes.
 ///
 /// The packet must be writable. Arguments must be side-effect-free; the packet
-/// is evaluated repeatedly. Expands to standalone statements without linking.
+/// is evaluated repeatedly. Screen pixels narrow to signed halfwords and RGB
+/// channels to bytes. Expands to one statement block without allocating or
+/// linking a packet; geometry is read as each store is reached.
 #define ACROPOLIS_SECURITY_ROOM_INIT_PROMPT_EDGE(line, startX, startY, endX, endY, red, green, blue) \
-    setLineF2(line);                                                                                 \
-    (line)->x0 = (startX);                                                                           \
-    (line)->y0 = (startY);                                                                           \
-    (line)->x1 = (endX);                                                                             \
-    (line)->y1 = (endY);                                                                             \
-    (line)->r0 = (red);                                                                              \
-    (line)->g0 = (green);                                                                            \
-    (line)->b0 = (blue);
+    {                                                                                                \
+        setLineF2(line);                                                                             \
+        (line)->x0 = (startX);                                                                       \
+        (line)->y0 = (startY);                                                                       \
+        (line)->x1 = (endX);                                                                         \
+        (line)->y1 = (endY);                                                                         \
+        (line)->r0 = (red);                                                                          \
+        (line)->g0 = (green);                                                                        \
+        (line)->b0 = (blue);                                                                         \
+    }
 
 /// Initializes one reserved POLY_F4 with a semitransparent grey monitor rectangle.
 ///
@@ -360,15 +364,19 @@ static EffectUnitQuadCorner _gAcropolisSecurityRoomFallingQuadUnitCorners[4];
     (point).vy += (coord)->workm.t[1];                                 \
     (point).vz += (coord)->workm.t[2];
 
-/// Blends a complete 256-colour monitor palette in sixteen-colour spans.
+/// Blends one complete lock-indicator palette in sixteen-colour RGB555 spans.
 ///
 /// `colorIndex` is a caller-owned s32 loop local, overwritten through 256.
-/// Palette arguments must be side-effect-free pointers to distinct 256-colour
-/// arrays; brightness is a side-effect-free 1/4096 weight, normally 0..ONE.
-/// Arguments are evaluated for each span. Invoke as a statement in a braced block.
-#define ACROPOLIS_SECURITY_ROOM_BLEND_MONITOR_PALETTE(colorIndex, litPalette, offPalette, brightness, blendedPalette)                               \
-    for ((colorIndex) = 0; (colorIndex) < ARRAY_SIZE(_gAcropolisSecurityRoomLockIndicatorOffPalette); (colorIndex) += GPU_RGB555_CLUT_ROW_COLORS) { \
-        gpuBlendRgb555ClutRow(&(litPalette)[colorIndex], &(offPalette)[colorIndex], (brightness), &(blendedPalette)[colorIndex]);                   \
+/// Captures the 256-element off-palette bound and the sixteen-colour row size.
+/// Palette arguments must be stable, side-effect-free u16 pointers to distinct
+/// 256-colour arrays; the sources are read-only and the destination writable.
+/// `brightness` is the lit-source Q12 weight in 0..ONE, read for each span.
+/// Arguments are evaluated repeatedly; the block does not upload its result.
+#define ACROPOLIS_SECURITY_ROOM_BLEND_LOCK_INDICATOR_PALETTE(colorIndex, litPalette, offPalette, brightness, blendedPalette)                            \
+    {                                                                                                                                                   \
+        for ((colorIndex) = 0; (colorIndex) < ARRAY_SIZE(_gAcropolisSecurityRoomLockIndicatorOffPalette); (colorIndex) += GPU_RGB555_CLUT_ROW_COLORS) { \
+            gpuBlendRgb555ClutRow(&(litPalette)[colorIndex], &(offPalette)[colorIndex], (brightness), &(blendedPalette)[colorIndex]);                   \
+        }                                                                                                                                               \
     }
 
 /// Seeds the falling quad's tumble rates and parent-space displacement per frame.
@@ -2791,16 +2799,16 @@ void acropolisSecurityRoomMonitorFeedsTask(Task* task)
             const u16* litPalette     = _gAcropolisSecurityRoomLeftLockedPalette;
             u16*       blendedPalette = _gAcropolisSecurityRoomLeftLockedClut;
 
-            ACROPOLIS_SECURITY_ROOM_BLEND_MONITOR_PALETTE(colorIndex, litPalette, offPalette, 0, blendedPalette);
+            ACROPOLIS_SECURITY_ROOM_BLEND_LOCK_INDICATOR_PALETTE(colorIndex, litPalette, offPalette, 0, blendedPalette);
             litPalette     = _gAcropolisSecurityRoomLeftReleasedPalette;
             blendedPalette = _gAcropolisSecurityRoomLeftReleasedClut;
-            ACROPOLIS_SECURITY_ROOM_BLEND_MONITOR_PALETTE(colorIndex, litPalette, offPalette, 0, blendedPalette);
+            ACROPOLIS_SECURITY_ROOM_BLEND_LOCK_INDICATOR_PALETTE(colorIndex, litPalette, offPalette, 0, blendedPalette);
             litPalette     = _gAcropolisSecurityRoomRightLockedPalette;
             blendedPalette = _gAcropolisSecurityRoomRightLockedClut;
-            ACROPOLIS_SECURITY_ROOM_BLEND_MONITOR_PALETTE(colorIndex, litPalette, offPalette, 0, blendedPalette);
+            ACROPOLIS_SECURITY_ROOM_BLEND_LOCK_INDICATOR_PALETTE(colorIndex, litPalette, offPalette, 0, blendedPalette);
             litPalette     = _gAcropolisSecurityRoomRightReleasedPalette;
             blendedPalette = _gAcropolisSecurityRoomRightReleasedClut;
-            ACROPOLIS_SECURITY_ROOM_BLEND_MONITOR_PALETTE(colorIndex, litPalette, offPalette, 0, blendedPalette);
+            ACROPOLIS_SECURITY_ROOM_BLEND_LOCK_INDICATOR_PALETTE(colorIndex, litPalette, offPalette, 0, blendedPalette);
             gpuUploadImages(_gAcropolisSecurityRoomLockIndicatorClutUploads);
             task->state = task->state + 1;
             break;
@@ -2821,16 +2829,16 @@ void acropolisSecurityRoomMonitorFeedsTask(Task* task)
                 work->period    = (work->index & ACROPOLIS_SECURITY_ROOM_FEEDS_FEED_2_MASK) ? ((work->period < brightnessLimit) ? work->period + ACROPOLIS_SECURITY_ROOM_FEEDS_BRIGHTNESS_STEP : brightnessLimit) : 0;
                 work->step      = (work->index & ACROPOLIS_SECURITY_ROOM_FEEDS_FEED_3_MASK) ? ((work->step < brightnessLimit) ? work->step + ACROPOLIS_SECURITY_ROOM_FEEDS_BRIGHTNESS_STEP : brightnessLimit) : 0;
 
-                ACROPOLIS_SECURITY_ROOM_BLEND_MONITOR_PALETTE(colorIndex, litPalette, offPalette, work->scale, blendedPalette);
+                ACROPOLIS_SECURITY_ROOM_BLEND_LOCK_INDICATOR_PALETTE(colorIndex, litPalette, offPalette, work->scale, blendedPalette);
                 litPalette     = _gAcropolisSecurityRoomLeftReleasedPalette;
                 blendedPalette = _gAcropolisSecurityRoomLeftReleasedClut;
-                ACROPOLIS_SECURITY_ROOM_BLEND_MONITOR_PALETTE(colorIndex, litPalette, offPalette, work->angle, blendedPalette);
+                ACROPOLIS_SECURITY_ROOM_BLEND_LOCK_INDICATOR_PALETTE(colorIndex, litPalette, offPalette, work->angle, blendedPalette);
                 litPalette     = _gAcropolisSecurityRoomRightLockedPalette;
                 blendedPalette = _gAcropolisSecurityRoomRightLockedClut;
-                ACROPOLIS_SECURITY_ROOM_BLEND_MONITOR_PALETTE(colorIndex, litPalette, offPalette, work->period, blendedPalette);
+                ACROPOLIS_SECURITY_ROOM_BLEND_LOCK_INDICATOR_PALETTE(colorIndex, litPalette, offPalette, work->period, blendedPalette);
                 litPalette     = _gAcropolisSecurityRoomRightReleasedPalette;
                 blendedPalette = _gAcropolisSecurityRoomRightReleasedClut;
-                ACROPOLIS_SECURITY_ROOM_BLEND_MONITOR_PALETTE(colorIndex, litPalette, offPalette, work->step, blendedPalette);
+                ACROPOLIS_SECURITY_ROOM_BLEND_LOCK_INDICATOR_PALETTE(colorIndex, litPalette, offPalette, work->step, blendedPalette);
                 gpuUploadImages(_gAcropolisSecurityRoomLockIndicatorClutUploads);
 
                 // Lamp quads are one-frame children; respawn all four after uploading their CLUTs.
@@ -2853,7 +2861,7 @@ void acropolisSecurityRoomMonitorFeedsTask(Task* task)
     }
 }
 
-#undef ACROPOLIS_SECURITY_ROOM_BLEND_MONITOR_PALETTE
+#undef ACROPOLIS_SECURITY_ROOM_BLEND_LOCK_INDICATOR_PALETTE
 
 /// Draws a subtractive horizontal segment travelling along the task coordinate's Y axis.
 ///

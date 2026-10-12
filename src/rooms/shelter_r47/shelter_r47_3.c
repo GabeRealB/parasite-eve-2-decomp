@@ -59,6 +59,26 @@
 /// this page; closing restores that view. This is a view selector, not a page index.
 #define SHELTER_R47_MAP_ENTRY_VIEW 0x25
 
+/// Map width in screen pixels that starts reopening the side panel (181).
+///
+/// Tested after the map's easing update with >=; this is a map-width
+/// threshold, independent of the side panel's fully open width.
+#define SHELTER_R47_MAP_PANEL_OPEN_WIDTH_THRESHOLD 0xB5
+
+/// Last timed-view update count before the terminal starts closing.
+///
+/// The counter starts at zero and increments before a strict > comparison.
+/// Closing starts on update 301, including the opening fade in the count;
+/// an event skip can close it earlier.
+#define SHELTER_R47_MAP_SHOW_LIMIT 300
+
+/// Selection updates before the screen-on sound during player use.
+///
+/// The signed-byte countdown is set on opening and decremented before testing
+/// for zero. The sixth selection update plays the sound, even while CAP
+/// playback or unsettled geometry prevents input.
+#define SHELTER_R47_MAP_SCREEN_ON_DELAY 6
+
 static void _shelterR47MapTerminalTask(Task* task);
 static void _shelterR47MapTerminalPromptTask(Task* task);
 
@@ -331,13 +351,19 @@ static s16 _gShelterR47CollisionGridCells[172] = {
 #include "assets/shelter_r47_collision_0ACCC_cells.inc"
 };
 
-// Asset-table offsets count signed-halfword entries, including list terminators.
-#define GRID_CELL(i) (&_gShelterR47CollisionGridCells[i])
+/// Address of a cell's first face ID in the room's packed face-list pool.
+///
+/// `halfwordOffset` counts s16 elements, including -1 terminators, rather than
+/// grid cells or bytes. Evaluated once; the generated table supplies constant
+/// list starts in 0..171. Captures the private pool and yields an s16* that
+/// remains valid while the room is loaded. Bind only around the table include;
+/// its collisionSource manifest entry selects this identifier for generation.
+#define SHELTER_R47_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gShelterR47CollisionGridCells[(halfwordOffset)])
 /// X-major pointers for the grid's 5-by-3 cells; NULL entries are empty.
 static s16* _gShelterR47CollisionGridTable[15] = {
 #include "assets/shelter_r47_collision_0ACCC_table.inc"
 };
-#undef GRID_CELL
+#undef SHELTER_R47_CELL_FACE_LIST_AT_OFFSET
 
 WorldCollisionGrid gShelterR47CollisionGrid = {
     .viewCoord   = NULL,
@@ -2662,7 +2688,7 @@ static void _shelterR47MapTerminalReopenPageTask(Task* task)
 
     work = task->work;
     _shelterR47MapTerminalUpdateAndDraw(task);
-    if (work->mapWidth >= SHELTER_R47_MAP_WIDTH_PANEL) {
+    if (work->mapWidth >= SHELTER_R47_MAP_PANEL_OPEN_WIDTH_THRESHOLD) {
         sndEvtRequestScriptStart(SOUND_SHELTER_R47_MAP_TERMINAL_SCREEN_ON, 0, 0);
         work->panelTargetWidth  = SHELTER_R47_MAP_PANEL_WIDTH;
         work->panelTargetHeight = SHELTER_R47_MAP_PANEL_HEIGHT;
