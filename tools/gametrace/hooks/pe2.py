@@ -10,7 +10,7 @@ the extractor's tables (tools/peassets/asset_data.py).
 """
 import struct
 
-from gametrace import handler, image, init, renderer
+from gametrace import command, handler, image, init, renderer
 
 REPO = __import__("pathlib").Path(__file__).resolve().parents[3]
 _CONSTANTS: dict = {}
@@ -490,3 +490,62 @@ def view_ready(record, trace):
     slot = struct.unpack("<h", record["0x80114C40:4"][:2])[0]
     return {"event": "view_ready", **location(record["0x800714C4:8"]), "movie_slot": slot if slot >= 0 else None}
 
+
+# ---- commands: acting on the game from the tracer's prompt
+#
+# The tracer gives the means and checks nothing; each command here says where it may act.
+
+FRAME_START = "padUpdatePort0"       # the first thing the main loop does each frame, whatever state the game is in:
+                                     # no game function is half done there
+
+
+def anywhere(trace) -> str | None:
+    """Why the place the game is stopped at will not do even for a call that only reads or writes one value, or
+    None when it will: it has to be the game's own code, not a delay slot, and with interrupts on."""
+    at = trace.where()
+    if at["image"] is None:
+        return f"the game is not in its own code ({at['symbol']})"
+    if at["delay_slot"]:
+        return "the game is in a delay slot"
+    if at["interrupts"] is False:
+        return "interrupts are off (an interrupt handler, or something that must not be disturbed)"
+    return None
+
+
+def at_frame_start(trace) -> None:
+    """Take the game to the start of its next frame, unless it is there."""
+    if trace.registers()["pc"] != trace.address(FRAME_START):
+        trace.run_to(FRAME_START)
+
+
+@command("flag")
+def flag_command(trace, text):
+    """flag ID [VALUE]   show a game flag, or set it (0..15); ID is a number or a GAME_FLAG_ name"""
+    parts = text.split()
+    if not parts:                                    # no arguments: show the flags and ask
+        named = constants("include/main/gameflag_ids.h", "GAME_FLAG_")
+        picked = trace.choose(f"{len(named)} flags have names", [(name[len("GAME_FLAG_"):], f"{value:#05x}") for value, name in sorted(named.items())])
+        if picked is None:
+            return "nothing done"
+        value = trace.ask(f"set {picked} to (0..15; nothing to only show it): ")
+        parts = [picked] + ([value] if value else [])
+    by_name = {name: value for value, name in constants("include/main/gameflag_ids.h", "GAME_FLAG_").items()}
+    ident = by_name.get(parts[0].upper(), by_name.get("GAME_FLAG_" + parts[0].upper()))
+    if ident is None:
+        ident = int(parts[0], 0)
+    name = constants("include/main/gameflag_ids.h", "GAME_FLAG_").get(ident, f"{ident:#05x}")
+    if len(parts) > 1 and not 0 <= int(parts[1], 0) <= 15:
+        return "a flag holds 0..15"
+    # The flag functions read or write one nibble, so they may be called wherever the game stands - short of the
+    # places no call can be made from, and of being inside one of them. From those the game goes to the frame start.
+    reason = anywhere(trace)
+    if reason is None and any(trace.where()["symbol"].startswith(f) for f in ("gameFlagGetNibble+", "gameFlagSetNibble+")):
+        reason = "the game is inside a flag function"
+    if reason:
+        trace.say(f"{reason}: going to the start of the next frame first")
+        at_frame_start(trace)
+    before = trace.call("gameFlagGetNibble", ident)
+    if len(parts) == 1:
+        return f"{name} is {before}"
+    trace.call("gameFlagSetNibble", ident, int(parts[1], 0))
+    return f"{name}: {before} -> {trace.call('gameFlagGetNibble', ident)}"

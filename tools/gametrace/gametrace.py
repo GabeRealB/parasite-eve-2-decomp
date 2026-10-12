@@ -78,6 +78,15 @@ only once, followed by `{"event": "repeated", "last": N, "times": T}` - the N li
 times. Every event takes part unless it says `collapse = false` or has a handler; a line of one that does not
 ends the run, so it keeps its exact place.
 
+The tracer can also act on the game, through commands. It only gives the means and judges nothing: where the
+game is stopped (`registers`, `where`), `step` and `run_to`, memory to read and `poke`, MIPS source assembled
+into free memory (`inject`, `free`), and `hook` / `unhook` to send the game there from any instruction. `call`
+puts those together to have the game call one of its own functions from where it stands and give back what it
+returned; `call F A B` at the prompt is that, raw. What a place is good for is the business of whoever writes a
+command: a hooks file adds commands with `@command("name")` (see `command`), each of which runs with the game
+stopped, to its end, and carries its own rules - where it may act, where it takes the game first. What is done
+this way is noted in the log, since a game that was acted on is not the game as played.
+
 The buffer is read when it is full, when the tracer detaches (Ctrl-C: what is left is read, the hooks are taken
 out and the game runs on), and after every event marked `drain = true` - at its returns where the config gives
 them, otherwise straight after its entry. A rare event, such as a room load, makes a good one: the log then
@@ -115,6 +124,7 @@ from pathlib import Path
 
 REGS = ["zero", "at", "v0", "v1", "a0", "a1", "a2", "a3", "t0", "t1", "t2", "t3", "t4", "t5", "t6", "t7",
         "s0", "s1", "s2", "s3", "s4", "s5", "s6", "s7", "t8", "t9", "k0", "k1", "gp", "sp", "fp", "ra"]
+STATUS = 32      # the status register's place in it
 PC = 37          # the program counter's place in the `g` packet, after r0..r31, sr, lo, hi, bad, cause
 JR_RA = 0x03E00008
 FRAME = 32       # a stub's stack frame: ra, t0, t1, t2, the status register
@@ -222,6 +232,39 @@ def renderer(name: str):
 
 HANDLERS: dict[str, object] = {}
 FILTERS: dict[str, object] = {}
+COMMANDS: dict[str, object] = {}
+
+
+def command(name: str):
+    """Register a function as the command `name`: something to type while the tracer runs.
+
+        @command("flag")
+        def flag(trace, text):
+            "flag ID VALUE   set a game flag"
+            ...
+
+    The game is stopped while it runs, and it runs to its end before anything else can be typed. It gets the
+    tracer and the rest of the line. It can talk to whoever typed it - `trace.say(text)`, `trace.ask(prompt)` for
+    a line, `trace.choose(title, options)` to have one picked from a list. To act on the game it has the tracer's
+    primitives, which check nothing: `registers()`, `where()`, `step()`, `run_to(address)`, `read(address,
+    length)`, `poke(address, bytes)`, `address("symbol")`, `inject(source)` / `free(labels)`, `hook(address,
+    target)` / `unhook(address)`, and `call(function, a0, a1, a2, a3)` built from them. Where it is safe to act,
+    and when a hook it placed may go, is the command's own to decide. `trace.note(text)` writes into the log.
+    What it returns is printed; its docstring's first line is its entry in `help`. An error it raises is printed
+    and nothing else happens."""
+    def register(function):
+        COMMANDS[name] = function
+        return function
+    return register
+
+
+def symbol_address(name: str) -> int | None:
+    """Where a symbol of the game is: looked for in the images in memory from the start, then in the rest."""
+    for item in sorted(IMAGES.values(), key=lambda i: not i.start):
+        for address, known in item.table:
+            if known == name:
+                return address
+    return None
 
 
 def filter(name: str):  # noqa: A001 - the name a hooks file imports
@@ -559,6 +602,39 @@ def stub_source(cfg: dict, sites: dict) -> str:
     return "\n".join(lines)
 
 
+CALL_SAVED = ["ra", "a0", "a1", "a2", "a3", "v0", "v1", "t0", "t1", "t2", "t3", "t4", "t5", "t6", "t7", "t8", "t9"]
+
+
+def call_source(target: int, args: list[int], back: int, pokes: list) -> str:
+    """The code of one call into the game: keep the registers, call `target` with its arguments, keep what it
+    returned, put the registers back, and go on at `back` - where the game was when it was sent here."""
+    frame = 16 + 4 * len(CALL_SAVED)                   # the callee's argument area, then the registers
+    unlock = []
+    for address, value in pokes:                       # the blob's memory has to be reachable before `result` is written
+        high = ((address + 0x8000) >> 16) & 0xFFFF
+        low = (address & 0xFFFF) - (0x10000 if address & 0x8000 else 0)
+        unlock += [f"    li    $t0, {value:#010x}", f"    lui   $t2, {high:#06x}", f"    sw    $t0, {low}($t2)"]
+    return "\n".join([
+        "run:",
+        f"    addiu $sp, $sp, -{frame}",
+        *[f"    sw    ${name}, {16 + 4 * n}($sp)" for n, name in enumerate(CALL_SAVED)],
+        *unlock,
+        *[f"    li    $a{n}, {value & 0xFFFFFFFF:#010x}" for n, value in enumerate(args)],
+        f"    li    $t9, {target:#010x}",
+        "    jalr  $t9",
+        "    nop",
+        "    lui   $t0, %hi(result)",
+        "    sw    $v0, %lo(result)($t0)",
+        *[f"    lw    ${name}, {16 + 4 * n}($sp)" for n, name in enumerate(CALL_SAVED)],
+        f"    addiu $sp, $sp, {frame}",
+        "done:",
+        f"    j     {back:#010x}",
+        "    nop",
+        "result: .word 0",
+        "",
+    ])
+
+
 # ---- an assembler for exactly what stub_source writes, so the tool needs nothing installed
 
 REG_NUMBER = {name: n for n, name in enumerate(REGS)}
@@ -568,13 +644,16 @@ OPERAND = re.compile(r"\s*,\s*")
 class Assembler:
     """Two passes over the blob's source: where every label is, then the words.
 
-    It knows the instructions the stubs use and no others: addiu addu and sltu srl ori xori lui, lw sw lwl lwr,
-    beq bne beqz bnez b, j jal jr, mfc0 mtc0, nop, li; `.word`, `.balign` and `.space`; labels, `%hi()` and
-    `%lo()`. Anything else stops with the line that has it."""
+    It knows every instruction of the console's processor (MIPS I, with the system-control and GTE coprocessors;
+    a GTE command is `cop2 NUMBER`) and the short forms people write without thinking - nop move li la b bal beqz
+    bnez neg negu not; `.word`, `.balign` and `.space`; labels, `%hi()` and `%lo()`. A name that is no label of
+    the source is looked up among the game's symbols (`names`). It does not reorder anything: a delay slot is
+    written where it goes. Anything it does not know stops with the line that has it."""
 
     def __init__(self, base: int) -> None:
         self.base = base
         self.symbols: dict[str, int] = {}
+        self.names = None                             # name -> address, for what is no label of the source
 
     def number(self, text: str) -> int:
         text = text.strip()
@@ -584,7 +663,13 @@ class Assembler:
             return ((address + 0x8000) >> 16) & 0xFFFF if m[1] == "hi" else address & 0xFFFF
         if text in self.symbols:
             return self.symbols[text]
-        return int(text, 0)
+        try:
+            return int(text, 0)
+        except ValueError:
+            found = self.names(text) if self.names else None
+            if found is None:
+                raise ValueError(f"`{text}` is not a number, a label, or a symbol of the game")
+            return found
 
     @staticmethod
     def reg(text: str) -> int:
@@ -600,45 +685,97 @@ class Assembler:
             return int(args[0], 0)
         if op == "li":
             return 4 * self.li(int(args[1], 0))
+        if op == "la":
+            return 8
         return 4
+
+    # The whole of the R3000's instruction set, by how each is written. The numbers are the opcode (or, for the
+    # register forms, the function code): MIPS I, plus the two coprocessors a PlayStation has.
+    THREE = {"add": 0x20, "addu": 0x21, "sub": 0x22, "subu": 0x23, "and": 0x24, "or": 0x25, "xor": 0x26, "nor": 0x27, "slt": 0x2A, "sltu": 0x2B}
+    SHIFT = {"sll": 0x00, "srl": 0x02, "sra": 0x03}                    # rd, rt, amount
+    SHIFTV = {"sllv": 0x04, "srlv": 0x06, "srav": 0x07}                # rd, rt, rs
+    MULDIV = {"mult": 0x18, "multu": 0x19, "div": 0x1A, "divu": 0x1B}  # rs, rt
+    HILO_FROM = {"mfhi": 0x10, "mflo": 0x12}                           # rd
+    HILO_TO = {"mthi": 0x11, "mtlo": 0x13}                             # rs
+    IMMEDIATE = {"addi": 8, "addiu": 9, "slti": 10, "sltiu": 11, "andi": 12, "ori": 13, "xori": 14}     # rt, rs, value
+    MEMORY = {"lb": 0x20, "lh": 0x21, "lwl": 0x22, "lw": 0x23, "lbu": 0x24, "lhu": 0x25, "lwr": 0x26,
+              "sb": 0x28, "sh": 0x29, "swl": 0x2A, "sw": 0x2B, "swr": 0x2E}
+    MEMORY_COP2 = {"lwc2": 0x32, "swc2": 0x3A}                         # a coprocessor register, offset(base)
+    BRANCH2 = {"beq": 4, "bne": 5}                                     # rs, rt, target
+    BRANCH1 = {"blez": 6, "bgtz": 7}                                   # rs, target
+    BRANCHZ = {"bltz": 0x00, "bgez": 0x01, "bltzal": 0x10, "bgezal": 0x11}     # rs, target (opcode 1, selected by rt)
+    COP_MOVE = {"mfc0": (0x10, 0), "mtc0": (0x10, 4), "mfc2": (0x12, 0), "cfc2": (0x12, 2), "mtc2": (0x12, 4), "ctc2": (0x12, 6)}   # rt, coprocessor register
 
     def encode(self, op: str, a: list[str], pc: int) -> list[int]:
         R = self.reg
+        def cop(text: str) -> int:
+            return int(text.strip().lstrip("$"), 0)
         def itype(code: int, rs: int, rt: int, imm: int) -> int:
             return (code << 26) | (rs << 21) | (rt << 16) | (imm & 0xFFFF)
         def rtype(funct: int, rs: int, rt: int, rd: int, sa: int = 0) -> int:
-            return (rs << 21) | (rt << 16) | (rd << 11) | (sa << 6) | funct
-        def memory(code: int) -> int:
+            return (rs << 21) | (rt << 16) | (rd << 11) | ((sa & 31) << 6) | funct
+        def memory(code: int, rt: int) -> int:
             m = re.fullmatch(r"(.*)\(\s*(\$\w+)\s*\)", a[1].strip())
-            return itype(code, R(m[2]), R(a[0]), self.number(m[1] or "0"))
+            return itype(code, R(m[2]), rt, self.number(m[1] or "0"))
         def branch(code: int, rs: int, rt: int, target: str) -> int:
             return itype(code, rs, rt, (self.number(target) - (pc + 4)) >> 2)
         if op == "nop":
             return [0]
         if op == ".word":
             return [self.number(a[0]) & 0xFFFFFFFF]
-        if op in ("addiu", "ori", "xori"):
-            return [itype({"addiu": 9, "ori": 13, "xori": 14}[op], R(a[1]), R(a[0]), self.number(a[2]))]
+        if op in self.THREE:
+            return [rtype(self.THREE[op], R(a[1]), R(a[2]), R(a[0]))]
+        if op in self.SHIFT:
+            return [rtype(self.SHIFT[op], 0, R(a[1]), R(a[0]), self.number(a[2]))]
+        if op in self.SHIFTV:
+            return [rtype(self.SHIFTV[op], R(a[2]), R(a[1]), R(a[0]))]
+        if op in self.MULDIV:
+            return [rtype(self.MULDIV[op], R(a[-2]), R(a[-1]), 0)]     # `div rs, rt`, or the long form `div $zero, rs, rt`
+        if op in self.HILO_FROM:
+            return [rtype(self.HILO_FROM[op], 0, 0, R(a[0]))]
+        if op in self.HILO_TO:
+            return [rtype(self.HILO_TO[op], R(a[0]), 0, 0)]
+        if op in self.IMMEDIATE:
+            return [itype(self.IMMEDIATE[op], R(a[1]), R(a[0]), self.number(a[2]))]
         if op == "lui":
             return [itype(15, 0, R(a[0]), self.number(a[1]))]
-        if op in ("addu", "and", "sltu"):
-            return [rtype({"addu": 0x21, "and": 0x24, "sltu": 0x2B}[op], R(a[1]), R(a[2]), R(a[0]))]
-        if op == "srl":
-            return [rtype(0x02, 0, R(a[1]), R(a[0]), int(a[2], 0))]
-        if op in ("lw", "sw", "lwl", "lwr"):
-            return [memory({"lw": 0x23, "sw": 0x2B, "lwl": 0x22, "lwr": 0x26}[op])]
-        if op in ("beq", "bne"):
-            return [branch(4 if op == "beq" else 5, R(a[0]), R(a[1]), a[2])]
+        if op in self.MEMORY:
+            return [memory(self.MEMORY[op], R(a[0]))]
+        if op in self.MEMORY_COP2:
+            return [memory(self.MEMORY_COP2[op], cop(a[0]))]
+        if op in self.BRANCH2:
+            return [branch(self.BRANCH2[op], R(a[0]), R(a[1]), a[2])]
+        if op in self.BRANCH1:
+            return [branch(self.BRANCH1[op], R(a[0]), 0, a[1])]
+        if op in self.BRANCHZ:
+            return [branch(1, R(a[0]), self.BRANCHZ[op], a[1])]
         if op in ("beqz", "bnez"):
             return [branch(4 if op == "beqz" else 5, R(a[0]), 0, a[1])]
         if op == "b":
             return [branch(4, 0, 0, a[0])]
+        if op == "bal":
+            return [branch(1, 0, 0x11, a[0])]
         if op in ("j", "jal"):
             return [((2 if op == "j" else 3) << 26) | ((self.number(a[0]) >> 2) & 0x03FFFFFF)]
         if op == "jr":
             return [rtype(0x08, R(a[0]), 0, 0)]
-        if op in ("mfc0", "mtc0"):
-            return [(0x10 << 26) | ((0 if op == "mfc0" else 4) << 21) | (R(a[0]) << 16) | (int(a[1].strip().lstrip("$")) << 11)]
+        if op == "jalr":                                               # jalr rs   or   jalr rd, rs
+            return [rtype(0x09, R(a[-1]), 0, R(a[0]) if len(a) == 2 else 31)]
+        if op in ("syscall", "break"):
+            return [((self.number(a[0]) if a else 0) << (6 if op == "syscall" else 16)) | (0x0C if op == "syscall" else 0x0D)]
+        if op in self.COP_MOVE:
+            code, sub = self.COP_MOVE[op]
+            return [(code << 26) | (sub << 21) | (R(a[0]) << 16) | (cop(a[1]) << 11)]
+        if op == "rfe":
+            return [0x42000010]
+        if op == "cop2":                                               # a GTE command, by its 25-bit number
+            return [(0x12 << 26) | (1 << 25) | (self.number(a[0]) & 0x01FFFFFF)]
+        if op == "move":
+            return [rtype(0x21, R(a[1]), 0, R(a[0]))]                  # addu rd, rs, $zero, as the game's own code has it
+        if op in ("neg", "negu"):
+            return [rtype(0x22 if op == "neg" else 0x23, 0, R(a[-1]), R(a[0]))]
+        if op == "not":
+            return [rtype(0x27, R(a[-1]), 0, R(a[0]))]                 # nor rd, rs, $zero
         if op == "li":
             value, rt = int(a[1], 0) & 0xFFFFFFFF, R(a[0])
             if value >= 0xFFFF8000 or value < 0x8000:
@@ -646,7 +783,10 @@ class Assembler:
             if value < 0x10000:
                 return [itype(13, 0, rt, value)]                      # ori rt, $zero, value
             return [itype(15, 0, rt, value >> 16)] + ([itype(13, rt, rt, value)] if value & 0xFFFF else [])
-        raise ValueError(f"the stub assembler has no instruction `{op}`")
+        if op == "la":                                                 # always two instructions, so its size never depends on the address
+            value, rt = self.number(a[1]) & 0xFFFFFFFF, R(a[0])
+            return [itype(15, 0, rt, ((value + 0x8000) >> 16)), itype(9, rt, rt, value)]
+        raise ValueError(f"the assembler has no instruction `{op}`")
 
     def lines(self, source: str):
         for number, raw in enumerate(source.splitlines(), 1):
@@ -1149,6 +1289,7 @@ class Session:
         self.shared: Shared | None = None
         self.waiting = None                           # (where, since when, the event): the reader is held at a handler's record until the game stops
         self.bad_cursor = None
+        self.typed = None
         self.count_records = 0
         self.read_by: dict[str, int] = {}             # records read while the game was "running" and while it was "stopped"
         self.late_stops = 0
@@ -1156,6 +1297,9 @@ class Session:
         self.read_at = 0                              # how far into the buffer the log has got
         self.sites = sites_of(cfg)
         self.code, self.symbols, _ = assemble(cfg, self.sites)
+        self.code_at = (self.symbols["gt_end"] + 15) & ~15        # free memory after the buffer, for `inject`
+        self.injected: list[tuple[int, int]] = []                   # what is injected there now: (start, end)
+        self.held: dict[int, bytes] = {}                            # hooks a command has placed: address -> the bytes it replaced
         self.layout = {}                              # a record's first word -> (event, phase, captures)
         self.hooks = []                               # (address, the two words there in the image, the stub)
         self.by_image: dict[str, list] = {}           # the same, by the image the address is in
@@ -1182,6 +1326,190 @@ class Session:
         where it is written, so anything the filters hold back is written first. Extra fields ride along."""
         self.settle()
         self.emit({"event": "note", "text": text, **fields})
+
+    # ---- talking to whoever is at the prompt, for commands
+
+    def say(self, text: str = "") -> None:
+        """Print to the prompt."""
+        print(text, file=sys.stderr, flush=True)
+
+    def ask(self, prompt: str = "> ") -> str | None:
+        """Print a prompt and wait for a line; the game stays stopped meanwhile. The line without its end, or
+        None when the input has closed."""
+        if self.typed is None:
+            return None
+        lines, wake, woken = self.typed
+        print(prompt, end="", file=sys.stderr, flush=True)
+        woken.recv(1)
+        line = lines.get()
+        if line is None:                              # the input closed: leave that for the main loop to find
+            lines.put(None)
+            wake.send(b"x")
+            return None
+        return line.strip()
+
+    def choose(self, title: str, options: list, show: int = 30):
+        """Let whoever is at the prompt pick one of `options`: by its number, or by typing part of its name to
+        narrow the list. Each option is a name, or a (name, description) pair; the chosen name is returned, or
+        None when an empty line (or a closed input) gives up."""
+        named = [(o, "") if isinstance(o, str) else (o[0], o[1]) for o in options]
+        listed = named
+        while True:
+            self.say(title)
+            for n, (name, about) in enumerate(listed[:show], 1):
+                self.say(f"  {n:>3}  {name}" + (f"   {about}" if about else ""))
+            if len(listed) > show:
+                self.say(f"       ... and {len(listed) - show} more: type part of a name to narrow them")
+            answer = self.ask("a number, part of a name, or nothing to give up: ")
+            if not answer:
+                return None
+            if answer.isdigit() and 1 <= int(answer) <= min(len(listed), show):
+                return listed[int(answer) - 1][0]
+            exact = [o for o in named if str(o[0]).lower() == answer.lower()]
+            found = exact or [o for o in named if answer.lower() in str(o[0]).lower() or answer.lower() in str(o[1]).lower()]
+            if len(found) == 1:
+                return found[0][0]
+            if not found:
+                self.say(f"nothing has `{answer}` in it")
+                listed = named
+            else:
+                listed = found
+
+    # ---- acting on the game, for commands
+
+    def poke(self, address: int, data: bytes) -> None:
+        """Write the console's memory. The game must be stopped, as it is while a command or a handler runs."""
+        self.gdb.write(address, bytes(data))
+
+    def address(self, what) -> int:
+        """A number as it is, or the address of a symbol of the game."""
+        if isinstance(what, int):
+            return what
+        try:
+            return int(str(what), 0)
+        except ValueError:
+            found = symbol_address(str(what))
+            if found is None:
+                raise ValueError(f"`{what}` is not a number or a symbol of the game")
+            return found
+
+    def registers(self) -> dict[str, int]:
+        """The registers where the game is stopped: the 32 by name, and `status`, `lo`, `hi`, `bad`, `cause`, `pc`."""
+        regs = self.gdb.registers()
+        return {**dict(zip(REGS, regs)), "status": regs[32], "lo": regs[33], "hi": regs[34], "bad": regs[35], "cause": regs[36], "pc": regs[PC]}
+
+    def where(self) -> dict:
+        """Plain facts about the place the game is stopped at, for a command to judge by:
+
+            pc           the instruction it is about to run
+            symbol       that address as `function+0xoffset`
+            image        the image the address is in (one in memory from the start, or one said to be resident), or None
+            delay_slot   the instruction before it is a jump or a branch, so this one belongs to it
+            interrupts   whether the status register has interrupts enabled; None when the server does not give it"""
+        regs = self.gdb.registers()
+        pc = regs[PC]
+        homes = started() + [IMAGES[name] for name in self.residents.values() if name in IMAGES]
+        before = struct.unpack("<I", self.gdb.read(pc - 4, 4))[0]
+        return {"pc": pc, "symbol": self.symbol(pc), "image": next((item.name for item in homes if item.load <= pc < item.end), None),
+                "delay_slot": movable(before) is not None, "interrupts": bool(regs[STATUS] & 1) if regs[STATUS] else None}
+
+    def step(self, count: int = 1) -> int:
+        """Run `count` instructions and stop. Returns where the game then is."""
+        for _ in range(count):
+            self.gdb._go("s")
+        return self.gdb.registers()[PC]
+
+    def run_to(self, *addresses) -> int:
+        """Let the game run until it stops at one of `addresses` (numbers or symbols), however long that takes.
+        Returns the one it stopped at. On the way the tracer goes on tracing: any other stop - a package arriving,
+        a full buffer - is dealt with as usual and the game continues. Nothing is done at the address itself."""
+        targets = {self.address(a) for a in addresses}
+        added = [a for a in targets if a not in self.gdb.set]
+        for a in added:
+            self.gdb.breakpoint(a)
+        try:
+            pc = self.gdb.registers()[PC]
+            while True:
+                self.halted = False
+                if self.gdb.go(pc):
+                    self.gdb.wait([])
+                self.halted = True
+                regs = self.gdb.registers()
+                pc = regs[PC]
+                if pc in targets:
+                    return pc
+                self.dispatch(pc, regs)
+        finally:
+            for a in added:
+                self.gdb.breakpoint(a, False)
+
+    def assemble(self, source: str, at: int) -> tuple[bytes, dict[str, int]]:
+        """MIPS source as the bytes it is at address `at`, and the addresses of its labels. Written as it should
+        run: delay slots where they go, nothing reordered. A name that is no label of the source is a symbol of
+        the game or of the tracer's own blob."""
+        asm = Assembler(at)
+        asm.names = lambda name: self.symbols.get(name, symbol_address(name))
+        code, _rows = asm.assemble(source)
+        return code, dict(asm.symbols)
+
+    def inject(self, source: str) -> dict[str, int]:
+        """Assemble MIPS source into free memory (after the buffer) and write it there. Returns its labels'
+        addresses, with `"."` for where it starts. It stays until `free` gives the memory back."""
+        at = self.code_at
+        code, labels = self.assemble(source, at)
+        self.gdb.write(at, code)
+        self.code_at = (at + len(code) + 15) & ~15
+        self.injected.append((at, self.code_at))
+        return {**labels, ".": at}
+
+    def free(self, labels: dict) -> None:
+        """Give back the memory of something injected. Memory is handed out like a stack: what was injected last
+        is freed first, and the space of anything else comes back once everything after it is freed."""
+        self.injected = [(a, b) for a, b in self.injected if a != labels["."]]
+        self.code_at = max([b for _a, b in self.injected], default=(self.symbols["gt_end"] + 15) & ~15)
+
+    def hook(self, address, target) -> bytes:
+        """Swap the two instructions at `address` for a jump to `target` (and the no-op after it). Returns the
+        eight bytes that were there, for `unhook`. Nothing is checked: where it is put is the caller's business."""
+        address, target = self.address(address), self.address(target)
+        original = self.gdb.read(address, 8)
+        self.gdb.write(address, struct.pack("<2I", 0x08000000 | ((target >> 2) & 0x03FFFFFF), 0))
+        self.held[address] = original
+        return original
+
+    def unhook(self, address, original: bytes | None = None) -> None:
+        """Put back what `hook` replaced at `address`."""
+        address = self.address(address)
+        self.gdb.write(address, original if original is not None else self.held[address])
+        self.held.pop(address, None)
+
+    def call(self, function, *args) -> int:
+        """Have the game call one of its functions, with up to four arguments, from where it is stopped; returns
+        what the function returned, with the game stopped where it was and its registers as they were.
+
+        It is the primitives put together, and it judges nothing about the place: a few instructions are injected
+        - keep the registers, make the call, keep the result, put the registers back, jump to where the game was;
+        the game's next two instructions are hooked to them; the game runs to their start, where the hook comes
+        out again, so the game's code is whole before the call is made; then to their end, however long the
+        function takes; then back to where it stood. A command that wants the call made somewhere in particular
+        takes the game there first (`run_to`), and one whose function does not come back uses the primitives
+        itself and says when its hook can go. The log gets a note of the call."""
+        if len(args) > 4:
+            raise ValueError("a call takes at most four arguments")
+        target, values = self.address(function), [self.address(a) & 0xFFFFFFFF for a in args]
+        name = function if isinstance(function, str) and not function[:1].isdigit() else f"{target:#010x}"
+        here = self.gdb.registers()[PC]
+        code = self.inject(call_source(target, values, here, self.cfg["blob"]["poke"]))
+        original = self.hook(here, code["run"])
+        self.run_to(code["run"])
+        self.unhook(here, original)
+        self.run_to(code["done"])
+        value = struct.unpack("<I", self.gdb.read(code["result"], 4))[0]
+        self.run_to(here)                             # out of the injected code: the game stands where it stood
+        self.free(code)
+        self.note(f"called {name}({', '.join(f'{v:#x}' for v in values)}) from {self.symbol(here)}: returned {value:#010x}", call=name, args=values, result=value)
+        self.out.flush()
+        return value
 
     def emit(self, record: dict) -> None:
         self.out.write(json.dumps(record) + "\n")
@@ -1238,6 +1566,10 @@ class Session:
      resident IMAGE   the image is in memory now: write the hooks of its events (a handler normally says so)
   d  drain            read the buffer into the log now
      status           where things stand
+     call F [A ...]   have the game call its function F (a name or an address) with up to four arguments, from
+                      where it is stopped, and show what it returns. Raw: nothing is checked about the place
+     peek WHERE [N]   show N bytes of memory (16 by default) at an address or a symbol
+     poke WHERE W ... write words to memory at an address or a symbol (noted in the log)
   q  quit             read the buffer, take the hooks out and leave; the game runs on, or stays paused if it was
   h  help             this list"""
 
@@ -1289,8 +1621,44 @@ class Session:
                 f"{placed} of {len(self.hooks)} hooks in place; {'stopped until the next session begins' if self.awaiting else 'paused' if self.paused else 'running'}" + (self.reader_state() if self.ready else "; waiting for an install_at address"))
         elif word in ("quit", "q", "detach", "exit"):
             raise KeyboardInterrupt
+        elif word in ("call", "peek", "poke") and not self.ready:
+            say("not set up yet: the game has not reached an install_at address")
+        elif word == "call" and rest:
+            try:
+                name, *args = rest.split()
+                value = self.call(name, *args)
+                say(f"returned {value:#010x} ({value - (1 << 32) if value & 0x80000000 else value})")
+            except (ValueError, OSError) as error:
+                say(str(error))
+        elif word == "peek" and rest:
+            try:
+                where, *more = rest.split()
+                data = self.read(self.address(where), int(more[0], 0) if more else 16)
+                say(" ".join(f"{w:08x}" for w in struct.unpack(f"<{len(data) // 4}I", data[:len(data) & ~3])) + (f"  {data[len(data) & ~3:].hex()}" if len(data) & 3 else ""))
+            except (ValueError, OSError, IndexError) as error:
+                say(str(error))
+        elif word == "poke" and len(rest.split()) >= 2:
+            try:
+                where, *values = rest.split()
+                self.poke(self.address(where), struct.pack(f"<{len(values)}I", *[int(v, 0) & 0xFFFFFFFF for v in values]))
+                self.note(f"poked {where}: {' '.join(values)}")
+                say("written")
+            except (ValueError, OSError) as error:
+                say(str(error))
+        elif word in COMMANDS:
+            if not self.ready:
+                say("not set up yet: the game has not reached an install_at address")
+            else:
+                self.drain(reset=self.shared is None)   # the log first, so what the command notes comes after
+                try:
+                    said = COMMANDS[word](self, rest)
+                except Exception as error:  # noqa: BLE001 - a command's mistake must not end the trace
+                    said = f"{type(error).__name__}: {error}"
+                if said:
+                    say(str(said))
         elif word in ("help", "h", "?"):
-            say(self.COMMANDS)
+            extra = [f"     {(function.__doc__ or name).strip().splitlines()[0]}" for name, function in sorted(COMMANDS.items())]
+            say(self.COMMANDS + ("\nfrom the hooks files:\n" + "\n".join(extra) if extra else ""))
         elif word:
             say(f"no command `{word}`\n{self.COMMANDS}")
 
@@ -1615,6 +1983,8 @@ class Session:
                 self.gdb._go("s")
             self.drain(reset=True)
             self.settle()
+            for address in list(self.held):           # a hook a command still held: the game's instructions go back
+                self.unhook(address)
             self.remove()
         # A game the user had paused stays paused: the hooks and breakpoints are gone, and it is theirs to resume.
         self.gdb.release(False, resume=not self.paused)
@@ -1625,6 +1995,11 @@ class Session:
         self.halted = True
         regs = self.gdb.registers()
         pc = regs[PC]
+        self.dispatch(pc, regs)
+        return pc
+
+    def dispatch(self, pc: int, regs: list[int]) -> None:
+        """What a stop at `pc` asks for."""
         if self.ready and pc in self.breaks:
             self.drain(reset=self.shared is None)     # what led up to it first, so the log keeps its order
             self.hit(self.breaks[pc], regs)
@@ -1641,7 +2016,6 @@ class Session:
             self.drain(reset=self.shared is None)
         elif self.ready and self.shared is not None:
             self.drain(reset=False)                   # stopped for a command: bring the log up to here
-        return pc
 
     def run(self, first_session: str | None = None) -> None:
         self.session(first_session)
@@ -1651,6 +2025,7 @@ class Session:
         import threading
         lines: queue.Queue = queue.Queue()
         wake, woken = socket.socketpair()
+        self.typed = (lines, wake, woken)             # for a command that asks its own questions (`ask`)
         def listen() -> None:
             for line in sys.stdin:
                 lines.put(line)
@@ -1707,6 +2082,28 @@ class Session:
             self.out.flush()
 
 
+class NoLog:
+    """What the log is under --no-log: everything written to it is dropped."""
+
+    def write(self, text: str) -> int:
+        return len(text)
+
+    def read(self) -> str:
+        return ""
+
+    def tell(self) -> int:
+        return 0
+
+    def flush(self) -> None: ...
+    def seek(self, *_) -> None: ...
+    def truncate(self, *_) -> None: ...
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *_) -> None: ...
+
+
 def refilter(cfg: dict, log: Path, out: Path) -> tuple[int, int]:
     """Put a log already written through the config's filters, as if they had been there when it was recorded.
     A line belongs to the event whose name its `event` (or `name`) is; session and dropped markers end what the
@@ -1753,6 +2150,7 @@ def main() -> int:
     ap.add_argument("--port", type=int, help="the GDB server's port, instead of the config's gdb.port")
     ap.add_argument("--session", help="the name of the first session (a marker line in the log); more are begun with the `session` command")
     ap.add_argument("--resident", action="append", metavar="IMAGE", help="an image already in memory at setup, whose hooks are written at setup (repeatable); with --now, usually gameplay")
+    ap.add_argument("--no-log", action="store_true", help="write no trace log: for a run that is only there to act on the game")
     ap.add_argument("--protocol", type=Path, metavar="FILE", help="write every packet exchanged with the GDB server to FILE, with times: for finding out why a stop went wrong")
     ap.add_argument("--now", action="store_true", help="set up at once in the game as it stands, ignoring install_at: for attaching to a game already running")
     args = ap.parse_args()
@@ -1799,11 +2197,14 @@ def main() -> int:
             if agree:
                 print(agree)
         return 0
-    if args.out is None:
-        import datetime
-        args.out = cfg["_out"] / f"trace-{datetime.datetime.now():%Y%m%d-%H%M%S}.jsonl"
-    args.out.parent.mkdir(parents=True, exist_ok=True)
-    print(f"writing {args.out}", file=sys.stderr)
+    if args.no_log:
+        print("writing no log", file=sys.stderr)
+    else:
+        if args.out is None:
+            import datetime
+            args.out = cfg["_out"] / f"trace-{datetime.datetime.now():%Y%m%d-%H%M%S}.jsonl"
+        args.out.parent.mkdir(parents=True, exist_ok=True)
+        print(f"writing {args.out}", file=sys.stderr)
     try:
         gdb = Gdb(cfg["gdb"]["host"], cfg["gdb"]["port"])
         if args.protocol:
@@ -1811,7 +2212,7 @@ def main() -> int:
     except OSError as error:
         raise SystemExit(f"no GDB server at {cfg['gdb']['host']}:{cfg['gdb']['port']} ({error}). Start the server, or give its address with --host and --port.")
     signal.signal(signal.SIGTERM, lambda *_: (_ for _ in ()).throw(KeyboardInterrupt()))   # detach as Ctrl-C does
-    with args.out.open("a+", encoding="utf-8") as out:
+    with (NoLog() if args.no_log else args.out.open("a+", encoding="utf-8")) as out:
         session = Session(cfg, gdb, out)
         try:
             session.run(args.session)
