@@ -72,7 +72,13 @@
 
 #include "rooms/room_common.h"
 #include "../../shared/room_visual_effects.h"
-#define SCREEN_WAVE_SPAWN_CONTEXT _gScreenWaveSpawnCtx
+/// Selects the reservoir's private context for scripted wave spawns and phase requests.
+///
+/// The writable `ScreenWaveCtx` stays in this translation unit at its existing
+/// BSS position. Bind it before the shared header and retain the binding through
+/// screen_wave_run.inc.c, then undefine it. The wave borrows this same object;
+/// keep the room loaded through its final drawing tick and do not overlap spawns.
+#define SCREEN_WAVE_SPAWN_CONTEXT (_gScreenWaveSpawnCtx)
 #include "../../shared/screen_wave.h"
 #include "../../shared/glow_draw.h"
 #include "../../shared/water_effects.h"

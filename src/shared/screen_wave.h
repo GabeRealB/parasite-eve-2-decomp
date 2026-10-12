@@ -45,16 +45,26 @@
 
 #include "overlay.h"
 
-/// Persistent ScreenWaveCtx lvalue seeded and steered by `_screenWaveRun`.
+/// Writable ramp and tint context used for scripted wave spawns and later phase requests.
 ///
-/// Defaults to `gScreenWaveSpawnCtx`, shared between the tunnel's translation
-/// units. The reservoir binds its TU-local `_gScreenWaveSpawnCtx` before this
-/// header. Declare storage in the carrier at its existing BSS position; the
-/// wave task borrows its address through the final draw, so overlapping spawns
-/// are forbidden. The replacement is a side-effect-free, addressable lvalue,
-/// used once for each field store and once when taking its spawn address.
+/// Bind a parenthesized, side-effect-free, addressable `ScreenWaveCtx` lvalue
+/// before including this header and retain it through screen_wave_run.inc.c.
+/// Every expansion must select the same object, including later event requests.
+/// The default names `gScreenWaveSpawnCtx`, defined in the submarine tunnel's
+/// second translation unit and declared in its private header. The reservoir
+/// selects its static `_gScreenWaveSpawnCtx`. Storage declarations stay in the
+/// carrier or its private header at their existing BSS positions.
+///
+/// A non-positive request writes span, peak strength and RGB modulation, then
+/// passes the object's address as spawn argument 2; it does not copy the context.
+/// The wave's seed tick resets frame and phase. Positive requests write the
+/// low signed-halfword phase of this same context, so send them after that tick.
+/// Expansion occurs once per field store and once for the spawn address. The
+/// object must remain writable through the final drawing tick, including the
+/// tick that kills the task; only one wave may borrow it at a time. This binding
+/// is needed only by carriers of the event-request fragment.
 #ifndef SCREEN_WAVE_SPAWN_CONTEXT
-#define SCREEN_WAVE_SPAWN_CONTEXT gScreenWaveSpawnCtx
+#define SCREEN_WAVE_SPAWN_CONTEXT (gScreenWaveSpawnCtx)
 #endif
 
 /// Quad array `_screenWaveGridTask` indexes, `[buffer][row][column]`.
