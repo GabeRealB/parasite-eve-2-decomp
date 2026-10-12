@@ -84,7 +84,9 @@ them, otherwise straight after its entry. A rare event, such as a room load, mak
 arrives in pieces as the game goes, without a stop for each sound.
 
 While it runs the tool takes commands on its input, each carried out with the game stopped: `pause` and `resume`
-stop and continue the game; `session NAME` reads the buffer and begins a new session, which is a marker line in
+stop and continue the game; `note TEXT` writes a line of free text into the log where the game is now (the log's
+`{"event": "note"}` lines are annotations: yours, a hook's, the tracer's own or a later tool's);
+`session NAME` reads the buffer and begins a new session, which is a marker line in
 the log saying what the records after it are; `name NAME` renames the current one; `drop` marks the current session as
 dropped - its records stay in the log, since what was loaded during it is still loaded, with a marker after them -
 and stops the game until the next session begins (`session` alone begins one of the same name); `drain`, `status`, `quit`. `--session NAME` names the first.
@@ -208,8 +210,8 @@ def renderer(name: str):
             ...
 
     `record` is the event as captured: `id`, `name`, `phase`, and each capture under its own text - a register as
-    an int, memory as bytes. `trace` gives `trace.symbol(address)` (the function an address is in), `trace.write(text)`
-    (a line of its own in the log) and `trace.out` (the log file). What the function returns is what is logged:
+    an int, memory as bytes. `trace` gives `trace.symbol(address)` (the function an address is in), `trace.note(text)`
+    (an annotation line in the log), `trace.write(text)` (a raw line of its own) and `trace.out` (the log file). What the function returns is what is logged:
     a dict is written as a JSON line, a string as a line of text, and None means the renderer wrote what it
     wanted itself, or wants the event left out."""
     def register(function):
@@ -1174,6 +1176,13 @@ class Session:
                 self.hooks.append((event["address"] + offset, self.sites[(event["id"], "exit", offset)], self.symbols[f"gt_exit_{event['id']}_{k}"]))
                 self.by_image[image].append(self.hooks[-1])
 
+    def note(self, text: str, **fields) -> None:
+        """A line of free text in the log, `{"event": "note", "text": ...}`: an annotation, from the `note` command,
+        a hook (`trace.note("...")`), the tracer itself, or a tool that works on a log afterwards. It belongs
+        where it is written, so anything the filters hold back is written first. Extra fields ride along."""
+        self.settle()
+        self.emit({"event": "note", "text": text, **fields})
+
     def emit(self, record: dict) -> None:
         self.out.write(json.dumps(record) + "\n")
         self.count += 1
@@ -1223,6 +1232,7 @@ class Session:
   r  resume           let it run again
   s  session NAME     read the buffer into the log, then begin a new session called NAME
   n  name NAME        rename the current session
+     note TEXT        write a line of your own into the log, here: an annotation for whoever reads it
      drop             mark the current session as dropped (its records stay, a marker follows them) and stop the
                       game until `session NAME` begins the next one; plain `session` begins one of the same name
      resident IMAGE   the image is in memory now: write the hooks of its events (a handler normally says so)
@@ -1254,6 +1264,11 @@ class Session:
         elif word in ("name", "n") and rest:
             self.rename(rest)
             say(f"session {self.session_number} is now: {self.session_name}")
+        elif word == "note" and rest:
+            if self.ready:
+                self.drain(reset=self.shared is None)   # what happened up to now first: the note goes after it
+            self.note(rest)
+            say("noted")
         elif word == "drop":
             count = self.drop()
             self.awaiting, self.paused = self.session_name, True
@@ -1523,7 +1538,7 @@ class Session:
             word = struct.unpack_from("<I", data, at)[0]
             known = self.layout.get(word)
             if known is None:
-                self.emit({"note": f"the buffer does not parse at {self.read_at + at:#010x} (first word {word:#010x}); what was read after it is dropped"})
+                self.note(f"the buffer does not parse at {self.read_at + at:#010x} (first word {word:#010x}); what was read after it is dropped")
                 break
             event, phase, captures = known
             if event.get("handler") and not self.halted:

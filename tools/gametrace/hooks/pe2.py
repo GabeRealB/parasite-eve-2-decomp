@@ -470,3 +470,23 @@ def project(cfg):
     loads.update(asset_residency.package_loads(tomllib.loads((REPO / "configs" / "USA" / "overlays.toml").read_text())))
     for name, load in loads.items():
         image(name, load, REPO / "assets" / "USA" / "pe2pkg" / f"{name}.pe2pkg", maps.get(name, ()))
+
+
+# ---- where a room load and a view change end
+
+
+@renderer("room_start")
+def room_start(record, trace):
+    """areaStartRoomRuntime(skipViewGate): the loading sequence's last step hands over to the room. Its files and
+    its actors' are in memory; its first view loads after this."""
+    return {"event": "room_start", **location(record["0x800714C4:8"]), "view_gate": "skipped" if record["a0"] else "shown",
+            "from": trace.symbol(record["ra"])}
+
+
+@renderer("view_ready")
+def view_ready(record, trace):
+    """In loadingUploadViewImageTask, once the CD queue is idle and the view's palette has been uploaded: the view
+    change is complete but for a view movie, whose slot is read here (negative: the view has none)."""
+    slot = struct.unpack("<h", record["0x80114C40:4"][:2])[0]
+    return {"event": "view_ready", **location(record["0x800714C4:8"]), "movie_slot": slot if slot >= 0 else None}
+

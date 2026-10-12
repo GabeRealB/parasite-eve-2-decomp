@@ -126,6 +126,25 @@ image = "gameplay"
 capture = ["0x800714C4:8", "ra"]
 render = "location"
 
+# Where a room load and a view change end. `room_start` is the function the loading sequence's last step calls:
+# the room's own files are in and it begins to run; its first view loads after. `view_ready` is inside the task
+# that finishes a view change, at the one place it passes once: the view's file is loaded and its palette uploaded.
+[[event]]
+id = 29
+name = "room_start"
+address = 0x800AA548     # areaStartRoomRuntime(skipViewGate)
+image = "gameplay"
+capture = ["a0", "0x800714C4:8", "ra"]
+render = "room_start"
+
+[[event]]
+id = 30
+name = "view_ready"
+address = 0x800A9284     # in loadingUploadViewImageTask, after the palette upload: the view's movie slot is read next
+image = "gameplay"
+capture = ["0x800714C4:8", "0x80114C40:4"]      # the live location; gLoadingViewMovieSlot
+render = "view_ready"
+
 [[event]]
 id = 8
 name = "flag_nibble"
