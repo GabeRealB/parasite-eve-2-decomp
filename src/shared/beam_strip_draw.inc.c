@@ -1,7 +1,14 @@
 /* Part of the beam strip library; see beam_strip.h. */
 
-#ifndef BEAM_STRIP_OTZ_BIAS
-#define BEAM_STRIP_OTZ_BIAS 1
+#ifndef BEAM_STRIP_INCREMENT_DEPTH
+/// Enables a unit increment of the start depth after each accepted projection.
+///
+/// Preprocessor integer boolean: 0 disables the increments, nonzero enables
+/// them. M4A1 Hammer uses this default of 1; the gallery supplies 0 before
+/// including this fragment. Both accepted endpoints raise the start's SZ3 / 4
+/// by two in total, affecting both the width divisor and ordering-table depth.
+/// The endpoint's depth is never sampled. Undefined after this inclusion.
+#define BEAM_STRIP_INCREMENT_DEPTH 1
 #endif
 
 /// Scratch-stack workspace for one beam strip.
@@ -11,9 +18,9 @@
 /// and then the caller's end point through `GsWSMATRIX`, one perspective
 /// transform each. Each transform writes its point's screen position and
 /// replaces the GTE flag word; a negative flag word after either one drops
-/// the strip. `depth` is taken from the start point alone, raised by
-/// `BEAM_STRIP_OTZ_BIAS` for each projection that survives, and is both the
-/// divisor that scales the caller's width onto the screen and the
+/// the strip. `depth` is the start point's SZ3 / 4, incremented once after
+/// each accepted projection if `BEAM_STRIP_INCREMENT_DEPTH` is enabled. It is
+/// both the divisor that scales the caller's width onto the screen and the
 /// ordering-table depth the strip is queued at.
 ///
 /// The corner offset is that scaled width resolved against a screen angle. It
@@ -25,7 +32,7 @@
 /// the call.
 typedef struct {
     SVECTOR worldStart;      // Strip start in world space, each component narrowed to s16; projection input
-    s32     depth;           // Start point's SZ3 / 4 plus the bias per surviving projection; width divisor and ordering-table depth
+    s32     depth;           // Start's SZ3 / 4, optionally incremented per accepted projection; width divisor and sorting depth
     s32     projectionFlags; // GTE FLAG word of the latest projection; bit 31 set rejects the strip
     s32     cornerOffsetX;   // Scaled width times the sine of the current corner angle, in pixels
     s32     cornerOffsetY;   // Scaled width times the cosine of the current corner angle, in pixels
@@ -45,10 +52,10 @@ STATIC_ASSERT_SIZEOF(_BeamStripScratch, 0x20);
 /// `textureFrame` repeats modulo four: bit 0 selects a 128-texel column and
 /// bit 1 a 24-texel row. `widthScale` is a signed sizing input; the corner
 /// offset scale is `widthScale * 23 / depth` pixels, truncated
-/// before the Q12 sine/cosine products. Depth is the start's SZ3 / 4, plus
-/// one per successful projection when `BEAM_STRIP_OTZ_BIAS` is enabled (default
-/// 1 for Hammer, 0 in the gallery; undefined after this fragment). Depth
-/// must be nonzero when drawing. The endpoint contributes no ordering depth.
+/// before the Q12 sine/cosine products. Drawing uses the start's SZ3 / 4 plus
+/// two when `BEAM_STRIP_INCREMENT_DEPTH` is enabled, or the unmodified value
+/// when disabled. This final divisor must be nonzero. The endpoint contributes
+/// no depth sample.
 ///
 /// The start corners use a perpendicular and a backwards longitudinal offset;
 /// the end corners use their opposites. Thus the short edges lie at 45 degrees
@@ -100,12 +107,12 @@ static void _beamStripDraw(const GfxCoord* startCoord, const SVECTOR* worldEnd, 
     BEAM_STRIP_PROJECT_POINT(&scratch->worldStart, &scratch->screenStart, &scratch->projectionFlags);
     if (scratch->projectionFlags >= 0) {
         gte_stszotz(&scratch->depth);
-#if BEAM_STRIP_OTZ_BIAS
+#if BEAM_STRIP_INCREMENT_DEPTH
         scratch->depth++;
 #endif
         BEAM_STRIP_PROJECT_POINT(worldEnd, &scratch->screenEnd, &scratch->projectionFlags);
         if (scratch->projectionFlags >= 0) {
-#if BEAM_STRIP_OTZ_BIAS
+#if BEAM_STRIP_INCREMENT_DEPTH
             scratch->depth++;
 #endif
             quad           = gGpuPrimCursor;
@@ -139,7 +146,7 @@ static void _beamStripDraw(const GfxCoord* startCoord, const SVECTOR* worldEnd, 
             quad->x2               = (u16)scratch->screenStart.vx - (u16)scratch->cornerOffsetX;
             quad->y1               = (u16)scratch->screenEnd.vy - (u16)scratch->cornerOffsetY;
             quad->y2               = (u16)scratch->screenStart.vy + (u16)scratch->cornerOffsetY;
-            // Sort by the start depth, including the carrier's projection bias.
+            // Sort by the start depth after the configured unit increments.
             addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                     quad);
         }
@@ -149,4 +156,4 @@ static void _beamStripDraw(const GfxCoord* startCoord, const SVECTOR* worldEnd, 
 #undef BEAM_STRIP_PROJECT_POINT
 }
 
-#undef BEAM_STRIP_OTZ_BIAS
+#undef BEAM_STRIP_INCREMENT_DEPTH

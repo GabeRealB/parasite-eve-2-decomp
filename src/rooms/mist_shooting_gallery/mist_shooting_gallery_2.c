@@ -2583,7 +2583,11 @@ void mistShootingGalleryTracerTask(Task* task)
 #define SPRITE_QUAD_OTZ_BIAS 0
 #include "../../shared/sprite_quad_draw.inc.c"
 
-#define BEAM_STRIP_OTZ_BIAS 0
+/// Uses the unmodified start depth for the gallery tracer's width and sorting.
+///
+/// Disables both unit increments in the next beam-strip drawer inclusion;
+/// the fragment consumes and undefines this preprocessor boolean.
+#define BEAM_STRIP_INCREMENT_DEPTH 0
 #include "../../shared/beam_strip_draw.inc.c"
 
 /// Allocates and publishes one course's controller work and prepares player control.
