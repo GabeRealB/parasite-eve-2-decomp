@@ -165,7 +165,11 @@ static SVECTOR _gShelterB1ElevatorHallGlowEndpointPairs[14][2] = {
 
 #define ROOM_FX_HALO_STORAGE_INITIALIZER { { { 0, 1, 2 }, { 2, 1, 0 }, { 0, 2, 1 } }, 0x90EE }
 #define ROOM_FX_HALO_STORAGE_TYPE        RoomFxHaloStorage
-#define ROOM_FX_HALO_STORAGE_BOUND
+/// Declares one halo storage record, retaining the halfword after its tint rows.
+///
+/// This empty suffix requires `ROOM_FX_HALO_STORAGE_TYPE` to be
+/// `RoomFxHaloStorage`. Bind around `room_visual_effects_halo_data.inc.c`.
+#define ROOM_VISUAL_EFFECTS_HALO_STORAGE_BOUND
 #include "../../shared/room_visual_effects_halo_data.inc.c"
 
 static void _glowDrawCapsule(const SVECTOR worldPoints[2], s32 radiusScale, s32 packedColor);
@@ -177,7 +181,7 @@ static inline const RoomFxShade* _roomVisualEffectsGetHaloShades(void)
 }
 #undef ROOM_FX_HALO_STORAGE_INITIALIZER
 #undef ROOM_FX_HALO_STORAGE_TYPE
-#undef ROOM_FX_HALO_STORAGE_BOUND
+#undef ROOM_VISUAL_EFFECTS_HALO_STORAGE_BOUND
 
 #include "../../shared/room_visual_effects_trail_data.inc.c"
 

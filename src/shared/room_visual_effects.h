@@ -26,7 +26,8 @@
  * the tables' position in the data. The halo shades have the same three readable
  * rows. Some carriers also preserve a following unread halfword whose role is
  * unproven, so the room sets
- * ROOM_FX_HALO_STORAGE_TYPE, _BOUND and _INITIALIZER before including
+ * ROOM_FX_HALO_STORAGE_TYPE, ROOM_VISUAL_EFFECTS_HALO_STORAGE_BOUND and
+ * ROOM_FX_HALO_STORAGE_INITIALIZER before including
  * _halo_data - RoomFxShade [3], or RoomFxHaloStorage to retain that halfword - and
  * defines _roomVisualEffectsGetHaloShades, the array view the halo code reads, where its
  * halo code is.
@@ -131,6 +132,9 @@ static inline void _roomVisualEffectsGlowDiscTask(Task* task);
 static inline void _roomVisualEffectsFlyingSparkTask(Task* task);
 
 static inline void _roomVisualEffectsFlyingOrangeBurstTask(Task* task);
+
+/// Number of halo tint rows available to spawn indices 0..2.
+enum { ROOM_VISUAL_EFFECTS_HALO_SHADE_COUNT = 3 };
 
 /// A tint given as a right shift per colour channel of an effect's brightness
 /// level: channel = level >> shift, so 0 keeps the channel at full level and

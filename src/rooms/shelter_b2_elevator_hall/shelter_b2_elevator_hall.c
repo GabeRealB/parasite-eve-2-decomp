@@ -189,8 +189,13 @@ static SVECTOR _gShelterB2ElevatorHallLockedDoorIndicatorPoint = { 9901, -1195, 
     { 2, 1, 0 },                           \
     { 0, 2, 1 },                           \
 }
-#define ROOM_FX_HALO_STORAGE_TYPE  RoomFxShade
-#define ROOM_FX_HALO_STORAGE_BOUND [3]
+#define ROOM_FX_HALO_STORAGE_TYPE RoomFxShade
+/// Declares the three-row halo tint array.
+///
+/// Supplies an array bound in `RoomFxShade` elements; requires
+/// `ROOM_FX_HALO_STORAGE_TYPE` to be `RoomFxShade`. Bind around
+/// `room_visual_effects_halo_data.inc.c`.
+#define ROOM_VISUAL_EFFECTS_HALO_STORAGE_BOUND [ROOM_VISUAL_EFFECTS_HALO_SHADE_COUNT]
 #include "../../shared/room_visual_effects_halo_data.inc.c"
 
 static void _glowDrawCapsule(const SVECTOR worldPoints[2], s32 radiusScale, s32 packedColor);
@@ -203,7 +208,7 @@ static inline const RoomFxShade* _roomVisualEffectsGetHaloShades(void)
 }
 #undef ROOM_FX_HALO_STORAGE_INITIALIZER
 #undef ROOM_FX_HALO_STORAGE_TYPE
-#undef ROOM_FX_HALO_STORAGE_BOUND
+#undef ROOM_VISUAL_EFFECTS_HALO_STORAGE_BOUND
 
 #include "../../shared/room_visual_effects_trail_data.inc.c"
 

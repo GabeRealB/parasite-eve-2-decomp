@@ -55,7 +55,11 @@
 
 #define ROOM_FX_HALO_STORAGE_INITIALIZER { { { 0, 1, 2 }, { 2, 1, 0 }, { 0, 2, 1 } }, 0x374F }
 #define ROOM_FX_HALO_STORAGE_TYPE        RoomFxHaloStorage
-#define ROOM_FX_HALO_STORAGE_BOUND
+/// Declares one halo storage record, retaining the halfword after its tint rows.
+///
+/// This empty suffix requires `ROOM_FX_HALO_STORAGE_TYPE` to be
+/// `RoomFxHaloStorage`. Bind around `room_visual_effects_halo_data.inc.c`.
+#define ROOM_VISUAL_EFFECTS_HALO_STORAGE_BOUND
 #include "../../shared/room_visual_effects_halo_data.inc.c"
 #include "../../shared/room_visual_effects_trail_data.inc.c"
 #include "../../shared/room_visual_effects_disc_data.inc.c"
@@ -69,7 +73,7 @@ static inline const RoomFxShade* _roomVisualEffectsGetHaloShades(void)
 }
 #undef ROOM_FX_HALO_STORAGE_INITIALIZER
 #undef ROOM_FX_HALO_STORAGE_TYPE
-#undef ROOM_FX_HALO_STORAGE_BOUND
+#undef ROOM_VISUAL_EFFECTS_HALO_STORAGE_BOUND
 
 u8* gShelterB1NorthMaintenanceWalkwayViewMaps[1] = {
     gViewIdentityMap,
