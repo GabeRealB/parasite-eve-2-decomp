@@ -1,10 +1,10 @@
 /* Part of the Mad Chaser library; see mad_chaser.h. */
 
 // Bind MAD_CHASER_ALERT_STATE_HANDLER to this carrier's declared static
-// void(Task*) callback and MAD_CHASER_ALERT_STEP_HANDLERS to its complete,
-// readable TaskFuncTable5 of alert phases before inclusion; undefine both
-// afterwards. The three Mad Chaser carriers supply these object-like bindings.
-// They evaluate no arguments, capture no values and construct no tokens.
+// void(Task*) callback before inclusion and undefine it afterwards. The binding
+// evaluates no arguments, captures no values and constructs no tokens.
+// Each carrier must first define `_gMadChaserAlertSteps` as a readable,
+// complete `TaskFuncTable5` of the five alert phases in dispatch order.
 
 /// Dispatches one phase of the combat alert cry and sidestep.
 ///
@@ -21,6 +21,6 @@ static void MAD_CHASER_ALERT_STATE_HANDLER(Task* task)
     TaskFuncTable5 stepHandlers;
 
     work         = task->work;
-    stepHandlers = MAD_CHASER_ALERT_STEP_HANDLERS;
+    stepHandlers = _gMadChaserAlertSteps;
     stepHandlers.funcs[(s16)work->subState](task);
 }

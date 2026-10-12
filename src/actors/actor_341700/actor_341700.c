@@ -1220,11 +1220,8 @@ static __inline__ void _madChaserResetBehaviorStateS16(Task* task, s16 behaviorS
 
 /// Selects this carrier's declared static void(Task*) combat-alert dispatcher.
 #define MAD_CHASER_ALERT_STATE_HANDLER _madChaserAlertState
-/// Supplies the complete TaskFuncTable5 of this carrier's alert phases.
-#define MAD_CHASER_ALERT_STEP_HANDLERS _gMadChaserAlertSteps
 #include "../../shared/mad_chaser_alert_state.inc.c"
 #undef MAD_CHASER_ALERT_STATE_HANDLER
-#undef MAD_CHASER_ALERT_STEP_HANDLERS
 
 /// Selects this carrier's declared static void(Task*) light-recoil dispatcher.
 #define MAD_CHASER_REACTION_STATE_HANDLER _madChaserRecoilLightState
