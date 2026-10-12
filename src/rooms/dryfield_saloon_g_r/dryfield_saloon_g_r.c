@@ -1036,8 +1036,16 @@ void dryfieldSaloonGRDrawLightEffectsTask(Task* task)
 
 #include "../../shared/glow_draw_flare_local.inc.c"
 
-/// Binds this overlay's local shaft points for the shared drawer's inclusion.
-#define GLOW_TWIN_SHAFT_POINTS _gDryfieldSaloonGREffectPoints
+/// Selects the day saloon's local shaft roots and guides for glow drawing.
+///
+/// Requires a word-aligned `SVECTOR` array or parenthesized pointer expression
+/// with at least 20 complete entries. Only entries 14..19 are read: roots
+/// 14/17 and guide pairs 15/18, 16/19, in the local game-coordinate units
+/// of the drawer's `coord`. Tips extend each root-to-guide offset fourfold.
+/// The expression is expanded repeatedly and must be stable and free of side
+/// effects. Drawing leaves the table unchanged; it must stay live for each call.
+/// Bind around `glow_draw_twin_shafts.inc.c` and undefine after inclusion.
+#define GLOW_TWIN_SHAFT_POINTS (_gDryfieldSaloonGREffectPoints)
 #include "../../shared/glow_draw_twin_shafts.inc.c"
 #undef GLOW_TWIN_SHAFT_POINTS
 
