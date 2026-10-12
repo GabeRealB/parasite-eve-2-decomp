@@ -38,8 +38,6 @@
 #include "main/tmd.h"
 #include "main/wipsys_types.h"
 
-#define GameResetScratchHead() *SCRATCH_STACK_CURSOR_SLOT = SCRATCH_STACK_CURSOR_SLOT
-
 /* Define BSS before API headers to preserve first-declaration order. */
 /// Reusable black semitransparent rectangle for the synchronous pause backdrop.
 static TILE _gGameMainPauseTile;
@@ -179,7 +177,7 @@ static void _gameMainInitialize(void)
     bootResetCd(BOOT_CD_RESET_DRIVE_AND_VOLUME);
     VSync(GAME_MAIN_RESET_SETTLE_VBLANKS);
 
-    GameResetScratchHead();
+    _scratchStackSetCursor(SCRATCH_STACK_CURSOR_SLOT);
     _gGameMainInitializationCount++;
     memConfigureImageMemory(GAME_STAGE_NONE, 0);
     memInitHeaps();

@@ -66,11 +66,12 @@ size_t gMemSavedImageRegionBytes;
 #include "mem.h"
 #include "main/stream.h"
 
-/// Exclusive end byte address of the ordinary image-memory region.
+/// Exclusive end byte address of the default saved image-memory region.
 ///
-/// The saved whole region and auxiliary portion extend to this boundary.
-/// Retained in `_gMemUnusedImageRegionEnd`, which has no code reader.
-/// This address does not define or reserve storage at the boundary.
+/// The default base plus its saved byte extent reaches this address.
+/// Initializes only `_gMemUnusedImageRegionEnd`, which has no reader; memory
+/// configuration computes its extents separately. The typed byte pointer
+/// denotes a boundary and neither reserves storage nor permits a byte read.
 #define MEMORY_IMAGE_REGION_END ((u8*)0x801FD000)
 
 extern u8 D_80400000[];

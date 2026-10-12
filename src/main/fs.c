@@ -90,8 +90,12 @@ STATIC_ASSERT_SIZEOF(_FsLoadRedirect, 0xC);
 /// for a stream record. Ends the read and pauses sector delivery.
 #define FILE_SYSTEM_STAGE0_HEADER_TERMINATOR -1
 
-/// Canary value at the end of the folder list.
-#define FS_CDF_FOLDER_CANARY 0
+/// Zero sector count terminating the serialized stage-CDF folder list.
+///
+/// Compared with `FsCdfFolderListEntry::sectorCount` before importing a folder
+/// or advancing the cumulative sector offset. The terminator's `folderId` is
+/// ignored; zero denotes the end rather than a zero-length folder.
+#define FILE_SYSTEM_CDF_FOLDER_LIST_TERMINATOR 0
 
 /// Restarts the file request and releases any partial sound-bank load state.
 #define FILE_SYSTEM_CD_RECOVERY_RESTART_REQUEST 0x0
@@ -580,19 +584,28 @@ s32 fsLoadFile(const FsFileLoadKey* fileKey, s32 loadMode, s32 imageXPageOffset,
     u16 entryCount;
     u32 directoryFileId;
 
-    /// Resolves the first matching compact category entry against the mounted STAGE0 base.
+    /// Finds the first compact category file's absolute CD sector in STAGE0.CDF.
     ///
-    /// Captures entryCount, directoryFileId, entryIndex and absoluteSector.
-    /// absoluteSector must start at zero; a miss leaves it intact. entries must
-    /// be a stable array/pointer expression, evaluated on each loop visit.
-#define FILE_SYSTEM_FIND_CATEGORY_SECTOR(entries)                                                \
-    {                                                                                            \
-        for (entryIndex = 0; entryIndex < (u32)entryCount; entryIndex++) {                       \
-            if ((entries)[entryIndex].idInCategory == directoryFileId) {                         \
-                absoluteSector = (entries)[entryIndex].sectorOffset + gFsStageCdfBaseSectors[0]; \
-                break;                                                                           \
-            }                                                                                    \
-        }                                                                                        \
+    /// `entries` addresses at least `count` published `_FsStage0CategoryFile`
+    /// elements, and `fileId` is the category-relative request ID. `sector` is
+    /// an s32 lvalue assigned only on a match; initialize it to zero for a miss.
+    /// Entries store unsigned halfword IDs and CDF-relative sector offsets.
+    /// `count` is a nonnegative element count, widened to u32 for comparison;
+    /// STAGE0's base sector must be mounted and the sum must fit s32.
+    /// `entryIndex` is a writable u32 loop cursor, left at the matching index
+    /// or count on a miss. Inputs and output addresses must be stable and have
+    /// no side effects; the cursor update must not change the other inputs.
+    /// `count` is evaluated per loop test, `fileId` per visited entry, `entries`
+    /// again on a match and `sector` only once on success. Captures no caller
+    /// locals; break exits only the macro's loop. There is no capacity check.
+#define FILE_SYSTEM_FIND_CATEGORY_SECTOR(entries, count, fileId, sector, entryIndex)         \
+    {                                                                                        \
+        for ((entryIndex) = 0; (entryIndex) < (u32)(count); (entryIndex)++) {                \
+            if ((entries)[(entryIndex)].idInCategory == (fileId)) {                          \
+                (sector) = (entries)[(entryIndex)].sectorOffset + gFsStageCdfBaseSectors[0]; \
+                break;                                                                       \
+            }                                                                                \
+        }                                                                                    \
     }
 
     absoluteSector              = 0;
@@ -619,19 +632,19 @@ s32 fsLoadFile(const FsFileLoadKey* fileKey, s32 loadMode, s32 imageXPageOffset,
             case 1:
                 directoryFileId = (fileKey->fileIdHundreds * FILE_SYSTEM_FILE_ID_HUNDREDS_SCALE) + fileKey->fileIndex;
                 entryCount      = _gFsStage0Category1FileCount;
-                FILE_SYSTEM_FIND_CATEGORY_SECTOR(_gFsStage0Category1Files);
+                FILE_SYSTEM_FIND_CATEGORY_SECTOR(_gFsStage0Category1Files, entryCount, directoryFileId, absoluteSector, entryIndex);
                 break;
 
             case 2:
                 directoryFileId = (fileKey->fileIdHundreds * FILE_SYSTEM_FILE_ID_HUNDREDS_SCALE) + fileKey->fileIndex;
                 entryCount      = _gFsStage0Category2FileCount;
-                FILE_SYSTEM_FIND_CATEGORY_SECTOR(_gFsStage0Category2Files);
+                FILE_SYSTEM_FIND_CATEGORY_SECTOR(_gFsStage0Category2Files, entryCount, directoryFileId, absoluteSector, entryIndex);
                 break;
 
             case 3:
                 directoryFileId = (fileKey->fileIdHundreds * FILE_SYSTEM_FILE_ID_HUNDREDS_SCALE) + fileKey->fileIndex;
                 entryCount      = _gFsStage0Category3FileCount;
-                FILE_SYSTEM_FIND_CATEGORY_SECTOR(_gFsStage0Category3Files);
+                FILE_SYSTEM_FIND_CATEGORY_SECTOR(_gFsStage0Category3Files, entryCount, directoryFileId, absoluteSector, entryIndex);
                 break;
 
             case 4:
@@ -639,7 +652,7 @@ s32 fsLoadFile(const FsFileLoadKey* fileKey, s32 loadMode, s32 imageXPageOffset,
                 if (fileKey->fileIdHundreds == 1) {
                     directoryFileId = fileKey->fileIdHundreds * FILE_SYSTEM_FILE_ID_HUNDREDS_SCALE + fileKey->fileIndex;
                     entryCount      = _gFsStage0Category4FileCount;
-                    FILE_SYSTEM_FIND_CATEGORY_SECTOR(_gFsStage0Category4Files);
+                    FILE_SYSTEM_FIND_CATEGORY_SECTOR(_gFsStage0Category4Files, entryCount, directoryFileId, absoluteSector, entryIndex);
                     if (absoluteSector == 0) {
                         return 0;
                     }
@@ -2196,7 +2209,7 @@ void fsInitFolderTable(s32 unusedStageIndex)
     // starts at sector 1. Each sector count places the folder after it.
     sectorOffset = 1;
     while (true) {
-        if (folderEntry->sectorCount == FS_CDF_FOLDER_CANARY) {
+        if (folderEntry->sectorCount == FILE_SYSTEM_CDF_FOLDER_LIST_TERMINATOR) {
             return;
         }
 

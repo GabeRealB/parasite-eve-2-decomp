@@ -217,26 +217,31 @@ static s32 _primDrawTimedDimTile(const RECT* rect, const u8* phase, s16* framesL
     PrimDrawParams draw;
     s32            dimStatus;
 
-    /// Builds the untextured black rectangle used by this timed dimming overlay.
+    /// Initializes the geometry and black semitransparent colour of a dimming tile.
     ///
-    /// Captures local draw and the borrowed rect pointer, reading rect four times.
-    /// Writes only fields consumed by the tile emitter; other members stay untouched.
-#define PRIMITIVE_INIT_BLACK_DIM_TILE() \
-    {                                   \
-        draw.x         = rect->x;       \
-        draw.y         = rect->y;       \
-        draw.w         = rect->w;       \
-        draw.h         = rect->h;       \
-        draw.b         = 0;             \
-        draw.g         = 0;             \
-        draw.r         = 0;             \
-        draw.semiTrans = true;          \
+    /// `drawParams` is a writable `PrimDrawParams` lvalue, evaluated eight times;
+    /// `tileRect` points to a readable `RECT` and is evaluated four times. Both
+    /// expressions must be stable and have no side effects; their storage must
+    /// not overlap. Copies rectangle coordinates and dimensions in pixels;
+    /// the tile emitter later subtracts one from width and height. Other draw
+    /// fields stay untouched. Captures no caller locals and does not select a
+    /// blend equation or emit a packet.
+#define PRIMITIVE_INIT_BLACK_DIM_TILE(drawParams, tileRect) \
+    {                                                       \
+        (drawParams).x         = (tileRect)->x;             \
+        (drawParams).y         = (tileRect)->y;             \
+        (drawParams).w         = (tileRect)->w;             \
+        (drawParams).h         = (tileRect)->h;             \
+        (drawParams).b         = 0;                         \
+        (drawParams).g         = 0;                         \
+        (drawParams).r         = 0;                         \
+        (drawParams).semiTrans = true;                      \
     }
 
     dimStatus = PRIMITIVE_DIM_PROGRESS;
     switch (*phase) {
         case PRIMITIVE_DIM_PHASE_DRAW:
-            PRIMITIVE_INIT_BLACK_DIM_TILE();
+            PRIMITIVE_INIT_BLACK_DIM_TILE(draw, rect);
             _primDrawTile(&draw);
             // OT insertion prepends the blend command so it runs before the tile.
             _primDrawTexturePage(GPU_BLEND_AVERAGE, 0, 0, PRIMITIVE_FADE_OT_INDEX);

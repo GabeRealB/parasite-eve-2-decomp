@@ -98,29 +98,41 @@ static __inline__ void _displayConfigureSmallTaskBuffers(void)
 
 s32 displayRunTaskFrame(GsOT* unusedOrderingTables, s32 frameStartLines, s32 unusedOtBuffer)
 {
-/// Selects the task frame's buffers and clears its OT before task drawing.
+/// Selects and clears a display-task ordering table and borrows its primitive half.
 ///
-/// Captures the writable display pointer and the orderingTables, firstTag,
-/// halfBytes and savedOt locals. Requires configured reusable task buffers and
-/// a frame index of 0 or 1. Saves the caller's OT for restoration after drawing.
-/// Expands to one compound statement; undefined before this function ends.
-#define DISPLAY_BEGIN_TASK_FRAME()                                                           \
-    {                                                                                        \
-        if (display->mdecActive == 0) {                                                      \
-            display->frameBuffer ^= 1;                                                       \
-        }                                                                                    \
-        if (display->control.flags.flipMode != DISPLAY_FLIP_HOLD) {                          \
-            display->drawBuffer = display->frameBuffer;                                      \
-        }                                                                                    \
-        orderingTables = gGpuTaskOrderingTables;                                             \
-        GsClearOt(0, 0, &orderingTables[display->frameBuffer]);                              \
-        firstTag       = (u_long*)orderingTables[display->frameBuffer].org;                  \
-        halfBytes      = _gDisplayTaskPrimitiveArenaBytes;                                   \
-        *firstTag      = GPU_DMA_CHAIN_END;                                                  \
-        halfBytes     /= 2;                                                                  \
-        savedOt        = gGpuCurrentOt;                                                      \
-        gGpuCurrentOt  = (u_long*)orderingTables[display->frameBuffer].org;                  \
-        gGpuPrimCursor = _gDisplayTaskPrimitiveArenaBase + display->frameBuffer * halfBytes; \
+/// `displayState` is a stable writable `DisplayState` pointer, evaluated repeatedly;
+/// `previousOt` is a u_long* lvalue in caller storage, assigned once. Inputs must
+/// have no side effects and must not name the macro's `orderingTables`, `firstTag`
+/// or `halfBytes`.
+/// Requires frame index 0/1, two configured task OTs and a live arena split into
+/// equal, word-aligned byte halves. Prior GPU work on the selected storage must
+/// have finished.
+/// MDEC holds the frame index; display hold preserves the draw-buffer selector.
+/// Saves the previous global OT for the caller to restore after submission;
+/// the primitive cursor selects a half using signed division of the arena's
+/// total byte capacity by two.
+/// Captures no caller locals. Expands to one compound statement and performs
+/// no arena-capacity check; packets must remain live through GPU completion.
+#define DISPLAY_BEGIN_TASK_FRAME(displayState, previousOt)                                          \
+    {                                                                                               \
+        GsOT*   orderingTables;                                                                     \
+        u_long* firstTag;                                                                           \
+        s32     halfBytes;                                                                          \
+        if ((displayState)->mdecActive == 0) {                                                      \
+            (displayState)->frameBuffer ^= 1;                                                       \
+        }                                                                                           \
+        if ((displayState)->control.flags.flipMode != DISPLAY_FLIP_HOLD) {                          \
+            (displayState)->drawBuffer = (displayState)->frameBuffer;                               \
+        }                                                                                           \
+        orderingTables = gGpuTaskOrderingTables;                                                    \
+        GsClearOt(0, 0, &orderingTables[(displayState)->frameBuffer]);                              \
+        firstTag       = (u_long*)orderingTables[(displayState)->frameBuffer].org;                  \
+        halfBytes      = _gDisplayTaskPrimitiveArenaBytes;                                          \
+        *firstTag      = GPU_DMA_CHAIN_END;                                                         \
+        halfBytes     /= 2;                                                                         \
+        (previousOt)   = gGpuCurrentOt;                                                             \
+        gGpuCurrentOt  = (u_long*)orderingTables[(displayState)->frameBuffer].org;                  \
+        gGpuPrimCursor = _gDisplayTaskPrimitiveArenaBase + (displayState)->frameBuffer * halfBytes; \
     }
 
     enum {
@@ -129,14 +141,11 @@ s32 displayRunTaskFrame(GsOT* unusedOrderingTables, s32 frameStartLines, s32 unu
         DISPLAY_TASK_FLIP_IMMEDIATE      = -2,
     };
     DisplayState* display;
-    GsOT*         orderingTables;
     u_long*       savedOt;
-    u_long*       firstTag;
-    s32           halfBytes;
 
     // Borrow the task OT and its primitive half until this frame is submitted.
     display = &gDisplayState;
-    DISPLAY_BEGIN_TASK_FRAME();
+    DISPLAY_BEGIN_TASK_FRAME(display, savedOt);
     taskExecList(&gDisplayTaskList);
     cdCmdService();
     if (display->mdecActive == 0) {

@@ -847,20 +847,26 @@ static void _tmdEnableSourceLayeredTextures(const TmdSource* source)
 {
     u32* stream;
     u32  opcode;
-    u32  dimensions;
-    u32  elementStrideWords;
 
-    /// Skips a dimensions word and its count-times-word-stride payload.
+    /// Advances a stream cursor past packed dimensions and their element payload.
     ///
-    /// Captures this function's dimensions and elementStrideWords locals.
-    /// Evaluates cursor three times; it must be a side-effect-free u32* lvalue
-    /// addressing complete dimensions and payload words in the same stream.
-#define TMD_SKIP_STREAM_PAYLOAD(cursor)                      \
-    do {                                                     \
-        dimensions         = *(cursor);                      \
-        elementStrideWords = dimensions & 0xFFFF;            \
-        (cursor)++;                                          \
-        (cursor) += (dimensions >> 16) * elementStrideWords; \
+    /// The high half is an unsigned element count; the low half is a stride in
+    /// four-byte words. `cursor` is a writable u32* lvalue evaluated three times,
+    /// without side effects, and must not name the macro's `dimensions` or
+    /// `elementStrideWords` locals. Requires the dimensions, count * stride
+    /// payload words and next opcode/terminator within one live stream.
+    /// There is no length check or
+    /// payload access. Captures no caller locals and changes no stream bytes.
+#define TMD_SKIP_STREAM_PAYLOAD(cursor)                                                  \
+    do {                                                                                 \
+        enum { TMD_STREAM_ELEMENT_STRIDE_MASK = 0xFFFF,                                  \
+               TMD_STREAM_ELEMENT_COUNT_SHIFT = 16 };                                    \
+        u32 dimensions;                                                                  \
+        u32 elementStrideWords;                                                          \
+        dimensions         = *(cursor);                                                  \
+        elementStrideWords = dimensions & TMD_STREAM_ELEMENT_STRIDE_MASK;                \
+        (cursor)++;                                                                      \
+        (cursor) += (dimensions >> TMD_STREAM_ELEMENT_COUNT_SHIFT) * elementStrideWords; \
     } while (0)
 
     stream = source->stream;

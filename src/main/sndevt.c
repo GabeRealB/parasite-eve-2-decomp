@@ -1200,28 +1200,32 @@ s32 sndEvtRequestMidiStop(s32 sequenceSelector, s32 fadeTicks)
 /// independent. The selector is copied, and acceptance does not ensure a match.
 static s32 _sndEvtRequestMidiMute(s32 sequenceSelector)
 {
-    /// Validates a selector, reserves an event and transfers its copied command to the FIFO.
+    /// Queues a MIDI mute/unmute request or returns its admission error.
     ///
-    /// `selector` must be a side-effect-free integer expression; it is evaluated
-    /// again when copied to the event's byte after allocation. `commandKind` is
-    /// evaluated once on success and must select MIDI mute or unmute.
+    /// `sequenceSelector` must be a stable integer expression without side
+    /// effects, evaluated again when copied to the event's byte after allocation.
+    /// `commandKind` is evaluated once on success and must be
+    /// `SOUND_EVENT_MIDI_MUTE` or `SOUND_EVENT_MIDI_UNMUTE`.
+    /// Only the selector's low byte is used: 0 selects all, 1..254 an id and
+    /// 255 is rejected before allocation. Inputs must not name local `muteEvent`.
     /// Expands to a compound statement that returns from its enclosing s32
     /// request function on every path: -3 invalid selector, -2 full pool, 0 queued.
-    /// Captures no caller locals; audio dispatch owns the reservation until release.
-#define SOUND_EVENT_REQUEST_MIDI_MUTE_CHANGE(selector, commandKind) \
-    {                                                               \
-        SndEvt* event;                                              \
-        if ((u8)(selector) == SOUND_EVENT_MIDI_INVALID_SEQUENCE) {  \
-            return SOUND_EVENT_MIDI_REQUEST_INVALID_SEQUENCE;       \
-        }                                                           \
-        event = sndEvtAlloc();                                      \
-        if (event == NULL) {                                        \
-            return SOUND_EVENT_MIDI_REQUEST_POOL_FULL;              \
-        }                                                           \
-        event->command              = (commandKind);                \
-        event->args.midi.sequenceId = (selector);                   \
-        sndEvtEnqueue(event);                                       \
-        return 0;                                                   \
+    /// Captures no caller locals. On success the FIFO owns the reservation
+    /// through audio dispatch and release; queueing does not ensure a song matches.
+#define SOUND_EVENT_REQUEST_MIDI_MUTE_CHANGE(sequenceSelector, commandKind) \
+    {                                                                       \
+        SndEvt* muteEvent;                                                  \
+        if ((u8)(sequenceSelector) == SOUND_EVENT_MIDI_INVALID_SEQUENCE) {  \
+            return SOUND_EVENT_MIDI_REQUEST_INVALID_SEQUENCE;               \
+        }                                                                   \
+        muteEvent = sndEvtAlloc();                                          \
+        if (muteEvent == NULL) {                                            \
+            return SOUND_EVENT_MIDI_REQUEST_POOL_FULL;                      \
+        }                                                                   \
+        muteEvent->command              = (commandKind);                    \
+        muteEvent->args.midi.sequenceId = (sequenceSelector);               \
+        sndEvtEnqueue(muteEvent);                                           \
+        return 0;                                                           \
     }
 
     SOUND_EVENT_REQUEST_MIDI_MUTE_CHANGE(sequenceSelector, SOUND_EVENT_MIDI_MUTE);

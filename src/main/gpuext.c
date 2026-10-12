@@ -36,15 +36,22 @@
 /// | 31    | Lines drawn in interlace mode (0=Even, or in vertical blank; 1=Odd)                        |
 typedef u32 _GpuStatusRegister;
 
-/// Bit index of the display-blanking flag within `_GpuStatusRegister`.
+/// Zero-based bit index of the active-high GPU display-blanking flag.
+///
+/// A status word's bit 23 is 1 when display output is disabled and 0 when
+/// enabled. This signed integer constant is a shift count, not a bit mask.
 #define GPU_STATUS_REGISTER_DISPLAY_DISABLED_BIT 23
 
-#define GPUEXT_GPU1 (void*)0x1f801814
+/// Word pointer to the GPU status register at the memory-mapped GP1 read port.
+///
+/// Expanding the macro computes an address without accessing hardware. The
+/// reader dereferences one 32-bit word; no object storage is declared here.
+#define GPU_STATUS_REGISTER_ADDRESS ((_GpuStatusRegister*)0x1F801814)
 
 /// Samples the GPU status word from the memory-mapped GP1 read port.
 static inline _GpuStatusRegister _gpuExtReadStatus(void)
 {
-    return *(_GpuStatusRegister*)GPUEXT_GPU1;
+    return *GPU_STATUS_REGISTER_ADDRESS;
 }
 
 s32 gpuExtIsDisplayEnabled(void)

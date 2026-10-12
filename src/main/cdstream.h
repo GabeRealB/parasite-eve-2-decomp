@@ -3,7 +3,12 @@
 
 #include "common.h"
 
-/// `CdStreamParams::voiceL` and `voiceR` value for a channel with no SPU voice yet.
+/// Signed voice-index sentinel for a CD stream opened without supplied SPU voices.
+///
+/// Stored as -1 in `CdStreamParams`' signed channel bytes and copied as 0xFF
+/// into the live stream. Playback allocates indices 0..23 in that live copy;
+/// the borrowed setup block is never updated. This is not a valid voice index
+/// or a key-off-all command: voice-index APIs must not rely on it for shutdown.
 #define CD_STREAM_VOICE_NONE (-1)
 
 /// Describes one CD-to-SPU MTS stream to `cdStreamOpen`.

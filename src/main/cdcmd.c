@@ -702,6 +702,26 @@ static inline void _cdCmdFinishSceneAudio(void)
     _cdCmdRetireHeadRequest(queue);
 }
 
+/// Polls movie shutdown and advances playback while the drive pause is pending.
+///
+/// `stopped` is a writable u16 lvalue evaluated once, after the selected call,
+/// and assigned true on shutdown or false after progressing playback. Requires
+/// serialized resident movie/drive state and live playback workspaces. Successful
+/// shutdown clears display-movie framebuffers and retains the workspaces.
+/// The pending path runs the normal movie handler, including any request
+/// retirement it performs. The caller handles cancellation/suspension completion
+/// when `stopped` becomes true. Captures no caller locals and expands to one
+/// compound statement; it is undefined after the two consumers.
+#define CD_COMMAND_POLL_MOVIE_STOP(stopped) \
+    {                                       \
+        if (streamPollMovieStop(true)) {    \
+            (stopped) = true;               \
+        } else {                            \
+            _cdCmdHandleMoviePlayback();    \
+            (stopped) = false;              \
+        }                                   \
+    }
+
 /// Advances cancellation of the saved head request and its movie or scene audio.
 ///
 /// Pending drive work continues through its normal handler. Movie cancellation
@@ -724,20 +744,6 @@ static void _cdCmdHandleRequestCancellation(void)
     u16         movieStopped;
     s32         resumeSectorOffset;
     StreamSlot* sceneStream;
-
-    /// Polls shutdown, advancing playback until the drive can stop.
-    ///
-    /// stopped must be a writable u16 lvalue. It is assigned once, to 0 or 1;
-    /// playback work storage and the caller's cancellation state remain live.
-#define CD_COMMAND_POLL_CANCELLED_MOVIE_STOP(stopped) \
-    {                                                 \
-        if (streamPollMovieStop(true)) {              \
-            (stopped) = 1;                            \
-        } else {                                      \
-            _cdCmdHandleMoviePlayback();              \
-            (stopped) = 0;                            \
-        }                                             \
-    }
 
     queue = &gCdCmdQueue;
     switch (queue->activeRequest.entry.cmd >> 4) {
@@ -779,7 +785,7 @@ static void _cdCmdHandleRequestCancellation(void)
                     break;
                 case CD_COMMAND_CANCEL_FINISH:
                 stopMovie:
-                    CD_COMMAND_POLL_CANCELLED_MOVIE_STOP(movieStopped);
+                    CD_COMMAND_POLL_MOVIE_STOP(movieStopped);
                     break;
                 default:
                     movieStopped = 0;
@@ -842,7 +848,6 @@ static void _cdCmdHandleRequestCancellation(void)
             return;
     }
 }
-#undef CD_COMMAND_POLL_CANCELLED_MOVIE_STOP
 
 u16 cdCmdRequestSuspend(void)
 {
@@ -888,21 +893,6 @@ static void _cdCmdHandleRequestSuspension(void)
     CdlLOC      resumeLocation;
     s32         absoluteResumeSector;
 
-    /// Polls shutdown, progressing playback while the drive pause is pending.
-    ///
-    /// Requires serialized resident playback state. `stopped` must be a writable
-    /// lvalue; it is evaluated once and assigned 0 or 1. Successful shutdown
-    /// clears display-movie framebuffers and retains playback workspaces.
-#define CD_COMMAND_POLL_SUSPENDED_MOVIE_STOP(stopped) \
-    {                                                 \
-        if (streamPollMovieStop(true)) {              \
-            (stopped) = 1;                            \
-        } else {                                      \
-            _cdCmdHandleMoviePlayback();              \
-            (stopped) = 0;                            \
-        }                                             \
-    }
-
     queue = &gCdCmdQueue;
     switch (queue->activeRequest.entry.cmd >> 4) {
         case 0:
@@ -943,7 +933,7 @@ static void _cdCmdHandleRequestSuspension(void)
                     break;
                 case CD_COMMAND_SUSPEND_STOP:
                 stopMovie:
-                    CD_COMMAND_POLL_SUSPENDED_MOVIE_STOP(movieStopped);
+                    CD_COMMAND_POLL_MOVIE_STOP(movieStopped);
                     break;
                 default:
                     movieStopped = 0;
@@ -978,7 +968,7 @@ static void _cdCmdHandleRequestSuspension(void)
         case CD_COMMAND_SCENE_AUDIO_FAMILY:
             break;
     }
-#undef CD_COMMAND_POLL_SUSPENDED_MOVIE_STOP
+#undef CD_COMMAND_POLL_MOVIE_STOP
 }
 
 /// Stores the low command byte, key bytes 3/2/0 and all four argument bytes.
