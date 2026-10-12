@@ -25,6 +25,22 @@
 #define WATER_WAVE_STRIPS_DRAW_FUNCTION _waterDrawWaveStrips
 #endif
 #ifndef WATER_WAVE_STRIPS_SURFACE_T
+/// Selects the descriptor object type used to walk this instance's water table.
+///
+/// Bind a complete type visible before inclusion, with signed-halfword `x`,
+/// `z`, `width` and `depth` in world units. `WATER_WAVE_STRIPS_SURFACES` must
+/// supply a table of that type, readable through its in-bounds terminator for
+/// the drawing call. The iterator borrows a const pointer, retains nothing and
+/// advances by sizeof this type; the rectangles are never modified.
+/// `WATER_WAVE_STRIPS_IS_LIST_END` must accept that const pointer and test the
+/// signed end marker before any geometry is read.
+///
+/// The default is the 12-byte `RoomWaterSurface`, with `segmentCount` used
+/// only as a list marker, for the main corridor and both septic-tank instances.
+/// Water supply binds the distinct 10-byte `RoomCompactWaterSurface` and its
+/// `listMarker` predicate together. This type binding has no runtime evaluation,
+/// captured locals or token construction. The include undefines it; a later
+/// instance must rebind any override or use the default again.
 #define WATER_WAVE_STRIPS_SURFACE_T RoomWaterSurface
 #endif
 #ifndef WATER_WAVE_STRIPS_IS_LIST_END
@@ -184,17 +200,17 @@ static void WATER_WAVE_STRIPS_DRAW_FUNCTION(Task* task)
         WATER_WAVE_STRIPS_FIRST_HIDDEN_VIEW  = 10,
         WATER_WAVE_STRIPS_HIDDEN_VIEW_COUNT  = 2
     };
-    SVECTOR                      vertex0, vertex1, vertex2, vertex3;
-    long                         screenXY0, screenXY1, screenXY2, screenXY3;
-    long                         projectionScale, projectionFlags;
-    s32                          wavePhase;
-    WATER_WAVE_STRIPS_SURFACE_T* surface;
-    WaterQuadScratch*            strip;
-    WaterQuadScratch*            scratchTop;
-    POLY_G4*                     quad;
-    DR_MODE*                     drawMode;
-    s32                          depth;
-    s32                          segment;
+    SVECTOR                            vertex0, vertex1, vertex2, vertex3;
+    long                               screenXY0, screenXY1, screenXY2, screenXY3;
+    long                               projectionScale, projectionFlags;
+    s32                                wavePhase;
+    const WATER_WAVE_STRIPS_SURFACE_T* surface;
+    WaterQuadScratch*                  strip;
+    WaterQuadScratch*                  scratchTop;
+    POLY_G4*                           quad;
+    DR_MODE*                           drawMode;
+    s32                                depth;
+    s32                                segment;
 #if WATER_WAVE_STRIPS_RESET_ACTOR_LOAD_CURSOR
     GameLocationKey* location;
 #endif

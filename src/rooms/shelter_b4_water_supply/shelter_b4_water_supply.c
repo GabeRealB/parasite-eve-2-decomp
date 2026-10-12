@@ -1271,6 +1271,13 @@ static s32 _shelterB4WaterSupplyResolveWaterHoleVariant(RoomEventMsg* request, R
     return 1;
 }
 
+/// Selects the compact descriptor type of the Z-running water rectangle list.
+///
+/// The shared drawer reads signed-halfword world X/Z geometry and advances
+/// through 10-byte records. The matching `WATER_WAVE_STRIPS_IS_LIST_END`
+/// binding tests `listMarker`, including the final -1 record, through a const
+/// descriptor pointer. `RoomCompactWaterSurface` must already be visible;
+/// this type binding is consumed and undefined by the shared strip include.
 #define WATER_WAVE_STRIPS_SURFACE_T RoomCompactWaterSurface
 /// Tests the list terminator in a `RoomCompactWaterSurface` descriptor.
 ///
