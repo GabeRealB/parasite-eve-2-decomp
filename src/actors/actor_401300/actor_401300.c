@@ -55,6 +55,14 @@
 #include "overlay.h"
 #include "../../shared/player_detection.h"
 static s32 _actorMsgPlaceRecordYaw(Task* task, s32 msgId, const ActorTransform* placement, s32 unusedArg);
+
+/// Selects the Horned Stranger's private callback to place the model and record heading.
+///
+/// The preceding static prototype establishes the selected function's linkage
+/// and `s32(Task*, s32, const ActorTransform*, s32)` signature. Keep this binding
+/// through the shared header and XYZ-placement fragment, then undefine it.
+/// That fragment separately binds `ACTOR_MESSAGE_YAW_WORK_TYPE` to the
+/// receiver's allocated `_Actor401300Work`, which provides `s16 placedYaw`.
 #define ACTOR_MESSAGE_PLACE_RECORD_YAW _actorMsgPlaceRecordYaw
 #include "../../shared/actor_messages.h"
 #include "../../shared/actor_contacts.h"

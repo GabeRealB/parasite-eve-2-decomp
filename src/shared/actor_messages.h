@@ -65,11 +65,15 @@ STATIC_ASSERT_SIZEOF(ActorMsgYawWork, 0x18);
 /// ignored. Returns 1.
 s32 actorMsgPlace(Task* task, s32 msgId, const ActorTransform* placement, s32 unusedArg);
 
-/// Function identifier of the XYZ-placement fragment that records the root yaw.
+/// Selects the callback identifier for XYZ placement with a recorded root heading.
 ///
-/// Bind before this header and keep it bound through the fragment include;
-/// declare a private instance static in the carrier before including this header.
-/// The selected function has the `actorMsgPlaceRecordYaw` signature below.
+/// Defaults to `actorMsgPlaceRecordYaw`. An override must be a function
+/// identifier with signature `s32(Task*, s32, const ActorTransform*, s32)`.
+/// Bind it before this header and keep the same binding through
+/// `actor_messages_place_yaw.inc.c`; undefine the override afterwards. Declare
+/// a private instance static before this header to establish its linkage.
+/// The fragment also requires `ACTOR_MESSAGE_YAW_WORK_TYPE` to select the
+/// receiver's allocated work type with a writable `s16 placedYaw` member.
 #ifndef ACTOR_MESSAGE_PLACE_RECORD_YAW
 #define ACTOR_MESSAGE_PLACE_RECORD_YAW actorMsgPlaceRecordYaw
 #endif
