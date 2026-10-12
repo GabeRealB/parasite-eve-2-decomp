@@ -2916,6 +2916,11 @@ static s32 _actor356100IgnoreAnimationMessage(Task* task, s32 messageId, s32 unu
 
 #include "../../shared/actor_messages_is_present.inc.c"
 
+/// Selects this actor's allocated work type for recording placement heading.
+///
+/// The following XYZ-placement fragment borrows live `Task::work` as
+/// `_Actor356100Work` and writes its `s16 placedYaw` in 4096 units per turn.
+/// Keep this type binding scoped to that fragment include.
 #define ACTOR_MESSAGE_YAW_WORK_TYPE _Actor356100Work
 #include "../../shared/actor_messages_place_yaw.inc.c"
 #undef ACTOR_MESSAGE_YAW_WORK_TYPE

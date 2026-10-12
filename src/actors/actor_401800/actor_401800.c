@@ -2220,6 +2220,11 @@ static const EnemyTaskFuncTable3 _gActor401800OddStrangerTaskStates = {
 
 #include "../../shared/actor_messages_is_present.inc.c"
 
+/// Selects the actor_401800 work layout for recording placement heading.
+///
+/// The following XYZ-placement fragment borrows live `Task::work` as
+/// `OddStrangerWork` with `ODD_STRANGER_BUILD_401800` selected and writes its
+/// `s16 placedYaw` in 4096 units per turn. Scope the binding to that include.
 #define ACTOR_MESSAGE_YAW_WORK_TYPE OddStrangerWork
 #include "../../shared/actor_messages_place_yaw.inc.c"
 #undef ACTOR_MESSAGE_YAW_WORK_TYPE

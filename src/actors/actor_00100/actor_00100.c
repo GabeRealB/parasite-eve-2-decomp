@@ -3426,6 +3426,11 @@ static s16 _actor00100WallProbeTouchesGrid(Task* task)
 
 #include "../../shared/actor_messages_is_present.inc.c"
 
+/// Selects the regular Desert Chaser work type for recording placement heading.
+///
+/// The following XYZ-placement fragment borrows live `Task::work` as
+/// `DesertChaserWork` and writes its `s16 placedYaw` in 4096 units per turn.
+/// Keep this type binding scoped to that fragment include.
 #define ACTOR_MESSAGE_YAW_WORK_TYPE DesertChaserWork
 #include "../../shared/actor_messages_place_yaw.inc.c"
 #undef ACTOR_MESSAGE_YAW_WORK_TYPE
