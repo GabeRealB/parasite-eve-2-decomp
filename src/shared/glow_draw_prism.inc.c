@@ -1,11 +1,22 @@
 /* Part of the glow drawing library; see glow_draw.h. */
 
-/// Local-space SVECTOR array borrowed by this tinted prism drawer instance.
+/// Selects the carrier's local-space corner array for the tinted prism drawer.
 ///
-/// Bind to an array identifier before including this fragment. Each call's
-/// firstCorner must select eight consecutive readable elements. The default
-/// uses the legacy package-local spelling. No token pasting or stringification
-/// occurs; the binding is undefined at the end of this fragment.
+/// An override must name a declared `SVECTOR` array before this fragment is
+/// included. Each corner must be word-aligned and fully readable: the GTE
+/// loads both words, although only signed-halfword XYZ supplies the position.
+/// Coordinates use the drawing coordinate's local game units. Each call's
+/// nonnegative `firstCorner` is an element index selecting eight elements:
+/// four lit-end corners in cyclic order, then four corresponding dark-rim
+/// corners. Other regions of the array may hold unrelated geometry.
+///
+/// The default selects independent `gGlowPrismCorners[16]` arrays in the night
+/// warehouse (prism at index 8) and night souvenir shop (prisms at 0 and 8).
+/// The night dilapidated house overrides it with its three-prism array.
+/// The drawer only reads the selected array and retains no pointer; its
+/// carrier must remain loaded during the call. This parameterless identifier
+/// binding has no side effects, token pasting or stringification. It is used
+/// for every corner load and undefined at the end, including an override.
 #ifndef GLOW_PRISM_CORNERS
 #define GLOW_PRISM_CORNERS gGlowPrismCorners
 #endif

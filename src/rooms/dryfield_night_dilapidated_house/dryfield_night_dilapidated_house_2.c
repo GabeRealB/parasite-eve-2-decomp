@@ -3154,6 +3154,11 @@ static void _dryfieldNightDilapidatedHouseLaunchMovieTask(Task* task)
     taskKill(task);
 }
 
+/// Selects the house's three local-space light prisms for its tinted drawer.
+///
+/// Binds the room-owned `SVECTOR[24]`; calls select eight-corner blocks at
+/// element indices 0, 8 and 16. The fragment only reads these corners while
+/// this overlay is loaded and undefines the binding after its inclusion.
 #define GLOW_PRISM_CORNERS _gDryfieldNightDilapidatedHouseLightPrismCorners
 #include "../../shared/glow_draw_prism.inc.c"
 
