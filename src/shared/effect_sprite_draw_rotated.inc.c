@@ -1,11 +1,20 @@
 /* Part of the effect sprite library; see effect_sprite.h. */
 
-#ifndef EFFECT_SPRITE_ROTATED_DEPTH_BIAS
-/// Adds one SZ3/4 unit before sizing and sorting when bound to 1.
+#ifndef EFFECT_SPRITE_ROTATED_INCREMENT_DEPTH
+/// Enables a one-unit increment to the rotated sprite's projected depth.
 ///
-/// Pod bottom supplies 1; the other carriers use the default 0. Bind the
-/// integer preprocessor constant 0 or 1 before inclusion; cleared after use.
-#define EFFECT_SPRITE_ROTATED_DEPTH_BIAS 0
+/// Bind the integer preprocessor constant 0 or 1 before including this fragment.
+/// Value 0 keeps SZ3 >> 2; value 1 adds one to the stored result, keeping the
+/// perspective-sizing divisor nonzero. Both sizing and ordering-table
+/// quantization use that result; the increment counts depth units, not table
+/// entries, and leaves the GTE's SZ3 register unchanged. Pod bottom binds 1;
+/// pod access tunnel, dumping hole and garbage incinerator use the default 0
+/// and require nonzero depth for accepted projections. This object-like switch
+/// has no arguments, captures or runtime evaluation. The fragment undefines it
+/// after the drawer definition.
+#define EFFECT_SPRITE_ROTATED_INCREMENT_DEPTH 0
+#elif (EFFECT_SPRITE_ROTATED_INCREMENT_DEPTH != 0) && (EFFECT_SPRITE_ROTATED_INCREMENT_DEPTH != 1)
+#error "EFFECT_SPRITE_ROTATED_INCREMENT_DEPTH must be 0 or 1"
 #endif
 
 /// Writes the signed pixel offset from a sprite's centre to one rotated corner.
@@ -52,7 +61,8 @@ static __inline__ void _effectSpriteRotatedComputeCornerOffset(EffectShapeScratc
 /// `size` is a signed perspective numerator: `size * 47 / depth` gives the
 /// screen-space half-diagonal in pixels before Q12 rotation. Division truncates
 /// toward zero; the signed right shift rounds negative rotated products down.
-/// `angle` uses 4096 units per turn. Depth is SZ3/4 plus the carrier's bias;
+/// `angle` uses 4096 units per turn. Depth is SZ3 >> 2, optionally incremented
+/// by one through `EFFECT_SPRITE_ROTATED_INCREMENT_DEPTH`;
 /// accepted projections require nonzero depth, without a check here.
 ///
 /// A nonnegative GTE FLAG emits one raw-texture, additive semi-transparent
@@ -98,7 +108,8 @@ static void _effectSpriteDrawRotated(const GfxCoord* coord, u16 frameAndPalette,
     gte_stflg(&scratch->projectionFlags);
     if (scratch->projectionFlags >= 0) {
         gte_stszotz(&scratch->depth);
-#if EFFECT_SPRITE_ROTATED_DEPTH_BIAS
+#if EFFECT_SPRITE_ROTATED_INCREMENT_DEPTH
+        // Use the incremented depth for both perspective sizing and sorting.
         scratch->depth++;
 #endif
         quad           = gGpuPrimCursor;
@@ -136,4 +147,4 @@ static void _effectSpriteDrawRotated(const GfxCoord* coord, u16 frameAndPalette,
     SCRATCH_STACK_RELEASE_BLOCK(EffectShapeScratch);
 }
 
-#undef EFFECT_SPRITE_ROTATED_DEPTH_BIAS
+#undef EFFECT_SPRITE_ROTATED_INCREMENT_DEPTH

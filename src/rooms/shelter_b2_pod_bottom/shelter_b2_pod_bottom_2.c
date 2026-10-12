@@ -412,7 +412,12 @@ void shelterB2PodBottomShadowTask(Task* task)
 #define EFFECT_SPRITE_BANKED_INCREMENT_DEPTH 1
 #include "../../shared/effect_sprite_draw_banked.inc.c"
 
-#define EFFECT_SPRITE_ROTATED_DEPTH_BIAS 1
+/// Enables the pod bottom's one-unit depth increment for rotated sprites.
+///
+/// The integer preprocessor value 1 selects (SZ3 >> 2) + 1 for both perspective
+/// sizing and ordering-table quantization, keeping the sizing divisor nonzero.
+/// Bind immediately before the rotated drawer fragment, which undefines it.
+#define EFFECT_SPRITE_ROTATED_INCREMENT_DEPTH 1
 #include "../../shared/effect_sprite_draw_rotated.inc.c"
 
 /// Projects the four corners of one shock-ring quad into screen coordinates.
