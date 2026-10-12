@@ -17,7 +17,7 @@
  *   SPRITE_QUAD_UV_TABLE    optional: an EffectSpriteTextureFrame table supplying
  *                           UV origins; its palette fields are ignored
  *                           (SPRITE_QUAD_CLUT may be an expression of `frame`)
- *   SPRITE_QUAD_CELL_MASK   optional: the frame's low bits pick the cell
+ *   SPRITE_QUAD_COLUMN_MASK optional: low frame bits select a strip column
  *   SPRITE_QUAD_U_BASE      optional: integer first-cell texel column (0..255)
  *   SPRITE_QUAD_MIN_OTZ     optional: draw only at this depth or beyond
  *   SPRITE_QUAD_OTZ_BIAS    1 (default) sorts the sprite one slot behind its
@@ -74,7 +74,7 @@
  * SPRITE_QUAD_CELLS_PER_ROW must be a positive signed integer preprocessor
  * constant, bound before each sprite_quad_draw.inc.c inclusion. In arithmetic
  * UV mode it selects the column with frame % count, taking precedence over
- * SPRITE_QUAD_CELL_MASK. Without SPRITE_QUAD_CELL_HEIGHT, only the column repeats
+ * SPRITE_QUAD_COLUMN_MASK. Without SPRITE_QUAD_CELL_HEIGHT, only the column repeats
  * and TOP_V/BOTTOM_V stay fixed. With CELL_HEIGHT, the count is required and frame / count
  * selects the row; the count does not limit the number of rows or frames.
  * Signed frames retain signed division/remainder behavior, and the resulting
@@ -83,6 +83,23 @@
  * next texture needs its own binding. Current bindings are six columns for
  * both antibody strips, the gallery, training room and Hammer, and five for
  * sterilization's grid.
+ *
+ * SPRITE_QUAD_COLUMN_MASK is an optional signed integer constant expression
+ * consisting of contiguous low bits: 2^n - 1 for 0 <= n <= 16. An enum constant
+ * is valid. Bind it before each strip drawer inclusion to select a column with
+ * frame & mask, then multiply by CELL_WIDTH and add any U_BASE in texels.
+ * Both 16-bit frame types promote to signed 32-bit arithmetic; the bitwise
+ * selection yields 0..mask even for a negative signed frame. V stays fixed.
+ * Unlike signed remainder, this selection always wraps into those columns.
+ * GPU UV bytes retain the low eight bits of the computed texel endpoints.
+ *
+ * The binding has no parameters or captured identifiers and is evaluated once
+ * per emitted quad. UV_TABLE bypasses it, and CELLS_PER_ROW takes precedence.
+ * CELL_HEIGHT requires CELLS_PER_ROW, so this mask does not select grid rows.
+ * It sets neither a task lifetime nor a frame limit. Pyrokinesis and
+ * Hypervelocity bind 1 for their two-column flame strips; Nursery and Hammer's
+ * charge flare bind 7 for eight columns. The fragment undefines the mask after
+ * each inclusion, including Hammer's charge drawer before its six-column one.
  *
  * SPRITE_QUAD_TOP_V must be a signed integer constant expression, bound before
  * each arithmetic-UV sprite_quad_draw.inc.c inclusion. It counts texels from

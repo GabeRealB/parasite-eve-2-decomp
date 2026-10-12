@@ -628,7 +628,12 @@ static void _pyrokinesisDrawGroundGlow(const GfxCoord* groundCoord, s32 halfSize
 #define SPRITE_QUAD_CLUT getClut(192, 266)
 /// Texel width and horizontal stride of the two flame cells selected by age parity.
 #define SPRITE_QUAD_CELL_WIDTH 56
-#define SPRITE_QUAD_CELL_MASK  1
+/// Low frame bit selecting one of the flame strip's two horizontal columns.
+///
+/// The signed effect age selects U=0x70 or U=0xA8; V stays at 0xC8..0xFF.
+/// This signed integer constant configures the next drawer inclusion, which
+/// undefines it. See `sprite_quad.h` for the column-mask contract.
+#define SPRITE_QUAD_COLUMN_MASK 1
 /// First flame-cell U coordinate in texels relative to the selected texture page.
 ///
 /// The effect age's low bit selects U = 0x70..0xA7 or 0xA8..0xDF.

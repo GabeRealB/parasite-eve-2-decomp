@@ -1795,7 +1795,13 @@ static void _shelterB6NurseryDrawParticleFrame(const GfxCoord* coord, u16 animat
 #define SPRITE_QUAD_CLUT getClut(80, 270)
 /// Texel width and horizontal stride of each cell in the eight-frame particle strip.
 #define SPRITE_QUAD_CELL_WIDTH 32
-#define SPRITE_QUAD_CELL_MASK  7
+/// Low three frame bits selecting the small particle strip's eight columns.
+///
+/// The particle frame index selects U=0..224 in 32-texel steps, with
+/// V=0x88..0xA7. The task ends the animation after frame 7; this mask only
+/// selects its column. The next drawer inclusion undefines this signed integer
+/// constant; see `sprite_quad.h` for the column-mask contract.
+#define SPRITE_QUAD_COLUMN_MASK 7
 /// Inclusive top texel row of the particle strip, relative to its texture page.
 ///
 /// Signed integer constant for the next drawer inclusion; see `sprite_quad.h`.

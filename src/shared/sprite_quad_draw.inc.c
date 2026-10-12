@@ -86,6 +86,11 @@ static void SPRITE_QUAD_FUNC(SPRITE_QUAD_POSITION_SOURCE_TYPE* pos, SPRITE_QUAD_
     STATIC_ASSERT(SPRITE_QUAD_CELL_WIDTH >= 1 && SPRITE_QUAD_CELL_WIDTH <= 256, sprite_quad_cell_width_fits_uv_byte);
     STATIC_ASSERT(SPRITE_QUAD_TEXTURE_PAGE >= 0 && SPRITE_QUAD_TEXTURE_PAGE <= 0xFFFF, sprite_quad_texture_page_fits_packet);
     STATIC_ASSERT((SPRITE_QUAD_SCALE) > 0, sprite_quad_scale_is_positive);
+#if defined(SPRITE_QUAD_COLUMN_MASK) && !defined(SPRITE_QUAD_UV_TABLE) && !defined(SPRITE_QUAD_CELLS_PER_ROW)
+    STATIC_ASSERT((SPRITE_QUAD_COLUMN_MASK) >= 0 && (SPRITE_QUAD_COLUMN_MASK) <= 0xFFFF &&
+                      ((SPRITE_QUAD_COLUMN_MASK) & ((SPRITE_QUAD_COLUMN_MASK) + 1)) == 0,
+                  sprite_quad_column_mask_is_contiguous_low_bits);
+#endif
 
     // Project the source translation's low 16 bits without changing its coordinate cache.
     head                                     = SCRATCH_STACK_CURSOR(EffectShapeScratch);
@@ -133,8 +138,9 @@ static void SPRITE_QUAD_FUNC(SPRITE_QUAD_POSITION_SOURCE_TYPE* pos, SPRITE_QUAD_
             // Repeat the strip's column while keeping its texel rows fixed.
             u0 = (frame % (SPRITE_QUAD_CELLS_PER_ROW)) * SPRITE_QUAD_CELL_WIDTH;
 #endif
-#elif defined(SPRITE_QUAD_CELL_MASK)
-            u0 = (frame & SPRITE_QUAD_CELL_MASK) * SPRITE_QUAD_CELL_WIDTH;
+#elif defined(SPRITE_QUAD_COLUMN_MASK)
+            // Wrap the column with low frame bits, including for signed negative frames.
+            u0 = (frame & (SPRITE_QUAD_COLUMN_MASK)) * SPRITE_QUAD_CELL_WIDTH;
 #else
             u0 = frame * SPRITE_QUAD_CELL_WIDTH;
 #endif
@@ -185,7 +191,7 @@ static void SPRITE_QUAD_FUNC(SPRITE_QUAD_POSITION_SOURCE_TYPE* pos, SPRITE_QUAD_
 #undef SPRITE_QUAD_BOTTOM_V
 #undef SPRITE_QUAD_SCALE
 #undef SPRITE_QUAD_OTZ_BIAS
-#undef SPRITE_QUAD_CELL_MASK
+#undef SPRITE_QUAD_COLUMN_MASK
 #undef SPRITE_QUAD_U_BASE
 #undef SPRITE_QUAD_MIN_OTZ
 #undef SPRITE_QUAD_CELL_HEIGHT

@@ -263,7 +263,13 @@ void m4a1HammerGlowTask(Task* task)
 #define SPRITE_QUAD_CLUT getClut(192, 268)
 /// Texel width and horizontal stride of each cell in the charge flare's eight-cell strip.
 #define SPRITE_QUAD_CELL_WIDTH 24
-#define SPRITE_QUAD_CELL_MASK  7
+/// Low three frame bits repeating the charge flare's eight horizontal columns.
+///
+/// The unsigned frame argument takes the halved effect age and selects
+/// U=0..168 in 24-texel steps, with V=0x88..0x9F. The next drawer inclusion
+/// undefines this signed integer constant before the six-column strip is
+/// configured. See `sprite_quad.h` for the column-mask contract.
+#define SPRITE_QUAD_COLUMN_MASK 7
 /// Inclusive top texel row of the charge-flare strip, relative to its texture page.
 ///
 /// Signed integer constant for the next drawer inclusion; see `sprite_quad.h`.
