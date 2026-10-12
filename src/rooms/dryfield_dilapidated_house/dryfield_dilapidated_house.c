@@ -4173,7 +4173,17 @@ static void _dryfieldDilapidatedHouseDrawCurveSamples(Task* task)
 
 #include "../../shared/bezier_curve_evaluate.inc.c"
 
-#define GLOW_DRAW_RING_BEAM_BRIGHTNESS(t) ((_DryfieldDilapidatedHouseMorphWork*)((Task*)(t)->spawnArg2.pointer)->work)->beamLevel
+/// Morph controller's Q12 brightness binding for the capped-beam drawer.
+///
+/// `beamTask` is a live Task* expression, evaluated once; no locals are captured.
+/// Its `spawnArg2.pointer` borrows a live Task with initialized
+/// `_DryfieldDilapidatedHouseMorphWork` at `work`; both must outlive drawing.
+/// Returns the stored s32 beam level, the controller's morph progress (0..4096).
+/// The drawer interprets its signed low halfword as Q12 (4096 is unit brightness),
+/// then narrows RGB without saturation. Define before including
+/// `glow_draw_ring_beam.inc.c`, which undefines it.
+#define GLOW_CAPPED_BEAM_BRIGHTNESS(beamTask) \
+    (((const _DryfieldDilapidatedHouseMorphWork*)((const Task*)(beamTask)->spawnArg2.pointer)->work)->beamLevel)
 /// Halo angle increment for the morph's capped beam, in 4096 units/turn per draw.
 ///
 /// Optional integer configuration for `glow_draw_ring_beam.inc.c`; only this

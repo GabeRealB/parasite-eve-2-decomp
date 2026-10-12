@@ -769,9 +769,18 @@ static TaskMessageEntry _gActor141000AyaBreaMessages[7] = {
 
 static void _actor141000BuildRingBeamPoints(Task* task, SVECTOR screenPoints[ACTOR_141000_BEAM_SCREEN_POINT_COUNT], s32* startDepth, s32* projectionFlags);
 
-#define GLOW_DRAW_RING_BEAM_BRIGHTNESS(t) ((Actor141000CtrlWork*)((Task*)(t)->spawnArg2.pointer)->work)->beamLevel
-#define GLOW_DRAW_RING_BEAM_OT_OFFSET     (-20)
-#define GLOW_DRAW_RING_BEAM_HALO_TPAGE    0xE1000425
+/// Flight controller's Q12 brightness binding for the capped-beam drawer.
+///
+/// `beamTask` is a live Task* expression, evaluated once; no locals are captured.
+/// Its `spawnArg2.pointer` borrows a live Task with initialized
+/// `Actor141000CtrlWork` at `work`; both must outlive drawing. Returns the stored
+/// s32 beam level, fixed at 4095 here. The drawer interprets its signed low
+/// halfword as Q12 (4096 is unit brightness), then narrows RGB without saturation.
+/// Define before including `glow_draw_ring_beam.inc.c`, which undefines it.
+#define GLOW_CAPPED_BEAM_BRIGHTNESS(beamTask) \
+    (((const Actor141000CtrlWork*)((const Task*)(beamTask)->spawnArg2.pointer)->work)->beamLevel)
+#define GLOW_DRAW_RING_BEAM_OT_OFFSET  (-20)
+#define GLOW_DRAW_RING_BEAM_HALO_TPAGE 0xE1000425
 #include "../../shared/glow_draw_ring_beam.inc.c"
 
 /// Builds the attached beam's four six-point screen rings for its core and halo.
