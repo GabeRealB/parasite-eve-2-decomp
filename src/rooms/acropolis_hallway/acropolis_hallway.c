@@ -154,13 +154,19 @@ static s16 _gAcropolisHallwayCollisionGridCells[30] = {
 #include "assets/acropolis_hallway_collision_01010_cells.inc"
 };
 
-/// Binds generated element offsets to this grid's packed face lists.
-#define GRID_CELL(i) (&_gAcropolisHallwayCollisionGridCells[i])
+/// Resolves a generated face-list start in this grid's packed halfword pool.
+///
+/// halfwordOffset counts signed-halfword elements and is evaluated once.
+/// It must select an in-bounds list start in the captured pool.
+/// Captures `_gAcropolisHallwayCollisionGridCells`; returns a borrowed s16* without reading it.
+/// The table include supplies list-start constants; empty cells use NULL.
+/// Define only for that include and undefine immediately afterward.
+#define ACROPOLIS_HALLWAY_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gAcropolisHallwayCollisionGridCells[(halfwordOffset)])
 /// X-major table of the hallway grid's two cells, each borrowing its face list.
 static s16* _gAcropolisHallwayCollisionGridTable[2] = {
 #include "assets/acropolis_hallway_collision_01010_table.inc"
 };
-#undef GRID_CELL
+#undef ACROPOLIS_HALLWAY_CELL_FACE_LIST_AT_OFFSET
 
 /// The hallway's room collision mesh and two-cell XZ index.
 ///

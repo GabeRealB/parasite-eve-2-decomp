@@ -1278,11 +1278,18 @@ static s16 _gAcropolisCafeteriaCollisionGridCells[480] = {
 #include "assets/acropolis_cafeteria_collision_0B1E8_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gAcropolisCafeteriaCollisionGridCells[i])
+/// Resolves a generated face-list start in this grid's packed halfword pool.
+///
+/// halfwordOffset counts signed-halfword elements and is evaluated once.
+/// It must select an in-bounds list start in the captured pool.
+/// Captures `_gAcropolisCafeteriaCollisionGridCells`; returns a borrowed s16* without reading it.
+/// The table include supplies list-start constants; empty cells use NULL.
+/// Define only for that include and undefine immediately afterward.
+#define ACROPOLIS_CAFETERIA_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gAcropolisCafeteriaCollisionGridCells[(halfwordOffset)])
 static s16* _gAcropolisCafeteriaCollisionGridTable[9] = {
 #include "assets/acropolis_cafeteria_collision_0B1E8_table.inc"
 };
-#undef GRID_CELL
+#undef ACROPOLIS_CAFETERIA_CELL_FACE_LIST_AT_OFFSET
 
 STATIC_ASSERT(ARRAY_SIZE(_gAcropolisCafeteriaCollisionGridTable) == ACROPOLIS_CAFETERIA_COLLISION_CELLS_X * ACROPOLIS_CAFETERIA_COLLISION_CELLS_Z, cafeteriaCollisionCellTableSize);
 

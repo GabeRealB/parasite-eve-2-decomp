@@ -1059,19 +1059,19 @@ void neoArkBridgeAmbientEffectsTask(Task* task)
     u32 firstSmokeOptionsState;
     u32 secondSmokeOptionsState;
 
-    /// Tries one smoke site, consuming its parameter roll only on success.
+    /// Attempts one world-space smoke site with a one-in-four emission roll.
     ///
-    /// Captures spawnRollState and the live global random state. optionsState
-    /// must be a side-effect-free u32 lvalue, assigned only after a successful
-    /// one-in-four roll. Use as a standalone block statement inside braces;
-    /// evaluates worldPoint once only on success. The parameter
-    /// roll selects size 512..1023 and a two/three-tick texture period; the base
-    /// selects rising drift. Room-owned point storage stays live for the spawn.
-#define NEO_ARK_BRIDGE_TRY_SPAWN_AMBIENT_SMOKE(worldPoint, optionsState)                                                                                       \
+    /// rollState and optionsState are distinct writable u32 lvalues without
+    /// side effects, evaluated repeatedly. Advances the shared unsigned LCG once,
+    /// and once more on success; optionsState is written only on success.
+    /// Evaluates the borrowed SVECTOR* worldPoint once on success. Uses this
+    /// controller's smoke constants: size 512..1023, two/three ticks per texture
+    /// cell and drifting rise. Keep the room-owned point live for the puff.
+#define NEO_ARK_BRIDGE_TRY_SPAWN_AMBIENT_SMOKE(worldPoint, rollState, optionsState)                                                                            \
     {                                                                                                                                                          \
-        spawnRollState  = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;                                                                      \
-        gRandomLcgState = spawnRollState;                                                                                                                      \
-        if (((spawnRollState >> 16) & NEO_ARK_BRIDGE_SMOKE_CHANCE_MASK) == 0) {                                                                                \
+        (rollState)     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;                                                                      \
+        gRandomLcgState = (rollState);                                                                                                                         \
+        if ((((rollState) >> 16) & NEO_ARK_BRIDGE_SMOKE_CHANCE_MASK) == 0) {                                                                                   \
             (optionsState)  = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;                                                                  \
             gRandomLcgState = (optionsState);                                                                                                                  \
             effectSpawn(EFFECT_SMOKE_PUFF, 0, (((optionsState) >> 16) & NEO_ARK_BRIDGE_SMOKE_JITTER_MASK) | NEO_ARK_BRIDGE_SMOKE_BASE_ARGUMENT, (worldPoint)); \
@@ -1093,8 +1093,8 @@ void neoArkBridgeAmbientEffectsTask(Task* task)
                 if (mappedViewIndex >= NEO_ARK_BRIDGE_FIRST_AMBIENT_VIEW) {
                     if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
                         // Each site consumes its own roll and optional smoke-parameter roll.
-                        NEO_ARK_BRIDGE_TRY_SPAWN_AMBIENT_SMOKE(&_gNeoArkBridgeFirstSmokeSpawnPoint, firstSmokeOptionsState);
-                        NEO_ARK_BRIDGE_TRY_SPAWN_AMBIENT_SMOKE(&_gNeoArkBridgeSecondSmokeSpawnPoint, secondSmokeOptionsState);
+                        NEO_ARK_BRIDGE_TRY_SPAWN_AMBIENT_SMOKE(&_gNeoArkBridgeFirstSmokeSpawnPoint, spawnRollState, firstSmokeOptionsState);
+                        NEO_ARK_BRIDGE_TRY_SPAWN_AMBIENT_SMOKE(&_gNeoArkBridgeSecondSmokeSpawnPoint, spawnRollState, secondSmokeOptionsState);
                     }
                     _neoArkBridgeDrawPulsingRedStar(&_gNeoArkBridgeRedMarkerCentre, NEO_ARK_BRIDGE_MARKER_PULSE_ANGLE_STEP, NEO_ARK_BRIDGE_MARKER_RADIUS_SCALE);
                 }

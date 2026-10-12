@@ -2246,11 +2246,18 @@ static s16 _gAcropolisPlazaCollisionGridCells[192] = {
 #include "assets/acropolis_plaza_collision_1BBC0_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gAcropolisPlazaCollisionGridCells[i])
+/// Resolves a generated face-list start in this grid's packed halfword pool.
+///
+/// halfwordOffset counts signed-halfword elements and is evaluated once.
+/// It must select an in-bounds list start in the captured pool.
+/// Captures `_gAcropolisPlazaCollisionGridCells`; returns a borrowed s16* without reading it.
+/// The table include supplies list-start constants; empty cells use NULL.
+/// Define only for that include and undefine immediately afterward.
+#define ACROPOLIS_PLAZA_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gAcropolisPlazaCollisionGridCells[(halfwordOffset)])
 static s16* _gAcropolisPlazaCollisionGridTable[28] = {
 #include "assets/acropolis_plaza_collision_1BBC0_table.inc"
 };
-#undef GRID_CELL
+#undef ACROPOLIS_PLAZA_CELL_FACE_LIST_AT_OFFSET
 
 /// Plaza collision mesh and its 7-by-4 X-major cell index.
 ///

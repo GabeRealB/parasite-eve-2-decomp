@@ -907,23 +907,27 @@ static void _shelterB3GarbageIncineratorExitEncounterTask(Task* task)
     s32                   weaponId;
     AnimationPlayRequest* requestPointer;
 
-    /// Selects the equipped character bank and clip for the exit-intro request.
+    /// Selects the equipped weapon's character bank and clip 1 for the exit intro.
     ///
     /// Arguments are an AnimationPlayRequest lvalue, an AnimationPlayRequest*
     /// lvalue and two s32 lvalues. They are evaluated repeatedly and must have
-    /// no side effects. Reads the current weapon and live-save character and
-    /// uses this function's exit clip ID; blend/collision remain the caller's choice.
-#define SHELTER_B3_GARBAGE_INCINERATOR_PREPARE_EXIT_INTRO(requestStorage, requestView, weaponIndex, selectedBank) \
-    {                                                                                                             \
-        (requestView) = &(requestStorage);                                                                        \
-        (weaponIndex) = gPlayerStatus.weapon;                                                                     \
-        if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) {                                          \
-            (selectedBank) = (weaponIndex) + SHELTER_B3_GARBAGE_INCINERATOR_PRIMARY_ANIMATION_BANK_BASE;          \
-        } else {                                                                                                  \
-            (selectedBank) = (weaponIndex) + SHELTER_B3_GARBAGE_INCINERATOR_ALTERNATE_ANIMATION_BANK_BASE;        \
-        }                                                                                                         \
-        (requestStorage).source.index = (selectedBank);                                                           \
-        (requestView)->animationId    = SHELTER_B3_GARBAGE_INCINERATOR_EXIT_ANIMATION;                            \
+    /// no side effects and refer to distinct storage; requestView aliases
+    /// requestStorage after the block. Character 1 selects the primary banks,
+    /// all other values the alternate banks. Uses this function's clip constant;
+    /// only source.index and animationId are filled, leaving blend/collision to
+    /// the caller. Weapon and bank outputs remain available after the block.
+#define SHELTER_B3_GARBAGE_INCINERATOR_PREPARE_EXIT_INTRO(requestStorage, requestView, weaponIndex, selectedBank)       \
+    {                                                                                                                   \
+        enum { SHELTER_B3_GARBAGE_INCINERATOR_PRIMARY_CHARACTER = 1 };                                                  \
+        (requestView) = &(requestStorage);                                                                              \
+        (weaponIndex) = gPlayerStatus.weapon;                                                                           \
+        if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == SHELTER_B3_GARBAGE_INCINERATOR_PRIMARY_CHARACTER) { \
+            (selectedBank) = (weaponIndex) + SHELTER_B3_GARBAGE_INCINERATOR_PRIMARY_ANIMATION_BANK_BASE;                \
+        } else {                                                                                                        \
+            (selectedBank) = (weaponIndex) + SHELTER_B3_GARBAGE_INCINERATOR_ALTERNATE_ANIMATION_BANK_BASE;              \
+        }                                                                                                               \
+        (requestStorage).source.index = (selectedBank);                                                                 \
+        (requestView)->animationId    = SHELTER_B3_GARBAGE_INCINERATOR_EXIT_ANIMATION;                                  \
     }
 
     switch (task->state) {

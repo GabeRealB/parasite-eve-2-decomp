@@ -1148,7 +1148,7 @@ objects = [
   { unit = "acropolis_east_elevator_hall/acropolis_east_elevator_hall", rodata = "0x4", text = "0x30", data = "0x26CC" },
   { kind = "animation", at = "0x26E8", sets = ["0x2EB8", "0x7824", "0x8600"], in_c = true },
   { kind = "collision", at = "0x8DB8", in_c = true },
-  { kind = "collisionSource", at = "0x9278", in_c = true },
+  { kind = "collisionSource", at = "0x9278", in_c = true, cell_face_list_macro = "ACROPOLIS_EAST_ELEVATOR_HALL_CELL_FACE_LIST_AT_OFFSET" },
 ]
 
 [rooms.overlays.acropolis_patio]
@@ -1158,7 +1158,7 @@ objects = [
   { kind = "animation", at = "0x172C", sets = ["0x18A0", "0x1B48", "0x1CE4", "0x22B8", "0x2AD0", "0x2CA4"], in_c = true },
   { kind = "animation", at = "0x39F4", sets = ["0x3CD0", "0x4470", "0x494C", "0x4FC8"], in_c = true },
   { kind = "collision", at = "0x5A0C", in_c = true },
-  { kind = "collisionSource", at = "0x6838", in_c = true },
+  { kind = "collisionSource", at = "0x6838", in_c = true, cell_face_list_macro = "ACROPOLIS_PATIO_CELL_FACE_LIST_AT_OFFSET" },
   { unit = "acropolis_patio/acropolis_patio", rodata = "0x4", text = "0x2C", data = "0x172C", bss = "0x9AA0", tail = true },
 ]
 
@@ -1186,7 +1186,7 @@ objects = [
   { kind = "modelSource", at = "0xFFBC", in_c = true },
   { kind = "animation", at = "0x6BDC", sets = ["0x7704"], in_c = true },
   { kind = "collision", at = "0xA0CC", in_c = true },
-  { kind = "collisionSource", at = "0xB1E8", in_c = true },
+  { kind = "collisionSource", at = "0xB1E8", in_c = true, cell_face_list_macro = "ACROPOLIS_CAFETERIA_CELL_FACE_LIST_AT_OFFSET" },
 ]
 
 [rooms.overlays.acropolis_plaza]
@@ -1196,7 +1196,7 @@ objects = [
   { unit = "acropolis_plaza/acropolis_plaza", rodata = "0x4", text = "0x114", data = "0x505C" },
   { kind = "animation", at = "0x144C4", sets = ["0x148BC", "0x156B4", "0x15864", "0x15CC8", "0x15F78", "0x1622C", "0x1643C", "0x16610", "0x168FC", "0x16D00", "0x16EE4", "0x170C0", "0x17298", "0x1754C", "0x17818", "0x17A00", "0x17C68", "0x17E54", "0x17FF4", "0x181CC", "0x183B8", "0x18614", "0x18904", "0x18DE0", "0x18F98", "0x19610", "0x19AD8", "0x19D64", "0x19F7C", "0x1A4F8", "0x1A784", "0x1AAAC", "0x1AE04", "0x1AFA4", "0x1B1F8"], in_c = true },
   { kind = "collision", at = "0x1B4E0", in_c = true },
-  { kind = "collisionSource", at = "0x1BBC0", in_c = true },
+  { kind = "collisionSource", at = "0x1BBC0", in_c = true, cell_face_list_macro = "ACROPOLIS_PLAZA_CELL_FACE_LIST_AT_OFFSET" },
 ]
 
 [rooms.overlays.acropolis_security_room]
@@ -1222,7 +1222,7 @@ objects = [
   { kind = "model", at = "0x17A0", in_c = true },
   { kind = "modelSource", at = "0x229C", in_c = true },
   { kind = "collision", at = "0xD98", in_c = true },
-  { kind = "collisionSource", at = "0x1010", in_c = true },
+  { kind = "collisionSource", at = "0x1010", in_c = true, cell_face_list_macro = "ACROPOLIS_HALLWAY_CELL_FACE_LIST_AT_OFFSET" },
 ]
 
 [rooms.overlays.acropolis_fountain]
@@ -1232,7 +1232,7 @@ objects = [
   { unit = "acropolis_fountain/acropolis_fountain", rodata = "0x4", text = "0x44", data = "0x11A4" },
   { unit = "acropolis_fountain/acropolis_fountain_2", rodata = "0x10", text = "0x45C", data = "0x11E4" },
   { kind = "collision", at = "0x13C0", in_c = true },
-  { kind = "collisionSource", at = "0x204C", in_c = true },
+  { kind = "collisionSource", at = "0x204C", in_c = true, cell_face_list_macro = "ACROPOLIS_FOUNTAIN_CELL_FACE_LIST_AT_OFFSET" },
 ]
 
 [rooms.overlays.acropolis_forked_road]
@@ -1243,7 +1243,7 @@ objects = [
   { unit = "acropolis_forked_road/acropolis_forked_road_2", rodata = "0x10", text = "0x464", data = "0x3984" },
   { kind = "animation", at = "0x4320", sets = ["0x45FC", "0x4A6C"], in_c = true },
   { kind = "collision", at = "0x4DE0", in_c = true },
-  { kind = "collisionSource", at = "0x5630", in_c = true },
+  { kind = "collisionSource", at = "0x5630", in_c = true, cell_face_list_macro = "ACROPOLIS_FORKED_ROAD_CELL_FACE_LIST_AT_OFFSET" },
 ]
 
 [rooms.overlays.acropolis_observatory]
@@ -1255,7 +1255,7 @@ objects = [
   { unit = "acropolis_observatory/acropolis_observatory_3", rodata = "0x3C", text = "0xBDC", data = "0x28A8" },
   { kind = "animation", at = "0x250C", sets = ["0x2878"], in_c = true },
   { kind = "collision", at = "0x2A2C", in_c = true },
-  { kind = "collisionSource", at = "0x3490", in_c = true },
+  { kind = "collisionSource", at = "0x3490", in_c = true, cell_face_list_macro = "ACROPOLIS_OBSERVATORY_CELL_FACE_LIST_AT_OFFSET" },
 ]
 
 [rooms.overlays.acropolis_promenade]
@@ -1268,9 +1268,9 @@ objects = [
   { kind = "model", at = "0x2844", in_c = true },
   { kind = "modelSource", at = "0x3890", in_c = true },
   { kind = "collision", at = "0x4734", in_c = true },
-  { kind = "collisionSource", at = "0x4E1C", in_c = true },
+  { kind = "collisionSource", at = "0x4E1C", in_c = true, cell_face_list_macro = "ACROPOLIS_PROMENADE_CELL_FACE_LIST_AT_OFFSET" },
   { kind = "collision", at = "0x4E40", in_c = true },
-  { kind = "collisionSource", at = "0x5610", in_c = true },
+  { kind = "collisionSource", at = "0x5610", in_c = true, cell_face_list_macro = "ACROPOLIS_PROMENADE_CELL_FACE_LIST_AT_OFFSET" },
 ]
 
 [rooms.overlays.acropolis_sanctuary]
@@ -1300,7 +1300,7 @@ objects = [
   { kind = "animation", at = "0x2C20", sets = ["0x4164", "0x60FC", "0x65F4"], in_c = true },
   { kind = "animation", at = "0x6D70", sets = ["0x704C", "0x74BC"], in_c = true },
   { kind = "collision", at = "0x775C", in_c = true },
-  { kind = "collisionSource", at = "0x7EE4", in_c = true },
+  { kind = "collisionSource", at = "0x7EE4", in_c = true, cell_face_list_macro = "ACROPOLIS_ROOF_GARDEN_CELL_FACE_LIST_AT_OFFSET" },
 ]
 
 [rooms.overlays.acropolis_bridge]
@@ -1314,9 +1314,9 @@ objects = [
   { kind = "modelSource", at = "0xB868", in_c = true },
   { kind = "animation", at = "0x13C00", sets = ["0x13CD8", "0x13DD8", "0x13E48", "0x13F60", "0x13FE0"], in_c = true },
   { kind = "collision", at = "0xC564", in_c = true },
-  { kind = "collisionSource", at = "0xD2DC", in_c = true },
+  { kind = "collisionSource", at = "0xD2DC", in_c = true, cell_face_list_macro = "ACROPOLIS_BRIDGE_CELL_FACE_LIST_AT_OFFSET" },
   { kind = "collision", at = "0xD300", in_c = true },
-  { kind = "collisionSource", at = "0xE0D4", in_c = true },
+  { kind = "collisionSource", at = "0xE0D4", in_c = true, cell_face_list_macro = "ACROPOLIS_BRIDGE_CELL_FACE_LIST_AT_OFFSET" },
 ]
 
 [rooms.overlays.acropolis_fire_escape]
@@ -1325,7 +1325,7 @@ objects = [
   { kind = "packageId" },
   { unit = "acropolis_fire_escape/acropolis_fire_escape", rodata = "0x4", text = "0x110", data = "0x4438", bss = "0x5A80" },
   { kind = "collision", at = "0x48B4", in_c = true },
-  { kind = "collisionSource", at = "0x4CE8", in_c = true },
+  { kind = "collisionSource", at = "0x4CE8", in_c = true, cell_face_list_macro = "ACROPOLIS_FIRE_ESCAPE_CELL_FACE_LIST_AT_OFFSET" },
 ]
 
 [rooms.overlays.acropolis_helicopter_landing_pad]
@@ -1340,7 +1340,7 @@ objects = [
   { kind = "model", at = "0xA828", in_c = true },
   { kind = "modelSource", at = "0xA990", in_c = true },
   { kind = "collision", at = "0x7A34", in_c = true },
-  { kind = "collisionSource", at = "0x83D8", in_c = true },
+  { kind = "collisionSource", at = "0x83D8", in_c = true, cell_face_list_macro = "ACROPOLIS_HELICOPTER_LANDING_PAD_CELL_FACE_LIST_AT_OFFSET" },
 ]
 
 [rooms.overlays.acropolis_west_elevator_hall]
@@ -2211,9 +2211,9 @@ objects = [
   { unit = "mine_mesa/mine_mesa", rodata = "0x4", text = "0xB0", data = "0x4338" },
   { kind = "animation", at = "0x43F4", sets = ["0x46D0", "0x494C", "0x4B54", "0x4ED8", "0x515C", "0x6160", "0x645C", "0x65FC", "0x68E4", "0x6B9C"], in_c = true },
   { kind = "collision", at = "0x8E5C", in_c = true },
-  { kind = "collisionSource", at = "0x8EE4", in_c = true },
+  { kind = "collisionSource", at = "0x8EE4", in_c = true, cell_face_list_macro = "MINE_MESA_CELL_FACE_LIST_AT_OFFSET" },
   { kind = "collision", at = "0x9008", in_c = true },
-  { kind = "collisionSource", at = "0x9A4C", in_c = true },
+  { kind = "collisionSource", at = "0x9A4C", in_c = true, cell_face_list_macro = "MINE_MESA_CELL_FACE_LIST_AT_OFFSET" },
 ]
 
 [rooms.overlays.mine_cavern]

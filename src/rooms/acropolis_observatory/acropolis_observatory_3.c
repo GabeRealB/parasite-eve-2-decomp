@@ -197,12 +197,19 @@ static s16 _gAcropolisObservatoryCollisionGridCells[232] = {
 #include "assets/acropolis_observatory_collision_03490_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gAcropolisObservatoryCollisionGridCells[i])
+/// Resolves a generated face-list start in this grid's packed halfword pool.
+///
+/// halfwordOffset counts signed-halfword elements and is evaluated once.
+/// It must select an in-bounds list start in the captured pool.
+/// Captures `_gAcropolisObservatoryCollisionGridCells`; returns a borrowed s16* without reading it.
+/// The table include supplies list-start constants; empty cells use NULL.
+/// Define only for that include and undefine immediately afterward.
+#define ACROPOLIS_OBSERVATORY_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gAcropolisObservatoryCollisionGridCells[(halfwordOffset)])
 /// X-major 3-by-3 directory of starts in the packed cell face-index lists.
 static s16* _gAcropolisObservatoryCollisionGridTable[9] = {
 #include "assets/acropolis_observatory_collision_03490_table.inc"
 };
-#undef GRID_CELL
+#undef ACROPOLIS_OBSERVATORY_CELL_FACE_LIST_AT_OFFSET
 
 /// Collision mesh shared by both rooms, indexed by a 3-by-3 XZ grid of 4000-unit cells.
 ///

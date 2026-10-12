@@ -78,8 +78,6 @@
 #include "../../shared/glow_draw.h"
 #include "../../shared/streamed_scene.h"
 
-#define MINE_MESA_RAND() ((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16)
-
 // Script arguments shared by the room's head-aim tasks and their controllers.
 enum {
     MINE_MESA_HEAD_AIM_RELEASE               = 0,
@@ -1658,12 +1656,19 @@ static s16 _gMineMesaSceneCollisionTemplateCells[4] = {
 #include "assets/mine_mesa_collision_08EE4_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gMineMesaSceneCollisionTemplateCells[i])
+/// Resolves a generated face-list start in this grid's packed halfword pool.
+///
+/// halfwordOffset counts signed-halfword elements and is evaluated once.
+/// It must select an in-bounds list start in the captured pool.
+/// Captures `_gMineMesaSceneCollisionTemplateCells`; returns a borrowed s16* without reading it.
+/// The table include supplies list-start constants; empty cells use NULL.
+/// Define only for that include and undefine immediately afterward.
+#define MINE_MESA_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gMineMesaSceneCollisionTemplateCells[(halfwordOffset)])
 /// Single XZ cell borrowing the scene template's complete face-index list.
 static s16* _gMineMesaSceneCollisionTemplateTable[1] = {
 #include "assets/mine_mesa_collision_08EE4_table.inc"
 };
-#undef GRID_CELL
+#undef MINE_MESA_CELL_FACE_LIST_AT_OFFSET
 
 /// Local three-face collision mesh restored into the live room grid for scene placement.
 ///
@@ -1760,12 +1765,19 @@ static s16 _gMineMesaCollisionGridCells[348] = {
 #include "assets/mine_mesa_collision_09A4C_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gMineMesaCollisionGridCells[i])
+/// Resolves a generated face-list start in this grid's packed halfword pool.
+///
+/// halfwordOffset counts signed-halfword elements and is evaluated once.
+/// It must select an in-bounds list start in the captured pool.
+/// Captures `_gMineMesaCollisionGridCells`; returns a borrowed s16* without reading it.
+/// The table include supplies list-start constants; empty cells use NULL.
+/// Define only for that include and undefine immediately afterward.
+#define MINE_MESA_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gMineMesaCollisionGridCells[(halfwordOffset)])
 /// X-major directory of Mine Mesa's 4 by 4 collision-cell face lists.
 static s16* _gMineMesaCollisionGridTable[MINE_MESA_COLLISION_GRID_AXIS_CELL_COUNT * MINE_MESA_COLLISION_GRID_AXIS_CELL_COUNT] = {
 #include "assets/mine_mesa_collision_09A4C_table.inc"
 };
-#undef GRID_CELL
+#undef MINE_MESA_CELL_FACE_LIST_AT_OFFSET
 
 /// Mine Mesa's mutable room collision grid and mesh pools.
 ///
@@ -4615,6 +4627,13 @@ void mineMesaBuildWalls(s32 height)
 /// final battle release without crediting rewards, and advances to teardown.
 static void _mineMesaSpawnEnemyWaveState(Task* task)
 {
+    /// Draws one unsigned 16-bit sample from the shared random sequence.
+    ///
+    /// Advances `gRandomLcgState` once using unsigned modulo-2^32 arithmetic,
+    /// then returns its upper halfword as u32 (0..65535). Each expansion
+    /// mutates the resident state; preserve ordering with other random draws.
+#define MINE_MESA_RANDOM_WORD() ((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16)
+
     enum { MESA_LEAP_TUNING_ZERO       = (3 << 16) | 2,
            SPAWN_COOLDOWN_TICKS        = 80,
            TEXTURE_DEBUG_DEMO          = 10,
@@ -4692,28 +4711,29 @@ static void _mineMesaSpawnEnemyWaveState(Task* task)
         // Keep the same LCG draws, including the two draws used by view 4.
         switch (viewGetMappedIndex() & 0xFF) {
             case VIEW_SPAWN_POINTS_123:
-                spawnPointIndex = MINE_MESA_RAND() % 3 + 1;
+                spawnPointIndex = MINE_MESA_RANDOM_WORD() % 3 + 1;
                 break;
             case VIEW_FIRST_SPAWN_POINTS_23:
-                spawnPointIndex = (MINE_MESA_RAND() & 1) | 2;
+                spawnPointIndex = (MINE_MESA_RANDOM_WORD() & 1) | 2;
                 break;
             case VIEW_SPAWN_POINTS_012:
-                spawnPointIndex = ((MINE_MESA_RAND() & 1) == 0) * 2;
-                secondRandomBit = MINE_MESA_RAND() & 1;
+                spawnPointIndex = ((MINE_MESA_RANDOM_WORD() & 1) == 0) * 2;
+                secondRandomBit = MINE_MESA_RANDOM_WORD() & 1;
                 if (secondRandomBit == 1) {
                     spawnPointIndex = secondRandomBit;
                 }
                 break;
             case VIEW_SPAWN_POINTS_01:
-                spawnPointIndex = MINE_MESA_RAND() & 1;
+                spawnPointIndex = MINE_MESA_RANDOM_WORD() & 1;
                 break;
             case VIEW_SECOND_SPAWN_POINTS_23:
-                spawnPointIndex = (MINE_MESA_RAND() & 1) | 2;
+                spawnPointIndex = (MINE_MESA_RANDOM_WORD() & 1) | 2;
                 break;
             default:
-                spawnPointIndex = MINE_MESA_RAND() & 3;
+                spawnPointIndex = MINE_MESA_RANDOM_WORD() & 3;
                 break;
         }
+#undef MINE_MESA_RANDOM_WORD
         spawnPoints                                                           = _gMineMesaWaveSpawnPoints;
         spawnPoint                                                            = &spawnPoints[(s16)spawnPointIndex];
         _gMineMesaWaveEnemies[slotIndex]->task->extra.tmd->coords->coord.t[0] = spawnPoint->x;

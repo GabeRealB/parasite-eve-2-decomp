@@ -1292,13 +1292,19 @@ static s16 _gAcropolisPatioCollisionGridCells[402] = {
 #include "assets/acropolis_patio_collision_06838_cells.inc"
 };
 
-// Bind the generated directory's constant element offsets to the face-index pool.
-#define GRID_CELL(i) (&_gAcropolisPatioCollisionGridCells[i])
+/// Resolves a generated face-list start in this grid's packed halfword pool.
+///
+/// halfwordOffset counts signed-halfword elements and is evaluated once.
+/// It must select an in-bounds list start in the captured pool.
+/// Captures `_gAcropolisPatioCollisionGridCells`; returns a borrowed s16* without reading it.
+/// The table include supplies list-start constants; empty cells use NULL.
+/// Define only for that include and undefine immediately afterward.
+#define ACROPOLIS_PATIO_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gAcropolisPatioCollisionGridCells[(halfwordOffset)])
 /// X-major cell directory of `_gAcropolisPatioCollisionGrid`; NULL cells are empty.
 static s16* _gAcropolisPatioCollisionGridTable[ACROPOLIS_PATIO_GRID_CELLS_X * ACROPOLIS_PATIO_GRID_CELLS_Z] = {
 #include "assets/acropolis_patio_collision_06838_table.inc"
 };
-#undef GRID_CELL
+#undef ACROPOLIS_PATIO_CELL_FACE_LIST_AT_OFFSET
 
 /// Collision mesh shared by all three patio rooms, with 4000-unit square XZ cells.
 ///

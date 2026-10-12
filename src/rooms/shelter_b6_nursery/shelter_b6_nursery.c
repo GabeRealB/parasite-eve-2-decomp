@@ -1416,12 +1416,15 @@ void shelterB6NurseryViewEffectsTask(Task* task)
 
 void shelterB6NurseryDebrisChunkTask(Task* task)
 {
-    /// Advances a debris coordinate by its speed-scaled Q12 direction.
+    /// Adds one speed-scaled Q12 direction step to the debris's local translation.
     ///
-    /// Arguments must be side-effect-free pointers, evaluated repeatedly.
-    /// Requires distinct live coordinate, work and output storage; the GTE
-    /// narrows the displacement to signed-halfword coordinate units. The
-    /// caller invalidates composition. Invoke inside a braced block only.
+    /// coordNode, effectWork and displacementOut are stable GfxCoord*, EffectWork*
+    /// and writable SVECTOR* arguments with distinct storage. Evaluated repeatedly.
+    /// scale is whole parent-coordinate units per tick; move is a signed Q12
+    /// direction. GPF12 narrows/saturates their product to signed-halfword XYZ,
+    /// writes the displacement for collision rollback, then adds it to the root's
+    /// full-width XYZ. Clobbers GTE vector/product state; leaves pad and composition
+    /// stamp unchanged. The caller marks composition dirty before probing/retrying.
 #define SHELTER_B6_NURSERY_INTEGRATE_DEBRIS_MOTION(coordNode, effectWork, displacementOut) \
     {                                                                                      \
         gte_lddp((effectWork)->scale);                                                     \

@@ -979,13 +979,19 @@ enum {
     ACROPOLIS_HELICOPTER_LANDING_PAD_COLLISION_CELL_COUNT_Z = 6,
 };
 
-// The generated table supplies side-effect-free halfword offsets into the cell lists.
-#define GRID_CELL(i) (&_gAcropolisHelicopterLandingPadCollisionGridCells[i])
+/// Resolves a generated face-list start in this grid's packed halfword pool.
+///
+/// halfwordOffset counts signed-halfword elements and is evaluated once.
+/// It must select an in-bounds list start in the captured pool.
+/// Captures `_gAcropolisHelicopterLandingPadCollisionGridCells`; returns a borrowed s16* without reading it.
+/// The table include supplies list-start constants; empty cells use NULL.
+/// Define only for that include and undefine immediately afterward.
+#define ACROPOLIS_HELICOPTER_LANDING_PAD_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gAcropolisHelicopterLandingPadCollisionGridCells[(halfwordOffset)])
 /// X-major 6-by-6 directory of borrowed, terminated face-index lists.
 static s16* _gAcropolisHelicopterLandingPadCollisionGridTable[ACROPOLIS_HELICOPTER_LANDING_PAD_COLLISION_CELL_COUNT_X * ACROPOLIS_HELICOPTER_LANDING_PAD_COLLISION_CELL_COUNT_Z] = {
 #include "assets/acropolis_helicopter_landing_pad_collision_083D8_table.inc"
 };
-#undef GRID_CELL
+#undef ACROPOLIS_HELICOPTER_LANDING_PAD_CELL_FACE_LIST_AT_OFFSET
 
 /// Room collision mesh and XZ cell index for the helipad, lower floor and exit stairs.
 ///

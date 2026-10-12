@@ -444,12 +444,19 @@ static s16 _gAcropolisPromenadeRoom1CollisionGridCells[144] = {
 #include "assets/acropolis_promenade_collision_04E1C_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gAcropolisPromenadeRoom1CollisionGridCells[i])
+/// Resolves a generated face-list start in this grid's packed halfword pool.
+///
+/// halfwordOffset counts signed-halfword elements and is evaluated once.
+/// It must select an in-bounds list start in the captured pool.
+/// Captures `_gAcropolisPromenadeRoom1CollisionGridCells`; returns a borrowed s16* without reading it.
+/// The table include supplies list-start constants; empty cells use NULL.
+/// Define only for that include and undefine immediately afterward.
+#define ACROPOLIS_PROMENADE_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gAcropolisPromenadeRoom1CollisionGridCells[(halfwordOffset)])
 /// Room 1 grid's ten cell lists, indexed as x * 5 + z.
 static s16* _gAcropolisPromenadeRoom1CollisionGridTable[10] = {
 #include "assets/acropolis_promenade_collision_04E1C_table.inc"
 };
-#undef GRID_CELL
+#undef ACROPOLIS_PROMENADE_CELL_FACE_LIST_AT_OFFSET
 
 /// Mutable collision grid for promenade room 1, bound to the view on activation.
 ///
@@ -489,12 +496,19 @@ static s16 _gAcropolisPromenadeRoom2CollisionGridCells[172] = {
 #include "assets/acropolis_promenade_collision_05610_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gAcropolisPromenadeRoom2CollisionGridCells[i])
+/// Resolves a generated face-list start in this grid's packed halfword pool.
+///
+/// halfwordOffset counts signed-halfword elements and is evaluated once.
+/// It must select an in-bounds list start in the captured pool.
+/// Captures `_gAcropolisPromenadeRoom2CollisionGridCells`; returns a borrowed s16* without reading it.
+/// The table include supplies list-start constants; empty cells use NULL.
+/// Define only for that include and undefine immediately afterward.
+#define ACROPOLIS_PROMENADE_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gAcropolisPromenadeRoom2CollisionGridCells[(halfwordOffset)])
 /// Room 2 grid's ten cell lists, indexed as x * 5 + z.
 static s16* _gAcropolisPromenadeRoom2CollisionGridTable[10] = {
 #include "assets/acropolis_promenade_collision_05610_table.inc"
 };
-#undef GRID_CELL
+#undef ACROPOLIS_PROMENADE_CELL_FACE_LIST_AT_OFFSET
 
 /// Mutable collision grid for promenade room 2, bound to the view on activation.
 ///

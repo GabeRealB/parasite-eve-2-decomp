@@ -2826,12 +2826,15 @@ void shelterR48LargeOrbTask(Task* task)
 
 void shelterR48YellowRingFlashTask(Task* task)
 {
-    /// Draws both yellow discs and leaves their tint in three writable RGB bytes.
+    /// Draws additive yellow discs at the saved radius and twice its low halfword.
     ///
-    /// Arguments must be live object pointers and a writable three-byte array,
-    /// disjoint from both objects. Expanded repeatedly: pass simple variables
-    /// without side effects. Requires composed coordinates, scratch and primitive
-    /// capacity. Expands to a compound statement; radius keeps its signed low halfword.
+    /// coord is a composed GfxCoord*, work a live EffectWork* and rgb a writable
+    /// three-byte buffer disjoint from both. Arguments are evaluated repeatedly;
+    /// pass stable pointers without side effects. scale is brightness and angle
+    /// stores a radius in coordinate units: tint is (scale,scale,scale/4), narrowed
+    /// to bytes after the signed shift. Doubling wraps through u16 then s16;
+    /// both draws use signed-halfword radii. Leaves rgb for the caller's tint/band
+    /// drawing. Requires scratch and frame arena space for both disc packet sets.
 #define SHELTER_R48_DRAW_YELLOW_FLASH_DISCS(coord, work, rgb)                 \
     {                                                                         \
         (rgb)[0] = (work)->scale;                                             \
@@ -3543,12 +3546,15 @@ static void _shelterR48DrawAlternateDriftSprite(const GfxCoord* coord, u16 frame
 
 void shelterR48OrangeRingFlashTask(Task* task)
 {
-    /// Draws both orange discs and leaves their tint in three writable RGB bytes.
+    /// Draws additive orange discs at the saved radius and twice its low halfword.
     ///
-    /// Arguments must be live object pointers and a writable three-byte array,
-    /// disjoint from both objects. Expanded repeatedly: pass simple variables
-    /// without side effects. Requires composed coordinates, scratch and primitive
-    /// capacity. Expands to a compound statement; radius keeps its signed low halfword.
+    /// coord is a composed GfxCoord*, work a live EffectWork* and rgb a writable
+    /// three-byte buffer disjoint from both. Arguments are evaluated repeatedly;
+    /// pass stable pointers without side effects. scale is brightness and angle
+    /// stores a radius in coordinate units: tint is (scale,scale/2,scale/4), narrowed
+    /// to bytes after signed shifts. Doubling wraps through u16 then s16;
+    /// both draws use signed-halfword radii. Leaves rgb for the caller's tint/band
+    /// drawing. Requires scratch and frame arena space for both disc packet sets.
 #define SHELTER_R48_DRAW_ORANGE_FLASH_DISCS(coord, work, rgb)                 \
     {                                                                         \
         (rgb)[0] = (work)->scale;                                             \

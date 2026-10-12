@@ -1587,78 +1587,94 @@ void shelterB1SterilizationRoomEffectsTask(Task* task)
     };
     GfxCoord* coord;
 
-    s32 ringAngle;
     s32 sourceGroup;
     s32 directionGroup;
     s32 sourceIndex;
 
-    /// Samples one ring for two smoke centres, then emits an independently blended puff at each.
+    /// Emits one smoke puff at each of two floor rings, sharing their sampled angle/radius.
     ///
-    /// Captures ringAngle, the room geometry's smokePoints and controller constants.
-    /// parentCoord must be a stable, side-effect-free GfxCoord*: evaluated twice.
-    /// Expands declarations/statements in an otherwise empty braced block. Each puff
-    /// independently chooses additive or subtractive blending; random draw order matters.
-#define SHELTER_B1_STERILIZATION_ROOM_EMIT_PAIRED_RING_SMOKE(parentCoord)                                            \
-    u32      randomState;                                                                                            \
-    u32      randomHigh;                                                                                             \
-    u32      shiftedRandomHigh;                                                                                      \
-    s16      ringRadius;                                                                                             \
-    SVECTOR* firstSmokePoint;                                                                                        \
-    SVECTOR* secondSmokePoint;                                                                                       \
-    firstSmokePoint      = &_gShelterB1SterilizationRoomEffectGeometry.smokePoints[0];                               \
-    secondSmokePoint     = &_gShelterB1SterilizationRoomEffectGeometry.smokePoints[1];                               \
-    randomHigh           = (gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16; \
-    shiftedRandomHigh    = randomHigh << 16;                                                                         \
-    ringAngle            = shiftedRandomHigh >> 16;                                                                  \
-    ringAngle           &= (GLOW_FULL_TURN - 1);                                                                     \
-    randomState          = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;                           \
-    gRandomLcgState      = randomState;                                                                              \
-    randomHigh           = (randomState >> 16) & SHELTER_B1_STERILIZATION_ROOM_EFFECTS_RING_RADIUS_MASK;             \
-    ringRadius           = randomHigh + SHELTER_B1_STERILIZATION_ROOM_EFFECTS_RING_RADIUS_MIN;                       \
-    firstSmokePoint->vx  = ((ringRadius * rcos(ringAngle)) >> GLOW_TRIG_SHIFT) + 0x5DC;                              \
-    firstSmokePoint->vy  = 0;                                                                                        \
-    firstSmokePoint->vz  = ((ringRadius * rsin((s16)ringAngle)) >> GLOW_TRIG_SHIFT) + 0xBB8;                         \
-    secondSmokePoint->vx = ((ringRadius * rcos(ringAngle)) >> GLOW_TRIG_SHIFT) + 0x157C;                             \
-    secondSmokePoint->vy = 0;                                                                                        \
-    secondSmokePoint->vz = ((ringRadius * rsin((s16)ringAngle)) >> GLOW_TRIG_SHIFT) + 0x7D0;                         \
-    effectSpawn(EFFECT_SMOKE_PUFF, (parentCoord),                                                                    \
-                ((((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 1)    \
-                 << SHELTER_B1_STERILIZATION_ROOM_EFFECTS_SMOKE_BLEND_VARIANT_SHIFT) |                               \
-                    SHELTER_B1_STERILIZATION_ROOM_EFFECTS_SMOKE_PARAMETERS,                                          \
-                firstSmokePoint);                                                                                    \
-    effectSpawn(EFFECT_SMOKE_PUFF, (parentCoord),                                                                    \
-                ((((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 1)    \
-                 << SHELTER_B1_STERILIZATION_ROOM_EFFECTS_SMOKE_BLEND_VARIANT_SHIFT) |                               \
-                    SHELTER_B1_STERILIZATION_ROOM_EFFECTS_SMOKE_PARAMETERS,                                          \
-                secondSmokePoint);
+    /// Uses mutable room-owned smokePoints and this controller's particle constants.
+    /// Draws angle, radius, then two blend choices from the unsigned shared LCG.
+    /// Angle is 0..4095 units/turn, radius 256..767 parent-coordinate units;
+    /// centres are XZ (1500,3000) and (5500,2000), both at Y=0. Q12 trig results
+    /// narrow to s16 XYZ. The paired points use separate additive/subtractive rolls.
+    /// parentCoord is a live, side-effect-free GfxCoord*, evaluated twice. Spawning
+    /// snapshots XYZ; retain the room geometry and parent for the puffs' lifetime.
+    /// Expands to a compound statement with private temporaries.
+#define SHELTER_B1_STERILIZATION_ROOM_EMIT_PAIRED_RING_SMOKE(parentCoord)                                                                     \
+    {                                                                                                                                         \
+        enum { SHELTER_B1_STERILIZATION_ROOM_SECOND_RING_CENTER_X = 5500,                                                                     \
+               SHELTER_B1_STERILIZATION_ROOM_SECOND_RING_CENTER_Z = 2000,                                                                     \
+               SHELTER_B1_STERILIZATION_ROOM_FIRST_RING_CENTER_X  = 1500,                                                                     \
+               SHELTER_B1_STERILIZATION_ROOM_FIRST_RING_CENTER_Z  = 3000 };                                                                    \
+        s32      ringAngle;                                                                                                                   \
+        u32      randomState;                                                                                                                 \
+        u32      randomHigh;                                                                                                                  \
+        s16      ringRadius;                                                                                                                  \
+        SVECTOR* firstSmokePoint;                                                                                                             \
+        SVECTOR* secondSmokePoint;                                                                                                            \
+        firstSmokePoint      = &_gShelterB1SterilizationRoomEffectGeometry.smokePoints[0];                                                    \
+        secondSmokePoint     = &_gShelterB1SterilizationRoomEffectGeometry.smokePoints[1];                                                    \
+        randomHigh           = (gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16;                      \
+        ringAngle            = (randomHigh << 16) >> 16;                                                                                      \
+        ringAngle           &= (GLOW_FULL_TURN - 1);                                                                                          \
+        randomState          = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;                                                \
+        gRandomLcgState      = randomState;                                                                                                   \
+        randomHigh           = (randomState >> 16) & SHELTER_B1_STERILIZATION_ROOM_EFFECTS_RING_RADIUS_MASK;                                  \
+        ringRadius           = randomHigh + SHELTER_B1_STERILIZATION_ROOM_EFFECTS_RING_RADIUS_MIN;                                            \
+        firstSmokePoint->vx  = ((ringRadius * rcos(ringAngle)) >> GLOW_TRIG_SHIFT) + SHELTER_B1_STERILIZATION_ROOM_FIRST_RING_CENTER_X;       \
+        firstSmokePoint->vy  = 0;                                                                                                             \
+        firstSmokePoint->vz  = ((ringRadius * rsin((s16)ringAngle)) >> GLOW_TRIG_SHIFT) + SHELTER_B1_STERILIZATION_ROOM_FIRST_RING_CENTER_Z;  \
+        secondSmokePoint->vx = ((ringRadius * rcos(ringAngle)) >> GLOW_TRIG_SHIFT) + SHELTER_B1_STERILIZATION_ROOM_SECOND_RING_CENTER_X;      \
+        secondSmokePoint->vy = 0;                                                                                                             \
+        secondSmokePoint->vz = ((ringRadius * rsin((s16)ringAngle)) >> GLOW_TRIG_SHIFT) + SHELTER_B1_STERILIZATION_ROOM_SECOND_RING_CENTER_Z; \
+        effectSpawn(EFFECT_SMOKE_PUFF, (parentCoord),                                                                                         \
+                    ((((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 1)                         \
+                     << SHELTER_B1_STERILIZATION_ROOM_EFFECTS_SMOKE_BLEND_VARIANT_SHIFT) |                                                    \
+                        SHELTER_B1_STERILIZATION_ROOM_EFFECTS_SMOKE_PARAMETERS,                                                               \
+                    firstSmokePoint);                                                                                                         \
+        effectSpawn(EFFECT_SMOKE_PUFF, (parentCoord),                                                                                         \
+                    ((((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 1)                         \
+                     << SHELTER_B1_STERILIZATION_ROOM_EFFECTS_SMOKE_BLEND_VARIANT_SHIFT) |                                                    \
+                        SHELTER_B1_STERILIZATION_ROOM_EFFECTS_SMOKE_PARAMETERS,                                                               \
+                    secondSmokePoint);                                                                                                        \
+    }
 
-    /// Samples and emits smoke only at the second centre, with one random blend choice.
+    /// Emits one smoke puff at the second floor ring, centred at XZ (5500,2000).
     ///
-    /// Shares the paired operation's captures and braced-block requirement.
-    /// parentCoord is evaluated once and must be a stable GfxCoord*.
-#define SHELTER_B1_STERILIZATION_ROOM_EMIT_SECOND_RING_SMOKE(parentCoord)                                            \
-    u32      randomState;                                                                                            \
-    u32      randomHigh;                                                                                             \
-    u32      shiftedRandomHigh;                                                                                      \
-    s16      ringRadius;                                                                                             \
-    SVECTOR* secondSmokePoint;                                                                                       \
-    secondSmokePoint     = &_gShelterB1SterilizationRoomEffectGeometry.smokePoints[1];                               \
-    randomHigh           = (gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16; \
-    shiftedRandomHigh    = randomHigh << 16;                                                                         \
-    ringAngle            = shiftedRandomHigh >> 16;                                                                  \
-    ringAngle           &= (GLOW_FULL_TURN - 1);                                                                     \
-    randomState          = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;                           \
-    gRandomLcgState      = randomState;                                                                              \
-    randomHigh           = (randomState >> 16) & SHELTER_B1_STERILIZATION_ROOM_EFFECTS_RING_RADIUS_MASK;             \
-    ringRadius           = randomHigh + SHELTER_B1_STERILIZATION_ROOM_EFFECTS_RING_RADIUS_MIN;                       \
-    secondSmokePoint->vx = ((ringRadius * rcos(ringAngle)) >> GLOW_TRIG_SHIFT) + 0x157C;                             \
-    secondSmokePoint->vy = 0;                                                                                        \
-    secondSmokePoint->vz = ((ringRadius * rsin((s16)ringAngle)) >> GLOW_TRIG_SHIFT) + 0x7D0;                         \
-    effectSpawn(EFFECT_SMOKE_PUFF, (parentCoord),                                                                    \
-                ((((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 1)    \
-                 << SHELTER_B1_STERILIZATION_ROOM_EFFECTS_SMOKE_BLEND_VARIANT_SHIFT) |                               \
-                    SHELTER_B1_STERILIZATION_ROOM_EFFECTS_SMOKE_PARAMETERS,                                          \
-                secondSmokePoint);
+    /// Draws angle, radius and blend in that order from the shared unsigned LCG.
+    /// Uses the room-owned smokePoints[1] and this controller's particle constants.
+    /// Angle is 0..4095 units/turn, radius 256..767 parent-coordinate units, Y=0;
+    /// Q12 trig results narrow to s16 XYZ. Blend is additive or subtractive.
+    /// Evaluates the live GfxCoord* parentCoord once. Spawning snapshots XYZ;
+    /// retain the room geometry and parent for the puff's lifetime. Expands to
+    /// a compound statement with private temporaries.
+#define SHELTER_B1_STERILIZATION_ROOM_EMIT_SECOND_RING_SMOKE(parentCoord)                                                                     \
+    {                                                                                                                                         \
+        enum { SHELTER_B1_STERILIZATION_ROOM_SECOND_RING_CENTER_X = 5500,                                                                     \
+               SHELTER_B1_STERILIZATION_ROOM_SECOND_RING_CENTER_Z = 2000 };                                                                   \
+        s32      ringAngle;                                                                                                                   \
+        u32      randomState;                                                                                                                 \
+        u32      randomHigh;                                                                                                                  \
+        s16      ringRadius;                                                                                                                  \
+        SVECTOR* secondSmokePoint;                                                                                                            \
+        secondSmokePoint     = &_gShelterB1SterilizationRoomEffectGeometry.smokePoints[1];                                                    \
+        randomHigh           = (gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16;                      \
+        ringAngle            = (randomHigh << 16) >> 16;                                                                                      \
+        ringAngle           &= (GLOW_FULL_TURN - 1);                                                                                          \
+        randomState          = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;                                                \
+        gRandomLcgState      = randomState;                                                                                                   \
+        randomHigh           = (randomState >> 16) & SHELTER_B1_STERILIZATION_ROOM_EFFECTS_RING_RADIUS_MASK;                                  \
+        ringRadius           = randomHigh + SHELTER_B1_STERILIZATION_ROOM_EFFECTS_RING_RADIUS_MIN;                                            \
+        secondSmokePoint->vx = ((ringRadius * rcos(ringAngle)) >> GLOW_TRIG_SHIFT) + SHELTER_B1_STERILIZATION_ROOM_SECOND_RING_CENTER_X;      \
+        secondSmokePoint->vy = 0;                                                                                                             \
+        secondSmokePoint->vz = ((ringRadius * rsin((s16)ringAngle)) >> GLOW_TRIG_SHIFT) + SHELTER_B1_STERILIZATION_ROOM_SECOND_RING_CENTER_Z; \
+        effectSpawn(EFFECT_SMOKE_PUFF, (parentCoord),                                                                                         \
+                    ((((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 1)                         \
+                     << SHELTER_B1_STERILIZATION_ROOM_EFFECTS_SMOKE_BLEND_VARIANT_SHIFT) |                                                    \
+                        SHELTER_B1_STERILIZATION_ROOM_EFFECTS_SMOKE_PARAMETERS,                                                               \
+                    secondSmokePoint);                                                                                                        \
+    }
 
     coord = task->extra.coordBody->coord;
 

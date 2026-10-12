@@ -1192,19 +1192,22 @@ static void _shelterB4WaterSupplyFirstValveDepartureTask(Task* task)
 
 /// Resolves the first valve departure's selectors without copying other message bytes.
 ///
-/// Captures the local destination message, resolveDestination callback and ROOM_EVENT_EXECUTE.
-/// departure must be a stable writable RoomDeparture lvalue, evaluated six times.
-/// Initializes only area/warp/room/queryOnly, dispatches an aliased request/reply,
-/// then narrows area back to a byte. Use as a statement inside a braced block.
-#define SHELTER_B4_WATER_SUPPLY_RESOLVE_FIRST_VALVE_DESTINATION(departure) \
-    destination.areaId    = (departure).area;                              \
-    destination.warp      = (departure).warp;                              \
-    destination.room      = (departure).room;                              \
-    destination.queryOnly = ROOM_EVENT_EXECUTE;                            \
-    resolveDestination(&destination, &destination);                        \
-    (departure).area = destination.areaId;                                 \
-    (departure).warp = destination.warp;                                   \
-    (departure).room = destination.room;
+/// departure and destinationMessage are distinct writable RoomDeparture and
+/// RoomEventMsg lvalues, evaluated repeatedly; pass side-effect-free storage.
+/// resolver is a RoomVariantResolver evaluated once and must accept an aliased
+/// request/reply with only area/warp/room/queryOnly initialized. Copies the resolved
+/// selectors back, narrowing area to a byte; other departure fields stay intact.
+#define SHELTER_B4_WATER_SUPPLY_RESOLVE_FIRST_VALVE_DESTINATION(departure, destinationMessage, resolver) \
+    {                                                                                                    \
+        (destinationMessage).areaId    = (departure).area;                                               \
+        (destinationMessage).warp      = (departure).warp;                                               \
+        (destinationMessage).room      = (departure).room;                                               \
+        (destinationMessage).queryOnly = ROOM_EVENT_EXECUTE;                                             \
+        (resolver)(&(destinationMessage), &(destinationMessage));                                        \
+        (departure).area = (destinationMessage).areaId;                                                  \
+        (departure).warp = (destinationMessage).warp;                                                    \
+        (departure).room = (destinationMessage).room;                                                    \
+    }
 
     if (capIsBusy() == 0) {
         resolveDestination = _shelterB4WaterSupplyResolveWaterHoleVariant;
@@ -1215,7 +1218,7 @@ static void _shelterB4WaterSupplyFirstValveDepartureTask(Task* task)
         departure.sndEvent = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B4_WATER_SUPPLY, DEPARTURE_SOUND_SCRIPT);
         departure.facing   = ACTOR_TRANSFORM_ANGLE_TURN / 4;
         playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-        SHELTER_B4_WATER_SUPPLY_RESOLVE_FIRST_VALVE_DESTINATION(departure);
+        SHELTER_B4_WATER_SUPPLY_RESOLVE_FIRST_VALVE_DESTINATION(departure, destination, resolveDestination);
         gRoomDeparture = departure;
         taskSpawnFromTable(&_gShelterB4WaterSupplyWaterHoleDepartureTaskDesc, 0, 0, 0);
         if (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != NULL && gameFlagGetNibble(GAME_FLAG_0CF) == 0) {

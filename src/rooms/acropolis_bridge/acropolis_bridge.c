@@ -1008,12 +1008,19 @@ static s16 _gAcropolisBridgeRoom1CollisionCells[274] = {
 #include "assets/acropolis_bridge_collision_0D2DC_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gAcropolisBridgeRoom1CollisionCells[i])
+/// Resolves a generated face-list start in this grid's packed halfword pool.
+///
+/// halfwordOffset counts signed-halfword elements and is evaluated once.
+/// It must select an in-bounds list start in the captured pool.
+/// Captures `_gAcropolisBridgeRoom1CollisionCells`; returns a borrowed s16* without reading it.
+/// The table include supplies list-start constants; empty cells use NULL.
+/// Define only for that include and undefine immediately afterward.
+#define ACROPOLIS_BRIDGE_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gAcropolisBridgeRoom1CollisionCells[(halfwordOffset)])
 /// X-major 5-by-5 directory into the room-1 grid's face-index lists.
 static s16* _gAcropolisBridgeRoom1CollisionTable[25] = {
 #include "assets/acropolis_bridge_collision_0D2DC_table.inc"
 };
-#undef GRID_CELL
+#undef ACROPOLIS_BRIDGE_CELL_FACE_LIST_AT_OFFSET
 
 /// Collision mesh and XZ cell index selected for bridge room 1.
 ///
@@ -1053,17 +1060,19 @@ static s16 _gAcropolisBridgeRoom2CollisionCells[274] = {
 #include "assets/acropolis_bridge_collision_0E0D4_cells.inc"
 };
 
-/// Resolves one asset table entry's cell-list offset in signed-halfword elements.
+/// Resolves a generated face-list start in this grid's packed halfword pool.
 ///
-/// The generated table include requires GRID_CELL to be defined. Its argument
-/// is evaluated once as an array index into the 274-entry room-2 cell pool;
-/// undefine the binding immediately after the include.
-#define GRID_CELL(i) (&_gAcropolisBridgeRoom2CollisionCells[i])
+/// halfwordOffset counts signed-halfword elements and is evaluated once.
+/// It must select an in-bounds list start in the captured pool.
+/// Captures `_gAcropolisBridgeRoom2CollisionCells`; returns a borrowed s16* without reading it.
+/// The table include supplies list-start constants; empty cells use NULL.
+/// Define only for that include and undefine immediately afterward.
+#define ACROPOLIS_BRIDGE_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gAcropolisBridgeRoom2CollisionCells[(halfwordOffset)])
 /// X-major 5-by-5 directory into the room-2 grid's face-index lists.
 static s16* _gAcropolisBridgeRoom2CollisionTable[25] = {
 #include "assets/acropolis_bridge_collision_0E0D4_table.inc"
 };
-#undef GRID_CELL
+#undef ACROPOLIS_BRIDGE_CELL_FACE_LIST_AT_OFFSET
 
 /// Collision mesh and XZ cell index selected for bridge room 2.
 ///

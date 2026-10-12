@@ -283,13 +283,19 @@ static s16 _gAcropolisFireEscapeCollisionGridCells[122] = {
 #include "assets/acropolis_fire_escape_collision_04CE8_cells.inc"
 };
 
-// Bind the generated table's offsets to the matching face-index storage.
-#define GRID_CELL(i) (&_gAcropolisFireEscapeCollisionGridCells[i])
+/// Resolves a generated face-list start in this grid's packed halfword pool.
+///
+/// halfwordOffset counts signed-halfword elements and is evaluated once.
+/// It must select an in-bounds list start in the captured pool.
+/// Captures `_gAcropolisFireEscapeCollisionGridCells`; returns a borrowed s16* without reading it.
+/// The table include supplies list-start constants; empty cells use NULL.
+/// Define only for that include and undefine immediately afterward.
+#define ACROPOLIS_FIRE_ESCAPE_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gAcropolisFireEscapeCollisionGridCells[(halfwordOffset)])
 /// X-major 3-by-3 cell table, borrowing the packed face-index lists.
 static s16* _gAcropolisFireEscapeCollisionGridTable[9] = {
 #include "assets/acropolis_fire_escape_collision_04CE8_table.inc"
 };
-#undef GRID_CELL
+#undef ACROPOLIS_FIRE_ESCAPE_CELL_FACE_LIST_AT_OFFSET
 
 /// Fire escape's collision mesh and 3-by-3 XZ index of 4000-game-unit cells.
 ///

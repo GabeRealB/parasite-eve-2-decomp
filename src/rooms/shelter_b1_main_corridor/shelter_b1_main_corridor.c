@@ -972,15 +972,19 @@ static s32 _shelterB1MainCorridorResolveRoomTransition(Task* task, s32 messageId
 {
     /// Prepares a one-shot departure with the corridor's transit sound and no fade.
     ///
-    /// Captures the local `event` and borrowed `reply`. Each argument is evaluated
-    /// once; the command is stored as s32 and the flag narrows to s16. Expands to
-    /// a statement list ending in a return; use only inside a braced branch.
-#define SHELTER_B1_MAIN_CORRIDOR_START_DEPARTURE_SCENE(capCommand, sceneFlag)                    \
-    event.capCmd   = (capCommand);                                                               \
-    event.stageSnd = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_MAIN_CORRIDOR, 1); \
-    event.flagId   = (sceneFlag);                                                                \
-    event.fade     = 0;                                                                          \
-    return _shelterB1MainCorridorStartEvent(reply, &event)
+    /// eventRecord is a writable RoomLatchedEvent lvalue, evaluated repeatedly;
+    /// transition is a borrowed RoomEventMsg*, evaluated once. Pass stable storage.
+    /// Command and flag are evaluated once, stored as s32 and s16 respectively.
+    /// Sets fade to zero and returns the event gate's result from the caller;
+    /// the gate snapshots the records on execution and respects queryOnly.
+#define SHELTER_B1_MAIN_CORRIDOR_START_DEPARTURE_SCENE(eventRecord, transition, capCommand, sceneFlag)       \
+    {                                                                                                        \
+        (eventRecord).capCmd   = (capCommand);                                                               \
+        (eventRecord).stageSnd = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_MAIN_CORRIDOR, 1); \
+        (eventRecord).flagId   = (sceneFlag);                                                                \
+        (eventRecord).fade     = 0;                                                                          \
+        return _shelterB1MainCorridorStartEvent((transition), &(eventRecord));                               \
+    }
 
     enum { TRANSITION_REFUSED                 = 0,
            TRANSITION_DIRECT                  = 1,
@@ -1001,13 +1005,13 @@ static s32 _shelterB1MainCorridorResolveRoomTransition(Task* task, s32 messageId
     *reply = *request;
     mapShelterRoomVariantResolve(request, reply);
     if (request->areaId == GAME_AREA_SHELTER_B1_ARMORY) {
-        SHELTER_B1_MAIN_CORRIDOR_START_DEPARTURE_SCENE(CAP_COMMAND_DEPART_ARMORY, GAME_FLAG_B1_CORRIDOR_TO_ARMORY_SCENE);
+        SHELTER_B1_MAIN_CORRIDOR_START_DEPARTURE_SCENE(event, reply, CAP_COMMAND_DEPART_ARMORY, GAME_FLAG_B1_CORRIDOR_TO_ARMORY_SCENE);
     }
     if (request->areaId == GAME_AREA_SHELTER_B1_SLEEPING_QUARTERS) {
-        SHELTER_B1_MAIN_CORRIDOR_START_DEPARTURE_SCENE(CAP_COMMAND_DEPART_QUARTERS, GAME_FLAG_B1_CORRIDOR_TO_QUARTERS_SCENE);
+        SHELTER_B1_MAIN_CORRIDOR_START_DEPARTURE_SCENE(event, reply, CAP_COMMAND_DEPART_QUARTERS, GAME_FLAG_B1_CORRIDOR_TO_QUARTERS_SCENE);
     }
     if (request->areaId == GAME_AREA_SHELTER_B1_STERILIZATION_ROOM) {
-        SHELTER_B1_MAIN_CORRIDOR_START_DEPARTURE_SCENE(CAP_COMMAND_DEPART_STERILIZATION, GAME_FLAG_B1_CORRIDOR_TO_STERILIZATION_SCENE);
+        SHELTER_B1_MAIN_CORRIDOR_START_DEPARTURE_SCENE(event, reply, CAP_COMMAND_DEPART_STERILIZATION, GAME_FLAG_B1_CORRIDOR_TO_STERILIZATION_SCENE);
     }
     if (request->areaId == GAME_AREA_SHELTER_B1_ELEVATOR_HALL) {
         if (gameFlagGetNibble(GAME_FLAG_STORY_CHAPTER) >= ELEVATOR_HALL_BLOCKED_CHAPTER) {
@@ -1032,10 +1036,10 @@ static s32 _shelterB1MainCorridorResolveRoomTransition(Task* task, s32 messageId
             }
             return TRANSITION_HANDLED;
         }
-        SHELTER_B1_MAIN_CORRIDOR_START_DEPARTURE_SCENE(CAP_COMMAND_DEPART_TRANSFER_TUNNEL, GAME_FLAG_B1_CORRIDOR_TO_TRANSFER_SCENE);
+        SHELTER_B1_MAIN_CORRIDOR_START_DEPARTURE_SCENE(event, reply, CAP_COMMAND_DEPART_TRANSFER_TUNNEL, GAME_FLAG_B1_CORRIDOR_TO_TRANSFER_SCENE);
     }
     if (request->areaId == GAME_AREA_SHELTER_B1_CONTROL_ROOM_ACCESS_TUNNEL) {
-        SHELTER_B1_MAIN_CORRIDOR_START_DEPARTURE_SCENE(CAP_COMMAND_DEPART_CONTROL_TUNNEL, GAME_FLAG_B1_CORRIDOR_TO_CONTROL_TUNNEL_SCENE);
+        SHELTER_B1_MAIN_CORRIDOR_START_DEPARTURE_SCENE(event, reply, CAP_COMMAND_DEPART_CONTROL_TUNNEL, GAME_FLAG_B1_CORRIDOR_TO_CONTROL_TUNNEL_SCENE);
     }
     return TRANSITION_DIRECT;
 }

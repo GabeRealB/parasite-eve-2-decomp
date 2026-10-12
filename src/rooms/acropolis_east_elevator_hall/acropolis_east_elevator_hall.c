@@ -576,12 +576,19 @@ static s16 _gAcropolisEastElevatorHallCollisionGridCells[] = {
 #include "assets/acropolis_east_elevator_hall_collision_09278_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gAcropolisEastElevatorHallCollisionGridCells[i])
+/// Resolves a generated face-list start in this grid's packed halfword pool.
+///
+/// halfwordOffset counts signed-halfword elements and is evaluated once.
+/// It must select an in-bounds list start in the captured pool.
+/// Captures `_gAcropolisEastElevatorHallCollisionGridCells`; returns a borrowed s16* without reading it.
+/// The table include supplies list-start constants; empty cells use NULL.
+/// Define only for that include and undefine immediately afterward.
+#define ACROPOLIS_EAST_ELEVATOR_HALL_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gAcropolisEastElevatorHallCollisionGridCells[(halfwordOffset)])
 /// X-major 4-by-2 cell directory; each pointer selects a terminated face list.
 static s16* _gAcropolisEastElevatorHallCollisionGridTable[] = {
 #include "assets/acropolis_east_elevator_hall_collision_09278_table.inc"
 };
-#undef GRID_CELL
+#undef ACROPOLIS_EAST_ELEVATOR_HALL_CELL_FACE_LIST_AT_OFFSET
 
 /// The hall's collision mesh and its 4-by-2 XZ spatial index.
 ///

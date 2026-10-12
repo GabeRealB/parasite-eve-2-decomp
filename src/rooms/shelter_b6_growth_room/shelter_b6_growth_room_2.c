@@ -641,13 +641,17 @@ void shelterB6GrowthRoomAmbientEffectsTask(Task* task)
     s32     mistSourceIndex;
     s32     puffBaseZ;
 
-/// Emits mist around floor anchor 0..5, preserving random draws and s16 stores.
+/// Emits a mist puff on a radius-1000 semicircle around floor anchor 0..5.
 ///
-/// Arguments must be side-effect-free; position and angle are writable locals.
-/// They are evaluated repeatedly. Uses the room's RNG, anchor table and local
-/// particle constants. Sets XYZ only; the fourth vector component is retained.
-/// The effect snapshots XYZ synchronously and these particle tasks do not read
-/// the retained offset pointer. Expands to a braced statement block.
+/// Requires a live Task* with spawnArg1.value in 0..304 and a valid anchorIndex.
+/// position is a writable SVECTOR lvalue, angle a writable s32 lvalue; all arguments
+/// must be stable and side-effect-free. Draws bearing then height from the shared
+/// unsigned LCG. Bearing is -1024..1023 in 4096 units/turn. XYZ uses world input
+/// coordinates, with negative Y sampled below ((spawnArg1.value + 1) * 8).
+/// Uses room-owned anchors 30..35 and this controller's particle constants.
+/// Q12 trig results narrow to s16 XYZ; pad remains untouched. Spawning copies XYZ
+/// immediately; the mist task never reads the retained stack offset pointer.
+/// Expands to a compound statement and leaves position and angle as outputs.
 #define SHELTER_B6_GROWTH_ROOM_SPAWN_MIST(effectTask, anchorIndex, position, angle)                                                                                                                                      \
     {                                                                                                                                                                                                                    \
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;                                                                                                                                \

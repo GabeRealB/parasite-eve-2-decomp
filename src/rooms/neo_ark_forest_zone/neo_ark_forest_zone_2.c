@@ -983,23 +983,25 @@ static void _roamerTickPoolB(Task* unusedTask)
     s16    reserveIndex;
     s16    reserveSlot;
 
-/// Places a revived actor without caching or reordering the placed-actor lookups.
+/// Places a revived forest pool-B actor at a room-owned XZ/yaw spawn row.
 ///
-/// actorIndex and pointIndex are side-effect-free indices in 0..1 and 0..4,
-/// evaluated repeatedly. dirtyBeforeTurn is a constant 0 or 1 preserving the
-/// row's dirty-stamp ordering. Uses the borrowed forest spawn-point table and
-/// expands to complete statements in a switch arm.
-#define ROAMER_PLACE_POOL_B_ENEMY(actorIndex, pointIndex, dirtyBeforeTurn)                                                    \
-    sceneFindPlacedActor(actorIndex)->extra.tmd->coords->coord.t[0] = _gNeoArkForestZoneRoamerPoolBSpawnPoints[pointIndex].x; \
-    sceneFindPlacedActor(actorIndex)->extra.tmd->coords->coord.t[1] = 0;                                                      \
-    sceneFindPlacedActor(actorIndex)->extra.tmd->coords->coord.t[2] = _gNeoArkForestZoneRoamerPoolBSpawnPoints[pointIndex].z; \
-    if (dirtyBeforeTurn) {                                                                                                    \
-        sceneFindPlacedActor(actorIndex)->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;                             \
-    }                                                                                                                         \
-    gfxRotMatrixY(&sceneFindPlacedActor(actorIndex)->extra.tmd->coords->coord,                                                \
-                  _gNeoArkForestZoneRoamerPoolBSpawnPoints[pointIndex].yaw, GRAPHICS_ROTATION_REPLACE);                       \
-    if (!(dirtyBeforeTurn)) {                                                                                                 \
-        sceneFindPlacedActor(actorIndex)->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;                             \
+/// Requires a live placed actor with a TMD root. actorIndex (0..1) and pointIndex
+/// (0..4) are evaluated repeatedly and must have no side effects. XYZ uses parent
+/// coordinates with Y=0; yaw uses 4096 units/turn and replaces the rotation.
+/// dirtyBeforeTurn is constant 1 for rows 0/1, 0 for rows 2..4. Reacquires the
+/// actor at every store and after the yaw call; preserve that lookup and stamp
+/// order. Uses only the forest's table; invoke in a braced switch arm.
+#define ROAMER_PLACE_POOL_B_ENEMY(actorIndex, pointIndex, dirtyBeforeTurn)                                                        \
+    sceneFindPlacedActor((actorIndex))->extra.tmd->coords->coord.t[0] = _gNeoArkForestZoneRoamerPoolBSpawnPoints[(pointIndex)].x; \
+    sceneFindPlacedActor((actorIndex))->extra.tmd->coords->coord.t[1] = 0;                                                        \
+    sceneFindPlacedActor((actorIndex))->extra.tmd->coords->coord.t[2] = _gNeoArkForestZoneRoamerPoolBSpawnPoints[(pointIndex)].z; \
+    if ((dirtyBeforeTurn)) {                                                                                                      \
+        sceneFindPlacedActor((actorIndex))->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;                               \
+    }                                                                                                                             \
+    gfxRotMatrixY(&sceneFindPlacedActor((actorIndex))->extra.tmd->coords->coord,                                                  \
+                  _gNeoArkForestZoneRoamerPoolBSpawnPoints[(pointIndex)].yaw, GRAPHICS_ROTATION_REPLACE);                         \
+    if (!(dirtyBeforeTurn)) {                                                                                                     \
+        sceneFindPlacedActor((actorIndex))->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;                               \
     }
 
     gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);

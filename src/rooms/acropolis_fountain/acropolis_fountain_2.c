@@ -261,12 +261,19 @@ static s16 _gAcropolisFountainCollisionGridCells[] = {
 #include "assets/acropolis_fountain_collision_0204C_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gAcropolisFountainCollisionGridCells[i])
+/// Resolves a generated face-list start in this grid's packed halfword pool.
+///
+/// halfwordOffset counts signed-halfword elements and is evaluated once.
+/// It must select an in-bounds list start in the captured pool.
+/// Captures `_gAcropolisFountainCollisionGridCells`; returns a borrowed s16* without reading it.
+/// The table include supplies list-start constants; empty cells use NULL.
+/// Define only for that include and undefine immediately afterward.
+#define ACROPOLIS_FOUNTAIN_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gAcropolisFountainCollisionGridCells[(halfwordOffset)])
 /// X-major directory of the collision grid's 4-by-4 cell lists.
 static s16* _gAcropolisFountainCollisionGridTable[] = {
 #include "assets/acropolis_fountain_collision_0204C_table.inc"
 };
-#undef GRID_CELL
+#undef ACROPOLIS_FOUNTAIN_CELL_FACE_LIST_AT_OFFSET
 
 /// Fountain collision mesh and 4-by-4 cell index, shared by both room indices.
 ///

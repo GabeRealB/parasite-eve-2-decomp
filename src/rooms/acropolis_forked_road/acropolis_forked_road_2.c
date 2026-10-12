@@ -365,13 +365,19 @@ enum {
     ACROPOLIS_FORKED_ROAD_GRID_CELLS_Z = 4,
 };
 
-// Asset-include binding: i is an in-bounds halfword index into the cell-list pool.
-#define GRID_CELL(i) (&_gAcropolisForkedRoadCollisionGridCells[i])
+/// Resolves a generated face-list start in this grid's packed halfword pool.
+///
+/// halfwordOffset counts signed-halfword elements and is evaluated once.
+/// It must select an in-bounds list start in the captured pool.
+/// Captures `_gAcropolisForkedRoadCollisionGridCells`; returns a borrowed s16* without reading it.
+/// The table include supplies list-start constants; empty cells use NULL.
+/// Define only for that include and undefine immediately afterward.
+#define ACROPOLIS_FORKED_ROAD_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gAcropolisForkedRoadCollisionGridCells[(halfwordOffset)])
 /// X-major directory of `_gAcropolisForkedRoadCollisionGrid`, indexed by x * 4 + z.
 static s16* _gAcropolisForkedRoadCollisionGridTable[ACROPOLIS_FORKED_ROAD_GRID_CELLS_X * ACROPOLIS_FORKED_ROAD_GRID_CELLS_Z] = {
 #include "assets/acropolis_forked_road_collision_05630_table.inc"
 };
-#undef GRID_CELL
+#undef ACROPOLIS_FORKED_ROAD_CELL_FACE_LIST_AT_OFFSET
 
 /// Collision mesh shared by all three forked-road rooms.
 ///

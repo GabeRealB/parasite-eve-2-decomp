@@ -1906,19 +1906,22 @@ static void _shelterB1PodServiceGantryRunSceneSequence(Task* task)
 {
     /// Queues stage-zero actor file 160900 using this sequence's byte blocks.
     ///
-    /// Captures writable `fileKey` (four bytes) and `loadArgs` (the four-byte
-    /// CD argument extent). Key byte 1 is ignored; every argument byte is set.
-    /// Enqueue copies both blocks immediately. Expands to a standalone statement
-    /// list; use within a braced switch case or branch.
-#define SHELTER_B1_POD_SERVICE_GANTRY_QUEUE_SECOND_SCENE()       \
-    fileKey[CD_FILE_KEY_GROUP]     = SECOND_SCENE_FILE_GROUP;    \
-    fileKey[CD_FILE_KEY_STAGE]     = SECOND_SCENE_CDF_STAGE;     \
-    fileKey[CD_FILE_KEY_INDEX]     = SECOND_SCENE_FILE_INDEX;    \
-    loadArgs[CD_LOAD_ARG_HUNDREDS] = SECOND_SCENE_FILE_HUNDREDS; \
-    loadArgs[CD_LOAD_ARG_MODE]     = CD_COMMAND_LOAD_DEFAULT;    \
-    loadArgs[CD_LOAD_ARG_IMAGE_X]  = 0;                          \
-    loadArgs[CD_LOAD_ARG_IMAGE_Y]  = 0;                          \
-    cdCmdEnqueue(CD_COMMAND_LOAD_FILE, fileKey, loadArgs)
+    /// fileKey and loadArgs are distinct writable four-byte blocks, evaluated
+    /// repeatedly; pass stable arrays without side effects. Uses this sequence's
+    /// byte-index and file constants: group 16, hundreds 9, index/stage zero.
+    /// Key byte 1 is ignored and left intact; sets every load-argument byte.
+    /// Enqueue snapshots both blocks synchronously; its request slot is discarded.
+#define SHELTER_B1_POD_SERVICE_GANTRY_QUEUE_SECOND_SCENE_ACTOR_FILE(fileKey, loadArgs) \
+    {                                                                                  \
+        (fileKey)[CD_FILE_KEY_GROUP]     = SECOND_SCENE_FILE_GROUP;                    \
+        (fileKey)[CD_FILE_KEY_STAGE]     = SECOND_SCENE_CDF_STAGE;                     \
+        (fileKey)[CD_FILE_KEY_INDEX]     = SECOND_SCENE_FILE_INDEX;                    \
+        (loadArgs)[CD_LOAD_ARG_HUNDREDS] = SECOND_SCENE_FILE_HUNDREDS;                 \
+        (loadArgs)[CD_LOAD_ARG_MODE]     = CD_COMMAND_LOAD_DEFAULT;                    \
+        (loadArgs)[CD_LOAD_ARG_IMAGE_X]  = 0;                                          \
+        (loadArgs)[CD_LOAD_ARG_IMAGE_Y]  = 0;                                          \
+        cdCmdEnqueue(CD_COMMAND_LOAD_FILE, (fileKey), (loadArgs));                     \
+    }
 
     enum { CD_FILE_KEY_BYTES          = 4,
            CD_FILE_KEY_INDEX          = 0,
@@ -1956,7 +1959,7 @@ static void _shelterB1PodServiceGantryRunSceneSequence(Task* task)
         case SHELTER_B1_POD_SERVICE_GANTRY_STEP_LOAD_SECOND_SCENE:
             // Queue stage-zero file 160900 after movie playback restores the game loop.
             // Enqueue ignores file-key byte 1 and copies all four load-argument bytes.
-            SHELTER_B1_POD_SERVICE_GANTRY_QUEUE_SECOND_SCENE();
+            SHELTER_B1_POD_SERVICE_GANTRY_QUEUE_SECOND_SCENE_ACTOR_FILE(fileKey, loadArgs);
             work->step++;
             break;
         case SHELTER_B1_POD_SERVICE_GANTRY_STEP_START_SECOND_SCENE:
@@ -1989,7 +1992,7 @@ static void _shelterB1PodServiceGantryRunSceneSequence(Task* task)
     }
 }
 
-#undef SHELTER_B1_POD_SERVICE_GANTRY_QUEUE_SECOND_SCENE
+#undef SHELTER_B1_POD_SERVICE_GANTRY_QUEUE_SECOND_SCENE_ACTOR_FILE
 
 /// Refuses key-item use at the gantry without consuming the selected item.
 ///

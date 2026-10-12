@@ -793,14 +793,19 @@ enum {
     ACROPOLIS_ROOF_GARDEN_GRID_CELL_COUNT_Z = 3,
 };
 
-// Bind generated constant element offsets to this grid's packed face lists.
-// The include invokes GRID_CELL only with in-range integer constants.
-#define GRID_CELL(i) (&_gAcropolisRoofGardenCollisionGridCells[i])
+/// Resolves a generated face-list start in this grid's packed halfword pool.
+///
+/// halfwordOffset counts signed-halfword elements and is evaluated once.
+/// It must select an in-bounds list start in the captured pool.
+/// Captures `_gAcropolisRoofGardenCollisionGridCells`; returns a borrowed s16* without reading it.
+/// The table include supplies list-start constants; empty cells use NULL.
+/// Define only for that include and undefine immediately afterward.
+#define ACROPOLIS_ROOF_GARDEN_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gAcropolisRoofGardenCollisionGridCells[(halfwordOffset)])
 /// X-major 3-by-3 cell directory borrowing the packed signed face-index lists.
 static s16* _gAcropolisRoofGardenCollisionGridTable[ACROPOLIS_ROOF_GARDEN_GRID_CELL_COUNT_X * ACROPOLIS_ROOF_GARDEN_GRID_CELL_COUNT_Z] = {
 #include "assets/acropolis_roof_garden_collision_07EE4_table.inc"
 };
-#undef GRID_CELL
+#undef ACROPOLIS_ROOF_GARDEN_CELL_FACE_LIST_AT_OFFSET
 
 /// Roof garden's collision mesh and 3-by-3 XZ index of 4000-game-unit cells.
 ///

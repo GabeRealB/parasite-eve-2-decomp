@@ -47,8 +47,6 @@
 #include "rooms/room_common.h"
 #include "../../shared/glow_draw.h"
 
-#define GOLEM_RAND() ((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16)
-
 static void _shelterB1GolemFreezer1InitMeetingObstacle(s32 unusedArg);
 static void _shelterB1GolemFreezer1RebuildMeetingObstacle(const GfxCoord* modelRoot, const s16* roomOffset);
 static void _shelterB1GolemFreezer1InitRoomState(Task* task);
@@ -684,6 +682,13 @@ static void _shelterB1GolemFreezer1RebuildMeetingObstacle(const GfxCoord* modelR
 
 void shelterB1GolemFreezer1AmbientEffectsTask(Task* task)
 {
+    /// Draws one unsigned 16-bit sample from the shared random sequence.
+    ///
+    /// Advances `gRandomLcgState` once using unsigned modulo-2^32 arithmetic,
+    /// then returns its upper halfword as u32 (0..65535). Each expansion
+    /// mutates the resident state; preserve ordering with other random draws.
+#define SHELTER_B1_GOLEM_FREEZER_1_RANDOM_WORD() ((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16)
+
     enum {
         SHELTER_B1_GOLEM_FREEZER_1_MIST_EMISSION_FRAME_MASK = 3,
         SHELTER_B1_GOLEM_FREEZER_1_MIST_IMAGE_ORIGIN_FIRST  = 2,
@@ -705,15 +710,16 @@ void shelterB1GolemFreezer1AmbientEffectsTask(Task* task)
     // Every fourth animation frame emits around the nine floor origins following the two glow points.
     if (!(gDisplayState.animFrame & SHELTER_B1_GOLEM_FREEZER_1_MIST_EMISSION_FRAME_MASK)) {
         for (originIndex = 0; originIndex < SHELTER_B1_GOLEM_FREEZER_1_MIST_ORIGIN_COUNT; originIndex++) {
-            angle       = GOLEM_RAND() & ACTOR_TRANSFORM_ANGLE_MASK;
-            radius      = (GOLEM_RAND() & SHELTER_B1_GOLEM_FREEZER_1_MIST_RADIUS_RANDOM_MASK) + SHELTER_B1_GOLEM_FREEZER_1_MIST_RADIUS_MIN;
+            angle       = SHELTER_B1_GOLEM_FREEZER_1_RANDOM_WORD() & ACTOR_TRANSFORM_ANGLE_MASK;
+            radius      = (SHELTER_B1_GOLEM_FREEZER_1_RANDOM_WORD() & SHELTER_B1_GOLEM_FREEZER_1_MIST_RADIUS_RANDOM_MASK) + SHELTER_B1_GOLEM_FREEZER_1_MIST_RADIUS_MIN;
             position.vx = _gShelterB1GolemFreezer1AmbientEffectPoints[originIndex + SHELTER_B1_GOLEM_FREEZER_1_MIST_IMAGE_ORIGIN_FIRST].vx + ((radius * rcos(angle)) >> SHELTER_B1_GOLEM_FREEZER_1_MIST_TRIG_FRACTION_BITS);
-            position.vy = -(GOLEM_RAND() & SHELTER_B1_GOLEM_FREEZER_1_MIST_HEIGHT_RANDOM_MASK);
+            position.vy = -(SHELTER_B1_GOLEM_FREEZER_1_RANDOM_WORD() & SHELTER_B1_GOLEM_FREEZER_1_MIST_HEIGHT_RANDOM_MASK);
             position.vz = _gShelterB1GolemFreezer1AmbientEffectPoints[originIndex + SHELTER_B1_GOLEM_FREEZER_1_MIST_IMAGE_ORIGIN_FIRST].vz + ((radius * rsin(angle)) >> SHELTER_B1_GOLEM_FREEZER_1_MIST_TRIG_FRACTION_BITS);
             // Size 1024..1279, five or six ticks per cell, drift speed eight.
-            effectSpawn(EFFECT_GOLEM_FREEZER_FLOOR_MIST, NULL, (GOLEM_RAND() & SHELTER_B1_GOLEM_FREEZER_1_MIST_SPAWN_RANDOM_MASK) + SHELTER_B1_GOLEM_FREEZER_1_MIST_SPAWN_BASE, &position);
+            effectSpawn(EFFECT_GOLEM_FREEZER_FLOOR_MIST, NULL, (SHELTER_B1_GOLEM_FREEZER_1_RANDOM_WORD() & SHELTER_B1_GOLEM_FREEZER_1_MIST_SPAWN_RANDOM_MASK) + SHELTER_B1_GOLEM_FREEZER_1_MIST_SPAWN_BASE, &position);
         }
     }
+#undef SHELTER_B1_GOLEM_FREEZER_1_RANDOM_WORD
     switch (viewGetMappedIndex() & 0xFF) {
         case 3:
             glowDrawDisc(_gShelterB1GolemFreezer1AmbientEffectPoints, SHELTER_B1_GOLEM_FREEZER_1_GLOW_RADIUS_SCALE, SHELTER_B1_GOLEM_FREEZER_1_GLOW_COLOR);

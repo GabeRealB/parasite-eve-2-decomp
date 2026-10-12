@@ -655,24 +655,25 @@ static void _shelterB1SterilizationRoomInitializeState(Task* task)
 /// Requires the room overlay and selected CAP/script resources to remain live.
 static s32 _shelterB1SterilizationRoomHandleActionMessage(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedSecondArg)
 {
-    /// Selects the one-time note for an action, writing capCommand and noteMask.
+    /// Selects a door note's CAP command and bit in the saved shown-notes mask.
     ///
-    /// Captures this function's two s32 locals and constants. Evaluates the
-    /// actionId argument once; use as a standalone statement inside a block.
-#define SHELTER_B1_STERILIZATION_ROOM_SELECT_DOOR_NOTE(actionId) \
-    switch (actionId) {                                          \
-        case ACTION_NOTE_DOOR_5:                                 \
-            capCommand = CAP_DOOR_5_NOTE;                        \
-            noteMask   = DOOR_5_NOTE_BIT;                        \
-            break;                                               \
-        case ACTION_NOTE_DOOR_8:                                 \
-            capCommand = CAP_DOOR_8_NOTE;                        \
-            noteMask   = DOOR_8_NOTE_BIT;                        \
-            break;                                               \
-        default:                                                 \
-            capCommand = CAP_NO_DOOR_NOTE;                       \
-            noteMask   = NO_DOOR_NOTE_MASK;                      \
-            break;                                               \
+    /// Evaluates actionId once and assigns each writable s32 output once.
+    /// Actions 5/8 select command/mask pairs 5/2 and 3/8; other actions select
+    /// command zero and mask 0xFF. Uses this handler's action and note constants.
+#define SHELTER_B1_STERILIZATION_ROOM_SELECT_DOOR_NOTE(actionId, capCommandOut, noteMaskOut) \
+    switch (actionId) {                                                                      \
+        case ACTION_NOTE_DOOR_5:                                                             \
+            (capCommandOut) = CAP_DOOR_5_NOTE;                                               \
+            (noteMaskOut)   = DOOR_5_NOTE_BIT;                                               \
+            break;                                                                           \
+        case ACTION_NOTE_DOOR_8:                                                             \
+            (capCommandOut) = CAP_DOOR_8_NOTE;                                               \
+            (noteMaskOut)   = DOOR_8_NOTE_BIT;                                               \
+            break;                                                                           \
+        default:                                                                             \
+            (capCommandOut) = CAP_NO_DOOR_NOTE;                                              \
+            (noteMaskOut)   = NO_DOOR_NOTE_MASK;                                             \
+            break;                                                                           \
     }
     enum {
         ACTION_START_TRAP                = 1,
@@ -736,7 +737,7 @@ static s32 _shelterB1SterilizationRoomHandleActionMessage(Task* task, s32 messag
         // Show each door note once, then request the corresponding passage.
         case ACTION_NOTE_DOOR_5:
         case ACTION_NOTE_DOOR_8:
-            SHELTER_B1_STERILIZATION_ROOM_SELECT_DOOR_NOTE(request->actionId);
+            SHELTER_B1_STERILIZATION_ROOM_SELECT_DOOR_NOTE(request->actionId, capCommand, noteMask);
             if (gameFlagGetNibble(GAME_FLAG_STERILIZATION_ROOM_TRAP_TRIGGERED) == TRAP_DORMANT || gameFlagGetNibble(GAME_FLAG_STERILIZATION_ROOM_TRAP_STOPPED) == TRAP_STOPPED) {
                 shownNotes = gameFlagGetNibble(GAME_FLAG_STERILIZATION_ROOM_NOTES_SHOWN);
                 if (capCommand != CAP_NO_DOOR_NOTE && !(shownNotes & noteMask)) {
