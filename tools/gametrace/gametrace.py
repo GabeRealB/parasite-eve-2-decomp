@@ -784,11 +784,19 @@ class Gdb:
         self.sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)   # every packet is small and waits for its answer
         self.buf = b""
         self.set: set[int] = set()                    # the breakpoints in place
+        self.doubles: bool | None = None              # whether this server reports a breakpoint stop twice (not yet known)
+        self.protocol = None                          # a file every packet is written to, for --protocol
         self.step_over: bool | None = None            # whether this server needs it; found out at the first stop
         self.chunk = 0x400                            # bytes per memory read; raised to what the server's packets hold
         self.sock.sendall(b"+")
 
+    def note(self, way: str, text: str) -> None:
+        if self.protocol is not None:
+            self.protocol.write(f"{time.monotonic():.4f} {way} {text[:120]}\n")
+            self.protocol.flush()
+
     def _send(self, payload: str) -> None:
+        self.note(">", payload)
         body = payload.encode()
         self.sock.sendall(b"$" + body + b"#" + f"{sum(body) & 0xFF:02x}".encode())
 
@@ -800,6 +808,7 @@ class Gdb:
             if start >= 0 and end >= 0 and len(self.buf) >= end + 3:
                 packet, self.buf = self.buf[start + 1:end], self.buf[end + 3:]
                 self.sock.sendall(b"+")
+                self.note("<", packet.decode(errors="replace"))
                 return packet.decode(errors="replace")
             if wait is not None and not select.select([self.sock], [], [], wait)[0]:
                 return None
@@ -807,6 +816,23 @@ class Gdb:
             if not chunk:
                 raise ConnectionError("the GDB server closed the connection")
             self.buf += chunk
+
+    def settle(self, stop: str) -> None:
+        """A stop has been reported: wait until the server is done stopping before anything is asked of it.
+
+        Some servers report a breakpoint twice - once when it is hit and once when the machine has actually come
+        to rest. Between the two the machine is still on its way to stopping, and a continue sent then is
+        overtaken: the machine resumes, then finishes its pause, and stays stopped with nobody told. So where a
+        server is seen to report twice, the second report is waited for (half a second at most) at every
+        breakpoint stop; a stop this tool asked for with an interrupt is reported once and is not waited on."""
+        if stop[:3] == "S05" and self.doubles is not False:
+            second = self._recv(0.5 if self.doubles else 0.3)
+            if self.doubles is None:
+                self.doubles = second is not None and self._is_stop(second)
+            elif second is None:
+                print("the server's second report of a stop did not come within half a second; going on without it", file=sys.stderr)
+        while self._recv(0.005) is not None:          # anything else it sends about the same stop
+            pass
 
     @staticmethod
     def _is_stop(packet: str) -> bool:
@@ -879,8 +905,7 @@ class Gdb:
                 by_itself, timeout = False, None
             elif self._is_stop(packet):
                 break
-        while self._recv(0.005) is not None:          # the same stop, reported again
-            pass
+        self.settle(packet)
         return by_itself
 
     def learn_step_over(self, here: int) -> None:
@@ -942,8 +967,7 @@ class Gdb:
             packet = self._recv(0)
             if packet is not None:
                 if self._is_stop(packet):
-                    while self._recv(0.005) is not None:
-                        pass
+                    self.settle(packet)
                     return "stop"
                 continue
             ready = select.select([self.sock, *also], [], [], timeout)[0]
@@ -959,11 +983,11 @@ class Gdb:
 
     def interrupt(self) -> None:
         """Stop the running target and wait until it has."""
+        self.note(">", "interrupt")
         self.sock.sendall(b"\x03")
         while not self._is_stop(self._recv() or ""):
             pass
-        while self._recv(0.005) is not None:
-            pass
+        self.settle("S02")
 
     def release(self, running: bool, resume: bool = True) -> None:
         """Take every breakpoint out - one left behind stops the target with nobody listening - and let the target
@@ -1633,6 +1657,7 @@ def main() -> int:
     ap.add_argument("--port", type=int, help="the GDB server's port, instead of the config's gdb.port")
     ap.add_argument("--session", help="the name of the first session (a marker line in the log); more are begun with the `session` command")
     ap.add_argument("--resident", action="append", metavar="IMAGE", help="an image already in memory at setup, whose hooks are written at setup (repeatable); with --now, usually gameplay")
+    ap.add_argument("--protocol", type=Path, metavar="FILE", help="write every packet exchanged with the GDB server to FILE, with times: for finding out why a stop went wrong")
     ap.add_argument("--now", action="store_true", help="set up at once in the game as it stands, ignoring install_at: for attaching to a game already running")
     args = ap.parse_args()
     cfg = load(args.config)
@@ -1682,6 +1707,8 @@ def main() -> int:
     print(f"writing {args.out}", file=sys.stderr)
     try:
         gdb = Gdb(cfg["gdb"]["host"], cfg["gdb"]["port"])
+        if args.protocol:
+            gdb.protocol = args.protocol.open("w", encoding="utf-8")
     except OSError as error:
         raise SystemExit(f"no GDB server at {cfg['gdb']['host']}:{cfg['gdb']['port']} ({error}). Start the server, or give its address with --host and --port.")
     signal.signal(signal.SIGTERM, lambda *_: (_ for _ in ()).throw(KeyboardInterrupt()))   # detach as Ctrl-C does
