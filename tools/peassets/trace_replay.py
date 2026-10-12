@@ -410,6 +410,11 @@ class Replay:
         self.scene: dict | None = None        # the scene stream selected last
         self.scene_left: list = []            # image chunks of the scene image being uploaded, not yet seen
         self.has_packages = False
+        self.arrivals_at: list[dict] = []     # a room arriving: its load, its `room_start`, the `view_ready` that completes it
+        self.arriving: dict | None = None
+        self.views_ready: list[list] = []     # [n, room, variant, view, room index] of each `view_ready`
+        self.notes: list[int] = []            # records that are annotations, not events of the game
+        self.misfits: list[str] = []          # room_start / view_ready lines that do not fit the lines around them
         self.run()
 
     # ---- state
@@ -516,7 +521,7 @@ class Replay:
         if frm in RESET_TASKS:
             # The run was initialised again (src/main/gamemain.c:167): the player is nowhere until the next room.
             self.loc.update(stage=0, area=0, room=0, view=0, warp=0, variant=0, name="", file=None, bg=None)
-            self.room = None
+            self.room = self.arriving = None
             return "mark", f"the run is initialised: {frm} queues the title's file", None
         what = r.get("command") or r.get("a0")
         if "file" in r or "stage" in r:
@@ -545,6 +550,7 @@ class Replay:
         if self.loading is not None:
             self.unarrived(n, self.loading, "was followed by another before it was reported loaded")
             self.follow(n, self.loading, None)
+            self.loading["closed"] = n - 1
         self.loads.append(load)
         self.loading = load
         offsets = (f" at {page:+d}/{row:+d}" if page or row else "") + (f", mode {mode} ({MODES.get(mode, '?')})" if mode else "")
@@ -605,6 +611,8 @@ class Replay:
             self.room = {"n": n, "session": self.session, "name": self.w.room_of.get((r["stage"], r["folder"]), path), "stage": r["stage"], "area": r["folder"] // 100,
                          "variant": None, "files": [], "views": [], "path": path, "queued": {}}
             self.rooms.append(self.room)
+            self.arriving = {"load": n, "start": None, "done": None, "room": self.room, "name": self.room["name"]}
+            self.arrivals_at.append(self.arriving)
         elif self.room is not None and not self.room["views"] and "file" in r:
             self.room["files"].append((path, page, row, mode))
             self.room["queued"][path] = load["queued"]
@@ -648,6 +656,7 @@ class Replay:
         if self.loading is not None:
             self.unarrived(n, self.loading)
             self.follow(n, self.loading, None)
+            self.loading["closed"] = n
         self.loading = None
         return "dim", f"{path} is loaded" + (f": {', '.join(r['packages'])} in memory" if r.get("packages") else ""), None
 
@@ -941,6 +950,67 @@ class Replay:
             self.room["variant"] = r["variant"]
         return "where", f"view {r['view']} of {self.loc['name']}, room index {r['room']}, variant {r['variant']}", None
 
+    def room_name(self, r: dict) -> str:
+        return self.w.room_of.get((r.get("stage"), (r.get("area") or 0) * 100 + 1), f"stage {r.get('stage')} area {r.get('area')}")
+
+    def on_room_start(self, n, r, frm):
+        """The loading sequence hands over to the room (`areaStartRoomRuntime`): the room's files and its actors' are
+        in memory, its first view is not yet. It moves nothing: the view change that follows says where the player is."""
+        name, a = self.room_name(r), self.arriving
+        if a is None or a["start"] is not None or a["done"] is not None:
+            self.misfits.append(f"record {n}: room_start for {name} " + ("with no room load before it" if a is None else f"is a second one for the room load at record {a['load']}"))
+            a = self.arriving = {"load": None, "start": None, "done": None, "room": None, "name": name}
+            self.arrivals_at.append(a)
+        elif a["name"] != name:
+            self.misfits.append(f"record {n}: room_start for {name} follows the room load of {a['name']} at record {a['load']}")
+        a.update(start=n, name=name, variant=r.get("variant"), view=r.get("view"), index=r.get("room"))
+        gate = r.get("view_gate")
+        return "room", f"room {name} starts (stage {r.get('stage')} area {r.get('area')}), room index {r.get('room')}, variant {r.get('variant')}: its first view, {r.get('view')}, loads next" \
+            + (f" · view gate {gate}" if gate and gate != "shown" else ""), None
+
+    def on_view_ready(self, n, r, frm):
+        """A view change is complete: the view's file is loaded and its palette uploaded (`loadingUploadViewImageTask`).
+        The first one after a room's `room_start` is where the room is complete as the player sees it."""
+        name = self.room_name(r)
+        differs = [f"{k} {self.loc[k]} → {r.get(k)}" for k in ("stage", "area", "room", "view", "warp", "variant") if r.get(k) != self.loc[k]]
+        if differs:
+            self.misfits.append(f"record {n}: view_ready for view {r.get('view')} of {name} differs from the view change before it: {', '.join(differs)}")
+        self.views_ready.append([n, name, r.get("variant"), r.get("view"), r.get("room")])
+        a, first = self.arriving, False
+        if a is not None and a["start"] is not None and a["done"] is None:
+            a.update(done=n, name=name, variant=r.get("variant"), view=r.get("view"), index=r.get("room"))
+            first = True
+        movie = r.get("movie_slot")
+        return "view", f"view {r.get('view')} of {name} is ready, room index {r.get('room')}, variant {r.get('variant')}" + (f", movie slot {movie}" if movie is not None else "") \
+            + (": the room is complete" if first else ""), None
+
+    def on_note(self, n, r, frm):
+        """An annotation - the tracer's `note` command, a hook, the tracer itself, a tool afterwards. Not an event of the game."""
+        self.notes.append(n)
+        more = " ".join(f"{k}={json.dumps(v) if isinstance(v, (dict, list)) else v}" for k, v in r.items() if k not in ("event", "text"))
+        return "note", str(r.get("text") or "") + (f" · {more}" if more else ""), None
+
+    def room_stops(self) -> list[list]:
+        """Where each room is complete: [record, room, variant, view, room index, where its arrival began, how, loads
+        of its first view]. How: 0 the first `view_ready` after its `room_start`; 1 the trace has no such pair for
+        this room load, and the record is the last one of its first view's load. A room load with no view at all
+        has no such record and is not a stop."""
+        stops = []
+        for a in self.arrivals_at:
+            began = a["start"] if a["start"] is not None else a["load"]
+            if a["done"] is not None:
+                done, how, name, variant, view, index = a["done"], 0, a["name"], a["variant"], a["view"], a["index"]
+            elif a["room"] is not None and a["room"]["views"]:
+                first = next(l for l in self.loads if l["n"] == a["room"]["views"][0]["n"])
+                done, how = first.get("closed", first["n"]), 1
+                began = a["load"]
+                place = next(p for p in reversed(self.places) if p[0] <= done)
+                name, variant, view, index = place[8], place[7], place[5], place[4]
+            else:
+                continue
+            stops.append([done, name, variant, view, index, began, how, [l["id"] for l in self.loads if l.get("view") and began < l["n"] <= done]])
+        return stops
+
     def on_caption_file(self, n, r, frm):
         self.cap_file = num(r, "data_resource", "a0")
         return "dim", f"caption data resource {self.cap_file} selected · from {frm}", None
@@ -1031,7 +1101,8 @@ class Replay:
             "things": [[t["asset"], t["mem"], t["load"]["id"] if t["load"] else -1, t["n0"], t["n1"], t["by"],
                         [list(r) for r in t["where"]] if t["mem"] == "v" else list(t["where"]), t["note"]] for t in self.things],
             "places": [p[:1] + p[2:] for p in self.places],
-            "movies": self.movies, "unknown": self.unknown + [f"{line} (the trace against the file tables)" for line in self.disagreements],
+            "rooms": self.room_stops(), "views": self.views_ready, "notes": self.notes,
+            "movies": self.movies, "unknown": self.unknown + [f"{line} (the trace against the file tables)" for line in self.disagreements] + self.misfits,
         }
 
 
@@ -1047,7 +1118,7 @@ def all_traces() -> list[Path]:
 
 
 def show(replay: Replay) -> None:
-    print(f"{replay.name}: {len(replay.events)} records, {len(replay.loads)} loads, {len(replay.things)} things placed")
+    print(f"{replay.name}: {len(replay.events)} records" + (f" ({len(replay.notes)} of them notes)" if replay.notes else "") + f", {len(replay.loads)} loads, {len(replay.things)} things placed")
     for s in replay.sessions:
         inside = lambda n: s["first"] <= n <= s["last"]  # noqa: E731
         print(f"\nsession {s['number']} {s['name']}{' (dropped)' if s['dropped'] else ''}, records {s['first']}-{s['last']}, started {s['started']}")

@@ -65,7 +65,11 @@ label { display: flex; flex-direction: column; gap: 3px; font-size: 11px; letter
 .sheet svg { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
 .sheet .reg { fill: none; stroke: var(--muted); stroke-dasharray: 3 3; vector-effect: non-scaling-stroke; } .sheet text { font: 9px var(--sans); fill: var(--muted); }
 .ev { font: 12px var(--mono); border: 1px solid var(--line); background: var(--panel); } .ev > div { padding: 1px 6px; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } .ev .cur { background: var(--accent-soft); }
-.ev .k-dim, .ev .k-raw { color: var(--muted); } .ev .k-mark { font-weight: 600; } .ev .k-load { color: var(--accent); } .ev .k-sound { color: var(--clut); }
+.ev .k-dim, .ev .k-raw { color: var(--muted); } .ev .k-mark { font-weight: 600; } .ev .k-load { color: var(--accent); } .ev .k-sound { color: var(--clut); } .ev .k-room { font-weight: 600; color: var(--accent); } .ev .k-view { font-weight: 600; }
+.ev > .k-note { white-space: normal; overflow-wrap: anywhere; font-style: italic; color: var(--clut); border-left: 3px solid var(--clut); background: var(--bg); } .ev > .k-note.cur { background: var(--accent-soft); }
+.jumps { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 4px 12px; align-items: center; margin-top: 8px; } .jumps button { margin-top: 0; min-width: 76px; } button:disabled { color: var(--muted); cursor: default; opacity: .6; } .jumps .to { font-size: 12px; overflow-wrap: anywhere; }
+@media (max-width: 560px) { .jumps { grid-template-columns: minmax(0, 1fr); } .jumps .to { margin-bottom: 6px; } }
+kbd { font: 11px var(--mono); border: 1px solid var(--line); border-radius: 3px; padding: 0 4px; background: var(--panel); }
 .sheet .live { fill: none; stroke: var(--accent); vector-effect: non-scaling-stroke; } .sheet .movie { fill: none; stroke: var(--clash); stroke-dasharray: 6 3; vector-effect: non-scaling-stroke; } .sheet text { paint-order: stroke; stroke: var(--bg); stroke-width: 2px; }
 audio { height: 28px; max-width: 100%; } iframe { width: 100%; height: 320px; border: 1px solid var(--line); background: var(--panel); }
 </style>
@@ -671,6 +675,12 @@ async function showAsset(key) {
 //   sessions [name, number, started, dropped, first, last]        ev [kind, text, extra]
 //   loads    [record, file, page, row, relocate, only, mode]      places [record, stage, area, room index, view, warp, variant, room, view file, background]
 //   things   [asset, memory (v, m or s), load, from record, to record or -1, displaced by, where, note]
+//   rooms    [record where the room is complete, room, variant, view, room index, where its arrival began, 1 when the
+//             trace has no room_start/view_ready pair for it, loads of its first view]
+//   views    [record of a view_ready, room, variant, view, room index]      notes [record, ...]
+// The keys of the playback that is open; one listener for the page, so opening another session replaces them.
+let traceKeys = null;
+window.addEventListener("keydown", e => { if (traceKeys) traceKeys(e); });
 const traces = new Map(), traceWaiting = new Map(), fileIndex = new Map(D.files.map((n, i) => [n, i]));
 window.TRACE = (name, t) => { t.ops = []; t.loads.forEach((l, i) => { const f = fileIndex.get(l[1]); if (f !== undefined && !(l[5] && !l[5].length)) t.ops.push([l[0], [f, l[2], l[3], l[4], "", l[5]], i]); }); for (const n of t.movies) t.ops.push([n, ["movie"], -1]); t.ops.sort((a, b) => a[0] - b[0]);
   traces.set(name, t); (traceWaiting.get(name) || []).forEach(f => f()); traceWaiting.delete(name); };
@@ -713,6 +723,14 @@ async function showTrace(arg) {
   const whereBox = h("div", {}), memBox = h("div", {}), memSaid = h("div", { class: "dim", text: "point at video memory to name what is there" }), liveBox = h("div", {}), evBox = h("div", { class: "ev" }), roomBox = h("div", {});
   const big = k => { let n = pos + k; while (n >= lo && n <= hi && !/^(load|where|mark)$/.test(t.ev[n][0])) n += k; return n < lo || n > hi ? pos : n; };
   const jump = n => h("a", { class: "lnk", text: n, onclick: () => go(n) });
+  // The three levels of jump. A level's stops are records; from the last one forward, or the first one back, there is none.
+  const inside = list => (list || []).filter(x => (x.length ? x[0] : x) >= lo && (x.length ? x[0] : x) <= hi), roomStops = inside(t.rooms), viewStops = inside(t.views), noteStops = inside(t.notes);
+  const stopAt = (list, k) => { const i = upTo(list, k > 0 ? pos : pos - 1); return (k > 0 ? list[i] : list[i - 1]) || null; };
+  const loadAt = k => { const n = big(k); return n === pos ? null : [n]; };
+  const LEVELS = [["room", k => stopAt(roomStops, k), "the record where a room is complete: the first view ready after the room starts"], ["view", k => stopAt(viewStops, k), "a view change is complete"], ["load", loadAt, "a load, location change or marker"]];
+  const stopText = (level, x) => !x ? "none" : level === "load" ? `record ${x[0]}: ${t.ev[x[0]][1]}` : `${x[1]} · variant ${x[2]} · view ${x[3]}` + (level === "view" ? ` of room index ${x[4]}` : "") + ` (record ${x[0]}` + (level === "room" && x[6] ? "; no room start and view ready here: the end of its first view's load" : "") + ")";
+  const leap = (level, k) => { const x = LEVELS.find(l => l[0] === level)[1](k); stop(); return x ? go(x[0]) : Promise.resolve(); };
+  const jumpRows = LEVELS.map(([level, , what]) => ({ level, said: h("div", { class: "to", id: `tr-to-${level}` }), back: h("button", { id: `tr-${level}-back`, text: `⏮ ${level}`, title: `back to the previous stop: ${what}`, onclick: () => leap(level, -1) }), on: h("button", { id: `tr-${level}-on`, text: `${level} ⏭`, title: `on to the next stop: ${what}`, onclick: () => leap(level, 1) }) }));
   const from = l => l ? l[1] + (l[2] || l[3] ? ` at ${sign(l[2], l[3])}` : "") + (l[6] ? ` mode ${l[6]}` : "") : "";
   const drawMemory = async live => {
     const count = upTo(t.ops, pos), key = count + "|" + mode.value + "|" + boxes.checked + "|" + live.filter(x => x[1] === "v").length + "|" + S, my = ++seq; if (key === memKey) return; 
@@ -735,6 +753,8 @@ async function showTrace(arg) {
   const update = async () => {
     const p = t.places[upTo(t.places, pos) - 1], live = t.things.filter(x => x[3] <= pos && (x[4] < 0 || x[4] > pos)), has = k => live.some(x => x[0] === k);
     slider.value = String(pos); said.textContent = `record ${pos} of ${lo}–${hi}`;
+    for (const row of jumpRows) { const find = LEVELS.find(l => l[0] === row.level)[1], a = find(-1), b = find(1); row.back.disabled = !a; row.on.disabled = !b;
+      row.said.replaceChildren(h("span", { class: "dim", text: "back: " }), stopText(row.level, a), h("br", {}), h("span", { class: "dim", text: "on: " }), stopText(row.level, b)); }
     whereBox.replaceChildren(p && p[7] ? h("div", {}, D.overlays[p[7]] ? link("o", p[7]) : p[7], ` · stage ${p[1]} area ${p[2]} · room index ${p[3]} · variant ${p[6]} · view ${p[4]}` + (p[8] ? ` (file ${p[8]} is the last view file loaded)` : " (no view file loaded yet)") + ` · warp ${p[5]}`) : h("div", { class: "dim", text: "In no room: the title, or a load that has not named its room yet." }),
       p && p[9] ? h("div", { class: "shot" }, D.pictures && has(p[9]) ? h("img", { src: `${at(p[9], "bs")}/${p[9]}.png`, alt: p[9], width: 320, height: 240 }) : null, h("div", {}, "background ", link("a", p[9]), has(p[9]) ? "" : " · displaced since: no longer in the image workspace")) : h("div", { class: "dim", text: p && p[7] ? "The last view file loaded has no background." : "" }));
     const table = m => { const rows = live.filter(x => x[1] === m); return h("details", { open: "" }, h("summary", { class: "dim", text: `${MEMORY[m]} (${rows.length})` }), rows.length ? capped(rows, 60, part => h("div", { class: "scrollx" }, h("table", {}, h("tr", {}, ["Asset", "Where", "Brought by", "Since"].map(x => h("th", { text: x }))),
@@ -742,7 +762,7 @@ async function showTrace(arg) {
     const gone = t.things.filter(x => x[4] >= lo && x[4] <= pos).sort((a, b) => b[4] - a[4]);
     liveBox.replaceChildren(table("v"), table("m"), table("s"), h("details", { open: "" }, h("summary", { class: "dim", text: `Displaced so far in this session (${gone.length})` }), gone.length ? capped(gone, 25, part => h("div", { class: "scrollx" }, h("table", {}, h("tr", {}, ["Asset", "Memory", "What displaced it", "At", "Had been there since"].map(x => h("th", { text: x }))),
       part.map(x => h("tr", {}, h("td", {}, assetLink(x[0])), h("td", { text: MEMORY[x[1]].split(" ")[0].toLowerCase() }), h("td", { text: x[5] }), h("td", {}, jump(x[4])), h("td", {}, jump(x[3]))))))) : h("p", { class: "dim", text: "nothing yet" })));
-    const first = Math.max(lo, pos - 10), rows = []; for (let n = first; n <= Math.min(hi, pos + 16); n++) { const e = t.ev[n]; rows.push(h("div", { class: `k-${e[0]}` + (n === pos ? " cur" : ""), onclick: () => go(n), title: e[1] }, h("span", { class: "dim", text: String(n).padStart(6, " ") + "  " }), e[1],
+    const first = Math.max(lo, pos - 10), rows = []; for (let n = first; n <= Math.min(hi, pos + 16); n++) { const e = t.ev[n]; rows.push(h("div", { class: `k-${e[0]}` + (n === pos ? " cur" : ""), onclick: () => go(n), title: e[1] }, h("span", { class: "dim", text: String(n).padStart(6, " ") + "  " }), e[0] === "note" ? h("span", { class: "flag", text: "note  " }) : null, e[1],
       e[2] && e[2].play && D.pictures ? e[2].play.map(id => h("button", { text: "▶ " + id, style: "margin:0 0 0 8px;padding:0 6px", onclick: ev => { ev.stopPropagation && ev.stopPropagation(); try { new Audio(`${at(id, "sample")}/${id}.wav`).play(); } catch (x) {} } })) : null)); }
     evBox.replaceChildren(...rows);
     await Promise.all([drawMemory(live), drawRoom(p)]);
@@ -751,11 +771,22 @@ async function showTrace(arg) {
   const stop = () => { if (timer) { clearInterval(timer); timer = null; play.textContent = "play"; } };
   const play = h("button", { text: "play", onclick: () => { if (timer) return stop(); play.textContent = "pause"; timer = setInterval(() => { if (mine !== turn || pos >= hi) return stop(); let n = pos + 1; while (n < hi && /^(dim|raw)$/.test(t.ev[n][0])) n++; go(n); }, 450); } });
   slider.addEventListener("input", () => { stop(); go(+slider.value); }); mode.addEventListener("change", update); boxes.addEventListener("change", update);
-  window.__trace = { go, big, pos: () => pos, lo, hi, trace: t };
+  // Keys. Not while the reader types (a text field, a list); on the slider the plain arrows are the slider's own.
+  traceKeys = e => { if (mine !== turn) { traceKeys = null; return; } if (e.ctrlKey || e.metaKey || e.altKey) return; const el = e.target || {}, tag = (el.tagName || "").toUpperCase(), range = tag === "INPUT" && el.type === "range";
+    if (!range && (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || el.isContentEditable)) return;
+    const arrow = e.key === "ArrowLeft" ? -1 : e.key === "ArrowRight" ? 1 : 0, act = arrow ? (e.shiftKey ? () => leap("view", arrow) : range ? null : () => { stop(); return go(pos + arrow); })
+      : e.key === "[" ? () => leap("room", -1) : e.key === "]" ? () => leap("room", 1) : e.key === "," ? () => leap("load", -1) : e.key === "." ? () => leap("load", 1) : null;
+    if (!act) return; e.preventDefault && e.preventDefault(); return act(); };
+  const key = text => h("kbd", { text });
+  window.__trace = { go, big, leap, pos: () => pos, lo, hi, trace: t, stops: { room: roomStops, view: viewStops, note: noteStops } };
   box.replaceChildren(...[h("header", {}, h("h2", { text: `${s[0]}` }), h("div", { class: "crumbs" }, `session ${s[1]} of `, link("t", "", name), s[2] ? ` · started ${s[2]}` : "", ` · records ${lo}–${hi}`, s[3] ? h("span", { class: "flag", text: " · dropped: its records still count, since what was loaded is loaded" }) : "",
       t.sessions.length > 1 ? [" · ", t.sessions.map((x, i) => [i ? ", " : "", x[1] === s[1] ? x[0] : link("t", `${name}/${x[1]}`, x[0])])] : "")),
-    sec("Playback", "Step through the session's records; everything below is the state at the chosen record. The double arrows go to the next load, location change or marker.",
-      h("div", { class: "row", style: "display:flex;flex-wrap:wrap;gap:8px;align-items:center" }, h("button", { text: "⏮", title: "previous load or change", onclick: () => { stop(); go(big(-1)); } }), h("button", { text: "◀", title: "one record back", onclick: () => { stop(); go(pos - 1); } }), play, h("button", { text: "▶", title: "one record on", onclick: () => { stop(); go(pos + 1); } }), h("button", { text: "⏭", title: "next load or change", onclick: () => { stop(); go(big(1)); } }), slider, said)),
+    sec("Playback", "Step through the session's records; everything below is the state at the chosen record. Three levels of jump, each back and on: to where a room is complete (its first view is ready), to where a view change is complete, and to the next load, location change or marker. Beside each is where it will land; from the last stop on, or the first back, it does nothing.",
+      h("div", { class: "row", style: "display:flex;flex-wrap:wrap;gap:8px;align-items:center" }, h("button", { text: "◀ record", title: "one record back", onclick: () => { stop(); go(pos - 1); } }), play, h("button", { text: "record ▶", title: "one record on", onclick: () => { stop(); go(pos + 1); } }), slider, said),
+      h("div", { class: "jumps" }, jumpRows.flatMap(r => [h("div", { style: "display:flex;gap:8px" }, r.back, r.on), r.said])),
+      h("p", { class: "dim", style: "margin:8px 0 0" }, "Keys: ", key("←"), " ", key("→"), " one record · ", key("Shift"), "+", key("←"), " ", key("→"), " view · ", key("["), " ", key("]"), " room · ", key(","), " ", key("."), " load. They are left alone while a text field or a list has the focus.")),
+    sec(`Notes (${noteStops.length})`, "Annotations of the trace: written while recording, by a hook, by the tracer, or by a tool afterwards. Not events of the game: they change nothing in memory.",
+      noteStops.length ? h("ul", { class: "plain", id: "tr-notes" }, noteStops.map(n => h("li", {}, "record ", jump(n), " · ", t.ev[n][1]))) : h("p", { class: "dim", id: "tr-notes", text: "This session has none." })),
     sec("Where", "", whereBox),
     sec("Video memory", "All 1024 × 512 of it, from every upload up to this record. Outlined: what is resident. An upload that lands on any part of an image or palette ends it; its remaining words stay in memory and are drawn faded in the \"as used\" view, where a resident image is read through the palette its faces name, taken from where that palette sits now (grey where none is resident). Uploads the trace does not record are not here: the frame buffers at the left, a movie's frames, MoveImage copies.",
       h("div", { class: "bar" }, h("label", { for: "tr-mode" }, "Colours", mode), h("label", { class: "row", for: "tr-box" }, boxes, "outline what is resident")), memBox, memSaid),
