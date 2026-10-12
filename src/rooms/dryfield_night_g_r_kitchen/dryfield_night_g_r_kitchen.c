@@ -190,12 +190,20 @@ static s16 _gDryfieldNightGRKitchenCollisionGridCells[32] = {
 #include "assets/dryfield_night_g_r_kitchen_collision_00F94_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gDryfieldNightGRKitchenCollisionGridCells[i])
+/// Supplies this grid's cell face-list addresses to its generated table.
+///
+/// Captures `_gDryfieldNightGRKitchenCollisionGridCells`.
+/// `halfwordOffset` is a constant s16-element offset in 0..31,
+/// evaluated once and selecting a list's first entry. Lists end at
+/// `WORLD_COLLISION_GRID_CELL_END`. Returns a borrowed `s16*`; no pool writes.
+/// `cell_face_list_macro` selects this binding for the table include.
+/// The binding is undefined immediately after that include.
+#define DRYFIELD_NIGHT_G_R_KITCHEN_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gDryfieldNightGRKitchenCollisionGridCells[(halfwordOffset)])
 /// X-major cell pointers for the grid's one X cell and two Z cells.
 static s16* _gDryfieldNightGRKitchenCollisionGridTable[2] = {
 #include "assets/dryfield_night_g_r_kitchen_collision_00F94_table.inc"
 };
-#undef GRID_CELL
+#undef DRYFIELD_NIGHT_G_R_KITCHEN_CELL_FACE_LIST_AT_OFFSET
 
 /// The kitchen collision mesh, selected through a 1-by-2 XZ grid of 4000-unit cells.
 ///

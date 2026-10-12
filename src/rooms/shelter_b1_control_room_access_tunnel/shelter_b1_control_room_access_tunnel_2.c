@@ -105,12 +105,20 @@ static s16 _gShelterB1ControlRoomAccessTunnelCollisionGridCells[12] = {
 #include "assets/shelter_b1_control_room_access_tunnel_collision_04AB0_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gShelterB1ControlRoomAccessTunnelCollisionGridCells[i])
+/// Supplies this grid's cell face-list addresses to its generated table.
+///
+/// Captures `_gShelterB1ControlRoomAccessTunnelCollisionGridCells`.
+/// `halfwordOffset` is a constant s16-element offset in 0..11,
+/// evaluated once and selecting a list's first entry. Lists end at
+/// `WORLD_COLLISION_GRID_CELL_END`. Returns a borrowed `s16*`; no pool writes.
+/// `cell_face_list_macro` selects this binding for the table include.
+/// The binding is undefined immediately after that include.
+#define SHELTER_B1_CONTROL_ROOM_ACCESS_TUNNEL_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gShelterB1ControlRoomAccessTunnelCollisionGridCells[(halfwordOffset)])
 /// X-major cell directory borrowing the two face-index lists.
 static s16* _gShelterB1ControlRoomAccessTunnelCollisionGridTable[SHELTER_B1_CONTROL_ROOM_ACCESS_TUNNEL_GRID_CELLS_X * SHELTER_B1_CONTROL_ROOM_ACCESS_TUNNEL_GRID_CELLS_Z] = {
 #include "assets/shelter_b1_control_room_access_tunnel_collision_04AB0_table.inc"
 };
-#undef GRID_CELL
+#undef SHELTER_B1_CONTROL_ROOM_ACCESS_TUNNEL_CELL_FACE_LIST_AT_OFFSET
 
 WorldCollisionGrid gShelterB1ControlRoomAccessTunnelCollisionGrid = {
     .viewCoord   = NULL,

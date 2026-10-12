@@ -180,12 +180,20 @@ static s16 _gShelterB1TransferTunnelRoomCollisionCells[24] = {
 #include "assets/shelter_b1_transfer_tunnel_collision_0552C_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gShelterB1TransferTunnelRoomCollisionCells[i])
+/// Supplies this grid's cell face-list addresses to its generated table.
+///
+/// Captures `_gShelterB1TransferTunnelRoomCollisionCells`.
+/// `halfwordOffset` is a constant s16-element offset in 0..23,
+/// evaluated once and selecting a list's first entry. Lists end at
+/// `WORLD_COLLISION_GRID_CELL_END`. Returns a borrowed `s16*`; no pool writes.
+/// `cell_face_list_macro` selects this binding for the table include.
+/// The binding is undefined immediately after that include.
+#define SHELTER_B1_TRANSFER_TUNNEL_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gShelterB1TransferTunnelRoomCollisionCells[(halfwordOffset)])
 /// The 3-by-2 cell directory; each entry borrows a list ending at -1.
 static s16* _gShelterB1TransferTunnelRoomCollisionTable[6] = {
 #include "assets/shelter_b1_transfer_tunnel_collision_0552C_table.inc"
 };
-#undef GRID_CELL
+#undef SHELTER_B1_TRANSFER_TUNNEL_CELL_FACE_LIST_AT_OFFSET
 
 WorldCollisionGrid gShelterB1TransferTunnelRoomCollision = { NULL, _gShelterB1TransferTunnelRoomCollisionNormals, _gShelterB1TransferTunnelRoomCollisionVerts, _gShelterB1TransferTunnelRoomCollisionFaces, _gShelterB1TransferTunnelRoomCollisionTable, 642, 1736, 3, 2, 4000, ARRAY_SIZE(_gShelterB1TransferTunnelRoomCollisionFaces) };
 

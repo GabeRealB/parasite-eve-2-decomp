@@ -186,12 +186,20 @@ static s16 _gShelterB1PodServiceGantryRoomCollisionCells[172] = {
 };
 
 // The generated table supplies zero-based element offsets into the cell-list pool.
-#define GRID_CELL(i) (&_gShelterB1PodServiceGantryRoomCollisionCells[i])
+/// Supplies this grid's cell face-list addresses to its generated table.
+///
+/// Captures `_gShelterB1PodServiceGantryRoomCollisionCells`.
+/// `halfwordOffset` is a constant s16-element offset in 0..171,
+/// evaluated once and selecting a list's first entry. Lists end at
+/// `WORLD_COLLISION_GRID_CELL_END`. Returns a borrowed `s16*`; no pool writes.
+/// `cell_face_list_macro` selects this binding for the table include.
+/// The binding is undefined immediately after that include.
+#define SHELTER_B1_POD_SERVICE_GANTRY_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gShelterB1PodServiceGantryRoomCollisionCells[(halfwordOffset)])
 /// X-major cell-list pointers: five X rows of three Z cells; NULL marks an empty cell.
 static s16* _gShelterB1PodServiceGantryRoomCollisionTable[15] = {
 #include "assets/shelter_b1_pod_service_gantry_collision_02C04_table.inc"
 };
-#undef GRID_CELL
+#undef SHELTER_B1_POD_SERVICE_GANTRY_CELL_FACE_LIST_AT_OFFSET
 
 WorldCollisionGrid gShelterB1PodServiceGantryRoomCollision = {
     .viewCoord   = NULL,

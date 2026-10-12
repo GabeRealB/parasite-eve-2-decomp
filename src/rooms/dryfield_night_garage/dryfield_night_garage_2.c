@@ -411,12 +411,20 @@ static s16 _gDryfieldNightGarageEarlyRoomCollisionGridCells[] = {
 #include "assets/dryfield_night_garage_collision_06814_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gDryfieldNightGarageEarlyRoomCollisionGridCells[i])
+/// Supplies this grid's cell face-list addresses to its generated table.
+///
+/// Captures `_gDryfieldNightGarageEarlyRoomCollisionGridCells`.
+/// `halfwordOffset` is a constant s16-element offset in 0..221,
+/// evaluated once and selecting a list's first entry. Lists end at
+/// `WORLD_COLLISION_GRID_CELL_END`. Returns a borrowed `s16*`; no pool writes.
+/// `cell_face_list_macro` selects this binding for the table include.
+/// The binding is undefined immediately after that include.
+#define DRYFIELD_NIGHT_GARAGE_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gDryfieldNightGarageEarlyRoomCollisionGridCells[(halfwordOffset)])
 /// Nine X-major cell-list pointers for the early-room collision grid.
 static s16* _gDryfieldNightGarageEarlyRoomCollisionGridTable[] = {
 #include "assets/dryfield_night_garage_collision_06814_table.inc"
 };
-#undef GRID_CELL
+#undef DRYFIELD_NIGHT_GARAGE_CELL_FACE_LIST_AT_OFFSET
 
 WorldCollisionGrid gDryfieldNightGarageEarlyRoomCollisionGrid = {
     .viewCoord   = NULL,
@@ -452,12 +460,20 @@ static s16 _gDryfieldNightGarageLateRoomCollisionGridCells[] = {
 #include "assets/dryfield_night_garage_collision_06E14_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gDryfieldNightGarageLateRoomCollisionGridCells[i])
+/// Supplies this grid's cell face-list addresses to its generated table.
+///
+/// Captures `_gDryfieldNightGarageLateRoomCollisionGridCells`.
+/// `halfwordOffset` is a constant s16-element offset in 0..115,
+/// evaluated once and selecting a list's first entry. Lists end at
+/// `WORLD_COLLISION_GRID_CELL_END`. Returns a borrowed `s16*`; no pool writes.
+/// `cell_face_list_macro` selects this binding for the table include.
+/// The binding is undefined immediately after that include.
+#define DRYFIELD_NIGHT_GARAGE_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gDryfieldNightGarageLateRoomCollisionGridCells[(halfwordOffset)])
 /// Nine X-major cell-list pointers for the late-room collision grid.
 static s16* _gDryfieldNightGarageLateRoomCollisionGridTable[] = {
 #include "assets/dryfield_night_garage_collision_06E14_table.inc"
 };
-#undef GRID_CELL
+#undef DRYFIELD_NIGHT_GARAGE_CELL_FACE_LIST_AT_OFFSET
 
 /// Room 2's collision mesh and XZ cell index for the night garage.
 ///

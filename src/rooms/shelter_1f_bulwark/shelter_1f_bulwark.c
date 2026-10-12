@@ -194,12 +194,20 @@ static s16 _gShelter1fBulwarkCollisionGridCells[64] = {
 #include "assets/shelter_1f_bulwark_collision_03088_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gShelter1fBulwarkCollisionGridCells[i])
+/// Supplies this grid's cell face-list addresses to its generated table.
+///
+/// Captures `_gShelter1fBulwarkCollisionGridCells`.
+/// `halfwordOffset` is a constant s16-element offset in 0..63,
+/// evaluated once and selecting a list's first entry. Lists end at
+/// `WORLD_COLLISION_GRID_CELL_END`. Returns a borrowed `s16*`; no pool writes.
+/// `cell_face_list_macro` selects this binding for the table include.
+/// The binding is undefined immediately after that include.
+#define SHELTER_1F_BULWARK_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gShelter1fBulwarkCollisionGridCells[(halfwordOffset)])
 /// X-major 3-by-2 cell directory borrowing the grid's face-index lists.
 static s16* _gShelter1fBulwarkCollisionGridTable[6] = {
 #include "assets/shelter_1f_bulwark_collision_03088_table.inc"
 };
-#undef GRID_CELL
+#undef SHELTER_1F_BULWARK_CELL_FACE_LIST_AT_OFFSET
 
 /// Bulwark collision mesh with six 4000-unit XZ cells and twelve quad faces.
 ///

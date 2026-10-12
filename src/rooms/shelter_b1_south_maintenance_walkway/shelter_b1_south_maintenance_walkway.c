@@ -191,12 +191,20 @@ static s16 _gShelterB1SouthMaintenanceWalkwayCollisionGridCells[82] = {
 #include "assets/shelter_b1_south_maintenance_walkway_collision_051F8_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gShelterB1SouthMaintenanceWalkwayCollisionGridCells[i])
+/// Supplies this grid's cell face-list addresses to its generated table.
+///
+/// Captures `_gShelterB1SouthMaintenanceWalkwayCollisionGridCells`.
+/// `halfwordOffset` is a constant s16-element offset in 0..81,
+/// evaluated once and selecting a list's first entry. Lists end at
+/// `WORLD_COLLISION_GRID_CELL_END`. Returns a borrowed `s16*`; no pool writes.
+/// `cell_face_list_macro` selects this binding for the table include.
+/// The binding is undefined immediately after that include.
+#define SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gShelterB1SouthMaintenanceWalkwayCollisionGridCells[(halfwordOffset)])
 /// X-major directory for the grid's two X cells and three Z cells.
 static s16* _gShelterB1SouthMaintenanceWalkwayCollisionGridTable[6] = {
 #include "assets/shelter_b1_south_maintenance_walkway_collision_051F8_table.inc"
 };
-#undef GRID_CELL
+#undef SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY_CELL_FACE_LIST_AT_OFFSET
 
 /// The room's collision mesh and six-cell XZ index, bound to the view on entry.
 ///

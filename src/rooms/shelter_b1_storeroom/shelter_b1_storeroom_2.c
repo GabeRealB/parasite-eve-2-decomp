@@ -232,12 +232,20 @@ static s16 _gShelterB1StoreroomCollisionGridCells[108] = {
 #include "assets/shelter_b1_storeroom_collision_07B18_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gShelterB1StoreroomCollisionGridCells[i])
+/// Supplies this grid's cell face-list addresses to its generated table.
+///
+/// Captures `_gShelterB1StoreroomCollisionGridCells`.
+/// `halfwordOffset` is a constant s16-element offset in 0..107,
+/// evaluated once and selecting a list's first entry. Lists end at
+/// `WORLD_COLLISION_GRID_CELL_END`. Returns a borrowed `s16*`; no pool writes.
+/// `cell_face_list_macro` selects this binding for the table include.
+/// The binding is undefined immediately after that include.
+#define SHELTER_B1_STOREROOM_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gShelterB1StoreroomCollisionGridCells[(halfwordOffset)])
 /// X-major cell lookup, with two Z entries for each of four X cells.
 static s16* _gShelterB1StoreroomCollisionGridTable[8] = {
 #include "assets/shelter_b1_storeroom_collision_07B18_table.inc"
 };
-#undef GRID_CELL
+#undef SHELTER_B1_STOREROOM_CELL_FACE_LIST_AT_OFFSET
 
 /// Storeroom collision mesh, indexed by a 4-by-2 grid of 4000-unit XZ cells.
 ///

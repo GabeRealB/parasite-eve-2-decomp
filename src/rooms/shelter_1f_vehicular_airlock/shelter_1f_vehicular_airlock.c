@@ -208,12 +208,20 @@ static s16 _gShelter1fVehicularAirlockCollisionGridCells[52] = {
 };
 
 // The generated table supplies element offsets into the packed cell lists.
-#define GRID_CELL(i) (&_gShelter1fVehicularAirlockCollisionGridCells[i])
+/// Supplies this grid's cell face-list addresses to its generated table.
+///
+/// Captures `_gShelter1fVehicularAirlockCollisionGridCells`.
+/// `halfwordOffset` is a constant s16-element offset in 0..51,
+/// evaluated once and selecting a list's first entry. Lists end at
+/// `WORLD_COLLISION_GRID_CELL_END`. Returns a borrowed `s16*`; no pool writes.
+/// `cell_face_list_macro` selects this binding for the table include.
+/// The binding is undefined immediately after that include.
+#define SHELTER_1F_VEHICULAR_AIRLOCK_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gShelter1fVehicularAirlockCollisionGridCells[(halfwordOffset)])
 /// X-major 3-by-3 cell directory; NULL entries select empty cells.
 static s16* _gShelter1fVehicularAirlockCollisionGridTable[9] = {
 #include "assets/shelter_1f_vehicular_airlock_collision_04E78_table.inc"
 };
-#undef GRID_CELL
+#undef SHELTER_1F_VEHICULAR_AIRLOCK_CELL_FACE_LIST_AT_OFFSET
 
 /// Vehicular airlock's room-space collision mesh and 3-by-3 spatial index.
 ///

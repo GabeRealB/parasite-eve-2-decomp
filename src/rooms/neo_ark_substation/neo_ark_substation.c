@@ -192,12 +192,20 @@ static s16 _gNeoArkSubstationCollisionGridCells[156] = {
 };
 
 // Bind the generated table's word offsets to this grid's cell-list storage.
-#define GRID_CELL(i) (&_gNeoArkSubstationCollisionGridCells[i])
+/// Supplies this grid's cell face-list addresses to its generated table.
+///
+/// Captures `_gNeoArkSubstationCollisionGridCells`.
+/// `halfwordOffset` is a constant s16-element offset in 0..155,
+/// evaluated once and selecting a list's first entry. Lists end at
+/// `WORLD_COLLISION_GRID_CELL_END`. Returns a borrowed `s16*`; no pool writes.
+/// `cell_face_list_macro` selects this binding for the table include.
+/// The binding is undefined immediately after that include.
+#define NEO_ARK_SUBSTATION_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gNeoArkSubstationCollisionGridCells[(halfwordOffset)])
 /// X-major 3-by-4 directory of face-index lists for the room collision grid.
 static s16* _gNeoArkSubstationCollisionGridTable[12] = {
 #include "assets/neo_ark_substation_collision_012E4_table.inc"
 };
-#undef GRID_CELL
+#undef NEO_ARK_SUBSTATION_CELL_FACE_LIST_AT_OFFSET
 
 /// The substation's floor and wall mesh and its 4000-unit XZ collision cells.
 ///

@@ -237,11 +237,19 @@ static s16 _gShelterB1SterilizationRoomEventActorObstacleGridCells[6] = {
 #include "assets/shelter_b1_sterilization_room_collision_07968_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gShelterB1SterilizationRoomEventActorObstacleGridCells[i])
+/// Supplies this grid's cell face-list addresses to its generated table.
+///
+/// Captures `_gShelterB1SterilizationRoomEventActorObstacleGridCells`.
+/// `halfwordOffset` is a constant s16-element offset in 0..5,
+/// evaluated once and selecting a list's first entry. Lists end at
+/// `WORLD_COLLISION_GRID_CELL_END`. Returns a borrowed `s16*`; no pool writes.
+/// `cell_face_list_macro` selects this binding for the table include.
+/// The binding is undefined immediately after that include.
+#define SHELTER_B1_STERILIZATION_ROOM_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gShelterB1SterilizationRoomEventActorObstacleGridCells[(halfwordOffset)])
 static s16* _gShelterB1SterilizationRoomEventActorObstacleGridTable[1] = {
 #include "assets/shelter_b1_sterilization_room_collision_07968_table.inc"
 };
-#undef GRID_CELL
+#undef SHELTER_B1_STERILIZATION_ROOM_CELL_FACE_LIST_AT_OFFSET
 
 /// Local four-face obstacle copied into the leading entries of the live room grid.
 ///
@@ -1228,21 +1236,24 @@ static void _crossfadeDrawBackdrop(s32 shade)
     };
     SPRT* sprite;
 
-    /// Reserves and initializes one semitransparent, greyscale backdrop sprite.
+    /// Reserves one semitransparent backdrop sprite with equal RGB modulation bytes.
     ///
-    /// `spritePacket` must be a writable SPRT pointer local and `shadeValue` a
-    /// side-effect-free value, read three times. Uses the current frame arena;
-    /// the caller fills geometry and linkage and retains storage for the GPU.
+    /// Requires a disjoint writable `SPRT*` local and a stable integer shade;
+    /// both expressions are evaluated repeatedly. Shade retains its low byte
+    /// (0 black, 128 neutral). Captures `gGpuPrimCursor`, advancing by sizeof(SPRT)
+    /// without checking capacity. The frame arena must have word-aligned space
+    /// through GPU completion. Geometry, texture and OT linkage follow separately.
+    /// Expands as one GNU C statement; neither argument may alias the cursor.
 #define CROSSFADE_ALLOCATE_BACKDROP_SPRITE(spritePacket, shadeValue) \
-    {                                                                \
+    (void)({                                                         \
         (spritePacket) = gGpuPrimCursor;                             \
         gGpuPrimCursor = (spritePacket) + 1;                         \
-        setSprt(spritePacket);                                       \
-        setSemiTrans(spritePacket, 1);                               \
+        setSprt((spritePacket));                                     \
+        setSemiTrans((spritePacket), 1);                             \
         (spritePacket)->r0 = (shadeValue);                           \
         (spritePacket)->g0 = (shadeValue);                           \
         (spritePacket)->b0 = (shadeValue);                           \
-    }
+    })
 
     CROSSFADE_ALLOCATE_BACKDROP_SPRITE(sprite, shade);
     sprite->u0   = 0;

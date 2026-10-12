@@ -125,12 +125,20 @@ static s16 _gShelterB1GolemFreezer1MeetingObstacleCollisionCells[2] = {
 #include "assets/shelter_b1_golem_freezer_1_collision_01154_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gShelterB1GolemFreezer1MeetingObstacleCollisionCells[i])
+/// Supplies this grid's cell face-list addresses to its generated table.
+///
+/// Captures `_gShelterB1GolemFreezer1MeetingObstacleCollisionCells`.
+/// `halfwordOffset` is a constant s16-element offset in 0..1,
+/// evaluated once and selecting a list's first entry. Lists end at
+/// `WORLD_COLLISION_GRID_CELL_END`. Returns a borrowed `s16*`; no pool writes.
+/// `cell_face_list_macro` selects this binding for the table include.
+/// The binding is undefined immediately after that include.
+#define SHELTER_B1_GOLEM_FREEZER_1_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gShelterB1GolemFreezer1MeetingObstacleCollisionCells[(halfwordOffset)])
 /// Single-cell directory borrowing the meeting quad's serialized face list.
 static s16* _gShelterB1GolemFreezer1MeetingObstacleCollisionTable[1] = {
 #include "assets/shelter_b1_golem_freezer_1_collision_01154_table.inc"
 };
-#undef GRID_CELL
+#undef SHELTER_B1_GOLEM_FREEZER_1_CELL_FACE_LIST_AT_OFFSET
 
 /// Model-local source quad for the meeting actor's moving collision obstacle.
 ///
@@ -219,12 +227,20 @@ static s16 _gShelterB1GolemFreezer1RoomCollisionCells[24] = {
 };
 
 // The generated cell table supplies halfword offsets into the two contiguous lists.
-#define GRID_CELL(i) (&_gShelterB1GolemFreezer1RoomCollisionCells[i])
+/// Supplies this grid's cell face-list addresses to its generated table.
+///
+/// Captures `_gShelterB1GolemFreezer1RoomCollisionCells`.
+/// `halfwordOffset` is a constant s16-element offset in 0..23,
+/// evaluated once and selecting a list's first entry. Lists end at
+/// `WORLD_COLLISION_GRID_CELL_END`. Returns a borrowed `s16*`; no pool writes.
+/// `cell_face_list_macro` selects this binding for the table include.
+/// The binding is undefined immediately after that include.
+#define SHELTER_B1_GOLEM_FREEZER_1_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gShelterB1GolemFreezer1RoomCollisionCells[(halfwordOffset)])
 /// X-major cell directory for the room's two-by-one collision grid.
 static s16* _gShelterB1GolemFreezer1RoomCollisionTable[2] = {
 #include "assets/shelter_b1_golem_freezer_1_collision_01400_table.inc"
 };
-#undef GRID_CELL
+#undef SHELTER_B1_GOLEM_FREEZER_1_CELL_FACE_LIST_AT_OFFSET
 
 WorldCollisionGrid gShelterB1GolemFreezer1RoomCollision = {
     .viewCoord   = NULL,

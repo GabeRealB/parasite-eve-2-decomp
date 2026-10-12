@@ -119,12 +119,20 @@ static s16 _gShelter1fTentCollisionGridCells[128] = {
 #include "assets/shelter_1f_tent_collision_04D30_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gShelter1fTentCollisionGridCells[i])
+/// Supplies this grid's cell face-list addresses to its generated table.
+///
+/// Captures `_gShelter1fTentCollisionGridCells`.
+/// `halfwordOffset` is a constant s16-element offset in 0..127,
+/// evaluated once and selecting a list's first entry. Lists end at
+/// `WORLD_COLLISION_GRID_CELL_END`. Returns a borrowed `s16*`; no pool writes.
+/// `cell_face_list_macro` selects this binding for the table include.
+/// The binding is undefined immediately after that include.
+#define SHELTER_1F_TENT_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gShelter1fTentCollisionGridCells[(halfwordOffset)])
 /// X-major 2-by-3 directory of the grid's face-index lists.
 static s16* _gShelter1fTentCollisionGridTable[6] = {
 #include "assets/shelter_1f_tent_collision_04D30_table.inc"
 };
-#undef GRID_CELL
+#undef SHELTER_1F_TENT_CELL_FACE_LIST_AT_OFFSET
 
 WorldCollisionGrid gShelter1fTentCollisionGrid = {
     .viewCoord   = NULL,

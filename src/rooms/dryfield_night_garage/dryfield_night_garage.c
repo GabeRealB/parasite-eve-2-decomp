@@ -158,11 +158,19 @@ static s16 _gDryfieldNightGarageLowCollisionBoxTemplateCells[6] = {
 #include "assets/dryfield_night_garage_collision_047BC_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gDryfieldNightGarageLowCollisionBoxTemplateCells[i])
+/// Supplies this grid's cell face-list addresses to its generated table.
+///
+/// Captures `_gDryfieldNightGarageLowCollisionBoxTemplateCells`.
+/// `halfwordOffset` is a constant s16-element offset in 0..5,
+/// evaluated once and selecting a list's first entry. Lists end at
+/// `WORLD_COLLISION_GRID_CELL_END`. Returns a borrowed `s16*`; no pool writes.
+/// `cell_face_list_macro` selects this binding for the table include.
+/// The binding is undefined immediately after that include.
+#define DRYFIELD_NIGHT_GARAGE_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gDryfieldNightGarageLowCollisionBoxTemplateCells[(halfwordOffset)])
 static s16* _gDryfieldNightGarageLowCollisionBoxTemplateTable[1] = {
 #include "assets/dryfield_night_garage_collision_047BC_table.inc"
 };
-#undef GRID_CELL
+#undef DRYFIELD_NIGHT_GARAGE_CELL_FACE_LIST_AT_OFFSET
 
 /// Source geometry for the movable low box in the garage's live collision mesh.
 ///
@@ -200,11 +208,19 @@ static s16 _gDryfieldNightGarageTallCollisionBoxTemplateCells[6] = {
 #include "assets/dryfield_night_garage_collision_04880_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gDryfieldNightGarageTallCollisionBoxTemplateCells[i])
+/// Supplies this grid's cell face-list addresses to its generated table.
+///
+/// Captures `_gDryfieldNightGarageTallCollisionBoxTemplateCells`.
+/// `halfwordOffset` is a constant s16-element offset in 0..5,
+/// evaluated once and selecting a list's first entry. Lists end at
+/// `WORLD_COLLISION_GRID_CELL_END`. Returns a borrowed `s16*`; no pool writes.
+/// `cell_face_list_macro` selects this binding for the table include.
+/// The binding is undefined immediately after that include.
+#define DRYFIELD_NIGHT_GARAGE_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gDryfieldNightGarageTallCollisionBoxTemplateCells[(halfwordOffset)])
 static s16* _gDryfieldNightGarageTallCollisionBoxTemplateTable[1] = {
 #include "assets/dryfield_night_garage_collision_04880_table.inc"
 };
-#undef GRID_CELL
+#undef DRYFIELD_NIGHT_GARAGE_CELL_FACE_LIST_AT_OFFSET
 
 /// Source geometry for the tall box around the companion's garage placement.
 ///

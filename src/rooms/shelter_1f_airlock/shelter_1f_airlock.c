@@ -211,12 +211,20 @@ static s16 _gShelter1fAirlockCollisionGridCells[26] = {
 #include "assets/shelter_1f_airlock_collision_01278_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gShelter1fAirlockCollisionGridCells[i])
+/// Supplies this grid's cell face-list addresses to its generated table.
+///
+/// Captures `_gShelter1fAirlockCollisionGridCells`.
+/// `halfwordOffset` is a constant s16-element offset in 0..25,
+/// evaluated once and selecting a list's first entry. Lists end at
+/// `WORLD_COLLISION_GRID_CELL_END`. Returns a borrowed `s16*`; no pool writes.
+/// `cell_face_list_macro` selects this binding for the table include.
+/// The binding is undefined immediately after that include.
+#define SHELTER_1F_AIRLOCK_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gShelter1fAirlockCollisionGridCells[(halfwordOffset)])
 /// X-major pointers to the three collision cells' face-index lists.
 static s16* _gShelter1fAirlockCollisionGridTable[3] = {
 #include "assets/shelter_1f_airlock_collision_01278_table.inc"
 };
-#undef GRID_CELL
+#undef SHELTER_1F_AIRLOCK_CELL_FACE_LIST_AT_OFFSET
 
 /// Airlock floor, ceiling and walls indexed by three 4000-unit X/Z cells.
 ///

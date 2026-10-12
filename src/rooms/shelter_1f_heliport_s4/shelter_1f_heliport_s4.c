@@ -69,12 +69,20 @@ static s16 _gShelter1fHeliportS4CollisionGridCells[56] = {
 #include "assets/shelter_1f_heliport_s4_collision_00408_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gShelter1fHeliportS4CollisionGridCells[i])
+/// Supplies this grid's cell face-list addresses to its generated table.
+///
+/// Captures `_gShelter1fHeliportS4CollisionGridCells`.
+/// `halfwordOffset` is a constant s16-element offset in 0..55,
+/// evaluated once and selecting a list's first entry. Lists end at
+/// `WORLD_COLLISION_GRID_CELL_END`. Returns a borrowed `s16*`; no pool writes.
+/// `cell_face_list_macro` selects this binding for the table include.
+/// The binding is undefined immediately after that include.
+#define SHELTER_1F_HELIPORT_S4_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gShelter1fHeliportS4CollisionGridCells[(halfwordOffset)])
 /// X-major pointers to the nine lists in the 3x3 collision grid.
 static s16* _gShelter1fHeliportS4CollisionGridTable[9] = {
 #include "assets/shelter_1f_heliport_s4_collision_00408_table.inc"
 };
-#undef GRID_CELL
+#undef SHELTER_1F_HELIPORT_S4_CELL_FACE_LIST_AT_OFFSET
 
 WorldCollisionGrid gShelter1fHeliportS4CollisionGrid = {
     .viewCoord   = NULL,

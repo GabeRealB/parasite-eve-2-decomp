@@ -536,12 +536,20 @@ static s16 _gShelterB1SterilizationRoomCollisionGridCells[270] = {
 };
 
 // The generated table supplies constant element offsets within this cell-list pool.
-#define GRID_CELL(i) (&_gShelterB1SterilizationRoomCollisionGridCells[i])
+/// Supplies this grid's cell face-list addresses to its generated table.
+///
+/// Captures `_gShelterB1SterilizationRoomCollisionGridCells`.
+/// `halfwordOffset` is a constant s16-element offset in 0..269,
+/// evaluated once and selecting a list's first entry. Lists end at
+/// `WORLD_COLLISION_GRID_CELL_END`. Returns a borrowed `s16*`; no pool writes.
+/// `cell_face_list_macro` selects this binding for the table include.
+/// The binding is undefined immediately after that include.
+#define SHELTER_B1_STERILIZATION_ROOM_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gShelterB1SterilizationRoomCollisionGridCells[(halfwordOffset)])
 /// X-major 2-by-4 cell directory borrowing the embedded face-index lists.
 static s16* _gShelterB1SterilizationRoomCollisionGridTable[8] = {
 #include "assets/shelter_b1_sterilization_room_collision_0C884_table.inc"
 };
-#undef GRID_CELL
+#undef SHELTER_B1_STERILIZATION_ROOM_CELL_FACE_LIST_AT_OFFSET
 
 WorldCollisionGrid gShelterB1SterilizationRoomCollisionGrid = {
     .viewCoord   = NULL,

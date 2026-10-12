@@ -229,12 +229,20 @@ static s16 _gShelter1fHeliportCompanionObstacleTemplateCells[6] = {
 #include "assets/shelter_1f_heliport_collision_03CEC_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gShelter1fHeliportCompanionObstacleTemplateCells[i])
+/// Supplies this grid's cell face-list addresses to its generated table.
+///
+/// Captures `_gShelter1fHeliportCompanionObstacleTemplateCells`.
+/// `halfwordOffset` is a constant s16-element offset in 0..5,
+/// evaluated once and selecting a list's first entry. Lists end at
+/// `WORLD_COLLISION_GRID_CELL_END`. Returns a borrowed `s16*`; no pool writes.
+/// `cell_face_list_macro` selects this binding for the table include.
+/// The binding is undefined immediately after that include.
+#define SHELTER_1F_HELIPORT_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gShelter1fHeliportCompanionObstacleTemplateCells[(halfwordOffset)])
 /// One-cell directory retained with the obstacle template; the rebuild uses only its mesh.
 static s16* _gShelter1fHeliportCompanionObstacleTemplateTable[1] = {
 #include "assets/shelter_1f_heliport_collision_03CEC_table.inc"
 };
-#undef GRID_CELL
+#undef SHELTER_1F_HELIPORT_CELL_FACE_LIST_AT_OFFSET
 
 /// Model-local companion obstacle template restored into the room grid's leading slots.
 ///
@@ -311,12 +319,20 @@ static s16 _gShelter1fHeliportCollisionGridCells[172] = {
 #include "assets/shelter_1f_heliport_collision_043B4_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gShelter1fHeliportCollisionGridCells[i])
+/// Supplies this grid's cell face-list addresses to its generated table.
+///
+/// Captures `_gShelter1fHeliportCollisionGridCells`.
+/// `halfwordOffset` is a constant s16-element offset in 0..171,
+/// evaluated once and selecting a list's first entry. Lists end at
+/// `WORLD_COLLISION_GRID_CELL_END`. Returns a borrowed `s16*`; no pool writes.
+/// `cell_face_list_macro` selects this binding for the table include.
+/// The binding is undefined immediately after that include.
+#define SHELTER_1F_HELIPORT_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gShelter1fHeliportCollisionGridCells[(halfwordOffset)])
 /// X-major cell directory; every cell includes the four companion-obstacle face slots.
 static s16* _gShelter1fHeliportCollisionGridTable[SHELTER_1F_HELIPORT_COLLISION_CELLS_X * SHELTER_1F_HELIPORT_COLLISION_CELLS_Z] = {
 #include "assets/shelter_1f_heliport_collision_043B4_table.inc"
 };
-#undef GRID_CELL
+#undef SHELTER_1F_HELIPORT_CELL_FACE_LIST_AT_OFFSET
 
 /// Complete room collision grid, including the mutable companion-obstacle slots.
 ///

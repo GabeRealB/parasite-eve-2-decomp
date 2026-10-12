@@ -2014,7 +2014,7 @@ objects = [
   { kind = "packageId" },
   { unit = "dryfield_night_g_r_kitchen/dryfield_night_g_r_kitchen", rodata = "0x4", text = "0x28", data = "0xC88", bss = "0x1670" },
   { kind = "collision", at = "0xD8C", in_c = true },
-  { kind = "collisionSource", at = "0xF94", in_c = true },
+  { kind = "collisionSource", at = "0xF94", in_c = true, cell_face_list_macro = "DRYFIELD_NIGHT_G_R_KITCHEN_CELL_FACE_LIST_AT_OFFSET" },
 ]
 
 [rooms.overlays.dryfield_night_water_tower]
@@ -2081,13 +2081,13 @@ objects = [
   { unit = "dryfield_night_garage/dryfield_night_garage_2", rodata = "0x148", text = "0x33E4", data = "0x56D8", bss = "0xA068" },
   { kind = "animation", at = "0x48A4", sets = ["0x4B80", "0x4F54", "0x5344", "0x56B0"], in_c = true },
   { kind = "collision", at = "0x471C", in_c = true },
-  { kind = "collisionSource", at = "0x47BC", in_c = true },
+  { kind = "collisionSource", at = "0x47BC", in_c = true, cell_face_list_macro = "DRYFIELD_NIGHT_GARAGE_CELL_FACE_LIST_AT_OFFSET" },
   { kind = "collision", at = "0x47E0", in_c = true },
-  { kind = "collisionSource", at = "0x4880", in_c = true },
+  { kind = "collisionSource", at = "0x4880", in_c = true, cell_face_list_macro = "DRYFIELD_NIGHT_GARAGE_CELL_FACE_LIST_AT_OFFSET" },
   { kind = "collision", at = "0x5EF0", in_c = true },
-  { kind = "collisionSource", at = "0x6814", in_c = true },
+  { kind = "collisionSource", at = "0x6814", in_c = true, cell_face_list_macro = "DRYFIELD_NIGHT_GARAGE_CELL_FACE_LIST_AT_OFFSET" },
   { kind = "collision", at = "0x6838", in_c = true },
-  { kind = "collisionSource", at = "0x6E14", in_c = true },
+  { kind = "collisionSource", at = "0x6E14", in_c = true, cell_face_list_macro = "DRYFIELD_NIGHT_GARAGE_CELL_FACE_LIST_AT_OFFSET" },
 ]
 
 [rooms.overlays.dryfield_night_driveway]
@@ -2310,7 +2310,7 @@ objects = [
   { unit = "shelter_b1_elevator_hall/shelter_b1_elevator_hall", rodata = "0x4", text = "0x60", bss = "0x7438" },
   { unit = "shelter_b1_elevator_hall/shelter_b1_elevator_hall_2", rodata = "0x40", text = "0x6C0", data = "0x56EC", bss = "0x7430" },
   { kind = "collision", at = "0x5938", in_c = true },
-  { kind = "collisionSource", at = "0x5E54", in_c = true },
+  { kind = "collisionSource", at = "0x5E54", in_c = true, cell_face_list_macro = "SHELTER_B1_ELEVATOR_HALL_CELL_FACE_LIST_AT_OFFSET" },
 ]
 
 [rooms.overlays.shelter_b1_south_maintenance_walkway]
@@ -2319,7 +2319,7 @@ objects = [
   { kind = "packageId" },
   { unit = "shelter_b1_south_maintenance_walkway/shelter_b1_south_maintenance_walkway", rodata = "0x4", text = "0x38", data = "0x4D3C", bss = "0x6088" },
   { kind = "collision", at = "0x4EC4", in_c = true },
-  { kind = "collisionSource", at = "0x51F8", in_c = true },
+  { kind = "collisionSource", at = "0x51F8", in_c = true, cell_face_list_macro = "SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY_CELL_FACE_LIST_AT_OFFSET" },
 ]
 
 [rooms.overlays.shelter_b1_storeroom]
@@ -2331,7 +2331,7 @@ objects = [
   { unit = "shelter_b1_storeroom/shelter_b1_storeroom", rodata = "0x4", text = "0x3C", data = "0x73A8" },
   { unit = "shelter_b1_storeroom/shelter_b1_storeroom_2", rodata = "0x10", text = "0x22C", data = "0x73D8" },
   { kind = "collision", at = "0x7658", in_c = true },
-  { kind = "collisionSource", at = "0x7B18", in_c = true },
+  { kind = "collisionSource", at = "0x7B18", in_c = true, cell_face_list_macro = "SHELTER_B1_STOREROOM_CELL_FACE_LIST_AT_OFFSET" },
 ]
 
 [rooms.overlays.shelter_b1_north_maintenance_walkway]
@@ -2341,7 +2341,7 @@ objects = [
   { unit = "shelter_b1_north_maintenance_walkway/shelter_b1_north_maintenance_walkway", rodata = "0x4", text = "0x4C", data = "0x74B8" },
   { unit = "shelter_b1_north_maintenance_walkway/shelter_b1_north_maintenance_walkway_2", rodata = "0x38", text = "0x820", data = "0x7590", bss = "0x85C0" },
   { kind = "collision", at = "0x7638", in_c = true },
-  { kind = "collisionSource", at = "0x7980", in_c = true },
+  { kind = "collisionSource", at = "0x7980", in_c = true, cell_face_list_macro = "SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_CELL_FACE_LIST_AT_OFFSET" },
 ]
 
 [rooms.overlays.shelter_b1_armory]
@@ -2353,7 +2353,7 @@ objects = [
   { unit = "shelter_b1_armory/shelter_b1_armory", rodata = "0x4", text = "0x1A8", data = "0x48DC" },
   { unit = "shelter_b1_armory/shelter_b1_armory_2", rodata = "0x178", text = "0x3224", data = "0x4F68", bss = "0x7FD0" },
   { kind = "collision", at = "0x50A8", in_c = true },
-  { kind = "collisionSource", at = "0x5910", in_c = true },
+  { kind = "collisionSource", at = "0x5910", in_c = true, cell_face_list_macro = "SHELTER_B1_ARMORY_CELL_FACE_LIST_AT_OFFSET" },
 ]
 
 [rooms.overlays.shelter_b1_sleeping_quarters]
@@ -2366,7 +2366,7 @@ objects = [
   { kind = "model", at = "0x2D24", in_c = true },
   { kind = "modelSource", at = "0x2F34", in_c = true },
   { kind = "collision", at = "0x3110", in_c = true },
-  { kind = "collisionSource", at = "0x3B14", in_c = true },
+  { kind = "collisionSource", at = "0x3B14", in_c = true, cell_face_list_macro = "SHELTER_B1_SLEEPING_QUARTERS_CELL_FACE_LIST_AT_OFFSET" },
 ]
 
 [rooms.overlays.shelter_b1_main_corridor]
@@ -2375,7 +2375,7 @@ objects = [
   { kind = "packageId" },
   { unit = "shelter_b1_main_corridor/shelter_b1_main_corridor", rodata = "0x4", text = "0x60", data = "0x5ACC", bss = "0x8788" },
   { kind = "collision", at = "0x5D90", in_c = true },
-  { kind = "collisionSource", at = "0x6B30", in_c = true },
+  { kind = "collisionSource", at = "0x6B30", in_c = true, cell_face_list_macro = "SHELTER_B1_MAIN_CORRIDOR_CELL_FACE_LIST_AT_OFFSET" },
 ]
 
 [rooms.overlays.shelter_b1_sterilization_room]
@@ -2388,9 +2388,9 @@ objects = [
   { kind = "modelSource", at = "0x7838", in_c = true },
   { kind = "animation", at = "0x798C", sets = ["0x7C68", "0x7E1C", "0x853C", "0x86CC", "0x9350", "0xA858", "0xAF1C"], in_c = true },
   { kind = "collision", at = "0x78C8", in_c = true },
-  { kind = "collisionSource", at = "0x7968", in_c = true },
+  { kind = "collisionSource", at = "0x7968", in_c = true, cell_face_list_macro = "SHELTER_B1_STERILIZATION_ROOM_CELL_FACE_LIST_AT_OFFSET" },
   { kind = "collision", at = "0xBEC8", in_c = true },
-  { kind = "collisionSource", at = "0xC884", in_c = true },
+  { kind = "collisionSource", at = "0xC884", in_c = true, cell_face_list_macro = "SHELTER_B1_STERILIZATION_ROOM_CELL_FACE_LIST_AT_OFFSET" },
 ]
 
 [rooms.overlays.shelter_b1_pod_access_tunnel]
@@ -2400,7 +2400,7 @@ objects = [
   { unit = "shelter_b1_pod_access_tunnel/shelter_b1_pod_access_tunnel", rodata = "0x4", text = "0x5C", data = "0x3B0C", bss = "0x7750" },
   { kind = "animation", at = "0x3C14", sets = ["0x3EF0", "0x41A4", "0x48DC", "0x4BA0", "0x4DF4", "0x5378", "0x5744"], in_c = true },
   { kind = "collision", at = "0x6504", in_c = true },
-  { kind = "collisionSource", at = "0x6664", in_c = true },
+  { kind = "collisionSource", at = "0x6664", in_c = true, cell_face_list_macro = "SHELTER_B1_POD_ACCESS_TUNNEL_CELL_FACE_LIST_AT_OFFSET" },
 ]
 
 [rooms.overlays.shelter_b1_control_room]
@@ -2411,7 +2411,7 @@ objects = [
   { unit = "shelter_b1_control_room/shelter_b1_control_room_2", rodata = "0x10", text = "0x1964", data = "0x45FC" },
   { unit = "shelter_b1_control_room/shelter_b1_control_room_3", rodata = "0x2C", text = "0x29C0", data = "0x46A4" },
   { kind = "collision", at = "0x4760", in_c = true },
-  { kind = "collisionSource", at = "0x4B38", in_c = true },
+  { kind = "collisionSource", at = "0x4B38", in_c = true, cell_face_list_macro = "SHELTER_B1_CONTROL_ROOM_CELL_FACE_LIST_AT_OFFSET" },
 ]
 
 [rooms.overlays.shelter_b1_access_tunnel]
@@ -2420,7 +2420,7 @@ objects = [
   { kind = "packageId" },
   { unit = "shelter_b1_access_tunnel/shelter_b1_access_tunnel", rodata = "0x4", text = "0x3C", data = "0x1144", bss = "0x29B0" },
   { kind = "collision", at = "0x130C", in_c = true },
-  { kind = "collisionSource", at = "0x1564", in_c = true },
+  { kind = "collisionSource", at = "0x1564", in_c = true, cell_face_list_macro = "SHELTER_B1_ACCESS_TUNNEL_CELL_FACE_LIST_AT_OFFSET" },
 ]
 
 [rooms.overlays.shelter_b1_underground_parking]
@@ -2448,9 +2448,9 @@ objects = [
   { kind = "packageId" },
   { unit = "shelter_b1_golem_freezer_1/shelter_b1_golem_freezer_1", rodata = "0x4", text = "0x10", data = "0x10E8" },
   { kind = "collision", at = "0x1118", in_c = true },
-  { kind = "collisionSource", at = "0x1154", in_c = true },
+  { kind = "collisionSource", at = "0x1154", in_c = true, cell_face_list_macro = "SHELTER_B1_GOLEM_FREEZER_1_CELL_FACE_LIST_AT_OFFSET" },
   { kind = "collision", at = "0x1210", in_c = true },
-  { kind = "collisionSource", at = "0x1400", in_c = true },
+  { kind = "collisionSource", at = "0x1400", in_c = true, cell_face_list_macro = "SHELTER_B1_GOLEM_FREEZER_1_CELL_FACE_LIST_AT_OFFSET" },
 ]
 
 [rooms.overlays.shelter_b2_pod_bottom]
@@ -2480,7 +2480,7 @@ objects = [
   { unit = "shelter_b1_pod_service_gantry/shelter_b1_pod_service_gantry", rodata = "0x4", text = "0x68", data = "0x2534" },
   { unit = "shelter_b1_pod_service_gantry/shelter_b1_pod_service_gantry_2", rodata = "0x30", text = "0x334", data = "0x4F4C" },
   { kind = "collision", at = "0x2690", in_c = true },
-  { kind = "collisionSource", at = "0x2C04", in_c = true },
+  { kind = "collisionSource", at = "0x2C04", in_c = true, cell_face_list_macro = "SHELTER_B1_POD_SERVICE_GANTRY_CELL_FACE_LIST_AT_OFFSET" },
 ]
 
 [rooms.overlays.shelter_b1_transfer_tunnel]
@@ -2491,7 +2491,7 @@ objects = [
   { kind = "packageId" },
   { unit = "shelter_b1_transfer_tunnel/shelter_b1_transfer_tunnel", rodata = "0x4", text = "0x10", data = "0x5300" },
   { kind = "collision", at = "0x540C", in_c = true },
-  { kind = "collisionSource", at = "0x552C", in_c = true },
+  { kind = "collisionSource", at = "0x552C", in_c = true, cell_face_list_macro = "SHELTER_B1_TRANSFER_TUNNEL_CELL_FACE_LIST_AT_OFFSET" },
 ]
 
 [rooms.overlays.shelter_b1_control_room_access_tunnel]
@@ -2503,7 +2503,7 @@ objects = [
   { unit = "shelter_b1_control_room_access_tunnel/shelter_b1_control_room_access_tunnel", rodata = "0x4", text = "0x24", data = "0x48B4" },
   { unit = "shelter_b1_control_room_access_tunnel/shelter_b1_control_room_access_tunnel_2", rodata = "0x10", text = "0x2CAC", data = "0x4934" },
   { kind = "collision", at = "0x49B8", in_c = true },
-  { kind = "collisionSource", at = "0x4AB0", in_c = true },
+  { kind = "collisionSource", at = "0x4AB0", in_c = true, cell_face_list_macro = "SHELTER_B1_CONTROL_ROOM_ACCESS_TUNNEL_CELL_FACE_LIST_AT_OFFSET" },
 ]
 
 [rooms.overlays.shelter_b2_elevator]
@@ -2640,7 +2640,7 @@ objects = [
   { kind = "packageId" },
   { unit = "shelter_1f_heliport_s4/shelter_1f_heliport_s4", rodata = "0x4", text = "0x10", data = "0x110" },
   { kind = "collision", at = "0x178", in_c = true },
-  { kind = "collisionSource", at = "0x408", in_c = true },
+  { kind = "collisionSource", at = "0x408", in_c = true, cell_face_list_macro = "SHELTER_1F_HELIPORT_S4_CELL_FACE_LIST_AT_OFFSET" },
 ]
 
 [rooms.overlays.shelter_b3_dumping_hole]
@@ -2788,7 +2788,7 @@ objects = [
   { kind = "packageId" },
   { unit = "shelter_1f_parking_garage/shelter_1f_parking_garage", rodata = "0x4", text = "0xEC", data = "0x35E0", bss = "0x43C8" },
   { kind = "collision", at = "0x3734", in_c = true },
-  { kind = "collisionSource", at = "0x3A28", in_c = true },
+  { kind = "collisionSource", at = "0x3A28", in_c = true, cell_face_list_macro = "SHELTER_1F_PARKING_GARAGE_CELL_FACE_LIST_AT_OFFSET" },
 ]
 
 [rooms.overlays.shelter_1f_vehicular_airlock]
@@ -2799,7 +2799,7 @@ objects = [
   { kind = "model", at = "0x3690", in_c = true },
   { kind = "modelSource", at = "0x4A44", in_c = true },
   { kind = "collision", at = "0x4C04", in_c = true },
-  { kind = "collisionSource", at = "0x4E78", in_c = true },
+  { kind = "collisionSource", at = "0x4E78", in_c = true, cell_face_list_macro = "SHELTER_1F_VEHICULAR_AIRLOCK_CELL_FACE_LIST_AT_OFFSET" },
 ]
 
 [rooms.overlays.shelter_1f_bulwark]
@@ -2808,7 +2808,7 @@ objects = [
   { kind = "packageId" },
   { unit = "shelter_1f_bulwark/shelter_1f_bulwark", rodata = "0x4", text = "0x5C", data = "0x2D60", bss = "0x3910" },
   { kind = "collision", at = "0x2E80", in_c = true },
-  { kind = "collisionSource", at = "0x3088", in_c = true },
+  { kind = "collisionSource", at = "0x3088", in_c = true, cell_face_list_macro = "SHELTER_1F_BULWARK_CELL_FACE_LIST_AT_OFFSET" },
 ]
 
 [rooms.overlays.shelter_1f_heliport]
@@ -2819,9 +2819,9 @@ objects = [
   { kind = "packageId" },
   { unit = "shelter_1f_heliport/shelter_1f_heliport", rodata = "0x4", text = "0x170", data = "0x3594" },
   { kind = "collision", at = "0x3C4C", in_c = true },
-  { kind = "collisionSource", at = "0x3CEC", in_c = true },
+  { kind = "collisionSource", at = "0x3CEC", in_c = true, cell_face_list_macro = "SHELTER_1F_HELIPORT_CELL_FACE_LIST_AT_OFFSET" },
   { kind = "collision", at = "0x3DA0", in_c = true },
-  { kind = "collisionSource", at = "0x43B4", in_c = true },
+  { kind = "collisionSource", at = "0x43B4", in_c = true, cell_face_list_macro = "SHELTER_1F_HELIPORT_CELL_FACE_LIST_AT_OFFSET" },
 ]
 
 [rooms.overlays.shelter_1f_airlock]
@@ -2832,7 +2832,7 @@ objects = [
   { kind = "packageId" },
   { unit = "shelter_1f_airlock/shelter_1f_airlock", rodata = "0x4", text = "0x10", data = "0xED4" },
   { kind = "collision", at = "0x106C", in_c = true },
-  { kind = "collisionSource", at = "0x1278", in_c = true },
+  { kind = "collisionSource", at = "0x1278", in_c = true, cell_face_list_macro = "SHELTER_1F_AIRLOCK_CELL_FACE_LIST_AT_OFFSET" },
 ]
 
 [rooms.overlays.shelter_1f_guardroom]
@@ -2841,7 +2841,7 @@ objects = [
   { kind = "packageId" },
   { unit = "shelter_1f_guardroom/shelter_1f_guardroom", rodata = "0x4", text = "0x28", data = "0x470" },
   { kind = "collision", at = "0x510", in_c = true },
-  { kind = "collisionSource", at = "0x630", in_c = true },
+  { kind = "collisionSource", at = "0x630", in_c = true, cell_face_list_macro = "SHELTER_1F_GUARDROOM_CELL_FACE_LIST_AT_OFFSET" },
 ]
 
 [rooms.overlays.neo_ark_observatory]
@@ -2908,7 +2908,7 @@ objects = [
   { unit = "neo_ark_submarine_tunnel/neo_ark_submarine_tunnel_2", rodata = "0x60", text = "0x1ECC", data = "0x4830", bss = "0xA350" },
   { kind = "animation", at = "0x3B3C", sets = ["0x3EE0", "0x444C"], in_c = true },
   { kind = "collision", at = "0x49E4", in_c = true },
-  { kind = "collisionSource", at = "0x4F1C", in_c = true },
+  { kind = "collisionSource", at = "0x4F1C", in_c = true, cell_face_list_macro = "NEO_ARK_SUBMARINE_TUNNEL_CELL_FACE_LIST_AT_OFFSET" },
 ]
 
 [rooms.overlays.neo_ark_pavilion]
@@ -2981,7 +2981,7 @@ objects = [
   { kind = "packageId" },
   { unit = "neo_ark_south_promenade/neo_ark_south_promenade", rodata = "0x4", text = "0x10", data = "0x20F4" },
   { kind = "collision", at = "0x21BC", in_c = true },
-  { kind = "collisionSource", at = "0x27CC", in_c = true },
+  { kind = "collisionSource", at = "0x27CC", in_c = true, cell_face_list_macro = "NEO_ARK_SOUTH_PROMENADE_CELL_FACE_LIST_AT_OFFSET" },
 ]
 
 [rooms.overlays.neo_ark_altar]
@@ -3092,7 +3092,7 @@ objects = [
   { unit = "shelter_1f_tent/shelter_1f_tent", rodata = "0x4", text = "0x108", data = "0x43D8" },
   { unit = "shelter_1f_tent/shelter_1f_tent_2", rodata = "0xF0", text = "0x2850", data = "0x4744" },
   { kind = "collision", at = "0x47C4", in_c = true },
-  { kind = "collisionSource", at = "0x4D30", in_c = true },
+  { kind = "collisionSource", at = "0x4D30", in_c = true, cell_face_list_macro = "SHELTER_1F_TENT_CELL_FACE_LIST_AT_OFFSET" },
 ]
 
 [rooms.overlays.neo_ark_woodland_path]
@@ -3114,7 +3114,7 @@ objects = [
   { unit = "neo_ark_submarine_gallery/neo_ark_submarine_gallery", rodata = "0x4", text = "0xB8", data = "0x834C" },
   { unit = "neo_ark_submarine_gallery/neo_ark_submarine_gallery_2", rodata = "0x88", text = "0x1A2C", data = "0x42AC" },
   { kind = "collision", at = "0x458C", in_c = true },
-  { kind = "collisionSource", at = "0x4DDC", in_c = true },
+  { kind = "collisionSource", at = "0x4DDC", in_c = true, cell_face_list_macro = "NEO_ARK_SUBMARINE_GALLERY_CELL_FACE_LIST_AT_OFFSET" },
 ]
 
 [rooms.overlays.neo_ark_r31]
@@ -3143,7 +3143,7 @@ objects = [
   { kind = "packageId" },
   { unit = "neo_ark_substation/neo_ark_substation", rodata = "0x4", text = "0x48", data = "0xCD4" },
   { kind = "collision", at = "0xEC0", in_c = true },
-  { kind = "collisionSource", at = "0x12E4", in_c = true },
+  { kind = "collisionSource", at = "0x12E4", in_c = true, cell_face_list_macro = "NEO_ARK_SUBSTATION_CELL_FACE_LIST_AT_OFFSET" },
 ]
 
 

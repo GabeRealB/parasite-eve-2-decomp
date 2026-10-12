@@ -144,12 +144,20 @@ static s16 _gShelter1fGuardroomCollisionGridCells[] = {
 #include "assets/shelter_1f_guardroom_collision_00630_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gShelter1fGuardroomCollisionGridCells[i])
+/// Supplies this grid's cell face-list addresses to its generated table.
+///
+/// Captures `_gShelter1fGuardroomCollisionGridCells`.
+/// `halfwordOffset` is a constant s16-element offset in 0..9,
+/// evaluated once and selecting a list's first entry. Lists end at
+/// `WORLD_COLLISION_GRID_CELL_END`. Returns a borrowed `s16*`; no pool writes.
+/// `cell_face_list_macro` selects this binding for the table include.
+/// The binding is undefined immediately after that include.
+#define SHELTER_1F_GUARDROOM_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gShelter1fGuardroomCollisionGridCells[(halfwordOffset)])
 /// The grid's single XZ cell, referencing its terminated face-index list.
 static s16* _gShelter1fGuardroomCollisionGridTable[] = {
 #include "assets/shelter_1f_guardroom_collision_00630_table.inc"
 };
-#undef GRID_CELL
+#undef SHELTER_1F_GUARDROOM_CELL_FACE_LIST_AT_OFFSET
 
 /// The guardroom collision mesh and its one-cell XZ face index.
 ///

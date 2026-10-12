@@ -192,12 +192,20 @@ static s16 _gShelter1fParkingGarageCollisionGridCells[88] = {
 #include "assets/shelter_1f_parking_garage_collision_03A28_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gShelter1fParkingGarageCollisionGridCells[i])
+/// Supplies this grid's cell face-list addresses to its generated table.
+///
+/// Captures `_gShelter1fParkingGarageCollisionGridCells`.
+/// `halfwordOffset` is a constant s16-element offset in 0..87,
+/// evaluated once and selecting a list's first entry. Lists end at
+/// `WORLD_COLLISION_GRID_CELL_END`. Returns a borrowed `s16*`; no pool writes.
+/// `cell_face_list_macro` selects this binding for the table include.
+/// The binding is undefined immediately after that include.
+#define SHELTER_1F_PARKING_GARAGE_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gShelter1fParkingGarageCollisionGridCells[(halfwordOffset)])
 /// X-major 4-by-4 cell directory; NULL entries have no collision faces.
 static s16* _gShelter1fParkingGarageCollisionGridTable[16] = {
 #include "assets/shelter_1f_parking_garage_collision_03A28_table.inc"
 };
-#undef GRID_CELL
+#undef SHELTER_1F_PARKING_GARAGE_CELL_FACE_LIST_AT_OFFSET
 
 /// Garage floor/wall mesh indexed by a 4-by-4 XZ grid of 4000-game-unit cells.
 ///

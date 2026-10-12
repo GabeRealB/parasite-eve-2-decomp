@@ -174,12 +174,20 @@ enum {
 };
 
 // The generated table supplies constant element offsets into the face-index pool.
-#define GRID_CELL(i) (&_gNeoArkSouthPromenadeCollisionGridCells[i])
+/// Supplies this grid's cell face-list addresses to its generated table.
+///
+/// Captures `_gNeoArkSouthPromenadeCollisionGridCells`.
+/// `halfwordOffset` is a constant s16-element offset in 0..157,
+/// evaluated once and selecting a list's first entry. Lists end at
+/// `WORLD_COLLISION_GRID_CELL_END`. Returns a borrowed `s16*`; no pool writes.
+/// `cell_face_list_macro` selects this binding for the table include.
+/// The binding is undefined immediately after that include.
+#define NEO_ARK_SOUTH_PROMENADE_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gNeoArkSouthPromenadeCollisionGridCells[(halfwordOffset)])
 /// X-major cell directory; NULL entries are empty cells.
 static s16* _gNeoArkSouthPromenadeCollisionGridTable[] = {
 #include "assets/neo_ark_south_promenade_collision_027CC_table.inc"
 };
-#undef GRID_CELL
+#undef NEO_ARK_SOUTH_PROMENADE_CELL_FACE_LIST_AT_OFFSET
 
 STATIC_ASSERT_SIZEOF(_gNeoArkSouthPromenadeCollisionGridTable,
                      NEO_ARK_SOUTH_PROMENADE_GRID_CELL_COUNT_X * NEO_ARK_SOUTH_PROMENADE_GRID_CELL_COUNT_Z * sizeof(s16*));

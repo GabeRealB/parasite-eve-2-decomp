@@ -952,12 +952,20 @@ static s16 _gShelterB1PodAccessTunnelCollisionGridCells[36] = {
 };
 
 // The generated table supplies halfword offsets into the contiguous face-index lists.
-#define GRID_CELL(i) (&_gShelterB1PodAccessTunnelCollisionGridCells[i])
+/// Supplies this grid's cell face-list addresses to its generated table.
+///
+/// Captures `_gShelterB1PodAccessTunnelCollisionGridCells`.
+/// `halfwordOffset` is a constant s16-element offset in 0..35,
+/// evaluated once and selecting a list's first entry. Lists end at
+/// `WORLD_COLLISION_GRID_CELL_END`. Returns a borrowed `s16*`; no pool writes.
+/// `cell_face_list_macro` selects this binding for the table include.
+/// The binding is undefined immediately after that include.
+#define SHELTER_B1_POD_ACCESS_TUNNEL_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gShelterB1PodAccessTunnelCollisionGridCells[(halfwordOffset)])
 /// X-major directory for two X cells by two Z cells; all four cells are populated.
 static s16* _gShelterB1PodAccessTunnelCollisionGridTable[4] = {
 #include "assets/shelter_b1_pod_access_tunnel_collision_06664_table.inc"
 };
-#undef GRID_CELL
+#undef SHELTER_B1_POD_ACCESS_TUNNEL_CELL_FACE_LIST_AT_OFFSET
 
 WorldCollisionGrid gShelterB1PodAccessTunnelCollisionGrid = {
     .viewCoord   = NULL,

@@ -104,12 +104,20 @@ enum {
     SHELTER_B1_SLEEPING_QUARTERS_COLLISION_CELL_COUNT_Z = 3
 };
 
-#define GRID_CELL(i) (&_gShelterB1SleepingQuartersCollisionGridCells[i])
+/// Supplies this grid's cell face-list addresses to its generated table.
+///
+/// Captures `_gShelterB1SleepingQuartersCollisionGridCells`.
+/// `halfwordOffset` is a constant s16-element offset in 0..273,
+/// evaluated once and selecting a list's first entry. Lists end at
+/// `WORLD_COLLISION_GRID_CELL_END`. Returns a borrowed `s16*`; no pool writes.
+/// `cell_face_list_macro` selects this binding for the table include.
+/// The binding is undefined immediately after that include.
+#define SHELTER_B1_SLEEPING_QUARTERS_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gShelterB1SleepingQuartersCollisionGridCells[(halfwordOffset)])
 /// X-major cell pointers, indexed by x * cellCountZ + z.
 static s16* _gShelterB1SleepingQuartersCollisionGridTable[SHELTER_B1_SLEEPING_QUARTERS_COLLISION_CELL_COUNT_X * SHELTER_B1_SLEEPING_QUARTERS_COLLISION_CELL_COUNT_Z] = {
 #include "assets/shelter_b1_sleeping_quarters_collision_03B14_table.inc"
 };
-#undef GRID_CELL
+#undef SHELTER_B1_SLEEPING_QUARTERS_CELL_FACE_LIST_AT_OFFSET
 
 WorldCollisionGrid gShelterB1SleepingQuartersCollisionGrid = {
     .viewCoord   = NULL,

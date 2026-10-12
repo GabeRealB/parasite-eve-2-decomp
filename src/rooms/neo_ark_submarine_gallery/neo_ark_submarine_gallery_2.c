@@ -264,12 +264,20 @@ enum {
     NEO_ARK_SUBMARINE_GALLERY_GRID_CELL_SIZE    = 4000,
 };
 
-#define GRID_CELL(i) (&_gNeoArkSubmarineGalleryCollisionGridCells[i])
+/// Supplies this grid's cell face-list addresses to its generated table.
+///
+/// Captures `_gNeoArkSubmarineGalleryCollisionGridCells`.
+/// `halfwordOffset` is a constant s16-element offset in 0..205,
+/// evaluated once and selecting a list's first entry. Lists end at
+/// `WORLD_COLLISION_GRID_CELL_END`. Returns a borrowed `s16*`; no pool writes.
+/// `cell_face_list_macro` selects this binding for the table include.
+/// The binding is undefined immediately after that include.
+#define NEO_ARK_SUBMARINE_GALLERY_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gNeoArkSubmarineGalleryCollisionGridCells[(halfwordOffset)])
 /// X-major directory of the gallery's nine 4000-unit collision cells.
 static s16* _gNeoArkSubmarineGalleryCollisionGridTable[NEO_ARK_SUBMARINE_GALLERY_GRID_CELL_COUNT_X * NEO_ARK_SUBMARINE_GALLERY_GRID_CELL_COUNT_Z] = {
 #include "assets/neo_ark_submarine_gallery_collision_04DDC_table.inc"
 };
-#undef GRID_CELL
+#undef NEO_ARK_SUBMARINE_GALLERY_CELL_FACE_LIST_AT_OFFSET
 
 WorldCollisionGrid gNeoArkSubmarineGalleryCollisionGrid = {
     .viewCoord   = NULL,
