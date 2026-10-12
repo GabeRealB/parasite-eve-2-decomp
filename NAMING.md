@@ -1018,6 +1018,10 @@ and `ActorHitTakenScratch` that of the hit check `actor_01200` and
 animation requests, death transforms, thread drawer and puff child tasks. Its
 private implementation interface is `src/shared/maggot_caterpillar.h`, carried
 by `actor_02600` and `actor_05500`; constants use `MAGGOT_CATERPILLAR_`.
+The carrier binds `MAGGOT_CATERPILLAR_KIND` to the Maggot or Caterpillar selector
+before the first header inclusion and undefines it afterwards. The guarded
+header fixes collision identity, the Caterpillar flag and horizontal behavior radii
+for every fragment in that translation unit.
 Per-carrier helpers and handlers without imports keep static linkage and the
 `_` marker. Package-owned task descriptors provide external spawn interfaces.
 

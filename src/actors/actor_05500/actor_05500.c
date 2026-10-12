@@ -51,8 +51,14 @@
 #include "main/wipsys_types.h"
 
 #include "overlay.h"
+
+/// Selects the Caterpillar collision identity, Caterpillar flag and behavior radii.
+///
+/// The first inclusion of the guarded shared header consumes this build-only
+/// selector; the fragments use the derived constants after it is undefined.
 #define MAGGOT_CATERPILLAR_KIND MAGGOT_CATERPILLAR_KIND_CATERPILLAR
 #include "../../shared/maggot_caterpillar.h"
+#undef MAGGOT_CATERPILLAR_KIND
 
 MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 MATRIX* MulMatrix(MATRIX* m0, MATRIX* m1);

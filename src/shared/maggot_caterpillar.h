@@ -11,10 +11,13 @@
  * hit stuns it, and when it dies it collapses, squashes flat and fades,
  * leaving a husk model lit with the room's texture page.
  *
- * Each package states which enemy it builds before including this header:
- * MAGGOT_CATERPILLAR_KIND is MAGGOT_CATERPILLAR_KIND_MAGGOT (actor_02600)
- * or MAGGOT_CATERPILLAR_KIND_CATERPILLAR (actor_05500); the parameters below
- * follow from it.
+ * Before the first inclusion of this guarded header, each carrier binds
+ * MAGGOT_CATERPILLAR_KIND to MAGGOT_CATERPILLAR_KIND_MAGGOT (actor_02600)
+ * or MAGGOT_CATERPILLAR_KIND_CATERPILLAR (actor_05500). These preprocessor
+ * discriminators select the collision identity, Caterpillar flag and strict X/Z
+ * wake, ambush-drop and pounce radii in root-parent coordinate units.
+ * Undefine the binding after the header; all fragments use the derived
+ * constants. The selected configuration stays fixed for the translation unit.
  *
  * Include this header in the prologue and each fragment at its function's
  * position.
@@ -31,21 +34,24 @@
 
 /// Preprocessor build selector for actor_02600's Maggot implementation.
 ///
-/// Bind MAGGOT_CATERPILLAR_KIND before this guarded header and retain it through
-/// the fragments. Selects collision type 0x1A, the spray-capable behavior and
+/// Bind MAGGOT_CATERPILLAR_KIND before the first inclusion of this guarded header.
+/// Selects collision type 0x1A, the spray-capable behavior and
 /// Maggot's wake/drop/pounce ranges. This value is not a runtime enemy type ID.
 #define MAGGOT_CATERPILLAR_KIND_MAGGOT 1
 
 /// Preprocessor build selector for actor_05500's Caterpillar implementation.
 ///
-/// Bind MAGGOT_CATERPILLAR_KIND before this guarded header and retain it through
-/// the fragments. Selects collision type 0x37, behavior without spray and
+/// Bind MAGGOT_CATERPILLAR_KIND before the first inclusion of this guarded header.
+/// Selects collision type 0x37, behavior without spray and
 /// Caterpillar's wake/drop/pounce ranges. This value is not a runtime enemy type ID.
 #define MAGGOT_CATERPILLAR_KIND_CATERPILLAR 2
 #ifndef MAGGOT_CATERPILLAR_KIND
 #error "define MAGGOT_CATERPILLAR_KIND (MAGGOT_CATERPILLAR_KIND_MAGGOT or MAGGOT_CATERPILLAR_KIND_CATERPILLAR) before including maggot_caterpillar.h"
 #endif
 
+/* The selected collision identity goes in the body keys; the spawn stores
+ * the Caterpillar flag in `isCaterpillar`, used to gate spray and choose the reward
+ * argument at death. Each radius is a strict horizontal player-distance test. */
 #if MAGGOT_CATERPILLAR_KIND == MAGGOT_CATERPILLAR_KIND_MAGGOT
 /// Maggot identity in the low halfword of grid/body enemy-contact keys.
 ///
@@ -73,7 +79,7 @@ enum { MAGGOT_CATERPILLAR_AMBUSH_RANGE = 2000 };
 ///
 /// Both aim and roam use 2500; their independent facing tests still apply.
 enum { MAGGOT_CATERPILLAR_POUNCE_RANGE = 2500 };
-#else
+#elif MAGGOT_CATERPILLAR_KIND == MAGGOT_CATERPILLAR_KIND_CATERPILLAR
 /// Caterpillar identity in the low halfword of grid/body enemy-contact keys.
 ///
 /// Selected at compile time by `MAGGOT_CATERPILLAR_KIND`; OR with
@@ -100,6 +106,8 @@ enum { MAGGOT_CATERPILLAR_AMBUSH_RANGE = 1500 };
 ///
 /// Both aim and roam use 2300; their independent facing tests still apply.
 enum { MAGGOT_CATERPILLAR_POUNCE_RANGE = 2300 };
+#else
+#error "MAGGOT_CATERPILLAR_KIND must be MAGGOT_CATERPILLAR_KIND_MAGGOT or MAGGOT_CATERPILLAR_KIND_CATERPILLAR"
 #endif
 
 #include "types.h"

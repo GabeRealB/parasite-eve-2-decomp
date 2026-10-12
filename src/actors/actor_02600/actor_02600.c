@@ -53,8 +53,14 @@
 #include "main/wipsys_types.h"
 
 #include "overlay.h"
+
+/// Selects the Maggot collision identity, Caterpillar flag and behavior radii.
+///
+/// The first inclusion of the guarded shared header consumes this build-only
+/// selector; the fragments use the derived constants after it is undefined.
 #define MAGGOT_CATERPILLAR_KIND MAGGOT_CATERPILLAR_KIND_MAGGOT
 #include "../../shared/maggot_caterpillar.h"
+#undef MAGGOT_CATERPILLAR_KIND
 
 enum { MAGGOT_CATERPILLAR_BODY_PRIORITY = 96 };
 
