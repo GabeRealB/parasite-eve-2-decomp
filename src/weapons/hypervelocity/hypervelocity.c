@@ -618,8 +618,13 @@ void hypervelocityRoundTask(Task* task)
 /// Integer constant in the GPU's 0..255 colour-byte range; 0x80 is unity,
 /// so 0x30 scales the sampled blue channel to three eighths of its intensity.
 /// Configures the next ground-glow drawer inclusion, which undefines it.
-#define GROUND_GLOW_B    0x30
-#define GROUND_GLOW_CLUT 0x428B
+#define GROUND_GLOW_B 0x30
+/// GPU palette selector for Hypervelocity's two-frame additive floor glow.
+///
+/// Selects sixteen colours starting at VRAM (176, 266). The SDK packs these
+/// coordinates into an integer constant stored in `POLY_FT4::clut`.
+/// Configures the next ground-glow drawer inclusion, which undefines it.
+#define GROUND_GLOW_CLUT getClut(176, 266)
 #include "../../shared/ground_glow_draw.inc.c"
 
 /// Draws the two opposed textured walls of a rising, opening discharge cone.

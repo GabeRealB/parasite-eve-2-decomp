@@ -614,8 +614,13 @@ static void _energyballDrawGlowDisc(const GfxCoord* centreCoord, s16 radius, s16
 /// Integer constant in the GPU's 0..255 colour-byte range; 0x80 is unity,
 /// so 0x20 scales the sampled blue channel to one quarter of its intensity.
 /// Configures the next ground-glow drawer inclusion, which undefines it.
-#define GROUND_GLOW_B    0x20
-#define GROUND_GLOW_CLUT 0x428C
+#define GROUND_GLOW_B 0x20
+/// GPU palette selector for Energy Ball's two-frame additive floor glow.
+///
+/// Selects sixteen colours starting at VRAM (192, 266). The SDK packs these
+/// coordinates into an integer constant stored in `POLY_FT4::clut`.
+/// Configures the next ground-glow drawer inclusion, which undefines it.
+#define GROUND_GLOW_CLUT getClut(192, 266)
 #include "../../shared/ground_glow_draw.inc.c"
 
 /// Projects one charging-band quad and selects its six-cell texture frame.
