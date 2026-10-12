@@ -49,6 +49,13 @@
 
 #include "rooms/neo_ark_power_plant_2.h"
 #include "../../shared/model_placement.h"
+/// Selects the Proto Generator of Power Plant 1 for the shared generator instance.
+///
+/// Bind to a C integer constant, `GENERATOR_BETA` (0) or `GENERATOR_PROTO` (1),
+/// before `generator.h` and keep it defined through all generator fragments.
+/// Selects the body target offset and collision key, and seeds the body's s16
+/// kind; the Life Support child inherits it for position and room-state updates.
+/// The constants are declared by the header, so use this binding in C expressions.
 #define GENERATOR_KIND GENERATOR_PROTO
 /// Binds the shared generator implementation to this package's spawn table.
 ///

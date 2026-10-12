@@ -39,6 +39,8 @@ enum { GENERATOR_PROTO = 1 };
 #ifndef GENERATOR_KIND
 #error "define GENERATOR_KIND (GENERATOR_BETA or GENERATOR_PROTO) before including generator.h"
 #endif
+STATIC_ASSERT((GENERATOR_KIND) == GENERATOR_BETA || (GENERATOR_KIND) == GENERATOR_PROTO,
+              generator_kind_must_be_beta_or_proto);
 #ifndef GENERATOR_TASK_TABLE
 #error "define GENERATOR_TASK_TABLE to the package's two-entry TaskDesc array before including generator.h"
 #endif
