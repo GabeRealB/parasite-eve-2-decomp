@@ -640,6 +640,11 @@ static void _energyballDrawGlowDisc(const GfxCoord* centreCoord, s16 radius, s16
 #include "../../shared/sprite_quad_draw_flicker.inc.c"
 
 #define GROUND_GLOW_R 0x20
+/// Green texture modulation for Energy Ball's additive floor glow.
+///
+/// Integer constant in the GPU's 0..255 colour-byte range; 0x80 is unity,
+/// so 0x30 scales the sampled green channel to three eighths of its intensity.
+/// Configures the next ground-glow drawer inclusion, which undefines it.
 #define GROUND_GLOW_G 0x30
 /// Blue texture modulation for Energy Ball's additive floor glow.
 ///

@@ -628,6 +628,11 @@ void hypervelocityRoundTask(Task* task)
 #include "../../shared/sprite_quad_draw.inc.c"
 
 #define GROUND_GLOW_R 0x30
+/// Green texture modulation for Hypervelocity's additive floor glow.
+///
+/// Integer constant in the GPU's 0..255 colour-byte range; 0x80 is unity,
+/// so 0x30 scales the sampled green channel to three eighths of its intensity.
+/// Configures the next ground-glow drawer inclusion, which undefines it.
 #define GROUND_GLOW_G 0x30
 /// Blue texture modulation for Hypervelocity's additive floor glow.
 ///

@@ -6,6 +6,9 @@
  * and Y in VRAM rows (0..511), to select sixteen resident colours for the
  * 4-bit texture. The selector packs Y in bits 6..14 and X / 16 in bits 0..5;
  * it fits u16.
+ * GROUND_GLOW_G supplies green texture modulation: an integer constant in
+ * 0..255, with 0x80 preserving the sampled green intensity. It is stored once
+ * in POLY_FT4::g0 and has no arguments or captured identifiers.
  * GROUND_GLOW_B supplies blue texture modulation: an integer constant in
  * 0..255, with 0x80 preserving the sampled blue intensity. Energy Ball and
  * Hypervelocity supply their own values immediately before the inclusion.
