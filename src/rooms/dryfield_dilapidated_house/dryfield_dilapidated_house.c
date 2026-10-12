@@ -4191,9 +4191,18 @@ static void _dryfieldDilapidatedHouseDrawCurveSamples(Task* task)
 /// after geometry is built, then resets angles at or above a half turn.
 /// The fragment undefines the binding; an absent binding leaves phase unchanged
 /// before that same reset (as in actor_141000).
-#define GLOW_CAPPED_BEAM_PHASE_STEP    0x40
-#define GLOW_DRAW_RING_BEAM_OT_OFFSET  3
-#define GLOW_DRAW_RING_BEAM_HALO_TPAGE 0xE1000465
+#define GLOW_CAPPED_BEAM_PHASE_STEP   0x40
+#define GLOW_DRAW_RING_BEAM_OT_OFFSET 3
+/// Complete quarter-additive GPU draw-mode word for the capped beam's halo.
+///
+/// Required 32-bit constant configuration for `glow_draw_ring_beam.inc.c`:
+/// 0xE1000465, stored in `DR_TPAGE::code[0]` before each semitransparent halo
+/// quad. Enables drawing in the display area, disables dithering and selects
+/// B + F/4 blending. The encoded 4-bit page at VRAM word X=320, Y=0 is unused
+/// by these untextured quads. Requires Psy-Q `libgpu.h` and
+/// `main/display_types.h`; define before the fragment, which undefines it.
+/// Has no arguments, captured locals or side effects.
+#define GLOW_CAPPED_BEAM_HALO_DRAW_MODE _get_mode(true, false, getTPage(0, GPU_BLEND_ADD_QUARTER, 320, 0))
 #include "../../shared/glow_draw_ring_beam.inc.c"
 
 /// Builds the morph attachment's projected core and halo beam caps.

@@ -114,7 +114,7 @@ static void _glowDrawCappedBeam(Task* task, const SVECTOR screenPoints[24], s32 
         drawMode       = gGpuPrimCursor;
         gGpuPrimCursor = drawMode + 1;
         setlen(drawMode, ARRAY_SIZE(drawMode->code));
-        drawMode->code[0] = GLOW_DRAW_RING_BEAM_HALO_TPAGE;
+        drawMode->code[0] = GLOW_CAPPED_BEAM_HALO_DRAW_MODE;
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET((((u32)(sortingDepth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) + GLOW_DRAW_RING_BEAM_OT_OFFSET, drawMode);
         quadIndices++;
     }
@@ -124,4 +124,4 @@ static void _glowDrawCappedBeam(Task* task, const SVECTOR screenPoints[24], s32 
 #undef GLOW_CAPPED_BEAM_BRIGHTNESS
 #undef GLOW_CAPPED_BEAM_PHASE_STEP
 #undef GLOW_DRAW_RING_BEAM_OT_OFFSET
-#undef GLOW_DRAW_RING_BEAM_HALO_TPAGE
+#undef GLOW_CAPPED_BEAM_HALO_DRAW_MODE

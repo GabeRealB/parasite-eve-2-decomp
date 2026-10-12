@@ -779,8 +779,17 @@ static void _actor141000BuildRingBeamPoints(Task* task, SVECTOR screenPoints[ACT
 /// Define before including `glow_draw_ring_beam.inc.c`, which undefines it.
 #define GLOW_CAPPED_BEAM_BRIGHTNESS(beamTask) \
     (((const Actor141000CtrlWork*)((const Task*)(beamTask)->spawnArg2.pointer)->work)->beamLevel)
-#define GLOW_DRAW_RING_BEAM_OT_OFFSET  (-20)
-#define GLOW_DRAW_RING_BEAM_HALO_TPAGE 0xE1000425
+#define GLOW_DRAW_RING_BEAM_OT_OFFSET (-20)
+/// Complete additive GPU draw-mode word for the capped beam's halo.
+///
+/// Required 32-bit constant configuration for `glow_draw_ring_beam.inc.c`:
+/// 0xE1000425, stored in `DR_TPAGE::code[0]` before each semitransparent halo
+/// quad. Enables drawing in the display area, disables dithering and selects
+/// B + F blending. The encoded 4-bit page at VRAM word X=320, Y=0 is unused
+/// by these untextured quads. Requires Psy-Q `libgpu.h` and
+/// `main/display_types.h`; define before the fragment, which undefines it.
+/// Has no arguments, captured locals or side effects.
+#define GLOW_CAPPED_BEAM_HALO_DRAW_MODE _get_mode(true, false, getTPage(0, GPU_BLEND_ADD, 320, 0))
 #include "../../shared/glow_draw_ring_beam.inc.c"
 
 /// Builds the attached beam's four six-point screen rings for its core and halo.
