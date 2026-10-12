@@ -19,6 +19,8 @@
 
 #include "actors/actor.h"
 
+#include "gameplay/world_collision_types.h"
+
 #include "main/task_types.h"
 
 /// Runtime kind/table index for actor_105300's Beta Generator in Power Plant 2.
@@ -44,7 +46,22 @@ STATIC_ASSERT((GENERATOR_KIND) == GENERATOR_BETA || (GENERATOR_KIND) == GENERATO
 #ifndef GENERATOR_TASK_TABLE
 #error "define GENERATOR_TASK_TABLE to the package's two-entry TaskDesc array before including generator.h"
 #endif
-#define GENERATOR_COLLISION_KEY (0x30035 + GENERATOR_KIND)
+/// Low-halfword enemy-body identities used by Generator collision contacts.
+enum {
+    GENERATOR_BETA_COLLISION_BODY_ID  = 53,
+    GENERATOR_PROTO_COLLISION_BODY_ID = 54
+};
+
+/// Packed enemy-body identity shared by a Generator's body and Life Support spheres.
+///
+/// The high halfword is the enemy-body contact category; the low halfword is
+/// 53 for Beta or 54 for Proto. The carrier's `GENERATOR_KIND` binding selects
+/// the constant when this header is included. Both body spheres publish it,
+/// and the independently linked Life Support sphere inherits the same key.
+enum {
+    GENERATOR_COLLISION_KEY = WORLD_COLLISION_CONTACT_ENEMY_BODY |
+                              (GENERATOR_KIND == GENERATOR_BETA ? GENERATOR_BETA_COLLISION_BODY_ID : GENERATOR_PROTO_COLLISION_BODY_ID)
+};
 
 /// Execution-list priority shared by the generator body and Life Support part.
 enum { GENERATOR_TASK_PRIORITY = 96 };
