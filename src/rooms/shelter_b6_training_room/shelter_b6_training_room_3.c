@@ -1400,8 +1400,12 @@ void shelterB6TrainingRoomEnergyArcTask(Task* task)
 /// Uses the cell's inclusive 39-texel UV span in `size * SPRITE_QUAD_SCALE / depth`.
 #define SPRITE_QUAD_SCALE (SPRITE_QUAD_CELL_WIDTH - 1)
 /// Energy-arc sprite palette: VRAM X=144 words, Y=267 scanlines.
-#define SPRITE_QUAD_CLUT     getClut(144, 267)
-#define SPRITE_QUAD_OTZ_BIAS 0
+#define SPRITE_QUAD_CLUT getClut(144, 267)
+/// Uses the energy-arc sprite's unmodified projected depth for sizing and sorting.
+///
+/// Zero disables the unit increment in the next sprite-quad drawer inclusion;
+/// the fragment consumes and undefines this preprocessor switch.
+#define SPRITE_QUAD_INCREMENT_DEPTH 0
 #include "../../shared/sprite_quad_draw.inc.c"
 
 /// Draws an additive textured parallelogram linking two composed world positions.

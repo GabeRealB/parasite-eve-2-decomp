@@ -20,11 +20,13 @@
  *   SPRITE_QUAD_COLUMN_MASK optional: low frame bits select a strip column
  *   SPRITE_QUAD_U_BASE      optional: integer first-cell texel column (0..255)
  *   SPRITE_QUAD_MIN_OTZ     optional: draw only at this depth or beyond
- *   SPRITE_QUAD_OTZ_BIAS    1 (default) sorts the sprite one slot behind its
- *                           point, 0 at the point itself
+ *   SPRITE_QUAD_INCREMENT_DEPTH optional: nonzero (default 1) adds one to
+ *                           SZ3 / 4 before the minimum-depth test, sizing and sorting;
+ *                           0 keeps the projected depth unchanged
  *   SPRITE_QUAD_TEXTURE_PAGE optional: packed 16-bit GPU texture-page word;
  *                           the default is getTPage(0, GPU_BLEND_ADD, 640, 0)
  * The texture-page binding's contract is beside the fragment's default.
+ * The depth-increment switch's preprocessor contract is beside its default.
  *
  * SPRITE_QUAD_CLUT is required and has no default. It is the 16-bit palette
  * selector stored in POLY_FT4::clut. A constant is a packed getClut word:
@@ -48,7 +50,8 @@
  * arithmetic: size * scale / depth is the screen-space half-diagonal in
  * pixels before rotation. Integer division truncates toward zero before the
  * Q12 sine/cosine multiplication and right shift. The depth is SZ3 / 4,
- * with SPRITE_QUAD_OTZ_BIAS already applied, and must be nonzero when sizing.
+ * with any SPRITE_QUAD_INCREMENT_DEPTH increment already applied, and must
+ * be nonzero when sizing.
  *
  * Current carriers choose the inclusive horizontal UV span, cell width - 1:
  * 23, 31, 39, 47 or 55 for cells 24, 32, 40, 48 or 56 texels wide. The atlas
@@ -153,9 +156,11 @@
  *
  * SPRITE_QUAD_MIN_OTZ is an optional positive signed integer constant in
  * camera Z / 4 units. The drawer rejects negative projection flags first,
- * applies OTZ_BIAS, then accepts depth >= MIN_OTZ before perspective division
- * and packet allocation. Undefined omits this test. The fragment clears the
- * binding after each inclusion; Nursery supplies 65 with OTZ_BIAS = 0.
+ * applies any SPRITE_QUAD_INCREMENT_DEPTH increment, then accepts
+ * depth >= MIN_OTZ before perspective division and packet allocation.
+ * Undefined omits this test. The fragment clears the
+ * binding after each inclusion; Nursery supplies 65 with
+ * SPRITE_QUAD_INCREMENT_DEPTH = 0.
  *
  * SPRITE_QUAD_U_BASE shifts computed cell columns within the selected texture
  * page; leaving it undefined starts at column zero. It is ignored when
@@ -271,8 +276,9 @@
 /// low 16 bits of each component are projected, and the source is borrowed for
 /// the call. Nothing is drawn when the point is behind the camera, or when a
 /// bound minimum depth rejects it. Depth must be nonzero when a quad is sized.
-/// The primitive is semitransparent and unshaded, ordered one slot behind the
-/// point unless `SPRITE_QUAD_OTZ_BIAS` is 0.
+/// The primitive is semitransparent and unshaded. Sizing and sorting use
+/// SZ3 / 4 + 1 by default, or SZ3 / 4 with `SPRITE_QUAD_INCREMENT_DEPTH` = 0.
+/// Sorting scales and quantizes this depth into an ordering-table tag.
 static void spriteQuadDraw(SPRITE_QUAD_POSITION_SOURCE_TYPE* pos, SPRITE_QUAD_FRAME_T frame, SPRITE_QUAD_SIZE_T size, s16 angle);
 
 /// Selects the fixed 56-by-56 texture cell used on odd flicker frames.

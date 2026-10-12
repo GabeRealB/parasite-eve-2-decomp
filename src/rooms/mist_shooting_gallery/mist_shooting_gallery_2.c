@@ -2579,8 +2579,12 @@ void mistShootingGalleryTracerTask(Task* task)
 /// Uses the cell's inclusive 39-texel UV span in `size * SPRITE_QUAD_SCALE / depth`.
 #define SPRITE_QUAD_SCALE (SPRITE_QUAD_CELL_WIDTH - 1)
 /// Muzzle-flash palette: VRAM X=304 words, Y=266 scanlines.
-#define SPRITE_QUAD_CLUT     getClut(304, 266)
-#define SPRITE_QUAD_OTZ_BIAS 0
+#define SPRITE_QUAD_CLUT getClut(304, 266)
+/// Uses the gallery flash's unmodified projected depth for sizing and sorting.
+///
+/// Zero disables the unit increment in the next sprite-quad drawer inclusion;
+/// the fragment consumes and undefines this preprocessor switch.
+#define SPRITE_QUAD_INCREMENT_DEPTH 0
 #include "../../shared/sprite_quad_draw.inc.c"
 
 /// Uses the unmodified start depth for the gallery tracer's width and sorting.

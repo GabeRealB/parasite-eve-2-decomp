@@ -1811,12 +1811,16 @@ static void _shelterB6NurseryDrawParticleFrame(const GfxCoord* coord, u16 animat
 /// Perspective-sizing multiplier for the nursery particle sprite.
 ///
 /// Uses the cell's inclusive 31-texel UV span in `size * SPRITE_QUAD_SCALE / depth`.
-#define SPRITE_QUAD_SCALE    (SPRITE_QUAD_CELL_WIDTH - 1)
-#define SPRITE_QUAD_OTZ_BIAS 0
+#define SPRITE_QUAD_SCALE (SPRITE_QUAD_CELL_WIDTH - 1)
+/// Keeps the eight-frame particle's projected depth unchanged for rejection, sizing and sorting.
+///
+/// Zero disables the unit increment, so the minimum of 65 tests SZ3 / 4
+/// directly. The next sprite-quad fragment undefines this preprocessor switch.
+#define SPRITE_QUAD_INCREMENT_DEPTH 0
 /// Minimum accepted camera Z / 4 depth for the nursery particle sprite.
 ///
-/// Positive signed integer constant, tested after the optional depth bias
-/// and before perspective division. This instance disables the bias, so 65
+/// Positive signed integer constant, tested after the optional depth increment
+/// and before perspective division. This instance disables the increment, so 65
 /// is the projected depth itself. Undefined omits the depth test. The next
 /// sprite-quad fragment clears the binding.
 #define SPRITE_QUAD_MIN_OTZ 0x41

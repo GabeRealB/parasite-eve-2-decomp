@@ -1895,8 +1895,12 @@ void shelterB1SterilizationRoomPuffTask(Task* task)
 /// Perspective-sizing multiplier for the sterilization room's drifting sprite.
 ///
 /// Uses the cell's inclusive 47-texel UV span in `size * SPRITE_QUAD_SCALE / depth`.
-#define SPRITE_QUAD_SCALE    (SPRITE_QUAD_CELL_WIDTH - 1)
-#define SPRITE_QUAD_OTZ_BIAS 0
+#define SPRITE_QUAD_SCALE (SPRITE_QUAD_CELL_WIDTH - 1)
+/// Uses the drifting puff's unmodified projected depth for sizing and sorting.
+///
+/// Zero disables the unit increment in the next sprite-quad drawer inclusion;
+/// the fragment consumes and undefines this preprocessor switch.
+#define SPRITE_QUAD_INCREMENT_DEPTH 0
 #include "../../shared/sprite_quad_draw.inc.c"
 
 #include "../../shared/glow_draw_capsule.inc.c"

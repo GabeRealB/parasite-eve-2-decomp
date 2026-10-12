@@ -59,8 +59,21 @@
 /// gallery, training room, Hammer's six-cell strip and Javelin use the default.
 #define SPRITE_QUAD_TEXTURE_PAGE getTPage(0, GPU_BLEND_ADD, 640, 0)
 #endif
-#ifndef SPRITE_QUAD_OTZ_BIAS
-#define SPRITE_QUAD_OTZ_BIAS 1
+#ifndef SPRITE_QUAD_INCREMENT_DEPTH
+/// Enables a one-unit projected-depth increment for this sprite-quad instance.
+///
+/// Bind an integer preprocessor constant expression before the fragment:
+/// 0 keeps SZ3 / 4; any nonzero value enables SZ3 / 4 + 1 (default 1).
+/// C enum names and runtime expressions cannot configure this `#if` switch.
+/// It has no parameters, captured identifiers or runtime evaluation.
+///
+/// The unit is camera Z / 4. The increment precedes any minimum-depth test
+/// and affects both perspective sizing and ordering-table placement. Sorting
+/// scales and quantizes depth, so an increment need not change the table tag.
+/// The gallery, sterilization room, nursery and training room bind 0; other
+/// instances use the default. The fragment undefines the binding after every
+/// inclusion, including both instances in Antibody and Hammer.
+#define SPRITE_QUAD_INCREMENT_DEPTH 1
 #endif
 
 /// Included sprite-quad drawer. `SPRITE_QUAD_FUNC` is this instance's name;
@@ -109,7 +122,7 @@ static void SPRITE_QUAD_FUNC(SPRITE_QUAD_POSITION_SOURCE_TYPE* pos, SPRITE_QUAD_
     gte_stflg(&(head - 1)->projectionFlags);
     if (block->projectionFlags >= 0) {
         gte_stszotz(&(head - 1)->depth);
-#if SPRITE_QUAD_OTZ_BIAS
+#if SPRITE_QUAD_INCREMENT_DEPTH
         block->depth++;
 #endif
 #ifdef SPRITE_QUAD_MIN_OTZ
@@ -190,7 +203,7 @@ static void SPRITE_QUAD_FUNC(SPRITE_QUAD_POSITION_SOURCE_TYPE* pos, SPRITE_QUAD_
 #undef SPRITE_QUAD_TOP_V
 #undef SPRITE_QUAD_BOTTOM_V
 #undef SPRITE_QUAD_SCALE
-#undef SPRITE_QUAD_OTZ_BIAS
+#undef SPRITE_QUAD_INCREMENT_DEPTH
 #undef SPRITE_QUAD_COLUMN_MASK
 #undef SPRITE_QUAD_U_BASE
 #undef SPRITE_QUAD_MIN_OTZ
