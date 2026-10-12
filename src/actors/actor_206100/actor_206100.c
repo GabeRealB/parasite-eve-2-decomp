@@ -227,11 +227,15 @@ STATIC_ASSERT_SIZEOF(_Actor206100Work, 0x558);
 /// The Diver library's name for this package's work block (see diver.h).
 typedef _Actor206100Work DiverWork;
 
-/// Added to a shot's vertical speed every frame.
-#define ACTOR_206100_SHOT_GRAVITY 2
+/// Downward shot acceleration in root-parent units per running tick squared.
+///
+/// Added to signed-halfword Y velocity before translation; paused ticks do not apply it.
+enum { ACTOR_206100_SHOT_GRAVITY = 2 };
 
-/// Frame count at which a shot still flying bursts by itself.
-#define ACTOR_206100_SHOT_LIFETIME 0x5B
+/// Running flight ticks before automatic impact (91), excluding launch and linger.
+///
+/// Compared after incrementing the zeroed lifetime counter; paused ticks do not age it.
+enum { ACTOR_206100_SHOT_LIFETIME = 0x5B };
 
 /// Initial spark size and growth per running Sea Diver shot tick, in game units.
 ///
@@ -239,8 +243,11 @@ typedef _Actor206100Work DiverWork;
 /// _diverImpactBurst's sizeAndSprayBias word, without a fixed-point scale.
 enum { ACTOR_206100_SHOT_BURST_SIZE_STEP = 0x100 };
 
-/// Value `_Actor206100ShotWork::burstSize` stops growing at.
-#define ACTOR_206100_SHOT_BURST_SIZE_MAX 0x600
+/// Maximum Sea Diver shot spark size in integer game units (1536).
+///
+/// Size grows from 256 in 256-unit steps and occupies the low twelve bits of
+/// the burst recipe's packed size word; it is a visual size, not a collision radius.
+enum { ACTOR_206100_SHOT_BURST_SIZE_MAX = 0x600 };
 
 /// Packed additive spray-size bias combined with the Sea Diver shot's spark size.
 ///

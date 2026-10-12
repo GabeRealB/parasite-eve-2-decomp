@@ -857,6 +857,8 @@ static void _actor341900UpdatePlayerAction(Task* eventTask)
 /// is evaluated once. Captures the three function-local character/bank constants
 /// and live player/save globals. Character 1 selects weapon+1, otherwise
 /// weapon+0x22. Disables collision and expands as a standalone compound statement.
+/// Dispatch requires character 1, weapon 0..32 and its loaded bank; backing
+/// storage for the retained alternate +34 selector is unproven.
 #define ACTOR_341900_BUILD_WEAPON_PLAY_REQUEST(playRequest, clipId)                                                                      \
     {                                                                                                                                    \
         s32 weaponId;                                                                                                                    \

@@ -2784,7 +2784,7 @@ static void _actor503500TickBossAnimation(Task* task)
         if (work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_SETTLED) {
             if (work->state == ACTOR_503500_STATE_IDLE) {
                 _actor503500SetBossTrackRates(task, ACTOR_503500_BOSS_ANIMATION_DEFAULT_RATE);
-                actor503500HandlePlayAnimation(task, ACTOR_MESSAGE_PLAY_ANIMATION, &D_actor_503500_8016EAD4, 0);
+                actor503500HandlePlayAnimation(task, ACTOR_MESSAGE_PLAY_ANIMATION, &ACTOR_503500_BOSS_IDLE_BLEND_REQUEST, 0);
             }
         } else {
             for (trackIndex = 1; trackIndex < ARRAY_SIZE(work->rig.slots); trackIndex++) {

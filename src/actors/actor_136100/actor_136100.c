@@ -2479,21 +2479,21 @@ static inline s16 _actor136100ReadOpeningSceneCue(u16* triggerControl, u8* scene
     return ACTOR_136100_OPENING_CUE_NONE;
 }
 
-/// Installs the linked actor's animation table and resets to a clip.
+/// Installs the companion's scene animation table and resets its requested clip.
 ///
 /// `record` is accessed repeatedly and must be a side-effect-free request
-/// lvalue. `anim` is evaluated twice and must be side-effect-free; `task` is
+/// lvalue. `clipId` is evaluated twice and must be side-effect-free; `task` is
 /// evaluated once. Dispatch consumes the request synchronously.
-/// A null linked task suppresses evaluation of the clip and record arguments.
+/// A NULL companion suppresses evaluation of the clip and record arguments.
 /// Per-expansion work pointers preserve the original call scheduling.
-#define ACTOR_136100_RESET_LINKED_ANIMATION(task, anim, record)                                                       \
+#define ACTOR_136100_RESET_COMPANION_ANIMATION(task, clipId, record)                                                  \
     {                                                                                                                 \
         _Actor136100Work* animWork = (task)->work;                                                                    \
                                                                                                                       \
         if (animWork->companionTask != NULL) {                                                                        \
             (record).source.sets          = _gActor136100CompanionAnimationSets;                                      \
-            animWork->companionAnimation  = anim;                                                                     \
-            (record).animationId          = anim;                                                                     \
+            animWork->companionAnimation  = (clipId);                                                                 \
+            (record).animationId          = (clipId);                                                                 \
             (record).blend                = ANIMATION_BLEND_RESET;                                                    \
             (record).blendFrames          = 0;                                                                        \
             (record).enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;                                        \
@@ -2505,18 +2505,21 @@ static inline s16 _actor136100ReadOpeningSceneCue(u16* triggerControl, u8* scene
 ///
 /// `record` must be a side-effect-free `AnimationBankCopyRequest` lvalue. The table is
 /// null-terminated; the receiver copies only the preceding entries.
-/// Per-expansion work pointers preserve the original call scheduling.
+/// task is evaluated once and reloads the scene work; playerTask must be live.
+/// Counts set pointers with an unsigned halfword, excluding the terminator.
+/// Dispatch copies seven address words to bank slots 47..53 synchronously.
+/// The request is borrowed for the call; clip resources stay loaded for playback.
 #define ACTOR_136100_COPY_PLAYER_ANIMATION_SETS(task, record)                                                    \
     {                                                                                                            \
         _Actor136100Work* msgWork = (task)->work;                                                                \
-        s32               n;                                                                                     \
+        u16               setCount;                                                                              \
                                                                                                                  \
-        n = 0;                                                                                                   \
-        while (_gActor136100PlayerSceneAnimationSets[n & 0xFFFF] != 0) {                                         \
-            n += 1;                                                                                              \
+        setCount = 0;                                                                                            \
+        while (_gActor136100PlayerSceneAnimationSets[setCount] != NULL) {                                        \
+            setCount += 1;                                                                                       \
         }                                                                                                        \
         (record).source.sets = &_gActor136100PlayerSceneAnimationSets[0];                                        \
-        (record).wordCount   = n & 0xFFFF;                                                                       \
+        (record).wordCount   = setCount;                                                                         \
         TASK_MESSAGE_DISPATCH_POINTER(msgWork->playerTask, ANIMATION_MESSAGE_COPY_BANK_EXTENSION, &(record), 0); \
     }
 
@@ -2626,7 +2629,7 @@ static void _actor136100SceneTask(Task* task)
                 }
                 TASK_MESSAGE_DISPATCH_POINTER(task, ACTOR_MESSAGE_PLACE, &_gActor136100AfterBurnerBodyPlacement, 0);
                 _actor136100ResetBodyTracks(task, ACTOR_136100_BODY_AFTER_BURNER_START);
-                ACTOR_136100_RESET_LINKED_ANIMATION(task, ACTOR_136100_SCENE_AFTER_COMPANION_CLIP, message.animation);
+                ACTOR_136100_RESET_COMPANION_ANIMATION(task, ACTOR_136100_SCENE_AFTER_COMPANION_CLIP, message.animation);
             } else {
                 gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, ACTOR_136100_SCENE_BEFORE_BURNER_OBJECTIVE);
                 taskMessageDispatch(task, ACTOR_MESSAGE_SET_MODEL_DRAW, ACTOR_MESSAGE_DRAW_SHOW, 0);
@@ -2637,7 +2640,7 @@ static void _actor136100SceneTask(Task* task)
                 }
                 TASK_MESSAGE_DISPATCH_POINTER(task, ACTOR_MESSAGE_PLACE, &_gActor136100BeforeBurnerBodyRestPlacement, 0);
                 _actor136100ResetBodyTracks(task, ACTOR_136100_BODY_BEFORE_BURNER_START);
-                ACTOR_136100_RESET_LINKED_ANIMATION(task, ACTOR_136100_SCENE_BEFORE_COMPANION_CLIP, message.animation);
+                ACTOR_136100_RESET_COMPANION_ANIMATION(task, ACTOR_136100_SCENE_BEFORE_COMPANION_CLIP, message.animation);
             }
             task->state++;
             break;

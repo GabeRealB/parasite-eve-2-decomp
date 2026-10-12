@@ -1740,12 +1740,13 @@ static void _actor121300AyaDoubleSceneTask(Task* task)
             return;
         }
     }
-        /// Samples part 1's cached world translation without composing it.
+        /// Sets scene-model lighting from part 1's cached translation.
         ///
         /// The arguments must be side-effect-free Task*, TmdObject* and VECTOR
         /// lvalues; they are used repeatedly. Captures the local light-count constant.
-        /// Retains no request or sample pointer.
-#define ACTOR_121300_SAMPLE_DOUBLE_LIGHTING(task, model, samplePosition)                           \
+        /// Does not compose the coordinate. Uses all three room lights, leaves
+        /// the VECTOR's fourth word intact and retains no sample pointer.
+#define ACTOR_121300_UPDATE_SCENE_MODEL_LIGHTING(task, model, samplePosition)                      \
     {                                                                                              \
         (model)             = (task)->extra.tmd;                                                   \
         (samplePosition).vx = (model)->coords[1].workm.t[0];                                       \
@@ -1759,11 +1760,11 @@ static void _actor121300AyaDoubleSceneTask(Task* task)
     {
         VECTOR samplePosition;
 
-        ACTOR_121300_SAMPLE_DOUBLE_LIGHTING(task, model, samplePosition);
+        ACTOR_121300_UPDATE_SCENE_MODEL_LIGHTING(task, model, samplePosition);
     }
     _gActor121300SceneFrame += 1;
 }
-#undef ACTOR_121300_SAMPLE_DOUBLE_LIGHTING
+#undef ACTOR_121300_UPDATE_SCENE_MODEL_LIGHTING
 
 /// Darkens the scene, then disables display output when the ramp reaches 256.
 ///

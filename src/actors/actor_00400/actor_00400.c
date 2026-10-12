@@ -90,8 +90,10 @@ typedef struct {
 } _Actor00400SwimStateTable;
 STATIC_ASSERT_SIZEOF(_Actor00400SwimStateTable, 0x3C);
 
-/// Half the side of the ground stain, which is a square centred on the root.
-#define ACTOR_00400_GROUND_STAIN_HALF_SIZE 0x5DC
+/// Ground stain's X/Z half-span in root-parent coordinate units (1500).
+///
+/// Its four corners form a 3000-unit square at the wounded diver's spawn height.
+enum { ACTOR_00400_GROUND_STAIN_HALF_SIZE = 0x5DC };
 
 /// Work block of the stain on the ground under the diver that spawns wounded
 /// and lying out of the water.
@@ -109,11 +111,15 @@ typedef struct {
 } _Actor00400GroundStainWork;
 STATIC_ASSERT_SIZEOF(_Actor00400GroundStainWork, 0x28);
 
-/// Vertical speed the shot leaves with; negative is up.
-#define ACTOR_00400_SHOT_LAUNCH_SPEED_Y (-0x14)
+/// Initial shot Y velocity in root-parent units per running tick; negative is up.
+///
+/// Stored in a signed halfword before flight adds downward acceleration.
+enum { ACTOR_00400_SHOT_LAUNCH_SPEED_Y = -0x14 };
 
-/// Frame count at which a shot still flying bursts by itself.
-#define ACTOR_00400_SHOT_LIFETIME 0x3D
+/// Running flight ticks before automatic impact (61), excluding launch and linger.
+///
+/// The zeroed lifetime counter is incremented before comparison; paused ticks do not age it.
+enum { ACTOR_00400_SHOT_LIFETIME = 0x3D };
 
 /// Billboard/flash size 768, with one extra size unit for the room particle.
 enum { ACTOR_00400_SHOT_BURST_SIZE_AND_SPRAY_BIAS = 0x1300 };

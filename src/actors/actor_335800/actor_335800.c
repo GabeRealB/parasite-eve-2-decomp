@@ -1787,22 +1787,22 @@ static void _actor335800GaryDouglasInit(Task* task)
 
 /// Applies signed 16.16 root-parent velocity and retains unsigned XYZ fractions.
 ///
-/// Scoped to Douglas's update. motion is a live ActorWalkState* and rootCoord
-/// a writable GfxCoord*. Both arguments are evaluated repeatedly and must have
-/// no side effects. Applies signed high halves in X/Y/Z order, keeps each
-/// zero-extended low half and dirties composition even at rest. Velocity must
-/// already use the root parent's frame; no rotation or collision correction runs.
-#define ACTOR_MOTION_INTEGRATE_WALK_VELOCITY(motion, rootCoord)     \
-    (motion)->carry[0].word  += (motion)->velocity.vx;              \
-    (motion)->carry[1].word  += (motion)->velocity.vy;              \
-    (motion)->carry[2].word  += (motion)->velocity.vz;              \
-    (rootCoord)->coord.t[0]  += (motion)->carry[0].halves.integer;  \
-    (rootCoord)->coord.t[1]  += (motion)->carry[1].halves.integer;  \
-    (rootCoord)->coord.t[2]  += (motion)->carry[2].halves.integer;  \
-    (rootCoord)->composeStamp = GRAPHICS_COORD_DIRTY;               \
-    (motion)->carry[0].word   = (motion)->carry[0].halves.fraction; \
-    (motion)->carry[1].word   = (motion)->carry[1].halves.fraction; \
-    (motion)->carry[2].word   = (motion)->carry[2].halves.fraction;
+/// Requires live writable Douglas work and root coordinate. Applies signed high
+/// halves in X/Y/Z order, zero-extends the retained low halves and dirties
+/// composition even at rest. Velocity already uses the root parent's frame.
+static inline void _actor335800IntegrateWalkVelocity(_Actor335800GaryDouglasWork* work, GfxCoord* rootCoord)
+{
+    work->walk.carry[0].word += work->walk.velocity.vx;
+    work->walk.carry[1].word += work->walk.velocity.vy;
+    work->walk.carry[2].word += work->walk.velocity.vz;
+    rootCoord->coord.t[0]    += work->walk.carry[0].halves.integer;
+    rootCoord->coord.t[1]    += work->walk.carry[1].halves.integer;
+    rootCoord->coord.t[2]    += work->walk.carry[2].halves.integer;
+    rootCoord->composeStamp   = GRAPHICS_COORD_DIRTY;
+    work->walk.carry[0].word  = work->walk.carry[0].halves.fraction;
+    work->walk.carry[1].word  = work->walk.carry[1].halves.fraction;
+    work->walk.carry[2].word  = work->walk.carry[2].halves.fraction;
+}
 
 /// Halves both Douglas lighting matrices and records the completed dim request.
 ///
@@ -1848,7 +1848,7 @@ static void _actor335800GaryDouglasUpdate(Task* task)
 
     motionHandlers[work->walk.motion](task);
     rootCoord = task->extra.tmd->coords;
-    ACTOR_MOTION_INTEGRATE_WALK_VELOCITY(&work->walk, rootCoord);
+    _actor335800IntegrateWalkVelocity(work, rootCoord);
     // Hidden bodies still move; visible bodies tick poses and detect cue-2's falling edge.
     if (!(model->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
         if (work->model.ticking != 0) {
@@ -1885,8 +1885,6 @@ static void _actor335800GaryDouglasUpdate(Task* task)
         work->freeCountdown--;
     }
 }
-
-#undef ACTOR_MOTION_INTEGRATE_WALK_VELOCITY
 
 #undef ACTOR_335800_DOUGLAS_DIM_LIGHTING
 

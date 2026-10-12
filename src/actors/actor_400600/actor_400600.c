@@ -4375,15 +4375,19 @@ static inline void _actor400600SetCoordYaw(GfxCoord* coord, s16 yaw)
     _actor400600CopyMatrixRotation(&coord->coord, &yawRotation);
 }
 
-/// Sets the root rotation of the child task held in work field `child`, if it
-/// has been spawned.
-#define _ACTOR400600_ROTATE_CHILD(task, child, angle)                        \
-    do {                                                                     \
-        Task* _child = ((_Actor400600ZebraStalkerWork*)(task)->work)->child; \
-                                                                             \
-        if (_child != NULL) {                                                \
-            _actor400600SetCoordYaw(_child->extra.tmd->coords, (angle));     \
-        }                                                                    \
+/// Rebuilds a spawned Zebra Stalker arm's local rotation from its yaw.
+///
+/// task and armIndex are evaluated once; the index is ACTOR_400600_ARM_LEFT
+/// or ACTOR_400600_ARM_RIGHT. yaw is evaluated only for a live arm and narrows
+/// to s16 angle units (4096 per turn). Reloads task-owned work before selecting
+/// the arm; preserves translation and leaves composition invalidation to the caller.
+#define ACTOR_400600_ROTATE_ARM(task, armIndex, yaw)                           \
+    do {                                                                       \
+        _Actor400600ZebraStalkerWork* armWork = (task)->work;                  \
+        Task*                         armTask = armWork->armTasks[(armIndex)]; \
+        if (armTask != NULL) {                                                 \
+            _actor400600SetCoordYaw(armTask->extra.tmd->coords, (yaw));        \
+        }                                                                      \
     } while (0)
 
 /// Eases both arm models outward during strikes and back toward their rest yaw.
@@ -4402,26 +4406,28 @@ static void _actor400600UpdateArmSwing(Task* task)
     work = task->work;
     if (work->rightArmOut != 0) {
         work->armSwingAngles[1] += (ACTOR_400600_ARM_EXTENDED_YAW - work->armSwingAngles[1]) >> 2;
-        _ACTOR400600_ROTATE_CHILD(task, armTasks[1], work->armSwingAngles[1]);
+        ACTOR_400600_ROTATE_ARM(task, ACTOR_400600_ARM_RIGHT, work->armSwingAngles[1]);
     } else {
         work->rightArmBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->armSwingAngles[1]  += -work->armSwingAngles[1] >> 3;
         rightArmYaw               = work->armSwingAngles[1];
-        _ACTOR400600_ROTATE_CHILD(task, armTasks[1], rightArmYaw);
+        ACTOR_400600_ROTATE_ARM(task, ACTOR_400600_ARM_RIGHT, rightArmYaw);
     }
     if (work->leftArmOut != 0) {
         work->armSwingAngles[0] += (ACTOR_400600_ARM_EXTENDED_YAW - work->armSwingAngles[0]) >> 2;
-        _ACTOR400600_ROTATE_CHILD(task, armTasks[0], -work->armSwingAngles[0]);
+        ACTOR_400600_ROTATE_ARM(task, ACTOR_400600_ARM_LEFT, -work->armSwingAngles[0]);
     } else {
         work->leftArmBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->armSwingAngles[0] += -work->armSwingAngles[0] >> 3;
-        _ACTOR400600_ROTATE_CHILD(task, armTasks[0], -work->armSwingAngles[0]);
+        ACTOR_400600_ROTATE_ARM(task, ACTOR_400600_ARM_LEFT, -work->armSwingAngles[0]);
     }
     if (work->state != ACTOR_400600_STATE_LEFT_STRIKE && work->state != ACTOR_400600_STATE_RIGHT_STRIKE) {
         work->rightArmBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->leftArmBody.flags  &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
     }
 }
+
+#undef ACTOR_400600_ROTATE_ARM
 
 /// Starts the hide branch of the cloak fade for a live actor and its arm models.
 ///

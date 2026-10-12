@@ -419,8 +419,11 @@ extern AnimationSet** gActor503500BossAnimationSources[ACTOR_503500_BOSS_ANIMATI
 /// every request disables animation-driven world collision.
 extern AnimationPlayRequest gActor503500BossAnimationPresets[ACTOR_503500_BOSS_ANIMATION_PRESET_COUNT];
 
-/// Scalar view of the idle-blend preset; an lvalue with no separate storage.
-#define D_actor_503500_8016EAD4 (gActor503500BossAnimationPresets[ACTOR_503500_BOSS_IDLE_BLEND_PRESET])
+/// Boss idle restart request: source 0, clip 1, twenty-frame blend, collision disabled.
+///
+/// An addressable AnimationPlayRequest lvalue in the preset table, with no
+/// separate storage. The table remains loaded for this overlay's lifetime.
+#define ACTOR_503500_BOSS_IDLE_BLEND_REQUEST (gActor503500BossAnimationPresets[ACTOR_503500_BOSS_IDLE_BLEND_PRESET])
 
 /// Boss target/sphere center in part-3 local game units, also the orange-flash origin.
 extern SVECTOR gActor503500BossTargetOffset;

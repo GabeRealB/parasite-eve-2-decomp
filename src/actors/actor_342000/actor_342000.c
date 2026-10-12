@@ -852,11 +852,14 @@ static void _actor342000GluttonBodyTask(Task* task)
 /// The initial playback query's return value is discarded.
 static void _actor342000UpdatePlayerAction(Task* eventTask)
 {
-    // Build and synchronously dispatch an event-bank clip using the caller's
-    // existing request storage. The record lvalue is evaluated six times and must
-    // be stable and side-effect-free; each scalar argument is evaluated once.
-    // Expands to a compound statement; use only where a block is permitted.
-    // The selected package animation data must remain loaded during playback.
+    /// Installs and plays an incinerator event clip with world collision disabled.
+    ///
+    /// requestRecord is a writable AnimationPlayRequest lvalue, evaluated six times;
+    /// it must be stable and side-effect-free. Scalar arguments are evaluated once:
+    /// clipId selects 0..3, transitionMode is reset/interpolate and durationFrames
+    /// counts whole animation frames. Dispatch borrows the record synchronously;
+    /// the selected package animation data must remain loaded during playback.
+    /// Expands to a compound statement; use where a block is permitted.
 #define ACTOR_342000_PLAY_PLAYER_EVENT_CLIP(requestRecord, clipId, transitionMode, durationFrames)                                      \
     {                                                                                                                                   \
         (requestRecord).source.sets          = _gActor342000PlayerAnimationSets;                                                        \
@@ -1026,6 +1029,20 @@ static inline s32 _actor342000StepDoorShake(s32 positionZ, s32 oddFrameOffset)
     return positionZ - oddFrameOffset;
 }
 
+/// Seeds the Glutton's stored staging transform, preserving its fourth components.
+///
+/// work owns the destination throughout the scene; source is borrowed for this
+/// call. Copies XYZ in parent-coordinate units and rotation in 4096ths of a turn.
+static inline void _actor342000CopyGluttonStagingPlacement(_Actor342000EventWork* work, const ActorTransform* source)
+{
+    work->gluttonPlacement.pos.vx = source->pos.vx;
+    work->gluttonPlacement.pos.vy = source->pos.vy;
+    work->gluttonPlacement.pos.vz = source->pos.vz;
+    work->gluttonPlacement.rot.vx = source->rot.vx;
+    work->gluttonPlacement.rot.vy = source->rot.vy;
+    work->gluttonPlacement.rot.vz = source->rot.vz;
+}
+
 /// Advances the incinerator scene's Glutton, doors, framebuffer blend and view staging.
 ///
 /// Requires initialized event work and the live tasks each staging mode uses.
@@ -1038,17 +1055,6 @@ static inline s32 _actor342000StepDoorShake(s32 positionZ, s32 oddFrameOffset)
 /// Do not move that load into only the Glutton modes.
 static void _actor342000UpdateSceneStaging(Task* eventTask)
 {
-    // Copies XYZ/rotation while leaving fourth components intact. Each pointer
-    // is evaluated six times and must be stable, aligned and side-effect-free.
-#define ACTOR_342000_COPY_STAGING_PLACEMENT(destination, source) \
-    {                                                            \
-        (destination)->pos.vx = (source)->pos.vx;                \
-        (destination)->pos.vy = (source)->pos.vy;                \
-        (destination)->pos.vz = (source)->pos.vz;                \
-        (destination)->rot.vx = (source)->rot.vx;                \
-        (destination)->rot.vy = (source)->rot.vy;                \
-        (destination)->rot.vz = (source)->rot.vz;                \
-    }
     enum {
         ACTOR_342000_STAGING_SETUP                 = 0,
         ACTOR_342000_STAGING_RUN                   = 1,
@@ -1081,7 +1087,7 @@ static void _actor342000UpdateSceneStaging(Task* eventTask)
                     gluttonWork->scale.vy   = ONE;
                     gluttonWork->scale.vz   = ONE;
                     initialGluttonPlacement = &_gActor342000GluttonStartPlacement;
-                    ACTOR_342000_COPY_STAGING_PLACEMENT(&work->gluttonPlacement, initialGluttonPlacement);
+                    _actor342000CopyGluttonStagingPlacement(work, initialGluttonPlacement);
                     work->stagingTicks = 0;
                     work->stagingStep++;
                 case ACTOR_342000_STAGING_RUN:
@@ -1201,8 +1207,6 @@ static void _actor342000UpdateSceneStaging(Task* eventTask)
     }
     work->stagingMode = ACTOR_342000_STAGING_NONE;
 }
-
-#undef ACTOR_342000_COPY_STAGING_PLACEMENT
 
 /// Kills the event's two door halves and clears their handles during the timed close.
 ///

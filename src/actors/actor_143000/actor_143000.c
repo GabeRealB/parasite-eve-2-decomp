@@ -52,7 +52,11 @@ enum { ACTOR_143000_KEYPAD_CODE_CAPACITY = 20 };
 /// Stored in the byte resultBanner, independently of codeAccepted and statusLine.
 /// The drawer selects the accepted texture and palette only for this value.
 enum { ACTOR_143000_KEYPAD_BANNER_ACCEPTED = 1 };
-#define ACTOR_143000_KEYPAD_BANNER_REJECTED 2
+/// Rejected-password banner selector, independent of the timed status text.
+///
+/// Stored in the signed-byte result selector at ticks 120 and 210 after rejection;
+/// the drawer chooses the rejected atlas cell and CLUT. Zero clears the banner.
+enum { ACTOR_143000_KEYPAD_BANNER_REJECTED = 2 };
 
 /// States selected by the keypad task's eleven-entry callback table.
 enum {
