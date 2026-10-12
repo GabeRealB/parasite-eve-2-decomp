@@ -155,7 +155,6 @@ static GfxCoord _gShelterB6NurseryAmbienceOrigin;
 /// view-13 shower clear both; leaving view 13 alone does not consume a cue.
 static _ShelterB6NurseryEffectCues _gShelterB6NurseryEffectCues;
 
-#define TELEPHONE_TITLE_BYTES "Telephone\0\x1FQ"
 #include "../../shared/telephone.h"
 #include "../../shared/sprite_quad.h"
 
@@ -992,7 +991,12 @@ WorldCollisionSurfaceProperties* gShelterB6NurserySurfaceProperties[8] = {
 
 Task* gRoomCutsceneSoundTask;
 
+/// Retained bytes following this room's telephone menu title terminator.
+///
+/// Two-byte string-literal binding for `telephone.inc.c`; unused by label drawing.
+#define TELEPHONE_MENU_TITLE_TRAILING_BYTES "\x1F\x51"
 #include "../../shared/telephone.inc.c"
+#undef TELEPHONE_MENU_TITLE_TRAILING_BYTES
 
 static void _glowDrawDiamond(const SVECTOR* worldPoint, s32 pulseRate, s32 radiusScale);
 static void _glowDrawPulsingDisc(const SVECTOR* worldPoint, s32 pulseRate, s32 radiusScale);
@@ -1003,8 +1007,6 @@ void shelterB6NurseryTelephoneMenuTask(Task* task)
 }
 
 #include "../../shared/telephone_panels.inc.c"
-
-#undef TELEPHONE_TITLE_BYTES
 
 #include "../../shared/room_cutscene_task.inc.c"
 

@@ -104,7 +104,6 @@ static void _roomCutsceneSoundTask(Task* task);
 /// scene.
 extern Task* gRoomCutsceneSoundTask;
 
-#define TELEPHONE_TITLE_BYTES "Telephone\0\xDF\xDC"
 #include "../../shared/telephone.h"
 
 /// Defines the reflection scale at the shared implementation's include position.
@@ -1179,7 +1178,12 @@ static const AreaApplyRec _gDryfieldNightMotelRoom6PostRestGrayStalkerAreaUpdate
 
 Task* gRoomCutsceneSoundTask = NULL;
 
+/// Retained bytes following this room's telephone menu title terminator.
+///
+/// Two-byte string-literal binding for `telephone.inc.c`; unused by label drawing.
+#define TELEPHONE_MENU_TITLE_TRAILING_BYTES "\xDF\xDC"
 #include "../../shared/telephone.inc.c"
+#undef TELEPHONE_MENU_TITLE_TRAILING_BYTES
 
 void dryfieldNightMotelRoom6TelephoneMenuTask(Task* task)
 {
@@ -1187,8 +1191,6 @@ void dryfieldNightMotelRoom6TelephoneMenuTask(Task* task)
 }
 
 #include "../../shared/telephone_panels.inc.c"
-
-#undef TELEPHONE_TITLE_BYTES
 
 #include "../../shared/planar_reflection.inc.c"
 

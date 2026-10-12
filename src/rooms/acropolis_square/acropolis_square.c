@@ -85,7 +85,6 @@ extern Task* gRoomCutsceneSoundTask;
 #define PLANAR_REFLECTION_DEFINE_SCALE_WITH_IMPLEMENTATION 1
 #include "../../shared/planar_reflection.h"
 
-#define TELEPHONE_TITLE_BYTES "Telephone\0\xDC\xDD"
 #include "../../shared/telephone.h"
 
 static void _acropolisSquareInitializeRoomTask(Task* task);
@@ -1607,7 +1606,12 @@ void acropolisSquarePlayerReflectionTask(Task* reflectionTask)
 
 #undef PLANAR_REFLECTION_DEFINE_SCALE_WITH_IMPLEMENTATION
 
+/// Retained bytes following this room's telephone menu title terminator.
+///
+/// Two-byte string-literal binding for `telephone.inc.c`; unused by label drawing.
+#define TELEPHONE_MENU_TITLE_TRAILING_BYTES "\xDC\xDD"
 #include "../../shared/telephone.inc.c"
+#undef TELEPHONE_MENU_TITLE_TRAILING_BYTES
 
 void acropolisSquareTelephoneMenuTask(Task* task)
 {
@@ -1615,8 +1619,6 @@ void acropolisSquareTelephoneMenuTask(Task* task)
 }
 
 #include "../../shared/telephone_panels.inc.c"
-
-#undef TELEPHONE_TITLE_BYTES
 
 #include "../../shared/room_cutscene_task.inc.c"
 

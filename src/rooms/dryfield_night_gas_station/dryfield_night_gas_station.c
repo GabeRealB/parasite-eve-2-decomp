@@ -88,8 +88,6 @@ static WorldCollisionGrid _gDryfieldNightGasStationRooms1To3CollisionGrid;
 
 static Task* _gDryfieldNightGasStationSpriteFlickerTask;
 
-#define TELEPHONE_TITLE_BYTES "Telephone\0" \
-                              "5\x96"
 #include "../../shared/telephone.h"
 
 static void _dryfieldNightGasStationResetCutsceneObstacleCollision(s32 displaceObstacle);
@@ -3166,7 +3164,12 @@ static Task* _gDryfieldNightGasStationSpriteFlickerTask;
 static void _dryfieldNightGasStationInitializeRoomTask(Task* task);
 static void _dryfieldNightGasStationUpdateRoomTask(Task* task);
 
+/// Retained bytes following this room's telephone menu title terminator.
+///
+/// Two-byte string-literal binding for `telephone.inc.c`; unused by label drawing.
+#define TELEPHONE_MENU_TITLE_TRAILING_BYTES "\x35\x96"
 #include "../../shared/telephone.inc.c"
+#undef TELEPHONE_MENU_TITLE_TRAILING_BYTES
 
 static void _glowDrawCapsule(const SVECTOR worldPoints[2], s32 radiusScale, s32 packedColor);
 static void _glowDrawFlare(const SVECTOR* worldPoint, s32 textureIndex, s32 radiusScale);
@@ -3177,8 +3180,6 @@ void dryfieldNightGasStationTelephoneMenuTask(Task* task)
 }
 
 #include "../../shared/telephone_panels.inc.c"
-
-#undef TELEPHONE_TITLE_BYTES
 
 /// Registers the room's messages and prepares the companion and first-visit scene.
 ///

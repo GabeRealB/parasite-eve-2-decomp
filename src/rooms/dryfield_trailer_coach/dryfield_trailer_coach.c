@@ -89,7 +89,6 @@ static void _roomCutsceneSoundTask(Task* task);
 
 static s32 _gShopPreviewRowId;
 
-#define TELEPHONE_TITLE_BYTES "Telephone\0\xD0\xFF"
 #include "../../shared/telephone.h"
 
 static const u16 _gShopStandardDefaultWeaponsStock[];
@@ -2118,7 +2117,12 @@ static void _dryfieldTrailerCoachOpenTopicChoice(Task* task);
 
 #undef SHOP_CHARGE_TITLE_BYTES
 
+/// Retained bytes following this room's telephone menu title terminator.
+///
+/// Two-byte string-literal binding for `telephone.inc.c`; unused by label drawing.
+#define TELEPHONE_MENU_TITLE_TRAILING_BYTES "\xD0\xFF"
 #include "../../shared/telephone.inc.c"
+#undef TELEPHONE_MENU_TITLE_TRAILING_BYTES
 
 void dryfieldTrailerCoachTelephoneMenuTask(Task* task)
 {
@@ -2126,8 +2130,6 @@ void dryfieldTrailerCoachTelephoneMenuTask(Task* task)
 }
 
 #include "../../shared/telephone_panels.inc.c"
-
-#undef TELEPHONE_TITLE_BYTES
 
 #include "../../shared/room_cutscene_task.inc.c"
 

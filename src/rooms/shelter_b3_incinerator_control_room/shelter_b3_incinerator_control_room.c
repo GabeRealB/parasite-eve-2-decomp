@@ -60,7 +60,6 @@ static void _roomCutsceneSoundTask(Task* task);
 
 /// View saved when the cutscene starts and restored when it ends.
 
-#define TELEPHONE_TITLE_BYTES "Telephone\0\x14\xCF"
 #include "../../shared/telephone.h"
 
 static s32 _shelterB3IncineratorControlRoomRejectKeyItem(Task* task, s32 messageId, s32 itemId, s32 unused);
@@ -101,7 +100,12 @@ static TaskMessageEntry _gShelterB3IncineratorControlRoomMessageTable[6] = {
 static void _shelterB3IncineratorControlRoomInitializeRoom(Task* task);
 static void _shelterB3IncineratorControlRoomIdleRoom(Task* task);
 
+/// Retained bytes following this room's telephone menu title terminator.
+///
+/// Two-byte string-literal binding for `telephone.inc.c`; unused by label drawing.
+#define TELEPHONE_MENU_TITLE_TRAILING_BYTES "\x14\xCF"
 #include "../../shared/telephone.inc.c"
+#undef TELEPHONE_MENU_TITLE_TRAILING_BYTES
 
 void shelterB3IncineratorControlRoomTelephoneMenuTask(Task* task)
 {
@@ -109,8 +113,6 @@ void shelterB3IncineratorControlRoomTelephoneMenuTask(Task* task)
 }
 
 #include "../../shared/telephone_panels.inc.c"
-
-#undef TELEPHONE_TITLE_BYTES
 
 #include "../../shared/room_cutscene_task.inc.c"
 

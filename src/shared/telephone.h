@@ -2,8 +2,9 @@
  *
  * _telephoneMenuTask is a static-inline implementation called by an ordinary overlay
  * entry point. Private functions and data have the same names in every TU.
- * TELEPHONE_TITLE_BYTES preserves the 12-byte title allocation, including its
- * terminator and two retained trailing bytes; visible text is shared.
+ * Each carrier binds TELEPHONE_MENU_TITLE_TRAILING_BYTES only around
+ * telephone.inc.c. It supplies a two-byte string literal retained after the
+ * title's NUL terminator; the visible title is common to all instances.
  *
  * Include this header in the prologue and telephone_data.inc.c at the data
  * position. Include telephone.inc.c, the overlay menu wrapper, then

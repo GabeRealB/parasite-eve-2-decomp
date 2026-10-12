@@ -69,7 +69,6 @@ static void _roomCutsceneSoundTask(Task* task);
 
 static s32 _gShopPreviewRowId;
 
-#define TELEPHONE_TITLE_BYTES "Telephone\0N\xF2"
 #include "../../shared/telephone.h"
 
 static const u16 _gShopStandardDefaultWeaponsStock[];
@@ -1048,7 +1047,12 @@ static void _dryfieldNightTrailerCoachInitRoomTask(Task* task);
 
 #undef SHOP_CHARGE_TITLE_BYTES
 
+/// Retained bytes following this room's telephone menu title terminator.
+///
+/// Two-byte string-literal binding for `telephone.inc.c`; unused by label drawing.
+#define TELEPHONE_MENU_TITLE_TRAILING_BYTES "\x4E\xF2"
 #include "../../shared/telephone.inc.c"
+#undef TELEPHONE_MENU_TITLE_TRAILING_BYTES
 
 void dryfieldNightTrailerCoachTelephoneMenuTask(Task* task)
 {
@@ -1056,8 +1060,6 @@ void dryfieldNightTrailerCoachTelephoneMenuTask(Task* task)
 }
 
 #include "../../shared/telephone_panels.inc.c"
-
-#undef TELEPHONE_TITLE_BYTES
 
 /// The area records applied when a scene ends with game-flag nibble 0x7A at 1,
 /// nibble 0 at 2 and the save's location at 0x0101 in its upper half.

@@ -310,7 +310,6 @@ static void _shelterB1UndergroundParkingPanelApplySelection(void);
 static void _shelterB1UndergroundParkingDrawPanelGlow(s16 screenX, s16 screenY, s16 pixelRadius, s16 packedRgb);
 static void _shelterB1UndergroundParkingSetFastLightPulse(s16 fastPulse);
 
-#define TELEPHONE_TITLE_BYTES "Telephone\0<\x9E"
 #include "../../shared/telephone.h"
 
 #define SHOP_CHARGE_TITLE_BYTES "Charge\0o"
@@ -1922,7 +1921,12 @@ static u16 _gShelterB1UndergroundParkingFastLightPulse = SHELTER_B1_UNDERGROUND_
 
 static void _shelterB1UndergroundParkingDrawPanelIndicators(void);
 
+/// Retained bytes following this room's telephone menu title terminator.
+///
+/// Two-byte string-literal binding for `telephone.inc.c`; unused by label drawing.
+#define TELEPHONE_MENU_TITLE_TRAILING_BYTES "\x3C\x9E"
 #include "../../shared/telephone.inc.c"
+#undef TELEPHONE_MENU_TITLE_TRAILING_BYTES
 
 static void _glowDrawBeam(const SVECTOR worldPoints[2], s32 radiusScale, s32 startAngle, s32 packedColor);
 static void _glowDrawDiamond(const SVECTOR* worldPoint, s32 pulseRate, s32 radiusScale);
@@ -1934,8 +1938,6 @@ void shelterB1UndergroundParkingTelephoneMenuTask(Task* task)
 }
 
 #include "../../shared/telephone_panels.inc.c"
-
-#undef TELEPHONE_TITLE_BYTES
 
 #include "../../shared/shop.inc.c"
 #undef SHOP_REFILL_DISPLAY_QUANTITY

@@ -96,7 +96,6 @@ extern Task* gRoomCutsceneSoundTask;
 /// retain their zero defaults for the loaded room's lifetime.
 static RoomCutsceneRec _gMineRefugeCutscene;
 
-#define TELEPHONE_TITLE_BYTES "Telephone\0\x1A\x1C"
 #include "../../shared/telephone.h"
 
 static void _mineRefugeStartCutscene(s32 restoreView);
@@ -620,7 +619,12 @@ static void _mineRefugeDrawPulsingCyanStar(const SVECTOR* worldPoint, s32 pulseR
 static void _mineRefugeDrawPulsingCyanBurst(const SVECTOR* worldPoint, s32 pulseRate, s32 radiusScale);
 static void _mineRefugeDrawLayeredGlow(const SVECTOR* worldPoint, s32 radiusScale, s32 packedColor);
 
+/// Retained bytes following this room's telephone menu title terminator.
+///
+/// Two-byte string-literal binding for `telephone.inc.c`; unused by label drawing.
+#define TELEPHONE_MENU_TITLE_TRAILING_BYTES "\x1A\x1C"
 #include "../../shared/telephone.inc.c"
+#undef TELEPHONE_MENU_TITLE_TRAILING_BYTES
 
 static void _glowDrawFlare(const SVECTOR* worldPoint, s32 textureIndex, s32 radiusScale);
 
@@ -630,8 +634,6 @@ void mineRefugeTelephoneMenuTask(Task* task)
 }
 
 #include "../../shared/telephone_panels.inc.c"
-
-#undef TELEPHONE_TITLE_BYTES
 
 #include "../../shared/room_cutscene_task.inc.c"
 

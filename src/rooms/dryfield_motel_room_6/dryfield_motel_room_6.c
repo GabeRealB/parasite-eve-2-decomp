@@ -109,7 +109,6 @@ static s32 _motelRoom6CutsceneMessage(Task* task, s32 messageId, s32 command, s3
 
 static void _dryfieldMotelRoom6IgnoreCommand(Task* unusedTask, s32 unusedMessageId, s32 unusedCommand, s32 unusedSecondArg);
 
-#define TELEPHONE_TITLE_BYTES "Telephone\0\xFF\x1F"
 #include "../../shared/telephone.h"
 
 /// Defines the reflection scale at the shared implementation's include position.
@@ -2156,7 +2155,12 @@ WorldCollisionSurfaceProperties* gDryfieldMotelRoom6SurfacePropertiesByClass[8] 
 
 Task* gRoomCutsceneSoundTask;
 
+/// Retained bytes following this room's telephone menu title terminator.
+///
+/// Two-byte string-literal binding for `telephone.inc.c`; unused by label drawing.
+#define TELEPHONE_MENU_TITLE_TRAILING_BYTES "\xFF\x1F"
 #include "../../shared/telephone.inc.c"
+#undef TELEPHONE_MENU_TITLE_TRAILING_BYTES
 
 void dryfieldMotelRoom6TelephoneMenuTask(Task* task)
 {
@@ -2164,8 +2168,6 @@ void dryfieldMotelRoom6TelephoneMenuTask(Task* task)
 }
 
 #include "../../shared/telephone_panels.inc.c"
-
-#undef TELEPHONE_TITLE_BYTES
 
 #include "../../shared/planar_reflection.inc.c"
 

@@ -68,7 +68,6 @@ static const u16 _gShopStandardDefaultAmmunitionStock[];
 static const u16 _gShopStandardDefaultArmorStock[];
 static const u16 _gShopStandardDefaultItemsStock[];
 
-#define TELEPHONE_TITLE_BYTES "Telephone\0\xF2\xEF"
 #include "../../shared/telephone.h"
 
 /// Binds the shop's animated refill quantity to this room's writable s32 storage.
@@ -830,7 +829,12 @@ static void _mistParkingIdleRoomState(Task* task);
 
 #undef SHOP_CHARGE_TITLE_BYTES
 
+/// Retained bytes following this room's telephone menu title terminator.
+///
+/// Two-byte string-literal binding for `telephone.inc.c`; unused by label drawing.
+#define TELEPHONE_MENU_TITLE_TRAILING_BYTES "\xF2\xEF"
 #include "../../shared/telephone.inc.c"
+#undef TELEPHONE_MENU_TITLE_TRAILING_BYTES
 
 void mistParkingTelephoneMenuTask(Task* task)
 {
@@ -838,8 +842,6 @@ void mistParkingTelephoneMenuTask(Task* task)
 }
 
 #include "../../shared/telephone_panels.inc.c"
-
-#undef TELEPHONE_TITLE_BYTES
 
 /// The area records applied when the scene hands the Dryfield story on.
 

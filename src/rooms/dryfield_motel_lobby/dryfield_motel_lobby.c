@@ -36,7 +36,6 @@
 
 #include "rooms/room_common.h"
 
-#define TELEPHONE_TITLE_BYTES "Telephone\0\xAD\x1A"
 #include "../../shared/telephone.h"
 
 static void _dryfieldMotelLobbyInitRoomTask(Task* task);
@@ -713,7 +712,12 @@ WorldCollisionSurfaceProperties* gDryfieldMotelLobbySurfacePropertiesByClass[8] 
     &_gDryfieldMotelLobbySilentSurfaceProperties,
 };
 
+/// Retained bytes following this room's telephone menu title terminator.
+///
+/// Two-byte string-literal binding for `telephone.inc.c`; unused by label drawing.
+#define TELEPHONE_MENU_TITLE_TRAILING_BYTES "\xAD\x1A"
 #include "../../shared/telephone.inc.c"
+#undef TELEPHONE_MENU_TITLE_TRAILING_BYTES
 
 void dryfieldMotelLobbyTelephoneMenuTask(Task* task)
 {
@@ -721,8 +725,6 @@ void dryfieldMotelLobbyTelephoneMenuTask(Task* task)
 }
 
 #include "../../shared/telephone_panels.inc.c"
-
-#undef TELEPHONE_TITLE_BYTES
 
 /// Refuses every key-item-use request in the motel lobby.
 ///

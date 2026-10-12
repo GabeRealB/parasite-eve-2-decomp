@@ -736,11 +736,14 @@ static void _telephoneUsageTask(Task* task)
     }
 }
 
+STATIC_ASSERT(sizeof(TELEPHONE_MENU_TITLE_TRAILING_BYTES) == 3, telephoneMenuTitleTrailingBytes);
+
 /// NUL-terminated title of the telephone save and statistics menu.
 ///
-/// `TELEPHONE_TITLE_BYTES` supplies twelve bytes: "Telephone", its terminator
-/// and two retained carrier-specific bytes that panel-label drawing does not read.
-static const char _gTelephoneMenuTitle[12] = TELEPHONE_TITLE_BYTES;
+/// The 12-byte image holds the common title, its NUL and two exact bytes
+/// supplied by `TELEPHONE_MENU_TITLE_TRAILING_BYTES`. Label drawing stops at
+/// the NUL; the string literal's final terminator is excluded from the array.
+static const char _gTelephoneMenuTitle[12] = "Telephone\0" TELEPHONE_MENU_TITLE_TRAILING_BYTES;
 
 /// Updates the telephone menu and routes save and statistics dismissal.
 ///

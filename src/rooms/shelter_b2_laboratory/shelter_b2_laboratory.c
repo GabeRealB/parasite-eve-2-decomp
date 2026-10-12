@@ -120,7 +120,6 @@ extern u8 gRoomEventActive;
 // Keep this first declaration before included telephone storage for BSS order.
 static u16 _gShelterB2LaboratoryFastGlowPulse;
 
-#define TELEPHONE_TITLE_BYTES "Telephone\0\xFA\xA9"
 #include "../../shared/telephone.h"
 
 static s32  _shelterB2LaboratoryRejectKeyItemUse(Task* task, s32 messageId, s32 keyItemId, s32 unusedArg);
@@ -1206,7 +1205,12 @@ RoomEventReq gRoomEventReq = { 0, 0, 0, 0, 0, 0 };
 /// all 16 bits without normalization. Capsule geometry and colours are unaffected.
 static u16 _gShelterB2LaboratoryFastGlowPulse;
 
+/// Retained bytes following this room's telephone menu title terminator.
+///
+/// Two-byte string-literal binding for `telephone.inc.c`; unused by label drawing.
+#define TELEPHONE_MENU_TITLE_TRAILING_BYTES "\xFA\xA9"
 #include "../../shared/telephone.inc.c"
+#undef TELEPHONE_MENU_TITLE_TRAILING_BYTES
 
 static void _glowDrawCapsule(const SVECTOR worldPoints[2], s32 radiusScale, s32 packedColor);
 static void _glowDrawPulsingDisc(const SVECTOR* worldPoint, s32 pulseRate, s32 radiusScale);
@@ -1217,8 +1221,6 @@ void shelterB2LaboratoryTelephoneMenuTask(Task* task)
 }
 
 #include "../../shared/telephone_panels.inc.c"
-
-#undef TELEPHONE_TITLE_BYTES
 
 #include "../../shared/room_cutscene_task.inc.c"
 

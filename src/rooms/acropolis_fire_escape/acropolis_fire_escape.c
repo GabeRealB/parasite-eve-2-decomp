@@ -100,7 +100,6 @@ extern Task* gRoomCutsceneSoundTask;
 /// loaded and do not overwrite the request while that scene is live.
 static RoomCutsceneRec _gAcropolisFireEscapeRepeatScene;
 
-#define TELEPHONE_TITLE_BYTES "Telephone\0\1\0"
 #include "../../shared/telephone.h"
 
 /// Key-item request handled by this room; the payload is an item ID.
@@ -703,7 +702,12 @@ WorldCollisionSurfaceProperties* gAcropolisFireEscapeSurfacePropertiesByClass[8]
 
 Task* gRoomCutsceneSoundTask;
 
+/// Retained bytes following this room's telephone menu title terminator.
+///
+/// Two-byte string-literal binding for `telephone.inc.c`; unused by label drawing.
+#define TELEPHONE_MENU_TITLE_TRAILING_BYTES "\x01\x00"
 #include "../../shared/telephone.inc.c"
+#undef TELEPHONE_MENU_TITLE_TRAILING_BYTES
 
 void acropolisFireEscapeTelephoneMenuTask(Task* task)
 {
@@ -711,8 +715,6 @@ void acropolisFireEscapeTelephoneMenuTask(Task* task)
 }
 
 #include "../../shared/telephone_panels.inc.c"
-
-#undef TELEPHONE_TITLE_BYTES
 
 #include "../../shared/room_cutscene_task.inc.c"
 
