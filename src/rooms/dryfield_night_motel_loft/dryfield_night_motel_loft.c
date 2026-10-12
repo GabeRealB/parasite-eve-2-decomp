@@ -417,7 +417,12 @@ s32 dryfieldNightMotelLoftRefuseKeyItem(Task* task, s32 messageId, s32 itemId, s
     return ROOM_KEY_ITEM_USE_REFUSED;
 }
 
-#define ROOM_VARIANT_MOTEL_BALCONY_MSG roomVariantMotelBalconyMsg
+/// Names the balcony destination resolver used by the loft's room-message table.
+///
+/// `dryfield_night_motel_loft_private.h` declares its prototype and external
+/// linkage for the second translation unit. Bind one function identifier for
+/// the following fragment, which undefines the binding after its definition.
+#define ROOM_VARIANT_MOTEL_BALCONY_RESOLVE_HANDLER roomVariantMotelBalconyMsg
 #include "../../shared/room_variants_motel_balcony.inc.c"
 
 s32 dryfieldNightMotelLoftCommandMessage(Task* unusedTask, s32 messageId, s32 commandId, s32 unusedSecondArg)

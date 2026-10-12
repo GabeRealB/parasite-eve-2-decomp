@@ -698,7 +698,7 @@ its implementation declaration is in `src/shared/cellar.h`.
 The paired water-hole rooms' driveway/underpass resolver also uses this
 identity, with static instances declared in each carrier's prologue.
 Queries preserve the copied room and suppress departure effects. Local copies
-are static. `ROOM_VARIANT_MOTEL_BALCONY_MSG` and
+are static. `ROOM_VARIANT_MOTEL_BALCONY_RESOLVE_HANDLER` and
 `ROOM_VARIANT_MOTEL_BALCONY_DOORS_MSG` select a carrier-declared instance in
 their fragments: the night loft and balcony keep external linkage between
 their source files, declared in their overlay-private headers.
