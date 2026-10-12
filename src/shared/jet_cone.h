@@ -6,8 +6,15 @@
  * drawing. The drawer inclusion undefines this binding after using it.
  * Bind JET_CONE_RIM_SHORT and
  * JET_CONE_RIM_LONG to local-unit rim radii for the extended and base tails;
- * and JET_CONE_FRAME_JITTER to a readable s16[16] frame-offset array.
- * Keep the bindings through the fragment inclusion. */
+ * keep those bindings through the fragment inclusion.
+ * JET_CONE_TEXTURE_FRAME_OFFSETS selects a readable s16 array with at least
+ * EFFECT_BAND_SEGMENT_COUNT elements in segment order. Bind a stable array
+ * identifier before including jet_cone_draw.inc.c; that fragment undefines
+ * the binding afterwards. Each accepted segment reads its offset once per
+ * draw, adds ageFrames after promotion to s32 and selects a texture cell
+ * modulo six. The sum must be nonnegative for valid texture coordinates.
+ * Both carriers store offsets 0..255 at cast/round startup and borrow their
+ * overlay's current table for both tail modes; the drawer retains no pointer. */
 #ifndef SRC_SHARED_JET_CONE_H
 #define SRC_SHARED_JET_CONE_H
 

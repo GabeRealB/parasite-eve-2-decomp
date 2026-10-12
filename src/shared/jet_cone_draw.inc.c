@@ -1,5 +1,7 @@
 /* Part of the jet cone library; see jet_cone.h. */
 
+STATIC_ASSERT(ARRAY_SIZE(JET_CONE_TEXTURE_FRAME_OFFSETS) >= EFFECT_BAND_SEGMENT_COUNT, jet_cone_texture_frame_offsets_cover_segments);
+
 /// Projects one cone segment through the currently installed GTE matrices.
 ///
 /// Requires a live, word-aligned scratch block with both rings initialized
@@ -138,7 +140,7 @@ static void _jetConeDraw(const GfxCoord* coord, s16 ageFrames, s16 baseLength, s
             prim->clut  = JET_CONE_CLUT;
             setRGB0(prim, JET_CONE_TEXTURE_INTENSITY, JET_CONE_TEXTURE_INTENSITY, JET_CONE_TEXTURE_INTENSITY);
             setSemiTrans(prim, 1);
-            textureU = (s16)((JET_CONE_FRAME_JITTER[segmentIndex] + ageFrames) % JET_CONE_TEXTURE_FRAME_COUNT) * JET_CONE_TEXTURE_CELL_SIZE;
+            textureU = (s16)((JET_CONE_TEXTURE_FRAME_OFFSETS[segmentIndex] + ageFrames) % JET_CONE_TEXTURE_FRAME_COUNT) * JET_CONE_TEXTURE_CELL_SIZE;
             setUV4(prim, textureU, JET_CONE_TEXTURE_V_TOP, textureU + JET_CONE_TEXTURE_UV_SPAN, JET_CONE_TEXTURE_V_TOP, textureU, JET_CONE_TEXTURE_V_TOP + JET_CONE_TEXTURE_UV_SPAN, textureU + JET_CONE_TEXTURE_UV_SPAN, JET_CONE_TEXTURE_V_TOP + JET_CONE_TEXTURE_UV_SPAN);
             setXY4(prim, coneScratch->sxy0.vx, coneScratch->sxy0.vy, coneScratch->sxy1.vx, coneScratch->sxy1.vy, coneScratch->sxy2.vx, coneScratch->sxy2.vy, coneScratch->sxy3.vx,
                    coneScratch->sxy3.vy);
@@ -150,3 +152,4 @@ static void _jetConeDraw(const GfxCoord* coord, s16 ageFrames, s16 baseLength, s
 
 #undef JET_CONE_ROTATE_VERTEX
 #undef JET_CONE_CLUT
+#undef JET_CONE_TEXTURE_FRAME_OFFSETS

@@ -576,10 +576,16 @@ void hypervelocityRoundTask(Task* task)
 ///
 /// Palette at VRAM X=16 words, Y=267 rows. The next jet drawer inclusion
 /// consumes this integer constant and undefines the binding.
-#define JET_CONE_CLUT         getClut(16, 267)
-#define JET_CONE_RIM_SHORT    0x600
-#define JET_CONE_RIM_LONG     0x800
-#define JET_CONE_FRAME_JITTER _gHypervelocityConeTextureFrameOffsets
+#define JET_CONE_CLUT      getClut(16, 267)
+#define JET_CONE_RIM_SHORT 0x600
+#define JET_CONE_RIM_LONG  0x800
+/// Selects Hypervelocity's retained per-segment texture animation offsets.
+///
+/// Binds the next jet drawer inclusion to the overlay-owned s16 array.
+/// Round startup fills it with offsets 0..255; both jet tails use the same
+/// values. See `jet_cone.h` for the extent and value contract. The fragment
+/// undefines this binding after use.
+#define JET_CONE_TEXTURE_FRAME_OFFSETS _gHypervelocityConeTextureFrameOffsets
 #include "../../shared/jet_cone_draw.inc.c"
 
 /// Packed additive beam-flame page: 4-bit indexed texels at VRAM X=576 words, Y=0 scanlines.

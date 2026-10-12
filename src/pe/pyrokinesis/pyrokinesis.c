@@ -756,10 +756,16 @@ void pyrokinesisFlameRingTask(Task* task)
 ///
 /// Palette at VRAM X=32 words, Y=266 rows. The next jet drawer inclusion
 /// consumes this integer constant and undefines the binding.
-#define JET_CONE_CLUT         getClut(32, 266)
-#define JET_CONE_RIM_SHORT    0x200
-#define JET_CONE_RIM_LONG     0x480
-#define JET_CONE_FRAME_JITTER _gPyrokinesisConeFrameOffsets
+#define JET_CONE_CLUT      getClut(32, 266)
+#define JET_CONE_RIM_SHORT 0x200
+#define JET_CONE_RIM_LONG  0x480
+/// Selects Pyrokinesis's retained per-segment texture animation offsets.
+///
+/// Binds the next jet drawer inclusion to the overlay-owned s16 array.
+/// Cast startup fills it with offsets 0..255; live casts share the latest
+/// values. See `jet_cone.h` for the extent and value contract. The fragment
+/// undefines this binding after use.
+#define JET_CONE_TEXTURE_FRAME_OFFSETS _gPyrokinesisConeFrameOffsets
 #include "../../shared/jet_cone_draw.inc.c"
 
 void pyrokinesisLaunchConeTask(Task* task)
