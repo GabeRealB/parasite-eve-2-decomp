@@ -4,9 +4,12 @@
  * Its X coordinate counts 16-bit VRAM words and must be a multiple of 16 in
  * 0..1008; Y counts VRAM rows in 0..511. The palette must be loaded before
  * drawing. The drawer inclusion undefines this binding after using it.
- * Bind JET_CONE_RIM_SHORT and
- * JET_CONE_RIM_LONG to local-unit rim radii for the extended and base tails;
- * keep those bindings through the fragment inclusion.
+ * Bind JET_CONE_RIM_SHORT to the extended tail's local-unit rim radius;
+ * keep that binding through the fragment inclusion.
+ * Bind JET_CONE_BASE_TAIL_RIM_RADIUS to the base tail's XY rim radius in
+ * whole local coordinate units, as a signed integer constant in 0..32767.
+ * Pyrokinesis and Hypervelocity supply independent values before including
+ * the drawer; it checks the range and undefines the base-tail binding.
  * JET_CONE_TEXTURE_FRAME_OFFSETS selects a readable s16 array with at least
  * EFFECT_BAND_SEGMENT_COUNT elements in segment order. Bind a stable array
  * identifier before including jet_cone_draw.inc.c; that fragment undefines

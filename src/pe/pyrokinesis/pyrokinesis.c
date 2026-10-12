@@ -758,7 +758,12 @@ void pyrokinesisFlameRingTask(Task* task)
 /// consumes this integer constant and undefines the binding.
 #define JET_CONE_CLUT      getClut(32, 266)
 #define JET_CONE_RIM_SHORT 0x200
-#define JET_CONE_RIM_LONG  0x480
+/// Radius of Pyrokinesis's base-tail jet rim in whole local coordinate units.
+///
+/// Signed integer constant in 0..32767 for the drawer's `extendedTail == 0`
+/// mode. The local XY rim is at Z=-(baseLength + 16*ageFrames); its radius
+/// stays fixed. The next drawer inclusion checks the range and undefines it.
+#define JET_CONE_BASE_TAIL_RIM_RADIUS 0x480
 /// Selects Pyrokinesis's retained per-segment texture animation offsets.
 ///
 /// Binds the next jet drawer inclusion to the overlay-owned s16 array.
