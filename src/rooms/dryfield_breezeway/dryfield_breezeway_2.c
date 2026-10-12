@@ -1524,8 +1524,16 @@ static void _dryfieldBreezewayDrawRedDiamondGlow(GfxCoord* coord, const SVECTOR*
 }
 
 #define GLOW_DRAW_RAY_STAR_OUTER(p, c, h) setRGB2(p, h, 0, 0)
-#define GLOW_DRAW_RAY_STAR_INNER(p, c, h) setRGB2(p, c, 0, 0)
-#define GLOW_DRAW_RAY_STAR_RAY(p, c)      setRGB2(p, c, 0, 0)
+/// Sets the inner ray-star disc's centre to pulsing red.
+///
+/// Writes only vertex 2's RGB bytes of a writable `POLY_G4*`. `intensity`
+/// is normally 0..240; stores retain its low byte. Arguments must have no
+/// side effects: `primitive` is evaluated three times, `intensity` once,
+/// and `halfIntensity` is unused and unevaluated. Use as a statement.
+/// Requires `setRGB2` from `psyq/libgpu.h`. Define before including
+/// `glow_draw_ray_star.inc.c`, which undefines this binding afterwards.
+#define GLOW_DRAW_RAY_STAR_INNER(primitive, intensity, halfIntensity) (setRGB2((primitive), (intensity), 0, 0))
+#define GLOW_DRAW_RAY_STAR_RAY(p, c)                                  setRGB2(p, c, 0, 0)
 /// Uses the unsigned low halfword of the disc's half intensity for red rays.
 ///
 /// Bind 0 or 1 before the ray-star fragment; undefined means 0. This branch
