@@ -61,8 +61,13 @@ extern TmdSource gMadChaserBurstArm;
 /// and inherit texture placement from the body after spawning.
 extern TmdSource gMadChaserBurstTail;
 
-/// Selects this overlay's cross-TU tail source for the included burst fragment.
-#define MAD_CHASER_BURST_TAIL_SOURCE gMadChaserBurstTail
+/// Selects this overlay's detached-tail source for Mad Chaser burst effects.
+///
+/// This stable, writable `TmdSource` lvalue names the data unit's object borrowed
+/// by chunks spawned in the behavior unit. Include before `mad_chaser.h` to
+/// suppress its TU-local default, and retain through `mad_chaser_spawn_gibs.inc.c`.
+/// The source, geometry and writable stream must outlive every borrowing model.
+#define MAD_CHASER_BURST_TAIL_SOURCE (gMadChaserBurstTail)
 
 extern TmdSource gActor342400MadChaserBody;
 
