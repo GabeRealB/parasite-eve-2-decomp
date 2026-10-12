@@ -1,9 +1,7 @@
 /* Part of the Mad Chaser library; see mad_chaser.h. */
 
-// Bind MAD_CHASER_LURK_STATE_HANDLERS to this carrier's readable TaskFuncTable5
-// value before inclusion, then undefine it. The object-like binding is evaluated
-// once for the complete copy and constructs no tokens. Entries are non-NULL
-// void(Task*) callbacks for MAD_CHASER_LURK_STATE_* and stay loaded through dispatch.
+// The carrier supplies MAD_CHASER_LURK_STATE_HANDLERS before inclusion.
+// This fragment consumes and undefines the binding.
 
 #include "mad_chaser_frame_shadows.inc.c"
 

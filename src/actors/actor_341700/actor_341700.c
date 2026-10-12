@@ -982,9 +982,17 @@ static const TaskFuncTable5 _gMadChaserLurkStates = { {
     _madChaserLurkShiftState,
 } };
 
+/// Supplies this carrier's lurking behavior table to the shared frame update.
+///
+/// Must be a readable, side-effect-free `TaskFuncTable5` value, copied once at
+/// frame entry even when actors are paused or hidden. Slots 0..4 are idle, look,
+/// rise, alert and shift (`MAD_CHASER_LURK_STATE_*`), selected by
+/// `MadChaserWork::state` without a bounds check. Every entry is a non-NULL
+/// `void(Task*)` callback that leaves the task, model, enemy and work live for
+/// the rest of the frame; callback code must remain loaded through the call.
+/// Bind before `mad_chaser_lurk_tick.inc.c`; that fragment undefines the binding.
 #define MAD_CHASER_LURK_STATE_HANDLERS _gMadChaserLurkStates
 #include "../../shared/mad_chaser_lurk_tick.inc.c"
-#undef MAD_CHASER_LURK_STATE_HANDLERS
 
 /// Phases of the lurking idle hold and transition to looking.
 ///
