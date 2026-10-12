@@ -5382,10 +5382,25 @@ void dryfieldDilapidatedHouseFireBlastTask(Task* task)
 #define SPRITE_QUAD_SCALE (56 - 1)
 /// Reserves a flicker packet even when the GTE rejects the quad's projection.
 #define SPRITE_QUAD_RESERVE_BEFORE_PROJECTION_CHECK 1
-#define SPRITE_QUAD_ODD_LOOK(p)          \
-    setRGB0(p, 0xC0, 0x60, 0x40);        \
-    SPRITE_QUAD_SET_FLICKER_ODD_CELL(p); \
-    setSemiTrans(p, 1)
+/// Selects the house fire blast's additive warm tint on odd frames.
+///
+/// `quad` points to a writable, complete `POLY_FT4` initialized by `setPolyFT4`,
+/// with texture modulation enabled. Colour bytes use 128 as unity: red scales
+/// by three halves, green by three quarters and blue by one half.
+/// `SPRITE_QUAD_SET_FLICKER_ODD_CELL` supplies the fixed cell, palette and
+/// additive texture page; this binding enables semitransparency.
+/// The argument is evaluated repeatedly: supply a stable expression without
+/// side effects. Captures no locals; invoke inside a braced caller block.
+/// Bind before the next flicker-drawer inclusion, which undefines the binding.
+#define SPRITE_QUAD_CONFIGURE_FLICKER_ODD_PACKET(quad)                                                                                                          \
+    {                                                                                                                                                           \
+        enum { DRYFIELD_DILAPIDATED_HOUSE_FLICKER_ODD_RED   = 0xC0,                                                                                             \
+               DRYFIELD_DILAPIDATED_HOUSE_FLICKER_ODD_GREEN = 0x60,                                                                                             \
+               DRYFIELD_DILAPIDATED_HOUSE_FLICKER_ODD_BLUE  = 0x40 };                                                                                            \
+        setRGB0((quad), DRYFIELD_DILAPIDATED_HOUSE_FLICKER_ODD_RED, DRYFIELD_DILAPIDATED_HOUSE_FLICKER_ODD_GREEN, DRYFIELD_DILAPIDATED_HOUSE_FLICKER_ODD_BLUE); \
+        SPRITE_QUAD_SET_FLICKER_ODD_CELL((quad));                                                                                                               \
+        setSemiTrans((quad), 1);                                                                                                                                \
+    }
 /// Selects the house fire blast's additive raw texture on even frames.
 ///
 /// `quad` points to a writable, complete `POLY_FT4` initialized by `setPolyFT4`.

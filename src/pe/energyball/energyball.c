@@ -603,10 +603,21 @@ static void _energyballDrawGlowDisc(const GfxCoord* centreCoord, s16 radius, s16
 /// half-diagonal, truncated before Q12 rotation. The next flicker inclusion
 /// requires a positive signed integer constant and undefines this binding.
 #define SPRITE_QUAD_SCALE (56 - 1)
-#define SPRITE_QUAD_ODD_LOOK(p) \
-    setSemiTrans(p, 1);         \
-    setShadeTex(p, 1);          \
-    SPRITE_QUAD_SET_FLICKER_ODD_CELL(p)
+/// Selects Energy Ball's additive raw texture on odd projectile frames.
+///
+/// `quad` points to a writable, complete `POLY_FT4` initialized by `setPolyFT4`.
+/// `SPRITE_QUAD_SET_FLICKER_ODD_CELL` supplies the fixed cell and palette;
+/// semitransparency uses that cell's additive texture page. Raw texture mode
+/// ignores the packet's RGB bytes, which this binding leaves untouched.
+/// The argument is evaluated repeatedly: supply a stable expression without
+/// side effects. Captures no locals; invoke inside a braced caller block.
+/// Bind before the next flicker-drawer inclusion, which undefines the binding.
+#define SPRITE_QUAD_CONFIGURE_FLICKER_ODD_PACKET(quad) \
+    {                                                  \
+        setSemiTrans((quad), 1);                       \
+        setShadeTex((quad), 1);                        \
+        SPRITE_QUAD_SET_FLICKER_ODD_CELL((quad));      \
+    }
 /// Selects Energy Ball's additive green tint on even projectile frames.
 ///
 /// `quad` points to a writable, complete `POLY_FT4` initialized by `setPolyFT4`,

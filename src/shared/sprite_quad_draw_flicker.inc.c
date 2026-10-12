@@ -1,13 +1,17 @@
 /* Part of the sprite quad library; see sprite_quad.h.
  *
  * The flicker form: the frame's low bit alternates two looks of the flame
- * strip (tpage 0x29, v 0xC8-0xFF) - SPRITE_QUAD_ODD_LOOK(prim) and
+ * strip (tpage 0x29, v 0xC8-0xFF) - SPRITE_QUAD_CONFIGURE_FLICKER_ODD_PACKET(prim) and
  * SPRITE_QUAD_CONFIGURE_FLICKER_EVEN_PACKET(prim), statements the including
  * unit defines from SPRITE_QUAD_SET_FLICKER_ODD_CELL /
  * SPRITE_QUAD_SET_FLICKER_EVEN_CELL plus its own tint and blend flags. */
 
 #ifndef SPRITE_QUAD_SCALE
 #error Define SPRITE_QUAD_SCALE before including the flicker sprite quad drawer
+#endif
+
+#ifndef SPRITE_QUAD_CONFIGURE_FLICKER_ODD_PACKET
+#error Define SPRITE_QUAD_CONFIGURE_FLICKER_ODD_PACKET before including the flicker sprite quad drawer
 #endif
 
 #ifndef SPRITE_QUAD_CONFIGURE_FLICKER_EVEN_PACKET
@@ -115,7 +119,7 @@ static void _spriteQuadDrawFlicker(const GfxCoord* coord, s16 frame, s16 sizeFac
         setPolyFT4(prim);
 #endif
         if (frame & 1) {
-            SPRITE_QUAD_ODD_LOOK(prim);
+            SPRITE_QUAD_CONFIGURE_FLICKER_ODD_PACKET(prim);
         } else {
             SPRITE_QUAD_CONFIGURE_FLICKER_EVEN_PACKET(prim);
         }
@@ -126,7 +130,7 @@ static void _spriteQuadDrawFlicker(const GfxCoord* coord, s16 frame, s16 sizeFac
     SCRATCH_STACK_RELEASE_BLOCK(EffectShapeScratch);
 }
 
-#undef SPRITE_QUAD_ODD_LOOK
+#undef SPRITE_QUAD_CONFIGURE_FLICKER_ODD_PACKET
 #undef SPRITE_QUAD_CONFIGURE_FLICKER_EVEN_PACKET
 #undef SPRITE_QUAD_RESERVE_BEFORE_PROJECTION_CHECK
 #undef SPRITE_QUAD_SCALE

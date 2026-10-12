@@ -570,10 +570,25 @@ static void _combustionDrawEmber(const GfxCoord* coord, s32 animationFrame, s16 
 /// half-diagonal, truncated before Q12 rotation. The next flicker inclusion
 /// requires a positive signed integer constant and undefines this binding.
 #define SPRITE_QUAD_SCALE (56 - 1)
-#define SPRITE_QUAD_ODD_LOOK(p)          \
-    setRGB0(p, 0xC0, 0x70, 0x40);        \
-    SPRITE_QUAD_SET_FLICKER_ODD_CELL(p); \
-    setSemiTrans(p, 1)
+/// Selects Combustion's additive warm tint on odd wide-flame frames.
+///
+/// `quad` points to a writable, complete `POLY_FT4` initialized by `setPolyFT4`,
+/// with texture modulation enabled. Colour bytes use 128 as unity: red scales
+/// by three halves, green by seven eighths and blue by one half.
+/// `SPRITE_QUAD_SET_FLICKER_ODD_CELL` supplies the fixed cell, palette and
+/// additive texture page; this binding enables semitransparency.
+/// The argument is evaluated repeatedly: supply a stable expression without
+/// side effects. Captures no locals; invoke inside a braced caller block.
+/// Bind before the next flicker-drawer inclusion, which undefines the binding.
+#define SPRITE_QUAD_CONFIGURE_FLICKER_ODD_PACKET(quad)                                                          \
+    {                                                                                                           \
+        enum { COMBUSTION_FLICKER_ODD_RED   = 0xC0,                                                             \
+               COMBUSTION_FLICKER_ODD_GREEN = 0x70,                                                             \
+               COMBUSTION_FLICKER_ODD_BLUE  = 0x40 };                                                            \
+        setRGB0((quad), COMBUSTION_FLICKER_ODD_RED, COMBUSTION_FLICKER_ODD_GREEN, COMBUSTION_FLICKER_ODD_BLUE); \
+        SPRITE_QUAD_SET_FLICKER_ODD_CELL((quad));                                                               \
+        setSemiTrans((quad), 1);                                                                                \
+    }
 /// Selects Combustion's additive raw texture on even wide-flame frames.
 ///
 /// `quad` points to a writable, complete `POLY_FT4` initialized by `setPolyFT4`.
