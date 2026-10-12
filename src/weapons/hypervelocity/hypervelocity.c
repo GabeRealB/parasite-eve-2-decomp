@@ -576,8 +576,13 @@ void hypervelocityRoundTask(Task* task)
 ///
 /// Palette at VRAM X=16 words, Y=267 rows. The next jet drawer inclusion
 /// consumes this integer constant and undefines the binding.
-#define JET_CONE_CLUT      getClut(16, 267)
-#define JET_CONE_RIM_SHORT 0x600
+#define JET_CONE_CLUT getClut(16, 267)
+/// Radius of Hypervelocity's extended-tail jet rim in whole local coordinate units.
+///
+/// Signed integer constant in 0..32767 for the drawer's `extendedTail != 0`
+/// mode. The local XY rim is at Z=-(2*baseLength + 256*ageFrames); its radius
+/// stays fixed. The next drawer inclusion checks the range and undefines it.
+#define JET_CONE_EXTENDED_TAIL_RIM_RADIUS 0x600
 /// Radius of Hypervelocity's base-tail jet rim in whole local coordinate units.
 ///
 /// Signed integer constant in 0..32767 for the drawer's `extendedTail == 0`

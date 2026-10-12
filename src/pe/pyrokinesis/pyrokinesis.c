@@ -756,8 +756,13 @@ void pyrokinesisFlameRingTask(Task* task)
 ///
 /// Palette at VRAM X=32 words, Y=266 rows. The next jet drawer inclusion
 /// consumes this integer constant and undefines the binding.
-#define JET_CONE_CLUT      getClut(32, 266)
-#define JET_CONE_RIM_SHORT 0x200
+#define JET_CONE_CLUT getClut(32, 266)
+/// Radius of Pyrokinesis's extended-tail jet rim in whole local coordinate units.
+///
+/// Signed integer constant in 0..32767 for the drawer's `extendedTail != 0`
+/// mode. The local XY rim is at Z=-(2*baseLength + 256*ageFrames); its radius
+/// stays fixed. The next drawer inclusion checks the range and undefines it.
+#define JET_CONE_EXTENDED_TAIL_RIM_RADIUS 0x200
 /// Radius of Pyrokinesis's base-tail jet rim in whole local coordinate units.
 ///
 /// Signed integer constant in 0..32767 for the drawer's `extendedTail == 0`

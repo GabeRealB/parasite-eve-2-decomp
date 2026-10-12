@@ -4,8 +4,10 @@
  * Its X coordinate counts 16-bit VRAM words and must be a multiple of 16 in
  * 0..1008; Y counts VRAM rows in 0..511. The palette must be loaded before
  * drawing. The drawer inclusion undefines this binding after using it.
- * Bind JET_CONE_RIM_SHORT to the extended tail's local-unit rim radius;
- * keep that binding through the fragment inclusion.
+ * JET_CONE_EXTENDED_TAIL_RIM_RADIUS selects the extended tail's XY rim radius
+ * in whole local coordinate units, as a signed integer constant in 0..32767.
+ * Pyrokinesis and Hypervelocity bind it before the drawer inclusion; the
+ * fragment checks the range and undefines this binding after using it.
  * Bind JET_CONE_BASE_TAIL_RIM_RADIUS to the base tail's XY rim radius in
  * whole local coordinate units, as a signed integer constant in 0..32767.
  * Pyrokinesis and Hypervelocity supply independent values before including

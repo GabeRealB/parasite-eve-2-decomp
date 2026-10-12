@@ -1,6 +1,7 @@
 /* Part of the jet cone library; see jet_cone.h. */
 
 STATIC_ASSERT(ARRAY_SIZE(JET_CONE_TEXTURE_FRAME_OFFSETS) >= EFFECT_BAND_SEGMENT_COUNT, jet_cone_texture_frame_offsets_cover_segments);
+STATIC_ASSERT(JET_CONE_EXTENDED_TAIL_RIM_RADIUS >= 0 && JET_CONE_EXTENDED_TAIL_RIM_RADIUS <= 0x7FFF, jet_cone_extended_tail_rim_radius_fits_s16);
 STATIC_ASSERT(JET_CONE_BASE_TAIL_RIM_RADIUS >= 0 && JET_CONE_BASE_TAIL_RIM_RADIUS <= 0x7FFF, jet_cone_base_tail_rim_radius_fits_s16);
 
 /// Projects one cone segment through the currently installed GTE matrices.
@@ -81,7 +82,7 @@ static void _jetConeDraw(const GfxCoord* coord, s16 ageFrames, s16 baseLength, s
     if (extendedTail != 0) {
         tailDistance      = (baseLength << 1) + (ageFrames << JET_CONE_EXTENDED_TAIL_GROWTH_SHIFT);
         selectedHubRadius = JET_CONE_EXTENDED_HUB_RADIUS;
-        selectedRimRadius = JET_CONE_RIM_SHORT;
+        selectedRimRadius = JET_CONE_EXTENDED_TAIL_RIM_RADIUS;
     } else {
         tailDistance      = baseLength + (ageFrames << JET_CONE_BASE_TAIL_GROWTH_SHIFT);
         selectedHubRadius = JET_CONE_BASE_HUB_RADIUS;
@@ -153,5 +154,6 @@ static void _jetConeDraw(const GfxCoord* coord, s16 ageFrames, s16 baseLength, s
 
 #undef JET_CONE_ROTATE_VERTEX
 #undef JET_CONE_CLUT
+#undef JET_CONE_EXTENDED_TAIL_RIM_RADIUS
 #undef JET_CONE_BASE_TAIL_RIM_RADIUS
 #undef JET_CONE_TEXTURE_FRAME_OFFSETS
