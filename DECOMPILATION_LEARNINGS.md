@@ -28763,7 +28763,7 @@ if (rec->itemId == item) {
 ```
 
 `equipmentEnsureM93rEquipped` is the example. The rest of the loop is the same shape
-as `inventoryGetItemQuantity` (`gpItemRowAt(table, firstRow)`, `rowLimit = rowCount`). A literal
+as `inventoryGetItemQuantity` (`INVENTORY_ROW_AT(table, firstRow)`, `rowLimit = rowCount`). A literal
 `== 0x81` after the switch stuck at 84% with the table in `$v1` and no
 `$t0`.
 

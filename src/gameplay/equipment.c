@@ -361,8 +361,14 @@ PlayerModeBaseStats gEquipmentModeBaseStats[4] = {
     { { 50 }, 30 },  // Nightmare
 };
 
-/* Count item `id` in saved rows 0..254 through a cleared range. */
-#define GP_TOTAL_QTY(scan, id) (memset(&(scan), 0, sizeof(scan)), (scan).rowCount = INVENTORY_ITEM_RANGE_MAX_ROWS, inventoryGetItemQuantity(&(scan), (id)))
+/// Counts an item's quantity in saved inventory rows 0..254.
+///
+/// `scan` must be a side-effect-free writable `InventoryItemRange` lvalue:
+/// it is cleared, then set to the saved table, first row zero and 255 rows.
+/// Saved row 255 is excluded. `id` is evaluated once after initialization;
+/// it must be independent of `scan`. Returns `inventoryGetItemQuantity`'s
+/// quantity, including its collection-item bit test, without retaining rows.
+#define INVENTORY_COUNT_SAVED_ITEM_QUANTITY(scan, id) (memset(&(scan), 0, sizeof(scan)), (scan).rowCount = INVENTORY_ITEM_RANGE_MAX_ROWS, inventoryGetItemQuantity(&(scan), (id)))
 
 s32 inventoryIsItemLimitReached(s32 itemId)
 {
@@ -395,7 +401,7 @@ s32 inventoryIsItemLimitReached(s32 itemId)
         case INVENTORY_ITEM_M4A1_JAVELIN:
             for (variantIndex = 0; variantIndex < ARRAY_SIZE(_gInventoryM4a1LimitFamilyItemIds); variantIndex++) {
                 variantItemId = _gInventoryM4a1LimitFamilyItemIds[variantIndex];
-                if (GP_TOTAL_QTY(allSavedItems, variantItemId)) {
+                if (INVENTORY_COUNT_SAVED_ITEM_QUANTITY(allSavedItems, variantItemId)) {
                     return 1;
                 }
             }
@@ -405,7 +411,7 @@ s32 inventoryIsItemLimitReached(s32 itemId)
         case INVENTORY_ITEM_P08:
             for (variantIndex = 0; variantIndex < ARRAY_SIZE(_gInventoryP08LimitFamilyItemIds); variantIndex++) {
                 variantItemId = _gInventoryP08LimitFamilyItemIds[variantIndex];
-                if (GP_TOTAL_QTY(allSavedItems, variantItemId)) {
+                if (INVENTORY_COUNT_SAVED_ITEM_QUANTITY(allSavedItems, variantItemId)) {
                     return 1;
                 }
             }
@@ -416,77 +422,79 @@ s32 inventoryIsItemLimitReached(s32 itemId)
         case INVENTORY_ITEM_MP5A5_TWO_CLIP_HOLDERS:
             for (variantIndex = 0; variantIndex < ARRAY_SIZE(_gInventoryMp5a5LimitFamilyItemIds); variantIndex++) {
                 variantItemId = _gInventoryMp5a5LimitFamilyItemIds[variantIndex];
-                if (GP_TOTAL_QTY(allSavedItems, variantItemId)) {
+                if (INVENTORY_COUNT_SAVED_ITEM_QUANTITY(allSavedItems, variantItemId)) {
                     return 1;
                 }
             }
             return 0;
 
         case INVENTORY_ITEM_SMG_CLIP_HOLDER:
-            if (GP_TOTAL_QTY(allSavedItems, INVENTORY_ITEM_MP5A5_TWO_CLIP_HOLDERS)) {
+            if (INVENTORY_COUNT_SAVED_ITEM_QUANTITY(allSavedItems, INVENTORY_ITEM_MP5A5_TWO_CLIP_HOLDERS)) {
                 return 1;
             }
-            if (GP_TOTAL_QTY(allSavedItems, INVENTORY_ITEM_MP5A5_ONE_CLIP_HOLDER)) {
-                if (GP_TOTAL_QTY(allSavedItems, INVENTORY_ITEM_SMG_CLIP_HOLDER)) {
+            if (INVENTORY_COUNT_SAVED_ITEM_QUANTITY(allSavedItems, INVENTORY_ITEM_MP5A5_ONE_CLIP_HOLDER)) {
+                if (INVENTORY_COUNT_SAVED_ITEM_QUANTITY(allSavedItems, INVENTORY_ITEM_SMG_CLIP_HOLDER)) {
                     return 1;
                 }
             }
-            return GP_TOTAL_QTY(allSavedItems, INVENTORY_ITEM_SMG_CLIP_HOLDER) >= INVENTORY_CLIP_HOLDER_MAX;
+            return INVENTORY_COUNT_SAVED_ITEM_QUANTITY(allSavedItems, INVENTORY_ITEM_SMG_CLIP_HOLDER) >= INVENTORY_CLIP_HOLDER_MAX;
 
         case INVENTORY_ITEM_RIFLE_CLIP_HOLDER:
-            if (GP_TOTAL_QTY(allSavedItems, INVENTORY_ITEM_M4A1_TWO_CLIP_HOLDERS)) {
+            if (INVENTORY_COUNT_SAVED_ITEM_QUANTITY(allSavedItems, INVENTORY_ITEM_M4A1_TWO_CLIP_HOLDERS)) {
                 return 1;
             }
-            if (GP_TOTAL_QTY(allSavedItems, INVENTORY_ITEM_M4A1_ONE_CLIP_HOLDER)) {
-                if (GP_TOTAL_QTY(allSavedItems, INVENTORY_ITEM_RIFLE_CLIP_HOLDER)) {
+            if (INVENTORY_COUNT_SAVED_ITEM_QUANTITY(allSavedItems, INVENTORY_ITEM_M4A1_ONE_CLIP_HOLDER)) {
+                if (INVENTORY_COUNT_SAVED_ITEM_QUANTITY(allSavedItems, INVENTORY_ITEM_RIFLE_CLIP_HOLDER)) {
                     return 1;
                 }
             }
-            return GP_TOTAL_QTY(allSavedItems, INVENTORY_ITEM_RIFLE_CLIP_HOLDER) >= INVENTORY_CLIP_HOLDER_MAX;
+            return INVENTORY_COUNT_SAVED_ITEM_QUANTITY(allSavedItems, INVENTORY_ITEM_RIFLE_CLIP_HOLDER) >= INVENTORY_CLIP_HOLDER_MAX;
 
         case INVENTORY_ITEM_SNAIL_MAGAZINE:
-            if (GP_TOTAL_QTY(allSavedItems, INVENTORY_ITEM_P08_SNAIL_MAGAZINE) || GP_TOTAL_QTY(allSavedItems, INVENTORY_ITEM_SNAIL_MAGAZINE)) {
+            if (INVENTORY_COUNT_SAVED_ITEM_QUANTITY(allSavedItems, INVENTORY_ITEM_P08_SNAIL_MAGAZINE) || INVENTORY_COUNT_SAVED_ITEM_QUANTITY(allSavedItems, INVENTORY_ITEM_SNAIL_MAGAZINE)) {
                 return 1;
             }
             return 0;
 
         case INVENTORY_ITEM_HAMMER:
-            if (GP_TOTAL_QTY(allSavedItems, INVENTORY_ITEM_M4A1_HAMMER) || GP_TOTAL_QTY(allSavedItems, INVENTORY_ITEM_HAMMER)) {
+            if (INVENTORY_COUNT_SAVED_ITEM_QUANTITY(allSavedItems, INVENTORY_ITEM_M4A1_HAMMER) || INVENTORY_COUNT_SAVED_ITEM_QUANTITY(allSavedItems, INVENTORY_ITEM_HAMMER)) {
                 return 1;
             }
             return 0;
 
         case INVENTORY_ITEM_PYKE:
-            if (GP_TOTAL_QTY(allSavedItems, INVENTORY_ITEM_M4A1_PYKE) || GP_TOTAL_QTY(allSavedItems, INVENTORY_ITEM_PYKE)) {
+            if (INVENTORY_COUNT_SAVED_ITEM_QUANTITY(allSavedItems, INVENTORY_ITEM_M4A1_PYKE) || INVENTORY_COUNT_SAVED_ITEM_QUANTITY(allSavedItems, INVENTORY_ITEM_PYKE)) {
                 return 1;
             }
             return 0;
 
         case INVENTORY_ITEM_JAVELIN:
-            if (GP_TOTAL_QTY(allSavedItems, INVENTORY_ITEM_M4A1_JAVELIN) || GP_TOTAL_QTY(allSavedItems, INVENTORY_ITEM_JAVELIN)) {
+            if (INVENTORY_COUNT_SAVED_ITEM_QUANTITY(allSavedItems, INVENTORY_ITEM_M4A1_JAVELIN) || INVENTORY_COUNT_SAVED_ITEM_QUANTITY(allSavedItems, INVENTORY_ITEM_JAVELIN)) {
                 return 1;
             }
             return 0;
 
         case INVENTORY_ITEM_M203:
-            if (GP_TOTAL_QTY(allSavedItems, INVENTORY_ITEM_M4A1_GRENADE) || GP_TOTAL_QTY(allSavedItems, INVENTORY_ITEM_M203)) {
+            if (INVENTORY_COUNT_SAVED_ITEM_QUANTITY(allSavedItems, INVENTORY_ITEM_M4A1_GRENADE) || INVENTORY_COUNT_SAVED_ITEM_QUANTITY(allSavedItems, INVENTORY_ITEM_M203)) {
                 return 1;
             }
             return 0;
 
         case INVENTORY_ITEM_M9:
-            if (GP_TOTAL_QTY(allSavedItems, INVENTORY_ITEM_M4A1_BAYONET) || GP_TOTAL_QTY(allSavedItems, INVENTORY_ITEM_M9)) {
+            if (INVENTORY_COUNT_SAVED_ITEM_QUANTITY(allSavedItems, INVENTORY_ITEM_M4A1_BAYONET) || INVENTORY_COUNT_SAVED_ITEM_QUANTITY(allSavedItems, INVENTORY_ITEM_M9)) {
                 return 1;
             }
             return 0;
 
         default:
             if ((u32)(itemId - INVENTORY_SINGLE_COPY_ITEM_FIRST) < INVENTORY_SINGLE_COPY_ITEM_COUNT) {
-                return GP_TOTAL_QTY(allSavedItems, itemId);
+                return INVENTORY_COUNT_SAVED_ITEM_QUANTITY(allSavedItems, itemId);
             }
             return 0;
     }
 }
+
+#undef INVENTORY_COUNT_SAVED_ITEM_QUANTITY
 
 void equipmentRecalculateMaxMp(void)
 {

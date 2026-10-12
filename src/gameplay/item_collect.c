@@ -371,7 +371,7 @@ s32 inventoryGetItemQuantity(const InventoryItemRange* range, s32 itemId)
     firstRow = range->firstRow;
     if (rowCount != 0) {
         rowLimit = rowCount;
-        row      = gpItemRowAt(table, firstRow);
+        row      = INVENTORY_ROW_AT(table, firstRow);
         do {
             if (row->itemId == itemId) {
                 quantity += row->qty;

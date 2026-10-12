@@ -70,11 +70,14 @@ STATIC_ASSERT_SIZEOF(_CompanionSchedule, 8);
 /// Tests a schedule's stage and area presence, retaining its borrowed area table.
 ///
 /// `outputAreaPresence` must be a simple u8* local; it is assigned, then read
-/// repeatedly. `schedules` and `scheduleFlagId` are evaluated twice and must
-/// have no side effects. The flag nibble must index the schedule table.
+/// repeatedly. `schedules` and `scheduleFlagId` are evaluated up to twice and
+/// must have no side effects; the flag must stay unchanged between reads.
+/// The flag nibble must index the schedule table.
 /// `stageId`, `areaId` and `presenceMask` are each evaluated at most once,
 /// after the preceding tests pass. A matching stage requires a valid one-based
 /// area. Family 1 uses its low nibble; families 2/3 use the whole byte.
+/// The output receives the selected table even when stage or presence fails;
+/// only a NULL table suppresses all remaining tests.
 #define COMPANION_SCHEDULE_HAS_AREA(schedules, scheduleFlagId, stageId, areaId, presenceMask, outputAreaPresence) \
     (((outputAreaPresence) = (schedules)[gameFlagGetNibble(scheduleFlagId)].areaPresence),                        \
      (outputAreaPresence) != NULL && (schedules)[gameFlagGetNibble(scheduleFlagId)].stage == (stageId) &&         \

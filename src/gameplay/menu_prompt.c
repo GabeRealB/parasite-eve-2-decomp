@@ -57,13 +57,13 @@ enum {
 /// request is a side-effect-free TextDrawReq lvalue, evaluated five times;
 /// panel is a readable UiPanel pointer. Other arguments are evaluated once.
 /// Use as a standalone block statement; do not attach an else to the call.
-#define ITEM_MENU_INIT_STATS_TEXT(request, panel, rgb, glyphs, align, mode) \
-    {                                                                       \
-        (request).otIndex    = (panel)->otIndex.signedValue + 1;            \
-        (request).colorRgb   = (rgb);                                       \
-        (request).glyphTable = (glyphs);                                    \
-        (request).alignment  = (align);                                     \
-        (request).drawMode   = (mode);                                      \
+#define ITEM_MENU_SET_STATS_TEXT_STYLE(request, panel, rgb, glyphs, align, mode) \
+    {                                                                            \
+        (request).otIndex    = (panel)->otIndex.signedValue + 1;                 \
+        (request).colorRgb   = (rgb);                                            \
+        (request).glyphTable = (glyphs);                                         \
+        (request).alignment  = (align);                                          \
+        (request).drawMode   = (mode);                                           \
     }
 
 /// Sets result to 1 when an inventory item is selected as equipment.
@@ -683,17 +683,17 @@ void itemMenuDrawPlayerStats(const UiPanel* panel, s32 topOffset)
 
     hpValueText.x = panel->contentOriginX.unsignedValue + 0x17 + valueX;
     hpValueText.y = panel->contentOriginY.unsignedValue + firstRowY;
-    ITEM_MENU_INIT_STATS_TEXT(hpValueText, panel, textColorRgb, TEXT_GLYPH_TABLE_MEDIUM, TEXT_ALIGNMENT_LEFT, TEXT_DRAW_TRANSLUCENT_OUTLINED);
+    ITEM_MENU_SET_STATS_TEXT_STYLE(hpValueText, panel, textColorRgb, TEXT_GLYPH_TABLE_MEDIUM, TEXT_ALIGNMENT_LEFT, TEXT_DRAW_TRANSLUCENT_OUTLINED);
     textDrawString(&hpValueText, textItoaUnsigned(numberText, gHudDisplayedVitals.hp));
 
     hpSeparatorText.x = panel->contentOriginX.unsignedValue + 0x32 + valueX;
     hpSeparatorText.y = panel->contentOriginY.unsignedValue + firstRowY;
-    ITEM_MENU_INIT_STATS_TEXT(hpSeparatorText, panel, textColorRgb, TEXT_GLYPH_TABLE_MEDIUM, TEXT_ALIGNMENT_CENTER, TEXT_DRAW_TRANSLUCENT_OUTLINED);
+    ITEM_MENU_SET_STATS_TEXT_STYLE(hpSeparatorText, panel, textColorRgb, TEXT_GLYPH_TABLE_MEDIUM, TEXT_ALIGNMENT_CENTER, TEXT_DRAW_TRANSLUCENT_OUTLINED);
     textDrawString(&hpSeparatorText, gItemMenuFractionSeparatorText);
 
     hpMaximumText.x = panel->contentOriginX.unsignedValue + 0x37 + valueX;
     hpMaximumText.y = panel->contentOriginY.unsignedValue + firstRowY;
-    ITEM_MENU_INIT_STATS_TEXT(hpMaximumText, panel, textColorRgb, TEXT_GLYPH_TABLE_MEDIUM, TEXT_ALIGNMENT_LEFT, TEXT_DRAW_TRANSLUCENT_OUTLINED);
+    ITEM_MENU_SET_STATS_TEXT_STYLE(hpMaximumText, panel, textColorRgb, TEXT_GLYPH_TABLE_MEDIUM, TEXT_ALIGNMENT_LEFT, TEXT_DRAW_TRANSLUCENT_OUTLINED);
     textDrawString(&hpMaximumText, textItoaUnsigned(numberText, player->hpMax));
 
     maximum    = player->hpMax;
@@ -703,17 +703,17 @@ void itemMenuDrawPlayerStats(const UiPanel* panel, s32 topOffset)
     rowY          = firstRowY + 0x12;
     mpValueText.x = panel->contentOriginX.unsignedValue + 0x17 + valueX;
     mpValueText.y = panel->contentOriginY.unsignedValue + rowY;
-    ITEM_MENU_INIT_STATS_TEXT(mpValueText, panel, textColorRgb, TEXT_GLYPH_TABLE_MEDIUM, TEXT_ALIGNMENT_LEFT, TEXT_DRAW_TRANSLUCENT_OUTLINED);
+    ITEM_MENU_SET_STATS_TEXT_STYLE(mpValueText, panel, textColorRgb, TEXT_GLYPH_TABLE_MEDIUM, TEXT_ALIGNMENT_LEFT, TEXT_DRAW_TRANSLUCENT_OUTLINED);
     textDrawString(&mpValueText, textItoaUnsigned(numberText, gHudDisplayedVitals.mp));
 
     mpSeparatorText.x = panel->contentOriginX.unsignedValue + 0x32 + valueX;
     mpSeparatorText.y = panel->contentOriginY.unsignedValue + rowY;
-    ITEM_MENU_INIT_STATS_TEXT(mpSeparatorText, panel, textColorRgb, TEXT_GLYPH_TABLE_MEDIUM, TEXT_ALIGNMENT_CENTER, TEXT_DRAW_TRANSLUCENT_OUTLINED);
+    ITEM_MENU_SET_STATS_TEXT_STYLE(mpSeparatorText, panel, textColorRgb, TEXT_GLYPH_TABLE_MEDIUM, TEXT_ALIGNMENT_CENTER, TEXT_DRAW_TRANSLUCENT_OUTLINED);
     textDrawString(&mpSeparatorText, gItemMenuFractionSeparatorText);
 
     mpMaximumText.x = panel->contentOriginX.unsignedValue + 0x37 + valueX;
     mpMaximumText.y = panel->contentOriginY.unsignedValue + rowY;
-    ITEM_MENU_INIT_STATS_TEXT(mpMaximumText, panel, textColorRgb, TEXT_GLYPH_TABLE_MEDIUM, TEXT_ALIGNMENT_LEFT, TEXT_DRAW_TRANSLUCENT_OUTLINED);
+    ITEM_MENU_SET_STATS_TEXT_STYLE(mpMaximumText, panel, textColorRgb, TEXT_GLYPH_TABLE_MEDIUM, TEXT_ALIGNMENT_LEFT, TEXT_DRAW_TRANSLUCENT_OUTLINED);
     textDrawString(&mpMaximumText, textItoaUnsigned(numberText, player->mpMax));
 
     maximum = player->mpMax;
@@ -722,32 +722,32 @@ void itemMenuDrawPlayerStats(const UiPanel* panel, s32 topOffset)
     rowY             = firstRowY + 0x24;
     experienceText.x = panel->contentOriginX.unsignedValue + 0x17 + valueX;
     experienceText.y = panel->contentOriginY.unsignedValue + rowY;
-    ITEM_MENU_INIT_STATS_TEXT(experienceText, panel, textColorRgb, TEXT_GLYPH_TABLE_MEDIUM, TEXT_ALIGNMENT_LEFT, TEXT_DRAW_TRANSLUCENT_OUTLINED);
+    ITEM_MENU_SET_STATS_TEXT_STYLE(experienceText, panel, textColorRgb, TEXT_GLYPH_TABLE_MEDIUM, TEXT_ALIGNMENT_LEFT, TEXT_DRAW_TRANSLUCENT_OUTLINED);
     textDrawString(&experienceText, textItoaUnsigned(numberText, player->exp));
 
     textReq.x = panel->contentOriginX.unsignedValue + contentLeft + 0x72;
     textReq.y = panel->contentOriginY.unsignedValue + rowY;
-    ITEM_MENU_INIT_STATS_TEXT(textReq, panel, textColorRgb, TEXT_GLYPH_TABLE_MEDIUM, TEXT_ALIGNMENT_LEFT, TEXT_DRAW_TRANSLUCENT_OUTLINED);
+    ITEM_MENU_SET_STATS_TEXT_STYLE(textReq, panel, textColorRgb, TEXT_GLYPH_TABLE_MEDIUM, TEXT_ALIGNMENT_LEFT, TEXT_DRAW_TRANSLUCENT_OUTLINED);
     textDrawString(&textReq, textItoaUnsigned(numberText, player->bp));
 
     textReq.x = panel->contentLeft.unsignedValue + (panel->contentOriginX.unsignedValue + 2);
     textReq.y = panel->contentOriginY.unsignedValue + (firstRowY - 2);
-    ITEM_MENU_INIT_STATS_TEXT(textReq, panel, textColorRgb, TEXT_GLYPH_TABLE_SMALL, TEXT_ALIGNMENT_LEFT, TEXT_DRAW_OUTLINED);
+    ITEM_MENU_SET_STATS_TEXT_STYLE(textReq, panel, textColorRgb, TEXT_GLYPH_TABLE_SMALL, TEXT_ALIGNMENT_LEFT, TEXT_DRAW_OUTLINED);
     textDrawString(&textReq, gItemMenuHpLabel);
 
     mpLabelText.x = panel->contentLeft.unsignedValue + (panel->contentOriginX.unsignedValue + 2);
     mpLabelText.y = panel->contentOriginY.unsignedValue + 0x10 + firstRowY;
-    ITEM_MENU_INIT_STATS_TEXT(mpLabelText, panel, textColorRgb, TEXT_GLYPH_TABLE_SMALL, TEXT_ALIGNMENT_LEFT, TEXT_DRAW_OUTLINED);
+    ITEM_MENU_SET_STATS_TEXT_STYLE(mpLabelText, panel, textColorRgb, TEXT_GLYPH_TABLE_SMALL, TEXT_ALIGNMENT_LEFT, TEXT_DRAW_OUTLINED);
     textDrawString(&mpLabelText, gItemMenuMpLabel);
 
     experienceLabelText.x = panel->contentLeft.unsignedValue + (panel->contentOriginX.unsignedValue + 2);
     experienceLabelText.y = panel->contentOriginY.unsignedValue + 0x22 + firstRowY;
-    ITEM_MENU_INIT_STATS_TEXT(experienceLabelText, panel, textColorRgb, TEXT_GLYPH_TABLE_SMALL, TEXT_ALIGNMENT_LEFT, TEXT_DRAW_OUTLINED);
+    ITEM_MENU_SET_STATS_TEXT_STYLE(experienceLabelText, panel, textColorRgb, TEXT_GLYPH_TABLE_SMALL, TEXT_ALIGNMENT_LEFT, TEXT_DRAW_OUTLINED);
     textDrawString(&experienceLabelText, gItemMenuExpLabel);
 
     bpLabelText.x = panel->contentLeft.unsignedValue + (panel->contentOriginX.unsignedValue + 0x57);
     bpLabelText.y = panel->contentOriginY.unsignedValue + 0x22 + firstRowY;
-    ITEM_MENU_INIT_STATS_TEXT(bpLabelText, panel, textColorRgb, TEXT_GLYPH_TABLE_SMALL, TEXT_ALIGNMENT_LEFT, TEXT_DRAW_OUTLINED);
+    ITEM_MENU_SET_STATS_TEXT_STYLE(bpLabelText, panel, textColorRgb, TEXT_GLYPH_TABLE_SMALL, TEXT_ALIGNMENT_LEFT, TEXT_DRAW_OUTLINED);
     textDrawString(&bpLabelText, gItemMenuBpLabel);
 }
 
@@ -880,29 +880,29 @@ void itemMenuArmorSummaryTask(Task* task)
         rowY         = topY + 0x1D;
         hpBonusReq.x = object->panel.contentOriginX.unsignedValue + 0x20 + rowX;
         hpBonusReq.y = object->panel.contentOriginY.unsignedValue + rowY;
-        ITEM_MENU_INIT_STATS_TEXT(hpBonusReq, &object->panel, colorRgb, TEXT_GLYPH_TABLE_MEDIUM, TEXT_ALIGNMENT_LEFT, TEXT_DRAW_TRANSLUCENT_OUTLINED);
+        ITEM_MENU_SET_STATS_TEXT_STYLE(hpBonusReq, &object->panel, colorRgb, TEXT_GLYPH_TABLE_MEDIUM, TEXT_ALIGNMENT_LEFT, TEXT_DRAW_TRANSLUCENT_OUTLINED);
         textDrawString(&hpBonusReq, textItoaSignPrefixed(bonusText, armorStats->hpBonus));
 
         mpBonusReq.x = object->panel.contentOriginX.unsignedValue + (rowX + (columnWidth + 0x1E));
         mpBonusReq.y = object->panel.contentOriginY.unsignedValue + rowY;
-        ITEM_MENU_INIT_STATS_TEXT(mpBonusReq, &object->panel, colorRgb, TEXT_GLYPH_TABLE_MEDIUM, TEXT_ALIGNMENT_LEFT, TEXT_DRAW_TRANSLUCENT_OUTLINED);
+        ITEM_MENU_SET_STATS_TEXT_STYLE(mpBonusReq, &object->panel, colorRgb, TEXT_GLYPH_TABLE_MEDIUM, TEXT_ALIGNMENT_LEFT, TEXT_DRAW_TRANSLUCENT_OUTLINED);
         textDrawString(&mpBonusReq, textItoaSignPrefixed(bonusText, armorStats->mpBonus));
 
         hpLabelReq.x = object->panel.contentOriginX.unsignedValue + 2 + rowX;
         hpLabelReq.y = object->panel.contentOriginY.unsignedValue + (rowY - 2);
-        ITEM_MENU_INIT_STATS_TEXT(hpLabelReq, &object->panel, colorRgb, TEXT_GLYPH_TABLE_SMALL, TEXT_ALIGNMENT_LEFT, TEXT_DRAW_OUTLINED);
+        ITEM_MENU_SET_STATS_TEXT_STYLE(hpLabelReq, &object->panel, colorRgb, TEXT_GLYPH_TABLE_SMALL, TEXT_ALIGNMENT_LEFT, TEXT_DRAW_OUTLINED);
         textDrawString(&hpLabelReq, gItemMenuHpLabel);
 
         mpLabelReq.x = object->panel.contentOriginX.unsignedValue + (rowX + columnWidth);
         mpLabelReq.y = object->panel.contentOriginY.unsignedValue + (rowY - 2);
         rowX         = contentLeft + 4;
-        ITEM_MENU_INIT_STATS_TEXT(mpLabelReq, &object->panel, colorRgb, TEXT_GLYPH_TABLE_SMALL, TEXT_ALIGNMENT_LEFT, TEXT_DRAW_OUTLINED);
+        ITEM_MENU_SET_STATS_TEXT_STYLE(mpLabelReq, &object->panel, colorRgb, TEXT_GLYPH_TABLE_SMALL, TEXT_ALIGNMENT_LEFT, TEXT_DRAW_OUTLINED);
         textDrawString(&mpLabelReq, gItemMenuMpLabel);
 
         rowY                  = topY + 0x3D;
         attachmentsLabelReq.x = object->panel.contentOriginX.unsignedValue + rowX;
         attachmentsLabelReq.y = object->panel.contentOriginY.unsignedValue + topY + 0x2C;
-        ITEM_MENU_INIT_STATS_TEXT(attachmentsLabelReq, &object->panel, colorRgb, TEXT_GLYPH_TABLE_SMALL, TEXT_ALIGNMENT_LEFT, TEXT_DRAW_OUTLINED);
+        ITEM_MENU_SET_STATS_TEXT_STYLE(attachmentsLabelReq, &object->panel, colorRgb, TEXT_GLYPH_TABLE_SMALL, TEXT_ALIGNMENT_LEFT, TEXT_DRAW_OUTLINED);
         textDrawString(&attachmentsLabelReq, gItemMenuAttachmentsTitle);
 
         // Attachment slots are one-based in carried rows and displayed five per line.
@@ -1073,7 +1073,7 @@ void itemMenuDrawWeaponSummary(const UiObject* object, s32 x, s32 rowY, s32 unus
     rowY          += 7;
     ammoLabelReq.x = object->panel.contentOriginX.unsignedValue + x;
     ammoLabelReq.y = object->panel.contentOriginY.unsignedValue + 2 + rowY;
-    ITEM_MENU_INIT_STATS_TEXT(ammoLabelReq, &object->panel, colorRgb, TEXT_GLYPH_TABLE_SMALL, TEXT_ALIGNMENT_LEFT, TEXT_DRAW_OUTLINED);
+    ITEM_MENU_SET_STATS_TEXT_STYLE(ammoLabelReq, &object->panel, colorRgb, TEXT_GLYPH_TABLE_SMALL, TEXT_ALIGNMENT_LEFT, TEXT_DRAW_OUTLINED);
     textDrawString(&ammoLabelReq, gItemMenuAmmoLabelText);
     rowY += 0x13;
     // Empty loads still draw their slot; unavailable secondary loads have no row.
@@ -1099,7 +1099,7 @@ void itemMenuDrawWeaponSummary(const UiObject* object, s32 x, s32 rowY, s32 unus
     }
 }
 
-#undef ITEM_MENU_INIT_STATS_TEXT
+#undef ITEM_MENU_SET_STATS_TEXT_STYLE
 
 void itemMenuDrawEquipmentMarker(const UiObject* object, s32 x, s32 y, s32 itemId, s32 attachmentState)
 {

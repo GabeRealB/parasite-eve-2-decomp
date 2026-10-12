@@ -70,9 +70,13 @@ static inline InventoryItemRow* _inventoryRowRef(InventoryItemRow* row)
     return row;
 }
 
-/// Row `index` elements after `rows`.
-/// The result borrows `rows`; `index` must name a row in that table.
-#define gpItemRowAt(rows, index) _inventoryRowRef(&(rows)[index])
+/// Borrows the inventory row at an element index in a selected table.
+///
+/// Each argument is evaluated once; `rows` must point to a live table and
+/// `index` must be nonnegative and below its extent. There is no bounds check
+/// or none sentinel. The result aliases the table; sorting and transfers can
+/// replace its contents. The passthrough retains the indexed-address form.
+#define INVENTORY_ROW_AT(rows, index) _inventoryRowRef(&(rows)[index])
 
 /// Borrows the live save's writable load record for a weapon item id.
 ///

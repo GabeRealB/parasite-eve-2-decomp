@@ -107,6 +107,8 @@ enum {
 /// effects because object, coordinates, item and color are evaluated repeatedly.
 /// request is a TextDrawReq lvalue; baseY and levelIndex are s32 scratch lvalues
 /// overwritten by the operation. Uses `itemMenuDrawItemRow`'s resource contract.
+/// The output lvalues must not overlap the object, coordinates, id or color;
+/// name text is consumed before the level mark and item icon are drawn.
 #define ITEM_MENU_DRAW_UNMARKED_ROW_CONTENTS(object, request, rowX, rowY, itemId, rowColorRgb, baseY, levelIndex)                \
     {                                                                                                                            \
         (request).x          = (object)->panel.contentOriginX.unsignedValue + 0x11 + (rowX);                                     \

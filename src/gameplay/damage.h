@@ -31,6 +31,10 @@ enum {
 };
 
 /// HP bands a `DamageReceivedScaleRow` distinguishes, weakest first.
+///
+/// `gDamageReceivedHpBands` maps current HP to indices 0..4: below 20,
+/// 20..29, 30..39, 40..59 and 60..299. This counts bands, not HP units or
+/// difficulty rows; each victim's percentage array has the same extent.
 #define DAMAGE_RECEIVED_HP_BAND_COUNT 5
 
 /// Percentages of an attack's power that reach the player or the companion at

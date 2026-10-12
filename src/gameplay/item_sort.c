@@ -53,10 +53,6 @@
 
 #include "rooms/shelter_r47.h"
 
-/// Row `index` elements after `rows`.
-/// The result borrows `rows`; `index` must name a row in that table.
-#define gpStackLimitAt(rows, index) (&(rows)[index])
-
 static inline InventoryItemRow* _inventoryGetRangeTable(const InventoryItemRange* range);
 
 /// First item id whose possession uses collection bits rather than item rows.
@@ -283,6 +279,11 @@ void inventorySortItems(const InventoryItemRange* range, s32 unused)
     ///
     /// `id` must be a side-effect-free scalar and `key` a distinct scalar lvalue.
     /// Reads `id` repeatedly and writes only `key`; its class index is local.
+    /// Uses this function's `INVENTORY_SORT_*` constants and the four catalogue
+    /// key tables. Arguments must not use the internal name `classIndex`.
+    /// Row ids 0..0x47, 0x60..0x6E and 0x80..0xFF are safe; 0x48..0x5F and
+    /// 0x6F..0x7F pass category tests but exceed the ordinary/armor tables.
+    /// A zero catalogue key falls back to id + 0x100; id zero receives 0x1000.
     /// This binding is available only within this function.
 #define INVENTORY_GET_SORT_KEY(id, key)                                     \
     do {                                                                    \
@@ -392,7 +393,7 @@ static s32 _inventoryCanAddItemQuantity(const InventoryItemRange* range, s32 ite
     occupiedRows = 0;
     if (rowCount != 0) {
         scanRowCount = rowCount;
-        row          = gpItemRowAt(table, firstRow);
+        row          = INVENTORY_ROW_AT(table, firstRow);
         do {
             if (row->itemId != INVENTORY_ITEM_NONE) {
                 occupiedRows++;
@@ -421,8 +422,8 @@ static s32 _inventoryCanAddItemQuantity(const InventoryItemRange* range, s32 ite
         if (stackRowCount != 0) {
             stackCatalogue  = gInventoryConsumableStacks;
             consumableIndex = itemId - INVENTORY_CONSUMABLE_ITEM_FIRST;
-            stackLimits     = gpStackLimitAt(stackCatalogue, consumableIndex);
-            stackRow        = gpItemRowAt(stackTable, stackFirstRow);
+            stackLimits     = &stackCatalogue[consumableIndex];
+            stackRow        = INVENTORY_ROW_AT(stackTable, stackFirstRow);
             do {
                 if (stackRow->itemId == itemId) {
                     stackResult = INVENTORY_STACK_REJECTS_ADD;
@@ -476,7 +477,7 @@ s32 inventoryCanAddItem(const InventoryItemRange* range, s32 itemId)
     occupiedRows = 0;
     if (rowCount != 0) {
         scanRowCount = rowCount;
-        row          = gpItemRowAt(table, firstRow);
+        row          = INVENTORY_ROW_AT(table, firstRow);
         do {
             if (row->itemId != INVENTORY_ITEM_NONE) {
                 occupiedRows++;
@@ -502,8 +503,8 @@ s32 inventoryCanAddItem(const InventoryItemRange* range, s32 itemId)
         if (stackRowCount != 0) {
             stackCatalogue  = gInventoryConsumableStacks;
             consumableIndex = itemId - INVENTORY_CONSUMABLE_ITEM_FIRST;
-            stackLimits     = gpStackLimitAt(stackCatalogue, consumableIndex);
-            stackRow        = gpItemRowAt(stackTable, stackFirstRow);
+            stackLimits     = &stackCatalogue[consumableIndex];
+            stackRow        = INVENTORY_ROW_AT(stackTable, stackFirstRow);
             do {
                 if (stackRow->itemId == itemId) {
                     if (stackRow->qty < stackLimits->maxHeld) {

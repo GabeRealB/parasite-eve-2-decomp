@@ -555,11 +555,15 @@ TaskDesc gLoadingRestartPresentationTaskDesc = { { { TASK_BODY_NONE, LOADING_RES
 ///
 /// Expands to a compound statement for standalone calls. Requires writable
 /// aggregate and limit lvalues without side effects: each is evaluated repeatedly.
-/// Captures four caller-declared s32 locals: currentPitchMagnitude,
-/// currentYawMagnitude, pitchMagnitude and yawMagnitude. Each receives a
-/// current or candidate angle magnitude for its corresponding axis.
+/// Its four magnitude temporaries are local to the expansion; arguments must
+/// not use `currentPitchMagnitude`, `currentYawMagnitude`, `pitchMagnitude`
+/// or `yawMagnitude`. No caller-local identifiers are captured.
 #define ANIMATION_BLEND_LIMITED_HEAD_ANGLES(aimAngles, currentAngles, maxYaw, maxPitch, blendWeight)              \
     {                                                                                                             \
+        s32 currentPitchMagnitude;                                                                                \
+        s32 currentYawMagnitude;                                                                                  \
+        s32 pitchMagnitude;                                                                                       \
+        s32 yawMagnitude;                                                                                         \
         (aimAngles).vx        = (currentAngles).vx + ((aimAngles).vx - (currentAngles).vx) * (blendWeight) / ONE; \
         (aimAngles).vy        = (currentAngles).vy + ((aimAngles).vy - (currentAngles).vy) * (blendWeight) / ONE; \
         (aimAngles).vz        = (currentAngles).vz;                                                               \
@@ -628,12 +632,13 @@ TaskDesc gLoadingRestartPresentationTaskDesc = { { { TASK_BODY_NONE, LOADING_RES
 /// arguments must be stable and side-effect-free; slot and the index are
 /// evaluated repeatedly; records is read at the flag test and again for a
 /// visited control. Captures no locals.
+/// The negated element displacement retains the offset-first address addition.
 #define ANIMATION_SELECT_DIRECT_BLEND_RECORD(slot, records, candidateIndex)          \
     do {                                                                             \
         const AnimationRecord* controlRecord;                                        \
                                                                                      \
         while ((s8)(records)[(candidateIndex)].flags < 0) {                          \
-            controlRecord = (records) - -(s32)(candidateIndex);                      \
+            controlRecord = (records) - -(candidateIndex);                           \
             if (controlRecord->flags < ANIMATION_RECORD_END_THRESHOLD) {             \
                 (candidateIndex) = controlRecord->wordOffset;                        \
                 if ((candidateIndex) == (slot)->nextPose.indices.recordIndex) {      \
@@ -1493,10 +1498,6 @@ void animationAimHeadAtTask(Task* subject, Task* targetTask, s32 maxYaw, s32 max
     s32       partIndex;
     GfxCoord* subjectPart;
     GfxCoord* targetPart;
-    s32       currentPitchMagnitude;
-    s32       currentYawMagnitude;
-    s32       pitchMagnitude;
-    s32       yawMagnitude;
     GfxCoord* subjectParts;
 
     // Accumulate the pre-head translations in the retained local * accumulated order.
@@ -1566,10 +1567,6 @@ void animationAimHeadAtPoint(Task* subject, const GfxCoord* targetPointFrame, s3
     MATRIX    inverseSubjectRotation;
     GfxCoord* headPart;
     s32       partIndex;
-    s32       pitchMagnitude;
-    s32       yawMagnitude;
-    s32       currentPitchMagnitude;
-    s32       currentYawMagnitude;
 
     // Compose the complete five-part chain without the view transform.
     gfxSetRotIdentity(&subjectRotation);

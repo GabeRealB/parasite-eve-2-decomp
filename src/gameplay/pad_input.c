@@ -319,11 +319,13 @@ static u16 _padInputRemapButtons(const GameActor* player, u16 buttons)
     ///
     /// Scalar arguments must be side-effect-free; destination and cursor are
     /// distinct lvalues. Arguments are reused per bit; the destination is not cleared.
+    /// `buttonMap` must be an actual array, not a pointer: its element count
+    /// determines the input-bit domain. All current maps cover bits 0..15.
 #define PAD_INPUT_REMAP_BUTTON_BITS(sourceButtons, buttonMap, destinationButtons, bitCursor) \
     do {                                                                                     \
         for ((bitCursor) = 0; (bitCursor) < ARRAY_SIZE(buttonMap); (bitCursor)++) {          \
             if (((sourceButtons) >> (bitCursor)) & 1) {                                      \
-                (destinationButtons) |= 1 << (buttonMap)[bitCursor];                         \
+                (destinationButtons) |= 1 << (buttonMap)[(bitCursor)];                       \
             }                                                                                \
         }                                                                                    \
     } while (0)

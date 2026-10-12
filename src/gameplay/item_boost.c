@@ -326,7 +326,7 @@ static inline s32 _inventorySumMatchingRowQuantities(const InventoryItemRange* r
     if (rowCount != 0) {
         scanRowCount = rowCount;
 
-        row = gpItemRowAt(table, firstRow);
+        row = INVENTORY_ROW_AT(table, firstRow);
         do {
             if (row->itemId == itemId) {
                 quantity += row->qty;
@@ -887,7 +887,7 @@ s32 inventoryCountOccupiedRows(const InventoryItemRange* range)
     if (rowCount != 0) {
         rowLimit = rowCount;
 
-        row = gpItemRowAt(table, firstRow);
+        row = INVENTORY_ROW_AT(table, firstRow);
         do {
             if (row->itemId != INVENTORY_ITEM_NONE) {
                 occupiedRows++;

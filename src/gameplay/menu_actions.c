@@ -1939,6 +1939,8 @@ static void _menuMapDrawPageArrows(const Task* mapTask)
     /// Arguments must have no side effects because they are evaluated repeatedly.
     /// Captures this function's MENU_MAP_ARROW constants, gDisplayState's sine
     /// clock and the GPU primitive cursor/OT; advances the cursor by both packets.
+    /// The packed color write clears the command byte; sprite code is set
+    /// afterwards. Brightness is grayscale 0..255, with the sine peak clamped.
 #define MENU_MAP_QUEUE_PAGE_ARROW(object, sprite, texturePage, brightnessValue, textureU, leftPixels)                                                  \
     {                                                                                                                                                  \
         (sprite)          = gGpuPrimCursor;                                                                                                            \
@@ -2990,6 +2992,7 @@ static void _itemMenuDrawAbilityParameterBar(UiObject* object, s32 abilityId, s3
 /// be side-effect-free because request/object expressions are evaluated repeatedly.
 /// `valueY` is panel-relative pixels; the supplied base-Y lvalue receives the
 /// screen origin minus the font baseline adjustment. Expands to a standalone block.
+/// The output request and base-Y lvalue must be disjoint from the input state.
 #define ITEM_MENU_PREPARE_ABILITY_VALUE_TEXT(requestValue, objectValue, screenX, valueY, colorValue, baseYValue) \
     {                                                                                                            \
         (requestValue).x          = (screenX);                                                                   \
