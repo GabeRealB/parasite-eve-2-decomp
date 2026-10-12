@@ -79,6 +79,12 @@
 #include "main/areas.h"
 #include "main/task_types.h"
 
+/// Healing family selector, the decimal quotient `AttachmentState::attachId / 10`.
+///
+/// Healing levels 1..3 have ids 321..323. Their charge and release effects may
+/// run outside engaged combat; other attachment families are rejected there.
+enum { ATTACHMENT_ID_HEALING_FAMILY = 32 };
+
 /// Equipped weapon indices used by player actor control.
 enum {
     PLAYER_ACTOR_WEAPON_HYPERVELOCITY = 22,

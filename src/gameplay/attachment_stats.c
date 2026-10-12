@@ -40,6 +40,13 @@
 #include "main/ui.h"
 #include "main/wipsys.h"
 
+/// Handled cast sound-load request in `AttachmentState::soundStep`.
+///
+/// Set after the queue delay: battle casts request their PE sound file and
+/// other casts skip loading. Records handling independently of CD completion
+/// or sound-script playback; later HUD updates leave the request consumed.
+enum { ATTACHMENT_SOUND_LOAD_REQUEST_HANDLED = 2 };
+
 /// Area-table selector for a projectile corridor preview; release hits belong to the PE task.
 ///
 /// The row supplies radius and travel range in hundreds of world units.
@@ -1373,7 +1380,7 @@ static void _attachmentUpdateAndDrawHud(HudState* hud)
     player               = &gPlayerStatus;
     selectionChanged     = 0;
     hud->previewCastCost = 0;
-    // Complete the armed cast's sound request before processing wheel input.
+    // Handle the armed cast's sound-file load once before processing wheel input.
     if (gAttachmentState.soundStep == ATTACHMENT_SOUND_QUEUED) {
         if (++gAttachmentSoundQueueTicks > 0) {
             activeLevel    = _attachmentGetEffectiveLevel(gAttachmentState.activeIndex);
@@ -1381,7 +1388,7 @@ static void _attachmentUpdateAndDrawHud(HudState* hud)
             if (_sceneIsBattleActive()) {
                 sndLoadEnqueuePeFile(soundFileIndex);
             }
-            gAttachmentState.soundStep    = ATTACHMENT_SOUND_PLAYED;
+            gAttachmentState.soundStep    = ATTACHMENT_SOUND_LOAD_REQUEST_HANDLED;
             gAttachmentState.previewSound = 0;
             gAttachmentSoundQueueTicks    = 0;
         }

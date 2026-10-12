@@ -150,7 +150,6 @@ STATIC_ASSERT_SIZEOF(AttachmentLevelTable, 0x370);
 /// `AttachmentState.soundStep`.
 #define ATTACHMENT_SOUND_IDLE   0
 #define ATTACHMENT_SOUND_QUEUED 1
-#define ATTACHMENT_SOUND_PLAYED 2
 
 /// Wheel menu is closed; room event gates may proceed, subject to their other holds.
 #define ATTACHMENT_MENU_CLOSED 0
@@ -200,10 +199,6 @@ STATIC_ASSERT_SIZEOF(AttachmentLevelTable, 0x370);
 #define ATTACHMENT_ID_LAST_SPELL          600
 #define ATTACHMENT_ID_ITEM                0x259U
 
-/// `attachId / 10` for the healing family (321–323) and energy ball (431–433).
-#define ATTACHMENT_ID_HEALING_FAMILY     0x20
-#define ATTACHMENT_ID_ENERGY_BALL_FAMILY 0x2B
-
 #define ATTACHMENT_ID_METABOLISM_1  311
 #define ATTACHMENT_ID_METABOLISM_2  312
 #define ATTACHMENT_ID_METABOLISM_3  313
@@ -238,7 +233,7 @@ typedef struct {
     s8   activeIndex;     // Spell in use. Below 12 is a spell; 12 still draws the gauge and consumes an item
     u8   flags;           // Bit 0 event lock, 1 swap lock, 2 release, 3 apply stats, 4 force the wheel open
     s8   previewSound;    // Wheel preview sound; cleared once that play returns
-    s8   soundStep;       // 0 idle, 1 queued, 2 played
+    s8   soundStep;       // 0 idle, 1 queued, 2 load request handled
     s8   menuOpen;        // 1 while the wheel is open
     s8   mode;            // 0 idle, 1 wheel open, 2 armed, 3 counting `duration` down
     s8   wheelIndex;      // Spell highlighted on the wheel

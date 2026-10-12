@@ -40,6 +40,12 @@
 #include "../../shared/sprite_quad.h"
 #include "../../shared/ground_glow.h"
 
+/// Energy Ball family selector, the decimal quotient `AttachmentState::attachId / 10`.
+///
+/// Energy Ball levels 1..3 have ids 431..433. A new held cast in this family
+/// preserves existing balls; a held cast in another family retires them.
+enum { ATTACHMENT_ID_ENERGY_BALL_FAMILY = 43 };
+
 /// Size and growth rate of one energy ball at one Parasite Energy level.
 ///
 /// A ball selects its row by the level digit of the spell being cast
