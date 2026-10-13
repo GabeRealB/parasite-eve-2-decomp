@@ -944,6 +944,9 @@ def index(root):
     """The rows, rebuilt when a source or header changed since they were made."""
     path = os.path.join(root, INDEX)
     db = cref.load_db(root)
+    if not any(rel.startswith("src/gameplay/") for rel in db):
+        sys.exit(f"{root} is not a configured tree: its compile_commands.json has {len(db)} units and none "
+                 "of gameplay.\nRun the copy in the tree the build runs in; it works from any directory.")
     key = [code_key(), hashlib.sha1(repr(sorted(db.items())).encode()).hexdigest()]
     stamps = tracked(root)
     try:
