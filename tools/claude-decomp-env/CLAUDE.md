@@ -6,7 +6,7 @@ You are decompiling Playstation 1 assembly from Parasite Eve 2. Generate C for `
 
 The compiler is GCC 2.8.1 with flags `-O2 -mips1`. C89.
 
-This scratch directory is already bootstrapped. **Do not** run `./tools/claude`. Project root is the parent of `nonmatchings/` (one level up). Read `BRIEF.md` before exploring.
+This scratch directory is already bootstrapped. **Do not** run `./tools/match/claude`. Project root is the parent of `nonmatchings/` (one level up). Read `BRIEF.md` before exploring.
 
 ### Laying the Foundation
 
@@ -15,7 +15,7 @@ If `BRIEF.md` exists, use it instead of a context-gathering subagent. Then make 
 If `BRIEF.md` is missing:
 
 <subagent-instructions>
-1. Locate `$functionName` via `python3 ../tools/decomp_overlay.py find $functionName --json` (works for any overlay, including nested future ones). Write a short summary to `LEARNINGS.md`.
+1. Locate `$functionName` via `python3 ../tools/match/decomp_overlay.py find $functionName --json` (works for any overlay, including nested future ones). Write a short summary to `LEARNINGS.md`.
 2. Make `base.c` compile. Do not stop until `./build.sh base.c` runs.
 3. Report back.
 </subagent-instructions>
@@ -39,7 +39,7 @@ On give-up, retain INCLUDE_ASM and revert partial host changes. Complete experim
 conclusions and record unresolved questions in `LEARNINGS.md`, even without a
 score gain. If vacuum launched you, leave the scratch for it to archive and record
 the difficult-function entry. Otherwise, from the project root run
-`python3 tools/archive_giveup.py --func $functionName --scratch <scratch>` before
+`python3 tools/match/archive_giveup.py --func $functionName --scratch <scratch>` before
 any cleanup, and record the difficult-function entry yourself. Add reusable
 compiler findings to `DECOMPILATION_LEARNINGS.md` as well as the session notes.
 
@@ -48,12 +48,12 @@ compiler findings to `DECOMPILATION_LEARNINGS.md` as well as the session notes.
 - `./build.sh <file>.c` — compile and score against `target.o` (penalty mix; auto-dumps at ≥90%; prints **NEXT:** dump files)
 - `./dump.sh <file>.c` — cc1 `-da -dp`; prints `.lreg`/`.greg`/`.dbr` summary + dump-delta
 - `python3 lregwalk.py <file>.i.lreg [pseudo ...]` — per block, the insns in local-alloc's order with their `set` destinations and `REG_DEAD` notes; the tying, suggestions and birth order the `.lreg` header lines do not show
-- From the root: `python3 tools/trace_gcc.py <file>.i --output-dir /tmp/gcc-observation --function FUNC --regs N` — observe actual local quantities, global allocation and reload evictions; accepts archived `.i.gz`. Add `--uids N` for scheduler comparisons and selected post-reload substitutions. Requires GDB/ptrace; see `CODEGEN_MODEL.md` §12.
+- From the root: `python3 tools/match/trace_gcc.py <file>.i --output-dir /tmp/gcc-observation --function FUNC --regs N` — observe actual local quantities, global allocation and reload evictions; accepts archived `.i.gz`. Add `--uids N` for scheduler comparisons and selected post-reload substitutions. Requires GDB/ptrace; see `CODEGEN_MODEL.md` §12.
 - `MATCH_LOOP.md` — dump / pin / permuter / verify loop (concatenated below)
 - `./objdump.py <file>.o`
 - `./diff.sh <file>.o`
 - `./map_asm_to_c.py <file>.o <line>`
-- `../tools/decomp_overlay.py find|pack <func>` — overlay-agnostic paths / brief
+- `../tools/match/decomp_overlay.py find|pack <func>` — overlay-agnostic paths / brief
 
 ## Coding Guidelines
 

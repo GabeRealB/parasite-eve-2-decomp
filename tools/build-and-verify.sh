@@ -154,14 +154,14 @@ if [[ $ninja_failed -eq 0 ]]; then
     # here but ~12% of a 2.6s scoped run, and a scoped build says nothing about
     # the overlays it skipped anyway, which is usually where the loss is.
     if [[ ${#SCOPE_ARGS[@]} -eq 0 ]]; then
-        if ! "$PYTHON" tools/check_lost_matches.py; then
+        if ! "$PYTHON" tools/check/check_lost_matches.py; then
             echo "BUILD HAS FAILED. Matched C bodies have reverted to INCLUDE_ASM - recover them from their matching commits before committing."
             exit 1
         fi
         # A function renamed in C but not in its image's symbol map keeps splat's
         # default name in the expected objects, so objdiff (and the naming pass)
         # cannot pair it - again with the checksum still matching.
-        if ! "$PYTHON" tools/check_sym_coverage.py; then
+        if ! "$PYTHON" tools/check/check_sym_coverage.py; then
             echo "BUILD HAS FAILED. C function names are missing from their symbol maps - add them before committing."
             exit 1
         fi
@@ -173,8 +173,8 @@ if [[ $ninja_failed -eq 0 ]]; then
         fi
         # Area constants name the extractor's room folders; a renamed folder leaves
         # the generated header behind without anything failing.
-        if ! "$PYTHON" tools/gen_area_ids.py --check; then
-            echo "BUILD HAS FAILED. include/main/areas.h is stale - run python3 tools/gen_area_ids.py."
+        if ! "$PYTHON" tools/buildsteps/gen_area_ids.py --check; then
+            echo "BUILD HAS FAILED. include/main/areas.h is stale - run python3 tools/buildsteps/gen_area_ids.py."
             exit 1
         fi
     fi

@@ -112,7 +112,7 @@ YAML_EXECUTABLE = ["main.yaml", "title.yaml", "gameplay.yaml"]
 
 # The rest of the overlays are flat .pe2pkg files with the same shape, so their
 # configs are generated from configs/<version>/overlays.toml rather than written
-# out 446 times. See tools/gen_overlay_configs.py.
+# out 446 times. See tools/buildsteps/gen_overlay_configs.py.
 OVERLAY_MANIFEST = Path("configs/USA/overlays.toml")
 GENERATED_CONFIG_SUBDIR = "generated"
 
@@ -156,7 +156,7 @@ def resolve_scope(
     if unknown:
         print(f"ERROR: unknown scope selector(s): {', '.join(unknown)}")
         print(f"  families: {', '.join(sorted(families))}")
-        print(f"  overlays: {len(names)} (see tools/gen_overlay_configs.py --list)")
+        print(f"  overlays: {len(names)} (see tools/buildsteps/gen_overlay_configs.py --list)")
         sys.exit(1)
     return [t for t in ordered if t[1] in wanted]
 
@@ -221,10 +221,10 @@ PERMUTER_DIR = Path("permuter")
 # C compiled from here, while their asm stays under the linking family.
 LIB_SRC_DIR = Path("src/lib")
 LIB_SPLAT_EXT = TOOLS_DIR / "splat_ext" / "libsrc.py"
-GEN_ASSET_INC = TOOLS_DIR / "gen_asset_inc.py"
-GEN_MODEL_INC = TOOLS_DIR / "gen_model_inc.py"
-GEN_ANIMATION_INC = TOOLS_DIR / "gen_animation_inc.py"
-GEN_COLLISION_INC = TOOLS_DIR / "gen_collision_inc.py"
+GEN_ASSET_INC = TOOLS_DIR / "buildsteps" / "gen_asset_inc.py"
+GEN_MODEL_INC = TOOLS_DIR / "buildsteps" / "gen_model_inc.py"
+GEN_ANIMATION_INC = TOOLS_DIR / "buildsteps" / "gen_animation_inc.py"
+GEN_COLLISION_INC = TOOLS_DIR / "buildsteps" / "gen_collision_inc.py"
 
 
 def asset_includes(version: str) -> list[tuple[Path, Path, int | str]]:
@@ -255,9 +255,9 @@ def asset_includes(version: str) -> list[tuple[Path, Path, int | str]]:
 
 def model_includes(version: str) -> list[tuple[Path, list[Path], int, int, str]]:
     """Typed initializer inputs for model payloads owned by C translation units."""
-    from tools.gen_model_inc import components
-    from tools.gen_model_inc import include_names
-    from tools.gen_overlay_configs import declared_models
+    from tools.buildsteps.gen_model_inc import components
+    from tools.buildsteps.gen_model_inc import include_names
+    from tools.buildsteps.gen_overlay_configs import declared_models
 
     manifest = tomllib.loads((CONFIG_DIR / version / "overlays.toml").read_text())
     models = [m for m in declared_models(manifest) if m["in_c"]]
@@ -286,8 +286,8 @@ def model_includes(version: str) -> list[tuple[Path, list[Path], int, int, str]]
 
 def animation_includes(version: str) -> list[tuple[Path, list[Path], int, int]]:
     """Typed initializer inputs for animation sets embedded in C data."""
-    from tools.gen_animation_inc import components
-    from tools.gen_overlay_configs import declared_animations
+    from tools.buildsteps.gen_animation_inc import components
+    from tools.buildsteps.gen_overlay_configs import declared_animations
 
     manifest = tomllib.loads((CONFIG_DIR / version / "overlays.toml").read_text())
     out = []
@@ -307,8 +307,8 @@ def animation_includes(version: str) -> list[tuple[Path, list[Path], int, int]]:
 
 def collision_includes(version: str) -> list[tuple[Path, list[Path], int, int, list[str]]]:
     """Typed initializer inputs for collision grids embedded in C data."""
-    from tools.gen_collision_inc import components
-    from tools.gen_overlay_configs import declared_collisions
+    from tools.buildsteps.gen_collision_inc import components
+    from tools.buildsteps.gen_overlay_configs import declared_collisions
 
     manifest = tomllib.loads((CONFIG_DIR / version / "overlays.toml").read_text())
     out = []
@@ -321,8 +321,8 @@ def collision_includes(version: str) -> list[tuple[Path, list[Path], int, int, l
         outputs = [BUILD_DIR / "include" / "assets" / f"{prefix}_{part['name']}.inc" for part in parts]
         out.append((raw, outputs, grid["load"], grid["source"],
                     ["--cell-face-list-macro", grid["cell_face_list_macro"]]))
-    from tools.gen_collision_inc import patch_pieces
-    from tools.gen_overlay_configs import declared_collision_patches
+    from tools.buildsteps.gen_collision_inc import patch_pieces
+    from tools.buildsteps.gen_overlay_configs import declared_collision_patches
     for patch in declared_collision_patches(manifest):
         raw = ASSETS_DIR / version / "pe2pkg" / f"{patch['package']}.pe2pkg"
         outputs = [BUILD_DIR / "include" / "assets" / f"{patch['package']}_collision_{part['offset']:05X}.inc"
@@ -388,7 +388,7 @@ MASPSX_SOURCES = [
 
 
 def _ensure_maspsx_patch() -> None:
-    """Re-apply tools/maspsx-lo-load-nop.patch if the submodule is pristine.
+    """Re-apply tools/patches/maspsx-lo-load-nop.patch if the submodule is pristine.
 
     maspsx classifies `lw $r,%lo(sym)($b)` as needing $at expansion and so
     suppresses the load-delay nop before it. Real ASPSX 2.77 (psyq4.3)
@@ -405,7 +405,7 @@ def _ensure_maspsx_patch() -> None:
     # TOOLS_DIR is relative, and `git -C <sub> apply` resolves its argument
     # relative to the submodule, so the patch path has to be absolute.
     sub = TOOLS_DIR / "maspsx"
-    patch = (TOOLS_DIR / "maspsx-lo-load-nop.patch").resolve()
+    patch = (TOOLS_DIR / "patches" / "maspsx-lo-load-nop.patch").resolve()
     marker = sub / "maspsx" / "__init__.py"
     if not patch.is_file() or not marker.is_file():
         return
@@ -434,7 +434,7 @@ def _ensure_maspsx_label_patch() -> None:
     import subprocess
 
     sub = TOOLS_DIR / "maspsx"
-    patch = (TOOLS_DIR / "maspsx-label-load-nop.patch").resolve()
+    patch = (TOOLS_DIR / "patches" / "maspsx-label-load-nop.patch").resolve()
     marker = sub / "maspsx" / "__init__.py"
     if not patch.is_file() or not marker.is_file():
         return
@@ -456,7 +456,7 @@ def _ensure_maspsx_li_d_patch() -> None:
     import subprocess
 
     sub = TOOLS_DIR / "maspsx"
-    patch = (TOOLS_DIR / "maspsx-li-d-register-pair.patch").resolve()
+    patch = (TOOLS_DIR / "patches" / "maspsx-li-d-register-pair.patch").resolve()
     marker = sub / "maspsx" / "__init__.py"
     if not patch.is_file() or not marker.is_file():
         return
@@ -478,7 +478,7 @@ def _ensure_maspsx_bss_align_patch() -> None:
     import subprocess
 
     sub = TOOLS_DIR / "maspsx"
-    patch = (TOOLS_DIR / "maspsx-bss-align.patch").resolve()
+    patch = (TOOLS_DIR / "patches" / "maspsx-bss-align.patch").resolve()
     marker = sub / "maspsx" / "__init__.py"
     if not patch.is_file() or not marker.is_file():
         return
@@ -493,7 +493,7 @@ def _ensure_maspsx_bss_local_patch() -> None:
     import subprocess
 
     sub = TOOLS_DIR / "maspsx"
-    patch = (TOOLS_DIR / "maspsx-bss-local.patch").resolve()
+    patch = (TOOLS_DIR / "patches" / "maspsx-bss-local.patch").resolve()
     marker = sub / "maspsx" / "__init__.py"
     if not patch.is_file() or not marker.is_file():
         return
@@ -539,7 +539,7 @@ match PLATFORM:
 
 OBJDIFF_GENSCRIPT = OBJDIFF_DIR / "objdiff_generate.py"
 OBJDIFF_TARGET_ASM = OBJDIFF_DIR / "target_asm.py"
-POSTBUILD = f"{PYTHON} {TOOLS_DIR / 'postbuild.py'}"
+POSTBUILD = f"{PYTHON} {TOOLS_DIR / 'buildsteps' / 'postbuild.py'}"
 
 # Compilation flags (General)
 INCLUDE_FLAGS = f"-Iinclude -I {BUILD_DIR} -I {BUILD_DIR}/include -Iinclude/psyq -Iinclude/decomp"
@@ -1113,7 +1113,7 @@ def ninja_build(
         ninja_rules_file.rule(
             "sha256sum",
             description="checksum",
-            command=f"cmd.exe /c {TOOLS_DIR / 'sha256sum.bat'} $in",
+            command=f"cmd.exe /c {TOOLS_DIR / 'buildsteps' / 'sha256sum.bat'} $in",
         )
     else:
         ninja_rules_file.rule(
@@ -1148,7 +1148,7 @@ def ninja_build(
         command=f"{PYTHON} {GEN_ANIMATION_INC} $in $load $source {BUILD_DIR / 'include' / 'assets'}",
     )
     version = GAME_VERSIONS[game_version_idx].version_name
-    from tools.gen_overlay_configs import serialized_bss_tail, slot_packages
+    from tools.buildsteps.gen_overlay_configs import serialized_bss_tail, slot_packages
 
     serialized_bss_sizes = {}
     overlay_manifest = tomllib.loads((CONFIG_DIR / version / "overlays.toml").read_text())
@@ -1387,7 +1387,7 @@ def ninja_build(
                 outputs=f"{output}.fix",
                 rule="postbuild",
                 inputs=output,
-                implicit=[output, str(TOOLS_DIR / "postbuild.py")],
+                implicit=[output, str(TOOLS_DIR / "buildsteps" / "postbuild.py")],
             )
             checksum_build_requirements += [str(s) for s in [f"{output}.fix"]]
         else:
@@ -1866,7 +1866,7 @@ def main():
         )
         return
 
-    subprocess.check_call([PYTHON, str(TOOLS_DIR / "gen_overlay_configs.py")])
+    subprocess.check_call([PYTHON, str(TOOLS_DIR / "buildsteps" / "gen_overlay_configs.py")])
     family_imports = overlay_family_imports()
     ordered = all_overlays()
     selected = resolve_scope(args.only or [], ordered)

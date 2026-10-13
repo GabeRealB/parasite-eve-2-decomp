@@ -1,0 +1,442 @@
+#!/usr/bin/env python3
+"""Land a whole-overlay worktree onto trunk as one `matched <fn> <attempts>` commit each.
+
+The landing has to rewrite trunk's files rather than merge the branch, because
+trunk moves under long-running overlay sessions. It also has to produce one
+commit per function: tools/match/fit_difficulty_model.py trains on `matched <fn>
+<attempts>` commit subjects, so folding a session's work into a single commit
+throws away one data point per function.
+
+So the bodies are applied forward, one at a time, onto trunk's own files. Every
+intermediate state compiles by construction - each function is either its final
+body or the INCLUDE_ASM line it replaces, and both forms build - so the build is
+run once at the end rather than once per commit.
+
+Usage:
+    python3 tools/vacuum/land_overlay.py <worktree> <overlay> --functions f1,f2,...
+    python3 tools/vacuum/land_overlay.py <worktree> <overlay> --functions-file list.txt
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import re
+import subprocess
+import sys
+import tempfile
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[2]
+FUNC_START = re.compile(r"^[A-Za-z_][\w \*]*\b(func_\w+)\s*\(\s*[^;]*$")
+ASM_LINE = re.compile(r'INCLUDE_ASM\("[^"]+",\s*(\w+)\)')
+
+
+def bodies_of(text: str) -> dict[str, str]:
+    lines, out, i = text.splitlines(keepends=True), {}, 0
+    while i < len(lines):
+        m = FUNC_START.match(lines[i])
+        if m and not lines[i].lstrip().startswith(("INCLUDE_", "extern")):
+            start = i
+            while i < len(lines) and lines[i].rstrip() != "}":
+                i += 1
+            out[m.group(1)] = "".join(lines[start:i + 1])
+            i += 1
+            continue
+        i += 1
+    return out
+
+
+def scaffold(trunk_text: str, wt_text: str, funcs: set[str]) -> str:
+    """The worktree file with every landing function put back as INCLUDE_ASM.
+
+    This carries across the includes, statics and types the bodies need without
+    yet claiming any function, so the first per-function commit is a real diff
+    of one function rather than a mixed blob.
+    """
+    asm_for = {m.group(1): l for l in trunk_text.splitlines(keepends=True)
+               if (m := ASM_LINE.search(l))}
+    bodies = bodies_of(wt_text)
+    out = wt_text
+    for fn in funcs:
+        if fn in bodies and fn in asm_for:
+            out = out.replace(bodies[fn], asm_for[fn].rstrip("\n"), 1)
+    return out
+
+
+def sections(text: str) -> dict[str, str]:
+    parts, title, buf = {}, None, []
+    for line in text.splitlines(keepends=True):
+        if line.startswith("## "):
+            if title is not None:
+                parts[title] = "".join(buf)
+            title, buf = line.strip(), [line]
+        elif title is not None:
+            buf.append(line)
+    if title is not None:
+        parts[title] = "".join(buf)
+    return parts
+
+
+def merge_sections(current: str, incoming: str, base: str | None = None) -> str:
+    """Merge an append-mostly doc, keeping both sides' changes.
+
+    Given the text both sides started from, this is a three-way merge that
+    resolves overlapping hunks by keeping both. Appending only the `##` sections
+    the current file lacks is the fallback without one, and it silently drops
+    every edit *inside* an existing section: actor_521100's sweep extended the
+    `alabel` section and rewrote a paragraph of another, and both edits were lost
+    while its new sections landed.
+    """
+    if base is not None:
+        with tempfile.TemporaryDirectory() as d:
+            paths = []
+            for name, text in (("current", current), ("base", base), ("incoming", incoming)):
+                p = Path(d) / name
+                p.write_text(text)
+                paths.append(str(p))
+            r = subprocess.run(["git", "merge-file", "-p", "--union", *paths],
+                               capture_output=True, text=True)
+            if r.returncode < 0 or r.returncode > 127:
+                raise SystemExit(f"git merge-file failed:\n{r.stderr}")
+            return r.stdout
+    have, new = sections(current), sections(incoming)
+    missing = [t for t in new if t not in have]
+    if not missing:
+        return current
+    add = "".join(new[t].rstrip() + "\n\n" for t in missing)
+    return current.rstrip() + "\n\n" + add.rstrip() + "\n"
+
+
+def attempts_from_worktree(wt: Path, func: str) -> int | None:
+    """The attempt count the worktree's own commit recorded for `func`.
+
+    vacuum.sh writes `matched <fn> <attempts>`, and that number is training data
+    for fit_difficulty_model.py. Landing with a hardcoded 1 quietly rewrites a
+    3-attempt match as a 1-attempt one, which biases the scorer toward thinking
+    these functions are easier than they were.
+    """
+    r = subprocess.run(["git", "log", "--format=%s", "--all"],
+                       cwd=wt, capture_output=True, text=True)
+    for line in r.stdout.splitlines():
+        parts = line.split()
+        if len(parts) == 3 and parts[0] == "matched" and parts[1] == func:
+            try:
+                return int(parts[2])
+            except ValueError:
+                return None
+    return None
+
+
+def merge_difficult(current: str, incoming: str, base: str = "") -> str:
+    """Three-way merge of tools/match/difficult_functions, keyed by function name.
+
+    Union alone is wrong as soon as a sweep retries parked work: matching a
+    difficult function *removes* its line in the worktree, and unioning that
+    with trunk's copy puts the give-up straight back, so the list keeps
+    advertising a give-up for a function that is now matched - which is exactly
+    what vacuum.sh's forget_difficult_entry exists to prevent.
+
+    Both sides diverge, so trunk is the authority and only the worktree's own
+    changes since `base` are applied to it. A worktree is cut once and lives for
+    a whole sweep, during which other sweeps land: taking every line it carries
+    would let its stale copy of an untouched entry overwrite trunk's newer one,
+    re-adding give-ups trunk had cleared and reinstating worse scores. Carrying
+    the deltas keeps both sides' work, because a name neither side touched has
+    only one value to take.
+    """
+    keyed = lambda text: {l.split()[0]: l for l in text.splitlines() if l.strip()}
+    have, mine, was = keyed(current), keyed(incoming), keyed(base)
+    for name, line in mine.items():
+        if was.get(name) != line:
+            have[name] = line
+    for name in was:
+        if name not in mine:
+            have.pop(name, None)
+    return "\n".join(have[k] for k in sorted(have)) + "\n"
+
+
+def git(*args: str) -> str:
+    r = subprocess.run(["git", *args], cwd=ROOT, capture_output=True, text=True)
+    if r.returncode != 0:
+        raise SystemExit(f"git {' '.join(args)} failed:\n{r.stderr}")
+    return r.stdout
+
+
+def dirty_paths() -> set[str]:
+    """Every path git reports as changed, staged or not, tracked or not."""
+    return {l[3:].strip().strip('"')
+            for l in git("status", "--porcelain").splitlines() if l.strip()}
+
+
+def roll_back(before: set[str]) -> None:
+    """Undo everything this run wrote, leaving trunk as it found it.
+
+    A rewrite that dies partway used to leave its half-copied files sitting
+    uncommitted in trunk, and that debris blocks *every* lane, not just the one
+    that failed: this script refuses on a dirty src/include tree, and git
+    refuses to cherry-pick over it. So one bad landing stalled all landings
+    until a human cleaned up - which is how actor_400100_text, actor_215100 and
+    actor_136100 stranded 61 verified matches between them in one morning, the
+    last two purely because the first one's debris was still there.
+
+    Only paths this run introduced are touched; anything already dirty when we
+    started is left alone. Commits stage 2 already made are deliberately left
+    too - those are landed matches, not debris.
+    """
+    new = sorted(dirty_paths() - before)
+    if not new:
+        return
+    tracked, untracked = [], []
+    for rel in new:
+        (tracked if git("ls-files", "--", rel).strip() else untracked).append(rel)
+    if tracked:
+        git("checkout", "--", *tracked)
+    for rel in untracked:
+        f = ROOT / rel
+        if f.is_file():
+            f.unlink()
+    print(f"  rolled back {len(new)} path(s) written before the failure",
+          file=sys.stderr)
+
+
+def require_lease(overlay: str, skip: bool) -> None:
+    """Refuse to land an overlay nobody holds the lease on.
+
+    Every agent promotes a shared body inline (tools/vacuum/vacuum.sh step 4b), and a
+    promotion rewrites the manifest span of every overlay carrying that body -
+    which renumbers their units. Landing maps bodies onto trunk's units by
+    filename, so a promotion that lands between the worktree being cut and the
+    bodies being applied silently invalidates the mapping.
+
+    The lease is what prevents it: vacuum.sh's `siblings_claimed_elsewhere`
+    guard tells an agent not to promote into an overlay another session holds.
+    vacuum_overlay.sh keeps the lease until after the landing, so the automated
+    path is safe; a landing run by hand is not, and that is exactly the window
+    in which one went wrong. Assert the precondition rather than trusting it.
+    """
+    if skip:
+        print("  WARNING: --no-lease-check; a concurrent promotion can renumber "
+              "this overlay's units mid-landing")
+        return
+    try:
+        out = subprocess.run([sys.executable, "tools/vacuum/vacuum_orch.py", "status"],
+                             cwd=ROOT, capture_output=True, text=True, timeout=60)
+        claims = json.loads(out.stdout).get("claims", {})
+    except Exception as e:                       # orchestrator down: say so, do not guess
+        raise SystemExit(f"cannot read the orchestrator to check {overlay}'s lease: {e}\n"
+                         "re-run with --no-lease-check only if no sweep is running")
+    if not any(c.get("overlay") == overlay for c in claims.values()):
+        raise SystemExit(
+            f"no session holds a lease on {overlay}; refusing to land.\n"
+            "An inline promotion from another lane can renumber this overlay's "
+            "units while the bodies are being applied, and the mapping is by "
+            "filename. Take the lease first (tools/vacuum/overlay_batch.sh), or pass "
+            "--no-lease-check if you are certain nothing else is running.")
+
+
+def main() -> int:
+    ap = argparse.ArgumentParser(description=__doc__,
+                                 formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap.add_argument("worktree")
+    ap.add_argument("overlay")
+    ap.add_argument("--functions")
+    ap.add_argument("--functions-file")
+    ap.add_argument("--attempts", type=int,
+                    help="override the attempt count; by default it is read "
+                         "from the worktree's own `matched <fn> <n>` commit")
+    ap.add_argument("--base", default="",
+                    help="commit the worktree was cut from; needed to merge "
+                         "configs/USA/overlays.toml by entry instead of wholesale")
+    ap.add_argument("--extra", default="",
+                    help="comma-separated extra paths to land (headers, docs)")
+    ap.add_argument("--no-lease-check", action="store_true",
+                    help="land even though no session holds this overlay's lease "
+                         "(unsafe: see require_lease)")
+    args = ap.parse_args()
+
+    require_lease(args.overlay, args.no_lease_check)
+
+    wt = Path(args.worktree)
+    funcs = ([f.strip() for f in args.functions.split(",") if f.strip()]
+             if args.functions
+             else [l.strip() for l in Path(args.functions_file).read_text().splitlines()
+                   if l.strip()])
+
+    if git("status", "--porcelain", "--", "src", "include").strip():
+        raise SystemExit("trunk has uncommitted src/include changes; refusing")
+
+    before = dirty_paths()
+    try:
+        return _apply(args, wt, funcs)
+    except BaseException:
+        roll_back(before)
+        raise
+
+
+def _apply(args, wt: Path, funcs: list[str]) -> int:
+    base_rev = args.base
+    extras = [e.strip() for e in args.extra.split(",") if e.strip()]
+    for e in extras:
+        src, dst = wt / e, ROOT / e
+        if not src.exists():
+            # The merged manifest can name a unit this worktree never
+            # materialised: splat only *creates* a unit file that is missing and
+            # never rewrites one that exists, so a second tree handed the same
+            # manifest does not follow. actor_215100's landing died here as a
+            # bare FileNotFoundError on actor_160700_5.c.
+            raise SystemExit(
+                f"{e}: not present in the worktree ({src}).\n"
+                "This is the segmentation mismatch CLAUDE.md describes - trunk "
+                "cannot be re-split to match a promotion's renumbered units. "
+                "Replay the worktree's own commits instead; see CAN_REPLAY in "
+                "vacuum_overlay.sh.")
+        dst.parent.mkdir(parents=True, exist_ok=True)
+        if dst.is_file() and e.endswith("difficult_functions"):
+            # Line-based, like the learnings file: two overlay worktrees cut
+            # from the same commit both add entries, and copying the second
+            # one's file over trunk drops the first one's give-ups. Keyed by
+            # function name so a re-run's better score replaces an older line
+            # rather than duplicating it, and three-way against the commit the
+            # worktree was cut from so a retry pass's removals survive.
+            r = subprocess.run(["git", "-C", str(ROOT), "show", f"{base_rev}:{e}"],
+                               capture_output=True, text=True) if base_rev else None
+            base_txt = r.stdout if r is not None and r.returncode == 0 else ""
+            dst.write_text(
+                merge_difficult(dst.read_text(), src.read_text(), base_txt))
+        elif dst.is_file() and e.endswith("overlays.toml"):
+            # One line per overlay, so merge by key and take only the entries the
+            # worktree actually changed relative to the commit it was cut from.
+            # Copying it wholesale reverts every entry another session landed in
+            # the meantime: mist_shooting_gallery's landing silently dropped
+            # mist_r18's promotion span and shelter_b1_sterilization_room's,
+            # because its worktree predated them. The build caught it only
+            # because a missing shared unit breaks the link - a lost `rodata`
+            # cut would have gone through green.
+            import re as _re
+            base_txt = git("show", f"{base_rev}:{e}") if base_rev else ""
+            def _entries(text):
+                return {m.group(1): m.group(0)
+                        for m in _re.finditer(r"^(\w+) = \{.*$", text, _re.M)}
+            base_e, wt_e, cur = _entries(base_txt), _entries(src.read_text()), dst.read_text()
+            cur_e = _entries(cur)
+            mine = {k for k, v in wt_e.items() if base_e.get(k) != v}
+            theirs = {k for k, v in cur_e.items() if base_e.get(k) != v}
+            # Merging entry-wise is only *provably* correct when each entry has
+            # at most one modifier. If both sides changed the same overlay's
+            # entry, taking ours silently discards theirs - the clobber bug
+            # narrowed to one line rather than fixed. That is a real case, not a
+            # hypothetical: a promotion rewrites the entry of every overlay
+            # carrying the body, so two sweeps promoting different bodies can
+            # both edit the same third overlay. Refuse and let a human or an
+            # agent reconcile.
+            conflict = sorted(mine & theirs)
+            if conflict:
+                raise SystemExit(
+                    f"{e}: both this worktree and trunk changed "
+                    f"{', '.join(conflict)} since {base_rev[:8]}; refusing to "
+                    f"merge automatically - reconcile these entries by hand")
+            for k in sorted(mine):
+                m = _re.search(rf"^{k} = \{{.*$", cur, _re.M)
+                cur = cur[:m.start()] + wt_e[k] + cur[m.end():] if m else cur + wt_e[k] + "\n"
+            dst.write_text(cur)
+            print(f"  merged {len(mine)} manifest entr(y/ies): {', '.join(sorted(mine)) or 'none'}")
+        elif dst.is_file() and e.endswith(".md"):
+            # Append-only docs must be merged, not copied. Every overlay
+            # worktree is cut from the same trunk commit, so two sessions both
+            # append to DECOMPILATION_LEARNINGS.md and the second landing
+            # silently erases the first one's entries - which is exactly what
+            # happened landing dryfield_motel_balcony after acropolis_cafeteria.
+            base_txt = None
+            if base_rev:
+                r = subprocess.run(["git", "show", f"{base_rev}:{e}"],
+                                   cwd=ROOT, capture_output=True, text=True)
+                base_txt = r.stdout if r.returncode == 0 else ""
+            dst.write_text(merge_sections(dst.read_text(), src.read_text(), base_txt))
+        else:
+            dst.write_text(src.read_text())
+
+    # Re-split before mapping slots. A sweep may change the overlay's
+    # segmentation - acropolis_plaza's added a `units` cut, giving the worktree
+    # an acropolis_plaza_4.c that trunk had no counterpart for - and the mapping
+    # below walks *trunk's* files, so bodies in a unit trunk does not yet have
+    # were invisible and the landing died on "no INCLUDE_ASM slot". Applying the
+    # manifest first and re-splitting makes trunk's units match the worktree's.
+    # Sym files get the same treatment: a promotion adds aliases, and trunk's
+    # asm has to be regenerated under those names before bodies are applied.
+    if any(e.startswith("configs/") for e in extras):
+        print("  config changed; re-splitting trunk before mapping bodies")
+        r = subprocess.run([sys.executable, "ninja_config.py", "--only", args.overlay],
+                           cwd=ROOT, capture_output=True, text=True)
+        if r.returncode != 0:
+            # ninja_config.py reports on stdout, so quoting only stderr printed
+            # a bare "re-split ... failed:" and nothing else - which is what
+            # made actor_400100_text's landing failure undiagnosable.
+            detail = (r.stdout + r.stderr).strip() or f"exit {r.returncode}, no output"
+            raise SystemExit("re-split after the manifest merge failed:\n"
+                             + detail[-2000:])
+
+    # Which trunk file holds each function, and where its final body lives.
+    # A shared unit is named "<family>/lib/<unit>", but <unit> is a *file* in
+    # the one library every family shares, src/lib, not a directory of its own
+    # - so the directory to map bodies in is the library itself.
+    if "/lib/" in args.overlay:
+        src_dirs = [ROOT / "src" / "lib"]
+    else:
+        src_dirs = [p for p in ROOT.glob(f"src/**/{args.overlay}") if p.is_dir()]
+    if len(src_dirs) != 1:
+        raise SystemExit(f"expected one src dir for {args.overlay}")
+    rel = src_dirs[0].relative_to(ROOT)
+
+    file_of, body_of = {}, {}
+    for trunk_c in sorted(src_dirs[0].glob("*.c")):
+        wt_c = wt / rel / trunk_c.name
+        if not wt_c.is_file():
+            continue
+        wt_bodies = bodies_of(wt_c.read_text())
+        for fn in funcs:
+            if fn in wt_bodies and ASM_LINE.search(trunk_c.read_text()) and \
+               re.search(rf'INCLUDE_ASM\("[^"]+",\s*{fn}\)', trunk_c.read_text()):
+                file_of[fn] = trunk_c
+                body_of[fn] = wt_bodies[fn]
+
+    missing = [f for f in funcs if f not in file_of]
+    if missing:
+        raise SystemExit(
+            f"no INCLUDE_ASM slot on trunk for: {missing}\n"
+            "If this overlay's sweep promoted a shared body, the promotion "
+            "renumbered its units and trunk cannot be re-split to match "
+            "(splat never rewrites a unit file that already exists). Replay the "
+            "worktree's own commits instead - see CAN_REPLAY in vacuum_overlay.sh.")
+
+    # Stage 1: scaffolding (includes, statics, new types).
+    touched = set(file_of.values())
+    for trunk_c in touched:
+        wt_c = wt / rel / trunk_c.name
+        mine = {f for f in funcs if file_of[f] == trunk_c}
+        trunk_c.write_text(scaffold(trunk_c.read_text(), wt_c.read_text(), mine))
+    # Stage 2: one function, one commit.
+    for fn in funcs:
+        trunk_c = file_of[fn]
+        text = trunk_c.read_text()
+        m = re.search(rf'^.*INCLUDE_ASM\("[^"]+",\s*{fn}\).*$', text, re.M)
+        if not m:
+            raise SystemExit(f"{fn}: INCLUDE_ASM line vanished from {trunk_c}")
+        trunk_c.write_text(text.replace(m.group(0), body_of[fn].rstrip("\n"), 1))
+        paths = [str(trunk_c.relative_to(ROOT))]
+        if fn == funcs[0]:
+            # The re-split above may have written unit files trunk did not have.
+            # They are part of this segmentation change, and leaving them
+            # untracked would trip the next landing's clean-tree check.
+            paths += extras + [str(rel)]
+        git("add", *paths)
+        n = args.attempts if args.attempts else (attempts_from_worktree(wt, fn) or 1)
+        git("commit", "-q", "-m", f"matched {fn} {n}")
+        print(f"  matched {fn}")
+
+    print(f"landed {len(funcs)} function(s) from {args.overlay}")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

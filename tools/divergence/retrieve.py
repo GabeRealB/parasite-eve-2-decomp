@@ -66,7 +66,7 @@ def _learn():
     That search already exists and is tuned for this corpus; duplicating it here
     would mean two rankings of the same text that drift apart.
     """
-    path = REPOSITORY / "tools" / "learn.py"
+    path = REPOSITORY / "tools" / "match" / "learn.py"
     if not path.is_file():
         return None
     spec = importlib.util.spec_from_file_location("learn", path)
@@ -186,7 +186,7 @@ def main() -> int:
         print("notes on this kind of divergence:")
         for title, _ in notes:
             print(f"  {title.strip()}")
-        print("\nread one in full with: python3 tools/learn.py --show 1 <terms>")
+        print("\nread one in full with: python3 tools/match/learn.py --show 1 <terms>")
     return 0
 
 

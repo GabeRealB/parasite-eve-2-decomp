@@ -2344,7 +2344,7 @@ Example: `_actor01900StateRefall` — phi local 99.765% `regs=4`, else-if stores
 100%. Related to the `||` / `return K` delay-slot case, but the leftover
 is a store phi rather than a return.
 
-Why the register changes, from `tools/trace_gcc.py` on such a phi
+Why the register changes, from `tools/match/trace_gcc.py` on such a phi
 (`func_dryfield_night_factory_8018182C`, 67 insns, `regs=4` until the
 stores went into the arms): the hoisted arm def is born while the
 compare's register is still live, because the compare's `REG_DEAD` note
@@ -4407,7 +4407,7 @@ This controlled failure rules out launch priority alone as the solution.
 Observe dependency release, comparator **and** hazard selection, then check
 allocation. A local scheduling explanation is insufficient when its source
 intervention changes the quantity or live-range constraints needed elsewhere.
-`tools/trace_gcc.py --uids ...` now records all three decisions. The observer
+`tools/match/trace_gcc.py --uids ...` now records all three decisions. The observer
 produced identical assembly to ordinary compilation for both inputs. See
 `COMPILER_ANALYSIS.md` and `tools/compiler_evidence/2026-09-09-replay-residue.json`.
 
@@ -4416,7 +4416,7 @@ produced identical assembly to ordinary compilation for both inputs. See
 The vendored `perm_pycparser` grammar treats casts as unary expressions. Without
 an explicit precedence on the type form, `i * sizeof(T) + base` becomes
 `i * sizeof((T)(+base))`, sometimes producing invalid aggregate casts and
-sometimes silently changing valid scalar code. `tools/prepare_permuter.py`
+sometimes silently changing valid scalar code. `tools/match/prepare_permuter.py`
 applies `decomp-permuter-sizeof.patch` and refreshes the cached yacc table;
 editing only the grammar while accepting an old optimized table is insufficient.
 `permute.sh` runs this preparation and creates a fail-fast compiler wrapper.
@@ -4442,7 +4442,7 @@ which can distinguish accesses that ordinary CSE conservatively invalidates.
 Investigate the surviving equivalence and register lifetime before changing
 source-level byte aliases or adding a scheduler fence.
 
-Use `tools/trace_gcc.py ... --uids 1228` to observe the proposed substitution;
+Use `tools/match/trace_gcc.py ... --uids 1228` to observe the proposed substitution;
 check the next dump to confirm it survived. The source/promotion boundary is
 a separate issue: combine eliminates an extension but leaves r138/r425 as
 distinct global pseudos. Full evidence: `COMPILER_ANALYSIS.md`, UI case.
@@ -8951,10 +8951,10 @@ cleanly between attempts.
 
 ## Local scratch environment gotchas
 
-Use `tools/claude --bootstrap-only <fn>` to set up the environment without
+Use `tools/match/claude --bootstrap-only <fn>` to set up the environment without
 launching a nested interactive session.
 
-**`.set gp=64` (fixed).** `tools/claude` assembles `target.o` with
+**`.set gp=64` (fixed).** `tools/match/claude` assembles `target.o` with
 `-march=r3000`, and `prelude.inc` used to emit `.set gp=64`, which modern `gas`
 rejects for a 32-bit CPU. The setup script reported the error and continued,
 leaving **no `target.o`**, so `build.sh` failed later in a confusing way.
@@ -9053,7 +9053,7 @@ helpers; the count also tells the two apart at a glance.
 **Piping `build.sh` into `head` records a failure and can disqualify the seed.**
 `build.sh` journals its result from an `EXIT` trap, so a `./build.sh base_1.c |
 head -5` that closes the pipe early records `failure: 141` (SIGPIPE) as the
-candidate's last row. `tools/vacuum_permute.py` builds its candidate list from
+candidate's last row. `tools/match/vacuum_permute.py` builds its candidate list from
 `match_log.txt` cross-checked against `attempts.jsonl` (last row per source
 wins) and drops a source whose last row is a failure, so the router reported
 `PERMUTER_SKIP=no unpinned seed reaches the primary score threshold` with a
@@ -9420,7 +9420,7 @@ as permuter errors.
 
 **`prelude.inc` is not optional in `target.s` (fixed).** `permute.sh` used to
 build `target.s` from `macro.inc` plus the `.s`, leaving out the
-`.set noat` / `.set noreorder` / `.set gp=32` that `tools/claude` prepends. With
+`.set noat` / `.set noreorder` / `.set gp=32` that `tools/match/claude` prepends. With
 `noreorder` missing, `gas` reorders the *target* — filling its delay slots and
 inserting its own nops — so the permuter optimizes toward a stream that no
 compiler output can reach. `func_actor_203700_8014A6F0`'s 99.512% seed scored
@@ -9434,8 +9434,8 @@ relocates against `.text`, and objdump prints the target as bare hex
 (`j 2d8 <fn+0x2d8>`), which the permuter's `int(imm, 0)` rejects with
 `ValueError: invalid literal for int() with base 0`. GCC emits those for long
 switch bodies, so scoring dies on exactly the functions worth permuting.
-`tools/decomp-permuter-objdump.patch` fixes it; `permute.sh` invokes
-`tools/prepare_permuter.py` to re-apply it and the sizeof grammar fix whenever
+`tools/patches/decomp-permuter-objdump.patch` fixes it; `permute.sh` invokes
+`tools/match/prepare_permuter.py` to re-apply it and the sizeof grammar fix whenever
 the submodule comes back pristine.
 
 **Jump table symbol names do not need normalizing for scoring.** The permuter
@@ -9455,7 +9455,7 @@ hex, and it fails silently in whichever direction hurts:
 - matching to normalize a dump splices the remainder onto the replacement,
   giving `.rodatator_203700_80149E34`;
 - matching to *extract* the name yields `jtbl_d`, which nothing defines, so
-  `tools/claude` found no rodata file and m2c still returned a blank `base.c`.
+  `tools/match/claude` found no rodata file and m2c still returned a blank `base.c`.
 
 Both bugs shipped before this was understood. Every family except main and
 gameplay is affected, which is where nearly all the remaining work is.
@@ -9467,11 +9467,11 @@ seed can be cornered: `func_actor_203700_8014A6F0`'s 99.512% seed had
 of 60, while a 96.585% attempt was the only one of 38 to reach `reorder=0` -
 paying `insert=2 delete=2` for it, i.e. a genuinely different shape rather than
 a worse version of the same one. Prefer a seed that is *clean on the axis the
-best one is stuck on*, even at a lower score. `tools/archive_giveup.py` now
+best one is stuck on*, even at a lower score. `tools/match/archive_giveup.py` now
 keeps diagnostic alternatives and reserves slots for a near-best source with
 fewer asm helpers and a verified permuter gain. It reconsiders immutable session
 snapshots, so a candidate previously dropped from the shortlist can return.
-`tools/claude` names these when restoring a give-up seed; the search router also
+`tools/match/claude` names these when restoring a give-up seed; the search router also
 uses these priorities and deduplicates observed object equivalents.
 
 Improvements land in `permuter/<fn>/output-<score>-<n>/source.c`, as the whole
@@ -9611,7 +9611,7 @@ entries point at case labels that only ever existed in the `INCLUDE_ASM` the C
 body just replaced. The error names both the file and the label —
 `neo_ark_substation_2.c.o:(.rodata+0x0): undefined reference to
 '.Lneo_ark_substation_8017D8B4'` — so the unit in the object's name is the one
-to compare the cut against. `tools/rodata_triage.py` does not catch this: it
+to compare the cut against. `tools/bulk/rodata_triage.py` does not catch this: it
 reported `1 unmatched functions / Free to match: 1` for the overlay throughout.
 
 **Hand the run after the table back with a second cut.** A cut at the table's
@@ -9852,7 +9852,7 @@ The symptoms are worth recognising: the scratch env scores 100.000% with
 all-zero penalties while `build-and-verify` fails the checksum of *all three
 twins at once* (they link the same shared object), first differing at byte 4 of
 the package — the first dispatch pointer — with every entry after it `+0x14`.
-`tools/rodata_triage.py` reports `0 unmatched functions` throughout, because no
+`tools/bulk/rodata_triage.py` reports `0 unmatched functions` throughout, because no
 function is unmatched; the object already matches and only its `.rodata` moved.
 
 Give the table's run to the generating unit — the shared unit's name, which every
@@ -10141,7 +10141,7 @@ so the matched body has no regenerated home: write `_6.c` yourself with the body
 copied out of the old `_5.c`, then rewrite `_5.c` with the `INCLUDE_ASM` lines
 for the range between the two shared spans. Deleting the stale file and
 re-splitting instead loses the body to a fresh `INCLUDE_ASM` stub with the
-checksum still green - `tools/check_lost_matches.py`, which `build-and-verify.sh`
+checksum still green - `tools/check/check_lost_matches.py`, which `build-and-verify.sh`
 runs, is what catches that.
 
 Work out the new ranges from the regenerated
@@ -10296,7 +10296,7 @@ ones the last unit owns, so with the key stale the linker reports
 
 **Snapshot the whole `.c` files, not `bodies_of()`.** The repair is the usual
 one - delete the overlay's `.c`, re-split, put each body back in whichever unit
-now owns its address - and `bodies_of()` in `tools/land_overlay.py` is not
+now owns its address - and `bodies_of()` in `tools/vacuum/land_overlay.py` is not
 enough to drive it. It matches from the definition line down to the closing
 brace, so it drops the `///` block above each body and every `extern` that block
 carries; restoring only its output loses the documentation and then fails to
@@ -10305,7 +10305,7 @@ and the first item are missed for the same reason. A forward declaration
 (`void func_x(Task*);`) can go too, and only shows up at link or on a
 `TaskFunc states[2] = {..., func_x}` initializer. Save the whole file, then
 restore per function: body, then its leading comment-and-extern block, then the
-loose externs. `tools/check_lost_matches.py` and the checksum are what say the
+loose externs. `tools/check/check_lost_matches.py` and the checksum are what say the
 redistribution is right.
 
 ### A body that loads its own overlay's table *can* be shared, via a per-carrier alias
@@ -10655,7 +10655,7 @@ verdict on the function's difficulty — re-run m2c yourself with the overlay's
 rodata file appended as a second input:
 
 ```sh
-python3 tools/m2ctx.py src/gameplay/3E9C.c          # writes ./ctx.c
+python3 tools/match/m2ctx.py src/gameplay/3E9C.c          # writes ./ctx.c
 python3 tools/m2c/m2c.py --target mipsel-gcc-c -f effectThrownModelTask --context ctx.c \
     asm/USA/gameplay/nonmatchings/3E9C/effectThrownModelTask.s \
     asm/USA/gameplay/data/rodata_3E9C.rodata.s
@@ -42213,13 +42213,13 @@ exist.
 
 ## Check `overlay_dup_index.py find` before writing any C for a room function
 
-`python3 tools/overlay_dup_index.py find <fn>` lists every overlay carrying the
+`python3 tools/bulk/overlay_dup_index.py find <fn>` lists every overlay carrying the
 same body, marking which copies are byte-identical. Over half of the room
 functions are duplicates of another room's, so for anything under
 `asm/<ver>/rooms/` this is cheaper than reading m2c output:
 
 ```
-$ python3 tools/overlay_dup_index.py find func_shelter_b1_underground_parking_80182154
+$ python3 tools/bulk/overlay_dup_index.py find func_shelter_b1_underground_parking_80182154
   same body: 6 copies   identical bytes: 1
     ~ USA/rooms/mist_parking  func_mist_parking_80181E8C   (already matched)
 ```
@@ -46554,7 +46554,7 @@ Retyping an m2c seed is not codegen-neutral (see "Struct-typing a body changes
 GCC 2.8.1's aliasing"), so every rewritten body has to be re-proved - but
 `build-and-verify.sh --only` re-splits the overlay, which needs the vacuum
 orchestrator's merge lock, and a 25-function pass would hold it for a whole
-session. `tools/bulk_m2c.py` exports exactly the three pieces needed:
+session. `tools/bulk/bulk_m2c.py` exports exactly the three pieces needed:
 
 ```python
 import bulk_m2c as B
@@ -47377,7 +47377,7 @@ no better name, so one C function can appear as a run of `INCLUDE_ASM` lines:
 branch/`j` into the next names, and the last fragment is the `lw $ra` / `jr $ra`
 teardown.
 
-`tools/claude` bootstraps `target.s` from the **named** function only, so the
+`tools/match/claude` bootstraps `target.s` from the **named** function only, so the
 scratch `target.o` holds just the first fragment. Scoring correct C against it
 reports nonsense — the first attempt here scored 29.8% with `insert=28` purely
 because the target was 13 instructions and the compiled body was 40. Rebuild
@@ -47768,7 +47768,7 @@ only one of them has an `sll`.
 ## Relocated actor twins need the `rodata` cut in both manifest entries
 
 `actor_101900` and `actor_301900` are the same package linked at two addresses,
-so `tools/gen_overlay_configs.py` takes the `text_all_shared` path and the whole
+so `tools/buildsteps/gen_overlay_configs.py` takes the `text_all_shared` path and the whole
 code region is one shared `lib/actor_101900_text` object. Decompiling a switch in
 that object still needs the table's range handed to C, and the manifest key goes
 on **every** twin — the generator reads each entry independently, so a cut on
@@ -48246,7 +48246,7 @@ after regenerating showed the previous two promotions' spans as if this one had
 introduced them. Take the "before" copy from a regeneration with the config
 changes stashed.
 
-`tools/overlay_dup_index.py promote <matched copy> --unit <name>` already writes
+`tools/bulk/overlay_dup_index.py promote <matched copy> --unit <name>` already writes
 the manifest span and the symbol-map line for every carrier, and refuses on
 overlap or a missing entry, so the hand work is only the shared `.c`, the
 header, and the per-carrier unit surgery above. Point it at the *matched*
@@ -54390,11 +54390,11 @@ already in the base register, `%lo(sym)(base)` is a single instruction whatever
 the opcode. Upstream fixed only `sw` because that is what the reported issue
 contained.
 
-**Fix.** `tools/maspsx-lo-load-nop.patch` adds the mirror-image load case, plus
+**Fix.** `tools/patches/maspsx-lo-load-nop.patch` adds the mirror-image load case, plus
 a discriminating test in maspsx's own suite. `ninja_config.py` re-applies it on
 every run, because a submodule edit survives neither a fresh clone nor
 `git submodule update` — the same arrangement `permute.sh` uses for
-`tools/decomp-permuter-objdump.patch`. All 137 maspsx tests pass, and all 3413
+`tools/patches/decomp-permuter-objdump.patch`. All 137 maspsx tests pass, and all 3413
 existing `%lo` loads in the build produce byte-identical objects, so the fix
 corrects the failing case without disturbing anything already matched.
 
@@ -55164,7 +55164,7 @@ the hoisted `lw` was loading.
 ## `overlay_dup_index find` reporting no copies does not mean there is no twin
 
 **Problem.** `_acropolisPromenadeMoviePathTask` is a 246-instruction streamed
-scene driver. `python3 tools/overlay_dup_index.py find` reported one body, no
+scene driver. `python3 tools/bulk/overlay_dup_index.py find` reported one body, no
 copies, so the vacuum treated it as a fresh 246-instruction match.
 
 **Symptom.** The m2c seed scored 62.7% with `branch=13 insert=19 delete=60` —
@@ -59578,7 +59578,7 @@ first, copy propagation reaches the store anyway.
 
 ## `overlay_dup_index find` misses near-twins; grep `src/` for a magic constant
 
-`tools/overlay_dup_index.py find` groups on exact disassembly-text equality, so
+`tools/bulk/overlay_dup_index.py find` groups on exact disassembly-text equality, so
 a function that another overlay already has *almost* verbatim is reported as
 having no copies. `acropolisBridgeGlowStarTask` (437 insns) and the already
 matched `acropolisPromenadeGlowStarTask` (452 insns) are the same task with
@@ -64283,7 +64283,7 @@ the promoted span cut off the first file — including any matched C bodies that
 were down there. Do that first and splat writes nothing at all on the next
 `ninja_config.py`, which is the confirmation that the boundaries were right.
 Taking splat's skeleton for a renamed file instead would drop those bodies with
-the checksum still green, which is the loss `tools/check_lost_matches.py` exists
+the checksum still green, which is the loss `tools/check/check_lost_matches.py` exists
 to catch.
 
 Carriers of one promotion differ here: `actor_120500`'s copy was the last code
@@ -64301,7 +64301,7 @@ boundary and creates the `_N+1` tail unit, so no boundary has to be worked out
 in advance and a wrong guess cannot survive as a file whose `INCLUDE_ASM` paths
 name a unit that no longer holds those functions.
 
-Verify the deletion is safe first (`bodies_of()` in `tools/land_overlay.py`
+Verify the deletion is safe first (`bodies_of()` in `tools/vacuum/land_overlay.py`
 over every file about to go; move any body it reports into the shared unit or
 its new home), and expect the regenerated file to come back as `common.h` plus
 `INCLUDE_ASM` lines, without the overlay headers the old one included.
@@ -64759,7 +64759,7 @@ unit's *first* rodata contribution, which is exactly what a compiler-generated
 constant needs.
 
 Re-splitting for this deletes the overlay's `.c`, so snapshot the bodies first
-(`bodies_of()` in `tools/land_overlay.py`) and rebuild the new units from the
+(`bodies_of()` in `tools/vacuum/land_overlay.py`) and rebuild the new units from the
 old source rather than from splat's skeleton - here 25 matched bodies had to be
 redistributed across three files.
 
@@ -65072,7 +65072,7 @@ Two things follow, and both cost a build if missed:
 
 ## A shared name has many carriers, and the brief's "C file" line picks one of them arbitrarily
 
-`tools/decomp_overlay.py find` resolves the host `.c` by symbol *name* alone.
+`tools/match/decomp_overlay.py find` resolves the host `.c` by symbol *name* alone.
 `find_include_asm_file` walks every `src/**/*.c` and returns the first file with
 an `INCLUDE_ASM(<folder>, <name>)` matching the function - it unpacks the folder
 and then ignores it, so nothing ties the file it returns to the overlay the asm
@@ -65107,7 +65107,7 @@ an equality: check that the two copies relocate against the same symbols.
 says nothing about the *source*, and the source is what is costly to redo:
 
 ```
-$ python3 tools/overlay_dup_index.py promote ActorsShared80131f9cSub0
+$ python3 tools/bulk/overlay_dup_index.py promote ActorsShared80131f9cSub0
 ActorsShared80131f9cSub0: cannot be shared - the body references its own
 overlay's code or data (USA/actors/actor_110300, USA/actors/actor_110800).
 ```
@@ -65362,9 +65362,9 @@ an existing `.c`, so the line is not added and the link fails with
 Hand-splitting the `.c` cannot fix that, because the missing lines were never in
 any source file. Delete the two `.c` files on either side of the new span,
 re-split so splat writes their `INCLUDE_RODATA` set from scratch, then put the
-matched bodies back by name (`bodies_of()` in `tools/land_overlay.py`), together
+matched bodies back by name (`bodies_of()` in `tools/vacuum/land_overlay.py`), together
 with the include block and any forward declarations, which splat's skeleton does
-not carry. `tools/check_lost_matches.py`, run by `build-and-verify.sh`, confirms
+not carry. `tools/check/check_lost_matches.py`, run by `build-and-verify.sh`, confirms
 nothing was dropped.
 
 
@@ -67177,7 +67177,7 @@ positive-arm branch. `u16` color `<<= 1` also avoids the extra masks emitted by
 `*= 2`.
 
 A pristine worktree maspsx submodule may lack the existing
-`tools/maspsx-lo-load-nop.patch` until ninja configuration applies it. Check
+`tools/patches/maspsx-lo-load-nop.patch` until ninja configuration applies it. Check
 that patch before compensating in C for a missing `nop` between a reload and
 `lw ..., %lo(symbol)(reloaded_base)`. Two literal `0x1190` operands in this
 target still score as register differences against `%lo(gGpuPrimCursor)`;
@@ -67389,7 +67389,7 @@ example of the fold.
 
 `promote` renumbers a carrier's overlay-local units, but a manifest `rodata` cut
 is keyed by unit *name*, and a cut means "the `.rodata` of the object built from
-`<name>.c` lands at this offset" (`unit_path()` in `tools/gen_overlay_configs.py`).
+`<name>.c` lands at this offset" (`unit_path()` in `tools/buildsteps/gen_overlay_configs.py`).
 A compiler-generated jump table is emitted by the unit holding its reader, so a
 cut stays correct only while that unit keeps its number - exactly what a
 promotion changes.
@@ -67767,7 +67767,7 @@ running `promote`, and pass `--unit` with another carrier's address when it is
 taken:
 
 ```
-python3 tools/overlay_dup_index.py --unit actors_shared_80132538 promote func_actor_143900_80132514
+python3 tools/bulk/overlay_dup_index.py --unit actors_shared_80132538 promote func_actor_143900_80132514
 ```
 
 ## Promoting a shared body renumbers the carriers' units, and splat's new files drop matched bodies
@@ -67791,7 +67791,7 @@ Rebuild each affected file by moving text, not by regenerating:
 
 `actor_146300` is the worked example of why: its new trailing unit contains
 `_actor146300IgnoreCommand`, a matched two-line body that splat's skeleton
-re-emitted as `INCLUDE_ASM`. `tools/check_lost_matches.py` does not catch this
+re-emitted as `INCLUDE_ASM`. `tools/check/check_lost_matches.py` does not catch this
 one, because the promoted overlay's `.s` moves under `matchings/`.
 
 The manifest's own `rodata` cuts name units by *name*, so they silently follow
@@ -68191,7 +68191,7 @@ build tree. A scoped run must not"), so the old `nonmatchings/<unit>/<fn>.s`
 survives and the cached index keeps reading `todo`.
 
 **Fix:** delete the stale file (and the unit directory if it is now empty), then
-`python3 tools/overlay_dup_index.py --rebuild find <fn>` to confirm it reports
+`python3 tools/bulk/overlay_dup_index.py --rebuild find <fn>` to confirm it reports
 `matched` before promoting. An unscoped `./tools/build-and-verify.sh` clears it
 too, so landing → full build → promote avoids the trap entirely.
 
@@ -68267,7 +68267,7 @@ states[arg0->state](arg0);
 m2c renders this badly - the loads that fill the stack copy leave their values
 in `$a1`/`$a2`/`$a3`, so it reports a seven-argument indirect call through
 `sp + state*4`. Ignore that and check
-`python3 tools/overlay_dup_index.py find <fn>` first; the body was already
+`python3 tools/bulk/overlay_dup_index.py find <fn>` first; the body was already
 matched in `src/weapons/mm1/mm1_3.c` among others. The copies sit in different
 families at different link offsets, so `promote` has nothing to share and each
 one still has to be written out locally.
@@ -69638,7 +69638,7 @@ and the match is exact.
 
 Resegmenting `actor_503500` (a `0xFF5C` text cut so `_actor503500LungingChainStepState`'s
 jump table starts the new `_7` object's `.rodata`) meant moving a whole file's
-tail and diffing the snapshot. `bodies_of()` in `tools/land_overlay.py` reported
+tail and diffing the snapshot. `bodies_of()` in `tools/vacuum/land_overlay.py` reported
 the moved function as missing. The cause is a prototype split across two lines
 in the file's prelude:
 
@@ -72562,7 +72562,7 @@ places elsewhere. Delete every affected `.c` in both carriers, re-split, and let
 splat place the rodata itself.
 
 Snapshot the bodies first, but know what the snapshot loses. `bodies_of()` in
-`tools/land_overlay.py` matches from the function signature, so a `///` block
+`tools/vacuum/land_overlay.py` matches from the function signature, so a `///` block
 above a definition is **not** captured and vanishes when the body is reinserted.
 Collect the preceding comment lines separately and re-attach them. The file
 header (includes, `extern`s, forward declarations) is not captured either;
@@ -72570,7 +72570,7 @@ re-inject it and leave a blank line before the first definition, or
 clang-format folds the definition into the preceding `extern` group and pads its
 return type out to the alignment column.
 
-`tools/check_lost_matches.py` catches a dropped *body*; it does not catch either
+`tools/check/check_lost_matches.py` catches a dropped *body*; it does not catch either
 of these, because the code still compiles to the same bytes.
 
 ## `regs` penalties that only touch branch operands mean m2c dropped an unused parameter
@@ -73091,7 +73091,7 @@ it is allocated first, takes `$v0` (reusing the register the dying `m22` just
 freed, exactly as the target does) and the chain falls to `$v1`. That was the
 last 0.33%.
 
-`tools/trace_gcc.py --regs` prints these quantities with their observed refs,
+`tools/match/trace_gcc.py --regs` prints these quantities with their observed refs,
 span and priority; the `.lreg` header lines do not show quantity membership, and
 the three-pseudo chain looks like three quantities there when it is one.
 
@@ -73519,7 +73519,7 @@ floor_log2 (REG_N_REFS) * REG_N_REFS / REG_LIVE_LENGTH
 ```
 
 so the ranking is dominated by the reference *count*, and `floor_log2` makes it
-step. `tools/trace_gcc.py --regs` prints the observed inputs:
+step. `tools/match/trace_gcc.py --regs` prints the observed inputs:
 
 ```
 global a0 [80]: refs=7 span=108 priority=1296 -> $s2     (wanted $s4)
@@ -75522,7 +75522,7 @@ body then lives once in `src/<family>/lib/<unit>.c`. What that does to the split
 is narrower than "every later unit shifts" — **when the span's ends fall on cuts
 that are already there**:
 
-* `emit_run` in `tools/gen_overlay_configs.py` increments the unit counter once
+* `emit_run` in `tools/buildsteps/gen_overlay_configs.py` increments the unit counter once
   per **run** (a maximal stretch of `.text` no `shared` span owns), so a span
   that only *shortens* a run changes no unit *number*. The cut added to
   `actor_205200` renames nothing.
@@ -75703,7 +75703,7 @@ index, so an assignment written *inside* the subscript emits the table's
 and dropping its priority below a competitor's.
 
 `_actor510900TickBuildupStun` was stuck at 87.02% with the same four registers
-wrong (`regs=15 insert=3 delete=3`, everything else 0). `tools/trace_gcc.py
+wrong (`regs=15 insert=3 delete=3`, everything else 0). `tools/match/trace_gcc.py
 --regs` showed the two quantities that matter, all suggestions empty:
 
 | quantity | refs | span | priority | got |
@@ -75768,7 +75768,7 @@ promoted to `s32` so it takes `$s0` and pushes the id up. Either way, a QImode
 temporary whose conversion happens at the call site is not a neutral choice -
 it leaves one more callee-saved register free for whatever competes with it.
 
-The shortcut that found it: `tools/overlay_dup_index.py similar <fn>` named
+The shortcut that found it: `tools/bulk/overlay_dup_index.py similar <fn>` named
 `Actor02000_Fn018A4` at `calls` 1.00 / `cflow` 0.96, whose matched body
 (`src/actors/lib/actor_102000_text.c`) is this same statement sequence with
 `s32 snd/pan/pan2` locals and `(s8)` casts at the call. Porting that shape
@@ -75840,7 +75840,7 @@ seed reads like a difficulty verdict when it is a parse failure. Diagnose by
 re-running m2c yourself (the error is explicit):
 
 ```sh
-python3 tools/m2ctx.py src/actors/actor_800200/actor_800200_2.c
+python3 tools/match/m2ctx.py src/actors/actor_800200/actor_800200_2.c
 python3 tools/m2c/m2c.py --target mipsel-gcc-c -f _actor800200EnterPlayerFollow \
     --context ctx.c asm/USA/actors/nonmatchings/actor_800200/actor_800200_2/_actor800200EnterPlayerFollow.s
 ```
@@ -76577,7 +76577,7 @@ are `3*11/154 = 33/154` for the argument against `2*6/56 = 12/56` for the actor 
 both `0.2142857`, so the argument's lower pseudo number took `$s2` first.
 `allocno_live_length` is the max of `REG_LIVE_LENGTH` over the allocno's pseudos,
 and it is **not** the `.flow` line's "across N insns" figure (88 and 66 there);
-`tools/trace_gcc.py` prints the values `global_alloc` actually used.
+`tools/match/trace_gcc.py` prints the values `global_alloc` actually used.
 
 The lever is that flow.c does not count a reference as one:
 
@@ -78800,7 +78800,7 @@ bodies the split hands back as `INCLUDE_ASM` stubs into their new file. Deleting
 just the promoted body's own line is not enough - the unit it sat in is now two
 units, and only the *head* of it is that file.
 
-`tools/bulk_m2c_promote.py` does exactly this (and refuses rather than guesses
+`tools/bulk/bulk_m2c_promote.py` does exactly this (and refuses rather than guesses
 when the manifest carries hand-placed `rodata`/`units` cuts, which need
 re-deriving by hand). Worked example: `func_actor_460200_80133474`, where unit
 `actor_460200_2` split at the shared span and units `_3`/`_4` became `_4`/`_5`.
@@ -79530,7 +79530,7 @@ overlay's code or data (USA/actors/actor_102600, USA/actors/actor_202600,
 USA/actors/actor_302600).
 ```
 
-The test (`tools/overlay_dup_index.py`) flags any body whose refs contain a
+The test (`tools/bulk/overlay_dup_index.py`) flags any body whose refs contain a
 symbol named `func_<unit>_*`, `D_<unit>_*` or `jtbl_<unit>_*` for a carrier's
 own unit. Here the body reads its overlay's own animation table
 (`D_actor_202600_80152830`) and calls its overlay's own effect spawner
@@ -80353,7 +80353,7 @@ penalties. GCC's `.dbr` and `.s` placed `$L47` through `$L51` consecutively betw
 `lw v0,44(s3)` and `lw v0,8(v0)`. maspsx moved only the first label before its
 inserted load-delay nop, leaving four aliases one instruction late. Keeping all
 adjacent branch aliases before the nop gives 100% without a C change. The fix and
-regression are retained in `tools/maspsx-label-load-nop.patch`; 138 maspsx tests
+regression are retained in `tools/patches/maspsx-label-load-nop.patch`; 138 maspsx tests
 passed. This is assembler expansion, not a reason to change GCC control flow.
 
 Evidence: `nonmatchings/_actor00100LeapBack-vacuum/base_3.{s,i.dbr}` (UIDs 688/690,
@@ -81711,7 +81711,7 @@ below the first code subsegment still belongs to that first unit's name, so it
 stays in `<overlay>.c` rather than following the function it sat next to.
 
 The hand redistribution is smaller than it sounds. `emit_run` in
-`tools/gen_overlay_configs.py` numbers the unshared runs positionally, so a span
+`tools/buildsteps/gen_overlay_configs.py` numbers the unshared runs positionally, so a span
 inserted anywhere but at a unit boundary renames every later unit — but only two
 kinds of move are needed per carrier. The run *after* the span keeps its old
 index and gains the tail the span cut off, so that unit's `.c` is split at the
@@ -83345,7 +83345,7 @@ block**: `diagnosis.json` reports `blocks=1/1`, so sched2 schedules the entire
 body as a single list and the prologue's position depends on every statement
 below it. `rank_for_schedule` ranks on `INSN_PRIORITY` first, then on the
 class-vs-`last_scheduled_insn` rule, and only then on `INSN_LUID`. The
-comparator log from `tools/trace_gcc.py <file>.i --uids 88 1352 47 164 41`
+comparator log from `tools/match/trace_gcc.py <file>.i --uids 88 1352 47 164 41`
 shows every one of these being settled on `original RTL order` — i.e. a chain
 of LUID tie-breaks over equal priorities. LUIDs depend on the *set* of insns
 present, which is precisely the dimension a statement permuter does not vary:
@@ -83462,7 +83462,7 @@ all; the rest looked like ordinary allocation and scheduling noise.
 (`& ~4`) and another between case 2 and case 3 (a bare `sh`). Read from the asm
 alone that reads like hand-written `goto` control flow.
 
-**Fix.** Do not restructure it by hand. `tools/overlay_dup_index.py find` on the
+**Fix.** Do not restructure it by hand. `tools/bulk/overlay_dup_index.py find` on the
 function is the first thing to run, and BRIEF.md's *shape* `1.00` candidate was
 the answer: `_actor503500SliderSetModelDraw` in `actor_503500_2.c` is byte-identical
 to this target for all 56 instructions, differing only in one store
@@ -84321,7 +84321,7 @@ identical apart from it:
 ```
 
 `.sched` is the first dump that differs, and the scheduler's own trace
-(`tools/trace_gcc.py <i> --uids 21 28`) says what changed: the `SCRATCH_SP -= 0x18`
+(`tools/match/trace_gcc.py <i> --uids 21 28`) says what changed: the `SCRATCH_SP -= 0x18`
 store (uid 21) has two dependents without the flag and one with it — the
 coordinate load. Its true dependence on the store is gone, so sched1 is free to
 emit the load above the store, which is the target's order (`lw $s2, 8($v1)`
@@ -84606,7 +84606,7 @@ Two things the seed gets wrong beyond the type:
 
 ## `find` reports no copies for a byte-identical body when splat emits an `alabel`
 
-`python3 tools/overlay_dup_index.py find <fn>` decides "same body" from the
+`python3 tools/bulk/overlay_dup_index.py find <fn>` decides "same body" from the
 **canonicalised disassembly text** (`text` hash; `cmd_find` at
 `overlay_dup_index.py:517`), and only marks `=` when the instruction words
 (`raw`) match too. `scan_function` builds that text by stripping the address
@@ -84892,7 +84892,7 @@ Inputs: `base.i` (nested form, 79.545%)
 
 ## A bootstrapped scratch's `base.score.json` can already read 100 — read it before the first build
 
-`tools/claude --bootstrap-only` scores the seed through `build.sh` itself, so a
+`tools/match/claude --bootstrap-only` scores the seed through `build.sh` itself, so a
 scratch arrives with `base.score.json`, `match_log.txt` and one `attempts.jsonl`
 entry already written. When m2c happened to get the function right, that entry
 reads `100.0`, and a retry session that reads "give-up retry, improve the seed"
@@ -85098,7 +85098,7 @@ splat left that address unnamed, and it belongs to neither main nor gameplay: it
 is offset 0x440 into the room-overlay region (rooms load at 0x8017D5C0), which
 is why the original bare import sat in `configs/USA/sym/actors.imports.txt`'s *third* bucket,
 "still unnamed in their own overlay". That bucket exists for exactly this case -
-`tools/gen_overlay_imports.py` resolves names only from `sym.main.txt` and
+`tools/buildsteps/gen_overlay_imports.py` resolves names only from `sym.main.txt` and
 `sym.gameplay.txt`, so anything outside those two keeps its raw `func_`/`D_`
 form.
 
@@ -86148,7 +86148,7 @@ be getting `SVECTOR` only through another of its includes.
 Check two things before hand-landing one: the carrier's lane is free
 (`vacuum_orch.py status` - the copy belongs to another overlay, and the brief's
 `promote` path would have edited that overlay's config anyway), and the copy is
-not in `tools/difficult_functions`.
+not in `tools/match/difficult_functions`.
 
 ## A rodata dispatch table names a handler's arguments when there are no callers
 
@@ -87664,7 +87664,7 @@ in the shelter's source shape reproduces the shelter's homes exactly (98.2%,
 `regs=9`, everything else 0), so the swap is not source order: both bodies
 compile to the same block.
 
-`python3 tools/trace_gcc.py --regs 80 81 82 83 93` names the two quantities
+`python3 tools/match/trace_gcc.py --regs 80 81 82 83 93` names the two quantities
 (all suggestions empty, both call-crossing, both dying once, so `local_alloc`
 colours them):
 
@@ -88323,7 +88323,7 @@ recorded above — `_actorMovementTranslateForwardNonzero`, which reads `displac
 `head[-1]` copy. Three builds went into `.lreg`/`.jump`/`.combine` dumps,
 `find_best_addr` cost arithmetic and allocno priorities before a two-line
 corpus search turned up the answer that was already there
-(`python3 tools/learn.py "head[-1]"`).
+(`python3 tools/match/learn.py "head[-1]"`).
 
 Search the corpus by the residual's *spelling* — the offset and the register
 form (`0x2C`, `-8(head)`, `head[-1]`, `vec->vx`) — before reasoning from the
@@ -90511,7 +90511,7 @@ does not order the trailing store to a symbol against it. With alias set 0 it do
 which forces the last symbol's `high` insn *after* the state block in the
 pre-allocation order; the `high`'s live span then misses the state quantity's
 `$v0` mark, so it is free to take `$v0` and the shared constant gets `$v1`.
-`tools/trace_gcc.py` shows both directly - the m2c body's local quantities are
+`tools/match/trace_gcc.py` shows both directly - the m2c body's local quantities are
 
 ```
 local b0 q6 [91]: refs=2 span=2  priority=10000 -> $v0   # high of the last symbol
@@ -93017,7 +93017,7 @@ unnecessary when the cut already sits at that offset, and it is the destructive
 step.** splat writes only a C file that is missing, so both `src/` files stay as
 they are and neither loses a body; the config change forces a re-split anyway,
 and that regenerates only the `asm/` trees (the stale `jtbl_*.s` goes with
-them). `tools/check_lost_matches.py` confirmed 5911 functions still C
+them). `tools/check/check_lost_matches.py` confirmed 5911 functions still C
 afterwards. Three edits:
 
 1. drop the moved symbols' `INCLUDE_RODATA` lines from the old unit's file;
@@ -94427,7 +94427,7 @@ if ((u16)(((u32)gRandomLcgState >> 16) % 3U) == 0) {
 ```
 
 `antibody.c` and `energyshot.c` carry the `((u32)rng >> 16) & mask` sibling
-form. `python3 tools/learn.py LCG` lists those `gRandomLcgState` idiom entries, so
+form. `python3 tools/match/learn.py LCG` lists those `gRandomLcgState` idiom entries, so
 the corpus is the first place to look rather than the last — but the rule
 generalises past the LCG: when an m2c seed's `/` or `%` compiles to `mult`
 where the target has `multu`, the original operand was unsigned, and a `(u32)`
@@ -95758,7 +95758,7 @@ splat creates nothing: `ninja_config.py` then lands the new spans with the tree
 already in the shape they describe.
 
 The redistribution itself is lossless if it is done by text rather than by hand:
-run `bodies_of()` from `tools/land_overlay.py` over `git show HEAD:<file>` and
+run `bodies_of()` from `tools/vacuum/land_overlay.py` over `git show HEAD:<file>` and
 over the new files and require the function-name sets and body texts to be
 equal. `check_lost_matches.py` cannot see this class of loss — it looks for a
 matched function that reverted to `INCLUDE_ASM` in its own file.
@@ -96974,7 +96974,7 @@ wrong.
 **Problem.** 98.879% with `regs=13`, `branch=0`, `reorder=0`, `delete=0`: every
 instruction present and in order, and the whole diff was `$s0`/`$s1` swapped
 between the parameter `task` and the `memCalloc` pointer `st`. `.greg` ranked
-`113 81 80 82 95`; `tools/trace_gcc.py --regs 80 81` printed the inputs
+`113 81 80 82 95`; `tools/match/trace_gcc.py --regs 80 81` printed the inputs
 `global.c` used:
 
 ```
@@ -97612,13 +97612,13 @@ Two consequences, in the order they bite:
   brings back the inlined form. The addresses come out the same either way, so
   this one does not announce itself as a checksum failure.
 
-`tools/rodata_triage.py` is the check for the same hazard before it happens:
+`tools/bulk/rodata_triage.py` is the check for the same hazard before it happens:
 "a function can only be decompiled in the unit that owns the block its table
 sits in."
 
 Verify a promotion that splits a unit the same way as any other landing: the
 unscoped `./tools/build-and-verify.sh` (which re-splits both carriers and
-checksums every overlay) plus `tools/check_lost_matches.py` for the bodies that
+checksums every overlay) plus `tools/check/check_lost_matches.py` for the bodies that
 moved between files.
 
 ## A halfword-to-halfword copy loads `lhu` whatever the field's signedness is
@@ -98128,7 +98128,7 @@ which quantity took `$v0` first. Note the priority formula's `death - birth`
 counts the *block's* insn positions, so every insn that runs while a quantity is
 live lengthens its span and lowers its priority.
 
-`tools/trace_gcc.py` named it (all suggestions empty):
+`tools/match/trace_gcc.py` named it (all suggestions empty):
 
 | quantity | refs | span | priority | got |
 |---|---|---|---|---|
@@ -98688,7 +98688,7 @@ table into the moved unit's own `.rodata`, which the linker places after unit
 `rodata = [{ start = "0x11C", unit = "actor_201200_2" }]`) where before the
 promotion it needed none - it was in the unit that owns the block. Same for the
 two sibling carriers, `func_actor_101200_801358DC` and
-`func_actor_301200_801658DC`. Run `tools/rodata_triage.py` before matching one.
+`func_actor_301200_801658DC`. Run `tools/bulk/rodata_triage.py` before matching one.
 
 One more thing the re-split does here: splat only *creates* a unit `.c` that is
 missing and never refreshes an existing one, so deleting the head unit's file
@@ -98785,7 +98785,7 @@ Only a *same-family* match is reachable, because the shared unit lives in
 `src/<family>/lib/`: `promote` groups carriers per family and prints `N of M copies
 share src/<family>/lib/<unit>.c` with the other family's copy left out, and `solved`
 parks an unmatched body only when another overlay *in its own family* already has the
-match (`cmd_solved` in `tools/overlay_dup_index.py`). So a cross-family duplicate is
+match (`cmd_solved` in `tools/bulk/overlay_dup_index.py`). So a cross-family duplicate is
 not skipped by the vacuum and not promotable: it arrives as an ordinary unmatched
 function, and its known-good C is already in `src/` under the other family's name.
 
@@ -99970,7 +99970,7 @@ that one did renumber, needing the carriers' bodies redistributed by hand and
 its rodata cut repointed (`actor_107000_4` to `actor_107000_3`); read the
 regenerated `configs/USA/generated/<overlay>.yaml` after the manifest change and
 before the split, and snapshot the carriers' bodies with `bodies_of()` in
-`tools/land_overlay.py` if any own unit is about to move.
+`tools/vacuum/land_overlay.py` if any own unit is about to move.
 
 ## `jump.c` rewrites a two-arm constant diamond, and a per-arm reload is the way to stop it (func_actor_107000_80132D8C, 2026-09-16)
 
@@ -101133,7 +101133,7 @@ numerically, so maspsx sees `li.d $16,-0.4` and `get_next_register` aborted with
 case, and the s0/s1 pair - the one a value held across calls lands in - was not
 among them.
 
-Tracked as `tools/maspsx-li-d-register-pair.patch` and applied by
+Tracked as `tools/patches/maspsx-li-d-register-pair.patch` and applied by
 `ninja_config.py`, the same way as the other two maspsx fixes. It derives the
 partner for any even GP number below 30, which is the only one a 64-bit value
 can have, so the omission cannot recur for `$20`/`$22`/`$24`. A constant that
@@ -103500,7 +103500,7 @@ block's post-sched1 order. The source says so next to the doubling itself
 A parameter is a quantity like any other local; only its *global*-alloc rank
 sees the doubled length, and a single-block leaf never gets there.
 
-`tools/trace_gcc.py` gives the two numbers that matter, and the whole
+`tools/match/trace_gcc.py` gives the two numbers that matter, and the whole
 allocation follows from them:
 
 | quantity | refs | span | priority | got |
@@ -105337,7 +105337,7 @@ allocation by shortening a live range".
 
 The router cannot see this shape for you either, and here it failed outright: a
 seed that still does `#include "m2c_macros.h"` gives `permute.sh` (run by
-`tools/vacuum_permute.py` as its setup step) a preprocessing error, because that
+`tools/match/vacuum_permute.py` as its setup step) a preprocessing error, because that
 script's include set is `-Iinclude -Iinclude/psyq -I build` with no
 `-I tools/m2c`, which only `build.sh` carries. The router reports it as
 `search finished without a discovery`, which on the console is indistinguishable
@@ -106340,7 +106340,7 @@ whether its constants stay its own.
 
 ## Under `rodata_head` a data run cannot be its own asm unit
 
-The `rodata_head` branch of `tools/gen_overlay_configs.py` emits `.rodata` -
+The `rodata_head` branch of `tools/buildsteps/gen_overlay_configs.py` emits `.rodata` -
 a C unit - for *every* cut, because from `head` on the block is paired with the
 unit name it shares with a `c` subsegment. A bare `rodata` cut naming an asm
 data unit (the `_header_tail` / `_header_extra` shape `actor_400100` uses) only
@@ -107141,7 +107141,7 @@ Inputs: `base_1.i`
 The match-loop brief's last step before scratch cleanup is
 
 ```
-python3 tools/archive_giveup.py --func <fn> --scratch <scratch> --permuter-findings
+python3 tools/match/archive_giveup.py --func <fn> --scratch <scratch> --permuter-findings
 ```
 
 but that flag is its own early-return branch in `main()`: it runs
@@ -107155,8 +107155,8 @@ Run the command twice in that case -- once with the flag for permuter evidence,
 once without it for the session:
 
 ```
-python3 tools/archive_giveup.py --func <fn> --scratch <scratch> --permuter-findings
-python3 tools/archive_giveup.py --func <fn> --scratch <scratch>    # GIVEUP_SAVED=...
+python3 tools/match/archive_giveup.py --func <fn> --scratch <scratch> --permuter-findings
+python3 tools/match/archive_giveup.py --func <fn> --scratch <scratch>    # GIVEUP_SAVED=...
 ```
 
 Judge the archive by the `GIVEUP_SAVED=` / `GIVEUP_SKIP=` line, not the exit
@@ -107642,7 +107642,7 @@ preprocessed
 
 **Scratch-env gotcha, same function.** The brief for this one named the unit
 `actor_161500` but the C file `src/actors/actor_215100/actor_215100.c`, and
-`tools/decomp_overlay.py find` agrees with both. Those are two different
+`tools/match/decomp_overlay.py find` agrees with both. Those are two different
 functions: `ActorsShared80131e24Sub0` is an overlay-local alias in
 `configs/USA/sym/actors/<overlay>.txt`, so it sits at 0x80132394 in
 actor_161500 and 0x8014C660 in actor_215100, and `find` resolves the *name* to
@@ -108100,7 +108100,7 @@ builds, so the search only had the weight left to find.
 
 ## A landing carries bodies, but not the sibling unit a header change needs
 
-`tools/land_overlay.py` reconstructs a sweep on trunk one function at a time: it
+`tools/vacuum/land_overlay.py` reconstructs a sweep on trunk one function at a time: it
 maps each name in `--functions` onto the trunk file still holding that
 `INCLUDE_ASM`, and copies `--extra` paths wholesale. A sweep that also refactors
 its overlay's header usually has to adapt *another* unit of the same overlay to
@@ -108835,7 +108835,7 @@ PY
 
 The permuter itself masks stack offsets unless `--stack-diffs` is passed:
 `simplify_objdump` rewrites every sp-relative operand to `addr(sp)`, so a frame
-difference scores zero. `permute.sh` and `tools/vacuum_permute.py` pass the
+difference scores zero. `permute.sh` and `tools/match/vacuum_permute.py` pass the
 flag.
 
 ### An inlined helper fixes the allocation of its arguments; a twice-assigned local does not
@@ -108892,7 +108892,7 @@ the old distribution and their `INCLUDE_ASM` lines go dangling. The move is
 mechanical but has to be done by hand, per overlay: assign each chunk to the unit
 whose `matchings/<overlay>/<unit>/` or `nonmatchings/<overlay>/<unit>/` now holds
 its `.s`, rewrite the `INCLUDE_ASM` folder to that unit, and drop the chunk the
-shared span now supplies. `tools/check_lost_matches.py` and the checksum both
+shared span now supplies. `tools/check/check_lost_matches.py` and the checksum both
 catch mistakes here; a body-count diff against a pre-change snapshot catches them
 earlier.
 
@@ -110011,7 +110011,7 @@ does not here — the ready-list ranking, not a constraint, since two loads carr
 no anti-dependency. Worth recognising before another variant: when the only
 leftover is a register number on a load pair, check the *span* the tracer
 reports. If the target's register goes with the longer-lived operand, no source
-spelling will produce it and the function belongs in `tools/difficult_functions`.
+spelling will produce it and the function belongs in `tools/match/difficult_functions`.
 
 Related, from the same session: the scratch-pointer push documented above ("A
 scratch block's `-= 1` push") also appears as an assignment expression —
@@ -110190,7 +110190,7 @@ references, priority 1621, and the parameter wins `$s2` on its own.
 
 Two things make this visible where the usual dumps hide it:
 
-* `tools/trace_gcc.py <scratch>/base_N.i --output-dir DIR --function F` prints
+* `tools/match/trace_gcc.py <scratch>/base_N.i --output-dir DIR --function F` prints
   `global aN [regs]: refs=… span=… priority=… calls=… -> $reg` for every allocno,
   i.e. the comparator's actual inputs. The `.flow` dump's
   `Register N used X times across Y insns` line is **not** those inputs: it is a
@@ -110532,7 +110532,7 @@ allocate, and declaring the extra variable is by itself irrelevant. Only the
 chained form leaves a copy, and that copy moves the allocation 97.885% toward
 the target.
 
-Observed effect, from `tools/trace_gcc.py` on the matching build: the chain's
+Observed effect, from `tools/match/trace_gcc.py` on the matching build: the chain's
 `minus`/`ashift`/`plus`/load pseudos merge into one *local* quantity with the
 pass's highest priority (20000) and take `$v0`, while the address pseudo goes
 *global* to `$v1`; in the 95.962% build the address pseudo was `$v0` and the
@@ -111032,7 +111032,7 @@ repeating its own copy.
             break;
 ```
 
-Read the numbers with `python3 tools/trace_gcc.py <scratch>/base_N.i --regs
+Read the numbers with `python3 tools/match/trace_gcc.py <scratch>/base_N.i --regs
 <candidates>`; the `.greg` dump prints the allocation *order* but not the refs,
 span or priority behind it, and there is no way to infer them from the `.lreg`
 walk. When the leftovers are `regs`-only and every register task the object
@@ -112141,7 +112141,7 @@ is expected here and is not evidence about the field's declared signedness.
 
 ## A 1.00 in every `similar` class with no `find` equality means the sibling's body *is* the target's, modulo one named global (func_actor_403200_8013509C, 2026-09-16)
 
-`tools/overlay_dup_index.py similar func_actor_403200_8013509C` ranks
+`tools/bulk/overlay_dup_index.py similar func_actor_403200_8013509C` ranks
 `func_actor_444000_80137594` at 1.00 in all four classes, but `find` lists the
 function as its own only copy - the index decides equality on splat's
 disassembly *text*, and the two bodies read a different overlay's global
@@ -112284,7 +112284,7 @@ neither the key's `sb` stores (they set `writes.all`, which skips the per-set
 `invalidate`) nor the call (`invalidate_for_call` only walks *hard* registers).
 The merged pseudo now crosses a call, and **local-alloc runs before global-alloc**,
 so it takes `$s0` for itself: the actor's model pointer drops to `$s1` and every
-`$s0` use in the block follows. Measured with `tools/trace_gcc.py`:
+`$s0` use in the block follows. Measured with `tools/match/trace_gcc.py`:
 
     local b32 q7 [177]: refs=3 span=10 priority=3000 copy=[4] arithmetic=[4,30]
                         suggested_only=1 -> -1      (a0 rejected: live across a call)
@@ -112744,7 +112744,7 @@ The address *is* its own symbol in one family and not another —
 `D_801153F6 = 0x801153F6` sits in `configs/USA/sym/rooms.imports.txt` but not in
 `actors.imports.txt`, whose own split output never named it. Naming it as a
 separate object would mean editing the family's imports file and keeping that
-edit alive across `tools/gen_overlay_imports.py`. Keep the imported symbol and
+edit alive across `tools/buildsteps/gen_overlay_imports.py`. Keep the imported symbol and
 index it instead:
 
 ```c
@@ -115505,7 +115505,7 @@ had the assignment scheduled after the chain, so it never saw those writes.
 
 **Fix:** move the value's birth past the writes whose registers it must be allowed to use - a
 scheduling fix, not an allocation one. `;; N conflicts:` in the `.greg` dump names the registers
-directly; `tools/trace_gcc.py` prints the same set per pseudo. Do not reach for a register pin.
+directly; `tools/match/trace_gcc.py` prints the same set per pseudo. Do not reach for a register pin.
 
 ## Pinning a `li` late wants a WAR predecessor, and the barrier that gives it costs `QTY_CMP_PRI` (func_actor_107000_801364D8, 2026-09-16)
 
@@ -115912,7 +115912,7 @@ The recipe, run for each carrier of the promoted body:
    function there as `INCLUDE_ASM` - including any that was matched before the
    promotion. Put those bodies back (`func_actor_107000_8013844C` was one) or
    the body is silently lost: `INCLUDE_ASM` assembles to the same bytes, so only
-   `tools/check_lost_matches.py` in the unscoped build notices.
+   `tools/check/check_lost_matches.py` in the unscoped build notices.
 5. A unit's `.c` may name a function in a forward declaration for a caller that
    lives elsewhere; the check that catches a bad redistribution is per-unit: for
    every unit, the `INCLUDE_ASM` names and the definitions in its `.c` must all
@@ -116189,10 +116189,10 @@ two-register swap above.
 
 ## A permuter follow-up with no `PERMUTER_ANALYSIS.md` means the seed already matched (toolchain, 2026-09-16)
 
-`tools/vacuum_permute.py` run against a scratch whose seed already scores zero --
+`tools/match/vacuum_permute.py` run against a scratch whose seed already scores zero --
 the ordinary case when the matching agent matched and committed inside the same
 vacuum iteration -- retains that same file as the candidate and writes
-`experiments: []` to `PERMUTER.json`. `tools/permuter_evidence.py:prepare_followup`
+`experiments: []` to `PERMUTER.json`. `tools/match/permuter_evidence.py:prepare_followup`
 returns early when no run retained outputs, so it writes neither
 `PERMUTER_ANALYSIS.md` nor `PERMUTER_FOLLOWUP.json`, and the router's follow-up
 prompt opens its "no PERMUTER_ANALYSIS.md" branch. `./attempt.py conclude-permuter`
@@ -116268,7 +116268,7 @@ only `.lreg`/`.greg` shows which allocator chose the register.
 
 ## Promoting a shared body in mid-overlay renumbers every later unit, and the moved stub must be re-pointed at its new unit (toolchain, 2026-09-16)
 
-`tools/overlay_dup_index.py promote` inserts a `shared` span for the promoted
+`tools/bulk/overlay_dup_index.py promote` inserts a `shared` span for the promoted
 body into every carrier's manifest entry. When that body does not sit at the end
 of the text -- 0x70DC of 0x74D0 here -- every later `c` subsegment shifts: the
 unit that held the tail functions splits into a new unit for what precedes the
@@ -116289,7 +116289,7 @@ The trap inside the trap is a *matched* body sitting in a renumbered unit:
 under that stub would have assembled to exactly the bytes the C compiled to --
 green build, checksum intact, body gone. Move the whole file, verify with
 `diff` against the pre-change blob before building, and let the unscoped
-`tools/check_lost_matches.py` pass be the confirmation.
+`tools/check/check_lost_matches.py` pass be the confirmation.
 
 ## The argument registers are in the allocator's pool, so a parameter the body never reads can still decide a temp's home (func_actor_104900_80138E34, 2026-09-16)
 
@@ -116572,7 +116572,7 @@ pri = floor_log2 (n_refs) * n_refs / live_length * 10000 * size
 descending, breaking an exact tie by **register number ascending**. `find_reg`
 (`global.c:962`) then scans `REG_ALLOC_ORDER`, so of the allocnos it is handed the
 first to be satisfied takes the lowest-ranked free register - `$a0` before `$a1`
-here. `tools/trace_gcc.py` prints both quantities per allocno:
+here. `tools/match/trace_gcc.py` prints both quantities per allocno:
 
 ```
 global a2 [84]: refs=7 span=9  priority=15555 -> $a0
@@ -116656,7 +116656,7 @@ Two things the promotion of a body out of a carrier's `_3` unit adds to the
 body compiles, `overlay_dup_index.py promote <fn>` answers "cannot be shared
 while unmatched - 3 different byte images", because the index is derived from
 `asm/`, which still holds the pre-match split; `promote` reads it and concludes
-the copies are still stubs. `python3 tools/overlay_dup_index.py --rebuild stats`
+the copies are still stubs. `python3 tools/bulk/overlay_dup_index.py --rebuild stats`
 (a second or two) makes the same call succeed and write the spans. Nothing about
 the C changed between the two calls.
 
@@ -117440,7 +117440,7 @@ scheduler is free to reorder and the emitted order says nothing.
 
 Give the readers of this a warning sign: a constant and a `%hi` swapping
 registers, where the constant is stored to a narrow field and the address is
-used more than once. `tools/trace_gcc.py --regs` prints both quantities' refs,
+used more than once. `tools/match/trace_gcc.py --regs` prints both quantities' refs,
 span and priority; `lregwalk.py` gives the list order the spans are measured in.
 The `do { } while (0)` ref-count lever (see the section above) is *not* the fix
 here: it splits the block, the `%hi`/`lo_sum` pair collapses into one register
@@ -118394,7 +118394,7 @@ single function starting at text offset zero". Fix: add
 add its `INCLUDE_ASM` line after the host function yourself (splat never rewrites
 an existing `.c`), rebuild, then regenerate the scratch `target.s`/`target.o` from
 the new asm (`cat prelude.inc include/macro.inc <asm> > target.s; mips-linux-gnu-as ...`,
-as `tools/claude` does).
+as `tools/match/claude` does).
 
 ## Store placed after the first branch, later branches `j` back to it
 
@@ -119813,7 +119813,7 @@ with the same `gameFlagSetNibbleIfPresent(request->flagId, 2)` / `capRunCommandW
 whole prologue and the tail's constant materialisation are pinned. Here the m2c seed
 already had the block topology right (score 81.049%, `branch=13 insert=6 delete=13`),
 and the single rewrite that fixed the copy and the returns scored 100.000% with all
-penalties zero - so check `tools/overlay_dup_index.py find <fn>` too, since these
+penalties zero - so check `tools/bulk/overlay_dup_index.py find <fn>` too, since these
 handlers repeat across rooms.
 
 ## m2c types the carved packet off the pointer it was loaded from, so the cursor bump scales by that type's size - retype it to the psyq packet (_mineCavernDrawDarknessAndEffects, 2026-09-17)
@@ -120954,7 +120954,7 @@ giv at 126 combined with giv at 192
 
 The walked form scores 91.956% with everything else already correct. Which
 direction is right is decided by counting the target's increments, and
-`python3 tools/learn.py`/the `.loop` dump's `giv at N combined with giv at M`
+`python3 tools/match/learn.py`/the `.loop` dump's `giv at N combined with giv at M`
 lines confirm it: one increment per half means indexed, two (base and base+4)
 means walked.
 
@@ -122081,7 +122081,7 @@ and the next unit began at 0x1544, so 0x1444..0x1544 became new unit `_4` (over
 holding `INCLUDE_ASM(_actor450800IgnorePawnGolemCommand)` - a function already matched in
 the file that had just been renumbered away from it.
 
-Unlike the `git mv` staleness this one is *loud*: `tools/check_lost_matches.py`
+Unlike the `git mv` staleness this one is *loud*: `tools/check/check_lost_matches.py`
 runs on every unscoped build and fails on the `matched`-commit/`INCLUDE_ASM`/`.s`
 signature. Reconstructing by hand is still the fix, and it is four files, not
 one: move each shifted unit's content up a number (rewriting the `INCLUDE_ASM`
@@ -122464,7 +122464,7 @@ instruction words are byte-identical**, and the day body matched first try
 (100.000%, all penalties zero) as the night's C verbatim with one line changed —
 the `areaApplySavedUpdates` argument.
 
-`python3 tools/overlay_dup_index.py find func_dryfield_parking_lot_8017D8BC`
+`python3 tools/bulk/overlay_dup_index.py find func_dryfield_parking_lot_8017D8BC`
 reports `same body: 1 copies` and lists only the function itself, because
 equality there is decided on splat's disassembly **text**. The two bodies differ
 only in a symbol name (`D_8018155C` vs
@@ -122874,8 +122874,8 @@ Two traps in doing the move by hand:
   `multiple definition of <function>` for definitions the sources no longer
   contain, which looks like a real error and is not. `touch` the files after a
   content-changing `mv` (or write them rather than moving them).
-* Snapshot first. `bodies_of()` in `tools/land_overlay.py` lists every C
-  definition in a file, and `tools/check_lost_matches.py` is the backstop: it
+* Snapshot first. `bodies_of()` in `tools/vacuum/land_overlay.py` lists every C
+  definition in a file, and `tools/check/check_lost_matches.py` is the backstop: it
   fails when a function with a `matched` commit is `INCLUDE_ASM` while its
   overlay still owns a `.s` under `nonmatchings/`.
 
@@ -123553,7 +123553,7 @@ A *dead* store to the variable in another block does not do it: `cse` folds the
 constant into the uses and `flow` deletes the store, leaving the pseudo
 single-block again. The reference has to survive — a read whose result is used.
 
-`tools/trace_gcc.py` prints the distinction directly. Failing version:
+`tools/match/trace_gcc.py` prints the distinction directly. Failing version:
 `local b18 q5 [139, 81, 137, 136]: ... copy=[4] suggested_only=1 -> $a0`.
 Matching version: `global a1 [81]: ... -> $v1` with the mask as its own local
 quantity. Two controlled variations confirmed the mechanism before the final
@@ -123561,7 +123561,7 @@ source was found: referencing the variable from the case-2 block (`base_9.c`)
 turned the `andi` into the target's form with `regs=0` on everything else, and a
 keep-alive empty asm in case 4 (`c1.c`) did the same.
 
-Found by `tools/vacuum_permute.py`; the reuse in case 4 was its only source change.
+Found by `tools/match/vacuum_permute.py`; the reuse in case 4 was its only source change.
 The same body also exists in `USA/rooms/dryfield_factory`
 (`func_dryfield_factory_8017FDDC`, same text, different link offset), but
 `overlay_dup_index.py promote` refuses it: like 39 of the 42 measured clusters,
@@ -125110,7 +125110,7 @@ quantity gains a member; naming the sum gives it a pseudo of its own, born in th
 merge block and dying in the `sh` there, and the arm's delta quantity keeps three
 members instead of four.  `QTY_CMP_PRI` is `floor_log2(refs) * refs / span *
 10000`, so the extra member is what puts the delta chain over the arm's LCG
-chain.  Traced with `tools/trace_gcc.py` (`--regs` on both variants, block 7):
+chain.  Traced with `tools/match/trace_gcc.py` (`--regs` on both variants, block 7):
 
 |                    | quantity                        | refs | span | priority |
 |--------------------|---------------------------------|------|------|----------|
@@ -125470,7 +125470,7 @@ registers the extra reference moves.
 **Scope.** This is a reference-count knob, not a scheduling one: it changes
 `allocno_compare`'s inputs, so it only matters when two allocnos of *different*
 priority order swap. Predict it by reading the two `pri` values off the tracer
-(`tools/trace_gcc.py`) for the allocnos in question before touching the source;
+(`tools/match/trace_gcc.py`) for the allocnos in question before touching the source;
 if the gap is not crossed by one `floor_log2` step of the shorter-lived one,
 the wrapper will do nothing.
 
@@ -125480,7 +125480,7 @@ its reference counted anyway.
 
 **Evidence.** `base_14.c` (split of `vec.vy` into two statements, plus nothing
 else) stays at 99.059% `regs=35`; `base_16.c` = `base_11.c` + the wrapper is
-100.000% with every penalty zero. Found by `tools/vacuum_permute.py`'s search
+100.000% with every penalty zero. Found by `tools/match/vacuum_permute.py`'s search
 over `base_11.c` (`PERMUTER_HIT=base_perm_7c4e7121f4f34b51.c`), which also
 carried an inert `vec.vy` split.
 
@@ -125655,7 +125655,7 @@ overlays they can disagree. `ActorsShared80131f9cSub0` came with
 - C file: `src/actors/actor_260400/actor_260400.c`
 ```
 
-`C file:` comes from `find_include_asm_file` (`tools/decomp_overlay.py:266`),
+`C file:` comes from `find_include_asm_file` (`tools/match/decomp_overlay.py:266`),
 which walks `src_root.rglob("*.c")` and returns the *first* file whose
 `INCLUDE_ASM(folder, name)` names the symbol — with no reference to the unit
 splat split. This one is `INCLUDE_ASM`'d in eleven overlays, and those eleven
@@ -125668,7 +125668,7 @@ it is the overlay checksum, long after the edit. Take the unit from `ASM:` /
 
 The same brief's `Similar matched bodies` line printed "(none above 0.80)" for
 this function. It is not evidence of absence: that line renders the fuzzy
-`similar` tier, while `python3 tools/overlay_dup_index.py find
+`similar` tier, while `python3 tools/bulk/overlay_dup_index.py find
 ActorsShared80131f9cSub0` reported a byte-identical copy already matched in
 `actor_110300`. Porting that body with this overlay's symbol names (`D_actor_110300_*`
 → `D_actor_110800_*`, `func_actor_110300_*` → `func_actor_110800_*`, plus the
@@ -125980,7 +125980,7 @@ SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 
 ## BRIEF's "Similar matched bodies" fuzzy hit can be the *same body* at different struct offsets — `overlay_dup_index find` cannot see it
 
-`python3 tools/overlay_dup_index.py find <fn>` (and `solved`, which the vacuum
+`python3 tools/bulk/overlay_dup_index.py find <fn>` (and `solved`, which the vacuum
 uses to skip work) decides equality on splat's disassembly *text*, so two bodies
 that differ only in a struct field displacement -- `lw $v1, 0x18($a1)` vs
 `lw $v1, 0x20($a1)` -- are different functions to it. `_actor113100CheckWalkArrival`
@@ -126896,7 +126896,7 @@ Inputs: scratch `nonmatchings/_actor223600Update-vacuum`, `base_1.c`
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 ## A name several overlays define separately breaks the brief's `C file:` line: trust the asm path, not the symbol name (ActorsShared80131f9cSub1, 2026-09-17)
 
-`tools/decomp_overlay.py` resolves the brief's `C file:` with
+`tools/match/decomp_overlay.py` resolves the brief's `C file:` with
 `find_include_asm_file(name)` - a repo-wide search for the *first* source file
 holding an `INCLUDE_ASM` for that name - while `Unit:` and `ASM:` come from the
 asm file that was located. Where more than one overlay defines the name, the two
@@ -126990,7 +126990,7 @@ straight into the priority formula.
 
 Evidence retained as a local (gitignored) snapshot - the four sources, their
 object dumps and `.i` inputs, `PERMUTER_ANALYSIS.md` and both
-`tools/trace_gcc.py` outputs - under
+`tools/match/trace_gcc.py` outputs - under
 `tools/permuter_findings/ActorsShared80131e24Sub1/sessions/b626dc0dda364fad9036909740d12729/`.
 `target.o` sha256 `a51f521af98eed7fd9de555d8d02ebe867afd9949bd146fb8b21c82e8aee1c7c`,
 seed `base.c` sha256 `0f35d3789262fe5934faa0072a1f8bad97c9fcab3010f81af38e02a6351f07d3`,
@@ -128538,7 +128538,7 @@ compiler-generated jump table. The tell is exact and worth memorizing:
 pads it to 0x20, and the linker script puts `.text` straight after `.rodata`:
 the pad shifts the whole overlay, not just the rodata.
 
-`tools/rodata_cut.py actor_342100` answers "no change needed" and is *right* by
+`tools/bulk/rodata_cut.py actor_342100` answers "no change needed" and is *right* by
 its own rule -- the table's referencing unit already owns the block it sits in,
 and the tool only cuts where ownership *changes*. The pad is a property of the
 table's offset within its object's `.rodata`, which the cut rule cannot see.
@@ -128863,8 +128863,8 @@ frame and delete counts were already explained. Evidence: `base_object_dump.s`
 
 ## A drift landing merges its code extras; `land_overlay.py` copies them
 
-`tools/land_overlay.py` merges three `--extra` paths and copies every other one
-wholesale: `tools/difficult_functions` by key, `configs/USA/overlays.toml` by
+`tools/vacuum/land_overlay.py` merges three `--extra` paths and copies every other one
+wholesale: `tools/match/difficult_functions` by key, `configs/USA/overlays.toml` by
 entry against `--base`, and any `.md` three-way. So a *code* extra - the
 promoted sibling body `vacuum_overlay.sh` hands a landing as `--extra
 src/<family>/<overlay>/<overlay>.c` - overwrites whatever trunk did to that file
@@ -139105,7 +139105,7 @@ function unrelated to the lane's 132-instruction body despite having the same
 name. The give-up seed and `HISTORY.md` were also for a third carrier. Before
 scoring, confirm with `grep glabel -A1 target.s` that the target's addresses
 belong to the overlay the lane leases. If they don't, rebuild the target from
-the lane's own `.s`, the same way `tools/claude` does
+the lane's own `.s`, the same way `tools/match/claude` does
 (`cat prelude.inc include/macro.inc <asm> > target.s`, then `mips-linux-gnu-as
 -EL -march=r3000 -mtune=r3000 -Iinclude`). Then look for the real twin by
 diffing that `.s` against the carriers' matched `.s` with symbols normalised.
@@ -140010,7 +140010,7 @@ occupies, making the constant global is the lever.
 Symptom: 99.9% with only `regs`, two long-lived pointers (`scratch`, a scratchpad
 block, and `quad`, a `POLY_FT4*`) on swapped `$s1`/`$s2`. Final instruction
 counts for both were identical to the target, so the difference was not in the
-emitted code. `tools/trace_gcc.py` gave the global priorities: `scratch` refs=32
+emitted code. `tools/match/trace_gcc.py` gave the global priorities: `scratch` refs=32
 span=297 -> 5387, `quad` refs=30 span=293 -> 4095. `floor_log2(refs)` jumps from
 4 to 5 at 32 refs, so two refs decide the order. `REG_N_REFS` is counted in
 `flow`, **before** jump2 cross-jumping. So code that is later merged away still
@@ -141226,7 +141226,7 @@ where the same function had been split as leading rodata, not to the overlay
 whose `INCLUDE_ASM` was being matched.
 
 **Fix.** Rebuild the target from the host overlay's own `.s`, the way
-`tools/claude` does:
+`tools/match/claude` does:
 
 ```sh
 cat prelude.inc ../../include/macro.inc <host .s> > target.s
@@ -144333,7 +144333,7 @@ the loop setup the three rotate. The pin lengthened the flag's range to drop its
 three multi-statement blocks written as `do { } while (0)` macros (the yaw
 turn-around, the contact overlap/`VectorNormal` pair): each reference inside
 counts one extra loop level, which lifted the two pointers above the flag with
-no change to the flag. `tools/trace_gcc.py` prints the priorities; sweep which
+no change to the flag. `tools/match/trace_gcc.py` prints the priorities; sweep which
 blocks are wrapped until the order is right. Watch for pseudos riding along -
 wrapping the whole push block also weighted the `best` accumulator past `one`.
 
@@ -145008,7 +145008,7 @@ defining unit behind `#ifndef <MODULE>_C`).
 cc1 gives `.comm`/`.lcomm` a size and no alignment, so the layout is the
 assembler's. ASPSX aligned each entry by its size (2, 4, or 8 for 8 bytes and
 up) and gave `.bss` 8-byte alignment; the Psy-Q objects show both, and every
-object's `.bss` run in main starts on an 8. `tools/maspsx-bss-align.patch`
+object's `.bss` run in main starts on an 8. `tools/patches/maspsx-bss-align.patch`
 reproduces that in maspsx and main's linker script aligns `.bss` input
 sections to 8, so a gap before a larger object, or at the start of a unit's
 run, needs no placeholder.
@@ -148871,7 +148871,7 @@ A dehack pass removed nothing from `equipmentLoadWeaponConsumable`, `_capDrawTex
 `itemMenuInfoTask`, `Gp_EffSprTask7C` and `_worldCoordScoreDirectionalLight`. What
 each barrier stands for is below; none of it is a fix.
 
-**sched1, as traced with `tools/trace_gcc.py` (it explains four of the five).**
+**sched1, as traced with `tools/match/trace_gcc.py` (it explains four of the five).**
 `adjust_priority` never sees a `REG_DEAD` note (the source says so), so every
 insn freed in the backward pass is tested by `birthing_insn_p`: a `SET` of a
 pseudo that is live and has `REG_N_SETS == 1` gets `max_priority`, which after a
@@ -150932,7 +150932,7 @@ the split assembly this is the only one with the value in `$v1` and the `%hi` in
 `$v0`, and its load delay is an unfilled `nop` although three independent
 moves follow.
 
-**The order (traced with `tools/trace_gcc.py`).** `priority()` in `sched.c` is
+**The order (traced with `tools/match/trace_gcc.py`).** `priority()` in `sched.c` is
 the longest latency-weighted path from the *start* of the block through
 `LOG_LINKS`. The load costs 2, so `addiu` and `sw` have priority 2; an argument
 move has no predecessor and has priority 1. Scheduling backward, `sw` and
@@ -151629,7 +151629,7 @@ gRandomLcgState     = previousRandomState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_I
 work->index         = (gRandomLcgState >> 16) & EFFECT_DRAW_ANGLE_MASK;
 ```
 
-**Why the last pin is still there, with the numbers** (`tools/trace_gcc.py`
+**Why the last pin is still there, with the numbers** (`tools/match/trace_gcc.py`
 on the pin-free body, block 4). All of the block's values are local-alloc
 quantities, allocated by `floor_log2(refs) * refs / span`, ties by quantity
 number (birth order), each taking the lowest free register:
@@ -153546,7 +153546,7 @@ tools.
 
 What is left in `common.h` is `SOFT_TOUCH_REG`, `SOFT_USE_REG` and `CSE_STEER`,
 for the sites that still need them. Do not define a deleted name again or add a
-new steering macro: `tools/check_hack_sites.py` keeps matching the deleted
+new steering macro: `tools/check/check_hack_sites.py` keeps matching the deleted
 names, so one reappearing counts as an added hack site.
 
 ## A `GfxMatrix` used only through `.mat` is a `MATRIX`: 74 objects retyped, no code moved (2026-10-07)

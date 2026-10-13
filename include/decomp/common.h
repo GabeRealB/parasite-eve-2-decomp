@@ -73,7 +73,7 @@
  * family (TOUCH_REG*, USE_REG*, DEF_REG, the barriers, MOVE_ZERO, COPY_REG,
  * ...) was deleted as its last users were rewritten. Do not add a steering
  * macro, here or in a source file, to keep a change matching (NAMING.md,
- * "Never add a matching hack to keep a cleanup"); tools/check_hack_sites.py
+ * "Never add a matching hack to keep a cleanup"); tools/check/check_hack_sites.py
  * still counts the deleted names.
  *
  * SOFT_TOUCH_REG reads and writes `x`; SOFT_USE_REG only reads it. GCC 2.8.1

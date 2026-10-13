@@ -652,7 +652,7 @@ or `'u32'`, whichever the object's C element type is made of - and the list is
 flat, so brace elision fills any array or struct of that one width. A record
 whose members differ in width takes `"include": 'layout'` and a `layout`: a
 Python `struct` format for **one** record, limited to `b B h H i I` and `x`
-padding. `tools/gen_asset_inc.py` then writes one line of member values per
+padding. `tools/buildsteps/gen_asset_inc.py` then writes one line of member values per
 record, still without braces, so the same include serves the record type at any
 array nesting (`ViewCamera x[400][2]` is `'9h 2x 3i I'`: a `MATRIX` and a
 `u32`). Padding has no initializer and compiles to zero, so the generator
@@ -925,7 +925,7 @@ family's common word (`stalker_burst_torso`, `golem_beam_sword`,
 whose vertices differ (the Gray, Ivory and Zebra Stalkers' burst arms): those
 are not duplicates, so each version's includes take its own type's name
 (`gray_stalker_burst_arm_left`), and a second version within one package adds
-its record offset (`tools/gen_model_inc.py`, `include_names`).
+its record offset (`tools/buildsteps/gen_model_inc.py`, `include_names`).
 
 572 streams are located across 212 packages; SHA-1 dedup in the store collapses
 them to **298 unique** files, so 274 are meshes shared between packages. (Both

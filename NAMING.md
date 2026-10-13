@@ -78,7 +78,7 @@ Choose the owner before composing the name:
   to it before including the library's header (`#define EFFECT_SPRITE_RISE_TASK
   shelterB2PodBottomEffectSpriteRiseTask`), as the paired factory rooms do, so
   the definition and every reference carry one project-unique name and the
-  reference's `owner=` (see `tools/check_symbols.py`) can be checked by name. A
+  reference's `owner=` (see `tools/check/check_symbols.py`) can be checked by name. A
   copy nothing outside the package refers to keeps the plain shared name.
   The packages one source is built into are the same case: gameplay's weapon
   table is indexed by weapon, each index is one package, and so each package
@@ -386,7 +386,7 @@ exports even though their saved state and sound queue are resident.
 `package` owns the format metadata emitted by the overlay packaging tools.
 The generated per-image `packageid.c` unit stores a private `_gPackageId`:
 the manifest id, zero-extended into the first read-only 32-bit word. Its shared
-declaration template lives in `tools/gen_overlay_configs.py`; individual load
+declaration template lives in `tools/buildsteps/gen_overlay_configs.py`; individual load
 slots supply their own `PKG_ID`. This format object has no exported C interface.
 
 `bezierCurve` owns the included cubic Bezier coefficient conversion and reverse
@@ -1683,7 +1683,7 @@ exceptions without introducing new ones or implicit declarations.
 (`SOFT_TOUCH_REG` and `SOFT_USE_REG` from `include/decomp/common.h`, or any of
 the deleted `TOUCH_REG`, `USE_REG`, `SOFT_BARRIER`, ... family defined again) must not
 be introduced by a naming step, and the verification fails a step that adds one
-(`tools/check_hack_sites.py`). If a change you would like - an explicit `return`,
+(`tools/check/check_hack_sites.py`). If a change you would like - an explicit `return`,
 a separate local, a literal in place of a variable, a deleted macro - stops the
 function matching, the code was written the other way: put that part back
 exactly as it matched, say so in a comment if the shape is surprising (a handler

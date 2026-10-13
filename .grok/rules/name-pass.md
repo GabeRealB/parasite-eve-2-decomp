@@ -187,8 +187,8 @@ part of the acceptance test rather than as advice.
   sequence and the functions it appears in.
 - **Use the cast backlog.** The brief supplies relevant prior findings when
   available. Follow old/new names through `local/renames.tsv`; do not rerun
-  historical mutation scripts. Run `tools/check_pointer_casts.py` and
-  `tools/check_pointer_arithmetic.py` on affected source TUs, including carriers
+  historical mutation scripts. Run `tools/check/check_pointer_casts.py` and
+  `tools/check/check_pointer_arithmetic.py` on affected source TUs, including carriers
   of shared source and users of a changed header. Inspect pointer/integer,
   pointer/pointer and callback conversions. Use `PARENT_OF` when evidence
   establishes the containing object and member. Correct callback declarations,

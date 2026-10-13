@@ -169,7 +169,7 @@ done
 # The same table and resolution rules the matching vacuum uses, so a profile
 # means one thing across the project rather than two.
 # shellcheck disable=SC1091
-. "$ROOT/tools/vacuum_profile.sh"
+. "$ROOT/tools/vacuum/vacuum_profile.sh"
 if (( LIST_PROFILES )); then list_profiles; exit 0; fi
 [[ -n "$PROFILE" ]] && apply_profile "$PROFILE"
 agent_launch "$CLI" "${VACUUM_MODEL:-}"
@@ -398,7 +398,7 @@ The conventions, the compiler's limits and what counts as evidence are above
    annotation, the declaration, or the name on both sides - and say so in the
    review. A place several images define is \`shared=\`; a function or object
    another image refers to cannot be \`static\`. \`venv/bin/python3
-   tools/check_symbols.py --image <package>\` and \`tools/refactor/check_decls.py
+   tools/check/check_symbols.py --image <package>\` and \`tools/refactor/check_decls.py
    --across-images\` report what disagrees.
 7. Resolve meaningful literals, proven sizes and array bounds; review pointer
    and callback casts, contracts and bounds; simplify justified scaffolding.
@@ -538,7 +538,7 @@ tree_changes() {
 run_agent() {
   local dir="$1" brief="$2" log="$3" term="$4"
   local -a cmd
-  local stream=0 formatter=tools/stream_format.py rc
+  local stream=0 formatter=tools/vacuum/stream_format.py rc
   # The brief never travels as an argument: Linux caps a single argument at
   # 128 KB, and a widely used item's brief passed that, so the agent could not
   # even be launched. Each CLI reads it from a file or standard input instead.
@@ -577,7 +577,7 @@ run_agent() {
       cmd=("${LAUNCH_CMD[@]}" exec --dangerously-bypass-approvals-and-sandbox
            ${MODEL:+--model "$MODEL"} --cd "$dir")
       if [[ "${VACUUM_STREAM:-1}" != "0" ]]; then
-        cmd+=(--json); stream=1; formatter=tools/codex_format.py
+        cmd+=(--json); stream=1; formatter=tools/vacuum/codex_format.py
       fi
       cmd+=(-)
       ;;
@@ -1039,7 +1039,7 @@ while (( TIMES == 0 || i < TIMES )); do
 It has no C body, so this pass cannot establish what it is, and every later
 step depends on it. Decompile it first, for example:
 
-  ./tools/vacuum.sh --overlay <its overlay>
+  ./tools/vacuum/vacuum.sh --overlay <its overlay>
 
 then rebuild the graph and resume:
 

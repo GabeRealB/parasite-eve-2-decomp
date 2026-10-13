@@ -92,7 +92,7 @@ fi
 # Keep upstream-submodule fixes as repository-owned patches: objdump must
 # accept bare-hex jump targets, and sizeof(type) must survive parser emission.
 # Preparation also refreshes the cached yacc table after a grammar change.
-"$PYTHON" "$SCRIPT_DIR/tools/prepare_permuter.py"
+"$PYTHON" "$SCRIPT_DIR/tools/match/prepare_permuter.py"
 
 # Clean the directory if the --clean flag is set
 if [ "$CLEAN" = true ]; then
@@ -156,7 +156,7 @@ if [ "$RUN" = true ]; then
     # (~24 a second). Give it a private one that goes away with the run. This
     # used to be a background loop deleting /tmp/permuter* older than two
     # minutes, which only ran under --run: invoking permuter.py directly, as
-    # tools/vacuum_permute.py does, leaked unchecked and filled a 12G tmpfs in
+    # tools/match/vacuum_permute.py does, leaked unchecked and filled a 12G tmpfs in
     # one long search, after which everything needing /tmp fails on ENOSPC.
     PERM_TMPDIR="$(mktemp -d "${TMPDIR:-/tmp}/permuter-${FUNCTION_NAME}-XXXXXX")"
     trap 'rm -rf "$PERM_TMPDIR"' EXIT

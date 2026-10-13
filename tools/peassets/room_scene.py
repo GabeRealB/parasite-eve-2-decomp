@@ -34,7 +34,7 @@ C is read only for what is code and not data: who stores a placement variant
 (`area_variants.py`, `areaSetPlacementVariant` calls, direct writes), warp
 redirects, writes to a view map and a collision patch's `memCopyBytes`
 targets. Collision geometry is an asset; its layout is checked against
-tools/gen_collision_inc.py.
+tools/buildsteps/gen_collision_inc.py.
 
 What cannot be read reliably is left out and listed under `unresolved`.
 """
@@ -53,7 +53,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-sys.path.insert(0, str(ROOT / "tools"))
+sys.path.insert(0, str(ROOT / "tools" / "buildsteps"))
 import area_variants  # noqa: E402
 import asset_journal  # noqa: E402
 import asset_schema  # noqa: E402

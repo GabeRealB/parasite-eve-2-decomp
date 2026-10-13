@@ -89,9 +89,9 @@ def verify(root, logs, jobs, objdiff=False):
     # A cleanup that changes what a function compiles to can be forced back
     # into matching with a pinned register or an asm barrier, and every other
     # check here would pass. Three steps did that before this was checked.
-    run([python, "tools/check_hack_sites.py", "--against", "HEAD"], "hacks.log")
-    run([python, "tools/check_symbols.py", "--drop-stale-shared"], "symbols-settle.log")
-    run([python, "tools/check_symbols.py", "--strict"], "symbols.log")
+    run([python, "tools/check/check_hack_sites.py", "--against", "HEAD"], "hacks.log")
+    run([python, "tools/check/check_symbols.py", "--drop-stale-shared"], "symbols-settle.log")
+    run([python, "tools/check/check_symbols.py", "--strict"], "symbols.log")
     if not objdiff:
         print("Naming verification passed (build, declarations, hack sites, symbols)", flush=True)
         return

@@ -238,7 +238,7 @@ def import_aliases(root: str, version: str, nodes: dict, edges: dict) -> dict:
     """Fold a reference into another image into the definition it names.
 
     A reference with `owner=` in its symbol map means one image's symbol
-    (tools/check_symbols.py verifies that). Where it is spelled as its owner
+    (tools/check/check_symbols.py verifies that). Where it is spelled as its owner
     spells it, the parser has already made them one node. Where it cannot be -
     one copy of a source built for several slots, or a package of a variant
     source, has no name of its own to give - the reference is spelled after the
@@ -246,7 +246,7 @@ def import_aliases(root: str, version: str, nodes: dict, edges: dict) -> dict:
     definition: something that looks as if it were still assembly, and blocks
     everything that uses it.
     """
-    tools = os.path.join(root, "tools")
+    tools = os.path.join(root, "tools", "check")
     if tools not in sys.path:
         sys.path.insert(0, tools)
     try:

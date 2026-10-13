@@ -21,7 +21,7 @@ accept `--help`. Diagnosis and comparison accept `--json`; diagnosis's
 Before using source citations, run this from the repository root:
 
 ```sh
-bash tools/fetch_gcc_source.sh
+bash tools/match/fetch_gcc_source.sh
 ```
 
 This downloads GCC 2.8.1 and applies the project's PSX patches under
@@ -98,7 +98,7 @@ Minimum: `target_object_dump_normalized.s` and
   `.combine`, `.sched`, `.lreg`, `.greg`, `.sched2`, `.jump2`, `.dbr`.
 * `STEM.diagnosis.json` from the existing object diagnostic tool. Its object
   hashes must match `target.o` and `STEM.o` before it is used.
-* An optional `tools/trace_gcc.py` trace and `attempts.jsonl` build journal.
+* An optional `tools/match/trace_gcc.py` trace and `attempts.jsonl` build journal.
 
 Exported report citations and manifest paths inside the repository are relative
 to the repository root. Other paths inside the current home directory use `~/`
@@ -126,7 +126,7 @@ Anonymous expression comparison is not proof of identical dataflow or semantics.
 The existing read-only tracer observes the pinned bundled compiler through GDB:
 
 ```sh
-python3 tools/trace_gcc.py SCRATCH/base_1.i \
+python3 tools/match/trace_gcc.py SCRATCH/base_1.i \
   --output-dir /tmp/trace-base-1 --function FUNCTION --uids 87
 python3 tools/divergence/toolset.py diagnose SCRATCH base_1 \
   --trace /tmp/trace-base-1 --json

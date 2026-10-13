@@ -10,7 +10,7 @@
 #   writeIdx          struct member       camelBack
 #
 # This file is not part of the build; ninja never runs clang-tidy, and
-# tools/score_quality.py runs its own check list which deliberately excludes
+# tools/match/score_quality.py runs its own check list which deliberately excludes
 # readability-identifier-naming. It is the editor-facing statement of the
 # convention, so it describes the target state.
 #

@@ -11,7 +11,7 @@ source tree. To check algorithm citations against the actual source, initialize
 the patched tree from the repository root:
 
 ```sh
-bash tools/fetch_gcc_source.sh
+bash tools/match/fetch_gcc_source.sh
 ```
 
 This creates the generated, Git-ignored `local/gcc/gcc-2.8.1-psx` directory.

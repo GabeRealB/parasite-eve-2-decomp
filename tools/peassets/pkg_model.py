@@ -306,7 +306,7 @@ def declared_records(repo_root: Path) -> dict[str, tuple[int, list[int]]]:
     From the overlay manifest, whose model declarations the build checks
     against every package.
     """
-    sys.path.insert(0, str(repo_root / "tools"))
+    sys.path.insert(0, str(repo_root / "tools" / "buildsteps"))
     import tomllib
     from gen_overlay_configs import declared_models
 

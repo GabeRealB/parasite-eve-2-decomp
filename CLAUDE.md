@@ -98,7 +98,7 @@ the jump-table offset and hand the run below it to a sibling unit.
 
 So the delete-and-re-split step is destructive, and needs bracketing:
 
-1. **Snapshot the bodies first.** `bodies_of()` in `tools/land_overlay.py` parses
+1. **Snapshot the bodies first.** `bodies_of()` in `tools/vacuum/land_overlay.py` parses
    every C definition out of a file; record what the affected files hold before
    deleting them.
 2. **Prefer rebuilding over regenerating.** splat's fresh output is a correct
@@ -106,7 +106,7 @@ So the delete-and-re-split step is destructive, and needs bracketing:
    source, redistributing its chunks across the new units, rather than starting
    from the regenerated version and adding bodies back. A promotion sweep that
    did this rebuilt 595 carrier files without losing one.
-3. **Check before committing.** `python3 tools/check_lost_matches.py` fails when
+3. **Check before committing.** `python3 tools/check/check_lost_matches.py` fails when
    a function with a `matched` commit is `INCLUDE_ASM` while its overlay still
    owns a `.s` under `nonmatchings/` - the exact signature of a dropped body. A
    genuine promotion cannot trip it, because a promoted body has neither a C
@@ -305,15 +305,15 @@ it.
 
 Two maintenance commands, neither run by the build:
 
-- `python3 tools/gen_overlay_configs.py [--family F] [--list]` — regenerate the
+- `python3 tools/buildsteps/gen_overlay_configs.py [--family F] [--list]` — regenerate the
   configs. `ninja_config.py` also calls this, so the build is self-consistent.
-- `python3 tools/gen_overlay_imports.py [family]` — rebuild a family's imports
+- `python3 tools/buildsteps/gen_overlay_imports.py [family]` — rebuild a family's imports
   file from the split output, then re-split so the sources pick up the names.
   Run it after adding a family or after a naming pass.
 
 Overlays in a family all load at the same address, so `symbol_name_format`
 prefixes generated names with the segment (for example, `func_sp12_8011D1DC`). Keep that:
-the decomp tooling (`decomp_overlay.py find`, `tools/claude`,
+the decomp tooling (`decomp_overlay.py find`, `tools/match/claude`,
 `score_functions.py`, the vacuum) assumes a function name identifies one
 overlay.
 
@@ -336,28 +336,28 @@ overlay.
   every CPU. Set it when several trees build at once: the naming pass sets it
   per worker to the CPUs divided by `--workers`, because a full split pool per
   worker (~110 MB a process) exhausted memory.
-- `python3 tools/check_sym_coverage.py [IMAGE ...]` fail when a C function's
+- `python3 tools/check/check_sym_coverage.py [IMAGE ...]` fail when a C function's
   name is not in its image's symbol maps (`symbol_addrs_path`). splat names an
   unmapped function `func_<segment>_<ADDR>` in the expected objects, so a
   function renamed in C but not in the map cannot be paired by objdiff or the
   naming pass's verifier, while the checksum still matches. The unscoped
   `build-and-verify.sh` runs it; when it fails, add `name = 0xADDR; // type:func`.
-- `python3 tools/gen_area_ids.py [--check]` rewrite `include/main/areas.h`,
+- `python3 tools/buildsteps/gen_area_ids.py [--check]` rewrite `include/main/areas.h`,
   the `GAME_STAGE_*` and `GAME_AREA_*` constants, from the extractor's room folders. An area ID is
   a folder's disc id / 100 within its stage, so the same value names another
   room in another stage; pair each constant with its `GAME_STAGE_*`. The
   unscoped `build-and-verify.sh` fails when the header is stale.
 - `diff.py` you can view the difference between the compiled and target assembly code of a given function by running `python3 tools/asm-differ/diff.py --no-pager <function name>`
-- `./tools/claude [--bootstrap-only] [--no-bootstrap] [--id ID] <function>` spin up a scratch matching env. Resolves **any** overlay; always m2c-bootstraps unless `--no-bootstrap`. It builds the environment and nothing else - the agent is launched by whatever called it. Matching loop: `tools/claude-decomp-env/MATCH_LOOP.md` (Grok also loads it from `.grok/rules/match-loop.md`).
-- `python3 tools/decomp_overlay.py find|pack|list-nonmatchings|list-overlays <function>` overlay-agnostic path lookup and vacuum brief.
-- `python3 tools/score_functions.py <directory>` find the easiest function to decompile in a given directory (and its subdirectories).
-- `python3 tools/fit_difficulty_model.py [--write]` refit that scorer on the
+- `./tools/match/claude [--bootstrap-only] [--no-bootstrap] [--id ID] <function>` spin up a scratch matching env. Resolves **any** overlay; always m2c-bootstraps unless `--no-bootstrap`. It builds the environment and nothing else - the agent is launched by whatever called it. Matching loop: `tools/claude-decomp-env/MATCH_LOOP.md` (Grok also loads it from `.grok/rules/match-loop.md`).
+- `python3 tools/match/decomp_overlay.py find|pack|list-nonmatchings|list-overlays <function>` overlay-agnostic path lookup and vacuum brief.
+- `python3 tools/match/score_functions.py <directory>` find the easiest function to decompile in a given directory (and its subdirectories).
+- `python3 tools/match/fit_difficulty_model.py [--write]` refit that scorer on the
   project's own record — every `matched <fn> <attempts>` commit plus every
-  give-up in `tools/difficult_functions`, joined to the function's assembly
+  give-up in `tools/match/difficult_functions`, joined to the function's assembly
   metrics. Re-run it after a few hundred new matches; `--write` updates the
   constants block in `score_functions.py` in place.
-- `./tools/vacuum.sh [--grok|--claude] [--dry-run] [--orchestrator] [--difficult] [--overlay NAME]` pick the easiest unmatched function across every overlay, bootstrap, pack a brief, run the agent. `--difficult` retries only names in `tools/difficult_functions` (a verified match removes that name from the list); `--overlay gameplay` (or `USA/main`) restricts to that overlay; both flags together are the intersection. Auto-commits a verified match if the agent forgot to. After a ≥95% give-up, runs decomp-permuter (`--stop-on-zero`, 6 min cap) and a short port follow-up on a hit. Best scratch C is kept at `tools/giveups/<func>/` (gitignored) so a later retry does not start from m2c. `--orchestrator` claims a function via `tools/vacuum_orch.py`, matches in a throwaway `pe2-wt-<func>` worktree, independently verifies that worktree (agents often sha256 leftover `build/` artifacts), fast-ports when trunk files have not moved, otherwise runs a port agent. Failed trunk landings are retried (`VACUUM_PORT_TRIES`, default 2) then marked difficult so the same claim cannot loop. Do not run a non-orchestrator vacuum on this checkout at the same time as an orchestrator session.
-- `./tools/vacuum_overlay_list.sh --list FILE [--profile P] [--jobs N]
+- `./tools/vacuum/vacuum.sh [--grok|--claude] [--dry-run] [--orchestrator] [--difficult] [--overlay NAME]` pick the easiest unmatched function across every overlay, bootstrap, pack a brief, run the agent. `--difficult` retries only names in `tools/match/difficult_functions` (a verified match removes that name from the list); `--overlay gameplay` (or `USA/main`) restricts to that overlay; both flags together are the intersection. Auto-commits a verified match if the agent forgot to. After a ≥95% give-up, runs decomp-permuter (`--stop-on-zero`, 6 min cap) and a short port follow-up on a hit. Best scratch C is kept at `tools/giveups/<func>/` (gitignored) so a later retry does not start from m2c. `--orchestrator` claims a function via `tools/vacuum/vacuum_orch.py`, matches in a throwaway `pe2-wt-<func>` worktree, independently verifies that worktree (agents often sha256 leftover `build/` artifacts), fast-ports when trunk files have not moved, otherwise runs a port agent. Failed trunk landings are retried (`VACUUM_PORT_TRIES`, default 2) then marked difficult so the same claim cannot loop. Do not run a non-orchestrator vacuum on this checkout at the same time as an orchestrator session.
+- `./tools/vacuum/vacuum_overlay_list.sh --list FILE [--profile P] [--jobs N]
   [--difficult]` drive `vacuum_overlay.sh` through an ordered list of overlays,
   several at a time.
   The built-in `rank_overlays` sorts by unmatched-function count alone, which
@@ -369,17 +369,17 @@ overlay.
   exclusive, so a worker refused one takes the next name.
   `--difficult` is the whole-overlay form of `vacuum.sh --difficult`, and it is
   a flag on `vacuum_overlay.sh` too: the lease, the claim filter, the progress
-  denominator and the inner pick all draw from `tools/difficult_functions`
+  denominator and the inner pick all draw from `tools/match/difficult_functions`
   instead of skipping it, so a retry pass walks the list and skips every
   overlay with no parked work before it costs a worktree. With
   `--max-difficulty` it is the intersection, as in `vacuum.sh`.
-- `python3 tools/vacuum_orch.py claim|relinquish|finish|merge-acquire|merge-release|status|serve` coordinate multiple vacuums: function leases plus a merge lock on the original tree. State: `$(git rev-parse --git-common-dir)/vacuum-orch.json`.
+- `python3 tools/vacuum/vacuum_orch.py claim|relinquish|finish|merge-acquire|merge-release|status|serve` coordinate multiple vacuums: function leases plus a merge lock on the original tree. State: `$(git rev-parse --git-common-dir)/vacuum-orch.json`.
 - `./permute.sh --run --timeout 360 -j4 <func> <asm> <c>` when a match is stuck ≥95% on registers/scheduling. Stops on score 0.
-- `python3 tools/learn.py <terms>` search `DECOMPILATION_LEARNINGS.md` by
+- `python3 tools/match/learn.py <terms>` search `DECOMPILATION_LEARNINGS.md` by
   section instead of by line; a raw grep returns context-free lines because the
   searchable term is rarely in a title. `CODEGEN_MODEL.md` at the repo root is
   the short general model those entries are instances of — read it first.
-- `python3 tools/overlay_dup_index.py stats|shared|find|solved|siblings|promote|similar`
+- `python3 tools/bulk/overlay_dup_index.py stats|shared|find|solved|siblings|promote|similar`
   find code that repeats across overlays. Of the 8049 indexed functions, 36% are
   copies of another overlay's body (33% of instructions); only 10% are
   byte-identical. Equality is decided on splat's disassembly *text*, not on the
@@ -403,14 +403,14 @@ overlay.
 - `python3 tools/peassets/tmd_export.py <family> [--out DIR]` export a manifest
   family's model streams to Wavefront OBJ (vertices and faces only). Useful for
   identifying an overlay whose name is still a placeholder.
-- `python3 tools/check_regalloc_model.py <scratch>/*.i.lreg [--inversions]`
+- `python3 tools/check/check_regalloc_model.py <scratch>/*.i.lreg [--inversions]`
   measure how much of a real allocation `CODEGEN_MODEL.md` section 10's ranking
   formula accounts for. Comparing only pseudos that competed in the same block,
   the ratio orders 66% of pairs correctly and 38% sit at an exact tie; the rest
   is the suggestion pass, which shows up as inversions clustered on `$v0`. Re-run
   it after anything that could move allocation - a compiler patch, a new maspsx -
   or on a function class the model has not been checked against.
-- `python3 tools/check_pointer_arithmetic.py <file or directory>` detect pointer arithmetic with casts that should be replaced with struct field access. Use `--strict` to fail on violations.
+- `python3 tools/check/check_pointer_arithmetic.py <file or directory>` detect pointer arithmetic with casts that should be replaced with struct field access. Use `--strict` to fail on violations.
 - `tools/refactor/find_references.py` / `rename_item.py` resolve and rename C
   symbols through libclang and the compilation database, never by text
   substitution. A spec names the file the symbol is **declared** in. `NAMING.md`
@@ -534,9 +534,9 @@ If you write code with pointer arithmetic:
 
 You may be given a directory containing assembly files either in its own directory or its subdirectories.
 
-1. Use `python3 tools/score_functions.py $(python3 tools/decomp_overlay.py list-nonmatchings)` to find the easiest unmatched function across every overlay. Start with that one.
+1. Use `python3 tools/match/score_functions.py $(python3 tools/match/decomp_overlay.py list-nonmatchings)` to find the easiest unmatched function across every overlay. Start with that one.
 2. Follow the instructions in the `Decompile assembly to C code` of this document.
-3. If you are able to get a perfect matching decompilation, commit the change with the message `matched <function name> <attempts>` and return to step (1). If you cannot get a perfect match after several attempts, add the function name to `tools/difficult_functions` along with the number of attempts and best match percentage (function names should be separated by newlines). This should be in the form `<function name> <number of attempts to match> <best match percentage>\n`. By adding the function name to difficult_functions. You should also revert any changes you've made adding the function to the C file (we do not want to save incomplete matches).
+3. If you are able to get a perfect matching decompilation, commit the change with the message `matched <function name> <attempts>` and return to step (1). If you cannot get a perfect match after several attempts, add the function name to `tools/match/difficult_functions` along with the number of attempts and best match percentage (function names should be separated by newlines). This should be in the form `<function name> <number of attempts to match> <best match percentage>\n`. By adding the function name to difficult_functions. You should also revert any changes you've made adding the function to the C file (we do not want to save incomplete matches).
 4. You are done. Do not attemp to find the next closest match.
 
 ### Decompile assembly to C code
@@ -546,7 +546,7 @@ You may be given a function and asked to decompile it to C code.
 First we need to spin up a decomp environment for the function, run:
 
 ```
-./tools/claude --bootstrap-only <function name>
+./tools/match/claude --bootstrap-only <function name>
 ```
 
 The script searches every overlay under `asm/<ver>/` (not just `main`). Move to the directory it prints (`SCRATCH_DIR=…`). Read `BRIEF.md` there instead of re-exploring the repo.
@@ -578,7 +578,7 @@ When the permuter contributed a full or partial improvement, first follow the
 bounded investigation in `tools/claude-decomp-env/MATCH_LOOP.md`. Preserve the
 improved candidate, isolate its source change, and check a compiler prediction.
 An unresolved mechanism is a valid recorded outcome. Before scratch cleanup,
-run `python3 tools/archive_giveup.py --func <function> --scratch <scratch> --permuter-findings`
+run `python3 tools/match/archive_giveup.py --func <function> --scratch <scratch> --permuter-findings`
 so sources, compiler inputs and observations survive successful-match cleanup.
 Vacuum owns cleanup when it launched the session; leave its scratch in place.
 
@@ -652,7 +652,7 @@ lists - which describes a shape the way a model does; the manifest cuts it out a
 a `collision` object with its `WorldCollisionGrid` header as a `collisionSource`.
 Where a C unit owns the grid (`in_c = true`), the arrays keep their C
 declarations but take their initializers from includes that
-`tools/gen_collision_inc.py` writes from the package, after checking the grid's
+`tools/buildsteps/gen_collision_inc.py` writes from the package, after checking the grid's
 layout against its header. Non-NULL table entries call the including source's
 face-list binding with an element offset into its packed `s16` pool. The grid's
 `cell_face_list_macro` manifest setting selects that binding; unconfigured grids
@@ -703,7 +703,7 @@ bytes to `asm/USA/incbin/` (per worktree, like the rest of `asm/`) and emits a
 small `.s` that `.incbin`s them back, so the build keeps matching. Where the
 asset sits inside a unit whose data is in C, the unit defines it itself: mark
 its `EMBEDDED_ASSETS` record `"include": True`, and the build turns the
-extracted file into `build/include/assets/<id>.inc` (`tools/gen_asset_inc.py`),
+extracted file into `build/include/assets/<id>.inc` (`tools/buildsteps/gen_asset_inc.py`),
 which the definition includes as its initializer (`_gFontGlyphsMedium` in
 `src/main/textdraw.c`). For **inspection**, catalogue it by address in
 `asset_db.EMBEDDED_ASSETS` and it flows through the normal extract pipeline

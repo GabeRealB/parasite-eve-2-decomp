@@ -121,7 +121,7 @@ def scenes():
 
 def package_loads(manifest: dict) -> dict[str, int]:
     """package -> its load address; an actor's follows from the slot it is linked for (configs/USA/overlays.toml)."""
-    sys.path.insert(0, str(ROOT / "tools"))
+    sys.path.insert(0, str(ROOT / "tools" / "buildsteps"))
     from gen_overlay_configs import slot_packages
     out: dict[str, int] = {}
     for spec in manifest.values():
@@ -731,7 +731,7 @@ def chain_check(db: sqlite3.Connection, verbose: bool) -> int:
 def slots(db: sqlite3.Connection) -> None:
     """Which overlays share a load address, so cannot be in memory together."""
     import tomllib
-    sys.path.insert(0, str(ROOT / "tools"))
+    sys.path.insert(0, str(ROOT / "tools" / "buildsteps"))
     from gen_overlay_configs import slot_packages
     manifest = tomllib.loads((ROOT / "configs/USA/overlays.toml").read_text(encoding="utf-8"))
     at: dict[int, list[str]] = defaultdict(list)

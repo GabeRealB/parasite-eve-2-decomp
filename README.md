@@ -198,7 +198,7 @@ python3 tools/asm-differ/diff.py --no-pager <function_name>
 
 ### Matching decompilation workflow (high level)
 
-1. Pick a function (e.g. via `python3 tools/score_functions.py asm/USA/main/nonmatchings/`).
+1. Pick a function (e.g. via `python3 tools/match/score_functions.py asm/USA/main/nonmatchings/`).
 2. Decompile / rewrite it in C under the appropriate `src/**/*.c` unit.
 3. Replace the corresponding `INCLUDE_ASM(...)` with the C implementation.
 4. Rebuild and confirm the full executable still matches — scoped first, then
@@ -206,11 +206,11 @@ python3 tools/asm-differ/diff.py --no-pager <function_name>
 5. Prefer real structs over raw pointer arithmetic — see project conventions below.
 
 In an overlay family, check first whether the body is shared: over half the room
-functions are copies of another room's, and `python3 tools/overlay_dup_index.py
+functions are copies of another room's, and `python3 tools/bulk/overlay_dup_index.py
 find <fn>` lists every overlay carrying the same one. A shared body is matched
 once, in `src/lib/`, and linked into each overlay that uses it.
 
-Scratch helpers for AI-assisted matching live under `tools/claude` / `tools/claude-decomp-env/`.
+Scratch helpers for AI-assisted matching live under `tools/match/claude` / `tools/claude-decomp-env/`.
 
 ## Repository layout
 

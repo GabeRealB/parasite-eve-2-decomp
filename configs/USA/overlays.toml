@@ -73,7 +73,7 @@
 #       the grid's header (`WorldCollisionGrid`), which points at those arrays and
 #       gives the grid's size; the room's records name it
 #       `in_c = true` on both means a code unit declares the arrays and header;
-#       the arrays' initializers are generated (tools/gen_collision_inc.py).
+#       the arrays' initializers are generated (tools/buildsteps/gen_collision_inc.py).
 #       `cell_face_list_macro` on a C collisionSource optionally names its
 #       halfword-offset-to-face-list macro; the default binding is GRID_CELL.
 #   { kind = "collisionPatch", at = "...", pieces = ["vectors N", "faces N", ...] }

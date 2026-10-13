@@ -18,7 +18,7 @@ from report_paths import public_data, public_path, public_text
 
 
 def tracer():
-    spec = importlib.util.spec_from_file_location("divergence_trace_support", ROOT / "tools/trace_gcc.py")
+    spec = importlib.util.spec_from_file_location("divergence_trace_support", ROOT / "tools/match/trace_gcc.py")
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
@@ -51,7 +51,7 @@ def execute(input_path, output, function, intervention, timeout=60, target=None)
         (output / "manifest.json").write_text(json.dumps(public_data(manifest), indent=2) + "\n")
     save()
     symbols = support.symbols(COMPILER)
-    observer = ROOT / "tools/gcc_trace_gdb.py"
+    observer = ROOT / "tools/match/gcc_trace_gdb.py"
     hook = Path(__file__).with_name("_gdb_intervene.py").resolve()
     manifest.update(observer_sha256=digest(observer), intervention_sha256=digest(hook))
     for phase in ("baseline", "control", "intervention"):

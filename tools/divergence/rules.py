@@ -181,12 +181,12 @@ RULES = {
               "A missing link is not proof of assembler generation. Compare emitted text and assembled instructions with supported expansion rules."),
              (STATEMENT, SHARE), "Inspect emitted assembly, maspsx version/options and object instructions before changing C."),
         Rule("linkage", "Integration, relocations and data placement", (),
-             (("@tools/rodata_triage.py", "owner_of"), ("@tools/claude-decomp-env/diagnose.py", "compare")),
+             (("@tools/bulk/rodata_triage.py", "owner_of"), ("@tools/claude-decomp-env/diagnose.py", "compare")),
              ("An instruction-text match does not verify relocations, ABI/header context or linked data placement.",
               "Generated jump tables must be integrated into the unit and section that owns their target data.",
               "Use the ordinary project build and checksum to verify integration."),
              (Edit("integration", "Port with the real headers and verify the owning unit's data/section layout.",
-                   "Run tools/rodata_triage.py OVERLAY when a matching switch function fails integration.",
+                   "Run tools/bulk/rodata_triage.py OVERLAY when a matching switch function fails integration.",
                    "Keep the matching function and unrelated definitions intact.",
                    "Relocations and generated data land at the target addresses.",
                    "Run the scoped build while iterating and the required full verification before accepting a match."),),
@@ -205,7 +205,7 @@ class Sources:
         missing = [file for file in files if not (self.root / file).is_file()]
         return {"status": "available" if not missing else "incomplete" if self.root.is_dir() else "missing",
                 "root": public_path(self.root), "missing_files": missing,
-                "setup": "bash tools/fetch_gcc_source.sh",
+                "setup": "bash tools/match/fetch_gcc_source.sh",
                 "guidance": "Fetch the patched source from the repository root, or use --gcc-source with an initialized GCC 2.8.1 PSX source tree."}
 
     def reference(self, file: str, symbol: str) -> dict:

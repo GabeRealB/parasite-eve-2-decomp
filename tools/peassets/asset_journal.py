@@ -356,7 +356,7 @@ def set_tables(embedded: dict) -> dict[str, list[tuple[str, list[tuple[str, int]
     import bisect
     import struct
     import tomllib
-    sys.path.insert(0, str(ROOT / "tools"))
+    sys.path.insert(0, str(ROOT / "tools" / "buildsteps"))
     from gen_overlay_configs import declared_animations
     from room_scene import SymbolMaps
 

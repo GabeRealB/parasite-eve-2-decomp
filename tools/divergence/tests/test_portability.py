@@ -19,7 +19,7 @@ class PortabilityTests(Workspace):
         sources = Sources(missing)
         self.assertEqual(sources.status()['status'], 'missing')
         data = report(self.attempt(), gcc_source=missing)
-        self.assertIn('bash tools/fetch_gcc_source.sh', render(data))
+        self.assertIn('bash tools/match/fetch_gcc_source.sh', render(data))
         self.assertEqual(data['gcc_source']['status'], 'missing')
         for ref in sources.describe('allocation.global')['sources']:
             self.assertFalse(ref['available'])

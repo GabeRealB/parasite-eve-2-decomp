@@ -504,7 +504,7 @@ overlays — the mapping from actor file id to index is not yet established.
 Overlays in a family are separate links that share a lot of code. Measured on
 the split rooms: **56% of the 4146 functions are copies** of another room's, and
 58% of the instructions. 23 bodies appear in 20 or more rooms; the most-copied
-appears 265 times. `tools/overlay_dup_index.py` indexes this.
+appears 265 times. `tools/bulk/overlay_dup_index.py` indexes this.
 
 Equality is decided on splat's **disassembly text**, not on the instruction
 words. Comparing words is tempting and wrong: clearing the link-dependent fields

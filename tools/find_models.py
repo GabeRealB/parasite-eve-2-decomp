@@ -35,7 +35,7 @@ from collections import defaultdict
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-sys.path.insert(0, str(ROOT / "tools"))
+sys.path.insert(0, str(ROOT / "tools" / "buildsteps"))
 sys.path.insert(0, str(ROOT / "tools" / "peassets"))
 import pkg_model  # noqa: E402
 from gen_overlay_configs import PACKAGE_DIR, declared_models, slot_packages  # noqa: E402

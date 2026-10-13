@@ -120,7 +120,7 @@ comments only; no game-function bodies or compiler behavior were modified.
 
 [Retained evidence](tools/compiler_evidence/2026-09-09.json) includes input and
 source hashes, selected actual events, archived-input locations and the precise
-one-marker experiment. Full traces can be regenerated with `tools/trace_gcc.py`.
+one-marker experiment. Full traces can be regenerated with `tools/match/trace_gcc.py`.
 Displayed priority values are calculated from observed inputs; ordering,
 membership, allocation results and substitutions are observed in the compiler.
 

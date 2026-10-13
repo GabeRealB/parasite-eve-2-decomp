@@ -8,14 +8,14 @@ Score with `./build.sh`. 100% is a match. Read the **Penalties:** line (`stack` 
    `tools/divergence/` does this work for you - it names the decision behind each
    difference, ranks what earlier sessions did about the same shape, and proposes
    experiments. See **Diagnosis** below; every command there runs in under a second.
-4. Search the learnings corpus with `python3 tools/learn.py <terms>` — it ranks whole
+4. Search the learnings corpus with `python3 tools/match/learn.py <terms>` — it ranks whole
    sections, where a raw grep returns hundreds of context-free lines ("delay slot"
    appears in 286 sections but only 16 titles). `--show N` prints the top N in full.
    Never read `DECOMPILATION_LEARNINGS.md` end-to-end; it is 1.3 MB.
 5. Scratch tools you probably have not tried: `./insn.py` (one insn across all
    passes), `./summarize_dumps.py <file.i>` (short dump summary, and a diff
    against the previous `base_N`), `./map_asm_to_c.py <obj> <line>` (object line
-   back to C), `python3 tools/check_regalloc_model.py <scratch>/*.i.lreg`
+   back to C), `python3 tools/check/check_regalloc_model.py <scratch>/*.i.lreg`
    (how much of the allocation CODEGEN_MODEL.md §10 explains).
    Read `CODEGEN_MODEL.md` first — it is the short general model the corpus
    entries are instances of, and it settles most mismatches on its own.
@@ -84,12 +84,12 @@ The report keeps three things apart, and so must you:
 Algorithm citations need the patched compiler source; without it the assembly
 and dump parts still work and citations are marked unavailable rather than
 invented. Initialize it once from the repository root with
-`bash tools/fetch_gcc_source.sh`.
+`bash tools/match/fetch_gcc_source.sh`.
 
 | leftover | file | what to do |
 |---|---|---|
 | `insert` / `delete` / `branch` ≠ 0 | `.diagnosis.json`, then relevant RTL dumps | Distinguish changed block connections/predicates from shifted addresses, spills, rematerialization and scheduling. These penalties alone do not identify the cause. |
-| `regs` | `.lreg` `.greg`, compiler trace if needed | Identify local quantity membership/suggestions, then global conflicts/preferences, then reload evictions. `lregwalk.py` helps locate possible ties; `tools/trace_gcc.py` observes actual quantities and decisions. Per-pseudo priority ratios do not rank local quantities. `CODEGEN_MODEL.md` §10.5. |
+| `regs` | `.lreg` `.greg`, compiler trace if needed | Identify local quantity membership/suggestions, then global conflicts/preferences, then reload evictions. `lregwalk.py` helps locate possible ties; `tools/match/trace_gcc.py` observes actual quantities and decisions. Per-pseudo priority ratios do not rank local quantities. `CODEGEN_MODEL.md` §10.5. |
 | `reorder` | `.sched` `.sched2` `.dbr` | Check dependency release, ready-list ranking, actual/potential hazard selection, then delay-slot handling. The comparator alone does not select the instruction. |
 | load survives `.greg`, becomes copy in `.sched2` | `reload_cse_regs`, then `.sched2` | Post-reload CSE runs between those dumps. Trace the substitution before changing scheduler barriers. |
 | `stack` | extra locals / frame | Split or shrink locals. |
@@ -113,7 +113,7 @@ historical and must be rebuilt with the current headers and compiler.
 The shortlist reserves room for a near-best source with fewer asm helpers and
 a verified permuter gain, then different penalty tradeoffs. Equivalent observed
 objects share one search slot. `PRIOR_SEEDS.json` carries this evidence across
-restores. Reconsider older candidates with `tools/archive_giveup.py --func FUNC
+restores. Reconsider older candidates with `tools/match/archive_giveup.py --func FUNC
 --reindex` when selection policy changes; this leaves session snapshots intact.
 
 Before an edit, record a prediction (the candidate file can be created afterward):
@@ -177,7 +177,7 @@ for sched1 tie-breaking, `combine.c` and `cse.c` for folding and operand order.
 **Never fetch compiler source over the network, and never read another GCC
 version.** Nine such fetches in one sweep pulled 2.95.3 four times: seven years
 newer, different scheduler and CSE, and nothing here catches a conclusion drawn
-from it. If neither path exists, run `tools/fetch_gcc_source.sh`, or work from
+from it. If neither path exists, run `tools/match/fetch_gcc_source.sh`, or work from
 the dumps instead.
 
 Prefer the dumps first regardless: they say what the compiler did to *this*
@@ -186,7 +186,7 @@ function, which is the question. The source only says what it does in general.
 When dumps omit a decisive quantity or reload transition, run from the root:
 
 ```
-python3 tools/trace_gcc.py <scratch>/base_N.i --output-dir /tmp/gcc-observation --function $functionName --regs 138 425 --uids 1228
+python3 tools/match/trace_gcc.py <scratch>/base_N.i --output-dir /tmp/gcc-observation --function $functionName --regs 138 425 --uids 1228
 ```
 
 Use this compilation's pseudo/UID numbers and a new output directory. Archived
@@ -218,7 +218,7 @@ add `do/while` wrappers or extra braces. Register asm remains a separate pin.
 Once a primary reaches 95%, ask the search router to assess it and alternatives:
 
 ```
-python3 tools/vacuum_permute.py --func $functionName --scratch <scratch> --timeout 360 --jobs 4
+python3 tools/match/vacuum_permute.py --func $functionName --scratch <scratch> --timeout 360 --jobs 4
 ```
 
 It rebuilds up to three distinct unpinned candidates, including promising lower
@@ -293,7 +293,7 @@ does not prevent landing a verified match. Concluding closes the scratch build
 allowance. Before cleanup, including after success, run from the project root:
 
 ```
-python3 tools/archive_giveup.py --func $functionName --scratch <scratch> --permuter-findings
+python3 tools/match/archive_giveup.py --func $functionName --scratch <scratch> --permuter-findings
 ```
 
 Vacuum also does this automatically, including copying worktree findings to
@@ -309,7 +309,7 @@ Overlays in a family share a lot of code — 44% of the room functions are still
 copies of another room's. Before matching one, check:
 
 ```
-python3 tools/overlay_dup_index.py find <function>
+python3 tools/bulk/overlay_dup_index.py find <function>
 ```
 
 If it reports copies, the body is worth matching **once**: put it in
@@ -318,7 +318,7 @@ shared symbol to each sharer's `configs/USA/sym/<family>/<overlay>.txt`, and one
 object is linked into every overlay that uses it. `=` in that listing means the
 copies are byte-identical, `~` means the same body at a different link offset.
 
-`python3 tools/overlay_dup_index.py promote <function>` writes the manifest
+`python3 tools/bulk/overlay_dup_index.py promote <function>` writes the manifest
 spans and symbols and says which C to move where. Add `--run` when the
 neighbouring functions are shared by the same overlays too: it promotes the run
 of functions every carrier holds in the same order as one unit, since an
@@ -357,11 +357,11 @@ functions have been lost this way.
 
 If a step genuinely requires deleting and re-splitting a file — a `rodata` cut is
 the usual reason — snapshot what it holds first (`bodies_of()` in
-`tools/land_overlay.py` lists every C definition) and put those bodies back
+`tools/vacuum/land_overlay.py` lists every C definition) and put those bodies back
 afterwards. Reconstructing from the pre-change source beats starting from the
 regenerated skeleton.
 
-The unscoped `./tools/build-and-verify.sh` now runs `tools/check_lost_matches.py`
+The unscoped `./tools/build-and-verify.sh` now runs `tools/check/check_lost_matches.py`
 and fails if any function with a `matched` commit has reverted to `INCLUDE_ASM`
 while its overlay still owns a `.s`. Do not commit through that failure -
 recover the body from its matching commit.

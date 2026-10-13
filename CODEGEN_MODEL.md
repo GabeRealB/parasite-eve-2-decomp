@@ -13,7 +13,7 @@ An exact scratch score still requires integration and build verification.
 
 It sits beside `DECOMPILATION_LEARNINGS.md` deliberately: that file is the
 corpus of instances, this one is the model they are instances of. Read this
-first, then use `python3 tools/learn.py <terms>` to pull the specific entries
+first, then use `python3 tools/match/learn.py <terms>` to pull the specific entries
 the model does not settle.
 
 ---
@@ -233,8 +233,8 @@ work because the C can be perfect and still not land.
   table, so a table sitting behind other data gets padded to the wrong address.
   Measured across the tree: 580 tables are correctly owned but not at the start
   of their block.
-- `tools/rodata_triage.py <overlay>` reports both conditions;
-  `tools/rodata_cut.py <overlay> --apply` fixes ownership.
+- `tools/bulk/rodata_triage.py <overlay>` reports both conditions;
+  `tools/bulk/rodata_cut.py <overlay> --apply` fixes ownership.
 
 Symptom to recognise early: a match that reaches 100.00% with all-zero penalties
 in the scratch env and still fails the scoped build.
@@ -752,7 +752,7 @@ a final source should explain the needed lifetime naturally.
 From the project root, after `dump.sh` has produced a preprocessed input:
 
 ```sh
-python3 tools/trace_gcc.py nonmatchings/FUNC/base_N.i \
+python3 tools/match/trace_gcc.py nonmatchings/FUNC/base_N.i \
   --output-dir /tmp/gcc-observation --function FUNC --regs 138 425 \
   --uids 1228
 ```
