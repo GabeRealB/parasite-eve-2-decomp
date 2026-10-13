@@ -515,7 +515,6 @@ match PLATFORM:
         AS = BINUTILS_DIR / f"{CROSS_TARGET}-as.exe"
         LD = BINUTILS_DIR / f"{CROSS_TARGET}-ld.exe"
         OBJCOPY = BINUTILS_DIR / f"{CROSS_TARGET}-objcopy.exe"
-        OBJDUMP = BINUTILS_DIR / f"{CROSS_TARGET}-objdump.exe"
         CPP = OS_DIR / "mcpp" / "mcpp.exe"
         CC = OS_DIR / "gcc-psx" / "cc1psx.exe"
         DUMPSXISO = MKPSXISO_DIR / "dumpsxiso.exe"
@@ -525,7 +524,6 @@ match PLATFORM:
         AS = f"{CROSS_TARGET}-as"
         LD = f"{CROSS_TARGET}-ld"
         OBJCOPY = f"{CROSS_TARGET}-objcopy"
-        OBJDUMP = f"{CROSS_TARGET}-objdump"
         CPP = f"{CROSS_TARGET}-cpp"
         CC = OS_DIR / "gcc-2.8.1-psx" / "cc1"
         DUMPSXISO = MKPSXISO_DIR / "dumpsxiso"
@@ -535,7 +533,6 @@ match PLATFORM:
         AS = f"{CROSS_TARGET}-as"
         LD = f"{CROSS_TARGET}-ld"
         OBJCOPY = f"{CROSS_TARGET}-objcopy"
-        OBJDUMP = f"{CROSS_TARGET}-objdump"
         CPP = "mcpp"
         CC = OS_DIR / "gcc-2.8.1-psx" / "cc1"
         DUMPSXISO = MKPSXISO_DIR / "dumpsxiso"
@@ -579,7 +576,6 @@ CC_FLAGS = f"{OPT_FLAGS} -mips1 -mcpu=3000 -w -funsigned-char -fpeephole -ffunct
 AS_FLAGS = (
     f"{ENDIAN} {INCLUDE_FLAGS} {OPT_FLAGS} -march=r3000 -mtune=r3000 -no-pad-sections"
 )
-OBJDUMP_FLAGS = "--disassemble-all --reloc --disassemble-zeroes -Mreg-names=32"
 
 TARGETS_POSTBUILD = ["main"]
 
@@ -1106,11 +1102,6 @@ def ninja_build(
         description="cpp $in",
         command=f"{CPP} -P -MMD -MP -MT $out -MF $out.d {CPP_FLAGS} $VERSION $SKIPASMFLAG $NONMATCHINGFLAG $PKGID -o $out $in",
         depfile="$out.d",
-    )
-    ninja_rules_file.rule(
-        "objdump",
-        description="objdump $in",
-        command=shell(f"{OBJDUMP} {OBJDUMP_FLAGS} $in > $out"),
     )
     ninja_rules_file.rule(
         "maspsx",
