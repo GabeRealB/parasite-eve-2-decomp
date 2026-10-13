@@ -354,6 +354,12 @@ def shell(command: str) -> str:
     as arguments; elsewhere ninja runs every command through /bin/sh already."""
     return f"cmd.exe /c {command}" if PLATFORM == Platform.Windows else command
 
+
+def quote(argument: str) -> str:
+    """One argument of a rule's command, quoted for whatever will split the line: /bin/sh,
+    or on Windows the program's own parsing, which knows double quotes and not single."""
+    return subprocess.list2cmdline([argument]) if PLATFORM == Platform.Windows else shlex.quote(argument)
+
 # Sub-directories
 match PLATFORM:
     case Platform.Windows:
@@ -662,7 +668,7 @@ def package_define_flags(target_path: str) -> str:
     rel = re.sub(r"^build/[^/]+/", "", rel)
     for prefix, defines in package_defines().items():
         if rel.startswith(prefix):
-            return " ".join(shlex.quote(f"-D{k}={v}") for k, v in sorted(defines.items()))
+            return " ".join(quote(f"-D{k}={v}") for k, v in sorted(defines.items()))
     return ""
 
 
@@ -1209,7 +1215,7 @@ def ninja_build(
             writer.build(
                 outputs=str(inc), rule="asset-inc", inputs=str(raw),
                 implicit=[str(GEN_ASSET_INC)] + ([str(GEN_MODEL_INC)] if width == "TmdBone" else []),
-                variables={"width": shlex.quote(str(width))},
+                variables={"width": quote(str(width))},
             )
         ASSET_INC_OUTPUTS.append(str(inc))
     for raw, outputs, load, source, name in model_includes(version):
@@ -1227,7 +1233,7 @@ def ninja_build(
                 outputs=[str(inc) for inc in outputs], rule="collision-inc", inputs=str(raw),
                 implicit=[str(GEN_COLLISION_INC)],
                 variables={"load": hex(load), "source": hex(source),
-                           "pieces": " ".join(f"'{p}'" for p in pieces)},
+                           "pieces": " ".join(quote(str(p)) for p in pieces)},
             )
         ASSET_INC_OUTPUTS.extend(str(inc) for inc in outputs)
     for raw, outputs, load, source in animation_includes(version):
