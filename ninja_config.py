@@ -219,7 +219,6 @@ BUILD_DIR = Path("build")
 PERMUTER_DIR = Path("permuter")
 # The shared library every family links. Its units are `libsrc` subsegments:
 # C compiled from here, while their asm stays under the linking family.
-LIB_SRC_DIR = Path("src/lib")
 LIB_SPLAT_EXT = TOOLS_DIR / "splat_ext" / "libsrc.py"
 GEN_ASSET_INC = TOOLS_DIR / "buildsteps" / "gen_asset_inc.py"
 GEN_MODEL_INC = TOOLS_DIR / "buildsteps" / "gen_model_inc.py"
@@ -500,7 +499,6 @@ match PLATFORM:
 
 OBJDIFF_GENSCRIPT = OBJDIFF_DIR / "objdiff_generate.py"
 OBJDIFF_TARGET_ASM = OBJDIFF_DIR / "target_asm.py"
-POSTBUILD = f"{PYTHON} {TOOLS_DIR / 'buildsteps' / 'postbuild.py'}"
 
 # Compilation flags (General)
 INCLUDE_FLAGS = f"-Iinclude -I {BUILD_DIR} -I {BUILD_DIR}/include -Iinclude/psyq -Iinclude/decomp"
@@ -537,7 +535,6 @@ AS_FLAGS = (
     f"{ENDIAN} {INCLUDE_FLAGS} {OPT_FLAGS} -march=r3000 -mtune=r3000 -no-pad-sections"
 )
 
-TARGETS_POSTBUILD = ["main"]
 
 
 def compile_commands_entry(
@@ -783,28 +780,6 @@ def align_main_bss() -> None:
         dest.write_text(text.replace(wrong, ".main_bss (NOLOAD) : SUBALIGN(8)", 1), encoding="utf-8")
 
 
-def fix_title_linker_rodata_order() -> None:
-    """Keep header rodata before title.c jtables after splat.
-
-    The `.rodata, title` sibling (jtables @ 0x5C) makes splat emit
-    `title.c.o(.rodata)` first. Linked order must stay title_rodata then title.
-    """
-    dest = Path("linkers/USA/title.ld")
-    if not dest.is_file():
-        return
-    text = dest.read_text(encoding="utf-8")
-    wrong = (
-        "        build/USA/src/title/title.c.o(.rodata);\n"
-        "        build/USA/src/title/title_rodata.c.o(.rodata);\n"
-    )
-    right = (
-        "        build/USA/src/title/title_rodata.c.o(.rodata);\n"
-        "        build/USA/src/title/title.c.o(.rodata);\n"
-    )
-    if wrong in text:
-        dest.write_text(text.replace(wrong, right, 1), encoding="utf-8")
-
-
 def append_main_overlay_imports() -> None:
     """Main TUs call overlay APIs; splat 0.50 omits some as undef funcs.
 
@@ -937,17 +912,16 @@ def append_overlay_absolute_imports(basename: str, imports_path: str | None = No
     dest.write_text(text.rstrip() + "\n" + "\n".join(extra) + "\n", encoding="utf-8")
 
 
-def append_title_absolute_imports() -> None:
-    append_overlay_absolute_imports("title")
-
-
-def fix_overlay_include_asm_paths(basename: str, src_dir: str | None = None) -> None:
+def fix_overlay_include_asm_paths(sources: list[str]) -> None:
     """splat 0.50 emits INCLUDE_ASM(\"asm/USA/...\"). Project macro already
-    prefixes asm/USA/, so strip the extra directory from generated C."""
-    src_dir_path = Path(src_dir or f"src/{basename}")
-    if not src_dir_path.is_dir():
-        return
-    for path in src_dir_path.rglob("*.c"):
+    prefixes asm/USA/, so strip the extra directory from generated C.
+
+    Only a source splat has just created holds such a line, and it creates one
+    only for a unit of the image being split - `sources`, that image's own C
+    files."""
+    for path in map(Path, sources):
+        if not path.is_file():
+            continue
         text = path.read_text(encoding="utf-8")
         new = text.replace('INCLUDE_ASM("asm/USA/', 'INCLUDE_ASM("')
         new = new.replace('INCLUDE_RODATA("asm/USA/', 'INCLUDE_RODATA("')
@@ -966,7 +940,7 @@ def write_scoped_checksum(version_dir: str, names: list[str], exe_name: str) -> 
     lines = []
     for line in full.read_text(encoding="utf-8").splitlines():
         parts = line.split()
-        if len(parts) == 2 and Path(parts[1]).name.removesuffix(".fix") in wanted:
+        if len(parts) == 2 and Path(parts[1]).name in wanted:
             lines.append(line)
     if not lines:
         print("ERROR: scoped build matched no checksum.sha entries")
@@ -1083,11 +1057,6 @@ def ninja_build(
         )
 
     ninja_rules_file.rule(
-        "postbuild",
-        description="postbuild script $in",
-        command=f"{POSTBUILD} $in",
-    )
-    ninja_rules_file.rule(
         "asset-inc",
         description="asset-inc $out",
         command=f"{PYTHON} {GEN_ASSET_INC} $in $out $width",
@@ -1110,7 +1079,10 @@ def ninja_build(
     version = GAME_VERSIONS[game_version_idx].version_name
     from tools.buildsteps.gen_overlay_configs import serialized_bss_tail, slot_packages
 
-    serialized_bss_sizes = {}
+    # Images whose file is longer than what the linker lays out, by the length
+    # the file has to reach. The executable is one: a PS-X EXE is padded to a
+    # whole number of 2048-byte sectors, and the padding is not a section.
+    padded_sizes = {"main": (ASSETS_DIR / version / "main.exe").stat().st_size}
     overlay_manifest = tomllib.loads((CONFIG_DIR / version / "overlays.toml").read_text())
     for spec in overlay_manifest.values():
         for package, slot, entry in slot_packages(spec):
@@ -1118,7 +1090,7 @@ def ninja_build(
             if any("bss_size" in obj for obj in objects):
                 raw = (ASSETS_DIR / version / "pe2pkg" / f"{package}.pe2pkg").read_bytes()
                 serialized_bss_tail(package, objects, raw)
-                serialized_bss_sizes[package] = len(raw)
+                padded_sizes[package] = len(raw)
     ASSET_INC_OUTPUTS.clear()
     # Matching and nonmatching C builds are separate Ninja graphs. Both must
     # be able to generate their resource includes from an empty build tree.
@@ -1337,21 +1309,11 @@ def ninja_build(
             inputs=f"{output}.elf",
             implicit=f"{output}.elf",
             variables=(
-                {"pad_to": f"--pad-to=0x{serialized_bss_sizes[split_config.split_basename]:X}"}
-                if split_config.split_basename in serialized_bss_sizes else {}
+                {"pad_to": f"--pad-to=0x{padded_sizes[split_config.split_basename]:X}"}
+                if split_config.split_basename in padded_sizes else {}
             ),
         )
-
-        if split_config.split_basename in TARGETS_POSTBUILD:
-            ninja_file.build(
-                outputs=f"{output}.fix",
-                rule="postbuild",
-                inputs=output,
-                implicit=[output, str(TOOLS_DIR / "buildsteps" / "postbuild.py")],
-            )
-            checksum_build_requirements += [str(s) for s in [f"{output}.fix"]]
-        else:
-            checksum_build_requirements += [str(s) for s in [output]]
+        checksum_build_requirements.append(str(output))
 
     if objdiff_mode:
         ninja_diff_file.build(
@@ -1573,21 +1535,22 @@ def split_one(job: tuple) -> YamlInfo:
         sys.stderr.write(log_path.read_text(encoding="utf-8", errors="replace")[-4000:])
         raise
 
+    own_c_sources = sorted({
+        str(entry.src_paths[0]) for entry in split.linker_writer.entries
+        if entry.segment.type in C_SEGMENT_TYPES and entry.src_paths
+    })
     if yaml == "main.yaml":
         align_main_bss()
     elif yaml == "title.yaml":
-        fix_title_linker_rodata_order()
         append_overlay_absolute_imports("title")
     elif yaml == "gameplay.yaml":
         append_overlay_absolute_imports("gameplay")
-        fix_overlay_include_asm_paths("gameplay")
+        fix_overlay_include_asm_paths(own_c_sources)
     elif yaml in overlay_family and overlay_family[yaml] != core_family:
         family = overlay_family[yaml]
         basename = overlay_basename[yaml]
         append_overlay_absolute_imports(basename, family_imports.get(family))
-        fix_overlay_include_asm_paths(basename, f"src/{family}")
-        # splat also creates a missing library unit, in the shared directory.
-        fix_overlay_include_asm_paths(basename, str(LIB_SRC_DIR))
+        fix_overlay_include_asm_paths(own_c_sources)
         seg = split.config["segments"][0]
         text_sub = next(
             (s for s in seg.get("subsegments", [])
