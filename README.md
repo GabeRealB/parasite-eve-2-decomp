@@ -122,7 +122,7 @@ This pulls in:
 - [asm-differ](https://github.com/simonlindholm/asm-differ) — instruction-level diffs
 - [decomp-permuter](https://github.com/simonlindholm/decomp-permuter) — match search via code mutation
 
-The original PSX GCC 2.8.1 / 2.7.2 compilers ship under `tools/linux/` (and equivalents for Windows/macOS).
+The original PSX GCC 2.8.1 compiler ships under `tools/linux/` (and equivalents for Windows/macOS).
 
 ## Obtaining game files
 

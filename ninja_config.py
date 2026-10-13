@@ -518,7 +518,6 @@ match PLATFORM:
         OBJDUMP = BINUTILS_DIR / f"{CROSS_TARGET}-objdump.exe"
         CPP = OS_DIR / "mcpp" / "mcpp.exe"
         CC = OS_DIR / "gcc-psx" / "cc1psx.exe"
-        CC272 = OS_DIR / "gcc-2.7.2-win" / "cc1psx.exe"
         DUMPSXISO = MKPSXISO_DIR / "dumpsxiso.exe"
 
     case Platform.Linux:
@@ -529,7 +528,6 @@ match PLATFORM:
         OBJDUMP = f"{CROSS_TARGET}-objdump"
         CPP = f"{CROSS_TARGET}-cpp"
         CC = OS_DIR / "gcc-2.8.1-psx" / "cc1"
-        CC272 = OS_DIR / "gcc-2.7.2-cdk" / "cc1"
         DUMPSXISO = MKPSXISO_DIR / "dumpsxiso"
 
     case Platform.MacOS:
@@ -540,7 +538,6 @@ match PLATFORM:
         OBJDUMP = f"{CROSS_TARGET}-objdump"
         CPP = "mcpp"
         CC = OS_DIR / "gcc-2.8.1-psx" / "cc1"
-        CC272 = OS_DIR / "gcc-2.7.2-cdk" / "cc1"
         DUMPSXISO = MKPSXISO_DIR / "dumpsxiso"
 
 OBJDIFF_GENSCRIPT = OBJDIFF_DIR / "objdiff_generate.py"
@@ -1103,11 +1100,6 @@ def ninja_build(
         "cc",
         description="cc $in",
         command=f"{CC} {CC_FLAGS} $DLFLAG -o $out $in",
-    )
-    ninja_rules_file.rule(
-        "cc272",
-        description="cc272 $in",
-        command=f"{CC272} {CC_FLAGS} $DLFLAG -o $out $in",
     )
     ninja_rules_file.rule(
         "cpp",
