@@ -44,7 +44,7 @@ MACRO = re.compile(r'\b(SCHED_BARRIER|SOFT_BARRIER|SOFT_COMPILER_BARRIER|COMPILE
 # `extern T name __asm__("symbol+offset");`: a declaration bound to another symbol's storage.
 ALIAS = re.compile(r'^[^=(]*\b(?:asm|__asm__)\s*\(\s*"[A-Za-z_.$][\w.$]*(?:\s*\+\s*\w+)?"\s*\)\s*;')
 COMMENT = re.compile(r'//[^\n]*|/\*.*?\*/', re.S)
-EXEMPT = ("include/psyq/", "include/decomp/gte.h", "include/decomp/common.h", "include/include_asm.h")
+EXEMPT = ("include/psyq/", "include/decomp/gte.h", "include/decomp/common.h")
 
 
 def code(text: str) -> str:

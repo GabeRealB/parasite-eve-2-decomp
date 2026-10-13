@@ -1235,9 +1235,8 @@ gameplay effect table and keeps the puff drawer private; rendering constants
 use `MAIN_STREET_PUFF_`.
 
 `junkYard` owns the included progress-dependent junk-yard dialogue commands;
-`motelRoom6` owns the paired rooms' cutscene trigger. Their private fragments
-are described in `src/shared/junk_yard.h` and `src/shared/motel_room_6.h`;
-carriers declare their static message callbacks in their source prologues.
+`motelRoom6` owns the paired rooms' cutscene trigger; its private fragments
+are described in `src/shared/motel_room_6.h`. Carriers declare their static message callbacks in their source prologues.
 Their command constants use `JUNK_YARD_` and `MOTEL_ROOM_6_`.
 
 `shelterElevator` owns the included elevator floor-selection task shared by the

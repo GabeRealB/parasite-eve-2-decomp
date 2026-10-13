@@ -52,7 +52,7 @@ AS_FLAGS="$ENDIAN $INCLUDE_FLAGS $OPT_FLAGS -march=r3000 -mtune=r3000 -no-pad-se
 OBJDUMP_FLAGS="--disassemble-all --reloc --disassemble-zeroes -Mreg-names=32"
 trap 'status=$?; if (( status != 0 )); then python3 "$SCRIPT_PATH/attempt.py" record "$INPUT" --project "$PROJECT_ROOT" --compiler "$CC" --flags "$CC_FLAGS" --failure "$status" || true; fi' EXIT
 
-# Compile from project root so assembler can find include/labels.inc
+# Compile from project root so assembler can find include/macro.inc
 pushd "$PROJECT_ROOT" > /dev/null
 
 # Run cpp

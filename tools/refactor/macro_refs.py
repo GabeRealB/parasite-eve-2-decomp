@@ -183,7 +183,7 @@ class Inventory:
                     params = set(re.findall(IDENT, match[2] or ""))
                     # A guard is the empty first definition following its test.
                     is_guard = name == guard and not match[2] and not match[3].strip() and len(directives) > 1 and directive == directives[1]
-                    excluded = is_guard or file == "include/include_asm.h" or (
+                    excluded = is_guard or (
                         file.startswith("include/decomp/") and not (file == "include/decomp/common.h" and name in COMMON_HELPERS))
                     self.metadata.setdefault(key, {"file": file, "line": site.line, "spelling": name,
                                                    "excluded": excluded, "configuration": False})

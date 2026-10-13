@@ -18,7 +18,7 @@
 #   - include/main/**/*.{c,h}
 # Skips:
 #   - include/psyq/**
-#   - headers/macros at include/ root (include_asm.h, macro.inc, …)
+#   - headers/macros at include/ root (macro.inc, …)
 
 set -euo pipefail
 
