@@ -465,7 +465,8 @@ def project(cfg):
     if exe.is_file():                                # a PS-X EXE: its load address at 0x18, its code after a 0x800-byte header
         with exe.open("rb") as handle:
             load = struct.unpack_from("<I", handle.read(0x20), 0x18)[0]
-        image("main", load, exe, maps.get("main", ()), skip=0x800, start=True)
+        # Its zeroed storage runs on after the file's bytes, up to where gameplay loads: the save images are there.
+        image("main", load, exe, maps.get("main", ()), skip=0x800, start=True, size=0x80093800 - load)
     loads = {"gameplay": 0x80093800, "title": 0x80093800}       # the title screen's program takes gameplay's place
     loads.update(asset_residency.package_loads(tomllib.loads((REPO / "configs" / "USA" / "overlays.toml").read_text())))
     for name, load in loads.items():
@@ -501,12 +502,13 @@ FRAME_START = "padUpdatePort0"       # the first thing the main loop does each f
 
 def anywhere(trace) -> str | None:
     """Why the place the game is stopped at will not do even for a call that only reads or writes one value, or
-    None when it will: it has to be the game's own code, not a delay slot, and with interrupts on."""
+    None when it will: it has to be the game's own code, with interrupts on, and not a delay slot (from which no
+    call can be made at all)."""
     at = trace.where()
     if at["image"] is None:
         return f"the game is not in its own code ({at['symbol']})"
     if at["delay_slot"]:
-        return "the game is in a delay slot"
+        return "the game stands in a delay slot"
     if at["interrupts"] is False:
         return "interrupts are off (an interrupt handler, or something that must not be disturbed)"
     return None
@@ -537,8 +539,14 @@ def flag_command(trace, text):
     if len(parts) > 1 and not 0 <= int(parts[1], 0) <= 15:
         return "a flag holds 0..15"
     # The flag functions read or write one nibble, so they may be called wherever the game stands - short of the
-    # places no call can be made from, and of being inside one of them. From those the game goes to the frame start.
-    reason = anywhere(trace)
+    # places no call can be made from, and of being inside one of them. A delay slot is left by stepping; from
+    # the others the game goes to the frame start. A call leaves the game exactly where it was, so the place is
+    # judged once.
+    for _ in range(3):                               # out of a delay slot: one instruction on, the game has taken its jump
+        if not trace.where()["delay_slot"]:
+            break
+        trace.step()
+    reason = anywhere(trace)                         # wherever that left it - a step is also where an interrupt gets in
     if reason is None and any(trace.where()["symbol"].startswith(f) for f in ("gameFlagGetNibble+", "gameFlagSetNibble+")):
         reason = "the game is inside a flag function"
     if reason:
@@ -549,3 +557,158 @@ def flag_command(trace, text):
         return f"{name} is {before}"
     trace.call("gameFlagSetNibble", ident, int(parts[1], 0))
     return f"{name}: {before} -> {trace.call('gameFlagGetNibble', ident)}"
+
+
+# ---- states: the whole saved game, kept in a file and put back
+#
+# Everything the game keeps between rooms is in the images a memory-card save is made from (`_gMcSaveSections`,
+# src/main/mc.c): the save record, the player's status and the flag banks, 3,404 bytes. They are the game's working
+# state, not a copy: play reads and writes them. So a state is those bytes, and loading one is what the game does
+# after reading a card - or for an attract demo, which is the same thing with a stored state.
+
+STATES = REPO / "local" / "gametrace" / "states"
+SECTIONS = ["card file header", "save", "player", "acropolis", "dryfield", "dryfield_night", "mine_shelter", "neo_ark", "flags"]
+GAME_MODE, GAME_MODE_RESTART = 0x11E, 1      # DisplayState.gameMode: the main loop reinitialises the game when it reads 1
+PENDING_POSITION = 0x101                     # DisplayState.control.flags.pendingPlayerPos: the room start puts the player where the state has her
+TITLE_SPAWN = ("bootReloadTitleTask", 0xCC)  # where the title's files are loaded after a restart and its own startup is about to be spawned
+LAUNCH_SESSION = (0, 3, 1)                   # taskSpawn(bank 0, slot 3, 1): gameFlowLaunchSessionTask, told to keep the save images as they are
+PLAYER_SLOT = 3                              # GAME_TASK_SLOT_PLAYER
+
+
+def save_sections(trace) -> list[tuple[str, int, int]]:
+    """(name, address, length) of each saved section's live copy, from the game's own table; its backup follows it."""
+    table = trace.read(trace.address("_gMcSaveSections"), 12 * len(SECTIONS))
+    rows = [struct.unpack_from("<3I", table, 12 * n) for n in range(len(SECTIONS))]
+    return [(SECTIONS[n], buffer, length) for n, (buffer, length, _sectors) in enumerate(rows) if n]       # not the card's file header
+
+
+def state_files() -> list:
+    return sorted(STATES.glob("*.json")) if STATES.is_dir() else []
+
+
+def describe(state: dict) -> str:
+    at = state.get("location", {})
+    return f"{state.get('room') or 'stage %s area %s' % (at.get('stage'), at.get('area'))}, view {at.get('view')}, variant {at.get('variant')}; made {state.get('made', '?')}"
+
+
+@command("state")
+def state_command(trace, text):
+    """state save NAME | load [NAME] | list   keep the whole saved game in a file, or restart the game into one"""
+    import datetime
+    import json
+    word, _, name = text.strip().partition(" ")
+    name = name.strip()
+    if word == "list" or not word:
+        return "\n".join(f"{path.stem:<24} {describe(json.loads(path.read_text()))}" for path in state_files()) or f"no states yet (they are kept in {STATES})"
+    if word == "save":
+        if not name:
+            return "state save NAME"
+        if struct.unpack("<I", trace.read(0x80093800, 4))[0] != next((i for i, n in package_ids().items() if n == "gameplay"), -1):
+            return "nothing to save: the game is not in play (gameplay is not in memory)"
+        at_frame_start(trace)                        # the player's position is taken from her model: between frames, not while it moves
+        if not trace.call("gameGetTaskSlot", PLAYER_SLOT):
+            return "nothing to save: there is no player in the world just now"
+        trace.call("playerCaptureSaveState")         # what a telephone does before saving: position, experience, BP
+        parts = save_sections(trace)
+        session = trace.address("_gGameSessionState")
+        location = trace.read(session + 4, 8)
+        trace.poke(parts[0][1] + 4, location)        # the save record's location is where the session is now, as a save here would have it
+        state = {"made": datetime.datetime.now().isoformat(timespec="seconds"), "location": location_of(location),
+                 "room": room_of(location[3], location[2]), "sections": {n: trace.read(address, length).hex() for n, address, length in parts}}
+        STATES.mkdir(parents=True, exist_ok=True)
+        (STATES / f"{name}.json").write_text(json.dumps(state, indent=1) + "\n")
+        trace.note(f"state saved: {name} ({describe(state)})", state=name)
+        return f"saved {name}: {describe(state)}"
+    if word == "load":
+        if not name:
+            name = trace.choose("which state", [(path.stem, describe(json.loads(path.read_text()))) for path in state_files()])
+            if name is None:
+                return "nothing done"
+        path = STATES / f"{name}.json"
+        if not path.is_file():
+            return f"no state called {name} (see `state list`)"
+        state = json.loads(path.read_text())
+        parts = save_sections(trace)
+        if any(len(bytes.fromhex(state["sections"].get(n, ""))) != length for n, _a, length in parts):
+            return f"{name} does not fit this game's save images: not loaded"
+        site = trace.address(TITLE_SPAWN[0]) + TITLE_SPAWN[1]
+        want = 0x0C000000 | ((trace.address("taskSpawnFromTable") >> 2) & 0x03FFFFFF)
+        if struct.unpack("<I", trace.read(site, 4))[0] != want:
+            return "the place where a restart starts the title is not where it is expected: not loaded"
+        display = trace.address("gDisplayState")
+        # 1. The game's own way out of a session, from anywhere: the main loop reinitialises everything.
+        trace.poke(display + GAME_MODE, bytes([GAME_MODE_RESTART]))
+        trace.say(f"restarting the game into {name}: {describe(state)}")
+        # 2. It reloads the title's file - the font, its palette and the common sound bank are in it, and a restart
+        #    clears them - and is about to spawn the title's startup. That is as early as a session can begin.
+        trace.run_to(site)
+        # 3. The state goes into the save images, live copy and backup, where nothing resets them any more.
+        for section, address, length in parts:
+            data = bytes.fromhex(state["sections"][section])
+            trace.poke(address, data)
+            trace.poke(address + length, data)
+        # 4. In place of the title: the session launch task, told to keep the save images (what a card load ends in).
+        #    One thing the title screen does for everything after it has to be done here: the font's palettes are
+        #    uploaded by it, from the main program's own data, and the restart cleared them.
+        trace.set_registers(pc=site + 8)
+        trace.call("textUploadPalettes")
+        trace.call("taskSpawn", *LAUNCH_SESSION, 0)
+        # 5. The launch clears the "put the player where the save has her" request; it is made again where the room
+        #    starts and reads it.
+        trace.run_to("areaStartRoomRuntime")
+        trace.poke(display + PENDING_POSITION, b"\x01")
+        trace.note(f"state loaded: {name} ({describe(state)})", state=name)
+        return f"loaded {name}"
+    return "state save NAME | load [NAME] | list"
+
+
+def location_of(data: bytes) -> dict:
+    return location(data)
+
+
+# ---- the player's numbers
+#
+# They are plain values in the player's status (PlayerStatus, include/main/wipsys_types.h), which the game reads
+# every frame, so they are read and written as memory: no call into the game, and so from wherever it is stopped.
+
+PLAYER_NUMBERS = {      # name -> (offset in gPlayerStatus, struct format, offset of its maximum or None, what it is)
+    "hp": (0x18, "<h", 0x1A, "hit points"),
+    "mp": (0x1C, "<h", 0x1E, "Parasite Energy points"),
+    "exp": (0x08, "<i", None, "unspent experience"),
+    "bp": (0x0C, "<i", None, "bounty points"),
+}
+
+
+def player_number(which: str):
+    offset, form, most, about = PLAYER_NUMBERS[which]
+    size = struct.calcsize(form)
+
+    def run(trace, text):
+        status = trace.address("gPlayerStatus")
+        now = struct.unpack(form, trace.read(status + offset, size))[0]
+        limit = struct.unpack("<h", trace.read(status + most, 2))[0] if most is not None else None
+        of = f" of {limit}" if limit is not None else ""
+        word = text.strip().lower()
+        if not word:
+            return f"{which} is {now}{of}"
+        if word == "max" and limit is not None:
+            value = limit
+        else:
+            try:
+                value = int(word, 0)
+            except ValueError:
+                return f"{which} [NUMBER" + (" | max]" if limit is not None else "]")
+        low, high = (-(1 << (8 * size - 1)), (1 << (8 * size - 1)) - 1)
+        if not low <= value <= high:
+            return f"{which} holds {low}..{high}"
+        trace.poke(status + offset, struct.pack(form, value))
+        trace.note(f"{which} set to {value} (was {now})", player=which, value=value, was=now)
+        return f"{which}: {now} -> {value}{of}" + (f"   (above its maximum of {limit}: the game may bring it down)" if limit is not None and value > limit else "")
+
+    run.__doc__ = f"{which} [NUMBER{' | max' if most is not None else ''}]   show the player's {about}, or set them"
+    return run
+
+
+for _name in PLAYER_NUMBERS:
+    command(_name)(player_number(_name))
+

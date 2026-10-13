@@ -79,10 +79,10 @@ times. Every event takes part unless it says `collapse = false` or has a handler
 ends the run, so it keeps its exact place.
 
 The tracer can also act on the game, through commands. It only gives the means and judges nothing: where the
-game is stopped (`registers`, `where`), `step` and `run_to`, memory to read and `poke`, MIPS source assembled
+game is stopped (`registers`, `where`), `step` and `run_to`, registers to set (`set_registers`), memory to read and `poke`, MIPS source assembled
 into free memory (`inject`, `free`), and `hook` / `unhook` to send the game there from any instruction. `call`
-puts those together to have the game call one of its own functions from where it stands and give back what it
-returned; `call F A B` at the prompt is that, raw. What a place is good for is the business of whoever writes a
+has the game call one of its own functions from where it stands and gives back what it returned - the registers
+kept and put back through the debugger, the program counter set to a few injected instructions and back; `call F A B` at the prompt is that, raw. What a place is good for is the business of whoever writes a
 command: a hooks file adds commands with `@command("name")` (see `command`), each of which runs with the game
 stopped, to its end, and carries its own rules - where it may act, where it takes the game first. What is done
 this way is noted in the log, since a game that was acted on is not the game as played.
@@ -95,6 +95,8 @@ arrives in pieces as the game goes, without a stop for each sound.
 While it runs the tool takes commands on its input, each carried out with the game stopped: `pause` and `resume`
 stop and continue the game; `note TEXT` writes a line of free text into the log where the game is now (the log's
 `{"event": "note"}` lines are annotations: yours, a hook's, the tracer's own or a later tool's);
+`watch EVENT [TEXT]` shows an event's lines at the prompt as they happen (an event marked `watch = true` in the
+config is watched from the start);
 `session NAME` reads the buffer and begins a new session, which is a marker line in
 the log saying what the records after it are; `name NAME` renames the current one; `drop` marks the current session as
 dropped - its records stay in the log, since what was loaded during it is still loaded, with a marker after them -
@@ -230,6 +232,31 @@ def renderer(name: str):
     return register
 
 
+MACHINE = False          # --machine: everything said is one JSON line on standard output, for a program in front of this one
+
+
+def tell(text: str = "", kind: str = "message", **fields) -> None:
+    """Say something to whoever runs the tracer. For a person it is a line on standard error. With --machine it
+    is one JSON object on standard output, `{"kind": ..., "text": ...}` and whatever else belongs to it:
+
+        message   something the tracer says by itself: what it found, a warning
+        reply     the answer to a command
+        ask       a command waits for a line of input; `text` is its prompt
+        commands  the commands there are, in `commands`: each a `name`, its `arguments` as `help` writes them, what
+                  it is `about`, and whether it is the tracer's own or `from` a hooks file. Said once at the
+                  start, and again whenever `commands` is typed
+        choose    a command offers a list: `title`, and `options` as [name, description] pairs; the answer is a
+                  name of the list, a number into it, text to narrow it by, or an empty line to give up
+        state     `state` is waiting, running, paused or detached
+        event     an event as it is logged, in `record`; `watched` says whether it was asked for with `watch`;
+                  `repeats` counts how often the same line has now come in a row"""
+    if MACHINE:
+        sys.stdout.write(json.dumps({"kind": kind, "text": text, **fields}) + "\n")
+        sys.stdout.flush()
+    else:
+        print(text, file=sys.stderr, flush=True)
+
+
 HANDLERS: dict[str, object] = {}
 FILTERS: dict[str, object] = {}
 COMMANDS: dict[str, object] = {}
@@ -246,7 +273,7 @@ def command(name: str):
     The game is stopped while it runs, and it runs to its end before anything else can be typed. It gets the
     tracer and the rest of the line. It can talk to whoever typed it - `trace.say(text)`, `trace.ask(prompt)` for
     a line, `trace.choose(title, options)` to have one picked from a list. To act on the game it has the tracer's
-    primitives, which check nothing: `registers()`, `where()`, `step()`, `run_to(address)`, `read(address,
+    primitives, which check nothing: `registers()`, `set_registers(pc=...)`, `where()`, `step()`, `run_to(address)`, `read(address,
     length)`, `poke(address, bytes)`, `address("symbol")`, `inject(source)` / `free(labels)`, `hook(address,
     target)` / `unhook(address)`, and `call(function, a0, a1, a2, a3)` built from them. Where it is safe to act,
     and when a hook it placed may go, is the command's own to decide. `trace.note(text)` writes into the log.
@@ -256,6 +283,13 @@ def command(name: str):
         COMMANDS[name] = function
         return function
     return register
+
+
+def readable(line: dict) -> str:
+    """An event's line for reading at a prompt: its name, then what it carries."""
+    rest = {k: v for k, v in line.items() if k not in ("event", "phase") and v not in (None, "", [])}
+    phase = " return" if line.get("phase") == "exit" else ""
+    return f"{line.get('event', line.get('name', '?'))}{phase}  " + "  ".join(f"{k}={v}" for k, v in rest.items())
 
 
 def symbol_address(name: str) -> int | None:
@@ -359,11 +393,12 @@ class Image:
     `data` is the bytes, a file holding them, or a function returning them; `skip` is how much of a file comes
     before the byte that is loaded at `load` (a header). `symbols` is (address, name) pairs, a file of
     `name = 0xADDRESS;` lines, several such files, or a function returning pairs. Files are read when first needed.
+    `size` is how much memory the image takes where that is more than its bytes (a program's zeroed storage).
     `start` says the image is in memory when the tracer sets up; any other is written to only once a handler,
     `--resident` or the `resident` command has said it is there."""
 
-    def __init__(self, name: str, load: int, data, symbols=(), skip: int = 0, start: bool = False) -> None:
-        self.name, self.load, self.skip, self.start = name, load, skip, start
+    def __init__(self, name: str, load: int, data, symbols=(), skip: int = 0, start: bool = False, size: int | None = None) -> None:
+        self.name, self.load, self.skip, self.start, self.size = name, load, skip, start, size
         self._data, self._symbols, self._bytes, self._table = data, symbols, None, None
 
     @property
@@ -377,11 +412,13 @@ class Image:
 
     @property
     def end(self) -> int:
-        return self.load + len(self.bytes)
+        """Where the image ends in memory: after its bytes, or after `size` where it has more than is on disc -
+        the zeroed storage a program's file does not carry, whose symbols are the image's all the same."""
+        return self.load + (self.size if self.size is not None else len(self.bytes))
 
     def words(self, address: int, count: int) -> tuple[int, ...] | None:
         """`count` instructions at `address`, or None when the image does not hold them all."""
-        if self.load <= address and address + 4 * count <= self.end:
+        if self.load <= address and address + 4 * count <= self.load + len(self.bytes):
             return struct.unpack_from(f"<{count}I", self.bytes, address - self.load)
         return None
 
@@ -404,9 +441,9 @@ IMAGES: dict[str, Image] = {}
 INITS: list = []
 
 
-def image(name: str, load: int, data, symbols=(), skip: int = 0, start: bool = False) -> Image:
+def image(name: str, load: int, data, symbols=(), skip: int = 0, start: bool = False, size: int | None = None) -> Image:
     """Declare an image (see `Image`). For an init function; the config's [[image]] tables do the same."""
-    IMAGES[name] = Image(name, load, data, symbols, skip, start)
+    IMAGES[name] = Image(name, load, data, symbols, skip, start, size)
     return IMAGES[name]
 
 
@@ -602,35 +639,18 @@ def stub_source(cfg: dict, sites: dict) -> str:
     return "\n".join(lines)
 
 
-CALL_SAVED = ["ra", "a0", "a1", "a2", "a3", "v0", "v1", "t0", "t1", "t2", "t3", "t4", "t5", "t6", "t7", "t8", "t9"]
-
-
-def call_source(target: int, args: list[int], back: int, pokes: list) -> str:
-    """The code of one call into the game: keep the registers, call `target` with its arguments, keep what it
-    returned, put the registers back, and go on at `back` - where the game was when it was sent here."""
-    frame = 16 + 4 * len(CALL_SAVED)                   # the callee's argument area, then the registers
-    unlock = []
-    for address, value in pokes:                       # the blob's memory has to be reachable before `result` is written
-        high = ((address + 0x8000) >> 16) & 0xFFFF
-        low = (address & 0xFFFF) - (0x10000 if address & 0x8000 else 0)
-        unlock += [f"    li    $t0, {value:#010x}", f"    lui   $t2, {high:#06x}", f"    sw    $t0, {low}($t2)"]
+def call_source(target: int, args: list[int]) -> str:
+    """The code of one call into the game: load the arguments, call `target`, and stand still at `done` with what
+    it returned in v0. It keeps nothing: the registers are the debugger's to put back."""
     return "\n".join([
         "run:",
-        f"    addiu $sp, $sp, -{frame}",
-        *[f"    sw    ${name}, {16 + 4 * n}($sp)" for n, name in enumerate(CALL_SAVED)],
-        *unlock,
         *[f"    li    $a{n}, {value & 0xFFFFFFFF:#010x}" for n, value in enumerate(args)],
         f"    li    $t9, {target:#010x}",
         "    jalr  $t9",
         "    nop",
-        "    lui   $t0, %hi(result)",
-        "    sw    $v0, %lo(result)($t0)",
-        *[f"    lw    ${name}, {16 + 4 * n}($sp)" for n, name in enumerate(CALL_SAVED)],
-        f"    addiu $sp, $sp, {frame}",
         "done:",
-        f"    j     {back:#010x}",
+        "    b     done                # the tracer stops the game here; were it let run, it would stay here",
         "    nop",
-        "result: .word 0",
         "",
     ])
 
@@ -985,7 +1005,7 @@ class Gdb:
             if self.doubles is None:
                 self.doubles = second is not None and self._is_stop(second)
             elif second is None:
-                print("the server's second report of a stop did not come within half a second; going on without it", file=sys.stderr)
+                tell("the server's second report of a stop did not come within half a second; going on without it")
         while self._recv(0.005) is not None:          # anything else it sends about the same stop
             pass
 
@@ -1010,6 +1030,20 @@ class Gdb:
             self.chunk = max(0x100, min(0x4000, int(size[1], 16) // 2 - 16))
         self._send("?")
         return self._recv()
+
+    def save_registers(self) -> str:
+        """Every register as the server gives them, to hand back to `restore_registers` unchanged."""
+        return self.ask("g")
+
+    def restore_registers(self, saved: str, changed: dict[int, int] | None = None) -> None:
+        """Write every register back as `save_registers` gave them, with those of `changed` (place in the `g`
+        packet -> value) given new values. Setting the program counter this way is how the target is sent
+        somewhere: the server takes care of what its processor had already fetched."""
+        for index, value in (changed or {}).items():
+            saved = saved[:8 * index] + struct.pack("<I", value & 0xFFFFFFFF).hex() + saved[8 * index + 8:]
+        reply = self.ask("G" + saved)
+        if reply != "OK":
+            raise OSError(f"the GDB server did not take the registers ({reply!r}): it cannot be sent to run injected code")
 
     def registers(self) -> list[int]:
         """Every register of the `g` reply, in its order. A server writes one it does not have (the FPU's, on this
@@ -1290,6 +1324,9 @@ class Session:
         self.waiting = None                           # (where, since when, the event): the reader is held at a handler's record until the game stops
         self.bad_cursor = None
         self.typed = None
+        self.watched: dict[str, str] = {e["name"]: "" for e in self.events if e.get("watch")}     # event -> text its line has to contain
+        self.echoed: tuple = ("", 0)                  # the last line echoed for a watched event, and how often it has come in a row
+        self.state_now = ""
         self.count_records = 0
         self.read_by: dict[str, int] = {}             # records read while the game was "running" and while it was "stopped"
         self.late_stops = 0
@@ -1331,15 +1368,22 @@ class Session:
 
     def say(self, text: str = "") -> None:
         """Print to the prompt."""
-        print(text, file=sys.stderr, flush=True)
+        tell(text)
 
     def ask(self, prompt: str = "> ") -> str | None:
         """Print a prompt and wait for a line; the game stays stopped meanwhile. The line without its end, or
         None when the input has closed."""
         if self.typed is None:
             return None
+        if MACHINE:
+            tell(prompt, "ask")
+        else:
+            print(prompt, end="", file=sys.stderr, flush=True)
+        return self._line()
+
+    def _line(self) -> str | None:
+        """The next line typed, without its end; None when the input has closed."""
         lines, wake, woken = self.typed
-        print(prompt, end="", file=sys.stderr, flush=True)
         woken.recv(1)
         line = lines.get()
         if line is None:                              # the input closed: leave that for the main loop to find
@@ -1355,12 +1399,16 @@ class Session:
         named = [(o, "") if isinstance(o, str) else (o[0], o[1]) for o in options]
         listed = named
         while True:
-            self.say(title)
-            for n, (name, about) in enumerate(listed[:show], 1):
-                self.say(f"  {n:>3}  {name}" + (f"   {about}" if about else ""))
-            if len(listed) > show:
-                self.say(f"       ... and {len(listed) - show} more: type part of a name to narrow them")
-            answer = self.ask("a number, part of a name, or nothing to give up: ")
+            if MACHINE:                               # the program in front shows the list its own way, and answers with a line
+                tell(title, "choose", title=title, options=[[str(name), str(about)] for name, about in listed])
+                answer, show = self._line(), len(listed)
+            else:
+                self.say(title)
+                for n, (name, about) in enumerate(listed[:show], 1):
+                    self.say(f"  {n:>3}  {name}" + (f"   {about}" if about else ""))
+                if len(listed) > show:
+                    self.say(f"       ... and {len(listed) - show} more: type part of a name to narrow them")
+                answer = self.ask("a number, part of a name, or nothing to give up: ")
             if not answer:
                 return None
             if answer.isdigit() and 1 <= int(answer) <= min(len(listed), show):
@@ -1398,23 +1446,32 @@ class Session:
         regs = self.gdb.registers()
         return {**dict(zip(REGS, regs)), "status": regs[32], "lo": regs[33], "hi": regs[34], "bad": regs[35], "cause": regs[36], "pc": regs[PC]}
 
+    def set_registers(self, **values: int) -> None:
+        """Give registers new values, by name: the 32, and `status`, `lo`, `hi`, `pc`. Setting `pc` sends the game
+        to run from there."""
+        places = {**{name: n for n, name in enumerate(REGS)}, "status": 32, "lo": 33, "hi": 34, "pc": PC}
+        self.gdb.restore_registers(self.gdb.save_registers(), {places[name]: value for name, value in values.items()})
+
     def where(self) -> dict:
         """Plain facts about the place the game is stopped at, for a command to judge by:
 
             pc           the instruction it is about to run
             symbol       that address as `function+0xoffset`
             image        the image the address is in (one in memory from the start, or one said to be resident), or None
+            jump         it is a jump or a branch
             delay_slot   the instruction before it is a jump or a branch, so this one belongs to it
             interrupts   whether the status register has interrupts enabled; None when the server does not give it"""
         regs = self.gdb.registers()
         pc = regs[PC]
         homes = started() + [IMAGES[name] for name in self.residents.values() if name in IMAGES]
-        before = struct.unpack("<I", self.gdb.read(pc - 4, 4))[0]
+        before, at = struct.unpack("<2I", self.gdb.read(pc - 4, 8)) if 0x80000004 <= pc < 0x80800000 else (0, 0)
         return {"pc": pc, "symbol": self.symbol(pc), "image": next((item.name for item in homes if item.load <= pc < item.end), None),
-                "delay_slot": movable(before) is not None, "interrupts": bool(regs[STATUS] & 1) if regs[STATUS] else None}
+                "jump": movable(at) is not None, "delay_slot": movable(before) is not None, "interrupts": bool(regs[STATUS] & 1) if regs[STATUS] else None}
 
     def step(self, count: int = 1) -> int:
-        """Run `count` instructions and stop. Returns where the game then is."""
+        """Run `count` instructions and stop. Returns where the game then is - which need not be the next
+        instruction of what it was doing: a step is where a waiting interrupt gets in, and the game is then in
+        the console's interrupt handling. Look (`where`) before acting on it."""
         for _ in range(count):
             self.gdb._go("s")
         return self.gdb.registers()[PC]
@@ -1470,8 +1527,13 @@ class Session:
 
     def hook(self, address, target) -> bytes:
         """Swap the two instructions at `address` for a jump to `target` (and the no-op after it). Returns the
-        eight bytes that were there, for `unhook`. Nothing is checked: where it is put is the caller's business."""
+        eight bytes that were there, for `unhook`. Nothing is checked: where it is put is the caller's business.
+        One thing to know: a hook on the very instruction the game is stopped at may not be taken (`hook_point`)."""
         address, target = self.address(address), self.address(target)
+        if not 0x80000000 <= address < 0x80800000 - 8:
+            # Outside the console's memory as programs address it, a server's reads and writes cannot be relied on
+            # (the same memory seen through another address reads as zeros on one): what is put back would be wrong.
+            raise ValueError(f"no hook at {address:#010x}: not in the console's memory at 0x80000000")
         original = self.gdb.read(address, 8)
         self.gdb.write(address, struct.pack("<2I", 0x08000000 | ((target >> 2) & 0x03FFFFFF), 0))
         self.held[address] = original
@@ -1483,31 +1545,56 @@ class Session:
         self.gdb.write(address, original if original is not None else self.held[address])
         self.held.pop(address, None)
 
+    def hook_point(self) -> int:
+        """The nearest place ahead of the stop where a hook is sure to be taken: the instruction after the one the
+        game is about to run. Returns its address, or raises ValueError where there is none.
+
+        Not the instruction it is stopped at: a processor - an emulated one too - may already have fetched that
+        one, and then runs what it fetched, not what is written there afterwards. The jump would be missed, and
+        the no-op behind it run in place of the game's own second instruction. The one after is always read
+        fresh. That only works where the instruction in between does not leave: so there is no such place while
+        the game stands on a jump or a branch, or in the delay slot of one. The game is not moved to find one:
+        a step can take it anywhere - into an interrupt's handler, for one - and whether that is still a place
+        to act from is for the command to say."""
+        pc = self.gdb.registers()[PC]
+        before, at = struct.unpack("<2I", self.gdb.read(pc - 4, 8))
+        if movable(at) is not None:
+            raise ValueError(f"no hook from here: the game stands on a jump or a branch ({self.symbol(pc)})")
+        if movable(before) is not None:
+            raise ValueError(f"no hook from here: the game stands in a delay slot ({self.symbol(pc)})")
+        return pc + 4
+
     def call(self, function, *args) -> int:
         """Have the game call one of its functions, with up to four arguments, from where it is stopped; returns
-        what the function returned, with the game stopped where it was and its registers as they were.
+        what the function returned, with the game stopped exactly where it was, every register as it was.
 
-        It is the primitives put together, and it judges nothing about the place: a few instructions are injected
-        - keep the registers, make the call, keep the result, put the registers back, jump to where the game was;
-        the game's next two instructions are hooked to them; the game runs to their start, where the hook comes
-        out again, so the game's code is whole before the call is made; then to their end, however long the
-        function takes; then back to where it stood. A command that wants the call made somewhere in particular
-        takes the game there first (`run_to`), and one whose function does not come back uses the primitives
-        itself and says when its hook can go. The log gets a note of the call."""
+        Nothing of the game is touched to do it. The registers are read from the debugger and kept. A few
+        instructions are written into free memory - load the arguments, call the function, stand still. The
+        program counter is set to them through the debugger, the stack pointer a little below where it was, and
+        the game is let run until it stands at their end, however long the function takes. Then the result is
+        read, the registers are written back as they were kept - the program counter with them, so the game is
+        about to run the very instruction it was about to run - and the memory is given back.
+
+        It judges nothing about the place, with one exception that is no judgment: in a delay slot the processor
+        holds a jump it has yet to take, which no register shows and setting the program counter loses. A call
+        from there is refused. Whether the place is otherwise one to act from is the command's to say."""
         if len(args) > 4:
             raise ValueError("a call takes at most four arguments")
         target, values = self.address(function), [self.address(a) & 0xFFFFFFFF for a in args]
         name = function if isinstance(function, str) and not function[:1].isdigit() else f"{target:#010x}"
-        here = self.gdb.registers()[PC]
-        code = self.inject(call_source(target, values, here, self.cfg["blob"]["poke"]))
-        original = self.hook(here, code["run"])
-        self.run_to(code["run"])
-        self.unhook(here, original)
-        self.run_to(code["done"])
-        value = struct.unpack("<I", self.gdb.read(code["result"], 4))[0]
-        self.run_to(here)                             # out of the injected code: the game stands where it stood
-        self.free(code)
-        self.note(f"called {name}({', '.join(f'{v:#x}' for v in values)}) from {self.symbol(here)}: returned {value:#010x}", call=name, args=values, result=value)
+        at = self.where()
+        if at["delay_slot"]:
+            raise ValueError(f"no call from here: the game stands in a delay slot ({at['symbol']}), and the jump it has yet to take would be lost")
+        saved = self.gdb.save_registers()
+        code = self.inject(call_source(target, values))
+        try:
+            self.gdb.restore_registers(saved, {PC: code["run"], REGS.index("sp"): self.gdb.registers()[REGS.index("sp")] - 64})
+            self.run_to(code["done"])
+            value = self.gdb.registers()[REGS.index("v0")]
+        finally:
+            self.gdb.restore_registers(saved)
+            self.free(code)
+        self.note(f"called {name}({', '.join(f'{v:#x}' for v in values)}) from {at['symbol']}: returned {value:#010x}", call=name, args=values, result=value)
         self.out.flush()
         return value
 
@@ -1555,12 +1642,36 @@ class Session:
         self.out.flush()
         return self.count - self.session_count
 
+    # The commands as a list, for a program in front of the tracer (its command palette, its completion): name,
+    # the arguments as they are written in `help`, and what it does. The text below is for a person.
+    BUILT_IN = [("pause", "", "stop the game and keep it stopped"), ("resume", "", "let the game run again"),
+                ("session", "NAME", "read the buffer into the log, then begin a new session"), ("name", "NAME", "rename the current session"),
+                ("note", "TEXT", "write a line of your own into the log"), ("watch", "EVENT [TEXT]", "show an event's lines as they happen"),
+                ("unwatch", "[EVENT]", "stop showing an event's lines, or all of them"), ("watching", "", "what is being watched"),
+                ("drop", "", "mark the current session as dropped and stop the game until the next begins"),
+                ("resident", "IMAGE", "the image is in memory now: write the hooks of its events"), ("drain", "", "read the buffer into the log now"),
+                ("status", "", "where things stand"), ("call", "FUNCTION [A ...]", "have the game call its function from where it is stopped (raw)"),
+                ("peek", "WHERE [N]", "show memory at an address or a symbol"), ("poke", "WHERE WORD ...", "write words to memory"),
+                ("help", "", "the list of commands"), ("quit", "", "detach: take the hooks out and leave")]
+
+    def command_list(self) -> list[dict]:
+        """Every command there is: the tracer's own, then those of the hooks files."""
+        out = [{"name": name, "arguments": arguments, "about": about, "from": "tracer"} for name, arguments, about in self.BUILT_IN]
+        for name, function in sorted(COMMANDS.items()):
+            usage, _, about = (function.__doc__ or name).strip().splitlines()[0].partition("   ")
+            out.append({"name": name, "arguments": usage.strip()[len(name):].strip() if usage.strip().startswith(name) else "", "about": about.strip() or usage.strip(), "from": "hooks"})
+        return out
+
     COMMANDS = """commands (the game is stopped while one is carried out; the letter alone does the same):
   p  pause            stop the game and keep it stopped
   r  resume           let it run again
   s  session NAME     read the buffer into the log, then begin a new session called NAME
   n  name NAME        rename the current session
      note TEXT        write a line of your own into the log, here: an annotation for whoever reads it
+     watch E [TEXT]   show event E's lines here as they happen (`all` for every event), only those containing
+                      TEXT when it is given; E is an event of the config or the name its lines carry
+     unwatch [E]      stop that; without E, stop all of it
+     watching         what is being watched
      drop             mark the current session as dropped (its records stay, a marker follows them) and stop the
                       game until `session NAME` begins the next one; plain `session` begins one of the same name
      resident IMAGE   the image is in memory now: write the hooks of its events (a handler normally says so)
@@ -1576,7 +1687,7 @@ class Session:
     def command(self, line: str) -> None:
         word, _, rest = line.strip().partition(" ")
         rest = rest.strip()
-        say = lambda text: print(text, file=sys.stderr)  # noqa: E731
+        say = lambda text: tell(text, "reply")  # noqa: E731
         if word in ("pause", "p"):
             self.paused = True
             say("paused")
@@ -1596,6 +1707,35 @@ class Session:
         elif word in ("name", "n") and rest:
             self.rename(rest)
             say(f"session {self.session_number} is now: {self.session_name}")
+        elif word == "watch":
+            name, _, want = rest.partition(" ")
+            want = want.strip()
+            if not name:
+                say("watch EVENT [TEXT]: the events are all, " + ", ".join(sorted(e["name"] for e in self.events)) + "; or the name an event's lines carry")
+            else:
+                self.watched[name] = want
+                say(f"watching {name}" + (f" where the line has `{want}`" if want else ""))
+                if self.ready and self.shared is None:        # without shared memory the log only moves at stops: a watched event makes one
+                    for event in self.events:
+                        if name in (event["name"], "all") and not event["_break"]:
+                            for label in [f"gt_exit_{event['id']}_{k}_done" for k in range(len(event["exits"]))] or [f"gt_enter_{event['id']}_done"]:
+                                self.drains.add(self.symbols[label])
+                                self.gdb.breakpoint(self.symbols[label])
+        elif word == "unwatch":
+            if rest in ("", "all"):
+                self.watched.clear()
+                say("watching nothing")
+            elif self.watched.pop(rest, None) is None:
+                say(f"{rest} was not being watched")
+            else:
+                say(f"no longer watching {rest}")
+        elif word == "commands":
+            if MACHINE:
+                tell("", "commands", commands=self.command_list())
+            else:
+                say("\n".join(f"{c['name']} {c['arguments']}".ljust(26) + c["about"] for c in self.command_list()))
+        elif word == "watching":
+            say("\n".join(f"{name}" + (f"   where the line has `{want}`" if want else "") for name, want in sorted(self.watched.items())) or "nothing")
         elif word == "note" and rest:
             if self.ready:
                 self.drain(reset=self.shared is None)   # what happened up to now first: the note goes after it
@@ -1681,7 +1821,7 @@ class Session:
         try:
             function(record, self)
         except Exception as error:  # noqa: BLE001 - a handler's mistake must not end the trace
-            print(f"handler for {record.get('name')}: {type(error).__name__}: {error}", file=sys.stderr)
+            tell(f"handler for {record.get('name')}: {type(error).__name__}: {error}")
 
     def log(self, event: dict, record: dict) -> None:
         """One captured event into the log: through its renderer, or as it is - registers in hex, memory as hex bytes."""
@@ -1710,11 +1850,40 @@ class Session:
                     plain["from"] = self.symbol(value)
             else:
                 plain[key] = value
+        self.echo(event, plain)
         lines = [plain]
         for step in self.filters:
             lines = [out for line in lines for out in (step.line(line, event, self) or [])]
         for line in lines:
             self.emit(line)
+
+    def echo(self, event: dict, line: dict) -> None:
+        """Show an event to whoever runs the tracer, as it happens and before the filters: for a person, the
+        watched ones, a run of the same line told once with its count when it ends; with --machine every event,
+        marked watched or not, so the program in front can keep up with the game."""
+        names = {event.get("name"), line.get("event")}
+        text = json.dumps(line, sort_keys=True)
+        wanted = [self.watched[n] for n in names if n in self.watched] + ([self.watched["all"]] if "all" in self.watched else [])
+        watched = any(not want or want.lower() in text.lower() for want in wanted)
+        if not MACHINE and not watched:
+            return
+        last, count = self.echoed
+        same = watched and text == last
+        if MACHINE:
+            tell(readable(line), "event", record=line, watched=watched, repeats=count + 1 if same else 0)
+        elif not same:
+            if count:
+                tell(f"    (came {count} more time{'s' if count > 1 else ''})", "event")
+            tell(readable(line), "event")
+        if watched:
+            self.echoed = (text, count + 1 if same else 0)
+
+    def state(self, now: str) -> None:
+        """Say what the game is doing, when that changes."""
+        if now != self.state_now:
+            self.state_now = now
+            if MACHINE:
+                tell(now, "state", state=now)
 
     def settle(self) -> None:
         """Have the filters give up whatever they are holding back: before a session's marker, a line a renderer
@@ -1735,7 +1904,7 @@ class Session:
         else:
             for address in self.installers:
                 self.gdb.breakpoint(address)
-            print(f"waiting for the game to reach {', '.join(name_at(a, started()) for a in sorted(self.installers))}", file=sys.stderr)
+            tell(f"waiting for the game to reach {', '.join(name_at(a, started()) for a in sorted(self.installers))}")
 
     def peek(self, address: int, length: int) -> bytes:
         """Memory for reading only: from the shared block where there is one, else through the server (stopped)."""
@@ -1760,11 +1929,11 @@ class Session:
                 continue
             if shared.read(base, len(self.code)) == self.code:
                 self.shared = shared
-                print(f"reading memory from the shared block {name}: the buffer is read as the game runs, without stopping it", file=sys.stderr)
+                tell(f"reading memory from the shared block {name}: the buffer is read as the game runs, without stopping it")
                 return
             reasons.append(f"{name} does not hold this game's memory where expected")
             shared.close()
-        print("no usable shared memory (" + "; ".join(reasons or ["none found"]) + "): reading through the GDB server", file=sys.stderr)
+        tell("no usable shared memory (" + "; ".join(reasons or ["none found"]) + "): reading through the GDB server")
 
     def setup(self) -> None:
         base = self.cfg["blob"]["address"]
@@ -1792,9 +1961,9 @@ class Session:
         for name in self.cfg.get("resident", []):
             self.residents[IMAGES[name].load if name in IMAGES else name] = name
         others = sorted(name for name in {*self.by_image, *self.breaks_by_image} if name not in there)
-        print(f"{placed} of {len(self.hooks)} hooks in place, {len(self.breaks)} breakpoints for events with a handler" + (f"; those in {', '.join(others)} are written when a handler says the image is resident" if others else ""), file=sys.stderr)
+        tell(f"{placed} of {len(self.hooks)} hooks in place, {len(self.breaks)} breakpoints for events with a handler" + (f"; those in {', '.join(others)} are written when a handler says the image is resident" if others else ""))
         if others and not any(e.get("handler") for e in self.events):
-            print("no event has a handler, so nothing will say so: name the images already in memory with --resident, or use the `resident` command", file=sys.stderr)
+            tell("no event has a handler, so nothing will say so: name the images already in memory with --resident, or use the `resident` command")
 
     def refuse_mirror(self, base: int) -> None:
         """Stop before writing the blob into memory that is really somewhere else.
@@ -1869,7 +2038,7 @@ class Session:
         self.residents[IMAGES[image].load if image in IMAGES else image] = image
         if image in self.by_image:
             placed = self.install(image)
-            print(f"{image}: {placed} of {len(self.by_image[image])} hooks in place", file=sys.stderr)
+            tell(f"{image}: {placed} of {len(self.by_image[image])} hooks in place")
 
     def read(self, address: int, length: int) -> bytes:
         """The console's memory, for a handler."""
@@ -1896,7 +2065,7 @@ class Session:
         if not start <= cursor <= self.symbols["gt_end"] or (cursor - start) % 4:
             if cursor != self.bad_cursor:             # said once per value: nothing can be read while it lasts
                 self.bad_cursor = cursor
-                print(f"the buffer's cursor reads {cursor:#010x}, which is not a place in the buffer ({start:#010x}..{self.symbols['gt_end']:#010x}); nothing is read until it is", file=sys.stderr)
+                tell(f"the buffer's cursor reads {cursor:#010x}, which is not a place in the buffer ({start:#010x}..{self.symbols['gt_end']:#010x}); nothing is read until it is")
             return
         if cursor < self.read_at:                     # the game started the buffer again since the last look
             self.read_at = start
@@ -1988,7 +2157,8 @@ class Session:
             self.remove()
         # A game the user had paused stays paused: the hooks and breakpoints are gone, and it is theirs to resume.
         self.gdb.release(False, resume=not self.paused)
-        print("the game is left paused" if self.paused else "the game is running", file=sys.stderr)
+        tell("the game is left paused" if self.paused else "the game is running")
+        self.state("detached")
 
     def stopped(self) -> int:
         """The game has stopped: do what the place it stopped at asks for. Returns that place."""
@@ -2034,8 +2204,11 @@ class Session:
             wake.send(b"x")
         threading.Thread(target=listen, daemon=True).start()
         keyboard, pc = [woken], None
-        print("type `help` for the commands; Ctrl-C detaches", file=sys.stderr)
+        tell("type `help` for the commands; Ctrl-C detaches")
+        if MACHINE:
+            tell("", "commands", commands=self.command_list())
         while True:
+            self.state(("paused" if self.paused else "running") if self.ready else "waiting")
             if not self.running and not self.paused:
                 self.halted = False
                 self.running = self.gdb.go(pc)
@@ -2055,7 +2228,7 @@ class Session:
                     # and everything after the record would wait for the next stop of any kind. Stop the game
                     # here instead: the handler then runs a little late, which is better than not at all.
                     if self.waiting and time.monotonic() - self.waiting[1] > 1.0:
-                        print(f"no stop came for {self.waiting[2]} (record at {self.waiting[0]:#010x}); stopping the game to carry on from it", file=sys.stderr)
+                        tell(f"no stop came for {self.waiting[2]} (record at {self.waiting[0]:#010x}); stopping the game to carry on from it")
                         self.late_stops += 1
                         self.gdb.interrupt()
                         self.running = False
@@ -2150,10 +2323,13 @@ def main() -> int:
     ap.add_argument("--port", type=int, help="the GDB server's port, instead of the config's gdb.port")
     ap.add_argument("--session", help="the name of the first session (a marker line in the log); more are begun with the `session` command")
     ap.add_argument("--resident", action="append", metavar="IMAGE", help="an image already in memory at setup, whose hooks are written at setup (repeatable); with --now, usually gameplay")
+    ap.add_argument("--machine", action="store_true", help="say everything as one JSON line on standard output (see `tell`): for a program run in front of this one")
     ap.add_argument("--no-log", action="store_true", help="write no trace log: for a run that is only there to act on the game")
     ap.add_argument("--protocol", type=Path, metavar="FILE", help="write every packet exchanged with the GDB server to FILE, with times: for finding out why a stop went wrong")
     ap.add_argument("--now", action="store_true", help="set up at once in the game as it stands, ignoring install_at: for attaching to a game already running")
     args = ap.parse_args()
+    global MACHINE
+    MACHINE = args.machine
     cfg = load(args.config)
     load_hooks(cfg, args.config)
     if args.host:
@@ -2198,13 +2374,13 @@ def main() -> int:
                 print(agree)
         return 0
     if args.no_log:
-        print("writing no log", file=sys.stderr)
+        tell("writing no log")
     else:
         if args.out is None:
             import datetime
             args.out = cfg["_out"] / f"trace-{datetime.datetime.now():%Y%m%d-%H%M%S}.jsonl"
         args.out.parent.mkdir(parents=True, exist_ok=True)
-        print(f"writing {args.out}", file=sys.stderr)
+        tell(f"writing {args.out}")
     try:
         gdb = Gdb(cfg["gdb"]["host"], cfg["gdb"]["port"])
         if args.protocol:
@@ -2220,10 +2396,10 @@ def main() -> int:
             try:
                 session.close()
             except (OSError, ConnectionError) as error:
-                print(f"could not restore the game: {error}", file=sys.stderr)
+                tell(f"could not restore the game: {error}")
         except ConnectionError as error:
-            print(error, file=sys.stderr)
-        print(f"{session.count} records in {args.out}", file=sys.stderr)
+            tell(error)
+        tell(f"{session.count} records, not logged" if args.no_log else f"{session.count} records in {args.out}")
     return 0
 
 

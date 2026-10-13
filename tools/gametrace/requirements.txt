@@ -1,0 +1,2 @@
+# For the terminal front end, tui.py. The tracer itself (gametrace.py) needs nothing but Python.
+textual>=8.2,<9
