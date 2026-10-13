@@ -744,20 +744,17 @@ def ninja_setup_list_add_source(
         source_path = re.sub(r"\\", r"/", source_path)
         target_path = re.sub(r"\\", r"/", target_path)
 
-    if False:
-        pass
-    else:
-        ninja_file.build(
-            outputs=f"{target_path}.i",
-            rule="cpp",
-            inputs=source_path,
-            order_only=ASSET_INC_OUTPUTS,
-            variables={
-                "VERSION": f"-DVER_{GAME_VERSIONS[game_version_idx].version_name}",
-                "SKIPASMFLAG": skip_asm,
-                "PKGID": f"{package_id_flag(source_path)} {package_define_flags(target_path)}".strip(),
-            },
-        )
+    ninja_file.build(
+        outputs=f"{target_path}.i",
+        rule="cpp",
+        inputs=source_path,
+        order_only=ASSET_INC_OUTPUTS,
+        variables={
+            "VERSION": f"-DVER_{GAME_VERSIONS[game_version_idx].version_name}",
+            "SKIPASMFLAG": skip_asm,
+            "PKGID": f"{package_id_flag(source_path)} {package_define_flags(target_path)}".strip(),
+        },
+    )
 
     if re.search("^src.main.*", source_path):
         ninja_file.build(
