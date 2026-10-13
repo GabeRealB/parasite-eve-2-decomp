@@ -277,6 +277,11 @@ def command(name: str):
     length)`, `poke(address, bytes)`, `address("symbol")`, `inject(source)` / `free(labels)`, `hook(address,
     target)` / `unhook(address)`, and `call(function, a0, a1, a2, a3)` built from them. Where it is safe to act,
     and when a hook it placed may go, is the command's own to decide. `trace.note(text)` writes into the log.
+    `trace.watch(event, text="")` and `trace.unwatch(event=None)` do what the commands of those names do, and
+    `trace.watching()` says what is watched: a command can set up the watches it needs and take them down.
+    `trace.on(event, function)` has `function(trace, record, line)` called for each record of an event while the
+    game runs (`trace.off` ends it), and `trace.attend(function)` has `function(trace)` run with the game stopped
+    as soon as possible - together, a command that stays: it watches, and stops the game to ask when it has to.
     What it returns is printed; its docstring's first line is its entry in `help`. An error it raises is printed
     and nothing else happens."""
     def register(function):
@@ -1325,6 +1330,8 @@ class Session:
         self.bad_cursor = None
         self.typed = None
         self.watched: dict[str, str] = {e["name"]: "" for e in self.events if e.get("watch")}     # event -> text its line has to contain
+        self.listeners: dict[str, list] = {}          # event name -> functions called with each of its records (`on`)
+        self.attention: list = []                     # functions waiting to run with the game stopped (`attend`)
         self.echoed: tuple = ("", 0)                  # the last line echoed for a watched event, and how often it has come in a row
         self.state_now = ""
         self.count_records = 0
@@ -1669,7 +1676,7 @@ class Session:
   n  name NAME        rename the current session
      note TEXT        write a line of your own into the log, here: an annotation for whoever reads it
      watch E [TEXT]   show event E's lines here as they happen (`all` for every event), only those containing
-                      TEXT when it is given; E is an event of the config or the name its lines carry
+                      TEXT when it is given; E is an event's name in the config
      unwatch [E]      stop that; without E, stop all of it
      watching         what is being watched
      drop             mark the current session as dropped (its records stay, a marker follows them) and stop the
@@ -1711,21 +1718,18 @@ class Session:
             name, _, want = rest.partition(" ")
             want = want.strip()
             if not name:
-                say("watch EVENT [TEXT]: the events are all, " + ", ".join(sorted(e["name"] for e in self.events)) + "; or the name an event's lines carry")
+                say("watch EVENT [TEXT]: " + ", ".join(self.watchable()))
             else:
-                self.watched[name] = want
-                say(f"watching {name}" + (f" where the line has `{want}`" if want else ""))
-                if self.ready and self.shared is None:        # without shared memory the log only moves at stops: a watched event makes one
-                    for event in self.events:
-                        if name in (event["name"], "all") and not event["_break"]:
-                            for label in [f"gt_exit_{event['id']}_{k}_done" for k in range(len(event["exits"]))] or [f"gt_enter_{event['id']}_done"]:
-                                self.drains.add(self.symbols[label])
-                                self.gdb.breakpoint(self.symbols[label])
+                try:
+                    self.watch(name, want)
+                    say(f"watching {name}" + (f" where the line has `{want}`" if want else ""))
+                except ValueError as error:
+                    say(f"{error} (`watch` alone lists them)")
         elif word == "unwatch":
             if rest in ("", "all"):
-                self.watched.clear()
+                self.unwatch()
                 say("watching nothing")
-            elif self.watched.pop(rest, None) is None:
+            elif not self.unwatch(rest):
                 say(f"{rest} was not being watched")
             else:
                 say(f"no longer watching {rest}")
@@ -1825,6 +1829,7 @@ class Session:
 
     def log(self, event: dict, record: dict) -> None:
         """One captured event into the log: through its renderer, or as it is - registers in hex, memory as hex bytes."""
+        captured = dict(record)                       # as captured: what a listener is given beside the rendered line
         act = HANDLERS.get(event.get("handler") or "")
         if act is not None:
             self.act(act, dict(record))
@@ -1850,6 +1855,11 @@ class Session:
                     plain["from"] = self.symbol(value)
             else:
                 plain[key] = value
+        for function in list(self.listeners.get(event.get("name"), ())):
+            try:
+                function(self, captured, plain)
+            except Exception as error:  # noqa: BLE001 - a listener's mistake must not cost the capture
+                tell(f"listener for {event.get('name')}: {type(error).__name__}: {error}")
         self.echo(event, plain)
         lines = [plain]
         for step in self.filters:
@@ -1857,11 +1867,68 @@ class Session:
         for line in lines:
             self.emit(line)
 
+    def watch(self, name: str, text: str = "") -> None:
+        """Show an event's lines to whoever runs the tracer as they happen: `name` is an event's name in the config
+        or `all`; with `text`, only the lines that contain it. What the `watch` command does, for a command or a
+        hook to do itself. A name that is no event raises ValueError."""
+        if name not in self.watchable():
+            near = [n for n in self.watchable() if name in n or n in name]
+            raise ValueError(f"there is no event called {name}" + (f"; did you mean {', '.join(near)}?" if near else ""))
+        self.watched[name] = text
+        if self.ready and self.shared is None:            # without shared memory the log only moves at stops: a watched event makes one
+            for event in self.events:
+                if name in (event["name"], "all") and not event["_break"]:
+                    for label in [f"gt_exit_{event['id']}_{k}_done" for k in range(len(event["exits"]))] or [f"gt_enter_{event['id']}_done"]:
+                        self.drains.add(self.symbols[label])
+                        self.gdb.breakpoint(self.symbols[label])
+
+    def unwatch(self, name: str | None = None) -> bool:
+        """Stop showing an event's lines, or with no name all of them. Says whether anything was being watched."""
+        if name is None:
+            had = bool(self.watched)
+            self.watched.clear()
+            return had
+        return self.watched.pop(name, None) is not None
+
+    def watching(self) -> dict[str, str]:
+        """What is being watched: event name -> the text its lines have to contain ("" for every line)."""
+        return dict(self.watched)
+
+    def on(self, name: str, function) -> None:
+        """Have `function(trace, record, line)` called for every record of the event `name` (its name in the
+        config), as the log is written: `record` is what was captured, `line` what the renderer made of it. The
+        game is usually running when it is called, so it must not act on the game or ask anything itself; for
+        that it calls `attend`. A name that is no event raises ValueError; an error it raises is printed."""
+        if name not in {e["name"] for e in self.events}:
+            raise ValueError(f"there is no event called {name}")
+        if function not in self.listeners.setdefault(name, []):
+            self.listeners[name].append(function)
+
+    def off(self, name: str, function=None) -> None:
+        """Stop calling `function` for the event `name`, or every function registered for it."""
+        kept = [f for f in self.listeners.get(name, []) if function is not None and f is not function]
+        if kept:
+            self.listeners[name] = kept
+        else:
+            self.listeners.pop(name, None)
+
+    def attend(self, function) -> None:
+        """Have `function(trace)` run with the game stopped, as soon as the tracer is between events: the game is
+        stopped if it runs, the function is called as a command is - it may ask, choose, read, poke and call -
+        and the game goes on afterwards unless it was paused. Asked for twice before it has run, it runs once."""
+        if function not in self.attention:
+            self.attention.append(function)
+
+    def watchable(self) -> list[str]:
+        """The names `watch` takes: each event by its name in the config, and `all`. Not the name a renderer gives
+        an event's lines: one event has one name here, whatever its lines are called in the log."""
+        return ["all"] + sorted(e["name"] for e in self.events)
+
     def echo(self, event: dict, line: dict) -> None:
         """Show an event to whoever runs the tracer, as it happens and before the filters: for a person, the
         watched ones, a run of the same line told once with its count when it ends; with --machine every event,
         marked watched or not, so the program in front can keep up with the game."""
-        names = {event.get("name"), line.get("event")}
+        names = {event.get("name")}
         text = json.dumps(line, sort_keys=True)
         wanted = [self.watched[n] for n in names if n in self.watched] + ([self.watched["all"]] if "all" in self.watched else [])
         watched = any(not want or want.lower() in text.lower() for want in wanted)
@@ -2208,6 +2275,20 @@ class Session:
         if MACHINE:
             tell("", "commands", commands=self.command_list())
         while True:
+            if self.attention:                        # something asked to act with the game stopped (`attend`)
+                if self.running:
+                    self.gdb.interrupt()
+                    self.running = False
+                    pc = self.stopped()
+                self.state("paused")
+                while self.attention:
+                    function = self.attention.pop(0)
+                    try:
+                        function(self)
+                    except Exception as error:  # noqa: BLE001 - its mistake must not end the trace
+                        tell(f"{getattr(function, '__name__', 'attend')}: {type(error).__name__}: {error}")
+                self.out.flush()
+                continue
             self.state(("paused" if self.paused else "running") if self.ready else "waiting")
             if not self.running and not self.paused:
                 self.halted = False
