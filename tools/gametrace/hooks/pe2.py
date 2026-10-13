@@ -8,6 +8,7 @@ The layouts are the decomp's own: FsFileLoadKey (src/main/fs_types.h), GameLocat
 (include/main/session_types.h), SOUND_ID (include/main/sound_ids.h); which packages a disc file carries comes from
 the extractor's tables (tools/peassets/asset_data.py).
 """
+import re
 import struct
 
 from gametrace import command, handler, image, init, renderer
@@ -583,93 +584,288 @@ def save_sections(trace) -> list[tuple[str, int, int]]:
     return [(SECTIONS[n], buffer, length) for n, (buffer, length, _sectors) in enumerate(rows) if n]       # not the card's file header
 
 
-def state_files() -> list:
-    return sorted(STATES.glob("*.json")) if STATES.is_dir() else []
+SCRIPTED = (0x01, 0x66)                      # GameSession.eventState, .cutsceneHold: a scripted event has the game or the player
+AUTO_NAME = re.compile(r"(\d{3,})_(.+)")     # a run's automatic states: their number in the run, then the room
 
 
 def describe(state: dict) -> str:
     at = state.get("location", {})
-    return f"{state.get('room') or 'stage %s area %s' % (at.get('stage'), at.get('area'))}, view {at.get('view')}, variant {at.get('variant')}; made {state.get('made', '?')}"
+    place = f"{state.get('room') or 'stage %s area %s' % (at.get('stage'), at.get('area'))}, view {at.get('view')}, variant {at.get('variant')}"
+    return place + ("; taken during a scripted event" if state.get("scripted") else "") + f"; made {state.get('made', '?')}"
+
+
+# A run is one playthrough: a directory of states. Those named `<number>_<room>` are its line - taken
+# automatically at each room, in order, the last of them where the run stands. Anything else in the directory is a
+# state kept on purpose under a label: it is not on the line, is never loaded automatically and has no number.
+
+def runs() -> list[str]:
+    """The runs there are, the one last added to first."""
+    found = [d for d in STATES.iterdir() if d.is_dir()] if STATES.is_dir() else []
+    return [d.name for d in sorted(found, key=lambda d: max((f.stat().st_mtime for f in d.glob("*.json")), default=d.stat().st_mtime), reverse=True)]
+
+
+def line_of(run: str) -> list[tuple[int, object]]:
+    """A run's automatic states in order, as (number, file)."""
+    found = [(AUTO_NAME.fullmatch(f.stem), f) for f in (STATES / run).glob("*.json")]
+    return sorted((int(match.group(1)), f) for match, f in found if match)
+
+
+def kept_in(run: str) -> list:
+    """A run's states kept on purpose: every file that is not on its line."""
+    return sorted(f for f in (STATES / run).glob("*.json") if not AUTO_NAME.fullmatch(f.stem))
+
+
+def good_name(text: str) -> bool:
+    return bool(re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_.-]*", text))
+
+
+def read_state(path) -> dict:
+    import json
+    return json.loads(path.read_text())
+
+
+def capture_state(trace):
+    """The game's state as it is now, as a state's dict - or a sentence saying why there is none to take."""
+    import datetime
+    if struct.unpack("<I", trace.read(0x80093800, 4))[0] != next((i for i, n in package_ids().items() if n == "gameplay"), -1):
+        return "nothing to save: the game is not in play (gameplay is not in memory)"
+    at_frame_start(trace)                            # the player's position is taken from her model: between frames, not while it moves
+    if not trace.call("gameGetTaskSlot", PLAYER_SLOT):
+        return "nothing to save: there is no player in the world just now"
+    trace.call("playerCaptureSaveState")             # what a telephone does before saving: position, experience, BP
+    parts = save_sections(trace)
+    session = trace.address("_gGameSessionState")
+    location = trace.read(session + 4, 8)
+    trace.poke(parts[0][1] + 4, location)            # the save record's location is where the session is now, as a save here would have it
+    scripted = any(trace.read(session + offset, 1)[0] for offset in SCRIPTED)
+    return {"made": datetime.datetime.now().isoformat(timespec="seconds"), "location": location_of(location),
+            "room": room_of(location[3], location[2]), "scripted": scripted,
+            "sections": {n: trace.read(address, length).hex() for n, address, length in parts}}
+
+
+def write_state(run: str, name: str, state: dict):
+    import json
+    (STATES / run).mkdir(parents=True, exist_ok=True)
+    path = STATES / run / f"{name}.json"
+    path.write_text(json.dumps(state, indent=1) + "\n")
+    return path
+
+
+def load_state(trace, path) -> str:
+    """Restart the game into the state in `path`. Says what happened."""
+    state, label = read_state(path), f"{path.parent.name}/{path.stem}"
+    parts = save_sections(trace)
+    if any(len(bytes.fromhex(state["sections"].get(n, ""))) != length for n, _a, length in parts):
+        return f"{label} does not fit this game's save images: not loaded"
+    site = trace.address(TITLE_SPAWN[0]) + TITLE_SPAWN[1]
+    want = 0x0C000000 | ((trace.address("taskSpawnFromTable") >> 2) & 0x03FFFFFF)
+    if struct.unpack("<I", trace.read(site, 4))[0] != want:
+        return "the place where a restart starts the title is not where it is expected: not loaded"
+    display = trace.address("gDisplayState")
+    # 1. The game's own way out of a session, from anywhere: the main loop reinitialises everything.
+    trace.poke(display + GAME_MODE, bytes([GAME_MODE_RESTART]))
+    trace.say(f"restarting the game into {label}: {describe(state)}")
+    # 2. It reloads the title's file - the font, its palette and the common sound bank are in it, and a restart
+    #    clears them - and is about to spawn the title's startup. That is as early as a session can begin.
+    trace.run_to(site)
+    # 3. What a card load does around its read. Before it, the game resets the save data (`mcResetSaveData`),
+    #    and that reset is also the only place that sets the display's sprite variant - which the restart
+    #    cleared, and which every room's sprite tables, the stage music, the movies and the loading pictures are
+    #    selected by. Without it the session runs with variant 0 and indexes those tables one row before their
+    #    start. Then the state goes into the save images, live copy and backup, and the play clock's minute
+    #    ticks are reset as after a successful read.
+    trace.call("mcResetSaveData")
+    for section, address, length in parts:
+        data = bytes.fromhex(state["sections"][section])
+        trace.poke(address, data)
+        trace.poke(address + length, data)
+    trace.call("playClockResetMinuteTicks")
+    if not struct.unpack("<H", trace.read(display + SPRITE_VARIANT, 2))[0]:
+        return "the game's reset left the sprite variant unset: not continuing (the session would read its sprite tables out of bounds)"
+    # 4. In place of the title: the session launch task, told to keep the save images (what a card load ends in).
+    #    One thing the title screen does for everything after it has to be done here: the font's palettes are
+    #    uploaded by it, from the main program's own data, and the restart cleared them.
+    trace.set_registers(pc=site + 8)
+    trace.call("textUploadPalettes")
+    trace.call("taskSpawn", *LAUNCH_SESSION, 0)
+    # 5. The launch clears the "put the player where the save has her" request; it is made again where the room
+    #    starts and reads it.
+    trace.run_to("areaStartRoomRuntime")
+    trace.poke(display + PENDING_POSITION, b"\x01")
+    trace.note(f"state loaded: {label} ({describe(state)})", state=label)
+    return f"loaded {label}"
+
+
+# ---- a run kept up automatically: a state at every room
+
+_auto: dict = {"run": None, "armed": False, "skip": False}       # the run being added to; a room has started; that start is a load's own
+
+
+def on_room_start(trace, record, line):
+    if _auto["skip"]:
+        _auto["skip"] = False                        # the room a state load starts is the one already saved
+    else:
+        _auto["armed"] = True
+
+
+def on_view_ready(trace, record, line):
+    """The first view of a room is up: the room is complete as it is seen, and its state is taken."""
+    if _auto["armed"] and _auto["run"]:
+        _auto["armed"] = False
+        trace.attend(auto_save)
+
+
+def auto_save(trace):
+    run = _auto["run"]
+    if run is None:
+        return
+    state = capture_state(trace)
+    if isinstance(state, str):
+        trace.say(f"{run}: no state at this room ({state})")
+        return
+    line = line_of(run)
+    number = line[-1][0] + 1 if line else 1
+    path = write_state(run, f"{number:03d}_{state['room'] or 'room'}", state)
+    trace.note(f"state saved: {run}/{path.stem} ({describe(state)})", state=f"{run}/{path.stem}")
+    trace.say(f"{run}/{path.stem}" + ("   (during a scripted event)" if state["scripted"] else ""))
+
+
+def auto_set(trace, run: str | None, loaded: bool = False) -> None:
+    """Begin keeping `run` up, or with None stop. `loaded` says a state load has just been made: its own room
+    start is not a new room."""
+    _auto.update(run=run, armed=False, skip=loaded and run is not None)
+    for name, function in (("room_start", on_room_start), ("view_ready", on_view_ready)):
+        (trace.on if run else trace.off)(name, function)
+
+
+def pick_run(trace, title: str, new: str | None = None) -> str | None:
+    """Have a run picked from the list; with `new`, an entry of that wording stands for none of them ("")."""
+    listed = [(run, f"{len(line_of(run))} on its line" + (f", the last {line_of(run)[-1][1].stem}" if line_of(run) else "") + (f"; {len(kept_in(run))} kept" if kept_in(run) else ""))
+              for run in runs()]
+    if new:
+        listed.append((new, ""))
+    if not listed:
+        return None
+    picked = trace.choose(title, listed)
+    return "" if new and picked == new else picked
+
+
+def ask_run_name(trace, prompt: str) -> str | None:
+    name = (trace.ask(prompt + "\n> ") or "").strip()
+    if not name:
+        return None
+    if not good_name(name) or (STATES / name).exists():
+        trace.say(f"`{name}` cannot be a run's name (letters, digits, _ . - ; and not one there already is)")
+        return None
+    return name
+
+
+def auto_on(trace) -> str:
+    NEW = "a new run, from where the game is now"
+    run = pick_run(trace, "continue which run?", NEW)
+    if run is None:
+        return "nothing done"
+    if run == "":                                    # the one way of switching on that loads nothing
+        name = ask_run_name(trace, "The new run's name?")
+        if name is None:
+            return "nothing done"
+        state = capture_state(trace)
+        if isinstance(state, str):
+            return state
+        path = write_state(name, f"001_{state['room'] or 'room'}", state)
+        trace.note(f"state saved: {name}/{path.stem} ({describe(state)})", state=f"{name}/{path.stem}")
+        auto_set(trace, name)
+        return f"{name} begun at {path.stem}; a state is taken at every room from here"
+    line = line_of(run)
+    if not line:
+        return f"{run} has no states on its line yet: nothing to continue from"
+    options = [(f"{f.stem}", ("the latest; " if n == line[-1][0] else "") + describe(read_state(f))) for n, f in reversed(line)]
+    picked = trace.choose(f"{run}: continue from which state?", options)
+    if picked is None:
+        return "nothing done"
+    number, path = next((n, f) for n, f in line if f.stem == picked)
+    later = [f for n, f in line if n > number]
+    if later:
+        how = trace.choose(f"{picked} is not the latest: {len(later)} come after it",
+                           [("fork", f"a new run with the states up to {picked}; {run} stays as it is"),
+                            ("roll back", f"delete the {len(later)} later states of {run} and go on from {picked}")])
+        if how is None:
+            return "nothing done"
+        if how == "fork":
+            name = ask_run_name(trace, f"The fork's name? (it gets the {len(line) - len(later)} states up to {picked})")
+            if name is None:
+                return "nothing done"
+            import shutil
+            (STATES / name).mkdir(parents=True)
+            for n, f in line:
+                if n <= number:
+                    shutil.copy2(f, STATES / name / f.name)
+            run, path = name, STATES / name / path.name
+        else:
+            if trace.choose(f"delete {len(later)} states of {run}, {later[0].stem} to {later[-1].stem}?", [("no", "leave them"), ("yes, delete them", "")]) != "yes, delete them":
+                return "nothing done"
+            for f in later:
+                f.unlink()
+    told = load_state(trace, path)
+    if not told.startswith("loaded"):
+        return told
+    auto_set(trace, run, loaded=True)
+    return f"{told}; a state is taken at every room from here, into {run}"
 
 
 @command("state")
 def state_command(trace, text):
-    """state save NAME | load [NAME] | list   keep the whole saved game in a file, or restart the game into one"""
-    import datetime
-    import json
-    word, _, name = text.strip().partition(" ")
-    name = name.strip()
+    """state auto on | off, save [RUN LABEL], load [RUN [STATE]], list [RUN]   keep the saved game in runs of states, and restart into one"""
+    word, _, rest = text.strip().partition(" ")
+    words = rest.split()
+    if word == "auto":
+        if words[:1] == ["on"]:
+            return auto_on(trace)
+        if words[:1] == ["off"]:
+            was = _auto["run"]
+            auto_set(trace, None)
+            return f"no longer adding to {was}" if was else "no run was being kept up"
+        return f"adding a state to {_auto['run']} at every room" if _auto["run"] else "off (`state auto on` picks a run and goes on from it)"
     if word == "list" or not word:
-        return "\n".join(f"{path.stem:<24} {describe(json.loads(path.read_text()))}" for path in state_files()) or f"no states yet (they are kept in {STATES})"
-    if word == "save":
-        if not name:
-            return "state save NAME"
-        if struct.unpack("<I", trace.read(0x80093800, 4))[0] != next((i for i, n in package_ids().items() if n == "gameplay"), -1):
-            return "nothing to save: the game is not in play (gameplay is not in memory)"
-        at_frame_start(trace)                        # the player's position is taken from her model: between frames, not while it moves
-        if not trace.call("gameGetTaskSlot", PLAYER_SLOT):
-            return "nothing to save: there is no player in the world just now"
-        trace.call("playerCaptureSaveState")         # what a telephone does before saving: position, experience, BP
-        parts = save_sections(trace)
-        session = trace.address("_gGameSessionState")
-        location = trace.read(session + 4, 8)
-        trace.poke(parts[0][1] + 4, location)        # the save record's location is where the session is now, as a save here would have it
-        state = {"made": datetime.datetime.now().isoformat(timespec="seconds"), "location": location_of(location),
-                 "room": room_of(location[3], location[2]), "sections": {n: trace.read(address, length).hex() for n, address, length in parts}}
-        STATES.mkdir(parents=True, exist_ok=True)
-        (STATES / f"{name}.json").write_text(json.dumps(state, indent=1) + "\n")
-        trace.note(f"state saved: {name} ({describe(state)})", state=name)
-        return f"saved {name}: {describe(state)}"
+        if words:
+            if words[0] not in runs():
+                return f"there is no run called {words[0]}"
+            rows = [f"{f.stem:<40} {describe(read_state(f))}" for _n, f in line_of(words[0])] + [f"{f.stem:<40} kept: {describe(read_state(f))}" for f in kept_in(words[0])]
+            return "\n".join(rows) or "empty"
+        return "\n".join(f"{run:<24} {len(line_of(run))} on its line" + (f", the last {line_of(run)[-1][1].stem}" if line_of(run) else "") + (f"; {len(kept_in(run))} kept" if kept_in(run) else "")
+                         for run in runs()) or f"no runs yet (they are kept in {STATES}; `state auto on` begins one)"
+    if word == "save":                               # a state kept on purpose: into a run, under a label, off its line
+        run = words[0] if words else pick_run(trace, "save into which run?")
+        if not run or run not in runs():
+            return f"there is no run called {run}" if run else "state save RUN LABEL (a run is begun with `state auto on`)"
+        label = "_".join(words[1:]) if len(words) > 1 else (trace.ask(f"A label for this state in {run}?\n> ") or "").strip().replace(" ", "_")
+        if not label:
+            return "nothing done"
+        if not good_name(label) or AUTO_NAME.fullmatch(label):
+            return f"`{label}` cannot be a label (letters, digits, _ . - ; and not a number then a name, which is how a run's own states are called)"
+        if (STATES / run / f"{label}.json").exists():
+            return f"{run} already has a state called {label}"
+        state = capture_state(trace)
+        if isinstance(state, str):
+            return state
+        write_state(run, label, state)
+        trace.note(f"state saved: {run}/{label} ({describe(state)})", state=f"{run}/{label}")
+        return f"saved {run}/{label}: {describe(state)}"
     if word == "load":
-        if not name:
-            name = trace.choose("which state", [(path.stem, describe(json.loads(path.read_text()))) for path in state_files()])
-            if name is None:
-                return "nothing done"
-        path = STATES / f"{name}.json"
+        run = words[0] if words else pick_run(trace, "load from which run?")
+        if not run or run not in runs():
+            return f"there is no run called {run}" if run else "nothing done"
+        files = [f for _n, f in reversed(line_of(run))] + kept_in(run)
+        name = words[1] if len(words) > 1 else trace.choose(f"{run}: which state?", [(f.stem, ("" if AUTO_NAME.fullmatch(f.stem) else "kept: ") + describe(read_state(f))) for f in files])
+        if name is None:
+            return "nothing done"
+        path = STATES / run / f"{name}.json"
         if not path.is_file():
-            return f"no state called {name} (see `state list`)"
-        state = json.loads(path.read_text())
-        parts = save_sections(trace)
-        if any(len(bytes.fromhex(state["sections"].get(n, ""))) != length for n, _a, length in parts):
-            return f"{name} does not fit this game's save images: not loaded"
-        site = trace.address(TITLE_SPAWN[0]) + TITLE_SPAWN[1]
-        want = 0x0C000000 | ((trace.address("taskSpawnFromTable") >> 2) & 0x03FFFFFF)
-        if struct.unpack("<I", trace.read(site, 4))[0] != want:
-            return "the place where a restart starts the title is not where it is expected: not loaded"
-        display = trace.address("gDisplayState")
-        # 1. The game's own way out of a session, from anywhere: the main loop reinitialises everything.
-        trace.poke(display + GAME_MODE, bytes([GAME_MODE_RESTART]))
-        trace.say(f"restarting the game into {name}: {describe(state)}")
-        # 2. It reloads the title's file - the font, its palette and the common sound bank are in it, and a restart
-        #    clears them - and is about to spawn the title's startup. That is as early as a session can begin.
-        trace.run_to(site)
-        # 3. What a card load does around its read. Before it, the game resets the save data (`mcResetSaveData`),
-        #    and that reset is also the only place that sets the display's sprite variant - which the restart
-        #    cleared, and which every room's sprite tables, the stage music, the movies and the loading pictures are
-        #    selected by. Without it the session runs with variant 0 and indexes those tables one row before their
-        #    start. Then the state goes into the save images, live copy and backup, and the play clock's minute
-        #    ticks are reset as after a successful read.
-        trace.call("mcResetSaveData")
-        for section, address, length in parts:
-            data = bytes.fromhex(state["sections"][section])
-            trace.poke(address, data)
-            trace.poke(address + length, data)
-        trace.call("playClockResetMinuteTicks")
-        if not struct.unpack("<H", trace.read(display + SPRITE_VARIANT, 2))[0]:
-            return "the game's reset left the sprite variant unset: not continuing (the session would read its sprite tables out of bounds)"
-        # 4. In place of the title: the session launch task, told to keep the save images (what a card load ends in).
-        #    One thing the title screen does for everything after it has to be done here: the font's palettes are
-        #    uploaded by it, from the main program's own data, and the restart cleared them.
-        trace.set_registers(pc=site + 8)
-        trace.call("textUploadPalettes")
-        trace.call("taskSpawn", *LAUNCH_SESSION, 0)
-        # 5. The launch clears the "put the player where the save has her" request; it is made again where the room
-        #    starts and reads it.
-        trace.run_to("areaStartRoomRuntime")
-        trace.poke(display + PENDING_POSITION, b"\x01")
-        trace.note(f"state loaded: {name} ({describe(state)})", state=name)
-        return f"loaded {name}"
-    return "state save NAME | load [NAME] | list"
+            return f"{run} has no state called {name} (see `state list {run}`)"
+        was = _auto["run"]
+        auto_set(trace, None)                        # a load by hand leaves the line: the run is not added to from here
+        return load_state(trace, path) + (f"; no longer adding to {was}" if was else "")
+    return "state auto on | off, save [RUN LABEL], load [RUN [STATE]], list [RUN]"
 
 
 def location_of(data: bytes) -> dict:
