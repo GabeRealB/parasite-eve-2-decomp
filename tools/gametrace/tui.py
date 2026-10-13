@@ -17,7 +17,8 @@ What is on the screen:
     the middle       the watched events as they happen, the tracer's messages, and the answers to commands
     the bottom line  where commands are typed: `bind` and `unbind`, and any command of the tracer (`help` lists them)
 
-A command of the tracer that asks a question shows its prompt above the input line; one that offers a list opens
+A command of the tracer that asks a question opens a small window to answer in, and one that wants several things
+filled in opens them as one form; one that offers a list opens
 it as a list to pick from (type to narrow it, Enter to take, Escape to give up).
 
 Ctrl+P opens the command palette, which lists every command there is - this program's and the tracer's, those a
@@ -40,9 +41,9 @@ from textual import events
 from textual.app import App, ComposeResult
 from textual.binding import Binding
 from textual.command import DiscoveryHit, Hit, Provider
-from textual.containers import Vertical
+from textual.containers import Horizontal, Vertical, VerticalScroll
 from textual.screen import ModalScreen
-from textual.widgets import Input, OptionList, RichLog, Static
+from textual.widgets import Button, Input, Label, OptionList, RadioButton, RadioSet, RichLog, Static
 from textual.widgets.option_list import Option
 
 TRACER = Path(__file__).with_name("gametrace.py")
@@ -72,6 +73,102 @@ class CommandLine(Input):
             self.cursor_position = len(self.value)
             event.stop()
             event.prevent_default()
+
+
+class Asker(ModalScreen):
+    """A question a command of the tracer asks, with what it says about it above the line to type in. The result
+    is the line typed - an empty one included, which the command takes as no answer."""
+
+    BINDINGS = [Binding("escape", "give_up", "no answer")]
+
+    def __init__(self, prompt: str) -> None:
+        super().__init__()
+        self.prompt = prompt.rstrip().removesuffix(">").rstrip()
+
+    def compose(self) -> ComposeResult:
+        with Vertical(id="asker"):
+            yield Static(escape(self.prompt), id="asker-text")
+            yield Input(placeholder="Enter answers; Esc gives no answer", id="asker-line")
+
+    def on_mount(self) -> None:
+        self.query_one("#asker-line", Input).focus()
+
+    def on_input_submitted(self, event: Input.Submitted) -> None:
+        self.dismiss(event.value)
+
+    def action_give_up(self) -> None:
+        self.dismiss("")
+
+
+class Form(ModalScreen):
+    """Several things a command of the tracer wants filled in at once: a line for each text field, a set of
+    buttons to pick one of for each choice, and the ways to finish below. Tab moves between them; Enter in a line
+    takes the first way to finish, Escape gives up. The result is the answer's line of JSON, or "" for giving up."""
+
+    BINDINGS = [Binding("escape", "give_up", "give up"), Binding("ctrl+s", "finish", "save")]
+
+    def __init__(self, title: str, about: str, fields: list[dict], actions: list[list[str]]) -> None:
+        super().__init__()
+        self.title_text, self.about, self.fields, self.actions = title, about, fields, actions or [["save", "save"]]
+
+    def compose(self) -> ComposeResult:
+        with Vertical(id="form"):
+            yield Static(escape(self.title_text), id="form-title")
+            if self.about:
+                yield Static(escape(self.about), id="form-about")
+            with VerticalScroll(id="form-fields"):
+                for n, field in enumerate(self.fields):
+                    yield Label(escape(field["label"]), classes="form-label")
+                    if field.get("options"):
+                        with RadioSet(id=f"field-{n}"):
+                            for name, about in field["options"]:
+                                yield RadioButton(Text.assemble(name, ("   " + about if about else "", "dim")), value=name == field["value"], name=name)
+                    else:
+                        yield Input(value=field["value"], id=f"field-{n}")
+            with Horizontal(id="form-actions"):
+                for n, (name, label) in enumerate(self.actions):
+                    yield Button(label, id=f"action-{name}", variant="primary" if n == 0 else "default")
+            yield Static("Tab moves on; Enter in a line takes the first button; Esc gives up", id="form-keys")
+
+    def on_mount(self) -> None:
+        self.fit()
+        self.query_one("#field-0").focus()
+
+    def on_resize(self, _event: events.Resize) -> None:
+        self.fit()
+
+    def fit(self) -> None:
+        """Keep the form on the screen: its title, what it is about, the buttons and the key line are always
+        shown, and the fields between them get what is left and scroll when there are more than fit."""
+        around = 2 + 2 + 1 + 5 + 1                     # the border, the padding, the title, the buttons with their margin, the key line
+        about = (self.about.count("\n") + 2) if self.about else 0
+        self.query_one("#form-fields").styles.max_height = max(4, self.app.size.height - around - about - 2)
+
+    def values(self) -> dict:
+        out = {}
+        for n, field in enumerate(self.fields):
+            box = self.query_one(f"#field-{n}")
+            if isinstance(box, RadioSet):
+                out[field["key"]] = box.pressed_button.name if box.pressed_button is not None else field["value"]
+            else:
+                out[field["key"]] = box.value
+        return out
+
+    def done(self, action: str) -> None:
+        self.dismiss(json.dumps({"action": action, "values": self.values()}))
+
+    def on_input_submitted(self, event: Input.Submitted) -> None:
+        event.stop()
+        self.done(self.actions[0][0])
+
+    def on_button_pressed(self, event: Button.Pressed) -> None:
+        self.done(event.button.id.removeprefix("action-"))
+
+    def action_finish(self) -> None:
+        self.done(self.actions[0][0])
+
+    def action_give_up(self) -> None:
+        self.dismiss("")
 
 
 class Chooser(ModalScreen):
@@ -155,13 +252,24 @@ class TraceApp(App):
     #status { height: 1; background: $panel; color: $text; padding: 0 1; }
     #log { height: 1fr; border: none; padding: 0 1; }
     #repeat { height: 1; color: $text-muted; padding: 0 1; }
-    #prompt { height: auto; max-height: 3; color: $accent; padding: 0 1; display: none; }
-    #prompt.asking { display: block; }
     #line { border: tall $panel; height: 3; }
     Chooser { align: center middle; }
     #chooser { width: 80%; max-width: 110; height: 80%; border: thick $accent; background: $surface; padding: 1 2; }
     #chooser-title { height: auto; margin-bottom: 1; text-style: bold; }
     #chooser-list { height: 1fr; margin-top: 1; }
+    Asker { align: center middle; }
+    Form { align: center middle; }
+    #form { width: 80%; max-width: 110; height: auto; border: thick $accent; background: $surface; padding: 1 2; }
+    #form-title { height: auto; text-style: bold; }
+    #form-about { height: auto; color: $text-muted; margin-bottom: 1; }
+    #form-fields { height: auto; }
+    .form-label { margin-top: 1; color: $accent; }
+    #form-fields RadioSet { height: auto; width: 100%; border: none; padding: 0; }
+    #form-actions { height: auto; margin-top: 1; }
+    #form-actions Button { margin-right: 2; }
+    #form-keys { height: 1; color: $text-muted; }
+    #asker { width: 80%; max-width: 110; height: auto; border: thick $accent; background: $surface; padding: 1 2; }
+    #asker-text { height: auto; margin-bottom: 1; }
     """
     BINDINGS = [
         Binding("f2", "pause", "pause/resume"),
@@ -189,7 +297,6 @@ class TraceApp(App):
         yield Static("", id="status")
         yield RichLog(id="log", wrap=True, highlight=False, markup=True, max_lines=5000)
         yield Static("", id="repeat")
-        yield Static("", id="prompt")
         yield CommandLine(placeholder="a command of the tracer; `help` lists them", id="line")
 
     async def on_mount(self) -> None:
@@ -241,8 +348,9 @@ class TraceApp(App):
                 self.show(escape(text))                # not one of the tracer's lines: shown as it came
         await errors
         code = await self.process.wait()
-        self.query_one("#prompt", Static).remove_class("asking")
         self.asking = False
+        while isinstance(self.screen, (Asker, Chooser, Form)):   # a question nobody is waiting for any more
+            self.pop_screen()
         self.end_repeat()
         self.set_state("unbound")
         self.show(f"[dim]the tracer has ended{'' if code == 0 else f' (exit code {code})'}: not bound. `bind` starts it again; Ctrl+Q leaves.[/dim]")
@@ -278,12 +386,15 @@ class TraceApp(App):
         elif kind == "commands":
             self.tracer_commands = said.get("commands", [])
         elif kind == "ask":
+            self.end_repeat()
             self.asking = True
-            prompt = self.query_one("#prompt", Static)
-            prompt.update(escape(text))
-            prompt.add_class("asking")
+            self.push_screen(Asker(text), self.answer)
         elif kind == "choose":
             self.push_screen(Chooser(said.get("title", text), said.get("options", [])), self.send)
+        elif kind == "form":
+            self.end_repeat()
+            self.asking = True
+            self.push_screen(Form(said.get("title", text), said.get("about", ""), said.get("fields", []), said.get("actions", [])), self.filled)
         elif kind == "reply":
             self.end_repeat()
             self.show(f"[green]{escape(text)}[/green]")
@@ -330,6 +441,22 @@ class TraceApp(App):
             parts.append("[dim]watching[/dim] " + escape(", ".join(self.watched)))
         self.query_one("#status", Static).update("   ".join(parts))
 
+    def answer(self, line: str | None) -> None:
+        """A question's answer goes to the tracer as it is, an empty line included, and into the log pane."""
+        line = line or ""
+        if not self.asking:
+            return                                     # the tracer has gone meanwhile: nobody is waiting
+        self.asking = False
+        self.show(f"[dim]{escape(line) or '(no answer)'}[/dim]")
+        self.send(line)
+
+    def filled(self, line: str | None) -> None:
+        """A form's answer goes to the tracer as its line of JSON; an empty line says it was given up."""
+        if not self.asking:
+            return
+        self.asking = False
+        self.send(line or "")
+
     # ---- what is typed
 
     def on_input_submitted(self, event: Input.Submitted) -> None:
@@ -338,12 +465,6 @@ class TraceApp(App):
         line = event.value
         box = self.query_one("#line", CommandLine)
         box.value = ""
-        if self.asking:                                # the answer to a question: sent as it is, an empty line included
-            self.asking = False
-            self.query_one("#prompt", Static).remove_class("asking")
-            self.show(f"[dim]{escape(line) or '(nothing)'}[/dim]")
-            self.send(line)
-            return
         if not line.strip():
             return
         self.submit(line)

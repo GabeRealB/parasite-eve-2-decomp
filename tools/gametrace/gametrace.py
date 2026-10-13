@@ -247,6 +247,10 @@ def tell(text: str = "", kind: str = "message", **fields) -> None:
                   start, and again whenever `commands` is typed
         choose    a command offers a list: `title`, and `options` as [name, description] pairs; the answer is a
                   name of the list, a number into it, text to narrow it by, or an empty line to give up
+        form      a command asks for several things at once: `title`, `about` (what it is about), `fields` - each a
+                  `key`, a `label`, the `value` it starts from and, for a choice, `options` as [name, description]
+                  pairs - and `actions`, the ways to finish, as [name, label] pairs. The answer is one line of
+                  JSON, {"action": name, "values": {key: value}}; an empty line gives up
         state     `state` is waiting, running, paused or detached
         event     an event as it is logged, in `record`; `watched` says whether it was asked for with `watch`;
                   `repeats` counts how often the same line has now come in a row"""
@@ -272,7 +276,8 @@ def command(name: str):
 
     The game is stopped while it runs, and it runs to its end before anything else can be typed. It gets the
     tracer and the rest of the line. It can talk to whoever typed it - `trace.say(text)`, `trace.ask(prompt)` for
-    a line, `trace.choose(title, options)` to have one picked from a list. To act on the game it has the tracer's
+    a line, `trace.choose(title, options)` to have one picked from a list, `trace.form(title, fields)` to have
+    several things filled in at once. To act on the game it has the tracer's
     primitives, which check nothing: `registers()`, `set_registers(pc=...)`, `where()`, `step()`, `run_to(address)`, `read(address,
     length)`, `poke(address, bytes)`, `address("symbol")`, `inject(source)` / `free(labels)`, `hook(address,
     target)` / `unhook(address)`, and `call(function, a0, a1, a2, a3)` built from them. Where it is safe to act,
@@ -1429,6 +1434,55 @@ class Session:
                 listed = named
             else:
                 listed = found
+
+    def form(self, title: str, fields: list[dict], text: str = "", actions: list | None = None) -> tuple[str, dict]:
+        """Have whoever is at the prompt fill in several things at once. Each field is {"key", "label", "value"}
+        with the value it starts from, and "options" - names, or (name, description) pairs - where it is a choice
+        of one of them. `actions` are the ways to finish, as (name, label) pairs; without them there is only
+        "save". Answers (action, {key: value}); giving up is the action "cancel" with nothing.
+
+        The program in front shows it as one form. At a plain prompt each field is asked in turn - an empty line
+        keeps what it has - and the way to finish is asked last."""
+        actions = [(a, a) if isinstance(a, str) else tuple(a) for a in (actions or [("save", "save")])]
+        fields = [{**f, "value": str(f.get("value", "") or ""),
+                   "options": [[o, ""] if isinstance(o, str) else [str(o[0]), str(o[1])] for o in f.get("options", [])]} for f in fields]
+        if self.typed is None:
+            return "cancel", {}
+        if MACHINE:
+            tell(title, "form", title=title, about=text, fields=fields, actions=[list(a) for a in actions])
+            try:
+                said = json.loads(self._line() or "{}")
+            except ValueError:
+                said = {}
+            action = said.get("action")
+            if action not in [a for a, _label in actions]:
+                return "cancel", {}
+            return action, {f["key"]: str(said.get("values", {}).get(f["key"], f["value"])) for f in fields}
+        self.say(title)
+        if text:
+            self.say(text)
+        values = {}
+        for field in fields:
+            choices = [name for name, _about in field["options"]]
+            while True:
+                hint = f" ({' / '.join(choices)})" if choices else ""
+                answer = self.ask(f"  {field['label']}{hint} [{field['value']}]: ")
+                if answer is None:
+                    return "cancel", {}
+                answer = answer or field["value"]
+                picked = [c for c in choices if c.lower().startswith(answer.lower())] if choices and answer else [answer]
+                if not choices or len(picked) == 1 or answer in choices:
+                    values[field["key"]] = answer if answer in choices or not choices else picked[0]
+                    break
+                self.say(f"    one of: {', '.join(choices)}")
+        if len(actions) == 1:
+            return actions[0][0], values
+        names = [a for a, _label in actions]
+        answer = self.ask(f"  {' / '.join(f'{a} ({label})' if label != a else a for a, label in actions)} [{names[0]}]: ")
+        if answer is None:
+            return "cancel", {}
+        picked = [a for a in names if a.lower().startswith(answer.lower())] if answer else [names[0]]
+        return (picked[0], values) if len(picked) == 1 else ("cancel", {})
 
     # ---- acting on the game, for commands
 
