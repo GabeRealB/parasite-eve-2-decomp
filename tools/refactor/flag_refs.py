@@ -14,6 +14,8 @@ The flag is a nibble position, in hex. The answer is two lists.
            entry. A site is listed with the places that put this flag into what
            it reads; the sites whose data has no known source of the flag are
            counted by what they read, since any of them could be handed it.
+           A site is left out when the flag can never be there: every store
+           into what it reads is a constant in the source, and none is this.
 
 Ids and values are followed through parameters, locals, struct fields, globals
 and return values, without regard to order: a field holds every constant the
@@ -64,6 +66,8 @@ INDEX = os.path.join("local", "flag_refs.json")
 # A set of ids this large is not a set of flags.
 MANY_IDS = 256
 OTHER = ("o",)
+# In place of a file: an unknown store that no room boundary confines.
+ANYWHERE = "*"
 WRAPPERS = (K.PAREN_EXPR, K.UNEXPOSED_EXPR, K.CSTYLE_CAST_EXPR)
 INTS = {T.BOOL, T.CHAR_U, T.UCHAR, T.USHORT, T.UINT, T.ULONG, T.ULONGLONG, T.CHAR_S, T.SCHAR,
         T.SHORT, T.INT, T.LONG, T.LONGLONG, T.ENUM}
@@ -181,11 +185,16 @@ class Scan:
         self.sites = []       # flag accesses
         self.calls = {}       # callee -> [(where, caller, {argument: terms})]
         self.stores = {}      # node -> {(term, where)}
-        self.loose = set()    # nodes changed in a way that is not a store of a value
+        self.loose = {}       # node -> the files that change it other than by storing a known value
         self.taken = set()    # functions whose address is used
         self.names = {}       # node or function -> how to show it
         self.expects = {}     # node -> what a local holding a read is compared with
         self.callees = set()
+        self.defined = set()  # globals this unit defines
+        self.declared = {}    # global -> the records its type is made of
+        self.owners = {}      # field -> its record
+        self.raw = {}         # record some pointer to bytes is cast to -> where
+        self.made_of = {}
         self.files = {}
         self.function = None
         self.params = {}
@@ -239,6 +248,9 @@ class Scan:
                 if "unnamed" in owner or "anonymous" in owner:
                     owner = ""
                 self.names[key] = f"{owner}.{decl.spelling}" if owner else f".{decl.spelling}"
+                parent = decl.semantic_parent
+                if parent is not None:
+                    self.owners[key] = parent.type.get_canonical().spelling
             return key
         if kind == K.VAR_DECL:
             parent = decl.semantic_parent
@@ -311,7 +323,7 @@ class Scan:
         bucket = self.stores.setdefault(key, set())
         for term in terms:
             if term == OTHER or len(bucket) >= MANY_STORES:
-                self.loose.add(key)
+                self.loose.setdefault(key, set()).add(where[0])
             else:
                 bucket.add((term, where[:2]))
 
@@ -469,8 +481,39 @@ class Scan:
             self.uses(kid, parents)
         parents.pop()
 
+    def records(self, type_, depth=0):
+        """The records a value of this type holds, through arrays and fields.
+
+        Not through pointers: bytes holding a pointer to a record are not that
+        record's bytes.
+        """
+        t = type_.get_canonical()
+        while t.kind in ARRAYS:
+            t = t.get_array_element_type().get_canonical()
+        if t.kind != T.RECORD:
+            return frozenset()
+        name = t.spelling
+        known = self.made_of.get(name)
+        if known is None:
+            self.made_of[name] = frozenset([name])      # a record that holds a pointer to itself
+            found = {name}
+            if depth < 6:
+                for f in t.get_fields():
+                    found |= self.records(f.type, depth + 1)
+            known = self.made_of[name] = frozenset(found)
+        return known
+
     def variable(self, cur):
-        if not cur.is_definition() and cur.semantic_parent.kind != K.FUNCTION_DECL:
+        local = cur.semantic_parent.kind == K.FUNCTION_DECL
+        if not local:
+            key = self.node(cur)
+            # Without `extern` and without an initialiser it is still a
+            # definition: zeros, in this unit.
+            if cur.is_definition() or cur.storage_class != ci.StorageClass.EXTERN:
+                self.defined.add(key)
+            elif key not in self.declared:
+                self.declared[key] = self.records(cur.type)
+        if not cur.is_definition() and not local:
             return
         kids = list(cur.get_children())
         if not kids:
@@ -498,20 +541,35 @@ class Scan:
             if kids:
                 key = self.target(kids[0])
                 if key:
-                    self.loose.add(key)
+                    self.loose.setdefault(key, set()).add(self.rel(cur) or ANYWHERE)
         elif kind == K.UNARY_OPERATOR:
             op = unary(cur)
             if op in ("x++", "x--", "++x", "--x", "&"):
                 kids = list(cur.get_children())
                 key = self.target(kids[0]) if kids else None
                 if key:
-                    self.loose.add(key)
+                    self.loose.setdefault(key, set()).add(self.rel(cur) or ANYWHERE)
         elif kind == K.VAR_DECL:
             self.variable(cur)
         elif kind == K.COMPOUND_LITERAL_EXPR:
             kids = list(cur.get_children())
             if kids and kids[-1].kind == K.INIT_LIST_EXPR:
                 self.fill(kids[-1], cur.type)
+        elif kind == K.CSTYLE_CAST_EXPR:
+            to = cur.type.get_canonical()
+            kids = list(cur.get_children())
+            if to.kind == T.POINTER and to.get_pointee().get_canonical().kind == T.RECORD and kids:
+                source = kids[-1].type.get_canonical()
+                if source.kind in ARRAYS:
+                    source = source.get_array_element_type().get_canonical()
+                elif source.kind == T.POINTER:
+                    source = source.get_pointee().get_canonical()
+                else:
+                    source = None
+                if source is not None and source.kind in INTS:
+                    at = self.where(cur)
+                    for name in self.records(to.get_pointee()):
+                        self.raw.setdefault(name, f"cast at {at[0]}:{at[1]}")
         elif kind == K.RETURN_STMT:
             kids = list(cur.get_children())
             if kids and self.function and intlike(kids[0].type):
@@ -625,6 +683,7 @@ def scan_unit(job):
         "deps": {d: stamp(root, d) for d in deps},
         "sites": scan.sites, "calls": scan.calls, "stores": scan.stores, "loose": scan.loose,
         "taken": scan.taken, "names": scan.names, "expects": scan.expects,
+        "defined": scan.defined, "declared": scan.declared, "owners": scan.owners, "raw": scan.raw,
     }
 
 
@@ -668,11 +727,15 @@ class Facts:
         self.sites = {}
         self.calls = {}
         self.stores = {}
-        self.loose = set()
+        self.loose = {}
         self.taken = set()
         self.names = {}
         self.expects = {}
         self.homes = {}       # file -> the overlays whose units read it
+        self.defined = set()
+        self.owners = {}
+        self.hidden = {}      # record the source does not fill itself -> why
+        declared = {}
         for unit, facts in units.items():
             home = overlay_of(unit)
             for dep in facts["deps"]:
@@ -685,12 +748,22 @@ class Facts:
                     bucket.setdefault((where, caller), (args, texts))
             for key, entries in facts["stores"].items():
                 self.stores.setdefault(key, set()).update(entries)
-            self.loose |= facts["loose"]
+            for key, files in facts["loose"].items():
+                self.loose.setdefault(key, set()).update(files)
+            self.defined |= facts["defined"]
+            self.owners.update(facts["owners"])
+            for name, why in facts["raw"].items():
+                self.hidden.setdefault(name, why)
+            declared.update(facts["declared"])
             self.taken |= facts["taken"]
             for key, name in facts["names"].items():
                 self.names.setdefault(key, name)
             for key, found in facts["expects"].items():
                 self.expects.setdefault(key, set()).update(found)
+        for key, records in declared.items():
+            if key not in self.defined:           # its contents are assembly
+                for name in records:
+                    self.hidden.setdefault(name, f"held by {self.names.get(key, key)}, which no source defines")
         self.memo = {}
         self.placed = {}
         self.deep = True
@@ -701,17 +774,28 @@ class Facts:
         ha, hb = self.homes.get(a, {a}), self.homes.get(b, {b})
         return any(together(x, y) for x in ha for y in hb)
 
-    def open(self, key) -> bool:
-        """Whether a node can hold values the source does not show."""
+    def open(self, key) -> set:
+        """Where a node can be given values the source does not show: the files
+        that do it, or ANYWHERE."""
         kind = key[0]
-        if kind in "FG" or key in self.loose:
-            return True
-        if kind == "P":
+        out = set(self.loose.get(key, ()))
+        if kind == "G":
+            unseen = key not in self.defined
+        elif kind == "F":
+            # A field holds only what the source stores in it, unless its record
+            # is also laid over bytes the source never wrote: a table still in
+            # assembly, or a buffer cast to it.
+            unseen = self.owners.get(key) in self.hidden or key not in self.stores
+        elif kind == "P":
             fn, index = key[2:].rsplit("|", 1)
-            return fn in self.taken or not self.arguments(fn, int(index))
-        if kind == "R":
-            return key not in self.stores
-        return False
+            unseen = fn in self.taken or not self.arguments(fn, int(index))
+        elif kind == "R":
+            unseen = key not in self.stores
+        else:
+            unseen = False
+        if unseen:
+            out.add(ANYWHERE)
+        return out
 
     def arguments(self, fn, index):
         out = []
@@ -753,26 +837,28 @@ class Facts:
                 if k in wide:
                     continue
                 before = len(mine[0])
-                for terms, _where in sources:
+                for terms, where in sources:
                     for term in terms:
                         if term[0] == "c":
                             mine[0].add(term[1])
                         elif term[0] == "n":
                             got, loose = self.memo.get(term[1]) or state[term[1]]
-                            if loose and not mine[1]:
-                                mine[1] = changed = True
+                            if not loose <= mine[1]:
+                                mine[1] |= loose
+                                changed = True
                             if term[2]:
                                 if rounds > 8:      # arithmetic feeding itself: no end to it
-                                    mine[1] = True
+                                    mine[1].add(ANYWHERE)
                                     continue
                                 mine[0].update([apply(term[2], v) for v in got])
                             elif got is not mine[0]:
                                 mine[0] |= got
-                        elif not mine[1]:
-                            mine[1] = changed = True
+                        elif where[0] not in mine[1]:
+                            mine[1].add(where[0])
+                            changed = True
                 if len(mine[0]) > 4 * MANY_IDS:     # coordinates, counters: not a flag's carrier
                     wide.add(k)
-                    mine[0], mine[1] = set(), True
+                    mine[0], mine[1] = set(), {ANYWHERE}
                     changed = True
                 elif len(mine[0]) != before:
                     changed = True
@@ -781,20 +867,24 @@ class Facts:
         return self.memo[key]
 
     def of(self, terms, deep=True):
-        """(the values a list of terms can take, whether more are possible)."""
+        """(the values a list of terms can take, where more can come from)."""
         self.deep = deep
         self.memo = self.deep_memo if deep else self.shallow_memo
-        found, more = set(), False
+        found, more = set(), set()
         for term in terms:
             if term[0] == "c":
                 found.add(term[1])
             elif term[0] == "n":
                 got, loose = self.values(term[1])
-                more = more or loose
+                more |= loose
                 found.update(apply(term[2], v) for v in got)
             else:
-                more = True
+                more.add(ANYWHERE)
         return found, more
+
+    def reaches(self, files, here) -> bool:
+        """Whether an unknown store made in one of `files` can reach code in `here`."""
+        return any(f == ANYWHERE or self.near(f, here) for f in files)
 
     def places(self, terms, where, value, busy=frozenset()):
         """Where the source stores `value` into what these terms read."""
@@ -905,6 +995,7 @@ def rows(facts):
                 out.append(row)
                 continue
             found, more = facts.of(ctx["id"])
+            more = facts.reaches(more, file)
             found -= set(ctx.get("refused", ()))
             if len(found) > MANY_IDS:
                 found, more = set(), True
@@ -921,7 +1012,7 @@ def rows(facts):
                     or ctx["id_text"]
             if ctx["access"] == "write":
                 values, loose = facts.of(ctx.get("value", [OTHER]), deep=False)
-                row.update(values=sorted(v & 0xFF for v in values), dynamic=loose, value_text=ctx.get("value_text", "?"))
+                row.update(values=sorted(v & 0xFF for v in values), dynamic=facts.reaches(loose, file), value_text=ctx.get("value_text", "?"))
             elif ctx.get("expect"):
                 row["expect"] = expected(facts, ctx["expect"], ctx["width"])
             out.append(row)
@@ -994,8 +1085,8 @@ def lines(row, flag, wanted):
     made = [out]
     others = [v for v in row["ids"] if v not in wanted]
     if others and not row["more"] and row["width"] != "mark":
-        shown = "|".join(f"{v:#05x}" for v in others[:8]) + (" ..." if len(others) > 8 else "")
-        made.append(f"           or flag {shown}")
+        shown = "|".join(f"{v:#05x}" for v in others[:8]) + (f" and {len(others) - 8} more" if len(others) > 8 else "")
+        made.append(f"           or flag {shown}, and no other")
     if not row.get("direct", True):
         places = sorted({tuple(p) for v in wanted for p in row["origins"].get(str(v), ())})
         text = ", ".join(f"{f}:{n}" for f, n in places[:4]) + (f" and {len(places) - 4} more" if len(places) > 4 else "")
@@ -1024,12 +1115,12 @@ def main() -> int:
             continue
         wanted = (flag & ~1, flag | 1) if row["width"] == "byte" else (flag,)
         hit = any(v in row["ids"] for v in wanted)
-        if hit and not row["more"]:
+        if hit and not row["more"] and (row.get("direct", True) or all(v in wanted for v in row["ids"])):
             static.append((row, wanted))
         elif hit:
             reached.append((row, wanted))
         elif row["more"]:
-            unknown.setdefault((row["access"], row.get("source", "?")), []).append(row)
+            unknown.setdefault((row["access"], row.get("id_text", "?")), []).append(row)
     what = {"read": "reads", "write": "writes", "both": "reads and writes"}[mode]
     print(f"flag {flag:#05x}, {what}")
     print(f"\nstatic: {len(static)}")
@@ -1042,9 +1133,9 @@ def main() -> int:
     for row, wanted in reached:
         print("\n".join(lines(row, flag, wanted)))
     for (access, name), found in sorted(unknown.items(), key=lambda kv: (kv[0][0] != "write", -len(kv[1]), kv[0][1])):
-        files = sorted({r["file"] for r in found})
-        shown = ", ".join(files[:3]) + (f" and {len(files) - 3} more files" if len(files) > 3 else "")
-        print(f"  {access:5}  id from {name}: {len(found)} sites ({shown})")
+        places = sorted({(r["file"], r["line"]) for r in found})
+        shown = ", ".join(f"{f}:{n}" for f, n in places[:3]) + (f" and {len(places) - 3} more" if len(places) > 3 else "")
+        print(f"  {access:5}  id {name}  at {shown}")
     return 0
 
 
