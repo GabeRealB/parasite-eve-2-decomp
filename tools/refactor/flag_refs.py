@@ -4,16 +4,16 @@
     flag_refs.py 1ee write
     flag_refs.py 0x0a2 both
 
-The flag is a nibble position, in hex. The answer is two lists.
+The flag is a nibble position, in hex. The answer is three lists.
 
   static   the id is established by the source: a constant at the call, a
            constant passed to a function that hands its parameter on, or a
            local that only ever holds constants. A write shows the number it
            stores, a read what the result is compared with.
-  dynamic  the id comes out of data at run time - a request's field, a table
-           entry. A site is listed with the places that put this flag into what
-           it reads; the sites whose data has no known source of the flag are
-           counted by what they read, since any of them could be handed it.
+  dynamic  the id comes out of data at run time, in two lists. First the sites
+           the source gives this flag: a request's field, a table entry, each
+           with the places that put the flag into what the site reads. Then the
+           sites whose id is not known, which any flag could reach.
            A site is left out when the flag can never be there: every store
            into what it reads is a constant in the source, and none is this.
 
@@ -1128,14 +1128,19 @@ def main() -> int:
         group.sort(key=lambda e: (e[0]["access"] != "write", e[0]["file"], e[0]["line"]))
     for row, wanted in static:
         print("\n".join(lines(row, flag, wanted)))
-    rest = sum(len(v) for v in unknown.values())
-    print(f"\ndynamic: {len(reached)} given this flag by the source, {rest} with no known source of it")
+    print(f"\ndynamic, given this flag by the source: {len(reached)}")
     for row, wanted in reached:
         print("\n".join(lines(row, flag, wanted)))
-    for (access, name), found in sorted(unknown.items(), key=lambda kv: (kv[0][0] != "write", -len(kv[1]), kv[0][1])):
-        places = sorted({(r["file"], r["line"]) for r in found})
-        shown = ", ".join(f"{f}:{n}" for f, n in places[:3]) + (f" and {len(places) - 3} more" if len(places) > 3 else "")
-        print(f"  {access:5}  id {name}  at {shown}")
+    loose = sorted((r for found in unknown.values() for r in found),
+                   key=lambda r: (r["access"] != "write", r["file"], r["line"]))
+    print(f"\ndynamic, id not known: {len(loose)}")
+    for row in loose:
+        out = f"  {row['access']:5}  {row['file']}:{row['line']}  {row['function'] or '(file scope)'}"
+        if row["via"]:
+            out += "  via " + " > ".join(row["via"])
+        print(out)
+        about = detail(row, flag)
+        print(f"           id {row.get('id_text', '?')}" + (f"  {about}" if about else ""))
     return 0
 
 
