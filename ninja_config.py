@@ -520,7 +520,6 @@ match PLATFORM:
         CC = OS_DIR / "gcc-psx" / "cc1psx.exe"
         CC272 = OS_DIR / "gcc-2.7.2-win" / "cc1psx.exe"
         DUMPSXISO = MKPSXISO_DIR / "dumpsxiso.exe"
-        ICONV = OS_DIR / "iconv" / "iconv.bat"
 
     case Platform.Linux:
         CROSS_TARGET = "mips-linux-gnu"
@@ -532,7 +531,6 @@ match PLATFORM:
         CC = OS_DIR / "gcc-2.8.1-psx" / "cc1"
         CC272 = OS_DIR / "gcc-2.7.2-cdk" / "cc1"
         DUMPSXISO = MKPSXISO_DIR / "dumpsxiso"
-        ICONV = "iconv"
 
     case Platform.MacOS:
         CROSS_TARGET = "mipsel-linux-gnu"
@@ -544,7 +542,6 @@ match PLATFORM:
         CC = OS_DIR / "gcc-2.8.1-psx" / "cc1"
         CC272 = OS_DIR / "gcc-2.7.2-cdk" / "cc1"
         DUMPSXISO = MKPSXISO_DIR / "dumpsxiso"
-        ICONV = "iconv"
 
 OBJDIFF_GENSCRIPT = OBJDIFF_DIR / "objdiff_generate.py"
 OBJDIFF_TARGET_ASM = OBJDIFF_DIR / "target_asm.py"
@@ -568,13 +565,11 @@ match PLATFORM:
             f"{INCLUDE_FLAGS} -D_LANGUAGE_C -DUSE_INCLUDE_ASM -P -MMD -MP -N -Wall -I-"
         )
         MASPSX_FLAGS = f"--gnu-as-path {AS} --run-assembler"
-        ICONV_FLAGS = "$in $out"
 
     case Platform.Linux:
         COMPILE_COMMANDS_FLAGS = f"{INCLUDE_FLAGS} -D_LANGUAGE_C -DUSE_INCLUDE_ASM -undef -Wall -lang-c -nostdinc"
         CPP_FLAGS = f"{INCLUDE_FLAGS} -D_LANGUAGE_C -DUSE_INCLUDE_ASM -P -MMD -MP -undef -Wall -lang-c -nostdinc"
         MASPSX_FLAGS = f"--aspsx-version={MASPX_VERSION} --run-assembler"
-        ICONV_FLAGS = "-f UTF-8 -t SHIFT-JIS $in -o $out"
 
     case Platform.MacOS:
         COMPILE_COMMANDS_FLAGS = f"{INCLUDE_FLAGS} -D_LANGUAGE_C -DUSE_INCLUDE_ASM -undef -Wall -lang-c -nostdinc"
@@ -582,7 +577,6 @@ match PLATFORM:
             f"{INCLUDE_FLAGS} -D_LANGUAGE_C -DUSE_INCLUDE_ASM -P -MMD -MP -N -Wall -I-"
         )
         MASPSX_FLAGS = f"--aspsx-version={MASPX_VERSION} --run-assembler"
-        ICONV_FLAGS = "-f UTF-8 -t SHIFT-JIS $in -o $out"
 
 CC_FLAGS = f"{OPT_FLAGS} -mips1 -mcpu=3000 -w -funsigned-char -fpeephole -ffunction-cse -fpcc-struct-return -fcommon -fverbose-asm -msoft-float -mgas -fgnu-linker -quiet -gcoff"
 AS_FLAGS = (
@@ -1120,11 +1114,6 @@ def ninja_build(
         description="cpp $in",
         command=f"{CPP} -P -MMD -MP -MT $out -MF $out.d {CPP_FLAGS} $VERSION $SKIPASMFLAG $NONMATCHINGFLAG $PKGID -o $out $in",
         depfile="$out.d",
-    )
-    ninja_rules_file.rule(
-        "iconv",
-        description="iconv $in",
-        command=f"{ICONV} {ICONV_FLAGS}",
     )
     ninja_rules_file.rule(
         "objdump",

@@ -889,13 +889,13 @@ static const AnimationBankCopyRequest _gDryfieldTrailerCoachPlayerAnimationExten
     .wordCount = ANIMATION_BANK_EXTENSION_CAPACITY,
 };
 
-/// Null-terminated Shift-JIS topic label meaning "About firearms".
+/// Null-terminated Shift-JIS topic label "銃器について (About firearms)".
 static u8 _gDryfieldTrailerCoachFirearmsTopicLabel[] = "\x8F\x65\x8A\xED\x82\xC9\x82\xC2\x82\xA2\x82\xC4";
 
-/// Null-terminated Shift-JIS topic label meaning "About the shelter".
+/// Null-terminated Shift-JIS topic label "シェルターについて (About the shelter)".
 static u8 _gDryfieldTrailerCoachShelterTopicLabel[] = "\x83\x56\x83\x46\x83\x8B\x83\x5E\x81\x5B\x82\xC9\x82\xC2\x82\xA2\x82\xC4";
 
-/// Null-terminated Shift-JIS topic label meaning "Anything else?".
+/// Null-terminated Shift-JIS topic label "他に何か？ (Anything else?)".
 static u8 _gDryfieldTrailerCoachAnythingElseTopicLabel[] = "\x91\xBC\x82\xC9\x89\xBD\x82\xA9\x81\x48";
 
 /// Borrowed labels for the firearms/shelter and firearms/anything-else choices.
