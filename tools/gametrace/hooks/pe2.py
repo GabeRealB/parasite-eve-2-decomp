@@ -341,7 +341,15 @@ def cd_command(record, trace):
 def flag(record, trace):
     """gameFlagSetNibble(flagId, value): the flag by its name in include/main/gameflag_ids.h."""
     name = constants("include/main/gameflag_ids.h", "GAME_FLAG_").get(record["a0"])
-    return {"event": "flag_set", "flag": name or f"{record['a0']:#05x}", "id": f"{record['a0']:#05x}", "value": record["a1"] & 0xF, "from": trace.symbol(record["ra"])}
+    out = {"event": "flag_set", "flag": name or f"{record['a0']:#05x}", "id": f"{record['a0']:#05x}", "value": record["a1"] & 0xF, "from": trace.symbol(record["ra"])}
+    noted = flag_notes()["flags"].get(record["a0"])                  # what the person at the tracer has written about it
+    if noted and noted.get("description"):
+        out["noted"] = noted["description"] + (f": {meanings_of(noted)[out['value']]}" if meanings_of(noted).get(out["value"]) else "")
+        if noted.get("kind") == "bits":
+            out["noted"] = noted["description"] + ": " + (" + ".join(noted.get("bits", {}).get(b) or f"bit {b}" for b in bits_of(out["value"])) or "none set")
+    if any((item["what"], item["id"], item["value"]) == ("flag", record["a0"], out["value"]) for item in flag_notes()["pending"]):
+        out["put_off"] = "not described yet: `watch_flags pending`"        # why the game did not stop for it
+    return out
 
 
 @renderer("flag_byte")
@@ -349,7 +357,14 @@ def flag_byte(record, trace):
     """gameFlagSetPackedByte(nibbleIndex, packedValue): two nibbles at once; either index of a pair names the byte."""
     low = record["a0"] & ~1
     names = [constants("include/main/gameflag_ids.h", "GAME_FLAG_").get(low + n) or f"{low + n:#05x}" for n in (0, 1)]
-    return {"event": "flag_byte_set", "flags": names, "value": f"{record['a1'] & 0xFF:#04x}", "from": trace.symbol(record["ra"])}
+    out = {"event": "flag_byte_set", "flags": names, "value": f"{record['a1'] & 0xFF:#04x}", "from": trace.symbol(record["ra"])}
+    notes, value = flag_notes(), record["a1"] & 0xFF
+    if low == OBJECTIVE_BYTE and value in notes["objectives"]:
+        out["noted"] = "objective: " + notes["objectives"][value].get("description", "")
+    elif notes["bytes"].get(low, {}).get("description"):
+        noted = notes["bytes"][low]
+        out["noted"] = noted["description"] + (f": {noted['values'][value]}" if noted.get("values", {}).get(value) else "")
+    return out
 
 
 @renderer("companion")
@@ -917,4 +932,301 @@ def player_number(which: str):
 
 for _name in PLAYER_NUMBERS:
     command(_name)(player_number(_name))
+
+
+# ---- what the flags mean: notes written while playing
+#
+# The game's flags are nibbles, written one at a time or two at once as a packed byte; the current objective is one
+# such byte. What each means is found by watching it change, so `watch_flags` stops the game when a flag or a value
+# appears that the notes do not have, and asks. The notes are a file of the person's own, outside the repository:
+# the names in include/main/gameflag_ids.h are not consulted - a flag is known when its meaning has been written here.
+
+FLAG_EVENTS = ("flag_nibble", "flag_byte")      # the two ways the game writes a flag: one nibble, or a packed byte
+FLAG_NOTES = REPO / "local" / "gametrace" / "flag_notes.toml"
+OBJECTIVE_BYTE = 0xA2                           # the nibble pair that holds the current objective
+MAP_DOOR = "map door marker"                    # the kind of a flag that is a door's mark on the map
+FLAG_KINDS = [("marker", "set when something has happened: it keeps one value, and is asked about if another appears"),
+              ("state", "each value means something: asked about every new value"),
+              ("bits", "each bit means something on its own: asked about every new bit, not every combination"),
+              (MAP_DOOR, "a door's mark on the map: 0 unlocked, 1 passed, 2 locked; asked about only if another value appears"),
+              ("counter", "counts or changes all the time: its values are not asked about")]
+ASKED_KINDS = ("marker", "state", MAP_DOOR)     # the kinds whose every new value stops the game
+MAP_DOOR_VALUES = {0: "unlocked", 1: "passed", 2: "locked"}     # what a map door marker's values mean, for every door alike
+
+
+def meanings_of(note: dict) -> dict[int, str]:
+    """A note's values with what its kind says about them without their being written down."""
+    return {**(MAP_DOOR_VALUES if note.get("kind") == MAP_DOOR else {}), **note.get("values", {})}
+NOTE_TABLES = {"flag": "flags", "byte": "bytes", "objective": "objectives"}
+_notes: dict = {"at": None, "data": None}
+_flag_queue: list[dict] = []                    # what was seen new and not yet asked about
+
+
+def flag_notes() -> dict:
+    """The notes, read again when the file has changed: {"flags": {id: note}, "bytes": {...}, "objectives": {...},
+    "pending": [item, ...]}. A note is {"description", "kind", "note", "values": {value: meaning}}, a counter's also
+    "max", the highest value it has been seen at (it starts from 0, so that is its whole range), and one of kind
+    bits "bits": {bit number: meaning}; an objective is
+    {"description", "marker", "order"}."""
+    stamp = FLAG_NOTES.stat().st_mtime_ns if FLAG_NOTES.is_file() else 0
+    if _notes["data"] is None or _notes["at"] != stamp:
+        import tomllib
+        raw = tomllib.loads(FLAG_NOTES.read_text(encoding="utf-8")) if stamp else {}
+        data = {table: {int(key, 0): dict(note) for key, note in raw.get(table, {}).items()} for table in NOTE_TABLES.values()}
+        for table in ("flags", "bytes"):
+            for note in data[table].values():
+                note["values"] = {int(value, 0): meaning for value, meaning in note.get("values", {}).items()}
+                note["bits"] = {int(bit, 0): meaning for bit, meaning in note.get("bits", {}).items()}
+        data["pending"] = [dict(item) for item in raw.get("pending", [])]
+        _notes.update(at=stamp, data=data)
+    return _notes["data"]
+
+
+def save_flag_notes(notes: dict) -> None:
+    import json
+    text = lambda value: json.dumps(value, ensure_ascii=False)        # a JSON string is a TOML basic string
+    out = ["# What the game's flags mean, written while playing (`watch_flags`). Edit freely: it is read again when it changes.",
+           "# kind: marker (set when something has happened; it keeps one value), state (each value has a meaning),",
+           "# bits (each bit has a meaning of its own), map door marker (0 unlocked, 1 passed, 2 locked),",
+           "# counter (counts up from 0; `max` is the highest value seen), ignored.", ""]
+    for table, digits in (("flags", 3), ("bytes", 3)):
+        for key, note in sorted(notes[table].items()):
+            out.append(f"[{table}.{key:#0{digits + 2}x}]")
+            out += [f"{field} = {text(note[field])}" for field in ("description", "kind", "note") if note.get(field)]
+            if note.get("kind") == "counter" and note.get("max") is not None:
+                out.append(f"max = {int(note['max'])}")
+            if note.get("values"):
+                out.append(f"[{table}.{key:#0{digits + 2}x}.values]")
+                out += [f"{value} = {text(meaning)}" for value, meaning in sorted(note["values"].items())]
+            if note.get("bits"):
+                out.append(f"[{table}.{key:#0{digits + 2}x}.bits]")
+                out += [f"{bit} = {text(meaning)}" for bit, meaning in sorted(note["bits"].items())]
+            out.append("")
+    for key, note in sorted(notes["objectives"].items(), key=lambda pair: (pair[1].get("order", 0), pair[0])):
+        out.append(f"[objectives.{key:#04x}]")
+        out += [f"{field} = {text(note[field]) if isinstance(note[field], str) else note[field]}" for field in ("description", "marker", "order") if note.get(field) not in (None, "")]
+        out.append("")
+    for item in notes["pending"]:
+        out.append("[[pending]]")
+        out += [f"{field} = {text(value) if isinstance(value, str) else value}" for field, value in item.items() if value is not None]
+        out.append("")
+    FLAG_NOTES.parent.mkdir(parents=True, exist_ok=True)
+    FLAG_NOTES.write_text("\n".join(out), encoding="utf-8")
+    _notes["at"] = None                                               # read back what was written
+
+
+def flag_writes(record: dict, name: str) -> list[tuple[str, int, int]]:
+    """What one captured write sets, as (what, id, value): a nibble, or a packed byte - the objective when it is that one."""
+    if name == "flag_nibble":
+        return [("flag", record["a0"], record["a1"] & 0xF)]
+    low = record["a0"] & ~1
+    return [("objective" if low == OBJECTIVE_BYTE else "byte", low, record["a1"] & 0xFF)]
+
+
+def flag_is_new(notes: dict, what: str, key: int, value: int) -> bool:
+    if what == "objective":
+        return value not in notes["objectives"]
+    note = notes[NOTE_TABLES[what]].get(key)
+    if note is not None and note.get("kind") == "bits":
+        return any(not note.get("bits", {}).get(bit) for bit in bits_of(value))
+    return note is None or (note.get("kind", "marker") in ASKED_KINDS and value not in meanings_of(note))
+
+
+def count_up(notes: dict, item: dict) -> None:
+    """A value seen of what is a counter raises its highest value, however the value came to be looked at."""
+    note = notes[NOTE_TABLES[item["what"]]].get(item["id"]) if item["what"] != "objective" else None
+    if note and note.get("kind") == "counter" and item.get("value") is not None and item["value"] > note.get("max", 0):
+        note["max"] = item["value"]
+
+
+def settle_pending(notes: dict) -> None:
+    """Take off the list what an answer has meanwhile covered - the other values of a flag that turned out to be a
+    counter, a marker's value, a described bit - keeping what those values say: a counter's highest."""
+    for item in notes["pending"]:
+        count_up(notes, item)
+    notes["pending"] = [item for item in notes["pending"] if flag_is_new(notes, item["what"], item["id"], item["value"])]
+
+
+def bits_of(value: int) -> list[int]:
+    """The numbers of the bits set in a value, lowest first."""
+    return [bit for bit in range(value.bit_length()) if value >> bit & 1]
+
+
+def item_label(item: dict) -> str:
+    if item["what"] == "objective":
+        return f"objective {item['value']:#04x}"
+    return f"{item['what']} {item['id']:#05x} = {item['value']}"
+
+
+def item_where(item: dict) -> str:
+    place = f"{item.get('room') or '?'}, view {item.get('view', '?')}" if item.get("room") or item.get("view") is not None else "place not known"
+    return f"{place}; written by {item.get('by') or '?'}; {item.get('at', '')}".rstrip("; ")
+
+
+def on_flag_write(trace, record, line):
+    """Called for every flag the game writes, while it runs: what the notes do not have is queued, and the game is
+    stopped to ask about it."""
+    notes = flag_notes()
+    for what, key, value in flag_writes(record, record.get("name", "")):
+        note = notes[NOTE_TABLES[what]].get(key) if what != "objective" else None
+        if note and note.get("kind") == "counter" and value > note.get("max", 0):
+            note["max"] = value                      # a counter is not asked about: how far it has got is kept instead
+            save_flag_notes(notes)
+            trace.note(f"{what} {key:#05x} ({note.get('description', '')}): counted to {value}", flag=key, value=value)
+            notes = flag_notes()
+        same = lambda item: (item["what"], item["id"], item["value"]) == (what, key, value)
+        if flag_is_new(notes, what, key, value) and not any(map(same, _flag_queue)) and not any(map(same, notes["pending"])):
+            _flag_queue.append({"what": what, "id": key, "value": value, "by": line.get("from") or ""})
+            trace.attend(review_flags)
+
+
+def review_flags(trace):
+    """With the game stopped: ask about everything queued, one after the other. What is put off goes on the pending
+    list, to be picked again with `watch_flags pending`."""
+    import datetime
+    notes = flag_notes()
+    items, here = list(_flag_queue), {}
+    _flag_queue.clear()
+    try:
+        at = location(trace.read(trace.address("_gGameSessionState") + 4, 8))
+        here = {"room": room_of(at["stage"], at["area"]) or f"stage {at['stage']} area {at['area']}", "view": at["view"]}
+    except Exception:  # noqa: BLE001 - the place is a convenience
+        pass
+    now = datetime.datetime.now().isoformat(timespec="seconds")
+    later = False
+    for n, item in enumerate(items):
+        item.update(here, at=now)
+        if not flag_is_new(notes, item["what"], item["id"], item["value"]):
+            count_up(notes, item)
+            continue                                                  # an answer earlier in this round covered it
+        answer = "later" if later else describe_flag(trace, notes, item, len(items) - n - 1)
+        if answer == "rest":
+            later, answer = True, "later"
+        if answer == "later":
+            notes["pending"].append(item)
+            trace.say(f"{item_label(item)}: put on the list (`watch_flags pending`)")
+    settle_pending(notes)
+    save_flag_notes(notes)
+
+
+FLAG_ACTIONS = [("save", "Save"), ("later", "Later"), ("rest", "Later for all"), ("never", "Never ask")]
+
+
+def describe_flag(trace, notes: dict, item: dict, waiting: int = 0) -> str:
+    """Show one flag, byte or objective as a form - what the notes have about it, with the value just seen among
+    its values - and write what comes back into `notes`. The whole entry can be changed there, not only the new
+    value. Says what was done: "done", "later" (put off on purpose: it belongs on the list) or "rest" (later,
+    and nothing else is to be asked now). An item without a value is an entry opened to be edited."""
+    what, key, value = item["what"], item["id"], item.get("value")
+    about = (item_where(item) if item.get("at") else "") + (f"\n{waiting} more after this one" if waiting else "")
+    if what == "objective":
+        note = notes["objectives"].get(value, {})
+        action, got = trace.form(f"Objective {value:#04x}" + ("" if note else ": new"), [
+            {"key": "description", "label": "What it is", "value": note.get("description", "")},
+            {"key": "marker", "label": "What the map's marker says (empty: no marker)", "value": note.get("marker", "")}], about, FLAG_ACTIONS[:3])
+        if action != "save" or not got["description"].strip():
+            return "rest" if action == "rest" else "later"
+        order = note.get("order") or 1 + max((o.get("order", 0) for o in notes["objectives"].values()), default=0)
+        notes["objectives"][value] = {"description": got["description"].strip(), "marker": got["marker"].strip(), "order": order}
+        trace.note(f"objective {value:#04x}: {got['description'].strip()}", objective=value)
+        return "done"
+    table = notes[NOTE_TABLES[what]]
+    note = table.get(key) or {}
+    known = meanings_of(note)
+    values = sorted(set(known) | ({value} if value is not None else set()))
+    title = f"{what} {key:#05x}" + (": new, set to " + str(value) if not note else f": new value {value}" if value is not None and value not in known else "")
+    fields = [{"key": "description", "label": "What it is", "value": note.get("description", "")},
+              {"key": "kind", "label": "Kind", "value": note.get("kind", "marker"), "options": FLAG_KINDS},
+              {"key": "note", "label": "Note (anything else worth keeping)", "value": note.get("note", "")},
+              {"key": "max", "label": "For a counter: the highest value seen (kept up automatically)", "value": str(max(note.get("max", 0), value or 0)) if note.get("kind") == "counter" else ""}]
+    as_bits = note.get("kind") == "bits"             # its bits are listed, each on its own, in place of its values
+    bits = dict(note.get("bits", {}))
+    if as_bits:
+        title = f"{what} {key:#05x}" + (f": set to {value}, with a bit not described yet" if value is not None and flag_is_new(notes, what, key, value) else "")
+        shown = sorted(set(bits) | set(bits_of(value or 0)))
+        fields += [{"key": f"bit:{b}", "label": f"Bit {b} (worth {1 << b})" + ("   <- set just now, not described yet" if value is not None and b in bits_of(value) and not bits.get(b) else ""),
+                    "value": bits.get(b, "")} for b in shown]
+        fields += [{"key": "add:value", "label": "Another bit: its number (empty: none)", "value": ""},
+                   {"key": "add:meaning", "label": "...and what that bit means", "value": ""}]
+    else:
+        fields += [{"key": f"value:{v}", "label": f"Value {v}" + ("   <- just set, not described yet" if v == value and v not in known else ""), "value": known.get(v, "")}
+                   for v in values]
+        fields += [{"key": "add:value", "label": "Another value: its number (empty: none)", "value": ""},
+                   {"key": "add:meaning", "label": "...and what that value means", "value": ""}]
+    action, got = trace.form(title, fields, about, FLAG_ACTIONS if value is not None else FLAG_ACTIONS[:1])
+    if action == "never":
+        table[key] = {"description": note.get("description", ""), "kind": "ignored", "note": note.get("note", ""), "values": known, "bits": dict(note.get("bits", {}))}
+        return "done"
+    if action != "save":
+        return "rest" if action == "rest" else "later"
+    meanings = known if as_bits else {v: got[f"value:{v}"].strip() for v in values if got[f"value:{v}"].strip()}
+    if as_bits:
+        bits = {b: got[f"bit:{b}"].strip() for b in shown if got[f"bit:{b}"].strip()}
+    try:
+        (bits if as_bits else meanings)[int(got["add:value"].strip(), 0)] = got["add:meaning"].strip()      # one typed in beside those listed
+    except ValueError:
+        if got["add:value"].strip():
+            trace.say(f"`{got['add:value'].strip()}` is not a number: that value was not added")
+    if got["kind"] == "marker" and value is not None:
+        meanings.setdefault(value, "")               # a marker's value needs no words: the description says what it marks
+    if got["kind"] == MAP_DOOR:                      # what every map door marker's values mean is not written into each of them
+        meanings = {v: m for v, m in meanings.items() if MAP_DOOR_VALUES.get(v) != m}
+    table[key] = {"description": got["description"].strip(), "kind": got["kind"], "note": got["note"].strip(), "values": meanings, "bits": bits}
+    if got["kind"] == "bits" and not as_bits and value is not None and flag_is_new(notes, what, key, value):
+        return describe_flag(trace, notes, item, waiting)                # it has just become one of bits: now its bits are asked about
+    if got["kind"] == "counter":
+        typed = got["max"].strip()
+        table[key]["max"] = max(int(typed, 0) if typed.isdigit() or typed.lower().startswith("0x") else 0, value or 0, 0 if typed else note.get("max", 0))
+    trace.note(f"{what} {key:#05x}: {got['description'].strip()} ({got['kind']})" + (f"; {value} = {meanings[value]}" if value in meanings else ""), flag=key)
+    return "done"                                    # saved; a value left without words stays new, and is asked about when it is next set
+
+
+@command("watch_flags")
+def watch_flags(trace, text):
+    """watch_flags [TEXT] | quiet [TEXT] | pending | edit ID | off   show the flags the game sets, and stop to ask what a new one means"""
+    word, _, rest = text.strip().partition(" ")
+    if word == "off":
+        was = [name for name in FLAG_EVENTS if trace.unwatch(name)]
+        for name in FLAG_EVENTS:
+            trace.off(name, on_flag_write)
+        return "no longer watching flags" if was else "flags were not being watched"
+    if word == "pending":
+        while True:
+            notes = flag_notes()
+            if not notes["pending"]:
+                return "nothing is waiting"
+            labels = [(f"{n + 1}  {item_label(item)}", item_where(item)) for n, item in enumerate(notes["pending"])]
+            picked = trace.choose(f"{len(labels)} put off; pick one to describe", labels)
+            if picked is None:
+                return f"{len(labels)} still waiting"
+            item = notes["pending"][int(picked.split()[0]) - 1]
+            if not flag_is_new(notes, item["what"], item["id"], item["value"]) or describe_flag(trace, notes, item) == "done":
+                count_up(notes, item)
+                if item in notes["pending"]:
+                    notes["pending"].remove(item)
+                settle_pending(notes)                # what this answer covers besides: the flag's other values on the list
+                save_flag_notes(notes)
+    if word == "edit":
+        kind, _, number = rest.strip().rpartition(" ")
+        what = {"": "flag", "flag": "flag", "byte": "byte", "objective": "objective"}.get(kind.strip())
+        try:
+            key = int(number, 0)
+        except ValueError:
+            what = None
+        if what is None:
+            return "watch_flags edit [flag | byte | objective] ID"
+        notes = flag_notes()
+        item = {"what": what, "id": OBJECTIVE_BYTE, "value": key} if what == "objective" else {"what": what, "id": key, "value": None}
+        if describe_flag(trace, notes, item) != "done":
+            return "nothing changed"
+        save_flag_notes(notes)
+        return f"{what} {key:#x} saved"
+    quiet = word == "quiet"
+    want = rest.strip() if quiet else text.strip()
+    for name in FLAG_EVENTS:
+        trace.watch(name, want)
+        (trace.off if quiet else trace.on)(name, on_flag_write)
+    notes = flag_notes()
+    told = "" if quiet else f"; stopping for what the notes do not have ({len(notes['flags']) + len(notes['bytes'])} flags and {len(notes['objectives'])} objectives noted, {len(notes['pending'])} put off)"
+    return "watching flags" + (f" whose line has `{want}`" if want else "") + told + "; `watch_flags off` stops"
 
