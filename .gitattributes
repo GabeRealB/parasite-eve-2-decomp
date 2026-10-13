@@ -5,3 +5,12 @@
 # here and turns a manual reconcile into a no-op.
 DECOMPILATION_LEARNINGS.md  merge=union
 tools/difficult_functions   merge=union
+
+# Line endings. Every text file is checked out with LF on every platform,
+# whatever core.autocrlf says. Git for Windows turns it on by default, and a
+# CRLF checkout breaks the build there: `git apply` rejects tools/*.patch, bash
+# rejects the scripts, and generated files stop comparing equal to tracked ones.
+* text=auto eol=lf
+# cmd.exe wants its own line endings, in labels above all.
+*.bat text eol=crlf
+*.cmd text eol=crlf
