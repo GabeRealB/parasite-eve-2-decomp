@@ -1,6 +1,11 @@
+diff --git a/maspsx/__init__.py b/maspsx/__init__.py
+index b6264de..078c1e8 100644
 --- a/maspsx/__init__.py
 +++ b/maspsx/__init__.py
-@@ -602,5 +602,5 @@
+@@ -664,8 +664,8 @@ class MaspsxProcessor:
+                     elif size >= 2:
+                         res.append("\t.align 1")
+ 
 -                # only mark bss symbols as global
 -                if section == "bss":
 +                # Preserve .lcomm's local binding for static BSS objects.

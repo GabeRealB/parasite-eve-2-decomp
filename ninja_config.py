@@ -429,43 +429,6 @@ def _ensure_maspsx_patch() -> None:
         )
 
 
-def _ensure_maspsx_label_patch() -> None:
-    """Keep adjacent GCC branch labels together before a load-delay nop."""
-    import subprocess
-
-    sub = TOOLS_DIR / "maspsx"
-    patch = (TOOLS_DIR / "patches" / "maspsx-label-load-nop.patch").resolve()
-    marker = sub / "maspsx" / "__init__.py"
-    if not patch.is_file() or not marker.is_file():
-        return
-    if "Keep all aliases on the load-delay nop" in marker.read_text():
-        return
-    subprocess.run(["git", "-C", str(sub), "apply", str(patch)], check=True)
-    print(f"Applied {patch.name} to tools/maspsx")
-
-
-def _ensure_maspsx_li_d_patch() -> None:
-    """Let `li.d` target any even-numbered GP register pair.
-
-    cc1 prints registers numerically, so a 64-bit constant that has to survive
-    a call reaches maspsx as `li.d $16,<c>` - the s0/s1 pair. The upstream
-    register table lists only the pairs it has been given, and `$16` was not
-    among them, so expansion aborted with "Unknown mapping for $16". Any even
-    number below 30 has exactly one possible partner, so derive it instead.
-    """
-    import subprocess
-
-    sub = TOOLS_DIR / "maspsx"
-    patch = (TOOLS_DIR / "patches" / "maspsx-li-d-register-pair.patch").resolve()
-    marker = sub / "maspsx" / "__init__.py"
-    if not patch.is_file() or not marker.is_file():
-        return
-    if "has not seen yet still has" in marker.read_text():
-        return
-    subprocess.run(["git", "-C", str(sub), "apply", str(patch)], check=True)
-    print(f"Applied {patch.name} to tools/maspsx")
-
-
 def _ensure_maspsx_bss_align_patch() -> None:
     """Align .bss entries by size, and .bss itself to 8, as ASPSX does.
 
@@ -504,8 +467,6 @@ def _ensure_maspsx_bss_local_patch() -> None:
 
 
 _ensure_maspsx_patch()
-_ensure_maspsx_label_patch()
-_ensure_maspsx_li_d_patch()
 _ensure_maspsx_bss_align_patch()
 _ensure_maspsx_bss_local_patch()
 match PLATFORM:
@@ -547,7 +508,6 @@ OPT_FLAGS = "-O2"
 ENDIAN = "-EL"
 DL_EXE_FLAGS = "-G0"
 DL_OVL_FLAGS = "-G0"
-MASPX_VERSION = "2.77"
 
 # Compilation flags (Tool specific)
 match PLATFORM:
@@ -563,14 +523,14 @@ match PLATFORM:
     case Platform.Linux:
         COMPILE_COMMANDS_FLAGS = f"{INCLUDE_FLAGS} -D_LANGUAGE_C -DUSE_INCLUDE_ASM -undef -Wall -lang-c -nostdinc"
         CPP_FLAGS = f"{INCLUDE_FLAGS} -D_LANGUAGE_C -DUSE_INCLUDE_ASM -P -MMD -MP -undef -Wall -lang-c -nostdinc"
-        MASPSX_FLAGS = f"--aspsx-version={MASPX_VERSION} --run-assembler"
+        MASPSX_FLAGS = "--run-assembler"
 
     case Platform.MacOS:
         COMPILE_COMMANDS_FLAGS = f"{INCLUDE_FLAGS} -D_LANGUAGE_C -DUSE_INCLUDE_ASM -undef -Wall -lang-c -nostdinc"
         CPP_FLAGS = (
             f"{INCLUDE_FLAGS} -D_LANGUAGE_C -DUSE_INCLUDE_ASM -P -MMD -MP -N -Wall -I-"
         )
-        MASPSX_FLAGS = f"--aspsx-version={MASPX_VERSION} --run-assembler"
+        MASPSX_FLAGS = "--run-assembler"
 
 CC_FLAGS = f"{OPT_FLAGS} -mips1 -mcpu=3000 -w -funsigned-char -fpeephole -ffunction-cse -fpcc-struct-return -fcommon -fverbose-asm -msoft-float -mgas -fgnu-linker -quiet -gcoff"
 AS_FLAGS = (
