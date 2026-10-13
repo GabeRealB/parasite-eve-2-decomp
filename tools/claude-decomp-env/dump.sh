@@ -28,7 +28,7 @@ CC_FLAGS="$OPT_FLAGS -mips1 -mcpu=3000 -w -funsigned-char -fpeephole -ffunction-
 pushd "$PROJECT_ROOT" > /dev/null
 
 $CPP -P -MMD -MP -MT "$CPP_OUTPUT" -MF "${CPP_OUTPUT}.d" $CPP_FLAGS \
-    -DVER_USA -DSKIP_ASM -DNON_MATCHING \
+    -DVER_USA -DSKIP_ASM \
     -o "$CPP_OUTPUT" "$INPUT"
 rm -f "${CPP_OUTPUT}.d"
 

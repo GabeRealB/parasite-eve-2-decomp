@@ -57,7 +57,7 @@ pushd "$PROJECT_ROOT" > /dev/null
 
 # Run cpp
 $CPP -P -MMD -MP -MT "$CPP_OUTPUT" -MF "${CPP_OUTPUT}.d" $CPP_FLAGS \
-    -DVER_USA -DSKIP_ASM -DNON_MATCHING \
+    -DVER_USA -DSKIP_ASM \
     -o "$CPP_OUTPUT" "$INPUT"
 
 # Run cc

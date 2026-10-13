@@ -145,7 +145,6 @@ CLANG_ARGS = [
     "-DUSE_INCLUDE_ASM",
     "-DVER_USA",
     "-DSKIP_ASM",
-    "-DNON_MATCHING",
     "-nostdinc",
     "-ffreestanding",
     "-w",

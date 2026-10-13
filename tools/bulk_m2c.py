@@ -86,7 +86,7 @@ INCLUDE_FLAGS = [
 CPP_FLAGS = [
     *INCLUDE_FLAGS,
     "-D_LANGUAGE_C", "-DUSE_INCLUDE_ASM", "-P", "-undef", "-Wall",
-    "-lang-c", "-nostdinc", "-DVER_USA", "-DSKIP_ASM", "-DNON_MATCHING",
+    "-lang-c", "-nostdinc", "-DVER_USA", "-DSKIP_ASM",
     # For m2c_macros.h, which only --valid-syntax seeds include. Adding the
     # directory defines nothing on its own, so codegen matches build.sh.
     "-I", str(REPO_ROOT / "tools" / "m2c"),
