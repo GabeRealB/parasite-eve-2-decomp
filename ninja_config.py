@@ -347,6 +347,13 @@ elif sys.platform == "darwin":
 else:
     raise ValueError(f"Unsupported platform: {sys.platform}")
 
+
+def shell(command: str) -> str:
+    """A rule's command that needs a shell, for `>` or `&&`. On Windows ninja starts a
+    command directly, with no shell between, and its operators reach the first program
+    as arguments; elsewhere ninja runs every command through /bin/sh already."""
+    return f"cmd.exe /c {command}" if PLATFORM == Platform.Windows else command
+
 # Sub-directories
 match PLATFORM:
     case Platform.Windows:
@@ -1088,7 +1095,7 @@ def ninja_build(
     ninja_rules_file.rule(
         "objdiff-as",
         description="objdiff-as $in",
-        command=f"{PYTHON} {OBJDIFF_TARGET_ASM} $in $BASEASM > $out.s && {AS} {AS_FLAGS} $DLFLAG --MD $out.d -o $out $out.s",
+        command=shell(f"{PYTHON} {OBJDIFF_TARGET_ASM} $in $BASEASM > $out.s && {AS} {AS_FLAGS} $DLFLAG --MD $out.d -o $out $out.s"),
         depfile="$out.d",
         deps="gcc",
     )
@@ -1116,7 +1123,7 @@ def ninja_build(
     ninja_rules_file.rule(
         "objdump",
         description="objdump $in",
-        command=f"{OBJDUMP} {OBJDUMP_FLAGS} $in > $out",
+        command=shell(f"{OBJDUMP} {OBJDUMP_FLAGS} $in > $out"),
     )
     ninja_rules_file.rule(
         "maspsx",
