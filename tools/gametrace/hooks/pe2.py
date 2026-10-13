@@ -569,6 +569,7 @@ def flag_command(trace, text):
 STATES = REPO / "local" / "gametrace" / "states"
 SECTIONS = ["card file header", "save", "player", "acropolis", "dryfield", "dryfield_night", "mine_shelter", "neo_ark", "flags"]
 GAME_MODE, GAME_MODE_RESTART = 0x11E, 1      # DisplayState.gameMode: the main loop reinitialises the game when it reads 1
+SPRITE_VARIANT = 0x10E                       # DisplayState.spriteVariant: 1-based row of the sprite tables and CD resources; 0 is unset
 PENDING_POSITION = 0x101                     # DisplayState.control.flags.pendingPlayerPos: the room start puts the player where the state has her
 TITLE_SPAWN = ("bootReloadTitleTask", 0xCC)  # where the title's files are loaded after a restart and its own startup is about to be spawned
 LAUNCH_SESSION = (0, 3, 1)                   # taskSpawn(bank 0, slot 3, 1): gameFlowLaunchSessionTask, told to keep the save images as they are
@@ -642,11 +643,20 @@ def state_command(trace, text):
         # 2. It reloads the title's file - the font, its palette and the common sound bank are in it, and a restart
         #    clears them - and is about to spawn the title's startup. That is as early as a session can begin.
         trace.run_to(site)
-        # 3. The state goes into the save images, live copy and backup, where nothing resets them any more.
+        # 3. What a card load does around its read. Before it, the game resets the save data (`mcResetSaveData`),
+        #    and that reset is also the only place that sets the display's sprite variant - which the restart
+        #    cleared, and which every room's sprite tables, the stage music, the movies and the loading pictures are
+        #    selected by. Without it the session runs with variant 0 and indexes those tables one row before their
+        #    start. Then the state goes into the save images, live copy and backup, and the play clock's minute
+        #    ticks are reset as after a successful read.
+        trace.call("mcResetSaveData")
         for section, address, length in parts:
             data = bytes.fromhex(state["sections"][section])
             trace.poke(address, data)
             trace.poke(address + length, data)
+        trace.call("playClockResetMinuteTicks")
+        if not struct.unpack("<H", trace.read(display + SPRITE_VARIANT, 2))[0]:
+            return "the game's reset left the sprite variant unset: not continuing (the session would read its sprite tables out of bounds)"
         # 4. In place of the title: the session launch task, told to keep the save images (what a card load ends in).
         #    One thing the title screen does for everything after it has to be done here: the font's palettes are
         #    uploaded by it, from the main program's own data, and the restart cleared them.
