@@ -583,14 +583,8 @@ TARGETS_POSTBUILD = ["main"]
 def compile_commands_entry(
     target_path: str,
     source_path: str,
-    non_matching_enabled,
     game_version_idx: int,
 ):
-    non_matching = ""
-
-    if non_matching_enabled:
-        non_matching = "-DNON_MATCHING"
-
     if sys.platform == "win32":
         source_path = re.sub(r"\\", r"/", source_path)
         target_path = re.sub(r"\\", r"/", target_path)
@@ -598,7 +592,7 @@ def compile_commands_entry(
     return {
         "directory": os.getcwd(),
         "file": source_path,
-        "command": f"clang {COMPILE_COMMANDS_FLAGS} -DVER_{GAME_VERSIONS[game_version_idx].version_name} {non_matching} {package_define_flags(target_path)} -m32 -o {target_path}.i {source_path}",
+        "command": f"clang {COMPILE_COMMANDS_FLAGS} -DVER_{GAME_VERSIONS[game_version_idx].version_name} {package_define_flags(target_path)} -m32 -o {target_path}.i {source_path}",
     }
 
 
@@ -670,15 +664,12 @@ def ninja_setup_list_add_source(
     source_path: str,
     ninja_file,
     objdiff_file,
-    non_matching_enabled,
     game_version_idx: int,
 ):
     skip_asm = ""
-    non_matching = ""
 
     if objdiff_file is not None:
         skip_asm = "-DSKIP_ASM"
-        non_matching = "-DNON_MATCHING"
 
         if PLATFORM == Platform.Windows:
             source_target_path = re.sub(
@@ -749,9 +740,6 @@ def ninja_setup_list_add_source(
         else:
             return
 
-    if non_matching_enabled:
-        non_matching = "-DNON_MATCHING"
-
     if PLATFORM == Platform.Windows:
         source_path = re.sub(r"\\", r"/", source_path)
         target_path = re.sub(r"\\", r"/", target_path)
@@ -767,7 +755,6 @@ def ninja_setup_list_add_source(
             variables={
                 "VERSION": f"-DVER_{GAME_VERSIONS[game_version_idx].version_name}",
                 "SKIPASMFLAG": skip_asm,
-                "NONMATCHINGFLAG": non_matching,
                 "PKGID": f"{package_id_flag(source_path)} {package_define_flags(target_path)}".strip(),
             },
         )
@@ -1038,7 +1025,6 @@ def ninja_build(
     game_version_idx: int,
     objdiff_mode: bool,
     skip_checksum: bool,
-    non_matching: bool,
     scoped_names: list[str] | None = None,
 ):
     if objdiff_mode:
@@ -1100,7 +1086,7 @@ def ninja_build(
     ninja_rules_file.rule(
         "cpp",
         description="cpp $in",
-        command=f"{CPP} -P -MMD -MP -MT $out -MF $out.d {CPP_FLAGS} $VERSION $SKIPASMFLAG $NONMATCHINGFLAG $PKGID -o $out $in",
+        command=f"{CPP} -P -MMD -MP -MT $out -MF $out.d {CPP_FLAGS} $VERSION $SKIPASMFLAG $PKGID -o $out $in",
         depfile="$out.d",
     )
     ninja_rules_file.rule(
@@ -1324,7 +1310,6 @@ def ninja_build(
                             compile_commands_entry(
                                 target_path.removesuffix(".c.o"),
                                 source_path,
-                                non_matching,
                                 game_version_idx,
                             )
                         )
@@ -1334,7 +1319,6 @@ def ninja_build(
                             source_path,
                             ninja_file,
                             None,
-                            non_matching,
                             game_version_idx,
                         )
 
@@ -1358,7 +1342,6 @@ def ninja_build(
                                     source_path,
                                     ninja_nonmatching_file,
                                     ninja_diff_file,
-                                    True,
                                     game_version_idx,
                                 )
                             ]
@@ -1831,12 +1814,6 @@ def main():
         action="store_true",
     )
     parser.add_argument(
-        "-nm",
-        "--non_matching",
-        help="Compile functions labeled as Non Matching",
-        action="store_true",
-    )
-    parser.add_argument(
         "-obj",
         "--objdiff_config",
         help="Builds setup for Objdiff",
@@ -1860,7 +1837,6 @@ def main():
     jobs_option = int(args.jobs or 0)
     clean_compilation_files = (args.clean) or False
     skip_checksum_option = (args.skip_checksum) or False
-    non_matching_option = (args.non_matching) or False
     objdiff_config_option = (args.objdiff_config) or False
     game_version_option = 0  # USA by default
     yamls_paths = []
@@ -2065,7 +2041,6 @@ def main():
         game_version_option,
         objdiff_config_option,
         skip_checksum_option,
-        non_matching_option,
         scoped_names,
     )
 

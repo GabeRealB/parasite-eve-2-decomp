@@ -187,7 +187,6 @@ the project matches.
 | `-j` / `--jobs` | Parallel split workers (default: CPU count; `1` forces sequential) |
 | `-iso_raw` / `--iso_extract_raw` | Extract raw/{type}/ only (no inflate) |
 | `-sc` / `--skip_checksum` | Build without the matching checksum step |
-| `-nm` / `--non_matching` | Compile with `-DNON_MATCHING` |
 | `-obj` / `--objdiff_config` | Generate objdiff setup for progress / per-object diffs |
 | `-ver USA` / `-ver JAP` | Select game version (default: USA) |
 
