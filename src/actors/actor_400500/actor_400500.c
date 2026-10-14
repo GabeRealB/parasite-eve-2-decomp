@@ -7531,29 +7531,21 @@ static void _actor400500RequestAnimReset(Task* task, s16 setIndex, s16 rateSixte
 /// that duration. Root slot 0 is untouched; the requested set becomes applied.
 static void _actor400500BlendAnimSlots(Task* task)
 {
-    s32                          sameAnimation;
     _Actor400500GrayStalkerWork* work;
     s32                          slotIndex;
 
-    work          = (_Actor400500GrayStalkerWork*)task->work;
-    slotIndex     = 1;
-    sameAnimation = work->appliedAnim == work->animId;
-    // The one-pass scope preserves this compiler's allocation of the shared loop counter.
-    do {
-        if (sameAnimation) {
-            do {
-                work->rig.slots[slotIndex].rate = work->animRate;
-                slotIndex++;
-            } while (slotIndex < ARRAY_SIZE(work->rig.slots));
-        } else {
-            do {
-                work->rig.slots[slotIndex].rate = work->animRate;
-                animationSeekSlotWithBlend(&work->rig.anim, slotIndex, work->animId, 0, work->animBlendFrames);
-                slotIndex++;
-            } while (slotIndex < ARRAY_SIZE(work->rig.slots));
-            work->animBlendFrames = 0;
+    work = (_Actor400500GrayStalkerWork*)task->work;
+    if (work->appliedAnim == work->animId) {
+        for (slotIndex = 1; slotIndex < ARRAY_SIZE(work->rig.slots); slotIndex++) {
+            work->rig.slots[slotIndex].rate = work->animRate;
         }
-    } while (0);
+    } else {
+        for (slotIndex = 1; slotIndex < ARRAY_SIZE(work->rig.slots); slotIndex++) {
+            work->rig.slots[slotIndex].rate = work->animRate;
+            animationSeekSlotWithBlend(&work->rig.anim, slotIndex, work->animId, 0, work->animBlendFrames);
+        }
+        work->animBlendFrames = 0;
+    }
     work->appliedAnim = work->animId;
 }
 

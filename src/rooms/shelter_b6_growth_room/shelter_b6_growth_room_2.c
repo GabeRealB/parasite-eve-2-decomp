@@ -598,13 +598,10 @@ void shelterB6GrowthRoomResetCollisionBox(s32 useYOffset)
     }
 
     if (useYOffset == 0) {
-        offset.vx = 0;
-        offset.vy = 0;
+        setVector(&offset, 0, 0, 0);
     } else {
-        offset.vx = 0;
-        offset.vy = SHELTER_B6_GROWTH_ROOM_BOX_Y_OFFSET;
+        setVector(&offset, 0, SHELTER_B6_GROWTH_ROOM_BOX_Y_OFFSET, 0);
     }
-    offset.vz = 0;
 
     // Always restore the template first; repeated calls must not accumulate the shift.
     for (geometryIndex = 0; geometryIndex < SHELTER_B6_GROWTH_ROOM_BOX_VERTEX_COUNT; geometryIndex++) {

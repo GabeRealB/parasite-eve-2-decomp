@@ -794,6 +794,21 @@ static s32 _actor310100TickOfficerAnimation(Task* task)
     return work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY;
 }
 
+/// Reports whether the borrowed player task is absent or has finished its clip.
+///
+/// Returns 1 when the work has no player task or the player answers
+/// `ANIMATION_MESSAGE_IS_PLAYING` with zero, otherwise 0.
+static inline u16 _actor310100IsPlayerAnimationStopped(Task* task)
+{
+    Task* playerTask;
+
+    playerTask = ((_Actor310100PoliceOfficerWork*)task->work)->playerTask;
+    if (playerTask == NULL || taskMessageDispatch(playerTask, ANIMATION_MESSAGE_IS_PLAYING, 0, 0) == 0) {
+        return 1;
+    }
+    return 0;
+}
+
 /// Advances the officer and chains the officer's and player's follow-up clips.
 ///
 /// The initialized rig and borrowed player task must remain live. Follow-up
@@ -809,9 +824,7 @@ static void _actor310100UpdateOfficerAnimation(Task* task)
     _Actor310100PoliceOfficerWork* work;
     _Actor310100PoliceOfficerWork* officerWork;
     _Actor310100PoliceOfficerWork* playerWork;
-    Task*                          playerTask;
     u16                            followUpAnimationId;
-    u16                            playerStopped;
     s32                            slotIndex;
 
     work = (_Actor310100PoliceOfficerWork*)task->work;
@@ -828,13 +841,7 @@ static void _actor310100UpdateOfficerAnimation(Task* task)
         }
     }
     // Chain the paired player clip only after the player reports it has stopped.
-    playerTask = ((_Actor310100PoliceOfficerWork*)task->work)->playerTask;
-    if (playerTask == NULL || taskMessageDispatch(playerTask, ANIMATION_MESSAGE_IS_PLAYING, 0, 0) == 0) {
-        playerStopped = 1;
-    } else {
-        playerStopped = 0;
-    }
-    if (playerStopped) {
+    if (_actor310100IsPlayerAnimationStopped(task)) {
         followUpAnimationId = _gActor310100FollowUpAnimationTables[ACTOR_310100_FOLLOW_UP_PLAYER][work->playerAnimationId];
         if (_gActor310100FollowUpAnimationTables[ACTOR_310100_FOLLOW_UP_PLAYER][work->playerAnimationId] >= 0) {
             playerWork = (_Actor310100PoliceOfficerWork*)task->work;

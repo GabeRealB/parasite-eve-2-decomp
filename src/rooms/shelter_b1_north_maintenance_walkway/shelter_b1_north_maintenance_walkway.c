@@ -182,31 +182,22 @@ static s32 _shelterB1NorthMaintenanceWalkwayResolveRoomTransition(Task* task, s3
            FLAG_DEPART_QUARTERS         = 0x14E,
            TRANSITION_DIRECT            = 1 };
     RoomLatchedEvent event;
-    s32              capCommand;
-    s32              transitSound;
-    s16              sceneFlag;
 
     *reply = *request;
     mapShelterRoomVariantResolve(request, reply);
-    if (request->areaId != GAME_AREA_SHELTER_B1_STOREROOM) {
-        goto sleepingQuarters;
+    if (request->areaId == GAME_AREA_SHELTER_B1_STOREROOM) {
+        event.capCmd   = CAP_COMMAND_DEPART_STOREROOM;
+        event.stageSnd = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_NORTH_MAINTENANCE_WALKWAY, 1);
+        event.flagId   = FLAG_DEPART_STOREROOM;
+        event.fade     = 0;
+        return _shelterB1NorthMaintenanceWalkwayStartEvent(reply, &event);
     }
-    transitSound   = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_NORTH_MAINTENANCE_WALKWAY, 1);
-    capCommand     = CAP_COMMAND_DEPART_STOREROOM;
-    event.stageSnd = transitSound;
-    sceneFlag      = FLAG_DEPART_STOREROOM;
-startEvent:
-    event.capCmd = capCommand;
-    event.flagId = sceneFlag;
-    event.fade   = 0;
-    return _shelterB1NorthMaintenanceWalkwayStartEvent(reply, &event);
-sleepingQuarters:
     if (request->areaId == GAME_AREA_SHELTER_B1_SLEEPING_QUARTERS) {
-        transitSound   = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_NORTH_MAINTENANCE_WALKWAY, 3);
-        capCommand     = CAP_COMMAND_DEPART_QUARTERS;
-        event.stageSnd = transitSound;
-        sceneFlag      = FLAG_DEPART_QUARTERS;
-        goto startEvent;
+        event.capCmd   = CAP_COMMAND_DEPART_QUARTERS;
+        event.stageSnd = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_NORTH_MAINTENANCE_WALKWAY, 3);
+        event.flagId   = FLAG_DEPART_QUARTERS;
+        event.fade     = 0;
+        return _shelterB1NorthMaintenanceWalkwayStartEvent(reply, &event);
     }
     return TRANSITION_DIRECT;
 }
