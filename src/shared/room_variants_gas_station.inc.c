@@ -33,8 +33,8 @@ static s32 _roomVariantGasStationMsg(Task* task, s32 messageId, const RoomEventM
     }
     // In night variant 1, combat claims the general-store exit before its lock test.
     if (request->areaId == GAME_AREA_DRYFIELD_GENERAL_STORE) {
-        if ((gGameSession->location.loc.stage == request->areaId) && (gGameSession->location.loc.variant == ROOM_VARIANT_GAS_STATION_BATTLE_VARIANT) &&
-            (gSceneCombatState.signals.bytes.battlePhase == gGameSession->location.loc.variant)) {
+        if ((gGameSession->location.stage == request->areaId) && (gGameSession->location.variant == ROOM_VARIANT_GAS_STATION_BATTLE_VARIANT) &&
+            (gSceneCombatState.signals.bytes.battlePhase == gGameSession->location.variant)) {
             if (request->queryOnly == ROOM_EVENT_EXECUTE) {
                 capRunCommandWithTransition(ROOM_VARIANT_GAS_STATION_CAP_COMBAT_EXIT);
             }

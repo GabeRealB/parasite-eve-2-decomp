@@ -373,7 +373,7 @@ static void _dryfieldNightGarageInitRoomTask(Task* task)
     (gDryfieldNightGarageEarlyRoomActionTriggers + DRYFIELD_NIGHT_GARAGE_TRIGGER_AFTER_REFUELING)->flags &= (0xFF ^ WORLD_COLLISION_TRIGGER_ENABLED);
     companion                                                                                             = gameGetTaskSlot(GAME_TASK_SLOT_COMPANION);
     // Restore the companion before starting either the first-visit scene or its pose-only script.
-    if (gGameSession->location.loc.variant == DRYFIELD_NIGHT_GARAGE_VARIANT_COMPANION && companion != NULL) {
+    if (gGameSession->location.variant == DRYFIELD_NIGHT_GARAGE_VARIANT_COMPANION && companion != NULL) {
         TASK_MESSAGE_DISPATCH_POINTER(companion, GAME_ACTOR_MESSAGE_PLACE, &gActor136300CompanionGaragePlacement, 0);
         companionWriteAnimationBankIndex(&_gDryfieldNightGarageCompanionPoseRequest.source.index);
         TASK_MESSAGE_DISPATCH_POINTER(companion, ANIMATION_MESSAGE_PLAY, &_gDryfieldNightGarageCompanionPoseRequest, 0);
@@ -388,7 +388,7 @@ static void _dryfieldNightGarageInitRoomTask(Task* task)
         }
     }
     // Re-entry keeps the post-event interaction and retires the original refueling hotspot.
-    if (gGameSession->location.loc.variant == DRYFIELD_NIGHT_GARAGE_VARIANT_REFUELING && gameFlagGetNibble(GAME_FLAG_NIGHT_GARAGE_PROGRESS) > 0) {
+    if (gGameSession->location.variant == DRYFIELD_NIGHT_GARAGE_VARIANT_REFUELING && gameFlagGetNibble(GAME_FLAG_NIGHT_GARAGE_PROGRESS) > 0) {
         if (gameFlagGetNibble(GAME_FLAG_NIGHT_GARAGE_PROGRESS) == DRYFIELD_NIGHT_GARAGE_PROGRESS_SCENE_STARTED) {
             gameFlagSetNibble(GAME_FLAG_NIGHT_GARAGE_PROGRESS, DRYFIELD_NIGHT_GARAGE_PROGRESS_REVISITED);
         }
@@ -448,7 +448,7 @@ static s32 _dryfieldNightGarageHandleRoomAction(Task* task, s32 messageId, const
            REFUELED_SCENE_EVENT         = 5 };
 
     if (request->actionId == ACTION_REFUELING) {
-        if (gGameSession->location.loc.variant == VARIANT_REFUELING) {
+        if (gGameSession->location.variant == VARIANT_REFUELING) {
             if (gameFlagGetNibble(GAME_FLAG_NIGHT_GARAGE_PROGRESS) == REFUELING_NOT_STARTED) {
                 if (inventoryHasCollectedBit(INVENTORY_COLLECTION_ID_BRONCO_MASTERKEY) == 0) {
                     playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
@@ -486,7 +486,7 @@ static s32 _dryfieldNightGarageHandleRoomAction(Task* task, s32 messageId, const
             capSpawnEventIfIdle(CAP_DEFAULT_DIALOGUE, CAP_EVENT_NO_FLAGS);
         }
     }
-    if (request->actionId == ACTION_COMPANION_INTERACTION && gGameSession->location.loc.variant == VARIANT_COMPANION && gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != NULL) {
+    if (request->actionId == ACTION_COMPANION_INTERACTION && gGameSession->location.variant == VARIANT_COMPANION && gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != NULL) {
         taskSpawnFromTable(gActor136300TaskTable, ACTOR_136300_TASK_GARAGE_DEPARTURE, 0, 0);
     }
     return 0;

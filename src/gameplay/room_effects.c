@@ -439,7 +439,7 @@ s32 gRoomEffectHaloId;
 /// Last successfully initialized room-effect controller task.
 ///
 /// Borrows the task without extending its lifetime; teardown does not clear it.
-static Task* _gRoomEffectTask;
+Task* _gRoomEffectTask;
 
 s32 gRoomEffectWaterRippleId;
 
@@ -1488,21 +1488,21 @@ static void _roomEffectInitController(Task* task)
     _worldCoordInitTransientPointLights();
 
     // The stage tables contain bank-6 types, with zero disabling ambient effects.
-    switch (gGameSession->location.loc.stage) {
+    switch (gGameSession->location.stage) {
         case GAME_STAGE_ACROPOLIS:
-            roomEffectType = _gRoomEffectAcropolisTaskTypes[gGameSession->location.loc.area - 1];
+            roomEffectType = _gRoomEffectAcropolisTaskTypes[gGameSession->location.area - 1];
             break;
         case GAME_STAGE_DRYFIELD:
-            roomEffectType = _gRoomEffectDryfieldTaskTypes[gGameSession->location.loc.area - 1];
+            roomEffectType = _gRoomEffectDryfieldTaskTypes[gGameSession->location.area - 1];
             break;
         case GAME_STAGE_DRYFIELD_NIGHT:
-            roomEffectType = _gRoomEffectDryfieldNightTaskTypes[gGameSession->location.loc.area - 1];
+            roomEffectType = _gRoomEffectDryfieldNightTaskTypes[gGameSession->location.area - 1];
             break;
         case GAME_STAGE_MINE_SHELTER:
-            roomEffectType = _gRoomEffectMineShelterTaskTypes[gGameSession->location.loc.area - 1];
+            roomEffectType = _gRoomEffectMineShelterTaskTypes[gGameSession->location.area - 1];
             break;
         case GAME_STAGE_SHELTER_NEO_ARK:
-            roomEffectType = _gRoomEffectShelterNeoArkTaskTypes[gGameSession->location.loc.area - 1];
+            roomEffectType = _gRoomEffectShelterNeoArkTaskTypes[gGameSession->location.area - 1];
             break;
     }
 

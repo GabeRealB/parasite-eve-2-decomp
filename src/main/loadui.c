@@ -34,6 +34,14 @@ typedef struct {
 } _SndMusicVolumeTable;
 
 /* Define BSS before API headers to preserve first-declaration order. */
+
+u8 gLoadUiDiskSwapState;
+
+u16 gMidiMusicVolume;
+
+#include "main/loadui.h"
+#include "main/sound.h"
+
 /// Disk-swap delay in poll calls, with bit 15 requesting the required-disc message.
 ///
 /// Bits 0..14 count down calls in the delay phase; retries start at 128 and
@@ -47,13 +55,6 @@ static u8 _gLoadUiDiskSwapMessageKind;
 ///
 /// Zero means no missing stage disc; 1 and 2 select the required main disc.
 static u8 _gLoadUiDiskSwapRequiredDisc;
-
-u8 gLoadUiDiskSwapState;
-
-u16 gMidiMusicVolume;
-
-#include "main/loadui.h"
-#include "main/sound.h"
 
 static const _SndMusicVolumeTable _gMidiSavedMusicVolumes;
 
@@ -131,8 +132,8 @@ void cdCmdEnqueueDisplayResource(s32 fileIdHundreds, s32 fileIndex, s32 loadProf
         case CD_COMMAND_DISPLAY_LOAD_SEEK_CURRENT_VIEW:
             // Consume the pending seek even if scene audio prevents queueing it.
             if (gCdCmdViewSeekPending != 0) {
-                fileKey->stage            = gGameSession->location.loc.stage;
-                fileKey->fileGroup        = gGameSession->location.loc.area;
+                fileKey->stage            = gGameSession->location.stage;
+                fileKey->fileGroup        = gGameSession->location.area;
                 fileKey->fileIndex        = viewGetMappedIndex();
                 loadArgs.fileIdHundreds   = gGameSession->spriteVariant;
                 loadArgs.loadMode         = CD_COMMAND_LOAD_SEEK_ONLY;

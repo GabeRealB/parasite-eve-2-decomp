@@ -1430,7 +1430,7 @@ static void _actor361100StreamWaterTask(Task* task)
     u8                 viewId;
 
     ripple    = task->work;
-    viewIdPtr = &gGameSession->location.loc.view;
+    viewIdPtr = &gGameSession->location.view;
     discCoord = task->extra.coordBody->coord;
     if (gFsActorBufferWrittenBytes[2] != ACTOR_361100_STREAM_NOT_STARTED) {
         freeBytes   = ACTOR_361100_STREAM_WINDOW_BYTES - gFsActorBufferWrittenBytes[2];

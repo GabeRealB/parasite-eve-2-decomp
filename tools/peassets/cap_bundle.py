@@ -36,7 +36,7 @@ DEMO_DEST, DEMO_STATE = 0x80161E20, 0xD4C
 def demo(data: bytes, slot: dict) -> dict:
     """An attract demo's start location and the length of its input replay."""
     state = data[slot["offset"]:slot["offset"] + slot["length"]]
-    view, room, area, stage, warp, variant = state[4:10]         # GameLoc at +4 of the save record
+    view, room, area, stage, warp, variant = state[4:10]         # GameLocationKey at +4 of the save record
     replay = state[DEMO_STATE:]
     pairs = [struct.unpack_from("<2H", replay, n) for n in range(0, len(replay) - 3, 4)]
     return {"stage": stage, "area": area, "room": room, "view": view, "warp": warp, "variant": variant,

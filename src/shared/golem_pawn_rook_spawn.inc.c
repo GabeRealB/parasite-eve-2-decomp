@@ -112,9 +112,9 @@ static void _golemPawnRookSpawn(Enemy* enemy, Task* actor)
             }
 
             // Enqueue the placement-specific bank; only the first four bytes are read.
-            areaSoundSets = _gGolemPawnRookStageAreaSoundSets[gGameSession->location.loc.stage];
+            areaSoundSets = _gGolemPawnRookStageAreaSoundSets[gGameSession->location.stage];
             if (areaSoundSets != NULL) {
-                work->soundSet = areaSoundSets[gGameSession->location.loc.area];
+                work->soundSet = areaSoundSets[gGameSession->location.area];
             }
             if (work->soundSet != 0) {
                 soundFileKey[3]  = 0;

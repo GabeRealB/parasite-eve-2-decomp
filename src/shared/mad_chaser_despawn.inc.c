@@ -19,7 +19,7 @@ static void _madChaserDespawn(Task* task)
     elapsedFrames     = work->stateFrames + 1;
     work->stateFrames = elapsedFrames;
     if ((s16)elapsedFrames >= MAD_CHASER_DESPAWN_DELAY_FRAMES) {
-        if ((gGameSession->location.loc.stage == GAME_STAGE_MINE_SHELTER) && ((u32)(gGameSession->location.loc.area - GAME_AREA_SHELTER_B3_DUMPING_HOLE) < 2U) && (gGameSession->location.loc.variant == 1)) {
+        if ((gGameSession->location.stage == GAME_STAGE_MINE_SHELTER) && ((u32)(gGameSession->location.area - GAME_AREA_SHELTER_B3_DUMPING_HOLE) < 2U) && (gGameSession->location.variant == 1)) {
             taskMessageDispatch(sceneFindPlacedActor(0), ROOM_MESSAGE_ACTOR_EVENT, MAD_CHASER_DESPAWN_ROOM_EVENT, 0);
         }
         enemyDestroy(task->spawnArg2.pointer, task);

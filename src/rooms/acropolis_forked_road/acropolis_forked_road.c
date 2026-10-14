@@ -137,7 +137,7 @@ static s32 _acropolisForkedRoadResolveTransitionMessage(Task* unusedTask, s32 me
         } else if (gameFlagGetNibble(GAME_FLAG_OBSERVATORY_ROUTE_PROGRESS) == ACROPOLIS_FORKED_ROAD_ROUTE_MOVIE_READY) {
             if (request->queryOnly == ROOM_EVENT_EXECUTE) {
                 // Select the movie view before starting the controller that owns the departure.
-                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = ACROPOLIS_FORKED_ROAD_OUTBOUND_MOVIE_VIEW;
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = ACROPOLIS_FORKED_ROAD_OUTBOUND_MOVIE_VIEW;
                 playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
                 taskSpawnFromTable(gAcropolisForkedRoadMovieTaskDescriptors, ACROPOLIS_FORKED_ROAD_TASK_OUTBOUND_MOVIE, 0, 0);
                 gameFlagSetNibble(GAME_FLAG_OBSERVATORY_ROUTE_PROGRESS, ACROPOLIS_FORKED_ROAD_ROUTE_MOVIE_STARTED);
@@ -210,7 +210,7 @@ static s32 _acropolisForkedRoadHandleActionMessage(Task* unusedTask, s32 message
     u8 placementVariant;
 
     if (actionRequest->actionId == ACROPOLIS_FORKED_ROAD_ACTION_LOCK_RELEASE_EVENT && (gameFlagGetNibble(GAME_FLAG_SECURITY_ROOM_LOCKS_RELEASED) & ACROPOLIS_FORKED_ROAD_EVENT_LOCK_BIT)) {
-        placementVariant = gGameSession->location.loc.variant;
+        placementVariant = gGameSession->location.variant;
         if (((placementVariant == ACROPOLIS_FORKED_ROAD_EVENT_VARIANT_4) || (placementVariant == ACROPOLIS_FORKED_ROAD_EVENT_VARIANT_8)) && (gameFlagGetNibble(GAME_FLAG_FORKED_ROAD_EVENT_SEEN) == 0)) {
             evsStartScript(gAcropolisForkedRoadLockReleaseScript, EVENT_SCRIPT_HUD_KEEP);
             gameFlagSetNibble(GAME_FLAG_FORKED_ROAD_EVENT_SEEN, 1);
@@ -239,7 +239,7 @@ static void _acropolisForkedRoadStartReturnArrivalScene(Task* unusedTask)
     enum {
         ACROPOLIS_FORKED_ROAD_RETURN_ARRIVAL_WARP = 2
     };
-    if ((_gAcropolisForkedRoadReturnRideLatch.spawned == 0) && (gGameSession->location.loc.warp == ACROPOLIS_FORKED_ROAD_RETURN_ARRIVAL_WARP)) {
+    if ((_gAcropolisForkedRoadReturnRideLatch.spawned == 0) && (gGameSession->location.warp == ACROPOLIS_FORKED_ROAD_RETURN_ARRIVAL_WARP)) {
         _gAcropolisForkedRoadReturnRideLatch.spawned = 1;
         taskSpawnFromTable(gAcropolisForkedRoadMovieTaskDescriptors, ACROPOLIS_FORKED_ROAD_TASK_RETURN_MOVIE, 0, 0);
     }

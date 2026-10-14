@@ -2530,7 +2530,7 @@ static void _acropolisSanctuaryUpdateRoomProgress(Task* unusedTask)
         ACROPOLIS_SANCTUARY_ARRIVAL_DIALOGUE            = 5,
     };
 
-    if (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_BRIDGE_PROGRESS) == 0 && gGameSession->location.loc.warp == ACROPOLIS_SANCTUARY_SCENE_ARRIVAL_WARP) {
+    if (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_BRIDGE_PROGRESS) == 0 && gGameSession->location.warp == ACROPOLIS_SANCTUARY_SCENE_ARRIVAL_WARP) {
         gameFlagSetNibble(GAME_FLAG_ACROPOLIS_BRIDGE_PROGRESS, ACROPOLIS_SANCTUARY_BRIDGE_PROGRESS_ENTERED);
         evsStartScriptWithSkip(_gAcropolisSanctuaryArrivalScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, _gAcropolisSanctuaryArrivalSkipScript);
         areaApplySavedUpdates(_gAcropolisSanctuaryArrivalAreaUpdates);
@@ -2762,8 +2762,8 @@ static inline void _acropolisSanctuaryCutsceneApplyPlacement(Task* task)
                 playerActorRemoveEquipment();
                 _acropolisSanctuaryCutsceneInstallPlayerAnimation(task);
                 _acropolisSanctuaryCutscenePlacePlayer(work);
-                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = ACROPOLIS_SANCTUARY_VIEW_CUTSCENE_PLAYER;
-                work->placementApplied                                     = work->placementApplied + 1;
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = ACROPOLIS_SANCTUARY_VIEW_CUTSCENE_PLAYER;
+                work->placementApplied                                 = work->placementApplied + 1;
             }
             break;
     }
@@ -2829,11 +2829,11 @@ static void _acropolisSanctuaryCutsceneTask(Task* task)
             // Event completion takes precedence over pending placement cues.
             if (gGameSession->eventState == 0) {
                 sndEvtRequestScriptStop(SOUND_BANK_TYPE_ALL_NON_AMBIENT, SOUND_SCRIPT_STOP_NO_FADE);
-                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area  = GAME_AREA_ACROPOLIS_ROOF_GARDEN;
-                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage = GAME_STAGE_ACROPOLIS;
-                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp  = ACROPOLIS_SANCTUARY_CUTSCENE_EXIT_WARP;
-                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room  = ACROPOLIS_SANCTUARY_CUTSCENE_EXIT_ROOM;
-                gDisplayState.spriteVariant                                 = 1;
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.area  = GAME_AREA_ACROPOLIS_ROOF_GARDEN;
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.stage = GAME_STAGE_ACROPOLIS;
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp  = ACROPOLIS_SANCTUARY_CUTSCENE_EXIT_WARP;
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.room  = ACROPOLIS_SANCTUARY_CUTSCENE_EXIT_ROOM;
+                gDisplayState.spriteVariant                             = 1;
                 taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
                 taskKill(task);
                 break;
@@ -2927,7 +2927,7 @@ static void _acropolisSanctuaryPlaceBlockerCollision(void)
 static void _acropolisSanctuarySelectViewSpriteBatch(s32 useSecondBatch, s32 viewId)
 {
     GameSession*     session  = gGameSession;
-    GameLocationKey* location = &session->location.loc;
+    GameLocationKey* location = &session->location;
     SpriteBatch*     batches;
 
     batches = gSpriteAreaTables[location->stage - 1][session->spriteVariant - 1].areaViews[location->area - 1][(viewId & ACROPOLIS_SANCTUARY_SCRIPT_SPRITE_FIELD_MASK) - 1].batches;
@@ -2968,7 +2968,7 @@ void acropolisSanctuaryRoomEffectTask(Task* task)
         _gAcropolisSanctuaryMosaicCleanupLatched = ACROPOLIS_SANCTUARY_MOSAIC_CLEANUP_CLEAR;
         task->state                              = task->state + 1;
     }
-    location = &gGameSession->location.loc;
+    location = &gGameSession->location;
     if (location->view == ACROPOLIS_SANCTUARY_VIEW_MOSAIC_LATCH_SET) {
         _gAcropolisSanctuaryMosaicCleanupLatched = ACROPOLIS_SANCTUARY_MOSAIC_CLEANUP_LATCHED;
     } else if (location->view != ACROPOLIS_SANCTUARY_VIEW_MOSAIC_LATCH_HOLD) {
@@ -3176,7 +3176,7 @@ void acropolisSanctuaryMosaicTileTask(Task* task)
             tileWork->move.vy      = -(tileWork->move.vy >> 1);
         }
     }
-    if (gGameSession->location.loc.view != ACROPOLIS_SANCTUARY_VIEW_MOSAIC_LATCH_SET && _gAcropolisSanctuaryMosaicCleanupLatched != ACROPOLIS_SANCTUARY_MOSAIC_CLEANUP_CLEAR &&
+    if (gGameSession->location.view != ACROPOLIS_SANCTUARY_VIEW_MOSAIC_LATCH_SET && _gAcropolisSanctuaryMosaicCleanupLatched != ACROPOLIS_SANCTUARY_MOSAIC_CLEANUP_CLEAR &&
         (tileCoord->coord.t[0] < ACROPOLIS_SANCTUARY_MOSAIC_CLEAR_X ||
          (tileCoord->coord.t[0] < ACROPOLIS_SANCTUARY_MOSAIC_BOUNCE_X && tileCoord->coord.t[1] >= ACROPOLIS_SANCTUARY_MOSAIC_BOUNCE_Y))) {
         tileWork->age = tileWork->age + ACROPOLIS_SANCTUARY_MOSAIC_DRIFT_FRAMES;
@@ -3325,7 +3325,7 @@ void acropolisSanctuaryMosaicShardTask(Task* task)
             shardWork->age = shardWork->age + ACROPOLIS_SANCTUARY_MOSAIC_DRIFT_FRAMES;
         }
     }
-    if (gGameSession->location.loc.view != ACROPOLIS_SANCTUARY_VIEW_MOSAIC_LATCH_SET && _gAcropolisSanctuaryMosaicCleanupLatched != ACROPOLIS_SANCTUARY_MOSAIC_CLEANUP_CLEAR &&
+    if (gGameSession->location.view != ACROPOLIS_SANCTUARY_VIEW_MOSAIC_LATCH_SET && _gAcropolisSanctuaryMosaicCleanupLatched != ACROPOLIS_SANCTUARY_MOSAIC_CLEANUP_CLEAR &&
         (shardCoord->coord.t[0] < ACROPOLIS_SANCTUARY_MOSAIC_CLEAR_X ||
          (shardCoord->coord.t[0] < ACROPOLIS_SANCTUARY_MOSAIC_BOUNCE_X && shardCoord->coord.t[1] >= ACROPOLIS_SANCTUARY_MOSAIC_BOUNCE_Y))) {
         shardWork->age = shardWork->age + ACROPOLIS_SANCTUARY_MOSAIC_DRIFT_FRAMES;
@@ -3362,7 +3362,7 @@ void acropolisSanctuaryFlameTask(Task* task)
 
     flameWork  = task->spawnArg2.pointer;
     flameCoord = task->extra.coordBody->coord;
-    if ((_gAcropolisSanctuaryFlameViewMasks[task->spawnArg1.value & ACROPOLIS_SANCTUARY_FLAME_PLACEMENT_MASK] >> (gGameSession->location.loc.view - 1)) & 1) {
+    if ((_gAcropolisSanctuaryFlameViewMasks[task->spawnArg1.value & ACROPOLIS_SANCTUARY_FLAME_PLACEMENT_MASK] >> (gGameSession->location.view - 1)) & 1) {
         actorRenderComposeCoord(flameCoord);
         flameScratch = SCRATCH_STACK_RESERVE_BLOCK(RoomGlowSpriteScratch);
         if (task->state == ACROPOLIS_SANCTUARY_FLAME_STATE_INITIAL) {

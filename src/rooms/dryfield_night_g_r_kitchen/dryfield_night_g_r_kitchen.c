@@ -480,7 +480,7 @@ void dryfieldNightGRKitchenDrawLightShaftsTask(Task* unusedTask)
     };
     u8 view;
 
-    view = gGameSession->location.loc.view;
+    view = gGameSession->location.view;
     if (view == 2) {
         _glowDrawShaft(_gDryfieldNightGRKitchenView2LightShaftPoints[0], DRYFIELD_NIGHT_G_R_KITCHEN_LIGHT_SHAFT_RADIUS_SCALE);
         _glowDrawShaft(_gDryfieldNightGRKitchenView2LightShaftPoints[1], DRYFIELD_NIGHT_G_R_KITCHEN_LIGHT_SHAFT_RADIUS_SCALE);

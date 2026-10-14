@@ -130,27 +130,27 @@ enum {
 /// not name either local. Publishes both saved and live room selectors before
 /// requesting the object rebuild; no task or work ownership transfers.
 /// Invoke in a braced caller context.
-#define NEO_ARK_SHRINE_WAIT_LAYOUT(task, beforeRevealLayout, afterRevealLayout)                    \
-    {                                                                                              \
-        ActionPrompt*           prompt = gActionPromptSlots;                                       \
-        NeoArkShrinePuzzleWork* work   = (task)->work;                                             \
-                                                                                                   \
-        prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;                                           \
-        prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;                                         \
-        work->timer         = work->timer + 1;                                                     \
-        neoArkShrineDrawPuzzleFrame((task));                                                       \
-        if (work->timer >= NEO_ARK_SHRINE_LAYOUT_WAIT_FRAMES) {                                    \
-            /* Update both locations in each branch before requesting the object rebuild. */       \
-            if (gameFlagGetNibble(GAME_FLAG_0E9) == 0) {                                           \
-                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = (beforeRevealLayout); \
-                gGameSession->location.loc.room                            = (beforeRevealLayout); \
-            } else {                                                                               \
-                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = (afterRevealLayout);  \
-                gGameSession->location.loc.room                            = (afterRevealLayout);  \
-            }                                                                                      \
-            gGameSession->roomObjsDirty = true;                                                    \
-            (task)->state               = NEO_ARK_SHRINE_PUZZLE_STATE_IDLE;                        \
-        }                                                                                          \
+#define NEO_ARK_SHRINE_WAIT_LAYOUT(task, beforeRevealLayout, afterRevealLayout)                \
+    {                                                                                          \
+        ActionPrompt*           prompt = gActionPromptSlots;                                   \
+        NeoArkShrinePuzzleWork* work   = (task)->work;                                         \
+                                                                                               \
+        prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;                                       \
+        prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;                                     \
+        work->timer         = work->timer + 1;                                                 \
+        neoArkShrineDrawPuzzleFrame((task));                                                   \
+        if (work->timer >= NEO_ARK_SHRINE_LAYOUT_WAIT_FRAMES) {                                \
+            /* Update both locations in each branch before requesting the object rebuild. */   \
+            if (gameFlagGetNibble(GAME_FLAG_0E9) == 0) {                                       \
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.room = (beforeRevealLayout); \
+                gGameSession->location.room                            = (beforeRevealLayout); \
+            } else {                                                                           \
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.room = (afterRevealLayout);  \
+                gGameSession->location.room                            = (afterRevealLayout);  \
+            }                                                                                  \
+            gGameSession->roomObjsDirty = true;                                                \
+            (task)->state               = NEO_ARK_SHRINE_PUZZLE_STATE_IDLE;                    \
+        }                                                                                      \
     }
 
 static void _actionPromptResetDefault(Task* task);
@@ -1491,9 +1491,9 @@ static inline void _neoArkShrineBeginPuzzleSession(Task* task, NeoArkShrinePuzzl
            NEO_ARK_SHRINE_PUZZLE_CURSOR_ENTRY  = 0,
            NEO_ARK_SHRINE_PUZZLE_CURSOR_PORT_0 = 1 };
 
-    task->spawnArg2.pointer                                    = taskSpawnFromTable(gNeoArkShrinePuzzleCursorTaskDescs, NEO_ARK_SHRINE_PUZZLE_CURSOR_ENTRY, NEO_ARK_SHRINE_PUZZLE_CURSOR_PORT_0, NULL);
-    task->work                                                 = work;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = NEO_ARK_SHRINE_PUZZLE_VIEW;
+    task->spawnArg2.pointer                                = taskSpawnFromTable(gNeoArkShrinePuzzleCursorTaskDescs, NEO_ARK_SHRINE_PUZZLE_CURSOR_ENTRY, NEO_ARK_SHRINE_PUZZLE_CURSOR_PORT_0, NULL);
+    task->work                                             = work;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = NEO_ARK_SHRINE_PUZZLE_VIEW;
     task->state++;
     displayAcquireMenuHold();
 }
@@ -1598,10 +1598,10 @@ static inline void _neoArkShrineResumeRoomFromPuzzle(void)
     playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
     playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO);
     displayReleaseMenuHold();
-    gGameSession->eventState                                   = 0;
-    gGameSession->hideHud                                      = false;
-    gGameSession->cutsceneHold                                 = false;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = NEO_ARK_SHRINE_ROOM_VIEW;
+    gGameSession->eventState                               = 0;
+    gGameSession->hideHud                                  = false;
+    gGameSession->cutsceneHold                             = false;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = NEO_ARK_SHRINE_ROOM_VIEW;
 }
 
 /// Closes the puzzle, restores room control and reports a zero completion result.
@@ -1680,7 +1680,7 @@ static void _neoArkShrineWaitToSpawnFirstFallingProp(Task* task)
     work->timer   = elapsedFrames;
     if (elapsedFrames >= (u32)NEO_ARK_SHRINE_FIRST_PROP_DELAY_FRAMES) {
         taskSpawnFromTable(gNeoArkShrinePuzzleTaskDescs, NEO_ARK_SHRINE_FIRST_FALLING_PROP_ENTRY, 0, 0);
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = NEO_ARK_SHRINE_FIRST_PROP_VIEW;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = NEO_ARK_SHRINE_FIRST_PROP_VIEW;
         // Reset the following delay before advancing to its state.
         work->timer = 0;
         task->state++;
@@ -1712,7 +1712,7 @@ static void _neoArkShrineWaitToSpawnSecondFallingProp(Task* task)
         // The second prop and enemy reveal occur only on the first release.
         if (gameFlagGetNibble(GAME_FLAG_0E9) == 0) {
             taskSpawnFromTable(gNeoArkShrinePuzzleTaskDescs, NEO_ARK_SHRINE_SECOND_FALLING_PROP_ENTRY, 0, 0);
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = NEO_ARK_SHRINE_SECOND_PROP_VIEW;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = NEO_ARK_SHRINE_SECOND_PROP_VIEW;
             gameFlagSetNibble(GAME_FLAG_0E9, 1);
             nextState = task->state + 1;
         } else {
@@ -1755,10 +1755,10 @@ static void _neoArkShrineWaitPuzzleEnemyReveal(Task* task)
 /// owned work. Enemy startup delays now count down toward normal behavior.
 static void _neoArkShrineFinishPuzzleEnemyRelease(Task* task)
 {
-    gSceneCombatState.shrineEnemyPhase                         = SCENE_COMBAT_SHRINE_RELEASED;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = NEO_ARK_SHRINE_LAYOUT_ENEMIES_RELEASED;
-    gGameSession->location.loc.room                            = NEO_ARK_SHRINE_LAYOUT_ENEMIES_RELEASED;
-    gGameSession->roomObjsDirty                                = true;
+    gSceneCombatState.shrineEnemyPhase                     = SCENE_COMBAT_SHRINE_RELEASED;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.room = NEO_ARK_SHRINE_LAYOUT_ENEMIES_RELEASED;
+    gGameSession->location.room                            = NEO_ARK_SHRINE_LAYOUT_ENEMIES_RELEASED;
+    gGameSession->roomObjsDirty                            = true;
     _neoArkShrineResumeRoomFromPuzzle();
     taskRequestKill(task, 0);
 }

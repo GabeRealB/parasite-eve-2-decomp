@@ -1138,7 +1138,7 @@ void dryfieldNightUnderpassDrawFlaresTask(Task* unusedTask)
     const SVECTOR* flarePosition;
     const s16*     flareViewMasks;
 
-    viewMask = 1 << gGameSession->location.loc.view;
+    viewMask = 1 << gGameSession->location.view;
     if (gameFlagGetNibble(GAME_FLAG_053) == 0) {
         // Each position's mask uses the view ID directly as its bit index.
         flareIndex     = 0;

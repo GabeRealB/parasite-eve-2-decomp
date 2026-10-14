@@ -417,7 +417,7 @@ static inline void _actor503500InheritBossSlotTextures(Task* task, Enemy* slotEn
     u32                    placementKey;
     s32                    placementIndex;
 
-    sessionLocation = &gGameSession->location.loc;
+    sessionLocation = &gGameSession->location;
     placementOwner  = task->spawnArg2.pointer;
     placementKey    = placementOwner->placeKey;
     slotModel       = slotEnemy->task->extra.tmd;
@@ -2122,7 +2122,7 @@ Enemy* actor503500SpawnSlotEnemy(Task* task, s32 slot)
 
     slotEnemy = enemySpawnFromTable(gActor503500EnemyTaskDescs, slot, slot, task->spawnArg2.pointer);
     if (slotEnemy != NULL) {
-        sessionLocation = &gGameSession->location.loc;
+        sessionLocation = &gGameSession->location;
         parentEnemy     = task->spawnArg2.pointer;
         placementKey    = parentEnemy->placeKey;
         slotModel       = slotEnemy->task->extra.tmd;

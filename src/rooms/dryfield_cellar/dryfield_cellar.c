@@ -1233,9 +1233,9 @@ void dryfieldCellarDrawGlowsTask(Task* task)
 
     coord = task->extra.coordBody->coord;
     if (gameFlagGetNibble(GAME_FLAG_UNDERPASS_SWITCH_2) == DRYFIELD_CELLAR_GLOW_SWITCH_ON) {
-        if (gGameSession->location.loc.view == DRYFIELD_CELLAR_GLOW_VIEW_2) {
+        if (gGameSession->location.view == DRYFIELD_CELLAR_GLOW_VIEW_2) {
             _dryfieldCellarDrawGlowPair(coord, &_gDryfieldCellarView2GlowLocalPoints, DRYFIELD_CELLAR_GLOW_TEXTURE, DRYFIELD_CELLAR_GLOW_RADIUS_SCALE);
-        } else if (gGameSession->location.loc.view == DRYFIELD_CELLAR_GLOW_VIEW_3) {
+        } else if (gGameSession->location.view == DRYFIELD_CELLAR_GLOW_VIEW_3) {
             _dryfieldCellarDrawGlowPair(coord, &_gDryfieldCellarView3GlowLocalPoints, DRYFIELD_CELLAR_GLOW_TEXTURE, DRYFIELD_CELLAR_GLOW_RADIUS_SCALE);
         }
     }

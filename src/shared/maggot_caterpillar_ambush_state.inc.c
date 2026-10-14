@@ -41,7 +41,7 @@ static void _maggotCaterpillarAmbushState(Task* actor)
     coord                        = actor->extra.tmd->coords;
     work                         = actor->work;
     step                         = work->step;
-    locationWord                 = GAME_LOCATION_WORD(gGameSession->location.loc);
+    locationWord                 = GAME_LOCATION_WORD(gGameSession->location);
     playerInRange                = 0;
     switch (step) {
         case MAGGOT_CATERPILLAR_AMBUSH_WAIT:

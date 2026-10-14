@@ -76,7 +76,7 @@ static s32 _dryfieldMotelRoom1HandleRoomAction(Task* unusedTask, s32 unusedMessa
            DRYFIELD_MOTEL_ROOM_1_ACTION_OPENING  = 1,
            DRYFIELD_MOTEL_ROOM_1_OPENING_TASK    = 0 };
 
-    if (gGameSession->location.loc.variant == DRYFIELD_MOTEL_ROOM_1_OPENING_VARIANT && gameFlagGetNibble(GAME_FLAG_MOTEL_ROOM_1_EVENT_SEEN) == 0 && request->actionId == DRYFIELD_MOTEL_ROOM_1_ACTION_OPENING) {
+    if (gGameSession->location.variant == DRYFIELD_MOTEL_ROOM_1_OPENING_VARIANT && gameFlagGetNibble(GAME_FLAG_MOTEL_ROOM_1_EVENT_SEEN) == 0 && request->actionId == DRYFIELD_MOTEL_ROOM_1_ACTION_OPENING) {
         gameFlagSetNibble(GAME_FLAG_MOTEL_ROOM_1_EVENT_SEEN, 1);
         taskSpawnFromTable(&gDryfieldMotelRoom1OpeningEventTaskDesc, DRYFIELD_MOTEL_ROOM_1_OPENING_TASK, 0, 0);
     }
@@ -100,9 +100,9 @@ static void _dryfieldMotelRoom1InitRoomTask(Task* task)
 
     task->msgTable = _gDryfieldMotelRoom1MessageTable;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
-    if (gGameSession->location.loc.variant == DRYFIELD_MOTEL_ROOM_1_EVENT_VARIANT && gameFlagGetNibble(GAME_FLAG_MOTEL_ROOM_1_EVENT_SEEN) == 0) {
-        entryCommand.context.loc.stage = gGameSession->location.loc.stage;
-        entryCommand.context.loc.area  = gGameSession->location.loc.area;
+    if (gGameSession->location.variant == DRYFIELD_MOTEL_ROOM_1_EVENT_VARIANT && gameFlagGetNibble(GAME_FLAG_MOTEL_ROOM_1_EVENT_SEEN) == 0) {
+        entryCommand.context.loc.stage = gGameSession->location.stage;
+        entryCommand.context.loc.area  = gGameSession->location.area;
         entryCommand.command           = DRYFIELD_MOTEL_ROOM_1_ENTRY_ACTOR_COMMAND;
         TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &entryCommand, ACTOR_COMMAND_MESSAGE_APPLY);
     }

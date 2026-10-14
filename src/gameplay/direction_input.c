@@ -55,13 +55,13 @@ RoomEventMsg gDirectionWarpRequest;
 ///
 /// DIRECTION_WARP_SOUND_NONE skips playback and the wait. Retained from the
 /// room query through execution and script completion; dead players skip playback.
-static s32 _gDirectionWarpSoundId;
+s32 _gDirectionWarpSoundId;
 
 /// Room query reply retained through the turn and resolve phases.
 ///
 /// Dispatch narrows to s16: 0 executes in this area, 1 departs, and 2 executes
 /// the room's replacement action immediately. Other replies keep the query phase.
-static s16 _gDirectionWarpQueryResult;
+s16 _gDirectionWarpQueryResult;
 
 u16 gDirectionWarpDepartureShade;
 
@@ -164,7 +164,7 @@ void directionUpdateAction(void)
     viewGateTask = gameGetTaskSlot(GAME_TASK_SLOT_VIEW_GATE);
     // View changes rearm manual interaction before this eligible update is counted.
     if (viewGateTask != NULL) {
-        if (viewGateTask->spawnArg1.value != gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view) {
+        if (viewGateTask->spawnArg1.value != gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view) {
             viewChangeStub();
             gDirectionInteractionRearmUpdates = DIRECTION_INTERACTION_REARM_UPDATES;
         }
@@ -266,7 +266,7 @@ void directionQueryWarp(void)
         }                                                                                                               \
     }
 
-    location     = &gGameSession->location.loc;
+    location     = &gGameSession->location;
     stageId      = location->stage;
     areaId       = location->area;
     roomTask     = gameGetTaskSlot(GAME_TASK_SLOT_ROOM);
@@ -385,7 +385,7 @@ void directionResolveWarp(void)
     playerStatus = &gPlayerStatus;
     roomTask     = gameGetTaskSlot(GAME_TASK_SLOT_ROOM);
 
-    location  = &gGameSession->location.loc;
+    location  = &gGameSession->location;
     warpEntry = gDirectionAreaWarpEntriesByStage[location->stage - 1][location->area - 1][(gDirectionActionParameter1 >> DIRECTION_WARP_ENDPOINT_SHIFT) - 1];
 
     _directionStepDepartureFade();

@@ -76,7 +76,7 @@ static void _roomCutsceneSoundTask(Task* task);
 
 /// `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType` (ally present), read through its own symbol.
 
-/// `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view` as it was when the cutscene started, restored
+/// `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view` as it was when the cutscene started, restored
 /// when it ends.
 
 /// Area-record patch list applied when the cutscene advances the story flags.
@@ -97,7 +97,7 @@ extern Task* gRoomCutsceneSoundTask;
 /// and texture-page X; texture-page Y retains its zero-initialized value.
 /// The scene runner borrows this writable record through completion. Keep the
 /// overlay loaded and do not reconfigure it while that runner is using it.
-static RoomCutsceneRec _gMotelRoom6CutsceneRec;
+RoomCutsceneRec _gMotelRoom6CutsceneRec;
 
 /// Selects the daytime motel room 6 glow export.
 ///

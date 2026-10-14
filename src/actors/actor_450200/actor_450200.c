@@ -136,24 +136,24 @@ static Task* _gActor450200CompanionPuffTask;
 ///
 /// Shared by the single active cross-fade task; the SDK transfers the complete
 /// 512-byte row through a word-pointer view of this word-aligned storage.
-static u16 _gActor450200BackdropFromClut[ACTOR_450200_BACKDROP_CLUT_COLORS];
+u16 _gActor450200BackdropFromClut[ACTOR_450200_BACKDROP_CLUT_COLORS];
 
 /// Captured incoming backdrop palette: 256 RGB555 halfwords from VRAM row 248.
 ///
 /// Preserved as the source of each fade step; simultaneous tasks would overwrite it.
-static u16 _gActor450200BackdropToClut[ACTOR_450200_BACKDROP_CLUT_COLORS];
+u16 _gActor450200BackdropToClut[ACTOR_450200_BACKDROP_CLUT_COLORS];
 
 /// Outgoing RGB555 palette scaled by the cross-fade's descending Q7 weight.
 ///
 /// All 256 colors have bit 15 set and are uploaded to VRAM row 249. Word-aligned
 /// storage must remain live through the complete 512-byte GPU transfer.
-static u16 _gActor450200BackdropScaledFromClut[ACTOR_450200_BACKDROP_CLUT_COLORS];
+u16 _gActor450200BackdropScaledFromClut[ACTOR_450200_BACKDROP_CLUT_COLORS];
 
 /// Incoming RGB555 palette scaled by the complementary Q7 cross-fade weight.
 ///
 /// All 256 colors have bit 15 set and are uploaded to VRAM row 250. Word-aligned
 /// storage must remain live through the complete 512-byte GPU transfer.
-static u16 _gActor450200BackdropScaledToClut[ACTOR_450200_BACKDROP_CLUT_COLORS];
+u16 _gActor450200BackdropScaledToClut[ACTOR_450200_BACKDROP_CLUT_COLORS];
 
 static void _actor450200StartBackdropCrossFade(s32 command);
 static void _actor450200SetLightBeamIntensity(s32 intensity);
@@ -1872,7 +1872,7 @@ static void _actor450200BackdropCrossFadeTask(Task* task)
     RECT rect;
     s32  beamIntensity;
 
-    if (gGameSession->location.loc.view == ACTOR_450200_BACKDROP_END_VIEW) {
+    if (gGameSession->location.view == ACTOR_450200_BACKDROP_END_VIEW) {
         taskKill(task);
         return;
     }
@@ -1935,6 +1935,6 @@ static void _actor450200SetLightBeamIntensity(s32 intensity)
 /// Performs no room loading or view change and leaves the other save slots alone.
 static void _actor450200SetRoomVariant(u8 roomVariant)
 {
-    gGameSession->location.loc.room                            = roomVariant;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = roomVariant;
+    gGameSession->location.room                            = roomVariant;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.room = roomVariant;
 }

@@ -428,23 +428,25 @@ def _ensure_maspsx_patch() -> None:
         )
 
 
-def _ensure_maspsx_bss_align_patch() -> None:
-    """Align .bss entries by size, and .bss itself to 8, as ASPSX does.
+def _ensure_maspsx_bss_layout_patch() -> None:
+    """Lay an object's .bss out the way ASPSX and PSYLINK did.
 
-    cc1 hands the assembler `.comm`/`.lcomm` with a size and no alignment, so
-    the layout is the assembler's. The Psy-Q objects show what ASPSX did: every
-    object's .bss is 8-aligned, and inside one a word after a halfword starts on
-    the next 4 (`Stsector_offset`, then `StRgb24`, in libcd's cdrom.o). Upstream
-    maspsx applies the size rule to .sbss only.
+    cc1 hands the assembler `.lcomm` for a `static` variable and `.comm` for
+    any other, each with a size and no alignment. ASPSX places the `.lcomm`
+    ones itself, in order, each aligned to its size rounded up to a power of
+    two (16 at most); a `.comm` one it leaves to the linker, and PSYLINK puts
+    those after the object's own .bss, aligned to 2, 4 or 8 by size. Upstream
+    maspsx keeps the order given and aligns neither. tools/patches/README.md
+    has the measurements.
     """
     import subprocess
 
     sub = TOOLS_DIR / "maspsx"
-    patch = (TOOLS_DIR / "patches" / "maspsx-bss-align.patch").resolve()
+    patch = (TOOLS_DIR / "patches" / "maspsx-bss-layout.patch").resolve()
     marker = sub / "maspsx" / "__init__.py"
     if not patch.is_file() or not marker.is_file():
         return
-    if "ASPSX aligns every .sbss and .bss entry" in marker.read_text():
+    if "PSYLINK aligns a .comm symbol" in marker.read_text():
         return
     subprocess.run(["git", "-C", str(sub), "apply", str(patch)], check=True)
     print(f"Applied {patch.name} to tools/maspsx")
@@ -466,7 +468,7 @@ def _ensure_maspsx_bss_local_patch() -> None:
 
 
 _ensure_maspsx_patch()
-_ensure_maspsx_bss_align_patch()
+_ensure_maspsx_bss_layout_patch()
 _ensure_maspsx_bss_local_patch()
 match PLATFORM:
     case Platform.Windows:

@@ -673,9 +673,9 @@ void shelter1fBulwarkRoomTask(Task* task)
 /// saved VRAM images. Sprite images are not reloaded. No task work is allocated.
 static void _shelter1fBulwarkPlayDepartureMovieTask(Task* movieTask)
 {
-    u8          commandArgs[sizeof(gCdCmdQueue.entries[0].args)];
-    GameLoc     movieLocation;
-    CdCmdQueue* queue;
+    u8              commandArgs[sizeof(gCdCmdQueue.entries[0].args)];
+    GameLocationKey movieLocation;
+    CdCmdQueue*     queue;
 
     queue = &gCdCmdQueue;
     switch (movieTask->state) {
@@ -685,10 +685,10 @@ static void _shelter1fBulwarkPlayDepartureMovieTask(Task* movieTask)
             movieTask->state++;
             break;
         case STREAMED_SCENE_QUEUE_MOVIE:
-            movieLocation          = gGameSession->location;
-            movieLocation.loc.view = STREAMED_SCENE_MOVIE_ID;
+            movieLocation      = gGameSession->location;
+            movieLocation.view = STREAMED_SCENE_MOVIE_ID;
             // The four-byte command block carries the loaded movie slot in byte zero.
-            commandArgs[0] = streamFindMovieSlot(&movieLocation.loc, 0, 0);
+            commandArgs[0] = streamFindMovieSlot(&movieLocation, 0, 0);
             cdCmdEnqueue(CD_COMMAND_PLAY_STREAM, 0, commandArgs);
             movieTask->state++;
             break;
@@ -762,12 +762,12 @@ static void _shelter1fBulwarkReloadAfterDepartureMovieTask(Task* task)
             task->state = task->state + 1;
             break;
         case DEPARTURE_RELOAD:
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage = GAME_STAGE_SHELTER_NEO_ARK;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area  = GAME_AREA_NEO_ARK_R26;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp  = DEPARTURE_ARRIVAL_WARP;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room  = DEPARTURE_ARRIVAL_ROOM;
-            gDisplayState.spriteVariant                                 = DEPARTURE_SPRITE_VARIANT;
-            gameFlowBeginLoadScreen(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc, GAME_FLOW_LOAD_CAPTION_NORMAL);
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.stage = GAME_STAGE_SHELTER_NEO_ARK;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.area  = GAME_AREA_NEO_ARK_R26;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp  = DEPARTURE_ARRIVAL_WARP;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.room  = DEPARTURE_ARRIVAL_ROOM;
+            gDisplayState.spriteVariant                             = DEPARTURE_SPRITE_VARIANT;
+            gameFlowBeginLoadScreen(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location, GAME_FLOW_LOAD_CAPTION_NORMAL);
             taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_SKIP_BATTLE_ESCAPE, 0);
             taskKill(task);
             break;

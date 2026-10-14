@@ -926,7 +926,7 @@ static s32 _dryfieldNightWaterTankRoomActionMessage(Task* unusedTask, s32 messag
 
     u8 roomVariant;
 
-    if ((gGameSession->location.loc.variant != DRYFIELD_NIGHT_WATER_TANK_HANDOVER_VARIANT) || (gameFlagGetNibble(GAME_FLAG_ITEM_119_HANDOVER_PROGRESS) >= DRYFIELD_NIGHT_WATER_TANK_HANDOVER_DONE)) {
+    if ((gGameSession->location.variant != DRYFIELD_NIGHT_WATER_TANK_HANDOVER_VARIANT) || (gameFlagGetNibble(GAME_FLAG_ITEM_119_HANDOVER_PROGRESS) >= DRYFIELD_NIGHT_WATER_TANK_HANDOVER_DONE)) {
         if (request->actionId == DRYFIELD_NIGHT_WATER_TANK_ACTION_VIEW_4) {
             evsStartScript(_gDryfieldNightWaterTankRelocateToView4Script, EVENT_SCRIPT_HUD_HIDE_RESTORE);
         }
@@ -935,7 +935,7 @@ static s32 _dryfieldNightWaterTankRoomActionMessage(Task* unusedTask, s32 messag
         }
     }
     if (request->actionId == DRYFIELD_NIGHT_WATER_TANK_ACTION_HANDOVER) {
-        roomVariant = gGameSession->location.loc.variant;
+        roomVariant = gGameSession->location.variant;
         if ((u32)(roomVariant - DRYFIELD_NIGHT_WATER_TANK_HANDOVER_VARIANT) < (u32)DRYFIELD_NIGHT_WATER_TANK_HANDOVER_VARIANT_COUNT) {
             if ((roomVariant != DRYFIELD_NIGHT_WATER_TANK_HANDOVER_VARIANT) || (gameFlagGetNibble(GAME_FLAG_ITEM_119_HANDOVER_PROGRESS) >= DRYFIELD_NIGHT_WATER_TANK_HANDOVER_DONE)) {
                 playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
@@ -965,13 +965,13 @@ static void _dryfieldNightWaterTankInitializeRoom(Task* task)
     task->msgTable = _gDryfieldNightWaterTankRoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     taskSpawnFromTable(_gDryfieldNightWaterTankSwayTasks, 0, 0, 0);
-    if ((u32)(gGameSession->location.loc.variant - DRYFIELD_NIGHT_WATER_TANK_BATTLE_VARIANT) < (u32)DRYFIELD_NIGHT_WATER_TANK_RESTORE_VARIANT_COUNT) {
+    if ((u32)(gGameSession->location.variant - DRYFIELD_NIGHT_WATER_TANK_BATTLE_VARIANT) < (u32)DRYFIELD_NIGHT_WATER_TANK_RESTORE_VARIANT_COUNT) {
         _dryfieldNightWaterTankRestoreTankCollision(0);
     }
-    if (gGameSession->location.loc.variant == DRYFIELD_NIGHT_WATER_TANK_BATTLE_VARIANT) {
+    if (gGameSession->location.variant == DRYFIELD_NIGHT_WATER_TANK_BATTLE_VARIANT) {
         taskSpawnFromTable(_gDryfieldNightWaterTankBattleAftermathTasks, 0, 0, 0);
     }
-    if (gGameSession->location.loc.variant == DRYFIELD_NIGHT_WATER_TANK_HANDOVER_VARIANT) {
+    if (gGameSession->location.variant == DRYFIELD_NIGHT_WATER_TANK_HANDOVER_VARIANT) {
         actor146300RestoreHandoverPose();
     }
     task->state = task->state + 1;
@@ -985,7 +985,7 @@ static void _dryfieldNightWaterTankHoldIceBagTimerState(Task* unusedTask)
 {
     enum { DRYFIELD_NIGHT_WATER_TANK_ICE_BAG_HELD_VARIANT = 11 };
 
-    if (gGameSession->location.loc.variant == DRYFIELD_NIGHT_WATER_TANK_ICE_BAG_HELD_VARIANT) {
+    if (gGameSession->location.variant == DRYFIELD_NIGHT_WATER_TANK_ICE_BAG_HELD_VARIANT) {
         inventoryResetIceBagTimer();
     }
 }

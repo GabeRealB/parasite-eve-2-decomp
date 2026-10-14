@@ -511,8 +511,8 @@ static void _actor303600DispatchCutsceneCue(Task* task)
 #define ACTOR_303600_BROADCAST_ACTOR_CUE(cue)                                                                                                           \
     {                                                                                                                                                   \
         publishedWork             = _gActor303600CutsceneControllerTask->work;                                                                          \
-        request.context.loc.stage = gGameSession->location.loc.stage;                                                                                   \
-        request.context.loc.area  = gGameSession->location.loc.area;                                                                                    \
+        request.context.loc.stage = gGameSession->location.stage;                                                                                       \
+        request.context.loc.area  = gGameSession->location.area;                                                                                        \
         request.command           = (cue);                                                                                                              \
         TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &request, ACTOR_COMMAND_MESSAGE_APPLY); \
         publishedWork->lastActorCommand = (cue);                                                                                                        \
@@ -612,11 +612,11 @@ static void _actor303600CutsceneTask(Task* task)
             break;
         case ACTOR_303600_SCENE_WAIT_SCRIPT:
             if (gGameSession->eventState == 0) {
-                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage = GAME_STAGE_SHELTER_NEO_ARK;
-                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area  = GAME_AREA_NEO_ARK_R31;
-                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp  = 1;
-                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room  = 1;
-                gDisplayState.spriteVariant                                 = 1;
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.stage = GAME_STAGE_SHELTER_NEO_ARK;
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.area  = GAME_AREA_NEO_ARK_R31;
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp  = 1;
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.room  = 1;
+                gDisplayState.spriteVariant                             = 1;
                 taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_SKIP_BATTLE_ESCAPE, 0);
                 taskKill(task);
                 break;
@@ -729,8 +729,8 @@ static void _actor303600SendCutsceneEndCommand(void)
     ActorCommand              endCommand;
 
     if (work->endCommandSent == false) {
-        endCommand.context.loc.stage = gGameSession->location.loc.stage;
-        endCommand.context.loc.area  = gGameSession->location.loc.area;
+        endCommand.context.loc.stage = gGameSession->location.stage;
+        endCommand.context.loc.area  = gGameSession->location.area;
         endCommand.command           = ACTOR_303600_CUTSCENE_END_ACTOR_COMMAND;
         TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &endCommand, ACTOR_COMMAND_MESSAGE_APPLY);
         work->lastActorCommand = ACTOR_303600_CUTSCENE_END_ACTOR_COMMAND;
@@ -747,8 +747,8 @@ static void _actor303600SendCutsceneEndCommand(void)
 /// command, dispatches synchronously, then records and latches the command.
 #define ACTOR_303600_SEND_SKIPPED_END_COMMAND(work, endCommand)                                                                                              \
     if ((work)->endCommandSent == false) {                                                                                                                   \
-        (endCommand).context.loc.stage = gGameSession->location.loc.stage;                                                                                   \
-        (endCommand).context.loc.area  = gGameSession->location.loc.area;                                                                                    \
+        (endCommand).context.loc.stage = gGameSession->location.stage;                                                                                       \
+        (endCommand).context.loc.area  = gGameSession->location.area;                                                                                        \
         (endCommand).command           = ACTOR_303600_SKIP_END_ACTOR_COMMAND;                                                                                \
         TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &(endCommand), ACTOR_COMMAND_MESSAGE_APPLY); \
         (work)->lastActorCommand = ACTOR_303600_SKIP_END_ACTOR_COMMAND;                                                                                      \

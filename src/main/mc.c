@@ -207,11 +207,6 @@ typedef struct {
 STATIC_ASSERT_SIZEOF(_McFileSelectStateTable, 0x68);
 
 /* Define BSS before API headers to preserve first-declaration order. */
-/// Shared resident work area borrowed by the active memory-card dialog and its children.
-///
-/// Save and load dialogs must run sequentially; a transfer allocation remains
-/// owned by the active dialog until completion or its documented error path.
-static McWork _gMcDialogWork;
 
 McSaveData gMcSaveData[MEMORY_CARD_SAVE_COUNT];
 
@@ -228,7 +223,7 @@ GameFlagNeoArkBank gGameFlagNeoArkBanks[GAME_FLAG_STAGE_BANK_COUNT];
 GameFlagNibbleBank gGameFlagNibbleBanks[GAME_FLAG_NIBBLE_BANK_COUNT];
 
 /// Eight retained BSS bytes with no code or assembly references; role unproven.
-static u8 D_80073B80[8];
+u8 D_80073B80[8];
 
 PlayerStatus gPlayerStatus;
 
@@ -236,11 +231,17 @@ PlayerStatus gPlayerStatus;
 ///
 /// The call advances the generator used for new filenames; the stored sample
 /// has no reader, and the reason it was retained is unproven.
-static s32 _gMcSaveDialogRandomSample;
+s32 _gMcSaveDialogRandomSample;
 
 #include "main/gameflag.h"
 #include "main/mc.h"
 #include "main/wipsys.h"
+
+/// Shared resident work area borrowed by the active memory-card dialog and its children.
+///
+/// Save and load dialogs must run sequentially; a transfer allocation remains
+/// owned by the active dialog until completion or its documented error path.
+static McWork _gMcDialogWork;
 
 /// Number of 128-byte card sectors holding the complete game-flag bank pair.
 enum { GAME_FLAG_NIBBLE_BANK_CARD_SECTORS = 4 };
@@ -954,17 +955,17 @@ static void _mcSeedNewGameRecords(void)
         openingSave = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
     } while (0);
 
-    initialStage                            = GAME_STAGE_ACROPOLIS;
-    openingSave->state.location.loc.area    = GAME_AREA_MIST_SHOOTING_GALLERY;
-    initialSceneEvent                       = MEMORY_CARD_NEW_GAME_SCENE_EVENT;
-    starterWeapon                           = MEMORY_CARD_NEW_GAME_WEAPON_M93R;
-    openingSave->state.location.loc.stage   = initialStage;
-    openingSave->state.location.loc.view    = MEMORY_CARD_NEW_GAME_VIEW;
-    openingSave->state.location.loc.room    = MEMORY_CARD_NEW_GAME_ROOM;
-    openingSave->state.location.loc.warp    = MEMORY_CARD_NEW_GAME_WARP;
-    openingSave->state.location.loc.variant = MEMORY_CARD_NEW_GAME_VARIANT;
-    openingSave->state.sceneEvent           = initialSceneEvent;
-    openingSave->state.characterId          = MEMORY_CARD_NEW_GAME_CHARACTER;
+    initialStage                        = GAME_STAGE_ACROPOLIS;
+    openingSave->state.location.area    = GAME_AREA_MIST_SHOOTING_GALLERY;
+    initialSceneEvent                   = MEMORY_CARD_NEW_GAME_SCENE_EVENT;
+    starterWeapon                       = MEMORY_CARD_NEW_GAME_WEAPON_M93R;
+    openingSave->state.location.stage   = initialStage;
+    openingSave->state.location.view    = MEMORY_CARD_NEW_GAME_VIEW;
+    openingSave->state.location.room    = MEMORY_CARD_NEW_GAME_ROOM;
+    openingSave->state.location.warp    = MEMORY_CARD_NEW_GAME_WARP;
+    openingSave->state.location.variant = MEMORY_CARD_NEW_GAME_VARIANT;
+    openingSave->state.sceneEvent       = initialSceneEvent;
+    openingSave->state.characterId      = MEMORY_CARD_NEW_GAME_CHARACTER;
     playerSeedNewGameStatus();
     characterIndex                          = openingSave->state.characterId - 1;
     (&gPlayerStatus)[characterIndex].weapon = starterWeapon;

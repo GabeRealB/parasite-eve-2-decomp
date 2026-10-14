@@ -266,13 +266,13 @@ WorldCoordTransientPointLight gWorldCoordTransientPointLights[WORLD_COORDINATE_T
 ///
 /// The setter and player-light initialization clear this signed-byte gate
 /// without clearing the retained scale value.
-static s8 _gWorldCoordLightColorScaleOverrideEnabled;
+s8 _gWorldCoordLightColorScaleOverrideEnabled;
 
 /// Copied unsigned Q12 RGB row scales retained until the next override input.
 ///
 /// The full SVECTOR copy includes an unused final halfword. Zero suppresses a
 /// channel and 4096 is unity; the gate controls use, not the stored lifetime.
-static _WorldCoordLightColorScaleOverride _gWorldCoordLightColorScaleOverride;
+_WorldCoordLightColorScaleOverride _gWorldCoordLightColorScaleOverride;
 
 struct WorldTargetNode* gWorldTargetCursorNode;
 
@@ -461,7 +461,7 @@ void worldCoordUpdateRoomLightsTask(Task* task)
     s32                   lightIndex;
     s32                   transientIndex;
 
-    roomLights = _worldCoordGetRoomLights(&gGameSession->location.loc);
+    roomLights = _worldCoordGetRoomLights(&gGameSession->location);
     if (roomLights == NULL) {
         taskKill(task);
         return;
@@ -552,7 +552,7 @@ static s32 _worldCoordScoreRoomPointLight(WorldCoordPointLight* light, const VEC
 
     header = &light->head;
     viewId = header->transform.lighting.viewId;
-    if (viewId != WORLD_COORDINATE_LIGHT_ALL_VIEWS && gGameSession->location.loc.view != viewId) {
+    if (viewId != WORLD_COORDINATE_LIGHT_ALL_VIEWS && gGameSession->location.view != viewId) {
         return 0;
     }
     falloff                = SCRATCH_STACK_RESERVE_BLOCK(_WorldCoordPointLightFalloffScratch);
@@ -648,7 +648,7 @@ static s32 _worldCoordScoreConeLight(WorldCoordSpotLight* coneLight, const VECTO
     header            = &coneLight->head;
     contributionScore = 0;
     if (header->transform.lighting.viewId != WORLD_COORDINATE_LIGHT_ALL_VIEWS) {
-        if (gGameSession->location.loc.view != header->transform.lighting.viewId) {
+        if (gGameSession->location.view != header->transform.lighting.viewId) {
             return contributionScore;
         }
     }
@@ -774,7 +774,7 @@ static void _worldCoordFindNearestRoomLight(const VECTOR* samplePosition, _World
     u32                   distanceSquared;
     s32                   lightIndex;
 
-    roomLights             = _worldCoordGetRoomLights(&gGameSession->location.loc);
+    roomLights             = _worldCoordGetRoomLights(&gGameSession->location);
     nearestDistanceSquared = WORLD_COORDINATE_NEAREST_LIGHT_DISTANCE_LIMIT;
     nearestLight->kind     = WORLD_COORDINATE_NEAREST_LIGHT_NONE;
     nearestLight->field_4  = 0;
@@ -890,7 +890,7 @@ static __inline__ s32 _worldCoordScoreDirectionalLight(WorldCoordLight* light)
     s32 score;
 
     viewId = light->transform.lighting.viewId;
-    if (viewId != WORLD_COORDINATE_LIGHT_ALL_VIEWS && gGameSession->location.loc.view != viewId) {
+    if (viewId != WORLD_COORDINATE_LIGHT_ALL_VIEWS && gGameSession->location.view != viewId) {
         return 0;
     }
     // The image needs `score` assigned more than once and the attenuation stored
@@ -1011,7 +1011,7 @@ void worldCoordSetModelLighting(const TmdObject* model, const void* worldPositio
     s32                   contributionScore;
     WorldCoordPointLight* pointLight;
 
-    roomLights           = _worldCoordGetRoomLights(&gGameSession->location.loc);
+    roomLights           = _worldCoordGetRoomLights(&gGameSession->location);
     colorMtx             = model->colorMtx;
     activeTransientCount = 0;
     if (roomLights == NULL) {
@@ -1230,7 +1230,7 @@ void worldCoordSetModelLighting(const TmdObject* model, const void* worldPositio
     } else {
         const WorldCoordRoomAmbientEntry* ambientEntry;
 
-        ambientEntry = _worldCoordGetRoomAmbientEntry(&gGameSession->location.loc);
+        ambientEntry = _worldCoordGetRoomAmbientEntry(&gGameSession->location);
         if (colorMtx->t[0] < ambientEntry->color.r) {
             colorMtx->t[0] = ambientEntry->color.r;
         }
@@ -2156,7 +2156,7 @@ static void _worldCoordInitPlayerLighting(Task* task)
     playerTask = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     model      = playerTask->extra.tmd;
     if (playerTask != NULL) {
-        roomLights      = _worldCoordGetRoomLights(&gGameSession->location.loc);
+        roomLights      = _worldCoordGetRoomLights(&gGameSession->location);
         attachmentIndex = 0;
         if (roomLights == NULL) {
             taskKill(task);

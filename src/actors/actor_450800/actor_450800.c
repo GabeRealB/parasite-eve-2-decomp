@@ -3568,7 +3568,7 @@ void actor450800StartNurseryInteraction(void)
     s32 interactionCount;
     s32 sceneCount;
 
-    if (gGameSession->location.loc.view == ACTOR_450800_NURSERY_INTERACTION_VIEW) {
+    if (gGameSession->location.view == ACTOR_450800_NURSERY_INTERACTION_VIEW) {
         if (gameFlagGetNibble(GAME_FLAG_B6_NURSERY_PROGRESS) == ACTOR_450800_NURSERY_REPEAT_PROGRESS) {
             interactionCount                     = _gActor450800NurseryInteractionCount + 1;
             _gActor450800NurseryInteractionCount = interactionCount;
@@ -3691,11 +3691,11 @@ static void _actor450800EnterGrowthRoom(void)
     };
 
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene != ACTOR_450800_NURSERY_DEMO_SCENE) {
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage = GAME_STAGE_SHELTER_NEO_ARK;
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area  = GAME_AREA_SHELTER_B6_GROWTH_ROOM;
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp  = ACTOR_450800_GROWTH_ROOM_ARRIVAL;
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room  = ACTOR_450800_GROWTH_ROOM;
-        gDisplayState.spriteVariant                                 = ACTOR_450800_GROWTH_SPRITE_VARIANT;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.stage = GAME_STAGE_SHELTER_NEO_ARK;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.area  = GAME_AREA_SHELTER_B6_GROWTH_ROOM;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp  = ACTOR_450800_GROWTH_ROOM_ARRIVAL;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.room  = ACTOR_450800_GROWTH_ROOM;
+        gDisplayState.spriteVariant                             = ACTOR_450800_GROWTH_SPRITE_VARIANT;
         taskSpawn(ACTOR_450800_SESSION_TASK_BANK, ACTOR_450800_SESSION_RESTART_TASK, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
     }
 }
@@ -3738,13 +3738,13 @@ static inline void _actor450800ApplyHelperPlacementTexture(Task* spawned, Task* 
     TmdObject*       helperModel;
     u32              placementIndex;
 
-    sessionKey     = &gGameSession->location.loc;
+    sessionKey     = &gGameSession->location;
     placementIndex = ((Enemy*)actor->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT;
     helperModel    = spawned->extra.tmd;
     key.stage      = sessionKey->stage;
     key.area       = sessionKey->area;
     key.room       = sessionKey->room;
-    key.view       = gGameSession->location.loc.view;
+    key.view       = gGameSession->location.view;
     areaSyncLocationVariant(&key);
     texturePlacement               = AREA_PLACEMENT_AT(areaGetVariant(&key)->placements, placementIndex);
     helperModel->texturePageOffset = texturePlacement->texturePageOffset;

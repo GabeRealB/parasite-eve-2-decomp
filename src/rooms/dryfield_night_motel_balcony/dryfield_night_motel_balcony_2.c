@@ -96,11 +96,11 @@ static void _dryfieldNightMotelBalconyMovieTask(Task* task)
         DRYFIELD_NIGHT_MOTEL_BALCONY_MOVIE_DEFAULT_SECOND_STREAM_ID = 100,
         DRYFIELD_NIGHT_MOTEL_BALCONY_MOVIE_DISC_2_SECOND_STREAM_ID  = 102,
     };
-    u8          streamArgs[4]; // Serialized command bytes; only the slot byte is consumed by playback.
-    GameLoc     firstMovieKey;
-    GameLoc     secondMovieKey;
-    CdCmdQueue* cdQueue;
-    s16         movieSlot;
+    u8              streamArgs[4]; // Serialized command bytes; only the slot byte is consumed by playback.
+    GameLocationKey firstMovieKey;
+    GameLocationKey secondMovieKey;
+    CdCmdQueue*     cdQueue;
+    s16             movieSlot;
 
     cdQueue = &gCdCmdQueue;
     switch (task->state) {
@@ -112,11 +112,11 @@ static void _dryfieldNightMotelBalconyMovieTask(Task* task)
         case DRYFIELD_NIGHT_MOTEL_BALCONY_MOVIE_QUEUE_FIRST:
             firstMovieKey = gGameSession->location;
             if (gGameMainPersistentState.discNumber == GAME_MAIN_DISC_2) {
-                firstMovieKey.loc.view = DRYFIELD_NIGHT_MOTEL_BALCONY_MOVIE_DISC_2_FIRST_STREAM_ID;
+                firstMovieKey.view = DRYFIELD_NIGHT_MOTEL_BALCONY_MOVIE_DISC_2_FIRST_STREAM_ID;
             } else {
-                firstMovieKey.loc.view = DRYFIELD_NIGHT_MOTEL_BALCONY_MOVIE_DEFAULT_FIRST_STREAM_ID;
+                firstMovieKey.view = DRYFIELD_NIGHT_MOTEL_BALCONY_MOVIE_DEFAULT_FIRST_STREAM_ID;
             }
-            movieSlot     = streamFindMovieSlot(&firstMovieKey.loc, 0, 0);
+            movieSlot     = streamFindMovieSlot(&firstMovieKey, 0, 0);
             streamArgs[0] = movieSlot;
             cdCmdEnqueue(CD_COMMAND_PLAY_STREAM, 0, streamArgs);
             task->state = task->state + 1;
@@ -141,11 +141,11 @@ static void _dryfieldNightMotelBalconyMovieTask(Task* task)
             if (cdCmdIsIdle()) {
                 secondMovieKey = gGameSession->location;
                 if (gGameMainPersistentState.discNumber == GAME_MAIN_DISC_2) {
-                    secondMovieKey.loc.view = DRYFIELD_NIGHT_MOTEL_BALCONY_MOVIE_DISC_2_SECOND_STREAM_ID;
+                    secondMovieKey.view = DRYFIELD_NIGHT_MOTEL_BALCONY_MOVIE_DISC_2_SECOND_STREAM_ID;
                 } else {
-                    secondMovieKey.loc.view = DRYFIELD_NIGHT_MOTEL_BALCONY_MOVIE_DEFAULT_SECOND_STREAM_ID;
+                    secondMovieKey.view = DRYFIELD_NIGHT_MOTEL_BALCONY_MOVIE_DEFAULT_SECOND_STREAM_ID;
                 }
-                movieSlot     = streamFindMovieSlot(&secondMovieKey.loc, 0, 0);
+                movieSlot     = streamFindMovieSlot(&secondMovieKey, 0, 0);
                 streamArgs[0] = movieSlot;
                 cdCmdEnqueue(CD_COMMAND_PLAY_STREAM, 0, streamArgs);
             }

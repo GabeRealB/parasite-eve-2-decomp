@@ -2063,7 +2063,7 @@ static void _actor405800InitEnemy(Task* task)
     model     = task->extra.tmd;
     enemy     = task->spawnArg2.pointer;
     rootCoord = model->coords;
-    if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_MINE_SECRET_PASSAGE, 0, 0)) {
+    if ((GAME_LOCATION_WORD(gGameSession->location) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_MINE_SECRET_PASSAGE, 0, 0)) {
         enemyDestroy(enemy, task);
         return;
     }
@@ -2105,7 +2105,7 @@ static void _actor405800InitEnemy(Task* task)
     _actor405800SpawnArmModels(task);
     (sceneAcquireBattleRef)(0);
     _stalkerZebraIvorySelectState(task, ACTOR_405800_STATE_HIDE);
-    if (gGameSession->location.loc.warp == 1) {
+    if (gGameSession->location.warp == 1) {
         rootCoord->coord.t[0] = 0x14B4;
         rootCoord->coord.t[2] = 0xD7A;
         rootCoord->coord.t[1] = 0;

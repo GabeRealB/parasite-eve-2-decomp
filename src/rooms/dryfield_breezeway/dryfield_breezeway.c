@@ -694,8 +694,8 @@ static void _dryfieldBreezewayInitMessageTask(Task* task)
     task->msgTable = gDryfieldBreezewayRoomMessageTable;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     if (gameFlagGetNibble(GAME_FLAG_BREEZEWAY_FIRST_EVENT_SEEN) == 0) {
-        actorCommand.context.loc.stage = gGameSession->location.loc.stage;
-        actorCommand.context.loc.area  = gGameSession->location.loc.area;
+        actorCommand.context.loc.stage = gGameSession->location.stage;
+        actorCommand.context.loc.area  = gGameSession->location.area;
         actorCommand.command           = DRYFIELD_BREEZEWAY_ACTOR_COMMAND_INITIALIZE;
         TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &actorCommand, ACTOR_COMMAND_MESSAGE_APPLY);
         taskSpawnFromTable(gDryfieldBreezewayFirstEventTaskDescs, DRYFIELD_BREEZEWAY_FIRST_EVENT_SETUP_TASK_INDEX, 0, 0);

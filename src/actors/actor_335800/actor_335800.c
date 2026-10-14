@@ -1402,8 +1402,8 @@ static void _actor335800SpawnSceneGroundShadow(void)
 /// live save slot without loading a room or requesting a view image.
 static void _actor335800SetSceneRoom(u8 room)
 {
-    gGameSession->location.loc.room = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = room;
-    gGameSession->roomObjsDirty                                                                  = true;
+    gGameSession->location.room = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.room = room;
+    gGameSession->roomObjsDirty                                                          = true;
 }
 
 /// Places the live player at the corresponding end of the balcony for the scene.
@@ -1466,10 +1466,10 @@ static void _actor335800PlacePlayerAfterScene(s32 faceQuarterTurn)
 /// This only schedules the reload; it does not load or apply the view itself.
 static inline void _actor335800SetView(s32 view)
 {
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = view;
-    gGameSession->location.loc.view                            = view;
-    gGameSession->viewDirty                                    = 1;
-    gGameSession->roomObjsDirty                                = 1;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = view;
+    gGameSession->location.view                            = view;
+    gGameSession->viewDirty                                = 1;
+    gGameSession->roomObjsDirty                            = 1;
 }
 
 /// Restores balcony view 5 or 6 from the player's position after scene playback.
@@ -1515,7 +1515,7 @@ static void _actor335800SetSceneSpriteBatchesHidden(s32 hidden)
     SpriteBatch*     batches;
 
     session  = gGameSession;
-    location = &session->location.loc;
+    location = &session->location;
     views    = gSpriteAreaTables[location->stage - 1][session->spriteVariant - 1].areaViews[location->area - 1];
     switch (hidden) {
         case ACTOR_335800_SCENE_SPRITES_VISIBLE:
@@ -1749,7 +1749,7 @@ static void _actor335800GaryDouglasInit(Task* task)
         work->headTask  = partTask;
         partModel       = partTask->extra.tmd;
         placementIndex  = ((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT;
-        sessionLocation = &gGameSession->location.loc;
+        sessionLocation = &gGameSession->location;
         location.stage  = sessionLocation->stage;
         location.area   = sessionLocation->area;
         location.room   = sessionLocation->room;
@@ -1769,11 +1769,11 @@ static void _actor335800GaryDouglasInit(Task* task)
         work->gunTask   = partTask;
         partModel       = partTask->extra.tmd;
         placementIndex  = ((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT;
-        sessionLocation = (secondSessionLocation = &gGameSession->location.loc);
+        sessionLocation = (secondSessionLocation = &gGameSession->location);
         location.stage  = sessionLocation->stage;
         location.area   = sessionLocation->area;
         location.room   = secondSessionLocation->room;
-        location.view   = gGameSession->location.loc.view;
+        location.view   = gGameSession->location.view;
         areaSyncLocationVariant(&location);
         areaVariant = areaGetVariant(&location);
         placement   = AREA_PLACEMENT_AT(areaVariant->placements, placementIndex);

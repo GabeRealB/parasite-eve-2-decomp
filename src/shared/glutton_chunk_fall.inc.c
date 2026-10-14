@@ -48,7 +48,7 @@ static void _gluttonChunkFall(Enemy* enemy, Task* task)
         work->aim.travel.vx = 0;
     }
 
-    if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B3_DUMPING_HOLE, 0, 0) &&
+    if ((GAME_LOCATION_WORD(gGameSession->location) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B3_DUMPING_HOLE, 0, 0) &&
         task->extra.tmd->coords->coord.t[0] >= GLUTTON_CHUNK_DUMPING_HOLE_STOP_X) {
         work->aim.travel.vx = 0;
     }

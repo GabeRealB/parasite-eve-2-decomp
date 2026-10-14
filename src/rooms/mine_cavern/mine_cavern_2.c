@@ -2907,9 +2907,9 @@ static void _mineCavernActivateRoom2(void)
 {
     enum { MINE_CAVERN_POST_SCENE_ROOM = 2 };
 
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = MINE_CAVERN_POST_SCENE_ROOM;
-    gGameSession->location.loc.room                            = MINE_CAVERN_POST_SCENE_ROOM;
-    gGameSession->roomObjsDirty                                = true;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.room = MINE_CAVERN_POST_SCENE_ROOM;
+    gGameSession->location.room                            = MINE_CAVERN_POST_SCENE_ROOM;
+    gGameSession->roomObjsDirty                            = true;
 }
 
 /// No-op callback retained after the room switch in both cavern event scripts.
@@ -2925,7 +2925,7 @@ static void _mineCavernPrepareFinalEventBattle(void)
 {
     enum { MINE_CAVERN_FINAL_EVENT_VARIANT = 4 };
 
-    gGameSession->location.loc.variant          = MINE_CAVERN_FINAL_EVENT_VARIANT;
+    gGameSession->location.variant              = MINE_CAVERN_FINAL_EVENT_VARIANT;
     gSceneCombatState.signals.bytes.battlePhase = SCENE_COMBAT_BATTLE_IDLE;
     gSceneCombatState.peTargetCount             = 0;
     gSceneCombatState.battleRefs                = 0;
@@ -2958,7 +2958,7 @@ void mineCavernSetProgressSpritesHidden(s32 hiddenValue)
     const SpriteView*      views;
     s32                    hidden;
 
-    location = &gGameSession->location.loc;
+    location = &gGameSession->location;
     views    = gSpriteAreaTables[location->stage - 1]->areaViews[location->area - 1];
     hidden   = hiddenValue & 0xFF;
 
@@ -3853,7 +3853,7 @@ static void _mineCavernTargetCheckHit(Enemy* enemy, Task* task)
     hitScratch                                        = scratchTop - 1;
 
     if (_actorRangeOutsideRadiusXZ(playerOffset, MINE_CAVERN_TARGET_LOCK_ON_RADIUS) || gSceneCombatState.signals.bytes.battlePhase != SCENE_COMBAT_BATTLE_ENGAGED ||
-        (gGameSession->location.loc.variant != gSceneCombatState.signals.bytes.battlePhase && gGameSession->location.loc.variant != 4)) {
+        (gGameSession->location.variant != gSceneCombatState.signals.bytes.battlePhase && gGameSession->location.variant != 4)) {
         enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
     } else {
         enemy->node.state.parts.flags = 0;
@@ -3868,7 +3868,7 @@ static void _mineCavernTargetCheckHit(Enemy* enemy, Task* task)
     if (hitKey & MINE_CAVERN_TARGET_HIT_ATTACHMENT_BIT) {
         hitScratch->hitKey = 0;
     }
-    if (gGameSession->location.loc.variant != 1 && gGameSession->location.loc.variant != 4) {
+    if (gGameSession->location.variant != 1 && gGameSession->location.variant != 4) {
         hitScratch->hitKey = 0;
     }
 

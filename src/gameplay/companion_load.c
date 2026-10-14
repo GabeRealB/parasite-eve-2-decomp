@@ -339,9 +339,9 @@ s32 companionSelectForArea(void)
     u8          variant;
 
     save  = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
-    stage = save->state.location.loc.stage;
+    stage = save->state.location.stage;
     // The first scheduled family present wins: 2, then 1, then 3.
-    if (COMPANION_SCHEDULE_HAS_AREA(_gCompanionFamily2Schedules, GAME_FLAG_COMPANION_2_SCHEDULE, stage, save->state.location.loc.area, COMPANION_FULL_PRESENCE_MASK, areaPresence)) {
+    if (COMPANION_SCHEDULE_HAS_AREA(_gCompanionFamily2Schedules, GAME_FLAG_COMPANION_2_SCHEDULE, stage, save->state.location.area, COMPANION_FULL_PRESENCE_MASK, areaPresence)) {
         GameSession* session = gGameSession;
 
         save->state.companionType    = COMPANION_TYPE_FAMILY_2;
@@ -349,23 +349,23 @@ s32 companionSelectForArea(void)
         return (session->companionType != COMPANION_TYPE_FAMILY_2) * COMPANION_TYPE_FAMILY_2;
     }
 
-    if (COMPANION_SCHEDULE_HAS_AREA(_gCompanionFamily1Schedules, GAME_FLAG_COMPANION_1_SCHEDULE, stage, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area, COMPANION_FAMILY_1_PRESENCE_MASK, areaPresence)) {
+    if (COMPANION_SCHEDULE_HAS_AREA(_gCompanionFamily1Schedules, GAME_FLAG_COMPANION_1_SCHEDULE, stage, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.area, COMPANION_FAMILY_1_PRESENCE_MASK, areaPresence)) {
         GameSession* session = gGameSession;
 
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType = COMPANION_TYPE_FAMILY_1;
         if (session->companionType == COMPANION_TYPE_FAMILY_1) {
-            variant = areaPresence[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area - 1] >> COMPANION_FAMILY_1_VARIANT_SHIFT;
+            variant = areaPresence[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.area - 1] >> COMPANION_FAMILY_1_VARIANT_SHIFT;
             if (session->companionVariant == variant) {
                 gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant = variant;
                 return COMPANION_NO_RESOURCE_LOAD;
             }
         }
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant = areaPresence[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area - 1] >> COMPANION_FAMILY_1_VARIANT_SHIFT;
-        gGameSession->companionVariant                            = areaPresence[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area - 1] >> COMPANION_FAMILY_1_VARIANT_SHIFT;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant = areaPresence[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.area - 1] >> COMPANION_FAMILY_1_VARIANT_SHIFT;
+        gGameSession->companionVariant                            = areaPresence[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.area - 1] >> COMPANION_FAMILY_1_VARIANT_SHIFT;
         return COMPANION_TYPE_FAMILY_1;
     }
 
-    if (COMPANION_SCHEDULE_HAS_AREA(_gCompanionFamily3Schedules, GAME_FLAG_COMPANION_3_SCHEDULE, stage, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area, COMPANION_FULL_PRESENCE_MASK, areaPresence)) {
+    if (COMPANION_SCHEDULE_HAS_AREA(_gCompanionFamily3Schedules, GAME_FLAG_COMPANION_3_SCHEDULE, stage, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.area, COMPANION_FULL_PRESENCE_MASK, areaPresence)) {
         GameSession* session = gGameSession;
 
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType    = COMPANION_TYPE_FAMILY_3;
@@ -395,15 +395,15 @@ static inline s32 _companionShouldRetainSoundBank(void)
     s32         stage;
 
     save  = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
-    stage = save->state.location.loc.stage;
-    if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_WATER_HOLE, 0, 0)) {
-        if (COMPANION_SCHEDULE_HAS_AREA(_gCompanionFamily2Schedules, GAME_FLAG_COMPANION_2_SCHEDULE, stage, save->state.location.loc.area, COMPANION_FULL_PRESENCE_MASK, areaPresence)) {
+    stage = save->state.location.stage;
+    if ((GAME_LOCATION_WORD(gGameSession->location) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_WATER_HOLE, 0, 0)) {
+        if (COMPANION_SCHEDULE_HAS_AREA(_gCompanionFamily2Schedules, GAME_FLAG_COMPANION_2_SCHEDULE, stage, save->state.location.area, COMPANION_FULL_PRESENCE_MASK, areaPresence)) {
             return 1;
         }
-        if (COMPANION_SCHEDULE_HAS_AREA(_gCompanionFamily1Schedules, GAME_FLAG_COMPANION_1_SCHEDULE, stage, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area, COMPANION_FAMILY_1_PRESENCE_MASK, areaPresence)) {
+        if (COMPANION_SCHEDULE_HAS_AREA(_gCompanionFamily1Schedules, GAME_FLAG_COMPANION_1_SCHEDULE, stage, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.area, COMPANION_FAMILY_1_PRESENCE_MASK, areaPresence)) {
             return 1;
         }
-        if (COMPANION_SCHEDULE_HAS_AREA(_gCompanionFamily3Schedules, GAME_FLAG_COMPANION_3_SCHEDULE, stage, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area, COMPANION_FULL_PRESENCE_MASK, areaPresence)) {
+        if (COMPANION_SCHEDULE_HAS_AREA(_gCompanionFamily3Schedules, GAME_FLAG_COMPANION_3_SCHEDULE, stage, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.area, COMPANION_FULL_PRESENCE_MASK, areaPresence)) {
             return 1;
         }
     }
@@ -549,7 +549,7 @@ void loadingFinishSessionLoadTask(Task* task)
         gpuClearFrameOrderingTable(1);
         gGameDebugState->loadingActive = GAME_DEBUG_LOADING_IDLE;
         taskKill(task);
-        if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PLAZA, 0, 0)) {
+        if ((GAME_LOCATION_WORD(gGameSession->location) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PLAZA, 0, 0)) {
             areaStartRoomRuntime(AREA_ROOM_START_SKIP_VIEW_GATE);
         } else {
             areaStartRoomRuntime(AREA_ROOM_START_WITH_VIEW_GATE);
@@ -558,7 +558,7 @@ void loadingFinishSessionLoadTask(Task* task)
         gDisplayState.holdState &= DISPLAY_HOLD_MODE_MASK;
         displayAcquireMenuHold();
         taskSpawn(FADE_SESSION_RESUME_TASK_BANK, FADE_SESSION_RESUME_TASK_SLOT, 0, 0);
-        if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PLAZA, 0, 0)) {
+        if ((GAME_LOCATION_WORD(gGameSession->location) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PLAZA, 0, 0)) {
             taskSpawnFromTable(gAcropolisPlazaSequenceTaskDescriptors, ACROPOLIS_PLAZA_OPENING_TASK_INDEX, 0, 0);
             cdCmdReservePlaybackBuffers();
             cdCmdSelectMovieWorkspace();
@@ -719,7 +719,7 @@ void loadingInitRoomResourcesTask(Task* task)
     const WorldCollisionRoomResources* roomResources;
     Task*                              viewSpriteTask;
 
-    location      = &gGameSession->location.loc;
+    location      = &gGameSession->location;
     roomResources = gWorldCollisionStageResources[location->stage - 1]->areaRooms[location->area - 1];
     _loadingBindInitialRoomCollisionResources(location, roomResources);
     // The room task owns the sprite task in its teardown tree.

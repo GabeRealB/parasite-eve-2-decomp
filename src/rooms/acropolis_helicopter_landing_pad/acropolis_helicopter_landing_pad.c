@@ -215,7 +215,7 @@ static void _acropolisHelicopterLandingPadLiftUpdate(Task* task)
         work->stepFrames = 0;
     }
     if (gGameSession->viewReady != 0) {
-        if (_gAcropolisHelicopterLandingPadLiftVisibleByView[gGameSession->location.loc.view] != 0) {
+        if (_gAcropolisHelicopterLandingPadLiftVisibleByView[gGameSession->location.view] != 0) {
             liftModel->flags &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
         } else {
             liftModel->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
@@ -340,7 +340,7 @@ void acropolisHelicopterLandingPadUpdateEncounterPhase(Task* unusedTask)
             }
         }
     }
-    if (gGameSession->location.loc.view == ACROPOLIS_HELICOPTER_LANDING_PAD_ENCOUNTER_ARM_VIEW) {
+    if (gGameSession->location.view == ACROPOLIS_HELICOPTER_LANDING_PAD_ENCOUNTER_ARM_VIEW) {
         gAcropolisHelicopterLandingPadEncounterReady = 1;
     }
     if (gGameSession->eventState == 0) {

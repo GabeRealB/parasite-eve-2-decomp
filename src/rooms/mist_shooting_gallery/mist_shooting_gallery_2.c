@@ -3153,7 +3153,7 @@ static void _mistShootingGalleryRunCourse2(Task* controller)
             }
             break;
         case MIST_SHOOTING_GALLERY_COURSE_2_WAIT_FOR_VIEW:
-            if (gGameSession->location.loc.view == MIST_SHOOTING_GALLERY_COURSE_2_HANDOFF_VIEW) {
+            if (gGameSession->location.view == MIST_SHOOTING_GALLERY_COURSE_2_HANDOFF_VIEW) {
                 if (work->timer <= 0) {
                     if (gDisplayState.pendingMode == DISPLAY_MODE_NONE) {
                         work->timer = 1;
@@ -3339,7 +3339,7 @@ static void _mistShootingGalleryRunCourse3(Task* controller)
             }
             break;
         case MIST_SHOOTING_GALLERY_COURSE_3_WAIT_FOR_VIEW:
-            if (gGameSession->location.loc.view == MIST_SHOOTING_GALLERY_COURSE_3_HANDOFF_VIEW) {
+            if (gGameSession->location.view == MIST_SHOOTING_GALLERY_COURSE_3_HANDOFF_VIEW) {
                 if (work->timer <= 0) {
                     if (gDisplayState.pendingMode == DISPLAY_MODE_NONE) {
                         work->timer = 1;
@@ -3528,7 +3528,7 @@ static void _mistShootingGalleryRunCourse4(Task* controller)
             }
             break;
         case MIST_SHOOTING_GALLERY_COURSE_4_WAIT_FOR_VIEW:
-            if (gGameSession->location.loc.view != MIST_SHOOTING_GALLERY_COURSE_4_HANDOFF_VIEW) {
+            if (gGameSession->location.view != MIST_SHOOTING_GALLERY_COURSE_4_HANDOFF_VIEW) {
                 break;
             }
             if (work->timer <= 0) {

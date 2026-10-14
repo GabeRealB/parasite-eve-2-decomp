@@ -1520,7 +1520,7 @@ static void _dryfieldMainStreetTurnPlayerTowardAreaActorTask(Task* task)
 
     playerTask  = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     playerActor = playerTask->work;
-    areaActor   = sceneFindEnemyByPlaceKey(gGameSession->location.loc.area | (gGameSession->location.loc.stage << 8));
+    areaActor   = sceneFindEnemyByPlaceKey(gGameSession->location.area | (gGameSession->location.stage << 8));
     if ((areaActor != NULL) && (gGameSession->eventState != 0)) {
         playerCoord = playerTask->extra.tmd->coords;
         targetCoord = &areaActor->task->extra.tmd->coords[1];
@@ -1641,7 +1641,7 @@ static void _dryfieldMainStreetPlayerHeadAimTask(Task* task)
     if (gEvsPlaybackPaused == 0) {
         if (task->state == DRYFIELD_MAIN_STREET_HEAD_AIM_ACTIVE) {
             _dryfieldMainStreetStepHeadAimWeight(task);
-            areaActor = sceneFindEnemyByPlaceKey(gGameSession->location.loc.area | (gGameSession->location.loc.stage << 8));
+            areaActor = sceneFindEnemyByPlaceKey(gGameSession->location.area | (gGameSession->location.stage << 8));
             animationAimHeadAtTask(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), areaActor->task,
                                    DRYFIELD_MAIN_STREET_HEAD_AIM_MAX_YAW, DRYFIELD_MAIN_STREET_HEAD_AIM_MAX_PITCH, task->killCountdown);
         } else {

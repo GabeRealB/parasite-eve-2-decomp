@@ -1269,8 +1269,8 @@ static inline void _dryfieldMotelRoom1BroadcastActorCommand(u16 command)
 {
     ActorCommand request;
 
-    request.context.loc.stage = gGameSession->location.loc.stage;
-    request.context.loc.area  = gGameSession->location.loc.area;
+    request.context.loc.stage = gGameSession->location.stage;
+    request.context.loc.area  = gGameSession->location.area;
     request.command           = command;
     TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &request, ACTOR_COMMAND_MESSAGE_APPLY);
 }
@@ -1432,13 +1432,13 @@ static void _dryfieldMotelRoom1InitializeOpeningEvent(Task* task)
     memFillBytes(work, 0, sizeof(*work));
     work->playerTask                     = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     _gDryfieldMotelRoom1OpeningEventTask = task;
-    placeKey                             = gGameSession->location.loc.area | (gGameSession->location.loc.stage << ENEMY_PLACE_STAGE_SHIFT);
+    placeKey                             = gGameSession->location.area | (gGameSession->location.stage << ENEMY_PLACE_STAGE_SHIFT);
     work->stagedSucklerTasks[0]          = sceneFindEnemyByPlaceKey(placeKey)->task;
-    placeKey                             = ((gGameSession->location.loc.stage << ENEMY_PLACE_STAGE_SHIFT) | (DRYFIELD_MOTEL_ROOM_1_SECOND_STAGED_PLACEMENT << ENEMY_PLACE_INDEX_SHIFT)) | gGameSession->location.loc.area;
+    placeKey                             = ((gGameSession->location.stage << ENEMY_PLACE_STAGE_SHIFT) | (DRYFIELD_MOTEL_ROOM_1_SECOND_STAGED_PLACEMENT << ENEMY_PLACE_INDEX_SHIFT)) | gGameSession->location.area;
     work->stagedSucklerTasks[1]          = sceneFindEnemyByPlaceKey(placeKey)->task;
-    placeKey                             = ((gGameSession->location.loc.stage << ENEMY_PLACE_STAGE_SHIFT) | (DRYFIELD_MOTEL_ROOM_1_FIRST_ENEMY_PLACEMENT << ENEMY_PLACE_INDEX_SHIFT)) | gGameSession->location.loc.area;
+    placeKey                             = ((gGameSession->location.stage << ENEMY_PLACE_STAGE_SHIFT) | (DRYFIELD_MOTEL_ROOM_1_FIRST_ENEMY_PLACEMENT << ENEMY_PLACE_INDEX_SHIFT)) | gGameSession->location.area;
     work->enemySucklerTasks[0]           = sceneFindEnemyByPlaceKey(placeKey)->task;
-    placeKey                             = ((gGameSession->location.loc.stage << ENEMY_PLACE_STAGE_SHIFT) | (DRYFIELD_MOTEL_ROOM_1_SECOND_ENEMY_PLACEMENT << ENEMY_PLACE_INDEX_SHIFT)) | gGameSession->location.loc.area;
+    placeKey                             = ((gGameSession->location.stage << ENEMY_PLACE_STAGE_SHIFT) | (DRYFIELD_MOTEL_ROOM_1_SECOND_ENEMY_PLACEMENT << ENEMY_PLACE_INDEX_SHIFT)) | gGameSession->location.area;
     work->enemySucklerTasks[1]           = sceneFindEnemyByPlaceKey(placeKey)->task;
 }
 
@@ -1479,7 +1479,7 @@ static void _dryfieldMotelRoom1OpeningEventTask(Task* task)
             break;
         case DRYFIELD_MOTEL_ROOM_1_OPENING_WAIT_COMBAT_VIEW:
             // The final state value also selects the view that starts the chase.
-            if (gGameSession->location.loc.view == task->state) {
+            if (gGameSession->location.view == task->state) {
                 _dryfieldMotelRoom1BroadcastActorCommand(DRYFIELD_MOTEL_ROOM_1_ACTOR_COMMAND_START_COMBAT);
                 taskKill(task);
                 return;

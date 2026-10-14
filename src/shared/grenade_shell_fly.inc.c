@@ -130,7 +130,7 @@ static void _grenadeShellFly(Task* task)
     worldCollisionResolveResponsePushback(work->capsuleContacts, &(scratchHead - 1)->delta, ARRAY_SIZE(work->capsuleContacts), &surfaceClass);
     surfaceClass = worldCollisionSurfaceClassFromMask((const u8*)&surfaceClass);
 classified:
-    surface = gWorldCollisionSurfacePropertiesTables[gGameSession->location.loc.stage - 1][gGameSession->location.loc.area - 1][surfaceClass];
+    surface = gWorldCollisionSurfacePropertiesTables[gGameSession->location.stage - 1][gGameSession->location.area - 1][surfaceClass];
     if (surface->probePassThrough == WORLD_COLLISION_SURFACE_BLOCK_PROBES) {
         if (surface->weaponImpactEnabled != WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS) {
             goto explode;
@@ -138,7 +138,7 @@ classified:
         task->state = GRENADE_SHELL_STATE_EXIT;
         goto move;
     }
-    if (surfaceClass == GRENADE_SHELL_SCRIPTED_SURFACE_CLASS && gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area == GRENADE_SHELL_SCRIPTED_SAVED_AREA && (u32)(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage - GAME_STAGE_DRYFIELD) < (u32)GRENADE_SHELL_SCRIPTED_STAGE_COUNT) {
+    if (surfaceClass == GRENADE_SHELL_SCRIPTED_SURFACE_CLASS && gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.area == GRENADE_SHELL_SCRIPTED_SAVED_AREA && (u32)(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.stage - GAME_STAGE_DRYFIELD) < (u32)GRENADE_SHELL_SCRIPTED_STAGE_COUNT) {
         goto explode;
     }
     goto move;

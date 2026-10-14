@@ -4379,10 +4379,10 @@ void dryfieldNightMotelBalconyAmbientEffectsTask(Task* task)
     gRoomEffectState->groundShadowShade = ROOM_EFFECT_GROUND_SHADOW_MAX_SHADE;
     // Select this view in the low or high 32-bit mask word.
     viewMaskWord = 0;
-    if (gGameSession->location.loc.view < DRYFIELD_NIGHT_MOTEL_BALCONY_VIEW_MASK_BITS) {
-        viewBit = 1u << gGameSession->location.loc.view;
+    if (gGameSession->location.view < DRYFIELD_NIGHT_MOTEL_BALCONY_VIEW_MASK_BITS) {
+        viewBit = 1u << gGameSession->location.view;
     } else {
-        viewBit      = 1u << (gGameSession->location.loc.view - DRYFIELD_NIGHT_MOTEL_BALCONY_VIEW_MASK_BITS);
+        viewBit      = 1u << (gGameSession->location.view - DRYFIELD_NIGHT_MOTEL_BALCONY_VIEW_MASK_BITS);
         viewMaskWord = 1;
     }
     if (viewBit & _gDryfieldNightMotelBalconyGlowViewMasks[viewMaskWord][0]) {
@@ -4417,7 +4417,7 @@ void dryfieldNightMotelBalconyAmbientEffectsTask(Task* task)
         _dryfieldNightMotelBalconyDisableBrokenLamp();
     }
     // These counters continue across the coordinated scene views.
-    switch (gGameSession->location.loc.view) {
+    switch (gGameSession->location.view) {
         case 17:
             if (++work->angle == DRYFIELD_NIGHT_MOTEL_BALCONY_VIEW_17_BURST_TICK) {
                 effectSpawn(EFFECT_DRYFIELD_NIGHT_MOTEL_DRIFT_PUFF, coord, DRYFIELD_NIGHT_MOTEL_BALCONY_SCATTERED_PUFF_ARGS, &_gDryfieldNightMotelBalconyView17DebrisBurstOffset);
@@ -5093,7 +5093,7 @@ void dryfieldNightMotelBalconyLampBurstTask(Task* task)
         return;
     }
     // The close view emits continuously without advancing the afterglow age.
-    if (gGameSession->location.loc.view == CONTINUOUS_VIEW) {
+    if (gGameSession->location.view == CONTINUOUS_VIEW) {
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
         if (((gRandomLcgState >> 16) & 3) == 0) {
             _dryfieldNightMotelBalconyChooseLampParticleOffset(work);

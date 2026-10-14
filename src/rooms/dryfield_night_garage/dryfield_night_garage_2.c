@@ -1503,7 +1503,7 @@ Task* dryfieldNightGarageFindPlacedActor(s32 placementIndex)
     const Enemy* placedEnemy;
     Task*        actorTask;
 
-    placedEnemy = sceneFindEnemyByPlaceKey(gGameSession->location.loc.area | ((placementIndex << ENEMY_PLACE_INDEX_SHIFT) | (gGameSession->location.loc.stage << ENEMY_PLACE_STAGE_SHIFT)));
+    placedEnemy = sceneFindEnemyByPlaceKey(gGameSession->location.area | ((placementIndex << ENEMY_PLACE_INDEX_SHIFT) | (gGameSession->location.stage << ENEMY_PLACE_STAGE_SHIFT)));
     actorTask   = NULL;
     if (placedEnemy != NULL) {
         actorTask = placedEnemy->task;
@@ -1546,25 +1546,25 @@ static inline void _dryfieldNightGarageQueueMovie(const Task* task)
         DRYFIELD_NIGHT_GARAGE_MOVIE_DISC_1_ALTERNATE = 102,
         DRYFIELD_NIGHT_GARAGE_MOVIE_DISC_2_ALTERNATE = 103,
     };
-    u8      commandArgs[sizeof(gCdCmdQueue.entries[0].args.bytes)];
-    GameLoc movieKey;
-    s16     streamSlot;
+    u8              commandArgs[sizeof(gCdCmdQueue.entries[0].args.bytes)];
+    GameLocationKey movieKey;
+    s16             streamSlot;
 
     movieKey = gGameSession->location;
     if (gGameMainPersistentState.discNumber == GAME_MAIN_DISC_2) {
         if (task->spawnArg1.value != 0) {
-            movieKey.loc.view = DRYFIELD_NIGHT_GARAGE_MOVIE_DISC_2_ALTERNATE;
+            movieKey.view = DRYFIELD_NIGHT_GARAGE_MOVIE_DISC_2_ALTERNATE;
         } else {
-            movieKey.loc.view = DRYFIELD_NIGHT_GARAGE_MOVIE_DISC_2_PRIMARY;
+            movieKey.view = DRYFIELD_NIGHT_GARAGE_MOVIE_DISC_2_PRIMARY;
         }
     } else {
         if (task->spawnArg1.value != 0) {
-            movieKey.loc.view = DRYFIELD_NIGHT_GARAGE_MOVIE_DISC_1_ALTERNATE;
+            movieKey.view = DRYFIELD_NIGHT_GARAGE_MOVIE_DISC_1_ALTERNATE;
         } else {
-            movieKey.loc.view = DRYFIELD_NIGHT_GARAGE_MOVIE_DISC_1_PRIMARY;
+            movieKey.view = DRYFIELD_NIGHT_GARAGE_MOVIE_DISC_1_PRIMARY;
         }
     }
-    streamSlot     = streamFindMovieSlot(&movieKey.loc, 0, 0);
+    streamSlot     = streamFindMovieSlot(&movieKey, 0, 0);
     commandArgs[0] = streamSlot;
     cdCmdEnqueue(CD_COMMAND_PLAY_STREAM, 0, commandArgs);
 }
@@ -1689,7 +1689,7 @@ void dryfieldNightGarageDrawGlowsTask(Task* unusedTask)
         DRYFIELD_NIGHT_GARAGE_GLOW_HALF_TURN    = 2048, // Capsule-cap orientation, 4096 units per turn.
     };
 
-    switch (gGameSession->location.loc.view) {
+    switch (gGameSession->location.view) {
         case 3:
         case 15: {
             const SVECTOR* endpoints = _gDryfieldNightGarageFirstThreeGlowPairs;

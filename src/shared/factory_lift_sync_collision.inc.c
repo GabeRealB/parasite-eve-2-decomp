@@ -34,7 +34,7 @@ static void _factoryLiftSyncCollision(Task* task, s32 remapFaces, s32 useTurnedT
     s32                           cornerIndex;
 
     liftCoord = task->extra.tmd->coords;
-    if (gGameSession->location.loc.stage == GAME_STAGE_DRYFIELD) {
+    if (gGameSession->location.stage == GAME_STAGE_DRYFIELD) {
         roomGrid = &gDryfieldFactoryCollisionGrid;
     } else {
         roomGrid = &gDryfieldNightFactoryCollisionGrid;

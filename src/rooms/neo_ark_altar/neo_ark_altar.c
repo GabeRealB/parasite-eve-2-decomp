@@ -76,10 +76,10 @@ static inline void _neoArkAltarFinishSwitchScene(Task* task)
     enum { NEO_ARK_ALTAR_SWITCH_RETURN_VIEW = 2 };
 
     SetDispMask(1);
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = NEO_ARK_ALTAR_SWITCH_RETURN_VIEW;
-    gGameSession->hideHud                                      = 0;
-    gGameSession->eventState                                   = 0;
-    gSceneCombatState.actorControl                             = SCENE_COMBAT_ACTORS_RUNNING;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = NEO_ARK_ALTAR_SWITCH_RETURN_VIEW;
+    gGameSession->hideHud                                  = 0;
+    gGameSession->eventState                               = 0;
+    gSceneCombatState.actorControl                         = SCENE_COMBAT_ACTORS_RUNNING;
     playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
     playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO);
     taskKill(task);
@@ -119,10 +119,10 @@ static void _neoArkAltarSwitchSceneTask(Task* task)
     switch (task->state) {
         case NEO_ARK_ALTAR_SWITCH_PREPARE:
             // Keep the room hidden and player held until the choice/movie finishes.
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = NEO_ARK_ALTAR_SWITCH_SCENE_VIEW;
-            gGameSession->hideHud                                      = 1;
-            gGameSession->eventState                                   = 1;
-            gSceneCombatState.actorControl                             = SCENE_COMBAT_ACTORS_HIDDEN;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = NEO_ARK_ALTAR_SWITCH_SCENE_VIEW;
+            gGameSession->hideHud                                  = 1;
+            gGameSession->eventState                               = 1;
+            gSceneCombatState.actorControl                         = SCENE_COMBAT_ACTORS_HIDDEN;
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
             playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE);
             task->state++;
@@ -234,7 +234,7 @@ static s32 _neoArkAltarHandleActionMessage(Task* unusedTask, s32 unusedMessageId
            NEO_ARK_ALTAR_ROOM_1_CAP_COMMAND = 3 };
 
     if (request->actionId == NEO_ARK_ALTAR_ACTION_SWITCH) {
-        if (gGameSession->location.loc.room == request->actionId) {
+        if (gGameSession->location.room == request->actionId) {
             capRunCommandWithTransition(NEO_ARK_ALTAR_ROOM_1_CAP_COMMAND);
         } else {
             taskSpawnFromTable(&_gNeoArkAltarSwitchSceneTaskDesc, 0, 0, 0);

@@ -403,7 +403,7 @@ static s32 _stageStepFileLoadTransition(Task* unused)
             SetDispMask(0);
             _gStageTransitionState->heldFrameBuffer = gDisplayState.frameBuffer;
             gDisplayState.keepGraphics              = 1;
-            gfxRestoreAreaFrame(gGameSession->location.loc.stage, gGameSession->location.loc.area, gDisplayState.frameBuffer);
+            gfxRestoreAreaFrame(gGameSession->location.stage, gGameSession->location.area, gDisplayState.frameBuffer);
             gDisplayState.control.flags.flipMode   = DISPLAY_FLIP_HOLD;
             _gStageTransitionState->transitionStep = _gStageTransitionState->transitionStep + 1;
             break;
@@ -415,7 +415,7 @@ static s32 _stageStepFileLoadTransition(Task* unused)
             break;
         case STAGE_FILE_LOAD_WAIT_FRAME:
             if ((cdCmdIsIdle() & 0xFFFF) && (gDisplayState.frameBuffer != _gStageTransitionState->heldFrameBuffer)) {
-                gfxCaptureAreaFrame(gGameSession->location.loc.stage, gGameSession->location.loc.area, gDisplayState.frameBuffer,
+                gfxCaptureAreaFrame(gGameSession->location.stage, gGameSession->location.area, gDisplayState.frameBuffer,
                                     MEMORY_PRIMITIVE_HEAP_BYTES);
                 memInitAuxHeap();
                 STAGE_CLEAR_LOAD_FRAMEBUFFERS();
@@ -501,7 +501,7 @@ static Task* _stageSpawnModeTask(void)
             case STAGE_ENTRY_GRAY_CAPTURE:
             case STAGE_ENTRY_RELOAD_FORCED:
             default:
-                location = &gGameSession->location.loc;
+                location = &gGameSession->location;
                 gpuResetAndInvalidateModelBuffers();
                 gfxCaptureAreaFrame(location->stage, location->area, gDisplayState.drawBuffer, MEMORY_PRIMITIVE_HEAP_BYTES);
                 if (_gStageTransitionState->entryMode == STAGE_ENTRY_GRAY_CAPTURE) {
@@ -537,12 +537,12 @@ static __inline__ void _stageBeginViewResourceLoad(void)
         STAGE_VIEW_NOT_READY             = 0,
     };
 
-    gameGetTaskSlot(GAME_TASK_SLOT_VIEW_GATE)->spawnArg1.value = gGameSession->location.loc.view;
+    gameGetTaskSlot(GAME_TASK_SLOT_VIEW_GATE)->spawnArg1.value = gGameSession->location.view;
     ResetGraph(STAGE_VIEW_RESET_GPU_QUEUE);
     gpuClearFrameOrderingTable(0);
     gpuClearFrameOrderingTable(1);
     memInitAuxHeap();
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = gGameSession->location.loc.view;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = gGameSession->location.view;
     padStartInputBlock(STAGE_VIEW_INPUT_PORT);
     viewQueueCurrentCamera(VIEW_PACKET_LIST_NONE);
     gGameSession->viewReady = STAGE_VIEW_NOT_READY;
@@ -591,10 +591,10 @@ static void _stageProcessTransitionRequests(Task* task)
         switch (transitionStep) {
             case STAGE_VIEW_BEGIN:
                 _gStageTransitionState->heldFrameBuffer = gDisplayState.frameBuffer;
-                gGameSession->location.loc.view         = _gStageTransitionState->pendingView;
+                gGameSession->location.view             = _gStageTransitionState->pendingView;
                 _gStageTransitionState->entryMode       = STAGE_ENTRY_RELOAD;
                 gDisplayState.control.flags.flipMode    = DISPLAY_FLIP_HOLD;
-                memConfigureImageMemory(gGameSession->location.loc.stage, gGameSession->location.loc.area);
+                memConfigureImageMemory(gGameSession->location.stage, gGameSession->location.area);
                 if (!(_gStageTransitionState->requestFlags & STAGE_REQUEST_KEEP_VIEW)) {
                     _stageBeginViewResourceLoad();
                 } else {
@@ -636,7 +636,7 @@ static void _stageProcessTransitionRequests(Task* task)
                 task->killCountdown                  = task->killCountdown - 1;
                 if (task->killCountdown == 0) {
                     gpuResetAndInvalidateModelBuffers();
-                    gfxCaptureAreaFrame(gGameSession->location.loc.stage, gGameSession->location.loc.area,
+                    gfxCaptureAreaFrame(gGameSession->location.stage, gGameSession->location.area,
                                         gDisplayState.frameBuffer, MEMORY_PRIMITIVE_HEAP_BYTES);
                     memInitAuxHeap();
                     _gStageTransitionState->loadBuffersCleared = 0;
@@ -666,7 +666,7 @@ static void _stageProcessTransitionRequests(Task* task)
         task->state = task->state + 1;
         _stageBeginModeExitLoad(task);
     } else if (requestFlags & STAGE_REQUEST_CAPTURE) {
-        gfxCaptureAreaFrame(gGameSession->location.loc.stage, gGameSession->location.loc.area, gDisplayState.frameBuffer,
+        gfxCaptureAreaFrame(gGameSession->location.stage, gGameSession->location.area, gDisplayState.frameBuffer,
                             MEMORY_PRIMITIVE_HEAP_BYTES);
         _gStageTransitionState->requestFlags = _gStageTransitionState->requestFlags & ~STAGE_REQUEST_CAPTURE;
     }
@@ -832,7 +832,7 @@ s32 stageRequestViewTransition(s32 view, s32 transitionKind)
         stage->transitionKind  = transitionKind;
         stage->requestFlags   |= transitionMask;
     }
-    return gGameSession->location.loc.view;
+    return gGameSession->location.view;
 }
 
 s32 stageRequestViewTransitionAndModeExit(s32 view)
@@ -852,7 +852,7 @@ s32 stageRequestViewTransitionAndModeExit(s32 view)
         stage->transitionStep                 = 0;
         stage->transitionKind                 = STAGE_TRANSITION_KIND_7;
         stage->requestFlags                  |= transitionMask;
-        previousView                          = gGameSession->location.loc.view;
+        previousView                          = gGameSession->location.view;
         _gStageTransitionState->requestFlags |= STAGE_REQUEST_MODE_TASK_EXIT;
     }
     return previousView;
@@ -974,7 +974,7 @@ static s32 _stageRequestCurrentViewTransition(void)
     requestFlags = stage->requestFlags;
     if (!(requestFlags & STAGE_REQUEST_TRANSITION)) {
         stage->requestFlags    = requestFlags | STAGE_REQUEST_KEEP_TRANSITION;
-        currentView            = gGameSession->location.loc.view;
+        currentView            = gGameSession->location.view;
         stage->heldFrameBuffer = 0;
         stage->transitionStep  = STAGE_VIEW_TRANSITION_INITIAL_STEP;
         stage->transitionKind  = STAGE_TRANSITION_TASKS;
@@ -1000,7 +1000,7 @@ Task* displayQueueModeTask(TaskDesc* descriptor, s32 spawnArg1, TaskSpawnArg spa
     stage->entryMode = entryMode;
     // A default request in the Acropolis plaza keeps the current resources.
     if (entryMode == STAGE_ENTRY_RELOAD) {
-        if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) ==
+        if ((GAME_LOCATION_WORD(gGameSession->location) & GAME_LOCATION_STAGE_AREA_MASK) ==
             GAME_LOCATION_KEY(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PLAZA, 0, 0)) {
             stage->entryMode = STAGE_ENTRY_KEEP;
         }
@@ -1083,7 +1083,7 @@ static void _stageBeginModeExitLoad(Task* task)
     entryMode                            = _gStageTransitionState->entryMode;
     // Modes 1, 3 and 4 keep the room's current resources.
     if (entryMode >= STAGE_ENTRY_DRAW_ACTORS + 1U || (entryMode < STAGE_ENTRY_HOLD && entryMode != STAGE_ENTRY_KEEP)) {
-        memConfigureImageMemory(gGameSession->location.loc.stage, gGameSession->location.loc.area);
+        memConfigureImageMemory(gGameSession->location.stage, gGameSession->location.area);
         tmdResetAuxHeapAndRestoreBuffers();
         spriteAllocateViewCachedPackets();
     }
@@ -1249,7 +1249,7 @@ static void _mdecStepSceneImageDecode(void)
     queue = &gCdCmdQueue;
     switch (queue->imageDecodeStep) {
         case CD_COMMAND_IMAGE_WAIT_HEADER:
-            mdecRequestSceneImageDecode(&gGameSession->location.loc.view);
+            mdecRequestSceneImageDecode(&gGameSession->location.view);
             if ((u32)++_gMdecSceneWaitPolls >= MDEC_SCENE_TIMEOUT_POLLS) {
                 _gMdecSceneWaitPolls = 0;
                 gpuResetAndInvalidateModelBuffers();

@@ -25,6 +25,49 @@
 #include "mapui/map_neo_ark.h"
 
 /* Define BSS before API headers to preserve first-declaration order. */
+
+StreamInterFile gStreamInterFile;
+
+/// Borrowed 0x11000-byte halfword VLC lookup table in the selected movie layout.
+///
+/// Uses actor buffer zero for texture movies and the movie workspace for display
+/// movies. Must be built before expansion and remain intact throughout playback.
+u_short* _gMdecMovieVlcTable;
+
+u16 gStreamMovieReleasePauseOnStop;
+
+void* gStreamMovieWorkspace;
+
+u8* gStreamMovieBufferLayoutEnd;
+
+u_long* gMdecMovieOutputBuffers[2];
+
+u_long* gMdecMovieExpandedBuffers[2];
+
+u16 gStreamMovieVolumeTableIndex;
+
+u16 gStreamMovieWidthPixels;
+
+u16 gStreamMovieBackgroundPlayback;
+
+u_long* gStreamMovieRingBuffer;
+
+/// Receives the active workspace base during buffer assignment; purpose unproven.
+///
+/// No code reads this copy. Retained to preserve its storage and setup write.
+void* D_8006AC64;
+
+/// Borrowed compressed movie frame retained while its VLC expansion is in progress.
+///
+/// The STR ring owns the storage; output submission releases it before feeding
+/// expanded commands to MDEC. This pointer is stale after that release.
+u_long* _gMdecMovieCompressedFrame;
+
+u16 gStreamMovieHeightRows;
+
+#include "main/stream.h"
+#include "stream.h"
+
 /// Absolute 2048-byte CD sector used as the movie seek/recovery base.
 ///
 /// Starts at the descriptor's CDF sector; INTER movies replace it with the
@@ -81,48 +124,6 @@ static s32 _gStreamMovieRingSectorCount;
 
 /// Post-movie restore step (0 memory, 1 wait for images/CD idle, 2 complete).
 static u16 _gStreamGameRestoreStep;
-
-StreamInterFile gStreamInterFile;
-
-/// Borrowed 0x11000-byte halfword VLC lookup table in the selected movie layout.
-///
-/// Uses actor buffer zero for texture movies and the movie workspace for display
-/// movies. Must be built before expansion and remain intact throughout playback.
-static u_short* _gMdecMovieVlcTable;
-
-u16 gStreamMovieReleasePauseOnStop;
-
-void* gStreamMovieWorkspace;
-
-u8* gStreamMovieBufferLayoutEnd;
-
-u_long* gMdecMovieOutputBuffers[2];
-
-u_long* gMdecMovieExpandedBuffers[2];
-
-u16 gStreamMovieVolumeTableIndex;
-
-u16 gStreamMovieWidthPixels;
-
-u16 gStreamMovieBackgroundPlayback;
-
-u_long* gStreamMovieRingBuffer;
-
-/// Receives the active workspace base during buffer assignment; purpose unproven.
-///
-/// No code reads this copy. Retained to preserve its storage and setup write.
-static void* D_8006AC64;
-
-/// Borrowed compressed movie frame retained while its VLC expansion is in progress.
-///
-/// The STR ring owns the storage; output submission releases it before feeding
-/// expanded commands to MDEC. This pointer is stale after that release.
-static u_long* _gMdecMovieCompressedFrame;
-
-u16 gStreamMovieHeightRows;
-
-#include "main/stream.h"
-#include "stream.h"
 
 extern s32 StCdIntrFlag;
 
@@ -440,7 +441,7 @@ u16 streamPollGameRestore(s32 selectConfiguredAuxHeap, s32 reloadSpriteImages)
                 restoreRect.h = STREAM_MOVIE_SAVED_IMAGE_ROWS;
                 MoveImage2(&restoreRect, STREAM_MOVIE_SAVED_IMAGE_X, STREAM_MOVIE_SAVED_IMAGE_ROWS);
             }
-            memConfigureImageMemory(gGameSession->location.loc.stage, gGameSession->location.loc.area);
+            memConfigureImageMemory(gGameSession->location.stage, gGameSession->location.area);
             if ((selectConfiguredAuxHeap & 0xFFFF) == true) {
                 memSelectAuxHeapRegion(true);
             }
@@ -452,9 +453,9 @@ u16 streamPollGameRestore(s32 selectConfiguredAuxHeap, s32 reloadSpriteImages)
             _gStreamGameRestoreStep = _gStreamGameRestoreStep + 1;
             if (reloadSpriteImages & 0xFFFF) {
                 session        = gGameSession;
-                stageId        = session->location.loc.stage;
+                stageId        = session->location.stage;
                 fileKey[3]     = stageId;
-                areaId         = session->location.loc.area;
+                areaId         = session->location.area;
                 fileKey[0]     = 0;
                 fileKey[2]     = areaId;
                 spriteVariant  = session->spriteVariant;
@@ -532,7 +533,7 @@ u32 streamPrepareMoviePlayback(u32 slotIndex)
         DecDCTvlcBuild(_gMdecMovieVlcTable);
         return STREAM_MOVIE_SETUP_COMPLETE;
     }
-    _streamAssignMovieBuffers(&gGameSession->location.loc);
+    _streamAssignMovieBuffers(&gGameSession->location);
     return STREAM_MOVIE_SETUP_COMPLETE;
 }
 

@@ -2054,7 +2054,7 @@ static void _shelterR48WaterRefractionTask(Task* task)
 
     model         = task->extra.tmd;
     displayBuffer = gDisplayState.otBuffer;
-    viewId        = gGameSession->location.loc.view;
+    viewId        = gGameSession->location.view;
     if (gameFlagGetNibble(GAME_FLAG_100) == 0) {
         return;
     }
@@ -2539,7 +2539,7 @@ void shelterR48SetBackgroundSpritesVisible(u8 visible)
         SHELTER_R48_BACKGROUND_SPRITES_HIDE = 0,
         SHELTER_R48_BACKGROUND_SPRITES_SHOW = 1
     };
-    GameLocationKey* location = &gGameSession->location.loc;
+    GameLocationKey* location = &gGameSession->location;
     SpriteView*      views    = gSpriteAreaTables[location->stage - 1]->areaViews[location->area - 1];
     SpriteBatch*     batches;
 

@@ -1532,11 +1532,11 @@ static void            _actor00300FlyFireball(Enemy* enemy, Task* task);
     {                                                                                    \
         placementKey      = enemy->placeKey;                                             \
         drainModel        = drainEnemy->task->extra.tmd;                                 \
-        sessionLocation   = &gGameSession->location.loc;                                 \
+        sessionLocation   = &gGameSession->location;                                     \
         locationKey.stage = sessionLocation->stage;                                      \
         locationKey.area  = sessionLocation->area;                                       \
         locationKey.room  = sessionLocation->room;                                       \
-        currentView       = gGameSession->location.loc.view;                             \
+        currentView       = gGameSession->location.view;                                 \
         placementIndex    = placementKey >> ENEMY_PLACE_INDEX_SHIFT;                     \
         locationKey.view  = currentView;                                                 \
         areaSyncLocationVariant(&locationKey);                                           \
@@ -1604,8 +1604,8 @@ static void _actor00300InitEnemy(Enemy* enemy, Task* task)
     work->patrolPoints     = NULL;
     work->patrolPointCount = 0;
     for (patrolRoomIndex = 0; _gActor00300PatrolRooms[patrolRoomIndex].routeRow != 0; patrolRoomIndex++) {
-        if ((gGameSession->location.loc.stage == _gActor00300PatrolRooms[patrolRoomIndex].stage) &&
-            (gGameSession->location.loc.area == _gActor00300PatrolRooms[patrolRoomIndex].area)) {
+        if ((gGameSession->location.stage == _gActor00300PatrolRooms[patrolRoomIndex].stage) &&
+            (gGameSession->location.area == _gActor00300PatrolRooms[patrolRoomIndex].area)) {
             work->patrolPoints =
                 _gActor00300PatrolRoutes[_gActor00300PatrolRooms[patrolRoomIndex].routeRow]
                                         [enemy->place->mode];
@@ -3117,13 +3117,13 @@ static void _actor00300ApplyHitTwist(Task* task)
             TmdObject*       fragmentModel;                                                                                 \
             AreaPlacement*   placement;                                                                                     \
             GameLocationKey* sessionLocation;                                                                               \
-            sessionLocation   = &gGameSession->location.loc;                                                                \
+            sessionLocation   = &gGameSession->location;                                                                    \
             placementKey      = ((Enemy*)task->spawnArg2.pointer)->placeKey;                                                \
             fragmentModel     = (fragment)->task->extra.tmd;                                                                \
             locationKey.stage = sessionLocation->stage;                                                                     \
             locationKey.area  = sessionLocation->area;                                                                      \
             locationKey.room  = sessionLocation->room;                                                                      \
-            currentView       = gGameSession->location.loc.view;                                                            \
+            currentView       = gGameSession->location.view;                                                                \
             placementIndex    = placementKey >> ENEMY_PLACE_INDEX_SHIFT;                                                    \
             locationKey.view  = currentView;                                                                                \
             areaSyncLocationVariant(&locationKey);                                                                          \
@@ -3569,8 +3569,8 @@ static void _actor00300FlyFireball(Enemy* enemy, Task* task)
             _fireballDrawGlow(coord, ACTOR_00300_FIREBALL_GLOW_SIZE);
             // Consume the sweep contact before the next collision pass.
             surfaceKey = work->sweepContacts[0].key.value;
-            if (surfaceKey != 0 && gWorldCollisionSurfacePropertiesTables[gGameSession->location.loc.stage - 1]
-                                                                         [gGameSession->location.loc.area - 1][worldCollisionSurfaceClassFromKey(surfaceKey)]
+            if (surfaceKey != 0 && gWorldCollisionSurfacePropertiesTables[gGameSession->location.stage - 1]
+                                                                         [gGameSession->location.area - 1][worldCollisionSurfaceClassFromKey(surfaceKey)]
                                                                              ->probePassThrough == WORLD_COLLISION_SURFACE_BLOCK_PROBES) {
                 blockedBySurface = 1;
             }

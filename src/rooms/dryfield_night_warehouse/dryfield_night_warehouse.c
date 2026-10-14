@@ -729,7 +729,7 @@ void dryfieldNightWarehouseDrawGlowsTask(Task* task)
     s32       viewMask;
 
     coord    = task->extra.coordBody->coord;
-    viewMask = 1 << gGameSession->location.loc.view;
+    viewMask = 1 << gGameSession->location.view;
     actorRenderComposeCoord(coord);
     // Select visible lights with the room-local view ID, before camera remapping.
     if (viewMask & DRYFIELD_NIGHT_WAREHOUSE_PRISM_AND_SECOND_BEAM_VIEWS) {

@@ -1408,9 +1408,9 @@ static void _actor02300SpawnBody(Enemy* enemy, Task* actor)
                 work->patrolDistanceLeft = patrolLengthThousands * ACTOR_02300_PATROL_UNITS_PER_VARIANT;
             }
 
-            areaSoundSets = _gActor02300StageAreaSoundSets[gGameSession->location.loc.stage];
+            areaSoundSets = _gActor02300StageAreaSoundSets[gGameSession->location.stage];
             if (areaSoundSets != NULL) {
-                work->soundSet = areaSoundSets[gGameSession->location.loc.area];
+                work->soundSet = areaSoundSets[gGameSession->location.area];
             }
             if (work->soundSet != 0) {
                 soundFileKey[3]  = 0;

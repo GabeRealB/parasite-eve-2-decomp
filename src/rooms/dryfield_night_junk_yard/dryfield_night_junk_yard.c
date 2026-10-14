@@ -207,7 +207,7 @@ static s32 _dryfieldNightJunkYardHandleRoomAction(Task* unusedTask, s32 unusedMe
     enum { DRYFIELD_NIGHT_JUNK_YARD_ACTION_START_ENCOUNTER = 3,
            DRYFIELD_NIGHT_JUNK_YARD_ENCOUNTER_VARIANT      = 1 };
 
-    if ((request->actionId == DRYFIELD_NIGHT_JUNK_YARD_ACTION_START_ENCOUNTER) && (gGameSession->location.loc.variant == DRYFIELD_NIGHT_JUNK_YARD_ENCOUNTER_VARIANT) && (gameFlagGetNibble(GAME_FLAG_NIGHT_JUNK_YARD_EVENT_SEEN) == 0)) {
+    if ((request->actionId == DRYFIELD_NIGHT_JUNK_YARD_ACTION_START_ENCOUNTER) && (gGameSession->location.variant == DRYFIELD_NIGHT_JUNK_YARD_ENCOUNTER_VARIANT) && (gameFlagGetNibble(GAME_FLAG_NIGHT_JUNK_YARD_EVENT_SEEN) == 0)) {
         gameFlagSetNibble(GAME_FLAG_NIGHT_JUNK_YARD_EVENT_SEEN, 1);
         evsStartScript(_gDryfieldNightJunkYardEncounterScript, EVENT_SCRIPT_HUD_HIDE_RESTORE);
     }
@@ -220,8 +220,8 @@ static s32 _dryfieldNightJunkYardHandleRoomAction(Task* unusedTask, s32 unusedMe
 /// is stored unchanged, without loading resources or validating the room number.
 static void _dryfieldNightJunkYardSetRoomNumber(u8 roomNumber)
 {
-    gGameSession->location.loc.room                            = roomNumber;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = roomNumber;
+    gGameSession->location.room                            = roomNumber;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.room = roomNumber;
 }
 
 /// Registers the room and restores the encounter's actor and sprite state.
@@ -236,7 +236,7 @@ static void _dryfieldNightJunkYardInitializeRoom(Task* task)
 
     task->msgTable = _gDryfieldNightJunkYardMessageHandlers;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
-    variant = gGameSession->location.loc.variant;
+    variant = gGameSession->location.variant;
     if (variant == DRYFIELD_NIGHT_JUNK_YARD_ENCOUNTER_VARIANT && gameFlagGetNibble(GAME_FLAG_NIGHT_JUNK_YARD_EVENT_SEEN) == variant) {
         TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &_gDryfieldNightJunkYardStalkerFloorStartCommand, ACTOR_COMMAND_MESSAGE_APPLY);
     }
@@ -266,7 +266,7 @@ void dryfieldNightJunkYardSetEventSpriteBatchHidden(u8 hidden)
 {
     enum { DRYFIELD_NIGHT_JUNK_YARD_EVENT_SPRITE_VIEW  = 7,
            DRYFIELD_NIGHT_JUNK_YARD_EVENT_SPRITE_BATCH = 5 };
-    const GameLocationKey* location = &gGameSession->location.loc;
+    const GameLocationKey* location = &gGameSession->location;
     SpriteBatch*           batches;
 
     batches = gSpriteAreaTables[location->stage - 1][0].areaViews[location->area - 1][DRYFIELD_NIGHT_JUNK_YARD_EVENT_SPRITE_VIEW - 1].batches;

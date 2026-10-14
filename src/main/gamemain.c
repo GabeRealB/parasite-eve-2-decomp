@@ -39,11 +39,6 @@
 #include "main/wipsys_types.h"
 
 /* Define BSS before API headers to preserve first-declaration order. */
-/// Reusable black semitransparent rectangle for the synchronous pause backdrop.
-static TILE _gGameMainPauseTile;
-
-/// Reusable average-blend draw-mode packet for the synchronous pause backdrop.
-static DR_TPAGE _gGameMainPauseDrawMode;
 
 volatile u8 gDisplayTaskImageSourceSnapshot;
 
@@ -64,7 +59,7 @@ GfxCoord gGfxViewCoord;
 u32 gRandomLcgState;
 
 /// Decremented once per vertical blank; no consumer or countdown purpose is established.
-static volatile s32 D_80070F64;
+volatile s32 D_80070F64;
 
 DisplayState gDisplayState;
 
@@ -73,13 +68,19 @@ u_long* gGpuCurrentOt;
 GameMainPersistentState gGameMainPersistentState;
 
 /// Retained 80-byte resident reservation with no observed accesses; role unproven.
-static u8 D_800710C8[0x50];
+u8 D_800710C8[0x50];
 
 #include "main/display.h"
 #include "display.h"
 #include "main/gamemain.h"
 #include "main/gfx.h"
 #include "main/random.h"
+
+/// Reusable black semitransparent rectangle for the synchronous pause backdrop.
+static TILE _gGameMainPauseTile;
+
+/// Reusable average-blend draw-mode packet for the synchronous pause backdrop.
+static DR_TPAGE _gGameMainPauseDrawMode;
 
 static u32 _gGameMainInitializationCount;
 
@@ -224,7 +225,7 @@ void displayPresentTaskFrame(s32 bufferIndex)
         } else if (gDisplayTaskImageSourceSnapshot == DISPLAY_IMAGE_TRANSITION_STRIPS) {
             displayUploadBackgroundImage(bufferIndex);
         } else if (gDisplayTaskImageSourceSnapshot == DISPLAY_IMAGE_ROOM_SLOT) {
-            gfxRestoreAreaFrame(gGameSession->location.loc.stage, gGameSession->location.loc.area, bufferIndex);
+            gfxRestoreAreaFrame(gGameSession->location.stage, gGameSession->location.area, bufferIndex);
         }
         // The snapshot is read as a signed byte; keep its high-bit behavior.
         if ((s8)gDisplayTaskFlipControlSnapshot < DISPLAY_FLIP_SKIP_TASK_OT) {

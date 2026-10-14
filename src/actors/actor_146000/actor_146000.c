@@ -683,10 +683,10 @@ static void _actor146000WaterHoleSceneTask(Task* task)
             if (gameFlagGetNibble(GAME_FLAG_BURNER_DEFEATED) != 0) {
                 evsStartScriptWithSkip(_gActor146000WaterHoleAfterBurnerScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, _gActor146000WaterHoleSkipScript);
                 gameFlagSetNibble(GAME_FLAG_COMPANION_2_SCHEDULE, ACTOR_146000_COMPANION_SCHEDULE_AFTER_BURNER);
-                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = ACTOR_146000_WARP_AFTER_BURNER;
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp = ACTOR_146000_WARP_AFTER_BURNER;
             } else {
                 evsStartScriptWithSkip(_gActor146000WaterHoleConversationScript, EVENT_SCRIPT_HUD_KEEP, _gActor146000WaterHoleSkipScript);
-                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = ACTOR_146000_WARP_BEFORE_BURNER;
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp = ACTOR_146000_WARP_BEFORE_BURNER;
             }
             task->state++;
             return;
@@ -700,9 +700,9 @@ static void _actor146000WaterHoleSceneTask(Task* task)
             sndEvtRequestScriptStop(SOUND_BANK_TYPE_ALL_NON_AMBIENT, SOUND_SCRIPT_STOP_NO_FADE);
             gameFlagSetNibble(GAME_FLAG_COMPANION_1_SCHEDULE, 0);
             areaApplySavedUpdates(gDryfieldNightWaterHoleSceneAreaUpdates);
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = GAME_AREA_DRYFIELD_NIGHT_DRIVEWAY;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = state;
-            gDisplayState.spriteVariant                                = 1;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.area = GAME_AREA_DRYFIELD_NIGHT_DRIVEWAY;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.room = state;
+            gDisplayState.spriteVariant                            = 1;
             taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
             taskKill(task);
             break;

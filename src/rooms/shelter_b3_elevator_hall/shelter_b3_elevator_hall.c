@@ -276,9 +276,9 @@ static void _shelterB3ElevatorHallElevatorTransitTask(Task* task)
         case SHELTER_B3_ELEVATOR_HALL_TRANSIT_CHOOSE:
             if (capGetVariantKey() == SHELTER_B3_ELEVATOR_HALL_ENTER_CAB_CHOICE) {
                 // The accepted ride selects the cab before waiting for its sound.
-                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = GAME_AREA_SHELTER_B2_ELEVATOR;
-                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = SHELTER_B3_ELEVATOR_HALL_CAB_WARP;
-                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = SHELTER_B3_ELEVATOR_HALL_CAB_ROOM;
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.area = GAME_AREA_SHELTER_B2_ELEVATOR;
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp = SHELTER_B3_ELEVATOR_HALL_CAB_WARP;
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.room = SHELTER_B3_ELEVATOR_HALL_CAB_ROOM;
             } else {
                 playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
                 gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;

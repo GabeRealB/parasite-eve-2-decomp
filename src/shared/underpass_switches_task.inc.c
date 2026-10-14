@@ -92,16 +92,16 @@ static void _underpassSwitchTask(Task* task)
                     request.areaId    = GAME_AREA_DRYFIELD_UNDERPASS;
                     request.queryOnly = ROOM_EVENT_EXECUTE;
                     UNDERPASS_SELECT_SWITCH_ROOM();
-                    session                                                    = gGameSession;
-                    destinationRoom                                            = reply.room;
-                    session->location.loc.room                                 = destinationRoom;
-                    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = destinationRoom;
+                    session                                                = gGameSession;
+                    destinationRoom                                        = reply.room;
+                    session->location.room                                 = destinationRoom;
+                    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.room = destinationRoom;
                 }
             }
             task->state = task->state + 1;
             return;
         case UNDERPASS_SWITCH_FINISH:
-            if (gGameSession->location.loc.room >= UNDERPASS_SWITCH_VIEW_DIRTY_MIN) {
+            if (gGameSession->location.room >= UNDERPASS_SWITCH_VIEW_DIRTY_MIN) {
                 gGameSession->viewDirty = 1;
             }
             taskKill(task);

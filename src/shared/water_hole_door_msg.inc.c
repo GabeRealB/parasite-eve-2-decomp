@@ -26,7 +26,7 @@ static s32 _roomVariantResolveWaterHole(Task* unusedTask, s32 unusedMessageId, c
 
     *reply = *request;
     if (request->areaId == GAME_AREA_DRYFIELD_DRIVEWAY) {
-        currentStage = gGameSession->location.loc.stage;
+        currentStage = gGameSession->location.stage;
         if (currentStage == GAME_STAGE_DRYFIELD) {
             if (request->queryOnly == ROOM_EVENT_EXECUTE) {
                 if (gameFlagGetNibble(GAME_FLAG_DRIVEWAY_PROGRESS) >= ROOM_VARIANT_WATER_HOLE_DRIVEWAY_PROGRESS_READY) {

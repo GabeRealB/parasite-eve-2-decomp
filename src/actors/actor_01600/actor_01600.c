@@ -1920,13 +1920,13 @@ static void _actor01600Tick(Enemy* enemy, Task* task)
                 task->state = ACTOR_01600_TASK_DEATH;
             }
         }
-        stageAreaKey = GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK;
+        stageAreaKey = GAME_LOCATION_WORD(gGameSession->location) & GAME_LOCATION_STAGE_AREA_MASK;
         if (stageAreaKey != GAME_LOCATION_KEY(3, 38, 0, 0) && stageAreaKey != GAME_LOCATION_KEY(4, 7, 0, 0) && stageAreaKey != GAME_LOCATION_KEY(4, 1, 0, 0)) {
             if (rootCoord->coord.t[1] >= ACTOR_01600_GROUND_RESET_HEIGHT + 1) {
                 rootCoord->coord.t[1] = ACTOR_01600_GROUND_RESET_Y;
             }
         }
-        if (((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(3, 29, 0, 0)) && (rootCoord->coord.t[1] >= ACTOR_01600_STAGE_3_FALL_Y + 1)) {
+        if (((GAME_LOCATION_WORD(gGameSession->location) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(3, 29, 0, 0)) && (rootCoord->coord.t[1] >= ACTOR_01600_STAGE_3_FALL_Y + 1)) {
             soundKey = (((u16)((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | ACTOR_01600_SOUND_SCRIPT_5;
             _actor01600PlayTickSoundAtRoot(soundKey, rootCoord);
             soundKey = (((u16)((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | ACTOR_01600_SOUND_SCRIPT_A;
@@ -1934,7 +1934,7 @@ static void _actor01600Tick(Enemy* enemy, Task* task)
             _actor01600ReleaseGrab(task);
             _actor01600Remove(task, 0);
         }
-        if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(4, 1, 0, 0)) {
+        if ((GAME_LOCATION_WORD(gGameSession->location) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(4, 1, 0, 0)) {
             if (rootCoord->coord.t[1] > 0) {
                 work->shadowHidden = 1;
             }
@@ -4465,14 +4465,14 @@ static s32 _actor01600StepActivation(Task* actor)
     rootCoord = actor->extra.tmd->coords;
     enemy     = actor->spawnArg2.pointer;
     work      = actor->work;
-    if ((u32)(gGameSession->location.loc.stage - 2) < 2U) {
-        if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_KEY(0, 255, 255, 0)) == GAME_LOCATION_KEY(0, 34, 1, 0)) {
+    if ((u32)(gGameSession->location.stage - 2) < 2U) {
+        if ((GAME_LOCATION_WORD(gGameSession->location) & GAME_LOCATION_KEY(0, 255, 255, 0)) == GAME_LOCATION_KEY(0, 34, 1, 0)) {
             if ((u16)work->behavior < (u32)ACTOR_01600_BEHAVIOR_STAGGER) {
                 work->behavior = ACTOR_01600_BEHAVIOR_POSED;
             }
         }
-        if (((u32)(gGameSession->location.loc.stage - 2) < 2U) && (gGameSession->location.loc.area == 0x26) &&
-            ((room = gGameSession->location.loc.room, (room == 1)) || (room == 3)) && ((u16)work->behavior < (u32)ACTOR_01600_BEHAVIOR_STAGGER)) {
+        if (((u32)(gGameSession->location.stage - 2) < 2U) && (gGameSession->location.area == 0x26) &&
+            ((room = gGameSession->location.room, (room == 1)) || (room == 3)) && ((u16)work->behavior < (u32)ACTOR_01600_BEHAVIOR_STAGGER)) {
             work->behavior = ACTOR_01600_BEHAVIOR_POSED;
         }
     }
@@ -4510,7 +4510,7 @@ static s32 _actor01600StepActivation(Task* actor)
                 }
                 work->shadowHidden = 1;
             } else if (wave == ACTOR_01600_WAVE_SECOND) {
-                if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(3, 15, 0, 0)) {
+                if ((GAME_LOCATION_WORD(gGameSession->location) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(3, 15, 0, 0)) {
 
                     firstEntryPositions   = _gActor01600ParkingLotSecondWavePositions;
                     firstEntryPosition    = &firstEntryPositions[(u16)enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT];
@@ -4518,7 +4518,7 @@ static s32 _actor01600StepActivation(Task* actor)
                     rootCoord->coord.t[1] = firstEntryPosition->vy;
                     rootCoord->coord.t[2] = firstEntryPosition->vz;
                 }
-                if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(4, 4, 0, 0)) {
+                if ((GAME_LOCATION_WORD(gGameSession->location) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(4, 4, 0, 0)) {
 
                     secondEntryPositions  = _gActor01600MineTunnelSecondWavePositions;
                     secondEntryPosition   = &secondEntryPositions[(u16)enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT];

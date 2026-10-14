@@ -2,9 +2,9 @@
 
 void streamedScenePlayThenHold(Task* movieTask)
 {
-    u8          commandArgs[sizeof(gCdCmdQueue.entries[0].args)];
-    GameLoc     movieLocation;
-    CdCmdQueue* queue;
+    u8              commandArgs[sizeof(gCdCmdQueue.entries[0].args)];
+    GameLocationKey movieLocation;
+    CdCmdQueue*     queue;
 
     queue = &gCdCmdQueue;
     switch (movieTask->state) {
@@ -14,10 +14,10 @@ void streamedScenePlayThenHold(Task* movieTask)
             movieTask->state++;
             break;
         case STREAMED_SCENE_QUEUE_MOVIE:
-            movieLocation          = gGameSession->location;
-            movieLocation.loc.view = STREAMED_SCENE_MOVIE_ID;
+            movieLocation      = gGameSession->location;
+            movieLocation.view = STREAMED_SCENE_MOVIE_ID;
             // This opcode consumes only the slot byte of the four-byte argument block.
-            commandArgs[0] = streamFindMovieSlot(&movieLocation.loc, 0, 0);
+            commandArgs[0] = streamFindMovieSlot(&movieLocation, 0, 0);
             cdCmdEnqueue(CD_COMMAND_PLAY_STREAM, 0, commandArgs);
             movieTask->state++;
             break;

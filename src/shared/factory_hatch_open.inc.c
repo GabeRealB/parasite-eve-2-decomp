@@ -8,7 +8,7 @@
 /// handlers in each carrier, so the close fragment can use it too.
 static inline void _factoryHatchPlaySwingSound(const GfxCoord* coord, s32 daySoundId, s32 nightSoundId)
 {
-    if (gGameSession->location.loc.stage == GAME_STAGE_DRYFIELD) {
+    if (gGameSession->location.stage == GAME_STAGE_DRYFIELD) {
         sndEvtRequestStageScriptStart(daySoundId, (s8)worldCoordGetOriginAudioPan(coord),
                                       (s8)worldCoordGetOriginAudioDepth(coord));
     } else {

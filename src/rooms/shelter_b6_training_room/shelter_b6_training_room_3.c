@@ -1680,7 +1680,7 @@ void shelterB6TrainingRoomSetPartDestroyedSprites(u8 partSlot, u8 destroyed)
 {
     enum { SHELTER_B6_TRAINING_ROOM_PART_INTACT    = 0,
            SHELTER_B6_TRAINING_ROOM_PART_DESTROYED = 1 };
-    GameLocationKey* location = &gGameSession->location.loc;
+    GameLocationKey* location = &gGameSession->location;
     SpriteView*      views    = gSpriteAreaTables[location->stage - 1]->areaViews[location->area - 1];
     SpriteBatch*     batches;
     s32              slot = partSlot;

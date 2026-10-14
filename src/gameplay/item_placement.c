@@ -77,7 +77,7 @@ static inline s32 _gpGetCurBit2Flag(s32 arg0)
     u32  word;
     s32  shift;
 
-    p      = &gAreaObjectStages[gGameSession->location.loc.stage].objectStates[arg0 >> 4];
+    p      = &gAreaObjectStages[gGameSession->location.stage].objectStates[arg0 >> 4];
     shift  = (arg0 & 0xF) * 2;
     word   = *p;
     word  &= 3 << shift;
@@ -279,7 +279,7 @@ static void _areaSpawnRoomObjectByFlagIndex(u16 flagIndex)
     AreaObjectPlace*       place;
     u16                    placeFlagIndex;
 
-    savedLocation = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc;
+    savedLocation = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location;
     stageRooms    = gAreaObjectStages[savedLocation->stage].rooms;
     if (stageRooms == NULL) {
         return;

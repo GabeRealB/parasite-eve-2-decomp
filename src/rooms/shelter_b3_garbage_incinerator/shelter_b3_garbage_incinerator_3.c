@@ -3209,7 +3209,7 @@ static void _shelterB3GarbageIncineratorSetVariant2Walls(void)
     normals  = gWorldCollisionActiveGrid->normals;
     vertices = gWorldCollisionActiveGrid->vertices;
     faces    = gWorldCollisionActiveGrid->faces;
-    if (gGameSession->location.loc.variant == SHELTER_B3_GARBAGE_INCINERATOR_EXTRA_WALL_VARIANT) {
+    if (gGameSession->location.variant == SHELTER_B3_GARBAGE_INCINERATOR_EXTRA_WALL_VARIANT) {
         faceIndex = SHELTER_B3_GARBAGE_INCINERATOR_FIRST_EXTRA_WALL;
         do {
             vertices[faceIndex * SHELTER_B3_GARBAGE_INCINERATOR_WALL_VERTEX_COUNT].vx = vertices[faceIndex * SHELTER_B3_GARBAGE_INCINERATOR_WALL_VERTEX_COUNT + 2].vx = 13000;

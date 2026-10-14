@@ -1299,11 +1299,11 @@ static void _acropolisObservatoryScriptedBattleTask(Task* task)
             playbackRequest.blendFrames          = 0;
             playbackRequest.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
             TASK_MESSAGE_DISPATCH_POINTER(sceneWork->playerTask, ANIMATION_MESSAGE_PLAY, &playbackRequest, 0);
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = ACROPOLIS_OBSERVATORY_SCENE_FIELD_ROOM;
-            gGameSession->location.loc.room                            = ACROPOLIS_OBSERVATORY_SCENE_FIELD_ROOM;
-            gGameSession->roomObjsDirty                                = 1;
-            gGameSession->viewDirty                                    = 1;
-            task->state                                                = task->state + 1;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.room = ACROPOLIS_OBSERVATORY_SCENE_FIELD_ROOM;
+            gGameSession->location.room                            = ACROPOLIS_OBSERVATORY_SCENE_FIELD_ROOM;
+            gGameSession->roomObjsDirty                            = 1;
+            gGameSession->viewDirty                                = 1;
+            task->state                                            = task->state + 1;
             break;
         case ACROPOLIS_OBSERVATORY_SCENE_RELEASE_PLAYER:
             taskMessageDispatch(sceneWork->playerTask, GAME_ACTOR_MESSAGE_END_SCRIPTED, 0, 0);

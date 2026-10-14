@@ -75,7 +75,7 @@ extern RoomDeparture gRoomDeparture;
 ///
 /// The setter stores the low halfword without clamping. Drawing adds a
 /// four-frame pulse of -4..4 and rejects negative results before narrowing RGB.
-static s16 _gNeoArkObservatoryLightBeamIntensity;
+s16 _gNeoArkObservatoryLightBeamIntensity;
 
 /// Defines the reflection scale at the shared implementation's include position.
 ///
@@ -1999,7 +1999,7 @@ static s32 _neoArkObservatoryRoomActionMessage(Task* unusedTask, s32 unusedMessa
             evsStartScriptWithSkip(gActor450200RoomVariantSceneScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, gActor450200RoomVariantSceneSkipScript);
         }
     }
-    if (actionRequest->actionId == ACTION_COMPANION_TALK && gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != NULL && gGameSession->location.loc.view == COMPANION_TALK_VIEW) {
+    if (actionRequest->actionId == ACTION_COMPANION_TALK && gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != NULL && gGameSession->location.view == COMPANION_TALK_VIEW) {
         actor450200StartCompanionTalk();
     }
     if (actionRequest->actionId == ACTION_OBSERVATORY_SCENE && gameFlagGetNibble(GAME_FLAG_NEO_ARK_POWER_PLANT_1_CLEARED) != 0 && gameFlagGetNibble(GAME_FLAG_OBSERVATORY_EVENT_SEEN) == 0) {
@@ -2133,7 +2133,7 @@ static void _neoArkObservatoryInitializeRoom(Task* task)
 
     task->msgTable = _gNeoArkObservatoryRoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
-    if ((gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != NULL) && (gGameSession->location.loc.variant == COMPANION_ENTRY_VARIANT)) {
+    if ((gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != NULL) && (gGameSession->location.variant == COMPANION_ENTRY_VARIANT)) {
         actor450200InitializeObservatoryCompanion();
     } else {
         neoArkObservatoryUpdateCompanionObstacle(0);
@@ -2157,13 +2157,13 @@ static void _neoArkObservatoryUpdateCompanionVisibility(Task* unusedTask)
     s32 drawMode;
 
     if (gGameSession->eventState == 0) {
-        if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view != NEO_ARK_OBSERVATORY_COMPANION_IDLE_VIEW) {
+        if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view != NEO_ARK_OBSERVATORY_COMPANION_IDLE_VIEW) {
             companionSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_HIDE_RELEASE);
             return;
         }
     }
     drawMode = PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO;
-    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view == NEO_ARK_OBSERVATORY_COMPANION_HIDDEN_EVENT_VIEW) {
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view == NEO_ARK_OBSERVATORY_COMPANION_HIDDEN_EVENT_VIEW) {
         drawMode = PLAYER_ACTOR_MODEL_DRAW_HIDE_RELEASE;
     }
     companionSetDrawMode(drawMode);

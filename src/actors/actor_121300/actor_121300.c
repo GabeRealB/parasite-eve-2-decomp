@@ -170,9 +170,9 @@ static ScreenWaveCtx* _gScreenWaveContext;
 static Task* _gActor121300DoubleTask;
 static u16   _gActor121300DebrisEnabled;
 
-static ScreenWaveOscillator _gScreenWaveColumnWaves[13];
+ScreenWaveOscillator _gScreenWaveColumnWaves[13];
 
-static ScreenWaveOscillator _gScreenWaveRowWaves[30];
+ScreenWaveOscillator _gScreenWaveRowWaves[30];
 
 enum { ACTOR_121300_MESSAGE_SET_TEXTURE_SEQUENCE = 2016 };
 
@@ -790,13 +790,13 @@ static u16 _gActor121300DebrisEnabled;
 ///
 /// The per-frame renderer uses entries 0..10; the prebuilt-grid renderer uses
 /// 0..8. Any remaining declared capacity is unaccessed; its role is unproven.
-static ScreenWaveOscillator _gScreenWaveColumnWaves[13];
+ScreenWaveOscillator _gScreenWaveColumnWaves[13];
 
 /// Thirty active row sine oscillators for vertical screen displacement.
 ///
 /// Seeded at wave startup and advanced on drawing updates. Any declared
 /// entries beyond 29 are unaccessed; their role is unproven.
-static ScreenWaveOscillator _gScreenWaveRowWaves[30];
+ScreenWaveOscillator _gScreenWaveRowWaves[30];
 
 /// Packed argument for the alternate upward drift sprite: size numerator 1024,
 /// two updates per cell, speed 32, movement kind 1, palette bank 0, alternate drawer.
@@ -1629,7 +1629,7 @@ static void _actor121300InitBody(Task* task)
     tmd->lightMtx           = &work->lightMtx;
     tmd->flags              = 0;
     tmd->colorMtx           = &work->colorMtx;
-    place                   = areaGetVariant(&gGameSession->location.loc)->placements;
+    place                   = areaGetVariant(&gGameSession->location)->placements;
     entryId                 = place->entryId;
     while (entryId != AREA_PLACEMENT_END) {
         if (entryId == TEXTURE_RESOURCE_ENTRY_ID) {
@@ -1731,10 +1731,10 @@ static void _actor121300AyaDoubleSceneTask(Task* task)
             ClearImage(&rect, 0, 0, 0);
             memFillBytes(gFsImageWorkspacePtr, 0, sizeof(*gFsImageWorkspacePtr));
             SetDispMask(1);
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage = GAME_STAGE_DRYFIELD_NIGHT;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area  = GAME_AREA_DRYFIELD_NIGHT_DILAPIDATED_HOUSE;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp  = ACTOR_121300_SCENE_RETURN_WARP;
-            gDisplayState.spriteVariant                                 = 1;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.stage = GAME_STAGE_DRYFIELD_NIGHT;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.area  = GAME_AREA_DRYFIELD_NIGHT_DILAPIDATED_HOUSE;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp  = ACTOR_121300_SCENE_RETURN_WARP;
+            gDisplayState.spriteVariant                             = 1;
             taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
             taskKill(task);
             return;

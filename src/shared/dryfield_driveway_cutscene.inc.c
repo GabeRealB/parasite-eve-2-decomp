@@ -34,7 +34,7 @@ static void _drivewayCutsceneTask(Task* task)
             /* fallthrough */
         case DRIVEWAY_CUTSCENE_WAIT_EVENT:
             if (gGameSession->eventState == 0) {
-                areaClearMapMark(&gGameSession->location.loc);
+                areaClearMapMark(&gGameSession->location);
                 taskKill(task);
             }
             return;

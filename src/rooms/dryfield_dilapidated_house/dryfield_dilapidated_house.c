@@ -3565,12 +3565,12 @@ static inline void _dryfieldDilapidatedHousePrepareNextSession(void)
     gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, 0);
     playerStateRestoreFullHpMp();
     companionRestoreFullHp();
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent         = NEXT_SCENE_EVENT;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage = GAME_STAGE_DRYFIELD;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp  = NEXT_WARP;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room  = NEXT_ROOM;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area  = GAME_AREA_DRYFIELD_R08;
-    gDisplayState.spriteVariant                                 = DEFAULT_SPRITE_VARIANT;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent     = NEXT_SCENE_EVENT;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.stage = GAME_STAGE_DRYFIELD;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp  = NEXT_WARP;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.room  = NEXT_ROOM;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.area  = GAME_AREA_DRYFIELD_R08;
+    gDisplayState.spriteVariant                             = DEFAULT_SPRITE_VARIANT;
     taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
 }
 
@@ -3660,7 +3660,7 @@ static s32 _dryfieldDilapidatedHouseResolveRoomEvent(Task* task, s32 messageId, 
     u8 stage;
 
     *reply = *request;
-    stage  = gGameSession->location.loc.stage;
+    stage  = gGameSession->location.stage;
     if (stage == GAME_STAGE_DRYFIELD) {
         if (request->areaId == GAME_AREA_DRYFIELD_WAREHOUSE) {
             if (request->queryOnly == ROOM_EVENT_EXECUTE) {
@@ -5442,7 +5442,7 @@ void dryfieldDilapidatedHouseLightPrismTask(Task* task)
     GfxCoord* coord;
     s32       viewMask;
 
-    viewMask = 1 << gGameSession->location.loc.view;
+    viewMask = 1 << gGameSession->location.view;
     coord    = task->extra.coordBody->coord;
     if (viewMask & PRISM_LEFT_VIEWS) {
         _dryfieldDilapidatedHouseDrawLightPrism(coord, 0);

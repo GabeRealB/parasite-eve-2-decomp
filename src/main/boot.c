@@ -53,7 +53,7 @@ size_t gMemActiveAuxHeapBytes;
 ///
 /// Updated when image memory is configured. No reader or trailer check is
 /// established; ending setup can replace the arena without updating this pointer.
-static u8* _gMemPrimitiveTrailerStart;
+u8* _gMemPrimitiveTrailerStart;
 
 CdCmdQueue gCdCmdQueue;
 

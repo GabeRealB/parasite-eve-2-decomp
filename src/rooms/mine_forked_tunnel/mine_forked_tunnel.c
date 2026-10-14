@@ -1961,7 +1961,7 @@ static void _mineForkedTunnelSetSpriteBatchesHidden(u8 hidden)
     SpriteBatch*           view4Batches;
     SpriteBatch*           view5Batches;
 
-    location  = &gGameSession->location.loc;
+    location  = &gGameSession->location;
     areaViews = gSpriteAreaTables[location->stage - 1]->areaViews[location->area - 1];
 
     if (!hidden) {

@@ -821,7 +821,7 @@ void dryfieldNightParkingLotDrawGlowsTask(Task* task)
     // The effect gate follows the mapped camera; light selection follows the logical view.
     mappedViewIndex                  = viewGetMappedIndex();
     gRoomEffectState->roomEffectMode = _gDryfieldNightParkingLotAmbientEffectGates[mappedViewIndex - 1];
-    switch (gGameSession->location.loc.view) {
+    switch (gGameSession->location.view) {
         case 2: {
             const SVECTOR* viewPoints = _gDryfieldNightParkingLotGlowPoints;
             glowDrawFlareClipped(&viewPoints[0], 0, 0x300);

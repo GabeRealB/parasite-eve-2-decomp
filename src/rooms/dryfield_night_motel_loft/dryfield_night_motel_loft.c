@@ -493,8 +493,8 @@ void dryfieldNightMotelLoftCaptionSceneTask(Task* task)
 
 void dryfieldNightMotelLoftSetCurrentRoom(u8 roomId)
 {
-    gGameSession->location.loc.room                            = roomId;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = roomId;
+    gGameSession->location.room                            = roomId;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.room = roomId;
 }
 
 /// Publishes the room controller and restores its encounter and pickup collision.

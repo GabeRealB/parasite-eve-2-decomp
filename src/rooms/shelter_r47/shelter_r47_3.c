@@ -2191,15 +2191,15 @@ static void _shelterR47MapTerminalInitTask(Task* task)
     // Retained scheduling boundary keeps the shared opening sizes grouped.
     do {
     } while (0);
-    savedView                                                  = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view;
-    work->labelX                                               = SHELTER_R47_MAP_LABEL_X_AWAY;
-    work->mapTargetWidth                                       = mapWidth;
-    work->mapTargetHeight                                      = mapHeight;
-    work->panelTargetWidth                                     = panelWidth;
-    work->panelTargetHeight                                    = panelHeight;
-    work->labelTargetX                                         = labelX;
-    work->savedView                                            = savedView;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = SHELTER_R47_MAP_ENTRY_VIEW;
+    savedView                                              = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view;
+    work->labelX                                           = SHELTER_R47_MAP_LABEL_X_AWAY;
+    work->mapTargetWidth                                   = mapWidth;
+    work->mapTargetHeight                                  = mapHeight;
+    work->panelTargetWidth                                 = panelWidth;
+    work->panelTargetHeight                                = panelHeight;
+    work->labelTargetX                                     = labelX;
+    work->savedView                                        = savedView;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = SHELTER_R47_MAP_ENTRY_VIEW;
     if ((openMode = task->spawnArg1.value) == SHELTER_R47_MAP_MODE_TIMED || openMode == SHELTER_R47_MAP_MODE_TOUR) {
         work->fade        = SHELTER_R47_MAP_FADE_BLACK;
         work->mapWidth    = mapWidth;
@@ -2633,10 +2633,10 @@ static void _shelterR47MapTerminalRestoreRoomTask(Task* task)
     playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO);
     sndEvtRequestScriptStop(SOUND_SHELTER_R47_MAP_TERMINAL_LOOP, SOUND_SCRIPT_STOP_KEEP_RELEASE);
     displayReleaseMenuHold();
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = work->savedView;
-    gGameSession->eventState                                   = 0;
-    gGameSession->hideHud                                      = 0;
-    gGameSession->cutsceneHold                                 = 0;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = work->savedView;
+    gGameSession->eventState                               = 0;
+    gGameSession->hideHud                                  = 0;
+    gGameSession->cutsceneHold                             = 0;
     taskKill(task->spawnArg2.pointer);
     taskRequestKill(task, 0);
 }
@@ -2663,14 +2663,14 @@ static void _shelterR47MapTerminalSwitchPageTask(Task* task)
                 if (work->page < 0) {
                     work->page = SHELTER_R47_MAP_PAGE_1F;
                 }
-                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = gShelterR47MapTerminalPageViews[work->page];
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = gShelterR47MapTerminalPageViews[work->page];
                 break;
             case SHELTER_R47_MAP_HOTSPOT_NEXT:
                 work->page++;
                 if (work->page >= SHELTER_R47_MAP_PAGE_COUNT) {
                     work->page = SHELTER_R47_MAP_PAGE_B1;
                 }
-                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = gShelterR47MapTerminalPageViews[work->page];
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = gShelterR47MapTerminalPageViews[work->page];
                 break;
         }
         task->state++;

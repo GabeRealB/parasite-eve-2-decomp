@@ -39,7 +39,7 @@ static __inline__ void _factoryLiftFinishTurn(const Task* liftTask, const GfxCoo
     Task* const* panelSlot = liftTask->spawnArg2.pointer;
 
     _factoryLiftNotifyPanel(*panelSlot);
-    if (gGameSession->location.loc.stage == GAME_STAGE_DRYFIELD) {
+    if (gGameSession->location.stage == GAME_STAGE_DRYFIELD) {
         sndEvtRequestStageScriptStop(SOUND_FACTORY_LIFT_TURN, SOUND_SCRIPT_STOP_KEEP_RELEASE);
         sndEvtRequestStageScriptStart(SOUND_FACTORY_LIFT_TURN_STOP, (s8)worldCoordGetOriginAudioPan(liftRoot), (s8)worldCoordGetOriginAudioDepth(liftRoot));
     } else {
@@ -68,7 +68,7 @@ static __inline__ void _factoryLiftFinishVertical(const Task* liftTask, const Gf
 
     _factoryLiftNotifyPanel(*panelTaskSlot);
     // Sample the cached origin before the caller writes this frame's new local Y.
-    if (gGameSession->location.loc.stage == GAME_STAGE_DRYFIELD) {
+    if (gGameSession->location.stage == GAME_STAGE_DRYFIELD) {
         sndEvtRequestStageScriptStop(SOUND_FACTORY_LIFT_MOVE, SOUND_SCRIPT_STOP_KEEP_RELEASE);
         sndEvtRequestStageScriptStart(SOUND_FACTORY_LIFT_MOVE_STOP, (s8)worldCoordGetOriginAudioPan(liftCoord), (s8)worldCoordGetOriginAudioDepth(liftCoord));
     } else {

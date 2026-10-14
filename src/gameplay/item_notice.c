@@ -130,11 +130,11 @@ void itemPickupActionPromptTask(Task* task)
                         if (rootObject->resultValue == USER_INTERFACE_LIST_COMMAND_YES) {
                             // Session state gates the write to the saved stage bank.
                             flagIndex        = request->actionId;
-                            sessionStateWord = gAreaObjectStages[gGameSession->location.loc.stage].objectStates + (flagIndex >> ITEM_PICKUP_ACTION_STATE_WORD_SHIFT);
+                            sessionStateWord = gAreaObjectStages[gGameSession->location.stage].objectStates + (flagIndex >> ITEM_PICKUP_ACTION_STATE_WORD_SHIFT);
                             bitShift         = (flagIndex & ITEM_PICKUP_ACTION_STATE_INDEX_MASK) * ITEM_PICKUP_ACTION_STATE_BITS;
                             stateMask        = ITEM_PICKUP_ACTION_STATE_MASK << bitShift;
                             if (((*sessionStateWord & stateMask) >> bitShift) != ITEM_PICKUP_ACTION_REPLENISHABLE_STATE) {
-                                savedStateWord  = gAreaObjectStages[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage].objectStates + (flagIndex >> ITEM_PICKUP_ACTION_STATE_WORD_SHIFT);
+                                savedStateWord  = gAreaObjectStages[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.stage].objectStates + (flagIndex >> ITEM_PICKUP_ACTION_STATE_WORD_SHIFT);
                                 *savedStateWord = (*savedStateWord & ~stateMask) | (ITEM_PICKUP_ACTION_COLLECTED_STATE << bitShift);
                             }
                             request->accepted = 1;

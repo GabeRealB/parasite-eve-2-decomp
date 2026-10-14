@@ -103,7 +103,7 @@ STATIC_ASSERT_SIZEOF(RoomEventStartStorage, 8);
 /// Eight-byte room storage for the view slot a room scene took over.
 ///
 /// A scene task that shows the room from a view of its own copies the live
-/// save's `location.loc.view` into `view` before replacing it, and writes the
+/// save's `location.view` into `view` before replacing it, and writes the
 /// copy back when the scene ends, so play resumes on the view it interrupted.
 /// The seven trailing zero bytes have no recovered access; their role and
 /// grouping are unproven.

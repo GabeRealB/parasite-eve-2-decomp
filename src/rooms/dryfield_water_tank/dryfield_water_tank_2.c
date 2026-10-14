@@ -945,10 +945,10 @@ static void _dryfieldWaterTankMovieTask(Task* task)
         DRYFIELD_WATER_TANK_SKIP_FADE_TICKS     = 30,
     };
 
-    u8          streamArgs[4];
-    GameLoc     movieKey;
-    CdCmdQueue* queue;
-    s16         movieSlot;
+    u8              streamArgs[4];
+    GameLocationKey movieKey;
+    CdCmdQueue*     queue;
+    s16             movieSlot;
 
     queue = &gCdCmdQueue;
     switch (task->state) {
@@ -960,9 +960,9 @@ static void _dryfieldWaterTankMovieTask(Task* task)
             task->state = task->state + 1;
             return;
         case DRYFIELD_WATER_TANK_MOVIE_ENQUEUE:
-            movieKey          = gGameSession->location;
-            movieKey.loc.view = DRYFIELD_WATER_TANK_MOVIE_STREAM_ID;
-            movieSlot         = streamFindMovieSlot(&movieKey.loc, 0, 0);
+            movieKey      = gGameSession->location;
+            movieKey.view = DRYFIELD_WATER_TANK_MOVIE_STREAM_ID;
+            movieSlot     = streamFindMovieSlot(&movieKey, 0, 0);
             // The queue copies four bytes; this opcode consumes only the slot byte.
             streamArgs[0] = movieSlot;
             cdCmdEnqueue(CD_COMMAND_PLAY_STREAM, 0, streamArgs);
@@ -1303,7 +1303,7 @@ void dryfieldWaterTankSetPreOperationSprites(u8 beforeOperation)
     SpriteView*            views;
     SpriteBatch*           batches;
 
-    location = &gGameSession->location.loc;
+    location = &gGameSession->location;
     if (location->stage == GAME_STAGE_DRYFIELD) {
         views = gSpriteAreaTables[location->stage - 1]->areaViews[location->area - 1];
         if (beforeOperation == 0) {

@@ -20,7 +20,7 @@ static s32 _factoryLiftJamTurnOut(Task* task)
             work->yawStep++;
             break;
         case FACTORY_LIFT_STEP_START_SOUND:
-            if (gGameSession->location.loc.stage == GAME_STAGE_DRYFIELD) {
+            if (gGameSession->location.stage == GAME_STAGE_DRYFIELD) {
                 sndEvtRequestStageScriptStart(SOUND_FACTORY_LIFT_TURN, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
             } else {
                 sndEvtRequestStageScriptStart(SOUND_NIGHT_FACTORY_LIFT_TURN, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
@@ -34,7 +34,7 @@ static s32 _factoryLiftJamTurnOut(Task* task)
             }
             work->yaw.word += work->yawVelocity;
             if (work->yaw.word > FACTORY_LIFT_JAM_YAW_OUT) {
-                if (gGameSession->location.loc.stage == GAME_STAGE_DRYFIELD) {
+                if (gGameSession->location.stage == GAME_STAGE_DRYFIELD) {
                     sndEvtRequestStageScriptStart(SOUND_FACTORY_LIFT_JAM, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
                     padScriptSpawn(gDryfieldFactoryLiftJoltCommands, gDryfieldFactoryLiftJoltSegments);
                 } else {

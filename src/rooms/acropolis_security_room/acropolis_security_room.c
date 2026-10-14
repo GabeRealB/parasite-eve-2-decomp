@@ -1643,12 +1643,12 @@ static void _acropolisSecurityRoomMonitorInit(Task* task)
         work->screenLevel = _gAcropolisSecurityRoomMonitorWashDetents[0];
     }
     if (gameFlagGetNibble(GAME_FLAG_OBSERVATORY_ROUTE_PROGRESS) < ACROPOLIS_SECURITY_ROOM_MONITOR_ROUTE_RESTRICTED) {
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = ACROPOLIS_SECURITY_ROOM_MONITOR_INITIAL_VIEW;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = ACROPOLIS_SECURITY_ROOM_MONITOR_INITIAL_VIEW;
         // Commit the selected camera before advancing the panel state.
         task->state = task->state + 1;
     } else {
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = ACROPOLIS_SECURITY_ROOM_MONITOR_RESTRICTED_VIEW;
-        task->state                                                = ACROPOLIS_SECURITY_ROOM_MONITOR_STATE_RESTRICTED;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = ACROPOLIS_SECURITY_ROOM_MONITOR_RESTRICTED_VIEW;
+        task->state                                            = ACROPOLIS_SECURITY_ROOM_MONITOR_STATE_RESTRICTED;
     }
     displayAcquireMenuHold();
     gGameSession->hideHud      = 1;
@@ -1740,8 +1740,8 @@ static void _acropolisSecurityRoomMonitorHandlePrompt(Task* task)
         confirmedId = work->hotspotId;
         if (confirmedId >= 0) {
             save = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
-            if (save->state.location.loc.view != confirmedId) {
-                save->state.location.loc.view = work->hotspotId;
+            if (save->state.location.view != confirmedId) {
+                save->state.location.view = work->hotspotId;
                 sndEvtRequestScriptStart(SOUND_ACROPOLIS_SECURITY_ROOM_MONITOR_SELECT, 0, 0);
                 // Arm the enemy caption when this confirm is what first shows that view.
                 if ((work->hotspotId == ACROPOLIS_SECURITY_ROOM_MONITOR_VIEW_ENEMY) && !(gameFlagGetNibble(GAME_FLAG_SECURITY_MONITOR_SCENES_SEEN) & ACROPOLIS_SECURITY_ROOM_MONITOR_ENEMY_SEEN)) {
@@ -1762,12 +1762,12 @@ static void _acropolisSecurityRoomMonitorHandlePrompt(Task* task)
             }
         }
         // One-shot captions become eligible only above the darkest wash detent.
-        if (((u8)gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view == ACROPOLIS_SECURITY_ROOM_MONITOR_VIEW_SWAT) &&
+        if (((u8)gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view == ACROPOLIS_SECURITY_ROOM_MONITOR_VIEW_SWAT) &&
             ((s16)work->screenLevel != ACROPOLIS_SECURITY_ROOM_MONITOR_SCREEN_DARKEST) && !(gameFlagGetNibble(GAME_FLAG_SECURITY_MONITOR_SCENES_SEEN) & ACROPOLIS_SECURITY_ROOM_MONITOR_SWAT_SEEN)) {
             capStartSequenceSlot(ACROPOLIS_SECURITY_ROOM_MONITOR_SWAT_CAP_SLOT, CAP_PLAYBACK_IN_PLACE, 0);
             gameFlagSetNibble(GAME_FLAG_SECURITY_MONITOR_SCENES_SEEN, gameFlagGetNibble(GAME_FLAG_SECURITY_MONITOR_SCENES_SEEN) | ACROPOLIS_SECURITY_ROOM_MONITOR_SWAT_SEEN);
         }
-        if (((u8)gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view == ACROPOLIS_SECURITY_ROOM_MONITOR_VIEW_ENEMY) &&
+        if (((u8)gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view == ACROPOLIS_SECURITY_ROOM_MONITOR_VIEW_ENEMY) &&
             ((s16)work->screenLevel != ACROPOLIS_SECURITY_ROOM_MONITOR_SCREEN_DARKEST) && (work->enemySceneArmed != 0) &&
             (work->enemyCaptionStarted == 0) && (gameFlagGetNibble(GAME_FLAG_SECURITY_MONITOR_CAM_A_SCENE_DONE) == 0)) {
             capStartSequenceSlot(ACROPOLIS_SECURITY_ROOM_MONITOR_ENEMY_CAP_SLOT, CAP_PLAYBACK_IN_PLACE, 0);
@@ -2029,7 +2029,7 @@ static void _acropolisSecurityRoomMonitorClose(Task* task)
     work                              = task->work;
     gDirectionInteractionRearmUpdates = ACROPOLIS_SECURITY_ROOM_PANEL_REARM_UPDATES;
     _acropolisSecurityRoomSaveScreenLevel((s16)work->screenLevel);
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = ACROPOLIS_SECURITY_ROOM_MONITOR_RETURN_VIEW;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = ACROPOLIS_SECURITY_ROOM_MONITOR_RETURN_VIEW;
     displayReleaseMenuHold();
     gGameSession->cutsceneHold = 0;
     gGameSession->hideHud      = 0;
@@ -2330,10 +2330,10 @@ static void _acropolisSecurityRoomPowerSupplyInit(Task* task)
         taskKill(task);
         return;
     }
-    task->spawnArg2.pointer                                    = taskSpawnFromTable(&_gAcropolisSecurityRoomPowerSupplyCursorTaskDesc, 0, 1, 0);
-    task->msgTable                                             = _gAcropolisSecurityRoomPowerSupplyMessages;
-    task->work                                                 = work;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = ACROPOLIS_SECURITY_ROOM_POWER_SUPPLY_VIEW;
+    task->spawnArg2.pointer                                = taskSpawnFromTable(&_gAcropolisSecurityRoomPowerSupplyCursorTaskDesc, 0, 1, 0);
+    task->msgTable                                         = _gAcropolisSecurityRoomPowerSupplyMessages;
+    task->work                                             = work;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = ACROPOLIS_SECURITY_ROOM_POWER_SUPPLY_VIEW;
     task->state++;
     work->usedKey = ACROPOLIS_SECURITY_ROOM_POWER_SUPPLY_KEY_NONE;
     work->timer   = 0;
@@ -2415,10 +2415,10 @@ static void _acropolisSecurityRoomPowerSupplyClose(Task* task)
     enum { ACROPOLIS_SECURITY_ROOM_POWER_SUPPLY_RETURN_VIEW = 3 };
     gDirectionInteractionRearmUpdates = ACROPOLIS_SECURITY_ROOM_PANEL_REARM_UPDATES;
     playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO);
-    gGameSession->eventState                                   = 0;
-    gGameSession->hideHud                                      = 0;
-    gGameSession->cutsceneHold                                 = 0;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = ACROPOLIS_SECURITY_ROOM_POWER_SUPPLY_RETURN_VIEW;
+    gGameSession->eventState                               = 0;
+    gGameSession->hideHud                                  = 0;
+    gGameSession->cutsceneHold                             = 0;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = ACROPOLIS_SECURITY_ROOM_POWER_SUPPLY_RETURN_VIEW;
     displayReleaseMenuHold();
     taskKill(task->spawnArg2.pointer);
     taskRequestKill(task, 0);
@@ -2448,7 +2448,7 @@ static void _acropolisSecurityRoomShowReleasedLocks(s32 releasedLocks)
         ACROPOLIS_SECURITY_ROOM_POWER_SUPPLY_VIEW = 6,
     };
     GameSession*     session  = gGameSession;
-    GameLocationKey* location = &session->location.loc;
+    GameLocationKey* location = &session->location;
     SpriteBatch*     batches;
 
     batches = gSpriteAreaTables[location->stage - 1][session->spriteVariant - 1].areaViews[location->area - 1][ACROPOLIS_SECURITY_ROOM_POWER_SUPPLY_VIEW - 1].batches;
@@ -2522,9 +2522,9 @@ static void _acropolisSecurityRoomPowerSupplyFadeToRightUnlock(Task* task)
         sndEvtRequestScriptStart(ACROPOLIS_SECURITY_ROOM_UNLOCK_FADE_SOUND, 0, 0);
     }
     if (work->timer >= ACROPOLIS_SECURITY_ROOM_UNLOCK_FADE_END) {
-        work->timer                                                = 0;
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = ACROPOLIS_SECURITY_ROOM_RIGHT_UNLOCK_VIEW;
-        task->state                                                = task->state + 1;
+        work->timer                                            = 0;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = ACROPOLIS_SECURITY_ROOM_RIGHT_UNLOCK_VIEW;
+        task->state                                            = task->state + 1;
     }
 }
 
@@ -2577,8 +2577,8 @@ static void _acropolisSecurityRoomPowerSupplyRestoreRoomView(Task* task)
     enum {
         ACROPOLIS_SECURITY_ROOM_NORMAL_VIEW = 3,
     };
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = ACROPOLIS_SECURITY_ROOM_NORMAL_VIEW;
-    task->state                                                = task->state + 1;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = ACROPOLIS_SECURITY_ROOM_NORMAL_VIEW;
+    task->state                                            = task->state + 1;
 }
 
 /// Returns input and presentation to gameplay after the right-lock scene.
@@ -2623,9 +2623,9 @@ static void _acropolisSecurityRoomPowerSupplyFadeToLeftUnlock(Task* task)
         sndEvtRequestScriptStart(ACROPOLIS_SECURITY_ROOM_LEFT_UNLOCK_FADE_SOUND, 0, 0);
     }
     if (work->timer >= ACROPOLIS_SECURITY_ROOM_LEFT_UNLOCK_FADE_END) {
-        work->timer                                                = 0;
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = ACROPOLIS_SECURITY_ROOM_LEFT_UNLOCK_VIEW;
-        task->state                                                = task->state + 1;
+        work->timer                                            = 0;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = ACROPOLIS_SECURITY_ROOM_LEFT_UNLOCK_VIEW;
+        task->state                                            = task->state + 1;
     }
 }
 
@@ -2670,8 +2670,8 @@ static void _acropolisSecurityRoomPowerSupplyWaitLeftUnlock(Task* task)
 static void _acropolisSecurityRoomPowerSupplyFinishLeftUnlock(Task* task)
 {
     enum { ACROPOLIS_SECURITY_ROOM_LEFT_UNLOCK_RETURN_VIEW = 3 };
-    gDirectionInteractionRearmUpdates                          = ACROPOLIS_SECURITY_ROOM_PANEL_REARM_UPDATES;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = ACROPOLIS_SECURITY_ROOM_LEFT_UNLOCK_RETURN_VIEW;
+    gDirectionInteractionRearmUpdates                      = ACROPOLIS_SECURITY_ROOM_PANEL_REARM_UPDATES;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = ACROPOLIS_SECURITY_ROOM_LEFT_UNLOCK_RETURN_VIEW;
     displayReleaseMenuHold();
     padInputChangeSuppression(PAD_INPUT_SUPPRESSION_CLEAR, PAD_INPUT_SUPPRESS_GAMEPLAY);
     taskRequestKill(task, 0);
@@ -2764,7 +2764,7 @@ static void _acropolisSecurityRoomLeftUnlockMovieTask(Task* task)
         case ACROPOLIS_SECURITY_ROOM_UNLOCK_STATE_START:
             queue->movieFrame = 1;
             // Enqueue reads four bytes; playback interprets only the slot byte.
-            commandArgs[0] = streamFindMovieSlot(&gGameSession->location.loc, 0, 0);
+            commandArgs[0] = streamFindMovieSlot(&gGameSession->location, 0, 0);
             cdCmdEnqueue(CD_COMMAND_PLAY_STREAM, 0, commandArgs);
             task->state = task->state + 1;
             return;
@@ -2898,7 +2898,7 @@ static void _acropolisSecurityRoomDrawSweepLine(Task* task)
     LINE_F2*                                prim;
 
     coord = task->extra.coordBody->coord;
-    if ((ACROPOLIS_SECURITY_ROOM_SWEEP_VIEW_MASK >> (gGameSession->location.loc.view - 1)) & 1) {
+    if ((ACROPOLIS_SECURITY_ROOM_SWEEP_VIEW_MASK >> (gGameSession->location.view - 1)) & 1) {
         // Build the travelling segment in the task coordinate and transform it to the projection-input frame.
         line           = SCRATCH_STACK_RESERVE_BLOCK(_AcropolisSecurityRoomSweepLineScratch);
         line->start.vx = ACROPOLIS_SECURITY_ROOM_SWEEP_START_X;
@@ -3114,7 +3114,7 @@ void acropolisSecurityRoomFallingQuadTask(Task* task)
     }
 
     work->age = work->age + 1;
-    if (gGameSession->location.loc.view != ACROPOLIS_SECURITY_ROOM_FALLING_QUAD_VIEW) {
+    if (gGameSession->location.view != ACROPOLIS_SECURITY_ROOM_FALLING_QUAD_VIEW) {
         effectKillTask(work, task);
     }
 }

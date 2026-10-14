@@ -1179,7 +1179,7 @@ static void _neoArkPowerPlant2InitializeRoom(Task* task)
     task->msgTable = _gNeoArkPowerPlant2RoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     // Keep the selected variant as the byte written to the music flags.
-    variant = gGameSession->location.loc.variant;
+    variant = gGameSession->location.variant;
     if (variant == NEO_ARK_POWER_PLANT_2_SKIP_ENDING_MUSIC_VARIANT) {
         gGameSession->flowFlags = variant;
     }
@@ -1340,7 +1340,7 @@ void neoArkPowerPlant2SetView6SpritesHidden(u8 hidden)
            SPRITES_VISIBLE = 0,
            SPRITES_HIDDEN  = 1 };
 
-    const GameLocationKey* location = &gGameSession->location.loc;
+    const GameLocationKey* location = &gGameSession->location;
     SpriteBatch*           view6Batches;
 
     view6Batches = gSpriteAreaTables[location->stage - 1]->areaViews[location->area - 1][VIEW_INDEX].batches;

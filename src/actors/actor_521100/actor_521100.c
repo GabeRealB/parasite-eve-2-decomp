@@ -1793,7 +1793,7 @@ static void _actor521100SpawnBody(Enemy* enemy, Task* task)
     weaponEnemy     = enemySpawnFromTable(gActor521100No9GolemTaskDescs, 1, 0, enemy);
     weaponModel     = weaponEnemy->task->extra.tmd;
     placementKey    = enemy->placeKey;
-    sessionLocation = &gGameSession->location.loc;
+    sessionLocation = &gGameSession->location;
     location.stage  = sessionLocation->stage;
     location.area   = sessionLocation->area;
     location.room   = sessionLocation->room;
@@ -2141,7 +2141,7 @@ static void _actor521100ApproachState(Task* task)
     work->playerDistance         = SquareRoot0(previousScratchTop[-1].vx * previousScratchTop[-1].vx + playerDelta->vz * playerDelta->vz);
     playerBearing                = ratan2((s16)previousScratchTop[-1].vx, (s16)playerDelta->vz) & ACTOR_TRANSFORM_ANGLE_MASK;
     work->targetYaw              = playerBearing;
-    if (gGameSession->location.loc.view == 2) {
+    if (gGameSession->location.view == 2) {
         work->state    = ACTOR_521100_STATE_WALK_ROUTE;
         work->subState = 0;
     } else {
@@ -2304,7 +2304,7 @@ static void _actor521100AttackState(Task* task)
 
     switch (work->subState) {
         case ACTOR_521100_ATTACK_SELECT:
-            if (((u32)((u8)gAttachmentState.mode - ATTACHMENT_MODE_ARMED) >= 2U) && (gGameSession->location.loc.view != 2)) {
+            if (((u32)((u8)gAttachmentState.mode - ATTACHMENT_MODE_ARMED) >= 2U) && (gGameSession->location.view != 2)) {
                 if (work->playerDistance < 0x8FC) {
                     if (work->prevAttackChoice == work->attackChoice) {
                         nextAttack = _gActor521100NearAttackChoicesAfterRepeat[work->attackChoice][((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 1];
@@ -2636,7 +2636,7 @@ static void _actor521100StanceAttack(Task* task)
             if (work->animationFrame < ACTOR_521100_STANCE_RECOVERY_END_FRAME) {
                 break;
             }
-            if (gGameSession->location.loc.view == 2) {
+            if (gGameSession->location.view == 2) {
                 work->state = ACTOR_521100_STATE_WALK_ROUTE;
                 if (rootCoord->coord.t[0] < -0xFA0) {
                     work->subState = ACTOR_521100_STANCE_ROUTE_MIDDLE;
@@ -3072,7 +3072,7 @@ static void _actor521100WalkRouteState(Task* task)
                 if (SquareRoot0((scratch->delta.vx * scratch->delta.vx) + (scratch->delta.vz * scratch->delta.vz)) < ACTOR_521100_ROUTE_WAYPOINT_RADIUS) {
                     work->subState = ACTOR_521100_ROUTE_SECOND;
                 } else {
-                    if (gGameSession->location.loc.view != ACTOR_521100_ROUTE_VIEW) {
+                    if (gGameSession->location.view != ACTOR_521100_ROUTE_VIEW) {
                         work->state       = ACTOR_521100_STATE_APPROACH;
                         work->subState    = 0;
                         work->resumeRoute = 0;
@@ -3110,7 +3110,7 @@ static void _actor521100WalkRouteState(Task* task)
                     work->turnSpeed    = ACTOR_521100_ROUTE_TURN_SPEED;
                     work->state        = ACTOR_521100_STATE_ATTACK;
                     work->subState     = 0;
-                } else if (gGameSession->location.loc.view != ACTOR_521100_ROUTE_VIEW) {
+                } else if (gGameSession->location.view != ACTOR_521100_ROUTE_VIEW) {
                     work->subState       = ACTOR_521100_ROUTE_RETURN;
                     work->resumeRoute    = 0;
                     work->resumeRouteLeg = 0;
@@ -3132,11 +3132,11 @@ static void _actor521100WalkRouteState(Task* task)
                 if (SquareRoot0((scratch->delta.vx * scratch->delta.vx) + (scratch->delta.vz * scratch->delta.vz)) < ACTOR_521100_ROUTE_WAYPOINT_RADIUS) {
                     work->state    = ACTOR_521100_STATE_APPROACH;
                     work->subState = 0;
-                } else if (gGameSession->location.loc.view == routeLeg) {
+                } else if (gGameSession->location.view == routeLeg) {
                     work->subState = 0;
                 }
             } else {
-                if (gGameSession->location.loc.view != routeLeg) {
+                if (gGameSession->location.view != routeLeg) {
                     work->state = ACTOR_521100_STATE_APPROACH;
                 }
                 work->subState = 0;

@@ -146,14 +146,21 @@ enum {
 };
 
 /* Define BSS before API headers to preserve first-declaration order. */
+
+void* gSndBankSequenceTableBlock;
+
+SndBank gSndBankDescriptors[SOUND_BANK_DESCRIPTOR_COUNT];
+
+/// Unreferenced storage; its role and element grouping are unproven.
+u8 D_8007E2D8[8];
+
+#include "sound.h"
+
 /// First block header in the sound heap's address-ordered chain.
 ///
 /// Reset establishes this header at the arena base. It stays the first block
 /// through splitting and coalescing; all headers and payloads expire at reset.
 static _SndHeapBlockHeader* _gSndHeapFirstBlock;
-
-/// Unreferenced storage; its role and element grouping are unproven.
-static u8 D_8007A3A8[8];
 
 /// Byte arena for variable-sized sound allocations, including their block headers.
 ///
@@ -185,15 +192,6 @@ static u8 _gSpuPalTimerEventsRemaining;
 /// Valid only while `_gSpuPalTimerInstalled` is set; timer replacement disables
 /// and closes that event before opening and enabling its successor.
 static volatile long _gSpuPalTimerEvent;
-
-void* gSndBankSequenceTableBlock;
-
-SndBank gSndBankDescriptors[SOUND_BANK_DESCRIPTOR_COUNT];
-
-/// Unreferenced storage; its role and element grouping are unproven.
-static u8 D_8007E2D8[8];
-
-#include "sound.h"
 
 static u8 _gSpuPalExtraAudioUpdateArmed;
 

@@ -39,16 +39,16 @@ void shelterElevatorTask(Task* task)
             gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
             switch (capGetVariantKey()) {
                 case SHELTER_ELEVATOR_CHOICE_B1:
-                    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = GAME_AREA_SHELTER_B1_ELEVATOR_HALL;
-                    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = SHELTER_ELEVATOR_B1_ARRIVAL;
+                    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.area = GAME_AREA_SHELTER_B1_ELEVATOR_HALL;
+                    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp = SHELTER_ELEVATOR_B1_ARRIVAL;
                     break;
                 case SHELTER_ELEVATOR_CHOICE_B2:
-                    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = GAME_AREA_SHELTER_B2_ELEVATOR_HALL;
-                    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = SHELTER_ELEVATOR_B2_ARRIVAL;
+                    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.area = GAME_AREA_SHELTER_B2_ELEVATOR_HALL;
+                    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp = SHELTER_ELEVATOR_B2_ARRIVAL;
                     break;
                 case SHELTER_ELEVATOR_CHOICE_B3:
-                    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = GAME_AREA_SHELTER_B3_ELEVATOR_HALL;
-                    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = SHELTER_ELEVATOR_B3_ARRIVAL;
+                    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.area = GAME_AREA_SHELTER_B3_ELEVATOR_HALL;
+                    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp = SHELTER_ELEVATOR_B3_ARRIVAL;
                     break;
                 default:
                     playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
@@ -68,13 +68,13 @@ void shelterElevatorTask(Task* task)
             // Only the resolver inputs are initialized; it changes the reply room.
             destination.room      = SHELTER_ELEVATOR_DEFAULT_ROOM;
             destination.queryOnly = ROOM_EVENT_EXECUTE;
-            destination.areaId    = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area;
-            destination.warp      = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp;
+            destination.areaId    = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.area;
+            destination.warp      = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp;
             resolvedDestination   = destination;
             mapShelterRoomVariantResolve(&destination, &resolvedDestination);
-            gDisplayState.spriteVariant                                = SHELTER_ELEVATOR_SPRITE_VARIANT;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = resolvedDestination.warp;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = resolvedDestination.room;
+            gDisplayState.spriteVariant                            = SHELTER_ELEVATOR_SPRITE_VARIANT;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp = resolvedDestination.warp;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.room = resolvedDestination.room;
             taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
             taskKill(task);
             break;

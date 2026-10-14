@@ -1745,10 +1745,10 @@ static void _acropolisCafeteriaBattleSceneTask(Task* task)
             }
             break;
         case ACROPOLIS_CAFETERIA_BATTLE_SELECT_BATTLE_ROOM:
-            drawBlackout                    = 1;
-            gGameSession->location.loc.room = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = 2;
-            gGameSession->roomObjsDirty                                                                  = 1;
-            task->state                                                                                 += 1;
+            drawBlackout                = 1;
+            gGameSession->location.room = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.room = 2;
+            gGameSession->roomObjsDirty                                                          = 1;
+            task->state                                                                         += 1;
             break;
         case ACROPOLIS_CAFETERIA_BATTLE_EXIT_PLACED_ACTORS:
             drawBlackout = 1;
@@ -1780,9 +1780,9 @@ static void _acropolisCafeteriaBattleSceneTask(Task* task)
         case ACROPOLIS_CAFETERIA_BATTLE_SPAWN_BATTLE_LAYOUT:
             drawBlackout = 1;
             if (cdCmdIsIdle()) {
-                areaSetPlacementVariant(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc, 2, AREA_VARIANT_RESET_ALWAYS);
-                areaSyncLocationVariant(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc);
-                areaSpawnPlacements(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc);
+                areaSetPlacementVariant(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location, 2, AREA_VARIANT_RESET_ALWAYS);
+                areaSyncLocationVariant(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location);
+                areaSpawnPlacements(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location);
                 gCapControlFlags &= ~CAP_CONTROL_EVENT_SCRIPT_WAITING_FOR_CUE;
                 task->state      += 1;
             }
@@ -1878,11 +1878,11 @@ static inline void _acropolisCafeteriaCommitFollowUpDeparture(Task* task)
     func_800ABFF8();
     func_800AC000();
     sndEvtRequestScriptStop(SOUND_BANK_TYPE_ALL_NON_AMBIENT, SOUND_SCRIPT_STOP_NO_FADE);
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage = GAME_STAGE_ACROPOLIS;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area  = GAME_AREA_ACROPOLIS_PATIO;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp  = ACROPOLIS_CAFETERIA_FOLLOW_UP_PATIO_WARP;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room  = ACROPOLIS_CAFETERIA_FOLLOW_UP_PATIO_ROOM;
-    gDisplayState.spriteVariant                                 = ACROPOLIS_CAFETERIA_FOLLOW_UP_SPRITE_VARIANT;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.stage = GAME_STAGE_ACROPOLIS;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.area  = GAME_AREA_ACROPOLIS_PATIO;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp  = ACROPOLIS_CAFETERIA_FOLLOW_UP_PATIO_WARP;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.room  = ACROPOLIS_CAFETERIA_FOLLOW_UP_PATIO_ROOM;
+    gDisplayState.spriteVariant                             = ACROPOLIS_CAFETERIA_FOLLOW_UP_SPRITE_VARIANT;
     taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
     taskKill(task);
 }

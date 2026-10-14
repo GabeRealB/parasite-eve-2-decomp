@@ -1817,7 +1817,7 @@ void acropolisFountainSprayTask(Task* task)
     s32                    brightness;
 
     coord = task->extra.coordBody->coord;
-    if (gRoomEffectState->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN && ((ACROPOLIS_FOUNTAIN_SPRAY_VISIBLE_VIEWS >> (gGameSession->location.loc.view - 1)) & 1)) {
+    if (gRoomEffectState->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN && ((ACROPOLIS_FOUNTAIN_SPRAY_VISIBLE_VIEWS >> (gGameSession->location.view - 1)) & 1)) {
         // Project the effect's world centre; the GTE input keeps its signed low halfwords.
         actorRenderComposeCoord(coord);
         projection              = SCRATCH_STACK_RESERVE_BLOCK(RoomGlowSpriteScratch);
@@ -2017,21 +2017,21 @@ static void _acropolisFountainWaterMovieTask(Task* task)
         ACROPOLIS_FOUNTAIN_MOVIE_LOOP_TAIL_FRAMES = 10,
         ACROPOLIS_FOUNTAIN_MOVIE_FIRST_FRAME      = 1,
     };
-    CdCmdQueue* movieQueue;
-    CdCmdQueue* loopQueue;
-    StreamSlot* movieTexture;
-    StreamSlot* loopMovie;
-    SPRT*       movieSprite;
-    DR_TPAGE*   pageCommand;
-    GameLoc     textureKey;
-    GameLoc     loopKey;
-    s16         logicalViewIndex;
-    s32         orderingTableSlot;
-    u16         nextFrame;
+    CdCmdQueue*     movieQueue;
+    CdCmdQueue*     loopQueue;
+    StreamSlot*     movieTexture;
+    StreamSlot*     loopMovie;
+    SPRT*           movieSprite;
+    DR_TPAGE*       pageCommand;
+    GameLocationKey textureKey;
+    GameLocationKey loopKey;
+    s16             logicalViewIndex;
+    s32             orderingTableSlot;
+    u16             nextFrame;
 
     _gAcropolisFountainWaterMovieTask = task;
     movieQueue                        = &gCdCmdQueue;
-    if (gGameSession->location.loc.room != 1) {
+    if (gGameSession->location.room != 1) {
         return;
     }
     switch (task->state) {
@@ -2046,7 +2046,7 @@ static void _acropolisFountainWaterMovieTask(Task* task)
             break;
 
         case ACROPOLIS_FOUNTAIN_MOVIE_UPDATE:
-            logicalViewIndex = viewFindLogicalIndex(gGameSession->location.loc.view);
+            logicalViewIndex = viewFindLogicalIndex(gGameSession->location.view);
             _acropolisFountainUpdateWaterLoop(task, logicalViewIndex);
             switch ((u16)logicalViewIndex) {
                 case 3:
@@ -2056,8 +2056,8 @@ static void _acropolisFountainWaterMovieTask(Task* task)
                     }
                     gGameSession->field_4E = 1;
                     textureKey             = gGameSession->location;
-                    textureKey.loc.view    = logicalViewIndex;
-                    movieTexture           = streamGetSlot(streamFindViewMovieSlot(&textureKey.loc));
+                    textureKey.view        = logicalViewIndex;
+                    movieTexture           = streamGetSlot(streamFindViewMovieSlot(&textureKey));
 
                     movieSprite    = gGpuPrimCursor;
                     gGpuPrimCursor = movieSprite + 1;
@@ -2094,8 +2094,8 @@ static void _acropolisFountainWaterMovieTask(Task* task)
                     if (gDisplayState.animFrame & 1) {
                         loopQueue             = &gCdCmdQueue;
                         loopKey               = gGameSession->location;
-                        loopKey.loc.view      = viewFindLogicalIndex(4);
-                        loopMovie             = streamGetSlot(streamFindMovieSlot(&loopKey.loc, 0, true));
+                        loopKey.view          = viewFindLogicalIndex(4);
+                        loopMovie             = streamGetSlot(streamFindMovieSlot(&loopKey, 0, true));
                         nextFrame             = loopQueue->movieFrame + 1;
                         loopQueue->movieFrame = nextFrame;
                         if (nextFrame >= loopMovie->data.movie.frameLimit - ACROPOLIS_FOUNTAIN_MOVIE_LOOP_TAIL_FRAMES) {

@@ -66,7 +66,7 @@ static void _generatorPulse(Task* task)
     // Always start from the saved matrix so pulse scales do not accumulate.
     _modelPlacementSetScaled(task, &work->unscaledMtx, scale, MODEL_PLACEMENT_SCALE_UNIFORM);
     if (gGameSession->viewReady == 1) {
-        sndEvtRequestScriptMix(work->runningSoundId, (s8)_gGeneratorViewSound[gGameSession->location.loc.view].panOffset,
-                               (s8)_gGeneratorViewSound[gGameSession->location.loc.view].attenuation);
+        sndEvtRequestScriptMix(work->runningSoundId, (s8)_gGeneratorViewSound[gGameSession->location.view].panOffset,
+                               (s8)_gGeneratorViewSound[gGameSession->location.view].attenuation);
     }
 }

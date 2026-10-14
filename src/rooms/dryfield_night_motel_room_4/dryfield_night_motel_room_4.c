@@ -833,7 +833,7 @@ void dryfieldNightMotelRoom4DrawFlaresTask(Task* unusedTask)
     };
 
     // Keep each view's draw order; even a depth-rejected flare reserves a packet.
-    switch (gGameSession->location.loc.view) {
+    switch (gGameSession->location.view) {
         case 2:
         case 3: {
             glowDrawFlareClipped(&_gDryfieldNightMotelRoom4FlarePoints[0], DRYFIELD_NIGHT_MOTEL_ROOM_4_FLARE_TEXTURE_PRIMARY, DRYFIELD_NIGHT_MOTEL_ROOM_4_FLARE_RADIUS_SCALE_STANDARD);

@@ -1218,7 +1218,7 @@ void dryfieldNightCellarDrawGlowsTask(Task* unused)
     u8 viewId;
 
     if (gameFlagGetNibble(GAME_FLAG_UNDERPASS_SWITCH_2) == DRYFIELD_NIGHT_CELLAR_GLOW_SWITCH_ON) {
-        viewId = gGameSession->location.loc.view;
+        viewId = gGameSession->location.view;
         if (viewId == DRYFIELD_NIGHT_CELLAR_GLOW_VIEW_2) {
             _dryfieldNightCellarDrawGlowPair(&_gDryfieldNightCellarView2GlowWorldPoints);
         } else if (viewId == DRYFIELD_NIGHT_CELLAR_GLOW_VIEW_3) {

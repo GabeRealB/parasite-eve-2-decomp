@@ -788,7 +788,7 @@ void dryfieldNightMotelBalconyBeginMoviesTask(Task* task)
 void dryfieldNightMotelBalconyUpdateSceneSprites(u8 sceneStep)
 {
     const GameSession*     session  = gGameSession;
-    const GameLocationKey* location = &session->location.loc;
+    const GameLocationKey* location = &session->location;
     const SpriteView*      areaViews;
     SpriteBatch*           batches;
 
@@ -838,7 +838,7 @@ void dryfieldNightMotelBalconySetSectionState(s16 sectionIndex, s16 sectionState
     const SpriteVisibilityCommand* command;
 
     command   = _gDryfieldNightMotelBalconySectionSpriteCommands[sectionIndex][sectionState];
-    location  = &gGameSession->location.loc;
+    location  = &gGameSession->location;
     areaViews = gSpriteAreaTables[location->stage - 1]->areaViews[location->area - 1];
     _dryfieldNightMotelBalconyApplySectionSpriteCommands(areaViews, command);
     // Persist the same state used to choose the visibility stream.
@@ -889,7 +889,7 @@ void dryfieldNightMotelBalconyRestoreSectionStates(void)
 void dryfieldNightMotelBalconyResetSceneSprites(void)
 {
     const GameSession*     session  = gGameSession;
-    const GameLocationKey* location = &session->location.loc;
+    const GameLocationKey* location = &session->location;
     const SpriteView*      areaViews;
     SpriteBatch*           batches;
 

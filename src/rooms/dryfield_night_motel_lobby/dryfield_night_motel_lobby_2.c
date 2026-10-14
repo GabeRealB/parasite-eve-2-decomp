@@ -17,7 +17,7 @@ enum { DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_DIGIT_COUNT = 7 };
 /// Slots hold decimal digits 0..9 or the empty marker 10. Entry initialization
 /// fills every slot with that marker; a clear leaves an uncounted zero in slot
 /// zero. Retained writable storage belongs to the loaded lobby overlay.
-static u8 _gDryfieldNightMotelLobbyCashRegisterDigits[DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_DIGIT_COUNT];
+u8 _gDryfieldNightMotelLobbyCashRegisterDigits[DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_DIGIT_COUNT];
 
 #include "rooms/dryfield_night_motel_lobby.h"
 
@@ -1137,9 +1137,9 @@ static void _dryfieldNightMotelLobbyCashRegisterInitialize(Task* task)
         taskKill(task);
         return;
     }
-    task->spawnArg2.pointer                                    = taskSpawnFromTable(&_gDryfieldNightMotelLobbyCashRegisterCursorTaskDesc, 0, DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_CURSOR_PORT_0, NULL);
-    task->work                                                 = work;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_VIEW;
+    task->spawnArg2.pointer                                = taskSpawnFromTable(&_gDryfieldNightMotelLobbyCashRegisterCursorTaskDesc, 0, DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_CURSOR_PORT_0, NULL);
+    task->work                                             = work;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_VIEW;
     task->state++;
     displayAcquireMenuHold();
     _dryfieldNightMotelLobbyResetCashRegisterInput();
@@ -1283,7 +1283,7 @@ void dryfieldNightMotelLobbyDrawGlowsTask(Task* unusedTask)
     };
 
     // Select lights by logical view, before camera/image remapping.
-    switch (gGameSession->location.loc.view) {
+    switch (gGameSession->location.view) {
         case 2:
             _glowDrawDiamond(&_gDryfieldNightMotelLobbyGlowCenters[0], DRYFIELD_NIGHT_MOTEL_LOBBY_GLOW_PULSE_RATE, DRYFIELD_NIGHT_MOTEL_LOBBY_DIAMOND_RADIUS_SCALE);
             _dryfieldNightMotelLobbyDrawFlare(&_gDryfieldNightMotelLobbyGlowCenters[1], DRYFIELD_NIGHT_MOTEL_LOBBY_FLARE_COLUMN_2, DRYFIELD_NIGHT_MOTEL_LOBBY_FLARE_RADIUS_SCALE);

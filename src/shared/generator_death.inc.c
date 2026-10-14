@@ -195,7 +195,7 @@ static void _generatorDeathState(Enemy* enemy, Task* task)
     if (work->battleExitState == GENERATOR_BATTLE_EXIT_DUE) {
         sceneReleaseBattleRefWithRewards(task, _gGeneratorUnusedBattleReleaseArgs[work->kind]);
         work->battleExitState = GENERATOR_BATTLE_EXIT_DONE;
-        areaClearMapMark(&gGameSession->location.loc);
+        areaClearMapMark(&gGameSession->location);
     }
     _generatorUpdateAnimationInline(task);
     colorCoord       = task->extra.tmd->coords;

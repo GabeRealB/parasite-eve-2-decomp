@@ -393,14 +393,14 @@ void menuMapRebuildMarkedAreaBits(void)
         }                                                                                       \
     }
 
-    currentLocation = &gGameSession->location.loc;
+    currentLocation = &gGameSession->location;
     stageId         = currentLocation->stage;
     // Retain the room/view initialization; both predicates read only stage and area.
     areaKey.room  = 1;
     areaKey.view  = 2;
     areaKey.stage = stageId;
     // Refresh only this stage's area bits; higher bits retain their prior values.
-    if (gGameSession->location.loc.stage - GAME_STAGE_ACROPOLIS < MENU_MAP_STAGE_COUNT) {
+    if (gGameSession->location.stage - GAME_STAGE_ACROPOLIS < MENU_MAP_STAGE_COUNT) {
         areaCount = gMenuMapStageAreaCounts.markedAreaIdLimits[currentLocation->stage - GAME_STAGE_ACROPOLIS];
         for (areaId = 1; areaId <= areaCount; areaId++) {
             areaKey.area = areaId;
@@ -490,7 +490,7 @@ s16 menuMapGetMarkerState(s16 markerIndex)
         MENU_MAP_SHELTER_ALTERNATE_PICTURE_CHAPTER = 6
     };
 
-    switch (gGameSession->location.loc.stage) {
+    switch (gGameSession->location.stage) {
         case GAME_STAGE_ACROPOLIS:
             if (markerIndex >= MENU_MAP_ACROPOLIS_MARKER_COUNT) {
                 break;
@@ -617,8 +617,8 @@ static u8 _viewGetCurrentRoomCount(void)
     const ViewCountTable* viewCountTable;
 
     session        = gGameSession;
-    viewCountTable = gViewCountTables[session->location.loc.stage - 1];
-    return (u8)viewCountTable->viewCounts[session->location.loc.area - 1][session->location.loc.room - 1];
+    viewCountTable = gViewCountTables[session->location.stage - 1];
+    return (u8)viewCountTable->viewCounts[session->location.area - 1][session->location.room - 1];
 }
 
 /// Runs one phase of the latched warp action through its copied handler table.
@@ -740,9 +740,9 @@ static void _directionLeaveWarp(void)
         fadeDrawOverlay(fadeShade, fadeShade, fadeShade, GPU_BLEND_SUBTRACT);
     }
     // Publish the destination before the reload task can consume the live save.
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = (u8)gDirectionWarpRequest.areaId;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = gDirectionWarpRequest.warp;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = gDirectionWarpRequest.room;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.area = (u8)gDirectionWarpRequest.areaId;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp = gDirectionWarpRequest.warp;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.room = gDirectionWarpRequest.room;
     taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
     gDirectionActionActive     = false;
     gDirectionActionParameter1 = 0;
@@ -819,7 +819,7 @@ void areaSetCurrentMapMark(void)
     const AreaRecord*      areaRecords;
     AreaSavedState*        areaState;
 
-    key         = &gGameSession->location.loc;
+    key         = &gGameSession->location;
     areaRecords = gAreaRecordsByStage[key->stage];
     if (areaRecords != NULL) {
         areaState = areaRecords[key->area].savedState;

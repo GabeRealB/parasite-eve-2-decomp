@@ -2287,8 +2287,8 @@ static s32 _dryfieldTrailerCoachHandleCommand(Task* task, s32 messageId, s32 com
         taskSpawnFromTable(_gDryfieldTrailerCoachInteractionTaskDescs, TASK_CONVERSATION, 0, 0);
     }
     if (commandIndex == COMMAND_STORY_SCENE) {
-        if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp == ARRIVAL_STORY_SCENE) {
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = ARRIVAL_DEFAULT;
+        if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp == ARRIVAL_STORY_SCENE) {
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp = ARRIVAL_DEFAULT;
         }
         if (gameFlagGetNibble(GAME_FLAG_TRAILER_COACH_FIRST_SCENE) == 0) {
             gameFlagSetNibble(GAME_FLAG_TRAILER_COACH_FIRST_SCENE, 1);
@@ -2459,7 +2459,7 @@ static void _dryfieldTrailerCoachInitializeRoomTask(Task* task)
 
     task->msgTable = _gDryfieldTrailerCoachRoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
-    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp == ARRIVAL_STORY_SCENE) {
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp == ARRIVAL_STORY_SCENE) {
         evsStartScriptWithSkip(_gDryfieldTrailerCoachArrivalScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, _gDryfieldTrailerCoachArrivalSkipScript);
         gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
         gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, STORY_DIALOGUE_START);
@@ -2531,7 +2531,7 @@ void dryfieldTrailerCoachDrawGlowsTask(Task* task)
     s32       viewMask;
     GfxCoord* coord;
 
-    viewMask = 1 << gGameSession->location.loc.view;
+    viewMask = 1 << gGameSession->location.view;
     coord    = task->extra.coordBody->coord;
     if (viewMask & DRYFIELD_TRAILER_COACH_DIAMOND_GLOW_VIEWS) {
         _glowDrawStarLocal(coord, &_gDryfieldTrailerCoachGlowLocalPoint,

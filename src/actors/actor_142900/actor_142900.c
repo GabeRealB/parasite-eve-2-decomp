@@ -1151,10 +1151,10 @@ static void _actor142900ReloadElevatorHall(void)
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene != ACTOR_142900_DEMO_SCENE) {
         areaApplySavedUpdates(gShelterB2ElevatorSceneSavedAreaUpdates);
         gameFlagSetNibble(GAME_FLAG_COMPANION_1_SCHEDULE, ACTOR_142900_COMPANION_SCHEDULE);
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = GAME_AREA_SHELTER_B2_ELEVATOR_HALL;
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = ACTOR_142900_ELEVATOR_HALL_ARRIVAL_WARP;
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = ACTOR_142900_ELEVATOR_HALL_ROOM;
-        gDisplayState.spriteVariant                                = ACTOR_142900_ELEVATOR_HALL_SPRITE_VARIANT;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.area = GAME_AREA_SHELTER_B2_ELEVATOR_HALL;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp = ACTOR_142900_ELEVATOR_HALL_ARRIVAL_WARP;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.room = ACTOR_142900_ELEVATOR_HALL_ROOM;
+        gDisplayState.spriteVariant                            = ACTOR_142900_ELEVATOR_HALL_SPRITE_VARIANT;
         taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
     }
 }

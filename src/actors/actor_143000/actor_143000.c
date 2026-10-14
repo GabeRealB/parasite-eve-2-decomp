@@ -441,13 +441,13 @@ static void _actor143000InitializeKeypad(Task* task)
         taskKill(task);
         return;
     }
-    task->spawnArg2.pointer                                    = taskSpawnFromTable(&_gActor143000KeypadCursorTaskDesc, 0, 1, 0);
-    task->work                                                 = work;
-    previousView                                               = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = ACTOR_143000_KEYPAD_VIEW;
-    gActor143000KeypadPreviousView                             = previousView;
-    task->state                                               += ACTOR_143000_KEYPAD_STATE_ARM_CURSOR - ACTOR_143000_KEYPAD_STATE_INITIALIZE;
-    work->field_4                                              = 0;
+    task->spawnArg2.pointer                                = taskSpawnFromTable(&_gActor143000KeypadCursorTaskDesc, 0, 1, 0);
+    task->work                                             = work;
+    previousView                                           = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = ACTOR_143000_KEYPAD_VIEW;
+    gActor143000KeypadPreviousView                         = previousView;
+    task->state                                           += ACTOR_143000_KEYPAD_STATE_ARM_CURSOR - ACTOR_143000_KEYPAD_STATE_INITIALIZE;
+    work->field_4                                          = 0;
     displayAcquireMenuHold();
     ACTOR_143000_CLEAR_KEYPAD_HITS(hotspot);
     work->keypadExamined       = 0;
@@ -1014,11 +1014,11 @@ static void _actor143000CloseKeypad(Task* task)
     displayReleaseMenuHold();
     gGameSession->cutsceneHold = 0;
     if (work->codeAccepted == 0) {
-        gDirectionInteractionRearmUpdates                          = ACTOR_143000_KEYPAD_INTERACTION_REARM_UPDATES;
-        gGameSession->eventState                                   = 0;
-        gGameSession->hideHud                                      = 0;
-        gSceneCombatState.actorControl                             = SCENE_COMBAT_ACTORS_RUNNING;
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = gActor143000KeypadPreviousView;
+        gDirectionInteractionRearmUpdates                      = ACTOR_143000_KEYPAD_INTERACTION_REARM_UPDATES;
+        gGameSession->eventState                               = 0;
+        gGameSession->hideHud                                  = 0;
+        gSceneCombatState.actorControl                         = SCENE_COMBAT_ACTORS_RUNNING;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = gActor143000KeypadPreviousView;
         playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO);
     } else {
         taskSpawnFromTable(gActor143000TerminalTasks, ACTOR_143000_TERMINAL_TASK_SLOT, 0, &gActor143000CodeAcceptedFade);
@@ -1204,7 +1204,7 @@ void actor143000CaptureStripTask(Task* task)
     s32                     stripBottom;
     s32                     imageByteOffset;
 
-    if (gGameSession->location.loc.view != ACTOR_143000_CAPTURE_VIEW) {
+    if (gGameSession->location.view != ACTOR_143000_CAPTURE_VIEW) {
         taskKill(task);
         return;
     }

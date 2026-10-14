@@ -2490,7 +2490,7 @@ static s32 _actor07000SlouchApplyCommand(Task* task, s32 messageId, const ActorC
     }
     if ((commandWord & 0xFF) == OVERLAY_ENCOUNTER_COMMAND_APPEAR) {
         if ((u32)(task->state - ACTOR_07000_SLOUCH_TASK_ACTIVE_FIRST) >= (u32)ACTOR_07000_SLOUCH_TASK_ACTIVE_COUNT) {
-            if (gGameSession->location.loc.area == GAME_AREA_SHELTER_B3_DUMPING_HOLE) {
+            if (gGameSession->location.area == GAME_AREA_SHELTER_B3_DUMPING_HOLE) {
                 placementRotation.vx = 0;
                 placementRotation.vy = gShelterB3DumpingHoleEncounterSpots[request->command >> 8].heading;
                 placementRotation.vz = 0;
@@ -2500,7 +2500,7 @@ static s32 _actor07000SlouchApplyCommand(Task* task, s32 messageId, const ActorC
                 soundKey             = (((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | ACTOR_07000_SLOUCH_SOUND_APPEAR);
                 soundPan             = (s8)worldCoordGetOriginAudioPan(coord);
                 sndEvtRequestScriptStart(soundKey, soundPan, (s8)worldCoordGetOriginAudioDepth(coord));
-            } else if (gGameSession->location.loc.area == GAME_AREA_SHELTER_B3_GARBAGE_INCINERATOR) {
+            } else if (gGameSession->location.area == GAME_AREA_SHELTER_B3_GARBAGE_INCINERATOR) {
                 placementRotation.vx = 0;
                 placementRotation.vy = gShelterB3GarbageIncineratorEncounterSpots[request->command >> 8].heading;
                 placementRotation.vz = 0;

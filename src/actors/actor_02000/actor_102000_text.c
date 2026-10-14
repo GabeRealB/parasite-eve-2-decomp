@@ -1348,9 +1348,9 @@ static void _actor02000SpawnBody(Enemy* enemy, Task* actor)
             }
 
             // The CD request reads key bytes 3/2/0 and only four argument bytes.
-            areaSoundSets = _gActor02000StageAreaSoundSets[gGameSession->location.loc.stage];
+            areaSoundSets = _gActor02000StageAreaSoundSets[gGameSession->location.stage];
             if (areaSoundSets != NULL) {
-                work->soundSet = areaSoundSets[gGameSession->location.loc.area];
+                work->soundSet = areaSoundSets[gGameSession->location.area];
             }
             if (work->soundSet != 0) {
                 soundFileKey[3]  = 0;

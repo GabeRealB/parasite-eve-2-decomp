@@ -30,28 +30,18 @@ struct Task;
 /// active stage; the other upper bounds depend on the selected loaded tables.
 /// Each lookup requires only the components it reads to be initialized and in
 /// range. The key is byte-aligned; packed word reads require a word-aligned
-/// instance. Whole location-cell transfers use the eight-byte `GameLoc`.
+/// instance. It is eight bytes: whole-key copies carry the two that follow
+/// `variant`, which nothing reads or writes by name.
 typedef struct {
-    u8 view;    // 1-based view slot within the room, mapped to a camera/image index
-    u8 room;    // 1-based room within the area
-    u8 area;    // 1-based area and CDF folder within the stage
-    u8 stage;   // Stage ID (0 no active stage, 1..5 active stages)
-    u8 warp;    // 1-based arrival record within the area's warp table
-    u8 variant; // Placement/resource layout within the area (1 default)
+    u8 view;         // 1-based view slot within the room, mapped to a camera/image index
+    u8 room;         // 1-based room within the area
+    u8 area;         // 1-based area and CDF folder within the stage
+    u8 stage;        // Stage ID (0 no active stage, 1..5 active stages)
+    u8 warp;         // 1-based arrival record within the area's warp table
+    u8 variant;      // Placement/resource layout within the area (1 default)
+    u8 unknown_6[2]; // Carried by whole-key copies; role unproven
 } GameLocationKey;
-STATIC_ASSERT_SIZEOF(GameLocationKey, 0x6);
-
-/// Eight-byte location cell shared by the live session and saved state.
-///
-/// Whole-cell copies preserve the two bytes following the six-byte key;
-/// their role is unproven. The cell is byte-aligned. Stream lookups borrow
-/// `loc` and read only its leading view and room bytes;
-/// a local copy can replace the view byte with a stream identifier.
-typedef struct {
-    GameLocationKey loc;          // Place key; leading view and room also select streams
-    u8              unknown_6[2]; // Retained by whole-cell copies; role unproven
-} GameLoc;
-STATIC_ASSERT_SIZEOF(GameLoc, 8);
+STATIC_ASSERT_SIZEOF(GameLocationKey, 0x8);
 
 /// Music-loading and weapon-restoration options stored in `GameSession::flowFlags`.
 enum {
@@ -119,69 +109,68 @@ enum {
 /// Input masks contain remapped, suppressed buttons rather than raw pad state.
 /// Unknown storage is retained with its observed extent and is not padding.
 typedef struct {
-    s8           deathVariant;            // Death presentation choice (0 inactive, 1/2 file and sound variant)
-    s8           eventState;              // Script-controlled state (0 idle, nonzero blocks direction/scene handling)
-    u8           uiOpen;                  // UI overlay active (0 closed, 1 open); enables d-pad repeat
-    byte         unknown_3;               // Role unproven
-    GameLoc      location;                // Live place key and the two bytes retained with whole-cell copies
-    struct Task* ptrSlots[16];            // Borrowed task anchors, slots 0..15; NULL when empty
-    u8           applySaveVariant;        // Restore the saved placement variant on the next area load (0/1)
-    u8           viewReady;               // View transition state (0 loading, 1 ready for scene tasks)
-    u16          field_4E;                // Set to 1 by model loads and reflection setup; role unproven
-    byte         unknown_50[2];           // Role unproven
-    s16          viewDirty;               // Nonzero requests deferred respawn using the saved view
-    byte         unknown_54[4];           // Role unproven
-    u16          padHeld;                 // Remapped and suppressed held buttons, including analog directions
-    u16          padPressed;              // Remapped and suppressed press edges for this frame
-    u16          padReleased;             // Remapped and suppressed release edges for this frame
-    u8           field_5E;                // Set to 1 when the play-clock task starts; role unproven
-    u8           evtSkipped;              // Forced script skip (0/1); releases script and caption waits
-    byte         unknown_60[4];           // Role unproven
-    u8           freezeRoomObjs;          // Nonzero suppresses room-object state dispatch
-    u8           sceneUpdatesPaused;      // Scene/HUD gate (0 updating, nonzero held); 1 also hides the target cursor
-    u8           cutsceneHold;            // Scripted player/menu hold (0/1), separate from eventState
-    u8           areaSetupDone;           // First arrival setup completed (0/1); later arrivals apply warp SFX/flags
-    u8           hideHud;                 // Suppress HUD, item prompts and target cursor (0/1)
-    u8           flowFlags;               // GAME_SESSION_FLOW_* music-loading and weapon-restoration bits
-    byte         unknown_6A[0xA];         // Role unproven
-    u16          spriteVariant;           // 1-based display resource variant; command packets retain its low byte
-    s16          roomObjsDirty;           // Nonzero requests deferred room-object relinking
-    s16          loadedStage;             // Stage whose resources were last queued (0 before a stage load)
-    byte         unknown_7A[2];           // Role unproven
-    s16          field_7C;                // Cleared when actor buffer 0 is reused; nonzero meaning unproven
-    s16          field_7E;                // Cleared when actor buffer 1 is reused; nonzero meaning unproven
-    s16          field_80;                // Cleared when actor buffer 2 is reused; nonzero meaning unproven
-    byte         unknown_82[0x9A];        // Role unproven
-    s16          loadedCharacterId;       // Character whose resources were last queued; -1 forces reload
-    s16          loadedConfigSet;         // Last queued animation/model/file selector, paired with loadedCharacterId
-    s16          sceneClock;              // Script frame countdown; arithmetic retains 16-bit wraparound
-    s16          waterY;                  // Water-surface height in world-coordinate units
-    u8           companionType;           // Cached companion resource family (0 none, 1/2/3 family)
-    u8           companionVariant;        // Cached resource variant within companion family 1
-    u8           battleResetPending;      // Battle/result reset handshake (0 cleared, 1 requested)
-    u8           suppressDeathChecks;     // Nonzero suppresses player and companion death handling
-    u8           restartMode;             // 0 ordinary, 1 companion-1 down, 2 unproven, 3 preserve display, 4 companion-3 down, 255 ending
-    u8           loadedSndId;             // Last queued sound-file ID; 0 invalidates the cache
-    s16          bossPartsHpSum;          // Cached 16-bit sum of boss-part HP, reused for successor HP scaling
-    u8           suppressViewTriggers;    // Nonzero suppresses the player's view-transition collision checks
-    s8           deathSoundCountdown;     // Death-sound countdown in ticks; 127 holds, a negative value triggers playback
-    s8           deathFadeFrames;         // Death-fade duration in ticks; <=0 selects the 32-tick default
-    u8           deathRestartDelay;       // Play-clock ticks before death presentation and restart
-    u8           spawnPhase[2];           // Per-controller progress (0 idle, 1 armed, 2 complete)
-    u8           incineratorDescentPhase; // Descent progress (0 waiting, 1 moving, 2 landed, 3 complete)
-    byte         incineratorRoomGroup;    // Incinerator room family (0 rooms below 4, 1 rooms 4 and above)
-    u8           eventRoomIndex;          // Zero-based event-reply room; replies add 1 (observed 0..6)
-    u8           incineratorExitPhase;    // Exit sequence (0 none, 1 warp exit, 2 encounter exit)
-    u8           enemyCullZone;           // Enemy-axis limit selector (0 disabled, 1..16 table entry)
-    u8           skipEventIntro;          // Incinerator controller skips introductory spawns (0/1)
-    byte         unknown_138;             // Set to 1 before a scripted stage transition; role unproven
-    s8           hudShakeY;               // Upward HUD offset in units of 3 pixels; <=0 ignored
-    u8           dirActionBusy;           // Direction/caption action in flight (0/1); blocks HUD actions
-    u8           padScriptFlags;          // GAME_SESSION_PAD_SCRIPT_* activity and battle-freeze permission bits
+    s8              deathVariant;            // Death presentation choice (0 inactive, 1/2 file and sound variant)
+    s8              eventState;              // Script-controlled state (0 idle, nonzero blocks direction/scene handling)
+    u8              uiOpen;                  // UI overlay active (0 closed, 1 open); enables d-pad repeat
+    byte            unknown_3;               // Role unproven
+    GameLocationKey location;                // Live place key and the two bytes retained with whole-cell copies
+    struct Task*    ptrSlots[16];            // Borrowed task anchors, slots 0..15; NULL when empty
+    u8              applySaveVariant;        // Restore the saved placement variant on the next area load (0/1)
+    u8              viewReady;               // View transition state (0 loading, 1 ready for scene tasks)
+    u16             field_4E;                // Set to 1 by model loads and reflection setup; role unproven
+    byte            unknown_50[2];           // Role unproven
+    s16             viewDirty;               // Nonzero requests deferred respawn using the saved view
+    byte            unknown_54[4];           // Role unproven
+    u16             padHeld;                 // Remapped and suppressed held buttons, including analog directions
+    u16             padPressed;              // Remapped and suppressed press edges for this frame
+    u16             padReleased;             // Remapped and suppressed release edges for this frame
+    u8              field_5E;                // Set to 1 when the play-clock task starts; role unproven
+    u8              evtSkipped;              // Forced script skip (0/1); releases script and caption waits
+    byte            unknown_60[4];           // Role unproven
+    u8              freezeRoomObjs;          // Nonzero suppresses room-object state dispatch
+    u8              sceneUpdatesPaused;      // Scene/HUD gate (0 updating, nonzero held); 1 also hides the target cursor
+    u8              cutsceneHold;            // Scripted player/menu hold (0/1), separate from eventState
+    u8              areaSetupDone;           // First arrival setup completed (0/1); later arrivals apply warp SFX/flags
+    u8              hideHud;                 // Suppress HUD, item prompts and target cursor (0/1)
+    u8              flowFlags;               // GAME_SESSION_FLOW_* music-loading and weapon-restoration bits
+    byte            unknown_6A[0xA];         // Role unproven
+    u16             spriteVariant;           // 1-based display resource variant; command packets retain its low byte
+    s16             roomObjsDirty;           // Nonzero requests deferred room-object relinking
+    s16             loadedStage;             // Stage whose resources were last queued (0 before a stage load)
+    byte            unknown_7A[2];           // Role unproven
+    s16             field_7C;                // Cleared when actor buffer 0 is reused; nonzero meaning unproven
+    s16             field_7E;                // Cleared when actor buffer 1 is reused; nonzero meaning unproven
+    s16             field_80;                // Cleared when actor buffer 2 is reused; nonzero meaning unproven
+    byte            unknown_82[0x9A];        // Role unproven
+    s16             loadedCharacterId;       // Character whose resources were last queued; -1 forces reload
+    s16             loadedConfigSet;         // Last queued animation/model/file selector, paired with loadedCharacterId
+    s16             sceneClock;              // Script frame countdown; arithmetic retains 16-bit wraparound
+    s16             waterY;                  // Water-surface height in world-coordinate units
+    u8              companionType;           // Cached companion resource family (0 none, 1/2/3 family)
+    u8              companionVariant;        // Cached resource variant within companion family 1
+    u8              battleResetPending;      // Battle/result reset handshake (0 cleared, 1 requested)
+    u8              suppressDeathChecks;     // Nonzero suppresses player and companion death handling
+    u8              restartMode;             // 0 ordinary, 1 companion-1 down, 2 unproven, 3 preserve display, 4 companion-3 down, 255 ending
+    u8              loadedSndId;             // Last queued sound-file ID; 0 invalidates the cache
+    s16             bossPartsHpSum;          // Cached 16-bit sum of boss-part HP, reused for successor HP scaling
+    u8              suppressViewTriggers;    // Nonzero suppresses the player's view-transition collision checks
+    s8              deathSoundCountdown;     // Death-sound countdown in ticks; 127 holds, a negative value triggers playback
+    s8              deathFadeFrames;         // Death-fade duration in ticks; <=0 selects the 32-tick default
+    u8              deathRestartDelay;       // Play-clock ticks before death presentation and restart
+    u8              spawnPhase[2];           // Per-controller progress (0 idle, 1 armed, 2 complete)
+    u8              incineratorDescentPhase; // Descent progress (0 waiting, 1 moving, 2 landed, 3 complete)
+    byte            incineratorRoomGroup;    // Incinerator room family (0 rooms below 4, 1 rooms 4 and above)
+    u8              eventRoomIndex;          // Zero-based event-reply room; replies add 1 (observed 0..6)
+    u8              incineratorExitPhase;    // Exit sequence (0 none, 1 warp exit, 2 encounter exit)
+    u8              enemyCullZone;           // Enemy-axis limit selector (0 disabled, 1..16 table entry)
+    u8              skipEventIntro;          // Incinerator controller skips introductory spawns (0/1)
+    byte            unknown_138;             // Set to 1 before a scripted stage transition; role unproven
+    s8              hudShakeY;               // Upward HUD offset in units of 3 pixels; <=0 ignored
+    u8              dirActionBusy;           // Direction/caption action in flight (0/1); blocks HUD actions
+    u8              padScriptFlags;          // GAME_SESSION_PAD_SCRIPT_* activity and battle-freeze permission bits
 } GameSession;
 STATIC_ASSERT_SIZEOF(GameSession, 0x13C);
 STATIC_ASSERT(OFFSET_OF(GameSession, location) == 4, GameSession_location);
-STATIC_ASSERT(OFFSET_OF(GameSession, location.loc) == 4, GameSession_location_loc);
 STATIC_ASSERT(OFFSET_OF(GameSession, ptrSlots) == 0xC, GameSession_ptrSlots);
 
 /// Collision-body indices in a player or companion's contiguous body array.

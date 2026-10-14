@@ -457,7 +457,7 @@ static void _actor111800InitBody(Task* task)
     work->playerMtx  = gPlayerStatus.coordMtx;
     _actor111800StartIdleTracks(task);
     work->part5Pitch = ACTOR_111800_INITIAL_PART5_PITCH;
-    place            = areaGetVariant(&gGameSession->location.loc)->placements;
+    place            = areaGetVariant(&gGameSession->location)->placements;
     while (place->entryId != AREA_PLACEMENT_END && place->entryId != ACTOR_111800_TEXTURE_ENTRY_ID) {
         place++;
     }

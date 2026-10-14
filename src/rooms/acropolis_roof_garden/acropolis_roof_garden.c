@@ -1604,7 +1604,7 @@ static void _acropolisRoofGardenAmbienceTask(Task* task)
             return;
     }
 
-    view = gGameSession->location.loc.view;
+    view = gGameSession->location.view;
     if (view != 5) {
         volumePercent = ACROPOLIS_ROOF_GARDEN_AMBIENCE_SILENT;
         if (view == 7) {
@@ -1681,12 +1681,12 @@ static s32 _acropolisRoofGardenHandleRoomAction(Task* task, s32 messageId, const
     };
     switch (request->actionId) {
         case ACROPOLIS_ROOF_GARDEN_ACTION_ARM_ENTRANCE:
-            if (((gGameSession->location.loc.variant == 1) || (gGameSession->location.loc.variant == 7)) && (gameFlagGetNibble(GAME_FLAG_ROOF_GARDEN_PROGRESS) == ACROPOLIS_ROOF_GARDEN_ENTRANCE_PROGRESS_CLEAR)) {
+            if (((gGameSession->location.variant == 1) || (gGameSession->location.variant == 7)) && (gameFlagGetNibble(GAME_FLAG_ROOF_GARDEN_PROGRESS) == ACROPOLIS_ROOF_GARDEN_ENTRANCE_PROGRESS_CLEAR)) {
                 gameFlagSetNibble(GAME_FLAG_ROOF_GARDEN_PROGRESS, ACROPOLIS_ROOF_GARDEN_ENTRANCE_PROGRESS_ARMED);
             }
             break;
         case ACROPOLIS_ROOF_GARDEN_ACTION_START_ENTRANCE:
-            if (((gGameSession->location.loc.variant == 1) || (gGameSession->location.loc.variant == 7)) && (gameFlagGetNibble(GAME_FLAG_ROOF_GARDEN_PROGRESS) == ACROPOLIS_ROOF_GARDEN_ENTRANCE_PROGRESS_ARMED)) {
+            if (((gGameSession->location.variant == 1) || (gGameSession->location.variant == 7)) && (gameFlagGetNibble(GAME_FLAG_ROOF_GARDEN_PROGRESS) == ACROPOLIS_ROOF_GARDEN_ENTRANCE_PROGRESS_ARMED)) {
                 evsStartScript(_gAcropolisRoofGardenMaggotCaterpillarEntranceScript, EVENT_SCRIPT_HUD_KEEP);
                 gameFlagSetNibble(GAME_FLAG_ROOF_GARDEN_PROGRESS, ACROPOLIS_ROOF_GARDEN_ENTRANCE_PROGRESS_STARTED);
             }
@@ -1883,7 +1883,7 @@ static void _acropolisRoofGardenTickRoom(Task* task)
     };
     GameLocationKey sanctuary;
 
-    if ((gGameSession->location.loc.warp == ACROPOLIS_ROOF_GARDEN_CUTSCENE_WARP) && (_gAcropolisRoofGardenArrivalSceneStarted == ACROPOLIS_ROOF_GARDEN_CUTSCENE_NOT_STARTED)) {
+    if ((gGameSession->location.warp == ACROPOLIS_ROOF_GARDEN_CUTSCENE_WARP) && (_gAcropolisRoofGardenArrivalSceneStarted == ACROPOLIS_ROOF_GARDEN_CUTSCENE_NOT_STARTED)) {
         _gAcropolisRoofGardenArrivalSceneStarted = ACROPOLIS_ROOF_GARDEN_CUTSCENE_STARTED;
         evsStartScriptWithSkip(_gAcropolisRoofGardenArrivalScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, _gAcropolisRoofGardenArrivalSkipScript);
         gameFlagSetNibble(GAME_FLAG_SANCTUARY_BLOCKER_CLEARED, ACROPOLIS_ROOF_GARDEN_SANCTUARY_BLOCKER_CLEARED);
@@ -1967,10 +1967,10 @@ void acropolisRoofGardenAmbientEffectsTask(Task* task)
     }
     // Emit one-frame flares only while room effects accept new spawns.
     if (gRoomEffectState->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
-        if ((ACROPOLIS_ROOF_GARDEN_FLARE_DIAMOND_VIEWS >> (gGameSession->location.loc.view - 1)) & 1) {
+        if ((ACROPOLIS_ROOF_GARDEN_FLARE_DIAMOND_VIEWS >> (gGameSession->location.view - 1)) & 1) {
             _acropolisRoofGardenEmitFlare(work, coord, (ACROPOLIS_ROOF_GARDEN_FLARE_DIAMOND_SCALE << ACROPOLIS_ROOF_GARDEN_FLARE_RADIUS_SHIFT) | ACROPOLIS_ROOF_GARDEN_FLARE_PULSE_STEPS);
         }
-        if (gGameSession->location.loc.view == 7) {
+        if (gGameSession->location.view == 7) {
             _acropolisRoofGardenEmitFlare(work, coord, ACROPOLIS_ROOF_GARDEN_FLARE_DISC_SHAPE | (ACROPOLIS_ROOF_GARDEN_FLARE_DISC_SCALE << ACROPOLIS_ROOF_GARDEN_FLARE_RADIUS_SHIFT) | ACROPOLIS_ROOF_GARDEN_FLARE_PULSE_STEPS);
         }
     }
@@ -2030,7 +2030,7 @@ void acropolisRoofGardenLightGlowTask(Task* task)
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
     if (gRoomEffectState->effectControl < ROOM_EFFECT_CONTROL_HIDDEN) {
-        if ((_gAcropolisRoofGardenLightViewMasks[task->spawnArg1.value & ACROPOLIS_ROOF_GARDEN_LIGHT_INDEX_MASK] >> (gGameSession->location.loc.view - 1)) & 1) {
+        if ((_gAcropolisRoofGardenLightViewMasks[task->spawnArg1.value & ACROPOLIS_ROOF_GARDEN_LIGHT_INDEX_MASK] >> (gGameSession->location.view - 1)) & 1) {
             actorRenderComposeCoord(coord);
             projection = SCRATCH_STACK_RESERVE_BLOCK(RoomGlowSpriteScratch);
             if (task->state == ACROPOLIS_ROOF_GARDEN_LIGHT_INITIALIZE) {

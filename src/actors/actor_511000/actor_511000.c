@@ -1700,7 +1700,7 @@ static void _actor511000TickHelicopterSearchlight(Task* task)
     }
 
     // The parent advances and clamps this frame before its attached searchlight runs.
-    if (gGameSession->location.loc.view == SEQUENCE_VIEW) {
+    if (gGameSession->location.view == SEQUENCE_VIEW) {
         root->param.rot.vx = _gActor511000HelicopterSearchlightRotations[parentTask->killCountdown].vx;
         root->param.rot.vy = _gActor511000HelicopterSearchlightRotations[parentTask->killCountdown].vy;
         root->param.rot.vz = _gActor511000HelicopterSearchlightRotations[parentTask->killCountdown].vz;
@@ -1965,7 +1965,7 @@ static void _actor511000TickHelicopter(Task* task)
         _actor511000TickHelicopterPaletteFlash(task->work);
     }
     // Scene motion and camera playback continue even when the hull is hidden.
-    if (gGameSession->location.loc.view == ACTOR_511000_HELICOPTER_SEQUENCE_VIEW) {
+    if (gGameSession->location.view == ACTOR_511000_HELICOPTER_SEQUENCE_VIEW) {
         _actor511000AdvanceHelicopterSequence(task, rootCoord);
     }
     // Reload after freeing, preserving the callback-visible countdown value.
@@ -2366,14 +2366,14 @@ static void _actor511000SpawnNo9Golem(Enemy* enemy, Task* task)
     // Child models inherit the texture relocation of the parent's placement.
     // The task address retains the spawn-result holder to preserve load order.
     spawned    = (Enemy*)spawned->task;
-    sessionKey = &session->location.loc;
+    sessionKey = &session->location;
     placeIndex = enemy->placeKey;
     stage      = sessionKey->stage;
     model      = ((Task*)spawned)->extra.tmd;
     key.stage  = stage;
     key.area   = sessionKey->area;
     key.room   = sessionKey->room;
-    view       = session->location.loc.view;
+    view       = session->location.view;
     placeIndex = placeIndex >> ENEMY_PLACE_INDEX_SHIFT;
     key.view   = view;
     areaSyncLocationVariant(&key);
@@ -2388,14 +2388,14 @@ static void _actor511000SpawnNo9Golem(Enemy* enemy, Task* task)
     spawned     = enemySpawnFromTable(childDescriptors, ACTOR_511000_GOLEM_PART3_CHILD, 0, enemy);
     session     = gGameSession;
     spawned     = (Enemy*)spawned->task;
-    sessionKey  = &session->location.loc;
+    sessionKey  = &session->location;
     placeIndex2 = enemy->placeKey;
     stage       = sessionKey->stage;
     model       = ((Task*)spawned)->extra.tmd;
     key.stage   = stage;
     key.area    = sessionKey->area;
     key.room    = sessionKey->room;
-    view        = session->location.loc.view;
+    view        = session->location.view;
     placeIndex2 = placeIndex2 >> ENEMY_PLACE_INDEX_SHIFT;
     key.view    = view;
     areaSyncLocationVariant(&key);

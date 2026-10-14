@@ -849,7 +849,7 @@ void inventoryDetachItem(InventoryItemRow* row)
 
 void telephoneDispatchMenuTask(Task* task)
 {
-    switch (GAME_LOCATION_WORD(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc) & GAME_LOCATION_STAGE_AREA_MASK) {
+    switch (GAME_LOCATION_WORD(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location) & GAME_LOCATION_STAGE_AREA_MASK) {
         case GAME_LOCATION_KEY(1, 1, 0, 0):
             acropolisSquareTelephoneMenuTask(task);
             break;

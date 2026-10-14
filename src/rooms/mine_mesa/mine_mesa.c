@@ -3549,7 +3549,7 @@ static void _mineMesaUpdateRoomEventsState(Task* task)
     u8  variant;
     s32 companionSceneState;
 
-    if ((gGameSession->eventState == EVENT_IDLE) && (gAttachmentState.mode != ATTACHMENT_MODE_WHEEL) && (variant = gGameSession->location.loc.variant, variant == COMPANION_SCENE_VARIANT)) {
+    if ((gGameSession->eventState == EVENT_IDLE) && (gAttachmentState.mode != ATTACHMENT_MODE_WHEEL) && (variant = gGameSession->location.variant, variant == COMPANION_SCENE_VARIANT)) {
         if (gameFlagGetNibble(GAME_FLAG_MINE_MESA_ARRIVAL_SEEN) == ARRIVAL_UNSEEN) {
             if (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != NULL) {
                 evsStartScriptWithSkip(_gMineMesaArrivalScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, _gMineMesaArrivalSkipScript);
@@ -3633,7 +3633,7 @@ static s32 _mineMesaResolveRoomEventMsg(Task* task, s32 messageId, RoomEventMsg*
     if (request->areaId != GAME_AREA_MINE_TUNNEL_ENTRANCE) {
         return EVENT_RESOLVED;
     }
-    variant = gGameSession->location.loc.variant;
+    variant = gGameSession->location.variant;
     if (variant == COMPANION_SCENE_VARIANT && gSceneCombatState.signals.bytes.battlePhase == variant) {
         return EVENT_BLOCKED;
     }
@@ -3719,7 +3719,7 @@ static s32 _mineMesaActorEventMsg(Task* task, s32 messageId, s32 slotIndex, s32 
            COMPANION_SCENE_ARMED   = 1 };
     u8 variant;
 
-    variant = gGameSession->location.loc.variant;
+    variant = gGameSession->location.variant;
     if (variant == COMPANION_SCENE_VARIANT) {
         if (gameFlagGetNibble(GAME_FLAG_MINE_MESA_0CD) == COMPANION_SCENE_UNSEEN) {
             if (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != NULL) {
@@ -4667,11 +4667,11 @@ static void _mineMesaSpawnEnemyWaveState(Task* task)
 /// Expands to a braced block; invoke inside a braced block.
 #define MINE_MESA_APPLY_WAVE_TEXTURE_OFFSETS(model, placementKey, currentLocation, placement)                     \
     {                                                                                                             \
-        (currentLocation)    = &gGameSession->location.loc;                                                       \
+        (currentLocation)    = &gGameSession->location;                                                           \
         (placementKey).stage = (currentLocation)->stage;                                                          \
         (placementKey).area  = (currentLocation)->area;                                                           \
         (placementKey).room  = (currentLocation)->room;                                                           \
-        (placementKey).view  = gGameSession->location.loc.view;                                                   \
+        (placementKey).view  = gGameSession->location.view;                                                       \
         areaSyncLocationVariant(&(placementKey));                                                                 \
         (placement)                = areaGetVariant(&(placementKey))->placements;                                 \
         (model)->texturePageOffset = (placement)->texturePageOffset;                                              \
@@ -4773,7 +4773,7 @@ static void _mineMesaRebuildVariantWalls(void)
            WALL_HEIGHT_LOW  = 400 };
     s32 height;
 
-    if (gGameSession->location.loc.variant == 1 || gGameSession->location.loc.variant == 7) {
+    if (gGameSession->location.variant == 1 || gGameSession->location.variant == 7) {
         height = WALL_HEIGHT_TALL;
     } else {
         height = WALL_HEIGHT_LOW;

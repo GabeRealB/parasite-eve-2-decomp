@@ -81,7 +81,7 @@ static s32 _sucklercephMessage(Task* task, s32 unusedMessageId, const ActorComma
     if ((actionByte & SUCKLERCEPH_COMMAND_ACTION_MASK) == OVERLAY_ENCOUNTER_COMMAND_APPEAR) {
         if ((u32)(task->state - SUCKLERCEPH_MESSAGE_ACTIVE_TASK) >= 2U) {
             // Callers supply an in-bounds full high byte for the live room table.
-            if (gGameSession->location.loc.area == GAME_AREA_SHELTER_B3_DUMPING_HOLE) {
+            if (gGameSession->location.area == GAME_AREA_SHELTER_B3_DUMPING_HOLE) {
                 spawnRotation.vx      = 0;
                 spawnRotation.vy      = gShelterB3DumpingHoleEncounterSpots[request->command >> SUCKLERCEPH_COMMAND_SPOT_SHIFT].heading;
                 spawnRotation.vz      = 0;
@@ -92,7 +92,7 @@ static s32 _sucklercephMessage(Task* task, s32 unusedMessageId, const ActorComma
                 soundId               = (((soundEnemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << SUCKLERCEPH_DROP_SOUND_INSTANCE_SHIFT) | SUCKLERCEPH_DROP_APPEAR_SOUND);
                 soundPan              = (s8)worldCoordGetOriginAudioPan(rootCoord);
                 sndEvtRequestScriptStart(soundId, soundPan, (s8)worldCoordGetOriginAudioDepth(rootCoord));
-            } else if (gGameSession->location.loc.area == GAME_AREA_SHELTER_B3_GARBAGE_INCINERATOR) {
+            } else if (gGameSession->location.area == GAME_AREA_SHELTER_B3_GARBAGE_INCINERATOR) {
                 spawnRotation.vx      = 0;
                 spawnRotation.vy      = gShelterB3GarbageIncineratorEncounterSpots[request->command >> SUCKLERCEPH_COMMAND_SPOT_SHIFT].heading;
                 spawnRotation.vz      = 0;

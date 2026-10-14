@@ -276,10 +276,10 @@ static void _mistParkingPlayDepartureMovieTask(Task* task)
         MIST_PARKING_ALTERNATE_DEPARTURE_MOVIE_ID = 101,
         MIST_PARKING_MOVIE_MUSIC_FADE_TICKS       = 10
     };
-    u8          commandArgs[4];
-    GameLoc     movieKey;
-    CdCmdQueue* cdQueue;
-    s16         movieSlot;
+    u8              commandArgs[4];
+    GameLocationKey movieKey;
+    CdCmdQueue*     cdQueue;
+    s16             movieSlot;
 
     cdQueue = &gCdCmdQueue;
     switch (task->state) {
@@ -293,11 +293,11 @@ static void _mistParkingPlayDepartureMovieTask(Task* task)
         case MIST_PARKING_MOVIE_QUEUE:
             movieKey = gGameSession->location;
             if (task->spawnArg1.value != 0) {
-                movieKey.loc.view = MIST_PARKING_ALTERNATE_DEPARTURE_MOVIE_ID;
+                movieKey.view = MIST_PARKING_ALTERNATE_DEPARTURE_MOVIE_ID;
             } else {
-                movieKey.loc.view = MIST_PARKING_DEPARTURE_MOVIE_ID;
+                movieKey.view = MIST_PARKING_DEPARTURE_MOVIE_ID;
             }
-            movieSlot = streamFindMovieSlot(&movieKey.loc, 0, 0);
+            movieSlot = streamFindMovieSlot(&movieKey, 0, 0);
             // PLAY_STREAM uses byte zero; the other argument bytes are left untouched.
             commandArgs[0] = movieSlot;
             cdCmdEnqueue(CD_COMMAND_PLAY_STREAM, 0, commandArgs);

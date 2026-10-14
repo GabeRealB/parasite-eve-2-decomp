@@ -15,10 +15,10 @@ static inline void _factoryPanelRestorePlay(void)
     playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO);
     companionSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO);
     displayReleaseMenuHold();
-    gGameSession->eventState                                   = FACTORY_PANEL_EVENT_IDLE;
-    gGameSession->hideHud                                      = false;
-    gGameSession->cutsceneHold                                 = false;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = FACTORY_PANEL_VIEW_RETURN;
+    gGameSession->eventState                               = FACTORY_PANEL_EVENT_IDLE;
+    gGameSession->hideHud                                  = false;
+    gGameSession->cutsceneHold                             = false;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = FACTORY_PANEL_VIEW_RETURN;
 }
 
 /// Ends the operator-panel session and hands its teardown back to its owner.

@@ -109,10 +109,10 @@ void waterRefractionTask(Task* task)
     splitRow          = 0;
     splitWidth        = 0;
     sourceBufferIndex = gDisplayState.otBuffer;
-    areaId            = gGameSession->location.loc.area;
+    areaId            = gGameSession->location.area;
     if (areaId == GAME_AREA_NEO_ARK_BRIDGE) {
         otIndexBias = 10;
-        switch (gGameSession->location.loc.view) {
+        switch (gGameSession->location.view) {
             case 2:
                 firstRow   = 127;
                 rowEnd     = WATER_REFRACTION_FRAME_HEIGHT;
@@ -147,7 +147,7 @@ void waterRefractionTask(Task* task)
                 return;
         }
     } else if (areaId == GAME_AREA_NEO_ARK_ISLAND) {
-        switch (gGameSession->location.loc.view) {
+        switch (gGameSession->location.view) {
             case 2:
                 firstRow   = 119;
                 rowEnd     = WATER_REFRACTION_FRAME_HEIGHT;
@@ -172,7 +172,7 @@ void waterRefractionTask(Task* task)
                 return;
         }
     } else if (areaId == GAME_AREA_NEO_ARK_GARDEN) {
-        if (gGameSession->location.loc.view == 2) {
+        if (gGameSession->location.view == 2) {
             splitRow     = WATER_REFRACTION_SPLIT_AFTER_FRAME;
             firstRow     = 132;
             rowEnd       = WATER_REFRACTION_FRAME_HEIGHT;
@@ -183,7 +183,7 @@ void waterRefractionTask(Task* task)
         }
     } else if (areaId == GAME_AREA_NEO_ARK_PAVILION) {
         otIndexBias = 10;
-        switch (gGameSession->location.loc.view) {
+        switch (gGameSession->location.view) {
             case 2:
             case 4:
                 firstRow     = 82;
@@ -225,7 +225,7 @@ void waterRefractionTask(Task* task)
         waveScaleQ12 = WATER_REFRACTION_WAVE_SCALE_HALF;
         otIndexBias  = -10;
         planeWorldY  = 4890;
-        switch (gGameSession->location.loc.view) {
+        switch (gGameSession->location.view) {
             case 2:
                 baseLeftX  = 59;
                 firstRow   = 169;
@@ -263,7 +263,7 @@ void waterRefractionTask(Task* task)
         }
     } else if (areaId == GAME_AREA_NEO_ARK_WOODLAND_PATH) {
         planeWorldY = 140;
-        switch (gGameSession->location.loc.view) {
+        switch (gGameSession->location.view) {
             case 6:
                 firstRow = 165;
                 rowEnd   = WATER_REFRACTION_FRAME_HEIGHT;

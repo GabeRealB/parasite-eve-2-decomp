@@ -25,9 +25,9 @@ static void _factoryPanelInit(Task* task)
     task->work              = work;
     task->msgTable          = _gFactoryPanelMsgTable;
     if (gameFlagGetNibble(GAME_FLAG_FACTORY_POWER_ON) == 0) {
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = FACTORY_PANEL_VIEW_UNPOWERED;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = FACTORY_PANEL_VIEW_UNPOWERED;
     } else {
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = FACTORY_PANEL_VIEW_POWERED;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = FACTORY_PANEL_VIEW_POWERED;
     }
     task->state++;
     displayAcquireMenuHold();

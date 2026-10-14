@@ -405,7 +405,7 @@ static void _actor311500Init(Task* actorTask)
     enemy->recs         = &work->hitContacts[0];
     actorTask->msgTable = _gActor311500StrangerMessages;
     work->present       = 1;
-    placement           = areaGetVariant(&gGameSession->location.loc)->placements;
+    placement           = areaGetVariant(&gGameSession->location)->placements;
     while (placement->entryId != AREA_PLACEMENT_END && placement->entryId != ACTOR_311500_PLACEMENT_ID) {
         placement++;
     }

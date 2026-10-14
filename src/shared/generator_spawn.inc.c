@@ -95,7 +95,7 @@ static void _generatorSpawn(Enemy* enemy, Task* task)
     lifeSupportBody      = lifeSupportEnemy->task->extra.coordBody;
     lifeSupportModelView = (TmdObject*)lifeSupportBody;
     placementIndex       = enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT;
-    sessionLocation      = &gGameSession->location.loc;
+    sessionLocation      = &gGameSession->location;
     location.stage       = sessionLocation->stage;
     location.area        = sessionLocation->area;
     location.room        = sessionLocation->room;
@@ -111,8 +111,8 @@ static void _generatorSpawn(Enemy* enemy, Task* task)
     }
     soundId              = _gGeneratorRunningSoundId | ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
     work->runningSoundId = soundId;
-    sndEvtRequestScriptStart(soundId, (s8)_gGeneratorViewSound[gGameSession->location.loc.view].panOffset,
-                             (s8)_gGeneratorViewSound[gGameSession->location.loc.view].attenuation);
+    sndEvtRequestScriptStart(soundId, (s8)_gGeneratorViewSound[gGameSession->location.view].panOffset,
+                             (s8)_gGeneratorViewSound[gGameSession->location.view].attenuation);
     task->msgTable = _gGeneratorMessages;
     task->state    = GENERATOR_TASK_ACTIVE;
 }

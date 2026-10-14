@@ -581,7 +581,7 @@ static void _actor342100SpawnBlazeFireEmitters(void)
     Task*          emitter;
     u32            delayRoll;
 
-    switch (gGameSession->location.loc.view) {
+    switch (gGameSession->location.view) {
         case 29:
             placement = _gActor342100BlazeFirePlacementsView29;
             break;

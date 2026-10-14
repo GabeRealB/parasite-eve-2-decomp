@@ -634,13 +634,13 @@ static void _actor323300WomanUpdate(Task* task)
         if (work->loopSoundEnabled != 0) {
             // Clip jumps retrigger the script; a ready view otherwise updates the current mix.
             if (work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_FOLLOWED_JUMP) {
-                if (gGameSession->location.loc.view == 2) {
+                if (gGameSession->location.view == 2) {
                     sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_TOILET, 6), 0, ACTOR_323300_WOMAN_VIEW2_ATTENUATION);
                 } else {
                     sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_TOILET, 6), 0, 0);
                 }
             } else if (gGameSession->viewReady != 0) {
-                if (gGameSession->location.loc.view == 2) {
+                if (gGameSession->location.view == 2) {
                     sndEvtRequestScriptMix(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_TOILET, 6), 0, ACTOR_323300_WOMAN_VIEW2_ATTENUATION);
                 } else {
                     sndEvtRequestScriptMix(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_TOILET, 6), 0, 0);

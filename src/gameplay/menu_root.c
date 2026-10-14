@@ -861,7 +861,7 @@ void menuRootTask(Task* task)
                 closingDisplay->control.flags.flipMode = DISPLAY_FLIP_HOLD;
                 stageReleaseTaskPrimitiveBuffer();
             }
-            memConfigureImageMemory(gGameSession->location.loc.stage, gGameSession->location.loc.area);
+            memConfigureImageMemory(gGameSession->location.stage, gGameSession->location.area);
             if (sceneIsBattleActive() == 0) {
                 attachmentEnqueueHealingSoundLoad();
             }
@@ -934,7 +934,7 @@ void menuRootTask(Task* task)
             if (stageGetLoadBuffersCleared() == 0) {
                 stageRequestModeTaskExit();
             } else {
-                stageRequestViewTransitionAndModeExit(gGameSession->location.loc.view);
+                stageRequestViewTransitionAndModeExit(gGameSession->location.view);
             }
             taskSpawnOnDefaultList(FADE_DISPLAY_TASK_BANK, FADE_DISPLAY_TASK_TYPE, FADE_DISPLAY_REVEAL_WORLD, 0);
             if (taskSpawnFromTableOnDefaultList(&_gMenuPendingItemUseTaskDesc, 0, 0, 0) != NULL) {

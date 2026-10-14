@@ -1090,7 +1090,7 @@ void neoArkPowerPlant1SetLifeSupportSpritesHidden(s32 hidden)
     SpriteBatch*     batches;
     s32              hiddenByte;
 
-    location   = &gGameSession->location.loc;
+    location   = &gGameSession->location;
     areaViews  = gSpriteAreaTables[location->stage - 1]->areaViews[location->area - 1];
     hiddenByte = hidden & 0xFF;
 

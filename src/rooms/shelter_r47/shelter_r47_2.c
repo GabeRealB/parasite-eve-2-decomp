@@ -508,7 +508,7 @@ void shelterR47ConsoleUpdateAndDraw(Task* task, s16 changingView)
 
     work = task->work;
     // The row-3 view pans a backdrop wider than the display.
-    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view == SHELTER_R47_CONSOLE_SCROLLING_VIEW) {
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view == SHELTER_R47_CONSOLE_SCROLLING_VIEW) {
         if (work->backdropToggle & 1) {
             work->backdropScroll--;
             if (work->backdropScroll < 0) {
@@ -1061,10 +1061,10 @@ static void _shelterR47ConsoleDismissTask(Task* task)
     playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
     playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO);
     displayReleaseMenuHold();
-    gGameSession->eventState                                   = 0;
-    gGameSession->hideHud                                      = 0;
-    gGameSession->cutsceneHold                                 = 0;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = work->savedView;
+    gGameSession->eventState                               = 0;
+    gGameSession->hideHud                                  = 0;
+    gGameSession->cutsceneHold                             = 0;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = work->savedView;
     taskKill(task->spawnArg2.pointer);
     taskRequestKill(task, 0);
 }
@@ -1105,8 +1105,8 @@ static void _shelterR47ConsoleChangeViewTask(Task* task)
     shelterR47ConsoleUpdateAndDraw(task, SHELTER_R47_CONSOLE_LAYOUT_CHANGING_VIEW);
     // Change the room image only after the circular wipe has hidden it.
     if (shelterR47ConsoleFillWipe(task) != 0) {
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = gShelterR47ConsoleRowViews[(u8)work->selection];
-        work->revealPos                                            = 0;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = gShelterR47ConsoleRowViews[(u8)work->selection];
+        work->revealPos                                        = 0;
         _shelterR47ConsoleSetWipe(task, SHELTER_R47_CONSOLE_LEVEL_MAX);
         task->state++;
     }
@@ -1304,10 +1304,10 @@ static void _shelterR47ConsoleToggleSwitch(Task* task, s16 row)
         case SHELTER_R47_CONSOLE_ROW_SWITCH_2:
             if (!(work->toggles[1] & 1)) {
                 gShelterR47ConsoleRowViews[SHELTER_R47_CONSOLE_ROW_SWITCH_2] = SHELTER_R47_CONSOLE_SWITCH_2_OFF_VIEW;
-                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view   = SHELTER_R47_CONSOLE_SWITCH_2_OFF_VIEW;
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view       = SHELTER_R47_CONSOLE_SWITCH_2_OFF_VIEW;
             } else {
                 gShelterR47ConsoleRowViews[SHELTER_R47_CONSOLE_ROW_SWITCH_2] = SHELTER_R47_CONSOLE_SWITCH_2_ON_VIEW;
-                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view   = SHELTER_R47_CONSOLE_SWITCH_2_ON_VIEW;
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view       = SHELTER_R47_CONSOLE_SWITCH_2_ON_VIEW;
             }
             break;
         case SHELTER_R47_CONSOLE_ROW_SWITCH_4:

@@ -14,7 +14,7 @@ Task* gRoomCutsceneSoundTask;
 ///
 /// Published only after its work and player reference are initialized. Callbacks
 /// require the task and work to stay live; teardown leaves this pointer uncleared.
-static Task* _gDryfieldGasStationArrivalCutsceneTask;
+Task* _gDryfieldGasStationArrivalCutsceneTask;
 
 #include "rooms/dryfield_gas_station.h"
 
@@ -1198,7 +1198,7 @@ void dryfieldGasStationCyanGlowTask(Task* task)
     s32       viewBit;
     GfxCoord* glowCoord;
 
-    viewBit   = 1 << gGameSession->location.loc.view;
+    viewBit   = 1 << gGameSession->location.view;
     glowCoord = task->extra.coordBody->coord;
     // The diamond and disc scales give the same nominal screen radius.
     if (viewBit & DRYFIELD_GAS_STATION_GLOW_DIAMOND_VIEWS) {

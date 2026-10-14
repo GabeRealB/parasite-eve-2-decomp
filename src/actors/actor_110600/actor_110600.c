@@ -1073,7 +1073,7 @@ static inline SVECTOR* _actorContactGetLastPushStep(void)
 /// Ordinary hits borrow model part 1; scripted hits borrow the root. Both set
 /// low argument 0x100 and high argument 3, whose interpretation belongs to the
 /// selected effect. The record owns no coordinate and lives with the overlay.
-static EffectSpawnArg _gActor110600HitEffectArgs;
+EffectSpawnArg _gActor110600HitEffectArgs;
 
 /// Whole-unit step `_actorContactApplyGridPushback` last applied to its coordinate.
 extern SVECTOR ActorContact_ScratchPosition;
@@ -1890,7 +1890,7 @@ static void _actor110600Spawn(Enemy* enemy, Task* task)
     work->walker.avoidRecs  = hitContacts;
     work->walker.scale      = 0;
     work->walker.turnLimit  = ACTOR_110600_INITIAL_TURN_LIMIT;
-    if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PATIO, 0, 0)) {
+    if ((GAME_LOCATION_WORD(gGameSession->location) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PATIO, 0, 0)) {
         work->walker.lockHeight = 0;
     } else {
         work->walker.lockHeight = true;

@@ -103,7 +103,7 @@ extern WorldCollisionSurfaceProperties* gDryfieldNightUnderpassSurfaceProperties
 ///
 /// Called each frame while this room overlay is loaded. `unusedTask` supplies no
 /// position or state. Nonzero `GAME_FLAG_053` suppresses drawing; otherwise each
-/// of eight fixed points is selected by bit `location.loc.view` of its view mask.
+/// of eight fixed points is selected by bit `location.view` of its view mask.
 /// The room's view IDs are 1..26, and only views 2..11 select any points.
 /// Each selected point uses flare texture column zero and a pixel half-extent of
 /// `640 * 39 / depth`, where depth is camera Z / 4 and must be nonzero for an

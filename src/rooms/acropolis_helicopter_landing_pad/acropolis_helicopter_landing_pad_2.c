@@ -1634,13 +1634,13 @@ void acropolisHelicopterLandingPadPrepareDepartureTask(Task* task)
             task->spawnArg1.value = 0;
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
             task->state += 1;
-            if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.variant >= ACROPOLIS_HELICOPTER_LANDING_PAD_DEPARTURE_VARIANT) {
+            if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.variant >= ACROPOLIS_HELICOPTER_LANDING_PAD_DEPARTURE_VARIANT) {
                 taskMessageDispatch(sceneFindPlacedActor(ACROPOLIS_HELICOPTER_LANDING_PAD_REVISIT_HIDDEN_ACTOR), ACTOR_MESSAGE_SET_MODEL_DRAW, ACROPOLIS_HELICOPTER_LANDING_PAD_ACTOR_HIDE_MODEL, 0);
             }
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = ACROPOLIS_HELICOPTER_LANDING_PAD_DEPARTURE_VIEW;
-            ambientColor.vx                                            = 1200;
-            ambientColor.vy                                            = 1200;
-            ambientColor.vz                                            = 1552;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = ACROPOLIS_HELICOPTER_LANDING_PAD_DEPARTURE_VIEW;
+            ambientColor.vx                                        = 1200;
+            ambientColor.vy                                        = 1200;
+            ambientColor.vz                                        = 1552;
             worldCoordSetAmbientColorOverride(&ambientColor);
             break;
         case ACROPOLIS_HELICOPTER_LANDING_PAD_DEPARTURE_WAIT_VIEW:
@@ -1649,7 +1649,7 @@ void acropolisHelicopterLandingPadPrepareDepartureTask(Task* task)
             }
             break;
         case ACROPOLIS_HELICOPTER_LANDING_PAD_DEPARTURE_EXIT_ACTORS:
-            if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.variant < ACROPOLIS_HELICOPTER_LANDING_PAD_DEPARTURE_VARIANT) {
+            if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.variant < ACROPOLIS_HELICOPTER_LANDING_PAD_DEPARTURE_VARIANT) {
                 taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_EXIT_PLACED_ACTORS, 0, 0);
             }
             task->state += 1;
@@ -1676,7 +1676,7 @@ void acropolisHelicopterLandingPadPrepareDepartureTask(Task* task)
             task->state += 1;
             break;
         case ACROPOLIS_HELICOPTER_LANDING_PAD_DEPARTURE_LOAD_RESOURCES:
-            if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.variant < ACROPOLIS_HELICOPTER_LANDING_PAD_DEPARTURE_VARIANT) {
+            if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.variant < ACROPOLIS_HELICOPTER_LANDING_PAD_DEPARTURE_VARIANT) {
                 ACROPOLIS_HELICOPTER_LANDING_PAD_QUEUE_DEPARTURE_RESOURCES(fileKey, loadArgs);
             }
             task->spawnArg1.value = ACROPOLIS_HELICOPTER_LANDING_PAD_DEPARTURE_DELAY_FRAMES;
@@ -1684,7 +1684,7 @@ void acropolisHelicopterLandingPadPrepareDepartureTask(Task* task)
             break;
         case ACROPOLIS_HELICOPTER_LANDING_PAD_DEPARTURE_WAIT_LOAD:
             task->spawnArg1.value -= 1;
-            if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.variant >= ACROPOLIS_HELICOPTER_LANDING_PAD_DEPARTURE_VARIANT) {
+            if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.variant >= ACROPOLIS_HELICOPTER_LANDING_PAD_DEPARTURE_VARIANT) {
                 task->state = ACROPOLIS_HELICOPTER_LANDING_PAD_DEPARTURE_START_SCENE;
             } else if (cdCmdIsIdle()) {
                 loadingRequestViewGraphicsRestore();
@@ -1694,9 +1694,9 @@ void acropolisHelicopterLandingPadPrepareDepartureTask(Task* task)
         case ACROPOLIS_HELICOPTER_LANDING_PAD_DEPARTURE_SPAWN_PLACEMENTS:
             task->spawnArg1.value -= 1;
             // The newly loaded actor variant must be spawned before the scene script.
-            areaSetPlacementVariant(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc, ACROPOLIS_HELICOPTER_LANDING_PAD_DEPARTURE_VARIANT, AREA_VARIANT_RESET_ALWAYS);
-            areaSyncLocationVariant(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc);
-            areaSpawnPlacements(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc);
+            areaSetPlacementVariant(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location, ACROPOLIS_HELICOPTER_LANDING_PAD_DEPARTURE_VARIANT, AREA_VARIANT_RESET_ALWAYS);
+            areaSyncLocationVariant(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location);
+            areaSpawnPlacements(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location);
             gAcropolisHelicopterLandingPadEncounterPhase = ACROPOLIS_HELICOPTER_LANDING_PAD_PHASE_DEPARTURE_READY;
             task->state                                 += 1;
             break;
@@ -1791,12 +1791,12 @@ void acropolisHelicopterLandingPadReturnToMistTask(Task* task)
         case ACROPOLIS_HELICOPTER_LANDING_PAD_RETURN_RELOAD:
             // The movie task holds the task list while playback owns the display.
             sndEvtRequestScriptStop(SOUND_BANK_TYPE_ALL_NON_AMBIENT, SOUND_SCRIPT_STOP_NO_FADE);
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent         = ACROPOLIS_HELICOPTER_LANDING_PAD_RETURN_SCENE_EVENT;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage = GAME_STAGE_ACROPOLIS;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area  = GAME_AREA_MIST_R18;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp  = ACROPOLIS_HELICOPTER_LANDING_PAD_RETURN_WARP;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room  = ACROPOLIS_HELICOPTER_LANDING_PAD_RETURN_ROOM;
-            gDisplayState.spriteVariant                                 = ACROPOLIS_HELICOPTER_LANDING_PAD_RETURN_SPRITE_VARIANT;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent     = ACROPOLIS_HELICOPTER_LANDING_PAD_RETURN_SCENE_EVENT;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.stage = GAME_STAGE_ACROPOLIS;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.area  = GAME_AREA_MIST_R18;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp  = ACROPOLIS_HELICOPTER_LANDING_PAD_RETURN_WARP;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.room  = ACROPOLIS_HELICOPTER_LANDING_PAD_RETURN_ROOM;
+            gDisplayState.spriteVariant                             = ACROPOLIS_HELICOPTER_LANDING_PAD_RETURN_SPRITE_VARIANT;
             taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
             displayReleaseMenuHold();
             taskKill(task);

@@ -240,8 +240,8 @@ static inline void _shelterB1ArmorySelectShopView(void)
     u8          savedView;
 
     liveSave                           = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
-    savedView                          = liveSave->state.location.loc.view;
-    liveSave->state.location.loc.view  = SHELTER_B1_ARMORY_SHOP_VIEW;
+    savedView                          = liveSave->state.location.view;
+    liveSave->state.location.view      = SHELTER_B1_ARMORY_SHOP_VIEW;
     gShelterB1ArmoryShopSavedView.view = savedView;
 }
 
@@ -290,8 +290,8 @@ static void _shelterB1ArmoryShopSceneTask(Task* task)
             gGameSession->hideHud    = SHELTER_B1_ARMORY_HUD_VISIBLE;
             playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO);
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = gShelterB1ArmoryShopSavedView.view;
-            task->state                                                = task->state + 1;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = gShelterB1ArmoryShopSavedView.view;
+            task->state                                            = task->state + 1;
             break;
     }
 }

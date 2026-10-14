@@ -18,7 +18,7 @@ void FACTORY_DRAW_GLOWS_TASK(Task* task)
     };
     s32 viewBit;
 
-    viewBit = 1 << gGameSession->location.loc.view;
+    viewBit = 1 << gGameSession->location.view;
 #if DRYFIELD_TIME == DRYFIELD_NIGHT
     // Preserve the night task's coordinate refresh even though the glows use world points.
     actorRenderComposeCoord(task->extra.coordBody->coord);

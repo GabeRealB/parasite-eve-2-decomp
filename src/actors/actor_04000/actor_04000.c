@@ -266,9 +266,9 @@ static inline SVECTOR* _actorContactGetLastPushStep(void)
 /// requests its drop; a subsequent refill clears a task whose Enemy HP is nonpositive.
 /// Initialization clears both slots. Handles and their Enemy must remain live
 /// until that check removes them; this table neither owns nor destroys tasks.
-static Task* _gActor04000ActiveDropTasks[2];
+Task* _gActor04000ActiveDropTasks[2];
 
-static Task* _gActor04000HangingTasksByPlacement[8];
+Task* _gActor04000HangingTasksByPlacement[8];
 
 MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 
@@ -1318,7 +1318,7 @@ SVECTOR ActorContact_ScratchPosition;
 /// slot and clears this entry, and either burst state clears it before death.
 /// NULL means no candidate. Handles and their Enemy/work/model must remain
 /// live until removed; this table does not own or destroy any task.
-static Task* _gActor04000HangingTasksByPlacement[8];
+Task* _gActor04000HangingTasksByPlacement[8];
 
 static s32  _actor04000PollAnimationSound(_Actor04000Work* work);
 static void _actor04000SpawnEnemy(Enemy* enemy, Task* task);
@@ -2789,7 +2789,7 @@ static void _actor04000StateDrop(Enemy* enemy, Task* task)
     work->fallSpeed                     += work->fallAccel;
     task->extra.tmd->coords->coord.t[1] += work->fallSpeed;
     if (task->extra.tmd->coords->coord.t[1] >= -0x12B) {
-        if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_TOILET, 0, 0)) {
+        if ((GAME_LOCATION_WORD(gGameSession->location) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_TOILET, 0, 0)) {
             soundId   = ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | SOUND_AREA(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_TOILET, ACTOR_04000_DROP_SOUND_ENTRY);
             panOffset = (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords);
             sndEvtRequestScriptStart(soundId, panOffset, (s8)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
@@ -3664,7 +3664,7 @@ static void _actor04000AwaitPoolBattle(Task* task)
         }
         task->state++;
     }
-    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view == ACTOR_04000_POOL_BATTLE_VIEW) {
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view == ACTOR_04000_POOL_BATTLE_VIEW) {
         for (poolIndex = 0; poolIndex < ACTOR_04000_HANGING_POOL_COUNT; poolIndex++) {
             if (_gActor04000HangingTasksByPlacement[poolIndex] != NULL) {
                 sceneEngageBattle(1);

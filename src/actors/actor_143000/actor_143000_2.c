@@ -320,7 +320,7 @@ char gActor143000KeypadCode[ACTOR_143000_KEYPAD_CODE_BUFFER_BYTES];
 ///
 /// Occupies the remainder of the overlay's stored zero-initialized data.
 /// Selection uses indices 0..10, and reset clears all eleven bytes.
-static u8 _gActor143000TerminalVisitedQuestions[ACTOR_143000_TERMINAL_QUESTION_COUNT];
+u8 _gActor143000TerminalVisitedQuestions[ACTOR_143000_TERMINAL_QUESTION_COUNT];
 
 /// Runs the laboratory terminal menu and three-question challenge after keypad login.
 ///

@@ -1406,7 +1406,7 @@ static void _actor800100DecideIdleBehavior(Task* task)
     actor         = task->work;
     rootCoord     = task->extra.tmd->coords;
     playerCoord   = (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords;
-    forceFollow   = (GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(4, 42, 0, 0);
+    forceFollow   = (GAME_LOCATION_WORD(gGameSession->location) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(4, 42, 0, 0);
     decisionActor = task->work;
     if (decisionActor->companionWork->decisionTimer <= 0) {
         companionSetDecisionDelay(task, ACTOR_800100_IDLE_DECISION_BASE_TICKS, ACTOR_800100_IDLE_DECISION_RANDOM_MASK);
@@ -1595,7 +1595,7 @@ static void _actor800100FollowPlayerState(Task* task)
     rootCoord   = task->extra.tmd->coords;
     playerCoord = (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords;
     actor       = task->work;
-    forceFollow = (GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(4, 42, 0, 0);
+    forceFollow = (GAME_LOCATION_WORD(gGameSession->location) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(4, 42, 0, 0);
     distance    = _actor800100GetContactDistance(rootCoord, actor->companionWork->probe.contacts, NULL);
     // Preserve the current behavior while the probe searches for a clear heading.
     if (distance != 0 && distance < (ACTOR_800100_FOLLOW_ARRIVAL_DISTANCE + 1) && forceFollow == 0) {
@@ -3507,7 +3507,7 @@ static s32 _actor800100SpawnWeaponImpact(const WorldCollisionContact* contacts, 
             if (distance < nearestDistance) {
                 worldCollisionResolveResponsePushback(contact, &scratch->pushback, 1, &surfaceClass);
                 surfaceClass = worldCollisionSurfaceClassFromMask((const u8*)&surfaceClass);
-                if (gWorldCollisionSurfacePropertiesTables[gGameSession->location.loc.stage - 1][gGameSession->location.loc.area - 1][surfaceClass]->weaponImpactEnabled != WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS) {
+                if (gWorldCollisionSurfacePropertiesTables[gGameSession->location.stage - 1][gGameSession->location.area - 1][surfaceClass]->weaponImpactEnabled != WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS) {
                     nearestDistance     = distance;
                     nearestContactIndex = contactIndex;
                 }

@@ -103,10 +103,10 @@ static inline void _dryfieldWaterTowerCancelMechanismPrompt(void)
 {
     enum { DRYFIELD_WATER_TOWER_EVENT_IDLE = 0 };
 
-    gGameSession->eventState                                   = DRYFIELD_WATER_TOWER_EVENT_IDLE;
-    gGameSession->hideHud                                      = 0;
-    gSceneCombatState.actorControl                             = SCENE_COMBAT_ACTORS_RUNNING;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = _gDryfieldWaterTowerMechanismPromptSavedView.view;
+    gGameSession->eventState                               = DRYFIELD_WATER_TOWER_EVENT_IDLE;
+    gGameSession->hideHud                                  = 0;
+    gSceneCombatState.actorControl                         = SCENE_COMBAT_ACTORS_RUNNING;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = _gDryfieldWaterTowerMechanismPromptSavedView.view;
     playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
     playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO);
 }
@@ -132,7 +132,7 @@ void dryfieldWaterTowerMechanismPromptTask(Task* task)
                 capRunCommand(DRYFIELD_WATER_TOWER_CAP_MECHANISM_COMMAND, CAP_PLAYBACK_IN_PLACE);
                 gGameSession->eventState = DRYFIELD_WATER_TOWER_EVENT_ACTIVE;
                 {
-                    u32 savedView                                     = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view;
+                    u32 savedView                                     = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view;
                     s32 promptState                                   = task->state;
                     _gDryfieldWaterTowerMechanismPromptSavedView.view = savedView;
                     task->state                                       = promptState + 1;

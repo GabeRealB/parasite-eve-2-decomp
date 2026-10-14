@@ -958,7 +958,7 @@ static s32 _dryfieldGarageHandleRoomAction(Task* unusedTask, s32 unusedMessageId
         DRYFIELD_GARAGE_ACTION_SUPPRESSED_VARIANT = 1,
         DRYFIELD_GARAGE_CAP_ACTION_2              = 0x13,
     };
-    if ((request->actionId == DRYFIELD_GARAGE_ACTION_2) && (gGameSession->location.loc.variant != DRYFIELD_GARAGE_ACTION_SUPPRESSED_VARIANT)) {
+    if ((request->actionId == DRYFIELD_GARAGE_ACTION_2) && (gGameSession->location.variant != DRYFIELD_GARAGE_ACTION_SUPPRESSED_VARIANT)) {
         capSpawnEventIfIdle(DRYFIELD_GARAGE_CAP_ACTION_2, CAP_EVENT_NO_FLAGS);
     }
     // The binary leaves the result unspecified; this message's sender ignores it.
@@ -1024,11 +1024,11 @@ static void _dryfieldGarageInitRoomTask(Task* task)
 
     task->msgTable = _gDryfieldGarageMessageTable;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
-    if ((gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != NULL) && (gGameSession->location.loc.warp == DRYFIELD_GARAGE_COMPANION_PLACEMENT_WARP)) {
+    if ((gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != NULL) && (gGameSession->location.warp == DRYFIELD_GARAGE_COMPANION_PLACEMENT_WARP)) {
         TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_COMPANION), GAME_ACTOR_MESSAGE_PLACE, &_gDryfieldGarageCompanionEntryPlacement, 0);
     }
     _dryfieldGarageAdvanceEntryDialogue();
-    if (gGameSession->location.loc.variant != DRYFIELD_GARAGE_ROOM_ACTION_VARIANT) {
+    if (gGameSession->location.variant != DRYFIELD_GARAGE_ROOM_ACTION_VARIANT) {
         _gDryfieldGarageActionTriggers[DRYFIELD_GARAGE_VARIANT_ACTION_TRIGGER].flags &= (u8)~WORLD_COLLISION_TRIGGER_ENABLED;
     }
     task->state += 1;

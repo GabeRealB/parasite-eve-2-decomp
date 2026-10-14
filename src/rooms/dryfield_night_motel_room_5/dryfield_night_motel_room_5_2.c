@@ -1177,7 +1177,7 @@ void dryfieldNightMotelRoom5DrawFlareTask(Task* unusedTask)
     };
 
     // Pixel half-extent is radiusScale * 39 / (camera Z / 4).
-    switch (gGameSession->location.loc.view) {
+    switch (gGameSession->location.view) {
         case 3:
         case 8:
             glowDrawFlareClipped(&_gDryfieldNightMotelRoom5Views3And8FlareWorldPoint, DRYFIELD_NIGHT_MOTEL_ROOM_5_FLARE_TEXTURE_COLUMN, DRYFIELD_NIGHT_MOTEL_ROOM_5_SMALL_FLARE_RADIUS_SCALE);

@@ -47,7 +47,7 @@ static void _factoryLiftInit(Task* task)
     coord->coord.t[2] = FACTORY_LIFT_ROOM_Z;
     _factoryLiftBindLighting(task);
     _factoryLiftSyncCollision(task, 1, 0);
-    if (gGameSession->location.loc.stage == GAME_STAGE_DRYFIELD) {
+    if (gGameSession->location.stage == GAME_STAGE_DRYFIELD) {
         taskSpawnFromTable(gFactoryDaySpawnTable, FACTORY_LIFT_HATCH_SPAWN_INDEX, 0, task);
     } else {
         taskSpawnFromTable(gDryfieldNightFactoryTaskDescs, FACTORY_LIFT_HATCH_SPAWN_INDEX, 0, task);

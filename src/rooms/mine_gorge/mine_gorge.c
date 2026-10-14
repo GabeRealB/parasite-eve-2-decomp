@@ -274,9 +274,9 @@ static s32 _mineGorgeUseOakBoardMessage(Task* unusedTask, s32 messageId, s32 col
             if (_mineGorgeRoomTriggerHit() != 0) {
                 gameFlagSetNibble(GAME_FLAG_MINE_GORGE_TRIGGER_EVENT_DONE, 1);
                 taskSpawnFromTableOnDefaultList(_gMineGorgeOakBoardCutsceneTaskDescriptors, 0, 0, 0);
-                gGameSession->location.loc.room = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = MINE_GORGE_OAK_BOARD_EVENT_ROOM);
-                gGameSession->hideHud           = (gGameSession->roomObjsDirty = 1);
-                gGameSession->eventState        = 1;
+                gGameSession->location.room = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.room = MINE_GORGE_OAK_BOARD_EVENT_ROOM);
+                gGameSession->hideHud       = (gGameSession->roomObjsDirty = 1);
+                gGameSession->eventState    = 1;
                 return ROOM_KEY_ITEM_USE_SHOW_USED_NOTICE;
             }
         }
@@ -335,7 +335,7 @@ static s32 _mineGorgeHandleEncounterAction(Task* unusedTask, s32 messageId, cons
     };
     u8 actionId = request->actionId;
 
-    if (actionId == MINE_GORGE_ACTION_START_ENCOUNTER && gameFlagGetNibble(GAME_FLAG_MINE_GORGE_CUTSCENE_SEEN) == 0 && gGameSession->location.loc.variant == actionId) {
+    if (actionId == MINE_GORGE_ACTION_START_ENCOUNTER && gameFlagGetNibble(GAME_FLAG_MINE_GORGE_CUTSCENE_SEEN) == 0 && gGameSession->location.variant == actionId) {
         gameFlagSetNibble(GAME_FLAG_MINE_GORGE_CUTSCENE_SEEN, 1);
         evsStartScript(_gMineGorgeEncounterScript, EVENT_SCRIPT_HUD_HIDE_RESTORE);
     }
@@ -423,7 +423,7 @@ static void _mineGorgeInitializeRoomTask(Task* task)
 
     task->msgTable = _gMineGorgeRoomMessageTable;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
-    if ((gGameSession->location.loc.variant == MINE_GORGE_ENCOUNTER_VARIANT) && (gameFlagGetNibble(GAME_FLAG_MINE_GORGE_CUTSCENE_SEEN) != 0)) {
+    if ((gGameSession->location.variant == MINE_GORGE_ENCOUNTER_VARIANT) && (gameFlagGetNibble(GAME_FLAG_MINE_GORGE_CUTSCENE_SEEN) != 0)) {
         gSceneCombatState.actor03700Wave = MINE_GORGE_ENCOUNTER_RESTORED_WAVE;
     }
     // Latch the one-time story event before its idle-only playback request.

@@ -191,7 +191,7 @@ static TmdSource _gActor421600DesertChaserBurstTorso;
 
 /// Psy-Q `RotMatrixY` (it sits right after `RotMatrixX`).
 
-static s16 _gActor421600RemainingLives;
+s16 _gActor421600RemainingLives;
 
 static void _actor421600Exit(Task* task);
 static void _actor421600HideState(Task* task);
@@ -1295,7 +1295,7 @@ enum { ACTOR_421600_FIRST_RUN_MIN_LIVES  = 4,
 /// damage-over-time ticks subtract one. Room commands gate each chaser's return
 /// by the remaining count. With one life, a living partner keeps it; zero ends
 /// the pack. Storage is a signed halfword and is not clamped on decrement.
-static s16 _gActor421600RemainingLives;
+s16 _gActor421600RemainingLives;
 
 MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 
@@ -2895,12 +2895,12 @@ static void _actor421600WaitToRespawnState(Task* task)
     otherChaser = NULL;
     switch (enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) {
         case 0:
-            stageBits          = gGameSession->location.loc.stage << ENEMY_PLACE_STAGE_SHIFT;
-            otherPlaceAreaBits = gGameSession->location.loc.area | (1 << ENEMY_PLACE_INDEX_SHIFT);
+            stageBits          = gGameSession->location.stage << ENEMY_PLACE_STAGE_SHIFT;
+            otherPlaceAreaBits = gGameSession->location.area | (1 << ENEMY_PLACE_INDEX_SHIFT);
             otherChaser        = sceneFindEnemyByPlaceKey(otherPlaceAreaBits | stageBits);
             break;
         case 1:
-            firstPlaceKey = (gGameSession->location.loc.stage << ENEMY_PLACE_STAGE_SHIFT) | gGameSession->location.loc.area;
+            firstPlaceKey = (gGameSession->location.stage << ENEMY_PLACE_STAGE_SHIFT) | gGameSession->location.area;
             otherChaser   = sceneFindEnemyByPlaceKey(firstPlaceKey);
             break;
     }
@@ -4244,7 +4244,7 @@ static void _actor421600FrameState(Enemy* enemy, Task* task)
             settledCatchStage = work->playerAnim.animationId;
             switch (settledCatchStage) {
                 case ACTOR421600_CATCH_START:
-                    if (((((GAME_LOCATION_WORD(gGameSession->location.loc)) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_MINE_MESA, 0, 0)) || (work->playerMove.collisionRequests != (GAME_ACTOR_COLLISION_REQUEST_MASK << GAME_ACTOR_COLLISION_DISABLE_REQUEST_SHIFT))) && (playerStatus->hp > 0)) {
+                    if (((((GAME_LOCATION_WORD(gGameSession->location)) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_MINE_MESA, 0, 0)) || (work->playerMove.collisionRequests != (GAME_ACTOR_COLLISION_REQUEST_MASK << GAME_ACTOR_COLLISION_DISABLE_REQUEST_SHIFT))) && (playerStatus->hp > 0)) {
                         work->playerAnim.blend       = ANIMATION_BLEND_RESET;
                         work->playerAnim.blendFrames = 0;
                         work->playerAnim.animationId = ACTOR421600_CATCH_HOLD;

@@ -3017,7 +3017,7 @@ static s32 _actor800200PlayFootstepCue(Task* task)
         switch (cueBits = cueRecord->flags & ANIMATION_RECORD_CUE_MASK) {
             case ANIMATION_RECORD_CUE_1:
             case ANIMATION_RECORD_CUE_2:
-                surface        = gWorldCollisionSurfacePropertiesTables[gGameSession->location.loc.stage - 1][gGameSession->location.loc.area - 1][actor->surfaceClass];
+                surface        = gWorldCollisionSurfacePropertiesTables[gGameSession->location.stage - 1][gGameSession->location.area - 1][actor->surfaceClass];
                 footstepSounds = surface->footstepSounds;
                 if (footstepSounds != NULL) {
                     if ((u16)actor->movementMode - ACTOR_800200_MOVEMENT_WALK < 2U) {
@@ -3254,7 +3254,7 @@ static void _actor800200TickSchedule1Route(Task* task)
         _actor800200EnterTimedWait(task, 0);
         return;
     }
-    areaId = gGameSession->location.loc.area;
+    areaId = gGameSession->location.area;
     switch (areaId) {
         case GAME_AREA_DRYFIELD_JUNK_YARD:
             _actor800200TickArea26Route(task);
@@ -3285,7 +3285,7 @@ static void _actor800200TickSchedule7Route(Task* task)
         _actor800200EnterTimedWait(task, 0);
         return;
     }
-    areaId = gGameSession->location.loc.area;
+    areaId = gGameSession->location.area;
     switch (areaId) {
         case GAME_AREA_DRYFIELD_NIGHT_DRIVEWAY:
             _actor800200CompleteArea25Route7(task);
@@ -3318,7 +3318,7 @@ static void _actor800200TickSchedules8To10Route(Task* task)
         _actor800200EnterTimedWait(task, 0);
         return;
     }
-    areaId = gGameSession->location.loc.area;
+    areaId = gGameSession->location.area;
     switch (areaId) {
         case GAME_AREA_SHELTER_1F_PARKING_GARAGE:
             _actor800200TickArea1Route(task);

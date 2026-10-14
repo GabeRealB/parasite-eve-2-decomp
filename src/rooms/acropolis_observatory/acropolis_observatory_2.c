@@ -201,8 +201,8 @@ static void _acropolisObservatoryForkedRoadArrivalMoviePathTask(Task* task)
         case ACROPOLIS_OBSERVATORY_MOVIE_WAIT_PLAYER:
             if (taskMessageDispatch(work->playerTask, GAME_ACTOR_MESSAGE_IS_SCRIPTED_MOTION_PENDING, 0, 0) == 0) {
                 taskMessageDispatch(work->playerTask, GAME_ACTOR_MESSAGE_END_SCRIPTED, 0, 0);
-                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = viewFindLogicalIndex(2);
-                task->state                                                = task->state + 1;
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = viewFindLogicalIndex(2);
+                task->state                                            = task->state + 1;
             }
             break;
 
@@ -302,8 +302,8 @@ static void _acropolisObservatoryPromenadeArrivalMoviePathTask(Task* task)
         case ACROPOLIS_OBSERVATORY_MOVIE_WAIT_PLAYER:
             if (taskMessageDispatch(work->playerTask, GAME_ACTOR_MESSAGE_IS_SCRIPTED_MOTION_PENDING, 0, 0) == 0) {
                 taskMessageDispatch(work->playerTask, GAME_ACTOR_MESSAGE_END_SCRIPTED, 0, 0);
-                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = viewFindLogicalIndex(4);
-                task->state                                                = task->state + 1;
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = viewFindLogicalIndex(4);
+                task->state                                            = task->state + 1;
             }
             break;
 

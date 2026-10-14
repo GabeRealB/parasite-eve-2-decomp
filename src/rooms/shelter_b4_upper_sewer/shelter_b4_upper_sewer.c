@@ -1130,7 +1130,7 @@ static RoomFadeStorage _gShelterB4UpperSewerExitFade = { 0 };
 /// Only `loc.room`, `loc.area` and `loc.warp` are staged and committed;
 /// the remaining five bytes stay zero and are not consumed. A new exit replaces
 /// the selectors. Retains the eight-byte allocation and its two-byte alignment.
-static GameLoc _gShelterB4UpperSewerExitDestination __attribute__((aligned(2))) = { 0 };
+static GameLocationKey _gShelterB4UpperSewerExitDestination __attribute__((aligned(2))) = { 0 };
 
 /// Interrupted view selector restored after the water-hole scene.
 ///
@@ -1194,7 +1194,7 @@ static void _shelterB4UpperSewerOpenWaterHoleTask(Task* task)
         case SHELTER_B4_UPPER_SEWER_WATER_HOLE_CHOOSE:
             if (capGetVariantKey() == SHELTER_B4_UPPER_SEWER_WATER_HOLE_CANCEL_KEY) {
                 taskKill(task);
-                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = _gShelterB4UpperSewerSavedViewStorage.view;
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = _gShelterB4UpperSewerSavedViewStorage.view;
                 playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
                 playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO);
                 companionSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
@@ -1288,10 +1288,10 @@ static void _shelterB4UpperSewerExitTransitTask(Task* task)
             break;
         case SHELTER_B4_UPPER_SEWER_EXIT_RELOAD:
             // Publish the staged destination after the fade and transit sound finish.
-            gDisplayState.spriteVariant                                = SHELTER_B4_UPPER_SEWER_DEFAULT_SPRITE_VARIANT;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = _gShelterB4UpperSewerExitDestination.loc.area;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = _gShelterB4UpperSewerExitDestination.loc.warp;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = _gShelterB4UpperSewerExitDestination.loc.room;
+            gDisplayState.spriteVariant                            = SHELTER_B4_UPPER_SEWER_DEFAULT_SPRITE_VARIANT;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.area = _gShelterB4UpperSewerExitDestination.area;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp = _gShelterB4UpperSewerExitDestination.warp;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.room = _gShelterB4UpperSewerExitDestination.room;
             taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_SKIP_BATTLE_ESCAPE, 0);
             taskKill(task);
             break;
@@ -1318,9 +1318,9 @@ static inline void _shelterB4UpperSewerStageExit(const RoomEventMsg* reply, s32 
 {
     enum { SHELTER_B4_UPPER_SEWER_EXIT_TASK_INDEX = 1 };
 
-    _gShelterB4UpperSewerExitDestination.loc.area = (u8)reply->areaId;
-    _gShelterB4UpperSewerExitDestination.loc.warp = reply->warp;
-    _gShelterB4UpperSewerExitDestination.loc.room = reply->room;
+    _gShelterB4UpperSewerExitDestination.area = (u8)reply->areaId;
+    _gShelterB4UpperSewerExitDestination.warp = reply->warp;
+    _gShelterB4UpperSewerExitDestination.room = reply->room;
     taskSpawnFromTable(_gShelterB4UpperSewerInteractionTasks, SHELTER_B4_UPPER_SEWER_EXIT_TASK_INDEX, capCommand, 0);
 }
 
@@ -1378,9 +1378,9 @@ static s32 _shelterB4UpperSewerHandleWaterHoleCommand(Task* task, s32 messageId,
             companionSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
             gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_HIDDEN;
             // Preserve the interrupted camera view before the opening scene takes it.
-            savedView                                                  = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = SHELTER_B4_UPPER_SEWER_WATER_HOLE_SCENE_VIEW;
-            _gShelterB4UpperSewerSavedViewStorage.view                 = savedView;
+            savedView                                              = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = SHELTER_B4_UPPER_SEWER_WATER_HOLE_SCENE_VIEW;
+            _gShelterB4UpperSewerSavedViewStorage.view             = savedView;
             taskSpawnFromTable(_gShelterB4UpperSewerInteractionTasks, SHELTER_B4_UPPER_SEWER_WATER_HOLE_OPEN_TASK_INDEX, 0, 0);
         } else {
             capRunCommandWithTransition(SHELTER_B4_UPPER_SEWER_WATER_HOLE_OPEN_CAP_COMMAND);
@@ -1422,7 +1422,7 @@ static s32 _shelterB4UpperSewerHandleSoundCue(Task* task, s32 messageId, s32 cue
 /// callback changes only the saved view selector; it does not load a camera.
 static void _shelterB4UpperSewerRestoreSavedView(void)
 {
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = _gShelterB4UpperSewerSavedViewStorage.view;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = _gShelterB4UpperSewerSavedViewStorage.view;
 }
 
 /// Publishes the room task and restores water rendering after the reservoir event.
@@ -1494,7 +1494,7 @@ static void _shelterB4UpperSewerUpdateWater(Task* task)
     gGameSession->waterY = clampedWaterY;
     waterY               = clampedWaterY;
     blueIntensity        = (-waterY * 16) / 225;
-    if (gGameSession->location.loc.view != SHELTER_B4_UPPER_SEWER_WATER_VIEW_SKIP_FIRST_PATCH) {
+    if (gGameSession->location.view != SHELTER_B4_UPPER_SEWER_WATER_VIEW_SKIP_FIRST_PATCH) {
         _shelterB4UpperSewerDrawWaterSurfaces(task, _gShelterB4UpperSewerWaterSurfaces, waterY, blueIntensity);
     } else {
         _shelterB4UpperSewerDrawWaterSurfaces(task, &_gShelterB4UpperSewerWaterSurfaces[1], waterY, blueIntensity);
@@ -1667,7 +1667,7 @@ static void _shelterB4UpperSewerSetView13SpriteHidden(s32 hidden)
         SHELTER_B4_UPPER_SEWER_TOGGLE_SPRITE_VIEW  = 13,
         SHELTER_B4_UPPER_SEWER_TOGGLE_SPRITE_BATCH = 1
     };
-    const GameLocationKey* location = &gGameSession->location.loc;
+    const GameLocationKey* location = &gGameSession->location;
     SpriteBatch*           batches;
 
     batches = gSpriteAreaTables[location->stage - 1]->areaViews[location->area - 1][SHELTER_B4_UPPER_SEWER_TOGGLE_SPRITE_VIEW - 1].batches;

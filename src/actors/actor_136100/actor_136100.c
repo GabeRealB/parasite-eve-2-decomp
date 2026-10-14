@@ -1592,7 +1592,7 @@ static inline void _actor136100InitializeHead(Task* task)
         task->msgTable  = _gActor136100ModelMessages;
         taskReparent(_gActor136100SceneTask, task);
     }
-    place           = areaGetVariant(&gGameSession->location.loc)->placements;
+    place           = areaGetVariant(&gGameSession->location)->placements;
     resourceEntryId = place->entryId;
     while (resourceEntryId != AREA_PLACEMENT_END) {
         if (resourceEntryId == ACTOR_136100_HEAD_TEXTURE_ENTRY) {
@@ -2442,7 +2442,7 @@ static void _actor136100InitBody(Task* task)
     tmd->lightMtx = &work->light;
     tmd->colorMtx = &work->color;
     tmd->flags   &= (u16)~TMD_OBJECT_SKIP_AUTO_BUFFER;
-    place         = areaGetVariant(&gGameSession->location.loc)->placements;
+    place         = areaGetVariant(&gGameSession->location)->placements;
     entryId       = place->entryId;
     while (entryId != AREA_PLACEMENT_END) {
         if (entryId == TEXTURE_RESOURCE_ENTRY_ID) {

@@ -21,7 +21,7 @@ static void _madChaserQueueSoundBank(void)
 
     if (gSceneCombatState.enemySoundBankQueued == 0) {
         // The queue copies each selected file key and its load options immediately.
-        if (gGameSession->location.loc.stage == GAME_STAGE_MINE_SHELTER && (u32)(gGameSession->location.loc.area - GAME_AREA_SHELTER_B3_DUMPING_HOLE) < 2 && gGameSession->location.loc.variant == 1) {
+        if (gGameSession->location.stage == GAME_STAGE_MINE_SHELTER && (u32)(gGameSession->location.area - GAME_AREA_SHELTER_B3_DUMPING_HOLE) < 2 && gGameSession->location.variant == 1) {
             fileKeyBytes[2] = MAD_CHASER_SOUND_FILE_GROUP;
             fileKeyBytes[0] = MAD_CHASER_SOUND_FILE_VARIANT_1;
             fileKeyBytes[3] = 0;
@@ -30,7 +30,7 @@ static void _madChaserQueueSoundBank(void)
             loadArgs[2]     = 0;
             loadArgs[1]     = CD_COMMAND_LOAD_DEFAULT;
             cdCmdEnqueue(CD_COMMAND_LOAD_FILE, fileKeyBytes, loadArgs);
-        } else if (gGameSession->location.loc.stage == GAME_STAGE_MINE_SHELTER && (u32)(gGameSession->location.loc.area - GAME_AREA_SHELTER_B3_DUMPING_HOLE) < 2 && gGameSession->location.loc.variant == 2) {
+        } else if (gGameSession->location.stage == GAME_STAGE_MINE_SHELTER && (u32)(gGameSession->location.area - GAME_AREA_SHELTER_B3_DUMPING_HOLE) < 2 && gGameSession->location.variant == 2) {
             fileKeyBytes[2] = MAD_CHASER_SOUND_FILE_GROUP;
             fileKeyBytes[0] = MAD_CHASER_SOUND_FILE_VARIANT_2;
             fileKeyBytes[3] = 0;

@@ -16,7 +16,7 @@ static void _gluttonPropSetup(Enemy* enemy, Task* task)
     s32                    placeIndex;
     u32                    placeKey;
 
-    sessionLocation = &gGameSession->location.loc;
+    sessionLocation = &gGameSession->location;
     placeKey        = ((Enemy*)task->parent->spawnArg2.pointer)->placeKey;
     model           = task->extra.tmd;
     location.stage  = sessionLocation->stage;

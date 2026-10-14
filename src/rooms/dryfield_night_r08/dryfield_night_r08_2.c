@@ -457,7 +457,7 @@ void dryfieldNightR08DrawGlowsTask(Task* task)
     }
 
     // Each beam borrows a consecutive endpoint pair; flare points are single entries.
-    switch (gGameSession->location.loc.view) {
+    switch (gGameSession->location.view) {
         case 3:
             _glowDrawBeam(_gDryfieldNightR08GlowPlacements.beamEndpoints[1], DRYFIELD_NIGHT_R08_BEAM_RADIUS_SCALE, GLOW_HALF_TURN, DRYFIELD_NIGHT_R08_BEAM_GREEN);
             _glowDrawBeam(_gDryfieldNightR08GlowPlacements.beamEndpoints[2], DRYFIELD_NIGHT_R08_BEAM_RADIUS_SCALE, 0, DRYFIELD_NIGHT_R08_BEAM_GREEN);

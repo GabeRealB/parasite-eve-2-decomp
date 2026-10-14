@@ -12,7 +12,7 @@ void FACTORY_ROOM_INSTANCE_SET_VIEW9_SPRITE_VISIBLE(s32 visible)
     SpriteBatch*           view9Batches;
 
     session  = gGameSession;
-    location = &session->location.loc;
+    location = &session->location;
     // The separate power sprite belongs to the daytime background in both instances.
     if (location->stage == GAME_STAGE_DRYFIELD) {
         view9Batches = gSpriteAreaTables[location->stage - 1][session->spriteVariant - 1].areaViews[location->area - 1][FACTORY_ROOM_POWER_SPRITE_VIEW - 1].batches;

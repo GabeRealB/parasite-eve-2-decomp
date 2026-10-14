@@ -1104,10 +1104,10 @@ static void _dryfieldNightTrailerCoachInitRoomTask(Task* task)
         TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_COMPANION), ANIMATION_MESSAGE_PLAY, &_gDryfieldNightTrailerCoachFlintArrivalAnimation, 0);
     }
     // Arrival scripts own their normal and skipped restoration paths.
-    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp == DRYFIELD_NIGHT_TRAILER_COACH_ARRIVAL_WARP_2) {
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp == DRYFIELD_NIGHT_TRAILER_COACH_ARRIVAL_WARP_2) {
         evsStartScriptWithSkip(_gDryfieldNightTrailerCoachWarp2ArrivalScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, _gDryfieldNightTrailerCoachWarp2ArrivalSkipScript);
     }
-    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp == DRYFIELD_NIGHT_TRAILER_COACH_ARRIVAL_WARP_3) {
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp == DRYFIELD_NIGHT_TRAILER_COACH_ARRIVAL_WARP_3) {
         evsStartScriptWithSkip(gDryfieldNightTrailerCoachWarp3ArrivalScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, gDryfieldNightTrailerCoachWarp3ArrivalSkipScript);
         areaSetCurrentObjectState(DRYFIELD_NIGHT_TRAILER_COACH_ARRIVAL_OBJECT, 1);
     }
@@ -1244,9 +1244,9 @@ static inline void _dryfieldNightTrailerCoachQueueCutscene(void)
         DRYFIELD_NIGHT_TRAILER_COACH_CUTSCENE_AFTER_SCENE_SOUND = SOUND_AREA(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_TRAILER_COACH, 6)
     };
 
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = DRYFIELD_NIGHT_TRAILER_COACH_CUTSCENE_WARP;
-    gDryfieldNightTrailerCoachCutscene.view                    = DRYFIELD_NIGHT_TRAILER_COACH_CUTSCENE_VIEW;
-    gDryfieldNightTrailerCoachCutscene.capSlot                 = DRYFIELD_NIGHT_TRAILER_COACH_CUTSCENE_CAP_SLOT;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp = DRYFIELD_NIGHT_TRAILER_COACH_CUTSCENE_WARP;
+    gDryfieldNightTrailerCoachCutscene.view                = DRYFIELD_NIGHT_TRAILER_COACH_CUTSCENE_VIEW;
+    gDryfieldNightTrailerCoachCutscene.capSlot             = DRYFIELD_NIGHT_TRAILER_COACH_CUTSCENE_CAP_SLOT;
     if (gameFlagGetNibble(GAME_FLAG_STORY_CHAPTER) < DRYFIELD_NIGHT_TRAILER_COACH_LATE_CHAPTER) {
         gDryfieldNightTrailerCoachCutscene.capTPageX = DRYFIELD_NIGHT_TRAILER_COACH_CUTSCENE_TPAGE_X_EARLY;
         gDryfieldNightTrailerCoachCutscene.capFile   = DRYFIELD_NIGHT_TRAILER_COACH_CUTSCENE_CAP_FILE_EARLY;

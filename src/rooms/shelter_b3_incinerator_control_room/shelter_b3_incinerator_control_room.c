@@ -177,7 +177,7 @@ static inline void _shelterB3IncineratorControlRoomStartPanelScene(s32 capSlot)
         SHELTER_B3_INCINERATOR_CONTROL_ROOM_PANEL_AFTER_SCENE_SOUND = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B3_INCINERATOR_CONTROL_ROOM, 3),
     };
 
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp        = capSlot;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp            = capSlot;
     gShelterB3IncineratorControlRoomTelephoneCutscene.view            = SHELTER_B3_INCINERATOR_CONTROL_ROOM_PANEL_VIEW;
     gShelterB3IncineratorControlRoomTelephoneCutscene.capSlot         = capSlot;
     gShelterB3IncineratorControlRoomTelephoneCutscene.capFile         = capSlot;
@@ -252,7 +252,7 @@ static void _shelterB3IncineratorControlRoomInitializeRoom(Task* task)
     task->msgTable = _gShelterB3IncineratorControlRoomMessageTable;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     task->state++;
-    if (gGameSession->location.loc.warp == SHELTER_B3_INCINERATOR_CONTROL_ROOM_INCINERATOR_ARRIVAL) {
+    if (gGameSession->location.warp == SHELTER_B3_INCINERATOR_CONTROL_ROOM_INCINERATOR_ARRIVAL) {
         gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, SHELTER_B3_INCINERATOR_CONTROL_ROOM_ARRIVAL_OBJECTIVE);
         areaApplySavedUpdates(gShelterB3IncineratorControlRoomArrivalSavedUpdates);
         companionRestoreFullHp();

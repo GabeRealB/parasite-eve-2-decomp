@@ -14,6 +14,14 @@
 #include "gameplay/model_objects.h"
 
 /* Define BSS before API headers to preserve first-declaration order. */
+
+TaskNode gTaskDefaultList;
+
+/// BSS bytes with no established use; their original type and role are unproven.
+u8 D_800716E8[8];
+
+#include "main/task.h"
+
 /// Borrowed head of the selected execution list for spawning and tail unlinking.
 ///
 /// The selected head is an initialized bare `TaskNode`, not an embedded task
@@ -26,13 +34,6 @@
 /// restore it explicitly. The default frame walk selects `gTaskDefaultList`
 /// before invoking callbacks; ordinary spawns use the current selection.
 static TaskNode* _gTaskActiveList;
-
-TaskNode gTaskDefaultList;
-
-/// BSS bytes with no established use; their original type and role are unproven.
-static u8 D_800716E8[8];
-
-#include "main/task.h"
 
 /// Mask selecting the low-byte body kind from a task descriptor's flags halfword.
 ///

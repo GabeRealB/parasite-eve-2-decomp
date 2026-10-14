@@ -618,7 +618,7 @@ static void _shelterB1SterilizationRoomInitializeState(Task* task)
     task->msgTable = _gShelterB1SterilizationRoomMessageTable;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     // Start the first variant-5 event before installing its actor obstacle.
-    if (gGameSession->location.loc.variant == SHELTER_B1_STERILIZATION_ROOM_ACTOR_EVENT_VARIANT && gameFlagGetNibble(GAME_FLAG_STERILIZATION_ROOM_EVENT_STATE) == ENTRY_EVENT_UNSEEN) {
+    if (gGameSession->location.variant == SHELTER_B1_STERILIZATION_ROOM_ACTOR_EVENT_VARIANT && gameFlagGetNibble(GAME_FLAG_STERILIZATION_ROOM_EVENT_STATE) == ENTRY_EVENT_UNSEEN) {
         gameFlagSetNibble(GAME_FLAG_UNDERGROUND_PARKING_STATE, PARKING_PROGRESS_EVENT_STARTED);
         areaApplySavedUpdates(gShelterB1SterilizationRoomActorEventAreaUpdates);
         if (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != NULL) {
@@ -626,7 +626,7 @@ static void _shelterB1SterilizationRoomInitializeState(Task* task)
             gameFlagSetNibble(GAME_FLAG_STERILIZATION_ROOM_EVENT_STATE, ENTRY_EVENT_WITH_COMPANION);
             gameFlagSetNibble(GAME_FLAG_COMPANION_2_SCHEDULE, COMPANION_EVENT_SCHEDULE);
             evsStartScriptWithSkip(gActor160600SceneWithCompanionScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, gActor160600SceneSkipScript);
-            areaSetPlacementVariant(&gGameSession->location.loc, COMPANION_PLACEMENT_VARIANT, AREA_VARIANT_RESET_ALWAYS);
+            areaSetPlacementVariant(&gGameSession->location, COMPANION_PLACEMENT_VARIANT, AREA_VARIANT_RESET_ALWAYS);
         } else {
             gameFlagSetNibble(GAME_FLAG_SOLDIER_B_REMARK_STATE, COMPANION_REMARK_ABSENT);
             gameFlagSetNibble(GAME_FLAG_STERILIZATION_ROOM_EVENT_STATE, ENTRY_EVENT_WITHOUT_COMPANION);
@@ -634,7 +634,7 @@ static void _shelterB1SterilizationRoomInitializeState(Task* task)
         }
     }
     _shelterB1SterilizationRoomInitializeActorObstacle(0);
-    if (gGameSession->location.loc.variant == SHELTER_B1_STERILIZATION_ROOM_ACTOR_EVENT_VARIANT) {
+    if (gGameSession->location.variant == SHELTER_B1_STERILIZATION_ROOM_ACTOR_EVENT_VARIANT) {
         placedActor = sceneFindPlacedActor(SHELTER_B1_STERILIZATION_ROOM_EVENT_ACTOR_PLACEMENT);
         if (placedActor != NULL) {
             TASK_MESSAGE_DISPATCH_POINTER(placedActor, ACTOR_COMMAND_MESSAGE_APPLY, &_gShelterB1SterilizationRoomStartSmokingCommand, 0);
@@ -646,7 +646,7 @@ static void _shelterB1SterilizationRoomInitializeState(Task* task)
         eventTrigger         = &gShelterB1SterilizationRoomActionTriggers[EVENT_TRIGGER_INDEX];
         eventTrigger->flags &= (0xFF ^ WORLD_COLLISION_TRIGGER_ENABLED);
     }
-    if (gGameSession->location.loc.variant == FIRST_ENTRY_VARIANT) {
+    if (gGameSession->location.variant == FIRST_ENTRY_VARIANT) {
         taskSpawnFromTable(gShelterB1SterilizationRoomEventTaskDescs, SHELTER_B1_STERILIZATION_ROOM_TASK_RESET_SPAWN_MASK, 0, 0);
     }
     task->state++;
@@ -880,7 +880,7 @@ static s32 _shelterB1SterilizationRoomHandleCommandMessage(Task* task, s32 messa
         }
     }
     if (command == COMMAND_PRESENTATION_12 || command == COMMAND_PRESENTATION_13) {
-        if (gGameSession->location.loc.room == PRESENTATION_ROOM) {
+        if (gGameSession->location.room == PRESENTATION_ROOM) {
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
             taskSpawnFromTable(&_gShelterB1SterilizationRoomScriptedPresentationTaskDesc, 0, command, 0);
         }
@@ -980,7 +980,7 @@ static void _shelterB1SterilizationRoomInitializeActorObstacle(s32 unused)
         modelActor = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     }
     if (placedActor != NULL) {
-        if (gGameSession->location.loc.variant == SHELTER_B1_STERILIZATION_ROOM_ACTOR_EVENT_VARIANT && gameFlagGetNibble(GAME_FLAG_STERILIZATION_ROOM_EVENT_STATE) == SHELTER_B1_STERILIZATION_ROOM_ACTOR_EVENT_ACTIVE) {
+        if (gGameSession->location.variant == SHELTER_B1_STERILIZATION_ROOM_ACTOR_EVENT_VARIANT && gameFlagGetNibble(GAME_FLAG_STERILIZATION_ROOM_EVENT_STATE) == SHELTER_B1_STERILIZATION_ROOM_ACTOR_EVENT_ACTIVE) {
             _gShelterB1SterilizationRoomEventActorObstacleOffset[1] = 0;
         } else {
             _gShelterB1SterilizationRoomEventActorObstacleOffset[1] = SHELTER_B1_STERILIZATION_ROOM_INACTIVE_OBSTACLE_HEIGHT;
@@ -1036,7 +1036,7 @@ static s32 _shelterB1SterilizationRoomSoundMessage(Task* task, s32 messageId, s3
 /// The room task remains in this state; `task` is unused.
 static void _shelterB1SterilizationRoomUpdateState(Task* task)
 {
-    if (gGameSession->location.loc.variant == SHELTER_B1_STERILIZATION_ROOM_ACTOR_EVENT_VARIANT) {
+    if (gGameSession->location.variant == SHELTER_B1_STERILIZATION_ROOM_ACTOR_EVENT_VARIANT) {
         _shelterB1SterilizationRoomUpdateEventActorVisibility();
     }
 }
@@ -1055,7 +1055,7 @@ static void _shelterB1SterilizationRoomUpdateEventActorVisibility(void)
     };
     s32 view;
 
-    view = gGameSession->location.loc.view;
+    view = gGameSession->location.view;
     if ((gameFlagGetNibble(GAME_FLAG_STERILIZATION_ROOM_EVENT_STATE) == SHELTER_B1_STERILIZATION_ROOM_ACTOR_EVENT_ACTIVE) && (gGameSession->eventState == 0)) {
         if (view == SHELTER_B1_STERILIZATION_ROOM_EVENT_ACTOR_VIEW_2 || view == SHELTER_B1_STERILIZATION_ROOM_EVENT_ACTOR_VIEW_3) {
             sceneSetPlacedActorDrawMode(SHELTER_B1_STERILIZATION_ROOM_EVENT_ACTOR_PLACEMENT, SHELTER_B1_STERILIZATION_ROOM_ACTOR_VISIBLE);
@@ -1313,9 +1313,9 @@ static void _shelterB1SterilizationRoomDoorPassageTask(Task* task)
             break;
         case SHELTER_B1_STERILIZATION_ROOM_DOOR_PLACE_PLAYER:
             // Switch the view and placement while the screen is fully dark.
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = _gShelterB1SterilizationRoomDoorDestinations[task->spawnArg1.value].view;
-            gGameSession->location.loc.view                            = _gShelterB1SterilizationRoomDoorDestinations[task->spawnArg1.value].view;
-            gGameSession->viewDirty                                    = 1;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = _gShelterB1SterilizationRoomDoorDestinations[task->spawnArg1.value].view;
+            gGameSession->location.view                            = _gShelterB1SterilizationRoomDoorDestinations[task->spawnArg1.value].view;
+            gGameSession->viewDirty                                = 1;
             TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_PLACE,
                                           &_gShelterB1SterilizationRoomDoorPlacements[_gShelterB1SterilizationRoomDoorDestinations[task->spawnArg1.value].placementIndex],
                                           0);

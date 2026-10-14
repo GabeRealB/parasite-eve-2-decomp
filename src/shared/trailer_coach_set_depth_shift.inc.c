@@ -9,7 +9,7 @@ static void _trailerCoachSetDepthShift(Task* unusedTask)
     // Retain the unused local storage present in this leaf's 16-byte stack frame.
     char unusedStackSpace[16];
 
-    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view == TRAILER_COACH_FINE_DEPTH_VIEW) {
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view == TRAILER_COACH_FINE_DEPTH_VIEW) {
         gDisplayState.otDepthShift = DISPLAY_DEPTH_SHIFT_1X;
     } else {
         gDisplayState.otDepthShift = DISPLAY_DEPTH_SHIFT_8X;

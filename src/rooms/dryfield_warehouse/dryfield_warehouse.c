@@ -272,7 +272,7 @@ void dryfieldWarehouseAmbienceTask(Task* task)
     // Room events mute the ambience; idle views select a percentage gain.
     targetVolumePercent = DRYFIELD_WAREHOUSE_AMBIENCE_SILENT;
     if (gGameSession->eventState == 0) {
-        switch (gGameSession->location.loc.view) {
+        switch (gGameSession->location.view) {
             case DRYFIELD_WAREHOUSE_AMBIENCE_FULL_VIEW:
                 targetVolumePercent = DRYFIELD_WAREHOUSE_AMBIENCE_FULL_PERCENT;
                 break;

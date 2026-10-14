@@ -591,9 +591,6 @@ enum {
 /// Retry/progress polls for the serialized chunk read, or remaining speed-settle polls.
 static s32 _gCdStreamReadStepPollCount;
 
-/// BSS bytes with no established use; their original type and role are unproven.
-static u8 D_800827F0[8];
-
 /// CD header workspace used while receiving audio and scene-image sectors.
 ///
 /// Each transfer overwrites `header` before the payload is read into separate
@@ -630,7 +627,7 @@ static volatile s32 _gCdStreamLastReadStep;
 static CdStreamRuntime _gCdStreamRuntime;
 
 /// Four-slot disc-job ring and installed CD-ready handler state; at most three jobs are queued.
-static _CdReadyQueue _gCdReadyQueue;
+_CdReadyQueue _gCdReadyQueue;
 
 static volatile s32 D_80068B54;
 

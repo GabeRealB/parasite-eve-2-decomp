@@ -241,7 +241,7 @@ enum {
 /// tests consume them. Requires faceCount <= capacity and valid cell face IDs.
 /// Marks beyond the active face count are stale and never part of the query.
 /// This shared workspace makes candidate queries sequential, not reentrant.
-static u8 _gWorldCollisionGridFaceCandidates[WORLD_COLLISION_GRID_FACE_CAPACITY];
+u8 _gWorldCollisionGridFaceCandidates[WORLD_COLLISION_GRID_FACE_CAPACITY];
 
 WorldCollisionOccluder* gWorldCollisionOccluderListHead;
 
@@ -434,7 +434,7 @@ void worldCollisionCollideCapsuleGrid(const WorldCollisionBody* body)
             contact = body->context.capsule->contacts;
             // Clipping bodies keep the nearest blocking hit in contact zero.
             if (body->flags & WORLD_COLLISION_BODY_CLIP_TO_GRID_CONTACT) {
-                if (gWorldCollisionSurfacePropertiesTables[gGameSession->location.loc.stage - 1][gGameSession->location.loc.area - 1]
+                if (gWorldCollisionSurfacePropertiesTables[gGameSession->location.stage - 1][gGameSession->location.area - 1]
                                                           [gWorldCollisionActiveGrid->faces[faceIndex].surfaceClass]
                                                               ->probePassThrough == WORLD_COLLISION_SURFACE_BLOCK_PROBES) {
                     contact->distance = 0;
@@ -675,7 +675,7 @@ s32 worldCollisionProbeGridSegment(const SVECTOR* target, const SVECTOR* start, 
         if (_gWorldCollisionGridFaceCandidates[faceIndex] == WORLD_COLLISION_GRID_FACE_NOT_CANDIDATE) {
             continue;
         }
-        if (gWorldCollisionSurfacePropertiesTables[gGameSession->location.loc.stage - 1][gGameSession->location.loc.area - 1]
+        if (gWorldCollisionSurfacePropertiesTables[gGameSession->location.stage - 1][gGameSession->location.area - 1]
                                                   [gWorldCollisionActiveGrid->faces[faceIndex].surfaceClass]
                                                       ->probePassThrough != WORLD_COLLISION_SURFACE_BLOCK_PROBES) {
             continue;

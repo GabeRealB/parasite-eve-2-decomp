@@ -825,7 +825,7 @@ void loadingEnqueueViewResourcesTask(Task* task)
     CdCmdFileKey      fileKey;
     CdCmdFileLoadArgs loadArgs;
 
-    location = &gGameSession->location.loc;
+    location = &gGameSession->location;
     if (cdCmdIsIdle()) {
         fileKey.stage             = location->stage;
         fileKey.fileGroup         = location->area;
@@ -962,9 +962,9 @@ static void _loadingReloadSavedView(void)
 
     viewGateTask                  = gameGetTaskSlot(GAME_TASK_SLOT_VIEW_GATE);
     liveSave                      = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
-    viewGateTask->spawnArg1.value = liveSave->state.location.loc.view;
+    viewGateTask->spawnArg1.value = liveSave->state.location.view;
     _loadingResetViewDrawing();
-    gGameSession->location.loc.view = liveSave->state.location.loc.view;
+    gGameSession->location.view = liveSave->state.location.view;
     padStartInputBlock(LOADING_VIEW_INPUT_PORT);
     viewQueueCurrentCamera(VIEW_PACKET_LIST_NONE);
     gGameSession->viewReady = LOADING_VIEW_NOT_READY;
@@ -983,10 +983,10 @@ static void _loadingReloadView(s32 logicalViewIndex)
 {
     Task* viewGateTask;
 
-    viewGateTask                                               = gameGetTaskSlot(GAME_TASK_SLOT_VIEW_GATE);
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = logicalViewIndex;
-    gGameSession->location.loc.view                            = logicalViewIndex;
-    viewGateTask->spawnArg1.value                              = (u8)logicalViewIndex;
+    viewGateTask                                           = gameGetTaskSlot(GAME_TASK_SLOT_VIEW_GATE);
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = logicalViewIndex;
+    gGameSession->location.view                            = logicalViewIndex;
+    viewGateTask->spawnArg1.value                          = (u8)logicalViewIndex;
     padStartInputBlock(LOADING_VIEW_INPUT_PORT);
     viewQueueCurrentCamera(VIEW_PACKET_LIST_DEFAULT);
     gDisplayState.control.flags.imageSource = DISPLAY_IMAGE_STRIPS;
@@ -997,9 +997,9 @@ void viewCommitIndexTask(Task* task)
 {
     u8 viewIndex;
 
-    viewIndex                                                  = (u8)task->spawnArg1.value;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = viewIndex;
-    gGameSession->location.loc.view                            = viewIndex;
+    viewIndex                                              = (u8)task->spawnArg1.value;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = viewIndex;
+    gGameSession->location.view                            = viewIndex;
     taskKill(task);
 }
 
@@ -1046,8 +1046,8 @@ void loadingRestoreViewImageAndEnqueueResources(u8 skipBackground)
         }
     }
     session                 = gGameSession;
-    fileKey.stage           = session->location.loc.stage;
-    fileKey.fileGroup       = session->location.loc.area;
+    fileKey.stage           = session->location.stage;
+    fileKey.fileGroup       = session->location.area;
     fileKey.fileIndex       = viewGetMappedIndex();
     loadArgs.fileIdHundreds = LOADING_VIEW_FOLDER_SUFFIX;
     if (skipBackground != 0) {
@@ -1119,10 +1119,10 @@ void loadingEnqueueStageResources(void)
     CdCmdFileLoadArgs loadArgs;
 
     // Mount the new CDF before loading its stage-specific map and room names.
-    cdCmdEnqueue(CD_COMMAND_MOUNT_STAGE, &gGameSession->location.loc, NULL);
+    cdCmdEnqueue(CD_COMMAND_MOUNT_STAGE, &gGameSession->location, NULL);
     fileKey.stage             = LOADING_GLOBAL_CDF;
     fileKey.fileGroup         = LOADING_STAGE_MAP_FILE_GROUP;
-    fileKey.fileIndex         = gGameSession->location.loc.stage;
+    fileKey.fileIndex         = gGameSession->location.stage;
     loadArgs.imageYOffset     = 0;
     loadArgs.imageXPageOffset = 0;
     loadArgs.loadMode         = CD_COMMAND_LOAD_DEFAULT;

@@ -1927,7 +1927,7 @@ static inline void _actor03700SpawnRemains(Task* task)
     if (remains == NULL) {
         return;
     }
-    sessionLocation = &gGameSession->location.loc;
+    sessionLocation = &gGameSession->location;
     placeKey        = ((Enemy*)task->spawnArg2.pointer)->placeKey;
     remainsModel    = remains->task->extra.tmd;
     location.stage  = sessionLocation->stage;

@@ -1745,8 +1745,8 @@ static inline void _acropolisSquareStartRoomCutscene(void)
         ACROPOLIS_SQUARE_CUTSCENE_TASK_ENTRY   = 0,
         ACROPOLIS_SQUARE_CUTSCENE_FOLLOWUP     = 2,
     };
-    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp == ACROPOLIS_SQUARE_CUTSCENE_ARRIVAL_WARP) {
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = ACROPOLIS_SQUARE_CUTSCENE_RESUME_WARP;
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp == ACROPOLIS_SQUARE_CUTSCENE_ARRIVAL_WARP) {
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp = ACROPOLIS_SQUARE_CUTSCENE_RESUME_WARP;
     }
     _gAcropolisSquareCutsceneRec.rec.view            = ACROPOLIS_SQUARE_CUTSCENE_VIEW;
     _gAcropolisSquareCutsceneRec.rec.capSlot         = ACROPOLIS_SQUARE_CUTSCENE_CAP_SLOT;
@@ -1878,8 +1878,8 @@ static void _acropolisSquareSirenSequenceTask(Task* task)
 
         case ACROPOLIS_SQUARE_SIREN_WAIT_HANDOFF:
             // End the alarm after leaving views 5..7/9 or consuming its follow-up.
-            if (((u32)(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view - ACROPOLIS_SQUARE_SIREN_FIRST_FOLLOWUP_VIEW) >= (u32)ACROPOLIS_SQUARE_SIREN_FOLLOWUP_VIEW_COUNT &&
-                 gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view != ACROPOLIS_SQUARE_SIREN_SCENE_VIEW) ||
+            if (((u32)(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view - ACROPOLIS_SQUARE_SIREN_FIRST_FOLLOWUP_VIEW) >= (u32)ACROPOLIS_SQUARE_SIREN_FOLLOWUP_VIEW_COUNT &&
+                 gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view != ACROPOLIS_SQUARE_SIREN_SCENE_VIEW) ||
                 _gAcropolisSquareSirenFollowupPending == 0) {
                 if (_gAcropolisSquareSirenFollowupPending != 0) {
                     gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
@@ -1965,7 +1965,7 @@ static void _acropolisSquareScrollingBackdropTask(Task* task)
             break;
 
         case ACROPOLIS_SQUARE_BACKDROP_FINISH:
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = ACROPOLIS_SQUARE_BACKDROP_FINISH_VIEW;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = ACROPOLIS_SQUARE_BACKDROP_FINISH_VIEW;
             taskKill(task);
             break;
     }
@@ -2066,7 +2066,7 @@ static void _acropolisSquareCapViewSequenceTask(Task* task)
             task->state++;
             return;
         case ACROPOLIS_SQUARE_CAP_VIEW_FIRST_SELECT:
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = ACROPOLIS_SQUARE_CAP_VIEW_FIRST;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = ACROPOLIS_SQUARE_CAP_VIEW_FIRST;
             task->state++;
             return;
         case ACROPOLIS_SQUARE_CAP_VIEW_SECOND_START:
@@ -2079,7 +2079,7 @@ static void _acropolisSquareCapViewSequenceTask(Task* task)
             return;
         case ACROPOLIS_SQUARE_CAP_VIEW_SECOND_SELECT:
             capRunCommandWithTransition(ACROPOLIS_SQUARE_CAP_VIEW_COMMAND);
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = ACROPOLIS_SQUARE_CAP_VIEW_SECOND;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = ACROPOLIS_SQUARE_CAP_VIEW_SECOND;
             task->state++;
             return;
         case ACROPOLIS_SQUARE_CAP_VIEW_FIRST_FINISH:
@@ -2136,7 +2136,7 @@ static void _acropolisSquareIdleRoomTask(Task* unusedTask)
     enum { ACROPOLIS_SQUARE_CUTSCENE_ARRIVAL_WARP = 7,
            ACROPOLIS_SQUARE_ARRIVAL_SCENE_EVENT   = 2 };
 
-    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp == ACROPOLIS_SQUARE_CUTSCENE_ARRIVAL_WARP && _gAcropolisSquareArrivalEventStarted == 0) {
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp == ACROPOLIS_SQUARE_CUTSCENE_ARRIVAL_WARP && _gAcropolisSquareArrivalEventStarted == 0) {
         _gAcropolisSquareArrivalEventStarted                = 1;
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = ACROPOLIS_SQUARE_ARRIVAL_SCENE_EVENT;
         evsStartScriptWithSkip(_gAcropolisSquareArrivalEventScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, _gAcropolisSquareArrivalSkipScript);
@@ -2209,21 +2209,21 @@ void acropolisSquareRoomEffectTask(Task* task)
             return;
         case ACROPOLIS_SQUARE_ROOM_EFFECT_ACTIVE:
             // Each visible beacon uses its own packed pulse/radius/colour/shape preset.
-            if ((ACROPOLIS_SQUARE_BEACON_VIEW_MASK >> (gGameSession->location.loc.view - 1)) & 1) {
+            if ((ACROPOLIS_SQUARE_BEACON_VIEW_MASK >> (gGameSession->location.view - 1)) & 1) {
                 work->move.vx = 0x19AA;
                 work->move.vy = -0xF96;
                 work->move.vz = 0x8DE;
                 effectSpawn(EFFECT_ACROPOLIS_SQUARE_BEACON_GLOW, roomCoord, _gAcropolisSquareBeaconGlowMode * ACROPOLIS_SQUARE_BEACON_FRONT_MODE_DELTA + ACROPOLIS_SQUARE_BEACON_FRONT_BASE,
                             &work->move);
             }
-            if (gGameSession->location.loc.view == ACROPOLIS_SQUARE_BEACON_SIDE_VIEW) {
+            if (gGameSession->location.view == ACROPOLIS_SQUARE_BEACON_SIDE_VIEW) {
                 work->move.vx = 0x18D2;
                 work->move.vy = -0x100B;
                 work->move.vz = 0x8AB;
                 effectSpawn(EFFECT_ACROPOLIS_SQUARE_BEACON_GLOW, roomCoord, _gAcropolisSquareBeaconGlowMode * ACROPOLIS_SQUARE_BEACON_SIDE_MODE_DELTA + ACROPOLIS_SQUARE_BEACON_SIDE_BASE,
                             &work->move);
             }
-            if (gGameSession->location.loc.view == ACROPOLIS_SQUARE_BEACON_ROUND_VIEW) {
+            if (gGameSession->location.view == ACROPOLIS_SQUARE_BEACON_ROUND_VIEW) {
                 work->move.vx = 0x19AA;
                 work->move.vy = -0xF96;
                 work->move.vz = 0x8E8;

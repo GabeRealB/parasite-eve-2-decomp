@@ -1238,7 +1238,7 @@ static void _actor113100SpawnPierceCarradine(Task* task)
     work->walk.carry[0].word = 0;
     work->walk.carry[1].word = 0;
     work->walk.carry[2].word = 0;
-    if (gGameSession->location.loc.variant == ACTOR_113100_BILLBOARD_VARIANT) {
+    if (gGameSession->location.variant == ACTOR_113100_BILLBOARD_VARIANT) {
         work->billboardTask = taskSpawnFromTable(gActor113100PierceCarradineTaskDescriptors, ACTOR_113100_BILLBOARD_CHILD, ACTOR_113100_BILLBOARD_PARENT_PART, task);
     }
 
@@ -1378,12 +1378,12 @@ static void _actor113100UpdatePierceCarradine(Task* task)
             if (soundCue != NULL) {
                 if (soundCue->flags & ANIMATION_RECORD_CUE_2) {
                     soundId = ACTOR_113100_STEP_FIRST;
-                    if (gGameSession->location.loc.view == ACTOR_113100_ALTERNATE_STEP_VIEW) {
+                    if (gGameSession->location.view == ACTOR_113100_ALTERNATE_STEP_VIEW) {
                         soundId = ACTOR_113100_STEP_ALTERNATE;
                     }
                     sndEvtRequestScriptStart(soundId, (s8)worldCoordGetOriginAudioPan(rootCoord), (s8)worldCoordGetOriginAudioDepth(rootCoord));
                 }
-                if ((soundCue->flags & ANIMATION_RECORD_CUE_1) && (gGameSession->location.loc.view != ACTOR_113100_ALTERNATE_STEP_VIEW)) {
+                if ((soundCue->flags & ANIMATION_RECORD_CUE_1) && (gGameSession->location.view != ACTOR_113100_ALTERNATE_STEP_VIEW)) {
                     sndEvtRequestScriptStart(SOUND_MIST_PARKING_PIERCE_STEP_2, (s8)worldCoordGetOriginAudioPan(rootCoord), (s8)worldCoordGetOriginAudioDepth(rootCoord));
                 }
             }
@@ -1740,7 +1740,7 @@ static void _actor113100FaceBillboardToCamera(Task* task)
     rootCoord       = task->extra.tmd->coords;
     parentTask      = task->spawnArg2.pointer;
     parentPart      = &parentTask->extra.tmd->coords[parentPartIndex];
-    viewMatrix      = &viewGetMappedCamera(&gGameSession->location.loc)->transform;
+    viewMatrix      = &viewGetMappedCamera(&gGameSession->location)->transform;
     billboardMatrix = &rootCoord->coord;
     TransposeMatrix(&parentPart->workm, billboardMatrix);
     TransposeMatrix(viewMatrix, &inverseView);

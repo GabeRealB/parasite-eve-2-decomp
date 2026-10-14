@@ -18,10 +18,10 @@ static inline void _actionPromptRestoreEventPlay(void)
     playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
     playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO);
     displayReleaseMenuHold();
-    gGameSession->eventState                                   = ACTION_PROMPT_EVENT_IDLE;
-    gGameSession->hideHud                                      = false;
-    gGameSession->cutsceneHold                                 = false;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = ACTION_PROMPT_EVENT_RETURN_VIEW;
+    gGameSession->eventState                               = ACTION_PROMPT_EVENT_IDLE;
+    gGameSession->hideHud                                  = false;
+    gGameSession->cutsceneHold                             = false;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = ACTION_PROMPT_EVENT_RETURN_VIEW;
 }
 
 /// Ends a room's action-prompt event and restores normal play.

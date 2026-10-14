@@ -98,7 +98,7 @@ extern Task* gRoomCutsceneSoundTask;
 /// A scene command fills all fields before spawning the bodyless runner.
 /// The runner borrows this singleton through completion; keep the overlay
 /// loaded and do not overwrite the request while that scene is live.
-static RoomCutsceneRec _gAcropolisFireEscapeRepeatScene;
+RoomCutsceneRec _gAcropolisFireEscapeRepeatScene;
 
 #include "../../shared/telephone.h"
 
@@ -864,7 +864,7 @@ static void _acropolisFireEscapeAmbienceTask(Task* task)
             return;
     }
 
-    switch (gGameSession->location.loc.view) {
+    switch (gGameSession->location.view) {
         case 8:
             levelPercent = ACROPOLIS_FIRE_ESCAPE_AMBIENCE_FULL_PERCENT;
             // Commit the music column before queuing its asynchronous loader.
@@ -1047,19 +1047,19 @@ void acropolisFireEscapeLightEmitterTask(Task* task)
         case ACROPOLIS_FIRE_ESCAPE_LIGHT_EMITTER_EMIT:
             // Actor pause/hide modes still emit; a cancellation update suppresses emission.
             if (gRoomEffectState->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
-                if (gGameSession->location.loc.view == ACROPOLIS_FIRE_ESCAPE_RED_DIAMOND_VIEW) {
+                if (gGameSession->location.view == ACROPOLIS_FIRE_ESCAPE_RED_DIAMOND_VIEW) {
                     _acropolisFireEscapeSpawnFlare(emitterWork, emitterCoord, 1167, -913, 1670,
                                                    (ACROPOLIS_FIRE_ESCAPE_RED_DIAMOND_RADIUS << ACROPOLIS_FIRE_ESCAPE_FLARE_RADIUS_SHIFT) | ACROPOLIS_FIRE_ESCAPE_RED_PULSE_RATE);
                 }
-                if (gGameSession->location.loc.view == ACROPOLIS_FIRE_ESCAPE_RED_RADIAL_VIEW) {
+                if (gGameSession->location.view == ACROPOLIS_FIRE_ESCAPE_RED_RADIAL_VIEW) {
                     _acropolisFireEscapeSpawnFlare(emitterWork, emitterCoord, 1167, -913, 1670,
                                                    ACROPOLIS_FIRE_ESCAPE_FLARE_RADIAL | (ACROPOLIS_FIRE_ESCAPE_RED_RADIAL_RADIUS << ACROPOLIS_FIRE_ESCAPE_FLARE_RADIUS_SHIFT) | ACROPOLIS_FIRE_ESCAPE_RED_PULSE_RATE);
                 }
-                if (gGameSession->location.loc.view == ACROPOLIS_FIRE_ESCAPE_CYAN_DIAMOND_VIEW) {
+                if (gGameSession->location.view == ACROPOLIS_FIRE_ESCAPE_CYAN_DIAMOND_VIEW) {
                     _acropolisFireEscapeSpawnFlare(emitterWork, emitterCoord, -3103, -3344, 2272,
                                                    ACROPOLIS_FIRE_ESCAPE_FLARE_CYAN | (ACROPOLIS_FIRE_ESCAPE_CYAN_DIAMOND_RADIUS << ACROPOLIS_FIRE_ESCAPE_FLARE_RADIUS_SHIFT) | ACROPOLIS_FIRE_ESCAPE_CYAN_PULSE_RATE);
                 }
-                if (gGameSession->location.loc.view == ACROPOLIS_FIRE_ESCAPE_CYAN_RADIAL_VIEW) {
+                if (gGameSession->location.view == ACROPOLIS_FIRE_ESCAPE_CYAN_RADIAL_VIEW) {
                     _acropolisFireEscapeSpawnFlare(emitterWork, emitterCoord, -3103, -3344, 2272,
                                                    ACROPOLIS_FIRE_ESCAPE_FLARE_RADIAL | ACROPOLIS_FIRE_ESCAPE_FLARE_CYAN | (ACROPOLIS_FIRE_ESCAPE_CYAN_RADIAL_RADIUS << ACROPOLIS_FIRE_ESCAPE_FLARE_RADIUS_SHIFT) | ACROPOLIS_FIRE_ESCAPE_CYAN_PULSE_RATE);
                 }
@@ -1122,7 +1122,7 @@ void acropolisFireEscapeFlickerLightTask(Task* task)
     coord      = task->extra.coordBody->coord;
     wasDim     = 0;
     // The installed room has 1-based view IDs; only views 2, 3 and 7 show the lamp.
-    if (gRoomEffectState->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN && ((ACROPOLIS_FIRE_ESCAPE_FLICKER_VIEW_MASK >> (gGameSession->location.loc.view - 1)) & 1)) {
+    if (gRoomEffectState->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN && ((ACROPOLIS_FIRE_ESCAPE_FLICKER_VIEW_MASK >> (gGameSession->location.view - 1)) & 1)) {
         // Project the lamp and pull its sorting depth forward before sizing it.
         actorRenderComposeCoord(coord);
         projection              = SCRATCH_STACK_RESERVE_BLOCK(RoomGlowRadiiScratch);

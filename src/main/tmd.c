@@ -232,7 +232,7 @@ static void _tmdResolveSourceDrawHandlers(TmdSource* source)
 
     stream = (_TmdStreamWord*)source->stream;
     if (source->handlersResolved == TMD_SOURCE_HANDLERS_UNRESOLVED) {
-        stageAreaDifference = GAME_LOCATION_WORD(gGameSession->location.loc);
+        stageAreaDifference = GAME_LOCATION_WORD(gGameSession->location);
         stageAreaDifference = (stageAreaDifference & GAME_LOCATION_STAGE_AREA_MASK) ^ GAME_LOCATION_KEY(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_TOILET, 0, 0);
         useOffsetLayer      = stageAreaDifference < 1;
         goto readOpcode;
@@ -469,7 +469,7 @@ void tmdBuildBufferHalf(TmdObject* model)
     source                                   = model->source;
     scratchEnd                               = SCRATCH_STACK_CURSOR(TmdStreamWorkspace);
     stream                                   = source->stream;
-    stageAreaKey                             = GAME_LOCATION_WORD(gGameSession->location.loc);
+    stageAreaKey                             = GAME_LOCATION_WORD(gGameSession->location);
     reservedWorkspace                        = scratchEnd - 1;
     stageAreaKey                            &= GAME_LOCATION_STAGE_AREA_MASK;
     SCRATCH_STACK_CURSOR(TmdStreamWorkspace) = reservedWorkspace;

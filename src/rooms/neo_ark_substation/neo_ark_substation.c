@@ -674,7 +674,7 @@ static void _neoArkSubstationAmbienceTask(Task* task)
         }                                                                                         \
     }
 
-    viewIndex = gGameSession->location.loc.view;
+    viewIndex = gGameSession->location.view;
     NEO_ARK_SUBSTATION_READ_AMBIENCE_MIX(viewIndex, panOffset, attenuation);
 #undef NEO_ARK_SUBSTATION_READ_AMBIENCE_MIX
 
@@ -685,7 +685,7 @@ static void _neoArkSubstationAmbienceTask(Task* task)
             break;
         case NEO_ARK_SUBSTATION_AMBIENCE_STATE_WAIT:
             // Let the view transition settle before changing the playing mix.
-            if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view != gGameSession->location.loc.view) {
+            if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view != gGameSession->location.view) {
                 task->state = task->state + 1;
             }
             break;

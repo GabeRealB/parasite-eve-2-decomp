@@ -1259,7 +1259,7 @@ void acropolisEastElevatorHallReflectionsAndBeaconsTask(Task* task)
             /* fallthrough */
         case ACROPOLIS_EAST_ELEVATOR_HALL_EFFECTS_UPDATE:
             // Each beacon lasts one frame, so refresh all six while this view is active.
-            if (gGameSession->location.loc.view == ACROPOLIS_EAST_ELEVATOR_HALL_BEACON_VIEW) {
+            if (gGameSession->location.view == ACROPOLIS_EAST_ELEVATOR_HALL_BEACON_VIEW) {
                 SVECTOR spawnOffset = _gAcropolisEastElevatorHallFirstBeaconOffset;
 
                 effectSpawn(EFFECT_ACROPOLIS_EAST_ELEVATOR_HALL_RED_BEACON, parentCoord, RED_BEACON_ARG(ACROPOLIS_EAST_ELEVATOR_HALL_BEACON_SMALL_RATE, ACROPOLIS_EAST_ELEVATOR_HALL_BEACON_SMALL_SIZE), &spawnOffset);

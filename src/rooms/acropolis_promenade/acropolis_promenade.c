@@ -1842,7 +1842,7 @@ static void _acropolisPromenadeUpdateRoomProgress(Task* unusedTask)
     u8 battlePhase;
 
     if (_gAcropolisPromenadeArrivalMovieStarted == ACROPOLIS_PROMENADE_ARRIVAL_MOVIE_NOT_STARTED) {
-        if (gGameSession->location.loc.warp == ACROPOLIS_PROMENADE_MOVIE_ARRIVAL_WARP) {
+        if (gGameSession->location.warp == ACROPOLIS_PROMENADE_MOVIE_ARRIVAL_WARP) {
             _gAcropolisPromenadeArrivalMovieStarted = ACROPOLIS_PROMENADE_ARRIVAL_MOVIE_STARTED;
             taskSpawnFromTable(_gAcropolisPromenadeMovieTaskDescriptors, ACROPOLIS_PROMENADE_MOVIE_PATH_TASK, 0, 0);
         }
@@ -1850,7 +1850,7 @@ static void _acropolisPromenadeUpdateRoomProgress(Task* unusedTask)
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent == ACROPOLIS_PROMENADE_SCENE_EVENT_SANCTUARY) {
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = ACROPOLIS_PROMENADE_SCENE_EVENT_PROMENADE;
     }
-    placementVariant = gGameSession->location.loc.variant;
+    placementVariant = gGameSession->location.variant;
     if (placementVariant == ACROPOLIS_PROMENADE_BATTLE_VARIANT) {
         gGameSession->flowFlags = (GAME_SESSION_FLOW_SKIP_AREA_MUSIC | GAME_SESSION_FLOW_LOAD_AREA_MUSIC_ONLY);
         battlePhase             = gSceneCombatState.signals.bytes.battlePhase;
@@ -2194,7 +2194,7 @@ static void _acropolisPromenadeMoviePathTask(Task* task)
             if (taskMessageDispatch(work->playerTask, GAME_ACTOR_MESSAGE_IS_SCRIPTED_MOTION_PENDING, 0, 0) == 0) {
                 taskMessageDispatch(work->playerTask, GAME_ACTOR_MESSAGE_END_SCRIPTED, 0, 0);
                 taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), CAP_CONTROL_MESSAGE_SHOW_HUD, 0, 0);
-                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = ACROPOLIS_PROMENADE_MOVIE_EXIT_VIEW;
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = ACROPOLIS_PROMENADE_MOVIE_EXIT_VIEW;
                 padInputChangeSuppression(PAD_INPUT_SUPPRESSION_CLEAR_ALIAS, PAD_INPUT_SUPPRESS_ACTIONS_AND_MENU);
                 gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
                 gGameSession->padScriptFlags  &= (0xFF ^ GAME_SESSION_PAD_SCRIPT_DURING_BATTLE_FREEZE);

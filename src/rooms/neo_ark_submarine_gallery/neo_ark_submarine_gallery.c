@@ -68,10 +68,10 @@ static RoomFadeStorage _gNeoArkSubmarineGalleryIslandDepartureFade = { 0 };
 ///
 /// Only loc.room, loc.area and loc.warp are staged and committed to the live
 /// save; its stage, view and variant stay unchanged. The other bytes retain
-/// zero defaults, including GameLoc's two uninterpreted trailing bytes.
+/// zero defaults, including GameLocationKey's two uninterpreted trailing bytes.
 /// Preserve the eight-byte cell and its original two-byte alignment. Keep
 /// this singleton unchanged and the room loaded until departure completes.
-static GameLoc _gNeoArkSubmarineGalleryIslandDestination __attribute__((aligned(2))) = { 0 };
+static GameLocationKey _gNeoArkSubmarineGalleryIslandDestination __attribute__((aligned(2))) = { 0 };
 
 static void _neoArkSubmarineGalleryInitializeRoom(Task* task);
 
@@ -111,10 +111,10 @@ static inline void _neoArkSubmarineGalleryCommitIslandDeparture(Task* task)
 {
     enum { RELOAD_SPRITE_VARIANT = 1 };
 
-    gDisplayState.spriteVariant                                = RELOAD_SPRITE_VARIANT;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = _gNeoArkSubmarineGalleryIslandDestination.loc.area;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = _gNeoArkSubmarineGalleryIslandDestination.loc.warp;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = _gNeoArkSubmarineGalleryIslandDestination.loc.room;
+    gDisplayState.spriteVariant                            = RELOAD_SPRITE_VARIANT;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.area = _gNeoArkSubmarineGalleryIslandDestination.area;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp = _gNeoArkSubmarineGalleryIslandDestination.warp;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.room = _gNeoArkSubmarineGalleryIslandDestination.room;
     taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_SKIP_BATTLE_ESCAPE, 0);
     taskKill(task);
 }
@@ -194,9 +194,9 @@ s32 neoArkSubmarineGalleryResolveRoomEvent(Task* unusedTask, s32 unusedMessageId
     if (request->areaId == GAME_AREA_NEO_ARK_ISLAND) {
         if (request->queryOnly == ROOM_EVENT_EXECUTE) {
             // Preserve the resolved destination for the asynchronous confirmation task.
-            _gNeoArkSubmarineGalleryIslandDestination.loc.area = (u8)reply->areaId;
-            _gNeoArkSubmarineGalleryIslandDestination.loc.warp = reply->warp;
-            _gNeoArkSubmarineGalleryIslandDestination.loc.room = reply->room;
+            _gNeoArkSubmarineGalleryIslandDestination.area = (u8)reply->areaId;
+            _gNeoArkSubmarineGalleryIslandDestination.warp = reply->warp;
+            _gNeoArkSubmarineGalleryIslandDestination.room = reply->room;
             taskSpawnFromTable(&gNeoArkSubmarineGalleryIslandDepartureTaskDesc, 0, 0, 0);
         }
         return TRANSITION_DEFERRED;
@@ -225,7 +225,7 @@ s32 neoArkSubmarineGalleryHandleCapCommand(Task* task, s32 messageId, s32 comman
             }
             break;
         case NEO_ARK_SUBMARINE_GALLERY_COMMAND_CHECK_ROOM_STATE:
-            if (gGameSession->location.loc.variant == NEO_ARK_SUBMARINE_GALLERY_RED_DISC_VARIANT) {
+            if (gGameSession->location.variant == NEO_ARK_SUBMARINE_GALLERY_RED_DISC_VARIANT) {
                 capSpawnEventIfIdle(NEO_ARK_SUBMARINE_GALLERY_CAP_FULL_DISC, CAP_EVENT_NO_FLAGS);
             } else if (gSceneCombatState.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_ENGAGED) {
                 capSpawnEventIfIdle(NEO_ARK_SUBMARINE_GALLERY_CAP_BATTLE_ENGAGED, CAP_EVENT_NO_FLAGS);
@@ -250,7 +250,7 @@ static void _neoArkSubmarineGalleryInitializeRoom(Task* task)
 {
     task->msgTable = gNeoArkSubmarineGalleryRoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
-    if (gGameSession->location.loc.variant == NEO_ARK_SUBMARINE_GALLERY_RED_DISC_VARIANT) {
+    if (gGameSession->location.variant == NEO_ARK_SUBMARINE_GALLERY_RED_DISC_VARIANT) {
         taskSpawnFromTable(&gNeoArkSubmarineGalleryRedDiscTaskDesc, 0, 0, 0);
     }
     task->state = task->state + 1;
@@ -351,7 +351,7 @@ static void _neoArkSubmarineGalleryDrawRedDisc(u16 radius)
 /// in room-coordinate units: full size in variant 4, otherwise zero.
 static void _neoArkSubmarineGalleryInitRedDiscTask(Task* task)
 {
-    if (gGameSession->location.loc.variant != NEO_ARK_SUBMARINE_GALLERY_RED_DISC_VARIANT) {
+    if (gGameSession->location.variant != NEO_ARK_SUBMARINE_GALLERY_RED_DISC_VARIANT) {
         task->killCountdown = 0;
     } else {
         task->killCountdown = NEO_ARK_SUBMARINE_GALLERY_RED_DISC_RADIUS_FULL;
@@ -369,8 +369,8 @@ static void _neoArkSubmarineGalleryInitRedDiscTask(Task* task)
 static void _neoArkSubmarineGalleryUpdateRedDiscTask(Task* task)
 {
     if (gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER] != NULL) {
-        if (gGameSession->location.loc.variant != NEO_ARK_SUBMARINE_GALLERY_RED_DISC_VARIANT && gGameSession->battleResetPending != 0) {
-            gGameSession->location.loc.variant = NEO_ARK_SUBMARINE_GALLERY_RED_DISC_VARIANT;
+        if (gGameSession->location.variant != NEO_ARK_SUBMARINE_GALLERY_RED_DISC_VARIANT && gGameSession->battleResetPending != 0) {
+            gGameSession->location.variant = NEO_ARK_SUBMARINE_GALLERY_RED_DISC_VARIANT;
         }
         if (task->killCountdown < NEO_ARK_SUBMARINE_GALLERY_RED_DISC_RADIUS_FULL) {
             task->killCountdown = (s16)((u16)task->killCountdown + NEO_ARK_SUBMARINE_GALLERY_RED_DISC_RADIUS_STEP);

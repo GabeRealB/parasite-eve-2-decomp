@@ -79,7 +79,7 @@ static void _golemPawnRookGrenadeFly(Enemy* unusedEnemy, Task* grenade)
 
     if (work->wallContacts[0].key.value != 0) {
         surfaceClass = worldCollisionSurfaceClassFromKey(work->wallContacts[0].key.value);
-        if (gWorldCollisionSurfacePropertiesTables[gGameSession->location.loc.stage - 1][gGameSession->location.loc.area - 1][surfaceClass]->probePassThrough == WORLD_COLLISION_SURFACE_BLOCK_PROBES) {
+        if (gWorldCollisionSurfacePropertiesTables[gGameSession->location.stage - 1][gGameSession->location.area - 1][surfaceClass]->probePassThrough == WORLD_COLLISION_SURFACE_BLOCK_PROBES) {
             blockedSurface = 1;
         }
         worldCollisionClearContacts(work->wallContacts);

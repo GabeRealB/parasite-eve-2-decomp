@@ -1222,7 +1222,7 @@ static void _actor01100Init(Enemy* enemy, Task* task, _Actor01100Work* unusedWor
     }
 
     // Select the scene sound file; key byte 1 is ignored by the CD queue.
-    locationWord     = GAME_LOCATION_WORD(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc);
+    locationWord     = GAME_LOCATION_WORD(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location);
     locationWord    &= GAME_LOCATION_STAGE_AREA_MASK;
     soundFileKey[2]  = ACTOR_01100_SOUND_FILE_GROUP;
     soundLoadArgs[0] = ACTOR_01100_SOUND_FILE_HUNDREDS;
@@ -1764,7 +1764,7 @@ static s32 _actor01100ProcessHits(Enemy* enemy, Task* task, _Actor01100Work* wor
             work->hp    = remainingHp;
             enemy->hp   = remainingHp;
             if (work->hp <= 0) {
-                if ((GAME_LOCATION_WORD(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(5, 24, 0, 0)) {
+                if ((GAME_LOCATION_WORD(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(5, 24, 0, 0)) {
                     work->roomNotified = 0;
                 } else {
                     sceneReleaseBattleRefWithRewards(task, work->entryId);
@@ -3570,7 +3570,7 @@ static void _actor01100Death(
     s16           lookYaw;
 
     model = task->extra.tmd;
-    if (((GAME_LOCATION_WORD(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_SHELTER_B6_CORRIDOR, 0, 0)) && (work->roomNotified == 0)) {
+    if (((GAME_LOCATION_WORD(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_SHELTER_B6_CORRIDOR, 0, 0)) && (work->roomNotified == 0)) {
         playerActor  = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->work;
         playerStatus = &gPlayerStatus;
         if ((playerActor->mode != GAME_ACTOR_MODE_SCRIPTED) && (gAttachmentState.mode != ATTACHMENT_MODE_WHEEL) && (gDisplayState.pendingMode == DISPLAY_MODE_NONE) && (playerStatus->hp > 0)) {
@@ -3633,7 +3633,7 @@ static void _actor01100Death(
     } else {
         framesLeft         = work->stateCounter - 1;
         work->stateCounter = framesLeft;
-        if ((framesLeft == 0) && ((GAME_LOCATION_WORD(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_SHELTER_B6_CORRIDOR, 0, 0))) {
+        if ((framesLeft == 0) && ((GAME_LOCATION_WORD(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_SHELTER_B6_CORRIDOR, 0, 0))) {
             work->mode = ACTOR_01100_MODE_FINISHED;
         }
     }
@@ -3876,7 +3876,7 @@ static void _actor01100SpitGlobFly(Task* task)
     s16                    countdown;
 
     work          = task->work;
-    stageAreaKey  = GAME_LOCATION_WORD(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc);
+    stageAreaKey  = GAME_LOCATION_WORD(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location);
     stageAreaKey &= GAME_LOCATION_STAGE_AREA_MASK;
     coord         = task->extra.tmd->coords;
     capsule       = &work->capsule;
@@ -3945,7 +3945,7 @@ static void _actor01100SpitCloudInit(Task* task)
     GfxCoord*              coord;
 
     coord        = task->extra.coordBody->coord;
-    stageAreaKey = GAME_LOCATION_WORD(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc) & GAME_LOCATION_STAGE_AREA_MASK;
+    stageAreaKey = GAME_LOCATION_WORD(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location) & GAME_LOCATION_STAGE_AREA_MASK;
     waterRoom    = stageAreaKey == GAME_LOCATION_KEY(3, 32, 0, 0);
     work         = memCalloc(sizeof(*work), false);
     if (work == NULL) {

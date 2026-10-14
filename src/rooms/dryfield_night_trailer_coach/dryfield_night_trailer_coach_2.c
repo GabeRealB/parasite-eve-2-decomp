@@ -1084,7 +1084,7 @@ void dryfieldNightTrailerCoachDrawGlowsTask(Task* unusedTask)
     const SVECTOR* markerPoint;
     u8             view;
 
-    view = gGameSession->location.loc.view;
+    view = gGameSession->location.view;
     switch (view) {
         case 3:
             firstStripPoints = _gDryfieldNightTrailerCoachView3GlowStripPoints;

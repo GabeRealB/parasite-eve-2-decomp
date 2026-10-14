@@ -20,7 +20,7 @@ void factoryPowerScene(Task* task)
             return;
         case FACTORY_POWER_SCENE_HIDE_UNPOWERED:
             if (gameFlagGetNibble(GAME_FLAG_FACTORY_POWER_ON) <= 0) {
-                if (gGameSession->location.loc.stage == GAME_STAGE_DRYFIELD) {
+                if (gGameSession->location.stage == GAME_STAGE_DRYFIELD) {
                     dryfieldFactorySetView11SpriteVisible(false);
                 } else {
                     dryfieldNightFactorySetView11SpriteVisible(false);
@@ -39,7 +39,7 @@ void factoryPowerScene(Task* task)
             if (capGetVariantKey() == FACTORY_POWER_CAP_ACCEPTED) {
                 gameFlagSetNibble(GAME_FLAG_FACTORY_POWER_ON, 1);
                 gameFlagSetNibble(GAME_FLAG_FACTORY_LAMP_PROGRESS, 1);
-                if (gGameSession->location.loc.stage == GAME_STAGE_DRYFIELD) {
+                if (gGameSession->location.stage == GAME_STAGE_DRYFIELD) {
                     dryfieldFactorySetView11SpriteVisible(true);
                     dryfieldFactorySetView9SpriteVisible(1);
                 } else {

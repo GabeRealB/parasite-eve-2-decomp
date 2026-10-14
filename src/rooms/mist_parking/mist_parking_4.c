@@ -416,7 +416,7 @@ static void _mistParkingAimPlayerHeadAtShopPartnerTask(Task* task)
         if (task->state == MIST_PARKING_HEAD_AIM_UPDATE) {
             _mistParkingRampPlayerHeadAimBlend(task, animationRequestsAim);
             // Placement index zero supplies the talk partner for this stage and area.
-            talkPartner = sceneFindEnemyByPlaceKey(gGameSession->location.loc.area | (gGameSession->location.loc.stage << 8));
+            talkPartner = sceneFindEnemyByPlaceKey(gGameSession->location.area | (gGameSession->location.stage << 8));
             animationAimHeadAtTask(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), talkPartner->task,
                                    MIST_PARKING_HEAD_AIM_MAX_YAW, MIST_PARKING_HEAD_AIM_MAX_PITCH, task->killCountdown);
         } else {
@@ -731,15 +731,15 @@ static void _mistParkingStartShopDepartureMovie(s32 movieSelector)
 /// Requires live saved state and loaded reload resources.
 static void _mistParkingReloadShopAcropolisArea(s32 areaId)
 {
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage = GAME_STAGE_ACROPOLIS;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp  = MIST_PARKING_SHOP_RELOAD_WARP;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room  = MIST_PARKING_SHOP_RELOAD_ROOM;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area  = areaId;
-    gDisplayState.spriteVariant                                 = MIST_PARKING_SHOP_RELOAD_SPRITE_VARIANT;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.stage = GAME_STAGE_ACROPOLIS;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp  = MIST_PARKING_SHOP_RELOAD_WARP;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.room  = MIST_PARKING_SHOP_RELOAD_ROOM;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.area  = areaId;
+    gDisplayState.spriteVariant                             = MIST_PARKING_SHOP_RELOAD_SPRITE_VARIANT;
     sndEvtRequestScriptStop(SOUND_BANK_TYPE_ALL_NON_AMBIENT, SOUND_SCRIPT_STOP_NO_FADE);
     taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
     if (areaId == GAME_AREA_ACROPOLIS_PLAZA) {
-        gameFlowBeginLoadScreen(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc, GAME_FLOW_LOAD_CAPTION_NORMAL);
+        gameFlowBeginLoadScreen(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location, GAME_FLOW_LOAD_CAPTION_NORMAL);
     }
 }
 
@@ -766,15 +766,15 @@ static void _mistParkingDepartForAcropolisTask(Task* unusedTask)
     enum { MIST_PARKING_ACROPOLIS_PLAYER_RESOURCE_VARIANT = 1 };
 
     playerActorPrepareAcropolisLoadout();
-    gPlayerStatus.resourceVariant                               = MIST_PARKING_ACROPOLIS_PLAYER_RESOURCE_VARIANT;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area  = GAME_AREA_ACROPOLIS_PLAZA;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage = GAME_STAGE_ACROPOLIS;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp  = MIST_PARKING_SHOP_RELOAD_WARP;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room  = MIST_PARKING_SHOP_RELOAD_ROOM;
-    gDisplayState.spriteVariant                                 = MIST_PARKING_SHOP_RELOAD_SPRITE_VARIANT;
+    gPlayerStatus.resourceVariant                           = MIST_PARKING_ACROPOLIS_PLAYER_RESOURCE_VARIANT;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.area  = GAME_AREA_ACROPOLIS_PLAZA;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.stage = GAME_STAGE_ACROPOLIS;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp  = MIST_PARKING_SHOP_RELOAD_WARP;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.room  = MIST_PARKING_SHOP_RELOAD_ROOM;
+    gDisplayState.spriteVariant                             = MIST_PARKING_SHOP_RELOAD_SPRITE_VARIANT;
     sndEvtRequestScriptStop(SOUND_BANK_TYPE_ALL_NON_AMBIENT, SOUND_SCRIPT_STOP_NO_FADE);
     taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
-    gameFlowBeginLoadScreen(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc, GAME_FLOW_LOAD_CAPTION_NORMAL);
+    gameFlowBeginLoadScreen(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location, GAME_FLOW_LOAD_CAPTION_NORMAL);
 }
 
 /// Starts animation-driven player head aiming for the variant-1 shop talk.

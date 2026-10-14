@@ -698,7 +698,7 @@ static void _actor341900InitGluttonModel(Task* task)
     model->colorMtx         = &initializedWork->color;
     task->msgTable          = _gActor341900GluttonMessages;
     // The required area entry supplies the scene model's texture relocation.
-    texturePlacement = areaGetVariant(&gGameSession->location.loc)->placements;
+    texturePlacement = areaGetVariant(&gGameSession->location)->placements;
     for (; texturePlacement->entryId != AREA_PLACEMENT_END; texturePlacement++) {
         if (texturePlacement->entryId == ACTOR_341900_GLUTTON_TEXTURE_PLACEMENT_ID) {
             break;
@@ -1103,12 +1103,12 @@ static void _actor341900EventTask(Task* task)
                 work->player           = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
                 _gActor341900EventTask = task;
                 work->placement0Actor  = sceneFindEnemyByPlaceKey(
-                                            gGameSession->location.loc.area | (gGameSession->location.loc.stage << 8))
+                                            gGameSession->location.area | (gGameSession->location.stage << 8))
                                             ->task;
             }
             // Suspend the live actor before constructing the scene-only display models.
-            command.context.loc.stage = gGameSession->location.loc.stage;
-            areaId                    = gGameSession->location.loc.area;
+            command.context.loc.stage = gGameSession->location.stage;
+            areaId                    = gGameSession->location.area;
             command.command           = ACTOR_341900_ACTOR_COMMAND_STOP;
             command.context.loc.area  = areaId;
             TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &command, ACTOR_COMMAND_MESSAGE_APPLY);
@@ -1210,8 +1210,8 @@ static void _actor341900BroadcastActorCommand(s16 commandId)
 {
     ActorCommand command;
 
-    command.context.loc.stage = gGameSession->location.loc.stage;
-    command.context.loc.area  = gGameSession->location.loc.area;
+    command.context.loc.stage = gGameSession->location.stage;
+    command.context.loc.area  = gGameSession->location.area;
     command.command           = commandId;
     TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &command, ACTOR_COMMAND_MESSAGE_APPLY);
 }

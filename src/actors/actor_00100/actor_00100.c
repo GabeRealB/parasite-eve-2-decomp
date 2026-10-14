@@ -2005,11 +2005,11 @@ static void _actor00100SpawnBattleState(Enemy* enemy, Task* task)
             break;
     }
     // Only the first four bytes of each block are read by the CD queue.
-    stage = gGameSession->location.loc.stage;
+    stage = gGameSession->location.stage;
     if ((stage - 2) < 2U) {
-        if (gGameSession->location.loc.area == 0x18) {
+        if (gGameSession->location.area == 0x18) {
             fileKey[3]  = stage;
-            fileKey[2]  = gGameSession->location.loc.area;
+            fileKey[2]  = gGameSession->location.area;
             fileKey[0]  = ACTOR00100_SPRITE_FILE;
             loadArgs[0] = (u8)gGameSession->spriteVariant;
             loadArgs[3] = 0;
@@ -2018,7 +2018,7 @@ static void _actor00100SpawnBattleState(Enemy* enemy, Task* task)
             cdCmdEnqueue(CD_COMMAND_LOAD_FILE, fileKey, loadArgs);
         }
     }
-    if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(4, 1, 0, 0)) {
+    if ((GAME_LOCATION_WORD(gGameSession->location) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(4, 1, 0, 0)) {
         mineMesaBuildWalls(ACTOR00100_MESA_WALL_HEIGHT);
     }
     worldCollisionClearContacts(work->spheres[DESERT_CHASER_SPHERE_ROOT].contacts);
@@ -2169,7 +2169,7 @@ static void _desertChaserDamage(Task* task)
                     }
                     break;
                 case ACTOR00100_REACTION_FRONT_STAGGER:
-                    stage = gGameSession->location.loc.stage;
+                    stage = gGameSession->location.stage;
                     if ((stage != GAME_STAGE_DRYFIELD) && (stage != GAME_STAGE_SHELTER_NEO_ARK)) {
                         hitYawMagnitude = scratch->hitYaw;
                         if (hitYawMagnitude < 0) {
@@ -2354,7 +2354,7 @@ static void _actor00100BurnAwayDeath(Task* task)
         _actor00100UnlinkCollisionBodies(work, enemy);
     }
     if (work->stateTimer >= ACTOR00100_BURN_RELEASE_TICK && work->playerHeld == 0 && gAttachmentState.mode != ATTACHMENT_MODE_WHEEL && gDisplayState.pendingMode == DISPLAY_MODE_NONE) {
-        if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(4, 1, 0, 0)) {
+        if ((GAME_LOCATION_WORD(gGameSession->location) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(4, 1, 0, 0)) {
             taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), ROOM_MESSAGE_ACTOR_EVENT, enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT, 0);
         }
         task->state++;
@@ -2837,7 +2837,7 @@ static void _actor00100BurstDeath(Task* actor)
         enemy->recs = 0;
     }
     if ((work->stateTimer >= ACTOR00100_BURST_RELEASE_FIRST_TICK) && (work->playerHeld == 0) && (gAttachmentState.mode != ATTACHMENT_MODE_WHEEL) && (gDisplayState.pendingMode == DISPLAY_MODE_NONE)) {
-        if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_MINE_MESA, 0, 0)) {
+        if ((GAME_LOCATION_WORD(gGameSession->location) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_MINE_MESA, 0, 0)) {
             taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), ROOM_MESSAGE_ACTOR_EVENT, (s32)(enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT), 0);
         }
         actor->state++;
@@ -3262,7 +3262,7 @@ static void _actor00100FrameState(Enemy* enemy, Task* actor)
                             work->playerMove.displacement.vy >>= 1;
                             work->playerMove.displacement.vz >>= 1;
                         }
-                    } else if (((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(4, 1, 0, 0)) && (work->playerMove.displacement.vx != 0) && (work->playerMove.displacement.vz != 0) && (work->playerAnimFrames < ACTOR00100_PLAYER_KNOCK_BACK_TICKS) && _actor00100IsInMesaDropRegion(player) && _actor00100MovesTowardMesaDrop(player, &work->playerMove.displacement)) {
+                    } else if (((GAME_LOCATION_WORD(gGameSession->location) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(4, 1, 0, 0)) && (work->playerMove.displacement.vx != 0) && (work->playerMove.displacement.vz != 0) && (work->playerAnimFrames < ACTOR00100_PLAYER_KNOCK_BACK_TICKS) && _actor00100IsInMesaDropRegion(player) && _actor00100MovesTowardMesaDrop(player, &work->playerMove.displacement)) {
                         work->playerMove.collisionRequests = (GAME_ACTOR_COLLISION_REQUEST_MASK << GAME_ACTOR_COLLISION_DISABLE_REQUEST_SHIFT);
                         gAttachmentState.flags             = (u8)(gAttachmentState.flags | ATTACHMENT_FLAG_EVENT_LOCK);
                         roomEffectRequestCancelAll();
@@ -3328,7 +3328,7 @@ static void _actor00100FrameState(Enemy* enemy, Task* actor)
             finishedPlayerClip = work->playerAnim.animationId;
             switch (finishedPlayerClip) {
                 case ACTOR00100_PLAYER_CLIP_THROW:
-                    if ((((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(4, 1, 0, 0)) || (work->playerMove.collisionRequests != (GAME_ACTOR_COLLISION_REQUEST_MASK << GAME_ACTOR_COLLISION_DISABLE_REQUEST_SHIFT))) && (playerStatus->hp > 0)) {
+                    if ((((GAME_LOCATION_WORD(gGameSession->location) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(4, 1, 0, 0)) || (work->playerMove.collisionRequests != (GAME_ACTOR_COLLISION_REQUEST_MASK << GAME_ACTOR_COLLISION_DISABLE_REQUEST_SHIFT))) && (playerStatus->hp > 0)) {
                         nextPlayerAnimRequest        = &work->playerAnim;
                         work->playerAnim.blend       = ANIMATION_BLEND_RESET;
                         work->playerAnim.blendFrames = 0;

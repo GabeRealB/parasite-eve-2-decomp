@@ -193,7 +193,7 @@ s32 neoArkForestZoneHandleAction(Task* unusedTask, s32 messageId, const Directio
 
     actionId = request->actionId;
     if (actionId == NEO_ARK_FOREST_ZONE_FIRST_VISIT_ACTION) {
-        if (gameFlagGetNibble(GAME_FLAG_NEO_ARK_FOREST_ZONE_EVENT_SEEN) == 0 && gGameSession->location.loc.variant == actionId) {
+        if (gameFlagGetNibble(GAME_FLAG_NEO_ARK_FOREST_ZONE_EVENT_SEEN) == 0 && gGameSession->location.variant == actionId) {
             gameFlagSetNibble(GAME_FLAG_NEO_ARK_FOREST_ZONE_EVENT_SEEN, NEO_ARK_FOREST_ZONE_FIRST_VISIT_SEEN);
             evsStartScript(gNeoArkForestZoneFirstVisitScript, EVENT_SCRIPT_HUD_HIDE_RESTORE);
         }
@@ -233,7 +233,7 @@ static void _neoArkForestZoneInitializeRoom(Task* task)
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     sndEvtRequestScriptStart(SOUND_NEO_ARK_FOREST_ZONE_AMBIENCE, 0, 0);
     gNeoArkForestZoneRoamerPoolBTask = taskSpawnFromTable(&gNeoArkForestZoneRoamerPoolBTaskDesc, 0, 0, 0);
-    if (gGameSession->location.loc.variant == NEO_ARK_FOREST_ZONE_FIRST_VISIT_VARIANT && gameFlagGetNibble(GAME_FLAG_NEO_ARK_FOREST_ZONE_EVENT_SEEN) == 0) {
+    if (gGameSession->location.variant == NEO_ARK_FOREST_ZONE_FIRST_VISIT_VARIANT && gameFlagGetNibble(GAME_FLAG_NEO_ARK_FOREST_ZONE_EVENT_SEEN) == 0) {
         TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &gNeoArkForestZoneFirstVisitPauseCommand, ACTOR_COMMAND_MESSAGE_APPLY);
     }
     task->state = task->state + 1;
@@ -248,7 +248,7 @@ static void _neoArkForestZonePauseRoamersState(Task* task)
 {
     enum { NEO_ARK_FOREST_ZONE_FIRST_VISIT_VARIANT = 1 };
 
-    if (gGameSession->location.loc.variant == NEO_ARK_FOREST_ZONE_FIRST_VISIT_VARIANT && gameFlagGetNibble(GAME_FLAG_NEO_ARK_FOREST_ZONE_EVENT_SEEN) == 0) {
+    if (gGameSession->location.variant == NEO_ARK_FOREST_ZONE_FIRST_VISIT_VARIANT && gameFlagGetNibble(GAME_FLAG_NEO_ARK_FOREST_ZONE_EVENT_SEEN) == 0) {
         TASK_MESSAGE_DISPATCH_POINTER(gNeoArkForestZoneRoamerPoolBTask, ACTOR_COMMAND_MESSAGE_APPLY, &gNeoArkForestZoneFirstVisitPauseCommand, 0);
     }
     task->state = task->state + 1;

@@ -188,10 +188,10 @@ static inline void _acropolisFountainReloadPatio(Task* task)
     };
 
     sndEvtRequestScriptStop(SOUND_BANK_TYPE_ALL_NON_AMBIENT, SOUND_SCRIPT_STOP_NO_FADE);
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = GAME_AREA_ACROPOLIS_PATIO;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = ACROPOLIS_FOUNTAIN_PATIO_ARRIVAL_ROOM;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = gAcropolisFountainPatioArrivalWarp;
-    gDisplayState.spriteVariant                                = ACROPOLIS_FOUNTAIN_PATIO_SPRITE_VARIANT;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.area = GAME_AREA_ACROPOLIS_PATIO;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.room = ACROPOLIS_FOUNTAIN_PATIO_ARRIVAL_ROOM;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp = gAcropolisFountainPatioArrivalWarp;
+    gDisplayState.spriteVariant                            = ACROPOLIS_FOUNTAIN_PATIO_SPRITE_VARIANT;
     taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
     gameFlagSetNibble(GAME_FLAG_ACROPOLIS_PROGRESS, ACROPOLIS_FOUNTAIN_PATIO_DEPARTURE_PROGRESS);
     taskKill(task);

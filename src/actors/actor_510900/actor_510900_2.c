@@ -1920,11 +1920,11 @@ static void _actor510900TickGrenadeThrow(Task* task)
         work->grenadeLive = 1;
         grenadeModel      = enemySpawnFromTable(gActor510900TaskDescriptors, ACTOR_510900_GRENADE_DESCRIPTOR, dashNext, enemy)->task->extra.tmd;
         placeIndex        = (u16)enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT;
-        liveLocation      = &gGameSession->location.loc;
+        liveLocation      = &gGameSession->location;
         location.stage    = liveLocation->stage;
         location.area     = liveLocation->area;
         location.room     = liveLocation->room;
-        location.view     = gGameSession->location.loc.view;
+        location.view     = gGameSession->location.view;
         areaSyncLocationVariant(&location);
         areaVariant                     = areaGetVariant(&location);
         placement                       = AREA_PLACEMENT_AT(areaVariant->placements, placeIndex);

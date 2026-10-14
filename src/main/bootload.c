@@ -30,41 +30,41 @@ enum {
 };
 
 /// Primary caption playback phase (0 arm, 1 reveal/redraw, 2 complete).
-static u8 _gGameFlowLoadCaptionPhase;
+u8 _gGameFlowLoadCaptionPhase;
 
 /// Playback phase of the suppressed secondary caption (0 arm, 1 reveal, 2 complete).
 ///
 /// Remains in the arm phase while secondary drawing is suppressed.
-static u8 _gGameFlowLegacySecondaryLoadCaptionPhase;
+u8 _gGameFlowLegacySecondaryLoadCaptionPhase;
 
 /// Presentation frames elapsed in the secondary-start delay or post-reveal hold.
 ///
 /// Reset when presentation begins and when both reveal results are negative.
 /// Counts to 61 during reveal, then to 60 during hold; an extended hold does
 /// not increment it further.
-static s16 _gGameFlowLoadCaptionElapsedFrames;
+s16 _gGameFlowLoadCaptionElapsedFrames;
 
 /// Primary text countdown in presentation frames; expiry is a value below zero.
 ///
 /// The text drawer reloads the glyph or final-caption delay. Once the reveal
 /// result is negative, presentation writes 1 each frame to keep redrawing.
-static s16 _gGameFlowLoadCaptionFramesLeft;
+s16 _gGameFlowLoadCaptionFramesLeft;
 
 /// Frame countdown retained for the suppressed secondary text drawer.
 ///
 /// Initialized to zero and forced to 1 after reveal or during hold/fade-out.
-static s16 _gGameFlowLegacySecondaryLoadCaptionFramesLeft;
+s16 _gGameFlowLegacySecondaryLoadCaptionFramesLeft;
 
 /// Primary text result, latched once negative (0 progressing, -1 end reached).
 ///
 /// Completion from the drawer is 1; retaining the first negative result lets
 /// the presentation advance while the caption continues to redraw.
-static s16 _gGameFlowLoadCaptionRevealStatus;
+s16 _gGameFlowLoadCaptionRevealStatus;
 
 /// Secondary text result, latched once negative (0 progressing, -1 end reached).
 ///
 /// The suppressed secondary path records -1 after its 61-frame start delay.
-static s16 _gGameFlowLegacySecondaryLoadCaptionRevealStatus;
+s16 _gGameFlowLegacySecondaryLoadCaptionRevealStatus;
 
 TextStream* gGameFlowLegacySecondaryLoadCaption;
 
@@ -75,14 +75,9 @@ TextStream* gGameFlowLoadCaption;
 /// Reveal starts at 255 and finishes below zero; darkening starts at zero and
 /// clears the framebuffers above 256. Drawing uses the low byte, retaining its
 /// wrap at 256. The volatile byte views request actual reads of that byte.
-static s16 _gFadeBootImageMaskLevel;
+s16 _gFadeBootImageMaskLevel;
 
-BootLoadDestination gGameFlowLoadScreenDestination;
-
-/// Four retained BSS bytes with no accesses; their type and role are unproven.
-///
-/// The adjacent loading destination does not establish a containing object.
-static s32 D_8006ACBC;
+GameLocationKey gGameFlowLoadScreenDestination;
 
 s16 gGameFlowLoadAlternateCaption;
 

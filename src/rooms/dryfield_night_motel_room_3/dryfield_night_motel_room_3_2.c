@@ -1584,7 +1584,7 @@ void dryfieldNightMotelRoom3DrawFlaresTask(Task* task)
     };
 
     // View 4 includes both flares, preserving their packet reservation order.
-    switch (gGameSession->location.loc.view) {
+    switch (gGameSession->location.view) {
         case 3:
             glowDrawFlareClipped(&_gDryfieldNightMotelRoom3View3And4FlareWorldPoint,
                                  DRYFIELD_NIGHT_MOTEL_ROOM_3_COMMON_FLARE_TEXTURE_COLUMN,

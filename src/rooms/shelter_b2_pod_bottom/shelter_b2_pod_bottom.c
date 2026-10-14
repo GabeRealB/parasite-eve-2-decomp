@@ -1293,7 +1293,7 @@ static void _shelterB2PodBottomInitializeRoomTask(Task* task)
 
     task->msgTable = _gShelterB2PodBottomRoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
-    if (gGameSession->location.loc.variant == ROOM_VARIANT_ENTRY_SCENE) {
+    if (gGameSession->location.variant == ROOM_VARIANT_ENTRY_SCENE) {
         actor361100ClearHeadAimTaskHandle(0);
         evsStartScriptWithSkip(gActor361100PodSceneScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, gActor361100PodSceneSkipScript);
     } else {

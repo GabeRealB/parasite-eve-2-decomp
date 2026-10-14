@@ -684,7 +684,7 @@ static void _actor342000InitGluttonModel(Task* task)
     model->lightMtx   = &modelWork->light;
     model->colorMtx   = &modelWork->color;
     task->msgTable    = _gActor342000GluttonModelMessages;
-    texturePlacement  = (areaGetVariant(&gGameSession->location.loc))->placements;
+    texturePlacement  = (areaGetVariant(&gGameSession->location))->placements;
     for (; texturePlacement->entryId != AREA_PLACEMENT_END; texturePlacement++) {
         if (texturePlacement->entryId == ACTOR_342000_GLUTTON_TEXTURE_PLACE) {
             break;
@@ -1144,8 +1144,8 @@ static void _actor342000UpdateSceneStaging(Task* eventTask)
         case ACTOR_342000_STAGING_NONE:
             break;
         case ACTOR_342000_STAGING_BLEND_ON:
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = ACTOR_342000_BLEND_VIEW;
-            work->framebufferBlend                                     = taskSpawn(ACTOR_342000_FRAMEBUFFER_BLEND_BANK, ACTOR_342000_FRAMEBUFFER_BLEND_SLOT, ACTOR_342000_FRAMEBUFFER_BLEND_DOUBLE_PASS, 0);
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = ACTOR_342000_BLEND_VIEW;
+            work->framebufferBlend                                 = taskSpawn(ACTOR_342000_FRAMEBUFFER_BLEND_BANK, ACTOR_342000_FRAMEBUFFER_BLEND_SLOT, ACTOR_342000_FRAMEBUFFER_BLEND_DOUBLE_PASS, 0);
             break;
         case ACTOR_342000_STAGING_BLEND_OFF:
             if (work->framebufferBlend != NULL) {
@@ -1158,7 +1158,7 @@ static void _actor342000UpdateSceneStaging(Task* eventTask)
                 work->doorSoundPlaying = 1;
                 work->stagingStep++;
             }
-            if (gGameSession->location.loc.view == ACTOR_342000_DOORS_HIDDEN_VIEW) {
+            if (gGameSession->location.view == ACTOR_342000_DOORS_HIDDEN_VIEW) {
                 taskMessageDispatch(work->doors[0], ACTOR_MESSAGE_SET_MODEL_DRAW, ACTOR_MESSAGE_DRAW_HIDE, 0);
                 taskMessageDispatch(work->doors[1], ACTOR_MESSAGE_SET_MODEL_DRAW, ACTOR_MESSAGE_DRAW_HIDE, 0);
             } else {
@@ -1171,7 +1171,7 @@ static void _actor342000UpdateSceneStaging(Task* eventTask)
             TASK_MESSAGE_DISPATCH_POINTER(work->doors[1], ACTOR_MESSAGE_PLACE, &work->doorPlacements[1], 0);
             return;
         case ACTOR_342000_STAGING_RESTORE_VIEW:
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = work->savedView;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = work->savedView;
             break;
         case ACTOR_342000_STAGING_DOORS_MEET:
             switch (work->stagingStep) {
@@ -1265,11 +1265,11 @@ static inline void _actor342000EnterIncineratorRoomInline(void)
         ACTOR_342000_INCINERATOR_EXIT_ROOM       = 7,
         ACTOR_342000_INCINERATOR_EXIT_ROOM_GROUP = 1,
     };
-    gGameSession->location.loc.room                            = ACTOR_342000_INCINERATOR_EXIT_ROOM;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = ACTOR_342000_INCINERATOR_EXIT_ROOM;
-    gGameSession->eventRoomIndex                               = ACTOR_342000_INCINERATOR_EXIT_ROOM - 1;
-    gGameSession->incineratorRoomGroup                         = ACTOR_342000_INCINERATOR_EXIT_ROOM_GROUP;
-    gGameSession->roomObjsDirty                                = 1;
+    gGameSession->location.room                            = ACTOR_342000_INCINERATOR_EXIT_ROOM;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.room = ACTOR_342000_INCINERATOR_EXIT_ROOM;
+    gGameSession->eventRoomIndex                           = ACTOR_342000_INCINERATOR_EXIT_ROOM - 1;
+    gGameSession->incineratorRoomGroup                     = ACTOR_342000_INCINERATOR_EXIT_ROOM_GROUP;
+    gGameSession->roomObjsDirty                            = 1;
     areaApplySavedUpdates(gShelterB3GarbageIncineratorDescentAreaUpdates);
 }
 
@@ -1337,12 +1337,12 @@ static void _actor342000IncineratorEventTask(Task* task)
                 memFillBytes(allocatedWork, 0U, sizeof(*allocatedWork));
                 allocatedWork->player           = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
                 _gActor342000EventTask          = task;
-                allocatedWork->firstPlacedActor = sceneFindEnemyByPlaceKey(gGameSession->location.loc.area | (gGameSession->location.loc.stage << 8))->task;
+                allocatedWork->firstPlacedActor = sceneFindEnemyByPlaceKey(gGameSession->location.area | (gGameSession->location.stage << 8))->task;
             }
             work = task->work;
             if (gGameSession->skipEventIntro == 0) {
-                sceneCommand.context.loc.stage = gGameSession->location.loc.stage;
-                sceneCommand.context.loc.area  = gGameSession->location.loc.area;
+                sceneCommand.context.loc.stage = gGameSession->location.stage;
+                sceneCommand.context.loc.area  = gGameSession->location.area;
                 sceneCommand.command           = 0;
                 TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &sceneCommand, ACTOR_COMMAND_MESSAGE_APPLY);
                 work->doors[0] = taskSpawnFromTable(gActor342000IncineratorEventTaskDescs, ACTOR_342000_EVENT_FIRST_DOOR_TASK, 0, task);
@@ -1395,7 +1395,7 @@ static void _actor342000IncineratorEventTask(Task* task)
             elapsedTicks        = (u16)task->killCountdown + 1;
             task->killCountdown = elapsedTicks;
             if (elapsedTicks >= ACTOR_342000_EVENT_CLOSE_TICKS) {
-                work->savedView = gGameSession->location.loc.view;
+                work->savedView = gGameSession->location.view;
                 _actor342000RequestPlayerActionInline(ACTOR_342000_PLAYER_ACTION_WEAPON_CLIP_BLENDED);
                 _actor342000SetStagingModeInline(ACTOR_342000_STAGING_DOORS_CLOSING);
                 task->killCountdown = 0;
@@ -1407,14 +1407,14 @@ static void _actor342000IncineratorEventTask(Task* task)
             elapsedTicks        = (u16)task->killCountdown + 1;
             task->killCountdown = elapsedTicks;
             if (elapsedTicks >= ACTOR_342000_EVENT_HANDOFF_TICKS) {
-                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = ACTOR_342000_EVENT_DOOR_VIEW;
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = ACTOR_342000_EVENT_DOOR_VIEW;
                 task->state++;
                 break;
             }
             break;
         case ACTOR_342000_EVENT_HOLD_VIEW:
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = ACTOR_342000_EVENT_DOOR_VIEW;
-            task->killCountdown                                        = 0;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = ACTOR_342000_EVENT_DOOR_VIEW;
+            task->killCountdown                                    = 0;
             task->state++;
             break;
         case ACTOR_342000_EVENT_WAIT_DOORS:
@@ -1424,8 +1424,8 @@ static void _actor342000IncineratorEventTask(Task* task)
                 _actor342000KillDoorsInline();
                 _actor342000SetStagingModeInline(ACTOR_342000_STAGING_RESTORE_VIEW);
                 _actor342000EnterIncineratorRoomInline();
-                sceneCommand.context.loc.stage = gGameSession->location.loc.stage;
-                sceneCommand.context.loc.area  = gGameSession->location.loc.area;
+                sceneCommand.context.loc.stage = gGameSession->location.stage;
+                sceneCommand.context.loc.area  = gGameSession->location.area;
                 sceneCommand.command           = 0;
                 TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &sceneCommand, ACTOR_COMMAND_MESSAGE_APPLY);
                 task->killCountdown = 0;

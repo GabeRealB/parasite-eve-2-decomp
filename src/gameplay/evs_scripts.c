@@ -106,6 +106,21 @@ typedef struct {
 STATIC_ASSERT_SIZEOF(_EvsInterpreterWork, 0x34);
 
 /* Define BSS before API headers to preserve first-declaration order. */
+
+const EvsSceneKey* gEvsSelectedSceneKey;
+
+/// Saved 1-based room view slot restored by RESTORE_VIEW.
+///
+/// Event launch and SAVE_VIEW capture the live save's location view; this is
+/// the room's view slot, before any mapping to a camera or background image.
+u8 _gEvsSavedView;
+
+u8 gEvsPlaybackPaused;
+
+#include "gameplay/evs_scripts.h"
+
+#include "evs_scripts.h"
+
 /// Requested 16-bit music level captured when a timed fade initializes.
 ///
 /// Snapshots `gMidiMusicVolume`, including override bits; it is not an audible
@@ -213,20 +228,6 @@ static s32 _gEvsSavedPlayerWeapon;
 /// Event launch sets five; execution decrements after checking input, including
 /// frame/CAP waits. The shared playback pause suspends this byte countdown.
 static u8 _gEvsSkipDelayUpdates;
-
-const EvsSceneKey* gEvsSelectedSceneKey;
-
-/// Saved 1-based room view slot restored by RESTORE_VIEW.
-///
-/// Event launch and SAVE_VIEW capture the live save's location view; this is
-/// the room's view slot, before any mapping to a camera or background image.
-static u8 _gEvsSavedView;
-
-u8 gEvsPlaybackPaused;
-
-#include "gameplay/evs_scripts.h"
-
-#include "evs_scripts.h"
 
 static void _evsExecuteInterpreterTask(Task* task);
 
@@ -398,7 +399,7 @@ static void _evsExecuteInterpreterTask(Task* task)
                     recipientTask = gameGetTaskSlot(GAME_TASK_SLOT_SCENE);
                     if (work->command->operand1.value != EVENT_SCRIPT_MESSAGE_SELECT_SCENE_MANAGER) {
                         TASK_MESSAGE_DISPATCH_SECOND_POINTER(recipientTask, SCENE_MESSAGE_FIND_PLACED_ACTOR,
-                                                             (work->command->operand1.value << ENEMY_PLACE_INDEX_SHIFT) | (gGameSession->location.loc.stage << ENEMY_PLACE_STAGE_SHIFT) | gGameSession->location.loc.area,
+                                                             (work->command->operand1.value << ENEMY_PLACE_INDEX_SHIFT) | (gGameSession->location.stage << ENEMY_PLACE_STAGE_SHIFT) | gGameSession->location.area,
                                                              &recipientTask);
                     }
                 } else if (work->command->operand0.value == EVENT_SCRIPT_MESSAGE_TARGET_OTHER_SCENE_CHILD) {
@@ -439,7 +440,7 @@ static void _evsExecuteInterpreterTask(Task* task)
                 /* fallthrough */
 
             case EVENT_SCRIPT_OPCODE_SET_VIEW:
-                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = (u8)work->command->operand0.value;
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = (u8)work->command->operand0.value;
                 break;
 
             case EVENT_SCRIPT_OPCODE_WAIT_FRAMES:
@@ -497,7 +498,7 @@ static void _evsExecuteInterpreterTask(Task* task)
                 break;
 
             case EVENT_SCRIPT_OPCODE_RESTORE_VIEW:
-                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = _gEvsSavedView;
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = _gEvsSavedView;
                 break;
 
             case EVENT_SCRIPT_OPCODE_SELECT_SCENE:
@@ -751,7 +752,7 @@ static void _evsExecuteInterpreterTask(Task* task)
                 break;
 
             case EVENT_SCRIPT_OPCODE_SAVE_VIEW:
-                _gEvsSavedView = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view;
+                _gEvsSavedView = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view;
                 break;
         }
         D_801156CB    = 1;
@@ -859,7 +860,7 @@ void evsStartScriptWithSkip(EvsCommand* script, s32 hudMode, EvsCommand* skipScr
     _gEvsSkipDelayUpdates                 = EVENT_SCRIPT_SKIP_DELAY_UPDATES;
     _gEvsPlayerEquipmentRestorePending    = false;
     _gEvsCompanionEquipmentRestorePending = false;
-    _gEvsSavedView                        = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view;
+    _gEvsSavedView                        = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view;
     _gEvsSavedPlayerWeapon                = gPlayerStatus.weapon;
     sndEvtRequestScriptStop(SOUND_COMMON(0x0D) | SOUND_SCRIPT_STOP_ALL_INSTANCES, SOUND_SCRIPT_STOP_KEEP_RELEASE);
     taskSpawn(EVENT_SCRIPT_INTERPRETER_BANK, EVENT_SCRIPT_INTERPRETER_TYPE, hudMode, script);
@@ -870,7 +871,7 @@ Task* sceneFindPlacedActor(s32 placementIndex)
     s32   placeKey;
     Task* actorTask;
 
-    placeKey = (placementIndex << ENEMY_PLACE_INDEX_SHIFT) | (gGameSession->location.loc.stage << ENEMY_PLACE_STAGE_SHIFT) | gGameSession->location.loc.area;
+    placeKey = (placementIndex << ENEMY_PLACE_INDEX_SHIFT) | (gGameSession->location.stage << ENEMY_PLACE_STAGE_SHIFT) | gGameSession->location.area;
     TASK_MESSAGE_DISPATCH_SECOND_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_FIND_PLACED_ACTOR, placeKey, &actorTask);
     return actorTask;
 }

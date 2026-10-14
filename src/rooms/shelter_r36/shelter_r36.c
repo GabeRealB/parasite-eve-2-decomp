@@ -1183,13 +1183,13 @@ static void _shelterR36ReloadForMovie(void)
     };
 
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene != SHELTER_R36_ATTRACT_DEMO) {
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage = GAME_STAGE_MINE_SHELTER;
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area  = GAME_AREA_SHELTER_R36;
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp  = SHELTER_R36_MOVIE_ARRIVAL;
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room  = SHELTER_R36_MOVIE_ROOM_VARIANT;
-        gDisplayState.spriteVariant                                 = SHELTER_R36_MOVIE_SPRITE_VARIANT;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.stage = GAME_STAGE_MINE_SHELTER;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.area  = GAME_AREA_SHELTER_R36;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp  = SHELTER_R36_MOVIE_ARRIVAL;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.room  = SHELTER_R36_MOVIE_ROOM_VARIANT;
+        gDisplayState.spriteVariant                             = SHELTER_R36_MOVIE_SPRITE_VARIANT;
         taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
-        gameFlowBeginLoadScreen(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc, GAME_FLOW_LOAD_CAPTION_ALTERNATE);
+        gameFlowBeginLoadScreen(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location, GAME_FLOW_LOAD_CAPTION_ALTERNATE);
     }
 }
 
@@ -1304,10 +1304,10 @@ static void _shelterR36InitializeTask(Task* task)
 
     task->msgTable = _gShelterR36RoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
-    if (gGameSession->location.loc.warp == SHELTER_R36_SCENE_ARRIVAL) {
+    if (gGameSession->location.warp == SHELTER_R36_SCENE_ARRIVAL) {
         taskSpawnFromTable(_gShelterR36ArrivalTasks, SHELTER_R36_ARRIVAL_SCENE_TASK, 0, 0);
     }
-    if (gGameSession->location.loc.warp == SHELTER_R36_MOVIE_ARRIVAL) {
+    if (gGameSession->location.warp == SHELTER_R36_MOVIE_ARRIVAL) {
         taskSpawnFromTable(_gShelterR36ArrivalTasks, SHELTER_R36_MOVIE_ENDING_TASK, 0, 0);
     }
     task->state++;

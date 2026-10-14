@@ -866,7 +866,7 @@ static inline void _actor310100FinishOfficerModelSwap(Task* displayTask, const _
     const AreaPlacement*           placement;
 
     modelTask = controllerWork->modelTask;
-    placement = areaGetVariant(&gGameSession->location.loc)->placements;
+    placement = areaGetVariant(&gGameSession->location)->placements;
     while (placement->entryId != AREA_PLACEMENT_END && placement->entryId != placementId) {
         placement++;
     }
@@ -1038,7 +1038,7 @@ static void _actor310100InitOfficerBodyModel(Task* task, s32 placementId)
     _actor310100UpdateOfficerAnimation(task);
     task->msgTable     = _gActor310100OfficerMessageTable;
     texturePlacementId = officerPlacementId;
-    placement          = areaGetVariant(&gGameSession->location.loc)->placements;
+    placement          = areaGetVariant(&gGameSession->location)->placements;
     while (placement->entryId != AREA_PLACEMENT_END && placement->entryId != texturePlacementId) {
         placement++;
     }
@@ -1099,7 +1099,7 @@ static void _actor310100InitOfficerCulledBodyModel(Task* task, s32 placementId)
     _actor310100UpdateOfficerAnimation(task);
     task->msgTable     = _gActor310100OfficerMessageTable;
     texturePlacementId = officerPlacementId;
-    placement          = areaGetVariant(&gGameSession->location.loc)->placements;
+    placement          = areaGetVariant(&gGameSession->location)->placements;
     while (placement->entryId != AREA_PLACEMENT_END && placement->entryId != texturePlacementId) {
         placement++;
     }
@@ -1166,7 +1166,7 @@ static void _actor310100Officer1ControllerTask(Task* task)
             ACTOR_310100_OFFICER_1_MOVIE_VISIBLE(modelVisible);
             if (modelVisible) {
                 work      = task->work;
-                placement = areaGetVariant(&gGameSession->location.loc)->placements;
+                placement = areaGetVariant(&gGameSession->location)->placements;
                 while (placement->entryId != AREA_PLACEMENT_END && placement->entryId != ACTOR_310100_PLACEMENT_OFFICER_1) {
                     placement++;
                 }
@@ -1256,7 +1256,7 @@ static void _actor310100Officer2ControllerTask(Task* task)
         case ACTOR_310100_CONTROLLER_HIDDEN:
             ACTOR_310100_OFFICER_2_MOVIE_VISIBLE(modelVisible);
             if (modelVisible) {
-                placement = areaGetVariant(&gGameSession->location.loc)->placements;
+                placement = areaGetVariant(&gGameSession->location)->placements;
                 while (placement->entryId != AREA_PLACEMENT_END && placement->entryId != ACTOR_310100_PLACEMENT_OFFICER_2) {
                     placement++;
                 }

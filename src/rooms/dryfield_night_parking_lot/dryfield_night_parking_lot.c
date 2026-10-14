@@ -101,7 +101,7 @@ s32 dryfieldNightParkingLotStartScavengerEncounterMessage(Task* unusedTask, s32 
     enum { DRYFIELD_NIGHT_PARKING_LOT_ACTION_SCAVENGER_ENTRANCE = 1 };
 
     if ((request->actionId == DRYFIELD_NIGHT_PARKING_LOT_ACTION_SCAVENGER_ENTRANCE) &&
-        (gGameSession->location.loc.variant == DRYFIELD_NIGHT_PARKING_LOT_SCAVENGER_VARIANT) && (gameFlagGetNibble(GAME_FLAG_NIGHT_PARKING_LOT_EVENT_SEEN) == 0)) {
+        (gGameSession->location.variant == DRYFIELD_NIGHT_PARKING_LOT_SCAVENGER_VARIANT) && (gameFlagGetNibble(GAME_FLAG_NIGHT_PARKING_LOT_EVENT_SEEN) == 0)) {
         // Latch before the script starts so another trigger cannot repeat the entrance.
         gameFlagSetNibble(GAME_FLAG_NIGHT_PARKING_LOT_EVENT_SEEN, 1);
         playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
@@ -126,7 +126,7 @@ static void _dryfieldNightParkingLotInitializeRoom(Task* task)
 
     task->msgTable = gDryfieldNightParkingLotRoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
-    if ((gGameSession->location.loc.variant == DRYFIELD_NIGHT_PARKING_LOT_SCAVENGER_VARIANT) && (gameFlagGetNibble(GAME_FLAG_NIGHT_PARKING_LOT_EVENT_SEEN) != 0)) {
+    if ((gGameSession->location.variant == DRYFIELD_NIGHT_PARKING_LOT_SCAVENGER_VARIANT) && (gameFlagGetNibble(GAME_FLAG_NIGHT_PARKING_LOT_EVENT_SEEN) != 0)) {
         gSceneCombatState.actor01600Wave = DRYFIELD_NIGHT_PARKING_LOT_SCAVENGER_BATTLE_WAVE;
     }
     task->state++;

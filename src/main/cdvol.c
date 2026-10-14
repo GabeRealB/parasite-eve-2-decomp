@@ -35,9 +35,6 @@ static u16 _gCdSyncDiscInitSettlePolls;
 /// before refreshing MIDI, script, streaming and CD-input gains.
 static u8 _gSndOutputStereoEnabled;
 
-/// BSS bytes with no established use; their original type and role are unproven.
-static u8 D_8006EBC0[8];
-
 /// Software mirror of the SPU common output attributes last submitted here.
 ///
 /// Reset seeds master, CD and external-input controls. Later CD-volume writes

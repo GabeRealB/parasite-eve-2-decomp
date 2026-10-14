@@ -3326,8 +3326,8 @@ static void _shelterB3DumpingHoleDebrisEventHandlePlayerCommand(Task* directorTa
         case SHELTER_B3_DUMPING_HOLE_DEBRIS_PLAYER_COMMAND_PLAY_ANIMATION_48:
             switch (work->playerStep) {
                 case SHELTER_B3_DUMPING_HOLE_DEBRIS_RISE_SEND:
-                    request.actorCommand.context.loc.stage = gGameSession->location.loc.stage;
-                    commandArea                            = gGameSession->location.loc.area;
+                    request.actorCommand.context.loc.stage = gGameSession->location.stage;
+                    commandArea                            = gGameSession->location.area;
                     request.actorCommand.command           = SHELTER_B3_DUMPING_HOLE_DEBRIS_ACTOR_COMMAND_RISE_PROP;
                     request.actorCommand.context.loc.area  = commandArea;
                     TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &request, ACTOR_COMMAND_MESSAGE_APPLY);
@@ -3458,8 +3458,8 @@ static void _shelterB3DumpingHoleDebrisEventHandleSceneCommand(Task* directorTas
                         return;
                     }
                     taskMessageDispatch(((_ShelterB3DumpingHoleDebrisEventWork*)_gShelterB3DumpingHoleDebrisEventTask->work)->placement0Actor, ACTOR_MESSAGE_SET_MODEL_DRAW, SHELTER_B3_DUMPING_HOLE_DEBRIS_ACTOR_DRAW_SHOW_ALLOCATE, 0);
-                    actorCommand.context.loc.stage = gGameSession->location.loc.stage;
-                    commandArea                    = gGameSession->location.loc.area;
+                    actorCommand.context.loc.stage = gGameSession->location.stage;
+                    commandArea                    = gGameSession->location.area;
                     actorCommand.command           = SHELTER_B3_DUMPING_HOLE_DEBRIS_ACTOR_COMMAND_PLAY_POSE;
                     actorCommand.context.loc.area  = commandArea;
                     TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &actorCommand, ACTOR_COMMAND_MESSAGE_APPLY);
@@ -3470,15 +3470,15 @@ static void _shelterB3DumpingHoleDebrisEventHandleSceneCommand(Task* directorTas
             break;
         case SHELTER_B3_DUMPING_HOLE_DEBRIS_SCENE_COMMAND_RESTORE_ACTOR0:
             TASK_MESSAGE_DISPATCH_POINTER(work->placement0Actor, ACTOR_MESSAGE_PLACE, &work->pose, 0);
-            actorCommand.context.loc.stage = gGameSession->location.loc.stage;
-            commandArea                    = gGameSession->location.loc.area;
+            actorCommand.context.loc.stage = gGameSession->location.stage;
+            commandArea                    = gGameSession->location.area;
             actorCommand.command           = SHELTER_B3_DUMPING_HOLE_DEBRIS_ACTOR_COMMAND_RESTORE_POSE;
             actorCommand.context.loc.area  = commandArea;
             TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &actorCommand, ACTOR_COMMAND_MESSAGE_APPLY);
             break;
         case SHELTER_B3_DUMPING_HOLE_DEBRIS_SCENE_COMMAND_RESUME_BATTLE:
-            actorCommand.context.loc.stage = gGameSession->location.loc.stage;
-            commandArea                    = gGameSession->location.loc.area;
+            actorCommand.context.loc.stage = gGameSession->location.stage;
+            commandArea                    = gGameSession->location.area;
             actorCommand.command           = SHELTER_B3_DUMPING_HOLE_ACTOR_COMMAND_RESUME_BATTLE;
             actorCommand.context.loc.area  = commandArea;
             TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &actorCommand, ACTOR_COMMAND_MESSAGE_APPLY);
@@ -3560,8 +3560,8 @@ static void _shelterB3DumpingHoleDebrisEventTask(Task* directorTask)
                 memFillBytes(allocatedWork, 0, sizeof(*allocatedWork));
                 allocatedWork->player                 = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
                 _gShelterB3DumpingHoleDebrisEventTask = directorTask;
-                allocatedWork->placement0Actor        = sceneFindEnemyByPlaceKey(gGameSession->location.loc.area | (gGameSession->location.loc.stage << ENEMY_PLACE_STAGE_SHIFT))->task;
-                allocatedWork->placement1Actor        = sceneFindEnemyByPlaceKey((gGameSession->location.loc.stage << ENEMY_PLACE_STAGE_SHIFT) | (u16)(gGameSession->location.loc.area | (1 << ENEMY_PLACE_INDEX_SHIFT)))->task;
+                allocatedWork->placement0Actor        = sceneFindEnemyByPlaceKey(gGameSession->location.area | (gGameSession->location.stage << ENEMY_PLACE_STAGE_SHIFT))->task;
+                allocatedWork->placement1Actor        = sceneFindEnemyByPlaceKey((gGameSession->location.stage << ENEMY_PLACE_STAGE_SHIFT) | (u16)(gGameSession->location.area | (1 << ENEMY_PLACE_INDEX_SHIFT)))->task;
                 allocatedWork->debrisSpriteSignal     = SHELTER_B3_DUMPING_HOLE_DEBRIS_SPRITES_WAIT;
                 allocatedWork->debrisModelSignal      = SHELTER_B3_DUMPING_HOLE_DEBRIS_MODELS_WAIT;
                 allocatedWork->field_4A               = 0;
@@ -3633,7 +3633,7 @@ s16 shelterB3DumpingHoleIsIncineratorExitBlocked(void)
     enum {
         SHELTER_B3_DUMPING_HOLE_INCINERATOR_EXIT_BYPASS_ROOM = 2,
     };
-    if (gGameSession->location.loc.room == SHELTER_B3_DUMPING_HOLE_INCINERATOR_EXIT_BYPASS_ROOM) {
+    if (gGameSession->location.room == SHELTER_B3_DUMPING_HOLE_INCINERATOR_EXIT_BYPASS_ROOM) {
         return 0;
     }
     return gShelterB3DumpingHoleIncineratorExitBlocked;
@@ -3696,8 +3696,8 @@ static void _shelterB3DumpingHoleBroadcastActorCommand(s16 command)
 {
     ActorCommand request;
 
-    request.context.loc.stage = gGameSession->location.loc.stage;
-    request.context.loc.area  = gGameSession->location.loc.area;
+    request.context.loc.stage = gGameSession->location.stage;
+    request.context.loc.area  = gGameSession->location.area;
     request.command           = command;
     TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &request, ACTOR_COMMAND_MESSAGE_APPLY);
 }
@@ -4126,8 +4126,8 @@ static void _shelterB3DumpingHoleCollapseEventHandleCommand(Task* task)
             scratch.animation.blendFrames          = SHELTER_B3_DUMPING_HOLE_COLLAPSE_BLEND_FRAMES;
             scratch.animation.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
             TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &scratch.animation, 0);
-            scratch.actorCommand.context.loc.stage = gGameSession->location.loc.stage;
-            scratch.actorCommand.context.loc.area  = gGameSession->location.loc.area;
+            scratch.actorCommand.context.loc.stage = gGameSession->location.stage;
+            scratch.actorCommand.context.loc.area  = gGameSession->location.area;
             scratch.actorCommand.command           = SHELTER_B3_DUMPING_HOLE_COLLAPSE_ACTOR_COMMAND_START;
             TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &scratch.actorCommand, ACTOR_COMMAND_MESSAGE_APPLY);
             work->command = SHELTER_B3_DUMPING_HOLE_COLLAPSE_COMMAND_NONE;
@@ -4239,8 +4239,8 @@ static void _shelterB3DumpingHoleCollapseEventHandleCommand(Task* task)
             _gShelterB3DumpingHoleCollapseShardsActive = false;
             work->field_96                             = 1;
             roomEffectRequestCancelAll();
-            effectScratch.actorCommand.context.loc.stage = gGameSession->location.loc.stage;
-            effectScratch.actorCommand.context.loc.area  = gGameSession->location.loc.area;
+            effectScratch.actorCommand.context.loc.stage = gGameSession->location.stage;
+            effectScratch.actorCommand.context.loc.area  = gGameSession->location.area;
             endCommand                                   = &effectScratch.actorCommand;
             endCommand->command                          = SHELTER_B3_DUMPING_HOLE_COLLAPSE_ACTOR_COMMAND_SKIP_SHORT;
             TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, endCommand, ACTOR_COMMAND_MESSAGE_APPLY);
@@ -4252,13 +4252,13 @@ static void _shelterB3DumpingHoleCollapseEventHandleCommand(Task* task)
             break;
         case SHELTER_B3_DUMPING_HOLE_COLLAPSE_COMMAND_FINISH:
             // Restore the saved view and player before ending temporal blending.
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = work->savedView;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = work->savedView;
             taskMessageDispatch(work->player, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO, 0);
             taskMessageDispatch(work->placement0Actor, ACTOR_MESSAGE_SET_MODEL_DRAW, SHELTER_B3_DUMPING_HOLE_COLLAPSE_ACTOR_DRAW_SHOW_ALLOCATE, 0);
             work->field_96 = 1;
             roomEffectRequestCancelAll();
-            effectScratch.actorCommand.context.loc.stage = gGameSession->location.loc.stage;
-            effectScratch.actorCommand.context.loc.area  = gGameSession->location.loc.area;
+            effectScratch.actorCommand.context.loc.stage = gGameSession->location.stage;
+            effectScratch.actorCommand.context.loc.area  = gGameSession->location.area;
             finishCommand                                = &effectScratch.actorCommand;
             finishCommand->command                       = SHELTER_B3_DUMPING_HOLE_COLLAPSE_ACTOR_COMMAND_RESET_VIEW;
             TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, finishCommand, ACTOR_COMMAND_MESSAGE_APPLY);
@@ -4345,8 +4345,8 @@ static void _shelterB3DumpingHoleCollapseEventSkip(void)
     work->field_96 = 1;
     roomEffectRequestCancelAll();
     _gShelterB3DumpingHoleCollapseShardsActive = false;
-    request.context.loc.stage                  = gGameSession->location.loc.stage;
-    request.context.loc.area                   = gGameSession->location.loc.area;
+    request.context.loc.stage                  = gGameSession->location.stage;
+    request.context.loc.area                   = gGameSession->location.area;
     request.command                            = SHELTER_B3_DUMPING_HOLE_ACTOR_COMMAND_COLLAPSE_SKIP_LONG;
     TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &request, ACTOR_COMMAND_MESSAGE_APPLY);
 
@@ -4403,14 +4403,14 @@ static void _shelterB3DumpingHoleCollapseEventTask(Task* task)
                 memFillBytes(work, 0, sizeof(*work));
                 work->player                            = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
                 _gShelterB3DumpingHoleCollapseEventTask = task;
-                work->placement0Actor                   = sceneFindEnemyByPlaceKey(gGameSession->location.loc.area | (gGameSession->location.loc.stage << ENEMY_PLACE_STAGE_SHIFT))->task;
+                work->placement0Actor                   = sceneFindEnemyByPlaceKey(gGameSession->location.area | (gGameSession->location.stage << ENEMY_PLACE_STAGE_SHIFT))->task;
                 model->lightMtx                         = &work->lightMtx;
                 model->colorMtx                         = &work->colorMtx;
                 task->msgTable                          = _gShelterB3DumpingHoleCollapseEventMessages;
                 _shelterB3DumpingHoleCollapseEventSetViewSprites(SHELTER_B3_DUMPING_HOLE_COLLAPSE_SPRITES_HIDE_BOTH);
             }
             _gShelterB3DumpingHoleView14GlowEnabled                          = 0;
-            ((_ShelterB3DumpingHoleCollapseEventWork*)task->work)->savedView = gGameSession->location.loc.view;
+            ((_ShelterB3DumpingHoleCollapseEventWork*)task->work)->savedView = gGameSession->location.view;
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
             scratch.animation.source.index         = gPlayerStatus.weapon + (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == SHELTER_B3_DUMPING_HOLE_PRIMARY_CHARACTER ? SHELTER_B3_DUMPING_HOLE_PRIMARY_ANIMATION_BANK_OFFSET : SHELTER_B3_DUMPING_HOLE_NONPRIMARY_ANIMATION_BANK_OFFSET);
             scratch.animation.animationId          = SHELTER_B3_DUMPING_HOLE_COLLAPSE_EVENT_RESTORE_CLIP;
@@ -4607,7 +4607,7 @@ static void _shelterB3DumpingHoleCollapseEventSetViewSprites(u8 spriteMode)
         SHELTER_B3_DUMPING_HOLE_COLLAPSE_SPRITE_BATCH1     = 1,
         SHELTER_B3_DUMPING_HOLE_COLLAPSE_SPRITE_BATCH2     = 2,
     };
-    GameLocationKey* location = &gGameSession->location.loc;
+    GameLocationKey* location = &gGameSession->location;
     SpriteBatch*     batches  = gSpriteAreaTables[location->stage - 1]->areaViews[location->area - 1][SHELTER_B3_DUMPING_HOLE_COLLAPSE_SPRITE_VIEW_INDEX].batches;
 
     if (spriteMode == SHELTER_B3_DUMPING_HOLE_COLLAPSE_SPRITES_HIDE_BOTH) {

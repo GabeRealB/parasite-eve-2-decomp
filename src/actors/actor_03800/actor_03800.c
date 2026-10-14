@@ -2440,7 +2440,7 @@ static void _actor03800SpawnBurstFragment(Task* task, u32 variant)
         return;
     }
     // Resolve the saved placement variant; warp is never read by these lookups.
-    sessionLocation = &gGameSession->location.loc;
+    sessionLocation = &gGameSession->location;
     placementOwner  = task->spawnArg2.pointer;
     placeKey        = placementOwner->placeKey;
     model           = fragmentEffect->task->extra.tmd;

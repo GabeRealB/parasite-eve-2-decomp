@@ -1544,7 +1544,7 @@ static inline AreaPlacement* _actor120300FindTexturePlacement(void)
     AreaPlacement* placement;
     u8             entryId;
 
-    placement = areaGetVariant(&gGameSession->location.loc)->placements;
+    placement = areaGetVariant(&gGameSession->location)->placements;
     entryId   = placement->entryId;
     while (entryId != AREA_PLACEMENT_END) {
         if (entryId == ACTOR_120300_TEXTURE_RESOURCE_ENTRY_ID) {

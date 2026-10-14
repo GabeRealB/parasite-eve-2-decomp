@@ -116,7 +116,7 @@ s32 capStartSequence(CapSequenceRecord* sequence, s16 playbackMode, s16 variantK
 
     _capInitializeSequencePlayback(sequence, variantKey);
     // Save the view and decode policy that playback exit restores.
-    gCapSavedView          = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view;
+    gCapSavedView          = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view;
     gCapSavedImageMdecMode = cdQueue->imageMdecMode;
     if (gDisplayState.debugMode != 0) {
         func_807245B8();

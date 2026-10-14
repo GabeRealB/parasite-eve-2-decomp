@@ -2008,12 +2008,12 @@ static void _actor136300GarageDepartureTask(Task* task)
             gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
             gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, ACTOR_136300_DEPART_DIALOGUE_INDEX);
             gameFlagSetNibble(GAME_FLAG_COMPANION_1_SCHEDULE, ACTOR_136300_DEPART_COMPANION_SCHEDULE);
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent         = ACTOR_136300_MESA_SCENE_EVENT;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage = GAME_STAGE_MINE_SHELTER;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area  = GAME_AREA_MINE_MESA;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp  = 1;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room  = 1;
-            gameFlowBeginLoadScreen(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc, GAME_FLOW_LOAD_CAPTION_NORMAL);
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent     = ACTOR_136300_MESA_SCENE_EVENT;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.stage = GAME_STAGE_MINE_SHELTER;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.area  = GAME_AREA_MINE_MESA;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp  = 1;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.room  = 1;
+            gameFlowBeginLoadScreen(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location, GAME_FLOW_LOAD_CAPTION_NORMAL);
             inventoryClearCollectedBit(INVENTORY_COLLECTION_ID_TRUCK_KEY);
             gDisplayState.spriteVariant = 1;
             taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);

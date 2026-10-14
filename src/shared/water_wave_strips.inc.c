@@ -236,11 +236,11 @@ static void WATER_WAVE_STRIPS_DRAW_FUNCTION(Task* task)
 #if WATER_WAVE_STRIPS_RESET_ACTOR_LOAD_CURSOR
     surface   = WATER_WAVE_STRIPS_SURFACES;
     wavePhase = -(gDisplayState.animFrame * WATER_WAVE_STRIPS_PHASE_PER_FRAME);
-    location  = &gGameSession->location.loc;
+    location  = &gGameSession->location;
     // These corridor views omit water, before reserving either packet or scratch space.
     if (location->stage == GAME_STAGE_MINE_SHELTER) {
         if (location->area == GAME_AREA_SHELTER_B2_MAIN_CORRIDOR) {
-            if ((u32)(gGameSession->location.loc.view - WATER_WAVE_STRIPS_FIRST_HIDDEN_VIEW) < WATER_WAVE_STRIPS_HIDDEN_VIEW_COUNT) {
+            if ((u32)(gGameSession->location.view - WATER_WAVE_STRIPS_FIRST_HIDDEN_VIEW) < WATER_WAVE_STRIPS_HIDDEN_VIEW_COUNT) {
                 return;
             }
         }

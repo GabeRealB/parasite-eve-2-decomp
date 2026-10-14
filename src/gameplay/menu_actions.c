@@ -1096,7 +1096,7 @@ void planarReflectionDispatchPlayerTask(Task* reflectionTask)
 
     // Latch the room before its callback creates and reparents the reflection.
     if (reflectionTask->state == PLANAR_REFLECTION_DISPATCH_STATE_INIT) {
-        gPlanarReflectionLocationKey = GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK;
+        gPlanarReflectionLocationKey = GAME_LOCATION_WORD(gGameSession->location) & GAME_LOCATION_STAGE_AREA_MASK;
     }
     switch (gPlanarReflectionLocationKey) {
         case GAME_LOCATION_KEY(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_SQUARE, 0, 0):
@@ -1181,7 +1181,7 @@ static inline void _menuMapBeginClosing(Task* mapTask, UiObject* mapObject, s32 
 
     _menuMapPrepareClosing(mapTask);
     mapObject->result = result;
-    if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) ==
+    if ((GAME_LOCATION_WORD(gGameSession->location) & GAME_LOCATION_STAGE_AREA_MASK) ==
         GAME_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B3_GARBAGE_INCINERATOR, 0, 0)) {
         loadingRestoreViewImageAndEnqueueResources(MENU_MAP_RELOAD_SKIP_BACKGROUND);
     }
@@ -1199,7 +1199,7 @@ void menuMapNavigateTask(Task* mapTask)
     u8        candidatePage;
 
     mapObject   = mapTask->spawnArg2.pointer;
-    pageFlagIds = gMenuMapPageFlagTables[gGameSession->location.loc.stage - 1];
+    pageFlagIds = gMenuMapPageFlagTables[gGameSession->location.stage - 1];
     _menuMapDrawLoadedPage(mapTask);
     if (gDisplayState.keepGraphics != 0) {
         displaySetTaskDrawMode(DISPLAY_TASK_DRAW_ROOM);
@@ -1221,7 +1221,7 @@ void menuMapNavigateTask(Task* mapTask)
             if (pageFlagIds[gMenuMapSelectedPage] == MENU_MAP_PAGE_FLAG_END) {
                 return;
             }
-            for (candidatePage = gMenuMapSelectedPage + 1; candidatePage <= gMenuMapNavigationLastPages[gGameSession->location.loc.stage - 1]; candidatePage++) {
+            for (candidatePage = gMenuMapSelectedPage + 1; candidatePage <= gMenuMapNavigationLastPages[gGameSession->location.stage - 1]; candidatePage++) {
                 if (_menuMapPageIsAvailable(candidatePage, pageFlagIds[candidatePage]) == 1) {
                     if ((s8)gMenuMapSelectedPage != candidatePage) {
                         gMenuMapSelectedPage = candidatePage;
@@ -1343,8 +1343,8 @@ static void _menuMapDrawPlayerCursor(const Task* mapTask)
     mapObject    = mapTask->spawnArg2.pointer;
     playerStatus = &gPlayerStatus;
     playerActor  = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->work;
-    area         = gMenuMapAreaTables[gGameSession->location.loc.stage - 1];
-    area         = area + gGameSession->location.loc.area;
+    area         = gMenuMapAreaTables[gGameSession->location.stage - 1];
+    area         = area + gGameSession->location.area;
     if (area->page != (s8)gMenuMapSelectedPage) {
         return;
     }
@@ -1476,7 +1476,7 @@ static void _menuMapDrawAreas(const Task* mapTask)
     session     = gGameSession;
     banks       = gGameFlagStageHeaders;
     shapeTables = gMenuMapAreaShapeTables;
-    stage       = session->location.loc.stage;
+    stage       = session->location.stage;
     mapObject   = mapTask->spawnArg2.pointer;
     stageIndex  = stage - 1;
     bank        = banks[stage];
@@ -1488,13 +1488,13 @@ static void _menuMapDrawAreas(const Task* mapTask)
     // Dryfield night shares exploration with the daytime area bank.
     visited[0] = bank->visitedAreas[0];
     visited[1] = bank->visitedAreas[1];
-    if (session->location.loc.stage == GAME_STAGE_DRYFIELD_NIGHT) {
+    if (session->location.stage == GAME_STAGE_DRYFIELD_NIGHT) {
         bank        = banks[GAME_STAGE_DRYFIELD];
         visited[0] |= bank->visitedAreas[0];
         visited[1] |= bank->visitedAreas[1];
     }
     areaIndex = 0;
-    if (gMenuMapAreaShapeCounts[session->location.loc.stage - 1] != 0) {
+    if (gMenuMapAreaShapeCounts[session->location.stage - 1] != 0) {
         bitSeed = 1;
         do {
             if (shapes[(u8)areaIndex].page == (s8)gMenuMapSelectedPage) {
@@ -1550,7 +1550,7 @@ static void _menuMapDrawAreas(const Task* mapTask)
                 }
             }
             areaIndex++;
-        } while ((u8)areaIndex < gMenuMapAreaShapeCounts[gGameSession->location.loc.stage - 1]);
+        } while ((u8)areaIndex < gMenuMapAreaShapeCounts[gGameSession->location.stage - 1]);
     }
 }
 
@@ -1629,7 +1629,7 @@ static void _menuMapDrawFlagMarkers(const Task* mapTask)
     u8                         area;
 
     markerIndex = 0;
-    stage       = gGameSession->location.loc.stage;
+    stage       = gGameSession->location.stage;
     mapObject   = mapTask->spawnArg2.pointer;
     markers     = gMenuMapMarkerTables[stage - 1];
     flagBank    = gGameFlagStageHeaders[stage];
@@ -1707,7 +1707,7 @@ static s32 _menuMapDrawAreaIcons(const Task* task, u8 area, u8 unvisited)
     iconIndex     = 0;
     drewObjective = 0;
     object        = task->spawnArg2.pointer;
-    icons         = gMenuMapIconTables[gGameSession->location.loc.stage - 1];
+    icons         = gMenuMapIconTables[gGameSession->location.stage - 1];
     brightness    = (rsin(gDisplayState.loopCount << 6) + MENU_MAP_ICON_SINE_ONE_Q12) >> 5;
 
     // Objective markers use the whole objective byte; fixed icons use nibble flags.
@@ -1812,10 +1812,10 @@ static void _menuMapLoadPage(void)
 
     gMenuMapPictureOffset     = 0;
     gGameSession->loadedSndId = 0;
-    if ((gGameSession->location.loc.stage == GAME_STAGE_MINE_SHELTER) && ((s8)gMenuMapSelectedPage == MENU_MAP_RESERVOIR_PAGE) && (gameFlagGetNibble(GAME_FLAG_B4_RESERVOIR_EVENT_DONE) == 0)) {
+    if ((gGameSession->location.stage == GAME_STAGE_MINE_SHELTER) && ((s8)gMenuMapSelectedPage == MENU_MAP_RESERVOIR_PAGE) && (gameFlagGetNibble(GAME_FLAG_B4_RESERVOIR_EVENT_DONE) == 0)) {
         gMenuMapPictureOffset = MENU_MAP_SHELTER_RESERVOIR_PICTURE_OFFSET;
     }
-    if (gGameSession->location.loc.stage == GAME_STAGE_SHELTER_NEO_ARK) {
+    if (gGameSession->location.stage == GAME_STAGE_SHELTER_NEO_ARK) {
         page = (s8)gMenuMapSelectedPage;
         if ((page == MENU_MAP_ALTAR_PAGE) && (gameFlagGetNibble(GAME_FLAG_NEO_ARK_ALTAR_SWITCH_STATE) == page)) {
             gMenuMapPictureOffset = MENU_MAP_NEO_ARK_ALTAR_PICTURE_OFFSET;
@@ -1826,7 +1826,7 @@ static void _menuMapLoadPage(void)
     fileKeyBytes[2] = MENU_MAP_FILE_GROUP;
     fileKeyBytes[3] = 0;
     fileKeyBytes[0] = gMenuMapSelectedPage + gMenuMapPictureOffset;
-    stage           = gGameSession->location.loc.stage;
+    stage           = gGameSession->location.stage;
     commandArgs[1]  = 0;
     commandArgs[3]  = 0;
     commandArgs[2]  = 0;
@@ -1856,8 +1856,8 @@ static s8 _menuMapPageIsAvailable(u32 page, u8 flagId)
     s32                  bitSeed;
     s32                  noPage;
 
-    bank = gGameFlagStageHeaders[gGameSession->location.loc.stage];
-    if (gGameSession->location.loc.stage != GAME_STAGE_SHELTER_NEO_ARK) {
+    bank = gGameFlagStageHeaders[gGameSession->location.stage];
+    if (gGameSession->location.stage != GAME_STAGE_SHELTER_NEO_ARK) {
         if (flagId != MENU_MAP_PAGE_FLAG_END) {
             if (flagId == MENU_MAP_PAGE_FLAG_UNAVAILABLE) {
                 return 0;
@@ -1866,11 +1866,11 @@ static s8 _menuMapPageIsAvailable(u32 page, u8 flagId)
             if (visitedWord && (gameFlagGetNibble(flagId) != 0)) {
                 return 1;
             }
-            areas      = gMenuMapAreaTables[gGameSession->location.loc.stage - 1];
+            areas      = gMenuMapAreaTables[gGameSession->location.stage - 1];
             visited[0] = bank->visitedAreas[0];
             visited[1] = bank->visitedAreas[1];
             areaIndex  = 0;
-            if (gGameSession->location.loc.stage == GAME_STAGE_DRYFIELD_NIGHT) {
+            if (gGameSession->location.stage == GAME_STAGE_DRYFIELD_NIGHT) {
                 bank        = gGameFlagStageHeaders[GAME_STAGE_DRYFIELD];
                 visited[0] |= bank->visitedAreas[0];
                 visited[1] |= bank->visitedAreas[1];
@@ -1980,7 +1980,7 @@ static void _menuMapDrawPageArrows(const Task* mapTask)
     s8              pageAvailable;
     u8              stage;
 
-    stage       = gGameSession->location.loc.stage;
+    stage       = gGameSession->location.stage;
     mapObject   = mapTask->spawnArg2.pointer;
     pageFlagIds = gMenuMapPageFlagTables[stage - 1];
     if (stage == GAME_STAGE_SHELTER_NEO_ARK) {
@@ -2008,7 +2008,7 @@ static void _menuMapDrawPageArrows(const Task* mapTask)
     }
 
     pageIndex = gMenuMapSelectedPage + 1;
-    while ((u8)pageIndex <= gMenuMapNavigationLastPages[gGameSession->location.loc.stage - 1]) {
+    while ((u8)pageIndex <= gMenuMapNavigationLastPages[gGameSession->location.stage - 1]) {
         if (pageFlagIds[(u8)pageIndex] == MENU_MAP_ARROW_PAGE_BOUNDARY) {
             return;
         }
@@ -2085,10 +2085,10 @@ void menuMapAreaNameTask(Task* task)
     s32                    width;
 
     session = gGameSession;
-    names   = gMenuMapAreaNameTables[session->location.loc.stage - 1];
+    names   = gMenuMapAreaNameTables[session->location.stage - 1];
     object  = task->spawnArg2.pointer;
     if (names != NULL) {
-        text = names[session->location.loc.area - 1].text;
+        text = names[session->location.area - 1].text;
         if (task->state == ITEM_MENU_STATE_INITIAL) {
             // Right alignment at x=0 measures the name without queuing glyphs.
             measureRequest.x          = 0;
@@ -2139,8 +2139,8 @@ void menuMapOpenTask(Task* mapTask)
     }
     menuMapRebuildMarkedAreaBits();
     session    = gGameSession;
-    areaRecord = gMenuMapAreaTables[session->location.loc.stage - 1];
-    areaRecord = areaRecord + session->location.loc.area;
+    areaRecord = gMenuMapAreaTables[session->location.stage - 1];
+    areaRecord = areaRecord + session->location.area;
     // Keep the original low-byte selection, including the no-page marker's zero.
     gMenuMapSelectedPage = areaRecord->page;
     _menuMapLoadPage();
@@ -2242,8 +2242,8 @@ static u8 _menuMapSelectCurrentAreaPage(void)
 
     session         = gGameSession;
     stageAreaTables = gMenuMapAreaTables;
-    stageIndex      = session->location.loc.stage - 1;
-    areaId          = session->location.loc.area;
+    stageIndex      = session->location.stage - 1;
+    areaId          = session->location.area;
     areaRecord      = stageAreaTables[stageIndex];
     areaRecord      = areaRecord + areaId;
 
@@ -3603,7 +3603,7 @@ s32 shopOpenSession(s32 stockSelector)
 
     // Use the saved room key: the display transition may replace live room state.
     // Preserve the single volatile prefix read before clearing the holder.
-    locationWord                           = *(const volatile s32*)&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc;
+    locationWord                           = *(const volatile s32*)&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location;
     *(UiObject* volatile*)&gUiPromptObject = NULL;
     switch (locationWord & (s32)GAME_LOCATION_STAGE_AREA_MASK) {
         case GAME_LOCATION_KEY(GAME_STAGE_ACROPOLIS, GAME_AREA_MIST_PARKING, 0, 0):

@@ -32,13 +32,13 @@ u8 gDisplayStaticPrimitiveArena[DISPLAY_STATIC_PRIMITIVE_ARENA_BYTES];
 /// Paired with `_gDisplayTaskPrimitiveArenaBytes`; storage belongs to the
 /// resident static arena or the configured image-memory reservation. Previous
 /// GPU work must finish before rebinding or reusing either region.
-static u8* _gDisplayTaskPrimitiveArenaBase;
+u8* _gDisplayTaskPrimitiveArenaBase;
 
 /// Signed total-byte capacity of the bound display-task primitive arena.
 ///
 /// Configured as 0x6000 or 0x10000 bytes, divided into two equal frame halves.
 /// The frame path preserves signed division when deriving its byte stride.
-static s32 _gDisplayTaskPrimitiveArenaBytes;
+s32 _gDisplayTaskPrimitiveArenaBytes;
 
 GsOT gGpuTaskOrderingTables[2];
 
@@ -48,13 +48,13 @@ TaskNode gDisplayTaskList;
 ///
 /// Values 2/3 return overrides 4/6, and other values return the display hold
 /// byte. The selector values' original roles are unproven; BSS starts at zero.
-static s32 _gDisplayHoldStateSelector;
+s32 _gDisplayHoldStateSelector;
 
 /// Two resident 64-word DMA tag banks for modal task presentation.
 ///
 /// Each four-byte word carries a 24-bit DMA link and 8-bit packet length.
 /// The SDK borrows each half through its `GsOT_TAG` view until drawing ends.
-static u_long _gDisplaySmallTaskOtTags[2 * GPU_SMALL_ORDERING_TABLE_ENTRIES];
+u_long _gDisplaySmallTaskOtTags[2 * GPU_SMALL_ORDERING_TABLE_ENTRIES];
 
 #include "main/display.h"
 #include "display.h"
@@ -385,7 +385,7 @@ static void _displayResumeGameLoop(void)
     GameSession* session;
 
     session = gGameSession;
-    memConfigureImageMemory(session->location.loc.stage, session->location.loc.area);
+    memConfigureImageMemory(session->location.stage, session->location.area);
     gDisplayState.displayOwner = DISPLAY_OWNER_GAME_LOOP;
     gDisplayState.pendingMode  = DISPLAY_MODE_NONE;
 }

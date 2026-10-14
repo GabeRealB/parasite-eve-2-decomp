@@ -1334,7 +1334,7 @@ static void _acropolisForkedRoadOutboundMoviePathTask(Task* task)
         case ACROPOLIS_FORKED_ROAD_OUTBOUND_WAIT_APPROACH:
             if (taskMessageDispatch(movieWork->playerTask, GAME_ACTOR_MESSAGE_IS_SCRIPTED_MOTION_PENDING, 0, 0) == 0) {
                 // Only byte zero is interpreted by this opcode; preserve the unwritten tail and low-RAM key reads.
-                streamArgs[0] = streamFindMovieSlot(&gGameSession->location.loc, 0, 0);
+                streamArgs[0] = streamFindMovieSlot(&gGameSession->location, 0, 0);
                 cdCmdEnqueue(CD_COMMAND_PLAY_STREAM, 0, streamArgs);
                 task->state = task->state + 1;
             }
@@ -1362,11 +1362,11 @@ static void _acropolisForkedRoadOutboundMoviePathTask(Task* task)
             gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
             padInputChangeSuppression(PAD_INPUT_SUPPRESSION_CLEAR_ALIAS, PAD_INPUT_SUPPRESS_ACTIONS_AND_MENU);
             sndEvtRequestScriptStop(SOUND_BANK_TYPE_ALL_NON_AMBIENT, SOUND_SCRIPT_STOP_NO_FADE);
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage = GAME_STAGE_ACROPOLIS;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area  = GAME_AREA_ACROPOLIS_OBSERVATORY;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp  = ACROPOLIS_FORKED_ROAD_OUTBOUND_DESTINATION_WARP;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room  = ACROPOLIS_FORKED_ROAD_OUTBOUND_DESTINATION_ROOM;
-            gDisplayState.spriteVariant                                 = 1;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.stage = GAME_STAGE_ACROPOLIS;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.area  = GAME_AREA_ACROPOLIS_OBSERVATORY;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp  = ACROPOLIS_FORKED_ROAD_OUTBOUND_DESTINATION_WARP;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.room  = ACROPOLIS_FORKED_ROAD_OUTBOUND_DESTINATION_ROOM;
+            gDisplayState.spriteVariant                             = 1;
             taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
             gGameSession->padScriptFlags &= (0xFF ^ GAME_SESSION_PAD_SCRIPT_DURING_BATTLE_FREEZE);
             taskKill(task);
@@ -1483,7 +1483,7 @@ static void _acropolisForkedRoadReturnMoviePathTask(Task* task)
         case ACROPOLIS_FORKED_ROAD_RETURN_WAIT_EXIT:
             if (taskMessageDispatch(movieWork->playerTask, GAME_ACTOR_MESSAGE_IS_SCRIPTED_MOTION_PENDING, 0, 0) == 0) {
                 taskMessageDispatch(movieWork->playerTask, GAME_ACTOR_MESSAGE_END_SCRIPTED, 0, 0);
-                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = viewFindLogicalIndex(ACROPOLIS_FORKED_ROAD_RETURN_LOGICAL_VIEW);
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = viewFindLogicalIndex(ACROPOLIS_FORKED_ROAD_RETURN_LOGICAL_VIEW);
                 taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), CAP_CONTROL_MESSAGE_SHOW_HUD, 0, 0);
                 padInputChangeSuppression(PAD_INPUT_SUPPRESSION_CLEAR_ALIAS, PAD_INPUT_SUPPRESS_ACTIONS_AND_MENU);
                 gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
@@ -1638,7 +1638,7 @@ void acropolisForkedRoadWallLampTask(Task* task)
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
     if (gRoomEffectState->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN &&
-        ((_gAcropolisForkedRoadWallLampViewMasks[task->spawnArg1.value & WALL_LAMP_INDEX_MASK] >> (gGameSession->location.loc.view - 1)) & 1)) {
+        ((_gAcropolisForkedRoadWallLampViewMasks[task->spawnArg1.value & WALL_LAMP_INDEX_MASK] >> (gGameSession->location.view - 1)) & 1)) {
         actorRenderComposeCoord(coord);
         projection = SCRATCH_STACK_RESERVE_BLOCK(RoomGlowSpriteScratch);
         if (task->state == WALL_LAMP_INITIALIZE) {

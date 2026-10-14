@@ -601,7 +601,7 @@ class Project:
                 if m:
                     kind, value = "areaSetPlacementVariant", m[2]
                     key = m[1]
-                    if "location.loc" in key:
+                    if "location" in key:
                         target = "current"
                     else:
                         stage = area = None
@@ -614,7 +614,7 @@ class Project:
                 else:
                     m = write.search(line)
                     if m and "==" not in line.split("loc.variant")[0][-3:]:
-                        kind, value, target = "direct write of location.loc.variant", m[1], "current"
+                        kind, value, target = "direct write of location.variant", m[1], "current"
                 if kind is None:
                     continue
                 number = asset_journal.evaluate(value, consts)

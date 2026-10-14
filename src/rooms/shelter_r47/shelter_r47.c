@@ -728,7 +728,7 @@ static void _shelterR47AdvanceTerminalTour(Task* unusedTask)
         SHELTER_R47_TOUR_MAP_FOLLOWUP     = 4,
         SHELTER_R47_TOUR_DONE             = 5,
     };
-    u8 variant = gGameSession->location.loc.variant;
+    u8 variant = gGameSession->location.variant;
 
     if (variant != 1 || gAttachmentState.mode == ATTACHMENT_MODE_WHEEL) {
         return;
@@ -865,7 +865,7 @@ static s32 _shelterR47HandleDirectionAction(Task* unusedTask, s32 unusedMessageI
     Task* companionConsoleTask;
     u8    variant;
 
-    variant = gGameSession->location.loc.variant;
+    variant = gGameSession->location.variant;
     // The tour branch hides the placed scene actor rather than the companion.
     if (variant == SHELTER_R47_VARIANT_TERMINAL_TOUR) {
         switch (request->actionId) {
@@ -1037,7 +1037,7 @@ static void _shelterR47AmbienceTask(Task* task)
     switch (task->state) {
         case SHELTER_R47_AMBIENCE_START:
             sndEvtRequestScriptStart(SOUND_SHELTER_R47_AMBIENCE, 0, 0);
-            task->spawnArg1.value = gGameSession->location.loc.view;
+            task->spawnArg1.value = gGameSession->location.view;
             task->killCountdown   = gGameSession->eventState;
             task->state++;
             break;
@@ -1047,7 +1047,7 @@ static void _shelterR47AmbienceTask(Task* task)
                 if (gGameSession->eventState != 0) {
                     sndEvtRequestScriptStop(SOUND_SHELTER_R47_AMBIENCE, SHELTER_R47_AMBIENCE_FADE_TICKS);
                 } else {
-                    switch (gGameSession->location.loc.view) {
+                    switch (gGameSession->location.view) {
                         case 2:
                         case 3:
                             sndEvtRequestScriptStart(SOUND_SHELTER_R47_AMBIENCE, 0, 0);
@@ -1059,7 +1059,7 @@ static void _shelterR47AmbienceTask(Task* task)
                 }
             } else {
                 if (gGameSession->eventState == 0 && gGameSession->viewReady != 0) {
-                    switch (gGameSession->location.loc.view) {
+                    switch (gGameSession->location.view) {
                         case 2:
                         case 3:
                             sndEvtRequestScriptMix(SOUND_SHELTER_R47_AMBIENCE, 0, 0);
@@ -1076,7 +1076,7 @@ static void _shelterR47AmbienceTask(Task* task)
                             break;
                     }
                 }
-                task->spawnArg1.value = gGameSession->location.loc.view;
+                task->spawnArg1.value = gGameSession->location.view;
             }
             task->killCountdown = gGameSession->eventState;
             break;
@@ -1161,7 +1161,7 @@ static void _shelterR47RestoreActorsAfterTerminalTask(Task* task)
     if (taskPollKill(gShelterR47TerminalTask, &terminalResult) != 0) {
         playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO);
         playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
-        if (gGameSession->location.loc.variant == 1) {
+        if (gGameSession->location.variant == 1) {
             sceneSetPlacedActorDrawMode(0, 1);
         }
         if (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != NULL) {
@@ -1388,7 +1388,7 @@ void shelterR47ConsoleDrawSprite(s16 originX, s16 originY, s16 spriteId)
     POLY_FT4*              quad;
 
     part = _gShelterR47ConsoleSpriteParts[spriteId];
-    if (gGameSession->location.loc.view == SHELTER_R47_CONSOLE_SWITCH_2_OFF_VIEW && (u16)(spriteId - SHELTER_R47_CONSOLE_BUTTON_SPRITE) < SHELTER_R47_CONSOLE_BUTTON_SPRITE_COUNT) {
+    if (gGameSession->location.view == SHELTER_R47_CONSOLE_SWITCH_2_OFF_VIEW && (u16)(spriteId - SHELTER_R47_CONSOLE_BUTTON_SPRITE) < SHELTER_R47_CONSOLE_BUTTON_SPRITE_COUNT) {
         return;
     }
     while (part->clutX != SHELTER_R47_SPRITE_PART_END) {
@@ -1439,10 +1439,10 @@ void shelterR47ConsoleInitializeTask(Task* task)
         taskKill(task);
         return;
     }
-    task->spawnArg2.pointer                                    = taskSpawnFromTable(&_gShelterR47ConsolePromptTaskDesc, 0, SHELTER_R47_CONSOLE_PROMPT_PORT_0, 0);
-    task->work                                                 = work;
-    work->savedView                                            = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = SHELTER_R47_CONSOLE_ENTRY_VIEW;
+    task->spawnArg2.pointer                                = taskSpawnFromTable(&_gShelterR47ConsolePromptTaskDesc, 0, SHELTER_R47_CONSOLE_PROMPT_PORT_0, 0);
+    task->work                                             = work;
+    work->savedView                                        = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = SHELTER_R47_CONSOLE_ENTRY_VIEW;
     task->state++;
     displayAcquireMenuHold();
 

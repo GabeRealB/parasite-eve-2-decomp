@@ -1,0 +1,48 @@
+diff --git a/maspsx/__init__.py b/maspsx/__init__.py
+index 5fe8ea7..6068776 100644
+--- a/maspsx/__init__.py
++++ b/maspsx/__init__.py
+@@ -633,7 +633,16 @@ class MaspsxProcessor:
+             ("sbss", self.sbss_entries),
+             ("bss", self.bss_entries),
+         ]:
+-            for i, (symbol, size) in enumerate(entries.items()):
++            items = list(entries.items())
++            if section == "bss" and not self.use_comm_section:
++                # ASPSX lays out an object's .lcomm symbols itself, in order,
++                # and leaves each .comm symbol to the linker; PSYLINK puts
++                # those after the object's own .bss. Their order there follows
++                # the original names, so the order given is kept.
++                items.sort(key=lambda item: item[0] in self.comm_symbols)
++            lcomm_end = 0
++            bss_aligned = False
++            for i, (symbol, size) in enumerate(items):
+                 if i == 0:
+                     res.append(f".section .{section}")
+ 
+@@ -646,7 +655,24 @@ class MaspsxProcessor:
+                     res.append(f"\t.comm {symbol},{size},{alignment}")
+                     continue
+ 
+-                if section == "sbss":
++                if section == "bss" and not bss_aligned:
++                    # ASPSX declares .bss with an alignment of 8.
++                    res.append("\t.align 3")
++                    bss_aligned = True
++
++                if section == "bss" and symbol not in self.comm_symbols:
++                    # ASPSX 2.67 and later align an .lcomm symbol to its size
++                    # rounded up to a power of two, 16 at most. Padding is
++                    # written out: .align would raise the section's own
++                    # alignment above the 8 ASPSX gives it.
++                    alignment = min(1 << (size - 1).bit_length(), 16)
++                    padding = -lcomm_end % alignment
++                    if padding:
++                        res.append(f"\t.space {padding}")
++                    lcomm_end += padding + size
++                elif section in ("sbss", "bss"):
++                    # PSYLINK aligns a .comm symbol to 2 from two bytes, to 4
++                    # from four and to 8 from eight.
+                     if size >= 8:
+                         res.append("\t.align 3")
+                     elif size >= 4:

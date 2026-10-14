@@ -59,7 +59,7 @@ void waterTankSwayTask(Task* task)
             _waterTankAdvanceSway();
             break;
     }
-    if (gGameSession->location.loc.view == WATER_TANK_HIDDEN_VIEW) {
+    if (gGameSession->location.view == WATER_TANK_HIDDEN_VIEW) {
         model->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
     } else {
         model->flags = 0;

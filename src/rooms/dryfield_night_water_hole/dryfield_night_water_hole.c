@@ -1536,14 +1536,14 @@ static void _dryfieldNightWaterHoleInitializeRoom(Task* task)
     } else {
         _dryfieldNightWaterHoleApplySurfaceOverrides(_gDryfieldNightWaterHoleShelterRouteOpenSurfaceOverrides);
     }
-    if (gGameSession->location.loc.variant == DRYFIELD_NIGHT_WATER_HOLE_ARRIVAL_VARIANT && sceneFindPlacedActor(0) != 0 && gameFlagGetNibble(GAME_FLAG_NIGHT_WATER_HOLE_ARRIVAL_EVENT) != 0) {
-        if (gGameSession->location.loc.warp == DRYFIELD_NIGHT_WATER_HOLE_ALTERNATE_ARRIVAL) {
+    if (gGameSession->location.variant == DRYFIELD_NIGHT_WATER_HOLE_ARRIVAL_VARIANT && sceneFindPlacedActor(0) != 0 && gameFlagGetNibble(GAME_FLAG_NIGHT_WATER_HOLE_ARRIVAL_EVENT) != 0) {
+        if (gGameSession->location.warp == DRYFIELD_NIGHT_WATER_HOLE_ALTERNATE_ARRIVAL) {
             TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(0), ACTOR_COMMAND_MESSAGE_APPLY, &_gDryfieldNightWaterHoleStalkerSecondFloorArrivalCommand, 0);
         } else {
             TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(0), ACTOR_COMMAND_MESSAGE_APPLY, &_gDryfieldNightWaterHoleStalkerFirstFloorArrivalCommand, 0);
         }
     }
-    if (gGameSession->location.loc.variant == DRYFIELD_NIGHT_WATER_HOLE_ENDING_VARIANT && gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != 0 && gameFlagGetNibble(GAME_FLAG_0CF) == 0) {
+    if (gGameSession->location.variant == DRYFIELD_NIGHT_WATER_HOLE_ENDING_VARIANT && gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != 0 && gameFlagGetNibble(GAME_FLAG_0CF) == 0) {
         gameFlagSetNibble(GAME_FLAG_0CF, DRYFIELD_NIGHT_WATER_HOLE_ENDING_STARTED);
         gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, DRYFIELD_NIGHT_WATER_HOLE_ENDING_OBJECTIVE);
         taskSpawnFromTable(gActor146000WaterHoleSceneTasks, DRYFIELD_NIGHT_WATER_HOLE_ENDING_TASK_INDEX, 0, 0);
@@ -1655,12 +1655,12 @@ static s32 _dryfieldNightWaterHoleRoomActionMessage(Task* unusedTask, s32 messag
 
     u8 actionId;
 
-    if ((request->actionId == DRYFIELD_NIGHT_WATER_HOLE_ACTION_ARRIVAL_2) && (gameFlagGetNibble(GAME_FLAG_NIGHT_WATER_HOLE_ARRIVAL_EVENT) == 0) && (gGameSession->location.loc.variant == DRYFIELD_NIGHT_WATER_HOLE_ARRIVAL_VARIANT)) {
+    if ((request->actionId == DRYFIELD_NIGHT_WATER_HOLE_ACTION_ARRIVAL_2) && (gameFlagGetNibble(GAME_FLAG_NIGHT_WATER_HOLE_ARRIVAL_EVENT) == 0) && (gGameSession->location.variant == DRYFIELD_NIGHT_WATER_HOLE_ARRIVAL_VARIANT)) {
         gameFlagSetNibble(GAME_FLAG_NIGHT_WATER_HOLE_ARRIVAL_EVENT, 1);
         evsStartScript(_gDryfieldNightWaterHoleArrival2Script, EVENT_SCRIPT_HUD_HIDE_RESTORE);
     }
     actionId = request->actionId;
-    if ((actionId == DRYFIELD_NIGHT_WATER_HOLE_ACTION_ARRIVAL_1) && (gameFlagGetNibble(GAME_FLAG_NIGHT_WATER_HOLE_ARRIVAL_EVENT) == 0) && (gGameSession->location.loc.variant == actionId)) {
+    if ((actionId == DRYFIELD_NIGHT_WATER_HOLE_ACTION_ARRIVAL_1) && (gameFlagGetNibble(GAME_FLAG_NIGHT_WATER_HOLE_ARRIVAL_EVENT) == 0) && (gGameSession->location.variant == actionId)) {
         gameFlagSetNibble(GAME_FLAG_NIGHT_WATER_HOLE_ARRIVAL_EVENT, 1);
         evsStartScript(_gDryfieldNightWaterHoleArrival1Script, EVENT_SCRIPT_HUD_HIDE_RESTORE);
     }
@@ -1695,7 +1695,7 @@ static void _dryfieldNightWaterHoleApplySurfaceOverrides(const _DryfieldNightWat
     s32                               overrideIndex;
     WorldCollisionSurfaceProperties** surfaceProperties;
 
-    location = &gGameSession->location.loc;
+    location = &gGameSession->location;
     for (overrideIndex = 0; overrides[overrideIndex].properties != NULL; overrideIndex++) {
         surfaceProperties                                                                = gWorldCollisionSurfacePropertiesTables[location->stage - 1][location->area - 1];
         surfaceProperties[overrides[overrideIndex].surfaceClass]                         = overrides[overrideIndex].properties;
@@ -1768,7 +1768,7 @@ void dryfieldNightWaterHoleSplashAndLightShaftsTask(Task* task)
 
     playerTask = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     work       = task->spawnArg2.pointer;
-    viewMask   = 1 << gGameSession->location.loc.view;
+    viewMask   = 1 << gGameSession->location.view;
     playerRoot = playerTask->extra.tmd->coords;
     switch (task->state) {
         case DRYFIELD_NIGHT_WATER_HOLE_SPLASH_INITIALIZE:

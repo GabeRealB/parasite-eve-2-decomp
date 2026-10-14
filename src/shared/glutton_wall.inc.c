@@ -70,7 +70,7 @@ static void _gluttonBuildWall(Task* task, s16 distance, s16 drop, s16 faceIndex)
     gte_gpf12();
     gte_stsv(wallNormal);
 
-    if (gGameSession->location.loc.area == GAME_AREA_SHELTER_B3_DUMPING_HOLE) {
+    if (gGameSession->location.area == GAME_AREA_SHELTER_B3_DUMPING_HOLE) {
         face.surfaceClass = GLUTTON_WALL_DUMPING_HOLE_SURFACE;
     } else {
         face.surfaceClass = GLUTTON_WALL_DEFAULT_SURFACE;

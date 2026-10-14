@@ -131,7 +131,7 @@ s32 itemPickupPublishPlacedObject(s32 flagIndex)
     s32                             placeListEnd;
     s32                             found;
 
-    stageIndex = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage;
+    stageIndex = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.stage;
     room       = gAreaObjectStages[stageIndex].rooms;
     found      = 0;
     // Search the saved stage's room records, preserving the lookup terminator.

@@ -1593,13 +1593,13 @@ static void _actor02500SpawnBurstFragments(Task* actor)
         TmdObject*             fragmentModel;                                                                             \
         u32                    placementIndex;                                                                            \
         const AreaPlacement*   placement;                                                                                 \
-        sessionLocation     = &gGameSession->location.loc;                                                                \
+        sessionLocation     = &gGameSession->location;                                                                    \
         placementKey        = ((Enemy*)(ownerTask)->spawnArg2.pointer)->placeKey;                                         \
         fragmentModel       = (fragmentEffect)->task->extra.tmd;                                                          \
         (locationKey).stage = sessionLocation->stage;                                                                     \
         (locationKey).area  = sessionLocation->area;                                                                      \
         (locationKey).room  = sessionLocation->room;                                                                      \
-        (viewIndexResult)   = gGameSession->location.loc.view;                                                            \
+        (viewIndexResult)   = gGameSession->location.view;                                                                \
         placementIndex      = placementKey >> ENEMY_PLACE_INDEX_SHIFT;                                                    \
         (locationKey).view  = (viewIndexResult);                                                                          \
         areaSyncLocationVariant(&(locationKey));                                                                          \

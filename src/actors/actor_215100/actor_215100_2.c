@@ -137,7 +137,7 @@ static u16                      _gCapCaptionCaretLeftX;
 static u16                      _gCapCaptionCaretTipY;
 static s16                      _gCapCaptionTexturePageX;
 static s16                      _gCapCaptionTexturePageY;
-static RoomEventMsg             _gActor215100GalleryPendingExitRequest;
+RoomEventMsg                    _gActor215100GalleryPendingExitRequest;
 static CapCaptionScheduleWindow _gCapCaptionSceneClockSchedule[];
 
 static TmdSource _gActor215100PierceCarradineBody;
@@ -2688,7 +2688,7 @@ s32 gActor215100GallerySelectedCourseLevel;
 /// transition playback. The queued room-exit decision uses area, warp and
 /// room once CAP finishes; queries never replace this copy. Its destination
 /// is valid only for that pending decision, while this actor overlay is loaded.
-static RoomEventMsg _gActor215100GalleryPendingExitRequest;
+RoomEventMsg _gActor215100GalleryPendingExitRequest;
 
 /// Holds the training scene through its exit reply and queues the decision task.
 static inline void _actor215100StartGalleryExitPrompt(void)
@@ -2724,7 +2724,7 @@ void actor215100CheckGalleryExitInput(void)
     rootCoord  = playerTask->extra.tmd->coords;
     if (gActor215100GalleryTrainingActive != 0) {
         if (gActor215100GallerySelectedCourseLevel >= ACTOR_215100_GALLERY_FIRST_FREE_MOVEMENT_COURSE) {
-            if (gGameSession->location.loc.view == ACTOR_215100_GALLERY_EXIT_INPUT_VIEW) {
+            if (gGameSession->location.view == ACTOR_215100_GALLERY_EXIT_INPUT_VIEW) {
                 mistShootingGallerySetTrainingBarrierLowered(0);
                 gActor215100GalleryExitInputBlocked = 0;
             }
@@ -2813,10 +2813,10 @@ void actor215100GalleryExitDecisionTask(Task* task)
                 inventoryRestoreCarriedLoadout();
                 gGameSession->hideHud = 1;
                 sndEvtRequestScriptStart(ACTOR_215100_GALLERY_RETURN_SOUND, 0, 0);
-                gDisplayState.spriteVariant                                = ACTOR_215100_GALLERY_RETURN_SPRITE_VARIANT;
-                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = _gActor215100GalleryPendingExitRequest.areaId;
-                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = _gActor215100GalleryPendingExitRequest.warp;
-                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = _gActor215100GalleryPendingExitRequest.room;
+                gDisplayState.spriteVariant                            = ACTOR_215100_GALLERY_RETURN_SPRITE_VARIANT;
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.area = _gActor215100GalleryPendingExitRequest.areaId;
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp = _gActor215100GalleryPendingExitRequest.warp;
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.room = _gActor215100GalleryPendingExitRequest.room;
                 taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
                 taskKill(task);
             }
@@ -2850,7 +2850,7 @@ void actor215100GalleryAbortDecisionTask(Task* task)
         case ACTOR_215100_GALLERY_ABORT_RETURN_VIEW:
             // Let the normal room update observe the saved return view on the next tick.
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = ACTOR_215100_GALLERY_RETURN_VIEW;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = ACTOR_215100_GALLERY_RETURN_VIEW;
             mistShootingGallerySelectRoomLights(0);
             task->state++;
             break;
@@ -2874,7 +2874,7 @@ void actor215100FinishGalleryCourse(void)
 {
     gActor215100GalleryTrainingActive = 0;
     if (gActor215100GallerySelectedCourseLevel < ACTOR_215100_GALLERY_FIRST_FREE_MOVEMENT_COURSE) {
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = ACTOR_215100_GALLERY_RETURN_VIEW;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = ACTOR_215100_GALLERY_RETURN_VIEW;
         mistShootingGallerySelectRoomLights(0);
     } else {
         mistShootingGallerySetTrainingBarrierLowered(1);

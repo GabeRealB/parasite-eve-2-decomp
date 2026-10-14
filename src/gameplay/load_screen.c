@@ -209,7 +209,7 @@ void areaStartRoomRuntime(s32 skipViewGate)
     session                    = gGameSession;
     session->deathVariant      = AREA_ROOM_DEATH_PRESENTATION_INACTIVE;
     gDisplayState.otDepthShift = DISPLAY_DEPTH_SHIFT_1X;
-    location                   = &session->location.loc;
+    location                   = &session->location;
     // The player and present companion start alive, including after a dead save.
     if (gPlayerStatus.hp <= 0) {
         gPlayerStatus.hp = AREA_ROOM_MINIMUM_LIVE_HP;
@@ -235,10 +235,10 @@ void areaStartRoomRuntime(s32 skipViewGate)
     warpId    = location->warp;
     warpEntry = gDirectionAreaWarpEntriesByStage[stage - 1][location->area - 1][warpId - 1];
     if (!(gDisplayState.control.word & DISPLAY_ROOM_START_KEEP_VIEW_MASK)) {
-        if (((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_KEY(0xFF, 0xFF, 0xFF, 0)) == GAME_LOCATION_KEY(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_GARAGE, AREA_ROOM_GARAGE_ROOM, 0)) && (gGameSession->location.loc.warp == AREA_ROOM_GARAGE_WARP)) {
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = gGameSession->location.loc.view = AREA_ROOM_GARAGE_VIEW;
+        if (((GAME_LOCATION_WORD(gGameSession->location) & GAME_LOCATION_KEY(0xFF, 0xFF, 0xFF, 0)) == GAME_LOCATION_KEY(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_GARAGE, AREA_ROOM_GARAGE_ROOM, 0)) && (gGameSession->location.warp == AREA_ROOM_GARAGE_WARP)) {
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = gGameSession->location.view = AREA_ROOM_GARAGE_VIEW;
         } else {
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = gGameSession->location.loc.view = warpEntry.initialView;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = gGameSession->location.view = warpEntry.initialView;
         }
     }
     gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER]    = NULL;
@@ -456,9 +456,9 @@ void loadingEnqueueStageResourcesTask(Task* task)
     }
     // Cache the requested stage immediately; the next phase waits for completion.
     if (cdCmdIsIdle()) {
-        if (gGameSession->location.loc.stage != gGameSession->loadedStage) {
+        if (gGameSession->location.stage != gGameSession->loadedStage) {
             loadingEnqueueStageResources();
-            gGameSession->loadedStage = gGameSession->location.loc.stage;
+            gGameSession->loadedStage = gGameSession->location.stage;
         }
         task->state++;
     }
@@ -493,19 +493,19 @@ void loadingInitializeAreaMemoryAndAudioTask(Task* task)
         _loadingDrawFadeOverlay(fadeTile, blendCommand, displayState, darkness);
     }
     if (cdCmdIsIdle()) {
-        savedLocation = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc;
+        savedLocation = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location;
         _areaInitializeStageVisit(savedLocation);
         // Reuse area image storage only after the preceding CD requests finish.
         liveSave = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
-        memConfigureImageMemory(liveSave->state.location.loc.stage, liveSave->state.location.loc.area);
-        if ((GAME_LOCATION_WORD(liveSave->state.location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PLAZA, 0, 0)) {
+        memConfigureImageMemory(liveSave->state.location.stage, liveSave->state.location.area);
+        if ((GAME_LOCATION_WORD(liveSave->state.location) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PLAZA, 0, 0)) {
             memSelectAuxHeapRegion(true);
         }
         memInitAuxHeap();
         // Retain scheduled companion sounds before resetting the area's sound context.
         companionConfigureSoundBankRetention();
-        sndScriptResetForArea(gGameSession->location.loc.stage, gGameSession->location.loc.area);
-        if (gGameSession->location.loc.stage == GAME_STAGE_DRYFIELD_NIGHT && gameFlagGetNibble(GAME_FLAG_STORY_CHAPTER) >= LOADING_NIGHT_MUSIC_FIRST_CHAPTER) {
+        sndScriptResetForArea(gGameSession->location.stage, gGameSession->location.area);
+        if (gGameSession->location.stage == GAME_STAGE_DRYFIELD_NIGHT && gameFlagGetNibble(GAME_FLAG_STORY_CHAPTER) >= LOADING_NIGHT_MUSIC_FIRST_CHAPTER) {
             gStageCountdownMusicEntry = LOADING_SCENE_MUSIC_NIGHT;
         } else {
             gStageCountdownMusicEntry = LOADING_SCENE_MUSIC_DEFAULT;
@@ -548,9 +548,9 @@ void loadingEnqueueAreaAndCompanionResourcesTask(Task* task)
     }
     // The area request is copied before companion selection can enqueue more loads.
     if (cdCmdIsIdle()) {
-        areaRequest.key.stage          = gGameSession->location.loc.stage;
-        areaRequest.key.fileGroup      = gGameSession->location.loc.area;
-        areaRequest.key.ignoredByQueue = gGameSession->location.loc.room;
+        areaRequest.key.stage          = gGameSession->location.stage;
+        areaRequest.key.fileGroup      = gGameSession->location.area;
+        areaRequest.key.ignoredByQueue = gGameSession->location.room;
         areaRequest.key.fileIndex      = LOADING_AREA_BASE_FILE_INDEX;
         areaRequest.field_4            = 0;
         loadArgs.fileIdHundreds        = LOADING_AREA_FOLDER_SUFFIX;
@@ -597,11 +597,11 @@ void loadingPrepareAreaStateTask(Task* task)
         GameSession* soundSession;
 
         soundSession = gGameSession;
-        if ((GAME_LOCATION_WORD(soundSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_GAS_STATION, 0, 0)) {
-            if (soundSession->location.loc.room >= LOADING_GAS_STATION_EXTRA_FILE_FIRST_ROOM) {
-                sndScriptResetForArea(soundSession->location.loc.stage, soundSession->location.loc.area);
-                fileKey.stage             = gGameSession->location.loc.stage;
-                fileKey.fileGroup         = gGameSession->location.loc.area;
+        if ((GAME_LOCATION_WORD(soundSession->location) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_GAS_STATION, 0, 0)) {
+            if (soundSession->location.room >= LOADING_GAS_STATION_EXTRA_FILE_FIRST_ROOM) {
+                sndScriptResetForArea(soundSession->location.stage, soundSession->location.area);
+                fileKey.stage             = gGameSession->location.stage;
+                fileKey.fileGroup         = gGameSession->location.area;
                 fileKey.fileIndex         = LOADING_GAS_STATION_SOUND_FILE_INDEX;
                 loadArgs.fileIdHundreds   = LOADING_AREA_FOLDER_SUFFIX;
                 loadArgs.loadMode         = CD_COMMAND_LOAD_DEFAULT;
@@ -613,13 +613,13 @@ void loadingPrepareAreaStateTask(Task* task)
         // Restore saved placements before the visit and variant reconciliation.
         session = gGameSession;
         if (session->applySaveVariant == true) {
-            areaSetPlacementVariant(&session->location.loc, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.variant, AREA_VARIANT_RESET_IF_CHANGED);
+            areaSetPlacementVariant(&session->location, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.variant, AREA_VARIANT_RESET_IF_CHANGED);
             gGameSession->applySaveVariant = false;
         }
-        savedLocation = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc;
+        savedLocation = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location;
         areaMarkVisited(savedLocation);
         areaSyncLocationVariant(savedLocation);
-        gGameSession->location.loc.variant = savedLocation->variant;
+        gGameSession->location.variant = savedLocation->variant;
         cdCmdPrepareViewMovie();
         gLoadingAreaResourcePass = LOADING_AREA_INIT;
         task->state++;

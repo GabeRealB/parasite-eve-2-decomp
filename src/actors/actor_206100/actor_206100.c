@@ -2019,22 +2019,22 @@ static void _actor206100EntranceRelocateTick(Task* task)
         playerTransform.rot.vy = ACTOR_206100_ENTRANCE_PLAYER_YAW;
         playerTransform.rot.vz = 0;
         TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_PLACE, &playerTransform, 0);
-        requestWork                                                = task->work;
-        requestWork->animStep                                      = ANIMATION_RATE_ONE;
-        requestWork->animClip                                      = ACTOR_206100_ENTRANCE_RELOCATE_CLIP;
-        requestWork->animRequest                                   = DIVER_ANIM_REQUEST_RESET;
-        rootCoord->coord.t[1]                                      = ACTOR_206100_ENTRANCE_RELOCATE_Y;
-        work->goalY                                                = ACTOR_206100_ENTRANCE_RELOCATE_Y;
-        rootCoord->coord.t[0]                                      = ACTOR_206100_ENTRANCE_RELOCATE_XZ;
-        rootCoord->coord.t[2]                                      = ACTOR_206100_ENTRANCE_RELOCATE_XZ;
-        work->rotation.vx                                          = 0;
-        work->rotation.vy                                          = ACTOR_206100_ENTRANCE_RELOCATE_YAW;
-        work->rotation.vz                                          = 0;
-        work->savedView                                            = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view;
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = ACTOR_206100_ENTRANCE_RELOCATE_VIEW;
-        work->stateFrames                                          = 0;
-        work->neckRetracted                                        = 0;
-        work->subState                                             = work->subState + 1;
+        requestWork                                            = task->work;
+        requestWork->animStep                                  = ANIMATION_RATE_ONE;
+        requestWork->animClip                                  = ACTOR_206100_ENTRANCE_RELOCATE_CLIP;
+        requestWork->animRequest                               = DIVER_ANIM_REQUEST_RESET;
+        rootCoord->coord.t[1]                                  = ACTOR_206100_ENTRANCE_RELOCATE_Y;
+        work->goalY                                            = ACTOR_206100_ENTRANCE_RELOCATE_Y;
+        rootCoord->coord.t[0]                                  = ACTOR_206100_ENTRANCE_RELOCATE_XZ;
+        rootCoord->coord.t[2]                                  = ACTOR_206100_ENTRANCE_RELOCATE_XZ;
+        work->rotation.vx                                      = 0;
+        work->rotation.vy                                      = ACTOR_206100_ENTRANCE_RELOCATE_YAW;
+        work->rotation.vz                                      = 0;
+        work->savedView                                        = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = ACTOR_206100_ENTRANCE_RELOCATE_VIEW;
+        work->stateFrames                                      = 0;
+        work->neckRetracted                                    = 0;
+        work->subState                                         = work->subState + 1;
         // The cyan distortion masks the following entrance movement.
         _gActor206100EntranceWaveContext.span            = ACTOR_206100_ENTRANCE_WAVE_FRAMES;
         _gActor206100EntranceWaveContext.scale           = ACTOR_206100_ENTRANCE_WAVE_SCALE;
@@ -2076,13 +2076,13 @@ static void _actor206100EntranceDepartureTick(Task* task)
     }
     // Stage both actors for reappearance in the next entrance view.
     if (work->stateFrames == ACTOR_206100_ENTRANCE_DEPART_FRAMES) {
-        rootCoord->coord.t[0]                                      = 0;
-        rootCoord->coord.t[2]                                      = 0;
-        work->goalY                                                = ACTOR_206100_ENTRANCE_ARRIVAL_GOAL_Y;
-        work->stateFrames                                          = 0U;
-        rootCoord->coord.t[1]                                      = ACTOR_206100_ENTRANCE_ARRIVAL_ROOT_Y;
-        work->rotation.vy                                          = 0;
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = ACTOR_206100_ENTRANCE_ARRIVAL_VIEW;
+        rootCoord->coord.t[0]                                  = 0;
+        rootCoord->coord.t[2]                                  = 0;
+        work->goalY                                            = ACTOR_206100_ENTRANCE_ARRIVAL_GOAL_Y;
+        work->stateFrames                                      = 0U;
+        rootCoord->coord.t[1]                                  = ACTOR_206100_ENTRANCE_ARRIVAL_ROOT_Y;
+        work->rotation.vy                                      = 0;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = ACTOR_206100_ENTRANCE_ARRIVAL_VIEW;
         worldCoordSetActorColorMode(task->spawnArg2.pointer, ENEMY_COLOR_DEFAULT);
         playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE);
         playerTransform.pos.vx = 0x690;
@@ -2179,12 +2179,12 @@ static void _actor206100EntranceArrivalTick(Task* task)
         // Release player control only after the arrival splash has played.
         playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
         playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO);
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = ACTOR_206100_ENTRANCE_FIGHT_VIEW;
-        rootCoord->coord.t[0]                                      = 0;
-        rootCoord->coord.t[2]                                      = 0;
-        transitionWork                                             = task->work;
-        transitionWork->state                                      = ACTOR_206100_FIGHT_STATE_ATTACK;
-        transitionWork->subState                                   = 0;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = ACTOR_206100_ENTRANCE_FIGHT_VIEW;
+        rootCoord->coord.t[0]                                  = 0;
+        rootCoord->coord.t[2]                                  = 0;
+        transitionWork                                         = task->work;
+        transitionWork->state                                  = ACTOR_206100_FIGHT_STATE_ATTACK;
+        transitionWork->subState                               = 0;
     }
 }
 

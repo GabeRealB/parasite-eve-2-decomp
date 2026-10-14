@@ -714,19 +714,19 @@ static inline void _neoArkAltarQueueMovie(const Task* task)
         NEO_ARK_ALTAR_MOVIE_SWITCH_CLEAR_ID = 101,
         NEO_ARK_ALTAR_MOVIE_SEQUENCE_ID     = 102,
     };
-    u8      commandArgs[sizeof(gCdCmdQueue.entries[0].args.bytes)];
-    GameLoc movieLocation;
+    u8              commandArgs[sizeof(gCdCmdQueue.entries[0].args.bytes)];
+    GameLocationKey movieLocation;
 
     movieLocation = gGameSession->location;
     if (task->spawnArg1.value == NEO_ARK_ALTAR_MOVIE_SWITCH_SET) {
-        movieLocation.loc.view = NEO_ARK_ALTAR_MOVIE_SWITCH_SET_ID;
+        movieLocation.view = NEO_ARK_ALTAR_MOVIE_SWITCH_SET_ID;
     } else if (task->spawnArg1.value == NEO_ARK_ALTAR_MOVIE_SWITCH_CLEAR) {
-        movieLocation.loc.view = NEO_ARK_ALTAR_MOVIE_SWITCH_CLEAR_ID;
+        movieLocation.view = NEO_ARK_ALTAR_MOVIE_SWITCH_CLEAR_ID;
     } else {
-        movieLocation.loc.view = NEO_ARK_ALTAR_MOVIE_SEQUENCE_ID;
+        movieLocation.view = NEO_ARK_ALTAR_MOVIE_SEQUENCE_ID;
     }
     // Enqueue copies four bytes; this opcode interprets only the slot byte.
-    commandArgs[0] = streamFindMovieSlot(&movieLocation.loc, 0, 0);
+    commandArgs[0] = streamFindMovieSlot(&movieLocation, 0, 0);
     cdCmdEnqueue(CD_COMMAND_PLAY_STREAM, 0, commandArgs);
 }
 
@@ -834,7 +834,7 @@ void neoArkAltarStepSwitchSprites(s32 switchChoice)
     SpriteView*      areaViews;
     SpriteBatch*     batches;
 
-    location      = &gGameSession->location.loc;
+    location      = &gGameSession->location;
     areaViews     = gSpriteAreaTables[location->stage - 1][0].areaViews[location->area - 1];
     switchChoice &= 0xFF;
     // Each direction changes the endpoint scenery even when no animation step remains.
@@ -1021,7 +1021,7 @@ static void _neoArkAltarResetTileSequence(void)
     SpriteBatch*     batches;
     s32              historyIndex;
 
-    location  = &gGameSession->location.loc;
+    location  = &gGameSession->location;
     areaViews = gSpriteAreaTables[location->stage - 1][0].areaViews[location->area - 1];
     if (gameFlagGetNibble(GAME_FLAG_NEO_ARK_ALTAR_SWITCH_STATE) == 0) {
         batches                          = areaViews[3].batches;
@@ -1474,11 +1474,11 @@ static void _neoArkAltarSelectPostSequenceRoom(Task* task)
 
     // Keep the reload request before both location updates; the pointer store
     // preserves that order under this compiler's memory scheduler.
-    viewDirty                                                  = &gGameSession->viewDirty;
-    *viewDirty                                                 = 1;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = NEO_ARK_ALTAR_POST_SEQUENCE_ROOM;
-    gGameSession->location.loc.room                            = NEO_ARK_ALTAR_POST_SEQUENCE_ROOM;
-    task->state                                                = task->state + 1;
+    viewDirty                                              = &gGameSession->viewDirty;
+    *viewDirty                                             = 1;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.room = NEO_ARK_ALTAR_POST_SEQUENCE_ROOM;
+    gGameSession->location.room                            = NEO_ARK_ALTAR_POST_SEQUENCE_ROOM;
+    task->state                                            = task->state + 1;
 }
 
 /// Restores the player, HUD and display and resumes the altar's tile puzzle.

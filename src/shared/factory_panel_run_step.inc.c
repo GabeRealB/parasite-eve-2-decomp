@@ -13,7 +13,7 @@ static inline void _factoryPanelPlayButtonSound(void)
     s32 soundArea;
 
     soundArea = FACTORY_PANEL_NIGHT_SOUND_AREA;
-    if (gGameSession->location.loc.stage == GAME_STAGE_DRYFIELD) {
+    if (gGameSession->location.stage == GAME_STAGE_DRYFIELD) {
         soundArea = FACTORY_PANEL_DAY_SOUND_AREA;
     }
     sndEvtRequestScriptStart(soundArea | FACTORY_PANEL_BUTTON_SOUND, 0, 0);
@@ -48,9 +48,9 @@ static void _factoryPanelApplyChoice(Task* task, s16 choice)
                 if (!(gameFlagGetNibble(GAME_FLAG_FACTORY_LIFT_POSITION) & FACTORY_LIFT_POSITION_RAISED)) {
                     gameFlagSetNibble(GAME_FLAG_FACTORY_LIFT_POSITION, gameFlagGetNibble(GAME_FLAG_FACTORY_LIFT_POSITION) | FACTORY_LIFT_POSITION_RAISED);
                     if (gameFlagGetNibble(GAME_FLAG_FACTORY_BARRIER_CLEARED) == 0) {
-                        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = FACTORY_PANEL_MOVE_VIEW_BARRIER_PRESENT;
+                        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = FACTORY_PANEL_MOVE_VIEW_BARRIER_PRESENT;
                     } else {
-                        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = FACTORY_PANEL_MOVE_VIEW_BARRIER_CLEARED;
+                        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = FACTORY_PANEL_MOVE_VIEW_BARRIER_CLEARED;
                     }
                     nextState = FACTORY_PANEL_STATE_WAIT_MOVE;
                 } else {
@@ -64,9 +64,9 @@ static void _factoryPanelApplyChoice(Task* task, s16 choice)
                 if (gameFlagGetNibble(GAME_FLAG_FACTORY_LIFT_POSITION) & FACTORY_LIFT_POSITION_RAISED) {
                     gameFlagSetNibble(GAME_FLAG_FACTORY_LIFT_POSITION, gameFlagGetNibble(GAME_FLAG_FACTORY_LIFT_POSITION) & ~FACTORY_LIFT_POSITION_RAISED);
                     if (gameFlagGetNibble(GAME_FLAG_FACTORY_BARRIER_CLEARED) == 0) {
-                        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = FACTORY_PANEL_MOVE_VIEW_BARRIER_PRESENT;
+                        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = FACTORY_PANEL_MOVE_VIEW_BARRIER_PRESENT;
                     } else {
-                        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = FACTORY_PANEL_MOVE_VIEW_BARRIER_CLEARED;
+                        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = FACTORY_PANEL_MOVE_VIEW_BARRIER_CLEARED;
                     }
                     nextState = FACTORY_PANEL_STATE_WAIT_MOVE;
                 } else {
@@ -79,9 +79,9 @@ static void _factoryPanelApplyChoice(Task* task, s16 choice)
                 _factoryPanelPlayButtonSound();
                 gameFlagSetNibble(GAME_FLAG_FACTORY_LIFT_POSITION, gameFlagGetNibble(GAME_FLAG_FACTORY_LIFT_POSITION) ^ FACTORY_LIFT_POSITION_TURNED);
                 if (gameFlagGetNibble(GAME_FLAG_FACTORY_BARRIER_CLEARED) == 0) {
-                    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = FACTORY_PANEL_MOVE_VIEW_BARRIER_PRESENT;
+                    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = FACTORY_PANEL_MOVE_VIEW_BARRIER_PRESENT;
                 } else {
-                    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = FACTORY_PANEL_MOVE_VIEW_BARRIER_CLEARED;
+                    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = FACTORY_PANEL_MOVE_VIEW_BARRIER_CLEARED;
                 }
                 nextState   = FACTORY_PANEL_STATE_WAIT_MOVE;
                 task->state = nextState;

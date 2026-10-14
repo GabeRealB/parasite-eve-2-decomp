@@ -1504,7 +1504,7 @@ void dryfieldNightWaterTowerDrawGlowsTask(Task* task)
 
     gRoomEffectState->roomEffectMode = ROOM_EFFECT_VIEW_ENABLED;
     // Select glow anchors by the room-local view ID.
-    switch (gGameSession->location.loc.view) {
+    switch (gGameSession->location.view) {
         case 2:
             _glowDrawFlare(&_gDryfieldNightWaterTowerGlowPoints.views2And4FlarePoint, DRYFIELD_NIGHT_WATER_TOWER_FLARE_TEXTURE_INDEX,
                            DRYFIELD_NIGHT_WATER_TOWER_FLARE_RADIUS_SCALE);

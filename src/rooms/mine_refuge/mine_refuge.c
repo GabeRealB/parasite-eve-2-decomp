@@ -751,9 +751,9 @@ static inline void _mineRefugeStartCutscenePrompt(void)
 
     playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
     playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE);
-    savedView                                                  = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = MINE_REFUGE_CUTSCENE_VIEW;
-    _gMineRefugePromptViewStorage.restoreView                  = savedView;
+    savedView                                              = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = MINE_REFUGE_CUTSCENE_VIEW;
+    _gMineRefugePromptViewStorage.restoreView              = savedView;
     sndEvtRequestScriptStart(MINE_REFUGE_PROMPT_START_SOUND, 0, 0);
     capRunCommand(MINE_REFUGE_CAP_PROMPT, CAP_PLAYBACK_IN_PLACE);
     taskSpawnFromTable(_gMineRefugeSceneTaskDescs, MINE_REFUGE_TASK_PROMPT, 0, 0);
@@ -855,7 +855,7 @@ static void _mineRefugeCutscenePromptTask(Task* task)
                 task->state = task->state + 1;
                 return;
             }
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = _gMineRefugePromptViewStorage.restoreView;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = _gMineRefugePromptViewStorage.restoreView;
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
             playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO);
             break;

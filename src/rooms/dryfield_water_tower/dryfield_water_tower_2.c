@@ -2672,8 +2672,8 @@ static void _dryfieldWaterTowerDispatchPropSceneRequest(Task* task)
             // Showing the player also applies the view chosen by the run.
             /* fallthrough */
         case DRYFIELD_WATER_TOWER_PROP_SCENE_REQUEST_APPLY_VIEW:
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = work->nextView;
-            gGameSession->viewDirty                                    = 1;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = work->nextView;
+            gGameSession->viewDirty                                = 1;
             break;
 
         case DRYFIELD_WATER_TOWER_PROP_SCENE_REQUEST_SLIDE_BACK: {
@@ -2797,8 +2797,8 @@ static u16 _dryfieldWaterTowerStepTimedRun(Task* task)
         case DRYFIELD_WATER_TOWER_RUN_PHASE_START:
             // Opening and repeat runs share the opened collision patch.
             if (work->mechanismState == GAME_FLAG_WATER_TOWER_MECHANISM_INITIAL) {
-                hideCommand.context.loc.stage = gGameSession->location.loc.stage;
-                hideCommand.context.loc.area  = gGameSession->location.loc.area;
+                hideCommand.context.loc.stage = gGameSession->location.stage;
+                hideCommand.context.loc.area  = gGameSession->location.area;
                 hideCommand.command           = DRYFIELD_WATER_TOWER_CHASER_COMMAND_HIDE;
                 TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &hideCommand, ACTOR_COMMAND_MESSAGE_APPLY);
                 work->nextView            = viewFindLogicalIndex(DRYFIELD_WATER_TOWER_RUN_MAPPED_VIEW);
@@ -2809,11 +2809,11 @@ static u16 _dryfieldWaterTowerStepTimedRun(Task* task)
                 TASK_MESSAGE_DISPATCH_POINTER(work->slidingPropTask, ACTOR_MESSAGE_PLACE, &_gDryfieldWaterTowerSlidingPropPlacements[DRYFIELD_WATER_TOWER_SLIDING_PROP_EXTENDED], 0);
                 taskMessageDispatch(work->playerTask, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO, 0);
                 taskMessageDispatch(work->playerTask, GAME_ACTOR_MESSAGE_END_SCRIPTED, 0, 0);
-                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = viewFindLogicalIndex(DRYFIELD_WATER_TOWER_RUN_MAPPED_VIEW);
-                session                                                    = gGameSession;
-                session->viewDirty                                         = 1;
-                session->hideHud                                           = 0;
-                session->eventState                                        = 0;
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = viewFindLogicalIndex(DRYFIELD_WATER_TOWER_RUN_MAPPED_VIEW);
+                session                                                = gGameSession;
+                session->viewDirty                                     = 1;
+                session->hideHud                                       = 0;
+                session->eventState                                    = 0;
                 sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_WATER_TOWER, DRYFIELD_WATER_TOWER_OPENING_SOUND_ENTRY), 0, DRYFIELD_WATER_TOWER_REPEATED_RUN_OPENING_ATTENUATION);
                 sndEvtRequestScriptStart(SOUND_WATER_TOWER_CAP_RUNNING, 0, 0);
                 work->phase = DRYFIELD_WATER_TOWER_RUN_PHASE_START_TIMER;
@@ -2836,8 +2836,8 @@ static u16 _dryfieldWaterTowerStepTimedRun(Task* task)
             break;
 
         case DRYFIELD_WATER_TOWER_RUN_PHASE_START_TIMER:
-            startRunCommand.context.loc.stage = gGameSession->location.loc.stage;
-            startRunCommand.context.loc.area  = gGameSession->location.loc.area;
+            startRunCommand.context.loc.stage = gGameSession->location.stage;
+            startRunCommand.context.loc.area  = gGameSession->location.area;
             startRunCommand.command           = DRYFIELD_WATER_TOWER_CHASER_COMMAND_START_RUN;
             TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &startRunCommand, ACTOR_COMMAND_MESSAGE_APPLY);
             gDryfieldWaterTowerRunElapsedFrames = 0;
@@ -2863,7 +2863,7 @@ static u16 _dryfieldWaterTowerStepTimedRun(Task* task)
             }
             if (gDryfieldWaterTowerRunTimeLimitFrames < gDryfieldWaterTowerRunElapsedFrames) {
                 work->timeouts++;
-                work->nextView = gGameSession->location.loc.view;
+                work->nextView = gGameSession->location.view;
                 evsStartScriptWithSkip(_gDryfieldWaterTowerRunEndingScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, _gDryfieldWaterTowerRunEndingSkipScript);
                 work->runResult = DRYFIELD_WATER_TOWER_RUN_TIMED_OUT;
                 work->phase++;
@@ -2877,8 +2877,8 @@ static u16 _dryfieldWaterTowerStepTimedRun(Task* task)
                 return DRYFIELD_WATER_TOWER_RUN_UNDER_WAY;
             }
             if (work->runResult != DRYFIELD_WATER_TOWER_RUN_COMPLETED) {
-                endRunCommand.context.loc.stage = gGameSession->location.loc.stage;
-                endRunCommand.context.loc.area  = gGameSession->location.loc.area;
+                endRunCommand.context.loc.stage = gGameSession->location.stage;
+                endRunCommand.context.loc.area  = gGameSession->location.area;
                 endRunCommand.command           = DRYFIELD_WATER_TOWER_CHASER_COMMAND_END_RUN;
                 TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &endRunCommand, ACTOR_COMMAND_MESSAGE_APPLY);
             }
@@ -2904,8 +2904,8 @@ static inline u16 _dryfieldWaterTowerWaitForChasersStep(Task* task)
 
     switch (work->phase) {
         case DRYFIELD_WATER_TOWER_CLOSING_PHASE_START:
-            command.context.loc.stage = gGameSession->location.loc.stage;
-            command.context.loc.area  = gGameSession->location.loc.area;
+            command.context.loc.stage = gGameSession->location.stage;
+            command.context.loc.area  = gGameSession->location.area;
             command.command           = DRYFIELD_WATER_TOWER_CHASER_COMMAND_START_FINAL_BATTLE;
             TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &command, ACTOR_COMMAND_MESSAGE_APPLY);
             work->phase++;
@@ -3094,7 +3094,7 @@ static void _dryfieldWaterTowerPropSceneTask(Task* task)
         case DRYFIELD_WATER_TOWER_PROP_SCENE_STATE_FINISHED:
             break;
     }
-    work->currentView = gGameSession->location.loc.view;
+    work->currentView = gGameSession->location.view;
     _dryfieldWaterTowerDispatchPropSceneRequest(task);
 }
 
@@ -3216,8 +3216,8 @@ static void _dryfieldWaterTowerSkipRunOpening(void)
     if (work->runningSoundStarted == 0) {
         sndEvtRequestScriptStart(SOUND_WATER_TOWER_CAP_RUNNING, 0, 0);
     }
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = viewFindLogicalIndex(DRYFIELD_WATER_TOWER_RUN_MAPPED_VIEW);
-    gGameSession->viewDirty                                    = 1;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = viewFindLogicalIndex(DRYFIELD_WATER_TOWER_RUN_MAPPED_VIEW);
+    gGameSession->viewDirty                                = 1;
     TASK_MESSAGE_DISPATCH_POINTER(work->slidingPropTask, ACTOR_MESSAGE_PLACE, &_gDryfieldWaterTowerSlidingPropPlacements[DRYFIELD_WATER_TOWER_SLIDING_PROP_EXTENDED], 0);
     work->slidingPropTask->state = DRYFIELD_WATER_TOWER_PROP_STATE_IDLE;
     padScriptHalt();
@@ -3236,8 +3236,8 @@ static void _dryfieldWaterTowerSkipRunEnding(void)
 
     _DryfieldWaterTowerPropSceneWork* work = gDryfieldWaterTowerPropSceneTask->work;
 
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = work->nextView;
-    gGameSession->viewDirty                                    = 1;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = work->nextView;
+    gGameSession->viewDirty                                = 1;
     TASK_MESSAGE_DISPATCH_POINTER(work->slidingPropTask, ACTOR_MESSAGE_PLACE, &_gDryfieldWaterTowerSlidingPropPlacements[DRYFIELD_WATER_TOWER_SLIDING_PROP_HOME], 0);
     work->slidingPropTask->state = DRYFIELD_WATER_TOWER_PROP_STATE_IDLE;
     padScriptHalt();
@@ -3263,7 +3263,7 @@ static void _dryfieldWaterTowerSkipPropClosingScene(void)
     _DryfieldWaterTowerPropSceneWork* work = gDryfieldWaterTowerPropSceneTask->work;
     _DryfieldWaterTowerPropSceneWork* fallingPropWork;
 
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = viewFindLogicalIndex(DRYFIELD_WATER_TOWER_CLOSING_MAPPED_VIEW);
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = viewFindLogicalIndex(DRYFIELD_WATER_TOWER_CLOSING_MAPPED_VIEW);
     TASK_MESSAGE_DISPATCH_POINTER(work->fallingPropTask, ACTOR_MESSAGE_PLACE, &_gDryfieldWaterTowerFallingPropPlacements[DRYFIELD_WATER_TOWER_PROP_GROUND_PLACEMENT], 0);
     work->fallingPropTask->state = DRYFIELD_WATER_TOWER_PROP_STATE_IDLE;
     TASK_MESSAGE_DISPATCH_POINTER(work->playerTask, GAME_ACTOR_MESSAGE_PLACE, &_gDryfieldWaterTowerClosingPlayerPlacements[DRYFIELD_WATER_TOWER_PLAYER_CLOSING_MARK], 0);
@@ -3426,9 +3426,9 @@ static void _dryfieldWaterTowerActorSceneTask(Task* task)
                 memFillBytes(work, 0, sizeof(*work));
                 work->playerTask                  = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
                 gDryfieldWaterTowerActorSceneTask = task;
-                actorPlaceKey                     = gGameSession->location.loc.area | (gGameSession->location.loc.stage << 8);
+                actorPlaceKey                     = gGameSession->location.area | (gGameSession->location.stage << 8);
                 work->firstActorTask              = sceneFindEnemyByPlaceKey(actorPlaceKey)->task;
-                actorPlaceKey                     = ((gGameSession->location.loc.stage << 8) | DRYFIELD_WATER_TOWER_ACTOR_SCENE_SECOND_ACTOR_KEY) | gGameSession->location.loc.area;
+                actorPlaceKey                     = ((gGameSession->location.stage << 8) | DRYFIELD_WATER_TOWER_ACTOR_SCENE_SECOND_ACTOR_KEY) | gGameSession->location.area;
                 work->secondActorTask             = sceneFindEnemyByPlaceKey(actorPlaceKey)->task;
             }
             task->state++;
@@ -3504,8 +3504,8 @@ static void _dryfieldWaterTowerStartChaserBattleOnce(void)
 
     if (work->actorCommandSent == 0) {
         sceneEngageBattle(1);
-        command.context.loc.stage = gGameSession->location.loc.stage;
-        command.context.loc.area  = gGameSession->location.loc.area;
+        command.context.loc.stage = gGameSession->location.stage;
+        command.context.loc.area  = gGameSession->location.area;
         command.command           = DRYFIELD_WATER_TOWER_CHASER_COMMAND_START_BATTLE;
         TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &command, ACTOR_COMMAND_MESSAGE_APPLY);
         work->actorCommandSent = 1;
@@ -3532,8 +3532,8 @@ static void _dryfieldWaterTowerSkipActorScene(void)
     TASK_MESSAGE_DISPATCH_POINTER(work->firstActorTask, ACTOR_MESSAGE_PLACE, &_gDryfieldWaterTowerActorScenePlacements[DRYFIELD_WATER_TOWER_FIRST_ACTOR_END_PLACEMENT], 0);
     taskMessageDispatch(work->playerTask, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO, 0);
     TASK_MESSAGE_DISPATCH_POINTER(work->playerTask, GAME_ACTOR_MESSAGE_PLACE, &_gDryfieldWaterTowerActorScenePlayerPlacement, 0);
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = viewFindLogicalIndex(DRYFIELD_WATER_TOWER_ACTOR_SCENE_END_MAPPED_VIEW);
-    gGameSession->viewDirty                                    = 1;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = viewFindLogicalIndex(DRYFIELD_WATER_TOWER_ACTOR_SCENE_END_MAPPED_VIEW);
+    gGameSession->viewDirty                                = 1;
     // Cancellation finishes the stream; retain the callback's repeated finish.
     cdCmdCancelScene();
     streamFinishScene();
@@ -3549,7 +3549,7 @@ void dryfieldWaterTowerSetMechanismSpriteVisible(u8 visible)
     GameLocationKey* location;
     SpriteBatch*     batches;
 
-    location = &gGameSession->location.loc;
+    location = &gGameSession->location;
     if (location->stage == GAME_STAGE_DRYFIELD) {
         batches = gSpriteAreaTables[location->stage - 1]->areaViews[location->area - 1][DRYFIELD_WATER_TOWER_MECHANISM_SPRITE_VIEW_INDEX - 1].batches;
         if (!visible) {

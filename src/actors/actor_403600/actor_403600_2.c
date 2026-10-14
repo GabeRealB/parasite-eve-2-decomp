@@ -3816,9 +3816,9 @@ static void _actor403600UpdatePlayerKnockback(Task* task)
             if ((work->knockbackFrame >= ACTOR_403600_KNOCKBACK_IMPACT_FRAME) || (gGameSession->viewReady != 0)) {
                 work->knockbackFrame = 0;
                 if (_actor403600PlacePlayerForKnockback(task, ACTOR_403600_KNOCKBACK_RELOCATE_FACE_FAR) == 0) {
-                    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = ACTOR_403600_KNOCKBACK_VIEW_AT_B;
+                    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = ACTOR_403600_KNOCKBACK_VIEW_AT_B;
                 } else {
-                    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = ACTOR_403600_KNOCKBACK_VIEW_AT_A;
+                    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = ACTOR_403600_KNOCKBACK_VIEW_AT_A;
                 }
                 _gActor403600PlayerAnimationRequest.animationId = ACTOR_403600_PLAYER_ANIM_HEAVY_IMPACT;
                 gAttachmentState.flags                         |= ATTACHMENT_FLAG_EVENT_LOCK;

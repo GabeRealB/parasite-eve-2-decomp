@@ -1562,10 +1562,10 @@ Task* gDryfieldWaterTankMovieEventTask;
 /// player drawing; restoring the byte view does not request a resource reload.
 static inline void _dryfieldWaterTankRestorePlayerAfterPrompt(void)
 {
-    gGameSession->eventState                                   = 0;
-    gGameSession->hideHud                                      = 0;
-    gSceneCombatState.actorControl                             = SCENE_COMBAT_ACTORS_RUNNING;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = _gDryfieldWaterTankMechanismPromptSavedView;
+    gGameSession->eventState                               = 0;
+    gGameSession->hideHud                                  = 0;
+    gSceneCombatState.actorControl                         = SCENE_COMBAT_ACTORS_RUNNING;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = _gDryfieldWaterTankMechanismPromptSavedView;
     playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
     playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO);
 }
@@ -1593,7 +1593,7 @@ void dryfieldWaterTankMechanismPromptTask(Task* task)
                 break;
             }
             gGameSession->eventState                    = 1;
-            _gDryfieldWaterTankMechanismPromptSavedView = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view;
+            _gDryfieldWaterTankMechanismPromptSavedView = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view;
             playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE);
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
             capStartSequenceSlot(DRYFIELD_WATER_TANK_MECHANISM_CAP_COMMAND, CAP_PLAYBACK_IN_PLACE, DRYFIELD_WATER_TANK_PROMPT_VARIANT);
@@ -1731,12 +1731,12 @@ static void _dryfieldWaterTankUpdateViewAmbience(Task* task)
     };
 
     if (gGameSession->viewReady != 0) {
-        if (gGameSession->location.loc.view == 4) {
+        if (gGameSession->location.view == 4) {
             sndEvtRequestStageScriptStart(SOUND_WATER_TANK_VIEW4_AMBIENCE, 0, 0);
         } else {
             sndEvtRequestStageScriptStop(SOUND_WATER_TANK_VIEW4_AMBIENCE, DRYFIELD_WATER_TANK_VIEW4_AMBIENCE_FADE_TICKS);
         }
-        if (gGameSession->location.loc.view == 10) {
+        if (gGameSession->location.view == 10) {
             sndEvtRequestStageScriptStart(SOUND_WATER_TANK_VIEW10_AMBIENCE, 0, 0);
             return;
         }
@@ -1980,8 +1980,8 @@ void dryfieldWaterTankPropSceneTask(Task* task)
             _dryfieldWaterTankStartPropSlide(work);
             break;
         case DRYFIELD_WATER_TANK_PROP_SCENE_REQUEST_SHOW_PLAYER:
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = viewFindLogicalIndex(DRYFIELD_WATER_TANK_PROP_SCENE_RESTORE_VIEW);
-            gGameSession->viewDirty                                    = 1;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = viewFindLogicalIndex(DRYFIELD_WATER_TANK_PROP_SCENE_RESTORE_VIEW);
+            gGameSession->viewDirty                                = 1;
             taskMessageDispatch(work->playerTask, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, true, 0);
             break;
         case DRYFIELD_WATER_TANK_PROP_SCENE_REQUEST_PLAY_SOUNDS:
@@ -2037,8 +2037,8 @@ void dryfieldWaterTankSkipPropScene(void)
     };
     _DryfieldWaterTankPropSceneWork* work;
 
-    work                                                       = _gDryfieldWaterTankPropSceneTask->work;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = viewFindLogicalIndex(DRYFIELD_WATER_TANK_PROP_SCENE_RESTORE_VIEW);
+    work                                                   = _gDryfieldWaterTankPropSceneTask->work;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = viewFindLogicalIndex(DRYFIELD_WATER_TANK_PROP_SCENE_RESTORE_VIEW);
     taskMessageDispatch(work->playerTask, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, true, 0);
     gGameSession->viewDirty = 1;
     sndEvtRequestScriptStop(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_WATER_TANK, DRYFIELD_WATER_TANK_PROP_SCENE_SOUND_ENTRY), DRYFIELD_WATER_TANK_PROP_SCENE_SKIP_FADE_TICKS);

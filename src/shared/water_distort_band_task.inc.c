@@ -55,7 +55,7 @@ void waterDistortBandTask(Task* task)
     s32              xRight            = WATER_DISTORT_HALF_WIDTH;
     s32              sourceBufferIndex = gDisplayState.otBuffer;
     s32              bandCount         = 1;
-    GameLocationKey* location          = &gGameSession->location.loc;
+    GameLocationKey* location          = &gGameSession->location;
     s32              areaId            = location->area;
     s32              firstRow;
     s32              rowEnd;
@@ -78,7 +78,7 @@ void waterDistortBandTask(Task* task)
 
     // Select screen-pixel clipping for the current room view.
     if (areaId == GAME_AREA_NEO_ARK_SUBMARINE_TUNNEL) {
-        switch (gGameSession->location.loc.view) {
+        switch (gGameSession->location.view) {
             case 2:
                 firstRow = 1;
                 rowEnd   = 0x3F;
@@ -107,7 +107,7 @@ void waterDistortBandTask(Task* task)
                 return;
         }
     } else if (areaId == GAME_AREA_NEO_ARK_SUBMARINE_GALLERY) {
-        switch (gGameSession->location.loc.view) {
+        switch (gGameSession->location.view) {
             case 2:
                 firstRow = 1;
                 rowEnd   = 0x40;

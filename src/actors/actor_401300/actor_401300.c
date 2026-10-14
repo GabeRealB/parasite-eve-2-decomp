@@ -1715,7 +1715,7 @@ static s32 _actor401300ApplyGridPushback(GfxCoord* coord, const WorldCollisionCo
         scratch->step.vx = savedHead[-1].delta.fixed.vx.word >> ACTOR_401300_GRID_FRACTION_BITS;
         scratch->step.vy = scratch->delta.fixed.vy.word >> ACTOR_401300_GRID_FRACTION_BITS;
         scratch->step.vz = scratch->delta.fixed.vz.word >> ACTOR_401300_GRID_FRACTION_BITS;
-        if (_actor401300HasRoomHeightClamp(&gGameSession->location.loc)) {
+        if (_actor401300HasRoomHeightClamp(&gGameSession->location)) {
             verticalStep = scratch->step.vy;
             if (((verticalStep >= 0) ? verticalStep : -verticalStep) > ACTOR_401300_GRID_Y_STEP_MAX) {
                 scratch->step.vy = (verticalStep <= 0) ? -ACTOR_401300_GRID_Y_STEP_MAX : ACTOR_401300_GRID_Y_STEP_MAX;
@@ -1754,8 +1754,8 @@ static s32 _actor401300ApplyGridPushback(GfxCoord* coord, const WorldCollisionCo
         }
     }
     // Room height bounds precede the caller-supplied root-height offset.
-    if (_actor401300HasRoomHeightClamp(&gGameSession->location.loc)) {
-        _actor401300ClampRoomHeight(&gGameSession->location.loc, coord);
+    if (_actor401300HasRoomHeightClamp(&gGameSession->location)) {
+        _actor401300ClampRoomHeight(&gGameSession->location, coord);
         coord->coord.t[1] += heightOffset;
     }
     if (scratch->delta.fixed.vx.word != 0 || scratch->delta.fixed.vz.word != 0) {
@@ -2348,7 +2348,7 @@ static void _actor401300UpdateAnimationEffects(Task* actor)
                 _actor401300SpawnOffsetEffectFromId(&gRoomEffectWaterRippleId, &actor->extra.tmd->coords[15], ACTOR_401300_RIPPLE_HALF_SIDE, 0, 0x1C2, -100);
             }
         }
-        if (soundCue != 0 && (GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_WOODLAND_PATH, 0, 0)) {
+        if (soundCue != 0 && (GAME_LOCATION_WORD(gGameSession->location) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_WOODLAND_PATH, 0, 0)) {
             switch (soundCue) {
                 case ACTOR_401300_SOUND_WALK_STEP18:
                 case ACTOR_401300_SOUND_RUN_STEP18:
@@ -3284,7 +3284,7 @@ static void _actor401300StateAlert(Task* actor)
     aim                                    = SCRATCH_STACK_RESERVE_BLOCK(ActorChaseScratch);
     actor->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     if (work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_SETTLED) {
-        if (_playerDetectionSightBlocked(actor) == 1 && (GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(5, 29, 0, 0)) {
+        if (_playerDetectionSightBlocked(actor) == 1 && (GAME_LOCATION_WORD(gGameSession->location) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(5, 29, 0, 0)) {
             work->state = ACTOR_401300_STATE_WITHDRAW;
         } else {
             work->state = ACTOR_401300_STATE_CHASE;
@@ -6174,7 +6174,7 @@ static void _actor401300StateLeapIn(Task* actor)
     // The driver refreshes color before this cumulative-looking scale is applied.
     if (work->stateTimer < ACTOR_401300_LEAP_IN_COLOR_END_TICK) {
         _actorRenderScaleMatrix(&work->colorMtx, (work->stateTimer << ACTOR_401300_LEAP_IN_COLOR_FRACTION_BITS) / ACTOR_401300_LEAP_IN_COLOR_DIVISOR);
-        if (gGameSession->location.loc.area == GAME_AREA_NEO_ARK_FOREST_ZONE) {
+        if (gGameSession->location.area == GAME_AREA_NEO_ARK_FOREST_ZONE) {
             if ((work->stateTimer & (ACTOR_401300_LEAP_IN_LEAF_PERIOD - 1)) == 0) {
                 effectSpawn(EFFECT_NEO_ARK_FOREST_FALLING_LEAF, actor->extra.tmd->coords + 3, 0, NULL);
                 effectSpawn(EFFECT_NEO_ARK_FOREST_FALLING_LEAF, actor->extra.tmd->coords + 16, 0, NULL);
@@ -6199,7 +6199,7 @@ static void _actor401300StateLeapIn(Task* actor)
                     effectSpawn(EFFECT_NEO_ARK_FOREST_FALLING_LEAF, actor->extra.tmd->coords + 18, 0, NULL);
                 }
             }
-        } else if (gGameSession->location.loc.area == GAME_AREA_NEO_ARK_WOODLAND_PATH) {
+        } else if (gGameSession->location.area == GAME_AREA_NEO_ARK_WOODLAND_PATH) {
             if ((work->stateTimer & (ACTOR_401300_LEAP_IN_LEAF_PERIOD - 1)) == 0) {
                 effectSpawn(EFFECT_NEO_ARK_WOODLAND_FALLING_LEAF, actor->extra.tmd->coords + 3, 0, NULL);
                 effectSpawn(EFFECT_NEO_ARK_WOODLAND_FALLING_LEAF, actor->extra.tmd->coords + 16, 0, NULL);
@@ -7094,7 +7094,7 @@ static void _actor401300StateRiseBack(Task* actor)
     }
     _actor401300UpdateAnimationEffects(actor);
     if (work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_SETTLED) {
-        if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_WOODLAND_PATH, 0, 0)) {
+        if ((GAME_LOCATION_WORD(gGameSession->location) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_WOODLAND_PATH, 0, 0)) {
             work->state = ACTOR_401300_STATE_WITHDRAW;
         } else {
             work->state = ACTOR_401300_STATE_CHASE;

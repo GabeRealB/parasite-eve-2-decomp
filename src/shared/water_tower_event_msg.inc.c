@@ -40,7 +40,7 @@ s32 roomVariantWaterTowerMsg(Task* unusedTask, s32 unusedMessageId, const RoomEv
         if (request->queryOnly == ROOM_EVENT_EXECUTE && gameFlagGetNibble(GAME_FLAG_COMPANION_2_SCHEDULE) == WATER_TOWER_COMPANION_SCHEDULE_TO_CLEAR) {
             gameFlagSetNibble(GAME_FLAG_COMPANION_2_SCHEDULE, WATER_TOWER_COMPANION_ABSENT);
         }
-        if (gGameSession->location.loc.stage == GAME_STAGE_DRYFIELD_NIGHT) {
+        if (gGameSession->location.stage == GAME_STAGE_DRYFIELD_NIGHT) {
             return ROOM_VARIANT_TRANSITION_DIRECT;
         }
         if (gameFlagGetNibble(GAME_FLAG_WATER_TOWER_PROGRESS) != WATER_TOWER_PROGRESS_EVENT_FINISHED) {

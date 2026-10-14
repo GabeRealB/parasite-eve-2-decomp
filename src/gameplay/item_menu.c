@@ -365,7 +365,7 @@ static inline s32 _itemMenuCheckTransferRestriction(s32 itemId, s32 battleFieldM
     if (gItemDescriptors[itemId].flags & ITEM_FLAG_NO_DISCARD) {
         restricted = battleFieldMode == ITEM_MENU_PANE_MODE_BATTLE_FIELD;
     }
-    if ((_gItemMenuTransferPlaceKind == ITEM_MENU_M93R_RESTRICTED_CONTAINER_KIND) && (itemId == ITEM_MENU_M93R_ITEM_ID) && (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage == GAME_STAGE_ACROPOLIS)) {
+    if ((_gItemMenuTransferPlaceKind == ITEM_MENU_M93R_RESTRICTED_CONTAINER_KIND) && (itemId == ITEM_MENU_M93R_ITEM_ID) && (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.stage == GAME_STAGE_ACROPOLIS)) {
         restricted = 1;
     }
     return restricted;
@@ -1571,11 +1571,11 @@ void itemPickupContainerLidTask(Task* task)
     model        = task->extra.tmd;
     enemy        = task->spawnArg2.pointer;
     session      = gGameSession;
-    stageAreaKey = GAME_LOCATION_WORD(session->location.loc) & GAME_LOCATION_STAGE_AREA_VIEW_MASK;
+    stageAreaKey = GAME_LOCATION_WORD(session->location) & GAME_LOCATION_STAGE_AREA_VIEW_MASK;
     placeKind    = enemy->workType;
     coords       = model->coords;
     lidCoord     = coords + ITEM_PICKUP_LID_COORD_INDEX;
-    viewSlot     = session->location.loc.view;
+    viewSlot     = session->location.view;
     // Hide the container with actors, and outside its visible Shelter views.
     if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_HIDDEN) {
         model->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;

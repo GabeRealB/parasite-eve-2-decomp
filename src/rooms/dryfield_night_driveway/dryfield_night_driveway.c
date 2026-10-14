@@ -1525,7 +1525,7 @@ static void _dryfieldNightDrivewayInitializeRoom(Task* task)
 
     task->msgTable = _gDryfieldNightDrivewayRoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
-    if ((gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != NULL) && (gGameSession->location.loc.warp == COMPANION_SCENE_ARRIVAL_WARP)) {
+    if ((gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != NULL) && (gGameSession->location.warp == COMPANION_SCENE_ARRIVAL_WARP)) {
         evsStartScriptWithSkip(_gDryfieldNightDrivewayCompanionArrivalScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, _gDryfieldNightDrivewayCompanionArrivalSkipScript);
     }
     task->state = task->state + 1;
@@ -1556,7 +1556,7 @@ void dryfieldNightDrivewayDrawLightShaftsTask(Task* unusedTask)
     enum { DRYFIELD_NIGHT_DRIVEWAY_SHAFT_RADIUS_SCALE = 0x180 };
 
     gRoomEffectState->roomEffectMode = ROOM_EFFECT_VIEW_ENABLED;
-    switch (gGameSession->location.loc.view) {
+    switch (gGameSession->location.view) {
         case 2:
         case 9:
             _glowDrawShaft(_gDryfieldNightDrivewayLightShaftPoints[0], DRYFIELD_NIGHT_DRIVEWAY_SHAFT_RADIUS_SCALE);

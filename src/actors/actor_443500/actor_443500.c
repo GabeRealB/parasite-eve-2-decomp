@@ -3483,7 +3483,7 @@ static void _actor443500InitPierce(Task* task)
     work->savedModelFlags = task->extra.tmd->flags;
     childTask             = taskSpawnFromTable(gActor443500PierceTaskDescs, ACTOR_443500_PIERCE_CHILD_DESCRIPTOR, ACTOR_443500_PIERCE_CHILD_PART, task);
     if (childTask != NULL) {
-        sessionLocation   = &gGameSession->location.loc;
+        sessionLocation   = &gGameSession->location;
         enemy             = task->spawnArg2.pointer;
         placementKey      = enemy->placeKey;
         heldModel         = childTask->extra.tmd;
@@ -3536,7 +3536,7 @@ static void _actor443500TickPierce(Task* task)
     // Camera visibility changes are suspended while an event holds the scene.
     if (gGameSession->viewReady != 0 && gGameSession->eventState == 0 &&
         gGameSession->cutsceneHold == 0) {
-        view = gGameSession->location.loc.view;
+        view = gGameSession->location.view;
         if (view < 4) {
             work->savedModelFlags = model->flags;
             model->flags          = model->flags | TMD_OBJECT_SKIP_ACTIVE_DRAW;
@@ -3565,7 +3565,7 @@ static void _actor443500TickPierce(Task* task)
 /// shelter room 47 sound bank, and is undefined after the two uses. Expands to
 /// a standalone switch statement; no caller expression is evaluated twice.
 #define ACTOR_443500_QUEUE_DEFAULT_CLIP_SOUND(queueSound)                                                   \
-    switch (gGameSession->location.loc.view) {                                                              \
+    switch (gGameSession->location.view) {                                                                  \
         case 5:                                                                                             \
             (queueSound)(ACTOR_443500_DEFAULT_CLIP_SOUND, 9, 0);                                            \
             break;                                                                                          \

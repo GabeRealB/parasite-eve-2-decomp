@@ -170,14 +170,14 @@ void* cdCmdReservePlaybackBuffers(void)
     }
 
     _gCdCmdMovieWorkspace = NULL;
-    if (gGameSession->location.loc.stage == GAME_STAGE_NONE) {
+    if (gGameSession->location.stage == GAME_STAGE_NONE) {
         _gCdCmdMovieWorkspace = memMalloc(CD_COMMAND_TITLE_MOVIE_WORKSPACE_BYTES, true);
-    } else if (streamFindMovieSlot(&gGameSession->location.loc, 0, 0) < 0) {
+    } else if (streamFindMovieSlot(&gGameSession->location, 0, 0) < 0) {
         return NULL;
     } else {
-        areaWorkspaceBytes = _gCdCmdMovieWorkspaceBytesByStage[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage];
+        areaWorkspaceBytes = _gCdCmdMovieWorkspaceBytesByStage[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.stage];
         if (areaWorkspaceBytes != NULL) {
-            workspaceBytes = areaWorkspaceBytes[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area];
+            workspaceBytes = areaWorkspaceBytes[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.area];
             if (workspaceBytes != 0) {
                 _gCdCmdMovieWorkspace = memMalloc(workspaceBytes, true);
             }
@@ -1104,7 +1104,7 @@ u16 cdCmdIsSlotEmpty(s16 slot)
 void cdCmdPrepareViewMovie(void)
 {
     gCdCmdQueue.movieFrame = 1;
-    if (streamHasLoadedViewMovie(&gGameSession->location.loc.view) != 0) {
+    if (streamHasLoadedViewMovie(&gGameSession->location.view) != 0) {
         DecDCTvlcBuild((u16*)gFsActorBuffer0Base);
         gGameSession->field_7C = 0;
     }
@@ -1148,7 +1148,7 @@ void cdCmdSelectMovieWorkspace(void)
     CdCmdQueue* queue;
 
     queue = &gCdCmdQueue;
-    if (streamFindMovieSlot(&gGameSession->location.loc, 0, 0) >= 0) {
+    if (streamFindMovieSlot(&gGameSession->location, 0, 0) >= 0) {
         gStreamMovieWorkspace = _gCdCmdMovieWorkspace;
     }
     queue->movieFrameAvailable = 0;

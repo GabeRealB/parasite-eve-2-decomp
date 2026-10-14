@@ -288,7 +288,7 @@ static void _shelterB1NorthMaintenanceWalkwayInitRoomTask(Task* task)
 
     task->msgTable = _gShelterB1NorthMaintenanceWalkwayRoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
-    if (gGameSession->location.loc.variant == SCENE_ROOM_VARIANT) {
+    if (gGameSession->location.variant == SCENE_ROOM_VARIANT) {
         taskSpawnFromTable(&_gShelterB1NorthMaintenanceWalkwayPostBattleSceneTaskDesc, 0, 0, 0);
         if (gameFlagGetNibble(GAME_FLAG_NORTH_MAINTENANCE_WALKWAY_SCENE) == SCENE_NOT_STARTED) {
             gameFlagSetNibble(GAME_FLAG_NORTH_MAINTENANCE_WALKWAY_SCENE, SCENE_STARTED);
@@ -330,7 +330,7 @@ static void _shelterB1NorthMaintenanceWalkwaySetSceneSpriteVisibility(u8 sceneSe
            SCENE_SEEN        = 1,
            SCENE_VIEW_INDEX  = 2,
            SCENE_BATCH_INDEX = 2 };
-    const GameLocationKey* location = &gGameSession->location.loc;
+    const GameLocationKey* location = &gGameSession->location;
     SpriteView*            views;
     SpriteBatch*           batches;
 
@@ -356,7 +356,7 @@ void shelterB1NorthMaintenanceWalkwayDrawGlowsTask(Task* task)
     }
 
     // Each view selects an interior base in the complete world-point table.
-    switch (gGameSession->location.loc.view) {
+    switch (gGameSession->location.view) {
         case 2: {
             const SVECTOR* glowPoints;
             glowPoints = &_gShelterB1NorthMaintenanceWalkwayGlowPoints[12];

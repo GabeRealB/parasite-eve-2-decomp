@@ -82,7 +82,7 @@ static inline void _objectTaskResetRoomPresentation(void)
     musicOverride                   = gameFlagGetNibble(GAME_FLAG_SCENE_MUSIC_OVERRIDE);
     switch (musicOverride) {
         case OBJECT_TASK_MUSIC_OVERRIDE_SUBMARINE:
-            if (gGameSession->location.loc.stage == GAME_STAGE_DRYFIELD_NIGHT) {
+            if (gGameSession->location.stage == GAME_STAGE_DRYFIELD_NIGHT) {
                 gStageCountdownMusicEntry = OBJECT_TASK_DRYFIELD_NIGHT_MUSIC_ENTRY;
             } else {
                 gGameSession->flowFlags = (GAME_SESSION_FLOW_SKIP_ENDING_MUSIC | GAME_SESSION_FLOW_SKIP_AREA_MUSIC);
@@ -110,9 +110,9 @@ void objectTaskInitializeRoomState(Task* task)
     _objectTaskResetRoomPresentation();
     // Table order decides between a room-specific descriptor and its area default.
     descriptorIndex = 0;
-    locationKeyBase = OBJECT_TASK_ROOM_LOCATION_KEY(gGameSession->location.loc.stage, gGameSession->location.loc.area, 0);
-    roomKey         = locationKeyBase + gGameSession->location.loc.room;
-    stageRoomTable  = _gObjectTaskStageRoomTables[gGameSession->location.loc.stage];
+    locationKeyBase = OBJECT_TASK_ROOM_LOCATION_KEY(gGameSession->location.stage, gGameSession->location.area, 0);
+    roomKey         = locationKeyBase + gGameSession->location.room;
+    stageRoomTable  = _gObjectTaskStageRoomTables[gGameSession->location.stage];
     areaKey         = locationKeyBase;
     descriptor      = stageRoomTable;
     roomTaskHeader  = OBJECT_TASK_ROOM_DESCRIPTOR_HEADER;

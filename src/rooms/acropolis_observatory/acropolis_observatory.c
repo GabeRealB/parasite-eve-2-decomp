@@ -133,7 +133,7 @@ static s32 _acropolisObservatoryHandleRoomAction(Task* unusedTask, s32 messageId
     };
 
     if ((request->actionId == ACROPOLIS_OBSERVATORY_ACTION_START_EVENT) &&
-        (gGameSession->location.loc.room == ACROPOLIS_OBSERVATORY_EVENT_ROOM) &&
+        (gGameSession->location.room == ACROPOLIS_OBSERVATORY_EVENT_ROOM) &&
         (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_OBSERVATORY_EVENT_SEEN) == ACROPOLIS_OBSERVATORY_EVENT_UNSEEN)) {
         gameFlagSetNibble(GAME_FLAG_ACROPOLIS_OBSERVATORY_EVENT_SEEN, ACROPOLIS_OBSERVATORY_EVENT_SEEN);
         taskSpawnFromTable(&gAcropolisObservatoryScriptedBattleTaskDesc, 0, 0, 0);
@@ -156,7 +156,7 @@ static void _acropolisObservatoryInitializeRoomTask(Task* task)
 
     task->msgTable = _gAcropolisObservatoryRoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
-    if ((gGameSession->location.loc.room == ACROPOLIS_OBSERVATORY_ENCOUNTER_ROOM) &&
+    if ((gGameSession->location.room == ACROPOLIS_OBSERVATORY_ENCOUNTER_ROOM) &&
         (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_OBSERVATORY_EVENT_SEEN) == ACROPOLIS_OBSERVATORY_EVENT_UNSEEN)) {
         gSceneCombatState.actor03700Wave = ACROPOLIS_OBSERVATORY_WAVES_ACTIVATED;
     }
@@ -177,11 +177,11 @@ static void _acropolisObservatoryStartArrivalScene(Task* unusedTask)
         ACROPOLIS_OBSERVATORY_PROMENADE_MOVIE_TASK      = 1,
     };
 
-    if ((_gAcropolisObservatoryArrivalSceneStarted == 0) && (gGameSession->location.loc.warp == ACROPOLIS_OBSERVATORY_PROMENADE_MOVIE_ARRIVAL)) {
+    if ((_gAcropolisObservatoryArrivalSceneStarted == 0) && (gGameSession->location.warp == ACROPOLIS_OBSERVATORY_PROMENADE_MOVIE_ARRIVAL)) {
         _gAcropolisObservatoryArrivalSceneStarted = 1;
         taskSpawnFromTable(gAcropolisObservatoryArrivalTaskDescs, ACROPOLIS_OBSERVATORY_PROMENADE_MOVIE_TASK, 0, 0);
     }
-    if ((_gAcropolisObservatoryArrivalSceneStarted == 0) && (gGameSession->location.loc.warp == ACROPOLIS_OBSERVATORY_FORKED_ROAD_MOVIE_ARRIVAL)) {
+    if ((_gAcropolisObservatoryArrivalSceneStarted == 0) && (gGameSession->location.warp == ACROPOLIS_OBSERVATORY_FORKED_ROAD_MOVIE_ARRIVAL)) {
         _gAcropolisObservatoryArrivalSceneStarted = 1;
         taskSpawnFromTable(gAcropolisObservatoryArrivalTaskDescs, ACROPOLIS_OBSERVATORY_FORKED_ROAD_MOVIE_TASK, 0, 0);
     }

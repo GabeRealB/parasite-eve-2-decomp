@@ -2679,8 +2679,8 @@ static inline void _dryfieldNightSaloonGRSelectJukeboxView(void)
     u8          savedView;
 
     liveSave                                     = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
-    savedView                                    = liveSave->state.location.loc.view;
-    liveSave->state.location.loc.view            = DRYFIELD_NIGHT_SALOON_G_R_JUKEBOX_VIEW;
+    savedView                                    = liveSave->state.location.view;
+    liveSave->state.location.view                = DRYFIELD_NIGHT_SALOON_G_R_JUKEBOX_VIEW;
     _gDryfieldNightSaloonGRJukeboxSavedView.view = savedView;
 }
 
@@ -2730,11 +2730,11 @@ static void _dryfieldNightSaloonGRJukeboxSceneTask(Task* task)
             return;
         case DRYFIELD_NIGHT_SALOON_G_R_JUKEBOX_RESTORE:
             // Return to the preceding room view before releasing scripted control.
-            gGameSession->eventState                                   = 0;
-            gGameSession->hideHud                                      = 0;
-            gDirectionInteractionRearmUpdates                          = DRYFIELD_NIGHT_SALOON_G_R_INTERACTION_REARM_UPDATES;
-            gSceneCombatState.actorControl                             = SCENE_COMBAT_ACTORS_RUNNING;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = _gDryfieldNightSaloonGRJukeboxSavedView.view;
+            gGameSession->eventState                               = 0;
+            gGameSession->hideHud                                  = 0;
+            gDirectionInteractionRearmUpdates                      = DRYFIELD_NIGHT_SALOON_G_R_INTERACTION_REARM_UPDATES;
+            gSceneCombatState.actorControl                         = SCENE_COMBAT_ACTORS_RUNNING;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = _gDryfieldNightSaloonGRJukeboxSavedView.view;
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
             playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO);
             break;
@@ -2897,8 +2897,8 @@ static inline void _dryfieldNightSaloonGRStartEncounterActors(void)
     enum { DRYFIELD_NIGHT_SALOON_G_R_COMMAND_START_ENCOUNTER = 1 };
     ActorCommand startCommand;
 
-    startCommand.context.loc.stage = gGameSession->location.loc.stage;
-    startCommand.context.loc.area  = gGameSession->location.loc.area;
+    startCommand.context.loc.stage = gGameSession->location.stage;
+    startCommand.context.loc.area  = gGameSession->location.area;
     startCommand.command           = DRYFIELD_NIGHT_SALOON_G_R_COMMAND_START_ENCOUNTER;
     TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &startCommand, ACTOR_COMMAND_MESSAGE_APPLY);
 }
@@ -2927,7 +2927,7 @@ static s32 _dryfieldNightSaloonGRRoomActionMessage(Task* task, s32 messageId, co
         evsStartScriptWithSkip(_gDryfieldNightSaloonGREntrySceneScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, _gDryfieldNightSaloonGREntrySceneSkipScript);
         gameFlagSetNibble(GAME_FLAG_NIGHT_SALOON_CUTSCENE_SEEN, 1);
     }
-    roomVariant = gGameSession->location.loc.variant;
+    roomVariant = gGameSession->location.variant;
     if (roomVariant == DRYFIELD_NIGHT_SALOON_G_R_ENCOUNTER_VARIANT && gameFlagGetNibble(GAME_FLAG_NIGHT_SALOON_ENCOUNTER_DONE) == 0) {
         if (request->actionId == DRYFIELD_NIGHT_SALOON_G_R_ACTION_RELEASE_BARRIER) {
             worldCollisionUnlinkTrigger(WORLD_COLLISION_TRIGGER_LIST_ACTION, &_gDryfieldNightSaloonGRActionTriggers[DRYFIELD_NIGHT_SALOON_G_R_ENCOUNTER_BARRIER_TRIGGER]);
@@ -2952,8 +2952,8 @@ static inline void _dryfieldNightSaloonGRHideEncounterActors(void)
 
     ActorCommand hideCommand;
 
-    hideCommand.context.loc.stage = gGameSession->location.loc.stage;
-    hideCommand.context.loc.area  = gGameSession->location.loc.area;
+    hideCommand.context.loc.stage = gGameSession->location.stage;
+    hideCommand.context.loc.area  = gGameSession->location.area;
     hideCommand.command           = DRYFIELD_NIGHT_SALOON_G_R_COMMAND_HIDE_ENCOUNTER_ACTORS;
     TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &hideCommand, ACTOR_COMMAND_MESSAGE_APPLY);
 }
@@ -2969,7 +2969,7 @@ static void _dryfieldNightSaloonGRInitializeRoom(Task* task)
 
     task->msgTable = _gDryfieldNightSaloonGRRoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
-    if (gGameSession->location.loc.variant == DRYFIELD_NIGHT_SALOON_G_R_ENCOUNTER_VARIANT && gameFlagGetNibble(GAME_FLAG_NIGHT_SALOON_ENCOUNTER_DONE) == 0) {
+    if (gGameSession->location.variant == DRYFIELD_NIGHT_SALOON_G_R_ENCOUNTER_VARIANT && gameFlagGetNibble(GAME_FLAG_NIGHT_SALOON_ENCOUNTER_DONE) == 0) {
         _dryfieldNightSaloonGRHideEncounterActors();
     }
     task->state++;
@@ -2995,8 +2995,8 @@ void dryfieldNightSaloonGRRoomTask(Task* task)
 /// check or area reload occurs. The normal and skipped cutscene paths select 2.
 static void _dryfieldNightSaloonGRSetRoom(u8 roomId)
 {
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = roomId;
-    gGameSession->location.loc.room                            = roomId;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.room = roomId;
+    gGameSession->location.room                            = roomId;
 }
 
 #include "../../shared/jukebox_row.inc.c"
@@ -3180,7 +3180,7 @@ void dryfieldNightSaloonGRDrawGlowsTask(Task* task)
     s32       pointIndex;
 
     coord    = task->extra.coordBody->coord;
-    viewMask = 1 << gGameSession->location.loc.view;
+    viewMask = 1 << gGameSession->location.view;
     actorRenderComposeCoord(coord);
     // The first eleven flare centres are world positions.
     for (pointIndex = 0; pointIndex < 6; pointIndex++) {

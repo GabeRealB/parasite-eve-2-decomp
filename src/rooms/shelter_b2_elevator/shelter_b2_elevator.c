@@ -575,7 +575,7 @@ static void _shelterB2ElevatorDoorLeafTask(Task* task)
             // Opposite side signs retract the two leaves from the same shut Z.
             leafWork = task->work;
             _shelterB2ElevatorSlideDoorLeaf(task, leafWork, modelCoord);
-            if (gGameSession->location.loc.view == SHELTER_B2_ELEVATOR_DOORWAY_VIEW) {
+            if (gGameSession->location.view == SHELTER_B2_ELEVATOR_DOORWAY_VIEW) {
                 model->flags = 0;
             } else {
                 model->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
@@ -616,14 +616,14 @@ static inline void _shelterB2ElevatorRequestExitReload(void)
 
     sndEvtRequestScriptStop(SOUND_BANK_TYPE_ALL_NON_AMBIENT, SOUND_SCRIPT_STOP_NO_FADE);
     transitionRequest.queryOnly = ROOM_EVENT_EXECUTE;
-    transitionRequest.areaId    = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area;
-    transitionRequest.warp      = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp;
-    transitionRequest.room      = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room;
+    transitionRequest.areaId    = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.area;
+    transitionRequest.warp      = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp;
+    transitionRequest.room      = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.room;
     resolvedDestination         = transitionRequest;
     mapShelterRoomVariantResolve(&transitionRequest, &resolvedDestination);
-    gDisplayState.spriteVariant                                = SHELTER_B2_ELEVATOR_EXIT_SPRITE_VARIANT;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = resolvedDestination.warp;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = resolvedDestination.room;
+    gDisplayState.spriteVariant                            = SHELTER_B2_ELEVATOR_EXIT_SPRITE_VARIANT;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp = resolvedDestination.warp;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.room = resolvedDestination.room;
     taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
 }
 
@@ -668,16 +668,16 @@ static void _shelterB2ElevatorExitTask(Task* task)
         case SHELTER_B2_ELEVATOR_EXIT_SELECT_FLOOR:
             switch (capGetVariantKey()) {
                 case SHELTER_B2_ELEVATOR_CAP_DESTINATION_B1:
-                    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = GAME_AREA_SHELTER_B1_ELEVATOR_HALL;
-                    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = SHELTER_B2_ELEVATOR_B1_ARRIVAL_WARP;
+                    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.area = GAME_AREA_SHELTER_B1_ELEVATOR_HALL;
+                    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp = SHELTER_B2_ELEVATOR_B1_ARRIVAL_WARP;
                     break;
                 case SHELTER_B2_ELEVATOR_CAP_DESTINATION_B2:
-                    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = GAME_AREA_SHELTER_B2_ELEVATOR_HALL;
-                    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = SHELTER_B2_ELEVATOR_B2_ARRIVAL_WARP;
+                    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.area = GAME_AREA_SHELTER_B2_ELEVATOR_HALL;
+                    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp = SHELTER_B2_ELEVATOR_B2_ARRIVAL_WARP;
                     break;
                 case SHELTER_B2_ELEVATOR_CAP_DESTINATION_B3:
-                    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = GAME_AREA_SHELTER_B3_ELEVATOR_HALL;
-                    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = SHELTER_B2_ELEVATOR_B3_ARRIVAL_WARP;
+                    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.area = GAME_AREA_SHELTER_B3_ELEVATOR_HALL;
+                    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp = SHELTER_B2_ELEVATOR_B3_ARRIVAL_WARP;
                     break;
             }
             task->state++;

@@ -414,32 +414,32 @@ void attachmentDispatchTargetArea(s32 releaseEffects, HudState* hud)
 /// unused on the item path. Arguments repeat and must not alias. Captures the
 /// live player/session/save, training table and enclosing target constants.
 /// Changes no game state; invoke as a standalone block inside braces.
-#define ATTACHMENT_RESOLVE_TARGET_LEVEL(abilityIndex, level, player, usesTrainingLevels, learnedLevels)                                                                               \
-    {                                                                                                                                                                                 \
-        if ((abilityIndex) >= ATTACHMENT_SPELL_COUNT) {                                                                                                                               \
-            (level) = ATTACHMENT_TARGET_MIN_LEVEL;                                                                                                                                    \
-        } else {                                                                                                                                                                      \
-            (player) = &gPlayerStatus;                                                                                                                                                \
-            if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(GAME_STAGE_ACROPOLIS, GAME_AREA_MIST_SHOOTING_GALLERY, 0, 0)) { \
-                (usesTrainingLevels) = 0;                                                                                                                                             \
-            } else {                                                                                                                                                                  \
-                (usesTrainingLevels) = (player)->resourceVariant == ATTACHMENT_TARGET_TRAINING_RESOURCE_VARIANT;                                                                      \
-            }                                                                                                                                                                         \
-            if ((usesTrainingLevels) == 0) {                                                                                                                                          \
-                (learnedLevels) = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.attachLevels;                                                                                              \
-            } else {                                                                                                                                                                  \
-                (learnedLevels) = gAttachmentTrainingLevels;                                                                                                                          \
-            }                                                                                                                                                                         \
-            (level) = (learnedLevels)[(abilityIndex)];                                                                                                                                \
-            if ((level) == 0) {                                                                                                                                                       \
-                (level) = ATTACHMENT_TARGET_MIN_LEVEL;                                                                                                                                \
-            }                                                                                                                                                                         \
-            if ((player)->statusFlags & PLAYER_STATUS_BERSERKER) {                                                                                                                    \
-                if ((level) < ATTACHMENT_LEVEL_COUNT) {                                                                                                                               \
-                    (level)++;                                                                                                                                                        \
-                }                                                                                                                                                                     \
-            }                                                                                                                                                                         \
-        }                                                                                                                                                                             \
+#define ATTACHMENT_RESOLVE_TARGET_LEVEL(abilityIndex, level, player, usesTrainingLevels, learnedLevels)                                                                           \
+    {                                                                                                                                                                             \
+        if ((abilityIndex) >= ATTACHMENT_SPELL_COUNT) {                                                                                                                           \
+            (level) = ATTACHMENT_TARGET_MIN_LEVEL;                                                                                                                                \
+        } else {                                                                                                                                                                  \
+            (player) = &gPlayerStatus;                                                                                                                                            \
+            if ((GAME_LOCATION_WORD(gGameSession->location) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(GAME_STAGE_ACROPOLIS, GAME_AREA_MIST_SHOOTING_GALLERY, 0, 0)) { \
+                (usesTrainingLevels) = 0;                                                                                                                                         \
+            } else {                                                                                                                                                              \
+                (usesTrainingLevels) = (player)->resourceVariant == ATTACHMENT_TARGET_TRAINING_RESOURCE_VARIANT;                                                                  \
+            }                                                                                                                                                                     \
+            if ((usesTrainingLevels) == 0) {                                                                                                                                      \
+                (learnedLevels) = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.attachLevels;                                                                                          \
+            } else {                                                                                                                                                              \
+                (learnedLevels) = gAttachmentTrainingLevels;                                                                                                                      \
+            }                                                                                                                                                                     \
+            (level) = (learnedLevels)[(abilityIndex)];                                                                                                                            \
+            if ((level) == 0) {                                                                                                                                                   \
+                (level) = ATTACHMENT_TARGET_MIN_LEVEL;                                                                                                                            \
+            }                                                                                                                                                                     \
+            if ((player)->statusFlags & PLAYER_STATUS_BERSERKER) {                                                                                                                \
+                if ((level) < ATTACHMENT_LEVEL_COUNT) {                                                                                                                           \
+                    (level)++;                                                                                                                                                    \
+                }                                                                                                                                                                 \
+            }                                                                                                                                                                     \
+        }                                                                                                                                                                         \
     }
     ATTACHMENT_RESOLVE_TARGET_LEVEL(abilityIndex, level, (player), (usesTrainingLevels), (learnedLevels));
     // Reset cast totals and convert the selected region to whole world units.
@@ -684,7 +684,7 @@ static __inline__ s32 _attachmentUsesTrainingLevels(const PlayerStatus* player)
     enum { ATTACHMENT_TRAINING_RESOURCE_VARIANT = 4 };
     s32 usesTrainingLevels;
 
-    if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(GAME_STAGE_ACROPOLIS, GAME_AREA_MIST_SHOOTING_GALLERY, 0, 0)) {
+    if ((GAME_LOCATION_WORD(gGameSession->location) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(GAME_STAGE_ACROPOLIS, GAME_AREA_MIST_SHOOTING_GALLERY, 0, 0)) {
         usesTrainingLevels = 0;
     } else {
         usesTrainingLevels = player->resourceVariant == ATTACHMENT_TRAINING_RESOURCE_VARIANT;
@@ -1795,7 +1795,7 @@ void hudUpdateAndDraw(HudState* hud)
     s32               queuedMenuMode;
 
     viewChangePending = 0;
-    stageAreaKey      = GAME_LOCATION_WORD(gGameSession->location.loc);
+    stageAreaKey      = GAME_LOCATION_WORD(gGameSession->location);
     stageAreaKey     &= GAME_LOCATION_STAGE_AREA_MASK;
     player            = &gPlayerStatus;
     display           = &gDisplayState;
@@ -1818,7 +1818,7 @@ void hudUpdateAndDraw(HudState* hud)
     // A mismatched view gate holds new menus and battle transition requests.
     viewGateTask = gameGetTaskSlot(GAME_TASK_SLOT_VIEW_GATE);
     if (viewGateTask != NULL) {
-        if (viewGateTask->spawnArg1.value != gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view) {
+        if (viewGateTask->spawnArg1.value != gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view) {
             viewChangePending = 1;
         }
     }
@@ -1843,7 +1843,7 @@ void hudUpdateAndDraw(HudState* hud)
                     s32           isGalleryTraining;
 
                     galleryPlayer = &gPlayerStatus;
-                    if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(GAME_STAGE_ACROPOLIS, GAME_AREA_MIST_SHOOTING_GALLERY, 0, 0)) {
+                    if ((GAME_LOCATION_WORD(gGameSession->location) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(GAME_STAGE_ACROPOLIS, GAME_AREA_MIST_SHOOTING_GALLERY, 0, 0)) {
                         isGalleryTraining = 0;
                     } else {
                         isGalleryTraining = galleryPlayer->resourceVariant == HUD_GALLERY_TRAINING_RESOURCE_VARIANT;
@@ -1876,7 +1876,7 @@ void hudUpdateAndDraw(HudState* hud)
                 s32 currentStageAreaKey;
 
                 if (viewChangePending == 0) {
-                    currentStageAreaKey  = GAME_LOCATION_WORD(gGameSession->location.loc);
+                    currentStageAreaKey  = GAME_LOCATION_WORD(gGameSession->location);
                     currentStageAreaKey &= GAME_LOCATION_STAGE_AREA_MASK;
                     hud->field_8         = 0;
                     if (currentStageAreaKey != GAME_LOCATION_KEY(GAME_STAGE_ACROPOLIS, GAME_AREA_MIST_SHOOTING_GALLERY, 0, 0)) {
@@ -1961,7 +1961,7 @@ void hudUpdateAndDraw(HudState* hud)
                 AttachmentState* attachment;
 
                 galleryPlayer = &gPlayerStatus;
-                if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(GAME_STAGE_ACROPOLIS, GAME_AREA_MIST_SHOOTING_GALLERY, 0, 0)) {
+                if ((GAME_LOCATION_WORD(gGameSession->location) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(GAME_STAGE_ACROPOLIS, GAME_AREA_MIST_SHOOTING_GALLERY, 0, 0)) {
                     isGalleryTraining = 0;
                 } else {
                     isGalleryTraining = galleryPlayer->resourceVariant == HUD_GALLERY_TRAINING_RESOURCE_VARIANT;

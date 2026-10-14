@@ -6656,7 +6656,7 @@ static void _actor403200Tick(Enemy* enemy, Task* task)
         scratch->view = _gActor403200GluttonViewSelectors[work->viewSelector](task, work->phase);
         if (((viewGetMappedIndex() & ACTOR_403200_VIEW_INDEX_MASK) != scratch->view) &&
             (task->spawnArg1.value >> 16) == 0) {
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = scratch->view;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = scratch->view;
         }
     }
 

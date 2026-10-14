@@ -100,7 +100,7 @@ static void _sceneBattleResultTask(Task* task)
     // Detach obsolete targeting nodes before creating the result panels.
     if (task->state == SCENE_BATTLE_RESULT_INITIALIZE) {
         hud           = task->spawnArg2.pointer;
-        stageAreaKey  = GAME_LOCATION_WORD(gGameSession->location.loc);
+        stageAreaKey  = GAME_LOCATION_WORD(gGameSession->location);
         stageAreaKey &= GAME_LOCATION_STAGE_AREA_MASK;
         stageEnsureHeapTaskPrimitiveBuffer();
         for (actorSlotIndex = 0; actorSlotIndex < PLAYER_ACTOR_TASK_COUNT; actorSlotIndex++) {
@@ -120,11 +120,11 @@ static void _sceneBattleResultTask(Task* task)
                 // The battle is over: return the HUD to its out-of-battle state.
                 hud->battleStep = HUD_BATTLE_STEP_START;
                 hud->inBattle   = 0;
-                areaSetSavedPoseRestoreEnabled(1, &gGameSession->location.loc);
+                areaSetSavedPoseRestoreEnabled(1, &gGameSession->location);
                 gGameSession->battleResetPending = 1;
                 if (!((stageAreaKey == GAME_LOCATION_KEY(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_FOREST_ZONE, 0, 0) ||
                        stageAreaKey == GAME_LOCATION_KEY(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_WOODLAND_PATH, 0, 0)) &&
-                      gGameSession->location.loc.variant - 1 < 3U)) {
+                      gGameSession->location.variant - 1 < 3U)) {
                     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.battlesWon < (u32)SCENE_BATTLE_RESULT_COUNTER_MAX) {
                         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.battlesWon++;
                     }

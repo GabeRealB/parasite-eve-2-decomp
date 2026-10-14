@@ -102,7 +102,7 @@ extern RoomLatchedEvent gRoomEventLatched;
 /// Reset once per frame to the current word-aligned 0xC000-byte half, then
 /// advanced by both surface lists (at most 0x1800 bytes together). The buffer
 /// stays reserved until the GPU finishes the frame's ordering table.
-static u8* _gShelterB2SepticTankWaterPacketCursor;
+u8* _gShelterB2SepticTankWaterPacketCursor;
 
 static void _shelterB2SepticTankWaterTask(Task* task);
 
@@ -1558,8 +1558,8 @@ static void _shelterB2SepticTankMonitorEncounterIntro(Task* task)
     };
     s32 variant;
 
-    if (gGameSession->location.loc.view == SHELTER_B2_SEPTIC_TANK_INTRO_VIEW) {
-        variant = gGameSession->location.loc.variant;
+    if (gGameSession->location.view == SHELTER_B2_SEPTIC_TANK_INTRO_VIEW) {
+        variant = gGameSession->location.variant;
         if (variant == SHELTER_B2_SEPTIC_TANK_INTRO_VARIANT && gAttachmentState.mode != ATTACHMENT_MODE_WHEEL && gDisplayState.pendingMode == DISPLAY_MODE_NONE && _gShelterB2SepticTankEncounterSceneStage == SHELTER_B2_SEPTIC_TANK_INTRO_STAGE_PENDING) {
             if (gameFlagGetNibble(GAME_FLAG_0EB) == SHELTER_B2_SEPTIC_TANK_ENCOUNTER_PHASE_PENDING) {
                 evsStartScript(_gShelterB2SepticTankEncounterIntroScript, EVENT_SCRIPT_HUD_HIDE_RESTORE);

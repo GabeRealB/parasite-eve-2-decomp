@@ -53,10 +53,10 @@ void dryfieldGasStationArrivalMovieTask(Task* task)
         DRYFIELD_GAS_STATION_MOVIE_RELOAD_SPRITES   = 1
     };
 
-    u8          streamArgs[4];
-    GameLoc     movieLocation;
-    CdCmdQueue* queue;
-    s16         movieSlot;
+    u8              streamArgs[4];
+    GameLocationKey movieLocation;
+    CdCmdQueue*     queue;
+    s16             movieSlot;
 
     queue = &gCdCmdQueue;
     switch (task->state) {
@@ -67,10 +67,10 @@ void dryfieldGasStationArrivalMovieTask(Task* task)
             break;
         // PLAY_STREAM consumes the slot byte; the remaining argument bytes are uninterpreted.
         case DRYFIELD_GAS_STATION_MOVIE_START:
-            movieLocation          = gGameSession->location;
-            movieLocation.loc.view = DRYFIELD_GAS_STATION_MOVIE_RESOURCE_VIEW;
-            movieSlot              = streamFindMovieSlot(&movieLocation.loc, 0, 0);
-            streamArgs[0]          = movieSlot;
+            movieLocation      = gGameSession->location;
+            movieLocation.view = DRYFIELD_GAS_STATION_MOVIE_RESOURCE_VIEW;
+            movieSlot          = streamFindMovieSlot(&movieLocation, 0, 0);
+            streamArgs[0]      = movieSlot;
             cdCmdEnqueue(CD_COMMAND_PLAY_STREAM, 0, streamArgs);
             task->state = task->state + 1;
             break;

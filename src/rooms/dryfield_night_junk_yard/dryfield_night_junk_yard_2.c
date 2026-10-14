@@ -1240,7 +1240,7 @@ void dryfieldNightJunkYardDrawGlowsTask(Task* task)
     }
     gRoomEffectState->roomEffectMode = ROOM_EFFECT_VIEW_ENABLED;
     // The grey capsule uses the first two points; flares depend on the active view.
-    switch (gGameSession->location.loc.view) {
+    switch (gGameSession->location.view) {
         case 2:
         case 8: {
             const SVECTOR* lightPoints = _gDryfieldNightJunkYardGlowWorldPoints;

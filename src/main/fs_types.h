@@ -213,19 +213,6 @@ enum {
     FILE_SYSTEM_IMAGE_COLUMN_ROWS_GIVEN = 0x8000, // Terminator `y` flag: the low 15 bits are the row count
 };
 
-/// Stage and area of the location a boot load is entering.
-///
-/// Starting a boot load copies these two bytes from the destination's
-/// `GameLocationKey`, at the offsets they have there; together they select the
-/// caption and the image file its loading screen shows. The values are that
-/// key's: a `GAME_STAGE_*` and a `GAME_AREA_*` of that stage.
-typedef struct {
-    u8 unknown_0[2]; // Never read or written; a `GameLocationKey` has its view and room here
-    u8 area;         // 1-based area within the stage
-    u8 stage;        // Stage ID (1..5)
-} BootLoadDestination;
-STATIC_ASSERT_SIZEOF(BootLoadDestination, 0x4);
-
 /// Mounted CDF base-sector slots, indexed by stage ID 0..5.
 ///
 /// Slot zero is the global STAGE0 library; slots 1..5 serve stage folders.

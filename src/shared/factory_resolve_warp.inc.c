@@ -20,7 +20,7 @@ s32 roomVariantFactoryMsg(Task* unusedTask, s32 unusedMessageId, const RoomEvent
     // Preserve the complete request before execution-only destination selection.
     *reply = *request;
     if (request->areaId == GAME_AREA_DRYFIELD_DRIVEWAY) {
-        stageId = gGameSession->location.loc.stage;
+        stageId = gGameSession->location.stage;
         if (stageId == GAME_STAGE_DRYFIELD) {
             if (request->queryOnly == ROOM_EVENT_EXECUTE) {
                 if (gameFlagGetNibble(GAME_FLAG_DRIVEWAY_PROGRESS) >= FACTORY_DRIVEWAY_PROGRESS_OPEN) {

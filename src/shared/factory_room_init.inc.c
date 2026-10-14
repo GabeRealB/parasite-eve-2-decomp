@@ -22,19 +22,19 @@ static void _factoryRoomInit(Task* task)
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     slot       = (gFactoryPanelSlot = memCalloc(sizeof(*slot), 0));
     task->work = slot;
-    if (gGameSession->location.loc.stage == GAME_STAGE_DRYFIELD) {
+    if (gGameSession->location.stage == GAME_STAGE_DRYFIELD) {
         gFactorySpawnTable = gFactoryDaySpawnTable;
     } else {
         gFactorySpawnTable = gDryfieldNightFactoryTaskDescs;
     }
-    if (gGameSession->location.loc.stage == GAME_STAGE_DRYFIELD) {
+    if (gGameSession->location.stage == GAME_STAGE_DRYFIELD) {
         gFactoryPanelDesc = &gFactoryDayPanelDesc;
     } else {
         gFactoryPanelDesc = &gDryfieldNightFactoryPanelTaskDesc;
     }
     taskSpawnFromTable(gFactorySpawnTable, FACTORY_ROOM_LIFT_SPAWN_INDEX, 0, gFactoryPanelSlot);
     taskSpawnFromTable(gFactorySpawnTable, FACTORY_ROOM_BARRIER_SPAWN_INDEX, 0, 0);
-    if (gGameSession->location.loc.stage == GAME_STAGE_DRYFIELD) {
+    if (gGameSession->location.stage == GAME_STAGE_DRYFIELD) {
         dryfieldFactorySetView9SpriteVisible(gameFlagGetNibble(GAME_FLAG_FACTORY_POWER_ON) & 0xFF);
     } else {
         dryfieldNightFactorySetView9SpriteVisible(gameFlagGetNibble(GAME_FLAG_FACTORY_POWER_ON) & 0xFF);

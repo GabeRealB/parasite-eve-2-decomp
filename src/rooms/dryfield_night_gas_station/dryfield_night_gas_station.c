@@ -3293,7 +3293,7 @@ static s32 _dryfieldNightGasStationCommandMsg(Task* unusedTask, s32 unusedMessag
         }
         capStartSequenceSlot(GASOLINE_SEQUENCE, 1, gasolineCollected);
     }
-    if ((commandId == EXAMINE_COMMAND) && (gGameSession->location.loc.room == EXAMINE_ROOM)) {
+    if ((commandId == EXAMINE_COMMAND) && (gGameSession->location.room == EXAMINE_ROOM)) {
         if (inventoryHasCollectedBit(INVENTORY_COLLECTION_ID_SUV_KEY) != 0) {
             if (gameFlagGetNibble(GAME_FLAG_NIGHT_GAS_STATION_EXAMINE_STATE) == EXAMINE_INITIAL) {
                 gameFlagSetNibble(GAME_FLAG_NIGHT_GAS_STATION_EXAMINE_STATE, EXAMINE_FIRST_KEY_VISIT);
@@ -3665,7 +3665,7 @@ static void _dryfieldNightGasStationSetCutsceneFlash(s32 flashIndex)
     GfxCoord* anchorCoord;
     SVECTOR   spawnOffset;
 
-    anchorEnemy = sceneFindEnemyByPlaceKey(gGameSession->location.loc.area | ((gGameSession->location.loc.stage << ENEMY_PLACE_STAGE_SHIFT) | (DRYFIELD_NIGHT_GAS_STATION_FLASH_ANCHOR_INDEX << ENEMY_PLACE_INDEX_SHIFT)));
+    anchorEnemy = sceneFindEnemyByPlaceKey(gGameSession->location.area | ((gGameSession->location.stage << ENEMY_PLACE_STAGE_SHIFT) | (DRYFIELD_NIGHT_GAS_STATION_FLASH_ANCHOR_INDEX << ENEMY_PLACE_INDEX_SHIFT)));
     if (anchorEnemy != NULL) {
         anchorCoord = anchorEnemy->task->extra.tmd->coords;
         switch (flashIndex) {
@@ -4028,7 +4028,7 @@ static void _dryfieldNightGasStationSetCutsceneSpritesHidden(s32 hiddenArgumentW
     SpriteView*      views;
     s32              hidden;
 
-    location = &gGameSession->location.loc;
+    location = &gGameSession->location;
     views    = gSpriteAreaTables[location->stage - 1]->areaViews[location->area - 1];
     hidden   = hiddenArgumentWord & 0xFF;
 
@@ -4055,7 +4055,7 @@ static void _dryfieldNightGasStationRestoreBalconySpriteVisibility(void)
            DRYFIELD_NIGHT_GAS_STATION_BALCONY_FIRST_VIEW_SLOT  = 10,
            DRYFIELD_NIGHT_GAS_STATION_BALCONY_SECOND_VIEW_SLOT = 19,
            DRYFIELD_NIGHT_GAS_STATION_BALCONY_BATCH            = 6 };
-    GameLocationKey* location     = &gGameSession->location.loc;
+    GameLocationKey* location     = &gGameSession->location;
     SpriteView*      views        = gSpriteAreaTables[location->stage - 1][0].areaViews[location->area - 1];
     s32              sectionState = gameFlagGetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SECTION_8_STATE);
 
@@ -4104,7 +4104,7 @@ static void _dryfieldNightGasStationSetFlickerSpritesVisible(s16 visible)
         (batchCursor)[DRYFIELD_NIGHT_GAS_STATION_FLICKER_FIRST_BATCH + 2].hidden = (hiddenValue);                                                       \
     } while (0)
 
-    GameLocationKey* location = &gGameSession->location.loc;
+    GameLocationKey* location = &gGameSession->location;
     SpriteView*      views    = gSpriteAreaTables[location->stage - 1]->areaViews[location->area - 1];
     SpriteBatch*     batches;
 

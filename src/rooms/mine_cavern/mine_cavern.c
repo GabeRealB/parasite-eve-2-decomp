@@ -303,7 +303,7 @@ s32 mineCavernResolveTransition(Task* unusedTask, s32 unusedMessageId, RoomEvent
                 return MINE_CAVERN_TRANSITION_BLOCKED;
             }
             gameFlagSetNibbleIfPresent(request->flagId, MINE_CAVERN_BLOCKED_DEPARTURE_FLAG);
-            if (gSceneCombatState.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_ENGAGED && gGameSession->location.loc.variant == gSceneCombatState.signals.bytes.battlePhase) {
+            if (gSceneCombatState.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_ENGAGED && gGameSession->location.variant == gSceneCombatState.signals.bytes.battlePhase) {
                 capRunCommandWithTransition(MINE_CAVERN_CAP_PASSAGE_BATTLE_BLOCKED);
                 return MINE_CAVERN_TRANSITION_BLOCKED;
             }
@@ -320,7 +320,7 @@ s32 mineCavernResolveTransition(Task* unusedTask, s32 unusedMessageId, RoomEvent
     }
 
     if (request->areaId == GAME_AREA_MINE_GORGE) {
-        if (gGameSession->location.loc.variant == MINE_CAVERN_VARIANT_INITIAL || gGameSession->location.loc.variant == MINE_CAVERN_VARIANT_FINAL_EVENT) {
+        if (gGameSession->location.variant == MINE_CAVERN_VARIANT_INITIAL || gGameSession->location.variant == MINE_CAVERN_VARIANT_FINAL_EVENT) {
             if (gSceneCombatState.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_ENGAGED) {
                 if (request->queryOnly == ROOM_EVENT_EXECUTE) {
                     capRunCommandWithTransition(MINE_CAVERN_CAP_GORGE_BATTLE_BLOCKED);
@@ -367,7 +367,7 @@ s32 mineCavernHandleCommandMessage(Task* unusedTask, s32 unusedMessageId, s32 co
         if (gameFlagGetNibble(GAME_FLAG_B6_NURSERY_PROGRESS) != 0) {
             return 0;
         }
-        if (gSceneCombatState.signals.bytes.battlePhase == commandIndex && (gGameSession->location.loc.variant == commandIndex || gGameSession->location.loc.variant == MINE_CAVERN_VARIANT_FINAL_EVENT)) {
+        if (gSceneCombatState.signals.bytes.battlePhase == commandIndex && (gGameSession->location.variant == commandIndex || gGameSession->location.variant == MINE_CAVERN_VARIANT_FINAL_EVENT)) {
             capRunCommandWithTransition(MINE_CAVERN_CAP_PASSAGE_STATUS_BATTLE);
         } else if (gameFlagGetNibble(GAME_FLAG_MINE_SECRET_PASSAGE_STATE) == MINE_CAVERN_PASSAGE_STATE_OPEN) {
             capRunCommandWithTransition(MINE_CAVERN_CAP_PASSAGE_OPEN);
@@ -380,7 +380,7 @@ s32 mineCavernHandleCommandMessage(Task* unusedTask, s32 unusedMessageId, s32 co
         }
     }
     // Each target's saved destruction bit selects its intact/destroyed caption variant.
-    variant = gGameSession->location.loc.variant;
+    variant = gGameSession->location.variant;
     if (variant == MINE_CAVERN_VARIANT_INITIAL || variant == MINE_CAVERN_VARIANT_FINAL_EVENT) {
         switch (commandIndex) {
             case MINE_CAVERN_CAP_TARGET_0:
@@ -497,7 +497,7 @@ static void _mineCavernInitRoom(Task* task)
     // Publish the controller before any intro script can send room messages.
     task->msgTable = gMineCavernRoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
-    if ((gGameSession->location.loc.variant == MINE_CAVERN_VARIANT_INITIAL) && (gameFlagGetNibble(GAME_FLAG_MINE_CAVERN_INTRO_SEEN) == 0)) {
+    if ((gGameSession->location.variant == MINE_CAVERN_VARIANT_INITIAL) && (gameFlagGetNibble(GAME_FLAG_MINE_CAVERN_INTRO_SEEN) == 0)) {
         _mineCavernStartIntroEvent();
     } else {
         gStageCountdownMusicEntry = MINE_CAVERN_SCENE_MUSIC_DEFAULT_ENTRY;

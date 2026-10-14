@@ -937,7 +937,7 @@ static void _shelterB6CorridorInitRoom(Task* task)
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     _shelterB6CorridorMaskImagePixels();
     D_shelter_b6_corridor_801851B0.field_0 = 2;
-    if (gGameSession->location.loc.variant == SHELTER_B6_CORRIDOR_SCENE_MUSIC_VARIANT) {
+    if (gGameSession->location.variant == SHELTER_B6_CORRIDOR_SCENE_MUSIC_VARIANT) {
         gStageCountdownMusicEntry = SHELTER_B6_CORRIDOR_SCENE_MUSIC_ENTRY;
         gGameSession->flowFlags  |= GAME_SESSION_FLOW_SKIP_ENDING_MUSIC;
         gGameSession->flowFlags  |= GAME_SESSION_FLOW_SKIP_AREA_MUSIC;
@@ -1165,7 +1165,7 @@ void shelterB6CorridorPlayerHitGlowTask(Task* task)
 
 void shelterB6CorridorSetPartDestroyedSprites(u8 partSlot, u8 destroyed)
 {
-    const GameLocationKey* location = &gGameSession->location.loc;
+    const GameLocationKey* location = &gGameSession->location;
     SpriteView*            views    = gSpriteAreaTables[location->stage - 1]->areaViews[location->area - 1];
     SpriteBatch*           batches;
     s32                    slot = partSlot;

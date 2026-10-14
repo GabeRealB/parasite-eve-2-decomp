@@ -34,7 +34,7 @@ static s32 _motelRoom6CutsceneMessage(Task* task, s32 messageId, s32 command, s3
         _gMotelRoom6CutsceneRec.capSlot = MOTEL_ROOM_6_CUTSCENE_CAP_SLOT;
         switch (gameFlagGetNibble(GAME_FLAG_STORY_CHAPTER)) {
             case 0 ... 3:
-                if (gGameSession->location.loc.stage == GAME_STAGE_DRYFIELD) {
+                if (gGameSession->location.stage == GAME_STAGE_DRYFIELD) {
                     followUpCommand                   = MOTEL_ROOM_6_CAP_DAY_FOLLOW_UP;
                     _gMotelRoom6CutsceneRec.capTPageX = MOTEL_ROOM_6_CAP_TPAGE_RIGHT_X;
                     _gMotelRoom6CutsceneRec.capFile   = MOTEL_ROOM_6_FIRST_CAP_FILE;

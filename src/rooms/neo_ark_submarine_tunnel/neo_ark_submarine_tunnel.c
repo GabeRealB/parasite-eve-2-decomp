@@ -366,7 +366,7 @@ static s32 _neoArkSubmarineTunnelHandleRoomAction(Task* unusedTask, s32 unusedMe
 
     // Advance the staged variant-3 story without changing the entry latch.
     actionId = request->actionId;
-    if ((actionId == ACTION_ADVANCE_PROGRESS) && (gameFlagGetNibble(GAME_FLAG_SUBMARINE_TUNNEL_PROGRESS) == actionId) && (gGameSession->location.loc.variant == PROGRESS_VARIANT)) {
+    if ((actionId == ACTION_ADVANCE_PROGRESS) && (gameFlagGetNibble(GAME_FLAG_SUBMARINE_TUNNEL_PROGRESS) == actionId) && (gGameSession->location.variant == PROGRESS_VARIANT)) {
         gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, OBJECTIVE_AFTER_PROGRESS);
         gameFlagSetNibble(GAME_FLAG_SUBMARINE_TUNNEL_PROGRESS, PROGRESS_ADVANCED);
         gameFlagSetNibble(GAME_FLAG_SCENE_MUSIC_OVERRIDE, SCENE_MUSIC_OVERRIDE_ENABLED);
@@ -375,26 +375,26 @@ static s32 _neoArkSubmarineTunnelHandleRoomAction(Task* unusedTask, s32 unusedMe
     }
     // Scenes claim the entry latch before the fallback arrival-control release.
     if ((request->actionId == ACTION_EVENT_OR_WARP_1) && (gameFlagGetNibble(GAME_FLAG_SUBMARINE_TUNNEL_EVENT_SEEN) == 0)) {
-        eventVariant = gGameSession->location.loc.variant;
+        eventVariant = gGameSession->location.variant;
         if (eventVariant == EVENT_VARIANT) {
             evsStartScript(_gNeoArkSubmarineTunnelDiverEncounterScript, EVENT_SCRIPT_HUD_HIDE_RESTORE);
             gNeoArkSubmarineTunnelEntryActionHandled = eventVariant;
         }
     }
     actionId = request->actionId;
-    if ((actionId == ACTION_ENTRY_OR_WARP_2) && (gNeoArkSubmarineTunnelEntryActionHandled == ENTRY_UNHANDLED) && (gGameSession->location.loc.warp == ENTRY_WARP_2) && (gameFlagGetNibble(GAME_FLAG_SUBMARINE_TUNNEL_PROGRESS) == PROGRESS_NOT_STARTED) && (gGameSession->location.loc.variant == actionId)) {
+    if ((actionId == ACTION_ENTRY_OR_WARP_2) && (gNeoArkSubmarineTunnelEntryActionHandled == ENTRY_UNHANDLED) && (gGameSession->location.warp == ENTRY_WARP_2) && (gameFlagGetNibble(GAME_FLAG_SUBMARINE_TUNNEL_PROGRESS) == PROGRESS_NOT_STARTED) && (gGameSession->location.variant == actionId)) {
         gameFlagSetNibble(GAME_FLAG_SUBMARINE_TUNNEL_PROGRESS, PROGRESS_ENTERED);
         evsStartScript(gActor451100SubmarineTunnelEntryScript, EVENT_SCRIPT_HUD_HIDE_RESTORE);
         gNeoArkSubmarineTunnelEntryActionHandled = ENTRY_HANDLED;
     }
     if ((request->actionId == ACTION_EVENT_OR_WARP_1) && (gNeoArkSubmarineTunnelEntryActionHandled == ENTRY_UNHANDLED)) {
-        entryWarp = gGameSession->location.loc.warp;
+        entryWarp = gGameSession->location.warp;
         if (entryWarp == ENTRY_WARP_1) {
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
             gNeoArkSubmarineTunnelEntryActionHandled = entryWarp;
         }
     }
-    if ((request->actionId == ACTION_ENTRY_OR_WARP_2) && (gNeoArkSubmarineTunnelEntryActionHandled == ENTRY_UNHANDLED) && (gGameSession->location.loc.warp == ENTRY_WARP_2)) {
+    if ((request->actionId == ACTION_ENTRY_OR_WARP_2) && (gNeoArkSubmarineTunnelEntryActionHandled == ENTRY_UNHANDLED) && (gGameSession->location.warp == ENTRY_WARP_2)) {
         playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
         gNeoArkSubmarineTunnelEntryActionHandled = ENTRY_HANDLED;
     }
@@ -437,7 +437,7 @@ static s32 _neoArkSubmarineTunnelHandleCapCommand(Task* unusedTask, s32 unusedMe
 
     if (commandIndex < CAP_COMMAND_END) {
         if (commandIndex >= CAP_COMMAND_FIRST) {
-            if (gGameSession->location.loc.variant == CAP_VARIANT) {
+            if (gGameSession->location.variant == CAP_VARIANT) {
                 capSpawnEventIfIdle(commandIndex, CAP_EVENT_NO_FLAGS);
             }
         }

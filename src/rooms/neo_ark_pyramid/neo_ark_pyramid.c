@@ -740,10 +740,10 @@ static inline void _neoArkPyramidRestoreRoomControl(Task* task)
     enum { NEO_ARK_PYRAMID_ROTATION_ROOM_VIEW = 3,
            NEO_ARK_PYRAMID_EVENT_IDLE         = 0 };
 
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = NEO_ARK_PYRAMID_ROTATION_ROOM_VIEW;
-    gGameSession->hideHud                                      = false;
-    gGameSession->eventState                                   = NEO_ARK_PYRAMID_EVENT_IDLE;
-    gSceneCombatState.actorControl                             = SCENE_COMBAT_ACTORS_RUNNING;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = NEO_ARK_PYRAMID_ROTATION_ROOM_VIEW;
+    gGameSession->hideHud                                  = false;
+    gGameSession->eventState                               = NEO_ARK_PYRAMID_EVENT_IDLE;
+    gSceneCombatState.actorControl                         = SCENE_COMBAT_ACTORS_RUNNING;
     playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
     playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO);
     taskKill(task);
@@ -778,10 +778,10 @@ static void _neoArkPyramidRotationPuzzleTask(Task* task)
 
     switch (task->state) {
         case NEO_ARK_PYRAMID_ROTATION_PREPARE:
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = NEO_ARK_PYRAMID_ROTATION_PUZZLE_VIEW;
-            gGameSession->hideHud                                      = 1;
-            gGameSession->eventState                                   = 1;
-            gSceneCombatState.actorControl                             = SCENE_COMBAT_ACTORS_HIDDEN;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = NEO_ARK_PYRAMID_ROTATION_PUZZLE_VIEW;
+            gGameSession->hideHud                                  = 1;
+            gGameSession->eventState                               = 1;
+            gSceneCombatState.actorControl                         = SCENE_COMBAT_ACTORS_HIDDEN;
             task->state++;
             break;
         case NEO_ARK_PYRAMID_ROTATION_PROMPT:
@@ -986,7 +986,7 @@ static void _neoArkPyramidDrawRotationPuzzleState(Task* unusedTask)
 {
     enum { NEO_ARK_PYRAMID_ROTATION_PUZZLE_VIEW = 8 };
 
-    if (gGameSession->location.loc.view == NEO_ARK_PYRAMID_ROTATION_PUZZLE_VIEW) {
+    if (gGameSession->location.view == NEO_ARK_PYRAMID_ROTATION_PUZZLE_VIEW) {
         _neoArkPyramidDrawRotationPuzzleQuad(_gNeoArkPyramidRotationPuzzleAngle);
     }
 }

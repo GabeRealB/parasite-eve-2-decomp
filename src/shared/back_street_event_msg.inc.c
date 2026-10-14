@@ -21,7 +21,7 @@ static s32 _roomVariantResolveBackStreet(Task* task, s32 messageId, const RoomEv
     u8 stageId;
 
     *reply  = *request;
-    stageId = gGameSession->location.loc.stage;
+    stageId = gGameSession->location.stage;
     if (stageId == GAME_STAGE_DRYFIELD && request->areaId == GAME_AREA_DRYFIELD_WAREHOUSE && request->queryOnly == ROOM_EVENT_EXECUTE) {
         if (gameFlagGetNibble(GAME_FLAG_WAREHOUSE_EVENT_SEEN) == 0) {
             reply->room = 1;
@@ -33,7 +33,7 @@ static s32 _roomVariantResolveBackStreet(Task* task, s32 messageId, const RoomEv
         if (request->queryOnly == ROOM_EVENT_EXECUTE) {
             s32 commandIndex = ROOM_VARIANT_BACK_STREET_HOUSE_NIGHT_COMMAND;
 
-            if (gGameSession->location.loc.stage == GAME_STAGE_DRYFIELD) {
+            if (gGameSession->location.stage == GAME_STAGE_DRYFIELD) {
                 commandIndex = ROOM_VARIANT_BACK_STREET_HOUSE_DAY_COMMAND;
             }
             capRunCommandWithTransition(commandIndex);
@@ -42,7 +42,7 @@ static s32 _roomVariantResolveBackStreet(Task* task, s32 messageId, const RoomEv
         return ROOM_VARIANT_BACK_STREET_STAY;
     }
     if (request->queryOnly == ROOM_EVENT_EXECUTE) {
-        if (gGameSession->location.loc.stage == GAME_STAGE_DRYFIELD) {
+        if (gGameSession->location.stage == GAME_STAGE_DRYFIELD) {
             sndEvtRequestScriptStop(SOUND_BACK_STREET_AMBIENCE, ROOM_VARIANT_BACK_STREET_AMBIENCE_FADE);
         }
     }

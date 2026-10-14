@@ -1854,7 +1854,7 @@ void mistShootingGalleryOpenCarryoverModeMenu(void)
 {
     enum { MIST_SHOOTING_GALLERY_CARRYOVER_ENTRY_WARP = 7 };
 
-    if ((gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.clearCount > 0) && (gGameSession->location.loc.warp == MIST_SHOOTING_GALLERY_CARRYOVER_ENTRY_WARP)) {
+    if ((gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.clearCount > 0) && (gGameSession->location.warp == MIST_SHOOTING_GALLERY_CARRYOVER_ENTRY_WARP)) {
         displayQueueModeTask(&_gMistShootingGalleryCarryoverModeSessionDesc, 0, 0, STAGE_ENTRY_RELOAD);
     }
 }
@@ -1890,10 +1890,10 @@ static void _mistShootingGalleryInitRoomTask(Task* task)
     _mistShootingGallerySetStoryBarrierLowered(storyBarrierLowered);
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene == MIST_SHOOTING_GALLERY_DEMO_SCENE) {
         taskSpawnFromTable(gMistShootingGalleryTaskDescs, MIST_SHOOTING_GALLERY_TASK_COURSE_CONTROLLER, 0, 0);
-    } else if (gGameSession->location.loc.warp == MIST_SHOOTING_GALLERY_CARRYOVER_WARP) {
+    } else if (gGameSession->location.warp == MIST_SHOOTING_GALLERY_CARRYOVER_WARP) {
         taskSpawnFromTable(gActor215100GalleryTaskDescs, ACTOR_215100_GALLERY_INTRO_TASK, 0, 0);
     }
-    if ((gGameSession->location.loc.warp == MIST_SHOOTING_GALLERY_TRAINING_WARP) && (gameFlagGetNibble(GAME_FLAG_0ED) != 0)) {
+    if ((gGameSession->location.warp == MIST_SHOOTING_GALLERY_TRAINING_WARP) && (gameFlagGetNibble(GAME_FLAG_0ED) != 0)) {
         capRunCommandWithTransition(MIST_SHOOTING_GALLERY_STORY_ENTRY_COMMAND);
     }
     gGameSession->flowFlags = GAME_SESSION_FLOW_SKIP_AREA_MUSIC;
@@ -1916,8 +1916,8 @@ static void _mistShootingGalleryUpdateRoomTask(Task* unusedTask)
     };
     u8 viewIndex;
 
-    if ((gGameSession->location.loc.variant == MIST_SHOOTING_GALLERY_STORY_VARIANT) && (gGameSession->eventState == 0)) {
-        viewIndex = gGameSession->location.loc.view;
+    if ((gGameSession->location.variant == MIST_SHOOTING_GALLERY_STORY_VARIANT) && (gGameSession->eventState == 0)) {
+        viewIndex = gGameSession->location.view;
         if ((viewIndex == MIST_SHOOTING_GALLERY_HIDE_ACTOR_VIEW_3) || (viewIndex == MIST_SHOOTING_GALLERY_HIDE_ACTOR_VIEW_9) || (viewIndex == MIST_SHOOTING_GALLERY_HIDE_ACTOR_VIEW_18)) {
             sceneSetPlacedActorDrawMode(1, 0);
         } else if (gameFlagGetNibble(GAME_FLAG_0ED) == 0) {
@@ -2590,10 +2590,10 @@ static void _mistShootingGalleryClearMovieTask(Task* task)
         MIST_SHOOTING_GALLERY_MOVIE_RESTORE    = 5,
         MIST_SHOOTING_GALLERY_CLEAR_MOVIE_VIEW = 100
     };
-    u8          streamArgs[4];
-    GameLoc     movieLocation;
-    s16         movieSlot;
-    CdCmdQueue* cdQueue;
+    u8              streamArgs[4];
+    GameLocationKey movieLocation;
+    s16             movieSlot;
+    CdCmdQueue*     cdQueue;
 
     cdQueue = &gCdCmdQueue;
     switch (task->state) {
@@ -2603,10 +2603,10 @@ static void _mistShootingGalleryClearMovieTask(Task* task)
             task->state = task->state + 1;
             break;
         case MIST_SHOOTING_GALLERY_MOVIE_QUEUE:
-            movieLocation          = gGameSession->location;
-            movieLocation.loc.view = MIST_SHOOTING_GALLERY_CLEAR_MOVIE_VIEW;
-            movieSlot              = streamFindMovieSlot(&movieLocation.loc, 0, 0);
-            streamArgs[0]          = movieSlot;
+            movieLocation      = gGameSession->location;
+            movieLocation.view = MIST_SHOOTING_GALLERY_CLEAR_MOVIE_VIEW;
+            movieSlot          = streamFindMovieSlot(&movieLocation, 0, 0);
+            streamArgs[0]      = movieSlot;
             // This opcode consumes only the slot byte; its other bytes are retained.
             cdCmdEnqueue(CD_COMMAND_PLAY_STREAM, 0, streamArgs);
             task->state = task->state + 1;

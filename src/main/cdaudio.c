@@ -263,46 +263,38 @@ typedef struct {
 STATIC_ASSERT_SIZEOF(_CdAudioState, 0x44);
 
 /* Define BSS before API headers to preserve first-declaration order. */
-/// Owned header-sector allocation, replaced only when another header read starts.
-///
-/// Track entries and the slot table borrow this allocation. Initialization and
-/// read-base reset drop this pointer without freeing it or clearing those aliases.
-static _CdAudioHeader* _gCdAudioHeaderBuffer;
-
-/// Bias added to a header track's low-byte entry index; this image only stores zero.
-static u8 _gCdAudioHeaderTrackBaseIndex;
 
 /// Header-track metadata and asynchronous waveform-read position, destination and result.
-static volatile _CdAudioReadState _gCdAudioReadState;
+volatile _CdAudioReadState _gCdAudioReadState;
 
 /// Header payload arrival latch (0 waiting, CdlDataReady copied).
 ///
 /// A wrong-sector payload also raises it; later ready interrupts are ignored.
-static volatile s32 _gCdAudioHeaderSectorArrived;
+volatile s32 _gCdAudioHeaderSectorArrived;
 
 /// Unreferenced four-byte storage; its role and internal shape are unproven.
-static u8 D_80082774[4];
+u8 D_80082774[4];
 
 /// Borrowed track-entry view of the buffered header sector.
 ///
 /// Replacing the header invalidates the old view. Initialization and read-base
 /// reset retain this alias even when they drop the owner pointer; it is valid
 /// only while its original allocation remains live and contains a read header.
-static const u32* _gCdAudioHeaderTrackEntries;
+const u32* _gCdAudioHeaderTrackEntries;
 
 /// Initial-stream mute gate (0 use the track gain, nonzero start at silence).
 ///
 /// This image only clears it; the retained opening test still reads it.
-static volatile u8 _gCdAudioInitialStreamMuted;
+volatile u8 _gCdAudioInitialStreamMuted;
 
 /// Read-driver wait counters, callback errors and the last failure record.
-static volatile _CdAudioDriverStatus _gCdAudioDriverStatus;
+volatile _CdAudioDriverStatus _gCdAudioDriverStatus;
 
 /// Retained table-entry pointer, never assigned and therefore always NULL here.
 ///
 /// Its only reader has no caller and reads an indexed record and its successor;
 /// the table's purpose and extent are unproven.
-static _CdAudioTableEntry* _gCdAudioTableEntries;
+_CdAudioTableEntry* _gCdAudioTableEntries;
 
 volatile CdAudioProgress gCdAudioProgress;
 
@@ -311,12 +303,21 @@ volatile CdAudioProgress gCdAudioProgress;
 /// Callback-shared storage remains volatile. Plain SDK, interpolator and stream
 /// pointers borrow individual records by explicitly discarding that qualifier;
 /// they do not replace their ownership or the player's volatile accesses.
-static volatile _CdAudioState _gCdAudioState;
+volatile _CdAudioState _gCdAudioState;
 
 /// Retained reset byte; only zero is stored and its role is unproven.
-static volatile u8 D_800827E4;
+volatile u8 D_800827E4;
 
 #include "main/cdaudio.h"
+
+/// Owned header-sector allocation, replaced only when another header read starts.
+///
+/// Track entries and the slot table borrow this allocation. Initialization and
+/// read-base reset drop this pointer without freeing it or clearing those aliases.
+static _CdAudioHeader* _gCdAudioHeaderBuffer;
+
+/// Bias added to a header track's low-byte entry index; this image only stores zero.
+static u8 _gCdAudioHeaderTrackBaseIndex;
 
 static s32 _cdAudioOpenDriver(void);
 

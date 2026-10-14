@@ -70,7 +70,7 @@ static void _golemKnightBishopSpawn(Enemy* enemy, Task* task)
             enemy->recs       = work->hurtContacts;
             enemy->hp         = _gGolemKnightBishopParams.hpMax;
             for (roomIndex = 0; _gGolemKnightBishopRoomRegions[roomIndex].regionTable != GOLEM_KNIGHT_BISHOP_REGION_TABLE_END; roomIndex++) {
-                if (gGameSession->location.loc.stage == _gGolemKnightBishopRoomRegions[roomIndex].stage && gGameSession->location.loc.area == _gGolemKnightBishopRoomRegions[roomIndex].area) {
+                if (gGameSession->location.stage == _gGolemKnightBishopRoomRegions[roomIndex].stage && gGameSession->location.area == _gGolemKnightBishopRoomRegions[roomIndex].area) {
                     work->regions     = _gGolemKnightBishopRegionTables[_gGolemKnightBishopRoomRegions[roomIndex].regionTable];
                     work->regionCount = _gGolemKnightBishopRoomRegions[roomIndex].regionCount;
                 }
@@ -78,9 +78,9 @@ static void _golemKnightBishopSpawn(Enemy* enemy, Task* task)
             work->sequence = GOLEM_KNIGHT_BISHOP_SEQUENCE_REGION_SCAN;
             (sceneAcquireBattleRef)(0);
             work->actorId = GOLEM_KNIGHT_BISHOP_ACTOR_ID;
-            areaSoundSets = _gGolemKnightBishopStageSoundSets[gGameSession->location.loc.stage];
+            areaSoundSets = _gGolemKnightBishopStageSoundSets[gGameSession->location.stage];
             if (areaSoundSets != NULL) {
-                work->soundSet = areaSoundSets[gGameSession->location.loc.area];
+                work->soundSet = areaSoundSets[gGameSession->location.area];
             }
             if (work->soundSet != 0) {
                 // CD dispatch reads key bytes 3, 2 and 0; byte 1 is ignored.

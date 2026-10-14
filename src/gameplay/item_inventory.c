@@ -2592,7 +2592,7 @@ void inventoryInitializeNewGame(void)
     inventoryGiveItem(itemRange, INVENTORY_NEW_GAME_ITEM_BUCKSHOT, INVENTORY_NEW_GAME_STORED_BUCKSHOT_ROUNDS);
     inventoryGiveItem(itemRange, INVENTORY_NEW_GAME_ITEM_GRENADE, INVENTORY_NEW_GAME_STORED_GRENADES);
     inventorySetCollectedBit(INVENTORY_COLLECTION_ID_MIST_BADGE);
-    stageAreaKey  = GAME_LOCATION_WORD(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc);
+    stageAreaKey  = GAME_LOCATION_WORD(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location);
     stageAreaKey &= GAME_LOCATION_STAGE_AREA_MASK;
     if (stageAreaKey == GAME_LOCATION_KEY(GAME_STAGE_ACROPOLIS, GAME_AREA_MIST_SHOOTING_GALLERY, 0, 0)) {
         inventoryInitializeShootingGalleryLoadout();

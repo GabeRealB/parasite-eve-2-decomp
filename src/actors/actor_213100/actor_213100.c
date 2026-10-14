@@ -454,7 +454,7 @@ static void _actor213100UpdateBody(Task* actorTask)
         actorRenderComposeCoord(&actorTask->extra.tmd->coords[ACTOR_213100_LIGHTING_PART]);
         worldCoordSetModelLighting(model, actorTask->extra.tmd->coords[ACTOR_213100_LIGHTING_PART].workm.t, 0, ACTOR_213100_LIGHT_COUNT);
         heldModel = work->heldModelTask->extra.tmd;
-        if (_gActor213100JodieVisibilityByView[gGameSession->location.loc.view] != 0) {
+        if (_gActor213100JodieVisibilityByView[gGameSession->location.view] != 0) {
             model->flags     &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             heldModel->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
         } else {

@@ -76,13 +76,13 @@ static SVECTOR ActorContact_ScratchPosition;
 /// Position uses the roots' common parent space; yaw faces the enemy, in
 /// 4096 units per turn, with zero pitch and roll. The trailing eight bytes
 /// have no established role and remain in `OddStrangerTransformStorage`.
-static OddStrangerTransformStorage _gOddStrangerPlayerGrabPlacement;
+OddStrangerTransformStorage _gOddStrangerPlayerGrabPlacement;
 
 /// Borrowed player hold request requiring eight presses to escape this grab.
 ///
 /// Only `pressCount` is set. The addressed player implements the hold and ignores
 /// the generic animation fallback; dispatch consumes this record synchronously.
-static GameActorButtonPressHold _gActor401800GrabButtonPressHold;
+GameActorButtonPressHold _gActor401800GrabButtonPressHold;
 
 static AnimationSet _gActor401800Animation1F3F4;
 static AnimationSet _gActor401800Animation1FDEC;
@@ -1139,7 +1139,7 @@ static inline SVECTOR* _actorContactGetLastPushStep(void)
     return &ActorContact_ScratchPosition;
 }
 
-static GameActorButtonPressHold _gActor401800GrabButtonPressHold;
+GameActorButtonPressHold _gActor401800GrabButtonPressHold;
 
 static void _actor401800BurstDeath(Task* task);
 

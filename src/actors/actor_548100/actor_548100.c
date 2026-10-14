@@ -1177,11 +1177,11 @@ static void _actor548100InitPanel(Task* task)
         taskKill(task);
         return;
     }
-    task->spawnArg2.pointer                                    = taskSpawnFromTable(&_gActor548100PanelPromptTaskDesc, 0, 1, 0);
-    task->msgTable                                             = _gActor548100PanelMessages;
-    task->work                                                 = work;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = ACTOR_548100_PANEL_SAVED_VIEW;
-    task->state                                               += ACTOR_548100_STATE_ARM_CURSOR - ACTOR_548100_STATE_INIT_PANEL;
+    task->spawnArg2.pointer                                = taskSpawnFromTable(&_gActor548100PanelPromptTaskDesc, 0, 1, 0);
+    task->msgTable                                         = _gActor548100PanelMessages;
+    task->work                                             = work;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = ACTOR_548100_PANEL_SAVED_VIEW;
+    task->state                                           += ACTOR_548100_STATE_ARM_CURSOR - ACTOR_548100_STATE_INIT_PANEL;
     if (gameFlagGetNibble(GAME_FLAG_MINE_POWER_PANEL_STAGE) == 0) {
         gameFlagSetNibble(GAME_FLAG_MINE_POWER_PANEL_STAGE, 1);
         gameFlagSetNibble(GAME_FLAG_MINE_POWER_PANEL_SOCKET_4, 1);
@@ -2490,10 +2490,10 @@ static inline void _actor548100RestoreRoomPlay(void)
     playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO);
     gDirectionInteractionRearmUpdates = ACTOR_548100_INTERACTION_REARM_UPDATES;
     displayReleaseMenuHold();
-    gGameSession->eventState                                   = ACTOR_548100_EVENT_IDLE;
-    gGameSession->hideHud                                      = false;
-    gGameSession->cutsceneHold                                 = false;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = ACTOR_548100_REFUGE_VIEW;
+    gGameSession->eventState                               = ACTOR_548100_EVENT_IDLE;
+    gGameSession->hideHud                                  = false;
+    gGameSession->cutsceneHold                             = false;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = ACTOR_548100_REFUGE_VIEW;
 }
 
 /// Restores room play and requests completion of the mine power panel task.

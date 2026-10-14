@@ -7,6 +7,7 @@
 #include "types.h"
 
 #include "fs_types.h"
+#include "main/session_types.h"
 #include "main/text.h"
 
 /// Absolute CD sector expected by the next filesystem or sound-bank ready callback.
@@ -78,11 +79,14 @@ extern TextStream* gGameFlowLegacySecondaryLoadCaption;
 /// Selection finishes before image enqueue; presentation starts after retirement.
 extern TextStream* gGameFlowLoadCaption;
 
-/// Retained stage and area selecting the location loading-screen image and caption.
+/// Location a boot load is entering; its stage and area select the
+/// loading-screen image and caption.
 ///
-/// Beginning a screen copies only these bytes from its destination key.
-/// The leading two bytes are untouched; a larger location-cell extent is unproven.
-extern BootLoadDestination gGameFlowLoadScreenDestination;
+/// Beginning a screen copies only `stage` and `area` from its destination
+/// key; its other members are never read or written. That it is a whole
+/// `GameLocationKey` is inferred from those two sitting at the key's offsets,
+/// not established by an access.
+extern GameLocationKey gGameFlowLoadScreenDestination;
 
 /// Story-caption request (0 normal, any nonzero value alternate where available).
 ///

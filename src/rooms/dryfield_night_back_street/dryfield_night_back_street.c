@@ -693,7 +693,7 @@ void dryfieldNightBackStreetDrawGlowsTask(Task* task)
     }
     gRoomEffectState->roomEffectMode = ROOM_EFFECT_VIEW_ENABLED;
     // View 3 includes view 2's lights; the first four points are paired shaft ends.
-    switch (gGameSession->location.loc.view) {
+    switch (gGameSession->location.view) {
         case 3:
             _glowDrawFlare(&_gDryfieldNightBackStreetGlowPoints[DRYFIELD_NIGHT_BACK_STREET_VIEW_3_FIRST_FLARE_POINT], 1, DRYFIELD_NIGHT_BACK_STREET_FLARE_RADIUS_SCALE);
             _glowDrawFlare(&_gDryfieldNightBackStreetGlowPoints[DRYFIELD_NIGHT_BACK_STREET_VIEW_3_SECOND_FLARE_POINT], 1, DRYFIELD_NIGHT_BACK_STREET_FLARE_RADIUS_SCALE);

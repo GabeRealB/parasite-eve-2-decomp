@@ -4643,9 +4643,9 @@ static void _actor560800MovieTask(Task* task)
         ACTOR_560800_MOVIE_DEFAULT_ID   = 0x64,
         ACTOR_560800_MOVIE_ALTERNATE_ID = 0x65,
     };
-    u8          streamArgs[sizeof(gCdCmdQueue.entries[0].args)];
-    GameLoc     movieLocation;
-    CdCmdQueue* cdQueue = &gCdCmdQueue;
+    u8              streamArgs[sizeof(gCdCmdQueue.entries[0].args)];
+    GameLocationKey movieLocation;
+    CdCmdQueue*     cdQueue = &gCdCmdQueue;
 
     switch (task->state) {
         case ACTOR_560800_MOVIE_PREPARE:
@@ -4656,12 +4656,12 @@ static void _actor560800MovieTask(Task* task)
         case ACTOR_560800_MOVIE_QUEUE:
             movieLocation = gGameSession->location;
             if (task->spawnArg1.value != 0) {
-                movieLocation.loc.view = ACTOR_560800_MOVIE_ALTERNATE_ID;
+                movieLocation.view = ACTOR_560800_MOVIE_ALTERNATE_ID;
             } else {
-                movieLocation.loc.view = ACTOR_560800_MOVIE_DEFAULT_ID;
+                movieLocation.view = ACTOR_560800_MOVIE_DEFAULT_ID;
             }
             // Only the slot byte is interpreted; enqueue copies the full argument block.
-            streamArgs[0] = streamFindMovieSlot(&movieLocation.loc, 0, 0);
+            streamArgs[0] = streamFindMovieSlot(&movieLocation, 0, 0);
             cdCmdEnqueue(CD_COMMAND_PLAY_STREAM, 0, streamArgs);
             task->state++;
             break;
@@ -4893,7 +4893,7 @@ static inline u16 _actor560800AllocateBodyWork(Task* task, u8 textureEntryId)
     model->lightMtx = &allocatedWork->light;
     model->colorMtx = &allocatedWork->color;
     task->msgTable  = _gActor560800CastMessages;
-    placement       = areaGetVariant(&gGameSession->location.loc)->placements;
+    placement       = areaGetVariant(&gGameSession->location)->placements;
     entryId         = placement->entryId;
     while (entryId != AREA_PLACEMENT_END) {
         if (entryId == textureEntryId) {
@@ -5035,7 +5035,7 @@ static void _actor560800CastAttachmentTask(Task* task)
         model->lightMtx = &work->light;
         model->colorMtx = &work->color;
         if (task->spawnArg1.value < ACTOR_560800_ATTACHMENT_GUN) {
-            placement = areaGetVariant(&gGameSession->location.loc)->placements;
+            placement = areaGetVariant(&gGameSession->location)->placements;
             entryId   = placement->entryId;
             while (entryId != AREA_PLACEMENT_END) {
                 if (entryId == ACTOR_560800_KYLE_PLACEMENT_ENTRY) {
@@ -5048,7 +5048,7 @@ static void _actor560800CastAttachmentTask(Task* task)
         } else if (task->spawnArg1.value == ACTOR_560800_ATTACHMENT_GUN) {
             tmdSetTextureOffsets(task->extra.tmd, 0, 0);
         } else if (task->spawnArg1.value == ACTOR_560800_ATTACHMENT_GUNBLADE) {
-            placement = areaGetVariant(&gGameSession->location.loc)->placements;
+            placement = areaGetVariant(&gGameSession->location)->placements;
             entryId   = placement->entryId;
             while (entryId != AREA_PLACEMENT_END) {
                 if (entryId == ACTOR_560800_CHAIN_TARGET_NO9) {
@@ -7122,7 +7122,7 @@ static void _actor560800IntactChainTask(Task* task)
             return;
         case ACTOR_560800_CHAIN_BEND:
             // The view and placement state select which numbered chains remain visible.
-            if (viewFindLogicalIndex(gGameSession->location.loc.view) == ACTOR_560800_CHAIN_RESTRICTED_VIEW) {
+            if (viewFindLogicalIndex(gGameSession->location.view) == ACTOR_560800_CHAIN_RESTRICTED_VIEW) {
                 switch (work->chainNumber) {
                     case 1:
                     case 3:
@@ -7207,7 +7207,7 @@ done:
     rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
     if (!(drawModel->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
         shelterB1PodServiceGantryDrawChainGlow(&task->extra.tmd->coords[ACTOR_560800_CHAIN_TIP_PART], work->chainNumber, ACTOR_560800_CHAIN_GLOW_RADIUS_SCALE, ACTOR_560800_CHAIN_GLOW_PACKED_COLOR);
-        if (viewFindLogicalIndex(gGameSession->location.loc.view) != ACTOR_560800_CHAIN_RESTRICTED_VIEW) {
+        if (viewFindLogicalIndex(gGameSession->location.view) != ACTOR_560800_CHAIN_RESTRICTED_VIEW) {
             effectTick = _gActor560800ChainSwayPhase + 1;
             // The retained three-bit selector staggers chains 1..7; it never selects chain 8.
             if (!(effectTick & ACTOR_560800_CHAIN_EFFECT_TICK_MASK) && ((effectTick >> ACTOR_560800_CHAIN_EFFECT_TICK_SHIFT) & ACTOR_560800_CHAIN_EFFECT_INDEX_MASK) == work->chainNumber) {

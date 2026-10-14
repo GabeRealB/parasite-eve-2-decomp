@@ -1106,11 +1106,11 @@ static void _actor450900DepartureTask(Task* task)
             gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
             gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, ACTOR_450900_DEPARTURE_STORY_DIALOGUE);
             sndEvtRequestScriptStop(SOUND_BANK_TYPE_ALL_NON_AMBIENT, SOUND_SCRIPT_STOP_NO_FADE);
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = GAME_AREA_NEO_ARK_GARDEN;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = ACTOR_450900_DEPARTURE_DESTINATION_WARP;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType     = ACTOR_450900_COMPANION_NONE;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = ACTOR_450900_DEPARTURE_DESTINATION_ROOM;
-            gDisplayState.spriteVariant                                = ACTOR_450900_DEFAULT_DISPLAY_VARIANT;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.area = GAME_AREA_NEO_ARK_GARDEN;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp = ACTOR_450900_DEPARTURE_DESTINATION_WARP;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType = ACTOR_450900_COMPANION_NONE;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.room = ACTOR_450900_DEPARTURE_DESTINATION_ROOM;
+            gDisplayState.spriteVariant                            = ACTOR_450900_DEFAULT_DISPLAY_VARIANT;
             taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, ACTOR_450900_SESSION_LOAD_TASK_INDEX, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
             streamFinishScene();
             taskKill(task);

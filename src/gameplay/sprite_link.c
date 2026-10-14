@@ -131,7 +131,7 @@ static inline const SpriteView* _spriteGetCurrentView(void)
     const SpriteView*      areaViews;
 
     session         = gGameSession;
-    location        = &session->location.loc;
+    location        = &session->location;
     viewIndexTable  = gViewIndexTables[location->stage - 1];
     areaViewMaps    = viewIndexTable->viewMaps;
     roomViewMaps    = areaViewMaps[location->area - 1];
@@ -170,7 +170,7 @@ void spriteLinkViewCachedPackets(void)
     SpriteBatch*           batch;
     SpriteSource*          sources;
 
-    location                       = &gGameSession->location.loc;
+    location                       = &gGameSession->location;
     mappedViewIndex                = viewGetMappedIndex();
     packetBuffers                  = _gSpriteViewCachedPacketBuffers;
     display                        = &gDisplayState;
@@ -263,7 +263,7 @@ static void _spriteSetViewRawTexture(s32 rawTexture)
     SpriteBatch*          batch;
     u32                   spriteIndex;
 
-    location                       = &gGameSession->location.loc;
+    location                       = &gGameSession->location;
     mappedViewIndex                = viewGetMappedIndex();
     _gSpriteViewCachedPacketCursor = _gSpriteViewCachedPacketBuffers[gDisplayState.drawBuffer];
     spriteTable                    = gSpriteAreaTables[location->stage - 1];
@@ -326,7 +326,7 @@ void spriteAllocateViewCachedPackets(void)
     SpriteDrawModePacket*  drawPacket;
     SpritePacket*          spritePacket;
 
-    location        = &gGameSession->location.loc;
+    location        = &gGameSession->location;
     spriteCount     = 0;
     mappedViewIndex = viewGetMappedIndex();
     areaViews       = gSpriteAreaTables[location->stage - 1]->areaViews[location->area - 1];
@@ -402,7 +402,7 @@ static void _worldCollisionBindCurrentRoomResources(Task* unusedTask)
     WorldCollisionOccluder*            occluders;
     s32                                occluderIndex;
 
-    location = &gGameSession->location.loc;
+    location = &gGameSession->location;
     // Retire borrowed list links before binding resources to the current camera.
     viewApplyCurrentCamera();
     gWorldCollisionActiveGrid = NULL;
@@ -451,7 +451,7 @@ s8 viewFindLogicalIndex(s32 mappedViewIndex)
     const u8*              viewMap;
 
     logicalViewOffset = 0;
-    location          = &gGameSession->location.loc;
+    location          = &gGameSession->location;
     viewCount         = gViewCountTables[location->stage - 1]->viewCounts[location->area - 1][location->room - 1];
     viewMap           = gViewIndexTables[location->stage - 1]->viewMaps[location->area - 1][location->room - 1];
     // Search logical slots in order: duplicate mapped indices select the first.
@@ -488,7 +488,7 @@ static s32 _spriteViewUsesImageStrips(void)
 
     session          = gGameSession;
     stageSpriteEntry = gSpriteAreaTables;
-    location         = &session->location.loc;
+    location         = &session->location;
     stageIndex       = location->stage - 1;
     stageSpriteEntry = &stageSpriteEntry[stageIndex];
     viewIndexTable   = gViewIndexTables[stageIndex];
@@ -554,7 +554,7 @@ s32 viewGetMappedIndex(void)
     const u8*              viewMap;
 
     session      = gGameSession;
-    location     = &session->location.loc;
+    location     = &session->location;
     areaViewMaps = gViewIndexTables[location->stage - 1]->viewMaps;
     roomViewMaps = areaViewMaps[location->area - 1];
     viewMap      = roomViewMaps[location->room - 1];
@@ -569,10 +569,10 @@ SpriteDrawArea* spriteGetViewDrawAreas(void)
 void loadingUpdateRoomResourcesTask(Task* task)
 {
     // The spawn argument becomes a cache of the last logical view composed.
-    if (task->spawnArg1.value != gGameSession->location.loc.view) {
+    if (task->spawnArg1.value != gGameSession->location.view) {
         gGfxViewCoord.composeStamp = GRAPHICS_COORD_DIRTY;
         actorRenderComposeCoord(&gGfxViewCoord);
-        task->spawnArg1.value = gGameSession->location.loc.view;
+        task->spawnArg1.value = gGameSession->location.view;
     }
     if (gGameSession->roomObjsDirty != 0) {
         _worldCollisionBindCurrentRoomResources(task);

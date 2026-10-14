@@ -795,7 +795,7 @@ static s32 _shelter1fHeliportResolveDepartureMessage(Task* unusedTask, s32 unuse
         _shelter1fHeliportStopAmbience();
     }
     if (request->areaId == GAME_AREA_SHELTER_1F_BULWARK) {
-        if (gameFlagGetNibble(GAME_FLAG_HELIPORT_TALK_PROGRESS) == SHELTER_1F_HELIPORT_TALK_UNSTARTED && gGameSession->location.loc.variant == SHELTER_1F_HELIPORT_VARIANT_INITIAL) {
+        if (gameFlagGetNibble(GAME_FLAG_HELIPORT_TALK_PROGRESS) == SHELTER_1F_HELIPORT_TALK_UNSTARTED && gGameSession->location.variant == SHELTER_1F_HELIPORT_VARIANT_INITIAL) {
             if (request->queryOnly == ROOM_EVENT_EXECUTE) {
                 capRunCommandWithTransition(SHELTER_1F_HELIPORT_CAP_TALK_REQUIRED);
             }
@@ -902,7 +902,7 @@ static s32 _shelter1fHeliportHandleCommandMessage(Task* unusedTask, s32 unusedMe
             break;
         case SHELTER_1F_HELIPORT_COMMAND_CHECK_TALK:
             requiredTalkCount = SHELTER_1F_HELIPORT_TALKS_REQUIRED;
-            if (gGameSession->location.loc.variant == SHELTER_1F_HELIPORT_VARIANT_INITIAL) {
+            if (gGameSession->location.variant == SHELTER_1F_HELIPORT_VARIANT_INITIAL) {
                 requiredTalkCount = SHELTER_1F_HELIPORT_VARIANT_1_TALKS_REQUIRED;
             }
             capSpawnEventIfIdle(gameFlagGetNibble(GAME_FLAG_SOLDIER_B_TALK_COUNT_B) >= requiredTalkCount ? SHELTER_1F_HELIPORT_COMMAND_CHECK_TALK : SHELTER_1F_HELIPORT_CAP_TALK_NOT_READY, CAP_EVENT_NO_FLAGS);
@@ -927,10 +927,10 @@ static s32 _shelter1fHeliportHandleRoomAction(Task* unusedTask, s32 unusedMessag
 
     switch (request->actionId) {
         case SHELTER_1F_HELIPORT_ACTION_TALK:
-            if (gGameSession->location.loc.variant == SHELTER_1F_HELIPORT_VARIANT_INITIAL) {
+            if (gGameSession->location.variant == SHELTER_1F_HELIPORT_VARIANT_INITIAL) {
                 actor260500StartHeliportConversation();
             }
-            if (gGameSession->location.loc.variant == SHELTER_1F_HELIPORT_VARIANT_LATER) {
+            if (gGameSession->location.variant == SHELTER_1F_HELIPORT_VARIANT_LATER) {
                 actor260400StartHeliportConversation();
             }
             break;
@@ -970,10 +970,10 @@ static void _shelter1fHeliportInitializeRoomTask(Task* task)
     // Publish the message receiver before restoring actor event scripts.
     task->msgTable = _gShelter1fHeliportRoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
-    if (gGameSession->location.loc.variant == SHELTER_1F_HELIPORT_VARIANT_INITIAL) {
+    if (gGameSession->location.variant == SHELTER_1F_HELIPORT_VARIANT_INITIAL) {
         actor260500RestoreHeliportPlacement();
     }
-    if (gGameSession->location.loc.variant == SHELTER_1F_HELIPORT_VARIANT_LATER) {
+    if (gGameSession->location.variant == SHELTER_1F_HELIPORT_VARIANT_LATER) {
         actor260400RestoreHeliportPlacement();
     }
     if (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != NULL) {
@@ -1017,9 +1017,9 @@ static void _shelter1fHeliportUpdatePlacedActorVisibility(void)
     enum { SHELTER_1F_HELIPORT_VISIBILITY_VARIANT_LIMIT = 3,
            SHELTER_1F_HELIPORT_VISIBILITY_KEEP          = 0 };
     s32 placeIndex;
-    s32 viewIndex = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view;
+    s32 viewIndex = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view;
 
-    if (gGameSession->location.loc.variant < SHELTER_1F_HELIPORT_VISIBILITY_VARIANT_LIMIT && viewIndex < (s32)ARRAY_SIZE(_gShelter1fHeliportPlacedActorDrawModesByView)) {
+    if (gGameSession->location.variant < SHELTER_1F_HELIPORT_VISIBILITY_VARIANT_LIMIT && viewIndex < (s32)ARRAY_SIZE(_gShelter1fHeliportPlacedActorDrawModesByView)) {
         if (_gShelter1fHeliportPlacedActorDrawModesByView[viewIndex][0] != SHELTER_1F_HELIPORT_VISIBILITY_KEEP) {
             for (placeIndex = 0; placeIndex < (s32)ARRAY_SIZE(_gShelter1fHeliportPlacedActorDrawModesByView[viewIndex]); placeIndex++) {
                 sceneSetPlacedActorDrawMode(placeIndex, _gShelter1fHeliportPlacedActorDrawModesByView[viewIndex][placeIndex]);

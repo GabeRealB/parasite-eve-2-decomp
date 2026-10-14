@@ -1424,7 +1424,7 @@ void dryfieldNightMotelRoom2DrawFlaresTask(Task* unusedTask)
         DRYFIELD_NIGHT_MOTEL_ROOM_2_SINGLE_FLARE_RADIUS_SCALE = 0x180,
     };
 
-    switch (gGameSession->location.loc.view) {
+    switch (gGameSession->location.view) {
         case DRYFIELD_NIGHT_MOTEL_ROOM_2_VIEW_FLARE_PAIR_A:
         case DRYFIELD_NIGHT_MOTEL_ROOM_2_VIEW_FLARE_PAIR_B: {
             const SVECTOR* flarePoints = _gDryfieldNightMotelRoom2PairedFlarePoints;

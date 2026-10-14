@@ -51,7 +51,7 @@ void loadingBeginViewLoadTask(Task* viewLoadTask)
     CdCmdFileKey           fileKey;
     CdCmdFileLoadArgs      loadArgs;
 
-    location = &gGameSession->location.loc;
+    location = &gGameSession->location;
     queue    = &gCdCmdQueue;
     if (viewLoadTask->spawnArg1.value != 0) {
         gDisplayState.control.flags.flipMode = DISPLAY_FLIP_HOLD;
@@ -64,11 +64,11 @@ void loadingBeginViewLoadTask(Task* viewLoadTask)
         DrawPrim(&gLoadingViewMaskResetCommand);
         display->control.flags.flipMode = DISPLAY_FLIP_HOLD;
         if (queue->scenePayloadAvailable != 0) {
-            mdecRequestSceneImageDecode(&gGameSession->location.loc.view);
+            mdecRequestSceneImageDecode(&gGameSession->location.view);
             viewLoadTask->state = LOADING_VIEW_WAIT_FOR_SCENE_IMAGE;
         } else {
             // Movie views release model packets; leaving movie mode restores their policy.
-            gLoadingViewMovieSlot = streamFindMovieSlot(&gGameSession->location.loc, LOADING_VIEW_MOVIE_SUB_ID, LOADING_VIEW_REQUIRE_VIEW_MOVIE);
+            gLoadingViewMovieSlot = streamFindMovieSlot(&gGameSession->location, LOADING_VIEW_MOVIE_SUB_ID, LOADING_VIEW_REQUIRE_VIEW_MOVIE);
             if (gLoadingViewMovieSlot >= 0) {
                 sceneFreeActorPrimitiveBuffers();
                 queue->viewMovieSelected = LOADING_VIEW_MOVIE_SELECTED;

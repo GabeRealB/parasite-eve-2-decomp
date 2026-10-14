@@ -369,9 +369,9 @@ static void _planarReflectionUpdatePlayer(Task* reflectionTask)
     captureX        = PLANAR_REFLECTION_CAPTURE_X;
     mirrorWork      = reflectionTask->work;
     reflectionModel = reflectionTask->extra.tmd;
-    stage           = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage;
-    area            = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area;
-    view            = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view;
+    stage           = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.stage;
+    area            = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.area;
+    view            = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view;
     playerStatus    = &gPlayerStatus;
     if (stage == GAME_STAGE_SHELTER_NEO_ARK) {
         captureX = PLANAR_REFLECTION_NEO_ARK_CAPTURE_X;
@@ -421,7 +421,7 @@ static void _planarReflectionUpdatePlayer(Task* reflectionTask)
             mirrorWork->coord.coord.m[1][2] = frame->viewYRow.vz;
             if (stage == GAME_STAGE_SHELTER_NEO_ARK) {
                 if (area == GAME_AREA_NEO_ARK_OBSERVATORY) {
-                    if (view >= 6 && view < 12 && gGameSession->location.loc.room == 2) {
+                    if (view >= 6 && view < 12 && gGameSession->location.room == 2) {
                         mirrorWork->coord.coord.t[1] += PLANAR_REFLECTION_NEO_ARK_FLOOR_Y_OFFSET;
                         reflectionModel->flags       &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
                         mirrorWork->firstBlendMode    = GPU_BLEND_AVERAGE;
@@ -753,7 +753,7 @@ static void _planarReflectionUpdatePlayer(Task* reflectionTask)
                 halfWidth = PLANAR_REFLECTION_MAX_QUAD_HALF_WIDTH;
             }
             // Area 2, view 5: mirror 0 forces that maximum; any other mirror orders from the head sample.
-            if ((GAME_LOCATION_WORD(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc) & GAME_LOCATION_AREA_VIEW_MASK) == GAME_LOCATION_KEY(0, 2, 0, 5)) {
+            if ((GAME_LOCATION_WORD(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location) & GAME_LOCATION_AREA_VIEW_MASK) == GAME_LOCATION_KEY(0, 2, 0, 5)) {
                 if (reflectionTask->spawnArg1.value == PLANAR_REFLECTION_MODE_FLOOR) {
                     halfWidth = PLANAR_REFLECTION_MAX_QUAD_HALF_WIDTH;
                 } else {

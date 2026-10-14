@@ -1109,7 +1109,7 @@ enum {
 
 /// Per-light visibility in logical views, parallel to `_gAcropolisPatioLightAnchors`.
 ///
-/// Bit view - 1 is tested against `GameSession.location.loc.view`, independently
+/// Bit view - 1 is tested against `GameSession.location.view`, independently
 /// of the mapped background index. Glows use indices 0..13; moving points use
 /// 0..2. Logical views 1..19 are valid and views outside the mask hide the light.
 /// Both arrays must remain loaded throughout effect updates. No sentinel.
@@ -2463,7 +2463,7 @@ static void _acropolisPatioInitializeRoomTask(Task* task)
     task->msgTable = _gAcropolisPatioRoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     if (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_PROGRESS) < ACROPOLIS_PATIO_STORY_BATTLE_FINISHED) {
-        if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room == 1) {
+        if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.room == 1) {
             TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(0), ACTOR_MESSAGE_PLACE, &_gAcropolisPatioRestoredSwatPlacement, 0);
             TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(0), ACTOR_COMMAND_MESSAGE_APPLY, &_gAcropolisPatioSwatAnimation3Command, 0);
             taskMessageDispatch(sceneFindPlacedActor(0), ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
@@ -2474,14 +2474,14 @@ static void _acropolisPatioInitializeRoomTask(Task* task)
             TASK_MESSAGE_DISPATCH_POINTER(placedActor, ACTOR_MESSAGE_PLACE, &_gAcropolisPatioRestoredStrangerPlacement, 0);
         }
     }
-    if ((gGameSession->location.loc.variant == 1) && (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_OPENING_PROGRESS) < ACROPOLIS_PATIO_OPENING_SCENE_THRESHOLD) && (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_OPENING_PROGRESS) < ACROPOLIS_PATIO_OPENING_SCENE_THRESHOLD)) {
+    if ((gGameSession->location.variant == 1) && (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_OPENING_PROGRESS) < ACROPOLIS_PATIO_OPENING_SCENE_THRESHOLD) && (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_OPENING_PROGRESS) < ACROPOLIS_PATIO_OPENING_SCENE_THRESHOLD)) {
         placedActor = sceneFindPlacedActor(1);
         if (placedActor != 0) {
             TASK_MESSAGE_DISPATCH_POINTER(placedActor, ACTOR_COMMAND_MESSAGE_APPLY, &_gAcropolisPatioHideStrangerCommand, 0);
         }
     }
     // Commands are borrowed only through these synchronous dispatches.
-    if ((gGameSession->location.loc.variant == 2) && (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_PATIO_026) == ACROPOLIS_PATIO_SCENE_UNSEEN)) {
+    if ((gGameSession->location.variant == 2) && (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_PATIO_026) == ACROPOLIS_PATIO_SCENE_UNSEEN)) {
         actorCommand.context.loc.stage = GAME_STAGE_ACROPOLIS;
         actorCommand.context.loc.area  = GAME_AREA_ACROPOLIS_PATIO;
         actorCommand.command           = 0;
@@ -2610,10 +2610,10 @@ static inline void _acropolisPatioCommitCafeteriaDeparture(Task* task)
     enum { ACROPOLIS_PATIO_CAFETERIA_SPRITE_VARIANT = 1 };
 
     sndEvtRequestScriptStop(SOUND_BANK_TYPE_ALL_NON_AMBIENT, SOUND_SCRIPT_STOP_NO_FADE);
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = GAME_AREA_ACROPOLIS_CAFETERIA;
-    gDisplayState.spriteVariant                                = ACROPOLIS_PATIO_CAFETERIA_SPRITE_VARIANT;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = _gAcropolisPatioCafeteriaArrivalWarp;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = _gAcropolisPatioCafeteriaArrivalRoom;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.area = GAME_AREA_ACROPOLIS_CAFETERIA;
+    gDisplayState.spriteVariant                            = ACROPOLIS_PATIO_CAFETERIA_SPRITE_VARIANT;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp = _gAcropolisPatioCafeteriaArrivalWarp;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.room = _gAcropolisPatioCafeteriaArrivalRoom;
     taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
     taskKill(task);
 }
@@ -2866,8 +2866,8 @@ static void _acropolisPatioActivateRoom2(void)
 {
     enum { ACROPOLIS_PATIO_ROOM_AFTER_SCENE = 2 };
 
-    gGameSession->location.loc.room = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = ACROPOLIS_PATIO_ROOM_AFTER_SCENE;
-    gGameSession->roomObjsDirty                                                                  = true;
+    gGameSession->location.room = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.room = ACROPOLIS_PATIO_ROOM_AFTER_SCENE;
+    gGameSession->roomObjsDirty                                                          = true;
 }
 
 /// Sets the scene's actor update/visibility control from an event-script byte.
@@ -3116,7 +3116,7 @@ void acropolisPatioFountainJetTask(Task* task)
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
     if (gRoomEffectState->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN &&
-        ((_gAcropolisPatioLightViewMasks[task->spawnArg1.value & ACROPOLIS_PATIO_JET_ANCHOR_MASK] >> (gGameSession->location.loc.view - 1)) & 1)) {
+        ((_gAcropolisPatioLightViewMasks[task->spawnArg1.value & ACROPOLIS_PATIO_JET_ANCHOR_MASK] >> (gGameSession->location.view - 1)) & 1)) {
         actorRenderComposeCoord(coord);
         block = SCRATCH_STACK_RESERVE_BLOCK(RoomGlowSpriteScratch);
         if (task->state == ACROPOLIS_PATIO_JET_INIT) {
@@ -3221,7 +3221,7 @@ void acropolisPatioFountainMistTask(Task* task)
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
     if (gRoomEffectState->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN &&
-        ((_gAcropolisPatioLightViewMasks[task->spawnArg1.value] >> (gGameSession->location.loc.view - 1)) & 1)) {
+        ((_gAcropolisPatioLightViewMasks[task->spawnArg1.value] >> (gGameSession->location.view - 1)) & 1)) {
         tileScratch = SCRATCH_STACK_RESERVE_BLOCK(EffectPointTileScratch);
         actorRenderComposeCoord(coord);
         if (task->state == ACROPOLIS_PATIO_MIST_INIT) {

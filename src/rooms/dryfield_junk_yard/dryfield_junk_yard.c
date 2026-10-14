@@ -2091,7 +2091,7 @@ static void _dryfieldJunkYardInitRoomTask(Task* task)
         if ((gameFlagGetNibble(GAME_FLAG_JUNK_YARD_RETURN_SCENE_SEEN) == 0) && (gameFlagGetNibble(GAME_FLAG_TRAILER_COACH_PROGRESS) >= DRYFIELD_JUNK_YARD_TRAILER_RETURN_READY)) {
             gameFlagSetNibble(GAME_FLAG_JUNK_YARD_RETURN_SCENE_SEEN, DRYFIELD_JUNK_YARD_RETURN_SCENE_SEEN);
             evsStartScriptWithSkip(_gDryfieldJunkYardCompanionReturnScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, _gDryfieldJunkYardCompanionReturnSkipScript);
-        } else if (gGameSession->location.loc.warp == DRYFIELD_JUNK_YARD_COMPANION_ARRIVAL) {
+        } else if (gGameSession->location.warp == DRYFIELD_JUNK_YARD_COMPANION_ARRIVAL) {
             TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_COMPANION), GAME_ACTOR_MESSAGE_PLACE, &_gDryfieldJunkYardCompanionTrailerPlacement, 0);
         }
     }

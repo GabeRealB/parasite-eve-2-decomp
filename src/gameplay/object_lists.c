@@ -181,7 +181,7 @@ WorldCollisionBody* gWorldCollisionPropListHead;
 ///
 /// Reset clears the head and the selector table preserves its slot/address.
 /// The intended entity role is unproven; no storage is owned through this head.
-static WorldCollisionBody* _gWorldCollisionBodyList5Head;
+WorldCollisionBody* _gWorldCollisionBodyList5Head;
 
 WorldCollisionBody* gWorldCollisionBodyList6Head;
 
@@ -1077,7 +1077,7 @@ void worldCollisionLoadSurfacePushbackFlags(void)
     }
 
     session           = gGameSession;
-    surfaceProperties = gWorldCollisionSurfacePropertiesTables[session->location.loc.stage - 1][session->location.loc.area - 1];
+    surfaceProperties = gWorldCollisionSurfacePropertiesTables[session->location.stage - 1][session->location.area - 1];
     for (surfaceClass = 0; surfaceClass < ARRAY_SIZE(gWorldCollisionSurfacePushbackSuppression); surfaceClass++) {
         gWorldCollisionSurfacePushbackSuppression[surfaceClass] = surfaceProperties[surfaceClass]->suppressPushback;
     }
@@ -1180,8 +1180,8 @@ void worldCollisionConsumeViewBoundaryHits(void)
     for (boundary = gWorldCollisionViewBoundaryListHead; boundary != NULL; boundary = boundary->next) {
         if (boundary->hit != 0) {
             boundary->hit = 0;
-            if (gGameSession->location.loc.view == boundary->parameter0) {
-                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = boundary->parameter1;
+            if (gGameSession->location.view == boundary->parameter0) {
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = boundary->parameter1;
             }
         }
     }

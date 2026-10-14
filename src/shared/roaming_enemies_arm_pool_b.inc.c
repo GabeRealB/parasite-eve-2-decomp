@@ -12,7 +12,7 @@ static void _roamerArmPoolB(Task* task)
 {
     s16 previousVariant;
 
-    if (_gRoamerPoolBArmCounts[gGameSession->location.loc.variant] == 0) {
+    if (_gRoamerPoolBArmCounts[gGameSession->location.variant] == 0) {
         task->msgTable = NULL;
         task->state    = task->state + 1;
         return;
@@ -21,10 +21,10 @@ static void _roamerArmPoolB(Task* task)
     _gRoamerReserveCount = gameFlagGetNibble(GAME_FLAG_NEO_ARK_ROAMER_POOL_B_RESERVE);
     previousVariant      = gameFlagGetNibble(GAME_FLAG_NEO_ARK_ROAMER_POOL_B_VARIANT);
     // Persist the accumulated count before limiting this visit's live slots.
-    if (gGameSession->location.loc.variant != previousVariant) {
-        _gRoamerReserveCount = _gRoamerReserveCount + _gRoamerPoolBArmCounts[gGameSession->location.loc.variant];
+    if (gGameSession->location.variant != previousVariant) {
+        _gRoamerReserveCount = _gRoamerReserveCount + _gRoamerPoolBArmCounts[gGameSession->location.variant];
         gameFlagSetNibble(GAME_FLAG_NEO_ARK_ROAMER_POOL_B_RESERVE, _gRoamerReserveCount);
-        gameFlagSetNibble(GAME_FLAG_NEO_ARK_ROAMER_POOL_B_VARIANT, gGameSession->location.loc.variant);
+        gameFlagSetNibble(GAME_FLAG_NEO_ARK_ROAMER_POOL_B_VARIANT, gGameSession->location.variant);
     }
     _roamerSeedReserveHp();
     _gRoamerCooldownFrames = ROAMER_ACTION_COOLDOWN_FRAMES;

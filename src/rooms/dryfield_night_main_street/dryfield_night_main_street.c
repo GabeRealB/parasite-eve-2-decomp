@@ -1981,7 +1981,7 @@ static inline void _dryfieldNightMainStreetApplySectionSpriteVisibility(SpriteVi
     savedState = gameFlagGetNibble(stateFlag);
     directory  = *commandListsAddress;
     command    = directory[savedState];
-    location   = &gGameSession->location.loc;
+    location   = &gGameSession->location;
     areaViews  = gSpriteAreaTables[location->stage - 1]->areaViews[location->area - 1];
     batches    = areaViews[command->slotIndex].batches;
     if (command->slotIndex != DRYFIELD_NIGHT_MAIN_STREET_SPRITE_PATCH_END) {

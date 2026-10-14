@@ -3969,7 +3969,7 @@ static void _actor403100Initialize(Task* task)
 
     model     = task->extra.tmd;
     rootCoord = model->coords;
-    if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_KEY(0xFF, 0xFF, 0xFF, 0)) != GAME_LOCATION_KEY(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_MOTEL_BALCONY, ACTOR_403100_BALCONY_ROOM_VARIANT, 0) ||
+    if ((GAME_LOCATION_WORD(gGameSession->location) & GAME_LOCATION_KEY(0xFF, 0xFF, 0xFF, 0)) != GAME_LOCATION_KEY(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_MOTEL_BALCONY, ACTOR_403100_BALCONY_ROOM_VARIANT, 0) ||
         (task->work = memCalloc(sizeof(Actor403100Work), false)) == NULL) {
         enemyDestroy(_gActor403100Enemy, task);
         return;
@@ -3982,7 +3982,7 @@ static void _actor403100Initialize(Task* task)
     model->colorMtx    = &work->color;
     task->msgTable     = _gActor403100MessageTable;
     // Save the view before binding the hidden, non-lockable target.
-    savedViewOrTargetFlags  = gGameSession->location.loc.view;
+    savedViewOrTargetFlags  = gGameSession->location.view;
     work->savedView         = savedViewOrTargetFlags;
     spawnedEnemy->field_48  = 0;
     spawnedEnemy->field_4   = &rootCoord->coord;
@@ -5364,13 +5364,13 @@ static void _actor403100BeginHeldPlayerSqueeze(Task* task)
         audioPan   = (s8)worldCoordGetOriginAudioPan(&task->extra.tmd->coords[4]);
         audioDepth = worldCoordGetOriginAudioDepth(&task->extra.tmd->coords[4]);
         sndEvtRequestScriptStart(soundId, audioPan, (s8)(audioDepth / 2));
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = ACTOR_403100_SQUEEZE_VIEW;
-        rootCoord->coord.t[0]                                      = -0x44C;
-        rootCoord->coord.t[1]                                      = 0;
-        rootCoord->coord.t[2]                                      = 0x1770;
-        _gActor403100Work->rotation.vx                             = 0;
-        _gActor403100Work->rotation.vy                             = ACTOR_TRANSFORM_ANGLE_TURN * 3 / 4;
-        _gActor403100Work->rotation.vz                             = 0;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = ACTOR_403100_SQUEEZE_VIEW;
+        rootCoord->coord.t[0]                                  = -0x44C;
+        rootCoord->coord.t[1]                                  = 0;
+        rootCoord->coord.t[2]                                  = 0x1770;
+        _gActor403100Work->rotation.vx                         = 0;
+        _gActor403100Work->rotation.vy                         = ACTOR_TRANSFORM_ANGLE_TURN * 3 / 4;
+        _gActor403100Work->rotation.vz                         = 0;
         _actor403100RequestAnimationReset(ACTOR_403100_ANIMATION_SQUEEZE);
         _gActor403100Work->armPitch        = 0xD0;
         _gActor403100Work->armYaw          = -0x350;
@@ -5520,17 +5520,17 @@ static void _actor403100StepHeldPlayerSqueeze(Task* task)
             return;
         }
         _actor403100PlayPlayerAnimation(ACTOR_403100_SQUEEZE_PLAYER_CLIP, ANIMATION_MESSAGE_INSTALL_AND_PLAY);
-        _gActor403100Work->stateFrames                             = 0;
-        _gActor403100Work->animationRate                           = ANIMATION_RATE_ONE / 2;
-        _gActor403100Work->animationId                             = ACTOR_403100_ANIMATION_THROW_HELD_PLAYER;
-        _gActor403100Work->animationRequest                        = ACTOR_403100_ANIMATION_REQUEST_RESET;
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = ACTOR_403100_HELD_PLAYER_THROW_VIEW;
-        rootCoord->coord.t[0]                                      = -0x44C;
-        rootCoord->coord.t[2]                                      = 0x1770;
-        rootCoord->coord.t[1]                                      = 0;
-        _gActor403100Work->rotation.vy                             = ACTOR_TRANSFORM_ANGLE_TURN * 3 / 4;
-        _gActor403100Work->rotation.vx                             = 0;
-        _gActor403100Work->rotation.vz                             = 0;
+        _gActor403100Work->stateFrames                         = 0;
+        _gActor403100Work->animationRate                       = ANIMATION_RATE_ONE / 2;
+        _gActor403100Work->animationId                         = ACTOR_403100_ANIMATION_THROW_HELD_PLAYER;
+        _gActor403100Work->animationRequest                    = ACTOR_403100_ANIMATION_REQUEST_RESET;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = ACTOR_403100_HELD_PLAYER_THROW_VIEW;
+        rootCoord->coord.t[0]                                  = -0x44C;
+        rootCoord->coord.t[2]                                  = 0x1770;
+        rootCoord->coord.t[1]                                  = 0;
+        _gActor403100Work->rotation.vy                         = ACTOR_TRANSFORM_ANGLE_TURN * 3 / 4;
+        _gActor403100Work->rotation.vx                         = 0;
+        _gActor403100Work->rotation.vz                         = 0;
         _actor403100ResetHeldArmPose(forearmCoord);
         _gActor403100Work->subState = ACTOR_403100_HOLD_THROW_SUBSTATE;
     }
@@ -5572,9 +5572,9 @@ static void _actor403100PrepareHeldPlayerFlameBreath(Task* task)
     _gActor403100Work->stateFrames = elapsedFrames;
     // Start the breath from its fixed placement with an empty flame pool.
     if ((s16)elapsedFrames >= ACTOR_403100_HELD_FLAME_PREPARE_FRAMES) {
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = ACTOR_403100_HELD_FLAME_VIEW;
-        rootCoord->coord.t[1]                                      = -0x1388;
-        _gActor403100Work->jawPitchOffset                          = 0;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = ACTOR_403100_HELD_FLAME_VIEW;
+        rootCoord->coord.t[1]                                  = -0x1388;
+        _gActor403100Work->jawPitchOffset                      = 0;
         _actor403100ResetHeldArmPose(forearmCoord);
         _gActor403100Work->animationId      = ACTOR_403100_ANIMATION_AIMED_FLAME;
         _gActor403100Work->animationRequest = ACTOR_403100_ANIMATION_REQUEST_RESET;
@@ -5823,17 +5823,17 @@ static void _actor403100RecoverHeldPlayerFromFlameBreath(Task* task)
     elapsedFrames                  = _gActor403100Work->stateFrames + 1;
     _gActor403100Work->stateFrames = elapsedFrames;
     if ((s16)elapsedFrames >= ACTOR_403100_HELD_FLAME_RECOVERY_FRAMES) {
-        _gActor403100Work->animationRate                           = ANIMATION_RATE_ONE / 2;
-        _gActor403100Work->animationId                             = ACTOR_403100_ANIMATION_THROW_HELD_PLAYER;
-        _gActor403100Work->animationRequest                        = ACTOR_403100_ANIMATION_REQUEST_RESET;
-        _gActor403100Work->stateFrames                             = 0;
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = ACTOR_403100_HELD_PLAYER_THROW_VIEW;
-        rootCoord->coord.t[0]                                      = -0x44C;
-        rootCoord->coord.t[2]                                      = 0x1770;
-        rootCoord->coord.t[1]                                      = 0;
-        _gActor403100Work->rotation.vy                             = ACTOR_TRANSFORM_ANGLE_TURN * 3 / 4;
-        _gActor403100Work->rotation.vx                             = 0;
-        _gActor403100Work->rotation.vz                             = 0;
+        _gActor403100Work->animationRate                       = ANIMATION_RATE_ONE / 2;
+        _gActor403100Work->animationId                         = ACTOR_403100_ANIMATION_THROW_HELD_PLAYER;
+        _gActor403100Work->animationRequest                    = ACTOR_403100_ANIMATION_REQUEST_RESET;
+        _gActor403100Work->stateFrames                         = 0;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = ACTOR_403100_HELD_PLAYER_THROW_VIEW;
+        rootCoord->coord.t[0]                                  = -0x44C;
+        rootCoord->coord.t[2]                                  = 0x1770;
+        rootCoord->coord.t[1]                                  = 0;
+        _gActor403100Work->rotation.vy                         = ACTOR_TRANSFORM_ANGLE_TURN * 3 / 4;
+        _gActor403100Work->rotation.vx                         = 0;
+        _gActor403100Work->rotation.vz                         = 0;
         _actor403100ResetHeldArmPose(forearmCoord);
         _gActor403100Work->subState += 1;
     }
@@ -5878,12 +5878,12 @@ static void _actor403100ThrowHeldPlayer(Task* task)
     _actor403100PlaceHeldPlayer(task);
     // Move the player out of the grip before choosing the damaged or death clip.
     if ((s16)_gActor403100Work->stateFrames >= ACTOR_403100_HELD_THROW_RELEASE_FRAME) {
-        _gActor403100Work->animationBlendFrames                    = ACTOR_403100_HELD_THROW_BLEND_FRAMES;
-        _gActor403100Work->animationRate                           = ANIMATION_RATE_ONE;
-        _gActor403100Work->animationId                             = ACTOR_403100_ANIMATION_ARM_RECOVERY;
-        _gActor403100Work->animationRequest                        = ACTOR_403100_ANIMATION_REQUEST_BLEND;
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = ACTOR_403100_HELD_THROW_IMPACT_VIEW;
-        _gActor403100Work->subState                               += 1;
+        _gActor403100Work->animationBlendFrames                = ACTOR_403100_HELD_THROW_BLEND_FRAMES;
+        _gActor403100Work->animationRate                       = ANIMATION_RATE_ONE;
+        _gActor403100Work->animationId                         = ACTOR_403100_ANIMATION_ARM_RECOVERY;
+        _gActor403100Work->animationRequest                    = ACTOR_403100_ANIMATION_REQUEST_BLEND;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = ACTOR_403100_HELD_THROW_IMPACT_VIEW;
+        _gActor403100Work->subState                           += 1;
         _actor403100PlacePlayer(-0x1BBC, -0xC80, -0x4B0, ACTOR_TRANSFORM_ANGLE_TURN / 4);
         playerTask = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
         if (taskMessageDispatch(playerTask, GAME_ACTOR_MESSAGE_APPLY_DAMAGE, damagePackAttackKey(_gActor403100Attacks, ACTOR_403100_HELD_THROW_ATTACK_ROW), 0) != 0) {
@@ -5960,7 +5960,7 @@ static void _actor403100FinishHeldPlayerThrow(Task* task)
     if (_gActor403100Work->playerKilled == 0) {
         if (taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_IS_PLAYING, 0, 0) == 0) {
             if (_gActor403100Enemy->hp > 0) {
-                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = ACTOR_403100_THROW_RETURN_VIEW;
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = ACTOR_403100_THROW_RETURN_VIEW;
             }
             _gActor403100Work->field_632         = 0;
             _gActor403100Work->handTouchedPlayer = 0;
@@ -6222,8 +6222,8 @@ static void _actor403100StepPlayerDrag(Task* unusedTask)
     _gActor403100Work->stateFrames = (s16)((u16)_gActor403100Work->stateFrames + 1);
     // Keep the byte-valued completion copy used across the damage/animation handoff.
     if ((finishedByte = dragFinished != 0)) {
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = ACTOR_403100_DRAG_RESULT_VIEW;
-        damageRecipientTask                                        = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = ACTOR_403100_DRAG_RESULT_VIEW;
+        damageRecipientTask                                    = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
         if (taskMessageDispatch(damageRecipientTask, GAME_ACTOR_MESSAGE_APPLY_DAMAGE, damagePackAttackKey(_gActor403100Attacks, ACTOR_403100_DRAG_ATTACK_ROW), 0) != 0) {
             gGameSession->suppressDeathChecks = 1;
             gGameSession->deathSoundCountdown = GAME_SESSION_DEATH_SOUND_HOLD;
@@ -6311,7 +6311,7 @@ static void _actor403100FinishPlayerDrag(Task* task)
             _gActor403100Work->handTouchedPlayer = 0;
             taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_END_SCRIPTED, 0, 0);
             if (_gActor403100Enemy->hp > 0) {
-                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = ACTOR_403100_DRAG_RETURN_VIEW;
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = ACTOR_403100_DRAG_RETURN_VIEW;
             }
             gGameSession->suppressViewTriggers = 0;
             _gActor403100Work->vulnerable      = 0;
@@ -6362,29 +6362,29 @@ static void _actor403100BeginLowHealthScene(Task* task)
     _actor403100ReleaseFlames();
     sndEvtRequestScriptStop(SOUND_CHARACTER(SOUND_BANK_BURNER, 4), SOUND_SCRIPT_STOP_KEEP_RELEASE);
     // Preserve the fight pose before moving to the scene's fixed placement.
-    _gActor403100Work->savedView                               = gGameSession->location.loc.view;
-    _gActor403100Work->savedRootMatrix                         = rootCoord->coord;
-    _gActor403100Work->savedRotation                           = _gActor403100Work->rotation;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = ACTOR_403100_LOW_HEALTH_SCENE_VIEW;
-    work                                                       = _gActor403100Work;
-    work->phaseChangeDone                                      = 1;
-    work->walkStage                                            = ACTOR_403100_WALK_STOPPED;
-    work->animationRate                                        = ANIMATION_RATE_ONE;
-    work->animationId                                          = ACTOR_403100_ANIMATION_LOW_HEALTH_SCENE;
-    work->animationRequest                                     = ACTOR_403100_ANIMATION_REQUEST_RESET;
-    work->aimMode                                              = ACTOR_403100_AIM_ANIMATED;
-    _gActor403100Work->armPitch                                = 0;
-    _gActor403100Work->armYaw                                  = 0;
-    _gActor403100Work->forearmTurn.vx                          = 0;
-    _gActor403100Work->forearmTurn.vy                          = 0;
-    _gActor403100Work->forearmTurn.vz                          = 0;
-    rootCoord->coord.t[0]                                      = -0x44C;
-    rootCoord->coord.t[1]                                      = -0x1388;
-    rootCoord->coord.t[2]                                      = 0x2710;
-    _gActor403100Work->rotation.vx                             = 0;
-    _gActor403100Work->rotation.vy                             = 0xA00;
-    _gActor403100Work->rotation.vz                             = 0;
-    gGameSession->hideHud                                      = 1;
+    _gActor403100Work->savedView                           = gGameSession->location.view;
+    _gActor403100Work->savedRootMatrix                     = rootCoord->coord;
+    _gActor403100Work->savedRotation                       = _gActor403100Work->rotation;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = ACTOR_403100_LOW_HEALTH_SCENE_VIEW;
+    work                                                   = _gActor403100Work;
+    work->phaseChangeDone                                  = 1;
+    work->walkStage                                        = ACTOR_403100_WALK_STOPPED;
+    work->animationRate                                    = ANIMATION_RATE_ONE;
+    work->animationId                                      = ACTOR_403100_ANIMATION_LOW_HEALTH_SCENE;
+    work->animationRequest                                 = ACTOR_403100_ANIMATION_REQUEST_RESET;
+    work->aimMode                                          = ACTOR_403100_AIM_ANIMATED;
+    _gActor403100Work->armPitch                            = 0;
+    _gActor403100Work->armYaw                              = 0;
+    _gActor403100Work->forearmTurn.vx                      = 0;
+    _gActor403100Work->forearmTurn.vy                      = 0;
+    _gActor403100Work->forearmTurn.vz                      = 0;
+    rootCoord->coord.t[0]                                  = -0x44C;
+    rootCoord->coord.t[1]                                  = -0x1388;
+    rootCoord->coord.t[2]                                  = 0x2710;
+    _gActor403100Work->rotation.vx                         = 0;
+    _gActor403100Work->rotation.vy                         = 0xA00;
+    _gActor403100Work->rotation.vz                         = 0;
+    gGameSession->hideHud                                  = 1;
     playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
     sceneSound = (((u16)((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | SOUND_CHARACTER(SOUND_BANK_BURNER, 11);
     audioPan   = (s8)worldCoordGetOriginAudioPan(&task->extra.tmd->coords[ACTOR_403100_PART_JAW]);
@@ -6413,9 +6413,9 @@ static void _actor403100StepLowHealthScene(Task* task)
     s32       audioDepth;
     GfxCoord* rootCoord;
 
-    rootCoord                                                  = task->extra.tmd->coords;
-    _gActor403100Work->stateFrames                            += 1;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = ACTOR_403100_LOW_HEALTH_SCENE_VIEW;
+    rootCoord                                              = task->extra.tmd->coords;
+    _gActor403100Work->stateFrames                        += 1;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = ACTOR_403100_LOW_HEALTH_SCENE_VIEW;
     if ((s16)_gActor403100Work->stateFrames == ACTOR_403100_LOW_HEALTH_IMAGE_FRAME) {
         gpuUploadImages(&_gActor403100LowHealthTextureUploads[0]);
     }
@@ -6438,11 +6438,11 @@ static void _actor403100StepLowHealthScene(Task* task)
         _gActor403100Enemy->node.state.parts.flags = WORLD_TARGET_HIDE_HP;
         gGameSession->hideHud                      = 0;
         taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_END_SCRIPTED, 2, 0);
-        rootCoord->coord                                           = _gActor403100Work->savedRootMatrix;
-        _gActor403100Work->rotation                                = _gActor403100Work->savedRotation;
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = _gActor403100Work->savedView;
-        _gActor403100Work->state                                   = ACTOR_403100_BEHAVIOUR_ATTACK_APPROACH;
-        _gActor403100Work->subState                                = 0;
+        rootCoord->coord                                       = _gActor403100Work->savedRootMatrix;
+        _gActor403100Work->rotation                            = _gActor403100Work->savedRotation;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = _gActor403100Work->savedView;
+        _gActor403100Work->state                               = ACTOR_403100_BEHAVIOUR_ATTACK_APPROACH;
+        _gActor403100Work->subState                            = 0;
     }
 }
 
@@ -8609,12 +8609,12 @@ static void _actor403100FinishSceneDeparture(Task* task)
     };
     TmdObject* model;
 
-    model                              = task->extra.tmd;
-    model->flags                      |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    _gActor403100EnemyParams.bp        = 0;
-    _gActor403100EnemyParams.mp        = 0;
-    _gActor403100EnemyParams.exp     >>= 1;
-    gGameSession->location.loc.variant = ACTOR_403100_DEPARTURE_ROOM_VARIANT;
+    model                          = task->extra.tmd;
+    model->flags                  |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+    _gActor403100EnemyParams.bp    = 0;
+    _gActor403100EnemyParams.mp    = 0;
+    _gActor403100EnemyParams.exp >>= 1;
+    gGameSession->location.variant = ACTOR_403100_DEPARTURE_ROOM_VARIANT;
     sceneReleaseBattleRefWithRewards(task, 0);
     task->state                 = ACTOR_403100_TASK_EXIT;
     _gActor403100Work->state    = 0;
@@ -8777,10 +8777,10 @@ static void _actor403100BeginHeldPlayerLift(Task* task)
     _gActor403100Work->animationRequest = ACTOR_403100_ANIMATION_REQUEST_RESET;
     // The grip must be sampled from the lift clip before changing the camera.
     _actor403100PlaceHeldPlayer(task);
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = ACTOR_403100_HELD_LIFT_VIEW;
-    _gActor403100Work->overlayX                                = 0;
-    _gActor403100Work->overlayY                                = 0;
-    _gActor403100Work->subState                               += 1;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = ACTOR_403100_HELD_LIFT_VIEW;
+    _gActor403100Work->overlayX                            = 0;
+    _gActor403100Work->overlayY                            = 0;
+    _gActor403100Work->subState                           += 1;
 }
 /// Resumes attack approach when the reversed grab clip reaches a transition.
 ///

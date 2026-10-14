@@ -1989,7 +1989,7 @@ static void _actor161500SelectCaptionFile(s32 captionFile)
         gCapFile = NULL;
         if (captionFile <= 0) {
             variantCaptionFile = ACTOR_161500_CAPTION_FILE_STANDARD;
-            if (gGameSession->location.loc.variant == ACTOR_161500_ALTERNATE_VARIANT) {
+            if (gGameSession->location.variant == ACTOR_161500_ALTERNATE_VARIANT) {
                 variantCaptionFile = ACTOR_161500_CAPTION_FILE_ALTERNATE;
             }
             captionFile = variantCaptionFile;
@@ -2006,7 +2006,7 @@ void actor161500StartSoldierBTalkA(void)
     s32 variantScriptOffset;
     s32 talkIndex;
 
-    variantScriptOffset = (gGameSession->location.loc.variant == ACTOR_161500_ALTERNATE_VARIANT) * ACTOR_161500_TALKS_PER_VARIANT;
+    variantScriptOffset = (gGameSession->location.variant == ACTOR_161500_ALTERNATE_VARIANT) * ACTOR_161500_TALKS_PER_VARIANT;
     talkIndex           = gameFlagGetNibble(GAME_FLAG_SOLDIER_B_TALK_COUNT_A);
     evsStartScript(_gActor161500TalkAScripts[talkIndex + variantScriptOffset], EVENT_SCRIPT_HUD_HIDE_RESTORE);
     if (talkIndex < ACTOR_161500_LAST_TALK) {
@@ -2019,7 +2019,7 @@ void actor161500StartSoldierBTalkB(void)
     s32 variantScriptOffset;
     s32 talkIndex;
 
-    variantScriptOffset = (gGameSession->location.loc.variant == ACTOR_161500_ALTERNATE_VARIANT) * ACTOR_161500_TALKS_PER_VARIANT;
+    variantScriptOffset = (gGameSession->location.variant == ACTOR_161500_ALTERNATE_VARIANT) * ACTOR_161500_TALKS_PER_VARIANT;
     talkIndex           = gameFlagGetNibble(GAME_FLAG_SOLDIER_B_TALK_COUNT_B);
     evsStartScript(_gActor161500TalkBScripts[talkIndex + variantScriptOffset], EVENT_SCRIPT_HUD_HIDE_RESTORE);
     if (talkIndex < ACTOR_161500_LAST_TALK) {
@@ -2033,7 +2033,7 @@ static void _actor161500OpenHeliportShop(void)
     GameSession* session;
 
     session = gGameSession;
-    switch (session->location.loc.variant) {
+    switch (session->location.variant) {
         case ACTOR_161500_ALTERNATE_VARIANT:
             shopOpenSession(ACTOR_161500_SHOP_STOCK_ALTERNATE);
             break;

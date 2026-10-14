@@ -94,7 +94,7 @@ void sceneBattleStartTransitionTask(Task* task)
         hud                 = task->spawnArg2.pointer;
         hud->battleStep     = HUD_BATTLE_STEP_FIGHT;
         task->killCountdown = SCENE_BATTLE_START_DELAY_FRAMES;
-        if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_R48, 0, 0)) {
+        if ((GAME_LOCATION_WORD(gGameSession->location) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_R48, 0, 0)) {
             task->killCountdown = SCENE_BATTLE_START_LONG_DELAY_FRAMES;
         }
         sndEvtRequestScriptStart(SOUND_AREA_EXIT, 0, 0);

@@ -523,7 +523,7 @@ static void _shelter1fGuardroomUnlockMovieTask(Task* task)
         case SHELTER_1F_GUARDROOM_MOVIE_START:
             _shelter1fGuardroomSetUnlockOverlayVisible(0);
             queue->movieFrame = SHELTER_1F_GUARDROOM_MOVIE_FIRST_FRAME;
-            streamArgs[0]     = streamFindMovieSlot(&gGameSession->location.loc, SHELTER_1F_GUARDROOM_MOVIE_SUB_ID, 0);
+            streamArgs[0]     = streamFindMovieSlot(&gGameSession->location, SHELTER_1F_GUARDROOM_MOVIE_SUB_ID, 0);
             // The queue copies four bytes; this opcode uses only the slot byte.
             cdCmdEnqueue(CD_COMMAND_PLAY_STREAM, 0, streamArgs);
             task->state++;
@@ -552,7 +552,7 @@ static void _shelter1fGuardroomSetUnlockOverlayVisible(u8 visible)
         SHELTER_1F_GUARDROOM_UNLOCK_OVERLAY_VIEW_INDEX  = 2,
         SHELTER_1F_GUARDROOM_UNLOCK_OVERLAY_BATCH_INDEX = 1,
     };
-    const GameLocationKey* location = &gGameSession->location.loc;
+    const GameLocationKey* location = &gGameSession->location;
     SpriteBatch*           batches;
 
     batches = gSpriteAreaTables[location->stage - 1]->areaViews[location->area - 1][SHELTER_1F_GUARDROOM_UNLOCK_OVERLAY_VIEW_INDEX].batches;

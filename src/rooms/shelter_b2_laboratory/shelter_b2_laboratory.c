@@ -1395,7 +1395,7 @@ static void _shelterB2LaboratoryAmbienceTask(Task* task)
                 taskKill(task);
                 return;
             }
-            if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view != gGameSession->location.loc.view) {
+            if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view != gGameSession->location.view) {
                 task->state++;
             }
             break;
@@ -1406,7 +1406,7 @@ static void _shelterB2LaboratoryAmbienceTask(Task* task)
             break;
         case SHELTER_B2_LABORATORY_AMBIENCE_RETUNE:
             // The table is a gain percentage; the sound API takes attenuation.
-            viewAttenuation = SHELTER_B2_LABORATORY_AMBIENCE_MAX_ATTENUATION - _gShelterB2LaboratoryAmbienceGainPercentByView[gGameSession->location.loc.view] * SHELTER_B2_LABORATORY_AMBIENCE_MAX_ATTENUATION / SHELTER_B2_LABORATORY_AMBIENCE_PERCENT_SCALE;
+            viewAttenuation = SHELTER_B2_LABORATORY_AMBIENCE_MAX_ATTENUATION - _gShelterB2LaboratoryAmbienceGainPercentByView[gGameSession->location.view] * SHELTER_B2_LABORATORY_AMBIENCE_MAX_ATTENUATION / SHELTER_B2_LABORATORY_AMBIENCE_PERCENT_SCALE;
             if (viewAttenuation >= SHELTER_B2_LABORATORY_AMBIENCE_MAX_ATTENUATION + 1) {
                 viewAttenuation = SHELTER_B2_LABORATORY_AMBIENCE_MAX_ATTENUATION;
             }
@@ -1584,7 +1584,7 @@ static void _shelterB2LaboratoryFinishConsoleSceneTask(Task* task)
 
     switch (task->state) {
         case SHELTER_B2_LABORATORY_FINISH_WAIT_VIEW:
-            if (gGameSession->location.loc.view == SHELTER_B2_LABORATORY_FINISH_SCENE_VIEW) {
+            if (gGameSession->location.view == SHELTER_B2_LABORATORY_FINISH_SCENE_VIEW) {
                 task->state = SHELTER_B2_LABORATORY_FINISH_REQUEST_MUSIC;
             }
             return;

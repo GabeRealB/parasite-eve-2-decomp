@@ -135,25 +135,25 @@ extern Task* gRoomCutsceneSoundTask;
 ///
 /// Set before task allocation and retained on failure; it does not prove that
 /// a task exists. The running task observes a clear request in its wait state.
-static s32 _gShelterB6NurseryAmbienceRequested;
+s32 _gShelterB6NurseryAmbienceRequested;
 
 /// Persistent view-6 scene configuration shared by nursery command-10 scenes.
 ///
 /// The runner borrows `rec` until completion. Its sounds and scene selectors
 /// are filled before spawning; the retained eight-byte unknown span is unused.
-static RoomCutsceneRecStorage _gShelterB6NurseryCutsceneRec;
+RoomCutsceneRecStorage _gShelterB6NurseryCutsceneRec;
 
 /// Persistent coordinate for the nursery ambience source at room (6000, 0, -830).
 ///
 /// Reparented to the current view and composed each tick for pan and depth
 /// queries. Only translation is sampled; its zero-initialized basis is retained.
-static GfxCoord _gShelterB6NurseryAmbienceOrigin;
+GfxCoord _gShelterB6NurseryAmbienceOrigin;
 
 /// Pending glint-pulse and spark-shower cues from nursery scene scripts.
 ///
 /// The setter retains each argument's low 16 bits. Initialization and a cued
 /// view-13 shower clear both; leaving view 13 alone does not consume a cue.
-static _ShelterB6NurseryEffectCues _gShelterB6NurseryEffectCues;
+_ShelterB6NurseryEffectCues _gShelterB6NurseryEffectCues;
 
 #include "../../shared/telephone.h"
 #include "../../shared/sprite_quad.h"
@@ -1158,7 +1158,7 @@ static void _shelterB6NurseryAmbienceTask(Task* task)
                 taskKill(task);
                 return;
             }
-            if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view != gGameSession->location.loc.view) {
+            if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view != gGameSession->location.view) {
                 task->state++;
             }
             break;
@@ -1168,7 +1168,7 @@ static void _shelterB6NurseryAmbienceTask(Task* task)
             task->state++;
             break;
         case SHELTER_B6_NURSERY_AMBIENCE_RETUNE:
-            viewDepth = _gShelterB6NurseryAmbienceDepthOverrides[gGameSession->location.loc.view];
+            viewDepth = _gShelterB6NurseryAmbienceDepthOverrides[gGameSession->location.view];
             if (viewDepth != SHELTER_B6_NURSERY_AMBIENCE_COMPUTED_DEPTH) {
                 depth = viewDepth;
             }
@@ -1291,7 +1291,7 @@ void shelterB6NurserySetView13SpriteHidden(u8 hidden)
            SPRITE_VISIBLE = 0,
            SPRITE_HIDDEN  = 1 };
 
-    const GameLocationKey* location = &gGameSession->location.loc;
+    const GameLocationKey* location = &gGameSession->location;
     SpriteBatch*           view13Batches;
 
     view13Batches = gSpriteAreaTables[location->stage - 1]->areaViews[location->area - 1][VIEW_INDEX].batches;

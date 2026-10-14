@@ -131,7 +131,7 @@ static void _shelter1fTentInitializeRoom(Task* task)
     };
     task->msgTable = _gShelter1fTentRoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
-    if (gGameSession->location.loc.variant == SOLDIER_ROOM_VARIANT) {
+    if (gGameSession->location.variant == SOLDIER_ROOM_VARIANT) {
         actor460200SetupTentSoldiers();
     }
     if (gameFlagGetNibble(GAME_FLAG_SHELTER_1F_TENT_ARRIVED) == 0) {

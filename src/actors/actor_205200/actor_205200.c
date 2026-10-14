@@ -601,7 +601,7 @@ static void _actor205200MeasureNearestPart(Task* task)
 
     work->nearestCoord    = NULL;
     work->nearestDistance = ACTOR_205200_NO_PART_DISTANCE;
-    camera                = viewGetMappedCamera(&gGameSession->location.loc);
+    camera                = viewGetMappedCamera(&gGameSession->location);
     for (slot = 0; slot < ARRAY_SIZE(work->partLive); slot++) {
         if (work->partLive[slot] == true) {
             work->partCoords[slot]->composeStamp = GRAPHICS_COORD_DIRTY;
@@ -903,7 +903,7 @@ static void _actor205200TickDownPart(Enemy* enemy, Task* task)
                 part->sparkTimer = ((gRandomLcgState >> 16) & ACTOR_205200_PART_WRECK_SPARK_DELAY_MASK) + ACTOR_205200_PART_WRECK_DELAY_BASE;
                 effectSpawnHit(EFFECT_HIT_KIND_SPARK_BURST, coord, NULL, &part->effectArg);
                 effectSpawn(EFFECT_SMOKE_PUFF, coord, ACTOR_205200_PART_SMOKE_SUBTRACTIVE, NULL);
-                camera          = viewGetMappedCamera(&gGameSession->location.loc);
+                camera          = viewGetMappedCamera(&gGameSession->location);
                 cameraOffset.vx = camera->transform.t[0] + coord->coord.t[0];
                 cameraOffset.vy = camera->transform.t[1] + coord->coord.t[1];
                 cameraOffset.vz = camera->transform.t[2] + coord->coord.t[2];

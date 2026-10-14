@@ -2095,7 +2095,7 @@ static s32 _actor01900ApplyCappedGridPushback(GfxCoord* coord, const WorldCollis
         scratch->step.vx = scratchEnd[-1].delta.fixed.vx.word >> ACTOR_01900_FIXED_FRACTION_BITS;
         scratch->step.vy = scratch->delta.fixed.vy.word >> ACTOR_01900_FIXED_FRACTION_BITS;
         scratch->step.vz = scratch->delta.fixed.vz.word >> ACTOR_01900_FIXED_FRACTION_BITS;
-        if (_actor01900HasHeightClamp(&gGameSession->location.loc)) {
+        if (_actor01900HasHeightClamp(&gGameSession->location)) {
             verticalStep = scratch->step.vy;
             if (((verticalStep >= 0) ? verticalStep : -verticalStep) > ACTOR_01900_GRID_VERTICAL_LIMIT) {
                 scratch->step.vy = (verticalStep <= 0) ? -ACTOR_01900_GRID_VERTICAL_LIMIT : ACTOR_01900_GRID_VERTICAL_LIMIT;
@@ -2130,8 +2130,8 @@ static s32 _actor01900ApplyCappedGridPushback(GfxCoord* coord, const WorldCollis
             }
         }
     }
-    if (_actor01900HasHeightClamp(&gGameSession->location.loc)) {
-        _actor01900ClampRootHeight(&gGameSession->location.loc, coord);
+    if (_actor01900HasHeightClamp(&gGameSession->location)) {
+        _actor01900ClampRootHeight(&gGameSession->location, coord);
         coord->coord.t[1] += heightOffset;
     }
     if (scratch->delta.fixed.vx.word != 0 || scratch->delta.fixed.vz.word != 0) {
@@ -2966,7 +2966,7 @@ static void _actor01900StateDormantScripted(Task* task)
     _actor01900UpdateAnimation(task);
     // Edge-trigger cues on the low ten bits of the pose record index.
     if ((work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) == ACTOR_01900_DORMANT_SOUND_CUE && work->dormantAnimFrame != (work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) &&
-        (GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_FORKED_ROAD, 0, 0)) {
+        (GAME_LOCATION_WORD(gGameSession->location) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_FORKED_ROAD, 0, 0)) {
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
         sound           = ACTOR_01900_DORMANT_SOUND_B;
         if ((u16)((gRandomLcgState >> 16) % 3) == 0) {
@@ -2989,7 +2989,7 @@ static void _actor01900StateDormantScripted(Task* task)
         work->effectArg.coord      = task->extra.tmd->coords + 1;
         work->effectArg.spawnArgLo = ACTOR_01900_DORMANT_EFFECT_ARGUMENT_LOW;
         work->effectArg.spawnArgHi = ACTOR_01900_HIT_EFFECT_REPEAT_COUNT;
-        if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PATIO, 0, 0) || (u8)viewGetMappedIndex() != ACTOR_01900_DORMANT_PATIO_EFFECT_SKIP_VIEW) {
+        if ((GAME_LOCATION_WORD(gGameSession->location) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PATIO, 0, 0) || (u8)viewGetMappedIndex() != ACTOR_01900_DORMANT_PATIO_EFFECT_SKIP_VIEW) {
             effectSpawnHit(damageGetPlayerAttackEffectId(ACTOR_01900_DORMANT_EFFECT_ATTACK_KEY), task->extra.tmd->coords + 5, NULL, &work->effectArg);
         }
     }

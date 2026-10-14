@@ -912,7 +912,7 @@ void dryfieldNightBreezewayDrawGlowsTask(Task* task)
     };
 
     gRoomEffectState->roomEffectMode = ROOM_EFFECT_VIEW_ENABLED;
-    switch (gGameSession->location.loc.view) {
+    switch (gGameSession->location.view) {
         case DRYFIELD_NIGHT_BREEZEWAY_VIEW_FLARE_AND_SHAFT:
             _glowDrawFlare(&_gDryfieldNightBreezewayGlowPoints[DRYFIELD_NIGHT_BREEZEWAY_GLOW_FLARE_POINT], DRYFIELD_NIGHT_BREEZEWAY_FLARE_TEXTURE_INDEX, DRYFIELD_NIGHT_BREEZEWAY_FLARE_RADIUS_SCALE);
             _glowDrawShaft(&_gDryfieldNightBreezewayGlowPoints[DRYFIELD_NIGHT_BREEZEWAY_GLOW_VIEW2_SHAFT_POINTS], DRYFIELD_NIGHT_BREEZEWAY_SHAFT_RADIUS_SCALE);

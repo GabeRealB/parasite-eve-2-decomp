@@ -537,7 +537,7 @@ void titleRestoreAttractDemoState(void)
     if (gDisplayState.demoScene == DISPLAY_DEMO_FIXED_REPLAY) {
         stateBytes = GAME_DEBUG_FIXED_REPLAY_BASE;
     }
-    printf(_gTitleAttractDemoRestoreFormat, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area);
+    printf(_gTitleAttractDemoRestoreFormat, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.stage, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.area);
 
     // Consume one live record of each kind in the demo file's serialized order.
     memcpy(&gMcSaveData[MEMORY_CARD_SAVE_LIVE], stateBytes, sizeof(gMcSaveData[MEMORY_CARD_SAVE_LIVE]));
@@ -570,10 +570,10 @@ void titleRestoreAttractDemoState(void)
     // Keep the active replay selection and the user's vibration setting.
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene = savedDemoScene;
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.vibration = savedVibration;
-    if (fsIsStageCdfAvailable(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage) != true) {
+    if (fsIsStageCdfAvailable(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.stage) != true) {
         gDisplayState.gameMode = DISPLAY_GAME_RESTART;
     }
-    printf(_gTitleAttractDemoRestoreFormat, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area);
+    printf(_gTitleAttractDemoRestoreFormat, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.stage, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.area);
 }
 
 /// Enables the title background strips and advances to the prompt state.
@@ -640,9 +640,9 @@ static void _titleIntroMovieTask(Task* task)
         TITLE_INTRO_DISC_1_MOVIE_ID = 0x64,
         TITLE_INTRO_DISC_2_MOVIE_ID = 0x65,
     };
-    u8          movieArgs[sizeof(gCdCmdQueue.entries[0].args)];
-    GameLoc     movieLocation;
-    CdCmdQueue* queue = &gCdCmdQueue;
+    u8              movieArgs[sizeof(gCdCmdQueue.entries[0].args)];
+    GameLocationKey movieLocation;
+    CdCmdQueue*     queue = &gCdCmdQueue;
 
     switch (task->state) {
         case TITLE_INTRO_PREPARE:
@@ -654,12 +654,12 @@ static void _titleIntroMovieTask(Task* task)
         case TITLE_INTRO_QUEUE_MOVIE:
             movieLocation = gGameSession->location;
             if (gGameMainPersistentState.discNumber == GAME_MAIN_DISC_2) {
-                movieLocation.loc.view = TITLE_INTRO_DISC_2_MOVIE_ID;
+                movieLocation.view = TITLE_INTRO_DISC_2_MOVIE_ID;
             } else {
-                movieLocation.loc.view = TITLE_INTRO_DISC_1_MOVIE_ID;
+                movieLocation.view = TITLE_INTRO_DISC_1_MOVIE_ID;
             }
             // Playback uses only the slot byte; the queue copies all four bytes.
-            movieArgs[0] = streamFindMovieSlot(&movieLocation.loc, 0, 0);
+            movieArgs[0] = streamFindMovieSlot(&movieLocation, 0, 0);
             cdCmdEnqueue(CD_COMMAND_PLAY_STREAM, 0, movieArgs);
             task->state++;
             break;

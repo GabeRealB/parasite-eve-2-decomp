@@ -141,7 +141,7 @@ static void _desertChaserPursue(Task* task)
         relativeYaw                = _actorAngleTurnToOffset(task->extra.tmd->coords, ActorContact_ScratchPosition.vx, ActorContact_ScratchPosition.vz);
         if ((abs(relativeYaw) >= DESERT_CHASER_LUNGE_BACKWARD_YAW_LIMIT + 1) && (scratch->pushLengthSquared >= (u32)DESERT_CHASER_LUNGE_MIN_PUSH_SQUARED)) {
 #if !DESERT_CHASER_WATER_TOWER_BEHAVIOR
-            if (((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_MINE_MESA, 0, 0)) && _actor00100IsInMesaDropRegion(task)) {
+            if (((GAME_LOCATION_WORD(gGameSession->location) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_MINE_MESA, 0, 0)) && _actor00100IsInMesaDropRegion(task)) {
                 if (_actor00100FacesMesaDrop(task->extra.tmd->coords)) {
                     work->state = DESERT_CHASER_STATE_MESA_FALL;
                 } else {

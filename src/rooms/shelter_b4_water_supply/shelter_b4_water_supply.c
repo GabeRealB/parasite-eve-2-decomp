@@ -922,7 +922,7 @@ static RoomFadeStorage _gShelterB4WaterSupplyUpperSewerFade = { 0 };
 /// Only `loc.area`, `loc.warp` and `loc.room` are written and later committed;
 /// the other bytes retain their zero initialization. Keep this room-owned cell
 /// stable until the deferred departure finishes its fade and transit sound.
-static GameLoc _gShelterB4WaterSupplyUpperSewerDestination = { 0 };
+static GameLocationKey _gShelterB4WaterSupplyUpperSewerDestination = { 0 };
 
 RoomDeparture gRoomDeparture = { 0 };
 
@@ -1020,10 +1020,10 @@ static void _shelterB4WaterSupplyUpperSewerDepartureTask(Task* task)
             break;
         case SHELTER_B4_WATER_SUPPLY_SEWER_RELOAD:
             // Publish the staged selectors only after the fade and transit sound finish.
-            gDisplayState.spriteVariant                                = SHELTER_B4_WATER_SUPPLY_RELOAD_SPRITE_VARIANT;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = _gShelterB4WaterSupplyUpperSewerDestination.loc.area;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = _gShelterB4WaterSupplyUpperSewerDestination.loc.warp;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = _gShelterB4WaterSupplyUpperSewerDestination.loc.room;
+            gDisplayState.spriteVariant                            = SHELTER_B4_WATER_SUPPLY_RELOAD_SPRITE_VARIANT;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.area = _gShelterB4WaterSupplyUpperSewerDestination.area;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp = _gShelterB4WaterSupplyUpperSewerDestination.warp;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.room = _gShelterB4WaterSupplyUpperSewerDestination.room;
             taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_SKIP_BATTLE_ESCAPE, 0);
             taskKill(task);
             break;
@@ -1055,9 +1055,9 @@ static s32 _shelterB4WaterSupplyResolveRoomEvent(Task* unusedTask, s32 unusedMes
     mapShelterRoomVariantResolve(request, reply);
     if (request->areaId == GAME_AREA_SHELTER_B4_UPPER_SEWER) {
         if (request->queryOnly == ROOM_EVENT_EXECUTE) {
-            _gShelterB4WaterSupplyUpperSewerDestination.loc.area = reply->areaId;
-            _gShelterB4WaterSupplyUpperSewerDestination.loc.warp = reply->warp;
-            _gShelterB4WaterSupplyUpperSewerDestination.loc.room = reply->room;
+            _gShelterB4WaterSupplyUpperSewerDestination.area = reply->areaId;
+            _gShelterB4WaterSupplyUpperSewerDestination.warp = reply->warp;
+            _gShelterB4WaterSupplyUpperSewerDestination.room = reply->room;
             taskSpawnFromTable(_gShelterB4WaterSupplyDepartureTaskDescs, SHELTER_B4_WATER_SUPPLY_SEWER_DEPARTURE_DESCRIPTOR, SHELTER_B4_WATER_SUPPLY_SEWER_DEPARTURE_CAP, 0);
         }
         return SHELTER_B4_WATER_SUPPLY_DEPARTURE_DEFERRED;

@@ -52,7 +52,7 @@ static s32 _roomVariantResolveShelter(RoomEventMsg* request, RoomEventMsg* reply
 /// save; the other cell bytes are unused. Supports one pending departure and
 /// remains valid only while this room overlay is loaded. Keep this first BSS
 /// declaration before `gRoomDeparture`.
-static GameLoc _gNeoArkEveAccessTunnelPendingElevatorDestination;
+static GameLocationKey _gNeoArkEveAccessTunnelPendingElevatorDestination;
 
 /// The staged event descriptor, read by the task spawned above.
 extern RoomDeparture gRoomDeparture;
@@ -590,10 +590,10 @@ void neoArkEveAccessTunnelElevatorDepartureTask(Task* task)
             return;
         case NEO_ARK_EVE_ACCESS_TUNNEL_DEPARTURE_COMMIT:
             // Commit only area, warp and room; the remaining saved location bytes stay live.
-            gDisplayState.spriteVariant                                = 1;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = _gNeoArkEveAccessTunnelPendingElevatorDestination.loc.area;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = _gNeoArkEveAccessTunnelPendingElevatorDestination.loc.warp;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = _gNeoArkEveAccessTunnelPendingElevatorDestination.loc.room;
+            gDisplayState.spriteVariant                            = 1;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.area = _gNeoArkEveAccessTunnelPendingElevatorDestination.area;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp = _gNeoArkEveAccessTunnelPendingElevatorDestination.warp;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.room = _gNeoArkEveAccessTunnelPendingElevatorDestination.room;
             taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
             taskKill(task);
             break;
@@ -627,10 +627,10 @@ s32 neoArkEveAccessTunnelResolveTransition(Task* unusedTask, s32 unusedMessageId
                 default:
                     if (request->queryOnly == ROOM_EVENT_EXECUTE) {
                         // Preserve the three resolved selectors for the deferred reload.
-                        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent        = NEO_ARK_EVE_ACCESS_TUNNEL_ELEVATOR_SCENE_EVENT;
-                        _gNeoArkEveAccessTunnelPendingElevatorDestination.loc.area = (u8)reply->areaId;
-                        _gNeoArkEveAccessTunnelPendingElevatorDestination.loc.warp = reply->warp;
-                        _gNeoArkEveAccessTunnelPendingElevatorDestination.loc.room = reply->room;
+                        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent    = NEO_ARK_EVE_ACCESS_TUNNEL_ELEVATOR_SCENE_EVENT;
+                        _gNeoArkEveAccessTunnelPendingElevatorDestination.area = (u8)reply->areaId;
+                        _gNeoArkEveAccessTunnelPendingElevatorDestination.warp = reply->warp;
+                        _gNeoArkEveAccessTunnelPendingElevatorDestination.room = reply->room;
                         playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
                         taskSpawnFromTable(gNeoArkEveAccessTunnelEventTasks, NEO_ARK_EVE_ACCESS_TUNNEL_ELEVATOR_TASK, 0, 0);
                     }
@@ -650,7 +650,7 @@ s32 neoArkEveAccessTunnelHandleCommand(Task* unusedTask, s32 unusedMessageId, s3
         NEO_ARK_EVE_ACCESS_TUNNEL_CAP_PART_1_DOWN = 9,
     };
 
-    if (gGameSession->location.loc.variant == NEO_ARK_EVE_ACCESS_TUNNEL_MASKED_BACKDROP_VARIANT) {
+    if (gGameSession->location.variant == NEO_ARK_EVE_ACCESS_TUNNEL_MASKED_BACKDROP_VARIANT) {
         switch (commandId) {
             case NEO_ARK_EVE_ACCESS_TUNNEL_COMMAND_PART_0:
                 if (gameFlagGetNibble(GAME_FLAG_EVE_ACCESS_TUNNEL_PART_0_DOWN) == 0) {
@@ -749,7 +749,7 @@ static void _neoArkEveAccessTunnelInitializeRoom(Task* task)
 {
     task->msgTable = gNeoArkEveAccessTunnelRoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
-    if (gGameSession->location.loc.variant == NEO_ARK_EVE_ACCESS_TUNNEL_MASKED_BACKDROP_VARIANT) {
+    if (gGameSession->location.variant == NEO_ARK_EVE_ACCESS_TUNNEL_MASKED_BACKDROP_VARIANT) {
         // Preserve the mask on the loaded backdrop before subsequent view decodes.
         _neoArkEveAccessTunnelMaskBackdrop();
         gGameSession->flowFlags = GAME_SESSION_FLOW_SKIP_ENDING_MUSIC;
@@ -765,11 +765,11 @@ static void _neoArkEveAccessTunnelUpdateRoom(Task* unusedTask)
 {
     CdCmdQueue* queue = &gCdCmdQueue;
 
-    if (gGameSession->location.loc.variant < (u32)NEO_ARK_EVE_ACCESS_TUNNEL_INTACT_PART_VARIANT_LIMIT) {
+    if (gGameSession->location.variant < (u32)NEO_ARK_EVE_ACCESS_TUNNEL_INTACT_PART_VARIANT_LIMIT) {
         neoArkEveAccessTunnelSetPartDestroyedSprites(0, NEO_ARK_EVE_ACCESS_TUNNEL_PART_INTACT);
         neoArkEveAccessTunnelSetPartDestroyedSprites(1, NEO_ARK_EVE_ACCESS_TUNNEL_PART_INTACT);
     }
-    if (gGameSession->location.loc.variant == NEO_ARK_EVE_ACCESS_TUNNEL_MASKED_BACKDROP_VARIANT) {
+    if (gGameSession->location.variant == NEO_ARK_EVE_ACCESS_TUNNEL_MASKED_BACKDROP_VARIANT) {
         queue->imageMdecMode = MDEC_IMAGE_MODE_RGB16_MASK_BIT;
     }
 }

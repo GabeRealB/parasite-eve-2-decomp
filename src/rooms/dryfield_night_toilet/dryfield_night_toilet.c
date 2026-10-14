@@ -659,7 +659,7 @@ static void _dryfieldNightToiletInitializeRoom(Task* task)
     enum { DRYFIELD_NIGHT_TOILET_EVENT_VARIANT = 1 };
     task->msgTable = _gDryfieldNightToiletRoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
-    if (gameFlagGetNibble(GAME_FLAG_NIGHT_TOILET_EVENT_SEEN) == 0 && gGameSession->location.loc.variant == DRYFIELD_NIGHT_TOILET_EVENT_VARIANT) {
+    if (gameFlagGetNibble(GAME_FLAG_NIGHT_TOILET_EVENT_SEEN) == 0 && gGameSession->location.variant == DRYFIELD_NIGHT_TOILET_EVENT_VARIANT) {
         gameFlagSetNibble(GAME_FLAG_NIGHT_TOILET_EVENT_SEEN, 1);
         taskSpawnFromTable(&gActor04000HangingPoolTaskDesc, 0, 0, 0);
     }
@@ -702,7 +702,7 @@ void dryfieldNightToiletDrawFlareTask(Task* unusedTask)
         DRYFIELD_NIGHT_TOILET_FLARE_RADIUS_SCALE = 0x200,
     };
 
-    switch (gGameSession->location.loc.view) {
+    switch (gGameSession->location.view) {
         case DRYFIELD_NIGHT_TOILET_VIEW_SECOND_FLARE_POINT:
             glowDrawFlareClipped(&_gDryfieldNightToiletNegativeZFlarePoint, DRYFIELD_NIGHT_TOILET_FLARE_TEXTURE_COLUMN, DRYFIELD_NIGHT_TOILET_FLARE_RADIUS_SCALE);
             break;

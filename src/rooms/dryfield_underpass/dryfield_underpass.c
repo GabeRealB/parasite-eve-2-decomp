@@ -1217,7 +1217,7 @@ static s32 _dryfieldUnderpassHandleRoomAction(Task* task, s32 messageId, const D
     u8 actionId;
 
     actionId = request->actionId;
-    if ((actionId == UNDERPASS_EVENT_ACTION) && (gGameSession->location.loc.variant == actionId) && (gameFlagGetNibble(GAME_FLAG_UNDERPASS_EVENT_SEEN) == 0)) {
+    if ((actionId == UNDERPASS_EVENT_ACTION) && (gGameSession->location.variant == actionId) && (gameFlagGetNibble(GAME_FLAG_UNDERPASS_EVENT_SEEN) == 0)) {
         gameFlagSetNibble(GAME_FLAG_UNDERPASS_EVENT_SEEN, 1);
         evsStartScript(_gDryfieldUnderpassGrayStalkerEventScript, EVENT_SCRIPT_HUD_HIDE_RESTORE);
     }
@@ -1236,7 +1236,7 @@ static void _dryfieldUnderpassInitializeRoomTask(Task* task)
 
     task->msgTable = _gDryfieldUnderpassRoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
-    if ((gGameSession->location.loc.variant == UNDERPASS_EVENT_VARIANT) && (gameFlagGetNibble(GAME_FLAG_UNDERPASS_EVENT_SEEN) == 0)) {
+    if ((gGameSession->location.variant == UNDERPASS_EVENT_VARIANT) && (gameFlagGetNibble(GAME_FLAG_UNDERPASS_EVENT_SEEN) == 0)) {
         TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &_gDryfieldUnderpassPrepareGrayStalkerCommand, ACTOR_COMMAND_MESSAGE_APPLY);
     }
     task->state = task->state + 1;
@@ -1307,11 +1307,11 @@ static void _dryfieldUnderpassRefreshRoomVariant(void)
 #undef DRYFIELD_UNDERPASS_RESOLVE_ROOM
 
     // Commit the same selector to the live session and its save before relinking.
-    session                                                    = gGameSession;
-    roomId                                                     = destination.room;
-    session->location.loc.room                                 = roomId;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = roomId;
-    gGameSession->roomObjsDirty                                = true;
+    session                                                = gGameSession;
+    roomId                                                 = destination.room;
+    session->location.room                                 = roomId;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.room = roomId;
+    gGameSession->roomObjsDirty                            = true;
 }
 
 /// Room-task lifecycle callbacks indexed by `Task::state` in 0..2.
@@ -1347,7 +1347,7 @@ void dryfieldUnderpassDrawFlaresTask(Task* task)
     const s16*      flareViewMasks;
 
     coord    = task->extra.coordBody->coord;
-    viewMask = 1 << gGameSession->location.loc.view;
+    viewMask = 1 << gGameSession->location.view;
     if (gameFlagGetNibble(GAME_FLAG_053) == 0) {
         // Each local position's mask uses the view ID directly as its bit index.
         flareIndex     = 0;

@@ -882,9 +882,9 @@ static inline void _mistParkingStartCommandCutscene(void)
     gMistParkingCommandCutscene.sceneSound      = MIST_PARKING_CUTSCENE_SCENE_SOUND;
     gMistParkingCommandCutscene.afterSceneSound = MIST_PARKING_CUTSCENE_AFTER_SOUND;
     taskSpawnFromTable(_gRoomCutsceneTaskDescs, MIST_PARKING_CUTSCENE_DESCRIPTOR, MIST_PARKING_CUTSCENE_COMMAND, &gMistParkingCommandCutscene);
-    session                                                    = gGameSession;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = MIST_PARKING_CUTSCENE_WARP;
-    session->location.loc.warp                                 = MIST_PARKING_CUTSCENE_WARP;
+    session                                                = gGameSession;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp = MIST_PARKING_CUTSCENE_WARP;
+    session->location.warp                                 = MIST_PARKING_CUTSCENE_WARP;
 }
 
 /// Routes parking CAP commands to the current variant's talks and cutscene.
@@ -915,7 +915,7 @@ static s32 _mistParkingHandleCommand(Task* task, s32 messageId, s32 commandId, s
 
     switch (commandId) {
         case MIST_PARKING_COMMAND_DEPARTURE_MENU:
-            areaVariant = gGameSession->location.loc.variant;
+            areaVariant = gGameSession->location.variant;
             if (areaVariant == MIST_PARKING_FOLLOWUP_VARIANT) {
                 if (gameFlagGetNibble(GAME_FLAG_0F1) == MIST_PARKING_CONVERSATION_INTRO_COMPLETE) {
                     playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
@@ -939,7 +939,7 @@ static s32 _mistParkingHandleCommand(Task* task, s32 messageId, s32 commandId, s
             break;
         case MIST_PARKING_COMMAND_SHOP_TALK:
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-            if (gGameSession->location.loc.variant == MIST_PARKING_SHOP_VARIANT) {
+            if (gGameSession->location.variant == MIST_PARKING_SHOP_VARIANT) {
                 taskSpawnFromTable(gMistParkingShopTaskDescriptors, MIST_PARKING_SHOP_TALK_DESCRIPTOR, 0, 0);
             } else {
                 taskSpawnFromTable(gMistParkingConversationTaskDescs, MIST_PARKING_JODIE_TALK_DESCRIPTOR, 0, 0);
@@ -1018,9 +1018,9 @@ static void _mistParkingSelectChapterRoom(s32 roomId)
     if (gameFlagGetNibble(GAME_FLAG_STORY_CHAPTER) != 0) {
         roomId += MIST_PARKING_LATER_CHAPTER_ROOM_OFFSET;
     }
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = roomId;
-    gGameSession->location.loc.room                            = roomId;
-    gGameSession->roomObjsDirty                                = 1;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.room = roomId;
+    gGameSession->location.room                            = roomId;
+    gGameSession->roomObjsDirty                            = 1;
 }
 
 /// Queues the selected CAP command while idle, without event hold/hide flags.
@@ -1047,10 +1047,10 @@ static void _mistParkingInitializeRoomTask(Task* task)
 
     task->msgTable = _gMistParkingRoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
-    if ((gGameSession->location.loc.variant == MIST_PARKING_ARRIVAL_TALK_VARIANT) &&
+    if ((gGameSession->location.variant == MIST_PARKING_ARRIVAL_TALK_VARIANT) &&
         (gameFlagGetNibble(GAME_FLAG_0F1) == MIST_PARKING_CONVERSATION_INTRO_PENDING)) {
         // Arrival has a skip path; other entries use the shorter room-entry script.
-        if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp == MIST_PARKING_ARRIVAL_TALK_WARP) {
+        if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp == MIST_PARKING_ARRIVAL_TALK_WARP) {
             gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, MIST_PARKING_ARRIVAL_TALK_OBJECTIVE);
             mistParkingResetCutsceneTaskHandles(0);
             evsStartScriptWithSkip(gMistParkingArrivalConversationScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, gMistParkingArrivalSkipScript);
@@ -1097,7 +1097,7 @@ void mistParkingAimPlayerHeadAtTalkPartnerTask(Task* task)
         if (task->state == MIST_PARKING_HEAD_AIM_UPDATE) {
             _mistParkingRampPlayerHeadAimBlend(task, animationRequestsAim);
             // Placement index zero supplies the talk partner for this stage and area.
-            talkPartner = sceneFindEnemyByPlaceKey(gGameSession->location.loc.area | (gGameSession->location.loc.stage << 8));
+            talkPartner = sceneFindEnemyByPlaceKey(gGameSession->location.area | (gGameSession->location.stage << 8));
             animationAimHeadAtTask(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), talkPartner->task,
                                    MIST_PARKING_HEAD_AIM_MAX_YAW, MIST_PARKING_HEAD_AIM_MAX_PITCH, task->killCountdown);
         } else {

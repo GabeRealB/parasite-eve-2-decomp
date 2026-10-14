@@ -1533,7 +1533,7 @@ static __inline__ const AreaVariant* _areaGetCurrentVariant(void)
     GameLocationKey        lookupKey;
     const GameLocationKey* sessionLocation;
 
-    sessionLocation = &gGameSession->location.loc;
+    sessionLocation = &gGameSession->location;
     lookupKey.stage = sessionLocation->stage;
     lookupKey.area  = sessionLocation->area;
     lookupKey.room  = sessionLocation->room;

@@ -248,67 +248,9 @@ STATIC_ASSERT_SIZEOF(_MidiSong, 0x5DC);
 typedef u8* (*_MidiEventHandler)(s32 status, u8* event, _MidiSong* song, _MidiTrack* track);
 
 /* Define BSS before API headers to preserve first-declaration order. */
-/// Permission for the audio interrupt to drain deferred sound events (0 defer, 1 process).
-///
-/// Starts closed until the queue is reset. Appending an event closes the gate
-/// while its links are updated and reopens it once the event is fully linked;
-/// resetting the queue, including recovery from an invalid command, opens it.
-static bool _gSndEvtProcessEnabled;
-
-/// First pool slot awaiting deferred audio dispatch, or `NULL` when empty.
-///
-/// Queued slots belong to `_gSndEvtPool` and remain reserved until their handlers
-/// return. Processing saves the next link before releasing the slot for reuse,
-/// then advances the head; appends at the tail preserve FIFO order. Reset or an
-/// invalid command discards the queue and clears both endpoints.
-static SndEvt* _gSndEvtHead;
-
-/// Last pool slot in the deferred audio-command FIFO, or `NULL` when empty.
-///
-/// Refers into `_gSndEvtPool`; the slot stays reserved through dispatch and its
-/// `next` link is `NULL` after an append completes. Saving this endpoint permits
-/// appending without traversing `_gSndEvtHead`. The audio interrupt's drain is
-/// held off while append links are updated. Draining earlier slots leaves the
-/// tail in place; releasing the last slot, reset and invalid-command recovery
-/// clear both endpoints.
-static SndEvt* _gSndEvtTail;
 
 /// Maximum number of simultaneous sound-event reservations, queued or unqueued.
 enum { SOUND_EVENT_POOL_CAPACITY = 64 };
-
-/// Fixed resident storage for deferred MIDI and sound-script commands.
-///
-/// `sndEvtAlloc` reserves the first free slot, or returns `NULL` when all slots
-/// are taken; unqueued reservations count against the same capacity. Dispatch
-/// releases each slot for reuse. Allocation and release retain payload bytes,
-/// so producers must initialize every argument their command reads.
-/// Reset and invalid-command recovery zero the entire array, discarding queued
-/// commands and unqueued reservations together.
-static SndEvt _gSndEvtPool[SOUND_EVENT_POOL_CAPACITY];
-
-/// MIDI master gain (0 silent, 127 full), initialized to 64.
-///
-/// Scales the sequence level by 1/127 before its fade ramp is applied.
-/// Master changes mark all channels for remixing on the next audio update.
-static u8 _gMidiMasterVolume;
-
-/// Unreferenced eight-byte BSS span; its representation and role are unproven.
-static u8 D_8007F2F8[8];
-
-/// Resident sequence slots, with only slot zero available.
-///
-/// Playback, deferred commands and loading share this storage. Each track
-/// cursor borrows `_gMidiSequenceBuffer`; each active voice callback retains
-/// a note-slot address until that voice is released or reassigned. Resetting
-/// a slot requires playback and callbacks to be quiescent.
-static _MidiSong _gMidiSongSlots[MIDI_RESIDENT_SONG_COUNT];
-
-/// Resident 10 KiB buffer borrowed by the loaded sequence and its track cursors.
-///
-/// Sequence-image loads reuse this fixed allocation and must fit its full
-/// byte extent. Starting another load invalidates the previous image and all
-/// cursors into it; the loader neither allocates it nor checks the copy length.
-static u8 _gMidiSequenceBuffer[0x2800];
 
 s32 gSndVolumeNeoArkLevel;
 
@@ -321,7 +263,7 @@ s16 gSndVolumeNeoArkRestoreUpdates;
 /// Shared across sequence selectors, even when none matches at dispatch.
 /// Muting can queue zero here; unmuting uses this latest value, with no
 /// separately saved pre-mute gain. Producers read the payload after enqueue.
-static u8 _gMidiLastQueuedVolumeScale;
+u8 _gMidiLastQueuedVolumeScale;
 
 // Independent music-output gate states; retain signed-byte reads of the latch.
 enum {
@@ -334,7 +276,7 @@ enum {
 /// Suppresses MIDI voice gain except for sequence 0x5A. Gate changes precede
 /// event reservation and take effect even when the volume request is dropped.
 /// Existing voices observe the gate when their dirty channels are remixed.
-static s8 _gMidiMusicMuteActive;
+s8 _gMidiMusicMuteActive;
 
 SndLoadState gSndLoadState;
 
@@ -363,6 +305,62 @@ volatile u8 gSndScriptArea;
 #include "sound.h"
 
 #include "mapui/map_neo_ark.h"
+
+/// Permission for the audio interrupt to drain deferred sound events (0 defer, 1 process).
+///
+/// Starts closed until the queue is reset. Appending an event closes the gate
+/// while its links are updated and reopens it once the event is fully linked;
+/// resetting the queue, including recovery from an invalid command, opens it.
+static bool _gSndEvtProcessEnabled;
+
+/// First pool slot awaiting deferred audio dispatch, or `NULL` when empty.
+///
+/// Queued slots belong to `_gSndEvtPool` and remain reserved until their handlers
+/// return. Processing saves the next link before releasing the slot for reuse,
+/// then advances the head; appends at the tail preserve FIFO order. Reset or an
+/// invalid command discards the queue and clears both endpoints.
+static SndEvt* _gSndEvtHead;
+
+/// Last pool slot in the deferred audio-command FIFO, or `NULL` when empty.
+///
+/// Refers into `_gSndEvtPool`; the slot stays reserved through dispatch and its
+/// `next` link is `NULL` after an append completes. Saving this endpoint permits
+/// appending without traversing `_gSndEvtHead`. The audio interrupt's drain is
+/// held off while append links are updated. Draining earlier slots leaves the
+/// tail in place; releasing the last slot, reset and invalid-command recovery
+/// clear both endpoints.
+static SndEvt* _gSndEvtTail;
+
+/// Fixed resident storage for deferred MIDI and sound-script commands.
+///
+/// `sndEvtAlloc` reserves the first free slot, or returns `NULL` when all slots
+/// are taken; unqueued reservations count against the same capacity. Dispatch
+/// releases each slot for reuse. Allocation and release retain payload bytes,
+/// so producers must initialize every argument their command reads.
+/// Reset and invalid-command recovery zero the entire array, discarding queued
+/// commands and unqueued reservations together.
+static SndEvt _gSndEvtPool[SOUND_EVENT_POOL_CAPACITY];
+
+/// MIDI master gain (0 silent, 127 full), initialized to 64.
+///
+/// Scales the sequence level by 1/127 before its fade ramp is applied.
+/// Master changes mark all channels for remixing on the next audio update.
+static u8 _gMidiMasterVolume;
+
+/// Resident sequence slots, with only slot zero available.
+///
+/// Playback, deferred commands and loading share this storage. Each track
+/// cursor borrows `_gMidiSequenceBuffer`; each active voice callback retains
+/// a note-slot address until that voice is released or reassigned. Resetting
+/// a slot requires playback and callbacks to be quiescent.
+static _MidiSong _gMidiSongSlots[MIDI_RESIDENT_SONG_COUNT];
+
+/// Resident 10 KiB buffer borrowed by the loaded sequence and its track cursors.
+///
+/// Sequence-image loads reuse this fixed allocation and must fit its full
+/// byte extent. Starting another load invalidates the previous image and all
+/// cursors into it; the loader neither allocates it nor checks the copy length.
+static u8 _gMidiSequenceBuffer[0x2800];
 
 // Loader policies shared by sector processing and image installation.
 enum {

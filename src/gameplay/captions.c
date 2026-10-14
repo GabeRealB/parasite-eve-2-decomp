@@ -250,8 +250,8 @@ void capUpdatePlaybackTask(Task* task)
         if (actionCaptureFramesLeft != 0) {
             return;
         }
-        gCapActionReturnView                                       = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view;
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = gCapRestoreView;
+        gCapActionReturnView                                   = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = gCapRestoreView;
         taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_ROOM_EFFECT), CAP_PLAYBACK_ROOM_EFFECT_MESSAGE, 0, 0);
         stageRequestFrameCapture();
         taskSpawn(ITEM_PICKUP_ACTION_TASK_BANK, ITEM_PICKUP_ACTION_TASK_TYPE, 0, &gCapActionRequest);
@@ -335,10 +335,10 @@ void capUpdatePlaybackTask(Task* task)
             gCapTextBoxHeight    = capGetTextBlockHeight(gCapSelectedSequence[(s16)gCapRecordIndex].textRef.text);
             nextViewId           = recordViewIndex & CAP_PLAYBACK_BYTE_MASK;
             gCapPendingViewPhase = CAP_VIEW_CHANGE_NONE;
-            if ((nextViewId != 0) && (nextViewId != gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view)) {
+            if ((nextViewId != 0) && (nextViewId != gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view)) {
                 if (gCapSuppressViewChanges == CAP_SEQUENCE_VIEW_CHANGES_ENABLED) {
-                    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = recordViewIndex;
-                    gCapPendingViewPhase                                       = CAP_VIEW_CHANGE_PENDING;
+                    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = recordViewIndex;
+                    gCapPendingViewPhase                                   = CAP_VIEW_CHANGE_PENDING;
                     if (gDisplayState.debugMode != 0) {
                         if (gCapDebugPlaybackFrame == CAP_PLAYBACK_DEBUG_FRAME_DISABLED) {
                             gCapDebugPlaybackFrame = 0;
@@ -402,8 +402,8 @@ void capUpdatePlaybackTask(Task* task)
                 } else {
                     gCapActionRequest.done = 0;
                     if (gCapPlaybackMode == CAP_PLAYBACK_DISPLAY_TRANSITION) {
-                        gCapActionReturnView                                       = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view;
-                        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = gCapRestoreView;
+                        gCapActionReturnView                                   = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view;
+                        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = gCapRestoreView;
                         taskSpawn(ITEM_PICKUP_ACTION_TASK_BANK, ITEM_PICKUP_ACTION_TASK_TYPE, 0, &gCapActionRequest);
                     } else if (gCapPlaybackMode == CAP_PLAYBACK_ACTION_CAPTURE) {
                         gCapActionCaptureFramesRemaining = CAP_ACTION_CAPTURE_DELAY_FRAMES;
@@ -416,7 +416,7 @@ void capUpdatePlaybackTask(Task* task)
             }
             if (gCapActionRequest.done != 0) {
                 if (gCapPlaybackMode != CAP_PLAYBACK_IN_PLACE) {
-                    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = gCapActionReturnView;
+                    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = gCapActionReturnView;
                 }
                 gCapRecordPhase = CAP_RECORD_BEGIN;
                 if (gCapActionRequest.accepted == 0) {
@@ -820,7 +820,7 @@ static u16 _capDrawTextStream(const u16* textStream, s32 unusedDrawArg, u8 revea
                 } else {
                     viewIndex = viewFindLogicalIndex(code & CAP_TEXT_CODE_VALUE_MASK);
                 }
-                if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view != viewIndex) {
+                if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view != viewIndex) {
                     if (gCapPlaybackMode != CAP_PLAYBACK_IN_PLACE) {
                         stageRequestViewTransition(viewIndex, CAP_TEXT_VIEW_TRANSITION_FILTERED_ACTORS);
                         gCapTextViewTransitionState = CAP_TEXT_VIEW_TRANSITION_WAIT;
@@ -829,9 +829,9 @@ static u16 _capDrawTextStream(const u16* textStream, s32 unusedDrawArg, u8 revea
                             playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE);
                             companionSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE);
                         }
-                        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = viewIndex;
-                        gGameSession->hideHud                                      = 1;
-                        gSceneCombatState.actorControl                             = SCENE_COMBAT_ACTORS_HIDDEN;
+                        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = viewIndex;
+                        gGameSession->hideHud                                  = 1;
+                        gSceneCombatState.actorControl                         = SCENE_COMBAT_ACTORS_HIDDEN;
                     }
                 }
                 codeIndex++;
@@ -1000,8 +1000,8 @@ static void _capDrawChoiceMarker(void)
 /// debug mode also passes that frame/view pair to the tooling hook.
 static inline void _capRestoreInPlacePresentation(void)
 {
-    gGameSession->hideHud                                      = 0;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = gCapSavedView;
+    gGameSession->hideHud                                  = 0;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = gCapSavedView;
     playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO);
     companionSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO);
     if (gDisplayState.debugMode != 0) {
@@ -1030,7 +1030,7 @@ static void _capFinishPlayback(Task* task)
         taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_ROOM_EFFECT), CAP_ROOM_EFFECT_MESSAGE_3000, 0, 0);
     }
     if (gCapPlaybackMode != CAP_PLAYBACK_IN_PLACE) {
-        if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view == gCapSavedView) {
+        if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view == gCapSavedView) {
             stageRequestModeTaskExit();
         } else {
             cdQueue->imageMdecMode = gCapSavedImageMdecMode;

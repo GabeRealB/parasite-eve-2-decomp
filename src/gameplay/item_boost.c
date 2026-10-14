@@ -782,7 +782,7 @@ void areaSetCurrentObjectState(s32 objectId, u8 state)
 
     stateShift  = (objectId & AREA_OBJECT_STATE_INDEX_MASK) * AREA_OBJECT_STATE_BITS;
     stateMask   = AREA_OBJECT_PLACE_STATE_MASK << stateShift;
-    stageId     = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage;
+    stageId     = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.stage;
     stateWord   = &gAreaObjectStages[stageId].objectStates[objectId >> AREA_OBJECT_STATE_WORD_SHIFT];
     *stateWord &= ~stateMask;
     stateMask   = state << stateShift;
@@ -1064,7 +1064,7 @@ s32 areaGetCurrentObjectState(s32 objectId)
     u32        packedStates;
     s32        stateShift;
 
-    stageId       = gGameSession->location.loc.stage;
+    stageId       = gGameSession->location.stage;
     stateWord     = &gAreaObjectStages[stageId].objectStates[objectId >> 4];
     stateShift    = (objectId & 0xF) * 2;
     packedStates  = *stateWord;

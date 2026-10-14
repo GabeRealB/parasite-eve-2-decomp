@@ -1859,7 +1859,7 @@ static void _actor400600InitCollisionBodies(Task* task)
     work->body.pos.vy           = 0x96;
     work->body.pos.vz           = 0x110;
     work->body.key              = WORLD_COLLISION_CONTACT_ENEMY_BODY | ACTOR_400600_BODY_ID;
-    if (gGameSession->location.loc.stage == GAME_STAGE_DRYFIELD_NIGHT && (gGameSession->location.loc.area == GAME_AREA_DRYFIELD_NIGHT_MOTEL_LOFT || gGameSession->location.loc.area == GAME_AREA_DRYFIELD_NIGHT_MOTEL_BALCONY)) {
+    if (gGameSession->location.stage == GAME_STAGE_DRYFIELD_NIGHT && (gGameSession->location.area == GAME_AREA_DRYFIELD_NIGHT_MOTEL_LOFT || gGameSession->location.area == GAME_AREA_DRYFIELD_NIGHT_MOTEL_BALCONY)) {
         work->body.radius = 0x260;
     } else {
         work->body.radius = 0x200;
@@ -2581,7 +2581,7 @@ static void _actor400600SpawnEnemy(Task* task)
         return;
     }
     _actor400600QueueSoundBank();
-    if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_WATER_TOWER, 0, 0)) {
+    if ((GAME_LOCATION_WORD(gGameSession->location) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_WATER_TOWER, 0, 0)) {
         work->routesByZone = 1;
     }
     // Bind the model and Enemy to storage owned by this task.
@@ -4586,7 +4586,7 @@ static s32 _actor400600TrySelectAttack(Task* task)
             work->ceilingProbePending = 0;
             ceilingDistance           = _stalkerZebraIvoryWallDistance(task);
             if ((u16)(ceilingDistance - ACTOR_400600_CEILING_DISTANCE_FIRST) < ACTOR_400600_CEILING_DISTANCE_COUNT) {
-                if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_MINE_SECRET_PASSAGE, 0, 0)) {
+                if ((GAME_LOCATION_WORD(gGameSession->location) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_MINE_SECRET_PASSAGE, 0, 0)) {
                     ceilingY = ACTOR_400600_SECRET_PASSAGE_CEILING_Y;
                 } else {
                     ceilingY = rootCoord->coord.t[1] - ceilingDistance;
@@ -5074,7 +5074,7 @@ static void _actor400600RunWalk(Task* task)
     _stalkerZebraIvoryFoldArms(task);
     if ((s16)_actor400600TakeArmedHitReaction(task) == 0) {
         phases[work->subState](task);
-        if ((s16)_actor400600TrySelectAttack(task) == 0 && (s16)_actor400600TryEnterHiddenIdle(task) == 0 && (GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_MINE_SECRET_PASSAGE, 0, 0) && work->onCeiling != 0 && task->extra.tmd->coords->coord.t[0] > ACTOR_400600_SECRET_PASSAGE_DROP_X) {
+        if ((s16)_actor400600TrySelectAttack(task) == 0 && (s16)_actor400600TryEnterHiddenIdle(task) == 0 && (GAME_LOCATION_WORD(gGameSession->location) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_MINE_SECRET_PASSAGE, 0, 0) && work->onCeiling != 0 && task->extra.tmd->coords->coord.t[0] > ACTOR_400600_SECRET_PASSAGE_DROP_X) {
             _actor400600SelectStateInline(task, ACTOR_400600_STATE_DROP_FROM_CEILING);
         }
     }
@@ -6223,7 +6223,7 @@ static void _actor400600QueueSoundBank(void)
     u8 loadArgs[sizeof(((CdCmdEntry*)0)->args.bytes)];
 
     if (gSceneCombatState.enemySoundBankQueued == 0) {
-        if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_WATER_HOLE, 0, 0) && gGameSession->location.loc.variant == 1) {
+        if ((GAME_LOCATION_WORD(gGameSession->location) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_WATER_HOLE, 0, 0) && gGameSession->location.variant == 1) {
             fileKeyBytes[2] = ACTOR_400600_SOUND_FILE_GROUP;
             fileKeyBytes[0] = ACTOR_400600_SOUND_FILE_WATER_HOLE;
             fileKeyBytes[3] = 0;

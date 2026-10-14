@@ -262,7 +262,7 @@ static __inline__ s32 _attachmentUsesTrainingLevels(const PlayerStatus* player)
     enum { ATTACHMENT_TRAINING_RESOURCE_VARIANT = 4 };
     s32 training;
 
-    if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(GAME_STAGE_ACROPOLIS, GAME_AREA_MIST_SHOOTING_GALLERY, 0, 0)) {
+    if ((GAME_LOCATION_WORD(gGameSession->location) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(GAME_STAGE_ACROPOLIS, GAME_AREA_MIST_SHOOTING_GALLERY, 0, 0)) {
         training = 0;
     } else {
         training = player->resourceVariant == ATTACHMENT_TRAINING_RESOURCE_VARIANT;
@@ -951,7 +951,7 @@ s32 attachmentIsTrainingMode(void)
     PlayerStatus* player;
 
     player = &gPlayerStatus;
-    if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) !=
+    if ((GAME_LOCATION_WORD(gGameSession->location) & GAME_LOCATION_STAGE_AREA_MASK) !=
         GAME_LOCATION_KEY(GAME_STAGE_ACROPOLIS, GAME_AREA_MIST_SHOOTING_GALLERY, 0, 0)) {
         return 0;
     }
@@ -1621,7 +1621,7 @@ void viewApplyCurrentCamera(void)
     VECTOR3*         viewTranslation;
     u8               cameraIndex;
 
-    location    = &gGameSession->location.loc;
+    location    = &gGameSession->location;
     cameraTable = gViewCameraTables[location->stage - 1];
     cameras     = cameraTable->cameras[location->area - 1];
     cameraIndex = viewGetMappedIndex();
@@ -1695,7 +1695,7 @@ void viewQueueCurrentCameraAndPackets(void)
     const ViewCamera*      cameras;
     u8                     cameraIndex;
 
-    location    = &gGameSession->location.loc;
+    location    = &gGameSession->location;
     cameraTable = gViewCameraTables[location->stage - 1];
     cameras     = cameraTable->cameras[location->area - 1];
     cameraIndex = viewGetMappedIndex();
@@ -1749,7 +1749,7 @@ void viewQueueCurrentCamera(s32 packetListMode)
     const ViewCamera*      cameras;
     u8                     cameraIndex;
 
-    location    = &gGameSession->location.loc;
+    location    = &gGameSession->location;
     cameraTable = gViewCameraTables[location->stage - 1];
     cameras     = cameraTable->cameras[location->area - 1];
     cameraIndex = viewGetMappedIndex();
@@ -1777,7 +1777,7 @@ void viewTransitionGateTask(Task* task)
         task->state = VIEW_TRANSITION_MONITOR;
     }
     liveSave = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
-    if (task->spawnArg1.value != liveSave->state.location.loc.view) {
+    if (task->spawnArg1.value != liveSave->state.location.view) {
         gGameSession->viewDirty = 1;
     }
     session = gGameSession;
@@ -1785,11 +1785,11 @@ void viewTransitionGateTask(Task* task)
         cdQueue = &gCdCmdQueue;
         // Keep the current view while its reusable scene payload is incomplete.
         if ((cdQueue->scenePayloadAvailable == 0) || (cdQueue->scenePayloadLoading == 0)) {
-            session->location.loc.view = liveSave->state.location.loc.view;
+            session->location.view = liveSave->state.location.view;
             padStartInputBlock(0);
             viewQueueCurrentCameraAndPackets();
             if (displaySpawnTask(VIEW_TRANSITION_LOADER_TASK_BANK, VIEW_TRANSITION_LOADER_TASK_TYPE, 0, 0) != NULL) {
-                admittedView          = gGameSession->location.loc.view;
+                admittedView          = gGameSession->location.view;
                 task->killCountdown   = VIEW_TRANSITION_SETTLE_UPDATES;
                 task->spawnArg1.value = admittedView;
                 if (task->state == VIEW_TRANSITION_MONITOR) {

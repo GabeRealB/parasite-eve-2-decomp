@@ -103,8 +103,8 @@ static void _roomCutsceneTask(Task* task)
                 companionSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
             }
             if (cutscene->view > 0) {
-                gCapRestoreView               = save->state.location.loc.view;
-                save->state.location.loc.view = cutscene->view;
+                gCapRestoreView           = save->state.location.view;
+                save->state.location.view = cutscene->view;
             } else {
                 gCapRestoreView = -cutscene->view;
             }
@@ -188,7 +188,7 @@ static void _roomCutsceneTask(Task* task)
                 if (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_PROGRESS) == ROOM_CUTSCENE_ACROPOLIS_PROGRESS_BEFORE) {
                     gameFlagSetNibble(GAME_FLAG_ACROPOLIS_PROGRESS, ROOM_CUTSCENE_ACROPOLIS_PROGRESS_AFTER);
                     gameFlagSetNibble(GAME_FLAG_00E, ROOM_CUTSCENE_POST_SCENE_FLAG_VALUE);
-                    if ((GAME_LOCATION_WORD(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_SQUARE, 0, 0)) {
+                    if ((GAME_LOCATION_WORD(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_SQUARE, 0, 0)) {
                         areaApplySavedUpdates(gAcropolisSquarePostCutsceneAreaUpdates);
                         gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, ROOM_CUTSCENE_SQUARE_OBJECTIVE);
                     }
@@ -219,7 +219,7 @@ static void _roomCutsceneTask(Task* task)
         case ROOM_CUTSCENE_STATE_RESTORE_VIEW:
             playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO);
             companionSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO);
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = (u8)gCapRestoreView;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = (u8)gCapRestoreView;
             task->state++;
             break;
         case ROOM_CUTSCENE_STATE_VIEW_GAP_1:

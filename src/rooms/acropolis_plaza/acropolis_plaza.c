@@ -3134,9 +3134,9 @@ static void _acropolisPlazaMovieDisplayTask(Task* task)
         ACROPOLIS_PLAZA_MOVIE_WAIT_RESTORE      = 6,
         ACROPOLIS_PLAZA_DISPLAY_MOVIE_STREAM_ID = 100,
     };
-    u8          streamArgs[4];
-    GameLoc     movieLocation;
-    CdCmdQueue* queue;
+    u8              streamArgs[4];
+    GameLocationKey movieLocation;
+    CdCmdQueue*     queue;
 
     queue = &gCdCmdQueue;
     switch (task->state) {
@@ -3146,9 +3146,9 @@ static void _acropolisPlazaMovieDisplayTask(Task* task)
             task->state++;
             break;
         case ACROPOLIS_PLAZA_MOVIE_START:
-            movieLocation          = gGameSession->location;
-            movieLocation.loc.view = ACROPOLIS_PLAZA_DISPLAY_MOVIE_STREAM_ID;
-            streamArgs[0]          = streamFindMovieSlot(&movieLocation.loc, 0, 0);
+            movieLocation      = gGameSession->location;
+            movieLocation.view = ACROPOLIS_PLAZA_DISPLAY_MOVIE_STREAM_ID;
+            streamArgs[0]      = streamFindMovieSlot(&movieLocation, 0, 0);
             cdCmdEnqueue(CD_COMMAND_PLAY_STREAM, 0, streamArgs);
             task->state++;
             break;
@@ -3408,7 +3408,7 @@ static void _acropolisPlazaStreamedSceneTask(Task* task)
             // The argument is fetched from the task again after the queue stores.
             spawnArg = task->spawnArg2.pointer;
             if (spawnArg->skipStreamReset == 0) {
-                streamArgs[0]       = streamFindMovieSlot(&gGameSession->location.loc, queue->plazaStreamSubId, 0);
+                streamArgs[0]       = streamFindMovieSlot(&gGameSession->location, queue->plazaStreamSubId, 0);
                 sectorOffset        = (queue->movieFrame - 1) * ACROPOLIS_PLAZA_SEEK_FRAMES_FINE;
                 packedOpeningOffset = sectorOffset & 0xFFFF;
                 streamArgs[1]       = packedOpeningOffset >> 8;
@@ -3498,7 +3498,7 @@ static void _acropolisPlazaStreamedSceneTask(Task* task)
                     }
                 }
             }
-            streamArgs[0]    = streamFindMovieSlot(&gGameSession->location.loc, queue->plazaStreamSubId, 0);
+            streamArgs[0]    = streamFindMovieSlot(&gGameSession->location, queue->plazaStreamSubId, 0);
             packedSeekOffset = sectorOffset & 0xFFFF;
             streamArgs[1]    = packedSeekOffset >> 8;
             streamArgs[2]    = packedSeekOffset;
@@ -3651,7 +3651,7 @@ static inline void _acropolisPlazaQueueStreamAtStart(u8 command, u8 subId)
 {
     u8 streamArgs[4];
 
-    streamArgs[0] = streamFindMovieSlot(&gGameSession->location.loc, subId, 0);
+    streamArgs[0] = streamFindMovieSlot(&gGameSession->location, subId, 0);
     streamArgs[1] = 0;
     streamArgs[2] = 0;
     cdCmdEnqueue(command, 0, streamArgs);
@@ -3672,11 +3672,11 @@ static inline Enemy* _acropolisPlazaFindPlacedEnemy(u8 entryId)
     const AreaPlacement*   currentPlacement;
     s32                    placementIndex;
 
-    currentLocation     = &gGameSession->location.loc;
+    currentLocation     = &gGameSession->location;
     locationKey.stage   = currentLocation->stage;
     locationKey.area    = currentLocation->area;
     locationKey.room    = gGameSession->spriteVariant;
-    locationKey.view    = gGameSession->location.loc.view;
+    locationKey.view    = gGameSession->location.view;
     locationKey.variant = currentLocation->variant;
     currentPlacement    = areaGetVariant(&locationKey)->placements;
     placementIndex      = 0;
@@ -3848,7 +3848,7 @@ static void _acropolisPlazaStreamSceneTask(Task* task)
 /// The fourth byte remains uninterpreted. Enqueue copies the buffer synchronously.
 static inline void _acropolisPlazaResetStreamInBuffer(u8 streamArgs[4], u8 movieSubId)
 {
-    streamArgs[0] = streamFindMovieSlot(&gGameSession->location.loc, movieSubId, 0);
+    streamArgs[0] = streamFindMovieSlot(&gGameSession->location, movieSubId, 0);
     streamArgs[1] = 0;
     streamArgs[2] = 0;
     cdCmdEnqueue(CD_COMMAND_RESET_STREAM_AT_OFFSET, 0, streamArgs);
@@ -4010,7 +4010,7 @@ static void _acropolisPlazaFinalSceneTask(Task* task)
                 taskMessageDispatch(_acropolisPlazaFindPlacedEnemy(ACROPOLIS_PLAZA_FINAL_OFFICER_ENTRY)->task, ACROPOLIS_PLAZA_FINAL_SET_CULLED_BODY_MESSAGE, ACROPOLIS_PLAZA_FINAL_OFFICER_1, 0);
                 taskMessageDispatch(work->playerTask, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, PLAYER_ACTOR_MODEL_DRAW_HIDE_RELEASE, 0);
                 gpuResetAndInvalidateModelBuffers();
-                memConfigureImageMemory(gGameSession->location.loc.stage, gGameSession->location.loc.area);
+                memConfigureImageMemory(gGameSession->location.stage, gGameSession->location.area);
                 memSelectAuxHeapRegion(true);
                 tmdResetAuxHeapAndRestoreBuffers();
                 sndEvtRequestScriptVolume(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PLAZA, 5), ACROPOLIS_PLAZA_FINAL_AMBIENCE_VOLUME);
@@ -4493,11 +4493,11 @@ static inline void _acropolisPlazaCommitElevatorDestination(void)
         ACROPOLIS_PLAZA_ELEVATOR_ARRIVAL_ROOM   = 1,
         ACROPOLIS_PLAZA_ELEVATOR_SPRITE_VARIANT = 1,
     };
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage = GAME_STAGE_ACROPOLIS;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp  = ACROPOLIS_PLAZA_ELEVATOR_ARRIVAL_WARP;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area  = GAME_AREA_ACROPOLIS_WEST_ELEVATOR_HALL;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room  = ACROPOLIS_PLAZA_ELEVATOR_ARRIVAL_ROOM;
-    gDisplayState.spriteVariant                                 = ACROPOLIS_PLAZA_ELEVATOR_SPRITE_VARIANT;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.stage = GAME_STAGE_ACROPOLIS;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp  = ACROPOLIS_PLAZA_ELEVATOR_ARRIVAL_WARP;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.area  = GAME_AREA_ACROPOLIS_WEST_ELEVATOR_HALL;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.room  = ACROPOLIS_PLAZA_ELEVATOR_ARRIVAL_ROOM;
+    gDisplayState.spriteVariant                             = ACROPOLIS_PLAZA_ELEVATOR_SPRITE_VARIANT;
 }
 
 /// Runs the plaza's streamed traversal and triggered scenes before leaving for the elevator hall.

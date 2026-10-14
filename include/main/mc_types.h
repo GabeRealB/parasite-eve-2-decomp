@@ -133,7 +133,7 @@ STATIC_ASSERT_SIZEOF(AreaSavedEnemyPose, 0xC);
 typedef struct {
     s16                 saveChecksum;             // Sum of the 0x940 signed payload bytes
     s16                 saveChecksumComplement;   // Ones' complement of `saveChecksum`
-    GameLoc             location;                 // Place the save was made, same cell as `GameSession.location`
+    GameLocationKey     location;                 // Place the save was made, same cell as `GameSession.location`
     u16                 playTime;                 // Minutes played, capped at 59999
     s8                  clearCount;               // Completed runs (0 never, capped at 99)
     s8                  gameMode;                 // 0 normal/replay, 1 Bounty, 2 Scavenger, 3 Nightmare
@@ -202,21 +202,21 @@ typedef struct {
 /// Both sums retain their low 16 bits. The full-block `saveChecksum` cannot
 /// be verified from this prefix alone.
 typedef struct {
-    s16     saveChecksum;             // Sum of the 0x940 signed payload bytes in the full saved-state block
-    s16     saveChecksumComplement;   // Ones' complement of `saveChecksum`
-    GameLoc location;                 // Saved world location
-    u16     playTime;                 // Minutes played (0..59999)
-    s8      clearCount;               // Completed runs (0 never completed, 1..99 completed)
-    s8      gameMode;                 // Run mode (0 normal/replay, 1 Bounty, 2 Scavenger, 3 Nightmare)
-    u8      visitFlags;               // Bit 0: new-game setup done; bits 1..5: visited stages
-    s8      saveNumber;               // Save label number at this save point (1..99), distinct from total saves
-    u8      savePoint;                // Place-label index (1..16); 15 is Opening and hides mode/EXP/BP in the preview
-    s8      companionType;            // Saved companion family (0 none, 1..3 companion)
-    s32     playerExp;                // Player experience captured for the save
-    s32     playerBp;                 // Player BP captured for the save
-    u16     headerChecksum;           // Sum of the 56 signed bytes beginning at `location`
-    u16     headerChecksumComplement; // Ones' complement of `headerChecksum`
-    u8      remainingBytes[0x60];     // Rest of the sector; the preview retains its representation without interpreting it
+    s16             saveChecksum;             // Sum of the 0x940 signed payload bytes in the full saved-state block
+    s16             saveChecksumComplement;   // Ones' complement of `saveChecksum`
+    GameLocationKey location;                 // Saved world location
+    u16             playTime;                 // Minutes played (0..59999)
+    s8              clearCount;               // Completed runs (0 never completed, 1..99 completed)
+    s8              gameMode;                 // Run mode (0 normal/replay, 1 Bounty, 2 Scavenger, 3 Nightmare)
+    u8              visitFlags;               // Bit 0: new-game setup done; bits 1..5: visited stages
+    s8              saveNumber;               // Save label number at this save point (1..99), distinct from total saves
+    u8              savePoint;                // Place-label index (1..16); 15 is Opening and hides mode/EXP/BP in the preview
+    s8              companionType;            // Saved companion family (0 none, 1..3 companion)
+    s32             playerExp;                // Player experience captured for the save
+    s32             playerBp;                 // Player BP captured for the save
+    u16             headerChecksum;           // Sum of the 56 signed bytes beginning at `location`
+    u16             headerChecksumComplement; // Ones' complement of `headerChecksum`
+    u8              remainingBytes[0x60];     // Rest of the sector; the preview retains its representation without interpreting it
 } McSavePreview;
 STATIC_ASSERT_SIZEOF(McSavePreview, 0x80);
 STATIC_ASSERT(OFFSET_OF(McSavePreview, location) == 4, McSavePreview_location);

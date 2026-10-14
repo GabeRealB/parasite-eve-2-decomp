@@ -86,13 +86,13 @@ static inline SVECTOR* _actorContactGetLastPushStep(void)
 /// Position uses the roots' common parent space; yaw faces the enemy, in
 /// 4096 units per turn, with zero pitch and roll. The trailing eight bytes
 /// have no established role and remain in `OddStrangerTransformStorage`.
-static OddStrangerTransformStorage _gOddStrangerPlayerGrabPlacement;
+OddStrangerTransformStorage _gOddStrangerPlayerGrabPlacement;
 
 /// Eight-button struggle request lent synchronously to the player.
 ///
 /// Only `pressCount` is written or consumed; the animation fallback stays
 /// zero because this request addresses the player's hold handler.
-static GameActorButtonPressHold _gActor401000PlayerHoldRequest;
+GameActorButtonPressHold _gActor401000PlayerHoldRequest;
 
 static TmdSource _gActor401000StrangerBody;
 static void      _actor401000StrangerTask(Task* task);
@@ -1426,7 +1426,7 @@ static inline void _actor401000CapGridPushHeight(ActorContactCappedPushScratch* 
     s16 stepY;
     s16 cappedY;
 
-    if (_actor401000HasRoomHeightClamp(&gGameSession->location.loc)) {
+    if (_actor401000HasRoomHeightClamp(&gGameSession->location)) {
         stepY = push->step.vy;
         if (((stepY >= 0) ? stepY : -stepY) <= ACTOR_401000_GRID_PUSH_MAX_Y) {
             return;
@@ -1506,8 +1506,8 @@ static s32 _actor401000ApplyGridPushback(GfxCoord* root, const WorldCollisionCon
         }
     }
     // Room bounds precede the root offset even when no grid contact was found.
-    if (_actor401000HasRoomHeightClamp(&gGameSession->location.loc)) {
-        _actor401000ClampRootHeight(&gGameSession->location.loc, root);
+    if (_actor401000HasRoomHeightClamp(&gGameSession->location)) {
+        _actor401000ClampRootHeight(&gGameSession->location, root);
         root->coord.t[1] += heightOffset;
     }
     if (push->delta.fixed.vx.word != 0 || push->delta.fixed.vz.word != 0) {

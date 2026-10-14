@@ -168,10 +168,10 @@ void directionCommitStairWarp(void)
     TASK_MESSAGE_DISPATCH_POINTERS(roomTask, ROOM_EVENT_MESSAGE_RESOLVE, destination, destination);
 
     // Publish only the resolved destination selectors, then queue the area change.
-    liveSave                          = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
-    liveSave->state.location.loc.area = (u8)gDirectionWarpRequest.areaId;
-    liveSave->state.location.loc.warp = destination->warp;
-    liveSave->state.location.loc.room = destination->room;
+    liveSave                      = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
+    liveSave->state.location.area = (u8)gDirectionWarpRequest.areaId;
+    liveSave->state.location.warp = destination->warp;
+    liveSave->state.location.room = destination->room;
     taskSpawn(DIRECTION_AREA_CHANGE_TASK_BANK, DIRECTION_AREA_CHANGE_TASK_ID, 0, 0);
 
     gDirectionSecondaryActionParameter1 = 0;
@@ -239,7 +239,7 @@ void areaApplySavedUpdates(const AreaApplyRec* records)
     s8                     saveMode;
 
     shouldApply     = 0;
-    currentLocation = &gGameSession->location.loc;
+    currentLocation = &gGameSession->location;
     for (recordIndex = 0; records[recordIndex].stage != AREA_APPLY_END; recordIndex++) {
         stageId        = records[recordIndex].stage;
         areaRecords    = gAreaRecordsByStage[stageId];

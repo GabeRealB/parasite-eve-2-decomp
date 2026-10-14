@@ -1055,10 +1055,10 @@ static void _acropolisHelicopterLandingPadMovieTask(Task* task)
         ACROPOLIS_HELICOPTER_LANDING_PAD_MOVIE_RESTORE    = 5,
         ACROPOLIS_HELICOPTER_LANDING_PAD_MOVIE_VIEW       = 100,
     };
-    u8          movieArgs[sizeof(gCdCmdQueue.entries[0].args.bytes)];
-    GameLoc     movieLocation;
-    s16         movieSlot;
-    CdCmdQueue* cdQueue;
+    u8              movieArgs[sizeof(gCdCmdQueue.entries[0].args.bytes)];
+    GameLocationKey movieLocation;
+    s16             movieSlot;
+    CdCmdQueue*     cdQueue;
 
     cdQueue = &gCdCmdQueue;
     switch (task->state) {
@@ -1068,9 +1068,9 @@ static void _acropolisHelicopterLandingPadMovieTask(Task* task)
             task->state++;
             break;
         case ACROPOLIS_HELICOPTER_LANDING_PAD_MOVIE_QUEUE:
-            movieLocation          = gGameSession->location;
-            movieLocation.loc.view = ACROPOLIS_HELICOPTER_LANDING_PAD_MOVIE_VIEW;
-            movieSlot              = streamFindMovieSlot(&movieLocation.loc, 0, 0);
+            movieLocation      = gGameSession->location;
+            movieLocation.view = ACROPOLIS_HELICOPTER_LANDING_PAD_MOVIE_VIEW;
+            movieSlot          = streamFindMovieSlot(&movieLocation, 0, 0);
             // The queue copies four bytes; playback uses only the slot byte.
             movieArgs[0] = movieSlot;
             cdCmdEnqueue(CD_COMMAND_PLAY_STREAM, NULL, movieArgs);
@@ -1210,9 +1210,9 @@ static void _acropolisHelicopterLandingPadDescendExitStairs(Task* task)
 static void _acropolisHelicopterLandingPadCommitExitTask(Task* task)
 {
     if (taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_IS_SCRIPTED_MOTION_PENDING, 0, 0) == 0) {
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = (u8)gAcropolisHelicopterLandingPadExitRequest.areaId;
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = gAcropolisHelicopterLandingPadExitRequest.warp;
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = gAcropolisHelicopterLandingPadExitRequest.room;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.area = (u8)gAcropolisHelicopterLandingPadExitRequest.areaId;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp = gAcropolisHelicopterLandingPadExitRequest.warp;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.room = gAcropolisHelicopterLandingPadExitRequest.room;
         taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
         taskKill(task);
     }

@@ -131,17 +131,18 @@ STATIC_ASSERT(OFFSET_OF(WorldTargetReadout, framesLeft) == 6, WorldTargetReadout
 STATIC_ASSERT(OFFSET_OF(WorldTargetReadout, screen) == 8, WorldTargetReadout_screen);
 
 /* Define BSS before API headers to preserve first-declaration order. */
+
+SceneCombatState gSceneCombatState;
+
+#include "gameplay/scene_combat.h"
+#include "gameplay/world_targets.h"
+
 /// Floating damage/heal pool, with separate sign-class totals for each target.
 ///
 /// Each addition rearms 20 draw passes. Departed targets keep their final
 /// projection until expiry; clearing releases bindings without clearing screen.
 /// The complete 32-entry pool lives with gameplay and retains no node ownership.
 static WorldTargetReadout _gWorldTargetReadouts[32];
-
-SceneCombatState gSceneCombatState;
-
-#include "gameplay/scene_combat.h"
-#include "gameplay/world_targets.h"
 
 /// Lock scan modes and ranking scales; angles use 4096 units per turn.
 enum {
@@ -1083,7 +1084,7 @@ s32 inventoryGrantBattleRewards(const InventoryItemRange* rewardRange)
     u8                           variant;
 
     grantResult   = INVENTORY_BATTLE_REWARD_NONE_GRANTED;
-    location      = &gGameSession->location.loc;
+    location      = &gGameSession->location;
     stage         = location->stage;
     area          = location->area;
     variant       = location->variant;

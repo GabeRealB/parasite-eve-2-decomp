@@ -173,7 +173,7 @@ static inline s32 _areaReadModelObjectState(const Task* task)
     enemy   = task->spawnArg2.pointer;
     // Placed models use the current stage and the key's low-byte flag index.
     flagIndex    = (u8)enemy->placeKey;
-    objectStates = stages[session->location.loc.stage].objectStates;
+    objectStates = stages[session->location.stage].objectStates;
     stateWord    = objectStates + (flagIndex >> AREA_OBJECT_STATE_WORD_SHIFT);
     stateShift   = (flagIndex & AREA_OBJECT_STATE_INDEX_MASK) * AREA_OBJECT_STATE_BITS;
     word         = *stateWord;

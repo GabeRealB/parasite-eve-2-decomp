@@ -1828,7 +1828,7 @@ void dryfieldWaterHoleRoomEffectsTask(Task* task)
     }
 
     playerTask  = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-    viewMask    = 1 << gGameSession->location.loc.view;
+    viewMask    = 1 << gGameSession->location.view;
     work        = task->spawnArg2.pointer;
     effectCoord = task->extra.coordBody->coord;
     playerRoot  = playerTask->extra.tmd->coords;

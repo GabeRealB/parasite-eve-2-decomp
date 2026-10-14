@@ -609,7 +609,7 @@ static void _shelterB6TrainingRoomUpdateRoom(Task* unusedTask)
     u8 variant;
 
     gCdCmdQueue.imageMdecMode = MDEC_IMAGE_MODE_RGB16_MASK_BIT;
-    variant                   = gGameSession->location.loc.variant;
+    variant                   = gGameSession->location.variant;
     // In the default variant, the variant byte also equals the running-scene latch.
     if (variant == SHELTER_B6_TRAINING_ROOM_DEFAULT_VARIANT && gGameSession->eventState == 0 && _gShelterB6TrainingRoomDefeatDeparturePhase == variant) {
         evsStartScript(gShelterB6TrainingRoomDepartureScript, EVENT_SCRIPT_HUD_HIDE_RESTORE);
@@ -688,7 +688,7 @@ void shelterB6TrainingRoomPlayerHeadAimTask(Task* task)
                     task->killCountdown = 0;
                 }
             }
-            targetEnemy = sceneFindEnemyByPlaceKey(gGameSession->location.loc.area | ((gGameSession->location.loc.stage << ENEMY_PLACE_STAGE_SHIFT) | (SHELTER_B6_TRAINING_ROOM_HEAD_AIM_TARGET_INDEX << ENEMY_PLACE_INDEX_SHIFT)));
+            targetEnemy = sceneFindEnemyByPlaceKey(gGameSession->location.area | ((gGameSession->location.stage << ENEMY_PLACE_STAGE_SHIFT) | (SHELTER_B6_TRAINING_ROOM_HEAD_AIM_TARGET_INDEX << ENEMY_PLACE_INDEX_SHIFT)));
             animationAimHeadAtTask(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), targetEnemy->task, SHELTER_B6_TRAINING_ROOM_HEAD_AIM_MAX_YAW, SHELTER_B6_TRAINING_ROOM_HEAD_AIM_MAX_PITCH, task->killCountdown);
         } else {
             taskKill(task);
@@ -718,9 +718,9 @@ void shelterB6TrainingRoomReloadNursery(void)
         SHELTER_B6_TRAINING_ROOM_NURSERY_VARIANT = 1
     };
 
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = GAME_AREA_SHELTER_B6_NURSERY;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = SHELTER_B6_TRAINING_ROOM_NURSERY_ARRIVAL;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = SHELTER_B6_TRAINING_ROOM_NURSERY_VARIANT;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.area = GAME_AREA_SHELTER_B6_NURSERY;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp = SHELTER_B6_TRAINING_ROOM_NURSERY_ARRIVAL;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.room = SHELTER_B6_TRAINING_ROOM_NURSERY_VARIANT;
     taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
 }
 

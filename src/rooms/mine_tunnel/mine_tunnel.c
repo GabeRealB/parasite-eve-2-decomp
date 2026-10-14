@@ -188,7 +188,7 @@ static s32 _mineTunnelHandleDirectionAction(Task* task, s32 messageId, const Dir
     u8 actionId;
 
     actionId = request->actionId;
-    if ((actionId == MINE_TUNNEL_ACTION_ENTRANCE_ENCOUNTER) && (gGameSession->location.loc.variant == actionId) && (gameFlagGetNibble(GAME_FLAG_MINE_TUNNEL_EVENT_SEEN) == MINE_TUNNEL_EVENT_UNSEEN)) {
+    if ((actionId == MINE_TUNNEL_ACTION_ENTRANCE_ENCOUNTER) && (gGameSession->location.variant == actionId) && (gameFlagGetNibble(GAME_FLAG_MINE_TUNNEL_EVENT_SEEN) == MINE_TUNNEL_EVENT_UNSEEN)) {
         gameFlagSetNibble(GAME_FLAG_MINE_TUNNEL_EVENT_SEEN, MINE_TUNNEL_EVENT_SEEN);
         playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
         evsStartScript(_gMineTunnelEntranceEncounterScript, EVENT_SCRIPT_HUD_KEEP);
@@ -221,7 +221,7 @@ static void _mineTunnelInitializeRoomTask(Task* task)
 
     task->msgTable = _gMineTunnelRoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
-    if ((gGameSession->location.loc.variant == MINE_TUNNEL_ENCOUNTER_VARIANT) && (gameFlagGetNibble(GAME_FLAG_MINE_TUNNEL_EVENT_SEEN) == MINE_TUNNEL_EVENT_STARTED)) {
+    if ((gGameSession->location.variant == MINE_TUNNEL_ENCOUNTER_VARIANT) && (gameFlagGetNibble(GAME_FLAG_MINE_TUNNEL_EVENT_SEEN) == MINE_TUNNEL_EVENT_STARTED)) {
         _mineTunnelSetEnemyWave(MINE_TUNNEL_ENEMY_WAVE_ENGAGE);
     }
     task->state               = task->state + 1;

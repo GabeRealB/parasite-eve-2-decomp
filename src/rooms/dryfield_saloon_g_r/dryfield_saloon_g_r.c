@@ -1026,7 +1026,7 @@ void dryfieldSaloonGRDrawLightEffectsTask(Task* task)
     }
 
     roomCoord = task->extra.coordBody->coord;
-    viewMask  = 1 << gGameSession->location.loc.view;
+    viewMask  = 1 << gGameSession->location.view;
 
     // The two flare groups use separate columns of the same texture atlas.
     DRYFIELD_SALOON_G_R_DRAW_FLARE_RANGE(0, DRYFIELD_SALOON_G_R_FIRST_FLARE_GROUP_END,

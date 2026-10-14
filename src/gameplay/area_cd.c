@@ -23,21 +23,21 @@ s16 gLoadingAreaPlacementFilePhase;
 /// Each pass latches the live saved destination's layout at initialization.
 /// Its tables and the saved destination must stay valid through both passes;
 /// loading neither owns nor releases this storage.
-static AreaVariant* _gLoadingAreaVariant;
+AreaVariant* _gLoadingAreaVariant;
 
 /// Borrowed resource cursor shared by the serialized base and placement-file passes.
 ///
 /// The base pass advances through the resource list; the placement pass searches
 /// it anew for each live entry ID. The list ends at AREA_PLACEMENT_END and must
 /// remain loaded with the selected variant until both passes finish.
-static AreaResource* _gLoadingAreaResourceCursor;
+AreaResource* _gLoadingAreaResourceCursor;
 
 /// Borrowed placement cursor shared by the serialized area-load passes.
 ///
 /// The base pass searches for a matching zero-file-index placement; the additional
 /// file pass advances through nonzero file indices. AREA_PLACEMENT_END ends the
 /// list, which must remain loaded with the selected variant through both passes.
-static AreaPlacement* _gLoadingAreaPlacementCursor;
+AreaPlacement* _gLoadingAreaPlacementCursor;
 
 u16 gLoadingAreaBaseResourcePhase;
 
@@ -45,7 +45,7 @@ u16 gLoadingAreaBaseResourcePhase;
 ///
 /// Refreshed for each resource. A match supplies texture offsets and permits
 /// optional base-60 loads; it is not a completion flag for the whole pass.
-static u16 _gLoadingAreaHasBasePlacement;
+u16 _gLoadingAreaHasBasePlacement;
 
 u16 gLoadingAreaResourcePass;
 
@@ -100,7 +100,7 @@ u16 loadingPollAreaPlacementFiles(void)
     switch (gLoadingAreaPlacementFilePhase) {
         case LOADING_AREA_INIT:
             // The loaded destination must resolve before either table is read.
-            layout                       = areaGetVariant(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc);
+            layout                       = areaGetVariant(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location);
             _gLoadingAreaVariant         = layout;
             _gLoadingAreaPlacementCursor = layout->placements;
             if (layout == NULL) {
@@ -186,7 +186,7 @@ u16 loadingPollAreaBaseResources(void)
     switch (gLoadingAreaBaseResourcePhase) {
         case LOADING_AREA_INIT:
             // The loaded destination must resolve before either table is read.
-            layout                      = areaGetVariant(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc);
+            layout                      = areaGetVariant(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location);
             _gLoadingAreaVariant        = layout;
             _gLoadingAreaResourceCursor = layout->resources;
             if (layout == NULL || layout->resources == NULL) {

@@ -12,7 +12,7 @@ void FACTORY_ROOM_INSTANCE_SET_VIEW11_SPRITE_VISIBLE(s32 visible)
     SpriteBatch*           view11Batches;
 
     session  = gGameSession;
-    location = &session->location.loc;
+    location = &session->location;
     // Only the daytime background has this sprite, including in the night instance.
     if (location->stage == GAME_STAGE_DRYFIELD) {
         view11Batches = gSpriteAreaTables[location->stage - 1][session->spriteVariant - 1].areaViews[location->area - 1][FACTORY_ROOM_POWER_SCENE_SPRITE_VIEW - 1].batches;

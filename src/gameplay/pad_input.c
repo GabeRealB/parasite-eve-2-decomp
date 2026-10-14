@@ -13,6 +13,17 @@
 #include "main/wipsys.h"
 
 /* Define BSS before API headers to preserve first-declaration order. */
+
+s16 gPadInputMenuUnlockUpdates;
+
+/// Player-present input updates remaining with logical Triangle forcibly removed.
+///
+/// Reset and automatic menu ineligibility arm four updates. Decremented after
+/// normal publication, including the arming update; zero leaves Triangle alone.
+s16 _gPadInputWheelBlockUpdates;
+
+#include "gameplay/pad_input.h"
+
 /// Last automatic menu-lock decision (0 unlocked, 1 locked), frozen by explicit hold.
 static u8 _gPadInputMenuLocked;
 
@@ -47,16 +58,6 @@ static u16 _gPadInputMenuHoldCount;
 /// SET_AND_HOLD requests set this latch; explicit SET/CLEAR and reset release
 /// it. Logical suppression publication continues while the decision is held.
 static u8 _gPadInputAutomaticMenuLockHeld;
-
-s16 gPadInputMenuUnlockUpdates;
-
-/// Player-present input updates remaining with logical Triangle forcibly removed.
-///
-/// Reset and automatic menu ineligibility arm four updates. Decremented after
-/// normal publication, including the arming update; zero leaves Triangle alone.
-static s16 _gPadInputWheelBlockUpdates;
-
-#include "gameplay/pad_input.h"
 
 enum {
     PAD_INPUT_LAYOUT_A                    = 0,

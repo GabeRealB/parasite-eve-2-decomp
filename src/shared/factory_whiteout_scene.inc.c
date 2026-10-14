@@ -33,7 +33,7 @@ void factoryBarrierTransitionScene(Task* task)
         case FACTORY_BARRIER_TRANSITION_SCENE_CHECK_CHOICE:
             if (capGetVariantKey() == FACTORY_BARRIER_TRANSITION_CAP_ACCEPTED) {
                 task->killCountdown = 0;
-                if (gGameSession->location.loc.stage == GAME_STAGE_DRYFIELD) {
+                if (gGameSession->location.stage == GAME_STAGE_DRYFIELD) {
                     sndEvtRequestStageScriptStart(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_FACTORY, 0x0C), 0, 0);
                 }
                 task->state = task->state + 1;
@@ -53,7 +53,7 @@ void factoryBarrierTransitionScene(Task* task)
             // Cover the room-variant switch while its barrier geometry is rebuilt.
             gGameSession->viewDirty = 1;
             gameFlagSetNibble(GAME_FLAG_FACTORY_BARRIER_CLEARED, 1);
-            stageId = gGameSession->location.loc.stage;
+            stageId = gGameSession->location.stage;
             if (stageId == GAME_STAGE_DRYFIELD) {
                 sndEvtRequestStageScriptStart(SOUND_FACTORY_WHITEOUT, 0, 0);
             }
@@ -61,9 +61,9 @@ void factoryBarrierTransitionScene(Task* task)
             task->state = task->state + 1;
             return;
         case FACTORY_BARRIER_TRANSITION_SCENE_CHANGE_ROOM:
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = FACTORY_BARRIER_TRANSITION_ROOM;
-            gGameSession->location.loc.room                            = FACTORY_BARRIER_TRANSITION_ROOM;
-            gGameSession->roomObjsDirty                                = 1;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.room = FACTORY_BARRIER_TRANSITION_ROOM;
+            gGameSession->location.room                            = FACTORY_BARRIER_TRANSITION_ROOM;
+            gGameSession->roomObjsDirty                            = 1;
             fadeDrawOverlay(FACTORY_BARRIER_TRANSITION_FULL_INTENSITY, FACTORY_BARRIER_TRANSITION_FULL_INTENSITY, FACTORY_BARRIER_TRANSITION_FULL_INTENSITY, GPU_BLEND_SUBTRACT);
             task->state = task->state + 1;
             return;

@@ -51,15 +51,15 @@ static s32 _roomVariantResolveDriveway(Task* task, s32 messageId, const RoomEven
     if (request->areaId == GAME_AREA_DRYFIELD_WATER_HOLE) {
         if (gameFlagGetNibble(GAME_FLAG_DRIVEWAY_PROGRESS) != ROOM_VARIANT_DRIVEWAY_PROGRESS_READY) {
             if (request->queryOnly == ROOM_EVENT_EXECUTE) {
-                if (gGameSession->location.loc.stage == GAME_STAGE_DRYFIELD) {
-                    if (gGameSession->location.loc.variant == 1) {
+                if (gGameSession->location.stage == GAME_STAGE_DRYFIELD) {
+                    if (gGameSession->location.variant == 1) {
                         if (gameFlagGetNibble(GAME_FLAG_050) == 0) {
                             taskSpawnFromTable(ROOM_VARIANT_DRIVEWAY_SCENE_TASK_TABLE, ROOM_VARIANT_DRIVEWAY_CUTSCENE_INDEX, 0, 0);
                             return ROOM_VARIANT_DRIVEWAY_STAY;
                         }
                     }
                 }
-                if (gGameSession->location.loc.variant == 1 && gSceneCombatState.signals.bytes.battlePhase == gGameSession->location.loc.variant) {
+                if (gGameSession->location.variant == 1 && gSceneCombatState.signals.bytes.battlePhase == gGameSession->location.variant) {
                     return ROOM_VARIANT_DRIVEWAY_STAY;
                 }
                 capRunCommandWithTransition(ROOM_VARIANT_DRIVEWAY_CAP_WATER_HOLE);

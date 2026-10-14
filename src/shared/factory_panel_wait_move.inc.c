@@ -17,9 +17,9 @@ static void _factoryPanelWaitMove(Task* task)
     prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
     if (work->moveSettled != 0) {
         if (gameFlagGetNibble(GAME_FLAG_FACTORY_POWER_ON) == 0) {
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = FACTORY_PANEL_VIEW_UNPOWERED;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = FACTORY_PANEL_VIEW_UNPOWERED;
         } else {
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = FACTORY_PANEL_VIEW_POWERED;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = FACTORY_PANEL_VIEW_POWERED;
         }
         work->scanDelay   = FACTORY_PANEL_SCAN_DELAY_FRAMES;
         work->moveSettled = 0;

@@ -2208,7 +2208,7 @@ void sceneStartRoomTasks(void)
     };
 
     // Room callbacks belong to the overlay selected by the live save's area.
-    switch (GAME_LOCATION_WORD(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc) & GAME_LOCATION_STAGE_AREA_MASK) {
+    switch (GAME_LOCATION_WORD(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location) & GAME_LOCATION_STAGE_AREA_MASK) {
         case GAME_LOCATION_KEY(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_BRIDGE, 0, 0):
             taskSpawnFromTable(&gNeoArkBridgeWaterRefractionTaskDesc, 0, 0, 0);
             break;
@@ -3511,7 +3511,7 @@ void areaSaveEnemyPose(Enemy* enemy)
     s32                 poseIndex;
 
     savedPose     = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.enemyPoses;
-    savedLocation = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc;
+    savedLocation = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location;
     model         = enemy->task->extra.tmd;
     coord         = model->coords;
     if (enemy->spawnState == 0) {
@@ -3941,7 +3941,7 @@ void areaRestoreModelBufferPolicy(void)
         do {
             enemy = child->spawnArg2.pointer;
             if (child->bodyKind == TASK_BODY_TMD) {
-                location    = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc;
+                location    = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location;
                 stage       = location->stage;
                 model       = child->extra.tmd;
                 areaRecords = gAreaRecordsByStage[stage];
@@ -4038,7 +4038,7 @@ static void _areaSetLiveSavePoseRestoreEnabled(s32 useSavedPoses)
     AreaSavedState*   areaState;
     GameLocationKey*  key;
 
-    key         = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc;
+    key         = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location;
     areaRecords = gAreaRecordsByStage[key->stage];
     if (areaRecords != NULL) {
         areaState = areaRecords[key->area].savedState;
@@ -4514,7 +4514,7 @@ static inline s32 _areaGetCurrentObjectState(s32 flagIndex)
     u32        stateBits;
     s32        bitShift;
 
-    stateWord   = &gAreaObjectStages[gGameSession->location.loc.stage].objectStates[flagIndex >> AREA_OBJECT_STATE_WORD_INDEX_SHIFT];
+    stateWord   = &gAreaObjectStages[gGameSession->location.stage].objectStates[flagIndex >> AREA_OBJECT_STATE_WORD_INDEX_SHIFT];
     bitShift    = (flagIndex & ((1 << AREA_OBJECT_STATE_WORD_INDEX_SHIFT) - 1)) * AREA_OBJECT_STATE_BITS;
     stateBits   = *stateWord;
     stateBits  &= AREA_OBJECT_PLACE_STATE_MASK << bitShift;

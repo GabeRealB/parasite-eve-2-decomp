@@ -56,12 +56,12 @@ enum {
 /// it is evaluated repeatedly. A zero stage nibble leaves the value unchanged.
 /// Other bits are retained; substitution requires a live `gGameSession` and
 /// a stage that fits four bits. Use as a standalone compound statement.
-#define SOUND_RESOLVE_CURRENT_STAGE(soundId)                                           \
-    {                                                                                  \
-        if ((soundId) & SOUND_STAGE_NIBBLE_MASK) {                                     \
-            (soundId) &= ~SOUND_STAGE_NIBBLE_MASK;                                     \
-            (soundId) |= gGameSession->location.loc.stage << SOUND_STAGE_NIBBLE_SHIFT; \
-        }                                                                              \
+#define SOUND_RESOLVE_CURRENT_STAGE(soundId)                                       \
+    {                                                                              \
+        if ((soundId) & SOUND_STAGE_NIBBLE_MASK) {                                 \
+            (soundId) &= ~SOUND_STAGE_NIBBLE_MASK;                                 \
+            (soundId) |= gGameSession->location.stage << SOUND_STAGE_NIBBLE_SHIFT; \
+        }                                                                          \
     }
 
 static void _capWeaponEventTask(Task* task);
@@ -395,7 +395,7 @@ void sceneSetPlacedActorDrawMode(s32 placeIndex, s32 drawMode)
     Task* actorTask;
     s32   placeKey;
 
-    placeKey = (placeIndex << ENEMY_PLACE_INDEX_SHIFT) | (gGameSession->location.loc.stage << ENEMY_PLACE_STAGE_SHIFT) | gGameSession->location.loc.area;
+    placeKey = (placeIndex << ENEMY_PLACE_INDEX_SHIFT) | (gGameSession->location.stage << ENEMY_PLACE_STAGE_SHIFT) | gGameSession->location.area;
     TASK_MESSAGE_DISPATCH_SECOND_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_FIND_PLACED_ACTOR, placeKey, &actorTask);
     if (actorTask != NULL) {
         taskMessageDispatch(actorTask, ACTOR_MESSAGE_SET_MODEL_DRAW, drawMode, 0);

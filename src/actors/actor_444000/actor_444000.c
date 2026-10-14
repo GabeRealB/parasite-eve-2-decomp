@@ -3084,31 +3084,31 @@ static void _actor444000EventUpdateDescentRoom(s32 updateMode)
     work = _gActor444000IncineratorEventTask->work;
     switch (updateMode) {
         case ACTOR_444000_DESCENT_RESELECT_VIEW:
-            gGameSession->viewDirty                                    = 1;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = work->savedView;
+            gGameSession->viewDirty                                = 1;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = work->savedView;
             break;
         case ACTOR_444000_DESCENT_UPDATE_WITH_BLEND:
         case ACTOR_444000_DESCENT_UPDATE_SKIPPED:
             // Both saved and live locations follow the lift phase before room data reloads.
             switch (gGameSession->incineratorDescentPhase) {
                 case GAME_SESSION_INCINERATOR_DESCENT_WAITING:
-                    gGameSession->location.loc.room                            = ACTOR_444000_DESCENT_WAITING_ROOM;
-                    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = ACTOR_444000_DESCENT_WAITING_ROOM;
+                    gGameSession->location.room                            = ACTOR_444000_DESCENT_WAITING_ROOM;
+                    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.room = ACTOR_444000_DESCENT_WAITING_ROOM;
                     break;
                 case GAME_SESSION_INCINERATOR_DESCENT_MOVING:
-                    gGameSession->location.loc.room                            = ACTOR_444000_DESCENT_MOVING_ROOM;
-                    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = ACTOR_444000_DESCENT_MOVING_ROOM;
+                    gGameSession->location.room                            = ACTOR_444000_DESCENT_MOVING_ROOM;
+                    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.room = ACTOR_444000_DESCENT_MOVING_ROOM;
                     break;
                 case GAME_SESSION_INCINERATOR_DESCENT_LANDED:
                 case GAME_SESSION_INCINERATOR_DESCENT_COMPLETE:
-                    gGameSession->location.loc.room                            = ACTOR_444000_DESCENT_LANDED_ROOM;
-                    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = ACTOR_444000_DESCENT_LANDED_ROOM;
+                    gGameSession->location.room                            = ACTOR_444000_DESCENT_LANDED_ROOM;
+                    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.room = ACTOR_444000_DESCENT_LANDED_ROOM;
                     break;
             }
-            gGameSession->eventRoomIndex                               = gGameSession->location.loc.room - 1;
-            gGameSession->incineratorRoomGroup                         = 1;
-            gGameSession->roomObjsDirty                                = 1;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = work->savedView;
+            gGameSession->eventRoomIndex                           = gGameSession->location.room - 1;
+            gGameSession->incineratorRoomGroup                     = 1;
+            gGameSession->roomObjsDirty                            = 1;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = work->savedView;
             areaApplySavedUpdates(gShelterB3GarbageIncineratorDescentAreaUpdates);
             if (updateMode == ACTOR_444000_DESCENT_UPDATE_WITH_BLEND) {
                 work->framebufferBlend = taskSpawn(ACTOR_444000_EVENT_BLEND_BANK, ACTOR_444000_EVENT_BLEND_DESCRIPTOR, ACTOR_444000_EVENT_BLEND_DOUBLE_PASS, 0);
@@ -3198,7 +3198,7 @@ static void _actor444000IncineratorEventTask(Task* task)
             }
             if (task->spawnArg1.value != 0) {
                 work            = task->work;
-                work->savedView = gGameSession->location.loc.view;
+                work->savedView = gGameSession->location.view;
                 playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
                 evsStartScriptWithSkip(_gActor444000DescentScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, _gActor444000DescentSkipScript);
                 task->state = ACTOR_444000_EVENT_WAIT_SCRIPT;
@@ -3222,7 +3222,7 @@ static void _actor444000IncineratorEventTask(Task* task)
             nextTick            = (u16)task->killCountdown + 1;
             task->killCountdown = nextTick;
             if (nextTick >= ACTOR_444000_EVENT_ENDING_WAIT_FRAMES) {
-                work->savedView = gGameSession->location.loc.view;
+                work->savedView = gGameSession->location.view;
                 evsStartScriptWithSkip(_gActor444000PostBossAlertScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, _gActor444000PostBossAlertSkipScript);
                 task->state += 1;
             }
@@ -3310,8 +3310,8 @@ static void _actor444000EventBroadcastCommand(s16 command)
 {
     ActorCommand msg;
 
-    msg.context.loc.stage = gGameSession->location.loc.stage;
-    msg.context.loc.area  = gGameSession->location.loc.area;
+    msg.context.loc.stage = gGameSession->location.stage;
+    msg.context.loc.area  = gGameSession->location.area;
     msg.command           = command;
     TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
 }
@@ -3674,9 +3674,9 @@ static void _actor444000CollapseState(Task* task)
 
         _gluttonTickAnim(task);
 
-        gGameSession->location.loc.variant = ACTOR_444000_COLLAPSED_VARIANT;
-        soundId                            = (((u16)enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B3_GARBAGE_INCINERATOR, 7);
-        soundPan                           = (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords);
+        gGameSession->location.variant = ACTOR_444000_COLLAPSED_VARIANT;
+        soundId                        = (((u16)enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B3_GARBAGE_INCINERATOR, 7);
+        soundPan                       = (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords);
         sndEvtRequestScriptStart(soundId, soundPan, (s8)(worldCoordGetOriginAudioDepth(task->extra.tmd->coords) / 2));
         return;
     }
@@ -6374,7 +6374,7 @@ static void _actor444000SummonState(Task* task)
                 if (work->summons[summonScratch->slot] != NULL) {
                     work->summonsSpawned++;
                     summonModel     = work->summons[summonScratch->slot]->task->extra.tmd;
-                    sessionLocation = &gGameSession->location.loc;
+                    sessionLocation = &gGameSession->location;
                     location.stage  = sessionLocation->stage;
                     location.area   = sessionLocation->area;
                     location.room   = sessionLocation->room;

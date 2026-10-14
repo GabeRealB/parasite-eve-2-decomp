@@ -26,7 +26,7 @@ static void _maggotCaterpillarSpawnHusk(Task* actor)
     if (huskEffect == NULL) {
         return;
     }
-    currentLocation = &gGameSession->location.loc;
+    currentLocation = &gGameSession->location;
     placeKey        = ((Enemy*)actor->spawnArg2.pointer)->placeKey;
     huskModel       = huskEffect->task->extra.tmd;
     location.stage  = currentLocation->stage;

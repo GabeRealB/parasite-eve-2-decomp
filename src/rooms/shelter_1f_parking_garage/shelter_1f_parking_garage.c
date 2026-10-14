@@ -684,7 +684,7 @@ static void _shelter1fParkingGarageInitializeRoom(Task* task)
            ARRIVAL_CAP_COMMAND = 5 };
     task->msgTable = _gShelter1fParkingGarageRoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
-    if (gGameSession->location.loc.warp == ARRIVAL_CAP_WARP) {
+    if (gGameSession->location.warp == ARRIVAL_CAP_WARP) {
         capRunCommandWithTransition(ARRIVAL_CAP_COMMAND);
     }
     task->state = task->state + 1;

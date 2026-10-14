@@ -1602,7 +1602,7 @@ static void _actor02400FlyFireball(Enemy* unusedEnemy, Task* task)
             _fireballDrawGlow(fireballCoord, ACTOR_02400_FIREBALL_GLOW_HALF_EXTENT);
             wallContactKey = work->wallContacts[0].key.value;
             if ((wallContactKey != 0) &&
-                (gWorldCollisionSurfacePropertiesTables[gGameSession->location.loc.stage - 1][gGameSession->location.loc.area - 1]
+                (gWorldCollisionSurfacePropertiesTables[gGameSession->location.stage - 1][gGameSession->location.area - 1]
                                                        [worldCollisionSurfaceClassFromKey(wallContactKey)]
                                                            ->probePassThrough == WORLD_COLLISION_SURFACE_BLOCK_PROBES)) {
                 wallBlocked = 1;

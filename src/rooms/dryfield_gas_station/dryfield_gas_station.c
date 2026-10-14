@@ -51,7 +51,7 @@ static void _roomCutsceneTask(Task* task);
 
 static void _roomCutsceneSoundTask(Task* task);
 
-/// Saved `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view` (area id), restored when the cutscene ends.
+/// Saved `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view` (area id), restored when the cutscene ends.
 
 /// `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType` (ally present). A distinct symbol so the restore
 /// path does not share the `gMcSaveData` address with case 0.
@@ -157,8 +157,8 @@ static s32 _dryfieldGasStationHandleRoomCommand(Task* unusedTask, s32 unusedMess
             capRunCommandWithTransition(DRYFIELD_GAS_STATION_CAP_FIRST_SCENE);
             return 0;
         }
-        if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp == command) {
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = DRYFIELD_GAS_STATION_RETURN_WARP;
+        if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp == command) {
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp = DRYFIELD_GAS_STATION_RETURN_WARP;
         }
         gDryfieldGasStationRoomCutscene.view            = DRYFIELD_GAS_STATION_CUTSCENE_VIEW;
         gDryfieldGasStationRoomCutscene.capSlot         = command;
@@ -216,7 +216,7 @@ static void _dryfieldGasStationInitRoomTask(Task* task)
            AREA_MUSIC_START_TICKS = 1 };
     task->msgTable = _gDryfieldGasStationRoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
-    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp == ARRIVAL_WARP) {
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp == ARRIVAL_WARP) {
         taskSpawnFromTable(_gDryfieldGasStationArrivalSupervisorTaskDescs, 0, 0, 0);
         gameFlagSetNibble(GAME_FLAG_STORY_CHAPTER, ARRIVAL_STORY_CHAPTER);
         gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);

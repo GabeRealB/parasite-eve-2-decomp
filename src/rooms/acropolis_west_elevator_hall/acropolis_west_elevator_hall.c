@@ -1176,7 +1176,7 @@ static void _acropolisWestElevatorHallUpdateArrivalEvent(Task* unusedTask)
     u8  arrivalWarp;
 
     if (_gAcropolisWestElevatorHallArrivalPhase == ACROPOLIS_WEST_ELEVATOR_HALL_ARRIVAL_WAITING) {
-        arrivalWarp = gGameSession->location.loc.warp;
+        arrivalWarp = gGameSession->location.warp;
         if (arrivalWarp == ACROPOLIS_WEST_ELEVATOR_HALL_ARRIVAL_WARP) {
             _gAcropolisWestElevatorHallArrivalPhase = arrivalWarp;
             evsStartScriptWithSkip(_gAcropolisWestElevatorHallArrivalScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, _gAcropolisWestElevatorHallArrivalSkipScript);
@@ -1380,7 +1380,7 @@ static void _acropolisWestElevatorHallUpdateDoorLeaf(Task* task)
     doorCoord = doorModel->coords;
 
     _acropolisWestElevatorHallSlideDoorLeaf(task, leafWork, doorCoord);
-    if (gGameSession->location.loc.view == ACROPOLIS_WEST_ELEVATOR_HALL_DOOR_VIEW) {
+    if (gGameSession->location.view == ACROPOLIS_WEST_ELEVATOR_HALL_DOOR_VIEW) {
         doorModel->flags = 0;
     } else {
         doorModel->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
@@ -1442,10 +1442,10 @@ void acropolisWestElevatorHallViewEffectsTask(Task* task)
             task->state = task->state + 1;
             return;
         case ACROPOLIS_WEST_ELEVATOR_HALL_EFFECTS_UPDATE:
-            if (gGameSession->location.loc.view == ACROPOLIS_WEST_ELEVATOR_HALL_BEACON_VIEW) {
+            if (gGameSession->location.view == ACROPOLIS_WEST_ELEVATOR_HALL_BEACON_VIEW) {
                 ACROPOLIS_WEST_ELEVATOR_HALL_SPAWN_VIEW_BEACONS();
             }
-            if (gGameSession->location.loc.view == ACROPOLIS_WEST_ELEVATOR_HALL_GLOW_VIEW) {
+            if (gGameSession->location.view == ACROPOLIS_WEST_ELEVATOR_HALL_GLOW_VIEW) {
                 lightPosition = _gAcropolisWestElevatorHallBayLightPosition;
                 effectSpawn(EFFECT_ACROPOLIS_WEST_ELEVATOR_HALL_LIGHT, parentCoord, 0, &lightPosition);
             }
@@ -1497,7 +1497,7 @@ void acropolisWestElevatorHallBayLightingTask(Task* task)
     }
 
     // Restore the palette before releasing the effect, even during its ramp.
-    if (gGameSession->location.loc.view != ACROPOLIS_WEST_ELEVATOR_HALL_BAY_LIGHTING_VIEW) {
+    if (gGameSession->location.view != ACROPOLIS_WEST_ELEVATOR_HALL_BAY_LIGHTING_VIEW) {
         ACROPOLIS_WEST_ELEVATOR_HALL_UPLOAD_BAY_PALETTE(0, colorIndex);
         effectKillTask(work, task);
     }

@@ -61,7 +61,7 @@ static void _roamerTickPoolA(Task* task)
     s16    reserveSlot;
 
     gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-    if (_gRoamerPoolAArmCounts[gGameSession->location.loc.variant] == 0) {
+    if (_gRoamerPoolAArmCounts[gGameSession->location.variant] == 0) {
         return;
     }
     if (_gRoamerCooldownFrames > ROAMER_COOLDOWN_READY) {
@@ -80,7 +80,7 @@ static void _roamerTickPoolA(Task* task)
         gameFlagSetNibble(GAME_FLAG_NEO_ARK_ROAMER_KILLS_POOL_A, killedCount + (previousReserveCount - remainingSlots));
         remainingSlots = _roamerCountReserveSlots();
         gameFlagSetNibble(GAME_FLAG_NEO_ARK_ROAMER_POOL_A_RESERVE, remainingSlots);
-        areaSyncLocationVariant(&gGameSession->location.loc);
+        areaSyncLocationVariant(&gGameSession->location);
     }
     _gRoamerPreviousBattleRefs = gSceneCombatState.battleRefs;
     if (gGameSession->battleResetPending == 1 && _gRoamerCooldownFrames == ROAMER_COOLDOWN_READY) {

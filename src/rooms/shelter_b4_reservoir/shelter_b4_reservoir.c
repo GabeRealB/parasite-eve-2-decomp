@@ -1347,7 +1347,7 @@ static ScreenWaveCtx* _gScreenWaveContext = NULL;
 /// Only room, area and warp are staged and copied to the live save; the other
 /// five bytes are retained with no accesses. Exit requests must not overlap.
 /// Keep the original halfword alignment and complete eight-byte location cell.
-static GameLoc _gShelterB4ReservoirPendingExitLocation __attribute__((aligned(2))) = { 0 };
+static GameLocationKey _gShelterB4ReservoirPendingExitLocation __attribute__((aligned(2))) = { 0 };
 
 /// Retained packed water-drift argument rebuilt by each room update.
 ///
@@ -1471,7 +1471,7 @@ static void _shelterB4ReservoirWaterEventTask(Task* task)
             gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
             if (capGetVariantKey() == SHELTER_B4_RESERVOIR_EVENT_CANCEL_KEY) {
                 taskKill(task);
-                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = SHELTER_B4_RESERVOIR_EVENT_RETURN_VIEW;
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = SHELTER_B4_RESERVOIR_EVENT_RETURN_VIEW;
                 _shelterB4ReservoirRestoreEventActors();
                 gGameSession->eventState          = SHELTER_B4_RESERVOIR_EVENT_IDLE;
                 gGameSession->hideHud             = 0;
@@ -1485,9 +1485,9 @@ static void _shelterB4ReservoirWaterEventTask(Task* task)
         case SHELTER_B4_RESERVOIR_EVENT_WAIT_SCRIPT:
             // The event script owns the gate until either normal completion or skip.
             if (gGameSession->eventState == SHELTER_B4_RESERVOIR_EVENT_IDLE) {
-                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = SHELTER_B4_RESERVOIR_EVENT_COMPLETED_ROOM;
-                gGameSession->location.loc.room                            = SHELTER_B4_RESERVOIR_EVENT_COMPLETED_ROOM;
-                gGameSession->roomObjsDirty                                = 1;
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.room = SHELTER_B4_RESERVOIR_EVENT_COMPLETED_ROOM;
+                gGameSession->location.room                            = SHELTER_B4_RESERVOIR_EVENT_COMPLETED_ROOM;
+                gGameSession->roomObjsDirty                            = 1;
                 gameFlagSetNibble(GAME_FLAG_B4_RESERVOIR_EVENT_DONE, SHELTER_B4_RESERVOIR_EVENT_DONE);
                 gameFlagSetNibble(GAME_FLAG_MAP_MARK_RESERVOIR_1BF, SHELTER_B4_RESERVOIR_EVENT_MAP_MARK);
                 gameFlagSetNibble(GAME_FLAG_INCINERATOR_CONTROL_ROOM_STATE, SHELTER_B4_RESERVOIR_CONTROL_ROOM_AFTER_EVENT);
@@ -1583,10 +1583,10 @@ static void _shelterB4ReservoirExitTask(Task* task)
             break;
         case SHELTER_B4_RESERVOIR_EXIT_RELOAD:
             // This retained storage uses location bytes: room, area and warp.
-            gDisplayState.spriteVariant                                = SHELTER_B4_RESERVOIR_EXIT_SPRITE_VARIANT;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = _gShelterB4ReservoirPendingExitLocation.loc.area;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = _gShelterB4ReservoirPendingExitLocation.loc.warp;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = _gShelterB4ReservoirPendingExitLocation.loc.room;
+            gDisplayState.spriteVariant                            = SHELTER_B4_RESERVOIR_EXIT_SPRITE_VARIANT;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.area = _gShelterB4ReservoirPendingExitLocation.area;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp = _gShelterB4ReservoirPendingExitLocation.warp;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.room = _gShelterB4ReservoirPendingExitLocation.room;
             taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_SKIP_BATTLE_ESCAPE, 0);
             taskKill(task);
             break;
@@ -1631,9 +1631,9 @@ static s32 _shelterB4ReservoirResolveTransitionMessage(Task* task, s32 messageId
         } else {
             if (request->queryOnly == ROOM_EVENT_EXECUTE) {
                 // Snapshot the resolved selectors for the asynchronous exit task.
-                _gShelterB4ReservoirPendingExitLocation.loc.area = (u8)reply->areaId;
-                _gShelterB4ReservoirPendingExitLocation.loc.warp = reply->warp;
-                _gShelterB4ReservoirPendingExitLocation.loc.room = reply->room;
+                _gShelterB4ReservoirPendingExitLocation.area = (u8)reply->areaId;
+                _gShelterB4ReservoirPendingExitLocation.warp = reply->warp;
+                _gShelterB4ReservoirPendingExitLocation.room = reply->room;
                 taskSpawnFromTable(_gShelterB4ReservoirEventTasks, SHELTER_B4_RESERVOIR_TASK_EXIT, SHELTER_B4_RESERVOIR_EXIT_CAP_COMMAND, 0);
             }
         }
@@ -1660,8 +1660,8 @@ static s32 _shelterB4ReservoirCommandMessage(Task* task, s32 messageId, s32 comm
         companionSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE);
         playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
         companionSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = SHELTER_B4_RESERVOIR_EVENT_START_VIEW;
-        gSceneCombatState.actorControl                             = SCENE_COMBAT_ACTORS_HIDDEN;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = SHELTER_B4_RESERVOIR_EVENT_START_VIEW;
+        gSceneCombatState.actorControl                         = SCENE_COMBAT_ACTORS_HIDDEN;
         taskSpawnFromTable(_gShelterB4ReservoirEventTasks, SHELTER_B4_RESERVOIR_TASK_WATER_EVENT, 0, 0);
     }
     return 0;
@@ -1783,7 +1783,7 @@ static void _shelterB4ReservoirView8ModelTask(Task* task)
         modelCoord->composeStamp = GRAPHICS_COORD_DIRTY;
         modelCoord->coord.t[1]  += 4;
     }
-    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view != SHELTER_B4_RESERVOIR_MODEL_VISIBLE_VIEW) {
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view != SHELTER_B4_RESERVOIR_MODEL_VISIBLE_VIEW) {
         model->flags = (TMD_OBJECT_SKIP_ACTIVE_DRAW | TMD_OBJECT_SKIP_AUTO_BUFFER);
     } else {
         model->flags    = 0;
@@ -1935,7 +1935,7 @@ static void _shelterB4ReservoirDrawWaterTask(Task* task)
     } else {
         _gShelterB4ReservoirWaterPrimCursor = gFsActorBuffer1Base + gDisplayState.otBuffer * SHELTER_B4_RESERVOIR_WATER_PACKET_HALF_BYTES;
     }
-    if (gGameSession->location.loc.view != SHELTER_B4_RESERVOIR_WATER_SPRAY_VIEW) {
+    if (gGameSession->location.view != SHELTER_B4_RESERVOIR_WATER_SPRAY_VIEW) {
         surface->depth = SHELTER_B4_RESERVOIR_MAIN_WATER_INITIAL_DEPTH - (((gShelterB4ReservoirMainWaterY - SHELTER_B4_RESERVOIR_MAIN_WATER_INITIAL_Y) * 0x31) >> 5);
         _shelterB4ReservoirDrawMainWaterStrip(task);
         _shelterB4ReservoirDrawZWaterStrips(task);

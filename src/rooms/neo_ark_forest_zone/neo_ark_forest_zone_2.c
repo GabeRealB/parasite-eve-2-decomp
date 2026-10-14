@@ -1005,7 +1005,7 @@ static void _roamerTickPoolB(Task* unusedTask)
     }
 
     gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-    if (_gRoamerPoolBArmCounts[gGameSession->location.loc.variant] == 0) {
+    if (_gRoamerPoolBArmCounts[gGameSession->location.variant] == 0) {
         return;
     }
     if (_gRoamerCooldownFrames > ROAMER_COOLDOWN_READY) {
@@ -1037,7 +1037,7 @@ static void _roamerTickPoolB(Task* unusedTask)
             }
         }
         gameFlagSetNibble(GAME_FLAG_NEO_ARK_ROAMER_POOL_B_RESERVE, bankedCount);
-        areaSyncLocationVariant(&gGameSession->location.loc);
+        areaSyncLocationVariant(&gGameSession->location);
         _gRoamerCooldownFrames = ROAMER_POST_BATTLE_COOLDOWN_FRAMES;
     }
     _gRoamerPreviousBattleRefs = gSceneCombatState.battleRefs;

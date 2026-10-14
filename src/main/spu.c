@@ -125,47 +125,47 @@ static _AsyncCbQueue _gAsyncCbQueue;
 /// queuing silent starts; ticks update the arrays and invoke borrowed owner
 /// callbacks. Ordinary nonsilent starts enter its completion-reset mask;
 /// stream starts are accounted for separately by their owner.
-static _SpuVoiceState _gSpuVoiceState;
+_SpuVoiceState _gSpuVoiceState;
 
 /// BSS bytes with no established use; their original type and role are unproven.
-static u8 D_8007E510[8];
+u8 D_8007E510[8];
 
 /// Resident pending voice-attribute batch; references expire at the next flush.
-static _SpuVoiceUpdateList _gSpuVoiceUpdateList;
+_SpuVoiceUpdateList _gSpuVoiceUpdateList;
 
 /// Registered hardware-voice runs, indexed by `SPU_VOICE_RANGE_*` (0..3).
 ///
 /// Zero-initialized counts disable unregistered ranges. Clients replace these
 /// signed-halfword runs during sound initialization; runs may overlap and must
 /// stay within hardware voices 0..23. Allocation does not check range indices.
-static _SpuVoiceRange _gSpuVoiceRanges[SPU_VOICE_RANGE_CD_STREAM + 1];
+_SpuVoiceRange _gSpuVoiceRanges[SPU_VOICE_RANGE_CD_STREAM + 1];
 
 /// Pending ordinary or silent-block key-ons, with one bit per voice 0..23.
 ///
 /// Flushing stops these voices before applying attributes and restarting them.
 /// Nonsilent starts enter completion tracking; silent-marked starts do not.
 /// The mask is emptied by the flush and individual key-offs cancel its bits.
-static u32 _gSpuPendingKeyOnMask;
+u32 _gSpuPendingKeyOnMask;
 
 /// Pending CD-stream key-ons, with one bit per voice 0..23.
 ///
 /// Flushing starts these alongside ordinary voices but excludes them from new
 /// completion-reset tracking. A stream request withdraws the ordinary pending
 /// start and silent mark; key-off cancels either class. Flushing empties it.
-static u32 _gSpuPendingStreamKeyOnMask;
+u32 _gSpuPendingStreamKeyOnMask;
 
 /// Pending key-offs, with one bit per hardware voice 0..23.
 ///
 /// A key-on withdraws that voice's pending stop. Flushing also adds ordinary
 /// pending starts here, stops the selected voices before applying attributes,
 /// and empties this mask before sending the new key-ons.
-static u32 _gSpuPendingKeyOffMask;
+u32 _gSpuPendingKeyOffMask;
 
 /// Resident batch of pending reverb routing, mode and stereo-depth changes.
 ///
 /// Requests accumulate until the audio flush applies and clears their masks.
 /// Startup applies attributes immediately without seeding `activeMode`.
-static _SpuReverbConfig _gSpuReverbConfig;
+_SpuReverbConfig _gSpuReverbConfig;
 
 static inline s32 _spuGetVoiceRef(s8 voiceIdx, SpuVoiceRef* ref);
 

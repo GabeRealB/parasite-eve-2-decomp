@@ -1452,9 +1452,9 @@ and pick the form from how the bytes are used:
 
 - Only ever used as a group — a **named nested struct member**.
 - Used as a group *and* read field by field — still a **named nested struct
-  member**, as long as the fields live on that nested type. `GameSession.location.loc`
-  is this case: `&session->location.loc` is the 6-byte key passed into lookups, and
-  `session->location.loc.stage` is the same bytes field by field.
+  member**, as long as the fields live on that nested type. `GameSession.location`
+  is this case: `&session->location` is the 6-byte key passed into lookups, and
+  `session->location.stage` is the same bytes field by field.
 - A byte view alone does not require a union. Cast the aggregate's address to
   a byte pointer for APIs that read its representation, and copy the complete
   aggregate when the transfer includes bytes beyond its interpreted fields.
@@ -1464,7 +1464,7 @@ and pick the form from how the bytes are used:
 ```c
 typedef struct {
     s8 field_0;
-    GameLoc location;  /* location.loc.view / location.loc.stage */
+    GameLocationKey location;  /* location.view / location.stage */
     ...
 ```
 
@@ -1473,7 +1473,7 @@ struct or union members: it accepts the declaration and then rejects every
 access to it. `_GpuStatusRegister` in `src/main/gpuext.c` is the worked
 example: its bitfields sit in a struct member named `bits` beside the whole
 `word`, so a field is `status.bits.displayDisabled`. So a union form is
-`session->location.loc`, not `session->loc`; a nested struct form is `session->loc`.
+`session->location`, not `session->loc`; a nested struct form is `session->loc`.
 
 **There is rarely only one.** The same run is usually described by several
 invented types, reached from different callers, and the first one found is

@@ -20,7 +20,7 @@
 
 /// Where one area sits on the map screen.
 ///
-/// Each stage has a table of these, indexed by `GameSession.location.loc.area`.
+/// Each stage has a table of these, indexed by `GameSession.location.area`.
 /// A record names the map page the area is drawn on and ties a point in the
 /// area's own coordinates to a point on that page, which is what places the
 /// player cursor: one map pixel covers `scaleX` units of X and `scaleZ` units
@@ -39,7 +39,7 @@ STATIC_ASSERT_SIZEOF(MenuMapArea, 0xE);
 /// The name the map screen shows for one area.
 ///
 /// Each stage has a table of these with one record for every area id up to
-/// the stage's highest, indexed by `GameSession.location.loc.area - 1`; area 0
+/// the stage's highest, indexed by `GameSession.location.area - 1`; area 0
 /// has no record. The map screen shows the name of the area the player is in,
 /// in a panel sized to fit it. An id the stage has no room for, or a room it
 /// leaves unnamed, holds the empty string.
@@ -65,7 +65,7 @@ STATIC_ASSERT_SIZEOF(MenuMapAreaName, 0x20);
 
 /// The shape one area takes on its page of the map screen.
 ///
-/// Each stage has a table of these, indexed by `GameSession.location.loc.area`.
+/// Each stage has a table of these, indexed by `GameSession.location.area`.
 /// A page's picture shows every area on it, and the map screen draws an area's
 /// shape over the picture to change how that area reads: covered with a
 /// pattern while the area is unvisited and unknown, dimmed while it is
@@ -82,7 +82,7 @@ STATIC_ASSERT_SIZEOF(MenuMapAreaName, 0x20);
 typedef struct {
     TmdSource* model;      // Shape in the map picture package of `page`, or NULL for an area drawn without one
     u8         page;       // Map page the area is on, counted from 1, or `MENU_MAP_AREA_SHAPE_PAGE_NONE`
-    u8         pairedArea; // Area sharing this one's place, as `GameSession.location.loc.area`, or `MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE`
+    u8         pairedArea; // Area sharing this one's place, as `GameSession.location.area`, or `MENU_MAP_AREA_SHAPE_PAIRED_AREA_NONE`
 } MenuMapAreaShape;
 STATIC_ASSERT_SIZEOF(MenuMapAreaShape, 8);
 
@@ -110,7 +110,7 @@ STATIC_ASSERT_SIZEOF(MenuMapAreaShape, 8);
 /// other rooms unconditionally.
 typedef struct {
     u8  page;      // Map page the icon is on, counted from 1; the page of its area's `MenuMapArea`
-    u8  area;      // Area the icon belongs to, as `GameSession.location.loc.area`
+    u8  area;      // Area the icon belongs to, as `GameSession.location.area`
     u8  kind;      // Picture (0 fixed picture, 1 telephone, 2 objective marker)
     u8  condition; // Objective marker: the objective number it marks. Other kinds: a game flag that must be set, or 0 for always
     s16 x;         // Map-screen X of the icon's centre
@@ -144,7 +144,7 @@ enum { MENU_MAP_MARKER_ALTERNATE_PICTURE = 0x800 };
 /// instead. A flag may have several records, one for each page its place shows on.
 typedef struct {
     u8  page; // Map page the marker is on, counted from 1; 0 closes the table
-    u8  area; // Area, as `GameSession.location.loc.area`, that must have been visited for the marker to show, or a `MENU_MAP_MARKER_AREA_*` value
+    u8  area; // Area, as `GameSession.location.area`, that must have been visited for the marker to show, or a `MENU_MAP_MARKER_AREA_*` value
     s16 x;    // Map-screen X of the marker's centre
     s16 y;    // Map-screen Y of the marker's centre
 } MenuMapMarker;

@@ -779,7 +779,7 @@ void shelterB1SouthMaintenanceWalkwayDrawGlowsTask(Task* task)
     }
 
     // Select the visible endpoint pairs by the saved room view; view 1 draws none.
-    switch (gGameSession->location.loc.view) {
+    switch (gGameSession->location.view) {
         case 2:
             glowDrawDimGreyCapsule(&_gShelterB1SouthMaintenanceWalkwayGlowGeometry.capsuleEndpoints[0][0], GLOW_RADIUS_SCALE, 0);
             glowDrawDimGreyCapsule(&_gShelterB1SouthMaintenanceWalkwayGlowGeometry.capsuleEndpoints[3][0], GLOW_RADIUS_SCALE, GLOW_QUARTER_TURN);

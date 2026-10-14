@@ -475,8 +475,8 @@ static inline void _dryfieldBreezewayBroadcastActorCommand(u16 command)
 {
     ActorCommand msg;
 
-    msg.context.loc.stage = gGameSession->location.loc.stage;
-    msg.context.loc.area  = gGameSession->location.loc.area;
+    msg.context.loc.stage = gGameSession->location.stage;
+    msg.context.loc.area  = gGameSession->location.area;
     msg.command           = command;
     TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
 }
@@ -538,7 +538,7 @@ static void _dryfieldBreezewayProcessFirstEventAction(Task* task)
             TASK_MESSAGE_DISPATCH_POINTER(work->desertChaserTasks[DRYFIELD_BREEZEWAY_FIRST_EVENT_CUTSCENE_CHASER], ACTOR_MESSAGE_PLACE, &_gDryfieldBreezewayFirstEventChaserPlacement, 0);
             TASK_MESSAGE_DISPATCH_POINTER(work->playerTask, GAME_ACTOR_MESSAGE_PLACE, &_gDryfieldBreezewayFirstEventPlayerPlacements[DRYFIELD_BREEZEWAY_FIRST_EVENT_PLAYER_PLACE], 0);
             TASK_MESSAGE_DISPATCH_POINTER(work->playerTask, GAME_ACTOR_MESSAGE_TURN_TO_YAW, &_gDryfieldBreezewayFirstEventPlayerPlacements[DRYFIELD_BREEZEWAY_FIRST_EVENT_PLAYER_TURN], 0);
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = viewFindLogicalIndex(DRYFIELD_BREEZEWAY_FIRST_EVENT_STAGING_VIEW);
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = viewFindLogicalIndex(DRYFIELD_BREEZEWAY_FIRST_EVENT_STAGING_VIEW);
             break;
         case DRYFIELD_BREEZEWAY_FIRST_EVENT_ACTION_PLAY_ANIMATION_9:
             _dryfieldBreezewayPlayPlayerAnimation(DRYFIELD_BREEZEWAY_FIRST_EVENT_PLAYER_ANIMATION, ANIMATION_BLEND_INTERPOLATE, 10);
@@ -568,9 +568,9 @@ static inline void _dryfieldBreezewayInitializeFirstEventWork(Task* task)
         work->playerTask                 = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
         gDryfieldBreezewayFirstEventTask = task;
         // Placement indices 0 and 1 identify the two actors in this room.
-        placeKey                   = gGameSession->location.loc.area | (gGameSession->location.loc.stage << ENEMY_PLACE_STAGE_SHIFT);
+        placeKey                   = gGameSession->location.area | (gGameSession->location.stage << ENEMY_PLACE_STAGE_SHIFT);
         work->desertChaserTasks[0] = sceneFindEnemyByPlaceKey(placeKey)->task;
-        placeKey                   = ((gGameSession->location.loc.stage << ENEMY_PLACE_STAGE_SHIFT) | (1 << ENEMY_PLACE_INDEX_SHIFT)) | gGameSession->location.loc.area;
+        placeKey                   = ((gGameSession->location.stage << ENEMY_PLACE_STAGE_SHIFT) | (1 << ENEMY_PLACE_INDEX_SHIFT)) | gGameSession->location.area;
         work->desertChaserTasks[1] = sceneFindEnemyByPlaceKey(placeKey)->task;
     }
 }
@@ -766,12 +766,12 @@ static void _dryfieldBreezewayInitializeKeyItemEvent(Task* task)
         return;
     }
 
-    task->spawnArg2.pointer                                    = taskSpawnFromTable(&_gDryfieldBreezewayKeyItemCursorTaskDesc, 0, DRYFIELD_BREEZEWAY_KEY_ITEM_CURSOR_PORT_0, NULL);
-    task->msgTable                                             = _gDryfieldBreezewayKeyItemMessageTable;
-    task->work                                                 = work;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = DRYFIELD_BREEZEWAY_KEY_ITEM_VIEW;
-    task->state                                               += 1;
-    work->keyItemAccepted                                      = 0;
+    task->spawnArg2.pointer                                = taskSpawnFromTable(&_gDryfieldBreezewayKeyItemCursorTaskDesc, 0, DRYFIELD_BREEZEWAY_KEY_ITEM_CURSOR_PORT_0, NULL);
+    task->msgTable                                         = _gDryfieldBreezewayKeyItemMessageTable;
+    task->work                                             = work;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = DRYFIELD_BREEZEWAY_KEY_ITEM_VIEW;
+    task->state                                           += 1;
+    work->keyItemAccepted                                  = 0;
     displayAcquireMenuHold();
 
     // Clear both the model-confirmation and cursor-prop hit latches.
@@ -1357,7 +1357,7 @@ void dryfieldBreezewayAmbientEffectsTask(Task* task)
     s32         spawnChance;
     s32         panOffset;
 
-    viewMask    = 1 << gGameSession->location.loc.view;
+    viewMask    = 1 << gGameSession->location.view;
     work        = task->spawnArg2.pointer;
     coord       = task->extra.coordBody->coord;
     playerCoord = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords;
@@ -1373,7 +1373,7 @@ void dryfieldBreezewayAmbientEffectsTask(Task* task)
     gRoomEffectState->roomEffectMode = ROOM_EFFECT_VIEW_ENABLED;
     if (gameFlagGetNibble(GAME_FLAG_BREEZEWAY_FIRST_EVENT_SEEN) == 0) {
         // Offsets use this task's placement frame; work->move stages each spawn position.
-        if (gGameSession->location.loc.view == DRYFIELD_BREEZEWAY_PARTICLE_APPROACH_VIEW) {
+        if (gGameSession->location.view == DRYFIELD_BREEZEWAY_PARTICLE_APPROACH_VIEW) {
             spawnChance     = (playerCoord->coord.t[0] - 5856) >> 7;
             work->move.vx   = 12000;
             work->move.vy   = -3000;
@@ -1387,7 +1387,7 @@ void dryfieldBreezewayAmbientEffectsTask(Task* task)
                 sndEvtRequestScriptStart(SOUND_BREEZEWAY_EFFECT_LOOP, 0, 0);
                 work->step = DRYFIELD_BREEZEWAY_SOUND_LOOP_STARTED;
             }
-        } else if (gGameSession->location.loc.view == DRYFIELD_BREEZEWAY_PARTICLE_NEAR_VIEW) {
+        } else if (gGameSession->location.view == DRYFIELD_BREEZEWAY_PARTICLE_NEAR_VIEW) {
             work->scale     = DRYFIELD_BREEZEWAY_PARTICLE_END_TICKS;
             work->move.vx   = playerCoord->coord.t[0] + 0x100;
             work->move.vy   = -3000;

@@ -1791,7 +1791,7 @@ void dryfieldNightGeneralStoreDrawLightShaftsTask(Task* unusedTask)
         DRYFIELD_NIGHT_GENERAL_STORE_LIGHT_SHAFT_RADIUS_SCALE = 256,
     };
 
-    switch (gGameSession->location.loc.view) {
+    switch (gGameSession->location.view) {
         case 2:
             _glowDrawShaft(_gDryfieldNightGeneralStoreLightShaftPoints[0], DRYFIELD_NIGHT_GENERAL_STORE_LIGHT_SHAFT_RADIUS_SCALE);
             break;

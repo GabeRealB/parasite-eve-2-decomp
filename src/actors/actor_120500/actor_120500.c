@@ -403,10 +403,10 @@ static void _actor120500MovieTask(Task* task)
         ACTOR_120500_MOVIE_FADE_TASK  = 1,
         ACTOR_120500_MOVIE_FADE_STEP  = 8,
     };
-    u8          movieArgument[4];
-    GameLoc     movieLocation;
-    CdCmdQueue* queue;
-    s16         movieSlot;
+    u8              movieArgument[4];
+    GameLocationKey movieLocation;
+    CdCmdQueue*     queue;
+    s16             movieSlot;
 
     queue = &gCdCmdQueue;
     switch (task->state) {
@@ -416,10 +416,10 @@ static void _actor120500MovieTask(Task* task)
             task->state = task->state + 1;
             return;
         case ACTOR_120500_MOVIE_QUEUE:
-            movieLocation          = gGameSession->location;
-            movieLocation.loc.view = ACTOR_120500_MOVIE_VIEW;
-            movieSlot              = streamFindMovieSlot(&movieLocation.loc, 0, 0);
-            movieArgument[0]       = movieSlot;
+            movieLocation      = gGameSession->location;
+            movieLocation.view = ACTOR_120500_MOVIE_VIEW;
+            movieSlot          = streamFindMovieSlot(&movieLocation, 0, 0);
+            movieArgument[0]   = movieSlot;
             cdCmdEnqueue(CD_COMMAND_PLAY_STREAM, 0, movieArgument);
             task->state = task->state + 1;
             return;
@@ -651,7 +651,7 @@ static void _actor120500InitBody(Task* task)
     tmd->lightMtx              = &work->light;
     tmd->flags                 = 0;
     tmd->colorMtx              = &work->color;
-    place                      = areaGetVariant(&gGameSession->location.loc)->placements;
+    place                      = areaGetVariant(&gGameSession->location)->placements;
     entryId                    = place->entryId;
     while (entryId != AREA_PLACEMENT_END) {
         if (entryId == ACTOR_120500_BODY_TEXTURE_ENTRY_ID) {

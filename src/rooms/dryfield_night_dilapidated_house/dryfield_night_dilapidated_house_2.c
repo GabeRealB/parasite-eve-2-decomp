@@ -3073,10 +3073,10 @@ static void _dryfieldNightDilapidatedHouseMovieTask(Task* task)
         DRYFIELD_NIGHT_DILAPIDATED_HOUSE_MOVIE_DEFAULT_STREAM_ID = 100,
         DRYFIELD_NIGHT_DILAPIDATED_HOUSE_MOVIE_DISC_2_STREAM_ID  = 101,
     };
-    u8          streamArgs[4]; // Serialized command bytes; only the slot byte is consumed by playback.
-    GameLoc     movieKey;
-    CdCmdQueue* cdQueue;
-    s16         movieSlot;
+    u8              streamArgs[4]; // Serialized command bytes; only the slot byte is consumed by playback.
+    GameLocationKey movieKey;
+    CdCmdQueue*     cdQueue;
+    s16             movieSlot;
 
     cdQueue = &gCdCmdQueue;
     switch (task->state) {
@@ -3088,11 +3088,11 @@ static void _dryfieldNightDilapidatedHouseMovieTask(Task* task)
         case DRYFIELD_NIGHT_DILAPIDATED_HOUSE_MOVIE_QUEUE:
             movieKey = gGameSession->location;
             if (gGameMainPersistentState.discNumber == GAME_MAIN_DISC_2) {
-                movieKey.loc.view = DRYFIELD_NIGHT_DILAPIDATED_HOUSE_MOVIE_DISC_2_STREAM_ID;
+                movieKey.view = DRYFIELD_NIGHT_DILAPIDATED_HOUSE_MOVIE_DISC_2_STREAM_ID;
             } else {
-                movieKey.loc.view = DRYFIELD_NIGHT_DILAPIDATED_HOUSE_MOVIE_DEFAULT_STREAM_ID;
+                movieKey.view = DRYFIELD_NIGHT_DILAPIDATED_HOUSE_MOVIE_DEFAULT_STREAM_ID;
             }
-            movieSlot     = streamFindMovieSlot(&movieKey.loc, 0, 0);
+            movieSlot     = streamFindMovieSlot(&movieKey, 0, 0);
             streamArgs[0] = movieSlot;
             cdCmdEnqueue(CD_COMMAND_PLAY_STREAM, 0, streamArgs);
             task->state = task->state + 1;
@@ -3188,7 +3188,7 @@ void dryfieldNightDilapidatedHouseDrawLightPrismsTask(Task* task)
     s32       viewMask;
 
     coord    = task->extra.coordBody->coord;
-    viewMask = 1 << gGameSession->location.loc.view;
+    viewMask = 1 << gGameSession->location.view;
     actorRenderComposeCoord(coord);
     // Each block holds four lit corners followed by its four dark-rim corners.
     if (viewMask & DRYFIELD_NIGHT_DILAPIDATED_HOUSE_FIRST_PRISM_VIEWS) {

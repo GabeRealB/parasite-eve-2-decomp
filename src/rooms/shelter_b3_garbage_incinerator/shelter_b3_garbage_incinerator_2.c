@@ -1012,7 +1012,7 @@ static s16 _shelterB3GarbageIncineratorMoveLiftWithActor(Task* task)
         case SHELTER_B3_GARBAGE_INCINERATOR_LIFT_CARRY_MOVING:
             liftCoord->composeStamp = GRAPHICS_COORD_DIRTY;
             liftCoord->coord.t[1]  += 15;
-            if (_gShelterB3GarbageIncineratorLiftRestPlacements[SHELTER_B3_GARBAGE_INCINERATOR_LIFT_REST_UPPER].pos.vy < liftCoord->coord.t[1] || (gGameSession->location.loc.view == 0x28 && gGameSession->skipEventIntro != 0)) {
+            if (_gShelterB3GarbageIncineratorLiftRestPlacements[SHELTER_B3_GARBAGE_INCINERATOR_LIFT_REST_UPPER].pos.vy < liftCoord->coord.t[1] || (gGameSession->location.view == 0x28 && gGameSession->skipEventIntro != 0)) {
                 sndEvtRequestScriptStop(SOUND_SHELTER_B3_INCINERATOR_LIFT_MOVE_2, SOUND_SCRIPT_STOP_KEEP_RELEASE);
                 sndEvtRequestScriptStart(SOUND_SHELTER_B3_INCINERATOR_LIFT_JOLT, 0, 0);
                 liftCoord->coord.t[1] = _gShelterB3GarbageIncineratorLiftRestPlacements[SHELTER_B3_GARBAGE_INCINERATOR_LIFT_REST_UPPER].pos.vy;
@@ -1052,10 +1052,10 @@ static s16 _shelterB3GarbageIncineratorMoveLiftWithActor(Task* task)
 /// index uses room minus one. Requires both session and live-save storage.
 static inline void _shelterB3GarbageIncineratorSetRoom(s16 room)
 {
-    gGameSession->location.loc.room                            = room;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = room;
-    gGameSession->eventRoomIndex                               = room - 1;
-    gGameSession->roomObjsDirty                                = 1;
+    gGameSession->location.room                            = room;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.room = room;
+    gGameSession->eventRoomIndex                           = room - 1;
+    gGameSession->roomObjsDirty                            = 1;
 }
 
 /// Lowers the lift in parent-coordinate units and clamps at its first rest pose.
@@ -1095,7 +1095,7 @@ static inline void _shelterB3GarbageIncineratorFinishLiftDescent(Task* task)
     work                                  = task->work;
     gGameSession->incineratorDescentPhase = GAME_SESSION_INCINERATOR_DESCENT_LANDED;
     shelterB3GarbageIncineratorSetLiftArrivalCollisionWalls();
-    work->arrivalView = gGameSession->location.loc.view;
+    work->arrivalView = gGameSession->location.view;
     task->state++;
 }
 
@@ -1160,7 +1160,7 @@ static void _shelterB3GarbageIncineratorLiftTask(Task* task)
                 gShelterB3GarbageIncineratorLiftTask = task;
                 model->lightMtx                      = &work->lightMtx;
                 task->msgTable                       = _gShelterB3GarbageIncineratorLiftMessages;
-                work->carriedActor                   = sceneFindEnemyByPlaceKey(gGameSession->location.loc.area | (gGameSession->location.loc.stage << 8))->task;
+                work->carriedActor                   = sceneFindEnemyByPlaceKey(gGameSession->location.area | (gGameSession->location.stage << 8))->task;
             }
             if (gGameSession->incineratorExitPhase != GAME_SESSION_INCINERATOR_EXIT_NONE) {
                 shelterB3GarbageIncineratorSetExitCollisionWalls();
@@ -1194,13 +1194,13 @@ static void _shelterB3GarbageIncineratorLiftTask(Task* task)
             if ((s8)actionId == SHELTER_B3_GARBAGE_INCINERATOR_LIFT_ACTION) {
                 sndEvtRequestScriptStart(SOUND_SHELTER_B3_INCINERATOR_SWITCH_PRESS, 0, 0);
                 sndEvtRequestScriptStart(SOUND_SHELTER_B3_INCINERATOR_LIFT_MOVE, 0, 0);
-                if (gGameSession->location.loc.room < SHELTER_B3_GARBAGE_INCINERATOR_LIFT_SECOND_ROOM_FAMILY) {
+                if (gGameSession->location.room < SHELTER_B3_GARBAGE_INCINERATOR_LIFT_SECOND_ROOM_FAMILY) {
                     _shelterB3GarbageIncineratorSetRoom(SHELTER_B3_GARBAGE_INCINERATOR_LIFT_FIRST_MOVING_ROOM);
-                    gGameSession->eventRoomIndex       = gGameSession->location.loc.room - 1;
+                    gGameSession->eventRoomIndex       = gGameSession->location.room - 1;
                     gGameSession->incineratorRoomGroup = SHELTER_B3_GARBAGE_INCINERATOR_LIFT_FIRST_ROOM_GROUP;
                 } else {
                     _shelterB3GarbageIncineratorSetRoom(SHELTER_B3_GARBAGE_INCINERATOR_LIFT_SECOND_MOVING_ROOM);
-                    gGameSession->eventRoomIndex       = gGameSession->location.loc.room - 1;
+                    gGameSession->eventRoomIndex       = gGameSession->location.room - 1;
                     gGameSession->incineratorRoomGroup = SHELTER_B3_GARBAGE_INCINERATOR_LIFT_SECOND_ROOM_GROUP;
                 }
                 shelterB3GarbageIncineratorShowTimedCaption(SHELTER_B3_GARBAGE_INCINERATOR_CAPTION_LIFT_ACTION, SHELTER_B3_GARBAGE_INCINERATOR_CAPTION_DEFAULT_KEY, SHELTER_B3_GARBAGE_INCINERATOR_CAPTION_NOTICE_TICKS);
@@ -1217,8 +1217,8 @@ static void _shelterB3GarbageIncineratorLiftTask(Task* task)
         case SHELTER_B3_GARBAGE_INCINERATOR_LIFT_TASK_WAIT_VIEW: {
             _ShelterB3GarbageIncineratorLiftWork* waitingWork = task->work;
 
-            if (waitingWork->arrivalView != gGameSession->location.loc.view) {
-                if (gGameSession->location.loc.room < SHELTER_B3_GARBAGE_INCINERATOR_LIFT_SECOND_ROOM_FAMILY) {
+            if (waitingWork->arrivalView != gGameSession->location.view) {
+                if (gGameSession->location.room < SHELTER_B3_GARBAGE_INCINERATOR_LIFT_SECOND_ROOM_FAMILY) {
                     _shelterB3GarbageIncineratorSetRoom(SHELTER_B3_GARBAGE_INCINERATOR_LIFT_FIRST_ARRIVAL_ROOM);
                 } else {
                     _shelterB3GarbageIncineratorSetRoom(SHELTER_B3_GARBAGE_INCINERATOR_LIFT_SECOND_ARRIVAL_ROOM);
@@ -1238,13 +1238,13 @@ static void _shelterB3GarbageIncineratorLiftTask(Task* task)
     }
     // Waiting for the actor event still permits relighting after a room change.
     work = task->work;
-    if (gGameSession->location.loc.room != work->litRoom) {
+    if (gGameSession->location.room != work->litRoom) {
         litModel            = task->extra.tmd;
         lightingPosition.vx = litModel->coords->workm.t[0];
         lightingPosition.vy = task->extra.tmd->coords->workm.t[1];
         lightingPosition.vz = task->extra.tmd->coords->workm.t[2];
         worldCoordSetModelLighting(litModel, &lightingPosition, 0, SHELTER_B3_GARBAGE_INCINERATOR_LIFT_LIGHT_COUNT);
-        work->litRoom = gGameSession->location.loc.room;
+        work->litRoom = gGameSession->location.room;
     }
 }
 
@@ -1433,7 +1433,7 @@ static void _shelterB3GarbageIncineratorBlazeControllerTask(Task* task)
                 shouldBurn = 0;
             } else if (playerStatus->hp <= 0) {
                 shouldBurn = 0;
-            } else if (session->incineratorExitPhase != GAME_SESSION_INCINERATOR_EXIT_WARP || session->location.loc.view != SHELTER_B3_GARBAGE_INCINERATOR_BLAZE_EXIT_VIEW) {
+            } else if (session->incineratorExitPhase != GAME_SESSION_INCINERATOR_EXIT_WARP || session->location.view != SHELTER_B3_GARBAGE_INCINERATOR_BLAZE_EXIT_VIEW) {
                 shouldBurn = 1;
             } else {
                 shouldBurn = 0;

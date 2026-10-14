@@ -113,8 +113,8 @@ static void _dryfieldNightMotelBalconyInitRoom(Task* task)
     task->msgTable = gDryfieldNightMotelBalconyMessageTable;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     dryfieldNightMotelBalconyRestoreSectionStates();
-    variant = gGameSession->location.loc.variant;
-    if (variant == DRYFIELD_NIGHT_MOTEL_BALCONY_SCENE_VARIANT && gGameSession->location.loc.room == variant && gameFlagGetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SCENE_SEEN) == 0) {
+    variant = gGameSession->location.variant;
+    if (variant == DRYFIELD_NIGHT_MOTEL_BALCONY_SCENE_VARIANT && gGameSession->location.room == variant && gameFlagGetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SCENE_SEEN) == 0) {
         evsStartScriptWithSkip(gActor335800BalconyEntryScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, gActor335800BalconyEntrySkipScript);
         gameFlagSetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SCENE_SEEN, 1);
         gameFlagSetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SCRIPT_STATE, DRYFIELD_NIGHT_MOTEL_BALCONY_FOLLOW_UP_PENDING);

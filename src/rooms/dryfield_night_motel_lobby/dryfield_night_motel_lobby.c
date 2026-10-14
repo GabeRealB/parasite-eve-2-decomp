@@ -359,8 +359,8 @@ void dryfieldNightMotelLobbyCashRegisterScanTask(Task* task)
                         }
                         dryfieldNightMotelLobbyPressCashRegisterKey(task, hotspot->id);
                         if (work->codeAccepted != 0) {
-                            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = CASH_REGISTER_ACCEPTED_VIEW;
-                            task->state                                                = DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_STATE_ACCEPT_CODE;
+                            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = CASH_REGISTER_ACCEPTED_VIEW;
+                            task->state                                            = DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_STATE_ACCEPT_CODE;
                             dryfieldNightMotelLobbyDrawCashRegisterDisplay(task);
                             return;
                         }

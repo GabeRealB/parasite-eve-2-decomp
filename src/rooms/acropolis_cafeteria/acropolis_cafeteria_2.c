@@ -1192,9 +1192,9 @@ void acropolisCafeteriaPlayMovieTask(Task* movieTask)
         MOVIE_MUSIC_PENDING    = 0,
         MOVIE_MUSIC_REQUESTED  = 1
     };
-    u8          commandArgs[sizeof(gCdCmdQueue.entries[0].args)];
-    GameLoc     movieLocation;
-    CdCmdQueue* queue;
+    u8              commandArgs[sizeof(gCdCmdQueue.entries[0].args)];
+    GameLocationKey movieLocation;
+    CdCmdQueue*     queue;
 
     queue = &gCdCmdQueue;
     switch (movieTask->state) {
@@ -1205,10 +1205,10 @@ void acropolisCafeteriaPlayMovieTask(Task* movieTask)
             break;
 
         case STREAMED_SCENE_QUEUE_MOVIE:
-            movieLocation          = gGameSession->location;
-            movieLocation.loc.view = STREAMED_SCENE_MOVIE_ID;
+            movieLocation      = gGameSession->location;
+            movieLocation.view = STREAMED_SCENE_MOVIE_ID;
             // The queue copies all four bytes; this opcode interprets only the slot byte.
-            commandArgs[0] = streamFindMovieSlot(&movieLocation.loc, 0, 0);
+            commandArgs[0] = streamFindMovieSlot(&movieLocation, 0, 0);
             cdCmdEnqueue(CD_COMMAND_PLAY_STREAM, 0, commandArgs);
             movieTask->state = movieTask->state + 1;
             break;
@@ -1358,7 +1358,7 @@ void acropolisCafeteriaPuffEmitterTask(Task* task)
         effectKillTask(work, task);
         return;
     }
-    view = gGameSession->location.loc.view;
+    view = gGameSession->location.view;
     if (view == PUFF_EMITTER_ACTIVE_VIEW) {
         // The cached previous view distinguishes a pre-aged entry burst from steady emission.
         puffCount = PUFF_EMITTER_ENTRY_COUNT;
@@ -1377,7 +1377,7 @@ void acropolisCafeteriaPuffEmitterTask(Task* task)
             effectSpawn(EFFECT_ACROPOLIS_CAFETERIA_PUFF, coord, (randomWord & PUFF_EMITTER_SIZE_RANDOM_MASK) + spawnSizeBase, &work->move);
         }
     }
-    work->scale = gGameSession->location.loc.view;
+    work->scale = gGameSession->location.view;
 }
 
 /// Sets the puff quad's UVs to its current 48 x 48 texel animation cell.
@@ -1433,7 +1433,7 @@ void acropolisCafeteriaPuffTask(Task* task)
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
     if (gAcropolisCafeteriaPuffEnabled != 0) {
-        view = gGameSession->location.loc.view;
+        view = gGameSession->location.view;
         if (view == PUFF_ACTIVE_VIEW) {
             // Project the centre once; the billboard's rotation is in screen space.
             actorRenderComposeCoord(coord);

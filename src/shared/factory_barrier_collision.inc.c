@@ -22,7 +22,7 @@ void factoryBarrierCollision(Task* task)
         roomGrid->vertices[recordIndex].vx += FACTORY_BARRIER_CLEAR_X_OFFSET;          \
     }
 
-    if (gGameSession->location.loc.stage == GAME_STAGE_DRYFIELD) {
+    if (gGameSession->location.stage == GAME_STAGE_DRYFIELD) {
         roomGrid = &gDryfieldFactoryCollisionGrid;
     } else {
         roomGrid = &gDryfieldNightFactoryCollisionGrid;

@@ -80,6 +80,12 @@ typedef struct {
 STATIC_ASSERT_SIZEOF(_PadScratch, 0x6);
 
 /* Define BSS before API headers to preserve first-declaration order. */
+
+PadState gPadStates[PAD_PORT_COUNT];
+
+#include "main/game_debug.h"
+#include "main/pad.h"
+
 /// Resident storage for the live session exposed through `gGameSession`.
 ///
 /// Its address stays fixed across overlay loads. New-game, load and reset paths
@@ -88,11 +94,6 @@ static GameSession _gGameSessionState;
 
 /// BSS bytes with no established use; their original type and role are unproven.
 static u8 D_80071600[0x20];
-
-PadState gPadStates[PAD_PORT_COUNT];
-
-#include "main/game_debug.h"
-#include "main/pad.h"
 
 static void _gameFlowResetNewSession(Task* task);
 
@@ -496,7 +497,7 @@ static void _gameFlowQueueGameplayLoad(Task* sessionStartTask)
     CdCmdFileLoadArgs loadOptions;
 
     if (loadUiPollDiskSwap() == LOAD_UI_DISK_SWAP_COMPLETE) {
-        gameFlowBeginLoadScreen(&gGameSession->location.loc, GAME_FLOW_LOAD_CAPTION_NORMAL);
+        gameFlowBeginLoadScreen(&gGameSession->location, GAME_FLOW_LOAD_CAPTION_NORMAL);
         // File ID 0 supplies the bootstrap sound bank and gameplay overlay.
         fileKey.stage                = GAME_STAGE_NONE;
         fileKey.fileGroup            = GAME_FLOW_BOOTSTRAP_FILE_GROUP;

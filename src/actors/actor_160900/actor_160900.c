@@ -153,9 +153,9 @@ static ScreenWaveCtx* _gScreenWaveContext;
 /// while that task and its work live; teardown does not clear the pointer.
 static Task* _gActor160900CutsceneTask;
 
-static ScreenWaveOscillator _gScreenWaveColumnWaves[13];
+ScreenWaveOscillator _gScreenWaveColumnWaves[13];
 
-static ScreenWaveOscillator _gScreenWaveRowWaves[30];
+ScreenWaveOscillator _gScreenWaveRowWaves[30];
 
 /// Clip transitions are measured in normal-rate frames; cue zero means idle.
 enum {
@@ -985,13 +985,13 @@ static ScreenWaveCtx* _gScreenWaveContext;
 ///
 /// The per-frame renderer uses entries 0..10; the prebuilt-grid renderer uses
 /// 0..8. Any remaining declared capacity is unaccessed; its role is unproven.
-static ScreenWaveOscillator _gScreenWaveColumnWaves[13];
+ScreenWaveOscillator _gScreenWaveColumnWaves[13];
 
 /// Thirty active row sine oscillators for vertical screen displacement.
 ///
 /// Seeded at wave startup and advanced on drawing updates. Any declared
 /// entries beyond 29 are unaccessed; their role is unproven.
-static ScreenWaveOscillator _gScreenWaveRowWaves[30];
+ScreenWaveOscillator _gScreenWaveRowWaves[30];
 
 static s32         _actor160900AdvancePlayerAnimChain(Task* task);
 static inline void _actor160900BlendKyleAnim(Task* task, u16 animationId);
@@ -1201,7 +1201,7 @@ static void _actor160900KyleAttachmentTask(Task* task)
         model->lightMtx = &work->light;
         model->colorMtx = &work->color;
         if (task->spawnArg1.value < ACTOR_160900_KYLE_GUN) {
-            placement = areaGetVariant(&gGameSession->location.loc)->placements;
+            placement = areaGetVariant(&gGameSession->location)->placements;
             entryId   = placement->entryId;
             while (entryId != AREA_PLACEMENT_END) {
                 if (entryId == ACTOR_160900_KYLE_PLACEMENT_ID) {
@@ -1300,7 +1300,7 @@ static void _actor160900KyleBodyTask(Task* task)
             model->colorMtx = &work->color;
             model->flags   |= (TMD_OBJECT_SKIP_ACTIVE_DRAW | TMD_OBJECT_SKIP_AUTO_BUFFER);
             task->msgTable  = _gActor160900KyleModelMessages;
-            placement       = areaGetVariant(&gGameSession->location.loc)->placements;
+            placement       = areaGetVariant(&gGameSession->location)->placements;
             while (placement->entryId != AREA_PLACEMENT_END && placement->entryId != ACTOR_160900_KYLE_PLACEMENT_ID) {
                 placement++;
             }
@@ -1317,7 +1317,7 @@ static void _actor160900KyleBodyTask(Task* task)
     }
     _actor160900AdvanceKyleAnimChain(task);
     // Override this part's animated rotation for the current camera pose.
-    if (gGameSession->location.loc.view == ACTOR_160900_KYLE_ROLL_VIEW) {
+    if (gGameSession->location.view == ACTOR_160900_KYLE_ROLL_VIEW) {
         gfxRotMatrixZ(&task->extra.tmd->coords[ACTOR_160900_KYLE_POSE_PART].coord, ACTOR_TRANSFORM_ANGLE_HALF_TURN, GRAPHICS_ROTATION_REPLACE);
     } else {
         gfxRotMatrixX(&task->extra.tmd->coords[ACTOR_160900_KYLE_POSE_PART].coord, ACTOR_160900_KYLE_PITCH_ANGLE, GRAPHICS_ROTATION_REPLACE);

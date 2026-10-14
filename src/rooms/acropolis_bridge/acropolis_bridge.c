@@ -3469,8 +3469,8 @@ static void _acropolisBridgeStartKeypadCaption(Task* task)
 static void _acropolisBridgeWaitForKeypadCaption(Task* task)
 {
     if (taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), CAP_CONTROL_MESSAGE_IS_BUSY, 0, 0) == 0) {
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = ACROPOLIS_BRIDGE_VIEW_KEYPAD;
-        gGameSession->hideHud                                      = 1;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = ACROPOLIS_BRIDGE_VIEW_KEYPAD;
+        gGameSession->hideHud                                  = 1;
         playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE);
         playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
         task->state = task->state + 1;
@@ -3504,11 +3504,11 @@ static void _acropolisBridgeWaitForKeypadResult(Task* task)
 
     if (taskPollKill(_gAcropolisBridgeKeypadTask, &_gAcropolisBridgeKeypadResult) != 0) {
         if (_gAcropolisBridgeKeypadResult == ACROPOLIS_BRIDGE_KEYPAD_CANCELLED) {
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = ACROPOLIS_BRIDGE_VIEW_OVERVIEW;
-            gGameSession->hideHud                                      = 0;
-            task->state                                                = task->state + 1;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = ACROPOLIS_BRIDGE_VIEW_OVERVIEW;
+            gGameSession->hideHud                                  = 0;
+            task->state                                            = task->state + 1;
         } else {
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = ACROPOLIS_BRIDGE_VIEW_KEYPAD_MOVIE;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = ACROPOLIS_BRIDGE_VIEW_KEYPAD_MOVIE;
             TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &movieCommand, ACTOR_COMMAND_MESSAGE_APPLY);
             task->state = task->state + 1;
         }
@@ -3566,10 +3566,10 @@ static void _acropolisBridgeFinishKeypadMovie(Task* task)
 
     if (taskPollKill(_gAcropolisBridgeKeypadMovieTask, &movieResult) != 0) {
         taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, 1, ACTOR_MESSAGE_SET_MODEL_DRAW);
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = ACROPOLIS_BRIDGE_VIEW_OVERVIEW;
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = ACROPOLIS_BRIDGE_ROOM_AFTER_KEYPAD_MOVIE;
-        gGameSession->location.loc.room                            = ACROPOLIS_BRIDGE_ROOM_AFTER_KEYPAD_MOVIE;
-        gGameSession->roomObjsDirty                                = 1;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = ACROPOLIS_BRIDGE_VIEW_OVERVIEW;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.room = ACROPOLIS_BRIDGE_ROOM_AFTER_KEYPAD_MOVIE;
+        gGameSession->location.room                            = ACROPOLIS_BRIDGE_ROOM_AFTER_KEYPAD_MOVIE;
+        gGameSession->roomObjsDirty                            = 1;
         gameFlagSetNibble(GAME_FLAG_ACROPOLIS_BRIDGE_PROGRESS, ACROPOLIS_BRIDGE_PROGRESS_KEYPAD_MOVIE_COMPLETE);
         playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
         task->state = task->state + 1;
@@ -3611,7 +3611,7 @@ static void _acropolisBridgeKeypadMovieTask(Task* movieTask)
     switch (movieTask->state) {
         case ACROPOLIS_BRIDGE_MOVIE_START:
             queue->movieFrame = 1;
-            streamArgs[0]     = streamFindMovieSlot(&gGameSession->location.loc, 0, 0);
+            streamArgs[0]     = streamFindMovieSlot(&gGameSession->location, 0, 0);
             cdCmdEnqueue(CD_COMMAND_PLAY_STREAM, 0, streamArgs);
             movieTask->state = movieTask->state + 1;
             break;
@@ -3676,7 +3676,7 @@ static void _acropolisBridgeKeypadOpen(Task* task)
     task->work              = work;
     work->field_0           = 0x14;
     work->code              = ACROPOLIS_BRIDGE_KEYPAD_CODE_BLANK;
-    location                = &gGameSession->location.loc;
+    location                = &gGameSession->location;
     task->state++;
     mappedView                                                                     = viewGetMappedIndex();
     views                                                                          = gSpriteAreaTables[location->stage - 1][gGameSession->spriteVariant - 1].areaViews[location->area - 1];
@@ -3802,7 +3802,7 @@ static void _acropolisBridgeKeypadBlinkAcceptedCode(Task* task)
     ActionPrompt*               prompt   = gActionPromptSlots;
     ActionPromptHotspot*        hotspots = _gAcropolisBridgeKeypadHotspots;
     _AcropolisBridgeKeypadWork* work     = task->work;
-    GameLocationKey*            location = &gGameSession->location.loc;
+    GameLocationKey*            location = &gGameSession->location;
     SpriteView*                 views;
     s32                         mappedView;
 
@@ -3870,7 +3870,7 @@ static void _acropolisBridgeKeypadBlinkError(Task* task)
 /// Updates flags for later sprite rendering.
 static void _acropolisBridgeShowKeypadCode(s32 code, s16 hidePrompt)
 {
-    GameLocationKey* location = &gGameSession->location.loc;
+    GameLocationKey* location = &gGameSession->location;
     SpriteBatch*     batches;
     s32              batchIndex;
     u8               hundredsBatch;
@@ -3952,7 +3952,7 @@ static __inline__ void _acropolisBridgeHideKeypadDigitBatches(SpriteBatch* batch
 /// through 34. Changes visibility only; the remaining batches keep their flags.
 static void _acropolisBridgeShowKeypadError(void)
 {
-    GameLocationKey* location = &gGameSession->location.loc;
+    GameLocationKey* location = &gGameSession->location;
     SpriteBatch*     batches;
 
     viewGetMappedIndex();
@@ -3992,7 +3992,7 @@ static void _acropolisBridgeShowKeypadError(void)
 static void _acropolisBridgeOffsetArrivalSpriteFrame(s32 frame, s8 offsetX, s8 offsetY)
 {
     GameSession*     session  = gGameSession;
-    GameLocationKey* location = &session->location.loc;
+    GameLocationKey* location = &session->location;
     SpriteView*      views;
     SpriteSource*    sources;
     SpriteBatch*     batches;
@@ -4052,7 +4052,7 @@ static void _acropolisBridgeKeypadCursorTask(Task* task)
 static void _acropolisBridgeSetArrivalSpritesHidden(s32 arrivalSceneSeen)
 {
     GameSession*     session  = gGameSession;
-    GameLocationKey* location = &session->location.loc;
+    GameLocationKey* location = &session->location;
     SpriteView*      views;
     SpriteBatch*     batches;
 
@@ -4081,7 +4081,7 @@ static void _acropolisBridgeSetArrivalSpritesHidden(s32 arrivalSceneSeen)
 static void _acropolisBridgeSelectArrivalSpriteFrame(s32 frame)
 {
     GameSession*     session  = gGameSession;
-    GameLocationKey* location = &session->location.loc;
+    GameLocationKey* location = &session->location;
     SpriteView*      views;
     SpriteBatch*     batches;
     s32              selectedFrame;
@@ -5696,7 +5696,7 @@ static void _acropolisBridgeEnemySetup(Enemy* enemy, Task* task)
     if (gSceneCombatState.battleRefs < 3) {
         sceneAcquireBattleRef(0);
     }
-    if (gGameSession->location.loc.room == ACROPOLIS_BRIDGE_ROOM_AFTER_KEYPAD_MOVIE) {
+    if (gGameSession->location.room == ACROPOLIS_BRIDGE_ROOM_AFTER_KEYPAD_MOVIE) {
         placementIndex = enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT;
         switch (placementIndex) {
             case 0:

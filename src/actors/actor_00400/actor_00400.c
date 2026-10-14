@@ -2568,20 +2568,20 @@ static void _actor00400FlyShot(Task* task)
             gridContactResult = worldCollisionResolvePushback(work->contacts, &pushback, ARRAY_SIZE(work->contacts), &surfaceMask);
             if (gridContactResult <= WORLD_COLLISION_PUSHBACK_OPPOSED) {
                 if (gridContactResult > WORLD_COLLISION_PUSHBACK_NO_GRID_HIT) {
-                    if (gGameSession->location.loc.stage == GAME_STAGE_MINE_SHELTER &&
-                        (gGameSession->location.loc.area == GAME_AREA_SHELTER_B2_MAIN_CORRIDOR || gGameSession->location.loc.area == GAME_AREA_SHELTER_B4_LOWER_SEWER ||
-                         gGameSession->location.loc.area == GAME_AREA_SHELTER_B4_UPPER_SEWER || gGameSession->location.loc.area == GAME_AREA_SHELTER_B4_RESERVOIR ||
-                         gGameSession->location.loc.area == GAME_AREA_SHELTER_B2_SEPTIC_TANK)) {
+                    if (gGameSession->location.stage == GAME_STAGE_MINE_SHELTER &&
+                        (gGameSession->location.area == GAME_AREA_SHELTER_B2_MAIN_CORRIDOR || gGameSession->location.area == GAME_AREA_SHELTER_B4_LOWER_SEWER ||
+                         gGameSession->location.area == GAME_AREA_SHELTER_B4_UPPER_SEWER || gGameSession->location.area == GAME_AREA_SHELTER_B4_RESERVOIR ||
+                         gGameSession->location.area == GAME_AREA_SHELTER_B2_SEPTIC_TANK)) {
                         if ((surfaceMask & ACTOR_00400_SHOT_PASS_SURFACE_CLASS_1) == 0) {
                             burstRequested = 1;
                         }
-                    } else if (gGameSession->location.loc.stage == GAME_STAGE_SHELTER_NEO_ARK &&
-                               (gGameSession->location.loc.area == GAME_AREA_NEO_ARK_PAVILION || gGameSession->location.loc.area == GAME_AREA_NEO_ARK_ISLAND ||
-                                gGameSession->location.loc.area == GAME_AREA_NEO_ARK_BRIDGE)) {
+                    } else if (gGameSession->location.stage == GAME_STAGE_SHELTER_NEO_ARK &&
+                               (gGameSession->location.area == GAME_AREA_NEO_ARK_PAVILION || gGameSession->location.area == GAME_AREA_NEO_ARK_ISLAND ||
+                                gGameSession->location.area == GAME_AREA_NEO_ARK_BRIDGE)) {
                         if ((surfaceMask & ACTOR_00400_SHOT_PASS_SURFACE_CLASS_1) == 0) {
                             burstRequested = 1;
                         }
-                    } else if (gGameSession->location.loc.area == GAME_AREA_NEO_ARK_SUBMARINE_GALLERY && gGameSession->location.loc.stage == GAME_STAGE_SHELTER_NEO_ARK) {
+                    } else if (gGameSession->location.area == GAME_AREA_NEO_ARK_SUBMARINE_GALLERY && gGameSession->location.stage == GAME_STAGE_SHELTER_NEO_ARK) {
                         if ((surfaceMask & ACTOR_00400_SHOT_PASS_SURFACE_CLASS_3) == 0) {
                             burstRequested = 1;
                         }
@@ -2827,7 +2827,7 @@ static __inline__ s32 _actor00400ApplyAreaConfig(Task* task)
     u16                          flags;
 
     work     = task->work;
-    location = &gGameSession->location.loc;
+    location = &gGameSession->location;
     config   = _gActor00400AreaConfigs;
     while (config->stage != ACTOR_00400_AREA_CONFIG_END) {
         if ((location->stage == config->stage) && (location->area == config->area)) {
@@ -3064,7 +3064,7 @@ static void _actor00400InitDiver(Task* task)
             }
             break;
         case ACTOR_00400_SPAWN_WATER_OR_RESERVOIR_GROUND:
-            if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(4, 45, 0, 0)) {
+            if ((GAME_LOCATION_WORD(gGameSession->location) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(4, 45, 0, 0)) {
                 if (gameFlagGetNibble(GAME_FLAG_B4_RESERVOIR_EVENT_DONE) == 0) {
                     work->inWater          = 1;
                     stateWork              = task->work;
@@ -3715,9 +3715,9 @@ static void _actor00400SwimTask(Task* task)
             model->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             break;
     }
-    location        = &gGameSession->location.loc;
+    location        = &gGameSession->location;
     visibilityModel = task->extra.tmd;
-    if (location->stage == GAME_STAGE_MINE_SHELTER && location->area == GAME_AREA_SHELTER_B2_MAIN_CORRIDOR && (u32)(gGameSession->location.loc.view - ACTOR_00400_CORRIDOR_HIDE_FIRST_VIEW) < ACTOR_00400_CORRIDOR_HIDE_VIEW_COUNT) {
+    if (location->stage == GAME_STAGE_MINE_SHELTER && location->area == GAME_AREA_SHELTER_B2_MAIN_CORRIDOR && (u32)(gGameSession->location.view - ACTOR_00400_CORRIDOR_HIDE_FIRST_VIEW) < ACTOR_00400_CORRIDOR_HIDE_VIEW_COUNT) {
         visibilityModel->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
     }
 }

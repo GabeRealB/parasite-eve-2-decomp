@@ -78,7 +78,7 @@ static s32 _mainStreetResolveMessage(Task* task, s32 messageId, const RoomEventM
     // Resolve ordinary departures before a gate latches the destination.
     *reply = *request;
     if (request->areaId == GAME_AREA_DRYFIELD_DRIVEWAY) {
-        if (gGameSession->location.loc.stage == GAME_STAGE_DRYFIELD) {
+        if (gGameSession->location.stage == GAME_STAGE_DRYFIELD) {
             if (request->queryOnly == ROOM_EVENT_EXECUTE) {
                 if (gameFlagGetNibble(GAME_FLAG_DRIVEWAY_PROGRESS) >= 2) {
                     reply->room = 2;

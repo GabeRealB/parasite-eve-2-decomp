@@ -238,7 +238,7 @@ static s32 _dryfieldToiletHandleRoomAction(Task* unusedTask, s32 unusedMessageId
 {
     u8 actionId = request->actionId;
 
-    if (actionId == DRYFIELD_TOILET_ACTION_START_EVENT && gameFlagGetNibble(GAME_FLAG_TOILET_EVENT_SEEN) == 0 && gGameSession->location.loc.variant == actionId) {
+    if (actionId == DRYFIELD_TOILET_ACTION_START_EVENT && gameFlagGetNibble(GAME_FLAG_TOILET_EVENT_SEEN) == 0 && gGameSession->location.variant == actionId) {
         evsStartScriptWithSkip(gDryfieldToiletEncounterScript, EVENT_SCRIPT_HUD_KEEP, gDryfieldToiletEncounterSkipScript);
         gameFlagSetNibble(GAME_FLAG_TOILET_EVENT_SEEN, 1);
     }
@@ -254,7 +254,7 @@ static void _dryfieldToiletInitRoom(Task* task)
 {
     task->msgTable = _gDryfieldToiletRoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
-    if (gameFlagGetNibble(GAME_FLAG_TOILET_EVENT_SEEN) == 0 && gGameSession->location.loc.variant == DRYFIELD_TOILET_EVENT_VARIANT) {
+    if (gameFlagGetNibble(GAME_FLAG_TOILET_EVENT_SEEN) == 0 && gGameSession->location.variant == DRYFIELD_TOILET_EVENT_VARIANT) {
         // Prepare placed actors before installing the event's collision face.
         TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &_gDryfieldToiletPrepareEncounterActorsCommand, ACTOR_COMMAND_MESSAGE_APPLY);
         _dryfieldToiletInitEventCollision();

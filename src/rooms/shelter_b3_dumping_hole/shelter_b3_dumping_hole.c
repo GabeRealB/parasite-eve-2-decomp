@@ -318,8 +318,8 @@ static void _shelterB3DumpingHoleInitializeRoomTask(Task* task)
     shelterB3DumpingHoleSelectCaptionResource(DUMPING_HOLE_CAPTION_TEXTURE_X_WORDS, DUMPING_HOLE_CAPTION_TEXTURE_Y_ROWS, DUMPING_HOLE_CAPTION_DATA_INDEX);
     // Record first arrival independently of whether this warp runs the entry scene.
     if (gameFlagGetNibble(GAME_FLAG_DUMPING_HOLE_ARRIVAL_SEEN) == 0) {
-        if (gGameSession->location.loc.variant == DUMPING_HOLE_ARRIVAL_VARIANT) {
-            if (gGameSession->location.loc.warp == DUMPING_HOLE_ARRIVAL_WARP) {
+        if (gGameSession->location.variant == DUMPING_HOLE_ARRIVAL_VARIANT) {
+            if (gGameSession->location.warp == DUMPING_HOLE_ARRIVAL_WARP) {
                 evsStartScriptWithSkip(gShelterB3DumpingHoleArrivalEventScript, EVENT_SCRIPT_HUD_HIDE_RESTORE,
                                        gShelterB3DumpingHoleArrivalEventSkipScript);
             }
@@ -327,7 +327,7 @@ static void _shelterB3DumpingHoleInitializeRoomTask(Task* task)
             gameFlagSetNibble(GAME_FLAG_DUMPING_HOLE_ARRIVAL_SEEN, DUMPING_HOLE_ARRIVAL_SEEN);
         }
     }
-    if (gGameSession->location.loc.room >= DUMPING_HOLE_ENCOUNTER_FIRST_ROOM) {
+    if (gGameSession->location.room >= DUMPING_HOLE_ENCOUNTER_FIRST_ROOM) {
         taskSpawnFromTable(gActor342100EncounterBlazeTaskDescriptors, DUMPING_HOLE_ENCOUNTER_TASK_INDEX, 0, 0);
     }
     task->state                       += 1;

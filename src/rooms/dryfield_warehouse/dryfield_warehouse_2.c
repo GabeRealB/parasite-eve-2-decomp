@@ -722,10 +722,10 @@ static void _dryfieldWarehouseSkipCutscene(s32 phase)
             SetDispMask(1);
             work = gDryfieldWarehouseCutsceneTask->work;
             _dryfieldWarehouseRestoreSkippedPlayer(work);
-            if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room != ROOM_AFTER_CUTSCENE) {
-                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = ROOM_AFTER_CUTSCENE;
-                gGameSession->location.loc.room                            = ROOM_AFTER_CUTSCENE;
-                gDryfieldWarehouseSkipRoomChanged                          = true;
+            if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.room != ROOM_AFTER_CUTSCENE) {
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.room = ROOM_AFTER_CUTSCENE;
+                gGameSession->location.room                            = ROOM_AFTER_CUTSCENE;
+                gDryfieldWarehouseSkipRoomChanged                      = true;
                 return;
             }
             gDryfieldWarehouseSkipRoomChanged = false;
@@ -894,9 +894,9 @@ static void _dryfieldWarehouseExecuteCutsceneCommand(Task* task)
             fadeDrawOverlay(0xFF, 0xFF, 0xFF, GPU_BLEND_SUBTRACT);
             switch (work->commandStep) {
                 case DRYFIELD_WAREHOUSE_COMMAND_STEP_BEGIN:
-                    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = DRYFIELD_WAREHOUSE_FINAL_ROOM;
-                    gGameSession->location.loc.room                            = DRYFIELD_WAREHOUSE_FINAL_ROOM;
-                    work->commandFrames                                        = 0;
+                    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.room = DRYFIELD_WAREHOUSE_FINAL_ROOM;
+                    gGameSession->location.room                            = DRYFIELD_WAREHOUSE_FINAL_ROOM;
+                    work->commandFrames                                    = 0;
                     work->commandStep++;
                     break;
                 case DRYFIELD_WAREHOUSE_COMMAND_STEP_RUN:
@@ -1222,7 +1222,7 @@ void dryfieldWarehouseDrawGlowsTask(Task* task)
     s32             prismAndSecondBeamViews;
     const GfxCoord* coord;
 
-    viewMask                = 1 << gGameSession->location.loc.view;
+    viewMask                = 1 << gGameSession->location.view;
     prismAndSecondBeamViews = viewMask & DRYFIELD_WAREHOUSE_PRISM_AND_SECOND_BEAM_VIEWS;
     coord                   = task->extra.coordBody->coord;
     // Select visible lights with the room-local view ID, before camera remapping.

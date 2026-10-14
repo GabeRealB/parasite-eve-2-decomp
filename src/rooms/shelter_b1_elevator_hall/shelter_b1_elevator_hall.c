@@ -38,7 +38,7 @@ static void _shelterB1ElevatorHallIdleRoomTask(Task* task);
 /// commits them after the sound ends. Leave this singleton unchanged while the
 /// transit task runs. The other key bytes remain zero and are not used here;
 /// the two trailing location-cell bytes retain their unproven role.
-static GameLoc _gShelterB1ElevatorHallMineDestination;
+static GameLocationKey _gShelterB1ElevatorHallMineDestination;
 
 #include "../../shared/shelter_elevator_task.inc.c"
 
@@ -78,9 +78,9 @@ s32 shelterB1ElevatorHallResolveRoomTransition(Task* task, s32 messageId, RoomEv
     if (request->areaId == GAME_AREA_MINE_SECRET_PASSAGE) {
         if (request->queryOnly == ROOM_EVENT_EXECUTE) {
             // Keep the resolved destination until the passage choice and fade finish.
-            _gShelterB1ElevatorHallMineDestination.loc.area = (u8)reply->areaId;
-            _gShelterB1ElevatorHallMineDestination.loc.warp = reply->warp;
-            _gShelterB1ElevatorHallMineDestination.loc.room = reply->room;
+            _gShelterB1ElevatorHallMineDestination.area = (u8)reply->areaId;
+            _gShelterB1ElevatorHallMineDestination.warp = reply->warp;
+            _gShelterB1ElevatorHallMineDestination.room = reply->room;
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
             taskSpawnFromTable(&gShelterB1ElevatorHallMineTransitTaskDesc, 0, 0, 0);
         }
@@ -168,10 +168,10 @@ void shelterB1ElevatorHallMineTransitTask(Task* task)
         case MINE_TRANSIT_RELOAD:
             // Commit the saved destination only after the transit sound has ended.
             sndEvtRequestScriptStop(SOUND_BANK_TYPE_ALL_NON_AMBIENT, SOUND_SCRIPT_STOP_NO_FADE);
-            gDisplayState.spriteVariant                                = SPRITE_RESOURCE_VARIANT;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = _gShelterB1ElevatorHallMineDestination.loc.area;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = _gShelterB1ElevatorHallMineDestination.loc.warp;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = _gShelterB1ElevatorHallMineDestination.loc.room;
+            gDisplayState.spriteVariant                            = SPRITE_RESOURCE_VARIANT;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.area = _gShelterB1ElevatorHallMineDestination.area;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp = _gShelterB1ElevatorHallMineDestination.warp;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.room = _gShelterB1ElevatorHallMineDestination.room;
             taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_SKIP_BATTLE_ESCAPE, 0);
             taskKill(task);
             break;

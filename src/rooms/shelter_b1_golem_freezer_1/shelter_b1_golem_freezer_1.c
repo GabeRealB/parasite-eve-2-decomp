@@ -551,7 +551,7 @@ static s32 _shelterB1GolemFreezer1HandleRoomAction(Task* task, s32 messageId, co
         SHELTER_B1_GOLEM_FREEZER_1_ACTION_RESULT = 0,
     };
 
-    if (request->actionId == SHELTER_B1_GOLEM_FREEZER_1_ACTION_TALK && gGameSession->location.loc.variant == SHELTER_B1_GOLEM_FREEZER_1_MEETING_VARIANT) {
+    if (request->actionId == SHELTER_B1_GOLEM_FREEZER_1_ACTION_TALK && gGameSession->location.variant == SHELTER_B1_GOLEM_FREEZER_1_MEETING_VARIANT) {
         actor160700StartMeetingScript();
     }
     return SHELTER_B1_GOLEM_FREEZER_1_ACTION_RESULT;
@@ -565,7 +565,7 @@ static void _shelterB1GolemFreezer1InitRoomState(Task* task)
 {
     task->msgTable = _gShelterB1GolemFreezer1RoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
-    if (gGameSession->location.loc.variant == SHELTER_B1_GOLEM_FREEZER_1_MEETING_VARIANT) {
+    if (gGameSession->location.variant == SHELTER_B1_GOLEM_FREEZER_1_MEETING_VARIANT) {
         actor160700RestoreMeetingAnimation();
     }
     _shelterB1GolemFreezer1InitMeetingObstacle(0);
@@ -614,7 +614,7 @@ static void _shelterB1GolemFreezer1InitMeetingObstacle(s32 unusedArg)
         obstacleAnchor = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     }
     if (placedActor != NULL) {
-        if (gGameSession->location.loc.variant == SHELTER_B1_GOLEM_FREEZER_1_MEETING_VARIANT) {
+        if (gGameSession->location.variant == SHELTER_B1_GOLEM_FREEZER_1_MEETING_VARIANT) {
             _gShelterB1GolemFreezer1MeetingObstacleOffset[1] = 0;
         } else {
             _gShelterB1GolemFreezer1MeetingObstacleOffset[1] = SHELTER_B1_GOLEM_FREEZER_1_OBSTACLE_HIDDEN_Y;
