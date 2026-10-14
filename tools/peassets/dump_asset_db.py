@@ -55,6 +55,7 @@ RAW_TYPE_DIRS = (
     "cap",
     "stf",
     "demo",
+    "collision",
     "bs",
     "spk",
     "txt",
@@ -190,7 +191,8 @@ def embedded_geometry(assets_root: Path, embedded: dict[str, dict[str, Any]]) ->
             path = assets_root / ("pe2pkg" if source.endswith(".pe2pkg") else "") / source
             blobs[source] = path.read_bytes() if path.is_file() else None
         if blobs[source] is not None:
-            rec.update(_embedded_upload_rect(blobs[source], int(rec["vram"]), int(rec["size"])))
+            # The upload record points at the image by its address (stated for an image or a CLUT).
+            rec.update(_embedded_upload_rect(blobs[source], asset_schema.embedded_address(rec), int(rec["size"])))
 
 
 def _asset_id_from_stages_path(rel: str) -> str | None:
@@ -223,7 +225,7 @@ def _by_id(container: dict[Any, Any], disc_id: int) -> dict[str, Any] | None:
 # What a chunk is called when its asset's own name says nothing beyond the
 # folder and file it sits in.
 TYPE_WORD = {"pe2pkg": "package", "pe2img": "image", "pe2clut": "clut", "spk": "sound", "bs": "background",
-             "txt": "text", "pe2bundle": "caption", "model": "model"}
+             "txt": "text", "pe2bundle": "bundle", "model": "model"}
 
 
 def _default_chunk_name(aid: str, kind: str, folder_key: str | None, file_key: str) -> str:
@@ -397,6 +399,9 @@ def collect_tree(
                         stage, file_id, Path(ent["path"]).stem, folder_id
                     )
                 aid = _asset_id_from_stages_path(ent.get("path") or "")
+                if aid and str(ent.get("path") or "").startswith("pe2pkg/"):
+                    # pe2pkg/ holds a package under its overlay name (`package_name`).
+                    aid = next((k for k, r in assets.items() if r.get("type") == "pe2pkg" and r.get("package_name") == aid), aid)
                 if idx is None or not aid:
                     continue
                 chunk_map[idx] = aid
@@ -479,6 +484,10 @@ def collect_tree(
     return dict(sorted(tree.items()))
 
 
+# The TOML group files keep lines within LINE_WIDTH columns (_toml_record).
+LINE_WIDTH = 120
+
+
 def _fmt_record(rec: dict[str, Any]) -> str:
     parts = [f'"sha1": "{rec["sha1"]}"', f'"type": "{rec["type"]}"']
     extras = [(k, v) for k, v in rec.items() if k not in ("sha1", "type")]
@@ -526,8 +535,6 @@ def collect_models(
     placed: dict[str, dict[str, Any]] = {}
     seen: set[str] = set()
     for pkg in sorted(pkg_dir.glob("*.pe2pkg")):
-        if pkg.stem in ("gameplay", "title"):
-            continue
         if pkg.stem not in records:
             continue
         base, sources = records[pkg.stem]
@@ -631,6 +638,21 @@ def collect_bundles(assets_root: Path, assets: dict[str, dict[str, Any]]) -> Non
             rec["extra_sectors"] = extra
 
 
+def collect_embedded_lists(assets: dict[str, dict[str, Any]], embedded: dict[str, dict[str, Any]]) -> None:
+    """Each package's `embedded`: the embedded assets whose source is the package, by address. A package is a
+    container, as a bundle or a bank is; its overlay name (`package_name`) is what a source names."""
+    for key, rec in assets.items():
+        if rec.get("type") != "pe2pkg":
+            continue
+        if any(isinstance(p, dict) for p in rec.get("embedded", ())):
+            continue                    # a group's package places its embedded assets itself
+        source = rec.get("package_name", key) + ".pe2pkg"
+        held = sorted((e.get("vram", 0), k) for k, e in embedded.items() if e.get("source") == source)
+        rec.pop("embedded", None)
+        if held:
+            rec["embedded"] = [k for _vram, k in held]
+
+
 def collect_animations(assets_root: Path, old: dict[str, dict[str, Any]]) -> dict[str, dict[str, Any]]:
     """Every animation bank the overlay manifest declares, as an embedded asset.
 
@@ -647,8 +669,10 @@ def collect_animations(assets_root: Path, old: dict[str, dict[str, Any]]) -> dic
     import pkg_anim
     from gen_overlay_configs import declared_animations
 
-    named = {(rec.get("source"), rec.get("vram")): key for key, rec in old.items() if rec.get("type") == "animation"}
     manifest = tomllib.loads((repo / "configs/USA/overlays.toml").read_text(encoding="utf-8"))
+    loads = {row["package"] + ".pe2pkg": row["load"] for row in declared_animations(manifest)}
+    named = {(rec.get("source"), asset_schema.embedded_offset(rec, loads.get(rec.get("source")))): key
+             for key, rec in old.items() if rec.get("type") == "animation" and ("offset" in rec or rec.get("source") in loads)}
     out: dict[str, dict[str, Any]] = {}
     blobs: dict[str, bytes] = {}
     for row in declared_animations(manifest):
@@ -660,7 +684,7 @@ def collect_animations(assets_root: Path, old: dict[str, dict[str, Any]]) -> dic
             blobs[source] = path.read_bytes()
         end = pkg_anim.read_set(blobs[source], row["load"], row["sets"][-1])["end"]
         vram = row["load"] + row["offset"]
-        key = named.get((source, vram)) or f"{row['package']}_animation_{row['offset']:05X}"
+        key = named.get((source, row["offset"])) or f"{row['package']}_animation_{row['offset']:05X}"
         rec = dict(old.get(key) or {})
         rec.update({"source": source, "vram": vram, "size": end - row["offset"], "ext": ".anim",
                     "type": "animation", "clips": len(row["sets"])})
@@ -676,10 +700,89 @@ def _fmt_embedded(rec: dict[str, Any]) -> str:
         if k not in rec:
             continue
         v = rec[k]
+        if k == "ext" and v == asset_schema.EXT_BY_TYPE.get(rec.get("type")):
+            continue                    # follows from the type
         parts.append(f'"{k}": ' + (f"0x{v:08X}" if k == "vram" else f"0x{v:X}" if k == "size" else repr(v)))
     for k in sorted(set(rec) - set(order)):
         parts.append(f'"{k}": {rec[k]!r}')
     return "{" + ", ".join(parts) + "}"
+
+
+GROUP_ROOT = _SCRIPT_DIR / "groups"
+
+
+def _toml_scalar(value: Any, key: str = "") -> str:
+    if isinstance(value, bool):
+        return "true" if value else "false"
+    if isinstance(value, int):
+        return f"0x{value:05X}" if key == "offset" else f"0x{value:X}" if key == "size" else str(value)
+    if value is None:
+        return '""'                     # TOML has no null: an empty slot of a list
+    if isinstance(value, str):
+        return json.dumps(value, ensure_ascii=False)
+    if isinstance(value, dict):
+        return "{ " + ", ".join(f"{k} = {_toml_scalar(v, k)}" for k, v in value.items()) + " }"
+    if isinstance(value, (list, tuple)):
+        return "[" + ", ".join(_toml_scalar(v) for v in value) + "]"
+    raise TypeError(f"no TOML for {value!r}")
+
+
+def _toml_record(local: str, rec: dict[str, Any]) -> list[str]:
+    """One asset as a TOML table: its type, the rest by name, and its sha1 last; a list one item per line when it
+    does not fit in LINE_WIDTH columns."""
+    lines = [f"[{local}]"]
+    for key in ["type"] + sorted(k for k in rec if k not in ("sha1", "type", "group")) + ["sha1"]:
+        value = rec[key]
+        line = f"{key} = {_toml_scalar(value, key)}"
+        if isinstance(value, (list, tuple)) and len(line) > LINE_WIDTH:
+            lines.append(f"{key} = [")
+            lines += [f"    {_toml_scalar(item)}," for item in value]
+            lines.append("]")
+        else:
+            lines.append(line)
+    return lines
+
+
+def write_groups(assets: dict[str, dict[str, Any]]) -> None:
+    """Every group's assets into groups/<group>.toml, keyed by local name: the asset's name less the group's
+    prefix, the path without its first part (`akropolis_square_view3_background` in rooms/akropolis/square is
+    `view3_background`). A group file no asset uses any more is removed."""
+    groups: dict[str, dict[str, dict[str, Any]]] = {}
+    for aid in sorted(assets, key=asset_name_key):
+        group = assets[aid].get("group")
+        if not group:
+            continue
+        prefix = "_".join(group.split("/")[1:])
+        if prefix and not aid.startswith(prefix + "_"):
+            raise SystemExit(f"{aid}: an asset of the group {group} is named {prefix}_<local name>")
+        rec = dict(assets[aid])
+        if any(isinstance(p, dict) for p in rec.get("embedded", ())):
+            rec["embedded"] = [{**p, "name": p["name"][len(prefix) + 1:] if prefix else p["name"]} for p in rec["embedded"]]
+        groups.setdefault(group, {})[aid[len(prefix) + 1:] if prefix else aid] = rec
+    written = set()
+    for group, records in groups.items():
+        path = GROUP_ROOT / f"{group}.toml"
+        prefix = "_".join(group.split("/")[1:])
+        lines = [f"# The assets of the group {group}" + (f", each named {prefix}_<table name>." if prefix else "."),
+                 "# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1."]
+        for local, rec in records.items():
+            lines += [""] + _toml_record(local, rec)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+        written.add(path)
+    for path in sorted(GROUP_ROOT.rglob("*.toml")) if GROUP_ROOT.is_dir() else []:
+        if path not in written:
+            path.unlink()
+    for directory in sorted((d for d in GROUP_ROOT.rglob("*") if d.is_dir()), reverse=True) if GROUP_ROOT.is_dir() else []:
+        if not any(directory.iterdir()):
+            directory.rmdir()
+
+
+def write_module(assets: dict[str, dict[str, Any]], tree: dict[int, Any], embedded: dict[str, dict[str, Any]],
+                 out: Path = OUT_PATH) -> None:
+    """The asset table: the grouped assets' TOML files, and the module holding the rest."""
+    write_groups(assets)
+    out.write_text(emit_module(assets, tree, embedded), encoding="utf-8")
 
 
 def emit_module(
@@ -699,29 +802,34 @@ def emit_module(
         "",
         "from __future__ import annotations",
         "",
+        "import importlib.util as _ilu",
+        "from pathlib import Path as _Path",
+        "",
+        "# Grouped assets are in groups/<group>.toml, one file per group (dump_asset_db.write_groups).",
+        '_GROUP_ROOT = _Path(__file__).with_name("groups")',
+        "",
     ]
+    # An asset with a group lives in that group's TOML file (write_groups); this module reads them back into
+    # ASSETS, so every tool still reads one flat table.
     lines.append("ASSETS = {")
     for aid in sorted(assets, key=asset_name_key):
-        lines.append(f"    {aid!r}: {_fmt_record(assets[aid])},")
+        if not assets[aid].get("group"):
+            lines.append(f"    {aid!r}: {_fmt_record(assets[aid])},")
     lines.append("}")
     lines.append("")
     # Baked into an executable rather than shipped as a CDF chunk, so the chunk
     # walker cannot find them: located by address instead. Hand-written and
     # preserved across regeneration, like the TREE keys.
+    placed = {p["name"] for r in assets.values() for p in r.get("embedded", ()) if isinstance(p, dict)}
     lines.append("EMBEDDED_ASSETS = {")
-    for eid in sorted(embedded or {}, key=asset_name_key):
+    for eid in sorted((e for e in embedded or {} if e not in placed), key=asset_name_key):
         lines.append(f"    {eid!r}: {_fmt_embedded((embedded or {})[eid])},")
     lines.append("}")
     lines.append("")
     lines.append("TREE = {")
 
-    def node_line(indent: str, key: str, node: dict[str, Any], tail: str = "") -> str:
-        bits = [f'"id": {int(node["id"])}']
-        if tail:
-            bits.append(tail)
-        else:
-            bits.append(f'"chunks": {_fmt_chunks(node.get("chunks") or {})}')
-        return f"{indent}{key!r}: {{{', '.join(bits)}}},"
+    def node_line(indent: str, key: str, node: dict[str, Any]) -> str:
+        return f'{indent}{key!r}: {{"id": {int(node["id"])}, "chunks": {_fmt_chunks(node.get("chunks") or {})}}},'
 
     for stage, body in tree.items():
         lines.append(f"    {stage}: {{")
@@ -741,6 +849,15 @@ def emit_module(
         lines.append("    },")
     lines.append("}")
     lines.append("")
+    # The groups' assets join ASSETS, and the placements in their packages EMBEDDED_ASSETS (asset_groups.py).
+    lines += [
+        "",
+        "_spec = _ilu.spec_from_file_location('asset_groups', _Path(__file__).with_name('asset_groups.py'))",
+        "_groups = _ilu.module_from_spec(_spec)",
+        "_spec.loader.exec_module(_groups)",
+        "_groups.merge(ASSETS, EMBEDDED_ASSETS, _GROUP_ROOT)",
+        "",
+    ]
     return "\n".join(lines)
 
 
@@ -779,6 +896,7 @@ def main(argv: list[str] | None = None) -> int:
     collect_bundles(assets_root, assets)
     embedded = {key: rec for key, rec in embedded.items() if rec.get("type") != "animation"}
     embedded = {**embedded, **placements, **collect_animations(assets_root, old_embedded)}
+    collect_embedded_lists(assets, embedded)
     embedded_geometry(assets_root, embedded)
     tree = collect_tree(assets_root, old_tree, assets, old_assets)
     # Dependencies and variants are written by hand or by a review and name
@@ -792,8 +910,7 @@ def main(argv: list[str] | None = None) -> int:
             print(line, file=sys.stderr)
         print(f"{len(problems)} problem(s) against tools/peassets/asset_schema.py; nothing written", file=sys.stderr)
         return 1
-    text = emit_module(assets, tree, embedded)
-    args.out.write_text(text, encoding="utf-8")
+    write_module(assets, tree, embedded, args.out)
     n_chunks = 0
     for body in tree.values():
         files = body.get("files") or {}

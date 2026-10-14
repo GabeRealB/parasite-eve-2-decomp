@@ -971,9 +971,10 @@ straight out of the package:
   characteristic `V - E + F` into Txt/hex as a sanity check on the face decode;
 - an **anim** node lists the block's sets and clips.
 
-A package's models are the ones the overlay manifest declares, each read from
-its `TmdSource` record (`pkg_model.declared_records` / `read_source`); nothing
-is searched for. Animation blocks are still located when a package's node is
+A package's models are the ones the overlay manifest declares - or, for the
+resident images, `configs/USA/resident.toml` (gameplay's five effect meshes) -
+each read from its `TmdSource` record (`pkg_model.declared_records` /
+`read_source`); nothing is searched for. Animation blocks are still located when a package's node is
 first expanded, and cached per package.
 
 The mesh comes from the same decoder as `tmd_export.py`, Y-flip included, so a
@@ -1312,6 +1313,53 @@ An asset in `asset_data.py` (`ASSETS` or `EMBEDDED_ASSETS`) may carry a
 inflated form is then written under that subtree of the extraction instead of
 its type directory; an asset without a group keeps the type directory, which
 is the fallback for everything.
+
+A grouped asset of `ASSETS` is not in `asset_data.py`: each group is a TOML
+file, `tools/peassets/groups/<group>.toml`, one table per asset keyed by its
+**local name**. The asset's name is the group's path without its first part,
+then the local name: `[view3_background]` in
+`groups/rooms/akropolis/square.toml` is `akropolis_square_view3_background`.
+A table lists the asset's type, its other fields by name, and its `sha1` last.
+TOML has no null and only string keys, so an empty slot of `resources` is `""`
+and the cells of `glyphs` are written as keys. `asset_data.py` reads the group
+files when it is imported and merges them into `ASSETS`, giving each record its
+name and `group`, so every tool reads one flat table; a name in both raises.
+`apply_groups.py` and `dump_asset_db.py` write the group files, and the
+generator stops on a grouped asset whose name does not start with its group's
+prefix. A placement's short name in the `TREE` follows from the same names
+(`view3_background` in the folder `akropolis_square`).
+
+A package filed in a room's group is `<room>_package`, local name `package`.
+Its `package_name` is the overlay's name - `akropolis_square` - which its
+decoded copy in `pe2pkg/`, the overlay manifest, the configs, the symbol maps
+and an embedded asset's `source` keep; `asset_schema.package_name` and
+`package_asset` translate, and the schema rejects two packages with one
+overlay name. A package without `package_name` is named like its overlay.
+
+A package is a container: its `embedded` says what is located inside it
+(models, animation banks, collision grids, …), as a bundle lists its
+`resources` and a bank its `samples`. It has two forms while the table moves
+to the group files:
+
+- **In a group file, placements.** The package says where each asset sits:
+  `embedded = [{ name = "collision", offset = 0x06784, size = 0x1458 }]`, the
+  name local and the offset into the decoded package. The asset itself is an
+  ordinary table of the group (`[collision]`, its type and `sha1`). Placement
+  belongs to the container - the same mesh sits at different offsets in
+  different packages - and what the asset is belongs to the asset.
+  A placement of a type the code reaches by its address in memory - a model
+  (pointers in the code), an image or a CLUT (its upload record) - also
+  states `address`; the schema requires it, and that all of a package's
+  addresses less their offsets agree. `asset_groups.py` turns each placement
+  into an `EMBEDDED_ASSETS` record with its source, `offset`, size and any
+  `address`; its extension follows from its type (`asset_schema.EXT_BY_TYPE`).
+  Tools read where an embedded asset starts through
+  `asset_schema.embedded_offset` (an older record's `vram` less the load
+  address), and an address through `embedded_address` (`address`, or an older
+  record's `vram`).
+- **Elsewhere, names.** The embedded records carry `source` and `vram`, and
+  the package's `embedded` lists their names by address; `dump_asset_db.py`
+  derives the list and the schema checks that the two agree.
 
 ```text
 weapons/m4a1/pe2img_20.png              an image with the group

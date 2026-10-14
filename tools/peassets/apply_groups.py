@@ -52,7 +52,7 @@ def main() -> int:
         print(f"{len(problems)} problem(s); nothing written", file=sys.stderr)
         return 1
     if changed and not args.dry_run:
-        dump_asset_db.OUT_PATH.write_text(dump_asset_db.emit_module(assets, tree, embedded), encoding="utf-8")
+        dump_asset_db.write_module(assets, tree, embedded)
     print(f"{changed} group{'s' if changed != 1 else ''} {'would be ' if args.dry_run else ''}changed")
     return 0
 

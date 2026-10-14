@@ -735,12 +735,12 @@ bs_40	Background of the disc-change prompt shown by the options overlay when the
 bs_404	View backgrounds of dryfield_night_motel_room_3 (11 files): only views 6-11 are reached, by the arrival in view 9 and boundary triggers; views 2-5 have no selector.	
 bs_404..bs_411	View backgrounds 1-8 of dryfield_motel_room_3; views 2-8 are walked via boundary triggers from the arrival view 2, view 1 is the unselected plan view.	
 bs_405	No reached use found: backgrounds of dryfield_night_motel_room_3 views 2-5; the only trigger naming them needs view 2 current, and nothing sets view 2.	
-bs_41	View backgrounds of akropolis_square (13 of 15 files): walked views 3-8 and 13, view 9 for the telephone cutscene, views 11 and 12 by caption text, view 14 by the telephone scene.	
+akropolis_square_view1_background	View backgrounds of akropolis_square (13 of 15 files): walked views 3-8 and 13, view 9 for the telephone cutscene, views 11 and 12 by caption text, view 14 by the telephone scene.	
 bs_412	No reached use found: plan-view (view 1) background shared by dryfield_motel_room_4 and its night room, with no selector in the shipped game.	
 bs_413	Backgrounds of dryfield_motel_room_4 views 2-6, all reached on foot from the arrival view 2 through eight boundary triggers; the views have no sprites.	
 bs_418	View backgrounds of dryfield_night_parking_lot (11 files); room index 2, chosen once the night motel balcony scene is seen, shows files 8-11 in place of 2, 5, 6, 7.	
 bs_418..bs_424	View backgrounds 1-7 of dryfield_parking_lot; views 2-7 are walked via ten boundary triggers and five warps, view 1 is the unselected plan view.	
-bs_42	No reached use found: backgrounds of akropolis_square views 2 and 10, with no selector after the full nine-step view checklist.	
+akropolis_square_view2_background	No reached use found: backgrounds of akropolis_square views 2 and 10, with no selector after the full nine-step view checklist.	
 bs_425	View backgrounds of dryfield_night_toilet (bs_425 and bs_777..bs_784 for views 1-9): walked views 2-5, views 6-8 by caption text; views 1 and 9 have no selector.	
 bs_425..bs_435	View backgrounds 1-11 of dryfield_toilet: walked views 2-5, views 6-8 by caption text, and views 10 and 11 set by the event script for the transformation scene.	
 bs_433	No reached use found: background of dryfield_toilet view 9, for which the nine-step checklist found no selector.	
@@ -2072,12 +2072,12 @@ dryfield_junk_yard_view4	256-colour palette (row 255) of every sprite of Dryfiel
 dryfield_junk_yard_view5	256-colour palette (row 255) of every sprite of Dryfield junk yard view 5 (pe2img_649), uploaded on each change to that view.	
 dryfield_junk_yard_view7	256-colour palette (row 255) of every sprite of Dryfield junk yard view 7 (pe2img_650), uploaded on each change to that view.	
 dryfield_junk_yard_dialogue_0	Dryfield junk yard's caption file (same commands as the night bundle): four companion and return scenes, the wire-rope pickup and examine texts; six night commands unused by day.	
-akropolis_square_view3	256-colour palette (row 255) of the sprites of Acropolis square view 3 (pe2img_304), uploaded on each change to that view.	
-akropolis_square_view4	256-colour palette (row 255) of the sprites of Acropolis square view 4 (pe2img_305), uploaded on each change to that view.	
-akropolis_square_view5	256-colour palette (row 255) of the sprites of Acropolis square view 5 (pe2img_306), uploaded on each change to that view.	
-akropolis_square_view6	256-colour palette (row 255) of the sprites of Acropolis square view 6 (pe2img_307), uploaded on each change to that view.	
-akropolis_square_view7	256-colour palette (row 255) of the sprites of Acropolis square view 7 (pe2img_308), uploaded on each change to that view.	
-akropolis_square_view8	256-colour palette (row 255) of the sprites of Acropolis square view 8 (pe2img_309), uploaded on each change to that view.	
+akropolis_square_view3_palette	256-colour palette (row 255) of the sprites of Acropolis square view 3 (akropolis_square_view3_image), uploaded on each change to that view.	
+akropolis_square_view4_palette	256-colour palette (row 255) of the sprites of Acropolis square view 4 (akropolis_square_view4_image), uploaded on each change to that view.	
+akropolis_square_view5_palette	256-colour palette (row 255) of the sprites of Acropolis square view 5 (akropolis_square_view5_image), uploaded on each change to that view.	
+akropolis_square_view6_palette	256-colour palette (row 255) of the sprites of Acropolis square view 6 (akropolis_square_view6_image), uploaded on each change to that view.	
+akropolis_square_view7_palette	256-colour palette (row 255) of the sprites of Acropolis square view 7 (akropolis_square_view7_image), uploaded on each change to that view.	
+akropolis_square_view8_palette	256-colour palette (row 255) of the sprites of Acropolis square view 8 (akropolis_square_view8_image), uploaded on each change to that view.	
 akropolis_square_dialogue_0	Acropolis square's default caption file: the blocked elevator line, the arrival script's command, room-action and room-command events and examine texts selecting views 11 and 12.	
 akropolis_square_dialogue_1	Acropolis square's telephone dialogue file: the key-99 opening, story-indexed call commands 16-23 and follow-up command 2, run by the shared cutscene task.	
 acropolis_east_elevator_hall_bundle	Resource bundle of the Acropolis east elevator hall: five view palette slots and one dialogue slot, loaded for the whole stay in the room.	
@@ -2796,7 +2796,7 @@ pe2clut_304	16-colour palette at row 244 of companion Kyle's variant-4 weapon mo
 pe2clut_305	256-colour palette at row 254 of the attract demo's first logo panel drawn by the HUD, carried by the Akropolis and Dryfield map files and the demo files.	
 pe2clut_306	256-colour palette at row 253 of the attract demo logo's subtractive shadow panel drawn by the HUD, carried by the Akropolis and Dryfield map files.	
 pe2clut_307	Shared effect palette sheet (320x5 at rows 265-269) loaded with each stage map file: 16-colour palettes of ground shadows, explosions, smoke, sparks, muzzle flashes and Parasite Energy and weapon effects.	
-pe2clut_308	256-colour palette of the scrolling panorama strips in the Acropolis square arrival scene (view 15), shipped in the view file because that view has no bundle palette slot.	
+akropolis_square_view15_clut	256-colour palette of the scrolling panorama strips in the Acropolis square arrival scene (view 15), shipped in the view file because that view has no bundle palette slot.	
 pe2clut_309	Shared two-row effect palette file of 38 rooms (Acropolis, Dryfield night, mine, Neo Ark, shelter): its 16-colour palettes 0-2 colour the lamp flares, glows, fountain spray and flames; the rest is black.	
 pe2clut_31	256-colour palette of the M93R preview picture (pe2img_33) shown by gameplay's item menu when that weapon is the selected row.	
 pe2clut_310	Shared item-pickup palette file: its 16-colour palette 11 colours the item container or lid model in the cafeteria, trailer coach and several shelter rooms; palette 1 serves the cafeteria Stim pickup.	
@@ -3664,15 +3664,15 @@ pe2img_300	8-bit 'Parasite Eve II' logo drawn by gameplay's HUD as a panel durin
 pe2img_301	8-bit soft shadow of the 'Parasite Eve II' logo, drawn subtractively under it by gameplay's HUD during the attract demo.	
 pe2img_302	Shared 4-bit effect sprite sheet at (512,0) loaded with every stage map file: blob shadows, muzzle flashes, glows, fireballs and casings drawn by gameplay, actors, rooms, weapons and Parasite Energies.	
 akropolis_square_dialogue_0_atlas	4-bit caption glyph atlas of akropolis_square's default dialogue file (slot 14), drawn by gameplay's caption code for every caption outside the telephone cutscene.	
-pe2img_304	8-bit sheet of the 73 depth-sorted occluder sprites of akropolis_square's mapped view 3.	
-pe2img_305	8-bit sheet of the 41 depth-sorted occluder sprites of akropolis_square's mapped view 4.	
-pe2img_306	8-bit sheet of the 31 depth-sorted occluder sprites of akropolis_square's mapped view 5.	
-pe2img_307	8-bit sheet (two pages) of the 91 depth-sorted occluder sprites of akropolis_square's mapped view 6.	
-pe2img_308	8-bit sheet (two pages) of the 94 depth-sorted occluder sprites of akropolis_square's mapped view 7.	
-pe2img_309	8-bit sheet of the 53 depth-sorted occluder sprites of akropolis_square's mapped view 8.	
+akropolis_square_view3_image	8-bit sheet of the 73 depth-sorted occluder sprites of akropolis_square's mapped view 3.	
+akropolis_square_view4_image	8-bit sheet of the 41 depth-sorted occluder sprites of akropolis_square's mapped view 4.	
+akropolis_square_view5_image	8-bit sheet of the 31 depth-sorted occluder sprites of akropolis_square's mapped view 5.	
+akropolis_square_view6_image	8-bit sheet (two pages) of the 91 depth-sorted occluder sprites of akropolis_square's mapped view 6.	
+akropolis_square_view7_image	8-bit sheet (two pages) of the 94 depth-sorted occluder sprites of akropolis_square's mapped view 7.	
+akropolis_square_view8_image	8-bit sheet of the 53 depth-sorted occluder sprites of akropolis_square's mapped view 8.	
 pe2img_31	Two-page 8-bit body and hand texture of the player model in aya_10400 (resource variant 1, set on leaving for the Acropolis); a head rectangle is overwritten by the texture sequences.	
 akropolis_square_dialogue_1_atlas	4-bit caption glyph atlas with name plates for the telephone cutscene's dialogue, brought in as view 9's image in akropolis_square, acropolis_fire_escape and mist_parking.	
-pe2img_311	640x240 8-bit panorama of the square, panned across the screen as three strips by akropolis_square's scrolling backdrop task during the arrival scene (view 15).	
+akropolis_square_view15_image	640x240 8-bit panorama of the square, panned across the screen as three strips by akropolis_square's scrolling backdrop task during the arrival scene (view 15).	
 acropolis_east_elevator_hall_dialogue_0_atlas	4-bit caption glyph atlas of acropolis_east_elevator_hall's dialogue, drawn by gameplay's caption code whenever the room shows text.	
 pe2img_313	8-bit sheet of the 39 depth-sorted occluder sprites of acropolis_east_elevator_hall's mapped view 2.	
 pe2img_314	8-bit sheet of the 41 depth-sorted occluder sprites of acropolis_east_elevator_hall's mapped view 3.	
@@ -4612,8 +4612,8 @@ spk_149	Companion Kyle variant 4 (M4A1 + Pyke) bank (file 800104): rifle burst s
 spk_15	M4A1 Pyke weapon sound bank (weapon 28): rifle burst round, flame start with its stop requests, empty-chamber click and reload cue.	
 spk_150	Companion actor_800200 sound bank: footsteps for several floor types, a directed-action voice and hurt sound; entry 9 is also started by companion scenes in actor_136100, actor_160600, junk yard.	
 spk_151	Stage ambience bank of map_dryfield_full: one looping outdoor ambience sample started on view loads when the area's music row asks for it; not in the other stage map files.	
-spk_152	Footstep bank of akropolis_square: walk, scripted-jump and run step sounds while the player stands on surface class 4 of the square.	
-spk_153	Acropolis square room sound bank: door sounds of warps 1, 2 and 7, the room cutscene's start/scene/after/end sounds, caption cue sounds and the telephone's rings.	
+akropolis_square_sounds_0	Footstep bank of akropolis_square: walk, scripted-jump and run step sounds while the player stands on surface class 4 of the square.	
+akropolis_square_sounds_1	Acropolis square room sound bank: door sounds of warps 1, 2 and 7, the room cutscene's start/scene/after/end sounds, caption cue sounds and the telephone's rings.	
 spk_154	Footstep bank of acropolis_east_elevator_hall: walk and run steps (same two samples) while the player is on surface class 0 or 3 of the hall.	
 spk_155	Acropolis east elevator hall room sound bank: arrival and departure sounds of the room's only warp and one three-sample sound started by the first-visit opening event.	
 spk_156	Footstep bank of acropolis_patio: walk, run and stair-climb step sounds on surface class 4 and the patio's stair flights.	

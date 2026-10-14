@@ -113,21 +113,23 @@ def collect_bytes(
         return []
 
     out: list[Embedded] = []
+    from asset_schema import embedded_address, embedded_offset, stored_ext
+
     for asset_id, spec in entries:
-        off = spec["vram"] - vram_base
+        off = embedded_offset(spec, vram_base)
         size = spec["size"]
         if off < 0 or off + size > len(data):
             logging.warning(
-                "embedded asset %s at 0x%08X is outside %s", asset_id, spec["vram"], source
+                "embedded asset %s at offset 0x%X is outside %s", asset_id, off, source
             )
             continue
         out.append(
             Embedded(
                 asset_id=asset_id,
                 source=source,
-                vram=spec["vram"],
+                vram=embedded_address(spec) or vram_base + off,
                 file_offset=off,
-                ext=spec["ext"],
+                ext=stored_ext(spec),
                 data=data[off : off + size],
             )
         )

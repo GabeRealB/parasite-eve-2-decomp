@@ -361,10 +361,12 @@ def set_tables(embedded: dict) -> dict[str, list[tuple[str, list[tuple[str, int]
     from room_scene import SymbolMaps
 
     maps = SymbolMaps()
-    banks = {(rec["source"], rec["vram"]): key for key, rec in embedded.items() if rec.get("type") == "animation"}
     by_package: dict[str, list[dict]] = defaultdict(list)
     for row in declared_animations(tomllib.loads((ROOT / "configs/USA/overlays.toml").read_text(encoding="utf-8"))):
         by_package[row["package"]].append(row)
+    loads = {package + ".pe2pkg": rows[0]["load"] for package, rows in by_package.items()}
+    banks = {(rec["source"], asset_schema.embedded_offset(rec, loads.get(rec["source"]))): key for key, rec in embedded.items()
+             if rec.get("type") == "animation" and ("offset" in rec or rec["source"] in loads)}
     out = {}
     for package, rows in by_package.items():
         path = ROOT / "assets/USA/pe2pkg" / f"{package}.pe2pkg"
@@ -373,7 +375,7 @@ def set_tables(embedded: dict) -> dict[str, list[tuple[str, list[tuple[str, int]
         data, load = path.read_bytes(), rows[0]["load"]
         sets = {}
         for row in rows:
-            bank = banks.get((package + ".pe2pkg", load + row["offset"]))
+            bank = banks.get((package + ".pe2pkg", row["offset"]))
             for n, offset in enumerate(row["sets"]):
                 sets[load + offset] = (bank, n)
         own = maps.of(package)
@@ -488,8 +490,8 @@ class Manifest:
         for members in groups.values():
             for key in members:
                 if self.assets.get(key, {}).get("type") == "pe2pkg":
-                    self.near[key].update(members)
-        self.packages = {k for k, r in self.assets.items() if r["type"] == "pe2pkg"}
+                    self.near[asset_schema.package_name(key, self.assets[key])].update(members)
+        self.packages = set(asset_schema.package_names(self.assets).values())
         # The shifted positions of what a placed package's file uploads.
         self.shifts = load_shifts(list(files), self.packages)
         shifted: dict[str, set[tuple[int, int]]] = defaultdict(set)

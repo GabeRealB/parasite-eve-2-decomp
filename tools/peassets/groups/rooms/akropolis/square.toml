@@ -1,0 +1,292 @@
+# The assets of the group rooms/akropolis/square, each named akropolis_square_<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[bundle]
+type = "pe2bundle"
+resources = [
+    "",
+    "",
+    "akropolis_square_view3_palette",
+    "akropolis_square_view4_palette",
+    "akropolis_square_view5_palette",
+    "akropolis_square_view6_palette",
+    "akropolis_square_view7_palette",
+    "akropolis_square_view8_palette",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "akropolis_square_dialogue_0",
+    "akropolis_square_dialogue_1",
+]
+sha1 = "b12e305ec25b7cf40339d3db913c9725d5888c38"
+
+[package]
+type = "pe2pkg"
+embedded = [{ name = "collision", offset = 0x06784, size = 0x1458 }]
+package_name = "akropolis_square"
+required = true
+sha1 = "aea68621481901e24a676f92121f06fea4c688f3"
+
+[sounds_0]
+type = "spk"
+samples = ["spk_152_sample_00", "spk_152_sample_01"]
+sha1 = "fca5f3a7369e0e2fafe16af20defa5cd093cd858"
+
+[sounds_1]
+type = "spk"
+samples = [
+    "spk_153_sample_00",
+    "akropolis_square_sounds_1_sample_01",
+    "akropolis_square_sounds_1_sample_02",
+    "akropolis_square_sounds_1_sample_03",
+    "akropolis_square_sounds_1_sample_04",
+    "akropolis_square_sounds_1_sample_05",
+    "akropolis_square_sounds_1_sample_06",
+    "akropolis_square_sounds_1_sample_07",
+    "akropolis_square_sounds_1_sample_08",
+    "akropolis_square_sounds_1_sample_09",
+    "akropolis_square_sounds_1_sample_10",
+    "akropolis_square_sounds_1_sample_11",
+]
+sha1 = "cfc6a5b7bccd432282dba946c8bc6dcb81064243"
+
+[collision]
+type = "collision"
+sha1 = "712652c81e50591d9356ea192ff1352f03fc7444"
+
+[dialogue_0]
+type = "cap"
+glyphs = { 25 = "I", 36 = "l" }
+sha1 = "c056de3ae435073ef5ecfcd59ff14ef8d63be376"
+
+[view15_clut]
+type = "pe2clut"
+h = 6
+w = 256
+x = 0
+y = 255
+sha1 = "4ccc13877e183d250b79dec3bf2ac4a1213b583d"
+
+[view3_image]
+type = "pe2img"
+bpp = [8, 8]
+h = 256
+w = 128
+x = 896
+y = 0
+sha1 = "bd48a34fedd24731841d58174f687e2e2191c5b1"
+
+[view4_image]
+type = "pe2img"
+bpp = 8
+h = 256
+w = 64
+x = 960
+y = 0
+sha1 = "1411707eba5ff8615f3f486b5fa1c6005fd0d312"
+
+[view5_image]
+type = "pe2img"
+bpp = 8
+h = 256
+w = 64
+x = 960
+y = 0
+sha1 = "ce38dc22885049fbab76fc0c8c1c52ead562cc6f"
+
+[view6_image]
+type = "pe2img"
+bpp = [8, 8]
+h = 256
+w = 128
+x = 896
+y = 0
+sha1 = "9c8941b80fd599c783b18303ea940e8c20c3eb57"
+
+[view7_image]
+type = "pe2img"
+bpp = [8, 8]
+h = 256
+w = 128
+x = 896
+y = 0
+sha1 = "00b32774e0399e29bffa97366943295c293eef51"
+
+[view8_image]
+type = "pe2img"
+bpp = 8
+h = 256
+w = 64
+x = 960
+y = 0
+sha1 = "651058b185dd47616e89f29bf0cd3d8e4335107a"
+
+[view15_image]
+type = "pe2img"
+bpp = [8, 8, 8, 8, 8]
+h = 256
+w = 320
+x = 448
+y = 256
+sha1 = "744d2b01eacacdd40211e26ebb15a0dd73a4e125"
+
+[view3_palette]
+type = "pe2clut"
+h = 6
+w = 256
+x = 0
+y = 255
+sha1 = "c53da03d10a31d87c411295a803510c509fc6db1"
+
+[view4_palette]
+type = "pe2clut"
+h = 6
+w = 256
+x = 0
+y = 255
+sha1 = "9b6cf0340c0250c9125d1c39c2cfc624f8fd1b39"
+
+[view5_palette]
+type = "pe2clut"
+h = 6
+w = 256
+x = 0
+y = 255
+sha1 = "7b524c9e516c1a20fe35210cf652d68376338a0b"
+
+[view6_palette]
+type = "pe2clut"
+h = 6
+w = 256
+x = 0
+y = 255
+sha1 = "edad4f508605d586573758956c3fb40f33d6299f"
+
+[view7_palette]
+type = "pe2clut"
+h = 6
+w = 256
+x = 0
+y = 255
+sha1 = "6d24b808089018844f6705ba13c0779bd3516921"
+
+[view8_palette]
+type = "pe2clut"
+h = 6
+w = 256
+x = 0
+y = 255
+sha1 = "fe5e1aab8a01bc26eb5972a60e540603c3721394"
+
+[dialogue_0_atlas]
+type = "font_atlas"
+bpp = 4
+generated_by = "akropolis_square_dialogue_0"
+h = 256
+w = 64
+x = 384
+y = 0
+sha1 = "97386e6c7707dbf868dedc7e7cd0af6eeb693eb5"
+
+[view1_background]
+type = "bs"
+sha1 = "0fe0d26db0a2b20b225dd2cfa8b7fc7ea000a048"
+
+[view2_background]
+type = "bs"
+sha1 = "3127666c342f9ea2d4ea5d3529d5e436fdd02b6a"
+
+[view3_background]
+type = "bs"
+sha1 = "fcca81b33a7f825cc301622470b43a84e5302bc3"
+
+[view4_background]
+type = "bs"
+sha1 = "2244037f3ecfba40f8737fa1322ca1a3ce892c76"
+
+[view5_background]
+type = "bs"
+sha1 = "5548431bb7694ef7a7f90e103d4082bbcfdea34e"
+
+[view6_background]
+type = "bs"
+sha1 = "580f4c18e9a9a9bcc7e750b37dde652fd049c408"
+
+[view7_background]
+type = "bs"
+sha1 = "2942fbf9cf6ee477f744b1be549e0b27fb2224ef"
+
+[view8_background]
+type = "bs"
+sha1 = "b65a98fdbc62e4f9445592ea0d2046ee2a181f3d"
+
+[view9_background]
+type = "bs"
+sha1 = "334608feb4e2818b0ddc84405181a536d37247d0"
+
+[view10_background]
+type = "bs"
+sha1 = "54d01913c16d951fd02dbab1fe576e98a6a41fc0"
+
+[view11_background]
+type = "bs"
+sha1 = "926ab77311faa80bed8245f4037663ebc991be22"
+
+[view12_background]
+type = "bs"
+sha1 = "2ffeaadb805933eb3016ddaccce8473dc8cc5a3d"
+
+[view13_background]
+type = "bs"
+sha1 = "1d5b82bc7466607fe0d7c5b2135ddf2fa8e2ec32"
+
+[view14_background]
+type = "bs"
+sha1 = "08aa360299344ebe8b608548b515f23e78c1f9f1"
+
+[sounds_1_sample_01]
+type = "sample"
+sha1 = "9e403b0bc786ad1ba5816b99abd97cc0cddcd6fb"
+
+[sounds_1_sample_02]
+type = "sample"
+sha1 = "d6cc85d17d4111e8e25e6080ba0527436ca777ec"
+
+[sounds_1_sample_03]
+type = "sample"
+sha1 = "ec3a505c3036ae560a20e663fc617996368ef084"
+
+[sounds_1_sample_04]
+type = "sample"
+sha1 = "ed0c69a858a02d50863f3bc1aac43f03865189e7"
+
+[sounds_1_sample_05]
+type = "sample"
+sha1 = "5553b4f7cb600d06db000fb103b5bc6d4d1df694"
+
+[sounds_1_sample_06]
+type = "sample"
+sha1 = "d625bbc45c8285e4067d276e20ab9658add536f5"
+
+[sounds_1_sample_07]
+type = "sample"
+sha1 = "e56241d6c386568f4ae53d8dde6f4d621ce10636"
+
+[sounds_1_sample_08]
+type = "sample"
+sha1 = "4a34c265419d702f12605612f09d618504519585"
+
+[sounds_1_sample_09]
+type = "sample"
+sha1 = "dcf1b7556758b708f8ad3bbf585dc5d6a22e7c17"
+
+[sounds_1_sample_10]
+type = "sample"
+sha1 = "8882e1e6a7ab3fb6a4f1b2a67d3853e87b9f194f"
+
+[sounds_1_sample_11]
+type = "sample"
+sha1 = "b3b483810f13228b35cc42e93b9e790a9b87f83f"

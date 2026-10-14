@@ -47,7 +47,7 @@ from asset_data import ASSETS, EMBEDDED_ASSETS, TREE  # noqa: E402
 def embedded_for_source(source: str) -> list[tuple[str, dict[str, Any]]]:
     """Catalogued embedded assets carried by one binary, in address order."""
     items = [(k, v) for k, v in EMBEDDED_ASSETS.items() if v.get("source") == source]
-    return sorted(items, key=lambda kv: kv[1]["vram"])
+    return sorted(items, key=lambda kv: kv[1].get("offset", kv[1].get("vram", 0)))
 
 
 _SAFE_NAME = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.-]*$")

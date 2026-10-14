@@ -3491,44 +3491,44 @@ enum { EFFECT_MODEL_HANDLERS_UNRESOLVED = 0,
 
 /// Initial one-part identity transform for the bullet casing model.
 static const TmdBone _gEffectBulletCasingModelRestPose[1] __attribute__((section(".data"))) = {
-#include "assets/gameplay_effect_80111fc8_rest_pose.inc"
+#include "assets/bullet_casing_skeleton.inc"
 };
 /// Vertex count of the bullet casing model's sole part.
 static const u32 _gEffectBulletCasingModelPartVertexCounts[1] __attribute__((section(".data"))) = {
-#include "assets/gameplay_effect_80111fc8_part_vertices.inc"
+#include "assets/bullet_casing_partVerts.inc"
 };
 /// Part-local signed integer vertices of the bullet casing model.
 static SVECTOR _gEffectBulletCasingModelVertices[6] = {
-#include "assets/gameplay_effect_80111fc8_vertices.inc"
+#include "assets/bullet_casing_verts.inc"
 };
 /// Q12 lighting normals of the bullet casing model.
 static SVECTOR _gEffectBulletCasingModelNormals[4] = {
-#include "assets/gameplay_effect_80111fc8_normals.inc"
+#include "assets/bullet_casing_normals.inc"
 };
 /// Bullet casing TMD command words, with writable draw-handler slots.
 static u32 _gEffectBulletCasingModelPackets[32] = {
-#include "assets/gameplay_effect_80111fc8_packets.inc"
+#include "assets/bullet_casing_stream.inc"
 };
 TmdSource gEffectBulletCasingModel = { 0, sizeof(POLY_GT3) + 3 * sizeof(POLY_GT4), 0, ARRAY_SIZE(_gEffectBulletCasingModelRestPose), _gEffectBulletCasingModelPartVertexCounts, _gEffectBulletCasingModelVertices, _gEffectBulletCasingModelNormals, _gEffectBulletCasingModelRestPose, _gEffectBulletCasingModelPackets };
 /// Initial one-part identity transform for the rifle casing model.
 static const TmdBone _gEffectRifleCasingModelRestPose[1] __attribute__((section(".data"))) = {
-#include "assets/gameplay_effect_80111fc8_rest_pose.inc"
+#include "assets/rifle_casing_skeleton.inc"
 };
 /// Vertex count of the rifle casing model's sole part.
 static const u32 _gEffectRifleCasingModelPartVertexCounts[1] __attribute__((section(".data"))) = {
-#include "assets/gameplay_effect_80111fc8_part_vertices.inc"
+#include "assets/rifle_casing_partVerts.inc"
 };
 /// Part-local signed integer vertices of the rifle casing model.
 static SVECTOR _gEffectRifleCasingModelVertices[6] = {
-#include "assets/gameplay_effect_801120e4_vertices.inc"
+#include "assets/rifle_casing_verts.inc"
 };
 /// Q12 lighting normals of the rifle casing model.
 static SVECTOR _gEffectRifleCasingModelNormals[4] = {
-#include "assets/gameplay_effect_801120e4_normals.inc"
+#include "assets/rifle_casing_normals.inc"
 };
 /// Rifle casing TMD command words, with writable draw-handler slots.
 static u32 _gEffectRifleCasingModelPackets[32] = {
-#include "assets/gameplay_effect_801120e4_packets.inc"
+#include "assets/rifle_casing_stream.inc"
 };
 TmdSource gEffectRifleCasingModel = {
     .handlersResolved    = EFFECT_MODEL_HANDLERS_UNRESOLVED,
@@ -3543,23 +3543,23 @@ TmdSource gEffectRifleCasingModel = {
 };
 /// Initial one-part identity transform for the P229 casing model.
 static const TmdBone _gEffectP229CasingModelRestPose[1] __attribute__((section(".data"))) = {
-#include "assets/gameplay_effect_80111fc8_rest_pose.inc"
+#include "assets/p229_casing_skeleton.inc"
 };
 /// Vertex count of the P229 casing model's sole part.
 static const u32 _gEffectP229CasingModelPartVertexCounts[1] __attribute__((section(".data"))) = {
-#include "assets/gameplay_effect_80111fc8_part_vertices.inc"
+#include "assets/p229_casing_partVerts.inc"
 };
 /// Part-local signed integer vertices of the P229 casing model.
 static SVECTOR _gEffectP229CasingModelVertices[6] = {
-#include "assets/gameplay_effect_80112200_vertices.inc"
+#include "assets/p229_casing_verts.inc"
 };
 /// Q12 lighting normals of the P229 casing model.
 static SVECTOR _gEffectP229CasingModelNormals[4] = {
-#include "assets/gameplay_effect_80112200_normals.inc"
+#include "assets/p229_casing_normals.inc"
 };
 /// P229 casing TMD command words, with writable draw-handler slots.
 static u32 _gEffectP229CasingModelPackets[32] = {
-#include "assets/gameplay_effect_80112200_packets.inc"
+#include "assets/p229_casing_stream.inc"
 };
 TmdSource gEffectP229CasingModel = {
     .handlersResolved    = EFFECT_MODEL_HANDLERS_UNRESOLVED,
@@ -3574,23 +3574,23 @@ TmdSource gEffectP229CasingModel = {
 };
 /// Initial one-part identity transform for the shotgun shell casing model.
 static const TmdBone _gEffectShotgunShellCasingModelRestPose[1] __attribute__((section(".data"))) = {
-#include "assets/gameplay_effect_80111fc8_rest_pose.inc"
+#include "assets/shotgun_shell_casing_skeleton.inc"
 };
 /// Vertex count of the shotgun shell casing model's sole part.
 static const u32 _gEffectShotgunShellCasingModelPartVertexCounts[1] __attribute__((section(".data"))) = {
-#include "assets/gameplay_effect_80111fc8_part_vertices.inc"
+#include "assets/shotgun_shell_casing_partVerts.inc"
 };
 /// Part-local signed integer vertices of the shotgun shell casing model.
 static SVECTOR _gEffectShotgunShellCasingModelVertices[6] = {
-#include "assets/gameplay_effect_8011231c_vertices.inc"
+#include "assets/shotgun_shell_casing_verts.inc"
 };
 /// Q12 lighting normals of the shotgun shell casing model.
 static SVECTOR _gEffectShotgunShellCasingModelNormals[4] = {
-#include "assets/gameplay_effect_8011231c_normals.inc"
+#include "assets/shotgun_shell_casing_normals.inc"
 };
 /// Shotgun shell casing TMD command words, with writable draw-handler slots.
 static u32 _gEffectShotgunShellCasingModelPackets[32] = {
-#include "assets/gameplay_effect_8011231c_packets.inc"
+#include "assets/shotgun_shell_casing_stream.inc"
 };
 TmdSource gEffectShotgunShellCasingModel = {
     .handlersResolved    = EFFECT_MODEL_HANDLERS_UNRESOLVED,
@@ -3605,23 +3605,23 @@ TmdSource gEffectShotgunShellCasingModel = {
 };
 /// Initial one-part identity transform for the slot-0x91 thrown model.
 static const TmdBone _gEffectThrownModel91RestPose[1] __attribute__((section(".data"))) = {
-#include "assets/gameplay_effect_80111fc8_rest_pose.inc"
+#include "assets/thrown_model_91_skeleton.inc"
 };
 /// Vertex count of the slot-0x91 thrown model's sole part.
 static const u32 _gEffectThrownModel91PartVertexCounts[1] __attribute__((section(".data"))) = {
-#include "assets/gameplay_effect_801124b8_part_vertices.inc"
+#include "assets/thrown_model_91_partVerts.inc"
 };
 /// Part-local integer vertices of the slot-0x91 box; physical identity unproven.
 static SVECTOR _gEffectThrownModel91Vertices[8] = {
-#include "assets/gameplay_effect_801124b8_vertices.inc"
+#include "assets/thrown_model_91_verts.inc"
 };
 /// Q12 lighting normals of the slot-0x91 box, including its two cap normals.
 static SVECTOR _gEffectThrownModel91Normals[10] = {
-#include "assets/gameplay_effect_801124b8_normals.inc"
+#include "assets/thrown_model_91_normals.inc"
 };
 /// Six-quad TMD command words for slot 0x91, with writable draw-handler slots.
 static u32 _gEffectThrownModel91Packets[48] = {
-#include "assets/gameplay_effect_801124b8_packets.inc"
+#include "assets/thrown_model_91_stream.inc"
 };
 TmdSource gEffectThrownModel91 = {
     .handlersResolved    = EFFECT_MODEL_HANDLERS_UNRESOLVED,

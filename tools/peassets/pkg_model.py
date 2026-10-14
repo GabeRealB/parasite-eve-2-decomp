@@ -304,15 +304,18 @@ def declared_records(repo_root: Path) -> dict[str, tuple[int, list[int]]]:
     """package -> (load address, file offsets of its `TmdSource` records).
 
     From the overlay manifest, whose model declarations the build checks
-    against every package.
+    against every package, and configs/USA/resident.toml for the resident images.
     """
     sys.path.insert(0, str(repo_root / "tools" / "buildsteps"))
     import tomllib
     from gen_overlay_configs import declared_models
 
+    from gen_overlay_configs import declared_resident_models
+
     manifest = tomllib.loads((repo_root / "configs/USA/overlays.toml").read_text(encoding="utf-8"))
+    resident = tomllib.loads((repo_root / "configs/USA/resident.toml").read_text(encoding="utf-8"))
     out: dict[str, tuple[int, list[int]]] = {}
-    for m in declared_models(manifest):
+    for m in declared_models(manifest) + declared_resident_models(resident):
         out.setdefault(m["package"], (m["load"], []))[1].append(m["source"])
     return out
 

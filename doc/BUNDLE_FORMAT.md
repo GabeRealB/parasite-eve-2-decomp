@@ -83,7 +83,7 @@ Byte for byte a `.pe2clut` chunk. Rows 245..255 are shifted by `gFsImageHeaderYS
 
 ```python
 'akropolis_square_bundle': {"sha1": "…", "type": "pe2bundle",
-    'resources': [None, None, 'akropolis_square_view3', …, 'akropolis_square_view8',
+    'resources': [None, None, 'akropolis_square_view3_palette', …, 'akropolis_square_view8_palette',
                   None, …, 'akropolis_square_dialogue_0', 'akropolis_square_dialogue_1']},
 ```
 

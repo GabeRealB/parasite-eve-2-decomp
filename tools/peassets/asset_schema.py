@@ -75,7 +75,11 @@ SCHEMA: dict[str, dict[str, tuple[str, ...]]] = {
     "pe2img": {"payload": ("x", "y", "w", "h"), "stored": ("bpp",)},
     "pe2clut": {"payload": ("x", "y", "w", "h"), "stored": ()},
     "model": {"payload": ("textures",), "stored": ("parts",)},
-    "pe2pkg": {"payload": (), "stored": ("parent",)},
+    # `package_name` is the overlay's name - its overlays.toml key, its symbol map, its decoded copy in pe2pkg/ -
+    # where the asset's own name differs from it (a package filed in a room's group is `<room>_package`).
+    # `embedded` lists the EMBEDDED_ASSETS located inside the package, by address: a package is a container, as a
+    # bundle or a bank is.
+    "pe2pkg": {"payload": (), "stored": ("parent", "package_name", "embedded")},
     "bs": {"payload": (), "stored": ()},
     # A bank is a container: `samples` names the sample in each slot, in slot order.
     "spk": {"payload": ("samples",), "stored": ("sounds",)},
@@ -91,6 +95,9 @@ SCHEMA: dict[str, dict[str, tuple[str, ...]]] = {
     # read by tools/peassets/cap_text.py.
     "cap": {"payload": (), "stored": ("glyphs",)},
     "stf": {"payload": (), "stored": ()},
+    # A room's collision grid: the normals, vertices, faces, cell lists and cell table its `WorldCollisionGrid`
+    # header points at (the header itself is declared in C). Placed in its package by the package's `embedded`.
+    "collision": {"payload": (), "stored": ()},
     # A dialogue's glyph atlas: an on-disc image chunk, stored and decoded as a pe2img, but not drawn by anyone - the
     # tool that built the dialogue laid it out from its text and the font (doc/CAP_FORMAT.md §9). `generated_by` names
     # that dialogue; the dialogue and the shared font (tools/peassets/cap_font.py) rebuild it.
@@ -101,7 +108,11 @@ SCHEMA: dict[str, dict[str, tuple[str, ...]]] = {
 # (`source`, `vram`, `size`), and `include` / `layout` say how the build takes
 # it back in. One that is uploaded also has the rectangle of its upload record:
 # its size always, its position only when the record fixes one.
-EMBEDDED_FIELDS = ("source", "vram", "size", "ext", "type", "include", "layout", "deps", "notes", "group")
+EMBEDDED_FIELDS = ("source", "vram", "offset", "address", "size", "ext", "type", "include", "layout", "deps", "notes",
+                   "group")
+# Embedded types the code reaches by their address in memory - a model through pointers in the code, an image or a
+# CLUT through its upload record - so a placement of one states its `address`.
+ADDRESSED_TYPES = frozenset({"model", "image", "clut"})
 # An animation bank states how many clips it holds; `clip_names` names them by
 # index, as a review finds what each is.
 EMBEDDED_PAYLOAD: dict[str, tuple[str, ...]] = {"image": ("x", "y", "w", "h"), "clut": ("x", "y", "w", "h"),
@@ -210,12 +221,51 @@ def clut_value(rec: dict[str, Any], row: int = 0, column: int = 0) -> int:
     return ((rec["y"] + row) << 6) | (((rec["x"] + column * CLUT_ENTRY_WIDTH) >> 4) & 0x3F)
 
 
+def embedded_offset(rec: dict[str, Any], load: int | None = None) -> int:
+    """Where an embedded asset starts in its container: a placement's `offset`, or an older record's `vram` less
+    the container's load address."""
+    if "offset" in rec:
+        return rec["offset"]
+    if load is None:
+        raise ValueError(f"an embedded asset at 0x{rec['vram']:08X} needs its container's load address")
+    return rec["vram"] - load
+
+
+def embedded_address(rec: dict[str, Any]) -> int | None:
+    """Where an embedded asset is in memory: a placement's `address` (stated for ADDRESSED_TYPES), or an older
+    record's `vram`; None for a placement that has no need of one."""
+    return rec.get("address", rec.get("vram"))
+
+
+def package_name(key: str, rec: dict[str, Any] | None = None) -> str:
+    """A package asset's overlay name: its `package_name`, else its asset name. The decoded copy in `pe2pkg/`,
+    the overlay manifest, the configs and an embedded asset's `source` all go by it."""
+    if rec is None:
+        rec = record_of(key)
+    return (rec or {}).get("package_name", key)
+
+
+def package_names(assets: dict) -> dict[str, str]:
+    """Every package asset -> its overlay name."""
+    return {k: r.get("package_name", k) for k, r in assets.items() if r.get("type") == "pe2pkg"}
+
+
+def package_asset(name: str, assets: dict | None = None) -> str:
+    """The package asset whose overlay name is `name` (the name itself when no asset renames it)."""
+    if assets is None:
+        assets = load()[0]
+    for key, rec in assets.items():
+        if rec.get("type") == "pe2pkg" and rec.get("package_name") == name:
+            return key
+    return name
+
+
 def implied_deps(key: str, assets: dict, embedded: dict) -> list[str]:
     """Dependencies the manifest states in another form."""
     rec = assets.get(key)
     if not rec or rec.get("type") != "pe2pkg":
         return []
-    source = key + ".pe2pkg"
+    source = package_name(key, rec) + ".pe2pkg"
     return sorted(k for k, e in embedded.items() if e.get("source") == source)
 
 
@@ -289,6 +339,7 @@ TYPE_DIR_BY_EXT: dict[str, str] = {
     ".cap": "cap",
     ".stf": "stf",
     ".demo": "demo",
+    ".collision": "collision",
     ".bs": "bs",
     ".spk": "spk",
     ".txt": "txt",
@@ -299,10 +350,15 @@ TYPE_DIR_BY_EXT: dict[str, str] = {
 }
 # The extension of the stored bytes of each manifest type that does not state one (`ext`, on an embedded asset).
 EXT_BY_TYPE: dict[str, str] = {"pe2pkg": ".pe2pkg", "pe2img": ".pe2img", "pe2clut": ".pe2clut", "pe2bundle": ".pe2bundle",
-                               "cap": ".cap", "stf": ".stf", "demo": ".demo", "font_atlas": ".pe2img", "bs": ".bs", "spk": ".spk", "txt": ".txt", "model": ".tmd", "sample": ".wav"}
+                               "cap": ".cap", "stf": ".stf", "demo": ".demo", "font_atlas": ".pe2img", "collision": ".collision", "bs": ".bs",
+                               # embedded types: a placement's extension follows from its type
+                               "animation": ".anim", "camera_path": ".path", "movie_path": ".path", "clut": ".clut",
+                               "image": ".img", "fontglyph": ".fontglyph", "mcsave": ".mcsave",
+                               "morph_deltas": ".morph", "morph_normals": ".morph", "motion_curve": ".motion",
+                               "sprite_schedule": ".motion", "spusample": ".vag", "spk": ".spk", "txt": ".txt", "model": ".tmd", "sample": ".wav"}
 PNG_EXTS = frozenset({".pe2img", ".pe2clut", ".bs"})       # decoded to <name>.png
 DIRECTORY_EXTS = frozenset({".spk", ".mcsave"})            # decoded to a directory, <name>/meta.json and more
-RAW_ONLY_EXTS = frozenset({".tmd", ".anim", ".pe2bundle", ".cap", ".stf", ".demo"})  # raw/ holds the only form
+RAW_ONLY_EXTS = frozenset({".tmd", ".anim", ".pe2bundle", ".cap", ".stf", ".demo", ".collision"})  # raw/ holds the only form
 # Decoded forms that are addressed by their type's path and so never move, whatever the group.
 PINNED_TYPE_DIRS = frozenset({"pe2pkg"})
 # Directories the extraction owns at its root that hold no manifest asset. With the type directories, the names a
@@ -458,6 +514,8 @@ def decoded_rel(key: str, rec: dict[str, Any] | None = None, *, type_dir: str | 
     where = asset_dir(key, rec, type_dir=type_dir or type_dir_for_ext(ext), tables=tables)
     if ext in DIRECTORY_EXTS:
         return f"{where}/{key}/{SPK_META}"
+    if ext == ".pe2pkg":
+        key = package_name(key, rec)            # pe2pkg/ is addressed by the overlay's name
     return f"{where}/{decoded_names(key, ext)[0]}"
 
 
@@ -479,6 +537,8 @@ def decoded_files(key: str, rec: dict[str, Any] | None = None, *, type_dir: str 
         return []
     if where is None:
         where = asset_dir(key, rec, type_dir=type_dir or type_dir_for_ext(ext), tables=tables)
+    if ext == ".pe2pkg":
+        key = package_name(key, rec)
     return [f"{where}/{name}" for name in decoded_names(key, ext)]
 
 
@@ -704,6 +764,36 @@ def validate(assets: dict, embedded: dict) -> list[str]:
             problems.append(f"{key}: group {rec['group']!r} is not a path of lower-case names")
         if "deps" in rec:
             check_deps(key, kind, rec["deps"], key)
+    # A package lists what is embedded in it, and each of those names the package as its source. A group's
+    # package places its embedded assets itself ({name, offset, size}); asset_groups.py turns those into records.
+    for key, name in package_names(assets).items():
+        listed = assets[key].get("embedded", [])
+        if any(isinstance(p, dict) for p in listed):
+            bases = set()
+            for place in listed:
+                if not {"name", "offset", "size"} <= set(place) <= {"name", "offset", "size", "address"} \
+                        or not all(isinstance(v, int) for k, v in place.items() if k != "name"):
+                    problems.append(f"{key}: a placement in embedded is {{name, offset, size[, address]}}, not {place!r}")
+                elif place["name"] not in assets:
+                    problems.append(f"{key}: places {place['name']!r}, which is not in the asset table")
+                elif assets[place["name"]].get("type") in ADDRESSED_TYPES and "address" not in place:
+                    problems.append(f"{key}: {place['name']} is a {assets[place['name']]['type']}, reached by address, "
+                                    "so its placement states the address")
+                elif "address" in place:
+                    bases.add(place["address"] - place["offset"])
+            if len(bases) > 1:
+                problems.append(f"{key}: its placements' addresses do not share one load address")
+            listed = [p["name"] for p in listed]
+        held = sorted((e.get("offset", e.get("vram", 0)), k) for k, e in embedded.items() if e.get("source") == f"{name}.pe2pkg")
+        if listed != [k for _vram, k in held]:
+            problems.append(f"{key}: embedded must list, by address, the embedded assets whose source is {name}.pe2pkg")
+    # A package's overlay name (`package_name`, else its asset name) is how the build finds it in pe2pkg/: one each.
+    by_overlay: dict[str, list[str]] = {}
+    for key, name in package_names(assets).items():
+        by_overlay.setdefault(name, []).append(key)
+    for name, keys in sorted(by_overlay.items()):
+        if len(keys) > 1:
+            problems.append(f"{', '.join(sorted(keys))}: two packages with the overlay name {name!r}")
     problems += layout_problems(assets, embedded)
     return problems
 

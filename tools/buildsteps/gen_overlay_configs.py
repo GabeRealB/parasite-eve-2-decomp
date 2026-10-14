@@ -168,6 +168,19 @@ def declared_models(manifest: dict) -> list[dict]:
     return rows
 
 
+def declared_resident_models(resident: dict) -> list[dict]:
+    """The models configs/USA/resident.toml declares in the resident images, as declared_models rows."""
+    rows = []
+    for image, spec in resident.items():
+        objects = spec.get("objects") or []
+        for i, obj in enumerate(objects):
+            if obj.get("kind") == "modelSource":
+                rows.append({"family": "resident", "entry": image, "package": image, "load": int(spec["load_addr"]),
+                             "model": int(str(objects[i - 1]["at"]), 16), "source": int(str(obj["at"]), 16),
+                             "in_c": bool(objects[i - 1].get("in_c"))})
+    return rows
+
+
 def check_animation_records(name: str, objects: list[dict], data: bytes, load: int) -> None:
     """An animation resource contains exactly its declared exported sets."""
     sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "peassets"))

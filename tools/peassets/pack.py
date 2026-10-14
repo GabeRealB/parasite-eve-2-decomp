@@ -172,6 +172,10 @@ def path_under_raw_type_store(
             stem = p.stem
     else:
         stem = p.stem
+    if chunk_type == FileChunkType.RoomPkg:
+        # pe2pkg/ holds a package under its overlay name; raw/ under the asset's (`package_name`).
+        import asset_schema
+        stem = asset_schema.package_asset(stem)
     return (assets_dir / "raw" / type_dir / f"{stem}{ext}").resolve()
 
 

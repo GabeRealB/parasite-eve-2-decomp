@@ -237,13 +237,15 @@ def asset_includes(version: str) -> list[tuple[Path, Path, int | str]]:
     )
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
+    schema_spec = importlib.util.spec_from_file_location("asset_schema", TOOLS_DIR / "peassets" / "asset_schema.py")
+    schema = importlib.util.module_from_spec(schema_spec)
+    schema_spec.loader.exec_module(schema)
     out = []
     for aid, rec in mod.EMBEDDED_ASSETS.items():
         if rec.get("include"):
-            # The store files a raw asset by extension (extract.TYPE_DIR_BY_EXT),
-            # where only `.tmd` differs from its own name.
-            type_dir = {".tmd": "model"}.get(rec["ext"], rec["ext"].lstrip("."))
-            raw = ASSETS_DIR / version / "raw" / type_dir / f"{aid}{rec['ext']}"
+            # The store files a raw asset by extension; the extension follows from the type.
+            ext = schema.stored_ext(rec)
+            raw = ASSETS_DIR / version / "raw" / schema.type_dir_for_ext(ext) / f"{aid}{ext}"
             # "layout" names a record of mixed member widths, spelled in the
             # record's own `layout` (see gen_asset_inc.py).
             width = (rec["layout"] if rec["include"] == "layout" else
@@ -256,10 +258,11 @@ def model_includes(version: str) -> list[tuple[Path, list[Path], int, int, str]]
     """Typed initializer inputs for model payloads owned by C translation units."""
     from tools.buildsteps.gen_model_inc import components
     from tools.buildsteps.gen_model_inc import include_names
-    from tools.buildsteps.gen_overlay_configs import declared_models
+    from tools.buildsteps.gen_overlay_configs import declared_models, declared_resident_models
 
     manifest = tomllib.loads((CONFIG_DIR / version / "overlays.toml").read_text())
-    models = [m for m in declared_models(manifest) if m["in_c"]]
+    resident = tomllib.loads((CONFIG_DIR / version / "resident.toml").read_text())
+    models = [m for m in declared_models(manifest) + declared_resident_models(resident) if m["in_c"]]
     raw_of = lambda package: ASSETS_DIR / version / "pe2pkg" / f"{package}.pe2pkg"
     cache: dict[str, bytes] = {}
     def read(package: str) -> bytes:
@@ -1085,7 +1088,9 @@ def ninja_build(
             writer.build(
                 outputs=[str(inc) for inc in outputs], rule="model-inc", inputs=str(raw),
                 implicit=[str(GEN_MODEL_INC), str(TOOLS_DIR / "peassets" / "pkg_model.py"),
-                          str(TOOLS_DIR / "peassets" / "asset_data.py")],
+                          str(TOOLS_DIR / "peassets" / "asset_data.py"),
+                          # the asset table's grouped assets (asset_data.py reads them)
+                          *sorted(str(p) for p in (TOOLS_DIR / "peassets" / "groups").rglob("*.toml"))],
                 variables={"load": hex(load), "source": hex(source), "name": name},
             )
         ASSET_INC_OUTPUTS.extend(str(inc) for inc in outputs)

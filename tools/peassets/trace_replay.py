@@ -206,7 +206,7 @@ class World:
             for fkey, folder in (body.get("folders") or {}).items():
                 files = {int(n["id"]): (f"{stage}/{fkey}/{k}", n) for k, n in folder["files"].items()}
                 self.folders[stage, int(folder["id"])] = files
-                package = next((c for _p, n in files.values() for c in (n.get("chunks") or {}).values() if self.type(c) == "pe2pkg"), None)
+                package = next((self.package_name(c) for _p, n in files.values() for c in (n.get("chunks") or {}).values() if self.type(c) == "pe2pkg"), None)
                 self.room_of[stage, int(folder["id"])] = package or fkey
         # A package's load address is in its chunk header, which the extraction keeps (assets/USA/stages.json);
         # the overlay manifest's is the fallback.
@@ -238,6 +238,10 @@ class World:
 
     def type(self, key: str) -> str:
         return self.assets.get(key, {}).get("type", "")
+
+    def package_name(self, key: str) -> str:
+        """A package asset's overlay name, which its decoded copy, its load address and the traces go by."""
+        return self.assets.get(key, {}).get("package_name", key)
 
     def filler(self, key: str) -> int:
         """How many rows at the bottom of an image are blank strips: whole upload strips of a single value.
@@ -580,6 +584,7 @@ class Replay:
                     if kind == "pe2clut":
                         load["cluts"].append(key)
             elif kind == "pe2pkg":
+                key = self.w.package_name(key)
                 address, length = self.w.address.get(key), self.w.length(key)
                 if self.has_packages:
                     # The trace says itself what arrives and where (`on_package_loaded`); this is what the tables expect.

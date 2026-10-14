@@ -293,12 +293,12 @@ def build(db: sqlite3.Connection) -> None:
     db.executescript(DDL)
     assets, _embedded = asset_schema.load()
     tree = asset_schema.load_tree()
-    packages = {k for k, r in assets.items() if r["type"] == "pe2pkg"}
+    packages = asset_schema.package_names(assets)      # package asset -> overlay name
     common: dict[int, str] = {}          # stage-zero file id -> path
     carriers: dict[str, list[str]] = defaultdict(list)
     for stage, folder, fkey, node in asset_schema.tree_files(tree):
         path = f"{stage}/{fkey}" if folder is None else f"{stage}/{folder}/{fkey}"
-        package = next((c for c in (node.get("chunks") or {}).values() if c in packages), None)
+        package = next((packages[c] for c in (node.get("chunks") or {}).values() if c in packages), None)
         db.execute("INSERT INTO file VALUES (?,?,?,?,?)", (path, stage, folder, int(node["id"]), package))
         db.executemany("INSERT INTO footprint VALUES (?,?,?,?,?,?,?,?,?)", [(path,) + r for r in footprints(assets, node)])
         if stage == 0 and folder is None:
@@ -327,7 +327,7 @@ def build(db: sqlite3.Connection) -> None:
     unmapped = 0
     for stage, body in tree.items():
         for folder, fnode in (body.get("folders") or {}).items():
-            room = next((c for n in fnode["files"].values() for c in (n.get("chunks") or {}).values() if c in packages), None)
+            room = next((packages[c] for n in fnode["files"].values() for c in (n.get("chunks") or {}).values() if c in packages), None)
             if room is None:
                 continue
             rooms[room] = f"{stage}/{folder}"
@@ -406,7 +406,7 @@ def build(db: sqlite3.Connection) -> None:
                 spawned = set()
                 for p in placed:
                     r = next((r for r in rows if r["entryId"] == p["entryId"]), None)
-                    if r is not None and r["owner"] in packages:
+                    if r is not None and r["owner"] in packages.values():
                         spawned.add((r["owner"], p["texturePageOffset"], p["clutRowOffset"], p["entryId"]))
                 db.executemany("INSERT INTO spawn VALUES (?,?,?,?,?)", [(gid,) + sp for sp in sorted(spawned)])
     folders: dict[tuple[int, int], dict[int, str]] = {}
@@ -506,7 +506,7 @@ def model_bounds(package: str, rec: dict) -> dict[tuple[int, int], list[int]]:
         return {}
     load, data = _LOADS[package]
     try:
-        return {pair: list(box) for pair, box in (pkg_model.stream_texture_bounds(data, rec["vram"] - load) or {}).items()}
+        return {pair: list(box) for pair, box in (pkg_model.stream_texture_bounds(data, asset_schema.embedded_offset(rec, load)) or {}).items()}
     except Exception:  # noqa: BLE001 - bounds are a nicety
         return {}
 

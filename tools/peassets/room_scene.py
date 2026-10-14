@@ -402,7 +402,8 @@ class Project:
             if r.get("type") == "model":
                 package = r.get("source", "").removesuffix(".pe2pkg")
                 self.models_of[package].append(key)
-                self.model_at[package, r["vram"]] = key
+                # Code reaches a model by its address once the package is loaded (stated for a model).
+                self.model_at[package, asset_schema.embedded_address(r)] = key
         self.maps = SymbolMaps()
         self._pkg: dict[str, bytes | None] = {}
         self._code: dict[str, dict[str, str]] = {}
@@ -1266,7 +1267,7 @@ class Scene:
         out["fileId"], out["fileExists"] = file_id, node is not None
         if node:
             out["chunks"] = list((node.get("chunks") or {}).values())
-            package = next((c for c in out["chunks"] if self.p.assets.get(c, {}).get("type") == "pe2pkg"), None)
+            package = next((self.p.assets[c].get("package_name", c) for c in out["chunks"] if self.p.assets.get(c, {}).get("type") == "pe2pkg"), None)
             out["package"] = package
             out["models"] = list(self.p.models_of.get(package, [])) if package else []
         return out

@@ -279,7 +279,7 @@ def view_sprite_pairs(db: sqlite3.Connection, assets: dict, tree: dict, extracte
     for m in db.execute("SELECT g.loader, g.kind, g.condition, g.evidence, m.file, m.page, m.row, m.mode FROM member m JOIN grp g ON g.id = m.grp "
                         "WHERE g.evidence NOT IN ('viewmap', 'folder')"):
         loads[m["loader"]].append((m["condition"] or ("the room's base file" if m["kind"] == "carrier" else ""), m["file"], m["page"], m["row"], m["mode"] or ""))
-    packages = {k for k, r in assets.items() if r["type"] == "pe2pkg"}
+    packages = asset_schema.package_names(assets)      # package asset -> overlay name
     out, found_by = [], findings if findings is not None else defaultdict(list)
     seen = defaultdict(int)
 
@@ -304,7 +304,7 @@ def view_sprite_pairs(db: sqlite3.Connection, assets: dict, tree: dict, extracte
     for stage, body in tree.items():
         for folder, fnode in (body.get("folders") or {}).items():
             chunks = [c for n in fnode["files"].values() for c in (n.get("chunks") or {}).values()]
-            room = next((c for c in chunks if c in packages), None)
+            room = next((packages[c] for c in chunks if c in packages), None)
             if room is None or room not in project.place_of:
                 continue
             slots = {}
@@ -643,12 +643,15 @@ def animation_tables(embedded: dict) -> dict:
     import pkg_anim
     sys.path.insert(0, str(ROOT / "tools" / "buildsteps"))
     from gen_overlay_configs import declared_animations
-    banks = {(rec["source"], rec["vram"]): key for key, rec in embedded.items() if rec.get("type") == "animation"}
+    rows = declared_animations(tomllib.loads((ROOT / "configs/USA/overlays.toml").read_text(encoding="utf-8")))
+    loads = {row["package"] + ".pe2pkg": row["load"] for row in rows}
+    banks = {(rec["source"], asset_schema.embedded_offset(rec, loads.get(rec["source"]))): key for key, rec in embedded.items()
+             if rec.get("type") == "animation" and ("offset" in rec or rec["source"] in loads)}
     tables = asset_journal.set_tables(embedded)
     out = {}
     blobs: dict[str, bytes] = {}
-    for row in declared_animations(tomllib.loads((ROOT / "configs/USA/overlays.toml").read_text(encoding="utf-8"))):
-        key = banks.get((row["package"] + ".pe2pkg", row["load"] + row["offset"]))
+    for row in rows:
+        key = banks.get((row["package"] + ".pe2pkg", row["offset"]))
         path = ROOT / "assets" / "USA" / "pe2pkg" / f"{row['package']}.pe2pkg"
         if key is None or not path.is_file():
             continue
@@ -673,7 +676,7 @@ def build_data(db: sqlite3.Connection, out: Path, pixels: str) -> dict:
     bindings = spawn_bindings(assets)
     files = [r["path"] for r in db.execute("SELECT path FROM file ORDER BY path")]
     index = {path: n for n, path in enumerate(files)}
-    packages = {k for k, r in assets.items() if r["type"] == "pe2pkg"}
+    packages = asset_schema.package_names(assets)      # package asset -> overlay name
 
     chunks = {}
     for stage, folder, fkey, node in asset_schema.tree_files(tree):
@@ -818,7 +821,7 @@ def build_data(db: sqlite3.Connection, out: Path, pixels: str) -> dict:
                 address[name] = own.get(slot.get("slot"), int(spec["load_addr"]))
 
     overlays = {asset_schema.ROOT_OVERLAY: {"family": "the executable", "parents": [], "own": [index[p] for p in supply.own(asset_schema.ROOT_OVERLAY)], "room": 0}}
-    for package in sorted(packages):
+    for package in sorted(packages.values()):
         if package not in supply.carrier:
             continue
         first = supply.files[supply.carrier[package][0]]
@@ -972,12 +975,14 @@ def build_data(db: sqlite3.Connection, out: Path, pixels: str) -> dict:
                 cells.append("")
             if len(cells) < 8:
                 continue
-            # The asset field can name several assets, and ranges of them ("bs_41, bs_43..bs_49"): the use is each one's.
+            # The asset field can name several assets, and ranges of them ("bs_41, bs_43..bs_49", or
+            # "room_view3_background..room_view9_background", the number between the same words): the use is each one's.
             named = []
             for token in re.findall(r"[A-Za-z0-9_]+(?:\.\.[A-Za-z0-9_]+)?", cells[0]):
                 first, _, last = token.partition("..")
-                a, b = re.fullmatch(r"(.*?)(\d+)", first), re.fullmatch(r"(.*?)(\d+)", last) if last else None
-                span = [f"{a[1]}{n}" for n in range(int(a[2]), int(b[2]) + 1)] if a and b and a[1] == b[1] and 0 <= int(b[2]) - int(a[2]) < 500 else [first]
+                a, b = re.fullmatch(r"(.*?)(\d+)(\D*)", first), re.fullmatch(r"(.*?)(\d+)(\D*)", last) if last else None
+                same = a and b and a[1] == b[1] and a[3] == b[3] and 0 <= int(b[2]) - int(a[2]) < 500
+                span = [f"{a[1]}{n}{a[3]}" for n in range(int(a[2]), int(b[2]) + 1)] if same else [first]
                 named += [k for k in span if k in catalogue and k not in named]
             for key in named or [cells[0]]:
                 usage[key].append([path.stem] + cells[1:8])

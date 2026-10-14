@@ -1199,7 +1199,7 @@ def store_embedded_assets(output_path: Path, store: "AssetStore", *, skip: bool)
         )
         for entry in store.map.values()
         if entry["type"] == "pe2pkg"
-        and embedded_for_source(Path(entry["raw_path"]).name)
+        and embedded_for_source(asset_schema.package_name(Path(entry["raw_path"]).stem) + ".pe2pkg")
     }
     targets = [(output_path / "main.exe", None)] + [
         (output_path / raw_path, base)
@@ -1213,7 +1213,8 @@ def store_embedded_assets(output_path: Path, store: "AssetStore", *, skip: bool)
                 found = collect(path)
             else:
                 data = decode_pe2pkg_payload(path.read_bytes())
-                found = collect_bytes(data, path.name, base=base)
+                # An embedded asset names its package by the overlay's name, which a group's package differs from.
+                found = collect_bytes(data, asset_schema.package_name(path.stem) + ".pe2pkg", base=base)
         except Exception:
             logging.exception("Failed to read embedded assets from %s", path.name)
             continue

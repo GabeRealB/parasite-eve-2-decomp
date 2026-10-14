@@ -678,7 +678,9 @@ What remains is narrower.
   appears on disc rather than as the runtime pointer, and the tpage/clut bias
   (§5.1) undone.
 - **Where models are is settled.** The overlay manifest declares every model
-  with its `TmdSource` record (764 across 225 packages), and the build checks
+  with its `TmdSource` record (764 across 225 packages), and
+  `configs/USA/resident.toml` the five in gameplay (`bullet_casing`,
+  `rifle_casing`, `p229_casing`, `shotgun_shell_casing`, `thrown_model_91`), and the build checks
   each record decodes and that its model object is exactly the arrays and stream
   it points at. A record may point at a stream that opens with one or more
   `TMD_STREAM_GROUP_END` words (`0xFFFFFFFE`), closing empty groups -
