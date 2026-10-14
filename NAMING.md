@@ -816,7 +816,7 @@ package can morph its model with a record another package defines.
 
 The included Dryfield factory room code shares the lift, hatch, operator panel,
 entry task and scenes between the day and night packages. Its interface is
-`src/shared/factory_lift.h`; configuration macros use `FACTORY_ROOM_` and select
+`src/stages/dryfield/rooms/factory/factory_private.h`; configuration macros use `FACTORY_ROOM_` and select
 the compiled instance's function bindings independently of runtime stage
 selection.
 
@@ -1268,7 +1268,7 @@ animation request. Carrier-local handlers are static; constants use
 `VIEW_FIGURE_`.
 
 `factory` owns the included Dryfield factory room implementation, with
-`src/shared/factory_lift.h` as its private interface. Its view- and
+`src/stages/dryfield/rooms/factory/factory_private.h` as its private interface. Its view- and
 progress-gated light-glow task is exported by each room carrier under the full
 package prefix for gameplay's effect table. `FACTORY_DRAW_GLOWS_TASK` binds the
 shared definition to that export; rendering constants use `FACTORY_GLOW_`.

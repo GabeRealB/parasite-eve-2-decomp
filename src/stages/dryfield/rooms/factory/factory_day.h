@@ -1,17 +1,11 @@
-#ifndef SRC_ROOMS_DRYFIELD_FACTORY_DRYFIELD_FACTORY_PRIVATE_H
-#define SRC_ROOMS_DRYFIELD_FACTORY_DRYFIELD_FACTORY_PRIVATE_H
+#ifndef SRC_STAGES_DRYFIELD_ROOMS_FACTORY_DAY_H
+#define SRC_STAGES_DRYFIELD_ROOMS_FACTORY_DAY_H
 
 #include <psyq/sys/types.h>
-#include <psyq/libgte.h>
-
-#include "types.h"
 
 #include "gameplay/collision.h"
-#include "gameplay/direction.h"
 #include "gameplay/message.h"
 #include "gameplay/room.h"
-
-#include "main/task_types.h"
 
 /// Directed camera-change quads shared by both daytime factory room variants.
 ///
@@ -44,13 +38,6 @@ extern WorldCoordRoomLights gDryfieldFactoryRoomLights;
 /// Both room variants borrow the same table for the loaded overlay's lifetime.
 extern WorldCoordRoomAmbientEntry gDryfieldFactoryViewAmbientMinima[20];
 
-/// Bodyless transition-task recipe shared by this overlay's gate and event task.
-///
-/// Runs at priority 32 with zero spawn payloads and unused metadata. The gate
-/// reads the recipe synchronously after latching the request and destination;
-/// keep those snapshots and the room callback code live through session reload.
-extern TaskDesc gRoomEventTaskDesc;
-
 // Callbacks referenced by the overlay's shared data tables.
 
 s32 func_dryfield_factory_8017DB08(Task*, s32, RoomEventMsg*, RoomEventMsg*);
@@ -67,4 +54,4 @@ void func_dryfield_factory_801807DC(Task*);
 
 void func_dryfield_factory_80180964(Task*);
 
-#endif // SRC_ROOMS_DRYFIELD_FACTORY_DRYFIELD_FACTORY_PRIVATE_H
+#endif // SRC_STAGES_DRYFIELD_ROOMS_FACTORY_DAY_H

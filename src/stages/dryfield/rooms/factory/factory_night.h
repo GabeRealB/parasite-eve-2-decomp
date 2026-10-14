@@ -1,14 +1,9 @@
-#ifndef SRC_ROOMS_DRYFIELD_NIGHT_FACTORY_DRYFIELD_NIGHT_FACTORY_PRIVATE_H
-#define SRC_ROOMS_DRYFIELD_NIGHT_FACTORY_DRYFIELD_NIGHT_FACTORY_PRIVATE_H
-
-#include "types.h"
+#ifndef SRC_STAGES_DRYFIELD_ROOMS_FACTORY_NIGHT_H
+#define SRC_STAGES_DRYFIELD_ROOMS_FACTORY_NIGHT_H
 
 #include "gameplay/collision.h"
-#include "gameplay/message.h"
 #include "gameplay/room.h"
 #include "gameplay/sprites.h"
-
-#include "main/task_types.h"
 
 #include "rooms/room_common.h"
 
@@ -40,21 +35,6 @@ extern WorldCoordRoomAmbientEntry gDryfieldNightFactoryAmbientByView[20];
 /// CAP IDs index the loaded command table or route through the room-message sentinel.
 /// Room binding enables all records through LAST; keep them live until unlinking.
 extern WorldCollisionTrigger gDryfieldNightFactoryActionTriggers[19];
-
-/// Snapshot of the accepted transition, copied by the gate for the deferred event.
-///
-/// All eight bytes are replaced on another accepted start. Keep this room's
-/// snapshot unchanged and loaded until the task commits its destination.
-extern RoomEventMsg gRoomEventMsg;
-
-/// Selects the night factory's retained destination for deferred room events.
-///
-/// Include before `room_events.h` in both room translation units. The binding
-/// is a writable `RoomEventMsg` lvalue with no side effects; it allocates no
-/// storage. The gate replaces all eight bytes on eligible execution, even if
-/// task allocation fails; queries leave them unchanged. Keep the snapshot
-/// loaded and unchanged until the task commits area/warp/room and requests reload.
-#define ROOM_EVENT_DESTINATION (gRoomEventMsg)
 
 extern u8 gRoomEventActive;
 
@@ -261,4 +241,4 @@ extern SpriteBatch gDryfieldNightFactoryView18And19SpriteBatches[6];
 
 // Callbacks referenced by the overlay's shared data tables.
 
-#endif // SRC_ROOMS_DRYFIELD_NIGHT_FACTORY_DRYFIELD_NIGHT_FACTORY_PRIVATE_H
+#endif // SRC_STAGES_DRYFIELD_ROOMS_FACTORY_NIGHT_H

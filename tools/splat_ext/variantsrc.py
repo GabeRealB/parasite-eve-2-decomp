@@ -30,7 +30,12 @@ class PSXSegVariantsrc(CommonSegC):
         assert isinstance(self.yaml, dict) and "source" in self.yaml, (
             f"{self.name}: a variantsrc subsegment needs a `source` key"
         )
-        return options.opts.src_path / f"{self.yaml['source']}.{self.file_extension}"
+        source = str(self.yaml["source"])
+        # A source given from the repository root (`src/stages/...`) is used as
+        # it is; otherwise it is relative to the family's source directory.
+        if source.startswith("src/"):
+            return Path(f"{source}.{self.file_extension}")
+        return options.opts.src_path / f"{source}.{self.file_extension}"
 
     def out_path(self) -> Optional[Path]:
         # The split reads the real source; everything else - the object path,

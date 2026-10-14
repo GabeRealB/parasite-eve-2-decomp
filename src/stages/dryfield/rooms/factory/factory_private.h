@@ -16,29 +16,45 @@
  * barrier's collision 2000 units along x), the room's warp filter, its command
  * handler and a one-time examine action.
  *
- * Include this header in the prologue and each fragment at its function's
- * position.
+ * One source builds both packages; the manifest sets `DRYFIELD_TIME` to
+ * `DRYFIELD_DAY` or `DRYFIELD_NIGHT` for each.
  */
 
-#ifndef SRC_SHARED_FACTORY_LIFT_H
-#define SRC_SHARED_FACTORY_LIFT_H
+#ifndef STAGES_DRYFIELD_ROOMS_FACTORY_PRIVATE_H
+#define STAGES_DRYFIELD_ROOMS_FACTORY_PRIVATE_H
 
 #include "types.h"
-
-#include <psyq/libgte.h>
 
 #include "gameplay/action_prompt.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
 #include "gameplay/geometry.h"
-#include "gameplay/message.h"
 #include "gameplay/pad_script.h"
-
-#include "main/task_types.h"
 
 #include "rooms/dryfield_night_factory.h"
 
-#include "dryfield_time.h"
+#include "../../../../shared/dryfield_time.h"
+
+#if DRYFIELD_TIME == DRYFIELD_DAY
+#include "factory_day.h"
+#else
+#include "factory_night.h"
+#endif
+
+/// Snapshot of the accepted transition, copied by the gate for the deferred event.
+///
+/// All eight bytes are replaced on another accepted start. Keep this room's
+/// snapshot unchanged and loaded until the task commits its destination.
+extern RoomEventMsg gRoomEventMsg;
+
+/// Selects the factory's retained destination for deferred room events.
+///
+/// Include before `room_events.h` in every room translation unit. The binding
+/// is a writable `RoomEventMsg` lvalue with no side effects; it allocates no
+/// storage. The gate replaces all eight bytes on eligible execution, even if
+/// task allocation fails; queries leave them unchanged. Keep the snapshot
+/// loaded and unchanged until the task commits area/warp/room and requests reload.
+#define ROOM_EVENT_DESTINATION (gRoomEventMsg)
 
 /// Lifecycle slots in the room-entry, lift and hatch task handler tables.
 ///
@@ -277,21 +293,6 @@ extern WorldCollisionGrid gFactoryLiftTurnedTemplate;
 /// borrows a four-halfword face-list pool, with one unused trailing word.
 /// Keep the defining factory instance loaded while its task reads the source.
 extern WorldCollisionGrid gFactoryBarrierTemplate;
-#if DRYFIELD_TIME == DRYFIELD_DAY
-/// Factory room messages: departures, key-item refusal, CAP commands, sound and actions.
-///
-/// Five handlers followed by `TASK_MESSAGE_TABLE_END`. Resolve borrows an
-/// eight-byte request/reply pair; command and sound take integer first words;
-/// the direction action borrows its four-byte request. All entries use native
-/// payload signatures. The room task borrows the table and code while loaded.
-extern TaskMessageEntry gFactoryMsgTable[6];
-/// Spawn recipe for the operator-panel session's polling owner, followed by TASK_DESC_END.
-///
-/// Entry 0 creates a bodyless priority-32 task which spawns the stage-selected
-/// panel and polls its exit. It borrows the room-owned panel-task slot; the
-/// terminal entry is retained but is never spawned by the command handler.
-extern TaskDesc gFactoryPanelSessionDesc[2];
-#endif
 /// Borrowed eight-entry factory task descriptor table selected at room setup.
 ///
 /// Runtime stage picks the day table for daytime Dryfield, the night table
@@ -318,59 +319,22 @@ extern TaskDesc* gFactoryPanelDesc;
 /// that a non-NULL value still denotes a live panel. NULL before room setup,
 /// and this global itself is not cleared when the room releases its work.
 extern Task** gFactoryPanelSlot;
-/// Binds the factory glow callback definition to this carrier's exported task.
-///
-/// `DRYFIELD_TIME` must select `DRYFIELD_DAY` or `DRYFIELD_NIGHT` before this
-/// header is included and remain bound through `factory_draw_glows.inc.c`.
-/// Expands to a function identifier with signature `void (Task*)`, declared in
-/// the corresponding public room header. It has no arguments, captured values,
-/// stringification or token pasting, and does not call or evaluate the task.
-#if DRYFIELD_TIME == DRYFIELD_NIGHT
-#define FACTORY_DRAW_GLOWS_TASK dryfieldNightFactoryDrawGlowsTask
-#else
-#define FACTORY_DRAW_GLOWS_TASK dryfieldFactoryDrawGlowsTask
-#endif
-
-/// Binds the view 9 visibility setter definition to this factory room's export.
-///
-/// `DRYFIELD_TIME` must select `DRYFIELD_DAY` or `DRYFIELD_NIGHT` before this
-/// header is included and remain bound through `factory_show_view9_sprite.inc.c`.
-/// Expands to the corresponding public room header's function identifier with
-/// signature `void (s32)`. Both carriers include both public room headers for
-/// the runtime day/night calls. This object-like binding has no arguments,
-/// captured values, stringification or token pasting and performs no call.
-#if DRYFIELD_TIME == DRYFIELD_NIGHT
-#define FACTORY_ROOM_INSTANCE_SET_VIEW9_SPRITE_VISIBLE dryfieldNightFactorySetView9SpriteVisible
-#else
-#define FACTORY_ROOM_INSTANCE_SET_VIEW9_SPRITE_VISIBLE dryfieldFactorySetView9SpriteVisible
-#endif
-
-/// Binds the view 11 visibility setter definition to this factory room's export.
-///
-/// `DRYFIELD_TIME` must select `DRYFIELD_DAY` or `DRYFIELD_NIGHT` before this
-/// header is included and remain bound through `factory_show_view11_sprite.inc.c`.
-/// Expands to the corresponding public room header's function identifier with
-/// signature `void (s32)`. Both carriers include both public room headers for
-/// the runtime day/night calls. This object-like binding has no arguments,
-/// captured values, stringification or token pasting and performs no call.
-#if DRYFIELD_TIME == DRYFIELD_NIGHT
-#define FACTORY_ROOM_INSTANCE_SET_VIEW11_SPRITE_VISIBLE dryfieldNightFactorySetView11SpriteVisible
-#else
+/// The functions each package exports under its own name: the map overlays
+/// and the other package call them by these names.
+#if DRYFIELD_TIME == DRYFIELD_DAY
+#define FACTORY_DRAW_GLOWS_TASK                         dryfieldFactoryDrawGlowsTask
+#define FACTORY_ROOM_INSTANCE_SET_VIEW9_SPRITE_VISIBLE  dryfieldFactorySetView9SpriteVisible
 #define FACTORY_ROOM_INSTANCE_SET_VIEW11_SPRITE_VISIBLE dryfieldFactorySetView11SpriteVisible
-#endif
-
-/// Binds the shared factory entry task definition to this room's exported callback.
-///
-/// `DRYFIELD_TIME` must select `DRYFIELD_DAY` or `DRYFIELD_NIGHT` before this
-/// header is included and remain bound through `factory_entry_task.inc.c`.
-/// Expands to a function identifier with signature `void (Task*)`, declared in
-/// the corresponding public room header and imported by its map overlay. It
-/// has no arguments, captured values, stringification or token pasting, and
-/// does not call or evaluate the task.
-#if DRYFIELD_TIME == DRYFIELD_NIGHT
-#define FACTORY_ROOM_INSTANCE_ENTRY_TASK dryfieldNightFactoryEntryTask
+#define FACTORY_ROOM_INSTANCE_ENTRY_TASK                dryfieldFactoryEntryTask
+#define FACTORY_OWN_SPAWN_TABLE                         gFactoryDaySpawnTable
+#define FACTORY_OWN_PANEL_DESC                          gFactoryDayPanelDesc
 #else
-#define FACTORY_ROOM_INSTANCE_ENTRY_TASK dryfieldFactoryEntryTask
+#define FACTORY_DRAW_GLOWS_TASK                         dryfieldNightFactoryDrawGlowsTask
+#define FACTORY_ROOM_INSTANCE_SET_VIEW9_SPRITE_VISIBLE  dryfieldNightFactorySetView9SpriteVisible
+#define FACTORY_ROOM_INSTANCE_SET_VIEW11_SPRITE_VISIBLE dryfieldNightFactorySetView11SpriteVisible
+#define FACTORY_ROOM_INSTANCE_ENTRY_TASK                dryfieldNightFactoryEntryTask
+#define FACTORY_OWN_SPAWN_TABLE                         gDryfieldNightFactoryTaskDescs
+#define FACTORY_OWN_PANEL_DESC                          gDryfieldNightFactoryPanelTaskDesc
 #endif
 
 /// Runs the factory power-on CAP choice and restores player/companion control.
@@ -482,7 +446,7 @@ static void _factoryPanelInit(Task* task);
 void factoryLiftRun(Task* task);
 /// Dispatches the hatch task's setup, per-frame update or teardown state.
 ///
-/// Requires a live hatch task with `Task::state` in 0..2. Copies the carrier's
+/// Requires a live hatch task with `Task::state` in 0..2. Copies the unit's
 /// three callbacks onto the stack and calls the selected slot without a bounds
 /// check. The update state separately dispatches `FactoryHatchWork::state`;
 /// this wrapper does not interpret its movement-handler completion result.
@@ -503,4 +467,4 @@ static s32 _factoryHatchOpen(Task* task);
 static s32 _factoryHatchClose(Task* task);
 static s32 _factoryHatchWatch(Task* task);
 
-#endif /* SRC_SHARED_FACTORY_LIFT_H */
+#endif /* STAGES_DRYFIELD_ROOMS_FACTORY_PRIVATE_H */

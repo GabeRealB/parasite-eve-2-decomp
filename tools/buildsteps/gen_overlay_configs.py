@@ -331,7 +331,7 @@ def check_collision_records(name: str, objects: list[dict], data: bytes, load: i
 
 def object_subsegments(
     name: str, family: str, objects: list[dict], data: bytes, load: int, pkg_id: int,
-    entry_name: str | None = None, defines: dict | None = None,
+    entry_name: str | None = None, defines: dict | None = None, src_dir: str | None = None,
 ) -> str:
     """The package layout as splat subsegment lines, from the manifest's object list.
 
@@ -399,8 +399,12 @@ def object_subsegments(
             if key in obj:
                 at = int(str(obj[key]), 16)
                 if variant and key == "text":
+                    # The source sits under the family by default; an entry that
+                    # names its own directory (`src`, from the repository root)
+                    # keeps it there, as the merged stage rooms do.
+                    source = f"{src_dir}/{unit}" if src_dir else f"{entry_name}/{unit}"
                     lines.append((at, f"      - {{start: 0x{at:X}, type: variantsrc, name: {path}, "
-                                      f"source: {entry_name}/{unit}}}"))
+                                      f"source: {source}}}"))
                 else:
                     lines.append((at, f"      - [0x{at:X}, {sect}, {path}]"))
         if "bss" in obj:
@@ -567,7 +571,7 @@ def generate(family: str, spec: dict, template: str, out_dir: Path) -> list[Path
                 # package out with its own object list.
                 name, family, slot.get("objects") or entry["objects"], data, load,
                 slot.get("id", entry.get("id")),
-                entry_name, slot.get("defines"),
+                entry_name, slot.get("defines"), entry.get("src"),
             ),
         }.items():
             text = text.replace(f"@@{key}@@", val)

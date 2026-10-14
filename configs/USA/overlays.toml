@@ -1694,24 +1694,49 @@ objects = [
   { kind = "collisionSource", at = "0x6068", in_c = true, cell_face_list_macro = "DRYFIELD_BREEZEWAY_CELL_FACE_LIST_AT_OFFSET" },
 ]
 
-[rooms.overlays.dryfield_factory]
-id = 327
-objects = [
-  { kind = "packageId" },
-  { unit = "dryfield_factory/dryfield_factory", rodata = "0x4", text = "0x138", data = "0x9A48" },
-  { unit = "dryfield_factory/dryfield_factory_2", rodata = "0xB8", text = "0x348C", data = "0x50F0" },
-  { kind = "model", at = "0x5144", in_c = true },
-  { kind = "modelSource", at = "0x91F0", in_c = true },
-  { kind = "model", at = "0x9214", in_c = true },
-  { kind = "modelSource", at = "0x9610", in_c = true },
-  { kind = "collision", at = "0x9634", in_c = true },
-  { kind = "collisionSource", at = "0x96A8", in_c = true, cell_face_list_macro = "DRYFIELD_FACTORY_TEMPLATE_CELL_FACE_LIST_AT_OFFSET" },
-  { kind = "collision", at = "0x96CC", in_c = true },
-  { kind = "collisionSource", at = "0x9778", in_c = true, cell_face_list_macro = "DRYFIELD_FACTORY_TEMPLATE_CELL_FACE_LIST_AT_OFFSET" },
-  { kind = "collision", at = "0x979C", in_c = true },
-  { kind = "collisionSource", at = "0x9844", in_c = true, cell_face_list_macro = "DRYFIELD_FACTORY_TEMPLATE_CELL_FACE_LIST_AT_OFFSET" },
-  { kind = "collision", at = "0x9A48", in_c = true },
-  { kind = "collisionSource", at = "0xA638", in_c = true, cell_face_list_macro = "DRYFIELD_FACTORY_CELL_FACE_LIST_AT_OFFSET" },
+[rooms.overlays.factory]
+label = "Dryfield factory, by day and by night"
+# One source for both packages, under src/stages: DRYFIELD_TIME selects the
+# room's own tables and the few differences in code. The night package links
+# the lift unit before the room unit.
+src = "src/stages/dryfield/rooms/factory"
+slots = [
+  { package = "dryfield_factory", id = 327, defines = { DRYFIELD_TIME = 1 }, objects = [
+    { kind = "packageId" },
+    { unit = "factory", variant = true, rodata = "0x4", text = "0x138", data = "0x50F0" },
+    { unit = "factory_lift", variant = true, rodata = "0x5C", text = "0xA20", data = "0x5144" },
+    { unit = "factory_panel", variant = true, rodata = "0xB8", text = "0x348C", data = "0x98C8" },
+    { kind = "model", at = "0x5144", in_c = true },
+    { kind = "modelSource", at = "0x91F0", in_c = true },
+    { kind = "model", at = "0x9214", in_c = true },
+    { kind = "modelSource", at = "0x9610", in_c = true },
+    { kind = "collision", at = "0x9634", in_c = true },
+    { kind = "collisionSource", at = "0x96A8", in_c = true, cell_face_list_macro = "DRYFIELD_FACTORY_TEMPLATE_CELL_FACE_LIST_AT_OFFSET" },
+    { kind = "collision", at = "0x96CC", in_c = true },
+    { kind = "collisionSource", at = "0x9778", in_c = true, cell_face_list_macro = "DRYFIELD_FACTORY_TEMPLATE_CELL_FACE_LIST_AT_OFFSET" },
+    { kind = "collision", at = "0x979C", in_c = true },
+    { kind = "collisionSource", at = "0x9844", in_c = true, cell_face_list_macro = "DRYFIELD_FACTORY_TEMPLATE_CELL_FACE_LIST_AT_OFFSET" },
+    { kind = "collision", at = "0x9A48", in_c = true },
+    { kind = "collisionSource", at = "0xA638", in_c = true, cell_face_list_macro = "DRYFIELD_FACTORY_CELL_FACE_LIST_AT_OFFSET" },
+  ] },
+  { package = "dryfield_night_factory", id = 359, defines = { DRYFIELD_TIME = 2 }, objects = [
+    { kind = "packageId" },
+    { unit = "factory_lift", variant = true, rodata = "0x4", text = "0x138", data = "0x50FC" },
+    { unit = "factory", variant = true, rodata = "0x60", text = "0x2BA4", data = "0x9880" },
+    { unit = "factory_panel", variant = true, rodata = "0xB8", text = "0x348C", data = "0x98D4" },
+    { kind = "model", at = "0x50FC", in_c = true },
+    { kind = "modelSource", at = "0x91A8", in_c = true },
+    { kind = "model", at = "0x91CC", in_c = true },
+    { kind = "modelSource", at = "0x95C8", in_c = true },
+    { kind = "collision", at = "0x95EC", in_c = true },
+    { kind = "collisionSource", at = "0x9660", in_c = true, cell_face_list_macro = "DRYFIELD_FACTORY_TEMPLATE_CELL_FACE_LIST_AT_OFFSET" },
+    { kind = "collision", at = "0x9684", in_c = true },
+    { kind = "collisionSource", at = "0x9730", in_c = true, cell_face_list_macro = "DRYFIELD_FACTORY_TEMPLATE_CELL_FACE_LIST_AT_OFFSET" },
+    { kind = "collision", at = "0x9754", in_c = true },
+    { kind = "collisionSource", at = "0x97FC", in_c = true, cell_face_list_macro = "DRYFIELD_FACTORY_TEMPLATE_CELL_FACE_LIST_AT_OFFSET" },
+    { kind = "collision", at = "0x9A40", in_c = true },
+    { kind = "collisionSource", at = "0xA630", in_c = true, cell_face_list_macro = "DRYFIELD_NIGHT_FACTORY_CELL_FACE_LIST_AT_OFFSET" },
+  ] },
 ]
 
 [rooms.overlays.dryfield_garage]
@@ -2051,25 +2076,6 @@ objects = [
   { kind = "collisionSource", at = "0x1604", in_c = true, cell_face_list_macro = "DRYFIELD_NIGHT_BREEZEWAY_CELL_FACE_LIST_AT_OFFSET" },
 ]
 
-[rooms.overlays.dryfield_night_factory]
-id = 359
-objects = [
-  { kind = "packageId" },
-  { unit = "dryfield_night_factory/dryfield_night_factory", rodata = "0x4", text = "0x138", data = "0xC454" },
-  { unit = "dryfield_night_factory/dryfield_night_factory_2", rodata = "0x60", text = "0x2BA4", data = "0x50FC" },
-  { kind = "model", at = "0x50FC", in_c = true },
-  { kind = "modelSource", at = "0x91A8", in_c = true },
-  { kind = "model", at = "0x91CC", in_c = true },
-  { kind = "modelSource", at = "0x95C8", in_c = true },
-  { kind = "collision", at = "0x95EC", in_c = true },
-  { kind = "collisionSource", at = "0x9660", in_c = true, cell_face_list_macro = "DRYFIELD_NIGHT_FACTORY_CELL_FACE_LIST_AT_OFFSET" },
-  { kind = "collision", at = "0x9684", in_c = true },
-  { kind = "collisionSource", at = "0x9730", in_c = true, cell_face_list_macro = "DRYFIELD_NIGHT_FACTORY_CELL_FACE_LIST_AT_OFFSET" },
-  { kind = "collision", at = "0x9754", in_c = true },
-  { kind = "collisionSource", at = "0x97FC", in_c = true, cell_face_list_macro = "DRYFIELD_NIGHT_FACTORY_CELL_FACE_LIST_AT_OFFSET" },
-  { kind = "collision", at = "0x9A40", in_c = true },
-  { kind = "collisionSource", at = "0xA630", in_c = true, cell_face_list_macro = "DRYFIELD_NIGHT_FACTORY_CELL_FACE_LIST_AT_OFFSET" },
-]
 
 [rooms.overlays.dryfield_night_garage]
 label = "code starts at 0x194: the first function is a leaf (a switch returning item-id lists, jump table at 0x4), so the span detector, which keys on a stack prologue, begins at 0x804 and left it as rodata words"

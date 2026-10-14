@@ -1,394 +1,4 @@
-#include "rooms/dryfield_night_factory.h"
-
-#include <psyq/sys/types.h>
-#include <psyq/libgte.h>
-#include <psyq/libgpu.h>
-#include <psyq/inline_c.h>
-
-#include "common.h"
-#include "gte.h"
-
-#include "dryfield_night_factory_private.h"
-
-#include "gameplay/direction_input.h"
-#include "gameplay/display.h"
-#include "gameplay/action_prompt.h"
-#include "gameplay/actor_render.h"
-#include "gameplay/captions.h"
-#include "gameplay/actor_presentation.h"
-#include "gameplay/gameflag.h"
-#include "gameplay/player_actor.h"
-#include "gameplay/sound.h"
-#include "gameplay/collision.h"
-#include "gameplay/direction.h"
-#include "gameplay/item_menu.h"
-#include "gameplay/items.h"
-#include "gameplay/loading.h"
-#include "gameplay/message.h"
-#include "gameplay/room.h"
-#include "gameplay/room_effects.h"
-#include "gameplay/scene_combat.h"
-#include "gameplay/sprites.h"
-#include "gameplay/view.h"
-
-#include "main/coord.h"
-#include "main/display.h"
-#include "main/display_types.h"
-#include "main/gameflag.h"
-#include "main/gfx.h"
-#include "main/mc.h"
-#include "main/mc_types.h"
-#include "main/mem.h"
-#include "main/pad.h"
-#include "main/pad_types.h"
-#include "main/scratch.h"
-#include "main/session.h"
-#include "main/session_types.h"
-#include "main/sound.h"
-#include "main/sound_ids.h"
-#include "main/task.h"
-#include "main/task_types.h"
-#include "main/tmd_types.h"
-
-#include "overlay.h"
-
-#include "rooms/dryfield_factory.h"
-
-#include "rooms/room_common.h"
-static void _factoryRoomInit(Task* task);
-static void _factoryPanelPrompt(Task* task);
-
-/// Selects the nighttime operator panel's private action-prompt hotspot test.
-///
-/// Bind a function identifier with signature
-/// `s32(ActionPromptHotspot* hotspots, s16 cursorX, s16 cursorY)`; coordinates
-/// are screen-centred pixels. The static prototype establishes local linkage
-/// before the shared header. Keep the binding through both the panel-idle
-/// caller and the hit-test fragment, then undefine it. This alias captures no
-/// arguments, evaluates nothing and uses neither stringification nor token pasting.
-#define ACTION_PROMPT_HIT_TEST _actionPromptHitTestDefault
-static s32 ACTION_PROMPT_HIT_TEST(ActionPromptHotspot* hotspots, s16 cursorX, s16 cursorY);
-#include "../../shared/action_prompt.h"
-#include "../../shared/glow_draw.h"
-/// Selects the gate's TU-local room-transition task descriptor.
-///
-/// Addressable `TaskDesc` lvalue; see `room_events.h` for the spawn contract.
-/// Bind before that header and keep through `room_event_gate.inc.c`.
-#define ROOM_EVENT_TASK_DESC (_gRoomEventTaskDesc)
-#include "../../shared/room_events.h"
-#include "../../shared/room_variants.h"
-/// Selects the nighttime factory instance for shared room declarations and code.
-///
-/// Keep this binding through all factory implementation fragments.
-#define DRYFIELD_TIME DRYFIELD_NIGHT
-#include "../../shared/factory_lift.h"
-
-static void _factoryEntryIdle(Task* task);
-static void _factoryPanelOpenPrompt(Task* task);
-static void _factoryPanelRun(Task* task);
-static void _factoryPanelArmPrompt(Task* task);
-static void _factoryPanelIdle(Task* task);
-static void _factoryPanelExit(Task* task);
-static void _factoryPanelWaitMove(Task* task);
-
-static void _actionPromptResetDefault(Task* task);
-
-static void _factoryPromptTask(Task* task);
-static void _factoryPanelMarkMoveSettled(Task* task, s32 messageId, s32 firstArg, s32 secondArg);
-
-static TmdBone _gDryfieldNightFactoryDryfieldFactoryModel06604Skeleton[1] = {
-#include "assets/dryfield_factory_model_06604_skeleton.inc"
-};
-
-static u32 _gDryfieldNightFactoryDryfieldFactoryModel06604PartVerts[1] = {
-#include "assets/dryfield_factory_model_06604_partVerts.inc"
-};
-
-static SVECTOR _gDryfieldNightFactoryDryfieldFactoryModel06604Verts[306] = {
-#include "assets/dryfield_factory_model_06604_verts.inc"
-};
-
-static SVECTOR _gDryfieldNightFactoryDryfieldFactoryModel06604Normals[353] = {
-#include "assets/dryfield_factory_model_06604_normals.inc"
-};
-
-static u32 _gDryfieldNightFactoryDryfieldFactoryModel06604Stream[2811] = {
-#include "assets/dryfield_factory_model_06604_stream.inc"
-};
-
-static TmdSource _gDryfieldNightFactoryDryfieldFactoryModel06604 = {
-    0,
-    19284,
-    0,
-    1,
-    _gDryfieldNightFactoryDryfieldFactoryModel06604PartVerts,
-    _gDryfieldNightFactoryDryfieldFactoryModel06604Verts,
-    _gDryfieldNightFactoryDryfieldFactoryModel06604Normals,
-    _gDryfieldNightFactoryDryfieldFactoryModel06604Skeleton,
-    _gDryfieldNightFactoryDryfieldFactoryModel06604Stream,
-};
-
-static TmdBone _gDryfieldNightFactoryDryfieldFactoryModel093E4Skeleton[1] = {
-#include "assets/dryfield_factory_model_093E4_skeleton.inc"
-};
-
-static u32 _gDryfieldNightFactoryDryfieldFactoryModel093E4PartVerts[1] = {
-#include "assets/dryfield_factory_model_093E4_partVerts.inc"
-};
-
-static SVECTOR _gDryfieldNightFactoryDryfieldFactoryModel093E4Verts[25] = {
-#include "assets/dryfield_factory_model_093E4_verts.inc"
-};
-
-static SVECTOR _gDryfieldNightFactoryDryfieldFactoryModel093E4Normals[28] = {
-#include "assets/dryfield_factory_model_093E4_normals.inc"
-};
-
-static u32 _gDryfieldNightFactoryDryfieldFactoryModel093E4Stream[139] = {
-#include "assets/dryfield_factory_model_093E4_stream.inc"
-};
-
-static TmdSource _gDryfieldNightFactoryDryfieldFactoryModel093E4 = {
-    0,
-    856,
-    0,
-    1,
-    _gDryfieldNightFactoryDryfieldFactoryModel093E4PartVerts,
-    _gDryfieldNightFactoryDryfieldFactoryModel093E4Verts,
-    _gDryfieldNightFactoryDryfieldFactoryModel093E4Normals,
-    _gDryfieldNightFactoryDryfieldFactoryModel093E4Skeleton,
-    _gDryfieldNightFactoryDryfieldFactoryModel093E4Stream,
-};
-
-static SVECTOR _gFactoryBarrierTemplateNormals[2] = {
-#include "assets/dryfield_night_factory_collision_09660_normals.inc"
-};
-
-static SVECTOR _gFactoryBarrierTemplateVerts[8] = {
-#include "assets/dryfield_night_factory_collision_09660_verts.inc"
-};
-
-static WorldCollisionGridFace _gFactoryBarrierTemplateFaces[2] = {
-#include "assets/dryfield_night_factory_collision_09660_faces.inc"
-};
-
-static s16 _gFactoryBarrierTemplateCells[4] = {
-#include "assets/dryfield_night_factory_collision_09660_cells.inc"
-};
-
-/// Selects a collision cell's face-index list for the generated directory.
-///
-/// Captures `_gFactoryBarrierTemplateCells` (4 s16 elements).
-/// `halfwordOffset` must be a constant s16-element offset to a list start
-/// within that pool; the list must also end there at
-/// `WORLD_COLLISION_GRID_CELL_END`. Evaluates the offset once and returns a
-/// borrowed `s16*` without reading or changing the list.
-/// The pool must stay loaded while the directory is used.
-/// This grid's `cell_face_list_macro` manifest setting selects the binding;
-/// it is defined only around the table include.
-#define DRYFIELD_NIGHT_FACTORY_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gFactoryBarrierTemplateCells[(halfwordOffset)])
-
-static s16* _gFactoryBarrierTemplateTable[1] = {
-#include "assets/dryfield_night_factory_collision_09660_table.inc"
-};
-#undef DRYFIELD_NIGHT_FACTORY_CELL_FACE_LIST_AT_OFFSET
-
-WorldCollisionGrid gFactoryBarrierTemplate = {
-    .viewCoord   = NULL,
-    .normals     = _gFactoryBarrierTemplateNormals,
-    .vertices    = _gFactoryBarrierTemplateVerts,
-    .faces       = _gFactoryBarrierTemplateFaces,
-    .cellFaceIds = _gFactoryBarrierTemplateTable,
-    .xBias       = -4464,
-    .zBias       = -3949,
-    .cellCountX  = 1,
-    .cellCountZ  = ARRAY_SIZE(_gFactoryBarrierTemplateTable),
-    .cellSize    = 4000,
-    .faceCount   = ARRAY_SIZE(_gFactoryBarrierTemplateFaces),
-};
-
-static SVECTOR _gFactoryLiftTemplateNormals[4] = {
-#include "assets/dryfield_night_factory_collision_09730_normals.inc"
-};
-
-static SVECTOR _gFactoryLiftTemplateVerts[8] = {
-#include "assets/dryfield_night_factory_collision_09730_verts.inc"
-};
-
-static WorldCollisionGridFace _gFactoryLiftTemplateFaces[4] = {
-#include "assets/dryfield_night_factory_collision_09730_faces.inc"
-};
-
-static s16 _gFactoryLiftTemplateCells[10] = {
-#include "assets/dryfield_night_factory_collision_09730_cells.inc"
-};
-
-/// Selects a collision cell's face-index list for the generated directory.
-///
-/// Captures `_gFactoryLiftTemplateCells` (10 s16 elements).
-/// `halfwordOffset` must be a constant s16-element offset to a list start
-/// within that pool; the list must also end there at
-/// `WORLD_COLLISION_GRID_CELL_END`. Evaluates the offset once and returns a
-/// borrowed `s16*` without reading or changing the list.
-/// The pool must stay loaded while the directory is used.
-/// This grid's `cell_face_list_macro` manifest setting selects the binding;
-/// it is defined only around the table include.
-#define DRYFIELD_NIGHT_FACTORY_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gFactoryLiftTemplateCells[(halfwordOffset)])
-
-static s16* _gFactoryLiftTemplateTable[2] = {
-#include "assets/dryfield_night_factory_collision_09730_table.inc"
-};
-#undef DRYFIELD_NIGHT_FACTORY_CELL_FACE_LIST_AT_OFFSET
-
-WorldCollisionGrid gFactoryLiftTemplate = {
-    .viewCoord   = NULL,
-    .normals     = _gFactoryLiftTemplateNormals,
-    .vertices    = _gFactoryLiftTemplateVerts,
-    .faces       = _gFactoryLiftTemplateFaces,
-    .cellFaceIds = _gFactoryLiftTemplateTable,
-    .xBias       = 750,
-    .zBias       = 2191,
-    .cellCountX  = 1,
-    .cellCountZ  = ARRAY_SIZE(_gFactoryLiftTemplateTable),
-    .cellSize    = 4000,
-    .faceCount   = ARRAY_SIZE(_gFactoryLiftTemplateFaces),
-};
-
-static SVECTOR _gFactoryLiftTurnedTemplateNormals[4] = {
-#include "assets/dryfield_night_factory_collision_097FC_normals.inc"
-};
-
-static SVECTOR _gFactoryLiftTurnedTemplateVerts[8] = {
-#include "assets/dryfield_night_factory_collision_097FC_verts.inc"
-};
-
-static WorldCollisionGridFace _gFactoryLiftTurnedTemplateFaces[4] = {
-#include "assets/dryfield_night_factory_collision_097FC_faces.inc"
-};
-
-static s16 _gFactoryLiftTurnedTemplateCells[8] = {
-#include "assets/dryfield_night_factory_collision_097FC_cells.inc"
-};
-
-/// Selects a collision cell's face-index list for the generated directory.
-///
-/// Captures `_gFactoryLiftTurnedTemplateCells` (8 s16 elements).
-/// `halfwordOffset` must be a constant s16-element offset to a list start
-/// within that pool; the list must also end there at
-/// `WORLD_COLLISION_GRID_CELL_END`. Evaluates the offset once and returns a
-/// borrowed `s16*` without reading or changing the list.
-/// The pool must stay loaded while the directory is used.
-/// This grid's `cell_face_list_macro` manifest setting selects the binding;
-/// it is defined only around the table include.
-#define DRYFIELD_NIGHT_FACTORY_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gFactoryLiftTurnedTemplateCells[(halfwordOffset)])
-
-static s16* _gFactoryLiftTurnedTemplateTable[2] = {
-#include "assets/dryfield_night_factory_collision_097FC_table.inc"
-};
-#undef DRYFIELD_NIGHT_FACTORY_CELL_FACE_LIST_AT_OFFSET
-
-WorldCollisionGrid gFactoryLiftTurnedTemplate = {
-    .viewCoord   = NULL,
-    .normals     = _gFactoryLiftTurnedTemplateNormals,
-    .vertices    = _gFactoryLiftTurnedTemplateVerts,
-    .faces       = _gFactoryLiftTurnedTemplateFaces,
-    .cellFaceIds = _gFactoryLiftTurnedTemplateTable,
-    .xBias       = 750,
-    .zBias       = 1950,
-    .cellCountX  = 1,
-    .cellCountZ  = ARRAY_SIZE(_gFactoryLiftTurnedTemplateTable),
-    .cellSize    = 4000,
-    .faceCount   = ARRAY_SIZE(_gFactoryLiftTurnedTemplateFaces),
-};
-
-enum { DRYFIELD_NIGHT_FACTORY_TASK_PRIORITY = 192 };
-
-TaskDesc gDryfieldNightFactoryTaskDescs[8] = {
-    { { { TASK_BODY_NONE, DRYFIELD_NIGHT_FACTORY_TASK_PRIORITY } }, factoryPowerScene, { .value = 0 } },
-    { { { TASK_BODY_NONE, DRYFIELD_NIGHT_FACTORY_TASK_PRIORITY } }, factoryLampScene, { .value = 0 } },
-    { { { TASK_BODY_NONE, DRYFIELD_NIGHT_FACTORY_TASK_PRIORITY } }, factoryCapScene, { .value = 0 } },
-    { { { TASK_BODY_NONE, DRYFIELD_NIGHT_FACTORY_TASK_PRIORITY } }, factoryBarrierTransitionScene, { .value = 0 } },
-    { { { TASK_BODY_TMD, DRYFIELD_NIGHT_FACTORY_TASK_PRIORITY } }, factoryLiftRun, { .model = &_gDryfieldNightFactoryDryfieldFactoryModel06604 } },
-    { { { TASK_BODY_COORD, DRYFIELD_NIGHT_FACTORY_TASK_PRIORITY } }, factoryBarrierCollision, { .value = 0 } },
-    { { { TASK_BODY_NONE, DRYFIELD_NIGHT_FACTORY_TASK_PRIORITY } }, factoryHatchScene, { .value = 0 } },
-    { { { TASK_BODY_TMD, DRYFIELD_NIGHT_FACTORY_TASK_PRIORITY } }, factoryHatchRun, { .model = &_gDryfieldNightFactoryDryfieldFactoryModel093E4 } },
-};
-
-/// Bodyless transition task spawned by this room's event gate at priority 32.
-///
-/// Uses the latched request and destination to play CAP and optional sounds,
-/// then reload the session. Spawn payloads and metadata are unused. The gate
-/// reads the recipe synchronously; room snapshots and callback code must remain
-/// live through the deferred transition.
-static TaskDesc _gRoomEventTaskDesc = { { { TASK_BODY_NONE, ROOM_EVENT_TASK_PRIORITY } }, roomEventTask, { .value = 0 } };
-
-/// Bodyless priority-32 operator-panel session poller and an unspawned end entry.
-///
-/// Entry 0 borrows the room-owned panel-task slot, spawns the selected panel
-/// and waits for its exit request. The factory room must remain loaded.
-static TaskDesc _gFactoryPanelSessionDesc[2] = {
-    { { { TASK_BODY_NONE, FACTORY_PANEL_SESSION_PRIORITY } }, factoryPanelSpawn, { .value = 0 } },
-    { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
-};
-
-/// Room departures, key-item refusal, CAP commands, sound and direction actions.
-///
-/// Five native-payload callbacks followed by TASK_MESSAGE_TABLE_END. Resolve
-/// borrows eight-byte request/reply records, command and sound use integer
-/// first words, and the action callback borrows a four-byte request. The room
-/// task borrows this table and its code while the night factory is loaded.
-static TaskMessageEntry _gFactoryMsgTable[6] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, roomVariantFactoryMsg },
-    { ROOM_MESSAGE_USE_KEY_ITEM, factoryIgnoreMessage },
-    { ROOM_MESSAGE_COMMAND, factoryCommand },
-    { ROOM_MESSAGE_SOUND, factorySoundCommand },
-    { DIRECTION_MESSAGE_ROOM_ACTION, factoryRoomAction },
-    { TASK_MESSAGE_TABLE_END, NULL },
-};
-
-/// Single bodyless priority-192 cursor task owned by an operator-panel session.
-///
-/// The panel passes spawnArg1 value 1 for controller port 0 and retains the child
-/// task until exit; no table terminator or model resource is stored.
-static TaskDesc _gFactoryPanelCursorDesc = { { { TASK_BODY_NONE, FACTORY_TASK_PRIORITY } }, _factoryPromptTask, { .value = 0 } };
-
-TaskDesc gDryfieldNightFactoryPanelTaskDesc = {
-    .header   = { .fields = { .flags = TASK_BODY_NONE, .priority = FACTORY_TASK_PRIORITY } },
-    .callback = _factoryPanelRun,
-    .data     = { .value = 0 },
-};
-
-/// Lift-completion notification followed by the task-message end marker.
-///
-/// The panel borrows this table while its work is live. Both payload words
-/// are ignored. The handler has no defined result; senders discard it.
-static TaskMessageEntry _gFactoryPanelMsgTable[2] = {
-    { FACTORY_PANEL_MESSAGE_MOVE_SETTLED, _factoryPanelMarkMoveSettled },
-    { TASK_MESSAGE_TABLE_END, NULL },
-};
-
-/// Mutable operator-panel hotspot rectangles in screen-centred pixels.
-///
-/// Raise, lower and turn open Push menus; the two caption spots open
-/// Examine menus. Hit testing writes every entry's hit byte, and confirm
-/// latches the first hit. The sixth entry ends the scan by its ID alone.
-static ActionPromptHotspot _gFactoryPanelHotspots[6] = {
-    { -68, -63, 16, 16, FACTORY_PANEL_CHOICE_RAISE, FACTORY_PANEL_PROMPT_PUSH, 0 },
-    { -27, -63, 16, 16, FACTORY_PANEL_CHOICE_LOWER, FACTORY_PANEL_PROMPT_PUSH, 0 },
-    { 13, -63, 16, 16, FACTORY_PANEL_CHOICE_TURN, FACTORY_PANEL_PROMPT_PUSH, 0 },
-    { 46, -80, 34, 32, FACTORY_PANEL_CHOICE_CAPTION6, FACTORY_PANEL_PROMPT_EXAMINE, 0 },
-    { -38, 0, 72, 48, FACTORY_PANEL_CHOICE_CAPTION7, FACTORY_PANEL_PROMPT_EXAMINE, 0 },
-    { 0, 0, 0, 0, ACTION_PROMPT_HOTSPOT_END, 0, 0 },
-};
-
-/// Power-glow centre in signed whole world-coordinate units.
-static SVECTOR _gFactoryPowerGlowPosition = { 395, -1630, 846, 0 };
-
-/// Lamp-glow centre at lamp progress 1, in signed whole world-coordinate units.
-static SVECTOR _gFactoryLampFirstGlowPosition = { 5910, -1308, 5649, 0 };
-
-/// Alternate lamp-glow centre at lamp progress 2, in signed whole world-coordinate units.
-static SVECTOR _gFactoryLampSecondGlowPosition = { 5910, -1404, 5649, 0 };
+// Dryfield factory by night: the room's tables, included by factory_panel.c.
 
 u8* gDryfieldNightFactoryViewMaps[2] = {
     gViewIdentityMap,
@@ -1035,92 +645,298 @@ SpriteBatch gDryfieldNightFactoryView18And19SpriteBatches[] = {
     { .firstSprite = SPRITE_BATCH_END, .spriteCount = 0, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 0, 0 } },
 };
 
-#include "../../shared/room_event_gate.inc.c"
-
-#include "../../shared/room_event_task.inc.c"
-
-/// Factory room-entry lifecycle handlers, indexed by `Task::state`.
+/// Unselected empty sprite list retained before the night factory's view directory.
 ///
-/// Setup registers the room and owns the panel-task slot; run retains it for
-/// room messages; teardown releases the task and its work. Dispatch copies
-/// all three callbacks and requires a `FACTORY_TASK_STATE_` selector.
-static const TaskFuncTable3 _gFactoryEntryStates = {
-    { [FACTORY_TASK_STATE_SETUP]    = _factoryRoomInit,
-      [FACTORY_TASK_STATE_RUN]      = _factoryEntryIdle,
-      [FACTORY_TASK_STATE_TEARDOWN] = taskKill },
+/// Contains a decoded-background header and an end marker, with no source
+/// ranges. All nineteen view slots select other batch lists.
+static SpriteBatch _gDryfieldNightFactoryUnusedEmptySpriteBatches[2] = {
+    { .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-#include "../../shared/factory_room_init.inc.c"
+SpriteView gDryfieldNightFactorySpriteViews[19] = {
+    { { .empty = gDryfieldNightFactoryView1SpriteBatches }, gDryfieldNightFactoryView1SpriteBatches, NULL },
+    { { .elements = gDryfieldNightFactoryView2SpriteSources }, gDryfieldNightFactoryView2SpriteBatches, NULL },
+    { { .elements = gDryfieldNightFactoryView3SpriteSources }, gDryfieldNightFactoryView3SpriteBatches, NULL },
+    { { .elements = gDryfieldNightFactoryView4SpriteSources }, gDryfieldNightFactoryView4SpriteBatches, NULL },
+    { { .empty = gDryfieldNightFactoryView5SpriteBatches }, gDryfieldNightFactoryView5SpriteBatches, NULL },
+    { { .elements = gDryfieldNightFactoryView6SpriteSources }, gDryfieldNightFactoryView6SpriteBatches, NULL },
+    { { .elements = gDryfieldNightFactoryView7SpriteSources }, gDryfieldNightFactoryView7SpriteBatches, NULL },
+    { { .elements = gDryfieldNightFactoryView8SpriteSources }, gDryfieldNightFactoryView8SpriteBatches, NULL },
+    { { .elements = gDryfieldNightFactoryView9SpriteSources }, gDryfieldNightFactoryView9SpriteBatches, NULL },
+    { { .empty = gDryfieldNightFactoryView10SpriteBatches }, gDryfieldNightFactoryView10SpriteBatches, NULL },
+    { { .empty = gDryfieldNightFactoryView11SpriteBatches }, gDryfieldNightFactoryView11SpriteBatches, NULL },
+    { { .empty = gDryfieldNightFactoryView12SpriteBatches }, gDryfieldNightFactoryView12SpriteBatches, NULL },
+    { { .empty = gDryfieldNightFactoryView13SpriteBatches }, gDryfieldNightFactoryView13SpriteBatches, NULL },
+    { { .empty = gDryfieldNightFactoryView14SpriteBatches }, gDryfieldNightFactoryView14SpriteBatches, NULL },
+    { { .elements = gDryfieldNightFactoryView15SpriteSources }, gDryfieldNightFactoryView15SpriteBatches, NULL },
+    { { .elements = gDryfieldNightFactoryView16SpriteSources }, gDryfieldNightFactoryView16SpriteBatches, NULL },
+    { { .empty = gDryfieldNightFactoryView17SpriteBatches }, gDryfieldNightFactoryView17SpriteBatches, NULL },
+    { { .elements = gDryfieldNightFactoryView18And19SpriteSources }, gDryfieldNightFactoryView18And19SpriteBatches, NULL },
+    { { .elements = gDryfieldNightFactoryView18And19SpriteSources }, gDryfieldNightFactoryView18And19SpriteBatches, NULL },
+};
 
-#include "../../shared/factory_resolve_warp.inc.c"
-
-#include "../../shared/factory_panel_spawn.inc.c"
-
-#include "../../shared/factory_ignore_message.inc.c"
-
-#include "../../shared/factory_command.inc.c"
-
-#include "../../shared/factory_sound_command.inc.c"
-
-#include "../../shared/factory_room_action.inc.c"
-
-#include "../../shared/factory_entry_idle.inc.c"
-
-#include "../../shared/factory_entry_task.inc.c"
-
-#include "../../shared/factory_panel_idle.inc.c"
-
-/// Operator-panel handlers in FACTORY_PANEL_STATE_ order.
+/// Authored point lights for the room, eligible in every logical view.
 ///
-/// The dispatcher copies all seven callbacks by value before selecting the
-/// current task state. Every slot is populated; there is no terminator.
-static const TaskFuncTable7 _gFactoryPanelStates = {
+/// Positions and falloff radii use world-coordinate units; RGB uses Q12.
+/// Coordinate setup parents and composes these mutable lights, and queries
+/// overwrite attenuation. Pointers remain valid while this room is loaded.
+static WorldCoordPointLight _gDryfieldNightFactoryPointLights[4] = {
     {
-        _factoryPanelInit,       // FACTORY_PANEL_STATE_INIT
-        _factoryPanelArmPrompt,  // FACTORY_PANEL_STATE_ARM_PROMPT
-        _factoryPanelIdle,       // FACTORY_PANEL_STATE_IDLE
-        _factoryPanelOpenPrompt, // FACTORY_PANEL_STATE_OPEN_PROMPT
-        _factoryPanelPrompt,     // FACTORY_PANEL_STATE_PROMPT
-        _factoryPanelExit,       // FACTORY_PANEL_STATE_EXIT
-        _factoryPanelWaitMove,   // FACTORY_PANEL_STATE_WAIT_MOVE
+        .head = {
+            .transform = { .lighting = {
+                               .composeStamp = GRAPHICS_COORD_DIRTY,
+                               .local        = { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 3051, -1864, 8762 } },
+                               .composed     = { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } },
+                               .viewId       = WORLD_COORDINATE_LIGHT_ALL_VIEWS,
+                               .parent       = NULL,
+                           } },
+            .color     = { ONE, ONE, ONE },
+        },
+        .inner = 1419,
+        .outer = 4022,
+    },
+    {
+        .head = {
+            .transform = { .lighting = {
+                               .composeStamp = GRAPHICS_COORD_DIRTY,
+                               .local        = { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 5657, -1403, 9444 } },
+                               .composed     = { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } },
+                               .viewId       = WORLD_COORDINATE_LIGHT_ALL_VIEWS,
+                               .parent       = NULL,
+                           } },
+            .color     = { 1759, 1784, 1784 },
+        },
+        .inner = 1000,
+        .outer = 1319,
+    },
+    {
+        .head = {
+            .transform = { .lighting = {
+                               .composeStamp = GRAPHICS_COORD_DIRTY,
+                               .local        = { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 3051, -1864, 2398 } },
+                               .composed     = { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } },
+                               .viewId       = WORLD_COORDINATE_LIGHT_ALL_VIEWS,
+                               .parent       = NULL,
+                           } },
+            .color     = { ONE, ONE, ONE },
+        },
+        .inner = 1702,
+        .outer = 3699,
+    },
+    {
+        .head = {
+            .transform = { .lighting = {
+                               .composeStamp = GRAPHICS_COORD_DIRTY,
+                               .local        = { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 3051, -1864, 5767 } },
+                               .composed     = { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } },
+                               .viewId       = WORLD_COORDINATE_LIGHT_ALL_VIEWS,
+                               .parent       = NULL,
+                           } },
+            .color     = { ONE, ONE, ONE },
+        },
+        .inner = 1522,
+        .outer = 4180,
     },
 };
 
-#include "../../shared/action_prompt_outline_rect.inc.c"
+WorldCoordRoomLights gDryfieldNightFactoryRoomLights = {
+    .directionalLightCount = 0,
+    .directionalLights     = NULL,
+    .pointLightCount       = ARRAY_SIZE(_gDryfieldNightFactoryPointLights),
+    .pointLights           = _gDryfieldNightFactoryPointLights,
+    .coneLightCount        = 0,
+    .coneLights            = NULL,
+};
 
-#include "../../shared/factory_panel_run_step.inc.c"
+WorldCollisionTrigger gDryfieldNightFactoryViewBoundaryTriggers[14] = {
+    { NULL, NULL, NULL, { 2925, -2368, 1935, 0 }, { { -144, -2976, -2288, 0 }, { -144, 2976, -2288, 0 }, { 144, -2976, 2288, 0 }, { 144, 2976, 2288, 0 } }, { -4092, 0, 257, 0 }, { 0, 0, ONE, 0 }, 3753, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 2704, -2368, 1920, 0 }, { { 144, -2976, 2400, 0 }, { 144, 2976, 2400, 0 }, { -144, -2976, -2400, 0 }, { -144, 2976, -2400, 0 } }, { 4090, 0, -246, 0 }, { 0, 0, ONE, 0 }, 3822, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 1312, -2304, 5840, 0 }, { { 1616, -2976, 160, 0 }, { 1616, 2976, 160, 0 }, { -1616, -2976, -160, 0 }, { -1616, 2976, -160, 0 } }, { 405, 0, -4100, 0 }, { 0, 0, ONE, 0 }, 3386, 0, 4, 7, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 1280, -2368, 5712, 0 }, { { -1632, -2976, -144, 0 }, { -1632, 2976, -144, 0 }, { 1632, -2976, 144, 0 }, { 1632, 2976, 144, 0 } }, { -362, 0, 4091, 0 }, { 0, 0, ONE, 0 }, 3396, 0, 7, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 1712, -2336, 8096, 0 }, { { -1520, -2976, 1280, 0 }, { -1520, 2976, 1280, 0 }, { 1520, -2976, -1280, 0 }, { 1520, 2976, -1280, 0 } }, { 2640, 0, 3134, 0 }, { 0, 0, ONE, 0 }, 3574, 0, 8, 7, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 1760, -2336, 8289, 0 }, { { 1520, -2976, -1280, 0 }, { 1520, 2976, -1280, 0 }, { -1520, -2976, 1280, 0 }, { -1520, 2976, 1280, 0 } }, { -2641, 0, -3136, 0 }, { 0, 0, ONE, 0 }, 3574, 0, 7, 8, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 3232, -2336, 5040, 0 }, { { 64, -2976, -752, 0 }, { 64, 2976, -752, 0 }, { -64, -2976, 752, 0 }, { -64, 2976, 752, 0 } }, { -4094, 0, -349, 0 }, { 0, 0, ONE, 0 }, 3061, 0, 4, 6, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 3088, -2368, 5087, 0 }, { { -64, -2976, 752, 0 }, { -64, 2976, 752, 0 }, { 64, -2976, -752, 0 }, { 64, 2976, -752, 0 } }, { 4091, 0, 348, 0 }, { 0, 0, ONE, 0 }, 3061, 0, 6, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 3360, -2336, 9648, 0 }, { { 112, -2976, -2032, 0 }, { 112, 2976, -2032, 0 }, { -112, -2976, 2032, 0 }, { -112, 2976, 2032, 0 } }, { -4097, 0, -227, 0 }, { 0, 0, ONE, 0 }, 3602, 0, 8, 9, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 3184, -2272, 9648, 0 }, { { -128, -2976, 2112, 0 }, { -128, 2976, 2112, 0 }, { 128, -2976, -2112, 0 }, { 128, 2976, -2112, 0 } }, { 4091, 0, 247, 0 }, { 0, 0, ONE, 0 }, 3647, 0, 9, 8, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 1104, -2144, 4080, 0 }, { { -1152, -2976, 16, 0 }, { -1152, 2976, 16, 0 }, { 1152, -2976, -16, 0 }, { 1152, 2976, -16, 0 } }, { 56, 0, 4095, 0 }, { 0, 0, ONE, 0 }, 3187, 0, 4, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 1040, -2144, 4192, 0 }, { { 1360, -2976, -48, 0 }, { 1360, 2976, -48, 0 }, { -1360, -2976, 48, 0 }, { -1360, 2976, 48, 0 } }, { -146, 0, -4100, 0 }, { 0, 0, ONE, 0 }, 3268, 0, 3, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 4992, -2080, 4275, 0 }, { { 1360, -2976, 0, 0 }, { 1360, 2976, 0, 0 }, { -1360, -2976, 0, 0 }, { -1360, 2976, 0, 0 } }, { 0, 0, -4100, 0 }, { 0, 0, ONE, 0 }, 3268, 0, 2, 6, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 5008, -2112, 4160, 0 }, { { -1600, -2976, 0, 0 }, { -1600, 2976, 0, 0 }, { 1600, -2976, 0, 0 }, { 1600, 2976, 0, 0 } }, { 0, 0, 4107, 0 }, { 0, 0, ONE, 0 }, 3376, 0, 6, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
+};
 
-#include "../../shared/action_prompt_move_cursors.inc.c"
+WorldCoordRoomAmbientEntry gDryfieldNightFactoryAmbientByView[20] = {
+    { .viewCount = ARRAY_SIZE(gDryfieldNightFactoryAmbientByView) - 1 },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 763, 757, 658, 746 } },
+    { .color = { 870, 852, 838, 857 } },
+    { .color = { 638, 625, 617, 628 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 458, 450, 448, 452 } },
+    { .color = { 534, 526, 518, 528 } },
+    { .color = { 519, 513, 500, 513 } },
+    { .color = { 479, 477, 477, 477 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+    { .color = { 16, 16, 16, 16 } },
+};
 
-#include "../../shared/action_prompt_draw_cursor.inc.c"
+/// IDs stored in action records; warp pairs pack departure then arrival in four-bit nibbles.
+enum {
+    DRYFIELD_NIGHT_FACTORY_TRIGGER_WARP_TO_DRIVEWAY      = (1 << 4) | 1,
+    DRYFIELD_NIGHT_FACTORY_TRIGGER_COMMAND_POWER_ON      = 5,
+    DRYFIELD_NIGHT_FACTORY_TRIGGER_COMMAND_PANEL_SESSION = 6,
+    DRYFIELD_NIGHT_FACTORY_TRIGGER_COMMAND_LAMP          = 3,
+    DRYFIELD_NIGHT_FACTORY_TRIGGER_COMMAND_CAP_SCENE     = 1,
+    DRYFIELD_NIGHT_FACTORY_TRIGGER_COMMAND_WHITEOUT      = 2,
+    DRYFIELD_NIGHT_FACTORY_TRIGGER_WARP_TO_BREEZEWAY     = (2 << 4) | 2,
+    DRYFIELD_NIGHT_FACTORY_TRIGGER_WARP_TO_GARAGE        = (3 << 4) | 1,
+    DRYFIELD_NIGHT_FACTORY_TRIGGER_COMMAND_HATCH_SCENE   = 12,
+    DRYFIELD_NIGHT_FACTORY_TRIGGER_CAP_COMMAND_15        = 15,
+    DRYFIELD_NIGHT_FACTORY_TRIGGER_CAP_COMMAND_16        = 16,
+    DRYFIELD_NIGHT_FACTORY_TRIGGER_CAP_COMMAND_17        = 17,
+    DRYFIELD_NIGHT_FACTORY_TRIGGER_CAP_COMMAND_18        = 18,
+    DRYFIELD_NIGHT_FACTORY_TRIGGER_CAP_COMMAND_20        = 20,
+    DRYFIELD_NIGHT_FACTORY_TRIGGER_CAP_COMMAND_24        = 24,
+    DRYFIELD_NIGHT_FACTORY_TRIGGER_CAP_COMMAND_22        = 22,
+    DRYFIELD_NIGHT_FACTORY_TRIGGER_CAP_COMMAND_21        = 21,
+};
 
-#include "../../shared/factory_show_view9_sprite.inc.c"
+WorldCollisionTrigger gDryfieldNightFactoryActionTriggers[19] = {
+    { NULL, NULL, NULL, { 5328, -48, 1296, 0 }, { { -368, 0, -720, 0 }, { 368, 0, -720, 0 }, { -368, 0, 720, 0 }, { 368, 0, 720, 0 } }, { 0, 4095, 0, 0 }, { -ONE, 0, 0, 0 }, 807, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_DRYFIELD_NIGHT_DRIVEWAY, DRYFIELD_NIGHT_FACTORY_TRIGGER_WARP_TO_DRIVEWAY, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 5712, -64, 0x2B70, 0 }, { { -672, 0, -928, 0 }, { 672, 0, -928, 0 }, { -672, 0, 928, 0 }, { 672, 0, 928, 0 } }, { 0, 4108, 0, 0 }, { -3784, 0, -1567, 0 }, 1144, WORLD_COLLISION_TRIGGER_ACTION_CAP, DRYFIELD_NIGHT_FACTORY_TRIGGER_COMMAND_POWER_ON, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 336, -64, 544, 0 }, { { -688, 0, -672, 0 }, { 688, 0, -672, 0 }, { -688, 0, 672, 0 }, { 688, 0, 672, 0 } }, { 0, 4101, 0, 0 }, { ONE, 0, 0, 0 }, 960, WORLD_COLLISION_TRIGGER_ACTION_CAP, DRYFIELD_NIGHT_FACTORY_TRIGGER_COMMAND_PANEL_SESSION, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 5856, -64, 5600, 0 }, { { -496, 0, -576, 0 }, { 496, 0, -576, 0 }, { -496, 0, 576, 0 }, { 496, 0, 576, 0 } }, { 0, 4095, 0, 0 }, { -ONE, 0, 0, 0 }, 759, WORLD_COLLISION_TRIGGER_ACTION_CAP, DRYFIELD_NIGHT_FACTORY_TRIGGER_COMMAND_LAMP, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 6224, -64, 3968, 0 }, { { -1264, 0, -416, 0 }, { 1264, 0, -416, 0 }, { -1264, 0, 416, 0 }, { 1264, 0, 416, 0 } }, { 0, 4104, 0, 0 }, { 0, 0, -ONE, 0 }, 1330, WORLD_COLLISION_TRIGGER_ACTION_CAP, DRYFIELD_NIGHT_FACTORY_TRIGGER_COMMAND_CAP_SCENE, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 6240, -64, 4816, 0 }, { { -1264, 0, -448, 0 }, { 1264, 0, -448, 0 }, { -1264, 0, 448, 0 }, { 1264, 0, 448, 0 } }, { 0, 4114, 0, 0 }, { 0, 0, ONE, 0 }, 1336, WORLD_COLLISION_TRIGGER_ACTION_CAP, DRYFIELD_NIGHT_FACTORY_TRIGGER_COMMAND_WHITEOUT, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 384, -64, 7328, 0 }, { { -368, 0, -720, 0 }, { 368, 0, -720, 0 }, { -368, 0, 720, 0 }, { 368, 0, 720, 0 } }, { 0, 4095, 0, 0 }, { ONE, 0, 0, 0 }, 807, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_DRYFIELD_NIGHT_BREEZEWAY, DRYFIELD_NIGHT_FACTORY_TRIGGER_WARP_TO_BREEZEWAY, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 5440, -64, 7088, 0 }, { { -528, 0, -992, 0 }, { 528, 0, -992, 0 }, { -528, 0, 992, 0 }, { 528, 0, 992, 0 } }, { 0, 4095, 0, 0 }, { -ONE, 0, 0, 0 }, 1123, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_DRYFIELD_NIGHT_GARAGE, DRYFIELD_NIGHT_FACTORY_TRIGGER_WARP_TO_GARAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 1568, -64, 7104, 0 }, { { -368, 0, -720, 0 }, { 368, 0, -720, 0 }, { -368, 0, 720, 0 }, { 368, 0, 720, 0 } }, { 0, 4095, 0, 0 }, { -ONE, 0, 0, 0 }, 807, WORLD_COLLISION_TRIGGER_ACTION_CAP, DRYFIELD_NIGHT_FACTORY_TRIGGER_COMMAND_HATCH_SCENE, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 3712, -64, 2528, 0 }, { { -368, 0, -720, 0 }, { 368, 0, -720, 0 }, { -368, 0, 720, 0 }, { 368, 0, 720, 0 } }, { 0, 4095, 0, 0 }, { -ONE, 0, 0, 0 }, 807, WORLD_COLLISION_TRIGGER_ACTION_CAP, DRYFIELD_NIGHT_FACTORY_TRIGGER_CAP_COMMAND_15, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 3424, -64, 0, 0 }, { { -1872, 0, -304, 0 }, { 464, 0, -304, 0 }, { -1072, 0, 1296, 0 }, { 464, 0, 1296, 0 } }, { 0, 4095, 0, 0 }, { -ONE, 0, 0, 0 }, 1894, WORLD_COLLISION_TRIGGER_ACTION_CAP, DRYFIELD_NIGHT_FACTORY_TRIGGER_CAP_COMMAND_16, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 4816, -64, 928, 0 }, { { -768, 0, -368, 0 }, { 768, 0, -368, 0 }, { -768, 0, 368, 0 }, { 768, 0, 368, 0 } }, { 0, 4106, 0, 0 }, { 0, 0, ONE, 0 }, 851, WORLD_COLLISION_TRIGGER_ACTION_CAP, DRYFIELD_NIGHT_FACTORY_TRIGGER_CAP_COMMAND_17, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 320, -64, 2336, 0 }, { { -512, 0, -1488, 0 }, { 1408, 0, -912, 0 }, { -512, 0, 880, 0 }, { 1408, 0, 880, 0 } }, { 0, 4100, 0, 0 }, { 0, 0, ONE, 0 }, 1673, WORLD_COLLISION_TRIGGER_ACTION_CAP, DRYFIELD_NIGHT_FACTORY_TRIGGER_CAP_COMMAND_18, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 1799, -64, 0x2787, 0 }, { { -775, 0, 52, 0 }, { -269, 0, -621, 0 }, { 322, 0, 592, 0 }, { 724, 0, -20, 0 } }, { 0, 4099, 0, 0 }, { 3406, 0, -2276, 0 }, 775, WORLD_COLLISION_TRIGGER_ACTION_CAP, DRYFIELD_NIGHT_FACTORY_TRIGGER_CAP_COMMAND_20, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 3456, -64, 7440, 0 }, { { -2208, 0, -2688, 0 }, { 1760, 0, -2688, 0 }, { -2208, 0, 2688, 0 }, { 1760, 0, 2688, 0 } }, { 0, 4104, 0, 0 }, { 0, 0, ONE, 0 }, 3472, WORLD_COLLISION_TRIGGER_ACTION_CAP, DRYFIELD_NIGHT_FACTORY_TRIGGER_CAP_COMMAND_24, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 1248, -64, 8960, 0 }, { { -368, 0, -720, 0 }, { 368, 0, -720, 0 }, { -368, 0, 720, 0 }, { 368, 0, 720, 0 } }, { 0, 4095, 0, 0 }, { ONE, 0, 0, 0 }, 807, WORLD_COLLISION_TRIGGER_ACTION_CAP, DRYFIELD_NIGHT_FACTORY_TRIGGER_CAP_COMMAND_22, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 4816, -64, 1744, 0 }, { { -928, 0, -384, 0 }, { 928, 0, -384, 0 }, { -928, 0, 384, 0 }, { 928, 0, 384, 0 } }, { 0, 4099, 0, 0 }, { 201, 0, -4091, 0 }, 1003, WORLD_COLLISION_TRIGGER_ACTION_CAP, DRYFIELD_NIGHT_FACTORY_TRIGGER_CAP_COMMAND_15, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 4751, -64, 3455, 0 }, { { -947, 0, -557, 0 }, { 1098, 0, -195, 0 }, { -1097, 0, 196, 0 }, { 948, 0, 558, 0 } }, { 0, 4105, 0, 0 }, { -201, 0, 4091, 0 }, 1108, WORLD_COLLISION_TRIGGER_ACTION_CAP, DRYFIELD_NIGHT_FACTORY_TRIGGER_CAP_COMMAND_15, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 5632, -64, 9808, 0 }, { { -672, 0, -368, 0 }, { 672, 0, -368, 0 }, { -672, 0, 368, 0 }, { 672, 0, 368, 0 } }, { 0, 4102, 0, 0 }, { -3612, 0, 1931, 0 }, 765, WORLD_COLLISION_TRIGGER_ACTION_CAP, DRYFIELD_NIGHT_FACTORY_TRIGGER_CAP_COMMAND_21, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
+};
 
-#include "../../shared/factory_panel_run.inc.c"
+AreaVariant gDryfieldNightFactoryAreaVariants[11] = { 0 };
 
-#include "../../shared/factory_prompt_task.inc.c"
+/// Cue-2 sound requests in the loaded type-1 bank; cue 1 selects the next entry.
+enum {
+    DRYFIELD_NIGHT_FACTORY_SURFACE_2_WALK_CUE_BASE = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x51,
+    DRYFIELD_NIGHT_FACTORY_SURFACE_2_RUN_CUE_BASE  = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x53
+};
 
-#include "../../shared/factory_panel_trigger.inc.c"
+/// Footstep cue bases for surface class 2.
+///
+/// Walking and scripted jumps share one pair; running uses the other.
+/// Cue 1 adds one to each base, and companion playback adds 100.
+/// Requests borrow the loaded type-1 bank while the room is active.
+static WorldCollisionFootstepSounds _gDryfieldNightFactorySurface2FootstepSounds = {
+    .walk         = DRYFIELD_NIGHT_FACTORY_SURFACE_2_WALK_CUE_BASE,
+    .run          = DRYFIELD_NIGHT_FACTORY_SURFACE_2_RUN_CUE_BASE,
+    .scriptedJump = DRYFIELD_NIGHT_FACTORY_SURFACE_2_WALK_CUE_BASE,
+};
 
-#include "../../shared/action_prompt_hit_test.inc.c"
-#undef ACTION_PROMPT_HIT_TEST
+/// Cue-2 sound requests in the loaded type-1 bank; cue 1 selects the next entry.
+enum {
+    DRYFIELD_NIGHT_FACTORY_SURFACE_3_WALK_CUE_BASE = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x15,
+    DRYFIELD_NIGHT_FACTORY_SURFACE_3_RUN_CUE_BASE  = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x17
+};
 
-#include "../../shared/factory_panel_init.inc.c"
+/// Footstep cue bases for surface class 3.
+///
+/// Walking and scripted jumps share one pair; running uses the other.
+/// Cue 1 adds one to each base, and companion playback adds 100.
+/// Requests borrow the loaded type-1 bank while the room is active.
+static WorldCollisionFootstepSounds _gDryfieldNightFactorySurface3FootstepSounds = {
+    .walk         = DRYFIELD_NIGHT_FACTORY_SURFACE_3_WALK_CUE_BASE,
+    .run          = DRYFIELD_NIGHT_FACTORY_SURFACE_3_RUN_CUE_BASE,
+    .scriptedJump = DRYFIELD_NIGHT_FACTORY_SURFACE_3_WALK_CUE_BASE,
+};
 
-#include "../../shared/factory_panel_arm_prompt.inc.c"
+/// Collision policy for surface classes 0 and 4..7: probes block, impacts are enabled and pushback applies.
+///
+/// No footstep cues; the loaded room overlay owns this record.
+static WorldCollisionSurfaceProperties _gDryfieldNightFactoryDefaultSurfaceProperties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = NULL,
+};
 
-#include "../../shared/factory_panel_open_prompt.inc.c"
+/// Collision policy for surface class 1: probes pass and weapon impacts are ignored.
+///
+/// Grid contacts still apply pushback; this class supplies no footstep cues.
+static WorldCollisionSurfaceProperties _gDryfieldNightFactorySurface1Properties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_PASS_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = NULL,
+};
 
-#include "../../shared/factory_panel_prompt.inc.c"
+/// Collision policy for surface class 2: probes block, impacts are enabled and pushback applies.
+///
+/// Borrows room-owned walking, running and scripted-jump cue bases while loaded.
+static WorldCollisionSurfaceProperties _gDryfieldNightFactorySurface2Properties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gDryfieldNightFactorySurface2FootstepSounds,
+};
 
-#include "../../shared/factory_panel_exit.inc.c"
+/// Collision policy for surface class 3: probes block, impacts are enabled and pushback applies.
+///
+/// Borrows room-owned walking, running and scripted-jump cue bases while loaded.
+static WorldCollisionSurfaceProperties _gDryfieldNightFactorySurface3Properties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gDryfieldNightFactorySurface3FootstepSounds,
+};
 
-#include "../../shared/factory_panel_wait_move.inc.c"
+WorldCollisionSurfaceProperties* gDryfieldNightFactorySurfacePropertiesByClass[8] = {
+    &_gDryfieldNightFactoryDefaultSurfaceProperties,
+    &_gDryfieldNightFactorySurface1Properties,
+    &_gDryfieldNightFactorySurface2Properties,
+    &_gDryfieldNightFactorySurface3Properties,
+    &_gDryfieldNightFactoryDefaultSurfaceProperties,
+    &_gDryfieldNightFactoryDefaultSurfaceProperties,
+    &_gDryfieldNightFactoryDefaultSurfaceProperties,
+    &_gDryfieldNightFactoryDefaultSurfaceProperties,
+};
 
-#include "../../shared/factory_show_view11_sprite.inc.c"
+enum {
+    DRYFIELD_NIGHT_FACTORY_JOLT_VARIABLE_PEAK_SEGMENT  = 0,
+    DRYFIELD_NIGHT_FACTORY_JOLT_VARIABLE_DECAY_SEGMENT = 1,
+    DRYFIELD_NIGHT_FACTORY_JOLT_BINARY_SEGMENT         = 2,
+};
 
-#include "../../shared/action_prompt_reset.inc.c"
+PadScriptCmd gDryfieldNightFactoryLiftJoltCommands[3] = {
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, DRYFIELD_NIGHT_FACTORY_JOLT_BINARY_SEGMENT), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, DRYFIELD_NIGHT_FACTORY_JOLT_VARIABLE_PEAK_SEGMENT) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, DRYFIELD_NIGHT_FACTORY_JOLT_VARIABLE_DECAY_SEGMENT) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) },
+};
 
-#include "../../shared/glow_draw_tinted_disc.inc.c"
-
-#include "../../shared/factory_draw_glows.inc.c"
+PadScriptVibrationSegment gDryfieldNightFactoryLiftJoltSegments[3] = {
+    [DRYFIELD_NIGHT_FACTORY_JOLT_VARIABLE_PEAK_SEGMENT]  = { 255, 255, 8, 1 },
+    [DRYFIELD_NIGHT_FACTORY_JOLT_VARIABLE_DECAY_SEGMENT] = { 150, 80, 20, 1 },
+    [DRYFIELD_NIGHT_FACTORY_JOLT_BINARY_SEGMENT]         = { 0, 0, 5, 0 },
+};

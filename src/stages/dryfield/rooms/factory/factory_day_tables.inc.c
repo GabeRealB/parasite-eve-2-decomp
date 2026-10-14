@@ -1,89 +1,97 @@
-#include "rooms/dryfield_factory.h"
+// Dryfield factory by day: the room's tables, included by factory_panel.c.
 
-#include <psyq/sys/types.h>
-#include <psyq/libgte.h>
-#include <psyq/inline_c.h>
+WorldCollisionRoomResources gDryfieldFactoryRoomCollisionResources[2] = {
+    { .grid = &gDryfieldFactoryCollisionGrid, .viewBoundaryTriggers = gDryfieldFactoryViewBoundaryTriggers, .actionTriggers = gDryfieldFactoryActionTriggers, .occluders = NULL },
+    { .grid = &gDryfieldFactoryCollisionGrid, .viewBoundaryTriggers = gDryfieldFactoryViewBoundaryTriggers, .actionTriggers = gDryfieldFactoryActionTriggers, .occluders = NULL },
+};
 
-#include "gte.h"
-#include "common.h"
-
-#include "dryfield_factory_private.h"
-
-#include "gameplay/actor_render.h"
-#include "gameplay/captions.h"
-#include "gameplay/actor_presentation.h"
-#include "gameplay/gameflag.h"
-#include "gameplay/player_actor.h"
-#include "gameplay/sound.h"
-#include "gameplay/collision.h"
-#include "gameplay/direction.h"
-#include "gameplay/items.h"
-#include "gameplay/light.h"
-#include "gameplay/message.h"
-#include "gameplay/pad_script.h"
-#include "gameplay/room.h"
-#include "gameplay/scene_combat.h"
-#include "gameplay/sprites.h"
-#include "gameplay/view.h"
-#include "gameplay/world_coords.h"
-
-#include "main/coord.h"
-#include "main/areas.h"
-#include "main/display.h"
-#include "main/display_types.h"
-#include "main/gameflag.h"
-#include "main/gameflow.h"
-#include "main/gfx.h"
-#include "main/gfx_types.h"
-#include "main/mc.h"
-#include "main/mc_types.h"
-#include "main/mem.h"
-#include "main/pad.h"
-#include "main/session.h"
-#include "main/session_types.h"
-#include "main/sound.h"
-#include "main/task.h"
-#include "main/task_types.h"
-#include "main/tmd.h"
-#include "main/tmd_types.h"
-
-#include "overlay.h"
-
-#include "rooms/dryfield_night_factory.h"
-
-#include "rooms/room_common.h"
-#include "../../shared/room_events.h"
-#include "../../shared/room_variants.h"
-/// Selects the daytime factory instance for shared room declarations and code.
+/// Room-2 logical-view map used after the barrier is cleared.
 ///
-/// Keep this binding through all factory implementation fragments.
-#define DRYFIELD_TIME DRYFIELD_DAY
-#include "../../shared/factory_lift.h"
+/// Logical views 1..19 map to camera/image/sprite indices 1..19 in a
+/// different order. The twentieth stored byte is zero, outside the valid
+/// logical-view domain; lookups use the separate count rather than a sentinel.
+static u8 _gDryfieldFactoryClearedBarrierViewMap[20] = {
+    1,
+    13,
+    14,
+    15,
+    5,
+    16,
+    17,
+    8,
+    9,
+    10,
+    11,
+    12,
+    2,
+    3,
+    4,
+    6,
+    7,
+    18,
+    19,
+    0,
+};
 
-static void _factoryRoomInit(Task* task);
-static void _factoryLiftInit(Task* task);
-static void _factoryLiftUpdate(Task* task);
+u8* gDryfieldFactoryRoomViewMaps[2] = {
+    gViewIdentityMap,
+    _gDryfieldFactoryClearedBarrierViewMap,
+};
 
-static void _factoryEntryIdle(Task* task);
+WorldCoordRoomLighting gDryfieldFactoryRoomLighting[2] = {
+    { .lights = &gDryfieldFactoryRoomLights, .ambientTable = gDryfieldFactoryViewAmbientMinima },
+    { .lights = &gDryfieldFactoryRoomLights, .ambientTable = gDryfieldFactoryViewAmbientMinima },
+};
 
-static void _factoryHatchInit(Task* task);
-static void _factoryHatchUpdate(Task* task);
-static void _factoryLiftExit(Task* task);
-static void _factoryLiftSyncCollision(Task* task, s32 remapFaces, s32 useTurnedTemplate);
-static s32  _factoryLiftTurnOut(Task* task);
-static s32  _factoryLiftTurnBack(Task* task);
-static s32  _factoryLiftRaise(Task* task);
-static s32  _factoryLiftLower(Task* task);
-static s32  _factoryLiftJamTurnOut(Task* task);
-static s32  _factoryLiftJamTurnBack(Task* task);
-static void _factoryLiftNotifyPanel(Task* panelTask);
+enum { DRYFIELD_FACTORY_LOGICAL_VIEW_COUNT = 19 };
 
-#include "../../shared/factory_lift_motion.inc.c"
+ViewCount gDryfieldFactoryRoomViewCounts[2] = { DRYFIELD_FACTORY_LOGICAL_VIEW_COUNT, DRYFIELD_FACTORY_LOGICAL_VIEW_COUNT };
 
-/// The pending event request the gate latched, the flag saying
-/// one was latched, and the descriptor of the task the gate spawns to play it.
-extern u8           gRoomEventActive;
-extern RoomEventReq gRoomEventReq;
+/// Map-marker nibbles shared with the opposite endpoint of each factory door.
+enum {
+    DRYFIELD_FACTORY_DRIVEWAY_MAP_FLAG  = 474,
+    DRYFIELD_FACTORY_BREEZEWAY_MAP_FLAG = 475,
+    DRYFIELD_FACTORY_GARAGE_MAP_FLAG    = 473
+};
+
+DirectionWarpEntry gDryfieldFactoryWarpEntries[3] = {
+    {
+        .player         = { { .word = 3072 }, 5178, 0, 1454 },
+        .unknown_10     = { 0, 0, 0, 0 },
+        .companion      = { { .word = 1024 }, 4530, 0, 1200 },
+        .unknown_24     = { 0, 0, 0, 0 },
+        .arrivalSound   = SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_FACTORY, 2),
+        .departureSound = SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_FACTORY, 1),
+        .blockedSound   = DIRECTION_WARP_SOUND_NONE,
+        .initialView    = 2,
+        .flags          = DIRECTION_WARP_FLAG_NONE,
+        .mapFlagId      = DRYFIELD_FACTORY_DRIVEWAY_MAP_FLAG,
+    },
+    {
+        .player         = { { .word = 1024 }, 642, 0, 7493 },
+        .unknown_10     = { 0, 0, 0, 0 },
+        .companion      = { { .word = 1024 }, 4530, 0, 1200 },
+        .unknown_24     = { 0, 0, 0, 0 },
+        .arrivalSound   = SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_FACTORY, 4),
+        .departureSound = SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_FACTORY, 3),
+        .blockedSound   = SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_FACTORY, 5),
+        .initialView    = 7,
+        .flags          = DIRECTION_WARP_FLAG_NONE,
+        .mapFlagId      = DRYFIELD_FACTORY_BREEZEWAY_MAP_FLAG,
+    },
+    {
+        .player         = { { .word = 3072 }, 5445, 0, 6866 },
+        .unknown_10     = { 0, 0, 0, 0 },
+        .companion      = { { .word = ACTOR_TRANSFORM_ANGLE_HALF_TURN }, 5420, 0, 6000 },
+        .unknown_24     = { 0, 0, 0, 0 },
+        .arrivalSound   = SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_FACTORY, 0x14),
+        .departureSound = SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_FACTORY, 6),
+        .blockedSound   = DIRECTION_WARP_SOUND_NONE,
+        .initialView    = 6,
+        .flags          = DIRECTION_WARP_FLAG_FADE_DEPARTURE,
+        .mapFlagId      = DRYFIELD_FACTORY_GARAGE_MAP_FLAG,
+    },
+};
 
 enum {
     DRYFIELD_FACTORY_COLLISION_CELL_COUNT_X = 2,
@@ -852,136 +860,3 @@ PadScriptVibrationSegment gDryfieldFactoryLiftJoltSegments[3] = {
     [DRYFIELD_FACTORY_JOLT_VARIABLE_DECAY_SEGMENT] = { 150, 80, 20, 1 },
     [DRYFIELD_FACTORY_JOLT_BINARY_SEGMENT]         = { 0, 0, 5, 0 },
 };
-
-/// Snapshot of the accepted transition for the deferred room event.
-///
-/// The gate copies all eight bytes before spawning; another accepted start
-/// replaces them. The task commits area, arrival and the room byte on reload.
-/// Keep this room loaded and the snapshot unchanged until that task finishes.
-static RoomEventMsg _gRoomEventMsg = { 0 };
-
-u8 gRoomEventActive = 0;
-
-TaskDesc* gFactoryPanelDesc = NULL;
-
-TaskDesc* gFactorySpawnTable = NULL;
-
-Task** gFactoryPanelSlot = NULL;
-
-RoomEventReq gRoomEventReq = { 0 };
-
-#include "../../shared/room_event_gate.inc.c"
-
-#include "../../shared/room_event_task.inc.c"
-
-#include "../../shared/factory_room_init.inc.c"
-
-#include "../../shared/factory_resolve_warp.inc.c"
-
-#include "../../shared/factory_panel_spawn.inc.c"
-
-/// Factory room-entry lifecycle handlers, indexed by `Task::state`.
-///
-/// Setup registers the room and owns the panel-task slot; run retains it for
-/// room messages; teardown releases the task and its work. Dispatch copies
-/// all three callbacks and requires a `FACTORY_TASK_STATE_` selector.
-static const TaskFuncTable3 _gFactoryEntryStates = {
-    { [FACTORY_TASK_STATE_SETUP]    = _factoryRoomInit,
-      [FACTORY_TASK_STATE_RUN]      = _factoryEntryIdle,
-      [FACTORY_TASK_STATE_TEARDOWN] = taskKill },
-};
-
-#include "../../shared/factory_ignore_message.inc.c"
-
-#include "../../shared/factory_command.inc.c"
-
-/// Lift-model lifecycle handlers, indexed by `Task::state`.
-///
-/// Setup owns the motion work and spawns the hatch; run follows lift-position
-/// requests and updates the model and collision; teardown releases the task.
-/// Dispatch copies all three callbacks and requires a `FACTORY_TASK_STATE_` selector.
-static const TaskFuncTable3 _gFactoryLiftStates = {
-    { [FACTORY_TASK_STATE_SETUP]    = _factoryLiftInit,
-      [FACTORY_TASK_STATE_RUN]      = _factoryLiftUpdate,
-      [FACTORY_TASK_STATE_TEARDOWN] = taskKill },
-};
-
-/// Hatch-model lifecycle handlers, indexed by `Task::state`.
-///
-/// Setup parents the hatch to the lift and owns its swing work; run dispatches
-/// the work's separate movement state; teardown releases the task and work.
-/// Dispatch copies all three callbacks and requires a `FACTORY_TASK_STATE_` selector.
-static const TaskFuncTable3 _gFactoryHatchTaskStates = {
-    { [FACTORY_TASK_STATE_SETUP]    = _factoryHatchInit,
-      [FACTORY_TASK_STATE_RUN]      = _factoryHatchUpdate,
-      [FACTORY_TASK_STATE_TEARDOWN] = taskKill },
-};
-
-/// Hatch watch/open/close handlers, indexed by `FactoryHatchWork::state`.
-///
-/// WATCH arms swings on hatch-flag edges and returns zero. A movement's
-/// nonzero result returns the dispatcher to WATCH. The complete table is
-/// copied each frame; the selector must be a `FACTORY_HATCH_STATE_` value.
-static const FactoryHatchStateFuncTable _gFactoryHatchStates = {
-    { [FACTORY_HATCH_STATE_WATCH] = _factoryHatchWatch,
-      [FACTORY_HATCH_STATE_OPEN]  = _factoryHatchOpen,
-      [FACTORY_HATCH_STATE_CLOSE] = _factoryHatchClose },
-};
-
-#include "../../shared/factory_sound_command.inc.c"
-
-#include "../../shared/factory_room_action.inc.c"
-
-#include "../../shared/factory_entry_idle.inc.c"
-
-#include "../../shared/factory_entry_task.inc.c"
-
-#include "../../shared/factory_lift_init.inc.c"
-
-#include "../../shared/factory_lift_sync_collision.inc.c"
-
-#include "../../shared/factory_lift_turn_out.inc.c"
-
-#include "../../shared/factory_lift_turn_back.inc.c"
-
-#include "../../shared/factory_lift_raise.inc.c"
-
-#include "../../shared/factory_lift_lower.inc.c"
-
-#include "../../shared/factory_lift_jam_turn_out.inc.c"
-
-#include "../../shared/factory_lift_jam_turn_back.inc.c"
-
-#include "../../shared/factory_hatch_open.inc.c"
-
-#include "../../shared/factory_hatch_close.inc.c"
-
-#include "../../shared/factory_power_scene.inc.c"
-
-#include "../../shared/factory_whiteout_scene.inc.c"
-
-#include "../../shared/factory_barrier_collision.inc.c"
-
-#include "../../shared/factory_lift_update.inc.c"
-
-#include "../../shared/factory_lift_exit.inc.c"
-
-#include "../../shared/factory_lift_bind_lighting.inc.c"
-
-#include "../../shared/factory_lift_notify_panel.inc.c"
-
-#include "../../shared/factory_hatch_init.inc.c"
-
-#include "../../shared/factory_hatch_update.inc.c"
-
-#include "../../shared/factory_hatch_watch.inc.c"
-
-#include "../../shared/factory_lift_run.inc.c"
-
-#include "../../shared/factory_hatch_run.inc.c"
-
-#include "../../shared/factory_lamp_scene.inc.c"
-
-#include "../../shared/factory_cap_scene.inc.c"
-
-#include "../../shared/factory_hatch_scene.inc.c"
