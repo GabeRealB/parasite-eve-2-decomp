@@ -43,9 +43,9 @@
 /// placement definitions; `stride_walk.h` completes the type before those
 /// fragments. The binding follows the `PACED_WALK_WORK_T` contract.
 #define PACED_WALK_WORK_T StrideWalkWork
-#include "../../shared/paced_walk.h"
-#include "../../shared/walker.h"
-#include "../../shared/stride_walk.h"
+#include "../../shared/walk/paced_walk.h"
+#include "../../shared/walk/walker.h"
+#include "../../shared/walk/stride_walk.h"
 
 /// CAP file selectors, post-shop command indices and each variant's dialogue extent.
 enum {
@@ -2157,10 +2157,10 @@ void actor161500RestoreCompanionRequestScene(void)
 /// live through spawning and its callbacks and model data live until teardown.
 /// Bind only around the fragment inclusion, then undefine it.
 #define STRIDE_WALK_TASKS gActor161500SoldierBTasks
-#include "../../shared/stride_walk_spawn.inc.c"
+#include "../../shared/walk/stride_walk_spawn.inc.c"
 #undef STRIDE_WALK_TASKS
 
-#include "../../shared/stride_walk_update.inc.c"
+#include "../../shared/walk/stride_walk_update.inc.c"
 
 /// Dispatches the soldier's stride walker initialization or frame update.
 ///
@@ -2188,10 +2188,7 @@ static void _actor161500StrideWalkerTask(Task* task)
 /// and composed root cache. This object-like alias captures no locals;
 /// undefine it after the inclusion.
 #define ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW _actorRenderDrawFixedWalkerGroundShadow
-#include "../../shared/stride_walk_frame.inc.c"
-#undef ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW
-
-#include "../../shared/stride_walk_exit.inc.c"
+#include "../../shared/walk/stride_walk_frame.inc.c"
 
 /// Selects the fixed-shade drawer definition used by the stride walker frame.
 ///
@@ -2199,20 +2196,18 @@ static void _actor161500StrideWalkerTask(Task* task)
 /// `static void(Task*)` at this text position, so keep the identifier alias
 /// unparenthesized and undefine it after the inclusion.
 #define ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW _actorRenderDrawFixedWalkerGroundShadow
-#include "../../shared/walker_shadow.inc.c"
+#include "../../shared/walk/walker_shadow.inc.c"
 #undef ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW
 
-#include "../../shared/paced_walk_tick_anim.inc.c"
+#include "../../shared/walk/paced_walk_tick_anim.inc.c"
 
-#include "../../shared/paced_walk_reset_anim.inc.c"
+#include "../../shared/walk/paced_walk_reset_anim.inc.c"
 
-#include "../../shared/paced_walk_blend_anim.inc.c"
+#include "../../shared/walk/paced_walk_blend_anim.inc.c"
 
-#include "../../shared/stride_walk_play.inc.c"
+#include "../../shared/walk/stride_walk.inc.c"
 
-#include "../../shared/stride_walk_visibility.inc.c"
-
-#include "../../shared/paced_walk_place.inc.c"
+#include "../../shared/walk/paced_walk_place.inc.c"
 
 /// Applies a borrowed head-turn command to a live stride walker's work block.
 ///
@@ -2228,6 +2223,4 @@ static s32 _strideWalkSetTurnMode(Task* task, s32 messageId, const ActorCommand*
     return 0;
 }
 
-#include "../../shared/stride_walk_to.inc.c"
-
-#include "../../shared/stride_walk_sub_model.inc.c"
+#include "../../shared/walk/stride_walk_to.inc.c"

@@ -55,7 +55,7 @@
 #include "main/wipsys_types.h"
 
 #include "overlay.h"
-#include "../../shared/actor_contacts.h"
+#include "../../shared/actor/actor_contacts.h"
 
 /// One collision sphere of the actor: a body and the contact table it records
 /// into.
@@ -1740,9 +1740,9 @@ static void                _actor403000ProwlState(Task* actorTask);
 static void                _actor403000Update(Enemy* enemy, Task* actorTask);
 static s32                 _actor403000GetPatrolGoalCell(s32 playerCell);
 
-#include "../../shared/actor_contacts_turn_joint.inc.c"
+#include "../../shared/actor/actor_contacts_turn_joint.inc.c"
 
-#include "../../shared/actor_contacts_push_contact.inc.c"
+#include "../../shared/actor/actor_contacts_push_contact.inc.c"
 
 /// Applies the Mine Cavern command namespace to this actor's health and state.
 ///

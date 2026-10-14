@@ -33,8 +33,8 @@
 #include "main/tmd_types.h"
 #include "main/wipsys.h"
 #include "main/wipsys_types.h"
-#include "../../shared/glow_draw.h"
-#include "../../shared/rising_spark.h"
+#include "../../shared/effects/glow_draw.h"
+#include "../../shared/effects/rising_spark.h"
 
 /// Visual tuning of the life drain cast for one Parasite Energy level.
 ///
@@ -336,7 +336,7 @@ void lifedrainCastTask(Task* task)
 
 #undef LIFEDRAIN_DRAW_CAST_FUNNEL
 
-#include "../../shared/rising_spark_task.inc.c"
+#include "../../shared/effects/rising_spark_task.inc.c"
 
 void lifedrainRisingSparkTask(Task* task)
 {
@@ -614,7 +614,7 @@ static void _lifedrainDrawMoteBillboards(const GfxCoord* coord, s16 animationFra
     SCRATCH_STACK_RELEASE_BLOCK(EffectCentreScratch);
 }
 
-#include "../../shared/glow_draw_wedge.inc.c"
+#include "../../shared/effects/glow_draw_wedge.inc.c"
 
 void lifedrainExpandingGlowBandTask(Task* task)
 {

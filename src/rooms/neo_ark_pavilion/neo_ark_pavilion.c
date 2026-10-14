@@ -60,7 +60,7 @@
 #include "rooms/room.h"
 
 #include "rooms/room_common.h"
-#include "../../shared/room_visual_effects.h"
+#include "../../shared/room/room_visual_effects.h"
 /// Empty presence flag so `water_effects.h` declares the shared
 /// `_waterDrawSpinU16` and `_waterDrawTileU16`. This file includes their bodies.
 #define WATER_SHARED_U16_DRAWERS
@@ -71,8 +71,8 @@
 /// void (Task*) callback. Define before its fragment; the room header declares
 /// the export that gameplay's effect table imports. Takes no macro arguments.
 #define WATER_RIPPLE_CACHED_COORD_TASK neoArkPavilionWaterRippleTask
-#include "../../shared/water_effects.h"
-#include "../../shared/room_events.h"
+#include "../../shared/effects/water_effects.h"
+#include "../../shared/room/room_events.h"
 
 s32     rcos(s32);
 s32     rsin(s32);
@@ -133,9 +133,9 @@ static TaskMessageEntry _gNeoArkPavilionRoomMessages[5] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-#include "../../shared/room_visual_effects_trail_data.inc.c"
+#include "../../shared/room/room_visual_effects_trail_data.inc.c"
 
-#include "../../shared/room_visual_effects_disc_data.inc.c"
+#include "../../shared/room/room_visual_effects_disc_data.inc.c"
 
 WorldCollisionRoomResources gNeoArkPavilionRoomCollisionResources[2] = {
     { &_gNeoArkPavilionCollisionGrid, _gNeoArkPavilionViewBoundaryTriggers, _gNeoArkPavilionRoom1ActionTriggers, _gNeoArkPavilionOccluders },
@@ -1357,11 +1357,9 @@ RoomLatchedEvent gRoomEventLatched;
 static void _neoArkPavilionInitializeRoom(Task* task);
 static void _neoArkPavilionRoomIdleState(Task* task);
 
-#include "../../shared/water_refraction_task.inc.c"
+#include "../../shared/effects/water.inc.c"
 
-#include "../../shared/water_distort_band_task.inc.c"
-
-#include "../../shared/room_event_staged_task.inc.c"
+#include "../../shared/room/room_event_staged_task.inc.c"
 
 /// Refuses every key-item-use request in the pavilion with a zero reply.
 ///
@@ -1492,15 +1490,13 @@ void neoArkPavilionRoomTask(Task* task)
     handlers.funcs[task->state](task);
 }
 
-#include "../../shared/water_ripple_task_fixed_coord.inc.c"
+#include "../../shared/effects/water_ripple_task_fixed_coord.inc.c"
 
-#include "../../shared/water_splash.inc.c"
+#include "../../shared/effects/water_splash.inc.c"
 
-#include "../../shared/water_drift_task_u16_fixed_coord.inc.c"
+#include "../../shared/effects/water_drift_task_u16_fixed_coord.inc.c"
 
-#include "../../shared/water_spin_u16.inc.c"
-
-#include "../../shared/water_tile_u16.inc.c"
+#include "../../shared/effects/water_spin_u16.inc.c"
 
 void neoArkPavilionInstallRoomEffectsTask(Task* task)
 {
@@ -1520,48 +1516,45 @@ void neoArkPavilionInstallRoomEffectsTask(Task* task)
     }
 }
 
-#include "../../shared/room_visual_effects.inc.c"
+#include "../../shared/room/room_visual_effects.inc.c"
 
-#include "../../shared/room_visual_effects_flash_task.inc.c"
+#include "../../shared/room/room_visual_effects_flash_task.inc.c"
 
 void neoArkPavilionRoomVisualEffectsFlashTask(Task* task)
 {
     _roomVisualEffectsFlashTask(task);
 }
 
-#include "../../shared/room_visual_effects_trails.inc.c"
+#include "../../shared/room/room_visual_effects_trails.inc.c"
 
 void neoArkPavilionRoomVisualEffectsTwinTrailTask(Task* task)
 {
-#include "../../shared/room_visual_effects_trail_task.inc.c"
-}
+#include "../../shared/room/room_visual_effects_trail_task.inc.c"
 
-#include "../../shared/room_visual_effects_sparks.inc.c"
+    void neoArkPavilionRoomVisualEffectsSparkBurstTask(Task * task)
+    {
+        _roomVisualEffectsSparkBurstTask(task);
+    }
 
-void neoArkPavilionRoomVisualEffectsSparkBurstTask(Task* task)
-{
-    _roomVisualEffectsSparkBurstTask(task);
-}
+#include "../../shared/room/room_visual_effects_glow.inc.c"
 
-#include "../../shared/room_visual_effects_glow.inc.c"
+#include "../../shared/room/room_visual_effects_flying_tasks.inc.c"
 
-#include "../../shared/room_visual_effects_flying_tasks.inc.c"
+    void neoArkPavilionRoomVisualEffectsGlowDiscTask(Task * task)
+    {
+        _roomVisualEffectsGlowDiscTask(task);
+    }
 
-void neoArkPavilionRoomVisualEffectsGlowDiscTask(Task* task)
-{
-    _roomVisualEffectsGlowDiscTask(task);
-}
+    void neoArkPavilionRoomVisualEffectsFlyingSparkTask(Task * task)
+    {
+        _roomVisualEffectsFlyingSparkTask(task);
+    }
 
-void neoArkPavilionRoomVisualEffectsFlyingSparkTask(Task* task)
-{
-    _roomVisualEffectsFlyingSparkTask(task);
-}
+#include "../../shared/room/room_visual_effects_burst.inc.c"
 
-#include "../../shared/room_visual_effects_burst.inc.c"
+    void neoArkPavilionRoomVisualEffectsFlyingOrangeBurstTask(Task * task)
+    {
+        _roomVisualEffectsFlyingOrangeBurstTask(task);
+    }
 
-void neoArkPavilionRoomVisualEffectsFlyingOrangeBurstTask(Task* task)
-{
-    _roomVisualEffectsFlyingOrangeBurstTask(task);
-}
-
-#include "../../shared/room_visual_effects_burst_draw.inc.c"
+#include "../../shared/room/room_visual_effects_burst_draw.inc.c"

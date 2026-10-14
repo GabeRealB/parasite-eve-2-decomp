@@ -71,7 +71,7 @@
 #include "rooms/room.h"
 
 #include "rooms/room_common.h"
-#include "../../shared/room_visual_effects.h"
+#include "../../shared/room/room_visual_effects.h"
 /// Selects the reservoir's private context for scripted wave spawns and phase requests.
 ///
 /// The writable `ScreenWaveCtx` stays in this translation unit at its existing
@@ -79,9 +79,9 @@
 /// screen_wave_run.inc.c, then undefine it. The wave borrows this same object;
 /// keep the room loaded through its final drawing tick and do not overlap spawns.
 #define SCREEN_WAVE_SPAWN_CONTEXT (_gScreenWaveSpawnCtx)
-#include "../../shared/screen_wave.h"
-#include "../../shared/glow_draw.h"
-#include "../../shared/water_effects.h"
+#include "../../shared/screen/screen_wave.h"
+#include "../../shared/effects/glow_draw.h"
+#include "../../shared/effects/water_effects.h"
 
 static void _waterDrawSpin(const GfxCoord* coord, s16 textureColumn, s16 radiusScale, s16 spinAngle);
 static void _waterDrawTile(const GfxCoord* coord, s16 frameIndex, s16 radiusScale);
@@ -585,7 +585,7 @@ static _ShelterB4ReservoirView10WaterEffectPoints _gShelterB4ReservoirView10Wate
 /// while below the water plane. The fourth halfwords have no reads or writes.
 static SVECTOR _gShelterB4ReservoirPlayerSamplePositions[2] = { 0 };
 
-#include "../../shared/room_visual_effects_disc_data.inc.c"
+#include "../../shared/room/room_visual_effects_disc_data.inc.c"
 
 u8 gShelterB4ReservoirStairAscentSurfaces[16] = {
     2,
@@ -1404,7 +1404,7 @@ static _ShelterB4ReservoirBurstConfig _gShelterB4ReservoirBurstConfig = { 0, 0, 
 static void _shelterB4ReservoirUpdateWaterDriftSpawnArgs(void);
 static void _shelterB4ReservoirDrawWaterTask(Task* task);
 
-#include "../../shared/screen_wave.inc.c"
+#include "../../shared/screen/screen_wave.inc.c"
 
 static void _glowDrawCapsule(const SVECTOR worldPoints[2], s32 radiusScale, s32 packedColor);
 
@@ -1791,7 +1791,7 @@ static void _shelterB4ReservoirView8ModelTask(Task* task)
     }
 }
 
-#include "../../shared/screen_wave_run.inc.c"
+#include "../../shared/screen/screen_wave_run.inc.c"
 #undef SCREEN_WAVE_SPAWN_CONTEXT
 
 /// Stops the retained water-ramp task, if live, and clears its shared handle.
@@ -2492,25 +2492,23 @@ void shelterB4ReservoirAmbientEffectsTask(Task* task)
     }
 }
 
-#include "../../shared/water_ripple_task.inc.c"
+#include "../../shared/effects/water_ripple_task.inc.c"
 
 void shelterB4ReservoirWaterRippleTask(Task* task)
 {
     _waterRippleTask(task);
 }
 
-#include "../../shared/water_splash.inc.c"
+#include "../../shared/effects/water_splash.inc.c"
 
-#include "../../shared/water_drift_task.inc.c"
+#include "../../shared/effects/water_drift_task.inc.c"
 
 void shelterB4ReservoirWaterDriftTask(Task* task)
 {
     _waterDriftTask(task);
 }
 
-#include "../../shared/water_spin.inc.c"
-
-#include "../../shared/water_tile.inc.c"
+#include "../../shared/effects/water_spin.inc.c"
 
 /// Sets a reservoir burst sprite's launch velocity along negative parent X.
 ///
@@ -2698,9 +2696,9 @@ static void _shelterB4ReservoirDrawBurstSprite(const GfxCoord* spriteCoord, u16 
     SCRATCH_STACK_RELEASE_BLOCK(EffectCentreScratch);
 }
 
-#include "../../shared/glow_draw_capsule.inc.c"
+#include "../../shared/effects/glow_draw_capsule.inc.c"
 
-#include "../../shared/glow_draw_tinted_disc_no_bias.inc.c"
+#include "../../shared/effects/glow_draw_tinted_disc_no_bias.inc.c"
 
 /// Replaces the reservoir burst emitter's active point count, chance and size.
 ///
@@ -2716,9 +2714,9 @@ static void _shelterB4ReservoirSetBurstConfig(s16 pointCount, u16 spawnChancePer
     _gShelterB4ReservoirBurstConfig.baseHalfExtent     = baseHalfExtent;
 }
 
-#include "../../shared/room_visual_effects.inc.c"
+#include "../../shared/room/room_visual_effects.inc.c"
 
-#include "../../shared/room_visual_effects_flying_tasks.inc.c"
+#include "../../shared/room/room_visual_effects_flying_tasks.inc.c"
 
 void shelterB4ReservoirRoomVisualEffectsGlowDiscTask(Task* task)
 {
@@ -2730,11 +2728,11 @@ void shelterB4ReservoirRoomVisualEffectsFlyingSparkTask(Task* task)
     _roomVisualEffectsFlyingSparkTask(task);
 }
 
-#include "../../shared/room_visual_effects_burst.inc.c"
+#include "../../shared/room/room_visual_effects_burst.inc.c"
 
 void shelterB4ReservoirRoomVisualEffectsFlyingOrangeBurstTask(Task* task)
 {
     _roomVisualEffectsFlyingOrangeBurstTask(task);
 }
 
-#include "../../shared/room_visual_effects_burst_draw.inc.c"
+#include "../../shared/room/room_visual_effects_burst_draw.inc.c"

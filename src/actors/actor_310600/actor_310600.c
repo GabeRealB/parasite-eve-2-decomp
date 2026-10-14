@@ -32,9 +32,9 @@
 #include "main/tmd_types.h"
 
 #include "rooms/acropolis_cafeteria.h"
-#include "../../shared/actor_motion_walk_helpers.h"
-#include "../../shared/model_placement.h"
-#include "../../shared/actor_messages.h"
+#include "../../shared/actor/actor_motion_walk_helpers.h"
+#include "../../shared/actor/model_placement.h"
+#include "../../shared/actor/actor_messages.h"
 
 /// Draw policies of Rupert's body and its paired collision sphere.
 enum {
@@ -824,11 +824,11 @@ static void _actor310600MongooseTask(Task* task)
     states.funcs[task->state](task);
 }
 
-#include "../../shared/model_placement_attach.inc.c"
+#include "../../shared/actor/model_placement_attach.inc.c"
 
-#include "../../shared/model_placement_mirror_parent.inc.c"
+#include "../../shared/actor/model_placement_mirror_parent.inc.c"
 
-#include "../../shared/model_placement_attach_part.inc.c"
+#include "../../shared/actor/model_placement_attach_part.inc.c"
 
 /// Leaves an attached part unchanged during its idle state.
 ///
@@ -968,7 +968,7 @@ static void _actor310600StartWalkVelocity(Task* task)
     work->walkStep++;
 }
 
-#include "../../shared/actor_messages_place_euler.inc.c"
+#include "../../shared/actor/actor_messages_place_euler.inc.c"
 
 /// Records a destination and starts the retained scripted walk.
 ///

@@ -34,8 +34,8 @@
 #include "mapui/map_shelter.h"
 
 #include "rooms/room_common.h"
-#include "../../shared/room_visual_effects.h"
-#include "../../shared/glow_draw.h"
+#include "../../shared/room/room_visual_effects.h"
+#include "../../shared/effects/glow_draw.h"
 
 static s32 _shelterB1ControlRoomAccessTunnelRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unusedArg);
 static s32 _shelterB1ControlRoomAccessTunnelResolveRoomEvent(Task* task, s32 messageId, RoomEventMsg* request, RoomEventMsg* reply);
@@ -75,7 +75,7 @@ static SVECTOR _gShelterB1ControlRoomAccessTunnelGlowPoints[9] = {
     { 4266, -1272, -1160, 0 },
 };
 
-#include "../../shared/room_visual_effects_trail_data.inc.c"
+#include "../../shared/room/room_visual_effects_trail_data.inc.c"
 
 static void _shelterB1ControlRoomAccessTunnelInitializeRoom(Task* task);
 
@@ -151,9 +151,9 @@ void shelterB1ControlRoomAccessTunnelRoomTask(Task* task)
     stateHandlers.funcs[task->state](task);
 }
 
-#include "../../shared/glow_draw_cone.inc.c"
+#include "../../shared/effects/glow_draw_cone.inc.c"
 
-#include "../../shared/glow_draw_red_disc.inc.c"
+#include "../../shared/effects/glow_draw_red_disc.inc.c"
 
 /// Binds the six actor-effect selectors to this room's effect-task instances.
 ///
@@ -202,27 +202,24 @@ void shelterB1ControlRoomAccessTunnelDrawGlowsTask(Task* task)
     }
 }
 
-#include "../../shared/room_visual_effects.inc.c"
+#include "../../shared/room/room_visual_effects.inc.c"
 
-#include "../../shared/room_visual_effects_flash_task.inc.c"
+#include "../../shared/room/room_visual_effects_flash_task.inc.c"
 
 void shelterB1ControlRoomAccessTunnelRoomVisualEffectsFlashTask(Task* task)
 {
     _roomVisualEffectsFlashTask(task);
 }
 
-#include "../../shared/room_visual_effects_trails.inc.c"
+#include "../../shared/room/room_visual_effects_trails.inc.c"
 
 void shelterB1ControlRoomAccessTunnelRoomVisualEffectsTwinTrailTask(Task* task)
 {
-#include "../../shared/room_visual_effects_trail_task.inc.c"
-}
+#include "../../shared/room/room_visual_effects_trail_task.inc.c"
 
-#include "../../shared/room_visual_effects_sparks.inc.c"
+    void shelterB1ControlRoomAccessTunnelRoomVisualEffectsSparkBurstTask(Task * task)
+    {
+        _roomVisualEffectsSparkBurstTask(task);
+    }
 
-void shelterB1ControlRoomAccessTunnelRoomVisualEffectsSparkBurstTask(Task* task)
-{
-    _roomVisualEffectsSparkBurstTask(task);
-}
-
-#include "../../shared/room_visual_effects_glow.inc.c"
+#include "../../shared/room/room_visual_effects_glow.inc.c"

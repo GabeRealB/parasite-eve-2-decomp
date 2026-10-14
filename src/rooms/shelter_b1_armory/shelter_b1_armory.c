@@ -50,9 +50,9 @@
 /// Selects the gate's TU-local room-transition task descriptor.
 ///
 /// Addressable `TaskDesc` lvalue; see `room_events.h` for the spawn contract.
-/// Bind before that header and keep through `room_event_gate.inc.c`.
+/// Bind before that header and keep through `room_event.inc.c`.
 #define ROOM_EVENT_TASK_DESC (_gRoomEventTaskDesc)
-#include "../../shared/room_events.h"
+#include "../../shared/room/room_events.h"
 
 static const u16 _gShopStandardDefaultWeaponsStock[];
 static const u16 _gShopStandardDefaultAmmunitionStock[];
@@ -78,7 +78,7 @@ static void _shelterB1ArmoryRoomIdleState(Task* task);
 /// through `shop.inc.c`; `shop.h` specifies selection, lifetime and use by one
 /// panel at a time.
 #define SHOP_REFILL_SUPPLY gShopRefillSupply
-#include "../../shared/shop.h"
+#include "../../shared/room/shop.h"
 
 static s32 _shelterB1ArmoryUseKeyItem(Task* unusedTask, s32 unusedMessageId, s32 itemId, s32 unusedSecondArg);
 static s32 _shelterB1ArmoryResolveRoomEvent(Task* unusedTask, s32 unusedMessageId, RoomEventMsg* request, RoomEventMsg* reply);
@@ -103,9 +103,7 @@ enum {
     SHELTER_B1_ARMORY_EVENT_ACTIVE             = 1,
 };
 
-#include "../../shared/shop_data.inc.c"
-
-#include "../../shared/shop_panels.inc.c"
+#include "../../shared/room/shop_data.inc.c"
 
 TaskDesc gShelterB1ArmoryShopSessionTaskDesc = { { { TASK_BODY_NONE, 192 } }, _shopSessionTask, { .value = 0 } };
 
@@ -146,14 +144,12 @@ static const TaskMessageEntry _gShelterB1ArmoryRoomMessages[5] SECTION(".data") 
 ///
 /// One-byte string-literal binding for `shop.inc.c`; label drawing does not read it.
 #define SHOP_WEAPON_SUPPLY_REFILL_TITLE_TRAILING_BYTES "\xD3"
-#include "../../shared/shop.inc.c"
+#include "../../shared/room/shop.inc.c"
 #undef SHOP_WEAPON_SUPPLY_REFILL_TITLE_TRAILING_BYTES
 #undef SHOP_REFILL_DISPLAY_QUANTITY
 #undef SHOP_REFILL_SUPPLY
 
-#include "../../shared/room_event_gate.inc.c"
-
-#include "../../shared/room_event_task.inc.c"
+#include "../../shared/room/room_event.inc.c"
 
 /// Armory room states: 0 initialize messages, 1 idle, 2 release.
 ///
@@ -296,21 +292,7 @@ static void _shelterB1ArmoryShopSceneTask(Task* task)
     }
 }
 
-/// Tests whether a hit pending room-action trigger selects the cardkey event.
-///
-/// Borrows the live, null-terminated pending-trigger list for this call without
-/// consuming its hits or retaining a node. Returns 1 on a hit, otherwise 0.
-static inline s32 _shelterB1ArmoryRoomTriggerHit(void)
-{
-    const WorldCollisionTrigger* trigger;
-
-    for (trigger = gWorldCollisionActionTriggerListHead; trigger != NULL; trigger = trigger->next) {
-        if (trigger->control == WORLD_COLLISION_TRIGGER_ACTION_ROOM && trigger->parameter0 == WORLD_COLLISION_TRIGGER_ROOM_EVENT_ID && trigger->hit != 0) {
-            return 1;
-        }
-    }
-    return 0;
-}
+#include "../../shared/room/room_event_trigger_hit.inc.c"
 
 /// Handles card use at the armory reader, including refusal captions.
 ///
@@ -331,7 +313,7 @@ static s32 _shelterB1ArmoryUseKeyItem(Task* unusedTask, s32 unusedMessageId, s32
         SHELTER_B1_ARMORY_UNLOCK_FLAG_SET    = 1,
     };
 
-    if (_shelterB1ArmoryRoomTriggerHit() != 0) {
+    if (_roomEventTriggerHit() != 0) {
         if (itemId == INVENTORY_COLLECTION_ID_ARMORY_CARDKEY) {
             gGameSession->eventState = SHELTER_B1_ARMORY_EVENT_ACTIVE;
             if (gameFlagGetNibble(GAME_FLAG_SHELTER_B1_ARMORY_UNLOCKED) != 0) {

@@ -40,12 +40,12 @@
 
 #include "rooms/room_common.h"
 
-#include "../../shared/room_visual_effects.h"
-#include "../../shared/glow_draw.h"
+#include "../../shared/room/room_visual_effects.h"
+#include "../../shared/effects/glow_draw.h"
 
 // The latched-event symbol carries four unproven bytes after the event.
 #define ROOM_EVENT_LATCHED gRoomEventLatched.event
-#include "../../shared/room_events.h"
+#include "../../shared/room/room_events.h"
 
 /// Per-palette channel shifts for the halo, indexed by the palette the spawn
 /// argument selects.
@@ -133,7 +133,7 @@ static SVECTOR _gShelterB2NorthMaintenanceWalkwayLockedDoorGlowCentre = { 1107, 
 /// This empty suffix requires `ROOM_VISUAL_EFFECTS_HALO_STORAGE_TYPE` to be
 /// `RoomFxHaloStorage`. Bind around `room_visual_effects_halo_data.inc.c`.
 #define ROOM_VISUAL_EFFECTS_HALO_STORAGE_BOUND
-#include "../../shared/room_visual_effects_halo_data.inc.c"
+#include "../../shared/room/room_visual_effects_halo_data.inc.c"
 
 static void _glowDrawTintedDisc(const SVECTOR* worldPoint, s32 radiusScale, s32 packedColor);
 
@@ -146,7 +146,7 @@ static inline const RoomFxShade* _roomVisualEffectsGetHaloShades(void)
 #undef ROOM_VISUAL_EFFECTS_HALO_STORAGE_TYPE
 #undef ROOM_VISUAL_EFFECTS_HALO_STORAGE_BOUND
 
-#include "../../shared/room_visual_effects_trail_data.inc.c"
+#include "../../shared/room/room_visual_effects_trail_data.inc.c"
 
 /// Installs this room's seven task IDs in gameplay's enemy-effect selectors.
 ///
@@ -250,20 +250,20 @@ void shelterB2NorthMaintenanceWalkwayGlowTask(Task* task)
     }
 }
 
-#include "../../shared/glow_draw_cone.inc.c"
+#include "../../shared/effects/glow_draw_cone.inc.c"
 
-#include "../../shared/glow_draw_red_disc.inc.c"
+#include "../../shared/effects/glow_draw_red_disc.inc.c"
 
-#include "../../shared/glow_draw_tinted_disc.inc.c"
+#include "../../shared/effects/glow_draw_tinted_disc.inc.c"
 
-#include "../../shared/room_visual_effects.inc.c"
+#include "../../shared/room/room_visual_effects.inc.c"
 
 void shelterB2NorthMaintenanceWalkwayRoomVisualEffectsMoteTask(Task* task)
 {
     _roomVisualEffectsMoteTask(task);
 }
 
-#include "../../shared/room_visual_effects_halo.inc.c"
+#include "../../shared/room/room_visual_effects_halo.inc.c"
 
 void shelterB2NorthMaintenanceWalkwayRoomVisualEffectsHaloTask(Task* task)
 {
@@ -275,33 +275,30 @@ void shelterB2NorthMaintenanceWalkwayRoomVisualEffectsHaloOrangeBurstTask(Task* 
     _roomVisualEffectsHaloOrangeBurstTask(task);
 }
 
-#include "../../shared/room_visual_effects_glow_quad.inc.c"
-#include "../../shared/room_visual_effects_flash.inc.c"
+#include "../../shared/room/room_visual_effects_glow_quad.inc.c"
+#include "../../shared/room/room_visual_effects_flash.inc.c"
 
 void shelterB2NorthMaintenanceWalkwayRoomVisualEffectsSparkEmitterTask(Task* task)
 {
     _roomVisualEffectsSparkEmitterTask(task);
 }
 
-#include "../../shared/room_visual_effects_flash_task.inc.c"
+#include "../../shared/room/room_visual_effects_flash_task.inc.c"
 
 void shelterB2NorthMaintenanceWalkwayRoomVisualEffectsFlashTask(Task* task)
 {
     _roomVisualEffectsFlashTask(task);
 }
 
-#include "../../shared/room_visual_effects_trails.inc.c"
+#include "../../shared/room/room_visual_effects_trails.inc.c"
 
 void shelterB2NorthMaintenanceWalkwayRoomVisualEffectsTwinTrailTask(Task* task)
 {
-#include "../../shared/room_visual_effects_trail_task.inc.c"
-}
+#include "../../shared/room/room_visual_effects_trail_task.inc.c"
 
-#include "../../shared/room_visual_effects_sparks.inc.c"
+    void shelterB2NorthMaintenanceWalkwayRoomVisualEffectsSparkBurstTask(Task * task)
+    {
+        _roomVisualEffectsSparkBurstTask(task);
+    }
 
-void shelterB2NorthMaintenanceWalkwayRoomVisualEffectsSparkBurstTask(Task* task)
-{
-    _roomVisualEffectsSparkBurstTask(task);
-}
-
-#include "../../shared/room_visual_effects_glow.inc.c"
+#include "../../shared/room/room_visual_effects_glow.inc.c"

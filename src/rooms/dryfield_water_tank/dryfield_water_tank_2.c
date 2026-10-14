@@ -47,8 +47,8 @@
 #include "main/wipsys_types.h"
 
 #include "overlay.h"
-#include "../../shared/actor_messages.h"
-#include "../../shared/screen_fade.h"
+#include "../../shared/actor/actor_messages.h"
+#include "../../shared/screen/screen_fade.h"
 
 /// Requests the room's event script leaves for the event task, each carried
 /// out on the task's next update.

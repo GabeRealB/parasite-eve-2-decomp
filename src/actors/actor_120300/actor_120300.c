@@ -47,8 +47,8 @@
 #include "overlay.h"
 
 #include "rooms/dryfield_garage.h"
-#include "../../shared/screen_fade.h"
-#include "../../shared/actor_messages.h"
+#include "../../shared/screen/screen_fade.h"
+#include "../../shared/actor/actor_messages.h"
 
 static void _screenFadeOutTask(Task* task);
 
@@ -2385,7 +2385,7 @@ static void _actor120300BodyTask(Task* task)
     ScaleMatrix(model->colorMtx, &scratch.draw.lightSample);
 }
 
-#include "../../shared/screen_fade_out.inc.c"
+#include "../../shared/screen/screen_fade_out.inc.c"
 
 /// Enables or suppresses active drawing of the receiving body, head or rifle model.
 ///
@@ -2404,7 +2404,7 @@ static void _actor120300HandleModelDrawMessage(Task* task, s32 unusedMessageId, 
     model->flags = model->flags | TMD_OBJECT_SKIP_ACTIVE_DRAW;
 }
 
-#include "../../shared/actor_messages_place_in_view.inc.c"
+#include "../../shared/actor/actor_messages_place_in_view.inc.c"
 
 /// Sets active drawing of the body, head and rifle together for an event script.
 ///

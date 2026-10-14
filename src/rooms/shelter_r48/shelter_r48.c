@@ -73,8 +73,8 @@
 /// drawer keeps `s32` parameters, uses texture page 0x2C and clut 0x4393,
 /// and starts its cell grid at v 0.
 #define WATER_OWN_U16_DRAWERS
-#include "../../shared/water_effects.h"
-#include "../../shared/effect_sprite.h"
+#include "../../shared/effects/water_effects.h"
+#include "../../shared/effects/effect_sprite.h"
 
 static void _waterDrawSpinU16(const GfxCoord* coord, u16 textureColumn, s16 radiusScale, s16 spinAngle);
 static void _waterDrawTileU16(const GfxCoord* coord, s32 textureCell, s32 radiusScale);
@@ -3100,14 +3100,14 @@ static void _shelterR48DrawRingBand(const EffectWork* work, const GfxCoord* coor
     SCRATCH_STACK_RELEASE_BLOCK(EffectBandScratch);
 }
 
-#include "../../shared/water_drift_task_u16.inc.c"
+#include "../../shared/effects/water_drift_task_u16.inc.c"
 
 void shelterR48WaterDriftTaskU16(Task* task)
 {
     _waterDriftTaskU16(task);
 }
 
-#include "../../shared/water_spin_u16_corner.inc.c"
+#include "../../shared/effects/water_spin_u16_corner.inc.c"
 
 /// Draws one rotated, camera-facing cell of the eight-frame water-drift strip.
 ///
@@ -3196,7 +3196,7 @@ static void _waterDrawSpinU16(const GfxCoord* coord, u16 textureColumn, s16 radi
     SCRATCH_STACK_RELEASE_BLOCK_AT(scratchCursor, EffectShapeScratch);
 }
 
-#include "../../shared/water_tile_u16_corners.inc.c"
+#include "../../shared/effects/water_tile_u16_corners.inc.c"
 
 /// Draws one upright, camera-facing cell of the eight-frame water-spray grid.
 ///
@@ -3353,7 +3353,7 @@ static __inline__ void _shelterR48RotateDriftCorner(EffectShapeScratch* projecti
 /// zero do not accelerate. The fragment tests this switch with #if and undefines
 /// it after inclusion.
 #define EFFECT_SPRITE_DRIFT_FIXED_NEGATIVE_Y_ACCELERATION 1
-#include "../../shared/effect_sprite_drift.inc.c"
+#include "../../shared/effects/effect_sprite_drift.inc.c"
 
 /// Draws a rotating twelve-cell sprite with a per-cell or alternate palette.
 ///

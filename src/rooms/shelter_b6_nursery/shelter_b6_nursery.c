@@ -71,9 +71,9 @@
 #include "rooms/room.h"
 
 #include "rooms/room_common.h"
-#include "../../shared/room_visual_effects.h"
-#include "../../shared/glow_draw.h"
-#include "../../shared/room_cutscene.h"
+#include "../../shared/room/room_visual_effects.h"
+#include "../../shared/effects/glow_draw.h"
+#include "../../shared/room/room_cutscene.h"
 
 static void _roomCutsceneTask(Task* task);
 
@@ -155,8 +155,8 @@ GfxCoord _gShelterB6NurseryAmbienceOrigin;
 /// view-13 shower clear both; leaving view 13 alone does not consume a cue.
 _ShelterB6NurseryEffectCues _gShelterB6NurseryEffectCues;
 
-#include "../../shared/telephone.h"
-#include "../../shared/sprite_quad.h"
+#include "../../shared/room/telephone.h"
+#include "../../shared/effects/sprite_quad.h"
 
 static void _shelterB6NurseryInitializeRoomTask(Task* task);
 static void _shelterB6NurseryMessageIdle(Task* task);
@@ -165,7 +165,7 @@ static void _shelterB6NurseryDrawSparkShowerShard(const GfxCoord* coord, s16 rad
 
 static void _shelterB6NurseryAmbienceTask(Task* task);
 
-#include "../../shared/telephone_data.inc.c"
+#include "../../shared/room/telephone_data.inc.c"
 
 /// This carrier's bodyless scene runner and timed sound task, followed by END.
 ///
@@ -298,7 +298,7 @@ TmdSource gShelterB6NurseryModel07BAC = {
     _gShelterB6NurseryModel07BACStream,
 };
 
-#include "../../shared/room_visual_effects_trail_data.inc.c"
+#include "../../shared/room/room_visual_effects_trail_data.inc.c"
 
 u8* gShelterB6NurseryViewMaps[1] = {
     gViewIdentityMap,
@@ -995,7 +995,7 @@ Task* gRoomCutsceneSoundTask;
 ///
 /// Two-byte string-literal binding for `telephone.inc.c`; unused by label drawing.
 #define TELEPHONE_MENU_TITLE_TRAILING_BYTES "\x1F\x51"
-#include "../../shared/telephone.inc.c"
+#include "../../shared/room/telephone.inc.c"
 #undef TELEPHONE_MENU_TITLE_TRAILING_BYTES
 
 static void _glowDrawDiamond(const SVECTOR* worldPoint, s32 pulseRate, s32 radiusScale);
@@ -1006,9 +1006,9 @@ void shelterB6NurseryTelephoneMenuTask(Task* task)
     _telephoneMenuTask(task);
 }
 
-#include "../../shared/telephone_panels.inc.c"
+#include "../../shared/room/telephone_panels.inc.c"
 
-#include "../../shared/room_cutscene_task.inc.c"
+#include "../../shared/room/room_cutscene_task.inc.c"
 
 /// Nursery room task states 0 initialize, 1 wait for messages, 2 release.
 ///
@@ -1178,7 +1178,7 @@ static void _shelterB6NurseryAmbienceTask(Task* task)
     }
 }
 
-#include "../../shared/room_cutscene_sound_task.inc.c"
+#include "../../shared/room/room_cutscene_sound_task.inc.c"
 
 /// Refuses every key-item-use request to this room, returning 0 without consuming the item.
 static s32 _shelterB6NurseryRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unused)
@@ -1410,9 +1410,9 @@ void shelterB6NurseryViewEffectsTask(Task* task)
     }
 }
 
-#include "../../shared/glow_draw_diamond.inc.c"
+#include "../../shared/effects/glow_draw_diamond.inc.c"
 
-#include "../../shared/glow_draw_pulsing_disc.inc.c"
+#include "../../shared/effects/glow_draw_pulsing_disc.inc.c"
 
 void shelterB6NurseryDebrisChunkTask(Task* task)
 {
@@ -1835,7 +1835,7 @@ static void _shelterB6NurseryDrawParticleFrame(const GfxCoord* coord, u16 animat
 /// is the projected depth itself. Undefined omits the depth test. The next
 /// sprite-quad fragment clears the binding.
 #define SPRITE_QUAD_MIN_OTZ 0x41
-#include "../../shared/sprite_quad_draw.inc.c"
+#include "../../shared/effects/sprite_quad_draw.inc.c"
 
 void shelterB6NurserySparkShowerShardTask(Task* task)
 {
@@ -1995,27 +1995,24 @@ void shelterB6NurserySetEffectCues(s32 fastGlintPulse, s32 sparkShowerScale)
     _gShelterB6NurseryEffectCues.sparkShowerScale = sparkShowerScale;
 }
 
-#include "../../shared/room_visual_effects.inc.c"
+#include "../../shared/room/room_visual_effects.inc.c"
 
-#include "../../shared/room_visual_effects_flash_task.inc.c"
+#include "../../shared/room/room_visual_effects_flash_task.inc.c"
 
 void shelterB6NurseryRoomVisualEffectsFlashTask(Task* task)
 {
     _roomVisualEffectsFlashTask(task);
 }
 
-#include "../../shared/room_visual_effects_trails.inc.c"
+#include "../../shared/room/room_visual_effects_trails.inc.c"
 
 void shelterB6NurseryRoomVisualEffectsTwinTrailTask(Task* task)
 {
-#include "../../shared/room_visual_effects_trail_task.inc.c"
-}
+#include "../../shared/room/room_visual_effects_trail_task.inc.c"
 
-#include "../../shared/room_visual_effects_sparks.inc.c"
+    void shelterB6NurseryRoomVisualEffectsSparkBurstTask(Task * task)
+    {
+        _roomVisualEffectsSparkBurstTask(task);
+    }
 
-void shelterB6NurseryRoomVisualEffectsSparkBurstTask(Task* task)
-{
-    _roomVisualEffectsSparkBurstTask(task);
-}
-
-#include "../../shared/room_visual_effects_glow.inc.c"
+#include "../../shared/room/room_visual_effects_glow.inc.c"

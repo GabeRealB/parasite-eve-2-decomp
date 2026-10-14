@@ -24,8 +24,8 @@
 #include "main/task_types.h"
 
 #include "rooms/room_common.h"
-#include "../../shared/glow_draw.h"
-#include "../../shared/room_variants.h"
+#include "../../shared/effects/glow_draw.h"
+#include "../../shared/room/room_variants.h"
 
 static s32 _dryfieldNightMotelRoom1RejectKeyItemUse(Task* unusedTask, s32 unusedMessageId, s32 itemId, s32 unusedSecondArg);
 static s32 _dryfieldNightMotelRoom1IgnoreRoomCommand(Task* unusedTask, s32 unusedMessageId, s32 commandId, s32 commandArgument);
@@ -55,7 +55,7 @@ static s32 _dryfieldNightMotelRoom1RejectKeyItemUse(Task* unusedTask, s32 unused
     return ROOM_KEY_ITEM_USE_REFUSED;
 }
 
-#include "../../shared/room_variants_main_street.inc.c"
+#include "../../shared/room/room_variants_main_street.inc.c"
 
 /// Ignores room commands without starting an action.
 ///
@@ -107,4 +107,4 @@ void dryfieldNightMotelRoom1RoomTask(Task* task)
     stateHandlers.funcs[task->state](task);
 }
 
-#include "../../shared/glow_draw_flare_clipped.inc.c"
+#include "../../shared/effects/glow_draw_flare_clipped.inc.c"

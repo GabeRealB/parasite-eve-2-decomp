@@ -68,7 +68,7 @@
 #include "overlay.h"
 
 #include "rooms/room_common.h"
-#include "../../shared/actor_contacts.h"
+#include "../../shared/actor/actor_contacts.h"
 
 static WorldCollisionTrigger _gAcropolisSanctuaryActionTriggers[17];
 
@@ -3431,9 +3431,9 @@ static s32 _acropolisSanctuaryStartMosaic(Task* task, s32 messageId, s32 unusedF
     return 0;
 }
 
-#include "../../shared/actor_contacts_push_contact.inc.c"
+#include "../../shared/actor/actor_contacts_push_contact.inc.c"
 
-#include "../../shared/actor_contacts_push.inc.c"
+#include "../../shared/actor/actor_contacts_push.inc.c"
 
 void acropolisSanctuaryItemVisibilityTask(Task* task)
 {

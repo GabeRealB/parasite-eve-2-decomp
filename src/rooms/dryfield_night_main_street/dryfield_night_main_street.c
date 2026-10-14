@@ -61,17 +61,17 @@
 
 #include "rooms/room_common.h"
 
-#include "../../shared/room_visual_effects.h"
-#include "../../shared/glow_draw.h"
+#include "../../shared/room/room_visual_effects.h"
+#include "../../shared/effects/glow_draw.h"
 
 // The latched-event symbol carries four unproven bytes after the event.
 #define ROOM_EVENT_LATCHED gRoomEventLatched.event
 /// Selects the gate's TU-local room-transition task descriptor.
 ///
 /// Addressable `TaskDesc` lvalue; see `room_events.h` for the spawn contract.
-/// Bind before that header and keep through `room_event_gate.inc.c`.
+/// Bind before that header and keep through `room_event.inc.c`.
 #define ROOM_EVENT_TASK_DESC (_gRoomEventTaskDesc)
-#include "../../shared/room_events.h"
+#include "../../shared/room/room_events.h"
 /// Binds the shared puff task to this package's public void (Task*) effect callback.
 /// Must precede main_street.h and remain defined through main_street_puff_task.inc.c.
 #define MAIN_STREET_PUFF_TASK dryfieldNightMainStreetPuffTask
@@ -418,7 +418,7 @@ static u32 _gDryfieldNightMainStreetGlowViewMasks[16] = {
 /// This empty suffix requires `ROOM_VISUAL_EFFECTS_HALO_STORAGE_TYPE` to be
 /// `RoomFxHaloStorage`. Bind around `room_visual_effects_halo_data.inc.c`.
 #define ROOM_VISUAL_EFFECTS_HALO_STORAGE_BOUND
-#include "../../shared/room_visual_effects_halo_data.inc.c"
+#include "../../shared/room/room_visual_effects_halo_data.inc.c"
 
 static void _glowDrawFlare(const SVECTOR* worldPoint, s32 textureIndex, s32 radiusScale);
 static void _glowDrawShaft(const SVECTOR worldPoints[2], s32 radiusScale);
@@ -1884,11 +1884,9 @@ RoomLatchedEventStorage gRoomEventLatched;
 
 RoomEventReq gRoomEventReq;
 
-#include "../../shared/room_event_staged_task.inc.c"
+#include "../../shared/room/room_event_staged_task.inc.c"
 
-#include "../../shared/room_event_gate.inc.c"
-
-#include "../../shared/room_event_task.inc.c"
+#include "../../shared/room/room_event.inc.c"
 
 /// State-dispatch template for the room receiver: initialize, idle, release.
 ///
@@ -2095,22 +2093,22 @@ void dryfieldNightMainStreetAmbientEffectsTask(Task* task)
 
 #undef DRYFIELD_NIGHT_MAIN_STREET_RAND
 
-#include "../../shared/glow_draw_shaft.inc.c"
+#include "../../shared/effects/glow_draw_shaft.inc.c"
 
-#include "../../shared/glow_draw_flare.inc.c"
+#include "../../shared/effects/glow_draw_flare.inc.c"
 
 #include "../../shared/main_street_puff_task.inc.c"
 
 #include "../../shared/main_street_draw_puff.inc.c"
 
-#include "../../shared/room_visual_effects.inc.c"
+#include "../../shared/room/room_visual_effects.inc.c"
 
 void dryfieldNightMainStreetRoomVisualEffectsMoteTask(Task* task)
 {
     _roomVisualEffectsMoteTask(task);
 }
 
-#include "../../shared/room_visual_effects_halo.inc.c"
+#include "../../shared/room/room_visual_effects_halo.inc.c"
 
 void dryfieldNightMainStreetRoomVisualEffectsHaloTask(Task* task)
 {
@@ -2122,8 +2120,8 @@ void dryfieldNightMainStreetRoomVisualEffectsHaloOrangeBurstTask(Task* task)
     _roomVisualEffectsHaloOrangeBurstTask(task);
 }
 
-#include "../../shared/room_visual_effects_glow_quad.inc.c"
-#include "../../shared/room_visual_effects_flash.inc.c"
+#include "../../shared/room/room_visual_effects_glow_quad.inc.c"
+#include "../../shared/room/room_visual_effects_flash.inc.c"
 
 void dryfieldNightMainStreetRoomVisualEffectsSparkEmitterTask(Task* task)
 {

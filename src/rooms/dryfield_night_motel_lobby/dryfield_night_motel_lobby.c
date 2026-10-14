@@ -46,9 +46,9 @@
 #include "rooms/room.h"
 
 #include "rooms/room_common.h"
-#include "../../shared/action_prompt.h"
-#include "../../shared/room_cutscene.h"
-#include "../../shared/room_variants.h"
+#include "../../shared/room/action_prompt.h"
+#include "../../shared/room/room_cutscene.h"
+#include "../../shared/room/room_variants.h"
 
 static void _roomCutsceneTask(Task* task);
 
@@ -56,9 +56,9 @@ static void _roomCutsceneSoundTask(Task* task);
 
 static void _dryfieldNightMotelLobbyCashRegisterOwnerTask(Task* task);
 
-#include "../../shared/telephone.h"
+#include "../../shared/room/telephone.h"
 
-#include "../../shared/telephone_data.inc.c"
+#include "../../shared/room/telephone_data.inc.c"
 
 /// This carrier's bodyless scene runner and timed sound task, followed by END.
 ///
@@ -110,7 +110,7 @@ static void _dryfieldNightMotelLobbyUpdateMasterkeyObjective(Task* unusedTask);
 ///
 /// Two-byte string-literal binding for `telephone.inc.c`; unused by label drawing.
 #define TELEPHONE_MENU_TITLE_TRAILING_BYTES "\x01\x0E"
-#include "../../shared/telephone.inc.c"
+#include "../../shared/room/telephone.inc.c"
 #undef TELEPHONE_MENU_TITLE_TRAILING_BYTES
 
 void dryfieldNightMotelLobbyTelephoneMenuTask(Task* task)
@@ -118,11 +118,11 @@ void dryfieldNightMotelLobbyTelephoneMenuTask(Task* task)
     _telephoneMenuTask(task);
 }
 
-#include "../../shared/telephone_panels.inc.c"
+#include "../../shared/room/telephone_panels.inc.c"
 
-#include "../../shared/room_cutscene_task.inc.c"
+#include "../../shared/room/room_cutscene_task.inc.c"
 
-#include "../../shared/room_cutscene_sound_task.inc.c"
+#include "../../shared/room/room_cutscene_sound_task.inc.c"
 
 /// Refuses key-item use in the night motel lobby without changing inventory.
 ///
@@ -133,7 +133,7 @@ static s32 _dryfieldNightMotelLobbyRejectKeyItemUse(Task* unusedTask, s32 unused
     return ROOM_KEY_ITEM_USE_REFUSED;
 }
 
-#include "../../shared/room_variants_parking_lot.inc.c"
+#include "../../shared/room/room_variants_parking_lot.inc.c"
 
 /// Prepares the persistent lobby revisit cutscene for its chapter's CAP file.
 ///
@@ -379,4 +379,4 @@ void dryfieldNightMotelLobbyCashRegisterScanTask(Task* task)
     dryfieldNightMotelLobbyDrawCashRegisterDisplay(task);
 }
 
-#include "../../shared/action_prompt_outline_rect.inc.c"
+#include "../../shared/room/action_prompt_outline_rect.inc.c"

@@ -23,8 +23,8 @@
 #include "main/task.h"
 #include "main/tmd.h"
 #include "main/tmd_types.h"
-#include "../../shared/model_placement.h"
-#include "../../shared/actor_messages.h"
+#include "../../shared/actor/model_placement.h"
+#include "../../shared/actor/actor_messages.h"
 
 /// Work block of Eric Baldwin as a room script poses him: what his body model
 /// plays, the matrices it is lit with and the models he holds.
@@ -605,7 +605,7 @@ static void _actor213000HeldModelTask(Task* heldModelTask)
     states.funcs[heldModelTask->state](heldModelTask);
 }
 
-#include "../../shared/model_placement_attach_part.inc.c"
+#include "../../shared/actor/model_placement_attach_part.inc.c"
 
 /// Keeps a held model attached without changing its pose, flags or task state.
 ///
@@ -642,9 +642,9 @@ static void _actor213000RightHandTask(Task* handTask)
     states.funcs[handTask->state](handTask);
 }
 
-#include "../../shared/model_placement_attach.inc.c"
+#include "../../shared/actor/model_placement_attach.inc.c"
 
-#include "../../shared/model_placement_mirror_parent.inc.c"
+#include "../../shared/actor/model_placement_mirror_parent.inc.c"
 
 /// Attaches a fresh child-model part at the origin of a parent-model part.
 ///
@@ -730,7 +730,7 @@ static void _actor213000AttachThreeRootModel(Task* childTask)
 /// The value is the `static void(Task*)` callback declared in this carrier's
 /// prologue. The following fragment consumes and undefines the binding.
 #define MODEL_PLACEMENT_MIRROR_PARENT_DRAW_FLAGS_TASK _modelPlacementMirrorParentDrawFlagsTask
-#include "../../shared/model_placement_mirror_parent.inc.c"
+#include "../../shared/actor/model_placement_mirror_parent.inc.c"
 
 /// Task-state callbacks for Eric Baldwin's three-root attached model.
 ///
@@ -890,7 +890,7 @@ static s32 _actor213000PlayAnimation(Task* actorTask, s32 messageId, const Anima
     return 0;
 }
 
-#include "../../shared/actor_messages_place_euler.inc.c"
+#include "../../shared/actor/actor_messages_place_euler.inc.c"
 
 /// Handles `ACTOR_MESSAGE_SET_MODEL_DRAW` for the body and its primitive buffers.
 ///

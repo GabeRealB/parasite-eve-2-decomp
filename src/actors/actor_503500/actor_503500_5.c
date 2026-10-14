@@ -43,8 +43,8 @@
 #include "main/tmd_types.h"
 #include "main/wipsys.h"
 #include "main/wipsys_types.h"
-#include "../../shared/actor_motion.h"
-#include "../../shared/actor_messages.h"
+#include "../../shared/actor/actor_motion.h"
+#include "../../shared/actor/actor_messages.h"
 
 /// Values of `_Actor503500YellowFlashAttackWork::phase`.
 enum {
@@ -2369,11 +2369,11 @@ static void _actor503500TentacleIdle(Task* unusedTask)
 {
 }
 
-#include "../../shared/actor_motion_play19.inc.c"
+#include "../../shared/actor/actor_motion_play19.inc.c"
 
 /// Selects the private placement handler for the actor-361100 model task.
 #define ACTOR_MESSAGE_PLACE_EULER_HANDLER _actorMsgPlaceEuler
-#include "../../shared/actor_messages_place_euler.inc.c"
+#include "../../shared/actor/actor_messages_place_euler.inc.c"
 #undef ACTOR_MESSAGE_PLACE_EULER_HANDLER
 
 /// Changes tentacle visibility and primitive-buffer release policy.

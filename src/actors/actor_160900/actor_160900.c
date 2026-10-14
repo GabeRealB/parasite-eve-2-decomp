@@ -48,8 +48,8 @@
 #include "main/wipsys_types.h"
 
 #include "overlay.h"
-#include "../../shared/screen_wave.h"
-#include "../../shared/actor_messages.h"
+#include "../../shared/screen/screen_wave.h"
+#include "../../shared/actor/actor_messages.h"
 
 /// Work block of one light quad, a gradient quad the cutscene blends
 /// additively over the scene.
@@ -1003,7 +1003,7 @@ static void        _actor160900UpdatePlayerCue(Task* task);
 static void        _actor160900UpdateKyleCue(Task* task);
 static void        _actor160900SpawnDriftingSprites(const SVECTOR* points);
 
-#include "../../shared/screen_wave.inc.c"
+#include "../../shared/screen/screen_wave.inc.c"
 
 /// Advances the cutscene player's clip chain by one update.
 ///
@@ -2264,7 +2264,7 @@ static void _actor160900SetModelDraw(Task* task, s32 messageId, s32 mode, s32 un
     }
 }
 
-#include "../../shared/actor_messages_place_ypr.inc.c"
+#include "../../shared/actor/actor_messages_place_ypr.inc.c"
 
 /// Starts the cutscene's reveal fade, restoring display output on its fourth update.
 ///

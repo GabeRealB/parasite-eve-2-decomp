@@ -40,8 +40,8 @@
 #include "main/tmd_types.h"
 
 #include "overlay.h"
-#include "../../shared/actor_messages.h"
-#include "../../shared/anim_driver.h"
+#include "../../shared/actor/actor_messages.h"
+#include "../../shared/actor/anim_driver.h"
 
 /// Values of `_Actor223600Work::state`: the index of the handler the per-frame
 /// tick runs.
@@ -187,7 +187,7 @@ enum {
 
 static TmdSource _gActor223600BloodSucklerBody;
 
-#include "../../shared/actor_contacts.h"
+#include "../../shared/actor/actor_contacts.h"
 
 enum { ACTOR_223600_ATTACK_REACTION_SPARK_AND_PUFFS = 7 };
 
@@ -945,11 +945,11 @@ static inline SVECTOR* _actorContactGetLastPushStep(void)
 /// unproven. The coordinate is not cleared when its owning task is destroyed.
 static EffectSpawnArg _gActor223600EffectSpawnArg = { 0 };
 
-#include "../../shared/actor_contacts.h"
+#include "../../shared/actor/actor_contacts.h"
 
-#include "../../shared/actor_contacts.inc.c"
+#include "../../shared/actor/actor_contacts.inc.c"
 
-#include "../../shared/anim_driver_tick.inc.c"
+#include "../../shared/actor/anim_driver_tick.inc.c"
 
 /// Selects a sound script from slot 1's animation cue, or returns zero.
 ///
@@ -1582,9 +1582,9 @@ static s32 _actor223600ApplyCommand(Task* task, s32 messageId, const ActorComman
     return 0;
 }
 
-#include "../../shared/actor_messages_place.inc.c"
+#include "../../shared/actor/actor_messages_place.inc.c"
 
-#include "../../shared/coord_math_yaw_scale.inc.c"
+#include "../../shared/actor/coord_math_yaw_scale.inc.c"
 
 /// Hides the model and disables lock-on on the hidden state's entry tick.
 ///

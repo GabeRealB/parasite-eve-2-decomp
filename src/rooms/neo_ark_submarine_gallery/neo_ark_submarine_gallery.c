@@ -89,9 +89,7 @@ enum {
     NEO_ARK_SUBMARINE_GALLERY_RED_DISC_RADIUS_STEP = 16,
 };
 
-#include "../../shared/water_refraction_task.inc.c"
-
-#include "../../shared/water_distort_band_task.inc.c"
+#include "../../shared/effects/water.inc.c"
 
 /// Gallery room states: 0 initialize messages/red disc, 1 idle, 2 release.
 ///

@@ -32,7 +32,7 @@
 #include "rooms/room.h"
 
 #include "rooms/room_common.h"
-#include "../../shared/room_events.h"
+#include "../../shared/room/room_events.h"
 
 extern RoomFadeStorage  gRoomEventFade;
 static RoomEventMsg     _gRoomEventStagedMsg;
@@ -154,7 +154,7 @@ static void _shelterB2PodAccessTunnelInitializeRoomTask(Task* task);
 
 static void _shelterB2PodAccessTunnelIdleRoomTask(Task* unusedTask);
 
-#include "../../shared/room_event_staged_task.inc.c"
+#include "../../shared/room/room_event_staged_task.inc.c"
 
 /// Latches an eligible departure event and starts its staged task on execution.
 ///

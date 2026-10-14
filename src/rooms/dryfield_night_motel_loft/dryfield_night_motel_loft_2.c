@@ -39,7 +39,7 @@
 #include "main/tmd_types.h"
 
 #include "rooms/room_common.h"
-#include "../../shared/glow_draw.h"
+#include "../../shared/effects/glow_draw.h"
 
 /// Scratch-stack block the room's falling triangle is drawn from.
 ///
@@ -701,7 +701,7 @@ void dryfieldNightMotelLoftFlaresAndShardsTask(Task* task)
     }
 }
 
-#include "../../shared/glow_draw_flare_clipped.inc.c"
+#include "../../shared/effects/glow_draw_flare_clipped.inc.c"
 
 void dryfieldNightMotelLoftFallingShardTask(Task* task)
 {

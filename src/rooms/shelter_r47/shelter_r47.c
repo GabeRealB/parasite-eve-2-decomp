@@ -66,8 +66,8 @@
 #include "rooms/room.h"
 
 #include "rooms/room_common.h"
-#include "../../shared/room_cutscene.h"
-#include "../../shared/action_prompt.h"
+#include "../../shared/room/room_cutscene.h"
+#include "../../shared/room/action_prompt.h"
 
 static void _roomCutsceneTask(Task* task);
 
@@ -138,12 +138,12 @@ enum {
     SHELTER_R47_CONSOLE_WIPE_OT          = 11,
 };
 
-#include "../../shared/telephone.h"
+#include "../../shared/room/telephone.h"
 
 static void _shelterR47InitializeRoomTask(Task* task);
 static void _shelterR47AdvanceTerminalTour(Task* unusedTask);
 
-#include "../../shared/telephone_data.inc.c"
+#include "../../shared/room/telephone_data.inc.c"
 
 /// This carrier's bodyless scene runner and timed sound task, followed by END.
 ///
@@ -651,7 +651,7 @@ const u8 gShelterR47MapTerminalPageViews[8] SECTION(".data") = {
 ///
 /// Two-byte string-literal binding for `telephone.inc.c`; unused by label drawing.
 #define TELEPHONE_MENU_TITLE_TRAILING_BYTES "\xDC\x32"
-#include "../../shared/telephone.inc.c"
+#include "../../shared/room/telephone.inc.c"
 #undef TELEPHONE_MENU_TITLE_TRAILING_BYTES
 
 void shelterR47TelephoneMenuTask(Task* task)
@@ -659,9 +659,9 @@ void shelterR47TelephoneMenuTask(Task* task)
     _telephoneMenuTask(task);
 }
 
-#include "../../shared/telephone_panels.inc.c"
+#include "../../shared/room/telephone_panels.inc.c"
 
-#include "../../shared/room_cutscene_task.inc.c"
+#include "../../shared/room/room_cutscene_task.inc.c"
 
 /// Room-controller callbacks: 0 initialize, 1 advance the terminal tour, 2 release.
 ///
@@ -1083,7 +1083,7 @@ static void _shelterR47AmbienceTask(Task* task)
     }
 }
 
-#include "../../shared/room_cutscene_sound_task.inc.c"
+#include "../../shared/room/room_cutscene_sound_task.inc.c"
 
 /// Refuses every room key-item-use request without changing state.
 static s32 _shelterR47RefuseKeyItem(Task* unusedTask, s32 unusedMessageId, s32 unusedItemId, s32 unusedSecondArg)
@@ -1405,7 +1405,7 @@ void shelterR47ConsoleDrawSprite(s16 originX, s16 originY, s16 spriteId)
     }
 }
 
-#include "../../shared/action_prompt_outline_rect.inc.c"
+#include "../../shared/room/action_prompt_outline_rect.inc.c"
 
 /// Clears the console hotspot hit results before its next interaction.
 ///

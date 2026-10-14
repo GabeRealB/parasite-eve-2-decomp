@@ -43,9 +43,9 @@
 
 #include "rooms/room.h"
 
-#include "../../shared/room_visual_effects.h"
+#include "../../shared/room/room_visual_effects.h"
 
-#include "../../shared/room_visual_effects_disc_data.inc.c"
+#include "../../shared/room/room_visual_effects_disc_data.inc.c"
 
 u8* gShelterB1ControlRoomAccessTunnelRoomViewMaps[1] = {
     gViewIdentityMap,
@@ -357,7 +357,7 @@ WorldCollisionSurfaceProperties* gShelterB1ControlRoomAccessTunnelSurfacePropert
     &_gShelterB1ControlRoomAccessTunnelSilentSurface,
 };
 
-#include "../../shared/room_visual_effects_flying_tasks.inc.c"
+#include "../../shared/room/room_visual_effects_flying_tasks.inc.c"
 
 void shelterB1ControlRoomAccessTunnelRoomVisualEffectsGlowDiscTask(Task* task)
 {
@@ -369,11 +369,11 @@ void shelterB1ControlRoomAccessTunnelRoomVisualEffectsFlyingSparkTask(Task* task
     _roomVisualEffectsFlyingSparkTask(task);
 }
 
-#include "../../shared/room_visual_effects_burst.inc.c"
+#include "../../shared/room/room_visual_effects_burst.inc.c"
 
 void shelterB1ControlRoomAccessTunnelRoomVisualEffectsFlyingOrangeBurstTask(Task* task)
 {
     _roomVisualEffectsFlyingOrangeBurstTask(task);
 }
 
-#include "../../shared/room_visual_effects_burst_draw.inc.c"
+#include "../../shared/room/room_visual_effects_burst_draw.inc.c"

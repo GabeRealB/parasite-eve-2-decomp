@@ -35,8 +35,8 @@
 #include "overlay.h"
 
 #include "rooms/dryfield_night_garage.h"
-#include "../../shared/actor_motion.h"
-#include "../../shared/actor_messages.h"
+#include "../../shared/actor/actor_motion.h"
+#include "../../shared/actor/actor_messages.h"
 
 /// Placement phases carried in the attached model task's reused spawn word.
 ///
@@ -837,7 +837,7 @@ static void _actor135400GaryDouglasHeadTask(Task* task)
     handlers.funcs[task->state](task);
 }
 
-#include "../../shared/model_placement_attach_part.inc.c"
+#include "../../shared/actor/model_placement_attach_part.inc.c"
 
 /// Leaves the attached head-and-hat model riding its parent without an update.
 static void _actor135400GaryDouglasHeadIdle(Task* unusedTask)
@@ -862,7 +862,7 @@ static void _actor135400GaryDouglasCarriedTask(Task* task)
 /// The binding is a declared `void(Task*)` function identifier, consumed by
 /// the following fragment inclusion.
 #define MODEL_PLACEMENT_ATTACH_PART_TASK _modelPlacementAttachPart
-#include "../../shared/model_placement_attach_part.inc.c"
+#include "../../shared/actor/model_placement_attach_part.inc.c"
 
 /// Dispatches Gary Douglas's spawn, tick or exit state while actor control is running.
 ///
@@ -903,9 +903,9 @@ static void _actor135400GaryDouglasBindLighting(Task* task)
     model->colorMtx = &work->model.color;
 }
 
-#include "../../shared/actor_motion_play.inc.c"
+#include "../../shared/actor/actor_motion_play.inc.c"
 
-#include "../../shared/actor_messages_place_euler.inc.c"
+#include "../../shared/actor/actor_messages_place_euler.inc.c"
 
 /// Handles model draw mode for Gary Douglas's body and mirrors its flags to the head.
 ///
@@ -1216,7 +1216,7 @@ static s32 _actor135400FlintPlayAnimation(Task* task, s32 messageId, const Anima
 
 /// Selects the private placement handler for the Flint model task.
 #define ACTOR_MESSAGE_PLACE_EULER_HANDLER _actorMsgPlaceEuler
-#include "../../shared/actor_messages_place_euler.inc.c"
+#include "../../shared/actor/actor_messages_place_euler.inc.c"
 #undef ACTOR_MESSAGE_PLACE_EULER_HANDLER
 
 /// Handles Flint's draw mode, deferring a mode-2 buffer release through the tick.

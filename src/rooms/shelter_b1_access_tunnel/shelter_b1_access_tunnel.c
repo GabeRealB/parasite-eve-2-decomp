@@ -52,7 +52,7 @@
 #include "rooms/room.h"
 
 #include "rooms/room_common.h"
-#include "../../shared/glow_draw.h"
+#include "../../shared/effects/glow_draw.h"
 
 // The flag symbol carries seven unproven bytes after the flag.
 #define ROOM_EVENT_ACTIVE gRoomEventActive.eventStarted
@@ -61,10 +61,10 @@
 /// Selects the gate's TU-local room-transition task descriptor.
 ///
 /// Addressable `TaskDesc` lvalue; see `room_events.h` for the spawn contract.
-/// Bind before that header and keep through `room_event_gate.inc.c`.
+/// Bind before that header and keep through `room_event.inc.c`.
 #define ROOM_EVENT_TASK_DESC (_gRoomEventTaskDesc)
-#include "../../shared/room_events.h"
-#include "../../shared/room_variants.h"
+#include "../../shared/room/room_events.h"
+#include "../../shared/room/room_variants.h"
 
 /// Task descriptor `_roomEventGate` spawns when a
 /// gated event fires.
@@ -653,11 +653,9 @@ RoomEventReqStorage gRoomEventReq;
 
 RoomLatchedEvent gRoomEventLatched;
 
-#include "../../shared/room_event_gate.inc.c"
+#include "../../shared/room/room_event.inc.c"
 
-#include "../../shared/room_event_task.inc.c"
-
-#include "../../shared/room_event_staged_task.inc.c"
+#include "../../shared/room/room_event_staged_task.inc.c"
 
 static void _glowDrawCapsule(const SVECTOR worldPoints[2], s32 radiusScale, s32 packedColor);
 
@@ -884,4 +882,4 @@ void shelterB1AccessTunnelDrawGlowsTask(Task* unused)
     }
 }
 
-#include "../../shared/glow_draw_capsule.inc.c"
+#include "../../shared/effects/glow_draw_capsule.inc.c"

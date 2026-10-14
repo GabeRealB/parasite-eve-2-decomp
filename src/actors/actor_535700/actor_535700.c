@@ -37,8 +37,8 @@
 #include "main/task.h"
 #include "main/task_types.h"
 #include "main/tmd_types.h"
-#include "../../shared/footstep_walk.h"
-#include "../../shared/pair_walk.h"
+#include "../../shared/walk/footstep_walk.h"
+#include "../../shared/walk/pair_walk.h"
 
 static void _footstepWalkUpdate(Task* task);
 static void _footstepWalkExit(Task* task);
@@ -1446,9 +1446,7 @@ static void _actor535700FinishScene(void)
     }
 }
 
-#include "../../shared/footstep_walk_spawn.inc.c"
-
-#include "../../shared/footstep_walk_update.inc.c"
+#include "../../shared/walk/footstep_walk_spawn.inc.c"
 
 /// Initializes and updates the scene's footstep-enabled nineteen-part walker.
 ///
@@ -1489,7 +1487,7 @@ static void _actor535700FootstepWalkerTask(Task* walkerTask)
 #define ACTOR_RENDER_UPDATE_WALKER _footstepWalkUpdate
 /// Selects the declared static void(Task*) ground-shadow drawer for this inclusion.
 #define ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW _actorRenderDrawWalkerGroundShadow
-#include "../../shared/walker_frame.inc.c"
+#include "../../shared/walk/walker_frame.inc.c"
 #undef ACTOR_RENDER_WALKER_FRAME
 #undef ACTOR_RENDER_UPDATE_WALKER
 #undef ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW
@@ -1504,15 +1502,11 @@ static void _footstepWalkExit(Task* task)
     enemyDestroy(task->spawnArg2.pointer, task);
 }
 
-#include "../../shared/footstep_walk_play_steps.inc.c"
+#include "../../shared/walk/footstep_walk_play_steps.inc.c"
 
-#include "../../shared/footstep_walk_tick_anim.inc.c"
+#include "../../shared/walk/footstep_walk_tick_anim.inc.c"
 
-#include "../../shared/footstep_walk_reset_anim.inc.c"
-
-#include "../../shared/footstep_walk_blend_anim.inc.c"
-
-#include "../../shared/footstep_walk_play.inc.c"
+#include "../../shared/walk/footstep_walk.inc.c"
 
 /// Replaces the published walker's model flags for `ACTOR_MESSAGE_SET_MODEL_DRAW`.
 ///
@@ -1542,7 +1536,7 @@ static s32 _actor535700SetWalkerModelDraw(Task* unusedTask, s32 messageId, s32 f
     return 0;
 }
 
-#include "../../shared/footstep_walk_place.inc.c"
+#include "../../shared/walk/footstep_walk_place.inc.c"
 
 /// Applies turn or footstep commands to the published walker.
 ///
@@ -1579,7 +1573,7 @@ static s32 _actor535700ApplyWalkerCommand(Task* unusedTask, s32 messageId, const
 /// signed-halfword `st.yaw` (4096 units per turn) and `st.travel` (whole moving
 /// updates). This type-name alias evaluates no expressions and lasts one inclusion.
 #define FOOTSTEP_WALK_WORK_T FootstepWalkWork
-#include "../../shared/footstep_walk_to.inc.c"
+#include "../../shared/walk/footstep_walk_to.inc.c"
 #undef FOOTSTEP_WALK_WORK_T
 
 /// Names this carrier's private room-shaded shadow function for one inclusion.
@@ -1587,7 +1581,7 @@ static s32 _actor535700ApplyWalkerCommand(Task* unusedTask, s32 messageId, const
 /// Bind to the prologue's `static void name(Task* task)` declaration; the
 /// replacement is one identifier and evaluates no arguments or object state.
 #define ACTOR_RENDER_DRAW_ROOM_GROUND_SHADOW _actorRenderDrawWalkerGroundShadow
-#include "../../shared/actor_render_walker_shadow.inc.c"
+#include "../../shared/actor/actor_render_walker_shadow.inc.c"
 #undef ACTOR_RENDER_DRAW_ROOM_GROUND_SHADOW
 
 /// Binds the shared pair-walker spawn to this package's public TaskDesc table.
@@ -1595,10 +1589,7 @@ static s32 _actor535700ApplyWalkerCommand(Task* unusedTask, s32 messageId, const
 /// The table uses PAIR_WALK_TASK_* indices. This identifier alias evaluates no
 /// arguments, captures no locals and is scoped to the following fragment.
 #define PAIR_WALK_TASK_TABLE gActor535700PawnGolemTasks
-#include "../../shared/pair_walk_spawn.inc.c"
-#undef PAIR_WALK_TASK_TABLE
-
-#include "../../shared/pair_walk_update_model.inc.c"
+#include "../../shared/walk/pair_walk_spawn.inc.c"
 
 /// Dispatches the scripted Pawn GOLEM's paired-model walker.
 ///
@@ -1629,32 +1620,26 @@ static void _actor535700PairWalkerTask(Task* task)
 /// undefine it after each inclusion of walker_frame.inc.c.
 #define ACTOR_RENDER_UPDATE_WALKER             _pairWalkUpdate
 #define ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW _actorRenderDrawSecondWalkerGroundShadow
-#include "../../shared/walker_frame.inc.c"
+#include "../../shared/walk/walker_frame.inc.c"
 #undef ACTOR_RENDER_WALKER_FRAME
 #undef ACTOR_RENDER_UPDATE_WALKER
 #undef ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW
 
-#include "../../shared/pair_walk_exit.inc.c"
+#include "../../shared/walk/pair_walk_exit.inc.c"
 
 /// Selects this overlay's private second-walker ground-shadow drawer.
 ///
 /// Bind to the prologue's `static void name(Task* task)` declaration; the
 /// following fragment defines it. This identifier alias lasts one inclusion.
 #define ACTOR_RENDER_DRAW_ROOM_GROUND_SHADOW _actorRenderDrawSecondWalkerGroundShadow
-#include "../../shared/actor_render_walker_shadow.inc.c"
+#include "../../shared/actor/actor_render_walker_shadow.inc.c"
 #undef ACTOR_RENDER_DRAW_ROOM_GROUND_SHADOW
 
-#include "../../shared/pair_walk_tick_anim.inc.c"
+#include "../../shared/walk/pair_walk.inc.c"
 
-#include "../../shared/pair_walk_reset_anim.inc.c"
+#include "../../shared/walk/pair_walk_play.inc.c"
 
-#include "../../shared/pair_walk_reseed_anim.inc.c"
-
-#include "../../shared/pair_walk_play.inc.c"
-
-#include "../../shared/pair_walk_visibility.inc.c"
-
-#include "../../shared/pair_walk_place.inc.c"
+#include "../../shared/walk/pair_walk_visibility.inc.c"
 
 /// Ignores `ACTOR_COMMAND_MESSAGE_APPLY` sent to the carried-model walker.
 ///
@@ -1665,6 +1650,6 @@ static s32 _actor535700IgnorePairWalkerCommand(Task* unusedTask, s32 messageId, 
     return 0;
 }
 
-#include "../../shared/pair_walk_to.inc.c"
+#include "../../shared/walk/pair_walk_to.inc.c"
 
-#include "../../shared/pair_walk_sub_model.inc.c"
+#include "../../shared/walk/pair_walk_sub_model.inc.c"

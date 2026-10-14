@@ -35,10 +35,10 @@ static void _factoryPanelPrompt(Task* task);
 /// arguments, evaluates nothing and uses neither stringification nor token pasting.
 #define ACTION_PROMPT_HIT_TEST _actionPromptHitTestDefault
 static s32 ACTION_PROMPT_HIT_TEST(ActionPromptHotspot* hotspots, s16 cursorX, s16 cursorY);
-#include "../../../../shared/action_prompt.h"
-#include "../../../../shared/glow_draw.h"
+#include "../../../../shared/room/action_prompt.h"
+#include "../../../../shared/effects/glow_draw.h"
 
-#include "../../../../shared/room_events.h"
+#include "../../../../shared/room/room_events.h"
 
 #include "gameplay/direction_input.h"
 
@@ -180,7 +180,7 @@ static void _factoryPanelIdle(Task* task)
     }
 }
 
-#include "../../../../shared/action_prompt_outline_rect.inc.c"
+#include "../../../../shared/room/action_prompt_outline_rect.inc.c"
 
 /// Plays the operator-panel button cue from the active day/night factory bank.
 ///
@@ -304,9 +304,9 @@ static void _factoryPanelApplyChoice(Task* task, s16 choice)
     }
 }
 
-#include "../../../../shared/action_prompt_move_cursors.inc.c"
+#include "../../../../shared/room/action_prompt_move_cursors.inc.c"
 
-#include "../../../../shared/action_prompt_draw_cursor.inc.c"
+#include "../../../../shared/room/action_prompt_draw_cursor.inc.c"
 
 void FACTORY_ROOM_INSTANCE_SET_VIEW9_SPRITE_VISIBLE(s32 visible)
 {
@@ -372,7 +372,7 @@ static void _factoryPanelMarkMoveSettled(Task* task, s32 messageId, s32 firstArg
     work->moveSettled = 1;
 }
 
-#include "../../../../shared/action_prompt_hit_test.inc.c"
+#include "../../../../shared/room/action_prompt_hit_test.inc.c"
 #undef ACTION_PROMPT_HIT_TEST
 
 /// Opens an operator-panel session with a cursor and a power-dependent saved view.
@@ -556,9 +556,9 @@ void FACTORY_ROOM_INSTANCE_SET_VIEW11_SPRITE_VISIBLE(s32 visible)
     }
 }
 
-#include "../../../../shared/action_prompt_reset.inc.c"
+#include "../../../../shared/room/action_prompt_reset.inc.c"
 
-#include "../../../../shared/glow_draw_tinted_disc.inc.c"
+#include "../../../../shared/effects/glow_draw_tinted_disc.inc.c"
 
 void FACTORY_DRAW_GLOWS_TASK(Task* task)
 {

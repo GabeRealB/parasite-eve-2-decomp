@@ -44,7 +44,7 @@
 #include "main/wipsys_types.h"
 
 #include "overlay.h"
-#include "../../shared/actor_messages.h"
+#include "../../shared/actor/actor_messages.h"
 
 /// `_Actor341900EventWork::playerAction`: the one-shot request the event script
 /// hands the player.
@@ -1142,7 +1142,7 @@ static void _actor341900EventTask(Task* task)
     }
 }
 
-#include "../../shared/screen_fade_step_down.inc.c"
+#include "../../shared/screen/screen_fade_step_down.inc.c"
 
 /// Reveals the scene by decreasing a subtractive full-screen overlay each tick.
 ///
@@ -1190,9 +1190,9 @@ static void _actor341900FadeInTask(Task* task)
     }
 }
 
-#include "../../shared/actor_messages_draw_mode.inc.c"
+#include "../../shared/actor/actor_messages_draw_mode.inc.c"
 
-#include "../../shared/actor_messages_place_ypr.inc.c"
+#include "../../shared/actor/actor_messages_place_ypr.inc.c"
 
 /// Ignores actor commands sent to the Glutton's display-model tasks.
 ///

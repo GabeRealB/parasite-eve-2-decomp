@@ -31,7 +31,7 @@
 #include "main/task_types.h"
 
 #include "weapons/weapon.h"
-#include "../../shared/grenade_shell.h"
+#include "../../shared/effects/grenade_shell.h"
 
 static SVECTOR   _gGrenadeShellMuzzleOffsets[2];
 static const u16 _gGrenadeShellBlastRadii[4];
@@ -40,13 +40,9 @@ static u8        _gGrenadeShellInitialFlightDivisors[4];
 static void _grenadeShellExit(Task* task);
 static void _grenadeShellSpawn(Task* task);
 
-#include "../../shared/grenade_shell_spawn.inc.c"
+#include "../../shared/effects/grenade_shell_spawn.inc.c"
 
-#include "../../shared/grenade_shell_fly.inc.c"
-
-#include "../../shared/grenade_shell_blast.inc.c"
-
-#include "../../shared/grenade_shell_exit.inc.c"
+#include "../../shared/effects/grenade_shell.inc.c"
 void kyle800102GrenadeShellTask(Task* projectileTask)
 {
     const TaskFunc stateHandlers[] = {

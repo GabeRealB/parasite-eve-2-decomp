@@ -39,7 +39,7 @@
 #include "mapui/map_akropolis.h"
 
 #include "overlay.h"
-#include "../../shared/actor_contacts.h"
+#include "../../shared/actor/actor_contacts.h"
 
 extern SVECTOR ActorContact_ScratchPosition;
 
@@ -619,9 +619,9 @@ void acropolisHallwayEffectControlTask84(Task* unusedTask)
 {
 }
 
-#include "../../shared/actor_contacts_push_contact.inc.c"
+#include "../../shared/actor/actor_contacts_push_contact.inc.c"
 
-#include "../../shared/actor_contacts_push.inc.c"
+#include "../../shared/actor/actor_contacts_push.inc.c"
 
 void acropolisHallwayBlueKeyPickupTask(Task* task)
 {

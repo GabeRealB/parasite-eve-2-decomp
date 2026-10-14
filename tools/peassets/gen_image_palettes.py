@@ -44,7 +44,7 @@ for stage, folder, fkey, node in asset_schema.tree_files(tree):
 
 # ---- B. caption glyph atlases
 EV_B = ("src/gameplay/captions.c:662-666, :761-762, :893-905 _capDrawTextStream (glyph CLUT 0x3D50 | palette 0..3 of the text code, highlight 0x3D52, "
-        "title 0x3D93; 4-bit page from capSetTexturePage) and src/shared/cap_captions.inc.c:315-318, :405, :473; pe2clut_0 is at (256, 243) from boot (0/title)")
+        "title 0x3D93; 4-bit page from capSetTexturePage) and src/shared/room/cap_captions.inc.c:315-318, :405, :473; pe2clut_0 is at (256, 243) from boot (0/title)")
 usage = defaultdict(list)
 for path in sorted((ROOT / "tools/peassets/usage").glob("*.tsv")):
     for n, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):

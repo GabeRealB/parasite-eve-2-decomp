@@ -131,7 +131,7 @@
 /// Keep this s32 (RoomEventMsg*, RoomEventMsg*) identifier binding defined through
 /// the shared header and fragment; it evaluates nothing and is undefined below.
 #define ROOM_VARIANT_RESOLVE_SHELTER mapShelterRoomVariantResolve
-#include "../../shared/room_variants.h"
+#include "../../shared/room/room_variants.h"
 
 /* The Mesa, mine and Shelter stage's map UI overlay: a hook the stage's rooms
  * call at this map's slot address, and the per-stage tables gameplay and main
@@ -163,7 +163,7 @@ static AreaObjectPlace _gMapShelterB4ReservoirObjectPlaces[2];
 static AreaObjectPlace _gMapShelterR47ObjectPlaces[4];
 static AreaObjectPlace _gMapShelterR48ObjectPlaces[3];
 
-#include "../../shared/room_variants_shelter.inc.c"
+#include "../../shared/room/room_variants_shelter.inc.c"
 #undef ROOM_VARIANT_RESOLVE_SHELTER
 
 GfxImageSlot gMapShelterImageSlotsByArea[50] = {

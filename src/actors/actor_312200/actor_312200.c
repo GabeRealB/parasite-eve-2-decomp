@@ -35,8 +35,8 @@
 #include "main/tmd_types.h"
 
 #include "overlay.h"
-#include "../../shared/actor_contacts.h"
-#include "../../shared/actor_messages.h"
+#include "../../shared/actor/actor_contacts.h"
+#include "../../shared/actor/actor_messages.h"
 
 /// Whole-unit part of the last step `_actorContactApplyGridPushback` applied.
 extern SVECTOR ActorContact_ScratchPosition;
@@ -301,13 +301,13 @@ TaskDesc gActor312200SwatMember1TaskDesc = { { { (TASK_BODY_TMD | TASK_DESC_SKIP
 
 SVECTOR ActorContact_ScratchPosition;
 
-#include "../../shared/actor_contacts_find_push.inc.c"
+#include "../../shared/actor/actor_contacts_find_push.inc.c"
 
-#include "../../shared/actor_contacts_steer.inc.c"
+#include "../../shared/actor/actor_contacts_steer.inc.c"
 
-#include "../../shared/actor_contacts_push_contact.inc.c"
+#include "../../shared/actor/actor_contacts_push_contact.inc.c"
 
-#include "../../shared/actor_contacts_push.inc.c"
+#include "../../shared/actor/actor_contacts_push.inc.c"
 
 /// Restarts the primary rig's part tracks and records the requested clip as applied.
 ///

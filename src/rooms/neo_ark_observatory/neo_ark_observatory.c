@@ -60,10 +60,10 @@
 #include "rooms/room.h"
 
 #include "rooms/room_common.h"
-#include "../../shared/glow_draw.h"
-#include "../../shared/room_events.h"
-#include "../../shared/room_variants.h"
-#include "../../shared/follow_collision.h"
+#include "../../shared/effects/glow_draw.h"
+#include "../../shared/room/room_events.h"
+#include "../../shared/room/room_variants.h"
+#include "../../shared/room/follow_collision.h"
 
 static s32 _roomVariantResolveShelter(RoomEventMsg* request, RoomEventMsg* reply);
 
@@ -82,7 +82,7 @@ s16 _gNeoArkObservatoryLightBeamIntensity;
 /// 1 lets `planar_reflection.inc.c` include `planar_reflection_rodata.inc.c`.
 #define PLANAR_REFLECTION_DEFINE_SCALE_WITH_IMPLEMENTATION 1
 static void _neoArkObservatoryPlayerReflectionTask(Task* reflectionTask);
-#include "../../shared/planar_reflection.h"
+#include "../../shared/room/planar_reflection.h"
 
 static void _neoArkObservatoryDrawLightBeam(const SVECTOR ringCenters[2], s32 outerRadius, s16 baseIntensity, s16 segmentCount);
 
@@ -126,7 +126,7 @@ static s32 _neoArkObservatoryCommandMessage(Task* unusedTask, s32 unusedMessageI
 
 static void _neoArkObservatoryCapEventTask(Task* task);
 
-#include "../../shared/planar_reflection_data.inc.c"
+#include "../../shared/room/planar_reflection_data.inc.c"
 
 enum { NEO_ARK_OBSERVATORY_REFLECTION_PRIORITY = 112 };
 
@@ -1853,7 +1853,7 @@ static __inline__ void _neoArkObservatoryResolveDeparture(RoomDeparture* departu
 static void            _neoArkObservatoryInitializeRoom(Task* task);
 static void            _neoArkObservatoryUpdateCompanionVisibility(Task* unusedTask);
 
-#include "../../shared/planar_reflection.inc.c"
+#include "../../shared/room/planar_reflection.inc.c"
 
 /// Runs this room's player reflection, including its attachment reflections.
 ///
@@ -1868,10 +1868,10 @@ static void _neoArkObservatoryPlayerReflectionTask(Task* reflectionTask)
 
 #undef PLANAR_REFLECTION_DEFINE_SCALE_WITH_IMPLEMENTATION
 
-#include "../../shared/room_variants_shelter.inc.c"
+#include "../../shared/room/room_variants_shelter.inc.c"
 #undef ROOM_VARIANT_RESOLVE_SHELTER
 
-#include "../../shared/room_event_departure_task.inc.c"
+#include "../../shared/room/room_event_departure_task.inc.c"
 
 /// Resolves a prepared departure's area, warp and room through an execute request.
 ///
@@ -2212,7 +2212,7 @@ void neoArkObservatoryRoomTask(Task* task)
 /// must be disjoint from the room grid's pools. Cell metadata is unused.
 /// Define before the rebuild fragment include and undefine immediately after it.
 #define FOLLOW_COLLISION_OBSTACLE_SOURCE _gNeoArkObservatoryCompanionObstacleTemplate
-#include "../../shared/follow_collision_rebuild.inc.c"
+#include "../../shared/room/follow_collision_rebuild.inc.c"
 #undef FOLLOW_COLLISION_OBSTACLE_SOURCE
 #undef FOLLOW_COLLISION_ROOM_GRID
 
@@ -2443,7 +2443,7 @@ static void _neoArkObservatoryDrawLightBeam(const SVECTOR ringCenters[2], s32 ou
     }
 }
 
-#include "../../shared/glow_draw_disc.inc.c"
+#include "../../shared/effects/glow_draw_disc.inc.c"
 
 void neoArkObservatorySetLightBeamIntensity(s32 intensity)
 {

@@ -65,8 +65,8 @@
 #include "overlay.h"
 
 #include "rooms/room_common.h"
-#include "../../shared/actor_contacts.h"
-#include "../../shared/actor_messages.h"
+#include "../../shared/actor/actor_contacts.h"
+#include "../../shared/actor/actor_messages.h"
 
 /// Returns this carrier's persistent last contact-push correction.
 ///
@@ -2010,9 +2010,9 @@ void acropolisHelicopterLandingPadPerimeterLightsTask(Task* task)
     }
 }
 
-#include "../../shared/actor_contacts_push_contact.inc.c"
+#include "../../shared/actor/actor_contacts_push_contact.inc.c"
 
-#include "../../shared/actor_contacts_push.inc.c"
+#include "../../shared/actor/actor_contacts_push.inc.c"
 
 void acropolisHelicopterLandingPadPickupModelTask(Task* task)
 {

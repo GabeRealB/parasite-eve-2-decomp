@@ -21,8 +21,8 @@
 #include "main/task.h"
 #include "main/task_types.h"
 #include "main/tmd_types.h"
-#include "../../shared/actor_messages.h"
-#include "../../shared/view_figure.h"
+#include "../../shared/actor/actor_messages.h"
+#include "../../shared/actor/view_figure.h"
 
 static s32 _viewFigurePlayMessage(Task* unusedTask, s32 unusedMessageId, const AnimationPlayRequest* request, s32 unusedSecondArg);
 
@@ -278,7 +278,7 @@ static void _actor110800UpdateViewFigure(Enemy* unusedEnemy, Task* task);
 /// Requires a live two-entry array with the body at VIEW_FIGURE_TASK_BODY and
 /// its attached model at VIEW_FIGURE_TASK_HELPER. Only this inclusion uses it.
 #define VIEW_FIGURE_TASK_DESCS gActor110800ViewFigureTasks
-#include "../../shared/view_figure_spawn.inc.c"
+#include "../../shared/actor/view_figure_spawn.inc.c"
 #undef VIEW_FIGURE_TASK_DESCS
 
 /// Emits an area sound once when a figure track reaches the selected cue record.
@@ -383,17 +383,9 @@ static void _actor110800AttachModelTask(Task* task)
     helperRoot->parent       = &bodyCoords[ACTOR_110800_HELPER_PARENT_PART];
 }
 
-#include "../../shared/view_figure_exit.inc.c"
+#include "../../shared/actor/view_figure_exit.inc.c"
 
-#include "../../shared/view_figure_step_anim.inc.c"
+#include "../../shared/actor/view_figure.inc.c"
 
-#include "../../shared/view_figure_tick_anim.inc.c"
-
-#include "../../shared/view_figure_reset_anim.inc.c"
-
-#include "../../shared/view_figure_reseed_anim.inc.c"
-
-#include "../../shared/view_figure_play_message.inc.c"
-
-#include "../../shared/actor_messages_pair_visibility.inc.c"
+#include "../../shared/actor/actor_messages_pair_visibility.inc.c"
 #undef ACTOR_MESSAGE_BODY_TASK

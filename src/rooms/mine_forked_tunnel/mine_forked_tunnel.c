@@ -54,8 +54,8 @@
 #include "mapui/map_shelter.h"
 
 #include "rooms/room_common.h"
-#include "../../shared/glow_draw.h"
-#include "../../shared/actor_messages.h"
+#include "../../shared/effects/glow_draw.h"
+#include "../../shared/actor/actor_messages.h"
 
 /// Work block of the room's area object, the model the switch event sends
 /// rolling down the tunnel slope; allocated zeroed and kept at `Task::work`.
@@ -1608,7 +1608,7 @@ static void _mineForkedTunnelBindAreaObjectLighting(Task* task)
     model->colorMtx = &work->color;
 }
 
-#include "../../shared/actor_messages_place_euler_zyx.inc.c"
+#include "../../shared/actor/actor_messages_place_euler_zyx.inc.c"
 
 /// Sets the area object's active drawing and primitive-buffer policy.
 ///
@@ -1977,7 +1977,7 @@ static void _mineForkedTunnelSetSpriteBatchesHidden(u8 hidden)
     view5Batches[3].hidden = true;
 }
 
-#include "../../shared/glow_draw_flare.inc.c"
+#include "../../shared/effects/glow_draw_flare.inc.c"
 
 void mineForkedTunnelDrawViewFlaresTask(Task* unusedTask)
 {

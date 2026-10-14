@@ -55,7 +55,7 @@
 #include "main/wipsys_types.h"
 
 #include "rooms/acropolis_helicopter_landing_pad.h"
-#include "../../shared/actor_messages.h"
+#include "../../shared/actor/actor_messages.h"
 
 static void _no9GolemAimHead(const Task* actor);
 static void _no9GolemDrawShadow(const Task* task);
@@ -2623,7 +2623,7 @@ static void _actor510900PlayStepSounds(Task* task)
     }
 }
 
-#include "../../shared/no9_golem_aim_head.inc.c"
+#include "../../shared/creatures/golem/no9_golem_aim_head.inc.c"
 
 /// Applies the residual hit rotation to the chest and relaxes pitch and yaw.
 ///
@@ -4171,7 +4171,7 @@ static void _actor510900UpdateBodyAnimation(Task* task)
     }
 }
 
-#include "../../shared/no9_golem_draw_shadow.inc.c"
+#include "../../shared/creatures/golem/no9_golem_draw_shadow.inc.c"
 
 void actor510900UpdateLighting(Task* task, const GfxCoord* coord)
 {
@@ -4260,7 +4260,7 @@ static s32 _actor510900PlayEventAnimation(Task* task, s32 messageId, const Anima
     return 0;
 }
 
-#include "../../shared/actor_messages_place_rot_matrix.inc.c"
+#include "../../shared/actor/actor_messages_place_rot_matrix.inc.c"
 
 /// Sets whether the body model participates in active drawing.
 ///

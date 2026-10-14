@@ -27,7 +27,7 @@
 #include "main/sound.h"
 #include "main/task_types.h"
 #include "main/tmd_types.h"
-#include "../../shared/glow_draw.h"
+#include "../../shared/effects/glow_draw.h"
 
 /// This overlay's id. Every package opens with one: a u16 in a u32
 /// slot, distinct across all 448, with the families in contiguous blocks.
@@ -371,4 +371,4 @@ static void _plasmaDrawRingBand(const EffectWork* effect, const GfxCoord* coord,
 }
 #undef PLASMA_PROJECT_BAND_SEGMENT
 
-#include "../../shared/glow_draw_halo.inc.c"
+#include "../../shared/effects/glow_draw_halo.inc.c"

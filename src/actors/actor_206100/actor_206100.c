@@ -63,9 +63,9 @@
 #include "overlay.h"
 
 #include "rooms/neo_ark_submarine_gallery.h"
-#include "../../shared/screen_wave.h"
-#include "../../shared/coord_math.h"
-#include "../../shared/diver.h"
+#include "../../shared/screen/screen_wave.h"
+#include "../../shared/actor/coord_math.h"
+#include "../../shared/creatures/diver/diver.h"
 
 /// The `worldCollisionLinkBody` record `_actor206100UnlinkForDeath` unlinks when it
 /// retires the actor, plus the area-record list that handler applies.
@@ -1037,27 +1037,9 @@ static void           _actor206100Spawn(Task* task);
 static void           _actor206100EntranceRelocateTick(Task* task);
 static __inline__ s16 _actor206100ConsumeHitReaction(Task* task);
 
-#include "../../shared/screen_wave.inc.c"
+#include "../../shared/screen/screen_wave.inc.c"
 
-#include "../../shared/diver_impact_burst.inc.c"
-#include "../../shared/diver_draw_spark.inc.c"
-
-/// Copies the nine rotation coefficients without replacing matrix translation.
-///
-/// Borrows live source and destination matrices, which may be identical. Leaves
-/// the destination alignment halfword intact; no GTE or coordinate-stamp changes.
-static inline void _actor206100CopyRotationElements(const MATRIX* source, MATRIX* destination)
-{
-    destination->m[0][0] = source->m[0][0];
-    destination->m[0][1] = source->m[0][1];
-    destination->m[0][2] = source->m[0][2];
-    destination->m[1][0] = source->m[1][0];
-    destination->m[1][1] = source->m[1][1];
-    destination->m[1][2] = source->m[1][2];
-    destination->m[2][0] = source->m[2][0];
-    destination->m[2][1] = source->m[2][1];
-    destination->m[2][2] = source->m[2][2];
-}
+#include "../../shared/creatures/diver/diver.inc.c"
 
 /// Initializes the Sea Diver's live model, enemy, animation rig and hit bodies.
 ///
@@ -1537,9 +1519,9 @@ static void _actor206100TakeHits(Task* task)
         work->hitCooldown = 0;
     }
 }
-#include "../../shared/diver_inlines.inc.c"
+#include "../../shared/creatures/diver/diver_inlines.inc.c"
 
-#include "../../shared/diver_turn_joint.inc.c"
+#include "../../shared/creatures/diver/diver_turn_joint.inc.c"
 
 /// Applies the pending body-animation request and ticks slots 1 through 14.
 ///
@@ -1713,7 +1695,7 @@ static inline void _actor206100ApplyRootRotation(Task* task)
     RotMatrixZ(work->rotation.vz, &rootBasis);
     RotMatrixY(work->rotation.vy, &rootBasis);
     rootMatrix = &rootCoord->coord;
-    _actor206100CopyRotationElements(&rootBasis, rootMatrix);
+    gfxCopyRotation(rootMatrix, &rootBasis);
     rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
@@ -2819,8 +2801,8 @@ static void _actor206100AimHead(Task* task)
     gfxExtractEulerAngles(&upperNeckCoord->coord, &upperNeckAngles);
     RotMatrixX(lowerNeckAngles.vx + (s16)(work->recoilPitch / 3), &lowerNeckBasis);
     RotMatrixX(upperNeckAngles.vx + (s16)(work->recoilPitch / 3), &upperNeckBasis);
-    _actor206100CopyRotationElements(&lowerNeckBasis, lowerNeckMatrix);
-    _actor206100CopyRotationElements(&upperNeckBasis, upperNeckMatrix);
+    gfxCopyRotation(lowerNeckMatrix, &lowerNeckBasis);
+    gfxCopyRotation(upperNeckMatrix, &upperNeckBasis);
     actorRenderComposeCoord(trunkCoord);
     actorRenderComposeCoord(lowerNeckCoord);
     actorRenderComposeCoord(upperNeckCoord);
@@ -2846,7 +2828,7 @@ static void _actor206100AimHead(Task* task)
     MulMatrix(&inverseTrunkBasis, &inverseUpperNeckBasis);
     MulMatrix(&inverseTrunkBasis, &headBasis);
     headMatrix = &headCoord->coord;
-    _actor206100CopyRotationElements(&inverseTrunkBasis, headMatrix);
+    gfxCopyRotation(headMatrix, &inverseTrunkBasis);
     headCoord->composeStamp = GRAPHICS_COORD_DIRTY;
     actorRenderComposeCoord(headCoord);
 }
@@ -2908,7 +2890,7 @@ static void _actor206100DeathPlaybackTick(Task* task)
         work->state       = work->state + 1;
     }
 }
-#include "../../shared/diver_step_forward.inc.c"
+#include "../../shared/creatures/diver/diver_step_forward.inc.c"
 
 /// Starts the neck/head recoil and the head-child pitch reaction.
 ///
@@ -2950,7 +2932,7 @@ static void _actor206100ApplyPart5Recoil(Task* task)
     gfxExtractEulerAngles(partMatrix, &partAngles);
     partAngles.vx += work->part5Pitch;
     RotMatrix(&partAngles, &partBasis);
-    _actor206100CopyRotationElements(&partBasis, partMatrix);
+    gfxCopyRotation(partMatrix, &partBasis);
 }
 
 /// Advances the recoil pitch offset of the head's child, part 5.
@@ -3097,9 +3079,9 @@ static void _actor206100LaunchShot(Task* task)
     task->state++;
 }
 
-#include "../../shared/diver_strike_teardown.inc.c"
+#include "../../shared/creatures/diver/diver_strike_teardown.inc.c"
 
-#include "../../shared/coord_math_local_to_world.inc.c"
+#include "../../shared/actor/coord_math_local_to_world.inc.c"
 
 /// Dispatches a Sea Diver shot through launch, flight and burst teardown.
 ///
@@ -3154,7 +3136,7 @@ static void _actor206100InitHitBodies(Task* task)
     work->headBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
 }
 
-#include "../../shared/diver_restart_clip.inc.c"
+#include "../../shared/creatures/diver/diver_restart_clip.inc.c"
 
 /// Captures body-slot poses and blends them toward the requested clip start.
 ///
@@ -3240,7 +3222,7 @@ static void _actor206100Despawn(Task* task)
 /// Source and destination may be the same object.
 static void _actor206100CopyRotation(const MATRIX* source, MATRIX* destination)
 {
-    _actor206100CopyRotationElements(source, destination);
+    gfxCopyRotation(destination, source);
 }
 
 /// Dispatches the five scripted entrance substates with Sea Diver lock-on disabled.
@@ -3444,7 +3426,7 @@ static void _actor206100WaitSurface(Task* task)
     }
 }
 
-#include "../../shared/diver_state7_enter.inc.c"
+#include "../../shared/creatures/diver/diver_state7_enter.inc.c"
 
 /// Selects the dive when the recoil slot reaches a boundary or control jump.
 ///

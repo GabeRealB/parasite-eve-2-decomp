@@ -63,9 +63,9 @@
 #include "main/wipsys_types.h"
 
 #include "overlay.h"
-#include "../../shared/fireball.h"
-#include "../../shared/player_detection.h"
-#include "../../shared/actor_messages.h"
+#include "../../shared/effects/fireball.h"
+#include "../../shared/actor/player_detection.h"
+#include "../../shared/actor/actor_messages.h"
 
 /// One room the actor patrols in: an entry of the table the spawn handler
 /// searches for the current location.
@@ -1515,9 +1515,7 @@ static void            _actor00300DrainModelActive(Enemy* enemy, Task* task);
 static void            _actor00300InitFireball(Enemy* enemy, Task* task);
 static void            _actor00300FlyFireball(Enemy* enemy, Task* task);
 
-#include "../../shared/fireball_glow.inc.c"
-
-#include "../../shared/fireball_ground_glow.inc.c"
+#include "../../shared/effects/fireball.inc.c"
 
 /// Binds the drain model's texture offsets from the current area's enemy placement.
 ///
@@ -3644,7 +3642,7 @@ static void _actor00300TurnFireballTowardPlayer(Task* task)
     SCRATCH_STACK_RELEASE_BLOCK(ActorFaceScratch);
 }
 
-#include "../../shared/fireball_ember.inc.c"
+#include "../../shared/effects/fireball_ember.inc.c"
 
 /// Dispatches the enemy's initialization, active update and death state.
 ///
@@ -3793,7 +3791,7 @@ static void _actor00300TickStatusReactions(Task* task)
     }
 }
 
-#include "../../shared/player_detection_segment.inc.c"
+#include "../../shared/actor/player_detection_segment.inc.c"
 
 /// Drain-model task states: 0 attachment setup, 1 parent-driven scaling, 2 destruction.
 ///
@@ -3977,6 +3975,8 @@ static void _actor00300UpdateAnimation(Task* task)
     }
 }
 
+#include "../../shared/actor/actor_update_model_color.inc.c"
+
 /// Updates the enemy lighting and colour from the composed root world position.
 ///
 /// Requires a live enemy/model with composed coordinates and writable light and
@@ -3984,14 +3984,7 @@ static void _actor00300UpdateAnimation(Task* task)
 /// position only for this call; it also updates matrices used by the drain child.
 static void _actor00300UpdateLighting(Task* task)
 {
-    GfxCoord* coord;
-    VECTOR3   worldPosition;
-
-    coord            = task->extra.tmd->coords;
-    worldPosition.vx = coord->workm.t[0];
-    worldPosition.vy = coord->workm.t[1];
-    worldPosition.vz = coord->workm.t[2];
-    worldCoordUpdateActorColor(task->spawnArg2.pointer, &worldPosition, 0, 0);
+    _actorUpdateModelColor(task);
 }
 
 /// Draws the actor ground shadow below body part 3 at the root height.
@@ -4155,7 +4148,7 @@ static s32 _actor00300MsgPlayAnimation(Task* task, s32 messageId, const Animatio
     return 0;
 }
 
-#include "../../shared/actor_messages_place_rot_matrix.inc.c"
+#include "../../shared/actor/actor_messages_place_rot_matrix.inc.c"
 
 /// Replaces model draw flags and caches the request for event ticks and the drain child.
 ///

@@ -31,8 +31,8 @@
 #include "main/task_types.h"
 
 #include "overlay.h"
-#include "../../shared/glow_draw.h"
-#include "../../shared/room_events.h"
+#include "../../shared/effects/glow_draw.h"
+#include "../../shared/room/room_events.h"
 
 static WorldCollisionGrid _gNeoArkEveAccessTunnelCollisionGrid;
 
@@ -321,4 +321,4 @@ void neoArkEveAccessTunnelDrawViewGlowsTask(Task* unusedTask)
     }
 }
 
-#include "../../shared/glow_draw_capsule.inc.c"
+#include "../../shared/effects/glow_draw_capsule.inc.c"

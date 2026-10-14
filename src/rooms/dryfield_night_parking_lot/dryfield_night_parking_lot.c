@@ -31,7 +31,7 @@
 #include "rooms/room_common.h"
 // The flag symbol is four bytes; the gate writes the first.
 #define ROOM_EVENT_ACTIVE gRoomEventActive.eventStarted
-#include "../../shared/room_events.h"
+#include "../../shared/room/room_events.h"
 #include "../../shared/parking_lot.h"
 
 extern RoomEventActiveBytes gRoomEventActive;
@@ -65,9 +65,7 @@ static void _dryfieldNightParkingLotIdleState(Task* unusedTask);
 /// Room variant carrying the scavengers' scripted entrance and subsequent battle.
 enum { DRYFIELD_NIGHT_PARKING_LOT_SCAVENGER_VARIANT = 3 };
 
-#include "../../shared/room_event_gate.inc.c"
-
-#include "../../shared/room_event_task.inc.c"
+#include "../../shared/room/room_event.inc.c"
 
 #include "../../shared/parking_lot_event_msg.inc.c"
 

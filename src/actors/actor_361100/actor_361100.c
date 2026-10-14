@@ -47,8 +47,8 @@
 #include "main/tmd_types.h"
 
 #include "overlay.h"
-#include "../../shared/actor_motion.h"
-#include "../../shared/actor_messages.h"
+#include "../../shared/actor/actor_motion.h"
+#include "../../shared/actor/actor_messages.h"
 
 /// Work block of the tentacle drawn with `_gActor361100Model06038`, the first
 /// of the package's two scripted models: a tube of ten segments about nine
@@ -2191,7 +2191,7 @@ static void _actor361100BindTentacleLighting(Task* task)
     model->colorMtx = &work->model.color;
 }
 
-#include "../../shared/actor_motion_play19.inc.c"
+#include "../../shared/actor/actor_motion_play19.inc.c"
 
 /// Places the tentacle's root and stops its translation without resetting its timer.
 ///
@@ -2497,7 +2497,7 @@ static s32 _actor361100PlayAyaBreaAnimation(Task* task, s32 msgId, const Animati
     return 0;
 }
 
-#include "../../shared/actor_messages_place_euler.inc.c"
+#include "../../shared/actor/actor_messages_place_euler.inc.c"
 
 /// Changes Aya's body visibility and primitive-buffer ownership policy.
 ///

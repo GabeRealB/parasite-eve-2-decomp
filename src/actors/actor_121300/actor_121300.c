@@ -47,8 +47,8 @@
 #include "overlay.h"
 
 #include "rooms/dryfield_r08.h"
-#include "../../shared/screen_wave.h"
-#include "../../shared/actor_messages.h"
+#include "../../shared/screen/screen_wave.h"
+#include "../../shared/actor/actor_messages.h"
 
 /// Scene step of Aya's double, stored in `_Actor121300AyaBreaWork::step`.
 ///
@@ -820,9 +820,9 @@ static inline void _actor121300SetDebrisSpeed(s32 speedPercent);
 static void        _actor121300RunSceneStep(Task* task);
 static void        _actor121300InitBody(Task* task);
 
-#include "../../shared/screen_wave.inc.c"
+#include "../../shared/screen/screen_wave.inc.c"
 
-#include "../../shared/screen_fade_step_down.inc.c"
+#include "../../shared/screen/screen_fade_step_down.inc.c"
 
 /// Reveals the streamed scene after three black updates, enabling output on the third.
 ///
@@ -1825,9 +1825,9 @@ static void _actor121300BlackoutTask(Task* task)
                     ACTOR_121300_BLACKOUT_INTENSITY, GPU_BLEND_SUBTRACT);
 }
 
-#include "../../shared/actor_messages_place_ypr.inc.c"
+#include "../../shared/actor/actor_messages_place_ypr.inc.c"
 
-#include "../../shared/actor_messages_draw_mode.inc.c"
+#include "../../shared/actor/actor_messages_draw_mode.inc.c"
 
 /// Starts a child to upload the double's requested texture sequence.
 ///

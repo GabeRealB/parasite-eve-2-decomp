@@ -36,7 +36,7 @@
 
 #include "weapons/weapon.h"
 
-#include "../../shared/grenade_shell.h"
+#include "../../shared/effects/grenade_shell.h"
 #include "types.h"
 
 static const u16 _gM4a1GrenadeBlastRadii[4];
@@ -492,9 +492,7 @@ advanceFlight:
 #undef M4A1_GRENADE_STEP_PROJECTILE
 }
 
-#include "../../shared/grenade_shell_blast.inc.c"
-
-#include "../../shared/grenade_shell_exit.inc.c"
+#include "../../shared/effects/grenade_shell.inc.c"
 
 void m4a1GrenadeShellTask(Task* task)
 {

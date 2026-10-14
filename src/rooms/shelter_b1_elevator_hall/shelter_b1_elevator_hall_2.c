@@ -52,9 +52,9 @@
 
 #include "rooms/room_common.h"
 
-#include "../../shared/room_visual_effects.h"
-#include "../../shared/glow_draw.h"
-#include "../../shared/shelter_elevator.h"
+#include "../../shared/room/room_visual_effects.h"
+#include "../../shared/effects/glow_draw.h"
+#include "../../shared/room/shelter_elevator.h"
 
 /// Per-index shifts applied to the flash brightness, one per colour channel.
 
@@ -193,7 +193,7 @@ static SVECTOR _gShelterB1ElevatorHallGlowEndpointPairs[14][2] = {
 /// This empty suffix requires `ROOM_VISUAL_EFFECTS_HALO_STORAGE_TYPE` to be
 /// `RoomFxHaloStorage`. Bind around `room_visual_effects_halo_data.inc.c`.
 #define ROOM_VISUAL_EFFECTS_HALO_STORAGE_BOUND
-#include "../../shared/room_visual_effects_halo_data.inc.c"
+#include "../../shared/room/room_visual_effects_halo_data.inc.c"
 
 static void _glowDrawCapsule(const SVECTOR worldPoints[2], s32 radiusScale, s32 packedColor);
 
@@ -206,7 +206,7 @@ static inline const RoomFxShade* _roomVisualEffectsGetHaloShades(void)
 #undef ROOM_VISUAL_EFFECTS_HALO_STORAGE_TYPE
 #undef ROOM_VISUAL_EFFECTS_HALO_STORAGE_BOUND
 
-#include "../../shared/room_visual_effects_trail_data.inc.c"
+#include "../../shared/room/room_visual_effects_trail_data.inc.c"
 
 WorldCoordRoomLighting gShelterB1ElevatorHallRoomLighting[1] = {
     { &_gShelterB1ElevatorHallRoomLights, NULL },
@@ -832,16 +832,16 @@ void shelterB1ElevatorHallDrawGlowsTask(Task* task)
     }
 }
 
-#include "../../shared/glow_draw_capsule.inc.c"
+#include "../../shared/effects/glow_draw_capsule.inc.c"
 
-#include "../../shared/room_visual_effects.inc.c"
+#include "../../shared/room/room_visual_effects.inc.c"
 
 void shelterB1ElevatorHallRoomVisualEffectsMoteTask(Task* task)
 {
     _roomVisualEffectsMoteTask(task);
 }
 
-#include "../../shared/room_visual_effects_halo.inc.c"
+#include "../../shared/room/room_visual_effects_halo.inc.c"
 
 void shelterB1ElevatorHallRoomVisualEffectsHaloTask(Task* task)
 {
@@ -853,33 +853,30 @@ void shelterB1ElevatorHallRoomVisualEffectsHaloOrangeBurstTask(Task* task)
     _roomVisualEffectsHaloOrangeBurstTask(task);
 }
 
-#include "../../shared/room_visual_effects_glow_quad.inc.c"
-#include "../../shared/room_visual_effects_flash.inc.c"
+#include "../../shared/room/room_visual_effects_glow_quad.inc.c"
+#include "../../shared/room/room_visual_effects_flash.inc.c"
 
 void shelterB1ElevatorHallRoomVisualEffectsSparkEmitterTask(Task* task)
 {
     _roomVisualEffectsSparkEmitterTask(task);
 }
 
-#include "../../shared/room_visual_effects_flash_task.inc.c"
+#include "../../shared/room/room_visual_effects_flash_task.inc.c"
 
 void shelterB1ElevatorHallRoomVisualEffectsFlashTask(Task* task)
 {
     _roomVisualEffectsFlashTask(task);
 }
 
-#include "../../shared/room_visual_effects_trails.inc.c"
+#include "../../shared/room/room_visual_effects_trails.inc.c"
 
 void shelterB1ElevatorHallRoomVisualEffectsTwinTrailTask(Task* task)
 {
-#include "../../shared/room_visual_effects_trail_task.inc.c"
-}
+#include "../../shared/room/room_visual_effects_trail_task.inc.c"
 
-#include "../../shared/room_visual_effects_sparks.inc.c"
+    void shelterB1ElevatorHallRoomVisualEffectsSparkBurstTask(Task * task)
+    {
+        _roomVisualEffectsSparkBurstTask(task);
+    }
 
-void shelterB1ElevatorHallRoomVisualEffectsSparkBurstTask(Task* task)
-{
-    _roomVisualEffectsSparkBurstTask(task);
-}
-
-#include "../../shared/room_visual_effects_glow.inc.c"
+#include "../../shared/room/room_visual_effects_glow.inc.c"

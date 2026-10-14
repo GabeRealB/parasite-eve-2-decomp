@@ -25,10 +25,10 @@
 /// Selects the gate's TU-local room-transition task descriptor.
 ///
 /// Addressable `TaskDesc` lvalue; see `room_events.h` for the spawn contract.
-/// Bind before that header and keep through `room_event_gate.inc.c`.
+/// Bind before that header and keep through `room_event.inc.c`.
 #define ROOM_EVENT_TASK_DESC (_gRoomEventTaskDesc)
-#include "../../../../shared/room_events.h"
-#include "../../../../shared/room_variants.h"
+#include "../../../../shared/room/room_events.h"
+#include "../../../../shared/room/room_variants.h"
 
 static void _factoryRoomInit(Task* task);
 static void _factoryEntryIdle(Task* task);
@@ -70,9 +70,7 @@ static TaskMessageEntry _gFactoryMsgTable[6] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-#include "../../../../shared/room_event_gate.inc.c"
-
-#include "../../../../shared/room_event_task.inc.c"
+#include "../../../../shared/room/room_event.inc.c"
 
 /// Registers the factory room task and spawns its lift and barrier collision.
 ///

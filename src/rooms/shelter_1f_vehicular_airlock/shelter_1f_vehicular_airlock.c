@@ -56,9 +56,9 @@
 #include "rooms/room.h"
 
 #include "rooms/room_common.h"
-#include "../../shared/room_visual_effects.h"
-#include "../../shared/room_events.h"
-#include "../../shared/glow_draw.h"
+#include "../../shared/room/room_visual_effects.h"
+#include "../../shared/room/room_events.h"
+#include "../../shared/effects/glow_draw.h"
 
 /// Spawn argument of the helper task 0x31 the room's event task starts.
 extern RoomFadeStorage gRoomEventFade;
@@ -157,7 +157,7 @@ static SVECTOR _gShelter1fVehicularAirlockLightPoints[18] = {
     { -0x2882, -3610, -900, 0 },
 };
 
-#include "../../shared/room_visual_effects_trail_data.inc.c"
+#include "../../shared/room/room_visual_effects_trail_data.inc.c"
 
 WorldCollisionRoomResources gShelter1fVehicularAirlockCollisionResources[1] = {
     { &_gShelter1fVehicularAirlockCollisionGrid, _gShelter1fVehicularAirlockViewBoundaryTriggers, _gShelter1fVehicularAirlockActionTriggers, NULL },
@@ -422,7 +422,7 @@ void shelter1fVehicularAirlockUpdatePlacedModelVisibilityTask(Task* task)
     }
 }
 
-#include "../../shared/room_event_staged_task.inc.c"
+#include "../../shared/room/room_event_staged_task.inc.c"
 
 /// Latches an eligible departure event and starts its staged task on execution.
 ///
@@ -635,9 +635,9 @@ void shelter1fVehicularAirlockDrawLightsTask(Task* task)
     }
 }
 
-#include "../../shared/glow_draw_angled_capsule.inc.c"
+#include "../../shared/effects/glow_draw_angled_capsule.inc.c"
 
-#include "../../shared/glow_draw_factor_disc.inc.c"
+#include "../../shared/effects/glow_draw_factor_disc.inc.c"
 
 /// Initializes a Gouraud light diagonal with a coloured centre and black ends.
 ///
@@ -749,27 +749,24 @@ static void _shelter1fVehicularAirlockDrawPulsingLight(const SVECTOR* worldPoint
     SCRATCH_STACK_RELEASE_BLOCK(RoomGlowSpriteScratch);
 }
 
-#include "../../shared/room_visual_effects.inc.c"
+#include "../../shared/room/room_visual_effects.inc.c"
 
-#include "../../shared/room_visual_effects_flash_task.inc.c"
+#include "../../shared/room/room_visual_effects_flash_task.inc.c"
 
 void shelter1fVehicularAirlockRoomVisualEffectsFlashTask(Task* task)
 {
     _roomVisualEffectsFlashTask(task);
 }
 
-#include "../../shared/room_visual_effects_trails.inc.c"
+#include "../../shared/room/room_visual_effects_trails.inc.c"
 
 void shelter1fVehicularAirlockRoomVisualEffectsTwinTrailTask(Task* task)
 {
-#include "../../shared/room_visual_effects_trail_task.inc.c"
-}
+#include "../../shared/room/room_visual_effects_trail_task.inc.c"
 
-#include "../../shared/room_visual_effects_sparks.inc.c"
+    void shelter1fVehicularAirlockRoomVisualEffectsSparkBurstTask(Task * task)
+    {
+        _roomVisualEffectsSparkBurstTask(task);
+    }
 
-void shelter1fVehicularAirlockRoomVisualEffectsSparkBurstTask(Task* task)
-{
-    _roomVisualEffectsSparkBurstTask(task);
-}
-
-#include "../../shared/room_visual_effects_glow.inc.c"
+#include "../../shared/room/room_visual_effects_glow.inc.c"

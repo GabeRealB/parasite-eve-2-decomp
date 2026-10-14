@@ -31,8 +31,8 @@
 #include "main/tmd_types.h"
 // The scripted walk's update and walk-to handler run on this package's block.
 #define SCRIPTED_WALK_WORK_T _Actor260400Work
-#include "../../shared/scripted_walk.h"
-#include "../../shared/walker.h"
+#include "../../shared/walk/scripted_walk.h"
+#include "../../shared/walk/walker.h"
 
 /// Work block of the package's scripted walker, the wounded Rupert Broderick,
 /// allocated zeroed by the walker's spawn state and kept both at `Task::work`
@@ -1410,7 +1410,7 @@ static void _actor260400SpawnScriptedWalker(Enemy* enemy, Task* task)
     task->state++;
 }
 
-#include "../../shared/scripted_walk_update.inc.c"
+#include "../../shared/walk/scripted_walk_update.inc.c"
 
 /// Dispatches the hurt Rupert Broderick walker setup or frame update.
 ///
@@ -1444,7 +1444,7 @@ static void _actor260400ScriptedWalkerTask(Task* task)
 #define ACTOR_RENDER_UPDATE_WALKER _scriptedWalkUpdate
 /// Selects the declared static void(Task*) ground-shadow drawer for this inclusion.
 #define ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW _actorRenderDrawFixedWalkerGroundShadow
-#include "../../shared/walker_frame.inc.c"
+#include "../../shared/walk/walker_frame.inc.c"
 #undef ACTOR_RENDER_WALKER_FRAME
 #undef ACTOR_RENDER_UPDATE_WALKER
 #undef ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW
@@ -1465,7 +1465,7 @@ static void _actor260400ExitScriptedWalker(Task* task)
 }
 
 #define ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW _actorRenderDrawFixedWalkerGroundShadow
-#include "../../shared/walker_shadow.inc.c"
+#include "../../shared/walk/walker_shadow.inc.c"
 #undef ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW
 
 /// Attaches the one-part Mongoose model to a borrowed walker part.
@@ -1521,11 +1521,11 @@ static void _actor260400MongooseTask(Task* task)
     }
 }
 
-#include "../../shared/scripted_walk_tick_anim.inc.c"
+#include "../../shared/walk/scripted_walk_tick_anim.inc.c"
 
-#include "../../shared/scripted_walk_reset_anim.inc.c"
+#include "../../shared/walk/scripted_walk_reset_anim.inc.c"
 
-#include "../../shared/scripted_walk_blend_anim.inc.c"
+#include "../../shared/walk/scripted_walk_blend_anim.inc.c"
 
 /// Reseeds the published scripted walker from a borrowed animation request.
 ///
@@ -1592,7 +1592,7 @@ static s32 _actor260400SetScriptedWalkerModelDraw(Task* unusedTask, s32 messageI
     return 0;
 }
 
-#include "../../shared/scripted_walk_place.inc.c"
+#include "../../shared/walk/scripted_walk_place.inc.c"
 
 /// Applies the scripted walker's turn or Mongoose-permission command.
 ///
@@ -1634,4 +1634,4 @@ static s32 _actor260400ApplyScriptedWalkerCommand(Task* unusedTask, s32 messageI
     return 0;
 }
 
-#include "../../shared/scripted_walk_to.inc.c"
+#include "../../shared/walk/scripted_walk_to.inc.c"

@@ -61,12 +61,12 @@
 #include "mapui/map_neo_ark.h"
 
 #include "rooms/room_common.h"
-#include "../../shared/room_visual_effects.h"
+#include "../../shared/room/room_visual_effects.h"
 /// This room's `glowDrawDisc` stores the on-screen half-extent ahead of the
 /// GTE flag word. Defined before `glow_draw.h`, which otherwise selects
 /// `GlowCentreScratch`.
 #define GLOW_DRAW_DISC_SCRATCH GlowCentreRadiusFirstScratch
-#include "../../shared/glow_draw.h"
+#include "../../shared/effects/glow_draw.h"
 
 static WorldCollisionOccluder           _gNeoArkPowerPlant2Occluders[1];
 static const WorldCoordRoomAmbientEntry _gNeoArkPowerPlant2AmbientTable[10];
@@ -329,7 +329,7 @@ static const SVECTOR _gNeoArkPowerPlant2UnusedGeneratorClearPlayerPosition SECTI
 /// their teardown. Glow projection only borrows it for the draw call.
 static SVECTOR _gNeoArkPowerPlant2GeneratorGlowPosition = { 6140, -6085, -8500, 0 };
 
-#include "../../shared/room_visual_effects_trail_data.inc.c"
+#include "../../shared/room/room_visual_effects_trail_data.inc.c"
 
 WorldCollisionRoomResources gNeoArkPowerPlant2CollisionRooms[1] = {
     { .grid                 = &_gNeoArkPowerPlant2CollisionGrid,
@@ -1306,47 +1306,44 @@ void neoArkPowerPlant2UpdateViewLightingTask(Task* task)
     }
 }
 
-#include "../../shared/glow_draw_disc.inc.c"
+#include "../../shared/effects/glow_draw_disc.inc.c"
 
-#include "../../shared/room_visual_effects.inc.c"
+#include "../../shared/room/room_visual_effects.inc.c"
 
-#include "../../shared/room_visual_effects_flash_task.inc.c"
+#include "../../shared/room/room_visual_effects_flash_task.inc.c"
 
 void neoArkPowerPlant2RoomVisualEffectsFlashTask(Task* task)
 {
     _roomVisualEffectsFlashTask(task);
 }
 
-#include "../../shared/room_visual_effects_trails.inc.c"
+#include "../../shared/room/room_visual_effects_trails.inc.c"
 
 void neoArkPowerPlant2RoomVisualEffectsTwinTrailTask(Task* task)
 {
-#include "../../shared/room_visual_effects_trail_task.inc.c"
-}
+#include "../../shared/room/room_visual_effects_trail_task.inc.c"
 
-#include "../../shared/room_visual_effects_sparks.inc.c"
-
-void neoArkPowerPlant2RoomVisualEffectsSparkBurstTask(Task* task)
-{
-    _roomVisualEffectsSparkBurstTask(task);
-}
-
-#include "../../shared/room_visual_effects_glow.inc.c"
-
-void neoArkPowerPlant2SetView6SpritesHidden(u8 hidden)
-{
-    enum { VIEW_INDEX      = 5,
-           BATCH_INDEX     = 2,
-           SPRITES_VISIBLE = 0,
-           SPRITES_HIDDEN  = 1 };
-
-    const GameLocationKey* location = &gGameSession->location;
-    SpriteBatch*           view6Batches;
-
-    view6Batches = gSpriteAreaTables[location->stage - 1]->areaViews[location->area - 1][VIEW_INDEX].batches;
-    if (hidden == SPRITES_VISIBLE) {
-        view6Batches[BATCH_INDEX].hidden = SPRITES_VISIBLE;
-    } else if (hidden == SPRITES_HIDDEN) {
-        view6Batches[BATCH_INDEX].hidden = SPRITES_HIDDEN;
+    void neoArkPowerPlant2RoomVisualEffectsSparkBurstTask(Task * task)
+    {
+        _roomVisualEffectsSparkBurstTask(task);
     }
-}
+
+#include "../../shared/room/room_visual_effects_glow.inc.c"
+
+    void neoArkPowerPlant2SetView6SpritesHidden(u8 hidden)
+    {
+        enum { VIEW_INDEX      = 5,
+               BATCH_INDEX     = 2,
+               SPRITES_VISIBLE = 0,
+               SPRITES_HIDDEN  = 1 };
+
+        const GameLocationKey* location = &gGameSession->location;
+        SpriteBatch*           view6Batches;
+
+        view6Batches = gSpriteAreaTables[location->stage - 1]->areaViews[location->area - 1][VIEW_INDEX].batches;
+        if (hidden == SPRITES_VISIBLE) {
+            view6Batches[BATCH_INDEX].hidden = SPRITES_VISIBLE;
+        } else if (hidden == SPRITES_HIDDEN) {
+            view6Batches[BATCH_INDEX].hidden = SPRITES_HIDDEN;
+        }
+    }

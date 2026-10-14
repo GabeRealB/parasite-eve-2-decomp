@@ -23,7 +23,7 @@
 #include "main/task_types.h"
 
 #include "overlay.h"
-#include "../../shared/screen_fade.h"
+#include "../../shared/screen/screen_fade.h"
 
 /// Work block of the task that runs the gas station's arrival sequence: the
 /// movie, then the in-room cutscene.
@@ -123,7 +123,7 @@ void dryfieldGasStationArrivalMovieTask(Task* task)
     }
 }
 
-#include "../../shared/screen_fade_in.inc.c"
+#include "../../shared/screen/screen_fade_in.inc.c"
 
 /// Hands presentation to the arrival movie and keeps current-view packets queued.
 ///

@@ -29,7 +29,7 @@
 
 #include "rooms/room_common.h"
 
-#include "../../shared/room_variants.h"
+#include "../../shared/room/room_variants.h"
 
 /// Destination location cell retained while the player confirms passage departure.
 ///

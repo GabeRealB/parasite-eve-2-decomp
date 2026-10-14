@@ -73,8 +73,8 @@
 #include "rooms/shop_tier.h"
 // Symbol is `RoomCutsceneSoundTaskStorage`; the runner reads `task`.
 #define ROOM_CUTSCENE_SOUND_TASK gRoomCutsceneSoundTask.task
-#include "../../shared/room_cutscene.h"
-#include "../../shared/glow_draw.h"
+#include "../../shared/room/room_cutscene.h"
+#include "../../shared/effects/glow_draw.h"
 static void _roomCutsceneTask(Task* task);
 
 /// Selects the daytime trailer coach view that uses the finer depth shift.
@@ -89,14 +89,14 @@ static void _roomCutsceneSoundTask(Task* task);
 
 static s32 _gShopPreviewRowId;
 
-#include "../../shared/telephone.h"
+#include "../../shared/room/telephone.h"
 
 static const u16 _gShopStandardDefaultWeaponsStock[];
 static const u16 _gShopStandardDefaultAmmunitionStock[];
 static const u16 _gShopStandardDefaultArmorStock[];
 static const u16 _gShopStandardDefaultItemsStock[];
 
-#include "../../shared/shop.h"
+#include "../../shared/room/shop.h"
 
 static s32  _dryfieldTrailerCoachRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unusedSecondArg);
 static s32  _dryfieldTrailerCoachResolveRoomEvent(Task* task, s32 messageId, const RoomEventMsg* request, RoomEventMsg* reply);
@@ -121,9 +121,7 @@ static const WorldCoordRoomAmbientEntry _gDryfieldTrailerCoachAmbientByView[DRYF
 static WorldCoordRoomLights             _gDryfieldTrailerCoachLights;
 static void                             _dryfieldTrailerCoachStartConversationCaption(void);
 
-#include "../../shared/shop_data.inc.c"
-
-#include "../../shared/shop_panels.inc.c"
+#include "../../shared/room/shop_data.inc.c"
 
 TaskDesc gDryfieldTrailerCoachShopSessionTaskDesc = {
     .header   = { .fields = { .flags = TASK_BODY_NONE, .priority = 192 } },
@@ -163,7 +161,7 @@ TmdSource gDryfieldTrailerCoachAcropolisSanctuaryModel090F0 = {
     _gDryfieldTrailerCoachAcropolisSanctuaryModel090F0Stream,
 };
 
-#include "../../shared/telephone_data.inc.c"
+#include "../../shared/room/telephone_data.inc.c"
 
 static AnimationPackedPose _gDryfieldTrailerCoachAnimation07668Bank1[3] = {
 #include "assets/dryfield_trailer_coach_animation_07668_bank1.inc"
@@ -2114,7 +2112,7 @@ static void _dryfieldTrailerCoachOpenTopicChoice(Task* task);
 ///
 /// One-byte string-literal binding for `shop.inc.c`; label drawing does not read it.
 #define SHOP_WEAPON_SUPPLY_REFILL_TITLE_TRAILING_BYTES "\xEF"
-#include "../../shared/shop.inc.c"
+#include "../../shared/room/shop.inc.c"
 #undef SHOP_WEAPON_SUPPLY_REFILL_TITLE_TRAILING_BYTES
 #undef SHOP_REFILL_DISPLAY_QUANTITY
 #undef SHOP_REFILL_SUPPLY
@@ -2123,7 +2121,7 @@ static void _dryfieldTrailerCoachOpenTopicChoice(Task* task);
 ///
 /// Two-byte string-literal binding for `telephone.inc.c`; unused by label drawing.
 #define TELEPHONE_MENU_TITLE_TRAILING_BYTES "\xD0\xFF"
-#include "../../shared/telephone.inc.c"
+#include "../../shared/room/telephone.inc.c"
 #undef TELEPHONE_MENU_TITLE_TRAILING_BYTES
 
 void dryfieldTrailerCoachTelephoneMenuTask(Task* task)
@@ -2131,9 +2129,9 @@ void dryfieldTrailerCoachTelephoneMenuTask(Task* task)
     _telephoneMenuTask(task);
 }
 
-#include "../../shared/telephone_panels.inc.c"
+#include "../../shared/room/telephone_panels.inc.c"
 
-#include "../../shared/room_cutscene_task.inc.c"
+#include "../../shared/room/room_cutscene_task.inc.c"
 
 /// Starts the first story conversation and commits the progress it establishes.
 ///
@@ -2212,7 +2210,7 @@ static void _dryfieldTrailerCoachConversationTask(Task* task)
     }
 }
 
-#include "../../shared/room_cutscene_sound_task.inc.c"
+#include "../../shared/room/room_cutscene_sound_task.inc.c"
 
 /// Refuses every key-item use in this room without consuming the item.
 ///
@@ -2479,7 +2477,7 @@ void dryfieldTrailerCoachRoomTask(Task* task)
     stateHandlers.funcs[task->state](task);
 }
 
-#include "../../shared/glow_draw_star_local.inc.c"
+#include "../../shared/effects/glow_draw_star_local.inc.c"
 
 /// Computes the ray star's signed half intensity before its first disc packet.
 ///
@@ -2516,7 +2514,7 @@ void dryfieldTrailerCoachRoomTask(Task* task)
 /// Define before including `glow_draw_ray_star.inc.c`, which undefines this
 /// binding afterwards.
 #define GLOW_DRAW_RAY_STAR_RAY(primitive, halfIntensity) (setRGB2((primitive), 0, (halfIntensity), (halfIntensity)))
-#include "../../shared/glow_draw_ray_star.inc.c"
+#include "../../shared/effects/glow_draw_ray_star.inc.c"
 
 void dryfieldTrailerCoachDrawGlowsTask(Task* task)
 {

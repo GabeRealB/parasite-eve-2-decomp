@@ -46,7 +46,7 @@
 
 #include "mapui/map_neo_ark.h"
 
-#include "../../shared/room_variants.h"
+#include "../../shared/room/room_variants.h"
 
 #include "rooms/room.h"
 
@@ -57,10 +57,10 @@
 /// Empty presence flag needed only while including the shared header, which
 /// declares the external table of two SVECTOR entries and binds the task's accesses.
 #define ROOM_VISUAL_EFFECTS_SHARED_TRAIL_ENDPOINT_OFFSETS
-#include "../../shared/room_visual_effects.h"
+#include "../../shared/room/room_visual_effects.h"
 #undef ROOM_VISUAL_EFFECTS_SHARED_TRAIL_ENDPOINT_OFFSETS
-#include "../../shared/room_events.h"
-#include "../../shared/falling_leaves.h"
+#include "../../shared/room/room_events.h"
+#include "../../shared/effects/falling_leaves.h"
 
 static RoomEventMsg     _gRoomEventStagedMsg;
 extern RoomLatchedEvent gRoomEventLatched;
@@ -108,7 +108,7 @@ s16 gRoamerReserveHp[5] = {
     0,
 };
 
-#include "../../shared/room_event_staged_task.inc.c"
+#include "../../shared/room/room_event_staged_task.inc.c"
 
 s32 neoArkForestZoneRejectKeyItemMessage(Task* task, s32 messageId, s32 itemId, s32 secondArg)
 {
@@ -280,14 +280,14 @@ void neoArkForestZoneRoomTask(Task* task)
     handlers.funcs[task->state](task);
 }
 
-#include "../../shared/falling_leaves_task.inc.c"
+#include "../../shared/effects/falling_leaves_task.inc.c"
 
 void neoArkForestZoneLeafFallTask(Task* task)
 {
     _leafFallTask(task);
 }
 
-#include "../../shared/falling_leaves_draw_neo_ark.inc.c"
+#include "../../shared/effects/falling_leaves_draw_neo_ark.inc.c"
 
 void neoArkForestZoneConfigureEffectsTask(Task* task)
 {
@@ -303,27 +303,24 @@ void neoArkForestZoneConfigureEffectsTask(Task* task)
     }
 }
 
-#include "../../shared/room_visual_effects.inc.c"
+#include "../../shared/room/room_visual_effects.inc.c"
 
-#include "../../shared/room_visual_effects_flash_task.inc.c"
+#include "../../shared/room/room_visual_effects_flash_task.inc.c"
 
 void neoArkForestZoneRoomVisualEffectsFlashTask(Task* task)
 {
     _roomVisualEffectsFlashTask(task);
 }
 
-#include "../../shared/room_visual_effects_trails.inc.c"
+#include "../../shared/room/room_visual_effects_trails.inc.c"
 
 void neoArkForestZoneRoomVisualEffectsTwinTrailTask(Task* task)
 {
-#include "../../shared/room_visual_effects_trail_task.inc.c"
-}
+#include "../../shared/room/room_visual_effects_trail_task.inc.c"
 
-#include "../../shared/room_visual_effects_sparks.inc.c"
+    void neoArkForestZoneRoomVisualEffectsSparkBurstTask(Task * task)
+    {
+        _roomVisualEffectsSparkBurstTask(task);
+    }
 
-void neoArkForestZoneRoomVisualEffectsSparkBurstTask(Task* task)
-{
-    _roomVisualEffectsSparkBurstTask(task);
-}
-
-#include "../../shared/room_visual_effects_glow.inc.c"
+#include "../../shared/room/room_visual_effects_glow.inc.c"

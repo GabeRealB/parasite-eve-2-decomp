@@ -71,7 +71,7 @@ static Task* _gDryfieldWaterTankPropSceneTask;
 #include "mapui/map_dryfield.h"
 
 #include "overlay.h"
-#include "../../shared/screen_fade.h"
+#include "../../shared/screen/screen_fade.h"
 
 static WorldCoordRoomAmbientEntry _gDryfieldWaterTankViewAmbientColors[11];
 
@@ -2004,7 +2004,7 @@ void dryfieldWaterTankSetPropModelDraw(Task* task, s32 messageId, s32 visible, s
     model->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
 }
 
-#include "../../shared/actor_messages_place_ypr.inc.c"
+#include "../../shared/actor/actor_messages_place_ypr.inc.c"
 
 void dryfieldWaterTankRestartPropSlide(Task* task, s32 messageId, const ActorCommand* command, s32 secondArg)
 {
@@ -2044,4 +2044,4 @@ void dryfieldWaterTankSkipPropScene(void)
     sndEvtRequestScriptStop(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_WATER_TANK, DRYFIELD_WATER_TANK_PROP_SCENE_SOUND_ENTRY), DRYFIELD_WATER_TANK_PROP_SCENE_SKIP_FADE_TICKS);
 }
 
-#include "../../shared/screen_fade_in_tile.inc.c"
+#include "../../shared/screen/screen_fade_in_tile.inc.c"

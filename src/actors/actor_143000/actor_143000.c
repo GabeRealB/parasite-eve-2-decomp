@@ -33,7 +33,7 @@
 #include "main/sound.h"
 #include "main/task.h"
 #include "main/task_types.h"
-#include "../../shared/action_prompt.h"
+#include "../../shared/room/action_prompt.h"
 
 /// Maximum entered characters, excluding the trailing NUL written by the drawer.
 ///
@@ -398,9 +398,9 @@ static void _actor143000InitializeKeypad(Task* task);
 static void _actor143000HandleKeypadInput(Task* task);
 static void _actor143000DrawKeypad(Task* task);
 
-#include "../../shared/action_prompt_move_cursors.inc.c"
+#include "../../shared/room/action_prompt_move_cursors.inc.c"
 
-#include "../../shared/action_prompt_draw_cursor.inc.c"
+#include "../../shared/room/action_prompt_draw_cursor.inc.c"
 
 /// Allocates the keypad work, starts its cursor and takes menu presentation.
 ///
@@ -877,7 +877,7 @@ static void _actor143000DrawKeypad(Task* task)
 
 #undef ACTOR_143000_RESERVE_KEYPAD_QUAD
 
-#include "../../shared/action_prompt_outline_rect.inc.c"
+#include "../../shared/room/action_prompt_outline_rect.inc.c"
 
 /// Resets the keypad's action cursors, then updates them on each task tick.
 ///
@@ -1173,7 +1173,7 @@ static void _actor143000OutlineKeypadHotspots(void)
     }
 }
 
-#include "../../shared/action_prompt_reset.inc.c"
+#include "../../shared/room/action_prompt_reset.inc.c"
 
 /// Captures full-width rows of the stored background into the resident workspace.
 ///

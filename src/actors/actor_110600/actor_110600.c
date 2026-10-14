@@ -54,9 +54,9 @@
 #include "main/wipsys_types.h"
 
 #include "overlay.h"
-#include "../../shared/player_detection.h"
-#include "../../shared/actor_contacts.h"
-#include "../../shared/boss_stranger.h"
+#include "../../shared/actor/player_detection.h"
+#include "../../shared/actor/actor_contacts.h"
+#include "../../shared/creatures/boss_stranger/boss_stranger.h"
 
 /// Scratch-stack block the patrol layout works in while it places the walker's
 /// nav nodes.
@@ -1101,25 +1101,11 @@ static void            _actor110600ShudderState(Task* task);
 static void            _actor110600EnrageState(Task* task);
 static void            _actor110600Update(Enemy* enemy, Task* task);
 
-#include "../../shared/actor_contacts_turn_joint.inc.c"
+#include "../../shared/actor/actor_contacts_turn_joint.inc.c"
 
-#include "../../shared/actor_contacts_push_contact.inc.c"
+#include "../../shared/actor/actor_contacts_push_contact.inc.c"
 
-#include "../../shared/boss_stranger_arrived.inc.c"
-
-#include "../../shared/boss_stranger_follow_route.inc.c"
-
-#include "../../shared/boss_stranger_nearest_player.inc.c"
-
-#include "../../shared/boss_stranger_nearest_self.inc.c"
-
-#include "../../shared/boss_stranger_plan_toward.inc.c"
-
-#include "../../shared/boss_stranger_ground_step.inc.c"
-
-#include "../../shared/boss_stranger_avoid_contacts.inc.c"
-
-#include "../../shared/boss_stranger_turn_toward.inc.c"
+#include "../../shared/creatures/boss_stranger/boss_stranger.inc.c"
 
 /// Lays out the spawn-time patrol around the walker's current position.
 ///
@@ -1166,9 +1152,7 @@ static void _actor110600LayPatrolNodes(BossStrangerWalker* walker, s16 radius, s
     SCRATCH_STACK_RELEASE_BLOCK(_Actor110600PatrolLayoutScratch);
 }
 
-#include "../../shared/boss_stranger_inlines.inc.c"
-
-#include "../../shared/boss_stranger_tick.inc.c"
+#include "../../shared/creatures/boss_stranger/boss_stranger_inlines.inc.c"
 
 /// Rebuilds the actor root from its current yaw at a uniform signed Q12 scale.
 ///
@@ -1290,7 +1274,7 @@ static s32 _actor110600ApplyCommand(Task* task, s32 messageId, const ActorComman
     return 0;
 }
 
-#include "../../shared/player_detection_reach.inc.c"
+#include "../../shared/actor/player_detection_reach.inc.c"
 
 /// Advances both rigs and blends their rotations over model parts 1..10.
 ///
@@ -3596,7 +3580,7 @@ static s32 _actor110600IsPresent(Task* task, s32 messageId, s32 firstArg, s32 se
     return 0;
 }
 
-#include "../../shared/coord_math_yaw_scale.inc.c"
+#include "../../shared/actor/coord_math_yaw_scale.inc.c"
 
 /// Replaces a coordinate's rotation with its current yaw and independent axis scales.
 ///

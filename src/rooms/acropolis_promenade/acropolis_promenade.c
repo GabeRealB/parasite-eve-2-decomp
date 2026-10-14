@@ -67,9 +67,9 @@
 #include "rooms/room.h"
 
 #include "rooms/room_common.h"
-#include "../../shared/glow_draw.h"
-#include "../../shared/bridge_model.h"
-#include "../../shared/acropolis_glows.h"
+#include "../../shared/effects/glow_draw.h"
+#include "../../shared/room/bridge_model.h"
+#include "../../shared/effects/acropolis_glows.h"
 
 static void _acropolisPromenadeInitializeRoomTask(Task* task);
 static void _acropolisPromenadeUpdateRoomProgress(Task* unusedTask);
@@ -2054,7 +2054,7 @@ void acropolisPromenadeRoomTask(Task* task)
     stateHandlers.funcs[task->state](task);
 }
 
-#include "../../shared/bridge_model_setup.inc.c"
+#include "../../shared/room/bridge_model_setup.inc.c"
 
 /// Hides the bridge model in promenade view 5 and enables it in the other views.
 ///
@@ -2425,7 +2425,7 @@ void acropolisPromenadeScreenDripTask(Task* task)
 /// the separate storage; the Bridge omits it. The fragment undefines the
 /// switch after compiling this instance.
 #define GLOW_STAR_STORE_HALF_HEIGHT 1
-#include "../../shared/acropolis_glows_star.inc.c"
+#include "../../shared/effects/acropolis_glows_star.inc.c"
 
 /// Places one corner of the ground glow in the task's composed coordinate space.
 ///
@@ -2537,6 +2537,6 @@ void acropolisPromenadeGroundGlowTask(Task* task)
 /// Define this function identifier immediately before the lamp fragment, which
 /// undefines it. No arguments, conditional alternatives or tokens are constructed.
 #define GLOW_LAMP_TASK acropolisPromenadeGlowLampTask
-#include "../../shared/acropolis_glows_lamp.inc.c"
+#include "../../shared/effects/acropolis_glows_lamp.inc.c"
 
-#include "../../shared/glow_draw_tinted_disc_no_bias.inc.c"
+#include "../../shared/effects/glow_draw_tinted_disc_no_bias.inc.c"

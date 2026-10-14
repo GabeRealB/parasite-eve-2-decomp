@@ -27,9 +27,9 @@
 #include "main/session.h"
 #include "main/session_types.h"
 #include "main/tmd_types.h"
-#include "../../shared/actor_messages.h"
-#include "../../shared/footstep_walk.h"
-#include "../../shared/walker.h"
+#include "../../shared/actor/actor_messages.h"
+#include "../../shared/walk/footstep_walk.h"
+#include "../../shared/walk/walker.h"
 
 static void _footstepWalkQuietUpdate(Task* task);
 static void _footstepWalkQuietResetAnim(void);
@@ -1786,7 +1786,7 @@ static void _footstepWalkQuietSpawn(Enemy* enemy, Task* task)
     task->state++;
 }
 
-#include "../../shared/footstep_walk_quiet_update.inc.c"
+#include "../../shared/walk/footstep_walk_quiet_update.inc.c"
 
 /// Dispatches actor 260500's quiet-walker spawn or ordinary model frame.
 ///
@@ -1819,7 +1819,7 @@ static void _actor260500Task(Task* task)
 #define ACTOR_RENDER_UPDATE_WALKER _footstepWalkQuietUpdate
 /// Selects the declared static void(Task*) ground-shadow drawer for this inclusion.
 #define ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW _actorRenderDrawFixedWalkerGroundShadow
-#include "../../shared/walker_frame.inc.c"
+#include "../../shared/walk/walker_frame.inc.c"
 #undef ACTOR_RENDER_WALKER_FRAME
 #undef ACTOR_RENDER_UPDATE_WALKER
 #undef ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW
@@ -1833,11 +1833,9 @@ static void _footstepWalkExit(Task* task)
     enemyDestroy(task->spawnArg2.pointer, task);
 }
 
-#include "../../shared/footstep_walk_tick_anim.inc.c"
+#include "../../shared/walk/footstep_walk_tick_anim.inc.c"
 
-#include "../../shared/footstep_walk_quiet_reset_anim.inc.c"
-
-#include "../../shared/footstep_walk_quiet_blend_anim.inc.c"
+#include "../../shared/walk/footstep_walk_quiet.inc.c"
 
 /// Starts the published quiet walker's requested animation synchronously.
 ///
@@ -1895,7 +1893,7 @@ static s32 _footstepWalkSetModelDraw(Task* unusedTask, s32 messageId, s32 drawMo
     return 0;
 }
 
-#include "../../shared/footstep_walk_place.inc.c"
+#include "../../shared/walk/footstep_walk_place.inc.c"
 
 /// Schedules twenty turning updates for quiet-walker command 0.
 ///
@@ -1970,5 +1968,5 @@ static s32 _footstepWalkSetWalkTarget(Task* task, s32 messageId, const VECTOR* t
 }
 
 #define ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW _actorRenderDrawFixedWalkerGroundShadow
-#include "../../shared/walker_shadow.inc.c"
+#include "../../shared/walk/walker_shadow.inc.c"
 #undef ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW

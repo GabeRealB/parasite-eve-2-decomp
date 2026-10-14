@@ -79,7 +79,7 @@
 #include "overlay.h"
 
 #include "rooms/room_common.h"
-#include "../../shared/glow_draw.h"
+#include "../../shared/effects/glow_draw.h"
 
 /// Selects this room's billboard declaration with `s32` frame and size arguments.
 ///
@@ -94,10 +94,10 @@
 /// the aimed drift fragment, which clears it. The two Shelter B3 carriers each
 /// supply their own export; no arguments, captured locals or tokens are built.
 #define EFFECT_SPRITE_DRIFT_AIMED_TASK shelterB3DumpingHoleEffectSpriteDriftTaskAimed
-#include "../../shared/effect_sprite.h"
+#include "../../shared/effects/effect_sprite.h"
 #undef EFFECT_SPRITE_BILLBOARD_WORD_ARGUMENTS
 
-#include "../../shared/actor_messages.h"
+#include "../../shared/actor/actor_messages.h"
 
 static void _effectSpriteDrawBanked(const GfxCoord* coord, u16 frameAndPalette, s16 size, s16 angle);
 static void _effectSpriteDrawRotated(const GfxCoord* coord, u16 frameAndPalette, s16 size, s16 angle);
@@ -180,7 +180,7 @@ enum {
 enum { SHELTER_B3_DUMPING_HOLE_SPRITE_WORK_BYTES = 0x24 };
 
 static void _shelterB3DumpingHoleShowTimedCaption(s16 commandIndex, s16 key, s16 durationTicks);
-#include "../../shared/cap_captions.h"
+#include "../../shared/room/cap_captions.h"
 
 static void _capCaptionRunSchedule(Task* task);
 
@@ -524,7 +524,7 @@ static void _shelterB3DumpingHoleEncounterPairWaitFrame(Task* waveTask);
 static void _overlayEncounterPairRevealFirst(Task* waveTask);
 static void _shelterB3DumpingHoleEncounterPairRevealSecond(Task* waveTask);
 static void _shelterB3DumpingHoleEncounterPairWatch(Task* waveTask);
-static void _madChaserWavePairDropDead(Task* task);
+static void _overlayEncounterForgetDeadPairMembers(Task* task);
 
 static void _shelterB3DumpingHoleDebrisSpriteTask(Task* task);
 static void _shelterB3DumpingHoleActorSpriteTask(Task* task);
@@ -1205,7 +1205,7 @@ EvsCommand gShelterB3DumpingHoleArrivalEventSkipScript[14] = {
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-#include "../../shared/cap_captions_settings.inc.c"
+#include "../../shared/room/cap_captions_settings.inc.c"
 
 enum { SHELTER_B3_DUMPING_HOLE_ENCOUNTER_CAPTION_TASK_PRIORITY = 32 };
 
@@ -1213,7 +1213,7 @@ TaskDesc gShelterB3DumpingHoleEncounterCaptionTaskDescriptors[1] = {
     { { { TASK_BODY_NONE, SHELTER_B3_DUMPING_HOLE_ENCOUNTER_CAPTION_TASK_PRIORITY } }, _capCaptionRunSchedule, { .value = 0 } }
 };
 
-#include "../../shared/cap_captions_schedule.inc.c"
+#include "../../shared/room/cap_captions_schedule.inc.c"
 
 WorldCollisionRoomResources gShelterB3DumpingHoleRoomCollisionResources[2] = {
     { &_gShelterB3DumpingHoleCollisionGrid, NULL, _gShelterB3DumpingHoleRoom1ActionTriggers, NULL },
@@ -4442,9 +4442,9 @@ static void _shelterB3DumpingHoleCollapseEventTask(Task* task)
     worldCoordSetModelLighting(lightingModel, &scratch.position, 0, 3);
 }
 
-#include "../../shared/actor_messages_draw_mode.inc.c"
+#include "../../shared/actor/actor_messages_draw_mode.inc.c"
 
-#include "../../shared/actor_messages_place_ypr.inc.c"
+#include "../../shared/actor/actor_messages_place_ypr.inc.c"
 
 /// Releases the collapse event's battle hold and requests weapon re-equipping once.
 ///
@@ -4574,7 +4574,7 @@ static void _shelterB3DumpingHoleRequestPlayerSpriteStop(s32 selector)
     _shelterB3DumpingHoleStopPlayerSprites(selector);
 }
 
-#include "../../shared/cap_captions.inc.c"
+#include "../../shared/room/cap_captions.inc.c"
 
 /// Selects a keyed room caption and spawns its timed drawing task.
 ///
@@ -4587,7 +4587,7 @@ static void _shelterB3DumpingHoleShowTimedCaption(s16 commandIndex, s16 key, s16
     _capCaptionShowTimed(commandIndex, key, durationTicks);
 }
 
-#include "../../shared/cap_captions_resource.inc.c"
+#include "../../shared/room/cap_captions_resource.inc.c"
 
 void shelterB3DumpingHoleSelectCaptionResource(s16 texturePageX, s16 texturePageY, s16 dataResourceIndex)
 {
@@ -5043,7 +5043,7 @@ static void _shelterB3DumpingHoleEncounterSpawnSlouch(Task* waveTask)
     taskKill(waveTask);
 }
 
-#include "../../shared/mad_chaser_waves_reveal_second.inc.c"
+#include "../../shared/creatures/mad_chaser/mad_chaser_waves_reveal_second.inc.c"
 
 /// Completes this Slouch encounter slot once its enemy has no hit points.
 ///
@@ -5068,7 +5068,7 @@ static void _shelterB3DumpingHoleEncounterPairWaitFrame(Task* waveTask)
     waveTask->state++;
 }
 
-#include "../../shared/mad_chaser_waves_pair_reveal_first.inc.c"
+#include "../../shared/creatures/mad_chaser/mad_chaser_waves_pair_reveal_first.inc.c"
 
 /// Forgets dead pair members and reveals the second Sucklerceph on delay update 61.
 ///
@@ -5083,7 +5083,7 @@ static void _shelterB3DumpingHoleEncounterPairRevealSecond(Task* waveTask)
     OverlayEncounterPairWork* work  = waveTask->work;
     Enemy*                    enemy = work->enemy1;
 
-    _madChaserWavePairDropDead(waveTask);
+    _overlayEncounterForgetDeadPairMembers(waveTask);
     if (work->enemy1 != NULL) {
         if (++work->frames <= SHELTER_B3_DUMPING_HOLE_PAIR_REVEAL_DELAY_UPDATES) {
             return;
@@ -5115,7 +5115,7 @@ static void _shelterB3DumpingHoleEncounterPairWatch(Task* waveTask)
 {
     OverlayEncounterPairWork* work = waveTask->work;
 
-    _madChaserWavePairDropDead(waveTask);
+    _overlayEncounterForgetDeadPairMembers(waveTask);
     if (work->goneMask == OVERLAY_ENCOUNTER_PAIR_GONE_BOTH) {
         _gShelterB3DumpingHoleEncounterSlots[waveTask->spawnArg1.halves.high].status = OVERLAY_ENCOUNTER_SLOT_DONE;
         taskKill(waveTask);
@@ -5142,30 +5142,7 @@ static void _shelterB3DumpingHoleEncounterSpawnSlot(s16 slotIndex, s16 kind, s16
     }
 }
 
-/// Forgets dead encounter-pair enemies and marks their slots gone on the next check.
-///
-/// Only HP at or below zero clears a non-NULL borrowed enemy pointer. A
-/// pointer already NULL sets its goneMask bit; clearing and marking occur
-/// on successive calls. Enemy tasks remain owned by the actor system.
-static void _madChaserWavePairDropDead(Task* task)
-{
-    OverlayEncounterPairWork* work = task->work;
-
-    if (work->enemy0 != NULL) {
-        if (work->enemy0->hp <= 0) {
-            work->enemy0 = NULL;
-        }
-    } else {
-        work->goneMask |= OVERLAY_ENCOUNTER_PAIR_GONE_ENEMY0;
-    }
-    if (work->enemy1 != NULL) {
-        if (work->enemy1->hp <= 0) {
-            work->enemy1 = NULL;
-        }
-    } else {
-        work->goneMask |= OVERLAY_ENCOUNTER_PAIR_GONE_ENEMY1;
-    }
-}
+#include "../../shared/creatures/mad_chaser/overlay_encounter_forget_dead_pair_members.inc.c"
 
 void shelterB3DumpingHoleDrawViewGlowsTask(Task* task)
 {
@@ -5326,15 +5303,15 @@ void shelterB3DumpingHoleDrawViewGlowsTask(Task* task)
     }
 }
 
-#include "../../shared/glow_draw_capsule.inc.c"
+#include "../../shared/effects/glow_draw_capsule.inc.c"
 
-#include "../../shared/glow_draw_disc.inc.c"
+#include "../../shared/effects/glow_draw_disc.inc.c"
 
-#include "../../shared/effect_sprite_drift_aimed.inc.c"
+#include "../../shared/effects/effect_sprite_drift_aimed.inc.c"
 
-#include "../../shared/effect_sprite_draw_banked.inc.c"
+#include "../../shared/effects/effect_sprite_draw_banked.inc.c"
 
-#include "../../shared/effect_sprite_draw_rotated.inc.c"
+#include "../../shared/effects/effect_sprite_draw_rotated.inc.c"
 
 void shelterB3DumpingHoleGluttonRainParticleTask(Task* task)
 {
@@ -5480,9 +5457,7 @@ void shelterB3DumpingHoleGluttonRainParticleTask(Task* task)
     }
 }
 
-#include "../../shared/effect_sprite_draw_chip.inc.c"
-
-#include "../../shared/effect_sprite_draw_billboard.inc.c"
+#include "../../shared/effects/effect_sprite_draw.inc.c"
 
 /// Attaches the rain effect at its projectile parent's origin and refreshes its cache.
 ///

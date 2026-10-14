@@ -67,8 +67,8 @@
 #include "rooms/room.h"
 
 #include "rooms/room_common.h"
-#include "../../shared/glow_draw.h"
-#include "../../shared/room_cutscene.h"
+#include "../../shared/effects/glow_draw.h"
+#include "../../shared/room/room_cutscene.h"
 
 static void _roomCutsceneTask(Task* task);
 
@@ -109,13 +109,13 @@ static s32 _motelRoom6CutsceneMessage(Task* task, s32 messageId, s32 command, s3
 
 static void _dryfieldMotelRoom6IgnoreCommand(Task* unusedTask, s32 unusedMessageId, s32 unusedCommand, s32 unusedSecondArg);
 
-#include "../../shared/telephone.h"
+#include "../../shared/room/telephone.h"
 
 /// Defines the reflection scale at the shared implementation's include position.
 ///
 /// 1 lets `planar_reflection.inc.c` include `planar_reflection_rodata.inc.c`.
 #define PLANAR_REFLECTION_DEFINE_SCALE_WITH_IMPLEMENTATION 1
-#include "../../shared/planar_reflection.h"
+#include "../../shared/room/planar_reflection.h"
 
 static void _dryfieldMotelRoom6InitRoomTask(Task* task);
 static void _dryfieldMotelRoom6IdleTask(Task* unusedTask);
@@ -134,9 +134,9 @@ static void                             _dryfieldMotelRoom6RunActorEventTask(Tas
 /// Key-item use request sent to the room task by the inventory menu.
 enum { DRYFIELD_MOTEL_ROOM_6_MESSAGE_USE_KEY_ITEM = 0x13F1 };
 
-#include "../../shared/telephone_data.inc.c"
+#include "../../shared/room/telephone_data.inc.c"
 
-#include "../../shared/planar_reflection_data.inc.c"
+#include "../../shared/room/planar_reflection_data.inc.c"
 
 /// Execution priority shared by this carrier's two reflection recipes.
 enum { DRYFIELD_MOTEL_ROOM_6_REFLECTION_TASK_PRIORITY = 112 };
@@ -2170,7 +2170,7 @@ Task* gRoomCutsceneSoundTask;
 ///
 /// Two-byte string-literal binding for `telephone.inc.c`; unused by label drawing.
 #define TELEPHONE_MENU_TITLE_TRAILING_BYTES "\xFF\x1F"
-#include "../../shared/telephone.inc.c"
+#include "../../shared/room/telephone.inc.c"
 #undef TELEPHONE_MENU_TITLE_TRAILING_BYTES
 
 void dryfieldMotelRoom6TelephoneMenuTask(Task* task)
@@ -2178,9 +2178,9 @@ void dryfieldMotelRoom6TelephoneMenuTask(Task* task)
     _telephoneMenuTask(task);
 }
 
-#include "../../shared/telephone_panels.inc.c"
+#include "../../shared/room/telephone_panels.inc.c"
 
-#include "../../shared/planar_reflection.inc.c"
+#include "../../shared/room/planar_reflection.inc.c"
 
 void dryfieldMotelRoom6PlayerReflectionTask(Task* reflectionTask)
 {
@@ -2189,7 +2189,7 @@ void dryfieldMotelRoom6PlayerReflectionTask(Task* reflectionTask)
 
 #undef PLANAR_REFLECTION_DEFINE_SCALE_WITH_IMPLEMENTATION
 
-#include "../../shared/room_cutscene_task.inc.c"
+#include "../../shared/room/room_cutscene_task.inc.c"
 
 /// Three room-task states: register the receiver, idle, then release the task.
 ///
@@ -2213,7 +2213,7 @@ static const TaskFuncTable3 _gDryfieldMotelRoom6RoomTaskStates = {
 #include "../../shared/motel_room_6_cutscene_msg.inc.c"
 #undef MOTEL_ROOM_6_HANDLE_OTHER_COMMAND
 
-#include "../../shared/room_cutscene_sound_task.inc.c"
+#include "../../shared/room/room_cutscene_sound_task.inc.c"
 
 /// Ignores non-cutscene room commands in daytime motel room 6.
 ///
@@ -2359,8 +2359,8 @@ void dryfieldMotelRoom6Task(Task* task)
     stateHandlers.funcs[task->state](task);
 }
 
-#include "../../shared/glow_draw_wide_diamond.inc.c"
+#include "../../shared/effects/glow_draw_wide_diamond.inc.c"
 
-#include "../../shared/glow_draw_pulsing_disc.inc.c"
+#include "../../shared/effects/glow_draw_pulsing_disc.inc.c"
 
 #include "../../shared/motel_room_6_draw_glow.inc.c"

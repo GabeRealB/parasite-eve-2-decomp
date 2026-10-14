@@ -51,7 +51,7 @@
 #include "rooms/shelter_b3_dumping_hole.h"
 
 #include "rooms/shelter_b3_garbage_incinerator.h"
-#include "../../shared/sucklerceph.h"
+#include "../../shared/creatures/sucklerceph/sucklerceph.h"
 
 static void _sucklercephDropState(Enemy* enemy, Task* task);
 
@@ -897,41 +897,11 @@ static __inline__ void _actor07000SlouchColorAtCoord(Enemy* enemy, GfxCoord* sam
 static __inline__ void _actor07000SlouchApplyDropTwist(Task* task);
 static __inline__ void _actor07000SlouchTwistPart(MATRIX* partMatrix, SVECTOR* twist, MATRIX* twistMatrix);
 
-#include "../../shared/sucklerceph_spawn_state.inc.c"
+#include "../../shared/creatures/sucklerceph/sucklerceph_spawn_state.inc.c"
 
-/// Standing Sucklerceph task callbacks in Task.state order: spawn, update, death.
-///
-/// The dispatcher copies this value and indexes it without checking; states are 0..2.
-static const EnemyTaskFuncTable3 _gSucklercephTaskStates = {
-    { _sucklercephSpawnState, _sucklercephUpdateState, _sucklercephDeathState },
-};
+#include "../../shared/creatures/sucklerceph/sucklerceph_inlines.inc.c"
 
-/// Hidden/drop Sucklerceph task callbacks: hidden setup, update, death, drop.
-///
-/// The dispatcher copies this value and indexes it without checking; states are 0..3.
-static const EnemyTaskFuncTable4 _gSucklercephDropTaskStates = {
-    { _sucklercephDropSpawnState, _sucklercephUpdateState, _sucklercephDeathState, _sucklercephDropState },
-};
-
-#include "../../shared/sucklerceph_reaction_dispatch.inc.c"
-
-#include "../../shared/sucklerceph_inlines.inc.c"
-
-#include "../../shared/sucklerceph_dormant_tick.inc.c"
-
-#include "../../shared/sucklerceph_awake_tick.inc.c"
-
-#include "../../shared/sucklerceph_contacts.inc.c"
-
-#include "../../shared/sucklerceph_take_damage.inc.c"
-
-#include "../../shared/sucklerceph_turn_to_player.inc.c"
-
-#include "../../shared/sucklerceph_death_state.inc.c"
-
-#include "../../shared/sucklerceph_kill.inc.c"
-
-#include "../../shared/sucklerceph_drop_spawn_state.inc.c"
+#include "../../shared/creatures/sucklerceph/sucklerceph.inc.c"
 
 /// Standing Slouch task callbacks: spawn, update, death and destruction.
 ///
@@ -949,35 +919,7 @@ static const EnemyTaskFuncTable5 _gActor07000SlouchHiddenTaskStates = {
     { _actor07000SlouchHiddenSpawn, _actor07000SlouchUpdateState, _actor07000SlouchDeathState, enemyDestroy, _actor07000SlouchDropState },
 };
 
-#include "../../shared/sucklerceph_drop_state.inc.c"
-
-#include "../../shared/sucklerceph_drop_collide.inc.c"
-
-#include "../../shared/sucklerceph_message.inc.c"
-
-#include "../../shared/sucklerceph_task.inc.c"
-
-#include "../../shared/sucklerceph_update_state.inc.c"
-
-#include "../../shared/sucklerceph_reaction_flags.inc.c"
-
-#include "../../shared/sucklerceph_step.inc.c"
-
-#include "../../shared/sucklerceph_animate.inc.c"
-
-#include "../../shared/sucklerceph_colour.inc.c"
-
-#include "../../shared/sucklerceph_draw_shadow.inc.c"
-
-#include "../../shared/sucklerceph_scale_part.inc.c"
-
-#include "../../shared/sucklerceph_flatten.inc.c"
-
-#include "../../shared/sucklerceph_exit.inc.c"
-
-#include "../../shared/sucklerceph_drop_task.inc.c"
-
-#include "../../shared/sucklerceph_fall_step.inc.c"
+#include "../../shared/creatures/sucklerceph/sucklerceph_drop_state.inc.c"
 
 /// Creates a Slouch's animation, lighting, targeting and collision state.
 ///

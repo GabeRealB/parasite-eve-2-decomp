@@ -50,8 +50,8 @@
 #include "main/wipsys_types.h"
 
 #include "overlay.h"
-#include "../../shared/player_detection.h"
-#include "../../shared/actor_messages.h"
+#include "../../shared/actor/player_detection.h"
+#include "../../shared/actor/actor_messages.h"
 
 /// Uniform model-root scale for yaw rebuilds, with 12 fractional bits.
 enum { ACTOR_01900_ROOT_SCALE = 0x1194 };
@@ -264,7 +264,7 @@ STATIC_ASSERT_SIZEOF(_Actor01900StateTable, ACTOR_01900_STATE_COUNT * sizeof(Tas
 static AnimationSet _gActor01900Actor101900Animation16960;
 static TmdSource    _gActor01900StrangerBurstHand;
 
-#include "../../shared/actor_contacts.h"
+#include "../../shared/actor/actor_contacts.h"
 
 static void _actor01900TakeHit(Task* task);
 static void _actor01900SpawnHitEffect(Task* task, s16 hitYaw, s32 attackKey);
@@ -915,11 +915,11 @@ static __inline__ void _actorRenderCollapseYaw(GfxCoord* coord)
 
 /// Psy-Q `RotMatrixY` (it sits right after `RotMatrixX`).
 
-#include "../../shared/actor_contacts.h"
+#include "../../shared/actor/actor_contacts.h"
 
-#include "../../shared/actor_contacts.inc.c"
+#include "../../shared/actor/actor_contacts.inc.c"
 
-#include "../../shared/player_detection_sight.inc.c"
+#include "../../shared/actor/player_detection_sight.inc.c"
 
 /// Ticks both rigs and mixes rotations for body slots 1..10.
 ///
@@ -3950,9 +3950,9 @@ static s32 _actor01900HandleAnimationRequest(Task* task, s32 messageId, const An
     return 0;
 }
 
-#include "../../shared/actor_messages_visibility.inc.c"
+#include "../../shared/actor/actor_messages_visibility.inc.c"
 
-#include "../../shared/actor_messages_is_present.inc.c"
+#include "../../shared/actor/actor_messages_is_present.inc.c"
 
 /// Selects this actor's allocated work type for recording placement heading.
 ///
@@ -3960,7 +3960,7 @@ static s32 _actor01900HandleAnimationRequest(Task* task, s32 messageId, const An
 /// `_Actor01900Work` and writes its `s16 placedYaw` in 4096 units per turn.
 /// Keep this type binding scoped to that fragment include.
 #define ACTOR_MESSAGE_YAW_WORK_TYPE _Actor01900Work
-#include "../../shared/actor_messages_place_yaw.inc.c"
+#include "../../shared/actor/actor_messages_place_yaw.inc.c"
 #undef ACTOR_MESSAGE_YAW_WORK_TYPE
 
 /// Acknowledges `ACTOR_MESSAGE_RELEASE_HOLD` by returning 1.

@@ -18,7 +18,7 @@
 #include "main/task_types.h"
 #include "main/tmd_types.h"
 
-#include "../../shared/rat.h"
+#include "../../shared/creatures/rat/rat.h"
 
 extern TmdSource gActor300700RatBody;
 

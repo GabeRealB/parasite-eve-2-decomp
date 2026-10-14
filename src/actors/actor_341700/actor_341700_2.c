@@ -38,7 +38,7 @@
 #include "overlay.h"
 
 #include "rooms/shelter_b3_dumping_hole.h"
-#include "../../shared/actor_messages.h"
+#include "../../shared/actor/actor_messages.h"
 
 /// Values of `_Actor341700PropWork::state`.
 enum {
@@ -92,7 +92,7 @@ static void      _actor341700PropTask(Task* task);
 static s32 _actor341700PropSetModelDrawMessage(Task* task, s32 messageId, s32 mode, s32 unusedArg);
 static s32 _actor341700PropCommandMessage(Task* task, s32 messageId, const ActorCommand* command, s32 unusedArg);
 
-#include "../../shared/actor_contacts.h"
+#include "../../shared/actor/actor_contacts.h"
 
 static TmdBone _gActor341700Model13558Skeleton[11] = {
 #include "assets/actor_341700_model_13558_skeleton.inc"
@@ -223,9 +223,9 @@ static inline SVECTOR* _actorContactGetLastPushStep(void)
 static void _actor341700PropRiseState(Enemy* enemy, Task* task);
 static void _actor341700PropUpdate(Enemy* enemy, Task* task);
 
-#include "../../shared/actor_contacts.h"
+#include "../../shared/actor/actor_contacts.h"
 
-#include "../../shared/actor_contacts.inc.c"
+#include "../../shared/actor/actor_contacts.inc.c"
 
 /// Advances the dumping-hole prop's bend by rotating nine parts about local X.
 ///
@@ -528,9 +528,9 @@ static s32 _actor341700PropCommandMessage(Task* task, s32 messageId, const Actor
     return 1;
 }
 
-#include "../../shared/actor_messages_place.inc.c"
+#include "../../shared/actor/actor_messages_place.inc.c"
 
-#include "../../shared/coord_math_yaw_scale.inc.c"
+#include "../../shared/actor/coord_math_yaw_scale.inc.c"
 
 /// Initializes the prop's task-owned work, lighting and untargetable enemy record.
 ///

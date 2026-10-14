@@ -54,13 +54,13 @@
 #include "overlay.h"
 static void _frameCaptureQueue(s32 orderingTableSlot);
 #define FRAME_CAPTURE_QUEUE _frameCaptureQueue
-#include "../../shared/frame_capture.h"
+#include "../../shared/screen/frame_capture.h"
 /// Selects Bishop identity and combat tuning for the shared GOLEM implementation.
 ///
 /// Bind to `GOLEM_KNIGHT_BISHOP_KIND_BISHOP` before the shared header and undefine
 /// after it; the fragments use the selected constants, not this selector.
 #define GOLEM_KNIGHT_BISHOP_KIND GOLEM_KNIGHT_BISHOP_KIND_BISHOP
-#include "../../shared/golem_knight_bishop.h"
+#include "../../shared/creatures/golem/golem_knight_bishop.h"
 #undef GOLEM_KNIGHT_BISHOP_KIND
 
 /// Main-executable global with no module header yet: the remaining-enemy
@@ -1205,35 +1205,7 @@ static AnimationSet* _gGolemKnightBishopAnimSets[GOLEM_KNIGHT_BISHOP_ANIM_COUNT]
     [GOLEM_KNIGHT_BISHOP_ANIM_GRAB_EARLY_RELEASE]  = &_gActor403900Animation1E7A8,
 };
 
-#include "../../shared/golem_knight_bishop_take_hits.inc.c"
-
-#include "../../shared/golem_knight_bishop_hit_reaction.inc.c"
-
-#include "../../shared/golem_knight_bishop_box_scan.inc.c"
-
-#include "../../shared/golem_knight_bishop_idle_seq.inc.c"
-
-#include "../../shared/golem_knight_bishop_player_in_box.inc.c"
-
-#include "../../shared/golem_knight_bishop_place_target.inc.c"
-
-#include "../../shared/golem_knight_bishop_grab_seq.inc.c"
-
-#include "../../shared/golem_knight_bishop_strike.inc.c"
-
-#include "../../shared/golem_knight_bishop_box_approach_seq.inc.c"
-
-#include "../../shared/golem_knight_bishop_recover_seq.inc.c"
-
-#include "../../shared/golem_knight_bishop_translucency_fade.inc.c"
-
-#include "../../shared/golem_knight_bishop_light_flinch.inc.c"
-
-#include "../../shared/golem_knight_bishop_heavy_flinch.inc.c"
-
-#include "../../shared/golem_knight_bishop_kneel.inc.c"
-
-#include "../../shared/golem_knight_bishop_kneel_hit.inc.c"
+#include "../../shared/creatures/golem/golem_knight_bishop_take_hits.inc.c"
 
 /// Bishop GOLEM task phases: spawn setup, living frame and death frame.
 ///
@@ -1248,39 +1220,11 @@ static const EnemyTaskFuncTable3 _gActor403900GolemTaskStates = {
     },
 };
 
-#include "../../shared/golem_knight_bishop_collapse_death.inc.c"
+#include "../../shared/creatures/golem/golem_knight_bishop.inc.c"
 
-#include "../../shared/golem_knight_bishop_anim_cues.inc.c"
+#include "../../shared/screen/frame_capture.inc.c"
 
-#include "../../shared/golem_knight_bishop_aim_from_part.inc.c"
-
-#include "../../shared/golem_knight_bishop_aim_beam.inc.c"
-
-#include "../../shared/golem_knight_bishop_inlines.inc.c"
-
-#include "../../shared/golem_knight_bishop_dead.inc.c"
-
-#include "../../shared/frame_capture.inc.c"
-
-#include "../../shared/golem_knight_bishop_spawn.inc.c"
-
-#include "../../shared/golem_knight_bishop_frame.inc.c"
-
-#include "../../shared/golem_knight_bishop_run_sequence.inc.c"
-
-#include "../../shared/golem_knight_bishop_apply_scale.inc.c"
-
-#include "../../shared/golem_knight_bishop_kneel_death.inc.c"
-
-#include "../../shared/golem_knight_bishop_step_forward.inc.c"
-
-#include "../../shared/golem_knight_bishop_tick_anim.inc.c"
-
-#include "../../shared/golem_knight_bishop_update_tint.inc.c"
-
-#include "../../shared/golem_knight_bishop_shadow.inc.c"
-
-#include "../../shared/golem_knight_bishop_hold_cue.inc.c"
+#include "../../shared/creatures/golem/golem_knight_bishop_spawn.inc.c"
 
 /// Records the living player's completed struggle as a GOLEM grab escape.
 ///
@@ -1295,7 +1239,7 @@ static s32 _actor403900RecordGrabEscape(Task* task, s32 messageId, s32 unusedFir
     return 0;
 }
 
-#include "../../shared/golem_knight_bishop_frame_capture.inc.c"
+#include "../../shared/creatures/golem/golem_knight_bishop_frame_capture.inc.c"
 
 /// Dispatches the Bishop GOLEM's spawn, living frame or death frame.
 ///

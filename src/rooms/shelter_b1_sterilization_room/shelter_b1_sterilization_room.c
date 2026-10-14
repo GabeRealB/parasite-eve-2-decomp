@@ -62,8 +62,8 @@
 #include "rooms/room.h"
 
 #include "rooms/room_common.h"
-#include "../../shared/room_cutscene.h"
-#include "../../shared/backdrop_crossfade.h"
+#include "../../shared/room/room_cutscene.h"
+#include "../../shared/room/backdrop_crossfade.h"
 
 static void _roomCutsceneTask(Task* task);
 
@@ -79,7 +79,7 @@ typedef struct {
     s8 placementIndex; // Entry of the room's door placement table the player is placed at
 } _ShelterB1SterilizationRoomDoorDestination;
 
-#include "../../shared/telephone.h"
+#include "../../shared/room/telephone.h"
 
 static void _shelterB1SterilizationRoomInitializeState(Task* task);
 static void _shelterB1SterilizationRoomInitializeActorObstacle(s32 unused);
@@ -138,7 +138,7 @@ enum {
     SHELTER_B1_STERILIZATION_ROOM_ANIMATION_TRAP_DAMAGE         = ANIMATION_BANK_BASE_SET_COUNT + 7,
 };
 
-#include "../../shared/telephone_data.inc.c"
+#include "../../shared/room/telephone_data.inc.c"
 
 static TmdBone _gShelterB1SterilizationRoomAcropolisSanctuaryModel090F0Skeleton[3] = {
 #include "assets/acropolis_sanctuary_model_090F0_skeleton.inc"
@@ -567,7 +567,7 @@ static _ShelterB1SterilizationRoomDoorDestination _gShelterB1SterilizationRoomDo
 ///
 /// Two-byte string-literal binding for `telephone.inc.c`; unused by label drawing.
 #define TELEPHONE_MENU_TITLE_TRAILING_BYTES "\x00\x20"
-#include "../../shared/telephone.inc.c"
+#include "../../shared/room/telephone.inc.c"
 #undef TELEPHONE_MENU_TITLE_TRAILING_BYTES
 
 void shelterB1SterilizationRoomTelephoneMenuTask(Task* task)
@@ -575,9 +575,9 @@ void shelterB1SterilizationRoomTelephoneMenuTask(Task* task)
     _telephoneMenuTask(task);
 }
 
-#include "../../shared/telephone_panels.inc.c"
+#include "../../shared/room/telephone_panels.inc.c"
 
-#include "../../shared/room_cutscene_task.inc.c"
+#include "../../shared/room/room_cutscene_task.inc.c"
 
 /// Main room-task handlers: 0 initialize, 1 update event-actor visibility, 2 teardown.
 ///
@@ -960,7 +960,7 @@ static void _shelterB1SterilizationRoomScriptedPresentationTask(Task* task)
     }
 }
 
-#include "../../shared/room_cutscene_sound_task.inc.c"
+#include "../../shared/room/room_cutscene_sound_task.inc.c"
 
 /// Initializes the event actor's collision obstacle, raising inactive geometry out of reach.
 ///
@@ -1218,7 +1218,7 @@ static void _shelterB1SterilizationRoomCaptureCrossfadeState(Task* task)
     task->state++;
 }
 
-#include "../../shared/backdrop_crossfade_live.inc.c"
+#include "../../shared/room/backdrop_crossfade_live.inc.c"
 
 /// Queues an additive redraw of the captured backdrop for the room crossfade.
 ///
@@ -1458,6 +1458,4 @@ static void _shelterB1SterilizationRoomWaitCrossfadeViewState(Task* task)
     }
 }
 
-#include "../../shared/backdrop_crossfade_out.inc.c"
-
-#include "../../shared/backdrop_crossfade_tpage.inc.c"
+#include "../../shared/room/backdrop_crossfade.inc.c"

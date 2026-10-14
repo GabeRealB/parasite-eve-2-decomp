@@ -53,7 +53,7 @@
 #include "main/wipsys_types.h"
 
 #include "overlay.h"
-#include "../../shared/bezier_curve.h"
+#include "../../shared/actor/bezier_curve.h"
 
 /// What an arm is doing, as held in `_Actor503500ArmWork::state`.
 enum {
@@ -4548,7 +4548,7 @@ static void _actor503500LungingChainPlaceLinks(const SVECTOR* points, GfxCoord* 
     SCRATCH_STACK_RELEASE_BLOCK(Actor503500ChainScratch);
 }
 
-#include "../../shared/bezier_curve_evaluate.inc.c"
+#include "../../shared/actor/bezier_curve_evaluate.inc.c"
 
 /// Blends the laid-out links from their stored starting pose during unfolding or regrowth.
 ///
@@ -4863,7 +4863,7 @@ static void _actor503500LungingChainApplyPitch(const SVECTOR* linkAngles, GfxCoo
     }
 }
 
-#include "../../shared/bezier_curve_coefficients.inc.c"
+#include "../../shared/actor/bezier_curve_coefficients.inc.c"
 
 /// Starts a lunging-chain state with normal tip speed and its attack disabled.
 ///

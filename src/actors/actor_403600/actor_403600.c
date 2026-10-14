@@ -47,7 +47,7 @@
 #include "main/tmd.h"
 #include "main/tmd_stream_types.h"
 #include "main/tmd_types.h"
-#include "../../shared/frame_capture.h"
+#include "../../shared/screen/frame_capture.h"
 
 /// Position and texture coordinate of one vertex of a grid quad, laid out as
 /// every vertex of a POLY_FT4 is.
@@ -1113,7 +1113,7 @@ static inline s32  _actor403600RippleHasDiedOut(const Actor403600Ripple* state);
     ((packet)->tag = ((packet)->tag & GPU_DMA_PACKET_LENGTH_MASK) | (*(otEntry) & GPU_DMA_LINK_ADDRESS_MASK), \
      *(otEntry)    = (*(otEntry) & GPU_DMA_PACKET_LENGTH_MASK) | ((u32)(packet) & GPU_DMA_LINK_ADDRESS_MASK))
 
-#include "../../shared/frame_capture.inc.c"
+#include "../../shared/screen/frame_capture.inc.c"
 
 /// Gives a captured-frame quad one texture page and rebases all four U bytes.
 ///
@@ -2501,50 +2501,7 @@ void actor403600DrawRipple(const Actor403600Ripple* ripple, GfxCoord* discCoord)
 /// used while the model sinks or rises through the disc.
 static const SVECTOR _gActor403600RippleBodyOffset = { 0, 1400, 0, 0 };
 
-/// Records one ripple-source sample and advances its outward history.
-///
-/// Requires a live initialized ripple and head in 0..31. Source strength uses
-/// 4096 as unity: emission adds 512 while below unity, release subtracts 128
-/// while positive, and an emission edge restarts phase. The new sample is cleared
-/// first, then recorded only at nonzero strength. Source phase is in 4096 units
-/// per turn; stored samples retain its signed low halfword. Owns no storage.
-static inline void _actor403600TickRipple(Actor403600Ripple* state)
-{
-    enum {
-        ACTOR_403600_RIPPLE_FULL_STRENGTH      = ONE,
-        ACTOR_403600_RIPPLE_STRENGTH_RISE      = 512,
-        ACTOR_403600_RIPPLE_STRENGTH_FALL      = 128,
-        ACTOR_403600_RIPPLE_PHASE_STEP         = 384,
-        ACTOR_403600_RIPPLE_SHALLOW_PHASE_STEP = 256
-    };
-    s32 head;
-
-    state->head          += ACTOR_403600_RIPPLE_SAMPLE_COUNT - 1;
-    state->head          %= ACTOR_403600_RIPPLE_SAMPLE_COUNT;
-    head                  = state->head;
-    state->phase[head]    = 0;
-    state->strength[head] = 0;
-    if (state->emitting != 0) {
-        if (state->wasEmitting == 0) {
-            state->sourcePhase = 0;
-        }
-        if (state->sourceStrength < ACTOR_403600_RIPPLE_FULL_STRENGTH) {
-            state->sourceStrength += ACTOR_403600_RIPPLE_STRENGTH_RISE;
-        }
-    } else if (state->sourceStrength > 0) {
-        state->sourceStrength -= ACTOR_403600_RIPPLE_STRENGTH_FALL;
-    }
-    state->wasEmitting = state->emitting;
-    if (state->sourceStrength != 0) {
-        state->phase[head]    = state->sourcePhase;
-        state->strength[head] = state->sourceStrength;
-        if (state->shallow == 0) {
-            state->sourcePhase += ACTOR_403600_RIPPLE_PHASE_STEP;
-        } else {
-            state->sourcePhase += ACTOR_403600_RIPPLE_SHALLOW_PHASE_STEP;
-        }
-    }
-}
+#include "actor_403600_tick_ripple.inc.c"
 
 /// Tests whether all stored ripple phases are zero.
 ///

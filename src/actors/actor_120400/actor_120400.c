@@ -30,13 +30,13 @@
 #include "main/task.h"
 #include "main/tmd.h"
 #include "main/tmd_types.h"
-#include "../../shared/model_placement.h"
-#include "../../shared/actor_motion.h"
+#include "../../shared/actor/model_placement.h"
+#include "../../shared/actor/actor_motion.h"
 
 static AnimationSet** _gActorMotionAnimBanks[1];
 
-#include "../../shared/actor_motion_play_helpers.h"
-#include "../../shared/actor_messages.h"
+#include "../../shared/actor/actor_motion_play_helpers.h"
+#include "../../shared/actor/actor_messages.h"
 
 /// Work block of Kyle Madigan's body, the package's scripted walker.
 ///
@@ -1024,7 +1024,7 @@ static void _actor120400UpdateKyleMadiganWalker(Task* task)
     }
 }
 
-#include "../../shared/actor_motion_arrive.inc.c"
+#include "../../shared/actor/actor_motion_arrive.inc.c"
 
 /// Starts Kyle's four-step scripted walk toward a borrowed destination.
 ///
@@ -1091,9 +1091,9 @@ static void _actor120400KyleMadiganHandTask(Task* handTask)
     states.funcs[handTask->state](handTask);
 }
 
-#include "../../shared/model_placement_attach.inc.c"
+#include "../../shared/actor/model_placement_attach.inc.c"
 
-#include "../../shared/model_placement_mirror_parent.inc.c"
+#include "../../shared/actor/model_placement_mirror_parent.inc.c"
 
 /// Runs Kyle's body setup, update or teardown while scene actors are running.
 ///
@@ -1156,7 +1156,7 @@ static void _actor120400RunKyleMadiganWalkStep(Task* task)
     handlers.funcs[work->walk.motionStep](task);
 }
 
-#include "../../shared/actor_motion_face.inc.c"
+#include "../../shared/actor/actor_motion_face.inc.c"
 
 /// Begins forward motion and advances Kyle's walk to the arrival check.
 ///
@@ -1181,11 +1181,11 @@ static void _actor120400BeginKyleMadiganWalk(Task* task)
     work->walk.motionStep++;
 }
 
-#include "../../shared/actor_motion_turn.inc.c"
+#include "../../shared/actor/actor_motion_turn.inc.c"
 
-#include "../../shared/actor_motion_play.inc.c"
+#include "../../shared/actor/actor_motion_play.inc.c"
 
-#include "../../shared/actor_messages_place_euler.inc.c"
+#include "../../shared/actor/actor_messages_place_euler.inc.c"
 
 /// Sets Kyle's active-draw and automatic-buffer policy and schedules buffer release.
 ///

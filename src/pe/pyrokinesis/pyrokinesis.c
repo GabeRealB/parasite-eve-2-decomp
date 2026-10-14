@@ -37,12 +37,12 @@
 #include "main/task.h"
 #include "main/task_types.h"
 #include "main/tmd_types.h"
-#include "../../shared/glow_draw.h"
-#include "../../shared/pyro_flame.h"
+#include "../../shared/effects/glow_draw.h"
+#include "../../shared/effects/pyro_flame.h"
 /// Signed effect-age argument whose low bit selects one of the two flame cells.
 #define SPRITE_QUAD_FRAME_T s16
-#include "../../shared/sprite_quad.h"
-#include "../../shared/jet_cone.h"
+#include "../../shared/effects/sprite_quad.h"
+#include "../../shared/effects/jet_cone.h"
 
 /// Collision block of the travelling pyrokinesis flame, allocated zeroed on the
 /// cast's first running frame and kept at `Task::work`, whose teardown frees it.
@@ -98,26 +98,6 @@ static s32 _gPyrokinesisCastSoundScripts[ATTACHMENT_LEVEL_COUNT][PYROKINESIS_CAS
 /// these values do not displace geometry. The shared jet drawer borrows this
 /// package's table, and a later cast replaces it.
 static s16 _gPyrokinesisConeFrameOffsets[EFFECT_BAND_SEGMENT_COUNT] = { 0 };
-
-/// Copies the player's nine Q12 coefficients without changing translation.
-///
-/// Borrows word-aligned matrices, with `destination` writable. Transfers all
-/// 18 coefficient bytes through `GfxRotationWords`, including any scale in
-/// the player's basis; preserves the alignment halfword and translation.
-/// A whole word-view assignment would also overwrite the alignment halfword.
-/// The caller invalidates and composes the coordinate afterward. Retains no
-/// pointers and changes no GTE state.
-static inline void _pyrokinesisCopyCastRotation(MATRIX* destination, const MATRIX* source)
-{
-    GfxRotationWords*       destinationRotation = (GfxRotationWords*)destination;
-    const GfxRotationWords* sourceRotation      = (const GfxRotationWords*)source;
-
-    destinationRotation->m00M01 = sourceRotation->m00M01;
-    destinationRotation->m02M10 = sourceRotation->m02M10;
-    destinationRotation->m11M12 = sourceRotation->m11M12;
-    destinationRotation->m20M21 = sourceRotation->m20M21;
-    destinationRotation->m22    = sourceRotation->m22;
-}
 
 /// Applies one velocity step in the parent frame and refreshes the composed coordinate.
 ///
@@ -214,7 +194,7 @@ void pyrokinesisCastTask(Task* task)
             }
             playerCoord = (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords;
             // Borrow only the player's rotation; launch in that forward frame.
-            _pyrokinesisCopyCastRotation(&coord->coord, &playerCoord->coord);
+            gfxCopyRotationWords(&coord->coord, &playerCoord->coord);
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
             actorRenderComposeCoord(coord);
             effect->move.vx = 0;
@@ -523,9 +503,7 @@ void pyrokinesisVolleyTask(Task* task)
     effectKillTask(effect, task);
 }
 
-#include "../../shared/glow_draw_flame_band.inc.c"
-
-#include "../../shared/glow_draw_flame_star.inc.c"
+#include "../../shared/effects/glow_draw_flame.inc.c"
 
 /// Projects the ground glow's four staged corners, retaining the final GTE FLAG.
 ///
@@ -649,7 +627,7 @@ static void _pyrokinesisDrawGroundGlow(const GfxCoord* groundCoord, s32 halfSize
 ///
 /// Uses the cell's inclusive 55-texel UV span in `size * SPRITE_QUAD_SCALE / depth`.
 #define SPRITE_QUAD_SCALE (SPRITE_QUAD_CELL_WIDTH - 1)
-#include "../../shared/sprite_quad_draw.inc.c"
+#include "../../shared/effects/sprite_quad_draw.inc.c"
 
 void pyrokinesisFlamePuffTask(Task* task)
 {
@@ -703,7 +681,7 @@ void pyrokinesisFlamePuffTask(Task* task)
     effectKillTask(work, task);
 }
 
-#include "../../shared/pyro_flame_draw_sprite.inc.c"
+#include "../../shared/effects/pyro_flame_draw_sprite.inc.c"
 
 void pyrokinesisFlameRingTask(Task* task)
 {
@@ -750,7 +728,7 @@ void pyrokinesisFlameRingTask(Task* task)
     effectKillTask(work, task);
 }
 
-#include "../../shared/glow_draw_flame_ring.inc.c"
+#include "../../shared/effects/glow_draw_flame_ring.inc.c"
 
 /// GPU CLUT selector for Pyrokinesis's sixteen-colour jet-cone texture.
 ///
@@ -776,7 +754,7 @@ void pyrokinesisFlameRingTask(Task* task)
 /// values. See `jet_cone.h` for the extent and value contract. The fragment
 /// undefines this binding after use.
 #define JET_CONE_TEXTURE_FRAME_OFFSETS _gPyrokinesisConeFrameOffsets
-#include "../../shared/jet_cone_draw.inc.c"
+#include "../../shared/effects/jet_cone_draw.inc.c"
 
 void pyrokinesisLaunchConeTask(Task* task)
 {

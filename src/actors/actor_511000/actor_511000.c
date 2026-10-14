@@ -37,8 +37,8 @@
 #include "main/task_types.h"
 #include "main/tmd.h"
 #include "main/tmd_types.h"
-#include "../../shared/model_placement.h"
-#include "../../shared/actor_messages.h"
+#include "../../shared/actor/model_placement.h"
+#include "../../shared/actor/actor_messages.h"
 
 /// Work block of the No. 9 golem, the package's enemy.
 ///
@@ -1348,7 +1348,7 @@ static void _actor511000RupertRevolverTask(Task* task)
     states.funcs[task->state](task);
 }
 
-#include "../../shared/model_placement_attach_part.inc.c"
+#include "../../shared/actor/model_placement_attach_part.inc.c"
 
 /// Leaves the revolver attachment unchanged between attachment and teardown.
 ///
@@ -1373,9 +1373,9 @@ static void _actor511000RupertPropTask(Task* task)
     states.funcs[task->state](task);
 }
 
-#include "../../shared/model_placement_attach.inc.c"
+#include "../../shared/actor/model_placement_attach.inc.c"
 
-#include "../../shared/model_placement_mirror_parent.inc.c"
+#include "../../shared/actor/model_placement_mirror_parent.inc.c"
 
 /// Runs Rupert Broderick's body initialization, frame update or teardown.
 ///
@@ -1524,7 +1524,7 @@ static s32 _actor511000PlayRupertAnimation(Task* task, s32 messageId, const Anim
     return 0;
 }
 
-#include "../../shared/actor_messages_place_euler.inc.c"
+#include "../../shared/actor/actor_messages_place_euler.inc.c"
 
 /// Changes Rupert's drawing and primitive-buffer policy.
 ///
@@ -2535,7 +2535,7 @@ static s32 _actor511000PlayNo9GolemAnimation(Task* task, s32 messageId, const An
     return 0;
 }
 
-#include "../../shared/actor_messages_place_rot_matrix.inc.c"
+#include "../../shared/actor/actor_messages_place_rot_matrix.inc.c"
 
 /// Replaces the No. 9 golem body's drawing and automatic-buffer flags.
 ///

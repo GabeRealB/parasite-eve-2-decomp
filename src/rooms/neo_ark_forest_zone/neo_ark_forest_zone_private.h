@@ -13,7 +13,7 @@
 #include "main/task_types.h"
 
 // Data shared with this overlay's reserve-pool controller TU.
-#include "../../shared/roaming_enemies_data.h"
+#include "../../shared/room/roaming_enemies_data.h"
 
 /// Bodyless, priority-32 controller for the latched woodland-departure event.
 ///

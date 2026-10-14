@@ -49,9 +49,9 @@
 
 #include "rooms/room.h"
 #include "rooms/room_common.h"
-#include "../../shared/glow_draw.h"
-#include "../../shared/room_cutscene.h"
-#include "../../shared/action_prompt.h"
+#include "../../shared/effects/glow_draw.h"
+#include "../../shared/room/room_cutscene.h"
+#include "../../shared/room/action_prompt.h"
 
 /// One-based saved view for the map terminal's initial B1 page (37).
 ///
@@ -2410,7 +2410,7 @@ static void _shelterR47MapTerminalHandleHotspotTask(Task* task)
 /// Selects the additional private outline drawer; its rectangle is read-only.
 #undef ACTION_PROMPT_OUTLINE_RECT
 #define ACTION_PROMPT_OUTLINE_RECT _actionPromptOutlineRect
-#include "../../shared/action_prompt_outline_rect.inc.c"
+#include "../../shared/room/action_prompt_outline_rect.inc.c"
 #undef ACTION_PROMPT_OUTLINE_RECT
 #define ACTION_PROMPT_OUTLINE_RECT _actionPromptOutlineRectDefault
 
@@ -2420,11 +2420,11 @@ static void _shelterR47MapTerminalHandleHotspotTask(Task* task)
 #undef ACTION_PROMPT_DRAW_CURSOR
 /// Selects the second prompt's private drawer for both fragments.
 #define ACTION_PROMPT_DRAW_CURSOR _actionPromptDrawCursor
-#include "../../shared/action_prompt_move_cursors.inc.c"
+#include "../../shared/room/action_prompt_move_cursors.inc.c"
 #undef ACTION_PROMPT_MOVE_CURSORS_TASK
 #define ACTION_PROMPT_MOVE_CURSORS_TASK _actionPromptMoveCursorsDefault
 
-#include "../../shared/action_prompt_draw_cursor.inc.c"
+#include "../../shared/room/action_prompt_draw_cursor.inc.c"
 #undef ACTION_PROMPT_DRAW_CURSOR
 #define ACTION_PROMPT_DRAW_CURSOR _actionPromptDrawCursorDefault
 
@@ -2537,7 +2537,7 @@ static void _shelterR47MapTerminalTask(Task* task)
 /// The static instance uses the signature documented in `action_prompt.h`.
 #undef ACTION_PROMPT_HIT_TEST
 #define ACTION_PROMPT_HIT_TEST _actionPromptHitTest
-#include "../../shared/action_prompt_hit_test.inc.c"
+#include "../../shared/room/action_prompt_hit_test.inc.c"
 #undef ACTION_PROMPT_HIT_TEST
 #define ACTION_PROMPT_HIT_TEST actionPromptHitTest
 
@@ -2751,7 +2751,7 @@ static void _shelterR47MapTerminalPromptTask(Task* task)
 // Bind the additional private reset callback, with signature void(Task*).
 #undef ACTION_PROMPT_RESET_TASK
 #define ACTION_PROMPT_RESET_TASK _actionPromptReset
-#include "../../shared/action_prompt_reset.inc.c"
+#include "../../shared/room/action_prompt_reset.inc.c"
 #undef ACTION_PROMPT_RESET_TASK
 #define ACTION_PROMPT_RESET_TASK _actionPromptResetDefault
 
@@ -2815,8 +2815,8 @@ void shelterR47DrawViewGlowsTask(Task* unusedTask)
     }
 }
 
-#include "../../shared/glow_draw_disc.inc.c"
+#include "../../shared/effects/glow_draw_disc.inc.c"
 
-#include "../../shared/glow_draw_diamond.inc.c"
+#include "../../shared/effects/glow_draw_diamond.inc.c"
 
-#include "../../shared/glow_draw_pulsing_disc.inc.c"
+#include "../../shared/effects/glow_draw_pulsing_disc.inc.c"

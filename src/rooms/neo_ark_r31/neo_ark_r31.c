@@ -29,7 +29,7 @@
 
 #include "mapui/map_neo_ark.h"
 
-#include "../../shared/room_variants.h"
+#include "../../shared/room/room_variants.h"
 
 static s32  _neoArkR31RejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unusedArg);
 static s32  _neoArkR31ResolveRoomTransition(Task* task, s32 messageId, RoomEventMsg* request, RoomEventMsg* reply);

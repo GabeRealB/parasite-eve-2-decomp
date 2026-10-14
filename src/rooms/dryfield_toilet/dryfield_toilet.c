@@ -23,7 +23,7 @@
 #include "main/session_types.h"
 #include "main/task.h"
 #include "main/task_types.h"
-#include "../../shared/room_variants.h"
+#include "../../shared/room/room_variants.h"
 static s32 _toiletSoundMsg(Task* unusedTask, s32 unusedMessageId, s32 cueKey, s32 unusedSecondArg);
 
 static void _dryfieldToiletInitRoom(Task* task);
@@ -212,7 +212,7 @@ static void _dryfieldToiletInitEventCollision(void)
 #undef DRYFIELD_TOILET_COPY_INITIAL_COLLISION_XYZ
 }
 
-#include "../../shared/room_variants_parking_lot.inc.c"
+#include "../../shared/room/room_variants_parking_lot.inc.c"
 
 #include "../../shared/toilet_sound_msg.inc.c"
 

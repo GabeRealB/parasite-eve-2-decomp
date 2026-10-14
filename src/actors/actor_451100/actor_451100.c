@@ -30,8 +30,8 @@
 #include "main/task.h"
 #include "main/task_types.h"
 #include "main/tmd_types.h"
-#include "../../shared/footstep_walk.h"
-#include "../../shared/pair_walk.h"
+#include "../../shared/walk/footstep_walk.h"
+#include "../../shared/walk/pair_walk.h"
 
 static void _actor451100QuietWalkSpawn(Enemy* enemy, Task* task);
 static void _actor451100PairWalkSpawn(Enemy* enemy, Task* task);
@@ -1667,7 +1667,7 @@ static void _actor451100QuietWalkSpawn(Enemy* enemy, Task* task)
     task->state += 1;
 }
 
-#include "../../shared/footstep_walk_quiet_update.inc.c"
+#include "../../shared/walk/footstep_walk_quiet_update.inc.c"
 
 /// Dispatches initialization and frames for the package's quiet scene walker.
 ///
@@ -1701,7 +1701,7 @@ static void _actor451100QuietWalkTask(Task* task)
 #define ACTOR_RENDER_UPDATE_WALKER _footstepWalkQuietUpdate
 /// Selects the declared static void(Task*) ground-shadow drawer for this inclusion.
 #define ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW _actorRenderDrawWalkerGroundShadow
-#include "../../shared/walker_frame.inc.c"
+#include "../../shared/walk/walker_frame.inc.c"
 #undef ACTOR_RENDER_WALKER_FRAME
 #undef ACTOR_RENDER_UPDATE_WALKER
 #undef ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW
@@ -1716,11 +1716,9 @@ static void _actor451100QuietWalkExit(Task* task)
     enemyDestroy(task->spawnArg2.pointer, task);
 }
 
-#include "../../shared/footstep_walk_tick_anim.inc.c"
+#include "../../shared/walk/footstep_walk_tick_anim.inc.c"
 
-#include "../../shared/footstep_walk_quiet_reset_anim.inc.c"
-
-#include "../../shared/footstep_walk_quiet_blend_anim.inc.c"
+#include "../../shared/walk/footstep_walk_quiet.inc.c"
 
 /// Applies an animation request synchronously to the published quiet walker.
 ///
@@ -1775,7 +1773,7 @@ static s32 _actor451100QuietWalkSetModelDraw(Task* unusedTask, s32 messageId, s3
     return 0;
 }
 
-#include "../../shared/footstep_walk_place.inc.c"
+#include "../../shared/walk/footstep_walk_place.inc.c"
 
 /// Schedules twenty turning updates for command 0 on the published quiet walker.
 ///
@@ -1802,7 +1800,7 @@ static s32 _actor451100QuietWalkApplyCommand(Task* unusedTask, s32 messageId, co
 /// signed-halfword `st.yaw` (4096 units per turn) and `st.travel` (whole moving
 /// updates). This type-name alias evaluates no expressions and lasts one inclusion.
 #define FOOTSTEP_WALK_WORK_T FootstepWalkQuietWork
-#include "../../shared/footstep_walk_to.inc.c"
+#include "../../shared/walk/footstep_walk_to.inc.c"
 #undef FOOTSTEP_WALK_WORK_T
 
 /// Names this carrier's private room-shaded shadow function for one inclusion.
@@ -1810,7 +1808,7 @@ static s32 _actor451100QuietWalkApplyCommand(Task* unusedTask, s32 messageId, co
 /// Bind to the prologue's `static void name(Task* task)` declaration; the
 /// replacement is one identifier and evaluates no arguments or object state.
 #define ACTOR_RENDER_DRAW_ROOM_GROUND_SHADOW _actorRenderDrawWalkerGroundShadow
-#include "../../shared/actor_render_walker_shadow.inc.c"
+#include "../../shared/actor/actor_render_walker_shadow.inc.c"
 #undef ACTOR_RENDER_DRAW_ROOM_GROUND_SHADOW
 
 /// Binds a pair walker's rig and queues idle clip 1 for a reset.
@@ -1891,7 +1889,7 @@ static void _actor451100PairWalkSpawn(Enemy* enemy, Task* task)
     task->state += 1;
 }
 
-#include "../../shared/pair_walk_update.inc.c"
+#include "../../shared/walk/pair_walk_update.inc.c"
 
 /// Dispatches initialization and frames for the package's paired scene walker.
 ///
@@ -1922,7 +1920,7 @@ static void _actor451100PairWalkTask(Task* task)
 /// undefine it after each inclusion of walker_frame.inc.c.
 #define ACTOR_RENDER_UPDATE_WALKER             _pairWalkUpdate
 #define ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW _actorRenderDrawSecondWalkerGroundShadow
-#include "../../shared/walker_frame.inc.c"
+#include "../../shared/walk/walker_frame.inc.c"
 #undef ACTOR_RENDER_WALKER_FRAME
 #undef ACTOR_RENDER_UPDATE_WALKER
 #undef ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW
@@ -1942,14 +1940,10 @@ static void _actor451100PairWalkExit(Task* task)
 /// Bind to the prologue's `static void name(Task* task)` declaration; the
 /// following fragment defines it. This identifier alias lasts one inclusion.
 #define ACTOR_RENDER_DRAW_ROOM_GROUND_SHADOW _actorRenderDrawSecondWalkerGroundShadow
-#include "../../shared/actor_render_walker_shadow.inc.c"
+#include "../../shared/actor/actor_render_walker_shadow.inc.c"
 #undef ACTOR_RENDER_DRAW_ROOM_GROUND_SHADOW
 
-#include "../../shared/pair_walk_tick_anim.inc.c"
-
-#include "../../shared/pair_walk_reset_anim.inc.c"
-
-#include "../../shared/pair_walk_reseed_anim.inc.c"
+#include "../../shared/walk/pair_walk.inc.c"
 
 /// Applies an animation request synchronously to the paired scene walker.
 ///
@@ -1983,9 +1977,7 @@ static s32 _actor451100PairWalkPlayAnimation(Task* task, s32 messageId, const An
     return -1;
 }
 
-#include "../../shared/pair_walk_visibility.inc.c"
-
-#include "../../shared/pair_walk_place.inc.c"
+#include "../../shared/walk/pair_walk_visibility.inc.c"
 
 /// Accepts paired-walker actor commands without taking any action.
 ///

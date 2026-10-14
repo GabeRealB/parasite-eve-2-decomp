@@ -51,12 +51,12 @@
 #include "rooms/room.h"
 
 #include "rooms/room_common.h"
-#include "../../shared/room_visual_effects.h"
+#include "../../shared/room/room_visual_effects.h"
 // This room's fade symbol is the ScreenFade itself, with no following word.
 #define ROOM_EVENT_FADE gRoomEventFade
-#include "../../shared/room_events.h"
-#include "../../shared/glow_draw.h"
-#include "../../shared/room_variants.h"
+#include "../../shared/room/room_events.h"
+#include "../../shared/effects/glow_draw.h"
+#include "../../shared/room/room_variants.h"
 
 static s32 _roomVariantResolveShelter(RoomEventMsg* request, RoomEventMsg* reply);
 
@@ -151,7 +151,7 @@ static _Shelter1fParkingGarageGlowPoints _gShelter1fParkingGarageGlowPoints = {
     .discCenter = { 2000, -2130, 2230, 0 },
 };
 
-#include "../../shared/room_visual_effects_trail_data.inc.c"
+#include "../../shared/room/room_visual_effects_trail_data.inc.c"
 
 WorldCollisionRoomResources gShelter1fParkingGarageCollisionRooms[1] = {
     { &_gShelter1fParkingGarageCollisionGrid, _gShelter1fParkingGarageViewBoundaryTriggers, _gShelter1fParkingGarageActionTriggers, NULL },
@@ -512,32 +512,14 @@ static __inline__ s32 _shelter1fParkingGarageStartEvent(const RoomEventMsg* mess
     return ROOM_EVENT_DEPARTURE_DIRECT;
 }
 
-#include "../../shared/room_variants_shelter.inc.c"
+#include "../../shared/room/room_variants_shelter.inc.c"
 #undef ROOM_VARIANT_RESOLVE_SHELTER
 
-#include "../../shared/room_event_departure_task.inc.c"
+#include "../../shared/room/room_event_departure_task.inc.c"
 
-#include "../../shared/room_event_staged_task.inc.c"
+#include "../../shared/room/room_event_staged_task.inc.c"
 
-/// Resolves an initialized departure's selectors through a stage's room resolver.
-///
-/// Borrows both arguments during the call. Only area, warp, room and execute
-/// mode are initialized in the temporary message; the resolver must read no
-/// other fields and must accept aliased request/reply storage. Other departure
-/// fields are preserved.
-static inline void _roomVariantResolveDeparture(RoomDeparture* departure, RoomVariantResolver resolveVariant)
-{
-    RoomEventMsg request;
-
-    request.areaId    = departure->area;
-    request.warp      = departure->warp;
-    request.room      = departure->room;
-    request.queryOnly = ROOM_EVENT_EXECUTE;
-    resolveVariant(&request, &request);
-    departure->area = request.areaId;
-    departure->warp = request.warp;
-    departure->room = request.room;
-}
+#include "../../shared/room/room_variants_resolve_departure.inc.c"
 
 /// Waits for the garage travel choice, fades out and stages the underground departure.
 ///
@@ -767,31 +749,28 @@ void shelter1fParkingGarageDrawViewGlowsTask(Task* task)
     }
 }
 
-#include "../../shared/glow_draw_angled_capsule.inc.c"
+#include "../../shared/effects/glow_draw_angled_capsule.inc.c"
 
-#include "../../shared/glow_draw_factor_disc.inc.c"
+#include "../../shared/effects/glow_draw_factor_disc.inc.c"
 
-#include "../../shared/room_visual_effects.inc.c"
+#include "../../shared/room/room_visual_effects.inc.c"
 
-#include "../../shared/room_visual_effects_flash_task.inc.c"
+#include "../../shared/room/room_visual_effects_flash_task.inc.c"
 
 void shelter1fParkingGarageRoomVisualEffectsFlashTask(Task* task)
 {
     _roomVisualEffectsFlashTask(task);
 }
 
-#include "../../shared/room_visual_effects_trails.inc.c"
+#include "../../shared/room/room_visual_effects_trails.inc.c"
 
 void shelter1fParkingGarageRoomVisualEffectsTwinTrailTask(Task* task)
 {
-#include "../../shared/room_visual_effects_trail_task.inc.c"
-}
+#include "../../shared/room/room_visual_effects_trail_task.inc.c"
 
-#include "../../shared/room_visual_effects_sparks.inc.c"
+    void shelter1fParkingGarageRoomVisualEffectsSparkBurstTask(Task * task)
+    {
+        _roomVisualEffectsSparkBurstTask(task);
+    }
 
-void shelter1fParkingGarageRoomVisualEffectsSparkBurstTask(Task* task)
-{
-    _roomVisualEffectsSparkBurstTask(task);
-}
-
-#include "../../shared/room_visual_effects_glow.inc.c"
+#include "../../shared/room/room_visual_effects_glow.inc.c"

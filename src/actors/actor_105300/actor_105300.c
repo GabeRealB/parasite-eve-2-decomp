@@ -48,7 +48,7 @@
 #include "rooms/neo_ark_power_plant_1.h"
 
 #include "rooms/neo_ark_power_plant_2.h"
-#include "../../shared/model_placement.h"
+#include "../../shared/actor/model_placement.h"
 /// Selects the Beta Generator of Power Plant 2 for the shared generator instance.
 ///
 /// Bind to a C integer constant, `GENERATOR_BETA` (0) or `GENERATOR_PROTO` (1),
@@ -62,7 +62,7 @@
 /// Names a `TaskDesc[GENERATOR_TASK_DESC_COUNT]` array; keep the binding defined
 /// through `generator.h` and all included generator fragments.
 #define GENERATOR_TASK_TABLE gActor105300GeneratorTasks
-#include "../../shared/generator.h"
+#include "../../shared/creatures/generator/generator.h"
 
 static void _generatorDeathState(Enemy* enemy, Task* task);
 
@@ -345,29 +345,9 @@ static AnimationSet* _gGeneratorAnimSets[4] = {
     [GENERATOR_ANIM_DEATH] = &_gActor105300Animation0B548,
 };
 
-#include "../../shared/generator_body_hit.inc.c"
+#include "../../shared/creatures/generator/generator.inc.c"
 
-#include "../../shared/generator_pulse.inc.c"
-
-#include "../../shared/generator_inlines.inc.c"
-
-#include "../../shared/generator_death.inc.c"
-
-#include "../../shared/generator_weak_point_spawn.inc.c"
-
-#include "../../shared/generator_weak_point_hit.inc.c"
-
-#include "../../shared/generator_spawn.inc.c"
-
-#include "../../shared/generator_tick.inc.c"
-
-#include "../../shared/generator_regenerate.inc.c"
-
-#include "../../shared/generator_update_color.inc.c"
-
-#include "../../shared/generator_tick_pose.inc.c"
-
-#include "../../shared/model_placement_scale.inc.c"
+#include "../../shared/actor/model_placement_scale.inc.c"
 
 /// Life Support handlers indexed by `Task::state`: spawn, active hit processing and teardown.
 ///
@@ -380,23 +360,4 @@ static const EnemyTaskFuncTable3 _gGeneratorLifeSupportStates = {
     },
 };
 
-#include "../../shared/generator_life_support_task.inc.c"
-
-#include "../../shared/generator_weak_point_teardown.inc.c"
-
-#include "../../shared/generator_release_bits.inc.c"
-
-#include "../../shared/generator_is_alive.inc.c"
-
-/// Body handlers indexed by `Task::state`: spawn, active update and held death.
-///
-/// The dispatcher copies all three typed callbacks before selecting one.
-static const EnemyTaskFuncTable3 _gGeneratorTaskStates = {
-    {
-        [GENERATOR_TASK_SPAWN]    = _generatorSpawn,
-        [GENERATOR_TASK_ACTIVE]   = _generatorTickState,
-        [GENERATOR_TASK_TEARDOWN] = _generatorDeathState,
-    },
-};
-
-#include "../../shared/generator_task.inc.c"
+#include "../../shared/creatures/generator/generator_life_support_task.inc.c"

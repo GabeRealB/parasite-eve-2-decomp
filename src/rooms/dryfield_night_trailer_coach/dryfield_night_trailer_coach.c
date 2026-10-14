@@ -54,7 +54,7 @@
 
 #include "rooms/room_common.h"
 #include "rooms/shop_tier.h"
-#include "../../shared/room_cutscene.h"
+#include "../../shared/room/room_cutscene.h"
 static void _roomCutsceneTask(Task* task);
 
 /// Selects the nighttime trailer coach view that uses the finer depth shift.
@@ -69,7 +69,7 @@ static void _roomCutsceneSoundTask(Task* task);
 
 static s32 _gShopPreviewRowId;
 
-#include "../../shared/telephone.h"
+#include "../../shared/room/telephone.h"
 
 static const u16 _gShopStandardDefaultWeaponsStock[];
 static const u16 _gShopStandardDefaultAmmunitionStock[];
@@ -90,7 +90,7 @@ static const u16 _gShopStandardDefaultItemsStock[];
 /// binding through `shop.inc.c`; `shop.h` specifies selection, lifetime and use by
 /// one panel at a time.
 #define SHOP_REFILL_SUPPLY gShopRefillSupply
-#include "../../shared/shop.h"
+#include "../../shared/room/shop.h"
 
 enum { DRYFIELD_NIGHT_TRAILER_COACH_LATE_CHAPTER = 4 };
 
@@ -117,9 +117,7 @@ static AnimationSet _gDryfieldNightTrailerCoachAnimation0A364;
 static void _dryfieldNightTrailerCoachStartTalkVariant1(void);
 static void _dryfieldNightTrailerCoachOpenShop(void);
 
-#include "../../shared/shop_data.inc.c"
-
-#include "../../shared/shop_panels.inc.c"
+#include "../../shared/room/shop_data.inc.c"
 
 TaskDesc gDryfieldNightTrailerCoachShopSessionTaskDesc = {
     .header   = { .fields = { .flags = TASK_BODY_NONE, .priority = 192 } },
@@ -159,7 +157,7 @@ TmdSource gDryfieldNightTrailerCoachAcropolisSanctuaryModel090F0 = {
     _gDryfieldNightTrailerCoachAcropolisSanctuaryModel090F0Stream,
 };
 
-#include "../../shared/telephone_data.inc.c"
+#include "../../shared/room/telephone_data.inc.c"
 
 /// This carrier's bodyless scene runner and timed sound task, followed by END.
 ///
@@ -1044,7 +1042,7 @@ static void _dryfieldNightTrailerCoachInitRoomTask(Task* task);
 ///
 /// One-byte string-literal binding for `shop.inc.c`; label drawing does not read it.
 #define SHOP_WEAPON_SUPPLY_REFILL_TITLE_TRAILING_BYTES "\xFD"
-#include "../../shared/shop.inc.c"
+#include "../../shared/room/shop.inc.c"
 #undef SHOP_WEAPON_SUPPLY_REFILL_TITLE_TRAILING_BYTES
 #undef SHOP_REFILL_DISPLAY_QUANTITY
 #undef SHOP_REFILL_SUPPLY
@@ -1053,7 +1051,7 @@ static void _dryfieldNightTrailerCoachInitRoomTask(Task* task);
 ///
 /// Two-byte string-literal binding for `telephone.inc.c`; unused by label drawing.
 #define TELEPHONE_MENU_TITLE_TRAILING_BYTES "\x4E\xF2"
-#include "../../shared/telephone.inc.c"
+#include "../../shared/room/telephone.inc.c"
 #undef TELEPHONE_MENU_TITLE_TRAILING_BYTES
 
 void dryfieldNightTrailerCoachTelephoneMenuTask(Task* task)
@@ -1061,12 +1059,12 @@ void dryfieldNightTrailerCoachTelephoneMenuTask(Task* task)
     _telephoneMenuTask(task);
 }
 
-#include "../../shared/telephone_panels.inc.c"
+#include "../../shared/room/telephone_panels.inc.c"
 
 /// The area records applied when a scene ends with game-flag nibble 0x7A at 1,
 /// nibble 0 at 2 and the save's location at 0x0101 in its upper half.
 
-#include "../../shared/room_cutscene_task.inc.c"
+#include "../../shared/room/room_cutscene_task.inc.c"
 
 /// Room-task dispatch for states 0 initialize, 1 update depth scale and 2 kill.
 ///
@@ -1192,7 +1190,7 @@ static void _dryfieldNightTrailerCoachTalkTask(Task* task)
     }
 }
 
-#include "../../shared/room_cutscene_sound_task.inc.c"
+#include "../../shared/room/room_cutscene_sound_task.inc.c"
 
 /// Refuses every key-item use request without changing inventory.
 ///

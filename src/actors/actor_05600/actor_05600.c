@@ -51,7 +51,7 @@
 #include "main/tmd_types.h"
 #include "main/wipsys.h"
 #include "main/wipsys_types.h"
-#include "../../shared/player_detection.h"
+#include "../../shared/actor/player_detection.h"
 /// Selects Pawn behavior for this Grenade Launcher GOLEM carrier.
 #define GOLEM_PAWN_ROOK_KIND GOLEM_PAWN_ROOK_KIND_PAWN
 /// Selects the shared Grenade Launcher build for this Pawn GOLEM carrier.
@@ -59,7 +59,7 @@
 /// Keep this binding through all GOLEM fragments, with matching weapon tasks,
 /// behavior callbacks and animation tables.
 #define GOLEM_PAWN_ROOK_WEAPON GOLEM_PAWN_ROOK_WEAPON_GRENADE_LAUNCHER
-#include "../../shared/golem_pawn_rook.h"
+#include "../../shared/creatures/golem/golem_pawn_rook.h"
 
 /// Character script bank used by this carrier's cue tables.
 enum { GOLEM_PAWN_ROOK_SOUND_BANK = 0x38 };
@@ -1264,37 +1264,13 @@ static TaskFunc _gGolemPawnRookBehaviorHandlers[GOLEM_PAWN_ROOK_BEHAVIOR_DOWNED_
     _golemPawnRookDownedDeathState,
 };
 
-#include "../../shared/golem_pawn_rook_take_hits.inc.c"
+#include "../../shared/creatures/golem/golem_pawn_rook_take_hits.inc.c"
 
-#include "../../shared/golem_pawn_rook_patrol.inc.c"
+#include "../../shared/creatures/golem/golem_pawn_rook_patrol.inc.c"
 
-#include "../../shared/golem_pawn_rook_player_noise.inc.c"
+#include "../../shared/creatures/golem/golem_pawn_rook_grenade_burst.inc.c"
 
-#include "../../shared/golem_pawn_rook_knockdown.inc.c"
-
-#include "../../shared/golem_pawn_rook_downed_hit.inc.c"
-
-#include "../../shared/golem_pawn_rook_collapse.inc.c"
-
-#include "../../shared/golem_pawn_rook_turn.inc.c"
-
-#include "../../shared/golem_pawn_rook_hit_tilt.inc.c"
-
-#include "../../shared/golem_pawn_rook_anim_cues.inc.c"
-
-#include "../../shared/golem_pawn_rook_dead.inc.c"
-
-#include "../../shared/golem_pawn_rook_grenade_burst.inc.c"
-
-#include "../../shared/golem_pawn_rook_lunge_strike.inc.c"
-
-#include "../../shared/golem_pawn_rook_laser_sight.inc.c"
-
-#include "../../shared/golem_pawn_rook_laser_beam.inc.c"
-
-#include "../../shared/golem_pawn_rook_grenade_spawn.inc.c"
-
-#include "../../shared/golem_pawn_rook_grenade_fly.inc.c"
+#include "../../shared/creatures/golem/golem_pawn_rook_lunge_strike.inc.c"
 
 /// Selects the Pawn GOLEM's launcher spawn table for the shared spawn code.
 ///
@@ -1303,28 +1279,18 @@ static TaskFunc _gGolemPawnRookBehaviorHandlers[GOLEM_PAWN_ROOK_BEHAVIOR_DOWNED_
 /// geometry loaded until all spawned tasks, including detached grenades,
 /// have been released. Only the following fragment uses this binding.
 #define GOLEM_PAWN_ROOK_TASK_DESCRIPTORS gActor05600PawnGolemTasks
-#include "../../shared/golem_pawn_rook_spawn.inc.c"
+#include "../../shared/creatures/golem/golem_pawn_rook_spawn.inc.c"
 #undef GOLEM_PAWN_ROOK_TASK_DESCRIPTORS
 
-#include "../../shared/golem_pawn_rook_inlines.inc.c"
+#include "../../shared/creatures/golem/golem_pawn_rook_inlines.inc.c"
 
-#include "../../shared/golem_pawn_rook_frame_no_sparks.inc.c"
+#include "../../shared/creatures/golem/golem_pawn_rook_frame_no_sparks.inc.c"
 
-#include "../../shared/golem_pawn_rook_lunge_cycle.inc.c"
+#include "../../shared/creatures/golem/golem_pawn_rook_lunge_cycle.inc.c"
 
-#include "../../shared/player_detection_segment.inc.c"
+#include "../../shared/actor/player_detection_segment.inc.c"
 
-#include "../../shared/golem_pawn_rook_idle.inc.c"
-
-#include "../../shared/golem_pawn_rook_stagger.inc.c"
-
-#include "../../shared/golem_pawn_rook_recoil.inc.c"
-
-#include "../../shared/golem_pawn_rook_buildup.inc.c"
-
-#include "../../shared/golem_pawn_rook_downed_death.inc.c"
-
-#include "../../shared/golem_pawn_rook_nop.inc.c"
+#include "../../shared/creatures/golem/golem_pawn_rook.inc.c"
 
 /// Pawn GOLEM launcher lifecycle: 0 attach, 1 mirror flags/fire, 2 destroy.
 ///
@@ -1351,9 +1317,7 @@ static void _actor05600GrenadeLauncherTask(Task* launcher)
     stateHandlers.funcs[launcher->state](launcher->spawnArg2.pointer, launcher);
 }
 
-#include "../../shared/golem_pawn_rook_launcher_spawn.inc.c"
-
-#include "../../shared/golem_pawn_rook_launcher_tick.inc.c"
+#include "../../shared/creatures/golem/golem_pawn_rook_launcher.inc.c"
 
 /// Pawn launcher grenade lifecycle handlers indexed by task state 0..2.
 ///
@@ -1379,7 +1343,7 @@ static void _actor05600GrenadeTask(Task* grenade)
     stateHandlers.funcs[grenade->state](grenade->spawnArg2.pointer, grenade);
 }
 
-#include "../../shared/golem_pawn_rook_grenade_destroy.inc.c"
+#include "../../shared/creatures/golem/golem_pawn_rook_grenade_destroy.inc.c"
 
 /// Pawn launcher body lifecycle handlers indexed by task state 0..2.
 ///

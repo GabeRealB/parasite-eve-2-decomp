@@ -33,7 +33,7 @@
 
 #include "rooms/dryfield_night_factory.h"
 
-#include "../../../../shared/dryfield_time.h"
+#include "../../dryfield_time.h"
 
 #if DRYFIELD_TIME == DRYFIELD_DAY
 #include "factory_day.h"

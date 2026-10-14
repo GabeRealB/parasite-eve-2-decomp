@@ -828,6 +828,8 @@ static void _mistParkingQueueDelayedShopDisplayModeExit(s32 delayTicks)
     displayQueueModeTask(taskGetDescAt(gMistParkingShopTaskDescriptors, MIST_PARKING_SHOP_DISPLAY_EXIT_DESCRIPTOR_INDEX), delayTicks, 0, STAGE_ENTRY_RELOAD);
 }
 
+#include "mist_parking_display_mode_exit.inc.c"
+
 /// Counts down callback ticks before releasing the variant-1 talk's display mode.
 ///
 /// `spawnArg1.value` is a signed word, decremented before testing. An initial
@@ -835,14 +837,7 @@ static void _mistParkingQueueDelayedShopDisplayModeExit(s32 delayTicks)
 /// precedes the mode-exit request, and no work or body is allocated by this callback.
 static void _mistParkingDelayShopDisplayModeExitTask(Task* task)
 {
-    s32 ticksLeft;
-
-    ticksLeft             = task->spawnArg1.value - 1;
-    task->spawnArg1.value = ticksLeft;
-    if (ticksLeft < 0) {
-        taskKill(task);
-        stageRequestModeTaskExit();
-    }
+    _mistParkingDelayDisplayModeExit(task);
 }
 
 /// Selects already-loaded CAP data and its font page for the variant-1 conversations.

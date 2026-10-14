@@ -26,7 +26,7 @@
 #include "main/scratch.h"
 #include "main/task_types.h"
 #include "main/tmd_types.h"
-#include "../../shared/blade_trail.h"
+#include "../../shared/effects/blade_trail.h"
 
 /// Far ribbon endpoint in integer weapon-part coordinates, `(0, 0x300, 0x40)`.
 ///
@@ -180,7 +180,7 @@ void m4a1BayonetTrailTask(Task* task)
 /// to signed 16 bits and retaining no pointers. This binding exists only
 /// around the shared drawer inclusion.
 #define BLADE_TRAIL_SECOND_ENDPOINT_HISTORY gBladeTrailTip
-#include "../../shared/blade_trail_draw.inc.c"
+#include "../../shared/effects/blade_trail_draw.inc.c"
 #undef BLADE_TRAIL_FIRST_ENDPOINT_HISTORY
 #undef BLADE_TRAIL_SECOND_ENDPOINT_HISTORY
 

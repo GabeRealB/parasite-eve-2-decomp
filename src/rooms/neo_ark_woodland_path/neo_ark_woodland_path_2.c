@@ -45,9 +45,9 @@
 /// Empty presence flag so `water_effects.h` declares the shared
 /// `_waterDrawSpinU16` and `_waterDrawTileU16`. This file includes their bodies.
 #define WATER_SHARED_U16_DRAWERS
-#include "../../shared/water_effects.h"
-#include "../../shared/falling_leaves.h"
-#include "../../shared/roaming_enemies.h"
+#include "../../shared/effects/water_effects.h"
+#include "../../shared/effects/falling_leaves.h"
+#include "../../shared/room/roaming_enemies.h"
 
 static void _roamerArmPoolB(Task* task);
 static void _roamerArmPoolA(Task* task);
@@ -372,42 +372,34 @@ void neoArkWoodlandPathPlayerWaterSplashTask(Task* task)
 #undef ABS_DIFF
 }
 
-#include "../../shared/falling_leaves_task.inc.c"
+#include "../../shared/effects/falling_leaves_task.inc.c"
 
 void neoArkWoodlandPathLeafFallTask(Task* task)
 {
     _leafFallTask(task);
 }
 
-#include "../../shared/falling_leaves_draw_neo_ark.inc.c"
+#include "../../shared/effects/falling_leaves_draw_neo_ark.inc.c"
 
-#include "../../shared/water_ripple_task.inc.c"
+#include "../../shared/effects/water_ripple_task.inc.c"
 
 void neoArkWoodlandPathWaterRippleTask(Task* task)
 {
     _waterRippleTask(task);
 }
 
-#include "../../shared/water_splash.inc.c"
+#include "../../shared/effects/water_splash.inc.c"
 
-#include "../../shared/water_drift_task_u16.inc.c"
+#include "../../shared/effects/water_drift_task_u16.inc.c"
 
 void neoArkWoodlandPathWaterDriftTaskU16(Task* task)
 {
     _waterDriftTaskU16(task);
 }
 
-#include "../../shared/water_spin_u16.inc.c"
+#include "../../shared/effects/water_spin_u16.inc.c"
 
-#include "../../shared/water_tile_u16.inc.c"
-
-#include "../../shared/roaming_enemies_bank_retreat.inc.c"
-
-#include "../../shared/roaming_enemies_seed_reserve_hp.inc.c"
-
-#include "../../shared/roaming_enemies_arm_pool_a.inc.c"
-
-#include "../../shared/roaming_enemies_tick_pool_a.inc.c"
+#include "../../shared/room/roaming_enemies_bank_retreat.inc.c"
 
 /// Pool-A controller states: 0 arm woodland reserve, 1 update, 2 advance, 3 release.
 ///
@@ -419,9 +411,7 @@ static const TaskFuncTable4 _gNeoArkWoodlandPathRoamerPoolAStateHandlers = {
       _neoArkWoodlandPathAdvanceRoamerPoolAState, taskKill }
 };
 
-#include "../../shared/roaming_enemies_ambush_msg.inc.c"
-
-#include "../../shared/roaming_enemies_arm_pool_b.inc.c"
+#include "../../shared/room/roaming_enemies.inc.c"
 
 /// Updates the roaming reserve feeding the Neo Ark forest zone and revives one enemy.
 ///
@@ -598,7 +588,7 @@ static s32 _neoArkWoodlandPathIgnoreRoamerCommand(Task* task, s32 messageId, con
 /// The callback type and inclusion requirements are documented in
 /// `roaming_enemies_latch_request.inc.c`.
 #define ROAMER_LATCH_SPAWN_REQUEST _roamerLatchSpawnRequestPoolA
-#include "../../shared/roaming_enemies_latch_request.inc.c"
+#include "../../shared/room/roaming_enemies_latch_request.inc.c"
 #undef ROAMER_LATCH_SPAWN_REQUEST
 
 /// Advances the live pool-A controller from its pre-kill state 2 to state 3.
@@ -624,11 +614,11 @@ static void _neoArkWoodlandPathRoamerPoolATask(Task* task)
     handlers.funcs[task->state](task);
 }
 
-#include "../../shared/roaming_enemies_extend_cooldown.inc.c"
+#include "../../shared/room/roaming_enemies_extend_cooldown.inc.c"
 
 /// Selects the private pool-B room-action latch for this fragment inclusion.
 #define ROAMER_LATCH_SPAWN_REQUEST _roamerLatchSpawnRequestPoolB
-#include "../../shared/roaming_enemies_latch_request.inc.c"
+#include "../../shared/room/roaming_enemies_latch_request.inc.c"
 #undef ROAMER_LATCH_SPAWN_REQUEST
 
 /// Advances the live pool-B controller from its pre-kill state 2 to state 3.

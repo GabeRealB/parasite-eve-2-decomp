@@ -58,8 +58,8 @@
 #include "overlay.h"
 
 #include "rooms/shelter_b6_training_room.h"
-#include "../../shared/fireball.h"
-#include "../../shared/model_placement.h"
+#include "../../shared/effects/fireball.h"
+#include "../../shared/actor/model_placement.h"
 
 /// Main-executable counter whose lowest bit the flicker alternates on.
 
@@ -879,9 +879,7 @@ static SVECTOR _gActor105100FireballStartOffsets[7] = {
 
 static inline void _actor105100AnimUpdate(Task* task);
 
-#include "../../shared/fireball_glow.inc.c"
-
-#include "../../shared/fireball_ground_glow.inc.c"
+#include "../../shared/effects/fireball.inc.c"
 
 /// Initializes the enemy's model, animation rig and combat bodies.
 ///
@@ -1881,22 +1879,7 @@ static inline void _actor105100AnimUpdate(Task* task)
     }
 }
 
-/// Updates the enemy's model lighting and colour at its composed root position.
-///
-/// Requires a live enemy in `spawnArg2.pointer` and a composed model root.
-/// Only the three world-coordinate components are sampled; colour modes and
-/// blends are applied by the world-lighting service.
-static inline void _actor105100UpdateColor(Task* task)
-{
-    GfxCoord* coord;
-    VECTOR3   worldPosition;
-
-    coord            = task->extra.tmd->coords;
-    worldPosition.vx = coord->workm.t[0];
-    worldPosition.vy = coord->workm.t[1];
-    worldPosition.vz = coord->workm.t[2];
-    worldCoordUpdateActorColor(task->spawnArg2.pointer, &worldPosition, 0, 0);
-}
+#include "../../shared/actor/actor_update_model_color.inc.c"
 
 /// Withdraws the dying enemy's target, hit intake and three registered bodies.
 ///
@@ -1965,7 +1948,7 @@ static void _actor105100Death(Enemy* enemy, Task* task)
     playerTask = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_PAUSED:
-            _actor105100UpdateColor(deathTask);
+            _actorUpdateModelColor(deathTask);
             return;
         case SCENE_COMBAT_ACTORS_HIDDEN:
             deathTask->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
@@ -1986,7 +1969,7 @@ static void _actor105100Death(Enemy* enemy, Task* task)
             worldCoordSetActorColorMode(enemy, ENEMY_COLOR_WEIGHTED);
             work->timer      = 0;
             work->actionStep = ACTOR_105100_DEATH_FADE_DELAY;
-            _actor105100UpdateColor(deathTask);
+            _actorUpdateModelColor(deathTask);
             return;
         case ACTOR_105100_DEATH_FADE_DELAY:
             if (++work->timer == ACTOR_105100_DEATH_SEMI_TRANS_TICK) {
@@ -2000,7 +1983,7 @@ static void _actor105100Death(Enemy* enemy, Task* task)
                 work->deathEventPending = 1;
             }
             _actor105100AnimUpdate(deathTask);
-            _actor105100UpdateColor(deathTask);
+            _actorUpdateModelColor(deathTask);
             return;
         case ACTOR_105100_DEATH_ANIMATION:
             deathEventPending = work->deathEventPending;
@@ -2030,7 +2013,7 @@ static void _actor105100Death(Enemy* enemy, Task* task)
                 work->actionStep = ACTOR_105100_DEATH_SHRINK;
             }
             _actor105100AnimUpdate(deathTask);
-            _actor105100UpdateColor(deathTask);
+            _actorUpdateModelColor(deathTask);
             return;
         case ACTOR_105100_DEATH_SHRINK:
             if (work->scale >= ACTOR_105100_DEATH_SHRINK_THRESHOLD + 1) {
@@ -2040,7 +2023,7 @@ static void _actor105100Death(Enemy* enemy, Task* task)
             if (++work->timer >= ACTOR_105100_DEATH_SHRINK_TICKS) {
                 work->actionStep = ACTOR_105100_DEATH_DESTROY;
             }
-            _actor105100UpdateColor(deathTask);
+            _actorUpdateModelColor(deathTask);
             return;
         case ACTOR_105100_DEATH_DESTROY:
             enemyDestroy(enemy, deathTask);
@@ -2687,7 +2670,7 @@ static void _actor105100BeamSeekPlayer(Task* task)
     SCRATCH_STACK_RELEASE_BLOCK(ActorFaceScratch);
 }
 
-#include "../../shared/fireball_ember.inc.c"
+#include "../../shared/effects/fireball_ember.inc.c"
 
 /// Dispatches the enemy's spawn, per-frame update or teardown handler.
 ///
@@ -3023,7 +3006,7 @@ static void _actor105100UpdateAnimation(Task* task)
 /// a frozen update. The world-lighting service applies colour modes and blends.
 static void _actor105100RefreshColor(Task* task)
 {
-    _actor105100UpdateColor(task);
+    _actorUpdateModelColor(task);
 }
 
 /// Beam enemy callbacks indexed by task state: 0 spawn, 1 update, 2 teardown.
@@ -3059,7 +3042,7 @@ static void _actor105100DrawShadow(Task* task)
     effectDrawGroundShadow(&worldPosition, ACTOR_105100_SHADOW_HALF_SIZE, ACTOR_105100_SHADOW_SHADE);
 }
 
-#include "../../shared/model_placement_scale.inc.c"
+#include "../../shared/actor/model_placement_scale.inc.c"
 
 /// Dispatches a summoned fireball's spawn, movement or teardown handler.
 ///

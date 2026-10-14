@@ -31,7 +31,7 @@
 #include "main/task.h"
 #include "main/task_types.h"
 #include "main/tmd_types.h"
-#include "../../shared/glow_draw.h"
+#include "../../shared/effects/glow_draw.h"
 
 /// Size and pace of the apobiosis effect at one Parasite Energy level.
 ///
@@ -354,7 +354,7 @@ static void _apobiosisDrawScreenFlash(s16 brightness)
 /// moving the world centre. Apobiosis supplies it; Plasma leaves it undefined.
 /// Define before the halo fragment, which undefines it after the inclusion.
 #define GLOW_DRAW_HALO_DEPTH_PULL 0x40
-#include "../../shared/glow_draw_halo.inc.c"
+#include "../../shared/effects/glow_draw_halo.inc.c"
 
 /// Seeds one apobiosis shard's strip displacement, fixed sprite rotation and PE level row.
 ///
@@ -562,26 +562,7 @@ static void _apobiosisDrawShardSprite(const GfxCoord* coord, s16 textureFrame, s
 
 #undef APOBIOSIS_SPRITE_SET_CORNER_OFFSET
 
-/// Projects the selected strip endpoint through the loaded GTE matrices.
-///
-/// Borrows one complete word-aligned scratch block. `projectEnd` selects
-/// worldEnd/screenEnd when true and worldStart/screenStart otherwise. Writes
-/// signed screen pixels and replaces projectionFlags. Leaves SZ3 available
-/// for the caller to capture before the next projection.
-static inline void _apobiosisProjectStripPoint(EffectStripScratch* scratch, bool projectEnd)
-{
-    if (projectEnd) {
-        gte_ldv0(&scratch->worldEnd);
-        gte_rtps();
-        gte_stsxy(&scratch->screenEnd);
-        gte_stflg(&scratch->projectionFlags);
-    } else {
-        gte_ldv0(&scratch->worldStart);
-        gte_rtps();
-        gte_stsxy(&scratch->screenStart);
-        gte_stflg(&scratch->projectionFlags);
-    }
-}
+#include "../../shared/effects/effect_strip_project_point.inc.c"
 
 /// Queues an additive apobiosis strip from a composed world origin to an offset endpoint.
 ///
@@ -623,11 +604,11 @@ static void _apobiosisDrawShardStrip(const GfxCoord* coord, const SVECTOR* endOf
 
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    _apobiosisProjectStripPoint(scratch, false);
+    _effectStripProjectPoint(scratch, false);
     if (scratch->projectionFlags >= 0) {
         gte_stszotz(&scratch->depth);
         scratch->depth += APOBIOSIS_STRIP_DEPTH_BIAS;
-        _apobiosisProjectStripPoint(scratch, true);
+        _effectStripProjectPoint(scratch, true);
         if (scratch->projectionFlags >= 0) {
             quad           = gGpuPrimCursor;
             gGpuPrimCursor = quad + 1;

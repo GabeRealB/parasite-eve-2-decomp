@@ -34,15 +34,15 @@
 
 #include "common.h"
 
-#include "../../shared/room_visual_effects.h"
+#include "../../shared/room/room_visual_effects.h"
 
 static RoomFxShade _gRoomVisualEffectsGlowDiscShades[2];
 
-#include "../../shared/room_visual_effects.inc.c"
+#include "../../shared/room/room_visual_effects.inc.c"
 
-#include "../../shared/room_visual_effects_flying_tasks.inc.c"
+#include "../../shared/room/room_visual_effects_flying_tasks.inc.c"
 
-#include "../../shared/room_visual_effects_disc_data.inc.c"
+#include "../../shared/room/room_visual_effects_disc_data.inc.c"
 
 u8* gShelterB2BreedingRoomRoomViewMaps[1] = {
     gViewIdentityMap,
@@ -1180,11 +1180,11 @@ void shelterB2BreedingRoomRoomVisualEffectsFlyingSparkTask(Task* task)
     _roomVisualEffectsFlyingSparkTask(task);
 }
 
-#include "../../shared/room_visual_effects_burst.inc.c"
+#include "../../shared/room/room_visual_effects_burst.inc.c"
 
 void shelterB2BreedingRoomRoomVisualEffectsFlyingOrangeBurstTask(Task* task)
 {
     _roomVisualEffectsFlyingOrangeBurstTask(task);
 }
 
-#include "../../shared/room_visual_effects_burst_draw.inc.c"
+#include "../../shared/room/room_visual_effects_burst_draw.inc.c"

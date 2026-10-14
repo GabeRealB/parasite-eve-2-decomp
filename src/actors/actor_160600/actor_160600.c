@@ -31,8 +31,8 @@
 #include "main/session_types.h"
 #include "main/task.h"
 #include "main/tmd_types.h"
-#include "../../shared/paced_walk.h"
-#include "../../shared/walker.h"
+#include "../../shared/walk/paced_walk.h"
+#include "../../shared/walk/walker.h"
 
 // Message-table callbacks use the argument views required by this TU.
 
@@ -1580,10 +1580,10 @@ static void _actor160600DismissCompanion(void)
 /// root cache. This object-like alias captures no locals; undefine it after
 /// the inclusion.
 #define ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW _actorRenderDrawFixedWalkerGroundShadow
-#include "../../shared/paced_walk_frame.inc.c"
+#include "../../shared/walk/paced_walk_frame.inc.c"
 #undef ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW
 
-#include "../../shared/paced_walk_update.inc.c"
+#include "../../shared/walk/paced_walk_update.inc.c"
 
 /// Dispatches the paced walker's spawn and per-frame states.
 ///
@@ -1600,7 +1600,7 @@ static void _pacedWalkTask(Task* task)
     stateHandlers[task->state](task->spawnArg2.pointer, task);
 }
 
-#include "../../shared/paced_walk_spawn.inc.c"
+#include "../../shared/walk/paced_walk_spawn.inc.c"
 
 /// Releases the walker's enemy record and tears down its task tree.
 ///
@@ -1618,38 +1618,22 @@ static void _pacedWalkExit(Task* task)
 /// `static void(Task*)` at this text position, so keep the identifier alias
 /// unparenthesized and undefine it after the inclusion.
 #define ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW _actorRenderDrawFixedWalkerGroundShadow
-#include "../../shared/walker_shadow.inc.c"
+#include "../../shared/walk/walker_shadow.inc.c"
 #undef ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW
 
-#include "../../shared/paced_walk_tick_anim.inc.c"
+#include "../../shared/walk/paced_walk_tick_anim.inc.c"
 
-#include "../../shared/paced_walk_reset_anim.inc.c"
+#include "../../shared/walk/paced_walk_reset_anim.inc.c"
 
-#include "../../shared/paced_walk_blend_anim.inc.c"
+#include "../../shared/walk/paced_walk_blend_anim.inc.c"
 
-#include "../../shared/paced_walk_play_anim.inc.c"
+#include "../../shared/walk/paced_walk_apply_animation_request.inc.c"
+#include "../../shared/walk/paced_walk_play_anim.inc.c"
 
-#include "../../shared/paced_walk_show_pair.inc.c"
+#include "../../shared/walk/paced_walk_show_pair.inc.c"
 
-#include "../../shared/paced_walk_place.inc.c"
+#include "../../shared/walk/paced_walk_place.inc.c"
 
-/// Latches scripted smoking on the paced walker for command word 1.
-///
-/// Requires live PacedWalkWork and a borrowed readable command through this
-/// synchronous call. Other command words leave the latch unchanged; no command
-/// clears it. The message ID and trailing argument are ignored. Returns zero.
-static s32 _pacedWalkStartSmoking(Task* task, s32 messageId, const ActorCommand* command, s32 unusedArgument)
-{
-    enum { PACED_WALK_COMMAND_START_SMOKING = 1 };
-    PacedWalkWork* work;
-    u16            commandValue;
+#include "../../shared/walk/paced_walk_start_smoking.inc.c"
 
-    commandValue = command->command;
-    work         = task->work;
-    if (commandValue == PACED_WALK_COMMAND_START_SMOKING) {
-        work->smoking = commandValue;
-    }
-    return 0;
-}
-
-#include "../../shared/paced_walk_to.inc.c"
+#include "../../shared/walk/paced_walk_to.inc.c"

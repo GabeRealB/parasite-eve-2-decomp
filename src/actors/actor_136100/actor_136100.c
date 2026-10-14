@@ -55,8 +55,8 @@ static void _screenFadeInTask(Task* task);
 /// Keep defined from `screen_fade.h` through `screen_fade_in.inc.c`, then undefine.
 /// This object-like binding has no arguments, captures or token construction.
 #define SCREEN_FADE_IN_TASK _screenFadeInTask
-#include "../../shared/screen_fade.h"
-#include "../../shared/actor_messages.h"
+#include "../../shared/screen/screen_fade.h"
+#include "../../shared/actor/actor_messages.h"
 
 /// Player placements at the two ends of a scripted street-scene entrance.
 ///
@@ -2709,7 +2709,7 @@ static void _actor136100SceneTask(Task* task)
     actorRenderDrawGroundShadow(&task->extra.tmd->coords[1], ACTOR_136100_SCENE_SHADOW_HALF_SIZE, &message.floorOffset);
 }
 
-#include "../../shared/screen_fade_in.inc.c"
+#include "../../shared/screen/screen_fade_in.inc.c"
 #undef SCREEN_FADE_IN_TASK
 
 /// Adds the task's intensity increment to each signed fade channel in order.
@@ -2816,7 +2816,7 @@ static s32 _actor136100SetModelDraw(Task* task, s32 unusedMessageId, s32 visible
     // The binary leaves the message result unspecified.
 }
 
-#include "../../shared/actor_messages_place_in_view.inc.c"
+#include "../../shared/actor/actor_messages_place_in_view.inc.c"
 
 /// Restarts the after-Burner body pose on tracks 1 to 19 at normal rate.
 ///

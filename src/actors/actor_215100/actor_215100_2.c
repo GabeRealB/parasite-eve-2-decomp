@@ -56,8 +56,8 @@
 #include "overlay.h"
 
 #include "rooms/mist_shooting_gallery.h"
-#include "../../shared/paced_walk.h"
-#include "../../shared/cap_captions_types.h"
+#include "../../shared/walk/paced_walk.h"
+#include "../../shared/room/cap_captions_types.h"
 
 // Course selections are 1-based; the room controller receives selection minus one.
 enum {
@@ -113,10 +113,10 @@ static void _actor215100ShowTimedCaption(s16 commandIndex, s16 key, s16 duration
 /// linkage binding exports the copy called by mist_shooting_gallery.
 /// This object-like alias captures no arguments and constructs no tokens.
 #define CAP_CAPTION_DRAW_CURRENT actor215100CapCaptionDrawCurrent
-#include "../../shared/cap_captions.h"
+#include "../../shared/room/cap_captions.h"
 
 static void _capCaptionRunSchedule(Task* task);
-#include "../../shared/walker.h"
+#include "../../shared/walk/walker.h"
 
 static TaskDesc             _gCapCaptionTimedTaskDesc;
 static TaskDesc             _gCapCaptionCancelableTaskDesc;
@@ -1975,7 +1975,7 @@ static EvsCommand _gActor215100PierceRepeatTalkScript[11] = {
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-#include "../../shared/cap_captions_settings.inc.c"
+#include "../../shared/room/cap_captions_settings.inc.c"
 
 enum { CAP_CAPTION_SCHEDULE_TASK_PRIORITY = 32 };
 
@@ -1990,7 +1990,7 @@ static TaskDesc _gCapCaptionScheduleTaskDesc = {
     { { TASK_BODY_NONE, CAP_CAPTION_SCHEDULE_TASK_PRIORITY } }, _capCaptionRunSchedule, { .value = 0 }
 };
 
-#include "../../shared/cap_captions_schedule.inc.c"
+#include "../../shared/room/cap_captions_schedule.inc.c"
 
 static TmdBone _gActor215100PierceCarradineBodySkeleton[20] = {
 #include "assets/pierce_carradine_body_skeleton.inc"
@@ -3133,7 +3133,7 @@ void actor215100StartPierceConversation(void)
     }
 }
 
-#include "../../shared/cap_captions.inc.c"
+#include "../../shared/room/cap_captions.inc.c"
 
 /// Selects a keyed caption and spawns its drawing task for signed tick duration.
 ///
@@ -3145,7 +3145,7 @@ static void _actor215100ShowTimedCaption(s16 commandIndex, s16 key, s16 duration
     _capCaptionShowTimed(commandIndex, key, durationTicks);
 }
 
-#include "../../shared/cap_captions_resource.inc.c"
+#include "../../shared/room/cap_captions_resource.inc.c"
 
 void actor215100SelectCaptionResource(s16 texturePageX, s16 texturePageY, s16 dataResourceIndex)
 {
@@ -3217,7 +3217,7 @@ static void _actor215100SpawnPierce(Enemy* enemy, Task* task)
     task->state++;
 }
 
-#include "../../shared/paced_walk_update.inc.c"
+#include "../../shared/walk/paced_walk_update.inc.c"
 
 /// Dispatches Pierce's spawn state or paced movement, animation, lighting and shadow.
 ///
@@ -3248,7 +3248,7 @@ static void _actor215100PierceTask(Task* task)
 #define ACTOR_RENDER_UPDATE_WALKER _pacedWalkUpdate
 /// Selects the declared static void(Task*) ground-shadow drawer for this inclusion.
 #define ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW _actorRenderDrawFixedWalkerGroundShadow
-#include "../../shared/walker_frame.inc.c"
+#include "../../shared/walk/walker_frame.inc.c"
 #undef ACTOR_RENDER_WALKER_FRAME
 #undef ACTOR_RENDER_UPDATE_WALKER
 #undef ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW
@@ -3264,31 +3264,16 @@ static void _pacedWalkExit(Task* task)
 }
 
 #define ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW _actorRenderDrawFixedWalkerGroundShadow
-#include "../../shared/walker_shadow.inc.c"
+#include "../../shared/walk/walker_shadow.inc.c"
 #undef ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW
 
-#include "../../shared/paced_walk_tick_anim.inc.c"
+#include "../../shared/walk/paced_walk_tick_anim.inc.c"
 
-#include "../../shared/paced_walk_reset_anim.inc.c"
+#include "../../shared/walk/paced_walk_reset_anim.inc.c"
 
-#include "../../shared/paced_walk_blend_anim.inc.c"
+#include "../../shared/walk/paced_walk_blend_anim.inc.c"
 
-/// Records the requested clip and next reseed without changing heading or travel.
-///
-/// Borrows both pointers for the call. Clip and blend duration narrow to signed
-/// halfwords. A nonzero blend selects interpolation; reset leaves the previous
-/// duration untouched. Clears `st.field_6`, whose role is unproven.
-static inline void _pacedWalkApplyAnimationRequest(PacedWalkWork* work, const AnimationPlayRequest* request)
-{
-    work->st.animId = request->animationId;
-    if (request->blend != ANIMATION_BLEND_RESET) {
-        work->st.state    = ACTOR_ENEMY_ANIM_BLEND;
-        work->blendFrames = request->blendFrames;
-    } else {
-        work->st.state = ACTOR_ENEMY_ANIM_RESET;
-    }
-    work->st.field_6 = 0;
-}
+#include "../../shared/walk/paced_walk_apply_animation_request.inc.c"
 
 /// Immediately reseeds the walker's non-root tracks from a scripted play request.
 ///
@@ -3360,7 +3345,7 @@ static s32 _pacedWalkSetPairModelDraw(Task* task, s32 messageId, s32 requestFlag
     return 0;
 }
 
-#include "../../shared/paced_walk_place.inc.c"
+#include "../../shared/walk/paced_walk_place.inc.c"
 
 /// Ignores actor commands without changing the walker.
 ///
@@ -3371,24 +3356,9 @@ static s32 _actor215100IgnoreCommand(Task* task, s32 messageId, const ActorComma
     return 0;
 }
 
-#include "../../shared/paced_walk_to.inc.c"
+#include "../../shared/walk/paced_walk_to.inc.c"
 
-/// Links a carried model to a walker part and borrows the walker's lighting.
-///
-/// Both the part coordinate and work matrices must outlive the child. Keeps its
-/// root's local transform, invalidates composition and clears all model flags.
-/// Requires live writable storage and an acyclic coordinate ancestry.
-static inline void _pacedWalkAttachCarriedModel(TmdObject* carriedModel, GfxCoord* attachmentCoord, PacedWalkWork* parentWork)
-{
-    enum { PACED_WALK_CARRIED_MODEL_NO_FLAGS = 0 };
-    GfxCoord* rootCoord = carriedModel->coords;
-
-    rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
-    carriedModel->lightMtx  = &parentWork->light;
-    carriedModel->flags     = PACED_WALK_CARRIED_MODEL_NO_FLAGS;
-    carriedModel->colorMtx  = &parentWork->color;
-    rootCoord->parent       = attachmentCoord;
-}
+#include "../../shared/walk/paced_walk_attach_carried_model.inc.c"
 
 /// Attaches the carried model to walker part 4 and refreshes its root composition.
 ///

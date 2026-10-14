@@ -24,8 +24,8 @@
 #include "main/task_types.h"
 
 #include "rooms/room_common.h"
-#include "../../shared/glow_draw.h"
-#include "../../shared/room_variants.h"
+#include "../../shared/effects/glow_draw.h"
+#include "../../shared/room/room_variants.h"
 
 static s32 _roomVariantMotelBalconyMsg(Task* task, s32 messageId, const RoomEventMsg* request, RoomEventMsg* reply);
 
@@ -56,7 +56,7 @@ static s32 _dryfieldNightMotelRoom5RejectKeyItemUse(Task* task, s32 messageId, s
     return ROOM_KEY_ITEM_USE_REFUSED;
 }
 
-#include "../../shared/room_variants_motel_balcony.inc.c"
+#include "../../shared/room/room_variants_motel_balcony.inc.c"
 
 /// Ignores room commands from scripts and triggers, returning zero.
 ///
@@ -108,4 +108,4 @@ void dryfieldNightMotelRoom5RoomTask(Task* task)
     stateHandlers.funcs[task->state](task);
 }
 
-#include "../../shared/glow_draw_flare_clipped.inc.c"
+#include "../../shared/effects/glow_draw_flare_clipped.inc.c"

@@ -70,7 +70,7 @@
 #include "rooms/room.h"
 
 #include "rooms/room_common.h"
-#include "../../shared/room_cutscene.h"
+#include "../../shared/room/room_cutscene.h"
 
 static void _roomCutsceneTask(Task* task);
 
@@ -83,9 +83,9 @@ extern Task* gRoomCutsceneSoundTask;
 ///
 /// 1 lets `planar_reflection.inc.c` include `planar_reflection_rodata.inc.c`.
 #define PLANAR_REFLECTION_DEFINE_SCALE_WITH_IMPLEMENTATION 1
-#include "../../shared/planar_reflection.h"
+#include "../../shared/room/planar_reflection.h"
 
-#include "../../shared/telephone.h"
+#include "../../shared/room/telephone.h"
 
 static void _acropolisSquareInitializeRoomTask(Task* task);
 static void _acropolisSquareIdleRoomTask(Task* unusedTask);
@@ -107,7 +107,7 @@ static WorldCollisionTrigger      _gAcropolisSquareActionTriggers[26];
 static WorldCoordRoomAmbientEntry _gAcropolisSquareAmbientTable[16];
 static WorldCoordRoomLights       _gAcropolisSquareRoomLights;
 
-#include "../../shared/planar_reflection_data.inc.c"
+#include "../../shared/room/planar_reflection_data.inc.c"
 
 enum { ACROPOLIS_SQUARE_REFLECTION_TASK_PRIORITY = 112 };
 
@@ -130,7 +130,7 @@ static inline TaskDesc* _planarReflectionGetTaskTable(void)
     return _gAcropolisSquareReflectionTaskDescs;
 }
 
-#include "../../shared/telephone_data.inc.c"
+#include "../../shared/room/telephone_data.inc.c"
 
 /// This carrier's bodyless scene runner and timed sound task, followed by END.
 ///
@@ -1608,7 +1608,7 @@ static RoomCutsceneRecStorage _gAcropolisSquareCutsceneRec = { 0 };
 /// before pan/depth queries; those queries borrow it only during the call.
 static GfxCoord _gAcropolisSquareSirenCoord = { 0 };
 
-#include "../../shared/planar_reflection.inc.c"
+#include "../../shared/room/planar_reflection.inc.c"
 
 void acropolisSquarePlayerReflectionTask(Task* reflectionTask)
 {
@@ -1621,7 +1621,7 @@ void acropolisSquarePlayerReflectionTask(Task* reflectionTask)
 ///
 /// Two-byte string-literal binding for `telephone.inc.c`; unused by label drawing.
 #define TELEPHONE_MENU_TITLE_TRAILING_BYTES "\xDC\xDD"
-#include "../../shared/telephone.inc.c"
+#include "../../shared/room/telephone.inc.c"
 #undef TELEPHONE_MENU_TITLE_TRAILING_BYTES
 
 void acropolisSquareTelephoneMenuTask(Task* task)
@@ -1629,9 +1629,9 @@ void acropolisSquareTelephoneMenuTask(Task* task)
     _telephoneMenuTask(task);
 }
 
-#include "../../shared/telephone_panels.inc.c"
+#include "../../shared/room/telephone_panels.inc.c"
 
-#include "../../shared/room_cutscene_task.inc.c"
+#include "../../shared/room/room_cutscene_task.inc.c"
 
 /// Three room-task states: initialize (0), idle arrival checks (1), and teardown (2).
 ///
@@ -2001,7 +2001,7 @@ static void _acropolisSquareScrollingBackdropTask(Task* task)
     }
 }
 
-#include "../../shared/room_cutscene_sound_task.inc.c"
+#include "../../shared/room/room_cutscene_sound_task.inc.c"
 
 /// Starts CAP event 5 for room action 0, returning 0 for every action.
 ///

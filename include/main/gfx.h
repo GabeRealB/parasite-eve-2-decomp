@@ -266,4 +266,39 @@ static __inline__ void gfxSetRotIdentity(MATRIX* matrix)
     rotationWords->m22    = ONE;
 }
 
+/// Copies the nine rotation coefficients of `source` into `destination`, one halfword each.
+///
+/// Writes `m[0][0]` through `m[2][2]` in row order and leaves the alignment
+/// halfword and the translation of `destination` unchanged. Both matrices must
+/// be live; they may not partially overlap.
+static __inline__ void gfxCopyRotation(MATRIX* destination, const MATRIX* source)
+{
+    destination->m[0][0] = source->m[0][0];
+    destination->m[0][1] = source->m[0][1];
+    destination->m[0][2] = source->m[0][2];
+    destination->m[1][0] = source->m[1][0];
+    destination->m[1][1] = source->m[1][1];
+    destination->m[1][2] = source->m[1][2];
+    destination->m[2][0] = source->m[2][0];
+    destination->m[2][1] = source->m[2][1];
+    destination->m[2][2] = source->m[2][2];
+}
+
+/// Copies the same 18 coefficient bytes as `gfxCopyRotation`, as four words and a halfword.
+///
+/// Both matrices must be word-aligned. The alignment halfword and the
+/// translation of `destination` are unchanged; a whole `GfxRotationWords`
+/// assignment would also copy the alignment bytes.
+static __inline__ void gfxCopyRotationWords(MATRIX* destination, const MATRIX* source)
+{
+    GfxRotationWords*       destinationWords = (GfxRotationWords*)destination;
+    const GfxRotationWords* sourceWords      = (const GfxRotationWords*)source;
+
+    destinationWords->m00M01 = sourceWords->m00M01;
+    destinationWords->m02M10 = sourceWords->m02M10;
+    destinationWords->m11M12 = sourceWords->m11M12;
+    destinationWords->m20M21 = sourceWords->m20M21;
+    destinationWords->m22    = sourceWords->m22;
+}
+
 #endif // MAIN_GFX_H

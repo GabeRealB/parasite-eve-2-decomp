@@ -67,8 +67,8 @@
 #include "rooms/room.h"
 
 #include "rooms/room_common.h"
-#include "../../shared/room_cutscene.h"
-#include "../../shared/glow_draw.h"
+#include "../../shared/room/room_cutscene.h"
+#include "../../shared/effects/glow_draw.h"
 
 static void _roomCutsceneTask(Task* task);
 
@@ -100,7 +100,7 @@ extern Task* gRoomCutsceneSoundTask;
 /// loaded and do not overwrite the request while that scene is live.
 RoomCutsceneRec _gAcropolisFireEscapeRepeatScene;
 
-#include "../../shared/telephone.h"
+#include "../../shared/room/telephone.h"
 
 /// Key-item request handled by this room; the payload is an item ID.
 enum { ACROPOLIS_FIRE_ESCAPE_MESSAGE_USE_KEY_ITEM = 0x13F1 };
@@ -134,7 +134,7 @@ static WorldCollisionOccluder _gAcropolisFireEscapeOccluders[2];
 static WorldCollisionTrigger  _gAcropolisFireEscapeViewBoundaryTriggers[8];
 static WorldCoordRoomLights   _gAcropolisFireEscapeRoomLights;
 
-#include "../../shared/telephone_data.inc.c"
+#include "../../shared/room/telephone_data.inc.c"
 
 /// This carrier's bodyless scene runner and timed sound task, followed by END.
 ///
@@ -712,7 +712,7 @@ Task* gRoomCutsceneSoundTask;
 ///
 /// Two-byte string-literal binding for `telephone.inc.c`; unused by label drawing.
 #define TELEPHONE_MENU_TITLE_TRAILING_BYTES "\x01\x00"
-#include "../../shared/telephone.inc.c"
+#include "../../shared/room/telephone.inc.c"
 #undef TELEPHONE_MENU_TITLE_TRAILING_BYTES
 
 void acropolisFireEscapeTelephoneMenuTask(Task* task)
@@ -720,9 +720,9 @@ void acropolisFireEscapeTelephoneMenuTask(Task* task)
     _telephoneMenuTask(task);
 }
 
-#include "../../shared/telephone_panels.inc.c"
+#include "../../shared/room/telephone_panels.inc.c"
 
-#include "../../shared/room_cutscene_task.inc.c"
+#include "../../shared/room/room_cutscene_task.inc.c"
 
 /// Room-task handlers for state 0 initialization, state 1 interaction checks and state 2 teardown.
 ///
@@ -903,7 +903,7 @@ static void _acropolisFireEscapeAmbienceTask(Task* task)
     _gAcropolisFireEscapeRequestedAmbiencePercent = levelPercent;
 }
 
-#include "../../shared/room_cutscene_sound_task.inc.c"
+#include "../../shared/room/room_cutscene_sound_task.inc.c"
 
 /// Resolves departure from the fire escape and fades its ambience on execution.
 ///

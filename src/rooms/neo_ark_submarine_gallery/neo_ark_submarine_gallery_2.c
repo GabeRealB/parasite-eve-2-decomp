@@ -52,8 +52,8 @@
 /// Empty presence flag so `water_effects.h` declares the shared
 /// `_waterDrawSpinU16` and `_waterDrawTileU16`. This file includes their bodies.
 #define WATER_SHARED_U16_DRAWERS
-#include "../../shared/water_effects.h"
-#include "../../shared/glow_draw.h"
+#include "../../shared/effects/water_effects.h"
+#include "../../shared/effects/glow_draw.h"
 
 enum { NEO_ARK_SUBMARINE_GALLERY_PRISM_FIRST_VERTEX = 32 };
 
@@ -1187,25 +1187,23 @@ void neoArkSubmarineGalleryDrawViewGlowsTask(Task* task)
     }
 }
 
-#include "../../shared/water_ripple_task.inc.c"
+#include "../../shared/effects/water_ripple_task.inc.c"
 
 void neoArkSubmarineGalleryWaterRippleTask(Task* task)
 {
     _waterRippleTask(task);
 }
 
-#include "../../shared/water_splash.inc.c"
+#include "../../shared/effects/water_splash.inc.c"
 
-#include "../../shared/water_drift_task_u16.inc.c"
+#include "../../shared/effects/water_drift_task_u16.inc.c"
 
 void neoArkSubmarineGalleryWaterDriftTaskU16(Task* task)
 {
     _waterDriftTaskU16(task);
 }
 
-#include "../../shared/water_spin_u16.inc.c"
-
-#include "../../shared/water_tile_u16.inc.c"
+#include "../../shared/effects/water_spin_u16.inc.c"
 
 /// Depth subtracted from each capsule endpoint above camera Z / 4 = 80.
 ///
@@ -1214,7 +1212,7 @@ void neoArkSubmarineGalleryWaterDriftTaskU16(Task* task)
 /// which clears it. An undefined binding leaves depth unchanged; 0 still
 /// selects the pull branch. Valid nonnegative pulls are at most 80.
 #define GLOW_DRAW_CAPSULE_DEPTH_PULL 0x40
-#include "../../shared/glow_draw_capsule.inc.c"
+#include "../../shared/effects/glow_draw_capsule.inc.c"
 
 /// Depth subtracted from a disc centre above camera Z / 4 = 80.
 ///
@@ -1223,7 +1221,7 @@ void neoArkSubmarineGalleryWaterDriftTaskU16(Task* task)
 /// which clears it. An undefined binding leaves depth unchanged; 0 still
 /// selects the pull branch. Valid nonnegative pulls are at most 80.
 #define GLOW_DRAW_DISC_DEPTH_PULL 0x40
-#include "../../shared/glow_draw_disc.inc.c"
+#include "../../shared/effects/glow_draw_disc.inc.c"
 
 /// Projects one face of the gallery's light prism into screen pixels.
 ///

@@ -40,11 +40,11 @@
 #include "overlay.h"
 
 #include "rooms/room_common.h"
-#include "../../shared/glow_draw.h"
+#include "../../shared/effects/glow_draw.h"
 
 // The flag symbol is four bytes; the gate writes the first.
 #define ROOM_EVENT_ACTIVE gRoomEventActive.eventStarted
-#include "../../shared/room_events.h"
+#include "../../shared/room/room_events.h"
 #include "../../shared/water_tower.h"
 
 /// Shaft endpoints and flare anchors in signed whole world-coordinate units.
@@ -1533,6 +1533,6 @@ void dryfieldNightWaterTowerDrawGlowsTask(Task* task)
     }
 }
 
-#include "../../shared/glow_draw_shaft.inc.c"
+#include "../../shared/effects/glow_draw_shaft.inc.c"
 
-#include "../../shared/glow_draw_flare.inc.c"
+#include "../../shared/effects/glow_draw_flare.inc.c"

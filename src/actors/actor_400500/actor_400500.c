@@ -61,8 +61,8 @@
 #include "overlay.h"
 static void _frameCaptureQueue(s32 orderingTableSlot);
 #define FRAME_CAPTURE_QUEUE _frameCaptureQueue
-#include "../../shared/frame_capture.h"
-#include "../../shared/coord_math.h"
+#include "../../shared/screen/frame_capture.h"
+#include "../../shared/actor/coord_math.h"
 
 /// Values of `_Actor400500GrayStalkerWork::state` while the Stalker is alive.
 ///
@@ -3113,7 +3113,7 @@ static void _actor400500SpawnDeathFragments(Task* task)
     effectSpawn(EFFECT_030, &task->extra.tmd->coords[ACTOR_400500_PART_BODY], ACTOR_400500_DEATH_FRAGMENT_SIZE, NULL);
 }
 
-#include "../../shared/frame_capture.inc.c"
+#include "../../shared/screen/frame_capture.inc.c"
 
 /// Requests hiding when no matching fade is running and the cooldown is zero.
 ///
@@ -3648,24 +3648,6 @@ static void _actor400500TickCrawlState(Task* task)
 
 #undef ACTOR_400500_REQUEST_HIDE
 
-/// Copies the crawl reset's nine Q12 rotation coefficients into the root matrix.
-///
-/// Requires live readable/writable matrices, borrowed for this call. Source and
-/// destination may be the same matrix. The 18-byte rotation transfer preserves
-/// translation and alignment bytes; a complete MATRIX assignment would not.
-static inline void _actor400500CopyCrawlResetRotation(const MATRIX* source, MATRIX* destination)
-{
-    destination->m[0][0] = source->m[0][0];
-    destination->m[0][1] = source->m[0][1];
-    destination->m[0][2] = source->m[0][2];
-    destination->m[1][0] = source->m[1][0];
-    destination->m[1][1] = source->m[1][1];
-    destination->m[1][2] = source->m[1][2];
-    destination->m[2][0] = source->m[2][0];
-    destination->m[2][1] = source->m[2][1];
-    destination->m[2][2] = source->m[2][2];
-}
-
 /// Consumes a pending ceiling-fall request and reports whether fall was entered.
 ///
 /// Requires stable task, workCursor and taken identifiers: a live Task*, a writable
@@ -3778,7 +3760,7 @@ static void _actor400500SelectCrawlRoute(Task* task)
                     RotMatrixZ(work->roll, rotation);
                     RotMatrixY(work->yaw, rotation);
                     rootRotation = &rootCoord->coord;
-                    _actor400500CopyCrawlResetRotation(rotation, rootRotation);
+                    gfxCopyRotation(rootRotation, rotation);
                     _actor400500ReadPartWorldXZ(task, ACTOR_400500_PART_LEFT_ARM_TIP, &work->anchorPos);
                     work->subState = ACTOR_400500_CRAWL_STEP_POSITIVE_X;
                     break;
@@ -6050,7 +6032,7 @@ static s32 _actor400500LocalizeWorldRotation(const GfxCoord* joint, MATRIX* worl
 }
 #undef ACTOR_400500_PREMULTIPLY_NORMALIZED_ROTATION
 
-#include "../../shared/coord_math_local_to_world.inc.c"
+#include "../../shared/actor/coord_math_local_to_world.inc.c"
 
 /// Dispatches the grab's start, attack or missed-grab recovery and discards pending hit reactions.
 ///
@@ -7585,15 +7567,7 @@ static s32 _actor400500CheckAnimBoundary(Task* task)
 /// Changes no coordinate cache stamp and retains neither pointer.
 static void _actor400500CopyRotation(const MATRIX* source, MATRIX* destination)
 {
-    destination->m[0][0] = source->m[0][0];
-    destination->m[0][1] = source->m[0][1];
-    destination->m[0][2] = source->m[0][2];
-    destination->m[1][0] = source->m[1][0];
-    destination->m[1][1] = source->m[1][1];
-    destination->m[1][2] = source->m[1][2];
-    destination->m[2][0] = source->m[2][0];
-    destination->m[2][1] = source->m[2][1];
-    destination->m[2][2] = source->m[2][2];
+    gfxCopyRotation(destination, source);
 }
 
 /// Runs the Gray Stalker task's initialization, combat, death or teardown handler.

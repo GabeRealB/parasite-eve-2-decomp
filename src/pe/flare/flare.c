@@ -22,6 +22,7 @@
 #include "main/display.h"
 #include "main/display_types.h"
 #include "main/random.h"
+#include "main/gfx.h"
 #include "main/gfx_types.h"
 #include "main/scratch.h"
 #include "main/session.h"
@@ -29,26 +30,7 @@
 #include "main/task.h"
 #include "main/task_types.h"
 #include "main/tmd_types.h"
-#include "../../shared/sprite_quad.h"
-
-/// Gives a spark the player's local rotation while preserving its spawn translation.
-///
-/// Both matrices must be live and word-aligned, with `sparkMatrix` writable and
-/// `playerMatrix`'s nine signed, 12-fractional-bit coefficients initialized.
-/// Writes exactly the 18 coefficient bytes, preserving the two alignment bytes
-/// and all translation values. The caller must invalidate the spark coordinate's
-/// composition cache before using it. Retains no pointers and changes no GTE state.
-static inline void _flareCopySparkRotation(MATRIX* sparkMatrix, const MATRIX* playerMatrix)
-{
-    GfxRotationWords*       sparkRotation  = (GfxRotationWords*)sparkMatrix;
-    const GfxRotationWords* playerRotation = (const GfxRotationWords*)playerMatrix;
-
-    sparkRotation->m00M01 = playerRotation->m00M01;
-    sparkRotation->m02M10 = playerRotation->m02M10;
-    sparkRotation->m11M12 = playerRotation->m11M12;
-    sparkRotation->m20M21 = playerRotation->m20M21;
-    sparkRotation->m22    = playerRotation->m22;
-}
+#include "../../shared/effects/sprite_quad.h"
 
 void flareEffectTask(Task* task)
 {
@@ -126,7 +108,7 @@ void flareSparkTask(Task* task)
     if (task->state == FLARE_SPARK_STATE_INITIALIZE) {
         // Keep the spawn translation and orient the spark in the player's local frame.
         playerCoord = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords;
-        _flareCopySparkRotation(&sparkCoord->coord, &playerCoord->coord);
+        gfxCopyRotationWords(&sparkCoord->coord, &playerCoord->coord);
         sparkCoord->composeStamp = GRAPHICS_COORD_DIRTY;
         actorRenderComposeCoord(sparkCoord);
 
@@ -177,4 +159,4 @@ void flareSparkTask(Task* task)
 ///
 /// Uses the cell's inclusive 31-texel UV span in `size * SPRITE_QUAD_SCALE / depth`.
 #define SPRITE_QUAD_SCALE (SPRITE_QUAD_CELL_WIDTH - 1)
-#include "../../shared/sprite_quad_draw.inc.c"
+#include "../../shared/effects/sprite_quad_draw.inc.c"

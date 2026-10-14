@@ -73,12 +73,12 @@
 #include "overlay.h"
 
 #include "rooms/room_common.h"
-#include "../../shared/screen_wave.h"
-#include "../../shared/bezier_curve.h"
-#include "../../shared/screen_negative.h"
-#include "../../shared/glow_draw.h"
-#include "../../shared/sprite_quad.h"
-#include "../../shared/model_morph.h"
+#include "../../shared/screen/screen_wave.h"
+#include "../../shared/actor/bezier_curve.h"
+#include "../../shared/screen/screen_negative.h"
+#include "../../shared/effects/glow_draw.h"
+#include "../../shared/effects/sprite_quad.h"
+#include "../../shared/actor/model_morph.h"
 
 /// Work block of the morphing model a script command attaches to one of the
 /// player's coordinates, which its child beam and cone effects read through
@@ -3396,9 +3396,9 @@ static GfxCoord _gDryfieldDilapidatedHouseTwinTrailFirstEndpointHistory[8];
 static GfxCoord _gDryfieldDilapidatedHouseTwinTrailSecondEndpointHistory[ARRAY_SIZE(_gDryfieldDilapidatedHouseTwinTrailFirstEndpointHistory)];
 STATIC_ASSERT((ARRAY_SIZE(_gDryfieldDilapidatedHouseTwinTrailFirstEndpointHistory) & (ARRAY_SIZE(_gDryfieldDilapidatedHouseTwinTrailFirstEndpointHistory) - 1)) == 0, dryfieldDilapidatedHouseTrailHistoryPowerOfTwo);
 
-#include "../../shared/screen_wave.inc.c"
+#include "../../shared/screen/screen_wave.inc.c"
 
-#include "../../shared/screen_negative_capture.inc.c"
+#include "../../shared/screen/screen_negative_capture.inc.c"
 
 /// Captures the room's frame as a grayscale negative and holds scene drawing.
 ///
@@ -3631,7 +3631,7 @@ static void _dryfieldDilapidatedHouseEncounterFinishTask(Task* task)
     }
 }
 
-#include "../../shared/screen_negative_filter.inc.c"
+#include "../../shared/screen/screen_negative_filter.inc.c"
 
 /// Refuses key-item use in this room by returning zero without changing anything.
 static s32 _dryfieldDilapidatedHouseRejectKeyItem(Task* task, s32 messageId, s32 itemId, s32 secondArg)
@@ -4182,7 +4182,7 @@ static void _dryfieldDilapidatedHouseDrawCurveSamples(Task* task)
 #undef DRYFIELD_DILAPIDATED_HOUSE_PROJECT_CURVE_SAMPLE
 }
 
-#include "../../shared/bezier_curve_evaluate.inc.c"
+#include "../../shared/actor/bezier_curve_evaluate.inc.c"
 
 /// Morph controller's Q12 brightness binding for the capped-beam drawer.
 ///
@@ -4223,7 +4223,7 @@ static void _dryfieldDilapidatedHouseDrawCurveSamples(Task* task)
 /// `main/display_types.h`; define before the fragment, which undefines it.
 /// Has no arguments, captured locals or side effects.
 #define GLOW_CAPPED_BEAM_HALO_DRAW_MODE _get_mode(true, false, getTPage(0, GPU_BLEND_ADD_QUARTER, 320, 0))
-#include "../../shared/glow_draw_ring_beam.inc.c"
+#include "../../shared/effects/glow_draw_ring_beam.inc.c"
 
 /// Builds the morph attachment's projected core and halo beam caps.
 ///
@@ -4562,44 +4562,9 @@ static void _dryfieldDilapidatedHouseBuildMorphConeRings(Task* task, SVECTOR* ri
     }
 }
 
-#include "../../shared/model_morph_blend.inc.c"
+#include "../../shared/actor/model_morph_blend.inc.c"
 
-/// Saves a model's rest XYZ components into a morph's borrowed snapshot buffers.
-///
-/// Requires a live TMD task and a readable morph record. `savedVertexCount`
-/// and `normalCount` are nonnegative element counts from index zero, independent
-/// of the delta range. The source and writable snapshot arrays must cover those
-/// counts and must not overlap. Normals are saved only when `targetNormals` is
-/// non-NULL; neither target array is read. Each vector's fourth halfword stays
-/// intact. All storage is borrowed during this call; the saved XYZ values must
-/// remain unchanged for subsequent blends using this rest shape.
-static inline void _modelMorphSaveRestShape(const Task* task, const ModelMorph* morph)
-{
-    const TmdSource* source;
-    SVECTOR*         savedVertices;
-    SVECTOR*         savedNormals;
-    const SVECTOR*   vertices;
-    const SVECTOR*   normals;
-    s32              elementIndex;
-
-    source        = task->extra.tmd->source;
-    savedVertices = morph->savedVertices;
-    savedNormals  = morph->savedNormals;
-    vertices      = source->verts;
-    for (elementIndex = 0; elementIndex < morph->savedVertexCount; elementIndex++) {
-        savedVertices[elementIndex].vx = vertices[elementIndex].vx;
-        savedVertices[elementIndex].vy = vertices[elementIndex].vy;
-        savedVertices[elementIndex].vz = vertices[elementIndex].vz;
-    }
-    if (morph->targetNormals != NULL) {
-        normals = source->normals;
-        for (elementIndex = 0; elementIndex < morph->normalCount; elementIndex++) {
-            savedNormals[elementIndex].vx = normals[elementIndex].vx;
-            savedNormals[elementIndex].vy = normals[elementIndex].vy;
-            savedNormals[elementIndex].vz = normals[elementIndex].vz;
-        }
-    }
-}
+#include "../../shared/actor/model_morph_save_rest_shape.inc.c"
 
 /// Initializes the player's morphing model and its two beams and two cones.
 ///
@@ -4842,7 +4807,7 @@ static void _dryfieldDilapidatedHouseCurveDebugUpdate(Task* task)
     _dryfieldDilapidatedHouseDrawCurveSamples(task);
 }
 
-#include "../../shared/bezier_curve_coefficients.inc.c"
+#include "../../shared/actor/bezier_curve_coefficients.inc.c"
 
 /// Dispatches a capped beam attached to the spawning morph model.
 ///
@@ -5380,9 +5345,7 @@ void dryfieldDilapidatedHouseFireBlastTask(Task* task)
 
 #undef DRYFIELD_DILAPIDATED_HOUSE_SEED_FIRE_BLAST_LIGHT
 
-#include "../../shared/glow_draw_flame_band.inc.c"
-
-#include "../../shared/glow_draw_flame_star.inc.c"
+#include "../../shared/effects/glow_draw_flame.inc.c"
 
 /// Perspective-sizing multiplier for the dilapidated house's fire-blast billboard.
 ///
@@ -5427,9 +5390,9 @@ void dryfieldDilapidatedHouseFireBlastTask(Task* task)
         setSemiTrans((quad), 1);                        \
         setShadeTex((quad), 1);                         \
     }
-#include "../../shared/sprite_quad_draw_flicker.inc.c"
+#include "../../shared/effects/sprite_quad_draw_flicker.inc.c"
 
-#include "../../shared/glow_draw_flame_ring.inc.c"
+#include "../../shared/effects/glow_draw_flame_ring.inc.c"
 
 void dryfieldDilapidatedHouseLightPrismTask(Task* task)
 {

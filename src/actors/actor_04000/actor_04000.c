@@ -48,9 +48,9 @@
 #include "main/wipsys_types.h"
 
 #include "overlay.h"
-#include "../../shared/actor_messages.h"
-#include "../../shared/anim_driver.h"
-#include "../../shared/actor_contacts.h"
+#include "../../shared/actor/actor_messages.h"
+#include "../../shared/actor/anim_driver.h"
+#include "../../shared/actor/actor_contacts.h"
 
 /// Values of `_Actor04000Work::state`: the index of the handler the per-frame
 /// tick runs.
@@ -1360,9 +1360,9 @@ static void _actor04000Tick(Enemy* enemy, Task* task);
         gfxRotMatrixY(&(taskArg)->extra.tmd->coords->coord, (scratchArg)->angle, GRAPHICS_ROTATION_REPLACE);                      \
     }
 
-#include "../../shared/actor_contacts_steer.inc.c"
+#include "../../shared/actor/actor_contacts_steer.inc.c"
 
-#include "../../shared/actor_contacts_push_contact.inc.c"
+#include "../../shared/actor/actor_contacts_push_contact.inc.c"
 
 /// Applies room commands for hanging, saloon and general-store encounters.
 ///
@@ -1492,7 +1492,7 @@ static s32 _actor04000ApplyCommand(Task* task, s32 messageId, const ActorCommand
     return 0;
 }
 
-#include "../../shared/anim_driver_tick.inc.c"
+#include "../../shared/actor/anim_driver_tick.inc.c"
 
 /// Polls the requested walk, run or idle animation for a sound script key.
 ///
@@ -3324,7 +3324,7 @@ static s32 _actor04000SetModelDraw(Task* task, s32 messageId, s32 drawMode, s32 
     return 0;
 }
 
-#include "../../shared/actor_messages_place.inc.c"
+#include "../../shared/actor/actor_messages_place.inc.c"
 
 /// Requests a release burst when the actor is holding the player.
 ///
@@ -3360,7 +3360,7 @@ static s32 _actor04000RequestAnimation(Task* task, s32 messageId, const Animatio
     return 1;
 }
 
-#include "../../shared/coord_math_yaw_scale.inc.c"
+#include "../../shared/actor/coord_math_yaw_scale.inc.c"
 
 /// Maintains the player latch, dealing attack-0 damage every eight ticks.
 ///

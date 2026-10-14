@@ -41,8 +41,8 @@
 #include "mapui/map_neo_ark.h"
 
 #include "rooms/room.h"
-#include "../../shared/room_events.h"
-#include "../../shared/room_variants.h"
+#include "../../shared/room/room_events.h"
+#include "../../shared/room/room_variants.h"
 
 static s32 _roomVariantResolveShelter(RoomEventMsg* request, RoomEventMsg* reply);
 
@@ -469,10 +469,10 @@ WorldCollisionSurfaceProperties* gNeoArkEveAccessTunnelSurfaceProperties[8] = {
 
 RoomDeparture gRoomDeparture;
 
-#include "../../shared/room_variants_shelter.inc.c"
+#include "../../shared/room/room_variants_shelter.inc.c"
 #undef ROOM_VARIANT_RESOLVE_SHELTER
 
-#include "../../shared/room_event_departure_task.inc.c"
+#include "../../shared/room/room_event_departure_task.inc.c"
 
 /// Room-task handlers for states 0 initialize, 1 update the view presentation, 2 teardown.
 static const TaskFuncTable3 _gNeoArkEveAccessTunnelRoomTaskHandlers = {
@@ -481,27 +481,7 @@ static const TaskFuncTable3 _gNeoArkEveAccessTunnelRoomTaskHandlers = {
     taskKill,
 };
 
-/// Resolves a staged departure's area, arrival and room selectors in place.
-///
-/// Borrows a live departure and resolver for this call. The resolver must accept
-/// one RoomEventMsg as both request and reply and read only its initialized
-/// area, warp, room and `ROOM_EVENT_EXECUTE` selector; flag and other bytes are
-/// uninitialized. Copies resolved selectors back with their stored byte widths,
-/// leaving stage, facing and sound unchanged. Ignores the resolver's result and
-/// retains neither pointer. Selectors must identify valid destination records.
-static __inline__ void _roomVariantResolveDeparture(RoomDeparture* departure, RoomVariantResolver resolveVariant)
-{
-    RoomEventMsg request;
-
-    request.areaId    = departure->area;
-    request.warp      = departure->warp;
-    request.room      = departure->room;
-    request.queryOnly = ROOM_EVENT_EXECUTE;
-    resolveVariant(&request, &request);
-    departure->area = request.areaId;
-    departure->warp = request.warp;
-    departure->room = request.room;
-}
+#include "../../shared/room/room_variants_resolve_departure.inc.c"
 
 void neoArkEveAccessTunnelShelterDepartureTask(Task* task)
 {

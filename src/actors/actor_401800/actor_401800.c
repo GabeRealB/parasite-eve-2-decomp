@@ -48,20 +48,20 @@
 #include "main/wipsys_types.h"
 
 #include "overlay.h"
-#include "../../shared/player_detection.h"
-#include "../../shared/actor_messages.h"
+#include "../../shared/actor/player_detection.h"
+#include "../../shared/actor/actor_messages.h"
 /// Selects this package's compiled Odd Stranger work layout and behavior.
 ///
 /// Keep the binding through all shared fragments. Spawn arguments separately
 /// select the opening state and combat tuning of each live enemy.
 #define ODD_STRANGER_BUILD ODD_STRANGER_BUILD_401800
-#include "../../shared/odd_stranger.h"
+#include "../../shared/creatures/odd_stranger/odd_stranger.h"
 
 static void _oddStrangerTick(Enemy* enemy, Task* actor);
 
 static TmdSource _gActor401800Model12280;
 
-#include "../../shared/actor_contacts.h"
+#include "../../shared/actor/actor_contacts.h"
 
 static void _actor401800Initialize(Enemy* enemy, Task* actor);
 static void _actor401800Hidden(Task* task);
@@ -1143,19 +1143,17 @@ GameActorButtonPressHold _gActor401800GrabButtonPressHold;
 
 static void _actor401800BurstDeath(Task* task);
 
-#include "../../shared/actor_contacts.h"
+#include "../../shared/actor/actor_contacts.h"
 
-#include "../../shared/actor_contacts.inc.c"
+#include "../../shared/actor/actor_contacts.inc.c"
 
-#include "../../shared/player_detection_reach.inc.c"
+#include "../../shared/actor/player_detection_reach.inc.c"
 
-#include "../../shared/odd_stranger_tick_blended.inc.c"
+#include "../../shared/creatures/odd_stranger/odd_stranger_tick_blended.inc.c"
 
-#include "../../shared/player_detection_sight.inc.c"
+#include "../../shared/actor/player_detection_sight.inc.c"
 
-#include "../../shared/odd_stranger_anim_event.inc.c"
-
-#include "../../shared/odd_stranger_drive.inc.c"
+#include "../../shared/creatures/odd_stranger/odd_stranger.inc.c"
 
 /// Binds the model's lighting pointers to its Odd Stranger work storage.
 ///
@@ -1295,7 +1293,7 @@ static void _actor401800Initialize(Enemy* enemy, Task* actor)
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, attackBody);
     worldCollisionInitContacts(attackBody->context.contacts, ARRAY_SIZE(work->attackContacts), 0);
 
-#include "../../shared/odd_stranger_patrol_points.h"
+#include "../../shared/creatures/odd_stranger/odd_stranger_patrol_points.h"
     ODD_STRANGER_INITIALIZE_PATROL_POINTS(actor, work, direction, directionScratch);
 #undef ODD_STRANGER_INITIALIZE_PATROL_POINTS
 
@@ -1354,15 +1352,9 @@ static void _actor401800Initialize(Enemy* enemy, Task* actor)
     actor->state++;
 }
 
-#include "../../shared/odd_stranger_spawn_hit_effect.inc.c"
+#include "../../shared/creatures/odd_stranger/odd_stranger_spawn_hit_effect.inc.c"
 
-#include "../../shared/odd_stranger_take_hit.inc.c"
-
-#include "../../shared/odd_stranger_stunned.inc.c"
-
-#include "../../shared/odd_stranger_face_player.inc.c"
-
-#include "../../shared/odd_stranger_push_body.inc.c"
+#include "../../shared/creatures/odd_stranger/odd_stranger_push_body.inc.c"
 
 /// Refreshes player heading, the offset to the player and its reverse bearing.
 ///
@@ -1493,11 +1485,7 @@ static void _actor401800Chase(Task* task)
     SCRATCH_STACK_RELEASE_BLOCK(ActorChaseScratch);
 }
 
-#include "../../shared/odd_stranger_chase.inc.c"
-
-#include "../../shared/odd_stranger_turn_around.inc.c"
-
-#include "../../shared/odd_stranger_sidestep.inc.c"
+#include "../../shared/creatures/odd_stranger/odd_stranger_chase.inc.c"
 
 /// Computes the horizontal offset from a reference origin to player joint 1.
 ///
@@ -1724,11 +1712,7 @@ static void _actor401800Grab(Task* task)
     }
 }
 
-#include "../../shared/odd_stranger_grab.inc.c"
-
-#include "../../shared/odd_stranger_grab_hold.inc.c"
-
-#include "../../shared/odd_stranger_grab_release.inc.c"
+#include "../../shared/creatures/odd_stranger/odd_stranger_grab.inc.c"
 
 /// Disables hit-body grid response and selects the completed-knockdown behaviour.
 ///
@@ -1914,7 +1898,7 @@ static void _actor401800FallFront(Task* task)
     }
 }
 
-#include "../../shared/odd_stranger_die.inc.c"
+#include "../../shared/creatures/odd_stranger/odd_stranger_die.inc.c"
 
 /// Waits for a nearby player or combat noise in `ODD_STRANGER_STATE_DORMANT`.
 ///
@@ -1992,15 +1976,7 @@ static void _actor401800Dormant(Task* task)
     }
 }
 
-#include "../../shared/odd_stranger_dormant.inc.c"
-
-#include "../../shared/odd_stranger_patrol.inc.c"
-
-#include "../../shared/odd_stranger_advance.inc.c"
-
-#include "../../shared/odd_stranger_back_off.inc.c"
-
-#include "../../shared/odd_stranger_hold_aim.inc.c"
+#include "../../shared/creatures/odd_stranger/odd_stranger_dormant.inc.c"
 
 /// Waits unlockable and aims its look in `ODD_STRANGER_STATE_AMBUSH`.
 ///
@@ -2163,11 +2139,9 @@ static void _actor401800BurstDeath(Task* task)
     }
 }
 
-#include "../../shared/odd_stranger_walking_death.inc.c"
+#include "../../shared/creatures/odd_stranger/odd_stranger_walking_death.inc.c"
 
-#include "../../shared/odd_stranger_stalk.inc.c"
-
-#include "../../shared/odd_stranger_tick.inc.c"
+#include "../../shared/creatures/odd_stranger/odd_stranger_tick.inc.c"
 
 /// Ignores message 2015 without accessing the receiver or either payload.
 ///
@@ -2191,11 +2165,11 @@ static const EnemyTaskFuncTable3 _gActor401800OddStrangerTaskStates = {
     },
 };
 
-#include "../../shared/odd_stranger_play_message.inc.c"
+#include "../../shared/creatures/odd_stranger/odd_stranger_play_message.inc.c"
 
-#include "../../shared/actor_messages_visibility.inc.c"
+#include "../../shared/actor/actor_messages_visibility.inc.c"
 
-#include "../../shared/actor_messages_is_present.inc.c"
+#include "../../shared/actor/actor_messages_is_present.inc.c"
 
 /// Selects the actor_401800 work layout for recording placement heading.
 ///
@@ -2203,14 +2177,12 @@ static const EnemyTaskFuncTable3 _gActor401800OddStrangerTaskStates = {
 /// `OddStrangerWork` with `ODD_STRANGER_BUILD_401800` selected and writes its
 /// `s16 placedYaw` in 4096 units per turn. Scope the binding to that include.
 #define ACTOR_MESSAGE_YAW_WORK_TYPE OddStrangerWork
-#include "../../shared/actor_messages_place_yaw.inc.c"
+#include "../../shared/actor/actor_messages_place_yaw.inc.c"
 #undef ACTOR_MESSAGE_YAW_WORK_TYPE
 
-#include "../../shared/actor_messages_release_hold.inc.c"
+#include "../../shared/actor/actor_messages_release_hold.inc.c"
 
-#include "../../shared/odd_stranger_apply_command.inc.c"
-
-#include "../../shared/odd_stranger_exit.inc.c"
+#include "../../shared/creatures/odd_stranger/odd_stranger_apply_command.inc.c"
 
 /// Hides and disables lock-on on entry to `ODD_STRANGER_STATE_HIDDEN`.
 ///
@@ -2231,15 +2203,7 @@ static void _actor401800Hidden(Task* task)
     }
 }
 
-#include "../../shared/odd_stranger_script_pose_2.inc.c"
-
-#include "../../shared/odd_stranger_script_pose_3.inc.c"
-
-#include "../../shared/odd_stranger_script_pose_b.inc.c"
-
-#include "../../shared/odd_stranger_script_pose_d.inc.c"
-
-#include "../../shared/odd_stranger_script_pose_8.inc.c"
+#include "../../shared/creatures/odd_stranger/odd_stranger_script_pose.inc.c"
 
 /// Gets up from a front knockdown in `ODD_STRANGER_STATE_RISE_FRONT`.
 ///
@@ -2274,7 +2238,7 @@ static void _actor401800RiseFront(Task* task)
     }
 }
 
-#include "../../shared/odd_stranger_idle.inc.c"
+#include "../../shared/creatures/odd_stranger/odd_stranger_idle.inc.c"
 
 #undef ODD_STRANGER_BUILD
 

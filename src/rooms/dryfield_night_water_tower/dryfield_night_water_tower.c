@@ -26,8 +26,8 @@
 #include "rooms/room_common.h"
 // The flag symbol is four bytes; the gate writes the first.
 #define ROOM_EVENT_ACTIVE gRoomEventActive.eventStarted
-#include "../../shared/room_events.h"
-#include "../../shared/room_variants.h"
+#include "../../shared/room/room_events.h"
+#include "../../shared/room/room_variants.h"
 #include "../../shared/water_tower.h"
 
 extern RoomEventActiveBytes gRoomEventActive;
@@ -52,9 +52,7 @@ RoomEventReq gRoomEventReq = { 0 };
 static void _dryfieldNightWaterTowerInitializeRoomTask(Task* task);
 static void _dryfieldNightWaterTowerIdleRoomTask(Task* unusedTask);
 
-#include "../../shared/room_event_gate.inc.c"
-
-#include "../../shared/room_event_task.inc.c"
+#include "../../shared/room/room_event.inc.c"
 
 #include "../../shared/water_tower_event_msg.inc.c"
 

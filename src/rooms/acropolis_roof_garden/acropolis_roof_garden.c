@@ -61,9 +61,9 @@
 #include "overlay.h"
 
 #include "rooms/room_common.h"
-#include "../../shared/falling_leaves.h"
-#include "../../shared/actor_contacts.h"
-#include "../../shared/glow_draw.h"
+#include "../../shared/effects/falling_leaves.h"
+#include "../../shared/actor/actor_contacts.h"
+#include "../../shared/effects/glow_draw.h"
 
 static Task* _gAcropolisRoofGardenCutsceneSoundTask;
 
@@ -1976,34 +1976,7 @@ void acropolisRoofGardenAmbientEffectsTask(Task* task)
     }
 }
 
-/// Positions a light glow quad as a square around its projected screen centre.
-///
-/// Borrows a writable `quad` and a separate readable `projection`; only
-/// `screenPos` and the nonnegative `halfExtent` need initialization, in pixels.
-/// Centre plus/minus half-extent must fit signed 32 bits. Each edge narrows to
-/// signed 16 bits without clipping, before its paired corner stores. Vertex
-/// indices 0..3 are top-left, top-right, bottom-left and bottom-right.
-/// Writes only the eight coordinate halfwords; no GPU packets are queued.
-static inline void _acropolisRoofGardenSetLightGlowBounds(POLY_FT4* quad, const RoomGlowSpriteScratch* projection)
-{
-    s16 left;
-    s16 right;
-    s16 top;
-    s16 bottom;
-
-    left     = projection->screenPos.vx - projection->halfExtent;
-    quad->x2 = left;
-    quad->x0 = left;
-    right    = projection->screenPos.vx + projection->halfExtent;
-    quad->x3 = right;
-    quad->x1 = right;
-    top      = projection->screenPos.vy - projection->halfExtent;
-    quad->y1 = top;
-    quad->y0 = top;
-    bottom   = projection->screenPos.vy + projection->halfExtent;
-    quad->y3 = bottom;
-    quad->y2 = bottom;
-}
+#include "../../shared/effects/acropolis_glow_sprite_bounds.inc.c"
 
 void acropolisRoofGardenLightGlowTask(Task* task)
 {
@@ -2078,7 +2051,7 @@ void acropolisRoofGardenLightGlowTask(Task* task)
                 quad->v3   = GLOW_FLARE_CELL_LAST_TEXEL;
 
                 projection->halfExtent = (work->scale * GLOW_FLARE_CELL_LAST_TEXEL) / projection->otz;
-                _acropolisRoofGardenSetLightGlowBounds(quad, projection);
+                _acropolisGlowSetSpriteBounds(quad, projection);
                 addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)projection->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
                         quad);
             }
@@ -2278,18 +2251,18 @@ void acropolisRoofGardenFlareTask(Task* task)
 
 #undef ACROPOLIS_ROOF_GARDEN_INIT_FLARE_QUAD
 
-#include "../../shared/falling_leaves_task.inc.c"
+#include "../../shared/effects/falling_leaves_task.inc.c"
 
 void acropolisRoofGardenLeafFallTask(Task* task)
 {
     _leafFallTask(task);
 }
 
-#include "../../shared/falling_leaves_draw.inc.c"
+#include "../../shared/effects/falling_leaves_draw.inc.c"
 
-#include "../../shared/actor_contacts_push_contact.inc.c"
+#include "../../shared/actor/actor_contacts_push_contact.inc.c"
 
-#include "../../shared/actor_contacts_push.inc.c"
+#include "../../shared/actor/actor_contacts_push.inc.c"
 
 void acropolisRoofGardenPickupModelTask(Task* task)
 {

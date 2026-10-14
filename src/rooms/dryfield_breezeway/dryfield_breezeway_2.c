@@ -74,9 +74,9 @@
 /// uses neither stringification nor token pasting.
 #define ACTION_PROMPT_HIT_TEST _actionPromptHitTestDefault
 static s32 ACTION_PROMPT_HIT_TEST(ActionPromptHotspot* hotspots, s16 cursorX, s16 cursorY);
-#include "../../shared/action_prompt.h"
-#include "../../shared/room_events.h"
-#include "../../shared/glow_draw.h"
+#include "../../shared/room/action_prompt.h"
+#include "../../shared/room/room_events.h"
+#include "../../shared/effects/glow_draw.h"
 
 /// Motion, fade and texture units of the breezeway's bouncing sprite particle.
 enum {
@@ -896,7 +896,7 @@ static void _dryfieldBreezewayLeadKeyItemLine(Task* task)
     }
 }
 
-#include "../../shared/action_prompt_outline_rect.inc.c"
+#include "../../shared/room/action_prompt_outline_rect.inc.c"
 
 /// Moves and draws the hanging key-item line, placing the task's model at the drawn tip.
 ///
@@ -1173,9 +1173,9 @@ static void _dryfieldBreezewayDrawKeyItemLineSegment(s16 angle, s16 length, cons
 }
 #undef DRYFIELD_BREEZEWAY_ROTATE_LINE_POINT
 
-#include "../../shared/action_prompt_move_cursors.inc.c"
+#include "../../shared/room/action_prompt_move_cursors.inc.c"
 
-#include "../../shared/action_prompt_draw_cursor.inc.c"
+#include "../../shared/room/action_prompt_draw_cursor.inc.c"
 
 /// Runs the key-item event's cursor task: reset at state 0, move/draw at state 1.
 ///
@@ -1266,7 +1266,7 @@ static void _dryfieldBreezewayKeyItemEventTask(Task* task)
     stateHandlers.funcs[task->state](task);
 }
 
-#include "../../shared/action_prompt_hit_test.inc.c"
+#include "../../shared/room/action_prompt_hit_test.inc.c"
 #undef ACTION_PROMPT_HIT_TEST
 
 /// Arms the key-item event's cursor at screen centre and advances to model selection.
@@ -1329,9 +1329,9 @@ static void _dryfieldBreezewayFinishKeyItemCommand(Task* task)
     }
 }
 
-#include "../../shared/action_prompt_event_end.inc.c"
+#include "../../shared/room/action_prompt_event_end.inc.c"
 
-#include "../../shared/action_prompt_reset.inc.c"
+#include "../../shared/room/action_prompt_reset.inc.c"
 
 void dryfieldBreezewayAmbientEffectsTask(Task* task)
 {
@@ -1577,7 +1577,7 @@ static void _dryfieldBreezewayDrawRedDiamondGlow(GfxCoord* coord, const SVECTOR*
 /// Bind 0 or 1 before the ray-star fragment; undefined means 0. This branch
 /// applies only without early signed halving. The fragment clears the binding.
 #define GLOW_DRAW_RAY_STAR_UNSIGNED_RAY_INTENSITY 1
-#include "../../shared/glow_draw_ray_star.inc.c"
+#include "../../shared/effects/glow_draw_ray_star.inc.c"
 
 void dryfieldBreezewayBouncingParticleTask(Task* task)
 {

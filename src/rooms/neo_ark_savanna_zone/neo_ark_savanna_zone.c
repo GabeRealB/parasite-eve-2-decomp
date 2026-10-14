@@ -53,8 +53,8 @@
 #include "rooms/room.h"
 
 #include "rooms/room_common.h"
-#include "../../shared/room_visual_effects.h"
-#include "../../shared/room_events.h"
+#include "../../shared/room/room_visual_effects.h"
+#include "../../shared/room/room_events.h"
 
 static RoomEventMsg     _gRoomEventStagedMsg;
 static s8               _gNeoArkSavannaZoneEventStartRequested;
@@ -99,7 +99,7 @@ static TaskMessageEntry _gNeoArkSavannaZoneRoomMessages[5] = {
     { .messageId = TASK_MESSAGE_TABLE_END, .handler = NULL },
 };
 
-#include "../../shared/room_visual_effects_trail_data.inc.c"
+#include "../../shared/room/room_visual_effects_trail_data.inc.c"
 
 WorldCollisionRoomResources gNeoArkSavannaZoneRoomCollisionResources[1] = {
     { .grid = &_gNeoArkSavannaZoneCollisionGrid, .viewBoundaryTriggers = _gNeoArkSavannaZoneViewBoundaryTriggers, .actionTriggers = _gNeoArkSavannaZoneActionTriggers, .occluders = _gNeoArkSavannaZoneSightOccluders },
@@ -561,7 +561,7 @@ RoomLatchedEvent gRoomEventLatched = { 0 };
 static void _neoArkSavannaZoneInitializeRoom(Task* task);
 static void _neoArkSavannaZoneSetupIdleState(Task* task);
 
-#include "../../shared/room_event_staged_task.inc.c"
+#include "../../shared/room/room_event_staged_task.inc.c"
 
 /// Tests and, in execute mode, latches a room-transition event.
 ///
@@ -714,27 +714,24 @@ void neoArkSavannaZoneConfigureEffectsTask(Task* task)
     }
 }
 
-#include "../../shared/room_visual_effects.inc.c"
+#include "../../shared/room/room_visual_effects.inc.c"
 
-#include "../../shared/room_visual_effects_flash_task.inc.c"
+#include "../../shared/room/room_visual_effects_flash_task.inc.c"
 
 void neoArkSavannaZoneRoomVisualEffectsFlashTask(Task* task)
 {
     _roomVisualEffectsFlashTask(task);
 }
 
-#include "../../shared/room_visual_effects_trails.inc.c"
+#include "../../shared/room/room_visual_effects_trails.inc.c"
 
 void neoArkSavannaZoneRoomVisualEffectsTwinTrailTask(Task* task)
 {
-#include "../../shared/room_visual_effects_trail_task.inc.c"
-}
+#include "../../shared/room/room_visual_effects_trail_task.inc.c"
 
-#include "../../shared/room_visual_effects_sparks.inc.c"
+    void neoArkSavannaZoneRoomVisualEffectsSparkBurstTask(Task * task)
+    {
+        _roomVisualEffectsSparkBurstTask(task);
+    }
 
-void neoArkSavannaZoneRoomVisualEffectsSparkBurstTask(Task* task)
-{
-    _roomVisualEffectsSparkBurstTask(task);
-}
-
-#include "../../shared/room_visual_effects_glow.inc.c"
+#include "../../shared/room/room_visual_effects_glow.inc.c"

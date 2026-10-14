@@ -61,9 +61,9 @@
 
 #include "rooms/room_common.h"
 #include "rooms/shop_tier.h"
-#include "../../shared/room_events.h"
-#include "../../shared/follow_collision.h"
-#include "../../shared/actor_messages.h"
+#include "../../shared/room/room_events.h"
+#include "../../shared/room/follow_collision.h"
+#include "../../shared/actor/actor_messages.h"
 
 static const u16 _gShopStandardDefaultWeaponsStock[];
 static const u16 _gShopStandardDefaultAmmunitionStock[];
@@ -88,8 +88,8 @@ static void _shelter1fHeliportInitializeRoomTask(Task* task);
 static void _shelter1fHeliportUpdateRoom(Task* unusedTask);
 static void _shelter1fHeliportUpdatePlacedActorVisibility(void);
 
-#include "../../shared/shop.h"
-#include "../../shared/cap_dialogue.h"
+#include "../../shared/room/shop.h"
+#include "../../shared/room/cap_dialogue.h"
 
 static WorldCollisionTrigger            _gShelter1fHeliportViewBoundaryTriggers[12];
 static WorldCollisionTrigger            _gShelter1fHeliportActionTriggers[21];
@@ -132,9 +132,7 @@ enum {
     SHELTER_1F_HELIPORT_SPRITE_NEUTRAL_COLOR = 128,
 };
 
-#include "../../shared/shop_data.inc.c"
-
-#include "../../shared/shop_panels.inc.c"
+#include "../../shared/room/shop_data.inc.c"
 
 enum { SHELTER_1F_HELIPORT_SHOP_TASK_PRIORITY   = 192,
        SHELTER_1F_HELIPORT_SCRIPT_TASK_PRIORITY = 32 };
@@ -704,12 +702,12 @@ RoomLatchedEvent gRoomEventLatched = { 0 };
 ///
 /// One-byte string-literal binding for `shop.inc.c`; label drawing does not read it.
 #define SHOP_WEAPON_SUPPLY_REFILL_TITLE_TRAILING_BYTES "\x32"
-#include "../../shared/shop.inc.c"
+#include "../../shared/room/shop.inc.c"
 #undef SHOP_WEAPON_SUPPLY_REFILL_TITLE_TRAILING_BYTES
 #undef SHOP_REFILL_DISPLAY_QUANTITY
 #undef SHOP_REFILL_SUPPLY
 
-#include "../../shared/room_event_staged_task.inc.c"
+#include "../../shared/room/room_event_staged_task.inc.c"
 
 /// Controller states 0 initialize, 1 maintain placed-actor draw modes, 2 tear down.
 ///
@@ -950,7 +948,7 @@ static s32 _shelter1fHeliportHandleRoomAction(Task* unusedTask, s32 unusedMessag
     return 0;
 }
 
-#include "../../shared/cap_dialogue_loop.inc.c"
+#include "../../shared/room/cap_dialogue_loop.inc.c"
 
 /// Initializes the heliport controller, actor presentation and ambience.
 ///
@@ -1050,7 +1048,7 @@ static void _shelter1fHeliportUpdatePlacedActorVisibility(void)
 /// must be disjoint from the room grid's pools. Cell metadata is unused.
 /// Define before the rebuild fragment include and undefine immediately after it.
 #define FOLLOW_COLLISION_OBSTACLE_SOURCE _gShelter1fHeliportCompanionObstacleTemplate
-#include "../../shared/follow_collision_rebuild.inc.c"
+#include "../../shared/room/follow_collision_rebuild.inc.c"
 #undef FOLLOW_COLLISION_OBSTACLE_SOURCE
 #undef FOLLOW_COLLISION_ROOM_GRID
 

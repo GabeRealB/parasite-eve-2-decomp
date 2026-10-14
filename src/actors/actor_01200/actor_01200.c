@@ -49,15 +49,15 @@
 #include "main/wipsys_types.h"
 
 #include "overlay.h"
-#include "../../shared/actor_messages.h"
-#include "../../shared/anim_driver.h"
+#include "../../shared/actor/actor_messages.h"
+#include "../../shared/actor/anim_driver.h"
 /// This file's `_actorContactApplyAvoidancePushback` returns `s16`.
 ///
 /// Defined before `actor_contacts.h`, which otherwise declares the return as
 /// `s32`. Callers here compare the return with 1, and that comparison
 /// sign-extends a 16-bit result.
 #define ACTOR_CONTACT_STEER_RESULT s16
-#include "../../shared/actor_contacts.h"
+#include "../../shared/actor/actor_contacts.h"
 
 /// Values of `_Actor01200Work::state`: the index of the handler the per-frame
 /// tick runs.
@@ -685,11 +685,11 @@ static void _actor01200StatePatrol(Enemy* enemy, Task* task);
 static void _actor01200StateReturn(Enemy* enemy, Task* task);
 static void _actor01200Tick(Enemy* enemy, Task* task);
 
-#include "../../shared/actor_contacts_steer.inc.c"
+#include "../../shared/actor/actor_contacts_steer.inc.c"
 
-#include "../../shared/actor_contacts_push_contact.inc.c"
+#include "../../shared/actor/actor_contacts_push_contact.inc.c"
 
-#include "../../shared/anim_driver_tick.inc.c"
+#include "../../shared/actor/anim_driver_tick.inc.c"
 
 /// Selects an animation cue's sound request, or zero when no sound is due.
 ///
@@ -1896,9 +1896,9 @@ static s32 _actor01200ApplyCommand(Task* task, s32 messageId, const ActorCommand
     return 0;
 }
 
-#include "../../shared/actor_messages_place.inc.c"
+#include "../../shared/actor/actor_messages_place.inc.c"
 
-#include "../../shared/coord_math_yaw_scale.inc.c"
+#include "../../shared/actor/coord_math_yaw_scale.inc.c"
 
 /// Hides the model and disables targeting and all four collision passes on entry.
 ///

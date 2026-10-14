@@ -58,8 +58,8 @@
 #include "rooms/room.h"
 
 #include "rooms/room_common.h"
-#include "../../shared/room_visual_effects.h"
-#include "../../shared/glow_draw.h"
+#include "../../shared/room/room_visual_effects.h"
+#include "../../shared/effects/glow_draw.h"
 
 // The flag symbol carries seven unproven bytes after the flag.
 #define ROOM_EVENT_ACTIVE gRoomEventActive.eventStarted
@@ -68,9 +68,9 @@
 /// Selects the gate's TU-local room-transition task descriptor.
 ///
 /// Addressable `TaskDesc` lvalue; see `room_events.h` for the spawn contract.
-/// Bind before that header and keep through `room_event_gate.inc.c`.
+/// Bind before that header and keep through `room_event.inc.c`.
 #define ROOM_EVENT_TASK_DESC (_gRoomEventTaskDesc)
-#include "../../shared/room_events.h"
+#include "../../shared/room/room_events.h"
 
 /// Spawn descriptor of the exit gate's transition task.
 
@@ -222,7 +222,7 @@ static SVECTOR _gShelterB2OperatingRoomGlowPoints[64] = {
     { 11600, -2720, 1640, 0 },
 };
 
-#include "../../shared/room_visual_effects_disc_data.inc.c"
+#include "../../shared/room/room_visual_effects_disc_data.inc.c"
 
 u8* gShelterB2OperatingRoomRoomViewMaps[1] = {
     gViewIdentityMap,
@@ -1096,11 +1096,9 @@ static __inline__ s32 _shelterB2OperatingRoomStartEvent(const RoomEventMsg* dest
 static void           _shelterB2OperatingRoomInitTask(Task* task);
 static void           _shelterB2OperatingRoomIdleTask(Task* task);
 
-#include "../../shared/room_event_gate.inc.c"
+#include "../../shared/room/room_event.inc.c"
 
-#include "../../shared/room_event_task.inc.c"
-
-#include "../../shared/room_event_staged_task.inc.c"
+#include "../../shared/room/room_event_staged_task.inc.c"
 
 static void _glowDrawCapsule(const SVECTOR worldPoints[2], s32 radiusScale, s32 packedColor);
 
@@ -1381,13 +1379,13 @@ void shelterB2OperatingRoomDrawGlowsTask(Task* task)
     }
 }
 
-#include "../../shared/glow_draw_capsule.inc.c"
+#include "../../shared/effects/glow_draw_capsule.inc.c"
 
-#include "../../shared/glow_draw_disc.inc.c"
+#include "../../shared/effects/glow_draw_disc.inc.c"
 
-#include "../../shared/room_visual_effects.inc.c"
+#include "../../shared/room/room_visual_effects.inc.c"
 
-#include "../../shared/room_visual_effects_flying_tasks.inc.c"
+#include "../../shared/room/room_visual_effects_flying_tasks.inc.c"
 
 void shelterB2OperatingRoomRoomVisualEffectsGlowDiscTask(Task* task)
 {
@@ -1399,11 +1397,11 @@ void shelterB2OperatingRoomRoomVisualEffectsFlyingSparkTask(Task* task)
     _roomVisualEffectsFlyingSparkTask(task);
 }
 
-#include "../../shared/room_visual_effects_burst.inc.c"
+#include "../../shared/room/room_visual_effects_burst.inc.c"
 
 void shelterB2OperatingRoomRoomVisualEffectsFlyingOrangeBurstTask(Task* task)
 {
     _roomVisualEffectsFlyingOrangeBurstTask(task);
 }
 
-#include "../../shared/room_visual_effects_burst_draw.inc.c"
+#include "../../shared/room/room_visual_effects_burst_draw.inc.c"

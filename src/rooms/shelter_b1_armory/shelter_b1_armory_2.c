@@ -34,11 +34,11 @@
 #include "main/task_types.h"
 
 #include "rooms/room_common.h"
-#include "../../shared/glow_draw.h"
+#include "../../shared/effects/glow_draw.h"
 
 // The flag symbol is four bytes; the gate writes the first.
 #define ROOM_EVENT_ACTIVE gRoomEventActive.eventStarted
-#include "../../shared/room_events.h"
+#include "../../shared/room/room_events.h"
 
 /// The armory's beam endpoint pairs and indicator centres in signed world units.
 ///
@@ -794,8 +794,8 @@ void shelterB1ArmoryDrawGlowsTask(Task* unusedTask)
     }
 }
 
-#include "../../shared/glow_draw_beam.inc.c"
+#include "../../shared/effects/glow_draw_beam.inc.c"
 
-#include "../../shared/glow_draw_bit_disc.inc.c"
+#include "../../shared/effects/glow_draw_bit_disc.inc.c"
 
-#include "../../shared/glow_draw_tinted_disc.inc.c"
+#include "../../shared/effects/glow_draw_tinted_disc.inc.c"

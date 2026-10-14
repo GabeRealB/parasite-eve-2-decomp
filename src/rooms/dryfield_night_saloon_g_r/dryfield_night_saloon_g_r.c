@@ -71,12 +71,12 @@
 /// Selects the gate's TU-local room-transition task descriptor.
 ///
 /// Addressable `TaskDesc` lvalue; see `room_events.h` for the spawn contract.
-/// Bind before that header and keep through `room_event_gate.inc.c`.
+/// Bind before that header and keep through `room_event.inc.c`.
 #define ROOM_EVENT_TASK_DESC (_gRoomEventTaskDesc)
-#include "../../shared/room_events.h"
-#include "../../shared/glow_draw.h"
-#include "../../shared/jukebox.h"
-#include "../../shared/room_variants.h"
+#include "../../shared/room/room_events.h"
+#include "../../shared/effects/glow_draw.h"
+#include "../../shared/room/jukebox.h"
+#include "../../shared/room/room_variants.h"
 
 extern RoomEventActiveBytes gRoomEventActive;
 
@@ -2654,9 +2654,7 @@ RoomEventActiveBytes gRoomEventActive = { 0, { 16, 15, 0 } };
 
 RoomEventReq gRoomEventReq;
 
-#include "../../shared/room_event_gate.inc.c"
-
-#include "../../shared/room_event_task.inc.c"
+#include "../../shared/room/room_event.inc.c"
 
 /// Night-saloon room-state handlers: 0 initialize, 1 idle, 2 kill.
 ///
@@ -2835,7 +2833,7 @@ static const JukeboxTrackLists _gJukeboxTrackLists = {
 
 /// NUL-terminated SELECT panel title, retaining an unread trailing 0x0D byte.
 static const char _gDryfieldNightSaloonGRJukeboxSelectLabel[8] = "SELECT\0\x0D";
-#include "../../shared/room_variants_saloon.inc.c"
+#include "../../shared/room/room_variants_saloon.inc.c"
 
 /// Refuses every key-item use in the night saloon.
 ///
@@ -2999,7 +2997,7 @@ static void _dryfieldNightSaloonGRSetRoom(u8 roomId)
     gGameSession->location.room                            = roomId;
 }
 
-#include "../../shared/jukebox_row.inc.c"
+#include "../../shared/room/jukebox_row.inc.c"
 
 /// Updates the saloon's jukebox list and loads confirmed music selections.
 ///
@@ -3145,7 +3143,7 @@ static void _dryfieldNightSaloonGRJukeboxMenuTask(Task* task)
 #undef JUKEBOX_MENU_QUEUE_TRACK_LOAD
 }
 
-#include "../../shared/jukebox_host.inc.c"
+#include "../../shared/room/jukebox_host.inc.c"
 
 /// Queues the saloon's jukebox host under a display-mode transition.
 ///
@@ -3214,7 +3212,7 @@ void dryfieldNightSaloonGRDrawGlowsTask(Task* task)
     }
 }
 
-#include "../../shared/glow_draw_flare.inc.c"
+#include "../../shared/effects/glow_draw_flare.inc.c"
 
 /// Selects the night saloon's local shaft roots and guides for glow drawing.
 ///
@@ -3226,7 +3224,7 @@ void dryfieldNightSaloonGRDrawGlowsTask(Task* task)
 /// effects. Drawing leaves the table unchanged; it must stay live for each call.
 /// Bind around `glow_draw_twin_shafts.inc.c` and undefine after inclusion.
 #define GLOW_TWIN_SHAFT_POINTS (_gDryfieldNightSaloonGREffectPoints)
-#include "../../shared/glow_draw_twin_shafts.inc.c"
+#include "../../shared/effects/glow_draw_twin_shafts.inc.c"
 #undef GLOW_TWIN_SHAFT_POINTS
 
 /// Initializes a grey-to-black Gouraud quad for one beam-cap wedge.

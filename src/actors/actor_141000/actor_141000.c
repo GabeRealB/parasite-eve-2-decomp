@@ -38,9 +38,9 @@
 #include "main/task_types.h"
 #include "main/tmd.h"
 #include "main/tmd_types.h"
-#include "../../shared/actor_motion.h"
-#include "../../shared/actor_messages.h"
-#include "../../shared/glow_draw.h"
+#include "../../shared/actor/actor_motion.h"
+#include "../../shared/actor/actor_messages.h"
+#include "../../shared/effects/glow_draw.h"
 
 /// `_Actor141000AyaBreaWork::blinkStep`: the eye image the blink posts next.
 ///
@@ -799,7 +799,7 @@ static void _actor141000BuildRingBeamPoints(Task* task, SVECTOR screenPoints[ACT
 /// `main/display_types.h`; define before the fragment, which undefines it.
 /// Has no arguments, captured locals or side effects.
 #define GLOW_CAPPED_BEAM_HALO_DRAW_MODE _get_mode(true, false, getTPage(0, GPU_BLEND_ADD, 320, 0))
-#include "../../shared/glow_draw_ring_beam.inc.c"
+#include "../../shared/effects/glow_draw_ring_beam.inc.c"
 
 /// Builds the attached beam's four six-point screen rings for its core and halo.
 ///
@@ -1296,7 +1296,7 @@ static void _actor141000UpdateAyaBreaWalker(Task* task)
     }
 }
 
-#include "../../shared/actor_motion_arrive19.inc.c"
+#include "../../shared/actor/actor_motion_arrive19.inc.c"
 
 /// Posts the next closed or half-open eye image and advances its timed dwell.
 ///
@@ -1657,9 +1657,9 @@ static void _actor141000TurnAyaBreaToYaw(Task* task)
     _actor141000RebuildAyaBreaRotation(rootCoord, &rotation);
 }
 
-#include "../../shared/actor_motion_play19.inc.c"
+#include "../../shared/actor/actor_motion_play19.inc.c"
 
-#include "../../shared/actor_messages_place_euler.inc.c"
+#include "../../shared/actor/actor_messages_place_euler.inc.c"
 
 /// Changes Aya's visibility and automatic primitive-buffer recovery mode.
 ///

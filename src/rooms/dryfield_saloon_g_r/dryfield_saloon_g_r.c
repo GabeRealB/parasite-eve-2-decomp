@@ -52,11 +52,11 @@
 /// Selects the gate's TU-local room-transition task descriptor.
 ///
 /// Addressable `TaskDesc` lvalue; see `room_events.h` for the spawn contract.
-/// Bind before that header and keep through `room_event_gate.inc.c`.
+/// Bind before that header and keep through `room_event.inc.c`.
 #define ROOM_EVENT_TASK_DESC (_gRoomEventTaskDesc)
-#include "../../shared/room_events.h"
-#include "../../shared/glow_draw.h"
-#include "../../shared/room_variants.h"
+#include "../../shared/room/room_events.h"
+#include "../../shared/effects/glow_draw.h"
+#include "../../shared/room/room_variants.h"
 
 extern RoomEventActiveBytes gRoomEventActive;
 
@@ -910,9 +910,7 @@ RoomEventActiveBytes gRoomEventActive = { 0, { 32, 1, 0 } };
 
 RoomEventReq gRoomEventReq;
 
-#include "../../shared/room_event_gate.inc.c"
-
-#include "../../shared/room_event_task.inc.c"
+#include "../../shared/room/room_event.inc.c"
 
 /// Daytime saloon room-task states: initialize, idle and teardown.
 ///
@@ -922,7 +920,7 @@ static const TaskFuncTable3 _gDryfieldSaloonGRRoomTaskStates = {
     { _dryfieldSaloonGRInitializeRoom, _dryfieldSaloonGRIdleTask, taskKill },
 };
 
-#include "../../shared/room_variants_saloon.inc.c"
+#include "../../shared/room/room_variants_saloon.inc.c"
 
 static void _glowDrawFlareLocal(const GfxCoord* coord, const SVECTOR* localPoint, s32 textureIndex, s32 radiusScale);
 
@@ -1045,7 +1043,7 @@ void dryfieldSaloonGRDrawLightEffectsTask(Task* task)
     }
 }
 
-#include "../../shared/glow_draw_flare_local.inc.c"
+#include "../../shared/effects/glow_draw_flare_local.inc.c"
 
 /// Selects the day saloon's local shaft roots and guides for glow drawing.
 ///
@@ -1057,7 +1055,7 @@ void dryfieldSaloonGRDrawLightEffectsTask(Task* task)
 /// effects. Drawing leaves the table unchanged; it must stay live for each call.
 /// Bind around `glow_draw_twin_shafts.inc.c` and undefine after inclusion.
 #define GLOW_TWIN_SHAFT_POINTS (_gDryfieldSaloonGREffectPoints)
-#include "../../shared/glow_draw_twin_shafts.inc.c"
+#include "../../shared/effects/glow_draw_twin_shafts.inc.c"
 #undef GLOW_TWIN_SHAFT_POINTS
 
-#include "../../shared/glow_draw_tapered_beam.inc.c"
+#include "../../shared/effects/glow_draw_tapered_beam.inc.c"

@@ -61,18 +61,18 @@
 
 #include "rooms/room_common.h"
 
-#include "../../shared/room_visual_effects.h"
-#include "../../shared/glow_draw.h"
+#include "../../shared/room/room_visual_effects.h"
+#include "../../shared/effects/glow_draw.h"
 
 // The flag symbol is four bytes; the gate writes the first.
 #define ROOM_EVENT_ACTIVE gRoomEventActive.eventStarted
 /// Selects the gate's TU-local room-transition task descriptor.
 ///
 /// Addressable `TaskDesc` lvalue; see `room_events.h` for the spawn contract.
-/// Bind before that header and keep through `room_event_gate.inc.c`.
+/// Bind before that header and keep through `room_event.inc.c`.
 #define ROOM_EVENT_TASK_DESC (_gRoomEventTaskDesc)
-#include "../../shared/room_events.h"
-#include "../../shared/shelter_elevator.h"
+#include "../../shared/room/room_events.h"
+#include "../../shared/room/shelter_elevator.h"
 
 /// Task descriptor `_roomEventGate` spawns when a
 /// gated event fires.
@@ -216,7 +216,7 @@ static SVECTOR _gShelterB2ElevatorHallLockedDoorIndicatorPoint = { 9901, -1195, 
 /// `ROOM_VISUAL_EFFECTS_HALO_STORAGE_TYPE` to be `RoomFxShade`. Bind around
 /// `room_visual_effects_halo_data.inc.c`.
 #define ROOM_VISUAL_EFFECTS_HALO_STORAGE_BOUND [ROOM_VISUAL_EFFECTS_HALO_SHADE_COUNT]
-#include "../../shared/room_visual_effects_halo_data.inc.c"
+#include "../../shared/room/room_visual_effects_halo_data.inc.c"
 
 static void _glowDrawCapsule(const SVECTOR worldPoints[2], s32 radiusScale, s32 packedColor);
 static void _glowDrawTintedDisc(const SVECTOR* worldPoint, s32 radiusScale, s32 packedColor);
@@ -230,7 +230,7 @@ static inline const RoomFxShade* _roomVisualEffectsGetHaloShades(void)
 #undef ROOM_VISUAL_EFFECTS_HALO_STORAGE_TYPE
 #undef ROOM_VISUAL_EFFECTS_HALO_STORAGE_BOUND
 
-#include "../../shared/room_visual_effects_trail_data.inc.c"
+#include "../../shared/room/room_visual_effects_trail_data.inc.c"
 
 u8* gShelterB2ElevatorHallViewMaps[1] = {
     gViewIdentityMap,
@@ -744,11 +744,9 @@ RoomEventActiveBytes gRoomEventActive = { 0, { 253, 152, 217 } };
 
 RoomEventReq gRoomEventReq;
 
-#include "../../shared/room_event_gate.inc.c"
+#include "../../shared/room/room_event.inc.c"
 
-#include "../../shared/room_event_task.inc.c"
-
-#include "../../shared/shelter_elevator_task.inc.c"
+#include "../../shared/room/shelter_elevator_task.inc.c"
 
 /// Resolves an elevator-hall departure and gates its door or elevator event.
 ///
@@ -986,18 +984,18 @@ void shelterB2ElevatorHallDrawGlowsTask(Task* task)
     }
 }
 
-#include "../../shared/glow_draw_capsule.inc.c"
+#include "../../shared/effects/glow_draw_capsule.inc.c"
 
-#include "../../shared/glow_draw_tinted_disc.inc.c"
+#include "../../shared/effects/glow_draw_tinted_disc.inc.c"
 
-#include "../../shared/room_visual_effects.inc.c"
+#include "../../shared/room/room_visual_effects.inc.c"
 
 void shelterB2ElevatorHallRoomVisualEffectsMoteTask(Task* task)
 {
     _roomVisualEffectsMoteTask(task);
 }
 
-#include "../../shared/room_visual_effects_halo.inc.c"
+#include "../../shared/room/room_visual_effects_halo.inc.c"
 
 void shelterB2ElevatorHallRoomVisualEffectsHaloTask(Task* task)
 {
@@ -1009,33 +1007,30 @@ void shelterB2ElevatorHallRoomVisualEffectsHaloOrangeBurstTask(Task* task)
     _roomVisualEffectsHaloOrangeBurstTask(task);
 }
 
-#include "../../shared/room_visual_effects_glow_quad.inc.c"
-#include "../../shared/room_visual_effects_flash.inc.c"
+#include "../../shared/room/room_visual_effects_glow_quad.inc.c"
+#include "../../shared/room/room_visual_effects_flash.inc.c"
 
 void shelterB2ElevatorHallRoomVisualEffectsSparkEmitterTask(Task* task)
 {
     _roomVisualEffectsSparkEmitterTask(task);
 }
 
-#include "../../shared/room_visual_effects_flash_task.inc.c"
+#include "../../shared/room/room_visual_effects_flash_task.inc.c"
 
 void shelterB2ElevatorHallRoomVisualEffectsFlashTask(Task* task)
 {
     _roomVisualEffectsFlashTask(task);
 }
 
-#include "../../shared/room_visual_effects_trails.inc.c"
+#include "../../shared/room/room_visual_effects_trails.inc.c"
 
 void shelterB2ElevatorHallRoomVisualEffectsTwinTrailTask(Task* task)
 {
-#include "../../shared/room_visual_effects_trail_task.inc.c"
-}
+#include "../../shared/room/room_visual_effects_trail_task.inc.c"
 
-#include "../../shared/room_visual_effects_sparks.inc.c"
+    void shelterB2ElevatorHallRoomVisualEffectsSparkBurstTask(Task * task)
+    {
+        _roomVisualEffectsSparkBurstTask(task);
+    }
 
-void shelterB2ElevatorHallRoomVisualEffectsSparkBurstTask(Task* task)
-{
-    _roomVisualEffectsSparkBurstTask(task);
-}
-
-#include "../../shared/room_visual_effects_glow.inc.c"
+#include "../../shared/room/room_visual_effects_glow.inc.c"

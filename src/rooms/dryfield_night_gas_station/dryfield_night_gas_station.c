@@ -76,9 +76,9 @@
 #include "overlay.h"
 
 #include "rooms/room_common.h"
-#include "../../shared/room_visual_effects.h"
-#include "../../shared/glow_draw.h"
-#include "../../shared/room_variants.h"
+#include "../../shared/room/room_visual_effects.h"
+#include "../../shared/effects/glow_draw.h"
+#include "../../shared/room/room_variants.h"
 #include "../../shared/gas_station_sounds.h"
 
 static Task* _gDryfieldNightGasStationCompanionHeadAimTask;
@@ -88,7 +88,7 @@ static WorldCollisionGrid _gDryfieldNightGasStationRooms1To3CollisionGrid;
 
 static Task* _gDryfieldNightGasStationSpriteFlickerTask;
 
-#include "../../shared/telephone.h"
+#include "../../shared/room/telephone.h"
 
 static void _dryfieldNightGasStationResetCutsceneObstacleCollision(s32 displaceObstacle);
 static void _dryfieldNightGasStationDrawTrackRedStreak(s32 frameIndex);
@@ -208,7 +208,7 @@ static s32 _dryfieldNightGasStationArmFollowupSceneMsg(Task* task, s32 messageId
 
 static void _dryfieldNightGasStationStartJerryCanCutsceneTask(Task* task);
 
-#include "../../shared/telephone_data.inc.c"
+#include "../../shared/room/telephone_data.inc.c"
 
 /// Message routes installed on the night gas station's registered room task.
 ///
@@ -1482,7 +1482,7 @@ static const u32 _gDryfieldNightGasStationGlowViewMasks[19] SECTION(".data") = {
     (1u << 2) | (1u << 13),
 };
 
-#include "../../shared/room_visual_effects_trail_data.inc.c"
+#include "../../shared/room/room_visual_effects_trail_data.inc.c"
 
 WorldCoordRoomLighting gDryfieldNightGasStationRoomLighting[4] = {
     { &_gDryfieldNightGasStationRoom1Lights, _gDryfieldNightGasStationAmbientByView },
@@ -3168,7 +3168,7 @@ static void _dryfieldNightGasStationUpdateRoomTask(Task* task);
 ///
 /// Two-byte string-literal binding for `telephone.inc.c`; unused by label drawing.
 #define TELEPHONE_MENU_TITLE_TRAILING_BYTES "\x35\x96"
-#include "../../shared/telephone.inc.c"
+#include "../../shared/room/telephone.inc.c"
 #undef TELEPHONE_MENU_TITLE_TRAILING_BYTES
 
 static void _glowDrawCapsule(const SVECTOR worldPoints[2], s32 radiusScale, s32 packedColor);
@@ -3179,7 +3179,7 @@ void dryfieldNightGasStationTelephoneMenuTask(Task* task)
     _telephoneMenuTask(task);
 }
 
-#include "../../shared/telephone_panels.inc.c"
+#include "../../shared/room/telephone_panels.inc.c"
 
 /// Registers the room's messages and prepares the companion and first-visit scene.
 ///
@@ -3214,7 +3214,7 @@ static void _dryfieldNightGasStationInitializeRoomTask(Task* task)
     gCapRoomCompletionSoundsEnabled = CAP_ROOM_COMPLETION_SOUNDS_ENABLED;
 }
 
-#include "../../shared/room_variants_gas_station.inc.c"
+#include "../../shared/room/room_variants_gas_station.inc.c"
 
 #include "../../shared/gas_station_sounds_cue.inc.c"
 
@@ -4221,31 +4221,28 @@ void dryfieldNightGasStationAmbientEffectsTask(Task* task)
 #undef DRYFIELD_NIGHT_GAS_STATION_CHOOSE_SCATTER_OFFSET
 }
 
-#include "../../shared/glow_draw_capsule.inc.c"
+#include "../../shared/effects/glow_draw_capsule.inc.c"
 
-#include "../../shared/glow_draw_flare.inc.c"
+#include "../../shared/effects/glow_draw_flare.inc.c"
 
-#include "../../shared/room_visual_effects.inc.c"
+#include "../../shared/room/room_visual_effects.inc.c"
 
-#include "../../shared/room_visual_effects_flash_task.inc.c"
+#include "../../shared/room/room_visual_effects_flash_task.inc.c"
 
 void dryfieldNightGasStationRoomVisualEffectsFlashTask(Task* task)
 {
     _roomVisualEffectsFlashTask(task);
 }
 
-#include "../../shared/room_visual_effects_trails.inc.c"
+#include "../../shared/room/room_visual_effects_trails.inc.c"
 
 void dryfieldNightGasStationRoomVisualEffectsTwinTrailTask(Task* task)
 {
-#include "../../shared/room_visual_effects_trail_task.inc.c"
-}
+#include "../../shared/room/room_visual_effects_trail_task.inc.c"
 
-#include "../../shared/room_visual_effects_sparks.inc.c"
+    void dryfieldNightGasStationRoomVisualEffectsSparkBurstTask(Task * task)
+    {
+        _roomVisualEffectsSparkBurstTask(task);
+    }
 
-void dryfieldNightGasStationRoomVisualEffectsSparkBurstTask(Task* task)
-{
-    _roomVisualEffectsSparkBurstTask(task);
-}
-
-#include "../../shared/room_visual_effects_glow.inc.c"
+#include "../../shared/room/room_visual_effects_glow.inc.c"

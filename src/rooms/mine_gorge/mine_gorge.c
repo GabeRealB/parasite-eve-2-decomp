@@ -239,22 +239,7 @@ static EvsCommand _gMineGorgeEncounterScript[14] = {
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-/// Tests whether the live action-trigger list contains a latched room event.
-///
-/// Returns 1 for a room action with event ID 255 and nonzero hit, or 0 when
-/// none exists, including an empty list. Borrows NULL-terminated collision
-/// records without changing the links or consuming the hit.
-static inline s32 _mineGorgeRoomTriggerHit(void)
-{
-    const WorldCollisionTrigger* trigger;
-
-    for (trigger = gWorldCollisionActionTriggerListHead; trigger != NULL; trigger = trigger->next) {
-        if (trigger->control == WORLD_COLLISION_TRIGGER_ACTION_ROOM && trigger->parameter0 == WORLD_COLLISION_TRIGGER_ROOM_EVENT_ID && trigger->hit != 0) {
-            return 1;
-        }
-    }
-    return 0;
-}
+#include "../../shared/room/room_event_trigger_hit.inc.c"
 
 /// Handles oak-board use at the latched gorge action trigger.
 ///
@@ -271,7 +256,7 @@ static s32 _mineGorgeUseOakBoardMessage(Task* unusedTask, s32 messageId, s32 col
     };
     if (collectedItemId == INVENTORY_COLLECTION_ID_OAK_BOARD) {
         if (gameFlagGetNibble(GAME_FLAG_MINE_GORGE_TRIGGER_EVENT_DONE) == 0) {
-            if (_mineGorgeRoomTriggerHit() != 0) {
+            if (_roomEventTriggerHit() != 0) {
                 gameFlagSetNibble(GAME_FLAG_MINE_GORGE_TRIGGER_EVENT_DONE, 1);
                 taskSpawnFromTableOnDefaultList(_gMineGorgeOakBoardCutsceneTaskDescriptors, 0, 0, 0);
                 gGameSession->location.room = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.room = MINE_GORGE_OAK_BOARD_EVENT_ROOM);

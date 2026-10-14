@@ -49,7 +49,7 @@
 #include "overlay.h"
 
 #include "rooms/room_common.h"
-#include "../../shared/glow_draw.h"
+#include "../../shared/effects/glow_draw.h"
 
 static u32 _gDryfieldNightMotelBalconyGlowViewMasks[2][20];
 
@@ -4491,9 +4491,9 @@ void dryfieldNightMotelBalconyAmbientEffectsTask(Task* task)
     }
 }
 
-#include "../../shared/glow_draw_shaft.inc.c"
+#include "../../shared/effects/glow_draw_shaft.inc.c"
 
-#include "../../shared/glow_draw_flare.inc.c"
+#include "../../shared/effects/glow_draw_flare.inc.c"
 
 void dryfieldNightMotelBalconyDrawBreathFlame(s32 packedScreenPosition, s16 otIndex, s16 projectedScaleQ12, s16 animationStep)
 {

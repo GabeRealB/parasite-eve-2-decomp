@@ -51,8 +51,8 @@
 #include "overlay.h"
 
 #include "rooms/shelter_b3_dumping_hole.h"
-#include "../../shared/screen_wave.h"
-#include "../../shared/incinerator_blaze.h"
+#include "../../shared/screen/screen_wave.h"
+#include "../../shared/effects/incinerator_blaze.h"
 
 /// Progress of the burn scene, held in `_Actor342100BlazeWork::sceneState`.
 enum {
@@ -415,9 +415,9 @@ POLY_FT4 gScreenWaveGrid[2][30][8] = { 0 };
 
 static s32 _actor342100UpdateBlazeScene(Task* controller);
 
-#include "../../shared/screen_wave_grid.inc.c"
+#include "../../shared/screen/screen_wave_grid.inc.c"
 
-#include "../../shared/incinerator_blaze_fade.inc.c"
+#include "../../shared/effects/incinerator_blaze_fade.inc.c"
 
 /// Starts a burn clip's successor once the player's animation has settled.
 ///
@@ -608,7 +608,7 @@ static void _actor342100SpawnBlazeFireEmitters(void)
     }
 }
 
-#include "../../shared/incinerator_blaze_body_fire.inc.c"
+#include "../../shared/effects/incinerator_blaze_body_fire.inc.c"
 
 /// Installs the blaze's three clip pointers in the selected player bank's extension.
 ///

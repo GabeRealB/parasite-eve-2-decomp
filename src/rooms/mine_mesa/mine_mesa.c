@@ -73,10 +73,10 @@
 #include "rooms/room.h"
 
 #include "rooms/room_common.h"
-#include "../../shared/room_visual_effects.h"
-#include "../../shared/room_events.h"
-#include "../../shared/glow_draw.h"
-#include "../../shared/streamed_scene.h"
+#include "../../shared/room/room_visual_effects.h"
+#include "../../shared/room/room_events.h"
+#include "../../shared/effects/glow_draw.h"
+#include "../../shared/room/streamed_scene.h"
 
 // Script arguments shared by the room's head-aim tasks and their controllers.
 enum {
@@ -1709,7 +1709,7 @@ static SVECTOR _gMineMesaFlarePositions[12] = {
     { -4060, -1920, 2820, 0 },
 };
 
-#include "../../shared/room_visual_effects_trail_data.inc.c"
+#include "../../shared/room/room_visual_effects_trail_data.inc.c"
 
 WorldCollisionRoomResources gMineMesaRoomCollisionResources[1] = {
     {
@@ -3528,7 +3528,7 @@ static Enemy* _gMineMesaWaveEnemies[2] = {
 static void _mineMesaInitializeEnemyWaveState(Task* task);
 static void _mineMesaFinishEnemyWaveState(Task* task);
 
-#include "../../shared/room_event_staged_task.inc.c"
+#include "../../shared/room/room_event_staged_task.inc.c"
 
 static void _glowDrawFlare(const SVECTOR* worldPoint, s32 textureIndex, s32 radiusScale);
 
@@ -3814,7 +3814,7 @@ static void _mineMesaStartEnemyWave(void)
     }
 }
 
-#include "../../shared/streamed_scene_play.inc.c"
+#include "../../shared/room/streamed_scene_play.inc.c"
 
 /// Keeps the screen black until its signed halfword timer reaches 256.
 ///
@@ -4529,133 +4529,130 @@ void mineMesaDrawViewFlaresTask(Task* task)
     }
 }
 
-#include "../../shared/glow_draw_flare.inc.c"
+#include "../../shared/effects/glow_draw_flare.inc.c"
 
-#include "../../shared/room_visual_effects.inc.c"
+#include "../../shared/room/room_visual_effects.inc.c"
 
-#include "../../shared/room_visual_effects_flash_task.inc.c"
+#include "../../shared/room/room_visual_effects_flash_task.inc.c"
 
 void mineMesaRoomVisualEffectsFlashTask(Task* task)
 {
     _roomVisualEffectsFlashTask(task);
 }
 
-#include "../../shared/room_visual_effects_trails.inc.c"
+#include "../../shared/room/room_visual_effects_trails.inc.c"
 
 void mineMesaRoomVisualEffectsTwinTrailTask(Task* task)
 {
-#include "../../shared/room_visual_effects_trail_task.inc.c"
-}
+#include "../../shared/room/room_visual_effects_trail_task.inc.c"
 
-#include "../../shared/room_visual_effects_sparks.inc.c"
-
-void mineMesaRoomVisualEffectsSparkBurstTask(Task* task)
-{
-    _roomVisualEffectsSparkBurstTask(task);
-}
-
-#include "../../shared/room_visual_effects_glow.inc.c"
-
-/// Builds one vertical collision quad from the room's base-edge table.
-///
-/// `wallIndex` is 0..3. Writable normals/faces cover index `wallIndex + 3`, and
-/// vertices cover its four corners at `4 * (wallIndex + 3)` through +3. Borrows
-/// these pools for the call. `height` is in game units, subtracted from upper
-/// corners' Y and narrowed to s16. Writes a horizontal Q12 unit normal and
-/// surface class 3; vector pad words and grid cell lists stay intact.
-static inline void _mineMesaBuildWallFace(SVECTOR* normals, SVECTOR* vertices,
-                                          WorldCollisionGridFace* faces, s16 wallIndex, s32 height)
-{
-    enum { WALL_FIRST_FACE        = 3,
-           WALL_VERTICES_PER_FACE = 4,
-           WALL_SURFACE_CLASS     = 3 };
-    s16 faceIndex;
-    s32 firstVertexIndex;
-
-    faceIndex = wallIndex + WALL_FIRST_FACE;
-
-    // Duplicate the lower edge, then raise the second pair in the grid's Y-down frame.
-    vertices[faceIndex * WALL_VERTICES_PER_FACE].vx = vertices[faceIndex * WALL_VERTICES_PER_FACE + 2].vx = _gMineMesaWallEdges[wallIndex].start.vx;
-    vertices[faceIndex * WALL_VERTICES_PER_FACE].vy = vertices[faceIndex * WALL_VERTICES_PER_FACE + 2].vy = _gMineMesaWallEdges[wallIndex].start.vy;
-    vertices[faceIndex * WALL_VERTICES_PER_FACE].vz = vertices[faceIndex * WALL_VERTICES_PER_FACE + 2].vz = _gMineMesaWallEdges[wallIndex].start.vz;
-    vertices[faceIndex * WALL_VERTICES_PER_FACE + 1].vx = vertices[faceIndex * WALL_VERTICES_PER_FACE + 3].vx = _gMineMesaWallEdges[wallIndex].end.vx;
-    vertices[faceIndex * WALL_VERTICES_PER_FACE + 1].vy = vertices[faceIndex * WALL_VERTICES_PER_FACE + 3].vy = _gMineMesaWallEdges[wallIndex].end.vy;
-    vertices[faceIndex * WALL_VERTICES_PER_FACE + 1].vz = vertices[faceIndex * WALL_VERTICES_PER_FACE + 3].vz = _gMineMesaWallEdges[wallIndex].end.vz;
-    vertices[faceIndex * WALL_VERTICES_PER_FACE + 2].vy                                                      -= height;
-    vertices[faceIndex * WALL_VERTICES_PER_FACE + 3].vy                                                      -= height;
-
-    // Keep connectivity and the edge's horizontal collision normal in the reserved face.
-    faces[faceIndex].vertexIndices[1] = faceIndex * WALL_VERTICES_PER_FACE + 1;
-    firstVertexIndex                  = faceIndex * WALL_VERTICES_PER_FACE;
-    faces[faceIndex].vertexIndices[0] = firstVertexIndex;
-    faces[faceIndex].vertexIndices[2] = firstVertexIndex + 2;
-    faces[faceIndex].vertexIndices[3] = firstVertexIndex + 3;
-    faces[faceIndex].surfaceClass     = WALL_SURFACE_CLASS;
-    faces[faceIndex].normalIndex      = faceIndex;
-    normals[faceIndex].vx             = _gMineMesaWallEdges[wallIndex].start.vz - _gMineMesaWallEdges[wallIndex].end.vz;
-    normals[faceIndex].vy             = 0;
-    normals[faceIndex].vz             = _gMineMesaWallEdges[wallIndex].end.vx - _gMineMesaWallEdges[wallIndex].start.vx;
-    VectorNormalSS(&normals[faceIndex], &normals[faceIndex]);
-}
-
-void mineMesaBuildWalls(s32 height)
-{
-    SVECTOR*                normals;
-    SVECTOR*                vertices;
-    WorldCollisionGridFace* faces;
-    s16                     wallIndex;
-
-    normals  = gWorldCollisionActiveGrid->normals;
-    vertices = gWorldCollisionActiveGrid->vertices;
-    faces    = gWorldCollisionActiveGrid->faces;
-    // Extend each base edge upward; preserve the grid's existing cell lists.
-    for (wallIndex = 0; wallIndex < (s32)ARRAY_SIZE(_gMineMesaWallEdges); wallIndex++) {
-        _mineMesaBuildWallFace(normals, vertices, faces, wallIndex, height);
+    void mineMesaRoomVisualEffectsSparkBurstTask(Task * task)
+    {
+        _roomVisualEffectsSparkBurstTask(task);
     }
-}
 
-/// Fills the wave's two enemy slots until ten deaths have been accounted for.
-///
-/// Borrows slots whose death messages clear them; spawned enemies belong to
-/// the scene manager. At one kill remaining both slots must be empty before
-/// spawning. The signed cooldown decrements once per eligible tick and is
-/// seeded to 80 after a spawn; slot-0 spawning can consume its first tick in
-/// the same call. Views select spawn-point subsets {1,2,3}, {2,3}, {0,1,2},
-/// {0,1}, {2,3} for mapped views 2,3,4,5,8; other views allow all four.
-/// Requires live actor resources, spawn points and the area's first placement.
-/// At zero remaining kills, clears the saved companion selection, forces one
-/// final battle release without crediting rewards, and advances to teardown.
-static void _mineMesaSpawnEnemyWaveState(Task* task)
-{
-    /// Draws one unsigned 16-bit sample from the shared random sequence.
+#include "../../shared/room/room_visual_effects_glow.inc.c"
+
+    /// Builds one vertical collision quad from the room's base-edge table.
     ///
-    /// Advances `gRandomLcgState` once using unsigned modulo-2^32 arithmetic,
-    /// then returns its upper halfword as u32 (0..65535). Each expansion
-    /// mutates the resident state; preserve ordering with other random draws.
+    /// `wallIndex` is 0..3. Writable normals/faces cover index `wallIndex + 3`, and
+    /// vertices cover its four corners at `4 * (wallIndex + 3)` through +3. Borrows
+    /// these pools for the call. `height` is in game units, subtracted from upper
+    /// corners' Y and narrowed to s16. Writes a horizontal Q12 unit normal and
+    /// surface class 3; vector pad words and grid cell lists stay intact.
+    static inline void _mineMesaBuildWallFace(SVECTOR * normals, SVECTOR * vertices,
+                                              WorldCollisionGridFace * faces, s16 wallIndex, s32 height)
+    {
+        enum { WALL_FIRST_FACE        = 3,
+               WALL_VERTICES_PER_FACE = 4,
+               WALL_SURFACE_CLASS     = 3 };
+        s16 faceIndex;
+        s32 firstVertexIndex;
+
+        faceIndex = wallIndex + WALL_FIRST_FACE;
+
+        // Duplicate the lower edge, then raise the second pair in the grid's Y-down frame.
+        vertices[faceIndex * WALL_VERTICES_PER_FACE].vx = vertices[faceIndex * WALL_VERTICES_PER_FACE + 2].vx = _gMineMesaWallEdges[wallIndex].start.vx;
+        vertices[faceIndex * WALL_VERTICES_PER_FACE].vy = vertices[faceIndex * WALL_VERTICES_PER_FACE + 2].vy = _gMineMesaWallEdges[wallIndex].start.vy;
+        vertices[faceIndex * WALL_VERTICES_PER_FACE].vz = vertices[faceIndex * WALL_VERTICES_PER_FACE + 2].vz = _gMineMesaWallEdges[wallIndex].start.vz;
+        vertices[faceIndex * WALL_VERTICES_PER_FACE + 1].vx = vertices[faceIndex * WALL_VERTICES_PER_FACE + 3].vx = _gMineMesaWallEdges[wallIndex].end.vx;
+        vertices[faceIndex * WALL_VERTICES_PER_FACE + 1].vy = vertices[faceIndex * WALL_VERTICES_PER_FACE + 3].vy = _gMineMesaWallEdges[wallIndex].end.vy;
+        vertices[faceIndex * WALL_VERTICES_PER_FACE + 1].vz = vertices[faceIndex * WALL_VERTICES_PER_FACE + 3].vz = _gMineMesaWallEdges[wallIndex].end.vz;
+        vertices[faceIndex * WALL_VERTICES_PER_FACE + 2].vy                                                      -= height;
+        vertices[faceIndex * WALL_VERTICES_PER_FACE + 3].vy                                                      -= height;
+
+        // Keep connectivity and the edge's horizontal collision normal in the reserved face.
+        faces[faceIndex].vertexIndices[1] = faceIndex * WALL_VERTICES_PER_FACE + 1;
+        firstVertexIndex                  = faceIndex * WALL_VERTICES_PER_FACE;
+        faces[faceIndex].vertexIndices[0] = firstVertexIndex;
+        faces[faceIndex].vertexIndices[2] = firstVertexIndex + 2;
+        faces[faceIndex].vertexIndices[3] = firstVertexIndex + 3;
+        faces[faceIndex].surfaceClass     = WALL_SURFACE_CLASS;
+        faces[faceIndex].normalIndex      = faceIndex;
+        normals[faceIndex].vx             = _gMineMesaWallEdges[wallIndex].start.vz - _gMineMesaWallEdges[wallIndex].end.vz;
+        normals[faceIndex].vy             = 0;
+        normals[faceIndex].vz             = _gMineMesaWallEdges[wallIndex].end.vx - _gMineMesaWallEdges[wallIndex].start.vx;
+        VectorNormalSS(&normals[faceIndex], &normals[faceIndex]);
+    }
+
+    void mineMesaBuildWalls(s32 height)
+    {
+        SVECTOR*                normals;
+        SVECTOR*                vertices;
+        WorldCollisionGridFace* faces;
+        s16                     wallIndex;
+
+        normals  = gWorldCollisionActiveGrid->normals;
+        vertices = gWorldCollisionActiveGrid->vertices;
+        faces    = gWorldCollisionActiveGrid->faces;
+        // Extend each base edge upward; preserve the grid's existing cell lists.
+        for (wallIndex = 0; wallIndex < (s32)ARRAY_SIZE(_gMineMesaWallEdges); wallIndex++) {
+            _mineMesaBuildWallFace(normals, vertices, faces, wallIndex, height);
+        }
+    }
+
+    /// Fills the wave's two enemy slots until ten deaths have been accounted for.
+    ///
+    /// Borrows slots whose death messages clear them; spawned enemies belong to
+    /// the scene manager. At one kill remaining both slots must be empty before
+    /// spawning. The signed cooldown decrements once per eligible tick and is
+    /// seeded to 80 after a spawn; slot-0 spawning can consume its first tick in
+    /// the same call. Views select spawn-point subsets {1,2,3}, {2,3}, {0,1,2},
+    /// {0,1}, {2,3} for mapped views 2,3,4,5,8; other views allow all four.
+    /// Requires live actor resources, spawn points and the area's first placement.
+    /// At zero remaining kills, clears the saved companion selection, forces one
+    /// final battle release without crediting rewards, and advances to teardown.
+    static void _mineMesaSpawnEnemyWaveState(Task * task)
+    {
+        /// Draws one unsigned 16-bit sample from the shared random sequence.
+        ///
+        /// Advances `gRandomLcgState` once using unsigned modulo-2^32 arithmetic,
+        /// then returns its upper halfword as u32 (0..65535). Each expansion
+        /// mutates the resident state; preserve ordering with other random draws.
 #define MINE_MESA_RANDOM_WORD() ((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16)
 
-    enum { MESA_LEAP_TUNING_ZERO       = (3 << 16) | 2,
-           SPAWN_COOLDOWN_TICKS        = 80,
-           TEXTURE_DEBUG_DEMO          = 10,
-           COMPANION_NONE              = 0,
-           POST_WAVE_MUSIC_ENTRY       = 1,
-           VIEW_SPAWN_POINTS_123       = 2,
-           VIEW_FIRST_SPAWN_POINTS_23  = 3,
-           VIEW_SPAWN_POINTS_012       = 4,
-           VIEW_SPAWN_POINTS_01        = 5,
-           VIEW_SECOND_SPAWN_POINTS_23 = 8 };
-    GameLocationKey            placementKey;
-    Enemy                      unusedEnemy;
-    s32                        slotIndex;
-    s32                        spawnPointIndex;
-    u32                        secondRandomBit;
-    const _MineMesaSpawnPoint* spawnPoints;
-    const _MineMesaSpawnPoint* spawnPoint;
-    TmdObject*                 model;
-    GameLocationKey*           currentLocation;
-    AreaPlacement*             placement;
-    GfxCoord*                  rootCoord;
-    Enemy*                     spawnedEnemy;
+        enum { MESA_LEAP_TUNING_ZERO       = (3 << 16) | 2,
+               SPAWN_COOLDOWN_TICKS        = 80,
+               TEXTURE_DEBUG_DEMO          = 10,
+               COMPANION_NONE              = 0,
+               POST_WAVE_MUSIC_ENTRY       = 1,
+               VIEW_SPAWN_POINTS_123       = 2,
+               VIEW_FIRST_SPAWN_POINTS_23  = 3,
+               VIEW_SPAWN_POINTS_012       = 4,
+               VIEW_SPAWN_POINTS_01        = 5,
+               VIEW_SECOND_SPAWN_POINTS_23 = 8 };
+        GameLocationKey            placementKey;
+        Enemy                      unusedEnemy;
+        s32                        slotIndex;
+        s32                        spawnPointIndex;
+        u32                        secondRandomBit;
+        const _MineMesaSpawnPoint* spawnPoints;
+        const _MineMesaSpawnPoint* spawnPoint;
+        TmdObject*                 model;
+        GameLocationKey*           currentLocation;
+        AreaPlacement*             placement;
+        GfxCoord*                  rootCoord;
+        Enemy*                     spawnedEnemy;
 
 /// Binds the current area's first placement texture offsets and rebuilds both buffers.
 ///
@@ -4685,164 +4682,164 @@ static void _mineMesaSpawnEnemyWaveState(Task* task)
         }                                                                                                         \
     }
 
-    // Respect the shared cooldown and leave the last kill to a lone enemy.
-    for (slotIndex = 0; slotIndex < (s32)ARRAY_SIZE(_gMineMesaWaveEnemies); slotIndex++) {
-        if (_gMineMesaWaveSpawnCooldown > 0) {
-            _gMineMesaWaveSpawnCooldown--;
-            break;
-        }
-        if (_gMineMesaWaveKillsRemaining == 0) {
-            break;
-        }
-        if (_gMineMesaWaveKillsRemaining == 1 &&
-            (_gMineMesaWaveEnemies[0] != NULL || _gMineMesaWaveEnemies[1] != NULL)) {
-            break;
-        }
-        if (_gMineMesaWaveEnemies[slotIndex] != NULL) {
-            continue;
-        }
-        spawnedEnemy                     = enemySpawnFromTable(&gActor00100DesertChaserTaskDesc, 0, MESA_LEAP_TUNING_ZERO, NULL);
-        _gMineMesaWaveEnemies[slotIndex] = spawnedEnemy;
-        if (spawnedEnemy == NULL) {
-            break;
-        }
-        spawnedEnemy->workType                      = ENEMY_WORK_ACTOR;
-        _gMineMesaWaveEnemies[slotIndex]->placeKey |= slotIndex << ENEMY_PLACE_INDEX_SHIFT;
-        // Keep the same LCG draws, including the two draws used by view 4.
-        switch (viewGetMappedIndex() & 0xFF) {
-            case VIEW_SPAWN_POINTS_123:
-                spawnPointIndex = MINE_MESA_RANDOM_WORD() % 3 + 1;
+        // Respect the shared cooldown and leave the last kill to a lone enemy.
+        for (slotIndex = 0; slotIndex < (s32)ARRAY_SIZE(_gMineMesaWaveEnemies); slotIndex++) {
+            if (_gMineMesaWaveSpawnCooldown > 0) {
+                _gMineMesaWaveSpawnCooldown--;
                 break;
-            case VIEW_FIRST_SPAWN_POINTS_23:
-                spawnPointIndex = (MINE_MESA_RANDOM_WORD() & 1) | 2;
+            }
+            if (_gMineMesaWaveKillsRemaining == 0) {
                 break;
-            case VIEW_SPAWN_POINTS_012:
-                spawnPointIndex = ((MINE_MESA_RANDOM_WORD() & 1) == 0) * 2;
-                secondRandomBit = MINE_MESA_RANDOM_WORD() & 1;
-                if (secondRandomBit == 1) {
-                    spawnPointIndex = secondRandomBit;
-                }
+            }
+            if (_gMineMesaWaveKillsRemaining == 1 &&
+                (_gMineMesaWaveEnemies[0] != NULL || _gMineMesaWaveEnemies[1] != NULL)) {
                 break;
-            case VIEW_SPAWN_POINTS_01:
-                spawnPointIndex = MINE_MESA_RANDOM_WORD() & 1;
+            }
+            if (_gMineMesaWaveEnemies[slotIndex] != NULL) {
+                continue;
+            }
+            spawnedEnemy                     = enemySpawnFromTable(&gActor00100DesertChaserTaskDesc, 0, MESA_LEAP_TUNING_ZERO, NULL);
+            _gMineMesaWaveEnemies[slotIndex] = spawnedEnemy;
+            if (spawnedEnemy == NULL) {
                 break;
-            case VIEW_SECOND_SPAWN_POINTS_23:
-                spawnPointIndex = (MINE_MESA_RANDOM_WORD() & 1) | 2;
-                break;
-            default:
-                spawnPointIndex = MINE_MESA_RANDOM_WORD() & 3;
-                break;
-        }
+            }
+            spawnedEnemy->workType                      = ENEMY_WORK_ACTOR;
+            _gMineMesaWaveEnemies[slotIndex]->placeKey |= slotIndex << ENEMY_PLACE_INDEX_SHIFT;
+            // Keep the same LCG draws, including the two draws used by view 4.
+            switch (viewGetMappedIndex() & 0xFF) {
+                case VIEW_SPAWN_POINTS_123:
+                    spawnPointIndex = MINE_MESA_RANDOM_WORD() % 3 + 1;
+                    break;
+                case VIEW_FIRST_SPAWN_POINTS_23:
+                    spawnPointIndex = (MINE_MESA_RANDOM_WORD() & 1) | 2;
+                    break;
+                case VIEW_SPAWN_POINTS_012:
+                    spawnPointIndex = ((MINE_MESA_RANDOM_WORD() & 1) == 0) * 2;
+                    secondRandomBit = MINE_MESA_RANDOM_WORD() & 1;
+                    if (secondRandomBit == 1) {
+                        spawnPointIndex = secondRandomBit;
+                    }
+                    break;
+                case VIEW_SPAWN_POINTS_01:
+                    spawnPointIndex = MINE_MESA_RANDOM_WORD() & 1;
+                    break;
+                case VIEW_SECOND_SPAWN_POINTS_23:
+                    spawnPointIndex = (MINE_MESA_RANDOM_WORD() & 1) | 2;
+                    break;
+                default:
+                    spawnPointIndex = MINE_MESA_RANDOM_WORD() & 3;
+                    break;
+            }
 #undef MINE_MESA_RANDOM_WORD
-        spawnPoints                                                           = _gMineMesaWaveSpawnPoints;
-        spawnPoint                                                            = &spawnPoints[(s16)spawnPointIndex];
-        _gMineMesaWaveEnemies[slotIndex]->task->extra.tmd->coords->coord.t[0] = spawnPoint->x;
-        _gMineMesaWaveEnemies[slotIndex]->task->extra.tmd->coords->coord.t[1] = spawnPoint->y;
-        _gMineMesaWaveEnemies[slotIndex]->task->extra.tmd->coords->coord.t[2] = spawnPoint->z;
-        // Bind textures from placement zero for either enemy slot.
-        model = _gMineMesaWaveEnemies[slotIndex]->task->extra.tmd;
-        MINE_MESA_APPLY_WAVE_TEXTURE_OFFSETS(model, placementKey, currentLocation, placement);
+            spawnPoints                                                           = _gMineMesaWaveSpawnPoints;
+            spawnPoint                                                            = &spawnPoints[(s16)spawnPointIndex];
+            _gMineMesaWaveEnemies[slotIndex]->task->extra.tmd->coords->coord.t[0] = spawnPoint->x;
+            _gMineMesaWaveEnemies[slotIndex]->task->extra.tmd->coords->coord.t[1] = spawnPoint->y;
+            _gMineMesaWaveEnemies[slotIndex]->task->extra.tmd->coords->coord.t[2] = spawnPoint->z;
+            // Bind textures from placement zero for either enemy slot.
+            model = _gMineMesaWaveEnemies[slotIndex]->task->extra.tmd;
+            MINE_MESA_APPLY_WAVE_TEXTURE_OFFSETS(model, placementKey, currentLocation, placement);
 #undef MINE_MESA_APPLY_WAVE_TEXTURE_OFFSETS
-        gfxRotMatrixY(&_gMineMesaWaveEnemies[slotIndex]->task->extra.tmd->coords->coord,
-                      spawnPoint->yaw, GRAPHICS_ROTATION_REPLACE);
-        rootCoord                   = _gMineMesaWaveEnemies[slotIndex]->task->extra.tmd->coords;
-        _gMineMesaWaveSpawnCooldown = SPAWN_COOLDOWN_TICKS;
-        rootCoord->composeStamp     = GRAPHICS_COORD_DIRTY;
+            gfxRotMatrixY(&_gMineMesaWaveEnemies[slotIndex]->task->extra.tmd->coords->coord,
+                          spawnPoint->yaw, GRAPHICS_ROTATION_REPLACE);
+            rootCoord                   = _gMineMesaWaveEnemies[slotIndex]->task->extra.tmd->coords;
+            _gMineMesaWaveSpawnCooldown = SPAWN_COOLDOWN_TICKS;
+            rootCoord->composeStamp     = GRAPHICS_COORD_DIRTY;
+        }
+        if (_gMineMesaWaveKillsRemaining > 0) {
+            return;
+        }
+        // End the scripted battle without adding an enemy reward.
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType = COMPANION_NONE;
+        // This stack payload is published by the binary but never read by release or teardown.
+        task->spawnArg2.pointer      = &unusedEnemy;
+        unusedEnemy.param            = NULL;
+        gSceneCombatState.battleRefs = 1;
+        sceneReleaseBattleRef(task, 0);
+        gStageCountdownMusicEntry = POST_WAVE_MUSIC_ENTRY;
+        task->state++;
     }
-    if (_gMineMesaWaveKillsRemaining > 0) {
-        return;
+
+    /// Rebuilds the mesa's collision walls at the current room variant's height.
+    ///
+    /// Variants 1 and 7 use 2000 game units; all others use 400. Requires the
+    /// loaded mesa wall table and active grid described by `mineMesaBuildWalls`.
+    static void _mineMesaRebuildVariantWalls(void)
+    {
+        enum { WALL_HEIGHT_TALL = 2000,
+               WALL_HEIGHT_LOW  = 400 };
+        s32 height;
+
+        if (gGameSession->location.variant == 1 || gGameSession->location.variant == 7) {
+            height = WALL_HEIGHT_TALL;
+        } else {
+            height = WALL_HEIGHT_LOW;
+        }
+        mineMesaBuildWalls(height);
     }
-    // End the scripted battle without adding an enemy reward.
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType = COMPANION_NONE;
-    // This stack payload is published by the binary but never read by release or teardown.
-    task->spawnArg2.pointer      = &unusedEnemy;
-    unusedEnemy.param            = NULL;
-    gSceneCombatState.battleRefs = 1;
-    sceneReleaseBattleRef(task, 0);
-    gStageCountdownMusicEntry = POST_WAVE_MUSIC_ENTRY;
-    task->state++;
-}
 
-/// Rebuilds the mesa's collision walls at the current room variant's height.
-///
-/// Variants 1 and 7 use 2000 game units; all others use 400. Requires the
-/// loaded mesa wall table and active grid described by `mineMesaBuildWalls`.
-static void _mineMesaRebuildVariantWalls(void)
-{
-    enum { WALL_HEIGHT_TALL = 2000,
-           WALL_HEIGHT_LOW  = 400 };
-    s32 height;
+    /// Consumes an enemy-wave actor event, releasing a dead enemy's occupied slot.
+    ///
+    /// `slotIndex` is the integer first payload, 0 or 1, supplied from the spawned
+    /// enemy's placement-index nibble. The other payload and receiver are unused.
+    /// A nonpositive HP clears the slot and decrements the signed halfword kill
+    /// counter; the unsigned view preserves its low-halfword subtraction. Empty or
+    /// still-live slots leave the wave unchanged. Returns 1 for every event.
+    static s32 _mineMesaEnemyWaveActorEventMsg(Task * task, s32 messageId, s32 slotIndex, s32 unused)
+    {
+        enum { ACTOR_EVENT_CONSUMED = 1 };
 
-    if (gGameSession->location.variant == 1 || gGameSession->location.variant == 7) {
-        height = WALL_HEIGHT_TALL;
-    } else {
-        height = WALL_HEIGHT_LOW;
+        if (_gMineMesaWaveEnemies[slotIndex] != NULL && _gMineMesaWaveEnemies[slotIndex]->hp <= 0) {
+            _gMineMesaWaveEnemies[slotIndex] = NULL;
+            _gMineMesaWaveKillsRemaining     = (u16)_gMineMesaWaveKillsRemaining - 1;
+        }
+        return ACTOR_EVENT_CONSUMED;
     }
-    mineMesaBuildWalls(height);
-}
 
-/// Consumes an enemy-wave actor event, releasing a dead enemy's occupied slot.
-///
-/// `slotIndex` is the integer first payload, 0 or 1, supplied from the spawned
-/// enemy's placement-index nibble. The other payload and receiver are unused.
-/// A nonpositive HP clears the slot and decrements the signed halfword kill
-/// counter; the unsigned view preserves its low-halfword subtraction. Empty or
-/// still-live slots leave the wave unchanged. Returns 1 for every event.
-static s32 _mineMesaEnemyWaveActorEventMsg(Task* task, s32 messageId, s32 slotIndex, s32 unused)
-{
-    enum { ACTOR_EVENT_CONSUMED = 1 };
+    /// Initializes the ten-kill enemy wave and enables its actor-event replies.
+    ///
+    /// State 0 requires the previous wave's enemies to be retired. Clears both
+    /// borrowed enemy slots, seeds the signed kill count, installs the wave's
+    /// message table and advances to spawning state 1. Does not reset spawn
+    /// cooldown; a previous delay can carry into this wave. Owns no task work.
+    static void _mineMesaInitializeEnemyWaveState(Task * task)
+    {
+        enum { WAVE_KILL_COUNT = 10 };
 
-    if (_gMineMesaWaveEnemies[slotIndex] != NULL && _gMineMesaWaveEnemies[slotIndex]->hp <= 0) {
-        _gMineMesaWaveEnemies[slotIndex] = NULL;
-        _gMineMesaWaveKillsRemaining     = (u16)_gMineMesaWaveKillsRemaining - 1;
+        _gMineMesaWaveKillsRemaining = WAVE_KILL_COUNT;
+        _gMineMesaWaveEnemies[1]     = NULL;
+        _gMineMesaWaveEnemies[0]     = NULL;
+        task->msgTable               = _gMineMesaEnemyWaveMessages;
+        task->state++;
     }
-    return ACTOR_EVENT_CONSUMED;
-}
 
-/// Initializes the ten-kill enemy wave and enables its actor-event replies.
-///
-/// State 0 requires the previous wave's enemies to be retired. Clears both
-/// borrowed enemy slots, seeds the signed kill count, installs the wave's
-/// message table and advances to spawning state 1. Does not reset spawn
-/// cooldown; a previous delay can carry into this wave. Owns no task work.
-static void _mineMesaInitializeEnemyWaveState(Task* task)
-{
-    enum { WAVE_KILL_COUNT = 10 };
+    /// Advances the completed enemy wave to its teardown state on the following tick.
+    ///
+    /// Called in state 2 after the spawner has released the battle hold; state 3
+    /// kills the controller. This intervening tick preserves that teardown delay.
+    static void _mineMesaFinishEnemyWaveState(Task * task)
+    {
+        task->state = task->state + 1;
+    }
 
-    _gMineMesaWaveKillsRemaining = WAVE_KILL_COUNT;
-    _gMineMesaWaveEnemies[1]     = NULL;
-    _gMineMesaWaveEnemies[0]     = NULL;
-    task->msgTable               = _gMineMesaEnemyWaveMessages;
-    task->state++;
-}
+    /// Enemy-wave state dispatch (0 initialize, 1 spawn, 2 delay, 3 release).
+    ///
+    /// Copied by value before indexing with the live task's state, which must be
+    /// in 0..3. Wave completion releases its battle hold before the intervening
+    /// delay tick and final teardown. Every entry is a live TaskFunc callback.
+    static const TaskFuncTable4 _gMineMesaEnemyWaveStates = {
+        .funcs = { _mineMesaInitializeEnemyWaveState, _mineMesaSpawnEnemyWaveState, _mineMesaFinishEnemyWaveState, taskKill },
+    };
 
-/// Advances the completed enemy wave to its teardown state on the following tick.
-///
-/// Called in state 2 after the spawner has released the battle hold; state 3
-/// kills the controller. This intervening tick preserves that teardown delay.
-static void _mineMesaFinishEnemyWaveState(Task* task)
-{
-    task->state = task->state + 1;
-}
+    /// Runs the room's ten-kill wave through spawning, completion delay and teardown.
+    ///
+    /// Requires the mesa actor resources and two enemy slots to remain live.
+    /// `state` must be 0..3: initialize, spawn/update, finish, release. A fresh
+    /// bodyless task starts at 0. The spawner releases the battle hold before state
+    /// 2, and state 3 releases this controller on the following tick. Owns no work.
+    static void _mineMesaEnemyWaveTask(Task * task)
+    {
+        TaskFuncTable4 states = _gMineMesaEnemyWaveStates;
 
-/// Enemy-wave state dispatch (0 initialize, 1 spawn, 2 delay, 3 release).
-///
-/// Copied by value before indexing with the live task's state, which must be
-/// in 0..3. Wave completion releases its battle hold before the intervening
-/// delay tick and final teardown. Every entry is a live TaskFunc callback.
-static const TaskFuncTable4 _gMineMesaEnemyWaveStates = {
-    .funcs = { _mineMesaInitializeEnemyWaveState, _mineMesaSpawnEnemyWaveState, _mineMesaFinishEnemyWaveState, taskKill },
-};
-
-/// Runs the room's ten-kill wave through spawning, completion delay and teardown.
-///
-/// Requires the mesa actor resources and two enemy slots to remain live.
-/// `state` must be 0..3: initialize, spawn/update, finish, release. A fresh
-/// bodyless task starts at 0. The spawner releases the battle hold before state
-/// 2, and state 3 releases this controller on the following tick. Owns no work.
-static void _mineMesaEnemyWaveTask(Task* task)
-{
-    TaskFuncTable4 states = _gMineMesaEnemyWaveStates;
-
-    states.funcs[task->state](task);
-}
+        states.funcs[task->state](task);
+    }

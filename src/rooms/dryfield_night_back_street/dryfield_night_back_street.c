@@ -49,8 +49,8 @@
 #include "overlay.h"
 
 #include "rooms/room_common.h"
-#include "../../shared/room_visual_effects.h"
-#include "../../shared/glow_draw.h"
+#include "../../shared/room/room_visual_effects.h"
+#include "../../shared/effects/glow_draw.h"
 #include "../../shared/back_street.h"
 
 enum { DRYFIELD_NIGHT_BACK_STREET_MESSAGE_USE_KEY_ITEM = 0x13F1 };
@@ -100,7 +100,7 @@ static SVECTOR _gDryfieldNightBackStreetGlowPoints[10] = {
     { 10150, -1800, 6000, 0 },
 };
 
-#include "../../shared/room_visual_effects_trail_data.inc.c"
+#include "../../shared/room/room_visual_effects_trail_data.inc.c"
 
 WorldCollisionRoomResources gDryfieldNightBackStreetRoomCollisionResources[1] = {
     { .grid = &_gDryfieldNightBackStreetCollisionGrid, .viewBoundaryTriggers = _gDryfieldNightBackStreetViewBoundaries, .actionTriggers = _gDryfieldNightBackStreetActionTriggers, .occluders = NULL },
@@ -709,31 +709,28 @@ void dryfieldNightBackStreetDrawGlowsTask(Task* task)
     }
 }
 
-#include "../../shared/glow_draw_shaft.inc.c"
+#include "../../shared/effects/glow_draw_shaft.inc.c"
 
-#include "../../shared/glow_draw_flare.inc.c"
+#include "../../shared/effects/glow_draw_flare.inc.c"
 
-#include "../../shared/room_visual_effects.inc.c"
+#include "../../shared/room/room_visual_effects.inc.c"
 
-#include "../../shared/room_visual_effects_flash_task.inc.c"
+#include "../../shared/room/room_visual_effects_flash_task.inc.c"
 
 void dryfieldNightBackStreetRoomVisualEffectsFlashTask(Task* task)
 {
     _roomVisualEffectsFlashTask(task);
 }
 
-#include "../../shared/room_visual_effects_trails.inc.c"
+#include "../../shared/room/room_visual_effects_trails.inc.c"
 
 void dryfieldNightBackStreetRoomVisualEffectsTwinTrailTask(Task* task)
 {
-#include "../../shared/room_visual_effects_trail_task.inc.c"
-}
+#include "../../shared/room/room_visual_effects_trail_task.inc.c"
 
-#include "../../shared/room_visual_effects_sparks.inc.c"
+    void dryfieldNightBackStreetRoomVisualEffectsSparkBurstTask(Task * task)
+    {
+        _roomVisualEffectsSparkBurstTask(task);
+    }
 
-void dryfieldNightBackStreetRoomVisualEffectsSparkBurstTask(Task* task)
-{
-    _roomVisualEffectsSparkBurstTask(task);
-}
-
-#include "../../shared/room_visual_effects_glow.inc.c"
+#include "../../shared/room/room_visual_effects_glow.inc.c"

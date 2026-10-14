@@ -49,7 +49,7 @@
 #include "mapui/map_dryfield.h"
 
 #include "overlay.h"
-#include "../../shared/room_visual_effects.h"
+#include "../../shared/room/room_visual_effects.h"
 
 static WorldCollisionOccluder _gDryfieldToiletSightOccluders[1];
 static WorldCollisionTrigger  _gDryfieldToiletViewBoundaryTriggers[6];
@@ -245,7 +245,7 @@ EvsCommand gDryfieldToiletEncounterSkipScript[20] = {
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-#include "../../shared/room_visual_effects_disc_data.inc.c"
+#include "../../shared/room/room_visual_effects_disc_data.inc.c"
 
 WorldCollisionRoomResources gDryfieldToiletRoomCollisionResources[1] = {
     {
@@ -1006,9 +1006,9 @@ void dryfieldToiletConfigureEffectsTask(Task* task)
     }
 }
 
-#include "../../shared/room_visual_effects.inc.c"
+#include "../../shared/room/room_visual_effects.inc.c"
 
-#include "../../shared/room_visual_effects_flying_tasks.inc.c"
+#include "../../shared/room/room_visual_effects_flying_tasks.inc.c"
 
 void dryfieldToiletRoomVisualEffectsGlowDiscTask(Task* task)
 {
@@ -1020,11 +1020,11 @@ void dryfieldToiletFlyingSparkTask(Task* task)
     _roomVisualEffectsFlyingSparkTask(task);
 }
 
-#include "../../shared/room_visual_effects_burst.inc.c"
+#include "../../shared/room/room_visual_effects_burst.inc.c"
 
 void dryfieldToiletFlyingOrangeBurstTask(Task* task)
 {
     _roomVisualEffectsFlyingOrangeBurstTask(task);
 }
 
-#include "../../shared/room_visual_effects_burst_draw.inc.c"
+#include "../../shared/room/room_visual_effects_burst_draw.inc.c"

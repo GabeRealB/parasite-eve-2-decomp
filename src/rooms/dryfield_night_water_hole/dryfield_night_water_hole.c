@@ -64,14 +64,14 @@
 #include "overlay.h"
 
 #include "rooms/room.h"
-#include "../../shared/glow_draw.h"
+#include "../../shared/effects/glow_draw.h"
 
 /// Empty presence flag so `water_effects.h` declares the shared
 /// `_waterDrawSpinU16` and `_waterDrawTileU16`. This file includes their bodies.
 #define WATER_SHARED_U16_DRAWERS
-#include "../../shared/water_effects.h"
-#include "../../shared/room_events.h"
-#include "../../shared/room_variants.h"
+#include "../../shared/effects/water_effects.h"
+#include "../../shared/room/room_events.h"
+#include "../../shared/room/room_variants.h"
 #include "../../shared/water_hole.h"
 
 // Tracked model coordinates and packed water-spray recipe. Size uses perspective
@@ -1503,10 +1503,10 @@ RoomDeparture gRoomDeparture;
 
 static void _dryfieldNightWaterHoleInitializeRoom(Task* task);
 
-#include "../../shared/room_variants_shelter.inc.c"
+#include "../../shared/room/room_variants_shelter.inc.c"
 #undef ROOM_VARIANT_RESOLVE_SHELTER
 
-#include "../../shared/room_event_departure_task.inc.c"
+#include "../../shared/room/room_event_departure_task.inc.c"
 
 static void _glowDrawShaft(const SVECTOR worldPoints[2], s32 radiusScale);
 
@@ -1572,24 +1572,7 @@ static s32 _dryfieldNightWaterHoleRejectKeyItemUse(Task* task, s32 messageId, s3
 
 #include "../../shared/water_hole_door_msg.inc.c"
 
-/// Resolves a departure's initialized destination selectors through a stage resolver.
-///
-/// The resolver must accept one aliased request/reply and read only area,
-/// arrival, room and execution choice. Other message bytes remain uninitialized.
-/// Borrows both pointers for this call and preserves stage, facing and sound.
-static inline void _roomVariantResolveDeparture(RoomDeparture* departure, RoomVariantResolver resolveVariant)
-{
-    RoomEventMsg request;
-
-    request.areaId    = departure->area;
-    request.warp      = departure->warp;
-    request.room      = departure->room;
-    request.queryOnly = ROOM_EVENT_EXECUTE;
-    resolveVariant(&request, &request);
-    departure->area = request.areaId;
-    departure->warp = request.warp;
-    departure->room = request.room;
-}
+#include "../../shared/room/room_variants_resolve_departure.inc.c"
 
 /// Handles the Shelter-door command by staging a departure or reporting it locked.
 ///
@@ -1814,24 +1797,22 @@ void dryfieldNightWaterHoleSplashAndLightShaftsTask(Task* task)
 
 #undef DRYFIELD_NIGHT_WATER_HOLE_EMIT_PART_SPLASHES
 
-#include "../../shared/glow_draw_shaft.inc.c"
+#include "../../shared/effects/glow_draw_shaft.inc.c"
 
-#include "../../shared/water_ripple_task.inc.c"
+#include "../../shared/effects/water_ripple_task.inc.c"
 
 void dryfieldNightWaterHoleWaterRippleTask(Task* task)
 {
     _waterRippleTask(task);
 }
 
-#include "../../shared/water_splash.inc.c"
+#include "../../shared/effects/water_splash.inc.c"
 
-#include "../../shared/water_drift_task_u16.inc.c"
+#include "../../shared/effects/water_drift_task_u16.inc.c"
 
 void dryfieldNightWaterHoleWaterDriftTaskU16(Task* task)
 {
     _waterDriftTaskU16(task);
 }
 
-#include "../../shared/water_spin_u16.inc.c"
-
-#include "../../shared/water_tile_u16.inc.c"
+#include "../../shared/effects/water_spin_u16.inc.c"

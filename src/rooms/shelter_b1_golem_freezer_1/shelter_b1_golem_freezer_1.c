@@ -45,7 +45,7 @@
 #include "mapui/map_shelter.h"
 
 #include "rooms/room_common.h"
-#include "../../shared/glow_draw.h"
+#include "../../shared/effects/glow_draw.h"
 
 static void _shelterB1GolemFreezer1InitMeetingObstacle(s32 unusedArg);
 static void _shelterB1GolemFreezer1RebuildMeetingObstacle(const GfxCoord* modelRoot, const s16* roomOffset);
@@ -750,7 +750,7 @@ void shelterB1GolemFreezer1AmbientEffectsTask(Task* task)
     }
 }
 
-#include "../../shared/glow_draw_disc.inc.c"
+#include "../../shared/effects/glow_draw_disc.inc.c"
 
 /// Initializes a mist puff's constant displacement in its coordinate's XZ plane.
 ///

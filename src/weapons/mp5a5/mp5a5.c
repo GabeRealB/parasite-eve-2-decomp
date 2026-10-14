@@ -40,7 +40,7 @@
 
 #include "overlay.h"
 
-#include "../../shared/muzzle_flash.h"
+#include "../../shared/effects/muzzle_flash.h"
 
 /// Manifest-selected weapon index, equal to its inventory item ID minus 0x7F.
 ///
@@ -63,7 +63,7 @@ static s16 _gMuzzleFlashAngles[MUZZLE_FLASH_STREAK_COUNT];
 /// `pad` is unused. The task copies each component once during initialization.
 /// Keep this binding scoped to the task-fragment inclusion.
 #define MUZZLE_FLASH_OFFSET _gMp5a5MuzzleFlashOffset
-#include "../../shared/muzzle_flash_task.inc.c"
+#include "../../shared/effects/muzzle_flash_task.inc.c"
 #undef MUZZLE_FLASH_OFFSET
 
 void mp5a5MuzzleFlashTask(Task* task)
@@ -71,9 +71,7 @@ void mp5a5MuzzleFlashTask(Task* task)
     _muzzleFlashTask(task);
 }
 
-#include "../../shared/muzzle_flash_core.inc.c"
-
-#include "../../shared/muzzle_flash_streak.inc.c"
+#include "../../shared/effects/muzzle_flash.inc.c"
 
 void mp5a5AttackState(Task* playerTask)
 {

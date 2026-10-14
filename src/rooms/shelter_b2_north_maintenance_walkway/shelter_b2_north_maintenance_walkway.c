@@ -52,8 +52,8 @@
 #include "rooms/room_common.h"
 // The latched-event symbol carries four unproven bytes after the event.
 #define ROOM_EVENT_LATCHED gRoomEventLatched.event
-#include "../../shared/room_events.h"
-#include "../../shared/room_variants.h"
+#include "../../shared/room/room_events.h"
+#include "../../shared/room/room_variants.h"
 
 /// Spawn payload of the task 0x31 the event task may start.
 extern RoomFadeStorage gRoomEventFade;
@@ -933,11 +933,9 @@ static __inline__ s32 _walkwayStartEvent(RoomEventMsg* dst, RoomLatchedEvent* ev
 static void           _shelterB2NorthMaintenanceWalkwayInitRoomTask(Task* task);
 static void           _shelterB2NorthMaintenanceWalkwayIdleRoomTask(Task* unusedTask);
 
-#include "../../shared/room_event_staged_task.inc.c"
+#include "../../shared/room/room_event_staged_task.inc.c"
 
-#include "../../shared/room_event_gate.inc.c"
-
-#include "../../shared/room_event_task.inc.c"
+#include "../../shared/room/room_event.inc.c"
 
 /// Starts `event` for the outgoing message `dst` unless its flag says it has
 /// already happened (answering 1). Otherwise answers 2, and - unless

@@ -32,7 +32,7 @@
 #include "main/task_types.h"
 
 #include "rooms/room_common.h"
-#include "../../shared/glow_draw.h"
+#include "../../shared/effects/glow_draw.h"
 
 static WorldCollisionGrid         _gMineGorgeRoom1Collision;
 static WorldCollisionGrid         _gMineGorgeRoom2Collision;
@@ -1677,4 +1677,4 @@ void mineGorgeDrawViewFlaresTask(Task* unusedTask)
     }
 }
 
-#include "../../shared/glow_draw_flare.inc.c"
+#include "../../shared/effects/glow_draw_flare.inc.c"

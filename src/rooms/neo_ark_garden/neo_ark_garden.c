@@ -41,7 +41,7 @@
 
 #include "mapui/map_neo_ark.h"
 
-#include "../../shared/room_variants.h"
+#include "../../shared/room/room_variants.h"
 
 #include "overlay.h"
 
@@ -175,9 +175,7 @@ static const AreaApplyRec _gNeoArkGardenCommand4AreaUpdates[3] SECTION(".data") 
 static void _neoArkGardenInitializeRoom(Task* task);
 static void _neoArkGardenRoomIdleState(Task* unusedTask);
 
-#include "../../shared/water_refraction_task.inc.c"
-
-#include "../../shared/water_distort_band_task.inc.c"
+#include "../../shared/effects/water.inc.c"
 
 s32 neoArkGardenRejectKeyItemMessage(Task* unusedTask, s32 unusedMessageId, s32 unusedItemId, s32 unusedSecondArg)
 {

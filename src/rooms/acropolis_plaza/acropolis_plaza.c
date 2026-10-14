@@ -67,7 +67,7 @@
 
 #include "overlay.h"
 #include "rooms/room_common.h"
-#include "../../shared/screen_fade.h"
+#include "../../shared/screen/screen_fade.h"
 
 /// Screen geometry shared by the plaza's fade and cinematic bars, in pixels.
 enum {
@@ -3115,7 +3115,7 @@ static void _acropolisPlazaFadeToWhiteTask(Task* task)
     }
 }
 
-#include "../../shared/screen_fade_in_tile.inc.c"
+#include "../../shared/screen/screen_fade_in_tile.inc.c"
 
 /// Plays the plaza display movie, allowing Start to cancel, then restores game graphics.
 ///

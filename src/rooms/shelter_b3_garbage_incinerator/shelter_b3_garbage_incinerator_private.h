@@ -17,7 +17,7 @@
 
 #include "overlay.h"
 
-#include "../../shared/cap_captions_types.h"
+#include "../../shared/room/cap_captions_types.h"
 
 /// Bodyless priority-192 recipe running the exit encounter after lift descent.
 ///

@@ -21,7 +21,7 @@
 #include "main/sound.h"
 #include "main/task.h"
 #include "main/tmd_types.h"
-#include "../../shared/actor_messages.h"
+#include "../../shared/actor/actor_messages.h"
 
 /// Work block of the package's actor, the ANMC woman of the Acropolis
 /// cafeteria: allocated zeroed at its full size by her task's setup state and
@@ -401,7 +401,7 @@ static void _actor202900UpdateState(Enemy* unusedEnemy, Task* task)
     }
 }
 
-#include "../../shared/view_figure_exit.inc.c"
+#include "../../shared/actor/view_figure_exit.inc.c"
 
 /// Applies a pending animation reseed or advances the running body tracks.
 ///
@@ -537,5 +537,5 @@ static s32 _actor202900PlayAnimation(Task* unusedTask, s32 messageId, const Anim
 /// Successful spawn replaces the borrowed pointer; teardown does not clear it.
 /// Bind only around the pair-visibility fragment and never dispatch after teardown.
 #define ACTOR_MESSAGE_BODY_TASK _gActor202900BodyTask
-#include "../../shared/actor_messages_pair_visibility.inc.c"
+#include "../../shared/actor/actor_messages_pair_visibility.inc.c"
 #undef ACTOR_MESSAGE_BODY_TASK

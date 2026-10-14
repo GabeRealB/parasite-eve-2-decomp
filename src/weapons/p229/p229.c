@@ -40,7 +40,7 @@
 
 #include "overlay.h"
 
-#include "../../shared/muzzle_flash.h"
+#include "../../shared/effects/muzzle_flash.h"
 
 /// Pose-bank selectors used by the P229 player's translation/rotation and rotation-only tracks.
 enum {
@@ -59,7 +59,7 @@ static s16 _gMuzzleFlashAngles[MUZZLE_FLASH_STREAK_COUNT];
 /// `pad` is unused. The task copies each component once during initialization.
 /// Keep this binding scoped to the task-fragment inclusion.
 #define MUZZLE_FLASH_OFFSET _gMuzzleOffset
-#include "../../shared/muzzle_flash_task.inc.c"
+#include "../../shared/effects/muzzle_flash_task.inc.c"
 #undef MUZZLE_FLASH_OFFSET
 
 void p229MuzzleFlashTask(Task* task)
@@ -67,9 +67,7 @@ void p229MuzzleFlashTask(Task* task)
     _muzzleFlashTask(task);
 }
 
-#include "../../shared/muzzle_flash_core.inc.c"
-
-#include "../../shared/muzzle_flash_streak.inc.c"
+#include "../../shared/effects/muzzle_flash.inc.c"
 
 void p229AttackState(Task* playerTask)
 {

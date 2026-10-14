@@ -65,7 +65,7 @@
 #include "rooms/room.h"
 
 #include "rooms/room_common.h"
-#include "../../shared/room_visual_effects.h"
+#include "../../shared/room/room_visual_effects.h"
 // The flag symbol is four bytes; the gate writes the first.
 #define ROOM_EVENT_ACTIVE gRoomEventActive.eventStarted
 // The latched-event symbol carries four unproven bytes after the event.
@@ -73,9 +73,9 @@
 /// Selects the gate's TU-local room-transition task descriptor.
 ///
 /// Addressable `TaskDesc` lvalue; see `room_events.h` for the spawn contract.
-/// Bind before that header and keep through `room_event_gate.inc.c`.
+/// Bind before that header and keep through `room_event.inc.c`.
 #define ROOM_EVENT_TASK_DESC (_gRoomEventTaskDesc)
-#include "../../shared/room_events.h"
+#include "../../shared/room/room_events.h"
 /// Binds the shared puff task to this package's public void (Task*) effect callback.
 /// Must precede main_street.h and remain defined through main_street_puff_task.inc.c.
 #define MAIN_STREET_PUFF_TASK dryfieldMainStreetPuffTask
@@ -452,7 +452,7 @@ static const u16 _gDryfieldMainStreetViewEffectModes[8] SECTION(".data") = {
 /// and retains a borrowed pointer; the room storage stays live with the effects.
 static SVECTOR _gDryfieldMainStreetSmokeSpawnPosition = { -850, -1320, 9770, 0 };
 
-#include "../../shared/room_visual_effects_trail_data.inc.c"
+#include "../../shared/room/room_visual_effects_trail_data.inc.c"
 
 WorldCollisionRoomResources gDryfieldMainStreetRoomCollisionResources[1] = {
     { .grid                 = &_gDryfieldMainStreetCollisionGrid,
@@ -1414,11 +1414,9 @@ RoomLatchedEventStorage gRoomEventLatched = { { 0 }, { 0 } };
 
 RoomEventReq gRoomEventReq = { 0, 0, 0, 0, 0, 0 };
 
-#include "../../shared/room_event_staged_task.inc.c"
+#include "../../shared/room/room_event_staged_task.inc.c"
 
-#include "../../shared/room_event_gate.inc.c"
-
-#include "../../shared/room_event_task.inc.c"
+#include "../../shared/room/room_event.inc.c"
 
 /// Room-task lifecycle: initialize, idle, release; indexed by unchecked state 0..2.
 static const TaskFuncTable3 _gDryfieldMainStreetRoomTaskStates = {
@@ -1718,27 +1716,24 @@ void dryfieldMainStreetRoomEffectsTask(Task* task)
 
 #include "../../shared/main_street_draw_puff.inc.c"
 
-#include "../../shared/room_visual_effects.inc.c"
+#include "../../shared/room/room_visual_effects.inc.c"
 
-#include "../../shared/room_visual_effects_flash_task.inc.c"
+#include "../../shared/room/room_visual_effects_flash_task.inc.c"
 
 void dryfieldMainStreetRoomVisualEffectsFlashTask(Task* task)
 {
     _roomVisualEffectsFlashTask(task);
 }
 
-#include "../../shared/room_visual_effects_trails.inc.c"
+#include "../../shared/room/room_visual_effects_trails.inc.c"
 
 void dryfieldMainStreetRoomVisualEffectsTwinTrailTask(Task* task)
 {
-#include "../../shared/room_visual_effects_trail_task.inc.c"
-}
+#include "../../shared/room/room_visual_effects_trail_task.inc.c"
 
-#include "../../shared/room_visual_effects_sparks.inc.c"
+    void dryfieldMainStreetRoomVisualEffectsSparkBurstTask(Task * task)
+    {
+        _roomVisualEffectsSparkBurstTask(task);
+    }
 
-void dryfieldMainStreetRoomVisualEffectsSparkBurstTask(Task* task)
-{
-    _roomVisualEffectsSparkBurstTask(task);
-}
-
-#include "../../shared/room_visual_effects_glow.inc.c"
+#include "../../shared/room/room_visual_effects_glow.inc.c"

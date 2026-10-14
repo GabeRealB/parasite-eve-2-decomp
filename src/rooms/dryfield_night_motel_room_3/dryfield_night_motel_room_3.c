@@ -9,7 +9,7 @@
 #include "main/session.h"
 #include "main/task.h"
 #include "main/task_types.h"
-#include "../../shared/room_variants.h"
+#include "../../shared/room/room_variants.h"
 
 static s32 _dryfieldNightMotelRoom3RejectKeyItemUse(Task* unusedTask, s32 unusedMessageId, s32 itemId, s32 unusedSecondArg);
 static s32 _dryfieldNightMotelRoom3IgnoreRoomCommand(Task* unusedTask, s32 unusedMessageId, s32 commandId, s32 commandArgument);
@@ -39,7 +39,7 @@ static s32 _dryfieldNightMotelRoom3RejectKeyItemUse(Task* unusedTask, s32 unused
     return ROOM_KEY_ITEM_USE_REFUSED;
 }
 
-#include "../../shared/room_variants_main_street.inc.c"
+#include "../../shared/room/room_variants_main_street.inc.c"
 
 /// Ignores room commands without starting an action.
 ///

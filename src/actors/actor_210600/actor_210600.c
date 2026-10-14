@@ -38,7 +38,7 @@
 #include "main/tmd_types.h"
 
 #include "overlay.h"
-#include "../../shared/actor_messages.h"
+#include "../../shared/actor/actor_messages.h"
 
 /// Values of `_Actor210600Work::animRequest` and `_Actor210600Work::blendRequest`.
 ///
@@ -97,7 +97,7 @@ static s32       _actor210600SetModelDraw(Task* task, s32 unusedMessageId, s32 d
 static s32       _actor210600ApplyCommand(Task* task, s32 unusedMessageId, const ActorCommand* message, s32 unusedArg);
 static void      _actor210600Task(Task* task);
 
-#include "../../shared/actor_contacts.h"
+#include "../../shared/actor/actor_contacts.h"
 
 static AnimationPackedPose _gActor210600Animation07EF4Bank1[112] = {
 #include "assets/actor_210600_animation_07EF4_bank1.inc"
@@ -364,7 +364,7 @@ static void _actor210600DriveAnimation(Task* task);
 static void _actor210600Update(Enemy* unusedEnemy, Task* task);
 static void _actor210600Spawn(Enemy* enemy, Task* task);
 
-#include "../../shared/actor_contacts.inc.c"
+#include "../../shared/actor/actor_contacts.inc.c"
 
 /// Restarts the primary rig's tracks and records the requested animation.
 ///
@@ -504,7 +504,7 @@ static s32 _actor210600SetModelDraw(Task* task, s32 unusedMessageId, s32 drawMod
     return 0;
 }
 
-#include "../../shared/actor_messages_place.inc.c"
+#include "../../shared/actor/actor_messages_place.inc.c"
 
 /// Restarts animation 1 and resumes updating for command 1 in context 1/4.
 ///
@@ -533,7 +533,7 @@ static s32 _actor210600ApplyCommand(Task* task, s32 unusedMessageId, const Actor
     return 1;
 }
 
-#include "../../shared/coord_math_yaw_scale.inc.c"
+#include "../../shared/actor/coord_math_yaw_scale.inc.c"
 
 /// Initializes the Grinning Stranger task, rig, target node and lighting storage.
 ///

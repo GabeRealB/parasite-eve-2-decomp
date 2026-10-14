@@ -48,7 +48,7 @@
 #include "overlay.h"
 
 #include "rooms/acropolis_fire_escape.h"
-#include "../../shared/actor_contacts.h"
+#include "../../shared/actor/actor_contacts.h"
 
 /// Task phases of this package's stationary enemy.
 enum {
@@ -314,11 +314,11 @@ static inline void _actor311500SpawnHitEffect(Task* task);
 static s32         _actor311500TickHitReaction(Task* actorTask);
 static s32         _actor311500TickDeath(Task* actorTask);
 
-#include "../../shared/actor_contacts_find_push.inc.c"
+#include "../../shared/actor/actor_contacts_find_push.inc.c"
 
-#include "../../shared/actor_contacts_steer.inc.c"
+#include "../../shared/actor/actor_contacts_steer.inc.c"
 
-#include "../../shared/actor_contacts_turn_joint.inc.c"
+#include "../../shared/actor/actor_contacts_turn_joint.inc.c"
 
 /// Restarts the remaining idle tracks of the package rig at normal playback rate.
 ///

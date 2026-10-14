@@ -67,10 +67,10 @@
 #include "rooms/room.h"
 
 #include "rooms/room_common.h"
-#include "../../shared/room_visual_effects.h"
-#include "../../shared/glow_draw.h"
-#include "../../shared/water_effects.h"
-#include "../../shared/room_events.h"
+#include "../../shared/room/room_visual_effects.h"
+#include "../../shared/effects/glow_draw.h"
+#include "../../shared/effects/water_effects.h"
+#include "../../shared/room/room_events.h"
 
 /// World-space beam endpoint pairs and indicator positions for the septic tank.
 ///
@@ -382,7 +382,7 @@ static _ShelterB2SepticTankGlowPoints _gShelterB2SepticTankGlowPoints = {
     },
 };
 
-#include "../../shared/room_visual_effects_trail_data.inc.c"
+#include "../../shared/room/room_visual_effects_trail_data.inc.c"
 
 u8* gShelterB2SepticTankViewMaps[1] = {
     gViewIdentityMap,
@@ -1425,7 +1425,7 @@ static __inline__ s32 _shelterB2SepticTankStartEvent(const RoomEventMsg* destina
     return SHELTER_B2_SEPTIC_TANK_EVENT_ALREADY_LATCHED;
 }
 
-#include "../../shared/room_event_staged_task.inc.c"
+#include "../../shared/room/room_event_staged_task.inc.c"
 
 /// Refuses key-item use in this room with the inventory's zero reply.
 ///
@@ -1655,7 +1655,7 @@ static inline void _shelterB2SepticTankSetSecondWaterStripColours(POLY_G4* quad)
 /// are captured. Psy-Q's `POLY_G4` and `setRGB0` through `setRGB3` must be
 /// visible. `water_wave_strips.inc.c` consumes and undefines this override.
 #define WATER_WAVE_STRIPS_SET_SECOND_STRIP_COLOURS(quad) _shelterB2SepticTankSetSecondWaterStripColours(quad)
-#include "../../shared/water_wave_strips.inc.c"
+#include "../../shared/effects/water_wave_strips.inc.c"
 
 /// Emits the second private water drawer with the task-compatible `void (Task*)` signature.
 ///
@@ -1682,7 +1682,7 @@ static inline void _shelterB2SepticTankSetSecondWaterStripColours(POLY_G4* quad)
 /// Has the same `POLY_G4*`, single-evaluation and packet-preservation contract
 /// as the first instance; the preceding include has undefined that binding.
 #define WATER_WAVE_STRIPS_SET_SECOND_STRIP_COLOURS(quad) _shelterB2SepticTankSetSecondWaterStripColours(quad)
-#include "../../shared/water_wave_strips.inc.c"
+#include "../../shared/effects/water_wave_strips.inc.c"
 
 /// Initializes and draws the room's water, publishing its height each tick.
 ///
@@ -1866,51 +1866,46 @@ void shelterB2SepticTankGlowTask(Task* task)
     }
 }
 
-#include "../../shared/water_ripple_task.inc.c"
+#include "../../shared/effects/water_ripple_task.inc.c"
 
 void shelterB2SepticTankWaterRippleTask(Task* task)
 {
     _waterRippleTask(task);
 }
 
-#include "../../shared/water_splash.inc.c"
+#include "../../shared/effects/water_splash.inc.c"
 
-#include "../../shared/water_drift_task.inc.c"
+#include "../../shared/effects/water_drift_task.inc.c"
 
 void shelterB2SepticTankWaterDriftTask(Task* task)
 {
     _waterDriftTask(task);
 }
 
-#include "../../shared/water_spin.inc.c"
+#include "../../shared/effects/water_spin.inc.c"
 
-#include "../../shared/water_tile.inc.c"
+#include "../../shared/effects/glow_draw_beam.inc.c"
 
-#include "../../shared/glow_draw_beam.inc.c"
+#include "../../shared/effects/glow_draw_bit_disc.inc.c"
 
-#include "../../shared/glow_draw_bit_disc.inc.c"
+#include "../../shared/room/room_visual_effects.inc.c"
 
-#include "../../shared/room_visual_effects.inc.c"
-
-#include "../../shared/room_visual_effects_flash_task.inc.c"
+#include "../../shared/room/room_visual_effects_flash_task.inc.c"
 
 void shelterB2SepticTankRoomVisualEffectsFlashTask(Task* task)
 {
     _roomVisualEffectsFlashTask(task);
 }
 
-#include "../../shared/room_visual_effects_trails.inc.c"
+#include "../../shared/room/room_visual_effects_trails.inc.c"
 
 void shelterB2SepticTankRoomVisualEffectsTwinTrailTask(Task* task)
 {
-#include "../../shared/room_visual_effects_trail_task.inc.c"
-}
+#include "../../shared/room/room_visual_effects_trail_task.inc.c"
 
-#include "../../shared/room_visual_effects_sparks.inc.c"
+    void shelterB2SepticTankRoomVisualEffectsSparkBurstTask(Task * task)
+    {
+        _roomVisualEffectsSparkBurstTask(task);
+    }
 
-void shelterB2SepticTankRoomVisualEffectsSparkBurstTask(Task* task)
-{
-    _roomVisualEffectsSparkBurstTask(task);
-}
-
-#include "../../shared/room_visual_effects_glow.inc.c"
+#include "../../shared/room/room_visual_effects_glow.inc.c"

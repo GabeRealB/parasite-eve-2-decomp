@@ -72,11 +72,11 @@
 /// the aimed drift fragment, which clears it. The two Shelter B3 carriers each
 /// supply their own export; no arguments, captured locals or tokens are built.
 #define EFFECT_SPRITE_DRIFT_AIMED_TASK shelterB3GarbageIncineratorEffectSpriteDriftTaskAimed
-#include "../../shared/effect_sprite.h"
+#include "../../shared/effects/effect_sprite.h"
 #undef EFFECT_SPRITE_BILLBOARD_WORD_ARGUMENTS
 
-#include "../../shared/screen_wave.h"
-#include "../../shared/glow_draw.h"
+#include "../../shared/screen/screen_wave.h"
+#include "../../shared/effects/glow_draw.h"
 
 static void _effectSpriteDrawBanked(const GfxCoord* coord, u16 frameAndPalette, s16 size, s16 angle);
 static void _effectSpriteDrawRotated(const GfxCoord* coord, u16 frameAndPalette, s16 size, s16 angle);
@@ -2829,9 +2829,9 @@ void shelterB3GarbageIncineratorDrawLightsTask(Task* task)
 /// or 0 selects bit-3 insertion. With 1, each colour byte adds 1 << shift on
 /// odd frames and wraps. Packed shifts must be 0..7; the lamps use shift 5.
 #define GLOW_DRAW_DISC_SHIFTED_FLICKER 1
-#include "../../shared/glow_draw_disc.inc.c"
+#include "../../shared/effects/glow_draw_disc.inc.c"
 
-#include "../../shared/effect_sprite_drift_aimed.inc.c"
+#include "../../shared/effects/effect_sprite_drift_aimed.inc.c"
 
 /// Texture-page V origin of the incinerator's twelve-frame banked sprite animation.
 ///
@@ -2839,15 +2839,13 @@ void shelterB3GarbageIncineratorDrawLightsTask(Task* task)
 /// their inclusive endpoints reach 255. Bind before the banked drawer fragment,
 /// which undefines the binding afterwards. Palette selection is independent.
 #define EFFECT_SPRITE_BANKED_FIRST_TEXEL_ROW 112
-#include "../../shared/effect_sprite_draw_banked.inc.c"
+#include "../../shared/effects/effect_sprite_draw_banked.inc.c"
 
-#include "../../shared/effect_sprite_draw_rotated.inc.c"
+#include "../../shared/effects/effect_sprite_draw_rotated.inc.c"
 
-#include "../../shared/effect_sprite_debris.inc.c"
+#include "../../shared/effects/effect_sprite_debris.inc.c"
 
-#include "../../shared/effect_sprite_draw_chip.inc.c"
-
-#include "../../shared/effect_sprite_draw_billboard.inc.c"
+#include "../../shared/effects/effect_sprite_draw.inc.c"
 
 /// Draws a sine-pulsed additive disc around a world point.
 ///

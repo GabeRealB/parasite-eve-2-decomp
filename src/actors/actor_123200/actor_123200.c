@@ -43,8 +43,8 @@
 #include "main/tmd_types.h"
 
 #include "overlay.h"
-#include "../../shared/actor_messages.h"
-#include "../../shared/anim_driver.h"
+#include "../../shared/actor/actor_messages.h"
+#include "../../shared/actor/anim_driver.h"
 
 /// Values of `_Actor123200Work::state`: the index of the handler the per-frame
 /// tick runs.
@@ -159,7 +159,7 @@ static void      _actor123200Task(Task* task);
 static s32 _actor123200SetModelDraw(Task* task, s32 messageId, s32 drawMode, s32 unusedArg);
 static s32 _actor123200ApplyCommand(Task* task, s32 messageId, const ActorCommand* command, s32 unusedArg);
 
-#include "../../shared/actor_contacts.h"
+#include "../../shared/actor/actor_contacts.h"
 
 enum { ACTOR_123200_ATTACK_REACTION_SPARK_AND_PUFFS = 7 };
 
@@ -631,11 +631,11 @@ static inline SVECTOR* _actorContactGetLastPushStep(void)
 /// This package never passes the record to an effect spawner.
 static EffectSpawnArg _gActor123200EffectSpawnArg;
 
-#include "../../shared/actor_contacts.h"
+#include "../../shared/actor/actor_contacts.h"
 
-#include "../../shared/actor_contacts.inc.c"
+#include "../../shared/actor/actor_contacts.inc.c"
 
-#include "../../shared/anim_driver_tick.inc.c"
+#include "../../shared/actor/anim_driver_tick.inc.c"
 
 /// Selects the sound for the driven part's current animation cue, or zero.
 ///
@@ -1083,9 +1083,9 @@ static s32 _actor123200ApplyCommand(Task* task, s32 messageId, const ActorComman
     return 0;
 }
 
-#include "../../shared/actor_messages_place.inc.c"
+#include "../../shared/actor/actor_messages_place.inc.c"
 
-#include "../../shared/coord_math_yaw_scale.inc.c"
+#include "../../shared/actor/coord_math_yaw_scale.inc.c"
 
 /// Hides the staged model and excludes lock-on when its hidden state is entered.
 ///

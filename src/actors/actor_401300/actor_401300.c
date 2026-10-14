@@ -53,7 +53,7 @@
 #include "main/wipsys_types.h"
 
 #include "overlay.h"
-#include "../../shared/player_detection.h"
+#include "../../shared/actor/player_detection.h"
 static s32 _actorMsgPlaceRecordYaw(Task* task, s32 msgId, const ActorTransform* placement, s32 unusedArg);
 
 /// Selects the Horned Stranger's private callback to place the model and record heading.
@@ -64,8 +64,8 @@ static s32 _actorMsgPlaceRecordYaw(Task* task, s32 msgId, const ActorTransform* 
 /// That fragment separately binds `ACTOR_MESSAGE_YAW_WORK_TYPE` to the
 /// receiver's allocated `_Actor401300Work`, which provides `s16 placedYaw`.
 #define ACTOR_MESSAGE_PLACE_RECORD_YAW _actorMsgPlaceRecordYaw
-#include "../../shared/actor_messages.h"
-#include "../../shared/actor_contacts.h"
+#include "../../shared/actor/actor_messages.h"
+#include "../../shared/actor/actor_contacts.h"
 
 /// Uniform model-root scale for yaw rebuilds, with 12 fractional bits.
 enum { ACTOR_401300_ROOT_SCALE = 0x1964 };
@@ -1515,9 +1515,9 @@ static __inline__ void _actor401300AlignHeldPlayerHeight(Task* actor);
 static void            _actor401300Tick(Enemy* enemy, Task* actor);
 static s32             _actor401300TestEffectDepth(Task* modelTask);
 
-#include "../../shared/actor_contacts_turn_joint.inc.c"
+#include "../../shared/actor/actor_contacts_turn_joint.inc.c"
 
-#include "../../shared/actor_contacts_push_contact.inc.c"
+#include "../../shared/actor/actor_contacts_push_contact.inc.c"
 
 /// Applies the Horned Stranger's stage/area command and reports whether it was handled.
 ///
@@ -1578,7 +1578,7 @@ static s32 _actor401300ApplyCommand(Task* task, s32 msgId, const ActorCommand* c
     return 0;
 }
 
-#include "../../shared/player_detection_reach.inc.c"
+#include "../../shared/actor/player_detection_reach.inc.c"
 
 /// Applies quarter-offset X/Z pushback from player and enemy body contacts.
 ///
@@ -1765,7 +1765,7 @@ static s32 _actor401300ApplyGridPushback(GfxCoord* coord, const WorldCollisionCo
     return scratch->moved;
 }
 
-#include "../../shared/player_detection_sight.inc.c"
+#include "../../shared/actor/player_detection_sight.inc.c"
 
 /// Starts a transition to a different requested primary animation.
 ///
@@ -6850,9 +6850,9 @@ static s32 _actor401300PlayMessageAnimation(Task* task, s32 msgId, const Animati
     return 0;
 }
 
-#include "../../shared/actor_messages_visibility.inc.c"
+#include "../../shared/actor/actor_messages_visibility.inc.c"
 
-#include "../../shared/actor_messages_is_present.inc.c"
+#include "../../shared/actor/actor_messages_is_present.inc.c"
 
 /// Allocated Horned Stranger work type for recording the placement heading.
 #define ACTOR_MESSAGE_YAW_WORK_TYPE _Actor401300Work
@@ -6861,11 +6861,11 @@ static s32 _actor401300PlayMessageAnimation(Task* task, s32 msgId, const Animati
 ///
 /// Uses the shared read-only placement contract and the work block's
 /// placedYaw member. Returns 1; the placement is borrowed only through dispatch.
-#include "../../shared/actor_messages_place_yaw.inc.c"
+#include "../../shared/actor/actor_messages_place_yaw.inc.c"
 #undef ACTOR_MESSAGE_PLACE_RECORD_YAW
 #undef ACTOR_MESSAGE_YAW_WORK_TYPE
 
-#include "../../shared/actor_messages_release_hold.inc.c"
+#include "../../shared/actor/actor_messages_release_hold.inc.c"
 
 /// Releases the Horned Stranger's child tasks and collision bodies before destroying its enemy task.
 ///

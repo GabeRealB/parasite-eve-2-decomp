@@ -40,8 +40,8 @@
 #include "mapui/map_shelter.h"
 
 #include "rooms/room_common.h"
-#include "../../shared/glow_draw.h"
-#include "../../shared/room_variants.h"
+#include "../../shared/effects/glow_draw.h"
+#include "../../shared/room/room_variants.h"
 
 static void _mineTunnelEntranceInitRoomTask(Task* task);
 static void _mineTunnelEntranceAdvanceSceneEvent(Task* unusedTask);
@@ -827,4 +827,4 @@ void mineTunnelEntranceDrawFlaresTask(Task* unusedTask)
     }
 }
 
-#include "../../shared/glow_draw_flare.inc.c"
+#include "../../shared/effects/glow_draw_flare.inc.c"

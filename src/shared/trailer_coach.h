@@ -12,7 +12,7 @@
 
 #include "main/task_types.h"
 
-#include "dryfield_time.h"
+#include "../stages/dryfield/dryfield_time.h"
 
 #if DRYFIELD_TIME == DRYFIELD_DAY
 /// Saved view ID that selects 1x ordering-table depth in the daytime coach.

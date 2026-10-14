@@ -59,7 +59,7 @@
 
 #include "mapui/map_dryfield.h"
 
-#include "../../shared/room_events.h"
+#include "../../shared/room/room_events.h"
 
 static void _screenFadeInTask(Task* task);
 /// Binds the shared fade-in declaration and definition to this file's private task.
@@ -68,8 +68,8 @@ static void _screenFadeInTask(Task* task);
 /// Keep defined from `screen_fade.h` through `screen_fade_in.inc.c`, then undefine.
 /// This object-like binding has no arguments, captures or token construction.
 #define SCREEN_FADE_IN_TASK _screenFadeInTask
-#include "../../shared/screen_fade.h"
-#include "../../shared/actor_messages.h"
+#include "../../shared/screen/screen_fade.h"
+#include "../../shared/actor/actor_messages.h"
 #include "../../shared/water_tower.h"
 
 static void _screenFadeOutTask(Task* task);
@@ -3131,7 +3131,7 @@ static void _dryfieldWaterTowerRestorePlayerWeaponAnimation(s32 blendFrames)
     TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &request, 0);
 }
 
-#include "../../shared/actor_messages_place_ypr.inc.c"
+#include "../../shared/actor/actor_messages_place_ypr.inc.c"
 
 /// Restarts a sliding or falling prop in the state selected by an actor command.
 ///
@@ -3447,10 +3447,10 @@ static void _dryfieldWaterTowerActorSceneTask(Task* task)
     _dryfieldWaterTowerDispatchActorSceneRequest(task);
 }
 
-#include "../../shared/screen_fade_in.inc.c"
+#include "../../shared/screen/screen_fade_in.inc.c"
 #undef SCREEN_FADE_IN_TASK
 
-#include "../../shared/screen_fade_out.inc.c"
+#include "../../shared/screen/screen_fade_out.inc.c"
 
 /// Stages the selected actor scene's audio-start request for later CD dispatch.
 ///

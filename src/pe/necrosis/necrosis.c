@@ -25,6 +25,7 @@
 #include "main/display.h"
 #include "main/display_types.h"
 #include "main/random.h"
+#include "main/gfx.h"
 #include "main/gfx_types.h"
 #include "main/mem.h"
 #include "main/scratch.h"
@@ -36,7 +37,7 @@
 #include "main/tmd_types.h"
 /// Signed texture-frame selector; the caller reduces the effect age modulo six.
 #define SPRITE_QUAD_FRAME_T s16
-#include "../../shared/sprite_quad.h"
+#include "../../shared/effects/sprite_quad.h"
 
 /// Size and travel time of the necrosis cloud at one Parasite Energy level.
 ///
@@ -193,26 +194,6 @@ static inline void _necrosisSetLargeMistPuffCorners(EffectShapeScratch* scratch,
     quad->y2                 = scratch->screenY + scratch->extent.corner.y;
 }
 
-/// Copies the player's nine Q12 coefficients without changing translation.
-///
-/// Borrows word-aligned matrices, with `destination` writable. Transfers all
-/// 18 coefficient bytes through `GfxRotationWords`, including any scale in
-/// the player's basis; preserves the alignment halfword and translation.
-/// A whole word-view assignment would also overwrite the alignment halfword.
-/// The caller invalidates and composes the coordinate afterward. Retains no
-/// pointers and changes no GTE state.
-static inline void _necrosisCopyCastRotation(MATRIX* destination, const MATRIX* source)
-{
-    GfxRotationWords*       destinationRotation = (GfxRotationWords*)destination;
-    const GfxRotationWords* sourceRotation      = (const GfxRotationWords*)source;
-
-    destinationRotation->m00M01 = sourceRotation->m00M01;
-    destinationRotation->m02M10 = sourceRotation->m02M10;
-    destinationRotation->m11M12 = sourceRotation->m11M12;
-    destinationRotation->m20M21 = sourceRotation->m20M21;
-    destinationRotation->m22    = sourceRotation->m22;
-}
-
 /// Applies one velocity step in the parent frame and refreshes the composed coordinate.
 ///
 /// `effect->move` supplies signed 16-bit XYZ distances per tick in the parent
@@ -283,7 +264,7 @@ void necrosisCastTask(Task* task)
             }
             playerCoord = (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords;
             // Borrow only the player's rotation; this cloud retains its own translation.
-            _necrosisCopyCastRotation(&coord->coord, &playerCoord->coord);
+            gfxCopyRotationWords(&coord->coord, &playerCoord->coord);
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
             actorRenderComposeCoord(coord);
             effect->move.vx = 0;
@@ -434,7 +415,7 @@ void necrosisTrailPuffTask(Task* task)
 ///
 /// Uses the cell's inclusive 39-texel UV span in `size * SPRITE_QUAD_SCALE / depth`.
 #define SPRITE_QUAD_SCALE (SPRITE_QUAD_CELL_WIDTH - 1)
-#include "../../shared/sprite_quad_draw.inc.c"
+#include "../../shared/effects/sprite_quad_draw.inc.c"
 
 void necrosisMistPuffTask(Task* task)
 {

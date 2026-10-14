@@ -264,7 +264,7 @@ void mapNeoArkSetupMovieBuffers(const GameLocationKey* location)
 /// The replacement is a function identifier with the `RoomVariantResolver`
 /// signature. The binding applies only to the included definition.
 #define ROOM_VARIANT_RESOLVE_NEO_ARK mapNeoArkResolveRoomVariant
-#include "../../shared/room_variants_neo_ark.inc.c"
+#include "../../shared/room/room_variants_neo_ark.inc.c"
 #undef ROOM_VARIANT_RESOLVE_NEO_ARK
 
 /// Unity MIDI master gain used to normalize the selected song level.

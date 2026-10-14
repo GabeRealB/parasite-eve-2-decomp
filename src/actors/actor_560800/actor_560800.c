@@ -56,7 +56,7 @@
 #include "overlay.h"
 
 #include "rooms/shelter_b1_pod_service_gantry.h"
-#include "../../shared/actor_messages.h"
+#include "../../shared/actor/actor_messages.h"
 
 /// Work block of the task that runs the package's cutscene, allocated zeroed at
 /// its full size by that task's first state and kept at its `Task::work`.
@@ -6411,7 +6411,7 @@ static void _actor560800SetCastModelDraw(Task* task, s32 messageId, s32 drawMode
     }
 }
 
-#include "../../shared/actor_messages_place_ypr.inc.c"
+#include "../../shared/actor/actor_messages_place_ypr.inc.c"
 
 /// Brightens the cutscene by spawning its subtractive fade-in task.
 ///
@@ -8078,5 +8078,5 @@ static void _actor560800SetCarrierModelDraw(Task* task, s32 messageId, s32 drawM
 /// table. The binding applies only to the following fragment inclusion and
 /// evaluates no arguments.
 #define ACTOR_MESSAGE_PLACE_YAW_PITCH_ROLL_HANDLER _actorMsgPlaceYawPitchRollCarrier
-#include "../../shared/actor_messages_place_ypr.inc.c"
+#include "../../shared/actor/actor_messages_place_ypr.inc.c"
 #undef ACTOR_MESSAGE_PLACE_YAW_PITCH_ROLL_HANDLER

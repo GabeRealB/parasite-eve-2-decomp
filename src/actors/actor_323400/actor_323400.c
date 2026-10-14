@@ -40,14 +40,14 @@
 #include "main/tmd_types.h"
 
 #include "overlay.h"
-#include "../../shared/actor_messages.h"
+#include "../../shared/actor/actor_messages.h"
 
 /// Selects the scripted, noncombat Desert Chaser implementation for actor_323400.
 ///
 /// Keep this preprocessor binding fixed through the shared header and fragments;
 /// it selects the work layout and three lifecycle handlers, with no combat bodies.
 #define DESERT_CHASER_BUILD DESERT_CHASER_CUTSCENE
-#include "../../shared/desert_chaser.h"
+#include "../../shared/creatures/desert_chaser/desert_chaser.h"
 
 /// Psy-Q `RotMatrixY`.
 
@@ -60,7 +60,7 @@ static void _actor323400PlayClip13State(Enemy* enemy, Task* task);
 static void _actor323400PlaySceneAnimation(Enemy* enemy, Task* task);
 static void _actor323400BlendClip2State(Enemy* enemy, Task* task);
 
-#include "../../shared/actor_contacts.h"
+#include "../../shared/actor/actor_contacts.h"
 
 /// Scripted behavior handlers indexed by `DesertChaserWork::state` in 0..3.
 ///
@@ -878,11 +878,11 @@ static inline SVECTOR* _actorContactGetLastPushStep(void)
 
 static DesertChaserEffectArgStorage _gDesertChaserEffectArg;
 
-#include "../../shared/actor_contacts.h"
+#include "../../shared/actor/actor_contacts.h"
 
-#include "../../shared/actor_contacts.inc.c"
+#include "../../shared/actor/actor_contacts.inc.c"
 
-#include "../../shared/desert_chaser_blend_tick.inc.c"
+#include "../../shared/creatures/desert_chaser/desert_chaser_blend_tick.inc.c"
 
 /// Emits one-shot animation dust cues and returns an EVT sound script, or zero.
 ///
@@ -1147,9 +1147,9 @@ static s32 _desertChaserAnimCues(Task* task, DesertChaserWork* work)
     return 0;
 }
 
-#include "../../shared/desert_chaser_anim_tick.inc.c"
+#include "../../shared/creatures/desert_chaser/desert_chaser_anim_tick.inc.c"
 
-#include "../../shared/desert_chaser_spawn.inc.c"
+#include "../../shared/creatures/desert_chaser/desert_chaser_spawn.inc.c"
 
 /// Emits the scene clip's counter-driven dust and placement-channel sound cues.
 ///
@@ -1266,7 +1266,7 @@ static void _actor323400PlayClip13State(Enemy* enemy, Task* task)
     task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
-#include "../../shared/desert_chaser_frame.inc.c"
+#include "../../shared/creatures/desert_chaser/desert_chaser_frame.inc.c"
 
 /// Ignores the cutscene chaser's message 2015 without changing any state.
 ///
@@ -1276,11 +1276,11 @@ static void _actor323400IgnoreMessage2015(Task* unusedTask, s32 unusedMessageId,
 {
 }
 
-#include "../../shared/desert_chaser_visibility.inc.c"
+#include "../../shared/creatures/desert_chaser/desert_chaser_visibility.inc.c"
 
-#include "../../shared/actor_messages_is_present.inc.c"
+#include "../../shared/actor/actor_messages_is_present.inc.c"
 
-#include "../../shared/actor_messages_place_yaw_first.inc.c"
+#include "../../shared/creatures/desert_chaser/desert_chaser_place_yaw_first.inc.c"
 
 /// Applies the Breezeway cutscene chaser's stage/area command.
 ///
@@ -1330,13 +1330,13 @@ static s32 _actor323400ApplyCommand(Task* task, s32 unusedMessageId, const Actor
     return 0;
 }
 
-#include "../../shared/desert_chaser_play_anim.inc.c"
+#include "../../shared/creatures/desert_chaser/desert_chaser_play_anim.inc.c"
 
-#include "../../shared/desert_chaser_exit.inc.c"
+#include "../../shared/creatures/desert_chaser/desert_chaser_exit.inc.c"
 
-#include "../../shared/desert_chaser_part_effect.inc.c"
+#include "../../shared/creatures/desert_chaser/desert_chaser_part_effect.inc.c"
 
-#include "../../shared/desert_chaser_hide.inc.c"
+#include "../../shared/creatures/desert_chaser/desert_chaser_hide.inc.c"
 
 /// Resets the Breezeway chaser's selected scene clip and advances it each call.
 ///
@@ -1397,6 +1397,6 @@ static void _actor323400BlendClip2State(Enemy* enemy, Task* task)
     }
 }
 
-#include "../../shared/desert_chaser_task.inc.c"
+#include "../../shared/creatures/desert_chaser/desert_chaser_task.inc.c"
 
 #undef DESERT_CHASER_BUILD

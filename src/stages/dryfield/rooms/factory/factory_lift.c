@@ -22,7 +22,7 @@
 
 #include "rooms/dryfield_factory.h"
 
-#include "../../../../shared/room_events.h"
+#include "../../../../shared/room/room_events.h"
 
 static void _factoryLiftInit(Task* task);
 static void _factoryLiftUpdate(Task* task);

@@ -38,7 +38,7 @@
 #include "mapui/map_dryfield_full.h"
 
 #include "rooms/room_common.h"
-#include "../../shared/glow_draw.h"
+#include "../../shared/effects/glow_draw.h"
 #include "../../shared/cellar.h"
 
 /// Room message sent by the inventory's key-item use prompt.
@@ -1186,7 +1186,7 @@ void dryfieldNightCellarRoomTask(Task* task)
     handlers.funcs[task->state](task);
 }
 
-#include "../../shared/glow_draw_flare.inc.c"
+#include "../../shared/effects/glow_draw_flare.inc.c"
 
 /// Draws the nighttime cellar's pair of flickering textured flares in array order.
 ///

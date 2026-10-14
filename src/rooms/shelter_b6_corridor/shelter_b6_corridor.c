@@ -57,12 +57,12 @@
 #include "mapui/map_neo_ark.h"
 
 #include "overlay.h"
-#include "../../shared/glow_draw.h"
+#include "../../shared/effects/glow_draw.h"
 
 /// This room's grid object continues four unread bytes past the quad array,
 /// so `_screenWaveGridTask` indexes `quads` rather than the whole object.
 #define SCREEN_WAVE_GRID gScreenWaveGrid.quads
-#include "../../shared/screen_wave.h"
+#include "../../shared/screen/screen_wave.h"
 
 static s32 _gScreenWaveAmplitude;
 
@@ -776,7 +776,7 @@ static s32 _gShelterB6CorridorPlayerHitGlowGeneration;
 static void _shelterB6CorridorInitRoom(Task* task);
 static void _shelterB6CorridorSetImageMaskMode(Task* unusedTask);
 
-#include "../../shared/screen_wave_grid.inc.c"
+#include "../../shared/screen/screen_wave_grid.inc.c"
 
 static void _glowDrawCapsule(const SVECTOR worldPoints[2], s32 radiusScale, s32 packedColor);
 
@@ -1054,7 +1054,7 @@ void shelterB6CorridorDrawViewGlowsTask(Task* task)
     }
 }
 
-#include "../../shared/glow_draw_capsule.inc.c"
+#include "../../shared/effects/glow_draw_capsule.inc.c"
 
 void shelterB6CorridorDrawBodyGlow(Task* task)
 {

@@ -34,7 +34,7 @@
 
 #include "mapui/map_dryfield_full.h"
 
-#include "../../shared/room_variants.h"
+#include "../../shared/room/room_variants.h"
 
 /// Unreferenced 48-byte object; its interpretation as actor transforms is unproven.
 static ActorTransform D_dryfield_night_motel_loft_8017FB84[2] = {
@@ -423,7 +423,7 @@ s32 dryfieldNightMotelLoftRefuseKeyItem(Task* task, s32 messageId, s32 itemId, s
 /// linkage for the second translation unit. Bind one function identifier for
 /// the following fragment, which undefines the binding after its definition.
 #define ROOM_VARIANT_MOTEL_BALCONY_RESOLVE_HANDLER roomVariantMotelBalconyMsg
-#include "../../shared/room_variants_motel_balcony.inc.c"
+#include "../../shared/room/room_variants_motel_balcony.inc.c"
 
 s32 dryfieldNightMotelLoftCommandMessage(Task* unusedTask, s32 messageId, s32 commandId, s32 unusedSecondArg)
 {

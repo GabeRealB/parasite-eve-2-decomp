@@ -36,7 +36,7 @@
 #include "overlay.h"
 
 #include "rooms/room_common.h"
-#include "../../shared/action_prompt.h"
+#include "../../shared/room/action_prompt.h"
 
 /// Edge of one square tile of the sliding-tile puzzle, in screen pixels and in
 /// texels alike: the tile sheet is drawn unscaled.
@@ -604,7 +604,7 @@ void neoArkShrineSlidePuzzleTile(Task* task)
     }
 }
 
-#include "../../shared/action_prompt_outline_rect.inc.c"
+#include "../../shared/room/action_prompt_outline_rect.inc.c"
 
 /// Moves one tile halfway towards its target and snaps small residuals.
 ///

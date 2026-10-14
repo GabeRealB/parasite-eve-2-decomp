@@ -33,7 +33,7 @@
 #include "main/wipsys_types.h"
 
 #include "rooms/acropolis_square.h"
-#include "../../shared/actor_contacts.h"
+#include "../../shared/actor/actor_contacts.h"
 
 /// Steps of `_Actor111800Work::sequenceStep`, in the order the sequence runs
 /// them.
@@ -255,7 +255,7 @@ static inline void _actor111800BlendBodyAnimation(Task* task, u16 animationId, u
 static void        _actor111800RunSequence(Task* task);
 static void        _actor111800InitBody(Task* task);
 
-#include "../../shared/actor_contacts_turn_joint.inc.c"
+#include "../../shared/actor/actor_contacts_turn_joint.inc.c"
 
 /// Ticks the eighteen non-root body tracks and records slot 1's keyframe index.
 ///

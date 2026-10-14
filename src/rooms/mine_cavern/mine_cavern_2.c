@@ -73,8 +73,8 @@
 
 #include "rooms/room_common.h"
 
-#include "../../shared/room_visual_effects.h"
-#include "../../shared/glow_draw.h"
+#include "../../shared/room/room_visual_effects.h"
+#include "../../shared/effects/glow_draw.h"
 
 /// Work block of the cavern's two target tasks, parked at `Task::work`.
 ///
@@ -1216,7 +1216,7 @@ static SVECTOR _gMineCavernRoomLightPoints[13] = {
 /// This empty suffix requires `ROOM_VISUAL_EFFECTS_HALO_STORAGE_TYPE` to be
 /// `RoomFxHaloStorage`. Bind around `room_visual_effects_halo_data.inc.c`.
 #define ROOM_VISUAL_EFFECTS_HALO_STORAGE_BOUND
-#include "../../shared/room_visual_effects_halo_data.inc.c"
+#include "../../shared/room/room_visual_effects_halo_data.inc.c"
 
 static void _glowDrawCapsule(const SVECTOR worldPoints[2], s32 radiusScale, s32 packedColor);
 static void _glowDrawFlare(const SVECTOR* worldPoint, s32 textureIndex, s32 radiusScale);
@@ -3080,18 +3080,18 @@ void mineCavernDrawRoomLightGlowsTask(Task* task)
     }
 }
 
-#include "../../shared/glow_draw_capsule.inc.c"
+#include "../../shared/effects/glow_draw_capsule.inc.c"
 
-#include "../../shared/glow_draw_flare.inc.c"
+#include "../../shared/effects/glow_draw_flare.inc.c"
 
-#include "../../shared/room_visual_effects.inc.c"
+#include "../../shared/room/room_visual_effects.inc.c"
 
 void mineCavernRoomVisualEffectsMoteTask(Task* task)
 {
     _roomVisualEffectsMoteTask(task);
 }
 
-#include "../../shared/room_visual_effects_halo.inc.c"
+#include "../../shared/room/room_visual_effects_halo.inc.c"
 
 void mineCavernRoomVisualEffectsHaloTask(Task* task)
 {
@@ -3103,8 +3103,8 @@ void mineCavernRoomVisualEffectsHaloOrangeBurstTask(Task* task)
     _roomVisualEffectsHaloOrangeBurstTask(task);
 }
 
-#include "../../shared/room_visual_effects_glow_quad.inc.c"
-#include "../../shared/room_visual_effects_flash.inc.c"
+#include "../../shared/room/room_visual_effects_glow_quad.inc.c"
+#include "../../shared/room/room_visual_effects_flash.inc.c"
 
 void mineCavernRoomVisualEffectsSparkEmitterTask(Task* task)
 {
@@ -3775,30 +3775,7 @@ static void _mineCavernTargetSpawn(Enemy* enemy, Task* task)
     task->state++;
 }
 
-/// Copies the first attack contact's world point and returns its packed key.
-///
-/// Scans at most `contactCount` elements, stopping at the first zero key.
-/// The count is a nonnegative signed halfword bounded by the readable table;
-/// `hitPoint` needs writable XYZ halfwords and its pad is left intact. Returns
-/// zero with the output untouched when no attack contact precedes the end.
-/// Borrows both arguments for this call and leaves contacts unchanged.
-static inline s32 _mineCavernTargetFindHit(SVECTOR* hitPoint, const WorldCollisionContact* contacts, s16 contactCount)
-{
-    s16 contactIndex;
-
-    for (contactIndex = 0; contactIndex < contactCount; contactIndex++) {
-        if (contacts[contactIndex].key.value == 0) {
-            break;
-        }
-        if ((contacts[contactIndex].key.value & WORLD_COLLISION_CONTACT_KIND_MASK) == WORLD_COLLISION_CONTACT_ATTACK) {
-            hitPoint->vx = contacts[contactIndex].point.vx;
-            hitPoint->vy = contacts[contactIndex].point.vy;
-            hitPoint->vz = contacts[contactIndex].point.vz;
-            return contacts[contactIndex].key.value;
-        }
-    }
-    return 0;
-}
+#include "../../shared/room/room_find_attack_contact.inc.c"
 
 /// Updates the intact target's lock-on eligibility, lighting and first weapon hit.
 ///
@@ -3863,7 +3840,7 @@ static void _mineCavernTargetCheckHit(Enemy* enemy, Task* task)
     MINE_CAVERN_TARGET_UPDATE_LIGHTING(task, hitScratch->vec);
     task->extra.tmd->flags = 0;
 
-    hitKey             = _mineCavernTargetFindHit(&hitScratch->offset, work->bodyContacts, ARRAY_SIZE(work->bodyContacts));
+    hitKey             = _roomFindAttackContact(&hitScratch->offset, work->bodyContacts, ARRAY_SIZE(work->bodyContacts));
     hitScratch->hitKey = hitKey;
     if (hitKey & MINE_CAVERN_TARGET_HIT_ATTACHMENT_BIT) {
         hitScratch->hitKey = 0;

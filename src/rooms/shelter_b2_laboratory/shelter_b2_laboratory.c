@@ -67,16 +67,16 @@
 #include "rooms/room.h"
 
 #include "rooms/room_common.h"
-#include "../../shared/glow_draw.h"
+#include "../../shared/effects/glow_draw.h"
 /// Selects the gate's TU-local room-transition task descriptor.
 ///
 /// Addressable `TaskDesc` lvalue; see `room_events.h` for the spawn contract.
-/// Bind before that header and keep through `room_event_gate.inc.c`.
+/// Bind before that header and keep through `room_event.inc.c`.
 #define ROOM_EVENT_TASK_DESC (_gRoomEventTaskDesc)
-#include "../../shared/room_events.h"
+#include "../../shared/room/room_events.h"
 // Symbol is `RoomCutsceneSoundTaskStorage`; the runner reads `task`.
 #define ROOM_CUTSCENE_SOUND_TASK gRoomCutsceneSoundTask.task
-#include "../../shared/room_cutscene.h"
+#include "../../shared/room/room_cutscene.h"
 
 static void _roomCutsceneTask(Task* task);
 
@@ -124,7 +124,7 @@ extern u8 gRoomEventActive;
 // Keep this first declaration before included telephone storage for BSS order.
 static u16 _gShelterB2LaboratoryFastGlowPulse;
 
-#include "../../shared/telephone.h"
+#include "../../shared/room/telephone.h"
 
 static s32  _shelterB2LaboratoryRejectKeyItemUse(Task* task, s32 messageId, s32 keyItemId, s32 unusedArg);
 static void _shelterB2LaboratoryInitRoomTask(Task* task);
@@ -146,7 +146,7 @@ static void _shelterB2LaboratoryAmbienceTask(Task* task);
 static void _shelterB2LaboratoryConsoleKeypadTask(Task* task);
 static void _shelterB2LaboratoryFinishConsoleSceneTask(Task* task);
 
-#include "../../shared/telephone_data.inc.c"
+#include "../../shared/room/telephone_data.inc.c"
 
 static TmdBone _gShelterB2LaboratoryAcropolisSanctuaryModel090F0Skeleton[3] = {
 #include "assets/acropolis_sanctuary_model_090F0_skeleton.inc"
@@ -1213,7 +1213,7 @@ static u16 _gShelterB2LaboratoryFastGlowPulse;
 ///
 /// Two-byte string-literal binding for `telephone.inc.c`; unused by label drawing.
 #define TELEPHONE_MENU_TITLE_TRAILING_BYTES "\xFA\xA9"
-#include "../../shared/telephone.inc.c"
+#include "../../shared/room/telephone.inc.c"
 #undef TELEPHONE_MENU_TITLE_TRAILING_BYTES
 
 static void _glowDrawCapsule(const SVECTOR worldPoints[2], s32 radiusScale, s32 packedColor);
@@ -1224,13 +1224,11 @@ void shelterB2LaboratoryTelephoneMenuTask(Task* task)
     _telephoneMenuTask(task);
 }
 
-#include "../../shared/telephone_panels.inc.c"
+#include "../../shared/room/telephone_panels.inc.c"
 
-#include "../../shared/room_cutscene_task.inc.c"
+#include "../../shared/room/room_cutscene_task.inc.c"
 
-#include "../../shared/room_event_gate.inc.c"
-
-#include "../../shared/room_event_task.inc.c"
+#include "../../shared/room/room_event.inc.c"
 
 /// Sets the four sound scripts accompanying the laboratory console scene.
 ///
@@ -1416,7 +1414,7 @@ static void _shelterB2LaboratoryAmbienceTask(Task* task)
     }
 }
 
-#include "../../shared/room_cutscene_sound_task.inc.c"
+#include "../../shared/room/room_cutscene_sound_task.inc.c"
 
 /// Refuses key-item use in the laboratory without consuming the item.
 ///
@@ -1784,7 +1782,7 @@ void shelterB2LaboratoryGlowTask(Task* task)
     }
 }
 
-#include "../../shared/glow_draw_capsule.inc.c"
+#include "../../shared/effects/glow_draw_capsule.inc.c"
 
 /// Initializes one Gouraud half of the laboratory's cyan glow diamond.
 ///
@@ -1909,7 +1907,7 @@ static void _shelterB2LaboratoryDrawGlowDiamond(const SVECTOR* worldPoint, s32 p
     SCRATCH_STACK_RELEASE_BLOCK(_ShelterB2LaboratoryGlowDiamondScratch);
 }
 
-#include "../../shared/glow_draw_pulsing_disc.inc.c"
+#include "../../shared/effects/glow_draw_pulsing_disc.inc.c"
 
 /// Selects slow (zero) or fast (nonzero) pulsing for the laboratory's cyan glow.
 ///

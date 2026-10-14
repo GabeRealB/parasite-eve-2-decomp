@@ -44,17 +44,17 @@
 #include "overlay.h"
 
 #include "rooms/room_common.h"
-#include "../../shared/glow_draw.h"
+#include "../../shared/effects/glow_draw.h"
 
 // The flag symbol is four bytes; the gate writes the first.
 #define ROOM_EVENT_ACTIVE gRoomEventActive.eventStarted
 /// Selects the gate's TU-local room-transition task descriptor.
 ///
 /// Addressable `TaskDesc` lvalue; see `room_events.h` for the spawn contract.
-/// Bind before that header and keep through `room_event_gate.inc.c`.
+/// Bind before that header and keep through `room_event.inc.c`.
 #define ROOM_EVENT_TASK_DESC (_gRoomEventTaskDesc)
-#include "../../shared/room_events.h"
-#include "../../shared/room_variants.h"
+#include "../../shared/room/room_events.h"
+#include "../../shared/room/room_variants.h"
 /// Selects the nighttime sound bank for the shared G & R kitchen door handler.
 ///
 /// Keep this binding through the door-handler implementation fragment.
@@ -401,9 +401,7 @@ RoomEventReq gRoomEventReq;
 static void _dryfieldNightGRKitchenInitializeRoom(Task* task);
 static void _dryfieldNightGRKitchenIdleState(Task* task);
 
-#include "../../shared/room_event_gate.inc.c"
-
-#include "../../shared/room_event_task.inc.c"
+#include "../../shared/room/room_event.inc.c"
 
 static void _glowDrawShaft(const SVECTOR worldPoints[2], s32 radiusScale);
 
@@ -470,7 +468,7 @@ void dryfieldNightGRKitchenRoomTask(Task* task)
     stateHandlers.funcs[task->state](task);
 }
 
-#include "../../shared/glow_draw_shaft.inc.c"
+#include "../../shared/effects/glow_draw_shaft.inc.c"
 
 void dryfieldNightGRKitchenDrawLightShaftsTask(Task* unusedTask)
 {

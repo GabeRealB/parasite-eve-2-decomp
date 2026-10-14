@@ -19,7 +19,7 @@
 #include "main/task_types.h"
 #include "main/tmd.h"
 #include "main/tmd_types.h"
-#include "../../shared/actor_messages.h"
+#include "../../shared/actor/actor_messages.h"
 
 /// Work block of a slider: one of the two long slab models the Brahman
 /// intro script slides into place along a precomputed path while the screen
@@ -306,7 +306,7 @@ static void _actor503500SliderBindLighting(Task* task)
     model->colorMtx = &work->color;
 }
 
-#include "../../shared/actor_messages_place_euler.inc.c"
+#include "../../shared/actor/actor_messages_place_euler.inc.c"
 
 /// Sets a slider model's drawing and primitive-buffer policy.
 ///

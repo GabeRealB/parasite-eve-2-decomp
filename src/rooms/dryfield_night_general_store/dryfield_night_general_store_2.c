@@ -39,8 +39,8 @@
 #include "overlay.h"
 
 #include "rooms/room_common.h"
-#include "../../shared/glow_draw.h"
-#include "../../shared/room_events.h"
+#include "../../shared/effects/glow_draw.h"
+#include "../../shared/room/room_events.h"
 
 static WorldCollisionGrid         _gDryfieldNightGeneralStoreCollisionGrid;
 static WorldCollisionOccluder     _gDryfieldNightGeneralStoreSightOccluders[4];
@@ -1782,7 +1782,7 @@ u8 D_dryfield_night_general_store_801858C7 = 3;
 
 RoomEventReq gRoomEventReq;
 
-#include "../../shared/glow_draw_shaft.inc.c"
+#include "../../shared/effects/glow_draw_shaft.inc.c"
 
 void dryfieldNightGeneralStoreDrawLightShaftsTask(Task* unusedTask)
 {

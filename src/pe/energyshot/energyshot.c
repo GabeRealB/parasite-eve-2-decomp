@@ -28,7 +28,7 @@
 #include "main/sound.h"
 #include "main/task_types.h"
 #include "main/tmd_types.h"
-#include "../../shared/glow_draw.h"
+#include "../../shared/effects/glow_draw.h"
 
 /// Visual tuning of the energy shot cast for one Parasite Energy level.
 ///
@@ -307,7 +307,7 @@ void energyshotCastTask(Task* task)
 
 #undef ENERGYSHOT_DRAW_CAST_WEDGES
 
-#include "../../shared/glow_draw_wedge.inc.c"
+#include "../../shared/effects/glow_draw_wedge.inc.c"
 
 /// Projects one beam-band quad and selects its six-cell texture frame.
 ///

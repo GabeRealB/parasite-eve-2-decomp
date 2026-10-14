@@ -35,7 +35,7 @@
 #include "main/tmd_types.h"
 
 #include "rooms/room_common.h"
-#include "../../shared/room_visual_effects.h"
+#include "../../shared/room/room_visual_effects.h"
 /// Empty presence flag so `water_effects.h` declares the shared
 /// `_waterDrawSpinU16` and `_waterDrawTileU16`. This file includes their bodies.
 #define WATER_SHARED_U16_DRAWERS
@@ -46,7 +46,7 @@
 /// void (Task*) callback. Define before its fragment; the room header declares
 /// the export that gameplay's effect table imports. Takes no macro arguments.
 #define WATER_RIPPLE_CACHED_COORD_TASK neoArkIslandWaterRippleTask
-#include "../../shared/water_effects.h"
+#include "../../shared/effects/water_effects.h"
 
 enum { NEO_ARK_ISLAND_WATER_TASK_PRIORITY             = 192,
        NEO_ARK_ISLAND_GALLERY_DEPARTURE_TASK_PRIORITY = 32 };
@@ -82,7 +82,7 @@ TaskDesc gNeoArkIslandGalleryDepartureTaskDesc = {
     .data     = { .value = 0 },
 };
 
-#include "../../shared/room_visual_effects_trail_data.inc.c"
+#include "../../shared/room/room_visual_effects_trail_data.inc.c"
 
 WorldCollisionRoomResources gNeoArkIslandRoomCollisionResources[1] = {
     {
@@ -130,15 +130,13 @@ DirectionWarpEntry gNeoArkIslandWarpEntries[2] = {
     },
 };
 
-#include "../../shared/water_ripple_task_fixed_coord.inc.c"
+#include "../../shared/effects/water_ripple_task_fixed_coord.inc.c"
 
-#include "../../shared/water_splash.inc.c"
+#include "../../shared/effects/water_splash.inc.c"
 
-#include "../../shared/water_drift_task_u16_fixed_coord.inc.c"
+#include "../../shared/effects/water_drift_task_u16_fixed_coord.inc.c"
 
-#include "../../shared/water_spin_u16.inc.c"
-
-#include "../../shared/water_tile_u16.inc.c"
+#include "../../shared/effects/water_spin_u16.inc.c"
 
 void neoArkIslandInstallRoomEffectIdsTask(Task* task)
 {
@@ -155,27 +153,24 @@ void neoArkIslandInstallRoomEffectIdsTask(Task* task)
     }
 }
 
-#include "../../shared/room_visual_effects.inc.c"
+#include "../../shared/room/room_visual_effects.inc.c"
 
-#include "../../shared/room_visual_effects_flash_task.inc.c"
+#include "../../shared/room/room_visual_effects_flash_task.inc.c"
 
 void neoArkIslandRoomVisualEffectsFlashTask(Task* task)
 {
     _roomVisualEffectsFlashTask(task);
 }
 
-#include "../../shared/room_visual_effects_trails.inc.c"
+#include "../../shared/room/room_visual_effects_trails.inc.c"
 
 void neoArkIslandRoomVisualEffectsTwinTrailTask(Task* task)
 {
-#include "../../shared/room_visual_effects_trail_task.inc.c"
-}
+#include "../../shared/room/room_visual_effects_trail_task.inc.c"
 
-#include "../../shared/room_visual_effects_sparks.inc.c"
+    void neoArkIslandRoomVisualEffectsSparkBurstTask(Task * task)
+    {
+        _roomVisualEffectsSparkBurstTask(task);
+    }
 
-void neoArkIslandRoomVisualEffectsSparkBurstTask(Task* task)
-{
-    _roomVisualEffectsSparkBurstTask(task);
-}
-
-#include "../../shared/room_visual_effects_glow.inc.c"
+#include "../../shared/room/room_visual_effects_glow.inc.c"

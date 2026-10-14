@@ -337,33 +337,7 @@ static const u8 _gReplayBonusBonusBpHeading[] = "BONUS BP";
 /// Heading of the BP balance plus the revealed items' credits.
 static const u8 _gReplayBonusTotalBpHeading[] = "TOTAL BP";
 
-/// Returns the BP balance plus item credit from the first visible row to the list's end.
-///
-/// The owner task's work holds the list's borrowed `s16` item ids. The row
-/// range must be nonnegative and fit that storage; each id must satisfy
-/// `_replayBonusItemBp`'s catalogue bounds. Starting at zero computes the full
-/// clear total; scrolling backward progressively reveals the displayed total.
-/// Caps at eight decimal digits without changing the player's balance.
-static inline s32 _replayBonusGetDisplayedTotalBp(const UiList* list, const UiObject* object)
-{
-    enum { REPLAY_BONUS_MAX_DISPLAYED_TOTAL_BP = 99999999 };
-    s32                 itemIndex;
-    s32                 totalBp;
-    const PlayerStatus* playerStatus;
-
-    playerStatus = &gPlayerStatus;
-    totalBp      = 0;
-    for (itemIndex = list->firstVisibleItemIndex.signedValue; itemIndex < list->itemCount; itemIndex++) {
-        const s16* itemIds = object->owner->work;
-
-        totalBp += _replayBonusItemBp(itemIds[itemIndex]);
-    }
-    totalBp += playerStatus->bp;
-    if (totalBp > REPLAY_BONUS_MAX_DISPLAYED_TOTAL_BP) {
-        totalBp = REPLAY_BONUS_MAX_DISPLAYED_TOTAL_BP;
-    }
-    return totalBp;
-}
+#include "replay_bonus_total_bp.inc.c"
 
 /// Computes the BP award that replaces a shop-tier unlock.
 ///
@@ -486,7 +460,7 @@ void replayBonusCompleteBonusPanelTask(Task* task)
         task->killCountdown                       = REPLAY_BONUS_COMPLETE_INITIAL_TICKS;
         task->state                               = task->state + 1;
         list->firstVisibleItemIndex.unsignedValue = 0;
-        totalBp                                   = _replayBonusGetDisplayedTotalBp(list, object);
+        totalBp                                   = _replayBonusSumTotalBp(list, object);
         totals                                    = &gReplayBonusTotals;
         totals->totalBp                           = totalBp;
         totals->nextBp                            = totalBp;
@@ -589,7 +563,7 @@ void replayBonusCompleteBonusPanelTask(Task* task)
 
     REPLAY_BONUS_DRAW_COMPLETE_HEADING(totalHeading, object, 0x70 + leftInset, textY, 6, textColor, TEXT_ALIGNMENT_RIGHT, _gReplayBonusTotalBpHeading);
 
-    displayedTotalBp = _replayBonusGetDisplayedTotalBp(list, object);
+    displayedTotalBp = _replayBonusSumTotalBp(list, object);
     textDrawUiLine(object, -leftInset, textY, textItoaUnsigned(bpText, (u32)displayedTotalBp), REPLAY_BONUS_PANEL_TEXT_COLOR, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
     if ((object->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) && (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadCancelButtonMask | gPadMenuButtonMask) != 0)) {
         object->result = USER_INTERFACE_RESULT_CONFIRM;

@@ -38,7 +38,7 @@
 #include "mapui/map_dryfield_full.h"
 
 #include "rooms/room_common.h"
-#include "../../shared/glow_draw.h"
+#include "../../shared/effects/glow_draw.h"
 
 /// Prism corners in the space of the coordinate drawn under, eight per prism:
 /// the lit ring, then the far ring. The room draws the prisms at `[0..7]` and
@@ -825,7 +825,7 @@ void dryfieldNightSouvenirShopRoomTask(Task* task)
     stateHandlers.funcs[task->state](task);
 }
 
-#include "../../shared/glow_draw_prism.inc.c"
+#include "../../shared/effects/glow_draw_prism.inc.c"
 
 void dryfieldNightSouvenirShopPrismLightTask(Task* task)
 {

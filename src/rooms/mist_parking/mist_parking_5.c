@@ -42,8 +42,8 @@
 #include "rooms/room.h"
 
 #include "rooms/room_common.h"
-#include "../../shared/glow_draw.h"
-#include "../../shared/room_cutscene.h"
+#include "../../shared/effects/glow_draw.h"
+#include "../../shared/room/room_cutscene.h"
 
 /// World-coordinate capsule endpoints and the separate pulsing point-glow centre.
 ///
@@ -1220,8 +1220,8 @@ void mistParkingDrawGlowsTask(Task* unused)
     }
 }
 
-#include "../../shared/glow_draw_diamond.inc.c"
+#include "../../shared/effects/glow_draw_diamond.inc.c"
 
-#include "../../shared/glow_draw_pulsing_disc.inc.c"
+#include "../../shared/effects/glow_draw_pulsing_disc.inc.c"
 
-#include "../../shared/glow_draw_capsule.inc.c"
+#include "../../shared/effects/glow_draw_capsule.inc.c"

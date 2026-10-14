@@ -55,9 +55,9 @@
 #include "overlay.h"
 
 #include "rooms/dryfield_water_tower.h"
-#include "../../shared/limb_shadows.h"
-#include "../../shared/actor_messages.h"
-#include "../../shared/actor_contacts.h"
+#include "../../shared/actor/limb_shadows.h"
+#include "../../shared/actor/actor_messages.h"
+#include "../../shared/actor/actor_contacts.h"
 
 /// Selects Desert Chaser arena combat and mechanism-run behavior for actor_421600.
 ///
@@ -65,7 +65,7 @@
 /// it selects the Water Tower work layout and three lifecycle handlers regardless
 /// of whether a live room command has started the timed run.
 #define DESERT_CHASER_BUILD DESERT_CHASER_WATER_TOWER
-#include "../../shared/desert_chaser.h"
+#include "../../shared/creatures/desert_chaser/desert_chaser.h"
 
 /// Water Tower behavior selectors used by this package's commands and death states.
 enum {
@@ -1304,8 +1304,8 @@ static s32             _actor421600PushOutsideArenaCenter(GfxCoord* coord);
 static void            _actor421600SnapToSouthArenaArc(GfxCoord* coord);
 static __inline__ void _actor421600BindLightingMatrices(Task* actor);
 static void            _actor421600Spawn(Enemy* enemy, Task* task);
-static __inline__ s32  _actor421600FindAttackContact(const WorldCollisionContact* contacts,
-                                                     SVECTOR*                     hitPosition);
+static __inline__ s32  _desertChaserFindAttackContact(const WorldCollisionContact* contacts,
+                                                      SVECTOR*                     hitPosition);
 static void            _desertChaserDamage(Task* task);
 static void            _actor421600ScriptAnimationState(Task* task);
 static __inline__ s16  _actor421600GetArenaZone(const GfxCoord* coord);
@@ -1342,11 +1342,11 @@ static __inline__ s32 _actor421600HasPlayerBodyContact(const WorldCollisionConta
     return 0;
 }
 
-#include "../../shared/actor_contacts_turn_joint.inc.c"
+#include "../../shared/actor/actor_contacts_turn_joint.inc.c"
 
-#include "../../shared/actor_contacts_steer.inc.c"
+#include "../../shared/actor/actor_contacts_steer.inc.c"
 
-#include "../../shared/actor_contacts_push_contact.inc.c"
+#include "../../shared/actor/actor_contacts_push_contact.inc.c"
 
 /// Places the chaser's root XZ and yaw and refreshes its composed transform.
 ///
@@ -1509,7 +1509,7 @@ static s32 _actor421600ApplyCommand(Task* task, s32 messageId, const ActorComman
     }
 }
 
-#include "../../shared/limb_shadows_segment.inc.c"
+#include "../../shared/actor/limb_shadows_segment.inc.c"
 
 /// Pushes a coordinate out of the arena's central exclusion rectangle.
 ///
@@ -1609,7 +1609,7 @@ static void _actor421600SnapToSouthArenaArc(GfxCoord* coord)
     }
 }
 
-#include "../../shared/desert_chaser_avoid_walk.inc.c"
+#include "../../shared/creatures/desert_chaser/desert_chaser_avoid_walk.inc.c"
 
 /// Advances the two animation rigs and mixes secondary rotation into slots 1..10.
 ///
@@ -1978,7 +1978,7 @@ static s32 _desertChaserAnimCues(Task* task, DesertChaserWork* work)
     return 0;
 }
 
-#include "../../shared/desert_chaser_anim_tick.inc.c"
+#include "../../shared/creatures/desert_chaser/desert_chaser_anim_tick.inc.c"
 
 /// Binds the model's borrowed lighting matrices to its chaser work block.
 ///
@@ -2203,30 +2203,9 @@ static void _actor421600Spawn(Enemy* enemy, Task* task)
     task->state++;
 }
 
-#include "../../shared/desert_chaser_hit_effect.inc.c"
+#include "../../shared/creatures/desert_chaser/desert_chaser_hit_effect.inc.c"
 
-/// Returns the first attack contact key and copies its world-space hit position.
-///
-/// Reads a sphere's `DESERT_CHASER_CONTACTS` entries up to the first zero key.
-/// Returns zero without changing `hitPosition` when no attack is found.
-/// Only XYZ are copied; the vector's fourth halfword is untouched. Inputs
-/// and writable output must remain live through the call.
-static __inline__ s32 _actor421600FindAttackContact(const WorldCollisionContact* contacts,
-                                                    SVECTOR*                     hitPosition)
-{
-    s16 contactIndex;
-    for (contactIndex = 0; contactIndex < DESERT_CHASER_CONTACTS; contactIndex++) {
-        if (!contacts[contactIndex].key.value)
-            break;
-        if ((contacts[contactIndex].key.value & WORLD_COLLISION_CONTACT_KIND_MASK) == WORLD_COLLISION_CONTACT_ATTACK) {
-            hitPosition->vx = contacts[contactIndex].point.vx;
-            hitPosition->vy = contacts[contactIndex].point.vy;
-            hitPosition->vz = contacts[contactIndex].point.vz;
-            return contacts[contactIndex].key.value;
-        }
-    }
-    return 0;
-}
+#include "../../shared/creatures/desert_chaser/desert_chaser_find_attack_contact.inc.c"
 
 /// Plays a hit EVT with this chaser's placement index and narrowed spatial audio.
 ///
@@ -2313,11 +2292,11 @@ static void _desertChaserDamage(Task* task)
     if (enemy->hp > 0) {
         scratch = SCRATCH_STACK_RESERVE_BLOCK(DesertChaserDamageScratch);
         // Take at most one direct hit, preferring the front sphere.
-        scratch->hitKey = _actor421600FindAttackContact(
+        scratch->hitKey = _desertChaserFindAttackContact(
             work->spheres[DESERT_CHASER_SPHERE_FRONT].contacts, &scratch->hitPos);
         if (scratch->hitKey == 0) {
             hitPosition     = &scratch->hitPos;
-            scratch->hitKey = _actor421600FindAttackContact(work->spheres[DESERT_CHASER_SPHERE_REAR].contacts, hitPosition);
+            scratch->hitKey = _desertChaserFindAttackContact(work->spheres[DESERT_CHASER_SPHERE_REAR].contacts, hitPosition);
         }
         if (scratch->hitKey != 0) {
             scratch->criticalEffect = ACTOR421600_CRITICAL_EFFECT_NONE;
@@ -2924,13 +2903,9 @@ static void _actor421600WaitToRespawnState(Task* task)
     }
 }
 
-#include "../../shared/desert_chaser_approach.inc.c"
+#include "../../shared/creatures/desert_chaser/desert_chaser.inc.c"
 
-#include "../../shared/desert_chaser_pursue.inc.c"
-
-#include "../../shared/desert_chaser_spawn_aim.inc.c"
-
-#include "../../shared/desert_chaser_strike.inc.c"
+#include "../../shared/creatures/desert_chaser/desert_chaser_spawn_aim.inc.c"
 
 /// Leaps backward after a catch, then resumes arena-route tracking.
 ///
@@ -3055,7 +3030,7 @@ static void _actor421600WatchRunPlayerState(Task* task)
     SCRATCH_STACK_RELEASE_BYTES(2 * sizeof(SVECTOR));
 }
 
-#include "../../shared/desert_chaser_steer.inc.c"
+#include "../../shared/creatures/desert_chaser/desert_chaser_steer.inc.c"
 
 /// Pulls an outlying arena coordinate 150 units inside the crossed boundary.
 ///
@@ -3166,7 +3141,7 @@ static void _actor421600WallKnockDownState(Task* task)
     }
 }
 
-#include "../../shared/desert_chaser_roam.inc.c"
+#include "../../shared/creatures/desert_chaser/desert_chaser_roam.inc.c"
 
 /// Waits downFramesBase plus 0..15 random ticks before a command-selected recovery.
 ///
@@ -3969,9 +3944,7 @@ static void _actor421600BurstDeathState(Task* task)
     }
 }
 
-#include "../../shared/desert_chaser_turn_step.inc.c"
-
-#include "../../shared/desert_chaser_turn_step_probe.inc.c"
+#include "../../shared/creatures/desert_chaser/desert_chaser_turn_step.inc.c"
 
 /// Water Tower Desert Chaser behavior handlers in the shared forty-slot state domain.
 ///
@@ -4340,7 +4313,7 @@ static const DesertChaserTaskStates _gDesertChaserTaskStates = {
     },
 };
 
-#include "../../shared/actor_messages_visibility.inc.c"
+#include "../../shared/actor/actor_messages_visibility.inc.c"
 
 /// Returns 1 while the chaser is alive or its model is visible, otherwise 0.
 ///
@@ -4356,9 +4329,9 @@ static s32 _actor421600IsPresent(Task* task, s32 messageId, s32 unusedArg, s32 u
     return 1;
 }
 
-#include "../../shared/actor_messages_place_yaw_first.inc.c"
+#include "../../shared/creatures/desert_chaser/desert_chaser_place_yaw_first.inc.c"
 
-#include "../../shared/desert_chaser_play_anim.inc.c"
+#include "../../shared/creatures/desert_chaser/desert_chaser_play_anim.inc.c"
 
 /// Restarts the dead chaser's room-event countdown at thirty ticks and replies 1.
 ///
@@ -4403,7 +4376,7 @@ static void _actor421600Exit(Task* task)
     enemyDestroy(enemy, task);
 }
 
-#include "../../shared/desert_chaser_part_effect.inc.c"
+#include "../../shared/creatures/desert_chaser/desert_chaser_part_effect.inc.c"
 
 /// Copies an arena waypoint's XYZ into a borrowed vector, preserving pad.
 ///
@@ -4458,7 +4431,7 @@ static void _actor421600HideState(Task* task)
     }
 }
 
-#include "../../shared/desert_chaser_stunned.inc.c"
+#include "../../shared/creatures/desert_chaser/desert_chaser_stunned.inc.c"
 
 /// Restores the Water Tower chaser's targeting, drawing and primitive buffers.
 ///
@@ -4572,12 +4545,10 @@ static void _actor421600RiseState(Task* task)
     }
 }
 
-#include "../../shared/desert_chaser_flinch.inc.c"
+#include "../../shared/creatures/desert_chaser/desert_chaser_flinch.inc.c"
 
-#include "../../shared/desert_chaser_stagger.inc.c"
+#include "../../shared/creatures/desert_chaser/desert_chaser_stagger.inc.c"
 
-#include "../../shared/desert_chaser_collapse.inc.c"
-
-#include "../../shared/desert_chaser_task.inc.c"
+#include "../../shared/creatures/desert_chaser/desert_chaser_task.inc.c"
 
 #undef DESERT_CHASER_BUILD

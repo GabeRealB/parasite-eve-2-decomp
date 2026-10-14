@@ -90,11 +90,11 @@
 /// uses neither stringification nor token pasting.
 #define ACTION_PROMPT_HIT_TEST _actionPromptHitTestDefault
 static s32 ACTION_PROMPT_HIT_TEST(ActionPromptHotspot* hotspots, s16 cursorX, s16 cursorY);
-#include "../../shared/action_prompt.h"
-#include "../../shared/glow_draw.h"
-#include "../../shared/room_events.h"
-#include "../../shared/room_cutscene.h"
-#include "../../shared/room_variants.h"
+#include "../../shared/room/action_prompt.h"
+#include "../../shared/effects/glow_draw.h"
+#include "../../shared/room/room_events.h"
+#include "../../shared/room/room_cutscene.h"
+#include "../../shared/room/room_variants.h"
 
 static void _roomCutsceneTask(Task* task);
 
@@ -310,10 +310,10 @@ static void _shelterB1UndergroundParkingPanelApplySelection(void);
 static void _shelterB1UndergroundParkingDrawPanelGlow(s16 screenX, s16 screenY, s16 pixelRadius, s16 packedRgb);
 static void _shelterB1UndergroundParkingSetFastLightPulse(s16 fastPulse);
 
-#include "../../shared/telephone.h"
+#include "../../shared/room/telephone.h"
 
-#include "../../shared/shop.h"
-#include "../../shared/cap_dialogue.h"
+#include "../../shared/room/shop.h"
+#include "../../shared/room/cap_dialogue.h"
 
 static WorldCollisionGrid         _gShelterB1UndergroundParkingRoom1CollisionGrid;
 static WorldCollisionGrid         _gShelterB1UndergroundParkingRooms2And4And5CollisionGrid;
@@ -349,11 +349,9 @@ static void                       _shelterB1UndergroundParkingSetPlayerTickHold(
 static void                       _shelterB1UndergroundParkingActionPromptTask(Task* task);
 static void                       _shelterB1UndergroundParkingPanelTask(Task* task);
 
-#include "../../shared/telephone_data.inc.c"
+#include "../../shared/room/telephone_data.inc.c"
 
-#include "../../shared/shop_data.inc.c"
-
-#include "../../shared/shop_panels.inc.c"
+#include "../../shared/room/shop_data.inc.c"
 
 ShelterB1UndergroundParkingShopSessionTaskDescStorage gShelterB1UndergroundParkingShopSessionTaskDescStorage = { { { { TASK_BODY_NONE, SHELTER_B1_UNDERGROUND_PARKING_LATE_TASK_PRIORITY } }, _shopSessionTask, { .value = 0 } }, { 0 } };
 
@@ -1962,7 +1960,7 @@ static void _shelterB1UndergroundParkingDrawPanelIndicators(void);
 ///
 /// Two-byte string-literal binding for `telephone.inc.c`; unused by label drawing.
 #define TELEPHONE_MENU_TITLE_TRAILING_BYTES "\x3C\x9E"
-#include "../../shared/telephone.inc.c"
+#include "../../shared/room/telephone.inc.c"
 #undef TELEPHONE_MENU_TITLE_TRAILING_BYTES
 
 static void _glowDrawBeam(const SVECTOR worldPoints[2], s32 radiusScale, s32 startAngle, s32 packedColor);
@@ -1974,20 +1972,20 @@ void shelterB1UndergroundParkingTelephoneMenuTask(Task* task)
     _telephoneMenuTask(task);
 }
 
-#include "../../shared/telephone_panels.inc.c"
+#include "../../shared/room/telephone_panels.inc.c"
 
 /// Retained byte following this room's weapon-supply refill title terminator.
 ///
 /// One-byte string-literal binding for `shop.inc.c`; label drawing does not read it.
 #define SHOP_WEAPON_SUPPLY_REFILL_TITLE_TRAILING_BYTES "\x6F"
-#include "../../shared/shop.inc.c"
+#include "../../shared/room/shop.inc.c"
 #undef SHOP_WEAPON_SUPPLY_REFILL_TITLE_TRAILING_BYTES
 #undef SHOP_REFILL_DISPLAY_QUANTITY
 #undef SHOP_REFILL_SUPPLY
 
-#include "../../shared/room_event_departure_task.inc.c"
+#include "../../shared/room/room_event_departure_task.inc.c"
 
-#include "../../shared/room_cutscene_task.inc.c"
+#include "../../shared/room/room_cutscene_task.inc.c"
 
 /// Holds player control for the boundary caption and queues its completion task.
 ///
@@ -2269,27 +2267,7 @@ static s32 _shelterB1UndergroundParkingHandleCommand(Task* roomTask, s32 message
     return 0;
 }
 
-/// Resolves a departure's destination selectors in place.
-///
-/// Borrows a writable departure and a non-NULL resolver for this call. The
-/// resolver must support one record as request and reply and read only areaId,
-/// warp, room and queryOnly; the other message bytes are uninitialized. Copies
-/// resolved selectors back with the departure's byte widths, leaving stage,
-/// facing and sound intact. Ignores the resolver result and retains neither
-/// pointer. Selectors must identify valid records in the destination stage.
-static inline void _roomVariantResolveDeparture(RoomDeparture* departure, RoomVariantResolver resolveVariant)
-{
-    RoomEventMsg request;
-
-    request.areaId    = departure->area;
-    request.warp      = departure->warp;
-    request.room      = departure->room;
-    request.queryOnly = ROOM_EVENT_EXECUTE;
-    resolveVariant(&request, &request);
-    departure->area = request.areaId;
-    departure->warp = request.warp;
-    departure->room = request.room;
-}
+#include "../../shared/room/room_variants_resolve_departure.inc.c"
 
 /// Waits for the garage choice, fades out and publishes the 1F garage departure.
 ///
@@ -2434,7 +2412,7 @@ static void _shelterB1UndergroundParkingAmbienceTask(Task* task)
 /// through the fragment, then undefine it. No arguments, runtime evaluation,
 /// captured values, stringification or token pasting are involved.
 #define ROOM_VARIANT_RESOLVE_NEO_ARK _roomVariantResolveNeoArk
-#include "../../shared/room_variants_neo_ark.inc.c"
+#include "../../shared/room/room_variants_neo_ark.inc.c"
 #undef ROOM_VARIANT_RESOLVE_NEO_ARK
 
 /// Selector-panel state handlers from initialization through cancel or closing fade.
@@ -2455,24 +2433,9 @@ static const TaskFuncTable8 _gShelterB1UndergroundParkingPanelStates = {
     },
 };
 
-#include "../../shared/room_cutscene_sound_task.inc.c"
+#include "../../shared/room/room_cutscene_sound_task.inc.c"
 
-/// Tests whether any linked room-event region has a latched hit.
-///
-/// Borrows the null-terminated pending trigger list without clearing hits or
-/// unlinking entries. Returns 1 for a hit on an unflagged room-action trigger
-/// with the room-event region ID, otherwise 0.
-static inline s32 _shelterB1UndergroundParkingRoomTriggerHit(void)
-{
-    WorldCollisionTrigger* trigger;
-
-    for (trigger = gWorldCollisionActionTriggerListHead; trigger != NULL; trigger = trigger->next) {
-        if (trigger->control == WORLD_COLLISION_TRIGGER_ACTION_ROOM && trigger->parameter0 == WORLD_COLLISION_TRIGGER_ROOM_EVENT_ID && trigger->hit != 0) {
-            return 1;
-        }
-    }
-    return 0;
-}
+#include "../../shared/room/room_event_trigger_hit.inc.c"
 
 /// Starts the electric-car scene when an access card is used at its room trigger.
 ///
@@ -2490,7 +2453,7 @@ static s32 _shelterB1UndergroundParkingUseKeyItem(Task* roomTask, s32 messageId,
 
     if (itemId == INVENTORY_COLLECTION_ID_BOWMANS_CARD || itemId == SHELTER_B1_UNDERGROUND_PARKING_ITEM_YOSHIDAS_CARD) {
         if (gGameSession->location.room == SHELTER_B1_UNDERGROUND_PARKING_ROOM_CARD_ACCESS) {
-            if (_shelterB1UndergroundParkingRoomTriggerHit()) {
+            if (_roomEventTriggerHit()) {
                 taskSpawnFromTableOnDefaultList(_gShelterB1UndergroundParkingTaskDescs, SHELTER_B1_UNDERGROUND_PARKING_TASK_ROOM7_SCENE, 0, 0);
                 gGameSession->hideHud    = 1;
                 gGameSession->eventState = 1;
@@ -2538,7 +2501,7 @@ static s32 _shelterB1UndergroundParkingCapSoundCue(Task* roomTask, s32 messageId
     return 0;
 }
 
-#include "../../shared/cap_dialogue_loop.inc.c"
+#include "../../shared/room/cap_dialogue_loop.inc.c"
 
 /// Starts the selector panel and waits for its child task to be removed.
 ///
@@ -2744,7 +2707,7 @@ static void _shelterB1UndergroundParkingStartAmbience(void)
     }
 }
 
-#include "../../shared/action_prompt_outline_rect.inc.c"
+#include "../../shared/room/action_prompt_outline_rect.inc.c"
 
 /// Draws the panel diagram's fixed dim nodes and pending selection marker.
 ///
@@ -2788,9 +2751,9 @@ static void _shelterB1UndergroundParkingDrawPanelIndicators(void)
     _shelterB1UndergroundParkingDrawPanelMapMarkers();
 }
 
-#include "../../shared/action_prompt_move_cursors.inc.c"
+#include "../../shared/room/action_prompt_move_cursors.inc.c"
 
-#include "../../shared/action_prompt_draw_cursor.inc.c"
+#include "../../shared/room/action_prompt_draw_cursor.inc.c"
 
 /// Initializes and updates the selector panel's action cursors each frame.
 ///
@@ -3073,7 +3036,7 @@ static void _shelterB1UndergroundParkingPanelResetSelection(void)
     _gShelterB1UndergroundParkingPanelPendingPattern   = 0;
 }
 
-#include "../../shared/action_prompt_reset.inc.c"
+#include "../../shared/room/action_prompt_reset.inc.c"
 
 /// Selects the room resources mapped to the committed panel switch pattern.
 ///
@@ -3089,7 +3052,7 @@ static void _shelterB1UndergroundParkingPanelApplySelection(void)
     gGameSession->roomObjsDirty                            = 1;
 }
 
-#include "../../shared/action_prompt_hit_test.inc.c"
+#include "../../shared/room/action_prompt_hit_test.inc.c"
 #undef ACTION_PROMPT_HIT_TEST
 
 /// Queues the cyan diamond, green disc and grey beam shared by six mapped views.
@@ -3175,9 +3138,9 @@ void shelterB1UndergroundParkingDrawGlowsTask(Task* unused)
     }
 }
 
-#include "../../shared/glow_draw_beam.inc.c"
+#include "../../shared/effects/glow_draw_beam.inc.c"
 
-#include "../../shared/glow_draw_bit_disc.inc.c"
+#include "../../shared/effects/glow_draw_bit_disc.inc.c"
 
 /// Draws a flickering additive glow in the selector panel's pixel coordinates.
 ///
@@ -3249,9 +3212,9 @@ static void _shelterB1UndergroundParkingDrawPanelGlow(s16 screenX, s16 screenY, 
     } while (layerIndex < SHELTER_B1_UNDERGROUND_PARKING_PANEL_GLOW_LAYER_COUNT);
 }
 
-#include "../../shared/glow_draw_diamond.inc.c"
+#include "../../shared/effects/glow_draw_diamond.inc.c"
 
-#include "../../shared/glow_draw_pulsing_disc.inc.c"
+#include "../../shared/effects/glow_draw_pulsing_disc.inc.c"
 
 /// Selects the cyan room light's pulse speed (0 slow, nonzero fast).
 ///

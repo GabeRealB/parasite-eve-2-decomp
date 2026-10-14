@@ -56,8 +56,8 @@
 #include "rooms/room.h"
 
 #include "rooms/room_common.h"
-#include "../../shared/glow_draw.h"
-#include "../../shared/room_events.h"
+#include "../../shared/effects/glow_draw.h"
+#include "../../shared/room/room_events.h"
 #include "../../shared/dryfield_driveway.h"
 
 static void _drivewaySetViewDirty(s16 viewDirty);
@@ -1398,7 +1398,7 @@ static u8 D_dryfield_night_driveway_80182123 = 0;
 
 RoomLatchedEvent gRoomEventLatched = { 0 };
 
-#include "../../shared/room_event_staged_task.inc.c"
+#include "../../shared/room/room_event_staged_task.inc.c"
 
 /// Night-driveway room states: initialize (0), idle (1), release (2).
 ///
@@ -1548,7 +1548,7 @@ void dryfieldNightDrivewayRoomTask(Task* task)
     stateHandlers.funcs[task->state](task);
 }
 
-#include "../../shared/glow_draw_shaft.inc.c"
+#include "../../shared/effects/glow_draw_shaft.inc.c"
 
 void dryfieldNightDrivewayDrawLightShaftsTask(Task* unusedTask)
 {

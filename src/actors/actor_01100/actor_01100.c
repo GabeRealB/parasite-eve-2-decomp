@@ -58,7 +58,7 @@
 #include "main/wipsys_types.h"
 
 #include "overlay.h"
-#include "../../shared/actor_contacts.h"
+#include "../../shared/actor/actor_contacts.h"
 
 /// Phases of the directional flinch pose mixed over the current body animation.
 enum {
@@ -1158,9 +1158,9 @@ static void            _actor01100StepForward(GfxCoord* coord, _Actor01100Scratc
 static void            _actor01100UpdateEngaged(Enemy* enemy, Task* task, _Actor01100Work* work, _Actor01100Scratch* scratch);
 static void            _actor01100UpdateReacting(Enemy* enemy, Task* task, _Actor01100Work* work, _Actor01100Scratch* scratch);
 
-#include "../../shared/actor_contacts_find_push.inc.c"
+#include "../../shared/actor/actor_contacts_find_push.inc.c"
 
-#include "../../shared/actor_contacts_steer.inc.c"
+#include "../../shared/actor/actor_contacts_steer.inc.c"
 
 /// Sets both animation rigs' part-slot rates, leaving their root slots untouched.
 ///

@@ -38,7 +38,7 @@
 #include "main/wipsys_types.h"
 
 #include "overlay.h"
-#include "../../shared/skull_stalker.h"
+#include "../../shared/creatures/skull_stalker/skull_stalker.h"
 
 MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 MATRIX* MulMatrix(MATRIX* m0, MATRIX* m1);
@@ -169,15 +169,7 @@ DamageAttack gActor207200CreepingStrangerAttacks[ACTOR_207200_CREEPING_STRANGER_
     [ACTOR_207200_CREEPING_STRANGER_ATTACK_SIDE]  = { 10, GAME_ACTOR_REACTION_ORDINARY },
 };
 
-#include "../../shared/skull_stalker_spawn_state.inc.c"
-
-#include "../../shared/skull_stalker_idle_tick.inc.c"
-
-#include "../../shared/skull_stalker_hits.inc.c"
-
-#include "../../shared/skull_stalker_inlines.inc.c"
-
-#include "../../shared/skull_stalker_death_state.inc.c"
+#include "../../shared/creatures/skull_stalker/skull_stalker.inc.c"
 
 /// Skull Stalker task callbacks in Task.state order: spawn, update, death.
 ///
@@ -186,20 +178,4 @@ static const EnemyTaskFuncTable3 _gSkullStalkerTaskStates = {
     { _skullStalkerSpawnState, _skullStalkerUpdateState, _skullStalkerDeathState }
 };
 
-#include "../../shared/skull_stalker_task.inc.c"
-
-#include "../../shared/skull_stalker_update_state.inc.c"
-
-#include "../../shared/skull_stalker_reaction_flags.inc.c"
-
-#include "../../shared/skull_stalker_reaction_dispatch.inc.c"
-
-#include "../../shared/skull_stalker_animate.inc.c"
-
-#include "../../shared/skull_stalker_colour.inc.c"
-
-#include "../../shared/skull_stalker_light_ramp.inc.c"
-
-#include "../../shared/skull_stalker_flatten.inc.c"
-
-#include "../../shared/skull_stalker_exit.inc.c"
+#include "../../shared/creatures/skull_stalker/skull_stalker_task.inc.c"

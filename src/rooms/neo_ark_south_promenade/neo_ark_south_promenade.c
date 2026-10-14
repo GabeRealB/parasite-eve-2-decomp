@@ -44,8 +44,8 @@
 #include "mapui/map_neo_ark.h"
 
 #include "rooms/room_common.h"
-#include "../../shared/room_visual_effects.h"
-#include "../../shared/room_variants.h"
+#include "../../shared/room/room_visual_effects.h"
+#include "../../shared/room/room_variants.h"
 
 static void _neoArkSouthPromenadeInitRoomTask(Task* task);
 static void _neoArkSouthPromenadeIdleRoomTask(Task* task);
@@ -96,7 +96,7 @@ static TaskMessageEntry _gNeoArkSouthPromenadeRoomMessages[5] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-#include "../../shared/room_visual_effects_trail_data.inc.c"
+#include "../../shared/room/room_visual_effects_trail_data.inc.c"
 
 WorldCoordRoomLighting gNeoArkSouthPromenadeRoomLighting[1] = {
     { &_gNeoArkSouthPromenadeRoomLights, NULL },
@@ -612,27 +612,24 @@ void neoArkSouthPromenadeRegisterGolemEffectsTask(Task* task)
     }
 }
 
-#include "../../shared/room_visual_effects.inc.c"
+#include "../../shared/room/room_visual_effects.inc.c"
 
-#include "../../shared/room_visual_effects_flash_task.inc.c"
+#include "../../shared/room/room_visual_effects_flash_task.inc.c"
 
 void neoArkSouthPromenadeRoomVisualEffectsFlashTask(Task* task)
 {
     _roomVisualEffectsFlashTask(task);
 }
 
-#include "../../shared/room_visual_effects_trails.inc.c"
+#include "../../shared/room/room_visual_effects_trails.inc.c"
 
 void neoArkSouthPromenadeRoomVisualEffectsTwinTrailTask(Task* task)
 {
-#include "../../shared/room_visual_effects_trail_task.inc.c"
-}
+#include "../../shared/room/room_visual_effects_trail_task.inc.c"
 
-#include "../../shared/room_visual_effects_sparks.inc.c"
+    void neoArkSouthPromenadeRoomVisualEffectsSparkBurstTask(Task * task)
+    {
+        _roomVisualEffectsSparkBurstTask(task);
+    }
 
-void neoArkSouthPromenadeRoomVisualEffectsSparkBurstTask(Task* task)
-{
-    _roomVisualEffectsSparkBurstTask(task);
-}
-
-#include "../../shared/room_visual_effects_glow.inc.c"
+#include "../../shared/room/room_visual_effects_glow.inc.c"

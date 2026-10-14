@@ -67,8 +67,8 @@
 /// GTE flag word. Defined before `glow_draw.h`, which otherwise selects
 /// `GlowCentreScratch`.
 #define GLOW_DRAW_DISC_SCRATCH GlowCentreRadiusFirstScratch
-#include "../../shared/glow_draw.h"
-#include "../../shared/jukebox.h"
+#include "../../shared/effects/glow_draw.h"
+#include "../../shared/room/jukebox.h"
 
 // Relocated CAP file slots selected by commands 5..8 and 0x21..0x22.
 enum {
@@ -2295,7 +2295,7 @@ static const JukeboxTrackLists _gJukeboxTrackLists = {
 /// The eighth stored byte is 0xE1 and is not rendered; its role is unproven.
 static const char _gMistShootingGalleryJukeboxTitle[8] = "SELECT\0\xE1";
 
-#include "../../shared/jukebox_row.inc.c"
+#include "../../shared/room/jukebox_row.inc.c"
 
 /// Updates the gallery jukebox's track picker and asynchronous music change.
 ///
@@ -2415,7 +2415,7 @@ static void _mistShootingGalleryJukeboxPanelTask(Task* task)
     }
 }
 
-#include "../../shared/jukebox_host.inc.c"
+#include "../../shared/room/jukebox_host.inc.c"
 
 s32 mistShootingGalleryOpenJukebox(s32 unused)
 {
@@ -2770,6 +2770,6 @@ void mistShootingGalleryDrawLightGlowsTask(Task* unused)
     }
 }
 
-#include "../../shared/glow_draw_capsule.inc.c"
+#include "../../shared/effects/glow_draw_capsule.inc.c"
 
-#include "../../shared/glow_draw_disc.inc.c"
+#include "../../shared/effects/glow_draw_disc.inc.c"

@@ -48,7 +48,7 @@
 #include "main/task_types.h"
 #include "main/tmd.h"
 #include "main/tmd_types.h"
-#include "../../shared/sprite_quad.h"
+#include "../../shared/effects/sprite_quad.h"
 
 /// Packed flame spawn options and the frame counts of the actor's particle tasks.
 enum {
@@ -2249,7 +2249,7 @@ STATIC_ASSERT(ARRAY_SIZE(SPRITE_QUAD_UV_TABLE) == ARRAY_SIZE(_gActor510900Fireba
 ///
 /// Uses the atlas's inclusive 39-texel UV span in `size * SPRITE_QUAD_SCALE / depth`.
 #define SPRITE_QUAD_SCALE EFFECT_SPRITE_ATLAS_UV_SPAN
-#include "../../shared/sprite_quad_draw.inc.c"
+#include "../../shared/effects/sprite_quad_draw.inc.c"
 
 void actor510900InitBody(Enemy* enemy, Task* task)
 {

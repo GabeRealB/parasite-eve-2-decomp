@@ -63,8 +63,8 @@
 /// and zero fourth argument; the return value is ignored. Define before
 /// `actor_motion.h` and keep through `actor_motion_arrive19.inc.c`, then undefine.
 #define ACTOR_MOTION_PLAY19_HANDLER _actor335800FlintPlayAnimation
-#include "../../shared/actor_motion.h"
-#include "../../shared/actor_messages.h"
+#include "../../shared/actor/actor_motion.h"
+#include "../../shared/actor/actor_messages.h"
 
 /// Work block of Flint, the dog whose model this package carries beside
 /// Gary Douglas's.
@@ -1888,9 +1888,9 @@ static void _actor335800GaryDouglasUpdate(Task* task)
 
 #undef ACTOR_335800_DOUGLAS_DIM_LIGHTING
 
-#include "../../shared/actor_motion_arrive.inc.c"
+#include "../../shared/actor/actor_motion_arrive.inc.c"
 
-#include "../../shared/actor_motion_start.inc.c"
+#include "../../shared/actor/actor_motion_start.inc.c"
 
 /// Dispatches Gary Douglas's attached head-and-hat and gun model tasks.
 ///
@@ -1905,7 +1905,7 @@ static void _actor335800GaryDouglasPartTask(Task* task)
     handlers.funcs[task->state](task);
 }
 
-#include "../../shared/model_placement_attach_part.inc.c"
+#include "../../shared/actor/model_placement_attach_part.inc.c"
 
 /// Retains an attached part's parent-driven pose without a per-frame update.
 static void _actor335800GaryDouglasPartIdle(Task* task)
@@ -1976,7 +1976,7 @@ static void _actor335800GaryDouglasRunWalkStep(Task* task)
     handlers.funcs[work->walk.motionStep](task);
 }
 
-#include "../../shared/actor_motion_face.inc.c"
+#include "../../shared/actor/actor_motion_face.inc.c"
 
 /// Starts Douglas's forward approach and primes the next arrival test.
 ///
@@ -2003,11 +2003,11 @@ static void _actor335800GaryDouglasBeginApproach(Task* task)
     work->walk.motionStep++;
 }
 
-#include "../../shared/actor_motion_turn.inc.c"
+#include "../../shared/actor/actor_motion_turn.inc.c"
 
-#include "../../shared/actor_motion_play.inc.c"
+#include "../../shared/actor/actor_motion_play.inc.c"
 
-#include "../../shared/actor_messages_place_euler.inc.c"
+#include "../../shared/actor/actor_messages_place_euler.inc.c"
 
 /// Sets Douglas's body visibility and buffer policy, copying all flags to his parts.
 ///
@@ -2159,7 +2159,7 @@ static void _actor335800FlintUpdate(Task* task)
     }
 }
 
-#include "../../shared/actor_motion_arrive19.inc.c"
+#include "../../shared/actor/actor_motion_arrive19.inc.c"
 #undef ACTOR_MOTION_PLAY19_HANDLER
 
 /// Binds Flint's playback storage and starts the requested clip, including repeats.
@@ -2469,7 +2469,7 @@ static s32 _actor335800FlintPlayAnimation(Task* task, s32 messageId, const Anima
 
 /// Selects the private placement handler for the Flint model task.
 #define ACTOR_MESSAGE_PLACE_EULER_HANDLER _actorMsgPlaceEuler
-#include "../../shared/actor_messages_place_euler.inc.c"
+#include "../../shared/actor/actor_messages_place_euler.inc.c"
 #undef ACTOR_MESSAGE_PLACE_EULER_HANDLER
 
 /// Sets Flint's visibility and automatic primitive-buffer recovery mode.

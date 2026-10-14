@@ -58,16 +58,16 @@
 
 #include "rooms/room_common.h"
 
-#include "../../shared/room_visual_effects.h"
+#include "../../shared/room/room_visual_effects.h"
 // The flag symbol is four bytes; the gate writes the first.
 #define ROOM_EVENT_ACTIVE gRoomEventActive.eventStarted
 /// Selects the gate's TU-local room-transition task descriptor.
 ///
 /// Addressable `TaskDesc` lvalue; see `room_events.h` for the spawn contract.
-/// Bind before that header and keep through `room_event_gate.inc.c`.
+/// Bind before that header and keep through `room_event.inc.c`.
 #define ROOM_EVENT_TASK_DESC (_gRoomEventTaskDesc)
-#include "../../shared/room_events.h"
-#include "../../shared/room_variants.h"
+#include "../../shared/room/room_events.h"
+#include "../../shared/room/room_variants.h"
 
 static s32 _roomVariantMotelBalconyDoorsMsg(Task* task, s32 messageId, const RoomEventMsg* request, RoomEventMsg* reply);
 static s32 _motelBalconyCueSoundMsg(Task* task, s32 messageId, s32 cueKey, s32 secondArg);
@@ -153,7 +153,7 @@ static TaskMessageEntry _gDryfieldMotelBalconyRoomMessages[6] = {
 /// This empty suffix requires `ROOM_VISUAL_EFFECTS_HALO_STORAGE_TYPE` to be
 /// `RoomFxHaloStorage`. Bind around `room_visual_effects_halo_data.inc.c`.
 #define ROOM_VISUAL_EFFECTS_HALO_STORAGE_BOUND
-#include "../../shared/room_visual_effects_halo_data.inc.c"
+#include "../../shared/room/room_visual_effects_halo_data.inc.c"
 
 /// Returns this overlay's three read-only halo tint rows for spawn indices 0..2.
 static inline const RoomFxShade* _roomVisualEffectsGetHaloShades(void)
@@ -164,7 +164,7 @@ static inline const RoomFxShade* _roomVisualEffectsGetHaloShades(void)
 #undef ROOM_VISUAL_EFFECTS_HALO_STORAGE_TYPE
 #undef ROOM_VISUAL_EFFECTS_HALO_STORAGE_BOUND
 
-#include "../../shared/room_visual_effects_trail_data.inc.c"
+#include "../../shared/room/room_visual_effects_trail_data.inc.c"
 
 WorldCollisionRoomResources gDryfieldMotelBalconyRoomCollisionResources[1] = {
     {
@@ -1522,13 +1522,11 @@ RoomEventReq gRoomEventReq;
 static void _dryfieldMotelBalconyInitRoomTask(Task* task);
 static void _dryfieldMotelBalconyIdleState(Task* task);
 
-#include "../../shared/room_event_gate.inc.c"
+#include "../../shared/room/room_event.inc.c"
 
-#include "../../shared/room_event_task.inc.c"
+#include "../../shared/room/room_variants_motel_balcony_doors.inc.c"
 
-#include "../../shared/room_variants_motel_balcony_doors.inc.c"
-
-#include "../../shared/room_variants_motel_balcony_sound.inc.c"
+#include "../../shared/room/room_variants_motel_balcony_sound.inc.c"
 
 /// Rejects key-item use in this room by returning zero; all arguments are unused.
 static s32 _dryfieldMotelBalconyUseKeyItemMsg(Task* task, s32 messageId, s32 itemId, s32 secondArg)
@@ -1604,14 +1602,14 @@ void dryfieldMotelBalconyInitRoomEffectsTask(Task* task)
     }
 }
 
-#include "../../shared/room_visual_effects.inc.c"
+#include "../../shared/room/room_visual_effects.inc.c"
 
 void dryfieldMotelBalconyRoomVisualEffectsMoteTask(Task* task)
 {
     _roomVisualEffectsMoteTask(task);
 }
 
-#include "../../shared/room_visual_effects_halo.inc.c"
+#include "../../shared/room/room_visual_effects_halo.inc.c"
 
 void dryfieldMotelBalconyRoomVisualEffectsHaloTask(Task* task)
 {
@@ -1623,33 +1621,30 @@ void dryfieldMotelBalconyRoomVisualEffectsHaloOrangeBurstTask(Task* task)
     _roomVisualEffectsHaloOrangeBurstTask(task);
 }
 
-#include "../../shared/room_visual_effects_glow_quad.inc.c"
-#include "../../shared/room_visual_effects_flash.inc.c"
+#include "../../shared/room/room_visual_effects_glow_quad.inc.c"
+#include "../../shared/room/room_visual_effects_flash.inc.c"
 
 void dryfieldMotelBalconyRoomVisualEffectsSparkEmitterTask(Task* task)
 {
     _roomVisualEffectsSparkEmitterTask(task);
 }
 
-#include "../../shared/room_visual_effects_flash_task.inc.c"
+#include "../../shared/room/room_visual_effects_flash_task.inc.c"
 
 void dryfieldMotelBalconyRoomVisualEffectsFlashTask(Task* task)
 {
     _roomVisualEffectsFlashTask(task);
 }
 
-#include "../../shared/room_visual_effects_trails.inc.c"
+#include "../../shared/room/room_visual_effects_trails.inc.c"
 
 void dryfieldMotelBalconyRoomVisualEffectsTwinTrailTask(Task* task)
 {
-#include "../../shared/room_visual_effects_trail_task.inc.c"
-}
+#include "../../shared/room/room_visual_effects_trail_task.inc.c"
 
-#include "../../shared/room_visual_effects_sparks.inc.c"
+    void dryfieldMotelBalconyRoomVisualEffectsSparkBurstTask(Task * task)
+    {
+        _roomVisualEffectsSparkBurstTask(task);
+    }
 
-void dryfieldMotelBalconyRoomVisualEffectsSparkBurstTask(Task* task)
-{
-    _roomVisualEffectsSparkBurstTask(task);
-}
-
-#include "../../shared/room_visual_effects_glow.inc.c"
+#include "../../shared/room/room_visual_effects_glow.inc.c"

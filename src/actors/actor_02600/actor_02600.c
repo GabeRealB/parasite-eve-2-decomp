@@ -59,7 +59,7 @@
 /// The first inclusion of the guarded shared header consumes this build-only
 /// selector; the fragments use the derived constants after it is undefined.
 #define MAGGOT_CATERPILLAR_KIND MAGGOT_CATERPILLAR_KIND_MAGGOT
-#include "../../shared/maggot_caterpillar.h"
+#include "../../shared/creatures/maggot_caterpillar/maggot_caterpillar.h"
 #undef MAGGOT_CATERPILLAR_KIND
 
 enum { MAGGOT_CATERPILLAR_BODY_PRIORITY = 96 };
@@ -114,7 +114,7 @@ static TmdSource _gActor02600CaterpillarMaggotBody = {
     _gActor02600CaterpillarMaggotBodyStream,
 };
 
-#include "../../shared/maggot_caterpillar_husk_model.inc.c"
+#include "../../shared/creatures/maggot_caterpillar/maggot_caterpillar_husk_model.inc.c"
 
 static AnimationPackedPose _gActor02600Actor102600Animation06198Bank1[10] = {
 #include "assets/actor_102600_animation_06198_bank1.inc"
@@ -669,61 +669,7 @@ static AnimationSet* _gMaggotCaterpillarAnimSets[15] = {
     &_gActor02600Actor102600Animation08928,
 };
 
-#include "../../shared/maggot_caterpillar_resolve_contacts.inc.c"
-
-/// Puff enemy callbacks indexed by task state: 0 setup, 1 flight, 2 destroy.
-///
-/// The dispatcher copies the typed callbacks before passing the live
-/// enemy and task; destruction releases their owned resources.
-static const EnemyTaskFuncTable3 _gMaggotCaterpillarPuffStates = {
-    {
-        _maggotCaterpillarPuffSetup,
-        _maggotCaterpillarPuffTick,
-        enemyDestroy,
-    },
-};
-
-/// Body enemy callbacks indexed by task state: 0 spawn, 1 active, 2 dying.
-///
-/// The dispatcher copies the typed callbacks before passing the live
-/// enemy and task. The dying callback completes the enemy's lifetime.
-static const EnemyTaskFuncTable3 _gMaggotCaterpillarStates = {
-    {
-        _maggotCaterpillarSpawn,
-        _maggotCaterpillarTick,
-        _maggotCaterpillarDyingState,
-    },
-};
-
-#include "../../shared/maggot_caterpillar_wait_state.inc.c"
-
-#include "../../shared/maggot_caterpillar_aim_state.inc.c"
-
-#include "../../shared/maggot_caterpillar_ambush_state.inc.c"
-
-#include "../../shared/maggot_caterpillar_roam_state.inc.c"
-
-#include "../../shared/maggot_caterpillar_spray.inc.c"
-
-#include "../../shared/maggot_caterpillar_pounce.inc.c"
-
-#include "../../shared/maggot_caterpillar_hurt.inc.c"
-
-#include "../../shared/maggot_caterpillar_entrance.inc.c"
-
-#include "../../shared/maggot_caterpillar_burn.inc.c"
-
-#include "../../shared/maggot_caterpillar_turn.inc.c"
-
-#include "../../shared/maggot_caterpillar_inlines.inc.c"
-
-#include "../../shared/maggot_caterpillar_dying.inc.c"
-
-#include "../../shared/maggot_caterpillar_puff_tick.inc.c"
-
-#include "../../shared/maggot_caterpillar_draw_puff.inc.c"
-
-#include "../../shared/maggot_caterpillar_draw_thread.inc.c"
+#include "../../shared/creatures/maggot_caterpillar/maggot_caterpillar_resolve_contacts.inc.c"
 
 /// Selects this carrier's body/puff descriptor run for the shared spawn fragment.
 ///
@@ -731,35 +677,6 @@ static const EnemyTaskFuncTable3 _gMaggotCaterpillarStates = {
 /// while body or puff tasks live. The retained scalar body declaration does
 /// not cover index 1, which reaches the separately declared adjacent puff.
 #define MAGGOT_CATERPILLAR_TASK_TABLE (&gActor02600MaggotCaterpillarBodyTask)
-#include "../../shared/maggot_caterpillar_spawn.inc.c"
-#undef MAGGOT_CATERPILLAR_TASK_TABLE
-
-#include "../../shared/maggot_caterpillar_tick.inc.c"
-
-#include "../../shared/maggot_caterpillar_status.inc.c"
-
-#include "../../shared/maggot_caterpillar_run_behaviour.inc.c"
-
-#include "../../shared/maggot_caterpillar_stun.inc.c"
-
-#include "../../shared/maggot_caterpillar_move.inc.c"
-
-#include "../../shared/maggot_caterpillar_tick_anim.inc.c"
-
-#include "../../shared/maggot_caterpillar_update_color.inc.c"
-
-#include "../../shared/maggot_caterpillar_shadow.inc.c"
-
-#include "../../shared/maggot_caterpillar_squash.inc.c"
-
-#include "../../shared/maggot_caterpillar_husk.inc.c"
-
-#include "../../shared/maggot_caterpillar_shrink_node.inc.c"
-
-#include "../../shared/maggot_caterpillar_puff_task.inc.c"
-
-#include "../../shared/maggot_caterpillar_puff_setup.inc.c"
-
-#include "../../shared/maggot_caterpillar_task.inc.c"
+#include "../../shared/creatures/maggot_caterpillar/maggot_caterpillar.inc.c"
 
 DEFINE_ALIAS(gActor02600MaggotCaterpillarBodyTask, gActor202600MaggotCaterpillarBodyTask);

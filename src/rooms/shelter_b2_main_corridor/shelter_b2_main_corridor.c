@@ -64,19 +64,19 @@
 #include "rooms/room.h"
 
 #include "rooms/room_common.h"
-#include "../../shared/room_visual_effects.h"
-#include "../../shared/glow_draw.h"
+#include "../../shared/room/room_visual_effects.h"
+#include "../../shared/effects/glow_draw.h"
 
 /// Empty presence flag so `water_effects.h` declares the shared
 /// `_waterDrawSpinU16` and `_waterDrawTileU16`. This file includes their bodies.
 #define WATER_SHARED_U16_DRAWERS
-#include "../../shared/water_effects.h"
+#include "../../shared/effects/water_effects.h"
 // The latched-event symbol carries four unproven bytes after the event.
 #define ROOM_EVENT_LATCHED gRoomEventLatched.event
 // The departure symbol carries four unproven bytes after the record.
 #define ROOM_DEPARTURE gRoomDeparture.departure
-#include "../../shared/room_events.h"
-#include "../../shared/room_variants.h"
+#include "../../shared/room/room_events.h"
+#include "../../shared/room/room_variants.h"
 
 static s32 _roomVariantResolveNeoArk(RoomEventMsg* request, RoomEventMsg* reply);
 
@@ -437,7 +437,7 @@ static SVECTOR _gShelterB2MainCorridorGlowPoints[SHELTER_B2_MAIN_CORRIDOR_GLOW_P
     { -5847, -45, -1791, 0 },
 };
 
-#include "../../shared/room_visual_effects_trail_data.inc.c"
+#include "../../shared/room/room_visual_effects_trail_data.inc.c"
 
 u8* gShelterB2MainCorridorViewMaps[SHELTER_B2_MAIN_CORRIDOR_ROOM_COUNT] = {
     gViewIdentityMap,
@@ -1818,9 +1818,9 @@ RoomLatchedEventStorage gRoomEventLatched = { { 0 }, { 0 } };
 /// publication and keep the overlay loaded through the deferred travel.
 static RoomDeparture _gShelterB2MainCorridorStagedDeparture = { 0, 0, 0, 0, 0, { 0, 0 }, 0 };
 
-#include "../../shared/room_event_departure_task.inc.c"
+#include "../../shared/room/room_event_departure_task.inc.c"
 
-#include "../../shared/room_event_staged_task.inc.c"
+#include "../../shared/room/room_event_staged_task.inc.c"
 
 static void _glowDrawBeam(const SVECTOR worldPoints[2], s32 radiusScale, s32 startAngle, s32 packedColor);
 
@@ -2039,24 +2039,7 @@ static const TaskFuncTable3 _gShelterB2MainCorridorRoomTaskStates = {
     { _shelterB2MainCorridorInitializeRoomTask, _shelterB2MainCorridorIdleRoomTask, taskKill }
 };
 
-/// Resolves only a departure's destination selectors through an aliased execute request.
-///
-/// The resolver must read only area, warp, room and queryOnly; other message
-/// fields are uninitialized. Borrows both inputs and preserves stage, sound
-/// and facing. The resolved area narrows from a halfword back to a byte.
-static inline void _shelterB2MainCorridorResolveDeparture(RoomDeparture* departure, RoomVariantResolver resolveVariant)
-{
-    RoomEventMsg request;
-
-    request.areaId    = departure->area;
-    request.warp      = departure->warp;
-    request.room      = departure->room;
-    request.queryOnly = ROOM_EVENT_EXECUTE;
-    resolveVariant(&request, &request);
-    departure->area = request.areaId;
-    departure->warp = request.warp;
-    departure->room = request.room;
-}
+#include "../../shared/room/room_variants_resolve_departure.inc.c"
 
 /// Waits for a corridor travel CAP choice, resolves the staged destination and departs.
 ///
@@ -2128,7 +2111,7 @@ static void _shelterB2MainCorridorStagedDepartureTask(Task* task)
             }
             resolve = _roomVariantResolveNeoArk;
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-            _shelterB2MainCorridorResolveDeparture(&_gShelterB2MainCorridorStagedDeparture, resolve);
+            _roomVariantResolveDeparture(&_gShelterB2MainCorridorStagedDeparture, resolve);
             gRoomDeparture.departure = _gShelterB2MainCorridorStagedDeparture;
             taskSpawnFromTable(&_gShelterB2MainCorridorDepartureTaskDescriptorStorage.desc, 0, 0, 0);
             taskKill(task);
@@ -2143,7 +2126,7 @@ static void _shelterB2MainCorridorStagedDepartureTask(Task* task)
 /// through the fragment, then undefine it. No arguments, runtime evaluation,
 /// captured values, stringification or token pasting are involved.
 #define ROOM_VARIANT_RESOLVE_NEO_ARK _roomVariantResolveNeoArk
-#include "../../shared/room_variants_neo_ark.inc.c"
+#include "../../shared/room/room_variants_neo_ark.inc.c"
 #undef ROOM_VARIANT_RESOLVE_NEO_ARK
 
 /// Refuses every key-item use in this room, returning the menu's unavailable result zero.
@@ -2264,7 +2247,7 @@ void shelterB2MainCorridorRoomTask(Task* task)
 /// Integer shift count for `water_wave_strips.inc.c`; see its configuration
 /// contract. The include consumes and undefines this binding.
 #define WATER_WAVE_STRIPS_AMPLITUDE_SHIFT 6
-#include "../../shared/water_wave_strips.inc.c"
+#include "../../shared/effects/water_wave_strips.inc.c"
 
 /// Draws the corridor's wave surfaces and publishes their signed world Y each tick.
 ///
@@ -2393,20 +2376,20 @@ void shelterB2MainCorridorDrawViewGlowsTask(Task* task)
     }
 }
 
-#include "../../shared/water_ripple_task.inc.c"
+#include "../../shared/effects/water_ripple_task.inc.c"
 
 void shelterB2MainCorridorWaterRippleTask(Task* task)
 {
     _waterRippleTask(task);
 }
 
-#include "../../shared/water_splash.inc.c"
+#include "../../shared/effects/water_splash.inc.c"
 
 /// Selects this room's exported water-spray callback using the cached draw matrix.
 ///
 /// Expands to a single externally linked function identifier, declared as
 /// `void (Task*)` in the public room header before the fragment is included.
-/// `water_drift_task_no_update.inc.c` requires the `_waterDrawSpinU16` and
+/// The drift task below requires the `_waterDrawSpinU16` and
 /// `_waterDrawTileU16` declarations from `water_effects.h` and their bodies
 /// in this translation unit. Their cell index is unsigned 16-bit; size scale
 /// and the spin drawer's angle are signed 16-bit.
@@ -2415,38 +2398,203 @@ void shelterB2MainCorridorWaterRippleTask(Task* task)
 /// without composing it. This binding takes no arguments and evaluates no
 /// expressions; keep it defined only around this fragment's include.
 #define WATER_SPRAY_CACHED_COORD_TASK shelterB2MainCorridorWaterDriftTask
-#include "../../shared/water_drift_task_no_update.inc.c"
+#include "gameplay/message.h"
+
+#include "main/random.h"
+
+/* Part of the water effects library; see water_effects.h. */
+
+#ifndef WATER_SPRAY_CACHED_COORD_TASK
+#error "Define WATER_SPRAY_CACHED_COORD_TASK to the package's declared void (Task*) callback"
+#endif
+
+/// Initializes a water-spray particle's parent-space velocity from its launch direction.
+///
+/// Borrows a live, writable `particleWork`. Its signed `move` components
+/// supply a direction in the particle coordinate's parent space; `step`
+/// supplies speed in parent-coordinate units per running update (0..255,
+/// with 0 stationary). The direction is normalized in place to Q12, then
+/// multiplied by the signed speed read after normalization with a 12-bit
+/// arithmetic right shift. The stored velocity is an integer displacement,
+/// not Q12; SDK approximation and rounding can change its magnitude.
+///
+/// Only `move.vx`, `move.vy` and `move.vz` are written. `move.pad`, `step`
+/// and the rest of the work are preserved. Zero speed or direction still
+/// reaches the SDK normalizer. No pointer is retained or storage released.
+/// GTE state is clobbered, including its colour FIFO.
+static inline void _waterInitializeLaunchVelocity(EffectWork* particleWork)
+{
+    SVECTOR* launchVelocity = &particleWork->move;
+
+    VectorNormalSS(launchVelocity, launchVelocity);
+    gte_lddp(particleWork->step);
+    gte_ldsv(launchVelocity);
+    gte_gpf12();
+    gte_stsv(launchVelocity);
+}
+
+void WATER_SPRAY_CACHED_COORD_TASK(Task* task)
+{
+    enum {
+        WATER_DRIFT_STATE_NEW              = 0,
+        WATER_DRIFT_STATE_ROTATED          = 1,
+        WATER_DRIFT_STATE_UPRIGHT          = 2,
+        WATER_DRIFT_SPAWN_SIZE_MASK        = 0xFFF,
+        WATER_DRIFT_SPAWN_PERIOD_MASK      = 0xF000,
+        WATER_DRIFT_SPAWN_PERIOD_SHIFT     = 12,
+        WATER_DRIFT_PERIOD_MASK            = 0xF,
+        WATER_DRIFT_DEFAULT_PERIOD         = 1,
+        WATER_DRIFT_SPAWN_SPEED_MASK       = 0xFF0000,
+        WATER_DRIFT_SPAWN_SPEED_SHIFT      = 16,
+        WATER_DRIFT_SPEED_MASK             = 0xFF,
+        WATER_DRIFT_DEFAULT_SPEED          = 0x40,
+        WATER_DRIFT_SPAWN_UPRIGHT_MASK     = 0xF0000000,
+        WATER_DRIFT_VELOCITY_KIND_MASK     = 0xF,
+        WATER_DRIFT_VELOCITY_STATIONARY    = 0,
+        WATER_DRIFT_VELOCITY_UPWARD_BURST  = 1,
+        WATER_DRIFT_VELOCITY_ALL_AXES      = 2,
+        WATER_DRIFT_VELOCITY_NARROW_JET    = 3,
+        WATER_DRIFT_VELOCITY_POS_DIRECTION = 5,
+        // Signed-halfword encoding of -64, before the random upward Y offset.
+        WATER_DRIFT_UPWARD_Y_BIAS      = 0xFFC0,
+        WATER_DRIFT_GRAVITY_PER_UPDATE = 6,
+        WATER_DRIFT_FRAME_COUNT        = 8
+    };
+    EffectWork* particleWork;
+    GfxCoord*   particleCoord;
+    s32         velocityKind;
+    s32         framesPerCell;
+    s32         speed;
+
+    particleWork  = task->spawnArg2.pointer;
+    particleCoord = task->extra.coordBody->coord;
+    if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
+        // Frozen particles redraw their retained state; cancellation skips drawing.
+        if (gRoomEffectState->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
+            if (task->state < WATER_DRIFT_STATE_UPRIGHT) {
+                _waterDrawSpinU16(particleCoord, particleWork->index, particleWork->scale, particleWork->angle);
+            } else {
+                _waterDrawTileU16(particleCoord, particleWork->index, particleWork->scale);
+            }
+            return;
+        }
+        effectKillTask(particleWork, task);
+        return;
+    }
+    particleWork->age++;
+    switch (task->state) {
+        case WATER_DRIFT_STATE_NEW:
+            // Decode independent spawn fields; retain the random angle for every cell.
+            particleWork->scale = task->spawnArg1.halves.low & WATER_DRIFT_SPAWN_SIZE_MASK;
+            gRandomLcgState     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            particleWork->angle = (gRandomLcgState >> 16) & ACTOR_TRANSFORM_ANGLE_MASK;
+            if (task->spawnArg1.value & WATER_DRIFT_SPAWN_PERIOD_MASK) {
+                framesPerCell = (task->spawnArg1.value >> WATER_DRIFT_SPAWN_PERIOD_SHIFT) & WATER_DRIFT_PERIOD_MASK;
+            } else {
+                framesPerCell = WATER_DRIFT_DEFAULT_PERIOD;
+            }
+            particleWork->period = framesPerCell;
+            particleWork->age    = 0;
+            task->state          = task->spawnArg1.value & WATER_DRIFT_SPAWN_UPRIGHT_MASK ? WATER_DRIFT_STATE_UPRIGHT : WATER_DRIFT_STATE_ROTATED;
+            if ((particleWork->move.vx | particleWork->move.vy | particleWork->move.vz) == 0) {
+                if (task->spawnArg1.value & WATER_DRIFT_SPAWN_SPEED_MASK) {
+                    speed = (task->spawnArg1.value >> WATER_DRIFT_SPAWN_SPEED_SHIFT) & WATER_DRIFT_SPEED_MASK;
+                } else {
+                    speed = WATER_DRIFT_DEFAULT_SPEED;
+                }
+                particleWork->step = speed;
+                velocityKind       = task->spawnArg1.signedBytes[3];
+                switch (velocityKind & WATER_DRIFT_VELOCITY_KIND_MASK) {
+                    case WATER_DRIFT_VELOCITY_STATIONARY:
+                        particleWork->step = 0;
+                        break;
+                    case WATER_DRIFT_VELOCITY_UPWARD_BURST:
+                        gRandomLcgState       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                        particleWork->move.vx = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
+                        gRandomLcgState       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                        particleWork->move.vy = WATER_DRIFT_UPWARD_Y_BIAS - ((gRandomLcgState >> 16) & 0x7F);
+                        gRandomLcgState       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                        particleWork->move.vz = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
+                        break;
+                    case WATER_DRIFT_VELOCITY_ALL_AXES:
+                        gRandomLcgState       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                        particleWork->move.vx = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
+                        gRandomLcgState       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                        particleWork->move.vy = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
+                        gRandomLcgState       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                        particleWork->move.vz = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
+                        break;
+                    case WATER_DRIFT_VELOCITY_NARROW_JET:
+                        gRandomLcgState       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                        particleWork->move.vx = 0x10 - ((gRandomLcgState >> 16) & 0x1F);
+                        gRandomLcgState       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                        particleWork->move.vy = -((gRandomLcgState >> 16) & 0xFF);
+                        gRandomLcgState       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                        particleWork->move.vz = 0x10 - ((gRandomLcgState >> 16) & 0x1F);
+                        break;
+                    case WATER_DRIFT_VELOCITY_POS_DIRECTION:
+                        // The copied spawn offset supplies a direction in the coordinate's parent space.
+                        particleWork->move.vx = particleWork->pos.vx;
+                        particleWork->move.vy = particleWork->pos.vy;
+                        particleWork->move.vz = particleWork->pos.vz;
+                        break;
+                }
+                _waterInitializeLaunchVelocity(particleWork);
+            } else {
+                // A supplied velocity bypasses scaling; step only enables motion.
+                particleWork->step = WATER_DRIFT_DEFAULT_SPEED;
+            }
+            return;
+        case WATER_DRIFT_STATE_ROTATED:
+            _waterDrawSpinU16(particleCoord, particleWork->index, particleWork->scale, particleWork->angle);
+            break;
+        case WATER_DRIFT_STATE_UPRIGHT:
+            _waterDrawTileU16(particleCoord, particleWork->index, particleWork->scale);
+            break;
+        default:
+            return;
+    }
+    // Local motion dirties the cache; this task never rebuilds the matrix used by its drawers.
+    if (particleWork->step != 0) {
+        particleCoord->coord.t[0]  += particleWork->move.vx;
+        particleCoord->coord.t[1]  += particleWork->move.vy;
+        particleCoord->coord.t[2]  += particleWork->move.vz;
+        particleCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+        particleWork->move.vy      += WATER_DRIFT_GRAVITY_PER_UPDATE;
+    }
+    if ((particleWork->age % particleWork->period) == 0) {
+        particleWork->index++;
+        if (particleWork->index >= WATER_DRIFT_FRAME_COUNT) {
+            effectKillTask(particleWork, task);
+        }
+    }
+}
 #undef WATER_SPRAY_CACHED_COORD_TASK
 
-#include "../../shared/water_spin_u16.inc.c"
+#include "../../shared/effects/water_spin_u16.inc.c"
 
-#include "../../shared/water_tile_u16.inc.c"
+#include "../../shared/effects/glow_draw_beam.inc.c"
 
-#include "../../shared/glow_draw_beam.inc.c"
+#include "../../shared/effects/glow_draw_flare_clipped.inc.c"
 
-#include "../../shared/glow_draw_flare_clipped.inc.c"
+#include "../../shared/room/room_visual_effects.inc.c"
 
-#include "../../shared/room_visual_effects.inc.c"
-
-#include "../../shared/room_visual_effects_flash_task.inc.c"
+#include "../../shared/room/room_visual_effects_flash_task.inc.c"
 
 void shelterB2MainCorridorRoomVisualEffectsFlashTask(Task* task)
 {
     _roomVisualEffectsFlashTask(task);
 }
 
-#include "../../shared/room_visual_effects_trails.inc.c"
+#include "../../shared/room/room_visual_effects_trails.inc.c"
 
 void shelterB2MainCorridorRoomVisualEffectsTwinTrailTask(Task* task)
 {
-#include "../../shared/room_visual_effects_trail_task.inc.c"
-}
+#include "../../shared/room/room_visual_effects_trail_task.inc.c"
 
-#include "../../shared/room_visual_effects_sparks.inc.c"
+    void shelterB2MainCorridorRoomVisualEffectsSparkBurstTask(Task * task)
+    {
+        _roomVisualEffectsSparkBurstTask(task);
+    }
 
-void shelterB2MainCorridorRoomVisualEffectsSparkBurstTask(Task* task)
-{
-    _roomVisualEffectsSparkBurstTask(task);
-}
-
-#include "../../shared/room_visual_effects_glow.inc.c"
+#include "../../shared/room/room_visual_effects_glow.inc.c"

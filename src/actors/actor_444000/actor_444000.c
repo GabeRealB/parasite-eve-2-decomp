@@ -67,8 +67,8 @@
 #include "overlay.h"
 
 #include "rooms/shelter_b3_garbage_incinerator.h"
-#include "../../shared/actor_contacts.h"
-#include "../../shared/mad_chaser.h"
+#include "../../shared/actor/actor_contacts.h"
+#include "../../shared/creatures/mad_chaser/mad_chaser.h"
 /// Binds the shared shake helper to this instance's borrowed host task pointer.
 #define GLUTTON_HOST_TASK (_gGluttonHostTask.task)
 
@@ -84,7 +84,7 @@
 /// actor_342000. Bind before `glutton.h` and retain through the setter fragment;
 /// `GLUTTON_HOST_TASK` selects the live host whose request byte it writes.
 #define GLUTTON_SET_SHAKE_LEVEL actor444000GluttonSetShakeLevel
-#include "../../shared/glutton.h"
+#include "../../shared/creatures/glutton/glutton.h"
 
 /// `_Actor444000EventWork::playerAction`: the one-shot request the event script
 /// hands the player.
@@ -3354,27 +3354,11 @@ static void _actor444000EventRequestPlayerAction(s16 action)
     work->playerActionStep = 0;
 }
 
-#include "../../shared/actor_contacts_turn_joint.inc.c"
+#include "../../shared/actor/actor_contacts_turn_joint.inc.c"
 
-#include "../../shared/actor_contacts_push_contact.inc.c"
+#include "../../shared/actor/actor_contacts_push_contact.inc.c"
 
-#include "../../shared/glutton_wall.inc.c"
-
-#include "../../shared/glutton_pose_limb.inc.c"
-
-#include "../../shared/glutton_turn_neck.inc.c"
-
-#include "../../shared/glutton_pitch_neck.inc.c"
-
-#include "../../shared/glutton_seed_blend.inc.c"
-
-#include "../../shared/glutton_switch_anim.inc.c"
-
-#include "../../shared/glutton_tick_blended.inc.c"
-
-#include "../../shared/glutton_tick_anim.inc.c"
-
-#include "../../shared/glutton_hit_effect.inc.c"
+#include "../../shared/creatures/glutton/glutton_wall.inc.c"
 
 /// Moves the boss 50 parent-coordinate units along its normalized local Z axis.
 ///
@@ -4112,23 +4096,13 @@ static void _actor444000BuildCornerWalls(Task* task, s32 distance, s16 faceIndex
     normals[faceIndex + 1].vz = -ONE;
 }
 
-#include "../../shared/glutton_throw_spawn.inc.c"
+#include "../../shared/creatures/glutton/glutton_throw.inc.c"
 
-#include "../../shared/glutton_throw_fly.inc.c"
+#include "../../shared/creatures/glutton/glutton_inlines.inc.c"
 
-#include "../../shared/glutton_inlines.inc.c"
+#include "../../shared/creatures/glutton/glutton_glob.inc.c"
 
-#include "../../shared/glutton_glob_spawn.inc.c"
-
-#include "../../shared/glutton_glob_fall.inc.c"
-
-#include "../../shared/glutton_glob_engulf.inc.c"
-
-#include "../../shared/glutton_glob_hold.inc.c"
-
-#include "../../shared/glutton_chunk_spawn.inc.c"
-
-#include "../../shared/glutton_chunk_fall.inc.c"
+#include "../../shared/creatures/glutton/glutton_chunk.inc.c"
 
 /// Attached-model lifecycle indexed by Task::state: texture setup, refresh, teardown.
 ///
@@ -4166,13 +4140,9 @@ static const EnemyTaskFuncTable5 _gGluttonGlobStates = {
     },
 };
 
-#include "../../shared/glutton_chunk_settle.inc.c"
+#include "../../shared/creatures/glutton/glutton_chunk_settle.inc.c"
 
-#include "../../shared/glutton_rain_spawn.inc.c"
-
-#include "../../shared/glutton_rain_rise.inc.c"
-
-#include "../../shared/glutton_rain_fall.inc.c"
+#include "../../shared/creatures/glutton/glutton_rain.inc.c"
 
 /// Debris-chunk lifecycle indexed by Task::state: spawn, fall, settle, teardown.
 ///
@@ -4216,13 +4186,11 @@ static const EnemyTaskFuncTable4 _gGluttonSpinnerStates = {
     },
 };
 
-#include "../../shared/glutton_rain_splat.inc.c"
+#include "../../shared/creatures/glutton/glutton_rain_splat.inc.c"
 
-#include "../../shared/glutton_spinner_spawn.inc.c"
+#include "../../shared/creatures/glutton/glutton_spinner.inc.c"
 
-#include "../../shared/glutton_spinner_chase.inc.c"
-
-#include "../../shared/glutton_shake_tick.inc.c"
+#include "../../shared/creatures/glutton/glutton_shake_tick.inc.c"
 
 /// Copies the host's complete draw flags to every live escort model.
 ///
@@ -4789,9 +4757,7 @@ static void _actor444000Spawn(Enemy* enemy, Task* task)
     task->state                              += 1;
 }
 
-#include "../../shared/glutton_hit_group0.inc.c"
-
-#include "../../shared/glutton_hit_groups1to2.inc.c"
+#include "../../shared/creatures/glutton/glutton_hit.inc.c"
 
 /// Processes the first attack on the boss's first three-part escort.
 ///
@@ -4935,7 +4901,7 @@ out:
     SCRATCH_STACK_RELEASE_BLOCK(GluttonHitScratch);
 }
 
-#include "../../shared/glutton_hit_groups6to8.inc.c"
+#include "../../shared/creatures/glutton/glutton_hit_groups6to8.inc.c"
 
 /// Releases the host and all occupied escort slots' primitive buffers.
 ///
@@ -6509,7 +6475,7 @@ static void _actor444000SummonState(Task* task)
     SCRATCH_STACK_RELEASE_BLOCK(GluttonSummonScratch);
 }
 
-#include "../../shared/glutton_escort_state.inc.c"
+#include "../../shared/creatures/glutton/glutton_escort_state.inc.c"
 
 /// Clamps the live player root to the incinerator arena's depth-banded corridor.
 ///
@@ -7062,15 +7028,7 @@ static void _actor444000GluttonTask(Task* task)
     handlers[task->state](enemy, task);
 }
 
-#include "../../shared/glutton_quad_heights.inc.c"
-
-#include "../../shared/glutton_exit.inc.c"
-
-#include "../../shared/glutton_shake_level.inc.c"
-
-#include "../../shared/glutton_set_spinners_released.inc.c"
-
-#include "../../shared/glutton_get_spinners_released.inc.c"
+#include "../../shared/creatures/glutton/glutton_quad_heights.inc.c"
 
 /// Idles on the moving lift while alternating the neck between two yaw targets.
 ///
@@ -7160,9 +7118,7 @@ static void _actor444000ReturnToAdvanceState(Task* task)
     }
 }
 
-#include "../../shared/glutton_prop_setup.inc.c"
-
-#include "../../shared/glutton_prop_tick.inc.c"
+#include "../../shared/creatures/glutton/glutton_prop.inc.c"
 
 /// Selects the escort-model task callback instantiated by the shared fragment.
 ///
@@ -7170,11 +7126,11 @@ static void _actor444000ReturnToAdvanceState(Task* task)
 /// supplies the linkage. Bind around each inclusion, then undefine it. The
 /// first private instance serves descriptor slots 0..5; the second serves slot 6.
 #define GLUTTON_PROP_TASK _gluttonPropTask
-#include "../../shared/glutton_prop_task.inc.c"
+#include "../../shared/creatures/glutton/glutton_prop_task.inc.c"
 #undef GLUTTON_PROP_TASK
 
 #define GLUTTON_PROP_TASK _gluttonEscort6Task
-#include "../../shared/glutton_prop_task.inc.c"
+#include "../../shared/creatures/glutton/glutton_prop_task.inc.c"
 #undef GLUTTON_PROP_TASK
 
 /// Binds the incinerator thrown-sphere dispatcher to its lifecycle callback table.
@@ -7188,7 +7144,7 @@ static void _actor444000ReturnToAdvanceState(Task* task)
 /// `glutton_throw_task.inc.c`, then undefine it. This identifier alias takes no
 /// arguments, captures no locals and adds no runtime side effects.
 #define GLUTTON_THROW_STATES _gGluttonThrowStates
-#include "../../shared/glutton_throw_task.inc.c"
+#include "../../shared/creatures/glutton/glutton_throw_task.inc.c"
 #undef GLUTTON_THROW_STATES
 
 /// Binds the incinerator glob dispatcher to its lifecycle callback table.
@@ -7199,17 +7155,10 @@ static void _actor444000ReturnToAdvanceState(Task* task)
 /// control; there is no terminator or index check. Each callback has signature
 /// `void(Enemy*, Task*)` and may destroy the live enemy and task. The table and
 /// callback code must remain loaded for dispatch. Bind only around
-/// `glutton_glob_task.inc.c`, then undefine it. This identifier alias takes no
+/// `glutton.inc.c`, then undefine it. This identifier alias takes no
 /// arguments, captures no locals and adds no runtime side effects.
 #define GLUTTON_GLOB_STATES _gGluttonGlobStates
-#include "../../shared/glutton_glob_task.inc.c"
-#undef GLUTTON_GLOB_STATES
-
-#include "../../shared/glutton_chunk_task.inc.c"
-
-#include "../../shared/glutton_rain_task.inc.c"
-
-#include "../../shared/glutton_spinner_wait.inc.c"
+#include "../../shared/creatures/glutton/glutton.inc.c"
 
 /// Binds the incinerator spinner dispatcher to its task-state callback table.
 ///
@@ -7221,7 +7170,7 @@ static void _actor444000ReturnToAdvanceState(Task* task)
 /// loaded for dispatch. Bind only around `glutton_spinner_task.inc.c`, then
 /// undefine it; the alias has no arguments or runtime side effects.
 #define GLUTTON_SPINNER_STATES _gGluttonSpinnerStates
-#include "../../shared/glutton_spinner_task.inc.c"
+#include "../../shared/creatures/glutton/glutton_spinner_task.inc.c"
 #undef GLUTTON_SPINNER_STATES
 
 /// Reports whether the boss enemy has positive HP.

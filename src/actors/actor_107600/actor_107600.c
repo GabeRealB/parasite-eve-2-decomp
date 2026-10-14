@@ -1425,15 +1425,7 @@ static void _actor107600UpdateMountRotation(Task* task)
 /// and alignment bytes are preserved; copying a matrix onto itself is valid.
 static void _actor107600CopyMountRotation(const MATRIX* source, MATRIX* destination)
 {
-    destination->m[0][0] = source->m[0][0];
-    destination->m[0][1] = source->m[0][1];
-    destination->m[0][2] = source->m[0][2];
-    destination->m[1][0] = source->m[1][0];
-    destination->m[1][1] = source->m[1][1];
-    destination->m[1][2] = source->m[1][2];
-    destination->m[2][0] = source->m[2][0];
-    destination->m[2][1] = source->m[2][1];
-    destination->m[2][2] = source->m[2][2];
+    gfxCopyRotation(destination, source);
 }
 
 /// Advances a newly spawned mount to its behaviour dispatcher after one tick.
@@ -2503,15 +2495,7 @@ static void _actor107600UpdateTargetRotation(Task* task)
 /// and alignment bytes are preserved; copying a matrix onto itself is valid.
 static void _actor107600CopyTargetRotation(const MATRIX* source, MATRIX* destination)
 {
-    destination->m[0][0] = source->m[0][0];
-    destination->m[0][1] = source->m[0][1];
-    destination->m[0][2] = source->m[0][2];
-    destination->m[1][0] = source->m[1][0];
-    destination->m[1][1] = source->m[1][1];
-    destination->m[1][2] = source->m[1][2];
-    destination->m[2][0] = source->m[2][0];
-    destination->m[2][1] = source->m[2][1];
-    destination->m[2][2] = source->m[2][2];
+    gfxCopyRotation(destination, source);
 }
 
 /// Enters a gallery target behaviour state and restarts it at step zero.

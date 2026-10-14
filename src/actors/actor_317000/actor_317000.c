@@ -23,8 +23,8 @@
 #include "main/task_types.h"
 #include "main/tmd.h"
 #include "main/tmd_types.h"
-#include "../../shared/actor_motion.h"
-#include "../../shared/actor_messages.h"
+#include "../../shared/actor/actor_motion.h"
+#include "../../shared/actor/actor_messages.h"
 
 /// Work block of the overlay's actor, allocated zeroed by its spawn state and
 /// kept at `Task::work` for the task's life.
@@ -867,9 +867,9 @@ static void _actor317000LandLeap(Task* task)
     work->walk.motionStep++;
 }
 
-#include "../../shared/actor_motion_play19.inc.c"
+#include "../../shared/actor/actor_motion_play19.inc.c"
 
-#include "../../shared/actor_messages_place_euler.inc.c"
+#include "../../shared/actor/actor_messages_place_euler.inc.c"
 
 /// Handles the actor's draw mode and primitive-buffer ownership choice.
 ///

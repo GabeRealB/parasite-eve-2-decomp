@@ -34,8 +34,8 @@
 #include "rooms/room.h"
 
 #include "rooms/room_common.h"
-#include "../../shared/glow_draw.h"
-#include "../../shared/room_events.h"
+#include "../../shared/effects/glow_draw.h"
+#include "../../shared/room/room_events.h"
 
 static void _shelterB1NorthMaintenanceWalkwaySetSceneSpriteVisibility(u8 sceneSeen);
 
@@ -162,7 +162,7 @@ static __inline__ s32 _shelterB1NorthMaintenanceWalkwayStartEvent(const RoomEven
     return ROOM_EVENT_DEPARTURE_DIRECT;
 }
 
-#include "../../shared/room_event_staged_task.inc.c"
+#include "../../shared/room/room_event_staged_task.inc.c"
 
 /// Resolves walkway departures and starts one-shot storeroom or quarters scenes.
 ///

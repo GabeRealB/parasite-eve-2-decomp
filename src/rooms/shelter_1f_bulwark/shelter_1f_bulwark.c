@@ -58,13 +58,13 @@
 #include "rooms/room.h"
 
 #include "rooms/room_common.h"
-#include "../../shared/room_visual_effects.h"
+#include "../../shared/room/room_visual_effects.h"
 // This room's fade symbol is the ScreenFade itself, with no following word.
 #define ROOM_EVENT_FADE gRoomEventFade
-#include "../../shared/room_events.h"
-#include "../../shared/room_variants.h"
-#include "../../shared/glow_draw.h"
-#include "../../shared/streamed_scene.h"
+#include "../../shared/room/room_events.h"
+#include "../../shared/room/room_variants.h"
+#include "../../shared/effects/glow_draw.h"
+#include "../../shared/room/streamed_scene.h"
 
 extern ScreenFade       gRoomEventFade;
 static RoomEventMsg     _gRoomEventStagedMsg;
@@ -150,7 +150,7 @@ static const SVECTOR _gShelter1fBulwarkView2GlowPoints[4] SECTION(".data") = {
 /// Fixed world-space red glow centre for mapped view 3, in world-coordinate units.
 static const SVECTOR _gShelter1fBulwarkView3GlowPoint SECTION(".data") = { -4180, -1940, 2720, 0 };
 
-#include "../../shared/room_visual_effects_trail_data.inc.c"
+#include "../../shared/room/room_visual_effects_trail_data.inc.c"
 
 WorldCollisionRoomResources gShelter1fBulwarkCollisionResources[1] = {
     { &_gShelter1fBulwarkCollisionGrid, _gShelter1fBulwarkViewBoundaries, _gShelter1fBulwarkActionTriggers, _gShelter1fBulwarkOccluders },
@@ -434,7 +434,7 @@ static u8 D_shelter_1f_bulwark_80180ECF = 137;
 
 RoomLatchedEvent gRoomEventLatched;
 
-#include "../../shared/room_event_staged_task.inc.c"
+#include "../../shared/room/room_event_staged_task.inc.c"
 
 /// Tests and, in execute mode, latches a room-transition event.
 ///
@@ -774,7 +774,7 @@ static void _shelter1fBulwarkReloadAfterDepartureMovieTask(Task* task)
     }
 }
 
-#include "../../shared/glow_draw_factor_disc.inc.c"
+#include "../../shared/effects/glow_draw_factor_disc.inc.c"
 
 void shelter1fBulwarkDrawGlowsTask(Task* task)
 {
@@ -814,27 +814,24 @@ void shelter1fBulwarkDrawGlowsTask(Task* task)
     }
 }
 
-#include "../../shared/room_visual_effects.inc.c"
+#include "../../shared/room/room_visual_effects.inc.c"
 
-#include "../../shared/room_visual_effects_flash_task.inc.c"
+#include "../../shared/room/room_visual_effects_flash_task.inc.c"
 
 void shelter1fBulwarkRoomVisualEffectsFlashTask(Task* task)
 {
     _roomVisualEffectsFlashTask(task);
 }
 
-#include "../../shared/room_visual_effects_trails.inc.c"
+#include "../../shared/room/room_visual_effects_trails.inc.c"
 
 void shelter1fBulwarkRoomVisualEffectsTwinTrailTask(Task* task)
 {
-#include "../../shared/room_visual_effects_trail_task.inc.c"
-}
+#include "../../shared/room/room_visual_effects_trail_task.inc.c"
 
-#include "../../shared/room_visual_effects_sparks.inc.c"
+    void shelter1fBulwarkRoomVisualEffectsSparkBurstTask(Task * task)
+    {
+        _roomVisualEffectsSparkBurstTask(task);
+    }
 
-void shelter1fBulwarkRoomVisualEffectsSparkBurstTask(Task* task)
-{
-    _roomVisualEffectsSparkBurstTask(task);
-}
-
-#include "../../shared/room_visual_effects_glow.inc.c"
+#include "../../shared/room/room_visual_effects_glow.inc.c"

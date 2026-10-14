@@ -233,6 +233,8 @@ static s16 _replayBonusGetListItemId(const UiList* unusedList, const UiObject* o
     return *itemId;
 }
 
+#include "replay_bonus_total_bp.inc.c"
+
 /// Returns the BP balance plus credits for the displayed list suffix.
 ///
 /// Sums from the first visible item through the list's end and caps at eight
@@ -241,23 +243,7 @@ static s16 _replayBonusGetListItemId(const UiList* unusedList, const UiObject* o
 /// catalogue bounds. Neither inventory nor the BP balance is changed.
 static s32 _replayBonusGetListTotalBp(const UiList* list, const UiObject* object)
 {
-    enum { REPLAY_BONUS_MAX_DISPLAYED_TOTAL_BP = 99999999 };
-    s32                 itemIndex;
-    s32                 totalBp;
-    const PlayerStatus* playerStatus;
-
-    playerStatus = &gPlayerStatus;
-    totalBp      = 0;
-    for (itemIndex = list->firstVisibleItemIndex.signedValue; itemIndex < list->itemCount; itemIndex++) {
-        const s16* itemIds = object->owner->work;
-
-        totalBp += _replayBonusItemBp(itemIds[itemIndex]);
-    }
-    totalBp += playerStatus->bp;
-    if (totalBp > REPLAY_BONUS_MAX_DISPLAYED_TOTAL_BP) {
-        totalBp = REPLAY_BONUS_MAX_DISPLAYED_TOTAL_BP;
-    }
-    return totalBp;
+    return _replayBonusSumTotalBp(list, object);
 }
 
 /// Draws a Complete Bonus item's name and half-price BP credit, identifying it.

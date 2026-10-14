@@ -25,7 +25,7 @@
 
 #include "mapui/map_neo_ark.h"
 
-#include "../../shared/room_variants.h"
+#include "../../shared/room/room_variants.h"
 
 static void _neoArkEveElevatorInitializeRoom(Task* task);
 static void _neoArkEveElevatorIdleRoomTask(Task* unusedTask);

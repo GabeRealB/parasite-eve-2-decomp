@@ -68,7 +68,7 @@
 #include "overlay.h"
 
 #include "rooms/dryfield_night_motel_balcony.h"
-#include "../../shared/coord_math.h"
+#include "../../shared/actor/coord_math.h"
 
 /// Stride and impact cues used by the combat walk and its follow-up clips.
 ///
@@ -1822,8 +1822,6 @@ static inline s32      _actor403100PointToWorld(const GfxCoord* coord, SVECTOR* 
 static inline void     _actor403100RequestAnimationBlendInline(s16 animationId, s16 rate, s16 blendFrames);
 static s32             _actorRenderLocalizeRotationToAncestor(const GfxCoord* joint, MATRIX* rotation, const GfxCoord* excludedAncestor);
 
-static __inline__ void _actor403100CopyRotation(MATRIX* destination, const MATRIX* source);
-
 /// Pre-multiplies a rotation by a parent basis and normalizes the product.
 ///
 /// All arguments are stable, side-effect-free pointers to word-aligned MATRIX
@@ -1871,23 +1869,6 @@ static __inline__ s32 _actor403100FindPlayerRegion(s16 x, s16 z)
         }
     }
     return ACTOR_403100_PLAYER_REGION_NONE;
-}
-
-/// Copies the nine rotation coefficients, retaining translation and alignment bytes.
-///
-/// Source and destination are separate word-aligned matrices. The source's
-/// 3x3 is initialized and the destination is writable; no cache stamp changes.
-static __inline__ void _actor403100CopyRotation(MATRIX* destination, const MATRIX* source)
-{
-    destination->m[0][0] = source->m[0][0];
-    destination->m[0][1] = source->m[0][1];
-    destination->m[0][2] = source->m[0][2];
-    destination->m[1][0] = source->m[1][0];
-    destination->m[1][1] = source->m[1][1];
-    destination->m[1][2] = source->m[1][2];
-    destination->m[2][0] = source->m[2][0];
-    destination->m[2][1] = source->m[2][1];
-    destination->m[2][2] = source->m[2][2];
 }
 
 /// Converts an ancestor-frame rotation into the joint's parent frame.
@@ -2263,7 +2244,7 @@ static void _actor403100TurnUpperArm(Task* task)
     RotMatrixY(_gActor403100Work->armYaw, rootRotation);
     _actor403100LocalizeRotation(upperArm, rootRotation, root);
     localRotation = &upperArm->coord;
-    _actor403100CopyRotation(localRotation, rootRotation);
+    gfxCopyRotation(localRotation, rootRotation);
     upperArm->composeStamp = GRAPHICS_COORD_DIRTY;
     actorRenderComposeCoord(upperArm);
     SCRATCH_STACK_CURSOR(MATRIX) += 1;
@@ -2708,7 +2689,7 @@ static inline void _actor403100SetRootYaw(Task* task)
     gfxSetRotIdentity(&yawRotation);
     RotMatrixY(_gActor403100Work->rotation.vy, &yawRotation);
     rootMatrix = &rootCoord->coord;
-    _actor403100CopyRotation(rootMatrix, &yawRotation);
+    gfxCopyRotation(rootMatrix, &yawRotation);
     rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
@@ -4180,7 +4161,7 @@ static inline void _actor403100TurnForearmInline(Task* task)
     angles.vy += _gActor403100Work->forearmTurn.vy;
     angles.vx += _gActor403100Work->forearmTurn.vx;
     RotMatrix(&angles, &rotation);
-    _actor403100CopyRotation(localRotation, &rotation);
+    gfxCopyRotation(localRotation, &rotation);
     actorRenderComposeCoord(forearm);
 }
 
@@ -4204,7 +4185,7 @@ static inline void _actor403100ApplyJawAndHeadPitch(Task* task)
     gfxExtractEulerAngles(targetRotation, &angles);
     angles.vx += _gActor403100Work->jawPitchOffset;
     RotMatrix(&angles, &rotation);
-    _actor403100CopyRotation(targetRotation, &rotation);
+    gfxCopyRotation(targetRotation, &rotation);
 
     coords = task->extra.tmd->coords;
     gfxSetRotIdentity(&rotation);
@@ -4212,7 +4193,7 @@ static inline void _actor403100ApplyJawAndHeadPitch(Task* task)
     gfxExtractEulerAngles(targetRotation, &angles);
     angles.vx += _gActor403100Work->headPitchOffset;
     RotMatrix(&angles, &rotation);
-    _actor403100CopyRotation(targetRotation, &rotation);
+    gfxCopyRotation(targetRotation, &rotation);
 }
 
 /// Refreshes the Burner's posed hand and jaw chains before sampling head-origin lighting.
@@ -6546,7 +6527,7 @@ static void _actor403100AimHead(Task* task, s16 aimMode)
     MulMatrix(headLocalRotation, lowerInverseRotation);
     MulMatrix(headLocalRotation, &aimScratch->aim);
     headRotation = &headCoord->coord;
-    _actor403100CopyRotation(headRotation, headLocalRotation);
+    gfxCopyRotation(headRotation, headLocalRotation);
     SCRATCH_STACK_RELEASE_BLOCK(_Actor403100HeadAimScratch);
     lowerTrunkCoord->composeStamp  = GRAPHICS_COORD_DIRTY;
     middleTrunkCoord->composeStamp = GRAPHICS_COORD_DIRTY;
@@ -7577,7 +7558,7 @@ static s32 _actor403100GetWorldRotation(const GfxCoord* joint, MATRIX* rotation)
 }
 #undef ACTOR_403100_PREMULTIPLY_NORMALIZED_ROTATION
 
-#include "../../shared/coord_math_local_to_world.inc.c"
+#include "../../shared/actor/coord_math_local_to_world.inc.c"
 
 /// Applies a Burner behaviour, scripted-scene or defeat command.
 ///

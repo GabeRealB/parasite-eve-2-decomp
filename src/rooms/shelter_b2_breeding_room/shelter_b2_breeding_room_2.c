@@ -34,12 +34,12 @@
 #include "overlay.h"
 
 #include "rooms/room_common.h"
-#include "../../shared/room_visual_effects.h"
+#include "../../shared/room/room_visual_effects.h"
 /// This room's `glowDrawDisc` stores the on-screen half-extent ahead of the
 /// GTE flag word. Defined before `glow_draw.h`, which otherwise selects
 /// `GlowCentreScratch`.
 #define GLOW_DRAW_DISC_SCRATCH GlowCentreRadiusFirstScratch
-#include "../../shared/glow_draw.h"
+#include "../../shared/effects/glow_draw.h"
 
 /// World-space glow centres and capsule endpoints selected by mapped views 2..6.
 ///
@@ -168,6 +168,6 @@ void shelterB2BreedingRoomDrawGlowsTask(Task* task)
     }
 }
 
-#include "../../shared/glow_draw_capsule.inc.c"
+#include "../../shared/effects/glow_draw_capsule.inc.c"
 
-#include "../../shared/glow_draw_disc.inc.c"
+#include "../../shared/effects/glow_draw_disc.inc.c"

@@ -47,7 +47,7 @@
 #include "mapui/map_neo_ark.h"
 
 #include "rooms/room_common.h"
-#include "../../shared/glow_draw.h"
+#include "../../shared/effects/glow_draw.h"
 
 static WorldCollisionGrid     _gNeoArkPowerPlant1CollisionGrid;
 static WorldCollisionOccluder _gNeoArkPowerPlant1SightOccluders[1];
@@ -1081,7 +1081,7 @@ void neoArkPowerPlant1DrawLightGlowsTask(Task* unusedTask)
     }
 }
 
-#include "../../shared/glow_draw_disc.inc.c"
+#include "../../shared/effects/glow_draw_disc.inc.c"
 
 void neoArkPowerPlant1SetLifeSupportSpritesHidden(s32 hidden)
 {

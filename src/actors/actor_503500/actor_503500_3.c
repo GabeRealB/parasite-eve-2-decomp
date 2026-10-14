@@ -56,7 +56,7 @@
 #include "overlay.h"
 
 #include "rooms/shelter_r48.h"
-#include "../../shared/bezier_curve.h"
+#include "../../shared/actor/bezier_curve.h"
 
 /// Boss animation presets and the attachment shared by its orange-flash sequences.
 ///
@@ -4657,7 +4657,7 @@ static void _actor503500LargeChainPlaceLinks(const SVECTOR* points, GfxCoord* co
     SCRATCH_STACK_RELEASE_BLOCK(Actor503500ChainScratch);
 }
 
-#include "../../shared/bezier_curve_evaluate.inc.c"
+#include "../../shared/actor/bezier_curve_evaluate.inc.c"
 
 /// Releases the large chain's effect reservation, detaches its model and destroys it.
 ///
@@ -4807,7 +4807,7 @@ static void _actor503500LargeChainBlendPose(Task* task)
     }
 }
 
-#include "../../shared/bezier_curve_coefficients.inc.c"
+#include "../../shared/actor/bezier_curve_coefficients.inc.c"
 
 /// Restarts a large chain in a requested state and reports its occupancy.
 ///

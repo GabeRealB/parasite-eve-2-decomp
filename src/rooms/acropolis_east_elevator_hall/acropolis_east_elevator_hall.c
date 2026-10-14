@@ -69,18 +69,18 @@ static const char _gAcropolisEastElevatorHallPlayerDebugLabel[];
 ///
 /// 0 requires `planar_reflection_rodata.inc.c` before the shared implementation.
 #define PLANAR_REFLECTION_DEFINE_SCALE_WITH_IMPLEMENTATION 0
-#include "../../shared/planar_reflection.h"
+#include "../../shared/room/planar_reflection.h"
 /// Binds the shared beacon body to this room's public `void (Task*)` callback.
 ///
 /// Required before `red_beacon.h` and its task fragment; gameplay imports this instance.
 #define RED_BEACON_TASK acropolisEastElevatorHallRedBeaconTask
-#include "../../shared/red_beacon.h"
+#include "../../shared/effects/red_beacon.h"
 
 static void _acropolisEastElevatorHallInitializeRoomTask(Task* task);
 static void _acropolisEastElevatorHallUpdatePlayerDebugDisplay(Task* unusedTask);
 
 /// Scale handed to `ScaleMatrix` to flip the reflection across X.
-#include "../../shared/planar_reflection_rodata.inc.c"
+#include "../../shared/room/planar_reflection_rodata.inc.c"
 
 /// Room-task states 0..2: initialize, update the player debug display, release.
 ///
@@ -106,7 +106,7 @@ static void                  _acropolisEastElevatorHallStartSkipCapSequence(void
 /// Key-item use request sent to the room task by the inventory menu.
 enum { ACROPOLIS_EAST_ELEVATOR_HALL_MESSAGE_USE_KEY_ITEM = 0x13F1 };
 
-#include "../../shared/planar_reflection_data.inc.c"
+#include "../../shared/room/planar_reflection_data.inc.c"
 
 /// Execution priority shared by the player and attachment reflection tasks.
 enum { ACROPOLIS_EAST_ELEVATOR_HALL_REFLECTION_PRIORITY = 112 };
@@ -1072,7 +1072,7 @@ WorldCollisionSurfaceProperties* gAcropolisEastElevatorHallSurfacePropertiesByCl
     &_gAcropolisEastElevatorHallDefaultSurfaceProperties,
 };
 
-#include "../../shared/planar_reflection.inc.c"
+#include "../../shared/room/planar_reflection.inc.c"
 
 void acropolisEastElevatorHallPlayerReflectionTask(Task* reflectionTask)
 {
@@ -1288,7 +1288,7 @@ void acropolisEastElevatorHallReflectionsAndBeaconsTask(Task* task)
     }
 }
 
-#include "../../shared/red_beacon_task.inc.c"
+#include "../../shared/effects/red_beacon_task.inc.c"
 #undef RED_BEACON_TASK
 
 /// Projects a view-space translation and queues a single additive gray pixel.

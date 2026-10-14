@@ -1,4 +1,4 @@
-#include "../../shared/actor_contacts.h"
+#include "../../shared/actor/actor_contacts.h"
 
 static SVECTOR ActorContact_ScratchPosition;
 
@@ -15,4 +15,4 @@ static inline SVECTOR* _actorContactGetLastPushStep(void)
 }
 
 /* Retained second contact run; its private scratch starts on an eight-byte boundary. */
-#include "../../shared/actor_contacts.inc.c"
+#include "../../shared/actor/actor_contacts.inc.c"

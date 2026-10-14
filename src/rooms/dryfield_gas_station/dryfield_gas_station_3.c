@@ -5,7 +5,7 @@
 #include "actors/task_tables.h"
 
 #include "main/task_types.h"
-#include "../../shared/glow_draw.h"
+#include "../../shared/effects/glow_draw.h"
 
 /* GCC orders BSS by first declaration; keep this prologue before the API headers. */
 Task* gRoomCutsceneSoundTask;
@@ -71,7 +71,7 @@ Task* _gDryfieldGasStationArrivalCutsceneTask;
 #include "rooms/room.h"
 
 #include "rooms/room_common.h"
-#include "../../shared/screen_fade.h"
+#include "../../shared/screen/screen_fade.h"
 
 /// Commands the gas-station cutscene script leaves for the cutscene task.
 ///
@@ -1109,7 +1109,7 @@ static void _dryfieldGasStationSuppressPlayerEquipment(void)
 #undef SCREEN_FADE_IN_TASK
 /// Binds the fade-in fragment to the cutscene table's private task callback.
 #define SCREEN_FADE_IN_TASK _screenFadeInTask
-#include "../../shared/screen_fade_in.inc.c"
+#include "../../shared/screen/screen_fade_in.inc.c"
 #undef SCREEN_FADE_IN_TASK
 
 /// Restores the player at the arrival cutscene's final placement and shows the display.
@@ -1154,7 +1154,7 @@ static void _dryfieldGasStationSetCutsceneCommand(s16 command)
     work->commandStep = 0;
 }
 
-#include "../../shared/glow_draw_star_local.inc.c"
+#include "../../shared/effects/glow_draw_star_local.inc.c"
 
 /// Sets the outer ray-star disc's centre to half-intensity cyan.
 ///
@@ -1184,7 +1184,7 @@ static void _dryfieldGasStationSetCutsceneCommand(s16 command)
 /// Define before including `glow_draw_ray_star.inc.c`, which undefines this
 /// binding afterwards.
 #define GLOW_DRAW_RAY_STAR_RAY(primitive, halfIntensity) (setRGB2((primitive), 0, (halfIntensity), (halfIntensity)))
-#include "../../shared/glow_draw_ray_star.inc.c"
+#include "../../shared/effects/glow_draw_ray_star.inc.c"
 
 void dryfieldGasStationCyanGlowTask(Task* task)
 {

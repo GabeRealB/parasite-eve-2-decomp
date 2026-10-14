@@ -61,8 +61,8 @@
 #include "rooms/room.h"
 
 #include "rooms/room_common.h"
-#include "../../shared/room_visual_effects.h"
-#include "../../shared/glow_draw.h"
+#include "../../shared/room/room_visual_effects.h"
+#include "../../shared/effects/glow_draw.h"
 // The flag symbol carries seven unproven bytes after the flag.
 #define ROOM_EVENT_ACTIVE gRoomEventActive.eventStarted
 // The request symbol carries twelve unproven bytes after the request.
@@ -70,9 +70,9 @@
 /// Selects the gate's TU-local room-transition task descriptor.
 ///
 /// Addressable `TaskDesc` lvalue; see `room_events.h` for the spawn contract.
-/// Bind before that header and keep through `room_event_gate.inc.c`.
+/// Bind before that header and keep through `room_event.inc.c`.
 #define ROOM_EVENT_TASK_DESC (_gRoomEventTaskDesc)
-#include "../../shared/room_events.h"
+#include "../../shared/room/room_events.h"
 
 /// The walkway's message table, installed as the room task's `msgTable`.
 
@@ -154,9 +154,9 @@ static SVECTOR _gShelterB2SouthMaintenanceWalkwayGlowAnchors[21] = {
     { 763, -1283, -2117, 0 },
 };
 
-#include "../../shared/room_visual_effects_trail_data.inc.c"
+#include "../../shared/room/room_visual_effects_trail_data.inc.c"
 
-#include "../../shared/room_visual_effects_disc_data.inc.c"
+#include "../../shared/room/room_visual_effects_disc_data.inc.c"
 
 u8* gShelterB2SouthMaintenanceWalkwayRoomViewMaps[1] = {
     gViewIdentityMap,
@@ -628,9 +628,7 @@ RoomEventReqStorage gRoomEventReq;
 
 RoomLatchedEvent gRoomEventLatched;
 
-#include "../../shared/room_event_gate.inc.c"
-
-#include "../../shared/room_event_task.inc.c"
+#include "../../shared/room/room_event.inc.c"
 
 /// Latches a first-use departure event, or tests its eligibility for a query.
 ///
@@ -666,7 +664,7 @@ static __inline__ s32 _shelterB2SouthMaintenanceWalkwayStartEvent(const RoomEven
     return EVENT_ORDINARY_DEPARTURE;
 }
 
-#include "../../shared/room_event_staged_task.inc.c"
+#include "../../shared/room/room_event_staged_task.inc.c"
 
 /// Resolves operating-room and elevator-hall departures through their door events.
 ///
@@ -826,52 +824,49 @@ void shelterB2SouthMaintenanceWalkwayDrawGlowsTask(Task* task)
     }
 }
 
-#include "../../shared/glow_draw_cone.inc.c"
+#include "../../shared/effects/glow_draw_cone.inc.c"
 
-#include "../../shared/glow_draw_red_disc.inc.c"
+#include "../../shared/effects/glow_draw_red_disc.inc.c"
 
-#include "../../shared/room_visual_effects.inc.c"
+#include "../../shared/room/room_visual_effects.inc.c"
 
-#include "../../shared/room_visual_effects_flash_task.inc.c"
+#include "../../shared/room/room_visual_effects_flash_task.inc.c"
 
 void shelterB2SouthMaintenanceWalkwayRoomVisualEffectsFlashTask(Task* task)
 {
     _roomVisualEffectsFlashTask(task);
 }
 
-#include "../../shared/room_visual_effects_trails.inc.c"
+#include "../../shared/room/room_visual_effects_trails.inc.c"
 
 void shelterB2SouthMaintenanceWalkwayRoomVisualEffectsTwinTrailTask(Task* task)
 {
-#include "../../shared/room_visual_effects_trail_task.inc.c"
-}
+#include "../../shared/room/room_visual_effects_trail_task.inc.c"
 
-#include "../../shared/room_visual_effects_sparks.inc.c"
+    void shelterB2SouthMaintenanceWalkwayRoomVisualEffectsSparkBurstTask(Task * task)
+    {
+        _roomVisualEffectsSparkBurstTask(task);
+    }
 
-void shelterB2SouthMaintenanceWalkwayRoomVisualEffectsSparkBurstTask(Task* task)
-{
-    _roomVisualEffectsSparkBurstTask(task);
-}
+#include "../../shared/room/room_visual_effects_glow.inc.c"
 
-#include "../../shared/room_visual_effects_glow.inc.c"
+#include "../../shared/room/room_visual_effects_flying_tasks.inc.c"
 
-#include "../../shared/room_visual_effects_flying_tasks.inc.c"
+    void shelterB2SouthMaintenanceWalkwayRoomVisualEffectsGlowDiscTask(Task * task)
+    {
+        _roomVisualEffectsGlowDiscTask(task);
+    }
 
-void shelterB2SouthMaintenanceWalkwayRoomVisualEffectsGlowDiscTask(Task* task)
-{
-    _roomVisualEffectsGlowDiscTask(task);
-}
+    void shelterB2SouthMaintenanceWalkwayRoomVisualEffectsFlyingSparkTask(Task * task)
+    {
+        _roomVisualEffectsFlyingSparkTask(task);
+    }
 
-void shelterB2SouthMaintenanceWalkwayRoomVisualEffectsFlyingSparkTask(Task* task)
-{
-    _roomVisualEffectsFlyingSparkTask(task);
-}
+#include "../../shared/room/room_visual_effects_burst.inc.c"
 
-#include "../../shared/room_visual_effects_burst.inc.c"
+    void shelterB2SouthMaintenanceWalkwayRoomVisualEffectsFlyingOrangeBurstTask(Task * task)
+    {
+        _roomVisualEffectsFlyingOrangeBurstTask(task);
+    }
 
-void shelterB2SouthMaintenanceWalkwayRoomVisualEffectsFlyingOrangeBurstTask(Task* task)
-{
-    _roomVisualEffectsFlyingOrangeBurstTask(task);
-}
-
-#include "../../shared/room_visual_effects_burst_draw.inc.c"
+#include "../../shared/room/room_visual_effects_burst_draw.inc.c"

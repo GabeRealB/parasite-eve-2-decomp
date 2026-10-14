@@ -51,7 +51,7 @@
 #include "mapui/map_neo_ark.h"
 
 #include "rooms/room_common.h"
-#include "../../shared/room_visual_effects.h"
+#include "../../shared/room/room_visual_effects.h"
 
 static void _neoArkPyramidSetRotationPuzzleAngle(s32 sweepAngle);
 static void _neoArkPyramidInitializeRoom(Task* task);
@@ -105,7 +105,7 @@ static TaskDesc _gNeoArkPyramidRotationPuzzleTaskDesc = {
     .data     = { .value = 0 },
 };
 
-#include "../../shared/room_visual_effects_trail_data.inc.c"
+#include "../../shared/room/room_visual_effects_trail_data.inc.c"
 
 WorldCollisionRoomResources gNeoArkPyramidRoomCollisionResources[2] = {
     { .grid = &_gNeoArkPyramidCollisionGrid, .viewBoundaryTriggers = _gNeoArkPyramidViewBoundaryTriggers, .actionTriggers = _gNeoArkPyramidActionTriggers, .occluders = _gNeoArkPyramidSightOccluders },
@@ -1013,27 +1013,24 @@ void neoArkPyramidConfigureEffectsTask(Task* task)
     }
 }
 
-#include "../../shared/room_visual_effects.inc.c"
+#include "../../shared/room/room_visual_effects.inc.c"
 
-#include "../../shared/room_visual_effects_flash_task.inc.c"
+#include "../../shared/room/room_visual_effects_flash_task.inc.c"
 
 void neoArkPyramidRoomVisualEffectsFlashTask(Task* task)
 {
     _roomVisualEffectsFlashTask(task);
 }
 
-#include "../../shared/room_visual_effects_trails.inc.c"
+#include "../../shared/room/room_visual_effects_trails.inc.c"
 
 void neoArkPyramidRoomVisualEffectsTwinTrailTask(Task* task)
 {
-#include "../../shared/room_visual_effects_trail_task.inc.c"
-}
+#include "../../shared/room/room_visual_effects_trail_task.inc.c"
 
-#include "../../shared/room_visual_effects_sparks.inc.c"
+    void neoArkPyramidRoomVisualEffectsSparkBurstTask(Task * task)
+    {
+        _roomVisualEffectsSparkBurstTask(task);
+    }
 
-void neoArkPyramidRoomVisualEffectsSparkBurstTask(Task* task)
-{
-    _roomVisualEffectsSparkBurstTask(task);
-}
-
-#include "../../shared/room_visual_effects_glow.inc.c"
+#include "../../shared/room/room_visual_effects_glow.inc.c"

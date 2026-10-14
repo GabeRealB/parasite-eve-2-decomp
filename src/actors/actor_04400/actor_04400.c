@@ -52,7 +52,7 @@
 #include "rooms/shelter_b3_dumping_hole.h"
 
 #include "rooms/shelter_b3_garbage_incinerator.h"
-#include "../../shared/mad_chaser.h"
+#include "../../shared/creatures/mad_chaser/mad_chaser.h"
 
 static const TaskFuncTable3 gMadChaserWalkSteps; // dispatcher table _madChaserWalkState copies onto its stack
 
@@ -784,7 +784,7 @@ static u8 _gMadChaserSettleAnims[19] = {
     MAD_CHASER_SETTLE_LOW_CLIP,
 };
 
-#include "../../shared/mad_chaser_inlines.inc.c"
+#include "../../shared/creatures/mad_chaser/mad_chaser_inlines.inc.c"
 
 static void _madChaserRecoilRecover(Task* task);
 
@@ -923,33 +923,11 @@ static const TaskFuncTable4 _gMadChaserDangleSteps = { {
     _madChaserDangleLand,
 } };
 
-#include "../../shared/mad_chaser_limb_shadow.inc.c"
+#include "../../shared/creatures/mad_chaser/mad_chaser_limb_shadow.inc.c"
 
-#include "../../shared/mad_chaser_spawn_gibs.inc.c"
+#include "../../shared/creatures/mad_chaser/mad_chaser_spawn_gibs.inc.c"
 
-#include "../../shared/mad_chaser_twist.inc.c"
-
-#include "../../shared/mad_chaser_spawn.inc.c"
-
-#include "../../shared/mad_chaser_spawn_hidden.inc.c"
-
-#include "../../shared/mad_chaser_combat_tick.inc.c"
-
-#include "../../shared/mad_chaser_walk_start.inc.c"
-
-#include "../../shared/mad_chaser_walk_approach.inc.c"
-
-#include "../../shared/mad_chaser_leap_attack.inc.c"
-
-#include "../../shared/mad_chaser_leap_turn_away.inc.c"
-
-#include "../../shared/mad_chaser_leap_rebound.inc.c"
-
-#include "../../shared/mad_chaser_dangle_frame.inc.c"
-
-#include "../../shared/mad_chaser_dangle_fall.inc.c"
-
-#include "../../shared/mad_chaser_dangle_land.inc.c"
+#include "../../shared/creatures/mad_chaser/mad_chaser_spawn.inc.c"
 
 /// Applies Mad Chaser body contacts, hit reactions and horizontal correction.
 ///
@@ -1161,33 +1139,7 @@ static void _madChaserApplyContacts(Task* task, s16 ignorePlayerBody)
 #undef MAD_CHASER_ADJUST_FRACTIONAL_GRID_STEP
 }
 
-#include "../../shared/mad_chaser_tick_anim.inc.c"
-
-#include "../../shared/mad_chaser_bodies.inc.c"
-
-/// Behaviors of ordinary death, including the alternate blast-burst path.
-///
-/// `MadChaserWork::state` selects 0 release the target, 1 settle, 2 wait for animation, 3
-/// start shrink, 4 turn translucent, 5 shrink with burn, 6 start despawn, 7 pause, 8 burst.
-/// The dispatcher copies every non-NULL void(Task*) callback before indexing;
-/// the selected index must be in range and the carrier must remain loaded.
-static const TaskFuncTable9 _gMadChaserDeathStates = { {
-    _madChaserDeathReleaseTarget,
-    _madChaserDeathSettle,
-    _madChaserDeathWaitAnim,
-    _madChaserDeathStartShrink,
-    _madChaserDeathTurnTranslucent,
-    _madChaserShrinkWithBurn,
-    _madChaserStartDespawn,
-    _madChaserDeathPause,
-    _madChaserBurst,
-} };
-
-#include "../../shared/mad_chaser_death_tick.inc.c"
-
-#include "../../shared/mad_chaser_shrink_dust.inc.c"
-
-#include "../../shared/mad_chaser_track_player.inc.c"
+#include "../../shared/creatures/mad_chaser/mad_chaser_tick_anim.inc.c"
 
 /// Finishes light recoil according to the interrupted clip's stance.
 ///
@@ -1393,89 +1345,30 @@ static const TaskFuncTable7 _gMadChaserShrinkDeathStates = { {
     _madChaserShrinkDeathStartDespawn,
 } };
 
-#include "../../shared/mad_chaser_lurk_look.inc.c"
+#include "../../shared/creatures/mad_chaser/mad_chaser_lurk_look.inc.c"
 
-#include "../../shared/mad_chaser_lurk_sidestep_combat.inc.c"
+#include "../../shared/creatures/mad_chaser/mad_chaser_emerge_at_spot.inc.c"
 
-#include "../../shared/mad_chaser_lurk_sidestep_right.inc.c"
+#include "../../shared/creatures/mad_chaser/mad_chaser_creep.inc.c"
 
-#include "../../shared/mad_chaser_lurk_sidestep_left.inc.c"
-
-#include "../../shared/mad_chaser_emerge_tick.inc.c"
-
-#include "../../shared/mad_chaser_emerge_at_spot.inc.c"
-
-#include "../../shared/mad_chaser_emerge_backflip.inc.c"
-
-#include "../../shared/mad_chaser_emerge_hop_forward.inc.c"
-
-#include "../../shared/mad_chaser_creep.inc.c"
-
-#include "../../shared/mad_chaser_emerge_arc_back.inc.c"
-
-#include "../../shared/mad_chaser_emerge_hop_back.inc.c"
-
-#include "../../shared/mad_chaser_emerge_back_off.inc.c"
-
-#include "../../shared/mad_chaser_emerge_high_arc.inc.c"
-
-#include "../../shared/mad_chaser_emerge_flip_over.inc.c"
+#include "../../shared/creatures/mad_chaser/mad_chaser_emerge.inc.c"
 
 /// Selects the carrier's static void(Task*) creep handler for emerge behavior 9.
 #define MAD_CHASER_EMERGE_CREEP_HANDLER _madChaserEmergeCreep9
-#include "../../shared/mad_chaser_creep.inc.c"
+#include "../../shared/creatures/mad_chaser/mad_chaser_creep.inc.c"
 
-#include "../../shared/mad_chaser_pulled_struggle.inc.c"
+#include "../../shared/creatures/mad_chaser/mad_chaser_pulled_struggle.inc.c"
 
-#include "../../shared/mad_chaser_pulled_in.inc.c"
-
-#include "../../shared/mad_chaser_pulled_limp.inc.c"
-
-#include "../../shared/mad_chaser_drop_death_tick.inc.c"
-
-#include "../../shared/mad_chaser_shrink_death_tick.inc.c"
-
-#include "../../shared/mad_chaser_sound_bank.inc.c"
-
-#include "../../shared/mad_chaser_vanish_state.inc.c"
-
-#include "../../shared/mad_chaser_join_alert.inc.c"
-
-#include "../../shared/mad_chaser_alert_hold.inc.c"
-
-#include "../../shared/mad_chaser_take_request.inc.c"
-
-#include "../../shared/mad_chaser_command_msg.inc.c"
-
-#include "../../shared/mad_chaser_msg_place.inc.c"
-
-#include "../../shared/mad_chaser_pin_part.inc.c"
-
-#include "../../shared/mad_chaser_scale_by_speed.inc.c"
-
-#include "../../shared/mad_chaser_anim_ended.inc.c"
-
-#include "../../shared/mad_chaser_hidden_task.inc.c"
-
-#include "../../shared/mad_chaser_task.inc.c"
-
-/// Selects this carrier's static void(Task*) task-state-5 dispatcher.
-#define MAD_CHASER_DESPAWN_STATE _madChaserDespawnState
-#include "../../shared/mad_chaser_despawn_state.inc.c"
-#undef MAD_CHASER_DESPAWN_STATE
-
-#include "../../shared/mad_chaser_turn_to_player.inc.c"
-
-#include "../../shared/mad_chaser_to_alert.inc.c"
+#include "../../shared/creatures/mad_chaser/mad_chaser_to_alert.inc.c"
 
 /// Selects the static void(Task*) alert transition for combat table slot 1.
 #define MAD_CHASER_COMBAT_ENTER_ALERT_HANDLER _madChaserCombatToAlertState1
-#include "../../shared/mad_chaser_to_alert.inc.c"
+#include "../../shared/creatures/mad_chaser/mad_chaser_to_alert.inc.c"
 #undef MAD_CHASER_COMBAT_ENTER_ALERT_HANDLER
 
 /// Selects the static void(Task*) alert transition for combat table slot 2.
 #define MAD_CHASER_COMBAT_ENTER_ALERT_HANDLER _madChaserCombatToAlertState2
-#include "../../shared/mad_chaser_to_alert.inc.c"
+#include "../../shared/creatures/mad_chaser/mad_chaser_to_alert.inc.c"
 #undef MAD_CHASER_COMBAT_ENTER_ALERT_HANDLER
 
 #define MAD_CHASER_STEP_STATE _madChaserWalkState
@@ -1494,16 +1387,12 @@ static const TaskFuncTable7 _gMadChaserShrinkDeathStates = { {
 /// reaction and interrupts even when no combat behavior is selected.
 /// Bind only for this fragment inclusion, then undefine; there is no default.
 #define MAD_CHASER_STEP_INTERRUPT_HANDLER _madChaserTakeHitRequest
-#include "../../shared/mad_chaser_walk_state.inc.c"
+#include "../../shared/creatures/mad_chaser/mad_chaser_walk_state.inc.c"
 #undef MAD_CHASER_STEP_STATE
 #undef MAD_CHASER_STEP_TABLE
 #undef MAD_CHASER_STEP_INTERRUPT_HANDLER
 
-#include "../../shared/mad_chaser_leap_state.inc.c"
-
-/// Selects this carrier's declared static void(Task*) combat-alert dispatcher.
-#define MAD_CHASER_ALERT_STATE_HANDLER _madChaserAlertState
-#include "../../shared/mad_chaser_alert_state.inc.c"
+#include "../../shared/creatures/mad_chaser/mad_chaser_leap_state.inc.c"
 #undef MAD_CHASER_ALERT_STATE_HANDLER
 
 /// Selects this carrier's declared static void(Task*) light-recoil dispatcher.
@@ -1522,7 +1411,7 @@ static const TaskFuncTable7 _gMadChaserShrinkDeathStates = { {
 /// carrier's light recovery uses its signed-halfword behavior setter.
 /// Bind only for this fragment inclusion, then undefine; there is no default.
 #define MAD_CHASER_REACTION_CONTINUE_HANDLER _madChaserRecoilRecover
-#include "../../shared/mad_chaser_recoil_light_state.inc.c"
+#include "../../shared/creatures/mad_chaser/mad_chaser_recoil_light_state.inc.c"
 #undef MAD_CHASER_REACTION_STATE_HANDLER
 #undef MAD_CHASER_REACTION_ENTRY_HANDLER
 #undef MAD_CHASER_REACTION_CONTINUE_HANDLER
@@ -1533,7 +1422,7 @@ static const TaskFuncTable7 _gMadChaserShrinkDeathStates = { {
 #define MAD_CHASER_REACTION_ENTRY_HANDLER _madChaserRecoilHeavy
 /// Selects the declared void(Task*) heavy-recoil continuation at subState 1.
 #define MAD_CHASER_REACTION_CONTINUE_HANDLER _madChaserRecoilHeavyEnd
-#include "../../shared/mad_chaser_recoil_light_state.inc.c"
+#include "../../shared/creatures/mad_chaser/mad_chaser_recoil_light_state.inc.c"
 #undef MAD_CHASER_REACTION_STATE_HANDLER
 #undef MAD_CHASER_REACTION_ENTRY_HANDLER
 #undef MAD_CHASER_REACTION_CONTINUE_HANDLER
@@ -1544,72 +1433,26 @@ static const TaskFuncTable7 _gMadChaserShrinkDeathStates = { {
 #define MAD_CHASER_REACTION_ENTRY_HANDLER _madChaserStatusHoldStart
 /// Selects the declared void(Task*) buildup-status continuation at subState 1.
 #define MAD_CHASER_REACTION_CONTINUE_HANDLER _madChaserStatusHold
-#include "../../shared/mad_chaser_recoil_light_state.inc.c"
+#include "../../shared/creatures/mad_chaser/mad_chaser_recoil_light_state.inc.c"
 #undef MAD_CHASER_REACTION_STATE_HANDLER
 #undef MAD_CHASER_REACTION_ENTRY_HANDLER
 #undef MAD_CHASER_REACTION_CONTINUE_HANDLER
 
-#include "../../shared/mad_chaser_knockdown_state.inc.c"
+#include "../../shared/creatures/mad_chaser/mad_chaser_knockdown_state.inc.c"
 
-#include "../../shared/mad_chaser_pull_state.inc.c"
+#include "../../shared/creatures/mad_chaser/mad_chaser_dangle_state.inc.c"
 
-#include "../../shared/mad_chaser_status_hold_start.inc.c"
+#include "../../shared/creatures/mad_chaser/mad_chaser.inc.c"
 
-#include "../../shared/mad_chaser_status_hold.inc.c"
+#include "../../shared/creatures/mad_chaser/mad_chaser_death_wait_anim.inc.c"
 
-#include "../../shared/mad_chaser_knockdown_start.inc.c"
+#include "../../shared/creatures/mad_chaser/mad_chaser_begin_death.inc.c"
 
-#include "../../shared/mad_chaser_knockdown_rise.inc.c"
+#include "../../shared/creatures/mad_chaser/mad_chaser_death_translucent.inc.c"
 
-#include "../../shared/mad_chaser_knockdown_end.inc.c"
+#include "../../shared/creatures/mad_chaser/mad_chaser_start_despawn.inc.c"
 
-#include "../../shared/mad_chaser_walk_finish.inc.c"
-
-#include "../../shared/mad_chaser_start_leap.inc.c"
-
-#include "../../shared/mad_chaser_leap_land.inc.c"
-
-#include "../../shared/mad_chaser_alert_cry.inc.c"
-
-#include "../../shared/mad_chaser_alert_wait.inc.c"
-
-#include "../../shared/mad_chaser_alert_release.inc.c"
-
-#include "../../shared/mad_chaser_alert_crouch.inc.c"
-
-#include "../../shared/mad_chaser_alert_sidestep.inc.c"
-
-#include "../../shared/mad_chaser_dangle_state.inc.c"
-
-#include "../../shared/mad_chaser_dangle_start.inc.c"
-
-#include "../../shared/mad_chaser_dangle_sway.inc.c"
-
-#include "../../shared/mad_chaser_death_cry.inc.c"
-
-#include "../../shared/mad_chaser_death_settle.inc.c"
-
-#include "../../shared/mad_chaser_death_wait_anim.inc.c"
-
-#include "../../shared/mad_chaser_begin_death.inc.c"
-
-#include "../../shared/mad_chaser_death_translucent.inc.c"
-
-#include "../../shared/mad_chaser_start_despawn.inc.c"
-
-#include "../../shared/mad_chaser_death_pause.inc.c"
-
-#include "../../shared/mad_chaser_burst.inc.c"
-
-#include "../../shared/mad_chaser_advance_state.inc.c"
-
-#include "../../shared/mad_chaser_despawn.inc.c"
-
-#include "../../shared/mad_chaser_recoil_light.inc.c"
-
-#include "../../shared/mad_chaser_recoil_heavy.inc.c"
-
-#include "../../shared/mad_chaser_recoil_heavy_end.inc.c"
+#include "../../shared/creatures/mad_chaser/mad_chaser_death_pause.inc.c"
 
 /// Runs the lurk idle hold, yielding to a claimed shared alert.
 ///
@@ -1631,7 +1474,7 @@ static const TaskFuncTable7 _gMadChaserShrinkDeathStates = { {
 /// its alert behavior and interrupts this dispatch.
 /// Bind only for this fragment inclusion, then undefine; there is no default.
 #define MAD_CHASER_STEP_INTERRUPT_HANDLER _madChaserJoinAlert
-#include "../../shared/mad_chaser_walk_state.inc.c"
+#include "../../shared/creatures/mad_chaser/mad_chaser_walk_state.inc.c"
 #undef MAD_CHASER_STEP_STATE
 #undef MAD_CHASER_STEP_TABLE
 #undef MAD_CHASER_STEP_INTERRUPT_HANDLER
@@ -1656,14 +1499,12 @@ static const TaskFuncTable7 _gMadChaserShrinkDeathStates = { {
 /// its alert behavior and interrupts this dispatch.
 /// Bind only for this fragment inclusion, then undefine; there is no default.
 #define MAD_CHASER_STEP_INTERRUPT_HANDLER _madChaserJoinAlert
-#include "../../shared/mad_chaser_walk_state.inc.c"
+#include "../../shared/creatures/mad_chaser/mad_chaser_walk_state.inc.c"
 #undef MAD_CHASER_STEP_STATE
 #undef MAD_CHASER_STEP_TABLE
 #undef MAD_CHASER_STEP_INTERRUPT_HANDLER
 
-#include "../../shared/mad_chaser_lurk_rise_state.inc.c"
-
-#include "../../shared/mad_chaser_lurk_alert_state.inc.c"
+#include "../../shared/creatures/mad_chaser/mad_chaser_lurk.inc.c"
 
 /// Selects the private lurk-shift dispatcher for the next four-step fragment.
 ///
@@ -1675,41 +1516,13 @@ static const TaskFuncTable7 _gMadChaserShrinkDeathStates = { {
 ///
 /// The fragment copies it and undefines this object-identifier binding.
 #define MAD_CHASER_FOUR_STEP_HANDLERS _gMadChaserLurkShiftSteps
-#include "../../shared/mad_chaser_dangle_state.inc.c"
+#include "../../shared/creatures/mad_chaser/mad_chaser_dangle_state.inc.c"
 
-#include "../../shared/mad_chaser_start_hold.inc.c"
+#include "../../shared/creatures/mad_chaser/mad_chaser_start_hold.inc.c"
 
-#include "../../shared/mad_chaser_lurk_wait.inc.c"
+#include "../../shared/creatures/mad_chaser/mad_chaser_death_cry_unlink.inc.c"
 
-#include "../../shared/mad_chaser_lurk_idle_end.inc.c"
-
-#include "../../shared/mad_chaser_lurk_crouch.inc.c"
-
-#include "../../shared/mad_chaser_lurk_raise.inc.c"
-
-#include "../../shared/mad_chaser_lurk_rise_start.inc.c"
-
-#include "../../shared/mad_chaser_lurk_rise_end.inc.c"
-
-#include "../../shared/mad_chaser_start_alert.inc.c"
-
-#include "../../shared/mad_chaser_lurk_brace.inc.c"
-
-#include "../../shared/mad_chaser_lurk_shift_start.inc.c"
-
-#include "../../shared/mad_chaser_lurk_shift_brace.inc.c"
-
-#include "../../shared/mad_chaser_pull_start.inc.c"
-
-#include "../../shared/mad_chaser_pull_react.inc.c"
-
-#include "../../shared/mad_chaser_vanish.inc.c"
-
-#include "../../shared/mad_chaser_vanish_free.inc.c"
-
-#include "../../shared/mad_chaser_death_cry_unlink.inc.c"
-
-#include "../../shared/mad_chaser_death_settle_quiet.inc.c"
+#include "../../shared/creatures/mad_chaser/mad_chaser_death_settle_quiet.inc.c"
 
 /// Selects the private command-death animation wait instance.
 ///
@@ -1717,10 +1530,10 @@ static const TaskFuncTable7 _gMadChaserShrinkDeathStates = { {
 /// include consumes this identifier-only binding; undefine it afterwards so the
 /// ordinary death instance remains `_madChaserDeathWaitAnim`.
 #define MAD_CHASER_DEATH_WAIT_ANIM_HANDLER _madChaserCommandDeathWaitAnimBoundary
-#include "../../shared/mad_chaser_death_wait_anim.inc.c"
+#include "../../shared/creatures/mad_chaser/mad_chaser_death_wait_anim.inc.c"
 #undef MAD_CHASER_DEATH_WAIT_ANIM_HANDLER
 
-#include "../../shared/mad_chaser_drop_bodies.inc.c"
+#include "../../shared/creatures/mad_chaser/mad_chaser_drop_bodies.inc.c"
 
 /// Holds the final drop-death state after the collision bodies are unlinked.
 ///
@@ -1735,10 +1548,10 @@ static void _madChaserDropDeathHold(Task* task)
 /// Names a statically declared void(Task*) callback for the following fragment;
 /// undefine it afterwards. The unbound fragment supplies the drop-death entry.
 #define MAD_CHASER_SHRINK_DEATH_START_HANDLER _madChaserShrinkDeathStart
-#include "../../shared/mad_chaser_death_cry_unlink.inc.c"
+#include "../../shared/creatures/mad_chaser/mad_chaser_death_cry_unlink.inc.c"
 #undef MAD_CHASER_SHRINK_DEATH_START_HANDLER
 
-#include "../../shared/mad_chaser_begin_shrink.inc.c"
+#include "../../shared/creatures/mad_chaser/mad_chaser_begin_shrink.inc.c"
 
 /// Selects the private translucency-delay state of scripted shrink death.
 ///
@@ -1746,10 +1559,10 @@ static void _madChaserDropDeathHold(Task* task)
 /// This identifier-only binding captures no runtime values; undefine it after
 /// inclusion to restore the ordinary-death definition.
 #define MAD_CHASER_SHRINK_DEATH_TRANSLUCENT_HANDLER _madChaserShrinkDeathTurnTranslucent
-#include "../../shared/mad_chaser_death_translucent.inc.c"
+#include "../../shared/creatures/mad_chaser/mad_chaser_death_translucent.inc.c"
 #undef MAD_CHASER_SHRINK_DEATH_TRANSLUCENT_HANDLER
 
-#include "../../shared/mad_chaser_shrink.inc.c"
+#include "../../shared/creatures/mad_chaser/mad_chaser_shrink.inc.c"
 
 /// Selects the private final behavior of scripted shrink death.
 ///
@@ -1757,7 +1570,7 @@ static void _madChaserDropDeathHold(Task* task)
 /// This identifier-only binding captures no runtime values; undefine it after
 /// inclusion to restore the ordinary-death definition.
 #define MAD_CHASER_SHRINK_DEATH_DESPAWN_HANDLER _madChaserShrinkDeathStartDespawn
-#include "../../shared/mad_chaser_start_despawn.inc.c"
+#include "../../shared/creatures/mad_chaser/mad_chaser_start_despawn.inc.c"
 #undef MAD_CHASER_SHRINK_DEATH_DESPAWN_HANDLER
 
-#include "../../shared/mad_chaser_take_knockdown_request.inc.c"
+#include "../../shared/creatures/mad_chaser/mad_chaser_take_knockdown_request.inc.c"

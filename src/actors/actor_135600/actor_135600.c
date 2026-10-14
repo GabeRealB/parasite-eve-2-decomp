@@ -33,8 +33,8 @@
 #include "main/tmd_types.h"
 
 #include "overlay.h"
-#include "../../shared/actor_motion.h"
-#include "../../shared/actor_messages.h"
+#include "../../shared/actor/actor_motion.h"
+#include "../../shared/actor/actor_messages.h"
 
 static void _modelPlacementAttachPartTask(Task* childTask);
 static void _actor135600InitializeKyleMadiganWalker(Task* task);
@@ -934,9 +934,9 @@ static void _actor135600UpdateKyleMadiganWalker(Task* task)
     }
 }
 
-#include "../../shared/actor_motion_arrive.inc.c"
+#include "../../shared/actor/actor_motion_arrive.inc.c"
 
-#include "../../shared/actor_motion_start.inc.c"
+#include "../../shared/actor/actor_motion_start.inc.c"
 
 /// Runs a Kyle hand model's attachment, idle or teardown state.
 ///
@@ -952,7 +952,7 @@ static void _actor135600KyleMadiganHandTask(Task* handTask)
     states.funcs[handTask->state](handTask);
 }
 
-#include "../../shared/model_placement_attach_part.inc.c"
+#include "../../shared/actor/model_placement_attach_part.inc.c"
 
 /// Leaves an attached Kyle hand idle while its parent rig drives the transform.
 static void _actor135600IdleKyleMadiganHand(Task* handTask)
@@ -1127,7 +1127,7 @@ static void _actor135600RunKyleMadiganWalkStep(Task* task)
     handlers.funcs[work->walk.motionStep](task);
 }
 
-#include "../../shared/actor_motion_face.inc.c"
+#include "../../shared/actor/actor_motion_face.inc.c"
 
 /// Starts Kyle moving along his local +Z axis and advances to the arrival step.
 ///
@@ -1152,11 +1152,11 @@ static void _actor135600BeginKyleMadiganWalk(Task* task)
     work->walk.motionStep++;
 }
 
-#include "../../shared/actor_motion_turn.inc.c"
+#include "../../shared/actor/actor_motion_turn.inc.c"
 
-#include "../../shared/actor_motion_play.inc.c"
+#include "../../shared/actor/actor_motion_play.inc.c"
 
-#include "../../shared/actor_messages_place_euler.inc.c"
+#include "../../shared/actor/actor_messages_place_euler.inc.c"
 
 /// Sets Kyle's body draw mode and propagates the complete flags to both hands and held model.
 ///

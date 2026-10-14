@@ -49,12 +49,12 @@
 #include "rooms/room.h"
 
 #include "rooms/room_common.h"
-#include "../../shared/room_visual_effects.h"
+#include "../../shared/room/room_visual_effects.h"
 // The flag symbol is four bytes; the gate writes the first.
 #define ROOM_EVENT_ACTIVE gRoomEventActive.eventStarted
-#include "../../shared/room_events.h"
+#include "../../shared/room/room_events.h"
 
-#include "../../shared/room_visual_effects_disc_data.inc.c"
+#include "../../shared/room/room_visual_effects_disc_data.inc.c"
 
 u8* gShelterB3ElevatorHallViewMaps[1] = {
     gViewIdentityMap,
@@ -920,7 +920,7 @@ RoomEventMsg gRoomEventMsg = { 0 };
 RoomEventActiveBytes gRoomEventActive = { 0, { 18, 230, 216 } };
 
 RoomEventReq gRoomEventReq = { 0 };
-#include "../../shared/room_visual_effects_flying_tasks.inc.c"
+#include "../../shared/room/room_visual_effects_flying_tasks.inc.c"
 
 void shelterB3ElevatorHallRoomVisualEffectsGlowDiscTask(Task* task)
 {
@@ -932,11 +932,11 @@ void shelterB3ElevatorHallRoomVisualEffectsFlyingSparkTask(Task* task)
     _roomVisualEffectsFlyingSparkTask(task);
 }
 
-#include "../../shared/room_visual_effects_burst.inc.c"
+#include "../../shared/room/room_visual_effects_burst.inc.c"
 
 void shelterB3ElevatorHallRoomVisualEffectsFlyingOrangeBurstTask(Task* task)
 {
     _roomVisualEffectsFlyingOrangeBurstTask(task);
 }
 
-#include "../../shared/room_visual_effects_burst_draw.inc.c"
+#include "../../shared/room/room_visual_effects_burst_draw.inc.c"

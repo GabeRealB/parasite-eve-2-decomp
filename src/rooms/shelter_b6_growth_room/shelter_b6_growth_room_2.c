@@ -41,7 +41,7 @@
 #include "mapui/map_neo_ark.h"
 
 #include "rooms/room_common.h"
-#include "../../shared/glow_draw.h"
+#include "../../shared/effects/glow_draw.h"
 
 static void _shelterB6GrowthRoomDrawBottomGlow(s16 heightPixels, s16 brightness);
 static void _shelterB6GrowthRoomDrawMist(const GfxCoord* coord, u16 frame, s16 size, u16 brightness);
@@ -756,7 +756,7 @@ void shelterB6GrowthRoomAmbientEffectsTask(Task* task)
     }
 }
 
-#include "../../shared/glow_draw_disc.inc.c"
+#include "../../shared/effects/glow_draw_disc.inc.c"
 
 /// Draws an additive black-to-grey gradient rising from the viewport's bottom edge.
 ///

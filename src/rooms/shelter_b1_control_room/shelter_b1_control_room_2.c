@@ -43,9 +43,9 @@
 #include "overlay.h"
 
 #include "rooms/room_common.h"
-#include "../../shared/room_visual_effects.h"
-#include "../../shared/glow_draw.h"
-#include "../../shared/streamed_scene.h"
+#include "../../shared/room/room_visual_effects.h"
+#include "../../shared/effects/glow_draw.h"
+#include "../../shared/room/streamed_scene.h"
 
 static void _shelterB1ControlRoomStartMovieTask(Task* task);
 
@@ -101,7 +101,7 @@ enum {
     SHELTER_B1_CONTROL_ROOM_BLUE_DISC_RGB_NIBBLES    = 0x023,
 };
 
-#include "../../shared/streamed_scene_play_then_hold.inc.c"
+#include "../../shared/room/streamed_scene_play_then_hold.inc.c"
 
 static void _glowDrawCapsule(const SVECTOR worldPoints[2], s32 radiusScale, s32 packedColor);
 
@@ -184,6 +184,6 @@ void shelterB1ControlRoomDrawGlowsTask(Task* task)
     }
 }
 
-#include "../../shared/glow_draw_capsule.inc.c"
+#include "../../shared/effects/glow_draw_capsule.inc.c"
 
-#include "../../shared/glow_draw_disc.inc.c"
+#include "../../shared/effects/glow_draw_disc.inc.c"

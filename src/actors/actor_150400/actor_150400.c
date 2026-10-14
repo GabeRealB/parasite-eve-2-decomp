@@ -39,7 +39,7 @@
 #include "main/tmd_types.h"
 
 #include "rooms/shelter_b1_control_room.h"
-#include "../../shared/pair_walk.h"
+#include "../../shared/walk/pair_walk.h"
 
 static s32  _pairWalkPlay(Task* task, s32 messageId, const AnimationPlayRequest* request, s32 unusedArg);
 static void _pairWalkSubModelTask(Task* task);
@@ -642,7 +642,7 @@ static void _actor150400PairWalkSpawn(Enemy* enemy, Task* task)
 }
 #undef ACTOR_150400_INITIALIZE_MODEL_LIGHTING
 
-#include "../../shared/pair_walk_update.inc.c"
+#include "../../shared/walk/pair_walk_update.inc.c"
 
 /// Dispatches the freezer scene's No. 9 pair walker initialization or frame update.
 ///
@@ -675,7 +675,7 @@ static void _actor150400PairWalkerTask(Task* task)
 #define ACTOR_RENDER_UPDATE_WALKER _pairWalkUpdate
 /// Selects the declared static void(Task*) ground-shadow drawer for this inclusion.
 #define ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW _actorRenderDrawWalkerGroundShadow
-#include "../../shared/walker_frame.inc.c"
+#include "../../shared/walk/walker_frame.inc.c"
 #undef ACTOR_RENDER_WALKER_FRAME
 #undef ACTOR_RENDER_UPDATE_WALKER
 #undef ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW
@@ -698,20 +698,14 @@ static void _actor150400DestroyPairWalker(Task* task)
 /// Define it only around `actor_render_walker_shadow.inc.c`, then undefine it;
 /// further shadow instances need distinct function identifiers and prototypes.
 #define ACTOR_RENDER_DRAW_ROOM_GROUND_SHADOW _actorRenderDrawWalkerGroundShadow
-#include "../../shared/actor_render_walker_shadow.inc.c"
+#include "../../shared/actor/actor_render_walker_shadow.inc.c"
 #undef ACTOR_RENDER_DRAW_ROOM_GROUND_SHADOW
 
-#include "../../shared/pair_walk_tick_anim.inc.c"
+#include "../../shared/walk/pair_walk.inc.c"
 
-#include "../../shared/pair_walk_reset_anim.inc.c"
+#include "../../shared/walk/pair_walk_play.inc.c"
 
-#include "../../shared/pair_walk_reseed_anim.inc.c"
-
-#include "../../shared/pair_walk_play.inc.c"
-
-#include "../../shared/pair_walk_visibility.inc.c"
-
-#include "../../shared/pair_walk_place.inc.c"
+#include "../../shared/walk/pair_walk_visibility.inc.c"
 
 /// Accepts this pair walker's actor-command message without changing anything.
 ///
@@ -750,4 +744,4 @@ static s32 _actor150400PairWalkSetWalkTarget(Task* task, s32 messageId, const Ac
     return 0;
 }
 
-#include "../../shared/pair_walk_sub_model.inc.c"
+#include "../../shared/walk/pair_walk_sub_model.inc.c"

@@ -35,8 +35,8 @@
 #include "main/task.h"
 #include "main/task_types.h"
 #include "main/tmd_types.h"
-#include "../../shared/scripted_walk.h"
-#include "../../shared/actor_messages.h"
+#include "../../shared/walk/scripted_walk.h"
+#include "../../shared/actor/actor_messages.h"
 
 /// Work block of the package's actor, a twenty-part figure that event scripts
 /// place and give clips to but that never walks.
@@ -2140,11 +2140,11 @@ static void _actor146300UpdateAnimation(Task* unusedTask)
     }
 }
 
-#include "../../shared/scripted_walk_tick_anim.inc.c"
+#include "../../shared/walk/scripted_walk_tick_anim.inc.c"
 
-#include "../../shared/scripted_walk_reset_anim.inc.c"
+#include "../../shared/walk/scripted_walk_reset_anim.inc.c"
 
-#include "../../shared/scripted_walk_blend_anim.inc.c"
+#include "../../shared/walk/scripted_walk_blend_anim.inc.c"
 
 /// Applies an animation request immediately to the published stationary actor.
 ///
@@ -2186,10 +2186,10 @@ static s32 _actor146300PlayAnimation(Task* unusedTask, s32 messageId, const Anim
 /// Successful spawn replaces the borrowed pointer; teardown does not clear it.
 /// Bind only around the pair-visibility fragment and never dispatch after teardown.
 #define ACTOR_MESSAGE_BODY_TASK _gActor146300BodyTask
-#include "../../shared/actor_messages_pair_visibility.inc.c"
+#include "../../shared/actor/actor_messages_pair_visibility.inc.c"
 #undef ACTOR_MESSAGE_BODY_TASK
 
-#include "../../shared/scripted_walk_place.inc.c"
+#include "../../shared/walk/scripted_walk_place.inc.c"
 
 /// Acknowledges `ACTOR_COMMAND_MESSAGE_APPLY` without changing this actor.
 ///

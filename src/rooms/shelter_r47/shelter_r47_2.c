@@ -35,7 +35,7 @@
 #include "main/task_types.h"
 
 #include "overlay.h"
-#include "../../shared/action_prompt.h"
+#include "../../shared/room/action_prompt.h"
 
 /// Map width in screen pixels at which opening snaps to its full size (229).
 ///
@@ -824,9 +824,9 @@ static void _shelterR47ConsoleFadeOutTask(Task* task)
     fadeDrawOverlay(fadeLevel, fadeLevel, fadeLevel, GPU_BLEND_SUBTRACT);
 }
 
-#include "../../shared/action_prompt_move_cursors.inc.c"
+#include "../../shared/room/action_prompt_move_cursors.inc.c"
 
-#include "../../shared/action_prompt_draw_cursor.inc.c"
+#include "../../shared/room/action_prompt_draw_cursor.inc.c"
 
 /// Accepts the console's next guided row or requests corrective CAP dialogue.
 ///
@@ -1223,7 +1223,7 @@ void shelterR47ConsolePromptTask(Task* task)
     states[task->state](task);
 }
 
-#include "../../shared/action_prompt_reset.inc.c"
+#include "../../shared/room/action_prompt_reset.inc.c"
 
 /// Empty callback receiving the console's free-use status; its intended role is unproven.
 static void func_shelter_r47_801832E4(s16 status)

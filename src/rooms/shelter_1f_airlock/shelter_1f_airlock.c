@@ -37,8 +37,8 @@
 #include "overlay.h"
 
 #include "rooms/room_common.h"
-#include "../../shared/glow_draw.h"
-#include "../../shared/room_variants.h"
+#include "../../shared/effects/glow_draw.h"
+#include "../../shared/room/room_variants.h"
 
 enum {
     SHELTER_1F_AIRLOCK_MESSAGE_USE_KEY_ITEM = 0x13F1,
@@ -718,6 +718,6 @@ void shelter1fAirlockDrawViewGlowsTask(Task* unusedTask)
 /// and wraps, with shift restricted to 0..7. Bind before the capsule fragment;
 /// it clears the binding. The airlock's cyan capsules use shift 1 (add 2).
 #define GLOW_DRAW_CAPSULE_SHIFTED_FLICKER 1
-#include "../../shared/glow_draw_capsule.inc.c"
+#include "../../shared/effects/glow_draw_capsule.inc.c"
 
-#include "../../shared/glow_draw_factor_disc.inc.c"
+#include "../../shared/effects/glow_draw_factor_disc.inc.c"

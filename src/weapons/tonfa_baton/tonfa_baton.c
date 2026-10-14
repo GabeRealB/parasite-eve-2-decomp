@@ -36,7 +36,7 @@
 
 #include "weapons/weapon.h"
 
-#include "../../shared/blade_trail.h"
+#include "../../shared/effects/blade_trail.h"
 #include "gameplay/world_coords.h"
 
 static s16 _gTonfaBatonTrailTint;
@@ -231,7 +231,7 @@ void tonfaBatonSwingTrailTask(Task* task)
 /// to signed 16 bits and retaining no pointers. This binding exists only
 /// around the shared drawer inclusion.
 #define BLADE_TRAIL_SECOND_ENDPOINT_HISTORY gBladeTrailTip
-#include "../../shared/blade_trail_draw.inc.c"
+#include "../../shared/effects/blade_trail_draw.inc.c"
 #undef BLADE_TRAIL_FIRST_ENDPOINT_HISTORY
 #undef BLADE_TRAIL_SECOND_ENDPOINT_HISTORY
 

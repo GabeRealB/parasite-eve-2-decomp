@@ -43,8 +43,8 @@
 #include "mapui/map_neo_ark.h"
 
 #include "rooms/room_common.h"
-#include "../../shared/room_visual_effects.h"
-#include "../../shared/water_effects.h"
+#include "../../shared/room/room_visual_effects.h"
+#include "../../shared/effects/water_effects.h"
 
 static void _waterDrawSpin(const GfxCoord* coord, s16 textureColumn, s16 radiusScale, s16 spinAngle);
 static void _waterDrawTile(const GfxCoord* coord, s16 frameIndex, s16 radiusScale);
@@ -64,7 +64,7 @@ static SVECTOR _gNeoArkBridgeFirstSmokeSpawnPoint = { 1000, -1800, -20900, 0 };
 /// Spawning snapshots XYZ and retains this overlay-owned point in the effect work.
 static SVECTOR _gNeoArkBridgeSecondSmokeSpawnPoint = { 1000, -2100, -22600, 0 };
 
-#include "../../shared/room_visual_effects_trail_data.inc.c"
+#include "../../shared/room/room_visual_effects_trail_data.inc.c"
 
 u8* gNeoArkBridgeViewMaps[1] = {
     gViewIdentityMap,
@@ -1236,47 +1236,42 @@ static void _neoArkBridgeDrawPulsingRedStar(const SVECTOR* worldPoint, s16 pulse
     SCRATCH_STACK_RELEASE_BLOCK(GlowCentreRadiusScratch);
 }
 
-#include "../../shared/water_ripple_task.inc.c"
+#include "../../shared/effects/water_ripple_task.inc.c"
 
 void neoArkBridgeWaterRippleTask(Task* task)
 {
     _waterRippleTask(task);
 }
 
-#include "../../shared/water_splash.inc.c"
+#include "../../shared/effects/water_splash.inc.c"
 
-#include "../../shared/water_drift_task.inc.c"
+#include "../../shared/effects/water_drift_task.inc.c"
 
 void neoArkBridgeWaterDriftTask(Task* task)
 {
     _waterDriftTask(task);
 }
 
-#include "../../shared/water_spin.inc.c"
+#include "../../shared/effects/water_spin.inc.c"
 
-#include "../../shared/water_tile.inc.c"
+#include "../../shared/room/room_visual_effects.inc.c"
 
-#include "../../shared/room_visual_effects.inc.c"
-
-#include "../../shared/room_visual_effects_flash_task.inc.c"
+#include "../../shared/room/room_visual_effects_flash_task.inc.c"
 
 void neoArkBridgeRoomVisualEffectsFlashTask(Task* task)
 {
     _roomVisualEffectsFlashTask(task);
 }
 
-#include "../../shared/room_visual_effects_trails.inc.c"
+#include "../../shared/room/room_visual_effects_trails.inc.c"
 
 void neoArkBridgeRoomVisualEffectsTwinTrailTask(Task* task)
 {
-#include "../../shared/room_visual_effects_trail_task.inc.c"
-}
+#include "../../shared/room/room_visual_effects_trail_task.inc.c"
 
-#include "../../shared/room_visual_effects_sparks.inc.c"
+    void neoArkBridgeRoomVisualEffectsSparkBurstTask(Task * task)
+    {
+        _roomVisualEffectsSparkBurstTask(task);
+    }
 
-void neoArkBridgeRoomVisualEffectsSparkBurstTask(Task* task)
-{
-    _roomVisualEffectsSparkBurstTask(task);
-}
-
-#include "../../shared/room_visual_effects_glow.inc.c"
+#include "../../shared/room/room_visual_effects_glow.inc.c"

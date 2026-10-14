@@ -48,7 +48,7 @@
 #include "main/wipsys_types.h"
 
 #include "overlay.h"
-#include "../../shared/actor_messages.h"
+#include "../../shared/actor/actor_messages.h"
 
 /// Uniform model-root scale for yaw rebuilds, with 12 fractional bits.
 enum { ACTOR_356100_ROOT_SCALE = 0x1194 };
@@ -250,7 +250,7 @@ static s32       _actor356100IgnoreAnimationMessage(Task* task, s32 messageId, s
 static s32       _actor356100ApplyCommand(Task* task, s32 messageId, const ActorCommand* command, s32 unused);
 static void      _actor356100Task(Task* task);
 
-#include "../../shared/actor_contacts.h"
+#include "../../shared/actor/actor_contacts.h"
 
 enum { ACTOR_356100_GRAB_PLAYER_REACTION = 7 };
 
@@ -848,9 +848,9 @@ static __inline__ void _actorPositionDeltaToLivePlayer(const GfxCoord* coord, SV
 /// `Task::msgTable`. Same shape and role as `_gActor01900Messages`.
 // Message-table callbacks use the argument views required by this TU.
 
-#include "../../shared/actor_contacts.h"
+#include "../../shared/actor/actor_contacts.h"
 
-#include "../../shared/actor_contacts.inc.c"
+#include "../../shared/actor/actor_contacts.inc.c"
 
 /// Advances both rigs and mixes their poses on model slots 1..10.
 ///
@@ -2912,9 +2912,9 @@ static s32 _actor356100IgnoreAnimationMessage(Task* task, s32 messageId, s32 unu
     return 0;
 }
 
-#include "../../shared/actor_messages_visibility.inc.c"
+#include "../../shared/actor/actor_messages_visibility.inc.c"
 
-#include "../../shared/actor_messages_is_present.inc.c"
+#include "../../shared/actor/actor_messages_is_present.inc.c"
 
 /// Selects this actor's allocated work type for recording placement heading.
 ///
@@ -2922,10 +2922,10 @@ static s32 _actor356100IgnoreAnimationMessage(Task* task, s32 messageId, s32 unu
 /// `_Actor356100Work` and writes its `s16 placedYaw` in 4096 units per turn.
 /// Keep this type binding scoped to that fragment include.
 #define ACTOR_MESSAGE_YAW_WORK_TYPE _Actor356100Work
-#include "../../shared/actor_messages_place_yaw.inc.c"
+#include "../../shared/actor/actor_messages_place_yaw.inc.c"
 #undef ACTOR_MESSAGE_YAW_WORK_TYPE
 
-#include "../../shared/actor_messages_release_hold.inc.c"
+#include "../../shared/actor/actor_messages_release_hold.inc.c"
 
 /// Applies Neo Ark forest-zone hide and scripted-death actor commands.
 ///

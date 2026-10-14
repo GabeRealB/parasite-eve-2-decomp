@@ -94,8 +94,8 @@
 /// uses neither stringification nor token pasting.
 #define ACTION_PROMPT_HIT_TEST _actionPromptHitTestDefault
 static s32 ACTION_PROMPT_HIT_TEST(ActionPromptHotspot* hotspots, s16 cursorX, s16 cursorY);
-#include "../../shared/action_prompt.h"
-#include "../../shared/glow_draw.h"
+#include "../../shared/room/action_prompt.h"
+#include "../../shared/effects/glow_draw.h"
 
 /// Selects the bridge billboard's `u16` frame and `s16` size arguments.
 ///
@@ -108,12 +108,12 @@ static s32 ACTION_PROMPT_HIT_TEST(ActionPromptHotspot* hotspots, s16 cursorX, s1
 /// Supply this function identifier before `effect_sprite.h` and keep it defined
 /// through the debris fragment, which clears it. No arguments or tokens are built.
 #define EFFECT_SPRITE_DEBRIS_TASK acropolisBridgeEffectSpriteDebrisTask
-#include "../../shared/effect_sprite.h"
+#include "../../shared/effects/effect_sprite.h"
 #undef EFFECT_SPRITE_BILLBOARD_HALFWORD_ARGUMENTS
 
-#include "../../shared/boss_stranger.h"
-#include "../../shared/bridge_model.h"
-#include "../../shared/acropolis_glows.h"
+#include "../../shared/creatures/boss_stranger/boss_stranger.h"
+#include "../../shared/room/bridge_model.h"
+#include "../../shared/effects/acropolis_glows.h"
 
 /// Keypad hotspot ID that clears all entered digits.
 ///
@@ -3428,7 +3428,7 @@ void acropolisBridgeRoomTask(Task* task)
     states.funcs[task->state](task);
 }
 
-#include "../../shared/bridge_model_setup.inc.c"
+#include "../../shared/room/bridge_model_setup.inc.c"
 
 /// Hides the bridge model on mapped camera views 8..10 and invalidates its root transform.
 ///
@@ -3965,7 +3965,7 @@ static void _acropolisBridgeShowKeypadError(void)
     batches[ACROPOLIS_BRIDGE_KEYPAD_ONES_BLANK_BATCH].hidden     = 1;
 }
 
-#include "../../shared/action_prompt_outline_rect.inc.c"
+#include "../../shared/room/action_prompt_outline_rect.inc.c"
 
 /// Translates one arrival frame's three source rectangles by signed pixel offsets.
 ///
@@ -4027,9 +4027,9 @@ static void _acropolisBridgeOffsetArrivalSpriteFrame(s32 frame, s8 offsetX, s8 o
 
 #undef ACROPOLIS_BRIDGE_OFFSET_ARRIVAL_SPRITE_SOURCES
 
-#include "../../shared/action_prompt_move_cursors.inc.c"
+#include "../../shared/room/action_prompt_move_cursors.inc.c"
 
-#include "../../shared/action_prompt_draw_cursor.inc.c"
+#include "../../shared/room/action_prompt_draw_cursor.inc.c"
 
 /// Dispatches keypad cursor setup and the continuing cursor update.
 ///
@@ -4226,7 +4226,7 @@ static void _acropolisBridgeKeypadClose(Task* task)
     gDirectionInteractionRearmUpdates = ACROPOLIS_BRIDGE_KEYPAD_INTERACTION_REARM_UPDATES;
 }
 
-#include "../../shared/action_prompt_hit_test.inc.c"
+#include "../../shared/room/action_prompt_hit_test.inc.c"
 #undef ACTION_PROMPT_HIT_TEST
 
 void acropolisBridgeKeypadTask(Task* task)
@@ -4237,7 +4237,7 @@ void acropolisBridgeKeypadTask(Task* task)
     states.funcs[task->state](task);
 }
 
-#include "../../shared/action_prompt_reset.inc.c"
+#include "../../shared/room/action_prompt_reset.inc.c"
 
 void acropolisBridgeAmbientEffectsTask(Task* task)
 {
@@ -4808,7 +4808,7 @@ void acropolisBridgeParticleStreakTask(Task* task)
 /// Define an unqualified function identifier before including the star fragment;
 /// the fragment defines that function and undefines this binding afterwards.
 #define GLOW_STAR_TASK acropolisBridgeGlowStarTask
-#include "../../shared/acropolis_glows_star.inc.c"
+#include "../../shared/effects/acropolis_glows_star.inc.c"
 
 void acropolisBridgeGroundGlowTask(Task* task)
 {
@@ -4895,7 +4895,7 @@ void acropolisBridgeGroundGlowTask(Task* task)
 /// Define this function identifier immediately before the lamp fragment, which
 /// undefines it. No arguments, conditional alternatives or tokens are constructed.
 #define GLOW_LAMP_TASK acropolisBridgeGlowLampTask
-#include "../../shared/acropolis_glows_lamp.inc.c"
+#include "../../shared/effects/acropolis_glows_lamp.inc.c"
 
 /// Seeds the arrival scene's dust plane with 96 edge motes and eight interior motes.
 ///
@@ -5153,7 +5153,7 @@ static void _acropolisBridgeDrawWaterRipple(const GfxCoord* coord, s32 halfSize,
     SCRATCH_STACK_RELEASE_BLOCK(OverlayFlaggedQuadScratch);
 }
 
-#include "../../shared/effect_sprite_debris.inc.c"
+#include "../../shared/effects/effect_sprite_debris.inc.c"
 
 /// Draws a spinning raw-texture debris cell at a composed coordinate's translation.
 ///
@@ -5339,27 +5339,11 @@ static const EnemyTaskFuncTable3 _gAcropolisBridgeEnemyTaskStates = {
     { _acropolisBridgeEnemySetup, _acropolisBridgeEnemyFrame, enemyDestroy }
 };
 
-#include "../../shared/glow_draw_tinted_disc_no_bias.inc.c"
+#include "../../shared/effects/glow_draw_tinted_disc_no_bias.inc.c"
 
-#include "../../shared/boss_stranger_arrived.inc.c"
+#include "../../shared/creatures/boss_stranger/boss_stranger.inc.c"
 
-#include "../../shared/boss_stranger_follow_route.inc.c"
-
-#include "../../shared/boss_stranger_nearest_player.inc.c"
-
-#include "../../shared/boss_stranger_nearest_self.inc.c"
-
-#include "../../shared/boss_stranger_plan_toward.inc.c"
-
-#include "../../shared/boss_stranger_ground_step.inc.c"
-
-#include "../../shared/boss_stranger_avoid_contacts.inc.c"
-
-#include "../../shared/boss_stranger_turn_toward.inc.c"
-
-#include "../../shared/boss_stranger_inlines.inc.c"
-
-#include "../../shared/boss_stranger_tick.inc.c"
+#include "../../shared/creatures/boss_stranger/boss_stranger_inlines.inc.c"
 
 /// Applies enemy reveal and movie-start commands, returning 1.
 ///
@@ -6562,30 +6546,7 @@ static void _acropolisBridgeEnemyApplyHit(Task* task, u32 attackKey)
     }
 }
 
-/// Returns the first attack key in a contiguous contact prefix and copies its point.
-///
-/// Borrows `contactCount` readable entries and writable `hitPoint` for this call.
-/// Stops at the first zero key or the signed count; a nonpositive count reads
-/// nothing. Returns zero and leaves the point unchanged when no attack is found.
-/// Copies only XYZ in world-coordinate units, preserving the point's fourth
-/// halfword. Contact flags do not affect the scan; no pointers are retained.
-static inline s32 _acropolisBridgeFindAttackContact(SVECTOR* hitPoint, const WorldCollisionContact* contacts, s16 contactCount)
-{
-    s16 contactIndex;
-
-    for (contactIndex = 0; contactIndex < contactCount; contactIndex++) {
-        if (contacts[contactIndex].key.value == 0) {
-            break;
-        }
-        if ((contacts[contactIndex].key.value & WORLD_COLLISION_CONTACT_KIND_MASK) == WORLD_COLLISION_CONTACT_ATTACK) {
-            hitPoint->vx = contacts[contactIndex].point.vx;
-            hitPoint->vy = contacts[contactIndex].point.vy;
-            hitPoint->vz = contacts[contactIndex].point.vz;
-            return contacts[contactIndex].key.value;
-        }
-    }
-    return 0;
-}
+#include "../../shared/room/room_find_attack_contact.inc.c"
 
 /// Marks whether this update enters a different bridge-enemy behavior state.
 ///
@@ -6687,7 +6648,7 @@ static void _acropolisBridgeEnemyFrame(Enemy* enemy, Task* task)
 
     // Consume the first attack contact before dispatching the behavior state.
     hitScratch      = SCRATCH_STACK_RESERVE_BLOCK(_AcropolisBridgeHitScratch);
-    attackKey       = _acropolisBridgeFindAttackContact(&hitScratch->point, work->bodyContacts, ARRAY_SIZE(work->bodyContacts));
+    attackKey       = _roomFindAttackContact(&hitScratch->point, work->bodyContacts, ARRAY_SIZE(work->bodyContacts));
     hitScratch->key = attackKey;
     if (attackKey != 0) {
         _acropolisBridgeEnemyApplyHit(task, attackKey);

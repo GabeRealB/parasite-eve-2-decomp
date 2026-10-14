@@ -49,9 +49,9 @@
 /// Empty presence flag: keep it defined through the shared header and the
 /// single trail-data inclusion here; neo_ark_forest_zone.c reads the table.
 #define ROOM_VISUAL_EFFECTS_SHARED_TRAIL_ENDPOINT_OFFSETS
-#include "../../shared/room_visual_effects.h"
-#include "../../shared/room_events.h"
-#include "../../shared/roaming_enemies.h"
+#include "../../shared/room/room_visual_effects.h"
+#include "../../shared/room/room_events.h"
+#include "../../shared/room/roaming_enemies.h"
 
 static void _roamerArmPoolB(Task* task);
 static void _roamerArmPoolA(Task* task);
@@ -265,7 +265,7 @@ EvsCommand gNeoArkForestZoneFirstVisitScript[23] = {
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-#include "../../shared/room_visual_effects_trail_data.inc.c"
+#include "../../shared/room/room_visual_effects_trail_data.inc.c"
 #undef ROOM_VISUAL_EFFECTS_SHARED_TRAIL_ENDPOINT_OFFSETS
 
 WorldCollisionRoomResources gNeoArkForestZoneRoomCollisionResources[1] = {
@@ -944,17 +944,9 @@ static TaskDesc _gNeoArkForestZoneUnusedRoamerPoolATaskDesc = {
 
 static void _neoArkForestZoneFinishRoamerPoolBState(Task* task);
 
-#include "../../shared/roaming_enemies_bank_retreat.inc.c"
+#include "../../shared/room/roaming_enemies_bank_retreat.inc.c"
 
-#include "../../shared/roaming_enemies_seed_reserve_hp.inc.c"
-
-#include "../../shared/roaming_enemies_arm_pool_a.inc.c"
-
-#include "../../shared/roaming_enemies_tick_pool_a.inc.c"
-
-#include "../../shared/roaming_enemies_ambush_msg.inc.c"
-
-#include "../../shared/roaming_enemies_arm_pool_b.inc.c"
+#include "../../shared/room/roaming_enemies.inc.c"
 
 /// Updates the shared roaming-enemy pool feeding the forest zone.
 ///
@@ -1118,7 +1110,7 @@ static s32 _neoArkForestZoneIgnorePoolAActorCommand(Task* unusedTask, s32 unused
 /// The callback type and inclusion requirements are documented in
 /// `roaming_enemies_latch_request.inc.c`.
 #define ROAMER_LATCH_SPAWN_REQUEST _roamerLatchSpawnRequestPoolA
-#include "../../shared/roaming_enemies_latch_request.inc.c"
+#include "../../shared/room/roaming_enemies_latch_request.inc.c"
 #undef ROAMER_LATCH_SPAWN_REQUEST
 
 /// Advances the forest pool-A controller from its finishing state to teardown.
@@ -1144,11 +1136,11 @@ static void _neoArkForestZoneRoamerPoolATask(Task* task)
     handlers.funcs[task->state](task);
 }
 
-#include "../../shared/roaming_enemies_extend_cooldown.inc.c"
+#include "../../shared/room/roaming_enemies_extend_cooldown.inc.c"
 
 /// Selects the private pool-B room-action latch for this fragment inclusion.
 #define ROAMER_LATCH_SPAWN_REQUEST _roamerLatchSpawnRequestPoolB
-#include "../../shared/roaming_enemies_latch_request.inc.c"
+#include "../../shared/room/roaming_enemies_latch_request.inc.c"
 #undef ROAMER_LATCH_SPAWN_REQUEST
 
 /// Advances the forest pool-B controller from its finishing state to teardown.

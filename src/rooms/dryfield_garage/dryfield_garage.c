@@ -45,9 +45,9 @@
 /// Selects the gate's TU-local room-transition task descriptor.
 ///
 /// Addressable `TaskDesc` lvalue; see `room_events.h` for the spawn contract.
-/// Bind before that header and keep through `room_event_gate.inc.c`.
+/// Bind before that header and keep through `room_event.inc.c`.
 #define ROOM_EVENT_TASK_DESC (_gRoomEventTaskDesc)
-#include "../../shared/room_events.h"
+#include "../../shared/room/room_events.h"
 #include "../../shared/garage.h"
 
 extern RoomEventActiveBytes gRoomEventActive;
@@ -856,9 +856,7 @@ RoomEventActiveBytes gRoomEventActive = { 0, { 222, 221, 253 } };
 
 RoomEventReq gRoomEventReq;
 
-#include "../../shared/room_event_gate.inc.c"
-
-#include "../../shared/room_event_task.inc.c"
+#include "../../shared/room/room_event.inc.c"
 
 /// The room task's three-state table, run from a stack copy by
 /// `dryfieldGarageRoomTask`: the entry state

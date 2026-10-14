@@ -44,8 +44,8 @@
 /// GTE flag word. Defined before `glow_draw.h`, which otherwise selects
 /// `GlowCentreScratch`.
 #define GLOW_DRAW_DISC_SCRATCH GlowCentreRadiusFirstScratch
-#include "../../shared/glow_draw.h"
-#include "../../shared/effect_sprite.h"
+#include "../../shared/effects/glow_draw.h"
+#include "../../shared/effects/effect_sprite.h"
 
 static WorldCoordRoomLights _gDryfieldR08DefaultRoomLights;
 static WorldCoordRoomLights _gDryfieldR08AlternateRoomLights;
@@ -867,7 +867,7 @@ static __inline__ void _dryfieldR08RotateDriftCorner(EffectBillboardScratch* pro
 /// This takes precedence over `EFFECT_SPRITE_DRIFT_SIGN_BANK` for suspended draws
 /// and is undefined at the end of the fragment.
 #define EFFECT_SPRITE_DRIFT_PAUSED_DRAW_A_UNBANKED 1
-#include "../../shared/effect_sprite_drift.inc.c"
+#include "../../shared/effects/effect_sprite_drift.inc.c"
 
 /// Draws a rotating twelve-cell sprite with a per-cell or alternate palette.
 ///
@@ -1063,7 +1063,7 @@ static void _dryfieldR08DrawAlternateDriftSprite(const GfxCoord* coord, u16 fram
     SCRATCH_STACK_RELEASE_BLOCK(EffectBillboardScratch);
 }
 
-#include "../../shared/glow_draw_disc.inc.c"
+#include "../../shared/effects/glow_draw_disc.inc.c"
 
 /// Initializes the colour gradient of a lamp-glow disc wedge or ray.
 ///

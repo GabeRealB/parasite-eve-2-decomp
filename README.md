@@ -195,7 +195,10 @@ lib/                   # Prebuilt Psy-Q .o files linked into the executable
 linkers/               # Generated linker scripts (not in git)
 rom/                   # Disc images and extracted disc trees (not in git)
 src/                   # C source: src/main, src/gameplay, src/title,
-                       #   src/<family>/<overlay>, and src/shared
+                       #   src/<family>/<overlay>, src/stages/<stage>/rooms/<room>
+                       #   (merged day/night rooms), and src/shared: code several
+                       #   overlays include, by module (actor, creatures/<name>,
+                       #   effects, room, screen, walk)
 tools/                 # Build steps, checks, refactoring, tracer, extractor, patches
 ninja_config.py        # Configure / extract / generate the ninja build
 ```

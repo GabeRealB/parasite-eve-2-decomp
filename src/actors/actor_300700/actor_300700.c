@@ -45,7 +45,7 @@
 #include "main/wipsys_types.h"
 
 #include "overlay.h"
-#include "../../shared/moth.h"
+#include "../../shared/creatures/moth/moth.h"
 
 static void _mothSpawn(Enemy* enemy, Task* task);
 static void _mothUpdate(Enemy* enemy, Task* task);
@@ -202,21 +202,7 @@ TmdSource gActor300700RatBody = {
     _gActor300700RatBodyStream,
 };
 
-#include "../../shared/moth_spawn.inc.c"
-
-#include "../../shared/moth_update.inc.c"
-
-#include "../../shared/moth_contacts.inc.c"
-
-#include "../../shared/moth_oscillate_parts.inc.c"
-
-#include "../../shared/moth_steer.inc.c"
-
-#include "../../shared/moth_drift.inc.c"
-
-#include "../../shared/moth_death.inc.c"
-
-#include "../../shared/moth_draw_burst.inc.c"
+#include "../../shared/creatures/moth/moth.inc.c"
 /// Task-state callbacks: 0 spawn, 1 living update, 2 death; copied before dispatch.
 ///
 /// Indexed by `Task::state` in 0..2, with no terminator or bounds check.
@@ -228,11 +214,7 @@ static const EnemyTaskFuncTable3 _gMothStateHandlers = {
     },
 };
 
-#include "../../shared/moth_task.inc.c"
-
-#include "../../shared/moth_update_color.inc.c"
-
-#include "../../shared/moth_squash.inc.c"
+#include "../../shared/creatures/moth/moth_task.inc.c"
 
 /// Bite descriptor borrowed by the rat spawn fragment.
 ///
@@ -259,7 +241,7 @@ static const EnemyTaskFuncTable3 _gMothStateHandlers = {
 /// data without modifying them until task teardown. Define before including
 /// `rat_spawn.inc.c` and undefine afterwards; see `rat.h`.
 #define RAT_ANIM_SETS gRatAnimSets
-#include "../../shared/rat_spawn.inc.c"
+#include "../../shared/creatures/rat/rat_spawn.inc.c"
 #undef RAT_BITE_ATTACK
 #undef RAT_ENEMY_PARAMS
 #undef RAT_ANIM_SETS

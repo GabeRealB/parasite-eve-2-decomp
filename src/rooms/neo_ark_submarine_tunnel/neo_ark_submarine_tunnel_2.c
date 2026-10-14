@@ -44,8 +44,8 @@
 #include "mapui/map_neo_ark.h"
 
 #include "overlay.h"
-#include "../../shared/room_visual_effects.h"
-#include "../../shared/screen_wave.h"
+#include "../../shared/room/room_visual_effects.h"
+#include "../../shared/screen/screen_wave.h"
 
 static WorldCollisionGrid     _gNeoArkSubmarineTunnelCollisionGrid;
 static WorldCollisionOccluder _gNeoArkSubmarineTunnelSightOccluders[3];
@@ -55,7 +55,7 @@ static WorldCoordRoomLights   _gNeoArkSubmarineTunnelRoomLights;
 
 u8 gNeoArkSubmarineTunnelEntryActionHandled = 0;
 
-#include "../../shared/room_visual_effects_disc_data.inc.c"
+#include "../../shared/room/room_visual_effects_disc_data.inc.c"
 
 WorldCoordRoomLighting gNeoArkSubmarineTunnelRoomLighting[NEO_ARK_SUBMARINE_TUNNEL_ROOM_COUNT] = {
     { .lights = &_gNeoArkSubmarineTunnelRoomLights, .ambientTable = NULL },
@@ -1514,9 +1514,9 @@ void neoArkSubmarineTunnelConfigureEffectsTask(Task* task)
     }
 }
 
-#include "../../shared/room_visual_effects.inc.c"
+#include "../../shared/room/room_visual_effects.inc.c"
 
-#include "../../shared/room_visual_effects_flying_tasks.inc.c"
+#include "../../shared/room/room_visual_effects_flying_tasks.inc.c"
 
 void neoArkSubmarineTunnelRoomVisualEffectsGlowDiscTask(Task* task)
 {
@@ -1528,11 +1528,11 @@ void neoArkSubmarineTunnelRoomVisualEffectsFlyingSparkTask(Task* task)
     _roomVisualEffectsFlyingSparkTask(task);
 }
 
-#include "../../shared/room_visual_effects_burst.inc.c"
+#include "../../shared/room/room_visual_effects_burst.inc.c"
 
 void neoArkSubmarineTunnelRoomVisualEffectsFlyingOrangeBurstTask(Task* task)
 {
     _roomVisualEffectsFlyingOrangeBurstTask(task);
 }
 
-#include "../../shared/room_visual_effects_burst_draw.inc.c"
+#include "../../shared/room/room_visual_effects_burst_draw.inc.c"

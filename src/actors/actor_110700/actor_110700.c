@@ -17,7 +17,7 @@
 #include "main/mem.h"
 #include "main/scratch.h"
 #include "main/tmd_types.h"
-#include "../../shared/actor_messages.h"
+#include "../../shared/actor/actor_messages.h"
 
 /// Work block of the No. 9 golem as a room script poses it: what its body
 /// model plays and the matrices it is lit with.
@@ -346,7 +346,7 @@ static s32 _actor110700No9GolemPlayAnimation(Task* task, s32 msgId, const Animat
     return 0;
 }
 
-#include "../../shared/actor_messages_place_rot_matrix.inc.c"
+#include "../../shared/actor/actor_messages_place_rot_matrix.inc.c"
 
 /// Replaces the golem's model flags for `ACTOR_MESSAGE_SET_MODEL_DRAW`.
 ///

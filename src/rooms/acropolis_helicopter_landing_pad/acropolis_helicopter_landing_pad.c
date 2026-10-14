@@ -27,7 +27,7 @@
 #include "main/session_types.h"
 #include "main/task_types.h"
 #include "main/tmd_types.h"
-#include "../../shared/actor_messages.h"
+#include "../../shared/actor/actor_messages.h"
 
 /// Frames one scripted run of the landing pad's lift lasts.
 #define ACROPOLIS_HELICOPTER_LANDING_PAD_LIFT_TRAVEL_FRAMES 120
@@ -299,7 +299,7 @@ static s32 _acropolisHelicopterLandingPadLiftHandleRunRequest(Task* task, s32 me
     return 0;
 }
 
-#include "../../shared/actor_messages_place_euler.inc.c"
+#include "../../shared/actor/actor_messages_place_euler.inc.c"
 
 /// Landing-pad lift handlers indexed by task state 0..2.
 ///

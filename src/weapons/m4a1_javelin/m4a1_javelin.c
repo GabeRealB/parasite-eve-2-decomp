@@ -66,7 +66,7 @@ static bool    _gM4a1JavelinTrackedImpactValid;
 #define SPRITE_QUAD_TRANSLATION_COMPONENT(source, componentIndex) ((source)[(componentIndex)])
 /// Signed texture-frame index for the eight-frame launch sprite.
 #define SPRITE_QUAD_FRAME_T s16
-#include "../../shared/sprite_quad.h"
+#include "../../shared/effects/sprite_quad.h"
 
 /// Scratch-stack block for projecting the two ends of one flare line.
 ///
@@ -693,7 +693,7 @@ static void _m4a1JavelinDrawMuzzleFlareLine(const SVECTOR* muzzlePoint, const SV
 ///
 /// Uses the cell's inclusive 31-texel UV span in `size * SPRITE_QUAD_SCALE / depth`.
 #define SPRITE_QUAD_SCALE (SPRITE_QUAD_CELL_WIDTH - 1)
-#include "../../shared/sprite_quad_draw.inc.c"
+#include "../../shared/effects/sprite_quad_draw.inc.c"
 
 /// Sets or clears the guide beam's tracked world-space impact point.
 ///

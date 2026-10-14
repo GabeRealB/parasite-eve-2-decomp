@@ -81,16 +81,14 @@ static void _dryfieldNightGarageResetTallCollisionBox(s32 useYOffset);
 /// through `shop.inc.c`; `shop.h` specifies selection, lifetime and use by one
 /// panel at a time.
 #define SHOP_REFILL_SUPPLY gShopRefillSupply
-#include "../../shared/shop.h"
+#include "../../shared/room/shop.h"
 
 static s32 _dryfieldNightGarageHandleRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedSecondArg);
 static s32 _dryfieldNightGarageRefuseKeyItem(Task* unusedTask, s32 unusedMessageId, s32 unusedItemId, s32 unusedSecondArg);
 static s32 _roomVariantResolveDryfieldMsg(Task* unusedTask, s32 unusedMessageId, const RoomEventMsg* request, RoomEventMsg* reply);
 static s32 _dryfieldNightGarageIgnoreCommand(Task* unusedTask, s32 unusedMessageId, s32 unusedCommand, s32 unusedSecondArg);
 
-#include "../../shared/shop_data.inc.c"
-
-#include "../../shared/shop_panels.inc.c"
+#include "../../shared/room/shop_data.inc.c"
 
 enum {
     DRYFIELD_NIGHT_GARAGE_SHOP_TASK_PRIORITY  = 192,
@@ -343,7 +341,7 @@ enum {
 ///
 /// One-byte string-literal binding for `shop.inc.c`; label drawing does not read it.
 #define SHOP_WEAPON_SUPPLY_REFILL_TITLE_TRAILING_BYTES "\xF0"
-#include "../../shared/shop.inc.c"
+#include "../../shared/room/shop.inc.c"
 #undef SHOP_WEAPON_SUPPLY_REFILL_TITLE_TRAILING_BYTES
 #undef SHOP_REFILL_DISPLAY_QUANTITY
 #undef SHOP_REFILL_SUPPLY

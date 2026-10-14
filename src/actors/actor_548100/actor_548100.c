@@ -33,7 +33,7 @@
 #include "overlay.h"
 
 #include "rooms/room_common.h"
-#include "../../shared/action_prompt.h"
+#include "../../shared/room/action_prompt.h"
 
 /// Indices of the mine power-panel task callbacks.
 enum {
@@ -1109,7 +1109,7 @@ static u8 _gActor548100WireIndexByNodePair[10000] = { 0 };
 
 static void _actor548100DrawEdge(const _Actor548100Edge* edge);
 
-#include "../../shared/action_prompt_move_cursors.inc.c"
+#include "../../shared/room/action_prompt_move_cursors.inc.c"
 
 /// Label for the short-circuit wire color's RGB row, including the terminating NUL.
 static const char _gActor548100ShortWireLabel[] = "Short";
@@ -1139,7 +1139,7 @@ static const TaskFuncTable11 _gActor548100PanelStateHandlers = {
     },
 };
 
-#include "../../shared/action_prompt_draw_cursor.inc.c"
+#include "../../shared/room/action_prompt_draw_cursor.inc.c"
 
 /// Holds scripted player control and hides player/HUD for the open panel.
 ///
@@ -1529,7 +1529,7 @@ static void _actor548100PostStateHook(Task* unusedTask)
 {
 }
 
-#include "../../shared/action_prompt_outline_rect.inc.c"
+#include "../../shared/room/action_prompt_outline_rect.inc.c"
 
 /// Selects the current wiring's circuit with exactly the filled battery sockets.
 ///
@@ -2617,4 +2617,4 @@ static void _actor548100WaitCompletionCaption(Task* task)
     }
 }
 
-#include "../../shared/action_prompt_reset.inc.c"
+#include "../../shared/room/action_prompt_reset.inc.c"

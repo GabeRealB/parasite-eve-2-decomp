@@ -72,8 +72,8 @@
 #include "rooms/room_common.h"
 static s32 _actionPromptHitTestDefault(ActionPromptHotspot* hotspots, s16 cursorX, s16 cursorY);
 #define ACTION_PROMPT_HIT_TEST _actionPromptHitTestDefault
-#include "../../shared/action_prompt.h"
-#include "../../shared/actor_contacts.h"
+#include "../../shared/room/action_prompt.h"
+#include "../../shared/actor/actor_contacts.h"
 
 /// Hotspot ids of the buttons that step the monitor's grey wash.
 ///
@@ -1945,9 +1945,9 @@ static void _acropolisSecurityRoomDrawMonitorSweep(Task* task)
     }
 }
 
-#include "../../shared/action_prompt_move_cursors.inc.c"
+#include "../../shared/room/action_prompt_move_cursors.inc.c"
 
-#include "../../shared/action_prompt_draw_cursor.inc.c"
+#include "../../shared/room/action_prompt_draw_cursor.inc.c"
 
 /// Runs the monitor cursor through reset and per-frame movement.
 ///
@@ -2078,7 +2078,7 @@ static void _acropolisSecurityRoomMonitorScanRestrictedHotspots(Task* task)
     }
 }
 
-#include "../../shared/action_prompt_hit_test.inc.c"
+#include "../../shared/room/action_prompt_hit_test.inc.c"
 
 /// Power-supply states: panel interaction 0..5, left release 6..9, right release 10..15.
 ///
@@ -2112,7 +2112,7 @@ void acropolisSecurityRoomMonitorTask(Task* task)
     handlers.funcs[task->state](task);
 }
 
-#include "../../shared/action_prompt_reset.inc.c"
+#include "../../shared/room/action_prompt_reset.inc.c"
 
 /// Scans the power-supply panel's left and right lock hotspots.
 ///
@@ -2157,7 +2157,7 @@ static void _acropolisSecurityRoomPowerSupplyScanHotspots(Task* task)
     }
 }
 
-#include "../../shared/action_prompt_outline_rect.inc.c"
+#include "../../shared/room/action_prompt_outline_rect.inc.c"
 
 /// Commits the left lock release and transfers the panel from cursor input to its scene.
 ///
@@ -2289,11 +2289,11 @@ static void _acropolisSecurityRoomPowerSupplyUseRightLock(Task* task)
 #undef ACTION_PROMPT_DRAW_CURSOR
 /// Selects the second prompt's private drawer for both fragments.
 #define ACTION_PROMPT_DRAW_CURSOR _actionPromptDrawCursor
-#include "../../shared/action_prompt_move_cursors.inc.c"
+#include "../../shared/room/action_prompt_move_cursors.inc.c"
 #undef ACTION_PROMPT_MOVE_CURSORS_TASK
 #define ACTION_PROMPT_MOVE_CURSORS_TASK _actionPromptMoveCursorsDefault
 
-#include "../../shared/action_prompt_draw_cursor.inc.c"
+#include "../../shared/room/action_prompt_draw_cursor.inc.c"
 #undef ACTION_PROMPT_DRAW_CURSOR
 #define ACTION_PROMPT_DRAW_CURSOR _actionPromptDrawCursorDefault
 
@@ -2429,7 +2429,7 @@ static void _acropolisSecurityRoomPowerSupplyClose(Task* task)
 /// The static instance uses the signature documented in `action_prompt.h`.
 #undef ACTION_PROMPT_HIT_TEST
 #define ACTION_PROMPT_HIT_TEST _actionPromptHitTest
-#include "../../shared/action_prompt_hit_test.inc.c"
+#include "../../shared/room/action_prompt_hit_test.inc.c"
 #undef ACTION_PROMPT_HIT_TEST
 #define ACTION_PROMPT_HIT_TEST _actionPromptHitTestDefault
 
@@ -2691,7 +2691,7 @@ void acropolisSecurityRoomPowerSupplyTask(Task* task)
 // Bind the additional private reset callback, with signature void(Task*).
 #undef ACTION_PROMPT_RESET_TASK
 #define ACTION_PROMPT_RESET_TASK _actionPromptReset
-#include "../../shared/action_prompt_reset.inc.c"
+#include "../../shared/room/action_prompt_reset.inc.c"
 #undef ACTION_PROMPT_RESET_TASK
 #define ACTION_PROMPT_RESET_TASK _actionPromptResetDefault
 
@@ -3187,9 +3187,9 @@ void acropolisSecurityRoomMonitorGlowTask(Task* task)
     effectKillTask(work, task);
 }
 
-#include "../../shared/actor_contacts_push_contact.inc.c"
+#include "../../shared/actor/actor_contacts_push_contact.inc.c"
 
-#include "../../shared/actor_contacts_push.inc.c"
+#include "../../shared/actor/actor_contacts_push.inc.c"
 
 /// Sets a placed model's visibility from its saved two-bit object state.
 ///

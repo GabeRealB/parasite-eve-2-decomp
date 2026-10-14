@@ -34,8 +34,8 @@
 #include "rooms/room_common.h"
 // The flag symbol is four bytes; the gate writes the first.
 #define ROOM_EVENT_ACTIVE gRoomEventActive.eventStarted
-#include "../../shared/room_events.h"
-#include "../../shared/room_variants.h"
+#include "../../shared/room/room_events.h"
+#include "../../shared/room/room_variants.h"
 
 extern RoomEventActiveBytes gRoomEventActive;
 
@@ -71,12 +71,10 @@ enum {
     DRYFIELD_NIGHT_MOTEL_BALCONY_FOLLOW_UP_STARTED = 2,
 };
 
-#include "../../shared/room_event_gate.inc.c"
-
-#include "../../shared/room_event_task.inc.c"
+#include "../../shared/room/room_event.inc.c"
 
 #define ROOM_VARIANT_MOTEL_BALCONY_DOORS_MSG roomVariantMotelBalconyDoorsMsg
-#include "../../shared/room_variants_motel_balcony_doors.inc.c"
+#include "../../shared/room/room_variants_motel_balcony_doors.inc.c"
 
 /// Selects the balcony sound-message definition shared by this overlay's TUs.
 ///
@@ -84,7 +82,7 @@ enum {
 /// inclusion, with external linkage for the room message table in the data TU.
 /// The fragment undefines this function-identifier binding after its definition.
 #define MOTEL_BALCONY_CUE_SOUND_MSG motelBalconyCueSoundMsg
-#include "../../shared/room_variants_motel_balcony_sound.inc.c"
+#include "../../shared/room/room_variants_motel_balcony_sound.inc.c"
 
 s32 dryfieldNightMotelBalconyRefuseKeyItemMsg(Task* unusedTask, s32 unusedMessageId, s32 unusedItemId, s32 unusedSecondArg)
 {

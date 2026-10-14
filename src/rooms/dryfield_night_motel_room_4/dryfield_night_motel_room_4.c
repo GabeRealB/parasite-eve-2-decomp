@@ -35,8 +35,8 @@
 #include "mapui/map_dryfield_full.h"
 
 #include "rooms/room_common.h"
-#include "../../shared/glow_draw.h"
-#include "../../shared/room_variants.h"
+#include "../../shared/effects/glow_draw.h"
+#include "../../shared/room/room_variants.h"
 
 /// Room-message ID carrying the inventory's key-item use request.
 enum { DRYFIELD_NIGHT_MOTEL_ROOM_4_MESSAGE_USE_KEY_ITEM = 0x13F1 };
@@ -763,7 +763,7 @@ static s32 _dryfieldNightMotelRoom4RejectKeyItemUse(Task* unusedTask, s32 messag
     return DRYFIELD_NIGHT_MOTEL_ROOM_4_KEY_ITEM_REFUSED;
 }
 
-#include "../../shared/room_variants_main_street.inc.c"
+#include "../../shared/room/room_variants_main_street.inc.c"
 
 /// Ignores room commands from CAP playback and direction triggers.
 ///
@@ -819,7 +819,7 @@ void dryfieldNightMotelRoom4RoomTask(Task* task)
     states.funcs[task->state](task);
 }
 
-#include "../../shared/glow_draw_flare_clipped.inc.c"
+#include "../../shared/effects/glow_draw_flare_clipped.inc.c"
 
 void dryfieldNightMotelRoom4DrawFlaresTask(Task* unusedTask)
 {

@@ -41,9 +41,9 @@
 #include "overlay.h"
 
 #include "rooms/dryfield_toilet.h"
-#include "../../shared/actor_motion.h"
-#include "../../shared/actor_messages.h"
-#include "../../shared/model_morph.h"
+#include "../../shared/actor/actor_motion.h"
+#include "../../shared/actor/actor_messages.h"
+#include "../../shared/actor/model_morph.h"
 
 /// Work block of the woman of the Dryfield toilet event, the package's first
 /// actor.
@@ -503,42 +503,7 @@ static void _actor323300StrangerSpawn(Task* task);
 static void _actor323300StrangerUpdate(Task* task);
 static void _actor323300StrangerTurnJoint(GfxCoord* joint, s16 yawDelta);
 
-/// Saves a model's rest XYZ components into a morph's borrowed snapshot buffers.
-///
-/// Requires a live TMD task and a readable morph record. `savedVertexCount`
-/// and `normalCount` are nonnegative element counts from index zero, independent
-/// of the delta range. The source and writable snapshot arrays must cover those
-/// counts and must not overlap. Normals are saved only when `targetNormals` is
-/// non-NULL; neither target array is read. Each vector's fourth halfword stays
-/// intact. All storage is borrowed during this call; the saved XYZ values must
-/// remain unchanged for subsequent blends using this rest shape.
-static inline void _modelMorphSaveRestShape(const Task* task, const ModelMorph* morph)
-{
-    const TmdSource* source;
-    SVECTOR*         savedVertices;
-    SVECTOR*         savedNormals;
-    const SVECTOR*   vertices;
-    const SVECTOR*   normals;
-    s32              elementIndex;
-
-    source        = task->extra.tmd->source;
-    savedVertices = morph->savedVertices;
-    savedNormals  = morph->savedNormals;
-    vertices      = source->verts;
-    for (elementIndex = 0; elementIndex < morph->savedVertexCount; elementIndex++) {
-        savedVertices[elementIndex].vx = vertices[elementIndex].vx;
-        savedVertices[elementIndex].vy = vertices[elementIndex].vy;
-        savedVertices[elementIndex].vz = vertices[elementIndex].vz;
-    }
-    if (morph->targetNormals != NULL) {
-        normals = source->normals;
-        for (elementIndex = 0; elementIndex < morph->normalCount; elementIndex++) {
-            savedNormals[elementIndex].vx = normals[elementIndex].vx;
-            savedNormals[elementIndex].vy = normals[elementIndex].vy;
-            savedNormals[elementIndex].vz = normals[elementIndex].vz;
-        }
-    }
-}
+#include "../../shared/actor/model_morph_save_rest_shape.inc.c"
 
 /// Installs nine local rotation coefficients and refreshes a joint's composed transform.
 ///
@@ -981,11 +946,11 @@ static void _actor323300WomanTurnTowardTarget(Task* task)
     root->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
-#include "../../shared/actor_motion_play19.inc.c"
+#include "../../shared/actor/actor_motion_play19.inc.c"
 
-#include "../../shared/actor_messages_place_euler.inc.c"
+#include "../../shared/actor/actor_messages_place_euler.inc.c"
 
-#include "../../shared/model_morph_blend.inc.c"
+#include "../../shared/actor/model_morph_blend.inc.c"
 
 /// Initializes the Lesser Stranger's transformation task and rest-shape snapshot.
 ///
@@ -1229,7 +1194,7 @@ static void _actor323300StrangerTurnBody(Task* task, s16 turnAngle)
 
 /// Selects the private placement handler for the Lesser Stranger model task.
 #define ACTOR_MESSAGE_PLACE_EULER_HANDLER _actorMsgPlaceEuler
-#include "../../shared/actor_messages_place_euler.inc.c"
+#include "../../shared/actor/actor_messages_place_euler.inc.c"
 #undef ACTOR_MESSAGE_PLACE_EULER_HANDLER
 
 /// Applies a borrowed animation request to the Lesser Stranger's nineteen-part rig.

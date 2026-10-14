@@ -49,9 +49,9 @@
 
 #include "rooms/room_common.h"
 
-#include "../../shared/glow_draw.h"
+#include "../../shared/effects/glow_draw.h"
 
-#include "../../shared/room_visual_effects.h"
+#include "../../shared/room/room_visual_effects.h"
 
 /// World-space placements for the ceiling tubes and the three bulbs above each door.
 typedef struct {
@@ -134,9 +134,9 @@ static const _ShelterB1StoreroomLampGlowPoints _gShelterB1StoreroomLampGlowPoint
 /// `ROOM_VISUAL_EFFECTS_HALO_STORAGE_TYPE` to be `RoomFxShade`. Bind around
 /// `room_visual_effects_halo_data.inc.c`.
 #define ROOM_VISUAL_EFFECTS_HALO_STORAGE_BOUND [ROOM_VISUAL_EFFECTS_HALO_SHADE_COUNT]
-#include "../../shared/room_visual_effects_halo_data.inc.c"
-#include "../../shared/room_visual_effects_trail_data.inc.c"
-#include "../../shared/room_visual_effects_disc_data.inc.c"
+#include "../../shared/room/room_visual_effects_halo_data.inc.c"
+#include "../../shared/room/room_visual_effects_trail_data.inc.c"
+#include "../../shared/room/room_visual_effects_disc_data.inc.c"
 
 static void _glowDrawCapsule(const SVECTOR worldPoints[2], s32 radiusScale, s32 packedColor);
 
@@ -955,18 +955,18 @@ void shelterB1StoreroomDrawGlowsTask(Task* task)
     }
 }
 
-#include "../../shared/glow_draw_capsule.inc.c"
+#include "../../shared/effects/glow_draw_capsule.inc.c"
 
-#include "../../shared/glow_draw_disc.inc.c"
+#include "../../shared/effects/glow_draw_disc.inc.c"
 
-#include "../../shared/room_visual_effects.inc.c"
+#include "../../shared/room/room_visual_effects.inc.c"
 
 void shelterB1StoreroomRoomVisualEffectsMoteTask(Task* task)
 {
     _roomVisualEffectsMoteTask(task);
 }
 
-#include "../../shared/room_visual_effects_halo.inc.c"
+#include "../../shared/room/room_visual_effects_halo.inc.c"
 
 void shelterB1StoreroomRoomVisualEffectsHaloTask(Task* task)
 {
@@ -978,53 +978,50 @@ void shelterB1StoreroomRoomVisualEffectsHaloOrangeBurstTask(Task* task)
     _roomVisualEffectsHaloOrangeBurstTask(task);
 }
 
-#include "../../shared/room_visual_effects_glow_quad.inc.c"
-#include "../../shared/room_visual_effects_flash.inc.c"
+#include "../../shared/room/room_visual_effects_glow_quad.inc.c"
+#include "../../shared/room/room_visual_effects_flash.inc.c"
 
 void shelterB1StoreroomRoomVisualEffectsSparkEmitterTask(Task* task)
 {
     _roomVisualEffectsSparkEmitterTask(task);
 }
 
-#include "../../shared/room_visual_effects_flash_task.inc.c"
+#include "../../shared/room/room_visual_effects_flash_task.inc.c"
 
 void shelterB1StoreroomRoomVisualEffectsFlashTask(Task* task)
 {
     _roomVisualEffectsFlashTask(task);
 }
 
-#include "../../shared/room_visual_effects_trails.inc.c"
+#include "../../shared/room/room_visual_effects_trails.inc.c"
 
 void shelterB1StoreroomRoomVisualEffectsTwinTrailTask(Task* task)
 {
-#include "../../shared/room_visual_effects_trail_task.inc.c"
-}
+#include "../../shared/room/room_visual_effects_trail_task.inc.c"
 
-#include "../../shared/room_visual_effects_sparks.inc.c"
+    void shelterB1StoreroomRoomVisualEffectsSparkBurstTask(Task * task)
+    {
+        _roomVisualEffectsSparkBurstTask(task);
+    }
 
-void shelterB1StoreroomRoomVisualEffectsSparkBurstTask(Task* task)
-{
-    _roomVisualEffectsSparkBurstTask(task);
-}
+#include "../../shared/room/room_visual_effects_glow.inc.c"
+#include "../../shared/room/room_visual_effects_flying_tasks.inc.c"
 
-#include "../../shared/room_visual_effects_glow.inc.c"
-#include "../../shared/room_visual_effects_flying_tasks.inc.c"
+    void shelterB1StoreroomRoomVisualEffectsGlowDiscTask(Task * task)
+    {
+        _roomVisualEffectsGlowDiscTask(task);
+    }
 
-void shelterB1StoreroomRoomVisualEffectsGlowDiscTask(Task* task)
-{
-    _roomVisualEffectsGlowDiscTask(task);
-}
+    void shelterB1StoreroomRoomVisualEffectsFlyingSparkTask(Task * task)
+    {
+        _roomVisualEffectsFlyingSparkTask(task);
+    }
 
-void shelterB1StoreroomRoomVisualEffectsFlyingSparkTask(Task* task)
-{
-    _roomVisualEffectsFlyingSparkTask(task);
-}
+#include "../../shared/room/room_visual_effects_burst.inc.c"
 
-#include "../../shared/room_visual_effects_burst.inc.c"
+    void shelterB1StoreroomRoomVisualEffectsFlyingOrangeBurstTask(Task * task)
+    {
+        _roomVisualEffectsFlyingOrangeBurstTask(task);
+    }
 
-void shelterB1StoreroomRoomVisualEffectsFlyingOrangeBurstTask(Task* task)
-{
-    _roomVisualEffectsFlyingOrangeBurstTask(task);
-}
-
-#include "../../shared/room_visual_effects_burst_draw.inc.c"
+#include "../../shared/room/room_visual_effects_burst_draw.inc.c"

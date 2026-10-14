@@ -40,7 +40,7 @@ static void _shelterB1ElevatorHallIdleRoomTask(Task* task);
 /// the two trailing location-cell bytes retain their unproven role.
 static GameLocationKey _gShelterB1ElevatorHallMineDestination;
 
-#include "../../shared/shelter_elevator_task.inc.c"
+#include "../../shared/room/shelter_elevator_task.inc.c"
 
 s32 shelterB1ElevatorHallResolveRoomTransition(Task* task, s32 messageId, RoomEventMsg* request, RoomEventMsg* reply)
 {

@@ -43,10 +43,10 @@
 #include "main/task_types.h"
 #include "main/tmd_types.h"
 
-#include "../../shared/screen_negative.h"
-#include "../../shared/paced_walk.h"
-#include "../../shared/walker.h"
-#include "../../shared/stride_walk.h"
+#include "../../shared/screen/screen_negative.h"
+#include "../../shared/walk/paced_walk.h"
+#include "../../shared/walk/walker.h"
+#include "../../shared/walk/stride_walk.h"
 
 /// Saved tent conversation progression; the fourth conversation repeats.
 enum {
@@ -2471,7 +2471,7 @@ static AnimationSet* _gActor460200SoldierCAnimationSets[ACTOR_460200_SOLDIER_C_S
     &_gActor460200Animation1F6B4,
 };
 
-#include "../../shared/screen_negative_capture.inc.c"
+#include "../../shared/screen/screen_negative_capture.inc.c"
 
 /// Captures the scene as a grayscale negative and holds drawing until release.
 ///
@@ -2485,7 +2485,7 @@ static void _actor460200NegativeCaptureTask(Task* task)
     _screenNegativeCaptureTask(task);
 }
 
-#include "../../shared/screen_negative_filter.inc.c"
+#include "../../shared/screen/screen_negative_filter.inc.c"
 
 /// Requests mode teardown after the signed task countdown becomes negative.
 ///
@@ -2533,7 +2533,7 @@ static void _actor460200SelectCaptionFile(s32 dataResourceOrdinal)
 // Select the cutscene callback's separate private filter instance.
 #undef SCREEN_NEGATIVE_FILTER
 #define SCREEN_NEGATIVE_FILTER _screenNegativeFilterCutscene
-#include "../../shared/screen_negative_filter.inc.c"
+#include "../../shared/screen/screen_negative_filter.inc.c"
 #undef SCREEN_NEGATIVE_FILTER
 #define SCREEN_NEGATIVE_FILTER _screenNegativeFilter
 
@@ -2611,10 +2611,10 @@ void actor460200TalkToSoldierA(void)
 
 /// Selects the declared static void(Task*) ground-shadow drawer for this inclusion.
 #define ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW _actorRenderDrawFixedWalkerGroundShadow
-#include "../../shared/paced_walk_frame.inc.c"
+#include "../../shared/walk/paced_walk_frame.inc.c"
 #undef ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW
 
-#include "../../shared/paced_walk_update.inc.c"
+#include "../../shared/walk/paced_walk_update.inc.c"
 
 /// Dispatches Soldier A's paced scripted walk.
 ///
@@ -2628,7 +2628,7 @@ static void _actor460200SoldierATask(Task* task)
     handlers[task->state](task->spawnArg2.pointer, task);
 }
 
-#include "../../shared/paced_walk_spawn.inc.c"
+#include "../../shared/walk/paced_walk_spawn.inc.c"
 
 /// Releases the walker's enemy record and tears down its task tree.
 ///
@@ -2641,42 +2641,25 @@ static void _pacedWalkExit(Task* task)
 }
 
 #define ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW _actorRenderDrawFixedWalkerGroundShadow
-#include "../../shared/walker_shadow.inc.c"
+#include "../../shared/walk/walker_shadow.inc.c"
 #undef ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW
 
-#include "../../shared/paced_walk_tick_anim.inc.c"
+#include "../../shared/walk/paced_walk_tick_anim.inc.c"
 
-#include "../../shared/paced_walk_reset_anim.inc.c"
+#include "../../shared/walk/paced_walk_reset_anim.inc.c"
 
-#include "../../shared/paced_walk_blend_anim.inc.c"
+#include "../../shared/walk/paced_walk_blend_anim.inc.c"
 
-#include "../../shared/paced_walk_play_anim.inc.c"
+#include "../../shared/walk/paced_walk_apply_animation_request.inc.c"
+#include "../../shared/walk/paced_walk_play_anim.inc.c"
 
-#include "../../shared/paced_walk_show_pair.inc.c"
+#include "../../shared/walk/paced_walk_show_pair.inc.c"
 
-#include "../../shared/paced_walk_place.inc.c"
+#include "../../shared/walk/paced_walk_place.inc.c"
 
-/// Latches a paced walker's smoke emission on for command word 1.
-///
-/// Requires live `PacedWalkWork` at `task->work` and a readable `ActorCommand`
-/// through this call. Other command words leave the latch unchanged. The
-/// context, message ID and second payload are ignored; the pointer is not
-/// retained. Returns 0.
-static s32 _pacedWalkStartSmoking(Task* task, s32 messageId, const ActorCommand* command, s32 unusedArgument)
-{
-    enum { PACED_WALK_COMMAND_START_SMOKING = 1 };
-    PacedWalkWork* work;
-    u16            commandValue;
+#include "../../shared/walk/paced_walk_start_smoking.inc.c"
 
-    commandValue = command->command;
-    work         = task->work;
-    if (commandValue == PACED_WALK_COMMAND_START_SMOKING) {
-        work->smoking = commandValue;
-    }
-    return 0;
-}
-
-#include "../../shared/paced_walk_to.inc.c"
+#include "../../shared/walk/paced_walk_to.inc.c"
 
 /// Selects this package's two-entry TaskDesc table for the stride-walk spawn fragment.
 ///
@@ -2685,7 +2668,7 @@ static s32 _pacedWalkStartSmoking(Task* task, s32 messageId, const ActorCommand*
 /// live through spawning and its callbacks and model data live until teardown.
 /// Bind only around the fragment inclusion, then undefine it.
 #define STRIDE_WALK_TASKS gActor460200SoldierBTasks
-#include "../../shared/stride_walk_spawn.inc.c"
+#include "../../shared/walk/stride_walk_spawn.inc.c"
 #undef STRIDE_WALK_TASKS
 
 #undef PACED_WALK_BLEND_ANIM
@@ -2695,7 +2678,7 @@ static s32 _pacedWalkStartSmoking(Task* task, s32 messageId, const ActorCommand*
 #undef PACED_WALK_TICK_ANIM
 // Soldier B's stride update uses its own private slot tick.
 #define PACED_WALK_TICK_ANIM _pacedWalkTickSoldierBAnim
-#include "../../shared/stride_walk_update.inc.c"
+#include "../../shared/walk/stride_walk_update.inc.c"
 #undef PACED_WALK_BLEND_ANIM
 #undef PACED_WALK_RESET_ANIM
 #undef PACED_WALK_TICK_ANIM
@@ -2714,13 +2697,10 @@ static void _actor460200SoldierBTask(Task* task)
 }
 
 #define ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW _actorRenderDrawSecondFixedWalkerGroundShadow
-#include "../../shared/stride_walk_frame.inc.c"
-#undef ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW
-
-#include "../../shared/stride_walk_exit.inc.c"
+#include "../../shared/walk/stride_walk_frame.inc.c"
 
 #define ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW _actorRenderDrawSecondFixedWalkerGroundShadow
-#include "../../shared/walker_shadow.inc.c"
+#include "../../shared/walk/walker_shadow.inc.c"
 #undef ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW
 
 #undef PACED_WALK_WORK_T
@@ -2734,27 +2714,25 @@ static void _actor460200SoldierBTask(Task* task)
 
 // Soldier B's tick uses the StrideWalkWork binding above.
 #define PACED_WALK_TICK_ANIM _pacedWalkTickSoldierBAnim
-#include "../../shared/paced_walk_tick_anim.inc.c"
+#include "../../shared/walk/paced_walk_tick_anim.inc.c"
 #undef PACED_WALK_TICK_ANIM
 
 // Soldier B's reset uses the StrideWalkWork binding above.
 #define PACED_WALK_RESET_ANIM _pacedWalkResetSoldierBAnim
-#include "../../shared/paced_walk_reset_anim.inc.c"
+#include "../../shared/walk/paced_walk_reset_anim.inc.c"
 #undef PACED_WALK_RESET_ANIM
 
 // Soldier B's blend uses the StrideWalkWork binding above.
 #define PACED_WALK_BLEND_ANIM _pacedWalkBlendSoldierBAnim
-#include "../../shared/paced_walk_blend_anim.inc.c"
+#include "../../shared/walk/paced_walk_blend_anim.inc.c"
 #undef PACED_WALK_BLEND_ANIM
 
-#include "../../shared/stride_walk_play.inc.c"
-
-#include "../../shared/stride_walk_visibility.inc.c"
+#include "../../shared/walk/stride_walk.inc.c"
 
 // Soldier B's placement uses the StrideWalkWork binding above.
 #undef PACED_WALK_PLACE
 #define PACED_WALK_PLACE _pacedWalkPlaceSoldierB
-#include "../../shared/paced_walk_place.inc.c"
+#include "../../shared/walk/paced_walk_place.inc.c"
 #undef PACED_WALK_PLACE
 #define PACED_WALK_PLACE _pacedWalkPlace
 
@@ -2777,9 +2755,7 @@ static s32 _strideWalkSetTurnMode(Task* task, s32 messageId, const ActorCommand*
     return 0;
 }
 
-#include "../../shared/stride_walk_to.inc.c"
-
-#include "../../shared/stride_walk_sub_model.inc.c"
+#include "../../shared/walk/stride_walk_to.inc.c"
 
 #undef PACED_WALK_UPDATE
 // Soldier C's update and animation helpers operate on its PacedWalkWork.
@@ -2787,7 +2763,7 @@ static s32 _strideWalkSetTurnMode(Task* task, s32 messageId, const ActorCommand*
 #define PACED_WALK_TICK_ANIM  _pacedWalkTickSoldierCAnim
 #define PACED_WALK_RESET_ANIM _pacedWalkResetSoldierCAnim
 #define PACED_WALK_BLEND_ANIM _pacedWalkBlendSoldierCAnim
-#include "../../shared/paced_walk_update.inc.c"
+#include "../../shared/walk/paced_walk_update.inc.c"
 #undef PACED_WALK_UPDATE
 #define PACED_WALK_UPDATE _pacedWalkUpdate
 #undef PACED_WALK_TICK_ANIM
@@ -2894,7 +2870,7 @@ static void _pacedWalkSpawnSoldierC(Enemy* enemy, Task* task)
 /// undefine it after each inclusion of walker_frame.inc.c.
 #define ACTOR_RENDER_UPDATE_WALKER             _pacedWalkUpdateSoldierC
 #define ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW _actorRenderDrawThirdFixedWalkerGroundShadow
-#include "../../shared/walker_frame.inc.c"
+#include "../../shared/walk/walker_frame.inc.c"
 #undef ACTOR_RENDER_WALKER_FRAME
 #undef ACTOR_RENDER_UPDATE_WALKER
 #undef ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW
@@ -2909,22 +2885,22 @@ static void _pacedWalkExitSoldierC(Task* task)
 }
 
 #define ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW _actorRenderDrawThirdFixedWalkerGroundShadow
-#include "../../shared/walker_shadow.inc.c"
+#include "../../shared/walk/walker_shadow.inc.c"
 #undef ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW
 
 // Soldier C's tick uses the restored PacedWalkWork binding.
 #define PACED_WALK_TICK_ANIM _pacedWalkTickSoldierCAnim
-#include "../../shared/paced_walk_tick_anim.inc.c"
+#include "../../shared/walk/paced_walk_tick_anim.inc.c"
 #undef PACED_WALK_TICK_ANIM
 
 // Soldier C's reset uses the restored PacedWalkWork binding.
 #define PACED_WALK_RESET_ANIM _pacedWalkResetSoldierCAnim
-#include "../../shared/paced_walk_reset_anim.inc.c"
+#include "../../shared/walk/paced_walk_reset_anim.inc.c"
 #undef PACED_WALK_RESET_ANIM
 
 // Soldier C's blend uses the restored PacedWalkWork binding.
 #define PACED_WALK_BLEND_ANIM _pacedWalkBlendSoldierCAnim
-#include "../../shared/paced_walk_blend_anim.inc.c"
+#include "../../shared/walk/paced_walk_blend_anim.inc.c"
 #undef PACED_WALK_BLEND_ANIM
 
 /// Immediately reseeds Soldier C's non-root tracks from a scripted play request.
@@ -2960,14 +2936,14 @@ static s32 _pacedWalkPlaySoldierCAnimation(Task* task, s32 messageId, const Anim
 // Select Soldier C's private draw-message callback.
 #undef PACED_WALK_SET_PAIR_MODEL_DRAW
 #define PACED_WALK_SET_PAIR_MODEL_DRAW _pacedWalkSetSoldierCModelDraw
-#include "../../shared/paced_walk_show_pair.inc.c"
+#include "../../shared/walk/paced_walk_show_pair.inc.c"
 #undef PACED_WALK_SET_PAIR_MODEL_DRAW
 #define PACED_WALK_SET_PAIR_MODEL_DRAW _pacedWalkSetPairModelDraw
 
 // Soldier C's placement uses the restored PacedWalkWork binding.
 #undef PACED_WALK_PLACE
 #define PACED_WALK_PLACE _pacedWalkPlaceSoldierC
-#include "../../shared/paced_walk_place.inc.c"
+#include "../../shared/walk/paced_walk_place.inc.c"
 #undef PACED_WALK_PLACE
 #define PACED_WALK_PLACE _pacedWalkPlace
 
@@ -2984,6 +2960,6 @@ static s32 _actor460200IgnoreSoldierCCommand(Task* unusedTask, s32 unusedMessage
 // Soldier C records travel in its own PacedWalkWork.
 #undef PACED_WALK_SET_WALK_TARGET
 #define PACED_WALK_SET_WALK_TARGET _pacedWalkSetSoldierCWalkTarget
-#include "../../shared/paced_walk_to.inc.c"
+#include "../../shared/walk/paced_walk_to.inc.c"
 #undef PACED_WALK_SET_WALK_TARGET
 #define PACED_WALK_SET_WALK_TARGET _pacedWalkSetWalkTarget

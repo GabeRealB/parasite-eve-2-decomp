@@ -36,7 +36,7 @@
 
 #include "rooms/room_common.h"
 
-#include "../../shared/telephone.h"
+#include "../../shared/room/telephone.h"
 
 static void _dryfieldMotelLobbyInitRoomTask(Task* task);
 static void _dryfieldMotelLobbyIdleRoomTask(Task* unusedTask);
@@ -86,7 +86,7 @@ enum {
     DRYFIELD_MOTEL_LOBBY_CAP_INTERACTION_6 = 6,
 };
 
-#include "../../shared/telephone_data.inc.c"
+#include "../../shared/room/telephone_data.inc.c"
 
 /// Synchronous room-message handlers, borrowed while the lobby task is registered.
 ///
@@ -727,7 +727,7 @@ WorldCollisionSurfaceProperties* gDryfieldMotelLobbySurfacePropertiesByClass[8] 
 ///
 /// Two-byte string-literal binding for `telephone.inc.c`; unused by label drawing.
 #define TELEPHONE_MENU_TITLE_TRAILING_BYTES "\xAD\x1A"
-#include "../../shared/telephone.inc.c"
+#include "../../shared/room/telephone.inc.c"
 #undef TELEPHONE_MENU_TITLE_TRAILING_BYTES
 
 void dryfieldMotelLobbyTelephoneMenuTask(Task* task)
@@ -735,7 +735,7 @@ void dryfieldMotelLobbyTelephoneMenuTask(Task* task)
     _telephoneMenuTask(task);
 }
 
-#include "../../shared/telephone_panels.inc.c"
+#include "../../shared/room/telephone_panels.inc.c"
 
 /// Refuses every key-item-use request in the motel lobby.
 ///

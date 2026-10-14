@@ -40,8 +40,8 @@
 #include "mapui/map_dryfield_full.h"
 
 #include "rooms/room_common.h"
-#include "../../shared/glow_draw.h"
-#include "../../shared/room_variants.h"
+#include "../../shared/effects/glow_draw.h"
+#include "../../shared/room/room_variants.h"
 
 static void _underpassSwitchTask(Task* task);
 static s32  _underpassSwitchMsg(Task* unusedTask, s32 unusedMessageId, s32 switchId, s32 unusedSecondArg);
@@ -1065,7 +1065,7 @@ static void _dryfieldNightUnderpassInitializeRoom(Task* task);
 
 #include "../../shared/underpass_switches_task.inc.c"
 
-#include "../../shared/room_variants_underpass.inc.c"
+#include "../../shared/room/room_variants_underpass.inc.c"
 
 #include "../../shared/underpass_switches_msg.inc.c"
 
@@ -1124,7 +1124,7 @@ void dryfieldNightUnderpassRoomTask(Task* task)
     stateHandlers.funcs[task->state](task);
 }
 
-#include "../../shared/glow_draw_flare.inc.c"
+#include "../../shared/effects/glow_draw_flare.inc.c"
 
 void dryfieldNightUnderpassDrawFlaresTask(Task* unusedTask)
 {

@@ -38,7 +38,7 @@
 /// Keep it defined through `effect_sprite_rise.inc.c`, which undefines it.
 /// Gameplay imports this package's compiled callback for effect slot 0x1BF.
 #define EFFECT_SPRITE_RISE_TASK shelterB2PodBottomEffectSpriteRiseTask
-#include "../../shared/effect_sprite.h"
+#include "../../shared/effects/effect_sprite.h"
 
 static void _effectSpriteDrawBanked(const GfxCoord* coord, u16 frameAndPalette, s16 size, s16 angle);
 static void _effectSpriteDrawRotated(const GfxCoord* coord, u16 frameAndPalette, s16 size, s16 angle);
@@ -395,7 +395,7 @@ void shelterB2PodBottomShadowTask(Task* task)
 /// the drift fragment. It uses the name once for the definition and clears the
 /// binding afterwards; there are no arguments, captures or constructed tokens.
 #define EFFECT_SPRITE_DRIFT_TASK shelterB2PodBottomEffectSpriteDriftTask
-#include "../../shared/effect_sprite_drift.inc.c"
+#include "../../shared/effects/effect_sprite_drift.inc.c"
 
 /// Texture-page V origin of the pod bottom's twelve-frame banked sprite animation.
 ///
@@ -410,7 +410,7 @@ void shelterB2PodBottomShadowTask(Task* task)
 /// sizing and ordering-table quantization, keeping the sizing divisor nonzero.
 /// Bind immediately before the banked drawer fragment, which undefines it.
 #define EFFECT_SPRITE_BANKED_INCREMENT_DEPTH 1
-#include "../../shared/effect_sprite_draw_banked.inc.c"
+#include "../../shared/effects/effect_sprite_draw_banked.inc.c"
 
 /// Enables the pod bottom's one-unit depth increment for rotated sprites.
 ///
@@ -418,7 +418,7 @@ void shelterB2PodBottomShadowTask(Task* task)
 /// sizing and ordering-table quantization, keeping the sizing divisor nonzero.
 /// Bind immediately before the rotated drawer fragment, which undefines it.
 #define EFFECT_SPRITE_ROTATED_INCREMENT_DEPTH 1
-#include "../../shared/effect_sprite_draw_rotated.inc.c"
+#include "../../shared/effects/effect_sprite_draw_rotated.inc.c"
 
 /// Projects the four corners of one shock-ring quad into screen coordinates.
 ///
@@ -1085,7 +1085,7 @@ static void _shelterB2PodBottomDrawBurstBlade(const GfxCoord* coord, s32 radiusS
     SCRATCH_STACK_RELEASE_BLOCK(EffectCentreScratch);
 }
 
-#include "../../shared/effect_sprite_rise.inc.c"
+#include "../../shared/effects/effect_sprite_rise.inc.c"
 
 /// Draws an unused opaque white disc as sixteen quads from a 32-point rim.
 ///

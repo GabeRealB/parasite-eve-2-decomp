@@ -39,7 +39,7 @@
 #include "main/task_types.h"
 
 #include "mapui/map_shelter.h"
-#include "../../shared/streamed_scene.h"
+#include "../../shared/room/streamed_scene.h"
 
 static s32 _shelterR36RejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unused);
 static s32 _shelterR36ResolveRoomVariant(Task* task, s32 messageId, RoomEventMsg* request, RoomEventMsg* destination);

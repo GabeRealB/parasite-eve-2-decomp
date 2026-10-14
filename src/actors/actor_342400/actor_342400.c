@@ -27,7 +27,7 @@
 #include "overlay.h"
 
 #include "rooms/shelter_b3_garbage_incinerator.h"
-#include "../../shared/mad_chaser.h"
+#include "../../shared/creatures/mad_chaser/mad_chaser.h"
 
 static void _overlayEncounterOpen(Task* controllerTask);
 static void _overlayEncounterPairSpawn(Task* waveTask);
@@ -333,7 +333,73 @@ EnemyParams gActor342400MadChaserEnemyParams = { _gMadChaserAttacks, 110, 20, 40
 
 static void _actor342400SpawnEncounterSlot(s16 slotIndex, s16 enemyKind, s16 command);
 
-#include "../../shared/mad_chaser_waves_pair_spawn.inc.c"
+/// Allocates a pair spawner and creates up to two one-HP Sucklercephs.
+///
+/// Requires the loaded Sucklerceph descriptor and a spawn argument whose signed
+/// high halfword is a valid encounter-row index (0..16 in this carrier).
+/// The low halfword is retained for later reveal stages. Allocation failure
+/// or two failed enemy spawns kills the spawner without marking its row live.
+/// Task teardown owns the zeroed primary-heap work; it borrows any spawned
+/// enemies until the later death/cull stages forget them. Successful enemies
+/// receive sequential placement keys and the encounter palette offsets. The
+/// placement halfword retains only the counter's low four bits in its index.
+static void _overlayEncounterPairSpawn(Task* waveTask)
+{
+    enum {
+        OVERLAY_ENCOUNTER_PAIR_DESCRIPTOR_INDEX = 1,
+        OVERLAY_ENCOUNTER_PAIR_SOUND_VARIANT    = 1,
+        OVERLAY_ENCOUNTER_PAIR_INITIAL_HP       = 1,
+    };
+    OverlayEncounterPairWork* work;
+    Enemy*                    enemy;
+    Task*                     enemyTask;
+    TmdObject*                model;
+
+/// Assigns one spawned Sucklerceph its encounter identity, palette and one HP.
+///
+/// `member` is a non-NULL Enemy* expression evaluated once, with a live TMD
+/// task. Overwrites the caller's `enemy`, `enemyTask` and `model` locals and
+/// reads the `OVERLAY_ENCOUNTER_PAIR_*` constants. Consumes and increments
+/// `gActor342400EncounterNextPlaceIndex` modulo 65536; the u16 place key retains
+/// only the counter's low four bits shifted by `ENEMY_PLACE_INDEX_SHIFT`.
+/// Model texture/CLUT offsets are set before HP. Borrows the enemy and model;
+/// neither is allocated or retained here. Expands to one statement.
+#define OVERLAY_ENCOUNTER_PREPARE_PAIR_MEMBER(member)                                     \
+    do {                                                                                  \
+        enemy           = (member);                                                       \
+        enemy->placeKey = gActor342400EncounterNextPlaceIndex << ENEMY_PLACE_INDEX_SHIFT; \
+        gActor342400EncounterNextPlaceIndex++;                                            \
+        enemyTask                = enemy->task;                                           \
+        model                    = enemyTask->extra.tmd;                                  \
+        model->texturePageOffset = OVERLAY_ENCOUNTER_PAIR_TEXTURE_PAGE_OFFSET;            \
+        model->clutRowOffset     = OVERLAY_ENCOUNTER_PAIR_CLUT_ROW_OFFSET;                \
+        enemy->hp                = OVERLAY_ENCOUNTER_PAIR_INITIAL_HP;                     \
+    } while (0)
+
+    work = memCalloc(sizeof(*work), false);
+    if (work == NULL) {
+        taskKill(waveTask);
+        return;
+    }
+    // The spawner owns its work; the two independently spawned enemies are borrowed.
+    waveTask->work = work;
+    work->enemy0   = enemySpawnFromTable(gActor207000SucklercephTaskDescs, OVERLAY_ENCOUNTER_PAIR_DESCRIPTOR_INDEX, OVERLAY_ENCOUNTER_PAIR_SOUND_VARIANT, 0);
+    work->enemy1   = enemySpawnFromTable(gActor207000SucklercephTaskDescs, OVERLAY_ENCOUNTER_PAIR_DESCRIPTOR_INDEX, OVERLAY_ENCOUNTER_PAIR_SOUND_VARIANT, 0);
+    if (work->enemy0 == NULL && work->enemy1 == NULL) {
+        taskKill(waveTask);
+        return;
+    }
+    if (work->enemy0 != NULL) {
+        OVERLAY_ENCOUNTER_PREPARE_PAIR_MEMBER(work->enemy0);
+    }
+    if (work->enemy1 != NULL) {
+        OVERLAY_ENCOUNTER_PREPARE_PAIR_MEMBER(work->enemy1);
+    }
+    _gActor342400EncounterSlots[(s16)(waveTask->spawnArg1.value >> 16)].status = OVERLAY_ENCOUNTER_SLOT_LIVE;
+    waveTask->state++;
+}
+
+#undef OVERLAY_ENCOUNTER_PREPARE_PAIR_MEMBER
 
 /// Releases dead or culled Sucklercephs from a pair spawner's borrowed pointers.
 ///
@@ -665,7 +731,31 @@ static void _actor342400WaveInitialize(Task* controllerTask)
 /// The controller advances its cursor even if spawning fails. The fragment
 /// undefines this inclusion-local binding after its body.
 #define OVERLAY_ENCOUNTER_SPAWN_SLOT _actor342400SpawnEncounterSlot
-#include "../../shared/mad_chaser_waves_open.inc.c"
+/// Starts the encounter's first three rows and advances its controller.
+///
+/// Requires live controller work initialized with nextSlot 0 and at least
+/// three complete `_gActor342400EncounterSlots` rows. The carrier binds the declared
+/// void(s16, s16, s16) `OVERLAY_ENCOUNTER_SPAWN_SLOT` callback around inclusion.
+/// Each argument is evaluated once; the binding is undefined after the body.
+/// Advances the cursor even when the requested row fails to spawn.
+static void _overlayEncounterOpen(Task* controllerTask)
+{
+    enum {
+        OVERLAY_ENCOUNTER_OPEN_SLOT_COUNT = 3,
+    };
+    s32                             openingSlot;
+    OverlayEncounterControllerWork* work = controllerTask->work;
+    OverlayEncounterSlot*           slot;
+
+    for (openingSlot = 0; openingSlot < OVERLAY_ENCOUNTER_OPEN_SLOT_COUNT; openingSlot++) {
+        slot = &_gActor342400EncounterSlots[work->nextSlot];
+        OVERLAY_ENCOUNTER_SPAWN_SLOT(work->nextSlot, slot->kind, slot->command);
+        work->nextSlot++;
+    }
+    controllerTask->state++;
+}
+
+#undef OVERLAY_ENCOUNTER_SPAWN_SLOT
 
 /// Arms the encounter on its fifteenth controller tick after the opening slots.
 ///
@@ -849,7 +939,7 @@ static void _actor342400WaveSpawnSlouch(Task* waveTask)
     taskKill(waveTask);
 }
 
-#include "../../shared/mad_chaser_waves_reveal_second.inc.c"
+#include "../../shared/creatures/mad_chaser/mad_chaser_waves_reveal_second.inc.c"
 
 /// Advances the Slouch spawner from state 2 to watching on the next tick.
 static void _actor342400WaveBeginSlouchWatch(Task* waveTask)
@@ -897,11 +987,61 @@ static void _actor342400WaveBeginPairReveal(Task* waveTask)
     waveTask->state++;
 }
 
-#include "../../shared/mad_chaser_waves_pair_reveal_first.inc.c"
+#include "../../shared/creatures/mad_chaser/mad_chaser_waves_pair_reveal_first.inc.c"
 
-#include "../../shared/mad_chaser_waves_pair_reveal_second.inc.c"
+/// Forgets dead pair members, then reveals the second Sucklerceph after its delay.
+///
+/// Requires initialized pair work with the counter reset by the first reveal.
+/// Borrowed enemies and their model tasks must remain live until forgotten.
+/// A surviving second enemy is revealed on update 61 with the low spawn
+/// halfword's command; a missing one skips the wait. Dispatch consumes the
+/// stack request synchronously. Completion resets the counter and advances.
+static void _overlayEncounterPairRevealSecond(Task* waveTask)
+{
+    enum { OVERLAY_ENCOUNTER_PAIR_REVEAL_WAIT_UPDATES = 60 };
+    OverlayEncounterPairWork* work = waveTask->work;
+    Enemy*                    enemy;
+    Task*                     enemyTask;
+    TmdObject*                model;
+    ActorCommand              request;
 
-#include "../../shared/mad_chaser_waves_pair_watch.inc.c"
+    // Retain the partner only if the HP check leaves its borrowed pointer live.
+    enemy = work->enemy1;
+    _overlayEncounterForgetDeadPairMembers(waveTask);
+    if (work->enemy1 != NULL) {
+        if (++work->frames <= OVERLAY_ENCOUNTER_PAIR_REVEAL_WAIT_UPDATES) {
+            return;
+        }
+        enemyTask                 = work->enemy1->task;
+        model                     = enemyTask->extra.tmd;
+        model->texturePageOffset  = OVERLAY_ENCOUNTER_PAIR_TEXTURE_PAGE_OFFSET;
+        model->clutRowOffset      = OVERLAY_ENCOUNTER_PAIR_CLUT_ROW_OFFSET;
+        enemy->workType           = ENEMY_WORK_ACTOR;
+        request.context.loc.stage = OVERLAY_ENCOUNTER_PAIR_COMMAND_STAGE;
+        request.context.loc.area  = OVERLAY_ENCOUNTER_PAIR_COMMAND_AREA;
+        request.command           = waveTask->spawnArg1.value;
+        TASK_MESSAGE_DISPATCH_POINTER(enemyTask, ACTOR_COMMAND_MESSAGE_APPLY, &request, 0);
+    }
+    work->frames = 0;
+    waveTask->state++;
+}
+
+/// Completes the encounter row once both Sucklercephs have died or been culled.
+///
+/// Requires live pair work, borrowed enemy tasks and a high spawn halfword
+/// selecting row 0..16. The carrier's cull check releases enemy pointers and
+/// records their gone bits on the next update. Enemy teardown is separate;
+/// killing the spawner releases its owned work after marking the row done.
+static void _overlayEncounterPairWatch(Task* waveTask)
+{
+    OverlayEncounterPairWork* work = waveTask->work;
+
+    _actor342400WaveCullPair(waveTask);
+    if (work->goneMask == OVERLAY_ENCOUNTER_PAIR_GONE_BOTH) {
+        _gActor342400EncounterSlots[(s16)(waveTask->spawnArg1.value >> 16)].status = OVERLAY_ENCOUNTER_SLOT_DONE;
+        taskKill(waveTask);
+    }
+}
 
 /// Selects the normal or reveal camera mapping for the incinerator encounter.
 ///
@@ -944,4 +1084,4 @@ static void _actor342400SpawnEncounterSlot(s16 slotIndex, s16 enemyKind, s16 com
     }
 }
 
-#include "../../shared/mad_chaser_waves_pair_drop_dead.inc.c"
+#include "../../shared/creatures/mad_chaser/overlay_encounter_forget_dead_pair_members.inc.c"

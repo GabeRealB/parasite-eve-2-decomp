@@ -43,7 +43,7 @@
 #include "main/tmd_types.h"
 #include "main/wipsys.h"
 #include "main/wipsys_types.h"
-#include "../../shared/player_detection.h"
+#include "../../shared/actor/player_detection.h"
 /// Selects shielded Rook behavior for this Beam Sword GOLEM carrier.
 #define GOLEM_PAWN_ROOK_KIND GOLEM_PAWN_ROOK_KIND_ROOK
 /// Selects the shared Beam Sword build for this shielded Rook GOLEM carrier.
@@ -51,7 +51,7 @@
 /// Keep this binding through all GOLEM fragments, with matching weapon tasks,
 /// behavior callbacks and animation tables.
 #define GOLEM_PAWN_ROOK_WEAPON GOLEM_PAWN_ROOK_WEAPON_BEAM_SWORD
-#include "../../shared/golem_pawn_rook.h"
+#include "../../shared/creatures/golem/golem_pawn_rook.h"
 
 /// Character script bank used by this carrier's cue tables.
 enum { GOLEM_PAWN_ROOK_SOUND_BANK = 0x17 };
@@ -1263,33 +1263,15 @@ static TaskFunc _gGolemPawnRookBehaviorHandlers[GOLEM_PAWN_ROOK_BEHAVIOR_DOWNED_
 
 static void _actor02300SpawnBody(Enemy* enemy, Task* actor);
 
-#include "../../shared/golem_pawn_rook_inlines.inc.c"
+#include "../../shared/creatures/golem/golem_pawn_rook_inlines.inc.c"
 
-#include "../../shared/golem_pawn_rook_take_hits.inc.c"
+#include "../../shared/creatures/golem/golem_pawn_rook_take_hits.inc.c"
 
-#include "../../shared/golem_pawn_rook_patrol.inc.c"
+#include "../../shared/creatures/golem/golem_pawn_rook_patrol.inc.c"
 
-#include "../../shared/golem_pawn_rook_player_noise.inc.c"
+#include "../../shared/creatures/golem/golem_pawn_rook_sword.inc.c"
 
-#include "../../shared/golem_pawn_rook_knockdown.inc.c"
-
-#include "../../shared/golem_pawn_rook_downed_hit.inc.c"
-
-#include "../../shared/golem_pawn_rook_collapse.inc.c"
-
-#include "../../shared/golem_pawn_rook_turn.inc.c"
-
-#include "../../shared/golem_pawn_rook_hit_tilt.inc.c"
-
-#include "../../shared/golem_pawn_rook_anim_cues.inc.c"
-
-#include "../../shared/golem_pawn_rook_dead.inc.c"
-
-#include "../../shared/golem_pawn_rook_sword_charge.inc.c"
-
-#include "../../shared/golem_pawn_rook_sword_swing.inc.c"
-
-#include "../../shared/golem_pawn_rook_silence_scream.inc.c"
+#include "../../shared/creatures/golem/golem_pawn_rook_silence_scream.inc.c"
 
 /// Links a Rook collision body and initializes the contact table it borrows.
 ///
@@ -1501,23 +1483,13 @@ static void _actor02300SpawnBody(Enemy* enemy, Task* actor)
     }
 }
 
-#include "../../shared/golem_pawn_rook_frame.inc.c"
+#include "../../shared/creatures/golem/golem_pawn_rook_frame.inc.c"
 
-#include "../../shared/golem_pawn_rook_lunge_cycle.inc.c"
+#include "../../shared/creatures/golem/golem_pawn_rook_lunge_cycle.inc.c"
 
-#include "../../shared/player_detection_segment.inc.c"
+#include "../../shared/actor/player_detection_segment.inc.c"
 
-#include "../../shared/golem_pawn_rook_idle.inc.c"
-
-#include "../../shared/golem_pawn_rook_stagger.inc.c"
-
-#include "../../shared/golem_pawn_rook_recoil.inc.c"
-
-#include "../../shared/golem_pawn_rook_buildup.inc.c"
-
-#include "../../shared/golem_pawn_rook_downed_death.inc.c"
-
-#include "../../shared/golem_pawn_rook_nop.inc.c"
+#include "../../shared/creatures/golem/golem_pawn_rook.inc.c"
 
 /// Rook GOLEM Beam Sword callbacks: 0 attach at body part 7, 1 tick, 2 destroy.
 ///
@@ -1544,9 +1516,7 @@ static void _actor02300SwordTask(Task* sword)
     stateHandlers.funcs[sword->state](sword->spawnArg2.pointer, sword);
 }
 
-#include "../../shared/golem_pawn_rook_sword_spawn.inc.c"
-
-#include "../../shared/golem_pawn_rook_sword_tick.inc.c"
+#include "../../shared/creatures/golem/golem_pawn_rook_sword_spawn.inc.c"
 
 /// Rook GOLEM shield callbacks: 0 attach at body part 11, 1 tick, 2 destroy.
 ///
@@ -1573,7 +1543,7 @@ static void _actor02300ShieldTask(Task* shield)
     stateHandlers.funcs[shield->state](shield->spawnArg2.pointer, shield);
 }
 
-#include "../../shared/golem_pawn_rook_shield_spawn.inc.c"
+#include "../../shared/creatures/golem/golem_pawn_rook_shield_spawn.inc.c"
 
 /// Rook GOLEM body callbacks: 0 spawn, 1 combat frame, 2 persistent corpse.
 ///
@@ -1587,7 +1557,7 @@ static const EnemyTaskFuncTable3 _gActor02300BodyTaskStates = {
     },
 };
 
-#include "../../shared/golem_pawn_rook_shield_tick.inc.c"
+#include "../../shared/creatures/golem/golem_pawn_rook_shield_tick.inc.c"
 
 /// Dispatches the Beam Sword Rook body task's spawn, frame or corpse-teardown phase.
 ///

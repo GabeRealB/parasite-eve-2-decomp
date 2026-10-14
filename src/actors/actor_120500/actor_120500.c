@@ -53,8 +53,8 @@ static void _screenFadeInTask(Task* task);
 /// Keep defined from `screen_fade.h` through `screen_fade_in.inc.c`, then undefine.
 /// This object-like binding has no arguments, captures or token construction.
 #define SCREEN_FADE_IN_TASK _screenFadeInTask
-#include "../../shared/screen_fade.h"
-#include "../../shared/actor_messages.h"
+#include "../../shared/screen/screen_fade.h"
+#include "../../shared/actor/actor_messages.h"
 
 static void _screenFadeOutTask(Task* task);
 
@@ -805,10 +805,10 @@ static void _actor120500SceneTask(Task* task)
     }
 }
 
-#include "../../shared/screen_fade_in.inc.c"
+#include "../../shared/screen/screen_fade_in.inc.c"
 #undef SCREEN_FADE_IN_TASK
 
-#include "../../shared/screen_fade_out.inc.c"
+#include "../../shared/screen/screen_fade_out.inc.c"
 
 /// Posts a player-choreography request for the motel room 6 scene.
 ///
@@ -931,4 +931,4 @@ static void _actor120500SetModelDraw(Task* task, s32 unusedMessageId, s32 drawMo
     }
 }
 
-#include "../../shared/actor_messages_place_in_view.inc.c"
+#include "../../shared/actor/actor_messages_place_in_view.inc.c"

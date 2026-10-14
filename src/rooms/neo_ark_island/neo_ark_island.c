@@ -660,9 +660,7 @@ WorldCollisionSurfaceProperties* gNeoArkIslandSurfaceProperties[NEO_ARK_ISLAND_S
 /// retains its eight-byte storage and original two-byte alignment.
 static GameLocationKey _gNeoArkIslandGalleryDestination __attribute__((aligned(2)));
 
-#include "../../shared/water_refraction_task.inc.c"
-
-#include "../../shared/water_distort_band_task.inc.c"
+#include "../../shared/effects/water.inc.c"
 
 /// Island room-controller states: 0 register/start ambience, 1 idle, 2 kill.
 ///

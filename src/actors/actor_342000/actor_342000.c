@@ -52,7 +52,7 @@
 #include "overlay.h"
 
 #include "rooms/shelter_b3_garbage_incinerator.h"
-#include "../../shared/actor_messages.h"
+#include "../../shared/actor/actor_messages.h"
 
 /// Work block of each task that makes up the Glutton's display model: the
 /// body, its two legs and the three further parts hung off the body.
@@ -1459,7 +1459,7 @@ static void _actor342000IncineratorEventTask(Task* task)
     }
 }
 
-#include "../../shared/screen_fade_step_down.inc.c"
+#include "../../shared/screen/screen_fade_step_down.inc.c"
 
 /// Reveals the screen by reducing a subtractive full-screen overlay each tick.
 ///
@@ -1525,9 +1525,9 @@ static void _actor342000ExitGluttonModel(Task* task)
     taskKill(task);
 }
 
-#include "../../shared/actor_messages_draw_mode.inc.c"
+#include "../../shared/actor/actor_messages_draw_mode.inc.c"
 
-#include "../../shared/actor_messages_place_ypr.inc.c"
+#include "../../shared/actor/actor_messages_place_ypr.inc.c"
 
 /// Places the Glutton model's coordinate and records its XYZ Euler rotation.
 ///

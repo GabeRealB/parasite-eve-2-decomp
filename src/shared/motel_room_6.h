@@ -10,7 +10,7 @@
 #ifndef SRC_SHARED_MOTEL_ROOM_6_H
 #define SRC_SHARED_MOTEL_ROOM_6_H
 
-#include "dryfield_time.h"
+#include "../stages/dryfield/dryfield_time.h"
 
 /// Binds the shared glow task definition to its room overlay's public export.
 ///

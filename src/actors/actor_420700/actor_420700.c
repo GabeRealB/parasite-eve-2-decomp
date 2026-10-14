@@ -25,7 +25,7 @@
 #include "main/task.h"
 #include "main/task_types.h"
 #include "main/tmd_types.h"
-#include "../../shared/scripted_walk.h"
+#include "../../shared/walk/scripted_walk.h"
 
 /// The animation request and the head turn the actor keeps right after its
 /// rig.
@@ -1240,9 +1240,9 @@ static void _actor420700UpdateAnimation(Task* task)
     }
 }
 
-#include "../../shared/scripted_walk_tick_anim.inc.c"
+#include "../../shared/walk/scripted_walk_tick_anim.inc.c"
 
-#include "../../shared/scripted_walk_reset_anim.inc.c"
+#include "../../shared/walk/scripted_walk_reset_anim.inc.c"
 
 /// Blends slots 1..19 from their current poses to the requested clip over eight frames.
 ///

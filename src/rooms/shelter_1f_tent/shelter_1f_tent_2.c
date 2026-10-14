@@ -39,8 +39,8 @@
 #include "rooms/room.h"
 
 #include "rooms/room_common.h"
-#include "../../shared/glow_draw.h"
-#include "../../shared/room_cutscene.h"
+#include "../../shared/effects/glow_draw.h"
+#include "../../shared/room/room_cutscene.h"
 
 /// World-space centre of the green flickering disc visible in mapped views 2, 3 and 7.
 static SVECTOR _gShelter1fTentGreenDiscCentre = { -4475, -1050, 8880, 0 };
@@ -854,10 +854,10 @@ void shelter1fTentDrawViewGlowsTask(Task* unusedTask)
     }
 }
 
-#include "../../shared/glow_draw_capsule.inc.c"
+#include "../../shared/effects/glow_draw_capsule.inc.c"
 
-#include "../../shared/glow_draw_disc.inc.c"
+#include "../../shared/effects/glow_draw_disc.inc.c"
 
-#include "../../shared/glow_draw_wide_diamond.inc.c"
+#include "../../shared/effects/glow_draw_wide_diamond.inc.c"
 
-#include "../../shared/glow_draw_pulsing_disc.inc.c"
+#include "../../shared/effects/glow_draw_pulsing_disc.inc.c"

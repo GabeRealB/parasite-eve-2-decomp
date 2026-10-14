@@ -25,8 +25,8 @@
 #include "main/task.h"
 #include "main/tmd.h"
 #include "main/tmd_types.h"
-#include "../../shared/actor_motion.h"
-#include "../../shared/actor_messages.h"
+#include "../../shared/actor/actor_motion.h"
+#include "../../shared/actor/actor_messages.h"
 
 /// Work block of Jodie Bouquet as a room script poses her: what her body model
 /// plays, the matrices it is lit with and the model she holds.
@@ -496,7 +496,7 @@ static void _actor213100HeldModelTask(Task* heldModelTask)
     stateCallbacks.funcs[heldModelTask->state](heldModelTask);
 }
 
-#include "../../shared/model_placement_attach_part.inc.c"
+#include "../../shared/actor/model_placement_attach_part.inc.c"
 
 /// Leaves the attached held model under its parent's transform and lighting.
 ///
@@ -613,9 +613,9 @@ static void _actor213100InitBodyLighting(Task* actorTask)
     model->colorMtx = &work->model.color;
 }
 
-#include "../../shared/actor_motion_play19.inc.c"
+#include "../../shared/actor/actor_motion_play19.inc.c"
 
-#include "../../shared/actor_messages_place_euler.inc.c"
+#include "../../shared/actor/actor_messages_place_euler.inc.c"
 
 /// Sets body drawing and buffer policy, then mirrors every flag to the held model.
 ///

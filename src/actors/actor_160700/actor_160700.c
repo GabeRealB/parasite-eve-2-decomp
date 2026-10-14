@@ -30,9 +30,9 @@
 #include "main/task.h"
 #include "main/task_types.h"
 #include "main/tmd_types.h"
-#include "../../shared/actor_messages.h"
-#include "../../shared/paced_walk.h"
-#include "../../shared/walker.h"
+#include "../../shared/actor/actor_messages.h"
+#include "../../shared/walk/paced_walk.h"
+#include "../../shared/walk/walker.h"
 
 /// Conversation progress handled while the actor is in the GOLEM freezer room.
 enum {
@@ -1767,7 +1767,7 @@ static void _actor160700PacedWalkSpawn(Enemy* enemy, Task* task)
 }
 #undef ACTOR_160700_INITIALIZE_MODEL_LIGHTING
 
-#include "../../shared/paced_walk_update.inc.c"
+#include "../../shared/walk/paced_walk_update.inc.c"
 
 /// Dispatches Pierce's paced walker initialization or frame update.
 ///
@@ -1800,7 +1800,7 @@ static void _actor160700PacedWalkerTask(Task* task)
 #define ACTOR_RENDER_UPDATE_WALKER _pacedWalkUpdate
 /// Selects the declared static void(Task*) ground-shadow drawer for this inclusion.
 #define ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW _actorRenderDrawFixedWalkerGroundShadow
-#include "../../shared/walker_frame.inc.c"
+#include "../../shared/walk/walker_frame.inc.c"
 #undef ACTOR_RENDER_WALKER_FRAME
 #undef ACTOR_RENDER_UPDATE_WALKER
 #undef ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW
@@ -1816,31 +1816,16 @@ static void _actor160700Exit(Task* task)
 }
 
 #define ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW _actorRenderDrawFixedWalkerGroundShadow
-#include "../../shared/walker_shadow.inc.c"
+#include "../../shared/walk/walker_shadow.inc.c"
 #undef ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW
 
-#include "../../shared/paced_walk_tick_anim.inc.c"
+#include "../../shared/walk/paced_walk_tick_anim.inc.c"
 
-#include "../../shared/paced_walk_reset_anim.inc.c"
+#include "../../shared/walk/paced_walk_reset_anim.inc.c"
 
-#include "../../shared/paced_walk_blend_anim.inc.c"
+#include "../../shared/walk/paced_walk_blend_anim.inc.c"
 
-/// Records a clip and transition choice for the walker's animation reseed.
-///
-/// Both pointers are borrowed through the call. The caller supplies a loaded
-/// clip and applies the recorded request. Clip and blend duration retain their
-/// signed-halfword stores. Does not play tracks or retain the request pointer.
-static __inline__ void _pacedWalkApplyAnimationRequest(PacedWalkWork* work, const AnimationPlayRequest* request)
-{
-    work->st.animId = request->animationId;
-    if (request->blend != ANIMATION_BLEND_RESET) {
-        work->st.state    = ACTOR_ENEMY_ANIM_BLEND;
-        work->blendFrames = request->blendFrames;
-    } else {
-        work->st.state = ACTOR_ENEMY_ANIM_RESET;
-    }
-    work->st.field_6 = 0;
-}
+#include "../../shared/walk/paced_walk_apply_animation_request.inc.c"
 
 /// Immediately reseeds the walker's non-root tracks from a scripted play request.
 ///
@@ -1904,7 +1889,7 @@ static s32 _pacedWalkSetPairModelDraw(Task* task, s32 messageId, s32 flags, s32 
     return 0;
 }
 
-#include "../../shared/paced_walk_place.inc.c"
+#include "../../shared/walk/paced_walk_place.inc.c"
 
 /// Ignores actor commands and returns zero without changing the walker.
 ///
@@ -1915,28 +1900,9 @@ static s32 _actor160700IgnoreCommand(Task* task, s32 messageId, const ActorComma
     return 0;
 }
 
-#include "../../shared/paced_walk_to.inc.c"
+#include "../../shared/walk/paced_walk_to.inc.c"
 
-/// Links a carried model's root to a walker part and shares the walker's lighting.
-///
-/// Requires a live writable `carriedModel` with coordinate 0 and a spawned
-/// `PacedWalkWork`. The borrowed `attachmentCoord` and work matrices must stay
-/// live through the child's updates and drawing; coordinate ancestry must be
-/// acyclic. Keeps the root's local transform and invalidates its composition.
-/// Clears all model flags, permitting active drawing and automatic buffer
-/// allocation without performing either here. Task ownership is caller-managed.
-static __inline__ void _pacedWalkAttachCarriedModel(TmdObject* carriedModel, GfxCoord* attachmentCoord,
-                                                    PacedWalkWork* parentWork)
-{
-    enum { PACED_WALK_CARRIED_MODEL_NO_FLAGS = 0 };
-    GfxCoord* rootCoord = carriedModel->coords;
-
-    rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
-    carriedModel->lightMtx  = &parentWork->light;
-    carriedModel->flags     = PACED_WALK_CARRIED_MODEL_NO_FLAGS;
-    carriedModel->colorMtx  = &parentWork->color;
-    rootCoord->parent       = attachmentCoord;
-}
+#include "../../shared/walk/paced_walk_attach_carried_model.inc.c"
 
 /// Attaches the carried model to walker part 4 and refreshes its root composition.
 ///

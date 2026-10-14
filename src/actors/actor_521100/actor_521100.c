@@ -51,7 +51,7 @@
 #include "main/tmd_types.h"
 #include "main/wipsys.h"
 #include "main/wipsys_types.h"
-#include "../../shared/actor_messages.h"
+#include "../../shared/actor/actor_messages.h"
 
 static void _no9GolemAimHead(const Task* actor);
 static void _no9GolemDrawShadow(const Task* task);
@@ -3250,7 +3250,7 @@ static void _actor521100PlayFootsteps(Task* task)
     }
 }
 
-#include "../../shared/no9_golem_aim_head.inc.c"
+#include "../../shared/creatures/golem/no9_golem_aim_head.inc.c"
 /// Composes a hit rotation into the chest's local rotation; changes GTE state.
 ///
 /// Postmultiplies chest * hit using Q12 coefficients, shifting each product by
@@ -3710,7 +3710,7 @@ static void _actor521100UpdateLighting(Task* task)
     worldCoordUpdateActorColor(task->spawnArg2.pointer, &samplePosition, 0, 0);
 }
 
-#include "../../shared/no9_golem_draw_shadow.inc.c"
+#include "../../shared/creatures/golem/no9_golem_draw_shadow.inc.c"
 
 /// Dispatches the child gunblade's attach, draw-update or destroy task state.
 ///
@@ -3836,4 +3836,4 @@ static s32 _actor521100PlayEventAnimation(Task* task, s32 unusedMessageId, const
     return 0;
 }
 
-#include "../../shared/actor_messages_place_rot_matrix.inc.c"
+#include "../../shared/actor/actor_messages_place_rot_matrix.inc.c"

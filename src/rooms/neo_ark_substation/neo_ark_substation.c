@@ -38,7 +38,7 @@
 #include "overlay.h"
 
 #include "rooms/room_common.h"
-#include "../../shared/glow_draw.h"
+#include "../../shared/effects/glow_draw.h"
 
 static void _neoArkSubstationInitializeRoom(Task* task);
 static void _neoArkSubstationMessageTaskIdle(Task* unusedTask);
@@ -849,4 +849,4 @@ void neoArkSubstationDrawLightGlowsTask(Task* unusedTask)
     }
 }
 
-#include "../../shared/glow_draw_capsule.inc.c"
+#include "../../shared/effects/glow_draw_capsule.inc.c"

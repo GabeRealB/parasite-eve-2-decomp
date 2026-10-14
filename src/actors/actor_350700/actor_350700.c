@@ -30,9 +30,9 @@
 #include "main/task.h"
 #include "main/tmd.h"
 #include "main/tmd_types.h"
-#include "../../shared/actor_motion.h"
-#include "../../shared/actor_messages.h"
-#include "../../shared/reversing_walker.h"
+#include "../../shared/actor/actor_motion.h"
+#include "../../shared/actor/actor_messages.h"
+#include "../../shared/walk/reversing_walker.h"
 
 static void _modelPlacementAttachPartTask(Task* childTask);
 static void _actor350700KyleMadiganWalkerInitialize(Task* task);
@@ -594,11 +594,11 @@ static TaskMessageEntry _gActor350700KyleMadiganWalkerMessageTable[6] = {
     { ACTOR_COMMAND_MESSAGE_APPLY, _actor350700KyleMadiganWalkerIgnoreCommandMsg },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
-#include "../../shared/reversing_walker_update.inc.c"
+#include "../../shared/walk/reversing_walker_update.inc.c"
 
-#include "../../shared/actor_motion_arrive19.inc.c"
+#include "../../shared/actor/actor_motion_arrive19.inc.c"
 
-#include "../../shared/reversing_walker_start.inc.c"
+#include "../../shared/walk/reversing_walker_start.inc.c"
 
 /// Runs the nineteen-part reversing walker's task while scene actors are running.
 ///
@@ -616,66 +616,13 @@ static void _actor350700ReverseWalkTask(Task* task)
     }
 }
 
-#include "../../shared/reversing_walker_spawn.inc.c"
+#include "../../shared/walk/reversing_walker.inc.c"
 
-/// Releases the walker's enemy record and begins task and model teardown.
-///
-/// Requires a live task with its owned primary-heap `Enemy` in
-/// `spawnArg2.pointer`. Target tracking and actor locks are released before
-/// children, work and model storage. Do not access the task or enemy afterwards.
-static void _reverseWalkExit(Task* task)
-{
-    enemyTaskExit(task);
-}
+#include "../../shared/actor/actor_motion_play19.inc.c"
 
-/// Lends the walker's lighting matrices to its model for lighting and drawing.
-///
-/// Requires a live TMD task with allocated `ReverseWalkWork`. The model borrows
-/// writable matrices in that work; keep it live until model use ends.
-/// This binds storage without calculating or initializing either matrix.
-static void _reverseWalkBindLighting(Task* task)
-{
-    TmdObject*       model;
-    ReverseWalkWork* work;
+#include "../../shared/actor/actor_messages_place_euler.inc.c"
 
-    model           = task->extra.tmd;
-    work            = task->work;
-    model->lightMtx = &work->model.light;
-    model->colorMtx = &work->model.color;
-}
-
-/// Leaves walk state unchanged while no scripted walk is in progress.
-///
-/// The frame update still integrates velocity, ticks animation and draws.
-/// The task parameter is unused but retains the `TaskFunc` callback signature.
-static void _reverseWalkIdle(Task* task)
-{
-}
-
-/// Runs the current phase of a scripted forward or backward walk.
-///
-/// Requires initialized `ReverseWalkWork` and `walk.motionStep` in 0..3:
-/// face the target, begin movement, approach until arrival, then turn to the
-/// destination yaw. Runs one phase per tick without checking the index.
-static void _reverseWalkRunStep(Task* task)
-{
-    ReverseWalkWork*     work     = task->work;
-    const TaskFuncTable4 handlers = _gReverseWalkStepHandlers;
-
-    handlers.funcs[work->walk.motionStep](task);
-}
-
-#include "../../shared/reversing_walker_face.inc.c"
-
-#include "../../shared/reversing_walker_move.inc.c"
-
-#include "../../shared/reversing_walker_turn.inc.c"
-
-#include "../../shared/actor_motion_play19.inc.c"
-
-#include "../../shared/actor_messages_place_euler.inc.c"
-
-#include "../../shared/reversing_walker_visibility.inc.c"
+#include "../../shared/walk/reversing_walker_visibility.inc.c"
 
 /// Selects whether the reversing walker approaches its targets forward or backward.
 ///
@@ -829,9 +776,9 @@ static void _actor350700KyleMadiganWalkerUpdate(Task* task)
     }
 }
 
-#include "../../shared/actor_motion_arrive.inc.c"
+#include "../../shared/actor/actor_motion_arrive.inc.c"
 
-#include "../../shared/actor_motion_start.inc.c"
+#include "../../shared/actor/actor_motion_start.inc.c"
 
 /// Runs the attachment task for either hand or the gun on Kyle Madigan's body.
 ///
@@ -846,7 +793,7 @@ static void _actor350700KyleMadiganAttachmentTask(Task* task)
     stateHandlers.funcs[task->state](task);
 }
 
-#include "../../shared/model_placement_attach_part.inc.c"
+#include "../../shared/actor/model_placement_attach_part.inc.c"
 
 /// Leaves an attached hand or gun idle while the parent's rig drives its transform.
 static void _actor350700KyleMadiganAttachmentIdle(Task* task)
@@ -912,7 +859,7 @@ static void _actor350700KyleMadiganWalkerRunStep(Task* task)
     handlers.funcs[work->walk.motionStep](task);
 }
 
-#include "../../shared/actor_motion_face.inc.c"
+#include "../../shared/actor/actor_motion_face.inc.c"
 
 /// Starts Kyle Madigan moving along his root's local forward axis.
 ///
@@ -938,13 +885,13 @@ static void _actor350700KyleMadiganWalkerBeginMove(Task* task)
     work->walk.motionStep++;
 }
 
-#include "../../shared/actor_motion_turn.inc.c"
+#include "../../shared/actor/actor_motion_turn.inc.c"
 
-#include "../../shared/actor_motion_play.inc.c"
+#include "../../shared/actor/actor_motion_play.inc.c"
 
 /// Selects the private placement handler for the Kyle Madigan model task.
 #define ACTOR_MESSAGE_PLACE_EULER_HANDLER _actorMsgPlaceEuler
-#include "../../shared/actor_messages_place_euler.inc.c"
+#include "../../shared/actor/actor_messages_place_euler.inc.c"
 #undef ACTOR_MESSAGE_PLACE_EULER_HANDLER
 
 /// Applies Kyle Madigan's body draw mode and copies its flags to both hands and gun.

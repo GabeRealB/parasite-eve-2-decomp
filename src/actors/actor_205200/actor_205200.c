@@ -81,7 +81,7 @@
 /// Keep this binding through the grid fragment and the overlay loaded through
 /// the final drawing tick. Only one wave may use this storage at a time.
 #define SCREEN_WAVE_ROW_OSCILLATORS (gScreenWaveRowWaves)
-#include "../../shared/screen_wave.h"
+#include "../../shared/screen/screen_wave.h"
 
 /// Room a controller is placed in, taken from its placement's `mode` and
 /// stored in `_Actor205200CtrlWork.site`.
@@ -386,7 +386,7 @@ static void _actor205200SpawnPart(Enemy* enemy, Task* task);
 static void _actor205200ScanPartHits(Task* task, s32 unusedArg);
 static void _actor205200TickDownPart(Enemy* enemy, Task* task);
 
-#include "../../shared/screen_wave_grid.inc.c"
+#include "../../shared/screen/screen_wave_grid.inc.c"
 
 /// Spawns a site's destructible parts and initializes their pulse controller.
 ///

@@ -63,10 +63,10 @@
 /// Empty presence flag needed only while including the shared header, which
 /// declares the external table of two SVECTOR entries and binds the task's accesses.
 #define ROOM_VISUAL_EFFECTS_SHARED_TRAIL_ENDPOINT_OFFSETS
-#include "../../shared/room_visual_effects.h"
+#include "../../shared/room/room_visual_effects.h"
 #undef ROOM_VISUAL_EFFECTS_SHARED_TRAIL_ENDPOINT_OFFSETS
-#include "../../shared/actor_contacts.h"
-#include "../../shared/streamed_scene.h"
+#include "../../shared/actor/actor_contacts.h"
+#include "../../shared/room/streamed_scene.h"
 
 /// Placed pickup state after collection, shared by this room's model hooks.
 enum { ACROPOLIS_CAFETERIA_PICKUP_COLLECTED = 2 };
@@ -1676,338 +1676,335 @@ s32 acropolisCafeteriaSetPuffEnabled(Task* task, s32 messageId, s32 enabled, s32
     return 0;
 }
 
-#include "../../shared/room_visual_effects.inc.c"
+#include "../../shared/room/room_visual_effects.inc.c"
 
-#include "../../shared/room_visual_effects_flash_task.inc.c"
+#include "../../shared/room/room_visual_effects_flash_task.inc.c"
 
 void acropolisCafeteriaRoomVisualEffectsFlashTask(Task* task)
 {
     _roomVisualEffectsFlashTask(task);
 }
 
-#include "../../shared/room_visual_effects_trails.inc.c"
+#include "../../shared/room/room_visual_effects_trails.inc.c"
 
 void acropolisCafeteriaRoomVisualEffectsTwinTrailTask(Task* task)
 {
-#include "../../shared/room_visual_effects_trail_task.inc.c"
-}
+#include "../../shared/room/room_visual_effects_trail_task.inc.c"
 
-#include "../../shared/room_visual_effects_sparks.inc.c"
-
-void acropolisCafeteriaRoomVisualEffectsSparkBurstTask(Task* task)
-{
-    _roomVisualEffectsSparkBurstTask(task);
-}
-
-#include "../../shared/room_visual_effects_glow.inc.c"
-
-/// Places a loose model above the player with a positive-Z offset and links its sphere.
-///
-/// Requires a fresh state-zero TMD task and a live player. Owns one primary-heap
-/// work block with six contacts; allocation failure kills the uninitialized task.
-/// The exit callback unlinks the sphere before task teardown frees the work.
-static void _acropolisCafeteriaLoosePropInit(Task* task)
-{
-    TmdObject*                        model;
-    GfxCoord*                         coord;
-    _AcropolisCafeteriaLoosePropWork* work;
-    GfxCoord*                         playerCoord;
-
-    model = task->extra.tmd;
-    coord = model->coords;
-    work  = memCalloc(sizeof(*work), false);
-    if (work == NULL) {
-        taskKill(task);
-        return;
+    void acropolisCafeteriaRoomVisualEffectsSparkBurstTask(Task * task)
+    {
+        _roomVisualEffectsSparkBurstTask(task);
     }
-    task->work         = work;
-    task->exitCallback = _acropolisCafeteriaLoosePropExit;
-    task->state        = task->state + 1;
-    memFillBytes(work, 0, sizeof(*work));
-    coord->parent       = &gGfxViewCoord;
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    model->flags        = 0;
-    RotMatrix(&work->rotation, &coord->coord);
-    work->kickStrength = (rand() & 0xFFF) + 0x3000;
-    playerCoord        = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords;
-    coord->coord.t[0]  = playerCoord->coord.t[0];
-    coord->coord.t[1]  = playerCoord->coord.t[1] - 0x800;
-    coord->coord.t[2]  = playerCoord->coord.t[2] + 0x800;
-    // The body borrows the contacts embedded in the work block for its whole lifetime.
-    work->body.context.contacts = work->contacts;
-    work->body.key              = DAMAGE_HAZARD_CATEGORY;
-    work->body.radius           = 0xFA;
-    work->body.coord            = coord;
-    work->body.pos.vx           = 0;
-    work->body.pos.vy           = 0;
-    work->body.pos.vz           = 0;
-    work->body.flags            = WORLD_COLLISION_BODY_SPHERE;
-    worldCollisionLinkBody(WORLD_COLLISION_LIST_PROPS, &work->body);
-    worldCollisionInitContacts(work->body.context.contacts, ARRAY_SIZE(work->contacts), 0);
-    work->body.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-}
 
-/// Dampens the loose prop's horizontal velocity and advances its motion phase at rest.
-///
-/// Requires initialized task work in the hopping or sliding phase. X/Z velocity
-/// is in integer world units per tick: retain 6/7, truncating toward zero, then
-/// snap magnitudes below 9 to zero. Both axes stopping increments the current
-/// phase once, including during a hop; vertical velocity is preserved.
-static inline void _acropolisCafeteriaDampLoosePropSlide(_AcropolisCafeteriaLoosePropWork* work)
-{
-    enum { SLIDE_STOP_SPEED = 9 }; // Exclusive magnitude threshold after damping, in world units per tick.
+#include "../../shared/room/room_visual_effects_glow.inc.c"
 
-    work->velocity.vx = (work->velocity.vx * 6) / 7;
-    if (ABS(work->velocity.vx) < SLIDE_STOP_SPEED) {
-        work->velocity.vx = 0;
-    }
-    work->velocity.vz = (work->velocity.vz * 6) / 7;
-    if (ABS(work->velocity.vz) < SLIDE_STOP_SPEED) {
-        work->velocity.vz = 0;
-    }
-    if ((work->velocity.vx | work->velocity.vz) == 0) {
-        work->phase++;
-    }
-}
+    /// Places a loose model above the player with a positive-Z offset and links its sphere.
+    ///
+    /// Requires a fresh state-zero TMD task and a live player. Owns one primary-heap
+    /// work block with six contacts; allocation failure kills the uninitialized task.
+    /// The exit callback unlinks the sphere before task teardown frees the work.
+    static void _acropolisCafeteriaLoosePropInit(Task * task)
+    {
+        TmdObject*                        model;
+        GfxCoord*                         coord;
+        _AcropolisCafeteriaLoosePropWork* work;
+        GfxCoord*                         playerCoord;
 
-/// Sinks the loose prop and handles its contact-driven hop, slide and leveling.
-///
-/// Requires initialized work and a linked sphere. Position increments are integer
-/// world units per tick; Euler angles and the normalized kick direction use 4096
-/// units per turn and per unit vector respectively. Every update clears contacts.
-static void _acropolisCafeteriaLoosePropUpdate(Task* task)
-{
-    MATRIX*                           scratchEnd;
-    _AcropolisCafeteriaLoosePropWork* work;
-    GfxCoord*                         coord;
-    SVECTOR*                          kickDirection;
-    s32                               launchMagnitude;
-
-    scratchEnd                   = SCRATCH_STACK_CURSOR(MATRIX);
-    SCRATCH_STACK_CURSOR(MATRIX) = scratchEnd - 1;
-    work                         = task->work;
-    coord                        = task->extra.tmd->coords;
-    work->kickStrength--;
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    coord->coord.t[1]  += 0x80;
-    actorRenderComposeCoord(coord);
-    switch (work->phase) {
-        case ACROPOLIS_CAFETERIA_LOOSE_PROP_RESTING:
-            if (worldCollisionFindContactIndex(work->body.context.contacts, WORLD_COLLISION_FIND_ANY_KEY)) {
-                work->phase++;
-                // The matrix snapshot is unused; the discarded random draw still advances rand().
-                scratchEnd[-1] = coord->coord;
-                kickDirection  = &work->kickDirection;
-                gfxReadMatrixZAxis(gPlayerStatus.coordMtx, kickDirection);
-                VectorNormalSS(kickDirection, kickDirection);
-                rand();
-                launchMagnitude   = work->kickStrength;
-                launchMagnitude >>= 1;
-                launchMagnitude   = (launchMagnitude * launchMagnitude) >> 6;
-                work->velocity.vy = -0x100;
-                work->velocity.vx = (work->kickDirection.vx * launchMagnitude) >> 24;
-                work->velocity.vz = (work->kickDirection.vz * launchMagnitude) >> 24;
-            }
-            break;
-        case ACROPOLIS_CAFETERIA_LOOSE_PROP_HOPPING:
-            work->velocity.vy += 0x10;
-            if (work->velocity.vy > 0) {
-                work->velocity.vy = 0;
-                work->phase++;
-            } else {
-                work->rotation.vx += (work->kickStrength >> 6) + (rand() & 0x7F);
-                work->rotation.vy += (work->kickStrength >> 6) + (rand() & 0x7F);
-                work->rotation.vz += (work->kickStrength >> 6) + (rand() & 0x7F);
-            }
-            // Fall through: the hop also loses horizontal speed and applies velocity.
-        case ACROPOLIS_CAFETERIA_LOOSE_PROP_SLIDING:
-            _acropolisCafeteriaDampLoosePropSlide(work);
-            coord->coord.t[0] += work->velocity.vx;
-            coord->coord.t[1] += work->velocity.vy;
-            coord->coord.t[2] += work->velocity.vz;
-            break;
-        case ACROPOLIS_CAFETERIA_LOOSE_PROP_SETTLING:
-            work->rotation.vx = (work->rotation.vx * 2) / 3;
-            if (ABS(work->rotation.vx) < 9) {
-                work->rotation.vx = 0;
-            }
-            work->rotation.vz = (work->rotation.vz * 2) / 3;
-            if (ABS(work->rotation.vz) < 9) {
-                work->rotation.vz = 0;
-            }
-            if (((u16)work->rotation.vx | (u16)work->rotation.vz) == 0) {
-                work->phase = ACROPOLIS_CAFETERIA_LOOSE_PROP_RESTING;
-            }
-            break;
-    }
-    RotMatrix(&work->rotation, &coord->coord);
-    worldCollisionClearContacts(work->contacts);
-    SCRATCH_STACK_RELEASE_BLOCK(MATRIX);
-}
-
-/// Selects the loose-prop exit handler for the next task dispatch.
-static void _acropolisCafeteriaLoosePropRequestExit(Task* task)
-{
-    enum { LOOSE_PROP_TASK_EXIT = 3 };
-    task->state = LOOSE_PROP_TASK_EXIT;
-}
-
-/// Unlinks the initialized loose prop's sphere before teardown frees its work and model.
-static void _acropolisCafeteriaLoosePropExit(Task* task)
-{
-    _AcropolisCafeteriaLoosePropWork* work;
-
-    work = task->work;
-    worldCollisionUnlinkBody(&work->body);
-    taskKill(task);
-}
-
-/// Task-state dispatch for the cafeteria's loose prop.
-///
-/// Slots 0..3 initialize, update motion, request exit and unlink/kill the task.
-/// No terminator; the dispatcher copies all four callback pointers to the stack
-/// before indexing by `Task::state`. The initialized work and model stay live
-/// through slot 3; slot 0 may kill the task if allocation fails.
-static const TaskFuncTable4 _gAcropolisCafeteriaLoosePropStates = { {
-    _acropolisCafeteriaLoosePropInit,
-    _acropolisCafeteriaLoosePropUpdate,
-    _acropolisCafeteriaLoosePropRequestExit,
-    _acropolisCafeteriaLoosePropExit,
-} };
-
-void acropolisCafeteriaLoosePropTask(Task* task)
-{
-    TaskFuncTable4 states;
-
-    states = _gAcropolisCafeteriaLoosePropStates;
-    states.funcs[task->state](task);
-}
-
-#include "../../shared/actor_contacts_push_contact.inc.c"
-
-#include "../../shared/actor_contacts_push.inc.c"
-
-void acropolisCafeteriaMendelPickupTask(Task* task)
-{
-    enum { MENDEL_VIEW_12            = 12,
-           MENDEL_VIEW_24            = 24,
-           MENDEL_DEPTH_BIAS_VIEW_12 = 7,
-           MENDEL_DEPTH_BIAS_VIEW_24 = 4,
-           MENDEL_DEPTH_DEFAULT      = -2 };
-    const Enemy* placement;
-    TmdObject*   model;
-
-    placement = task->spawnArg2.pointer;
-    model     = task->extra.tmd;
-    if (areaGetCurrentObjectState((u8)placement->placeKey) != ACROPOLIS_CAFETERIA_PICKUP_COLLECTED) {
-        model->lightMtx = &_gAcropolisCafeteriaMendelPickupLightMatrix;
-        model->colorMtx = &_gAcropolisCafeteriaMendelPickupColorMatrix;
-        model->flags    = 0;
-    } else {
-        model->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    }
-    // Bias ordering for the mapped camera even while the collected model is hidden.
-    switch (viewGetMappedIndex() & 0xFF) {
-        case MENDEL_VIEW_12:
-            model->otOffset = MENDEL_DEPTH_BIAS_VIEW_12;
-            break;
-        case MENDEL_VIEW_24:
-            model->otOffset = MENDEL_DEPTH_BIAS_VIEW_24;
-            break;
-        default:
-            model->otOffset = MENDEL_DEPTH_DEFAULT;
-            break;
-    }
-}
-void acropolisCafeteriaStimPickupTask(Task* task)
-{
-    enum { STIM_ACTIVE_VIEW  = 9,
-           STIM_TILTED_PLACE = 10,
-           STIM_QUARTER_TURN = 0x400 };
-    const Enemy* placement;
-    TmdObject*   model;
-    s32          placeState;
-
-    placement  = task->spawnArg2.pointer;
-    model      = task->extra.tmd;
-    placeState = areaGetCurrentObjectState((u8)placement->placeKey);
-    if ((viewGetMappedIndex() & 0xFF) != STIM_ACTIVE_VIEW) {
-        model->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-        return;
-    }
-    if ((u8)placement->placeKey == STIM_TILTED_PLACE) {
-        gfxRotMatrixX(&task->extra.tmd->coords->coord, STIM_QUARTER_TURN, GRAPHICS_ROTATION_REPLACE);
-    }
-    model->lightMtx = &_gAcropolisCafeteriaStimPickupLightMatrix;
-    model->colorMtx = &_gAcropolisCafeteriaStimPickupColorMatrix;
-    // Retire collected placements only in the active view; buffer allocation retries otherwise.
-    if (placeState == ACROPOLIS_CAFETERIA_PICKUP_COLLECTED) {
-        model->flags &= (u16)~TMD_OBJECT_FLAGGED_PASS;
-        taskCallExit(task);
-    } else {
-        model->flags    = TMD_OBJECT_FLAGGED_PASS;
-        model->otOffset = 0;
-        tmdAllocPrimitiveBuffer(model);
-    }
-}
-/// Draws an unreferenced model hook in view 9 until placed-object flag 10 is collected.
-///
-/// Requires a TMD body, a live auxiliary heap and cafeteria lighting storage.
-/// Replaces X rotation with a quarter turn even when collection hides the model.
-/// No spawn row or call references this retained hook; its model identity is unproven.
-static void _acropolisCafeteriaObject10DrawTask(Task* task)
-{
-    enum { OBJECT_ACTIVE_VIEW  = 9,
-           OBJECT_FLAG_INDEX   = 10,
-           OBJECT_QUARTER_TURN = 0x400 };
-    TmdObject* model;
-
-    model = task->extra.tmd;
-    if ((viewGetMappedIndex() & 0xFF) != OBJECT_ACTIVE_VIEW) {
-        model->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-        return;
-    }
-    model->lightMtx = &_gAcropolisCafeteriaObject10LightMatrix;
-    model->colorMtx = &_gAcropolisCafeteriaObject10ColorMatrix;
-    if (areaGetCurrentObjectState(OBJECT_FLAG_INDEX) == ACROPOLIS_CAFETERIA_PICKUP_COLLECTED) {
-        model->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    } else {
-        model->flags    = TMD_OBJECT_FLAGGED_PASS;
-        model->otOffset = 0;
-        tmdAllocPrimitiveBuffer(model);
-    }
-    gfxRotMatrixX(&task->extra.tmd->coords->coord, OBJECT_QUARTER_TURN, GRAPHICS_ROTATION_REPLACE);
-}
-/// Draws an unreferenced model hook in views 6, 7 and 10 until object flag 11 is collected.
-///
-/// Requires a TMD body, a live auxiliary heap and cafeteria lighting storage.
-/// No spawn row or call references this retained hook; its model identity is unproven.
-static void _acropolisCafeteriaObject11DrawTask(Task* task)
-{
-    enum { OBJECT_VIEW_FIRST  = 6,
-           OBJECT_VIEW_SECOND = 7,
-           OBJECT_VIEW_THIRD  = 10,
-           OBJECT_FLAG_INDEX  = 11 };
-    TmdObject* model;
-
-    model = task->extra.tmd;
-    switch (viewGetMappedIndex() & 0xFF) {
-        case OBJECT_VIEW_FIRST:
-        case OBJECT_VIEW_SECOND:
-        case OBJECT_VIEW_THIRD:
-            model->flags    = TMD_OBJECT_FLAGGED_PASS;
-            model->lightMtx = &_gAcropolisCafeteriaObject11LightMatrix;
-            model->colorMtx = &_gAcropolisCafeteriaObject11ColorMatrix;
-            break;
-        default:
-            model->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+        model = task->extra.tmd;
+        coord = model->coords;
+        work  = memCalloc(sizeof(*work), false);
+        if (work == NULL) {
+            taskKill(task);
             return;
+        }
+        task->work         = work;
+        task->exitCallback = _acropolisCafeteriaLoosePropExit;
+        task->state        = task->state + 1;
+        memFillBytes(work, 0, sizeof(*work));
+        coord->parent       = &gGfxViewCoord;
+        coord->composeStamp = GRAPHICS_COORD_DIRTY;
+        model->flags        = 0;
+        RotMatrix(&work->rotation, &coord->coord);
+        work->kickStrength = (rand() & 0xFFF) + 0x3000;
+        playerCoord        = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords;
+        coord->coord.t[0]  = playerCoord->coord.t[0];
+        coord->coord.t[1]  = playerCoord->coord.t[1] - 0x800;
+        coord->coord.t[2]  = playerCoord->coord.t[2] + 0x800;
+        // The body borrows the contacts embedded in the work block for its whole lifetime.
+        work->body.context.contacts = work->contacts;
+        work->body.key              = DAMAGE_HAZARD_CATEGORY;
+        work->body.radius           = 0xFA;
+        work->body.coord            = coord;
+        work->body.pos.vx           = 0;
+        work->body.pos.vy           = 0;
+        work->body.pos.vz           = 0;
+        work->body.flags            = WORLD_COLLISION_BODY_SPHERE;
+        worldCollisionLinkBody(WORLD_COLLISION_LIST_PROPS, &work->body);
+        worldCollisionInitContacts(work->body.context.contacts, ARRAY_SIZE(work->contacts), 0);
+        work->body.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
     }
-    if (areaGetCurrentObjectState(OBJECT_FLAG_INDEX) == ACROPOLIS_CAFETERIA_PICKUP_COLLECTED) {
-        model->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    } else {
-        model->flags    = TMD_OBJECT_FLAGGED_PASS;
-        model->otOffset = 0;
-        tmdAllocPrimitiveBuffer(model);
+
+    /// Dampens the loose prop's horizontal velocity and advances its motion phase at rest.
+    ///
+    /// Requires initialized task work in the hopping or sliding phase. X/Z velocity
+    /// is in integer world units per tick: retain 6/7, truncating toward zero, then
+    /// snap magnitudes below 9 to zero. Both axes stopping increments the current
+    /// phase once, including during a hop; vertical velocity is preserved.
+    static inline void _acropolisCafeteriaDampLoosePropSlide(_AcropolisCafeteriaLoosePropWork * work)
+    {
+        enum { SLIDE_STOP_SPEED = 9 }; // Exclusive magnitude threshold after damping, in world units per tick.
+
+        work->velocity.vx = (work->velocity.vx * 6) / 7;
+        if (ABS(work->velocity.vx) < SLIDE_STOP_SPEED) {
+            work->velocity.vx = 0;
+        }
+        work->velocity.vz = (work->velocity.vz * 6) / 7;
+        if (ABS(work->velocity.vz) < SLIDE_STOP_SPEED) {
+            work->velocity.vz = 0;
+        }
+        if ((work->velocity.vx | work->velocity.vz) == 0) {
+            work->phase++;
+        }
     }
-}
+
+    /// Sinks the loose prop and handles its contact-driven hop, slide and leveling.
+    ///
+    /// Requires initialized work and a linked sphere. Position increments are integer
+    /// world units per tick; Euler angles and the normalized kick direction use 4096
+    /// units per turn and per unit vector respectively. Every update clears contacts.
+    static void _acropolisCafeteriaLoosePropUpdate(Task * task)
+    {
+        MATRIX*                           scratchEnd;
+        _AcropolisCafeteriaLoosePropWork* work;
+        GfxCoord*                         coord;
+        SVECTOR*                          kickDirection;
+        s32                               launchMagnitude;
+
+        scratchEnd                   = SCRATCH_STACK_CURSOR(MATRIX);
+        SCRATCH_STACK_CURSOR(MATRIX) = scratchEnd - 1;
+        work                         = task->work;
+        coord                        = task->extra.tmd->coords;
+        work->kickStrength--;
+        coord->composeStamp = GRAPHICS_COORD_DIRTY;
+        coord->coord.t[1]  += 0x80;
+        actorRenderComposeCoord(coord);
+        switch (work->phase) {
+            case ACROPOLIS_CAFETERIA_LOOSE_PROP_RESTING:
+                if (worldCollisionFindContactIndex(work->body.context.contacts, WORLD_COLLISION_FIND_ANY_KEY)) {
+                    work->phase++;
+                    // The matrix snapshot is unused; the discarded random draw still advances rand().
+                    scratchEnd[-1] = coord->coord;
+                    kickDirection  = &work->kickDirection;
+                    gfxReadMatrixZAxis(gPlayerStatus.coordMtx, kickDirection);
+                    VectorNormalSS(kickDirection, kickDirection);
+                    rand();
+                    launchMagnitude   = work->kickStrength;
+                    launchMagnitude >>= 1;
+                    launchMagnitude   = (launchMagnitude * launchMagnitude) >> 6;
+                    work->velocity.vy = -0x100;
+                    work->velocity.vx = (work->kickDirection.vx * launchMagnitude) >> 24;
+                    work->velocity.vz = (work->kickDirection.vz * launchMagnitude) >> 24;
+                }
+                break;
+            case ACROPOLIS_CAFETERIA_LOOSE_PROP_HOPPING:
+                work->velocity.vy += 0x10;
+                if (work->velocity.vy > 0) {
+                    work->velocity.vy = 0;
+                    work->phase++;
+                } else {
+                    work->rotation.vx += (work->kickStrength >> 6) + (rand() & 0x7F);
+                    work->rotation.vy += (work->kickStrength >> 6) + (rand() & 0x7F);
+                    work->rotation.vz += (work->kickStrength >> 6) + (rand() & 0x7F);
+                }
+                // Fall through: the hop also loses horizontal speed and applies velocity.
+            case ACROPOLIS_CAFETERIA_LOOSE_PROP_SLIDING:
+                _acropolisCafeteriaDampLoosePropSlide(work);
+                coord->coord.t[0] += work->velocity.vx;
+                coord->coord.t[1] += work->velocity.vy;
+                coord->coord.t[2] += work->velocity.vz;
+                break;
+            case ACROPOLIS_CAFETERIA_LOOSE_PROP_SETTLING:
+                work->rotation.vx = (work->rotation.vx * 2) / 3;
+                if (ABS(work->rotation.vx) < 9) {
+                    work->rotation.vx = 0;
+                }
+                work->rotation.vz = (work->rotation.vz * 2) / 3;
+                if (ABS(work->rotation.vz) < 9) {
+                    work->rotation.vz = 0;
+                }
+                if (((u16)work->rotation.vx | (u16)work->rotation.vz) == 0) {
+                    work->phase = ACROPOLIS_CAFETERIA_LOOSE_PROP_RESTING;
+                }
+                break;
+        }
+        RotMatrix(&work->rotation, &coord->coord);
+        worldCollisionClearContacts(work->contacts);
+        SCRATCH_STACK_RELEASE_BLOCK(MATRIX);
+    }
+
+    /// Selects the loose-prop exit handler for the next task dispatch.
+    static void _acropolisCafeteriaLoosePropRequestExit(Task * task)
+    {
+        enum { LOOSE_PROP_TASK_EXIT = 3 };
+        task->state = LOOSE_PROP_TASK_EXIT;
+    }
+
+    /// Unlinks the initialized loose prop's sphere before teardown frees its work and model.
+    static void _acropolisCafeteriaLoosePropExit(Task * task)
+    {
+        _AcropolisCafeteriaLoosePropWork* work;
+
+        work = task->work;
+        worldCollisionUnlinkBody(&work->body);
+        taskKill(task);
+    }
+
+    /// Task-state dispatch for the cafeteria's loose prop.
+    ///
+    /// Slots 0..3 initialize, update motion, request exit and unlink/kill the task.
+    /// No terminator; the dispatcher copies all four callback pointers to the stack
+    /// before indexing by `Task::state`. The initialized work and model stay live
+    /// through slot 3; slot 0 may kill the task if allocation fails.
+    static const TaskFuncTable4 _gAcropolisCafeteriaLoosePropStates = { {
+        _acropolisCafeteriaLoosePropInit,
+        _acropolisCafeteriaLoosePropUpdate,
+        _acropolisCafeteriaLoosePropRequestExit,
+        _acropolisCafeteriaLoosePropExit,
+    } };
+
+    void acropolisCafeteriaLoosePropTask(Task * task)
+    {
+        TaskFuncTable4 states;
+
+        states = _gAcropolisCafeteriaLoosePropStates;
+        states.funcs[task->state](task);
+    }
+
+#include "../../shared/actor/actor_contacts_push_contact.inc.c"
+
+#include "../../shared/actor/actor_contacts_push.inc.c"
+
+    void acropolisCafeteriaMendelPickupTask(Task * task)
+    {
+        enum { MENDEL_VIEW_12            = 12,
+               MENDEL_VIEW_24            = 24,
+               MENDEL_DEPTH_BIAS_VIEW_12 = 7,
+               MENDEL_DEPTH_BIAS_VIEW_24 = 4,
+               MENDEL_DEPTH_DEFAULT      = -2 };
+        const Enemy* placement;
+        TmdObject*   model;
+
+        placement = task->spawnArg2.pointer;
+        model     = task->extra.tmd;
+        if (areaGetCurrentObjectState((u8)placement->placeKey) != ACROPOLIS_CAFETERIA_PICKUP_COLLECTED) {
+            model->lightMtx = &_gAcropolisCafeteriaMendelPickupLightMatrix;
+            model->colorMtx = &_gAcropolisCafeteriaMendelPickupColorMatrix;
+            model->flags    = 0;
+        } else {
+            model->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+        }
+        // Bias ordering for the mapped camera even while the collected model is hidden.
+        switch (viewGetMappedIndex() & 0xFF) {
+            case MENDEL_VIEW_12:
+                model->otOffset = MENDEL_DEPTH_BIAS_VIEW_12;
+                break;
+            case MENDEL_VIEW_24:
+                model->otOffset = MENDEL_DEPTH_BIAS_VIEW_24;
+                break;
+            default:
+                model->otOffset = MENDEL_DEPTH_DEFAULT;
+                break;
+        }
+    }
+    void acropolisCafeteriaStimPickupTask(Task * task)
+    {
+        enum { STIM_ACTIVE_VIEW  = 9,
+               STIM_TILTED_PLACE = 10,
+               STIM_QUARTER_TURN = 0x400 };
+        const Enemy* placement;
+        TmdObject*   model;
+        s32          placeState;
+
+        placement  = task->spawnArg2.pointer;
+        model      = task->extra.tmd;
+        placeState = areaGetCurrentObjectState((u8)placement->placeKey);
+        if ((viewGetMappedIndex() & 0xFF) != STIM_ACTIVE_VIEW) {
+            model->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            return;
+        }
+        if ((u8)placement->placeKey == STIM_TILTED_PLACE) {
+            gfxRotMatrixX(&task->extra.tmd->coords->coord, STIM_QUARTER_TURN, GRAPHICS_ROTATION_REPLACE);
+        }
+        model->lightMtx = &_gAcropolisCafeteriaStimPickupLightMatrix;
+        model->colorMtx = &_gAcropolisCafeteriaStimPickupColorMatrix;
+        // Retire collected placements only in the active view; buffer allocation retries otherwise.
+        if (placeState == ACROPOLIS_CAFETERIA_PICKUP_COLLECTED) {
+            model->flags &= (u16)~TMD_OBJECT_FLAGGED_PASS;
+            taskCallExit(task);
+        } else {
+            model->flags    = TMD_OBJECT_FLAGGED_PASS;
+            model->otOffset = 0;
+            tmdAllocPrimitiveBuffer(model);
+        }
+    }
+    /// Draws an unreferenced model hook in view 9 until placed-object flag 10 is collected.
+    ///
+    /// Requires a TMD body, a live auxiliary heap and cafeteria lighting storage.
+    /// Replaces X rotation with a quarter turn even when collection hides the model.
+    /// No spawn row or call references this retained hook; its model identity is unproven.
+    static void _acropolisCafeteriaObject10DrawTask(Task * task)
+    {
+        enum { OBJECT_ACTIVE_VIEW  = 9,
+               OBJECT_FLAG_INDEX   = 10,
+               OBJECT_QUARTER_TURN = 0x400 };
+        TmdObject* model;
+
+        model = task->extra.tmd;
+        if ((viewGetMappedIndex() & 0xFF) != OBJECT_ACTIVE_VIEW) {
+            model->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            return;
+        }
+        model->lightMtx = &_gAcropolisCafeteriaObject10LightMatrix;
+        model->colorMtx = &_gAcropolisCafeteriaObject10ColorMatrix;
+        if (areaGetCurrentObjectState(OBJECT_FLAG_INDEX) == ACROPOLIS_CAFETERIA_PICKUP_COLLECTED) {
+            model->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+        } else {
+            model->flags    = TMD_OBJECT_FLAGGED_PASS;
+            model->otOffset = 0;
+            tmdAllocPrimitiveBuffer(model);
+        }
+        gfxRotMatrixX(&task->extra.tmd->coords->coord, OBJECT_QUARTER_TURN, GRAPHICS_ROTATION_REPLACE);
+    }
+    /// Draws an unreferenced model hook in views 6, 7 and 10 until object flag 11 is collected.
+    ///
+    /// Requires a TMD body, a live auxiliary heap and cafeteria lighting storage.
+    /// No spawn row or call references this retained hook; its model identity is unproven.
+    static void _acropolisCafeteriaObject11DrawTask(Task * task)
+    {
+        enum { OBJECT_VIEW_FIRST  = 6,
+               OBJECT_VIEW_SECOND = 7,
+               OBJECT_VIEW_THIRD  = 10,
+               OBJECT_FLAG_INDEX  = 11 };
+        TmdObject* model;
+
+        model = task->extra.tmd;
+        switch (viewGetMappedIndex() & 0xFF) {
+            case OBJECT_VIEW_FIRST:
+            case OBJECT_VIEW_SECOND:
+            case OBJECT_VIEW_THIRD:
+                model->flags    = TMD_OBJECT_FLAGGED_PASS;
+                model->lightMtx = &_gAcropolisCafeteriaObject11LightMatrix;
+                model->colorMtx = &_gAcropolisCafeteriaObject11ColorMatrix;
+                break;
+            default:
+                model->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+                return;
+        }
+        if (areaGetCurrentObjectState(OBJECT_FLAG_INDEX) == ACROPOLIS_CAFETERIA_PICKUP_COLLECTED) {
+            model->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+        } else {
+            model->flags    = TMD_OBJECT_FLAGGED_PASS;
+            model->otOffset = 0;
+            tmdAllocPrimitiveBuffer(model);
+        }
+    }

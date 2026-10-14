@@ -50,9 +50,9 @@ static s16 _gHypervelocityConeTextureFrameOffsets[16];
 #include "types.h"
 /// Signed effect-age argument whose low bit selects one of the two flame cells.
 #define SPRITE_QUAD_FRAME_T s16
-#include "../../shared/sprite_quad.h"
-#include "../../shared/jet_cone.h"
-#include "../../shared/ground_glow.h"
+#include "../../shared/effects/sprite_quad.h"
+#include "../../shared/effects/jet_cone.h"
+#include "../../shared/effects/ground_glow.h"
 
 /// Scratch-stack workspace for the recoil that pushes the player back after a
 /// hypervelocity shot.
@@ -360,27 +360,6 @@ void hypervelocityChargeEffectTask(Task* task)
     }
 }
 
-/// Copies the player's local 3x3 basis into the Hypervelocity round's local matrix.
-///
-/// Requires live disjoint word-aligned matrices and a writable `roundMatrix`.
-/// Coefficients have twelve fractional bits; any source scale is copied too.
-/// Transfers exactly 18 bytes as four packed words and a final signed halfword,
-/// preserving the round's alignment halfword and translation. A complete
-/// `GfxRotationWords` assignment would also copy its tail alignment bytes.
-/// Changes no GTE or scratch state and retains no pointer. The caller must
-/// invalidate the round node's composition cache after updating its matrix.
-static inline void _hypervelocityCopyRoundRotation(MATRIX* roundMatrix, const MATRIX* playerMatrix)
-{
-    GfxRotationWords*       roundRotation  = (GfxRotationWords*)roundMatrix;
-    const GfxRotationWords* playerRotation = (const GfxRotationWords*)playerMatrix;
-
-    roundRotation->m00M01 = playerRotation->m00M01;
-    roundRotation->m02M10 = playerRotation->m02M10;
-    roundRotation->m11M12 = playerRotation->m11M12;
-    roundRotation->m20M21 = playerRotation->m20M21;
-    roundRotation->m22    = playerRotation->m22;
-}
-
 void hypervelocityRoundTask(Task* task)
 {
     enum {
@@ -449,7 +428,7 @@ void hypervelocityRoundTask(Task* task)
             }
             task->exitCallback = _hypervelocityReleaseRound;
             playerRootCoord    = (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords;
-            _hypervelocityCopyRoundRotation(&roundCoord->coord, &playerRootCoord->coord);
+            gfxCopyRotationWords(&roundCoord->coord, &playerRootCoord->coord);
             roundCoord->composeStamp   = GRAPHICS_COORD_DIRTY;
             gGfxViewCoord.composeStamp = GRAPHICS_COORD_DIRTY;
             actorRenderComposeCoord(roundCoord);
@@ -596,7 +575,7 @@ void hypervelocityRoundTask(Task* task)
 /// values. See `jet_cone.h` for the extent and value contract. The fragment
 /// undefines this binding after use.
 #define JET_CONE_TEXTURE_FRAME_OFFSETS _gHypervelocityConeTextureFrameOffsets
-#include "../../shared/jet_cone_draw.inc.c"
+#include "../../shared/effects/jet_cone_draw.inc.c"
 
 /// Packed additive beam-flame page: 4-bit indexed texels at VRAM X=576 words, Y=0 scanlines.
 #define SPRITE_QUAD_TEXTURE_PAGE getTPage(0, GPU_BLEND_ADD, 576, 0)
@@ -625,7 +604,7 @@ void hypervelocityRoundTask(Task* task)
 ///
 /// Uses the cell's inclusive 55-texel UV span in `size * SPRITE_QUAD_SCALE / depth`.
 #define SPRITE_QUAD_SCALE (SPRITE_QUAD_CELL_WIDTH - 1)
-#include "../../shared/sprite_quad_draw.inc.c"
+#include "../../shared/effects/sprite_quad_draw.inc.c"
 
 /// Red texture modulation for Hypervelocity's additive floor glow.
 ///
@@ -651,7 +630,7 @@ void hypervelocityRoundTask(Task* task)
 /// coordinates into an integer constant stored in `POLY_FT4::clut`.
 /// Configures the next ground-glow drawer inclusion, which undefines it.
 #define GROUND_GLOW_CLUT getClut(176, 266)
-#include "../../shared/ground_glow_draw.inc.c"
+#include "../../shared/effects/ground_glow_draw.inc.c"
 
 /// Draws the two opposed textured walls of a rising, opening discharge cone.
 ///

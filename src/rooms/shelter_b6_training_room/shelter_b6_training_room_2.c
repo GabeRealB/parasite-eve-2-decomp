@@ -18,9 +18,9 @@
 #include "main/stream.h"
 #include "main/task.h"
 #include "main/task_types.h"
-#include "../../shared/streamed_scene.h"
+#include "../../shared/room/streamed_scene.h"
 
-#include "../../shared/streamed_scene_play_then_hold.inc.c"
+#include "../../shared/room/streamed_scene_play_then_hold.inc.c"
 
 /// Hands frame presentation and the current view to the room's movie player.
 ///

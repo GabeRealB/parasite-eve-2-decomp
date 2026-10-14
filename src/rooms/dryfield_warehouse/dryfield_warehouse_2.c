@@ -59,8 +59,8 @@ static void _screenFadeInTask(Task* task);
 /// Keep defined from `screen_fade.h` through `screen_fade_in.inc.c`, then undefine.
 /// This object-like binding has no arguments, captures or token construction.
 #define SCREEN_FADE_IN_TASK _screenFadeInTask
-#include "../../shared/screen_fade.h"
-#include "../../shared/glow_draw.h"
+#include "../../shared/screen/screen_fade.h"
+#include "../../shared/effects/glow_draw.h"
 
 /// Commands the warehouse cutscene script leaves for the cutscene task.
 ///
@@ -1015,7 +1015,7 @@ static void _dryfieldWarehouseCutsceneTask(Task* task)
 #undef DRYFIELD_WAREHOUSE_PLAY_CUTSCENE_IDLE_ANIMATION
 }
 
-#include "../../shared/screen_fade_in.inc.c"
+#include "../../shared/screen/screen_fade_in.inc.c"
 #undef SCREEN_FADE_IN_TASK
 
 /// Advances all fade channels by a borrowed unsigned intensity step.
@@ -1095,7 +1095,7 @@ static void _dryfieldWarehouseSetCutsceneCommand(s16 command)
     work->commandStep = DRYFIELD_WAREHOUSE_CUTSCENE_FIRST_COMMAND_STEP;
 }
 
-#include "../../shared/glow_draw_grey_prism.inc.c"
+#include "../../shared/effects/glow_draw_grey_prism.inc.c"
 
 /// Draws a rotating, pulsing grey light beam between two circular local-space rings.
 ///

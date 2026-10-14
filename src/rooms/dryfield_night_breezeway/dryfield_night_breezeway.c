@@ -40,7 +40,7 @@
 #include "overlay.h"
 
 #include "rooms/room_common.h"
-#include "../../shared/glow_draw.h"
+#include "../../shared/effects/glow_draw.h"
 
 static void _dryfieldNightBreezewayInitRoomTask(Task* task);
 static void _dryfieldNightBreezewayIdleRoomTask(Task* task);
@@ -892,11 +892,11 @@ void dryfieldNightBreezewayRoomTask(Task* task)
     handlers.funcs[task->state](task);
 }
 
-#include "../../shared/glow_draw_pulsing_star.inc.c"
+#include "../../shared/effects/glow_draw_pulsing_star.inc.c"
 
-#include "../../shared/glow_draw_shaft.inc.c"
+#include "../../shared/effects/glow_draw_shaft.inc.c"
 
-#include "../../shared/glow_draw_flare.inc.c"
+#include "../../shared/effects/glow_draw_flare.inc.c"
 
 void dryfieldNightBreezewayDrawGlowsTask(Task* task)
 {

@@ -49,7 +49,7 @@
 #include "rooms/room.h"
 
 #include "rooms/room_common.h"
-#include "../../shared/room_cutscene.h"
+#include "../../shared/room/room_cutscene.h"
 
 static void _roomCutsceneTask(Task* task);
 
@@ -60,14 +60,14 @@ static void _roomCutsceneSoundTask(Task* task);
 
 /// View saved when the cutscene starts and restored when it ends.
 
-#include "../../shared/telephone.h"
+#include "../../shared/room/telephone.h"
 
 static s32 _shelter1fTentRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 secondArg);
 static s32 _shelter1fTentResolveRoomEvent(Task* task, s32 messageId, RoomEventMsg* request, RoomEventMsg* reply);
 static s32 _shelter1fTentHandleRoomCommand(Task* task, s32 messageId, s32 commandId, s32 unusedSecondArg);
 static s32 _shelter1fTentHandleRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedSecondArg);
 
-#include "../../shared/telephone_data.inc.c"
+#include "../../shared/room/telephone_data.inc.c"
 
 /// This carrier's bodyless scene runner and timed sound task, followed by END.
 ///
@@ -100,7 +100,7 @@ static void _shelter1fTentRoomIdleState(Task* task);
 ///
 /// Two-byte string-literal binding for `telephone.inc.c`; unused by label drawing.
 #define TELEPHONE_MENU_TITLE_TRAILING_BYTES "\x0C\x2D"
-#include "../../shared/telephone.inc.c"
+#include "../../shared/room/telephone.inc.c"
 #undef TELEPHONE_MENU_TITLE_TRAILING_BYTES
 
 void shelter1fTentTelephoneMenuTask(Task* task)
@@ -108,9 +108,9 @@ void shelter1fTentTelephoneMenuTask(Task* task)
     _telephoneMenuTask(task);
 }
 
-#include "../../shared/telephone_panels.inc.c"
+#include "../../shared/room/telephone_panels.inc.c"
 
-#include "../../shared/room_cutscene_task.inc.c"
+#include "../../shared/room/room_cutscene_task.inc.c"
 
 /// Installs the tent receiver and applies first-arrival story, map and actor setup.
 ///
@@ -170,7 +170,7 @@ static void _shelter1fTentInitializeRoom(Task* task)
     task->state = task->state + 1;
 }
 
-#include "../../shared/room_cutscene_sound_task.inc.c"
+#include "../../shared/room/room_cutscene_sound_task.inc.c"
 
 /// Refuses every key-item use in the tent with the item menu cannot-use reply.
 ///

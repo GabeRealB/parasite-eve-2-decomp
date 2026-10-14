@@ -20,7 +20,7 @@
 
 #include "mapui/map_shelter.h"
 
-#include "../../shared/room_variants.h"
+#include "../../shared/room/room_variants.h"
 
 static s32 _shelter1fHeliportS4RejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unusedArg);
 static s32 _shelter1fHeliportS4ResolveRoomTransition(Task* task, s32 messageId, RoomEventMsg* request, RoomEventMsg* reply);

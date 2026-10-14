@@ -56,7 +56,7 @@
 #include "main/tmd_types.h"
 #include "main/wipsys.h"
 #include "main/wipsys_types.h"
-#include "../../shared/pyke_flame.h"
+#include "../../shared/effects/pyke_flame.h"
 
 static void _actor800100UpdateMove(Task* task);
 static void _actor800100TickTextureSequences(Task* task);
@@ -883,7 +883,7 @@ void actor800100PykeEmitterTask(Task* task)
     }
 }
 
-#include "../../shared/pyke_flame_nozzle.inc.c"
+#include "../../shared/effects/pyke_flame_nozzle.inc.c"
 
 /// Category-2 weapon attack key for the companion's flying Pyke flame.
 ///
@@ -896,18 +896,16 @@ void actor800100PykeEmitterTask(Task* task)
 ///
 /// Consumed and undefined by `pyke_flame_task.inc.c`; flight remains stopped.
 #define PYKE_FLAME_REDRAW_UPDATES_COORD 1
-#include "../../shared/pyke_flame_task.inc.c"
+#include "../../shared/effects/pyke_flame_task.inc.c"
 
 void actor800100PykeFlameTask(Task* task)
 {
     _pykeFlameTask(task);
 }
 
-#include "../../shared/pyke_flame_blob.inc.c"
+#include "../../shared/effects/pyke_flame_blob.inc.c"
 
-#include "../../shared/pyke_flame_splash.inc.c"
-
-#include "../../shared/pyke_flame_release.inc.c"
+#include "../../shared/effects/pyke_flame.inc.c"
 
 /// Initializes the armed companion's playback, collision bodies and equipment.
 ///

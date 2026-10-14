@@ -1879,7 +1879,7 @@ static void _mistParkingDepartureMenuTask(Task* task)
     }
 }
 
-#include "../../shared/model_placement_attach_part.inc.c"
+#include "../../shared/actor/model_placement_attach_part.inc.c"
 
 /// Keeps an attached model task idle between attachment and teardown.
 ///

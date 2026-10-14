@@ -1,9 +1,9 @@
 #include "types.h"
 
 #include "main/task_types.h"
-#include "../../shared/action_prompt.h"
-#include "../../shared/glow_draw.h"
-#include "../../shared/room_cutscene.h"
+#include "../../shared/room/action_prompt.h"
+#include "../../shared/effects/glow_draw.h"
+#include "../../shared/room/room_cutscene.h"
 
 /* GCC orders BSS by first declaration; keep this prologue before the API headers. */
 Task* gRoomCutsceneSoundTask;
@@ -1060,9 +1060,9 @@ static s16 _dryfieldNightMotelLobbyCashRegisterHasValidCode(void)
     return digits[0] == DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_CODE_REPEATED_DIGIT;
 }
 
-#include "../../shared/action_prompt_move_cursors.inc.c"
+#include "../../shared/room/action_prompt_move_cursors.inc.c"
 
-#include "../../shared/action_prompt_draw_cursor.inc.c"
+#include "../../shared/room/action_prompt_draw_cursor.inc.c"
 
 /// Updates the cash register's action cursor through reset and motion states.
 ///
@@ -1092,7 +1092,7 @@ static void _dryfieldNightMotelLobbyCashRegisterTask(Task* task)
     states.funcs[task->state](task);
 }
 
-#include "../../shared/action_prompt_hit_test.inc.c"
+#include "../../shared/room/action_prompt_hit_test.inc.c"
 
 /// Clears keypad hit latches and fills every cash-register digit with the empty marker.
 ///
@@ -1203,7 +1203,7 @@ static void _dryfieldNightMotelLobbyCashRegisterAnswerPrompt(Task* task)
     task->state = DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_STATE_SCAN;
 }
 
-#include "../../shared/action_prompt_event_end.inc.c"
+#include "../../shared/room/action_prompt_event_end.inc.c"
 
 /// Commits the accepted cash-register code and starts the completion sequence.
 ///
@@ -1267,7 +1267,7 @@ static void _dryfieldNightMotelLobbyCashRegisterFinish(Task* task)
     taskRequestKill(task, DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_END_RESULT);
 }
 
-#include "../../shared/action_prompt_reset.inc.c"
+#include "../../shared/room/action_prompt_reset.inc.c"
 
 void dryfieldNightMotelLobbyDrawGlowsTask(Task* unusedTask)
 {
@@ -1304,9 +1304,9 @@ void dryfieldNightMotelLobbyDrawGlowsTask(Task* unusedTask)
     }
 }
 
-#include "../../shared/glow_draw_diamond.inc.c"
+#include "../../shared/effects/glow_draw_diamond.inc.c"
 
-#include "../../shared/glow_draw_pulsing_disc.inc.c"
+#include "../../shared/effects/glow_draw_pulsing_disc.inc.c"
 
 /// Sets a lobby flare quad's square around its projected light centre.
 ///

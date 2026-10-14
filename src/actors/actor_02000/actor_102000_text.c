@@ -49,8 +49,8 @@
 /// Keep this binding through all GOLEM fragments, with matching weapon tasks,
 /// behavior callbacks and animation tables.
 #define GOLEM_PAWN_ROOK_WEAPON GOLEM_PAWN_ROOK_WEAPON_BEAM_SWORD
-#include "../../shared/player_detection.h"
-#include "../../shared/golem_pawn_rook.h"
+#include "../../shared/actor/player_detection.h"
+#include "../../shared/creatures/golem/golem_pawn_rook.h"
 
 /// Execution priority shared by the Pawn body and attached sword descriptors.
 enum { ACTOR_02000_TASK_PRIORITY = 96 };
@@ -122,7 +122,7 @@ static void _actor02000BodyTask(Task* body);
 
 static void _actor02000SpawnBody(Enemy* enemy, Task* actor);
 
-#include "../../shared/golem_pawn_rook_take_hits.inc.c"
+#include "../../shared/creatures/golem/golem_pawn_rook_take_hits.inc.c"
 
 /// Blend-in durations indexed by animation request, in whole frames.
 ///
@@ -1214,27 +1214,9 @@ static TaskFunc _gGolemPawnRookBehaviorHandlers[GOLEM_PAWN_ROOK_BEHAVIOR_DOWNED_
     _golemPawnRookDownedDeathState,
 };
 
-#include "../../shared/golem_pawn_rook_patrol.inc.c"
+#include "../../shared/creatures/golem/golem_pawn_rook_patrol.inc.c"
 
-#include "../../shared/golem_pawn_rook_player_noise.inc.c"
-
-#include "../../shared/golem_pawn_rook_knockdown.inc.c"
-
-#include "../../shared/golem_pawn_rook_downed_hit.inc.c"
-
-#include "../../shared/golem_pawn_rook_collapse.inc.c"
-
-#include "../../shared/golem_pawn_rook_turn.inc.c"
-
-#include "../../shared/golem_pawn_rook_hit_tilt.inc.c"
-
-#include "../../shared/golem_pawn_rook_anim_cues.inc.c"
-
-#include "../../shared/golem_pawn_rook_dead.inc.c"
-
-#include "../../shared/golem_pawn_rook_sword_charge.inc.c"
-
-#include "../../shared/golem_pawn_rook_sword_swing.inc.c"
+#include "../../shared/creatures/golem/golem_pawn_rook_sword.inc.c"
 
 /// Initializes the Beam Sword Pawn GOLEM body and its attached sword.
 ///
@@ -1436,9 +1418,9 @@ static void _actor02000SpawnBody(Enemy* enemy, Task* actor)
     }
 #undef ACTOR_02000_LINK_BODY_CONTACTS
 }
-#include "../../shared/golem_pawn_rook_inlines.inc.c"
+#include "../../shared/creatures/golem/golem_pawn_rook_inlines.inc.c"
 
-#include "../../shared/golem_pawn_rook_frame_no_sparks.inc.c"
+#include "../../shared/creatures/golem/golem_pawn_rook_frame_no_sparks.inc.c"
 
 /// Faces and approaches the player, then selects a Beam Sword swing or charge.
 ///
@@ -1610,19 +1592,9 @@ static void _golemPawnRookEngageState(Task* task)
 #undef GOLEM_PAWN_ROOK_MEASURE_PLAYER_YAW_GAP
 }
 
-#include "../../shared/player_detection_segment.inc.c"
+#include "../../shared/actor/player_detection_segment.inc.c"
 
-#include "../../shared/golem_pawn_rook_idle.inc.c"
-
-#include "../../shared/golem_pawn_rook_stagger.inc.c"
-
-#include "../../shared/golem_pawn_rook_recoil.inc.c"
-
-#include "../../shared/golem_pawn_rook_buildup.inc.c"
-
-#include "../../shared/golem_pawn_rook_downed_death.inc.c"
-
-#include "../../shared/golem_pawn_rook_nop.inc.c"
+#include "../../shared/creatures/golem/golem_pawn_rook.inc.c"
 
 /// Runs the Pawn GOLEM's attached Beam Sword lifecycle.
 ///
@@ -1637,9 +1609,7 @@ static void _actor02000SwordTask(Task* sword)
     stateHandlers.funcs[sword->state](sword->spawnArg2.pointer, sword);
 }
 
-#include "../../shared/golem_pawn_rook_sword_spawn.inc.c"
-
-#include "../../shared/golem_pawn_rook_sword_tick.inc.c"
+#include "../../shared/creatures/golem/golem_pawn_rook_sword_spawn.inc.c"
 
 /// Runs the Beam Sword Pawn GOLEM body's lifecycle.
 ///

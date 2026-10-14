@@ -43,8 +43,8 @@
 #include "rooms/room.h"
 
 #include "rooms/room_common.h"
-#include "../../shared/room_cutscene.h"
-#include "../../shared/room_variants.h"
+#include "../../shared/room/room_cutscene.h"
+#include "../../shared/room/room_variants.h"
 #include "../../shared/gas_station_sounds.h"
 
 static void _roomCutsceneTask(Task* task);
@@ -56,11 +56,11 @@ static void _roomCutsceneSoundTask(Task* task);
 /// `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType` (ally present). A distinct symbol so the restore
 /// path does not share the `gMcSaveData` address with case 0.
 
-#include "../../shared/telephone.h"
+#include "../../shared/room/telephone.h"
 
 static void _dryfieldGasStationArrivalSupervisorTask(Task* task);
 
-#include "../../shared/telephone_data.inc.c"
+#include "../../shared/room/telephone_data.inc.c"
 
 /// This carrier's bodyless scene runner and timed sound task, followed by END.
 ///
@@ -108,7 +108,7 @@ static void _dryfieldGasStationIdleRoomTask(Task* unusedTask);
 ///
 /// Two-byte string-literal binding for `telephone.inc.c`; unused by label drawing.
 #define TELEPHONE_MENU_TITLE_TRAILING_BYTES "\x00\x12"
-#include "../../shared/telephone.inc.c"
+#include "../../shared/room/telephone.inc.c"
 #undef TELEPHONE_MENU_TITLE_TRAILING_BYTES
 
 void dryfieldGasStationTelephoneMenuTask(Task* task)
@@ -116,15 +116,15 @@ void dryfieldGasStationTelephoneMenuTask(Task* task)
     _telephoneMenuTask(task);
 }
 
-#include "../../shared/telephone_panels.inc.c"
+#include "../../shared/room/telephone_panels.inc.c"
 
-#include "../../shared/room_cutscene_task.inc.c"
+#include "../../shared/room/room_cutscene_task.inc.c"
 
-#include "../../shared/room_variants_gas_station.inc.c"
+#include "../../shared/room/room_variants_gas_station.inc.c"
 
 #include "../../shared/gas_station_sounds_cue.inc.c"
 
-#include "../../shared/room_cutscene_sound_task.inc.c"
+#include "../../shared/room/room_cutscene_sound_task.inc.c"
 
 /// Refuses every request to use a collected key item at the gas station.
 ///

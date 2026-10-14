@@ -38,7 +38,7 @@
 #include "main/wipsys_types.h"
 
 #include "weapons/weapon.h"
-#include "../../shared/grenade_shell.h"
+#include "../../shared/effects/grenade_shell.h"
 
 static SVECTOR   _gGrenadeShellMuzzleOffsets[2];
 static const u16 _gGrenadeShellBlastRadii[4];
@@ -139,13 +139,9 @@ void grenadePistolAttackState(Task* playerTask)
     }
 }
 
-#include "../../shared/grenade_shell_spawn.inc.c"
+#include "../../shared/effects/grenade_shell_spawn.inc.c"
 
-#include "../../shared/grenade_shell_fly.inc.c"
-
-#include "../../shared/grenade_shell_blast.inc.c"
-
-#include "../../shared/grenade_shell_exit.inc.c"
+#include "../../shared/effects/grenade_shell.inc.c"
 
 /// Projectile state handlers for the Grenade Pistol and MM1 builds.
 ///

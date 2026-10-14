@@ -37,9 +37,9 @@
 #include "main/tmd_types.h"
 
 #include "rooms/mist_parking.h"
-#include "../../shared/model_placement.h"
-#include "../../shared/actor_messages.h"
-#include "../../shared/actor_motion_walk_helpers.h"
+#include "../../shared/actor/model_placement.h"
+#include "../../shared/actor/actor_messages.h"
+#include "../../shared/actor/actor_motion_walk_helpers.h"
 
 /// Body drawing and primitive-buffer policies; every mode disables sphere pairs.
 enum {
@@ -1766,9 +1766,9 @@ static void _actor113100AttachedModelTask(Task* task)
     states.funcs[task->state](task);
 }
 
-#include "../../shared/model_placement_attach.inc.c"
+#include "../../shared/actor/model_placement_attach.inc.c"
 
-#include "../../shared/model_placement_mirror_parent.inc.c"
+#include "../../shared/actor/model_placement_mirror_parent.inc.c"
 
 /// Dispatches Pierce Carradine's body setup, frame update or teardown.
 ///
@@ -1953,7 +1953,7 @@ static s32 _actor113100PlayAnimation(Task* task, s32 messageId, const AnimationP
     return 0;
 }
 
-#include "../../shared/actor_messages_place_euler.inc.c"
+#include "../../shared/actor/actor_messages_place_euler.inc.c"
 
 /// Shows or hides Pierce's billboard, or selects his head-turn ramp.
 ///

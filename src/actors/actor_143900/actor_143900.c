@@ -36,7 +36,7 @@
 // The scripted walk's update and walk-to handler run on the first walker's
 // block; the second walker's copies of the two rebind the type to its own.
 #define SCRIPTED_WALK_WORK_T _Actor143900Work
-#include "../../shared/scripted_walk.h"
+#include "../../shared/walk/scripted_walk.h"
 
 /// Draw-request bits shared by this package's two walker message handlers.
 enum {
@@ -1184,7 +1184,7 @@ static void _actor143900SpawnScriptedWalker(Enemy* enemy, Task* task)
     task->state += 1;
 }
 
-#include "../../shared/scripted_walk_update.inc.c"
+#include "../../shared/walk/scripted_walk_update.inc.c"
 
 /// Dispatches initialization or one frame of the first scripted walker.
 ///
@@ -1217,7 +1217,7 @@ static void _actor143900ScriptedWalkerTask(Task* task)
 #define ACTOR_RENDER_UPDATE_WALKER SCRIPTED_WALK_UPDATE
 /// Selects the declared static void(Task*) ground-shadow drawer for this inclusion.
 #define ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW _actorRenderDrawWalkerGroundShadow
-#include "../../shared/walker_frame.inc.c"
+#include "../../shared/walk/walker_frame.inc.c"
 #undef ACTOR_RENDER_WALKER_FRAME
 #undef ACTOR_RENDER_UPDATE_WALKER
 #undef ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW
@@ -1237,14 +1237,14 @@ static void _actor143900ExitScriptedWalker(Task* task)
 /// Bind to the prologue's `static void name(Task* task)` declaration; the
 /// replacement is one identifier and evaluates no arguments or object state.
 #define ACTOR_RENDER_DRAW_ROOM_GROUND_SHADOW _actorRenderDrawWalkerGroundShadow
-#include "../../shared/actor_render_walker_shadow.inc.c"
+#include "../../shared/actor/actor_render_walker_shadow.inc.c"
 #undef ACTOR_RENDER_DRAW_ROOM_GROUND_SHADOW
 
-#include "../../shared/scripted_walk_tick_anim.inc.c"
+#include "../../shared/walk/scripted_walk_tick_anim.inc.c"
 
-#include "../../shared/scripted_walk_reset_anim.inc.c"
+#include "../../shared/walk/scripted_walk_reset_anim.inc.c"
 
-#include "../../shared/scripted_walk_blend_anim.inc.c"
+#include "../../shared/walk/scripted_walk_blend_anim.inc.c"
 
 /// Reseeds the published first scripted walker from a borrowed animation request.
 ///
@@ -1300,7 +1300,7 @@ static s32 _actor143900SetScriptedWalkerModelDraw(Task* unusedTask, s32 messageI
     return 0;
 }
 
-#include "../../shared/scripted_walk_place.inc.c"
+#include "../../shared/walk/scripted_walk_place.inc.c"
 
 /// Schedules twenty turning updates for the published first scripted walker.
 ///
@@ -1322,7 +1322,7 @@ static s32 _actor143900ApplyScriptedWalkerCommand(Task* unusedTask, s32 messageI
     return 0;
 }
 
-#include "../../shared/scripted_walk_to.inc.c"
+#include "../../shared/walk/scripted_walk_to.inc.c"
 
 /// Initializes the second scripted walker, its initial clip and two model attachments.
 ///
@@ -1431,7 +1431,7 @@ static void _actor143900SpawnSecondScriptedWalker(Enemy* enemy, Task* task)
 #define SCRIPTED_WALK_MODE (_gScriptedWalkSecondMode)
 #undef SCRIPTED_WALK_WORK_T
 #define SCRIPTED_WALK_WORK_T ScriptedWalkAttachmentsWork
-#include "../../shared/scripted_walk_update.inc.c"
+#include "../../shared/walk/scripted_walk_update.inc.c"
 #undef SCRIPTED_WALK_UPDATE
 #define SCRIPTED_WALK_UPDATE _scriptedWalkUpdate
 #undef SCRIPTED_WALK_TICK_ANIM
@@ -1480,7 +1480,7 @@ static void _actor143900SecondScriptedWalkerTask(Task* task)
 /// undefine it after each inclusion of walker_frame.inc.c.
 #define ACTOR_RENDER_UPDATE_WALKER             _scriptedWalkUpdateSecond
 #define ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW _actorRenderDrawSecondWalkerGroundShadow
-#include "../../shared/walker_frame.inc.c"
+#include "../../shared/walk/walker_frame.inc.c"
 #undef ACTOR_RENDER_WALKER_FRAME
 #undef ACTOR_RENDER_UPDATE_WALKER
 #undef ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW
@@ -1507,7 +1507,7 @@ static void _actor143900ExitSecondScriptedWalker(Task* task)
 /// Bind to the prologue's `static void name(Task* task)` declaration; the
 /// following fragment defines it. This identifier alias lasts one inclusion.
 #define ACTOR_RENDER_DRAW_ROOM_GROUND_SHADOW _actorRenderDrawSecondWalkerGroundShadow
-#include "../../shared/actor_render_walker_shadow.inc.c"
+#include "../../shared/actor/actor_render_walker_shadow.inc.c"
 #undef ACTOR_RENDER_DRAW_ROOM_GROUND_SHADOW
 
 /// Attaches a carried model to a walker part with a +15-entry ordering-table offset.
@@ -1571,7 +1571,7 @@ static void _actor143900ScriptedWalkerAttachmentTask(Task* task)
 #define SCRIPTED_WALK_TICK_ANIM _scriptedWalkTickSecondAnim
 #undef SCRIPTED_WALK_WORK
 #define SCRIPTED_WALK_WORK _gScriptedWalkSecondWork
-#include "../../shared/scripted_walk_tick_anim.inc.c"
+#include "../../shared/walk/scripted_walk_tick_anim.inc.c"
 #undef SCRIPTED_WALK_TICK_ANIM
 #undef SCRIPTED_WALK_WORK
 #define SCRIPTED_WALK_WORK _gScriptedWalkWork
@@ -1581,7 +1581,7 @@ static void _actor143900ScriptedWalkerAttachmentTask(Task* task)
 #define SCRIPTED_WALK_RESET_ANIM _scriptedWalkResetSecondAnim
 #undef SCRIPTED_WALK_WORK
 #define SCRIPTED_WALK_WORK _gScriptedWalkSecondWork
-#include "../../shared/scripted_walk_reset_anim.inc.c"
+#include "../../shared/walk/scripted_walk_reset_anim.inc.c"
 #undef SCRIPTED_WALK_RESET_ANIM
 #define SCRIPTED_WALK_RESET_ANIM _scriptedWalkResetAnim
 #undef SCRIPTED_WALK_WORK
@@ -1595,7 +1595,7 @@ static void _actor143900ScriptedWalkerAttachmentTask(Task* task)
 #undef SCRIPTED_WALK_BLEND_FRAMES
 /// Supplies the same whole-frame `s16` latch selected by the second update.
 #define SCRIPTED_WALK_BLEND_FRAMES (_gScriptedWalkSecondBlendFrames)
-#include "../../shared/scripted_walk_blend_anim.inc.c"
+#include "../../shared/walk/scripted_walk_blend_anim.inc.c"
 #undef SCRIPTED_WALK_BLEND_ANIM
 #define SCRIPTED_WALK_BLEND_ANIM _scriptedWalkBlendAnim
 #undef SCRIPTED_WALK_WORK
@@ -1672,7 +1672,7 @@ static s32 _actor143900SetSecondScriptedWalkerModelDraw(Task* unusedTask, s32 me
 #define SCRIPTED_WALK_PLACE _scriptedWalkPlaceSecond
 #undef SCRIPTED_WALK_WORK
 #define SCRIPTED_WALK_WORK _gScriptedWalkSecondWork
-#include "../../shared/scripted_walk_place.inc.c"
+#include "../../shared/walk/scripted_walk_place.inc.c"
 #undef SCRIPTED_WALK_PLACE
 #define SCRIPTED_WALK_PLACE _scriptedWalkPlace
 #undef SCRIPTED_WALK_WORK
@@ -1720,7 +1720,7 @@ static s32 _actor143900SelectSecondScriptedWalkerAttachment(Task* unusedTask, s3
 #define SCRIPTED_WALK_MODE (_gScriptedWalkSecondMode)
 #undef SCRIPTED_WALK_WORK_T
 #define SCRIPTED_WALK_WORK_T ScriptedWalkAttachmentsWork
-#include "../../shared/scripted_walk_to.inc.c"
+#include "../../shared/walk/scripted_walk_to.inc.c"
 #undef SCRIPTED_WALK_TO
 #define SCRIPTED_WALK_TO _scriptedWalkTo
 #undef SCRIPTED_WALK_MODE

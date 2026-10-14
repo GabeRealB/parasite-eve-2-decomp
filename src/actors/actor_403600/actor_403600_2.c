@@ -64,7 +64,7 @@
 #include "main/wipsys_types.h"
 
 #include "rooms/shelter_b2_pod_bottom.h"
-#include "../../shared/frame_capture.h"
+#include "../../shared/screen/frame_capture.h"
 
 /// Queues a spatial sound for the actor's placed-enemy instance.
 ///
@@ -617,42 +617,11 @@ void actor403600ProjectileExit(Task* task)
     taskKill(task);
 }
 
+#include "actor_403600_tick_ripple.inc.c"
+
 void actor403600TickRipple(Actor403600Ripple* state)
 {
-    enum {
-        ACTOR_403600_RIPPLE_FULL_STRENGTH      = ONE,
-        ACTOR_403600_RIPPLE_STRENGTH_RISE      = 512,
-        ACTOR_403600_RIPPLE_STRENGTH_FALL      = 128,
-        ACTOR_403600_RIPPLE_PHASE_STEP         = 384,
-        ACTOR_403600_RIPPLE_SHALLOW_PHASE_STEP = 256
-    };
-    s32 head;
-
-    state->head          += ACTOR_403600_RIPPLE_SAMPLE_COUNT - 1;
-    state->head          %= ACTOR_403600_RIPPLE_SAMPLE_COUNT;
-    head                  = state->head;
-    state->phase[head]    = 0;
-    state->strength[head] = 0;
-    if (state->emitting != 0) {
-        if (state->wasEmitting == 0) {
-            state->sourcePhase = 0;
-        }
-        if (state->sourceStrength < ACTOR_403600_RIPPLE_FULL_STRENGTH) {
-            state->sourceStrength += ACTOR_403600_RIPPLE_STRENGTH_RISE;
-        }
-    } else if (state->sourceStrength > 0) {
-        state->sourceStrength -= ACTOR_403600_RIPPLE_STRENGTH_FALL;
-    }
-    state->wasEmitting = state->emitting;
-    if (state->sourceStrength != 0) {
-        state->phase[head]    = state->sourcePhase;
-        state->strength[head] = state->sourceStrength;
-        if (state->shallow == 0) {
-            state->sourcePhase += ACTOR_403600_RIPPLE_PHASE_STEP;
-        } else {
-            state->sourcePhase += ACTOR_403600_RIPPLE_SHALLOW_PHASE_STEP;
-        }
-    }
+    _actor403600TickRipple(state);
 }
 
 /// Returns 1 when all 32 borrowed halfwords are zero, otherwise 0.

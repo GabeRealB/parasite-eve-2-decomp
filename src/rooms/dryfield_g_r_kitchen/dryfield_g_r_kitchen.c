@@ -49,11 +49,11 @@
 /// Selects the gate's TU-local room-transition task descriptor.
 ///
 /// Addressable `TaskDesc` lvalue; see `room_events.h` for the spawn contract.
-/// Bind before that header and keep through `room_event_gate.inc.c`.
+/// Bind before that header and keep through `room_event.inc.c`.
 #define ROOM_EVENT_TASK_DESC (_gRoomEventTaskDesc)
-#include "../../shared/room_events.h"
-#include "../../shared/room_variants.h"
-#include "../../shared/glow_draw.h"
+#include "../../shared/room/room_events.h"
+#include "../../shared/room/room_variants.h"
+#include "../../shared/effects/glow_draw.h"
 /// Selects the daytime sound bank for the shared G & R kitchen door handler.
 ///
 /// Keep this binding through the door-handler implementation fragment.
@@ -393,9 +393,7 @@ RoomEventActiveBytes gRoomEventActive = { 0, { 34, 223, 253 } };
 
 RoomEventReq gRoomEventReq;
 
-#include "../../shared/room_event_gate.inc.c"
-
-#include "../../shared/room_event_task.inc.c"
+#include "../../shared/room/room_event.inc.c"
 
 /// Room-task states 0 (register receiver), 1 (idle) and 2 (kill).
 ///
@@ -463,7 +461,7 @@ void dryfieldGRKitchenRoomTask(Task* task)
     stateHandlers.funcs[task->state](task);
 }
 
-#include "../../shared/glow_draw_tapered_beam.inc.c"
+#include "../../shared/effects/glow_draw_tapered_beam.inc.c"
 
 /// Draws an additive dim grey beam between two local-space endpoints.
 ///

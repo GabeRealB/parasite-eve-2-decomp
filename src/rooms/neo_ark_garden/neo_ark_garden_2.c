@@ -42,9 +42,9 @@
 #include "main/tmd_types.h"
 
 #include "rooms/room_common.h"
-#include "../../shared/room_visual_effects.h"
-#include "../../shared/water_effects.h"
-#include "../../shared/glow_draw.h"
+#include "../../shared/room/room_visual_effects.h"
+#include "../../shared/effects/water_effects.h"
+#include "../../shared/effects/glow_draw.h"
 
 static void _neoArkGardenDrawRotatingSquare(const SVECTOR* centre);
 
@@ -87,7 +87,7 @@ static struct {
     { { 2010, -1980, -15510, 0 }, { 2010, -1980, -19500, 0 } },
 };
 
-#include "../../shared/room_visual_effects_disc_data.inc.c"
+#include "../../shared/room/room_visual_effects_disc_data.inc.c"
 
 WorldCollisionRoomResources gNeoArkGardenCollisionRooms[1] = {
     { &_gNeoArkGardenCollisionGrid, _gNeoArkGardenViewBoundaries, _gNeoArkGardenActionTriggers, NULL },
@@ -663,7 +663,7 @@ void neoArkGardenAmbienceTask(Task* task)
     task->spawnArg1.value = viewGetMappedIndex() & NEO_ARK_GARDEN_AMBIENCE_VIEW_MASK;
 }
 
-#include "../../shared/glow_draw_pulsing_star.inc.c"
+#include "../../shared/effects/glow_draw_pulsing_star.inc.c"
 
 /// Projects four world corners through the current view in GPU quad strip order.
 ///
@@ -749,9 +749,9 @@ static void _neoArkGardenDrawRotatingSquare(const SVECTOR* centre)
     SCRATCH_STACK_RELEASE_BLOCK(EffectQuadScratch);
 }
 
-#include "../../shared/room_visual_effects.inc.c"
+#include "../../shared/room/room_visual_effects.inc.c"
 
-#include "../../shared/room_visual_effects_flying_tasks.inc.c"
+#include "../../shared/room/room_visual_effects_flying_tasks.inc.c"
 
 void neoArkGardenRoomVisualEffectsGlowDiscTask(Task* task)
 {
@@ -763,11 +763,11 @@ void neoArkGardenRoomVisualEffectsFlyingSparkTask(Task* task)
     _roomVisualEffectsFlyingSparkTask(task);
 }
 
-#include "../../shared/room_visual_effects_burst.inc.c"
+#include "../../shared/room/room_visual_effects_burst.inc.c"
 
 void neoArkGardenRoomVisualEffectsFlyingOrangeBurstTask(Task* task)
 {
     _roomVisualEffectsFlyingOrangeBurstTask(task);
 }
 
-#include "../../shared/room_visual_effects_burst_draw.inc.c"
+#include "../../shared/room/room_visual_effects_burst_draw.inc.c"

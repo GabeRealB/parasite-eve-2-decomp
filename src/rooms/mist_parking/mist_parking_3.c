@@ -28,7 +28,7 @@
 #include "main/task.h"
 #include "main/task_types.h"
 #include "main/tmd_types.h"
-#include "../../shared/actor_messages.h"
+#include "../../shared/actor/actor_messages.h"
 
 static void _mistParkingPlayDepartureMovieTask(Task* task);
 static void _mistParkingStartDepartureMovieTask(Task* task);
@@ -208,16 +208,11 @@ void mistParkingQueueDelayedDisplayModeExit(s32 delayTicks)
     displayQueueModeTask(taskGetDescAt(gMistParkingConversationTaskDescs, MIST_PARKING_DISPLAY_EXIT_DESCRIPTOR_INDEX), delayTicks, 0, STAGE_ENTRY_RELOAD);
 }
 
+#include "mist_parking_display_mode_exit.inc.c"
+
 void mistParkingDelayDisplayModeExitTask(Task* task)
 {
-    s32 ticksLeft;
-
-    ticksLeft             = task->spawnArg1.value - 1;
-    task->spawnArg1.value = ticksLeft;
-    if (ticksLeft < 0) {
-        taskKill(task);
-        stageRequestModeTaskExit();
-    }
+    _mistParkingDelayDisplayModeExit(task);
 }
 
 void mistParkingSelectDialogueResource(s32 resourceOrdinal)
@@ -387,7 +382,7 @@ static void _mistParkingAdvanceCutsceneModelPitch(Task* task)
     }
 }
 
-#include "../../shared/actor_messages_place_euler_zyx.inc.c"
+#include "../../shared/actor/actor_messages_place_euler_zyx.inc.c"
 
 void mistParkingCutsceneModelPitchTask(Task* task)
 {

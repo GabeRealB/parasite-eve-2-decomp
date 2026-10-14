@@ -42,7 +42,7 @@
 #include "main/tmd_types.h"
 
 #include "mapui/map_akropolis.h"
-#include "../../shared/backdrop_crossfade.h"
+#include "../../shared/room/backdrop_crossfade.h"
 
 /// Packet placement and storage layout of this room's captions and captured backdrop.
 enum {
@@ -2110,7 +2110,7 @@ static void _mistR18CaptureBackdropState(Task* task)
     task->state++;
 }
 
-#include "../../shared/backdrop_crossfade_live.inc.c"
+#include "../../shared/room/backdrop_crossfade_live.inc.c"
 
 /// Queues an additive redraw of the captured backdrop for the room crossfade.
 ///
@@ -2182,7 +2182,7 @@ static void _mistR18AttachedModelTask(Task* task)
     states.funcs[task->state](task);
 }
 
-#include "../../shared/model_placement_attach_part.inc.c"
+#include "../../shared/actor/model_placement_attach_part.inc.c"
 
 /// Keeps an attached model unchanged while its parent controls its lifetime.
 static void _mistR18AttachedModelIdleState(Task* task)
@@ -2426,9 +2426,7 @@ static void _mistR18WaitForCrossfadeViewState(Task* task)
     }
 }
 
-#include "../../shared/backdrop_crossfade_out.inc.c"
-
-#include "../../shared/backdrop_crossfade_tpage.inc.c"
+#include "../../shared/room/backdrop_crossfade.inc.c"
 
 /// Spawns the briefing's separately placed prop and saves its task handle.
 ///

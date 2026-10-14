@@ -24,9 +24,9 @@
 #include "main/task_types.h"
 #include "main/tmd.h"
 #include "main/tmd_types.h"
-#include "../../shared/actor_motion.h"
-#include "../../shared/actor_messages.h"
-#include "../../shared/reversing_walker.h"
+#include "../../shared/actor/actor_motion.h"
+#include "../../shared/actor/actor_messages.h"
+#include "../../shared/walk/reversing_walker.h"
 
 enum {
     ACTOR_350500_REVERSE_WALK_TASK_SPAWN  = 0,
@@ -225,11 +225,11 @@ static TaskMessageEntry _gReverseWalkMessages[6] = {
     { ACTOR_COMMAND_MESSAGE_APPLY, _actor350500ReverseWalkCommandMsg },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
-#include "../../shared/reversing_walker_update.inc.c"
+#include "../../shared/walk/reversing_walker_update.inc.c"
 
-#include "../../shared/actor_motion_arrive19.inc.c"
+#include "../../shared/actor/actor_motion_arrive19.inc.c"
 
-#include "../../shared/reversing_walker_start.inc.c"
+#include "../../shared/walk/reversing_walker_start.inc.c"
 
 /// Runs actor 350500's reversing-walker task state while actor control is running.
 ///
@@ -247,66 +247,13 @@ static void _actor350500ReverseWalkTask(Task* task)
     }
 }
 
-#include "../../shared/reversing_walker_spawn.inc.c"
+#include "../../shared/walk/reversing_walker.inc.c"
 
-/// Releases the walker's enemy record and begins task and model teardown.
-///
-/// Requires a live task with its owned primary-heap `Enemy` in
-/// `spawnArg2.pointer`. Target tracking and actor locks are released before
-/// children, work and model storage. Do not access the task or enemy afterwards.
-static void _reverseWalkExit(Task* task)
-{
-    enemyTaskExit(task);
-}
+#include "../../shared/actor/actor_motion_play19.inc.c"
 
-/// Lends the walker's lighting matrices to its model for lighting and drawing.
-///
-/// Requires a live TMD task with allocated `ReverseWalkWork`. The model borrows
-/// writable matrices in that work; keep it live until model use ends.
-/// This binds storage without calculating or initializing either matrix.
-static void _reverseWalkBindLighting(Task* task)
-{
-    TmdObject*       model;
-    ReverseWalkWork* work;
+#include "../../shared/actor/actor_messages_place_euler.inc.c"
 
-    model           = task->extra.tmd;
-    work            = task->work;
-    model->lightMtx = &work->model.light;
-    model->colorMtx = &work->model.color;
-}
-
-/// Leaves walk state unchanged while no scripted walk is in progress.
-///
-/// The frame update still integrates velocity, ticks animation and draws.
-/// The task parameter is unused but retains the `TaskFunc` callback signature.
-static void _reverseWalkIdle(Task* task)
-{
-}
-
-/// Runs the current phase of a scripted forward or backward walk.
-///
-/// Requires initialized `ReverseWalkWork` and `walk.motionStep` in 0..3:
-/// face the target, begin movement, approach until arrival, then turn to the
-/// destination yaw. Runs one phase per tick without checking the index.
-static void _reverseWalkRunStep(Task* task)
-{
-    ReverseWalkWork*     work     = task->work;
-    const TaskFuncTable4 handlers = _gReverseWalkStepHandlers;
-
-    handlers.funcs[work->walk.motionStep](task);
-}
-
-#include "../../shared/reversing_walker_face.inc.c"
-
-#include "../../shared/reversing_walker_move.inc.c"
-
-#include "../../shared/reversing_walker_turn.inc.c"
-
-#include "../../shared/actor_motion_play19.inc.c"
-
-#include "../../shared/actor_messages_place_euler.inc.c"
-
-#include "../../shared/reversing_walker_visibility.inc.c"
+#include "../../shared/walk/reversing_walker_visibility.inc.c"
 
 /// Selects whether subsequent walk setup approaches targets forward or backward.
 ///

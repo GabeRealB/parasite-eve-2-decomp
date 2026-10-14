@@ -38,7 +38,7 @@
 #include "main/wipsys_types.h"
 
 #include "overlay.h"
-#include "../../shared/moth.h"
+#include "../../shared/creatures/moth/moth.h"
 
 static void _ratDeath(Enemy* enemy, Task* actor);
 static void _ratUpdate(Enemy* enemy, Task* actor);
@@ -435,38 +435,4 @@ static s16 _gRatAnimBlendFrames[RAT_ANIM_SET_COUNT] = {
     0,
 };
 
-#include "../../shared/rat_contacts.inc.c"
-
-#include "../../shared/rat_idle.inc.c"
-
-#include "../../shared/rat_attack.inc.c"
-
-#include "../../shared/rat_stagger.inc.c"
-
-#include "../../shared/rat_buildup.inc.c"
-
-#include "../../shared/rat_turn.inc.c"
-
-#include "../../shared/rat_death.inc.c"
-
-#include "../../shared/rat_task.inc.c"
-
-#include "../../shared/rat_update.inc.c"
-
-#include "../../shared/rat_reactions.inc.c"
-
-#include "../../shared/rat_behavior.inc.c"
-
-#include "../../shared/rat_idle_sound.inc.c"
-
-#include "../../shared/rat_hurt.inc.c"
-
-#include "../../shared/rat_step.inc.c"
-
-#include "../../shared/rat_animate.inc.c"
-
-#include "../../shared/rat_update_color.inc.c"
-
-#include "../../shared/rat_shadow.inc.c"
-
-#include "../../shared/rat_squash.inc.c"
+#include "../../shared/creatures/rat/rat.inc.c"

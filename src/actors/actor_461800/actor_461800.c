@@ -40,8 +40,8 @@
 #include "main/tmd_types.h"
 
 #include "rooms/neo_ark_r31.h"
-#include "../../shared/footstep_walk.h"
-#include "../../shared/scripted_walk.h"
+#include "../../shared/walk/footstep_walk.h"
+#include "../../shared/walk/scripted_walk.h"
 
 static void _footstepWalkUpdate(Task* task);
 static void _footstepWalkExit(Task* task);
@@ -1360,7 +1360,7 @@ static void _actor461800InitScriptedWalker(Enemy* enemy, Task* task)
     task->state++;
 }
 
-#include "../../shared/scripted_walk_update.inc.c"
+#include "../../shared/walk/scripted_walk_update.inc.c"
 
 /// Publishes and dispatches the scripted Kyle walker with two held models.
 ///
@@ -1394,7 +1394,7 @@ static void _actor461800ScriptedWalkerTask(Task* task)
 #define ACTOR_RENDER_UPDATE_WALKER _scriptedWalkUpdate
 /// Selects the declared static void(Task*) ground-shadow drawer for this inclusion.
 #define ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW _actorRenderDrawWalkerGroundShadow
-#include "../../shared/walker_frame.inc.c"
+#include "../../shared/walk/walker_frame.inc.c"
 #undef ACTOR_RENDER_WALKER_FRAME
 #undef ACTOR_RENDER_UPDATE_WALKER
 #undef ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW
@@ -1421,7 +1421,7 @@ static void _actor461800ExitScriptedWalker(Task* task)
 /// Bind to the prologue's `static void name(Task* task)` declaration; the
 /// replacement is one identifier and evaluates no arguments or object state.
 #define ACTOR_RENDER_DRAW_ROOM_GROUND_SHADOW _actorRenderDrawWalkerGroundShadow
-#include "../../shared/actor_render_walker_shadow.inc.c"
+#include "../../shared/actor/actor_render_walker_shadow.inc.c"
 #undef ACTOR_RENDER_DRAW_ROOM_GROUND_SHADOW
 
 /// Attaches a model root to a borrowed walker part and clears all model flags.
@@ -1477,11 +1477,11 @@ static void _actor461800ScriptedWalkerAttachmentTask(Task* task)
     }
 }
 
-#include "../../shared/scripted_walk_tick_anim.inc.c"
+#include "../../shared/walk/scripted_walk_tick_anim.inc.c"
 
-#include "../../shared/scripted_walk_reset_anim.inc.c"
+#include "../../shared/walk/scripted_walk_reset_anim.inc.c"
 
-#include "../../shared/scripted_walk_blend_anim.inc.c"
+#include "../../shared/walk/scripted_walk_blend_anim.inc.c"
 
 /// Reseeds the published scripted walker from a borrowed animation request.
 ///
@@ -1541,7 +1541,7 @@ static s32 _actor461800SetScriptedWalkerModelDraw(Task* unusedTask, s32 messageI
     return 0;
 }
 
-#include "../../shared/scripted_walk_place.inc.c"
+#include "../../shared/walk/scripted_walk_place.inc.c"
 
 /// Schedules twenty turning updates for the published scripted walker.
 ///
@@ -1557,11 +1557,9 @@ static s32 _actor461800ApplyScriptedWalkerCommand(Task* unusedTask, s32 messageI
     return 0;
 }
 
-#include "../../shared/scripted_walk_to.inc.c"
+#include "../../shared/walk/scripted_walk_to.inc.c"
 
-#include "../../shared/footstep_walk_spawn.inc.c"
-
-#include "../../shared/footstep_walk_update.inc.c"
+#include "../../shared/walk/footstep_walk_spawn.inc.c"
 
 /// Dispatches the scene's footstep walker through initialization or its frame update.
 ///
@@ -1600,7 +1598,7 @@ static void _actor461800FootstepWalkerTask(Task* task)
 /// undefine it after each inclusion of walker_frame.inc.c.
 #define ACTOR_RENDER_UPDATE_WALKER             _footstepWalkUpdate
 #define ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW _actorRenderDrawSecondWalkerGroundShadow
-#include "../../shared/walker_frame.inc.c"
+#include "../../shared/walk/walker_frame.inc.c"
 #undef ACTOR_RENDER_WALKER_FRAME
 #undef ACTOR_RENDER_UPDATE_WALKER
 #undef ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW
@@ -1615,15 +1613,11 @@ static void _footstepWalkExit(Task* task)
     enemyDestroy(task->spawnArg2.pointer, task);
 }
 
-#include "../../shared/footstep_walk_play_steps.inc.c"
+#include "../../shared/walk/footstep_walk_play_steps.inc.c"
 
-#include "../../shared/footstep_walk_tick_anim.inc.c"
+#include "../../shared/walk/footstep_walk_tick_anim.inc.c"
 
-#include "../../shared/footstep_walk_reset_anim.inc.c"
-
-#include "../../shared/footstep_walk_blend_anim.inc.c"
-
-#include "../../shared/footstep_walk_play.inc.c"
+#include "../../shared/walk/footstep_walk.inc.c"
 
 /// Replaces the published footstep walker's model draw flags.
 ///
@@ -1648,7 +1642,7 @@ static s32 _actor461800SetFootstepWalkerModelDraw(Task* unusedTask, s32 messageI
     return 0;
 }
 
-#include "../../shared/footstep_walk_place.inc.c"
+#include "../../shared/walk/footstep_walk_place.inc.c"
 
 /// Applies scheduled turning or footstep enablement to the published sound walker.
 ///
@@ -1679,7 +1673,7 @@ static s32 _actor461800ApplyFootstepWalkerCommand(Task* unusedTask, s32 messageI
 /// signed-halfword `st.yaw` (4096 units per turn) and `st.travel` (whole moving
 /// updates). This type-name alias evaluates no expressions and lasts one inclusion.
 #define FOOTSTEP_WALK_WORK_T FootstepWalkWork
-#include "../../shared/footstep_walk_to.inc.c"
+#include "../../shared/walk/footstep_walk_to.inc.c"
 #undef FOOTSTEP_WALK_WORK_T
 
 /// Selects this overlay's private second-walker ground-shadow drawer.
@@ -1687,5 +1681,5 @@ static s32 _actor461800ApplyFootstepWalkerCommand(Task* unusedTask, s32 messageI
 /// Bind to the prologue's `static void name(Task* task)` declaration; the
 /// following fragment defines it. This identifier alias lasts one inclusion.
 #define ACTOR_RENDER_DRAW_ROOM_GROUND_SHADOW _actorRenderDrawSecondWalkerGroundShadow
-#include "../../shared/actor_render_walker_shadow.inc.c"
+#include "../../shared/actor/actor_render_walker_shadow.inc.c"
 #undef ACTOR_RENDER_DRAW_ROOM_GROUND_SHADOW

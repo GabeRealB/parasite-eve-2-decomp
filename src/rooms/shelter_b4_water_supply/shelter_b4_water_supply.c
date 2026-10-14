@@ -59,11 +59,11 @@
 #include "rooms/room.h"
 
 #include "rooms/room_common.h"
-#include "../../shared/room_visual_effects.h"
-#include "../../shared/glow_draw.h"
-#include "../../shared/water_effects.h"
-#include "../../shared/room_events.h"
-#include "../../shared/room_variants.h"
+#include "../../shared/room/room_visual_effects.h"
+#include "../../shared/effects/glow_draw.h"
+#include "../../shared/effects/water_effects.h"
+#include "../../shared/room/room_events.h"
+#include "../../shared/room/room_variants.h"
 
 static void _waterDrawSpin(const GfxCoord* coord, s16 textureColumn, s16 radiusScale, s16 spinAngle);
 static void _waterDrawTile(const GfxCoord* coord, s16 frameIndex, s16 radiusScale);
@@ -187,7 +187,7 @@ static SVECTOR _gShelterB4WaterSupplyLightBeamEndpoints[][2] = {
 /// measured since the last sample. The vector's fourth halfword is unused.
 static SVECTOR _gShelterB4WaterSupplyPlayerSplashPositionHistory[2] = { 0 };
 
-#include "../../shared/room_visual_effects_disc_data.inc.c"
+#include "../../shared/room/room_visual_effects_disc_data.inc.c"
 
 u8 gShelterB4WaterSupplyStairSurfaceRows[4][16] = {
     { 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0 },
@@ -926,7 +926,7 @@ static GameLocationKey _gShelterB4WaterSupplyUpperSewerDestination = { 0 };
 
 RoomDeparture gRoomDeparture = { 0 };
 
-#include "../../shared/room_event_departure_task.inc.c"
+#include "../../shared/room/room_event_departure_task.inc.c"
 
 /// Room receiver states 0..2: initialize, idle and release the task.
 ///
@@ -1318,7 +1318,7 @@ static s32 _shelterB4WaterSupplyResolveWaterHoleVariant(RoomEventMsg* request, R
 /// Integer shift count for `water_wave_strips.inc.c`; see its configuration
 /// contract. The include consumes and undefines this binding.
 #define WATER_WAVE_STRIPS_AMPLITUDE_SHIFT 6
-#include "../../shared/water_wave_strips.inc.c"
+#include "../../shared/effects/water_wave_strips.inc.c"
 
 /// Draws the X-running water rectangle as two strips sharing a moving wave crest.
 ///
@@ -1655,31 +1655,29 @@ void shelterB4WaterSupplySplashAndLightBeamsTask(Task* task)
     }
 }
 
-#include "../../shared/water_ripple_task.inc.c"
+#include "../../shared/effects/water_ripple_task.inc.c"
 
 void shelterB4WaterSupplyWaterRippleTask(Task* task)
 {
     _waterRippleTask(task);
 }
 
-#include "../../shared/water_splash.inc.c"
+#include "../../shared/effects/water_splash.inc.c"
 
-#include "../../shared/water_drift_task.inc.c"
+#include "../../shared/effects/water_drift_task.inc.c"
 
 void shelterB4WaterSupplyWaterDriftTask(Task* task)
 {
     _waterDriftTask(task);
 }
 
-#include "../../shared/water_spin.inc.c"
+#include "../../shared/effects/water_spin.inc.c"
 
-#include "../../shared/water_tile.inc.c"
+#include "../../shared/effects/glow_draw_cone.inc.c"
 
-#include "../../shared/glow_draw_cone.inc.c"
+#include "../../shared/room/room_visual_effects.inc.c"
 
-#include "../../shared/room_visual_effects.inc.c"
-
-#include "../../shared/room_visual_effects_flying_tasks.inc.c"
+#include "../../shared/room/room_visual_effects_flying_tasks.inc.c"
 
 void shelterB4WaterSupplyRoomVisualEffectsGlowDiscTask(Task* task)
 {
@@ -1691,11 +1689,11 @@ void shelterB4WaterSupplyRoomVisualEffectsFlyingSparkTask(Task* task)
     _roomVisualEffectsFlyingSparkTask(task);
 }
 
-#include "../../shared/room_visual_effects_burst.inc.c"
+#include "../../shared/room/room_visual_effects_burst.inc.c"
 
 void shelterB4WaterSupplyRoomVisualEffectsFlyingOrangeBurstTask(Task* task)
 {
     _roomVisualEffectsFlyingOrangeBurstTask(task);
 }
 
-#include "../../shared/room_visual_effects_burst_draw.inc.c"
+#include "../../shared/room/room_visual_effects_burst_draw.inc.c"

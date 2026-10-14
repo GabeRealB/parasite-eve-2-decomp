@@ -27,7 +27,7 @@
 #include "main/task_types.h"
 
 #include "mapui/map_dryfield_full.h"
-#include "../../shared/glow_draw.h"
+#include "../../shared/effects/glow_draw.h"
 
 static WorldCollisionGrid     _gDryfieldNightMotelRoom5CollisionGrid;
 static WorldCollisionOccluder _gDryfieldNightMotelRoom5SightOccluders[2];

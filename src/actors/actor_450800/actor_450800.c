@@ -53,8 +53,8 @@
 /// blend and placement so blend reads Kyle's duration after his three helper
 /// task pointers. The binding follows the `PACED_WALK_WORK_T` contract.
 #define PACED_WALK_WORK_T _Actor450800KyleMadiganWork
-#include "../../shared/paced_walk.h"
-#include "../../shared/pair_walk.h"
+#include "../../shared/walk/paced_walk.h"
+#include "../../shared/walk/pair_walk.h"
 
 static s32  _pairWalkPlay(Task* task, s32 messageId, const AnimationPlayRequest* request, s32 unusedArg);
 static s32  _pairWalkTo(Task* task, s32 messageId, const ActorTransform* target, s32 unusedArg);
@@ -3945,7 +3945,7 @@ static void _actor450800KyleMadiganTask(Task* task)
 #define ACTOR_RENDER_UPDATE_WALKER _actor450800UpdateKyleMadigan
 /// Selects the declared static void(Task*) ground-shadow drawer for this inclusion.
 #define ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW _actorRenderDrawWalkerGroundShadow
-#include "../../shared/walker_frame.inc.c"
+#include "../../shared/walk/walker_frame.inc.c"
 #undef ACTOR_RENDER_WALKER_FRAME
 #undef ACTOR_RENDER_UPDATE_WALKER
 #undef ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW
@@ -3972,7 +3972,7 @@ static void _actor450800ExitKyleMadigan(Task* task)
 /// Bind to the prologue's `static void name(Task* task)` declaration; the
 /// replacement is one identifier and evaluates no arguments or object state.
 #define ACTOR_RENDER_DRAW_ROOM_GROUND_SHADOW _actorRenderDrawWalkerGroundShadow
-#include "../../shared/actor_render_walker_shadow.inc.c"
+#include "../../shared/actor/actor_render_walker_shadow.inc.c"
 #undef ACTOR_RENDER_DRAW_ROOM_GROUND_SHADOW
 
 /// Attaches Kyle's hand or gun model to a body part and refreshes its room lighting.
@@ -4017,11 +4017,11 @@ static void _actor450800KyleMadiganAttachmentTask(Task* task)
     }
 }
 
-#include "../../shared/paced_walk_tick_anim.inc.c"
+#include "../../shared/walk/paced_walk_tick_anim.inc.c"
 
-#include "../../shared/paced_walk_reset_anim.inc.c"
+#include "../../shared/walk/paced_walk_reset_anim.inc.c"
 
-#include "../../shared/paced_walk_blend_anim.inc.c"
+#include "../../shared/walk/paced_walk_blend_anim.inc.c"
 
 /// Records Kyle's animation reseed request without advancing his playing slots.
 ///
@@ -4113,7 +4113,7 @@ static s32 _actor450800SetKyleMadiganDrawFlags(Task* task, s32 messageId, s32 fl
     return 0;
 }
 
-#include "../../shared/paced_walk_place.inc.c"
+#include "../../shared/walk/paced_walk_place.inc.c"
 
 /// Fires, shows or hides Kyle's gun in response to an actor command.
 ///
@@ -4206,10 +4206,7 @@ static s32 _actor450800SetKyleMadiganWalkTarget(Task* task, s32 messageId, const
 /// The table uses PAIR_WALK_TASK_* indices. This identifier alias evaluates no
 /// arguments, captures no locals and is scoped to the following fragment.
 #define PAIR_WALK_TASK_TABLE gActor450800PawnGolemTasks
-#include "../../shared/pair_walk_spawn.inc.c"
-#undef PAIR_WALK_TASK_TABLE
-
-#include "../../shared/pair_walk_update_model.inc.c"
+#include "../../shared/walk/pair_walk_spawn.inc.c"
 
 /// Dispatches the scripted Pawn GOLEM walker and its carried Beam Sword.
 ///
@@ -4237,32 +4234,26 @@ static void _actor450800PawnGolemWalkerTask(Task* task)
 /// undefine it after each inclusion of walker_frame.inc.c.
 #define ACTOR_RENDER_UPDATE_WALKER             _pairWalkUpdate
 #define ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW _actorRenderDrawSecondWalkerGroundShadow
-#include "../../shared/walker_frame.inc.c"
+#include "../../shared/walk/walker_frame.inc.c"
 #undef ACTOR_RENDER_WALKER_FRAME
 #undef ACTOR_RENDER_UPDATE_WALKER
 #undef ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW
 
-#include "../../shared/pair_walk_exit.inc.c"
+#include "../../shared/walk/pair_walk_exit.inc.c"
 
 /// Selects this overlay's private second-walker ground-shadow drawer.
 ///
 /// Bind to the prologue's `static void name(Task* task)` declaration; the
 /// following fragment defines it. This identifier alias lasts one inclusion.
 #define ACTOR_RENDER_DRAW_ROOM_GROUND_SHADOW _actorRenderDrawSecondWalkerGroundShadow
-#include "../../shared/actor_render_walker_shadow.inc.c"
+#include "../../shared/actor/actor_render_walker_shadow.inc.c"
 #undef ACTOR_RENDER_DRAW_ROOM_GROUND_SHADOW
 
-#include "../../shared/pair_walk_tick_anim.inc.c"
+#include "../../shared/walk/pair_walk.inc.c"
 
-#include "../../shared/pair_walk_reset_anim.inc.c"
+#include "../../shared/walk/pair_walk_play.inc.c"
 
-#include "../../shared/pair_walk_reseed_anim.inc.c"
-
-#include "../../shared/pair_walk_play.inc.c"
-
-#include "../../shared/pair_walk_visibility.inc.c"
-
-#include "../../shared/pair_walk_place.inc.c"
+#include "../../shared/walk/pair_walk_visibility.inc.c"
 
 /// Ignores every actor-command message delivered to the package's pawn golem.
 ///
@@ -4273,6 +4264,6 @@ static s32 _actor450800IgnorePawnGolemCommand(Task* task, s32 messageId, const A
     return 0;
 }
 
-#include "../../shared/pair_walk_to.inc.c"
+#include "../../shared/walk/pair_walk_to.inc.c"
 
-#include "../../shared/pair_walk_sub_model.inc.c"
+#include "../../shared/walk/pair_walk_sub_model.inc.c"

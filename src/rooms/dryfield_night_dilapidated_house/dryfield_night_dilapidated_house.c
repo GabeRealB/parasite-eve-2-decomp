@@ -38,7 +38,7 @@
 #include "rooms/room_common.h"
 // The flag symbol is four bytes; the gate writes the first.
 #define ROOM_EVENT_ACTIVE gRoomEventActive.eventStarted
-#include "../../shared/room_events.h"
+#include "../../shared/room/room_events.h"
 
 extern RoomEventActiveBytes gRoomEventActive;
 
@@ -242,9 +242,7 @@ RoomEventReq gRoomEventReq;
 static void _dryfieldNightDilapidatedHouseSetupRoomTask(Task* task);
 static void _dryfieldNightDilapidatedHouseIdleRoomTask(Task* task);
 
-#include "../../shared/room_event_gate.inc.c"
-
-#include "../../shared/room_event_task.inc.c"
+#include "../../shared/room/room_event.inc.c"
 
 s32 dryfieldNightDilapidatedHouseRefuseKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unusedArgument)
 {

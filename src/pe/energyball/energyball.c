@@ -37,8 +37,8 @@
 #include "main/tmd_types.h"
 
 #include "overlay.h"
-#include "../../shared/sprite_quad.h"
-#include "../../shared/ground_glow.h"
+#include "../../shared/effects/sprite_quad.h"
+#include "../../shared/effects/ground_glow.h"
 
 /// Energy Ball family selector, the decimal quotient `AttachmentState::attachId / 10`.
 ///
@@ -637,7 +637,7 @@ static void _energyballDrawGlowDisc(const GfxCoord* centreCoord, s16 radius, s16
         SPRITE_QUAD_SET_FLICKER_EVEN_CELL((quad));                                                                 \
         setSemiTrans((quad), 1);                                                                                   \
     }
-#include "../../shared/sprite_quad_draw_flicker.inc.c"
+#include "../../shared/effects/sprite_quad_draw_flicker.inc.c"
 
 /// Red texture modulation for Energy Ball's additive floor glow.
 ///
@@ -663,7 +663,7 @@ static void _energyballDrawGlowDisc(const GfxCoord* centreCoord, s16 radius, s16
 /// coordinates into an integer constant stored in `POLY_FT4::clut`.
 /// Configures the next ground-glow drawer inclusion, which undefines it.
 #define GROUND_GLOW_CLUT getClut(192, 266)
-#include "../../shared/ground_glow_draw.inc.c"
+#include "../../shared/effects/ground_glow_draw.inc.c"
 
 /// Projects one charging-band quad and selects its six-cell texture frame.
 ///

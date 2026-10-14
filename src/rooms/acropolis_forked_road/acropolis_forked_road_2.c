@@ -67,8 +67,8 @@
 #include "rooms/room.h"
 
 #include "rooms/room_common.h"
-#include "../../shared/room_visual_effects.h"
-#include "../../shared/falling_leaves.h"
+#include "../../shared/room/room_visual_effects.h"
+#include "../../shared/effects/falling_leaves.h"
 
 static void _acropolisForkedRoadOutboundMoviePathTask(Task* task);
 static void _acropolisForkedRoadReturnMoviePathTask(Task* task);
@@ -263,7 +263,7 @@ static u16 _gAcropolisForkedRoadWallLampViewMasks[14] = {
     34,
 };
 
-#include "../../shared/room_visual_effects_trail_data.inc.c"
+#include "../../shared/room/room_visual_effects_trail_data.inc.c"
 
 WorldCollisionRoomResources gAcropolisForkedRoadRoomCollisionResources[3] = {
     { &_gAcropolisForkedRoadCollisionGrid, _gAcropolisForkedRoadViewBoundaryTriggers, _gAcropolisForkedRoadActionTriggers, NULL },
@@ -1581,33 +1581,7 @@ void acropolisForkedRoadInitializeRoomEffectsTask(Task* task)
     }
 }
 
-/// Positions the wall-lamp glow quad as a screen-aligned square.
-///
-/// Requires an initialized `projection->screenPos` centre and nonnegative
-/// `projection->halfExtent` half-width/half-height in pixels. Their sums and
-/// differences must fit signed 32 bits. Corner indices 0..3 are top-left,
-/// top-right, bottom-left and bottom-right. Each edge narrows to signed 16 bits
-/// without clipping. Borrows both objects for this call and writes only X/Y.
-static inline void _acropolisForkedRoadSetWallLampBounds(POLY_FT4* quad, const RoomGlowSpriteScratch* projection)
-{
-    s16 left;
-    s16 right;
-    s16 top;
-    s16 bottom;
-
-    left     = projection->screenPos.vx - projection->halfExtent;
-    quad->x2 = left;
-    quad->x0 = left;
-    right    = projection->screenPos.vx + projection->halfExtent;
-    quad->x3 = right;
-    quad->x1 = right;
-    top      = projection->screenPos.vy - projection->halfExtent;
-    quad->y1 = top;
-    quad->y0 = top;
-    bottom   = projection->screenPos.vy + projection->halfExtent;
-    quad->y3 = bottom;
-    quad->y2 = bottom;
-}
+#include "../../shared/effects/acropolis_glow_sprite_bounds.inc.c"
 
 void acropolisForkedRoadWallLampTask(Task* task)
 {
@@ -1687,43 +1661,40 @@ void acropolisForkedRoadWallLampTask(Task* task)
             quad->v3 = WALL_LAMP_LAST_TEXEL;
 
             projection->halfExtent = (work->scale * WALL_LAMP_LAST_TEXEL) / projection->otz;
-            _acropolisForkedRoadSetWallLampBounds(quad, projection);
+            _acropolisGlowSetSpriteBounds(quad, projection);
             addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)projection->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), quad);
         }
         SCRATCH_STACK_RELEASE_BLOCK(RoomGlowSpriteScratch);
     }
 }
 
-#include "../../shared/falling_leaves_task.inc.c"
+#include "../../shared/effects/falling_leaves_task.inc.c"
 
 void acropolisForkedRoadLeafFallTask(Task* task)
 {
     _leafFallTask(task);
 }
 
-#include "../../shared/falling_leaves_draw.inc.c"
+#include "../../shared/effects/falling_leaves_draw.inc.c"
 
-#include "../../shared/room_visual_effects.inc.c"
+#include "../../shared/room/room_visual_effects.inc.c"
 
-#include "../../shared/room_visual_effects_flash_task.inc.c"
+#include "../../shared/room/room_visual_effects_flash_task.inc.c"
 
 void acropolisForkedRoadRoomVisualEffectsFlashTask(Task* task)
 {
     _roomVisualEffectsFlashTask(task);
 }
 
-#include "../../shared/room_visual_effects_trails.inc.c"
+#include "../../shared/room/room_visual_effects_trails.inc.c"
 
 void acropolisForkedRoadRoomVisualEffectsTwinTrailTask(Task* task)
 {
-#include "../../shared/room_visual_effects_trail_task.inc.c"
-}
+#include "../../shared/room/room_visual_effects_trail_task.inc.c"
 
-#include "../../shared/room_visual_effects_sparks.inc.c"
+    void acropolisForkedRoadRoomVisualEffectsSparkBurstTask(Task * task)
+    {
+        _roomVisualEffectsSparkBurstTask(task);
+    }
 
-void acropolisForkedRoadRoomVisualEffectsSparkBurstTask(Task* task)
-{
-    _roomVisualEffectsSparkBurstTask(task);
-}
-
-#include "../../shared/room_visual_effects_glow.inc.c"
+#include "../../shared/room/room_visual_effects_glow.inc.c"

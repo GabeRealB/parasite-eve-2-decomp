@@ -33,7 +33,7 @@
 #include "mapui/map_dryfield_full.h"
 
 #include "rooms/room_common.h"
-#include "../../shared/glow_draw.h"
+#include "../../shared/effects/glow_draw.h"
 
 /// The night motel room 3 cone-light array and adjacent data of unproven purpose.
 ///
@@ -1570,7 +1570,7 @@ WorldCollisionSurfaceProperties* gDryfieldNightMotelRoom3SurfacePropertiesByClas
     &_gDryfieldNightMotelRoom3SolidSilentSurface,
 };
 
-#include "../../shared/glow_draw_flare_clipped.inc.c"
+#include "../../shared/effects/glow_draw_flare_clipped.inc.c"
 
 void dryfieldNightMotelRoom3DrawFlaresTask(Task* task)
 {

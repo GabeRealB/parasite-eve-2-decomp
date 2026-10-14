@@ -26,15 +26,13 @@
 /// Empty presence flag so `water_effects.h` declares the shared
 /// `_waterDrawSpinU16` and `_waterDrawTileU16`. This file includes their bodies.
 #define WATER_SHARED_U16_DRAWERS
-#include "../../shared/water_effects.h"
+#include "../../shared/effects/water_effects.h"
 
-#include "../../shared/water_drift_task_u16.inc.c"
+#include "../../shared/effects/water_drift_task_u16.inc.c"
 
 void dryfieldWaterHoleWaterDriftTaskU16(Task* task)
 {
     _waterDriftTaskU16(task);
 }
 
-#include "../../shared/water_spin_u16.inc.c"
-
-#include "../../shared/water_tile_u16.inc.c"
+#include "../../shared/effects/water_spin_u16.inc.c"

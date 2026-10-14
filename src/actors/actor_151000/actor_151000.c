@@ -34,7 +34,7 @@
 #include "main/task.h"
 #include "main/task_types.h"
 #include "main/tmd_types.h"
-#include "../../shared/footstep_walk.h"
+#include "../../shared/walk/footstep_walk.h"
 
 static void _footstepWalkUpdate(Task* task);
 static void _footstepWalkExit(Task* task);
@@ -870,9 +870,7 @@ static void _actor151000SetBlackout(s32 enabled)
     }
 }
 
-#include "../../shared/footstep_walk_spawn.inc.c"
-
-#include "../../shared/footstep_walk_update.inc.c"
+#include "../../shared/walk/footstep_walk_spawn.inc.c"
 
 /// Initializes or advances this package's sound-enabled scripted walker.
 ///
@@ -916,7 +914,7 @@ static void _actor151000WalkerTask(Task* task)
 #define ACTOR_RENDER_UPDATE_WALKER _footstepWalkUpdate
 /// Selects the declared static void(Task*) ground-shadow drawer for this inclusion.
 #define ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW _actorRenderDrawWalkerGroundShadow
-#include "../../shared/walker_frame.inc.c"
+#include "../../shared/walk/walker_frame.inc.c"
 #undef ACTOR_RENDER_WALKER_FRAME
 #undef ACTOR_RENDER_UPDATE_WALKER
 #undef ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW
@@ -931,15 +929,11 @@ static void _footstepWalkExit(Task* task)
     enemyDestroy(task->spawnArg2.pointer, task);
 }
 
-#include "../../shared/footstep_walk_play_steps.inc.c"
+#include "../../shared/walk/footstep_walk_play_steps.inc.c"
 
-#include "../../shared/footstep_walk_tick_anim.inc.c"
+#include "../../shared/walk/footstep_walk_tick_anim.inc.c"
 
-#include "../../shared/footstep_walk_reset_anim.inc.c"
-
-#include "../../shared/footstep_walk_blend_anim.inc.c"
-
-#include "../../shared/footstep_walk_play.inc.c"
+#include "../../shared/walk/footstep_walk.inc.c"
 
 /// Replaces the published walker's model flags for `ACTOR_MESSAGE_SET_MODEL_DRAW`.
 ///
@@ -969,7 +963,7 @@ static s32 _actor151000SetWalkerModelDraw(Task* unusedTask, s32 messageId, s32 f
     return 0;
 }
 
-#include "../../shared/footstep_walk_place.inc.c"
+#include "../../shared/walk/footstep_walk_place.inc.c"
 
 /// Applies turn or footstep commands to the published walker.
 ///
@@ -1006,7 +1000,7 @@ static s32 _actor151000ApplyWalkerCommand(Task* unusedTask, s32 messageId, const
 /// signed-halfword `st.yaw` (4096 units per turn) and `st.travel` (whole moving
 /// updates). This type-name alias evaluates no expressions and lasts one inclusion.
 #define FOOTSTEP_WALK_WORK_T FootstepWalkWork
-#include "../../shared/footstep_walk_to.inc.c"
+#include "../../shared/walk/footstep_walk_to.inc.c"
 #undef FOOTSTEP_WALK_WORK_T
 
 /// Selects this sound walker's private ground shadow definition with room shading.
@@ -1018,5 +1012,5 @@ static s32 _actor151000ApplyWalkerCommand(Task* unusedTask, s32 messageId, const
 /// Define it only around `actor_render_walker_shadow.inc.c`, then undefine it;
 /// further shadow instances need distinct function identifiers and prototypes.
 #define ACTOR_RENDER_DRAW_ROOM_GROUND_SHADOW _actorRenderDrawWalkerGroundShadow
-#include "../../shared/actor_render_walker_shadow.inc.c"
+#include "../../shared/actor/actor_render_walker_shadow.inc.c"
 #undef ACTOR_RENDER_DRAW_ROOM_GROUND_SHADOW

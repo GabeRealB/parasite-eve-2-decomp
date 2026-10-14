@@ -815,8 +815,8 @@ _LIBS = None
 def _unit_of(root: str, where: str) -> str:
     """What a step may hold several items of: a file, or a shared library.
 
-    The fragments under src/shared are one function to a file, so batching them
-    by file batches nothing. They belong to libraries - `mad_chaser.h` with its
+    The fragments under src/shared are a few functions to a file, so batching
+    them by file batches little. They belong to libraries - `mad_chaser.h` with its
     `mad_chaser_*.inc.c` - and a library is one piece of behaviour cut into
     files, so its fragments are one unit, as a source file's functions are.
     """
@@ -824,15 +824,18 @@ def _unit_of(root: str, where: str) -> str:
     if not where.startswith("src/shared/"):
         return where
     if _LIBS is None:
-        try:
-            _LIBS = sorted((f[:-2] for f in os.listdir(os.path.join(root, "src/shared")) if f.endswith(".h")),
-                           key=len, reverse=True)
-        except OSError:
-            _LIBS = []
-    stem = os.path.basename(where).split(".", 1)[0]
-    for lib in _LIBS:
-        if stem == lib or stem.startswith(lib + "_"):
-            return "src/shared/" + lib + ".*"
+        # Each library is its header and the fragments beside it, in a module
+        # folder (src/shared/effects/, src/shared/creatures/glutton/, ...).
+        _LIBS = []
+        for d, _, fs in os.walk(os.path.join(root, "src/shared")):
+            rel = os.path.relpath(d, root).replace(os.sep, "/")
+            _LIBS += [(rel, f[:-2]) for f in fs if f.endswith(".h")]
+        _LIBS.sort(key=lambda lib: len(lib[1]), reverse=True)
+    folder, name = os.path.dirname(where), os.path.basename(where)
+    stem = name.split(".", 1)[0]
+    for lib_dir, lib in _LIBS:
+        if lib_dir == folder and (stem == lib or stem.startswith(lib + "_")):
+            return f"{lib_dir}/{lib}.*"
     return where
 
 

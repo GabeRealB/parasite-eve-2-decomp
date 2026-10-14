@@ -35,8 +35,8 @@
 #include "mapui/map_dryfield_full.h"
 
 #include "rooms/room_common.h"
-#include "../../shared/glow_draw.h"
-#include "../../shared/room_variants.h"
+#include "../../shared/effects/glow_draw.h"
+#include "../../shared/room/room_variants.h"
 static s32 _toiletSoundMsg(Task* unusedTask, s32 unusedMessageId, s32 cueKey, s32 unusedSecondArg);
 
 /// Gameplay's task descriptor table; the room task spawns its entry 0.
@@ -616,7 +616,7 @@ WorldCollisionSurfaceProperties* gDryfieldNightToiletSurfacePropertiesByClass[8]
 
 static void _dryfieldNightToiletInitializeRoom(Task* task);
 
-#include "../../shared/room_variants_parking_lot.inc.c"
+#include "../../shared/room/room_variants_parking_lot.inc.c"
 
 #include "../../shared/toilet_sound_msg.inc.c"
 
@@ -689,7 +689,7 @@ void dryfieldNightToiletRoomTask(Task* task)
     stateHandlers.funcs[task->state](task);
 }
 
-#include "../../shared/glow_draw_flare_clipped.inc.c"
+#include "../../shared/effects/glow_draw_flare_clipped.inc.c"
 
 void dryfieldNightToiletDrawFlareTask(Task* unusedTask)
 {

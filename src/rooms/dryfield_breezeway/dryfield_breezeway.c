@@ -43,7 +43,7 @@
 #include "mapui/map_dryfield.h"
 
 #include "rooms/room_common.h"
-#include "../../shared/room_events.h"
+#include "../../shared/room/room_events.h"
 
 /* The room calls the dispatcher with only the task, leaving a1-a3 holding
    whatever the caller had, so the declaration must stay unprototyped. */
@@ -488,9 +488,7 @@ enum {
 static void _dryfieldBreezewayInitMessageTask(Task* task);
 static void _dryfieldBreezewayMessageTaskIdle(Task* unusedTask);
 
-#include "../../shared/room_event_gate.inc.c"
-
-#include "../../shared/room_event_task.inc.c"
+#include "../../shared/room/room_event.inc.c"
 
 s32 dryfieldBreezewayForwardKeyItemUse(Task* unusedTask, s32 messageId, s32 itemId, s32 secondArg)
 {

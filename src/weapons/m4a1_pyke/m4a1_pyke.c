@@ -43,7 +43,7 @@
 
 #include "weapons/weapon.h"
 
-#include "../../shared/pyke_flame.h"
+#include "../../shared/effects/pyke_flame.h"
 
 /// Nozzle glow and flame-launch origin relative to the held weapon's root.
 ///
@@ -162,7 +162,7 @@ void m4a1PykeNozzleTask(Task* task)
     }
 }
 
-#include "../../shared/pyke_flame_nozzle.inc.c"
+#include "../../shared/effects/pyke_flame_nozzle.inc.c"
 
 /// Category-2 weapon attack key for the player's flying Pyke flame.
 ///
@@ -171,23 +171,21 @@ void m4a1PykeNozzleTask(Task* task)
 /// integer constant is consumed and undefined by `pyke_flame_task.inc.c`.
 #define PYKE_FLAME_ATTACK_KEY \
     (WORLD_COLLISION_CONTACT_ATTACK | (PYKE_FLAME_DISTANCE_ROW << PYKE_FLAME_DISTANCE_ROW_SHIFT) | PYKE_FLAME_ATTACK_ROW)
-#include "../../shared/pyke_flame_task.inc.c"
+#include "../../shared/effects/pyke_flame_task.inc.c"
 
 void m4a1PykeFlameTask(Task* task)
 {
     _pykeFlameTask(task);
 }
 
-#include "../../shared/pyke_flame_blob.inc.c"
+#include "../../shared/effects/pyke_flame_blob.inc.c"
 
 /// Retains this weapon's discarded splash-depth increment before the GTE store.
 ///
 /// The splash fragment consumes this 0/1 binding; its default selects the
 /// companion's effective increment after the store instead.
 #define PYKE_FLAME_SPLASH_INCREMENT_BEFORE_DEPTH_STORE 1
-#include "../../shared/pyke_flame_splash.inc.c"
-
-#include "../../shared/pyke_flame_release.inc.c"
+#include "../../shared/effects/pyke_flame.inc.c"
 
 void m4a1PykeAttackState(Task* playerTask)
 {

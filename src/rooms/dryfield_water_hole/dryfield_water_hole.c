@@ -50,10 +50,10 @@
 #include "mapui/map_dryfield.h"
 
 #include "rooms/room_common.h"
-#include "../../shared/water_effects.h"
-#include "../../shared/glow_draw.h"
+#include "../../shared/effects/water_effects.h"
+#include "../../shared/effects/glow_draw.h"
 #include "../../shared/water_hole.h"
-#include "../../shared/room_variants.h"
+#include "../../shared/room/room_variants.h"
 
 static s32  _roomVariantResolveWaterHole(Task* unusedTask, s32 unusedMessageId, const RoomEventMsg* request, RoomEventMsg* reply);
 static void _waterHoleWaterTask(Task* task);
@@ -1874,13 +1874,13 @@ void dryfieldWaterHoleRoomEffectsTask(Task* task)
 #undef DRYFIELD_WATER_HOLE_EMIT_PART_SPLASHES
 }
 
-#include "../../shared/glow_draw_tapered_beam.inc.c"
+#include "../../shared/effects/glow_draw_tapered_beam.inc.c"
 
-#include "../../shared/water_ripple_task.inc.c"
+#include "../../shared/effects/water_ripple_task.inc.c"
 
 void dryfieldWaterHoleWaterRippleTask(Task* task)
 {
     _waterRippleTask(task);
 }
 
-#include "../../shared/water_splash.inc.c"
+#include "../../shared/effects/water_splash.inc.c"

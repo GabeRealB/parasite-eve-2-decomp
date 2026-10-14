@@ -32,8 +32,8 @@
 #include "types.h"
 /// Signed texture-frame counter for the six-cell sprite's forward declaration.
 #define SPRITE_QUAD_FRAME_T s16
-#include "../../shared/sprite_quad.h"
-#include "../../shared/beam_strip.h"
+#include "../../shared/effects/sprite_quad.h"
+#include "../../shared/effects/beam_strip.h"
 
 /// Charge-flare instance of `spriteQuadDraw`.
 ///
@@ -279,7 +279,7 @@ void m4a1HammerGlowTask(Task* task)
 ///
 /// Uses the cell's inclusive 23-texel UV span in `size * SPRITE_QUAD_SCALE / depth`.
 #define SPRITE_QUAD_SCALE (SPRITE_QUAD_CELL_WIDTH - 1)
-#include "../../shared/sprite_quad_draw.inc.c"
+#include "../../shared/effects/sprite_quad_draw.inc.c"
 #undef SPRITE_QUAD_POSITION_SOURCE_TYPE
 #undef SPRITE_QUAD_TRANSLATION_COMPONENT
 #undef SPRITE_QUAD_FRAME_T
@@ -366,9 +366,9 @@ void m4a1HammerImpactFlashTask(Task* task)
 #define SPRITE_QUAD_SCALE (SPRITE_QUAD_CELL_WIDTH - 1)
 /// Repeating-strip palette: VRAM X=304 words, Y=266 scanlines.
 #define SPRITE_QUAD_CLUT getClut(304, 266)
-#include "../../shared/sprite_quad_draw.inc.c"
+#include "../../shared/effects/sprite_quad_draw.inc.c"
 
-#include "../../shared/beam_strip_draw.inc.c"
+#include "../../shared/effects/beam_strip_draw.inc.c"
 
 /// Initial identity transform and self-parented root of the held weapon model.
 ///

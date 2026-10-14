@@ -30,7 +30,7 @@
 #include "main/task.h"
 #include "main/task_types.h"
 #include "main/tmd_types.h"
-#include "../../shared/rising_spark.h"
+#include "../../shared/effects/rising_spark.h"
 
 /// Visual tuning of the healing cast for one Parasite Energy level.
 ///
@@ -215,7 +215,7 @@ void healingAuraTask(Task* task)
     }
 }
 
-#include "../../shared/rising_spark_task.inc.c"
+#include "../../shared/effects/rising_spark_task.inc.c"
 
 void healingRisingSparkTask(Task* task)
 {

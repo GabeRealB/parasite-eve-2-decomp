@@ -350,8 +350,8 @@ prefixes, choose the responsibility the symbol actually implements.
 | `inventory`, `item` | Inventory contents, quantities, sorting, item properties and use | `item_inventory.c`, `item_sort.c`, `item_collect.c`, `item_boost.c`, `item_use.c`, `starter_inventory.c` | `include/gameplay/items.h`, `include/gameplay/inventory.h`, `include/gameplay/battle_reward.h` (battle reward lists), `src/gameplay/items.h`, `src/gameplay/item_use.h` |
 | `equipment`, `attachment` | Equipment selection, attachment combinations, modifiers, Parasite Energy target contacts and area wireframes | `equipment.c`, `attachments.c`, `attach_combo.c`, `attachment_stats.c`, `attachment_menu.c`, `object_lists.c` (target contacts), `linked_actors.c` (area targeting and wireframes) | `include/gameplay/items.h`, `include/gameplay/attachments.h`, `include/gameplay/attachment_state.h`, `src/gameplay/attachments.h` |
 | `itemMenu`, `menu`, `menuMap` | Inventory panels and commands, menu flow, and map-screen loading, navigation and rendering | `item_menu.c`, `item_panels.c`, `item_stats.c`, `menu_root.c`, `menu_actions.c`, `menu_armor.c`, `menu_prompt.c` | `include/gameplay/item_menu.h`, `include/gameplay/map.h` (map-screen records the `mapui` packages define), `src/gameplay/item_menu.h`, `src/gameplay/menu.h` |
-| `shop` | Saved-area dispatch to room-owned shop sessions | `menu_actions.c` | `include/gameplay/item_menu.h`; room implementations in `src/shared/shop.h` |
-| `telephone` | Saved-area dispatch to room-owned telephone save/statistics menus | `item_sort.c` | `src/gameplay/telephone.h`; room implementations in `src/shared/telephone.h` |
+| `shop` | Saved-area dispatch to room-owned shop sessions | `menu_actions.c` | `include/gameplay/item_menu.h`; room implementations in `src/shared/room/shop.h` |
+| `telephone` | Saved-area dispatch to room-owned telephone save/statistics menus | `item_sort.c` | `src/gameplay/telephone.h`; room implementations in `src/shared/room/telephone.h` |
 | `itemPickup`, `itemPlacement` | Pickup dispatch and placed items | `pickup_dispatch.c`, `item_placement.c` | `include/gameplay/item_placement.h`, `src/gameplay/item_placement.h` |
 | `weapon` | Resident weapon/ammunition properties and stat presentation | `weapon_stats.c` | `src/gameplay/weapon_data.h` |
 | `damage` | Damage calculation, attack and hazard properties, enemy hit reactions and combat modifiers | `damage.c`, `object_fields.c` | `include/gameplay/damage.h`, `src/gameplay/damage.h` |
@@ -363,7 +363,7 @@ prefixes, choose the responsibility the symbol actually implements.
 | `roomEffect` | Room effect state and tasks | `room_effects.c` | `include/gameplay/room_effects.h`, `src/gameplay/room_effects.h` |
 | `hud` | HUD sprites, numbers, status bars and tracking | `hud_sprites.c`, `linked_actors.c` (HP/MP status block and radar markers) | `include/gameplay/hud_sprites.h`, `src/gameplay/hud_sprites.h` |
 | `playClock` | The task that runs play: play-time accounting, player and companion death checks, and the per-frame HUD update it calls | `model_lighting.c` (`_PlayClockWork`, start and per-frame states), `ending.c` (state table), `hud_sprites.c` (dispatch, death fade) | `src/gameplay/model_lighting.h`, `src/gameplay/ending.h`, `src/gameplay/hud_sprites.h` |
-| `actionPrompt` | Point-and-click action cursors shared by room and actor overlays | `menu_actions.c` (resident per-port slots) | `include/gameplay/action_prompt.h`, `src/shared/action_prompt.h` |
+| `actionPrompt` | Point-and-click action cursors shared by room and actor overlays | `menu_actions.c` (resident per-port slots) | `include/gameplay/action_prompt.h`, `src/shared/room/action_prompt.h` |
 | `padInput`, `padScript` | Gameplay input mapping, and scripted on/off and variable-intensity controller vibration | `pad_input.c`, `pad_scripts.c` | `include/gameplay/pad_input.h`, `include/gameplay/pad_script.h`, `src/gameplay/pad_input.h`, `src/gameplay/pad_script.h` |
 | `playerActor`, `playerState` | Player actor dispatch, movement and action states | `player_actor.c`, `player_state.c` | `include/gameplay/player_actor.h`, `include/gameplay/player_state.h`, `include/gameplay/actor_spawn_types.h` (player/companion spawn transforms), `src/gameplay/actor.h` (player/companion spawn options), `src/gameplay/player_actor.h`, `src/gameplay/player_state.h` |
 | `scene` | Scene tasks, actor-command routing, combat state and runtime coordination | `scene_runtime.c`, `world_targets.c` (combat state) | `include/gameplay/scene_runtime.h`, `include/gameplay/scene_combat.h`, `include/gameplay/world_state.h` (combat type), `include/gameplay/message.h` (`ActorCommand`), `src/gameplay/scene_runtime.h` |
@@ -391,7 +391,7 @@ slots supply their own `PKG_ID`. This format object has no exported C interface.
 
 `bezierCurve` owns the included cubic Bezier coefficient conversion and reverse
 3D sampling shared by actor chains and room curve displays. Its private
-implementation interface is `src/shared/bezier_curve.h`; each carrier keeps
+implementation interface is `src/shared/actor/bezier_curve.h`; each carrier keeps
 static function instances marked `_`. Coefficients are signed halfword scalar
 polynomial terms, and sampling uses a parameter with 16 fractional bits.
 
@@ -402,14 +402,14 @@ whose entry points retain package identities.
 
 `golemPawnRook` owns the included Pawn/Rook GOLEM behaviour and its Beam Sword,
 grenade launcher, grenade and shield child tasks. Its implementation interface
-is `src/shared/golem_pawn_rook.h`; carriers select the GOLEM kind and weapon.
+is `src/shared/creatures/golem/golem_pawn_rook.h`; carriers select the GOLEM kind and weapon.
 Handlers reached only by each carrier's own dispatch tables keep static linkage
 and the `_` marker. The resident enemy, animation and collision APIs retain
 their own subsystem identities.
 
 `golemKnightBishop` owns the included Knight/Bishop GOLEM attack sequences,
 hit reactions, appearance and model updates. Its private implementation
-interface is `src/shared/golem_knight_bishop.h`; `actor_402200` and
+interface is `src/shared/creatures/golem/golem_knight_bishop.h`; `actor_402200` and
 `actor_403900` select their kind before including it. Helpers used only inside
 each carrier keep static linkage and the `_` marker. Constants use
 `GOLEM_KNIGHT_BISHOP_`; resident collision, damage and rendering APIs retain
@@ -427,8 +427,8 @@ matrix and produces world coordinates, narrowing XYZ to signed halfwords at
 each parent. It commits XYZ only on reaching a view node with a non-NULL parent;
 an incomplete chain leaves the caller's point intact.
 The included world-yaw joint update in
-`src/shared/actor_contacts_turn_joint.inc.c` belongs to the same subsystem;
-`src/shared/actor_contacts.h` declares its static per-carrier interface beside
+`src/shared/actor/actor_contacts_turn_joint.inc.c` belongs to the same subsystem;
+`src/shared/actor/actor_contacts.h` declares its static per-carrier interface beside
 the contact routines it is carried with.
 The inline area-placement texture binding in `include/actors/actor.h` also
 belongs to `actorRender`: it applies texture-page and CLUT-row offsets to a
@@ -442,16 +442,16 @@ colour query, without composing or converting the coordinate itself.
 the adapter reads an enemy attack-table entry and sends its packed damage key
 to the live player, forwarding the player's fatal-damage reply.
 
-The coordinate fragments `src/shared/coord_math_local_to_world.inc.c` and
-`src/shared/coord_math_yaw_scale.inc.c` also belong to `actorRender`, with
+The coordinate fragments `src/shared/actor/coord_math_local_to_world.inc.c` and
+`src/shared/actor/coord_math_yaw_scale.inc.c` also belong to `actorRender`, with
 static per-carrier instances. The point transform walks local matrices up to
 the excluded view node, narrowing to signed halfwords at each parent and
 committing the result only when it reaches the view. Its private implementation
-interface is `src/shared/coord_math.h`. The yaw rebuild has no callers and
+interface is `src/shared/actor/coord_math.h`. The yaw rebuild has no callers and
 needs only its definition, while retaining the standalone body present in
 each carrier's image.
 
-The common walker frame state in `src/shared/walker_frame.inc.c` also belongs
+The common walker frame state in `src/shared/walk/walker_frame.inc.c` also belongs
 to `actorRender`: it composes the model root, samples lighting, calls the
 carrier's motion/animation update and draws its selected ground shadow.
 `ACTOR_RENDER_WALKER_FRAME` selects each static `EnemyTaskFunc` instance;
@@ -477,8 +477,8 @@ units, Y is ignored, and equality meets the radius. The scratch stack supplies
 temporary arithmetic storage rather than owning the test's inputs.
 
 `animDriver` owns the included animation-request driver used by the four
-actor families carrying `src/shared/anim_driver_tick.inc.c`. Its private
-implementation interface is `src/shared/anim_driver.h`. Each translation
+actor families carrying `src/shared/actor/anim_driver_tick.inc.c`. Its private
+implementation interface is `src/shared/actor/anim_driver.h`. Each translation
 unit keeps a static instance: requests reset slots 1 to 5, and playing calls
 advance their poses and count ticks and slot-1 control-jump ticks. The resident
 `animation` subsystem supplies slot playback; it does not own these actors'
@@ -505,7 +505,7 @@ from signed 16-bit positions in their common coordinate frame, using +Z or
 +Y respectively as zero and +X as the positive quarter-turn direction,
 without composing transforms.
 The point-from-coordinate bearing in
-`src/shared/boss_stranger_turn_toward.inc.c` belongs to the same subsystem.
+`src/shared/creatures/boss_stranger/boss_stranger.inc.c` belongs to the same subsystem.
 It measures a packed signed-halfword target from the reference's full-width
 local translation in the reference's parent frame, with +Z as zero. Both
 carriers keep private inline instances beside the shared turn implementation.
@@ -540,7 +540,7 @@ introducing a qualifier; do not assume that they are one API.
 
 `actorMsg` owns the included standard actor message handlers: model placement,
 visibility, draw modes, presence queries and player-hold release. Its private
-implementation interface is `src/shared/actor_messages.h`; configuration
+implementation interface is `src/shared/actor/actor_messages.h`; configuration
 bindings and constants use `ACTOR_MESSAGE_`. A carrier can select a private
 instance of a placement fragment separately from its ordinary shared entry.
 `ACTOR_MESSAGE_PLACE_RECORD_YAW` selects the XYZ placement fragment that records
@@ -554,7 +554,7 @@ requires this binding independently of the function-identifier binding.
 
 `modelPlacement` owns the included TMD coordinate placement helpers and child
 model attachment states. Its private implementation interface is
-`src/shared/model_placement.h`; configuration bindings use `MODEL_PLACEMENT_`.
+`src/shared/actor/model_placement.h`; configuration bindings use `MODEL_PLACEMENT_`.
 An attachment instance links a model root to a parent model part, borrows the
 parent's lighting matrices and joins the parent's task teardown tree. A carrier
 can bind a second private instance independently of the ordinary shared entry.
@@ -568,7 +568,7 @@ the one fragment that uses it; its end marker is
 `ACTOR_CONTACT_FIND_PUSH_MARK_END`. `ActorContactPushScratch` in
 `include/actors/actor.h` is a different block, that of the push resolved from
 the contact records' own correction.
-The static inline contact-depth helper also lives in `src/shared/actor_contacts.h`.
+The static inline contact-depth helper also lives in `src/shared/actor/actor_contacts.h`.
 It measures overlap in composed view X/Z, rotates the normalized XYZ separation
 by the active grid view basis's transpose and produces a room-axis horizontal
 push. Each carrier keeps its own private instance marked `_`.
@@ -588,7 +588,7 @@ bytes they never read, then the heat-haze `ScreenWaveCtx` the fade finishes.
 Each package extends that prefix with its own tasks and scene state.
 
 `screenFade` owns the included subtractive full-screen fade tasks, with
-`src/shared/screen_fade.h` as their private implementation interface. The
+`src/shared/screen/screen_fade.h` as their private implementation interface. The
 resident `fade` API draws their overlay; each included task owns its ramp
 state and lifetime. Configuration bindings and task constants use
 `SCREEN_FADE_`. A carrier with a second fade-in instance binds
@@ -597,7 +597,7 @@ the subsystem prefix and the `_` marker.
 
 `screenNegative` owns the included grayscale-negative conversion of the
 resident RGB555 image workspace and the capture task that holds that frame.
-Its private implementation interface is `src/shared/screen_negative.h`;
+Its private implementation interface is `src/shared/screen/screen_negative.h`;
 configuration bindings and packed-channel masks use `SCREEN_NEGATIVE_`.
 `SCREEN_NEGATIVE_FILTER` selects each static `void (void)` filter instance.
 Carriers bind a further instance around its fragment inclusion after declaring
@@ -607,14 +607,14 @@ the caller controls capture, upload and workspace reuse.
 
 `crossfade` owns the included redraw of a frozen backdrop and the current draw
 buffer at complementary RGB modulation levels. Its private implementation
-interface is `src/shared/backdrop_crossfade.h`; rendering constants use
+interface is `src/shared/room/backdrop_crossfade.h`; rendering constants use
 `CROSSFADE_`. The live-frame drawer and texture-page command keep static
 per-carrier instances marked `_`. Each carrier supplies the stored-backdrop
 drawer for its own VRAM layout.
 
 `frameCapture` owns the included depth-sorted copy of the current draw buffer
 into off-screen VRAM for textured scene effects. Its implementation interface
-is `src/shared/frame_capture.h`; geometry and packet constants use
+is `src/shared/screen/frame_capture.h`; geometry and packet constants use
 `FRAME_CAPTURE_`. The ordering-table argument counts tags after projection
 quantization and any caller bias. A carrier keeps its instance static unless
 another translation unit in that package calls it. `FRAME_CAPTURE_QUEUE`
@@ -627,29 +627,29 @@ between two translation units.
 overlays. The resident per-port state and its public types are gameplay
 (`include/gameplay/action_prompt.h`, slots in `menu_actions.c`). The hotspot
 table entry is `ActionPromptHotspot` in that header. The included
-motion, drawing, hotspot test and outline are `src/shared/action_prompt.h` and
+motion, drawing, hotspot test and outline are `src/shared/room/action_prompt.h` and
 its fragments; a package includes only the fragments it carries.
 
 `planarReflection` owns player and held-object reflections. Gameplay dispatches
 the player task to the captured room through
 `include/gameplay/planar_reflection.h`; room-specific wrappers export the
-included implementation from `src/shared/planar_reflection.h` under their
+included implementation from `src/shared/room/planar_reflection.h` under their
 package prefixes.
 
 `roomEvent` owns the included room event gates, latched event records and event
-tasks. Its implementation interface is `src/shared/room_events.h`; record types
+tasks. Its implementation interface is `src/shared/room/room_events.h`; record types
 used by several room overlays are declared in `include/rooms/room_common.h`.
 
 `roamer` owns the included reserve-enemy pool controllers shared by the Neo Ark
 forest zone and woodland path. Its implementation interface is
-`src/shared/roaming_enemies.h`; configuration bindings use `ROAMER_`.
+`src/shared/room/roaming_enemies.h`; configuration bindings use `ROAMER_`.
 `ROAMER_LATCH_SPAWN_REQUEST` selects the room-action latch definition. Each
 carrier declares its pool-B copy static in its prologue and binds the identifier
 around that fragment inclusion; both pools share the room's request and cooldown.
 
 `followCollision` owns the included actor-following obstacle rebuild in
-`src/shared/follow_collision_rebuild.inc.c`. Its private implementation interface
-is `src/shared/follow_collision.h`; each room keeps a static instance marked `_`.
+`src/shared/room/follow_collision_rebuild.inc.c`. Its private implementation interface
+is `src/shared/room/follow_collision.h`; each room keeps a static instance marked `_`.
 Carriers supply the local obstacle source and the room grid containing its
 reserved leading faces, normals and vertices. The rebuild applies the model
 root's local-to-room matrix and an optional room-axis offset without rebuilding
@@ -658,14 +658,14 @@ the grid's cell lists. Geometry counts use `FOLLOW_COLLISION_OBSTACLE_`.
 `roomCutscene` owns the included room cutscene runner and its timed sound task.
 Both callbacks are private to each carrier and declared in its source prologue;
 the runner borrows a room-owned scene record through completion.
-Its implementation interface is `src/shared/room_cutscene.h`; rooms supply the
+Its implementation interface is `src/shared/room/room_cutscene.h`; rooms supply the
 cutscene record, task descriptors and running sound-task handle. The sound
 callback is private to each carrier, declared in its source prologue and
 marked `_roomCutscene`. Its counter measures callback ticks; completion hands
 teardown back to the runner. Timing constants use `ROOM_CUTSCENE_SOUND_`.
 
 `roomVariant` owns the included progress-dependent destination-room selection.
-Its implementation interface is `src/shared/room_variants.h`. Resolvers borrow
+Its implementation interface is `src/shared/room/room_variants.h`. Resolvers borrow
 a `RoomEventMsg` request and update the initialized reply's room selector;
 the same record may serve both roles. `ROOM_VARIANT_` configuration bindings
 select each carrier's function identifier. A map overlay exports its instance
@@ -720,7 +720,7 @@ each carrier keeps its own static instance. Cue constants use `DRIVEWAY_`,
 `cellar` owns the paired Dryfield cellar rooms' included P08 command/dialogue
 selection in `src/shared/cellar.h`. Each carrier keeps a static room-message
 instance; its room-transition resolver separately belongs to `roomVariant`.
-`capDialogue` owns the reusable room dialogue loop in `src/shared/cap_dialogue.h`:
+`capDialogue` owns the reusable room dialogue loop in `src/shared/room/cap_dialogue.h`:
 a static task instance in each carrier repeats CAP playback until its exit
 choice, restoring the player control its spawner held.
 
@@ -738,12 +738,12 @@ cues to water-tower scripts for the current stage, using `WATER_TOWER_` constant
 Each instance is shared between that room overlay's translation units.
 
 `bridgeModel` owns the fixed translucent-plane setup shared by the Acropolis
-bridge and promenade, declared in `src/shared/bridge_model.h`. Each carrier
+bridge and promenade, declared in `src/shared/room/bridge_model.h`. Each carrier
 keeps static setup and room-specific visibility states. The interface names
 the rooms carrying the plane; its further visual role remains unproven.
 
 `fireball` owns the included flying-fireball glow drawers in
-`src/shared/fireball.h`. The ground drawer constructs a world-ground quad
+`src/shared/effects/fireball.h`. The ground drawer constructs a world-ground quad
 around a composed view-space point and uses an additive two-cell texture;
 its instances are static. Rendering constants use `FIREBALL_`.
 
@@ -765,34 +765,34 @@ before signed 19/20 damping. Room task recipes and collision templates retain
 their package identities.
 
 `effectSprite` owns the included animated sprite and debris tasks and their
-textured quad drawers. Its interface is `src/shared/effect_sprite.h`; its
+textured quad drawers. Its interface is `src/shared/effects/effect_sprite.h`; its
 configuration macros use `EFFECT_SPRITE_` and select declarations matching each
 carrier's drawer signatures.
 
 `spriteQuad` owns the included camera-facing textured quads with carrier-selected
-textures. Its interface is `src/shared/sprite_quad.h`; its configuration macros
+textures. Its interface is `src/shared/effects/sprite_quad.h`; its configuration macros
 use `SPRITE_QUAD_`. The frame-type binding selects each static instance's 16-bit
 texture-frame argument, including its signedness.
 
 `pyroFlame` owns the included eight-frame additive flame billboard shared by
-Pyrokinesis and Combustion. Its interface is `src/shared/pyro_flame.h`; each
+Pyrokinesis and Combustion. Its interface is `src/shared/effects/pyro_flame.h`; each
 carrier keeps a static drawer. `PYRO_FLAME_` constants describe its animation
 strip, perspective sizing and screen-space rotation.
 
 `beamStrip` owns the included additive textured parallelogram between a cached
 world translation and a world-space endpoint, used by Hammer's shock trails and
-the M.I.S.T. shooting-gallery tracer. Its interface is `src/shared/beam_strip.h`;
+the M.I.S.T. shooting-gallery tracer. Its interface is `src/shared/effects/beam_strip.h`;
 each carrier's drawer is static. `BEAM_STRIP_` constants describe the four-cell
 texture layout and perspective sizing.
 
 `groundGlow` owns the included two-frame floor quad used by Energy Ball and
-Hypervelocity. Its private interface is `src/shared/ground_glow.h`; each
+Hypervelocity. Its private interface is `src/shared/effects/ground_glow.h`; each
 carrier keeps a static drawer. It rotates world-ground axes into the composed
 centre's view frame before projection. Constants and carrier tint/palette
 bindings use `GROUND_GLOW_`.
 
 `jetCone` owns the included sixteen-segment textured jet shared by Pyrokinesis
-and Hypervelocity. Its private interface is `src/shared/jet_cone.h`; each
+and Hypervelocity. Its private interface is `src/shared/effects/jet_cone.h`; each
 carrier keeps a static drawer and supplies its rim radii, palette and frame
 offsets through `JET_CONE_` bindings. Both tail-growth modes share the same
 local XY rings and negative-Z axis.
@@ -802,15 +802,15 @@ actor_510900 and actor_521100. Its fragments live under `src/shared/`; each
 carrier declares its static head aim and shadow routines in its prologue.
 Constants use `NO9_GOLEM_`.
 
-`overlayEncounter` owns the included scripted encounter bookkeeping in
-`src/shared/mad_chaser_waves.h`, shared with the encounter records in
+`overlayEncounter` owns the scripted encounter bookkeeping in
+`actor_342400` and the Mad Chaser library, shared with the encounter records in
 `include/overlay.h`. Pair bookkeeping borrows enemy pointers and records
 completion without owning their tasks. Carrier-local helpers keep static
 linkage; encounter constants use `OVERLAY_ENCOUNTER_`.
 
 `modelMorph` owns the included deformation of a TMD model by a ramp: scaled
 vertex deltas added to a snapshot of the rest shape, and normals interpolated
-toward a target set. Its interface is `src/shared/model_morph.h`. The record
+toward a target set. Its interface is `src/shared/actor/model_morph.h`. The record
 describing one morph is `ModelMorph` in `include/overlay.h`, public because a
 package can morph its model with a record another package defines.
 
@@ -821,13 +821,13 @@ the compiled instance's function bindings independently of runtime stage
 selection.
 
 The paired Dryfield factory, G & R kitchen, motel room 6 and trailer coach
-implementations use `src/shared/dryfield_time.h` for their `DRYFIELD_`
+implementations use `src/stages/dryfield/dryfield_time.h` for their `DRYFIELD_`
 configuration constants. Carriers bind `DRYFIELD_TIME` before their shared
 header to select a daytime or nighttime compiled instance; these discriminator
 values are separate from runtime stage numbers.
 
 `glutton` owns the included boss helpers shared by `actor_403200` and
-`actor_444000`. Its implementation interface is `src/shared/glutton.h`;
+`actor_444000`. Its implementation interface is `src/shared/creatures/glutton/glutton.h`;
 `GLUTTON_` instance bindings select each carrier's local boss state.
 The staged display models share `GluttonPartAttachment` in
 `include/actors/glutton_display_types.h`: a child's local XYZ offset and the
@@ -835,7 +835,7 @@ body-model coordinate it attaches to. Each scene package owns its attachment tab
 
 `bossStranger` owns the included Boss Stranger movement core shared by
 `actor_110600` and `acropolis_bridge`. Its implementation interface is
-`src/shared/boss_stranger.h`. Each carrier keeps private static
+`src/shared/creatures/boss_stranger/boss_stranger.h`. Each carrier keeps private static
 instances marked `_bossStranger`; neither exports this movement interface.
 The movement record is `BossStrangerWalker` in
 `include/overlay.h`, with `BossStrangerNode`, `BossStrangerNav` and
@@ -853,7 +853,7 @@ stages is a plain `SVECTOR`.
 `generator` owns the included Beta and Proto Generator enemy behavior:
 body damage protection, Life Support damage and healing control, scale pulses,
 animation requests, and scripted death and battle-release waits. Its private
-implementation interface is `src/shared/generator.h`, carried by `actor_105300`
+implementation interface is `src/shared/creatures/generator/generator.h`, carried by `actor_105300`
 and `actor_105400`. Each carrier keeps static function instances marked `_`;
 its package-owned task-descriptor table remains the spawn interface. Constants
 use `GENERATOR_`; resident enemy, collision, animation and sound APIs retain
@@ -861,7 +861,7 @@ their own identities.
 
 `madChaser` owns the included Mad Chaser enemy shared by `actor_04400`,
 `actor_341700` and `actor_342400`. Its implementation interface is
-`src/shared/mad_chaser.h`, one fragment per function. `MadChaserWork` is the
+`src/shared/creatures/mad_chaser/mad_chaser.h`, one fragment per function. `MadChaserWork` is the
 task's work block; its animation request, hit reaction and room command values
 use `MAD_CHASER_ANIM_REQUEST_`, `MAD_CHASER_HIT_REACTION_` and
 `MAD_CHASER_COMMAND_`. Per-carrier handlers and helpers with no external users
@@ -871,20 +871,20 @@ keep static linkage and the `_madChaser` prefix. Task dispatch indices use
 `MadChaserLimbShadowScratch` is the scratch block of one
 limb shadow quad: both parts' world transforms and positions, the four corners,
 their projection, and the half span the quad overhangs each end by, which this
-drawer keeps in the block. The scripted waves that spawn the enemy are the
-separate `src/shared/mad_chaser_waves.h`.
+drawer keeps in the block. The scripted waves that spawn the enemy are in
+`src/actors/actor_342400/actor_342400.c`.
 The place a wave's enemy enters the room is an `OverlayEncounterSpot`, declared in
 `include/overlay.h` beside `OverlayEncounterSlot`: the two Shelter B3 rooms define
 the tables, and both the Mad Chaser and the Sucklerceph read them.
 
-`limbShadow` owns the included limb shadow drawer, `src/shared/limb_shadows.h`:
+`limbShadow` owns the included limb shadow drawer, `src/shared/actor/limb_shadows.h`:
 a subtractive quad under the segment between two model parts. Its scratch block
 is `ActorLimbShadowScratch` in `include/actors/actor.h`, public because
 the shared floor drawer and `actor_400600`'s wall drawer use the same projection
 record. Each carrier includes its own static `_limbShadowDrawSegment` instance.
 
 `actorMotion` owns the included animation-request handlers and scripted-walk
-steps in `src/shared/actor_motion.h`. Playback serves actors whose work opens
+steps in `src/shared/actor/actor_motion.h`. Playback serves actors whose work opens
 with a nineteen- or twenty-part rig and model state; walk steps additionally
 need destination, velocity and motion state. Each carrier keeps static function
 instances marked `_`. The twenty-part handler restarts repeated clips; the
@@ -895,7 +895,7 @@ walk sequencing.
 
 `reverseWalk` owns the included nineteen-part scripted walker that can back
 toward its target, shared by `actor_350500` and `actor_350700`. Its
-implementation interface is `src/shared/reversing_walker.h`, which declares the
+implementation interface is `src/shared/walk/reversing_walker.h`, which declares the
 task's work block `ReverseWalkWork`. `KyleMadiganWalkerWork` in
 `include/actors/actor.h` is the work block of the twenty-part Kyle Madigan
 walker that `actor_135600` and `actor_350700` each carry as their own
@@ -911,7 +911,7 @@ The frame-update fragment's root-velocity integration is the locally scoped
 `desertChaser` owns the included Desert Chaser enemy, one source built three
 ways: the cutscene build (`actor_323000`, `actor_323400`), the regular build
 (`actor_00100`) and the Water Tower build (`actor_421600`). Its implementation
-interface is `src/shared/desert_chaser.h`, one fragment per function; a carrier
+interface is `src/shared/creatures/desert_chaser/desert_chaser.h`, one fragment per function; a carrier
 binds `DESERT_CHASER_BUILD` before including it. `DesertChaserWork` is the
 task's work block, whose head the three builds share and whose tail each build
 declares for itself. Animation request values use
@@ -932,7 +932,7 @@ the four tunings both armed packages define and the spawn argument picks from.
 
 `oddStranger` owns the included Odd Stranger enemy, one source built twice:
 `actor_401000` and `actor_401800`. Its implementation interface is
-`src/shared/odd_stranger.h`, one fragment per function; a carrier binds
+`src/shared/creatures/odd_stranger/odd_stranger.h`, one fragment per function; a carrier binds
 `ODD_STRANGER_BUILD` to `ODD_STRANGER_BUILD_401000` or
 `ODD_STRANGER_BUILD_401800` before including it and keeps the binding through
 the last shared fragment. This selects the compiled layout and behavior;
@@ -949,7 +949,7 @@ The three tunings a package defines, picked by the spawn argument, are
 `stalkerZebraIvory` owns the included pose, animation-request and
 pending-action code shared by the Zebra Stalker (`actor_400600`) and the Ivory
 Stalker (`actor_405800`). Its implementation interface is
-`src/shared/stalker_zebra_ivory.h`, one fragment per function. Each package
+`src/shared/creatures/stalker_zebra_ivory/stalker_zebra_ivory.h`, one fragment per function. Each package
 names its own work type `StalkerZebraIvoryWork` before including the fragments
 and spells the members they reach alike. Animation request and pending action
 values use `STALKER_ZEBRA_IVORY_ANIM_REQUEST_` and `STALKER_ZEBRA_IVORY_PENDING_`.
@@ -958,7 +958,7 @@ linkage and the `_stalkerZebraIvory` prefix.
 
 `diver` owns the included strike child, impact sparks, joint turn and
 animation-request and state-selection code shared by the Bog Diver
-(`actor_00400`) and the Sea Diver (`actor_206100`). Its implementation interface is `src/shared/diver.h`,
+(`actor_00400`) and the Sea Diver (`actor_206100`). Its implementation interface is `src/shared/creatures/diver/diver.h`,
 one fragment per function. Each package names its own work type `DiverWork`
 before including the fragments and spells the members they reach alike; the
 header lists them. Each carrier keeps static instances marked `_diver`.
@@ -966,7 +966,7 @@ Animation request values use `DIVER_ANIM_REQUEST_`, and strike-effect recipes
 use `DIVER_BURST_`.
 
 `sucklerceph` owns the included Sucklerceph enemy shared by `actor_04600` and
-`actor_07000`. Its implementation interface is `src/shared/sucklerceph.h`, one
+`actor_07000`. Its implementation interface is `src/shared/creatures/sucklerceph/sucklerceph.h`, one
 fragment per function. `SucklercephWork` is the task's work block; its
 behaviour, awake stage, death phase and animation values use
 `SUCKLERCEPH_STATE_`, `SUCKLERCEPH_AWAKE_STAGE_`, `SUCKLERCEPH_DEATH_PHASE_` and
@@ -979,25 +979,25 @@ because `actor_521100` and `actor_403600` reserve the same block.
 `skullStalker` owns the included Skull Stalker enemy shared by `actor_04600`
 and `actor_207200`: sensing, intermittent visibility, animation, contact
 reactions and task lifetime. Its implementation interface is
-`src/shared/skull_stalker.h`, one fragment per function. Each carrier keeps
+`src/shared/creatures/skull_stalker/skull_stalker.h`, one fragment per function. Each carrier keeps
 static instances marked `_skullStalker`; no other image imports them. The
 carrier supplies the enemy parameters, animation-set table, contact-effect
 offsets and three-entry task-state table. Constants use `SKULL_STALKER_`.
 
 `viewFigure` owns the included figure parented to the view coordinate, shared
 by `actor_110300` and `actor_110800`. Its implementation interface is
-`src/shared/view_figure.h`, which declares the task's work block
+`src/shared/actor/view_figure.h`, which declares the task's work block
 `ViewFigureWork`. Other figures can reuse its helper-model exit fragment
 independently of that work block and the twenty-part animation rig.
 
 `streamedScene` owns the included room movie tasks in
-`src/shared/streamed_scene.h`. They take display presentation through playback,
+`src/shared/room/streamed_scene.h`. They take display presentation through playback,
 cancellation and game-resource restoration, optionally holding the blank
 display after normal completion. The resident `stream` and `cdCmd` APIs own
 decoding and CD requests; these tasks own the room's playback sequence.
 
 `grenadeShell` owns the included grenade-projectile spawn, flight, blast and
-teardown fragments in `src/shared/grenade_shell.h`. Each weapon or actor carrier
+teardown fragments in `src/shared/effects/grenade_shell.h`. Each weapon or actor carrier
 retains its own collision bodies and task lifecycle; helpers reached only
 inside a carrier keep static linkage and the private marker.
 
@@ -1016,7 +1016,7 @@ and `ActorHitTakenScratch` that of the hit check `actor_01200` and
 
 `maggotCaterpillar` owns the included Maggot and Caterpillar enemy behavior,
 animation requests, death transforms, thread drawer and puff child tasks. Its
-private implementation interface is `src/shared/maggot_caterpillar.h`, carried
+private implementation interface is `src/shared/creatures/maggot_caterpillar/maggot_caterpillar.h`, carried
 by `actor_02600` and `actor_05500`; constants use `MAGGOT_CATERPILLAR_`.
 The carrier binds `MAGGOT_CATERPILLAR_KIND` to the Maggot or Caterpillar selector
 before the first header inclusion and undefines it afterwards. The guarded
@@ -1028,7 +1028,7 @@ Per-carrier helpers and handlers without imports keep static linkage and the
 `rat` owns the included Rat enemy behavior, animation, collision setup and
 corpse scaling shared by `actor_00700` (packages `actor_100700` and
 `actor_200700`) and `actor_300700`. Its implementation interface is
-`src/shared/rat.h`; carriers supply enemy/attack parameters, animation/blend
+`src/shared/creatures/rat/rat.h`; carriers supply enemy/attack parameters, animation/blend
 and wander tables, and the three-entry task-state table. Per-TU handlers keep
 static linkage and the `_rat` marker, declared in each carrier's prologue.
 `ratSpawn` keeps external linkage because `actor_300700` carries its spawn
@@ -1036,7 +1036,7 @@ and task dispatcher in different translation units. Constants use `RAT_`.
 
 `moth` owns the included Moth enemy shared by `actor_00700` (packages
 `actor_100700` and `actor_200700`) and `actor_300700`. Its implementation
-interface is `src/shared/moth.h`, one fragment per function. `MothWork` is the
+interface is `src/shared/creatures/moth/moth.h`, one fragment per function. `MothWork` is the
 task's work block: the animation rig, the hit, grid and attack spheres with
 their contact tables, and the wander, wing-beat and death state the handlers
 share. Handlers reached only inside each carrier keep static linkage and the
@@ -1046,7 +1046,7 @@ Each package defines the tables the fragments read (`_gMothParams`,
 
 `scriptedWalk` owns the included walk of the twenty-part NPCs that cutscene
 scripts move around, over a work block each walker publishes in a global. Its
-implementation interface is `src/shared/scripted_walk.h`, one fragment per
+implementation interface is `src/shared/walk/scripted_walk.h`, one fragment per
 function, carried by `actor_143900` (two walkers), `actor_146300`,
 `actor_260400`, `actor_420700` and `actor_461800`. `ScriptedWalkAttachmentsWork`
 is the whole block of a walker that carries two attachment tasks, the first
@@ -1090,7 +1090,7 @@ its message table; actor_143900's second copy is `_scriptedWalkToSecond`.
 `pacedWalk` owns the included twenty-part cutscene NPC walk whose work block
 is kept at `Task::work`, and the animation-slot tick, reset, blend and placement
 fragments other walkers reuse. Its implementation interface is
-`src/shared/paced_walk.h`. `PACED_WALK_WORK_T` selects the walker's allocated
+`src/shared/walk/paced_walk.h`. `PACED_WALK_WORK_T` selects the walker's allocated
 work type; `PACED_WALK_TICK_ANIM` binds the tick definition and its update
 callers to the same function instance when a package carries several walkers.
 `PACED_WALK_RESET_ANIM` likewise binds a walker's private clip-restart definition
@@ -1135,7 +1135,7 @@ otherwise both model pointers refer to the receiver without dereferencing work.
 `strideWalk` owns the included walk of the soldier NPC that can carry a second
 model and turns its head toward the player during talk scenes, carried by
 `actor_161500` and by the second walker of `actor_460200`. Its implementation
-interface is `src/shared/stride_walk.h`, one fragment per function.
+interface is `src/shared/walk/stride_walk.h`, one fragment per function.
 `StrideWalkWork` is the task's work block, kept at `Task::work`; its head-turn
 modes use `STRIDE_WALK_TURN_`. The walker borrows the paced walk's slot tick,
 reset, blended reseed and placement, so a carrier binds `PACED_WALK_WORK_T` to
@@ -1146,7 +1146,7 @@ carried-model callback have static per-carrier instances marked `_strideWalk`.
 `pairWalk` owns the included walk of the nineteen-part NPC that carries a
 second model on one of its parts, carried by `actor_150400`, `actor_450800`,
 `actor_451100` and `actor_535700`. Its implementation interface is
-`src/shared/pair_walk.h`, one fragment per function. `PairWalkWork` is the
+`src/shared/walk/pair_walk.h`, one fragment per function. `PairWalkWork` is the
 task's work block, kept at `Task::work`. Its animation update, slot helpers,
 message handlers and carried-model callback have static per-carrier instances,
 marked `_pairWalk`; their declarations describe the same shared implementation.
@@ -1155,7 +1155,7 @@ marked `_pairWalk`; their declarations describe the same shared implementation.
 its work block in a global and can sound its steps, carried by `actor_151000`,
 `actor_461800` and `actor_535700`; `actor_260500` and `actor_451100` carry the
 quiet update, which plays none. Its implementation interface is
-`src/shared/footstep_walk.h`. `FootstepWalkQuietWork` is the quiet walker's
+`src/shared/walk/footstep_walk.h`. `FootstepWalkQuietWork` is the quiet walker's
 whole block and the head `FootstepWalkWork` opens with; a package declares
 `_gFootstepWalkWork` with the type its walker allocates. Each carrier keeps that
 borrowed pointer, its signed-halfword `_gFootstepWalkMode`, and its whole-frame
@@ -1177,7 +1177,7 @@ fragment and restore it afterwards. Each carrier declares the private
 `_footstepWalkPlace` instance in its prologue.
 
 `playerDetection` owns the included enemy facing, distance and sight tests,
-with `src/shared/player_detection.h` as their private implementation interface.
+with `src/shared/actor/player_detection.h` as their private implementation interface.
 Each carrier keeps static instances marked `_`. Sight tests scan enabled
 room occluders in view space; the reach test gates movement by the player's
 bearing and distance from a proposed step in the roots' common parent frame.
@@ -1185,7 +1185,7 @@ bearing and distance from a proposed step in the roots' common parent frame.
 private to that interface.
 
 `jukebox` owns the included SELECT menu that lists music tracks and plays the
-chosen sequence. Its interface is `src/shared/jukebox.h` (`_jukeboxDrawRow`,
+chosen sequence. Its interface is `src/shared/room/jukebox.h` (`_jukeboxDrawRow`,
 `_jukeboxHostTask`). Each row is a `JukeboxTrack`: a MIDI sequence id and the
 label drawn for that row. The saloon and shooting-gallery overlays each define
 their own tables, so the record stays in `include/rooms/rooms_shared_8018055c.h`
@@ -1194,7 +1194,7 @@ also uses for its text request.
 
 `pykeFlame` owns the included nozzle sprite and flying flame of the M4A1 Pyke
 attachment, also carried by `actor_800100`. Its interface is
-`src/shared/pyke_flame.h`. Each package names the effect-table task itself and
+`src/shared/effects/pyke_flame.h`. Each package names the effect-table task itself and
 includes the shared body; `PYKE_FLAME_` bindings select the collision key,
 transform-cache refresh for redraws while simulation is stopped, and the order
 of the splash depth increment. `PykeFlameBody`
@@ -1205,7 +1205,7 @@ corners and their projected screen positions, with ordering depth and the GTE
 FLAG word left on the call stack.
 
 `bladeTrail` owns the included swoosh the Gunblade, M4A1 bayonet and tonfa
-baton leave behind a swing. Its interface is `src/shared/blade_trail.h`.
+baton leave behind a swing. Its interface is `src/shared/effects/blade_trail.h`.
 Each weapon keeps eight paired samples of two ribbon endpoints and includes
 `_bladeTrailDraw`, which joins seven adjacent pairs into fading gouraud quads.
 `BladeTrailScratch` is one quad's scratch block: four endpoint corners, the
@@ -1213,18 +1213,18 @@ ordering depth and the GTE FLAG word, plus one word the drawer never touches.
 
 `muzzleFlash` owns the included textured core, Gouraud streaks and short-lived
 flash task shared by the P229 and MP5A5 variants. Its interface is
-`src/shared/muzzle_flash.h`; constants use `MUZZLE_FLASH_`. Each carrier exports
+`src/shared/effects/muzzle_flash.h`; constants use `MUZZLE_FLASH_`. Each carrier exports
 its own effect-table wrapper and keeps the shared functions private. Carriers
 supply the muzzle offset and four retained streak angles.
 
 `risingSpark` owns the included short-lived additive spark billboard task
 shared by Healing and Life Drain. Its implementation interface is
-`src/shared/rising_spark.h`; task constants use `RISING_SPARK_`. Each carrier
+`src/shared/effects/rising_spark.h`; task constants use `RISING_SPARK_`. Each carrier
 exports its own effect-table wrapper and keeps the shared inline body private.
 
 `leaf` owns the included falling-leaf task and textured-square drawers shared
 by the Acropolis gardens and Neo Ark woodland rooms. Its implementation
-interface is `src/shared/falling_leaves.h`; `LEAF_` constants describe its
+interface is `src/shared/effects/falling_leaves.h`; `LEAF_` constants describe its
 rendering and task phases. Each carrier exports its own effect-table wrapper
 and keeps the shared task and selected drawer private.
 
@@ -1240,7 +1240,7 @@ are described in `src/shared/motel_room_6.h`. Carriers declare their static mess
 Their command constants use `JUNK_YARD_` and `MOTEL_ROOM_6_`.
 
 `shelterElevator` owns the included elevator floor-selection task shared by the
-three Shelter halls. Its interface is `src/shared/shelter_elevator.h`; it waits
+three Shelter halls. Its interface is `src/shared/room/shelter_elevator.h`; it waits
 for the CAP choice and lift voice, then resolves and reloads the selected hall.
 Some carriers reference it from another translation unit, so it retains
 external linkage. Constants use `SHELTER_ELEVATOR_`.
@@ -1262,7 +1262,7 @@ day/night view configuration, separate from the room task's state dispatch.
 
 `viewFigure` owns the included camera-parented scripted figure and its body
 animation request/playback, carried by actor_110300 and actor_110800. Its work
-and rig interface is `src/shared/view_figure.h`. The message handler uses the
+and rig interface is `src/shared/actor/view_figure.h`. The message handler uses the
 live published singleton work and resets its body tracks from a borrowed
 animation request. Carrier-local handlers are static; constants use
 `VIEW_FIGURE_`.
@@ -1275,7 +1275,7 @@ shared definition to that export; rendering constants use `FACTORY_GLOW_`.
 
 `redBeacon` owns the included one-frame pulsing red diamond drawer shared by the
 Acropolis elevator halls. Its private implementation interface is
-`src/shared/red_beacon.h`; `RED_BEACON_` constants describe pulse and projection
+`src/shared/effects/red_beacon.h`; `RED_BEACON_` constants describe pulse and projection
 units. Each carrier binds `RED_BEACON_TASK` to its public package-prefixed
 task callback, which gameplay's counted room-effect table imports.
 

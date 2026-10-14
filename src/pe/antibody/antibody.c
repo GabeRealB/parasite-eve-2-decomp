@@ -30,10 +30,10 @@
 #include "main/task.h"
 #include "main/task_types.h"
 #include "main/tmd_types.h"
-#include "../../shared/glow_draw.h"
+#include "../../shared/effects/glow_draw.h"
 /// Signed texture-frame counter for both antibody sprite instances.
 #define SPRITE_QUAD_FRAME_T s16
-#include "../../shared/sprite_quad.h"
+#include "../../shared/effects/sprite_quad.h"
 
 /// Visual tuning of the antibody cast for one Parasite Energy level.
 ///
@@ -431,7 +431,7 @@ void antibodyMoteTask(Task* task)
 ///
 /// Uses the cell's inclusive 39-texel UV span in `size * SPRITE_QUAD_SCALE / depth`.
 #define SPRITE_QUAD_SCALE (SPRITE_QUAD_CELL_WIDTH - 1)
-#include "../../shared/sprite_quad_draw.inc.c"
+#include "../../shared/effects/sprite_quad_draw.inc.c"
 
 /// Larger antibody sprite palette: VRAM X=144 words, Y=267 scanlines.
 #define SPRITE_QUAD_CLUT getClut(144, 267)
@@ -449,28 +449,9 @@ void antibodyMoteTask(Task* task)
 ///
 /// Uses the cell's inclusive 39-texel UV span in `size * SPRITE_QUAD_SCALE / depth`.
 #define SPRITE_QUAD_SCALE (SPRITE_QUAD_CELL_WIDTH - 1)
-#include "../../shared/sprite_quad_draw.inc.c"
+#include "../../shared/effects/sprite_quad_draw.inc.c"
 
-/// Projects the selected strip endpoint through the loaded GTE matrices.
-///
-/// Borrows one complete word-aligned scratch block. `projectEnd` selects
-/// worldEnd/screenEnd when true and worldStart/screenStart otherwise. Writes
-/// signed screen pixels and replaces projectionFlags. Leaves SZ3 available
-/// for the caller to capture before the next projection.
-static inline void _antibodyProjectStripPoint(EffectStripScratch* scratch, bool projectEnd)
-{
-    if (projectEnd) {
-        gte_ldv0(&scratch->worldEnd);
-        gte_rtps();
-        gte_stsxy(&scratch->screenEnd);
-        gte_stflg(&scratch->projectionFlags);
-    } else {
-        gte_ldv0(&scratch->worldStart);
-        gte_rtps();
-        gte_stsxy(&scratch->screenStart);
-        gte_stflg(&scratch->projectionFlags);
-    }
-}
+#include "../../shared/effects/effect_strip_project_point.inc.c"
 
 /// Queues an additive textured strip from an Antibody mote to the player's second model coordinate.
 ///
@@ -525,11 +506,11 @@ static void _antibodyDrawMoteStrip(const GfxCoord* coord, s16 textureFrame, s16 
 
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    _antibodyProjectStripPoint(scratch, false);
+    _effectStripProjectPoint(scratch, false);
     if (scratch->projectionFlags >= 0) {
         gte_stszotz(&scratch->depth);
         scratch->depth += ANTIBODY_STRIP_DEPTH_BIAS;
-        _antibodyProjectStripPoint(scratch, true);
+        _effectStripProjectPoint(scratch, true);
         if (scratch->projectionFlags >= 0) {
             quad           = gGpuPrimCursor;
             gGpuPrimCursor = quad + 1;
@@ -567,4 +548,4 @@ static void _antibodyDrawMoteStrip(const GfxCoord* coord, s16 textureFrame, s16 
     SCRATCH_STACK_RELEASE_BLOCK(EffectStripScratch);
 }
 
-#include "../../shared/glow_draw_wedge.inc.c"
+#include "../../shared/effects/glow_draw_wedge.inc.c"

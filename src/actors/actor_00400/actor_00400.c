@@ -73,9 +73,9 @@
 #include "rooms/shelter_b4_reservoir.h"
 
 #include "rooms/shelter_b4_upper_sewer.h"
-#include "../../shared/limb_shadows.h"
-#include "../../shared/coord_math.h"
-#include "../../shared/diver.h"
+#include "../../shared/actor/limb_shadows.h"
+#include "../../shared/actor/coord_math.h"
+#include "../../shared/creatures/diver/diver.h"
 
 /// Handlers of the diver's states in water, stored as a value for whole-table
 /// copies.
@@ -1499,11 +1499,9 @@ static void            _actor00400WoundedFloatIdleTick(Task* task);
 static void            _actor00400WoundedFloatFlinchTick(Task* task);
 static inline s32      _actor00400ConsumeSwimHeavyRecoilHitReaction(Task* task);
 
-#include "../../shared/diver_inlines.inc.c"
+#include "../../shared/creatures/diver/diver_inlines.inc.c"
 
-#include "../../shared/diver_impact_burst.inc.c"
-
-#include "../../shared/diver_draw_spark.inc.c"
+#include "../../shared/creatures/diver/diver.inc.c"
 
 /// Advances the spark discharge and its stranded attack-sphere window.
 ///
@@ -1689,7 +1687,7 @@ static void _actor00400CrawlStride(Task* task)
     rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
-#include "../../shared/limb_shadows_segment.inc.c"
+#include "../../shared/actor/limb_shadows_segment.inc.c"
 
 /// Draws thirteen limb-shadow segments of the diver's fifteen-part rig.
 ///
@@ -2773,7 +2771,7 @@ static void _actor00400DrawGroundStain(SVECTOR* corner0, SVECTOR* corner1, SVECT
     SCRATCH_STACK_RELEASE_BLOCK(_Actor00400GroundStainScratch);
 }
 
-#include "../../shared/diver_turn_joint.inc.c"
+#include "../../shared/creatures/diver/diver_turn_joint.inc.c"
 
 /* The state tables below are defined among the functions, not with the other
    declarations, because `.rodata` follows source order: each sits between the
@@ -4644,7 +4642,7 @@ static void _actor00400WoundedFloatFlinchTick(Task* task)
     }
 }
 
-#include "../../shared/diver_step_forward.inc.c"
+#include "../../shared/creatures/diver/diver_step_forward.inc.c"
 
 /// Draws the wounded diver's ground stain until its fade finishes.
 ///
@@ -5342,7 +5340,7 @@ static void _actor00400AlignPartMidpointXZ(Task* task, s16 firstPartIndex, s16 s
     actorRenderComposeCoord(coords);
 }
 
-#include "../../shared/diver_restart_clip.inc.c"
+#include "../../shared/creatures/diver/diver_restart_clip.inc.c"
 
 /// Captures and blends driven body slots 1..14 toward the requested clip's track starts.
 ///
@@ -5514,15 +5512,7 @@ static void _actor00400Despawn(Task* task)
 /// rotation and translation is preserved too.
 static void _actor00400CopyRotation(const MATRIX* source, MATRIX* destination)
 {
-    destination->m[0][0] = source->m[0][0];
-    destination->m[0][1] = source->m[0][1];
-    destination->m[0][2] = source->m[0][2];
-    destination->m[1][0] = source->m[1][0];
-    destination->m[1][1] = source->m[1][1];
-    destination->m[1][2] = source->m[1][2];
-    destination->m[2][0] = source->m[2][0];
-    destination->m[2][1] = source->m[2][1];
-    destination->m[2][2] = source->m[2][2];
+    gfxCopyRotation(destination, source);
 }
 
 /// Dispatches entry and ticking of the lying wounded diver's idle pose.
@@ -6115,7 +6105,7 @@ static void _actor00400DiveWaitForClip(Task* task)
     }
 }
 
-#include "../../shared/diver_state7_enter.inc.c"
+#include "../../shared/creatures/diver/diver_state7_enter.inc.c"
 
 /// Holds swimming heavy recoil, playing the hit sound on each damaged tick.
 ///
@@ -6565,7 +6555,7 @@ static void _actor00400AwaitFightCue(Task* task)
     }
 }
 
-#include "../../shared/coord_math_local_to_world.inc.c"
+#include "../../shared/actor/coord_math_local_to_world.inc.c"
 
 /// Launches the spawned shot and links its attack sphere.
 ///
@@ -6604,7 +6594,7 @@ static void _actor00400LaunchShot(Task* task)
     task->state++;
 }
 
-#include "../../shared/diver_strike_teardown.inc.c"
+#include "../../shared/creatures/diver/diver_strike_teardown.inc.c"
 
 /// Draws the stain at its current strength and starts fading once the diver dies.
 ///

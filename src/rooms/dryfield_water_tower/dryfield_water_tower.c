@@ -36,8 +36,8 @@ Task* gDryfieldWaterTowerPropSceneTask;
 #include "main/task.h"
 
 #include "rooms/room_common.h"
-#include "../../shared/room_events.h"
-#include "../../shared/room_variants.h"
+#include "../../shared/room/room_events.h"
+#include "../../shared/room/room_variants.h"
 #include "../../shared/water_tower.h"
 
 /// The event the room's gate `_roomEventGate` latched:
@@ -86,9 +86,7 @@ Task* gDryfieldWaterTowerActorSceneTask;
 
 RoomEventReq gRoomEventReq;
 
-#include "../../shared/room_event_gate.inc.c"
-
-#include "../../shared/room_event_task.inc.c"
+#include "../../shared/room/room_event.inc.c"
 
 /// Water-tower room callbacks: 0 register/start the prop-scene driver, 1 idle, 2 release.
 ///

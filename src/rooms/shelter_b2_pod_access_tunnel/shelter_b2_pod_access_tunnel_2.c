@@ -49,9 +49,9 @@
 
 #include "rooms/room_common.h"
 
-#include "../../shared/room_visual_effects.h"
-#include "../../shared/glow_draw.h"
-#include "../../shared/room_events.h"
+#include "../../shared/room/room_visual_effects.h"
+#include "../../shared/effects/glow_draw.h"
+#include "../../shared/room/room_events.h"
 
 static void _effectSpriteDrawBanked(const GfxCoord* coord, u16 frameAndPalette, s16 size, s16 angle);
 static void _effectSpriteDrawRotated(const GfxCoord* coord, u16 frameAndPalette, s16 size, s16 angle);
@@ -189,7 +189,7 @@ static SVECTOR _gShelterB2PodAccessTunnelBeamEndpoints[56] = {
 /// This empty suffix requires `ROOM_VISUAL_EFFECTS_HALO_STORAGE_TYPE` to be
 /// `RoomFxHaloStorage`. Bind around `room_visual_effects_halo_data.inc.c`.
 #define ROOM_VISUAL_EFFECTS_HALO_STORAGE_BOUND
-#include "../../shared/room_visual_effects_halo_data.inc.c"
+#include "../../shared/room/room_visual_effects_halo_data.inc.c"
 
 /// Returns this overlay's three read-only halo tint rows for spawn indices 0..2.
 static inline const RoomFxShade* _roomVisualEffectsGetHaloShades(void)
@@ -200,7 +200,7 @@ static inline const RoomFxShade* _roomVisualEffectsGetHaloShades(void)
 #undef ROOM_VISUAL_EFFECTS_HALO_STORAGE_TYPE
 #undef ROOM_VISUAL_EFFECTS_HALO_STORAGE_BOUND
 
-#include "../../shared/room_visual_effects_trail_data.inc.c"
+#include "../../shared/room/room_visual_effects_trail_data.inc.c"
 
 WorldCollisionRoomResources gShelterB2PodAccessTunnelRoomCollisionResources[2] = {
     {
@@ -1072,7 +1072,7 @@ void shelterB2PodAccessTunnelDrawLightBeamsTask(Task* task)
     }
 }
 
-#include "../../shared/glow_draw_cone.inc.c"
+#include "../../shared/effects/glow_draw_cone.inc.c"
 
 /// Names this room's externally linked drift-effect callback, declared in its public header.
 ///
@@ -1080,20 +1080,20 @@ void shelterB2PodAccessTunnelDrawLightBeamsTask(Task* task)
 /// the drift fragment. It uses the name once for the definition and clears the
 /// binding afterwards; there are no arguments, captures or constructed tokens.
 #define EFFECT_SPRITE_DRIFT_TASK shelterB2PodAccessTunnelEffectSpriteDriftTask
-#include "../../shared/effect_sprite_drift.inc.c"
+#include "../../shared/effects/effect_sprite_drift.inc.c"
 
-#include "../../shared/effect_sprite_draw_banked.inc.c"
+#include "../../shared/effects/effect_sprite_draw_banked.inc.c"
 
-#include "../../shared/effect_sprite_draw_rotated.inc.c"
+#include "../../shared/effects/effect_sprite_draw_rotated.inc.c"
 
-#include "../../shared/room_visual_effects.inc.c"
+#include "../../shared/room/room_visual_effects.inc.c"
 
 void shelterB2PodAccessTunnelRoomVisualEffectsMoteTask(Task* task)
 {
     _roomVisualEffectsMoteTask(task);
 }
 
-#include "../../shared/room_visual_effects_halo.inc.c"
+#include "../../shared/room/room_visual_effects_halo.inc.c"
 
 void shelterB2PodAccessTunnelRoomVisualEffectsHaloTask(Task* task)
 {
@@ -1105,33 +1105,30 @@ void shelterB2PodAccessTunnelRoomVisualEffectsHaloOrangeBurstTask(Task* task)
     _roomVisualEffectsHaloOrangeBurstTask(task);
 }
 
-#include "../../shared/room_visual_effects_glow_quad.inc.c"
-#include "../../shared/room_visual_effects_flash.inc.c"
+#include "../../shared/room/room_visual_effects_glow_quad.inc.c"
+#include "../../shared/room/room_visual_effects_flash.inc.c"
 
 void shelterB2PodAccessTunnelRoomVisualEffectsSparkEmitterTask(Task* task)
 {
     _roomVisualEffectsSparkEmitterTask(task);
 }
 
-#include "../../shared/room_visual_effects_flash_task.inc.c"
+#include "../../shared/room/room_visual_effects_flash_task.inc.c"
 
 void shelterB2PodAccessTunnelRoomVisualEffectsFlashTask(Task* task)
 {
     _roomVisualEffectsFlashTask(task);
 }
 
-#include "../../shared/room_visual_effects_trails.inc.c"
+#include "../../shared/room/room_visual_effects_trails.inc.c"
 
 void shelterB2PodAccessTunnelRoomVisualEffectsTwinTrailTask(Task* task)
 {
-#include "../../shared/room_visual_effects_trail_task.inc.c"
-}
+#include "../../shared/room/room_visual_effects_trail_task.inc.c"
 
-#include "../../shared/room_visual_effects_sparks.inc.c"
+    void shelterB2PodAccessTunnelRoomVisualEffectsSparkBurstTask(Task * task)
+    {
+        _roomVisualEffectsSparkBurstTask(task);
+    }
 
-void shelterB2PodAccessTunnelRoomVisualEffectsSparkBurstTask(Task* task)
-{
-    _roomVisualEffectsSparkBurstTask(task);
-}
-
-#include "../../shared/room_visual_effects_glow.inc.c"
+#include "../../shared/room/room_visual_effects_glow.inc.c"

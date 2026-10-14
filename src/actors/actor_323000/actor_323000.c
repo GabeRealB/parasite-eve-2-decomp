@@ -39,14 +39,14 @@
 #include "main/tmd_types.h"
 
 #include "overlay.h"
-#include "../../shared/actor_messages.h"
+#include "../../shared/actor/actor_messages.h"
 
 /// Selects the scripted, noncombat Desert Chaser implementation for actor_323000.
 ///
 /// Keep this preprocessor binding fixed through the shared header and fragments;
 /// it selects the work layout and three lifecycle handlers, with no combat bodies.
 #define DESERT_CHASER_BUILD DESERT_CHASER_CUTSCENE
-#include "../../shared/desert_chaser.h"
+#include "../../shared/creatures/desert_chaser/desert_chaser.h"
 
 static DesertChaserEffectArgStorage _gDesertChaserEffectArg;
 
@@ -59,7 +59,7 @@ static void _actor323000PlaySceneAnimation(Enemy* enemy, Task* task);
 static void _actor323000PlayClip14State(Enemy* enemy, Task* task);
 static void _actor323000PlayClip13State(Enemy* enemy, Task* task);
 
-#include "../../shared/actor_contacts.h"
+#include "../../shared/actor/actor_contacts.h"
 
 /// Scripted behavior handlers indexed by `DesertChaserWork::state` in 0..3.
 ///
@@ -904,11 +904,11 @@ static DesertChaserEffectArgStorage _gDesertChaserEffectArg = { { 0 }, { 0 } };
 
 static void _actor323000SpawnPartDust(Task* task, s16 partIndex, s16 dustOptions);
 
-#include "../../shared/actor_contacts.h"
+#include "../../shared/actor/actor_contacts.h"
 
-#include "../../shared/actor_contacts.inc.c"
+#include "../../shared/actor/actor_contacts.inc.c"
 
-#include "../../shared/desert_chaser_blend_tick.inc.c"
+#include "../../shared/creatures/desert_chaser/desert_chaser_blend_tick.inc.c"
 
 /// Emits one-shot animation dust cues and returns an EVT sound script, or zero.
 ///
@@ -1151,9 +1151,9 @@ static s32 _desertChaserAnimCues(Task* task, DesertChaserWork* work)
     return 0;
 }
 
-#include "../../shared/desert_chaser_anim_tick.inc.c"
+#include "../../shared/creatures/desert_chaser/desert_chaser_anim_tick.inc.c"
 
-#include "../../shared/desert_chaser_spawn.inc.c"
+#include "../../shared/creatures/desert_chaser/desert_chaser_spawn.inc.c"
 
 /// Runs the Main Street chaser's selected scene animation and clip-14 dust cues.
 ///
@@ -1328,7 +1328,7 @@ static void _actor323000PlayClip14State(Enemy* enemy, Task* task)
     task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
-#include "../../shared/desert_chaser_frame.inc.c"
+#include "../../shared/creatures/desert_chaser/desert_chaser_frame.inc.c"
 
 /// Ignores the cutscene actor's message 2015 without changing any state.
 ///
@@ -1338,11 +1338,11 @@ static void _actor323000IgnoreMessage2015(Task* unusedTask, s32 unusedMessageId,
 {
 }
 
-#include "../../shared/desert_chaser_visibility.inc.c"
+#include "../../shared/creatures/desert_chaser/desert_chaser_visibility.inc.c"
 
-#include "../../shared/actor_messages_is_present.inc.c"
+#include "../../shared/actor/actor_messages_is_present.inc.c"
 
-#include "../../shared/actor_messages_place_yaw_first.inc.c"
+#include "../../shared/creatures/desert_chaser/desert_chaser_place_yaw_first.inc.c"
 
 /// Applies the Main Street cutscene chaser's stage/area command.
 ///
@@ -1387,9 +1387,9 @@ static s32 _actor323000ApplyCommand(Task* task, s32 unusedMessageId, const Actor
     return 0;
 }
 
-#include "../../shared/desert_chaser_play_anim.inc.c"
+#include "../../shared/creatures/desert_chaser/desert_chaser_play_anim.inc.c"
 
-#include "../../shared/desert_chaser_exit.inc.c"
+#include "../../shared/creatures/desert_chaser/desert_chaser_exit.inc.c"
 
 /// Emits recursive dust using the Main Street chaser's part-local anchor.
 ///
@@ -1433,7 +1433,7 @@ static void _actor323000SpawnPartDust(Task* task, s16 partIndex, s16 dustOptions
     effectSpawn(EFFECT_DUST_PUFF, &model->coords[partIndex], dustOptions | DESERT_CHASER_CUE_DUST_RECURSIVE, &dustOffset);
 }
 
-#include "../../shared/desert_chaser_hide.inc.c"
+#include "../../shared/creatures/desert_chaser/desert_chaser_hide.inc.c"
 
 /// Resets and plays scene clip 13 without additional timer-driven effects.
 ///
@@ -1467,6 +1467,6 @@ static void _actor323000PlayClip13State(Enemy* enemy, Task* task)
     }
 }
 
-#include "../../shared/desert_chaser_task.inc.c"
+#include "../../shared/creatures/desert_chaser/desert_chaser_task.inc.c"
 
 #undef DESERT_CHASER_BUILD

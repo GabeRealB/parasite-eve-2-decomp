@@ -27,7 +27,7 @@
 #include "main/session_types.h"
 #include "main/tmd.h"
 #include "main/tmd_types.h"
-#include "../../shared/actor_messages.h"
+#include "../../shared/actor/actor_messages.h"
 
 /// Eye-band destination within the actor texture: width in VRAM words, Y/height in rows.
 enum {
@@ -641,7 +641,7 @@ static s32 _actor113000PlayAnimation(Task* task, s32 messageId, const AnimationP
     return 0;
 }
 
-#include "../../shared/actor_messages_place_euler.inc.c"
+#include "../../shared/actor/actor_messages_place_euler.inc.c"
 
 /// Changes the hurt Rupert actor's drawing and primitive-buffer policy.
 ///

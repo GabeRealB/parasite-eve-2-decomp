@@ -58,17 +58,17 @@
 #include "overlay.h"
 
 #include "rooms/mine_mesa.h"
-#include "../../shared/limb_shadows.h"
-#include "../../shared/player_detection.h"
-#include "../../shared/actor_messages.h"
-#include "../../shared/actor_contacts.h"
+#include "../../shared/actor/limb_shadows.h"
+#include "../../shared/actor/player_detection.h"
+#include "../../shared/actor/actor_messages.h"
+#include "../../shared/actor/actor_contacts.h"
 
 /// Selects ordinary Desert Chaser combat for the actor_400100 and actor_407500 images.
 ///
 /// Keep this preprocessor binding fixed through the shared header and fragments;
 /// it selects the work layout, four lifecycle handlers and combat tuning.
 #define DESERT_CHASER_BUILD DESERT_CHASER_REGULAR
-#include "../../shared/desert_chaser.h"
+#include "../../shared/creatures/desert_chaser/desert_chaser.h"
 
 /// Mine Mesa fall gates in root-parent coordinates; yaw uses 4096 units per turn.
 enum {
@@ -255,7 +255,7 @@ static __inline__ s16  _actor00100FacesMesaDrop(GfxCoord* coord);
 static __inline__ void _actorScaleMatrix(MATRIX* matrix, s16 scale);
 static __inline__ s16  _actor00100IsInMesaDropRegion(Task* actor);
 static __inline__ s16  _actor00100MovesTowardMesaDrop(Task* actor, VECTOR* motion);
-static __inline__ s32  _actor00100FindAttackContact(WorldCollisionContact* contacts, SVECTOR* hitPosition);
+static inline s32      _desertChaserFindAttackContact(const WorldCollisionContact* contacts, SVECTOR* hitPosition);
 static __inline__ void _actor00100SelectHitReaction(DesertChaserWork* work);
 
 static void _actor00100SpawnBattleState(Enemy* enemy, Task* task);
@@ -1283,27 +1283,7 @@ TaskDesc gActor00100DesertChaserTaskDesc = { { { (TASK_BODY_TMD | TASK_DESC_SKIP
 
 SVECTOR ActorContact_ScratchPosition;
 
-/// Returns the first attack contact key and copies its world-space hit point.
-///
-/// `contacts` has DESERT_CHASER_CONTACTS entries, as each regular-build sphere
-/// provides. A zero key ends the scan. Returns zero without writing
-/// `hitPosition` when there is no attack; coordinates narrow to signed halfwords
-/// and the output vector's fourth halfword stays untouched.
-static __inline__ s32 _actor00100FindAttackContact(WorldCollisionContact* contacts, SVECTOR* hitPosition)
-{
-    s16 contactIndex;
-    for (contactIndex = 0; contactIndex < DESERT_CHASER_CONTACTS; contactIndex++) {
-        if (!contacts[contactIndex].key.value)
-            break;
-        if ((contacts[contactIndex].key.value & WORLD_COLLISION_CONTACT_KIND_MASK) == WORLD_COLLISION_CONTACT_ATTACK) {
-            hitPosition->vx = contacts[contactIndex].point.vx;
-            hitPosition->vy = contacts[contactIndex].point.vy;
-            hitPosition->vz = contacts[contactIndex].point.vz;
-            return contacts[contactIndex].key.value;
-        }
-    }
-    return 0;
-}
+#include "../../shared/creatures/desert_chaser/desert_chaser_find_attack_contact.inc.c"
 
 /// Chooses the stagger or flinch state for a new hit.
 ///
@@ -1331,13 +1311,13 @@ static __inline__ void _actor00100SelectHitReaction(DesertChaserWork* work)
 
 // Transition durations indexed by previous * 25 + next animation.
 
-#include "../../shared/actor_contacts_turn_joint.inc.c"
+#include "../../shared/actor/actor_contacts_turn_joint.inc.c"
 
-#include "../../shared/actor_contacts_steer.inc.c"
+#include "../../shared/actor/actor_contacts_steer.inc.c"
 
-#include "../../shared/actor_contacts_push_contact.inc.c"
+#include "../../shared/actor/actor_contacts_push_contact.inc.c"
 
-#include "../../shared/player_detection_sight.inc.c"
+#include "../../shared/actor/player_detection_sight.inc.c"
 
 /// Mine Mesa leap-in placements selected by camera view and a random draw.
 ///
@@ -1519,9 +1499,9 @@ static s32 _actor00100ApplyCommand(Task* task, s32 messageId, const ActorCommand
     }
 }
 
-#include "../../shared/desert_chaser_avoid_walk.inc.c"
+#include "../../shared/creatures/desert_chaser/desert_chaser_avoid_walk.inc.c"
 
-#include "../../shared/limb_shadows_segment.inc.c"
+#include "../../shared/actor/limb_shadows_segment.inc.c"
 
 /// Advances the two animation rigs and mixes secondary rotation into slots 1..10.
 ///
@@ -1794,7 +1774,7 @@ static s32 _desertChaserAnimCues(Task* task, DesertChaserWork* work)
     return 0;
 }
 
-#include "../../shared/desert_chaser_anim_tick.inc.c"
+#include "../../shared/creatures/desert_chaser/desert_chaser_anim_tick.inc.c"
 
 /// Creates the regular chaser's battle work, rigs, three collision spheres and wall capsule.
 ///
@@ -2029,7 +2009,7 @@ static void _actor00100SpawnBattleState(Enemy* enemy, Task* task)
     task->state       += 1;
 }
 
-#include "../../shared/desert_chaser_hit_effect.inc.c"
+#include "../../shared/creatures/desert_chaser/desert_chaser_hit_effect.inc.c"
 
 /// Starts a sound script for this enemy placement at the model root.
 ///
@@ -2122,10 +2102,10 @@ static void _desertChaserDamage(Task* task)
         scratchHead = SCRATCH_STACK_CURSOR(DesertChaserDamageScratch);
         scratch     = (SCRATCH_STACK_CURSOR(DesertChaserDamageScratch) = scratchHead - 1);
         // A frame takes at most one direct hit, preferring the front sphere.
-        scratch->hitKey = _actor00100FindAttackContact(work->spheres[DESERT_CHASER_SPHERE_FRONT].contacts, &scratch->hitPos);
+        scratch->hitKey = _desertChaserFindAttackContact(work->spheres[DESERT_CHASER_SPHERE_FRONT].contacts, &scratch->hitPos);
         if (scratch->hitKey == 0) {
             hitPosition     = &scratch->hitPos;
-            scratch->hitKey = _actor00100FindAttackContact(work->spheres[DESERT_CHASER_SPHERE_REAR].contacts, hitPosition);
+            scratch->hitKey = _desertChaserFindAttackContact(work->spheres[DESERT_CHASER_SPHERE_REAR].contacts, hitPosition);
         }
         if (scratch->hitKey != 0) {
             work->hitFlag                         = 1;
@@ -2399,9 +2379,7 @@ static void _actor00100BurnAwayDeath(Task* task)
     }
 }
 
-#include "../../shared/desert_chaser_approach.inc.c"
-
-#include "../../shared/desert_chaser_pursue.inc.c"
+#include "../../shared/creatures/desert_chaser/desert_chaser.inc.c"
 
 /// Plays the lunge-end clip, then backs away from a nearby player or resumes roaming.
 ///
@@ -2441,9 +2419,7 @@ static void _actor00100EndLunge(Task* task)
     }
 }
 
-#include "../../shared/desert_chaser_spawn_aim.inc.c"
-
-#include "../../shared/desert_chaser_strike.inc.c"
+#include "../../shared/creatures/desert_chaser/desert_chaser_spawn_aim.inc.c"
 
 /// Plays the backward leap after a strike or throw, then returns to roam.
 ///
@@ -2580,7 +2556,7 @@ static void _actor00100WaitPlayerTurnsAway(Task* task)
     SCRATCH_STACK_RELEASE_BLOCK(ActorChaseScratch);
 }
 
-#include "../../shared/desert_chaser_steer.inc.c"
+#include "../../shared/creatures/desert_chaser/desert_chaser_steer.inc.c"
 
 /// Knocks the chaser down after a blocked lunge and charges 15 HP on entry.
 ///
@@ -2642,11 +2618,9 @@ static void _actor00100KnockDownWithDamage(Task* task)
     }
 }
 
-#include "../../shared/desert_chaser_roam.inc.c"
+#include "../../shared/creatures/desert_chaser/desert_chaser_roam.inc.c"
 
-#include "../../shared/desert_chaser_turn_step.inc.c"
-
-#include "../../shared/desert_chaser_turn_step_probe.inc.c"
+#include "../../shared/creatures/desert_chaser/desert_chaser_turn_step.inc.c"
 
 /// Waits until the chaser is in view and faces the player, then starts pursuit.
 ///
@@ -3422,9 +3396,9 @@ static s16 _actor00100WallProbeTouchesGrid(Task* task)
     return _desertChaserCapsuleTouchesGrid(task);
 }
 
-#include "../../shared/actor_messages_visibility.inc.c"
+#include "../../shared/actor/actor_messages_visibility.inc.c"
 
-#include "../../shared/actor_messages_is_present.inc.c"
+#include "../../shared/actor/actor_messages_is_present.inc.c"
 
 /// Selects the regular Desert Chaser work type for recording placement heading.
 ///
@@ -3432,10 +3406,10 @@ static s16 _actor00100WallProbeTouchesGrid(Task* task)
 /// `DesertChaserWork` and writes its `s16 placedYaw` in 4096 units per turn.
 /// Keep this type binding scoped to that fragment include.
 #define ACTOR_MESSAGE_YAW_WORK_TYPE DesertChaserWork
-#include "../../shared/actor_messages_place_yaw.inc.c"
+#include "../../shared/actor/actor_messages_place_yaw.inc.c"
 #undef ACTOR_MESSAGE_YAW_WORK_TYPE
 
-#include "../../shared/desert_chaser_exit.inc.c"
+#include "../../shared/creatures/desert_chaser/desert_chaser_exit.inc.c"
 
 /// Emits recursive dust at regular-chaser parts 0, 1, 7, 9, 14 and 17.
 ///
@@ -3498,7 +3472,7 @@ static void _actor00100HideState(Task* task)
     }
 }
 
-#include "../../shared/desert_chaser_stunned.inc.c"
+#include "../../shared/creatures/desert_chaser/desert_chaser_stunned.inc.c"
 
 /// Leaves steering with clip 8 and resumes pursuit once the clip settles.
 ///
@@ -3567,7 +3541,7 @@ static void _actor00100Rise(Task* task)
     }
 }
 
-#include "../../shared/desert_chaser_flinch.inc.c"
+#include "../../shared/creatures/desert_chaser/desert_chaser_flinch.inc.c"
 
 /// Waits downed for the variant's base frames plus a random 0..15 ticks.
 ///
@@ -3600,9 +3574,7 @@ static void _actor00100WaitDowned(Task* task)
     }
 }
 
-#include "../../shared/desert_chaser_stagger.inc.c"
-
-#include "../../shared/desert_chaser_collapse.inc.c"
+#include "../../shared/creatures/desert_chaser/desert_chaser_stagger.inc.c"
 
 /// Plays the hit reaction selected while the chaser is stunned, staggered or downed.
 ///
@@ -3691,6 +3663,6 @@ static void _actor00100ReleaseBattleState(Enemy* enemy, Task* task)
     }
 }
 
-#include "../../shared/desert_chaser_task.inc.c"
+#include "../../shared/creatures/desert_chaser/desert_chaser_task.inc.c"
 
 #undef DESERT_CHASER_BUILD

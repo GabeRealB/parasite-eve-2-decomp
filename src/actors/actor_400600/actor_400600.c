@@ -60,7 +60,7 @@
 /// Bind before the first inclusion of `stalker_zebra_ivory.h`.
 /// The package separately supplies its work layout as `StalkerZebraIvoryWork`.
 #define STALKER_ZEBRA_IVORY_KIND STALKER_ZEBRA_IVORY_KIND_ZEBRA
-#include "../../shared/stalker_zebra_ivory.h"
+#include "../../shared/creatures/stalker_zebra_ivory/stalker_zebra_ivory.h"
 
 /// Work block of the Zebra Stalker task.
 ///
@@ -1809,7 +1809,7 @@ static s16 _gActor400600FloorShadowParts[ACTOR_400600_FLOOR_SHADOW_POINT_COUNT +
 
 static inline void _actor400600SetCoordYaw(GfxCoord* coord, s16 yaw);
 
-#include "../../shared/stalker_zebra_ivory_inlines.inc.c"
+#include "../../shared/creatures/stalker_zebra_ivory/stalker_zebra_ivory_inlines.inc.c"
 
 /// Links the hit sphere, wall-probe capsule and two arm attack spheres.
 ///
@@ -3209,7 +3209,7 @@ static void _actor400600TickBackwardLeap(Task* task)
     }
 }
 
-#include "../../shared/stalker_zebra_ivory_right_itself.inc.c"
+#include "../../shared/creatures/stalker_zebra_ivory/stalker_zebra_ivory_right_itself.inc.c"
 
 /// Selects a running behavior and starts it at its first sub-state.
 ///
@@ -3434,23 +3434,6 @@ static inline void _actor400600CopyModelTextureOffsets(const TmdObject* sourceMo
     }
 }
 
-/// Copies an arm attachment's nine Q12 basis coefficients, retaining translation.
-///
-/// Both matrices must be live; they may be identical. Does not invalidate a
-/// coordinate's composition cache; storage outside the nine coefficients stays intact.
-static __inline__ void _actor400600CopyArmRotation(MATRIX* destination, const MATRIX* source)
-{
-    destination->m[0][0] = source->m[0][0];
-    destination->m[0][1] = source->m[0][1];
-    destination->m[0][2] = source->m[0][2];
-    destination->m[1][0] = source->m[1][0];
-    destination->m[1][1] = source->m[1][1];
-    destination->m[1][2] = source->m[1][2];
-    destination->m[2][0] = source->m[2][0];
-    destination->m[2][1] = source->m[2][1];
-    destination->m[2][2] = source->m[2][2];
-}
-
 /// Creates the two arm models attached to the Zebra Stalker's body.
 ///
 /// Requires live body work, at least eleven body coordinates and loaded arm
@@ -3499,7 +3482,7 @@ static void _actor400600SpawnArmModels(Task* bodyTask)
         gfxSetRotIdentity(leftRotation);
         RotMatrixY(-ACTOR_400600_ARM_REST_YAW, leftRotation);
         armMatrix = &armCoord->coord;
-        _actor400600CopyArmRotation(armMatrix, leftRotation);
+        gfxCopyRotation(armMatrix, leftRotation);
         textureSource      = bodyTask->extra.tmd;
         textureDestination = armTask->extra.tmd;
         _actor400600CopyModelTextureOffsets(textureSource, textureDestination);
@@ -3522,7 +3505,7 @@ static void _actor400600SpawnArmModels(Task* bodyTask)
         gfxSetRotIdentity(rightRotation);
         RotMatrixY(ACTOR_400600_ARM_REST_YAW, rightRotation);
         armMatrix = &armCoord->coord;
-        _actor400600CopyArmRotation(armMatrix, rightRotation);
+        gfxCopyRotation(armMatrix, rightRotation);
         armModel->lightMtx = &work->lightMtx;
         armModel->colorMtx = &work->colorMtx;
     }
@@ -3653,7 +3636,7 @@ static void _actor400600TickHorizontalWalk(Task* task, s16 nextLoopRate)
     rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
-#include "../../shared/stalker_zebra_ivory_tick_on_back_crawl.inc.c"
+#include "../../shared/creatures/stalker_zebra_ivory/stalker_zebra_ivory_tick_on_back_crawl.inc.c"
 
 /// Advances the hand-anchored wall walk used by the water entrance.
 ///
@@ -4224,7 +4207,7 @@ static s32 _actor400600TakeArmedHitReaction(Task* task)
     return 1;
 }
 
-#include "../../shared/stalker_zebra_ivory_apply_pending_reaction.inc.c"
+#include "../../shared/creatures/stalker_zebra_ivory/stalker_zebra_ivory_apply_pending_reaction.inc.c"
 
 /// Emits four detached body models and three death particles.
 ///
@@ -4342,24 +4325,7 @@ static void _actor400600StartWallProbe(Task* task, s16 probeMode)
     work->capsuleBody.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
 }
 
-#include "../../shared/stalker_zebra_ivory_wall_distance.inc.c"
-
-/// Copies the nine Q12 rotation coefficients between two live matrices.
-///
-/// Requires a readable source and writable destination, aligned for s16; they
-/// may be the same matrix. Translation and alignment bytes are outside this copy.
-static inline void _actor400600CopyMatrixRotation(MATRIX* destination, const MATRIX* source)
-{
-    destination->m[0][0] = source->m[0][0];
-    destination->m[0][1] = source->m[0][1];
-    destination->m[0][2] = source->m[0][2];
-    destination->m[1][0] = source->m[1][0];
-    destination->m[1][1] = source->m[1][1];
-    destination->m[1][2] = source->m[1][2];
-    destination->m[2][0] = source->m[2][0];
-    destination->m[2][1] = source->m[2][1];
-    destination->m[2][2] = source->m[2][2];
-}
+#include "../../shared/creatures/stalker_zebra_ivory/stalker_zebra_ivory_wall_distance.inc.c"
 
 /// Replaces a coordinate's local rotation with unit-scale yaw in 4096ths of a turn.
 ///
@@ -4372,7 +4338,7 @@ static inline void _actor400600SetCoordYaw(GfxCoord* coord, s16 yaw)
 
     gfxSetRotIdentity(&yawRotation);
     RotMatrixY(yaw, &yawRotation);
-    _actor400600CopyMatrixRotation(&coord->coord, &yawRotation);
+    gfxCopyRotation(&coord->coord, &yawRotation);
 }
 
 /// Rebuilds a spawned Zebra Stalker arm's local rotation from its yaw.
@@ -4858,7 +4824,7 @@ static void _actor400600SnapCloaked(Task* task, s16 cloakRequest)
     }
 }
 
-#include "../../shared/stalker_zebra_ivory_fold_arms.inc.c"
+#include "../../shared/creatures/stalker_zebra_ivory/stalker_zebra_ivory_fold_arms.inc.c"
 
 /// Counts down positive attack-selection and ceiling-move cooldowns by one update.
 ///
@@ -4876,9 +4842,7 @@ static void _actor400600TickAttackCooldowns(Task* task)
     }
 }
 
-#include "../../shared/stalker_zebra_ivory_seed_timer.inc.c"
-
-#include "../../shared/stalker_zebra_ivory_disable_capsule_grid.inc.c"
+#include "../../shared/creatures/stalker_zebra_ivory/stalker_zebra_ivory_seed_timer.inc.c"
 
 /// Starts a cloak or reveal transition when it differs from the current cloak target.
 ///
@@ -5276,7 +5240,7 @@ static void _actor400600RunCeilingFall(Task* task)
     phases.funcs[work->subState](task);
 }
 
-#include "../../shared/stalker_zebra_ivory_run_sub_states.inc.c"
+#include "../../shared/creatures/stalker_zebra_ivory/stalker_zebra_ivory_run_sub_states.inc.c"
 
 /// Folds the arms and dispatches the ceiling-exit setup or drop/grab selection.
 ///
@@ -5308,19 +5272,11 @@ static void _actor400600RunHiddenIdle(Task* task)
     phases[work->subState](task);
 }
 
-#include "../../shared/stalker_zebra_ivory_apply_rotation.inc.c"
+#include "../../shared/creatures/stalker_zebra_ivory/stalker_zebra_ivory_apply_rotation.inc.c"
 
-#include "../../shared/stalker_zebra_ivory_restart_clip.inc.c"
+#include "../../shared/creatures/stalker_zebra_ivory/stalker_zebra_ivory_restart_clip.inc.c"
 
-#include "../../shared/stalker_zebra_ivory_blend_clip.inc.c"
-
-#include "../../shared/stalker_zebra_ivory_frame_to_ticks.inc.c"
-
-#include "../../shared/stalker_zebra_ivory_turn_toward.inc.c"
-
-#include "../../shared/stalker_zebra_ivory_tick_anim.inc.c"
-
-#include "../../shared/stalker_zebra_ivory_request_clip_restart.inc.c"
+#include "../../shared/creatures/stalker_zebra_ivory/stalker_zebra_ivory_tick_anim.inc.c"
 
 /// Requests a body clip with a new playback rate and blend duration.
 ///
@@ -5333,9 +5289,7 @@ static void _actor400600RequestClipBlend(Task* task, s16 clipIndex, s16 rate, s1
     _actor400600SetBlendRequest(task, clipIndex, rate, blendFrames);
 }
 
-#include "../../shared/stalker_zebra_ivory_part_world_xz.inc.c"
-
-#include "../../shared/stalker_zebra_ivory_pin_part_xz.inc.c"
+#include "../../shared/creatures/stalker_zebra_ivory/stalker_zebra_ivory.inc.c"
 
 /// Samples a part's world X/Y and the root's local Z into an entrance anchor.
 ///
@@ -5388,7 +5342,7 @@ static void _actor400600PinPartXY(Task* task, s16 partIndex, const SVECTOR3* anc
     actorRenderComposeCoord(parts);
 }
 
-#include "../../shared/stalker_zebra_ivory_clip_done.inc.c"
+#include "../../shared/creatures/stalker_zebra_ivory/stalker_zebra_ivory_clip_done.inc.c"
 
 /// Dispatches the Zebra Stalker task's spawn, running, death or entrance handler.
 ///
@@ -5449,9 +5403,7 @@ static void _actor400600RunCorpseRelease(Task* task)
     phases[work->state](task);
 }
 
-#include "../../shared/stalker_zebra_ivory_update_color.inc.c"
-
-#include "../../shared/stalker_zebra_ivory_apply_room_command.inc.c"
+#include "../../shared/creatures/stalker_zebra_ivory/stalker_zebra_ivory_update_color.inc.c"
 
 /// Latches a request to release the player from the actor's hold.
 ///
@@ -5515,9 +5467,7 @@ static void _actor400600SelectDeathSequence(Task* task)
     }
 }
 
-#include "../../shared/stalker_zebra_ivory_start_death_clip.inc.c"
-
-#include "../../shared/stalker_zebra_ivory_tick_death_clip.inc.c"
+#include "../../shared/creatures/stalker_zebra_ivory/stalker_zebra_ivory_start_death_clip.inc.c"
 
 /// Unlinks the body's four collision shapes before corpse disposal.
 ///
@@ -6591,7 +6541,7 @@ static void _actor400600StartGrabTargetProbe(Task* task)
     work->subState++;
 }
 
-#include "../../shared/stalker_zebra_ivory_release_hold.inc.c"
+#include "../../shared/creatures/stalker_zebra_ivory/stalker_zebra_ivory_release_hold.inc.c"
 
 /// Starts the backward leap's rear wall probe before advancing to its resolution.
 ///
@@ -6607,7 +6557,7 @@ static void _actor400600StartBackwardLeapProbe(Task* task)
     work->subState++;
 }
 
-#include "../../shared/stalker_zebra_ivory_wait_clip.inc.c"
+#include "../../shared/creatures/stalker_zebra_ivory/stalker_zebra_ivory_wait_clip.inc.c"
 
 /// Starts righting from the back and captures the body part's world X/Z anchor.
 ///
@@ -6754,7 +6704,7 @@ static void _actor400600TickCeilingFall(Task* task)
     }
 }
 
-#include "../../shared/stalker_zebra_ivory_finish_ceiling_fall.inc.c"
+#include "../../shared/creatures/stalker_zebra_ivory/stalker_zebra_ivory_finish_ceiling_fall.inc.c"
 
 /// Begins the knockdown recoil for the current upright or on-back pose.
 ///
@@ -6821,7 +6771,7 @@ static void _actor400600StartCeilingExit(Task* task)
     work->subState++;
 }
 
-#include "../../shared/stalker_zebra_ivory_select_ceiling_exit.inc.c"
+#include "../../shared/creatures/stalker_zebra_ivory/stalker_zebra_ivory_select_ceiling_exit.inc.c"
 
 /// Starts the idle pose and a 90..153-update wait after cloaking.
 ///
@@ -7030,7 +6980,7 @@ static void _actor400600TickGroupEntranceDelay(Task* task)
     }
 }
 
-#include "../../shared/stalker_zebra_ivory_apply_armed_reaction.inc.c"
+#include "../../shared/creatures/stalker_zebra_ivory/stalker_zebra_ivory_apply_armed_reaction.inc.c"
 
 /// Marks the selected strike arm as extended for its swing update.
 ///

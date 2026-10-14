@@ -31,8 +31,8 @@
 #include "main/task.h"
 #include "main/task_types.h"
 #include "main/tmd_types.h"
-#include "../../shared/pyro_flame.h"
-#include "../../shared/sprite_quad.h"
+#include "../../shared/effects/pyro_flame.h"
+#include "../../shared/effects/sprite_quad.h"
 
 /// Reach and duration of the combustion flame lines at one Parasite Energy
 /// level.
@@ -500,7 +500,7 @@ void combustionEmberTask(Task* task)
     }
 }
 
-#include "../../shared/pyro_flame_draw_sprite.inc.c"
+#include "../../shared/effects/pyro_flame_draw_sprite.inc.c"
 
 /// Draws an additive square billboard from Combustion's eight-cell ember strip.
 ///
@@ -604,7 +604,7 @@ static void _combustionDrawEmber(const GfxCoord* coord, s32 animationFrame, s16 
         setShadeTex((quad), 1);                         \
         SPRITE_QUAD_SET_FLICKER_EVEN_CELL((quad));      \
     }
-#include "../../shared/sprite_quad_draw_flicker.inc.c"
+#include "../../shared/effects/sprite_quad_draw_flicker.inc.c"
 
 /// Draws an additive square billboard from Combustion's twelve-cell large-flame sheet.
 ///

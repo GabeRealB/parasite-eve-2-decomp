@@ -44,12 +44,12 @@
 #include "rooms/room.h"
 
 #include "rooms/room_common.h"
-#include "../../shared/room_visual_effects.h"
-#include "../../shared/glow_draw.h"
-#include "../../shared/streamed_scene.h"
+#include "../../shared/room/room_visual_effects.h"
+#include "../../shared/effects/glow_draw.h"
+#include "../../shared/room/streamed_scene.h"
 /// Signed effect-age argument for the repeating six-cell sprite strip.
 #define SPRITE_QUAD_FRAME_T s16
-#include "../../shared/sprite_quad.h"
+#include "../../shared/effects/sprite_quad.h"
 
 /// Three band-shape rows and the unclassified halfword immediately after them.
 ///
@@ -608,9 +608,9 @@ void shelterB6TrainingRoomGlowTask(Task* task)
     }
 }
 
-#include "../../shared/glow_draw_capsule.inc.c"
+#include "../../shared/effects/glow_draw_capsule.inc.c"
 
-#include "../../shared/glow_draw_disc.inc.c"
+#include "../../shared/effects/glow_draw_disc.inc.c"
 
 void shelterB6TrainingRoomOrangeBurstTask(Task* task)
 {
@@ -666,8 +666,8 @@ void shelterB6TrainingRoomOrangeBurstTask(Task* task)
     }
 }
 
-#include "../../shared/room_visual_effects.inc.c"
-#include "../../shared/room_visual_effects_glow_quad.inc.c"
+#include "../../shared/room/room_visual_effects.inc.c"
+#include "../../shared/room/room_visual_effects_glow_quad.inc.c"
 
 void shelterB6TrainingRoomSummonRingTask(Task* task)
 {
@@ -1406,7 +1406,7 @@ void shelterB6TrainingRoomEnergyArcTask(Task* task)
 /// Zero disables the unit increment in the next sprite-quad drawer inclusion;
 /// the fragment consumes and undefines this preprocessor switch.
 #define SPRITE_QUAD_INCREMENT_DEPTH 0
-#include "../../shared/sprite_quad_draw.inc.c"
+#include "../../shared/effects/sprite_quad_draw.inc.c"
 
 /// Draws an additive textured parallelogram linking two composed world positions.
 ///

@@ -34,8 +34,8 @@
 
 #include "overlay.h"
 
-#include "../../shared/actor_messages.h"
-#include "../../shared/footstep_walk.h"
+#include "../../shared/actor/actor_messages.h"
+#include "../../shared/walk/footstep_walk.h"
 
 /// Animation-bank clip selecting the scripted ANMC woman's forward walk.
 ///
@@ -969,7 +969,7 @@ static s32 _actor521100AnmcWomanSetModelDrawFlags(Task* task, s32 messageId, s32
 /// Placement records yaw in the live ANMC woman, independently of footstep-walker state.
 #undef FOOTSTEP_WALK_PLACE_WORK
 #define FOOTSTEP_WALK_PLACE_WORK _gActor521100AnmcWomanWork
-#include "../../shared/footstep_walk_place.inc.c"
+#include "../../shared/walk/footstep_walk_place.inc.c"
 #undef FOOTSTEP_WALK_PLACE_WORK
 #define FOOTSTEP_WALK_PLACE_WORK _gFootstepWalkWork
 

@@ -66,8 +66,8 @@
 
 #include "rooms/room_common.h"
 
-#include "../../shared/glow_draw.h"
-#include "../../shared/water_effects.h"
+#include "../../shared/effects/glow_draw.h"
+#include "../../shared/effects/water_effects.h"
 
 static void _waterDrawSpin(const GfxCoord* coord, s16 textureColumn, s16 radiusScale, s16 spinAngle);
 static void _waterDrawTile(const GfxCoord* coord, s16 frameIndex, s16 radiusScale);
@@ -96,7 +96,7 @@ static void _shelterB4UpperSewerIdleRoom(Task* task);
 static void _shelterB4UpperSewerDrawWaterSurfaces(Task* task, const _ShelterB4UpperSewerWaterSurface* surface, s16 waterY, u8 blueIntensity);
 static void _shelterB4UpperSewerInitializeWater(Task* task);
 static void _shelterB4UpperSewerSetView13SpriteHidden(s32 hidden);
-#include "../../shared/room_visual_effects.h"
+#include "../../shared/room/room_visual_effects.h"
 
 /// Room lifecycle callbacks indexed by task state (0 setup, 1 idle, 2 teardown).
 ///
@@ -253,9 +253,9 @@ static SVECTOR _gShelterB4UpperSewerGlowPoints[] = {
 /// `ROOM_VISUAL_EFFECTS_HALO_STORAGE_TYPE` to be `RoomFxShade`. Bind around
 /// `room_visual_effects_halo_data.inc.c`.
 #define ROOM_VISUAL_EFFECTS_HALO_STORAGE_BOUND [ROOM_VISUAL_EFFECTS_HALO_SHADE_COUNT]
-#include "../../shared/room_visual_effects_halo_data.inc.c"
-#include "../../shared/room_visual_effects_trail_data.inc.c"
-#include "../../shared/room_visual_effects_disc_data.inc.c"
+#include "../../shared/room/room_visual_effects_halo_data.inc.c"
+#include "../../shared/room/room_visual_effects_trail_data.inc.c"
+#include "../../shared/room/room_visual_effects_disc_data.inc.c"
 
 static void _glowDrawCapsule(const SVECTOR worldPoints[2], s32 radiusScale, s32 packedColor);
 
@@ -1761,36 +1761,34 @@ void shelterB4UpperSewerDrawGlowsTask(Task* task)
     }
 }
 
-#include "../../shared/water_ripple_task.inc.c"
+#include "../../shared/effects/water_ripple_task.inc.c"
 
 void shelterB4UpperSewerWaterRippleTask(Task* task)
 {
     _waterRippleTask(task);
 }
 
-#include "../../shared/water_splash.inc.c"
+#include "../../shared/effects/water_splash.inc.c"
 
-#include "../../shared/water_drift_task.inc.c"
+#include "../../shared/effects/water_drift_task.inc.c"
 
 void shelterB4UpperSewerWaterDriftTask(Task* task)
 {
     _waterDriftTask(task);
 }
 
-#include "../../shared/water_spin.inc.c"
+#include "../../shared/effects/water_spin.inc.c"
 
-#include "../../shared/water_tile.inc.c"
+#include "../../shared/effects/glow_draw_capsule.inc.c"
 
-#include "../../shared/glow_draw_capsule.inc.c"
-
-#include "../../shared/room_visual_effects.inc.c"
+#include "../../shared/room/room_visual_effects.inc.c"
 
 void shelterB4UpperSewerRoomVisualEffectsMoteTask(Task* task)
 {
     _roomVisualEffectsMoteTask(task);
 }
 
-#include "../../shared/room_visual_effects_halo.inc.c"
+#include "../../shared/room/room_visual_effects_halo.inc.c"
 
 void shelterB4UpperSewerRoomVisualEffectsHaloTask(Task* task)
 {
@@ -1802,53 +1800,50 @@ void shelterB4UpperSewerRoomVisualEffectsHaloOrangeBurstTask(Task* task)
     _roomVisualEffectsHaloOrangeBurstTask(task);
 }
 
-#include "../../shared/room_visual_effects_glow_quad.inc.c"
-#include "../../shared/room_visual_effects_flash.inc.c"
+#include "../../shared/room/room_visual_effects_glow_quad.inc.c"
+#include "../../shared/room/room_visual_effects_flash.inc.c"
 
 void shelterB4UpperSewerRoomVisualEffectsSparkEmitterTask(Task* task)
 {
     _roomVisualEffectsSparkEmitterTask(task);
 }
 
-#include "../../shared/room_visual_effects_flash_task.inc.c"
+#include "../../shared/room/room_visual_effects_flash_task.inc.c"
 
 void shelterB4UpperSewerRoomVisualEffectsFlashTask(Task* task)
 {
     _roomVisualEffectsFlashTask(task);
 }
 
-#include "../../shared/room_visual_effects_trails.inc.c"
+#include "../../shared/room/room_visual_effects_trails.inc.c"
 
 void shelterB4UpperSewerRoomVisualEffectsTwinTrailTask(Task* task)
 {
-#include "../../shared/room_visual_effects_trail_task.inc.c"
-}
+#include "../../shared/room/room_visual_effects_trail_task.inc.c"
 
-#include "../../shared/room_visual_effects_sparks.inc.c"
+    void shelterB4UpperSewerRoomVisualEffectsSparkBurstTask(Task * task)
+    {
+        _roomVisualEffectsSparkBurstTask(task);
+    }
 
-void shelterB4UpperSewerRoomVisualEffectsSparkBurstTask(Task* task)
-{
-    _roomVisualEffectsSparkBurstTask(task);
-}
+#include "../../shared/room/room_visual_effects_glow.inc.c"
+#include "../../shared/room/room_visual_effects_flying_tasks.inc.c"
 
-#include "../../shared/room_visual_effects_glow.inc.c"
-#include "../../shared/room_visual_effects_flying_tasks.inc.c"
+    void shelterB4UpperSewerRoomVisualEffectsGlowDiscTask(Task * task)
+    {
+        _roomVisualEffectsGlowDiscTask(task);
+    }
 
-void shelterB4UpperSewerRoomVisualEffectsGlowDiscTask(Task* task)
-{
-    _roomVisualEffectsGlowDiscTask(task);
-}
+    void shelterB4UpperSewerRoomVisualEffectsFlyingSparkTask(Task * task)
+    {
+        _roomVisualEffectsFlyingSparkTask(task);
+    }
 
-void shelterB4UpperSewerRoomVisualEffectsFlyingSparkTask(Task* task)
-{
-    _roomVisualEffectsFlyingSparkTask(task);
-}
+#include "../../shared/room/room_visual_effects_burst.inc.c"
 
-#include "../../shared/room_visual_effects_burst.inc.c"
+    void shelterB4UpperSewerRoomVisualEffectsFlyingOrangeBurstTask(Task * task)
+    {
+        _roomVisualEffectsFlyingOrangeBurstTask(task);
+    }
 
-void shelterB4UpperSewerRoomVisualEffectsFlyingOrangeBurstTask(Task* task)
-{
-    _roomVisualEffectsFlyingOrangeBurstTask(task);
-}
-
-#include "../../shared/room_visual_effects_burst_draw.inc.c"
+#include "../../shared/room/room_visual_effects_burst_draw.inc.c"

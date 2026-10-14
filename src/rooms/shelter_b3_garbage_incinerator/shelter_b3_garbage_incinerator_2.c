@@ -90,9 +90,9 @@
 /// Keep this binding through the grid fragment and the overlay loaded through
 /// the final drawing tick. Only one wave may use this storage at a time.
 #define SCREEN_WAVE_ROW_OSCILLATORS (gScreenWaveRowWaves)
-#include "../../shared/screen_wave.h"
-#include "../../shared/actor_messages.h"
-#include "../../shared/incinerator_blaze.h"
+#include "../../shared/screen/screen_wave.h"
+#include "../../shared/actor/actor_messages.h"
+#include "../../shared/effects/incinerator_blaze.h"
 
 /// Lift task state selected by the actor event to begin the carried move.
 enum { SHELTER_B3_GARBAGE_INCINERATOR_LIFT_TASK_CARRY_ACTOR = 5 };
@@ -212,7 +212,7 @@ static s32 _gCapCaptionCaretPulseFalling;
 #define CAP_CAPTION_CARET_TIP_Y CapCaption_Data_8015E66A
 /// Writable u8 delay before the continuation caret, counted in eligible draw calls.
 #define CAP_CAPTION_CARET_DRAWS_LEFT (CapCaption_Data_8015E66C.drawsLeft)
-#include "../../shared/cap_captions.h"
+#include "../../shared/room/cap_captions.h"
 
 static void _capCaptionRunSchedule(Task* task);
 
@@ -526,7 +526,7 @@ TaskDesc gShelterB3GarbageIncineratorBlazeTaskDescs[SHELTER_B3_GARBAGE_INCINERAT
     { { { TASK_BODY_NONE, 192 } }, _blazeBodyFireTask, { .value = 0 } },
 };
 
-#include "../../shared/cap_captions_settings.inc.c"
+#include "../../shared/room/cap_captions_settings.inc.c"
 
 /// Bodyless priority-32 recipe displaying notices from the descending scene clock.
 ///
@@ -535,7 +535,7 @@ TaskDesc gShelterB3GarbageIncineratorBlazeTaskDescs[SHELTER_B3_GARBAGE_INCINERAT
 /// borrows the caption schedule and CAP data for the room's loaded lifetime.
 static TaskDesc _gShelterB3GarbageIncineratorClockCaptionTaskDesc = { { { TASK_BODY_NONE, SHELTER_B3_GARBAGE_INCINERATOR_CLOCK_CAPTION_TASK_PRIORITY } }, _capCaptionRunSchedule, { .value = 0 } };
 
-#include "../../shared/cap_captions_schedule.inc.c"
+#include "../../shared/room/cap_captions_schedule.inc.c"
 
 WorldCoordRoomLighting gShelterB3GarbageIncineratorRoomLighting[7] = {
     { &gShelterB3GarbageIncineratorRooms1To3Lights, NULL },
@@ -1248,9 +1248,9 @@ static void _shelterB3GarbageIncineratorLiftTask(Task* task)
     }
 }
 
-#include "../../shared/actor_messages_draw_mode.inc.c"
+#include "../../shared/actor/actor_messages_draw_mode.inc.c"
 
-#include "../../shared/actor_messages_place_in_view.inc.c"
+#include "../../shared/actor/actor_messages_place_in_view.inc.c"
 
 /// Restores the low lift collision walls and starts the actor-carrying move.
 ///
@@ -1263,9 +1263,9 @@ static s32 _shelterB3GarbageIncineratorHandleLiftActorEvent(Task* task, s32 unus
     // The binary falls through without defining a return value.
 }
 
-#include "../../shared/screen_wave_grid.inc.c"
+#include "../../shared/screen/screen_wave_grid.inc.c"
 
-#include "../../shared/incinerator_blaze_fade.inc.c"
+#include "../../shared/effects/incinerator_blaze_fade.inc.c"
 
 /// Sends a blended, collision-disabled animation to the burn controller's player.
 ///
@@ -1324,7 +1324,7 @@ static s32 _shelterB3GarbageIncineratorAdvanceBlazeAnimation(Task* task)
     goto idleReturn;
 }
 
-#include "../../shared/incinerator_blaze_body_fire.inc.c"
+#include "../../shared/effects/incinerator_blaze_body_fire.inc.c"
 
 /// Copies the terminated scene-clip table into the player's writable extension bank.
 ///
@@ -1540,14 +1540,14 @@ static void _shelterB3GarbageIncineratorKillPlayerInBlaze(void)
     gGameSession->restartMode = GAME_SESSION_RESTART_PRESERVE_DISPLAY;
 }
 
-#include "../../shared/cap_captions.inc.c"
+#include "../../shared/room/cap_captions.inc.c"
 
 void shelterB3GarbageIncineratorShowTimedCaption(s16 commandIndex, s16 key, s16 durationTicks)
 {
     _capCaptionShowTimed(commandIndex, key, durationTicks);
 }
 
-#include "../../shared/cap_captions_resource.inc.c"
+#include "../../shared/room/cap_captions_resource.inc.c"
 
 void shelterB3GarbageIncineratorSelectCaptionResource(s16 texturePageX, s16 texturePageY, s16 dataResourceIndex)
 {

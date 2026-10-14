@@ -3887,7 +3887,7 @@ those and the Sea Diver's three now make the test through the Diver library's
 inlined `_diverClipHasBoundaryOrJump`; `_actor00400ClipEnded` is the eighteenth, the same test
 compiled out of line.
 
-The idiom is common here: `src/shared/stalker_zebra_ivory_clip_done.inc.c` carries this same body
+The idiom is common here: `src/shared/creatures/stalker_zebra_ivory/stalker_zebra_ivory_clip_done.inc.c` carries this same body
 as `_stalkerZebraIvoryClipDone` in both Stalker packages, testing the three
 `rig.slots[1].status.fields.flags` bits, and
 ten more copies of the test sit inline in `src/actors/lib/actor_100400_text.c`.
@@ -93465,7 +93465,7 @@ SHA256 60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd.
 so `overlay_dup_index.py similar` handed over no template. But the m2c output
 named `RotTransPers4`, and `grep -rn RotTransPers4 src/` found six matched call
 sites - one of which, `_madChaserDrawLimbShadow` in
-`src/shared/mad_chaser_limb_shadow.inc.c`, ends in exactly the same
+`src/shared/creatures/mad_chaser/mad_chaser_limb_shadow.inc.c`, ends in exactly the same
 `POLY_FT4` tail: `setPolyFT4(quad)`, `setSemiTrans(quad, true)`, the four
 `GPU_PRIMITIVE_XY_WORD(quad, N) = scratch->screenCorners[N]` stores, the same `setUV4` constants, `tpage`
 `0x48`, `clut` `0x4283`, `setRGB0`, and
@@ -108427,7 +108427,7 @@ the `(u16)`/`(s16)`-cast values it matches, giving `$a0` for the target and
 `$v1` for the current one, `lhu` for the two `...Bits` reads and `sh` for the
 stores. Both fixes together took the function from m2c's 82.5% to 99.7%; the
 same clamp shape is in the matched `_desertChaserApplyLookTurn`
-(`src/shared/desert_chaser_anim_tick.inc.c`), which uses `s32 appliedYaw` for
+(`src/shared/creatures/desert_chaser/desert_chaser_anim_tick.inc.c`), which uses `s32 appliedYaw` for
 exactly this reason.
 
 ## An identical tail in both arms of an `if`/`else` is not dead code: it moves the promotion of a loop bound out of the loop (`_oddStrangerApplyBodyPushback`, 2026-09-16)
@@ -117990,12 +117990,12 @@ pseudo, and survives with a register of its own. Two locals in this overlay
 `Actor444000_80139C80` already carry the `mtx` form for that reason; the split
 is the tell, not the aliasing.
 
-The nine-halfword copy onto the coordinate, now in
-`_actor206100CopyRotationElements`, has the same shape one level down:
+The nine-halfword copy onto the coordinate, now
+`gfxCopyRotation` (`include/main/gfx.h`), has the same shape one level down:
 
 ```c
     rootMatrix = &rootCoord->coord;
-    _actor206100CopyRotationElements(&rootBasis, rootMatrix);
+    gfxCopyRotation(rootMatrix, &rootBasis);
 ```
 
 `rootMatrix` is `(plus (reg rootCoord) 4)`, so its stores are a register plus a
@@ -145138,7 +145138,7 @@ Global alloc gave a clamped depth `s32 distance` the second callee-saved slot
 it lost to a pointer by a hair (`4*18/159` against `4*28/237`), and the seed
 bought the difference with `SOFT_TOUCH_REG_USE(boundedDepth, distance)`, one
 fake in-loop use (+2 weighted refs). The source spelled the value in two steps,
-like `_actorContactCalcHorizontalPushback` in `src/shared/actor_contacts.h`:
+like `_actorContactCalcHorizontalPushback` in `src/shared/actor/actor_contacts.h`:
 
 ```c
 distance = SquareRoot0(dx * dx + dz * dz);
@@ -147558,7 +147558,7 @@ Both Divers tested "the clip ended" twenty times as
 A flag materialised only to be tested, behind a reload of a pointer the
 function already holds, is what an inlined `if (...) return 1; return 0;`
 leaves. One `static __inline__ s32 _diverClipHasBoundaryOrJump(Task* task)` in
-`src/shared/diver_inlines.inc.c`, taking the task and loading the work block
+`src/shared/creatures/diver/diver_inlines.inc.c`, taking the task and loading the work block
 itself, replaced all twenty and both packages still match. The Bog Diver also
 carries the test out of line (`_actor00400ClipEnded`, an `s16` return), which is
 the other half of the evidence that it was a routine in the original.
@@ -153681,7 +153681,7 @@ cse1 forgets everything at a multiply-used label.
 
 Fix: the guard's second condition is a small predicate inline with a `switch`
 on the (constant) part, `_desertChaserPartSupportsDust(part)` in
-`src/shared/desert_chaser.h` - the same set of parts the out-of-line
+`src/shared/creatures/desert_chaser/desert_chaser.h` - the same set of parts the out-of-line
 `_desertChaserSpawnPartDust` supports through its `supportedPart` flag:
 
 ```c

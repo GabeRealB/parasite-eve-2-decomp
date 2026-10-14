@@ -43,8 +43,8 @@
 #include "main/tmd_types.h"
 
 #include "rooms/shelter_r47.h"
-#include "../../shared/model_placement.h"
-#include "../../shared/actor_messages.h"
+#include "../../shared/actor/model_placement.h"
+#include "../../shared/actor/actor_messages.h"
 
 /// Loaded CAP resource and texture origin used by this package's event scripts.
 enum {
@@ -3619,9 +3619,9 @@ static void _actor443500ChildModelTask(Task* task)
     states.funcs[task->state](task);
 }
 
-#include "../../shared/model_placement_attach.inc.c"
+#include "../../shared/actor/model_placement_attach.inc.c"
 
-#include "../../shared/model_placement_mirror_parent.inc.c"
+#include "../../shared/actor/model_placement_mirror_parent.inc.c"
 
 /// Dispatches Pierce's setup, frame update or exit while scene actors are running.
 ///
@@ -3718,7 +3718,7 @@ static s32 _actor443500PlayAnimation(Task* task, s32 messageId, const AnimationP
     return 0;
 }
 
-#include "../../shared/actor_messages_place_euler.inc.c"
+#include "../../shared/actor/actor_messages_place_euler.inc.c"
 
 /// Sets Pierce's model visibility and automatic-buffer policy.
 ///

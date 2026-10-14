@@ -51,7 +51,7 @@
 #include "rooms/room.h"
 
 #include "rooms/room_common.h"
-#include "../../shared/room_events.h"
+#include "../../shared/room/room_events.h"
 #include "../../shared/dryfield_driveway.h"
 
 static void _drivewaySetViewDirty(s16 viewDirty);
@@ -853,7 +853,7 @@ static u8 D_dryfield_driveway_80180693 = 207;
 
 RoomLatchedEvent gRoomEventLatched = { 0 };
 
-#include "../../shared/room_event_staged_task.inc.c"
+#include "../../shared/room/room_event_staged_task.inc.c"
 
 /// Supplies the daytime room's scene task table for driveway departure resolution.
 ///
@@ -924,21 +924,7 @@ static void _dryfieldDrivewaySetPlayerUpdateHold(u8 holdPlayerUpdate)
 
 #include "../../shared/dryfield_driveway_script_sound.inc.c"
 
-/// Tests whether the live action list has a hit room-event region.
-///
-/// Returns 1 for an unflagged ROOM action with the room-event sentinel, else 0.
-/// Borrows the linked trigger records and leaves their hit latches unchanged.
-static inline s32 _dryfieldDrivewayRoomTriggerHit(void)
-{
-    WorldCollisionTrigger* trigger;
-
-    for (trigger = gWorldCollisionActionTriggerListHead; trigger != NULL; trigger = trigger->next) {
-        if (trigger->control == WORLD_COLLISION_TRIGGER_ACTION_ROOM && trigger->parameter0 == WORLD_COLLISION_TRIGGER_ROOM_EVENT_ID && trigger->hit != 0) {
-            return 1;
-        }
-    }
-    return 0;
-}
+#include "../../shared/room/room_event_trigger_hit.inc.c"
 
 /// Uses the wire rope at the driveway's room-event region to start the blackout.
 ///
@@ -961,7 +947,7 @@ static s32 _dryfieldDrivewayUseKeyItem(Task* unusedTask, s32 unusedMessageId, s3
 
     if (itemId == INVENTORY_COLLECTION_ID_WIRE_ROPE) {
         if (gameFlagGetNibble(GAME_FLAG_DRIVEWAY_PROGRESS) == DRYFIELD_DRIVEWAY_PROGRESS_ROPE_READY) {
-            if (_dryfieldDrivewayRoomTriggerHit() != 0) {
+            if (_roomEventTriggerHit() != 0) {
                 gameFlagSetNibble(GAME_FLAG_DRIVEWAY_PROGRESS, DRYFIELD_DRIVEWAY_PROGRESS_ROPE_USED);
                 taskSpawnFromTableOnDefaultList(_gDryfieldDrivewaySceneTasks, DRYFIELD_DRIVEWAY_BLACKOUT_TASK, 0, 0);
                 gGameSession->location.room = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.room = DRYFIELD_DRIVEWAY_ROOM_AFTER_ROPE);

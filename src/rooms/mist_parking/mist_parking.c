@@ -55,7 +55,7 @@
 
 #include "rooms/room_common.h"
 #include "rooms/shop_tier.h"
-#include "../../shared/room_cutscene.h"
+#include "../../shared/room/room_cutscene.h"
 
 static void _roomCutsceneTask(Task* task);
 
@@ -68,7 +68,7 @@ static const u16 _gShopStandardDefaultAmmunitionStock[];
 static const u16 _gShopStandardDefaultArmorStock[];
 static const u16 _gShopStandardDefaultItemsStock[];
 
-#include "../../shared/telephone.h"
+#include "../../shared/room/telephone.h"
 
 /// Binds the shop's animated refill quantity to this room's writable s32 storage.
 ///
@@ -83,7 +83,7 @@ static const u16 _gShopStandardDefaultItemsStock[];
 /// `mist_parking_5.c` and declared in the private header. Keep this binding through
 /// `shop.inc.c`; `shop.h` specifies selection, lifetime and use by one panel at a time.
 #define SHOP_REFILL_SUPPLY gShopRefillSupply
-#include "../../shared/shop.h"
+#include "../../shared/room/shop.h"
 
 static s32  _mistParkingHandleCommand(Task* task, s32 messageId, s32 commandId, s32 unusedArg);
 static s32  _mistParkingRefuseKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unused);
@@ -92,15 +92,13 @@ static s32  _mistParkingHandleDirectionAction(Task* task, s32 messageId, const D
 static void _mistParkingSelectChapterRoom(s32 roomId);
 static void _mistParkingSpawnCapEventIfIdle(s32 commandIndex);
 
-#include "../../shared/shop_data.inc.c"
-
-#include "../../shared/shop_panels.inc.c"
+#include "../../shared/room/shop_data.inc.c"
 
 enum { MIST_PARKING_SHOP_SESSION_TASK_PRIORITY = 192 };
 
 TaskDesc gMistParkingShopSessionTaskDesc = { { { TASK_BODY_NONE, MIST_PARKING_SHOP_SESSION_TASK_PRIORITY } }, _shopSessionTask, { .value = 0 } };
 
-#include "../../shared/telephone_data.inc.c"
+#include "../../shared/room/telephone_data.inc.c"
 
 /// This carrier's bodyless scene runner and timed sound task, followed by END.
 ///
@@ -826,7 +824,7 @@ static void _mistParkingIdleRoomState(Task* task);
 ///
 /// One-byte string-literal binding for `shop.inc.c`; label drawing does not read it.
 #define SHOP_WEAPON_SUPPLY_REFILL_TITLE_TRAILING_BYTES "\xE2"
-#include "../../shared/shop.inc.c"
+#include "../../shared/room/shop.inc.c"
 #undef SHOP_WEAPON_SUPPLY_REFILL_TITLE_TRAILING_BYTES
 #undef SHOP_REFILL_DISPLAY_QUANTITY
 #undef SHOP_REFILL_SUPPLY
@@ -835,7 +833,7 @@ static void _mistParkingIdleRoomState(Task* task);
 ///
 /// Two-byte string-literal binding for `telephone.inc.c`; unused by label drawing.
 #define TELEPHONE_MENU_TITLE_TRAILING_BYTES "\xF2\xEF"
-#include "../../shared/telephone.inc.c"
+#include "../../shared/room/telephone.inc.c"
 #undef TELEPHONE_MENU_TITLE_TRAILING_BYTES
 
 void mistParkingTelephoneMenuTask(Task* task)
@@ -843,11 +841,11 @@ void mistParkingTelephoneMenuTask(Task* task)
     _telephoneMenuTask(task);
 }
 
-#include "../../shared/telephone_panels.inc.c"
+#include "../../shared/room/telephone_panels.inc.c"
 
 /// The area records applied when the scene hands the Dryfield story on.
 
-#include "../../shared/room_cutscene_task.inc.c"
+#include "../../shared/room/room_cutscene_task.inc.c"
 
 /// Queues the parking cutscene and selects its saved/live arrival warp.
 ///
@@ -963,7 +961,7 @@ static const TaskFuncTable3 _gMistParkingRoomStateHandlers = {
     },
 };
 
-#include "../../shared/room_cutscene_sound_task.inc.c"
+#include "../../shared/room/room_cutscene_sound_task.inc.c"
 
 /// Refuses every key-item use request without changing the room or inventory.
 ///

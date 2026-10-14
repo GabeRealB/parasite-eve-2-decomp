@@ -25,7 +25,7 @@
 #include "main/wipsys_types.h"
 // The flag symbol is four bytes; the gate writes the first.
 #define ROOM_EVENT_ACTIVE gRoomEventActive.eventStarted
-#include "../../shared/room_events.h"
+#include "../../shared/room/room_events.h"
 
 static void _dryfieldNightMotelBalconyBlackoutTask(Task* task);
 

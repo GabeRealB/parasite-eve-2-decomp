@@ -62,9 +62,9 @@
 #include "overlay.h"
 
 #include "rooms/room_common.h"
-#include "../../shared/glow_draw.h"
-#include "../../shared/room_visual_effects.h"
-#include "../../shared/action_prompt.h"
+#include "../../shared/effects/glow_draw.h"
+#include "../../shared/room/room_visual_effects.h"
+#include "../../shared/room/action_prompt.h"
 
 /// Work block of the shrine's two falling-prop tasks.
 ///
@@ -260,7 +260,7 @@ static SVECTOR _gNeoArkShrineFlarePositions[] = {
     { 7760, -1880, -4490, 0 },
 };
 
-#include "../../shared/room_visual_effects_trail_data.inc.c"
+#include "../../shared/room/room_visual_effects_trail_data.inc.c"
 
 WorldCollisionRoomResources gNeoArkShrineCollisionRooms[NEO_ARK_SHRINE_ROOM_COUNT] = {
     { &_gNeoArkShrineBaseCollisionGrid, _gNeoArkShrineViewBoundaryTriggers, _gNeoArkShrineBaseActionTriggers, _gNeoArkShrineSightOccluders },
@@ -1436,9 +1436,9 @@ NeoArkShrineTileOrigin gNeoArkShrinePuzzleDrawnOrigins[NEO_ARK_SHRINE_PUZZLE_TIL
 
 NeoArkShrineTileOrigin gNeoArkShrinePuzzleTargetOrigins[NEO_ARK_SHRINE_PUZZLE_TILE_COUNT] = { 0 };
 
-#include "../../shared/action_prompt_move_cursors.inc.c"
+#include "../../shared/room/action_prompt_move_cursors.inc.c"
 
-#include "../../shared/action_prompt_draw_cursor.inc.c"
+#include "../../shared/room/action_prompt_draw_cursor.inc.c"
 
 void neoArkShrinePuzzleCursorTask(Task* task)
 {
@@ -1476,7 +1476,7 @@ void neoArkShrineSecondFallingPropTask(Task* task)
     states.funcs[task->state](task);
 }
 
-#include "../../shared/action_prompt_hit_test.inc.c"
+#include "../../shared/room/action_prompt_hit_test.inc.c"
 
 /// Binds the puzzle's work and cursor, selects its view and acquires presentation.
 ///
@@ -1963,7 +1963,7 @@ static void _neoArkShrineDropSecondProp(Task* task)
     _neoArkShrineUpdateFallingPropLighting(task);
 }
 
-#include "../../shared/action_prompt_reset.inc.c"
+#include "../../shared/room/action_prompt_reset.inc.c"
 
 /// Refreshes a falling model's composed transform and its lighting matrices.
 ///
@@ -2170,27 +2170,24 @@ static void _neoArkShrineDrawFlare(const SVECTOR* worldPoint, s32 textureIndex, 
     SCRATCH_STACK_RELEASE_BLOCK(GlowCentreScratch);
 }
 
-#include "../../shared/room_visual_effects.inc.c"
+#include "../../shared/room/room_visual_effects.inc.c"
 
-#include "../../shared/room_visual_effects_flash_task.inc.c"
+#include "../../shared/room/room_visual_effects_flash_task.inc.c"
 
 void neoArkShrineRoomVisualEffectsFlashTask(Task* task)
 {
     _roomVisualEffectsFlashTask(task);
 }
 
-#include "../../shared/room_visual_effects_trails.inc.c"
+#include "../../shared/room/room_visual_effects_trails.inc.c"
 
 void neoArkShrineRoomVisualEffectsTwinTrailTask(Task* task)
 {
-#include "../../shared/room_visual_effects_trail_task.inc.c"
-}
+#include "../../shared/room/room_visual_effects_trail_task.inc.c"
 
-#include "../../shared/room_visual_effects_sparks.inc.c"
+    void neoArkShrineRoomVisualEffectsSparkBurstTask(Task * task)
+    {
+        _roomVisualEffectsSparkBurstTask(task);
+    }
 
-void neoArkShrineRoomVisualEffectsSparkBurstTask(Task* task)
-{
-    _roomVisualEffectsSparkBurstTask(task);
-}
-
-#include "../../shared/room_visual_effects_glow.inc.c"
+#include "../../shared/room/room_visual_effects_glow.inc.c"

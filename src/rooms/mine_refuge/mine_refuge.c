@@ -61,8 +61,8 @@
 #include "rooms/room.h"
 
 #include "rooms/room_common.h"
-#include "../../shared/glow_draw.h"
-#include "../../shared/room_cutscene.h"
+#include "../../shared/effects/glow_draw.h"
+#include "../../shared/room/room_cutscene.h"
 
 static void _roomCutsceneTask(Task* task);
 
@@ -96,7 +96,7 @@ extern Task* gRoomCutsceneSoundTask;
 /// retain their zero defaults for the loaded room's lifetime.
 static RoomCutsceneRec _gMineRefugeCutscene;
 
-#include "../../shared/telephone.h"
+#include "../../shared/room/telephone.h"
 
 static void _mineRefugeStartCutscene(s32 restoreView);
 static void _mineRefugeInitRoomTask(Task* task);
@@ -133,7 +133,7 @@ static s32                        _mineRefugeSoundMsg(Task* task, s32 messageId,
 static void                       _mineRefugeCircuitPanelTask(Task* task);
 static void                       _mineRefugeCutscenePromptTask(Task* task);
 
-#include "../../shared/telephone_data.inc.c"
+#include "../../shared/room/telephone_data.inc.c"
 
 /// This carrier's bodyless scene runner and timed sound task, followed by END.
 ///
@@ -623,7 +623,7 @@ static void _mineRefugeDrawLayeredGlow(const SVECTOR* worldPoint, s32 radiusScal
 ///
 /// Two-byte string-literal binding for `telephone.inc.c`; unused by label drawing.
 #define TELEPHONE_MENU_TITLE_TRAILING_BYTES "\x1A\x1C"
-#include "../../shared/telephone.inc.c"
+#include "../../shared/room/telephone.inc.c"
 #undef TELEPHONE_MENU_TITLE_TRAILING_BYTES
 
 static void _glowDrawFlare(const SVECTOR* worldPoint, s32 textureIndex, s32 radiusScale);
@@ -633,9 +633,9 @@ void mineRefugeTelephoneMenuTask(Task* task)
     _telephoneMenuTask(task);
 }
 
-#include "../../shared/telephone_panels.inc.c"
+#include "../../shared/room/telephone_panels.inc.c"
 
-#include "../../shared/room_cutscene_task.inc.c"
+#include "../../shared/room/room_cutscene_task.inc.c"
 
 /// Refuge room callbacks: 0 register/music/CAP sound setup, 1 idle, 2 release.
 ///
@@ -701,7 +701,7 @@ static void _mineRefugeCircuitPanelTask(Task* task)
     }
 }
 
-#include "../../shared/room_cutscene_sound_task.inc.c"
+#include "../../shared/room/room_cutscene_sound_task.inc.c"
 
 /// Relays collected key-item use to the active circuit-panel task.
 ///
@@ -949,7 +949,7 @@ void mineRefugeRoomTask(Task* task)
     stateHandlers.funcs[task->state](task);
 }
 
-#include "../../shared/glow_draw_flare.inc.c"
+#include "../../shared/effects/glow_draw_flare.inc.c"
 
 /// Initializes the packet header and centre-to-rim colors of a Gouraud glow quad.
 ///

@@ -89,12 +89,12 @@ static Task* _gAcropolisWestElevatorHallDoorLeafTasks[2];
 ///
 /// 0 requires `planar_reflection_rodata.inc.c` before the shared implementation.
 #define PLANAR_REFLECTION_DEFINE_SCALE_WITH_IMPLEMENTATION 0
-#include "../../shared/planar_reflection.h"
+#include "../../shared/room/planar_reflection.h"
 /// Binds the shared beacon body to this room's public `void (Task*)` callback.
 ///
 /// Required before `red_beacon.h` and its task fragment; gameplay imports this instance.
 #define RED_BEACON_TASK acropolisWestElevatorHallRedBeaconTask
-#include "../../shared/red_beacon.h"
+#include "../../shared/effects/red_beacon.h"
 
 static void _acropolisWestElevatorHallUpdateArrivalEvent(Task* unusedTask);
 static void _acropolisWestElevatorHallInitRoomTask(Task* task);
@@ -103,7 +103,7 @@ static void _acropolisWestElevatorHallUpdateDoorLeaf(Task* task);
 
 /// Scale applied to held-object reflections in slots 2 and up: it mirrors
 /// them across X.
-#include "../../shared/planar_reflection_rodata.inc.c"
+#include "../../shared/room/planar_reflection_rodata.inc.c"
 
 /// Room-task states: 0 register/spawn leaves, 1 maintain the arrival event, 2 kill.
 ///
@@ -192,7 +192,7 @@ static WorldCollisionTrigger _gAcropolisWestElevatorHallViewBoundaryTriggers[4];
 static WorldCollisionTrigger _gAcropolisWestElevatorHallActionTriggers[5];
 static WorldCoordRoomLights  _gAcropolisWestElevatorHallRoomLights;
 
-#include "../../shared/planar_reflection_data.inc.c"
+#include "../../shared/room/planar_reflection_data.inc.c"
 
 /// Execution priority shared by the hall's reflected player and held models.
 enum { ACROPOLIS_WEST_ELEVATOR_HALL_REFLECTION_PRIORITY = 112 };
@@ -1145,7 +1145,7 @@ WorldCollisionSurfaceProperties* gAcropolisWestElevatorHallSurfacePropertiesByCl
 /// non-NULL and live; teardown does not clear them. Reset on each overlay load.
 static Task* _gAcropolisWestElevatorHallDoorLeafTasks[2] = { NULL };
 
-#include "../../shared/planar_reflection.inc.c"
+#include "../../shared/room/planar_reflection.inc.c"
 
 void acropolisWestElevatorHallPlayerReflectionTask(Task* reflectionTask)
 {
@@ -1504,7 +1504,7 @@ void acropolisWestElevatorHallBayLightingTask(Task* task)
 #undef ACROPOLIS_WEST_ELEVATOR_HALL_UPLOAD_BAY_PALETTE
 }
 
-#include "../../shared/red_beacon_task.inc.c"
+#include "../../shared/effects/red_beacon_task.inc.c"
 #undef RED_BEACON_TASK
 
 /// Queues one displaced framebuffer row at the distortion strip's fixed X origin.

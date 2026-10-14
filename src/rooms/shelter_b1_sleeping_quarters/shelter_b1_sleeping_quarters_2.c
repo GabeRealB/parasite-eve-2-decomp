@@ -32,8 +32,8 @@
 #include "main/task_types.h"
 
 #include "rooms/room_common.h"
-#include "../../shared/room_visual_effects.h"
-#include "../../shared/glow_draw.h"
+#include "../../shared/room/room_visual_effects.h"
+#include "../../shared/effects/glow_draw.h"
 
 /// World-space endpoints of the green beam visible in mapped views 2 and 3.
 static SVECTOR _gShelterB1SleepingQuartersGreenBeamEndpoints[2] = {
@@ -203,6 +203,6 @@ void shelterB1SleepingQuartersDrawViewLightsTask(Task* task)
     }
 }
 
-#include "../../shared/glow_draw_beam.inc.c"
+#include "../../shared/effects/glow_draw_beam.inc.c"
 
-#include "../../shared/glow_draw_bit_disc.inc.c"
+#include "../../shared/effects/glow_draw_bit_disc.inc.c"

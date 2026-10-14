@@ -51,7 +51,7 @@
 
 #include "rooms/room_common.h"
 
-#include "../../shared/room_visual_effects.h"
+#include "../../shared/room/room_visual_effects.h"
 
 /// Initializes this overlay's three halo tint rows and retained trailing halfword.
 ///
@@ -83,11 +83,11 @@
 /// This empty suffix requires `ROOM_VISUAL_EFFECTS_HALO_STORAGE_TYPE` to be
 /// `RoomFxHaloStorage`. Bind around `room_visual_effects_halo_data.inc.c`.
 #define ROOM_VISUAL_EFFECTS_HALO_STORAGE_BOUND
-#include "../../shared/room_visual_effects_halo_data.inc.c"
-#include "../../shared/room_visual_effects_trail_data.inc.c"
-#include "../../shared/room_visual_effects_disc_data.inc.c"
-#include "../../shared/room_events.h"
-#include "../../shared/glow_draw.h"
+#include "../../shared/room/room_visual_effects_halo_data.inc.c"
+#include "../../shared/room/room_visual_effects_trail_data.inc.c"
+#include "../../shared/room/room_visual_effects_disc_data.inc.c"
+#include "../../shared/room/room_events.h"
+#include "../../shared/effects/glow_draw.h"
 
 /// Returns this overlay's three read-only halo tint rows for spawn indices 0..2.
 static inline const RoomFxShade* _roomVisualEffectsGetHaloShades(void)
@@ -531,18 +531,18 @@ static u8 D_shelter_b1_north_maintenance_walkway_80185B7F = 49;
 
 RoomLatchedEvent gRoomEventLatched;
 
-#include "../../shared/glow_draw_cone.inc.c"
+#include "../../shared/effects/glow_draw_cone.inc.c"
 
-#include "../../shared/glow_draw_red_disc.inc.c"
+#include "../../shared/effects/glow_draw_red_disc.inc.c"
 
-#include "../../shared/room_visual_effects.inc.c"
+#include "../../shared/room/room_visual_effects.inc.c"
 
 void shelterB1NorthMaintenanceWalkwayRoomVisualEffectsMoteTask(Task* task)
 {
     _roomVisualEffectsMoteTask(task);
 }
 
-#include "../../shared/room_visual_effects_halo.inc.c"
+#include "../../shared/room/room_visual_effects_halo.inc.c"
 
 void shelterB1NorthMaintenanceWalkwayRoomVisualEffectsHaloTask(Task* task)
 {
@@ -554,53 +554,50 @@ void shelterB1NorthMaintenanceWalkwayRoomVisualEffectsHaloOrangeBurstTask(Task* 
     _roomVisualEffectsHaloOrangeBurstTask(task);
 }
 
-#include "../../shared/room_visual_effects_glow_quad.inc.c"
-#include "../../shared/room_visual_effects_flash.inc.c"
+#include "../../shared/room/room_visual_effects_glow_quad.inc.c"
+#include "../../shared/room/room_visual_effects_flash.inc.c"
 
 void shelterB1NorthMaintenanceWalkwayRoomVisualEffectsSparkEmitterTask(Task* task)
 {
     _roomVisualEffectsSparkEmitterTask(task);
 }
 
-#include "../../shared/room_visual_effects_flash_task.inc.c"
+#include "../../shared/room/room_visual_effects_flash_task.inc.c"
 
 void shelterB1NorthMaintenanceWalkwayRoomVisualEffectsFlashTask(Task* task)
 {
     _roomVisualEffectsFlashTask(task);
 }
 
-#include "../../shared/room_visual_effects_trails.inc.c"
+#include "../../shared/room/room_visual_effects_trails.inc.c"
 
 void shelterB1NorthMaintenanceWalkwayRoomVisualEffectsTwinTrailTask(Task* task)
 {
-#include "../../shared/room_visual_effects_trail_task.inc.c"
-}
+#include "../../shared/room/room_visual_effects_trail_task.inc.c"
 
-#include "../../shared/room_visual_effects_sparks.inc.c"
+    void shelterB1NorthMaintenanceWalkwayRoomVisualEffectsSparkBurstTask(Task * task)
+    {
+        _roomVisualEffectsSparkBurstTask(task);
+    }
 
-void shelterB1NorthMaintenanceWalkwayRoomVisualEffectsSparkBurstTask(Task* task)
-{
-    _roomVisualEffectsSparkBurstTask(task);
-}
+#include "../../shared/room/room_visual_effects_glow.inc.c"
+#include "../../shared/room/room_visual_effects_flying_tasks.inc.c"
 
-#include "../../shared/room_visual_effects_glow.inc.c"
-#include "../../shared/room_visual_effects_flying_tasks.inc.c"
+    void shelterB1NorthMaintenanceWalkwayRoomVisualEffectsGlowDiscTask(Task * task)
+    {
+        _roomVisualEffectsGlowDiscTask(task);
+    }
 
-void shelterB1NorthMaintenanceWalkwayRoomVisualEffectsGlowDiscTask(Task* task)
-{
-    _roomVisualEffectsGlowDiscTask(task);
-}
+    void shelterB1NorthMaintenanceWalkwayRoomVisualEffectsFlyingSparkTask(Task * task)
+    {
+        _roomVisualEffectsFlyingSparkTask(task);
+    }
 
-void shelterB1NorthMaintenanceWalkwayRoomVisualEffectsFlyingSparkTask(Task* task)
-{
-    _roomVisualEffectsFlyingSparkTask(task);
-}
+#include "../../shared/room/room_visual_effects_burst.inc.c"
 
-#include "../../shared/room_visual_effects_burst.inc.c"
+    void shelterB1NorthMaintenanceWalkwayRoomVisualEffectsFlyingOrangeBurstTask(Task * task)
+    {
+        _roomVisualEffectsFlyingOrangeBurstTask(task);
+    }
 
-void shelterB1NorthMaintenanceWalkwayRoomVisualEffectsFlyingOrangeBurstTask(Task* task)
-{
-    _roomVisualEffectsFlyingOrangeBurstTask(task);
-}
-
-#include "../../shared/room_visual_effects_burst_draw.inc.c"
+#include "../../shared/room/room_visual_effects_burst_draw.inc.c"
