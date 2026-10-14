@@ -153892,10 +153892,15 @@ through Windows interop (`tools/patches/README.md` has the method).
 - Any other uninitialised variable reaches it as `.comm`. ASPSX only records
   the name and size; PSYLINK places it, directly after that same object's
   `.bss`. Alignment is 2 from two bytes, 4 from four, 8 from eight, never more.
-- PSYLINK takes an object's `.comm` variables in the order of ASPSX's symbol
-  table, which depends on their names. That order cannot be derived without
-  the original names, so the sources state it: non-`static` variables are
-  declared in address order.
+- PSYLINK orders an object's `.comm` variables by its symbol-table hash,
+  `(length + sum of the name's bytes) mod 512`, ascending; of two in the same
+  bucket, the one the link met later comes first. This is read from PSYLINK
+  4.5's code and reproduces the game's order of Sony's own `libcd`, `libpad`
+  and `libapi` variables, which differs from the order their objects record.
+  The game's own globals follow the same rule, but their original names are
+  unknown, so the sources state the order instead: non-`static` variables are
+  declared in address order. The rule does constrain a proposed original
+  name: within a file, the hashes must ascend in address order.
 - Each object's `.bss` starts on a multiple of 8.
 
 So within one object every `static` precedes every non-`static`, and where a

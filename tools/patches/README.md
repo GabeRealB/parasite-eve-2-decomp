@@ -98,10 +98,10 @@ PSYLINK puts an object's `.comm` variables directly after that object's own
 `.bss`. Upstream maspsx emits both kinds in the order given, aligns `.sbss`
 entries by size and `.bss` entries not at all.
 
-One thing cannot be reproduced. PSYLINK takes an object's `.comm` variables in
-the order ASPSX recorded them, which is the order of ASPSX's own symbol table
-and depends on the variables' names. The original names are not known, so the
-sources state that order by declaring those variables in address order.
+One thing cannot be reproduced. PSYLINK orders an object's `.comm` variables
+by a hash of their names (below), not in the order the object records them.
+The original names are not known, so the sources state that order by declaring
+those variables in address order.
 
 **Without it.** Nine images fail the checksum; the other 440 match. No function
 changes length. What moves is data: a `.bss` object lands a few bytes early,
@@ -132,12 +132,33 @@ moved object then differs in the address it loads.
   N = 4 to 7, and 8 for every N from 8 to 100 that was tried: never 16.
 - *Where the `.comm` ones go.* With two objects linked, PSYLINK 4.4 and 4.5
   put each object's `.comm` variables after that object's `.lcomm` block and
-  before the next object's, in the order of the records in the object file.
-  A `.comm` variable both objects name goes with the first.
+  before the next object's. A `.comm` variable both objects name goes with
+  the first.
+- *In what order.* Linking Sony's own objects from the Psy-Q 4.5 archives
+  (`CDROM.obj` from `libcd`, `WAITRC2.obj` from `libpad`, `FREE3.obj` from
+  `libapi`), PSYLINK 4.4, 4.5 and 4.6 all place their `.comm` variables in
+  the same order, which is not the order the objects record them in, and is
+  exactly the order the game has. PSYLINK 4.5's code gives the rule:
+  - its symbol table hashes a name as its length plus the sum of its bytes,
+    modulo 512 (`0x40664a`; with `/c`, as here, the bytes are used as they
+    are, otherwise each first goes through a translation table);
+  - a name new to the link is added at the front of its bucket's chain
+    (`0x4066b4`);
+  - the `.comm` variables are taken by walking the buckets from 0 to 511 and
+    each chain front to back (`0x406f0b`), and each is aligned to 1, 2, 4 or
+    8 by its size (`0x406f55`).
 
-PSYLINK 4.1 does it differently: it gathers the `.comm` variables of all
-objects after all `.bss` and orders them itself. The images match the 4.4
-behaviour, which is what the patch follows.
+  So within an object they come out in ascending hash order, and of two in
+  the same bucket the one the link met later comes first. Every order
+  observed fits: `cdrom` runs from `Stframe_no` (24) to `StRingSize` (508),
+  with `StRingBase` before `StRingAddr` at 476; `waitrc2` is `_startTime`
+  (38), `_waitTime` (428); `free3` is `_r_bp` (7), `_r_freep` (330), `_r_p`
+  (420). In the small test objects above, record order happened to be hash
+  order too. PSYLINK 4.1 walks the same table, but across all objects at
+  once.
+
+PSYLINK 4.1 gathers the `.comm` variables of all objects after all `.bss`.
+The images match the 4.4 behaviour, which is what the patch follows.
 
 **What this rules out in the sources.** A `static` variable that sits after a
 non-`static` one of the same object is a layout the real tools cannot produce,

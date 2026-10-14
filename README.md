@@ -28,6 +28,7 @@ The decompilation is complete: the executable `SLUS_010.42`, the resident `gamep
 - **Patches to maspsx** ([`tools/patches/README.md`](tools/patches/README.md)), not upstream:
   - `maspsx-bss-layout` reaches beyond the assembler: it also reproduces where the linker, PSYLINK, places non-`static` variables, and depends on `align_main_bss` in `ninja_config.py` and on those variables being declared in address order.
   - `maspsx-lo-load-nop` and `maspsx-bss-local` change assembler behaviour only.
+- **Order of global variables.** PSYLINK placed each file's non-`static` uninitialised variables by a hash of their names; the original names are unknown, so the sources declare them in address order instead.
 - **Follow-ups from an AI review**, by category: semantics, rematching, runtime, unrelated.
 - **Reverse engineering:** names, types, comments, documentation of the game's formats and systems.
 - **Cleanup** of the sources and the tooling.

@@ -15,3 +15,10 @@ Some object needed editing:
 - libcd/cdrom.o: reordered weak .bss variables
 - libpad/waitrc2.o: reordered weak .bss variables
 - libapi/free3.o: reordered weak .bss variables
+
+In the original archives these variables are linker-placed (XBSS) records,
+and the conversion to ELF laid them out in record order. PSYLINK orders them
+by its symbol-table hash instead, (length + sum of the name's bytes) mod 512,
+ascending, a later-seen name first on a tie: linking the original CDROM.obj,
+WAITRC2.obj and FREE3.obj with PSYLINK 4.4, 4.5 and 4.6 gives exactly the
+edited order. tools/patches/README.md has the details.
