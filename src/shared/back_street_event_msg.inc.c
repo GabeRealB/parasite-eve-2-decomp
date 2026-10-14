@@ -24,9 +24,9 @@ static s32 _roomVariantResolveBackStreet(Task* task, s32 messageId, const RoomEv
     stageId = gGameSession->location.stage;
     if (stageId == GAME_STAGE_DRYFIELD && request->areaId == GAME_AREA_DRYFIELD_WAREHOUSE && request->queryOnly == ROOM_EVENT_EXECUTE) {
         if (gameFlagGetNibble(GAME_FLAG_WAREHOUSE_EVENT_SEEN) == 0) {
-            reply->room = 1;
+            reply->roomState = 1;
         } else {
-            reply->room = stageId;
+            reply->roomState = stageId;
         }
     }
     if ((request->areaId == GAME_AREA_DRYFIELD_DILAPIDATED_HOUSE) && (gameFlagGetNibble(GAME_FLAG_DILAPIDATED_HOUSE_DOOR_UNLOCKED) == 0)) {

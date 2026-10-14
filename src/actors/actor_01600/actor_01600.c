@@ -4472,7 +4472,7 @@ static s32 _actor01600StepActivation(Task* actor)
             }
         }
         if (((u32)(gGameSession->location.stage - 2) < 2U) && (gGameSession->location.area == 0x26) &&
-            ((room = gGameSession->location.room, (room == 1)) || (room == 3)) && ((u16)work->behavior < (u32)ACTOR_01600_BEHAVIOR_STAGGER)) {
+            ((room = gGameSession->location.roomState, (room == 1)) || (room == 3)) && ((u16)work->behavior < (u32)ACTOR_01600_BEHAVIOR_STAGGER)) {
             work->behavior = ACTOR_01600_BEHAVIOR_POSED;
         }
     }

@@ -728,11 +728,11 @@ static void _neoArkR26ReturnToShelterTent(void)
            NEO_ARK_R26_SPRITE_VARIANT = 1 };
 
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene != NEO_ARK_R26_ATTRACT_DEMO) {
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.stage = GAME_STAGE_SHELTER_NEO_ARK;
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.area  = GAME_AREA_SHELTER_1F_TENT;
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp  = NEO_ARK_R26_TENT_ARRIVAL;
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.room  = NEO_ARK_R26_TENT_ROOM;
-        gDisplayState.spriteVariant                             = NEO_ARK_R26_SPRITE_VARIANT;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.stage     = GAME_STAGE_SHELTER_NEO_ARK;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.area      = GAME_AREA_SHELTER_1F_TENT;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp      = NEO_ARK_R26_TENT_ARRIVAL;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.roomState = NEO_ARK_R26_TENT_ROOM;
+        gDisplayState.spriteVariant                                 = NEO_ARK_R26_SPRITE_VARIANT;
         taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
         gameFlowBeginLoadScreen(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location, GAME_FLOW_LOAD_CAPTION_ALTERNATE);
     }

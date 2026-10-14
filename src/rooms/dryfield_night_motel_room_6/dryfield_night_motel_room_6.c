@@ -1246,10 +1246,10 @@ static inline void _dryfieldNightMotelRoom6FinishRest(Task* task)
     gameFlagSetNibble(GAME_FLAG_NIGHT_SALOON_CUTSCENE_SEEN, 1);
     gameFlagSetNibble(GAME_FLAG_NIGHT_SALOON_TALK_PROGRESS, DRYFIELD_NIGHT_MOTEL_ROOM_6_REST_SALOON_PROGRESS);
     gameFlagSetNibble(GAME_FLAG_030, 0);
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.area = GAME_AREA_DRYFIELD_NIGHT_R08;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp = DRYFIELD_NIGHT_MOTEL_ROOM_6_REST_ARRIVAL_WARP;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.room = DRYFIELD_NIGHT_MOTEL_ROOM_6_REST_ARRIVAL_ROOM;
-    gDisplayState.spriteVariant                            = DRYFIELD_NIGHT_MOTEL_ROOM_6_REST_SPRITE_VARIANT;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.area      = GAME_AREA_DRYFIELD_NIGHT_R08;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp      = DRYFIELD_NIGHT_MOTEL_ROOM_6_REST_ARRIVAL_WARP;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.roomState = DRYFIELD_NIGHT_MOTEL_ROOM_6_REST_ARRIVAL_ROOM;
+    gDisplayState.spriteVariant                                 = DRYFIELD_NIGHT_MOTEL_ROOM_6_REST_SPRITE_VARIANT;
     taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
     taskKill(task);
 }

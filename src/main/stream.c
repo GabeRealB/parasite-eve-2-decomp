@@ -342,7 +342,7 @@ loop:
                             hasMatch = 1;
                             goto matched_result;
                         }
-                    } else if (slotTable[slotIndex & 0xFFFF].key.parts.group == location->room) {
+                    } else if (slotTable[slotIndex & 0xFFFF].key.parts.group == location->roomState) {
                         if (requireViewStream == 0) {
                             goto matched;
                         }
@@ -396,7 +396,7 @@ s16 streamFindViewMovieSlot(const GameLocationKey* location)
                         return shiftedSlotIndex >> 16;
                     }
                 }
-                if (slotTable[slotIndex & 0xFFFF].key.parts.group == location->room) {
+                if (slotTable[slotIndex & 0xFFFF].key.parts.group == location->roomState) {
                     if (slotTable[slotIndex & 0xFFFF].data.movie.viewStream != 0) {
                         shiftedSlotIndex = slotIndex << 16;
                         return shiftedSlotIndex >> 16;

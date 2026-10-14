@@ -281,7 +281,7 @@ static void _shelterB1ControlRoomConfigureMirror(Task* unusedTask, _ShelterB1Con
     _shelterB1ControlRoomResetMirrorConfig(config, one);
     switch (stage) {
         case GAME_STAGE_SHELTER_NEO_ARK:
-            if (area == GAME_AREA_NEO_ARK_OBSERVATORY && (u32)(view - SHELTER_B1_CONTROL_ROOM_MIRROR_OBSERVATORY_FIRST_VIEW) < SHELTER_B1_CONTROL_ROOM_MIRROR_OBSERVATORY_VIEW_COUNT && gGameSession->location.room == 2) {
+            if (area == GAME_AREA_NEO_ARK_OBSERVATORY && (u32)(view - SHELTER_B1_CONTROL_ROOM_MIRROR_OBSERVATORY_FIRST_VIEW) < SHELTER_B1_CONTROL_ROOM_MIRROR_OBSERVATORY_VIEW_COUNT && gGameSession->location.roomState == 2) {
                 config->offset.vy   = SHELTER_B1_CONTROL_ROOM_MIRROR_OBSERVATORY_OFFSET_Y;
                 config->active      = 1;
                 config->copyPending = 1;

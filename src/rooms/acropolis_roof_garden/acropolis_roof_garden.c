@@ -1,4 +1,5 @@
 #include "rooms/acropolis_roof_garden.h"
+#include "../../stages/akropolis/event_flags.h"
 
 #include <psyq/sys/types.h>
 #include <psyq/libgte.h>
@@ -1734,8 +1735,6 @@ static s32 _acropolisRoofGardenHandleCommandMessage(Task* unusedTask, s32 messag
         ACROPOLIS_ROOF_GARDEN_PICKUP_STATE_PRESENT     = 1,
         ACROPOLIS_ROOF_GARDEN_PICKUP_CAP_SLOT          = 2,
         ACROPOLIS_ROOF_GARDEN_PICKUP_CAP_VARIANT       = 0,
-        ACROPOLIS_ROOF_GARDEN_DIALOGUE_PROGRESS        = 6,
-        ACROPOLIS_ROOF_GARDEN_FOLLOW_UP_UNSET          = 0,
         ACROPOLIS_ROOF_GARDEN_STORY_OBJECTIVE          = 7,
     };
     if (commandIndex == ACROPOLIS_ROOF_GARDEN_COMMAND_PICKUP) {
@@ -1747,9 +1746,9 @@ static s32 _acropolisRoofGardenHandleCommandMessage(Task* unusedTask, s32 messag
         }
     }
     if (commandIndex == ACROPOLIS_ROOF_GARDEN_COMMAND_STORY) {
-        if (gameFlagGetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX) < ACROPOLIS_ROOF_GARDEN_DIALOGUE_PROGRESS) {
-            gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, ACROPOLIS_ROOF_GARDEN_FOLLOW_UP_UNSET);
-            gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, ACROPOLIS_ROOF_GARDEN_DIALOGUE_PROGRESS);
+        if (gameFlagGetNibble(EVENT_FLAG_STORY_DIALOGUE_INDEX) < AKROPOLIS_STORY_DIALOGUE_HELICOPTER) {
+            gameFlagSetNibble(EVENT_FLAG_TELEPHONE_DIALOGUE_COUNTER, EVENT_FLAG_TELEPHONE_DIALOGUE_UNHEARD);
+            gameFlagSetNibble(EVENT_FLAG_STORY_DIALOGUE_INDEX, AKROPOLIS_STORY_DIALOGUE_HELICOPTER);
         }
         gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
         capRunCommand(ACROPOLIS_ROOF_GARDEN_COMMAND_STORY, CAP_PLAYBACK_IN_PLACE);

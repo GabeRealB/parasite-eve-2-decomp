@@ -78,8 +78,8 @@ static s32 _acropolisObservatoryResolveRoomTransition(Task* unusedTask, s32 mess
             reply->warp = ACROPOLIS_OBSERVATORY_FORKED_ROAD_ALTERNATE_ARRIVAL;
         }
         if (request->areaId == GAME_AREA_AKROPOLIS_FORKED_ROAD) {
-            if (gameFlagGetNibble(GAME_FLAG_SECURITY_ROOM_LOCKS_RELEASED) & ACROPOLIS_OBSERVATORY_SECURITY_EXIT_ROOM_BIT) {
-                reply->room = ACROPOLIS_OBSERVATORY_DESTINATION_ROOM_CHANGED;
+            if (gameFlagGetNibble(EVENT_FLAG_AKROPOLIS_SECURITY_ROOM_PANEL_KEYS) & ACROPOLIS_OBSERVATORY_SECURITY_EXIT_ROOM_BIT) {
+                reply->roomState = ACROPOLIS_OBSERVATORY_DESTINATION_ROOM_CHANGED;
             }
         }
     }
@@ -103,7 +103,7 @@ static s32 _acropolisObservatoryResolveRoomTransition(Task* unusedTask, s32 mess
             } else {
                 destinationRoom = ACROPOLIS_OBSERVATORY_DESTINATION_ROOM_CHANGED;
             }
-            reply->room = destinationRoom;
+            reply->roomState = destinationRoom;
         }
     }
     return ACROPOLIS_OBSERVATORY_TRANSITION_ALLOWED;
@@ -133,7 +133,7 @@ static s32 _acropolisObservatoryHandleRoomAction(Task* unusedTask, s32 messageId
     };
 
     if ((request->actionId == ACROPOLIS_OBSERVATORY_ACTION_START_EVENT) &&
-        (gGameSession->location.room == ACROPOLIS_OBSERVATORY_EVENT_ROOM) &&
+        (gGameSession->location.roomState == ACROPOLIS_OBSERVATORY_EVENT_ROOM) &&
         (gameFlagGetNibble(GAME_FLAG_AKROPOLIS_OBSERVATORY_EVENT_SEEN) == ACROPOLIS_OBSERVATORY_EVENT_UNSEEN)) {
         gameFlagSetNibble(GAME_FLAG_AKROPOLIS_OBSERVATORY_EVENT_SEEN, ACROPOLIS_OBSERVATORY_EVENT_SEEN);
         taskSpawnFromTable(&gAcropolisObservatoryScriptedBattleTaskDesc, 0, 0, 0);
@@ -156,7 +156,7 @@ static void _acropolisObservatoryInitializeRoomTask(Task* task)
 
     task->msgTable = _gAcropolisObservatoryRoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
-    if ((gGameSession->location.room == ACROPOLIS_OBSERVATORY_ENCOUNTER_ROOM) &&
+    if ((gGameSession->location.roomState == ACROPOLIS_OBSERVATORY_ENCOUNTER_ROOM) &&
         (gameFlagGetNibble(GAME_FLAG_AKROPOLIS_OBSERVATORY_EVENT_SEEN) == ACROPOLIS_OBSERVATORY_EVENT_UNSEEN)) {
         gSceneCombatState.actor03700Wave = ACROPOLIS_OBSERVATORY_WAVES_ACTIVATED;
     }

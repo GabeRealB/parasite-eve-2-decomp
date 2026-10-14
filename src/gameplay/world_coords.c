@@ -394,7 +394,7 @@ static inline WorldCoordRoomLighting* _worldCoordLookupRoomLighting(const GameLo
     if (areaLightingTables != NULL) {
         roomLighting = areaLightingTables[location->area - 1];
         if (roomLighting != NULL) {
-            roomLighting = &roomLighting[location->room - 1];
+            roomLighting = &roomLighting[location->roomState - 1];
         }
     }
     return roomLighting;

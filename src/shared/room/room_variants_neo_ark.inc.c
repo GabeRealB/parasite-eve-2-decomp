@@ -12,7 +12,7 @@ enum {
 
 /// Selects the altar's room from its two tile-sequence completion flags.
 ///
-/// Only `reply->room` is written: 1 until sequence 2 is solved, 2 when only
+/// Only `reply->roomState` is written: 1 until sequence 2 is solved, 2 when only
 /// sequence 2 is solved, or 3 when both are solved. Sequence 1 alone keeps
 /// room 1. The writable record is borrowed for this call and is not retained.
 static inline void _roomVariantNeoArkResolveAltar(RoomEventMsg* reply)
@@ -22,12 +22,12 @@ static inline void _roomVariantNeoArkResolveAltar(RoomEventMsg* reply)
         ROOM_VARIANT_NEO_ARK_ALTAR_BOTH_SEQUENCES_ROOM  = 3,
     };
 
-    reply->room = ROOM_VARIANT_NEO_ARK_DEFAULT_ROOM;
+    reply->roomState = ROOM_VARIANT_NEO_ARK_DEFAULT_ROOM;
     if (gameFlagGetNibble(GAME_FLAG_NEO_ARK_ALTAR_SEQUENCE_2_SOLVED) != 0) {
         if (gameFlagGetNibble(GAME_FLAG_NEO_ARK_ALTAR_SEQUENCE_1_SOLVED) != 0) {
-            reply->room = ROOM_VARIANT_NEO_ARK_ALTAR_BOTH_SEQUENCES_ROOM;
+            reply->roomState = ROOM_VARIANT_NEO_ARK_ALTAR_BOTH_SEQUENCES_ROOM;
         } else {
-            reply->room = ROOM_VARIANT_NEO_ARK_ALTAR_SECOND_SEQUENCE_ROOM;
+            reply->roomState = ROOM_VARIANT_NEO_ARK_ALTAR_SECOND_SEQUENCE_ROOM;
         }
     }
 }
@@ -35,7 +35,7 @@ static inline void _roomVariantNeoArkResolveAltar(RoomEventMsg* reply)
 /// Resolves Neo Ark destination rooms from game progress.
 ///
 /// Reads `request->queryOnly` and, on `ROOM_EVENT_EXECUTE`, the stage-5
-/// `request->areaId`. Only `reply->room` can change: observatory and pavilion
+/// `request->areaId`. Only `reply->roomState` can change: observatory and pavilion
 /// use their progress nibble plus 1, altar uses the tile sequences, shrine
 /// selects 1 or 4, and pyramid uses sequence 2's completion nibble plus 1.
 /// Queries and other areas preserve the reply; initialize its room before
@@ -56,23 +56,23 @@ s32 ROOM_VARIANT_RESOLVE_NEO_ARK(RoomEventMsg* request, RoomEventMsg* reply)
     if (request->queryOnly == ROOM_EVENT_EXECUTE) {
         switch (request->areaId) {
             case GAME_AREA_NEO_ARK_OBSERVATORY:
-                reply->room = gameFlagGetNibble(GAME_FLAG_0E1) + 1;
+                reply->roomState = gameFlagGetNibble(GAME_FLAG_0E1) + 1;
                 break;
             case GAME_AREA_NEO_ARK_PAVILION:
-                reply->room = gameFlagGetNibble(GAME_FLAG_NEO_ARK_ALTAR_SWITCH_STATE) + 1;
+                reply->roomState = gameFlagGetNibble(GAME_FLAG_NEO_ARK_ALTAR_SWITCH_STATE) + 1;
                 break;
             case GAME_AREA_NEO_ARK_ALTAR:
                 _roomVariantNeoArkResolveAltar(reply);
                 break;
             case GAME_AREA_NEO_ARK_SHRINE:
                 if (gameFlagGetNibble(GAME_FLAG_0E9) != 0) {
-                    reply->room = ROOM_VARIANT_NEO_ARK_SHRINE_ALTERNATE_ROOM;
+                    reply->roomState = ROOM_VARIANT_NEO_ARK_SHRINE_ALTERNATE_ROOM;
                 } else {
-                    reply->room = ROOM_VARIANT_NEO_ARK_DEFAULT_ROOM;
+                    reply->roomState = ROOM_VARIANT_NEO_ARK_DEFAULT_ROOM;
                 }
                 break;
             case GAME_AREA_NEO_ARK_PYRAMID:
-                reply->room = gameFlagGetNibble(GAME_FLAG_NEO_ARK_ALTAR_SEQUENCE_2_SOLVED) + 1;
+                reply->roomState = gameFlagGetNibble(GAME_FLAG_NEO_ARK_ALTAR_SEQUENCE_2_SOLVED) + 1;
                 break;
             default:
                 break;

@@ -3483,16 +3483,16 @@ static void _actor443500InitPierce(Task* task)
     work->savedModelFlags = task->extra.tmd->flags;
     childTask             = taskSpawnFromTable(gActor443500PierceTaskDescs, ACTOR_443500_PIERCE_CHILD_DESCRIPTOR, ACTOR_443500_PIERCE_CHILD_PART, task);
     if (childTask != NULL) {
-        sessionLocation   = &gGameSession->location;
-        enemy             = task->spawnArg2.pointer;
-        placementKey      = enemy->placeKey;
-        heldModel         = childTask->extra.tmd;
-        locationKey.stage = sessionLocation->stage;
-        locationKey.area  = sessionLocation->area;
-        locationKey.room  = sessionLocation->room;
-        viewIndex         = sessionLocation->view;
-        placementIndex    = placementKey >> ENEMY_PLACE_INDEX_SHIFT;
-        locationKey.view  = viewIndex;
+        sessionLocation       = &gGameSession->location;
+        enemy                 = task->spawnArg2.pointer;
+        placementKey          = enemy->placeKey;
+        heldModel             = childTask->extra.tmd;
+        locationKey.stage     = sessionLocation->stage;
+        locationKey.area      = sessionLocation->area;
+        locationKey.roomState = sessionLocation->roomState;
+        viewIndex             = sessionLocation->view;
+        placementIndex        = placementKey >> ENEMY_PLACE_INDEX_SHIFT;
+        locationKey.view      = viewIndex;
         areaSyncLocationVariant(&locationKey);
         areaVariant = areaGetVariant(&locationKey);
         // The held model inherits its owner's area-placement texture offsets.

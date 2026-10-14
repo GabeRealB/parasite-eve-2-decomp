@@ -1601,12 +1601,12 @@ static s32 _dryfieldNightWaterHoleCommandMessage(Task* task, s32 messageId, s32 
         if (gameFlagGetNibble(GAME_FLAG_WATER_HOLE_SHELTER_ROUTE_OPEN) != 0) {
             RoomVariantResolver resolve = _roomVariantResolveShelter;
 
-            departure.stage    = GAME_STAGE_MINE_SHELTER;
-            departure.area     = GAME_AREA_SHELTER_B4_WATER_SUPPLY;
-            departure.room     = DRYFIELD_NIGHT_WATER_HOLE_SHELTER_ROOM;
-            departure.warp     = DRYFIELD_NIGHT_WATER_HOLE_SHELTER_ARRIVAL;
-            departure.sndEvent = DRYFIELD_NIGHT_WATER_HOLE_SHELTER_SOUND;
-            departure.facing   = DRYFIELD_NIGHT_WATER_HOLE_SHELTER_FACING;
+            departure.stage     = GAME_STAGE_MINE_SHELTER;
+            departure.area      = GAME_AREA_SHELTER_B4_WATER_SUPPLY;
+            departure.roomState = DRYFIELD_NIGHT_WATER_HOLE_SHELTER_ROOM;
+            departure.warp      = DRYFIELD_NIGHT_WATER_HOLE_SHELTER_ARRIVAL;
+            departure.sndEvent  = DRYFIELD_NIGHT_WATER_HOLE_SHELTER_SOUND;
+            departure.facing    = DRYFIELD_NIGHT_WATER_HOLE_SHELTER_FACING;
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
             // Resolve only initialized destination selectors; the request aliases its reply.
             _roomVariantResolveDeparture(&departure, resolve);

@@ -1935,6 +1935,6 @@ static void _actor450200SetLightBeamIntensity(s32 intensity)
 /// Performs no room loading or view change and leaves the other save slots alone.
 static void _actor450200SetRoomVariant(u8 roomVariant)
 {
-    gGameSession->location.room                            = roomVariant;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.room = roomVariant;
+    gGameSession->location.roomState                            = roomVariant;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.roomState = roomVariant;
 }

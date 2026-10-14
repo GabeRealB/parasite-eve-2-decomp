@@ -31,14 +31,14 @@ static s32 _roomVariantResolveDriveway(Task* task, s32 messageId, const RoomEven
 
     *reply = *request;
     if (request->areaId == GAME_AREA_DRYFIELD_FACTORY && request->queryOnly == ROOM_EVENT_EXECUTE) {
-        flagClear   = gameFlagGetNibble(GAME_FLAG_FACTORY_BARRIER_CLEARED) == 0;
-        reply->room = flagClear ? 1 : 2;
+        flagClear        = gameFlagGetNibble(GAME_FLAG_FACTORY_BARRIER_CLEARED) == 0;
+        reply->roomState = flagClear ? 1 : 2;
     }
     if (request->areaId == GAME_AREA_DRYFIELD_WATER_HOLE && request->queryOnly == ROOM_EVENT_EXECUTE) {
-        flagClear   = gameFlagGetNibble(GAME_FLAG_UNDERPASS_SWITCH_1) == 0;
-        reply->room = flagClear ? 2 : 1;
+        flagClear        = gameFlagGetNibble(GAME_FLAG_UNDERPASS_SWITCH_1) == 0;
+        reply->roomState = flagClear ? 2 : 1;
         if (gameFlagGetNibble(GAME_FLAG_053) != 0) {
-            reply->room = reply->room + 2;
+            reply->roomState = reply->roomState + 2;
         }
     }
     if (request->areaId == GAME_AREA_DRYFIELD_MAIN_STREET && gameFlagGetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SCENE_SEEN) != 0) {

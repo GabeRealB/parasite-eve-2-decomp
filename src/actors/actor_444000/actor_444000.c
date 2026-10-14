@@ -3092,20 +3092,20 @@ static void _actor444000EventUpdateDescentRoom(s32 updateMode)
             // Both saved and live locations follow the lift phase before room data reloads.
             switch (gGameSession->incineratorDescentPhase) {
                 case GAME_SESSION_INCINERATOR_DESCENT_WAITING:
-                    gGameSession->location.room                            = ACTOR_444000_DESCENT_WAITING_ROOM;
-                    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.room = ACTOR_444000_DESCENT_WAITING_ROOM;
+                    gGameSession->location.roomState                            = ACTOR_444000_DESCENT_WAITING_ROOM;
+                    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.roomState = ACTOR_444000_DESCENT_WAITING_ROOM;
                     break;
                 case GAME_SESSION_INCINERATOR_DESCENT_MOVING:
-                    gGameSession->location.room                            = ACTOR_444000_DESCENT_MOVING_ROOM;
-                    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.room = ACTOR_444000_DESCENT_MOVING_ROOM;
+                    gGameSession->location.roomState                            = ACTOR_444000_DESCENT_MOVING_ROOM;
+                    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.roomState = ACTOR_444000_DESCENT_MOVING_ROOM;
                     break;
                 case GAME_SESSION_INCINERATOR_DESCENT_LANDED:
                 case GAME_SESSION_INCINERATOR_DESCENT_COMPLETE:
-                    gGameSession->location.room                            = ACTOR_444000_DESCENT_LANDED_ROOM;
-                    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.room = ACTOR_444000_DESCENT_LANDED_ROOM;
+                    gGameSession->location.roomState                            = ACTOR_444000_DESCENT_LANDED_ROOM;
+                    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.roomState = ACTOR_444000_DESCENT_LANDED_ROOM;
                     break;
             }
-            gGameSession->eventRoomIndex                           = gGameSession->location.room - 1;
+            gGameSession->eventRoomIndex                           = gGameSession->location.roomState - 1;
             gGameSession->incineratorRoomGroup                     = 1;
             gGameSession->roomObjsDirty                            = 1;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = work->savedView;
@@ -6339,12 +6339,12 @@ static void _actor444000SummonState(Task* task)
                 work->summons[summonScratch->slot] = enemySpawnFromTable(gActor04400MadChaserTaskDescs, ACTOR_444000_SUMMON_TASK_INDEX, ACTOR_444000_SUMMON_ARGUMENT, NULL);
                 if (work->summons[summonScratch->slot] != NULL) {
                     work->summonsSpawned++;
-                    summonModel     = work->summons[summonScratch->slot]->task->extra.tmd;
-                    sessionLocation = &gGameSession->location;
-                    location.stage  = sessionLocation->stage;
-                    location.area   = sessionLocation->area;
-                    location.room   = sessionLocation->room;
-                    location.view   = sessionLocation->view;
+                    summonModel        = work->summons[summonScratch->slot]->task->extra.tmd;
+                    sessionLocation    = &gGameSession->location;
+                    location.stage     = sessionLocation->stage;
+                    location.area      = sessionLocation->area;
+                    location.roomState = sessionLocation->roomState;
+                    location.view      = sessionLocation->view;
                     areaSyncLocationVariant(&location);
                     texturePlacement               = &areaGetVariant(&location)->placements[ACTOR_444000_SUMMON_TEXTURE_PLACEMENT];
                     summonModel->texturePageOffset = texturePlacement->texturePageOffset;

@@ -1265,11 +1265,11 @@ static inline void _actor342000EnterIncineratorRoomInline(void)
         ACTOR_342000_INCINERATOR_EXIT_ROOM       = 7,
         ACTOR_342000_INCINERATOR_EXIT_ROOM_GROUP = 1,
     };
-    gGameSession->location.room                            = ACTOR_342000_INCINERATOR_EXIT_ROOM;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.room = ACTOR_342000_INCINERATOR_EXIT_ROOM;
-    gGameSession->eventRoomIndex                           = ACTOR_342000_INCINERATOR_EXIT_ROOM - 1;
-    gGameSession->incineratorRoomGroup                     = ACTOR_342000_INCINERATOR_EXIT_ROOM_GROUP;
-    gGameSession->roomObjsDirty                            = 1;
+    gGameSession->location.roomState                            = ACTOR_342000_INCINERATOR_EXIT_ROOM;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.roomState = ACTOR_342000_INCINERATOR_EXIT_ROOM;
+    gGameSession->eventRoomIndex                                = ACTOR_342000_INCINERATOR_EXIT_ROOM - 1;
+    gGameSession->incineratorRoomGroup                          = ACTOR_342000_INCINERATOR_EXIT_ROOM_GROUP;
+    gGameSession->roomObjsDirty                                 = 1;
     areaApplySavedUpdates(gShelterB3GarbageIncineratorDescentAreaUpdates);
 }
 

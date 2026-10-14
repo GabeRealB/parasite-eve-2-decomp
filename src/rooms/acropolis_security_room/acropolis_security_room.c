@@ -2171,9 +2171,9 @@ static inline void _acropolisSecurityRoomPowerSupplyBeginLeftUnlock(Task* task, 
     // Consume the matching key before committing the unlock and scene handoff.
     inventoryClearCollectedBit(INVENTORY_COLLECTION_ID_BLUE_KEY);
     sndEvtRequestScriptStart(SOUND_ACROPOLIS_SECURITY_ROOM_SHUTTER_UNLOCK, 0, 0);
-    gameFlagSetNibble(GAME_FLAG_SECURITY_ROOM_LOCKS_RELEASED, gameFlagGetNibble(GAME_FLAG_SECURITY_ROOM_LOCKS_RELEASED) | ACROPOLIS_SECURITY_ROOM_LOCKS_RELEASED_LEFT);
+    gameFlagSetNibble(EVENT_FLAG_AKROPOLIS_SECURITY_ROOM_PANEL_KEYS, gameFlagGetNibble(EVENT_FLAG_AKROPOLIS_SECURITY_ROOM_PANEL_KEYS) | ACROPOLIS_SECURITY_ROOM_LOCKS_RELEASED_LEFT);
     gameFlagSetNibble(GAME_FLAG_OBSERVATORY_ROUTE_PROGRESS, ACROPOLIS_SECURITY_ROOM_OBSERVATORY_ROUTE_UNLOCKED);
-    _acropolisSecurityRoomShowReleasedLocks(gameFlagGetNibble(GAME_FLAG_SECURITY_ROOM_LOCKS_RELEASED) & 0xFF);
+    _acropolisSecurityRoomShowReleasedLocks(gameFlagGetNibble(EVENT_FLAG_AKROPOLIS_SECURITY_ROOM_PANEL_KEYS) & 0xFF);
     work->usedKey = ACROPOLIS_SECURITY_ROOM_POWER_SUPPLY_KEY_NONE;
     task->state   = ACROPOLIS_SECURITY_ROOM_POWER_SUPPLY_STATE_FADE_LEFT;
     padInputChangeSuppression(PAD_INPUT_SUPPRESSION_SET, PAD_INPUT_SUPPRESS_GAMEPLAY);
@@ -2195,7 +2195,7 @@ static void _acropolisSecurityRoomPowerSupplyUseLeftLock(Task* task)
     s32                                    releasedLocks;
     s32                                    usedKey;
 
-    releasedLocks = gameFlagGetNibble(GAME_FLAG_SECURITY_ROOM_LOCKS_RELEASED);
+    releasedLocks = gameFlagGetNibble(EVENT_FLAG_AKROPOLIS_SECURITY_ROOM_PANEL_KEYS);
     if ((releasedLocks == ACROPOLIS_SECURITY_ROOM_LOCKS_RELEASED_NONE) || (releasedLocks == ACROPOLIS_SECURITY_ROOM_LOCKS_RELEASED_RIGHT)) {
         usedKey = work->usedKey;
         if (usedKey == ACROPOLIS_SECURITY_ROOM_POWER_SUPPLY_KEY_NONE) {
@@ -2230,14 +2230,14 @@ static inline void _acropolisSecurityRoomPowerSupplyBeginRightUnlock(Task* task,
     // Consume the matching key before committing the unlock and scene handoff.
     inventoryClearCollectedBit(INVENTORY_COLLECTION_ID_RED_KEY);
     sndEvtRequestScriptStart(SOUND_ACROPOLIS_SECURITY_ROOM_SHUTTER_UNLOCK, 0, 0);
-    gameFlagSetNibble(GAME_FLAG_SECURITY_ROOM_LOCKS_RELEASED, gameFlagGetNibble(GAME_FLAG_SECURITY_ROOM_LOCKS_RELEASED) | ACROPOLIS_SECURITY_ROOM_LOCKS_RELEASED_RIGHT);
-    _acropolisSecurityRoomShowReleasedLocks(gameFlagGetNibble(GAME_FLAG_SECURITY_ROOM_LOCKS_RELEASED) & 0xFF);
+    gameFlagSetNibble(EVENT_FLAG_AKROPOLIS_SECURITY_ROOM_PANEL_KEYS, gameFlagGetNibble(EVENT_FLAG_AKROPOLIS_SECURITY_ROOM_PANEL_KEYS) | ACROPOLIS_SECURITY_ROOM_LOCKS_RELEASED_RIGHT);
+    _acropolisSecurityRoomShowReleasedLocks(gameFlagGetNibble(EVENT_FLAG_AKROPOLIS_SECURITY_ROOM_PANEL_KEYS) & 0xFF);
     work->usedKey            = ACROPOLIS_SECURITY_ROOM_POWER_SUPPLY_KEY_NONE;
     task->state              = ACROPOLIS_SECURITY_ROOM_POWER_SUPPLY_STATE_FADE_RIGHT;
     gGameSession->eventState = 1;
     padInputChangeSuppression(PAD_INPUT_SUPPRESSION_SET, PAD_INPUT_SUPPRESS_GAMEPLAY);
     areaApplySavedUpdates(_gAcropolisSecurityRoomRightUnlockAreaUpdates);
-    if (gameFlagGetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE) < ACROPOLIS_SECURITY_ROOM_FOLLOW_UP_UPDATE_SPLIT) {
+    if (gameFlagGetNibble(EVENT_FLAG_TELEPHONE_DIALOGUE_COUNTER) < ACROPOLIS_SECURITY_ROOM_FOLLOW_UP_UPDATE_SPLIT) {
         areaApplySavedUpdates(_gAcropolisSecurityRoomRightUnlockEarlyStoryAreaUpdates);
     } else {
         areaApplySavedUpdates(_gAcropolisSecurityRoomRightUnlockLateStoryAreaUpdates);
@@ -2258,7 +2258,7 @@ static void _acropolisSecurityRoomPowerSupplyUseRightLock(Task* task)
     s32                                    releasedLocks;
     s32                                    usedKey;
 
-    releasedLocks = gameFlagGetNibble(GAME_FLAG_SECURITY_ROOM_LOCKS_RELEASED);
+    releasedLocks = gameFlagGetNibble(EVENT_FLAG_AKROPOLIS_SECURITY_ROOM_PANEL_KEYS);
     if ((releasedLocks == ACROPOLIS_SECURITY_ROOM_LOCKS_RELEASED_NONE) || (releasedLocks == ACROPOLIS_SECURITY_ROOM_LOCKS_RELEASED_LEFT)) {
         usedKey = work->usedKey;
         if (usedKey == ACROPOLIS_SECURITY_ROOM_POWER_SUPPLY_KEY_NONE) {
@@ -2337,7 +2337,7 @@ static void _acropolisSecurityRoomPowerSupplyInit(Task* task)
     task->state++;
     work->usedKey = ACROPOLIS_SECURITY_ROOM_POWER_SUPPLY_KEY_NONE;
     work->timer   = 0;
-    _acropolisSecurityRoomShowReleasedLocks(gameFlagGetNibble(GAME_FLAG_SECURITY_ROOM_LOCKS_RELEASED) & 0xFF);
+    _acropolisSecurityRoomShowReleasedLocks(gameFlagGetNibble(EVENT_FLAG_AKROPOLIS_SECURITY_ROOM_PANEL_KEYS) & 0xFF);
     gGameSession->cutsceneHold = 1;
     gGameSession->hideHud      = 1;
     gGameSession->eventState   = 1;
@@ -2826,7 +2826,7 @@ void acropolisSecurityRoomMonitorFeedsTask(Task* task)
         }
 
         case ACROPOLIS_SECURITY_ROOM_FEEDS_STATE_UPDATE:
-            work->index = _gAcropolisSecurityRoomLockIndicatorMasksByReleasedLocks[gameFlagGetNibble(GAME_FLAG_SECURITY_ROOM_LOCKS_RELEASED)];
+            work->index = _gAcropolisSecurityRoomLockIndicatorMasksByReleasedLocks[gameFlagGetNibble(EVENT_FLAG_AKROPOLIS_SECURITY_ROOM_PANEL_KEYS)];
             if ((viewGetMappedIndex() & 0xFF) == ACROPOLIS_SECURITY_ROOM_FEEDS_PICTURE_VIEW) {
                 const u16* litPalette     = _gAcropolisSecurityRoomLeftLockedPalette;
                 const u16* offPalette     = _gAcropolisSecurityRoomLockIndicatorOffPalette;

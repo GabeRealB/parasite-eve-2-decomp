@@ -1101,7 +1101,7 @@ extern InventoryBattleReward gMapDryfieldFullHardBattleRewards[9];
 
 /// Resolves the night Junk Yard's destination room from event progress.
 ///
-/// On ROOM_EVENT_EXECUTE for that area, writes only reply->room to the event
+/// On ROOM_EVENT_EXECUTE for that area, writes only reply->roomState to the event
 /// progress nibble plus 1 (1..16). The flag must select a room present in the
 /// destination's tables. Queries and other areas leave the reply untouched;
 /// initialize it before calling. The borrowed records may alias and are never

@@ -8,11 +8,11 @@
 /// Resets room presentation/music state and selects the loaded map's room task.
 ///
 /// State 0 of `objectTaskRoomTask`; neither spawn argument is consumed.
-/// Requires a live bodyless task and session with stage 1..5, area/room IDs
+/// Requires a live bodyless task and session with stage 1..5, area and room state
 /// below 100 and a loaded, TASK_DESC_END-terminated stage descriptor table.
-/// The decimal key is stage * 10000 + area * 100 + room; room zero denotes
-/// the area default. Selects the first bodyless priority-32 descriptor matching
-/// the room key or area key, in table order, and attempts to spawn it with zero
+/// The decimal key is stage * 10000 + area * 100 + room state; room state zero
+/// denotes the area default. Selects the first bodyless priority-32 descriptor matching
+/// the room-state key or area key, in table order, and attempts to spawn it with zero
 /// arguments. Allocation failure still advances this selector to state 1.
 /// With no match, installs the default transition/key-item message receiver and
 /// publishes this task in GAME_TASK_SLOT_ROOM. The slot borrows the task through

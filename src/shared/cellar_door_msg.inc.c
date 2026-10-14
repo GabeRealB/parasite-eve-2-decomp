@@ -19,18 +19,18 @@ static s32 _roomVariantResolveCellar(Task* task, s32 messageId, const RoomEventM
     if (request->areaId == GAME_AREA_DRYFIELD_UNDERPASS && request->queryOnly == ROOM_EVENT_EXECUTE) {
         if (gameFlagGetNibble(GAME_FLAG_UNDERPASS_EVENT_SEEN) != 0) {
             if (gameFlagGetNibble(GAME_FLAG_053) != 0) {
-                reply->room = CELLAR_UNDERPASS_ROOM_AFTER_EVENT_FLAG_053;
+                reply->roomState = CELLAR_UNDERPASS_ROOM_AFTER_EVENT_FLAG_053;
             } else {
-                reply->room = CELLAR_UNDERPASS_ROOM_AFTER_EVENT;
+                reply->roomState = CELLAR_UNDERPASS_ROOM_AFTER_EVENT;
             }
             if (gameFlagGetNibble(GAME_FLAG_UNDERPASS_SWITCH_1) == 0) {
-                reply->room = (u8)reply->room + CELLAR_UNDERPASS_SWITCH_OFF_ROOM_OFFSET;
+                reply->roomState = (u8)reply->roomState + CELLAR_UNDERPASS_SWITCH_OFF_ROOM_OFFSET;
             }
         } else {
             if (gameFlagGetNibble(GAME_FLAG_UNDERPASS_SWITCH_1) != 0) {
-                reply->room = CELLAR_UNDERPASS_ROOM_BEFORE_EVENT_SWITCH_ON;
+                reply->roomState = CELLAR_UNDERPASS_ROOM_BEFORE_EVENT_SWITCH_ON;
             } else {
-                reply->room = CELLAR_UNDERPASS_ROOM_BEFORE_EVENT_SWITCH_OFF;
+                reply->roomState = CELLAR_UNDERPASS_ROOM_BEFORE_EVENT_SWITCH_OFF;
             }
         }
     }

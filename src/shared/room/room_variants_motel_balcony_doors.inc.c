@@ -52,14 +52,14 @@ s32 ROOM_VARIANT_MOTEL_BALCONY_DOORS_MSG(Task* task, s32 messageId, const RoomEv
 
     *reply = *request;
     if (request->areaId == GAME_AREA_DRYFIELD_MOTEL_ROOM_5 && request->queryOnly == ROOM_EVENT_EXECUTE) {
-        reply->room = gameFlagGetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SCENE_SEEN) + 1;
+        reply->roomState = gameFlagGetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SCENE_SEEN) + 1;
     }
     if (request->areaId == GAME_AREA_DRYFIELD_PARKING_LOT && request->queryOnly == ROOM_EVENT_EXECUTE) {
-        reply->room = gameFlagGetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SCENE_SEEN) + 1;
+        reply->roomState = gameFlagGetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SCENE_SEEN) + 1;
     }
     if (request->areaId == GAME_AREA_DRYFIELD_MOTEL_LOFT && request->queryOnly == ROOM_EVENT_EXECUTE) {
         loftEventPending = gameFlagGetNibble(GAME_FLAG_NIGHT_MOTEL_LOFT_EVENT_SEEN) == 0;
-        reply->room      = loftEventPending ? ROOM_VARIANT_MOTEL_LOFT_BEFORE_EVENT_ROOM : ROOM_VARIANT_MOTEL_LOFT_AFTER_EVENT_ROOM;
+        reply->roomState = loftEventPending ? ROOM_VARIANT_MOTEL_LOFT_BEFORE_EVENT_ROOM : ROOM_VARIANT_MOTEL_LOFT_AFTER_EVENT_ROOM;
     }
     // Gate the resolved reply so the deferred event keeps its destination room.
     if (request->areaId == GAME_AREA_DRYFIELD_MOTEL_ROOM_5) {

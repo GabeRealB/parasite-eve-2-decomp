@@ -1666,7 +1666,6 @@ void actor160700RestoreMeetingAnimation(void)
 void actor160700StartMeetingScript(void)
 {
     enum {
-        ACTOR_160700_FOLLOW_UP_NOT_STARTED              = 0,
         ACTOR_160700_STORY_DIALOGUE_AFTER_FIRST_MEETING = 12,
     };
 
@@ -1675,8 +1674,8 @@ void actor160700StartMeetingScript(void)
         case ACTOR_160700_MEETING_UNMET:
             evsStartScriptWithSkip(_gActor160700FirstMeetingScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, _gActor160700MeetingSkipScript);
             gameFlagSetNibble(GAME_FLAG_ACTOR_160700_MEETING_PROGRESS, ACTOR_160700_MEETING_FIRST_SEEN);
-            gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, ACTOR_160700_FOLLOW_UP_NOT_STARTED);
-            gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, ACTOR_160700_STORY_DIALOGUE_AFTER_FIRST_MEETING);
+            gameFlagSetNibble(EVENT_FLAG_TELEPHONE_DIALOGUE_COUNTER, EVENT_FLAG_TELEPHONE_DIALOGUE_UNHEARD);
+            gameFlagSetNibble(EVENT_FLAG_STORY_DIALOGUE_INDEX, ACTOR_160700_STORY_DIALOGUE_AFTER_FIRST_MEETING);
             break;
         case ACTOR_160700_MEETING_FIRST_SEEN:
             evsStartScriptWithSkip(_gActor160700SecondMeetingScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, _gActor160700MeetingSkipScript);

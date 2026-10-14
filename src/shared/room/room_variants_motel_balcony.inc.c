@@ -44,7 +44,7 @@ s32 ROOM_VARIANT_MOTEL_BALCONY_RESOLVE_HANDLER(Task* task, s32 messageId, const 
     *reply = *request;
     if (request->areaId == GAME_AREA_DRYFIELD_NIGHT_MOTEL_BALCONY && request->queryOnly == ROOM_EVENT_EXECUTE) {
         ROOM_VARIANT_SELECT_MOTEL_BALCONY_ROOM(destinationRoom);
-        reply->room = destinationRoom;
+        reply->roomState = destinationRoom;
     }
     return ROOM_VARIANT_TRANSITION_DIRECT;
 #undef ROOM_VARIANT_SELECT_MOTEL_BALCONY_ROOM

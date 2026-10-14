@@ -43,9 +43,6 @@ static void _roomCutsceneTask(Task* task)
         ROOM_CUTSCENE_ITEM_FOLLOW_UP_CHAPTER    = 5,
         ROOM_CUTSCENE_ITEM_FOLLOW_UP_DIALOGUE   = 9,
         ROOM_CUTSCENE_REPEAT_DIALOGUE           = 14,
-        ROOM_CUTSCENE_FOLLOW_UP_CLEAR           = 0,
-        ROOM_CUTSCENE_FOLLOW_UP_RUNNING         = 1,
-        ROOM_CUTSCENE_FOLLOW_UP_COMPLETE        = 2,
         ROOM_CUTSCENE_OPENING_CHAPTER           = 1,
         ROOM_CUTSCENE_ACROPOLIS_PROGRESS_BEFORE = 2,
         ROOM_CUTSCENE_ACROPOLIS_PROGRESS_AFTER  = 3,
@@ -171,8 +168,8 @@ static void _roomCutsceneTask(Task* task)
                     if (storyChapter == ROOM_CUTSCENE_ITEM_FOLLOW_UP_CHAPTER) {
                         if (gameFlagGetNibble(GAME_FLAG_ITEM_125_EXAMINED) != 0) {
                             if (gameFlagGetNibble(GAME_FLAG_ITEM_125_FOLLOWUP_SEEN) == 0) {
-                                gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, ROOM_CUTSCENE_FOLLOW_UP_CLEAR);
-                                gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, ROOM_CUTSCENE_ITEM_FOLLOW_UP_DIALOGUE);
+                                gameFlagSetNibble(EVENT_FLAG_TELEPHONE_DIALOGUE_COUNTER, EVENT_FLAG_TELEPHONE_DIALOGUE_UNHEARD);
+                                gameFlagSetNibble(EVENT_FLAG_STORY_DIALOGUE_INDEX, ROOM_CUTSCENE_ITEM_FOLLOW_UP_DIALOGUE);
                                 gameFlagSetNibble(GAME_FLAG_ITEM_125_FOLLOWUP_SEEN, 1);
                             }
                         }
@@ -180,14 +177,14 @@ static void _roomCutsceneTask(Task* task)
                 }
             }
             if (cutscene->capSlot == ROOM_CUTSCENE_STORY_CAP_SLOT) {
-                capRunCommand(gameFlagGetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX) + ROOM_CUTSCENE_DIALOGUE_COMMAND_BASE, CAP_PLAYBACK_IN_PLACE);
+                capRunCommand(gameFlagGetNibble(EVENT_FLAG_STORY_DIALOGUE_INDEX) + ROOM_CUTSCENE_DIALOGUE_COMMAND_BASE, CAP_PLAYBACK_IN_PLACE);
             } else {
                 capRunCommand(cutscene->capSlot, CAP_PLAYBACK_IN_PLACE);
             }
             if (gameFlagGetNibble(GAME_FLAG_STORY_CHAPTER) == ROOM_CUTSCENE_OPENING_CHAPTER) {
-                if (gameFlagGetNibble(GAME_FLAG_AKROPOLIS_PROGRESS) == ROOM_CUTSCENE_ACROPOLIS_PROGRESS_BEFORE) {
-                    gameFlagSetNibble(GAME_FLAG_AKROPOLIS_PROGRESS, ROOM_CUTSCENE_ACROPOLIS_PROGRESS_AFTER);
-                    gameFlagSetNibble(GAME_FLAG_00E, ROOM_CUTSCENE_POST_SCENE_FLAG_VALUE);
+                if (gameFlagGetNibble(EVENT_FLAG_AKROPOLIS_CAFETERIA_ROUTE_PROGRESS) == ROOM_CUTSCENE_ACROPOLIS_PROGRESS_BEFORE) {
+                    gameFlagSetNibble(EVENT_FLAG_AKROPOLIS_CAFETERIA_ROUTE_PROGRESS, ROOM_CUTSCENE_ACROPOLIS_PROGRESS_AFTER);
+                    gameFlagSetNibble(EVENT_FLAG_AKROPOLIS_CAFETERIA_BOSS_REPORT, ROOM_CUTSCENE_POST_SCENE_FLAG_VALUE);
                     if ((GAME_LOCATION_WORD(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_SQUARE, 0, 0)) {
                         areaApplySavedUpdates(gAkropolisSquarePostCutsceneAreaUpdates);
                         gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, ROOM_CUTSCENE_SQUARE_OBJECTIVE);
@@ -198,8 +195,8 @@ static void _roomCutsceneTask(Task* task)
             break;
         case ROOM_CUTSCENE_STATE_WAIT_DIALOGUE:
             if (capIsBusy() == 0) {
-                if ((gameFlagGetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX) == ROOM_CUTSCENE_REPEAT_DIALOGUE) && (gameFlagGetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE) == ROOM_CUTSCENE_FOLLOW_UP_CLEAR)) {
-                    gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, ROOM_CUTSCENE_FOLLOW_UP_RUNNING);
+                if ((gameFlagGetNibble(EVENT_FLAG_STORY_DIALOGUE_INDEX) == ROOM_CUTSCENE_REPEAT_DIALOGUE) && (gameFlagGetNibble(EVENT_FLAG_TELEPHONE_DIALOGUE_COUNTER) == EVENT_FLAG_TELEPHONE_DIALOGUE_UNHEARD)) {
+                    gameFlagSetNibble(EVENT_FLAG_TELEPHONE_DIALOGUE_COUNTER, EVENT_FLAG_TELEPHONE_DIALOGUE_LOOP_ACTIVE);
                     task->state = ROOM_CUTSCENE_STATE_START_LOOP;
                 } else {
                     capRunCommandWithTransition(task->spawnArg1.value);
@@ -239,7 +236,7 @@ static void _roomCutsceneTask(Task* task)
         case ROOM_CUTSCENE_STATE_UNUSED_19:
             break;
         case ROOM_CUTSCENE_STATE_START_LOOP:
-            capRunCommand(gameFlagGetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX) + ROOM_CUTSCENE_DIALOGUE_COMMAND_BASE, CAP_PLAYBACK_IN_PLACE);
+            capRunCommand(gameFlagGetNibble(EVENT_FLAG_STORY_DIALOGUE_INDEX) + ROOM_CUTSCENE_DIALOGUE_COMMAND_BASE, CAP_PLAYBACK_IN_PLACE);
             task->state++;
             break;
         case ROOM_CUTSCENE_STATE_WAIT_LOOP:
@@ -258,7 +255,7 @@ static void _roomCutsceneTask(Task* task)
                     task->state++;
                     break;
                 default:
-                    gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, ROOM_CUTSCENE_FOLLOW_UP_COMPLETE);
+                    gameFlagSetNibble(EVENT_FLAG_TELEPHONE_DIALOGUE_COUNTER, EVENT_FLAG_TELEPHONE_DIALOGUE_LOOP_DONE);
                     task->state = ROOM_CUTSCENE_STATE_WAIT_DIALOGUE;
                     break;
             }

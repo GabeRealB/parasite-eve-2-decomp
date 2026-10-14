@@ -2462,8 +2462,8 @@ static void _acropolisPatioInitializeRoomTask(Task* task)
 
     task->msgTable = _gAcropolisPatioRoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
-    if (gameFlagGetNibble(GAME_FLAG_AKROPOLIS_PROGRESS) < ACROPOLIS_PATIO_STORY_BATTLE_FINISHED) {
-        if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.room == 1) {
+    if (gameFlagGetNibble(EVENT_FLAG_AKROPOLIS_CAFETERIA_ROUTE_PROGRESS) < ACROPOLIS_PATIO_STORY_BATTLE_FINISHED) {
+        if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.roomState == 1) {
             TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(0), ACTOR_MESSAGE_PLACE, &_gAcropolisPatioRestoredSwatPlacement, 0);
             TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(0), ACTOR_COMMAND_MESSAGE_APPLY, &_gAcropolisPatioSwatAnimation3Command, 0);
             taskMessageDispatch(sceneFindPlacedActor(0), ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
@@ -2474,7 +2474,7 @@ static void _acropolisPatioInitializeRoomTask(Task* task)
             TASK_MESSAGE_DISPATCH_POINTER(placedActor, ACTOR_MESSAGE_PLACE, &_gAcropolisPatioRestoredStrangerPlacement, 0);
         }
     }
-    if ((gGameSession->location.variant == 1) && (gameFlagGetNibble(GAME_FLAG_AKROPOLIS_OPENING_PROGRESS) < ACROPOLIS_PATIO_OPENING_SCENE_THRESHOLD) && (gameFlagGetNibble(GAME_FLAG_AKROPOLIS_OPENING_PROGRESS) < ACROPOLIS_PATIO_OPENING_SCENE_THRESHOLD)) {
+    if ((gGameSession->location.variant == 1) && (gameFlagGetNibble(EVENT_FLAG_AKROPOLIS_PATIO_CUTSCENE_PROGRESS) < ACROPOLIS_PATIO_OPENING_SCENE_THRESHOLD) && (gameFlagGetNibble(EVENT_FLAG_AKROPOLIS_PATIO_CUTSCENE_PROGRESS) < ACROPOLIS_PATIO_OPENING_SCENE_THRESHOLD)) {
         placedActor = sceneFindPlacedActor(1);
         if (placedActor != 0) {
             TASK_MESSAGE_DISPATCH_POINTER(placedActor, ACTOR_COMMAND_MESSAGE_APPLY, &_gAcropolisPatioHideStrangerCommand, 0);
@@ -2506,7 +2506,7 @@ static inline void _acropolisPatioStartCafeteriaDoorSequence(const RoomEventMsg*
     taskSpawnFromTable(_gAcropolisPatioSceneTaskDescriptors, ACROPOLIS_PATIO_CAFETERIA_DOOR_TASK, 0, 0);
     itemSetIdentified(INVENTORY_COLLECTION_ID_PARTHENON_KEY, 1);
     _gAcropolisPatioCafeteriaArrivalWarp = request->warp;
-    _gAcropolisPatioCafeteriaArrivalRoom = request->room;
+    _gAcropolisPatioCafeteriaArrivalRoom = request->roomState;
 }
 
 /// Resolves patio exits, including the scripted cafeteria-door departure.
@@ -2530,8 +2530,8 @@ static s32 _acropolisPatioResolveRoomTransition(Task* unusedTask, s32 messageId,
 
     *reply = *request;
     if (request->areaId == GAME_AREA_AKROPOLIS_FOUNTAIN) {
-        if ((gameFlagGetNibble(GAME_FLAG_SECURITY_ROOM_LOCKS_RELEASED) & ACROPOLIS_PATIO_SECOND_SECURITY_LOCK_BIT) && (request->queryOnly == ROOM_EVENT_EXECUTE)) {
-            reply->room = 2;
+        if ((gameFlagGetNibble(EVENT_FLAG_AKROPOLIS_SECURITY_ROOM_PANEL_KEYS) & ACROPOLIS_PATIO_SECOND_SECURITY_LOCK_BIT) && (request->queryOnly == ROOM_EVENT_EXECUTE)) {
+            reply->roomState = 2;
         }
     }
     if (request->areaId == GAME_AREA_AKROPOLIS_CAFETERIA) {
@@ -2545,7 +2545,7 @@ static s32 _acropolisPatioResolveRoomTransition(Task* unusedTask, s32 messageId,
             }
             return transitionResult;
         }
-        if (gameFlagGetNibble(GAME_FLAG_AKROPOLIS_PROGRESS) == ACROPOLIS_PATIO_STORY_BATTLE_FINISHED) {
+        if (gameFlagGetNibble(EVENT_FLAG_AKROPOLIS_CAFETERIA_ROUTE_PROGRESS) == ACROPOLIS_PATIO_STORY_BATTLE_FINISHED) {
             transitionResult = ACROPOLIS_PATIO_TRANSITION_DEFERRED;
             if (request->queryOnly == ROOM_EVENT_EXECUTE) {
                 if (gameFlagGetNibble(GAME_FLAG_PATIO_CAFETERIA_DOOR_SCENE_SEEN) == ACROPOLIS_PATIO_SCENE_UNSEEN) {
@@ -2568,7 +2568,7 @@ static s32 _acropolisPatioResolveRoomTransition(Task* unusedTask, s32 messageId,
             return transitionResult;
         }
     }
-    if ((request->areaId == GAME_AREA_AKROPOLIS_FOUNTAIN) && (gameFlagGetNibble(GAME_FLAG_AKROPOLIS_PROGRESS) < ACROPOLIS_PATIO_STORY_FOUNTAIN_READY)) {
+    if ((request->areaId == GAME_AREA_AKROPOLIS_FOUNTAIN) && (gameFlagGetNibble(EVENT_FLAG_AKROPOLIS_CAFETERIA_ROUTE_PROGRESS) < ACROPOLIS_PATIO_STORY_FOUNTAIN_READY)) {
         transitionResult = ACROPOLIS_PATIO_TRANSITION_BLOCKED;
         if (request->queryOnly == ROOM_EVENT_EXECUTE) {
             gameFlagSetNibbleIfPresent(request->flagId, 2);
@@ -2577,20 +2577,20 @@ static s32 _acropolisPatioResolveRoomTransition(Task* unusedTask, s32 messageId,
         }
         return transitionResult;
     }
-    if ((request->queryOnly == ROOM_EVENT_EXECUTE) && (gameFlagGetNibble(GAME_FLAG_AKROPOLIS_OPENING_PROGRESS) == ACROPOLIS_PATIO_OPENING_SCENE_STARTED)) {
-        gameFlagSetNibble(GAME_FLAG_AKROPOLIS_OPENING_PROGRESS, ACROPOLIS_PATIO_OPENING_SCENE_FINISHED);
+    if ((request->queryOnly == ROOM_EVENT_EXECUTE) && (gameFlagGetNibble(EVENT_FLAG_AKROPOLIS_PATIO_CUTSCENE_PROGRESS) == ACROPOLIS_PATIO_OPENING_SCENE_STARTED)) {
+        gameFlagSetNibble(EVENT_FLAG_AKROPOLIS_PATIO_CUTSCENE_PROGRESS, ACROPOLIS_PATIO_OPENING_SCENE_FINISHED);
     }
     destinationArea  = request->areaId;
     transitionResult = ACROPOLIS_PATIO_TRANSITION_ALLOWED;
     if (destinationArea == GAME_AREA_AKROPOLIS_CAFETERIA) {
         transitionResult = ACROPOLIS_PATIO_TRANSITION_ALLOWED;
         if (request->queryOnly == ROOM_EVENT_EXECUTE) {
-            if (gameFlagGetNibble(GAME_FLAG_AKROPOLIS_PROGRESS) >= ACROPOLIS_PATIO_STORY_FOLLOW_UP_STARTED) {
-                reply->room = destinationArea;
+            if (gameFlagGetNibble(EVENT_FLAG_AKROPOLIS_CAFETERIA_ROUTE_PROGRESS) >= ACROPOLIS_PATIO_STORY_FOLLOW_UP_STARTED) {
+                reply->roomState = destinationArea;
             }
             transitionResult = ACROPOLIS_PATIO_TRANSITION_ALLOWED;
-            if (gameFlagGetNibble(GAME_FLAG_AKROPOLIS_PROGRESS) == ACROPOLIS_PATIO_STORY_BATTLE_FINISHED) {
-                reply->room      = 3;
+            if (gameFlagGetNibble(EVENT_FLAG_AKROPOLIS_CAFETERIA_ROUTE_PROGRESS) == ACROPOLIS_PATIO_STORY_BATTLE_FINISHED) {
+                reply->roomState = 3;
                 transitionResult = ACROPOLIS_PATIO_TRANSITION_ALLOWED;
             }
         }
@@ -2610,10 +2610,10 @@ static inline void _acropolisPatioCommitCafeteriaDeparture(Task* task)
     enum { ACROPOLIS_PATIO_CAFETERIA_SPRITE_VARIANT = 1 };
 
     sndEvtRequestScriptStop(SOUND_BANK_TYPE_ALL_NON_AMBIENT, SOUND_SCRIPT_STOP_NO_FADE);
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.area = GAME_AREA_AKROPOLIS_CAFETERIA;
-    gDisplayState.spriteVariant                            = ACROPOLIS_PATIO_CAFETERIA_SPRITE_VARIANT;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp = _gAcropolisPatioCafeteriaArrivalWarp;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.room = _gAcropolisPatioCafeteriaArrivalRoom;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.area      = GAME_AREA_AKROPOLIS_CAFETERIA;
+    gDisplayState.spriteVariant                                 = ACROPOLIS_PATIO_CAFETERIA_SPRITE_VARIANT;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp      = _gAcropolisPatioCafeteriaArrivalWarp;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.roomState = _gAcropolisPatioCafeteriaArrivalRoom;
     taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
     taskKill(task);
 }
@@ -2688,19 +2688,19 @@ static s32 _acropolisPatioHandleActionMessage(Task* unusedTask, s32 messageId, c
 
     u8 actionId;
 
-    if ((actionRequest->actionId == ACROPOLIS_PATIO_ACTION_OPENING) && (gameFlagGetNibble(GAME_FLAG_AKROPOLIS_OPENING_PROGRESS) < ACROPOLIS_PATIO_OPENING_SCENE_THRESHOLD)) {
-        gameFlagSetNibble(GAME_FLAG_AKROPOLIS_OPENING_PROGRESS, ACROPOLIS_PATIO_OPENING_SCENE_STARTED);
+    if ((actionRequest->actionId == ACROPOLIS_PATIO_ACTION_OPENING) && (gameFlagGetNibble(EVENT_FLAG_AKROPOLIS_PATIO_CUTSCENE_PROGRESS) < ACROPOLIS_PATIO_OPENING_SCENE_THRESHOLD)) {
+        gameFlagSetNibble(EVENT_FLAG_AKROPOLIS_PATIO_CUTSCENE_PROGRESS, ACROPOLIS_PATIO_OPENING_SCENE_STARTED);
         evsStartScriptWithSkip(_gAcropolisPatioOpeningScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, _gAcropolisPatioOpeningSkipScript);
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 3;
         gGameSession->flowFlags                             = (GAME_SESSION_FLOW_SKIP_ENDING_MUSIC | GAME_SESSION_FLOW_HIDE_REEQUIPPED_WEAPON | GAME_SESSION_FLOW_REEQUIP_WEAPON);
     }
-    if ((actionRequest->actionId == ACROPOLIS_PATIO_ACTION_FOLLOW_UP) && (gameFlagGetNibble(GAME_FLAG_AKROPOLIS_OPENING_PROGRESS) == ACROPOLIS_PATIO_OPENING_SCENE_STARTED) &&
+    if ((actionRequest->actionId == ACROPOLIS_PATIO_ACTION_FOLLOW_UP) && (gameFlagGetNibble(EVENT_FLAG_AKROPOLIS_PATIO_CUTSCENE_PROGRESS) == ACROPOLIS_PATIO_OPENING_SCENE_STARTED) &&
         (taskMessageDispatch(sceneFindPlacedActor(1), ACTOR_MESSAGE_IS_PRESENT, 0, 0) == 0)) {
-        gameFlagSetNibble(GAME_FLAG_AKROPOLIS_OPENING_PROGRESS, ACROPOLIS_PATIO_OPENING_SCENE_FINISHED);
+        gameFlagSetNibble(EVENT_FLAG_AKROPOLIS_PATIO_CUTSCENE_PROGRESS, ACROPOLIS_PATIO_OPENING_SCENE_FINISHED);
         evsStartScriptWithSkip(_gAcropolisPatioFollowUpScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, _gAcropolisPatioFollowUpSkipScript);
     }
     actionId = actionRequest->actionId;
-    if ((actionId == ACROPOLIS_PATIO_ACTION_SECOND_VISIT) && (gameFlagGetNibble(GAME_FLAG_AKROPOLIS_PATIO_026) == ACROPOLIS_PATIO_SCENE_UNSEEN) && (gameFlagGetNibble(GAME_FLAG_AKROPOLIS_PROGRESS) == actionId)) {
+    if ((actionId == ACROPOLIS_PATIO_ACTION_SECOND_VISIT) && (gameFlagGetNibble(GAME_FLAG_AKROPOLIS_PATIO_026) == ACROPOLIS_PATIO_SCENE_UNSEEN) && (gameFlagGetNibble(EVENT_FLAG_AKROPOLIS_CAFETERIA_ROUTE_PROGRESS) == actionId)) {
         gameFlagSetNibble(GAME_FLAG_AKROPOLIS_PATIO_026, ACROPOLIS_PATIO_SCENE_SEEN);
         evsStartScriptWithSkip(_gAcropolisPatioSecondVisitScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, _gAcropolisPatioSecondVisitSkipScript);
     }
@@ -2725,7 +2725,7 @@ static s32 _acropolisPatioHandleCommandMessage(Task* unusedTask, s32 messageId, 
     }
     reply = 2;
     if (commandId == ACROPOLIS_PATIO_COMMAND_EVENT_2) {
-        reply = gameFlagGetNibble(GAME_FLAG_AKROPOLIS_PROGRESS) < ACROPOLIS_PATIO_STORY_BATTLE_FINISHED;
+        reply = gameFlagGetNibble(EVENT_FLAG_AKROPOLIS_CAFETERIA_ROUTE_PROGRESS) < ACROPOLIS_PATIO_STORY_BATTLE_FINISHED;
         if (reply != 0) {
             capSpawnEventIfIdle(ACROPOLIS_PATIO_COMMAND_EVENT_2, CAP_EVENT_NO_FLAGS);
             reply = 0;
@@ -2866,8 +2866,8 @@ static void _acropolisPatioActivateRoom2(void)
 {
     enum { ACROPOLIS_PATIO_ROOM_AFTER_SCENE = 2 };
 
-    gGameSession->location.room = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.room = ACROPOLIS_PATIO_ROOM_AFTER_SCENE;
-    gGameSession->roomObjsDirty                                                          = true;
+    gGameSession->location.roomState = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.roomState = ACROPOLIS_PATIO_ROOM_AFTER_SCENE;
+    gGameSession->roomObjsDirty                                                                    = true;
 }
 
 /// Sets the scene's actor update/visibility control from an event-script byte.

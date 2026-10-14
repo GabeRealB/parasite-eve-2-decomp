@@ -709,7 +709,7 @@ static void _generatorSpawn(Enemy* enemy, Task* task)
     sessionLocation      = &gGameSession->location;
     location.stage       = sessionLocation->stage;
     location.area        = sessionLocation->area;
-    location.room        = sessionLocation->room;
+    location.roomState   = sessionLocation->roomState;
     location.view        = sessionLocation->view;
     areaSyncLocationVariant(&location);
     areaVariant                             = areaGetVariant(&location);

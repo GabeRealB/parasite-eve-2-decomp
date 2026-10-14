@@ -950,9 +950,9 @@ static s32 _dryfieldDrivewayUseKeyItem(Task* unusedTask, s32 unusedMessageId, s3
             if (_roomEventTriggerHit() != 0) {
                 gameFlagSetNibble(GAME_FLAG_DRIVEWAY_PROGRESS, DRYFIELD_DRIVEWAY_PROGRESS_ROPE_USED);
                 taskSpawnFromTableOnDefaultList(_gDryfieldDrivewaySceneTasks, DRYFIELD_DRIVEWAY_BLACKOUT_TASK, 0, 0);
-                gGameSession->location.room = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.room = DRYFIELD_DRIVEWAY_ROOM_AFTER_ROPE);
-                gGameSession->hideHud       = DRYFIELD_DRIVEWAY_HIDE_HUD;
-                gGameSession->eventState    = DRYFIELD_DRIVEWAY_EVENT_ACTIVE;
+                gGameSession->location.roomState = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.roomState = DRYFIELD_DRIVEWAY_ROOM_AFTER_ROPE);
+                gGameSession->hideHud            = DRYFIELD_DRIVEWAY_HIDE_HUD;
+                gGameSession->eventState         = DRYFIELD_DRIVEWAY_EVENT_ACTIVE;
                 return ROOM_KEY_ITEM_USE_SHOW_USED_NOTICE;
             }
         }

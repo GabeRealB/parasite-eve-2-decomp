@@ -2029,7 +2029,7 @@ static void _shelterB1UndergroundParkingCheckCaptionHandoff(Task* roomTask)
     playerTask = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     player     = playerTask->work;
     rootCoord  = playerTask->extra.tmd->coords;
-    if ((player->mode != GAME_ACTOR_MODE_SCRIPTED) && (capIsBusy() == 0) && (gGameSession->location.room >= SHELTER_B1_UNDERGROUND_PARKING_ROOM_CAR_SCENE) &&
+    if ((player->mode != GAME_ACTOR_MODE_SCRIPTED) && (capIsBusy() == 0) && (gGameSession->location.roomState >= SHELTER_B1_UNDERGROUND_PARKING_ROOM_CAR_SCENE) &&
         (rootCoord->coord.t[0] < SHELTER_B1_UNDERGROUND_PARKING_HANDOFF_X_LIMIT)) {
         roomZ = rootCoord->coord.t[2];
         if (roomZ < SHELTER_B1_UNDERGROUND_PARKING_HANDOFF_Z_LIMIT) {
@@ -2073,13 +2073,13 @@ static s32 _shelterB1UndergroundParkingHandleDirectionAction(Task* roomTask, s32
         actor161500StartSoldierBRemark();
     }
     if (request->actionId == SHELTER_B1_UNDERGROUND_PARKING_ACTION_MAP_HANDOFF) {
-        if (request->argument == 1 && gGameSession->location.room < SHELTER_B1_UNDERGROUND_PARKING_ROOM_CAR_SCENE) {
+        if (request->argument == 1 && gGameSession->location.roomState < SHELTER_B1_UNDERGROUND_PARKING_ROOM_CAR_SCENE) {
             capStartSequenceSlot(SHELTER_B1_UNDERGROUND_PARKING_CAP_SLOT_HANDOFF, CAP_PLAYBACK_DISPLAY_TRANSITION, 0);
             gameFlagSetNibble(GAME_FLAG_MAP_MARK_UNDERGROUND_PARKING, 2);
         }
     }
     if (request->actionId == SHELTER_B1_UNDERGROUND_PARKING_ACTION_ROOM_CAP) {
-        switch (gGameSession->location.room) {
+        switch (gGameSession->location.roomState) {
             case 2:
                 capRunCommandWithTransition(SHELTER_B1_UNDERGROUND_PARKING_CAP_COMMAND_08);
                 break;
@@ -2102,7 +2102,7 @@ static s32 _shelterB1UndergroundParkingHandleDirectionAction(Task* roomTask, s32
         }
     }
     if (request->actionId == SHELTER_B1_UNDERGROUND_PARKING_ACTION_GARAGE_CHOICE) {
-        switch (gGameSession->location.room) {
+        switch (gGameSession->location.roomState) {
             case 6:
                 capStartSequenceSlot(SHELTER_B1_UNDERGROUND_PARKING_CAP_SLOT_GARAGE_CHOICE, CAP_PLAYBACK_DISPLAY_TRANSITION, 0);
                 break;
@@ -2165,7 +2165,7 @@ static s32 _shelterB1UndergroundParkingHandleCommand(Task* roomTask, s32 message
 
     switch (commandId) {
         case SHELTER_B1_UNDERGROUND_PARKING_COMMAND_PANEL:
-            if (gGameSession->location.room < SHELTER_B1_UNDERGROUND_PARKING_ROOM_CARD_ACCESS) {
+            if (gGameSession->location.roomState < SHELTER_B1_UNDERGROUND_PARKING_ROOM_CARD_ACCESS) {
                 if (gameFlagGetNibble(GAME_FLAG_B6_NURSERY_PROGRESS) == 0) {
                     capRunCommandWithTransition(SHELTER_B1_UNDERGROUND_PARKING_CAP_COMMAND_01);
                 } else if (gameFlagGetNibble(GAME_FLAG_SHELTER_B1_UNDERGROUND_PARKING_0E7) == 0) {
@@ -2182,7 +2182,7 @@ static s32 _shelterB1UndergroundParkingHandleCommand(Task* roomTask, s32 message
             }
             break;
         case SHELTER_B1_UNDERGROUND_PARKING_COMMAND_ROOM_CAP_7:
-            switch (gGameSession->location.room) {
+            switch (gGameSession->location.roomState) {
                 case 1:
                     capRunCommandWithTransition(SHELTER_B1_UNDERGROUND_PARKING_CAP_COMMAND_07);
                     break;
@@ -2203,7 +2203,7 @@ static s32 _shelterB1UndergroundParkingHandleCommand(Task* roomTask, s32 message
             }
             break;
         case SHELTER_B1_UNDERGROUND_PARKING_COMMAND_ROOM_CAP_4:
-            switch (gGameSession->location.room) {
+            switch (gGameSession->location.roomState) {
                 case 1:
                 case 2:
                 case 3:
@@ -2325,13 +2325,13 @@ static void _shelterB1UndergroundParkingGarageDepartureTask(Task* task)
                     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = SHELTER_B1_UNDERGROUND_PARKING_SCENE_EVENT_PARKING;
                 }
                 // Resolve the garage room from progress before publishing the departure.
-                resolve            = _roomVariantResolveNeoArk;
-                departure.stage    = GAME_STAGE_SHELTER_NEO_ARK;
-                departure.area     = GAME_AREA_SHELTER_1F_PARKING_GARAGE;
-                departure.room     = 1;
-                departure.warp     = 1;
-                departure.sndEvent = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_UNDERGROUND_PARKING, 0x08);
-                departure.facing   = ROOM_DEPARTURE_SKIP_FACING;
+                resolve             = _roomVariantResolveNeoArk;
+                departure.stage     = GAME_STAGE_SHELTER_NEO_ARK;
+                departure.area      = GAME_AREA_SHELTER_1F_PARKING_GARAGE;
+                departure.roomState = 1;
+                departure.warp      = 1;
+                departure.sndEvent  = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_UNDERGROUND_PARKING, 0x08);
+                departure.facing    = ROOM_DEPARTURE_SKIP_FACING;
                 playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
                 _roomVariantResolveDeparture(&departure, resolve);
                 gRoomDeparture = departure;
@@ -2452,7 +2452,7 @@ static s32 _shelterB1UndergroundParkingUseKeyItem(Task* roomTask, s32 messageId,
     };
 
     if (itemId == INVENTORY_COLLECTION_ID_BOWMANS_CARD || itemId == SHELTER_B1_UNDERGROUND_PARKING_ITEM_YOSHIDAS_CARD) {
-        if (gGameSession->location.room == SHELTER_B1_UNDERGROUND_PARKING_ROOM_CARD_ACCESS) {
+        if (gGameSession->location.roomState == SHELTER_B1_UNDERGROUND_PARKING_ROOM_CARD_ACCESS) {
             if (_roomEventTriggerHit()) {
                 taskSpawnFromTableOnDefaultList(_gShelterB1UndergroundParkingTaskDescs, SHELTER_B1_UNDERGROUND_PARKING_TASK_ROOM7_SCENE, 0, 0);
                 gGameSession->hideHud    = 1;
@@ -2554,9 +2554,9 @@ static void _shelterB1UndergroundParkingResolveRoom6ChoiceTask(Task* task)
             return;
         case SHELTER_B1_UNDERGROUND_PARKING_CHOICE_STATE_RESOLVE:
             if (capGetVariantKey() == SHELTER_B1_UNDERGROUND_PARKING_CAP_CHOICE_ROOM6) {
-                gGameSession->location.room                            = SHELTER_B1_UNDERGROUND_PARKING_ROOM_CARD_ACCESS;
-                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.room = SHELTER_B1_UNDERGROUND_PARKING_ROOM_CARD_ACCESS;
-                gGameSession->roomObjsDirty                            = state;
+                gGameSession->location.roomState                            = SHELTER_B1_UNDERGROUND_PARKING_ROOM_CARD_ACCESS;
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.roomState = SHELTER_B1_UNDERGROUND_PARKING_ROOM_CARD_ACCESS;
+                gGameSession->roomObjsDirty                                 = state;
                 evsStartScript(_gShelterB1UndergroundParkingRoom6ArrivalScript, EVENT_SCRIPT_HUD_KEEP);
                 gameFlagSetNibble(GAME_FLAG_UNDERGROUND_PARKING_STATE, SHELTER_B1_UNDERGROUND_PARKING_PROGRESS_ROOM6);
                 itemSetIdentified(SHELTER_B1_UNDERGROUND_PARKING_ITEM_ELECTRIC_CAR_KEY, 1);
@@ -2650,10 +2650,10 @@ static void _shelterB1UndergroundParkingAlternateCapTask(Task* task)
 /// both the session location and the live save location; does not load an area.
 static void _shelterB1UndergroundParkingSetRoom(u8 roomNumber)
 {
-    gGameSession->location.room                            = roomNumber;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.room = roomNumber;
-    gGameSession->roomObjsDirty                            = 1;
-    gGameSession->viewDirty                                = 1;
+    gGameSession->location.roomState                            = roomNumber;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.roomState = roomNumber;
+    gGameSession->roomObjsDirty                                 = 1;
+    gGameSession->viewDirty                                     = 1;
 }
 
 /// Sets the player actor tick hold from a room script's byte argument.
@@ -2931,7 +2931,7 @@ static void _shelterB1UndergroundParkingPanelHandleCommand(Task* task)
             // Acknowledge Enter even when the pending pattern is already applied.
             sndEvtRequestScriptStart(SOUND_SHELTER_B1_PARKING_PANEL_BUTTON, 0, 0);
             if (_gShelterB1UndergroundParkingPanelCommittedPattern != _gShelterB1UndergroundParkingPanelPendingPattern) {
-                if (gGameSession->location.room == SHELTER_B1_UNDERGROUND_PARKING_PANEL_INITIAL_ROOM) {
+                if (gGameSession->location.roomState == SHELTER_B1_UNDERGROUND_PARKING_PANEL_INITIAL_ROOM) {
                     sndEvtRequestScriptStart(SOUND_SHELTER_B1_PARKING_PANEL_APPLY_R1, 0, 0);
                 } else {
                     sndEvtRequestScriptStart(SOUND_SHELTER_B1_PARKING_PANEL_APPLY, 0, 0);
@@ -3047,9 +3047,9 @@ static void _shelterB1UndergroundParkingPanelApplySelection(void)
 {
     enum { SHELTER_B1_UNDERGROUND_PARKING_PANEL_PATTERN_MASK = 0xF };
 
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.room = _gShelterB1UndergroundParkingPanelRoomsByPattern[_gShelterB1UndergroundParkingPanelCommittedPattern & SHELTER_B1_UNDERGROUND_PARKING_PANEL_PATTERN_MASK];
-    gGameSession->location.room                            = _gShelterB1UndergroundParkingPanelRoomsByPattern[_gShelterB1UndergroundParkingPanelCommittedPattern & SHELTER_B1_UNDERGROUND_PARKING_PANEL_PATTERN_MASK];
-    gGameSession->roomObjsDirty                            = 1;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.roomState = _gShelterB1UndergroundParkingPanelRoomsByPattern[_gShelterB1UndergroundParkingPanelCommittedPattern & SHELTER_B1_UNDERGROUND_PARKING_PANEL_PATTERN_MASK];
+    gGameSession->location.roomState                            = _gShelterB1UndergroundParkingPanelRoomsByPattern[_gShelterB1UndergroundParkingPanelCommittedPattern & SHELTER_B1_UNDERGROUND_PARKING_PANEL_PATTERN_MASK];
+    gGameSession->roomObjsDirty                                 = 1;
 }
 
 #include "../../shared/room/action_prompt_hit_test.inc.c"

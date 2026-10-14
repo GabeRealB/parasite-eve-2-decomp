@@ -535,26 +535,26 @@ static s32 _acropolisHallwayResolveRoomTransition(Task* unusedTask, s32 messageI
 
     *reply = *request;
     if (request->areaId == GAME_AREA_AKROPOLIS_FOUNTAIN) {
-        if ((gameFlagGetNibble(GAME_FLAG_SECURITY_ROOM_LOCKS_RELEASED) & ACROPOLIS_HALLWAY_SECOND_LOCK_BIT) && request->queryOnly == ROOM_EVENT_EXECUTE) {
-            reply->room = 2;
+        if ((gameFlagGetNibble(EVENT_FLAG_AKROPOLIS_SECURITY_ROOM_PANEL_KEYS) & ACROPOLIS_HALLWAY_SECOND_LOCK_BIT) && request->queryOnly == ROOM_EVENT_EXECUTE) {
+            reply->roomState = 2;
         }
     }
-    if (request->areaId == GAME_AREA_AKROPOLIS_CAFETERIA && request->warp == ACROPOLIS_HALLWAY_CAFETERIA_GATED_WARP && gameFlagGetNibble(GAME_FLAG_AKROPOLIS_PROGRESS) < ACROPOLIS_HALLWAY_CAFETERIA_EXIT_PROGRESS) {
+    if (request->areaId == GAME_AREA_AKROPOLIS_CAFETERIA && request->warp == ACROPOLIS_HALLWAY_CAFETERIA_GATED_WARP && gameFlagGetNibble(EVENT_FLAG_AKROPOLIS_CAFETERIA_ROUTE_PROGRESS) < ACROPOLIS_HALLWAY_CAFETERIA_EXIT_PROGRESS) {
         if (request->queryOnly == ROOM_EVENT_EXECUTE) {
             capRunCommandWithTransition(ACROPOLIS_HALLWAY_CAFETERIA_EXIT_COMMAND);
         }
         return 0;
     }
-    if (request->areaId == GAME_AREA_AKROPOLIS_FOUNTAIN && gameFlagGetNibble(GAME_FLAG_AKROPOLIS_PROGRESS) == ACROPOLIS_HALLWAY_CAFETERIA_EXIT_PROGRESS) {
+    if (request->areaId == GAME_AREA_AKROPOLIS_FOUNTAIN && gameFlagGetNibble(EVENT_FLAG_AKROPOLIS_CAFETERIA_ROUTE_PROGRESS) == ACROPOLIS_HALLWAY_CAFETERIA_EXIT_PROGRESS) {
         return 1;
     }
     destinationArea = request->areaId;
     if (destinationArea == GAME_AREA_AKROPOLIS_CAFETERIA && request->queryOnly == ROOM_EVENT_EXECUTE) {
-        if (gameFlagGetNibble(GAME_FLAG_AKROPOLIS_PROGRESS) >= ACROPOLIS_HALLWAY_CAFETERIA_EXIT_PROGRESS) {
-            reply->room = destinationArea;
+        if (gameFlagGetNibble(EVENT_FLAG_AKROPOLIS_CAFETERIA_ROUTE_PROGRESS) >= ACROPOLIS_HALLWAY_CAFETERIA_EXIT_PROGRESS) {
+            reply->roomState = destinationArea;
         }
-        if (gameFlagGetNibble(GAME_FLAG_AKROPOLIS_PROGRESS) == ACROPOLIS_HALLWAY_CAFETERIA_SCENE_PROGRESS) {
-            reply->room = 3;
+        if (gameFlagGetNibble(EVENT_FLAG_AKROPOLIS_CAFETERIA_ROUTE_PROGRESS) == ACROPOLIS_HALLWAY_CAFETERIA_SCENE_PROGRESS) {
+            reply->roomState = 3;
         }
     }
     return 1;

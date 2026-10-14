@@ -3672,14 +3672,14 @@ static inline Enemy* _acropolisPlazaFindPlacedEnemy(u8 entryId)
     const AreaPlacement*   currentPlacement;
     s32                    placementIndex;
 
-    currentLocation     = &gGameSession->location;
-    locationKey.stage   = currentLocation->stage;
-    locationKey.area    = currentLocation->area;
-    locationKey.room    = gGameSession->spriteVariant;
-    locationKey.view    = gGameSession->location.view;
-    locationKey.variant = currentLocation->variant;
-    currentPlacement    = areaGetVariant(&locationKey)->placements;
-    placementIndex      = 0;
+    currentLocation       = &gGameSession->location;
+    locationKey.stage     = currentLocation->stage;
+    locationKey.area      = currentLocation->area;
+    locationKey.roomState = gGameSession->spriteVariant;
+    locationKey.view      = gGameSession->location.view;
+    locationKey.variant   = currentLocation->variant;
+    currentPlacement      = areaGetVariant(&locationKey)->placements;
+    placementIndex        = 0;
     // A missing resource entry uses the terminator position in the enemy key.
     if (currentPlacement->entryId != AREA_PLACEMENT_END) {
         for (;;) {
@@ -4493,11 +4493,11 @@ static inline void _acropolisPlazaCommitElevatorDestination(void)
         ACROPOLIS_PLAZA_ELEVATOR_ARRIVAL_ROOM   = 1,
         ACROPOLIS_PLAZA_ELEVATOR_SPRITE_VARIANT = 1,
     };
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.stage = GAME_STAGE_AKROPOLIS;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp  = ACROPOLIS_PLAZA_ELEVATOR_ARRIVAL_WARP;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.area  = GAME_AREA_AKROPOLIS_WEST_ELEVATOR_HALL;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.room  = ACROPOLIS_PLAZA_ELEVATOR_ARRIVAL_ROOM;
-    gDisplayState.spriteVariant                             = ACROPOLIS_PLAZA_ELEVATOR_SPRITE_VARIANT;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.stage     = GAME_STAGE_AKROPOLIS;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp      = ACROPOLIS_PLAZA_ELEVATOR_ARRIVAL_WARP;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.area      = GAME_AREA_AKROPOLIS_WEST_ELEVATOR_HALL;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.roomState = ACROPOLIS_PLAZA_ELEVATOR_ARRIVAL_ROOM;
+    gDisplayState.spriteVariant                                 = ACROPOLIS_PLAZA_ELEVATOR_SPRITE_VARIANT;
 }
 
 /// Runs the plaza's streamed traversal and triggered scenes before leaving for the elevator hall.

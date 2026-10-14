@@ -993,7 +993,7 @@ s32 mapNeoArkUpdateMusicVolume(u32 fullVolume, u8 areaId, LinInterp* ramp);
 /// Resolves a destination's progress-dependent room variant in the Neo Ark stage.
 ///
 /// `request` borrows a `RoomEventMsg` with a stage-5 `areaId` and `queryOnly` choice.
-/// On `ROOM_EVENT_EXECUTE`, updates only `reply->room` for the observatory,
+/// On `ROOM_EVENT_EXECUTE`, updates only `reply->roomState` for the observatory,
 /// pavilion, altar, shrine and pyramid. Queries and other areas leave the reply
 /// untouched. Room IDs are 1-based; the caller must initialize the reply's
 /// remaining fields (room handlers copy the request first).

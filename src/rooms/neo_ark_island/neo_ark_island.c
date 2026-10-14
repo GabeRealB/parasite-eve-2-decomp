@@ -654,7 +654,7 @@ WorldCollisionSurfaceProperties* gNeoArkIslandSurfaceProperties[NEO_ARK_ISLAND_S
 
 /// Resolved gallery destination held while the departure prompt runs.
 ///
-/// Only `loc.room`, `loc.area` and `loc.warp` are staged and committed. The other
+/// Only `loc.roomState`, `loc.area` and `loc.warp` are staged and committed. The other
 /// five bytes have no recovered access. A later request replaces those selectors;
 /// keep the room loaded until the pending departure finishes. The location cell
 /// retains its eight-byte storage and original two-byte alignment.
@@ -709,10 +709,10 @@ void neoArkIslandGalleryDepartureTask(Task* task)
         case NEO_ARK_ISLAND_DEPARTURE_COMMIT:
             // Commit the staged destination only after the prompt and delay tick.
             sndEvtRequestScriptStop(SOUND_BANK_TYPE_ALL_NON_AMBIENT, SOUND_SCRIPT_STOP_NO_FADE);
-            gDisplayState.spriteVariant                            = NEO_ARK_ISLAND_DEPARTURE_SPRITE_VARIANT;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.area = _gNeoArkIslandGalleryDestination.area;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp = _gNeoArkIslandGalleryDestination.warp;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.room = _gNeoArkIslandGalleryDestination.room;
+            gDisplayState.spriteVariant                                 = NEO_ARK_ISLAND_DEPARTURE_SPRITE_VARIANT;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.area      = _gNeoArkIslandGalleryDestination.area;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp      = _gNeoArkIslandGalleryDestination.warp;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.roomState = _gNeoArkIslandGalleryDestination.roomState;
             taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
             taskKill(task);
             break;
@@ -736,9 +736,9 @@ s32 neoArkIslandResolveRoomTransition(Task* unusedTask, s32 unusedMessageId, Roo
     if (request->areaId == GAME_AREA_NEO_ARK_SUBMARINE_GALLERY) {
         if (request->queryOnly == ROOM_EVENT_EXECUTE) {
             // Preserve the resolved destination while the departure prompt holds control.
-            _gNeoArkIslandGalleryDestination.area = (u8)reply->areaId;
-            _gNeoArkIslandGalleryDestination.warp = reply->warp;
-            _gNeoArkIslandGalleryDestination.room = reply->room;
+            _gNeoArkIslandGalleryDestination.area      = (u8)reply->areaId;
+            _gNeoArkIslandGalleryDestination.warp      = reply->warp;
+            _gNeoArkIslandGalleryDestination.roomState = reply->roomState;
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
             taskSpawnFromTable(&gNeoArkIslandGalleryDepartureTaskDesc, 0, 0, 0);
         }

@@ -163,15 +163,15 @@ void directionCommitStairWarp(void)
     gDirectionWarpRequest.areaId = gDirectionSecondaryActionParameter0;
     destination->warp            = gDirectionSecondaryActionParameter1 & DIRECTION_WARP_ARRIVAL_MASK;
     destination->field_4         = 1;
-    destination->room            = DIRECTION_WARP_DEFAULT_ROOM;
+    destination->roomState       = DIRECTION_WARP_DEFAULT_ROOM;
     destination->queryOnly       = ROOM_EVENT_EXECUTE;
     TASK_MESSAGE_DISPATCH_POINTERS(roomTask, ROOM_EVENT_MESSAGE_RESOLVE, destination, destination);
 
     // Publish only the resolved destination selectors, then queue the area change.
-    liveSave                      = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
-    liveSave->state.location.area = (u8)gDirectionWarpRequest.areaId;
-    liveSave->state.location.warp = destination->warp;
-    liveSave->state.location.room = destination->room;
+    liveSave                           = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
+    liveSave->state.location.area      = (u8)gDirectionWarpRequest.areaId;
+    liveSave->state.location.warp      = destination->warp;
+    liveSave->state.location.roomState = destination->roomState;
     taskSpawn(DIRECTION_AREA_CHANGE_TASK_BANK, DIRECTION_AREA_CHANGE_TASK_ID, 0, 0);
 
     gDirectionSecondaryActionParameter1 = 0;
@@ -241,13 +241,13 @@ void areaApplySavedUpdates(const AreaApplyRec* records)
     shouldApply     = 0;
     currentLocation = &gGameSession->location;
     for (recordIndex = 0; records[recordIndex].stage != AREA_APPLY_END; recordIndex++) {
-        stageId        = records[recordIndex].stage;
-        areaRecords    = gAreaRecordsByStage[stageId];
-        location.stage = stageId;
-        location.area  = records[recordIndex].area;
-        location.room  = AREA_APPLY_DEFAULT_ROOM;
-        location.view  = currentLocation->view;
-        modePolicy     = records[recordIndex].policy & AREA_APPLY_MODE_MASK;
+        stageId            = records[recordIndex].stage;
+        areaRecords        = gAreaRecordsByStage[stageId];
+        location.stage     = stageId;
+        location.area      = records[recordIndex].area;
+        location.roomState = AREA_APPLY_DEFAULT_ROOM;
+        location.view      = currentLocation->view;
+        modePolicy         = records[recordIndex].policy & AREA_APPLY_MODE_MASK;
         if (modePolicy == AREA_APPLY_MODE_ALWAYS) {
             shouldApply = 1;
         } else {

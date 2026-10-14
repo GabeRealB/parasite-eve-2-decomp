@@ -921,7 +921,7 @@ static s32 _dryfieldGarageResolveRoomEventMessage(Task* unusedTask, s32 unusedMe
             } else {
                 factoryRoom = DRYFIELD_GARAGE_FACTORY_ROOM_BARRIER_CLEARED;
             }
-            reply->room = factoryRoom;
+            reply->roomState = factoryRoom;
         }
     }
     return DRYFIELD_GARAGE_EVENT_ALLOW;
@@ -997,12 +997,11 @@ static inline void _dryfieldGarageAdvanceEntryDialogue(void)
     enum {
         DRYFIELD_GARAGE_PRE_ENTRY_DIALOGUE = 1,
         DRYFIELD_GARAGE_ENTRY_DIALOGUE     = 2,
-        DRYFIELD_GARAGE_NO_FOLLOW_UP       = 0,
     };
 
-    if (gameFlagGetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX) == DRYFIELD_GARAGE_PRE_ENTRY_DIALOGUE) {
-        gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, DRYFIELD_GARAGE_NO_FOLLOW_UP);
-        gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, DRYFIELD_GARAGE_ENTRY_DIALOGUE);
+    if (gameFlagGetNibble(EVENT_FLAG_STORY_DIALOGUE_INDEX) == DRYFIELD_GARAGE_PRE_ENTRY_DIALOGUE) {
+        gameFlagSetNibble(EVENT_FLAG_TELEPHONE_DIALOGUE_COUNTER, EVENT_FLAG_TELEPHONE_DIALOGUE_UNHEARD);
+        gameFlagSetNibble(EVENT_FLAG_STORY_DIALOGUE_INDEX, DRYFIELD_GARAGE_ENTRY_DIALOGUE);
     }
 }
 

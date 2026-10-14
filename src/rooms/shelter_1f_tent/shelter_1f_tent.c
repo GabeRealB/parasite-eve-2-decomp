@@ -153,12 +153,12 @@ static void _shelter1fTentInitializeRoom(Task* task)
         if (gameFlagGetNibble(GAME_FLAG_ITEM_125_FOLLOWUP_SEEN) != 0) {
             areaApplySavedUpdates(gShelter1fTentHeliportAfterItemFollowupAreaUpdates);
             areaApplySavedUpdates(gShelter1fTentGolemFreezer1AfterItemFollowupAreaUpdates);
-            gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
-            gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, ARRIVAL_FOLLOWUP_DIALOGUE);
+            gameFlagSetNibble(EVENT_FLAG_TELEPHONE_DIALOGUE_COUNTER, EVENT_FLAG_TELEPHONE_DIALOGUE_UNHEARD);
+            gameFlagSetNibble(EVENT_FLAG_STORY_DIALOGUE_INDEX, ARRIVAL_FOLLOWUP_DIALOGUE);
         } else {
             areaApplySavedUpdates(gShelter1fTentHeliportBeforeItemFollowupAreaUpdates);
-            gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
-            gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, ARRIVAL_DIALOGUE);
+            gameFlagSetNibble(EVENT_FLAG_TELEPHONE_DIALOGUE_COUNTER, EVENT_FLAG_TELEPHONE_DIALOGUE_UNHEARD);
+            gameFlagSetNibble(EVENT_FLAG_STORY_DIALOGUE_INDEX, ARRIVAL_DIALOGUE);
         }
         if (gameFlagGetNibble(GAME_FLAG_BURNER_DEFEATED) != 0) {
             gameFlagSetNibble(GAME_FLAG_COMPANION_2_SCHEDULE, COMPANION_SCHEDULE_AFTER_BURNER);

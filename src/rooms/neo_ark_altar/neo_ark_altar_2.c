@@ -1474,11 +1474,11 @@ static void _neoArkAltarSelectPostSequenceRoom(Task* task)
 
     // Keep the reload request before both location updates; the pointer store
     // preserves that order under this compiler's memory scheduler.
-    viewDirty                                              = &gGameSession->viewDirty;
-    *viewDirty                                             = 1;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.room = NEO_ARK_ALTAR_POST_SEQUENCE_ROOM;
-    gGameSession->location.room                            = NEO_ARK_ALTAR_POST_SEQUENCE_ROOM;
-    task->state                                            = task->state + 1;
+    viewDirty                                                   = &gGameSession->viewDirty;
+    *viewDirty                                                  = 1;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.roomState = NEO_ARK_ALTAR_POST_SEQUENCE_ROOM;
+    gGameSession->location.roomState                            = NEO_ARK_ALTAR_POST_SEQUENCE_ROOM;
+    task->state                                                 = task->state + 1;
 }
 
 /// Restores the player, HUD and display and resumes the altar's tile puzzle.

@@ -1195,9 +1195,9 @@ void factoryBarrierTransitionScene(Task* task)
             task->state = task->state + 1;
             return;
         case FACTORY_BARRIER_TRANSITION_SCENE_CHANGE_ROOM:
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.room = FACTORY_BARRIER_TRANSITION_ROOM;
-            gGameSession->location.room                            = FACTORY_BARRIER_TRANSITION_ROOM;
-            gGameSession->roomObjsDirty                            = 1;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.roomState = FACTORY_BARRIER_TRANSITION_ROOM;
+            gGameSession->location.roomState                            = FACTORY_BARRIER_TRANSITION_ROOM;
+            gGameSession->roomObjsDirty                                 = 1;
             fadeDrawOverlay(FACTORY_BARRIER_TRANSITION_FULL_INTENSITY, FACTORY_BARRIER_TRANSITION_FULL_INTENSITY, FACTORY_BARRIER_TRANSITION_FULL_INTENSITY, GPU_BLEND_SUBTRACT);
             task->state = task->state + 1;
             return;

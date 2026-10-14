@@ -38,15 +38,48 @@ enum {
     EVENT_FLAG_MAP_DOOR_LOCKED   = 2, // The door refused the player
 };
 
+/// Values of `EVENT_FLAG_TELEPHONE_DIALOGUE_COUNTER`. Playing the story call
+/// increments it like any CAP counter; at story dialogue 0xE, `_roomCutsceneTask`
+/// uses 1 and 2 for its looping choice instead.
+enum {
+    EVENT_FLAG_TELEPHONE_DIALOGUE_UNHEARD     = 0, // The current story call has not been played; reset at every story beat
+    EVENT_FLAG_TELEPHONE_DIALOGUE_LOOP_ACTIVE = 1, // Dialogue 0xE: the looping choice is running
+    EVENT_FLAG_TELEPHONE_DIALOGUE_LOOP_DONE   = 2, // Dialogue 0xE: the looping choice has been left
+};
+
 // The IDs come in blocks. The boundaries below are the ones seen so far; the
 // gaps between listed IDs are still in `main/gameflag_ids.h`.
 enum {
     // ---- Akropolis, from 0x000 ---------------------------------------------
 
+    /// Akropolis route through the cafeteria. State: 1 the east elevator hall scene
+    /// has played, 2 the cafeteria boss is dead and its scene has played, 3 Mist has
+    /// been contacted (the square's telephone call, `_roomCutsceneTask`), 5 the
+    /// fountain door is unlocked. The square refuses both elevators from 2; the
+    /// patio, hallway, cafeteria, fountain and forked-road doors answer by it.
+    EVENT_FLAG_AKROPOLIS_CAFETERIA_ROUTE_PROGRESS = 0x000,
+    /// Telephone dialogue. Counter of the story call's CAP command (16 +
+    /// `EVENT_FLAG_STORY_DIALOGUE_INDEX`), incremented each time the phone is used;
+    /// it picks the call's variant, so a repeat plays a shorter one. Cleared whenever the story index changes - a
+    /// missed call in the square, every story beat - so the next call starts over. At
+    /// index 0xE, `_roomCutsceneTask` sets 1 while it loops the branching call and 2
+    /// when the loop exits.
+    EVENT_FLAG_TELEPHONE_DIALOGUE_COUNTER = 0x003,
     /// Akropolis square. Counter of the square's CAP command 4, the ammo box
     /// ("A SWAT ammunition box..."): the CAP interpreter keeps the command's
     /// counter here (doc/CAP_FORMAT.md §6), 0 before the box is examined, 1 after.
     EVENT_FLAG_AKROPOLIS_SQUARE_AMMO_BOX_DIALOG_SEEN = 0x004,
+    /// Akropolis security-room panel. Bits: 0 the blue key (item 0x104) is inserted,
+    /// which also sets `GAME_FLAG_OBSERVATORY_ROUTE_PROGRESS` to 2; 1 the red key
+    /// (item 0x103). Doors that lead to a room's second variant once a key is in:
+    /// bit 0 the fountain/observatory and the square's forked-road door, bit 1 the
+    /// hallway, patio and forked road.
+    EVENT_FLAG_AKROPOLIS_SECURITY_ROOM_PANEL_KEYS = 0x009,
+    /// Akropolis, the report to MIST after the cafeteria boss. State: 1 the boss
+    /// scene has played and queued the report (story dialogue 4, "A new species..."),
+    /// 4 the report has been made from the square's telephone (`_roomCutsceneTask`).
+    /// The cafeteria's patio door sets 2 when it holds 3, which nothing writes.
+    EVENT_FLAG_AKROPOLIS_CAFETERIA_BOSS_REPORT = 0x00E,
 
     // ---- Map pages, 0x015..0x01A: one per map, read by the map menu ---------
     // 0x016 Dryfield, 0x017 Shelter mine and B1, 0x018 Shelter B2..B4,
@@ -62,6 +95,12 @@ enum {
     /// stranger by the phone runs off and the phone rings.
     EVENT_FLAG_AKROPOLIS_SQUARE_TELEPHONE_SCENE_SEEN = 0x01F,
 
+    /// Akropolis patio cutscene progress. State: 1 the square has been entered (from
+    /// the west elevator hall), 3 the patio SWAT scene has played, 4 the patio scene
+    /// has finished. Below 2, the square, fountain and cafeteria doors lead to the
+    /// patio's first variant.
+    EVENT_FLAG_AKROPOLIS_PATIO_CUTSCENE_PROGRESS = 0x021,
+
     // ---- Not reserved for flags ---------------------------------------------
 
     /// The bank stores the captured play time (minutes, a halfword) in these four
@@ -73,6 +112,12 @@ enum {
 
     /// Akropolis square. Marker: the hint by the ammo box has been shown.
     EVENT_FLAG_AKROPOLIS_SQUARE_AMMO_BOX_HINT_SEEN = 0x124,
+    /// Story dialogue. Index (0..0xF) of the telephone call to play next: the call is
+    /// CAP command 16 + index in the call file (`_roomCutsceneTask`). Story beats in
+    /// every stage raise it, each clearing `EVENT_FLAG_TELEPHONE_DIALOGUE_COUNTER`;
+    /// a stage start resets it to 0; 0xE adds a looping choice. Each stage has its own
+    /// call file, so its values are named per stage (`src/stages/akropolis/event_flags.h`).
+    EVENT_FLAG_STORY_DIALOGUE_INDEX = 0x155,
     /// Akropolis square. Marker: the controls hint by the stairs has been shown.
     EVENT_FLAG_AKROPOLIS_SQUARE_STAIRS_HINT_SEEN = 0x156,
 

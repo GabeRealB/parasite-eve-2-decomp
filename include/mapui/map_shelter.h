@@ -136,7 +136,7 @@ extern u16 gMapShelterMarkerFlags[MAP_SHELTER_MARKER_COUNT];
 /// Mine/Shelter model-lighting arrays indexed by `GameLocationKey.area - 1`.
 ///
 /// Stage 4 has 49 area entries. Each leads to room descriptors indexed by
-/// `GameLocationKey.room - 1`; area 39 has two dumping-hole rooms and area 40
+/// `GameLocationKey.roomState - 1`; area 39 has two dumping-hole rooms and area 40
 /// seven incinerator rooms. Room extents are determined by each area's array.
 /// The map overlay must be loaded for the table and its local descriptors;
 /// pointers into a room overlay require that specific overlay to remain loaded.
@@ -219,7 +219,7 @@ extern InventoryBattleReward gMapShelterHardBattleRewards[13];
 ///
 /// The `map_shelter` overlay must be loaded. Reads `request->areaId` only when
 /// `request->queryOnly` is `ROOM_EVENT_EXECUTE`; a query leaves `reply` untouched.
-/// Only `reply->room` can change. Initialize the reply's destination selectors
+/// Only `reply->roomState` can change. Initialize the reply's destination selectors
 /// before calling: unhandled areas and unmet progress thresholds keep its room.
 /// Request and reply may be the same record; neither pointer is retained.
 /// Returns 1 even when no room changes. Progress nibbles used as room indices

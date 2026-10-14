@@ -878,8 +878,8 @@ static s32 _shelterR47HandleDirectionAction(Task* unusedTask, s32 unusedMessageI
             case SHELTER_R47_ACTION_BEGIN_TERMINAL_TOUR:
                 if ((gameFlagGetNibble(GAME_FLAG_083) == 1) && (gameFlagGetNibble(GAME_FLAG_SHELTER_R47_EVENT_PROGRESS) == SHELTER_R47_TOUR_NOT_STARTED)) {
                     gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, SHELTER_R47_OBJECTIVE_TERMINAL_TOUR);
-                    gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
-                    gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, SHELTER_R47_DIALOGUE_TERMINAL_TOUR);
+                    gameFlagSetNibble(EVENT_FLAG_TELEPHONE_DIALOGUE_COUNTER, EVENT_FLAG_TELEPHONE_DIALOGUE_UNHEARD);
+                    gameFlagSetNibble(EVENT_FLAG_STORY_DIALOGUE_INDEX, SHELTER_R47_DIALOGUE_TERMINAL_TOUR);
                     evsStartScriptWithSkip(gActor443500TourOpeningScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, gActor443500TourOpeningSkipScript);
                     gameFlagSetNibble(GAME_FLAG_SHELTER_R47_EVENT_PROGRESS, SHELTER_R47_TOUR_OPEN_CONSOLE);
                     if (gameFlagGetNibble(GAME_FLAG_SHELTER_R47_165) == 0) {
@@ -920,8 +920,8 @@ static s32 _shelterR47HandleDirectionAction(Task* unusedTask, s32 unusedMessageI
                     gameFlagSetNibble(GAME_FLAG_COMPANION_1_SCHEDULE, SHELTER_R47_COMPANION_SCHEDULE_AFTER_ENTRY);
                     gameFlagSetNibble(GAME_FLAG_0D1, SHELTER_R47_COMPANION_PROGRESS_AFTER_ENTRY);
                     companionRestoreFullHp();
-                    gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
-                    gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, SHELTER_R47_DIALOGUE_COMPANION_ENTRY);
+                    gameFlagSetNibble(EVENT_FLAG_TELEPHONE_DIALOGUE_COUNTER, EVENT_FLAG_TELEPHONE_DIALOGUE_UNHEARD);
+                    gameFlagSetNibble(EVENT_FLAG_STORY_DIALOGUE_INDEX, SHELTER_R47_DIALOGUE_COMPANION_ENTRY);
                     _shelterR47EnableRepeatEntryTrigger();
                 }
                 break;

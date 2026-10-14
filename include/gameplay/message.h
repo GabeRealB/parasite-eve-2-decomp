@@ -16,14 +16,14 @@
 /// Queries test whether a transition can proceed without committing its effects;
 /// handlers may leave the destination selectors unchanged in query mode.
 ///
-/// Area, room and arrival IDs are 1-based and must exist in the active stage's
+/// Area, room state and arrival IDs are 1-based and must exist in the active stage's
 /// tables. Warp senders select arrival IDs from a four-bit value. Only fields
 /// read by the selected handler need initialization. `flagId` is zero or a
 /// valid game-flag nibble index. The record is eight bytes with two-byte alignment.
 typedef struct {
     u16 areaId;    // Area within the active stage; committed to the saved area's byte
     u8  warp;      // Arrival record within the area's warp table
-    s8  room;      // Room within the area (1 default); handlers resolve it from game progress
+    s8  roomState; // State of the area (1 default); handlers resolve it from game progress
     u8  field_4;   // Warp senders initialize this to 1; its request role is unproven
     u8  queryOnly; // Execution choice (0 execute effects, nonzero query)
     u16 flagId;    // Optional game-flag nibble to update when handling the event (0 none)
@@ -35,6 +35,15 @@ enum {
     ROOM_EVENT_MESSAGE_RESOLVE = 0x13EE,
     ROOM_EVENT_EXECUTE         = 0,
     ROOM_EVENT_QUERY_ONLY      = 1,
+};
+
+/// Answers to `ROOM_EVENT_MESSAGE_RESOLVE`. Gameplay reads the answer to the
+/// query call only (`directionQueryWarp`, narrowed to s16); the execute call's
+/// answer is ignored and only the reply's destination is used.
+enum {
+    ROOM_EVENT_STAY        = 0, // Refused: the player turns back and the warp's blocked sound plays
+    ROOM_EVENT_DEPART      = 1, // Allowed: the player turns, the departure sound plays, the reply's destination loads
+    ROOM_EVENT_ROOM_ACTION = 2, // The room's own action replaces the warp, executed at once
 };
 
 /// Messages a room's task receives from the CAP interpreter and from actors.

@@ -1455,8 +1455,8 @@ static s32 _dryfieldMainStreetStartFirstVisitCutscene(Task* unusedTask, s32 unus
         _dryfieldMainStreetForgetPlayerHeadAimTask(0);
         evsStartScriptWithSkip(_gDryfieldMainStreetFirstVisitScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, _gDryfieldMainStreetFirstVisitSkipScript);
         gameFlagSetNibble(GAME_FLAG_MAIN_STREET_CUTSCENE_SEEN, 1);
-        gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
-        gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, 1);
+        gameFlagSetNibble(EVENT_FLAG_TELEPHONE_DIALOGUE_COUNTER, EVENT_FLAG_TELEPHONE_DIALOGUE_UNHEARD);
+        gameFlagSetNibble(EVENT_FLAG_STORY_DIALOGUE_INDEX, 1);
     }
     return 0;
 }

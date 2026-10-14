@@ -66,15 +66,15 @@ void shelterElevatorTask(Task* task)
         case SHELTER_ELEVATOR_STATE_RELOAD:
             sndEvtRequestScriptStop(SOUND_BANK_TYPE_ALL_NON_AMBIENT, SOUND_SCRIPT_STOP_NO_FADE);
             // Only the resolver inputs are initialized; it changes the reply room.
-            destination.room      = SHELTER_ELEVATOR_DEFAULT_ROOM;
+            destination.roomState = SHELTER_ELEVATOR_DEFAULT_ROOM;
             destination.queryOnly = ROOM_EVENT_EXECUTE;
             destination.areaId    = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.area;
             destination.warp      = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp;
             resolvedDestination   = destination;
             mapShelterRoomVariantResolve(&destination, &resolvedDestination);
-            gDisplayState.spriteVariant                            = SHELTER_ELEVATOR_SPRITE_VARIANT;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp = resolvedDestination.warp;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.room = resolvedDestination.room;
+            gDisplayState.spriteVariant                                 = SHELTER_ELEVATOR_SPRITE_VARIANT;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp      = resolvedDestination.warp;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.roomState = resolvedDestination.roomState;
             taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
             taskKill(task);
             break;

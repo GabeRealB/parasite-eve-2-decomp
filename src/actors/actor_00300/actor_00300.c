@@ -1528,15 +1528,15 @@ static void        _actor00300FlyFireball(Enemy* enemy, Task* task);
 /// Invoke as a standalone compound statement inside a braced context.
 #define ACTOR_00300_BIND_DRAIN_TEXTURE()                                                 \
     {                                                                                    \
-        placementKey      = enemy->placeKey;                                             \
-        drainModel        = drainEnemy->task->extra.tmd;                                 \
-        sessionLocation   = &gGameSession->location;                                     \
-        locationKey.stage = sessionLocation->stage;                                      \
-        locationKey.area  = sessionLocation->area;                                       \
-        locationKey.room  = sessionLocation->room;                                       \
-        currentView       = gGameSession->location.view;                                 \
-        placementIndex    = placementKey >> ENEMY_PLACE_INDEX_SHIFT;                     \
-        locationKey.view  = currentView;                                                 \
+        placementKey          = enemy->placeKey;                                         \
+        drainModel            = drainEnemy->task->extra.tmd;                             \
+        sessionLocation       = &gGameSession->location;                                 \
+        locationKey.stage     = sessionLocation->stage;                                  \
+        locationKey.area      = sessionLocation->area;                                   \
+        locationKey.roomState = sessionLocation->roomState;                              \
+        currentView           = gGameSession->location.view;                             \
+        placementIndex        = placementKey >> ENEMY_PLACE_INDEX_SHIFT;                 \
+        locationKey.view      = currentView;                                             \
         areaSyncLocationVariant(&locationKey);                                           \
         placement =                                                                      \
             AREA_PLACEMENT_AT(areaGetVariant(&locationKey)->placements, placementIndex); \
@@ -3115,15 +3115,15 @@ static void _actor00300ApplyHitTwist(Task* task)
             TmdObject*       fragmentModel;                                                                                 \
             AreaPlacement*   placement;                                                                                     \
             GameLocationKey* sessionLocation;                                                                               \
-            sessionLocation   = &gGameSession->location;                                                                    \
-            placementKey      = ((Enemy*)task->spawnArg2.pointer)->placeKey;                                                \
-            fragmentModel     = (fragment)->task->extra.tmd;                                                                \
-            locationKey.stage = sessionLocation->stage;                                                                     \
-            locationKey.area  = sessionLocation->area;                                                                      \
-            locationKey.room  = sessionLocation->room;                                                                      \
-            currentView       = gGameSession->location.view;                                                                \
-            placementIndex    = placementKey >> ENEMY_PLACE_INDEX_SHIFT;                                                    \
-            locationKey.view  = currentView;                                                                                \
+            sessionLocation       = &gGameSession->location;                                                                \
+            placementKey          = ((Enemy*)task->spawnArg2.pointer)->placeKey;                                            \
+            fragmentModel         = (fragment)->task->extra.tmd;                                                            \
+            locationKey.stage     = sessionLocation->stage;                                                                 \
+            locationKey.area      = sessionLocation->area;                                                                  \
+            locationKey.roomState = sessionLocation->roomState;                                                             \
+            currentView           = gGameSession->location.view;                                                            \
+            placementIndex        = placementKey >> ENEMY_PLACE_INDEX_SHIFT;                                                \
+            locationKey.view      = currentView;                                                                            \
             areaSyncLocationVariant(&locationKey);                                                                          \
             placement                        = AREA_PLACEMENT_AT(areaGetVariant(&locationKey)->placements, placementIndex); \
             fragmentModel->texturePageOffset = placement->texturePageOffset;                                                \

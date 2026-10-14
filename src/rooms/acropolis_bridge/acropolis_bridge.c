@@ -3284,7 +3284,7 @@ static s32 _acropolisBridgeResolveRoomTransition(Task* task, s32 messageId, cons
         }
     }
     if ((request->areaId == GAME_AREA_AKROPOLIS_PROMENADE) && (request->queryOnly == ROOM_EVENT_EXECUTE)) {
-        reply->room = ACROPOLIS_BRIDGE_PROMENADE_RETURN_ROOM;
+        reply->roomState = ACROPOLIS_BRIDGE_PROMENADE_RETURN_ROOM;
     }
     return ACROPOLIS_BRIDGE_TRANSITION_ALLOWED;
 }
@@ -3566,10 +3566,10 @@ static void _acropolisBridgeFinishKeypadMovie(Task* task)
 
     if (taskPollKill(_gAcropolisBridgeKeypadMovieTask, &movieResult) != 0) {
         taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, 1, ACTOR_MESSAGE_SET_MODEL_DRAW);
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = ACROPOLIS_BRIDGE_VIEW_OVERVIEW;
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.room = ACROPOLIS_BRIDGE_ROOM_AFTER_KEYPAD_MOVIE;
-        gGameSession->location.room                            = ACROPOLIS_BRIDGE_ROOM_AFTER_KEYPAD_MOVIE;
-        gGameSession->roomObjsDirty                            = 1;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view      = ACROPOLIS_BRIDGE_VIEW_OVERVIEW;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.roomState = ACROPOLIS_BRIDGE_ROOM_AFTER_KEYPAD_MOVIE;
+        gGameSession->location.roomState                            = ACROPOLIS_BRIDGE_ROOM_AFTER_KEYPAD_MOVIE;
+        gGameSession->roomObjsDirty                                 = 1;
         gameFlagSetNibble(GAME_FLAG_AKROPOLIS_BRIDGE_PROGRESS, ACROPOLIS_BRIDGE_PROGRESS_KEYPAD_MOVIE_COMPLETE);
         playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
         task->state = task->state + 1;
@@ -5680,7 +5680,7 @@ static void _acropolisBridgeEnemySetup(Enemy* enemy, Task* task)
     if (gSceneCombatState.battleRefs < 3) {
         sceneAcquireBattleRef(0);
     }
-    if (gGameSession->location.room == ACROPOLIS_BRIDGE_ROOM_AFTER_KEYPAD_MOVIE) {
+    if (gGameSession->location.roomState == ACROPOLIS_BRIDGE_ROOM_AFTER_KEYPAD_MOVIE) {
         placementIndex = enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT;
         switch (placementIndex) {
             case 0:

@@ -1398,12 +1398,12 @@ static void _actor335800SpawnSceneGroundShadow(void)
 
 /// Selects the saved and live scene room and requests deferred object relinking.
 ///
-/// `room` is a valid byte-sized room key in the current area. This updates the
+/// `roomState` is a valid byte-sized room key in the current area. This updates the
 /// live save slot without loading a room or requesting a view image.
 static void _actor335800SetSceneRoom(u8 room)
 {
-    gGameSession->location.room = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.room = room;
-    gGameSession->roomObjsDirty                                                          = true;
+    gGameSession->location.roomState = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.roomState = room;
+    gGameSession->roomObjsDirty                                                                    = true;
 }
 
 /// Places the live player at the corresponding end of the balcony for the scene.
@@ -1746,14 +1746,14 @@ static void _actor335800GaryDouglasInit(Task* task)
         AreaPlacement* placement;
         s32            placementIndex;
 
-        work->headTask  = partTask;
-        partModel       = partTask->extra.tmd;
-        placementIndex  = ((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT;
-        sessionLocation = &gGameSession->location;
-        location.stage  = sessionLocation->stage;
-        location.area   = sessionLocation->area;
-        location.room   = sessionLocation->room;
-        location.view   = sessionLocation->view;
+        work->headTask     = partTask;
+        partModel          = partTask->extra.tmd;
+        placementIndex     = ((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT;
+        sessionLocation    = &gGameSession->location;
+        location.stage     = sessionLocation->stage;
+        location.area      = sessionLocation->area;
+        location.roomState = sessionLocation->roomState;
+        location.view      = sessionLocation->view;
         areaSyncLocationVariant(&location);
         areaVariant = areaGetVariant(&location);
         placement   = AREA_PLACEMENT_AT(areaVariant->placements, placementIndex);
@@ -1766,14 +1766,14 @@ static void _actor335800GaryDouglasInit(Task* task)
         AreaPlacement* placement;
         s32            placementIndex;
 
-        work->gunTask   = partTask;
-        partModel       = partTask->extra.tmd;
-        placementIndex  = ((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT;
-        sessionLocation = (secondSessionLocation = &gGameSession->location);
-        location.stage  = sessionLocation->stage;
-        location.area   = sessionLocation->area;
-        location.room   = secondSessionLocation->room;
-        location.view   = gGameSession->location.view;
+        work->gunTask      = partTask;
+        partModel          = partTask->extra.tmd;
+        placementIndex     = ((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT;
+        sessionLocation    = (secondSessionLocation = &gGameSession->location);
+        location.stage     = sessionLocation->stage;
+        location.area      = sessionLocation->area;
+        location.roomState = secondSessionLocation->roomState;
+        location.view      = gGameSession->location.view;
         areaSyncLocationVariant(&location);
         areaVariant = areaGetVariant(&location);
         placement   = AREA_PLACEMENT_AT(areaVariant->placements, placementIndex);

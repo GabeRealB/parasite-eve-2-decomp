@@ -396,9 +396,9 @@ void menuMapRebuildMarkedAreaBits(void)
     currentLocation = &gGameSession->location;
     stageId         = currentLocation->stage;
     // Retain the room/view initialization; both predicates read only stage and area.
-    areaKey.room  = 1;
-    areaKey.view  = 2;
-    areaKey.stage = stageId;
+    areaKey.roomState = 1;
+    areaKey.view      = 2;
+    areaKey.stage     = stageId;
     // Refresh only this stage's area bits; higher bits retain their prior values.
     if (gGameSession->location.stage - GAME_STAGE_AKROPOLIS < MENU_MAP_STAGE_COUNT) {
         areaCount = gMenuMapStageAreaCounts.markedAreaIdLimits[currentLocation->stage - GAME_STAGE_AKROPOLIS];
@@ -618,7 +618,7 @@ static u8 _viewGetCurrentRoomCount(void)
 
     session        = gGameSession;
     viewCountTable = gViewCountTables[session->location.stage - 1];
-    return (u8)viewCountTable->viewCounts[session->location.area - 1][session->location.room - 1];
+    return (u8)viewCountTable->viewCounts[session->location.area - 1][session->location.roomState - 1];
 }
 
 /// Runs one phase of the latched warp action through its copied handler table.
@@ -740,9 +740,9 @@ static void _directionLeaveWarp(void)
         fadeDrawOverlay(fadeShade, fadeShade, fadeShade, GPU_BLEND_SUBTRACT);
     }
     // Publish the destination before the reload task can consume the live save.
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.area = (u8)gDirectionWarpRequest.areaId;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp = gDirectionWarpRequest.warp;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.room = gDirectionWarpRequest.room;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.area      = (u8)gDirectionWarpRequest.areaId;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp      = gDirectionWarpRequest.warp;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.roomState = gDirectionWarpRequest.roomState;
     taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
     gDirectionActionActive     = false;
     gDirectionActionParameter1 = 0;

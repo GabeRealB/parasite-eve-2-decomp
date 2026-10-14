@@ -66,7 +66,7 @@ static RoomFadeStorage _gNeoArkSubmarineGalleryIslandDepartureFade = { 0 };
 
 /// Resolved island destination retained through asynchronous departure confirmation.
 ///
-/// Only loc.room, loc.area and loc.warp are staged and committed to the live
+/// Only loc.roomState, loc.area and loc.warp are staged and committed to the live
 /// save; its stage, view and variant stay unchanged. The other bytes retain
 /// zero defaults, including GameLocationKey's two uninterpreted trailing bytes.
 /// Preserve the eight-byte cell and its original two-byte alignment. Keep
@@ -109,10 +109,10 @@ static inline void _neoArkSubmarineGalleryCommitIslandDeparture(Task* task)
 {
     enum { RELOAD_SPRITE_VARIANT = 1 };
 
-    gDisplayState.spriteVariant                            = RELOAD_SPRITE_VARIANT;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.area = _gNeoArkSubmarineGalleryIslandDestination.area;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp = _gNeoArkSubmarineGalleryIslandDestination.warp;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.room = _gNeoArkSubmarineGalleryIslandDestination.room;
+    gDisplayState.spriteVariant                                 = RELOAD_SPRITE_VARIANT;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.area      = _gNeoArkSubmarineGalleryIslandDestination.area;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp      = _gNeoArkSubmarineGalleryIslandDestination.warp;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.roomState = _gNeoArkSubmarineGalleryIslandDestination.roomState;
     taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_SKIP_BATTLE_ESCAPE, 0);
     taskKill(task);
 }
@@ -192,9 +192,9 @@ s32 neoArkSubmarineGalleryResolveRoomEvent(Task* unusedTask, s32 unusedMessageId
     if (request->areaId == GAME_AREA_NEO_ARK_ISLAND) {
         if (request->queryOnly == ROOM_EVENT_EXECUTE) {
             // Preserve the resolved destination for the asynchronous confirmation task.
-            _gNeoArkSubmarineGalleryIslandDestination.area = (u8)reply->areaId;
-            _gNeoArkSubmarineGalleryIslandDestination.warp = reply->warp;
-            _gNeoArkSubmarineGalleryIslandDestination.room = reply->room;
+            _gNeoArkSubmarineGalleryIslandDestination.area      = (u8)reply->areaId;
+            _gNeoArkSubmarineGalleryIslandDestination.warp      = reply->warp;
+            _gNeoArkSubmarineGalleryIslandDestination.roomState = reply->roomState;
             taskSpawnFromTable(&gNeoArkSubmarineGalleryIslandDepartureTaskDesc, 0, 0, 0);
         }
         return TRANSITION_DEFERRED;

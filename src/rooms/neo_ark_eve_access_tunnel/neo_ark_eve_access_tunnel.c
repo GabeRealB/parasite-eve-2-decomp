@@ -48,7 +48,7 @@ static s32 _roomVariantResolveShelter(RoomEventMsg* request, RoomEventMsg* reply
 
 /// Resolved elevator destination awaiting confirmation and completion of its sound.
 ///
-/// Only `loc.area`, `loc.warp` and `loc.room` are staged and committed to the live
+/// Only `loc.area`, `loc.warp` and `loc.roomState` are staged and committed to the live
 /// save; the other cell bytes are unused. Supports one pending departure and
 /// remains valid only while this room overlay is loaded. Keep this first BSS
 /// declaration before `gRoomDeparture`.
@@ -519,12 +519,12 @@ void neoArkEveAccessTunnelShelterDepartureTask(Task* task)
             RoomDeparture       departure;
             RoomVariantResolver resolve = _roomVariantResolveShelter;
 
-            departure.stage    = GAME_STAGE_MINE_SHELTER;
-            departure.area     = (u8)task->spawnArg1.value;
-            departure.room     = NEO_ARK_EVE_ACCESS_TUNNEL_SHELTER_DEFAULT_ROOM;
-            departure.warp     = NEO_ARK_EVE_ACCESS_TUNNEL_SHELTER_ARRIVAL;
-            departure.sndEvent = 0;
-            departure.facing   = NEO_ARK_EVE_ACCESS_TUNNEL_SHELTER_FACING;
+            departure.stage     = GAME_STAGE_MINE_SHELTER;
+            departure.area      = (u8)task->spawnArg1.value;
+            departure.roomState = NEO_ARK_EVE_ACCESS_TUNNEL_SHELTER_DEFAULT_ROOM;
+            departure.warp      = NEO_ARK_EVE_ACCESS_TUNNEL_SHELTER_ARRIVAL;
+            departure.sndEvent  = 0;
+            departure.facing    = NEO_ARK_EVE_ACCESS_TUNNEL_SHELTER_FACING;
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
             // Commit the resolved selectors before the departure task borrows them.
             _roomVariantResolveDeparture(&departure, resolve);
@@ -570,10 +570,10 @@ void neoArkEveAccessTunnelElevatorDepartureTask(Task* task)
             return;
         case NEO_ARK_EVE_ACCESS_TUNNEL_DEPARTURE_COMMIT:
             // Commit only area, warp and room; the remaining saved location bytes stay live.
-            gDisplayState.spriteVariant                            = 1;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.area = _gNeoArkEveAccessTunnelPendingElevatorDestination.area;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp = _gNeoArkEveAccessTunnelPendingElevatorDestination.warp;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.room = _gNeoArkEveAccessTunnelPendingElevatorDestination.room;
+            gDisplayState.spriteVariant                                 = 1;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.area      = _gNeoArkEveAccessTunnelPendingElevatorDestination.area;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp      = _gNeoArkEveAccessTunnelPendingElevatorDestination.warp;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.roomState = _gNeoArkEveAccessTunnelPendingElevatorDestination.roomState;
             taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
             taskKill(task);
             break;
@@ -607,10 +607,10 @@ s32 neoArkEveAccessTunnelResolveTransition(Task* unusedTask, s32 unusedMessageId
                 default:
                     if (request->queryOnly == ROOM_EVENT_EXECUTE) {
                         // Preserve the three resolved selectors for the deferred reload.
-                        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent    = NEO_ARK_EVE_ACCESS_TUNNEL_ELEVATOR_SCENE_EVENT;
-                        _gNeoArkEveAccessTunnelPendingElevatorDestination.area = (u8)reply->areaId;
-                        _gNeoArkEveAccessTunnelPendingElevatorDestination.warp = reply->warp;
-                        _gNeoArkEveAccessTunnelPendingElevatorDestination.room = reply->room;
+                        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent         = NEO_ARK_EVE_ACCESS_TUNNEL_ELEVATOR_SCENE_EVENT;
+                        _gNeoArkEveAccessTunnelPendingElevatorDestination.area      = (u8)reply->areaId;
+                        _gNeoArkEveAccessTunnelPendingElevatorDestination.warp      = reply->warp;
+                        _gNeoArkEveAccessTunnelPendingElevatorDestination.roomState = reply->roomState;
                         playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
                         taskSpawnFromTable(gNeoArkEveAccessTunnelEventTasks, NEO_ARK_EVE_ACCESS_TUNNEL_ELEVATOR_TASK, 0, 0);
                     }

@@ -2907,9 +2907,9 @@ static void _mineCavernActivateRoom2(void)
 {
     enum { MINE_CAVERN_POST_SCENE_ROOM = 2 };
 
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.room = MINE_CAVERN_POST_SCENE_ROOM;
-    gGameSession->location.room                            = MINE_CAVERN_POST_SCENE_ROOM;
-    gGameSession->roomObjsDirty                            = true;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.roomState = MINE_CAVERN_POST_SCENE_ROOM;
+    gGameSession->location.roomState                            = MINE_CAVERN_POST_SCENE_ROOM;
+    gGameSession->roomObjsDirty                                 = true;
 }
 
 /// No-op callback retained after the room switch in both cavern event scripts.

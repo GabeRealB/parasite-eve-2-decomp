@@ -120,21 +120,21 @@ s32 roomVariantFactoryMsg(Task* unusedTask, s32 unusedMessageId, const RoomEvent
         if (stageId == GAME_STAGE_DRYFIELD) {
             if (request->queryOnly == ROOM_EVENT_EXECUTE) {
                 if (gameFlagGetNibble(GAME_FLAG_DRIVEWAY_PROGRESS) >= FACTORY_DRIVEWAY_PROGRESS_OPEN) {
-                    reply->room = stageId;
+                    reply->roomState = stageId;
                 } else {
-                    reply->room = FACTORY_DRIVEWAY_DEFAULT_ROOM;
+                    reply->roomState = FACTORY_DRIVEWAY_DEFAULT_ROOM;
                 }
             }
         } else if (request->queryOnly == ROOM_EVENT_EXECUTE) {
-            reply->room = gameFlagGetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SCENE_SEEN) + 1;
+            reply->roomState = gameFlagGetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SCENE_SEEN) + 1;
         }
     }
     if (request->areaId == GAME_AREA_DRYFIELD_GARAGE) {
         if (request->queryOnly == ROOM_EVENT_EXECUTE) {
             if (gameFlagGetNibble(GAME_FLAG_STORY_CHAPTER) < FACTORY_GARAGE_FINAL_CHAPTER) {
-                reply->room = FACTORY_GARAGE_EARLY_ROOM;
+                reply->roomState = FACTORY_GARAGE_EARLY_ROOM;
             } else {
-                reply->room = FACTORY_GARAGE_LATE_ROOM;
+                reply->roomState = FACTORY_GARAGE_LATE_ROOM;
             }
         }
         if (request->areaId == GAME_AREA_DRYFIELD_GARAGE) {

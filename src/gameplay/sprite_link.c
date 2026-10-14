@@ -135,7 +135,7 @@ static inline const SpriteView* _spriteGetCurrentView(void)
     viewIndexTable  = gViewIndexTables[location->stage - 1];
     areaViewMaps    = viewIndexTable->viewMaps;
     roomViewMaps    = areaViewMaps[location->area - 1];
-    viewMap         = roomViewMaps[location->room - 1];
+    viewMap         = roomViewMaps[location->roomState - 1];
     mappedViewIndex = viewMap[location->view - 1];
     spriteTable     = gSpriteAreaTables[location->stage - 1];
     spriteAreaViews = spriteTable->areaViews;
@@ -411,10 +411,10 @@ static void _worldCollisionBindCurrentRoomResources(Task* unusedTask)
     worldCollisionClearOccluderList(WORLD_COLLISION_OCCLUDER_LIST_ACTIVE);
     areaRooms = gWorldCollisionStageResources[location->stage - 1]->areaRooms[location->area - 1];
     if (areaRooms != NULL) {
-        grid                 = areaRooms[location->room - 1].grid;
-        viewBoundaryTriggers = areaRooms[location->room - 1].viewBoundaryTriggers;
-        actionTriggers       = areaRooms[location->room - 1].actionTriggers;
-        occluders            = areaRooms[location->room - 1].occluders;
+        grid                 = areaRooms[location->roomState - 1].grid;
+        viewBoundaryTriggers = areaRooms[location->roomState - 1].viewBoundaryTriggers;
+        actionTriggers       = areaRooms[location->roomState - 1].actionTriggers;
+        occluders            = areaRooms[location->roomState - 1].occluders;
         if (grid != NULL) {
             // Bind the room mesh to the current view before publishing it.
             grid->viewCoord           = &gGfxViewCoord;
@@ -452,8 +452,8 @@ s8 viewFindLogicalIndex(s32 mappedViewIndex)
 
     logicalViewOffset = 0;
     location          = &gGameSession->location;
-    viewCount         = gViewCountTables[location->stage - 1]->viewCounts[location->area - 1][location->room - 1];
-    viewMap           = gViewIndexTables[location->stage - 1]->viewMaps[location->area - 1][location->room - 1];
+    viewCount         = gViewCountTables[location->stage - 1]->viewCounts[location->area - 1][location->roomState - 1];
+    viewMap           = gViewIndexTables[location->stage - 1]->viewMaps[location->area - 1][location->roomState - 1];
     // Search logical slots in order: duplicate mapped indices select the first.
     if (viewCount > 0) {
         do {
@@ -494,7 +494,7 @@ static s32 _spriteViewUsesImageStrips(void)
     viewIndexTable   = gViewIndexTables[stageIndex];
     areaViewMaps     = viewIndexTable->viewMaps;
     roomViewMaps     = areaViewMaps[location->area - 1];
-    viewMap          = roomViewMaps[location->room - 1];
+    viewMap          = roomViewMaps[location->roomState - 1];
     mappedViewIndex  = viewMap[location->view - 1];
     spriteTable      = *stageSpriteEntry;
     spriteAreaViews  = spriteTable->areaViews;
@@ -557,7 +557,7 @@ s32 viewGetMappedIndex(void)
     location     = &session->location;
     areaViewMaps = gViewIndexTables[location->stage - 1]->viewMaps;
     roomViewMaps = areaViewMaps[location->area - 1];
-    viewMap      = roomViewMaps[location->room - 1];
+    viewMap      = roomViewMaps[location->roomState - 1];
     return viewMap[location->view - 1];
 }
 

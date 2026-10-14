@@ -1796,15 +1796,15 @@ static void _actor01500SpawnBurstParts(Task* actor)
         gTaskBank4Descs[TASK_BANK4_BURST_MODEL_PART_SLOT].data.model = (source);                                                                                                     \
         effect                                                       = effectSpawn(EFFECT_BURST_BODY_PART_BANK4, &(actor)->extra.tmd->coords[1], ACTOR_01500_BURST_PUFF_SIZE, NULL); \
         if (effect != NULL) {                                                                                                                                                        \
-            sessionLocation     = &gGameSession->location;                                                                                                                           \
-            placeKey            = ((Enemy*)(actor)->spawnArg2.pointer)->placeKey;                                                                                                    \
-            model               = effect->task->extra.tmd;                                                                                                                           \
-            (locationKey).stage = sessionLocation->stage;                                                                                                                            \
-            (locationKey).area  = sessionLocation->area;                                                                                                                             \
-            (locationKey).room  = sessionLocation->room;                                                                                                                             \
-            viewIndex           = gGameSession->location.view;                                                                                                                       \
-            placementIndex      = placeKey >> ENEMY_PLACE_INDEX_SHIFT;                                                                                                               \
-            (locationKey).view  = viewIndex;                                                                                                                                         \
+            sessionLocation         = &gGameSession->location;                                                                                                                       \
+            placeKey                = ((Enemy*)(actor)->spawnArg2.pointer)->placeKey;                                                                                                \
+            model                   = effect->task->extra.tmd;                                                                                                                       \
+            (locationKey).stage     = sessionLocation->stage;                                                                                                                        \
+            (locationKey).area      = sessionLocation->area;                                                                                                                         \
+            (locationKey).roomState = sessionLocation->roomState;                                                                                                                    \
+            viewIndex               = gGameSession->location.view;                                                                                                                   \
+            placementIndex          = placeKey >> ENEMY_PLACE_INDEX_SHIFT;                                                                                                           \
+            (locationKey).view      = viewIndex;                                                                                                                                     \
             areaSyncLocationVariant(&(locationKey));                                                                                                                                 \
             placement                = AREA_PLACEMENT_AT(areaGetVariant(&(locationKey))->placements, placementIndex);                                                                \
             model->texturePageOffset = placement->texturePageOffset;                                                                                                                 \

@@ -898,7 +898,7 @@ static void _mineRefugeStartCutscene(s32 restoreView)
         _gMineRefugeCutscene.view       = MINE_REFUGE_CUTSCENE_VIEW;
         _gMineRefugeCutscene.startSound = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_MINE_REFUGE, 3);
     }
-    if (gameFlagGetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX) == MINE_REFUGE_DIALOGUE_FINAL) {
+    if (gameFlagGetNibble(EVENT_FLAG_STORY_DIALOGUE_INDEX) == MINE_REFUGE_DIALOGUE_FINAL) {
         followupCommandIndex         = MINE_REFUGE_CAP_FOLLOWUP_FINAL;
         _gMineRefugeCutscene.capSlot = MINE_REFUGE_CAP_SLOT_FINAL;
         _gMineRefugeCutscene.capFile = MINE_REFUGE_CAP_FILE_CURRENT;

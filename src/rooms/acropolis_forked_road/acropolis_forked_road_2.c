@@ -1362,11 +1362,11 @@ static void _acropolisForkedRoadOutboundMoviePathTask(Task* task)
             gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
             padInputChangeSuppression(PAD_INPUT_SUPPRESSION_CLEAR_ALIAS, PAD_INPUT_SUPPRESS_ACTIONS_AND_MENU);
             sndEvtRequestScriptStop(SOUND_BANK_TYPE_ALL_NON_AMBIENT, SOUND_SCRIPT_STOP_NO_FADE);
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.stage = GAME_STAGE_AKROPOLIS;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.area  = GAME_AREA_AKROPOLIS_OBSERVATORY;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp  = ACROPOLIS_FORKED_ROAD_OUTBOUND_DESTINATION_WARP;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.room  = ACROPOLIS_FORKED_ROAD_OUTBOUND_DESTINATION_ROOM;
-            gDisplayState.spriteVariant                             = 1;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.stage     = GAME_STAGE_AKROPOLIS;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.area      = GAME_AREA_AKROPOLIS_OBSERVATORY;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp      = ACROPOLIS_FORKED_ROAD_OUTBOUND_DESTINATION_WARP;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.roomState = ACROPOLIS_FORKED_ROAD_OUTBOUND_DESTINATION_ROOM;
+            gDisplayState.spriteVariant                                 = 1;
             taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
             gGameSession->padScriptFlags &= (0xFF ^ GAME_SESSION_PAD_SCRIPT_DURING_BATTLE_FREEZE);
             taskKill(task);

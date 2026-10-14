@@ -2813,10 +2813,10 @@ void actor215100GalleryExitDecisionTask(Task* task)
                 inventoryRestoreCarriedLoadout();
                 gGameSession->hideHud = 1;
                 sndEvtRequestScriptStart(ACTOR_215100_GALLERY_RETURN_SOUND, 0, 0);
-                gDisplayState.spriteVariant                            = ACTOR_215100_GALLERY_RETURN_SPRITE_VARIANT;
-                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.area = _gActor215100GalleryPendingExitRequest.areaId;
-                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp = _gActor215100GalleryPendingExitRequest.warp;
-                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.room = _gActor215100GalleryPendingExitRequest.room;
+                gDisplayState.spriteVariant                                 = ACTOR_215100_GALLERY_RETURN_SPRITE_VARIANT;
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.area      = _gActor215100GalleryPendingExitRequest.areaId;
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp      = _gActor215100GalleryPendingExitRequest.warp;
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.roomState = _gActor215100GalleryPendingExitRequest.roomState;
                 taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
                 taskKill(task);
             }

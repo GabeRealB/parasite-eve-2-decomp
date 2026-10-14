@@ -650,7 +650,7 @@ s32 taskMessageDispatch(Task* receiver, s32 messageId, s32 firstArg, s32 secondA
 
 /// Binds borrowed collision records for initial room setup without clearing lists.
 ///
-/// `roomResources` is NULL or a loaded room array containing `location->room - 1`;
+/// `roomResources` is NULL or a loaded room array containing `location->roomState - 1`;
 /// the room index is one-based. Both pointers are borrowed for this call.
 /// Each non-NULL trigger/occluder list must contain its LAST-marked entry and
 /// remain writable and loaded until unlinked. Each record must be unlinked or
@@ -668,10 +668,10 @@ static inline void _loadingBindInitialRoomCollisionResources(const GameLocationK
     s32                     resourceIndex;
 
     if (roomResources != NULL) {
-        grid                 = roomResources[location->room - 1].grid;
-        viewBoundaryTriggers = roomResources[location->room - 1].viewBoundaryTriggers;
-        actionTriggers       = roomResources[location->room - 1].actionTriggers;
-        occluders            = roomResources[location->room - 1].occluders;
+        grid                 = roomResources[location->roomState - 1].grid;
+        viewBoundaryTriggers = roomResources[location->roomState - 1].viewBoundaryTriggers;
+        actionTriggers       = roomResources[location->roomState - 1].actionTriggers;
+        occluders            = roomResources[location->roomState - 1].occluders;
         if (grid != NULL) {
             // Bind the room mesh to the current view before publishing it.
             grid->viewCoord           = &gGfxViewCoord;

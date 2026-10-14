@@ -153,9 +153,9 @@ static s32 _roomVariantNightJunkYardMsg(Task* unusedTask, s32 unusedMessageId, c
     // Preserve the pre-copy store: aliased request/reply retains this room choice.
     if (request->areaId == GAME_AREA_DRYFIELD_NIGHT_GARAGE && request->queryOnly == ROOM_EVENT_EXECUTE) {
         if (gameFlagGetNibble(GAME_FLAG_STORY_CHAPTER) >= DRYFIELD_NIGHT_JUNK_YARD_GARAGE_CHAPTER) {
-            reply->room = 2;
+            reply->roomState = 2;
         } else {
-            reply->room = 1;
+            reply->roomState = 1;
         }
     }
     *reply = *request;
@@ -220,8 +220,8 @@ static s32 _dryfieldNightJunkYardHandleRoomAction(Task* unusedTask, s32 unusedMe
 /// is stored unchanged, without loading resources or validating the room number.
 static void _dryfieldNightJunkYardSetRoomNumber(u8 roomNumber)
 {
-    gGameSession->location.room                            = roomNumber;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.room = roomNumber;
+    gGameSession->location.roomState                            = roomNumber;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.roomState = roomNumber;
 }
 
 /// Registers the room and restores the encounter's actor and sprite state.

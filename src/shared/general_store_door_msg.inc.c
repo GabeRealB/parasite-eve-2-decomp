@@ -21,17 +21,17 @@ static inline void _roomVariantGeneralStoreSelectUnderpassRoom(RoomEventMsg* rep
     };
     if (gameFlagGetNibble(GAME_FLAG_UNDERPASS_EVENT_SEEN) != 0) {
         if (gameFlagGetNibble(GAME_FLAG_053) == 0) {
-            reply->room = GENERAL_STORE_UNDERPASS_ROOM_AFTER_EVENT;
+            reply->roomState = GENERAL_STORE_UNDERPASS_ROOM_AFTER_EVENT;
         } else {
-            reply->room = GENERAL_STORE_UNDERPASS_ROOM_FLAG_053;
+            reply->roomState = GENERAL_STORE_UNDERPASS_ROOM_FLAG_053;
         }
         if (gameFlagGetNibble(GAME_FLAG_UNDERPASS_SWITCH_1) == 0) {
-            reply->room = reply->room + GENERAL_STORE_UNDERPASS_SWITCH_OFF_OFFSET;
+            reply->roomState = reply->roomState + GENERAL_STORE_UNDERPASS_SWITCH_OFF_OFFSET;
         }
     } else if (gameFlagGetNibble(GAME_FLAG_UNDERPASS_SWITCH_1) == 0) {
-        reply->room = GENERAL_STORE_UNDERPASS_ROOM_BEFORE_EVENT_OFF;
+        reply->roomState = GENERAL_STORE_UNDERPASS_ROOM_BEFORE_EVENT_OFF;
     } else {
-        reply->room = GENERAL_STORE_UNDERPASS_ROOM_BEFORE_EVENT_ON;
+        reply->roomState = GENERAL_STORE_UNDERPASS_ROOM_BEFORE_EVENT_ON;
     }
 }
 
@@ -63,14 +63,14 @@ static s32 _roomVariantGeneralStoreMsg(Task* unusedTask, s32 unusedMessageId, co
     areaId = request->areaId;
     if (areaId == GAME_AREA_DRYFIELD_GAS_STATION && request->queryOnly == ROOM_EVENT_EXECUTE) {
         if (gameFlagGetNibble(GAME_FLAG_NIGHT_GAS_STATION_PROGRESS) == 0) {
-            reply->room = areaId;
+            reply->roomState = areaId;
         } else {
             if (gameFlagGetNibble(GAME_FLAG_STORY_CHAPTER) >= ROOM_VARIANT_DRYFIELD_FINAL_CHAPTER) {
                 destinationRoom = GENERAL_STORE_GAS_STATION_FINAL_ROOM;
             } else {
                 destinationRoom = gameFlagGetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SCENE_SEEN) + GENERAL_STORE_GAS_STATION_BASE_ROOM;
             }
-            reply->room = destinationRoom;
+            reply->roomState = destinationRoom;
         }
     }
     if (request->areaId == GAME_AREA_DRYFIELD_UNDERPASS && request->queryOnly == ROOM_EVENT_EXECUTE) {
@@ -95,7 +95,7 @@ static s32 _roomVariantGeneralStoreMsg(Task* unusedTask, s32 unusedMessageId, co
         // The singleton destination is latched after requesting the deferred task.
         taskSpawnFromTable(_gGeneralStoreTaskDescriptors, GENERAL_STORE_UNDERPASS_TRANSITION_TASK_INDEX, 0, 0);
         GENERAL_STORE_UNDERPASS_ARRIVAL_WARP = request->warp;
-        GENERAL_STORE_UNDERPASS_ROOM         = request->room;
+        GENERAL_STORE_UNDERPASS_ROOM         = request->roomState;
     } else {
         capRunCommandWithTransition(GENERAL_STORE_UNDERPASS_BLOCKED_CAP_COMMAND);
     }

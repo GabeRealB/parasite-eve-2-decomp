@@ -77,13 +77,6 @@ s16 gDirectionInteractionRearmUpdates;
 
 #include "menu_map.h"
 
-/// Outcomes recognized by the warp query phase after narrowing the room reply to s16.
-enum {
-    DIRECTION_WARP_QUERY_STAY        = 0, // Execute in this area, then release scripted control
-    DIRECTION_WARP_QUERY_DEPART      = 1, // Turn, execute, await sound and save the destination
-    DIRECTION_WARP_QUERY_ROOM_ACTION = 2  // Execute the room's replacement action immediately
-};
-
 /// Trigger byte packing and the fixed facing target used by Dryfield's driveway exits.
 enum {
     DIRECTION_WARP_ENDPOINT_SHIFT       = 4,
@@ -286,7 +279,7 @@ void directionQueryWarp(void)
     warpEntry = gDirectionAreaWarpEntriesByStage[stageId - 1][areaId - 1][(gDirectionActionParameter1 >> DIRECTION_WARP_ENDPOINT_SHIFT) - 1];
 
     gDirectionWarpRequest.field_4   = 1;
-    gDirectionWarpRequest.room      = DIRECTION_WARP_DEFAULT_ROOM;
+    gDirectionWarpRequest.roomState = DIRECTION_WARP_DEFAULT_ROOM;
     gDirectionWarpRequest.queryOnly = ROOM_EVENT_QUERY_ONLY;
     gDirectionWarpRequest.areaId    = gDirectionActionParameter0;
     gDirectionWarpRequest.warp      = gDirectionActionParameter1 & DIRECTION_WARP_ARRIVAL_MASK;
@@ -297,7 +290,7 @@ void directionQueryWarp(void)
     _gDirectionWarpQueryResult = queryResult;
 
     switch (queryResult) {
-        case DIRECTION_WARP_QUERY_DEPART:
+        case ROOM_EVENT_DEPART:
             if (warpEntry.departureSound != DIRECTION_WARP_SOUND_NONE) {
                 _gDirectionWarpSoundId = warpEntry.departureSound;
             } else {
@@ -311,7 +304,7 @@ void directionQueryWarp(void)
             gDirectionActionPhase++;
             break;
 
-        case DIRECTION_WARP_QUERY_STAY:
+        case ROOM_EVENT_STAY:
             if (warpEntry.blockedSound != DIRECTION_WARP_SOUND_NONE) {
                 _gDirectionWarpSoundId = warpEntry.blockedSound;
             } else {
@@ -319,7 +312,7 @@ void directionQueryWarp(void)
             }
             if (gSceneCombatState.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_ENGAGED) {
                 gDirectionWarpRequest.field_4   = gSceneCombatState.signals.bytes.battlePhase;
-                gDirectionWarpRequest.room      = gSceneCombatState.signals.bytes.battlePhase;
+                gDirectionWarpRequest.roomState = gSceneCombatState.signals.bytes.battlePhase;
                 gDirectionWarpRequest.queryOnly = ROOM_EVENT_EXECUTE;
                 gDirectionWarpRequest.areaId    = gDirectionActionParameter0;
                 gDirectionWarpRequest.warp      = gDirectionActionParameter1 & DIRECTION_WARP_ARRIVAL_MASK;
@@ -340,9 +333,9 @@ void directionQueryWarp(void)
             gDirectionActionPhase++;
             break;
 
-        case DIRECTION_WARP_QUERY_ROOM_ACTION:
+        case ROOM_EVENT_ROOM_ACTION:
             gDirectionWarpRequest.field_4   = 1;
-            gDirectionWarpRequest.room      = DIRECTION_WARP_DEFAULT_ROOM;
+            gDirectionWarpRequest.roomState = DIRECTION_WARP_DEFAULT_ROOM;
             gDirectionWarpRequest.queryOnly = ROOM_EVENT_EXECUTE;
             gDirectionWarpRequest.areaId    = gDirectionActionParameter0;
             gDirectionWarpRequest.warp      = gDirectionActionParameter1 & DIRECTION_WARP_ARRIVAL_MASK;
@@ -393,7 +386,7 @@ void directionResolveWarp(void)
     // Rebuild the request from the trigger; query-time selector edits do not survive.
     request                      = &gDirectionWarpRequest;
     request->field_4             = 1;
-    request->room                = DIRECTION_WARP_DEFAULT_ROOM;
+    request->roomState           = DIRECTION_WARP_DEFAULT_ROOM;
     request->queryOnly           = ROOM_EVENT_EXECUTE;
     gDirectionWarpRequest.areaId = gDirectionActionParameter0;
     request->warp                = gDirectionActionParameter1 & DIRECTION_WARP_ARRIVAL_MASK;
@@ -406,7 +399,7 @@ void directionResolveWarp(void)
         }
     }
 
-    if (_gDirectionWarpQueryResult == DIRECTION_WARP_QUERY_STAY) {
+    if (_gDirectionWarpQueryResult == ROOM_EVENT_STAY) {
         taskMessageDispatch(playerTask, GAME_ACTOR_MESSAGE_END_SCRIPTED, 0, 0);
         gDirectionActionActive           = false;
         gDirectionActionParameter1       = 0;

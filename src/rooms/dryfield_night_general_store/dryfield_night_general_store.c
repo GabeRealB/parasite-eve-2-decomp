@@ -97,7 +97,7 @@ static const TaskMessageEntry _gDryfieldNightGeneralStoreMessageTable[6] SECTION
 ///
 /// Bind the same stable `u8` lvalue without side effects through both departure
 /// and prompt fragments, then undefine the binding. Unblocked execution stores
-/// `RoomEventMsg::room` after resolving the reply: aliased records supply room
+/// `RoomEventMsg::roomState` after resolving the reply: aliased records supply room
 /// 1..6, while distinct records retain the input room byte. Acceptance copies
 /// that byte to the live save without range validation. Keep the overlay loaded
 /// and the singleton unchanged until the prompt ends; cancellation leaves its

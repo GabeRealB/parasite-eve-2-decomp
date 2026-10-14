@@ -1485,9 +1485,9 @@ static void _shelterB4ReservoirWaterEventTask(Task* task)
         case SHELTER_B4_RESERVOIR_EVENT_WAIT_SCRIPT:
             // The event script owns the gate until either normal completion or skip.
             if (gGameSession->eventState == SHELTER_B4_RESERVOIR_EVENT_IDLE) {
-                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.room = SHELTER_B4_RESERVOIR_EVENT_COMPLETED_ROOM;
-                gGameSession->location.room                            = SHELTER_B4_RESERVOIR_EVENT_COMPLETED_ROOM;
-                gGameSession->roomObjsDirty                            = 1;
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.roomState = SHELTER_B4_RESERVOIR_EVENT_COMPLETED_ROOM;
+                gGameSession->location.roomState                            = SHELTER_B4_RESERVOIR_EVENT_COMPLETED_ROOM;
+                gGameSession->roomObjsDirty                                 = 1;
                 gameFlagSetNibble(GAME_FLAG_B4_RESERVOIR_EVENT_DONE, SHELTER_B4_RESERVOIR_EVENT_DONE);
                 gameFlagSetNibble(GAME_FLAG_MAP_MARK_RESERVOIR_1BF, SHELTER_B4_RESERVOIR_EVENT_MAP_MARK);
                 gameFlagSetNibble(GAME_FLAG_INCINERATOR_CONTROL_ROOM_STATE, SHELTER_B4_RESERVOIR_CONTROL_ROOM_AFTER_EVENT);
@@ -1583,10 +1583,10 @@ static void _shelterB4ReservoirExitTask(Task* task)
             break;
         case SHELTER_B4_RESERVOIR_EXIT_RELOAD:
             // This retained storage uses location bytes: room, area and warp.
-            gDisplayState.spriteVariant                            = SHELTER_B4_RESERVOIR_EXIT_SPRITE_VARIANT;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.area = _gShelterB4ReservoirPendingExitLocation.area;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp = _gShelterB4ReservoirPendingExitLocation.warp;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.room = _gShelterB4ReservoirPendingExitLocation.room;
+            gDisplayState.spriteVariant                                 = SHELTER_B4_RESERVOIR_EXIT_SPRITE_VARIANT;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.area      = _gShelterB4ReservoirPendingExitLocation.area;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp      = _gShelterB4ReservoirPendingExitLocation.warp;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.roomState = _gShelterB4ReservoirPendingExitLocation.roomState;
             taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_SKIP_BATTLE_ESCAPE, 0);
             taskKill(task);
             break;
@@ -1631,9 +1631,9 @@ static s32 _shelterB4ReservoirResolveTransitionMessage(Task* task, s32 messageId
         } else {
             if (request->queryOnly == ROOM_EVENT_EXECUTE) {
                 // Snapshot the resolved selectors for the asynchronous exit task.
-                _gShelterB4ReservoirPendingExitLocation.area = (u8)reply->areaId;
-                _gShelterB4ReservoirPendingExitLocation.warp = reply->warp;
-                _gShelterB4ReservoirPendingExitLocation.room = reply->room;
+                _gShelterB4ReservoirPendingExitLocation.area      = (u8)reply->areaId;
+                _gShelterB4ReservoirPendingExitLocation.warp      = reply->warp;
+                _gShelterB4ReservoirPendingExitLocation.roomState = reply->roomState;
                 taskSpawnFromTable(_gShelterB4ReservoirEventTasks, SHELTER_B4_RESERVOIR_TASK_EXIT, SHELTER_B4_RESERVOIR_EXIT_CAP_COMMAND, 0);
             }
         }

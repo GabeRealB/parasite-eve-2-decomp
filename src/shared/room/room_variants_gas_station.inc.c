@@ -29,7 +29,7 @@ static s32 _roomVariantGasStationMsg(Task* task, s32 messageId, const RoomEventM
         } else {
             destinationRoom = gameFlagGetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SCENE_SEEN) + 1;
         }
-        reply->room = destinationRoom;
+        reply->roomState = destinationRoom;
     }
     // In night variant 1, combat claims the general-store exit before its lock test.
     if (request->areaId == GAME_AREA_DRYFIELD_GENERAL_STORE) {

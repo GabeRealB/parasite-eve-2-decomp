@@ -1,4 +1,5 @@
 #include "rooms/acropolis_west_elevator_hall.h"
+#include "../../stages/akropolis/event_flags.h"
 
 #include <psyq/sys/types.h>
 #include <psyq/libgte.h>
@@ -1165,7 +1166,6 @@ static void _acropolisWestElevatorHallUpdateArrivalEvent(Task* unusedTask)
     enum {
         ACROPOLIS_WEST_ELEVATOR_HALL_ARRIVAL_WARP       = 1,
         ACROPOLIS_WEST_ELEVATOR_HALL_SESSION_EVENT_IDLE = 0,
-        ACROPOLIS_WEST_ELEVATOR_HALL_ARRIVAL_DIALOGUE   = 1,
         ACROPOLIS_WEST_ELEVATOR_HALL_STORY_CHAPTER      = 1,
         ACROPOLIS_WEST_ELEVATOR_HALL_ARRIVAL_OBJECTIVE  = 1,
     };
@@ -1179,8 +1179,8 @@ static void _acropolisWestElevatorHallUpdateArrivalEvent(Task* unusedTask)
         if (arrivalWarp == ACROPOLIS_WEST_ELEVATOR_HALL_ARRIVAL_WARP) {
             _gAcropolisWestElevatorHallArrivalPhase = arrivalWarp;
             evsStartScriptWithSkip(_gAcropolisWestElevatorHallArrivalScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, _gAcropolisWestElevatorHallArrivalSkipScript);
-            gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
-            gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, ACROPOLIS_WEST_ELEVATOR_HALL_ARRIVAL_DIALOGUE);
+            gameFlagSetNibble(EVENT_FLAG_TELEPHONE_DIALOGUE_COUNTER, EVENT_FLAG_TELEPHONE_DIALOGUE_UNHEARD);
+            gameFlagSetNibble(EVENT_FLAG_STORY_DIALOGUE_INDEX, AKROPOLIS_STORY_DIALOGUE_ARRIVAL);
             gameFlagSetNibble(GAME_FLAG_STORY_CHAPTER, ACROPOLIS_WEST_ELEVATOR_HALL_STORY_CHAPTER);
             gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, ACROPOLIS_WEST_ELEVATOR_HALL_ARRIVAL_OBJECTIVE);
         }
@@ -1247,8 +1247,8 @@ static s32 _acropolisWestElevatorHallResolveRoomEventMessage(Task* unusedTask, s
     };
 
     *reply = *request;
-    if (request->areaId == GAME_AREA_AKROPOLIS_SQUARE && gameFlagGetNibble(GAME_FLAG_AKROPOLIS_OPENING_PROGRESS) == ACROPOLIS_WEST_ELEVATOR_HALL_OPENING_NOT_STARTED && request->queryOnly == ROOM_EVENT_EXECUTE) {
-        gameFlagSetNibble(GAME_FLAG_AKROPOLIS_OPENING_PROGRESS, ACROPOLIS_WEST_ELEVATOR_HALL_OPENING_DEPARTED);
+    if (request->areaId == GAME_AREA_AKROPOLIS_SQUARE && gameFlagGetNibble(EVENT_FLAG_AKROPOLIS_PATIO_CUTSCENE_PROGRESS) == ACROPOLIS_WEST_ELEVATOR_HALL_OPENING_NOT_STARTED && request->queryOnly == ROOM_EVENT_EXECUTE) {
+        gameFlagSetNibble(EVENT_FLAG_AKROPOLIS_PATIO_CUTSCENE_PROGRESS, ACROPOLIS_WEST_ELEVATOR_HALL_OPENING_DEPARTED);
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = ACROPOLIS_WEST_ELEVATOR_HALL_DEPARTURE_SCENE_EVENT;
         reply->warp                                         = ACROPOLIS_WEST_ELEVATOR_HALL_SQUARE_ARRIVAL_WARP;
     }

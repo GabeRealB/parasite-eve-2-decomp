@@ -2459,8 +2459,8 @@ static void _dryfieldTrailerCoachInitializeRoomTask(Task* task)
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp == ARRIVAL_STORY_SCENE) {
         evsStartScriptWithSkip(_gDryfieldTrailerCoachArrivalScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, _gDryfieldTrailerCoachArrivalSkipScript);
-        gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
-        gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, STORY_DIALOGUE_START);
+        gameFlagSetNibble(EVENT_FLAG_TELEPHONE_DIALOGUE_COUNTER, EVENT_FLAG_TELEPHONE_DIALOGUE_UNHEARD);
+        gameFlagSetNibble(EVENT_FLAG_STORY_DIALOGUE_INDEX, STORY_DIALOGUE_START);
     } else {
         stageMusicRequestAreaStart(AREA_MUSIC_START);
     }

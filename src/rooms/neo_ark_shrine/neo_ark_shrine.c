@@ -683,11 +683,11 @@ static inline void _neoArkShrineRestorePuzzleLayout(void)
 
     gNeoArkShrinePuzzleLayoutRestorePending = false;
     if (gameFlagGetNibble(GAME_FLAG_0E9) == 0) {
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.room = NEO_ARK_SHRINE_LAYOUT_BASE;
-        gGameSession->location.room                            = NEO_ARK_SHRINE_LAYOUT_BASE;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.roomState = NEO_ARK_SHRINE_LAYOUT_BASE;
+        gGameSession->location.roomState                            = NEO_ARK_SHRINE_LAYOUT_BASE;
     } else {
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.room = NEO_ARK_SHRINE_LAYOUT_BASE_AFTER_REVEAL;
-        gGameSession->location.room                            = NEO_ARK_SHRINE_LAYOUT_BASE_AFTER_REVEAL;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.roomState = NEO_ARK_SHRINE_LAYOUT_BASE_AFTER_REVEAL;
+        gGameSession->location.roomState                            = NEO_ARK_SHRINE_LAYOUT_BASE_AFTER_REVEAL;
     }
     gGameSession->roomObjsDirty = true;
     sndEvtRequestScriptStart(SOUND_NEO_ARK_SHRINE_MECHANISM_REVERT, 0, 0);

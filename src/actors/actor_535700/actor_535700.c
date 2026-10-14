@@ -1436,10 +1436,10 @@ static void _actor535700FinishScene(void)
     };
 
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene != ACTOR_535700_DEMO_SCENE) {
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.area = GAME_AREA_DRYFIELD_NIGHT_MOTEL_BALCONY;
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp = ACTOR_535700_BALCONY_ARRIVAL;
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.room = ACTOR_535700_BALCONY_ROOM;
-        gDisplayState.spriteVariant                            = ACTOR_535700_SPRITE_VARIANT;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.area      = GAME_AREA_DRYFIELD_NIGHT_MOTEL_BALCONY;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp      = ACTOR_535700_BALCONY_ARRIVAL;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.roomState = ACTOR_535700_BALCONY_ROOM;
+        gDisplayState.spriteVariant                                 = ACTOR_535700_SPRITE_VARIANT;
         taskSpawn(ACTOR_535700_SESSION_TASK_BANK, ACTOR_535700_SESSION_TRANSITION_TASK, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = ACTOR_535700_POST_SCENE_EVENT;
         streamFinishScene();

@@ -1142,7 +1142,7 @@ static void _acropolisHelicopterLandingPadResolveExit(Task* task)
     Task* roomTask = gameGetTaskSlot(GAME_TASK_SLOT_ROOM);
 
     gAcropolisHelicopterLandingPadExitRequest.field_4   = 1;
-    gAcropolisHelicopterLandingPadExitRequest.room      = ACROPOLIS_HELICOPTER_LANDING_PAD_EXIT_ROOM;
+    gAcropolisHelicopterLandingPadExitRequest.roomState = ACROPOLIS_HELICOPTER_LANDING_PAD_EXIT_ROOM;
     gAcropolisHelicopterLandingPadExitRequest.areaId    = GAME_AREA_AKROPOLIS_FIRE_ESCAPE;
     gAcropolisHelicopterLandingPadExitRequest.warp      = ACROPOLIS_HELICOPTER_LANDING_PAD_EXIT_WARP;
     gAcropolisHelicopterLandingPadExitRequest.queryOnly = ROOM_EVENT_EXECUTE;
@@ -1210,9 +1210,9 @@ static void _acropolisHelicopterLandingPadDescendExitStairs(Task* task)
 static void _acropolisHelicopterLandingPadCommitExitTask(Task* task)
 {
     if (taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_IS_SCRIPTED_MOTION_PENDING, 0, 0) == 0) {
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.area = (u8)gAcropolisHelicopterLandingPadExitRequest.areaId;
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp = gAcropolisHelicopterLandingPadExitRequest.warp;
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.room = gAcropolisHelicopterLandingPadExitRequest.room;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.area      = (u8)gAcropolisHelicopterLandingPadExitRequest.areaId;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp      = gAcropolisHelicopterLandingPadExitRequest.warp;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.roomState = gAcropolisHelicopterLandingPadExitRequest.roomState;
         taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
         taskKill(task);
     }

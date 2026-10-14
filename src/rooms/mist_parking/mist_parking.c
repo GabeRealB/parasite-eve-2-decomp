@@ -1016,9 +1016,9 @@ static void _mistParkingSelectChapterRoom(s32 roomId)
     if (gameFlagGetNibble(GAME_FLAG_STORY_CHAPTER) != 0) {
         roomId += MIST_PARKING_LATER_CHAPTER_ROOM_OFFSET;
     }
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.room = roomId;
-    gGameSession->location.room                            = roomId;
-    gGameSession->roomObjsDirty                            = 1;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.roomState = roomId;
+    gGameSession->location.roomState                            = roomId;
+    gGameSession->roomObjsDirty                                 = 1;
 }
 
 /// Queues the selected CAP command while idle, without event hold/hide flags.

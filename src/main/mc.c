@@ -955,17 +955,17 @@ static void _mcSeedNewGameRecords(void)
         openingSave = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
     } while (0);
 
-    initialStage                        = GAME_STAGE_AKROPOLIS;
-    openingSave->state.location.area    = GAME_AREA_MIST_SHOOTING_GALLERY;
-    initialSceneEvent                   = MEMORY_CARD_NEW_GAME_SCENE_EVENT;
-    starterWeapon                       = MEMORY_CARD_NEW_GAME_WEAPON_M93R;
-    openingSave->state.location.stage   = initialStage;
-    openingSave->state.location.view    = MEMORY_CARD_NEW_GAME_VIEW;
-    openingSave->state.location.room    = MEMORY_CARD_NEW_GAME_ROOM;
-    openingSave->state.location.warp    = MEMORY_CARD_NEW_GAME_WARP;
-    openingSave->state.location.variant = MEMORY_CARD_NEW_GAME_VARIANT;
-    openingSave->state.sceneEvent       = initialSceneEvent;
-    openingSave->state.characterId      = MEMORY_CARD_NEW_GAME_CHARACTER;
+    initialStage                          = GAME_STAGE_AKROPOLIS;
+    openingSave->state.location.area      = GAME_AREA_MIST_SHOOTING_GALLERY;
+    initialSceneEvent                     = MEMORY_CARD_NEW_GAME_SCENE_EVENT;
+    starterWeapon                         = MEMORY_CARD_NEW_GAME_WEAPON_M93R;
+    openingSave->state.location.stage     = initialStage;
+    openingSave->state.location.view      = MEMORY_CARD_NEW_GAME_VIEW;
+    openingSave->state.location.roomState = MEMORY_CARD_NEW_GAME_ROOM;
+    openingSave->state.location.warp      = MEMORY_CARD_NEW_GAME_WARP;
+    openingSave->state.location.variant   = MEMORY_CARD_NEW_GAME_VARIANT;
+    openingSave->state.sceneEvent         = initialSceneEvent;
+    openingSave->state.characterId        = MEMORY_CARD_NEW_GAME_CHARACTER;
     playerSeedNewGameStatus();
     characterIndex                          = openingSave->state.characterId - 1;
     (&gPlayerStatus)[characterIndex].weapon = starterWeapon;

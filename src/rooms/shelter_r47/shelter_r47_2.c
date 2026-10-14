@@ -1355,10 +1355,10 @@ static inline s16 _shelterR47MapTerminalIsAreaMarkerVisible(s32 stage, s32 area)
 {
     GameLocationKey location;
 
-    location.stage = stage;
-    location.room  = 1;
-    location.view  = 2;
-    location.area  = area;
+    location.stage     = stage;
+    location.roomState = 1;
+    location.view      = 2;
+    location.area      = area;
     if (_areaIsSavedMapMarkEnabled(&location) != 1 || areaIsSavedPoseRestoreEnabled(&location) == 1) {
         return 0;
     }

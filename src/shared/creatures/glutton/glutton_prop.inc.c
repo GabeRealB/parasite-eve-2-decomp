@@ -16,14 +16,14 @@ static void _gluttonPropSetup(Enemy* enemy, Task* task)
     s32                    placeIndex;
     u32                    placeKey;
 
-    sessionLocation = &gGameSession->location;
-    placeKey        = ((Enemy*)task->parent->spawnArg2.pointer)->placeKey;
-    model           = task->extra.tmd;
-    location.stage  = sessionLocation->stage;
-    location.area   = sessionLocation->area;
-    location.room   = sessionLocation->room;
-    placeIndex      = placeKey >> ENEMY_PLACE_INDEX_SHIFT;
-    location.view   = sessionLocation->view;
+    sessionLocation    = &gGameSession->location;
+    placeKey           = ((Enemy*)task->parent->spawnArg2.pointer)->placeKey;
+    model              = task->extra.tmd;
+    location.stage     = sessionLocation->stage;
+    location.area      = sessionLocation->area;
+    location.roomState = sessionLocation->roomState;
+    placeIndex         = placeKey >> ENEMY_PLACE_INDEX_SHIFT;
+    location.view      = sessionLocation->view;
     areaSyncLocationVariant(&location);
     variant = areaGetVariant(&location);
     // Apply the host's placement to this escort's existing primitive stream.

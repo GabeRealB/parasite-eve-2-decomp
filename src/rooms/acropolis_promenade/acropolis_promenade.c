@@ -1925,9 +1925,9 @@ static s32 _acropolisPromenadeResolveRoomTransition(Task* unusedTask, s32 unused
         if (request->areaId == destinationArea) {
             if (request->queryOnly == ROOM_EVENT_EXECUTE) {
                 if (gameFlagGetNibble(GAME_FLAG_AKROPOLIS_BRIDGE_PROGRESS) == ACROPOLIS_PROMENADE_BRIDGE_SCENE_COMPLETE) {
-                    reply->room = ACROPOLIS_PROMENADE_BRIDGE_ROOM_AFTER_SCENE;
+                    reply->roomState = ACROPOLIS_PROMENADE_BRIDGE_ROOM_AFTER_SCENE;
                 } else {
-                    reply->room = ACROPOLIS_PROMENADE_BRIDGE_ROOM_BEFORE_SCENE;
+                    reply->roomState = ACROPOLIS_PROMENADE_BRIDGE_ROOM_BEFORE_SCENE;
                 }
             }
         }

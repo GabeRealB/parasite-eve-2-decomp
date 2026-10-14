@@ -1,4 +1,5 @@
 #include "rooms/acropolis_sanctuary.h"
+#include "../../stages/akropolis/event_flags.h"
 
 #include <psyq/sys/types.h>
 #include <psyq/libgte.h>
@@ -2527,7 +2528,6 @@ static void _acropolisSanctuaryUpdateRoomProgress(Task* unusedTask)
         ACROPOLIS_SANCTUARY_ARRIVAL_SCENE_EVENT         = 6,
         ACROPOLIS_SANCTUARY_OBSERVATORY_ROUTE_COMPLETE  = 5,
         ACROPOLIS_SANCTUARY_ARRIVAL_OBJECTIVE           = 6,
-        ACROPOLIS_SANCTUARY_ARRIVAL_DIALOGUE            = 5,
     };
 
     if (gameFlagGetNibble(GAME_FLAG_AKROPOLIS_BRIDGE_PROGRESS) == 0 && gGameSession->location.warp == ACROPOLIS_SANCTUARY_SCENE_ARRIVAL_WARP) {
@@ -2538,8 +2538,8 @@ static void _acropolisSanctuaryUpdateRoomProgress(Task* unusedTask)
         gameFlagSetNibble(GAME_FLAG_OBSERVATORY_ROUTE_PROGRESS, ACROPOLIS_SANCTUARY_OBSERVATORY_ROUTE_COMPLETE);
         gameFlagSetNibble(GAME_FLAG_OBSERVATORY_EXIT_USED, 1);
         gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, ACROPOLIS_SANCTUARY_ARRIVAL_OBJECTIVE);
-        gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
-        gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, ACROPOLIS_SANCTUARY_ARRIVAL_DIALOGUE);
+        gameFlagSetNibble(EVENT_FLAG_TELEPHONE_DIALOGUE_COUNTER, EVENT_FLAG_TELEPHONE_DIALOGUE_UNHEARD);
+        gameFlagSetNibble(EVENT_FLAG_STORY_DIALOGUE_INDEX, AKROPOLIS_STORY_DIALOGUE_ARMORED_ASSAILANT);
     }
     if (areaGetCurrentObjectState(ACROPOLIS_SANCTUARY_WEAPON_INTERACTION_OBJECT) == ACROPOLIS_SANCTUARY_WEAPON_INTERACTION_COMPLETE) {
         _acropolisSanctuaryDisableWeaponTriggers();
@@ -2581,7 +2581,7 @@ static s32 _acropolisSanctuaryResolvePromenadeExit(Task* task, s32 messageId, Ro
             } else {
                 destinationRoom = ACROPOLIS_SANCTUARY_PROMENADE_ROOM_AFTER_BRIDGE;
             }
-            reply->room = destinationRoom;
+            reply->roomState = destinationRoom;
         }
     }
     return ACROPOLIS_SANCTUARY_EXIT_RESOLVED;
@@ -2829,11 +2829,11 @@ static void _acropolisSanctuaryCutsceneTask(Task* task)
             // Event completion takes precedence over pending placement cues.
             if (gGameSession->eventState == 0) {
                 sndEvtRequestScriptStop(SOUND_BANK_TYPE_ALL_NON_AMBIENT, SOUND_SCRIPT_STOP_NO_FADE);
-                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.area  = GAME_AREA_AKROPOLIS_ROOF_GARDEN;
-                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.stage = GAME_STAGE_AKROPOLIS;
-                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp  = ACROPOLIS_SANCTUARY_CUTSCENE_EXIT_WARP;
-                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.room  = ACROPOLIS_SANCTUARY_CUTSCENE_EXIT_ROOM;
-                gDisplayState.spriteVariant                             = 1;
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.area      = GAME_AREA_AKROPOLIS_ROOF_GARDEN;
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.stage     = GAME_STAGE_AKROPOLIS;
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp      = ACROPOLIS_SANCTUARY_CUTSCENE_EXIT_WARP;
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.roomState = ACROPOLIS_SANCTUARY_CUTSCENE_EXIT_ROOM;
+                gDisplayState.spriteVariant                                 = 1;
                 taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
                 taskKill(task);
                 break;

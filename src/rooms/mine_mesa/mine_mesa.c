@@ -4664,11 +4664,11 @@ void mineMesaRoomVisualEffectsTwinTrailTask(Task* task)
 /// Expands to a braced block; invoke inside a braced block.
 #define MINE_MESA_APPLY_WAVE_TEXTURE_OFFSETS(model, placementKey, currentLocation, placement)                     \
     {                                                                                                             \
-        (currentLocation)    = &gGameSession->location;                                                           \
-        (placementKey).stage = (currentLocation)->stage;                                                          \
-        (placementKey).area  = (currentLocation)->area;                                                           \
-        (placementKey).room  = (currentLocation)->room;                                                           \
-        (placementKey).view  = gGameSession->location.view;                                                       \
+        (currentLocation)        = &gGameSession->location;                                                       \
+        (placementKey).stage     = (currentLocation)->stage;                                                      \
+        (placementKey).area      = (currentLocation)->area;                                                       \
+        (placementKey).roomState = (currentLocation)->roomState;                                                  \
+        (placementKey).view      = gGameSession->location.view;                                                   \
         areaSyncLocationVariant(&(placementKey));                                                                 \
         (placement)                = areaGetVariant(&(placementKey))->placements;                                 \
         (model)->texturePageOffset = (placement)->texturePageOffset;                                              \

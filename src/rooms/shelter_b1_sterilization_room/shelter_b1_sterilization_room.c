@@ -880,7 +880,7 @@ static s32 _shelterB1SterilizationRoomHandleCommandMessage(Task* task, s32 messa
         }
     }
     if (command == COMMAND_PRESENTATION_12 || command == COMMAND_PRESENTATION_13) {
-        if (gGameSession->location.room == PRESENTATION_ROOM) {
+        if (gGameSession->location.roomState == PRESENTATION_ROOM) {
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
             taskSpawnFromTable(&_gShelterB1SterilizationRoomScriptedPresentationTaskDesc, 0, command, 0);
         }

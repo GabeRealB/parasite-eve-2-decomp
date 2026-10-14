@@ -1275,11 +1275,11 @@ static void _actor461800FinishScene(void)
             return;
         }
         // Hand the live save destination to the session transition and finish streaming.
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.stage = GAME_STAGE_MINE_SHELTER;
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.area  = GAME_AREA_SHELTER_R36;
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp  = 1;
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.room  = 1;
-        gDisplayState.spriteVariant                             = 1;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.stage     = GAME_STAGE_MINE_SHELTER;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.area      = GAME_AREA_SHELTER_R36;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp      = 1;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.roomState = 1;
+        gDisplayState.spriteVariant                                 = 1;
         taskSpawn(ACTOR_461800_TRANSITION_TASK_BANK, ACTOR_461800_TRANSITION_TASK_INDEX, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
         gameFlowBeginLoadScreen(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location, GAME_FLOW_LOAD_CAPTION_NORMAL);
         streamFinishScene();

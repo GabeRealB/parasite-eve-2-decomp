@@ -85,10 +85,10 @@ static void _generalStoreUnderpassTransitionTask(Task* task)
         case GENERAL_STORE_TRANSITION_COMMIT:
             // Reload from the live save after committing the latched destination.
             sndEvtRequestScriptStop(SOUND_BANK_TYPE_ALL_NON_AMBIENT, SOUND_SCRIPT_STOP_NO_FADE);
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.area = GAME_AREA_DRYFIELD_UNDERPASS;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp = GENERAL_STORE_UNDERPASS_ARRIVAL_WARP;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.room = GENERAL_STORE_UNDERPASS_ROOM;
-            gDisplayState.spriteVariant                            = GENERAL_STORE_RELOAD_SPRITE_VARIANT;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.area      = GAME_AREA_DRYFIELD_UNDERPASS;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp      = GENERAL_STORE_UNDERPASS_ARRIVAL_WARP;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.roomState = GENERAL_STORE_UNDERPASS_ROOM;
+            gDisplayState.spriteVariant                                 = GENERAL_STORE_RELOAD_SPRITE_VARIANT;
             taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
             break;
         default:

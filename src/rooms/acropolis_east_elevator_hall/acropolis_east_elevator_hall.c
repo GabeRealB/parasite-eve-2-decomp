@@ -1,4 +1,5 @@
 #include "rooms/acropolis_east_elevator_hall.h"
+#include "../../stages/akropolis/event_flags.h"
 
 #include <psyq/sys/types.h>
 #include <psyq/libgte.h>
@@ -1116,16 +1117,14 @@ static inline void _acropolisEastElevatorHallRecordOpeningProgress(void)
 {
     enum {
         ACROPOLIS_EAST_ELEVATOR_HALL_OPENING_STARTED         = 1,
-        ACROPOLIS_EAST_ELEVATOR_HALL_FOLLOW_UP_RESET         = 0,
-        ACROPOLIS_EAST_ELEVATOR_HALL_NEXT_DIALOGUE_INDEX     = 3,
         ACROPOLIS_EAST_ELEVATOR_HALL_CAFETERIA_DOOR_UNLOCKED = 2,
         ACROPOLIS_EAST_ELEVATOR_HALL_OPENING_OBJECTIVE       = 2
     };
 
     _gAcropolisEastElevatorHallOpeningEventStarted = ACROPOLIS_EAST_ELEVATOR_HALL_OPENING_STARTED;
-    gameFlagSetNibble(GAME_FLAG_AKROPOLIS_PROGRESS, ACROPOLIS_EAST_ELEVATOR_HALL_OPENING_STARTED);
-    gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, ACROPOLIS_EAST_ELEVATOR_HALL_FOLLOW_UP_RESET);
-    gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, ACROPOLIS_EAST_ELEVATOR_HALL_NEXT_DIALOGUE_INDEX);
+    gameFlagSetNibble(EVENT_FLAG_AKROPOLIS_CAFETERIA_ROUTE_PROGRESS, ACROPOLIS_EAST_ELEVATOR_HALL_OPENING_STARTED);
+    gameFlagSetNibble(EVENT_FLAG_TELEPHONE_DIALOGUE_COUNTER, EVENT_FLAG_TELEPHONE_DIALOGUE_UNHEARD);
+    gameFlagSetNibble(EVENT_FLAG_STORY_DIALOGUE_INDEX, AKROPOLIS_STORY_DIALOGUE_CIVILIAN_EVAC);
     gameFlagSetNibble(GAME_FLAG_PATIO_CAFETERIA_DOOR_STATE, ACROPOLIS_EAST_ELEVATOR_HALL_CAFETERIA_DOOR_UNLOCKED);
     gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, ACROPOLIS_EAST_ELEVATOR_HALL_OPENING_OBJECTIVE);
 }
@@ -1144,7 +1143,7 @@ static s32 _acropolisEastElevatorHallStartOpeningEvent(Task* unusedTask, s32 mes
     };
 
     if (actionRequest->actionId == ACROPOLIS_EAST_ELEVATOR_HALL_OPENING_ACTION_ID &&
-        gameFlagGetNibble(GAME_FLAG_AKROPOLIS_PROGRESS) == ACROPOLIS_EAST_ELEVATOR_HALL_OPENING_NOT_STARTED &&
+        gameFlagGetNibble(EVENT_FLAG_AKROPOLIS_CAFETERIA_ROUTE_PROGRESS) == ACROPOLIS_EAST_ELEVATOR_HALL_OPENING_NOT_STARTED &&
         _gAcropolisEastElevatorHallOpeningEventStarted == ACROPOLIS_EAST_ELEVATOR_HALL_OPENING_NOT_STARTED) {
         evsStartScriptWithSkip(_gAcropolisEastElevatorHallOpeningScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, _gAcropolisEastElevatorHallOpeningSkipScript);
         _acropolisEastElevatorHallRecordOpeningProgress();

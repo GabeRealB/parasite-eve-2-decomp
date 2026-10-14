@@ -612,11 +612,11 @@ static void _actor303600CutsceneTask(Task* task)
             break;
         case ACTOR_303600_SCENE_WAIT_SCRIPT:
             if (gGameSession->eventState == 0) {
-                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.stage = GAME_STAGE_SHELTER_NEO_ARK;
-                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.area  = GAME_AREA_NEO_ARK_R31;
-                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp  = 1;
-                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.room  = 1;
-                gDisplayState.spriteVariant                             = 1;
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.stage     = GAME_STAGE_SHELTER_NEO_ARK;
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.area      = GAME_AREA_NEO_ARK_R31;
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp      = 1;
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.roomState = 1;
+                gDisplayState.spriteVariant                                 = 1;
                 taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_SKIP_BATTLE_ESCAPE, 0);
                 taskKill(task);
                 break;

@@ -234,7 +234,7 @@ static s32 _neoArkAltarHandleActionMessage(Task* unusedTask, s32 unusedMessageId
            NEO_ARK_ALTAR_ROOM_1_CAP_COMMAND = 3 };
 
     if (request->actionId == NEO_ARK_ALTAR_ACTION_SWITCH) {
-        if (gGameSession->location.room == request->actionId) {
+        if (gGameSession->location.roomState == request->actionId) {
             capRunCommandWithTransition(NEO_ARK_ALTAR_ROOM_1_CAP_COMMAND);
         } else {
             taskSpawnFromTable(&_gNeoArkAltarSwitchSceneTaskDesc, 0, 0, 0);

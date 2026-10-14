@@ -521,8 +521,8 @@ static void _actor143000TerminalSessionTask(Task* task)
                 if (gameFlagGetNibble(GAME_FLAG_083) == 0) {
                     areaApplySavedUpdates(gShelterB2LaboratoryPodTunnelAreaUpdates);
                 }
-                gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
-                gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, ACTOR_143000_TERMINAL_COMPLETE_DIALOGUE);
+                gameFlagSetNibble(EVENT_FLAG_TELEPHONE_DIALOGUE_COUNTER, EVENT_FLAG_TELEPHONE_DIALOGUE_UNHEARD);
+                gameFlagSetNibble(EVENT_FLAG_STORY_DIALOGUE_INDEX, ACTOR_143000_TERMINAL_COMPLETE_DIALOGUE);
                 evsStartScriptWithSkip(_gActor143000CompletionScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, _gActor143000CompletionSkipScript);
                 taskKill(task);
             }

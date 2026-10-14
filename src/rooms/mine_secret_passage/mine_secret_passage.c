@@ -136,10 +136,10 @@ void mineSecretPassageDepartureTask(Task* task)
         case MINE_SECRET_PASSAGE_DEPARTURE_RELOAD:
             // Commit the staged destination only after the exit-transit sound ends.
             sndEvtRequestScriptStop(SOUND_BANK_TYPE_ALL_NON_AMBIENT, SOUND_SCRIPT_STOP_NO_FADE);
-            gDisplayState.spriteVariant                            = MINE_SECRET_PASSAGE_RELOAD_SPRITE_VARIANT;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.area = _gMineSecretPassageStagedDestination.area;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp = _gMineSecretPassageStagedDestination.warp;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.room = _gMineSecretPassageStagedDestination.room;
+            gDisplayState.spriteVariant                                 = MINE_SECRET_PASSAGE_RELOAD_SPRITE_VARIANT;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.area      = _gMineSecretPassageStagedDestination.area;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp      = _gMineSecretPassageStagedDestination.warp;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.roomState = _gMineSecretPassageStagedDestination.roomState;
             taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_SKIP_BATTLE_ESCAPE, 0);
             taskKill(task);
             break;
@@ -158,9 +158,9 @@ s32 mineSecretPassageResolveRoomTransition(Task* task, s32 messageId, RoomEventM
     if (request->areaId == GAME_AREA_SHELTER_B1_ELEVATOR_HALL) {
         if (request->queryOnly == ROOM_EVENT_EXECUTE) {
             // Latch the resolved destination for the asynchronous confirmation task.
-            _gMineSecretPassageStagedDestination.area = (u8)reply->areaId;
-            _gMineSecretPassageStagedDestination.warp = reply->warp;
-            _gMineSecretPassageStagedDestination.room = reply->room;
+            _gMineSecretPassageStagedDestination.area      = (u8)reply->areaId;
+            _gMineSecretPassageStagedDestination.warp      = reply->warp;
+            _gMineSecretPassageStagedDestination.roomState = reply->roomState;
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
             taskSpawnFromTable(&gMineSecretPassageDepartureTaskDesc, 0, 0, 0);
         }

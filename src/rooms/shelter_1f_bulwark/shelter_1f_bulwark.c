@@ -762,11 +762,11 @@ static void _shelter1fBulwarkReloadAfterDepartureMovieTask(Task* task)
             task->state = task->state + 1;
             break;
         case DEPARTURE_RELOAD:
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.stage = GAME_STAGE_SHELTER_NEO_ARK;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.area  = GAME_AREA_NEO_ARK_R26;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp  = DEPARTURE_ARRIVAL_WARP;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.room  = DEPARTURE_ARRIVAL_ROOM;
-            gDisplayState.spriteVariant                             = DEPARTURE_SPRITE_VARIANT;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.stage     = GAME_STAGE_SHELTER_NEO_ARK;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.area      = GAME_AREA_NEO_ARK_R26;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp      = DEPARTURE_ARRIVAL_WARP;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.roomState = DEPARTURE_ARRIVAL_ROOM;
+            gDisplayState.spriteVariant                                 = DEPARTURE_SPRITE_VARIANT;
             gameFlowBeginLoadScreen(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location, GAME_FLOW_LOAD_CAPTION_NORMAL);
             taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_SKIP_BATTLE_ESCAPE, 0);
             taskKill(task);

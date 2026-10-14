@@ -246,7 +246,7 @@ enum {
 s32 mapDryfieldFullResolveRoomVariant(const RoomEventMsg* request, RoomEventMsg* reply)
 {
     if ((request->areaId == GAME_AREA_DRYFIELD_NIGHT_JUNK_YARD) && (request->queryOnly == ROOM_EVENT_EXECUTE)) {
-        reply->room = gameFlagGetNibble(GAME_FLAG_NIGHT_JUNK_YARD_EVENT_SEEN) + 1;
+        reply->roomState = gameFlagGetNibble(GAME_FLAG_NIGHT_JUNK_YARD_EVENT_SEEN) + 1;
     }
     return 1;
 }

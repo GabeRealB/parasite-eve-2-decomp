@@ -1279,24 +1279,24 @@ static void _dryfieldUnderpassRefreshRoomVariant(void)
     /// switch 1 off, or 5/6 before the event with switch 1 on/off. Flag 0x53
     /// chooses the second post-event room; its story meaning is unproven.
     /// The pointer and direct accesses preserve query and room reload order.
-#define DRYFIELD_UNDERPASS_RESOLVE_ROOM(requestPtr, destinationPtr, destination)                     \
-    if ((requestPtr)->queryOnly == ROOM_EVENT_EXECUTE) {                                             \
-        if (gameFlagGetNibble(GAME_FLAG_UNDERPASS_EVENT_SEEN) != 0) {                                \
-            if (gameFlagGetNibble(GAME_FLAG_053) != 0) {                                             \
-                (destinationPtr)->room = DRYFIELD_UNDERPASS_ROOM_AFTER_EVENT_FLAG_053;               \
-            } else {                                                                                 \
-                (destinationPtr)->room = DRYFIELD_UNDERPASS_ROOM_AFTER_EVENT;                        \
-            }                                                                                        \
-            if (gameFlagGetNibble(GAME_FLAG_UNDERPASS_SWITCH_1) == 0) {                              \
-                (destination).room = (destination).room + DRYFIELD_UNDERPASS_SWITCH_OFF_ROOM_OFFSET; \
-            }                                                                                        \
-        } else {                                                                                     \
-            if (gameFlagGetNibble(GAME_FLAG_UNDERPASS_SWITCH_1) != 0) {                              \
-                (destinationPtr)->room = DRYFIELD_UNDERPASS_ROOM_BEFORE_EVENT_SWITCH_ON;             \
-            } else {                                                                                 \
-                (destinationPtr)->room = DRYFIELD_UNDERPASS_ROOM_BEFORE_EVENT_SWITCH_OFF;            \
-            }                                                                                        \
-        }                                                                                            \
+#define DRYFIELD_UNDERPASS_RESOLVE_ROOM(requestPtr, destinationPtr, destination)                               \
+    if ((requestPtr)->queryOnly == ROOM_EVENT_EXECUTE) {                                                       \
+        if (gameFlagGetNibble(GAME_FLAG_UNDERPASS_EVENT_SEEN) != 0) {                                          \
+            if (gameFlagGetNibble(GAME_FLAG_053) != 0) {                                                       \
+                (destinationPtr)->roomState = DRYFIELD_UNDERPASS_ROOM_AFTER_EVENT_FLAG_053;                    \
+            } else {                                                                                           \
+                (destinationPtr)->roomState = DRYFIELD_UNDERPASS_ROOM_AFTER_EVENT;                             \
+            }                                                                                                  \
+            if (gameFlagGetNibble(GAME_FLAG_UNDERPASS_SWITCH_1) == 0) {                                        \
+                (destination).roomState = (destination).roomState + DRYFIELD_UNDERPASS_SWITCH_OFF_ROOM_OFFSET; \
+            }                                                                                                  \
+        } else {                                                                                               \
+            if (gameFlagGetNibble(GAME_FLAG_UNDERPASS_SWITCH_1) != 0) {                                        \
+                (destinationPtr)->roomState = DRYFIELD_UNDERPASS_ROOM_BEFORE_EVENT_SWITCH_ON;                  \
+            } else {                                                                                           \
+                (destinationPtr)->roomState = DRYFIELD_UNDERPASS_ROOM_BEFORE_EVENT_SWITCH_OFF;                 \
+            }                                                                                                  \
+        }                                                                                                      \
     }
 
     destinationPtr    = &destination;
@@ -1307,11 +1307,11 @@ static void _dryfieldUnderpassRefreshRoomVariant(void)
 #undef DRYFIELD_UNDERPASS_RESOLVE_ROOM
 
     // Commit the same selector to the live session and its save before relinking.
-    session                                                = gGameSession;
-    roomId                                                 = destination.room;
-    session->location.room                                 = roomId;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.room = roomId;
-    gGameSession->roomObjsDirty                            = true;
+    session                                                     = gGameSession;
+    roomId                                                      = destination.roomState;
+    session->location.roomState                                 = roomId;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.roomState = roomId;
+    gGameSession->roomObjsDirty                                 = true;
 }
 
 /// Room-task lifecycle callbacks indexed by `Task::state` in 0..2.

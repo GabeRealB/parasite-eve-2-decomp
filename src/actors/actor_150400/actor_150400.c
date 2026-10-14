@@ -525,11 +525,11 @@ static void _actor150400ReloadMainCorridor(void)
         gameFlagSetNibble(GAME_FLAG_GOLEM_FREEZER_UNLOCKED, ACTOR_150400_FREEZER_UNLOCKED);
         loadingEnqueueCharacterResources(true);
         areaApplySavedUpdates(gShelterB1ControlRoomFreezerSceneAreaUpdates);
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.stage = GAME_STAGE_MINE_SHELTER;
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.area  = GAME_AREA_SHELTER_B2_MAIN_CORRIDOR;
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp  = ACTOR_150400_MAIN_CORRIDOR_ARRIVAL_WARP;
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.room  = ACTOR_150400_MAIN_CORRIDOR_ROOM;
-        gDisplayState.spriteVariant                             = ACTOR_150400_MAIN_CORRIDOR_SPRITE_VARIANT;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.stage     = GAME_STAGE_MINE_SHELTER;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.area      = GAME_AREA_SHELTER_B2_MAIN_CORRIDOR;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp      = ACTOR_150400_MAIN_CORRIDOR_ARRIVAL_WARP;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.roomState = ACTOR_150400_MAIN_CORRIDOR_ROOM;
+        gDisplayState.spriteVariant                                 = ACTOR_150400_MAIN_CORRIDOR_SPRITE_VARIANT;
         taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
         streamFinishScene();
     }

@@ -1886,12 +1886,12 @@ static inline void _neoArkObservatoryResolveDeparture(RoomDeparture* departure, 
 
     request.areaId    = departure->area;
     request.warp      = departure->warp;
-    request.room      = departure->room;
+    request.roomState = departure->roomState;
     request.queryOnly = ROOM_EVENT_EXECUTE;
     resolve(&request, &request);
-    departure->area = request.areaId;
-    departure->warp = request.warp;
-    departure->room = request.room;
+    departure->area      = request.areaId;
+    departure->warp      = request.warp;
+    departure->roomState = request.roomState;
 }
 
 /// Resolves and publishes a prepared Shelter departure after holding player control.
@@ -1958,24 +1958,24 @@ static s32 _neoArkObservatoryRoomActionMessage(Task* unusedTask, s32 unusedMessa
                 RoomVariantResolver resolve;
 
                 gameFlagSetNibble(GAME_FLAG_CONTROL_ROOM_RETURN_TAKEN, true);
-                departure.stage    = GAME_STAGE_MINE_SHELTER;
-                departure.area     = GAME_AREA_SHELTER_B1_CONTROL_ROOM;
-                departure.warp     = CONTROL_ROOM_RETURN_WARP;
-                departure.room     = powerPlant2Cleared;
-                departure.sndEvent = DEPARTURE_SOUND;
-                departure.facing   = DEPARTURE_FACING;
-                resolve            = _roomVariantResolveShelter;
+                departure.stage     = GAME_STAGE_MINE_SHELTER;
+                departure.area      = GAME_AREA_SHELTER_B1_CONTROL_ROOM;
+                departure.warp      = CONTROL_ROOM_RETURN_WARP;
+                departure.roomState = powerPlant2Cleared;
+                departure.sndEvent  = DEPARTURE_SOUND;
+                departure.facing    = DEPARTURE_FACING;
+                resolve             = _roomVariantResolveShelter;
                 _neoArkObservatoryQueueDeparture(&departure, resolve);
                 return 0;
             }
         }
-        departure.stage    = GAME_STAGE_MINE_SHELTER;
-        departure.area     = actionRequest->argument;
-        departure.room     = DEFAULT_DESTINATION_ROOM;
-        departure.warp     = REQUESTED_SHELTER_WARP;
-        departure.sndEvent = DEPARTURE_SOUND;
-        departure.facing   = DEPARTURE_FACING;
-        resolve            = _roomVariantResolveShelter;
+        departure.stage     = GAME_STAGE_MINE_SHELTER;
+        departure.area      = actionRequest->argument;
+        departure.roomState = DEFAULT_DESTINATION_ROOM;
+        departure.warp      = REQUESTED_SHELTER_WARP;
+        departure.sndEvent  = DEPARTURE_SOUND;
+        departure.facing    = DEPARTURE_FACING;
+        resolve             = _roomVariantResolveShelter;
         _neoArkObservatoryQueueDeparture(&departure, resolve);
     }
     // Commit each one-shot gate before requesting its scene.
@@ -1992,8 +1992,8 @@ static s32 _neoArkObservatoryRoomActionMessage(Task* unusedTask, s32 unusedMessa
     }
     if (actionRequest->actionId == ACTION_COMPANION_SECOND_SCENE) {
         if (gameFlagGetNibble(GAME_FLAG_0E1) == 0) {
-            gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
-            gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, SECOND_SCENE_DIALOGUE_INDEX);
+            gameFlagSetNibble(EVENT_FLAG_TELEPHONE_DIALOGUE_COUNTER, EVENT_FLAG_TELEPHONE_DIALOGUE_UNHEARD);
+            gameFlagSetNibble(EVENT_FLAG_STORY_DIALOGUE_INDEX, SECOND_SCENE_DIALOGUE_INDEX);
             gameFlagSetNibble(GAME_FLAG_0E1, true);
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = SECOND_SCENE_EVENT;
             evsStartScriptWithSkip(gActor450200RoomVariantSceneScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, gActor450200RoomVariantSceneSkipScript);

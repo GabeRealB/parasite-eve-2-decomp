@@ -248,7 +248,7 @@ static s32 _shelterB3DumpingHoleResolveRoomTransition(Task* task, s32 messageId,
             return ROOM_TRANSITION_HANDLED;
         }
         if (request->queryOnly == ROOM_EVENT_EXECUTE) {
-            reply->room = gGameSession->eventRoomIndex + 1;
+            reply->roomState = gGameSession->eventRoomIndex + 1;
         }
         return ROOM_TRANSITION_ALLOWED;
     }
@@ -327,7 +327,7 @@ static void _shelterB3DumpingHoleInitializeRoomTask(Task* task)
             gameFlagSetNibble(GAME_FLAG_DUMPING_HOLE_ARRIVAL_SEEN, DUMPING_HOLE_ARRIVAL_SEEN);
         }
     }
-    if (gGameSession->location.room >= DUMPING_HOLE_ENCOUNTER_FIRST_ROOM) {
+    if (gGameSession->location.roomState >= DUMPING_HOLE_ENCOUNTER_FIRST_ROOM) {
         taskSpawnFromTable(gActor342100EncounterBlazeTaskDescriptors, DUMPING_HOLE_ENCOUNTER_TASK_INDEX, 0, 0);
     }
     task->state                       += 1;

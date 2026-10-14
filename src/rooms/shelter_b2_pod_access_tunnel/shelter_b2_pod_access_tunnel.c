@@ -252,10 +252,10 @@ static inline void _shelterB2PodAccessTunnelCommitB1Ride(Task* task)
            RIDE_NEXT_SESSION_SPRITE_VARIANT = 1 };
 
     sndEvtRequestScriptStop(SOUND_BANK_TYPE_ALL_NON_AMBIENT, SOUND_SCRIPT_STOP_NO_FADE);
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.area = GAME_AREA_SHELTER_B1_POD_ACCESS_TUNNEL;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp = RIDE_ARRIVAL_WARP;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.room = RIDE_ARRIVAL_ROOM;
-    gDisplayState.spriteVariant                            = RIDE_NEXT_SESSION_SPRITE_VARIANT;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.area      = GAME_AREA_SHELTER_B1_POD_ACCESS_TUNNEL;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp      = RIDE_ARRIVAL_WARP;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.roomState = RIDE_ARRIVAL_ROOM;
+    gDisplayState.spriteVariant                                 = RIDE_NEXT_SESSION_SPRITE_VARIANT;
     taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
     taskKill(task);
 }

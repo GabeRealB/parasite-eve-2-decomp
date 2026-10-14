@@ -105,10 +105,10 @@ static inline void _shelterB3GarbageIncineratorCommitControlRoomExit(Task* task)
     enum { SHELTER_B3_GARBAGE_INCINERATOR_DEFAULT_SPRITE_VARIANT = 1 };
 
     sndEvtRequestScriptStop(SOUND_BANK_TYPE_ALL_NON_AMBIENT, SOUND_SCRIPT_STOP_NO_FADE);
-    gDisplayState.spriteVariant                            = SHELTER_B3_GARBAGE_INCINERATOR_DEFAULT_SPRITE_VARIANT;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.area = gShelterB3GarbageIncineratorControlRoomExitDestination.areaId;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp = gShelterB3GarbageIncineratorControlRoomExitDestination.warp;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.room = gShelterB3GarbageIncineratorControlRoomExitDestination.room;
+    gDisplayState.spriteVariant                                 = SHELTER_B3_GARBAGE_INCINERATOR_DEFAULT_SPRITE_VARIANT;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.area      = gShelterB3GarbageIncineratorControlRoomExitDestination.areaId;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp      = gShelterB3GarbageIncineratorControlRoomExitDestination.warp;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.roomState = gShelterB3GarbageIncineratorControlRoomExitDestination.roomState;
     taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
     taskKill(task);
 }
@@ -199,7 +199,7 @@ static s32 _shelterB3GarbageIncineratorResolveRoomEvent(Task* task, s32 messageI
             return SHELTER_B3_GARBAGE_INCINERATOR_EVENT_BLOCKED;
         }
         gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
-        if (gGameSession->location.room < SHELTER_B3_GARBAGE_INCINERATOR_SECOND_ROOM_GROUP_START) {
+        if (gGameSession->location.roomState < SHELTER_B3_GARBAGE_INCINERATOR_SECOND_ROOM_GROUP_START) {
             capSpawnEventIfIdle(SHELTER_B3_GARBAGE_INCINERATOR_EXIT_BLOCKED_CAP_COMMAND, CAP_EVENT_PAUSE_ACTORS);
             return SHELTER_B3_GARBAGE_INCINERATOR_EVENT_BLOCKED;
         }
@@ -211,13 +211,13 @@ static s32 _shelterB3GarbageIncineratorResolveRoomEvent(Task* task, s32 messageI
         // Preserve the resolved destination until the choice task commits it.
         reply->warp                                            = SHELTER_B3_GARBAGE_INCINERATOR_CONTROL_ROOM_ARRIVAL;
         gShelterB3GarbageIncineratorControlRoomExitDestination = *reply;
-        gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
-        gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, 1);
+        gameFlagSetNibble(EVENT_FLAG_TELEPHONE_DIALOGUE_COUNTER, EVENT_FLAG_TELEPHONE_DIALOGUE_UNHEARD);
+        gameFlagSetNibble(EVENT_FLAG_STORY_DIALOGUE_INDEX, 1);
         taskSpawnFromTable(&_gShelterB3GarbageIncineratorControlRoomExitTaskDesc, 0, 0, 0);
         return SHELTER_B3_GARBAGE_INCINERATOR_EVENT_DEFERRED;
     }
     if (request->areaId == GAME_AREA_SHELTER_B3_DUMPING_HOLE && request->queryOnly == ROOM_EVENT_EXECUTE) {
-        reply->room = gGameSession->incineratorRoomGroup + 1;
+        reply->roomState = gGameSession->incineratorRoomGroup + 1;
     }
     return SHELTER_B3_GARBAGE_INCINERATOR_EVENT_IMMEDIATE;
 }
@@ -325,7 +325,7 @@ static void _shelterB3GarbageIncineratorInitializeRoom(Task* task)
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     shelterB3GarbageIncineratorSelectCaptionResource(SHELTER_B3_GARBAGE_INCINERATOR_CAPTION_TEXTURE_X, 0, 0);
     _gShelterB3GarbageIncineratorSpawnedLiftTask = taskSpawnFromTable(&gShelterB3GarbageIncineratorLiftTaskDesc, 0, 0, 0);
-    if (gGameSession->location.room >= SHELTER_B3_GARBAGE_INCINERATOR_ENCOUNTER_FIRST_ROOM) {
+    if (gGameSession->location.roomState >= SHELTER_B3_GARBAGE_INCINERATOR_ENCOUNTER_FIRST_ROOM) {
         taskSpawnFromTable(gShelterB3GarbageIncineratorBlazeTaskDescs, SHELTER_B3_GARBAGE_INCINERATOR_BLAZE_CONTROLLER_TASK, SHELTER_B3_GARBAGE_INCINERATOR_BLAZE_PLAY_ALERT, 0);
     }
     if (gGameSession->location.variant == SHELTER_B3_GARBAGE_INCINERATOR_MAD_CHASER_VARIANT) {

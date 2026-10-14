@@ -573,13 +573,13 @@ static void _shelter1fParkingGarageUndergroundDepartureTask(Task* task)
                 if (gameFlagGetNibble(GAME_FLAG_COMPANION_2_SCHEDULE) == DEPARTURE_COMPANION_SCHEDULE_BEFORE) {
                     gameFlagSetNibble(GAME_FLAG_COMPANION_2_SCHEDULE, DEPARTURE_COMPANION_SCHEDULE_AFTER);
                 }
-                resolveVariant     = _roomVariantResolveShelter;
-                departure.stage    = GAME_STAGE_MINE_SHELTER;
-                departure.area     = GAME_AREA_SHELTER_B1_UNDERGROUND_PARKING;
-                departure.room     = DEPARTURE_DEFAULT_ROOM;
-                departure.warp     = DEPARTURE_UNDERGROUND_ARRIVAL_WARP;
-                departure.sndEvent = DEPARTURE_SOUND;
-                departure.facing   = ROOM_DEPARTURE_SKIP_FACING;
+                resolveVariant      = _roomVariantResolveShelter;
+                departure.stage     = GAME_STAGE_MINE_SHELTER;
+                departure.area      = GAME_AREA_SHELTER_B1_UNDERGROUND_PARKING;
+                departure.roomState = DEPARTURE_DEFAULT_ROOM;
+                departure.warp      = DEPARTURE_UNDERGROUND_ARRIVAL_WARP;
+                departure.sndEvent  = DEPARTURE_SOUND;
+                departure.facing    = ROOM_DEPARTURE_SKIP_FACING;
                 playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
                 // Resolve the destination before publishing the singleton departure.
                 _roomVariantResolveDeparture(&departure, resolveVariant);

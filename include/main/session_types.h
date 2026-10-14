@@ -26,7 +26,7 @@ struct Task;
 /// per-area variant after synchronization. Each layout supplies a placement
 /// list and its associated resources.
 ///
-/// Active stage, area, room, view and warp IDs are 1-based. Stage 0 means no
+/// Active stage, area, room state, view and warp IDs are 1-based. Stage 0 means no
 /// active stage; the other upper bounds depend on the selected loaded tables.
 /// Each lookup requires only the components it reads to be initialized and in
 /// range. The key is byte-aligned; packed word reads require a word-aligned
@@ -34,7 +34,7 @@ struct Task;
 /// `variant`, which nothing reads or writes by name.
 typedef struct {
     u8 view;         // 1-based view slot within the room, mapped to a camera/image index
-    u8 room;         // 1-based room within the area
+    u8 roomState;    // 1-based state of the area: its collision, triggers, views and lighting
     u8 area;         // 1-based area and CDF folder within the stage
     u8 stage;        // Stage ID (0 no active stage, 1..5 active stages)
     u8 warp;         // 1-based arrival record within the area's warp table

@@ -1127,7 +1127,7 @@ static RoomFadeStorage _gShelterB4UpperSewerExitFade = { 0 };
 
 /// Resolved destination selectors held while exit confirmation and transit run.
 ///
-/// Only `loc.room`, `loc.area` and `loc.warp` are staged and committed;
+/// Only `loc.roomState`, `loc.area` and `loc.warp` are staged and committed;
 /// the remaining five bytes stay zero and are not consumed. A new exit replaces
 /// the selectors. Retains the eight-byte allocation and its two-byte alignment.
 static GameLocationKey _gShelterB4UpperSewerExitDestination __attribute__((aligned(2))) = { 0 };
@@ -1288,10 +1288,10 @@ static void _shelterB4UpperSewerExitTransitTask(Task* task)
             break;
         case SHELTER_B4_UPPER_SEWER_EXIT_RELOAD:
             // Publish the staged destination after the fade and transit sound finish.
-            gDisplayState.spriteVariant                            = SHELTER_B4_UPPER_SEWER_DEFAULT_SPRITE_VARIANT;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.area = _gShelterB4UpperSewerExitDestination.area;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp = _gShelterB4UpperSewerExitDestination.warp;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.room = _gShelterB4UpperSewerExitDestination.room;
+            gDisplayState.spriteVariant                                 = SHELTER_B4_UPPER_SEWER_DEFAULT_SPRITE_VARIANT;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.area      = _gShelterB4UpperSewerExitDestination.area;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp      = _gShelterB4UpperSewerExitDestination.warp;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.roomState = _gShelterB4UpperSewerExitDestination.roomState;
             taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_SKIP_BATTLE_ESCAPE, 0);
             taskKill(task);
             break;
@@ -1318,9 +1318,9 @@ static inline void _shelterB4UpperSewerStageExit(const RoomEventMsg* reply, s32 
 {
     enum { SHELTER_B4_UPPER_SEWER_EXIT_TASK_INDEX = 1 };
 
-    _gShelterB4UpperSewerExitDestination.area = (u8)reply->areaId;
-    _gShelterB4UpperSewerExitDestination.warp = reply->warp;
-    _gShelterB4UpperSewerExitDestination.room = reply->room;
+    _gShelterB4UpperSewerExitDestination.area      = (u8)reply->areaId;
+    _gShelterB4UpperSewerExitDestination.warp      = reply->warp;
+    _gShelterB4UpperSewerExitDestination.roomState = reply->roomState;
     taskSpawnFromTable(_gShelterB4UpperSewerInteractionTasks, SHELTER_B4_UPPER_SEWER_EXIT_TASK_INDEX, capCommand, 0);
 }
 

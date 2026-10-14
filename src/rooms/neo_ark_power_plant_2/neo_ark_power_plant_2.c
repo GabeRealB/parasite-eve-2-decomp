@@ -1197,7 +1197,6 @@ static void _neoArkPowerPlant2UpdateRoom(Task* unusedTask)
     enum { GENERATOR_PLACEMENT         = 0,
            GENERATOR_CLEAR_SCENE_EVENT = 0x17,
            OBJECTIVE_AFTER_CLEAR       = 0x2E,
-           FOLLOW_UP_RESET             = 0,
            DIALOGUE_AFTER_CLEAR        = 7 };
     Task* generatorTask;
 
@@ -1215,8 +1214,8 @@ static void _neoArkPowerPlant2UpdateRoom(Task* unusedTask)
             }
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = GENERATOR_CLEAR_SCENE_EVENT;
             gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, OBJECTIVE_AFTER_CLEAR);
-            gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, FOLLOW_UP_RESET);
-            gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, DIALOGUE_AFTER_CLEAR);
+            gameFlagSetNibble(EVENT_FLAG_TELEPHONE_DIALOGUE_COUNTER, EVENT_FLAG_TELEPHONE_DIALOGUE_UNHEARD);
+            gameFlagSetNibble(EVENT_FLAG_STORY_DIALOGUE_INDEX, DIALOGUE_AFTER_CLEAR);
             evsStartScriptWithSkip(_gNeoArkPowerPlant2GeneratorClearScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, _gNeoArkPowerPlant2GeneratorClearSkipScript);
         }
     }

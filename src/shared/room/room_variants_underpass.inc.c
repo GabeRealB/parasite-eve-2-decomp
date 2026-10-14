@@ -17,19 +17,19 @@ static s32 _roomVariantUnderpassMsg(Task* task, s32 messageId, const RoomEventMs
     *reply = *request;
     if (request->areaId == GAME_AREA_DRYFIELD_WATER_HOLE && request->queryOnly == ROOM_EVENT_EXECUTE) {
         if (gameFlagGetNibble(GAME_FLAG_UNDERPASS_SWITCH_1) == 0) {
-            reply->room = ROOM_VARIANT_UNDERPASS_SWITCH_CLEAR_ROOM;
+            reply->roomState = ROOM_VARIANT_UNDERPASS_SWITCH_CLEAR_ROOM;
         } else {
-            reply->room = ROOM_VARIANT_UNDERPASS_SWITCH_SET_ROOM;
+            reply->roomState = ROOM_VARIANT_UNDERPASS_SWITCH_SET_ROOM;
         }
         if (gameFlagGetNibble(GAME_FLAG_053) != 0) {
-            reply->room += ROOM_VARIANT_UNDERPASS_ALTERNATE_ROOM_OFFSET;
+            reply->roomState += ROOM_VARIANT_UNDERPASS_ALTERNATE_ROOM_OFFSET;
         }
     }
     if (request->areaId == GAME_AREA_DRYFIELD_CELLAR && request->queryOnly == ROOM_EVENT_EXECUTE) {
         if (gameFlagGetNibble(GAME_FLAG_UNDERPASS_SWITCH_2) == 0) {
-            reply->room = ROOM_VARIANT_UNDERPASS_SWITCH_CLEAR_ROOM;
+            reply->roomState = ROOM_VARIANT_UNDERPASS_SWITCH_CLEAR_ROOM;
         } else {
-            reply->room = ROOM_VARIANT_UNDERPASS_SWITCH_SET_ROOM;
+            reply->roomState = ROOM_VARIANT_UNDERPASS_SWITCH_SET_ROOM;
         }
     }
     return ROOM_VARIANT_TRANSITION_DIRECT;

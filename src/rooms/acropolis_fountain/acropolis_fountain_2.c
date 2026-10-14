@@ -2031,7 +2031,7 @@ static void _acropolisFountainWaterMovieTask(Task* task)
 
     _gAcropolisFountainWaterMovieTask = task;
     movieQueue                        = &gCdCmdQueue;
-    if (gGameSession->location.room != 1) {
+    if (gGameSession->location.roomState != 1) {
         return;
     }
     switch (task->state) {

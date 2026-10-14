@@ -15,11 +15,6 @@
 /// `GAME_FLAG_<HHH>` are placeholders for flags whose meaning is not yet known,
 /// named by the room that uses them where it is a single one.
 enum {
-    /// Akropolis Tower main story counter: 1 after the east elevator hall scene, 2
-    /// after the cafeteria scene, 3 when the follow-up room cutscene runs
-    /// (cafeteria/square), 5 once the fountain's warp sequence is taken. Patio,
-    /// hallway, cafeteria, fountain and forked-road doors answer by its value.
-    GAME_FLAG_AKROPOLIS_PROGRESS = 0x000,
     /// Akropolis progress along the security room -> forked road -> observatory ->
     /// promenade route: 2 after the security-room panel releases its first lock, 3 when
     /// the forked-road cutscene to the observatory plays, 4 when leaving the
@@ -31,11 +26,6 @@ enum {
     /// switches to room 2. The promenade's bridge door is refused while 0 and leads to
     /// room 2 at 3; the fire escape's bridge warp likewise picks room 2 at 3.
     GAME_FLAG_AKROPOLIS_BRIDGE_PROGRESS = 0x002,
-    /// State of the follow-up CAP command selected by flag 0x155 (run as 0x155+0x10
-    /// after a room cutscene). Cleared to 0 whenever 0x155 is changed; when 0x155 is
-    /// 0xE and this is 0 the cutscene task sets it to 1 and loops the branching follow-
-    /// up, setting 2 when that exits.
-    GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE = 0x003,
     /// Set to 1 once the sanctuary scene has been passed (on first reaching the roof
     /// garden or the bridge from the fire escape); the sanctuary then pushes its
     /// blocker cage collision aside instead of across the doorway and skips arming its
@@ -51,11 +41,6 @@ enum {
     /// opening task and marks item 0x101 seen), 3 after the opening CAP reports key 2
     /// and the warp to the cafeteria starts.
     GAME_FLAG_PATIO_CAFETERIA_DOOR_STATE = 0x008,
-    /// Bitmask of the two locks released at the security-room panel: bit 0 when item
-    /// 0x104 is used (also sets flag 1 to 2), bit 1 when item 0x103 is used. Door gates
-    /// at the fountain/observatory (bit 0) and hallway/patio/forked road (bit 1) answer
-    /// room 2 once their bit is set.
-    GAME_FLAG_SECURITY_ROOM_LOCKS_RELEASED = 0x009,
     /// Bitmask of one-shot security-monitor events: bit 0 once camera view 0xB has been
     /// shown (starts CAP slot 0xD), bit 1 once camera view 0xA's enemy scene has played
     /// (actor_311900 sets it, and is torn down on later loads).
@@ -63,10 +48,6 @@ enum {
     /// Unidentified. Written every tick by enemy actor_510900 with a value from its
     /// table `_gActor510900HelipadStatusFlagValues` indexed by source phase and light-2 status; no reader found.
     GAME_FLAG_00D = 0x00D,
-    /// Unidentified. Akropolis cafeteria-related state: 1 after the cafeteria scene, 2
-    /// when the patio door message (3) is used while it equals 3, 4 when the follow-up
-    /// room cutscene advances flag 0 from 2 to 3. Meaning of values unclear.
-    GAME_FLAG_00E = 0x00E,
     /// Set to 1 the first time the bridge is entered from the fire escape, which plays
     /// the bridge's arrival scene (and also sets flag 6); passed to the bridge's view-
     /// sprite helper on entry.
@@ -85,11 +66,6 @@ enum {
     /// Unidentified. Set to 1 together with 0x17 and other story flags in a shelter B2
     /// laboratory story sequence; no reader found.
     GAME_FLAG_SHELTER_B2_LABORATORY_018 = 0x018,
-    /// Opening Akropolis sequence: 1 when leaving the west elevator hall into the
-    /// square (scene event 1), 3 when the patio's arrival scene plays, 4 once the
-    /// patio's slot-4 actor is gone or a patio message is used at 3. Square, fountain
-    /// and cafeteria doors answer 1 while it is below 2 and 2 after.
-    GAME_FLAG_AKROPOLIS_OPENING_PROGRESS = 0x021,
     /// Set to 1 when the patio's cafeteria door is used while flag 0 is 2, which plays
     /// a scene once; afterwards the door runs CAP 8 instead.
     GAME_FLAG_PATIO_CAFETERIA_DOOR_SCENE_SEEN = 0x023,
@@ -1141,11 +1117,6 @@ enum {
     /// runs CAP 8 instead of CAP 6; actor_205200 clears it. No setter to nonzero found
     /// in C.
     GAME_FLAG_154 = 0x154,
-    /// Story-progress index (0-0xF) that picks the follow-up CAP dialogue of slot-1
-    /// room cutscenes (CAP command 0x155+0x10 in _roomCutsceneTask); story beats across
-    /// all stages set it to increasing values (always clearing flag 3), and stage
-    /// starts reset it to 0. Value 0xE adds a looping dialogue choice.
-    GAME_FLAG_STORY_DIALOGUE_INDEX = 0x155,
     /// One-shot: set on first entry to the B1 north maintenance walkway in variant 2,
     /// when CAP 4 is started.
     GAME_FLAG_NORTH_MAINTENANCE_WALKWAY_SCENE = 0x157,

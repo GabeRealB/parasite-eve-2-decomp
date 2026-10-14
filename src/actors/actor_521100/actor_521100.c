@@ -1790,15 +1790,15 @@ static void _actor521100SpawnBody(Enemy* enemy, Task* task)
     worldCollisionInitContacts(work->bodyContacts, ARRAY_SIZE(work->bodyContacts), 0);
     work->body.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
 
-    weaponEnemy     = enemySpawnFromTable(gActor521100No9GolemTaskDescs, 1, 0, enemy);
-    weaponModel     = weaponEnemy->task->extra.tmd;
-    placementKey    = enemy->placeKey;
-    sessionLocation = &gGameSession->location;
-    location.stage  = sessionLocation->stage;
-    location.area   = sessionLocation->area;
-    location.room   = sessionLocation->room;
-    placementIndex  = placementKey >> ENEMY_PLACE_INDEX_SHIFT;
-    location.view   = sessionLocation->view;
+    weaponEnemy        = enemySpawnFromTable(gActor521100No9GolemTaskDescs, 1, 0, enemy);
+    weaponModel        = weaponEnemy->task->extra.tmd;
+    placementKey       = enemy->placeKey;
+    sessionLocation    = &gGameSession->location;
+    location.stage     = sessionLocation->stage;
+    location.area      = sessionLocation->area;
+    location.roomState = sessionLocation->roomState;
+    placementIndex     = placementKey >> ENEMY_PLACE_INDEX_SHIFT;
+    location.view      = sessionLocation->view;
     areaSyncLocationVariant(&location);
     // The child weapon uses the body placement's texture page and CLUT.
     placement                      = AREA_PLACEMENT_AT(areaGetVariant(&location)->placements, placementIndex);

@@ -81,26 +81,26 @@ static s32 _mainStreetResolveMessage(Task* task, s32 messageId, const RoomEventM
         if (gGameSession->location.stage == GAME_STAGE_DRYFIELD) {
             if (request->queryOnly == ROOM_EVENT_EXECUTE) {
                 if (gameFlagGetNibble(GAME_FLAG_DRIVEWAY_PROGRESS) >= 2) {
-                    reply->room = 2;
+                    reply->roomState = 2;
                 } else {
-                    reply->room = 1;
+                    reply->roomState = 1;
                 }
             }
         } else if (request->queryOnly == ROOM_EVENT_EXECUTE) {
-            reply->room = gameFlagGetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SCENE_SEEN) + 1;
+            reply->roomState = gameFlagGetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SCENE_SEEN) + 1;
         }
     }
     if (request->areaId == GAME_AREA_DRYFIELD_GAS_STATION && request->queryOnly == ROOM_EVENT_EXECUTE) {
         if (gameFlagGetNibble(GAME_FLAG_NIGHT_GAS_STATION_PROGRESS) == 0) {
-            reply->room = 1;
+            reply->roomState = 1;
         } else if (gameFlagGetNibble(GAME_FLAG_STORY_CHAPTER) >= 4) {
-            reply->room = 4;
+            reply->roomState = 4;
         } else {
-            reply->room = gameFlagGetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SCENE_SEEN) + 2;
+            reply->roomState = gameFlagGetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SCENE_SEEN) + 2;
         }
     }
     if (request->areaId == GAME_AREA_DRYFIELD_PARKING_LOT && request->queryOnly == ROOM_EVENT_EXECUTE) {
-        reply->room = gameFlagGetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SCENE_SEEN) + 1;
+        reply->roomState = gameFlagGetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SCENE_SEEN) + 1;
     }
     if (request->areaId == GAME_AREA_DRYFIELD_DRIVEWAY && gameFlagGetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SCENE_SEEN) != 0) {
         if (request->queryOnly == ROOM_EVENT_EXECUTE) {

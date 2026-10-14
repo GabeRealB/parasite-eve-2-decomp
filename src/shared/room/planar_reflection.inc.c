@@ -421,7 +421,7 @@ static void _planarReflectionUpdatePlayer(Task* reflectionTask)
             mirrorWork->coord.coord.m[1][2] = frame->viewYRow.vz;
             if (stage == GAME_STAGE_SHELTER_NEO_ARK) {
                 if (area == GAME_AREA_NEO_ARK_OBSERVATORY) {
-                    if (view >= 6 && view < 12 && gGameSession->location.room == 2) {
+                    if (view >= 6 && view < 12 && gGameSession->location.roomState == 2) {
                         mirrorWork->coord.coord.t[1] += PLANAR_REFLECTION_NEO_ARK_FLOOR_Y_OFFSET;
                         reflectionModel->flags       &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
                         mirrorWork->firstBlendMode    = GPU_BLEND_AVERAGE;

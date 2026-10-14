@@ -3293,7 +3293,7 @@ static s32 _dryfieldNightGasStationCommandMsg(Task* unusedTask, s32 unusedMessag
         }
         capStartSequenceSlot(GASOLINE_SEQUENCE, 1, gasolineCollected);
     }
-    if ((commandId == EXAMINE_COMMAND) && (gGameSession->location.room == EXAMINE_ROOM)) {
+    if ((commandId == EXAMINE_COMMAND) && (gGameSession->location.roomState == EXAMINE_ROOM)) {
         if (inventoryHasCollectedBit(INVENTORY_COLLECTION_ID_SUV_KEY) != 0) {
             if (gameFlagGetNibble(GAME_FLAG_NIGHT_GAS_STATION_EXAMINE_STATE) == EXAMINE_INITIAL) {
                 gameFlagSetNibble(GAME_FLAG_NIGHT_GAS_STATION_EXAMINE_STATE, EXAMINE_FIRST_KEY_VISIT);

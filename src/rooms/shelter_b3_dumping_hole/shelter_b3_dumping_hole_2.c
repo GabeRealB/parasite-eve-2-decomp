@@ -3633,7 +3633,7 @@ s16 shelterB3DumpingHoleIsIncineratorExitBlocked(void)
     enum {
         SHELTER_B3_DUMPING_HOLE_INCINERATOR_EXIT_BYPASS_ROOM = 2,
     };
-    if (gGameSession->location.room == SHELTER_B3_DUMPING_HOLE_INCINERATOR_EXIT_BYPASS_ROOM) {
+    if (gGameSession->location.roomState == SHELTER_B3_DUMPING_HOLE_INCINERATOR_EXIT_BYPASS_ROOM) {
         return 0;
     }
     return gShelterB3DumpingHoleIncineratorExitBlocked;

@@ -276,8 +276,8 @@ enum {
 static inline void _mineCavernCommitPassageEntry(void)
 {
     gameFlagSetNibble(GAME_FLAG_MINE_SECRET_PASSAGE_PROGRESS, MINE_CAVERN_PASSAGE_PROGRESS_ENTERED);
-    gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
-    gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, 0);
+    gameFlagSetNibble(EVENT_FLAG_TELEPHONE_DIALOGUE_COUNTER, EVENT_FLAG_TELEPHONE_DIALOGUE_UNHEARD);
+    gameFlagSetNibble(EVENT_FLAG_STORY_DIALOGUE_INDEX, 0);
 }
 
 s32 mineCavernResolveTransition(Task* unusedTask, s32 unusedMessageId, RoomEventMsg* request, RoomEventMsg* reply)

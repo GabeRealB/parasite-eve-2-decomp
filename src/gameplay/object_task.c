@@ -111,7 +111,7 @@ void objectTaskInitializeRoomState(Task* task)
     // Table order decides between a room-specific descriptor and its area default.
     descriptorIndex = 0;
     locationKeyBase = OBJECT_TASK_ROOM_LOCATION_KEY(gGameSession->location.stage, gGameSession->location.area, 0);
-    roomKey         = locationKeyBase + gGameSession->location.room;
+    roomKey         = locationKeyBase + gGameSession->location.roomState;
     stageRoomTable  = _gObjectTaskStageRoomTables[gGameSession->location.stage];
     areaKey         = locationKeyBase;
     descriptor      = stageRoomTable;

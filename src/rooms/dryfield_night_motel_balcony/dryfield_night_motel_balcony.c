@@ -112,12 +112,12 @@ static void _dryfieldNightMotelBalconyInitRoom(Task* task)
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     dryfieldNightMotelBalconyRestoreSectionStates();
     variant = gGameSession->location.variant;
-    if (variant == DRYFIELD_NIGHT_MOTEL_BALCONY_SCENE_VARIANT && gGameSession->location.room == variant && gameFlagGetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SCENE_SEEN) == 0) {
+    if (variant == DRYFIELD_NIGHT_MOTEL_BALCONY_SCENE_VARIANT && gGameSession->location.roomState == variant && gameFlagGetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SCENE_SEEN) == 0) {
         evsStartScriptWithSkip(gActor335800BalconyEntryScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, gActor335800BalconyEntrySkipScript);
         gameFlagSetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SCENE_SEEN, 1);
         gameFlagSetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SCRIPT_STATE, DRYFIELD_NIGHT_MOTEL_BALCONY_FOLLOW_UP_PENDING);
-        gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
-        gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, 1);
+        gameFlagSetNibble(EVENT_FLAG_TELEPHONE_DIALOGUE_COUNTER, EVENT_FLAG_TELEPHONE_DIALOGUE_UNHEARD);
+        gameFlagSetNibble(EVENT_FLAG_STORY_DIALOGUE_INDEX, 1);
         gGameSession->flowFlags = (GAME_SESSION_FLOW_SKIP_ENDING_MUSIC | GAME_SESSION_FLOW_LOAD_ENDING_MUSIC_ONLY | GAME_SESSION_FLOW_REEQUIP_WEAPON);
     }
     task->state = task->state + 1;

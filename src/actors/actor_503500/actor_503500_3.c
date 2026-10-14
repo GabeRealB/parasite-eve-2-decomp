@@ -417,16 +417,16 @@ static inline void _actor503500InheritBossSlotTextures(Task* task, Enemy* slotEn
     u32                    placementKey;
     s32                    placementIndex;
 
-    sessionLocation = &gGameSession->location;
-    placementOwner  = task->spawnArg2.pointer;
-    placementKey    = placementOwner->placeKey;
-    slotModel       = slotEnemy->task->extra.tmd;
-    location.stage  = sessionLocation->stage;
-    location.area   = sessionLocation->area;
-    location.room   = sessionLocation->room;
-    viewId          = sessionLocation->view;
-    placementIndex  = placementKey >> ENEMY_PLACE_INDEX_SHIFT;
-    location.view   = viewId;
+    sessionLocation    = &gGameSession->location;
+    placementOwner     = task->spawnArg2.pointer;
+    placementKey       = placementOwner->placeKey;
+    slotModel          = slotEnemy->task->extra.tmd;
+    location.stage     = sessionLocation->stage;
+    location.area      = sessionLocation->area;
+    location.roomState = sessionLocation->roomState;
+    viewId             = sessionLocation->view;
+    placementIndex     = placementKey >> ENEMY_PLACE_INDEX_SHIFT;
+    location.view      = viewId;
     areaSyncLocationVariant(&location);
     areaVariant                  = areaGetVariant(&location);
     placement                    = AREA_PLACEMENT_AT(areaVariant->placements, placementIndex);
@@ -2122,16 +2122,16 @@ Enemy* actor503500SpawnSlotEnemy(Task* task, s32 slot)
 
     slotEnemy = enemySpawnFromTable(gActor503500EnemyTaskDescs, slot, slot, task->spawnArg2.pointer);
     if (slotEnemy != NULL) {
-        sessionLocation = &gGameSession->location;
-        parentEnemy     = task->spawnArg2.pointer;
-        placementKey    = parentEnemy->placeKey;
-        slotModel       = slotEnemy->task->extra.tmd;
-        location.stage  = sessionLocation->stage;
-        location.area   = sessionLocation->area;
-        location.room   = sessionLocation->room;
-        viewId          = sessionLocation->view;
-        placementIndex  = placementKey >> ENEMY_PLACE_INDEX_SHIFT;
-        location.view   = viewId;
+        sessionLocation    = &gGameSession->location;
+        parentEnemy        = task->spawnArg2.pointer;
+        placementKey       = parentEnemy->placeKey;
+        slotModel          = slotEnemy->task->extra.tmd;
+        location.stage     = sessionLocation->stage;
+        location.area      = sessionLocation->area;
+        location.roomState = sessionLocation->roomState;
+        viewId             = sessionLocation->view;
+        placementIndex     = placementKey >> ENEMY_PLACE_INDEX_SHIFT;
+        location.view      = viewId;
         areaSyncLocationVariant(&location);
         areaVariant                  = areaGetVariant(&location);
         placement                    = AREA_PLACEMENT_AT(areaVariant->placements, placementIndex);

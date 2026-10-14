@@ -1,4 +1,5 @@
 #include "rooms/acropolis_helicopter_landing_pad.h"
+#include "../../stages/akropolis/event_flags.h"
 
 #include <psyq/sys/types.h>
 #include <psyq/libgte.h>
@@ -1765,7 +1766,6 @@ void acropolisHelicopterLandingPadReturnToMistTask(Task* task)
         ACROPOLIS_HELICOPTER_LANDING_PAD_RETURN_WAIT_MOVIE     = 1,
         ACROPOLIS_HELICOPTER_LANDING_PAD_RETURN_RELOAD         = 2,
         ACROPOLIS_HELICOPTER_LANDING_PAD_ITEM_MICRO_DEVICE     = 0x102,
-        ACROPOLIS_HELICOPTER_LANDING_PAD_RETURN_DIALOGUE       = 7,
         ACROPOLIS_HELICOPTER_LANDING_PAD_RETURN_SCENE_EVENT    = 1,
         ACROPOLIS_HELICOPTER_LANDING_PAD_RETURN_WARP           = 1,
         ACROPOLIS_HELICOPTER_LANDING_PAD_RETURN_ROOM           = 1,
@@ -1780,8 +1780,8 @@ void acropolisHelicopterLandingPadReturnToMistTask(Task* task)
             inventoryClearCollectedBit(INVENTORY_COLLECTION_ID_PARTHENON_KEY);
             inventoryClearCollectedBit(ACROPOLIS_HELICOPTER_LANDING_PAD_ITEM_MICRO_DEVICE);
             itemSetIdentified(ACROPOLIS_HELICOPTER_LANDING_PAD_ITEM_MICRO_DEVICE, true);
-            gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
-            gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, ACROPOLIS_HELICOPTER_LANDING_PAD_RETURN_DIALOGUE);
+            gameFlagSetNibble(EVENT_FLAG_TELEPHONE_DIALOGUE_COUNTER, EVENT_FLAG_TELEPHONE_DIALOGUE_UNHEARD);
+            gameFlagSetNibble(EVENT_FLAG_STORY_DIALOGUE_INDEX, AKROPOLIS_STORY_DIALOGUE_STILL_HERE);
             taskSpawnFromTable(gAcropolisHelicopterLandingPadMovieTasks, ACROPOLIS_HELICOPTER_LANDING_PAD_RETURN_MOVIE_TASK, 0, 0);
             task->state += 1;
             return;
@@ -1791,12 +1791,12 @@ void acropolisHelicopterLandingPadReturnToMistTask(Task* task)
         case ACROPOLIS_HELICOPTER_LANDING_PAD_RETURN_RELOAD:
             // The movie task holds the task list while playback owns the display.
             sndEvtRequestScriptStop(SOUND_BANK_TYPE_ALL_NON_AMBIENT, SOUND_SCRIPT_STOP_NO_FADE);
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent     = ACROPOLIS_HELICOPTER_LANDING_PAD_RETURN_SCENE_EVENT;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.stage = GAME_STAGE_AKROPOLIS;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.area  = GAME_AREA_MIST_R18;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp  = ACROPOLIS_HELICOPTER_LANDING_PAD_RETURN_WARP;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.room  = ACROPOLIS_HELICOPTER_LANDING_PAD_RETURN_ROOM;
-            gDisplayState.spriteVariant                             = ACROPOLIS_HELICOPTER_LANDING_PAD_RETURN_SPRITE_VARIANT;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent         = ACROPOLIS_HELICOPTER_LANDING_PAD_RETURN_SCENE_EVENT;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.stage     = GAME_STAGE_AKROPOLIS;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.area      = GAME_AREA_MIST_R18;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp      = ACROPOLIS_HELICOPTER_LANDING_PAD_RETURN_WARP;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.roomState = ACROPOLIS_HELICOPTER_LANDING_PAD_RETURN_ROOM;
+            gDisplayState.spriteVariant                                 = ACROPOLIS_HELICOPTER_LANDING_PAD_RETURN_SPRITE_VARIANT;
             taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
             displayReleaseMenuHold();
             taskKill(task);

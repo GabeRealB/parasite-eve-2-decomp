@@ -1991,7 +1991,7 @@ static void _actor400500DrawLimbShadow(Task* task, s16 firstJoint, s16 secondJoi
         poly->tpage = getTPage(ACTOR_400500_SHADOW_TEXTURE_4_BIT, GPU_BLEND_SUBTRACT,                                                                   \
                                ACTOR_400500_SHADOW_PAGE_X, ACTOR_400500_SHADOW_PAGE_Y);                                                                 \
         poly->clut  = getClut(ACTOR_400500_SHADOW_CLUT_X, ACTOR_400500_SHADOW_CLUT_Y);                                                                  \
-        room        = gGameSession->location.room;                                                                                                      \
+        room        = gGameSession->location.roomState;                                                                                                 \
         if ((room == 1) || (room == 3) || (room == 5) || (room == 6)) {                                                                                 \
             poly->r0 = modulation;                                                                                                                      \
             poly->g0 = modulation;                                                                                                                      \
@@ -3208,7 +3208,7 @@ static void _actor400500InitTask(Task* task)
     }
     // The night-room variants begin cloaked; other rooms hold the visible phase.
     appearanceWork = task->work;
-    room           = gGameSession->location.room;
+    room           = gGameSession->location.roomState;
     litModel       = task->extra.tmd;
     if ((room == 1) || (room == 3) || (room == 5) || (room == 6)) {
         appearanceWork->cloakLevel     = ACTOR_400500_CLOAK_MAX_LEVEL;
@@ -3436,7 +3436,7 @@ static void _actor400500TickCombatTask(Task* task)
         sampleCoord    = lightingModel->coords + ACTOR_400500_PART_COLOR_SAMPLE;                    \
         samplePosition = _actor400500PushCachedPosition(sampleCoord);                               \
         worldCoordUpdateActorColor((actorTask)->spawnArg2.pointer, samplePosition, 0, 0);           \
-        room = gGameSession->location.room;                                                         \
+        room = gGameSession->location.roomState;                                                    \
         if ((room == 1) || (room == 3) || (room == 5) || (room == 6)) {                             \
             ambientModel   = roomModel;                                                             \
             ambientRedBlue = ACTOR_400500_AMBIENT_GREY;                                             \
@@ -5497,7 +5497,7 @@ static inline void _actor400500UpdateColor(Task* task, const GfxCoord* coord, co
 
     position = _actor400500PushCachedPosition(coord);
     worldCoordUpdateActorColor(task->spawnArg2.pointer, position, 0, 0);
-    room = gGameSession->location.room;
+    room = gGameSession->location.roomState;
     if ((room == 1) || (room == 3) || (room == 5) || (room == 6)) {
         worldCoordSetModelAmbientColor(model, ACTOR_400500_AMBIENT_GREY, ACTOR_400500_AMBIENT_GREY, ACTOR_400500_AMBIENT_GREY);
     } else {
@@ -5875,7 +5875,7 @@ static void _actor400500UpdateCloakTiming(Task* task)
     u8                           room;
 
     work  = task->work;
-    room  = gGameSession->location.room;
+    room  = gGameSession->location.roomState;
     enemy = task->spawnArg2.pointer;
     // Rooms 1, 3, 5 and 6 shorten the visible cloak hold as HP rises.
     if ((room == 1) || (room == 3) || (room == 5) || (room == 6)) {

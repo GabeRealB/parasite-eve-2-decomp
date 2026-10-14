@@ -1927,15 +1927,15 @@ static inline void _actor03700SpawnRemains(Task* task)
     if (remains == NULL) {
         return;
     }
-    sessionLocation = &gGameSession->location;
-    placeKey        = ((Enemy*)task->spawnArg2.pointer)->placeKey;
-    remainsModel    = remains->task->extra.tmd;
-    location.stage  = sessionLocation->stage;
-    location.area   = sessionLocation->area;
-    location.room   = sessionLocation->room;
-    currentView     = sessionLocation->view;
-    placementIndex  = placeKey >> ENEMY_PLACE_INDEX_SHIFT;
-    location.view   = currentView;
+    sessionLocation    = &gGameSession->location;
+    placeKey           = ((Enemy*)task->spawnArg2.pointer)->placeKey;
+    remainsModel       = remains->task->extra.tmd;
+    location.stage     = sessionLocation->stage;
+    location.area      = sessionLocation->area;
+    location.roomState = sessionLocation->roomState;
+    currentView        = sessionLocation->view;
+    placementIndex     = placeKey >> ENEMY_PLACE_INDEX_SHIFT;
+    location.view      = currentView;
     areaSyncLocationVariant(&location);
     variant = areaGetVariant(&location);
     _actor03700SetRemainsTextures(remainsModel, &variant->placements[placementIndex]);

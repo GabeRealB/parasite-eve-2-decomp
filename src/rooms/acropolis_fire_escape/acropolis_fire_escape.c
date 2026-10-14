@@ -1,4 +1,5 @@
 #include "rooms/acropolis_fire_escape.h"
+#include "../../stages/akropolis/event_flags.h"
 
 #include <psyq/sys/types.h>
 #include <psyq/libgte.h>
@@ -783,8 +784,6 @@ static s32 _acropolisFireEscapeHandleRoomCommand(Task* unusedTask, s32 messageId
         ACROPOLIS_FIRE_ESCAPE_SCENE_UNSEEN              = 0,
         ACROPOLIS_FIRE_ESCAPE_SCENE_SEEN                = 1,
         ACROPOLIS_FIRE_ESCAPE_FIRST_SCENE_CAP_COMMAND   = 11,
-        ACROPOLIS_FIRE_ESCAPE_DIALOGUE_PROGRESS         = 6,
-        ACROPOLIS_FIRE_ESCAPE_FOLLOW_UP_RESET           = 0,
         ACROPOLIS_FIRE_ESCAPE_DIALOGUE_CAP_COMMAND      = 3,
         ACROPOLIS_FIRE_ESCAPE_DIALOGUE_OBJECTIVE        = 7,
         ACROPOLIS_FIRE_ESCAPE_DIALOGUE_ACTOR_PLACEMENT  = 0,
@@ -805,9 +804,9 @@ static s32 _acropolisFireEscapeHandleRoomCommand(Task* unusedTask, s32 messageId
     }
     if (command == ACROPOLIS_FIRE_ESCAPE_COMMAND_ADVANCE_DIALOGUE) {
         // Advancing dialogue rearms its follow-up without lowering later progress.
-        if (gameFlagGetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX) < ACROPOLIS_FIRE_ESCAPE_DIALOGUE_PROGRESS) {
-            gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, ACROPOLIS_FIRE_ESCAPE_FOLLOW_UP_RESET);
-            gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, ACROPOLIS_FIRE_ESCAPE_DIALOGUE_PROGRESS);
+        if (gameFlagGetNibble(EVENT_FLAG_STORY_DIALOGUE_INDEX) < AKROPOLIS_STORY_DIALOGUE_HELICOPTER) {
+            gameFlagSetNibble(EVENT_FLAG_TELEPHONE_DIALOGUE_COUNTER, EVENT_FLAG_TELEPHONE_DIALOGUE_UNHEARD);
+            gameFlagSetNibble(EVENT_FLAG_STORY_DIALOGUE_INDEX, AKROPOLIS_STORY_DIALOGUE_HELICOPTER);
         }
         capSpawnEventIfIdle(ACROPOLIS_FIRE_ESCAPE_DIALOGUE_CAP_COMMAND, CAP_EVENT_PAUSE_ACTORS);
         gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, ACROPOLIS_FIRE_ESCAPE_DIALOGUE_OBJECTIVE);
@@ -927,9 +926,9 @@ static s32 _acropolisFireEscapeResolveRoomTransition(Task* unusedTask, s32 messa
     }
     if (request->areaId == GAME_AREA_AKROPOLIS_BRIDGE && request->queryOnly == ROOM_EVENT_EXECUTE) {
         if (gameFlagGetNibble(GAME_FLAG_AKROPOLIS_BRIDGE_PROGRESS) == ACROPOLIS_FIRE_ESCAPE_BRIDGE_PROGRESS_CHANGED) {
-            reply->room = ACROPOLIS_FIRE_ESCAPE_BRIDGE_ROOM_CHANGED;
+            reply->roomState = ACROPOLIS_FIRE_ESCAPE_BRIDGE_ROOM_CHANGED;
         } else {
-            reply->room = ACROPOLIS_FIRE_ESCAPE_BRIDGE_ROOM_INITIAL;
+            reply->roomState = ACROPOLIS_FIRE_ESCAPE_BRIDGE_ROOM_INITIAL;
         }
     }
     return ACROPOLIS_FIRE_ESCAPE_TRANSITION_ALLOWED;

@@ -259,9 +259,9 @@ static s32 _mineGorgeUseOakBoardMessage(Task* unusedTask, s32 messageId, s32 col
             if (_roomEventTriggerHit() != 0) {
                 gameFlagSetNibble(GAME_FLAG_MINE_GORGE_TRIGGER_EVENT_DONE, 1);
                 taskSpawnFromTableOnDefaultList(_gMineGorgeOakBoardCutsceneTaskDescriptors, 0, 0, 0);
-                gGameSession->location.room = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.room = MINE_GORGE_OAK_BOARD_EVENT_ROOM);
-                gGameSession->hideHud       = (gGameSession->roomObjsDirty = 1);
-                gGameSession->eventState    = 1;
+                gGameSession->location.roomState = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.roomState = MINE_GORGE_OAK_BOARD_EVENT_ROOM);
+                gGameSession->hideHud            = (gGameSession->roomObjsDirty = 1);
+                gGameSession->eventState         = 1;
                 return ROOM_KEY_ITEM_USE_SHOW_USED_NOTICE;
             }
         }

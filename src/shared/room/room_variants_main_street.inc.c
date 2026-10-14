@@ -19,7 +19,7 @@ static s32 _roomVariantMainStreetMsg(Task* task, s32 messageId, const RoomEventM
         } else {
             destinationRoom = gameFlagGetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SCENE_SEEN) + 1;
         }
-        reply->room = destinationRoom;
+        reply->roomState = destinationRoom;
     }
     return ROOM_VARIANT_TRANSITION_DIRECT;
 }

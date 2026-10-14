@@ -518,9 +518,9 @@ s32 dryfieldBreezewayResolveRoomEventMessage(Task* unusedTask, s32 unusedMessage
     if (request->areaId == GAME_AREA_DRYFIELD_FACTORY) {
         if (request->queryOnly == ROOM_EVENT_EXECUTE) {
             if (gameFlagGetNibble(GAME_FLAG_FACTORY_BARRIER_CLEARED) == 0) {
-                reply->room = DRYFIELD_BREEZEWAY_FACTORY_ROOM_DEFAULT;
+                reply->roomState = DRYFIELD_BREEZEWAY_FACTORY_ROOM_DEFAULT;
             } else {
-                reply->room = DRYFIELD_BREEZEWAY_FACTORY_ROOM_BARRIER_CLEARED;
+                reply->roomState = DRYFIELD_BREEZEWAY_FACTORY_ROOM_BARRIER_CLEARED;
             }
         }
         if (request->areaId == GAME_AREA_DRYFIELD_FACTORY) {

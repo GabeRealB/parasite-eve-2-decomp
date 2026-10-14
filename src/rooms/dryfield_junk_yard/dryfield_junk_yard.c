@@ -2193,9 +2193,9 @@ static s32 _dryfieldJunkYardResolveRoomTransition(Task* unusedTask, s32 unusedMe
     *reply = *request;
     if (request->areaId == GAME_AREA_DRYFIELD_GARAGE && request->queryOnly == ROOM_EVENT_EXECUTE) {
         if (gameFlagGetNibble(GAME_FLAG_STORY_CHAPTER) >= GARAGE_LATE_CHAPTER) {
-            reply->room = GARAGE_LATE_ROOM;
+            reply->roomState = GARAGE_LATE_ROOM;
         } else {
-            reply->room = GARAGE_DEFAULT_ROOM;
+            reply->roomState = GARAGE_DEFAULT_ROOM;
         }
     }
     if (request->areaId == GAME_AREA_DRYFIELD_TRAILER_COACH) {

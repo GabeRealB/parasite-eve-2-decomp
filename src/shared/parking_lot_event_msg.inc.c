@@ -28,7 +28,7 @@ s32 parkingLotResolveMessage(Task* task, s32 messageId, const RoomEventMsg* requ
         } else {
             roomVariant = gameFlagGetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SCENE_SEEN) + 1;
         }
-        reply->room = roomVariant;
+        reply->roomState = roomVariant;
     }
     if ((request->areaId == GAME_AREA_DRYFIELD_MOTEL_BALCONY) && (request->queryOnly == ROOM_EVENT_EXECUTE)) {
         balconyRoom = gameFlagGetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SCENE_SEEN);
@@ -37,7 +37,7 @@ s32 parkingLotResolveMessage(Task* task, s32 messageId, const RoomEventMsg* requ
         } else {
             balconyRoom = 3;
         }
-        reply->room = balconyRoom;
+        reply->roomState = balconyRoom;
     }
     if (request->areaId == GAME_AREA_DRYFIELD_MOTEL_LOBBY) {
         eventRequest.capCmd        = PARKING_LOT_CAP_UNLOCK_LOBBY;

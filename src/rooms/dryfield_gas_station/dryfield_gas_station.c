@@ -219,8 +219,8 @@ static void _dryfieldGasStationInitRoomTask(Task* task)
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp == ARRIVAL_WARP) {
         taskSpawnFromTable(_gDryfieldGasStationArrivalSupervisorTaskDescs, 0, 0, 0);
         gameFlagSetNibble(GAME_FLAG_STORY_CHAPTER, ARRIVAL_STORY_CHAPTER);
-        gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
-        gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, 0);
+        gameFlagSetNibble(EVENT_FLAG_TELEPHONE_DIALOGUE_COUNTER, EVENT_FLAG_TELEPHONE_DIALOGUE_UNHEARD);
+        gameFlagSetNibble(EVENT_FLAG_STORY_DIALOGUE_INDEX, 0);
     } else {
         stageMusicRequestAreaStart(AREA_MUSIC_START_TICKS);
     }

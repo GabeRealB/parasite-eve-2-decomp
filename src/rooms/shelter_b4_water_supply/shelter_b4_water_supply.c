@@ -919,7 +919,7 @@ static RoomFadeStorage _gShelterB4WaterSupplyUpperSewerFade = { 0 };
 
 /// Saved-location cell staging the CAP-gated upper-sewer destination.
 ///
-/// Only `loc.area`, `loc.warp` and `loc.room` are written and later committed;
+/// Only `loc.area`, `loc.warp` and `loc.roomState` are written and later committed;
 /// the other bytes retain their zero initialization. Keep this room-owned cell
 /// stable until the deferred departure finishes its fade and transit sound.
 static GameLocationKey _gShelterB4WaterSupplyUpperSewerDestination = { 0 };
@@ -1020,10 +1020,10 @@ static void _shelterB4WaterSupplyUpperSewerDepartureTask(Task* task)
             break;
         case SHELTER_B4_WATER_SUPPLY_SEWER_RELOAD:
             // Publish the staged selectors only after the fade and transit sound finish.
-            gDisplayState.spriteVariant                            = SHELTER_B4_WATER_SUPPLY_RELOAD_SPRITE_VARIANT;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.area = _gShelterB4WaterSupplyUpperSewerDestination.area;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp = _gShelterB4WaterSupplyUpperSewerDestination.warp;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.room = _gShelterB4WaterSupplyUpperSewerDestination.room;
+            gDisplayState.spriteVariant                                 = SHELTER_B4_WATER_SUPPLY_RELOAD_SPRITE_VARIANT;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.area      = _gShelterB4WaterSupplyUpperSewerDestination.area;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp      = _gShelterB4WaterSupplyUpperSewerDestination.warp;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.roomState = _gShelterB4WaterSupplyUpperSewerDestination.roomState;
             taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_SKIP_BATTLE_ESCAPE, 0);
             taskKill(task);
             break;
@@ -1055,9 +1055,9 @@ static s32 _shelterB4WaterSupplyResolveRoomEvent(Task* unusedTask, s32 unusedMes
     mapShelterRoomVariantResolve(request, reply);
     if (request->areaId == GAME_AREA_SHELTER_B4_UPPER_SEWER) {
         if (request->queryOnly == ROOM_EVENT_EXECUTE) {
-            _gShelterB4WaterSupplyUpperSewerDestination.area = reply->areaId;
-            _gShelterB4WaterSupplyUpperSewerDestination.warp = reply->warp;
-            _gShelterB4WaterSupplyUpperSewerDestination.room = reply->room;
+            _gShelterB4WaterSupplyUpperSewerDestination.area      = reply->areaId;
+            _gShelterB4WaterSupplyUpperSewerDestination.warp      = reply->warp;
+            _gShelterB4WaterSupplyUpperSewerDestination.roomState = reply->roomState;
             taskSpawnFromTable(_gShelterB4WaterSupplyDepartureTaskDescs, SHELTER_B4_WATER_SUPPLY_SEWER_DEPARTURE_DESCRIPTOR, SHELTER_B4_WATER_SUPPLY_SEWER_DEPARTURE_CAP, 0);
         }
         return SHELTER_B4_WATER_SUPPLY_DEPARTURE_DEFERRED;
@@ -1134,12 +1134,12 @@ static inline void _shelterB4WaterSupplyResolveDeparture(RoomDeparture* departur
 
     destination.areaId    = departurePtr->area;
     destination.warp      = departurePtr->warp;
-    destination.room      = departurePtr->room;
+    destination.roomState = departurePtr->roomState;
     destination.queryOnly = ROOM_EVENT_EXECUTE;
     resolveDestination(&destination, &destination);
-    departurePtr->area = destination.areaId;
-    departurePtr->warp = destination.warp;
-    departurePtr->room = destination.room;
+    departurePtr->area      = destination.areaId;
+    departurePtr->warp      = destination.warp;
+    departurePtr->roomState = destination.roomState;
 }
 
 /// Starts the valve's repeat-use departure to the nighttime water hole.
@@ -1158,12 +1158,12 @@ static void _shelterB4WaterSupplyDepartToWaterHole(void)
     RoomDeparture       departure;
     RoomVariantResolver resolveDestination = _shelterB4WaterSupplyResolveWaterHoleVariant;
 
-    departure.stage    = GAME_STAGE_DRYFIELD_NIGHT;
-    departure.area     = GAME_AREA_DRYFIELD_NIGHT_WATER_HOLE;
-    departure.warp     = WATER_HOLE_ARRIVAL_WARP;
-    departure.room     = WATER_HOLE_ARRIVAL_ROOM;
-    departure.sndEvent = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B4_WATER_SUPPLY, DEPARTURE_SOUND_SCRIPT);
-    departure.facing   = ACTOR_TRANSFORM_ANGLE_TURN / 4;
+    departure.stage     = GAME_STAGE_DRYFIELD_NIGHT;
+    departure.area      = GAME_AREA_DRYFIELD_NIGHT_WATER_HOLE;
+    departure.warp      = WATER_HOLE_ARRIVAL_WARP;
+    departure.roomState = WATER_HOLE_ARRIVAL_ROOM;
+    departure.sndEvent  = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B4_WATER_SUPPLY, DEPARTURE_SOUND_SCRIPT);
+    departure.facing    = ACTOR_TRANSFORM_ANGLE_TURN / 4;
     playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
     _shelterB4WaterSupplyResolveDeparture(&departure, resolveDestination);
     gRoomDeparture = departure;
@@ -1201,22 +1201,22 @@ static void _shelterB4WaterSupplyFirstValveDepartureTask(Task* task)
     {                                                                                                    \
         (destinationMessage).areaId    = (departure).area;                                               \
         (destinationMessage).warp      = (departure).warp;                                               \
-        (destinationMessage).room      = (departure).room;                                               \
+        (destinationMessage).roomState = (departure).roomState;                                          \
         (destinationMessage).queryOnly = ROOM_EVENT_EXECUTE;                                             \
         (resolver)(&(destinationMessage), &(destinationMessage));                                        \
-        (departure).area = (destinationMessage).areaId;                                                  \
-        (departure).warp = (destinationMessage).warp;                                                    \
-        (departure).room = (destinationMessage).room;                                                    \
+        (departure).area      = (destinationMessage).areaId;                                             \
+        (departure).warp      = (destinationMessage).warp;                                               \
+        (departure).roomState = (destinationMessage).roomState;                                          \
     }
 
     if (capIsBusy() == 0) {
-        resolveDestination = _shelterB4WaterSupplyResolveWaterHoleVariant;
-        departure.stage    = GAME_STAGE_DRYFIELD_NIGHT;
-        departure.area     = GAME_AREA_DRYFIELD_NIGHT_WATER_HOLE;
-        departure.warp     = WATER_HOLE_ARRIVAL_WARP;
-        departure.room     = WATER_HOLE_ARRIVAL_ROOM;
-        departure.sndEvent = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B4_WATER_SUPPLY, DEPARTURE_SOUND_SCRIPT);
-        departure.facing   = ACTOR_TRANSFORM_ANGLE_TURN / 4;
+        resolveDestination  = _shelterB4WaterSupplyResolveWaterHoleVariant;
+        departure.stage     = GAME_STAGE_DRYFIELD_NIGHT;
+        departure.area      = GAME_AREA_DRYFIELD_NIGHT_WATER_HOLE;
+        departure.warp      = WATER_HOLE_ARRIVAL_WARP;
+        departure.roomState = WATER_HOLE_ARRIVAL_ROOM;
+        departure.sndEvent  = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B4_WATER_SUPPLY, DEPARTURE_SOUND_SCRIPT);
+        departure.facing    = ACTOR_TRANSFORM_ANGLE_TURN / 4;
         playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
         SHELTER_B4_WATER_SUPPLY_RESOLVE_FIRST_VALVE_DESTINATION(departure, destination, resolveDestination);
         gRoomDeparture = departure;
@@ -1257,7 +1257,7 @@ void shelterB4WaterSupplyRoomTask(Task* task)
 /// Resolves the night Water Hole's arrival variant from the underpass progress flags.
 ///
 /// Requests use Dryfield-night area IDs. Only execution requests for the
-/// Water Hole modify `reply->room`: flag 0x51
+/// Water Hole modify `reply->roomState`: flag 0x51
 /// selects 1 when set or 2 when clear, and flag 0x53 selects the second pair
 /// (3 or 4). Other fields and queries remain untouched. The borrowed request
 /// and writable reply may alias. Always returns 1; no record is retained.
@@ -1270,12 +1270,12 @@ static s32 _shelterB4WaterSupplyResolveWaterHoleVariant(RoomEventMsg* request, R
     };
     if (request->areaId == GAME_AREA_DRYFIELD_NIGHT_WATER_HOLE && request->queryOnly == ROOM_EVENT_EXECUTE) {
         if (gameFlagGetNibble(GAME_FLAG_UNDERPASS_SWITCH_1) == 0) {
-            reply->room = SHELTER_B4_WATER_SUPPLY_WATER_HOLE_SWITCH_CLEAR_VARIANT;
+            reply->roomState = SHELTER_B4_WATER_SUPPLY_WATER_HOLE_SWITCH_CLEAR_VARIANT;
         } else {
-            reply->room = SHELTER_B4_WATER_SUPPLY_WATER_HOLE_SWITCH_SET_VARIANT;
+            reply->roomState = SHELTER_B4_WATER_SUPPLY_WATER_HOLE_SWITCH_SET_VARIANT;
         }
         if (gameFlagGetNibble(GAME_FLAG_053) != 0) {
-            reply->room = (u8)reply->room + SHELTER_B4_WATER_SUPPLY_WATER_HOLE_SECOND_PAIR_OFFSET;
+            reply->roomState = (u8)reply->roomState + SHELTER_B4_WATER_SUPPLY_WATER_HOLE_SECOND_PAIR_OFFSET;
         }
     }
     return 1;

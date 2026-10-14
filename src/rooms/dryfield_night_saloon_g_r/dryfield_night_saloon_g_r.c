@@ -2993,8 +2993,8 @@ void dryfieldNightSaloonGRRoomTask(Task* task)
 /// check or area reload occurs. The normal and skipped cutscene paths select 2.
 static void _dryfieldNightSaloonGRSetRoom(u8 roomId)
 {
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.room = roomId;
-    gGameSession->location.room                            = roomId;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.roomState = roomId;
+    gGameSession->location.roomState                            = roomId;
 }
 
 #include "../../shared/room/jukebox_row.inc.c"

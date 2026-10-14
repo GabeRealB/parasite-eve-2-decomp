@@ -22,7 +22,7 @@ static s32 _roomVariantSaloonMsg(Task* task, s32 messageId, const RoomEventMsg* 
     destinationArea = request->areaId;
     if (destinationArea == GAME_AREA_DRYFIELD_PARKING_LOT) {
         if (request->queryOnly == ROOM_EVENT_EXECUTE) {
-            reply->room = gameFlagGetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SCENE_SEEN) + 1;
+            reply->roomState = gameFlagGetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SCENE_SEEN) + 1;
         }
         if (request->areaId == destinationArea) {
             eventRequest.capCmd        = ROOM_VARIANT_SALOON_CAP_OPEN_PARKING_LOT_DOOR;

@@ -381,11 +381,11 @@ static inline void _shelterR49RequestObservatoryReload(void)
         SHELTER_R49_OBSERVATORY_SPRITE_VARIANT = 1,
     };
 
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.stage = GAME_STAGE_SHELTER_NEO_ARK;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.area  = GAME_AREA_NEO_ARK_OBSERVATORY;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp  = SHELTER_R49_OBSERVATORY_ARRIVAL_WARP;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.room  = SHELTER_R49_OBSERVATORY_ROOM;
-    gDisplayState.spriteVariant                             = SHELTER_R49_OBSERVATORY_SPRITE_VARIANT;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.stage     = GAME_STAGE_SHELTER_NEO_ARK;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.area      = GAME_AREA_NEO_ARK_OBSERVATORY;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp      = SHELTER_R49_OBSERVATORY_ARRIVAL_WARP;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.roomState = SHELTER_R49_OBSERVATORY_ROOM;
+    gDisplayState.spriteVariant                                 = SHELTER_R49_OBSERVATORY_SPRITE_VARIANT;
     taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
 }
 

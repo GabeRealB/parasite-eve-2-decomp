@@ -10,7 +10,7 @@ static s32 _roomVariantParkingLotMsg(Task* task, s32 messageId, const RoomEventM
 {
     *reply = *request;
     if (request->areaId == GAME_AREA_DRYFIELD_PARKING_LOT && request->queryOnly == ROOM_EVENT_EXECUTE) {
-        reply->room = gameFlagGetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SCENE_SEEN) + 1;
+        reply->roomState = gameFlagGetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SCENE_SEEN) + 1;
     }
     return ROOM_VARIANT_TRANSITION_DIRECT;
 }

@@ -1986,10 +1986,10 @@ static s32 _shelterB2MainCorridorHandleRoomAction(Task* unusedTask, s32 unusedMe
                     _gShelterB2MainCorridorStagedDeparture.stage = GAME_STAGE_MINE_SHELTER;
                     _gShelterB2MainCorridorStagedDeparture.area  = GAME_AREA_SHELTER_R49;
                 }
-                _gShelterB2MainCorridorStagedDeparture.room     = SHELTER_B2_MAIN_CORRIDOR_DEFAULT_ROOM;
-                _gShelterB2MainCorridorStagedDeparture.warp     = SHELTER_B2_MAIN_CORRIDOR_ARRIVAL;
-                _gShelterB2MainCorridorStagedDeparture.sndEvent = SHELTER_B2_MAIN_CORRIDOR_NO_DEPARTURE_SOUND;
-                _gShelterB2MainCorridorStagedDeparture.facing   = ROOM_DEPARTURE_SKIP_FACING;
+                _gShelterB2MainCorridorStagedDeparture.roomState = SHELTER_B2_MAIN_CORRIDOR_DEFAULT_ROOM;
+                _gShelterB2MainCorridorStagedDeparture.warp      = SHELTER_B2_MAIN_CORRIDOR_ARRIVAL;
+                _gShelterB2MainCorridorStagedDeparture.sndEvent  = SHELTER_B2_MAIN_CORRIDOR_NO_DEPARTURE_SOUND;
+                _gShelterB2MainCorridorStagedDeparture.facing    = ROOM_DEPARTURE_SKIP_FACING;
                 playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
                 taskSpawnFromTable(_gShelterB2MainCorridorActionTaskDescriptors, SHELTER_B2_MAIN_CORRIDOR_TASK_DEPARTURE, SHELTER_B2_MAIN_CORRIDOR_CAP_OBSERVATORY_DEPARTURE, 0);
             } else {
@@ -2012,12 +2012,12 @@ static s32 _shelterB2MainCorridorHandleRoomAction(Task* unusedTask, s32 unusedMe
             } else {
                 capCommandId = SHELTER_B2_MAIN_CORRIDOR_CAP_EVE_DEPARTURE;
             }
-            _gShelterB2MainCorridorStagedDeparture.stage    = GAME_STAGE_SHELTER_NEO_ARK;
-            _gShelterB2MainCorridorStagedDeparture.area     = request->argument;
-            _gShelterB2MainCorridorStagedDeparture.room     = SHELTER_B2_MAIN_CORRIDOR_DEFAULT_ROOM;
-            _gShelterB2MainCorridorStagedDeparture.warp     = SHELTER_B2_MAIN_CORRIDOR_ARRIVAL;
-            _gShelterB2MainCorridorStagedDeparture.sndEvent = SHELTER_B2_MAIN_CORRIDOR_NO_DEPARTURE_SOUND;
-            _gShelterB2MainCorridorStagedDeparture.facing   = ROOM_DEPARTURE_SKIP_FACING;
+            _gShelterB2MainCorridorStagedDeparture.stage     = GAME_STAGE_SHELTER_NEO_ARK;
+            _gShelterB2MainCorridorStagedDeparture.area      = request->argument;
+            _gShelterB2MainCorridorStagedDeparture.roomState = SHELTER_B2_MAIN_CORRIDOR_DEFAULT_ROOM;
+            _gShelterB2MainCorridorStagedDeparture.warp      = SHELTER_B2_MAIN_CORRIDOR_ARRIVAL;
+            _gShelterB2MainCorridorStagedDeparture.sndEvent  = SHELTER_B2_MAIN_CORRIDOR_NO_DEPARTURE_SOUND;
+            _gShelterB2MainCorridorStagedDeparture.facing    = ROOM_DEPARTURE_SKIP_FACING;
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
             taskSpawnFromTable(_gShelterB2MainCorridorActionTaskDescriptors, SHELTER_B2_MAIN_CORRIDOR_TASK_DEPARTURE, capCommandId, 0);
         }

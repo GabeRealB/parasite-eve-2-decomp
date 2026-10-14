@@ -2010,7 +2010,7 @@ static s32 _mistShootingGalleryResolveRoomEvent(Task* unusedTask, s32 messageId,
     *reply = *request;
     if (request->areaId == GAME_AREA_MIST_PARKING && request->queryOnly == ROOM_EVENT_EXECUTE) {
         if (gameFlagGetNibble(GAME_FLAG_STORY_CHAPTER) != 0) {
-            reply->room += MIST_SHOOTING_GALLERY_PARKING_STORY_ROOM_OFFSET;
+            reply->roomState += MIST_SHOOTING_GALLERY_PARKING_STORY_ROOM_OFFSET;
         }
     }
     if (request->areaId == GAME_AREA_MIST_SHOOTING_GALLERY) {

@@ -555,15 +555,15 @@ static void _maggotCaterpillarSpawnHusk(Task* actor)
     if (huskEffect == NULL) {
         return;
     }
-    currentLocation = &gGameSession->location;
-    placeKey        = ((Enemy*)actor->spawnArg2.pointer)->placeKey;
-    huskModel       = huskEffect->task->extra.tmd;
-    location.stage  = currentLocation->stage;
-    location.area   = currentLocation->area;
-    location.room   = currentLocation->room;
-    currentView     = currentLocation->view;
-    placementIndex  = placeKey >> ENEMY_PLACE_INDEX_SHIFT;
-    location.view   = currentView;
+    currentLocation    = &gGameSession->location;
+    placeKey           = ((Enemy*)actor->spawnArg2.pointer)->placeKey;
+    huskModel          = huskEffect->task->extra.tmd;
+    location.stage     = currentLocation->stage;
+    location.area      = currentLocation->area;
+    location.roomState = currentLocation->roomState;
+    currentView        = currentLocation->view;
+    placementIndex     = placeKey >> ENEMY_PLACE_INDEX_SHIFT;
+    location.view      = currentView;
     areaSyncLocationVariant(&location);
     areaVariant = areaGetVariant(&location);
     // Preserve the table helper's scaled-offset-first address calculation.

@@ -1,6 +1,9 @@
 #include "rooms/akropolis_square.h"
 
 #include "config.h"
+#include "../../event_flags.h"
+#include "../../room_ids.h"
+#include "../../room_states.h"
 
 #include <psyq/sys/types.h>
 #include <psyq/libgte.h>
@@ -78,12 +81,10 @@ static void _roomCutsceneTask(Task* task);
 
 static void _roomCutsceneSoundTask(Task* task);
 
-/// The scene sub-task while it runs, NULL otherwise.
+/// The cutscene's sound task while it runs, NULL otherwise.
 extern Task* gRoomCutsceneSoundTask;
 
-/// Defines the reflection scale at the shared implementation's include position.
-///
-/// 1 lets `planar_reflection.inc.c` include `planar_reflection_rodata.inc.c`.
+/// `planar_reflection.inc.c` defines its scale where it is included.
 #define PLANAR_REFLECTION_DEFINE_SCALE_WITH_IMPLEMENTATION 1
 #include "../../../../shared/room/planar_reflection.h"
 
@@ -111,20 +112,13 @@ static WorldCoordRoomLights       _gAkropolisSquareRoomLights;
 
 #include "../../../../shared/room/planar_reflection_data.inc.c"
 
-/// Bodyless reflection spawn recipes, indexed as player (0) or attachment (1).
-///
-/// There is no terminator. Spawning copies a descriptor; the callbacks and
-/// borrowed player geometry must remain live through the reflection's lifetime.
+/// Reflection tasks: the player (0) and their attachment (1).
 static TaskDesc _gAkropolisSquareReflectionTaskDescs[2] = {
     { { { TASK_BODY_NONE, AKROPOLIS_SQUARE_REFLECTION_TASK_PRIORITY } }, akropolisSquarePlayerReflectionTask, { .value = 0 } },
     { { { TASK_BODY_NONE, AKROPOLIS_SQUARE_REFLECTION_TASK_PRIORITY } }, _planarReflectionAttachmentTask, { .value = 0 } },
 };
 
-/// Borrows this overlay's two reflection task descriptors.
-///
-/// Slot 0 spawns the player reflection; slot 1 spawns an attachment or equipment
-/// reflection. There is no terminator. The table and its callbacks remain valid
-/// while the overlay is loaded; the caller neither owns nor copies the table.
+/// The reflection task table, for `planar_reflection.inc.c`.
 static inline TaskDesc* _planarReflectionGetTaskTable(void)
 {
     return _gAkropolisSquareReflectionTaskDescs;
@@ -132,22 +126,14 @@ static inline TaskDesc* _planarReflectionGetTaskTable(void)
 
 #include "../../../../shared/room/telephone_data.inc.c"
 
-/// This carrier's bodyless scene runner and timed sound task, followed by END.
-///
-/// Entry SCENE borrows a RoomCutsceneRec in spawnArg2 and takes the follow-up
-/// CAP command in spawnArg1; SOUND takes a packed sound request in spawnArg2.
-/// Both run at priority 32. Keep callback code and the scene record loaded
-/// until completion; spawning copies the recipe and retains no table pointer.
+/// The room cutscene task and its sound task.
 static TaskDesc _gRoomCutsceneTaskDescs[ROOM_CUTSCENE_TASK_DESCRIPTOR_COUNT] = {
     { { { TASK_BODY_NONE, ROOM_CUTSCENE_TASK_PRIORITY } }, _roomCutsceneTask, { .value = 0 } },
     { { { TASK_BODY_NONE, ROOM_CUTSCENE_TASK_PRIORITY } }, _roomCutsceneSoundTask, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
-/// Room-transition, interaction, key-item, command and sound-cue dispatch.
-///
-/// The room task borrows this terminated list while the overlay is loaded.
-/// Payload types belong to the selected message; unsupported IDs return zero.
+/// Messages of the room task.
 static TaskMessageEntry _gAkropolisSquareRoomMessages[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _akropolisSquareResolveRoomTransition },
     { DIRECTION_MESSAGE_ROOM_ACTION, _akropolisSquareHandleRoomAction },
@@ -157,10 +143,7 @@ static TaskMessageEntry _gAkropolisSquareRoomMessages[6] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-/// Player weapon-bank clip for the arrival presentation, restarting without grid collision.
-///
-/// EVS copies this request and replaces source.index with the equipped weapon's
-/// bank. Reset playback ignores blendFrames; the clip's visual role is unproven.
+/// The player's weapon animation in the arrival scene.
 static AnimationPlayRequest _gAkropolisSquareArrivalWeaponAnimation = {
     .source               = { .index = 1 },
     .animationId          = AKROPOLIS_SQUARE_ARRIVAL_ANIMATION_ID,
@@ -169,24 +152,18 @@ static AnimationPlayRequest _gAkropolisSquareArrivalWeaponAnimation = {
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
 };
 
-/// Bodyless telephone-ring (0), CAP/view (1) and scrolling-backdrop (2) spawn recipes.
-///
-/// No terminator; callers must select 0..2. The middle recipe has no current
-/// spawner. Spawn arguments are zero in the live telephone and backdrop callers.
+/// Room tasks: the telephone ring (0), the CAP view sequence (1, never spawned)
+/// and the scrolling backdrop (2).
 static TaskDesc _gAkropolisSquareSequenceTaskDescs[3] = {
     { { { TASK_BODY_NONE, AKROPOLIS_SQUARE_SEQUENCE_TASK_PRIORITY } }, _akropolisSquareTelephoneRingTask, { .value = 0 } },
     { { { TASK_BODY_NONE, AKROPOLIS_SQUARE_SEQUENCE_TASK_PRIORITY } }, _akropolisSquareCapViewSequenceTask, { .value = 0 } },
     { { { TASK_BODY_NONE, AKROPOLIS_SQUARE_BACKDROP_TASK_PRIORITY } }, _akropolisSquareScrollingBackdropTask, { .value = 0 } },
 };
 
-/// Pending telephone call (0 none, 1 ringing and not yet answered), shared by the singleton room sequences.
-///
-/// Executed exits use it to select follow-up dialogue without clearing it.
-/// Cutscene handoff consumes it as skipScene; ending the ringing away from its
-/// follow-up views clears it. Overlay loading supplies the initial zero.
+/// 1 while the phone rings and the call has not been answered.
 static s32 _gAkropolisSquareTelephoneCallPending = 0;
 
-/// Arrival-event latch (0 unstarted, 1 started), reset only by loading the overlay.
+/// 1 once the arrival scene has started.
 static s32 _gAkropolisSquareArrivalEventStarted = 0;
 
 /// Actions of the scrolling backdrop, sent by the arrival scene's script.
@@ -195,11 +172,7 @@ enum {
     AKROPOLIS_SQUARE_BACKDROP_ACTION_STOP  = 1,
 };
 
-/// Telephone scene: the phone's light in ringing mode, camera 14 while the grinning stranger
-/// by the phone runs off, the scene's sound cue, then the previous view.
-///
-/// EVS borrows this END-terminated program and its skip program while running.
-/// The waits are interpreter ticks; task code separately holds/releases the player.
+/// Telephone scene: the grinning stranger by the phone runs off and the phone starts ringing.
 static EvsCommand _gAkropolisSquareTelephoneSceneScript[7] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_ROOM_EFFECT }, { .value = 0 }, { .value = AKROPOLIS_SQUARE_MESSAGE_SET_TELEPHONE_LIGHT_MODE }, { .value = AKROPOLIS_SQUARE_TELEPHONE_LIGHT_RINGING }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = AKROPOLIS_SQUARE_TELEPHONE_EVENT_VIEW }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -210,10 +183,7 @@ static EvsCommand _gAkropolisSquareTelephoneSceneScript[7] = {
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-/// Skip completion for the telephone scene, restoring its previous view under a fade.
-///
-/// END-terminated, borrowed by EVS. Zero fade operands select average blending
-/// and the interpreter's default seven-tick ramp; the eight-tick waits settle it.
+/// Skips the telephone scene, fading back to the previous view.
 static EvsCommand _gAkropolisSquareTelephoneSceneSkipScript[8] = {
     { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = AKROPOLIS_SQUARE_SKIP_FADE_FRAMES }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -225,10 +195,7 @@ static EvsCommand _gAkropolisSquareTelephoneSceneSkipScript[8] = {
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-/// Warp-7 arrival presentation: CAP 10, a weapon clip and the scrolling backdrop.
-///
-/// END-terminated and borrowed through playback. Starts at view 15; the backdrop
-/// task finishes at view 13. The last message resumes normal player control.
+/// Arrival scene: CAP 10, the player's weapon animation and the scrolling backdrop.
 static EvsCommand _gAkropolisSquareArrivalEventScript[8] = {
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = AKROPOLIS_SQUARE_ARRIVAL_EVENT_VIEW }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_START }, { .value = AKROPOLIS_SQUARE_ARRIVAL_CAP_COMMAND }, { .value = 0 } },
@@ -240,10 +207,7 @@ static EvsCommand _gAkropolisSquareArrivalEventScript[8] = {
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-/// Skip completion for the arrival presentation, stopping the backdrop at view 13.
-///
-/// END-terminated and borrowed by EVS. Fade waits settle the default ramp;
-/// cleanup aborts CAP and restores player drawing before player control resumes.
+/// Skips the arrival scene, stopping the backdrop at view 13.
 static EvsCommand _gAkropolisSquareArrivalSkipScript[9] = {
     { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = AKROPOLIS_SQUARE_SKIP_FADE_FRAMES }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -256,10 +220,7 @@ static EvsCommand _gAkropolisSquareArrivalSkipScript[9] = {
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-/// Sound requests indexed by room cue 0..8, with no terminator or bounds check.
-///
-/// Cues 1 and 5..8 select this area's scripts. Cues 0 and 2..4 forward the
-/// sound system's no-op request; this table and its reader retain signed words.
+/// Sound scripts by room sound cue; cues 0 and 2..4 play nothing.
 static s32 _gAkropolisSquareSoundCueScripts[9] = {
     SOUND_SCRIPT_REQUEST_NO_OP,
     AKROPOLIS_SQUARE_SOUND(AKROPOLIS_SQUARE_SOUND_CALL_START),
@@ -272,21 +233,14 @@ static s32 _gAkropolisSquareSoundCueScripts[9] = {
     AKROPOLIS_SQUARE_SOUND(AKROPOLIS_SQUARE_SOUND_SCRIPT_CUE_8),
 };
 
-/// Terminated room-effect dispatch, accepting a signed-word telephone-light mode.
-///
-/// The effect task borrows the list and callback while this overlay is loaded.
-/// Its final null callback also supplies the first glow ray's zero halfword;
-/// retain its adjacency to `_gAkropolisSquareGlowSineSamples`.
+/// Messages of the room effect task. The first glow ray reads this table's
+/// terminator as a sample, so it stays right before `_gAkropolisSquareGlowSineSamples`.
 static TaskMessageEntry _gAkropolisSquareRoomEffectMessages[2] = {
     { AKROPOLIS_SQUARE_MESSAGE_SET_TELEPHONE_LIGHT_MODE, _akropolisSquareSetTelephoneLightMode },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-/// Q12 sine samples at sixteenth-turn intervals, starting at minus a quarter turn.
-///
-/// Samples 0..22 cover the circular fan and rays; the final stored zero has no
-/// reader. The first ray also reads index -2, the zero callback halfword in the
-/// preceding `_gAkropolisSquareRoomEffectMessages`; its intent is unproven.
+/// Sine samples (Q12) for the telephone light's fan and rays.
 static s16 _gAkropolisSquareGlowSineSamples[24] = {
     -4096,
     -3784,
@@ -314,10 +268,7 @@ static s16 _gAkropolisSquareGlowSineSamples[24] = {
     0,
 };
 
-/// Telephone light preset: 0 idle, 1 ringing - faster, larger glows with front streaks.
-///
-/// Room-effect initialization resets it. Messages preserve any signed word;
-/// other values retain the packed spawn-word arithmetic rather than a bool test.
+/// The telephone light's mode: 0 idle, 1 ringing.
 static s32 _gAkropolisSquareTelephoneLightMode = AKROPOLIS_SQUARE_TELEPHONE_LIGHT_IDLE;
 
 WorldCollisionRoomResources gAkropolisSquareRoomCollisionResources[1] = {
@@ -349,49 +300,36 @@ DirectionWarpEntry gAkropolisSquareWarpEntries[7] = {
     { { { .word = 1024 }, -6510, -2136, 511 }, { 0, 0, 0, 0 }, { { .word = 1024 }, -6510, -2136, 511 }, { 0, 0, 0, 0 }, AKROPOLIS_SQUARE_SOUND(AKROPOLIS_SQUARE_SOUND_ELEVATOR_ARRIVAL), AKROPOLIS_SQUARE_SOUND(AKROPOLIS_SQUARE_SOUND_ELEVATOR_DEPARTURE), AKROPOLIS_SQUARE_SOUND(AKROPOLIS_SQUARE_SOUND_ELEVATOR_BLOCKED), 15, DIRECTION_WARP_FLAG_NONE, EVENT_FLAG_MAP_DOOR_AKROPOLIS_SQUARE_WEST_ELEVATOR },
 };
 
-/// Room-space collision normals, with ONE (4096) for unit length.
+/// Collision grid normals.
 static SVECTOR _gAkropolisSquareCollisionGridNormals[] = {
 #include "assets/akropolis_square_collision_07BDC_normals.inc"
 };
 
-/// Collision vertices in signed room game coordinates.
+/// Collision grid vertices.
 static SVECTOR _gAkropolisSquareCollisionGridVerts[] = {
 #include "assets/akropolis_square_collision_07BDC_verts.inc"
 };
 
-/// Indexed collision quads: 90 in surface class 0 and 25 in class 4.
+/// Collision grid faces.
 static WorldCollisionGridFace _gAkropolisSquareCollisionGridFaces[] = {
 #include "assets/akropolis_square_collision_07BDC_faces.inc"
 };
 
-/// Packed cell face-index lists, each ending with WORLD_COLLISION_GRID_CELL_END.
+/// Collision grid face lists, one per cell.
 static s16 _gAkropolisSquareCollisionGridCells[] = {
 #include "assets/akropolis_square_collision_07BDC_cells.inc"
 };
 
-/// Selects a collision cell's face-index list for the generated directory.
-///
-/// Captures `_gAkropolisSquareCollisionGridCells` (506 s16 elements).
-/// `halfwordOffset` must be a constant s16-element offset to a list start
-/// within that pool; the list must also end there at
-/// `WORLD_COLLISION_GRID_CELL_END`. Evaluates the offset once and returns a
-/// borrowed `s16*` without reading or changing the list.
-/// The pool must stay loaded while the directory is used.
-/// This grid's `cell_face_list_macro` manifest setting selects the binding;
-/// it is defined only around the table include.
+/// A cell's face list, at an offset into `_gAkropolisSquareCollisionGridCells`.
 #define AKROPOLIS_SQUARE_CELL_FACE_LIST_AT_OFFSET(halfwordOffset) (&_gAkropolisSquareCollisionGridCells[(halfwordOffset)])
 
-/// X-major 4-by-4 directory of face lists in `_gAkropolisSquareCollisionGridCells`.
+/// The collision grid's 4-by-4 cells.
 static s16* _gAkropolisSquareCollisionGridTable[] = {
 #include "assets/akropolis_square_collision_07BDC_table.inc"
 };
 #undef AKROPOLIS_SQUARE_CELL_FACE_LIST_AT_OFFSET
 
-/// The square's collision mesh and its 4-by-4 spatial index in the room XZ plane.
-///
-/// Cells have 4000-unit sides and origin (-7000, -8000); the directory index is
-/// x * 4 + z. Room setup borrows this mutable record and binds its view coordinate.
-/// The record, mesh pools and face lists stay live while this overlay is loaded.
+/// The square's collision grid.
 static WorldCollisionGrid _gAkropolisSquareCollisionGrid = {
     .viewCoord   = NULL,
     .normals     = _gAkropolisSquareCollisionGridNormals,
@@ -406,11 +344,7 @@ static WorldCollisionGrid _gAkropolisSquareCollisionGrid = {
     .faceCount   = ARRAY_SIZE(_gAkropolisSquareCollisionGridFaces),
 };
 
-/// Sixteen directed camera boundaries, including the final LAST-marked quad.
-///
-/// Source/destination views are 3..8 and 13. Origins and vertices use room game
-/// units; plane normals use Q12. Room setup binds coordinates, links and enables
-/// every record. Unlink before unloading; hit and list links are runtime state.
+/// Camera changes between views.
 static WorldCollisionTrigger _gAkropolisSquareViewBoundaryTriggers[16] = {
     { NULL, NULL, NULL, { -2050, -3681, 2655, 0 }, { { -1080, 2717, 3957, 0 }, { 1070, 2724, -3953, 0 }, { -1074, -2723, 3949, 0 }, { 1075, -2716, -3960, 0 } }, { 3952, 2, 1074, 0 }, { 0, 4096, 0, 0 }, 4910, 0, 7, 8, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
     { NULL, NULL, NULL, { 2253, -3648, -4067, 0 }, { { -1346, 2813, 704, 0 }, { 1332, 2628, -777, 0 }, { -1339, -2627, 707, 0 }, { 1336, -2812, -780, 0 } }, { 1986, 4, 3590, 0 }, { 0, 4096, 0, 0 }, 3197, 0, 5, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
@@ -430,22 +364,18 @@ static WorldCollisionTrigger _gAkropolisSquareViewBoundaryTriggers[16] = {
     { NULL, NULL, NULL, { -1696, -3648, -3826, 0 }, { { -1574, 2813, -843, 0 }, { 1560, 2628, 827, 0 }, { -1574, -2627, -836, 0 }, { 1560, -2812, 836, 0 } }, { -1936, 4, 3632, 0 }, { 0, 4096, 0, 0 }, 3318, 0, 4, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-/// Twenty-six square interactions: warps, stair facing, CAP and room commands.
-///
-/// The final included quad has LAST set. Geometry uses room units and Q12
-/// normals; control selects the byte payload interpretation. Room setup binds
-/// and links the mutable records; hit latches persist until the list is cleared.
+/// Interactions: warps, stairs, CAP and room commands.
 static WorldCollisionTrigger _gAkropolisSquareActionTriggers[26] = {
-    { NULL, NULL, NULL, { -6416, -2240, 0, 0 }, { { -432, 0, -1088, 0 }, { 432, 0, -1088, 0 }, { -432, 0, 1088, 0 }, { 432, 0, 1088, 0 } }, { 0, 4102, 0, 0 }, { 4096, 0, 0, 0 }, 1166, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_AKROPOLIS_WEST_ELEVATOR_HALL, AKROPOLIS_SQUARE_TRIGGER_WEST_ELEVATOR_WARPS, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 6320, -2237, -64, 0 }, { { -480, 0, -1024, 0 }, { 480, 0, -1024, 0 }, { -480, 0, 1024, 0 }, { 480, 0, 1024, 0 } }, { 0, 4095, 0, 0 }, { -4096, 0, 0, 0 }, 1130, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_AKROPOLIS_EAST_ELEVATOR_HALL, AKROPOLIS_SQUARE_TRIGGER_EAST_ELEVATOR_WARPS, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -6416, -2240, 0, 0 }, { { -432, 0, -1088, 0 }, { 432, 0, -1088, 0 }, { -432, 0, 1088, 0 }, { 432, 0, 1088, 0 } }, { 0, 4102, 0, 0 }, { 4096, 0, 0, 0 }, 1166, WORLD_COLLISION_TRIGGER_ACTION_WARP, AKROPOLIS_ROOM_ID_WEST_ELEVATOR_HALL, AKROPOLIS_SQUARE_TRIGGER_WEST_ELEVATOR_WARPS, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 6320, -2237, -64, 0 }, { { -480, 0, -1024, 0 }, { 480, 0, -1024, 0 }, { -480, 0, 1024, 0 }, { 480, 0, 1024, 0 } }, { 0, 4095, 0, 0 }, { -4096, 0, 0, 0 }, 1130, WORLD_COLLISION_TRIGGER_ACTION_WARP, AKROPOLIS_ROOM_ID_EAST_ELEVATOR_HALL, AKROPOLIS_SQUARE_TRIGGER_EAST_ELEVATOR_WARPS, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { -4161, -1664, -3873, 0 }, { { 489, 0, -473, 0 }, { 672, 0, 40, 0 }, { -671, 0, -39, 0 }, { -488, 0, 474, 0 } }, { 0, 4096, 0, 0 }, { 1189, 0, 3920, 0 }, 680, WORLD_COLLISION_TRIGGER_ACTION_FACING | AKROPOLIS_SQUARE_TRIGGER_STAIR_DESCEND, 70, 144, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { 4286, -1667, -3969, 0 }, { { 704, 0, -39, 0 }, { 521, 0, 473, 0 }, { -519, 0, -473, 0 }, { -703, 0, 40, 0 } }, { 0, 4105, 0, 0 }, { -1380, 0, 3857, 0 }, 704, WORLD_COLLISION_TRIGGER_ACTION_FACING | AKROPOLIS_SQUARE_TRIGGER_STAIR_DESCEND, 70, 112, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { -4528, -2242, -1728, 0 }, { { 2128, 0, -176, 0 }, { 2128, 0, 176, 0 }, { -2128, 0, -176, 0 }, { -2128, 0, 176, 0 } }, { 0, 4096, 0, 0 }, { 0, 0, 4096, 0 }, 2126, WORLD_COLLISION_TRIGGER_ACTION_FACING | AKROPOLIS_SQUARE_TRIGGER_STAIR_DESCEND, 67, 128, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { -4753, -1632, -2481, 0 }, { { 2188, 0, -166, 0 }, { 2197, 0, 186, 0 }, { -2196, 0, -185, 0 }, { -2187, 0, 167, 0 } }, { 0, 4096, 0, 0 }, { 0, 0, -4096, 0 }, 2202, WORLD_COLLISION_TRIGGER_ACTION_FACING, 67, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { 4560, -2243, -1765, 0 }, { { 2064, 0, -176, 0 }, { 2064, 0, 176, 0 }, { -2064, 0, -176, 0 }, { -2064, 0, 176, 0 } }, { 0, 4101, 0, 0 }, { 0, 0, 4096, 0 }, 2063, WORLD_COLLISION_TRIGGER_ACTION_FACING | AKROPOLIS_SQUARE_TRIGGER_STAIR_DESCEND, 67, 128, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { 4574, -1638, -2432, 0 }, { { 2064, 0, -224, 0 }, { 2064, 0, 224, 0 }, { -2064, 0, -224, 0 }, { -2064, 0, 224, 0 } }, { 0, 4101, 0, 0 }, { 0, 0, -4096, 0 }, 2063, WORLD_COLLISION_TRIGGER_ACTION_FACING, 67, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -4433, -1376, -4385, 0 }, { { -1197, 1024, 433, 0 }, { 1198, 1024, -433, 0 }, { -1197, -1024, 433, 0 }, { 1198, -1024, -433, 0 } }, { 1399, 0, 3869, 0 }, { 1567, 0, 3784, 0 }, 1634, WORLD_COLLISION_TRIGGER_ACTION_WARP | WORLD_COLLISION_TRIGGER_AUTOMATIC, GAME_AREA_AKROPOLIS_PATIO, AKROPOLIS_SQUARE_TRIGGER_PATIO_WARPS, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 4494, -1376, -4418, 0 }, { { -1141, 1024, -417, 0 }, { 1142, 1024, 418, 0 }, { -1141, -1024, -417, 0 }, { 1142, -1024, 418, 0 } }, { -1410, 0, 3848, 0 }, { -1257, 0, 3898, 0 }, 1588, WORLD_COLLISION_TRIGGER_ACTION_WARP | WORLD_COLLISION_TRIGGER_AUTOMATIC, GAME_AREA_AKROPOLIS_FORKED_ROAD, AKROPOLIS_SQUARE_TRIGGER_FORKED_ROAD_WARPS, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -4433, -1376, -4385, 0 }, { { -1197, 1024, 433, 0 }, { 1198, 1024, -433, 0 }, { -1197, -1024, 433, 0 }, { 1198, -1024, -433, 0 } }, { 1399, 0, 3869, 0 }, { 1567, 0, 3784, 0 }, 1634, WORLD_COLLISION_TRIGGER_ACTION_WARP | WORLD_COLLISION_TRIGGER_AUTOMATIC, AKROPOLIS_ROOM_ID_PATIO, AKROPOLIS_SQUARE_TRIGGER_PATIO_WARPS, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 4494, -1376, -4418, 0 }, { { -1141, 1024, -417, 0 }, { 1142, 1024, 418, 0 }, { -1141, -1024, -417, 0 }, { 1142, -1024, 418, 0 } }, { -1410, 0, 3848, 0 }, { -1257, 0, 3898, 0 }, 1588, WORLD_COLLISION_TRIGGER_ACTION_WARP | WORLD_COLLISION_TRIGGER_AUTOMATIC, AKROPOLIS_ROOM_ID_FORKED_ROAD, AKROPOLIS_SQUARE_TRIGGER_FORKED_ROAD_WARPS, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { 52, -1680, -3974, 0 }, { { 1496, 0, -1411, 0 }, { 1110, 0, 439, 0 }, { -1444, 0, -1415, 0 }, { -1127, 0, 436, 0 } }, { 0, 4107, 0, 0 }, { 0, 0, -4096, 0 }, 2048, WORLD_COLLISION_TRIGGER_ACTION_CAP, 4, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { 168, -2272, -80, 0 }, { { 888, 0, 192, 0 }, { 1112, 0, 1601, 0 }, { -839, 0, 192, 0 }, { -1159, 0, 1601, 0 } }, { 0, 4098, 0, 0 }, { -201, 0, 4091, 0 }, 1974, WORLD_COLLISION_TRIGGER_ACTION_ROOM, 0, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { 6272, -2328, 2400, 0 }, { { -912, 0, -736, 0 }, { 912, 0, -736, 0 }, { -912, 0, 736, 0 }, { 912, 0, 736, 0 } }, { 0, 4110, 0, 0 }, { -4096, 0, 0, 0 }, 1166, WORLD_COLLISION_TRIGGER_ACTION_CAP, 2, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
@@ -464,10 +394,7 @@ static WorldCollisionTrigger _gAkropolisSquareActionTriggers[26] = {
     { NULL, NULL, NULL, { 192, -2252, -1664, 0 }, { { 7248, 0, -304, 0 }, { 7248, 0, 272, 0 }, { -7248, 0, -272, 0 }, { -7248, 0, 304, 0 } }, { 0, 4099, 0, 0 }, { 0, 0, 4096, 0 }, 7240, WORLD_COLLISION_TRIGGER_ACTION_CAP | WORLD_COLLISION_TRIGGER_AUTOMATIC, 16, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-/// Variant 1's Grinning Stranger resource, entry 19, followed by END.
-///
-/// The matching placement is map-owned. Actor file number 118 uses base group
-/// 10 and task descriptor 0; loading and placement borrow both overlays' tables.
+/// Placement variant 1: the grinning stranger.
 static AreaResource _gAkropolisSquareVariant1Resources[2] = {
     {
         .entryId        = 19,
@@ -486,13 +413,7 @@ AreaVariant gAkropolisSquareAreaVariants[3] = {
     { NULL, NULL },
 };
 
-/// The square's 16 point lights, contributing to model lighting in every view.
-///
-/// Positions and falloff radii use integer world units; RGB intensities use
-/// 12 fractional bits (`ONE` is full intensity). The loaded room overlay owns
-/// these writable records: room updates parent and compose their transforms,
-/// and lighting queries overwrite attenuation. Borrowed pointers must not
-/// survive unloading the overlay.
+/// The square's point lights.
 static WorldCoordPointLight _gAkropolisSquarePointLights[] = {
     {
         .head = {
@@ -768,10 +689,7 @@ static WorldCoordPointLight _gAkropolisSquarePointLights[] = {
     },
 };
 
-/// The square's sixteen point lights, with no directional or cone lights.
-///
-/// The room-lighting table borrows this collection. Its light array stays mutable
-/// for coordinate composition and attenuation queries while the overlay is loaded.
+/// The square's lights.
 static WorldCoordRoomLights _gAkropolisSquareRoomLights = {
     .directionalLightCount = 0,
     .directionalLights     = NULL,
@@ -781,11 +699,7 @@ static WorldCoordRoomLights _gAkropolisSquareRoomLights = {
     .coneLights            = NULL,
 };
 
-/// Minimum ambient colours for the square's fifteen logical views.
-///
-/// Entry zero gives the following view count; entries 1..15 each supply RGB
-/// minima of 16 (one 8-bit colour level) and retained luma 16. Lighting borrows
-/// this table read-only; it stays live with the room overlay.
+/// Minimum ambient colour of each view.
 static WorldCoordRoomAmbientEntry _gAkropolisSquareAmbientTable[16] = {
     { .viewCount = ARRAY_SIZE(_gAkropolisSquareAmbientTable) - 1 },
     { .color = { 16, 16, 16, 16 } },
@@ -805,30 +719,19 @@ static WorldCoordRoomAmbientEntry _gAkropolisSquareAmbientTable[16] = {
     { .color = { 16, 16, 16, 16 } },
 };
 
-/// Empty foreground list for logical view 1, retaining decoded background strips.
-///
-/// Keep both records: the zero-count header is skipped before the end marker
-/// is tested. The view also retains this list address in its empty source slot.
+/// View 1 has no occlusion sprites.
 static SpriteBatch _gAkropolisSquareView1SpriteBatches[] = {
     { .firstSprite = 0, .spriteCount = 0, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 0, 0 } },
     { .firstSprite = SPRITE_BATCH_END, .spriteCount = 0, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 0, 0 } },
 };
 
-/// Empty foreground list for logical view 2, retaining decoded background strips.
-///
-/// Keep both records: the zero-count header is skipped before the end marker
-/// is tested. The view also retains this list address in its empty source slot.
+/// View 2 has no occlusion sprites.
 static SpriteBatch _gAkropolisSquareView2SpriteBatches[] = {
     { .firstSprite = 0, .spriteCount = 0, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 0, 0 } },
     { .firstSprite = SPRITE_BATCH_END, .spriteCount = 0, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 0, 0 } },
 };
 
-/// 73 foreground texture rectangles for logical view 3.
-///
-/// Positions and sizes use pixels relative to the view centre; depth is the
-/// unscaled ordering-table sorting value. RGB 128 is neutral modulation and
-/// code flags are zero. The view and its batches borrow these source elements
-/// while the room overlay is loaded.
+/// View 3's occlusion sprites.
 static SpriteSource _gAkropolisSquareView3SpriteSources[] = {
     { 143, 0x3FC0, { .fields = { 8, 40 } }, -160, -80, 2750, { .fields = { 96, 208 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 40 } }, -160, -40, 2750, { .fields = { 80, 120 } }, 128, 128, 128, 0 },
@@ -905,11 +808,7 @@ static SpriteSource _gAkropolisSquareView3SpriteSources[] = {
     { 143, 0x3FC0, { .fields = { 16, 32 } }, 24, -120, 2450, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
 };
 
-/// Foreground sprite ranges for logical view 3, retaining decoded background strips.
-///
-/// The zero-count first record selects the background; the last record ends
-/// the list. Source indices and counts are in elements. Flags remain mutable
-/// while this overlay is loaded; the two serialized bytes retain unproven roles.
+/// View 3's occlusion sprite batches.
 static SpriteBatch _gAkropolisSquareView3SpriteBatches[] = {
     { .firstSprite = 0, .spriteCount = 0, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 0, 0 } },
     { .firstSprite = 0, .spriteCount = 4, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 0, 0 } },
@@ -924,12 +823,7 @@ static SpriteBatch _gAkropolisSquareView3SpriteBatches[] = {
     { .firstSprite = SPRITE_BATCH_END, .spriteCount = 0, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 0, 0 } },
 };
 
-/// 41 foreground texture rectangles for logical view 4.
-///
-/// Positions and sizes use pixels relative to the view centre; depth is the
-/// unscaled ordering-table sorting value. RGB 128 is neutral modulation and
-/// code flags are zero. The view and its batches borrow these source elements
-/// while the room overlay is loaded.
+/// View 4's occlusion sprites.
 static SpriteSource _gAkropolisSquareView4SpriteSources[] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, 16, 64, 1337, { .fields = { 104, 200 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 8 } }, 24, 64, 1325, { .fields = { 120, 248 } }, 128, 128, 128, 0 },
@@ -974,11 +868,7 @@ static SpriteSource _gAkropolisSquareView4SpriteSources[] = {
     { 143, 0x3FC0, { .fields = { 32, 8 } }, 56, 40, 1712, { .fields = { 56, 16 } }, 128, 128, 128, 0 },
 };
 
-/// Foreground sprite ranges for logical view 4, retaining decoded background strips.
-///
-/// The zero-count first record selects the background; the last record ends
-/// the list. Source indices and counts are in elements. Flags remain mutable
-/// while this overlay is loaded; the two serialized bytes retain unproven roles.
+/// View 4's occlusion sprite batches.
 static SpriteBatch _gAkropolisSquareView4SpriteBatches[] = {
     { .firstSprite = 0, .spriteCount = 0, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 0, 0 } },
     { .firstSprite = 0, .spriteCount = 13, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 1, 0 } },
@@ -987,12 +877,7 @@ static SpriteBatch _gAkropolisSquareView4SpriteBatches[] = {
     { .firstSprite = SPRITE_BATCH_END, .spriteCount = 0, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 0, 0 } },
 };
 
-/// 31 foreground texture rectangles for logical view 5.
-///
-/// Positions and sizes use pixels relative to the view centre; depth is the
-/// unscaled ordering-table sorting value. RGB 128 is neutral modulation and
-/// code flags are zero. The view and its batches borrow these source elements
-/// while the room overlay is loaded.
+/// View 5's occlusion sprites.
 static SpriteSource _gAkropolisSquareView5SpriteSources[] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, 0, 80, 1118, { .fields = { 96, 128 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 40 } }, 56, 80, 1106, { .fields = { 112, 88 } }, 128, 128, 128, 0 },
@@ -1027,11 +912,7 @@ static SpriteSource _gAkropolisSquareView5SpriteSources[] = {
     { 143, 0x3FC0, { .fields = { 24, 8 } }, -40, 64, 1450, { .fields = { 72, 24 } }, 128, 128, 128, 0 },
 };
 
-/// Foreground sprite ranges for logical view 5, retaining decoded background strips.
-///
-/// The zero-count first record selects the background; the last record ends
-/// the list. Source indices and counts are in elements. Flags remain mutable
-/// while this overlay is loaded; the two serialized bytes retain unproven roles.
+/// View 5's occlusion sprite batches.
 static SpriteBatch _gAkropolisSquareView5SpriteBatches[] = {
     { .firstSprite = 0, .spriteCount = 0, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 0, 0 } },
     { .firstSprite = 0, .spriteCount = 12, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 1, 0 } },
@@ -1040,12 +921,7 @@ static SpriteBatch _gAkropolisSquareView5SpriteBatches[] = {
     { .firstSprite = SPRITE_BATCH_END, .spriteCount = 0, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 0, 0 } },
 };
 
-/// 91 foreground texture rectangles for logical view 6.
-///
-/// Positions and sizes use pixels relative to the view centre; depth is the
-/// unscaled ordering-table sorting value. RGB 128 is neutral modulation and
-/// code flags are zero. The view and its batches borrow these source elements
-/// while the room overlay is loaded.
+/// View 6's occlusion sprites.
 static SpriteSource _gAkropolisSquareView6SpriteSources[] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, 136, 32, 1487, { .fields = { 40, 32 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 8 } }, 128, 40, 1500, { .fields = { 40, 96 } }, 128, 128, 128, 0 },
@@ -1140,11 +1016,7 @@ static SpriteSource _gAkropolisSquareView6SpriteSources[] = {
     { 143, 0x3FC0, { .fields = { 16, 8 } }, 8, 64, 1062, { .fields = { 56, 184 } }, 128, 128, 128, 0 },
 };
 
-/// Foreground sprite ranges for logical view 6, retaining decoded background strips.
-///
-/// The zero-count first record selects the background; the last record ends
-/// the list. Source indices and counts are in elements. Flags remain mutable
-/// while this overlay is loaded; the two serialized bytes retain unproven roles.
+/// View 6's occlusion sprite batches.
 static SpriteBatch _gAkropolisSquareView6SpriteBatches[] = {
     { .firstSprite = 0, .spriteCount = 0, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 0, 0 } },
     { .firstSprite = 0, .spriteCount = 7, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 6, 0 } },
@@ -1160,12 +1032,7 @@ static SpriteBatch _gAkropolisSquareView6SpriteBatches[] = {
     { .firstSprite = SPRITE_BATCH_END, .spriteCount = 0, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 0, 0 } },
 };
 
-/// 94 foreground texture rectangles for logical view 7.
-///
-/// Positions and sizes use pixels relative to the view centre; depth is the
-/// unscaled ordering-table sorting value. RGB 128 is neutral modulation and
-/// code flags are zero. The view and its batches borrow these source elements
-/// while the room overlay is loaded.
+/// View 7's occlusion sprites.
 static SpriteSource _gAkropolisSquareView7SpriteSources[] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, 136, 24, 2050, { .fields = { 0, 216 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 24, 32 } }, 112, 0, 2050, { .fields = { 64, 208 } }, 128, 128, 128, 0 },
@@ -1263,11 +1130,7 @@ static SpriteSource _gAkropolisSquareView7SpriteSources[] = {
     { 142, 0x3FC0, { .fields = { 40, 8 } }, 80, 56, 1305, { .fields = { 112, 128 } }, 128, 128, 128, 0 },
 };
 
-/// Foreground sprite ranges for logical view 7, retaining decoded background strips.
-///
-/// The zero-count first record selects the background; the last record ends
-/// the list. Source indices and counts are in elements. Flags remain mutable
-/// while this overlay is loaded; the two serialized bytes retain unproven roles.
+/// View 7's occlusion sprite batches.
 static SpriteBatch _gAkropolisSquareView7SpriteBatches[] = {
     { .firstSprite = 0, .spriteCount = 0, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 0, 0 } },
     { .firstSprite = 0, .spriteCount = 8, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 13, 0 } },
@@ -1289,12 +1152,7 @@ static SpriteBatch _gAkropolisSquareView7SpriteBatches[] = {
     { .firstSprite = SPRITE_BATCH_END, .spriteCount = 0, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 0, 0 } },
 };
 
-/// 53 foreground texture rectangles for logical view 8.
-///
-/// Positions and sizes use pixels relative to the view centre; depth is the
-/// unscaled ordering-table sorting value. RGB 128 is neutral modulation and
-/// code flags are zero. The view and its batches borrow these source elements
-/// while the room overlay is loaded.
+/// View 8's occlusion sprites.
 static SpriteSource _gAkropolisSquareView8SpriteSources[] = {
     { 143, 0x3FC0, { .fields = { 8, 32 } }, 96, 48, 1125, { .fields = { 56, 104 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 32 } }, 96, 80, 1075, { .fields = { 64, 216 } }, 128, 128, 128, 0 },
@@ -1351,11 +1209,7 @@ static SpriteSource _gAkropolisSquareView8SpriteSources[] = {
     { 143, 0x3FC0, { .fields = { 24, 24 } }, 96, -40, 3375, { .fields = { 32, 56 } }, 128, 128, 128, 0 },
 };
 
-/// Foreground sprite ranges for logical view 8, retaining decoded background strips.
-///
-/// The zero-count first record selects the background; the last record ends
-/// the list. Source indices and counts are in elements. Flags remain mutable
-/// while this overlay is loaded; the two serialized bytes retain unproven roles.
+/// View 8's occlusion sprite batches.
 static SpriteBatch _gAkropolisSquareView8SpriteBatches[] = {
     { .firstSprite = 0, .spriteCount = 0, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 0, 0 } },
     { .firstSprite = 0, .spriteCount = 9, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 1, 0 } },
@@ -1372,64 +1226,43 @@ static SpriteBatch _gAkropolisSquareView8SpriteBatches[] = {
     { .firstSprite = SPRITE_BATCH_END, .spriteCount = 0, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 0, 0 } },
 };
 
-/// Empty foreground list for logical view 9, retaining decoded background strips.
-///
-/// Keep both records: the zero-count header is skipped before the end marker
-/// is tested. The view also retains this list address in its empty source slot.
+/// View 9 has no occlusion sprites.
 static SpriteBatch _gAkropolisSquareView9SpriteBatches[] = {
     { .firstSprite = 0, .spriteCount = 0, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 0, 0 } },
     { .firstSprite = SPRITE_BATCH_END, .spriteCount = 0, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 0, 0 } },
 };
 
-/// Empty foreground list for logical view 10, retaining decoded background strips.
-///
-/// Keep both records: the zero-count header is skipped before the end marker
-/// is tested. The view also retains this list address in its empty source slot.
+/// View 10 has no occlusion sprites.
 static SpriteBatch _gAkropolisSquareView10SpriteBatches[] = {
     { .firstSprite = 0, .spriteCount = 0, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 0, 0 } },
     { .firstSprite = SPRITE_BATCH_END, .spriteCount = 0, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 0, 0 } },
 };
 
-/// Empty foreground list for logical view 11, retaining decoded background strips.
-///
-/// Keep both records: the zero-count header is skipped before the end marker
-/// is tested. The view also retains this list address in its empty source slot.
+/// View 11 has no occlusion sprites.
 static SpriteBatch _gAkropolisSquareView11SpriteBatches[] = {
     { .firstSprite = 0, .spriteCount = 0, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 0, 0 } },
     { .firstSprite = SPRITE_BATCH_END, .spriteCount = 0, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 0, 0 } },
 };
 
-/// Empty foreground list for logical view 12, retaining decoded background strips.
-///
-/// Keep both records: the zero-count header is skipped before the end marker
-/// is tested. The view also retains this list address in its empty source slot.
+/// View 12 has no occlusion sprites.
 static SpriteBatch _gAkropolisSquareView12SpriteBatches[] = {
     { .firstSprite = 0, .spriteCount = 0, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 0, 0 } },
     { .firstSprite = SPRITE_BATCH_END, .spriteCount = 0, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 0, 0 } },
 };
 
-/// Empty foreground for view 13, selecting decoded background strips.
-///
-/// Keep the zero-count header and END record. The view retains this list's
-/// address in sources.empty; no SpriteSource elements are read through it.
+/// View 13 has no occlusion sprites.
 static SpriteBatch _gAkropolisSquareView13SpriteBatches[2] = {
     { .firstSprite = 0, .spriteCount = 0, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 0, 0 } },
     { .firstSprite = SPRITE_BATCH_END, .spriteCount = 0, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 0, 0 } },
 };
 
-/// Empty foreground for view 14, selecting decoded background strips.
-///
-/// Keep the zero-count header and END record. The view retains this list's
-/// address in sources.empty; no SpriteSource elements are read through it.
+/// View 14 has no occlusion sprites.
 static SpriteBatch _gAkropolisSquareView14SpriteBatches[2] = {
     { .firstSprite = 0, .spriteCount = 0, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 0, 0 } },
     { .firstSprite = SPRITE_BATCH_END, .spriteCount = 0, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 0, 0 } },
 };
 
-/// Empty foreground for view 15, selecting decoded background strips.
-///
-/// Keep the zero-count header and END record. The view retains this list's
-/// address in sources.empty; no SpriteSource elements are read through it.
+/// View 15 has no occlusion sprites.
 static SpriteBatch _gAkropolisSquareView15SpriteBatches[2] = {
     { .firstSprite = 0, .spriteCount = 0, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 0, 0 } },
     { .firstSprite = SPRITE_BATCH_END, .spriteCount = 0, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 0, 0 } },
@@ -1471,20 +1304,14 @@ ViewCamera gAkropolisSquareViewCameras[15] = {
     { { { { 1034, 0, -3963 }, { 258, 4087, 67 }, { 3954, -266, 1031 } }, { 7815, 3515, 1095 } }, 418 },
 };
 
-/// Footstep cue bases for surface class 4; scripted jumps reuse walking.
-///
-/// Cue 2 uses the base, cue 1 adds 1 and companion playback adds 100.
-/// The surface record borrows this storage while the room overlay is loaded.
+/// Footsteps on surface class 4.
 static WorldCollisionFootstepSounds _gAkropolisSquareFootstepSounds = {
     .walk         = AKROPOLIS_SQUARE_FOOTSTEP_WALK,
     .run          = AKROPOLIS_SQUARE_FOOTSTEP_RUN,
     .scriptedJump = AKROPOLIS_SQUARE_FOOTSTEP_WALK,
 };
 
-/// Shared policy for classes 0..3 and 5..7: solid, impact-enabled and without footstep cues.
-///
-/// Grid contacts apply pushback. The first byte's role is unproven and retains
-/// zero. The surface-class directory borrows this record while the overlay is loaded.
+/// Surface classes 0..3 and 5..7: solid, without footsteps.
 static WorldCollisionSurfaceProperties _gAkropolisSquareDefaultSurfaceProperties = {
     .field_0             = 0,
     .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
@@ -1493,10 +1320,7 @@ static WorldCollisionSurfaceProperties _gAkropolisSquareDefaultSurfaceProperties
     .footstepSounds      = NULL,
 };
 
-/// Class 4's solid, impact-enabled surface policy with paired footstep cues.
-///
-/// Grid contacts apply pushback. The first byte's role is unproven and retains
-/// zero. The surface-class directory borrows this record while the overlay is loaded.
+/// Surface class 4: solid, with footsteps.
 static WorldCollisionSurfaceProperties _gAkropolisSquareClass4SurfaceProperties = {
     .field_0             = 0,
     .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
@@ -1517,47 +1341,30 @@ WorldCollisionSurfaceProperties* gAkropolisSquareSurfacePropertiesByClass[8] = {
 };
 
 AreaApplyRec gAkropolisSquarePostCutsceneAreaUpdates[4] = {
-    { .stage = GAME_STAGE_AKROPOLIS, .area = GAME_AREA_AKROPOLIS_PATIO, .variant = AKROPOLIS_SQUARE_POST_CUTSCENE_PATIO_VARIANT, .policy = AREA_APPLY_MODE_ALWAYS | AKROPOLIS_SQUARE_POST_CUTSCENE_MAP_MARK },
-    { .stage = GAME_STAGE_AKROPOLIS, .area = GAME_AREA_AKROPOLIS_CAFETERIA, .variant = AKROPOLIS_SQUARE_POST_CUTSCENE_CAFETERIA_VARIANT, .policy = AREA_APPLY_MODE_ALWAYS | AKROPOLIS_SQUARE_POST_CUTSCENE_MAP_MARK },
-    { .stage = GAME_STAGE_AKROPOLIS, .area = GAME_AREA_MIST_PARKING, .variant = AKROPOLIS_SQUARE_POST_CUTSCENE_PARKING_VARIANT, .policy = AREA_APPLY_MODE_ALWAYS | AKROPOLIS_SQUARE_POST_CUTSCENE_MAP_MARK },
+    { .stage = GAME_STAGE_AKROPOLIS, .area = AKROPOLIS_ROOM_ID_PATIO, .variant = AKROPOLIS_SQUARE_POST_CUTSCENE_PATIO_VARIANT, .policy = AREA_APPLY_MODE_ALWAYS | AKROPOLIS_SQUARE_POST_CUTSCENE_MAP_MARK },
+    { .stage = GAME_STAGE_AKROPOLIS, .area = AKROPOLIS_ROOM_ID_CAFETERIA, .variant = AKROPOLIS_SQUARE_POST_CUTSCENE_CAFETERIA_VARIANT, .policy = AREA_APPLY_MODE_ALWAYS | AKROPOLIS_SQUARE_POST_CUTSCENE_MAP_MARK },
+    { .stage = GAME_STAGE_AKROPOLIS, .area = AKROPOLIS_ROOM_ID_MIST_PARKING, .variant = AKROPOLIS_SQUARE_POST_CUTSCENE_PARKING_VARIANT, .policy = AREA_APPLY_MODE_ALWAYS | AKROPOLIS_SQUARE_POST_CUTSCENE_MAP_MARK },
     { .stage = AREA_APPLY_END },
 };
 
-/// Callback ticks elapsed since the last ring, reset before each repeat interval.
-///
-/// The singleton ring task increments it in its two repeat states and
-/// rings again at 121. Startup and repeated rings reset it to zero.
+/// Frames since the last ring.
 static s32 _gAkropolisSquareTelephoneRingFrames = 0;
 
-/// Borrowed singleton handle of the arrival scene's scrolling backdrop.
-///
-/// Start replaces this handle, assuming spawning succeeds. Stop requires a
-/// live task; both explicit stop and the backdrop's self-teardown leave the
-/// pointer unchanged. The next start overwrites it; overlay load supplies NULL.
+/// The scrolling backdrop task.
 static Task* _gAkropolisSquareBackdropTask = NULL;
 
-/// Singleton backdrop's horizontal strip anchor in pixels, panning from -320 to zero.
+/// The backdrop's scroll position, from -320 to 0.
 static s32 _gAkropolisSquareBackdropScrollX = 0;
 
-/// Elapsed callback ticks in the backdrop's 46-tick delay or 31-tick hold phase.
-///
-/// Reset at task initialization and on reaching the final scroll position;
-/// the same signed word is reused because those phases cannot overlap.
+/// Frames into the backdrop's delay or hold.
 static s32 _gAkropolisSquareBackdropPhaseFrames = 0;
 
 Task* gRoomCutsceneSoundTask = NULL;
 
-/// Persistent record for the square's view-9, CAP-file-1 cutscene and its sound cues.
-///
-/// The room fills rec before handing it to the asynchronous runner; do not
-/// overwrite or unload it until completion. capTPageX/Y remain zero, selecting
-/// the default CAP texture origin. The eight trailing bytes have no proven role.
+/// The call cutscene's record.
 static RoomCutsceneRecStorage _gAkropolisSquareCutsceneRec = { 0 };
 
-/// The ringing telephone, at (6570, -3990, 2270), in whole room-coordinate units.
-///
-/// Each ring binds the current view parent and composes the cached transform
-/// before pan/depth queries; those queries borrow it only during the call.
+/// The telephone's position, for the ring's pan and depth.
 static GfxCoord _gAkropolisSquareTelephoneCoord = { 0 };
 
 #include "../../../../shared/room/planar_reflection.inc.c"
@@ -1569,9 +1376,7 @@ void akropolisSquarePlayerReflectionTask(Task* reflectionTask)
 
 #undef PLANAR_REFLECTION_DEFINE_SCALE_WITH_IMPLEMENTATION
 
-/// Retained bytes following this room's telephone menu title terminator.
-///
-/// Two-byte string-literal binding for `telephone.inc.c`; unused by label drawing.
+/// Bytes after the telephone menu title's terminator.
 #define TELEPHONE_MENU_TITLE_TRAILING_BYTES "\xDC\xDD"
 #include "../../../../shared/room/telephone.inc.c"
 #undef TELEPHONE_MENU_TITLE_TRAILING_BYTES
@@ -1585,10 +1390,7 @@ void akropolisSquareTelephoneMenuTask(Task* task)
 
 #include "../../../../shared/room/room_cutscene_task.inc.c"
 
-/// Three room-task states: initialize (0), idle arrival checks (1), and teardown (2).
-///
-/// Copied by value before dispatch with Task::state in 0..2; no terminator.
-/// Keep this table at its interleaved rodata position.
+/// Room task states: initialize, idle, tear down.
 static const TaskFuncTable3 _gAkropolisSquareRoomStates = {
     {
         _akropolisSquareInitializeRoomTask,
@@ -1597,90 +1399,84 @@ static const TaskFuncTable3 _gAkropolisSquareRoomStates = {
     },
 };
 
-/// Resolves square exits and settles a pending telephone call on departure.
-///
-/// `ROOM_EVENT_MESSAGE_RESOLVE` borrows an eight-byte request and writable reply,
-/// which may alias; copies the whole record before resolution. Queries avoid
-/// flag/CAP effects. Forked-road exit selects room 2 after lock release; the
-/// elevator exits return 0 and run CAP command 1 once main progress reaches 2.
-/// Executed patio exits select room 1, 2 or 3 from story progress. Returns
-/// 1 for other exits. The retained location stores have no transition effect.
+/// Resolves the square's exits. Leaving by the forked road or the east elevator
+/// while the phone rings misses the call; the elevators are closed once the
+/// cafeteria boss is dead; the forked road and the patio pick their room state.
 static s32 _akropolisSquareResolveRoomTransition(Task* unusedTask, s32 unusedMessageId, const RoomEventMsg* request, RoomEventMsg* reply)
 {
     // These unused aggregate stores are present in the original instruction stream.
     GameLocationKey retainedLocation;
-    u16             destinationArea;
 
     retainedLocation.stage = GAME_STAGE_AKROPOLIS;
-    retainedLocation.area  = GAME_AREA_AKROPOLIS_CAFETERIA;
+    retainedLocation.area  = AKROPOLIS_ROOM_ID_CAFETERIA;
     *reply                 = *request;
-    if (request->areaId == GAME_AREA_AKROPOLIS_FORKED_ROAD) {
-        if ((_gAkropolisSquareTelephoneCallPending != 0) && (request->queryOnly == ROOM_EVENT_EXECUTE)) {
-            gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
-            gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, AKROPOLIS_SQUARE_TELEPHONE_MISSED_DIALOGUE);
+
+    if (request->areaId == AKROPOLIS_ROOM_ID_FORKED_ROAD) {
+        if (_gAkropolisSquareTelephoneCallPending && !request->queryOnly) {
+            gameFlagSetNibble(EVENT_FLAG_TELEPHONE_DIALOGUE_COUNTER, EVENT_FLAG_TELEPHONE_DIALOGUE_UNHEARD);
+            gameFlagSetNibble(EVENT_FLAG_STORY_DIALOGUE_INDEX, AKROPOLIS_STORY_DIALOGUE_LATE);
         }
-        if (request->areaId == GAME_AREA_AKROPOLIS_FORKED_ROAD) {
-            if (gameFlagGetNibble(GAME_FLAG_SECURITY_ROOM_LOCKS_RELEASED) & 1) {
-                reply->room = 2;
+        if (request->areaId == AKROPOLIS_ROOM_ID_FORKED_ROAD) {
+            if (gameFlagGetNibble(EVENT_FLAG_AKROPOLIS_SECURITY_ROOM_PANEL_KEYS) & AKROPOLIS_SECURITY_ROOM_PANEL_KEY_BLUE_INSERTED) {
+                reply->roomState = AKROPOLIS_ROOM_STATE_FORKED_ROAD_ESCALATOR_OPERATIONAL;
             }
         }
-        return 1;
+        return ROOM_EVENT_DEPART;
     }
-    if (request->areaId == GAME_AREA_AKROPOLIS_EAST_ELEVATOR_HALL) {
-        if ((_gAkropolisSquareTelephoneCallPending != 0) && (request->queryOnly == ROOM_EVENT_EXECUTE)) {
-            gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
-            gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, AKROPOLIS_SQUARE_TELEPHONE_MISSED_DIALOGUE);
+
+    if (request->areaId == AKROPOLIS_ROOM_ID_EAST_ELEVATOR_HALL) {
+        if (_gAkropolisSquareTelephoneCallPending && !request->queryOnly) {
+            gameFlagSetNibble(EVENT_FLAG_TELEPHONE_DIALOGUE_COUNTER, EVENT_FLAG_TELEPHONE_DIALOGUE_UNHEARD);
+            gameFlagSetNibble(EVENT_FLAG_STORY_DIALOGUE_INDEX, AKROPOLIS_STORY_DIALOGUE_LATE);
         }
-        if (gameFlagGetNibble(GAME_FLAG_AKROPOLIS_PROGRESS) < 2) {
-            return 1;
+        if (gameFlagGetNibble(EVENT_FLAG_AKROPOLIS_CAFETERIA_ROUTE_PROGRESS) < AKROPOLIS_CAFETERIA_ROUTE_BOSS_DEFEATED) {
+            return ROOM_EVENT_DEPART;
         }
-        if ((gameFlagGetNibble(GAME_FLAG_AKROPOLIS_PROGRESS) == 2) || (gameFlagGetNibble(GAME_FLAG_AKROPOLIS_PROGRESS) >= 3)) {
-            if (request->queryOnly == ROOM_EVENT_EXECUTE) {
+        if ((gameFlagGetNibble(EVENT_FLAG_AKROPOLIS_CAFETERIA_ROUTE_PROGRESS) == AKROPOLIS_CAFETERIA_ROUTE_BOSS_DEFEATED) || (gameFlagGetNibble(EVENT_FLAG_AKROPOLIS_CAFETERIA_ROUTE_PROGRESS) >= AKROPOLIS_CAFETERIA_ROUTE_MIST_CONTACTED)) {
+            if (!request->queryOnly) {
                 // Mark the map and show the blocked-exit caption, retaining the exit.
                 do {
                     gameFlagSetNibbleIfPresent(request->flagId, EVENT_FLAG_MAP_DOOR_LOCKED);
                     capRunCommandWithTransition(AKROPOLIS_SQUARE_ELEVATOR_BLOCKED_CAP_COMMAND);
                 } while (0);
             }
-            return 0;
+            return ROOM_EVENT_STAY;
         }
     }
-    if (request->areaId == GAME_AREA_AKROPOLIS_WEST_ELEVATOR_HALL) {
-        if (gameFlagGetNibble(GAME_FLAG_AKROPOLIS_PROGRESS) < 2) {
-            return 1;
+
+    if (request->areaId == AKROPOLIS_ROOM_ID_WEST_ELEVATOR_HALL) {
+        if (gameFlagGetNibble(EVENT_FLAG_AKROPOLIS_CAFETERIA_ROUTE_PROGRESS) < AKROPOLIS_CAFETERIA_ROUTE_BOSS_DEFEATED) {
+            return ROOM_EVENT_DEPART;
         }
-        if ((gameFlagGetNibble(GAME_FLAG_AKROPOLIS_PROGRESS) == 2) || (gameFlagGetNibble(GAME_FLAG_AKROPOLIS_PROGRESS) >= 3)) {
-            if (request->queryOnly == ROOM_EVENT_EXECUTE) {
+        if ((gameFlagGetNibble(EVENT_FLAG_AKROPOLIS_CAFETERIA_ROUTE_PROGRESS) == AKROPOLIS_CAFETERIA_ROUTE_BOSS_DEFEATED) || (gameFlagGetNibble(EVENT_FLAG_AKROPOLIS_CAFETERIA_ROUTE_PROGRESS) >= AKROPOLIS_CAFETERIA_ROUTE_MIST_CONTACTED)) {
+            if (!request->queryOnly) {
                 // Mark the map and show the blocked-exit caption, retaining the exit.
                 do {
                     gameFlagSetNibbleIfPresent(request->flagId, EVENT_FLAG_MAP_DOOR_LOCKED);
                     capRunCommandWithTransition(AKROPOLIS_SQUARE_ELEVATOR_BLOCKED_CAP_COMMAND);
                 } while (0);
             }
-            return 0;
+            return ROOM_EVENT_STAY;
         }
     }
-    destinationArea = request->areaId;
-    if (destinationArea == GAME_AREA_AKROPOLIS_PATIO) {
-        if (request->queryOnly == ROOM_EVENT_EXECUTE) {
-            if (gameFlagGetNibble(GAME_FLAG_AKROPOLIS_PROGRESS) < 2) {
-                if (gameFlagGetNibble(GAME_FLAG_AKROPOLIS_OPENING_PROGRESS) < 2) {
-                    reply->room = 1;
+
+    if (request->areaId == AKROPOLIS_ROOM_ID_PATIO) {
+        if (!request->queryOnly) {
+            if (gameFlagGetNibble(EVENT_FLAG_AKROPOLIS_CAFETERIA_ROUTE_PROGRESS) < AKROPOLIS_CAFETERIA_ROUTE_BOSS_DEFEATED) {
+                if (gameFlagGetNibble(EVENT_FLAG_AKROPOLIS_PATIO_CUTSCENE_PROGRESS) <= AKROPOLIS_PATIO_CUTSCENE_START) {
+                    reply->roomState = AKROPOLIS_ROOM_STATE_PATIO_PRE_SWAT_CUTSCENE;
                 } else {
-                    reply->room = 2;
+                    reply->roomState = AKROPOLIS_ROOM_STATE_PATIO_POST_SWAT_CUTSCENE;
                 }
             } else {
-                reply->room = destinationArea;
+                reply->roomState = AKROPOLIS_ROOM_STATE_PATIO_POST_CAFETERIA_BOSS;
             }
         }
     }
-    return 1;
+    return ROOM_EVENT_DEPART;
 }
-/// Publishes the square cutscene record and starts its controller.
-///
-/// Consumes the pending-call latch as the skip choice and normalizes
-/// arrival warp 7 to 1. The controller borrows persistent overlay storage
-/// through playback and runs CAP command 2 afterwards.
+
+/// Starts the call cutscene, skipping its scene when the phone was ringing.
 static inline void _akropolisSquareStartRoomCutscene(void)
 {
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp == AKROPOLIS_SQUARE_CUTSCENE_ARRIVAL_WARP) {
@@ -1698,13 +1494,7 @@ static inline void _akropolisSquareStartRoomCutscene(void)
     taskSpawnFromTable(_gRoomCutsceneTaskDescs, AKROPOLIS_SQUARE_CUTSCENE_TASK_ENTRY, AKROPOLIS_SQUARE_CUTSCENE_FOLLOWUP, &_gAkropolisSquareCutsceneRec.rec);
 }
 
-/// Starts the square cutscene or a one-time CAP hint from an integer room command.
-///
-/// Command 2 consumes the pending-call latch as the cutscene skip choice,
-/// normalizes arrival warp 7 to 1 and spawns the room-cutscene controller.
-/// Commands 14 and 16 latch one-time hints; command 16 selects CAP 16 or 17
-/// from the saved button layout. The cutscene record is persistent borrowed
-/// storage; keep the overlay loaded through playback. Always returns 0.
+/// Room commands: 2 answers the telephone, 14 and 16 show one-time hints.
 static s32 _akropolisSquareHandleRoomCommand(Task* unusedTask, s32 unusedMessageId, s32 command, s32 unusedSecondArg)
 {
     s32 hintCommand;
@@ -1726,14 +1516,7 @@ static s32 _akropolisSquareHandleRoomCommand(Task* unusedTask, s32 unusedMessage
     }
     return 0;
 }
-/// Positions and starts one ring, optionally restarting its repeat timer.
-///
-/// A nonzero `resetRepeatFrames` resets the elapsed callback-tick counter;
-/// zero preserves it for the first ring. Places the origin at (6570, -3990,
-/// 2270) in whole world-coordinate units, composes its view transform and
-/// requests the ring sound. Pan is -16..15 and depth -128..127, narrowed to signed
-/// bytes for audio. Requires live square coordinates and the current view;
-/// changes GTE state and retains no new borrowed storage.
+/// Rings the telephone once, from its position.
 static inline void _akropolisSquareRingTelephone(s32 resetRepeatFrames)
 {
     s32 soundPan;
@@ -1751,14 +1534,8 @@ static inline void _akropolisSquareRingTelephone(s32 resetRepeatFrames)
                              (s8)worldCoordGetOriginAudioDepth(&_gAkropolisSquareTelephoneCoord));
 }
 
-/// Runs the telephone scene, then rings until the call is answered or left.
-///
-/// State 0 starts the event with a skip script and holds the player; states
-/// 1 and 2 advance one tick each, and state 3 sounds the first ring. State 4
-/// repeats every 121 ticks until EVS becomes idle, then releases the player.
-/// State 5 keeps ringing while the saved view is 5..7 or 9 and the
-/// follow-up remains armed; otherwise it returns the phone's light to idle, stops
-/// the ringing and kills this task. Requires the square overlay and resources.
+/// Plays the telephone scene, then rings until the call is answered or the
+/// player leaves the phone's views.
 static void _akropolisSquareTelephoneRingTask(Task* task)
 {
     enum {
@@ -1809,8 +1586,8 @@ static void _akropolisSquareTelephoneRingTask(Task* task)
                  gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view != AKROPOLIS_SQUARE_TELEPHONE_SCENE_VIEW) ||
                 _gAkropolisSquareTelephoneCallPending == 0) {
                 if (_gAkropolisSquareTelephoneCallPending != 0) {
-                    gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
-                    gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, AKROPOLIS_SQUARE_TELEPHONE_MISSED_DIALOGUE);
+                    gameFlagSetNibble(EVENT_FLAG_TELEPHONE_DIALOGUE_COUNTER, EVENT_FLAG_TELEPHONE_DIALOGUE_UNHEARD);
+                    gameFlagSetNibble(EVENT_FLAG_STORY_DIALOGUE_INDEX, AKROPOLIS_STORY_DIALOGUE_LATE);
                     _gAkropolisSquareTelephoneCallPending = 0;
                 }
                 taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_ROOM_EFFECT), AKROPOLIS_SQUARE_MESSAGE_SET_TELEPHONE_LIGHT_MODE, 0, 0);
@@ -1826,15 +1603,7 @@ static void _akropolisSquareTelephoneRingTask(Task* task)
             break;
     }
 }
-/// Pans a 640-by-240 backdrop right by 320 pixels, then selects view 13.
-///
-/// States 0..4 initialize, delay 46 ticks, scroll one pixel per tick, hold 31
-/// ticks and finish. Every tick draws, including the one that kills the task.
-/// The image is three raw-color 8-bit sprite strips of widths 256, 256 and
-/// 128, using VRAM X 448/576/704, Y 256 and the CLUT at (0, 255).
-/// Requires an initialized frame arena with room for three `SPRT` and three
-/// `DR_TPAGE` packets; queued packets must survive GPU drawing. Position and
-/// timing are room singletons, so only one such task may run at a time.
+/// The arrival scene's backdrop: pans a 640-pixel image by 320, then cuts to view 13.
 static void _akropolisSquareScrollingBackdropTask(Task* task)
 {
     enum {
@@ -1927,10 +1696,7 @@ static void _akropolisSquareScrollingBackdropTask(Task* task)
 
 #include "../../../../shared/room/room_cutscene_sound_task.inc.c"
 
-/// Starts CAP event 5 for room action 0, returning 0 for every action.
-///
-/// `DIRECTION_MESSAGE_ROOM_ACTION` borrows a live request through dispatch;
-/// only its action ID is read. Other IDs are ignored, as are the other arguments.
+/// Room action 0 plays CAP 5.
 static s32 _akropolisSquareHandleRoomAction(Task* unusedTask, s32 unusedMessageId, const DirectionActionRequest* request, s32 unusedSecondArg)
 {
     if (request->actionId == AKROPOLIS_SQUARE_ACTION_START_EVENT) {
@@ -1939,33 +1705,21 @@ static s32 _akropolisSquareHandleRoomAction(Task* unusedTask, s32 unusedMessageI
     return 0;
 }
 
-/// Refuses every key-item-use request with result 0 and no side effects.
-///
-/// Handles `AKROPOLIS_SQUARE_MESSAGE_USE_KEY_ITEM` on the room task. The item
-/// ID and second argument are ignored; no payload storage is accessed.
+/// No key item can be used in the square.
 static s32 _akropolisSquareRejectKeyItemUse(Task* unusedTask, s32 unusedMessageId, s32 unusedItemId, s32 unusedSecondArg)
 {
     return 0;
 }
 
-/// Starts the square's sound script selected by a zero-based cue index.
-///
-/// Handles `ROOM_MESSAGE_SOUND`. `cueIndex` must be in 0..8; no bounds check
-/// is performed. Entries 0, 2, 3 and 4 pass a zero script ID through unchanged.
-/// Playback is centered with neutral depth; returns 0 and ignores other arguments.
+/// Plays a room sound cue.
 static s32 _akropolisSquareHandleSoundCue(Task* unusedTask, s32 unusedMessageId, s32 cueIndex, s32 unusedSecondArg)
 {
     sndEvtRequestScriptStart(_gAkropolisSquareSoundCueScripts[cueIndex], 0, 0);
     return 0;
 }
 
-/// Runs the square's CAP-command-5 view sequence and marks its completion.
-///
-/// Bodyless states 0..2 select view 7; alternate states 3..7 select view 8
-/// after two delay ticks. Each route starts CAP command 5 and ends by setting
-/// `EVENT_FLAG_MAP_AKROPOLIS_AVAILABLE` and killing the task. Entry 1 of the room task table holds
-/// this callback, but no current code spawns that entry. CAP/view resources
-/// must be live for the selected route.
+/// Plays CAP 5 over views 7 and 8, then makes the Akropolis map available.
+/// Never spawned.
 static void _akropolisSquareCapViewSequenceTask(Task* task)
 {
     enum {
@@ -2008,12 +1762,7 @@ static void _akropolisSquareCapViewSequenceTask(Task* task)
     }
 }
 
-/// Starts or stops the square arrival scene's scrolling-backdrop task.
-///
-/// Script action 0 spawns and remembers the singleton; action 1 kills that
-/// task and leaves the pointer unchanged. Other actions do nothing. Stop
-/// requires a successful start whose task is still live; repeated starts can
-/// replace the remembered task without tearing down its predecessor.
+/// Starts (0) or stops (1) the scrolling backdrop.
 static void _akropolisSquareControlScrollingBackdrop(s32 action)
 {
     switch (action) {
@@ -2026,10 +1775,7 @@ static void _akropolisSquareControlScrollingBackdrop(s32 action)
     }
 }
 
-/// Installs the square's room message handlers and registers the live room task.
-///
-/// Called in state 0; the table is borrowed from this loaded overlay. Advances
-/// to the idle state without creating a body or work block.
+/// Installs the room's messages.
 static void _akropolisSquareInitializeRoomTask(Task* task)
 {
     task->msgTable = _gAkropolisSquareRoomMessages;
@@ -2037,11 +1783,7 @@ static void _akropolisSquareInitializeRoomTask(Task* task)
     task->state += 1;
 }
 
-/// Starts the warp-7 arrival event once per overlay load.
-///
-/// Called in the room task's idle state; leaves the state unchanged. Arms scene
-/// music event 2 and starts the event/skip scripts with HUD hiding and restoration.
-/// The task itself is unused; room save state and overlay resources must be live.
+/// Starts the arrival scene when arriving by warp 7.
 static void _akropolisSquareIdleRoomTask(Task* unusedTask)
 {
     // Removing this unused reservation changes the original 40-byte call frame.
@@ -2074,7 +1816,7 @@ s32 akropolisSquareStartTelephoneScene(s32 unused)
     if (gameFlagGetNibble(EVENT_FLAG_AKROPOLIS_SQUARE_TELEPHONE_SCENE_SEEN) == 0) {
         gameFlagSetNibble(EVENT_FLAG_AKROPOLIS_SQUARE_TELEPHONE_SCENE_SEEN, 1);
         key.stage = GAME_STAGE_AKROPOLIS;
-        key.area  = GAME_AREA_AKROPOLIS_SQUARE;
+        key.area  = AKROPOLIS_ROOM_ID_SQUARE;
         areaSetPlacementVariant(&key, AKROPOLIS_SQUARE_TELEPHONE_PLACEMENT_VARIANT, AREA_VARIANT_RESET_ALWAYS);
         gGameSession->eventState = 1;
         taskSpawnFromTable(_gAkropolisSquareSequenceTaskDescs, AKROPOLIS_SQUARE_TELEPHONE_TASK_INDEX, 0, 0);
@@ -2131,16 +1873,7 @@ void akropolisSquareRoomEffectTask(Task* task)
     }
 }
 
-/// Queues a telephone-light primitive with additive blending at its projected depth.
-///
-/// `primitive` is an initialized, writable `POLY_G4` or `LINE_G3` in the frame
-/// arena. `sortingDepth` borrows a readable signed word holding SZ3 / 4 before
-/// display scaling; the caller rejects depths below 17. The scaled depth wraps
-/// to tag 0..1023 in the current table. Keep the depth word separate from packet
-/// storage; no depth pointer is retained.
-/// Requires word-aligned space for one `DR_TPAGE` at `gGpuPrimCursor`, consumed
-/// without a capacity check. Both packets must live until GPU drawing completes.
-/// The dithered additive draw mode persists until another command replaces it.
+/// Queues one primitive of the telephone light, blended additively.
 static inline void _akropolisSquareQueueTelephoneLight(void* primitive, const s32* sortingDepth)
 {
     // Sixteen depth units per tag, expressed as four-byte table offsets.
@@ -2330,19 +2063,14 @@ void akropolisSquareTelephoneLightTask(Task* task)
     effectKillTask(effectWork, task);
 }
 
-/// Selects the variant used to construct subsequent telephone-light spawn parameters.
-///
-/// Handles `AKROPOLIS_SQUARE_MESSAGE_SET_TELEPHONE_LIGHT_MODE`. Scripts send 1
-/// during the telephone scene and 0 afterwards; any word is stored unchanged. Requires
-/// the square overlay and its live room effect. Returns 0; other arguments
-/// are ignored, and the payload is an integer rather than an object address.
+/// Sets the telephone light's mode.
 static s32 _akropolisSquareSetTelephoneLightMode(Task* unusedTask, s32 unusedMessageId, s32 glowMode, s32 unusedSecondArg)
 {
     _gAkropolisSquareTelephoneLightMode = glowMode;
     return 0;
 }
 
-/// Unused empty function retained in the overlay image; its original role is unproven.
+/// Unused.
 static void _akropolisSquareNoOp(void)
 {
 }

@@ -1,43 +1,35 @@
 #ifndef STAGES_AKROPOLIS_ROOMS_SQUARE_CONFIG_H
 #define STAGES_AKROPOLIS_ROOMS_SQUARE_CONFIG_H
 
-/* Configuration of the Akropolis square: the values that tie the room to the
- * rest of the game (doors, commands, CAP scenes, tasks, messages, views and
- * sounds) and the values that tune how it behaves.
- *
- * State-machine states and the layout of the room's own data stay with the
- * code that uses them.
- */
+// Configuration of the Akropolis square.
 
 #include "main/areas.h"
 #include "main/sound_ids.h"
 #include "main/sound_types.h"
+#include "../../room_ids.h"
 
 // ---------------------------------------------------------------------------
 // Sounds
 
 /// A sound of the square's area bank.
-#define AKROPOLIS_SQUARE_SOUND(cue) SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_SQUARE, (cue))
+#define AKROPOLIS_SQUARE_SOUND(cue) SOUND_AREA(GAME_STAGE_AKROPOLIS, AKROPOLIS_ROOM_ID_SQUARE, (cue))
 
 /// Entries of the square's area bank.
 enum {
-    AKROPOLIS_SQUARE_SOUND_CALL_START         = 1, // The call cutscene starts; also room sound cue 1
-    AKROPOLIS_SQUARE_SOUND_ELEVATOR_DEPARTURE = 2, // Leaving through an elevator door
-    AKROPOLIS_SQUARE_SOUND_ELEVATOR_ARRIVAL   = 3, // Arriving through an elevator door
-    AKROPOLIS_SQUARE_SOUND_ELEVATOR_BLOCKED   = 4, // An elevator door refuses the player
-    AKROPOLIS_SQUARE_SOUND_SCRIPT_CUE_5       = 5, // Requested by a CAP script as room sound cue 5
-    AKROPOLIS_SQUARE_SOUND_CALL_SCENE         = 6, // The call cutscene's scene sound; also room sound cue 6
-    AKROPOLIS_SQUARE_SOUND_CALL_END           = 7, // The call cutscene ends; also room sound cue 7
-    AKROPOLIS_SQUARE_SOUND_SCRIPT_CUE_8       = 8, // Requested by a CAP script as room sound cue 8
-    /// The telephone ringing: a positional one-shot from the phone, every
-    /// `AKROPOLIS_SQUARE_TELEPHONE_RING_FRAMES` until the call is answered or left.
-    AKROPOLIS_SQUARE_SOUND_TELEPHONE_RING  = 9,
-    AKROPOLIS_SQUARE_SOUND_TELEPHONE_SCENE = 10, // The telephone scene's cue, as the stranger runs off
-    AKROPOLIS_SQUARE_SOUND_CALL_AFTER      = 11, // After the call cutscene's scene
+    AKROPOLIS_SQUARE_SOUND_CALL_START         = 1,  // The call cutscene starts; also room sound cue 1
+    AKROPOLIS_SQUARE_SOUND_ELEVATOR_DEPARTURE = 2,  // Leaving through an elevator door
+    AKROPOLIS_SQUARE_SOUND_ELEVATOR_ARRIVAL   = 3,  // Arriving through an elevator door
+    AKROPOLIS_SQUARE_SOUND_ELEVATOR_BLOCKED   = 4,  // An elevator door refuses the player
+    AKROPOLIS_SQUARE_SOUND_SCRIPT_CUE_5       = 5,  // Requested by a CAP script as room sound cue 5
+    AKROPOLIS_SQUARE_SOUND_CALL_SCENE         = 6,  // The call cutscene's scene sound; also room sound cue 6
+    AKROPOLIS_SQUARE_SOUND_CALL_END           = 7,  // The call cutscene ends; also room sound cue 7
+    AKROPOLIS_SQUARE_SOUND_SCRIPT_CUE_8       = 8,  // Requested by a CAP script as room sound cue 8
+    AKROPOLIS_SQUARE_SOUND_TELEPHONE_RING     = 9,  // One ring of the telephone
+    AKROPOLIS_SQUARE_SOUND_TELEPHONE_SCENE    = 10, // The telephone scene's cue, as the stranger runs off
+    AKROPOLIS_SQUARE_SOUND_CALL_AFTER         = 11, // After the call cutscene's scene
 };
 
-/// Footstep requests of the floor's surface class 4, type-1 bank. Each is the
-/// request for cue 2; cue 1 uses the following entry.
+/// Footsteps on surface class 4.
 enum {
     AKROPOLIS_SQUARE_FOOTSTEP_WALK = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x11,
     AKROPOLIS_SQUARE_FOOTSTEP_RUN  = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x13,
@@ -46,7 +38,7 @@ enum {
 // ---------------------------------------------------------------------------
 // Doors and arrivals
 
-/// Descending stair action and the packed departure/arrival warp slots used here.
+/// Trigger parameters: the stair descent action and each door's departure and arrival warps.
 enum {
     AKROPOLIS_SQUARE_TRIGGER_STAIR_DESCEND       = 0x100,
     AKROPOLIS_SQUARE_TRIGGER_WEST_ELEVATOR_WARPS = (1 << 4) | 2,
@@ -55,13 +47,13 @@ enum {
     AKROPOLIS_SQUARE_TRIGGER_FORKED_ROAD_WARPS   = (4 << 4) | 4,
 };
 
-/// The arrival warp of the square's arrival scene; the call cutscene saves it as warp 1.
+/// The arrival scene's warp, and the warp the call cutscene saves in its place.
 enum {
     AKROPOLIS_SQUARE_CUTSCENE_ARRIVAL_WARP = 7,
     AKROPOLIS_SQUARE_CUTSCENE_RESUME_WARP  = 1,
 };
 
-/// Placement layouts and the map-mark policy applied after the square story cutscene.
+/// Placement variants set after the first call.
 enum {
     AKROPOLIS_SQUARE_POST_CUTSCENE_PATIO_VARIANT     = 3,
     AKROPOLIS_SQUARE_POST_CUTSCENE_CAFETERIA_VARIANT = 3,
@@ -69,29 +61,29 @@ enum {
     AKROPOLIS_SQUARE_POST_CUTSCENE_MAP_MARK          = 1,
 };
 
-/// Placement variant the telephone scene sets: empty, once the grinning stranger has gone.
+/// Placement variant after the telephone scene: the grinning stranger is gone.
 enum { AKROPOLIS_SQUARE_TELEPHONE_PLACEMENT_VARIANT = 2 };
 
 // ---------------------------------------------------------------------------
 // Commands, actions, CAP scenes and story dialogue
 
-/// Room-message commands, sent by the room's triggers and by CAP scripts.
+/// Room commands.
 enum {
     AKROPOLIS_SQUARE_ROOM_COMMAND_CUTSCENE      = 2,  // Answer the telephone: the call cutscene
     AKROPOLIS_SQUARE_ROOM_COMMAND_HINT_14       = 14, // The ammo box hint, CAP 14, once
     AKROPOLIS_SQUARE_ROOM_COMMAND_CONTROLS_HINT = 16, // The stairs controls hint, CAP 16, once
 };
 
-/// The square's one direction action, and the CAP event it starts.
+/// The room action and the CAP event it starts.
 enum {
     AKROPOLIS_SQUARE_ACTION_START_EVENT = 0,
     AKROPOLIS_SQUARE_ACTION_CAP_EVENT   = 5,
 };
 
-/// Scene music event the arrival scene arms (`state.sceneEvent`).
+/// Scene event of the arrival scene.
 enum { AKROPOLIS_SQUARE_ARRIVAL_SCENE_EVENT = 2 };
 
-/// CAP commands and the call cutscene's CAP file and slot.
+/// CAP commands, and the call cutscene's CAP file and slot.
 enum {
     AKROPOLIS_SQUARE_ELEVATOR_BLOCKED_CAP_COMMAND    = 1,  // Caption of a refused elevator door
     AKROPOLIS_SQUARE_CAP_VIEW_COMMAND                = 5,  // The CAP view sequence
@@ -99,15 +91,7 @@ enum {
     AKROPOLIS_SQUARE_CONTROLS_HINT_ALTERNATE_COMMAND = 17, // The stairs hint for the other button layout
     AKROPOLIS_SQUARE_CUTSCENE_CAP_SLOT               = 1,
     AKROPOLIS_SQUARE_CUTSCENE_CAP_FILE               = 1,
-};
-
-/// Story dialogue indices (`GAME_FLAG_STORY_DIALOGUE_INDEX`) the square selects.
-enum {
-    /// Ringing ended without the call being answered - its views left, or the
-    /// square left by the forked road or the east elevator.
-    AKROPOLIS_SQUARE_TELEPHONE_MISSED_DIALOGUE = 2,
-    /// Follow-up the call cutscene hands to the room cutscene task.
-    AKROPOLIS_SQUARE_CUTSCENE_FOLLOWUP = 2,
+    AKROPOLIS_SQUARE_CUTSCENE_FOLLOWUP               = 2, // Call file command after the call: the save point
 };
 
 // ---------------------------------------------------------------------------
@@ -127,7 +111,7 @@ enum {
     AKROPOLIS_SQUARE_BACKDROP_TASK_PRIORITY   = 192,
 };
 
-/// Player reflections: the task bank slot that draws them and its two modes.
+/// Player reflections: their task and its two modes.
 enum {
     AKROPOLIS_SQUARE_REFLECTION_TASK_BANK = 1,
     AKROPOLIS_SQUARE_REFLECTION_TASK_SLOT = 37,
@@ -137,18 +121,17 @@ enum {
 
 /// Messages the square's tasks receive.
 enum {
-    AKROPOLIS_SQUARE_MESSAGE_USE_KEY_ITEM = 5105,
-    /// Selects the room effect's telephone-light mode with an integer first payload.
+    AKROPOLIS_SQUARE_MESSAGE_USE_KEY_ITEM             = 5105,
     AKROPOLIS_SQUARE_MESSAGE_SET_TELEPHONE_LIGHT_MODE = 3103,
 };
 
-/// Payloads of `AKROPOLIS_SQUARE_MESSAGE_SET_TELEPHONE_LIGHT_MODE`.
+/// Telephone light modes.
 enum {
     AKROPOLIS_SQUARE_TELEPHONE_LIGHT_IDLE    = 0,
     AKROPOLIS_SQUARE_TELEPHONE_LIGHT_RINGING = 1,
 };
 
-/// Player weapon-bank clip of the arrival presentation.
+/// The player's weapon animation in the arrival scene.
 enum { AKROPOLIS_SQUARE_ARRIVAL_ANIMATION_ID = 1 };
 
 // ---------------------------------------------------------------------------
@@ -172,8 +155,7 @@ enum {
     AKROPOLIS_SQUARE_CAP_VIEW_SECOND      = 8,
 };
 
-/// Views that show the telephone's light: front views by mask (bit n is view n + 1),
-/// and the side and round presets in their own views.
+/// Views that show the telephone's light (mask bit n is view n + 1).
 enum {
     AKROPOLIS_SQUARE_TELEPHONE_LIGHT_VIEW_MASK  = 0x268,
     AKROPOLIS_SQUARE_TELEPHONE_LIGHT_SIDE_VIEW  = 14,
@@ -183,7 +165,7 @@ enum {
 // ---------------------------------------------------------------------------
 // Tuning
 
-/// The telephone, in whole room-coordinate units: the ring sound and the front light.
+/// The telephone's position.
 enum {
     AKROPOLIS_SQUARE_TELEPHONE_X = 0x19AA,
     AKROPOLIS_SQUARE_TELEPHONE_Y = -0xF96,
@@ -196,11 +178,9 @@ enum {
     AKROPOLIS_SQUARE_TELEPHONE_EVENT_FRAMES = 148,
 };
 
-/// The telephone light's presets, packed spawn words: pulse rate in bits 0..7,
-/// radius in 8..15, cyan in bit 16, streaks in bit 28, round fan in bit 31.
-/// Ringing adds `MODE_DELTA` once.
+/// The telephone light's presets: pulse rate in bits 0..7, radius in 8..15, cyan in
+/// bit 16, streaks in bit 28, round fan in bit 31. Ringing adds the delta.
 enum {
-    // Rate 8, radius 14, cyan diamond; ringing adds rate 24, radius 2 and streaks.
     AKROPOLIS_SQUARE_TELEPHONE_LIGHT_FRONT_BASE       = 0x00010E08,
     AKROPOLIS_SQUARE_TELEPHONE_LIGHT_FRONT_MODE_DELTA = 0x10000218,
     AKROPOLIS_SQUARE_TELEPHONE_LIGHT_SIDE_BASE        = 0x10010608,

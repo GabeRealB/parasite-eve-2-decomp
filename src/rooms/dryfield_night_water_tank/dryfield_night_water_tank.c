@@ -823,7 +823,6 @@ static void _dryfieldNightWaterTankBattleAftermathTask(Task* task)
         DRYFIELD_NIGHT_WATER_TANK_WAIT_BATTLE_REFS  = 1,
         DRYFIELD_NIGHT_WATER_TANK_WAIT_BATTLE_RESET = 2,
         DRYFIELD_NIGHT_WATER_TANK_HANDOVER_DONE     = 2,
-        DRYFIELD_NIGHT_WATER_TANK_FOLLOW_UP_CLEAR   = 0,
         DRYFIELD_NIGHT_WATER_TANK_STORY_DIALOGUE    = 14,
     };
 
@@ -850,8 +849,8 @@ static void _dryfieldNightWaterTankBattleAftermathTask(Task* task)
                 gameFlagSetNibble(GAME_FLAG_ITEM_119_HANDOVER_PROGRESS, DRYFIELD_NIGHT_WATER_TANK_HANDOVER_DONE);
                 gameFlagSetNibble(GAME_FLAG_083, 1);
                 evsStartScriptWithSkip(gActor146300WaterTankEventScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, gActor146300WaterTankEventSkipScript);
-                gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, DRYFIELD_NIGHT_WATER_TANK_FOLLOW_UP_CLEAR);
-                gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, DRYFIELD_NIGHT_WATER_TANK_STORY_DIALOGUE);
+                gameFlagSetNibble(EVENT_FLAG_TELEPHONE_DIALOGUE_COUNTER, EVENT_FLAG_TELEPHONE_DIALOGUE_UNHEARD);
+                gameFlagSetNibble(EVENT_FLAG_STORY_DIALOGUE_INDEX, DRYFIELD_NIGHT_WATER_TANK_STORY_DIALOGUE);
                 taskKill(task);
                 return;
             }

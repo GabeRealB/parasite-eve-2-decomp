@@ -1533,11 +1533,11 @@ static inline const AreaVariant* _areaGetCurrentVariant(void)
     GameLocationKey        lookupKey;
     const GameLocationKey* sessionLocation;
 
-    sessionLocation = &gGameSession->location;
-    lookupKey.stage = sessionLocation->stage;
-    lookupKey.area  = sessionLocation->area;
-    lookupKey.room  = sessionLocation->room;
-    lookupKey.view  = sessionLocation->view;
+    sessionLocation     = &gGameSession->location;
+    lookupKey.stage     = sessionLocation->stage;
+    lookupKey.area      = sessionLocation->area;
+    lookupKey.roomState = sessionLocation->roomState;
+    lookupKey.view      = sessionLocation->view;
     areaSyncLocationVariant(&lookupKey);
     return areaGetVariant(&lookupKey);
 }

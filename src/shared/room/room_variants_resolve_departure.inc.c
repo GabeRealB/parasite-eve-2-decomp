@@ -11,10 +11,10 @@ static inline void _roomVariantResolveDeparture(RoomDeparture* departure, RoomVa
 
     request.areaId    = departure->area;
     request.warp      = departure->warp;
-    request.room      = departure->room;
+    request.roomState = departure->roomState;
     request.queryOnly = ROOM_EVENT_EXECUTE;
     resolveVariant(&request, &request);
-    departure->area = request.areaId;
-    departure->warp = request.warp;
-    departure->room = request.room;
+    departure->area      = request.areaId;
+    departure->warp      = request.warp;
+    departure->roomState = request.roomState;
 }

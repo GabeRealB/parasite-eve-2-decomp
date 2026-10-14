@@ -550,7 +550,7 @@ void loadingEnqueueAreaAndCompanionResourcesTask(Task* task)
     if (cdCmdIsIdle()) {
         areaRequest.key.stage          = gGameSession->location.stage;
         areaRequest.key.fileGroup      = gGameSession->location.area;
-        areaRequest.key.ignoredByQueue = gGameSession->location.room;
+        areaRequest.key.ignoredByQueue = gGameSession->location.roomState;
         areaRequest.key.fileIndex      = LOADING_AREA_BASE_FILE_INDEX;
         areaRequest.field_4            = 0;
         loadArgs.fileIdHundreds        = LOADING_AREA_FOLDER_SUFFIX;
@@ -598,7 +598,7 @@ void loadingPrepareAreaStateTask(Task* task)
 
         soundSession = gGameSession;
         if ((GAME_LOCATION_WORD(soundSession->location) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_GAS_STATION, 0, 0)) {
-            if (soundSession->location.room >= LOADING_GAS_STATION_EXTRA_FILE_FIRST_ROOM) {
+            if (soundSession->location.roomState >= LOADING_GAS_STATION_EXTRA_FILE_FIRST_ROOM) {
                 sndScriptResetForArea(soundSession->location.stage, soundSession->location.area);
                 fileKey.stage             = gGameSession->location.stage;
                 fileKey.fileGroup         = gGameSession->location.area;

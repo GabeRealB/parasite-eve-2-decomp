@@ -1612,12 +1612,12 @@ static inline void _shelterB1PodAccessTunnelCommitB2Ride(Task* task)
     s32 gantryReturnProgress;
 
     sndEvtRequestScriptStop(SOUND_BANK_TYPE_ALL_NON_AMBIENT, SOUND_SCRIPT_STOP_NO_FADE);
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.area = GAME_AREA_SHELTER_B2_POD_ACCESS_TUNNEL;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp = RIDE_ARRIVAL_WARP;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.room = RIDE_DEFAULT_ROOM;
-    gantryReturnProgress                                   = gameFlagGetNibble(GAME_FLAG_118);
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.area      = GAME_AREA_SHELTER_B2_POD_ACCESS_TUNNEL;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp      = RIDE_ARRIVAL_WARP;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.roomState = RIDE_DEFAULT_ROOM;
+    gantryReturnProgress                                        = gameFlagGetNibble(GAME_FLAG_118);
     if (gantryReturnProgress == SHELTER_B1_POD_ACCESS_TUNNEL_GANTRY_RETURN_COMPLETE) {
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.room = gantryReturnProgress;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.roomState = gantryReturnProgress;
     }
     gDisplayState.spriteVariant = RIDE_NEXT_SESSION_SPRITE_VARIANT;
     taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
@@ -1701,11 +1701,11 @@ static inline void _shelterB1PodAccessTunnelCommitGantryTransit(Task* task)
 
     gameFlagSetNibble(GAME_FLAG_B2_POD_TUNNEL_R48_DOOR_UNLOCKED, GANTRY_DOOR_UNLOCKED);
     gameFlagSetNibble(GAME_FLAG_MAP_MARK_POD_SERVICE_GANTRY, GANTRY_MAP_MARK_HIDDEN);
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent    = GANTRY_SCENE_EVENT;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.area = GAME_AREA_SHELTER_B1_POD_SERVICE_GANTRY;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp = GANTRY_ARRIVAL_WARP;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.room = GANTRY_ARRIVAL_ROOM;
-    gDisplayState.spriteVariant                            = RELOAD_CAPTURE_SPRITE_VARIANT;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent         = GANTRY_SCENE_EVENT;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.area      = GAME_AREA_SHELTER_B1_POD_SERVICE_GANTRY;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp      = GANTRY_ARRIVAL_WARP;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.roomState = GANTRY_ARRIVAL_ROOM;
+    gDisplayState.spriteVariant                                 = RELOAD_CAPTURE_SPRITE_VARIANT;
     taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
     taskKill(task);
 }

@@ -146,10 +146,10 @@ void roomEventTask(Task* task)
         // Leave control restoration to the session reload and room startup.
         case ROOM_EVENT_STATE_RELOAD:
             sndEvtRequestScriptStop(SOUND_BANK_TYPE_ALL_NON_AMBIENT, SOUND_SCRIPT_STOP_NO_FADE);
-            gDisplayState.spriteVariant                            = 1;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.area = ROOM_EVENT_DESTINATION.areaId;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp = ROOM_EVENT_DESTINATION.warp;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.room = (u8)ROOM_EVENT_DESTINATION.room;
+            gDisplayState.spriteVariant                                 = 1;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.area      = ROOM_EVENT_DESTINATION.areaId;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp      = ROOM_EVENT_DESTINATION.warp;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.roomState = (u8)ROOM_EVENT_DESTINATION.roomState;
             taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
             taskKill(task);
             break;

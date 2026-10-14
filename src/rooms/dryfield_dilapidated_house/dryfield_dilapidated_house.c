@@ -3561,16 +3561,16 @@ static inline void _dryfieldDilapidatedHousePrepareNextSession(void)
     gameFlagSetNibble(GAME_FLAG_GENERAL_STORE_UNDERPASS_BLOCKED, true);
     gameFlagSetNibble(GAME_FLAG_NIGHT_SALOON_CUTSCENE_SEEN, true);
     gameFlagSetNibble(GAME_FLAG_NIGHT_SALOON_TALK_PROGRESS, POST_ENCOUNTER_TALK_PROGRESS);
-    gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
-    gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, 0);
+    gameFlagSetNibble(EVENT_FLAG_TELEPHONE_DIALOGUE_COUNTER, EVENT_FLAG_TELEPHONE_DIALOGUE_UNHEARD);
+    gameFlagSetNibble(EVENT_FLAG_STORY_DIALOGUE_INDEX, 0);
     playerStateRestoreFullHpMp();
     companionRestoreFullHp();
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent     = NEXT_SCENE_EVENT;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.stage = GAME_STAGE_DRYFIELD;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp  = NEXT_WARP;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.room  = NEXT_ROOM;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.area  = GAME_AREA_DRYFIELD_R08;
-    gDisplayState.spriteVariant                             = DEFAULT_SPRITE_VARIANT;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent         = NEXT_SCENE_EVENT;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.stage     = GAME_STAGE_DRYFIELD;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp      = NEXT_WARP;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.roomState = NEXT_ROOM;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.area      = GAME_AREA_DRYFIELD_R08;
+    gDisplayState.spriteVariant                                 = DEFAULT_SPRITE_VARIANT;
     taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
 }
 
@@ -3665,9 +3665,9 @@ static s32 _dryfieldDilapidatedHouseResolveRoomEvent(Task* task, s32 messageId, 
         if (request->areaId == GAME_AREA_DRYFIELD_WAREHOUSE) {
             if (request->queryOnly == ROOM_EVENT_EXECUTE) {
                 if (gameFlagGetNibble(GAME_FLAG_WAREHOUSE_EVENT_SEEN) == 0) {
-                    reply->room = WAREHOUSE_ROOM_BEFORE_EVENT;
+                    reply->roomState = WAREHOUSE_ROOM_BEFORE_EVENT;
                 } else {
-                    reply->room = WAREHOUSE_ROOM_AFTER_EVENT;
+                    reply->roomState = WAREHOUSE_ROOM_AFTER_EVENT;
                 }
             }
         }

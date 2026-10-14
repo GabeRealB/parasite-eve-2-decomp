@@ -81,9 +81,9 @@ STATIC_ASSERT_SIZEOF(RoomCutsceneSoundTaskStorage, 8);
 
 /// Destination a room stages before spawning its departure task.
 ///
-/// The room writes `stage`, `area`, `warp` and `room`, then passes the last
+/// The room writes `stage`, `area`, `warp` and `roomState`, then passes the last
 /// three through the stage's room-variant resolver. The resolver reads `area`
-/// and may replace `room`. The task turns the player to `facing` unless it is
+/// and may replace `roomState`. The task turns the player to `facing` unless it is
 /// `ROOM_DEPARTURE_SKIP_FACING` and waits until that turn finishes, plays
 /// `sndEvent` unless it is 0 and waits for that voice, then copies the four
 /// destination fields into the save location and starts room-change task 0x11,
@@ -93,7 +93,7 @@ typedef struct {
     u8   stage;      // Destination stage copied into the save location
     u8   area;       // Destination area within that stage; the resolver keys off it
     u8   warp;       // Arrival record in the destination area's warp table
-    u8   room;       // Room within the destination area; the resolver may replace it
+    u8   roomState;  // State of the destination area; the resolver may replace it
     s16  facing;     // Target yaw, 4096 units per turn, sent to the player as message 0x3EE; -1 sends nothing
     byte pad_6[0x2]; // No recovered access; keeps `sndEvent` 4-byte aligned
     s32  sndEvent;   // Type-6 sound event played before the room change; 0 skips it
