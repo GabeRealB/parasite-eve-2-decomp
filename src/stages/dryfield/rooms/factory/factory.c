@@ -82,8 +82,6 @@ static TaskMessageEntry _gFactoryMsgTable[6] = {
 /// Starts at task state 0 and advances to the idle room-message receiver.
 static void _factoryRoomInit(Task* task)
 {
-    enum { FACTORY_ROOM_LIFT_SPAWN_INDEX    = 4,
-           FACTORY_ROOM_BARRIER_SPAWN_INDEX = 5 };
     Task** slot;
 
     task->msgTable = _gFactoryMsgTable;
@@ -100,8 +98,8 @@ static void _factoryRoomInit(Task* task)
     } else {
         gFactoryPanelDesc = &gDryfieldNightFactoryPanelTaskDesc;
     }
-    taskSpawnFromTable(gFactorySpawnTable, FACTORY_ROOM_LIFT_SPAWN_INDEX, 0, gFactoryPanelSlot);
-    taskSpawnFromTable(gFactorySpawnTable, FACTORY_ROOM_BARRIER_SPAWN_INDEX, 0, 0);
+    taskSpawnFromTable(gFactorySpawnTable, FACTORY_SPAWN_LIFT, 0, gFactoryPanelSlot);
+    taskSpawnFromTable(gFactorySpawnTable, FACTORY_SPAWN_BARRIER_COLLISION, 0, 0);
     if (gGameSession->location.stage == GAME_STAGE_DRYFIELD) {
         dryfieldFactorySetView9SpriteVisible(gameFlagGetNibble(GAME_FLAG_FACTORY_POWER_ON) & 0xFF);
     } else {
@@ -112,18 +110,6 @@ static void _factoryRoomInit(Task* task)
 
 s32 roomVariantFactoryMsg(Task* unusedTask, s32 unusedMessageId, const RoomEventMsg* request, RoomEventMsg* reply)
 {
-    enum {
-        FACTORY_DRIVEWAY_PROGRESS_OPEN        = 2,
-        FACTORY_GARAGE_LAMP_READY             = 2,
-        FACTORY_GARAGE_FINAL_CHAPTER          = 4,
-        FACTORY_GARAGE_REFUSAL_CAP_SLOT       = 4,
-        FACTORY_BREEZEWAY_REFUSAL_CAP_COMMAND = 13,
-        FACTORY_DRIVEWAY_CAP_COMMAND          = 14,
-        FACTORY_DRIVEWAY_DEFAULT_ROOM         = 1,
-        FACTORY_GARAGE_EARLY_ROOM             = 1,
-        FACTORY_GARAGE_LATE_ROOM              = 2,
-        FACTORY_DEPARTURE_REFUSAL_MAP_MARK    = 2,
-    };
     RoomEventReq eventRequest;
     u8           stageId;
 
@@ -152,7 +138,7 @@ s32 roomVariantFactoryMsg(Task* unusedTask, s32 unusedMessageId, const RoomEvent
             }
         }
         if (request->areaId == GAME_AREA_DRYFIELD_GARAGE) {
-            if (gameFlagGetNibble(GAME_FLAG_FACTORY_LAMP_PROGRESS) != FACTORY_GARAGE_LAMP_READY) {
+            if (gameFlagGetNibble(GAME_FLAG_FACTORY_LAMP_PROGRESS) != FACTORY_LAMP_PROGRESS_SECOND) {
                 if (request->queryOnly != ROOM_EVENT_EXECUTE) {
                     return ROOM_VARIANT_TRANSITION_REFUSED;
                 }
@@ -175,8 +161,8 @@ s32 roomVariantFactoryMsg(Task* unusedTask, s32 unusedMessageId, const RoomEvent
     if (request->areaId == GAME_AREA_DRYFIELD_DRIVEWAY) {
         eventRequest.capCmd        = FACTORY_DRIVEWAY_CAP_COMMAND;
         eventRequest.missingCapCmd = FACTORY_DRIVEWAY_CAP_COMMAND;
-        eventRequest.firstSnd      = SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_FACTORY, 0x13);
-        eventRequest.secondSnd     = SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_FACTORY, 3);
+        eventRequest.firstSnd      = FACTORY_DAY_SOUND(FACTORY_SOUND_DRIVEWAY_EVENT_FIRST);
+        eventRequest.secondSnd     = FACTORY_DAY_SOUND(FACTORY_SOUND_DRIVEWAY_EVENT_SECOND);
         eventRequest.flagId        = -GAME_FLAG_030;
         eventRequest.collectedBit  = ROOM_EVENT_GATE_NO_COLLECTION_REQUIRED;
         return _roomEventGate(&eventRequest, request);
@@ -221,30 +207,17 @@ s32 factoryIgnoreMessage(Task* task, s32 messageId, s32 firstArg, s32 secondArg)
 
 s32 factoryCommand(Task* task, s32 messageId, s32 command, s32 unusedArgument)
 {
-    enum {
-        FACTORY_COMMAND_CAP_SCENE     = 1,
-        FACTORY_COMMAND_WHITEOUT      = 2,
-        FACTORY_COMMAND_LAMP          = 3,
-        FACTORY_COMMAND_POWER_ON      = 5,
-        FACTORY_COMMAND_PANEL_SESSION = 6,
-        FACTORY_COMMAND_HATCH_SCENE   = 12,
-        FACTORY_SPAWN_POWER_SCENE     = 0,
-        FACTORY_SPAWN_LAMP_SCENE      = 1,
-        FACTORY_SPAWN_CAP_SCENE       = 2,
-        FACTORY_SPAWN_WHITEOUT_SCENE  = 3,
-        FACTORY_SPAWN_HATCH_SCENE     = 6
-    };
     switch (command) {
         case FACTORY_COMMAND_CAP_SCENE:
             taskSpawnFromTable(gFactorySpawnTable, FACTORY_SPAWN_CAP_SCENE, command, 0);
             break;
-        case FACTORY_COMMAND_WHITEOUT:
-            taskSpawnFromTable(gFactorySpawnTable, FACTORY_SPAWN_WHITEOUT_SCENE, command, 0);
+        case FACTORY_COMMAND_BARRIER_TRANSITION:
+            taskSpawnFromTable(gFactorySpawnTable, FACTORY_SPAWN_BARRIER_TRANSITION_SCENE, command, 0);
             break;
-        case FACTORY_COMMAND_LAMP:
+        case FACTORY_COMMAND_LAMP_SCENE:
             taskSpawnFromTable(gFactorySpawnTable, FACTORY_SPAWN_LAMP_SCENE, command, 0);
             break;
-        case FACTORY_COMMAND_POWER_ON:
+        case FACTORY_COMMAND_POWER_SCENE:
             taskSpawnFromTable(gFactorySpawnTable, FACTORY_SPAWN_POWER_SCENE, command, 0);
             break;
         case FACTORY_COMMAND_PANEL_SESSION:
@@ -267,17 +240,13 @@ s32 factoryCommand(Task* task, s32 messageId, s32 command, s32 unusedArgument)
 
 s32 factorySoundCommand(Task* task, s32 messageId, s32 soundCue, s32 secondArg)
 {
-    enum { FACTORY_SOUND_CUE_7                    = 7,
-           FACTORY_SOUND_CUE_LAMP_SECOND_POSITION = 21,
-           FACTORY_SOUND_LAMP_SECOND_POSITION     = 2 };
-
     switch (soundCue) {
-        case FACTORY_SOUND_CUE_7:
-            sndEvtRequestStageScriptStart(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_FACTORY, FACTORY_SOUND_CUE_7), 0, 0);
+        case FACTORY_SOUND_SCRIPT_CUE_7:
+            sndEvtRequestStageScriptStart(FACTORY_DAY_SOUND(FACTORY_SOUND_SCRIPT_CUE_7), 0, 0);
             break;
-        case FACTORY_SOUND_CUE_LAMP_SECOND_POSITION:
-            sndEvtRequestStageScriptStart(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_FACTORY, FACTORY_SOUND_CUE_LAMP_SECOND_POSITION), 0, 0);
-            gameFlagSetNibble(GAME_FLAG_FACTORY_LAMP_PROGRESS, FACTORY_SOUND_LAMP_SECOND_POSITION);
+        case FACTORY_SOUND_LAMP_SECOND_POSITION:
+            sndEvtRequestStageScriptStart(FACTORY_DAY_SOUND(FACTORY_SOUND_LAMP_SECOND_POSITION), 0, 0);
+            gameFlagSetNibble(GAME_FLAG_FACTORY_LAMP_PROGRESS, FACTORY_LAMP_PROGRESS_SECOND);
             break;
     }
     return 0;
@@ -285,15 +254,11 @@ s32 factorySoundCommand(Task* task, s32 messageId, s32 soundCue, s32 secondArg)
 
 s32 factoryRoomAction(Task* unusedTask, s32 unusedMessageId, const DirectionActionRequest* request, s32 unusedSecondArg)
 {
-    enum { FACTORY_ACTION_START_SCENE = 1,
-           FACTORY_ACTION_CAP_COMMAND = 11,
-           FACTORY_ACTION_OBJECTIVE   = 10 };
-
     if ((request->actionId == FACTORY_ACTION_START_SCENE) && (gameFlagGetNibble(GAME_FLAG_02C) == 0)) {
-        capSpawnEventIfIdle(FACTORY_ACTION_CAP_COMMAND, CAP_EVENT_PAUSE_ACTORS);
+        capSpawnEventIfIdle(FACTORY_START_SCENE_CAP, CAP_EVENT_PAUSE_ACTORS);
         gameFlagSetNibble(GAME_FLAG_02C, 1);
-        gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, FACTORY_ACTION_OBJECTIVE);
-        sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_FACTORY, 0x0A), 0, 0);
+        gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, FACTORY_START_SCENE_OBJECTIVE);
+        sndEvtRequestScriptStart(FACTORY_DAY_SOUND(FACTORY_SOUND_START_SCENE), 0, 0);
     }
     return 0;
 }

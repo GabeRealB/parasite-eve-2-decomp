@@ -48,13 +48,6 @@ enum {
     FACTORY_LIFT_STEP_REST
 };
 
-/// Jam thresholds as 16.16 angles, with 4096 integer units per turn.
-/// A lowered lift turns one thirty-second of a revolution before rebounding.
-enum {
-    FACTORY_LIFT_JAM_YAW_OUT  = 0x80 * 0x10000,
-    FACTORY_LIFT_JAM_YAW_BACK = FACTORY_LIFT_YAW_TURNED_Q16 - FACTORY_LIFT_JAM_YAW_OUT
-};
-
 /// Notifies the operator panel that a turn ended and queues the turn stop cue.
 ///
 /// Used when a normal turn or jam rebound settles or is skipped. The live
@@ -74,11 +67,11 @@ static __inline__ void _factoryLiftFinishTurn(const Task* liftTask, const GfxCoo
 
     _factoryLiftNotifyPanel(*panelSlot);
     if (gGameSession->location.stage == GAME_STAGE_DRYFIELD) {
-        sndEvtRequestStageScriptStop(SOUND_FACTORY_LIFT_TURN, SOUND_SCRIPT_STOP_KEEP_RELEASE);
-        sndEvtRequestStageScriptStart(SOUND_FACTORY_LIFT_TURN_STOP, (s8)worldCoordGetOriginAudioPan(liftRoot), (s8)worldCoordGetOriginAudioDepth(liftRoot));
+        sndEvtRequestStageScriptStop(FACTORY_DAY_SOUND(FACTORY_SOUND_LIFT_TURN), SOUND_SCRIPT_STOP_KEEP_RELEASE);
+        sndEvtRequestStageScriptStart(FACTORY_DAY_SOUND(FACTORY_SOUND_LIFT_TURN_STOP), (s8)worldCoordGetOriginAudioPan(liftRoot), (s8)worldCoordGetOriginAudioDepth(liftRoot));
     } else {
-        sndEvtRequestStageScriptStop(SOUND_NIGHT_FACTORY_LIFT_TURN, SOUND_SCRIPT_STOP_KEEP_RELEASE);
-        sndEvtRequestStageScriptStart(SOUND_NIGHT_FACTORY_LIFT_TURN_STOP, (s8)worldCoordGetOriginAudioPan(liftRoot), (s8)worldCoordGetOriginAudioDepth(liftRoot));
+        sndEvtRequestStageScriptStop(FACTORY_NIGHT_SOUND(FACTORY_SOUND_LIFT_TURN), SOUND_SCRIPT_STOP_KEEP_RELEASE);
+        sndEvtRequestStageScriptStart(FACTORY_NIGHT_SOUND(FACTORY_SOUND_LIFT_TURN_STOP), (s8)worldCoordGetOriginAudioPan(liftRoot), (s8)worldCoordGetOriginAudioDepth(liftRoot));
     }
 }
 
@@ -103,11 +96,11 @@ static __inline__ void _factoryLiftFinishVertical(const Task* liftTask, const Gf
     _factoryLiftNotifyPanel(*panelTaskSlot);
     // Sample the cached origin before the caller writes this frame's new local Y.
     if (gGameSession->location.stage == GAME_STAGE_DRYFIELD) {
-        sndEvtRequestStageScriptStop(SOUND_FACTORY_LIFT_MOVE, SOUND_SCRIPT_STOP_KEEP_RELEASE);
-        sndEvtRequestStageScriptStart(SOUND_FACTORY_LIFT_MOVE_STOP, (s8)worldCoordGetOriginAudioPan(liftCoord), (s8)worldCoordGetOriginAudioDepth(liftCoord));
+        sndEvtRequestStageScriptStop(FACTORY_DAY_SOUND(FACTORY_SOUND_LIFT_MOVE), SOUND_SCRIPT_STOP_KEEP_RELEASE);
+        sndEvtRequestStageScriptStart(FACTORY_DAY_SOUND(FACTORY_SOUND_LIFT_MOVE_STOP), (s8)worldCoordGetOriginAudioPan(liftCoord), (s8)worldCoordGetOriginAudioDepth(liftCoord));
     } else {
-        sndEvtRequestStageScriptStop(SOUND_NIGHT_FACTORY_LIFT_MOVE, SOUND_SCRIPT_STOP_KEEP_RELEASE);
-        sndEvtRequestStageScriptStart(SOUND_NIGHT_FACTORY_LIFT_MOVE_STOP, (s8)worldCoordGetOriginAudioPan(liftCoord), (s8)worldCoordGetOriginAudioDepth(liftCoord));
+        sndEvtRequestStageScriptStop(FACTORY_NIGHT_SOUND(FACTORY_SOUND_LIFT_MOVE), SOUND_SCRIPT_STOP_KEEP_RELEASE);
+        sndEvtRequestStageScriptStart(FACTORY_NIGHT_SOUND(FACTORY_SOUND_LIFT_MOVE_STOP), (s8)worldCoordGetOriginAudioPan(liftCoord), (s8)worldCoordGetOriginAudioDepth(liftCoord));
     }
 }
 
@@ -421,10 +414,9 @@ TaskDesc FACTORY_OWN_SPAWN_TABLE[8] = {
 /// The spawned hatch borrows this lift task and its lighting matrices.
 static void _factoryLiftInit(Task* task)
 {
-    enum { FACTORY_LIFT_ROOM_X            = 3660,
-           FACTORY_LIFT_ROOM_Z            = 6830,
-           FACTORY_LIFT_SETUP_REST        = -1,
-           FACTORY_LIFT_HATCH_SPAWN_INDEX = 7 };
+    enum {
+        FACTORY_LIFT_SETUP_REST = -1,
+    };
     FactoryLiftWork* work;
     GfxCoord*        coord;
     TmdObject*       liftModel;
@@ -457,9 +449,9 @@ static void _factoryLiftInit(Task* task)
     _factoryLiftBindLighting(task);
     _factoryLiftSyncCollision(task, 1, 0);
     if (gGameSession->location.stage == GAME_STAGE_DRYFIELD) {
-        taskSpawnFromTable(gFactoryDaySpawnTable, FACTORY_LIFT_HATCH_SPAWN_INDEX, 0, task);
+        taskSpawnFromTable(gFactoryDaySpawnTable, FACTORY_SPAWN_HATCH, 0, task);
     } else {
-        taskSpawnFromTable(gDryfieldNightFactoryTaskDescs, FACTORY_LIFT_HATCH_SPAWN_INDEX, 0, task);
+        taskSpawnFromTable(gDryfieldNightFactoryTaskDescs, FACTORY_SPAWN_HATCH, 0, task);
     }
     task->exitCallback  = _factoryLiftExit;
     task->killCountdown = 0;
@@ -572,9 +564,9 @@ static s32 _factoryLiftTurnOut(Task* task)
             break;
         case FACTORY_LIFT_STEP_START_SOUND:
             if (gGameSession->location.stage == GAME_STAGE_DRYFIELD) {
-                sndEvtRequestStageScriptStart(SOUND_FACTORY_LIFT_TURN, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
+                sndEvtRequestStageScriptStart(FACTORY_DAY_SOUND(FACTORY_SOUND_LIFT_TURN), (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
             } else {
-                sndEvtRequestStageScriptStart(SOUND_NIGHT_FACTORY_LIFT_TURN, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
+                sndEvtRequestStageScriptStart(FACTORY_NIGHT_SOUND(FACTORY_SOUND_LIFT_TURN), (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
             }
             work->yawStep++;
             break;
@@ -636,9 +628,9 @@ static s32 _factoryLiftTurnBack(Task* task)
             break;
         case FACTORY_LIFT_STEP_START_SOUND:
             if (gGameSession->location.stage == GAME_STAGE_DRYFIELD) {
-                sndEvtRequestStageScriptStart(SOUND_FACTORY_LIFT_TURN, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
+                sndEvtRequestStageScriptStart(FACTORY_DAY_SOUND(FACTORY_SOUND_LIFT_TURN), (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
             } else {
-                sndEvtRequestStageScriptStart(SOUND_NIGHT_FACTORY_LIFT_TURN, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
+                sndEvtRequestStageScriptStart(FACTORY_NIGHT_SOUND(FACTORY_SOUND_LIFT_TURN), (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
             }
             work->yawStep++;
             break;
@@ -700,9 +692,9 @@ static s32 _factoryLiftRaise(Task* task)
             break;
         case FACTORY_LIFT_STEP_START_SOUND:
             if (gGameSession->location.stage == GAME_STAGE_DRYFIELD) {
-                sndEvtRequestStageScriptStart(SOUND_FACTORY_LIFT_MOVE, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
+                sndEvtRequestStageScriptStart(FACTORY_DAY_SOUND(FACTORY_SOUND_LIFT_MOVE), (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
             } else {
-                sndEvtRequestStageScriptStart(SOUND_NIGHT_FACTORY_LIFT_MOVE, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
+                sndEvtRequestStageScriptStart(FACTORY_NIGHT_SOUND(FACTORY_SOUND_LIFT_MOVE), (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
             }
             work->yStep++;
             break;
@@ -765,9 +757,9 @@ static s32 _factoryLiftLower(Task* task)
             break;
         case FACTORY_LIFT_STEP_START_SOUND:
             if (gGameSession->location.stage == GAME_STAGE_DRYFIELD) {
-                sndEvtRequestStageScriptStart(SOUND_FACTORY_LIFT_MOVE, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
+                sndEvtRequestStageScriptStart(FACTORY_DAY_SOUND(FACTORY_SOUND_LIFT_MOVE), (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
             } else {
-                sndEvtRequestStageScriptStart(SOUND_NIGHT_FACTORY_LIFT_MOVE, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
+                sndEvtRequestStageScriptStart(FACTORY_NIGHT_SOUND(FACTORY_SOUND_LIFT_MOVE), (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
             }
             work->yStep++;
             break;
@@ -831,9 +823,9 @@ static s32 _factoryLiftJamTurnOut(Task* task)
             break;
         case FACTORY_LIFT_STEP_START_SOUND:
             if (gGameSession->location.stage == GAME_STAGE_DRYFIELD) {
-                sndEvtRequestStageScriptStart(SOUND_FACTORY_LIFT_TURN, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
+                sndEvtRequestStageScriptStart(FACTORY_DAY_SOUND(FACTORY_SOUND_LIFT_TURN), (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
             } else {
-                sndEvtRequestStageScriptStart(SOUND_NIGHT_FACTORY_LIFT_TURN, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
+                sndEvtRequestStageScriptStart(FACTORY_NIGHT_SOUND(FACTORY_SOUND_LIFT_TURN), (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
             }
             work->yawStep++;
             break;
@@ -845,10 +837,10 @@ static s32 _factoryLiftJamTurnOut(Task* task)
             work->yaw.word += work->yawVelocity;
             if (work->yaw.word > FACTORY_LIFT_JAM_YAW_OUT) {
                 if (gGameSession->location.stage == GAME_STAGE_DRYFIELD) {
-                    sndEvtRequestStageScriptStart(SOUND_FACTORY_LIFT_JAM, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
+                    sndEvtRequestStageScriptStart(FACTORY_DAY_SOUND(FACTORY_SOUND_LIFT_JAM), (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
                     padScriptSpawn(gDryfieldFactoryLiftJoltCommands, gDryfieldFactoryLiftJoltSegments);
                 } else {
-                    sndEvtRequestStageScriptStart(SOUND_NIGHT_FACTORY_LIFT_JAM, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
+                    sndEvtRequestStageScriptStart(FACTORY_NIGHT_SOUND(FACTORY_SOUND_LIFT_JAM), (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
                     padScriptSpawn(gDryfieldNightFactoryLiftJoltCommands, gDryfieldNightFactoryLiftJoltSegments);
                 }
                 work->yawStep++;
@@ -909,9 +901,9 @@ static s32 _factoryLiftJamTurnBack(Task* task)
             break;
         case FACTORY_LIFT_STEP_START_SOUND:
             if (gGameSession->location.stage == GAME_STAGE_DRYFIELD) {
-                sndEvtRequestStageScriptStart(SOUND_FACTORY_LIFT_TURN, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
+                sndEvtRequestStageScriptStart(FACTORY_DAY_SOUND(FACTORY_SOUND_LIFT_TURN), (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
             } else {
-                sndEvtRequestStageScriptStart(SOUND_NIGHT_FACTORY_LIFT_TURN, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
+                sndEvtRequestStageScriptStart(FACTORY_NIGHT_SOUND(FACTORY_SOUND_LIFT_TURN), (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
             }
             work->yawStep++;
             break;
@@ -923,10 +915,10 @@ static s32 _factoryLiftJamTurnBack(Task* task)
             work->yaw.word += work->yawVelocity;
             if (work->yaw.word < FACTORY_LIFT_JAM_YAW_BACK) {
                 if (gGameSession->location.stage == GAME_STAGE_DRYFIELD) {
-                    sndEvtRequestStageScriptStart(SOUND_FACTORY_LIFT_JAM, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
+                    sndEvtRequestStageScriptStart(FACTORY_DAY_SOUND(FACTORY_SOUND_LIFT_JAM), (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
                     padScriptSpawn(gDryfieldFactoryLiftJoltCommands, gDryfieldFactoryLiftJoltSegments);
                 } else {
-                    sndEvtRequestStageScriptStart(SOUND_NIGHT_FACTORY_LIFT_JAM, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
+                    sndEvtRequestStageScriptStart(FACTORY_NIGHT_SOUND(FACTORY_SOUND_LIFT_JAM), (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
                     padScriptSpawn(gDryfieldNightFactoryLiftJoltCommands, gDryfieldNightFactoryLiftJoltSegments);
                 }
                 work->yawStep++;
@@ -992,14 +984,9 @@ static inline void _factoryHatchPlaySwingSound(const GfxCoord* coord, s32 daySou
 static s32 _factoryHatchOpen(Task* task)
 {
     enum {
-        FACTORY_HATCH_OPEN_BEGIN                   = 0,
-        FACTORY_HATCH_OPEN_SWING                   = 1,
-        FACTORY_HATCH_OPEN_SETTLE                  = 2,
-        FACTORY_HATCH_OPEN_ANGLE_Q16               = -0x3000000,
-        FACTORY_HATCH_OPEN_ACCELERATION_Q16        = -0x28000,
-        FACTORY_HATCH_OPEN_MIN_VELOCITY_Q16        = -0x300000,
-        FACTORY_HATCH_OPEN_SETTLE_ACCELERATION_Q16 = 0x40000,
-        FACTORY_HATCH_OPEN_MAX_SETTLE_VELOCITY_Q16 = 0x100000
+        FACTORY_HATCH_OPEN_BEGIN  = 0,
+        FACTORY_HATCH_OPEN_SWING  = 1,
+        FACTORY_HATCH_OPEN_SETTLE = 2,
     };
     FactoryHatchWork* work     = task->work;
     GfxCoord*         coord    = task->extra.tmd->coords;
@@ -1008,7 +995,7 @@ static s32 _factoryHatchOpen(Task* task)
     switch (work->step) {
         case FACTORY_HATCH_OPEN_BEGIN:
             work->angularVelocity = 0;
-            _factoryHatchPlaySwingSound(coord, SOUND_FACTORY_HATCH_OPEN, SOUND_NIGHT_FACTORY_HATCH_OPEN);
+            _factoryHatchPlaySwingSound(coord, FACTORY_DAY_SOUND(FACTORY_SOUND_HATCH_OPEN), FACTORY_NIGHT_SOUND(FACTORY_SOUND_HATCH_OPEN));
             work->step++;
             break;
         case FACTORY_HATCH_OPEN_SWING:
@@ -1054,10 +1041,8 @@ static s32 _factoryHatchOpen(Task* task)
 static s32 _factoryHatchClose(Task* task)
 {
     enum {
-        FACTORY_HATCH_CLOSE_BEGIN            = 0,
-        FACTORY_HATCH_CLOSE_SWING            = 1,
-        FACTORY_HATCH_CLOSE_ACCELERATION_Q16 = 0x20000,
-        FACTORY_HATCH_CLOSE_MAX_VELOCITY_Q16 = 0x700000
+        FACTORY_HATCH_CLOSE_BEGIN = 0,
+        FACTORY_HATCH_CLOSE_SWING = 1,
     };
     FactoryHatchWork* work     = task->work;
     GfxCoord*         coord    = task->extra.tmd->coords;
@@ -1075,7 +1060,7 @@ static s32 _factoryHatchClose(Task* task)
             }
             work->angle.word += work->angularVelocity;
             if (work->angle.word > 0) {
-                _factoryHatchPlaySwingSound(coord, SOUND_FACTORY_HATCH_CLOSE, SOUND_NIGHT_FACTORY_HATCH_CLOSE);
+                _factoryHatchPlaySwingSound(coord, FACTORY_DAY_SOUND(FACTORY_SOUND_HATCH_CLOSE), FACTORY_NIGHT_SOUND(FACTORY_SOUND_HATCH_CLOSE));
                 work->step++;
             }
             break;
@@ -1098,8 +1083,6 @@ void factoryPowerScene(Task* task)
         FACTORY_POWER_SCENE_WAIT_CAP,
         FACTORY_POWER_SCENE_APPLY_CHOICE,
         FACTORY_POWER_SCENE_WAIT_FOLLOWUP,
-        FACTORY_POWER_CAP_ACCEPTED         = 3,
-        FACTORY_POWER_FOLLOWUP_VARIANT_KEY = 2,
     };
     switch (task->state) {
         case FACTORY_POWER_SCENE_START:
@@ -1165,10 +1148,7 @@ void factoryBarrierTransitionScene(Task* task)
         FACTORY_BARRIER_TRANSITION_SCENE_CHANGE_ROOM,
         FACTORY_BARRIER_TRANSITION_SCENE_FADE_IN,
         FACTORY_BARRIER_TRANSITION_SCENE_RESTORE  = -1,
-        FACTORY_BARRIER_TRANSITION_CAP_ACCEPTED   = 1,
-        FACTORY_BARRIER_TRANSITION_FADE_FRAMES    = 30,
         FACTORY_BARRIER_TRANSITION_FULL_INTENSITY = 255,
-        FACTORY_BARRIER_TRANSITION_ROOM           = 2,
     };
     u8 fadeIntensity;
     u8 stageId;
@@ -1188,7 +1168,7 @@ void factoryBarrierTransitionScene(Task* task)
             if (capGetVariantKey() == FACTORY_BARRIER_TRANSITION_CAP_ACCEPTED) {
                 task->killCountdown = 0;
                 if (gGameSession->location.stage == GAME_STAGE_DRYFIELD) {
-                    sndEvtRequestStageScriptStart(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_FACTORY, 0x0C), 0, 0);
+                    sndEvtRequestStageScriptStart(FACTORY_DAY_SOUND(FACTORY_SOUND_BARRIER_TRANSITION_ACCEPTED), 0, 0);
                 }
                 task->state = task->state + 1;
                 return;
@@ -1209,7 +1189,7 @@ void factoryBarrierTransitionScene(Task* task)
             gameFlagSetNibble(GAME_FLAG_FACTORY_BARRIER_CLEARED, 1);
             stageId = gGameSession->location.stage;
             if (stageId == GAME_STAGE_DRYFIELD) {
-                sndEvtRequestStageScriptStart(SOUND_FACTORY_WHITEOUT, 0, 0);
+                sndEvtRequestStageScriptStart(FACTORY_DAY_SOUND(FACTORY_SOUND_WHITEOUT), 0, 0);
             }
             fadeDrawOverlay(FACTORY_BARRIER_TRANSITION_FULL_INTENSITY, FACTORY_BARRIER_TRANSITION_FULL_INTENSITY, FACTORY_BARRIER_TRANSITION_FULL_INTENSITY, GPU_BLEND_SUBTRACT);
             task->state = task->state + 1;
@@ -1242,12 +1222,13 @@ void factoryBarrierTransitionScene(Task* task)
 
 void factoryBarrierCollision(Task* task)
 {
-    enum { FACTORY_BARRIER_STATE_RESTORE     = 0,
-           FACTORY_BARRIER_STATE_WAIT        = 1,
-           FACTORY_BARRIER_FACE_COUNT        = 2,
-           FACTORY_BARRIER_VERTICES_PER_FACE = 4,
-           FACTORY_BARRIER_VERTEX_COUNT      = FACTORY_BARRIER_FACE_COUNT * FACTORY_BARRIER_VERTICES_PER_FACE,
-           FACTORY_BARRIER_CLEAR_X_OFFSET    = 2000 };
+    enum {
+        FACTORY_BARRIER_STATE_RESTORE     = 0,
+        FACTORY_BARRIER_STATE_WAIT        = 1,
+        FACTORY_BARRIER_FACE_COUNT        = 2,
+        FACTORY_BARRIER_VERTICES_PER_FACE = 4,
+        FACTORY_BARRIER_VERTEX_COUNT      = FACTORY_BARRIER_FACE_COUNT * FACTORY_BARRIER_VERTICES_PER_FACE,
+    };
     WorldCollisionGrid* templateGrid = &gFactoryBarrierTemplate;
     WorldCollisionGrid* roomGrid;
     s32                 recordIndex;
@@ -1417,7 +1398,6 @@ static void _factoryLiftNotifyPanel(Task* panelTask)
 /// that selector has no handler, and this startup path remains unproven.
 static void _factoryHatchInit(Task* task)
 {
-    enum { FACTORY_HATCH_INITIAL_OPEN_ANGLE = -768 };
     Task*             liftTask  = task->spawnArg2.pointer;
     TmdObject*        model     = task->extra.tmd;
     TmdObject*        liftModel = liftTask->extra.tmd;
@@ -1487,8 +1467,6 @@ static void _factoryHatchUpdate(Task* task)
 /// arming a swing, so the dispatcher preserves the newly selected state.
 static s32 _factoryHatchWatch(Task* task)
 {
-    enum { FACTORY_HATCH_FLAG_CLOSED = 0,
-           FACTORY_HATCH_FLAG_OPEN   = 1 };
     FactoryHatchWork* work = task->work;
     u8                flag = gameFlagGetNibble(GAME_FLAG_FACTORY_HATCH_OPEN);
 
@@ -1526,7 +1504,6 @@ void factoryLampScene(Task* task)
         FACTORY_LAMP_SCENE_HIDE_PLAYER = 1,
         FACTORY_LAMP_SCENE_WAIT_CAP    = 2,
         FACTORY_LAMP_SCENE_FINISH      = 3,
-        FACTORY_LAMP_PROGRESS_COMPLETE = 2,
     };
     s32 state = task->state;
 
@@ -1538,7 +1515,7 @@ void factoryLampScene(Task* task)
             task->state++;
             return;
         case FACTORY_LAMP_SCENE_HIDE_PLAYER:
-            if (gameFlagGetNibble(GAME_FLAG_FACTORY_LAMP_PROGRESS) < FACTORY_LAMP_PROGRESS_COMPLETE) {
+            if (gameFlagGetNibble(GAME_FLAG_FACTORY_LAMP_PROGRESS) < FACTORY_LAMP_PROGRESS_SECOND) {
                 taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 0, 0);
             }
             task->state++;
@@ -1551,7 +1528,7 @@ void factoryLampScene(Task* task)
             return;
         case FACTORY_LAMP_SCENE_FINISH:
             if (capGetVariantKey() == state) {
-                gameFlagSetNibble(GAME_FLAG_FACTORY_LAMP_PROGRESS, FACTORY_LAMP_PROGRESS_COMPLETE);
+                gameFlagSetNibble(GAME_FLAG_FACTORY_LAMP_PROGRESS, FACTORY_LAMP_PROGRESS_SECOND);
             }
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
             companionSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
@@ -1572,12 +1549,10 @@ void factoryCapScene(Task* task)
 void factoryHatchScene(Task* task)
 {
     enum {
-        FACTORY_HATCH_SCENE_OPEN            = 0,
-        FACTORY_HATCH_SCENE_WAIT_OPEN       = 1,
-        FACTORY_HATCH_SCENE_RUN_CAP         = 2,
-        FACTORY_HATCH_SCENE_WAIT_CLOSE      = 3,
-        FACTORY_HATCH_SCENE_OPEN_COUNTDOWN  = 60,
-        FACTORY_HATCH_SCENE_CLOSE_COUNTDOWN = 30,
+        FACTORY_HATCH_SCENE_OPEN       = 0,
+        FACTORY_HATCH_SCENE_WAIT_OPEN  = 1,
+        FACTORY_HATCH_SCENE_RUN_CAP    = 2,
+        FACTORY_HATCH_SCENE_WAIT_CLOSE = 3,
     };
     switch (task->state) {
         case FACTORY_HATCH_SCENE_OPEN:

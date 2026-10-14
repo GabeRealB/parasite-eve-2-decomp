@@ -188,9 +188,8 @@ static void _factoryPanelIdle(Task* task)
 static inline void _factoryPanelPlayButtonSound(void)
 {
     enum {
-        FACTORY_PANEL_BUTTON_SOUND     = 9,
-        FACTORY_PANEL_DAY_SOUND_AREA   = SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_FACTORY, 0),
-        FACTORY_PANEL_NIGHT_SOUND_AREA = SOUND_AREA(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_FACTORY, 0)
+        FACTORY_PANEL_DAY_SOUND_AREA   = FACTORY_DAY_SOUND(0),
+        FACTORY_PANEL_NIGHT_SOUND_AREA = FACTORY_NIGHT_SOUND(0),
     };
     s32 soundArea;
 
@@ -198,7 +197,7 @@ static inline void _factoryPanelPlayButtonSound(void)
     if (gGameSession->location.stage == GAME_STAGE_DRYFIELD) {
         soundArea = FACTORY_PANEL_DAY_SOUND_AREA;
     }
-    sndEvtRequestScriptStart(soundArea | FACTORY_PANEL_BUTTON_SOUND, 0, 0);
+    sndEvtRequestScriptStart(soundArea | FACTORY_SOUND_PANEL_BUTTON, 0, 0);
 }
 
 /// Applies the confirmed operator-panel choice and selects the next panel state.
@@ -211,15 +210,6 @@ static inline void _factoryPanelPlayButtonSound(void)
 /// session, save, sound and CAP state. Does not retain any new resource.
 static void _factoryPanelApplyChoice(Task* task, s16 choice)
 {
-    enum {
-        FACTORY_PANEL_CAPTION6                  = 6,
-        FACTORY_PANEL_CAPTION7                  = 7,
-        FACTORY_PANEL_CAPTION_CANNOT_RAISE      = 8,
-        FACTORY_PANEL_CAPTION_CANNOT_LOWER      = 9,
-        FACTORY_PANEL_CAPTION_CANNOT_TURN       = 10,
-        FACTORY_PANEL_MOVE_VIEW_BARRIER_PRESENT = 18,
-        FACTORY_PANEL_MOVE_VIEW_BARRIER_CLEARED = 19,
-    };
     s32 nextState;
 
     // Power gates lift movement; captions remain available without it.
@@ -311,9 +301,7 @@ static void _factoryPanelApplyChoice(Task* task, s16 choice)
 void FACTORY_ROOM_INSTANCE_SET_VIEW9_SPRITE_VISIBLE(s32 visible)
 {
     enum {
-        FACTORY_ROOM_POWER_SPRITE_VIEW    = 9,
-        FACTORY_ROOM_POWER_SPRITE_BATCH   = 1,
-        FACTORY_ROOM_VISIBILITY_BYTE_MASK = 0xFF
+        FACTORY_ROOM_VISIBILITY_BYTE_MASK = 0xFF,
     };
     const GameSession*     session;
     const GameLocationKey* location;
@@ -323,12 +311,12 @@ void FACTORY_ROOM_INSTANCE_SET_VIEW9_SPRITE_VISIBLE(s32 visible)
     location = &session->location;
     // The separate power sprite belongs to the daytime background in both instances.
     if (location->stage == GAME_STAGE_DRYFIELD) {
-        view9Batches = gSpriteAreaTables[location->stage - 1][session->spriteVariant - 1].areaViews[location->area - 1][FACTORY_ROOM_POWER_SPRITE_VIEW - 1].batches;
+        view9Batches = gSpriteAreaTables[location->stage - 1][session->spriteVariant - 1].areaViews[location->area - 1][FACTORY_POWER_SPRITE_VIEW - 1].batches;
         if (!(visible & FACTORY_ROOM_VISIBILITY_BYTE_MASK)) {
-            view9Batches[FACTORY_ROOM_POWER_SPRITE_BATCH].hidden = true;
+            view9Batches[FACTORY_POWER_SPRITE_BATCH].hidden = true;
             return;
         }
-        view9Batches[FACTORY_ROOM_POWER_SPRITE_BATCH].hidden = false;
+        view9Batches[FACTORY_POWER_SPRITE_BATCH].hidden = false;
     }
 }
 
@@ -474,8 +462,9 @@ static void _factoryPanelPrompt(Task* task)
 /// selects the factory's return view before the cursor is torn down.
 static inline void _factoryPanelRestorePlay(void)
 {
-    enum { FACTORY_PANEL_REENTRY_DELAY_UPDATES = 10,
-           FACTORY_PANEL_EVENT_IDLE            = 0 };
+    enum {
+        FACTORY_PANEL_EVENT_IDLE = 0,
+    };
 
     gDirectionInteractionRearmUpdates = FACTORY_PANEL_REENTRY_DELAY_UPDATES;
     playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
@@ -535,9 +524,7 @@ static void _factoryPanelWaitMove(Task* task)
 void FACTORY_ROOM_INSTANCE_SET_VIEW11_SPRITE_VISIBLE(s32 visible)
 {
     enum {
-        FACTORY_ROOM_POWER_SCENE_SPRITE_VIEW  = 11,
-        FACTORY_ROOM_POWER_SCENE_SPRITE_BATCH = 1,
-        FACTORY_ROOM_VISIBILITY_BYTE_MASK     = 0xFF
+        FACTORY_ROOM_VISIBILITY_BYTE_MASK = 0xFF,
     };
     const GameSession*     session;
     const GameLocationKey* location;
@@ -547,12 +534,12 @@ void FACTORY_ROOM_INSTANCE_SET_VIEW11_SPRITE_VISIBLE(s32 visible)
     location = &session->location;
     // Only the daytime background has this sprite, including in the night instance.
     if (location->stage == GAME_STAGE_DRYFIELD) {
-        view11Batches = gSpriteAreaTables[location->stage - 1][session->spriteVariant - 1].areaViews[location->area - 1][FACTORY_ROOM_POWER_SCENE_SPRITE_VIEW - 1].batches;
+        view11Batches = gSpriteAreaTables[location->stage - 1][session->spriteVariant - 1].areaViews[location->area - 1][FACTORY_POWER_SCENE_SPRITE_VIEW - 1].batches;
         if (!(visible & FACTORY_ROOM_VISIBILITY_BYTE_MASK)) {
-            view11Batches[FACTORY_ROOM_POWER_SCENE_SPRITE_BATCH].hidden = true;
+            view11Batches[FACTORY_POWER_SCENE_SPRITE_BATCH].hidden = true;
             return;
         }
-        view11Batches[FACTORY_ROOM_POWER_SCENE_SPRITE_BATCH].hidden = false;
+        view11Batches[FACTORY_POWER_SCENE_SPRITE_BATCH].hidden = false;
     }
 }
 
@@ -562,20 +549,6 @@ void FACTORY_ROOM_INSTANCE_SET_VIEW11_SPRITE_VISIBLE(s32 visible)
 
 void FACTORY_DRAW_GLOWS_TASK(Task* task)
 {
-    enum {
-        // Bits select 1-based logical room views, before camera/image remapping.
-        FACTORY_GLOW_POWER_VIEW_MASK      = (1 << 3) | (1 << 5) | (1 << 6) | (1 << 12) | (1 << 14) | (1 << 16),
-        FACTORY_GLOW_LAMP_VIEW_MASK       = (1 << 2) | (1 << 6) | (1 << 7) | (1 << 9) | (1 << 10) | (1 << 13) | (1 << 16) | (1 << 17) | (1 << 18) | (1 << 19),
-        FACTORY_GLOW_LAMP_FIRST_POSITION  = 1, // Lamp progress after the power scene
-        FACTORY_GLOW_LAMP_SECOND_POSITION = 2, // Lamp progress after the lamp scene or sound command
-        // Pixel radii are scale * 64 / (camera Z / 4 + 1).
-        FACTORY_GLOW_POWER_RADIUS_SCALE = 0x100,
-        FACTORY_GLOW_LAMP_RADIUS_SCALE  = 0x80,
-        // High nibble is the odd-frame flicker shift; low three are RGB * 16.
-        FACTORY_GLOW_POWER_COLOR       = (3 << 12) | (6 << 8) | (6 << 4),
-        FACTORY_GLOW_LAMP_FIRST_COLOR  = (5 << 12) | (10 << 8),
-        FACTORY_GLOW_LAMP_SECOND_COLOR = (5 << 12) | (10 << 4),
-    };
     s32 viewBit;
 
     viewBit = 1 << gGameSession->location.view;
@@ -588,9 +561,9 @@ void FACTORY_DRAW_GLOWS_TASK(Task* task)
     }
     // Lamp progress selects one position independently of the power flag.
     if (viewBit & FACTORY_GLOW_LAMP_VIEW_MASK) {
-        if (gameFlagGetNibble(GAME_FLAG_FACTORY_LAMP_PROGRESS) == FACTORY_GLOW_LAMP_FIRST_POSITION) {
+        if (gameFlagGetNibble(GAME_FLAG_FACTORY_LAMP_PROGRESS) == FACTORY_LAMP_PROGRESS_FIRST) {
             _glowDrawTintedDisc(&_gFactoryLampFirstGlowPosition, FACTORY_GLOW_LAMP_RADIUS_SCALE, FACTORY_GLOW_LAMP_FIRST_COLOR);
-        } else if (gameFlagGetNibble(GAME_FLAG_FACTORY_LAMP_PROGRESS) == FACTORY_GLOW_LAMP_SECOND_POSITION) {
+        } else if (gameFlagGetNibble(GAME_FLAG_FACTORY_LAMP_PROGRESS) == FACTORY_LAMP_PROGRESS_SECOND) {
             _glowDrawTintedDisc(&_gFactoryLampSecondGlowPosition, FACTORY_GLOW_LAMP_RADIUS_SCALE, FACTORY_GLOW_LAMP_SECOND_COLOR);
         }
     }

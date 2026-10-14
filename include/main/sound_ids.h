@@ -350,24 +350,6 @@ enum {
     /// Played each frame the breezeway's key-item hotspot cursor moves toward the
     /// prompt.
     SOUND_BREEZEWAY_CURSOR_MOVE = SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_BREEZEWAY, 0x0D),
-    /// Lift platform raise/lower movement sound, started as it moves and stopped when
-    /// it reaches the end.
-    SOUND_FACTORY_LIFT_MOVE = SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_FACTORY, 8),
-    /// Played (day only) as the factory's white-out scene flashes white and reloads the
-    /// room as variant 2.
-    SOUND_FACTORY_WHITEOUT = SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_FACTORY, 0x0B),
-    /// The factory lift's hatch swinging open.
-    SOUND_FACTORY_HATCH_OPEN = SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_FACTORY, 0x0D),
-    /// The factory lift's hatch swinging shut.
-    SOUND_FACTORY_HATCH_CLOSE = SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_FACTORY, 0x0E),
-    /// Lift platform quarter-turn movement sound, stopped when the turn ends.
-    SOUND_FACTORY_LIFT_TURN = SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_FACTORY, 0x0F),
-    /// Played as the lift platform finishes raising or lowering.
-    SOUND_FACTORY_LIFT_MOVE_STOP = SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_FACTORY, 0x10),
-    /// Played as the lift platform finishes a turn.
-    SOUND_FACTORY_LIFT_TURN_STOP = SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_FACTORY, 0x11),
-    /// Bang when a turn is tried with the lift lowered and it jams, with a screen jolt.
-    SOUND_FACTORY_LIFT_JAM = SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_FACTORY, 0x12),
     /// Positional sound when the trailer coach's item container is opened and its lid
     /// model tilts.
     SOUND_TRAILER_COACH_ITEM_LID_OPEN = SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_TRAILER_COACH, 0x0B),
@@ -402,20 +384,6 @@ enum {
     SOUND_NIGHT_MOTEL_LOBBY_KEYPAD_ACCEPT = SOUND_AREA(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_MOTEL_LOBBY, 8),
     /// Played when the keypad's enter key is pressed with a wrong code.
     SOUND_NIGHT_MOTEL_LOBBY_KEYPAD_ERROR = SOUND_AREA(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_MOTEL_LOBBY, 9),
-    /// Night: lift platform raise/lower movement sound.
-    SOUND_NIGHT_FACTORY_LIFT_MOVE = SOUND_AREA(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_FACTORY, 8),
-    /// Night: the factory lift's hatch swinging open.
-    SOUND_NIGHT_FACTORY_HATCH_OPEN = SOUND_AREA(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_FACTORY, 0x0D),
-    /// Night: the factory lift's hatch swinging shut.
-    SOUND_NIGHT_FACTORY_HATCH_CLOSE = SOUND_AREA(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_FACTORY, 0x0E),
-    /// Night: lift platform quarter-turn movement sound.
-    SOUND_NIGHT_FACTORY_LIFT_TURN = SOUND_AREA(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_FACTORY, 0x0F),
-    /// Night: played as the lift finishes raising or lowering.
-    SOUND_NIGHT_FACTORY_LIFT_MOVE_STOP = SOUND_AREA(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_FACTORY, 0x10),
-    /// Night: played as the lift finishes a turn.
-    SOUND_NIGHT_FACTORY_LIFT_TURN_STOP = SOUND_AREA(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_FACTORY, 0x11),
-    /// Night: bang when a turn jams with the lift lowered.
-    SOUND_NIGHT_FACTORY_LIFT_JAM = SOUND_AREA(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_FACTORY, 0x12),
     /// Night: positional sound when the trailer coach's item container is opened.
     SOUND_NIGHT_TRAILER_COACH_ITEM_LID_OPEN = SOUND_AREA(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_TRAILER_COACH, 0x0B),
     /// Night: positional sound after the trailer coach's item is taken and the

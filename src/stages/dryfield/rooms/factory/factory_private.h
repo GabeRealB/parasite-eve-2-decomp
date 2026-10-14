@@ -35,6 +35,8 @@
 
 #include "../../dryfield_time.h"
 
+#include "config.h"
+
 #if DRYFIELD_TIME == DRYFIELD_DAY
 #include "factory_day.h"
 #else
@@ -120,37 +122,6 @@ typedef struct {
 } FactoryHatchStateFuncTable;
 STATIC_ASSERT_SIZEOF(FactoryHatchStateFuncTable, 0xC);
 
-/// Bits of the lift position nibble, game flag
-/// `GAME_FLAG_FACTORY_LIFT_POSITION`, and of the copy of it in
-/// `FactoryLiftWork::position`. The operator panel requests a move by changing
-/// a bit; the lift then moves until it stands where the nibble says.
-enum {
-    FACTORY_LIFT_POSITION_TURNED = 1 << 0, // Turned a quarter turn about Y
-    FACTORY_LIFT_POSITION_RAISED = 1 << 1, // Raised
-};
-
-/// Raised lift endpoint as a signed 16.16 room-coordinate Y word.
-///
-/// The lowered endpoint is zero. Negative Y rises, so the raised height is
-/// -570 units. Store/compare the full word in `FactoryLiftWork::y`; model
-/// translation takes its signed integer half. Natural settling retains the
-/// computed endpoint, while setup and START skip assign this exact value.
-enum { FACTORY_LIFT_Y_RAISED_Q16 = -570 * 0x10000 };
-/// Turned endpoint as a signed 16.16 yaw word, one quarter of a revolution.
-///
-/// The integer angle is 1024 in 4096 units per turn. Compare/store the full
-/// word in FactoryLiftWork::yaw; frame updates pass only its signed integer
-/// half to the SDK. Setup deliberately passes this full word to RotMatrixY,
-/// where it masks to zero, retaining the binary's initial unturned frame.
-enum { FACTORY_LIFT_YAW_TURNED_Q16 = 0x400 * 0x10000 };
-
-/// Inclusive elapsed-movement-frame threshold for the lift's START skip.
-///
-/// Port 0 must report a pressed START while the movement is in its sound,
-/// outbound or settling phase. This gates both yaw and vertical handlers;
-/// it is neither a remaining-time count nor the duration of the skip.
-enum { FACTORY_LIFT_SKIP_FRAMES = 11 };
-
 /// Work block of the lift task: where the lift model stands, how fast it is
 /// moving, and the progress of the two movements that take it to the position
 /// the lift position nibble asks for.
@@ -193,13 +164,6 @@ typedef struct {
 } FactoryLiftWork;
 STATIC_ASSERT_SIZEOF(FactoryLiftWork, 0x58);
 
-/// Idle-task ticks of hotspot scanning delay after an operator-panel choice.
-///
-/// Armed after confirmation/cancellation and again after a lift move settles.
-/// The idle state decrements before testing it, even while CAP is busy; CAP
-/// playback independently keeps the cursor hidden when this count reaches zero.
-enum { FACTORY_PANEL_SCAN_DELAY_FRAMES = 10 };
-
 /// Dispatch slots of the operator panel task, selected by `Task::state`.
 enum {
     FACTORY_PANEL_STATE_INIT = 0,
@@ -227,19 +191,6 @@ enum {
     FACTORY_PANEL_PROMPT_PUSH    = 1
 };
 
-/// Scheduler priorities of factory interaction tasks and their session poller.
-enum {
-    FACTORY_TASK_PRIORITY          = 192,
-    FACTORY_PANEL_SESSION_PRIORITY = 32
-};
-
-/// Saved views used while scanning the operator panel and after leaving it.
-enum {
-    FACTORY_PANEL_VIEW_RETURN    = 3,
-    FACTORY_PANEL_VIEW_POWERED   = 5,
-    FACTORY_PANEL_VIEW_UNPOWERED = 12
-};
-
 /// Work block of the operator panel task: the hotspot the player confirmed and
 /// the two waits that keep the panel from taking another choice too early.
 ///
@@ -260,14 +211,6 @@ typedef struct {
     u8  unknown_F;    // Never read or written by the room; role unproven
 } FactoryPanelWork;
 STATIC_ASSERT_SIZEOF(FactoryPanelWork, 0x10);
-
-/// Messages the operator panel task receives.
-enum {
-    /// The lift has finished the movement the panel asked for, whether it ran
-    /// to its end or was skipped. Both argument words are zero and no result
-    /// is defined.
-    FACTORY_PANEL_MESSAGE_MOVE_SETTLED = 0x13F3,
-};
 
 /* Defined by each build. */
 /// Unturned lift footprint used to rebuild the live room's moving collision.
