@@ -793,7 +793,7 @@ static void _madChaserRecoilRecover(Task* task);
 /// Both arguments and the result are signed whole parent-coordinate units.
 /// With no grid correction, use the actor correction. Opposing corrections
 /// retain the grid step; aligned corrections use the larger displacement.
-static __inline__ s16 _madChaserSelectPushbackStep(s16 gridStep, s16 actorStep)
+static inline s16 _madChaserSelectPushbackStep(s16 gridStep, s16 actorStep)
 {
     if (gridStep == 0) {
         return actorStep;

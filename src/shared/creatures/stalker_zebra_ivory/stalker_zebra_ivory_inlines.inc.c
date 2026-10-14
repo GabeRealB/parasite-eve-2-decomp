@@ -8,7 +8,7 @@
 /// a blend clip converts that counter through `_stalkerZebraIvoryFrameToTicks`.
 /// PLAYING increments it as an s16. Every request state ticks slots, including
 /// the default zero state; rates narrow to signed bytes (16 is normal speed).
-static __inline__ void _stalkerZebraIvoryTickAnimInline(Task* task)
+static inline void _stalkerZebraIvoryTickAnimInline(Task* task)
 {
     StalkerZebraIvoryWork* work = (StalkerZebraIvoryWork*)task->work;
     s32                    slotIndex;
@@ -82,7 +82,7 @@ static __inline__ void _stalkerZebraIvoryTickAnimInline(Task* task)
 /// the nine rotation coefficients. Preserves translation and cache stamps:
 /// callers invalidate/recompose the root when needed. Requires an initialized
 /// scratch stack with sizeof(MATRIX) free bytes; no reservation survives the call.
-static __inline__ void _stalkerZebraIvoryApplyRotationInline(Task* task)
+static inline void _stalkerZebraIvoryApplyRotationInline(Task* task)
 {
     STALKER_ZEBRA_IVORY_REBUILD_ROOT_ROTATION(task);
 }
@@ -101,7 +101,7 @@ enum {
 /// task work pointer at selection time, including after calls that can change
 /// it. Preserves animation, timers and pending reactions; only the signed
 /// halfword state and sub-state cursor change.
-static __inline__ void _stalkerZebraIvorySelectState(Task* task, s16 state)
+static inline void _stalkerZebraIvorySelectState(Task* task, s16 state)
 {
     StalkerZebraIvoryWork* stateWork = task->work;
 
@@ -113,7 +113,7 @@ static __inline__ void _stalkerZebraIvorySelectState(Task* task, s16 state)
 ///
 /// Advances the shared 32-bit LCG once with unsigned wraparound and uses seven
 /// bits of its high halfword. Borrows writable work; no animation or state changes.
-static __inline__ void _stalkerZebraIvorySeedCrawlCountdown(StalkerZebraIvoryWork* work)
+static inline void _stalkerZebraIvorySeedCrawlCountdown(StalkerZebraIvoryWork* work)
 {
     enum { STALKER_ZEBRA_IVORY_CRAWL_BASE_TICKS        = 30,
            STALKER_ZEBRA_IVORY_CRAWL_SPREAD_MASK       = 127,

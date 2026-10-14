@@ -589,7 +589,7 @@ STATIC_ASSERT_SIZEOF(DesertChaserWork, 0xEB0);
 ///
 /// Scans the bounded contact array up to its first empty key. This capsule
 /// participates only in the grid pass, so occupied entries describe walls.
-static __inline__ s16 _desertChaserCapsuleTouchesGrid(Task* task)
+static inline s16 _desertChaserCapsuleTouchesGrid(Task* task)
 {
     DesertChaserWork* work  = task->work;
     s16               found = 0;

@@ -294,15 +294,15 @@ static s32 _worldCoordScoreConeLight(WorldCoordSpotLight* coneLight, const VECTO
 
 static void _worldCoordFindNearestRoomLight(const VECTOR* samplePosition, _WorldCoordNearestRoomLight* nearestLight);
 
-static __inline__ void _worldCoordWriteDirectionalLightMatrix(s32 lightIndex, const WorldCoordLight* light, const VECTOR* unusedObjectPosition, const TmdObject* model);
+static inline void _worldCoordWriteDirectionalLightMatrix(s32 lightIndex, const WorldCoordLight* light, const VECTOR* unusedObjectPosition, const TmdObject* model);
 
-static __inline__ void _worldCoordWritePositionalLightMatrix(s32 lightIndex, const WorldCoordLight* light, const VECTOR* objectPosition, const TmdObject* model);
+static inline void _worldCoordWritePositionalLightMatrix(s32 lightIndex, const WorldCoordLight* light, const VECTOR* objectPosition, const TmdObject* model);
 
-static __inline__ s32 _worldCoordScoreDirectionalLight(WorldCoordLight* light);
+static inline s32 _worldCoordScoreDirectionalLight(WorldCoordLight* light);
 
-static __inline__ void _worldCoordAdmitRankedLight(_WorldCoordRankedLight* rankedLights, s32 contributionScore, s32 sourceKind, WorldCoordLight* light, _WorldCoordRankedLight* cutoffLight);
+static inline void _worldCoordAdmitRankedLight(_WorldCoordRankedLight* rankedLights, s32 contributionScore, s32 sourceKind, WorldCoordLight* light, _WorldCoordRankedLight* cutoffLight);
 
-static __inline__ void _worldCoordAdmitDirectionalLight(_WorldCoordRankedLight* rankedLights, s32 contributionScore, s32 sourceKind, WorldCoordLight* light, _WorldCoordLightQueryScratch* lightQuery);
+static inline void _worldCoordAdmitDirectionalLight(_WorldCoordRankedLight* rankedLights, s32 contributionScore, s32 sourceKind, WorldCoordLight* light, _WorldCoordLightQueryScratch* lightQuery);
 
 /// Number of player-lighting task states (0 initialization, 1 recurring update).
 enum { WORLD_COORDINATE_PLAYER_LIGHTING_STATE_COUNT = 2 };
@@ -384,7 +384,7 @@ static inline u16 _objectFieldGetAttackHitReaction(s32 attackId);
 ///
 /// The key must contain valid 1-based stage/area/room indices. The returned
 /// descriptor belongs to the loaded table's overlay and may be NULL.
-static __inline__ WorldCoordRoomLighting* _worldCoordLookupRoomLighting(const GameLocationKey* location)
+static inline WorldCoordRoomLighting* _worldCoordLookupRoomLighting(const GameLocationKey* location)
 {
     WorldCoordRoomLighting** areaLightingTables;
     WorldCoordRoomLighting*  roomLighting;
@@ -820,7 +820,7 @@ static void _worldCoordFindNearestRoomLight(const VECTOR* samplePosition, _World
 /// and may be NULL.
 /// Requires 28 scratch bytes plus 24 for normalization, released before
 /// return; changes GTE state. Inlined into the model-light selection query.
-static __inline__ void _worldCoordWriteDirectionalLightMatrix(s32 lightIndex, const WorldCoordLight* light, const VECTOR* unusedObjectPosition, const TmdObject* model)
+static inline void _worldCoordWriteDirectionalLightMatrix(s32 lightIndex, const WorldCoordLight* light, const VECTOR* unusedObjectPosition, const TmdObject* model)
 {
     _WorldCoordLightMatrixScratch* lightScratch;
     MATRIX*                        lightMtx;
@@ -853,7 +853,7 @@ static __inline__ void _worldCoordWriteDirectionalLightMatrix(s32 lightIndex, co
 /// only the common light header is used. Requires 28 scratch bytes plus 24
 /// for normalization, released before return; changes GTE state. Inlined
 /// into the model-light selection query.
-static __inline__ void _worldCoordWritePositionalLightMatrix(s32 lightIndex, const WorldCoordLight* light, const VECTOR* objectPosition, const TmdObject* model)
+static inline void _worldCoordWritePositionalLightMatrix(s32 lightIndex, const WorldCoordLight* light, const VECTOR* objectPosition, const TmdObject* model)
 {
     _WorldCoordLightMatrixScratch* lightScratch;
     MATRIX*                        lightMtx;
@@ -884,7 +884,7 @@ static __inline__ void _worldCoordWritePositionalLightMatrix(s32 lightIndex, con
 /// signed Q12 RGB score plus the base score. A view mismatch returns zero and
 /// retains attenuation. Uses no coordinates, scratch storage or GTE state.
 /// Inlined into the model-light selection query.
-static __inline__ s32 _worldCoordScoreDirectionalLight(WorldCoordLight* light)
+static inline s32 _worldCoordScoreDirectionalLight(WorldCoordLight* light)
 {
     s16 viewId;
     s32 score;
@@ -908,7 +908,7 @@ static __inline__ s32 _worldCoordScoreDirectionalLight(WorldCoordLight* light)
 /// to its last entry. `sourceKind` is one of the ranked-light source kinds;
 /// `light` is its borrowed common header, live through table consumption.
 /// Ties retain the earlier source. Insertion starts at entry 2.
-static __inline__ void _worldCoordAdmitRankedLight(_WorldCoordRankedLight* rankedLights, s32 contributionScore, s32 sourceKind, WorldCoordLight* light, _WorldCoordRankedLight* cutoffLight)
+static inline void _worldCoordAdmitRankedLight(_WorldCoordRankedLight* rankedLights, s32 contributionScore, s32 sourceKind, WorldCoordLight* light, _WorldCoordRankedLight* cutoffLight)
 {
     if (contributionScore > 0 && cutoffLight->rank < contributionScore) {
         _worldCoordInsertRankedLight(rankedLights, contributionScore, sourceKind, light, WORLD_COORDINATE_RANKED_LIGHT_COUNT - 2);
@@ -920,7 +920,7 @@ static __inline__ void _worldCoordAdmitRankedLight(_WorldCoordRankedLight* ranke
 /// `sourceKind` must be WORLD_COORDINATE_RANKED_LIGHT_DIRECTIONAL and `light`
 /// is a borrowed common header, live through consumption. Nonpositive scores
 /// and cutoff ties are ignored. Insertion starts at entry 2.
-static __inline__ void _worldCoordAdmitDirectionalLight(_WorldCoordRankedLight* rankedLights, s32 contributionScore, s32 sourceKind, WorldCoordLight* light, _WorldCoordLightQueryScratch* lightQuery)
+static inline void _worldCoordAdmitDirectionalLight(_WorldCoordRankedLight* rankedLights, s32 contributionScore, s32 sourceKind, WorldCoordLight* light, _WorldCoordLightQueryScratch* lightQuery)
 {
     if (contributionScore > 0 && lightQuery->rankedLights[ARRAY_SIZE(lightQuery->rankedLights) - 1].rank < contributionScore) {
         _worldCoordInsertRankedLight(rankedLights, contributionScore, sourceKind, light, WORLD_COORDINATE_RANKED_LIGHT_COUNT - 2);
@@ -2188,7 +2188,7 @@ static void _worldCoordInitPlayerLighting(Task* task)
 /// scratch stack with 48 free bytes, released before return; only the leading
 /// VECTOR is accessed. Replaces GTE rotation and arithmetic state, retains no
 /// pointer and does not compose or modify the body.
-static __inline__ void _worldCollisionGetBodyComposedPosition(const WorldCollisionBody* body, VECTOR* position)
+static inline void _worldCollisionGetBodyComposedPosition(const WorldCollisionBody* body, VECTOR* position)
 {
     // Only the leading VECTOR is accessed; the rest of the reservation is unproven.
     enum { WORLD_COLLISION_BODY_POSITION_SCRATCH_BYTES = 0x30 };

@@ -135,14 +135,14 @@ SpriteAreaTable*                    gSpriteAreaTables[5]                        
 WorldCollisionStageResources* const gWorldCollisionStageResources[5] __attribute__((section(".data")))    = { &gMapAkropolisWorldCollisionResources, &gMapDryfieldWorldCollisionResources, &gMapDryfieldFullWorldCollisionResources, &gMapShelterWorldCollisionResources, &gMapNeoArkWorldCollisionResources };
 DirectionWarpEntry** const          gDirectionAreaWarpEntriesByStage[5] __attribute__((section(".data"))) = { gMapAkropolisAreaWarpEntries, gMapDryfieldAreaWarpEntries, gMapDryfieldFullAreaWarpEntries, gMapShelterAreaWarpEntries, gMapNeoArkAreaWarpEntries };
 WorldCoordRoomLighting**            gWorldCoordRoomLightingTables[5]                                      = {
-    [GAME_STAGE_ACROPOLIS - 1]       = gMapAkropolisAreaRoomLightingTables,
+    [GAME_STAGE_AKROPOLIS - 1]       = gMapAkropolisAreaRoomLightingTables,
     [GAME_STAGE_DRYFIELD - 1]        = gMapDryfieldRoomLightingTables,
     [GAME_STAGE_DRYFIELD_NIGHT - 1]  = gMapDryfieldFullRoomLightingTables,
     [GAME_STAGE_MINE_SHELTER - 1]    = gMapShelterRoomLightingTables,
     [GAME_STAGE_SHELTER_NEO_ARK - 1] = gMapNeoArkRoomLightingTables,
 };
 WorldCollisionSurfaceProperties*** gWorldCollisionSurfacePropertiesTables[5] = {
-    [GAME_STAGE_ACROPOLIS - 1]       = gMapAkropolisSurfacePropertiesByArea,
+    [GAME_STAGE_AKROPOLIS - 1]       = gMapAkropolisSurfacePropertiesByArea,
     [GAME_STAGE_DRYFIELD - 1]        = gMapDryfieldSurfacePropertiesByArea,
     [GAME_STAGE_DRYFIELD_NIGHT - 1]  = gMapDryfieldFullSurfacePropertiesByArea,
     [GAME_STAGE_MINE_SHELTER - 1]    = gMapShelterSurfacePropertiesByArea,
@@ -498,7 +498,7 @@ void loadingInitializeAreaMemoryAndAudioTask(Task* task)
         // Reuse area image storage only after the preceding CD requests finish.
         liveSave = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
         memConfigureImageMemory(liveSave->state.location.stage, liveSave->state.location.area);
-        if ((GAME_LOCATION_WORD(liveSave->state.location) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PLAZA, 0, 0)) {
+        if ((GAME_LOCATION_WORD(liveSave->state.location) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_PLAZA, 0, 0)) {
             memSelectAuxHeapRegion(true);
         }
         memInitAuxHeap();

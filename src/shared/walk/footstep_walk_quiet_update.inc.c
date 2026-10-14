@@ -13,7 +13,7 @@
 /// Both arguments are borrowed for this call. The rotation requires an initialized
 /// scratch stack with 0x24 free, word-aligned bytes disjoint from both objects;
 /// that reservation is released before return.
-static __inline__ void _footstepWalkQuietTurnModel(GfxCoord* rootCoord, FootstepWalkQuietWork* work)
+static inline void _footstepWalkQuietTurnModel(GfxCoord* rootCoord, FootstepWalkQuietWork* work)
 {
     work->st.yaw += FOOTSTEP_WALK_TURN_ANGLE_PER_UPDATE;
     gfxRotMatrixY(&rootCoord->coord, work->st.yaw, GRAPHICS_ROTATION_REPLACE);

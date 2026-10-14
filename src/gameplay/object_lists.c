@@ -709,9 +709,9 @@ s32 worldCollisionResolveResponsePushback(const WorldCollisionContact* contacts,
 /// before rotation and translation. Writes XYZ only; vector pad components are
 /// untouched. The caller owns the reserved scratch block, clear of the body and
 /// capsule. Replaces the GTE rotation and arithmetic state and retains no pointers.
-static __inline__ void _worldCollisionPlaceCapsuleSecondEndpoint(const WorldCollisionBody*             body,
-                                                                 const WorldCollisionCapsule*          capsule,
-                                                                 _WorldCollisionNearestContactScratch* scratch)
+static inline void _worldCollisionPlaceCapsuleSecondEndpoint(const WorldCollisionBody*             body,
+                                                             const WorldCollisionCapsule*          capsule,
+                                                             _WorldCollisionNearestContactScratch* scratch)
 {
     gte_SetRotMatrix(&body->coord->workm);
     scratch->localEndpoint.vx = (u16)capsule->ends[1].vx + (u16)body->pos.vx;
@@ -794,7 +794,7 @@ static s32 _worldCollisionFindNearestCapsuleEndContactIndex(const WorldCollision
 /// until it is unlinked. The body becomes the new tail; its shape, contacts
 /// and flags are unchanged. The caller is responsible for validating the
 /// shape kind and setting the LINKED flag.
-static __inline__ void _worldCollisionAppendBody(WorldCollisionBody** listHead, WorldCollisionBody* body)
+static inline void _worldCollisionAppendBody(WorldCollisionBody** listHead, WorldCollisionBody* body)
 {
     WorldCollisionBody*       tail;
     WorldCollisionBody* const first = *listHead;
@@ -856,7 +856,7 @@ void worldCollisionUnlinkBody(WorldCollisionBody* body)
 /// Borrows it and the writable head slot until unlinking. At an empty head,
 /// prevLink points to that slot; otherwise it points to the old tail's next.
 /// Overwrites next with NULL; flags, geometry and hit state are untouched.
-static __inline__ void _worldCollisionAppendTrigger(WorldCollisionTrigger** listHead, WorldCollisionTrigger* trigger)
+static inline void _worldCollisionAppendTrigger(WorldCollisionTrigger** listHead, WorldCollisionTrigger* trigger)
 {
     WorldCollisionTrigger* first;
 
@@ -895,7 +895,7 @@ void worldCollisionLinkTrigger(s32 listIndex, WorldCollisionTrigger* trigger)
 /// containing trigger. Clears both departing links; a NULL next is already
 /// cleared and needs no write. Flags, geometry and hit state remain intact.
 /// Frees nothing; the caller controls list membership flags and storage lifetime.
-static __inline__ void _worldCollisionSpliceOutTrigger(WorldCollisionTrigger* trigger, WorldCollisionTrigger* next)
+static inline void _worldCollisionSpliceOutTrigger(WorldCollisionTrigger* trigger, WorldCollisionTrigger* next)
 {
     WorldCollisionTrigger** previousLink;
 
@@ -959,7 +959,7 @@ void worldCollisionClearTriggerList(s32 listIndex)
 /// Borrows it and the writable head slot until unlinking. At an empty head,
 /// prevLink points to that slot; otherwise it points to the old tail's next.
 /// Overwrites next with NULL; flags and geometry are untouched.
-static __inline__ void _worldCollisionAppendOccluder(WorldCollisionOccluder** listHead, WorldCollisionOccluder* occluder)
+static inline void _worldCollisionAppendOccluder(WorldCollisionOccluder** listHead, WorldCollisionOccluder* occluder)
 {
     WorldCollisionOccluder* first;
 
@@ -1213,7 +1213,7 @@ s32 worldCollisionReadActionHit(u16* controlOut, u8* parameter0Out, u8* paramete
 /// bits, and both vector pad halfwords survive. OCCUPIED is set after writing
 /// the payload. The caller selects the slot and counts the target; no pointer
 /// is retained.
-static __inline__ void _attachmentWriteTargetContact(WorldCollisionContact* contact, s32 attackKey)
+static inline void _attachmentWriteTargetContact(WorldCollisionContact* contact, s32 attackKey)
 {
     contact->key.value             = attackKey;
     contact->distance              = 0;
@@ -1259,7 +1259,7 @@ void attachmentAddTargetContact(const Enemy* enemy, s32 attackKey)
 /// Loading the complete left rotation before writing any column makes that
 /// in-place composition safe. Changes GTE rotation and arithmetic state and
 /// retains no pointers.
-static __inline__ void _gfxMultiplyDirectionRotations(const MATRIX* left, const MATRIX* right, MATRIX* out)
+static inline void _gfxMultiplyDirectionRotations(const MATRIX* left, const MATRIX* right, MATRIX* out)
 {
     gte_SetRotMatrix(left);
     gte_ldclmv(&right->m[0][0]);

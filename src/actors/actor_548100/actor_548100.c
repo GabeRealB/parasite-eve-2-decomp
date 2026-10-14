@@ -1146,7 +1146,7 @@ static const TaskFuncTable11 _gActor548100PanelStateHandlers = {
 /// Requires a live session and player model. Hide mode requests the parent's
 /// primitive buffer and propagates its draw flags to attachments. The panel
 /// exit restores player/HUD/control and releases the separate menu-display hold.
-static __inline__ void _actor548100HoldPanelPresentation(void)
+static inline void _actor548100HoldPanelPresentation(void)
 {
     gGameSession->cutsceneHold = 1;
     gGameSession->hideHud      = 1;

@@ -278,7 +278,7 @@ enum { MAP_NEO_ARK_MIDI_GAIN_FULL = 127 };
 /// `songRamp` borrows the live song's writable ramp: applying it can clear a
 /// completed step, but does not advance its clock. The result is a playback
 /// level for subsequent channel and note scaling, without clamping.
-static __inline__ s32 _mapNeoArkApplyAreaMusicVolume(LinInterp* songRamp)
+static inline s32 _mapNeoArkApplyAreaMusicVolume(LinInterp* songRamp)
 {
     u32 masterGain;
     u32 volumeProduct;

@@ -36,7 +36,7 @@ static void _mothUpdateColor(Task* task)
 /// Borrows live work/root and a disjoint reserved scale scratch block; the
 /// caller owns invalidation, composition and release. The signed Q12 Y factor
 /// uses 4096 as unity; X/Z stay at unity and saved translation is preserved.
-static __inline__ void _mothApplyRootScale(GfxCoord* rootCoord, const MothWork* work, ActorScaleScratch* scratch)
+static inline void _mothApplyRootScale(GfxCoord* rootCoord, const MothWork* work, ActorScaleScratch* scratch)
 {
     scratch->scale.vx = ONE;
     scratch->scale.vy = work->squashScale;

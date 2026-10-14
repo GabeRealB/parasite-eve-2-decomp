@@ -24,7 +24,7 @@
 /// The borrowed chain must be live and acyclic; `rotation` must be a separate,
 /// word-aligned writable MATRIX. Only the 3x3 result is valid: normalization
 /// copies unspecified translation and alignment bytes too. Changes GTE state.
-static __inline__ s32 _diverAccumulateRotation(const GfxCoord* joint, MATRIX* rotation, const GfxCoord* excludedAncestor)
+static inline s32 _diverAccumulateRotation(const GfxCoord* joint, MATRIX* rotation, const GfxCoord* excludedAncestor)
 {
     MATRIX          normalizedRotation;
     MATRIX          parentRotation;
@@ -60,7 +60,7 @@ static __inline__ s32 _diverAccumulateRotation(const GfxCoord* joint, MATRIX* ro
 /// MATRIX with an initialized 3x3. Leaves the rotation unchanged when the parent
 /// is the view or the chain never reaches it. Translation stays intact; the
 /// SDK multiply may write alignment bytes. Borrows all inputs and changes GTE state.
-static __inline__ GfxCoord* _diverLocalizeRotation(GfxCoord* joint, MATRIX* worldRotation)
+static inline GfxCoord* _diverLocalizeRotation(GfxCoord* joint, MATRIX* worldRotation)
 {
     MATRIX          parentWorldRotation;
     MATRIX          ancestorRotation;
@@ -104,7 +104,7 @@ static __inline__ GfxCoord* _diverLocalizeRotation(GfxCoord* joint, MATRIX* worl
 /// Reads the last tick's status copied into the live `DiverWork::animStatus`.
 /// Returns 0 or 1 without ticking playback or consuming flags. A control jump
 /// can continue playback, so a true result need not mean that the clip stopped.
-static __inline__ s32 _diverClipHasBoundaryOrJump(Task* task)
+static inline s32 _diverClipHasBoundaryOrJump(Task* task)
 {
     DiverWork* work = task->work;
 
@@ -125,7 +125,7 @@ static __inline__ s32 _diverClipHasBoundaryOrJump(Task* task)
 /// Replaces an earlier pending request, without ticking slots or changing the
 /// applied clip, status or frame counter. The carrier's animation driver applies
 /// the request on a later update, including when this clip already plays.
-static __inline__ void _diverRequestClipBlend(DiverWork* work, s16 clipIndex, s16 rate, s16 blendFrames)
+static inline void _diverRequestClipBlend(DiverWork* work, s16 clipIndex, s16 rate, s16 blendFrames)
 {
     work->animBlend   = blendFrames;
     work->animStep    = rate;
@@ -138,7 +138,7 @@ static __inline__ void _diverRequestClipBlend(DiverWork* work, s16 clipIndex, s1
 /// Reloads the carrier's live `DiverWork` through the task. `state` is an
 /// index into that carrier's current state table and narrows to a signed
 /// halfword. Preserves timers, animation requests and the task's outer state.
-static __inline__ void _diverSetState(Task* task, s32 state)
+static inline void _diverSetState(Task* task, s32 state)
 {
     DiverWork* work = task->work;
 

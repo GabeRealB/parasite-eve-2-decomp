@@ -1997,17 +1997,17 @@ static s32 _fadeBootImageFromBlack(s32 levelStep)
 static void _gameFlowSelectAcropolisLoadScreenAssets(u8* imageFileIndex)
 {
     switch (gGameFlowLoadScreenDestination.area) {
-        case GAME_AREA_ACROPOLIS_SQUARE:
+        case GAME_AREA_AKROPOLIS_SQUARE:
             gGameFlowLoadCaption = &_gGameFlowLoadCaptionAcropolis;
             *imageFileIndex      = GAME_FLOW_LOAD_IMAGE_ACROPOLIS_SQUARE;
             break;
-        case GAME_AREA_ACROPOLIS_PLAZA:
+        case GAME_AREA_AKROPOLIS_PLAZA:
             gGameFlowLoadCaption                = &_gGameFlowLoadCaptionAcropolisEvening;
             gGameFlowLegacySecondaryLoadCaption = &_gGameFlowLegacySecondaryLoadCaptionAcropolisEvening;
             *imageFileIndex                     = GAME_FLOW_LOAD_IMAGE_DETAILED_CAPTION;
             break;
-        case GAME_AREA_ACROPOLIS_EAST_ELEVATOR_HALL ... GAME_AREA_ACROPOLIS_CAFETERIA:
-        case GAME_AREA_ACROPOLIS_SECURITY_ROOM ... GAME_AREA_MIST_R18:
+        case GAME_AREA_AKROPOLIS_EAST_ELEVATOR_HALL ... GAME_AREA_AKROPOLIS_CAFETERIA:
+        case GAME_AREA_AKROPOLIS_SECURITY_ROOM ... GAME_AREA_MIST_R18:
         default:
             gGameFlowLoadCaption = &_gGameFlowLoadCaptionAcropolis;
             *imageFileIndex      = GAME_FLOW_LOAD_IMAGE_ACROPOLIS_OTHER;
@@ -2297,7 +2297,7 @@ void gameFlowStartLoadScreenImage(void)
     imageKey.fileGroup                  = GAME_FLOW_LOAD_FILE_CATEGORY;
     gGameFlowLegacySecondaryLoadCaption = NULL;
     switch (gGameFlowLoadScreenDestination.stage) {
-        case GAME_STAGE_ACROPOLIS:
+        case GAME_STAGE_AKROPOLIS:
             _gameFlowSelectAcropolisLoadScreenAssets(&imageKey.fileIndex);
             break;
         case GAME_STAGE_DRYFIELD:

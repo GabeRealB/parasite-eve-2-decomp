@@ -1496,7 +1496,7 @@ static u8 _gStalkerZebraIvoryDeathClipsByPose[ARRAY_SIZE(_gActor405800BodyAnimat
     STALKER_ZEBRA_IVORY_DEATH_CLIP_UPRIGHT_HOLD,
 };
 
-static __inline__ void _actor405800QueuePartFrameCapture(GfxCoord* partCoord);
+static inline void _actor405800QueuePartFrameCapture(GfxCoord* partCoord);
 
 #include "../../shared/creatures/stalker_zebra_ivory/stalker_zebra_ivory_inlines.inc.c"
 
@@ -1580,7 +1580,7 @@ enum {
 /// rate is in sixteenths of a frame per update; blendFrames counts updates.
 /// Playback later narrows rate to a signed byte. Reloads the work pointer
 /// and preserves the current playback and counter.
-static __inline__ void _actor405800SetBlendRequest(Task* task, s16 clipIndex, s16 rate, s16 blendFrames)
+static inline void _actor405800SetBlendRequest(Task* task, s16 clipIndex, s16 rate, s16 blendFrames)
 {
     _Actor405800IvoryStalkerWork* requestWork = task->work;
 
@@ -1594,7 +1594,7 @@ static __inline__ void _actor405800SetBlendRequest(Task* task, s16 clipIndex, s1
 ///
 /// phase is 1 combat, 2 death or 3 destruction. Reloads the live work pointer
 /// after the preceding calls; preserves timers, animation and pending reactions.
-static __inline__ void _actor405800SelectTaskPhase(Task* task, s32 phase)
+static inline void _actor405800SelectTaskPhase(Task* task, s32 phase)
 {
     _Actor405800IvoryStalkerWork* phaseWork = task->work;
 
@@ -1606,7 +1606,7 @@ static __inline__ void _actor405800SelectTaskPhase(Task* task, s32 phase)
 /// Requests a body reveal unless that same reveal is already running.
 ///
 /// Reloads the live work pointer and restarts only the cloak fade's phase.
-static __inline__ void _actor405800RequestShow(Task* task)
+static inline void _actor405800RequestShow(Task* task)
 {
     _Actor405800IvoryStalkerWork* showWork = task->work;
 
@@ -1622,7 +1622,7 @@ static __inline__ void _actor405800RequestShow(Task* task)
 /// Zero rate yields zero. Preserves signed division, unsigned right shift and
 /// byte truncation, including at negative rates. normalFrame is nonnegative
 /// and its eight-bit left shift must fit s32; reads the live animation rate.
-static __inline__ u8 _actor405800WalkFrameToTicks(Task* task, s32 normalFrame)
+static inline u8 _actor405800WalkFrameToTicks(Task* task, s32 normalFrame)
 {
     enum { ACTOR_405800_WALK_FRAME_FRACTION_BITS = 8,
            ACTOR_405800_WALK_RATE_FRACTION_BITS  = 4 };
@@ -1640,7 +1640,7 @@ static __inline__ u8 _actor405800WalkFrameToTicks(Task* task, s32 normalFrame)
 /// free for the Enemy placement voice. Requires a live Enemy spawn record and
 /// a valid composed view cache on the root. Pan is a spatial offset; one depth
 /// unit spans 256 game-coordinate units. Both narrow to their signed low byte.
-static __inline__ void _actor405800PlayMovementSound(Task* task, s32 baseScriptId, s32 waterScriptId)
+static inline void _actor405800PlayMovementSound(Task* task, s32 baseScriptId, s32 waterScriptId)
 {
     enum { ACTOR_405800_SPAWN_ENTRANCE_MASK  = 0xF0,
            ACTOR_405800_SPAWN_WATER_ENTRANCE = 0x10,
@@ -1665,7 +1665,7 @@ static __inline__ void _actor405800PlayMovementSound(Task* task, s32 baseScriptI
 /// clipIndex must name a loaded body clip; rate is in sixteenths of a frame
 /// per update and later narrows to a signed byte. Reloads live work and leaves
 /// blending, the current clip and its frame counter intact until playback.
-static __inline__ void _actor405800SetRestartRequest(Task* task, s16 clipIndex, s16 rate)
+static inline void _actor405800SetRestartRequest(Task* task, s16 clipIndex, s16 rate)
 {
     _Actor405800IvoryStalkerWork* requestWork = task->work;
 
@@ -1677,7 +1677,7 @@ static __inline__ void _actor405800SetRestartRequest(Task* task, s16 clipIndex, 
 /// Copies nine rotation coefficients, preserving translation and alignment bytes.
 ///
 /// Borrows two valid matrices for the call; self-copy is allowed.
-static __inline__ void _actor405800CopyArmRotation(MATRIX* dest, const MATRIX* source)
+static inline void _actor405800CopyArmRotation(MATRIX* dest, const MATRIX* source)
 {
     dest->m[0][0] = source->m[0][0];
     dest->m[0][1] = source->m[0][1];
@@ -1697,7 +1697,7 @@ static __inline__ void _actor405800CopyArmRotation(MATRIX* dest, const MATRIX* s
 /// and scratch space for rebuilding both halves, with no pending GPU use.
 /// The two builds toggle the next-half selector twice, preserving its value.
 /// Without a buffer, copies only the offsets.
-static __inline__ void _actor405800CopyArmTexture(const Task* ownerTask, Task* armTask)
+static inline void _actor405800CopyArmTexture(const Task* ownerTask, Task* armTask)
 {
     const TmdObject* textureSource = ownerTask->extra.tmd;
     TmdObject*       textureDest   = armTask->extra.tmd;
@@ -1715,7 +1715,7 @@ static __inline__ void _actor405800CopyArmTexture(const Task* ownerTask, Task* a
 /// Requires the live Enemy record and composed root. Water entrance spawns
 /// select the water bank. Voice occupies bits 8..11; pan and depth keep their
 /// signed low bytes, with a depth unit spanning 256 game-coordinate units.
-static __inline__ void _actor405800PlayStrikeSound(Task* task)
+static inline void _actor405800PlayStrikeSound(Task* task)
 {
     _actor405800PlayMovementSound(task, ACTOR_405800_SOUND_STRIKE, ACTOR_405800_SOUND_WATER_STRIKE);
 }
@@ -2296,7 +2296,7 @@ static const TaskFuncTable3 _gStalkerZebraIvoryKnockdownPhases = {
 /// uses depth zero before bias; quarter-Z is divided by sixteen. The resulting
 /// slot is 30..1053 and must fit the current table; neither projection nor
 /// capture clamps it. All scratch reservations are released before returning.
-static __inline__ void _actor405800QueuePartFrameCapture(GfxCoord* partCoord)
+static inline void _actor405800QueuePartFrameCapture(GfxCoord* partCoord)
 {
     enum { ACTOR_405800_CAPTURE_DEPTH_SHIFT = 4,
            ACTOR_405800_CAPTURE_TAG_BIAS    = 30 };
@@ -3107,7 +3107,7 @@ static void _actor405800UpdateTargetMetrics(Task* task)
 /// Borrows initialized task/work/enemy records and contactIndex in 0..7.
 /// Reloads the contact key between calls; effect allocation may fail. Preserves
 /// the signed low-halfword damage and critical multiplication before HP loss.
-static __inline__ void _actor405800ApplyPlayerHit(Task* task, _Actor405800IvoryStalkerWork* work, Enemy* enemy, s32 contactIndex)
+static inline void _actor405800ApplyPlayerHit(Task* task, _Actor405800IvoryStalkerWork* work, Enemy* enemy, s32 contactIndex)
 {
     enum { ACTOR_405800_PART_HIT_EFFECT = 4,
            ACTOR_405800_LIGHT_HIT_HP    = 120,
@@ -3775,7 +3775,7 @@ static void _actor405800TickAttackCooldowns(Task* task)
 /// Requires live work. Keeps a running hide's phase and replaces an inactive
 /// or reveal request with RUNNING|HIDE at phase zero. Does not reset the hold
 /// counter or cooldown; the cloak update owns those and applies the fade.
-static __inline__ void _actor405800RequestHideWhenReady(Task* task)
+static inline void _actor405800RequestHideWhenReady(Task* task)
 {
     _Actor405800IvoryStalkerWork* hideWork = task->work;
 
@@ -4147,7 +4147,7 @@ static void _actor405800ChooseDeathSequence(Task* task)
 /// Requires seven initialized bodies with valid links when linked. Clears
 /// their links and test flags, retaining records and contacts in caller-owned
 /// work; already unlinked bodies are unchanged and no storage is freed.
-static __inline__ void _actor405800UnlinkCorpseBodies(_Actor405800IvoryStalkerWork* work)
+static inline void _actor405800UnlinkCorpseBodies(_Actor405800IvoryStalkerWork* work)
 {
     worldCollisionUnlinkBody(&work->gridBody);
     worldCollisionUnlinkBody(&work->body);

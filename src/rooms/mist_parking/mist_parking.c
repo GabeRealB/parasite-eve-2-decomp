@@ -49,7 +49,7 @@
 #include "main/wipsys.h"
 #include "main/wipsys_types.h"
 
-#include "rooms/acropolis_square.h"
+#include "rooms/akropolis_square.h"
 
 #include "rooms/room.h"
 
@@ -206,14 +206,14 @@ static EvsCommand _gMistParkingSelectRoom2Script[15] = {
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gMistParkingPlayerRoomTransitionAnimation }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _mistParkingSpawnCapEventIfIdle }, { .value = MIST_PARKING_ROOM_CHANGE_CAP_COMMAND }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_MIST_PARKING, 1) }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_MIST_PARKING, 1) }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = GPU_BLEND_AVERAGE }, { .value = MIST_PARKING_ROOM_CHANGE_FADE_FRAMES }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = MIST_PARKING_ROOM_CHANGE_FADE_FRAMES + 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = MIST_PARKING_ROOM_2_VIEW }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gMistParkingRoom2PlayerPlacement } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _mistParkingSelectChapterRoom }, { .value = MIST_PARKING_EARLY_CHAPTER_ROOM_2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_MIST_PARKING, 2) }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_MIST_PARKING, 2) }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = MIST_PARKING_ROOM_CHANGE_FADE_FRAMES }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = PLAYER_ACTOR_END_SCRIPTED_DEFAULT }, { .value = 0 } },
@@ -226,14 +226,14 @@ static EvsCommand _gMistParkingSelectRoom2Script[15] = {
 /// room objects before restoring player control. Requires loaded room resources.
 static EvsCommand _gMistParkingSelectRoom1Script[13] = {
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gMistParkingPlayerRoomTransitionAnimation }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_MIST_PARKING, 1) }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_MIST_PARKING, 1) }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = GPU_BLEND_AVERAGE }, { .value = MIST_PARKING_ROOM_CHANGE_FADE_FRAMES }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = MIST_PARKING_ROOM_CHANGE_FADE_FRAMES + 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = MIST_PARKING_ROOM_1_VIEW }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gMistParkingRoom1PlayerPlacement } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _mistParkingSelectChapterRoom }, { .value = MIST_PARKING_EARLY_CHAPTER_ROOM_1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_MIST_PARKING, 2) }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_MIST_PARKING, 2) }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = MIST_PARKING_ROOM_CHANGE_FADE_FRAMES }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = PLAYER_ACTOR_END_SCRIPTED_DEFAULT }, { .value = 0 } },
@@ -863,10 +863,10 @@ static inline void _mistParkingStartCommandCutscene(void)
         MIST_PARKING_CUTSCENE_CAP_FILE    = 3,
         MIST_PARKING_CUTSCENE_PLAY        = 0,
         MIST_PARKING_CUTSCENE_WARP        = 2,
-        MIST_PARKING_CUTSCENE_START_SOUND = SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_MIST_PARKING, 3),
-        MIST_PARKING_CUTSCENE_END_SOUND   = SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_MIST_PARKING, 4),
-        MIST_PARKING_CUTSCENE_SCENE_SOUND = SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_MIST_PARKING, 0xB),
-        MIST_PARKING_CUTSCENE_AFTER_SOUND = SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_MIST_PARKING, 0x12)
+        MIST_PARKING_CUTSCENE_START_SOUND = SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_MIST_PARKING, 3),
+        MIST_PARKING_CUTSCENE_END_SOUND   = SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_MIST_PARKING, 4),
+        MIST_PARKING_CUTSCENE_SCENE_SOUND = SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_MIST_PARKING, 0xB),
+        MIST_PARKING_CUTSCENE_AFTER_SOUND = SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_MIST_PARKING, 0x12)
     };
     GameSession* session;
 

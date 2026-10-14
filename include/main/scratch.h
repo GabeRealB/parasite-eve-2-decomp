@@ -61,7 +61,7 @@ enum { SCRATCH_STACK_HEAD_BYTE_OFFSET = 0x3FC };
 /// Writes the cursor slot once without reading its old value or touching block
 /// data. Performs no clearing, bounds or alignment checks. The untyped pointer
 /// carries an address only; it does not establish a block's type or extent.
-static __inline__ void _scratchStackSetCursor(void* cursor)
+static inline void _scratchStackSetCursor(void* cursor)
 {
     SCRATCH_STACK_CURSOR(void) = cursor;
 }

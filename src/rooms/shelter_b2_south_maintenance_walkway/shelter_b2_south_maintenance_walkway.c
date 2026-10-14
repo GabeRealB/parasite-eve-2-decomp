@@ -640,7 +640,7 @@ RoomLatchedEvent gRoomEventLatched;
 /// attempts to spawn the staged task. Every call clears the event-started
 /// byte; eligible execution raises it even if spawning fails. The room
 /// overlay must remain loaded until the staged task finishes.
-static __inline__ s32 _shelterB2SouthMaintenanceWalkwayStartEvent(const RoomEventMsg* destination, const RoomLatchedEvent* event)
+static inline s32 _shelterB2SouthMaintenanceWalkwayStartEvent(const RoomEventMsg* destination, const RoomLatchedEvent* event)
 {
     enum { EVENT_NO_FLAG            = 0,
            EVENT_FLAG_LATCHED       = 1,

@@ -98,7 +98,7 @@ extern const AreaRecord* gAreaRecordsByStage[6];
 /// does not extend the placement table's lifetime. A NULL input remains NULL.
 /// Keep the inline call boundary: it preserves the indexed-address instruction
 /// order and registers required by its callers' matching builds.
-static __inline__ AreaPlacement* _areaPlacementRef(AreaPlacement* placement)
+static inline AreaPlacement* _areaPlacementRef(AreaPlacement* placement)
 {
     return placement;
 }

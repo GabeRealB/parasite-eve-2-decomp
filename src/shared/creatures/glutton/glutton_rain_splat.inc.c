@@ -6,7 +6,7 @@
 /// Copies local XYZ in world units from the blob's coordinate body, leaving
 /// its visual flattening out of the attack sphere's transform, then composes
 /// the attack coordinate. Both arguments are borrowed for this call.
-static __inline__ void _gluttonComposeSplatAttackCoord(GluttonProjectileWork* work, Task* task)
+static inline void _gluttonComposeSplatAttackCoord(GluttonProjectileWork* work, Task* task)
 {
     work->bodyCoord.coord.t[0]   = task->extra.coordBody->coord->coord.t[0];
     work->bodyCoord.coord.t[1]   = task->extra.coordBody->coord->coord.t[1];

@@ -105,7 +105,7 @@ static inline void _itemMenuDrawItemRowLabel(const UiList* list, const UiObject*
 
 static inline InventoryItemRow* _inventoryFindNthReorderableRow(const InventoryItemRange* range, s32 choiceIndex);
 
-static __inline__ void _itemMenuSetReorderableRows(UiList* list);
+static inline void _itemMenuSetReorderableRows(UiList* list);
 
 static inline void _itemMenuDrawPlayerSummaryContents(const UiPanel* panel);
 
@@ -1479,7 +1479,7 @@ void itemMenuSetWeaponChoiceRows(UiList* list, s32 consumableItemId)
 ///
 /// Attached items and equipped armor/weapon rows are excluded from the scan.
 /// At most nine rows are visible; stored counts retain their byte narrowing.
-static __inline__ void _itemMenuSetReorderableRows(UiList* list)
+static inline void _itemMenuSetReorderableRows(UiList* list)
 {
     InventoryItemRange* range;
     InventoryItemRow*   row;

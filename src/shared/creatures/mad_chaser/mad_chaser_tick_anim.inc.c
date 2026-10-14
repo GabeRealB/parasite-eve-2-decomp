@@ -8,7 +8,7 @@
 /// 0..2047 keeps the playback API's signed time nonnegative. Requires an
 /// initialized nine-slot context, live pose storage and valid loaded clip tracks.
 /// Slot zero and the request latches are retained; the caller owns all storage.
-static __inline__ void _madChaserBlendAnimSlots(MadChaserWork* requestWork)
+static inline void _madChaserBlendAnimSlots(MadChaserWork* requestWork)
 {
     s32 blendSlot;
 

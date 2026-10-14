@@ -6,15 +6,15 @@ _gMapAkropolisKeyItemPanelTitle = 0x8017997C; // force_not_migration:True
 // room records, task entries and models in the Akropolis and MIST room
 // packages, and marker models in the map pictures. Each lives in a package
 // loaded at a slot of its own, so each is absolute.
-acropolisSquareRoomTask = 0x80182308; // type:func absolute:True owner=acropolis_square
-gAcropolisSquareRoomCollisionResources = 0x80183B9C; // absolute:True owner=acropolis_square
-gAcropolisSquareViewMaps = 0x80183BAC; // absolute:True owner=acropolis_square
-gAcropolisSquareViewCounts = 0x80183BB0; // absolute:True owner=acropolis_square shared=rooms
-gAcropolisSquareRoomLightingTable = 0x80183BB4; // absolute:True owner=acropolis_square shared=rooms
-gAcropolisSquareWarpEntries = 0x80183BBC; // absolute:True owner=acropolis_square
-gAcropolisSquareSpriteViews = 0x8018857C; // absolute:True owner=acropolis_square
-gAcropolisSquareViewCameras = 0x80188630; // absolute:True owner=acropolis_square
-gAcropolisSquareSurfacePropertiesByClass = 0x80188868; // absolute:True owner=acropolis_square
+akropolisSquareRoomTask = 0x80182308; // type:func absolute:True owner=akropolis_square
+gAkropolisSquareRoomCollisionResources = 0x80183B9C; // absolute:True owner=akropolis_square
+gAkropolisSquareViewMaps = 0x80183BAC; // absolute:True owner=akropolis_square
+gAkropolisSquareViewCounts = 0x80183BB0; // absolute:True owner=akropolis_square shared=rooms
+gAkropolisSquareRoomLightingTable = 0x80183BB4; // absolute:True owner=akropolis_square shared=rooms
+gAkropolisSquareWarpEntries = 0x80183BBC; // absolute:True owner=akropolis_square
+gAkropolisSquareSpriteViews = 0x8018857C; // absolute:True owner=akropolis_square
+gAkropolisSquareViewCameras = 0x80188630; // absolute:True owner=akropolis_square
+gAkropolisSquareSurfacePropertiesByClass = 0x80188868; // absolute:True owner=akropolis_square
 acropolisEastElevatorHallRoomTask = 0x8017F55C; // type:func absolute:True owner=acropolis_east_elevator_hall
 gAcropolisEastElevatorHallRoomCollisionResources = 0x80186320; // absolute:True owner=acropolis_east_elevator_hall
 gAcropolisEastElevatorHallViewMaps = 0x80186330; // absolute:True owner=acropolis_east_elevator_hall

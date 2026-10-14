@@ -9,13 +9,8 @@
 
 #include "main/session.h"
 
-// This package contains no code. Its retained data shares the existing ID TU.
-
-/// Package identity stored in the image's first read-only 32-bit word.
-///
-/// PKG_ID supplies this image's manifest id (126), zero-extended into the word.
-/// The retained scene data follows this private format object in the same unit.
-static const u32 _gPackageId = PKG_ID;
+// This package contains no code: only the retained scene data below. Its id
+// word, before the data, is written by the link (tools/splat_ext/pkgid.py).
 
 enum {
     ACTOR_142600_RETAINED_TASK_PRIORITY = 192,

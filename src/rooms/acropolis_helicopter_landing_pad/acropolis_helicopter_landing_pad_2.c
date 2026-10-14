@@ -1710,7 +1710,7 @@ void acropolisHelicopterLandingPadPrepareDepartureTask(Task* task)
             break;
     }
     if (task->spawnArg1.value == ACROPOLIS_HELICOPTER_LANDING_PAD_DEPARTURE_SOUND_REMAINING) {
-        sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_HELICOPTER_LANDING_PAD, 3), 0, 0);
+        sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_HELICOPTER_LANDING_PAD, 3), 0, 0);
     }
 }
 #undef ACROPOLIS_HELICOPTER_LANDING_PAD_QUEUE_DEPARTURE_RESOURCES
@@ -1792,7 +1792,7 @@ void acropolisHelicopterLandingPadReturnToMistTask(Task* task)
             // The movie task holds the task list while playback owns the display.
             sndEvtRequestScriptStop(SOUND_BANK_TYPE_ALL_NON_AMBIENT, SOUND_SCRIPT_STOP_NO_FADE);
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent     = ACROPOLIS_HELICOPTER_LANDING_PAD_RETURN_SCENE_EVENT;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.stage = GAME_STAGE_ACROPOLIS;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.stage = GAME_STAGE_AKROPOLIS;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.area  = GAME_AREA_MIST_R18;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp  = ACROPOLIS_HELICOPTER_LANDING_PAD_RETURN_WARP;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.room  = ACROPOLIS_HELICOPTER_LANDING_PAD_RETURN_ROOM;
@@ -1939,7 +1939,7 @@ s32 acropolisHelicopterLandingPadResolveDeparture(Task* unusedTask, s32 unusedMe
     };
 
     *reply = *request;
-    if (request->areaId == GAME_AREA_ACROPOLIS_FIRE_ESCAPE) {
+    if (request->areaId == GAME_AREA_AKROPOLIS_FIRE_ESCAPE) {
         if (gAcropolisHelicopterLandingPadEncounterPhase == ACROPOLIS_HELICOPTER_LANDING_PAD_PHASE_WAITING) {
             if (request->queryOnly == ROOM_EVENT_EXECUTE) {
                 // This exact-entry selector matches idle sound slots; its purpose is unproven.

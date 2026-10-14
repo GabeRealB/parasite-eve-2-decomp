@@ -371,7 +371,7 @@ static void _actor210600Spawn(Enemy* enemy, Task* task);
 /// Requires the initialized nineteen-part rig and a loaded set covering tracks
 /// 1..18. Leaves root slot 0 intact. Reset installs normal rate; the driver
 /// reapplies animRate before ticking. Does not consume requests or clear counters.
-static __inline__ void _actor210600RestartPrimaryAnimation(_Actor210600Work* work)
+static inline void _actor210600RestartPrimaryAnimation(_Actor210600Work* work)
 {
     s32 slotIndex;
 

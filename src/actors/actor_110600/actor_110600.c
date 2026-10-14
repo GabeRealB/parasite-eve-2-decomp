@@ -1080,26 +1080,26 @@ extern SVECTOR ActorContact_ScratchPosition;
 
 static void _actor110600ApplyDamage(Task* task);
 
-static void            _actor110600LayPatrolNodes(BossStrangerWalker* walker, s16 radius, s16 nodeYawStep);
-static __inline__ void _actor110600RescaleRootYaw(Task* task, s16 uniformScale);
-static void            _actor110600TickBlendedSlots(Task* task);
-static __inline__ void _actor110600LinkAttackBody(WorldCollisionBody* body, GfxCoord* partCoord, WorldCollisionContact* contacts, const SVECTOR* localPosition, u16 bodyFlags);
-static __inline__ void _actor110600InitWalkerScale(BossStrangerWalker* walker);
-static void            _actor110600Spawn(Enemy* enemy, Task* task);
-static void            _actor110600PatrolState(Task* task);
-static __inline__ s32  _actor110600TickFootstepShake(void);
-static __inline__ s32  _actor110600HasPlayerBodyContact(const WorldCollisionContact* contacts);
-static void            _actor110600AttackState(Task* task);
-static __inline__ s32  _actor110600FindAttackContact(SVECTOR* hitPoint, const WorldCollisionContact* contacts, s16 contactCount);
-static void            _actor110600IdleState(Task* task);
-static void            _actor110600FallBackState(Task* task);
-static __inline__ void _actor110600ShrinkBurnRootYaw(Task* task, const _Actor110600Work* work, s16 heightScale);
-static void            _actor110600DeathBurstState(Task* task);
-static void            _actor110600DeathThrashState(Task* task);
-static void            _actor110600LurkAlertState(Task* task);
-static void            _actor110600ShudderState(Task* task);
-static void            _actor110600EnrageState(Task* task);
-static void            _actor110600Update(Enemy* enemy, Task* task);
+static void        _actor110600LayPatrolNodes(BossStrangerWalker* walker, s16 radius, s16 nodeYawStep);
+static inline void _actor110600RescaleRootYaw(Task* task, s16 uniformScale);
+static void        _actor110600TickBlendedSlots(Task* task);
+static inline void _actor110600LinkAttackBody(WorldCollisionBody* body, GfxCoord* partCoord, WorldCollisionContact* contacts, const SVECTOR* localPosition, u16 bodyFlags);
+static inline void _actor110600InitWalkerScale(BossStrangerWalker* walker);
+static void        _actor110600Spawn(Enemy* enemy, Task* task);
+static void        _actor110600PatrolState(Task* task);
+static inline s32  _actor110600TickFootstepShake(void);
+static inline s32  _actor110600HasPlayerBodyContact(const WorldCollisionContact* contacts);
+static void        _actor110600AttackState(Task* task);
+static inline s32  _actor110600FindAttackContact(SVECTOR* hitPoint, const WorldCollisionContact* contacts, s16 contactCount);
+static void        _actor110600IdleState(Task* task);
+static void        _actor110600FallBackState(Task* task);
+static inline void _actor110600ShrinkBurnRootYaw(Task* task, const _Actor110600Work* work, s16 heightScale);
+static void        _actor110600DeathBurstState(Task* task);
+static void        _actor110600DeathThrashState(Task* task);
+static void        _actor110600LurkAlertState(Task* task);
+static void        _actor110600ShudderState(Task* task);
+static void        _actor110600EnrageState(Task* task);
+static void        _actor110600Update(Enemy* enemy, Task* task);
 
 #include "../../shared/actor/actor_contacts_turn_joint.inc.c"
 
@@ -1160,7 +1160,7 @@ static void _actor110600LayPatrolNodes(BossStrangerWalker* walker, s16 radius, s
 /// and roll, preserves translation and marks composition dirty. `ONE` is full
 /// scale; zero collapses the axes. The task-level stamp refreshes the root after
 /// the rotation copy.
-static __inline__ void _actor110600RescaleRootYaw(Task* task, s16 uniformScale)
+static inline void _actor110600RescaleRootYaw(Task* task, s16 uniformScale)
 {
     _actorRenderRescaleYaw(task->extra.tmd->coords, uniformScale);
     task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
@@ -1202,8 +1202,8 @@ static s32 _actor110600Place(Task* task, s32 messageId, const ActorTransform* pl
 static s32 _actor110600ApplyCommand(Task* task, s32 messageId, const ActorCommand* command, s32 secondArg)
 {
     enum {
-        ACTOR_110600_CONTEXT_PATIO                      = GAME_STAGE_ACROPOLIS | (GAME_AREA_ACROPOLIS_PATIO << 8),
-        ACTOR_110600_CONTEXT_CAFETERIA                  = GAME_STAGE_ACROPOLIS | (GAME_AREA_ACROPOLIS_CAFETERIA << 8),
+        ACTOR_110600_CONTEXT_PATIO                      = GAME_STAGE_AKROPOLIS | (GAME_AREA_AKROPOLIS_PATIO << 8),
+        ACTOR_110600_CONTEXT_CAFETERIA                  = GAME_STAGE_AKROPOLIS | (GAME_AREA_AKROPOLIS_CAFETERIA << 8),
         ACTOR_110600_PATIO_COMMAND_LURK                 = 1,
         ACTOR_110600_CAFETERIA_COMMAND_ALERT_REWIND     = 1,
         ACTOR_110600_CAFETERIA_COMMAND_PLAY_SLOT1       = 2,
@@ -1431,7 +1431,7 @@ static s32 _actor110600PollAnimationSound(_Actor110600Work* work)
 /// Requires live actor work, an initialized rig and loaded referenced tracks.
 /// Rates use sixteenths of a frame per tick and narrow to each slot's signed
 /// byte. Borrows the task's work for this call and leaves slot 0 untouched.
-static __inline__ void _actor110600TickMainSlots(Task* task)
+static inline void _actor110600TickMainSlots(Task* task)
 {
     _Actor110600Work* work;
     s32               slotIndex;
@@ -1452,7 +1452,7 @@ static __inline__ void _actor110600TickMainSlots(Task* task)
 /// entries are signed whole normal-rate frames. Captures a ticked pose, seeks
 /// each existing track to its start with that duration, and records the applied
 /// clip. Slot 0 is untouched.
-static __inline__ void _actor110600SeekRequestedAnimation(_Actor110600Work* work)
+static inline void _actor110600SeekRequestedAnimation(_Actor110600Work* work)
 {
     _Actor110600Work* seekWork;
     s32               requestedAnimId;
@@ -1474,7 +1474,7 @@ static __inline__ void _actor110600SeekRequestedAnimation(_Actor110600Work* work
 /// Requires live work and loaded tracks for every driven slot. Reset replaces
 /// each preceding rate write with normal rate; the ordinary
 /// tick following this request reapplies `animRate`. Slot 0 is untouched.
-static __inline__ void _actor110600ResetRequestedAnimation(_Actor110600Work* work)
+static inline void _actor110600ResetRequestedAnimation(_Actor110600Work* work)
 {
     _Actor110600Work* resetWork;
     s32               resetSlotIndex;
@@ -1495,7 +1495,7 @@ static __inline__ void _actor110600ResetRequestedAnimation(_Actor110600Work* wor
 /// primary rig, while reset gives the secondary rig normal playback rate.
 /// Its next blended tick supplies three frames per tick; weight is Q12 and
 /// belongs to the primary rotation. Does not enable blending by itself.
-static __inline__ void _actor110600ResetBlendAnimation(Task* task)
+static inline void _actor110600ResetBlendAnimation(Task* task)
 {
     enum {
         ACTOR_110600_BLEND_RATE        = 3 * ANIMATION_RATE_ONE,
@@ -1523,7 +1523,7 @@ static __inline__ void _actor110600ResetBlendAnimation(Task* task)
 /// requested clip. Resetting slots 1..18 uses normal rate; each hidden tick
 /// reapplies the current rate in sixteenths of a frame per tick.
 /// Slot 0 is untouched. The driver performs one ordinary tick afterwards.
-static __inline__ void _actor110600SettleRequestedAnimation(Task* task, _Actor110600Work* work)
+static inline void _actor110600SettleRequestedAnimation(Task* task, _Actor110600Work* work)
 {
     enum { ACTOR_110600_SETTLE_TICK_END = 100 };
     _Actor110600Work* settleWork;
@@ -1657,7 +1657,7 @@ static void _actor110600TickAnimation(Task* task)
 /// position are copied in the part's local coordinate units, with radius 512.
 /// The caller owns contact initialization and the packed attack key. This
 /// actor supplies one contact and initially leaves pair testing disabled.
-static __inline__ void _actor110600LinkAttackBody(WorldCollisionBody* body, GfxCoord* partCoord, WorldCollisionContact* contacts, const SVECTOR* localPosition, u16 bodyFlags)
+static inline void _actor110600LinkAttackBody(WorldCollisionBody* body, GfxCoord* partCoord, WorldCollisionContact* contacts, const SVECTOR* localPosition, u16 bodyFlags)
 {
     enum { ACTOR_110600_ATTACK_RADIUS = 512 };
 
@@ -1677,7 +1677,7 @@ static __inline__ void _actor110600LinkAttackBody(WorldCollisionBody* body, GfxC
 /// Clears translation and off-diagonal coefficients. Zero and `ONE` both
 /// leave the identity matrix; other signed scales replace its diagonal. The
 /// turning step later uses this matrix as the actor's scale baseline.
-static __inline__ void _actor110600InitWalkerScale(BossStrangerWalker* walker)
+static inline void _actor110600InitWalkerScale(BossStrangerWalker* walker)
 {
     VECTOR* scaleVector;
     s32     uniformScale;
@@ -1703,7 +1703,7 @@ static __inline__ void _actor110600InitWalkerScale(BossStrangerWalker* walker)
 /// reset the route cursor, so spawn supplies zeroed work before layout.
 /// The route's otherwise unread byte retains its spawn value of 2; its role is
 /// unproven.
-static __inline__ void _actor110600BindPatrolStorage(_Actor110600Work* work)
+static inline void _actor110600BindPatrolStorage(_Actor110600Work* work)
 {
     work->walker.nav                   = &work->walker.navData;
     work->walker.route                 = &work->walker.routeData;
@@ -1874,7 +1874,7 @@ static void _actor110600Spawn(Enemy* enemy, Task* task)
     work->walker.avoidRecs  = hitContacts;
     work->walker.scale      = 0;
     work->walker.turnLimit  = ACTOR_110600_INITIAL_TURN_LIMIT;
-    if ((GAME_LOCATION_WORD(gGameSession->location) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PATIO, 0, 0)) {
+    if ((GAME_LOCATION_WORD(gGameSession->location) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_PATIO, 0, 0)) {
         work->walker.lockHeight = 0;
     } else {
         work->walker.lockHeight = true;
@@ -2037,7 +2037,7 @@ static void _actor110600PatrolState(Task* task)
 /// Alternates vertical display shake between 1 and 0, leaving it at zero on
 /// completion. Returns 1 on that fifth tick, otherwise 0. All actors in this
 /// overlay share the counter.
-static __inline__ s32 _actor110600TickFootstepShake(void)
+static inline s32 _actor110600TickFootstepShake(void)
 {
     enum { ACTOR_110600_FOOTSTEP_SHAKE_TICKS = 5 };
 
@@ -2208,7 +2208,7 @@ static void _actor110600AlertState(Task* task)
 ///
 /// Requires one readable contact; a zero key reports false. The category also
 /// covers companion bodies. Reads no later entry and does not clear the contact.
-static __inline__ s32 _actor110600HasPlayerBodyContact(const WorldCollisionContact* contacts)
+static inline s32 _actor110600HasPlayerBodyContact(const WorldCollisionContact* contacts)
 {
     enum { ACTOR_110600_ATTACK_CONTACT_COUNT = 1 };
     s16 contactIndex;
@@ -2408,7 +2408,7 @@ static void _actor110600SpawnHitEffect(Task* task, s16 hitYaw, s32 attackKey)
 /// hit-body or twelve grid-body contacts. A zero result leaves `hitPoint`
 /// unchanged; a hit preserves its unused fourth halfword. Contacts are borrowed
 /// and never changed.
-static __inline__ s32 _actor110600FindAttackContact(SVECTOR* hitPoint, const WorldCollisionContact* contacts, s16 contactCount)
+static inline s32 _actor110600FindAttackContact(SVECTOR* hitPoint, const WorldCollisionContact* contacts, s16 contactCount)
 {
     s16 contactIndex;
     for (contactIndex = 0; contactIndex < contactCount; contactIndex++) {
@@ -2709,7 +2709,7 @@ static void _actor110600FallBackState(Task* task)
 /// minus two units per tick from tick 300, narrowed to a halfword. Earlier ticks
 /// therefore increase Y relative to the supplied height. Pitch/roll and prior
 /// scale are discarded, translation stays intact and composition becomes dirty.
-static __inline__ void _actor110600ShrinkBurnRootYaw(Task* task, const _Actor110600Work* work, s16 heightScale)
+static inline void _actor110600ShrinkBurnRootYaw(Task* task, const _Actor110600Work* work, s16 heightScale)
 {
     enum { ACTOR_110600_BURN_SHRINK_ORIGIN_TICK = 300 };
 
@@ -2742,7 +2742,7 @@ static __inline__ void _actor110600ShrinkBurnRootYaw(Task* task, const _Actor110
 /// translation components through the GTE. The caller supplies a uniform scale.
 /// Starts from burnColorMtx on every call, so the fade does not compound. Work
 /// and the full VECTOR stay live through the transfer; negative factors are kept.
-static __inline__ void _actor110600FadeBurnColor(_Actor110600Work* work, VECTOR* colorScale)
+static inline void _actor110600FadeBurnColor(_Actor110600Work* work, VECTOR* colorScale)
 {
     work->colorMtx = work->burnColorMtx;
     ScaleMatrix(&work->colorMtx, colorScale);
@@ -2933,7 +2933,7 @@ static void _actor110600ScriptedState(Task* task)
         work->animRate                = ANIMATION_RATE_ONE;
         work->lookYawTarget           = 0;
         work->lookYaw                 = 0;
-        if ((work->lastCommand.stage == GAME_STAGE_ACROPOLIS) && (work->lastCommand.area == GAME_AREA_ACROPOLIS_CAFETERIA) && (work->lastCommand.command == ACTOR_110600_SCRIPTED_COMMAND_RANDOM_HIT)) {
+        if ((work->lastCommand.stage == GAME_STAGE_AKROPOLIS) && (work->lastCommand.area == GAME_AREA_AKROPOLIS_CAFETERIA) && (work->lastCommand.command == ACTOR_110600_SCRIPTED_COMMAND_RANDOM_HIT)) {
             randomValue     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
             gRandomLcgState = randomValue;
             if ((randomValue >> 16) & 1) {
@@ -2964,7 +2964,7 @@ static void _actor110600ScriptedState(Task* task)
 
     _actorRenderRescaleYaw(task->extra.tmd->coords, work->walker.scale);
 
-    if ((work->lastCommand.stage == GAME_STAGE_ACROPOLIS) && (work->lastCommand.area == GAME_AREA_ACROPOLIS_CAFETERIA) && (work->lastCommand.command == ACTOR_110600_SCRIPTED_COMMAND_TRIPLE_HIT) && (work->animId != ACTOR_110600_ANIM_FALL_BACK_END)) {
+    if ((work->lastCommand.stage == GAME_STAGE_AKROPOLIS) && (work->lastCommand.area == GAME_AREA_AKROPOLIS_CAFETERIA) && (work->lastCommand.command == ACTOR_110600_SCRIPTED_COMMAND_TRIPLE_HIT) && (work->animId != ACTOR_110600_ANIM_FALL_BACK_END)) {
         if ((work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) == ACTOR_110600_SCRIPTED_TRANSITION_CUE) {
             _gActor110600AnimBlendFrames[ACTOR_110600_ANIM_SCRIPTED_SLOT2][ACTOR_110600_ANIM_FALL_BACK_END] = ACTOR_110600_SCRIPTED_TRANSITION_BLEND_FRAMES;
             work->animId                                                                                    = ACTOR_110600_ANIM_FALL_BACK_END;
@@ -3883,7 +3883,7 @@ static void _actor110600AlertRewindState(Task* task)
 /// The live work rate uses signed sixteenth-frame units. Division truncates
 /// toward zero; zero stays zero, and reaching either unit restarts the opposite
 /// direction at one full frame per tick. Does not advance animation.
-static __inline__ void _actor110600OscillateStatusRate(_Actor110600Work* work)
+static inline void _actor110600OscillateStatusRate(_Actor110600Work* work)
 {
     s16 halvedRate;
 

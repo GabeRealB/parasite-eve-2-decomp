@@ -161,7 +161,7 @@ STATIC_ASSERT_SIZEOF(OverlayRangeScratch, 0xC);
 /// Requires an initialized scratch-stack cursor and one free, word-aligned
 /// `OverlayRangeScratch` below it, separate from `offset`. Restores the cursor
 /// before returning; the temporary block's contents remain until reused.
-static __inline__ s32 _actorRangeOutsideRadiusXZ(const SVECTOR* offset, s16 radius)
+static inline s32 _actorRangeOutsideRadiusXZ(const SVECTOR* offset, s16 radius)
 {
     OverlayRangeScratch* savedCursor;
     OverlayRangeScratch* scratch;
@@ -425,7 +425,7 @@ STATIC_ASSERT_SIZEOF(OverlayPointPairScratch, 0x1C);
 /// writes XYZ without touching `pad`, and restores the cursor. Consume the
 /// returned block before anything reserves scratch again. Inputs use the
 /// SDK and packed signed-halfword layouts respectively and are only read.
-static __inline__ VECTOR* _actorAngleStagePointOffset(const SVECTOR* point, const SVECTOR3* origin)
+static inline VECTOR* _actorAngleStagePointOffset(const SVECTOR* point, const SVECTOR3* origin)
 {
     VECTOR* scratchHead;
     VECTOR* delta;
@@ -452,7 +452,7 @@ static __inline__ VECTOR* _actorAngleStagePointOffset(const SVECTOR* point, cons
 /// Requires an initialized, word-aligned scratch cursor with room for one
 /// `VECTOR` (16 bytes). All three offsets are staged, although only X and Z
 /// determine the angle; the vector's `pad` is untouched.
-static __inline__ s16 _actorAngleBearingXZ(const SVECTOR* point, const SVECTOR3* origin)
+static inline s16 _actorAngleBearingXZ(const SVECTOR* point, const SVECTOR3* origin)
 {
     VECTOR* delta;
 
@@ -471,7 +471,7 @@ static __inline__ s16 _actorAngleBearingXZ(const SVECTOR* point, const SVECTOR3*
 /// Requires an initialized, word-aligned scratch cursor with room for one
 /// `VECTOR` (16 bytes). All three offsets are staged, although only X and Y
 /// determine the angle; the vector's `pad` is untouched.
-static __inline__ s16 _actorAngleBearingXY(const SVECTOR* point, const SVECTOR3* origin)
+static inline s16 _actorAngleBearingXY(const SVECTOR* point, const SVECTOR3* origin)
 {
     VECTOR* scratchHead;
     VECTOR* delta;

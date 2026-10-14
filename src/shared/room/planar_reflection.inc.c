@@ -430,17 +430,17 @@ static void _planarReflectionUpdatePlayer(Task* reflectionTask)
                         reflectionModel->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
                     }
                 }
-            } else if (area == GAME_AREA_ACROPOLIS_SQUARE) {
+            } else if (area == GAME_AREA_AKROPOLIS_SQUARE) {
                 reflectionModel->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
                 if (view == 9) {
                     mirrorWork->copyPending = PLANAR_REFLECTION_COPY_IDLE;
                 }
             } else {
-                if (area != GAME_AREA_ACROPOLIS_WEST_ELEVATOR_HALL) {
+                if (area != GAME_AREA_AKROPOLIS_WEST_ELEVATOR_HALL) {
                     mirrorWork->coord.coord.t[1] += PLANAR_REFLECTION_ACROPOLIS_FLOOR_Y_OFFSET;
                 }
                 mirrorWork->firstBlendMode = GPU_BLEND_ADD;
-                if ((area == GAME_AREA_ACROPOLIS_WEST_ELEVATOR_HALL && view == 5) || (area == GAME_AREA_ACROPOLIS_EAST_ELEVATOR_HALL && (view == 7 || view == 5))) {
+                if ((area == GAME_AREA_AKROPOLIS_WEST_ELEVATOR_HALL && view == 5) || (area == GAME_AREA_AKROPOLIS_EAST_ELEVATOR_HALL && (view == 7 || view == 5))) {
                     reflectionModel->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
                 } else {
                     reflectionModel->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
@@ -449,9 +449,9 @@ static void _planarReflectionUpdatePlayer(Task* reflectionTask)
         } else {
             TmdObject* planeModel = reflectionTask->extra.tmd;
             planeModel->flags    &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            if (stage == GAME_STAGE_ACROPOLIS) {
+            if (stage == GAME_STAGE_AKROPOLIS) {
                 switch (area) {
-                    case GAME_AREA_ACROPOLIS_WEST_ELEVATOR_HALL:
+                    case GAME_AREA_AKROPOLIS_WEST_ELEVATOR_HALL:
                         switch (view) {
                             case 2:
                                 frame->normal.vx = -ONE;
@@ -487,7 +487,7 @@ static void _planarReflectionUpdatePlayer(Task* reflectionTask)
                                 break;
                         }
                         break;
-                    case GAME_AREA_ACROPOLIS_SQUARE:
+                    case GAME_AREA_AKROPOLIS_SQUARE:
                         switch (view) {
                             case 6:
                                 mirrorWork->clipRight = 0x64;
@@ -516,7 +516,7 @@ static void _planarReflectionUpdatePlayer(Task* reflectionTask)
                                 break;
                         }
                         break;
-                    case GAME_AREA_ACROPOLIS_EAST_ELEVATOR_HALL:
+                    case GAME_AREA_AKROPOLIS_EAST_ELEVATOR_HALL:
                         switch (view) {
                             case 2:
                             case 5:
@@ -576,7 +576,7 @@ static void _planarReflectionUpdatePlayer(Task* reflectionTask)
     }
 
     copyPending = mirrorWork->copyPending;
-    if (copyPending == PLANAR_REFLECTION_COPY_REQUESTED && reflectionTask->spawnArg1.value == PLANAR_REFLECTION_MODE_FLOOR && !(area == GAME_AREA_ACROPOLIS_SQUARE && view == PLANAR_REFLECTION_SQUARE_NO_COPY_VIEW) && gDisplayState.pendingMode == DISPLAY_MODE_NONE) {
+    if (copyPending == PLANAR_REFLECTION_COPY_REQUESTED && reflectionTask->spawnArg1.value == PLANAR_REFLECTION_MODE_FLOOR && !(area == GAME_AREA_AKROPOLIS_SQUARE && view == PLANAR_REFLECTION_SQUARE_NO_COPY_VIEW) && gDisplayState.pendingMode == DISPLAY_MODE_NONE) {
         u16  drawOrigin[2];
         RECT drawRect;
 
@@ -694,7 +694,7 @@ static void _planarReflectionUpdatePlayer(Task* reflectionTask)
                 } while (++partIndex < sourceModel->partCount);
             }
         }
-        if (stage == GAME_STAGE_ACROPOLIS || stage == GAME_STAGE_SHELTER_NEO_ARK) {
+        if (stage == GAME_STAGE_AKROPOLIS || stage == GAME_STAGE_SHELTER_NEO_ARK) {
             enum {
                 /// Local-Y distance from part 1 to each sample during a scripted event, in game coordinates.
                 PLANAR_REFLECTION_EVENT_SAMPLE_DISTANCE = 0x3E8,

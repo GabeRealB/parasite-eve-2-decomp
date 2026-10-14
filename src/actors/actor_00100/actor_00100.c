@@ -251,12 +251,12 @@ static void _actor00100IdleState2(Task* task);
 
 static void _actor00100ReleaseBattleState(Enemy* enemy, Task* task);
 
-static __inline__ s16  _actor00100FacesMesaDrop(GfxCoord* coord);
-static __inline__ void _actorScaleMatrix(MATRIX* matrix, s16 scale);
-static __inline__ s16  _actor00100IsInMesaDropRegion(Task* actor);
-static __inline__ s16  _actor00100MovesTowardMesaDrop(Task* actor, VECTOR* motion);
-static inline s32      _desertChaserFindAttackContact(const WorldCollisionContact* contacts, SVECTOR* hitPosition);
-static __inline__ void _actor00100SelectHitReaction(DesertChaserWork* work);
+static inline s16  _actor00100FacesMesaDrop(GfxCoord* coord);
+static inline void _actorScaleMatrix(MATRIX* matrix, s16 scale);
+static inline s16  _actor00100IsInMesaDropRegion(Task* actor);
+static inline s16  _actor00100MovesTowardMesaDrop(Task* actor, VECTOR* motion);
+static inline s32  _desertChaserFindAttackContact(const WorldCollisionContact* contacts, SVECTOR* hitPosition);
+static inline void _actor00100SelectHitReaction(DesertChaserWork* work);
 
 static void _actor00100SpawnBattleState(Enemy* enemy, Task* task);
 static void _desertChaserDamage(Task* task);
@@ -278,7 +278,7 @@ static void _actor00100AlignPlayerHeight(Task* task);
 ///
 /// The caller first checks the Mesa room and drop region. Yaw uses 4096 units
 /// per turn; the boundary changes direction at root X = 11001.
-static __inline__ s16 _actor00100FacesMesaDrop(GfxCoord* coord)
+static inline s16 _actor00100FacesMesaDrop(GfxCoord* coord)
 {
     s16 yaw          = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
     s32 yawMagnitude = yaw;
@@ -300,7 +300,7 @@ static __inline__ s16 _actor00100FacesMesaDrop(GfxCoord* coord)
 /// Translation narrows to signed halfwords before the GTE multiply and returns
 /// saturated halfwords. Reserves and releases one scratch block; `matrix` must
 /// remain writable through the call. 4096 represents a factor of one.
-static __inline__ void _actorScaleMatrix(MATRIX* matrix, s16 scale)
+static inline void _actorScaleMatrix(MATRIX* matrix, s16 scale)
 {
     ActorScaleMatrixScratch* scratchHead;
     ActorScaleMatrixScratch* scratch;
@@ -331,7 +331,7 @@ static __inline__ void _actorScaleMatrix(MATRIX* matrix, s16 scale)
 ///
 /// X lies in [5441, 11949] and Z is below 1460, with no lower Z bound.
 /// The unsigned X subtraction implements both ends of the interval.
-static __inline__ s16 _actor00100IsInMesaDropRegion(Task* actor)
+static inline s16 _actor00100IsInMesaDropRegion(Task* actor)
 {
     GfxCoord* coord = actor->extra.tmd->coords;
     if ((u32)(coord->coord.t[0] - ACTOR00100_MESA_DROP_MIN_X) < (u32)ACTOR00100_MESA_DROP_X_EXTENT) {
@@ -345,7 +345,7 @@ static __inline__ s16 _actor00100IsInMesaDropRegion(Task* actor)
 ///
 /// The caller checks the room and drop region first. X/Z displacement and root
 /// translation share parent-coordinate units; its bearing uses 4096 per turn.
-static __inline__ s16 _actor00100MovesTowardMesaDrop(Task* actor, VECTOR* motion)
+static inline s16 _actor00100MovesTowardMesaDrop(Task* actor, VECTOR* motion)
 {
     GfxCoord* coord = actor->extra.tmd->coords;
     if (abs((s16)ratan2(motion->vx, motion->vz)) >= ACTOR00100_MESA_DROP_MIN_YAW) {
@@ -1289,7 +1289,7 @@ SVECTOR ActorContact_ScratchPosition;
 ///
 /// Buildup, stagger, steering, flinch, rising, down, and recovery with a state
 /// timer below ten take the stagger reaction; other states take the flinch reaction.
-static __inline__ void _actor00100SelectHitReaction(DesertChaserWork* work)
+static inline void _actor00100SelectHitReaction(DesertChaserWork* work)
 {
     enum {
         ACTOR00100_STATE_BUILDUP             = 4,

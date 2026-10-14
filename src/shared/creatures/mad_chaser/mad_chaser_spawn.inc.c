@@ -8,7 +8,7 @@
 /// loaded carrier. Sets current/maximum HP and binds the animation context;
 /// it leaves slots and pose buffers zeroed until the caller applies a clip.
 /// Does not link collision bodies or acquire a battle reference.
-static __inline__ void _madChaserBindSpawnResources(Task* task, TmdObject* model, MadChaserWork* work, Enemy* enemy)
+static inline void _madChaserBindSpawnResources(Task* task, TmdObject* model, MadChaserWork* work, Enemy* enemy)
 {
     enum {
         MAD_CHASER_SPAWN_HIT_EFFECT_LOW_ARG = 320,
@@ -108,7 +108,7 @@ static void _madChaserSpawn(Task* task)
 /// Requires model == task->extra.tmd, live nine-part coordinates, zeroed work,
 /// a live enemy and a loaded clip bank. Neither storage nor a battle reference
 /// is allocated here; the caller owns initialization of slots and collision.
-static __inline__ void _madChaserBindHiddenResources(Task* task, TmdObject* model, MadChaserWork* work, Enemy* enemy)
+static inline void _madChaserBindHiddenResources(Task* task, TmdObject* model, MadChaserWork* work, Enemy* enemy)
 {
     enum {
         MAD_CHASER_HIDDEN_HIT_EFFECT_SPAN  = 320,
@@ -344,7 +344,7 @@ static void _madChaserWalkStart(Task* task)
 /// parent-coordinate units; rate scaling narrows it to s16 before multiplying
 /// signed Q12 sine/cosine. Updates only X/Z translation and marks composition
 /// dirty; animation playback and collision belong to the caller.
-static __inline__ void _madChaserWalkApproachAdvanceRoot(Task* task, MadChaserWork* work)
+static inline void _madChaserWalkApproachAdvanceRoot(Task* task, MadChaserWork* work)
 {
     enum {
         MAD_CHASER_WALK_TRIG_PRODUCT_FRACTION_BITS = 16,
@@ -423,7 +423,7 @@ static void _madChaserWalkApproach(Task* task)
 /// Requires live work, a nine-part model and initialized view coordinates.
 /// Composes the joint, removes the view transform and narrows its translation
 /// to s16. Leaves the joint dirty for the subsequent animation/pinning pass.
-static __inline__ void _madChaserLeapCaptureAnchor(Task* task, MadChaserWork* work)
+static inline void _madChaserLeapCaptureAnchor(Task* task, MadChaserWork* work)
 {
     enum { MAD_CHASER_LEAP_ANCHOR_JOINT = 6 };
     MATRIX    anchorMatrix;
@@ -710,7 +710,7 @@ static void _madChaserDangleFrame(Task* task)
 /// Both matrices must be live through the call. Copies only the 3x3 basis;
 /// translation and the matrix's alignment halfword are retained. The caller
 /// is responsible for invalidating coordinate composition.
-static __inline__ void _madChaserDangleFallCopyRotation(MATRIX* rootMatrix, const MATRIX* rotationMatrix)
+static inline void _madChaserDangleFallCopyRotation(MATRIX* rootMatrix, const MATRIX* rotationMatrix)
 {
     rootMatrix->m[0][0] = rotationMatrix->m[0][0];
     rootMatrix->m[0][1] = rotationMatrix->m[0][1];
@@ -777,7 +777,7 @@ static void _madChaserDangleFall(Task* task)
 /// the enemy's place index supplies bits 8..11. Pan is -16..15 and attenuation
 /// depth -128..127; both are passed as signed bytes. Requires the origin-audio
 /// queries' initialized scratch stack and projection state. Retains no storage.
-static __inline__ void _madChaserDangleLandPlayCue(Task* task, u32 cue)
+static inline void _madChaserDangleLandPlayCue(Task* task, u32 cue)
 {
     enum { MAD_CHASER_DANGLE_SOUND_INSTANCE_SHIFT = 8 };
     u32 soundId;

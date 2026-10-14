@@ -708,7 +708,7 @@ void neoArkEveAccessTunnelRecordCapCompletionTask(Task* task)
 ///
 /// Requires a completed image in the borrowed 320x240 workspace; no decoding
 /// or capture may overwrite it during the pass. Pixel order is immaterial.
-static __inline__ void _neoArkEveAccessTunnelMaskBackdrop(void)
+static inline void _neoArkEveAccessTunnelMaskBackdrop(void)
 {
     enum { NEO_ARK_EVE_ACCESS_TUNNEL_BACKDROP_PIXELS = (s32)(sizeof(*gFsImageWorkspacePtr) / sizeof(u16)) };
     u16* pixel      = (u16*)gFsImageWorkspacePtr;

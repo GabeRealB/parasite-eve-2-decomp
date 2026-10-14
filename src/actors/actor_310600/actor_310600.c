@@ -437,7 +437,7 @@ enum {
 ///
 /// Borrowed through synchronous actor-command dispatch in the cafeteria context.
 static ActorCommand _gActor310600StrangerShotCommand __attribute__((aligned(4))) = {
-    { .loc = { GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_CAFETERIA } },
+    { .loc = { GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_CAFETERIA } },
     ACTOR_310600_STRANGER_COMMAND_SHOT_RECOIL,
 };
 
@@ -445,7 +445,7 @@ static ActorCommand _gActor310600StrangerShotCommand __attribute__((aligned(4)))
 ///
 /// Borrowed through synchronous actor-command dispatch before the room's settling task.
 static ActorCommand _gActor310600StrangerFollowupCommand __attribute__((aligned(4))) = {
-    { .loc = { GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_CAFETERIA } },
+    { .loc = { GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_CAFETERIA } },
     ACTOR_310600_STRANGER_COMMAND_FOLLOWUP_RECOIL,
 };
 

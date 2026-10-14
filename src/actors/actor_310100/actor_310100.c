@@ -658,9 +658,9 @@ static const s16* _gActor310100FollowUpAnimationTables[3] = {
 /// This branch requires the officer-1 placement ID; current model initializers
 /// store that ID before clearing the work, so they leave the branch unreachable.
 static s32 _gActor310100Officer1StepSoundScripts[3] = {
-    SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PLAZA, 8),
-    SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PLAZA, 9),
-    SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PLAZA, 10),
+    SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_PLAZA, 8),
+    SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_PLAZA, 9),
+    SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_PLAZA, 10),
 };
 
 /// Police-officer animation, placement and model-control message bindings.

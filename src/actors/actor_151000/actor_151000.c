@@ -820,7 +820,7 @@ static s16 _gFootstepWalkMode;
 /// Reserves `sizeof(TILE)` bytes without checking capacity; the current packet
 /// arena must be word-aligned and have that space free. Ordering-table entry 10
 /// must be writable. The frame owns the linked packet until GPU drawing finishes.
-static __inline__ void _actor151000DrawBlackoutTile(void)
+static inline void _actor151000DrawBlackoutTile(void)
 {
     enum {
         ACTOR_151000_BLACKOUT_WIDTH_PIXELS  = 320,

@@ -1521,7 +1521,7 @@ static void _actor143900ExitSecondScriptedWalker(Task* task)
 /// a missing primitive buffer. Depth indices including the +15-entry offset must
 /// fit the active ordering table. Model, buffer, lighting and task ownership stay
 /// with their existing owners; the caller handles attachment teardown separately.
-static __inline__ void _actor143900AttachModelToWalkerPart(TmdObject* attachmentModel, GfxCoord* attachmentRoot, GfxCoord* walkerPart)
+static inline void _actor143900AttachModelToWalkerPart(TmdObject* attachmentModel, GfxCoord* attachmentRoot, GfxCoord* walkerPart)
 {
     enum { ACTOR_143900_ATTACHMENT_OT_OFFSET = 15 };
 

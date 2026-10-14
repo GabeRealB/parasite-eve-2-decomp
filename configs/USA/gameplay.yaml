@@ -4,6 +4,7 @@
 name: Gameplay Overlay
 sha1: 6bc1c60a5d58025bf670c41a8ab3050a52cf4ac4
 options:
+  extensions_path: tools/splat_ext
   basename: gameplay
   target_path: assets/USA/pe2pkg/gameplay.pe2pkg
   base_path: ../..
@@ -76,7 +77,7 @@ segments:
     subsegments:
       # C-owned read-only sections, including compiler-generated jump tables.
       # Explicit padding preserves the original jump-table alignment.
-      - [0x0, .rodata, packageid] # the package id
+      - {start: 0x0, type: pkgid, name: packageid, id: 4} # the package id, written by the link
       - [0x4, .rodata, model_objects] # model allocation diagnostic and colours
       - [0x28, .rodata, model_lighting] # play-clock punctuation
       - [0x30, .rodata, ending] # play-clock state table and battle-result labels

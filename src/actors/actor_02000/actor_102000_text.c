@@ -1141,7 +1141,7 @@ static u16 _gActor02000ShelterNeoArkAreaSoundSets[34] = {
 /// area ID must fit its stage table. The body caches only the u16 selector.
 static u16* _gActor02000StageAreaSoundSets[6] = {
     [GAME_STAGE_NONE]            = NULL,
-    [GAME_STAGE_ACROPOLIS]       = _gActor02000AcropolisAreaSoundSets,
+    [GAME_STAGE_AKROPOLIS]       = _gActor02000AcropolisAreaSoundSets,
     [GAME_STAGE_DRYFIELD]        = _gActor02000DryfieldAreaSoundSets,
     [GAME_STAGE_DRYFIELD_NIGHT]  = _gActor02000DryfieldNightAreaSoundSets,
     [GAME_STAGE_MINE_SHELTER]    = _gActor02000MineShelterAreaSoundSets,

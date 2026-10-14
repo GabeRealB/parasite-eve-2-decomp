@@ -5,7 +5,7 @@
 /// Requires at least three placements in the current variant. Placement row 2
 /// supplies the page and CLUT-row offsets. An existing primitive buffer has
 /// both halves rebuilt; this does not allocate a buffer or take ownership.
-static __inline__ void _gluttonApplyEscortTextureOffsets(TmdObject* model)
+static inline void _gluttonApplyEscortTextureOffsets(TmdObject* model)
 {
     enum { GLUTTON_ESCORT_PLACEMENT_INDEX = 2 };
     const AreaPlacement* placement;

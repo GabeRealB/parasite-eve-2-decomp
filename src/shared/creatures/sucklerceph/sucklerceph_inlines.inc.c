@@ -7,7 +7,7 @@
 /// request rebinds slots 1 and 2 at record 0 without a timed blend and clears
 /// `animFrames`; an unchanged request increments that u16 counter and ticks both
 /// slots. `animFrozen` holds the request, counter and poses. No pointer is retained.
-static __inline__ void _sucklercephTickAnim(Task* task)
+static inline void _sucklercephTickAnim(Task* task)
 {
     SucklercephWork* work = task->work;
     s32              slotIndex;

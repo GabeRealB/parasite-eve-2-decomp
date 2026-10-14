@@ -85,7 +85,7 @@ extern StageMusicEntry gMapAkropolisCountdownMusicEntries[20];
 
 /// Navigation gates for the Acropolis and MIST map pages.
 ///
-/// Indexed by one-based page. Pages 1 and 2 use nibble flag `GAME_FLAG_015`,
+/// Indexed by one-based page. Pages 1 and 2 use nibble flag `EVENT_FLAG_MAP_AKROPOLIS_AVAILABLE`,
 /// with visited-area fallback when it is zero. Page 3 (MIST) uses 0xFF to
 /// suppress page navigation. Slot 0 is the left boundary; slots 4..7 are
 /// retained zero bytes outside the used page range. Keep this overlay loaded.

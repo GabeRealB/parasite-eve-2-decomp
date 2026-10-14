@@ -209,7 +209,7 @@ static s32  _stalkerZebraIvoryApplyArmedReaction(Task* task);
 static void _stalkerZebraIvoryBlendClip(Task* task);
 static s16  _stalkerZebraIvoryFrameToTicks(Task* task, s16 normalFrames);
 
-static __inline__ void _stalkerZebraIvoryTickAnimInline(Task* task);
-static __inline__ void _stalkerZebraIvoryApplyRotationInline(Task* task);
+static inline void _stalkerZebraIvoryTickAnimInline(Task* task);
+static inline void _stalkerZebraIvoryApplyRotationInline(Task* task);
 
 #endif /* SRC_SHARED_STALKER_ZEBRA_IVORY_H */

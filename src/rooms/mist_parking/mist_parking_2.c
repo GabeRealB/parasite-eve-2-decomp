@@ -1923,14 +1923,14 @@ static void _mistParkingStartDepartureMovie(s32 movieSelector)
 /// Requires live save and session state.
 static void _mistParkingReloadAcropolisArea(s32 areaId)
 {
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.stage = GAME_STAGE_ACROPOLIS;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.stage = GAME_STAGE_AKROPOLIS;
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp  = MIST_PARKING_RELOAD_WARP;
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.room  = MIST_PARKING_RELOAD_ROOM;
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.area  = areaId;
     gDisplayState.spriteVariant                             = MIST_PARKING_RELOAD_SPRITE_VARIANT;
     sndEvtRequestScriptStop(SOUND_BANK_TYPE_ALL_NON_AMBIENT, SOUND_SCRIPT_STOP_NO_FADE);
     taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
-    if (areaId == GAME_AREA_ACROPOLIS_PLAZA) {
+    if (areaId == GAME_AREA_AKROPOLIS_PLAZA) {
         gameFlowBeginLoadScreen(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location, GAME_FLOW_LOAD_CAPTION_NORMAL);
     }
 }

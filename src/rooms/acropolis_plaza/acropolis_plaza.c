@@ -2973,11 +2973,11 @@ enum {
     ACROPOLIS_PLAZA_AMBIENCE_EARLY_FADE_END  = 130
 };
 
-static void            _acropolisPlazaUpdateSceneCollisionWalls(Task* sceneTask);
-static void            _acropolisPlazaApplyStreamCamera(s32 subId);
-static __inline__ void _acropolisPlazaUpdateSceneEdgeFlags(_AcropolisPlazaSceneWork* work);
-static void            _acropolisPlazaUpdateAmbienceVoice(u16 firstFrame, u16 lastFrame, u16 peakFrame, u16* startRequested, s32 soundId, u16 envelope);
-static void            _acropolisPlazaUpdateSceneAmbience(Task* task);
+static void        _acropolisPlazaUpdateSceneCollisionWalls(Task* sceneTask);
+static void        _acropolisPlazaApplyStreamCamera(s32 subId);
+static inline void _acropolisPlazaUpdateSceneEdgeFlags(_AcropolisPlazaSceneWork* work);
+static void        _acropolisPlazaUpdateAmbienceVoice(u16 firstFrame, u16 lastFrame, u16 peakFrame, u16* startRequested, s32 soundId, u16 envelope);
+static void        _acropolisPlazaUpdateSceneAmbience(Task* task);
 
 void acropolisPlazaPollStreamCommands(void)
 {
@@ -3310,7 +3310,7 @@ static void _acropolisPlazaApplyStreamCamera(s32 subId)
 /// at 201; a backward crossing is strictly below -20 and is suppressed at
 /// scene frame 1. Each flag distinguishes no crossing, walking and running.
 /// The scene work and its borrowed player must be live.
-static __inline__ void _acropolisPlazaUpdateSceneEdgeFlags(_AcropolisPlazaSceneWork* work)
+static inline void _acropolisPlazaUpdateSceneEdgeFlags(_AcropolisPlazaSceneWork* work)
 {
     CdCmdQueue* queue     = &gCdCmdQueue;
     s32         relativeX = work->relX;
@@ -3995,7 +3995,7 @@ static void _acropolisPlazaFinalSceneTask(Task* task)
             return;
         case ACROPOLIS_PLAZA_FINAL_WAIT_OFFICER:
             if (work->elapsedFrames == ACROPOLIS_PLAZA_FINAL_OFFICER_SOUND_FRAME) {
-                sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PLAZA, 3), 0, 0);
+                sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_PLAZA, 3), 0, 0);
             }
             work->elapsedFrames = work->elapsedFrames + 1;
             if (work->elapsedFrames >= ACROPOLIS_PLAZA_FINAL_OFFICER_EFFECT_FRAME) {
@@ -4013,7 +4013,7 @@ static void _acropolisPlazaFinalSceneTask(Task* task)
                 memConfigureImageMemory(gGameSession->location.stage, gGameSession->location.area);
                 memSelectAuxHeapRegion(true);
                 tmdResetAuxHeapAndRestoreBuffers();
-                sndEvtRequestScriptVolume(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PLAZA, 5), ACROPOLIS_PLAZA_FINAL_AMBIENCE_VOLUME);
+                sndEvtRequestScriptVolume(SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_PLAZA, 5), ACROPOLIS_PLAZA_FINAL_AMBIENCE_VOLUME);
                 task->state = task->state + 1;
                 return;
             }
@@ -4038,7 +4038,7 @@ static void _acropolisPlazaFinalSceneTask(Task* task)
         case ACROPOLIS_PLAZA_FINAL_WAIT_TAIL_EFFECT:
             work->elapsedFrames = work->elapsedFrames + 1;
             if (work->elapsedFrames >= ACROPOLIS_PLAZA_FINAL_TAIL_EFFECT_FRAME) {
-                sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PLAZA, 0x0B), 0, 0);
+                sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_PLAZA, 0x0B), 0, 0);
                 taskSpawnFromTable(gAcropolisPlazaSequenceTaskDescriptors, ACROPOLIS_PLAZA_FINAL_FADE_IN_TASK, ACROPOLIS_PLAZA_FINAL_FADE_IN_FRAMES, 0);
                 work->elapsedFrames = 0;
                 task->state         = task->state + 1;
@@ -4076,7 +4076,7 @@ static void _acropolisPlazaFinalSceneTask(Task* task)
             return;
         case ACROPOLIS_PLAZA_FINAL_WAIT_END:
             if (cdCmdIsIdle() != 0) {
-                sndEvtRequestScriptStop(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PLAZA, 2), ACROPOLIS_PLAZA_FINAL_AMBIENCE_STOP_TICKS);
+                sndEvtRequestScriptStop(SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_PLAZA, 2), ACROPOLIS_PLAZA_FINAL_AMBIENCE_STOP_TICKS);
                 taskMessageDispatch(work->playerTask, GAME_ACTOR_MESSAGE_END_SCRIPTED, 1, 0);
                 taskRequestKill(task, 0);
             }
@@ -4270,10 +4270,10 @@ static void _acropolisPlazaUpdateSceneAmbience(Task* task)
     switch (gCdCmdQueue.plazaStreamSubId) {
         case 0:
         case 1:
-            _acropolisPlazaUpdateAmbienceVoice(1, ACROPOLIS_PLAZA_AMBIENCE_TRAVERSAL_END_FRAME, 1, &work->ambience5Playing, SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PLAZA, 5), ACROPOLIS_PLAZA_AMBIENCE_TRIANGLE);
-            _acropolisPlazaUpdateAmbienceVoice(1, ACROPOLIS_PLAZA_AMBIENCE_EARLY_FADE_END, 1, &work->ambience2Playing, SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PLAZA, 2), ACROPOLIS_PLAZA_AMBIENCE_EARLY_FADE);
-            _acropolisPlazaUpdateAmbienceVoice(ACROPOLIS_PLAZA_AMBIENCE4_FIRST_FRAME, ACROPOLIS_PLAZA_AMBIENCE4_LAST_FRAME, ACROPOLIS_PLAZA_AMBIENCE4_PEAK_FRAME, &work->ambience4Playing, SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PLAZA, 4), ACROPOLIS_PLAZA_AMBIENCE_TRIANGLE);
-            _acropolisPlazaUpdateAmbienceVoice(ACROPOLIS_PLAZA_AMBIENCE1_FIRST_FRAME, ACROPOLIS_PLAZA_AMBIENCE1_LAST_FRAME, ACROPOLIS_PLAZA_AMBIENCE1_PEAK_FRAME, &work->ambience1Playing, SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PLAZA, 1), ACROPOLIS_PLAZA_AMBIENCE_QUIET_TRIANGLE);
+            _acropolisPlazaUpdateAmbienceVoice(1, ACROPOLIS_PLAZA_AMBIENCE_TRAVERSAL_END_FRAME, 1, &work->ambience5Playing, SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_PLAZA, 5), ACROPOLIS_PLAZA_AMBIENCE_TRIANGLE);
+            _acropolisPlazaUpdateAmbienceVoice(1, ACROPOLIS_PLAZA_AMBIENCE_EARLY_FADE_END, 1, &work->ambience2Playing, SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_PLAZA, 2), ACROPOLIS_PLAZA_AMBIENCE_EARLY_FADE);
+            _acropolisPlazaUpdateAmbienceVoice(ACROPOLIS_PLAZA_AMBIENCE4_FIRST_FRAME, ACROPOLIS_PLAZA_AMBIENCE4_LAST_FRAME, ACROPOLIS_PLAZA_AMBIENCE4_PEAK_FRAME, &work->ambience4Playing, SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_PLAZA, 4), ACROPOLIS_PLAZA_AMBIENCE_TRIANGLE);
+            _acropolisPlazaUpdateAmbienceVoice(ACROPOLIS_PLAZA_AMBIENCE1_FIRST_FRAME, ACROPOLIS_PLAZA_AMBIENCE1_LAST_FRAME, ACROPOLIS_PLAZA_AMBIENCE1_PEAK_FRAME, &work->ambience1Playing, SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_PLAZA, 1), ACROPOLIS_PLAZA_AMBIENCE_QUIET_TRIANGLE);
             break;
         case 2:
             // Compare a snapshot, then reread the frame published by MDEC completion.
@@ -4285,7 +4285,7 @@ static void _acropolisPlazaUpdateSceneAmbience(Task* task)
             } else {
                 volume = (((ACROPOLIS_PLAZA_AMBIENCE_STREAM_FALL_ANCHOR_FRAME - *sceneFrameSource) * ACROPOLIS_PLAZA_AMBIENCE_FULL_VOLUME) / ACROPOLIS_PLAZA_AMBIENCE_STREAM_RAMP_FRAMES) + ACROPOLIS_PLAZA_AMBIENCE_BASE_VOLUME;
             }
-            sndEvtRequestScriptVolume(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PLAZA, 1), volume & 0xFF);
+            sndEvtRequestScriptVolume(SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_PLAZA, 1), volume & 0xFF);
             break;
     }
 }
@@ -4493,9 +4493,9 @@ static inline void _acropolisPlazaCommitElevatorDestination(void)
         ACROPOLIS_PLAZA_ELEVATOR_ARRIVAL_ROOM   = 1,
         ACROPOLIS_PLAZA_ELEVATOR_SPRITE_VARIANT = 1,
     };
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.stage = GAME_STAGE_ACROPOLIS;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.stage = GAME_STAGE_AKROPOLIS;
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp  = ACROPOLIS_PLAZA_ELEVATOR_ARRIVAL_WARP;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.area  = GAME_AREA_ACROPOLIS_WEST_ELEVATOR_HALL;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.area  = GAME_AREA_AKROPOLIS_WEST_ELEVATOR_HALL;
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.room  = ACROPOLIS_PLAZA_ELEVATOR_ARRIVAL_ROOM;
     gDisplayState.spriteVariant                             = ACROPOLIS_PLAZA_ELEVATOR_SPRITE_VARIANT;
 }

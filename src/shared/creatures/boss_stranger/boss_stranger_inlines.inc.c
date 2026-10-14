@@ -54,8 +54,8 @@ static inline void _bossStrangerApplyFacingStep(BossStrangerWalker* walker, GfxC
 /// Chase requires `playerId` to select live resident player storage; only id 1
 /// has established storage. Borrows the frame and nested initialized scratch
 /// storage for this call. The enclosing tick releases the frame and dirties the coordinate.
-static __inline__ void _bossStrangerStep(BossStrangerWalker* walker, BossStrangerTickScratch* scratchEnd,
-                                         BossStrangerTickScratch* frame)
+static inline void _bossStrangerStep(BossStrangerWalker* walker, BossStrangerTickScratch* scratchEnd,
+                                     BossStrangerTickScratch* frame)
 {
     const PlayerStatus* player;
     SVECTOR3*           goal;

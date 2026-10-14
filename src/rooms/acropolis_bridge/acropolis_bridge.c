@@ -225,8 +225,8 @@ enum {
 ///
 /// The reveal command uses the promenade context; keypad acceptance uses the bridge.
 enum {
-    ACROPOLIS_BRIDGE_COMMAND_CONTEXT_MOVIE      = GAME_STAGE_ACROPOLIS | (GAME_AREA_ACROPOLIS_PROMENADE << 8),
-    ACROPOLIS_BRIDGE_COMMAND_CONTEXT_KEYPAD     = GAME_STAGE_ACROPOLIS | (GAME_AREA_ACROPOLIS_BRIDGE << 8),
+    ACROPOLIS_BRIDGE_COMMAND_CONTEXT_MOVIE      = GAME_STAGE_AKROPOLIS | (GAME_AREA_AKROPOLIS_PROMENADE << 8),
+    ACROPOLIS_BRIDGE_COMMAND_CONTEXT_KEYPAD     = GAME_STAGE_AKROPOLIS | (GAME_AREA_AKROPOLIS_BRIDGE << 8),
     ACROPOLIS_BRIDGE_COMMAND_SHOW_MOVIE_ENEMIES = 1,
     ACROPOLIS_BRIDGE_COMMAND_KEYPAD_ACCEPTED    = 2
 };
@@ -984,8 +984,8 @@ enum {
 };
 
 DirectionWarpEntry gAcropolisBridgeWarpEntries[ACROPOLIS_BRIDGE_WARP_COUNT] = {
-    { { { .word = 3072 }, -3643, 2, -2161 }, { 0, 0, 0, 0 }, { { .word = 3072 }, -3643, 2, -2161 }, { 0, 0, 0, 0 }, SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_BRIDGE, 8), SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_BRIDGE, 7), DIRECTION_WARP_SOUND_NONE, ACROPOLIS_BRIDGE_VIEW_OVERVIEW, DIRECTION_WARP_FLAG_NONE, ACROPOLIS_BRIDGE_PROMENADE_WARP_MAP_FLAG },
-    { { { .word = 1024 }, -0x3D4E, 0, -2098 }, { 0, 0, 0, 0 }, { { .word = 1024 }, -0x3D4E, 0, -2098 }, { 0, 0, 0, 0 }, SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_BRIDGE, 6), SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_BRIDGE, 5), DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, ACROPOLIS_BRIDGE_FIRE_ESCAPE_WARP_MAP_FLAG },
+    { { { .word = 3072 }, -3643, 2, -2161 }, { 0, 0, 0, 0 }, { { .word = 3072 }, -3643, 2, -2161 }, { 0, 0, 0, 0 }, SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_BRIDGE, 8), SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_BRIDGE, 7), DIRECTION_WARP_SOUND_NONE, ACROPOLIS_BRIDGE_VIEW_OVERVIEW, DIRECTION_WARP_FLAG_NONE, ACROPOLIS_BRIDGE_PROMENADE_WARP_MAP_FLAG },
+    { { { .word = 1024 }, -0x3D4E, 0, -2098 }, { 0, 0, 0, 0 }, { { .word = 1024 }, -0x3D4E, 0, -2098 }, { 0, 0, 0, 0 }, SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_BRIDGE, 6), SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_BRIDGE, 5), DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, ACROPOLIS_BRIDGE_FIRE_ESCAPE_WARP_MAP_FLAG },
 };
 
 /// Room-space Q12 face normals for the bridge's room-1 collision grid.
@@ -1121,13 +1121,13 @@ enum {
 /// coordinates, list links and hit latches are mutable; keep this overlay loaded
 /// until unlinked. Geometry uses game units and normals use Q12.
 static WorldCollisionTrigger _gAcropolisBridgeRoom1ActionTriggers[7] = {
-    { NULL, NULL, NULL, { -2995, -144, -2076, 0 }, { { -336, 0, -1024, 0 }, { 336, 0, -1024, 0 }, { -336, 0, 1024, 0 }, { 336, 0, 1024, 0 } }, { 0, 4100, 0, 0 }, { -4096, 0, 0, 0 }, 1070, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_ACROPOLIS_PROMENADE, (1 << 4) | 5, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -2995, -144, -2076, 0 }, { { -336, 0, -1024, 0 }, { 336, 0, -1024, 0 }, { -336, 0, 1024, 0 }, { 336, 0, 1024, 0 } }, { 0, 4100, 0, 0 }, { -4096, 0, 0, 0 }, 1070, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_AKROPOLIS_PROMENADE, (1 << 4) | 5, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { -4544, -128, -448, 0 }, { { -576, 0, -576, 0 }, { 576, 0, -576, 0 }, { -576, 0, 576, 0 }, { 576, 0, 576, 0 } }, { 0, 4105, 0, 0 }, { 4094, 0, -1, 0 }, 814, WORLD_COLLISION_TRIGGER_ACTION_CAP, ACROPOLIS_BRIDGE_KEYPAD_COMMAND, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { -5009, -64, -2432, 0 }, { { -208, 0, -1024, 0 }, { 208, 0, -1024, 0 }, { -208, 0, 1024, 0 }, { 208, 0, 1024, 0 } }, { 0, 4095, 0, 0 }, { 4091, 0, 201, 0 }, 1039, WORLD_COLLISION_TRIGGER_ACTION_FACING | ACROPOLIS_BRIDGE_STAIR_DESCEND, ACROPOLIS_BRIDGE_STAIR_ROOM1_SELECTOR, (3072 >> 4), WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { -6176, 992, -2016, 0 }, { { -208, 0, -1024, 0 }, { 208, 0, -1024, 0 }, { -208, 0, 1024, 0 }, { 208, 0, 1024, 0 } }, { 0, 4095, 0, 0 }, { -4091, 0, 200, 0 }, 1039, WORLD_COLLISION_TRIGGER_ACTION_FACING, ACROPOLIS_BRIDGE_STAIR_ROOM1_SELECTOR, (1024 >> 4), WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { -0x33C0, 928, -2048, 0 }, { { -208, 0, -1024, 0 }, { 208, 0, -1024, 0 }, { -208, 0, 1024, 0 }, { 208, 0, 1024, 0 } }, { 0, 4095, 0, 0 }, { 4091, 0, 201, 0 }, 1039, WORLD_COLLISION_TRIGGER_ACTION_FACING, ACROPOLIS_BRIDGE_STAIR_ROOM1_SELECTOR, (3072 >> 4), WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { -0x38E0, -64, -1984, 0 }, { { -208, 0, -1024, 0 }, { 208, 0, -1024, 0 }, { -208, 0, 1024, 0 }, { 208, 0, 1024, 0 } }, { 0, 4095, 0, 0 }, { -4096, 0, 0, 0 }, 1039, WORLD_COLLISION_TRIGGER_ACTION_FACING | ACROPOLIS_BRIDGE_STAIR_DESCEND, ACROPOLIS_BRIDGE_STAIR_ROOM1_SELECTOR, (1024 >> 4), WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -0x3D00, -64, -2016, 0 }, { { -208, 0, -1024, 0 }, { 208, 0, -1024, 0 }, { -208, 0, 1024, 0 }, { 208, 0, 1024, 0 } }, { 0, 4095, 0, 0 }, { 4091, 0, 201, 0 }, 1039, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_ACROPOLIS_FIRE_ESCAPE, (2 << 4) | 1, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
+    { NULL, NULL, NULL, { -0x3D00, -64, -2016, 0 }, { { -208, 0, -1024, 0 }, { 208, 0, -1024, 0 }, { -208, 0, 1024, 0 }, { 208, 0, 1024, 0 } }, { 0, 4095, 0, 0 }, { 4091, 0, 201, 0 }, 1039, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_AKROPOLIS_FIRE_ESCAPE, (2 << 4) | 1, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
 /// Room-2 interactions after the keypad movie changes the bridge layout.
@@ -1137,13 +1137,13 @@ static WorldCollisionTrigger _gAcropolisBridgeRoom1ActionTriggers[7] = {
 /// links and hit latches are mutable and require the loaded bridge overlay.
 /// Geometry uses game units and normals use Q12.
 static WorldCollisionTrigger _gAcropolisBridgeRoom2ActionTriggers[7] = {
-    { NULL, NULL, NULL, { -2979, -112, -1404, 0 }, { { -288, 0, -1024, 0 }, { 288, 0, -1024, 0 }, { -288, 0, 1024, 0 }, { 288, 0, 1024, 0 } }, { 0, 4095, 0, 0 }, { -4096, 0, 0, 0 }, 1063, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_ACROPOLIS_PROMENADE, (1 << 4) | 5, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -2979, -112, -1404, 0 }, { { -288, 0, -1024, 0 }, { 288, 0, -1024, 0 }, { -288, 0, 1024, 0 }, { 288, 0, 1024, 0 } }, { 0, 4095, 0, 0 }, { -4096, 0, 0, 0 }, 1063, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_AKROPOLIS_PROMENADE, (1 << 4) | 5, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { -4544, -128, -448, 0 }, { { -576, 0, -576, 0 }, { 576, 0, -576, 0 }, { -576, 0, 576, 0 }, { 576, 0, 576, 0 } }, { 0, 4105, 0, 0 }, { 4094, 0, -1, 0 }, 814, WORLD_COLLISION_TRIGGER_ACTION_CAP, ACROPOLIS_BRIDGE_KEYPAD_COMMAND, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { -4893, -64, -2624, 0 }, { { -208, 0, -1024, 0 }, { 208, 0, -1024, 0 }, { -208, 0, 1024, 0 }, { 208, 0, 1024, 0 } }, { 0, 4095, 0, 0 }, { 4091, 0, 201, 0 }, 1039, WORLD_COLLISION_TRIGGER_ACTION_FACING, ACROPOLIS_BRIDGE_STAIR_ROOM2_SELECTOR, (3072 >> 4), WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { -6113, -992, -2016, 0 }, { { -367, 0, -1024, 0 }, { 368, 0, -1024, 0 }, { -367, 0, 1024, 0 }, { 368, 0, 1024, 0 } }, { 0, 4102, 0, 0 }, { -4091, 0, 200, 0 }, 1086, WORLD_COLLISION_TRIGGER_ACTION_FACING | ACROPOLIS_BRIDGE_STAIR_DESCEND, ACROPOLIS_BRIDGE_STAIR_ROOM2_SELECTOR, (1024 >> 4), WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { -0x33D0, -1056, -2048, 0 }, { { -256, 0, -1024, 0 }, { 256, 0, -1024, 0 }, { -256, 0, 1024, 0 }, { 256, 0, 1024, 0 } }, { 0, 4096, 0, 0 }, { 4091, 0, 201, 0 }, 1055, WORLD_COLLISION_TRIGGER_ACTION_FACING | ACROPOLIS_BRIDGE_STAIR_DESCEND, ACROPOLIS_BRIDGE_STAIR_ROOM2_SELECTOR, (3072 >> 4), WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { -0x38C0, -64, -1984, 0 }, { { -240, 0, -1024, 0 }, { 240, 0, -1024, 0 }, { -240, 0, 1024, 0 }, { 240, 0, 1024, 0 } }, { 0, 4095, 0, 0 }, { -4096, 0, 0, 0 }, 1047, WORLD_COLLISION_TRIGGER_ACTION_FACING, ACROPOLIS_BRIDGE_STAIR_ROOM2_SELECTOR, (1024 >> 4), WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -0x3DA0, -64, -2016, 0 }, { { -208, 0, -1024, 0 }, { 208, 0, -1024, 0 }, { -208, 0, 1024, 0 }, { 208, 0, 1024, 0 } }, { 0, 4095, 0, 0 }, { 4091, 0, 201, 0 }, 1039, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_ACROPOLIS_FIRE_ESCAPE, (2 << 4) | 1, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
+    { NULL, NULL, NULL, { -0x3DA0, -64, -2016, 0 }, { { -208, 0, -1024, 0 }, { 208, 0, -1024, 0 }, { -208, 0, 1024, 0 }, { 208, 0, 1024, 0 } }, { 0, 4095, 0, 0 }, { 4091, 0, 201, 0 }, 1039, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_AKROPOLIS_FIRE_ESCAPE, (2 << 4) | 1, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
 /// Encoded 8-bit texture pages, palette rows and modulation for bridge sprites.
@@ -3214,15 +3214,15 @@ static _AcropolisBridgeMovieFrameStorage _gAcropolisBridgeMovieFrameStorage = {
     .unknown_2  = { 0x22, 0xF2 },
 };
 
-static void            _acropolisBridgeOffsetArrivalSpriteFrame(s32 frame, s8 offsetX, s8 offsetY);
-static __inline__ void _acropolisBridgeSetCollisionBodyPosition(WorldCollisionBody* body, const SVECTOR3* position);
-static __inline__ void _acropolisBridgeInitWalkerScale(BossStrangerWalker* walker);
-static __inline__ void _acropolisBridgeLightModel(Task* task);
-static __inline__ void _acropolisBridgeResetEnemyScaleOnEntry(_AcropolisBridgeEnemyWork* work);
-static __inline__ void _acropolisBridgeResetEnemyScaleDuringShrink(_AcropolisBridgeEnemyWork* work);
-static __inline__ void _acropolisBridgeGrowEnemyScale(_AcropolisBridgeEnemyWork* work);
-static __inline__ s16  _acropolisBridgeAttackLanded(const Task* task);
-static __inline__ s32  _acropolisBridgeEnemyHasPlayerContact(const WorldCollisionContact* contacts);
+static void        _acropolisBridgeOffsetArrivalSpriteFrame(s32 frame, s8 offsetX, s8 offsetY);
+static inline void _acropolisBridgeSetCollisionBodyPosition(WorldCollisionBody* body, const SVECTOR3* position);
+static inline void _acropolisBridgeInitWalkerScale(BossStrangerWalker* walker);
+static inline void _acropolisBridgeLightModel(Task* task);
+static inline void _acropolisBridgeResetEnemyScaleOnEntry(_AcropolisBridgeEnemyWork* work);
+static inline void _acropolisBridgeResetEnemyScaleDuringShrink(_AcropolisBridgeEnemyWork* work);
+static inline void _acropolisBridgeGrowEnemyScale(_AcropolisBridgeEnemyWork* work);
+static inline s16  _acropolisBridgeAttackLanded(const Task* task);
+static inline s32  _acropolisBridgeEnemyHasPlayerContact(const WorldCollisionContact* contacts);
 /// Base requests for the bridge enemy's fall animation and player-body contact.
 /// The positional helper adds the placement index in the sound instance byte.
 enum {
@@ -3230,9 +3230,9 @@ enum {
     ACROPOLIS_BRIDGE_ENEMY_FALL_ANIMATION_SOUND = SOUND_CHARACTER(0x29, 3)
 };
 
-static __inline__ void _acropolisBridgePlayEnemySound(Task* task, Enemy* enemy, s32 baseSoundId);
-static void            _acropolisBridgeEnemyApplyHit(Task* task, u32 attackKey);
-static void            _acropolisBridgeEnemyRelightModel(Task* task, s16 recomposeRoot);
+static inline void _acropolisBridgePlayEnemySound(Task* task, Enemy* enemy, s32 baseSoundId);
+static void        _acropolisBridgeEnemyApplyHit(Task* task, u32 attackKey);
+static void        _acropolisBridgeEnemyRelightModel(Task* task, s16 recomposeRoot);
 
 /// Reserves a textured-quad packet for the bridge's ground glow.
 ///
@@ -3241,7 +3241,7 @@ static void            _acropolisBridgeEnemyRelightModel(Task* task, s16 recompo
 /// only the DMA length and textured-quad opcode. The caller fills and links it.
 /// A clipped glow still consumes the reservation; the packet is borrowed until
 /// the frame arena is reused after GPU completion.
-static __inline__ POLY_FT4* _acropolisBridgeReserveGroundGlowQuad(void)
+static inline POLY_FT4* _acropolisBridgeReserveGroundGlowQuad(void)
 {
     POLY_FT4* quad;
 
@@ -3270,20 +3270,20 @@ static s32 _acropolisBridgeResolveRoomTransition(Task* task, s32 messageId, cons
     GameLocationKey sanctuaryLocation;
 
     *reply = *request;
-    if (request->areaId == GAME_AREA_ACROPOLIS_FIRE_ESCAPE) {
+    if (request->areaId == GAME_AREA_AKROPOLIS_FIRE_ESCAPE) {
         if (gameFlagGetNibble(GAME_FLAG_BRIDGE_ARRIVAL_SCENE_SEEN) == 0) {
             if (request->queryOnly == ROOM_EVENT_EXECUTE) {
                 gameFlagSetNibble(GAME_FLAG_BRIDGE_ARRIVAL_SCENE_SEEN, 1);
                 evsStartScriptWithSkip(_gAcropolisBridgeArrivalScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, _gAcropolisBridgeArrivalSkipScript);
                 gameFlagSetNibble(GAME_FLAG_SANCTUARY_BLOCKER_CLEARED, 1);
-                sanctuaryLocation.stage = GAME_STAGE_ACROPOLIS;
-                sanctuaryLocation.area  = GAME_AREA_ACROPOLIS_SANCTUARY;
+                sanctuaryLocation.stage = GAME_STAGE_AKROPOLIS;
+                sanctuaryLocation.area  = GAME_AREA_AKROPOLIS_SANCTUARY;
                 areaSetPlacementVariant(&sanctuaryLocation, ACROPOLIS_BRIDGE_SANCTUARY_CLEARED_VARIANT, AREA_VARIANT_RESET_ALWAYS);
             }
             return ACROPOLIS_BRIDGE_TRANSITION_ARRIVAL_SCENE;
         }
     }
-    if ((request->areaId == GAME_AREA_ACROPOLIS_PROMENADE) && (request->queryOnly == ROOM_EVENT_EXECUTE)) {
+    if ((request->areaId == GAME_AREA_AKROPOLIS_PROMENADE) && (request->queryOnly == ROOM_EVENT_EXECUTE)) {
         reply->room = ACROPOLIS_BRIDGE_PROMENADE_RETURN_ROOM;
     }
     return ACROPOLIS_BRIDGE_TRANSITION_ALLOWED;
@@ -3306,7 +3306,7 @@ static s32 _acropolisBridgeRejectKeyItemUse(Task* task, s32 messageId, s32 itemI
 static s32 _acropolisBridgeHandleKeypadCommand(Task* task, s32 messageId, s32 commandIndex, s32 unusedArg)
 {
     if (commandIndex == ACROPOLIS_BRIDGE_KEYPAD_COMMAND) {
-        if (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_BRIDGE_PROGRESS) == ACROPOLIS_BRIDGE_PROGRESS_KEYPAD_MOVIE_COMPLETE) {
+        if (gameFlagGetNibble(GAME_FLAG_AKROPOLIS_BRIDGE_PROGRESS) == ACROPOLIS_BRIDGE_PROGRESS_KEYPAD_MOVIE_COMPLETE) {
             capStartSequenceSlot(ACROPOLIS_BRIDGE_KEYPAD_COMMAND, ACROPOLIS_BRIDGE_KEYPAD_CAPTION_PLAYBACK_MODE,
                                  ACROPOLIS_BRIDGE_KEYPAD_COMPLETE_CAPTION_VARIANT);
             return 0;
@@ -3500,7 +3500,7 @@ static void _acropolisBridgeStartKeypad(Task* task)
 /// The result remains available to the next cutscene state.
 static void _acropolisBridgeWaitForKeypadResult(Task* task)
 {
-    ActorCommand movieCommand = { { { GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PROMENADE } }, ACROPOLIS_BRIDGE_COMMAND_SHOW_MOVIE_ENEMIES };
+    ActorCommand movieCommand = { { { GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_PROMENADE } }, ACROPOLIS_BRIDGE_COMMAND_SHOW_MOVIE_ENEMIES };
 
     if (taskPollKill(_gAcropolisBridgeKeypadTask, &_gAcropolisBridgeKeypadResult) != 0) {
         if (_gAcropolisBridgeKeypadResult == ACROPOLIS_BRIDGE_KEYPAD_CANCELLED) {
@@ -3570,7 +3570,7 @@ static void _acropolisBridgeFinishKeypadMovie(Task* task)
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.room = ACROPOLIS_BRIDGE_ROOM_AFTER_KEYPAD_MOVIE;
         gGameSession->location.room                            = ACROPOLIS_BRIDGE_ROOM_AFTER_KEYPAD_MOVIE;
         gGameSession->roomObjsDirty                            = 1;
-        gameFlagSetNibble(GAME_FLAG_ACROPOLIS_BRIDGE_PROGRESS, ACROPOLIS_BRIDGE_PROGRESS_KEYPAD_MOVIE_COMPLETE);
+        gameFlagSetNibble(GAME_FLAG_AKROPOLIS_BRIDGE_PROGRESS, ACROPOLIS_BRIDGE_PROGRESS_KEYPAD_MOVIE_COMPLETE);
         playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
         task->state = task->state + 1;
     }
@@ -3925,7 +3925,7 @@ static void _acropolisBridgeShowKeypadCode(s32 code, s16 hidePrompt)
 /// Hides the three ten-digit bands of the keypad's sprite display.
 ///
 /// `batches` borrows the eighth view's live batch array, including indices 1..30.
-static __inline__ void _acropolisBridgeHideKeypadDigitBatches(SpriteBatch* batches)
+static inline void _acropolisBridgeHideKeypadDigitBatches(SpriteBatch* batches)
 {
     s32 batchIndex;
 
@@ -4192,7 +4192,7 @@ static void _acropolisBridgeKeypadCheckCode(Task* task)
         task->state      = ACROPOLIS_BRIDGE_KEYPAD_STATE_REJECTED;
     } else {
         // Keep the inherited blink counters on acceptance.
-        ActorCommand acceptedCommand = { { { GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_BRIDGE } }, ACROPOLIS_BRIDGE_COMMAND_KEYPAD_ACCEPTED };
+        ActorCommand acceptedCommand = { { { GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_BRIDGE } }, ACROPOLIS_BRIDGE_COMMAND_KEYPAD_ACCEPTED };
 
         TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &acceptedCommand, ACTOR_COMMAND_MESSAGE_APPLY);
         sndEvtRequestScriptStart(SOUND_ACROPOLIS_BRIDGE_CODE_ACCEPTED, 0, 0);
@@ -4503,7 +4503,7 @@ void acropolisBridgeAmbientEffectsTask(Task* task)
 /// `task` and `work` borrow live writable objects. Sets `scale` to 30..119
 /// frames, `angle` to 16..79 pixels and `period` to 1..4 frames per row. Consumes
 /// three shared LCG draws, retaining the u16-to-u32 lifetime roll; keeps no pointer.
-static __inline__ void _acropolisBridgeInitializeStreakLifetime(Task* task, EffectWork* work)
+static inline void _acropolisBridgeInitializeStreakLifetime(Task* task, EffectWork* work)
 {
     enum { ACROPOLIS_BRIDGE_STREAK_MIN_LIFETIME_FRAMES   = 30,
            ACROPOLIS_BRIDGE_STREAK_LIFETIME_RANGE_FRAMES = 90,
@@ -5481,7 +5481,7 @@ static void _acropolisBridgeEnemyUpdateAnimation(Task* task)
 ///
 /// Borrows three readable position halfwords and the writable body; copies only
 /// XYZ without retaining either pointer or changing the body's coordinate owner.
-static __inline__ void _acropolisBridgeSetCollisionBodyPosition(WorldCollisionBody* body, const SVECTOR3* position)
+static inline void _acropolisBridgeSetCollisionBodyPosition(WorldCollisionBody* body, const SVECTOR3* position)
 {
     body->pos.vx = position->vx;
     body->pos.vy = position->vy;
@@ -5493,7 +5493,7 @@ static __inline__ void _acropolisBridgeSetCollisionBodyPosition(WorldCollisionBo
 /// Clears translation and off-diagonal entries; zero and `ONE` both leave
 /// identity. Requires an initialized scratch stack with room for one `VECTOR`.
 /// Leaves that block live for `_acropolisBridgeLightModel` to reuse and release.
-static __inline__ void _acropolisBridgeInitWalkerScale(BossStrangerWalker* walker)
+static inline void _acropolisBridgeInitWalkerScale(BossStrangerWalker* walker)
 {
     VECTOR* scratchEnd;
     VECTOR* scaleVector;
@@ -5528,7 +5528,7 @@ static __inline__ void _acropolisBridgeInitWalkerScale(BossStrangerWalker* walke
 /// Requires a live model and the one-`VECTOR` scratch block reserved by
 /// `_acropolisBridgeInitWalkerScale`. Reuses that block for the root translation,
 /// queries all three lights, then releases it. Lighting may use nested scratch.
-static __inline__ void _acropolisBridgeLightModel(Task* task)
+static inline void _acropolisBridgeLightModel(Task* task)
 {
     VECTOR* worldPosition;
 
@@ -5716,7 +5716,7 @@ static void _acropolisBridgeEnemySetup(Enemy* enemy, Task* task)
 /// is retained behavior. Borrows one `VECTOR` from the initialized scratch stack
 /// and releases it before returning. The two reset helpers retain the ordering
 /// of the entry and shrinking updates.
-static __inline__ void _acropolisBridgeResetEnemyScaleOnEntry(_AcropolisBridgeEnemyWork* work)
+static inline void _acropolisBridgeResetEnemyScaleOnEntry(_AcropolisBridgeEnemyWork* work)
 {
     BossStrangerWalker* walker;
     VECTOR*             scratchEnd;
@@ -5756,7 +5756,7 @@ static __inline__ void _acropolisBridgeResetEnemyScaleOnEntry(_AcropolisBridgeEn
 /// is retained behavior. Borrows one `VECTOR` from the initialized scratch stack
 /// and releases it before returning. The two reset helpers retain the ordering
 /// of the entry and shrinking updates.
-static __inline__ void _acropolisBridgeResetEnemyScaleDuringShrink(_AcropolisBridgeEnemyWork* work)
+static inline void _acropolisBridgeResetEnemyScaleDuringShrink(_AcropolisBridgeEnemyWork* work)
 {
     BossStrangerWalker* walker;
     VECTOR*             scratchEnd;
@@ -5854,7 +5854,7 @@ static void _acropolisBridgeEnemyPatrolSunk(Task* task)
 /// The caller stops invoking this at full scale (`ONE`); the final addition can
 /// overshoot and is not clamped. Zero and `ONE` leave identity. Borrows one
 /// `VECTOR` from the initialized scratch stack and releases it before returning.
-static __inline__ void _acropolisBridgeGrowEnemyScale(_AcropolisBridgeEnemyWork* work)
+static inline void _acropolisBridgeGrowEnemyScale(_AcropolisBridgeEnemyWork* work)
 {
     enum { ACROPOLIS_BRIDGE_ENEMY_SCALE_GROWTH_PER_UPDATE = 136 };
     BossStrangerWalker* walker;
@@ -5893,7 +5893,7 @@ static __inline__ void _acropolisBridgeGrowEnemyScale(_AcropolisBridgeEnemyWork*
 /// Returns 1 when the bridge enemy's attack sphere has struck something, else 0.
 ///
 /// Reads the live enemy work's one-entry attack contact table without clearing it.
-static __inline__ s16 _acropolisBridgeAttackLanded(const Task* task)
+static inline s16 _acropolisBridgeAttackLanded(const Task* task)
 {
     const _AcropolisBridgeEnemyWork* work = task->work;
 
@@ -6018,7 +6018,7 @@ static void _acropolisBridgeEnemyRetreat(Task* task)
 /// Player and companion bodies share this key category. Scanning stops at the
 /// first zero key, so entries beyond a gap are deliberately ignored. The caller
 /// borrows the live `bodyContacts` array; no entries or pointers are changed.
-static __inline__ s32 _acropolisBridgeEnemyHasPlayerContact(const WorldCollisionContact* contacts)
+static inline s32 _acropolisBridgeEnemyHasPlayerContact(const WorldCollisionContact* contacts)
 {
     enum { ACROPOLIS_BRIDGE_ENEMY_BODY_CONTACT_COUNT = 3 };
     s16 contactIndex;
@@ -6040,7 +6040,7 @@ static __inline__ s32 _acropolisBridgeEnemyHasPlayerContact(const WorldCollision
 /// The three bridge placements OR their index into that byte. Pan and attenuation
 /// come from the model root and retain their signed-byte narrowing. Sound
 /// resources and the live `task`/model must remain valid for the request.
-static __inline__ void _acropolisBridgePlayEnemySound(Task* task, Enemy* enemy, s32 baseSoundId)
+static inline void _acropolisBridgePlayEnemySound(Task* task, Enemy* enemy, s32 baseSoundId)
 {
     enum { ACROPOLIS_BRIDGE_SOUND_INSTANCE_SHIFT = 8 };
     s32 soundId;

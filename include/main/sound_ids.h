@@ -182,95 +182,91 @@ enum {
     SOUND_ACTOR_800200_HURT = SOUND_CHARACTER(SOUND_BANK_ACTOR_800200, 0x0A),
 };
 
-/// Area banks of `GAME_STAGE_ACROPOLIS`.
+/// Area banks of `GAME_STAGE_AKROPOLIS`.
 enum {
-    /// Positional one-shot fired from a fixed high world point (0x19AA,-0xF96,0x8DE) on
-    /// state 3 and repeated every 0x79 frames by the square's 'siren task' until the
-    /// event ends; stopped with Type7 when the scene hands off.
-    SOUND_ACROPOLIS_SQUARE_SIREN = SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_SQUARE, 9),
     /// Sound of a dormant (Odd/Horned) Stranger: queued once (OR'd with the enemy's
     /// place index) when the stranger enters its dormant state 23, stopped with Type7
     /// when the player comes in range or it takes hit state 0x17; also queued by the
     /// SWAT-member body actor 312200 from view 0x10.
-    SOUND_ACROPOLIS_PATIO_STRANGER_DORMANT = SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PATIO, 8),
+    SOUND_ACROPOLIS_PATIO_STRANGER_DORMANT = SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_PATIO, 8),
     /// Played by the cafeteria woman actor (anmc_woman_cafeteria_body) each time her
     /// animation 1 reaches the frame cue 0x15; what the sound is is not shown.
-    SOUND_ACROPOLIS_CAFETERIA_WOMAN_CUE = SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_CAFETERIA, 0x0D),
+    SOUND_ACROPOLIS_CAFETERIA_WOMAN_CUE = SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_CAFETERIA, 0x0D),
     /// Police officer actor's step sound on animation cue 2 (when not on display id
     /// 0x6C, which uses the 0x51050008..A table instead).
-    SOUND_ACROPOLIS_PLAZA_POLICE_STEP_1 = SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PLAZA, 6),
+    SOUND_ACROPOLIS_PLAZA_POLICE_STEP_1 = SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_PLAZA, 6),
     /// Police officer actor's step sound on animation cue 1, the partner of 0x51050006.
-    SOUND_ACROPOLIS_PLAZA_POLICE_STEP_2 = SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PLAZA, 7),
+    SOUND_ACROPOLIS_PLAZA_POLICE_STEP_2 = SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_PLAZA, 7),
     /// Played when key item 0x104 or 0x103 is used on the security room panel and
     /// consumed, setting the bit in flag nibble 9 that records which of the two
     /// shutters has been opened.
-    SOUND_ACROPOLIS_SECURITY_ROOM_SHUTTER_UNLOCK = SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_SECURITY_ROOM, 1),
+    SOUND_ACROPOLIS_SECURITY_ROOM_SHUTTER_UNLOCK = SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_SECURITY_ROOM, 1),
     /// Click when the highlighted row of the security monitor's camera list changes the
     /// displayed camera view.
-    SOUND_ACROPOLIS_SECURITY_ROOM_MONITOR_SELECT = SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_SECURITY_ROOM, 3),
+    SOUND_ACROPOLIS_SECURITY_ROOM_MONITOR_SELECT = SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_SECURITY_ROOM, 3),
     /// Click when the security monitor's grey wash steps one detent brighter.
-    SOUND_ACROPOLIS_SECURITY_ROOM_MONITOR_BRIGHTER = SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_SECURITY_ROOM, 6),
+    SOUND_ACROPOLIS_SECURITY_ROOM_MONITOR_BRIGHTER = SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_SECURITY_ROOM, 6),
     /// Click when the security monitor's grey wash steps one detent darker.
-    SOUND_ACROPOLIS_SECURITY_ROOM_MONITOR_DARKER = SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_SECURITY_ROOM, 7),
+    SOUND_ACROPOLIS_SECURITY_ROOM_MONITOR_DARKER = SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_SECURITY_ROOM, 7),
     /// Loop started with the security room's streamed cutscene and faded out (0x14) at
     /// movie frame 0x46 or when the player skips.
-    SOUND_ACROPOLIS_SECURITY_ROOM_MOVIE_LOOP = SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_SECURITY_ROOM, 8),
+    SOUND_ACROPOLIS_SECURITY_ROOM_MOVIE_LOOP = SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_SECURITY_ROOM, 8),
     /// Played by `itemPickupContainerLidTask` in the security room when the item container's part
     /// starts tilting open for a pickup.
-    SOUND_ACROPOLIS_SECURITY_ROOM_ITEM_LID_OPEN = SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_SECURITY_ROOM, 9),
+    SOUND_ACROPOLIS_SECURITY_ROOM_ITEM_LID_OPEN = SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_SECURITY_ROOM, 9),
     /// Played by `itemPickupContainerLidTask` in the security room when the tilted part swings
     /// back after the pickup result.
-    SOUND_ACROPOLIS_SECURITY_ROOM_ITEM_LID_CLOSE = SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_SECURITY_ROOM, 0x0A),
+    SOUND_ACROPOLIS_SECURITY_ROOM_ITEM_LID_CLOSE = SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_SECURITY_ROOM, 0x0A),
     /// The fountain's waterfall loop, (re)started or re-panned per camera view while
     /// the streamed fountain video is in its playing window and faded out at movie
     /// frame 0xF0.
-    SOUND_ACROPOLIS_FOUNTAIN_WATER_LOOP = SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_FOUNTAIN, 1),
+    SOUND_ACROPOLIS_FOUNTAIN_WATER_LOOP = SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_FOUNTAIN, 1),
     /// Played by `itemPickupContainerLidTask` in the sanctuary when the item container's part
     /// starts tilting open (case falls through and also queues 0x521B000B).
-    SOUND_ACROPOLIS_SANCTUARY_ITEM_LID_OPEN = SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_SANCTUARY, 5),
+    SOUND_ACROPOLIS_SANCTUARY_ITEM_LID_OPEN = SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_SANCTUARY, 5),
     /// Played by `itemPickupContainerLidTask` in the sanctuary when the tilted part swings back
     /// after the pickup.
-    SOUND_ACROPOLIS_SANCTUARY_ITEM_LID_CLOSE = SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_SANCTUARY, 6),
+    SOUND_ACROPOLIS_SANCTUARY_ITEM_LID_CLOSE = SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_SANCTUARY, 6),
     /// Looping ambience whose level follows the camera view (view 7 full, view 5 at
     /// 0x1E, silent elsewhere), started, ramped or faded only on a change.
-    SOUND_ACROPOLIS_ROOF_GARDEN_AMBIENCE = SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_ROOF_GARDEN, 5),
+    SOUND_ACROPOLIS_ROOF_GARDEN_AMBIENCE = SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_ROOF_GARDEN, 5),
     /// Beep when a keypad hotspot (digit or clear) is pressed while entering the bridge
     /// code.
-    SOUND_ACROPOLIS_BRIDGE_KEYPAD_BEEP = SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_BRIDGE, 3),
+    SOUND_ACROPOLIS_BRIDGE_KEYPAD_BEEP = SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_BRIDGE, 3),
     /// Played when a three-digit bridge code other than 0x561 is submitted.
-    SOUND_ACROPOLIS_BRIDGE_CODE_REJECTED = SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_BRIDGE, 4),
+    SOUND_ACROPOLIS_BRIDGE_CODE_REJECTED = SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_BRIDGE, 4),
     /// Played when the correct bridge code (561) is entered, alongside the broadcast to
     /// the room's actors.
-    SOUND_ACROPOLIS_BRIDGE_CODE_ACCEPTED = SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_BRIDGE, 9),
+    SOUND_ACROPOLIS_BRIDGE_CODE_ACCEPTED = SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_BRIDGE, 9),
     /// Looping ambience whose level follows the camera view (view 8 full, views 2-3
     /// 0x1E, views 4-5 0xF), stopped when the player leaves the room.
-    SOUND_ACROPOLIS_FIRE_ESCAPE_AMBIENCE = SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_FIRE_ESCAPE, 5),
+    SOUND_ACROPOLIS_FIRE_ESCAPE_AMBIENCE = SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_FIRE_ESCAPE, 5),
     /// Positional one-shot each time the room's flickering glow effect jumps from dim
     /// (<=0x10) to bright (>=0x20).
-    SOUND_ACROPOLIS_FIRE_ESCAPE_LIGHT_FLICKER = SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_FIRE_ESCAPE, 6),
+    SOUND_ACROPOLIS_FIRE_ESCAPE_LIGHT_FLICKER = SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_FIRE_ESCAPE, 6),
     /// Positional one-shot when the helipad floodlight effect randomly flares, spawning
     /// one 0x6003B and six 0x600A4 effects and a point light.
-    SOUND_HELICOPTER_LANDING_PAD_LIGHT_SPARK = SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_HELICOPTER_LANDING_PAD, 1),
+    SOUND_HELICOPTER_LANDING_PAD_LIGHT_SPARK = SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_HELICOPTER_LANDING_PAD, 1),
     /// Pierce Carradine's walk sound on animation cue 1 (outside view 0x10); the cue-2
     /// partner is 0x5113000F / 0x51130013.
-    SOUND_MIST_PARKING_PIERCE_STEP_2 = SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_MIST_PARKING, 0x10),
+    SOUND_MIST_PARKING_PIERCE_STEP_2 = SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_MIST_PARKING, 0x10),
     /// Played by a shooting-gallery target once its scales have grown to full size as
     /// it appears.
-    SOUND_MIST_SHOOTING_GALLERY_TARGET_APPEAR = SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_MIST_SHOOTING_GALLERY, 7),
+    SOUND_MIST_SHOOTING_GALLERY_TARGET_APPEAR = SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_MIST_SHOOTING_GALLERY, 7),
     /// Played for each of the first eight hits a shooting-gallery target takes.
-    SOUND_MIST_SHOOTING_GALLERY_TARGET_HIT = SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_MIST_SHOOTING_GALLERY, 8),
+    SOUND_MIST_SHOOTING_GALLERY_TARGET_HIT = SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_MIST_SHOOTING_GALLERY, 8),
     /// Played by a shooting-gallery target's death sequence (node unlinked, light set
     /// black, then shrunk away), distinct from the kill sequence's 0x51140010-12.
-    SOUND_MIST_SHOOTING_GALLERY_TARGET_DEATH = SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_MIST_SHOOTING_GALLERY, 9),
+    SOUND_MIST_SHOOTING_GALLERY_TARGET_DEATH = SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_MIST_SHOOTING_GALLERY, 9),
     /// Played at the player's coordinate when an active target's 210-frame timer fires,
     /// spawning effect 0x601BD on the player and dealing 10 damage.
-    SOUND_MIST_SHOOTING_GALLERY_TARGET_ATTACK = SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_MIST_SHOOTING_GALLERY, 0x0E),
+    SOUND_MIST_SHOOTING_GALLERY_TARGET_ATTACK = SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_MIST_SHOOTING_GALLERY, 0x0E),
     /// Played by every shooting-gallery course when its countdown finishes and table
     /// entry 1 is spawned to start the round.
-    SOUND_MIST_SHOOTING_GALLERY_ROUND_START = SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_MIST_SHOOTING_GALLERY, 0x0F),
+    SOUND_MIST_SHOOTING_GALLERY_ROUND_START = SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_MIST_SHOOTING_GALLERY, 0x0F),
     /// Played when an active target's timer reaches 120 frames and its light switches
     /// to the weighted (warning) mode, 90 frames before it attacks.
-    SOUND_MIST_SHOOTING_GALLERY_TARGET_CHARGE = SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_MIST_SHOOTING_GALLERY, 0x13),
+    SOUND_MIST_SHOOTING_GALLERY_TARGET_CHARGE = SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_MIST_SHOOTING_GALLERY, 0x13),
 };
 
 /// Area banks of `GAME_STAGE_DRYFIELD`.

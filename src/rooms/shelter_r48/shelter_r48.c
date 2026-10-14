@@ -3290,7 +3290,7 @@ static void _waterDrawTileU16(const GfxCoord* coord, s32 textureCell, s32 radius
 /// with a positive half-diagonal, zero points up and a quarter turn points right.
 /// The drawer subtracts Y from the centre and uses opposite signs for each pair
 /// of corners, repeating a quarter turn later for the other pair.
-static __inline__ void _shelterR48RotateDriftCorner(EffectShapeScratch* projection, s16 sizeFactor, s32 cornerAngle)
+static inline void _shelterR48RotateDriftCorner(EffectShapeScratch* projection, s16 sizeFactor, s32 cornerAngle)
 {
     enum {
         SHELTER_R48_DRIFT_PERSPECTIVE_SCALE  = 47, // Multiplier in the depth-divided half-diagonal numerator

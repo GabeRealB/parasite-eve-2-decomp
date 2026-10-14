@@ -12,7 +12,7 @@
 /// Each call changes the signed-halfword Q12 weight by 512, saturating at
 /// full aim or zero. Any mode other than `STRIDE_WALK_TURN_PLAYER` releases
 /// the aim; the caller applies the resulting weight to the current head pose.
-static __inline__ void _strideWalkStepHeadTurnWeight(StrideWalkWork* work)
+static inline void _strideWalkStepHeadTurnWeight(StrideWalkWork* work)
 {
     enum { STRIDE_WALK_TURN_WEIGHT_STEP = STRIDE_WALK_TURN_WEIGHT_FULL / 8 };
 

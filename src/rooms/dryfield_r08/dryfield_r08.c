@@ -796,7 +796,7 @@ void dryfieldR08LampGlowTask(Task* task)
 /// `cornerAngle` uses 4096 units per turn. X points right and Y points up, so a
 /// positive half-diagonal at zero angle points up and at a quarter turn points
 /// right. The drawer subtracts Y from the screen centre. No pointer is retained.
-static __inline__ s32 _dryfieldR08BeginDriftCorners(EffectBillboardScratch* projection, s16 sizeFactor, s32 cornerAngle)
+static inline s32 _dryfieldR08BeginDriftCorners(EffectBillboardScratch* projection, s16 sizeFactor, s32 cornerAngle)
 {
     enum {
         DRYFIELD_R08_DRIFT_PERSPECTIVE_SCALE  = 47, // Multiplier in the depth-divided half-diagonal numerator
@@ -826,7 +826,7 @@ static __inline__ s32 _dryfieldR08BeginDriftCorners(EffectBillboardScratch* proj
 /// Only the corner offsets change. `cornerAngle` uses 4096 units per turn with
 /// X right and Y up; the drawer supplies the first angle plus a quarter turn
 /// for the second pair of opposite corners. No pointer is retained.
-static __inline__ void _dryfieldR08RotateDriftCorner(EffectBillboardScratch* projection, s32 perspectiveNumerator, s32 cornerAngle)
+static inline void _dryfieldR08RotateDriftCorner(EffectBillboardScratch* projection, s32 perspectiveNumerator, s32 cornerAngle)
 {
     enum { DRYFIELD_R08_DRIFT_TRIG_FRACTION_BITS = 12 }; // rsin/rcos fractional bits
     s32 halfDiagonalPixels;

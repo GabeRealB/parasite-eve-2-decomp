@@ -61,7 +61,7 @@ enum {
 /// origin before the caller rebuilds yaw. Pan [-16, 15] and depth [-128, 127]
 /// are narrowed to signed bytes; scratch and GTE requirements follow
 /// `worldCoordGetOriginAudioPan`.
-static __inline__ void _factoryLiftFinishTurn(const Task* liftTask, const GfxCoord* liftRoot)
+static inline void _factoryLiftFinishTurn(const Task* liftTask, const GfxCoord* liftRoot)
 {
     Task* const* panelSlot = liftTask->spawnArg2.pointer;
 
@@ -89,7 +89,7 @@ static __inline__ void _factoryLiftFinishTurn(const Task* liftTask, const GfxCoo
 /// projection and scratch requirements follow `worldCoordGetOriginAudioPan`.
 /// Pan (-16..15) and depth (-128..127, 256 world units per step) are passed as
 /// signed bytes. The caller commits the final position and movement phase.
-static __inline__ void _factoryLiftFinishVertical(const Task* liftTask, const GfxCoord* liftCoord)
+static inline void _factoryLiftFinishVertical(const Task* liftTask, const GfxCoord* liftCoord)
 {
     Task* const* panelTaskSlot = liftTask->spawnArg2.pointer;
 
@@ -109,7 +109,7 @@ static __inline__ void _factoryLiftFinishVertical(const Task* liftTask, const Gf
 /// Preserves translation, discards pitch/roll/scale, and reads yaw after the
 /// identity stores. Work holds a 16.16 angle; the SDK receives its signed high half.
 /// Both objects are borrowed; the caller's motion state and fractional yaw remain intact.
-static __inline__ void _factoryLiftRebuildYaw(const FactoryLiftWork* work, GfxCoord* coord)
+static inline void _factoryLiftRebuildYaw(const FactoryLiftWork* work, GfxCoord* coord)
 {
     gfxSetRotIdentity(&coord->coord);
     RotMatrixY(work->yaw.halves.integer, &coord->coord);

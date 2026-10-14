@@ -5,7 +5,7 @@
 /// taskState must select a supported entry of this form's task table (0..5 for
 /// the ordinary form, 0..9 for the hidden form). The work must be live; animation
 /// requests and frame counters are retained.
-static __inline__ void _madChaserEnterTaskState(Task* task, s32 taskState)
+static inline void _madChaserEnterTaskState(Task* task, s32 taskState)
 {
     MadChaserWork* work = task->work;
 
@@ -23,7 +23,7 @@ static __inline__ void _madChaserEnterTaskState(Task* task, s32 taskState)
 /// VECTOR on an initialized, word-aligned scratch stack, in addition to the
 /// query's nested reservations. The fourth word is unused. Releases the sample
 /// before returning; the query changes GTE state.
-static __inline__ void _madChaserUpdateColor(Enemy* enemy, const GfxCoord* sampleCoord)
+static inline void _madChaserUpdateColor(Enemy* enemy, const GfxCoord* sampleCoord)
 {
     VECTOR* samplePosition = SCRATCH_STACK_CURSOR(VECTOR) - 1;
 
@@ -49,7 +49,7 @@ static __inline__ void _madChaserUpdateColor(Enemy* enemy, const GfxCoord* sampl
 /// grid view matrix. Inputs must fit SDK normalization and signed 32-bit
 /// squares/products. Borrows all pointers for the call and uses SDK/GTE math;
 /// it does not refresh the composed coordinates or reserve scratch storage.
-static __inline__ void _madChaserCalcContactPushback(const Task* task, const GfxCoord* overlapCoord, const WorldCollisionContact* contact, SVECTOR* pushDelta)
+static inline void _madChaserCalcContactPushback(const Task* task, const GfxCoord* overlapCoord, const WorldCollisionContact* contact, SVECTOR* pushDelta)
 {
     enum { MAD_CHASER_PUSH_DIRECTION_FRACTION_BITS = 12 };
     SVECTOR         overlapPosition;
@@ -84,7 +84,7 @@ static __inline__ void _madChaserCalcContactPushback(const Task* task, const Gfx
 ///
 /// behaviorState is narrowed to 16 bits and must index the active behavior table.
 /// Requires live Mad Chaser work; task state, animation and counters are retained.
-static __inline__ void _madChaserSetBehaviorState(Task* task, s32 behaviorState)
+static inline void _madChaserSetBehaviorState(Task* task, s32 behaviorState)
 {
     MadChaserWork* work = task->work;
 
@@ -98,7 +98,7 @@ static __inline__ void _madChaserSetBehaviorState(Task* task, s32 behaviorState)
 /// and knockdown, resetting the behavior sub-state. Other values only clear the
 /// reaction. Returns 1 for hitTaken == 1, even for no/unsupported reaction, and
 /// 0 otherwise; the hit latch and task state are retained. Requires live work.
-static __inline__ s32 _madChaserTakeHitReaction(Task* task)
+static inline s32 _madChaserTakeHitReaction(Task* task)
 {
     MadChaserWork* work = task->work;
 
@@ -131,7 +131,7 @@ static __inline__ s32 _madChaserTakeHitReaction(Task* task)
 /// Reads the latest animation status without consuming it; a looping clip may
 /// report a jump while continuing to play. Requires initialized Mad Chaser work.
 /// This inline interface retains the recoil handlers' inlined status test.
-static __inline__ s32 _madChaserAnimHasBoundaryStatusInline(Task* task)
+static inline s32 _madChaserAnimHasBoundaryStatusInline(Task* task)
 {
     MadChaserWork* work = task->work;
 
@@ -148,7 +148,7 @@ static __inline__ s32 _madChaserAnimHasBoundaryStatusInline(Task* task)
 /// signed-halfword interface retains the entry selectors used by emerge and alert
 /// transitions. Requires live Mad Chaser work; task state, animation and counters
 /// are retained.
-static __inline__ void _madChaserSetBehaviorStateS16(Task* task, s16 behaviorState)
+static inline void _madChaserSetBehaviorStateS16(Task* task, s16 behaviorState)
 {
     MadChaserWork* work = task->work;
 
@@ -163,7 +163,7 @@ static __inline__ void _madChaserSetBehaviorStateS16(Task* task, s16 behaviorSta
 /// Vanish enters its task state regardless of busy. Either transition clears
 /// the entire command halfword and returns s16 1 so the caller skips the old
 /// behavior handler. Otherwise returns 0 and leaves the command intact.
-static __inline__ s16 _madChaserTakePullOrVanishCommand(Task* task)
+static inline s16 _madChaserTakePullOrVanishCommand(Task* task)
 {
     MadChaserWork* work = task->work;
 
@@ -188,7 +188,7 @@ static __inline__ s16 _madChaserTakePullOrVanishCommand(Task* task)
 /// be the current scratch block. Copies only the nine basis halfwords, retaining
 /// translation and alignment bytes. Release precedes the last halfword load;
 /// there is no call or reservation between them. The caller dirties composition.
-static __inline__ void _madChaserApplyScratchRotation(MATRIX* rootMatrix, const MATRIX* rotationMatrix)
+static inline void _madChaserApplyScratchRotation(MATRIX* rootMatrix, const MATRIX* rotationMatrix)
 {
     rootMatrix->m[0][0] = rotationMatrix->m[0][0];
     rootMatrix->m[0][1] = rotationMatrix->m[0][1];
@@ -210,7 +210,7 @@ static __inline__ void _madChaserApplyScratchRotation(MATRIX* rootMatrix, const 
 /// translation and alignment bytes; the caller dirties the root composition.
 /// Releases scratch before the last coefficient load/store, with no intervening
 /// call or reservation, so that load still reads the just-built matrix.
-static __inline__ void _madChaserUpdateRotation(Task* task)
+static inline void _madChaserUpdateRotation(Task* task)
 {
     MadChaserWork* work           = task->work;
     MATRIX*        rotationMatrix = SCRATCH_STACK_CURSOR(MATRIX) - 1;
@@ -236,7 +236,7 @@ static __inline__ void _madChaserUpdateRotation(Task* task)
 /// sub-state zero, regardless of busy. Returns s16 1 for that transition so
 /// the caller skips the old behavior handler; returns 0 for every other command
 /// without consuming it. Animation requests and counters are retained.
-static __inline__ s16 _madChaserTakeVanishCommand(Task* task)
+static inline s16 _madChaserTakeVanishCommand(Task* task)
 {
     MadChaserWork* work     = task->work;
     s16            consumed = 0;

@@ -1299,38 +1299,38 @@ s16 _gActor421600RemainingLives;
 
 MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 
-static __inline__ s32  _actor421600HasPlayerBodyContact(const WorldCollisionContact* contacts);
-static s32             _actor421600PushOutsideArenaCenter(GfxCoord* coord);
-static void            _actor421600SnapToSouthArenaArc(GfxCoord* coord);
-static __inline__ void _actor421600BindLightingMatrices(Task* actor);
-static void            _actor421600Spawn(Enemy* enemy, Task* task);
-static __inline__ s32  _desertChaserFindAttackContact(const WorldCollisionContact* contacts,
-                                                      SVECTOR*                     hitPosition);
-static void            _desertChaserDamage(Task* task);
-static void            _actor421600ScriptAnimationState(Task* task);
-static __inline__ s16  _actor421600GetArenaZone(const GfxCoord* coord);
-static void            _actor421600TrackArenaRouteState(Task* task);
-static void            _actor421600ShrinkDeathState(Task* task);
-static void            _actor421600WaitToRespawnState(Task* task);
-static void            _actor421600LeapBackState(Task* task);
-static void            _actor421600WatchRunPlayerState(Task* task);
-static void            _actor421600WallKnockDownState(Task* task);
-static void            _actor421600DownedWaitState(Task* task);
-static void            _actor421600EntranceLungeState(Task* task);
-static void            _actor421600FleeState(Task* task);
-static void            _actor421600MoveToZone5State(Task* task);
-static void            _actor421600ArenaTransitionState(Task* task);
-static __inline__ s32  _actor421600GetRouteQuadrant(s32 x, s32 z);
-static void            _actor421600RouteRoamState(Task* task);
-static void            _actor421600BurstDeathState(Task* task);
-static void            _actor421600FrameState(Enemy* enemy, Task* task);
+static inline s32  _actor421600HasPlayerBodyContact(const WorldCollisionContact* contacts);
+static s32         _actor421600PushOutsideArenaCenter(GfxCoord* coord);
+static void        _actor421600SnapToSouthArenaArc(GfxCoord* coord);
+static inline void _actor421600BindLightingMatrices(Task* actor);
+static void        _actor421600Spawn(Enemy* enemy, Task* task);
+static inline s32  _desertChaserFindAttackContact(const WorldCollisionContact* contacts,
+                                                  SVECTOR*                     hitPosition);
+static void        _desertChaserDamage(Task* task);
+static void        _actor421600ScriptAnimationState(Task* task);
+static inline s16  _actor421600GetArenaZone(const GfxCoord* coord);
+static void        _actor421600TrackArenaRouteState(Task* task);
+static void        _actor421600ShrinkDeathState(Task* task);
+static void        _actor421600WaitToRespawnState(Task* task);
+static void        _actor421600LeapBackState(Task* task);
+static void        _actor421600WatchRunPlayerState(Task* task);
+static void        _actor421600WallKnockDownState(Task* task);
+static void        _actor421600DownedWaitState(Task* task);
+static void        _actor421600EntranceLungeState(Task* task);
+static void        _actor421600FleeState(Task* task);
+static void        _actor421600MoveToZone5State(Task* task);
+static void        _actor421600ArenaTransitionState(Task* task);
+static inline s32  _actor421600GetRouteQuadrant(s32 x, s32 z);
+static void        _actor421600RouteRoamState(Task* task);
+static void        _actor421600BurstDeathState(Task* task);
+static void        _actor421600FrameState(Enemy* enemy, Task* task);
 
 /// Returns whether a sphere's contacts include a player or companion body.
 ///
 /// Reads at most `DESERT_CHASER_CONTACTS` entries, stopping at the first zero
 /// key. Contact flags and the companion key bit are not tested. The table
 /// must remain readable throughout the call; no storage is retained.
-static __inline__ s32 _actor421600HasPlayerBodyContact(const WorldCollisionContact* contacts)
+static inline s32 _actor421600HasPlayerBodyContact(const WorldCollisionContact* contacts)
 {
     s16 contactIndex;
     for (contactIndex = 0; contactIndex < DESERT_CHASER_CONTACTS; contactIndex++) {
@@ -1985,7 +1985,7 @@ static s32 _desertChaserAnimCues(Task* task, DesertChaserWork* work)
 /// Both objects must be live; the work block owns the matrix storage and must
 /// outlive every model draw that uses these pointers. Matrix contents are
 /// initialized by the caller's lighting setup.
-static __inline__ void _actor421600BindLightingMatrices(Task* actor)
+static inline void _actor421600BindLightingMatrices(Task* actor)
 {
     DesertChaserWork* work;
     TmdObject*        model;
@@ -2581,7 +2581,7 @@ static void _actor421600ScriptAnimationState(Task* task)
 /// and -2999. The resulting cell `xBucket | zBucket * 4` is always in 0..15,
 /// and the package's table maps it to a zone in 0..15. Translation uses
 /// whole units in the arena root's parent frame; no composition is performed.
-static __inline__ s16 _actor421600GetArenaZone(const GfxCoord* coord)
+static inline s16 _actor421600GetArenaZone(const GfxCoord* coord)
 {
     enum { ACTOR421600_ZONE_POSITIVE_X_SPLIT = 3401,
            ACTOR421600_ZONE_NEGATIVE_X_SPLIT = -3199,
@@ -3038,7 +3038,7 @@ static void _actor421600WatchRunPlayerState(Task* task)
 /// the root's parent-space units. Correcting X returns immediately, leaving
 /// Z for a later call. Rotation and Y are untouched; the caller must mark
 /// composition dirty after a correction.
-static __inline__ void _actor421600ClampInsideArena(GfxCoord* coord)
+static inline void _actor421600ClampInsideArena(GfxCoord* coord)
 {
     enum { ACTOR421600_ARENA_MIN             = -2850,
            ACTOR421600_ARENA_X_MAX_EXCLUSIVE = 3051,
@@ -3633,7 +3633,7 @@ static void _actor421600ArenaTransitionState(Task* task)
 /// The route-table row is 0 for +X/+Z, 1 for nonpositive X/+Z, 2 for
 /// +X/nonpositive Z and 3 for nonpositive X/Z. Zero belongs to the
 /// nonpositive side of each axis; the four-entry lookup is always in bounds.
-static __inline__ s32 _actor421600GetRouteQuadrant(s32 x, s32 z)
+static inline s32 _actor421600GetRouteQuadrant(s32 x, s32 z)
 {
     s32 positiveX    = x > 0;
     s32 nonPositiveZ = z < 1;

@@ -942,7 +942,7 @@ static void _actor01200Spawn(Enemy* enemy, Task* task)
 /// Enables the actor's movement and hit bodies while disabling its burst bodies.
 ///
 /// Requires initialized work. Retains shape bits and unrelated participation flags.
-static __inline__ void _actor01200EnableWalkingBodies(_Actor01200Work* work)
+static inline void _actor01200EnableWalkingBodies(_Actor01200Work* work)
 {
     work->hitBody.flags         |= WORLD_COLLISION_BODY_PAIR_ENABLED;
     work->burstAttackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
@@ -953,7 +953,7 @@ static __inline__ void _actor01200EnableWalkingBodies(_Actor01200Work* work)
 /// Disables the actor's hit, burst-attack and burst-wave pair collision passes.
 ///
 /// Requires initialized work. Grid participation and other body flags remain set.
-static __inline__ void _actor01200DisablePairBodies(_Actor01200Work* work)
+static inline void _actor01200DisablePairBodies(_Actor01200Work* work)
 {
     work->hitBody.flags         &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
     work->burstAttackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
@@ -1711,7 +1711,7 @@ static const _Actor01200StateTable _gActor01200StateHandlers = {
 ///
 /// Requires three initialized tables ending in `WORLD_COLLISION_CONTACT_LAST`.
 /// Preserves those markers and all body links; only occupied records are cleared.
-static __inline__ void _actor01200ClearTickContacts(_Actor01200Work* work)
+static inline void _actor01200ClearTickContacts(_Actor01200Work* work)
 {
     worldCollisionClearContacts(work->gridContacts);
     worldCollisionClearContacts(work->hitContacts);

@@ -20,7 +20,7 @@
 /// refreshes coordinate caches, including the view; GTE state is changed.
 /// Scratch reservations are released between draws. Queued packets remain
 /// live through frame DMA.
-static __inline__ void _madChaserDrawFrameShadows(Task* task)
+static inline void _madChaserDrawFrameShadows(Task* task)
 {
     enum {
         MAD_CHASER_FRAME_SHADOW_MAIN_START_PART   = 2,

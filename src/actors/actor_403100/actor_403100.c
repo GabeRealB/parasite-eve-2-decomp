@@ -1763,64 +1763,64 @@ typedef struct {
 } _Actor403100HeadAimScratch;
 STATIC_ASSERT_SIZEOF(_Actor403100HeadAimScratch, 0x88);
 
-static __inline__ s32  _actor403100FindBalconySection(s16 x, s16 z);
-static __inline__ s32  _actor403100FindPlayerRegion(s16 x, s16 z);
-static __inline__ s32  _actor403100LocalizeRotation(const GfxCoord* joint, MATRIX* rotation, const GfxCoord* excludedAncestor);
-static __inline__ s16  _actor403100PreviousAnimationAtBoundaryOrJump(void);
-static __inline__ s16  _actor403100AnimationAtBoundaryOrJump(void);
-static __inline__ s16  _actor403100Slot2AnimationSettled(void);
-static void            _actor403100InitCombatBodies(Task* task);
-static void            _actor403100PlaceHeldPlayer(Task* task);
-static void            _actor403100SamplePlayerTarget(Task* task);
-static inline void     _actor403100SetRootYaw(Task* task);
-static inline void     _actor403100ScaleRoot(Task* task, s16 scaleQ12);
-static void            _actor403100StepDefeat(Task* task);
-static __inline__ void _actor403100PlaceSpawned(GfxCoord* coord, s32 spawnPointIndex);
-static __inline__ void _actor403100MaskCollisionFlags(WorldCollisionBody* body, s32 keepMask, s32 setBits);
-static void            _actor403100StepScene(Task* task);
-static void            _actor403100StepSceneEntrance(Task* task);
-static void            _actor403100StepSceneAimAndImpact(Task* task);
-static void            _actor403100BeginSceneAdvance(Task* task);
-static void            _actor403100StepSceneAdvanceImpact(Task* task);
-static void            _actor403100BeginSceneFlameBreath(Task* task);
-static void            _actor403100StepSceneFlameBreath(Task* task);
-static void            _actor403100StepSceneBalconyImpact(Task* task);
-static void            _actor403100BeginSceneTurn(Task* task);
-static void            _actor403100StepSceneTurn(Task* task);
-static void            _actor403100StepSceneFlameRetreatBursts(Task* task);
-static void            _actor403100StepSceneFlameRetreatRecovery(Task* task);
-static void            _actor403100Initialize(Task* task);
-static inline void     _actor403100StepPlayerReaction(void);
-static inline void     _actor403100TurnForearmInline(Task* task);
-static inline void     _actor403100ApplyJawAndHeadPitch(Task* task);
-static void            _actor403100BeginArmSwingCombo(Task* task);
-static void            _actor403100StepFirstArmSwing(Task* task);
-static void            _actor403100StepRepeatedArmSwing(Task* task);
-static void            _actor403100FinishArmSwingCombo(Task* task);
-static void            _actor403100BeginAimedFlameAttack(Task* task);
-static void            _actor403100StepAimedFlameBreath(Task* task);
-static void            _actor403100CrouchForJumpSlam(Task* task);
-static void            _actor403100AccelerateJumpSlam(Task* task);
-static void            _actor403100DecelerateJumpSlam(Task* task);
-static void            _actor403100DescendJumpSlam(Task* task);
-static void            _actor403100StepJumpSlamImpact(Task* task);
-static void            _actor403100FinishJumpSlamRecovery(Task* task);
-static void            _actor403100BeginGrabAndSqueeze(Task* task);
-static void            _actor403100StepGrabAndSqueezeReach(Task* task);
-static void            _actor403100BeginHeldPlayerSqueeze(Task* task);
-static void            _actor403100StepHeldPlayerSqueeze(Task* task);
-static void            _actor403100PrepareHeldPlayerFlameBreath(Task* task);
-static void            _actor403100StepHeldPlayerFlameBreath(Task* task);
-static void            _actor403100RecoverHeldPlayerFromFlameBreath(Task* task);
-static void            _actor403100ThrowHeldPlayer(Task* task);
-static void            _actor403100FinishHeldPlayerThrow(Task* task);
-static void            _actor403100BeginSideFlameAttack(Task* task);
-static void            _actor403100StepGrabAndDragReach(Task* task);
-static void            _actor403100FinishPlayerDrag(Task* task);
-static inline void     _actor403100StepApproachRoot(TmdObject* model, GfxCoord* rootCoord);
-static inline s32      _actor403100PointToWorld(const GfxCoord* coord, SVECTOR* point);
-static inline void     _actor403100RequestAnimationBlendInline(s16 animationId, s16 rate, s16 blendFrames);
-static s32             _actorRenderLocalizeRotationToAncestor(const GfxCoord* joint, MATRIX* rotation, const GfxCoord* excludedAncestor);
+static inline s32  _actor403100FindBalconySection(s16 x, s16 z);
+static inline s32  _actor403100FindPlayerRegion(s16 x, s16 z);
+static inline s32  _actor403100LocalizeRotation(const GfxCoord* joint, MATRIX* rotation, const GfxCoord* excludedAncestor);
+static inline s16  _actor403100PreviousAnimationAtBoundaryOrJump(void);
+static inline s16  _actor403100AnimationAtBoundaryOrJump(void);
+static inline s16  _actor403100Slot2AnimationSettled(void);
+static void        _actor403100InitCombatBodies(Task* task);
+static void        _actor403100PlaceHeldPlayer(Task* task);
+static void        _actor403100SamplePlayerTarget(Task* task);
+static inline void _actor403100SetRootYaw(Task* task);
+static inline void _actor403100ScaleRoot(Task* task, s16 scaleQ12);
+static void        _actor403100StepDefeat(Task* task);
+static inline void _actor403100PlaceSpawned(GfxCoord* coord, s32 spawnPointIndex);
+static inline void _actor403100MaskCollisionFlags(WorldCollisionBody* body, s32 keepMask, s32 setBits);
+static void        _actor403100StepScene(Task* task);
+static void        _actor403100StepSceneEntrance(Task* task);
+static void        _actor403100StepSceneAimAndImpact(Task* task);
+static void        _actor403100BeginSceneAdvance(Task* task);
+static void        _actor403100StepSceneAdvanceImpact(Task* task);
+static void        _actor403100BeginSceneFlameBreath(Task* task);
+static void        _actor403100StepSceneFlameBreath(Task* task);
+static void        _actor403100StepSceneBalconyImpact(Task* task);
+static void        _actor403100BeginSceneTurn(Task* task);
+static void        _actor403100StepSceneTurn(Task* task);
+static void        _actor403100StepSceneFlameRetreatBursts(Task* task);
+static void        _actor403100StepSceneFlameRetreatRecovery(Task* task);
+static void        _actor403100Initialize(Task* task);
+static inline void _actor403100StepPlayerReaction(void);
+static inline void _actor403100TurnForearmInline(Task* task);
+static inline void _actor403100ApplyJawAndHeadPitch(Task* task);
+static void        _actor403100BeginArmSwingCombo(Task* task);
+static void        _actor403100StepFirstArmSwing(Task* task);
+static void        _actor403100StepRepeatedArmSwing(Task* task);
+static void        _actor403100FinishArmSwingCombo(Task* task);
+static void        _actor403100BeginAimedFlameAttack(Task* task);
+static void        _actor403100StepAimedFlameBreath(Task* task);
+static void        _actor403100CrouchForJumpSlam(Task* task);
+static void        _actor403100AccelerateJumpSlam(Task* task);
+static void        _actor403100DecelerateJumpSlam(Task* task);
+static void        _actor403100DescendJumpSlam(Task* task);
+static void        _actor403100StepJumpSlamImpact(Task* task);
+static void        _actor403100FinishJumpSlamRecovery(Task* task);
+static void        _actor403100BeginGrabAndSqueeze(Task* task);
+static void        _actor403100StepGrabAndSqueezeReach(Task* task);
+static void        _actor403100BeginHeldPlayerSqueeze(Task* task);
+static void        _actor403100StepHeldPlayerSqueeze(Task* task);
+static void        _actor403100PrepareHeldPlayerFlameBreath(Task* task);
+static void        _actor403100StepHeldPlayerFlameBreath(Task* task);
+static void        _actor403100RecoverHeldPlayerFromFlameBreath(Task* task);
+static void        _actor403100ThrowHeldPlayer(Task* task);
+static void        _actor403100FinishHeldPlayerThrow(Task* task);
+static void        _actor403100BeginSideFlameAttack(Task* task);
+static void        _actor403100StepGrabAndDragReach(Task* task);
+static void        _actor403100FinishPlayerDrag(Task* task);
+static inline void _actor403100StepApproachRoot(TmdObject* model, GfxCoord* rootCoord);
+static inline s32  _actor403100PointToWorld(const GfxCoord* coord, SVECTOR* point);
+static inline void _actor403100RequestAnimationBlendInline(s16 animationId, s16 rate, s16 blendFrames);
+static s32         _actorRenderLocalizeRotationToAncestor(const GfxCoord* joint, MATRIX* rotation, const GfxCoord* excludedAncestor);
 
 /// Pre-multiplies a rotation by a parent basis and normalizes the product.
 ///
@@ -1842,7 +1842,7 @@ static s32             _actorRenderLocalizeRotationToAncestor(const GfxCoord* jo
 ///
 /// Both far rectangle edges are included. Returns section 3..8, or 0 outside
 /// the section table; overlapping edges take the earlier entry.
-static __inline__ s32 _actor403100FindBalconySection(s16 x, s16 z)
+static inline s32 _actor403100FindBalconySection(s16 x, s16 z)
 {
     enum { ACTOR_403100_BALCONY_SECTION_NONE = 0 };
     const _Actor403100Zone* zone;
@@ -1859,7 +1859,7 @@ static __inline__ s32 _actor403100FindBalconySection(s16 x, s16 z)
 ///
 /// Returns region 1..6, or 0 outside the table. Both far edges are included;
 /// shared edges take the earlier entry. Flame scenery checks use the same regions.
-static __inline__ s32 _actor403100FindPlayerRegion(s16 x, s16 z)
+static inline s32 _actor403100FindPlayerRegion(s16 x, s16 z)
 {
     enum { ACTOR_403100_PLAYER_REGION_NONE = 0 };
     const _Actor403100Zone* zone;
@@ -1882,7 +1882,7 @@ static __inline__ s32 _actor403100FindPlayerRegion(s16 x, s16 z)
 /// The joint needs a non-NULL parent and a live acyclic chain. For success
 /// the excluded ancestor must lie above that parent. The output is separate
 /// writable word-aligned storage; GTE working registers change.
-static __inline__ s32 _actor403100LocalizeRotation(const GfxCoord* joint, MATRIX* rotation, const GfxCoord* excludedAncestor)
+static inline s32 _actor403100LocalizeRotation(const GfxCoord* joint, MATRIX* rotation, const GfxCoord* excludedAncestor)
 {
     MATRIX          parentRotation;
     MATRIX          normalizedRotation;
@@ -1914,7 +1914,7 @@ static __inline__ s32 _actor403100LocalizeRotation(const GfxCoord* joint, MATRIX
 ///
 /// Returns 0 or 1. A followed jump qualifies even when playback keeps running;
 /// this is the behaviour transition test, rather than a playback-stop test.
-static __inline__ s16 _actor403100PreviousAnimationAtBoundaryOrJump(void)
+static inline s16 _actor403100PreviousAnimationAtBoundaryOrJump(void)
 {
     if (_gActor403100Work->previousAnimationFlags & ANIMATION_SLOT_REACHED_BOUNDARY) {
         return 1;
@@ -1930,7 +1930,7 @@ static __inline__ s16 _actor403100PreviousAnimationAtBoundaryOrJump(void)
 ///
 /// Returns 0 or 1. Behaviour steps can advance on any of these results,
 /// including a jump whose destination continues playback.
-static __inline__ s16 _actor403100AnimationAtBoundaryOrJump(void)
+static inline s16 _actor403100AnimationAtBoundaryOrJump(void)
 {
     if (_gActor403100Work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
         return 1;
@@ -1946,7 +1946,7 @@ static __inline__ s16 _actor403100AnimationAtBoundaryOrJump(void)
 ///
 /// Returns 0 or 1 from ANIMATION_SLOT_SETTLED; reaching a boundary or following
 /// a control jump alone does not qualify.
-static __inline__ s16 _actor403100Slot2AnimationSettled(void)
+static inline s16 _actor403100Slot2AnimationSettled(void)
 {
     if (_gActor403100Work->rig.slots[2].status.fields.flags & ANIMATION_SLOT_SETTLED) {
         return 1;
@@ -2905,7 +2905,7 @@ static void _actor403100StepDefeatRise(Task* task)
 ///
 /// `spawnPointIndex` is 0..4. X/Z are parent-frame game coordinates and Y is
 /// zero. The caller owns the live coordinate and updates its cache stamp.
-static __inline__ void _actor403100PlaceSpawned(GfxCoord* coord, s32 spawnPointIndex)
+static inline void _actor403100PlaceSpawned(GfxCoord* coord, s32 spawnPointIndex)
 {
     coord->coord.t[0] = _gActor403100FloorPuffPoints[spawnPointIndex].x;
     coord->coord.t[1] = 0;
@@ -3127,7 +3127,7 @@ static void _actor403100SpawnDefeatFloorPuffs(Task* task, Task* unusedTask)
 /// Requires a writable body. Computes (flags & keepMask) | setBits and narrows
 /// the store to the 16-bit flags field. Callers preserve shape bits while
 /// enabling or disabling grid and body-pair passes independently.
-static __inline__ void _actor403100MaskCollisionFlags(WorldCollisionBody* body, s32 keepMask, s32 setBits)
+static inline void _actor403100MaskCollisionFlags(WorldCollisionBody* body, s32 keepMask, s32 setBits)
 {
     body->flags = (body->flags & keepMask) | setBits;
 }

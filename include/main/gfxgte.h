@@ -24,7 +24,7 @@
 /// effect and is not written. Borrows both pointers only until return; uses a
 /// local snapshot and no scratch-stack storage. Overwrites GTE RT, V0, MAC1..3,
 /// IR1..3 and FLAG; translation registers are unchanged.
-static __inline__ void _gfxRotateSv(const MATRIX* rotationMatrix, SVECTOR* vector)
+static inline void _gfxRotateSv(const MATRIX* rotationMatrix, SVECTOR* vector)
 {
     SVECTOR input;
 
@@ -40,7 +40,7 @@ static __inline__ void _gfxRotateSv(const MATRIX* rotationMatrix, SVECTOR* vecto
 /// the call. The full `SVECTOR` is copied to a local snapshot before loading
 /// RT and V0. Translation registers are unchanged.
 /// Issue `gte_rtv0()` and read its result before replacing RT or V0.
-static __inline__ void _gfxLoadRotSv(const MATRIX* rotationMatrix, const SVECTOR* source)
+static inline void _gfxLoadRotSv(const MATRIX* rotationMatrix, const SVECTOR* source)
 {
     SVECTOR input;
 
@@ -64,7 +64,7 @@ static __inline__ void _gfxLoadRotSv(const MATRIX* rotationMatrix, const SVECTOR
 /// aligned `SVECTOR` (8 bytes); releases it before return without clearing it.
 /// Overwrites GTE IR0..3, MAC1..3, RGB0..2 and FLAG. GTE rotation and translation
 /// registers are unchanged; callers invalidate coordinate caches themselves.
-static __inline__ void _gfxScaleMatrixColumns(MATRIX* matrix, const VECTOR* scale)
+static inline void _gfxScaleMatrixColumns(MATRIX* matrix, const VECTOR* scale)
 {
     SVECTOR* column;
 

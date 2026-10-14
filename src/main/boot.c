@@ -188,7 +188,7 @@ static inline void _bootQueueStartupFile(FsFileLoadKey* fileKey, u8 loadOptions[
 /// also resets the SDK callback system; the caller is rebuilding CD state.
 /// Discards pending ring contents and removes its CD data/ready callbacks,
 /// then clears the movie-active latch. Does not free the borrowed ring storage.
-static __inline__ void _bootReleaseMovieRing(void)
+static inline void _bootReleaseMovieRing(void)
 {
     enum { BOOT_MOVIE_RESET_CALLBACKS_AND_DECODER = 0 };
 
@@ -203,7 +203,7 @@ static __inline__ void _bootReleaseMovieRing(void)
 /// `gGpuPrimitiveBufferBase` must address `gGpuPrimitiveBufferBytes` writable bytes, with
 /// at least `MEMORY_PRIMITIVE_TRAILER_BYTES` bytes in the region. Stores their
 /// start in `_gMemPrimitiveTrailerStart`, which has no reader in the game.
-static __inline__ void _memClearPrimitiveTrailer(void)
+static inline void _memClearPrimitiveTrailer(void)
 {
     u8 trailerIndex;
 
@@ -226,7 +226,7 @@ static __inline__ void _memClearPrimitiveTrailer(void)
 /// the saved whole-region view and the primitive reservation both cover the
 /// full workspace. The auxiliary suffix overlaps primitives unless empty.
 /// These borrowed regions require separate heap3 and primitive-cursor setup.
-static __inline__ void _memConfigureCapturedFrameWorkspace(const GfxImageSlot* areaSlot, s32 auxHeapOffsetBytes)
+static inline void _memConfigureCapturedFrameWorkspace(const GfxImageSlot* areaSlot, s32 auxHeapOffsetBytes)
 {
     u8* workspaceBase;
 

@@ -1044,15 +1044,15 @@ static GolemKnightBishopRegion* _gGolemKnightBishopRegionTables[9] = {
     _gActor403900NeoArkPowerPlant2Regions,
 };
 
-/// Area-indexed Bishop GOLEM sound-set selectors for `GAME_STAGE_ACROPOLIS`.
+/// Area-indexed Bishop GOLEM sound-set selectors for `GAME_STAGE_AKROPOLIS`.
 ///
 /// Zero skips bank loading and the two animation cues; 1..4 select the sound
 /// file and animation/impact script rows. The area index must be below 21.
 /// The table is borrowed at spawn while this actor package is loaded.
 static s16 _gActor403900AcropolisSoundSets[21] = {
-    [GAME_AREA_ACROPOLIS_CAFETERIA]   = 2,
-    [GAME_AREA_ACROPOLIS_FORKED_ROAD] = 2,
-    [GAME_AREA_ACROPOLIS_PROMENADE]   = 2,
+    [GAME_AREA_AKROPOLIS_CAFETERIA]   = 2,
+    [GAME_AREA_AKROPOLIS_FORKED_ROAD] = 2,
+    [GAME_AREA_AKROPOLIS_PROMENADE]   = 2,
 };
 
 /// Area-indexed Bishop GOLEM sound-set selectors for `GAME_STAGE_DRYFIELD`.
@@ -1137,7 +1137,7 @@ static s16 _gActor403900ShelterNeoArkSoundSets[34] = {
 /// Spawn copies the selector, while these carrier-owned tables remain loaded.
 static s16* _gGolemKnightBishopStageSoundSets[6] = {
     [GAME_STAGE_NONE]            = NULL,
-    [GAME_STAGE_ACROPOLIS]       = _gActor403900AcropolisSoundSets,
+    [GAME_STAGE_AKROPOLIS]       = _gActor403900AcropolisSoundSets,
     [GAME_STAGE_DRYFIELD]        = _gActor403900DryfieldSoundSets,
     [GAME_STAGE_DRYFIELD_NIGHT]  = _gActor403900DryfieldNightSoundSets,
     [GAME_STAGE_MINE_SHELTER]    = _gActor403900MineShelterSoundSets,

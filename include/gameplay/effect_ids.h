@@ -217,9 +217,9 @@ enum {
     /// grows, holds or fades out by spawn flags; spawned under Actor02500, actor_160900
     /// and actor_560800 parts.
     EFFECT_GROUND_DECAL = EFFECT_ID(EFFECT_TASK_BANK, 0x046),
-    /// Pulsing red-or-cyan gouraud glow quads (and optional line) at fixed points in
-    /// some Akropolis square views, spawned by the room task.
-    EFFECT_ACROPOLIS_SQUARE_BEACON_GLOW = EFFECT_ID(EFFECT_TASK_BANK, 0x047),
+    /// The Akropolis square telephone's light: pulsing red-or-cyan gouraud glow quads
+    /// (and optional line) at the phone in the views that show it, spawned by the room task.
+    EFFECT_AKROPOLIS_SQUARE_TELEPHONE_LIGHT = EFFECT_ID(EFFECT_TASK_BANK, 0x047),
     /// One security-camera monitor feed: a single-frame 128x128 screen-space textured
     /// quad picked by spawnArg (4 feeds); the security room respawns all four each
     /// frame after re-blending their CLUTs.

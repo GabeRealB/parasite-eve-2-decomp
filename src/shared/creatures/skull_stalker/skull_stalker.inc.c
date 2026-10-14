@@ -234,7 +234,7 @@ static void _skullStalkerIdleTick(Task* task)
 /// The particle argument seeds the size of secondary effects. Requires a live
 /// root for placement and the carrier's loaded effect resources. Each spawn
 /// may fail independently; offsets remain in the carrier's static storage.
-static __inline__ void _skullStalkerSpawnDeathEffects(const Task* task)
+static inline void _skullStalkerSpawnDeathEffects(const Task* task)
 {
     enum { SKULL_STALKER_PARTICLE_SECONDARY_SIZE = 0x200 };
     effectSpawn(EFFECT_030, task->extra.tmd->coords, SKULL_STALKER_PARTICLE_SECONDARY_SIZE, &_gSkullStalkerDeathParticleOffset);
@@ -388,7 +388,7 @@ static void _skullStalkerProcessContacts(Task* task)
 /// request restarts its counter and seeks both slots to frame 0 with an
 /// eight-tick blend; otherwise the counter and both slots advance. Slot 0 is
 /// left alone. Animation ticks, rather than render frames, time fades and cries.
-static __inline__ void _skullStalkerTickAnimation(Task* task)
+static inline void _skullStalkerTickAnimation(Task* task)
 {
     enum { SKULL_STALKER_ANIMATION_BLEND_TICKS = 8 };
     SkullStalkerWork* work = task->work;

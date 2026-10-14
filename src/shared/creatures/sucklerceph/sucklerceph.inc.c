@@ -7,7 +7,7 @@
 /// Requires the task's live work, enemy and root coordinate and a loaded sound
 /// bank. Each request draws the next delay from 80..179 frames and uses the
 /// enemy's placement index as its sound instance tag; request failure is ignored.
-static __inline__ void _sucklercephTickIdleSound(const Task* task, const GfxCoord* rootCoord, SucklercephWork* work)
+static inline void _sucklercephTickIdleSound(const Task* task, const GfxCoord* rootCoord, SucklercephWork* work)
 {
     enum {
         SUCKLERCEPH_IDLE_SOUND_MIN_FRAMES    = 80,

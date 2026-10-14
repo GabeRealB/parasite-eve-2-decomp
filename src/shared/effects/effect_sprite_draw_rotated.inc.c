@@ -30,7 +30,7 @@
 /// points up: a positive half-diagonal at angle zero points upward, and a
 /// quarter turn points rightward. The drawer uses opposite signs for each pair
 /// of corners and repeats this calculation a quarter turn later for the other pair.
-static __inline__ void _effectSpriteRotatedComputeCornerOffset(EffectShapeScratch* scratch, s16 sizeFactor, s32 cornerAngle)
+static inline void _effectSpriteRotatedComputeCornerOffset(EffectShapeScratch* scratch, s16 sizeFactor, s32 cornerAngle)
 {
     enum {
         EFFECT_SPRITE_ROTATED_PERSPECTIVE_SCALE  = 47, // Multiplier in the depth-divided half-diagonal numerator

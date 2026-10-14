@@ -12,7 +12,7 @@
 /// yaw and marks composition dirty. Preserves the parent and stored Euler
 /// state; leaves the cached matrix stale for the next composition. Requires
 /// an initialized scratch stack with 0x24 free bytes, released before returning.
-static __inline__ void _scriptedWalkPlaceRootCoord(GfxCoord* rootCoord, const VECTOR* parentPosition, s16 yaw)
+static inline void _scriptedWalkPlaceRootCoord(GfxCoord* rootCoord, const VECTOR* parentPosition, s16 yaw)
 {
     gfxRotMatrixY(&rootCoord->coord, yaw, GRAPHICS_ROTATION_REPLACE);
     rootCoord->coord.t[0]   = parentPosition->vx;

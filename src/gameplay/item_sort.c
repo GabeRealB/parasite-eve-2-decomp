@@ -17,7 +17,7 @@
 
 #include "rooms/acropolis_fire_escape.h"
 
-#include "rooms/acropolis_square.h"
+#include "rooms/akropolis_square.h"
 
 #include "rooms/dryfield_gas_station.h"
 
@@ -851,7 +851,7 @@ void telephoneDispatchMenuTask(Task* task)
 {
     switch (GAME_LOCATION_WORD(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location) & GAME_LOCATION_STAGE_AREA_MASK) {
         case GAME_LOCATION_KEY(1, 1, 0, 0):
-            acropolisSquareTelephoneMenuTask(task);
+            akropolisSquareTelephoneMenuTask(task);
             break;
         case GAME_LOCATION_KEY(1, 15, 0, 0):
             acropolisFireEscapeTelephoneMenuTask(task);

@@ -898,7 +898,7 @@ static void _actor510900TickBlastSource(Enemy* enemy, Task* task);
 ///
 /// `work` must be the live body work; `attackIndex` is 0..5 in this
 /// golem's attack table. Neither sphere's contacts are cleared here.
-static __inline__ void _actor510900ArmAttack(Actor510900Work* work, s32 attackIndex)
+static inline void _actor510900ArmAttack(Actor510900Work* work, s32 attackIndex)
 {
     s32 attackKey;
 
@@ -913,7 +913,7 @@ static __inline__ void _actor510900ArmAttack(Actor510900Work* work, s32 attackIn
 ///
 /// Both coordinates must be live; the hand remains the prop's borrowed parent
 /// until it is tossed or reattached. Composition is invalidated by the caller.
-static __inline__ void _actor510900AttachProp(GfxCoord* propCoord, GfxCoord* handCoord)
+static inline void _actor510900AttachProp(GfxCoord* propCoord, GfxCoord* handCoord)
 {
     gfxSetRotIdentity(&propCoord->coord);
     propCoord->coord.t[0] = 0;
@@ -927,7 +927,7 @@ static __inline__ void _actor510900AttachProp(GfxCoord* propCoord, GfxCoord* han
 /// Advances the shared random sequence once. `offset` is a live scratch
 /// vector; this effect copies its position at spawn and does not follow the
 /// retained offset pointer on later frames. The fourth halfword is unused.
-static __inline__ void _actor510900SpawnReactionSpark(GfxCoord* bodyCoord, SVECTOR* offset)
+static inline void _actor510900SpawnReactionSpark(GfxCoord* bodyCoord, SVECTOR* offset)
 {
     enum {
         ACTOR_510900_SPARK_HEIGHT_MASK   = 0x2FF,
@@ -1002,7 +1002,7 @@ static inline void _actor510900PlaceGrenade(GfxCoord* grenadeCoord, GfxCoord* la
 /// Both matrices must be word-aligned and distinct, with 12 fractional bits
 /// per coefficient. Preserves translation and changes the GTE rotation state;
 /// the enclosing animation update owns coordinate-cache validity.
-static __inline__ void _actor510900ComposeHitRotation(MATRIX* chestRotation, const MATRIX* hitRotation)
+static inline void _actor510900ComposeHitRotation(MATRIX* chestRotation, const MATRIX* hitRotation)
 {
     gte_MulMatrix0(chestRotation, hitRotation, chestRotation);
 }
@@ -1012,7 +1012,7 @@ static __inline__ void _actor510900ComposeHitRotation(MATRIX* chestRotation, con
 /// Requires live body work. One LCG draw chooses signed pitch and yaw magnitudes
 /// of 64..191 angle units (4096 per turn); the yaw uses the draw's signed upper byte.
 /// Replaces any preceding residuals and marks the twist active; roll is unchanged.
-static __inline__ void _actor510900StartHitTwist(Actor510900Work* work)
+static inline void _actor510900StartHitTwist(Actor510900Work* work)
 {
     enum {
         ACTOR_510900_HIT_TWIST_MIN_ANGLE  = 64,
@@ -1048,7 +1048,7 @@ static __inline__ void _actor510900StartHitTwist(Actor510900Work* work)
 /// stop. Positive speed follows the lap and negative speed retreats, in game
 /// coordinate units per running update. The first subtraction is compared as
 /// an unsigned word; the retreat-window subtraction wraps to sixteen bits.
-static __inline__ void _actor510900SetLethalLapSpeed(Actor510900Work* work, s32 frame, s32 retreatSpeed)
+static inline void _actor510900SetLethalLapSpeed(Actor510900Work* work, s32 frame, s32 retreatSpeed)
 {
     enum {
         ACTOR_510900_LETHAL_FORWARD_FIRST_FRAME = 75,

@@ -115,7 +115,7 @@ static void _shelterB1NorthMaintenanceWalkwayRoomIdle(Task* task);
 /// room-effect initialization clears the selectors and before enemies use them.
 /// This overlay must remain loaded while the selected IDs are used and while
 /// their spawned tasks are live.
-static __inline__ void _shelterB1NorthMaintenanceWalkwayBindEffectTasks(void)
+static inline void _shelterB1NorthMaintenanceWalkwayBindEffectTasks(void)
 {
     gRoomEffectMoteId         = EFFECT_SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_MOTE;
     gRoomEffectHaloId         = EFFECT_SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_HALO;
@@ -138,7 +138,7 @@ static __inline__ void _shelterB1NorthMaintenanceWalkwayBindEffectTasks(void)
 /// Borrows complete records for this call; flag IDs must be 0..503. The room's
 /// singleton copies and CAP/sound resources must remain live until its task ends;
 /// do not latch another event while that task still uses them.
-static __inline__ s32 _shelterB1NorthMaintenanceWalkwayStartEvent(const RoomEventMsg* message, const RoomLatchedEvent* event)
+static inline s32 _shelterB1NorthMaintenanceWalkwayStartEvent(const RoomEventMsg* message, const RoomLatchedEvent* event)
 {
     enum { ROOM_EVENT_FLAG_NONE         = 0,
            ROOM_EVENT_FLAG_CLEAR        = 0,

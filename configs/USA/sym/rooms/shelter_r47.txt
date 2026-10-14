@@ -28,7 +28,7 @@ _gShelterR47CollisionGridTable = 0x80188250; // size:0x3C defined:True
 gShelterR47CollisionGrid = 0x8018828C; // size:0x24 defined:True
 gShelterR47ViewCameras = 0x801882B0; // size:0x678 defined:True
 gActor443500PierceTaskDescs = 0x8015873C; // absolute:True owner=actor_443500
-gAcropolisSquarePostCutsceneAreaUpdates = 0x80188888; // absolute:True owner=acropolis_square
+gAkropolisSquarePostCutsceneAreaUpdates = 0x80188888; // absolute:True owner=akropolis_square
 gShelterR47ActionTriggers = 0x8018787C; // size:0x3DC defined:True
 _gShelterR47ViewGlowCenters = 0x80187624; // size:0x50 defined:True
 gShelterR47ViewMaps = 0x80187674; // size:0x4 defined:True

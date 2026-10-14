@@ -29,9 +29,10 @@
 # Both are declared rather than derived. A package name is an identification,
 # and packages are named in the extractor, so computing one from a pattern
 # would hard-code a naming convention the project means to retire. An id is
-# compiled in, reaching the build as that overlay's PKG_ID, so reading it back
-# out of the package it is checked against would leave those bytes unverified:
-# a derived id cannot be wrong, which is not the same as being right.
+# written into the image by the link (tools/splat_ext/pkgid.py) from this
+# manifest, so reading it back out of the package it is checked against would
+# leave those bytes unverified: a derived id cannot be wrong, which is not the
+# same as being right.
 #
 # Derived, because they follow from a declared decision or merely describe the
 # input: the load address, from the slot through the family's slot map; and
@@ -1132,13 +1133,14 @@ load_addr = 0x8017D5C0
 global_vram_start = 0x80010000
 global_vram_end = 0x8017D5C0
 
-[rooms.overlays.acropolis_square]
+[rooms.overlays.akropolis_square]
 id = 285
+src = "src/stages/akropolis/rooms/square"
 objects = [
   { kind = "packageId" },
-  { unit = "acropolis_square/acropolis_square", rodata = "0x4", text = "0x154", data = "0x5EA4" },
+  { unit = "square", rodata = "0x4", text = "0x154", data = "0x5EA4" },
   { kind = "collision", at = "0x6784", in_c = true },
-  { kind = "collisionSource", at = "0x7BDC", in_c = true, cell_face_list_macro = "ACROPOLIS_SQUARE_CELL_FACE_LIST_AT_OFFSET" },
+  { kind = "collisionSource", at = "0x7BDC", in_c = true, cell_face_list_macro = "AKROPOLIS_SQUARE_CELL_FACE_LIST_AT_OFFSET" },
 ]
 
 [rooms.overlays.acropolis_east_elevator_hall]
@@ -5040,7 +5042,8 @@ label = "empty actor slot; the id resolves, the package has no code"
 slot = 1
 id = 126
 objects = [
-  { unit = "actor_142600/packageid", rodata = "0x0", data = "0x4" },
+  { kind = "packageId" },
+  { unit = "actor_142600/actor_142600", data = "0x4" },
   { kind = "animation", at = "0x4", sets = ["0x224", "0x464", "0x6A4", "0x8F4", "0xD38", "0x10E4", "0x13D4", "0x16C8", "0x1884", "0x1D98", "0x2000", "0x2468", "0x276C", "0x2B40", "0x2F30", "0x329C", "0x3784", "0x3AEC", "0x3CC4", "0x3FDC"], in_c = true },
 ]
 

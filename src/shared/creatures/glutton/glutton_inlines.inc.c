@@ -6,7 +6,7 @@
 /// and stored angles; marks composition dirty. Requires a live writable
 /// coordinate and initialized scratch with one `ActorScaleRotScratch` plus
 /// nested axis-rotation capacity. All reservations are released before return.
-static __inline__ void _actorRenderRescaleYawHalf(GfxCoord* coord)
+static inline void _actorRenderRescaleYawHalf(GfxCoord* coord)
 {
     ActorScaleRotScratch* yawScratch;
     s16                   yaw;
@@ -35,7 +35,7 @@ static __inline__ void _actorRenderRescaleYawHalf(GfxCoord* coord)
 /// Translation, parent and stored angles remain intact; composition is dirtied.
 /// Requires a live writable coordinate and initialized scratch with one
 /// `ActorScaleRotScratch` plus nested axis-rotation capacity. No pointer is retained.
-static __inline__ void _actorRenderRescaleYawXZ(GfxCoord* coord, s16 horizontalScale, s32 verticalScale)
+static inline void _actorRenderRescaleYawXZ(GfxCoord* coord, s16 horizontalScale, s32 verticalScale)
 {
     ActorScaleRotScratch* yawScratch;
     s16                   yaw;
@@ -62,7 +62,7 @@ static __inline__ void _actorRenderRescaleYawXZ(GfxCoord* coord, s16 horizontalS
 /// Both translations must use the same parent coordinate frame. Components
 /// use world units and narrow to signed halfwords; `playerOffset->pad` is
 /// untouched. The coordinate and player matrix are borrowed only for the call.
-static __inline__ void _gluttonGetPlayerOffset(const GfxCoord* sourceCoord, SVECTOR* playerOffset)
+static inline void _gluttonGetPlayerOffset(const GfxCoord* sourceCoord, SVECTOR* playerOffset)
 {
     playerOffset->vx = gPlayerStatus.coordMtx->t[0] - sourceCoord->coord.t[0];
     playerOffset->vy = gPlayerStatus.coordMtx->t[1] - sourceCoord->coord.t[1];
@@ -75,7 +75,7 @@ static __inline__ void _gluttonGetPlayerOffset(const GfxCoord* sourceCoord, SVEC
 /// A zero key ends the scan even if later entries are occupied. A miss returns
 /// zero and leaves the output untouched; a hit copies the three world-position
 /// components, leaving `pad` untouched. Neither pointer is retained.
-static __inline__ s32 _gluttonFindHit(SVECTOR* contactPointOut, const WorldCollisionContact* contacts, s16 contactCount)
+static inline s32 _gluttonFindHit(SVECTOR* contactPointOut, const WorldCollisionContact* contacts, s16 contactCount)
 {
     s16 contactIndex;
 
@@ -98,7 +98,7 @@ static __inline__ s32 _gluttonFindHit(SVECTOR* contactPointOut, const WorldColli
 /// A miss clears `scratch->attackKey` to zero and leaves its contact point
 /// unchanged. Requires a writable scratch block and a readable group; neither
 /// pointer is retained.
-static __inline__ s32 _gluttonScanGroup(GluttonHitScratch* scratch, const GluttonHitGroup* group)
+static inline s32 _gluttonScanGroup(GluttonHitScratch* scratch, const GluttonHitGroup* group)
 {
     s32 attackKey;
 
@@ -112,7 +112,7 @@ static __inline__ s32 _gluttonScanGroup(GluttonHitScratch* scratch, const Glutto
 /// Requires a nonzero player attack key, a live group coordinate and scratch
 /// capacity for the nested effect call. Returns whether the scratch key is
 /// nonzero after that call; it does not search for another contact.
-static __inline__ s32 _gluttonSpawnGroupHitEffect(GluttonHitScratch* scratch, const GluttonHitGroup* group)
+static inline s32 _gluttonSpawnGroupHitEffect(GluttonHitScratch* scratch, const GluttonHitGroup* group)
 {
     _gluttonHitEffect(group->body.coord, scratch->attackKey);
     return scratch->attackKey != 0;

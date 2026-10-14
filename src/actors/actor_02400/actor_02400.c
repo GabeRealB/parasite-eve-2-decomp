@@ -432,7 +432,7 @@ static const EnemyTaskFuncTable3 _gActor02400BodyTaskStates = {
 /// compensates that height. Links to the enemy-body list, initializes all four
 /// contacts and enables grid, floor and body-pair tests. The root and work
 /// remain borrowed by collision until the body is unlinked.
-static __inline__ void _actor02400InitHitSphere(_Actor02400Work* work, GfxCoord* rootCoord)
+static inline void _actor02400InitHitSphere(_Actor02400Work* work, GfxCoord* rootCoord)
 {
     enum {
         ACTOR_02400_BODY_CONTACT_ID = 0x18,
@@ -1419,7 +1419,7 @@ static void _actor02400TeardownBody(Enemy* enemy, Task* task)
 /// and a live coordinate-body task. Borrows its coordinate and work until
 /// unlinking. Grid testing and contact clipping remain disabled for the caller
 /// to enable; the body does not participate in pair tests.
-static __inline__ void _actor02400LinkFireballWall(Task* task, _Actor02400FireballWork* work)
+static inline void _actor02400LinkFireballWall(Task* task, _Actor02400FireballWork* work)
 {
     GfxCoord* wallProbeCoord;
     wallProbeCoord                 = task->extra.coordBody->coord;
@@ -1444,7 +1444,7 @@ static __inline__ void _actor02400LinkFireballWall(Task* task, _Actor02400Fireba
 /// Reloads the live coordinate after collision calls and borrows it and work
 /// until unlinking. Enables sphere pair tests; the caller enables wall grid
 /// tests and clipping. Allocates no storage and uses no scratch stack.
-static __inline__ void _actor02400InitFireballCollision(Task* task, _Actor02400FireballWork* work, const _Actor02400Work* parentWork)
+static inline void _actor02400InitFireballCollision(Task* task, _Actor02400FireballWork* work, const _Actor02400Work* parentWork)
 {
     enum {
         ACTOR_02400_FIREBALL_RADIUS                 = 200,
@@ -1867,8 +1867,8 @@ static void _actor02400DrawShadow(Task* task)
 /// translation remains the saved translation. Scratch is disjoint from both
 /// matrices; its matrix translation and vector pad are unused. Marks composition
 /// dirty and changes GTE state. The caller reserves and releases the scratch.
-static __inline__ void _actor02400ApplySavedRootScale(GfxCoord* rootCoord, const MATRIX* savedMatrix,
-                                                      ActorScaleScratch* scaleScratch)
+static inline void _actor02400ApplySavedRootScale(GfxCoord* rootCoord, const MATRIX* savedMatrix,
+                                                  ActorScaleScratch* scaleScratch)
 {
     rootCoord->coord = *savedMatrix;
     gfxSetRotIdentity(&scaleScratch->matrix);

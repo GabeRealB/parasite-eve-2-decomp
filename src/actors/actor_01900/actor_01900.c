@@ -792,7 +792,7 @@ static TaskMessageEntry _gActor01900Messages[8] = {
 /// woodland path (0..300), in game-coordinate units. The third zero row and
 /// each row's unread suffix are retained; their roles are unproven.
 static ActorHeightClamp _gActor01900RoomHeightClamps[3] = {
-    { GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PATIO, -300, 0, { 0, 0, 0, 0, 0, 0, 0, 0 } },
+    { GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_PATIO, -300, 0, { 0, 0, 0, 0, 0, 0, 0, 0 } },
     { GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_WOODLAND_PATH, 0, 300, { 0, 0, 0, 0, 0, 0, 0, 0 } },
     { GAME_STAGE_NONE, 0, 0, 0, { 0, 0, 0, 0, 0, 0, 0, 0 } },
 };
@@ -875,18 +875,18 @@ static void _actor01900StateRise(Task* task);
 
 static void _actor01900WaitAfterSetup(Enemy* enemy, Task* task);
 
-static __inline__ void _actorRenderCollapseYaw(GfxCoord* coord);
+static inline void _actorRenderCollapseYaw(GfxCoord* coord);
 
-static void            _actor01900TickBlendedAnimSlots(Task* task);
-static s32             _actor01900TakeAnimSoundCue(_Actor01900Work* work);
-static __inline__ void _actor01900BindLightingMatrices(Task* task);
-static void            _actor01900Initialize(Enemy* enemy, Task* task);
-static __inline__ s32  _actor01900FindIncomingAttack(const WorldCollisionContact* contacts, SVECTOR* hitPosition);
-static __inline__ s32  _actor01900EngageBattleIfPlayerLevel(Task* task);
-static __inline__ s32  _actor01900HasHeightClamp(const GameLocationKey* location);
-static s32             _actor01900ApplyCappedGridPushback(GfxCoord* coord, const WorldCollisionContact* contacts, s16 contactCount, s16 heightOffset);
-static __inline__ s32  _actor01900HasPlayerBodyContact(const WorldCollisionContact* contacts);
-static void            _actor01900Tick(Enemy* enemy, Task* task);
+static void        _actor01900TickBlendedAnimSlots(Task* task);
+static s32         _actor01900TakeAnimSoundCue(_Actor01900Work* work);
+static inline void _actor01900BindLightingMatrices(Task* task);
+static void        _actor01900Initialize(Enemy* enemy, Task* task);
+static inline s32  _actor01900FindIncomingAttack(const WorldCollisionContact* contacts, SVECTOR* hitPosition);
+static inline s32  _actor01900EngageBattleIfPlayerLevel(Task* task);
+static inline s32  _actor01900HasHeightClamp(const GameLocationKey* location);
+static s32         _actor01900ApplyCappedGridPushback(GfxCoord* coord, const WorldCollisionContact* contacts, s16 contactCount, s16 heightOffset);
+static inline s32  _actor01900HasPlayerBodyContact(const WorldCollisionContact* contacts);
+static void        _actor01900Tick(Enemy* enemy, Task* task);
 
 /// Replaces a coordinate's rotation with its current yaw at 1/4096 scale.
 ///
@@ -894,7 +894,7 @@ static void            _actor01900Tick(Enemy* enemy, Task* task);
 /// a live writable coordinate separate from the aligned scratch stack, which
 /// needs 0x58 free bytes including nested rotation workspace. Pitch, roll and old
 /// scale are discarded; composition is dirtied and scratch is released.
-static __inline__ void _actorRenderCollapseYaw(GfxCoord* coord)
+static inline void _actorRenderCollapseYaw(GfxCoord* coord)
 {
     enum { ACTOR_RENDER_COLLAPSED_YAW_SCALE = 1 };
     ActorScaleRotScratch* yawScratch;
@@ -1271,7 +1271,7 @@ static void _actor01900UpdateAnimation(Task* task)
 ///
 /// Requires a live TMD model and initialized `_Actor01900Work`. The model borrows
 /// both matrix addresses until task teardown releases its work.
-static __inline__ void _actor01900BindLightingMatrices(Task* task)
+static inline void _actor01900BindLightingMatrices(Task* task)
 {
     _Actor01900Work* work;
     TmdObject*       model;
@@ -1531,7 +1531,7 @@ static void _actor01900SpawnHitEffect(Task* task, s16 hitYaw, s32 attackKey)
 /// the scan; a kind-attack key returns its full signed word. No attack returns 0
 /// and leaves `hitPosition` intact. The output receives view-space XYZ, with its
 /// pad word untouched; no pointer is retained.
-static __inline__ s32 _actor01900FindIncomingAttack(const WorldCollisionContact* contacts, SVECTOR* hitPosition)
+static inline s32 _actor01900FindIncomingAttack(const WorldCollisionContact* contacts, SVECTOR* hitPosition)
 {
     enum { ACTOR_01900_INCOMING_CONTACT_COUNT = ARRAY_SIZE(((_Actor01900Work*)NULL)->hitContacts) };
 
@@ -1940,7 +1940,7 @@ static void _actor01900StateStatusHold(Task* task)
 /// Both live model roots must share a parent frame and the player task must exist.
 /// The range is strict and ignores X/Z. Returns 1 when the battle-engage request
 /// is made, even if battle was already engaged; otherwise returns 0.
-static __inline__ s32 _actor01900EngageBattleIfPlayerLevel(Task* task)
+static inline s32 _actor01900EngageBattleIfPlayerLevel(Task* task)
 {
     enum { ACTOR_01900_BATTLE_HEIGHT_RANGE = 500 };
 
@@ -1988,7 +1988,7 @@ static void _actor01900StateAlert(Task* task)
         work->gridBody.flags   = (u16)(work->gridBody.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED));
         _actor01900UpdateAnimation(task);
         work->hitBody.radius = ACTOR_01900_BODY_RADIUS;
-        if (*(u16*)work->commandBytes != ((GAME_AREA_ACROPOLIS_PATIO << 8) | GAME_STAGE_ACROPOLIS)) {
+        if (*(u16*)work->commandBytes != ((GAME_AREA_AKROPOLIS_PATIO << 8) | GAME_STAGE_AKROPOLIS)) {
             _actor01900EngageBattleIfPlayerLevel(task);
         }
     } else {
@@ -2045,7 +2045,7 @@ static void _actor01900ClampRootHeight(const GameLocationKey* location, GfxCoord
 /// Returns 1 when the stage and area have an active height-clamp row, else 0.
 ///
 /// View and game mode do not participate; the third zero row is not scanned.
-static __inline__ s32 _actor01900HasHeightClamp(const GameLocationKey* location)
+static inline s32 _actor01900HasHeightClamp(const GameLocationKey* location)
 {
     const ActorHeightClamp* row;
     s16                     rowIndex;
@@ -2239,7 +2239,7 @@ static void _actor01900StateChase(Task* task)
         work->gridBody.flags   |= WORLD_COLLISION_BODY_GRID_ENABLED;
         _actor01900UpdateAnimation(task);
         work->circleCount = 0;
-        if (*(u16*)work->commandBytes != ((GAME_AREA_ACROPOLIS_PATIO << 8) | GAME_STAGE_ACROPOLIS)) {
+        if (*(u16*)work->commandBytes != ((GAME_AREA_AKROPOLIS_PATIO << 8) | GAME_STAGE_AKROPOLIS)) {
             _actor01900EngageBattleIfPlayerLevel(task);
         }
         work->stateTimer   = 0;
@@ -2828,7 +2828,7 @@ static void _actor01900StateFall(Task* task)
         work->lookYaw                 = 0;
         work->lookYawTarget           = 0;
         // Alert requires all three cached command bytes to differ independently.
-        if (enemy->hp < 0 && work->commandBytes[0] != GAME_STAGE_ACROPOLIS && work->commandBytes[1] != GAME_AREA_ACROPOLIS_PATIO && work->commandBytes[2] != ACTOR_01900_FALL_NO_ALERT_COMMAND_BYTE) {
+        if (enemy->hp < 0 && work->commandBytes[0] != GAME_STAGE_AKROPOLIS && work->commandBytes[1] != GAME_AREA_AKROPOLIS_PATIO && work->commandBytes[2] != ACTOR_01900_FALL_NO_ALERT_COMMAND_BYTE) {
             sceneSetEnemyAlert(1);
         }
         work->hitBody.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
@@ -2931,8 +2931,8 @@ static void _actor01900StateDormantScripted(Task* task)
         ACTOR_01900_DORMANT_EFFECT_CUE             = 5,
         ACTOR_01900_DORMANT_EFFECT_ATTACK_KEY      = 0x1001,
         ACTOR_01900_DORMANT_EFFECT_ARGUMENT_LOW    = 0x200,
-        ACTOR_01900_DORMANT_SOUND_A                = SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_FORKED_ROAD, 8),
-        ACTOR_01900_DORMANT_SOUND_B                = SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_FORKED_ROAD, 9),
+        ACTOR_01900_DORMANT_SOUND_A                = SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_FORKED_ROAD, 8),
+        ACTOR_01900_DORMANT_SOUND_B                = SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_FORKED_ROAD, 9),
         ACTOR_01900_DORMANT_PATIO_EFFECT_SKIP_VIEW = 16
     };
 
@@ -2966,7 +2966,7 @@ static void _actor01900StateDormantScripted(Task* task)
     _actor01900UpdateAnimation(task);
     // Edge-trigger cues on the low ten bits of the pose record index.
     if ((work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) == ACTOR_01900_DORMANT_SOUND_CUE && work->dormantAnimFrame != (work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) &&
-        (GAME_LOCATION_WORD(gGameSession->location) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_FORKED_ROAD, 0, 0)) {
+        (GAME_LOCATION_WORD(gGameSession->location) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_FORKED_ROAD, 0, 0)) {
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
         sound           = ACTOR_01900_DORMANT_SOUND_B;
         if ((u16)((gRandomLcgState >> 16) % 3) == 0) {
@@ -2989,7 +2989,7 @@ static void _actor01900StateDormantScripted(Task* task)
         work->effectArg.coord      = task->extra.tmd->coords + 1;
         work->effectArg.spawnArgLo = ACTOR_01900_DORMANT_EFFECT_ARGUMENT_LOW;
         work->effectArg.spawnArgHi = ACTOR_01900_HIT_EFFECT_REPEAT_COUNT;
-        if ((GAME_LOCATION_WORD(gGameSession->location) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PATIO, 0, 0) || (u8)viewGetMappedIndex() != ACTOR_01900_DORMANT_PATIO_EFFECT_SKIP_VIEW) {
+        if ((GAME_LOCATION_WORD(gGameSession->location) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_PATIO, 0, 0) || (u8)viewGetMappedIndex() != ACTOR_01900_DORMANT_PATIO_EFFECT_SKIP_VIEW) {
             effectSpawnHit(damageGetPlayerAttackEffectId(ACTOR_01900_DORMANT_EFFECT_ATTACK_KEY), task->extra.tmd->coords + 5, NULL, &work->effectArg);
         }
     }
@@ -3575,7 +3575,7 @@ static void _actor01900StateDeathBurstWalk(Task* task)
 /// Borrows three readable records, stopping at the first zero key. Returns 0 when
 /// none has the player-body kind. The collision body produces only the first
 /// record here; the other two remain in the zero-initialized work allocation.
-static __inline__ s32 _actor01900HasPlayerBodyContact(const WorldCollisionContact* contacts)
+static inline s32 _actor01900HasPlayerBodyContact(const WorldCollisionContact* contacts)
 {
     enum { ACTOR_01900_ATTACK_CONTACT_SCAN_COUNT = ARRAY_SIZE(((_Actor01900Work*)NULL)->attackContacts) };
 
@@ -3629,7 +3629,7 @@ static void _actor01900StateStrike(Task* task)
         _actor01900UpdateAnimation(task);
         work->circleCount = 0;
         // Read the aligned cached stage/area bytes as one little-endian context key.
-        if (*(u16*)work->commandBytes != ((GAME_AREA_ACROPOLIS_PATIO << 8) | GAME_STAGE_ACROPOLIS)) {
+        if (*(u16*)work->commandBytes != ((GAME_AREA_AKROPOLIS_PATIO << 8) | GAME_STAGE_AKROPOLIS)) {
             _actor01900EngageBattleIfPlayerLevel(task);
         }
         work->stateTimer        = 0;
@@ -3998,7 +3998,7 @@ static s32 _actor01900ApplyCommand(Task* task, s32 messageId, const ActorCommand
     work->commandBytes[1] = command->context.loc.area;
     work->commandBytes[2] = (u8)command->command;
     contextKey            = command->context.key;
-    if (contextKey == ((GAME_AREA_ACROPOLIS_PATIO << 8) | GAME_STAGE_ACROPOLIS)) {
+    if (contextKey == ((GAME_AREA_AKROPOLIS_PATIO << 8) | GAME_STAGE_AKROPOLIS)) {
         patioCommand = command->command;
         switch (patioCommand) {
             case ACTOR_01900_COMMAND_HIDE:

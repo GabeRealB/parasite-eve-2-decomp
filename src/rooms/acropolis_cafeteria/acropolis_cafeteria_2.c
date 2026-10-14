@@ -894,8 +894,8 @@ enum {
 };
 
 const AreaApplyRec gAcropolisCafeteriaFollowUpAreaUpdates[3] __attribute__((section(".data"))) = {
-    { .stage = GAME_STAGE_ACROPOLIS, .area = GAME_AREA_ACROPOLIS_PATIO, .variant = ACROPOLIS_CAFETERIA_FOLLOW_UP_PLACEMENT_VARIANT, .policy = AREA_APPLY_MODE_ALWAYS },
-    { .stage = GAME_STAGE_ACROPOLIS, .area = GAME_AREA_ACROPOLIS_FORKED_ROAD, .variant = ACROPOLIS_CAFETERIA_FOLLOW_UP_PLACEMENT_VARIANT, .policy = AREA_APPLY_MODE_ALWAYS | ACROPOLIS_CAFETERIA_FOLLOW_UP_SET_MAP_MARK },
+    { .stage = GAME_STAGE_AKROPOLIS, .area = GAME_AREA_AKROPOLIS_PATIO, .variant = ACROPOLIS_CAFETERIA_FOLLOW_UP_PLACEMENT_VARIANT, .policy = AREA_APPLY_MODE_ALWAYS },
+    { .stage = GAME_STAGE_AKROPOLIS, .area = GAME_AREA_AKROPOLIS_FORKED_ROAD, .variant = ACROPOLIS_CAFETERIA_FOLLOW_UP_PLACEMENT_VARIANT, .policy = AREA_APPLY_MODE_ALWAYS | ACROPOLIS_CAFETERIA_FOLLOW_UP_SET_MAP_MARK },
     { .stage = AREA_APPLY_END },
 };
 
@@ -1643,7 +1643,7 @@ void acropolisCafeteriaModelWanderTask(Task* task)
             work->angle = WANDER_DEPART_SPEED_Q4;
             if ((viewGetMappedIndex() & 0xFF) == WANDER_SOUND_VIEW && work->step == WANDER_SOUND_PENDING) {
                 audioPan = (s8)worldCoordGetOriginAudioPan(coord);
-                sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_CAFETERIA, WANDER_SOUND_SCRIPT), audioPan, (s8)worldCoordGetOriginAudioDepth(coord));
+                sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_CAFETERIA, WANDER_SOUND_SCRIPT), audioPan, (s8)worldCoordGetOriginAudioDepth(coord));
                 work->step = WANDER_SOUND_PLAYED;
             }
             break;

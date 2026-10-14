@@ -165,7 +165,7 @@ static void _shelterB2PodAccessTunnelIdleRoomTask(Task* unusedTask);
 /// after spawning. Flag IDs must be 0..503, including the always-eligible zero.
 /// Inputs are borrowed for this call. The singleton copies and room CAP/sound
 /// resources must stay live and unchanged until the staged task ends.
-static __inline__ s32 _shelterB2PodAccessTunnelStartEvent(const RoomEventMsg* message, const RoomLatchedEvent* event)
+static inline s32 _shelterB2PodAccessTunnelStartEvent(const RoomEventMsg* message, const RoomLatchedEvent* event)
 {
     enum { ROOM_EVENT_FLAG_NONE         = 0,
            ROOM_EVENT_FLAG_CLEAR        = 0,

@@ -16,7 +16,7 @@
 /// right by 12 and saturated to a signed halfword. Zero speed writes zero XYZ.
 /// Leaves `pad` intact and retains no pointer. Clobbers GTE IR0..3, MAC1..3,
 /// the colour FIFO and FLAG.
-static __inline__ void _effectSpriteAimedDriftScaleVelocity(SVECTOR* velocity, s16 speed)
+static inline void _effectSpriteAimedDriftScaleVelocity(SVECTOR* velocity, s16 speed)
 {
     gte_lddp(speed);
     gte_ldsv(velocity);
@@ -33,7 +33,7 @@ static __inline__ void _effectSpriteAimedDriftScaleVelocity(SVECTOR* velocity, s
 /// intact. A zero direction follows SDK normalization without a special case.
 /// Clobbers GTE data/results and retains no pointer. A supplied velocity must
 /// bypass this conversion.
-static __inline__ void _effectSpriteAimedDriftInitializeVelocity(EffectWork* work)
+static inline void _effectSpriteAimedDriftInitializeVelocity(EffectWork* work)
 {
     SVECTOR* direction = &work->move;
 

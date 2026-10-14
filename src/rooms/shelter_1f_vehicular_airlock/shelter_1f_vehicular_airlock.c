@@ -433,7 +433,7 @@ void shelter1fVehicularAirlockUpdatePlacedModelVisibilityTask(Task* task)
 /// Borrows complete records for this call; flag IDs must be 0..503. The room's
 /// singleton copies and CAP/sound resources must remain live until its task ends;
 /// do not latch another event while that task still uses them.
-static __inline__ s32 _shelter1fVehicularAirlockStartEvent(const RoomEventMsg* message, const RoomLatchedEvent* event)
+static inline s32 _shelter1fVehicularAirlockStartEvent(const RoomEventMsg* message, const RoomLatchedEvent* event)
 {
     enum { ROOM_EVENT_FLAG_NONE         = 0,
            ROOM_EVENT_FLAG_CLEAR        = 0,

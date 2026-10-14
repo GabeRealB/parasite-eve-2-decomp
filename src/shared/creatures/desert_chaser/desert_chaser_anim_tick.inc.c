@@ -13,7 +13,7 @@
 /// animated pose and parent chains reaching `gGfxViewCoord`, plus initialized
 /// scratch-stack room for one `MATRIX`, released before returning. Coordinate
 /// caches and GTE registers may change; all storage remains caller-owned.
-static __inline__ void _desertChaserApplyLookTurn(Task* task, DesertChaserWork* work)
+static inline void _desertChaserApplyLookTurn(Task* task, DesertChaserWork* work)
 {
     enum {
         DESERT_CHASER_LOOK_YAW_STEP  = 0x71,

@@ -198,7 +198,7 @@ static void _oddStrangerWalkingDeath(Task* task)
 /// translation, narrowed to signed halfwords; vector pad and turn stay intact.
 /// The reverse X/Z bearing wraps to [-2048, 2048] in 4096ths of a turn. No
 /// root is composed or rotated. Scratch remains reserved for the caller.
-static __inline__ void _oddStrangerReadStalkPlayerBearings(const Task* task, ActorChaseScratch* chase)
+static inline void _oddStrangerReadStalkPlayerBearings(const Task* task, ActorChaseScratch* chase)
 {
 #if ODD_STRANGER_BUILD == ODD_STRANGER_BUILD_401000
     s16 reverseBearing;

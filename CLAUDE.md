@@ -263,19 +263,17 @@ running out of digits. Only the overlays with `rodata_head` split the id into a
 `<name>_hdr.rodata.s` - elsewhere it is folded into the first code unit's
 rodata, or, for rooms, sits as `D_<room>_8017D5C0`.
 
-**The id is its own object, holding nothing else.** Wherever the first code
+**The id is its own word, written by the link.** Wherever the first code
 object opens with a compiled jump table - `pe/pyrokinesis`, `acropolis_plaza`,
 and many more - the table sits at `0x4`, and GCC aligns a jump table to 8 from
 the start of its object. Defining the id as that object's first datum moves the
 table to offset 4, the `.align 3` pads it, and the image grows by 8 bytes. So
-the id cannot share the first code object, and the project models it as a
-separate 4-byte object everywhere: the generated `packageid.c`, from the
-manifest's `packageId` entry. Where the data at `0x4` is only word-aligned the
-id *could* be folded into the next file and still match; do not do it, and do
-not give the id object any other data or code to make a merge work. The bytes
-do not say whether the original compiled the id or the packaging tool wrote it,
-so read `packageid.c` as reproducing the bytes, not as evidence about the
-original sources.
+the id cannot share the first code object. The linker script writes it:
+`tools/splat_ext/pkgid.py` turns the manifest's `packageId` entry - or a
+hand-written config's `pkgid` subsegment - into `LONG(<id>)` at offset 0. Do not
+fold it into the next file's data, and do not give it any data or code of its
+own. Nothing in any package reads or names the id; writing it at link time
+follows the working guess that the packaging tool added it after the build.
 
 **A room's index is its folder's disc id divided by 100.** Room folders have
 ids `index * 100 + 1` (`asset_data.TREE`), and the game's per-stage tables -

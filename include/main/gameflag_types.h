@@ -114,17 +114,17 @@ STATIC_ASSERT_SIZEOF(GameFlagAreaSlot, 4);
 ///
 /// `gGameFlagAcropolisBanks` stores the live copy followed by its memory-card
 /// backup. The pair occupies two 128-byte card sectors.
-enum { GAME_FLAG_ACROPOLIS_BANK_BYTES = 0x6C };
+enum { GAME_FLAG_AKROPOLIS_BANK_BYTES = 0x6C };
 
-/// Checksummed save bank for `GAME_STAGE_ACROPOLIS`.
+/// Checksummed save bank for `GAME_STAGE_AKROPOLIS`.
 ///
 /// That stage is Akropolis Tower together with the MIST areas reached from
 /// it. The live header is the `gGameFlagStageHeaders` entry for the stage, and the
 /// Akropolis map reads this bank's object-state words. The stage area table
 /// addresses `areas`: a slot's index is the area id minus one up to
-/// `GAME_AREA_ACROPOLIS_HELICOPTER_LANDING_PAD`, and the area id minus two for
+/// `GAME_AREA_AKROPOLIS_HELICOPTER_LANDING_PAD`, and the area id minus two for
 /// `GAME_AREA_MIST_R18` and `GAME_AREA_MIST_PARKING`.
-/// `GAME_AREA_ACROPOLIS_WEST_ELEVATOR_HALL` has an empty table row and no slot,
+/// `GAME_AREA_AKROPOLIS_WEST_ELEVATOR_HALL` has an empty table row and no slot,
 /// and `GAME_AREA_MIST_SHOOTING_GALLERY`'s row addresses slot 29 of the
 /// Dryfield bank instead. The highest addressed slot is 17.
 typedef struct {
@@ -132,7 +132,7 @@ typedef struct {
     GameFlagAreaSlot    areas[18];     // Placement records. Slots 0..15 are the tower's areas 1..16; slots 16 and 17 are MIST areas 18 and 19
     u8                  unknown_68[4]; // Stored with the bank and covered by its checksum. No field-level access found; role unproven
 } GameFlagAcropolisBank;
-STATIC_ASSERT_SIZEOF(GameFlagAcropolisBank, GAME_FLAG_ACROPOLIS_BANK_BYTES);
+STATIC_ASSERT_SIZEOF(GameFlagAcropolisBank, GAME_FLAG_AKROPOLIS_BANK_BYTES);
 
 /// Bytes in one Dryfield day-bank copy, checksum prefix included.
 ///

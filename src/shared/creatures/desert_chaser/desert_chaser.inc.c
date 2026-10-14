@@ -143,7 +143,7 @@ static void _desertChaserPatrol(Task* task)
 /// retains the player's current control state and marks the catch active.
 /// Water Tower also resets its catch timer. Animation dispatch borrows the
 /// embedded request synchronously; the prepared movement is sent by later states.
-static __inline__ void _desertChaserBeginPlayerHold(Task* playerTask, DesertChaserWork* work, s32 playerClip)
+static inline void _desertChaserBeginPlayerHold(Task* playerTask, DesertChaserWork* work, s32 playerClip)
 {
     work->playerAnim.animationId       = playerClip;
     work->playerAnim.blend             = ANIMATION_BLEND_RESET;

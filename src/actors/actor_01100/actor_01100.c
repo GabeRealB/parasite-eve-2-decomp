@@ -1142,21 +1142,21 @@ static TaskMessageEntry _gActor01100Messages[2] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-static __inline__ void _actor01100SetSlotRates(_Actor01100Work* work, s8 rate);
-static __inline__ s32  _actor01100FindAttackContact(SVECTOR* hitPoint, const WorldCollisionContact* contacts);
-static __inline__ s32  _actor01100PushOut(GfxCoord* coord, const WorldCollisionContact* contacts);
-static __inline__ void _actor01100DisableHandBodies(_Actor01100Work* work);
-static void            _actor01100UpdateAwareness(Enemy* enemy, Task* task, _Actor01100Work* work, _Actor01100Scratch* scratch);
-static void            _actor01100ApplyPoseAdjustments(Enemy* unusedEnemy, Task* task, _Actor01100Work* work, _Actor01100Scratch* scratch);
-static __inline__ s32  _actor01100BearingToPlayer(const GfxCoord* self);
-static __inline__ s32  _actor01100DistSqToPlayer(const GfxCoord* self);
-static __inline__ u8*  _actor01100ReadScratchCursor(void);
-static __inline__ void _actor01100WriteScratchCursor(u8* cursor);
-static __inline__ void _actor01100ScaleForwardAxis(const MATRIX* matrix, SVECTOR* scaledForward, s32 distance);
-static __inline__ void _actor01100SpawnBurstPart(Task* task, TmdSource* model);
-static void            _actor01100StepForward(GfxCoord* coord, _Actor01100Scratch* scratch, s32 distance);
-static void            _actor01100UpdateEngaged(Enemy* enemy, Task* task, _Actor01100Work* work, _Actor01100Scratch* scratch);
-static void            _actor01100UpdateReacting(Enemy* enemy, Task* task, _Actor01100Work* work, _Actor01100Scratch* scratch);
+static inline void _actor01100SetSlotRates(_Actor01100Work* work, s8 rate);
+static inline s32  _actor01100FindAttackContact(SVECTOR* hitPoint, const WorldCollisionContact* contacts);
+static inline s32  _actor01100PushOut(GfxCoord* coord, const WorldCollisionContact* contacts);
+static inline void _actor01100DisableHandBodies(_Actor01100Work* work);
+static void        _actor01100UpdateAwareness(Enemy* enemy, Task* task, _Actor01100Work* work, _Actor01100Scratch* scratch);
+static void        _actor01100ApplyPoseAdjustments(Enemy* unusedEnemy, Task* task, _Actor01100Work* work, _Actor01100Scratch* scratch);
+static inline s32  _actor01100BearingToPlayer(const GfxCoord* self);
+static inline s32  _actor01100DistSqToPlayer(const GfxCoord* self);
+static inline u8*  _actor01100ReadScratchCursor(void);
+static inline void _actor01100WriteScratchCursor(u8* cursor);
+static inline void _actor01100ScaleForwardAxis(const MATRIX* matrix, SVECTOR* scaledForward, s32 distance);
+static inline void _actor01100SpawnBurstPart(Task* task, TmdSource* model);
+static void        _actor01100StepForward(GfxCoord* coord, _Actor01100Scratch* scratch, s32 distance);
+static void        _actor01100UpdateEngaged(Enemy* enemy, Task* task, _Actor01100Work* work, _Actor01100Scratch* scratch);
+static void        _actor01100UpdateReacting(Enemy* enemy, Task* task, _Actor01100Work* work, _Actor01100Scratch* scratch);
 
 #include "../../shared/actor/actor_contacts_find_push.inc.c"
 
@@ -1166,7 +1166,7 @@ static void            _actor01100UpdateReacting(Enemy* enemy, Task* task, _Acto
 ///
 /// `rate` is a signed step in sixteenths of a frame per tick
 /// (`ANIMATION_RATE_ONE` advances one frame); all 20 part slots are updated.
-static __inline__ void _actor01100SetSlotRates(_Actor01100Work* work, s8 rate)
+static inline void _actor01100SetSlotRates(_Actor01100Work* work, s8 rate)
 {
     AnimationSlot* slot;
     s32            partIndex;
@@ -1401,7 +1401,7 @@ static void _actor01100ArmCollisionBodies(Enemy* enemy, Task* task, _Actor01100W
 /// Stops at the first zero key even if a later record is occupied. On success,
 /// copies the contact's XYZ into `hitPoint`, leaving its fourth halfword intact;
 /// otherwise returns zero without writing the point. Both buffers must be live.
-static __inline__ s32 _actor01100FindAttackContact(SVECTOR* hitPoint, const WorldCollisionContact* contacts)
+static inline s32 _actor01100FindAttackContact(SVECTOR* hitPoint, const WorldCollisionContact* contacts)
 {
     enum { ACTOR_01100_ATTACK_CONTACT_COUNT = 3 };
     s16 contactIndex;
@@ -1426,7 +1426,7 @@ static __inline__ s32 _actor01100FindAttackContact(SVECTOR* hitPoint, const Worl
 /// therefore subtract an extra unit from that arithmetic floor, as retained by
 /// the grid pushback behavior. `translation` is one writable MATRIX translation
 /// component; the addition must fit its signed word. No pointer is retained.
-static __inline__ void _actor01100ApplyFractionalPush(s32 correctionWord, long* translation)
+static inline void _actor01100ApplyFractionalPush(s32 correctionWord, long* translation)
 {
     enum { ACTOR_01100_PUSH_FRACTION_MASK = 0xFFFF };
     if (correctionWord & ACTOR_01100_PUSH_FRACTION_MASK) {
@@ -1448,7 +1448,7 @@ static __inline__ void _actor01100ApplyFractionalPush(s32 correctionWord, long* 
 /// the saved movement-freeze byte equals 1. Requires live inputs in the room
 /// frame, signed-word translation sums and initialized scratch space (72-byte
 /// peak). Retains no pointers; preserves rotation and the composition stamp.
-static __inline__ s32 _actor01100PushOut(GfxCoord* coord, const WorldCollisionContact* contacts)
+static inline s32 _actor01100PushOut(GfxCoord* coord, const WorldCollisionContact* contacts)
 {
     enum { ACTOR_01100_ROOT_CONTACT_COUNT    = 3,
            ACTOR_01100_ROOT_PUSH_HEIGHT_BIAS = 128 };
@@ -1483,7 +1483,7 @@ static __inline__ s32 _actor01100PushOut(GfxCoord* coord, const WorldCollisionCo
 /// Disables grid and pair tests on the two hand attack bodies.
 ///
 /// Their list links, existing contacts and other flags remain intact.
-static __inline__ void _actor01100DisableHandBodies(_Actor01100Work* work)
+static inline void _actor01100DisableHandBodies(_Actor01100Work* work)
 {
     s32 handOffset;
 
@@ -1986,7 +1986,7 @@ static void _actor01100UpdateAwareness(Enemy* enemy, Task* task, _Actor01100Work
 /// matrix, extension and writable vector storage. Each column rereads the
 /// extension and narrows the GTE result to halfwords. Translation is preserved;
 /// the caller invalidates coordinate composition. Clobbers the GTE and scratch.
-static __inline__ void _actor01100StretchArmBasis(MATRIX* armMatrix, SVECTOR* columnScratch, const s16* stretch)
+static inline void _actor01100StretchArmBasis(MATRIX* armMatrix, SVECTOR* columnScratch, const s16* stretch)
 {
     ACTOR_01100_SCALE_MATRIX_COLUMN(armMatrix, columnScratch, 0, *stretch + ONE);
     ACTOR_01100_SCALE_MATRIX_COLUMN(armMatrix, columnScratch, 1, (*stretch >> 2) + ONE);
@@ -2588,7 +2588,7 @@ static void _actor01100IdleTurn(Enemy* unusedEnemy, Task* task, _Actor01100Work*
 /// position delta and Q12 basis follow `_actorAngleBearingInFrame`'s contract;
 /// the result is in [-2048, 2048], with 4096 units per turn. Returns zero when
 /// the player actor slot is empty. Borrows 64 scratch-stack bytes until return.
-static __inline__ s32 _actor01100BearingToPlayer(const GfxCoord* self)
+static inline s32 _actor01100BearingToPlayer(const GfxCoord* self)
 {
     GfxCoord*            playerCoord;
     ActorBearingScratch* scratch;
@@ -2645,7 +2645,7 @@ static void _actor01100TrackPlayerLookYaw(Enemy* unusedEnemy, Task* task, _Actor
 /// to a signed halfword before the GTE dot product; subtraction and the sum
 /// must fit signed 32 bits for distance comparisons. Both caches must share a
 /// frame. Borrows one `SVECTOR` from the initialized scratch stack until return.
-static __inline__ s32 _actor01100DistSqToPlayer(const GfxCoord* self)
+static inline s32 _actor01100DistSqToPlayer(const GfxCoord* self)
 {
     Task*     player;
     GfxCoord* playerCoord;
@@ -3271,7 +3271,7 @@ static void _actor01100Spit(Enemy* enemy, Task* task, _Actor01100Work* work, _Ac
 ///
 /// The scratch stack must be initialized; its returned address may be the empty
 /// cursor slot. Only a separately reserved block may be dereferenced as data.
-static __inline__ u8* _actor01100ReadScratchCursor(void)
+static inline u8* _actor01100ReadScratchCursor(void)
 {
     return SCRATCH_STACK_CURSOR(u8);
 }
@@ -3281,7 +3281,7 @@ static __inline__ u8* _actor01100ReadScratchCursor(void)
 /// `cursor` must stay within the initialized stack, aligned for its next block.
 /// A lower address reserves storage; restoring a higher saved cursor releases
 /// intervening blocks in reverse order. Performs no clearing or bounds check.
-static __inline__ void _actor01100WriteScratchCursor(u8* cursor)
+static inline void _actor01100WriteScratchCursor(u8* cursor)
 {
     SCRATCH_STACK_CURSOR(u8) = cursor;
 }
@@ -3327,7 +3327,7 @@ static __inline__ void _actor01100WriteScratchCursor(u8* cursor)
 /// units through GTE GPF12, including its signed-halfword saturation. Writes
 /// only XYZ of `scaledForward`; its fourth halfword and the matrix stay intact.
 /// Inputs must be live and nonoverlapping. Clobbers the GTE's IR and MAC state.
-static __inline__ void _actor01100ScaleForwardAxis(const MATRIX* matrix, SVECTOR* scaledForward, s32 distance)
+static inline void _actor01100ScaleForwardAxis(const MATRIX* matrix, SVECTOR* scaledForward, s32 distance)
 {
     gte_ReadMatrixColumn(matrix, 2, scaledForward);
     gte_lddp(distance);
@@ -3341,7 +3341,7 @@ static __inline__ void _actor01100ScaleForwardAxis(const MATRIX* matrix, SVECTOR
 /// `soundId` is a base script id: water selects bit 22 and the low placement
 /// byte supplies bits 8..15. Pan/depth narrow to signed bytes. Reads the live
 /// per-call scratch block immediately and retains no pointer to either input.
-static __inline__ void _actor01100StrideSound(const _Actor01100Work* work, const _Actor01100Scratch* scratch, s32 soundId)
+static inline void _actor01100StrideSound(const _Actor01100Work* work, const _Actor01100Scratch* scratch, s32 soundId)
 {
     sndEvtRequestScriptStart((work->waterRoom << ACTOR_01100_SOUND_WATER_VARIANT_SHIFT) | soundId | ((u8)work->placeIndex << ACTOR_01100_SOUND_PLACEMENT_SHIFT), (s8)scratch->pan, (s8)scratch->depth);
 }
@@ -3353,7 +3353,7 @@ static __inline__ void _actor01100StrideSound(const _Actor01100Work* work, const
 /// Replacing the rotation removes existing pitch, roll and scale; translation
 /// stays in the parent frame and the composition cache becomes dirty. Requires
 /// a live root; steering runs independently of the movement-freeze gate.
-static __inline__ void _actor01100TurnStrideRoot(GfxCoord* root, s32 relativeBearing)
+static inline void _actor01100TurnStrideRoot(GfxCoord* root, s32 relativeBearing)
 {
     u16 rootYaw;
     if (relativeBearing >= ACTOR_01100_BODY_TURN_STEP + 1) {
@@ -3492,7 +3492,7 @@ static void _actor01100Advance(Enemy* enemy, Task* task, _Actor01100Work* work, 
 /// must remain loaded for the effect's lifetime. A successful spawn copies the
 /// enemy's texture-page and CLUT-row offsets and rebuilds both primitive-buffer
 /// halves when a buffer exists. The descriptor keeps the source even on failure.
-static __inline__ void _actor01100SpawnBurstPart(Task* task, TmdSource* model)
+static inline void _actor01100SpawnBurstPart(Task* task, TmdSource* model)
 {
     enum { ACTOR_01100_BURST_MODEL_TASK_INDEX = TASK_BANK1_BURST_MODEL_PART_SLOT,
            ACTOR_01100_BURST_PUFF_SIZE        = 512 };
@@ -3670,7 +3670,7 @@ static void _actor01100Death(
 /// Increment wraps through u16 before the signed comparison; after requesting
 /// sound the counter resets to -32767 even if admission fails. scratch supplies
 /// part 1's sampled pan/depth, narrowed to signed bytes. No pointer is retained.
-static __inline__ void _actor01100TickFallSound(_Actor01100Work* work, const _Actor01100Scratch* scratch, s32 cueFrame)
+static inline void _actor01100TickFallSound(_Actor01100Work* work, const _Actor01100Scratch* scratch, s32 cueFrame)
 {
     enum { ACTOR_01100_SOUND_FALL             = 0x400B0003,
            ACTOR_01100_FALL_CUE_COUNTER_RESET = -32767 };
@@ -3839,7 +3839,7 @@ static void _actor01100SpitGlobInit(Task* task)
 /// Requires live glob work and a composed audio coordinate. Replaces its
 /// lifetime with 30 ticks and advances to the following countdown state; the
 /// flight handler consumes the first tick immediately after this returns.
-static __inline__ void _actor01100SpitGlobImpact(Task* task, _Actor01100SpitWork* work, GfxCoord* soundCoord, s32 waterRoom)
+static inline void _actor01100SpitGlobImpact(Task* task, _Actor01100SpitWork* work, GfxCoord* soundCoord, s32 waterRoom)
 {
     enum { ACTOR_01100_SPIT_IMPACT_SOUND      = 0x400B000B,
            ACTOR_01100_SPIT_POST_IMPACT_TICKS = 30,
@@ -4209,7 +4209,7 @@ static void _actor01100StepForward(GfxCoord* coord, _Actor01100Scratch* scratch,
 /// targetNode must be embedded in a live `Enemy`; the task must have model part 3.
 /// The enemy borrows that coordinate and publishes (0, -200, 200) in chest-local
 /// game units. No matrix is composed and no storage is allocated.
-static __inline__ void _actor01100RefreshTargetAnchor(WorldTargetNode* targetNode, Task* task)
+static inline void _actor01100RefreshTargetAnchor(WorldTargetNode* targetNode, Task* task)
 {
     enum { ACTOR_01100_TARGET_OFFSET = 200 };
 

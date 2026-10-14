@@ -501,7 +501,7 @@ static AnimationPlayRequest _gAcropolisHelicopterLandingPadDepartureActorClip3Re
 ///
 /// No receiver or script uses the record, so its intended action is unproven.
 static ActorCommand D_acropolis_helicopter_landing_pad_801839D4 = {
-    .context = { .loc = { GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_HELICOPTER_LANDING_PAD } },
+    .context = { .loc = { GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_HELICOPTER_LANDING_PAD } },
     .command = 0,
 };
 
@@ -510,7 +510,7 @@ static ActorCommand D_acropolis_helicopter_landing_pad_801839D4 = {
 /// Command 1 is in the landing pad's stage/area namespace; this receiver reads
 /// only the command word. The room owns the record through synchronous dispatch.
 static ActorCommand _gAcropolisHelicopterLandingPadRupertShowPropCommand = {
-    .context = { .loc = { GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_HELICOPTER_LANDING_PAD } },
+    .context = { .loc = { GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_HELICOPTER_LANDING_PAD } },
     .command = ACROPOLIS_HELICOPTER_LANDING_PAD_RUPERT_SHOW_PROP,
 };
 
@@ -1143,7 +1143,7 @@ static void _acropolisHelicopterLandingPadResolveExit(Task* task)
 
     gAcropolisHelicopterLandingPadExitRequest.field_4   = 1;
     gAcropolisHelicopterLandingPadExitRequest.room      = ACROPOLIS_HELICOPTER_LANDING_PAD_EXIT_ROOM;
-    gAcropolisHelicopterLandingPadExitRequest.areaId    = GAME_AREA_ACROPOLIS_FIRE_ESCAPE;
+    gAcropolisHelicopterLandingPadExitRequest.areaId    = GAME_AREA_AKROPOLIS_FIRE_ESCAPE;
     gAcropolisHelicopterLandingPadExitRequest.warp      = ACROPOLIS_HELICOPTER_LANDING_PAD_EXIT_WARP;
     gAcropolisHelicopterLandingPadExitRequest.queryOnly = ROOM_EVENT_EXECUTE;
     if (TASK_MESSAGE_DISPATCH_POINTERS(roomTask, ROOM_EVENT_MESSAGE_RESOLVE, &gAcropolisHelicopterLandingPadExitRequest,

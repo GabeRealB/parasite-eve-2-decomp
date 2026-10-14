@@ -643,9 +643,9 @@ acropolisSecurityRoomFallingQuadTask = 0x80181108; // type:func absolute:True ow
 
 acropolisSecurityRoomMonitorGlowTask = 0x801817A4; // type:func absolute:True owner=acropolis_security_room
 
-acropolisSquareRoomEffectTask = 0x801823DC; // type:func absolute:True owner=acropolis_square
+akropolisSquareRoomEffectTask = 0x801823DC; // type:func absolute:True owner=akropolis_square
 
-acropolisSquareBeaconGlowTask = 0x801825DC; // type:func absolute:True owner=acropolis_square
+akropolisSquareTelephoneLightTask = 0x801825DC; // type:func absolute:True owner=akropolis_square
 
 acropolisWestElevatorHallBayLightingTask = 0x8017F990; // type:func absolute:True owner=acropolis_west_elevator_hall
 
@@ -1419,7 +1419,7 @@ gAcropolisSanctuaryAreaVariants = 0x8018402C; // absolute:True owner=acropolis_s
 
 gAcropolisSecurityRoomAreaVariants = 0x80184088; // absolute:True owner=acropolis_security_room
 
-gAcropolisSquareAreaVariants = 0x80185E50; // absolute:True owner=acropolis_square
+gAkropolisSquareAreaVariants = 0x80185E50; // absolute:True owner=akropolis_square
 
 gDryfieldBackStreetAreaVariants = 0x80180A50; // absolute:True owner=dryfield_back_street
 
@@ -1687,7 +1687,7 @@ gShelterR49AreaVariants = 0x8017DD74; // absolute:True owner=shelter_r49
 
 gMistShootingGalleryResultPanelDesc = 0x80185000; // absolute:True owner=mist_shooting_gallery
 
-acropolisSquareTelephoneMenuTask = 0x80180804; // type:func absolute:True owner=acropolis_square
+akropolisSquareTelephoneMenuTask = 0x80180804; // type:func absolute:True owner=akropolis_square
 
 acropolisFireEscapeTelephoneMenuTask = 0x8017EA68; // type:func absolute:True owner=acropolis_fire_escape
 
@@ -1727,7 +1727,7 @@ shelter1fTentTelephoneMenuTask = 0x8017EA60; // type:func absolute:True owner=sh
 
 mistShootingGalleryOpenCarryoverModeMenu = 0x8017FBD8; // type:func absolute:True owner=mist_shooting_gallery
 
-acropolisSquarePlayerReflectionTask = 0x8017F41C; // type:func absolute:True owner=acropolis_square
+akropolisSquarePlayerReflectionTask = 0x8017F41C; // type:func absolute:True owner=akropolis_square
 
 acropolisEastElevatorHallPlayerReflectionTask = 0x8017F2F8; // type:func absolute:True owner=acropolis_east_elevator_hall
 

@@ -2944,32 +2944,32 @@ static _Actor444000DebrisCoordStorage _gActor444000GluttonDebrisCoords = { { { 0
 /// for the retained spawn branch.
 static TmdSource _gActor444000GluttonEscort6ModelSource = { 0, 0, 0, 0, NULL, NULL, NULL, NULL, NULL };
 
-static void            _actor444000EventPerformPlayerAction(Task* task);
-static __inline__ void _actor444000StepForward(GfxCoord* coord);
-static __inline__ void _actor444000FlattenRoot(Task* task);
-static __inline__ void _actor444000InitializeRootPose(Task* task, GluttonWork* work);
-static void            _actor444000HitGroups3To5(Task* task);
-static void            _actor444000DormantState(Task* task);
-static void            _actor444000CollapsedState(Task* task);
-static void            _actor444000InhaleState(Task* task);
-static __inline__ void _actor444000PlaceCaughtPlayer(Task* task, GluttonWork* work,
-                                                     Task* player, _Actor444000CatchScratch* catchScratch,
-                                                     const PlayerStatus* playerStatus);
-static void            _actor444000CatchPlayerState(Task* task);
-static void            _actor444000SwipeState(Task* task);
-static void            _actor444000ThrowDebrisState(Task* task);
-static void            _actor444000LimbAnimationState(Task* task);
-static void            _actor444000ResumeLimbAnimationState(Task* task);
-static void            _actor444000RetractLimbState(Task* task);
-static void            _actor444000ChooseAttackState(Task* task);
-static void            _actor444000SummonState(Task* task);
-static void            _actor444000ClampPlayerToArena(void);
+static void        _actor444000EventPerformPlayerAction(Task* task);
+static inline void _actor444000StepForward(GfxCoord* coord);
+static inline void _actor444000FlattenRoot(Task* task);
+static inline void _actor444000InitializeRootPose(Task* task, GluttonWork* work);
+static void        _actor444000HitGroups3To5(Task* task);
+static void        _actor444000DormantState(Task* task);
+static void        _actor444000CollapsedState(Task* task);
+static void        _actor444000InhaleState(Task* task);
+static inline void _actor444000PlaceCaughtPlayer(Task* task, GluttonWork* work,
+                                                 Task* player, _Actor444000CatchScratch* catchScratch,
+                                                 const PlayerStatus* playerStatus);
+static void        _actor444000CatchPlayerState(Task* task);
+static void        _actor444000SwipeState(Task* task);
+static void        _actor444000ThrowDebrisState(Task* task);
+static void        _actor444000LimbAnimationState(Task* task);
+static void        _actor444000ResumeLimbAnimationState(Task* task);
+static void        _actor444000RetractLimbState(Task* task);
+static void        _actor444000ChooseAttackState(Task* task);
+static void        _actor444000SummonState(Task* task);
+static void        _actor444000ClampPlayerToArena(void);
 
 /// Starts the post-boss incinerator alert once across normal and skipped playback.
 ///
 /// Requires the published event task and its live work. The work latch is shared
 /// with the script callback and survives until that event task is released.
-static __inline__ void _actor444000EventEnsureAlert(void)
+static inline void _actor444000EventEnsureAlert(void)
 {
     _Actor444000EventWork* published = _gActor444000IncineratorEventTask->work;
 
@@ -3367,7 +3367,7 @@ static void _actor444000EventRequestPlayerAction(s16 action)
 /// the old scale. SDK/GTE quantization narrows displacement to signed halfwords.
 /// Marks composition dirty and releases scratch before returning. The caller
 /// handles freezing and collision correction.
-static __inline__ void _actor444000StepForward(GfxCoord* coord)
+static inline void _actor444000StepForward(GfxCoord* coord)
 {
     enum {
         ACTOR_444000_ADVANCE_STEP_DISTANCE = 50,
@@ -3392,7 +3392,7 @@ static __inline__ void _actor444000StepForward(GfxCoord* coord)
 /// Requires the live host task/enemy/work and loaded rumble records. Audio pan
 /// and half depth narrow to signed bytes; the placement index supplies instance
 /// bits in the Glutton script key. Pointers are borrowed only for this call.
-static __inline__ void _actor444000RunFootstep(Task* task, Enemy* enemy, GluttonWork* work)
+static inline void _actor444000RunFootstep(Task* task, Enemy* enemy, GluttonWork* work)
 {
     enum { ACTOR_444000_RUN_FOOTSTEP_SOUND = SOUND_CHARACTER(SOUND_BANK_GLUTTON, 1) };
     s32 soundId;
@@ -4197,7 +4197,7 @@ static const EnemyTaskFuncTable4 _gGluttonSpinnerStates = {
 /// Requires live host work/model and a live model for each non-NULL escort.
 /// Traverses all seven slots, borrowing every pointer only for the call. Each
 /// write reads the current host flags; no flags are merged or cleared.
-static __inline__ void _actor444000CopyEscortModelFlags(Task* task, GluttonWork* work)
+static inline void _actor444000CopyEscortModelFlags(Task* task, GluttonWork* work)
 {
     s16 escortIndex;
 
@@ -4311,7 +4311,7 @@ static s32 _actor444000SetModelDraw(Task* task, s32 messageId, s32 drawMode, s32
 /// with 0x58 free aligned bytes. Replaces pitch, roll and scale with X/Z unity
 /// and Y zero, preserving translation and hierarchy. Releases its temporary
 /// frame before composing; composition also requires its normal scratch space.
-static __inline__ void _actor444000FlattenRoot(Task* task)
+static inline void _actor444000FlattenRoot(Task* task)
 {
     GfxCoord* coord = task->extra.tmd->coords;
 
@@ -4408,7 +4408,7 @@ static s32 _actor444000ApplyCommand(Task* task, s32 messageId, const ActorComman
 /// nested rotation work. Discards pitch, roll and previous scale, preserves
 /// translation/hierarchy, dirties composition and clears model draw flags.
 /// All reservations are released before return.
-static __inline__ void _actor444000InitializeRootPose(Task* task, GluttonWork* work)
+static inline void _actor444000InitializeRootPose(Task* task, GluttonWork* work)
 {
     GfxCoord* rootCoord = task->extra.tmd->coords;
 
@@ -4422,7 +4422,7 @@ static __inline__ void _actor444000InitializeRootPose(Task* task, GluttonWork* w
 /// Requires live models and work. Existing buffers and draw flags are preserved;
 /// each successful auxiliary-heap allocation remains owned by its model. Failure
 /// leaves the buffer NULL. Pointers are borrowed only for this call.
-static __inline__ void _actor444000EnsureModelBuffers(TmdObject* hostModel, const GluttonWork* hostWork)
+static inline void _actor444000EnsureModelBuffers(TmdObject* hostModel, const GluttonWork* hostWork)
 {
     TmdObject* escortModel;
     s16        escortIndex;
@@ -4908,7 +4908,7 @@ out:
 /// Requires live host work and models, and completed GPU use of their buffers.
 /// Each model owns its auxiliary-heap buffer; release clears that pointer while
 /// leaving the model alive for later reallocation.
-static __inline__ void _actor444000ReleaseModelBuffers(Task* task)
+static inline void _actor444000ReleaseModelBuffers(Task* task)
 {
     GluttonWork* bufferWork = task->work;
     s16          bufferIndex;
@@ -4964,7 +4964,7 @@ static void _actor444000DormantState(Task* task)
 /// Requires its matching reservation at the top of the initialized scratch
 /// stack, with any nested reservations already released. Releases one complete
 /// `ActorScaleRotScratch`; no scratch pointer may be used afterward.
-static __inline__ void _actorRenderReleaseYawScratch(void)
+static inline void _actorRenderReleaseYawScratch(void)
 {
     SCRATCH_STACK_RELEASE_BLOCK(ActorScaleRotScratch);
 }
@@ -4978,7 +4978,7 @@ static __inline__ void _actorRenderReleaseYawScratch(void)
 /// retain the SDK's arithmetic and halfword narrowing without saturation.
 /// Retains one `ActorScaleRotScratch` frame: the caller must release it with
 /// `_actorRenderReleaseYawScratch` before its storage is reused.
-static __inline__ void _actorRenderRescaleYawYReserve(GfxCoord* coord, s32 verticalScale)
+static inline void _actorRenderRescaleYawYReserve(GfxCoord* coord, s32 verticalScale)
 {
     ActorScaleRotScratch* yawScratch;
     s16                   yaw;
@@ -5298,9 +5298,9 @@ static void _actor444000InhaleState(Task* task)
 /// the player. Scratch and player status are borrowed, and the shared placement
 /// payload is consumed synchronously. A dead player still updates scratch and
 /// animation selection but receives no placement message.
-static __inline__ void _actor444000PlaceCaughtPlayer(Task* task, GluttonWork* work,
-                                                     Task* player, _Actor444000CatchScratch* catchScratch,
-                                                     const PlayerStatus* playerStatus)
+static inline void _actor444000PlaceCaughtPlayer(Task* task, GluttonWork* work,
+                                                 Task* player, _Actor444000CatchScratch* catchScratch,
+                                                 const PlayerStatus* playerStatus)
 {
     enum {
         ACTOR_444000_CAUGHT_PLAYER_DISTANCE = 900,

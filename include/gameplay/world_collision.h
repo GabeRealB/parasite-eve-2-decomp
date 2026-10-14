@@ -276,8 +276,8 @@ void worldCollisionBindEnemySphere(GfxCoord* coord, WorldCollisionBody* body, Wo
 /// The table must provide that many elements without byte-count overflow.
 /// Keep the body, coordinate and contact storage live until
 /// `worldCollisionUnlinkBody`; no storage is allocated or freed.
-static __inline__ void _worldCollisionLinkSphereBody(GfxCoord* coord, WorldCollisionBody* body, WorldCollisionContact* contacts,
-                                                     const SVECTOR* localCenter, u16 radius, s32 listIndex, s32 contactCount)
+static inline void _worldCollisionLinkSphereBody(GfxCoord* coord, WorldCollisionBody* body, WorldCollisionContact* contacts,
+                                                 const SVECTOR* localCenter, u16 radius, s32 listIndex, s32 contactCount)
 {
     body->coord            = coord;
     body->context.contacts = contacts;

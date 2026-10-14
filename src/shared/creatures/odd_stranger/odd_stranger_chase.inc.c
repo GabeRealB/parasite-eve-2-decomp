@@ -9,7 +9,7 @@
 /// or rotated. Scratch belongs to the caller and remains reserved.
 /// Nonzero `refreshOffset` reads a fresh player offset after the heading;
 /// zero uses the caller's existing `chase->delta`.
-static __inline__ void _oddStrangerReadCircleDashPlayerBearings(const Task* task, ActorChaseScratch* chase, s32 refreshOffset)
+static inline void _oddStrangerReadCircleDashPlayerBearings(const Task* task, ActorChaseScratch* chase, s32 refreshOffset)
 {
     chase->playerYaw = ratan2(-(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords->coord.m[2][0],
                               (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords->coord.m[2][2]);

@@ -43,7 +43,7 @@ static void _roamerBankRetreat(Task* task, s32 messageId, s32 hp, s32 unusedArg)
 /// that live count at the five-slot array capacity, then stores maximum HP
 /// in each armed slot and zero in the rest. Persisted flag counts and the
 /// cooldown are left to the caller; retreat HP from an earlier visit is replaced.
-static __inline__ void _roamerSeedReserveHp(void)
+static inline void _roamerSeedReserveHp(void)
 {
     enum { ROAMER_RESERVE_SLOTS = ARRAY_SIZE(gRoamerReserveHp) };
     s16 reserveSlot;
@@ -96,7 +96,7 @@ static void _roamerArmPoolA(Task* task)
 /// Positive signed-halfword HP denotes a live reserve; zero and negative
 /// values do not count. Scans the complete bank regardless of the active reserve count and
 /// returns 0..5 without consuming a slot.
-static __inline__ s16 _roamerCountReserveSlots(void)
+static inline s16 _roamerCountReserveSlots(void)
 {
     s16 count;
     s16 slot;
@@ -115,7 +115,7 @@ static __inline__ s16 _roamerCountReserveSlots(void)
 /// actorIndex is 0..1 and its placed actor/model must remain live. The selector
 /// is one-based (forest 1..5, woodland 1..6). Position is in the root's parent
 /// frame and yaw uses 4096 units per turn. Marks dirty before replacing rotation.
-static __inline__ void _roamerPlacePoolAActor(s16 actorIndex)
+static inline void _roamerPlacePoolAActor(s16 actorIndex)
 {
     sceneFindPlacedActor(actorIndex)->extra.tmd->coords->coord.t[0]   = _gRoamerPoolASpawnPoints[_gRoamerPendingSpawnPoint - 1].x;
     sceneFindPlacedActor(actorIndex)->extra.tmd->coords->coord.t[1]   = 0;

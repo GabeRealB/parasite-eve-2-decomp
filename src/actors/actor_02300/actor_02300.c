@@ -1187,7 +1187,7 @@ static u16 _gActor02300ShelterNeoArkAreaSoundSets[34] = {
 /// ID. Zero disables cues and bank loading; 1..4 select the character-bank variant.
 static const u16* _gActor02300StageAreaSoundSets[GAME_STAGE_SHELTER_NEO_ARK + 1] = {
     [GAME_STAGE_NONE]            = NULL,
-    [GAME_STAGE_ACROPOLIS]       = _gActor02300AcropolisAreaSoundSets,
+    [GAME_STAGE_AKROPOLIS]       = _gActor02300AcropolisAreaSoundSets,
     [GAME_STAGE_DRYFIELD]        = _gActor02300DryfieldAreaSoundSets,
     [GAME_STAGE_DRYFIELD_NIGHT]  = _gActor02300DryfieldNightAreaSoundSets,
     [GAME_STAGE_MINE_SHELTER]    = _gActor02300MineShelterAreaSoundSets,
@@ -1280,7 +1280,7 @@ static void _actor02300SpawnBody(Enemy* enemy, Task* actor);
 /// before clearing the table and marking its final entry; the caller configures
 /// grid/pair enables afterwards. No storage is allocated. The body and its
 /// contact storage must stay live until the body is unlinked.
-static __inline__ void _actor02300LinkBodyAndInitContacts(s32 listIndex, WorldCollisionBody* body, WorldCollisionContact* contacts, s32 contactCount)
+static inline void _actor02300LinkBodyAndInitContacts(s32 listIndex, WorldCollisionBody* body, WorldCollisionContact* contacts, s32 contactCount)
 {
     worldCollisionLinkBody(listIndex, body);
     worldCollisionInitContacts(contacts, contactCount, 0);

@@ -506,7 +506,7 @@ static WorldCollisionTrigger _gNeoArkGardenActionTriggers[7] = {
 /// snapshots and retains the world position from the loaded garden table.
 /// The ambience task calls this in views 2 and 4 while effect control runs;
 /// admission failure still consumes the same two to four shared LCG draws.
-static __inline__ void _neoArkGardenSpawnAmbientSmoke(void)
+static inline void _neoArkGardenSpawnAmbientSmoke(void)
 {
     enum {
         NEO_ARK_GARDEN_SMOKE_CHANCE_MASK = 3,

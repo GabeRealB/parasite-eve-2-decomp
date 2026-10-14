@@ -126,7 +126,7 @@ static void _gluttonHitGroup0(Task* task)
 ///
 /// Angles use 4096 units per turn; both half-turn endpoints are retained.
 /// The scratch block is borrowed and must be writable.
-static __inline__ s16 _gluttonRecordContactYaw(GluttonHitScratch* scratch, s16 contactYaw)
+static inline s16 _gluttonRecordContactYaw(GluttonHitScratch* scratch, s16 contactYaw)
 {
     scratch->contactYaw = contactYaw;
     if (contactYaw < 0) {

@@ -8,7 +8,7 @@
 /// Requires live projectile work and a task state in 0..4, the dispatch range
 /// of the chunk/glob callers. Writes a 0/1 entry flag, then saves that state in
 /// the signed-halfword history field; no pointer is retained.
-static __inline__ void _gluttonRecordProjectileTaskState(GluttonProjectileWork* work, const Task* task)
+static inline void _gluttonRecordProjectileTaskState(GluttonProjectileWork* work, const Task* task)
 {
     if (work->prevState != task->state) {
         work->stateChanged = 1;

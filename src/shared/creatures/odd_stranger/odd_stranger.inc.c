@@ -153,7 +153,7 @@ static s32 _oddStrangerTakeAnimationSound(OddStrangerWork* work)
 /// Slot 0 remains the placed root. Reset installs normal rate; the driver
 /// reapplies `animRate`, in sixteenths of a frame, before ticking the poses.
 /// This records `appliedAnim` without consuming the request or clearing cues.
-static __inline__ void _oddStrangerRestartPrimaryAnimation(OddStrangerWork* work)
+static inline void _oddStrangerRestartPrimaryAnimation(OddStrangerWork* work)
 {
     s32 slotIndex;
 

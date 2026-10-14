@@ -253,7 +253,7 @@ enum { MEMORY_CARD_FILE_HEADER_CARD_SECTORS = 4 };
 enum { PLAYER_STATUS_CARD_SECTORS = 1 };
 
 /// 128-byte card sectors holding both `GameFlagAcropolisBank` copies.
-enum { GAME_FLAG_ACROPOLIS_BANK_CARD_SECTORS = 2 };
+enum { GAME_FLAG_AKROPOLIS_BANK_CARD_SECTORS = 2 };
 
 /// 128-byte card sectors holding both `GameFlagDryfieldBank` copies.
 enum { GAME_FLAG_DRYFIELD_BANK_CARD_SECTORS = 3 };
@@ -785,7 +785,7 @@ static _McSaveSection _gMcSaveSections[MEMORY_CARD_BUFFER_SLOT_COUNT] = {
     { &_gMcFileHeader, sizeof(_gMcFileHeader) / 2, MEMORY_CARD_FILE_HEADER_CARD_SECTORS },
     { &gMcSaveData[MEMORY_CARD_SAVE_LIVE], sizeof(McSaveData), MEMORY_CARD_SAVE_CARD_SECTORS },
     { &gPlayerStatus, PLAYER_STATUS_SAVE_RECORD_BYTES, PLAYER_STATUS_CARD_SECTORS },
-    { gGameFlagAcropolisBanks, sizeof(gGameFlagAcropolisBanks[GAME_FLAG_STAGE_BANK_LIVE]), GAME_FLAG_ACROPOLIS_BANK_CARD_SECTORS },
+    { gGameFlagAcropolisBanks, sizeof(gGameFlagAcropolisBanks[GAME_FLAG_STAGE_BANK_LIVE]), GAME_FLAG_AKROPOLIS_BANK_CARD_SECTORS },
     { gGameFlagDryfieldBanks, sizeof(gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE]), GAME_FLAG_DRYFIELD_BANK_CARD_SECTORS },
     { gGameFlagDryfieldNightBanks, sizeof(gGameFlagDryfieldNightBanks[GAME_FLAG_STAGE_BANK_LIVE]), GAME_FLAG_DRYFIELD_NIGHT_BANK_CARD_SECTORS },
     { gGameFlagMineShelterBanks, sizeof(gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE]), GAME_FLAG_MINE_SHELTER_BANK_CARD_SECTORS },
@@ -955,7 +955,7 @@ static void _mcSeedNewGameRecords(void)
         openingSave = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
     } while (0);
 
-    initialStage                        = GAME_STAGE_ACROPOLIS;
+    initialStage                        = GAME_STAGE_AKROPOLIS;
     openingSave->state.location.area    = GAME_AREA_MIST_SHOOTING_GALLERY;
     initialSceneEvent                   = MEMORY_CARD_NEW_GAME_SCENE_EVENT;
     starterWeapon                       = MEMORY_CARD_NEW_GAME_WEAPON_M93R;

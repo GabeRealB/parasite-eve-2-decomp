@@ -189,7 +189,7 @@ static void _effectDrawCriticalHitBurst(const GfxCoord* coord, s16 radius, s16 b
 /// texels beyond the origin, in top-left, top-right, bottom-left, bottom-right
 /// order. Palette X/Y are VRAM words/scanlines, encoded into the packet's CLUT.
 /// The caller selects the texture page, blend command and geometry.
-static __inline__ void _effectSetExplosionTexture(POLY_FT4* quad, const EffectSpriteTextureFrame* textureFrame)
+static inline void _effectSetExplosionTexture(POLY_FT4* quad, const EffectSpriteTextureFrame* textureFrame)
 {
     quad->clut = getClut(textureFrame->clutX, textureFrame->clutY);
     quad->u0   = textureFrame->u;
@@ -209,7 +209,7 @@ static __inline__ void _effectSetExplosionTexture(POLY_FT4* quad, const EffectSp
 /// Sets Q12 RGB intensity (7/8, 5/8, 5/8), full-strength radius 4000 and outer
 /// radius 4800 in game coordinate units, and marks placement dirty.
 /// The caller enables the shared transient slot and manages its lifetime.
-static __inline__ void _effectInitializeShotgunLight(const GfxCoord* spawnCoord, WorldCoordPointLight* pointLight)
+static inline void _effectInitializeShotgunLight(const GfxCoord* spawnCoord, WorldCoordPointLight* pointLight)
 {
     enum { EFFECT_SHOTGUN_FLASH_RED_INTENSITY   = ONE * 7 / 8,
            EFFECT_SHOTGUN_FLASH_OTHER_INTENSITY = ONE * 5 / 8 };
@@ -235,7 +235,7 @@ static __inline__ void _effectInitializeShotgunLight(const GfxCoord* spawnCoord,
 /// RGB inputs use Q12. Sets inner radius to 8800 - 400 * age and outer radius
 /// to 9600 in game coordinate units, copies local translation, marks placement
 /// dirty and refreshes expiry to sixteen unpaused transient-light updates.
-static __inline__ void _effectRefreshGrenadeBurstLight(WorldCoordTransientPointLight* transientLight, WorldCoordPointLight* pointLight, GfxCoord* lightCoord, const GfxCoord* blastCoord, const s16* ageCounter, s16 redIntensity, s16 greenIntensity, s16 blueIntensity)
+static inline void _effectRefreshGrenadeBurstLight(WorldCoordTransientPointLight* transientLight, WorldCoordPointLight* pointLight, GfxCoord* lightCoord, const GfxCoord* blastCoord, const s16* ageCounter, s16 redIntensity, s16 greenIntensity, s16 blueIntensity)
 {
     enum {
         EFFECT_GRENADE_BURST_LIGHT_TICKS    = 16,
@@ -268,7 +268,7 @@ static __inline__ void _effectRefreshGrenadeBurstLight(WorldCoordTransientPointL
 /// resulting pixel coordinate narrows to the packet's signed halfword.
 /// Borrows both pointers, writes only quad's XY fields and consumes no arena
 /// or scratch-stack storage. Packet colours and its DMA tag are untouched.
-static __inline__ s32 _effectSetCriticalHitRingCorners(POLY_G4* quad, const EffectShapeScratch* scratch, s32 segmentAngle)
+static inline s32 _effectSetCriticalHitRingCorners(POLY_G4* quad, const EffectShapeScratch* scratch, s32 segmentAngle)
 {
     enum { EFFECT_CRITICAL_HIT_TRIG_FRACTION_BITS = 12 };
     s32 nextSegmentAngle;
@@ -298,7 +298,7 @@ static __inline__ s32 _effectSetCriticalHitRingCorners(POLY_G4* quad, const Effe
 /// the caller rejects a negative final FLAG. Leaves the depth member untouched
 /// and corner 3's depth in GTE SZ3, to be read before another depth-changing
 /// GTE command.
-static __inline__ void _effectProjectGroundShadow(EffectQuadScratch* quadScratch)
+static inline void _effectProjectGroundShadow(EffectQuadScratch* quadScratch)
 {
     gte_SetRotMatrix(&GsWSMATRIX);
     // Save corner 0 before the triple transform replaces the screen FIFO.
@@ -319,7 +319,7 @@ static __inline__ void _effectProjectGroundShadow(EffectQuadScratch* quadScratch
 /// Only `move`'s XYZ are written; its fourth halfword is untouched. The result
 /// is not a unit vector: the caller normalizes it to Q12 before applying speed.
 /// Changes the GTE rotation and working registers; no translation is applied.
-static __inline__ void _effectChooseThrownModelDirection(EffectWork* work)
+static inline void _effectChooseThrownModelDirection(EffectWork* work)
 {
     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
     work->move.vx   = ((gRandomLcgState >> 16) & 0x3F) + 0x60;
@@ -344,7 +344,7 @@ static __inline__ void _effectChooseThrownModelDirection(EffectWork* work)
 /// Leaves `depth` and `extent` untouched and SZ3 ready for the caller's depth
 /// read before another depth-changing GTE command. Borrows the block only
 /// for this call and does not allocate or queue a GPU packet.
-static __inline__ void _effectProjectShapeCentre(EffectShapeScratch* scratch)
+static inline void _effectProjectShapeCentre(EffectShapeScratch* scratch)
 {
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
@@ -429,7 +429,7 @@ enum { EFFECT_DUST_PUFF_CELL_SIZE = 32 };
 /// Writes only quad XY and scratch extent.corner, leaving the quarter-turn
 /// offsets there on return. Neither reserves storage nor queues a packet;
 /// the pointers need remain live only for this call.
-static __inline__ void _effectSetDustPuffCorners(POLY_FT4* quad, EffectShapeScratch* scratch, const EffectWork* work)
+static inline void _effectSetDustPuffCorners(POLY_FT4* quad, EffectShapeScratch* scratch, const EffectWork* work)
 {
     EFFECT_SET_PUFF_CORNERS(quad, scratch, work, EFFECT_DUST_PUFF_CELL_SIZE - 1);
 }
@@ -442,7 +442,7 @@ static __inline__ void _effectSetDustPuffCorners(POLY_FT4* quad, EffectShapeScra
 /// rotation. Writes three-quarter Q12 white,
 /// full-strength radius 4000 and outer radius 4800 in world units, invalidating
 /// composition. Leaves expiry unchanged for the weapon-profile branch.
-static __inline__ void _effectInitializeHandgunLight(const GfxCoord* spawnCoord, WorldCoordPointLight* pointLight)
+static inline void _effectInitializeHandgunLight(const GfxCoord* spawnCoord, WorldCoordPointLight* pointLight)
 {
     s32 spawnZ;
     pointLight->head.transform.coord.coord.t[0]   = spawnCoord->coord.t[0];

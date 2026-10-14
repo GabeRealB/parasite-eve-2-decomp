@@ -40,7 +40,7 @@
 /// Only the three `move` components change; `step` and the SVECTOR pad remain
 /// intact, and no pointer is retained. Zero directions follow `VectorNormalSS`
 /// without a special case. The operation clobbers GTE data and result registers.
-static __inline__ void _effectSpriteDriftInitializeVelocity(EffectWork* work)
+static inline void _effectSpriteDriftInitializeVelocity(EffectWork* work)
 {
     SVECTOR* velocity;
 
@@ -61,7 +61,7 @@ static __inline__ void _effectSpriteDriftInitializeVelocity(EffectWork* work)
 ///
 /// Clearing the composition stamp makes the cached transform stale, even for
 /// zero velocity; the next composition rebuilds it. Neither pointer is retained.
-static __inline__ void _effectSpriteDriftMove(const EffectWork* work, GfxCoord* coord)
+static inline void _effectSpriteDriftMove(const EffectWork* work, GfxCoord* coord)
 {
     coord->coord.t[0]  += work->move.vx;
     coord->coord.t[1]  += work->move.vy;

@@ -633,7 +633,7 @@ static void _actor356100GrabReach(Task* task);
 /// composition dirty. Requires a live writable coordinate and eight free
 /// scratch-stack bytes. The GTE produces signed halfword step components;
 /// the scratch vector is released before return.
-static __inline__ void _actorMovementStepLocalZFromSave(McSaveData* save, GfxCoord* coord, s16 stepDistance)
+static inline void _actorMovementStepLocalZFromSave(McSaveData* save, GfxCoord* coord, s16 stepDistance)
 {
     SVECTOR* scratchEnd;
     SVECTOR* displacement;
@@ -657,7 +657,7 @@ static __inline__ void _actorMovementStepLocalZFromSave(McSaveData* save, GfxCoo
 /// `translation` is a live writable parent-frame component. Negative fractions
 /// take an extra negative unit below the signed integer half's flooring.
 /// The corrected translation must fit a signed word; no pointers are retained.
-static __inline__ void _actorContactApplyRootFraction(s32 correctionWord, long* translation)
+static inline void _actorContactApplyRootFraction(s32 correctionWord, long* translation)
 {
     if ((correctionWord & ACTOR_CONTACT_ROOT_FRACTION_MASK) != 0) {
         if (correctionWord > 0) {
@@ -677,7 +677,7 @@ static __inline__ void _actorContactApplyRootFraction(s32 correctionWord, long* 
 /// even without a grid hit. Requires live disjoint inputs and 72 free scratch
 /// bytes; leaves rotation and composition stamp intact. Freeze value 1 skips
 /// both correction and height.
-static __inline__ void _actorContactPushRootFromSave(McSaveData* save, GfxCoord* coord, const WorldCollisionContact* contacts, s32 contactCount, s16 heightOffset)
+static inline void _actorContactPushRootFromSave(McSaveData* save, GfxCoord* coord, const WorldCollisionContact* contacts, s32 contactCount, s16 heightOffset)
 {
     ActorContactPushScratch* scratchEnd;
     ActorContactPushScratch* push;
@@ -803,19 +803,19 @@ STATIC_ASSERT_SIZEOF(_Actor356100StateTable, 0x7C);
 /// `_Actor356100Work::bodyPosHistory` as the enemy's next local position.
 static void _actor356100Update(Enemy* enemy, Task* task);
 
-static __inline__ void _actor356100BindLightingMatrices(Task* actor);
-static __inline__ void _actorPositionDeltaToLivePlayer(const GfxCoord* coord, SVECTOR* toPlayer);
+static inline void _actor356100BindLightingMatrices(Task* actor);
+static inline void _actorPositionDeltaToLivePlayer(const GfxCoord* coord, SVECTOR* toPlayer);
 
-static __inline__ void _actorMovementStepLocalZ(GfxCoord* coord, s16 stepDistance);
-static __inline__ void _actorContactPushRoot(GfxCoord* coord, const WorldCollisionContact* contacts, s32 contactCount, s16 heightOffset);
-static __inline__ s32  _actorContactPushRootAlways(GfxCoord* coord, const WorldCollisionContact* contacts, s32 contactCount, s16 heightOffset);
-static __inline__ void _actorMovementStepLocalZNonzero(GfxCoord* coord, s16 stepDistance);
+static inline void _actorMovementStepLocalZ(GfxCoord* coord, s16 stepDistance);
+static inline void _actorContactPushRoot(GfxCoord* coord, const WorldCollisionContact* contacts, s32 contactCount, s16 heightOffset);
+static inline s32  _actorContactPushRootAlways(GfxCoord* coord, const WorldCollisionContact* contacts, s32 contactCount, s16 heightOffset);
+static inline void _actorMovementStepLocalZNonzero(GfxCoord* coord, s16 stepDistance);
 
 /// Binds the actor model to lighting matrices owned by its work block.
 ///
 /// The live model and initialized `_Actor356100Work` must outlive drawing;
 /// no matrices are copied or initialized here.
-static __inline__ void _actor356100BindLightingMatrices(Task* actor)
+static inline void _actor356100BindLightingMatrices(Task* actor)
 {
     _Actor356100Work* work;
     TmdObject*        model;
@@ -831,7 +831,7 @@ static __inline__ void _actor356100BindLightingMatrices(Task* actor)
 /// `coord` and the live player's root matrix must share that frame. XYZ narrow
 /// to signed 16-bit game units; `toPlayer->pad` is untouched. Inputs must be
 /// live and separate from the writable result. No composition is performed.
-static __inline__ void _actorPositionDeltaToLivePlayer(const GfxCoord* coord, SVECTOR* toPlayer)
+static inline void _actorPositionDeltaToLivePlayer(const GfxCoord* coord, SVECTOR* toPlayer)
 {
     toPlayer->vx = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
     toPlayer->vy = gPlayerStatus.coordMtx->t[1] - coord->coord.t[1];
@@ -891,7 +891,7 @@ static void _actor356100TickBlendedAnimation(Task* actor)
 /// be in 0..44 and select loaded tracks, fitting the transition table. An unchanged set is left alone;
 /// otherwise each slot captures its current pose and seeks to record offset zero.
 /// Leaves slot zero and the request counters intact.
-static __inline__ void _actor356100SeekRequestedAnimation(Task* actor)
+static inline void _actor356100SeekRequestedAnimation(Task* actor)
 {
     _Actor356100Work* animationWork;
     s32               slotIndex;
@@ -912,7 +912,7 @@ static __inline__ void _actor356100SeekRequestedAnimation(Task* actor)
 /// Requires a live initialized rig and loaded tracks. Slot reset replaces the
 /// stored requested rate with ANIMATION_RATE_ONE; the next tick reinstalls it.
 /// Leaves slot zero and the request counters intact.
-static __inline__ void _actor356100ResetAnimationSlots(Task* actor)
+static inline void _actor356100ResetAnimationSlots(Task* actor)
 {
     _Actor356100Work* animationWork;
     s32               slotIndex;
@@ -932,7 +932,7 @@ static __inline__ void _actor356100ResetAnimationSlots(Task* actor)
 /// weight gives the primary rotation half the mix, with ONE as unity. The retained
 /// primary-rig rate store precedes each secondary reset; it is overwritten by
 /// the next primary tick. Neither the blend-active latch nor request changes.
-static __inline__ void _actor356100ResetBlendSlots(Task* actor)
+static inline void _actor356100ResetBlendSlots(Task* actor)
 {
     _Actor356100Work* blendWork;
     s32               slotIndex;
@@ -952,7 +952,7 @@ static __inline__ void _actor356100ResetBlendSlots(Task* actor)
 /// Requires an initialized live rig with loaded tracks. Rates narrow to signed
 /// bytes in sixteenths of a frame; reverse ticks require bank-backed current
 /// poses. Slot zero and the request counters are left intact.
-static __inline__ void _actor356100TickAnimationSlots(Task* actor)
+static inline void _actor356100TickAnimationSlots(Task* actor)
 {
     _Actor356100Work* tickWork;
     s32               slotIndex;
@@ -1216,7 +1216,7 @@ static void _actor356100StatusHold(Task* actor)
 /// the absolute yaw with halfword truncation. The task must have initialized live
 /// model coordinates disjoint from that halfword. Translation survives, pitch
 /// and roll are discarded and composition is invalidated. No storage is retained.
-static __inline__ void _actor356100ApplyRootTurn(Task* actor, s16* relativeYaw)
+static inline void _actor356100ApplyRootTurn(Task* actor, s16* relativeYaw)
 {
     GfxCoord* rootCoord;
 
@@ -1233,7 +1233,7 @@ static __inline__ void _actor356100ApplyRootTurn(Task* actor, s16* relativeYaw)
 /// Root pitch and roll are discarded, translation is retained and composition
 /// is invalidated. Requires initialized live coordinates and a separate writable
 /// turn. No pointer is retained and the scratch stack is not changed.
-static __inline__ void _actor356100TurnRoot(Task* actor, s16* relativeYaw, s16 turnLimit)
+static inline void _actor356100TurnRoot(Task* actor, s16* relativeYaw, s16 turnLimit)
 {
     if (*relativeYaw >= turnLimit + 1) {
         *relativeYaw = turnLimit;
@@ -1294,7 +1294,7 @@ static void _actor356100Alert(Task* actor)
 /// and marks composition dirty. Requires a live writable coordinate and an
 /// initialized scratch stack with eight free bytes. GTE quantization narrows
 /// the step to signed halfwords; no pointer is retained.
-static __inline__ void _actorMovementStepLocalZ(GfxCoord* coord, s16 stepDistance)
+static inline void _actorMovementStepLocalZ(GfxCoord* coord, s16 stepDistance)
 {
     SVECTOR* scratchEnd;
     SVECTOR* displacement;
@@ -1322,7 +1322,7 @@ static __inline__ void _actorMovementStepLocalZ(GfxCoord* coord, s16 stepDistanc
 /// `heightOffset` is added to Y even with no grid hit. Requires live disjoint
 /// inputs and 72 free scratch-stack bytes; leaves rotation and composition
 /// stamp intact. Freeze value 1 skips the correction and height together.
-static __inline__ void _actorContactPushRoot(GfxCoord* coord, const WorldCollisionContact* contacts, s32 contactCount, s16 heightOffset)
+static inline void _actorContactPushRoot(GfxCoord* coord, const WorldCollisionContact* contacts, s32 contactCount, s16 heightOffset)
 {
     void**                   scratchCursor;
     ActorContactPushScratch* scratchEnd;
@@ -1362,7 +1362,7 @@ static __inline__ void _actorContactPushRoot(GfxCoord* coord, const WorldCollisi
 /// height alone does not count. Does not check actor freeze. Requires live
 /// disjoint inputs and 72 free scratch bytes; leaves the composition stamp
 /// intact. Reads the released block before any scratch reuse.
-static __inline__ s32 _actorContactPushRootAlways(GfxCoord* coord, const WorldCollisionContact* contacts, s32 contactCount, s16 heightOffset)
+static inline s32 _actorContactPushRootAlways(GfxCoord* coord, const WorldCollisionContact* contacts, s32 contactCount, s16 heightOffset)
 {
     void**                   scratchCursor;
     ActorContactPushScratch* scratchEnd;
@@ -1840,7 +1840,7 @@ static void _actor356100Sidestep(Task* actor)
 /// reply 1, leaving actor state and animation untouched; reply 0 enters pull and
 /// sets the held flag before replacing the player's bank and playing clip 1.
 /// Requests are consumed synchronously; the installed animation data stays borrowed.
-static __inline__ void _actor356100TryStartPlayerHold(_Actor356100Work* work)
+static inline void _actor356100TryStartPlayerHold(_Actor356100Work* work)
 {
     enum { ACTOR_356100_GRAB_HOLD_PRESS_COUNT = 8,
            ACTOR_356100_GRAB_PLAYER_HOLD_ANIM = 1,
@@ -2296,7 +2296,7 @@ static void _actor356100ScriptedDormantState(Task* task)
 /// all work; zero otherwise reserves and releases the eight-byte scratch
 /// vector but leaves the coordinate intact. Requires a live writable
 /// coordinate and initialized scratch stack; changes GTE state for a step.
-static __inline__ void _actorMovementStepLocalZNonzero(GfxCoord* coord, s16 stepDistance)
+static inline void _actorMovementStepLocalZNonzero(GfxCoord* coord, s16 stepDistance)
 {
     SVECTOR* step;
     SVECTOR* displacement;

@@ -444,7 +444,7 @@ RoomLatchedEvent gRoomEventLatched;
 /// nonzero flag to 1 and spawns the staged controller. Flag 0 stays eligible.
 /// Both inputs are borrowed during this call; their copies and CAP/sound
 /// resources must remain in the loaded room until the controller finishes.
-static __inline__ s32 _shelter1fBulwarkStartEvent(const RoomEventMsg* transition, const RoomLatchedEvent* event)
+static inline s32 _shelter1fBulwarkStartEvent(const RoomEventMsg* transition, const RoomLatchedEvent* event)
 {
     enum {
         ROOM_EVENT_NOT_STARTED  = 0,

@@ -1144,7 +1144,7 @@ static void _actor461800SceneDistortionTask(Task* task)
 /// Packets must remain live until GPU completion. The command precedes the tile
 /// and leaves subtractive blending and dithering enabled, with displayed-area
 /// drawing disabled. Its texture page at VRAM (0, 0) is unused by the tile.
-static __inline__ void _actor461800QueueSceneFade(const Task* fadeTask)
+static inline void _actor461800QueueSceneFade(const Task* fadeTask)
 {
     enum {
         ACTOR_461800_SCENE_FADE_MAX_INTENSITY      = 255,
@@ -1433,7 +1433,7 @@ static void _actor461800ExitScriptedWalker(Task* task)
 /// automatic buffer allocation, retaining any existing primitive buffer.
 /// No lighting or teardown ownership is transferred. The borrowed parent must
 /// remain live whenever the attachment root is composed.
-static __inline__ void _actor461800AttachWalkerModel(TmdObject* attachmentModel, GfxCoord* attachmentRoot, GfxCoord* walkerPart)
+static inline void _actor461800AttachWalkerModel(TmdObject* attachmentModel, GfxCoord* attachmentRoot, GfxCoord* walkerPart)
 {
     attachmentRoot->composeStamp = GRAPHICS_COORD_DIRTY;
     attachmentModel->flags       = 0;

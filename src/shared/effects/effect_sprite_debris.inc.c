@@ -18,7 +18,7 @@
 /// Zero directions follow `VectorNormalSS` without a special case. Only the
 /// three `move` components change; `step` and the vector's fourth halfword
 /// remain intact. No pointer is retained. Clobbers GTE data/result registers.
-static __inline__ void _effectSpriteDebrisInitializeVelocity(EffectWork* work)
+static inline void _effectSpriteDebrisInitializeVelocity(EffectWork* work)
 {
     SVECTOR* velocity = &work->move;
 
@@ -40,7 +40,7 @@ static __inline__ void _effectSpriteDebrisInitializeVelocity(EffectWork* work)
 /// The caller skips this operation when `work->step` is zero. Otherwise the
 /// composition stamp is cleared even for zero velocity, so the cached transform
 /// must be rebuilt before use. Neither pointer is retained.
-static __inline__ void _effectSpriteDebrisMove(EffectWork* work, GfxCoord* coord)
+static inline void _effectSpriteDebrisMove(EffectWork* work, GfxCoord* coord)
 {
     enum { EFFECT_SPRITE_DEBRIS_GRAVITY = 6 }; // Coordinate units per running update squared
 

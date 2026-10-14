@@ -162,33 +162,33 @@ static const u8 _gHudWeaponSecondaryButtonGlyphText[];
 
 static void _hudDrawWeaponSupplyPrompt(s32 unusedPanelX, s32 unusedPanelY);
 
-static __inline__ s32 _attachmentGetEffectiveLevel(s32 abilityIndex);
+static inline s32 _attachmentGetEffectiveLevel(s32 abilityIndex);
 
-static __inline__ s32 _sceneIsBattleActive(void);
+static inline s32 _sceneIsBattleActive(void);
 
-static __inline__ u16 _attachmentGetLevelValue(s32 abilityIndex, s32 level, s32 column);
+static inline u16 _attachmentGetLevelValue(s32 abilityIndex, s32 level, s32 column);
 
 static s32 _attachmentIsCastBlocked(s32 abilityIndex);
 
 static void _attachmentArmCast(s32 abilityIndex);
 
-static __inline__ s32 _attachmentStepLearnedSpellWithSave(s32 abilityIndex, s32 steps, const McSaveData* eligibilitySave);
+static inline s32 _attachmentStepLearnedSpellWithSave(s32 abilityIndex, s32 steps, const McSaveData* eligibilitySave);
 
-static __inline__ s32 _attachmentStepLearnedSpell(s32 abilityIndex, s32 steps);
+static inline s32 _attachmentStepLearnedSpell(s32 abilityIndex, s32 steps);
 
-static __inline__ u16 _attachmentGetEffectiveLevelValue(s32 abilityIndex, s32 column);
+static inline u16 _attachmentGetEffectiveLevelValue(s32 abilityIndex, s32 column);
 
 static s32 _attachmentUpdateAndDrawWheel(HudState* hud, s32 panelX, s32 panelY);
 
 static void _hudDrawAttachmentCastGauge(HudState* unusedHud, s32 panelX, s32 panelY);
 
-static __inline__ const u8* _attachmentGetLearnedLevels(void);
+static inline const u8* _attachmentGetLearnedLevels(void);
 
-static __inline__ s32 _hudCanSwitchCategory(s32 ignoreSwapLock);
+static inline s32 _hudCanSwitchCategory(s32 ignoreSwapLock);
 
-static __inline__ s32 _attachmentIsBattleSoundLoadReady(void);
+static inline s32 _attachmentIsBattleSoundLoadReady(void);
 
-static __inline__ u8 _attachmentPreviewSoundLoadStub(void);
+static inline u8 _attachmentPreviewSoundLoadStub(void);
 
 static void _attachmentUpdateAndDrawHud(HudState* hud);
 
@@ -420,7 +420,7 @@ void attachmentDispatchTargetArea(s32 releaseEffects, HudState* hud)
             (level) = ATTACHMENT_TARGET_MIN_LEVEL;                                                                                                                                \
         } else {                                                                                                                                                                  \
             (player) = &gPlayerStatus;                                                                                                                                            \
-            if ((GAME_LOCATION_WORD(gGameSession->location) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(GAME_STAGE_ACROPOLIS, GAME_AREA_MIST_SHOOTING_GALLERY, 0, 0)) { \
+            if ((GAME_LOCATION_WORD(gGameSession->location) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(GAME_STAGE_AKROPOLIS, GAME_AREA_MIST_SHOOTING_GALLERY, 0, 0)) { \
                 (usesTrainingLevels) = 0;                                                                                                                                         \
             } else {                                                                                                                                                              \
                 (usesTrainingLevels) = (player)->resourceVariant == ATTACHMENT_TARGET_TRAINING_RESOURCE_VARIANT;                                                                  \
@@ -679,12 +679,12 @@ static void _hudDrawWeaponSupplyPrompt(s32 unusedPanelX, s32 unusedPanelY)
 /// Tests whether the live shooting-gallery session uses training spell levels.
 ///
 /// Borrows the player record; room and view do not affect this stage/area test.
-static __inline__ s32 _attachmentUsesTrainingLevels(const PlayerStatus* player)
+static inline s32 _attachmentUsesTrainingLevels(const PlayerStatus* player)
 {
     enum { ATTACHMENT_TRAINING_RESOURCE_VARIANT = 4 };
     s32 usesTrainingLevels;
 
-    if ((GAME_LOCATION_WORD(gGameSession->location) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(GAME_STAGE_ACROPOLIS, GAME_AREA_MIST_SHOOTING_GALLERY, 0, 0)) {
+    if ((GAME_LOCATION_WORD(gGameSession->location) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(GAME_STAGE_AKROPOLIS, GAME_AREA_MIST_SHOOTING_GALLERY, 0, 0)) {
         usesTrainingLevels = 0;
     } else {
         usesTrainingLevels = player->resourceVariant == ATTACHMENT_TRAINING_RESOURCE_VARIANT;
@@ -699,7 +699,7 @@ static __inline__ s32 _attachmentUsesTrainingLevels(const PlayerStatus* player)
 /// one. A learned zero becomes one without unlocking the spell. Berserker adds
 /// one only below level three. Stored levels above three are retained; callers
 /// indexing level tables require learned values 0..3. No state is changed.
-static __inline__ s32 _attachmentGetEffectiveLevel(s32 abilityIndex)
+static inline s32 _attachmentGetEffectiveLevel(s32 abilityIndex)
 {
     enum { ATTACHMENT_MIN_EFFECTIVE_LEVEL = 1 };
     const PlayerStatus* player;
@@ -732,7 +732,7 @@ static __inline__ s32 _attachmentGetEffectiveLevel(s32 abilityIndex)
 ///
 /// The end delay keeps the gate active regardless of battle phase. No state is
 /// changed.
-static __inline__ s32 _sceneIsBattleActive(void)
+static inline s32 _sceneIsBattleActive(void)
 {
     const SceneCombatState* combat;
 
@@ -748,7 +748,7 @@ static __inline__ s32 _sceneIsBattleActive(void)
 /// `abilityIndex` is 0..17, `level` is 1..3, and `column` selects a stored
 /// `ATTACHMENT_LEVEL_*` column in 0..7. The inputs are not checked or masked;
 /// level zero reads the preceding row directly. No table pointer is retained.
-static __inline__ u16 _attachmentGetLevelValue(s32 abilityIndex, s32 level, s32 column)
+static inline u16 _attachmentGetLevelValue(s32 abilityIndex, s32 level, s32 column)
 {
     return gAttachmentLevelTable.rows[abilityIndex * ATTACHMENT_LEVEL_COUNT + level].value[column];
 }
@@ -851,7 +851,7 @@ static void _attachmentArmCast(s32 abilityIndex)
 /// the live save or shooting-gallery training table; `eligibilitySave` affects
 /// only whether cheats admit unlearned spells. Nonzero steps require a learned
 /// spell or cheats, or the search never ends. No input or selection is changed.
-static __inline__ s32 _attachmentStepLearnedSpellWithSave(s32 abilityIndex, s32 steps, const McSaveData* eligibilitySave)
+static inline s32 _attachmentStepLearnedSpellWithSave(s32 abilityIndex, s32 steps, const McSaveData* eligibilitySave)
 {
     const PlayerStatus* player;
     s32                 usesTrainingLevels;
@@ -895,7 +895,7 @@ static __inline__ s32 _attachmentStepLearnedSpellWithSave(s32 abilityIndex, s32 
 /// save or shooting-gallery training levels. Cheats make every spell eligible.
 /// Nonzero steps require a learned spell or cheats, or the search never ends.
 /// Returns the new index without changing selection or either level table.
-static __inline__ s32 _attachmentStepLearnedSpell(s32 abilityIndex, s32 steps)
+static inline s32 _attachmentStepLearnedSpell(s32 abilityIndex, s32 steps)
 {
     const PlayerStatus* player;
     const McSaveData*   liveSave;
@@ -940,7 +940,7 @@ static __inline__ s32 _attachmentStepLearnedSpell(s32 abilityIndex, s32 steps)
 /// `abilityIndex` must be 0..17, learned levels 0..3, and `column` an
 /// `ATTACHMENT_LEVEL_*` index in 0..7. Uses the effective-level rules without
 /// checking cast eligibility or changing state. Returns an unsigned halfword.
-static __inline__ u16 _attachmentGetEffectiveLevelValue(s32 abilityIndex, s32 column)
+static inline u16 _attachmentGetEffectiveLevelValue(s32 abilityIndex, s32 column)
 {
     s32 level;
 
@@ -1279,7 +1279,7 @@ static void _hudDrawAttachmentCastGauge(HudState* unusedHud, s32 panelX, s32 pan
 /// shooting gallery's training mode, which uses the separate training table.
 /// Reads are valid while the selected save/gameplay storage remains live;
 /// loading or training changes can replace its values. No pointer is retained.
-static __inline__ const u8* _attachmentGetLearnedLevels(void)
+static inline const u8* _attachmentGetLearnedLevels(void)
 {
     const PlayerStatus* player;
     s32                 usesTrainingLevels;
@@ -1299,7 +1299,7 @@ static __inline__ const u8* _attachmentGetLearnedLevels(void)
 /// presses, the HUD input delay and battle-end delay block entry. Nonzero
 /// `ignoreSwapLock` bypasses only `ATTACHMENT_FLAG_SWAP_LOCK`. Returns 0 or 1
 /// without changing player, attachment or HUD state.
-static __inline__ s32 _hudCanSwitchCategory(s32 ignoreSwapLock)
+static inline s32 _hudCanSwitchCategory(s32 ignoreSwapLock)
 {
     enum {
         HUD_SWITCH_PLAYER_LOCOMOTION_STATE     = 0,
@@ -1346,7 +1346,7 @@ static __inline__ s32 _hudCanSwitchCategory(s32 ignoreSwapLock)
 /// Battle holds or an end delay require an idle CD queue; outside battle the
 /// result is one. The CD result narrows through u16 before promotion to s32.
 /// Does not submit a request or change any state.
-static __inline__ s32 _attachmentIsBattleSoundLoadReady(void)
+static inline s32 _attachmentIsBattleSoundLoadReady(void)
 {
     s32 battleActive;
     u16 ready;
@@ -1364,7 +1364,7 @@ static __inline__ s32 _attachmentIsBattleSoundLoadReady(void)
 ///
 /// Evaluates the battle hold/end-delay gate but submits no load or playback and
 /// changes no state. Retains an unsigned-byte zero result on both paths.
-static __inline__ u8 _attachmentPreviewSoundLoadStub(void)
+static inline u8 _attachmentPreviewSoundLoadStub(void)
 {
     s32 battleActive;
 
@@ -1623,7 +1623,7 @@ static void _attachmentUpdateAndDrawHud(HudState* hud)
 /// ordinary path also requires a live player task when aim exit is reached.
 /// Keeps the HUD visible for a pending shooting-gallery reset; otherwise
 /// suppresses it before advancing the battle step.
-static __inline__ void _hudWaitForBattleEndAction(HudState* hud)
+static inline void _hudWaitForBattleEndAction(HudState* hud)
 {
     enum { HUD_BATTLE_END_ACTION_COMPLETE = 1000 };
     s32                 actionComplete;
@@ -1683,7 +1683,7 @@ static __inline__ void _hudWaitForBattleEndAction(HudState* hud)
 /// CANCELLED; idle/wheel effects keep their phase. Menu and sound cleanup stays
 /// with the caller. Releases both control holds to running, without restoring
 /// earlier holds; the argument must name the global state resumed by the helper.
-static __inline__ void _hudCancelAttachment(AttachmentState* attachment)
+static inline void _hudCancelAttachment(AttachmentState* attachment)
 {
     enum { HUD_ATTACHMENT_NO_QUEUED_SELECTION = 0 };
 
@@ -1722,7 +1722,7 @@ static inline void _hudPlaceDemoPanel(POLY_FT4* panel)
 /// Both quads use the same 128-by-63 screen rectangle; the second uses
 /// subtractive blending and is prepended ahead of the first in OT entry -5.
 /// Storage must be word-aligned and remain live until the GPU consumes it.
-static __inline__ void _hudDrawDemoPanels(void)
+static inline void _hudDrawDemoPanels(void)
 {
     enum {
         HUD_DEMO_TEXTURE_8_BIT        = 1,
@@ -1843,7 +1843,7 @@ void hudUpdateAndDraw(HudState* hud)
                     s32           isGalleryTraining;
 
                     galleryPlayer = &gPlayerStatus;
-                    if ((GAME_LOCATION_WORD(gGameSession->location) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(GAME_STAGE_ACROPOLIS, GAME_AREA_MIST_SHOOTING_GALLERY, 0, 0)) {
+                    if ((GAME_LOCATION_WORD(gGameSession->location) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(GAME_STAGE_AKROPOLIS, GAME_AREA_MIST_SHOOTING_GALLERY, 0, 0)) {
                         isGalleryTraining = 0;
                     } else {
                         isGalleryTraining = galleryPlayer->resourceVariant == HUD_GALLERY_TRAINING_RESOURCE_VARIANT;
@@ -1879,7 +1879,7 @@ void hudUpdateAndDraw(HudState* hud)
                     currentStageAreaKey  = GAME_LOCATION_WORD(gGameSession->location);
                     currentStageAreaKey &= GAME_LOCATION_STAGE_AREA_MASK;
                     hud->field_8         = 0;
-                    if (currentStageAreaKey != GAME_LOCATION_KEY(GAME_STAGE_ACROPOLIS, GAME_AREA_MIST_SHOOTING_GALLERY, 0, 0)) {
+                    if (currentStageAreaKey != GAME_LOCATION_KEY(GAME_STAGE_AKROPOLIS, GAME_AREA_MIST_SHOOTING_GALLERY, 0, 0)) {
                         displayQueueModeTask(&gSceneBattleStartTransitionTaskDesc, 0, hud, STAGE_ENTRY_GRAY_CAPTURE);
                     } else {
                         hud->battleStep = hud->battleStep + 1;
@@ -1922,7 +1922,7 @@ void hudUpdateAndDraw(HudState* hud)
                 } else {
                     GameSession* session;
 
-                    if (stageAreaKey == GAME_LOCATION_KEY(GAME_STAGE_ACROPOLIS, GAME_AREA_MIST_SHOOTING_GALLERY, 0, 0)) {
+                    if (stageAreaKey == GAME_LOCATION_KEY(GAME_STAGE_AKROPOLIS, GAME_AREA_MIST_SHOOTING_GALLERY, 0, 0)) {
                         session = gGameSession;
                         if (session->battleResetPending != 0) {
                             combat->signals.bytes.battlePhase = SCENE_COMBAT_BATTLE_IDLE;
@@ -1961,7 +1961,7 @@ void hudUpdateAndDraw(HudState* hud)
                 AttachmentState* attachment;
 
                 galleryPlayer = &gPlayerStatus;
-                if ((GAME_LOCATION_WORD(gGameSession->location) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(GAME_STAGE_ACROPOLIS, GAME_AREA_MIST_SHOOTING_GALLERY, 0, 0)) {
+                if ((GAME_LOCATION_WORD(gGameSession->location) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(GAME_STAGE_AKROPOLIS, GAME_AREA_MIST_SHOOTING_GALLERY, 0, 0)) {
                     isGalleryTraining = 0;
                 } else {
                     isGalleryTraining = galleryPlayer->resourceVariant == HUD_GALLERY_TRAINING_RESOURCE_VARIANT;

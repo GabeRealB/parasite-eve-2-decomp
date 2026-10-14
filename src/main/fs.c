@@ -2365,7 +2365,7 @@ s32 fsGetRequiredStageDisc(void)
 
     stage = gGameSession->location.stage;
     if (gFsStageCdfBaseSectors[stage] == 0) {
-        if (stage == GAME_STAGE_ACROPOLIS || stage == GAME_STAGE_DRYFIELD) {
+        if (stage == GAME_STAGE_AKROPOLIS || stage == GAME_STAGE_DRYFIELD) {
             return GAME_MAIN_DISC_1;
         }
         if (stage == GAME_STAGE_MINE_SHELTER || stage == GAME_STAGE_SHELTER_NEO_ARK) {

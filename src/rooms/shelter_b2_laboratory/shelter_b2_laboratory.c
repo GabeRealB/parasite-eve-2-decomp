@@ -62,7 +62,7 @@
 
 #include "overlay.h"
 
-#include "rooms/acropolis_square.h"
+#include "rooms/akropolis_square.h"
 
 #include "rooms/room.h"
 

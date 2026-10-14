@@ -94,7 +94,7 @@ STATIC_ASSERT_SIZEOF(ActorContactBearingPushScratch, 0xE4);
 /// pointers only for this call and leaves the nodes unchanged. Restores the
 /// scratch cursor on return; a nonempty chain changes GTE rotation/translation and working
 /// registers; transform flags are stored but do not gate the result.
-static __inline__ void _actorContactTransformPointToChainRoot(GfxCoord* startCoord, SVECTOR* point)
+static inline void _actorContactTransformPointToChainRoot(GfxCoord* startCoord, SVECTOR* point)
 {
     OverlayCoordChainScratch* scratch;
 
@@ -134,7 +134,7 @@ static __inline__ void _actorContactTransformPointToChainRoot(GfxCoord* startCoo
 /// selects the parent (possibly NULL). Stores GTE flags without testing them.
 /// Clobbers GTE working state, retains no pointer and does not move the scratch
 /// cursor or refresh any coordinate's composed cache.
-static __inline__ void _actorContactCarryPointToParent(OverlayCoordChainScratch* scratch)
+static inline void _actorContactCarryPointToParent(OverlayCoordChainScratch* scratch)
 {
     gte_SetTransMatrix(&scratch->coord->coord);
     gte_SetRotMatrix(&scratch->coord->coord);
@@ -165,7 +165,7 @@ static __inline__ void _actorContactCarryPointToParent(OverlayCoordChainScratch*
 /// both pointers only for this call and leaves the nodes unchanged. Restores
 /// the cursor on return; a nonempty chain changes GTE rotation, translation
 /// and working registers.
-static __inline__ void _actorContactTransformStagedPointToChainRoot(GfxCoord* startCoord, SVECTOR* point)
+static inline void _actorContactTransformStagedPointToChainRoot(GfxCoord* startCoord, SVECTOR* point)
 {
     OverlayCoordChainScratch* scratch;
 
@@ -196,7 +196,7 @@ static __inline__ void _actorContactTransformStagedPointToChainRoot(GfxCoord* st
 /// coordinate conversion, and leaves `pad` untouched. Requires separate
 /// writable output and live input storage for the call. Borrows both pointers,
 /// retains neither and does not consume or clear the contact.
-static __inline__ s32 _actorContactFindAttack(SVECTOR* contactPointOut, const WorldCollisionContact* contacts, s16 contactCount)
+static inline s32 _actorContactFindAttack(SVECTOR* contactPointOut, const WorldCollisionContact* contacts, s16 contactCount)
 {
     s16 contactIndex;
 
@@ -232,7 +232,7 @@ static __inline__ s32 _actorContactFindAttack(SVECTOR* contactPointOut, const Wo
 /// and `pad` is untouched. All input reads precede output writes. Borrows the
 /// pointers only for the call, reserves no scratch-stack storage and changes
 /// GTE working registers even when the depth is zero.
-static __inline__ void _actorContactCalcHorizontalPushback(const SVECTOR* position, const WorldCollisionContact* contact, SVECTOR* pushDelta)
+static inline void _actorContactCalcHorizontalPushback(const SVECTOR* position, const WorldCollisionContact* contact, SVECTOR* pushDelta)
 {
     enum { ACTOR_CONTACT_DIRECTION_FRACTION_BITS = 12 };
     VECTOR delta;

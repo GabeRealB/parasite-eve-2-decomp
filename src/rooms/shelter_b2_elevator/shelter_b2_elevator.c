@@ -466,7 +466,7 @@ AreaApplyRec gShelterB2ElevatorSceneSavedAreaUpdates[2] = {
 /// `doorSide` is the leaf's signed Z direction (-1 or 1), ignored by the exit
 /// task. The new task owns its body and work; returns NULL on spawn failure.
 /// Keep this room's callback code and model geometry loaded while tasks use them.
-static __inline__ Task* _shelterB2ElevatorSpawnTask(s32 descriptorIndex, s32 doorSide)
+static inline Task* _shelterB2ElevatorSpawnTask(s32 descriptorIndex, s32 doorSide)
 {
     return taskSpawnFromTable(_gShelterB2ElevatorTaskDescriptors, descriptorIndex, SHELTER_B2_ELEVATOR_DOOR_REST, doorSide);
 }
@@ -516,7 +516,7 @@ static void _shelterB2ElevatorRoomInitState(Task* task)
 /// (0) or opening (1) at 10 units per tick, and `spawnArg2.value` is the Z side
 /// (-1 or 1). Clamping leaves the request intact at either end of the travel.
 /// Only travel and root Z change; the caller must dirty the coordinate cache.
-static __inline__ void _shelterB2ElevatorSlideDoorLeaf(Task* task, _ShelterB2ElevatorDoorLeafWork* leafWork, GfxCoord* modelCoord)
+static inline void _shelterB2ElevatorSlideDoorLeaf(Task* task, _ShelterB2ElevatorDoorLeafWork* leafWork, GfxCoord* modelCoord)
 {
     leafWork->travel += task->spawnArg1.value * SHELTER_B2_ELEVATOR_DOOR_LEAF_SPEED;
     if (leafWork->travel < 0) {

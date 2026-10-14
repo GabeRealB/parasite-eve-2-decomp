@@ -1205,9 +1205,9 @@ static EvsCommand _gMistR18IntroScript[] = {
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = MIST_R18_SCENE_ACTOR_BALDWIN }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gMistR18BaldwinBriefingClip3Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 40 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_MIST_R18, 3) }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_MIST_R18, 3) }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 80 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_MIST_R18, 4) }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_MIST_R18, 4) }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = MIST_R18_SCENE_ACTOR_BALDWIN }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gMistR18BaldwinShowFirstHeldModelCommand } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -2495,7 +2495,7 @@ static void _mistR18ReloadParkingWithStarterLoadout(void)
         MIST_R18_PARKING_SPRITE_VARIANT = 1,
     };
     inventoryInitializeStarterLoadout();
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.stage = GAME_STAGE_ACROPOLIS;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.stage = GAME_STAGE_AKROPOLIS;
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.area  = GAME_AREA_MIST_PARKING;
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp  = MIST_R18_PARKING_ENTRY_WARP;
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.room  = MIST_R18_PARKING_ENTRY_ROOM;

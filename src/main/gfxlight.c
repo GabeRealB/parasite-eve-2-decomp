@@ -54,7 +54,7 @@ enum { GRAPHICS_FLAT_LIGHT_COLOR_SHIFT = 4 };
 /// Installs one flat directional light in a matrix pair for the default lights.
 ///
 /// Uses the index, input and scratch-stack contract of `gfxSetFlatLight`.
-static __inline__ void _gfxWriteFlatLightMatrices(s32 lightIndex, const GsF_LIGHT* light, MATRIX* directionMatrix, MATRIX* colorMatrix)
+static inline void _gfxWriteFlatLightMatrices(s32 lightIndex, const GsF_LIGHT* light, MATRIX* directionMatrix, MATRIX* colorMatrix)
 {
     _GfxFlatLightScratch* scratch;
 

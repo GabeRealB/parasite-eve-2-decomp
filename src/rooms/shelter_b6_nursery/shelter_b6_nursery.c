@@ -66,7 +66,7 @@
 
 #include "mapui/map_neo_ark.h"
 
-#include "rooms/acropolis_square.h"
+#include "rooms/akropolis_square.h"
 
 #include "rooms/room.h"
 

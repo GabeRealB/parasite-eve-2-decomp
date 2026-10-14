@@ -8,7 +8,7 @@
 /// normal rate and launches at -110 Y units per update with zero acceleration.
 /// Clears the u16 frame counter and advances behavior to 5. Motion narrows to
 /// s16; the caller applies animation and rebuilds rotation after this change.
-static __inline__ void _madChaserEmergeArcBackLaunchHop(Task* task, MadChaserWork* work, GfxCoord* root)
+static inline void _madChaserEmergeArcBackLaunchHop(Task* task, MadChaserWork* work, GfxCoord* root)
 {
     enum {
         MAD_CHASER_EMERGE_ARC_HOP_CLIP    = 12,
@@ -76,7 +76,7 @@ static void _madChaserEmergeArcBack(Task* task)
 /// index 0..15 in sound-id bits 8..15. The cached root-to-view transform supplies
 /// pan (-16..15) and attenuation depth (-128..127), both narrowed to s8 before
 /// the request. Requires projection scratch/GTE setup; retains no storage.
-static __inline__ void _madChaserEmergeHopBackPlayEntrySound(Task* task)
+static inline void _madChaserEmergeHopBackPlayEntrySound(Task* task)
 {
     enum {
         MAD_CHASER_EMERGE_HOP_SOUND            = SOUND_CHARACTER(SOUND_BANK_MAD_CHASER, 9),
@@ -141,7 +141,7 @@ static void _madChaserEmergeHopBack(Task* task)
 /// index 0..15 in sound-id bits 8..15. The cached root-to-view transform supplies
 /// pan (-16..15) and attenuation depth (-128..127), both narrowed to s8 before
 /// the request. Requires projection scratch/GTE setup; retains no storage.
-static __inline__ void _madChaserEmergeBackOffPlayEntrySound(Task* task)
+static inline void _madChaserEmergeBackOffPlayEntrySound(Task* task)
 {
     enum {
         MAD_CHASER_EMERGE_BACK_OFF_SOUND       = SOUND_CHARACTER(SOUND_BANK_MAD_CHASER, 9),
@@ -201,7 +201,7 @@ static void _madChaserEmergeBackOff(Task* task)
 /// Resets clip 12 at normal rate and launches at -300 Y units per update with
 /// zero acceleration. Clears the u16 frame counter and enters behavior 8;
 /// the caller applies animation and rebuilds rotation after this change.
-static __inline__ void _madChaserEmergeHighArcLaunchFlip(Task* task, MadChaserWork* work, GfxCoord* root)
+static inline void _madChaserEmergeHighArcLaunchFlip(Task* task, MadChaserWork* work, GfxCoord* root)
 {
     enum {
         MAD_CHASER_EMERGE_HIGH_ARC_FLIP_CLIP    = 12,
@@ -270,7 +270,7 @@ static void _madChaserEmergeHighArc(Task* task)
 /// clip 17 at normal rate, clears the u16 frame counter and enters behavior 9.
 /// Retains motion and shadow state; the caller applies animation and rebuilds
 /// rotation after this change.
-static __inline__ void _madChaserEmergeFlipOverFinishLanding(Task* task, MadChaserWork* work, GfxCoord* root)
+static inline void _madChaserEmergeFlipOverFinishLanding(Task* task, MadChaserWork* work, GfxCoord* root)
 {
     enum {
         MAD_CHASER_EMERGE_FLIP_LANDING_CLIP = 17,

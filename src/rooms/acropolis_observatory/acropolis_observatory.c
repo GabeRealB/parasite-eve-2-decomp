@@ -68,7 +68,7 @@ static s32 _acropolisObservatoryResolveRoomTransition(Task* unusedTask, s32 mess
     s32 destinationRoom;
 
     *reply = *request;
-    if (request->areaId == GAME_AREA_ACROPOLIS_FORKED_ROAD && request->queryOnly == ROOM_EVENT_EXECUTE) {
+    if (request->areaId == GAME_AREA_AKROPOLIS_FORKED_ROAD && request->queryOnly == ROOM_EVENT_EXECUTE) {
         if (gDisplayState.debugMode < 0 || gStreamInterFile.startSector == 0) {
             reply->warp = ACROPOLIS_OBSERVATORY_FORKED_ROAD_ALTERNATE_ARRIVAL;
         }
@@ -77,13 +77,13 @@ static s32 _acropolisObservatoryResolveRoomTransition(Task* unusedTask, s32 mess
         } else {
             reply->warp = ACROPOLIS_OBSERVATORY_FORKED_ROAD_ALTERNATE_ARRIVAL;
         }
-        if (request->areaId == GAME_AREA_ACROPOLIS_FORKED_ROAD) {
+        if (request->areaId == GAME_AREA_AKROPOLIS_FORKED_ROAD) {
             if (gameFlagGetNibble(GAME_FLAG_SECURITY_ROOM_LOCKS_RELEASED) & ACROPOLIS_OBSERVATORY_SECURITY_EXIT_ROOM_BIT) {
                 reply->room = ACROPOLIS_OBSERVATORY_DESTINATION_ROOM_CHANGED;
             }
         }
     }
-    if (request->areaId == GAME_AREA_ACROPOLIS_PROMENADE) {
+    if (request->areaId == GAME_AREA_AKROPOLIS_PROMENADE) {
         if (gDisplayState.debugMode < 0 || gStreamInterFile.startSector == 0) {
             if (request->queryOnly == ROOM_EVENT_EXECUTE) {
                 reply->warp = ACROPOLIS_OBSERVATORY_PROMENADE_ALTERNATE_ARRIVAL;
@@ -96,8 +96,8 @@ static s32 _acropolisObservatoryResolveRoomTransition(Task* unusedTask, s32 mess
                 reply->warp = ACROPOLIS_OBSERVATORY_PROMENADE_ALTERNATE_ARRIVAL;
             }
         }
-        if (request->areaId == GAME_AREA_ACROPOLIS_PROMENADE && request->queryOnly == ROOM_EVENT_EXECUTE) {
-            destinationRoom = gameFlagGetNibble(GAME_FLAG_ACROPOLIS_BRIDGE_PROGRESS);
+        if (request->areaId == GAME_AREA_AKROPOLIS_PROMENADE && request->queryOnly == ROOM_EVENT_EXECUTE) {
+            destinationRoom = gameFlagGetNibble(GAME_FLAG_AKROPOLIS_BRIDGE_PROGRESS);
             if (destinationRoom == 0) {
                 destinationRoom = ACROPOLIS_OBSERVATORY_DESTINATION_ROOM_INITIAL;
             } else {
@@ -134,8 +134,8 @@ static s32 _acropolisObservatoryHandleRoomAction(Task* unusedTask, s32 messageId
 
     if ((request->actionId == ACROPOLIS_OBSERVATORY_ACTION_START_EVENT) &&
         (gGameSession->location.room == ACROPOLIS_OBSERVATORY_EVENT_ROOM) &&
-        (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_OBSERVATORY_EVENT_SEEN) == ACROPOLIS_OBSERVATORY_EVENT_UNSEEN)) {
-        gameFlagSetNibble(GAME_FLAG_ACROPOLIS_OBSERVATORY_EVENT_SEEN, ACROPOLIS_OBSERVATORY_EVENT_SEEN);
+        (gameFlagGetNibble(GAME_FLAG_AKROPOLIS_OBSERVATORY_EVENT_SEEN) == ACROPOLIS_OBSERVATORY_EVENT_UNSEEN)) {
+        gameFlagSetNibble(GAME_FLAG_AKROPOLIS_OBSERVATORY_EVENT_SEEN, ACROPOLIS_OBSERVATORY_EVENT_SEEN);
         taskSpawnFromTable(&gAcropolisObservatoryScriptedBattleTaskDesc, 0, 0, 0);
     }
     return 0;
@@ -157,7 +157,7 @@ static void _acropolisObservatoryInitializeRoomTask(Task* task)
     task->msgTable = _gAcropolisObservatoryRoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     if ((gGameSession->location.room == ACROPOLIS_OBSERVATORY_ENCOUNTER_ROOM) &&
-        (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_OBSERVATORY_EVENT_SEEN) == ACROPOLIS_OBSERVATORY_EVENT_UNSEEN)) {
+        (gameFlagGetNibble(GAME_FLAG_AKROPOLIS_OBSERVATORY_EVENT_SEEN) == ACROPOLIS_OBSERVATORY_EVENT_UNSEEN)) {
         gSceneCombatState.actor03700Wave = ACROPOLIS_OBSERVATORY_WAVES_ACTIVATED;
     }
     task->state = task->state + 1;

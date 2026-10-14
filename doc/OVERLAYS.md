@@ -649,7 +649,7 @@ with one name, and file ids stop appearing outside the extractor.
 
 The **containers** are named too, so the extracted tree reads the same way. Each
 STAGE1–5 folder is one room, so the folder takes its room's name
-(`stage1/acropolis_square/` rather than `stage1/101/`), and a stage-0 file takes
+(`stage1/akropolis_square/` rather than `stage1/101/`), and a stage-0 file takes
 the name of the overlay it holds (`stage0/m93r/`, `stage0/nmc_names/`).
 
 `TREE` keys those containers by **name** and carries the disc id as an `id`
@@ -657,8 +657,8 @@ attribute:
 
 ```python
 1: {"folders": {
-    'acropolis_square': {"id": 101, "files": {
-        'file0': {"id": 0, "chunks": {3: 'acropolis_square', …}},
+    'akropolis_square': {"id": 101, "files": {
+        'file0': {"id": 0, "chunks": {3: 'akropolis_square', …}},
     }},
 }},
 ```

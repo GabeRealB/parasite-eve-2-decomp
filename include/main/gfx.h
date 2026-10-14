@@ -255,7 +255,7 @@ s32 gfxDotProduct(const SVECTOR* left, const SVECTOR* right);
 /// Four word stores and a final halfword store write exactly 18 bytes, leaving
 /// the two alignment bytes before `t` and all three translation words unchanged.
 /// The caller manages any containing `GfxCoord`'s `composeStamp` separately.
-static __inline__ void gfxSetRotIdentity(MATRIX* matrix)
+static inline void gfxSetRotIdentity(MATRIX* matrix)
 {
     GfxRotationWords* rotationWords = (GfxRotationWords*)matrix;
 
@@ -271,7 +271,7 @@ static __inline__ void gfxSetRotIdentity(MATRIX* matrix)
 /// Writes `m[0][0]` through `m[2][2]` in row order and leaves the alignment
 /// halfword and the translation of `destination` unchanged. Both matrices must
 /// be live; they may not partially overlap.
-static __inline__ void gfxCopyRotation(MATRIX* destination, const MATRIX* source)
+static inline void gfxCopyRotation(MATRIX* destination, const MATRIX* source)
 {
     destination->m[0][0] = source->m[0][0];
     destination->m[0][1] = source->m[0][1];
@@ -289,7 +289,7 @@ static __inline__ void gfxCopyRotation(MATRIX* destination, const MATRIX* source
 /// Both matrices must be word-aligned. The alignment halfword and the
 /// translation of `destination` are unchanged; a whole `GfxRotationWords`
 /// assignment would also copy the alignment bytes.
-static __inline__ void gfxCopyRotationWords(MATRIX* destination, const MATRIX* source)
+static inline void gfxCopyRotationWords(MATRIX* destination, const MATRIX* source)
 {
     GfxRotationWords*       destinationWords = (GfxRotationWords*)destination;
     const GfxRotationWords* sourceWords      = (const GfxRotationWords*)source;

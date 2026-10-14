@@ -1625,7 +1625,7 @@ static GameActorButtonPressHold _gActor01600GrabButtonPressHold = { { { .sets = 
 /// this helper does not refresh that cache.
 /// Borrows and releases one VECTOR scratch block; the position is not retained.
 /// The cursor is published before the position is filled.
-static __inline__ void _actor01600SampleColorAtCoord(Enemy* enemy, GfxCoord* sampleCoord)
+static inline void _actor01600SampleColorAtCoord(Enemy* enemy, GfxCoord* sampleCoord)
 {
     VECTOR* scratchCursor;
     VECTOR* position;
@@ -1744,7 +1744,7 @@ static void _actor01600Init(Enemy* enemy, Task* actor)
 /// Requires zeroed capsule endpoints, an unlinked body, and `sightContacts`
 /// equal to `work->sight.contacts`. The root and work outlive the link.
 /// Starts with tests off; the subsequent body-sphere setup enables them.
-static __inline__ void _actor01600LinkSight(_Actor01600Work* work, GfxCoord* rootCoord, WorldCollisionContact* sightContacts)
+static inline void _actor01600LinkSight(_Actor01600Work* work, GfxCoord* rootCoord, WorldCollisionContact* sightContacts)
 {
     work->sight.shape.ends[0].vz     = ACTOR_01600_SIGHT_AWAKE_REACH;
     work->sight.shape.end0Radius     = ACTOR_01600_SIGHT_FAR_RADIUS;
@@ -1768,7 +1768,7 @@ static __inline__ void _actor01600LinkSight(_Actor01600Work* work, GfxCoord* roo
 /// the enemy record. Requires an unlinked body and a prepared sight capsule;
 /// the subsequent path-probe setup enables the sphere's collision tests.
 /// The work and root coordinate remain live until unlinking.
-static __inline__ void _actor01600LinkBodySphere(_Actor01600Work* work, GfxCoord* rootCoord, WorldCollisionContact* bodyContacts)
+static inline void _actor01600LinkBodySphere(_Actor01600Work* work, GfxCoord* rootCoord, WorldCollisionContact* bodyContacts)
 {
     work->bodySphere.body.coord            = rootCoord;
     work->bodySphere.body.context.contacts = bodyContacts;
@@ -1790,7 +1790,7 @@ static __inline__ void _actor01600LinkBodySphere(_Actor01600Work* work, GfxCoord
 /// The initial far end is (500, 0, 500) in root-local world units.
 /// The subsequent bite setup disables the probe until a heading search;
 /// the work and root remain live until unlinking.
-static __inline__ void _actor01600LinkPathProbe(_Actor01600Work* work, GfxCoord* rootCoord, WorldCollisionContact* pathProbeContacts)
+static inline void _actor01600LinkPathProbe(_Actor01600Work* work, GfxCoord* rootCoord, WorldCollisionContact* pathProbeContacts)
 {
     work->pathProbe.shape.ends[0].vz     = ACTOR_01600_PATH_INITIAL_COMPONENT;
     work->pathProbe.shape.ends[0].vx     = ACTOR_01600_PATH_INITIAL_COMPONENT;
@@ -1816,7 +1816,7 @@ static __inline__ void _actor01600LinkPathProbe(_Actor01600Work* work, GfxCoord*
 /// to `work->bite.contacts`. The key delivers attack-table entry 1 to a hit
 /// player body; the grab's direct bites use entry 0. The work and root
 /// coordinate remain live until unlinking.
-static __inline__ void _actor01600LinkBiteSphere(_Actor01600Work* work, GfxCoord* rootCoord, WorldCollisionContact* biteContacts)
+static inline void _actor01600LinkBiteSphere(_Actor01600Work* work, GfxCoord* rootCoord, WorldCollisionContact* biteContacts)
 {
     work->bite.body.coord            = rootCoord;
     work->bite.body.context.contacts = biteContacts;
@@ -1856,7 +1856,7 @@ static void _actor01600LinkCollisionBodies(Task* actor)
 ///
 /// Requires a caller-packed script key and a live composed root coordinate.
 /// Borrows the coordinate for both queries and retains neither argument.
-static __inline__ void _actor01600PlayTickSoundAtRoot(s32 soundKey, const GfxCoord* rootCoord)
+static inline void _actor01600PlayTickSoundAtRoot(s32 soundKey, const GfxCoord* rootCoord)
 {
     s32 soundPan;
 
@@ -2295,7 +2295,7 @@ static void _actor01600ApplyDamage(Task* actor, s32 damage)
 /// Requires a fully packed key and an initialized root cache. Reads its composed
 /// view-space position without refreshing it. Samples pan before depth,
 /// narrowing each to a signed byte, and retains neither argument.
-static __inline__ void _actor01600PlaySoundAtRoot(s32 soundKey, GfxCoord* rootCoord)
+static inline void _actor01600PlaySoundAtRoot(s32 soundKey, GfxCoord* rootCoord)
 {
     s32 soundPan;
 
@@ -3677,7 +3677,7 @@ static void _actor01600DrawGroundShadow(Task* actor)
 ///
 /// Distances use the root's parent frame; the facing basis is Q12. Suspension suppresses
 /// vertical motion, and a grounded corpse steps down by 128 units for floor correction.
-static __inline__ void _actor01600MoveCollapsingBody(Task* actor)
+static inline void _actor01600MoveCollapsingBody(Task* actor)
 {
     enum { ACTOR_01600_COLLAPSE_GROUND_STEP = 128,
            ACTOR_01600_COLLAPSE_BASIS_SHIFT = 12 };
@@ -3948,7 +3948,7 @@ static s32 _actor01600TryAcquireGrab(Task* actor)
 ///
 /// Requires the actor's live work. Clears its alert, requests look-around and
 /// resets the heading probe before another roaming step; no target is released.
-static __inline__ void _actor01600ReturnToRoam(_Actor01600Work* work)
+static inline void _actor01600ReturnToRoam(_Actor01600Work* work)
 {
     work->animRequest       = ACTOR_01600_ANIMATION_LOOK_AROUND;
     work->alerted           = 0;
@@ -4092,7 +4092,7 @@ static void _actor01600StepTargetAnchor(Task* actor)
 /// a readable external yaw halfword, in 4096-unit turns. Writes the rotation
 /// basis and far-end XYZ; vector pads and matrix translation remain untouched.
 /// Borrows the caller's scratch block and overwrites GTE rotation state.
-static __inline__ void _actor01600RotateProbeReach(_Actor01600PathProbeAimScratch* scratch, const s16* yaw)
+static inline void _actor01600RotateProbeReach(_Actor01600PathProbeAimScratch* scratch, const s16* yaw)
 {
     MATRIX*  rotation;
     SVECTOR* farEnd;
@@ -5147,7 +5147,7 @@ static void _actor01600Sidestep(Task* actor, s32 lateralDistance)
 ///
 /// Matrices use Q12 coefficients, and the destination must not alias `recoil`.
 /// Reads the animated basis once into GTE rotation state before writing columns.
-static __inline__ void _actor01600ComposeRecoil(MATRIX* body, const MATRIX* recoil)
+static inline void _actor01600ComposeRecoil(MATRIX* body, const MATRIX* recoil)
 {
     gte_SetRotMatrix(body);
     gte_ldclmv(recoil);

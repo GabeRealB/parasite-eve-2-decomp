@@ -25,7 +25,7 @@ static void _madChaserDangleStart(Task* task)
 /// Both matrices must be live through the call. Copies only the 3x3 basis;
 /// translation and the matrix's alignment halfword are retained. The caller
 /// is responsible for invalidating coordinate composition.
-static __inline__ void _madChaserDangleSwayCopyRotation(MATRIX* rootMatrix, const MATRIX* rotationMatrix)
+static inline void _madChaserDangleSwayCopyRotation(MATRIX* rootMatrix, const MATRIX* rotationMatrix)
 {
     rootMatrix->m[0][0] = rotationMatrix->m[0][0];
     rootMatrix->m[0][1] = rotationMatrix->m[0][1];
@@ -120,7 +120,7 @@ static void _madChaserDeathReleaseTarget(Task* task)
 ///
 /// Requires initialized task-owned animation storage and a valid settle clip.
 /// Reloads the live request work without advancing playback or behavior.
-static __inline__ void _madChaserDeathBlendSettle(Task* task, s16 settleClip)
+static inline void _madChaserDeathBlendSettle(Task* task, s16 settleClip)
 {
     enum { MAD_CHASER_DEATH_SETTLE_BLEND_FRAMES = 4 };
     MadChaserWork* requestWork = task->work;

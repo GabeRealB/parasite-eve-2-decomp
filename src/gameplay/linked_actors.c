@@ -129,7 +129,7 @@ void attachmentTargetAll(s32 release)
 /// Radius uses game units; `angle` counts 4096 units per turn, with +X at zero
 /// and +Z at the positive quarter turn. Products use twelve fractional bits
 /// and narrow to signed halfwords. Scratch storage is borrowed for this call.
-static __inline__ void _attachmentAreaWireframeSetRingPoint(_AttachmentAreaWireframeScratch* scratch, s32 angle)
+static inline void _attachmentAreaWireframeSetRingPoint(_AttachmentAreaWireframeScratch* scratch, s32 angle)
 {
     enum { ATTACHMENT_AREA_WIREFRAME_TRIG_FRACTION_BITS = 12 };
 
@@ -142,7 +142,7 @@ static __inline__ void _attachmentAreaWireframeSetRingPoint(_AttachmentAreaWiref
 /// The caller loads the area-to-view rotation, centre translation and projection
 /// parameters. Captures IR0, FLAG and quarter-depth even when projection fails;
 /// this helper does not reject or clip vertices. Changes GTE arithmetic state.
-static __inline__ void _attachmentAreaWireframeProjectPoint(_AttachmentAreaWireframeScratch* scratch)
+static inline void _attachmentAreaWireframeProjectPoint(_AttachmentAreaWireframeScratch* scratch)
 {
     gte_ldv0(&scratch->point);
     gte_rtps();
@@ -158,7 +158,7 @@ static __inline__ void _attachmentAreaWireframeProjectPoint(_AttachmentAreaWiref
 /// Requires one LINE_F2 of aligned frame-arena capacity and the current 1024-tag
 /// depth table. Depth is shifted and wrapped to that table; no clipping occurs.
 /// The GPU borrows the packet until the frame is drawn.
-static __inline__ void _attachmentAreaWireframeEmitSegment(const _AttachmentAreaWireframeScratch* scratch)
+static inline void _attachmentAreaWireframeEmitSegment(const _AttachmentAreaWireframeScratch* scratch)
 {
     enum { ATTACHMENT_AREA_WIREFRAME_LINE_COLOR = GPU_PACK_COLOR_WORD(0, 0xC0, 0x40, 0) };
     LINE_F2* line;

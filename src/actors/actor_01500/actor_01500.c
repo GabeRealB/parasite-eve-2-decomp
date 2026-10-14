@@ -864,7 +864,7 @@ static SVECTOR _gActor01500ChaseTriggerBounds = { 1900, -0x2EE0, 1000, 0 };
 /// the packed category/identity `bodyKey`. The live work and coordinate are
 /// borrowed by the collision list until the body is unlinked. The body must
 /// start unlinked; pairing is enabled separately by the spawn handler.
-static __inline__ void _actor01500InitHurtBody(_Actor01500Work* work, GfxCoord* bodyCoord, s32 bodyKey)
+static inline void _actor01500InitHurtBody(_Actor01500Work* work, GfxCoord* bodyCoord, s32 bodyKey)
 {
     enum { ACTOR_01500_HURT_RADIUS = 300 };
 
@@ -887,7 +887,7 @@ static __inline__ void _actor01500InitHurtBody(_Actor01500Work* work, GfxCoord* 
 /// and pad untouched. Bearing narrows X/Z to signed halfwords, uses +Z as zero
 /// and wraps to 0..4095 angle units; the turn limit is 100 units per tick.
 /// Does not rotate the root or reserve scratch storage.
-static __inline__ void _actor01500AimChaseAtPlayer(_Actor01500Work* work, GfxCoord* rootCoord, VECTOR* playerOffset)
+static inline void _actor01500AimChaseAtPlayer(_Actor01500Work* work, GfxCoord* rootCoord, VECTOR* playerOffset)
 {
     enum { ACTOR_01500_CHASE_TURN_RATE = 100 };
 
@@ -904,7 +904,7 @@ static __inline__ void _actor01500AimChaseAtPlayer(_Actor01500Work* work, GfxCoo
 /// current action, including grounded. Both reset the action timer and select
 /// the air flinch. A changed clip restarts in the animation phase; movement
 /// follows the selected action in a later tick phase.
-static __inline__ void _actor01500StartReactionFall(_Actor01500Work* work)
+static inline void _actor01500StartReactionFall(_Actor01500Work* work)
 {
     if (work->posture != ACTOR_01500_POSTURE_CRIPPLED) {
         work->action = ACTOR_01500_ACTION_FALL;
@@ -1048,7 +1048,7 @@ static void _actor01500Spawn(Enemy* enemy, Task* task)
 ///
 /// GRID_HIT consumes the integer halves of the signed 16.16 correction;
 /// OPPOSED restores XYZ unless the actor is falling. All arguments are borrowed.
-static __inline__ void _actor01500ApplyRoomCorrection(GfxCoord* rootCoord, _Actor01500Work* work, ActorContactOverlapPushScratch* scratch, s32 pushbackResult)
+static inline void _actor01500ApplyRoomCorrection(GfxCoord* rootCoord, _Actor01500Work* work, ActorContactOverlapPushScratch* scratch, s32 pushbackResult)
 {
     switch (pushbackResult) {
         case WORLD_COLLISION_PUSHBACK_NO_GRID_HIT:
@@ -1826,7 +1826,7 @@ static void _actor01500SpawnBurstParts(Task* actor)
 ///
 /// The caller keeps enemy/work storage alive through all four unlink calls;
 /// no storage is freed and the battle hold is released separately.
-static __inline__ void _actor01500WithdrawFromWorld(Enemy* enemy, _Actor01500Work* work)
+static inline void _actor01500WithdrawFromWorld(Enemy* enemy, _Actor01500Work* work)
 {
     worldTargetUnlinkNode(&enemy->node);
     worldCollisionUnlinkBody(&work->body);
@@ -2391,7 +2391,7 @@ static void _actor01500DrawGroundShadow(Task* actor)
 /// and each other. Restores the complete saved matrix before multiplying by
 /// diag(ONE, deathScaleY, ONE), preserving translation and avoiding accumulated
 /// squash. Marks composition dirty; reserves no scratch and retains no pointers.
-static __inline__ void _actor01500ApplyCorpseScale(GfxCoord* rootCoord, const _Actor01500Work* work, ActorScaleScratch* scratch)
+static inline void _actor01500ApplyCorpseScale(GfxCoord* rootCoord, const _Actor01500Work* work, ActorScaleScratch* scratch)
 {
     scratch->scale.vx = ONE;
     scratch->scale.vy = work->deathScaleY;

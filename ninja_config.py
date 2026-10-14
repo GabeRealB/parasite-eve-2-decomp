@@ -334,6 +334,9 @@ def collision_includes(version: str) -> list[tuple[Path, list[Path], int, int, l
 ASSET_INC_OUTPUTS: list[str] = []
 # A unit one source builds once per package, each with that package's defines.
 VARIANT_SPLAT_EXT = TOOLS_DIR / "splat_ext" / "variantsrc.py"
+PKGID_SPLAT_EXT = TOOLS_DIR / "splat_ext" / "pkgid.py"
+EMPTY_ASM = TOOLS_DIR / "buildsteps" / "empty.s"
+EMPTY_OBJECT = f"{BUILD_DIR}/empty.s.o"
 # splat subsegment types that compile a C source.
 C_SEGMENT_TYPES = ("c", "libsrc", "variantsrc")
 
@@ -556,37 +559,13 @@ def compile_commands_entry(
 
 
 @functools.lru_cache(maxsize=1)
-def package_ids() -> dict[str, int]:
-    """Each package's declared id, keyed by the source that carries it.
-
-    The id is the one value an overlay compiles in that is about the overlay
-    rather than about its code, so it reaches the compiler as a flag instead of
-    being written into a source. That keeps the unit holding it identical for
-    every package - including the several load slots one image is issued at,
-    which share every other unit but must each get their own id.
-    """
-    manifest = tomllib.loads(Path("configs/USA/overlays.toml").read_text(encoding="utf-8"))
-    out: dict[str, int] = {}
-    for family, spec in manifest.items():
-        for name, entry in spec.get("overlays", {}).items():
-            for slot in entry.get("slots") or [{"package": name, "id": entry.get("id")}]:
-                # A package with no id declares none: its first word is content,
-                # not a packaging index, so it has no unit to feed.
-                if slot.get("id") is None:
-                    continue
-                out[f"src/{family}/{slot['package']}/packageid.c"] = int(slot["id"])
-    return out
-
-
-@functools.lru_cache(maxsize=1)
 def package_defines() -> dict[str, dict]:
     """Each package's declared build parameters, keyed by its source directory.
 
     A package built from a shared source with a parameter - the MP5A5 and its
     upgrades are one source, differing in a weapon index and item id - declares
     the value in the manifest (`defines` on its slot). Every object under the
-    package's own directory is compiled with it: that is its per-package
-    variant units, and its id unit, which ignores it.
+    package's own directory is compiled with it: its per-package variant units.
     """
     manifest = tomllib.loads(Path("configs/USA/overlays.toml").read_text(encoding="utf-8"))
     out: dict[str, dict] = {}
@@ -610,12 +589,6 @@ def package_define_flags(target_path: str) -> str:
         if rel.startswith(prefix):
             return " ".join(quote(f"-D{k}={v}") for k, v in sorted(defines.items()))
     return ""
-
-
-def package_id_flag(source_path: str) -> str:
-    """`-DPKG_ID=<id>` for the unit holding a package id, empty for anything else."""
-    value = package_ids().get(re.sub(r"\\", "/", source_path))
-    return f"-DPKG_ID={value}" if value is not None else ""
 
 
 def ninja_setup_list_add_source(
@@ -711,7 +684,7 @@ def ninja_setup_list_add_source(
         variables={
             "VERSION": f"-DVER_{GAME_VERSIONS[game_version_idx].version_name}",
             "SKIPASMFLAG": skip_asm,
-            "PKGID": f"{package_id_flag(source_path)} {package_define_flags(target_path)}".strip(),
+            "PACKAGE_DEFINES": package_define_flags(target_path),
         },
     )
 
@@ -1019,7 +992,7 @@ def ninja_build(
     ninja_rules_file.rule(
         "cpp",
         description="cpp $in",
-        command=f"{CPP} -P -MMD -MP -MT $out -MF $out.d {CPP_FLAGS} $VERSION $SKIPASMFLAG $PKGID -o $out $in",
+        command=f"{CPP} -P -MMD -MP -MT $out -MF $out.d {CPP_FLAGS} $VERSION $SKIPASMFLAG $PACKAGE_DEFINES -o $out $in",
         depfile="$out.d",
     )
     ninja_rules_file.rule(
@@ -1037,7 +1010,7 @@ def ninja_build(
     ninja_rules_file.rule(
         "elf",
         description="elf $out",
-        command=f"{LD} {ENDIAN} {OPT_FLAGS} -nostdlib --no-check-sections -Map $out.map -T $in -T $undef_sym_path -T $undef_fun_path -o $out",
+        command=f"{LD} {ENDIAN} {OPT_FLAGS} -nostdlib --no-check-sections -Map $out.map -T $in -T $undef_sym_path -T $undef_fun_path -o $out $extra_objects",
     )
     ninja_rules_file.rule(
         "objcopy",
@@ -1294,6 +1267,12 @@ def ninja_build(
         else:
             output = f"{BUILD_DIR}/{GAME_VERSIONS[game_version_idx].metadata.version_dir}/out/{split_config.split_basename}"
 
+        # An image that is only its package id names no object, and ld will not
+        # link without an input file: give it an empty one.
+        extra_objects = [] if elf_build_requirements else [EMPTY_OBJECT]
+        if extra_objects and EMPTY_OBJECT not in emitted_objects:
+            emitted_objects.add(EMPTY_OBJECT)
+            ninja_file.build(outputs=EMPTY_OBJECT, rule="as", inputs=str(EMPTY_ASM), variables={"DLFLAG": DL_OVL_FLAGS})
         ninja_file.build(
             outputs=f"{output}.elf",
             rule="elf",
@@ -1301,8 +1280,9 @@ def ninja_build(
             variables={
                 "undef_sym_path": split_config.split_undef_sym,
                 "undef_fun_path": split_config.split_undef_fun,
+                "extra_objects": " ".join(extra_objects),
             },
-            implicit=elf_build_requirements
+            implicit=elf_build_requirements + extra_objects
             + [split_config.split_undef_sym, split_config.split_undef_fun],
         )
         ninja_file.build(
@@ -1396,7 +1376,7 @@ def split_inputs(yaml: str, version_dir: str, basename: str, c_sources: list[str
     paths += [Path(c) for c in c_sources]
     if options.get("extensions_path"):
         # The segment types that place a library or variant unit's source.
-        paths += [LIB_SPLAT_EXT, VARIANT_SPLAT_EXT]
+        paths += [LIB_SPLAT_EXT, VARIANT_SPLAT_EXT, PKGID_SPLAT_EXT]
     return paths
 
 

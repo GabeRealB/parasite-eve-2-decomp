@@ -16,7 +16,7 @@
 #include "main/gfx.h"
 #include "main/tmd.h"
 
-static __inline__ void _actorRenderRefreshCoord(GfxCoord* coord, s32 stamp, s32 parity, GfxCoord* root);
+static inline void _actorRenderRefreshCoord(GfxCoord* coord, s32 stamp, s32 parity, GfxCoord* root);
 
 /// Selects the pass-counter parity stored in bit 31 of each visited coordinate's stamp.
 enum { ACTOR_RENDER_COORD_PASS_PARITY_MASK = 1 };
@@ -31,7 +31,7 @@ static GfxCoord* _gActorRenderLastFullChainCoord = NULL;
 ///
 /// The supplied root is excluded. `gte_RotTransLV` preserves the full signed
 /// translation range while the rotation is composed with the GTE.
-static __inline__ void _actorRenderRefreshCoord(GfxCoord* coord, s32 stamp, s32 parity, GfxCoord* root)
+static inline void _actorRenderRefreshCoord(GfxCoord* coord, s32 stamp, s32 parity, GfxCoord* root)
 {
     GfxCoord* parent;
 
@@ -78,7 +78,7 @@ static __inline__ void _actorRenderRefreshCoord(GfxCoord* coord, s32 stamp, s32 
 /// stay live and unchanged during the walk. Empty lists still advance the
 /// counter. Explicit node compositions before the next list pass use that
 /// next pass's stamp and parity; this is a pass boundary, not a frame clock.
-static __inline__ void _actorRenderComposeListedCoords(void)
+static inline void _actorRenderComposeListedCoords(void)
 {
     TmdListNode* link;
     GfxCoord*    partCoord;

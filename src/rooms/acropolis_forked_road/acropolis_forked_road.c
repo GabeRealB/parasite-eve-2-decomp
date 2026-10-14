@@ -98,19 +98,19 @@ static s32 _acropolisForkedRoadResolveTransitionMessage(Task* unusedTask, s32 me
     };
 
     *reply = *request;
-    if (request->areaId == GAME_AREA_ACROPOLIS_FOUNTAIN) {
+    if (request->areaId == GAME_AREA_AKROPOLIS_FOUNTAIN) {
         if ((gameFlagGetNibble(GAME_FLAG_SECURITY_ROOM_LOCKS_RELEASED) & ACROPOLIS_FORKED_ROAD_SECOND_LOCK_BIT) && (request->queryOnly == ROOM_EVENT_EXECUTE)) {
             reply->room = ACROPOLIS_FORKED_ROAD_DESTINATION_ROOM_UNLOCKED;
         }
-        if (request->areaId == GAME_AREA_ACROPOLIS_FOUNTAIN) {
-            if (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_PROGRESS) < ACROPOLIS_FORKED_ROAD_FOUNTAIN_READY_PROGRESS) {
+        if (request->areaId == GAME_AREA_AKROPOLIS_FOUNTAIN) {
+            if (gameFlagGetNibble(GAME_FLAG_AKROPOLIS_PROGRESS) < ACROPOLIS_FORKED_ROAD_FOUNTAIN_READY_PROGRESS) {
                 if (request->queryOnly == ROOM_EVENT_EXECUTE) {
                     gameFlagSetNibbleIfPresent(request->flagId, ACROPOLIS_FORKED_ROAD_MAP_MARKER_SEEN);
                     capStartSequenceSlot(ACROPOLIS_FORKED_ROAD_FOUNTAIN_CAP_SEQUENCE, CAP_PLAYBACK_DISPLAY_TRANSITION, 0);
                 }
                 return 0;
             }
-            if (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_PROGRESS) >= ACROPOLIS_FORKED_ROAD_FOUNTAIN_READY_PROGRESS) {
+            if (gameFlagGetNibble(GAME_FLAG_AKROPOLIS_PROGRESS) >= ACROPOLIS_FORKED_ROAD_FOUNTAIN_READY_PROGRESS) {
                 if (gameFlagGetNibble(GAME_FLAG_FOUNTAIN_FORKED_ROAD_PATH_USED) == 0) {
                     if (request->queryOnly == ROOM_EVENT_EXECUTE) {
                         capStartSequenceSlot(ACROPOLIS_FORKED_ROAD_FOUNTAIN_CAP_SEQUENCE, CAP_PLAYBACK_DISPLAY_TRANSITION, ACROPOLIS_FORKED_ROAD_FIRST_PATH_CAP_VARIANT);
@@ -121,7 +121,7 @@ static s32 _acropolisForkedRoadResolveTransitionMessage(Task* unusedTask, s32 me
             }
         }
     }
-    if (request->areaId == GAME_AREA_ACROPOLIS_OBSERVATORY) {
+    if (request->areaId == GAME_AREA_AKROPOLIS_OBSERVATORY) {
         if (gameFlagGetNibble(GAME_FLAG_OBSERVATORY_ROUTE_PROGRESS) < ACROPOLIS_FORKED_ROAD_ROUTE_MOVIE_READY) {
             if (request->queryOnly == ROOM_EVENT_EXECUTE) {
                 gameFlagSetNibbleIfPresent(request->flagId, ACROPOLIS_FORKED_ROAD_MAP_MARKER_SEEN);
@@ -152,7 +152,7 @@ static s32 _acropolisForkedRoadResolveTransitionMessage(Task* unusedTask, s32 me
         if ((gameFlagGetNibble(GAME_FLAG_SECURITY_ROOM_LOCKS_RELEASED) & ACROPOLIS_FORKED_ROAD_SECOND_LOCK_BIT) == 0) {
             return 1;
         }
-        if (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_OBSERVATORY_EVENT_SEEN) != 0) {
+        if (gameFlagGetNibble(GAME_FLAG_AKROPOLIS_OBSERVATORY_EVENT_SEEN) != 0) {
             return 1;
         }
         reply->room = ACROPOLIS_FORKED_ROAD_DESTINATION_ROOM_UNLOCKED;

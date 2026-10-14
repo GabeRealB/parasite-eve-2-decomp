@@ -32,7 +32,7 @@
 #include "main/wipsys.h"
 #include "main/wipsys_types.h"
 
-#include "rooms/acropolis_square.h"
+#include "rooms/akropolis_square.h"
 #include "../../shared/actor/actor_contacts.h"
 
 /// Steps of `_Actor111800Work::sequenceStep`, in the order the sequence runs
@@ -522,7 +522,7 @@ static void _actor111800GrinningStrangerTask(Task* task)
             playerX   = playerMtx->t[0];
             if ((playerX >= ACTOR_111800_TRIGGER_NEAR_X && playerMtx->t[2] >= ACTOR_111800_TRIGGER_NEAR_Z) || (playerX >= ACTOR_111800_TRIGGER_FAR_X && playerMtx->t[2] < ACTOR_111800_TRIGGER_FAR_Z)) {
                 work->sequenceStep = ACTOR_111800_STEP_START;
-                acropolisSquareStartSirenSequence(playerX);
+                akropolisSquareStartTelephoneScene(playerX);
                 task->state += 1;
             }
             break;

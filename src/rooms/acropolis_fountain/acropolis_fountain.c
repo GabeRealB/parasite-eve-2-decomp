@@ -77,8 +77,8 @@ static s32 _acropolisFountainResolveTransitionMessage(Task* unusedTask, s32 mess
 
     *reply            = *request;
     destinationAreaId = request->areaId;
-    if (destinationAreaId == GAME_AREA_ACROPOLIS_PATIO) {
-        if (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_PROGRESS) < ACROPOLIS_FOUNTAIN_PATIO_DEPARTURE_COMPLETE) {
+    if (destinationAreaId == GAME_AREA_AKROPOLIS_PATIO) {
+        if (gameFlagGetNibble(GAME_FLAG_AKROPOLIS_PROGRESS) < ACROPOLIS_FOUNTAIN_PATIO_DEPARTURE_COMPLETE) {
             if (request->queryOnly == ROOM_EVENT_EXECUTE) {
                 gAcropolisFountainPatioArrivalWarp   = request->warp;
                 gAcropolisFountainPatioRequestedRoom = request->room;
@@ -87,8 +87,8 @@ static s32 _acropolisFountainResolveTransitionMessage(Task* unusedTask, s32 mess
             return 0;
         }
         if (request->areaId == destinationAreaId && request->queryOnly == ROOM_EVENT_EXECUTE) {
-            if (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_PROGRESS) < ACROPOLIS_FOUNTAIN_PATIO_SCENE_COMPLETE) {
-                if (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_OPENING_PROGRESS) < ACROPOLIS_FOUNTAIN_PATIO_SCENE_COMPLETE) {
+            if (gameFlagGetNibble(GAME_FLAG_AKROPOLIS_PROGRESS) < ACROPOLIS_FOUNTAIN_PATIO_SCENE_COMPLETE) {
+                if (gameFlagGetNibble(GAME_FLAG_AKROPOLIS_OPENING_PROGRESS) < ACROPOLIS_FOUNTAIN_PATIO_SCENE_COMPLETE) {
                     reply->room = 1;
                 } else {
                     reply->room = ACROPOLIS_FOUNTAIN_UNLOCKED_ROOM;
@@ -97,7 +97,7 @@ static s32 _acropolisFountainResolveTransitionMessage(Task* unusedTask, s32 mess
                 reply->room = destinationAreaId;
             }
         }
-    } else if (destinationAreaId == GAME_AREA_ACROPOLIS_FORKED_ROAD) {
+    } else if (destinationAreaId == GAME_AREA_AKROPOLIS_FORKED_ROAD) {
         if (gameFlagGetNibble(GAME_FLAG_SECURITY_ROOM_LOCKS_RELEASED) & ACROPOLIS_FOUNTAIN_FIRST_LOCK_BIT) {
             reply->room = ACROPOLIS_FOUNTAIN_UNLOCKED_ROOM;
         }
@@ -140,7 +140,7 @@ static s32 _acropolisFountainHandleCommandMessage(Task* unusedTask, s32 messageI
     if (commandId == ACROPOLIS_FOUNTAIN_COMMAND_ENABLE_CLIMB) {
         capStartSequenceSlot(ACROPOLIS_FOUNTAIN_CLIMB_CAP_SEQUENCE, CAP_PLAYBACK_DISPLAY_TRANSITION, 0);
         acropolisFountainEnableClimbTrigger();
-        gameFlagSetNibble(GAME_FLAG_ACROPOLIS_FOUNTAIN_012, 1);
+        gameFlagSetNibble(GAME_FLAG_AKROPOLIS_FOUNTAIN_012, 1);
     }
     return 0;
 }
@@ -160,13 +160,13 @@ static s32 _acropolisFountainHandleSoundCue(Task* unusedTask, s32 messageId, s32
 
     switch (soundCue) {
         case ACROPOLIS_FOUNTAIN_SOUND_CUE_ENTRY_3:
-            sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_FOUNTAIN, 3), 0, 0);
+            sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_FOUNTAIN, 3), 0, 0);
             break;
         case ACROPOLIS_FOUNTAIN_SOUND_CUE_ENTRY_4:
-            sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_FOUNTAIN, 4), 0, 0);
+            sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_FOUNTAIN, 4), 0, 0);
             break;
         case ACROPOLIS_FOUNTAIN_SOUND_CUE_ENTRY_9:
-            sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_FOUNTAIN, 9), 0, 0);
+            sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_FOUNTAIN, 9), 0, 0);
             break;
     }
     return 0;
@@ -188,12 +188,12 @@ static inline void _acropolisFountainReloadPatio(Task* task)
     };
 
     sndEvtRequestScriptStop(SOUND_BANK_TYPE_ALL_NON_AMBIENT, SOUND_SCRIPT_STOP_NO_FADE);
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.area = GAME_AREA_ACROPOLIS_PATIO;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.area = GAME_AREA_AKROPOLIS_PATIO;
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.room = ACROPOLIS_FOUNTAIN_PATIO_ARRIVAL_ROOM;
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp = gAcropolisFountainPatioArrivalWarp;
     gDisplayState.spriteVariant                            = ACROPOLIS_FOUNTAIN_PATIO_SPRITE_VARIANT;
     taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
-    gameFlagSetNibble(GAME_FLAG_ACROPOLIS_PROGRESS, ACROPOLIS_FOUNTAIN_PATIO_DEPARTURE_PROGRESS);
+    gameFlagSetNibble(GAME_FLAG_AKROPOLIS_PROGRESS, ACROPOLIS_FOUNTAIN_PATIO_DEPARTURE_PROGRESS);
     taskKill(task);
 }
 
@@ -241,7 +241,7 @@ static void _acropolisFountainInitializeRoomTask(Task* task)
 {
     task->msgTable = _gAcropolisFountainRoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
-    if (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_FOUNTAIN_012) != 0) {
+    if (gameFlagGetNibble(GAME_FLAG_AKROPOLIS_FOUNTAIN_012) != 0) {
         acropolisFountainEnableClimbTrigger();
     }
     task->state = task->state + 1;

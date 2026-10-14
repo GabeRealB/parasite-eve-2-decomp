@@ -1092,9 +1092,9 @@ RoomEventReqStorage gRoomEventReq;
 
 RoomLatchedEvent gRoomEventLatched;
 
-static __inline__ s32 _shelterB2OperatingRoomStartEvent(const RoomEventMsg* destination, const RoomLatchedEvent* event);
-static void           _shelterB2OperatingRoomInitTask(Task* task);
-static void           _shelterB2OperatingRoomIdleTask(Task* task);
+static inline s32 _shelterB2OperatingRoomStartEvent(const RoomEventMsg* destination, const RoomLatchedEvent* event);
+static void       _shelterB2OperatingRoomInitTask(Task* task);
+static void       _shelterB2OperatingRoomIdleTask(Task* task);
 
 #include "../../shared/room/room_event.inc.c"
 
@@ -1112,7 +1112,7 @@ static void _glowDrawCapsule(const SVECTOR worldPoints[2], s32 radiusScale, s32 
 /// sets a nonzero flag's nibble to 1 and attempts to spawn the staged task.
 /// Every call clears the room's event-started byte; execution raises it even
 /// if spawning fails. The room overlay must remain loaded through the event.
-static __inline__ s32 _shelterB2OperatingRoomStartEvent(const RoomEventMsg* destination, const RoomLatchedEvent* event)
+static inline s32 _shelterB2OperatingRoomStartEvent(const RoomEventMsg* destination, const RoomLatchedEvent* event)
 {
     enum {
         SHELTER_B2_OPERATING_ROOM_EVENT_NO_FLAG             = 0,
@@ -1291,7 +1291,7 @@ void shelterB2OperatingRoomTask(Task* task)
 /// attack. Call during room setup before spawning these effects. The bindings
 /// persist until replaced or cleared by the room-effect controller;
 /// keep this room overlay loaded while the selected effect tasks can run.
-static __inline__ void _shelterB2OperatingRoomBindFireballEffects(void)
+static inline void _shelterB2OperatingRoomBindFireballEffects(void)
 {
     gRoomEffectGlowDiscId     = EFFECT_SHELTER_B2_OPERATING_ROOM_GLOW_DISC;
     gRoomEffectFlyingSparkId  = EFFECT_SHELTER_B2_OPERATING_ROOM_FLYING_SPARK;

@@ -122,7 +122,7 @@ static void _diverImpactBurst(GfxCoord* coord, u16 phase, u16 kind, u32 sizeAndS
 /// per turn, zero upward. Requires positive `block->depth`. Truncates the
 /// half-diagonal before multiplying by Q12 sine and cosine; changes only the
 /// two offset words. Products use signed word arithmetic and must fit.
-static __inline__ void _diverComputeSparkCornerOffset(EffectBillboardScratch* block, u16 size, s32 cornerAngle)
+static inline void _diverComputeSparkCornerOffset(EffectBillboardScratch* block, u16 size, s32 cornerAngle)
 {
     enum { DIVER_SPARK_UV_SPAN            = 39,
            DIVER_SPARK_TRIG_FRACTION_BITS = 12 };

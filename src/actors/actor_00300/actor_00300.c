@@ -1508,12 +1508,12 @@ static TmdSource _gActor00300Actor100300Model0B8AC;
 
 static TmdSource _gActor00300Actor100300Model0BFC0;
 
-static inline s16      _actor00300TiltMagnitude(s8 randomByte);
-static void            _actor00300SpawnBurstFragments(Task* task);
-static __inline__ void _actor00300UpdateDrainModel(Task* task);
-static void            _actor00300DrainModelActive(Enemy* enemy, Task* task);
-static void            _actor00300InitFireball(Enemy* enemy, Task* task);
-static void            _actor00300FlyFireball(Enemy* enemy, Task* task);
+static inline s16  _actor00300TiltMagnitude(s8 randomByte);
+static void        _actor00300SpawnBurstFragments(Task* task);
+static inline void _actor00300UpdateDrainModel(Task* task);
+static void        _actor00300DrainModelActive(Enemy* enemy, Task* task);
+static void        _actor00300InitFireball(Enemy* enemy, Task* task);
+static void        _actor00300FlyFireball(Enemy* enemy, Task* task);
 
 #include "../../shared/effects/fireball.inc.c"
 
@@ -3359,7 +3359,7 @@ static inline void _actor00300ApplyDrainScale(GfxCoord* coord, const MATRIX* res
 /// saved translation. Only running actor control updates it. Event draw flags
 /// apply before the scale test. Borrows one `ActorScaleScratch` and dirties the
 /// composition cache; the matrix multiply changes GTE state.
-static __inline__ void _actor00300UpdateDrainModel(Task* task)
+static inline void _actor00300UpdateDrainModel(Task* task)
 {
     TmdObject*         model;
     GfxCoord*          rootCoord;

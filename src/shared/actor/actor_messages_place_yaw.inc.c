@@ -19,7 +19,7 @@
 /// be normalized. Requires an initialized graphics scratch stack. Installs
 /// Rx * Ry * Rz and invalidates composition without changing the parent or
 /// stored Euler angles. Reads only vector X/Y/Z and retains no payload pointer.
-static __inline__ void _actorMsgApplyXyzPlacement(Task* task, const ActorTransform* placement)
+static inline void _actorMsgApplyXyzPlacement(Task* task, const ActorTransform* placement)
 {
     task->extra.tmd->coords->coord.t[0] = placement->pos.vx;
     task->extra.tmd->coords->coord.t[1] = placement->pos.vy;

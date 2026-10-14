@@ -7,7 +7,7 @@
 /// actor must have a live GOLEM body model and work. The caller selects when
 /// sparks are enabled; this helper only advances dustTimer. Its eight-byte
 /// offset is borrowed from the scratch stack and released before returning.
-static __inline__ void _golemPawnRookSpawnDamageSparks(Task* actor)
+static inline void _golemPawnRookSpawnDamageSparks(Task* actor)
 {
     enum {
         GOLEM_PAWN_ROOK_DAMAGE_SPARK_FRAMES = 3,

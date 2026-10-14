@@ -14,7 +14,7 @@
 /// A stored result of zero selects clip 1 and ten whole normal-rate frames
 /// for a later blend. Playback and `st.state` are unchanged; a later reseed
 /// must apply the selection. No pointer is retained.
-static __inline__ void _pacedWalkCompleteTravelTick(PacedWalkWork* work)
+static inline void _pacedWalkCompleteTravelTick(PacedWalkWork* work)
 {
     enum {
         PACED_WALK_ANIM_IDLE         = 1,

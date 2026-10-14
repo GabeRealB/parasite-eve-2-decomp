@@ -79,7 +79,7 @@ gShelterB3IncineratorControlRoomArrivalSavedUpdates = 0x80182A40; // size:0x14 d
 gRoomCutsceneSoundTask = 0x80182A54; // size:0x4 defined:True
 gShelterB3IncineratorControlRoomTelephoneCutscene = 0x80182A58; // size:0x18 defined:True
 gActor142600TaskDescriptors = 0x80135E24; // absolute:True owner=actor_142600
-gAcropolisSquarePostCutsceneAreaUpdates = 0x80188888; // absolute:True owner=acropolis_square
+gAkropolisSquarePostCutsceneAreaUpdates = 0x80188888; // absolute:True owner=akropolis_square
 _gRoomCutsceneTaskDescs = 0x80181814; // size:0x24 defined:True
 _gShelterB3IncineratorControlRoomMessageTable = 0x80181838; // size:0x30 defined:True
 

@@ -549,7 +549,7 @@ void loadingFinishSessionLoadTask(Task* task)
         gpuClearFrameOrderingTable(1);
         gGameDebugState->loadingActive = GAME_DEBUG_LOADING_IDLE;
         taskKill(task);
-        if ((GAME_LOCATION_WORD(gGameSession->location) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PLAZA, 0, 0)) {
+        if ((GAME_LOCATION_WORD(gGameSession->location) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_PLAZA, 0, 0)) {
             areaStartRoomRuntime(AREA_ROOM_START_SKIP_VIEW_GATE);
         } else {
             areaStartRoomRuntime(AREA_ROOM_START_WITH_VIEW_GATE);
@@ -558,7 +558,7 @@ void loadingFinishSessionLoadTask(Task* task)
         gDisplayState.holdState &= DISPLAY_HOLD_MODE_MASK;
         displayAcquireMenuHold();
         taskSpawn(FADE_SESSION_RESUME_TASK_BANK, FADE_SESSION_RESUME_TASK_SLOT, 0, 0);
-        if ((GAME_LOCATION_WORD(gGameSession->location) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PLAZA, 0, 0)) {
+        if ((GAME_LOCATION_WORD(gGameSession->location) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_PLAZA, 0, 0)) {
             taskSpawnFromTable(gAcropolisPlazaSequenceTaskDescriptors, ACROPOLIS_PLAZA_OPENING_TASK_INDEX, 0, 0);
             cdCmdReservePlaybackBuffers();
             cdCmdSelectMovieWorkspace();

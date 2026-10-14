@@ -1324,7 +1324,7 @@ static TaskMessageEntry _gActor401300Messages[8] = {
 /// in parent-coordinate units, with downward-positive Y. The third zero row
 /// and each row's unread eight-byte suffix retain their original storage.
 static ActorHeightClamp _gActor401300RoomHeightClamps[3] = {
-    { GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PATIO, -300, 0, { 0, 0, 0, 0, 0, 0, 0, 0 } },
+    { GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_PATIO, -300, 0, { 0, 0, 0, 0, 0, 0, 0, 0 } },
     { GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_WOODLAND_PATH, 0, 300, { 0, 0, 0, 0, 0, 0, 0, 0 } },
     { 0, 0, 0, 0, { 0, 0, 0, 0, 0, 0, 0, 0 } },
 };
@@ -1450,70 +1450,70 @@ enum {
     ACTOR_401300_GRID_RADIUS = 350
 };
 
-static s32             _actor401300ApplyBodyPushback(Task* actor, const WorldCollisionContact* contacts, s16 contactCount);
-static void            _actor401300ClampRoomHeight(const GameLocationKey* location, GfxCoord* coord);
-static __inline__ s32  _actor401300HasRoomHeightClamp(const GameLocationKey* location);
-static s32             _actor401300ApplyGridPushback(GfxCoord* coord, const WorldCollisionContact* contacts, s16 contactCount, s16 heightOffset);
-static void            _actor401300BlendToAnimation(Task* actor);
-static void            _actor401300TickBlendedAnimation(Task* actor);
-static s32             _actor401300GetAnimationSoundCue(_Actor401300Work* work);
-static void            _actor401300BlendFixedJoints(Task* actor, s16 blendAmount);
-static __inline__ void _actor401300SpawnOffsetEffect(s32 effectId, GfxCoord* placementCoord, s32 spawnArg, s16 offsetX, s16 offsetY, s16 offsetZ);
-static __inline__ void _actor401300SpawnOriginEffect(s32 effectId, GfxCoord* placementCoord, s32 spawnArg);
-static __inline__ void _actor401300SpawnOffsetEffectFromId(const s32* effectId, GfxCoord* placementCoord, s32 spawnArg, s16 offsetX, s16 offsetY, s16 offsetZ);
-static __inline__ void _actor401300SpawnOriginEffectFromId(const s32* effectId, GfxCoord* placementCoord, s32 spawnArg);
-static __inline__ s32  _actor401300IsWithinEffectDepth(Task* actor);
-static __inline__ void _actor401300ResetAnimation(Task* actor);
-static __inline__ void _actor401300ResetBlendAnimation(Task* actor);
-static __inline__ void _actor401300TickAnimation(Task* actor);
-static void            _actor401300UpdateAnimationEffects(Task* actor);
-static __inline__ void _actor401300BindLightingMatrices(Task* actor);
-static __inline__ void _actor401300InitializePoseAndCombat(GfxCoord* coord, _Actor401300Work* work);
-static void            _actor401300Spawn(Enemy* enemy, Task* actor);
-static void            _actor401300SpawnHitEffect(Task* actor, s16 hitYaw, s32 attackKey);
-static void            _actor401300TakeHit(Task* actor);
-static void            _actor401300StateStatusHold(Task* actor);
-static void            _actor401300StateWounded(Task* actor);
-static void            _actor401300StateAlert(Task* actor);
-static void            _actor401300StateChase(Task* actor);
-static __inline__ s32  _actor401300Abs(s32 value);
-static void            _actor401300StateWithdraw(Task* actor);
-static void            _actor401300StateTurnAround(Task* actor);
-static void            _actor401300StateSidestep(Task* actor);
-static void            _actor401300StateGrab(Task* actor);
-static void            _actor401300StateGrabPull(Task* actor);
-static void            _actor401300StateGrabStrike(Task* actor);
-static void            _actor401300StateFallBack(Task* actor);
-static void            _actor401300StateFallFront(Task* actor);
-static __inline__ void _actorRenderRescaleYawXZ(GfxCoord* coord, s32 horizontalScale, s16 verticalScale);
-static void            _actor401300StateDeathBurn(Task* actor);
-static void            _actor401300StateDormant(Task* actor);
-static void            _actor401300StateDormantScripted(Task* actor);
-static void            _actor401300StatePatrol(Task* actor);
-static void            _actor401300StateSlide(Task* actor);
-static void            _actor401300StateBackOff(Task* actor);
-static void            _actor401300StateGrabWindup(Task* actor);
-static void            _actor401300StateBendOver(Task* actor);
-static void            _actor401300StateDeathBurst(Task* actor);
-static void            _actor401300StateDeathBurstWalk(Task* actor);
-static void            _actor401300StateStalk(Task* actor);
-static void            _actor401300StateStrikeA(Task* actor);
-static void            _actor401300StateStrikeB(Task* actor);
-static __inline__ void _actor401300RestoreRootYawScale(Task* actor);
-static __inline__ s32  _actorAngleGetLocalYaw(const GfxCoord* coord);
-static __inline__ void _actorMovementStepForwardFromSave(const McSaveData* save, GfxCoord* coord, s16 stepDistance);
-static void            _actor401300StateCharge(Task* actor);
-static __inline__ void _actorMovementTranslateForwardNonzeroFromSave(const McSaveData* save, GfxCoord* coord, s16 stepDistance);
-static void            _actor401300StateLeap(Task* actor);
-static __inline__ void _actorRenderScaleMatrix(MATRIX* matrix, s16 uniformScale);
-static void            _actor401300StateLeapIn(Task* actor);
-static void            _actor401300StateRefallBack(Task* actor);
-static void            _actor401300StateRefallFront(Task* actor);
-static __inline__ s32  _actor401300IsWithinImpactDepth(Task* modelTask);
-static __inline__ s32  _actorContactFirstIsPlayerBody(const WorldCollisionContact* contacts);
-static __inline__ void _actor401300AlignHeldPlayerHeight(Task* actor);
-static void            _actor401300Tick(Enemy* enemy, Task* actor);
-static s32             _actor401300TestEffectDepth(Task* modelTask);
+static s32         _actor401300ApplyBodyPushback(Task* actor, const WorldCollisionContact* contacts, s16 contactCount);
+static void        _actor401300ClampRoomHeight(const GameLocationKey* location, GfxCoord* coord);
+static inline s32  _actor401300HasRoomHeightClamp(const GameLocationKey* location);
+static s32         _actor401300ApplyGridPushback(GfxCoord* coord, const WorldCollisionContact* contacts, s16 contactCount, s16 heightOffset);
+static void        _actor401300BlendToAnimation(Task* actor);
+static void        _actor401300TickBlendedAnimation(Task* actor);
+static s32         _actor401300GetAnimationSoundCue(_Actor401300Work* work);
+static void        _actor401300BlendFixedJoints(Task* actor, s16 blendAmount);
+static inline void _actor401300SpawnOffsetEffect(s32 effectId, GfxCoord* placementCoord, s32 spawnArg, s16 offsetX, s16 offsetY, s16 offsetZ);
+static inline void _actor401300SpawnOriginEffect(s32 effectId, GfxCoord* placementCoord, s32 spawnArg);
+static inline void _actor401300SpawnOffsetEffectFromId(const s32* effectId, GfxCoord* placementCoord, s32 spawnArg, s16 offsetX, s16 offsetY, s16 offsetZ);
+static inline void _actor401300SpawnOriginEffectFromId(const s32* effectId, GfxCoord* placementCoord, s32 spawnArg);
+static inline s32  _actor401300IsWithinEffectDepth(Task* actor);
+static inline void _actor401300ResetAnimation(Task* actor);
+static inline void _actor401300ResetBlendAnimation(Task* actor);
+static inline void _actor401300TickAnimation(Task* actor);
+static void        _actor401300UpdateAnimationEffects(Task* actor);
+static inline void _actor401300BindLightingMatrices(Task* actor);
+static inline void _actor401300InitializePoseAndCombat(GfxCoord* coord, _Actor401300Work* work);
+static void        _actor401300Spawn(Enemy* enemy, Task* actor);
+static void        _actor401300SpawnHitEffect(Task* actor, s16 hitYaw, s32 attackKey);
+static void        _actor401300TakeHit(Task* actor);
+static void        _actor401300StateStatusHold(Task* actor);
+static void        _actor401300StateWounded(Task* actor);
+static void        _actor401300StateAlert(Task* actor);
+static void        _actor401300StateChase(Task* actor);
+static inline s32  _actor401300Abs(s32 value);
+static void        _actor401300StateWithdraw(Task* actor);
+static void        _actor401300StateTurnAround(Task* actor);
+static void        _actor401300StateSidestep(Task* actor);
+static void        _actor401300StateGrab(Task* actor);
+static void        _actor401300StateGrabPull(Task* actor);
+static void        _actor401300StateGrabStrike(Task* actor);
+static void        _actor401300StateFallBack(Task* actor);
+static void        _actor401300StateFallFront(Task* actor);
+static inline void _actorRenderRescaleYawXZ(GfxCoord* coord, s32 horizontalScale, s16 verticalScale);
+static void        _actor401300StateDeathBurn(Task* actor);
+static void        _actor401300StateDormant(Task* actor);
+static void        _actor401300StateDormantScripted(Task* actor);
+static void        _actor401300StatePatrol(Task* actor);
+static void        _actor401300StateSlide(Task* actor);
+static void        _actor401300StateBackOff(Task* actor);
+static void        _actor401300StateGrabWindup(Task* actor);
+static void        _actor401300StateBendOver(Task* actor);
+static void        _actor401300StateDeathBurst(Task* actor);
+static void        _actor401300StateDeathBurstWalk(Task* actor);
+static void        _actor401300StateStalk(Task* actor);
+static void        _actor401300StateStrikeA(Task* actor);
+static void        _actor401300StateStrikeB(Task* actor);
+static inline void _actor401300RestoreRootYawScale(Task* actor);
+static inline s32  _actorAngleGetLocalYaw(const GfxCoord* coord);
+static inline void _actorMovementStepForwardFromSave(const McSaveData* save, GfxCoord* coord, s16 stepDistance);
+static void        _actor401300StateCharge(Task* actor);
+static inline void _actorMovementTranslateForwardNonzeroFromSave(const McSaveData* save, GfxCoord* coord, s16 stepDistance);
+static void        _actor401300StateLeap(Task* actor);
+static inline void _actorRenderScaleMatrix(MATRIX* matrix, s16 uniformScale);
+static void        _actor401300StateLeapIn(Task* actor);
+static void        _actor401300StateRefallBack(Task* actor);
+static void        _actor401300StateRefallFront(Task* actor);
+static inline s32  _actor401300IsWithinImpactDepth(Task* modelTask);
+static inline s32  _actorContactFirstIsPlayerBody(const WorldCollisionContact* contacts);
+static inline void _actor401300AlignHeldPlayerHeight(Task* actor);
+static void        _actor401300Tick(Enemy* enemy, Task* actor);
+static s32         _actor401300TestEffectDepth(Task* modelTask);
 
 #include "../../shared/actor/actor_contacts_turn_joint.inc.c"
 
@@ -1542,7 +1542,7 @@ static s32 _actor401300ApplyCommand(Task* task, s32 msgId, const ActorCommand* c
     work->commandBytes[0] = command->context.loc.stage;
     work->commandBytes[1] = command->context.loc.area;
     work->commandBytes[2] = (u8)command->command;
-    if (command->context.loc.stage == GAME_STAGE_ACROPOLIS && command->context.loc.area == GAME_AREA_ACROPOLIS_PATIO) {
+    if (command->context.loc.stage == GAME_STAGE_AKROPOLIS && command->context.loc.area == GAME_AREA_AKROPOLIS_PATIO) {
         if (command->command == ACTOR_401300_COMMAND_DORMANT) {
             work->state = ACTOR_401300_STATE_DORMANT_SCRIPTED;
             return 1;
@@ -1667,7 +1667,7 @@ static void _actor401300ClampRoomHeight(const GameLocationKey* location, GfxCoor
 /// Returns 1 when this actor has height bounds for the supplied stage and area.
 ///
 /// View and room-variant bytes do not participate in the lookup.
-static __inline__ s32 _actor401300HasRoomHeightClamp(const GameLocationKey* location)
+static inline s32 _actor401300HasRoomHeightClamp(const GameLocationKey* location)
 {
     const ActorHeightClamp* row;
     s16                     rowIndex;
@@ -2041,7 +2041,7 @@ static void _actor401300BlendFixedJoints(Task* actor, s16 blendAmount)
 /// 32-bit payload. Offsets use game coordinate units in placementCoord's
 /// local frame. Use handlers that consume the offset at spawn: its temporary
 /// storage ends with this call. Spawn rejection is intentionally ignored.
-static __inline__ void _actor401300SpawnOffsetEffect(s32 effectId, GfxCoord* placementCoord, s32 spawnArg, s16 offsetX, s16 offsetY, s16 offsetZ)
+static inline void _actor401300SpawnOffsetEffect(s32 effectId, GfxCoord* placementCoord, s32 spawnArg, s16 offsetX, s16 offsetY, s16 offsetZ)
 {
     SVECTOR localOffset;
 
@@ -2056,7 +2056,7 @@ static __inline__ void _actor401300SpawnOffsetEffect(s32 effectId, GfxCoord* pla
 /// effectId and spawnArg are the packed effect selector and task payload.
 /// The zero offset is temporary; the selected handler must not follow its
 /// retained address after spawn. Spawn rejection is intentionally ignored.
-static __inline__ void _actor401300SpawnOriginEffect(s32 effectId, GfxCoord* placementCoord, s32 spawnArg)
+static inline void _actor401300SpawnOriginEffect(s32 effectId, GfxCoord* placementCoord, s32 spawnArg)
 {
     SVECTOR localOffset;
 
@@ -2071,7 +2071,7 @@ static __inline__ void _actor401300SpawnOriginEffect(s32 effectId, GfxCoord* pla
 /// and offsets use placementCoord's local game units. The current ripple
 /// and spray handlers use the copied offset, not its temporary address.
 /// Spawn rejection is intentionally ignored.
-static __inline__ void _actor401300SpawnOffsetEffectFromId(const s32* effectId, GfxCoord* placementCoord, s32 spawnArg, s16 offsetX, s16 offsetY, s16 offsetZ)
+static inline void _actor401300SpawnOffsetEffectFromId(const s32* effectId, GfxCoord* placementCoord, s32 spawnArg, s16 offsetX, s16 offsetY, s16 offsetZ)
 {
     SVECTOR localOffset;
 
@@ -2087,7 +2087,7 @@ static __inline__ void _actor401300SpawnOffsetEffectFromId(const s32* effectId, 
 /// no effect. spawnArg is the task's packed 32-bit payload. The current spray
 /// handler uses the copied zero offset, not its temporary address. Spawn
 /// rejection is intentionally ignored.
-static __inline__ void _actor401300SpawnOriginEffectFromId(const s32* effectId, GfxCoord* placementCoord, s32 spawnArg)
+static inline void _actor401300SpawnOriginEffectFromId(const s32* effectId, GfxCoord* placementCoord, s32 spawnArg)
 {
     SVECTOR localOffset;
 
@@ -2101,7 +2101,7 @@ static __inline__ void _actor401300SpawnOriginEffectFromId(const s32* effectId, 
 /// acyclic; each transformed parent step narrows to signed halfwords.
 /// A chain that never reaches the view leaves the zero point and passes.
 /// This checks depth only, not screen bounds or occlusion.
-static __inline__ s32 _actor401300IsWithinEffectDepth(Task* actor)
+static inline s32 _actor401300IsWithinEffectDepth(Task* actor)
 {
     enum { ACTOR_401300_EFFECT_DEPTH_NEAR = -299,
            ACTOR_401300_EFFECT_DEPTH_FAR  = 2300 };
@@ -2163,7 +2163,7 @@ static __inline__ s32 _actor401300IsWithinEffectDepth(Task* actor)
 /// Slots 1..6 map to equal-numbered tracks and parts; slots 9..18 map to
 /// tracks two indices lower. Parts 7/8 are the independently posed joint
 /// pair. Remapped resets seed normal rate; the following tick applies animRate.
-static __inline__ void _actor401300ResetAnimation(Task* actor)
+static inline void _actor401300ResetAnimation(Task* actor)
 {
     s32               slotIndex;
     _Actor401300Work* work;
@@ -2187,7 +2187,7 @@ static __inline__ void _actor401300ResetAnimation(Task* actor)
 /// stored blend rate is 48 sixteenths per tick and weight 2048/4096. Reset
 /// writes that rate to the primary slots; secondary remapped resets seed
 /// normal rate until the next blended tick assigns blendRate.
-static __inline__ void _actor401300ResetBlendAnimation(Task* actor)
+static inline void _actor401300ResetBlendAnimation(Task* actor)
 {
     s32               slotIndex;
     _Actor401300Work* work;
@@ -2210,7 +2210,7 @@ static __inline__ void _actor401300ResetBlendAnimation(Task* actor)
 /// The actor must own its bound nineteen-slot rig and loaded clip. animRate
 /// is narrowed to each slot's signed-byte rate in sixteenths per tick.
 /// Negative rates play backward. Fixed parts 7/8 receive a rate but no tick.
-static __inline__ void _actor401300TickAnimation(Task* actor)
+static inline void _actor401300TickAnimation(Task* actor)
 {
     s32               slotIndex;
     _Actor401300Work* work;
@@ -2399,7 +2399,7 @@ static void _actor401300UpdateAnimationEffects(Task* actor)
 ///
 /// The writable work block must outlive the model's use of both matrix pointers.
 /// This sets their addresses without initializing their coefficients.
-static __inline__ void _actor401300BindLightingMatrices(Task* actor)
+static inline void _actor401300BindLightingMatrices(Task* actor)
 {
     _Actor401300Work* work;
     TmdObject*        model;
@@ -2418,7 +2418,7 @@ static __inline__ void _actor401300BindLightingMatrices(Task* actor)
 /// the position-history cursor and pending death flag, copies the player's
 /// animation request and seeds the fixed-joint interpolation in 1/512 units.
 /// Borrows one ActorScaleRotScratch plus the nested yaw workspace until return.
-static __inline__ void _actor401300InitializePoseAndCombat(GfxCoord* coord, _Actor401300Work* work)
+static inline void _actor401300InitializePoseAndCombat(GfxCoord* coord, _Actor401300Work* work)
 {
     enum {
         ACTOR_401300_INITIAL_JOINT_PAIR_BLEND  = 0x100,
@@ -2667,7 +2667,7 @@ static void _actor401300Spawn(Enemy* enemy, Task* actor)
 /// eight bytes are copied, including its model-part selector (2, 7 or 9). Front draws
 /// choose four offsets, rear draws two and each signed side draws two. The
 /// shared LCG advances once, and no pointer is retained.
-static __inline__ void _actor401300SelectHitOffset(s16 hitYaw, ActorHitAnchor* hitPlacement)
+static inline void _actor401300SelectHitOffset(s16 hitYaw, ActorHitAnchor* hitPlacement)
 {
     enum { ACTOR_401300_HIT_FRONT_HALF_ANGLE = 512,
            ACTOR_401300_HIT_REAR_MIN_ANGLE   = 1536 };
@@ -3093,7 +3093,7 @@ static void _actor401300TakeHit(Task* actor)
 ///
 /// Requires live actor work and bank-backed animation endpoints. Rates are
 /// sixteenths of a frame; signed division and halfword stores retain truncation.
-static __inline__ void _actor401300OscillateHeldPose(Task* actor, _Actor401300Work* work)
+static inline void _actor401300OscillateHeldPose(Task* actor, _Actor401300Work* work)
 {
     actor->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     work->animRate                         = work->animRate / 2;
@@ -3313,7 +3313,7 @@ static void _actor401300StateAlert(Task* actor)
 /// CHASE. Above 4000 it charges; in (2000, 4000] it charges on five of sixteen
 /// draws, otherwise leaps. Below 1000, seven draws select STRIKE_A and nine
 /// STRIKE_B. Only the state and the shared random sequence are changed.
-static __inline__ void _actor401300ChooseChaseAttack(_Actor401300Work* work, s32 playerDistance)
+static inline void _actor401300ChooseChaseAttack(_Actor401300Work* work, s32 playerDistance)
 {
     enum {
         ACTOR_401300_CHARGE_DISTANCE     = 4000,
@@ -3454,7 +3454,7 @@ static void _actor401300StateChase(Task* actor)
 /// Returns the magnitude of a signed value other than the minimum s32 value.
 ///
 /// The withdrawal alignment test supplies a wrapped turn in [-2048, 2048].
-static __inline__ s32 _actor401300Abs(s32 value)
+static inline s32 _actor401300Abs(s32 value)
 {
     if (value < 0) {
         value = -value;
@@ -3466,7 +3466,7 @@ static __inline__ s32 _actor401300Abs(s32 value)
 ///
 /// Stores game-unit XYZ and a yaw in 4096 units per turn in withdrawPoint.pad.
 /// The fixed coordinates belong to the withdrawal room's exit routes.
-static __inline__ void _actor401300ChooseWithdrawExit(_Actor401300Work* work, s32 rootZ)
+static inline void _actor401300ChooseWithdrawExit(_Actor401300Work* work, s32 rootZ)
 {
     if (rootZ > 0x1B58) {
         work->withdrawPoint.vx  = -0xB54;
@@ -3615,7 +3615,7 @@ static void _actor401300StateWithdraw(Task* actor)
 /// Requires writable work with the entry-derived current and target yaws in
 /// [-6144, 6144], measured in 4096ths of a turn. Changes the current yaw by at
 /// most 137 units. Comparisons use stored signed values without turn wrapping.
-static __inline__ void _actor401300StepTurnAroundYaw(_Actor401300Work* work)
+static inline void _actor401300StepTurnAroundYaw(_Actor401300Work* work)
 {
     enum { ACTOR_401300_TURN_AROUND_YAW_STEP = 137 };
 
@@ -3721,7 +3721,7 @@ static void _actor401300StateTurnAround(Task* actor)
 /// Requires writable work and reserved chase scratch with an absolute yaw in
 /// 4096ths of a turn. Writes sidestepDir from a temporary rotation's Z axis,
 /// normalized to Q12. Translation and scratch contents remain intact.
-static __inline__ void _actor401300BuildSidestepDirection(_Actor401300Work* work, ActorChaseScratch* sidestep)
+static inline void _actor401300BuildSidestepDirection(_Actor401300Work* work, ActorChaseScratch* sidestep)
 {
     MATRIX   sidestepRotation;
     SVECTOR* sidestepDirection;
@@ -3851,7 +3851,7 @@ static void _actor401300StateSidestep(Task* actor)
 /// player clip 1 and zero displacement with every collision pass requested.
 /// Messages borrow work records synchronously; the animation table is borrowed
 /// by the player for playback. Its resources must remain loaded.
-static __inline__ void _actor401300StartPlayerGrab(_Actor401300Work* work)
+static inline void _actor401300StartPlayerGrab(_Actor401300Work* work)
 {
     enum { ACTOR_401300_GRAB_PRESS_COUNT    = 8,
            ACTOR_401300_PLAYER_ANIM_GRABBED = 1 };
@@ -4047,7 +4047,7 @@ static void _actor401300StateGrabPull(Task* actor)
 /// around X to part 2, dirties part 4 and composes part 3 before its bend.
 /// Then bends part 3, dirties part 5 and composes part 2. Preserve this order:
 /// the first composition sees part 3 before this tick's additional X rotation.
-static __inline__ void _actor401300BendGrabStrikeJoints(Task* actor)
+static inline void _actor401300BendGrabStrikeJoints(Task* actor)
 {
     gfxRotMatrixX(&actor->extra.tmd->coords[2].coord, -ACTOR_401300_GRAB_JOINT_BEND, GRAPHICS_ROTATION_COMPOSE);
     actor->extra.tmd->coords[4].composeStamp = GRAPHICS_COORD_DIRTY;
@@ -4106,7 +4106,7 @@ static void _actor401300StateGrabStrike(Task* actor)
 ///
 /// Requires live initialized work and Enemy storage. Exhausted HP selects
 /// DEATH_BURN, buildup selects STATUS_HOLD, and otherwise DOWN is selected.
-static __inline__ void _actor401300ChooseFallExit(_Actor401300Work* work, const Enemy* enemy)
+static inline void _actor401300ChooseFallExit(_Actor401300Work* work, const Enemy* enemy)
 {
     work->hitBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
     if (enemy->hp <= 0) {
@@ -4225,7 +4225,7 @@ static void _actor401300StateFallFront(Task* actor)
 /// 4096 is unity; products must fit s32 before the SDK narrows to halfwords.
 /// Pitch, roll and old scale are discarded; translation, parent and stored Euler
 /// angles remain intact. Marks composition dirty and releases all scratch space.
-static __inline__ void _actorRenderRescaleYawXZ(GfxCoord* coord, s32 horizontalScale, s16 verticalScale)
+static inline void _actorRenderRescaleYawXZ(GfxCoord* coord, s32 horizontalScale, s16 verticalScale)
 {
     ActorScaleRotScratch* yawScratch;
     s16                   yaw;
@@ -5093,7 +5093,7 @@ static void _actor401300StateDeathBurst(Task* actor)
 ///
 /// Requires live coordinates through part 12 and nested yaw scratch. Each basis
 /// keeps its heading and translation with Q12 scale 1, in ascending part order.
-static __inline__ void _actor401300CollapseBurstParts(Task* actor)
+static inline void _actor401300CollapseBurstParts(Task* actor)
 {
     _actorRenderCollapseYawRotation(actor->extra.tmd->coords + 2);
     _actorRenderCollapseYawRotation(actor->extra.tmd->coords + 3);
@@ -5238,7 +5238,7 @@ static void _actor401300StateDeathBurstWalk(Task* actor)
 /// savedCursor - 1, also addressed by stalk. XYZ narrows to signed halfwords;
 /// the reverse bearing is stored before normalization to [-2048, 2048] in
 /// 4096 angle units per turn. The actor state does not consume these two yaws.
-static __inline__ void _actor401300ReadStalkPlayerBearings(Task* actor, const PlayerStatus* playerStatus, ActorChaseScratch* savedCursor, ActorChaseScratch* stalk)
+static inline void _actor401300ReadStalkPlayerBearings(Task* actor, const PlayerStatus* playerStatus, ActorChaseScratch* savedCursor, ActorChaseScratch* stalk)
 {
     GfxCoord* updatedRoot;
     s16       yawFromPlayer;
@@ -5359,7 +5359,7 @@ static void _actor401300StateStalk(Task* actor)
 /// initialized work and a live model root. Records the full wrapped look turn
 /// before clamping the root step, then restores the normal Q12 scale. Angles
 /// use 4096 units per turn; the caller limits tracking to the windup ticks.
-static __inline__ void _actor401300TrackStrikePlayer(Task* actor, _Actor401300Work* work, ActorChaseScratch* strike)
+static inline void _actor401300TrackStrikePlayer(Task* actor, _Actor401300Work* work, ActorChaseScratch* strike)
 {
     GfxCoord* turnRoot;
     GfxCoord* facingRoot;
@@ -5539,7 +5539,7 @@ static void _actor401300StateStrikeB(Task* actor)
 ///
 /// Keeps heading and translation, discards pitch/roll and invalidates composition.
 /// Requires the initialized scratch-stack space of `_actorRenderRescaleYaw`.
-static __inline__ void _actor401300RestoreRootYawScale(Task* actor)
+static inline void _actor401300RestoreRootYawScale(Task* actor)
 {
     GfxCoord*             coord;
     ActorScaleRotScratch* yawScratch;
@@ -5564,7 +5564,7 @@ static __inline__ void _actor401300RestoreRootYawScale(Task* actor)
 ///
 /// Reads the horizontal terms of the Z axis without composing the coordinate;
 /// pitch, roll and scale are not removed. A zero horizontal pair returns zero.
-static __inline__ s32 _actorAngleGetLocalYaw(const GfxCoord* coord)
+static inline s32 _actorAngleGetLocalYaw(const GfxCoord* coord)
 {
     return ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
 }
@@ -5577,7 +5577,7 @@ static __inline__ s32 _actorAngleGetLocalYaw(const GfxCoord* coord)
 /// Displacement narrows to signed halfwords after SDK normalization and GTE
 /// scaling. Reserves/releases one aligned SVECTOR; collision correction is left
 /// to the caller. Zero distance still runs the GTE calculation and dirties composition.
-static __inline__ void _actorMovementStepForwardFromSave(const McSaveData* save, GfxCoord* coord, s16 stepDistance)
+static inline void _actorMovementStepForwardFromSave(const McSaveData* save, GfxCoord* coord, s16 stepDistance)
 {
     enum { ACTOR_MOVEMENT_FROZEN = 1 };
     SVECTOR* displacement;
@@ -5600,7 +5600,7 @@ static __inline__ void _actorMovementStepForwardFromSave(const McSaveData* save,
 /// request, and live player coordinates in the actor's parent space. playerTask
 /// must be the live player slot, which is reacquired for animation. Payloads
 /// are borrowed synchronously; the selected animation table outlives playback.
-static __inline__ void _actor401300PlaceKnockedPlayer(_Actor401300Work* work, Task* playerTask)
+static inline void _actor401300PlaceKnockedPlayer(_Actor401300Work* work, Task* playerTask)
 {
     work->playerPlacement.pos.vx = playerTask->extra.tmd->coords->coord.t[0];
     work->playerPlacement.pos.vy = playerTask->extra.tmd->coords->coord.t[1];
@@ -5617,7 +5617,7 @@ static __inline__ void _actor401300PlaceKnockedPlayer(_Actor401300Work* work, Ta
 /// Requires live actor/work and this frame's charge scratch. Grid corrections
 /// take priority over body pushback; only ticks 21 onward count toward recoil.
 /// Resets the blocked counter when movement is free. Nested scratch is released.
-static __inline__ void _actor401300ResolveChargeContacts(Task* actor, _Actor401300Work* work, _Actor401300ChargeScratch* charge)
+static inline void _actor401300ResolveChargeContacts(Task* actor, _Actor401300Work* work, _Actor401300ChargeScratch* charge)
 {
     enum { ACTOR_401300_CHARGE_BLOCK_COUNT_TICK = 21,
            ACTOR_401300_CHARGE_BLOCK_LIMIT      = 7 };
@@ -5849,7 +5849,7 @@ static void _actor401300StateCharge(Task* actor)
 /// Displacement narrows to signed halfwords after SDK normalization and GTE
 /// scaling. Reserves/releases one aligned SVECTOR; collision correction is left
 /// to the caller. Zero distance leaves the coordinate and GTE state unchanged.
-static __inline__ void _actorMovementTranslateForwardNonzeroFromSave(const McSaveData* save, GfxCoord* coord, s16 stepDistance)
+static inline void _actorMovementTranslateForwardNonzeroFromSave(const McSaveData* save, GfxCoord* coord, s16 stepDistance)
 {
     enum { ACTOR_MOVEMENT_FROZEN = 1 };
     SVECTOR* displacement;
@@ -6079,7 +6079,7 @@ static void _actor401300StateLeap(Task* actor)
 /// to signed halfwords and the scaled components saturate to signed halfwords.
 /// Borrows one aligned ActorScaleMatrixScratch and overwrites GTE state. The
 /// caller owns refreshing the matrix before applying another scale.
-static __inline__ void _actorRenderScaleMatrix(MATRIX* matrix, s16 uniformScale)
+static inline void _actorRenderScaleMatrix(MATRIX* matrix, s16 uniformScale)
 {
     ActorScaleMatrixScratch* scaleScratch;
 
@@ -6365,7 +6365,7 @@ static void _actor401300StateRefallFront(Task* actor)
 /// parent transform narrows XYZ to signed halfwords and excludes the view matrix.
 /// An incomplete chain keeps the zero origin and passes. No bounds or occlusion
 /// test is made; no input is retained and GTE state is overwritten.
-static __inline__ s32 _actor401300IsWithinImpactDepth(Task* modelTask)
+static inline s32 _actor401300IsWithinImpactDepth(Task* modelTask)
 {
     enum { ACTOR_401300_IMPACT_DEPTH_NEAR = -299,
            ACTOR_401300_IMPACT_DEPTH_FAR  = 2300 };
@@ -6426,7 +6426,7 @@ static __inline__ s32 _actor401300IsWithinImpactDepth(Task* modelTask)
 ///
 /// Requires one readable contact; an empty or different-kind contact returns 0.
 /// Does not scan further entries or consume the contact.
-static __inline__ s32 _actorContactFirstIsPlayerBody(const WorldCollisionContact* contacts)
+static inline s32 _actorContactFirstIsPlayerBody(const WorldCollisionContact* contacts)
 {
     s16 contactIndex;
 
@@ -6448,7 +6448,7 @@ static __inline__ s32 _actorContactFirstIsPlayerBody(const WorldCollisionContact
 /// is ignored. Only a pending push requesting every collision pass permits the
 /// snap; an absolute Y difference of at least 801 parent-coordinate units sets
 /// the player to the enemy's height and dirties the player's composition.
-static __inline__ void _actor401300AlignHeldPlayerHeight(Task* actor)
+static inline void _actor401300AlignHeldPlayerHeight(Task* actor)
 {
     enum { ACTOR_401300_HELD_PLAYER_HEIGHT_LIMIT = 801 };
     _Actor401300Work* work;
@@ -6524,7 +6524,7 @@ static const _Actor401300StateTable _gActor401300StateHandlers = { {
 /// The move is applied before its stored wall-contact result can clear XYZ for
 /// subsequent pushes. Actor state tick 10 onward clears vertical push and halves
 /// horizontal displacement with signed shifts, after this tick's move.
-static __inline__ void _actor401300StepKnockedPlayer(Task* playerTask, _Actor401300Work* work, s16 impactTick)
+static inline void _actor401300StepKnockedPlayer(Task* playerTask, _Actor401300Work* work, s16 impactTick)
 {
     enum {
         ACTOR_401300_PLAYER_PUSH_DECAY_TICK = 10,

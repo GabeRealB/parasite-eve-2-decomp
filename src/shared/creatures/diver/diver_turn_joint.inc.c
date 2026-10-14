@@ -9,7 +9,7 @@
 /// the cache dirty and composes using the current pass without advancing it.
 /// Requires a live acyclic parent chain and `actorRenderComposeCoord`'s cache
 /// contract; composition may update ancestor caches and changes GTE registers.
-static __inline__ void _actorRenderInstallJointRotation(GfxCoord* joint, const MATRIX* localRotation)
+static inline void _actorRenderInstallJointRotation(GfxCoord* joint, const MATRIX* localRotation)
 {
     memcpy(joint->coord.m, localRotation->m, sizeof(joint->coord.m));
     joint->composeStamp = GRAPHICS_COORD_DIRTY;

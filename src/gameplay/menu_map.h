@@ -9,13 +9,13 @@
 
 /// Per-stage inclusive area-ID limits for the map's marked-area cache.
 ///
-/// Index by stage minus `GAME_STAGE_ACROPOLIS` for stages 1..5. Refresh visits
+/// Index by stage minus `GAME_STAGE_AKROPOLIS` for stages 1..5. Refresh visits
 /// IDs 1 through the selected signed-byte limit; higher cache bits are retained.
 /// These limits do not size the area directory or the map's shape tables.
 /// The trailing bytes retain the image span; their role and the original
 /// object's end are unproven.
 typedef struct {
-    s8   markedAreaIdLimits[GAME_STAGE_SHELTER_NEO_ARK - GAME_STAGE_ACROPOLIS + 1]; // Last refreshed area ID per stage: 17, 38, 38, 49, 33
+    s8   markedAreaIdLimits[GAME_STAGE_SHELTER_NEO_ARK - GAME_STAGE_AKROPOLIS + 1]; // Last refreshed area ID per stage: 17, 38, 38, 49, 33
     byte unknown_05[3];                                                             // Retained nonzero bytes with no known consumer; role unproven
 } MenuMapMarkedAreaLimitStorage;
 STATIC_ASSERT_SIZEOF(MenuMapMarkedAreaLimitStorage, 8);

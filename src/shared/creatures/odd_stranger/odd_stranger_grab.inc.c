@@ -6,7 +6,7 @@
 /// normalization produces Q12 components before scaling to parent-space units.
 /// Requires a nonzero XZ offset whose squared length fits a positive s32.
 /// Its unused fourth halfword stays intact; normalization and scaling clobber GTE state.
-static __inline__ void _oddStrangerScaleGrabSeparation(SVECTOR* separation)
+static inline void _oddStrangerScaleGrabSeparation(SVECTOR* separation)
 {
     enum { ODD_STRANGER_GRAB_DISTANCE = 1000 };
 
@@ -23,7 +23,7 @@ static __inline__ void _oddStrangerScaleGrabSeparation(SVECTOR* separation)
 /// animation has written their local pose. The two rotations compose a -128
 /// pitch (4096 units per turn); dirty stamps on parts 4 and 5 make later
 /// descendant composition consume that pose. Parts 2 then 3 are composed now.
-static __inline__ void _oddStrangerApplyGrabPullPitch(Task* task)
+static inline void _oddStrangerApplyGrabPullPitch(Task* task)
 {
     gfxRotMatrixX(&task->extra.tmd->coords[2].coord, ODD_STRANGER_GRAB_PITCH, GRAPHICS_ROTATION_COMPOSE);
     task->extra.tmd->coords[4].composeStamp = GRAPHICS_COORD_DIRTY;
@@ -111,7 +111,7 @@ static void _oddStrangerGrabPull(Task* task)
 /// animation has written their local pose. The rotations compose a -128 pitch
 /// (4096 units per turn) and invalidate parts 4 and 5. Part 3 is composed
 /// after part 2's rotation; part 2 is composed after part 3's rotation.
-static __inline__ void _oddStrangerApplyGrabStrikePitch(Task* task)
+static inline void _oddStrangerApplyGrabStrikePitch(Task* task)
 {
     gfxRotMatrixX(&task->extra.tmd->coords[2].coord, ODD_STRANGER_GRAB_PITCH, GRAPHICS_ROTATION_COMPOSE);
     task->extra.tmd->coords[4].composeStamp = GRAPHICS_COORD_DIRTY;

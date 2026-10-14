@@ -10,7 +10,7 @@
 /// coordinate's origin and its enemy-body identity is 10. Linking leaves grid
 /// tests disabled; the caller initializes all three contacts before enabling
 /// them. Assigning sphere flags replaces any previous test flags.
-static __inline__ void _gluttonLinkChunkGridSphere(GluttonProjectileWork* work, GfxCoord* coord, s16 radius)
+static inline void _gluttonLinkChunkGridSphere(GluttonProjectileWork* work, GfxCoord* coord, s16 radius)
 {
     enum { GLUTTON_CHUNK_GRID_BODY_ID = 10 };
     work->gridBody.coord            = coord;

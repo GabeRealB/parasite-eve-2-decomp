@@ -7,7 +7,7 @@
 /// Borrows the scratch result only during this call. The frame arena must have
 /// room for one word-aligned POLY_FT4 and the current ordering table must have
 /// 1024 depth tags. The packet remains live until frame DMA completes.
-static __inline__ void _madChaserQueueLimbShadow(const MadChaserLimbShadowScratch* scratch, u8 shade)
+static inline void _madChaserQueueLimbShadow(const MadChaserLimbShadowScratch* scratch, u8 shade)
 {
     enum {
         MAD_CHASER_SHADOW_TEXTURE_4_BIT = 0,

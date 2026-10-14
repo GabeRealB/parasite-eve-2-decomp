@@ -6,7 +6,7 @@
 /// Zero rate returns zero. Signed division precedes the unsigned right shift
 /// and u8 truncation; this also preserves the result for negative rates.
 /// Callers supply nonnegative frames whose eight-bit left shift fits s32.
-static __inline__ u8 _stalkerZebraIvoryCrawlFrameToTicks(Task* task, s32 normalFrame)
+static inline u8 _stalkerZebraIvoryCrawlFrameToTicks(Task* task, s32 normalFrame)
 {
     enum { STALKER_ZEBRA_IVORY_CRAWL_FRAME_FRACTION_BITS = 8,
            STALKER_ZEBRA_IVORY_CRAWL_RATE_FRACTION_BITS  = 4 };
@@ -24,7 +24,7 @@ static __inline__ u8 _stalkerZebraIvoryCrawlFrameToTicks(Task* task, s32 normalF
 /// Both are packed script IDs with bits 8..11 free for the 0..15 placement
 /// voice. Requires a live `Enemy` in `Task::spawnArg2` and initialized model coordinates.
 /// The root supplies pan and attenuation, each narrowed to its signed low byte.
-static __inline__ void _stalkerZebraIvoryPlayCrawlStep(Task* task, s32 baseScriptId, s32 waterScriptId)
+static inline void _stalkerZebraIvoryPlayCrawlStep(Task* task, s32 baseScriptId, s32 waterScriptId)
 {
     enum { STALKER_ZEBRA_IVORY_CRAWL_SPAWN_KIND_MASK = 0xF0,
            STALKER_ZEBRA_IVORY_CRAWL_SPAWN_WATER     = 0x10,

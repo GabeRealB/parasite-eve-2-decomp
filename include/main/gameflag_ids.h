@@ -1,6 +1,13 @@
 #ifndef MAIN_GAMEFLAG_IDS_H
 #define MAIN_GAMEFLAG_IDS_H
 
+// Being emptied into `main/event_flags.h`, to be deleted when nothing is left.
+// A flag moves there - and is removed from here in the same change - once its
+// meaning has been checked against the code, one room at a time. Do not add
+// new flags here.
+
+#include "main/event_flags.h"
+
 /// Game flag indices for `gameFlagGetNibble` / `gameFlagSetNibble`.
 ///
 /// Each flag is a four-bit value in the live nibble bank. A name says what the
@@ -12,7 +19,7 @@ enum {
     /// after the cafeteria scene, 3 when the follow-up room cutscene runs
     /// (cafeteria/square), 5 once the fountain's warp sequence is taken. Patio,
     /// hallway, cafeteria, fountain and forked-road doors answer by its value.
-    GAME_FLAG_ACROPOLIS_PROGRESS = 0x000,
+    GAME_FLAG_AKROPOLIS_PROGRESS = 0x000,
     /// Akropolis progress along the security room -> forked road -> observatory ->
     /// promenade route: 2 after the security-room panel releases its first lock, 3 when
     /// the forked-road cutscene to the observatory plays, 4 when leaving the
@@ -23,7 +30,7 @@ enum {
     /// (warp 3), then 2; 3 once the bridge cutscene completes and the bridge room
     /// switches to room 2. The promenade's bridge door is refused while 0 and leads to
     /// room 2 at 3; the fire escape's bridge warp likewise picks room 2 at 3.
-    GAME_FLAG_ACROPOLIS_BRIDGE_PROGRESS = 0x002,
+    GAME_FLAG_AKROPOLIS_BRIDGE_PROGRESS = 0x002,
     /// State of the follow-up CAP command selected by flag 0x155 (run as 0x155+0x10
     /// after a room cutscene). Cleared to 0 whenever 0x155 is changed; when 0x155 is
     /// 0xE and this is 0 the cutscene task sets it to 1 and loops the branching follow-
@@ -67,29 +74,22 @@ enum {
     /// Unidentified. Set to 1 when fountain point 4 is examined (CAP slot 4 starts and
     /// a collision trigger is swapped in); the swap is reapplied on later entries while
     /// set.
-    GAME_FLAG_ACROPOLIS_FOUNTAIN_012 = 0x012,
+    GAME_FLAG_AKROPOLIS_FOUNTAIN_012 = 0x012,
     /// Set to 1 the first time the path between the fountain and the forked road is
     /// used (from the fountain side, or from the forked road after flag 0 reaches 3,
     /// which plays CAP slot 1 step 3 once).
     GAME_FLAG_FOUNTAIN_FORKED_ROAD_PATH_USED = 0x013,
-    /// Unidentified. Set to 1 when a CAP scene ends: the patio's CAP 6 task when the
-    /// scene reports event key 1, and the square's CAP 5 task on completion.
-    GAME_FLAG_015 = 0x015,
     /// Unidentified. Set to 1 together with 0x18 and other story flags in a shelter B2
     /// laboratory story sequence; no reader found.
     GAME_FLAG_SHELTER_B2_LABORATORY_017 = 0x017,
     /// Unidentified. Set to 1 together with 0x17 and other story flags in a shelter B2
     /// laboratory story sequence; no reader found.
     GAME_FLAG_SHELTER_B2_LABORATORY_018 = 0x018,
-    /// Unidentified. One-shot latch for an Akropolis square event: the first call sets
-    /// it, switches the square to placement variant 2, raises eventState and spawns the
-    /// room's task 0; later calls answer 1.
-    GAME_FLAG_ACROPOLIS_SQUARE_01F = 0x01F,
     /// Opening Akropolis sequence: 1 when leaving the west elevator hall into the
     /// square (scene event 1), 3 when the patio's arrival scene plays, 4 once the
     /// patio's slot-4 actor is gone or a patio message is used at 3. Square, fountain
     /// and cafeteria doors answer 1 while it is below 2 and 2 after.
-    GAME_FLAG_ACROPOLIS_OPENING_PROGRESS = 0x021,
+    GAME_FLAG_AKROPOLIS_OPENING_PROGRESS = 0x021,
     /// Set to 1 when the patio's cafeteria door is used while flag 0 is 2, which plays
     /// a scene once; afterwards the door runs CAP 8 instead.
     GAME_FLAG_PATIO_CAFETERIA_DOOR_SCENE_SEEN = 0x023,
@@ -99,7 +99,7 @@ enum {
     /// Unidentified. One-shot patio scene: set to 1 when trigger 2 is hit while flag 0
     /// is 2, playing a scene; while clear, entering the patio as variant 2 sends slot-4
     /// actors 2 and 3 a command.
-    GAME_FLAG_ACROPOLIS_PATIO_026 = 0x026,
+    GAME_FLAG_AKROPOLIS_PATIO_026 = 0x026,
     /// Dryfield junk yard / trailer coach story counter: 1 when first entering the
     /// trailer coach from the junk yard (also companion flag 0x4B = 4), 2 after the
     /// trailer coach scene (sets 0x3A=1, 0x4B=1), 3 after a later trailer coach scene.
@@ -660,7 +660,7 @@ enum {
     /// Set to 1 when the observatory's sub-id 1 trigger spawns its event task on room
     /// 2; while clear room-2 entries set combat wave 1, and the forked road's path-back
     /// message answers room 2.
-    GAME_FLAG_ACROPOLIS_OBSERVATORY_EVENT_SEEN = 0x0CA,
+    GAME_FLAG_AKROPOLIS_OBSERVATORY_EVENT_SEEN = 0x0CA,
     /// Roof garden scene progress on places 1/7: 0 -> 1 on arrival 1, 1 -> 2 on arrival
     /// 2 (plays its script); at 2 the maggot/caterpillar actor spawns in its alternate
     /// placement.
@@ -1000,9 +1000,6 @@ enum {
     /// Unidentified. Set once in the B1 underground parking room setup when progress
     /// 0x7A is at least 6, triggering a one-time room update (func_8018390C).
     GAME_FLAG_SHELTER_B1_UNDERGROUND_PARKING_123 = 0x123,
-    /// Set to 1 the first time trigger 0xE in the Akropolis square fires, which starts
-    /// CAP 0xE once.
-    GAME_FLAG_ACROPOLIS_SQUARE_TRIGGER_E_SEEN = 0x124,
     /// Prize state of shooting-gallery difficulty 4 (flags 0x125+difficulty): 1 or 2
     /// when earned, 2 meaning it waits at MIST parking; collecting it there gives item
     /// 0x6C and sets 3.
@@ -1149,9 +1146,6 @@ enum {
     /// all stages set it to increasing values (always clearing flag 3), and stage
     /// starts reset it to 0. Value 0xE adds a looping dialogue choice.
     GAME_FLAG_STORY_DIALOGUE_INDEX = 0x155,
-    /// One-shot: set when request 0x10 in Akropolis square first runs CAP 0x10 or 0x11,
-    /// chosen by the save's button layout (likely a controls hint).
-    GAME_FLAG_ACROPOLIS_SQUARE_CONTROLS_HINT = 0x156,
     /// One-shot: set on first entry to the B1 north maintenance walkway in variant 2,
     /// when CAP 4 is started.
     GAME_FLAG_NORTH_MAINTENANCE_WALKWAY_SCENE = 0x157,

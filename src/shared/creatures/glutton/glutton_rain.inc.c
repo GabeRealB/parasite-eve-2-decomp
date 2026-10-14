@@ -10,7 +10,7 @@
 /// centre's XYZ, and clears the whole contact table. Radius is an unsigned
 /// 16-bit world-unit value; the linked work and embedded coordinate must
 /// remain live until unlink. The caller enables pairing after ascent.
-static __inline__ void _gluttonLinkRainAttackSphere(GluttonProjectileWork* work, const SVECTOR* localCenter, u16 radius)
+static inline void _gluttonLinkRainAttackSphere(GluttonProjectileWork* work, const SVECTOR* localCenter, u16 radius)
 {
     work->bodyCoord.parent = &gGfxViewCoord;
     gfxSetRotIdentity(&work->bodyCoord.coord);

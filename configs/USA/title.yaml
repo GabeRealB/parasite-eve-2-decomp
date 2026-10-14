@@ -4,6 +4,7 @@
 name: Title Menu Overlay
 sha1: ccc10f4db298c1afea9f184230da4aa42f5beefd
 options:
+  extensions_path: tools/splat_ext
   basename: title
   target_path: assets/USA/pe2pkg/title.pe2pkg
   base_path: ../..
@@ -76,7 +77,7 @@ segments:
     # looked up in the empty global segment and never emitted.
     # Runtime still loads at 0x80093800 (main BSS).
     subsegments:
-      - [0x0, .rodata, packageid] # the package id
+      - {start: 0x0, type: pkgid, name: packageid, id: 5} # the package id, written by the link
       - [0x4, .rodata, title] # the phase table, the demo strings and the jump tables
       - [0x9C, c, title]
       # Menu strings, tables and initialized state, including the final u16 flag.

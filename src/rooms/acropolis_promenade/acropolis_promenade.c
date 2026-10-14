@@ -227,9 +227,9 @@ static EvsCommand _gAcropolisPromenadeBattleFollowupScript[15] = {
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PROMENADE, 12) }, { .value = ACROPOLIS_PROMENADE_BATTLE_SOUND_PAN_OFFSET }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_PROMENADE, 12) }, { .value = ACROPOLIS_PROMENADE_BATTLE_SOUND_PAN_OFFSET }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PROMENADE, 15) }, { .value = ACROPOLIS_PROMENADE_BATTLE_SOUND_PAN_OFFSET }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_PROMENADE, 15) }, { .value = ACROPOLIS_PROMENADE_BATTLE_SOUND_PAN_OFFSET }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = PLAYER_ACTOR_END_SCRIPTED_DEFAULT }, { .value = 0 } },
@@ -418,10 +418,10 @@ enum {
 
 DirectionWarpEntry gAcropolisPromenadeWarpEntries[5] = {
     { { { .word = 3072 }, 642, 42, 9120 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 642, 42, 9120 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
-    { { { .word = 3072 }, 373, 42, -4230 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 373, 42, -4230 }, { 0, 0, 0, 0 }, SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PROMENADE, 6), SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PROMENADE, 5), DIRECTION_WARP_SOUND_NONE, 4, DIRECTION_WARP_FLAG_NONE, ACROPOLIS_PROMENADE_SANCTUARY_EXIT_MAP_FLAG },
-    { { { .word = 1024 }, -0x3D4E, 0, -2098 }, { 0, 0, 0, 0 }, { { .word = 1024 }, -0x3D4E, 0, -2098 }, { 0, 0, 0, 0 }, SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PROMENADE, 8), SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PROMENADE, 7), DIRECTION_WARP_SOUND_NONE, 8, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+    { { { .word = 3072 }, 373, 42, -4230 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 373, 42, -4230 }, { 0, 0, 0, 0 }, SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_PROMENADE, 6), SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_PROMENADE, 5), DIRECTION_WARP_SOUND_NONE, 4, DIRECTION_WARP_FLAG_NONE, ACROPOLIS_PROMENADE_SANCTUARY_EXIT_MAP_FLAG },
+    { { { .word = 1024 }, -0x3D4E, 0, -2098 }, { 0, 0, 0, 0 }, { { .word = 1024 }, -0x3D4E, 0, -2098 }, { 0, 0, 0, 0 }, SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_PROMENADE, 8), SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_PROMENADE, 7), DIRECTION_WARP_SOUND_NONE, 8, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
     { { { .word = 3072 }, 642, 42, 9120 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 642, 42, 9120 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 7, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
-    { { { .word = 1024 }, -2197, 44, -1977 }, { 0, 0, 0, 0 }, { { .word = 1024 }, -2197, 44, -1977 }, { 0, 0, 0, 0 }, SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PROMENADE, 0x0E), SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PROMENADE, 0x0D), DIRECTION_WARP_SOUND_NONE, 4, DIRECTION_WARP_FLAG_NONE, ACROPOLIS_PROMENADE_BRIDGE_EXIT_MAP_FLAG },
+    { { { .word = 1024 }, -2197, 44, -1977 }, { 0, 0, 0, 0 }, { { .word = 1024 }, -2197, 44, -1977 }, { 0, 0, 0, 0 }, SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_PROMENADE, 0x0E), SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_PROMENADE, 0x0D), DIRECTION_WARP_SOUND_NONE, 4, DIRECTION_WARP_FLAG_NONE, ACROPOLIS_PROMENADE_BRIDGE_EXIT_MAP_FLAG },
 };
 
 /// Room 1 grid's room-axis normals, with 4096 representing unit length.
@@ -552,11 +552,11 @@ static WorldCollisionTrigger _gAcropolisPromenadeViewBoundaryTriggers[6] = {
 /// The LAST-marked sixth quad is live. Setup and collision mutate list state,
 /// coordinates and hits; keep storage live until unlinked.
 static WorldCollisionTrigger _gAcropolisPromenadeActionTriggers[6] = {
-    { NULL, NULL, NULL, { 989, -112, 9028, 0 }, { { -1024, 0, -1024, 0 }, { 1024, 0, -1024, 0 }, { -1024, 0, 1024, 0 }, { 1024, 0, 1024, 0 } }, { 0, ONE, 0, 0 }, { -ONE, 0, 0, 0 }, 1448, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_ACROPOLIS_OBSERVATORY, (4 << 4) | 3, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 752, -112, -3903, 0 }, { { -496, 0, -1215, 0 }, { 496, 0, -1215, 0 }, { -496, 0, 1216, 0 }, { 496, 0, 1216, 0 } }, { 0, 4105, 0, 0 }, { -ONE, 0, 0, 0 }, 1311, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_ACROPOLIS_SANCTUARY, (2 << 4) | 1, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 989, -112, 9028, 0 }, { { -1024, 0, -1024, 0 }, { 1024, 0, -1024, 0 }, { -1024, 0, 1024, 0 }, { 1024, 0, 1024, 0 } }, { 0, ONE, 0, 0 }, { -ONE, 0, 0, 0 }, 1448, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_AKROPOLIS_OBSERVATORY, (4 << 4) | 3, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 752, -112, -3903, 0 }, { { -496, 0, -1215, 0 }, { 496, 0, -1215, 0 }, { -496, 0, 1216, 0 }, { 496, 0, 1216, 0 } }, { 0, 4105, 0, 0 }, { -ONE, 0, 0, 0 }, 1311, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_AKROPOLIS_SANCTUARY, (2 << 4) | 1, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { -1408, -105, 7680, 0 }, { { -1024, 0, -1088, 0 }, { 1024, 0, -1088, 0 }, { -1024, 0, 1088, 0 }, { 1024, 0, 1088, 0 } }, { 0, 4102, 0, 0 }, { 4091, 0, 201, 0 }, 1492, WORLD_COLLISION_TRIGGER_ACTION_CAP, 3, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { -2432, -96, -8512, 0 }, { { -1024, 0, -1024, 0 }, { 1568, 0, -1024, 0 }, { -1024, 0, 1472, 0 }, { 1568, 0, 1472, 0 } }, { 0, 4097, 0, 0 }, { 600, 0, 4051, 0 }, 2141, WORLD_COLLISION_TRIGGER_ACTION_CAP_WEAPON, 5, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -2208, -128, -2048, 0 }, { { -576, 0, -1024, 0 }, { 576, 0, -1024, 0 }, { -576, 0, 1024, 0 }, { 576, 0, 1024, 0 } }, { 0, 4095, 0, 0 }, { 4094, 0, -1, 0 }, 1173, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_ACROPOLIS_BRIDGE, (5 << 4) | 1, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -2208, -128, -2048, 0 }, { { -576, 0, -1024, 0 }, { 576, 0, -1024, 0 }, { -576, 0, 1024, 0 }, { 576, 0, 1024, 0 } }, { 0, 4095, 0, 0 }, { 4094, 0, -1, 0 }, 1173, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_AKROPOLIS_BRIDGE, (5 << 4) | 1, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { -1152, -64, -2608, 0 }, { { -2336, 0, -272, 0 }, { 2336, 0, -752, 0 }, { -2336, 0, 752, 0 }, { 2336, 0, 272, 0 } }, { 0, 4101, 0, 0 }, { -ONE, 0, 0, 0 }, 2442, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, 6, 0, WORLD_COLLISION_TRIGGER_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
@@ -1895,7 +1895,7 @@ static s32 _acropolisPromenadeResolveRoomTransition(Task* unusedTask, s32 unused
     u16          destinationArea;
 
     *reply = *request;
-    if (request->areaId == GAME_AREA_ACROPOLIS_OBSERVATORY && request->queryOnly == ROOM_EVENT_EXECUTE) {
+    if (request->areaId == GAME_AREA_AKROPOLIS_OBSERVATORY && request->queryOnly == ROOM_EVENT_EXECUTE) {
         if (gDisplayState.debugMode < 0 || gStreamInterFile.startSector == 0) {
             reply->warp = ACROPOLIS_PROMENADE_OBSERVATORY_BLOCKED_ARRIVAL;
         }
@@ -1905,7 +1905,7 @@ static s32 _acropolisPromenadeResolveRoomTransition(Task* unusedTask, s32 unused
             reply->warp = ACROPOLIS_PROMENADE_OBSERVATORY_BLOCKED_ARRIVAL;
         }
     }
-    if (request->areaId == GAME_AREA_ACROPOLIS_SANCTUARY && gameFlagGetNibble(GAME_FLAG_ACROPOLIS_BRIDGE_PROGRESS) == 0) {
+    if (request->areaId == GAME_AREA_AKROPOLIS_SANCTUARY && gameFlagGetNibble(GAME_FLAG_AKROPOLIS_BRIDGE_PROGRESS) == 0) {
         if (request->queryOnly == ROOM_EVENT_EXECUTE) {
             reply->warp                                         = ACROPOLIS_PROMENADE_SANCTUARY_SCENE_ARRIVAL;
             _gAcropolisPromenadeSanctuaryExitReply              = *reply;
@@ -1914,8 +1914,8 @@ static s32 _acropolisPromenadeResolveRoomTransition(Task* unusedTask, s32 unused
         return 1;
     }
     destinationArea = request->areaId;
-    if (destinationArea == GAME_AREA_ACROPOLIS_BRIDGE) {
-        if (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_BRIDGE_PROGRESS) == 0) {
+    if (destinationArea == GAME_AREA_AKROPOLIS_BRIDGE) {
+        if (gameFlagGetNibble(GAME_FLAG_AKROPOLIS_BRIDGE_PROGRESS) == 0) {
             if (request->queryOnly == ROOM_EVENT_EXECUTE) {
                 capSpawnEventIfIdle(ACROPOLIS_PROMENADE_BRIDGE_LOCKED_CAP_COMMAND, CAP_EVENT_PAUSE_ACTORS);
                 gameFlagSetNibbleIfPresent(request->flagId, ACROPOLIS_PROMENADE_EXIT_MAP_MARKED);
@@ -1924,7 +1924,7 @@ static s32 _acropolisPromenadeResolveRoomTransition(Task* unusedTask, s32 unused
         }
         if (request->areaId == destinationArea) {
             if (request->queryOnly == ROOM_EVENT_EXECUTE) {
-                if (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_BRIDGE_PROGRESS) == ACROPOLIS_PROMENADE_BRIDGE_SCENE_COMPLETE) {
+                if (gameFlagGetNibble(GAME_FLAG_AKROPOLIS_BRIDGE_PROGRESS) == ACROPOLIS_PROMENADE_BRIDGE_SCENE_COMPLETE) {
                     reply->room = ACROPOLIS_PROMENADE_BRIDGE_ROOM_AFTER_SCENE;
                 } else {
                     reply->room = ACROPOLIS_PROMENADE_BRIDGE_ROOM_BEFORE_SCENE;
@@ -1992,10 +1992,10 @@ static s32 _acropolisPromenadeHandleSoundCue(Task* unusedTask, s32 messageId, s3
 
     switch (soundCue) {
         case ACROPOLIS_PROMENADE_SOUND_CUE_ENTRY_9:
-            sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PROMENADE, 9), 0, 0);
+            sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_PROMENADE, 9), 0, 0);
             break;
         case ACROPOLIS_PROMENADE_SOUND_CUE_CAP_COMMAND_3_DONE:
-            sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PROMENADE, 0x0A), 0, 0);
+            sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_PROMENADE, 0x0A), 0, 0);
             break;
     }
     return 0;
@@ -2335,7 +2335,7 @@ void acropolisPromenadeRoomEffectTask(Task* task)
 /// `period` to 1..4 frames per row. Advances task state without changing age.
 /// Consumes five shared LCG draws in X/Y/lifetime/width/period order, using
 /// unsigned lifetime reduction. Borrows both objects and retains no pointer.
-static __inline__ void _acropolisPromenadeInitializeScreenDrip(Task* task, EffectWork* work)
+static inline void _acropolisPromenadeInitializeScreenDrip(Task* task, EffectWork* work)
 {
     enum {
         ACROPOLIS_PROMENADE_DRIP_COLUMN_COUNT          = 240,
@@ -2436,7 +2436,7 @@ void acropolisPromenadeScreenDripTask(Task* task)
 /// retaining the low 16 bits of each component. Leaves `depth` and the vector's
 /// fourth halfword untouched; changes GTE rotation, V0 and result registers.
 /// Borrows both objects and retains no pointer.
-static __inline__ void _acropolisPromenadeTransformGroundGlowCorner(EffectQuadCornersScratch* quadScratch, s32 cornerIndex, const GfxCoord* coord)
+static inline void _acropolisPromenadeTransformGroundGlowCorner(EffectQuadCornersScratch* quadScratch, s32 cornerIndex, const GfxCoord* coord)
 {
     enum { ACROPOLIS_PROMENADE_GROUND_GLOW_HALF_SIDE = 768 };
     quadScratch->vertices[cornerIndex].vx     = _gAcropolisPromenadeGroundGlowUnitCorners[cornerIndex].axis0Sign * ACROPOLIS_PROMENADE_GROUND_GLOW_HALF_SIDE;
@@ -2459,7 +2459,7 @@ static __inline__ void _acropolisPromenadeTransformGroundGlowCorner(EffectQuadCo
 /// set; coordinates, colour and texture fields remain uninitialized. Does not
 /// check capacity. The caller fills and links it; storage is borrowed from the
 /// current frame arena and must live until GPU completion.
-static __inline__ POLY_FT4* _acropolisPromenadeReserveGroundGlowQuad(void)
+static inline POLY_FT4* _acropolisPromenadeReserveGroundGlowQuad(void)
 {
     POLY_FT4* quad;
 

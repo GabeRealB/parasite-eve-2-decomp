@@ -415,7 +415,7 @@ static inline void _golemKnightBishopDrawShadowInline(Task* task)
 /// composed root position. Dim blue sets ambient RGB to (0, 0, 1024); white
 /// sets it to (4095, 4095, 4095), in Q12 channel units. Recognized requests are
 /// cleared after application; other values leave the room lighting in effect.
-static __inline__ void _golemKnightBishopUpdateTintInline(Task* task)
+static inline void _golemKnightBishopUpdateTintInline(Task* task)
 {
     enum {
         GOLEM_KNIGHT_BISHOP_TINT_NONE        = 0,

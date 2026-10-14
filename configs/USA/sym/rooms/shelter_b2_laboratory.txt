@@ -35,7 +35,7 @@ _gTelephonePlayDataPanelDescriptor = 0x801823B4; // size:0x1C defined:True
 _gTelephoneUsagePanelDescriptor = 0x801823D0; // size:0x1C defined:True
 _gTelephoneMenuRowCallbacks = 0x801823EC; // size:0x10 defined:True
 _gTelephoneMenuList = 0x801823FC; // size:0x24 defined:True
-gAcropolisSquarePostCutsceneAreaUpdates = 0x80188888; // absolute:True owner=acropolis_square
+gAkropolisSquarePostCutsceneAreaUpdates = 0x80188888; // absolute:True owner=akropolis_square
 _gShelterB2LaboratoryAcropolisSanctuaryModel090F0Skeleton = 0x80182420; // size:0x6C defined:True
 _gShelterB2LaboratoryAcropolisSanctuaryModel090F0PartVerts = 0x8018248C; // size:0xC defined:True
 _gShelterB2LaboratoryAcropolisSanctuaryModel090F0Verts = 0x80182498; // size:0x1C0 defined:True

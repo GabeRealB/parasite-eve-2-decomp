@@ -1088,7 +1088,7 @@ static TaskMessageEntry _gActor401000Messages[8] = {
 /// and area without view or variant. The trailing zero row is never read;
 /// its ownership and each row's unread bytes remain unproven.
 static ActorHeightClamp _gActor401000HeightClamps[3] = {
-    { GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PATIO, -300, 0, { 0, 0, 0, 0, 0, 0, 0, 0 } },
+    { GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_PATIO, -300, 0, { 0, 0, 0, 0, 0, 0, 0, 0 } },
     { GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_WOODLAND_PATH, 0, 300, { 0, 0, 0, 0, 0, 0, 0, 0 } },
     { 0, 0, 0, 0, { 0, 0, 0, 0, 0, 0, 0, 0 } },
 };
@@ -1111,21 +1111,21 @@ enum {
     ACTOR_401000_GRID_ROOT_Y_OFFSET       = 75
 };
 
-static __inline__ void _actor401000BindLightingMatrices(Task* actor);
-static __inline__ void _actor401000InitRootPose(GfxCoord* rootCoord, OddStrangerWork* work);
-static void            _actor401000Spawn(Enemy* enemy, Task* actor);
-static void            _actor401000ClampRootHeight(const GameLocationKey* location, GfxCoord* root);
-static __inline__ s32  _actor401000HasRoomHeightClamp(const GameLocationKey* location);
-static s32             _actor401000ApplyGridPushback(GfxCoord* root, const WorldCollisionContact* contacts, s16 contactCount, s16 heightOffset);
-static void            _actor401000Chase(Task* task);
-static void            _oddStrangerGrabReach(Task* task);
-static void            _actor401000FallBack(Task* task);
-static void            _actor401000FallFront(Task* task);
-static void            _actor401000Dormant(Task* task);
-static void            _actor401000Ambush(Task* task);
-static void            _actor401000DeathBurst(Task* task);
-static void            _actor401000RefallBack(Task* task);
-static void            _actor401000RefallFront(Task* task);
+static inline void _actor401000BindLightingMatrices(Task* actor);
+static inline void _actor401000InitRootPose(GfxCoord* rootCoord, OddStrangerWork* work);
+static void        _actor401000Spawn(Enemy* enemy, Task* actor);
+static void        _actor401000ClampRootHeight(const GameLocationKey* location, GfxCoord* root);
+static inline s32  _actor401000HasRoomHeightClamp(const GameLocationKey* location);
+static s32         _actor401000ApplyGridPushback(GfxCoord* root, const WorldCollisionContact* contacts, s16 contactCount, s16 heightOffset);
+static void        _actor401000Chase(Task* task);
+static void        _oddStrangerGrabReach(Task* task);
+static void        _actor401000FallBack(Task* task);
+static void        _actor401000FallFront(Task* task);
+static void        _actor401000Dormant(Task* task);
+static void        _actor401000Ambush(Task* task);
+static void        _actor401000DeathBurst(Task* task);
+static void        _actor401000RefallBack(Task* task);
+static void        _actor401000RefallFront(Task* task);
 
 #include "../../shared/actor/actor_contacts_turn_joint.inc.c"
 
@@ -1143,7 +1143,7 @@ static void            _actor401000RefallFront(Task* task);
 ///
 /// Requires initialized `OddStrangerWork` and a live TMD body. The model borrows
 /// both matrices until teardown; the work block must outlive those references.
-static __inline__ void _actor401000BindLightingMatrices(Task* actor)
+static inline void _actor401000BindLightingMatrices(Task* actor)
 {
     OddStrangerWork* work;
     TmdObject*       model;
@@ -1160,7 +1160,7 @@ static __inline__ void _actor401000BindLightingMatrices(Task* actor)
 /// rotation at ODD_STRANGER_ROOT_SCALE (signed Q12) and marks it dirty, retaining
 /// translation. Resets the history cursor without clearing its samples; clears
 /// occupied grid/hit contacts while retaining their end markers and body links.
-static __inline__ void _actor401000InitRootPose(GfxCoord* rootCoord, OddStrangerWork* work)
+static inline void _actor401000InitRootPose(GfxCoord* rootCoord, OddStrangerWork* work)
 {
     _actorRenderRescaleYaw(rootCoord, ODD_STRANGER_ROOT_SCALE);
     work->bodyPosCursor = 0;
@@ -1395,7 +1395,7 @@ static void _actor401000ClampRootHeight(const GameLocationKey* location, GfxCoor
 ///
 /// View and room-variant bytes are ignored. Only the two active table rows
 /// participate; the trailing zero row is not a bound for stage zero.
-static __inline__ s32 _actor401000HasRoomHeightClamp(const GameLocationKey* location)
+static inline s32 _actor401000HasRoomHeightClamp(const GameLocationKey* location)
 {
     const ActorHeightClamp* row;
     s16                     rowIndex;
@@ -1518,7 +1518,7 @@ static s32 _actor401000ApplyGridPushback(GfxCoord* root, const WorldCollisionCon
 /// offset to the player, the player's matrix yaw and the reverse XZ bearing.
 /// Angles use 4096 units per turn; the reverse bearing retains both +/-2048
 /// endpoints. Reads local transforms without composing them; retains no pointer.
-static __inline__ void _actor401000ReadPlayerBearings(const Task* task, ActorChaseScratch* chase)
+static inline void _actor401000ReadPlayerBearings(const Task* task, ActorChaseScratch* chase)
 {
     chase->playerYaw = ratan2(-gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords->coord.m[2][0],
                               gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords->coord.m[2][2]);
@@ -1685,7 +1685,7 @@ static void _actor401000Chase(Task* task)
 /// reply 1, leaving actor state and animation untouched; reply 0 enters pull and
 /// sets the held flag before replacing the player's bank and playing clip 1.
 /// Requests are consumed synchronously; the installed animation data stays borrowed.
-static __inline__ void _oddStrangerTryStartPlayerHold(OddStrangerWork* work)
+static inline void _oddStrangerTryStartPlayerHold(OddStrangerWork* work)
 {
     enum { ODD_STRANGER_GRAB_HOLD_PRESS_COUNT = 8,
            ODD_STRANGER_GRAB_PLAYER_HOLD_ANIM = 1,
@@ -1887,7 +1887,7 @@ static void _actor401000FallBack(Task* task)
 /// enter status hold, otherwise stay down. Other body flags are retained, and
 /// the reaction flag is tested without consuming it. Call after a fall boundary
 /// or a settled interrupted-rise pose; no animation or lifetime changes occur here.
-static __inline__ void _actor401000FinishFall(OddStrangerWork* work, Enemy* enemy)
+static inline void _actor401000FinishFall(OddStrangerWork* work, Enemy* enemy)
 {
     work->hitBody.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
     if (enemy->hp <= 0) {

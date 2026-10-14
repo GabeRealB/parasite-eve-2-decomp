@@ -7,7 +7,7 @@
 /// Reads the current payload after the caller's sound-stop request. Compares
 /// only the latch's owner nibble, clearing the whole byte on a match regardless
 /// of the claim bit. Other owners are retained; no task storage is released.
-static __inline__ void _madChaserDropDeathReleaseAlert(Task* task)
+static inline void _madChaserDropDeathReleaseAlert(Task* task)
 {
     Enemy* alertEnemy = task->spawnArg2.pointer;
 

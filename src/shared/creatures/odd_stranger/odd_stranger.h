@@ -451,7 +451,7 @@ static void _oddStrangerPatrol(Task* task);
 /// result as its magnitude. Requires one free `OverlayRangeScratch` on the
 /// initialized scratch stack, restored before returning 0 or 1. The sum of
 /// the squared offsets must fit s32 (the two -32768 extremes together do not).
-static __inline__ s32 _oddStrangerOutOfRange(const SVECTOR* offset, s16 radius)
+static inline s32 _oddStrangerOutOfRange(const SVECTOR* offset, s16 radius)
 {
     OverlayRangeScratch* savedCursor;
     OverlayRangeScratch* scratch;

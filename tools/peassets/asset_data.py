@@ -4879,7 +4879,7 @@ ASSETS = {
     'spk_9_sample_02': {"sha1": "9966db42c31ac97f131c2bfc30cf90589593a006", "type": "sample"},
     'spk_9_sample_03': {"sha1": "54d5b2346b84b1dc29b9dacafc3c09d252e067a7", "type": "sample"},
     'acropolis_bridge': {"sha1": "c24f91488b8fd9a1555870bbd30bb4e08d72bb8a", "type": "pe2pkg", 'required': True},
-    'acropolis_square': {"sha1": "aea68621481901e24a676f92121f06fea4c688f3", "type": "pe2pkg", 'required': True},
+    'akropolis_square': {"sha1": "aea68621481901e24a676f92121f06fea4c688f3", "type": "pe2pkg", 'required': True},
     'as12_model_00660': {"sha1": "c9e69627937cc839e5bba8636177810558373f48", "type": "model", 'textures': [[7, 15552]]},
     'diver_burst_head': {"sha1": "1da423001922f5efe65e0398b6cb8499fe7b9fe3", "type": "model", 'textures': [[183, 15744]]},
     'dryfield_factory': {"sha1": "9361f98fa3df2cc02e248c8e6fd10b6edde44045", "type": "pe2pkg", 'required': True},
@@ -9267,8 +9267,8 @@ TREE = {
     },
     1: {
         "folders": {
-            'acropolis_square': {"id": 101, "files": {
-                'file0': {"id": 0, "chunks": {'spk_152': 'spk_152', 'spk_153': 'spk_153', 'pe2img_303': 'pe2img_303', 'package': 'acropolis_square', 'pe2cap2_4': 'pe2cap2_4'}},
+            'akropolis_square': {"id": 101, "files": {
+                'file0': {"id": 0, "chunks": {'spk_152': 'spk_152', 'spk_153': 'spk_153', 'pe2img_303': 'pe2img_303', 'package': 'akropolis_square', 'pe2cap2_4': 'pe2cap2_4'}},
                 'file1': {"id": 1, "chunks": {'bs_41': 'bs_41'}},
                 'file2': {"id": 2, "chunks": {'bs_42': 'bs_42'}},
                 'file3': {"id": 3, "chunks": {'pe2img_304': 'pe2img_304', 'bs_43': 'bs_43'}},

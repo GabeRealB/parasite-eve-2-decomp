@@ -1703,42 +1703,42 @@ SVECTOR ActorContact_ScratchPosition = { 0 };
 /// to the scene for routing as `ACTOR_COMMAND_MESSAGE_APPLY`, consumed before return.
 static ActorCommand _gActor403000DeathCommand = { 0 };
 
-static void                _actor403000DrawFlare(GfxCoord* flareCoord, const SVECTOR* localPosition, s32 unusedArg);
-static void                _actor403000RecordFlareTrail(GfxCoord* flareCoord);
-static void                _actor403000UpdateTorsoSway(Task* task);
-static void                _actor403000UpdateHeadSway(Task* task);
-static void                _actor403000TickBlendedSlots(Task* task);
-static s32                 _actor403000PollAnimationSound(Task* task, Actor403000Work* work);
-static s32                 _actor403000CanChasePlayer(Task* task, s16 actorCell, s16 playerCell);
-static void                _actor403000Spawn(Enemy* enemy, Task* task);
-static void                _actor403000SpawnHitEffects(Task* task, s16 hitYaw, s32 attackKey);
-static s32                 _actor403000CheckTargetBlast(Task* task);
-static inline s32          _actor403000FindAttackContact(SVECTOR* contactPosition, const WorldCollisionContact* contacts);
-static inline void         _actor403000PlaySound(const Task* actorTask, const Enemy* placementOwner, s32 soundId);
-static void                _actor403000StunnedState(Task* task);
-static void                _actor403000DissolveState(Task* actorTask);
-static void                _actor403000ScriptedDissolveState(Task* actorTask);
-static void                _actor403000ScriptedBurnState(Task* actorTask);
-static void                _actor403000ScriptedSmolderState(Task* actorTask);
-static __inline__ void     _actor403000ScaleVectorQ12(SVECTOR* vector, u16 scaleQ12);
-static __inline__ SVECTOR* _actor403000ReserveScratchVector(void);
-static __inline__ void     _actor403000ReleaseScratchVector(void);
-static inline s8           _actor403000GetRingCell(GfxCoord* coord);
-static void                _actor403000ChaseState(Task* actorTask);
-static void                _actor403000GrabCatchState(Task* actorTask);
-static void                _actor403000LungeState(Task* actorTask);
-static void                _actor403000LungeCatchState(Task* actorTask);
-static void                _actor403000KnockdownState(Task* actorTask);
-static void                _actor403000ApproachState(Task* actorTask);
-static void                _actor403000RetreatState(Task* actorTask);
-static void                _actor403000PatrolState(Task* actorTask);
-static void                _actor403000WatchState(Task* actorTask);
-static void                _actor403000TurnState(Task* actorTask);
-static void                _actor403000DropCatchState(Task* actorTask);
-static void                _actor403000AmbushState(Task* actorTask);
-static void                _actor403000ProwlState(Task* actorTask);
-static void                _actor403000Update(Enemy* enemy, Task* actorTask);
-static s32                 _actor403000GetPatrolGoalCell(s32 playerCell);
+static void            _actor403000DrawFlare(GfxCoord* flareCoord, const SVECTOR* localPosition, s32 unusedArg);
+static void            _actor403000RecordFlareTrail(GfxCoord* flareCoord);
+static void            _actor403000UpdateTorsoSway(Task* task);
+static void            _actor403000UpdateHeadSway(Task* task);
+static void            _actor403000TickBlendedSlots(Task* task);
+static s32             _actor403000PollAnimationSound(Task* task, Actor403000Work* work);
+static s32             _actor403000CanChasePlayer(Task* task, s16 actorCell, s16 playerCell);
+static void            _actor403000Spawn(Enemy* enemy, Task* task);
+static void            _actor403000SpawnHitEffects(Task* task, s16 hitYaw, s32 attackKey);
+static s32             _actor403000CheckTargetBlast(Task* task);
+static inline s32      _actor403000FindAttackContact(SVECTOR* contactPosition, const WorldCollisionContact* contacts);
+static inline void     _actor403000PlaySound(const Task* actorTask, const Enemy* placementOwner, s32 soundId);
+static void            _actor403000StunnedState(Task* task);
+static void            _actor403000DissolveState(Task* actorTask);
+static void            _actor403000ScriptedDissolveState(Task* actorTask);
+static void            _actor403000ScriptedBurnState(Task* actorTask);
+static void            _actor403000ScriptedSmolderState(Task* actorTask);
+static inline void     _actor403000ScaleVectorQ12(SVECTOR* vector, u16 scaleQ12);
+static inline SVECTOR* _actor403000ReserveScratchVector(void);
+static inline void     _actor403000ReleaseScratchVector(void);
+static inline s8       _actor403000GetRingCell(GfxCoord* coord);
+static void            _actor403000ChaseState(Task* actorTask);
+static void            _actor403000GrabCatchState(Task* actorTask);
+static void            _actor403000LungeState(Task* actorTask);
+static void            _actor403000LungeCatchState(Task* actorTask);
+static void            _actor403000KnockdownState(Task* actorTask);
+static void            _actor403000ApproachState(Task* actorTask);
+static void            _actor403000RetreatState(Task* actorTask);
+static void            _actor403000PatrolState(Task* actorTask);
+static void            _actor403000WatchState(Task* actorTask);
+static void            _actor403000TurnState(Task* actorTask);
+static void            _actor403000DropCatchState(Task* actorTask);
+static void            _actor403000AmbushState(Task* actorTask);
+static void            _actor403000ProwlState(Task* actorTask);
+static void            _actor403000Update(Enemy* enemy, Task* actorTask);
+static s32             _actor403000GetPatrolGoalCell(s32 playerCell);
 
 #include "../../shared/actor/actor_contacts_turn_joint.inc.c"
 
@@ -3698,7 +3698,7 @@ static void _actor403000ScriptedSmolderState(Task* actorTask)
 /// saturation and `pad` is untouched. Clobbers GTE working state and retains
 /// no storage. The low halfword of `scaleQ12` is transferred unchanged to the
 /// signed GTE multiplier.
-static __inline__ void _actor403000ScaleVectorQ12(SVECTOR* vector, u16 scaleQ12)
+static inline void _actor403000ScaleVectorQ12(SVECTOR* vector, u16 scaleQ12)
 {
     gte_lddp(scaleQ12);
     gte_ldsv(vector);
@@ -3711,7 +3711,7 @@ static __inline__ void _actor403000ScaleVectorQ12(SVECTOR* vector, u16 scaleQ12)
 /// The cursor must be initialized and have room for an aligned `SVECTOR`.
 /// Release the vector in reverse reservation order with
 /// `SCRATCH_STACK_RELEASE_BLOCK(SVECTOR)`; its lifetime ends at release.
-static __inline__ SVECTOR* _actor403000ReserveScratchVector(void)
+static inline SVECTOR* _actor403000ReserveScratchVector(void)
 {
     SVECTOR* scratchEnd;
 
@@ -3724,7 +3724,7 @@ static __inline__ SVECTOR* _actor403000ReserveScratchVector(void)
 ///
 /// The top reservation must be one `SVECTOR`; release in reverse order.
 /// Its bytes are untouched and become available to the next reservation.
-static __inline__ void _actor403000ReleaseScratchVector(void)
+static inline void _actor403000ReleaseScratchVector(void)
 {
     SCRATCH_STACK_RELEASE_BLOCK(SVECTOR);
 }

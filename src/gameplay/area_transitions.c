@@ -188,22 +188,22 @@ static inline s32 _areaHasMapMark(const GameLocationKey* key)
 /// unchanged. The final zero record after the terminator is unread and its
 /// purpose is unproven; retain it with the list's twenty-record extent.
 static _AreaMapMarkRec _gAreaAcropolisNewGameMapMarks[20] = {
-    { GAME_AREA_ACROPOLIS_SQUARE, false },
-    { GAME_AREA_ACROPOLIS_EAST_ELEVATOR_HALL, false },
-    { GAME_AREA_ACROPOLIS_PATIO, true },
-    { GAME_AREA_ACROPOLIS_CAFETERIA, false },
-    { GAME_AREA_ACROPOLIS_PLAZA, false },
-    { GAME_AREA_ACROPOLIS_SECURITY_ROOM, false },
-    { GAME_AREA_ACROPOLIS_HALLWAY, true },
-    { GAME_AREA_ACROPOLIS_FOUNTAIN, false },
-    { GAME_AREA_ACROPOLIS_FORKED_ROAD, false },
-    { GAME_AREA_ACROPOLIS_OBSERVATORY, true },
-    { GAME_AREA_ACROPOLIS_PROMENADE, true },
-    { GAME_AREA_ACROPOLIS_SANCTUARY, false },
-    { GAME_AREA_ACROPOLIS_ROOF_GARDEN, false },
-    { GAME_AREA_ACROPOLIS_BRIDGE, true },
-    { GAME_AREA_ACROPOLIS_FIRE_ESCAPE, true },
-    { GAME_AREA_ACROPOLIS_HELICOPTER_LANDING_PAD, false },
+    { GAME_AREA_AKROPOLIS_SQUARE, false },
+    { GAME_AREA_AKROPOLIS_EAST_ELEVATOR_HALL, false },
+    { GAME_AREA_AKROPOLIS_PATIO, true },
+    { GAME_AREA_AKROPOLIS_CAFETERIA, false },
+    { GAME_AREA_AKROPOLIS_PLAZA, false },
+    { GAME_AREA_AKROPOLIS_SECURITY_ROOM, false },
+    { GAME_AREA_AKROPOLIS_HALLWAY, true },
+    { GAME_AREA_AKROPOLIS_FOUNTAIN, false },
+    { GAME_AREA_AKROPOLIS_FORKED_ROAD, false },
+    { GAME_AREA_AKROPOLIS_OBSERVATORY, true },
+    { GAME_AREA_AKROPOLIS_PROMENADE, true },
+    { GAME_AREA_AKROPOLIS_SANCTUARY, false },
+    { GAME_AREA_AKROPOLIS_ROOF_GARDEN, false },
+    { GAME_AREA_AKROPOLIS_BRIDGE, true },
+    { GAME_AREA_AKROPOLIS_FIRE_ESCAPE, true },
+    { GAME_AREA_AKROPOLIS_HELICOPTER_LANDING_PAD, false },
     { GAME_AREA_MIST_R18, false },
     { GAME_AREA_MIST_PARKING, false },
     { AREA_MAP_MARK_END, 0 },
@@ -362,7 +362,7 @@ static inline void _areaApplyNewGameMapMarksForStage(s16 stageId, const _AreaMap
 
 void areaApplyNewGameMapMarks(void)
 {
-    _areaApplyNewGameMapMarksForStage(GAME_STAGE_ACROPOLIS, _gAreaAcropolisNewGameMapMarks);
+    _areaApplyNewGameMapMarksForStage(GAME_STAGE_AKROPOLIS, _gAreaAcropolisNewGameMapMarks);
     _areaApplyNewGameMapMarksForStage(GAME_STAGE_DRYFIELD, _gAreaDryfieldNewGameMapMarks);
     _areaApplyNewGameMapMarksForStage(GAME_STAGE_MINE_SHELTER, _gAreaMineShelterNewGameMapMarks);
     _areaApplyNewGameMapMarksForStage(GAME_STAGE_SHELTER_NEO_ARK, _gAreaShelterNeoArkNewGameMapMarks);
@@ -400,8 +400,8 @@ void menuMapRebuildMarkedAreaBits(void)
     areaKey.view  = 2;
     areaKey.stage = stageId;
     // Refresh only this stage's area bits; higher bits retain their prior values.
-    if (gGameSession->location.stage - GAME_STAGE_ACROPOLIS < MENU_MAP_STAGE_COUNT) {
-        areaCount = gMenuMapStageAreaCounts.markedAreaIdLimits[currentLocation->stage - GAME_STAGE_ACROPOLIS];
+    if (gGameSession->location.stage - GAME_STAGE_AKROPOLIS < MENU_MAP_STAGE_COUNT) {
+        areaCount = gMenuMapStageAreaCounts.markedAreaIdLimits[currentLocation->stage - GAME_STAGE_AKROPOLIS];
         for (areaId = 1; areaId <= areaCount; areaId++) {
             areaKey.area = areaId;
             if (_areaHasMapMark(&areaKey) == 1) {
@@ -491,7 +491,7 @@ s16 menuMapGetMarkerState(s16 markerIndex)
     };
 
     switch (gGameSession->location.stage) {
-        case GAME_STAGE_ACROPOLIS:
+        case GAME_STAGE_AKROPOLIS:
             if (markerIndex >= MENU_MAP_ACROPOLIS_MARKER_COUNT) {
                 break;
             }

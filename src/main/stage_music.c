@@ -127,7 +127,7 @@ static u8 _gStageMusicSequenceId = 0;
 /// Entries borrow map-overlay storage, which must remain loaded throughout a
 /// music task's selection lifetime. Neither stage nor entry indices are checked.
 static StageMusicEntry* _gStageAreaMusicTables[GAME_STAGE_SHELTER_NEO_ARK] = {
-    [GAME_STAGE_ACROPOLIS - 1]       = gMapAkropolisAreaMusicEntries,
+    [GAME_STAGE_AKROPOLIS - 1]       = gMapAkropolisAreaMusicEntries,
     [GAME_STAGE_DRYFIELD - 1]        = gMapDryfieldAreaMusicEntries,
     [GAME_STAGE_DRYFIELD_NIGHT - 1]  = gMapDryfieldFullAreaMusicEntries,
     [GAME_STAGE_MINE_SHELTER - 1]    = gMapShelterAreaMusicEntries,
@@ -139,7 +139,7 @@ static StageMusicEntry* _gStageAreaMusicTables[GAME_STAGE_SHELTER_NEO_ARK] = {
 /// `gStageCountdownMusicEntry` in 0..19. The lists borrow map-overlay storage
 /// through completion of the music task; no bounds checks or terminators exist.
 static StageMusicEntry* _gStageCountdownMusicTables[GAME_STAGE_SHELTER_NEO_ARK] = {
-    [GAME_STAGE_ACROPOLIS - 1]       = gMapAkropolisCountdownMusicEntries,
+    [GAME_STAGE_AKROPOLIS - 1]       = gMapAkropolisCountdownMusicEntries,
     [GAME_STAGE_DRYFIELD - 1]        = gMapDryfieldCountdownMusicEntries,
     [GAME_STAGE_DRYFIELD_NIGHT - 1]  = gMapDryfieldFullCountdownMusicEntries,
     [GAME_STAGE_MINE_SHELTER - 1]    = gMapShelterCountdownMusicEntries,

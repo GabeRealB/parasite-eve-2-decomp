@@ -6,7 +6,7 @@
 /// wrapping u16 Q12 scale, then interprets it as s16 for the SDK multiplication.
 /// Copies the complete saved matrix before scaling its basis, retaining the
 /// saved translation. The caller dirties coordinate composition.
-static __inline__ void _madChaserScaleShrinkRoot(MadChaserWork* work, GfxCoord* root)
+static inline void _madChaserScaleShrinkRoot(MadChaserWork* work, GfxCoord* root)
 {
     enum { MAD_CHASER_SHRINK_SCALE_STEP = ONE / 64 };
     VECTOR scale;

@@ -61,7 +61,7 @@ enum {
 
 static inline u32* _tmdXformStreamVertsEnvMapLitReduced(TmdStreamWorkspace* workspace, u32* elements);
 
-static __inline__ void _actorRenderRefreshCoord(GfxCoord* coord, s32 stamp, s32 parity, GfxCoord* root);
+static inline void _actorRenderRefreshCoord(GfxCoord* coord, s32 stamp, s32 parity, GfxCoord* root);
 
 static u32* _tmdXformStreamVertsGreyEnvLayerReduced(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements);
 
@@ -279,7 +279,7 @@ static inline u32* _tmdXformStreamVertsEnvMapLitReduced(TmdStreamWorkspace* work
 /// excluded ancestor, a clear stamp copies the local matrix into `workm` and
 /// any other stamp keeps the cached matrix. `gte_RotTransLV` keeps the local
 /// translation's full signed range; its chunk products round separately.
-static __inline__ void _actorRenderRefreshCoord(GfxCoord* coord, s32 stamp, s32 parity, GfxCoord* root)
+static inline void _actorRenderRefreshCoord(GfxCoord* coord, s32 stamp, s32 parity, GfxCoord* root)
 {
     GfxCoord* parent;
 

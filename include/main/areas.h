@@ -7,7 +7,7 @@
 /// loaded as a unit with its own area tables. An area is a folder within one.
 enum {
     GAME_STAGE_NONE            = 0, // No active stage
-    GAME_STAGE_ACROPOLIS       = 1, // Akropolis Tower and the MIST
+    GAME_STAGE_AKROPOLIS       = 1, // Akropolis Tower and the MIST
     GAME_STAGE_DRYFIELD        = 2, // Dryfield by day
     GAME_STAGE_DRYFIELD_NIGHT  = 3, // Dryfield by night
     GAME_STAGE_MINE_SHELTER    = 4, // The mine, and the Shelter from 1F to B4
@@ -21,24 +21,24 @@ enum {
 /// numbers its own folders, so the same value names a different room in
 /// another stage. The constant names the room folder it selects.
 enum {
-    // GAME_STAGE_ACROPOLIS
-    GAME_AREA_ACROPOLIS_SQUARE                 = 1,
-    GAME_AREA_ACROPOLIS_EAST_ELEVATOR_HALL     = 2,
-    GAME_AREA_ACROPOLIS_PATIO                  = 3,
-    GAME_AREA_ACROPOLIS_CAFETERIA              = 4,
-    GAME_AREA_ACROPOLIS_PLAZA                  = 5,
-    GAME_AREA_ACROPOLIS_SECURITY_ROOM          = 6,
-    GAME_AREA_ACROPOLIS_HALLWAY                = 7,
-    GAME_AREA_ACROPOLIS_FOUNTAIN               = 8,
-    GAME_AREA_ACROPOLIS_FORKED_ROAD            = 9,
-    GAME_AREA_ACROPOLIS_OBSERVATORY            = 10,
-    GAME_AREA_ACROPOLIS_PROMENADE              = 11,
-    GAME_AREA_ACROPOLIS_SANCTUARY              = 12,
-    GAME_AREA_ACROPOLIS_ROOF_GARDEN            = 13,
-    GAME_AREA_ACROPOLIS_BRIDGE                 = 14,
-    GAME_AREA_ACROPOLIS_FIRE_ESCAPE            = 15,
-    GAME_AREA_ACROPOLIS_HELICOPTER_LANDING_PAD = 16,
-    GAME_AREA_ACROPOLIS_WEST_ELEVATOR_HALL     = 17,
+    // GAME_STAGE_AKROPOLIS
+    GAME_AREA_AKROPOLIS_SQUARE                 = 1,
+    GAME_AREA_AKROPOLIS_EAST_ELEVATOR_HALL     = 2,
+    GAME_AREA_AKROPOLIS_PATIO                  = 3,
+    GAME_AREA_AKROPOLIS_CAFETERIA              = 4,
+    GAME_AREA_AKROPOLIS_PLAZA                  = 5,
+    GAME_AREA_AKROPOLIS_SECURITY_ROOM          = 6,
+    GAME_AREA_AKROPOLIS_HALLWAY                = 7,
+    GAME_AREA_AKROPOLIS_FOUNTAIN               = 8,
+    GAME_AREA_AKROPOLIS_FORKED_ROAD            = 9,
+    GAME_AREA_AKROPOLIS_OBSERVATORY            = 10,
+    GAME_AREA_AKROPOLIS_PROMENADE              = 11,
+    GAME_AREA_AKROPOLIS_SANCTUARY              = 12,
+    GAME_AREA_AKROPOLIS_ROOF_GARDEN            = 13,
+    GAME_AREA_AKROPOLIS_BRIDGE                 = 14,
+    GAME_AREA_AKROPOLIS_FIRE_ESCAPE            = 15,
+    GAME_AREA_AKROPOLIS_HELICOPTER_LANDING_PAD = 16,
+    GAME_AREA_AKROPOLIS_WEST_ELEVATOR_HALL     = 17,
     GAME_AREA_MIST_R18                         = 18,
     GAME_AREA_MIST_PARKING                     = 19,
     GAME_AREA_MIST_SHOOTING_GALLERY            = 20,

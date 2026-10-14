@@ -1716,7 +1716,7 @@ void actor260500StartHeliportConversation(void)
 /// request before ticking parts 1 through 18. Binding neither initializes slots
 /// nor clears poses or writes model coordinates. Remaining travel and turn
 /// updates start at zero.
-static __inline__ void _actor260500PrepareWalkerAnimation(TmdObject* model)
+static inline void _actor260500PrepareWalkerAnimation(TmdObject* model)
 {
     enum { ACTOR_260500_STARTUP_ANIM_ID = 4 };
 

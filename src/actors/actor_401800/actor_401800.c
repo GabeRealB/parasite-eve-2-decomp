@@ -1159,7 +1159,7 @@ static void _actor401800BurstDeath(Task* task);
 ///
 /// Requires a live TMD task with initialized work. The work matrices must remain
 /// live until the model stops using them; this does not initialize their values.
-static __inline__ void _actor401800BindLightingMatrices(const Task* actor)
+static inline void _actor401800BindLightingMatrices(const Task* actor)
 {
     OddStrangerWork* work;
     TmdObject*       model;
@@ -1364,7 +1364,7 @@ static void _actor401800Initialize(Enemy* enemy, Task* actor)
 /// narrow to signed-halfword game units. The reverse bearing is measured from
 /// that narrowed X/Z delta; angles use 4096 units per turn and normalization
 /// retains both half-turn endpoints. Other scratch fields remain unchanged.
-static __inline__ void _actor401800ReadPlayerBearings(const Task* task, ActorChaseScratch* chase)
+static inline void _actor401800ReadPlayerBearings(const Task* task, ActorChaseScratch* chase)
 {
     chase->playerYaw = ratan2(-gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords->coord.m[2][0],
                               gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords->coord.m[2][2]);
@@ -1500,7 +1500,7 @@ static void _actor401800Chase(Task* task)
 /// are untouched. Requires one free word-aligned SVECTOR on the initialized
 /// scratch stack, restored before returning.
 /// Overwrites GTE transform state; captured overflow flags are discarded.
-static __inline__ void _actor401800PlayerJointOffsetXZ(const GfxCoord* reference, SVECTOR* transformedPoint, SVECTOR* offset)
+static inline void _actor401800PlayerJointOffsetXZ(const GfxCoord* reference, SVECTOR* transformedPoint, SVECTOR* offset)
 {
     VECTOR          longPoint;
     SVECTOR*        playerOrigin;
@@ -1571,7 +1571,7 @@ static __inline__ void _actor401800PlayerJointOffsetXZ(const GfxCoord* reference
 ///
 /// Character 1 uses the populated grab bank; every other value selects the
 /// alternate bank. The persistent request borrows the selected overlay table.
-static __inline__ void _actor401800SelectPlayerGrabAnimations(void)
+static inline void _actor401800SelectPlayerGrabAnimations(void)
 {
     enum { ACTOR_401800_PRIMARY_CHARACTER_ID = 1 };
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == ACTOR_401800_PRIMARY_CHARACTER_ID) {
@@ -1587,7 +1587,7 @@ static __inline__ void _actor401800SelectPlayerGrabAnimations(void)
 /// Saves XYZ in parent-space game units, narrowed to signed halfwords without
 /// saturation; pad is unchanged. The behaviour dispatcher restores these values
 /// when leaving GRAB or GRAB_STRIKE. The caller resolves contacts before saving.
-static __inline__ void _actor401800SaveGrabOrigin(const Task* task, OddStrangerWork* work)
+static inline void _actor401800SaveGrabOrigin(const Task* task, OddStrangerWork* work)
 {
     work->grabStartPos.vx = task->extra.tmd->coords->coord.t[0];
     work->grabStartPos.vy = task->extra.tmd->coords->coord.t[1];
@@ -1721,7 +1721,7 @@ static void _actor401800Grab(Task* task)
 /// positive HP selects STATUS_HOLD with buildup, otherwise DOWN. Changes only
 /// the grid-enable flag and behaviour state; the dispatcher performs entry on
 /// its next update. Does not unlink bodies or alter Task::state.
-static __inline__ void _actor401800CompleteKnockdown(OddStrangerWork* work, const Enemy* enemy)
+static inline void _actor401800CompleteKnockdown(OddStrangerWork* work, const Enemy* enemy)
 {
     work->hitBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
     if (enemy->hp <= 0) {

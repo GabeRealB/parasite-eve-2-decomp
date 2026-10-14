@@ -1486,7 +1486,7 @@ static void _glowDrawCapsule(const SVECTOR worldPoints[2], s32 radiusScale, s32 
 /// Returns the room's HANDLED result when eligible, DEFAULT_DEPARTURE otherwise. Every call clears
 /// the event-start byte, including queries; execution sets it even if spawning
 /// fails. The staged task must finish before another event replaces the slot.
-static __inline__ s32 _shelterB1PodAccessTunnelStartEvent(const RoomEventMsg* destination, const RoomLatchedEvent* event)
+static inline s32 _shelterB1PodAccessTunnelStartEvent(const RoomEventMsg* destination, const RoomLatchedEvent* event)
 {
     enum { EVENT_FLAG_CLEAR   = 0,
            EVENT_FLAG_LATCHED = 1,

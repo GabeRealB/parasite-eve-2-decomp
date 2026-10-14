@@ -1030,12 +1030,12 @@ static void _actor206100EntranceHoldPlayer(Task* task);
 
 static void _actor206100EntranceLeadInTick(Task* task);
 
-static void           _actor206100TrackTarget(Task* task);
-static void           _actor206100TakeHits(Task* task);
-static inline void    _actor206100AnimUpdate(Task* task);
-static void           _actor206100Spawn(Task* task);
-static void           _actor206100EntranceRelocateTick(Task* task);
-static __inline__ s16 _actor206100ConsumeHitReaction(Task* task);
+static void        _actor206100TrackTarget(Task* task);
+static void        _actor206100TakeHits(Task* task);
+static inline void _actor206100AnimUpdate(Task* task);
+static void        _actor206100Spawn(Task* task);
+static void        _actor206100EntranceRelocateTick(Task* task);
+static inline s16  _actor206100ConsumeHitReaction(Task* task);
 
 #include "../../shared/screen/screen_wave.inc.c"
 
@@ -2177,7 +2177,7 @@ static void _actor206100EntranceArrivalTick(Task* task)
 /// Status and blast reactions stop the attack-loop sound and select status
 /// hold or recoil at substate 0, returning 1 to skip the current handler.
 /// Clears the pending reaction when handled, but preserves the hit flag.
-static __inline__ s16 _actor206100ConsumeHitReaction(Task* task)
+static inline s16 _actor206100ConsumeHitReaction(Task* task)
 {
     enum { ACTOR_206100_LIGHT_RECOIL_PEAK = 0x135,
            ACTOR_206100_HEAVY_RECOIL_PEAK = 0x3A0 };

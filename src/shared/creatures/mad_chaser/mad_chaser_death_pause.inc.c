@@ -25,7 +25,7 @@ static void _madChaserDeathPause(Task* task)
 /// grid and attack bodies in order, clearing linked bodies' pass-enable flags
 /// and list links. Already unlinked bodies are unchanged. Their shape kinds and
 /// contact arrays stay owned by the task until despawn releases its work block.
-static __inline__ void _madChaserBurstUnlinkBodies(MadChaserWork* bodyWork)
+static inline void _madChaserBurstUnlinkBodies(MadChaserWork* bodyWork)
 {
     worldCollisionUnlinkBody(&bodyWork->pairBody);
     worldCollisionUnlinkBody(&bodyWork->gridBody);
@@ -105,7 +105,7 @@ static void _madChaserDespawn(Task* task)
 ///
 /// Requires initialized task-owned animation storage. Reloads live request
 /// work; the frame callback applies the request and ticks the animation.
-static __inline__ void _madChaserRecoilLightRequestClip(Task* task, s16 recoilClip)
+static inline void _madChaserRecoilLightRequestClip(Task* task, s16 recoilClip)
 {
     enum { MAD_CHASER_LIGHT_RECOIL_BLEND_FRAMES = 8 };
     MadChaserWork* requestWork = task->work;

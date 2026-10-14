@@ -9008,7 +9008,7 @@ diffs against the relocatable `j` your build emits. A leftover
 mismatch. On the match, delete **all** of that function's `INCLUDE_ASM` lines
 — the label ones included.
 
-**A host `.c`'s `static __inline__` helpers are invisible to the scratch unit.**
+**A host `.c`'s `static inline` helpers are invisible to the scratch unit.**
 The scratch env compiles only the candidate file, so a helper defined above the
 `INCLUDE_ASM` in the host `.c` (here `_actorAngleBearingXZ` / `_actorAngleBearingXY`) has
 no definition in scope: the call is emitted against an implicit declaration and
@@ -9167,7 +9167,7 @@ the twin inlined `_actorContactCalcHorizontalPushback`, so a local `_actorContac
 be written out. A sibling in `src/<family>/lib/` is also *already promoted*;
 porting does not license a second promotion, and the retry brief can forbid one
 outright while the other carriers are leased.
-**A host TU's `static __inline__` helper is a sibling too, and it is not in
+**A host TU's `static inline` helper is a sibling too, and it is not in
 the scratch's includes.** The candidate keeps the includes and the externs, but
 not the helper the host file defines above the function: call it without a copy
 in the candidate and C89's implicit declaration makes it a real `jal`.
@@ -9179,7 +9179,7 @@ elsewhere in the function. `_actor206100SurfaceSplashTick` scored 92.162% with
 `move a1,s3` sitting two slots late in an unrelated loop body; copying
 `_diverSetState` into the candidate verbatim — the body was already right — took it
 to 100.000% with every penalty zero, the loop's schedule included. Port every
-`static __inline__` the body calls into the candidate before reading a
+`static inline` the body calls into the candidate before reading a
 scheduling difference as a scheduling story.
 
 **A lone register swap in the sibling diff names the constant that changed.**
@@ -9635,7 +9635,7 @@ In the new file the call was implicit, the `u8` argument was passed as an `int`,
 and `lbu` became `lh` - a one-byte checksum failure (`cmp -l` found it). Fix:
 put the prototype in the overlay header. Two related steps: calls that ran the
 other way were already implicit before the split, so they are unaffected, and
-`static __inline__` helpers used on both sides of the cut move to a header
+`static inline` helpers used on both sides of the cut move to a header
 (`actor_400600_anim.h`) instead of being duplicated.
 
 **A shared-text twin needs the cut in every overlay that carries the body.**
@@ -17651,7 +17651,7 @@ scratch shapes are distinguishable at a glance: an `sv`/`sh` at `scratch + 0x08`
 means the 0x18 block, a `sw` there means a plain `VECTOR` with the block based
 at `-0x10`.
 
-## `static __inline__` forces scratch-head rematerialisation (not s-reg CSE)
+## `static inline` forces scratch-head rematerialisation (not s-reg CSE)
 
 `gfxSetFlatLight` takes `MATRIX* directionMatrix/colorMatrix` and keeps
 `scratch = SCRATCH_STACK_CURSOR_SLOT` in a callee-saved reg (`lui`/`ori` + `$sN`).
@@ -17661,11 +17661,11 @@ at `-0x10`.
 
 Writing the body with local matrix pointers plus direct
 `*(void**)0x1F8003FC` still CSE's the address into `$s5` (frame `0x30`).
-The match is a `static __inline__` helper that takes the matrix pointers,
+The match is a `static inline` helper that takes the matrix pointers,
 called as:
 
 ```c
-static __inline__ void _gfxWriteFlatLightMatrices(s32 lightIndex, const GsF_LIGHT* light,
+static inline void _gfxWriteFlatLightMatrices(s32 lightIndex, const GsF_LIGHT* light,
                                                 MATRIX* directionMatrix, MATRIX* colorMatrix)
 {
     /* same body as gfxSetFlatLight */
@@ -24776,7 +24776,7 @@ are all positive). Use a signed mask so the AND result stays SImode:
 ```c
 locationWord = *(const volatile s32*)&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location;
 switch (locationWord & (s32)GAME_LOCATION_STAGE_AREA_MASK) {
-    case GAME_LOCATION_KEY(GAME_STAGE_ACROPOLIS, GAME_AREA_MIST_PARKING, 0, 0):
+    case GAME_LOCATION_KEY(GAME_STAGE_AKROPOLIS, GAME_AREA_MIST_PARKING, 0, 0):
         /* ... */
 }
 ```
@@ -37341,7 +37341,7 @@ matrix. Whenever the target's only visible local sits at `+4` inside a local
 area whose size matches a known struct, look for a struct whose interesting
 member is at offset 4 rather than padding the frame by hand.
 
-## `static __inline__` also flips scratch-head codegen at a single call site
+## `static inline` also flips scratch-head codegen at a single call site
 
 The `_gfxSetDefaultFlatLight` note above (inline helper → `lui 0x1F80` /
 `lw|sw 0x3FC` per access, instead of CSE into an `$sN`) is not specific to
@@ -37350,7 +37350,7 @@ gets the rematerialised form. Writing the same body straight into the caller —
 with a plain constant, a `volatile` cast, an intervening `memory` barrier, or a
 `void** scratch = SCRATCH_STACK_CURSOR_SLOT` local — always CSEs the address into a
 callee-saved register. When the target rematerialises `0x1F8003FC`, move the
-whole alloc/use/free block into a `static __inline__` helper; nothing else
+whole alloc/use/free block into a `static inline` helper; nothing else
 reproduces it.
 
 ## Lengthen a parameter's live range to push it into a higher `$s` register
@@ -37918,7 +37918,7 @@ macros has to be matched by hand. Also note the flag must be written `-j 4`
 with a space: `permute.sh` only recognises the literal token `-j`, so `-j4`
 falls through and is consumed as the function name.
 
-## A barrier inside a shared `static __inline__` changes the *caller's* register allocation
+## A barrier inside a shared `static inline` changes the *caller's* register allocation
 
 `_gfxCoordToReference` in `src/gameplay/gameplay.c` ended with an
 `__asm__ volatile("" ::"r"(index));` that a previous match (`_viewQueueCoord`)
@@ -41016,7 +41016,7 @@ Write the control flow literally, with a shared fall-through `ok = 0`:
 have:
 ```
 
-## `static __inline__` helpers when a stack copy steals an address register
+## `static inline` helpers when a stack copy steals an address register
 
 Copying a scratch vector to a stack `SVECTOR` and feeding it to `gte_ldv0`
 puts the `addiu` for `&sv` in the wrong place:
@@ -41036,11 +41036,11 @@ K` is emitted at the *copy* and CSE then reuses that register for the
 pinning only produces `addiu v1, sp, K` + `move v0, v1`, and a `"memory"`
 clobber does not constrain a non-memory `addiu`.
 
-Wrapping the copy plus the GTE setup in a `static __inline__` helper does fix
+Wrapping the copy plus the GTE setup in a `static inline` helper does fix
 it — the inlined local gets its address materialized at the `gte_ldv0`:
 
 ```c
-static __inline__ void _gfxLoadRotSv(const MATRIX* rotationMatrix, const SVECTOR* source)
+static inline void _gfxLoadRotSv(const MATRIX* rotationMatrix, const SVECTOR* source)
 {
     SVECTOR input;
 
@@ -41053,7 +41053,7 @@ static __inline__ void _gfxLoadRotSv(const MATRIX* rotationMatrix, const SVECTOR
 `attachmentDrawAreaWireframe` is the example (98.7% -> 99.7% from this alone). The same
 trick helps whenever two loops repeat an identical block: factoring the
 `LINE_F2` + `addPrim` tail of `attachmentDrawAreaWireframe` into a second `static
-__inline__` helper also changed loop-invariant motion so the `0xFFFFFF`
+inline` helper also changed loop-invariant motion so the `0xFFFFFF`
 `setaddr` mask hoisted out of the *outer* loop the way the target does
 (99.7% -> 99.96%).
 
@@ -41132,13 +41132,13 @@ pointer is no longer needed.
 
 ## Inline helpers: reassigning the parameter vs. a separate result local
 
-A `static __inline__` helper that reassigns its own parameter makes GCC
+A `static inline` helper that reassigns its own parameter makes GCC
 coalesce the parameter and the return value into one register. At a call site
 where the caller's destination already lives elsewhere, that shows up as an
 extra `move`:
 
 ```c
-static __inline__ s32 _attachmentGetEffectiveLevel(s32 abilityIndex)
+static inline s32 _attachmentGetEffectiveLevel(s32 abilityIndex)
 {
     ...
     abilityIndex = learnedLevels[abilityIndex]; /* param reused as the result */
@@ -44739,7 +44739,7 @@ and lets unit 1's `.rodata` start at the generated table; the later
 `INCLUDE_ASM` table concatenates at `0x254` with no extra pad. Delete the
 `INCLUDE_RODATA` lines that moved into the hdr before re-splitting.
 
-## `static __inline__` keeps a constant scratch address out of a register
+## `static inline` keeps a constant scratch address out of a register
 
 `SCRATCH_STACK_CURSOR_SLOT` is the integer constant `0x1F8003FC`, and the MIPS expander
 cannot use it as an address directly: it emits one `(set (reg) (const_int
@@ -44750,13 +44750,13 @@ macro that gas expands to `lui`+`lw` (dest as temp) and `lui $at`+`sw`. With
 pseudo and the block starts with `lui/ori` into a callee-saved register — a
 shape the target usually does not have.
 
-Moving the whole alloc/use/free sequence into a `static __inline__` helper
+Moving the whole alloc/use/free sequence into a `static inline` helper
 restores the per-access macro form, because the inliner re-expands the body and
 each constant ends up with a single use again. `_actor01600StepDeath` went from
 96.8% to 99.4% on this change alone:
 
 ```c
-static __inline__ void _actor01600SampleColorAtCoord(Enemy* enemy, GfxCoord* sampleCoord)
+static inline void _actor01600SampleColorAtCoord(Enemy* enemy, GfxCoord* sampleCoord)
 {
     VECTOR* scratchCursor = SCRATCH_STACK_CURSOR(VECTOR);
     VECTOR* position      = scratchCursor - 1;
@@ -48262,9 +48262,9 @@ one at `head`), and one more entry handing the tail away. `rooms_shared_8017d6d0
 table and 0x24-byte jump table start the block.
 
 Who gets the tail is decided by *which unit references it*, not by which unit
-used to own it. In `acropolis_square` the body sits mid-unit, so unit 1 splits
+used to own it. In `akropolis_square` the body sits mid-unit, so unit 1 splits
 in two, and every remaining leading-rodata symbol turns out to be referenced
-from unit 2 or later: the tail goes to `acropolis_square_2` and unit 1 ends up
+from unit 2 or later: the tail goes to `akropolis_square_2` and unit 1 ends up
 with no `.rodata` subsegment at all, which is fine. Get that backwards and the
 build fails only at the checksum, not at the link.
 
@@ -48331,7 +48331,7 @@ shared span's end.
 
 "Delete the affected `.c` files and re-split" restores every function, because
 splat writes an `INCLUDE_ASM` for each one and the matched bodies get pasted
-back over them. Nothing else survives: a `static __inline__` helper
+back over them. Nothing else survives: a `static inline` helper
 (`Asr_LocalToWorld` in `acropolis_security_room_3`), a file-local `#define`
 or `#include` (such as `gte.h`), a `typedef` used only by that unit (`_AcropolisWestElevatorHallDoorLeafWork`) have no
 symbol for splat to emit, so they simply vanish and the next build fails on an
@@ -52428,7 +52428,7 @@ therefore mean two different source shapes in the *same* function:
 
 - a `void** scratch = SCRATCH_STACK_CURSOR_SLOT;` local, whose load/store pair is
   the register form, and
-- a `static __inline__` helper containing the rest of the alloc/use/free, whose
+- a `static inline` helper containing the rest of the alloc/use/free, whose
   accesses rematerialise (same effect as the `_gfxSetDefaultFlatLight` /
   `_viewQueueCoord` notes above, applied to only part of a function).
 
@@ -52439,7 +52439,7 @@ intervening `memory` barrier reproduces the reload; moving the block into the
 helper does.
 
 When one helper is inlined twice and only the first copy needs a pin, give the
-second call its own `static __inline__` copy of the body. Two identical inline
+second call its own `static inline` copy of the body. Two identical inline
 functions is the readable way to say "these two expansions colour differently".
 
 ## Angle wrap: `while (d < -0x800) d += 0x1000;` rotates unless you write the label
@@ -53549,7 +53549,7 @@ register and the `li` hoists into the delay slot of the *earlier* branch:
 
 ```c
 var = 2;                                /* li s0,2 in the wrong delay slot */
-if (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_BRIDGE_PROGRESS) == 0) var = 1;
+if (gameFlagGetNibble(GAME_FLAG_AKROPOLIS_BRIDGE_PROGRESS) == 0) var = 1;
 reply->room = var;
 ```
 
@@ -53557,7 +53557,7 @@ A ternary on the call keeps the range short but still needs a second pseudo,
 because `$v0` is live at the compare, so the constants land in `$v1`:
 
 ```c
-reply->room = (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_BRIDGE_PROGRESS) == 0) ? 1 : 2;   /* li v1,2 / li v1,1 */
+reply->room = (gameFlagGetNibble(GAME_FLAG_AKROPOLIS_BRIDGE_PROGRESS) == 0) ? 1 : 2;   /* li v1,2 / li v1,1 */
 ```
 
 Fix: store the return value in a local and reassign *that same local* in both
@@ -53565,7 +53565,7 @@ arms. One pseudo covers the return and the constants, so it gets `$v0`, and the
 `li v0,2` fills the `bnez v0` delay slot as in the target:
 
 ```c
-destinationRoom = gameFlagGetNibble(GAME_FLAG_ACROPOLIS_BRIDGE_PROGRESS);
+destinationRoom = gameFlagGetNibble(GAME_FLAG_AKROPOLIS_BRIDGE_PROGRESS);
 if (destinationRoom == 0) { destinationRoom = 1; } else { destinationRoom = 2; }
 reply->room = destinationRoom;
 ```
@@ -54702,7 +54702,7 @@ the slot from before the branch, with no `j` to the epilogue.
 A single `ret` variable (`ret = 1; if (...) { body; ret = 0; } return ret;`)
 also fills the slot, but CSE then hands every literal `1` in the body that same
 pseudo, which is live across the calls and so lands in `$s0` (`move a1,s0`,
-`move a2,s0` instead of `li a1,1`, `li a2,1`). `acropolisSquareStartSirenSequence`
+`move a2,s0` instead of `li a1,1`, `li a2,1`). `akropolisSquareStartTelephoneScene`
 is the example.
 
 ## `do {} while (0)` around a duplicated block flips two callee-saved regs
@@ -54747,7 +54747,7 @@ if (request->queryOnly == 0) {
 Note the counts that feed the formula are taken *before* `jump2`, so a block
 the source writes twice is counted twice even though it appears once in the
 final assembly — that is why the argument pointer has 13 refs for 11 visible
-uses. `_acropolisSquareResolveRoomTransition` is the example; the permuter found the
+uses. `_akropolisSquareResolveRoomTransition` is the example; the permuter found the
 `do {} while (0)` after ~12 iterations from a 99.2% seed.
 
 ## Duplicate the join store in every arm to win the lower callee-saved register
@@ -54804,7 +54804,7 @@ block the tail-merge".
 
 ## Constant stores to an unused stack local are kept
 
-`_acropolisSquareResolveRoomTransition` opens with
+`_akropolisSquareResolveRoomTransition` opens with
 
 ```
 addiu $v0, $zero, 0x1
@@ -54825,7 +54825,7 @@ offsets, and the local's size sets the frame padding.
 ## Cross-jumping merges identical switch arms; `SOFT_BARRIER()` un-merges them
 
 **Correction (2026-09-27): the barrier is unnecessary.** In
-`_acropolisSquareCapViewSequenceTask`, write `task->state++; return;` separately in
+`_akropolisSquareCapViewSequenceTask`, write `task->state++; return;` separately in
 cases 0, 1, 3, 4/5 and 6, placing case 4/5 **before** case 6 and the kill
 cases 2/7 last. Case 6 then owns a complete store/increment tail without an
 intervening case label. `jump2` shares that tail while retaining the separate
@@ -54844,7 +54844,7 @@ A jump table can point two entries at two *separate* blocks holding the same
 instructions. GCC 2.8.1's cross-jumping normally refuses to leave that in:
 given two unconditional jumps to the same label whose preceding insns are
 identical, it deletes the earlier block and repoints the table entry at the
-later one. `_acropolisSquareCapViewSequenceTask` has
+later one. `_akropolisSquareCapViewSequenceTask` has
 
 ```
 .L80182188:  jal capRunCommandWithTransition ; li a0,5 ; j .L801821C8 ; nop   <- case 0
@@ -54938,7 +54938,7 @@ reporting its own lowering, not evidence about the source.
 ## Room effect task prologue: read `body->coord` before `spawnArg2`, and both before `state`
 
 A room's `gRoomEffectState` effect task opens by unpacking three `Task` fields, and
-m2c reliably orders them wrong. `acropolisSquareRoomEffectTask` starts with
+m2c reliably orders them wrong. `akropolisSquareRoomEffectTask` starts with
 
 ```
 lw v0, 0x2C(s1)     # task->extra.coordBody
@@ -54973,7 +54973,7 @@ which no pin would have found, because nothing was wrong with the arms.
 
 ## A shared switch tail belongs where the target puts it, not on its lowest case
 
-`_acropolisSquareSirenSequenceTask` dispatches on `task->state` through a 6-entry
+`_akropolisSquareTelephoneRingTask` dispatches on `task->state` through a 6-entry
 jump table. Entries 1 and 2 point at a two-line tail (`task->state += 1;
 return;`) that cases 0 and 3 also `j` to, and case 4 falls into. In the target
 that tail sits *physically* between case 4's last instruction and case 5:
@@ -57582,8 +57582,8 @@ stack record built before the first `jal` and passed by address.
 ```c
 ActorCommand movieCommand;
 
-movieCommand.context.loc.stage = GAME_STAGE_ACROPOLIS;
-movieCommand.context.loc.area = GAME_AREA_ACROPOLIS_PROMENADE;
+movieCommand.context.loc.stage = GAME_STAGE_AKROPOLIS;
+movieCommand.context.loc.area = GAME_AREA_AKROPOLIS_PROMENADE;
 movieCommand.command = ACROPOLIS_BRIDGE_COMMAND_SHOW_MOVIE_ENEMIES;
 ```
 
@@ -57593,7 +57593,7 @@ with the prologue, and `sw ra, 0x20(sp)` sinks past the first two stores —
 prologue first, then the stores:
 
 ```c
-ActorCommand movieCommand = { { { GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PROMENADE } },
+ActorCommand movieCommand = { { { GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_PROMENADE } },
                                  ACROPOLIS_BRIDGE_COMMAND_SHOW_MOVIE_ENEMIES };
 ```
 
@@ -58079,7 +58079,7 @@ sh    v0, 0(s1)
 
 is a stored boolean, not `if (x != 0) { … }`. Every plain spelling collapses:
 `if (c) …` with `c = x != 0`, `c = x ? 1 : 0`, `!!x`, an `if`/`else` pair, the
-same shape through a `static __inline__` helper, and either polarity of
+same shape through a `static inline` helper, and either polarity of
 `c = 1; if (x == 0) c = 0;` all fold to a single `beqz` — GCC threads the
 constant through the join. Reusing the *loaded* variable for the result
 (`c = p->field; if (c == 0) { c = 0; } else { c = 1; }`, the
@@ -58174,7 +58174,7 @@ wants the register. m2c prints the tell — the first field as the bare local an
 the later ones as `M2C_FIELD(&local, T, 2)`. This took
 `_acropolisBridgeEnemyDefeatedBob` from 96.7% to 100%.
 
-### Two `SCRATCH_STACK_CURSOR_SLOT` alloc/release pairs in one function: put each in its own `static __inline__` helper
+### Two `SCRATCH_STACK_CURSOR_SLOT` alloc/release pairs in one function: put each in its own `static inline` helper
 
 `SCRATCH_STACK_CURSOR_SLOT` is the constant address `0x1F8003FC`, and every access in a
 matching body is its own `lui` plus a `%lo` offset:
@@ -58202,7 +58202,7 @@ sw    $a1, 0($v1)
 That is worth 10-15 points on its own and it drags the surrounding register
 allocation with it. It is not about how many accesses the function has — a
 block with the same two accesses as a known-good sibling still CSE'd. What
-stops it is putting the sequence in a `static __inline__` helper of its own:
+stops it is putting the sequence in a `static inline` helper of its own:
 after inlining the accesses stay separate `mem`s with constant addresses and
 each one keeps its `lui`. `_acropolisBridgeEnemyRetreat` borrows a scratch
 `VECTOR` twice, in two different `if` arms, and went 80% -> 96% purely by
@@ -58399,7 +58399,7 @@ declaration then describes what the callers actually do. Prefer this over an
 `__asm__("worldCoordUpdateActorColor")` alias on a second name — the alias works, but
 it hides the arity from every other reader of the header.
 
-## Split the scratch frame: outer function hoists the head address, `static __inline__` body rematerialises it
+## Split the scratch frame: outer function hoists the head address, `static inline` body rematerialises it
 
 `SCRATCH_STACK_CURSOR_SLOT` accesses come out in two shapes, and a single function can
 need both. GCC 2.8.1 puts the constant address in a register as soon as a
@@ -58410,14 +58410,14 @@ store). Nothing about the C — `volatile`, compound `-=` versus a written-out
 `p = p - 4`, an intervening call or branch — changes that: two references in a
 block always hoist.
 
-Wrapping the *whole* body in a `static __inline__` helper rematerialises every
-access (see "`static __inline__` forces scratch-head rematerialisation"), which
+Wrapping the *whole* body in a `static inline` helper rematerialises every
+access (see "`static inline` forces scratch-head rematerialisation"), which
 is wrong when the target keeps `lui`/`ori` for the frame's own open and close.
 The fix is to split at the frame boundary: the outer function opens and closes
 the scratch frame and passes `head` / `block` to the inlined body.
 
 ```c
-static __inline__ void _bossStrangerStep(Work* w, u8* head, Scratch* block) { … }
+static inline void _bossStrangerStep(Work* w, u8* head, Scratch* block) { … }
 
 void func_…(Work* w)
 {
@@ -59017,7 +59017,7 @@ redundant. So a constant that looks common-subexpressioned above the branch can
 be evidence that the source assigns it in *both* arms, not before them. This was
 the last mismatch, 99.8% to 100%.
 
-## Repeated call sequences want a `static __inline__`, not shared function locals
+## Repeated call sequences want a `static inline`, not shared function locals
 
 The same function plays a positional sound in four places: build an event id
 from a field, call `worldCoordGetOriginAudioPan`, then `sndEvtRequestScriptStart` with
@@ -59027,7 +59027,7 @@ target's `$s0` / `$s1` — at all four sites, and no amount of reordering fixed 
 the shared locals are one pseudo pair spanning the whole function, so their
 `used/live_length` priorities are computed from the union of four ranges.
 
-Moving the sequence into a `static __inline__` helper gave each call site its
+Moving the sequence into a `static inline` helper gave each call site its
 own short-lived pseudos, they dropped out of `.greg` into `local_alloc`
 entirely, and all four sites matched. Worth trying whenever the same
 call-and-argument shape repeats and the callee-saved registers are permuted.
@@ -59411,7 +59411,7 @@ naming is what pulls the arithmetic in front of the call.
 `func_acropolis_bridge_80182F8C` is the worked example (97.3% -> 99.8% on that
 edit alone).
 
-## Two `static __inline__` helpers plus cross-jumping give one shared `jal`
+## Two `static inline` helpers plus cross-jumping give one shared `jal`
 
 A branch whose two arms build the same scratch block and only differ in the
 last expression can look impossible: the target has the whole alloc/compute
@@ -59433,19 +59433,19 @@ slot loads the second argument.
   jal  ratan2
 ```
 
-That is two copies of one `static __inline__` helper, differing only in the
+That is two copies of one `static inline` helper, differing only in the
 returned expression, with GCC's cross-jumping merging the identical tails from
 the `jal` backwards. Write it as two helpers and call one per arm:
 
 ```c
-static __inline__ s16 bearingXZ(SVECTOR3* p, SVECTOR3* eye) { /* … */ return ratan2(d->vx, d->vz); }
-static __inline__ s16 bearingXY(SVECTOR3* p, SVECTOR3* eye) { /* … */ return ratan2(d->vx, d->vy); }
+static inline s16 bearingXZ(SVECTOR3* p, SVECTOR3* eye) { /* … */ return ratan2(d->vx, d->vz); }
+static inline s16 bearingXY(SVECTOR3* p, SVECTOR3* eye) { /* … */ return ratan2(d->vx, d->vy); }
 ```
 
 Hoisting the shared part into the caller and selecting only the `ratan2`
 arguments with two locals produces the same instruction *count* but keeps the
 `SCRATCH_STACK_CURSOR_SLOT` constant in a callee-saved register, because the accesses then
-sit in one basic block (see "`static __inline__` keeps a constant scratch
+sit in one basic block (see "`static inline` keeps a constant scratch
 address out of a register"). The helper form is what restores the per-access
 `lui $a3, 0x1F80` / `lui $at, 0x1F80` macro expansion *and* hands the loop a
 pointer parameter to hoist, which is where the target's otherwise unexplained
@@ -62016,7 +62016,7 @@ catches. Read the two cut offsets before deciding; the lower one goes first.
 ## Two cuts only merge when nothing sits between them
 
 The same collapse is not available at all when a third cut separates the
-vanished unit's range from its successor's. `acropolis_square` had
+vanished unit's range from its successor's. `akropolis_square` had
 `0x60` -> the vanished unit, `0x94` -> `lib/rooms_shared_80181228`, `0xF4` ->
 the successor: dropping the `0xF4` cut does not extend the successor down, it
 hands `0xF4..0x134` to the *shared* object at `0x94`, which cannot carry a
@@ -65797,7 +65797,7 @@ unpinned attempt from 94.391% to 100% (all penalties zero).
 
 ## Stream frame upload: inline arguments, loop bound, and RECT store order
 
-`func_80020058` matches with a `static __inline__` strip-upload helper taking
+`func_80020058` matches with a `static inline` strip-upload helper taking
 `RECT*`, two `u32` coordinates, and a `u16` display-buffer flag. Materialize
 `flag = _gStreamMovieUploadMode != 1`, then load both coordinates into separate `s32`
 locals before calling the helper. Passing the globals directly changed load
@@ -68522,7 +68522,7 @@ helper `worldCoordSetModelLighting` already used. The general lesson is that thi
 copy into a stack local, then hand its address to an asm - is one the original
 sources factored into a helper, and reproducing the helper is what reproduces the
 schedule. Before fighting an address-formation `reorder`, grep the TU for a
-`static __inline__` doing the same thing.
+`static inline` doing the same thing.
 
 ## When splat cannot pair a split `%hi`/`%lo`, the scratch score rewards the hack
 
@@ -70673,7 +70673,7 @@ move  v0, a1
 bnez  v0, skip
 ```
 
-A `static __inline__ s32` helper returning `hit` tests `a1` directly - the
+A `static inline s32` helper returning `hit` tests `a1` directly - the
 return pseudo coalesces with the flag (99.4%). Declaring the helper and its
 flag `s16` keeps the copy: the `HImode` return value goes through its own
 pseudo, which is what survives as the `move` (99.93%). The last register -
@@ -71174,12 +71174,12 @@ costs no instruction because the `srl` writes it directly. Signature to
 recognise: several structurally identical if/else assignments where exactly one
 loses its `j` and comes out with the opposite branch condition.
 
-## A constant argument to a `static __inline__` helper materialises at the call site
+## A constant argument to a `static inline` helper materialises at the call site
 
 Writing the same three bounds through a helper
 
 ```c
-static __inline__ u32 Frames(Task* arg0, s32 time) { ... time / work->animStep ... }
+static inline u32 Frames(Task* arg0, s32 time) { ... time / work->animStep ... }
 ```
 
 put `li $v0, 0xC00` *before* the test instead of at the head of the else arm,
@@ -73122,7 +73122,7 @@ section at all). `rm -rf build/USA/src/<family>/<overlay>` after any manifest
 change that moves functions between units, before believing either a failure or
 a success.
 
-## A scratchpad-head dance needs `static __inline__`, or cse unifies its address
+## A scratchpad-head dance needs `static inline`, or cse unifies its address
 
 `SCRATCH_STACK_CURSOR_SLOT` is the constant address `0x1F8003FC`, and `expand` never leaves
 a constant address in a MEM: `memory_address` in `explow.c` runs
@@ -73150,7 +73150,7 @@ constant address. That only happens when each pseudo is used once, which lets
 `local-alloc`'s `update_equiv_regs` drop it (`REG_N_REFS == 2`) or reload
 substitute its `REG_EQUIV` constant.
 
-Writing the sequence in a `static __inline__` helper produces exactly that. It
+Writing the sequence in a `static inline` helper produces exactly that. It
 is also what every matched example in the tree does -
 `Actor400600_RebuildRotation` in `include/actors/actor_400600_anim.h`,
 `update_color` in `src/actors/actor_342400/actor_342400_5.c` - and it is not a
@@ -73166,7 +73166,7 @@ and the copy matches.
 
 **The release half needs its own inline when it lives in the caller.**
 `_actor444000CollapsedState` runs that dance six times over, and the natural
-split puts the allocate-rotate-copy body in one `static __inline__` and leaves
+split puts the allocate-rotate-copy body in one `static inline` and leaves
 `*(u8**)SCRATCH_STACK_CURSOR_SLOT = *(u8**)SCRATCH_STACK_CURSOR_SLOT + sizeof(Scratch);` in the
 caller, between the two coordinate flag clears. That costs more than the two
 `lui`s it looks like: the caller's pair goes through `memory_address` and comes
@@ -73186,7 +73186,7 @@ while the split version reloads the head with a second `lui`, keeps that value
 live and so addresses the frame off it (`addiu $a1,$s2,-0x14`, `lhu $v0,-0x34($s2)`)
 instead of off the frame pointer itself (`addiu $a1,$s0,0x20`, `lhu $v0,0($s0)`),
 plus burns the extra callee-saved register on the hoisted address. Wrapping the
-one-line release in its own `static __inline__ void` fixes all of it at once -
+one-line release in its own `static inline void` fixes all of it at once -
 88.3% to 100%. The rule is not "inline the pair", it is that *every* access to
 the constant address must come from inlined RTL.
 
@@ -73551,7 +73551,7 @@ The shape that produces it is an inlined helper returning the pointer it was
 given:
 
 ```c
-static __inline__ GfxCoord* Localize(GfxCoord* arg0, MATRIX* arg1)
+static inline GfxCoord* Localize(GfxCoord* arg0, MATRIX* arg1)
 {
     ...
     return arg0;
@@ -73642,7 +73642,7 @@ written:
 - `while (p->next != NULL) { ... }` and `for (;;) { ...; if (c) break; }` both
   emit that jump -- the loop is rotated.
 - `for (;;) { if (c) return; ... }` inside a function (in practice an
-  `__inline__` helper, so the `return` becomes a jump to the inlined body's
+  `inline` helper, so the `return` becomes a jump to the inlined body's
   return label) emits no jump to `end_label`, so `last_test_insn` stays 0 and
   the loop keeps its test at the top with a plain `j` back:
 
@@ -73700,10 +73700,10 @@ while cse's `find_best_addr` rewrites the zero-offset `(mem (reg))` back to the
 copies an address to a register when it is `CONSTANT_P`, so a struct assignment
 between two locals stays `sp`-relative throughout.
 
-In practice that pattern is an `__inline__` helper taking the local's address:
+In practice that pattern is an `inline` helper taking the local's address:
 
 ```c
-static __inline__ void helper(WorldCollisionBody* obj, ..., SVECTOR* pos)
+static inline void helper(WorldCollisionBody* obj, ..., SVECTOR* pos)
 {
     obj->field_10 = pos->vx;   /* 0x10(sp), then 2(v1), 4(v1) */
     ...
@@ -73722,7 +73722,7 @@ gives the function its seventh callee-saved register, so the prologue's
 ## An address-taken local at frame offset 0 loses its inline's constant equivalence
 
 `func_actor_444000_80137594` passes two zeroed `SVECTOR` locals to two
-`static __inline__` helpers. Declared as
+`static inline` helpers. Declared as
 
 ```c
 SVECTOR vec;   /* frame offset 0 */
@@ -73836,7 +73836,7 @@ emits neither `andi`, and an explicit `(u8)(delay - 1)` assigned back to the
 variable makes the `sb` depend on the truncation, so the store schedules after
 it. `func_actor_444000_8013A3AC` is the example.
 
-## Absolute loads from a fixed address only survive inside a `static __inline__`
+## Absolute loads from a fixed address only survive inside a `static inline`
 
 `memory_address()` in `explow.c` forces a constant MEM address into a pseudo
 at expand time - the comment there is literally "By passing constant addresses
@@ -73867,7 +73867,7 @@ why the scratchpad helpers in this project (`Actor444000_ShrinkRotation`,
 same TU shows both forms, absolute in the functions that call the inline and
 register-based in the ones that carve the frame in line. If the target loads or
 stores against a fixed address and your attempt materialises the address,
-move the accesses into a `static __inline__`.
+move the accesses into a `static inline`.
 
 Declaring an `extern` variable at the address instead is a third shape, not a
 fix: with split addresses on, GCC emits `lui $s3,%hi(sym)` once and reuses
@@ -73875,7 +73875,7 @@ fix: with split addresses on, GCC emits `lui $s3,%hi(sym)` once and reuses
 the `lui` is no longer rematerialised per access. `_actor00400StrandedDeathTask` walked
 all three - 88.4% open-coded (`lui`/`ori` pseudo), 90.1% through an
 `extern u8* D_1F8003FC` (`%hi`/`%lo` split), 100% with the same statements moved
-verbatim into a `static __inline__` helper.
+verbatim into a `static inline` helper.
 
 ## `lui %hi(sym)` + `addiu %lo(sym)` + `lh x,OFF(reg)` means a pointer local
 
@@ -73930,7 +73930,7 @@ stored into a wider field inside the callee, which is where the target usually
 has it, and one pair still covers several stores of the same value:
 
 ```c
-static __inline__ void Scale(GfxCoord* coord, s16 xz, s32 y)
+static inline void Scale(GfxCoord* coord, s16 xz, s32 y)
 {
     ...
     sc->scale.vx = xz;   /* sll/sra here, CSE'd with the vz store */
@@ -74083,7 +74083,7 @@ pseudo for the whole function, so writing both scans against the same `recs` /
 allocated the second scan its own three (`$a3`/`$a2`/`$a0` against the first's
 `$t0`/`$a3`/`$a2`), which only happens with distinct pseudos. Declaring
 `recs2` / `pos2` / `i2` for the second scan was the last 0.15% - the same
-result an `__inline__` helper called twice would give, since inlining
+result an `inline` helper called twice would give, since inlining
 substitutes fresh pseudos per call site. Differing registers between two
 otherwise identical blocks is the general signal that the original had separate
 variables (or an inlined helper) rather than one reused name.
@@ -74201,7 +74201,7 @@ move s0,v1
 lw   s6,0x20(s0)       # ->spawnArg2
 ```
 
-is *not* a coalescing failure, and it cannot be reproduced by an `__inline__`
+is *not* a coalescing failure, and it cannot be reproduced by an `inline`
 accessor either - the inlined return-value copy is merged the same way. The
 copy is `reload_cse_regs`, which runs after reload and rewrites the **second**
 `lw s0,8(s3)` as `move s0,v1` because `v1` still holds that address's value.
@@ -74640,7 +74640,7 @@ moment the store is), so the pair moves together.
 ## Scratchpad-head accesses share a CSE'd register unless the helper is inlined
 
 `*(u8**)SCRATCH_STACK_CURSOR_SLOT` compiles two ways in this tree, and the difference is
-whether the accesses sit in a `static __inline__` helper:
+whether the accesses sit in a `static inline` helper:
 
 ```
 lui  $s2, 0x1F80        ; inlined helper: gas expands `lw $s2, 0x1F8003FC`
@@ -75146,7 +75146,7 @@ so it is how this code was written rather than a one-off.
 
 ## A narrow inline parameter moves the sign extension past the inline's own calls
 
-An `s16` parameter of a `static __inline__` helper is not cosmetic: the
+An `s16` parameter of a `static inline` helper is not cosmetic: the
 conversion happens at the parameter's *uses* inside the body, not at the call
 site. So where an `s32` parameter puts the caller's `sll 16` / `sra 16` right
 before the argument setup, an `s16` parameter puts it immediately before the
@@ -88094,7 +88094,7 @@ scratch block whose head accesses are absolute (`lui $s2`/`lw 0x3FC($s2)`,
 it stalled at 85% (goto loops, locals, `scratch_base`). The whole gap was
 source shape: the body is `_actorAngleTurnToPlayer` / `_actorAngleNormalizeYaw`
 (`include/actors/actor.h`) plus `ActorsShared80135a60(coord,
-0x1194)`, all as `static __inline__`. Inside the `s16`-returning inline the
+0x1194)`, all as `static inline`. Inside the `s16`-returning inline the
 plain `while (1) { if (v >= -0x800) break; v += 0x1000; }` keeps the top test
 (the return's sign extension supplies the `sll` at the exit label), and the
 inlined scratch dance gives the absolute forms, while the caller's own
@@ -88218,7 +88218,7 @@ lui at,0x1F80 ; sw $a2,0x3FC($at)   # pop   (head)
 sw  $a0,4($v1) ; mflo $t1 ; sw $t1,8($v1)
 ```
 
-Writing the push directly before the pop (inside the `static __inline__`
+Writing the push directly before the pop (inside the `static inline`
 helper) loses the push: `cse2` still has three `(mem (const_int 0x1F8003FC))`,
 `flow` has two - `mem_set_list` dead-store elimination sees the same absolute
 address written twice with no memory read between. Writing the push at the
@@ -88531,7 +88531,7 @@ loop body, loop.c hoists `&n` into a callee-saved register (`move a1,s5` at both
 calls, `.loop`: "savings 1 moved"), and the `pen <= 0` clamp loses its `a0`
 temporary. The target reloads `addiu a1,sp,0x20` at each call and keeps
 `s3 = &s->pos`, `s4 = &s->out` alive across the calls - parameter pseudos.
-Calling the same body as a `static __inline__` helper with `(pos, rec, out)`
+Calling the same body as a `static inline` helper with `(pos, rec, out)`
 parameters (copied from the matched `Actor04400_CalcPush`) fixed all three at
 once (91% -> 98.6%). Search other overlays for the body before hand-expanding it:
 `grep -rln "VectorNormal(" src | xargs grep -l ApplyTransposeMatrixLV`.
@@ -92129,7 +92129,7 @@ matches each arm's `jal` + delay `nop` against the exit block and leaves the
 survivor in the block that falls through, which is the arm written last.
 
 This is the positive direction of the two `SOFT_BARRIER` entries above
-(`_acropolisPlazaMovieDisplayTask`, `_acropolisSquareCapViewSequenceTask`): there the
+(`_acropolisPlazaMovieDisplayTask`, `_akropolisSquareCapViewSequenceTask`): there the
 merge had to be *prevented* because the ROM keeps both copies; here it must be
 allowed to happen, and a seed that hand-writes the shared block prevents it
 landing where the ROM puts it.
@@ -94345,7 +94345,7 @@ store into an inline helper whose parameter is `s32` rather than `u8` puts its
 literal in an `SImode` quantity, which hashes separately from the `QImode` one:
 
 ```c
-static __inline__ void _actor00400SelectTrunkTarget(Task* task, Enemy* enemy,
+static inline void _actor00400SelectTrunkTarget(Task* task, Enemy* enemy,
                                                     _Actor00400Work* work, s32 gridCollisionEnabled)
 {
     enemy->coord                  = &task->extra.tmd->coords[1];
@@ -98025,7 +98025,7 @@ the placement half. So the original source called an inline, and the fix is to
 reconstruct one:
 
 ```c
-static __inline__ void _actor110600RescaleRootYaw(Task* task, s16 uniformScale)
+static inline void _actor110600RescaleRootYaw(Task* task, s16 uniformScale)
 {
     head  = *(u8**)SCRATCH_STACK_CURSOR_SLOT;
     coord = ((TmdObject*)task->extra)->coords;
@@ -104966,7 +104966,7 @@ is `scratch->angle = mag = angle;` with the compares written against
 `scratch->angle` - the assignment makes the store's source the extended value,
 and the field re-read becomes the separate copy. `mag` is otherwise unused.
 In the same function, one `SCRATCH_STACK_CURSOR_SLOT` push/pop in the middle of the body
-needed `static __inline__` push and pop helpers, and the `mtc2`/`lhu` GTE block
+needed `static inline` push and pop helpers, and the `mtc2`/`lhu` GTE block
 a third inline taking the vector, for the extra `move s3,s0` register.
 
 ### `move v1,a0` in a branch delay slot and `move v0,a0` before `bgtz`: the masked roll is an `s16` local
@@ -105601,7 +105601,7 @@ scratch prelude does.
 **Symptom.** Two sources for the same function, semantically identical:
 m2c's flat temporary soup (`temp_s0`, `temp_s1`, `temp_s2_2`, `temp_a1_2`, a
 separate local per use) scores 81.6% — `regs=87 branch=7 insert=14 delete=17` —
-while the spelling that states the three inlined helpers as `static __inline__`
+while the spelling that states the three inlined helpers as `static inline`
 functions the way the already-matched sibling does scores **100%** with all
 penalties zero.
 
@@ -105611,7 +105611,7 @@ penalties zero.
 | `base_1.c` `f339c451…` sibling `func_actor_342400_801670C0`'s shape | 100.000% |
 
 **Cause.** The gap is not the logic, it is which pseudo covers which range. A
-helper body written as `static __inline__ void f(Task*)` gives the inline its own
+helper body written as `static inline void f(Task*)` gives the inline its own
 `work` / `m` / `dst` locals and its own reload of `index->work` inside the hit
 test, so 2.8.1's local-alloc sees the same quantity membership the original
 compile did. Flattening the same statements into the caller's temporaries merges
@@ -105623,9 +105623,9 @@ parameter widths, same "reload the work block through a second local" habits.
 Then adapt the names, addresses and callees. Scratch
 `nonmatchings/Actor04400_Fn03F8C-vacuum`, two builds, no pins, no search.
 
-## A `static __inline__` helper used by a landed body must be *defined* above its call site (Actor04400_Fn03F8C, 2026-09-16)
+## A `static inline` helper used by a landed body must be *defined* above its call site (Actor04400_Fn03F8C, 2026-09-16)
 **Symptom.** Integrating into the host `.c` a landed function that calls an
-existing file-scope `static __inline__` helper defined ~500 lines further down
+existing file-scope `static inline` helper defined ~500 lines further down
 (e.g. `Actor04400_UpdateColor`, which the tail unit's other bodies define below
 this function's INCLUDE_ASM site).
 
@@ -105635,7 +105635,7 @@ definition after an implicit non-static declaration). Inlining needs the
 definition in hand at the call site.
 
 **Fix.** Move the helper's definition (with its doc comment) above the function
-that uses it. Moving a `static __inline__` emits no code, so the unit's `.text`
+that uses it. Moving a `static inline` emits no code, so the unit's `.text`
 order — and the overlay checksum — is unaffected; only the order of the
 non-inline function definitions is load-bearing, which is why the matched body
 stays at its INCLUDE_ASM site.
@@ -105992,7 +105992,7 @@ porting that inline took it from 77% to 97% in one step.
 
 Symptom: target copies an already-loaded pointer (`addu $s0,$s3,$zero`, often in
 a branch delay slot) and then uses `$s0` in the loop body while `$s3` serves the
-stores after the loop. Writing the loop inline, or as a `static __inline__`
+stores after the loop. Writing the loop inline, or as a `static inline`
 helper taking the pointer, collapses both into one register (92.75%): the
 inliner substitutes a pseudo actual directly for an unmodified parameter, so no
 copy is ever emitted.
@@ -106000,7 +106000,7 @@ copy is ever emitted.
 Fix: take the parameter and immediately copy it into a local in the helper.
 
 ```c
-static __inline__ void ResetSlots(_Actor04000Work* arg0)
+static inline void ResetSlots(_Actor04000Work* arg0)
 {
     _Actor04000Work* work = arg0;   /* this copy is the `move s0,s3` */
     s32 i;
@@ -106041,7 +106041,7 @@ jal  func_..._8014DB50
 Ours kept the wrapped `angle` in `v1`, extended into a separate `a1`, and stored
 `v1`. The store reading the extended value says the source stored and passed
 one fresh value, not the loop variable: writing the wrap as
-`static __inline__ s16 WrapAngle(s16 angle)` and
+`static inline s16 WrapAngle(s16 angle)` and
 `sc->angle = WrapAngle(angle); func(value, sc->angle, sc->id);` gave 100%. The
 inline's parameter copy is also what explains the target's `move a1,s0` before
 the `bgez s0` sign test. The goto-loop hit scan in the same function is the
@@ -108250,7 +108250,7 @@ overlay's function is a template. This compares the twin's target against yours,
 dropped mask, one extra call, the `D_` symbol names, and the tail condition. Branch labels have
 to be normalized (`\.L\w+` → `.L`) or every block boundary shows as a diff.
 
-The twin's repeated block was an earlier form of the `static __inline__` helper
+The twin's repeated block was an earlier form of the `static inline` helper
 `_actorRenderApplyEffectPlacementTextureOffsets`, inlined at
 four spawn sites - and its *expansion* is byte-identical in the 401800 TU even though every
 surrounding struct offset differs. So transcribe the helper verbatim, barrier macros included:
@@ -108307,7 +108307,7 @@ site: the same inlined helper compiled from another 401300-family TU shows the i
 
 `*(SVECTOR**)SCRATCH_STACK_CURSOR_SLOT` - i.e. `*(T*)((u8*)((void*)0x1F800000) + 0x3FC)` - compiles two
 different ways depending on whether the statement is written in the body of a
-`static __inline__` function or directly in the function that uses it:
+`static inline` function or directly in the function that uses it:
 
 ```asm
 /* inside the helper - what the target has            /* written in the body instead */
@@ -108634,7 +108634,7 @@ That alone took the function to 100.000%. A callee-saved register holding a
 value that is dead at the call is the tell — before touching the allocator,
 check whether the twin used a second name for that use.
 
-## A `static __inline__` helper defined *after* its call site is not inlined, so the scratch matches and the overlay does not (`_oddStrangerCircleDash`, 2026-09-16)
+## A `static inline` helper defined *after* its call site is not inlined, so the scratch matches and the overlay does not (`_oddStrangerCircleDash`, 2026-09-16)
 
 `_oddStrangerCircleDash` reached 100.000% in the scratch env with all
 penalties at zero, and the overlay still failed its checksum: the built function
@@ -108643,7 +108643,7 @@ started `addiu sp,sp,-0x30` where the target has `-0x38`, and held `index` in
 the 538 words at the function's file offset against the split `.s` is what
 localised it; the scratch score says nothing about it.
 
-The failing source called two `static __inline__` helpers of its own TU. One of them,
+The failing source called two `static inline` helpers of its own TU. One of them,
 `_actorMovementTranslateForwardNonzero`, was *defined later in the file* than the
 function that called it — the scratch env had copied the definition in above the
 function, the host file had it below. GCC 2.8.1 sees an undeclared call, takes
@@ -109113,7 +109113,7 @@ Inputs: `base_1.i` SHA256
 `101111bdef09f992b82e9ff1bb137e842b982bead64a56a0cc773a54867db1e2`; compiler SHA256
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 
-## An m2c seed's flattened scratch helper is the twin's `static __inline__`, two head stores and all (_oddStrangerDormantScripted, 2026-09-16)
+## An m2c seed's flattened scratch helper is the twin's `static inline`, two head stores and all (_oddStrangerDormantScripted, 2026-09-16)
 
 The seed for this actor state body scored 76.5% with `insert=16 delete=19
 branch=4 regs=54 reorder=6`, and the whole residual was one inlined helper m2c
@@ -109138,7 +109138,7 @@ with the two casts m2c kept is the give-away; nothing else in the corpus stores
 the head twice, once with a `-0xC` value.
 
 The fix is to write the helper back out as the twin has it, as its own
-`static __inline__` with the twin's statement order and its 3-field
+`static inline` with the twin's statement order and its 3-field
 `...RangeScratch` struct (the shared helper is now `_actorRangeOutsideRadiusXZ` in
 `include/overlay.h`),
 and to read the predicate straight from it — the seed's `(a + b) < c` is
@@ -109168,7 +109168,7 @@ Inputs: `base_1.i` SHA256
 A function that repeats the same 20-instruction body in four `if` arms — here
 the area-placement texture binding that follows each `effectSpawn` — compiles to different
 registers depending on whether the four copies share a variable or are four
-expansions of a `static __inline__` helper. Written out four times with one
+expansions of a `static inline` helper. Written out four times with one
 `model` / `idx` / `raw` at function scope (m2c's shape, and the shape of the
 `func_actor_302600_80165A6C` twin, which has the body only once), the body
 scored 84.126%; moved into a helper (now the shared `_actorRenderApplyEffectPlacementTextureOffsets` itself) and called four times
@@ -109372,8 +109372,8 @@ Inputs: `base_3.c` `09994bd5ea83966bbc12bfc85b0b848128705e2f840d0791363d99cb209c
 catch is that the family carries **two** helpers with that body:
 
 ```c
-static __inline__ void _actorMovementStepForward(GfxCoord* coord, s16 stepDistance)   /* plain */
-static __inline__ void _actorMovementTranslateForwardNonzero(GfxCoord* coord, s16 stepDistance)
+static inline void _actorMovementStepForward(GfxCoord* coord, s16 stepDistance)   /* plain */
+static inline void _actorMovementTranslateForwardNonzero(GfxCoord* coord, s16 stepDistance)
 ```
 
 The `Nonzero` variant (the only one 401000 had, added when
@@ -109414,7 +109414,7 @@ SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 ## Flattening the twin's helpers into one body inflates the allocno set, not just the addressing (_oddStrangerAlert, 2026-09-16)
 
 The 401300 twin of this turn-toward-the-player body (`_actor401300StateAlert`,
-0.93 shape) is built out of four `static __inline__` helpers — `PositionYaw`,
+0.93 shape) is built out of four `static inline` helpers — `PositionYaw`,
 `ConfigPositionDelta`, `NormalizeYaw`, `RescaleYaw`. Writing the same code flat,
 with the scratch blocks retyped and the addressing already correct, still scored
 short of a match:
@@ -109473,7 +109473,7 @@ the same turn-toward-the-player body as `_oddStrangerAlert` (0.95
 shape / 0.97 fields / 0.95 calls). The m2c seed scored 80.62 with `regs=41
 insert=17 delete=17 branch=6`, and `.diagnosis.json` showed the candidate at 17
 blocks against the ROM's 16 — the flattened-helper symptom again. Writing the
-body out of the twin's four `static __inline__` helpers unchanged
+body out of the twin's four `static inline` helpers unchanged
 (`_actorAngleTurnToPlayer`, `_ConfigPositionDelta`, `_NormalizeYaw`,
 `_RescaleYaw`) scored **100.000 with every penalty zero on the first
 restructured build**.
@@ -109500,18 +109500,18 @@ Inputs: `base_1.i` SHA256
 `c3ac8de0fe019c6509d0ed9ed5338bf0467036e6f8afddb8d1da7ec58c53f5b8`; compiler
 SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 
-## A `static __inline__` called above its definition is a `jal`, not an expansion — move the helper, not the caller (_actor401000Dormant, 2026-09-16)
+## A `static inline` called above its definition is a `jal`, not an expansion — move the helper, not the caller (_actor401000Dormant, 2026-09-16)
 
 A unit emits its functions in source order, so a matched body has to occupy the
-position its address in the overlay gives it. When the `static __inline__`
+position its address in the overlay gives it. When the `static inline`
 helper it calls is defined *below* that position, the obvious repair —
 forward-declare the helper and leave the definition where it is — compiles
 without a warning and silently loses the inline:
 
 ```c
-static __inline__ s32 _actorRangeOutsideRadiusXZ(const SVECTOR* offset, s16 radius);         /* declaration only */
+static inline s32 _actorRangeOutsideRadiusXZ(const SVECTOR* offset, s16 radius);         /* declaration only */
 void _actor401000Dormant(Task* task) { ... _actorRangeOutsideRadiusXZ(offset, radius) ... }
-static __inline__ s32 _actorRangeOutsideRadiusXZ(const SVECTOR* offset, s16 radius) { ... }  /* below the caller */
+static inline s32 _actorRangeOutsideRadiusXZ(const SVECTOR* offset, s16 radius) { ... }  /* below the caller */
 ```
 
 The object then carries `jal .text+0x102` to an out-of-line copy of the helper
@@ -109533,7 +109533,7 @@ runs after the earlier caller has already been expanded, so a declaration alone
 never makes the call integrable. Note the `else` arm then marks the function
 addressable, which also forces the out-of-line copy.
 
-**Fix.** Move the helper's definition above the call site. A `static __inline__`
+**Fix.** Move the helper's definition above the call site. A `static inline`
 whose every call inlines emits nothing, so moving it disturbs no address, while
 moving the *caller* down would reorder the unit's `.text` and fail the checksum.
 The mirror case is real: with the helper above the caller and a *second* call
@@ -109754,7 +109754,7 @@ SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 
 ## A helper defined *below* its caller is implicitly declared, so GCC emits a real call instead of inlining it (_oddStrangerTurnAround, 2026-09-16)
 
-A `static __inline__` helper only inlines where its definition has already been
+A `static inline` helper only inlines where its definition has already been
 seen. Called from above the definition, the name is an implicit `extern int
 f()` declaration, the call becomes an out-of-line `jal`, and the body is emitted
 once as a separate (unreachable, never-named) local function. `-w` hides the
@@ -109925,7 +109925,7 @@ Where the twin stops helping is where a helper got *inlined differently*: the
 target's inlined `_actorRangeOutsideRadiusXZ` stores `scratch->radius` before `scratch->dz` and
 issues both `*SCRATCH_STACK_CURSOR_SLOT` stores after the three `mult`s, where the helper's
 literal source order is dx, dz, radius, square, store-head. That is the scheduler
-moving independent store/load pairs around a `static __inline__` body, not a
+moving independent store/load pairs around a `static inline` body, not a
 different helper — do not go looking for a second `RangeScratch` function.
 
 Inputs: base_1.i SHA256
@@ -111562,7 +111562,7 @@ factor) and the else-arm in `$s2`, so the walk stops on
 `lhu $v0,-0x34($s4)` vs `lhu $v0,-0x34($s2)` and every instruction after it is
 shared; `get_label_before` then reuses the if/else's own join label.
 
-The source that produces this is a `static __inline__` helper called from both
+The source that produces this is a `static inline` helper called from both
 arms — the same idiom this overlay family already uses for the uniform-scale
 twin (`_actorRenderRescaleYaw`, `ActorsShared80135a60`), with the per-axis
 factor as an `s16` parameter:
@@ -111658,7 +111658,7 @@ stay where the target has them.
 
 ## The scratch-head tail reload decides which local gets the lower `$s` register
 
-An `static __inline__` helper that borrows and returns a scratch slot is
+An `static inline` helper that borrows and returns a scratch slot is
 inlined twice per aim arm, and each copy has two locals competing for
 callee-saved registers: the coordinate (live across `gfxReadMatrixZAxis` /
 `VectorNormalSS`) and the scratch `head` (live from the load to `head[-1].vx`).
@@ -111688,7 +111688,7 @@ takes `$s1` back and drops the function to 100.000%.
 Recognise it by the shape of the leftover: an otherwise exact match where
 exactly two callee-saved locals are exchanged and every use of both moves with
 them. The scratch address form is independent of this - see the
-`static __inline__` notes above for why the helper has to stay whole.
+`static inline` notes above for why the helper has to stay whole.
 
 ## A switch arm the mask makes unreachable is still emitted, so write it
 
@@ -112168,7 +112168,7 @@ the matched sibling's C even when the diff is not empty, because the siblings'
 inline helpers (`_actorRenderAccumulateWorldRotation` in `include/actors/actor.h`) name
 the loop shapes the asm shows only as GTE sequences.
 
-Since such a helper is `static __inline__` and inlined at every use, its
+Since such a helper is `static inline` and inlined at every use, its
 definition can be moved up the unit `.c` to sit above a body that needs it
 without changing the object: definition order is free, function order is not.
 
@@ -113698,7 +113698,7 @@ down the file does the same two steps as
 `_actorContactPushRootFromSave(save, root, recs, 3, 0x10)` with no scaffolding.
 
 **Cause.** Both helpers were *defined* after `_actor356100GrabRelease`,
-with only prototypes above it. GCC 2.8.1 expands a `static __inline__` only
+with only prototypes above it. GCC 2.8.1 expands a `static inline` only
 where the definition precedes the call, so calling them there emitted two
 `jal`s and the checksum failed, which is what makes the hand expansion look
 necessary.
@@ -113710,7 +113710,7 @@ locals, the pointer pair and five casts of the cursor slot gone.
 
 **Check first.** Before building per-access scaffolding for a scratch block,
 look for an inline in the same file with the same body and try it defined
-above the caller. The related entry "A `static __inline__` called above its
+above the caller. The related entry "A `static inline` called above its
 definition is a `jal`, not an expansion" covers the same ordering rule from
 the caller's side.
 
@@ -114102,7 +114102,7 @@ compiler SHA256
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 Scratch `nonmatchings/_actor356100Chase-vacuum`.
 
-## A TU-local `static __inline__` is only inlinable below its own definition
+## A TU-local `static inline` is only inlinable below its own definition
 
 GCC 2.8.1 sets `DECL_SAVED_INSNS` when a function's own `rest_of_compilation`
 runs, i.e. when its definition is reached; a call above that point cannot
@@ -114121,7 +114121,7 @@ address slot, and if the helpers are defined *below* that slot in the TU the
 real build outlines them exactly as the scratch did — the overlay still links
 and still checksums (the `jal` is a different object, not a wrong one), so this
 is a matching failure and not a build failure. Move the helper definitions above
-the function's slot. They are `static __inline__` that emit no out-of-line copy
+the function's slot. They are `static inline` that emit no out-of-line copy
 when every call site inlines, so their source position changes no other
 function's code; check the ones already above the new position do not call them
 first, and the move is free.
@@ -114863,7 +114863,7 @@ width from the `sll`/`sra` pair, not from the missing compare.
 The source idiom that needs it is the "is the first record loaded" helper:
 
 ```c
-static __inline__ s32 _actor110600HasPlayerBodyContact(const WorldCollisionContact* contacts)
+static inline s32 _actor110600HasPlayerBodyContact(const WorldCollisionContact* contacts)
 {
     enum { ACTOR_110600_ATTACK_CONTACT_COUNT = 1 };
     s16 contactIndex;
@@ -117471,7 +117471,7 @@ the constant to the front of the block, ahead of the pointer load.  Moving the
 two stores into an accessor and *calling* it is what works:
 
 ```c
-static __inline__ void _diverSetState(Task* task, s32 state)
+static inline void _diverSetState(Task* task, s32 state)
 {
     _Actor206100Work* next = task->work;
 
@@ -117797,7 +117797,7 @@ access is a `0($base)` form:
     *SCRATCH_STACK_CURSOR_SLOT = block;
 ```
 
-Expanded as a `static __inline__` body the same statements keep
+Expanded as a `static inline` body the same statements keep
 `(mem (const_int 0x1F8003FC))`, and cc1 prints the absolute address as the whole
 operand:
 
@@ -117817,7 +117817,7 @@ So when a target rematerialises a scratch or other absolute address at every
 use, write the accesses as an inlined helper instead of at the call site:
 
 ```c
-static __inline__ void _actorRenderUpdateModelColor(Task* task)
+static inline void _actorRenderUpdateModelColor(Task* task)
 {
     GfxCoord* sampleCoord;
     VECTOR*   samplePosition;
@@ -117833,7 +117833,7 @@ static __inline__ void _actorRenderUpdateModelColor(Task* task)
 }
 ```
 
-The `static __inline__` helper `_actorRenderUpdateModelColor` in
+The `static inline` helper `_actorRenderUpdateModelColor` in
 `include/actors/actor.h` supplies this typed VECTOR sample to all three Sea Diver callers as well.
 This is why it stays an inline helper rather than call-site code.
 
@@ -119050,7 +119050,7 @@ type-shape problems, not as allocation or scheduling ones.
 
 The corpus's named-`&local` tell ("`0x28(sp)` accesses mean the source had no
 pointer variable, `8(s1)` accesses mean it did") has a third route besides a
-pointer local the source writes: the address passed to a `static __inline__`
+pointer local the source writes: the address passed to a `static inline`
 helper, whose by-pointer parameter becomes a pseudo holding the frame address.
 `mine_mesa`'s 0x13EE warp handler is the `shelter_1f_bulwark` shape, and that
 matched sibling says which route it was - its `_shelter1fBulwarkStartEvent` takes
@@ -119066,7 +119066,7 @@ frame is one callee-saved slot short (`sw ra,0x28(sp)`, no `$s2`), and the
 of sitting just before its `beqz`. Moving the tail into
 
 ```c
-static __inline__ s32 _mineMesaLatchStagedEvent(const RoomEventMsg* destination, const RoomLatchedEvent* event)
+static inline s32 _mineMesaLatchStagedEvent(const RoomEventMsg* destination, const RoomLatchedEvent* event)
 {
     _gMineMesaStagedEventStartAttempted = 0;
     if (gameFlagGetNibble(event->flagId) == 0 || event->flagId == 0) {
@@ -120047,7 +120047,7 @@ in the low 80s: `regs` plus `insert`/`delete`, no `branch` penalty, topology
 already matching.
 
 **Cause.** Two tells in the target say the staging is not in the caller at all
-but in a `static __inline__` helper the caller passes a pointer to:
+but in a `static inline` helper the caller passes a pointer to:
 
 1. the staged struct is read back through a **base register** (`addiu $s0,$sp,0x10`
    then `lbu 1($s0)` / `sb v0,3($s0)`) while the caller's own stores to it stay
@@ -120067,7 +120067,7 @@ but in a `static __inline__` helper the caller passes a pointer to:
 before the call that separates it from the helper invocation:
 
 ```c
-static __inline__ void _neoArkObservatoryResolveDeparture(RoomDeparture* departure, RoomVariantResolver resolve)
+static inline void _neoArkObservatoryResolveDeparture(RoomDeparture* departure, RoomVariantResolver resolve)
 {
     RoomEventMsg request;
 
@@ -124616,7 +124616,7 @@ Three smaller ones from the same function:
 
 **Superseded for the same idiom in `_actor342000GluttonPartTask`:** moving the
 push, the three gather/`gpf 12`/scatter columns and the pop into one
-`static __inline__` helper (`_gfxScaleMatrixColumns(MATRIX*, const VECTOR*)` in `include/main/gfxgte.h`,
+`static inline` helper (`_gfxScaleMatrixColumns(MATRIX*, const VECTOR*)` in `include/main/gfxgte.h`,
 written with `SCRATCH_STACK_RESERVE_BLOCK`/`SCRATCH_STACK_RELEASE_BLOCK`) matched with no `lui` asm, no
 `TOUCH_REG` and no column barriers. The inlined RTL keeps each head access
 absolute and the helper's own `column` stops the `-8(head)` fold. So try the helper
@@ -125243,7 +125243,7 @@ be true - in this session, `include/gameplay/gameplay.h` referencing `VECTOR`
 with no definition anywhere, and `libgs.h` using `VECTOR` while `libgte.h`
 appeared not to declare it, were both wrapper artefacts rather than facts.
 
-## An inlined GTE block is usually a `static __inline__` in a shared actors header - call it (_strideWalkUpdate, 2026-09-17)
+## An inlined GTE block is usually a `static inline` in a shared actors header - call it (_strideWalkUpdate, 2026-09-17)
 
 m2c renders the block below as a wall of `M2C_ERROR`, and it is opaque enough that
 re-deriving it by hand is the obvious (wrong) move:
@@ -125259,7 +125259,7 @@ re-deriving it by hand is the obvious (wrong) move:
 ```
 
 It is the movement block shared by `_actorMovementStepForward`, a
-`static __inline__` in `include/actors/actor.h`, and the call reproduces the inline exactly - the
+`static inline` in `include/actors/actor.h`, and the call reproduces the inline exactly - the
 `gte_lddp(stepDistance)` / `gte_ldsv(direction)` / `.word 0x4B98003D` / `gte_stsv(direction)`
 sequence in `_actorMovementBuildDisplacement`, the two scratch-pad bumps around `gfxReadMatrixZAxis` + `VectorNormalSS`,
 and the `coord->composeStamp = 0` between the `t[1]` and `t[2]` adds. `gpf 1` is the
@@ -129378,13 +129378,13 @@ The whole gap is that addressing: with it, 116/116 instructions and 100.000%.
 The fix is to mirror the already-matched sibling `_actor403200AdvanceState` /
 `_actor403200AdvanceRoot`, which has this exact shape and the exact split form:
 define the head as a *u32 lvalue at the numeric address* and put the carve in a
-`static __inline__` helper that loads the head and stores the carved pointer
+`static inline` helper that loads the head and stores the carved pointer
 back.
 
 ```c
 #define SCRATCH_SP (*(u32*)0x1F8003FC)
 
-static __inline__ void _actor123200StepForward(GfxCoord* coord)
+static inline void _actor123200StepForward(GfxCoord* coord)
 {
     u8*      scratchHead;
     SVECTOR* displacement;
@@ -129408,7 +129408,7 @@ outer access `volatile` (gcc 2.8.1 drops the qualifier — the `.rtl` MEM comes 
 as `(mem:SI (reg 100))`, no `/v`), spelling the outer RMW `*(s32*)` vs `*(void*)`,
 and giving only the middle a raw `0x1F8003FC` cast. All three reproduce the
 88.655% object byte for byte. So when a scratch reservation and an inlined carve
-share a function, take the sibling's `SCRATCH_SP` + `__inline__` shape as a whole
+share a function, take the sibling's `SCRATCH_SP` + `inline` shape as a whole
 before probing pieces of it; cse's `find_best_addr` bails out on
 `CONSTANT_ADDRESS_P (addr)`, which is why the carve's address survives as a
 constant only in the shape that never puts it in a register.
@@ -130397,12 +130397,12 @@ which global_alloc allocates first (priority `floor_log2(n_refs) * n_refs /
 live_length`, 33 refs over 121 vs the enemy pointer's 20 over 178), so the work
 pointer takes `$s1` and the enemy pointer — dead by then — reuses `$s0`.
 
-**Fix.** Give the sequence its own `static __inline__` helper taking the pointer,
+**Fix.** Give the sequence its own `static inline` helper taking the pointer,
 the way the sibling `_actor123200StepForward` / `_actorMovementBuildDisplacement` are
 written:
 
 ```c
-static __inline__ void _actorMovementBuildDisplacement(SVECTOR* direction, s16 stepDistance)
+static inline void _actorMovementBuildDisplacement(SVECTOR* direction, s16 stepDistance)
 {
     VectorNormalSS(direction, direction);
     gte_lddp(stepDistance);
@@ -132068,7 +132068,7 @@ names, split statements and `TOUCH_REG` around it.
 
 The value that could not be produced by editing the expression was produced by
 deleting it. The same translation unit already held a matched
-`static __inline__` helper containing this exact body, written for a sibling
+`static inline` helper containing this exact body, written for a sibling
 state function; calling it makes the second value a *global* pseudo instead of a
 local quantity, local-alloc then allocates the survivors in birth order, and the
 in-place form appears. The remaining `reorder` in the same function had the same
@@ -132081,7 +132081,7 @@ barrier.
 So when a near-match in an overlay family sits on a register or scheduling
 leftover inside a stanza that reads like boilerplate — scratch alloc/free, a
 facing or rescale computation, a clamp — grep the TU and its header for
-`static __inline__` before modelling the allocator. A helper that other matched
+`static inline` before modelling the allocator. A helper that other matched
 functions already call reproduces the original translation unit's structure,
 which is what the register allocator and the scheduler actually saw.
 
@@ -132406,13 +132406,13 @@ combine can then fold back into the `MEM`. Register pressure does not produce it
 the pseudo has more than two references, so local-alloc's constant-equivalence
 path cannot delete it and it wins a hard register whenever one is free.
 
-**Fix.** Put the allocation sequence in a `static __inline__` helper and call it.
+**Fix.** Put the allocation sequence in a `static inline` helper and call it.
 Each inlined instance gets its own address pseudos, and the accesses come out
 absolute. This is why the sibling helpers in the actor overlays carry a comment
 saying they are inlined so the scratch-head address is rematerialised.
 
 ```c
-static __inline__ void updateColor(Ctx* ctx, GfxCoord* attach)
+static inline void updateColor(Ctx* ctx, GfxCoord* attach)
 {
     u8*     head  = *(u8**)SCRATCH_STACK_CURSOR_SLOT;
     VECTOR* block = (VECTOR*)(head - 0x10);
@@ -139318,7 +139318,7 @@ stored through `$v1` after a `move $v1,$s1`. The same five macros written out
 twice store through `$s1` both times. The `addiu $s1,$s4,0x10` also lands one
 slot early, ahead of the matrix address.
 
-Wrapping the sequence in `static __inline__ void rot(MATRIX* m, SVECTOR* v)`
+Wrapping the sequence in `static inline void rot(MATRIX* m, SVECTOR* v)`
 (`tmp = *v; gte_SetRotMatrix(m); gte_ldv0(&tmp); gte_rtv0(); gte_stsv(v);`)
 fixed both, 99.719% to 99.925%. The inline's arguments are evaluated first, so
 the matrix address comes before the vector address. At the second call site the
@@ -141197,8 +141197,8 @@ work->lastCommand.stage   = arg2->context.loc.stage;
 work->lastCommand.area    = arg2->context.loc.area;
 work->lastCommand.command = arg2->command;
 ...
-if ((work->lastCommand.stage == GAME_STAGE_ACROPOLIS) &&
-    (work->lastCommand.area == GAME_AREA_ACROPOLIS_CAFETERIA) &&
+if ((work->lastCommand.stage == GAME_STAGE_AKROPOLIS) &&
+    (work->lastCommand.area == GAME_AREA_AKROPOLIS_CAFETERIA) &&
     (work->lastCommand.command == 6)) {
 ```
 
@@ -142150,7 +142150,7 @@ duplicates a loop test containing a call, so both calls are in the source.
 
 Identity stores that looked interleaved with unrelated statements, sometimes
 out of order, and sometimes needed `volatile`, all match as one call to
-`gfxSetRotIdentity(MATRIX*)` - a `static __inline__` function storing through
+`gfxSetRotIdentity(MATRIX*)` - a `static inline` function storing through
 `GfxRotationWords`. Two things decide it. Struct stores (`rotationWords->m00M01 = ONE`) are
 `MEM_IN_STRUCT_P`, so the scheduler keeps them ordered against neighbouring
 struct stores, where `*(s32*)&m->m[r][c]` stores are scalar and move; and
@@ -142328,7 +142328,7 @@ The handler's scratch-head colour update, twenty-part animation step and
 coordinate twist were held together by 15 pins and asm macros. The same three
 sequences stand later in the file as ordinary functions (`801411D4` with the
 part count as a parameter, `801412D0`, `80141338`), and the neighbouring
-`actor_07000` handler is built from the same three as `static __inline__`
+`actor_07000` handler is built from the same three as `static inline`
 helpers inside a `switch` with `case 0: default:`. Writing the handler that way
 matched with no hacks at all, the count-parameter helper called with `20`
 included. The `case 0: default:` label is what produces the target's extra
@@ -142665,7 +142665,7 @@ subscript is expanded as `(mult column 2)` and only becomes `4` when integration
 substitutes the constant, too late to join the displacement.
 
 ```c
-static __inline__ u16 _attachmentGetLevelValue(s32 abilityIndex, s32 level, s32 column)
+static inline u16 _attachmentGetLevelValue(s32 abilityIndex, s32 level, s32 column)
 {
     return gAttachmentLevelTable.rows[abilityIndex * ATTACHMENT_LEVEL_COUNT + level].value[column];
 }
@@ -142790,7 +142790,7 @@ build matches. The end pin and `TOUCH_REG` remain: unpinning end exchanges
 ## An inline helper called without its header compiles to a real `jal`, silently (bearing helpers, 2026-09-26)
 
 C89 lets a call to an undeclared function through as an implicit declaration,
-and this build does not warn about it. A shared `static __inline__` helper
+and this build does not warn about it. A shared `static inline` helper
 used in a file that does not include its header therefore compiles to an
 ordinary `jal helper` - the body is never inlined - and a matching attempt
 that "uses the helper" fails for reasons unrelated to the source shape. Three
@@ -143056,7 +143056,7 @@ without a pin was a dead `= NULL` initialiser at function scope. That moves
 `REGNO_FIRST_UID` earlier, so the set stops being movable, but nothing suggests
 the original wrote it.
 
-### After an earlier call in the same block, argument moves tie on priority and source order decides (acropolisSquareBeaconGlowTask, 2026-09-26)
+### After an earlier call in the same block, argument moves tie on priority and source order decides (akropolisSquareTelephoneLightTask, 2026-09-26)
 
 **Problem.** The twin of `acropolisFireEscapeFlareTask`. With every
 barrier stripped and one empty `do {} while (0)` after the second wedge's
@@ -145789,7 +145789,7 @@ in each arm keeps the gotos' allocation and needs the pin again (99.79%). When
 a pinned pointer's only neighbour is a hand-built branch ladder, rewrite the
 ladder first: the extra references it makes are what pushed the pointer ahead
 in `global-alloc`'s priority order.
-### A pinned parameter copy can stand in for a sched1 order that decides local-alloc (func_acropolis_square_80180DAC, 2026-09-26)
+### A pinned parameter copy can stand in for a sched1 order that decides local-alloc (func_akropolis_square_80180DAC, 2026-09-26)
 
 A gouraud-rectangle routine pinned `dx = value` to `$v1` so the target's `move v1,a1` and `lui a1,%hi(gGpuPrimCursor)` came out. Unpinned, arg1 stayed in `$a1` and the cursor's `%hi` took `$v1`. The deciding event is block-local: in the target, sched1 puts the `field_22` load above the cursor store, so that load's quantity holds `$v1` across the `%hi` quantity's range, local-alloc gives `%hi` `$a1`, and global-alloc then moves arg1 to `$v1`. Writing the colour-0 word before the tag rather than between `setlen` and `setcode` (`GPU_PRIMITIVE_COLOR_WORD(p, 0) = c; setPolyG4(p);`) moved that load and matched with no pin. When a pin sits on a parameter copy, look at `.lreg` for the block-local quantity that takes the register, then permute nearby independent statements.
 
@@ -145900,7 +145900,7 @@ on (the `j` sits right before it) had that `gte_stsv` and what follows in a
 helper both arms call:
 
 ```c
-static __inline__ void _storeNear(Work* work)
+static inline void _storeNear(Work* work)
 {
     gte_stsv(&work->near);
     work->near.vz += 0x12C;
@@ -146001,7 +146001,7 @@ of the independent loads after the push decided when `work`'s chain was
 placed, and loading `coord` before `ctx` reproduced the target exactly. Before
 fencing a push, permute the plain loads that follow it.
 
-## A function whose body repeats a `static __inline__` helper in its own file is that helper, called (Actor04600_Fn027BC, 2026-09-27)
+## A function whose body repeats a `static inline` helper in its own file is that helper, called (Actor04600_Fn027BC, 2026-09-27)
 
 A two-slot animation rebind matched only with the loop counter hoisted by hand
 (`i = 1;` above the branch), reused for the frame-count increment
@@ -146826,7 +146826,7 @@ tree reproduced it with a `RECT* rect = &local` for the stores plus a
 twice is CSE'd into one callee-saved pseudo (`move a0,s0`, 89.6%), and
 `ClearImage(rect)` gives `move a0,s0` (95.7%).
 
-**Fix.** Move the stores and both calls into a `static __inline__` helper
+**Fix.** Move the stores and both calls into a `static inline` helper
 taking `RECT*`, called with `&local`. The parameter gives the field stores
 their register and the calls their per-use frame address, with no pin. Zeroing
 `x`/`y` inside the helper or at the call site both matched, so let the helper's
@@ -147417,7 +147417,7 @@ translation tail needs `(scratch + cornerIndex*8) + 8`: `addiu a0,s0,8`, then
 `move s0,a0`. A direct `corner = &scratch->corners[cornerIndex]` shares the GTE
 pointer and changes 23 bytes of the 840-byte drawer despite keeping its length.
 
-**Fix.** Put all three wrapping component additions in a `static __inline__`
+**Fix.** Put all three wrapping component additions in a `static inline`
 helper taking `SVECTOR* corner` and `const GfxCoord* coord`, and call it with
 `&scratch->corners[cornerIndex], coord`. Each addition is
 `corner->v? = (u16)corner->v? + (u16)coord->workm.t[axis]`. Inlining this helper
@@ -147557,7 +147557,7 @@ Both Divers tested "the clip ended" twenty times as
 
 A flag materialised only to be tested, behind a reload of a pointer the
 function already holds, is what an inlined `if (...) return 1; return 0;`
-leaves. One `static __inline__ s32 _diverClipHasBoundaryOrJump(Task* task)` in
+leaves. One `static inline s32 _diverClipHasBoundaryOrJump(Task* task)` in
 `src/shared/creatures/diver/diver_inlines.inc.c`, taking the task and loading the work block
 itself, replaced all twenty and both packages still match. The Bog Diver also
 carries the test out of line (`_actor00400ClipEnded`, an `s16` return), which is
@@ -148271,7 +148271,7 @@ for (partIndex = 2; partIndex < 0x10; partIndex += 8) {
 
 The same change removed an `intensitySi = intensity;` copy the first loop carried inside
 its body: `intensity` used directly gives the same hoisted extension.
-`acropolisSquareBeaconGlowTask` and `acropolisRoofGardenFlareTask`
+`akropolisSquareTelephoneLightTask` and `acropolisRoofGardenFlareTask`
 take the same form.
 
 **Use.** When `.loop` shows a constant hoisted that the target keeps in the
@@ -149700,7 +149700,7 @@ attempts; left as it was.
   (`_actor105100BeamSeekPlayer`): a `?:` of two comparisons in a condition
   branches from each arm straight to the `then`/`else` code.
 - **`if (a && b) goto handOff; if (c == 0) { handOff: ... }`** is
-  `if ((a && b) || c == 0)` (`_acropolisSquareSirenSequenceTask`).
+  `if ((a && b) || c == 0)` (`_akropolisSquareTelephoneRingTask`).
 - Not converted: `_actor342000TickGluttonAnimation` / `_actor341900TickGluttonAnimation`
   (the `allSettled = 0` block of the settle scan sitting between `firstBlendSlot = slotCount == 8`
   and `slotIndex = firstBlendSlot`). The block is where loop.c found a `BARRIER`, so the

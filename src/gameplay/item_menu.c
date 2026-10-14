@@ -365,7 +365,7 @@ static inline s32 _itemMenuCheckTransferRestriction(s32 itemId, s32 battleFieldM
     if (gItemDescriptors[itemId].flags & ITEM_FLAG_NO_DISCARD) {
         restricted = battleFieldMode == ITEM_MENU_PANE_MODE_BATTLE_FIELD;
     }
-    if ((_gItemMenuTransferPlaceKind == ITEM_MENU_M93R_RESTRICTED_CONTAINER_KIND) && (itemId == ITEM_MENU_M93R_ITEM_ID) && (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.stage == GAME_STAGE_ACROPOLIS)) {
+    if ((_gItemMenuTransferPlaceKind == ITEM_MENU_M93R_RESTRICTED_CONTAINER_KIND) && (itemId == ITEM_MENU_M93R_ITEM_ID) && (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.stage == GAME_STAGE_AKROPOLIS)) {
         restricted = 1;
     }
     return restricted;
@@ -1616,11 +1616,11 @@ void itemPickupContainerLidTask(Task* task)
             if (task->status != 0) {
                 task->killCountdown = 0;
                 switch (stageAreaKey) {
-                    case GAME_LOCATION_KEY(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_SECURITY_ROOM, 0, 0): {
+                    case GAME_LOCATION_KEY(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_SECURITY_ROOM, 0, 0): {
                         _itemPickupPlayLidSound(task, SOUND_ACROPOLIS_SECURITY_ROOM_ITEM_LID_OPEN);
                         break;
                     }
-                    case GAME_LOCATION_KEY(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_SANCTUARY, 0, 0): {
+                    case GAME_LOCATION_KEY(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_SANCTUARY, 0, 0): {
                         _itemPickupPlayLidSound(task, SOUND_ACROPOLIS_SANCTUARY_ITEM_LID_OPEN);
                     }
                     // Sanctuary also requests the following sound; retain this fallthrough.
@@ -1665,11 +1665,11 @@ void itemPickupContainerLidTask(Task* task)
     } else if (task->state >= ITEM_PICKUP_LID_BEGIN_CLOSING) {
         if (task->state == ITEM_PICKUP_LID_BEGIN_CLOSING) {
             switch (stageAreaKey) {
-                case GAME_LOCATION_KEY(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_SECURITY_ROOM, 0, 0): {
+                case GAME_LOCATION_KEY(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_SECURITY_ROOM, 0, 0): {
                     _itemPickupPlayLidSound(task, SOUND_ACROPOLIS_SECURITY_ROOM_ITEM_LID_CLOSE);
                     break;
                 }
-                case GAME_LOCATION_KEY(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_SANCTUARY, 0, 0): {
+                case GAME_LOCATION_KEY(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_SANCTUARY, 0, 0): {
                     _itemPickupPlayLidSound(task, SOUND_ACROPOLIS_SANCTUARY_ITEM_LID_CLOSE);
                     break;
                 }

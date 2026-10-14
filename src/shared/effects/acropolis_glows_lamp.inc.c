@@ -11,7 +11,7 @@
 /// Clipping a draw does not reclaim its reservation. The returned packet is
 /// borrowed until its frame arena is reused after GPU completion, and must not
 /// be freed or retained across that reuse.
-static __inline__ POLY_FT4* _glowLampReserveQuad(void)
+static inline POLY_FT4* _glowLampReserveQuad(void)
 {
     POLY_FT4* quad = gGpuPrimCursor;
 

@@ -5,7 +5,7 @@
 /// Compares the previous dispatch state with the task's current state, stores
 /// a 0/1 entry flag and then records the current state. The spinner states
 /// currently leave that flag unread. Borrows live arguments for this call.
-static __inline__ void _gluttonRecordSpinnerTaskState(GluttonSpinnerWork* work, const Task* task)
+static inline void _gluttonRecordSpinnerTaskState(GluttonSpinnerWork* work, const Task* task)
 {
     if (work->prevState != task->state) {
         work->stateChanged = 1;

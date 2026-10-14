@@ -62,7 +62,7 @@
 
 #include "mapui/map_dryfield.h"
 
-#include "rooms/acropolis_square.h"
+#include "rooms/akropolis_square.h"
 
 #include "rooms/room.h"
 

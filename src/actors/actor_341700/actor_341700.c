@@ -902,7 +902,7 @@ static u8 _gMadChaserSettleAnims[19] = {
 /// Unreferenced bytes before this package's prop geometry; their role is unproven.
 static u8 _gActor341700Unknown12F90[20] = { 2, 70, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 80, 0, 62, 200, 210, 1 };
 
-static __inline__ void _madChaserResetBehaviorStateS16(Task* task, s16 behaviorState);
+static inline void _madChaserResetBehaviorStateS16(Task* task, s16 behaviorState);
 
 #include "../../shared/creatures/mad_chaser/mad_chaser_limb_shadow.inc.c"
 
@@ -1063,7 +1063,7 @@ static const TaskFuncTable7 _gMadChaserShrinkDeathStates = { {
 /// Requires live MadChaserWork and an index valid for the active behavior table.
 /// Retains the task state, animation and counters. This local copy has no users;
 /// active transitions use the shared `_madChaserSetBehaviorStateS16` helper.
-static __inline__ void _madChaserResetBehaviorStateS16(Task* task, s16 behaviorState)
+static inline void _madChaserResetBehaviorStateS16(Task* task, s16 behaviorState)
 {
     enum { MAD_CHASER_BEHAVIOR_START_SUBSTATE = 0 };
     MadChaserWork* work = task->work;

@@ -1117,7 +1117,7 @@ static void _actor223600Spawn(Enemy* enemy, Task* task)
 /// Requires 0x24 free bytes below the block on the initialized scratch stack
 /// for the rotation routine. The caller releases the block and marks the root
 /// `GRAPHICS_COORD_DIRTY`; no pointer is retained.
-static __inline__ void _actor223600TurnTowardWalkTarget(Task* task, ActorTurnScratch* turnScratch)
+static inline void _actor223600TurnTowardWalkTarget(Task* task, ActorTurnScratch* turnScratch)
 {
     enum { ACTOR_223600_WALK_TURN_LIMIT = 16 }; // 4096 angle units per turn
     GfxCoord* rootCoord;

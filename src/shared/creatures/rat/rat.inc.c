@@ -202,7 +202,7 @@ static void _ratContacts(Task* actor)
 /// both schedule another draw on the next update.
 /// The heading draw supplies a magnitude 0..1023 and sign bit; target yaw
 /// wraps to 0..4095 around the rat's current heading.
-static __inline__ void _ratPickWanderHeading(RatWork* work)
+static inline void _ratPickWanderHeading(RatWork* work)
 {
     enum {
         RAT_WANDER_DELAY_MASK         = 31,
@@ -337,7 +337,7 @@ static void _ratIdle(Task* actor)
 /// inputs give 0..2048; a heading just outside the range can give a negative
 /// error when the target changes across the wrap. That retained value still
 /// passes the caller's one-sided aim test. No work or coordinate is changed.
-static __inline__ s16 _ratGetAimError(u16 targetYaw, u16 currentYaw)
+static inline s16 _ratGetAimError(u16 targetYaw, u16 currentYaw)
 {
     s32 rawYawDelta;
     s16 yawDelta;
@@ -1114,7 +1114,7 @@ static void _ratShadow(Task* actor)
 /// Restoring it avoids compounding scale. Translation is copied from that pose;
 /// unity X/Z factors preserve its other axes. Only the scratch matrix's 3x3
 /// is initialized or read. The caller owns scale decay, invalidation and release.
-static __inline__ void _ratApplyRootScale(GfxCoord* rootCoord, const RatWork* work, ActorScaleScratch* scratch)
+static inline void _ratApplyRootScale(GfxCoord* rootCoord, const RatWork* work, ActorScaleScratch* scratch)
 {
     scratch->scale.vx = ONE;
     scratch->scale.vy = work->squashScale;

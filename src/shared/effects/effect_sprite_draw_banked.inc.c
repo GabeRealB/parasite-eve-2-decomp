@@ -41,7 +41,7 @@
 /// Y points up; for a positive half-diagonal, angle zero is upward and a quarter
 /// turn is rightward. The drawer adds or subtracts these components to place
 /// each pair of opposite corners.
-static __inline__ void _effectSpriteBankedRotateCorner(EffectShapeScratch* scratch, s16 sizeFactor, s32 cornerAngle)
+static inline void _effectSpriteBankedRotateCorner(EffectShapeScratch* scratch, s16 sizeFactor, s32 cornerAngle)
 {
     enum {
         /// Multiplier in the signed half-diagonal numerator, divided by projection depth.

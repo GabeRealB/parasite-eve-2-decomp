@@ -474,7 +474,7 @@ enum { ACROPOLIS_PATIO_STRANGER_COMMAND_HIDE = 0 };
 /// The patio namespace selects the hidden actor state. Borrowed synchronously
 /// during room initialization; retains the original four-byte word alignment.
 static ActorCommand _gAcropolisPatioHideStrangerCommand __attribute__((aligned(4))) = {
-    .context = { .loc = { GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PATIO } },
+    .context = { .loc = { GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_PATIO } },
     .command = ACROPOLIS_PATIO_STRANGER_COMMAND_HIDE,
 };
 
@@ -482,7 +482,7 @@ static ActorCommand _gAcropolisPatioHideStrangerCommand __attribute__((aligned(4
 ///
 /// Borrowed synchronously in the Acropolis patio command namespace.
 static ActorCommand _gAcropolisPatioOpeningActorsStartCommand = {
-    .context = { .loc = { GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PATIO } },
+    .context = { .loc = { GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_PATIO } },
     .command = ACROPOLIS_PATIO_SWAT_ANIMATION_1,
 };
 
@@ -490,7 +490,7 @@ static ActorCommand _gAcropolisPatioOpeningActorsStartCommand = {
 ///
 /// Borrowed synchronously in the Acropolis patio command namespace.
 static ActorCommand _gAcropolisPatioSwatAnimation2Command = {
-    .context = { .loc = { GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PATIO } },
+    .context = { .loc = { GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_PATIO } },
     .command = ACROPOLIS_PATIO_SWAT_ANIMATION_2,
 };
 
@@ -498,7 +498,7 @@ static ActorCommand _gAcropolisPatioSwatAnimation2Command = {
 ///
 /// Borrowed synchronously in the Acropolis patio command namespace.
 static ActorCommand _gAcropolisPatioSwatAnimation3Command __attribute__((aligned(4))) = {
-    .context = { .loc = { GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PATIO } },
+    .context = { .loc = { GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_PATIO } },
     .command = ACROPOLIS_PATIO_SWAT_ANIMATION_3,
 };
 
@@ -506,7 +506,7 @@ static ActorCommand _gAcropolisPatioSwatAnimation3Command __attribute__((aligned
 ///
 /// Borrowed synchronously in the Acropolis patio command namespace.
 static ActorCommand _gAcropolisPatioSwatAnimation4Command = {
-    .context = { .loc = { GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PATIO } },
+    .context = { .loc = { GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_PATIO } },
     .command = ACROPOLIS_PATIO_SWAT_ANIMATION_4,
 };
 
@@ -533,7 +533,7 @@ enum {
 /// delimit staging and completion; no script calls or jumps occur. Borrow all
 /// commands, callbacks and payloads from the loaded patio through execution.
 static EvsCommand _gAcropolisPatioOpeningScript[] = {
-    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PATIO, 0x09) }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_PATIO, 0x09) }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gAcropolisPatioPlayerIdleAnimationRequest }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_START }, { .value = ACROPOLIS_PATIO_CAP_OPENING }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -601,7 +601,7 @@ static EvsCommand _gAcropolisPatioFollowUpScript[] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gAcropolisPatioFollowUpPlayerStartPlacement } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_MOVE_TO }, { .message = { .transform = &_gAcropolisPatioFollowUpPlayerWalkDestination } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PATIO, 0x0B) }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_PATIO, 0x0B) }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gAcropolisPatioSwatAnimation2Command } }, { .value = 0 } },
@@ -614,10 +614,10 @@ static EvsCommand _gAcropolisPatioFollowUpScript[] = {
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gAcropolisPatioFollowUpPlayerAnimation50Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PATIO, 0x0C) }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_PATIO, 0x0C) }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gAcropolisPatioSwatAnimation3Command } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PATIO, 0x0A) }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_PATIO, 0x0A) }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _acropolisPatioSetPlayerHeadAimState }, { .value = ACROPOLIS_PATIO_SCRIPT_HEAD_AIM_START_SLIDE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _acropolisPatioActivateRoom2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -966,7 +966,7 @@ static ActorMotionWalkAnim _gAcropolisPatioStrangerLeapAnimations = {
 /// Its head-turn calculation currently ignores that weight.
 /// Borrowed synchronously by both placed actors (0 and 1).
 static ActorCommand _gAcropolisPatioLowerStrangerHeadWeightCommand = {
-    .context = { .loc = { GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PATIO } },
+    .context = { .loc = { GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_PATIO } },
     .command = ACROPOLIS_PATIO_STRANGER_COMMAND_LOWER_HEAD_WEIGHT,
 };
 
@@ -1215,12 +1215,12 @@ WorldCoordRoomLighting gAcropolisPatioRoomLightingTable[ACROPOLIS_PATIO_ROOM_COU
 
 /// Door sound requests and map-marker nibbles carried by the patio warp endpoints.
 enum {
-    ACROPOLIS_PATIO_FOUNTAIN_ARRIVAL_SOUND    = SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PATIO, 2),
-    ACROPOLIS_PATIO_FOUNTAIN_DEPARTURE_SOUND  = SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PATIO, 1),
-    ACROPOLIS_PATIO_FOUNTAIN_BLOCKED_SOUND    = SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PATIO, 7),
-    ACROPOLIS_PATIO_CAFETERIA_ARRIVAL_SOUND   = SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PATIO, 5),
-    ACROPOLIS_PATIO_CAFETERIA_DEPARTURE_SOUND = SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PATIO, 4),
-    ACROPOLIS_PATIO_CAFETERIA_BLOCKED_SOUND   = SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PATIO, 6),
+    ACROPOLIS_PATIO_FOUNTAIN_ARRIVAL_SOUND    = SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_PATIO, 2),
+    ACROPOLIS_PATIO_FOUNTAIN_DEPARTURE_SOUND  = SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_PATIO, 1),
+    ACROPOLIS_PATIO_FOUNTAIN_BLOCKED_SOUND    = SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_PATIO, 7),
+    ACROPOLIS_PATIO_CAFETERIA_ARRIVAL_SOUND   = SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_PATIO, 5),
+    ACROPOLIS_PATIO_CAFETERIA_DEPARTURE_SOUND = SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_PATIO, 4),
+    ACROPOLIS_PATIO_CAFETERIA_BLOCKED_SOUND   = SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_PATIO, 6),
     ACROPOLIS_PATIO_FOUNTAIN_MAP_FLAG         = 496,
     ACROPOLIS_PATIO_CAFETERIA_MAP_FLAG        = 501,
 };
@@ -1377,11 +1377,11 @@ enum {
 /// until unlinked. Positions/radii use room units and normals use `ONE` per unit.
 static WorldCollisionTrigger _gAcropolisPatioRoom1ActionTriggers[12] = {
     { NULL, NULL, NULL, { 3903, -96, 895, 0 }, { { -669, 0, -11, 0 }, { 492, 0, -445, 0 }, { -491, 0, 446, 0 }, { 670, 0, 12, 0 } }, { 0, 4109, 0, 0 }, { -1189, 0, -3920, 0 }, 668, WORLD_COLLISION_TRIGGER_ACTION_FACING, ACROPOLIS_PATIO_STAIR_ASCEND_PARAMETER, 16, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 4927, -64, -4128, 0 }, { { -711, 0, -432, 0 }, { 697, 0, -432, 0 }, { -728, 0, 433, 0 }, { 713, 0, 433, 0 } }, { 0, 4098, 0, 0 }, { 0, 0, ONE, 0 }, 846, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_ACROPOLIS_FOUNTAIN, ACROPOLIS_PATIO_FOUNTAIN_WARP_REQUEST, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -7265, -352, -4704, 0 }, { { -1031, 0, -592, 0 }, { 1017, 0, -592, 0 }, { -1016, 0, 593, 0 }, { 1033, 0, 593, 0 } }, { 0, 4109, 0, 0 }, { 0, 0, ONE, 0 }, 1187, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_ACROPOLIS_CAFETERIA, ACROPOLIS_PATIO_CAFETERIA_WARP_REQUEST, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 4927, -64, -4128, 0 }, { { -711, 0, -432, 0 }, { 697, 0, -432, 0 }, { -728, 0, 433, 0 }, { 713, 0, 433, 0 } }, { 0, 4098, 0, 0 }, { 0, 0, ONE, 0 }, 846, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_AKROPOLIS_FOUNTAIN, ACROPOLIS_PATIO_FOUNTAIN_WARP_REQUEST, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -7265, -352, -4704, 0 }, { { -1031, 0, -592, 0 }, { 1017, 0, -592, 0 }, { -1016, 0, 593, 0 }, { 1033, 0, 593, 0 } }, { 0, 4109, 0, 0 }, { 0, 0, ONE, 0 }, 1187, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_AKROPOLIS_CAFETERIA, ACROPOLIS_PATIO_CAFETERIA_WARP_REQUEST, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { -4689, -384, -4768, 0 }, { { -1335, 0, -592, 0 }, { 1321, 0, -592, 0 }, { -1320, 0, 593, 0 }, { 1337, 0, 593, 0 } }, { 0, 4095, 0, 0 }, { 0, 0, ONE, 0 }, 1459, WORLD_COLLISION_TRIGGER_ACTION_CAP, ACROPOLIS_PATIO_TRIGGER_CAP_COMMAND_2, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { 992, -384, -3272, 0 }, { { -1431, 0, 184, 0 }, { 1001, 0, -1288, 0 }, { -1448, 0, 1465, 0 }, { 1881, 0, -359, 0 } }, { 0, 4107, 0, 0 }, { 0, 0, -4097, 0 }, 2048, WORLD_COLLISION_TRIGGER_ACTION_CAP, ACROPOLIS_PATIO_TRIGGER_CAP_COMMAND_1, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 3999, -720, 1183, 0 }, { { -1187, -1164, 440, 0 }, { 1204, -1166, -401, 0 }, { -1204, 1166, 402, 0 }, { 1188, 1164, -440, 0 } }, { -1360, -74, -3864, 0 }, { -1189, 0, -3920, 0 }, 1722, WORLD_COLLISION_TRIGGER_ACTION_WARP | WORLD_COLLISION_TRIGGER_AUTOMATIC, GAME_AREA_ACROPOLIS_SQUARE, ACROPOLIS_PATIO_SQUARE_WARP_REQUEST, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 3999, -720, 1183, 0 }, { { -1187, -1164, 440, 0 }, { 1204, -1166, -401, 0 }, { -1204, 1166, 402, 0 }, { 1188, 1164, -440, 0 } }, { -1360, -74, -3864, 0 }, { -1189, 0, -3920, 0 }, 1722, WORLD_COLLISION_TRIGGER_ACTION_WARP | WORLD_COLLISION_TRIGGER_AUTOMATIC, GAME_AREA_AKROPOLIS_SQUARE, ACROPOLIS_PATIO_SQUARE_WARP_REQUEST, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { 4064, -603, 1408, 0 }, { { -1021, 0, 181, 0 }, { 908, 0, -509, 0 }, { -907, 0, 510, 0 }, { 1022, 0, -180, 0 } }, { 0, 4099, 0, 0 }, { 1189, 0, 3920, 0 }, 1039, WORLD_COLLISION_TRIGGER_ACTION_FACING | ACROPOLIS_PATIO_STAIR_DESCEND_CONTROL | WORLD_COLLISION_TRIGGER_AUTOMATIC, ACROPOLIS_PATIO_STAIR_DESCEND_PARAMETER, 144, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { -1680, -384, -4256, 0 }, { { -1895, 0, -880, 0 }, { 1881, 0, -880, 0 }, { -1880, 0, 881, 0 }, { 1897, 0, 881, 0 } }, { 0, 4105, 0, 0 }, { 0, 0, ONE, 0 }, 2079, WORLD_COLLISION_TRIGGER_ACTION_CAP, ACROPOLIS_PATIO_TRIGGER_CAP_COMMAND_5, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { -8066, -64, -881, 0 }, { { 621, 0, -386, 0 }, { 639, 0, 374, 0 }, { -637, 0, -372, 0 }, { -620, 0, 387, 0 } }, { 0, 4095, 0, 0 }, { 4091, 0, -202, 0 }, 738, WORLD_COLLISION_TRIGGER_ACTION_CAP, ACROPOLIS_PATIO_TRIGGER_CAP_COMMAND_7, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
@@ -1398,11 +1398,11 @@ static WorldCollisionTrigger _gAcropolisPatioRoom1ActionTriggers[12] = {
 /// records and must remain loaded until unlinked.
 static WorldCollisionTrigger _gAcropolisPatioRooms2And3ActionTriggers[12] = {
     { NULL, NULL, NULL, { 3903, -96, 959, 0 }, { { -669, 0, -11, 0 }, { 492, 0, -445, 0 }, { -491, 0, 446, 0 }, { 670, 0, 12, 0 } }, { 0, 4109, 0, 0 }, { -1189, 0, -3920, 0 }, 668, WORLD_COLLISION_TRIGGER_ACTION_FACING, ACROPOLIS_PATIO_STAIR_ASCEND_PARAMETER, 16, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 4927, -64, -4128, 0 }, { { -711, 0, -432, 0 }, { 697, 0, -432, 0 }, { -728, 0, 433, 0 }, { 713, 0, 433, 0 } }, { 0, 4098, 0, 0 }, { 0, 0, ONE, 0 }, 846, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_ACROPOLIS_FOUNTAIN, ACROPOLIS_PATIO_FOUNTAIN_WARP_REQUEST, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -7265, -352, -4704, 0 }, { { -1031, 0, -592, 0 }, { 1017, 0, -592, 0 }, { -1016, 0, 593, 0 }, { 1033, 0, 593, 0 } }, { 0, 4109, 0, 0 }, { 0, 0, ONE, 0 }, 1187, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_ACROPOLIS_CAFETERIA, ACROPOLIS_PATIO_CAFETERIA_WARP_REQUEST, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 4927, -64, -4128, 0 }, { { -711, 0, -432, 0 }, { 697, 0, -432, 0 }, { -728, 0, 433, 0 }, { 713, 0, 433, 0 } }, { 0, 4098, 0, 0 }, { 0, 0, ONE, 0 }, 846, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_AKROPOLIS_FOUNTAIN, ACROPOLIS_PATIO_FOUNTAIN_WARP_REQUEST, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -7265, -352, -4704, 0 }, { { -1031, 0, -592, 0 }, { 1017, 0, -592, 0 }, { -1016, 0, 593, 0 }, { 1033, 0, 593, 0 } }, { 0, 4109, 0, 0 }, { 0, 0, ONE, 0 }, 1187, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_AKROPOLIS_CAFETERIA, ACROPOLIS_PATIO_CAFETERIA_WARP_REQUEST, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { -4689, -384, -4768, 0 }, { { -1335, 0, -592, 0 }, { 1321, 0, -592, 0 }, { -1320, 0, 593, 0 }, { 1337, 0, 593, 0 } }, { 0, 4095, 0, 0 }, { 0, 0, ONE, 0 }, 1459, WORLD_COLLISION_TRIGGER_ACTION_CAP, ACROPOLIS_PATIO_TRIGGER_CAP_COMMAND_2, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { 992, -384, -3272, 0 }, { { -1431, 0, 184, 0 }, { 1001, 0, -1288, 0 }, { -1448, 0, 1465, 0 }, { 1881, 0, -359, 0 } }, { 0, 4107, 0, 0 }, { 0, 0, -4097, 0 }, 2048, WORLD_COLLISION_TRIGGER_ACTION_CAP, ACROPOLIS_PATIO_TRIGGER_CAP_COMMAND_1, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 4128, -464, 1472, 0 }, { { -1021, 0, 181, 0 }, { 908, 0, -509, 0 }, { -907, 0, 510, 0 }, { 1022, 0, -180, 0 } }, { 0, 4099, 0, 0 }, { -1189, 0, -3920, 0 }, 1039, WORLD_COLLISION_TRIGGER_ACTION_WARP | WORLD_COLLISION_TRIGGER_AUTOMATIC, GAME_AREA_ACROPOLIS_SQUARE, ACROPOLIS_PATIO_SQUARE_WARP_REQUEST, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 4128, -464, 1472, 0 }, { { -1021, 0, 181, 0 }, { 908, 0, -509, 0 }, { -907, 0, 510, 0 }, { 1022, 0, -180, 0 } }, { 0, 4099, 0, 0 }, { -1189, 0, -3920, 0 }, 1039, WORLD_COLLISION_TRIGGER_ACTION_WARP | WORLD_COLLISION_TRIGGER_AUTOMATIC, GAME_AREA_AKROPOLIS_SQUARE, ACROPOLIS_PATIO_SQUARE_WARP_REQUEST, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { 4128, -475, 1472, 0 }, { { -1021, 0, 181, 0 }, { 908, 0, -509, 0 }, { -907, 0, 510, 0 }, { 1022, 0, -180, 0 } }, { 0, 4099, 0, 0 }, { 1189, 0, 3920, 0 }, 1039, WORLD_COLLISION_TRIGGER_ACTION_FACING | ACROPOLIS_PATIO_STAIR_DESCEND_CONTROL | WORLD_COLLISION_TRIGGER_AUTOMATIC, ACROPOLIS_PATIO_STAIR_DESCEND_PARAMETER, 152, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { -1680, -384, -4256, 0 }, { { -1895, 0, -880, 0 }, { 1881, 0, -880, 0 }, { -1880, 0, 881, 0 }, { 1897, 0, 881, 0 } }, { 0, 4105, 0, 0 }, { 0, 0, ONE, 0 }, 2079, WORLD_COLLISION_TRIGGER_ACTION_CAP, ACROPOLIS_PATIO_TRIGGER_CAP_COMMAND_5, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { -8066, -64, -849, 0 }, { { 621, 0, -418, 0 }, { 639, 0, 406, 0 }, { -637, 0, -404, 0 }, { -620, 0, 419, 0 } }, { 0, 4095, 0, 0 }, { 4091, 0, -202, 0 }, 754, WORLD_COLLISION_TRIGGER_ACTION_CAP, ACROPOLIS_PATIO_TRIGGER_CAP_COMMAND_7, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
@@ -2462,7 +2462,7 @@ static void _acropolisPatioInitializeRoomTask(Task* task)
 
     task->msgTable = _gAcropolisPatioRoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
-    if (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_PROGRESS) < ACROPOLIS_PATIO_STORY_BATTLE_FINISHED) {
+    if (gameFlagGetNibble(GAME_FLAG_AKROPOLIS_PROGRESS) < ACROPOLIS_PATIO_STORY_BATTLE_FINISHED) {
         if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.room == 1) {
             TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(0), ACTOR_MESSAGE_PLACE, &_gAcropolisPatioRestoredSwatPlacement, 0);
             TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(0), ACTOR_COMMAND_MESSAGE_APPLY, &_gAcropolisPatioSwatAnimation3Command, 0);
@@ -2474,16 +2474,16 @@ static void _acropolisPatioInitializeRoomTask(Task* task)
             TASK_MESSAGE_DISPATCH_POINTER(placedActor, ACTOR_MESSAGE_PLACE, &_gAcropolisPatioRestoredStrangerPlacement, 0);
         }
     }
-    if ((gGameSession->location.variant == 1) && (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_OPENING_PROGRESS) < ACROPOLIS_PATIO_OPENING_SCENE_THRESHOLD) && (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_OPENING_PROGRESS) < ACROPOLIS_PATIO_OPENING_SCENE_THRESHOLD)) {
+    if ((gGameSession->location.variant == 1) && (gameFlagGetNibble(GAME_FLAG_AKROPOLIS_OPENING_PROGRESS) < ACROPOLIS_PATIO_OPENING_SCENE_THRESHOLD) && (gameFlagGetNibble(GAME_FLAG_AKROPOLIS_OPENING_PROGRESS) < ACROPOLIS_PATIO_OPENING_SCENE_THRESHOLD)) {
         placedActor = sceneFindPlacedActor(1);
         if (placedActor != 0) {
             TASK_MESSAGE_DISPATCH_POINTER(placedActor, ACTOR_COMMAND_MESSAGE_APPLY, &_gAcropolisPatioHideStrangerCommand, 0);
         }
     }
     // Commands are borrowed only through these synchronous dispatches.
-    if ((gGameSession->location.variant == 2) && (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_PATIO_026) == ACROPOLIS_PATIO_SCENE_UNSEEN)) {
-        actorCommand.context.loc.stage = GAME_STAGE_ACROPOLIS;
-        actorCommand.context.loc.area  = GAME_AREA_ACROPOLIS_PATIO;
+    if ((gGameSession->location.variant == 2) && (gameFlagGetNibble(GAME_FLAG_AKROPOLIS_PATIO_026) == ACROPOLIS_PATIO_SCENE_UNSEEN)) {
+        actorCommand.context.loc.stage = GAME_STAGE_AKROPOLIS;
+        actorCommand.context.loc.area  = GAME_AREA_AKROPOLIS_PATIO;
         actorCommand.command           = 0;
         TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(2), ACTOR_COMMAND_MESSAGE_APPLY, &actorCommand, 0);
         TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(3), ACTOR_COMMAND_MESSAGE_APPLY, &actorCommand, 0);
@@ -2529,12 +2529,12 @@ static s32 _acropolisPatioResolveRoomTransition(Task* unusedTask, s32 messageId,
     u16 destinationArea;
 
     *reply = *request;
-    if (request->areaId == GAME_AREA_ACROPOLIS_FOUNTAIN) {
+    if (request->areaId == GAME_AREA_AKROPOLIS_FOUNTAIN) {
         if ((gameFlagGetNibble(GAME_FLAG_SECURITY_ROOM_LOCKS_RELEASED) & ACROPOLIS_PATIO_SECOND_SECURITY_LOCK_BIT) && (request->queryOnly == ROOM_EVENT_EXECUTE)) {
             reply->room = 2;
         }
     }
-    if (request->areaId == GAME_AREA_ACROPOLIS_CAFETERIA) {
+    if (request->areaId == GAME_AREA_AKROPOLIS_CAFETERIA) {
         if (gameFlagGetNibble(GAME_FLAG_PATIO_CAFETERIA_DOOR_STATE) < ACROPOLIS_PATIO_DOOR_UNLOCKED) {
             transitionResult = ACROPOLIS_PATIO_TRANSITION_BLOCKED;
             if (request->queryOnly == ROOM_EVENT_EXECUTE) {
@@ -2545,7 +2545,7 @@ static s32 _acropolisPatioResolveRoomTransition(Task* unusedTask, s32 messageId,
             }
             return transitionResult;
         }
-        if (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_PROGRESS) == ACROPOLIS_PATIO_STORY_BATTLE_FINISHED) {
+        if (gameFlagGetNibble(GAME_FLAG_AKROPOLIS_PROGRESS) == ACROPOLIS_PATIO_STORY_BATTLE_FINISHED) {
             transitionResult = ACROPOLIS_PATIO_TRANSITION_DEFERRED;
             if (request->queryOnly == ROOM_EVENT_EXECUTE) {
                 if (gameFlagGetNibble(GAME_FLAG_PATIO_CAFETERIA_DOOR_SCENE_SEEN) == ACROPOLIS_PATIO_SCENE_UNSEEN) {
@@ -2568,7 +2568,7 @@ static s32 _acropolisPatioResolveRoomTransition(Task* unusedTask, s32 messageId,
             return transitionResult;
         }
     }
-    if ((request->areaId == GAME_AREA_ACROPOLIS_FOUNTAIN) && (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_PROGRESS) < ACROPOLIS_PATIO_STORY_FOUNTAIN_READY)) {
+    if ((request->areaId == GAME_AREA_AKROPOLIS_FOUNTAIN) && (gameFlagGetNibble(GAME_FLAG_AKROPOLIS_PROGRESS) < ACROPOLIS_PATIO_STORY_FOUNTAIN_READY)) {
         transitionResult = ACROPOLIS_PATIO_TRANSITION_BLOCKED;
         if (request->queryOnly == ROOM_EVENT_EXECUTE) {
             gameFlagSetNibbleIfPresent(request->flagId, 2);
@@ -2577,19 +2577,19 @@ static s32 _acropolisPatioResolveRoomTransition(Task* unusedTask, s32 messageId,
         }
         return transitionResult;
     }
-    if ((request->queryOnly == ROOM_EVENT_EXECUTE) && (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_OPENING_PROGRESS) == ACROPOLIS_PATIO_OPENING_SCENE_STARTED)) {
-        gameFlagSetNibble(GAME_FLAG_ACROPOLIS_OPENING_PROGRESS, ACROPOLIS_PATIO_OPENING_SCENE_FINISHED);
+    if ((request->queryOnly == ROOM_EVENT_EXECUTE) && (gameFlagGetNibble(GAME_FLAG_AKROPOLIS_OPENING_PROGRESS) == ACROPOLIS_PATIO_OPENING_SCENE_STARTED)) {
+        gameFlagSetNibble(GAME_FLAG_AKROPOLIS_OPENING_PROGRESS, ACROPOLIS_PATIO_OPENING_SCENE_FINISHED);
     }
     destinationArea  = request->areaId;
     transitionResult = ACROPOLIS_PATIO_TRANSITION_ALLOWED;
-    if (destinationArea == GAME_AREA_ACROPOLIS_CAFETERIA) {
+    if (destinationArea == GAME_AREA_AKROPOLIS_CAFETERIA) {
         transitionResult = ACROPOLIS_PATIO_TRANSITION_ALLOWED;
         if (request->queryOnly == ROOM_EVENT_EXECUTE) {
-            if (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_PROGRESS) >= ACROPOLIS_PATIO_STORY_FOLLOW_UP_STARTED) {
+            if (gameFlagGetNibble(GAME_FLAG_AKROPOLIS_PROGRESS) >= ACROPOLIS_PATIO_STORY_FOLLOW_UP_STARTED) {
                 reply->room = destinationArea;
             }
             transitionResult = ACROPOLIS_PATIO_TRANSITION_ALLOWED;
-            if (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_PROGRESS) == ACROPOLIS_PATIO_STORY_BATTLE_FINISHED) {
+            if (gameFlagGetNibble(GAME_FLAG_AKROPOLIS_PROGRESS) == ACROPOLIS_PATIO_STORY_BATTLE_FINISHED) {
                 reply->room      = 3;
                 transitionResult = ACROPOLIS_PATIO_TRANSITION_ALLOWED;
             }
@@ -2610,7 +2610,7 @@ static inline void _acropolisPatioCommitCafeteriaDeparture(Task* task)
     enum { ACROPOLIS_PATIO_CAFETERIA_SPRITE_VARIANT = 1 };
 
     sndEvtRequestScriptStop(SOUND_BANK_TYPE_ALL_NON_AMBIENT, SOUND_SCRIPT_STOP_NO_FADE);
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.area = GAME_AREA_ACROPOLIS_CAFETERIA;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.area = GAME_AREA_AKROPOLIS_CAFETERIA;
     gDisplayState.spriteVariant                            = ACROPOLIS_PATIO_CAFETERIA_SPRITE_VARIANT;
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp = _gAcropolisPatioCafeteriaArrivalWarp;
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.room = _gAcropolisPatioCafeteriaArrivalRoom;
@@ -2655,7 +2655,7 @@ static void _acropolisPatioCafeteriaDoorSceneTask(Task* task)
         case ACROPOLIS_PATIO_DOOR_RESOLVE_CHOICE:
             if (capGetVariantKey() == state) {
                 gameFlagSetNibble(GAME_FLAG_PATIO_CAFETERIA_DOOR_STATE, ACROPOLIS_PATIO_DOOR_OPEN);
-                sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PATIO, ACROPOLIS_PATIO_DOOR_SOUND_CUE), 0, 0);
+                sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_PATIO, ACROPOLIS_PATIO_DOOR_SOUND_CUE), 0, 0);
                 task->state = task->state + 1;
                 return;
             }
@@ -2663,7 +2663,7 @@ static void _acropolisPatioCafeteriaDoorSceneTask(Task* task)
             taskKill(task);
             return;
         case ACROPOLIS_PATIO_DOOR_WAIT_SOUND:
-            if (sndScriptHasActiveId(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PATIO, ACROPOLIS_PATIO_DOOR_SOUND_CUE)) != 0) {
+            if (sndScriptHasActiveId(SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_PATIO, ACROPOLIS_PATIO_DOOR_SOUND_CUE)) != 0) {
                 return;
             }
             _acropolisPatioCommitCafeteriaDeparture(task);
@@ -2688,20 +2688,20 @@ static s32 _acropolisPatioHandleActionMessage(Task* unusedTask, s32 messageId, c
 
     u8 actionId;
 
-    if ((actionRequest->actionId == ACROPOLIS_PATIO_ACTION_OPENING) && (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_OPENING_PROGRESS) < ACROPOLIS_PATIO_OPENING_SCENE_THRESHOLD)) {
-        gameFlagSetNibble(GAME_FLAG_ACROPOLIS_OPENING_PROGRESS, ACROPOLIS_PATIO_OPENING_SCENE_STARTED);
+    if ((actionRequest->actionId == ACROPOLIS_PATIO_ACTION_OPENING) && (gameFlagGetNibble(GAME_FLAG_AKROPOLIS_OPENING_PROGRESS) < ACROPOLIS_PATIO_OPENING_SCENE_THRESHOLD)) {
+        gameFlagSetNibble(GAME_FLAG_AKROPOLIS_OPENING_PROGRESS, ACROPOLIS_PATIO_OPENING_SCENE_STARTED);
         evsStartScriptWithSkip(_gAcropolisPatioOpeningScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, _gAcropolisPatioOpeningSkipScript);
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 3;
         gGameSession->flowFlags                             = (GAME_SESSION_FLOW_SKIP_ENDING_MUSIC | GAME_SESSION_FLOW_HIDE_REEQUIPPED_WEAPON | GAME_SESSION_FLOW_REEQUIP_WEAPON);
     }
-    if ((actionRequest->actionId == ACROPOLIS_PATIO_ACTION_FOLLOW_UP) && (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_OPENING_PROGRESS) == ACROPOLIS_PATIO_OPENING_SCENE_STARTED) &&
+    if ((actionRequest->actionId == ACROPOLIS_PATIO_ACTION_FOLLOW_UP) && (gameFlagGetNibble(GAME_FLAG_AKROPOLIS_OPENING_PROGRESS) == ACROPOLIS_PATIO_OPENING_SCENE_STARTED) &&
         (taskMessageDispatch(sceneFindPlacedActor(1), ACTOR_MESSAGE_IS_PRESENT, 0, 0) == 0)) {
-        gameFlagSetNibble(GAME_FLAG_ACROPOLIS_OPENING_PROGRESS, ACROPOLIS_PATIO_OPENING_SCENE_FINISHED);
+        gameFlagSetNibble(GAME_FLAG_AKROPOLIS_OPENING_PROGRESS, ACROPOLIS_PATIO_OPENING_SCENE_FINISHED);
         evsStartScriptWithSkip(_gAcropolisPatioFollowUpScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, _gAcropolisPatioFollowUpSkipScript);
     }
     actionId = actionRequest->actionId;
-    if ((actionId == ACROPOLIS_PATIO_ACTION_SECOND_VISIT) && (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_PATIO_026) == ACROPOLIS_PATIO_SCENE_UNSEEN) && (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_PROGRESS) == actionId)) {
-        gameFlagSetNibble(GAME_FLAG_ACROPOLIS_PATIO_026, ACROPOLIS_PATIO_SCENE_SEEN);
+    if ((actionId == ACROPOLIS_PATIO_ACTION_SECOND_VISIT) && (gameFlagGetNibble(GAME_FLAG_AKROPOLIS_PATIO_026) == ACROPOLIS_PATIO_SCENE_UNSEEN) && (gameFlagGetNibble(GAME_FLAG_AKROPOLIS_PROGRESS) == actionId)) {
+        gameFlagSetNibble(GAME_FLAG_AKROPOLIS_PATIO_026, ACROPOLIS_PATIO_SCENE_SEEN);
         evsStartScriptWithSkip(_gAcropolisPatioSecondVisitScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, _gAcropolisPatioSecondVisitSkipScript);
     }
     // No result is set; the sender of a room action ignores it.
@@ -2725,7 +2725,7 @@ static s32 _acropolisPatioHandleCommandMessage(Task* unusedTask, s32 messageId, 
     }
     reply = 2;
     if (commandId == ACROPOLIS_PATIO_COMMAND_EVENT_2) {
-        reply = gameFlagGetNibble(GAME_FLAG_ACROPOLIS_PROGRESS) < ACROPOLIS_PATIO_STORY_BATTLE_FINISHED;
+        reply = gameFlagGetNibble(GAME_FLAG_AKROPOLIS_PROGRESS) < ACROPOLIS_PATIO_STORY_BATTLE_FINISHED;
         if (reply != 0) {
             capSpawnEventIfIdle(ACROPOLIS_PATIO_COMMAND_EVENT_2, CAP_EVENT_NO_FLAGS);
             reply = 0;
@@ -2752,14 +2752,14 @@ static s32 _acropolisPatioHandleSoundMessage(Task* roomTask, s32 messageId, s32 
     enum { ACROPOLIS_PATIO_SOUND_CUE = 3 };
 
     if (soundCue == ACROPOLIS_PATIO_SOUND_CUE) {
-        sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PATIO, ACROPOLIS_PATIO_SOUND_CUE), 0, 0);
+        sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_PATIO, ACROPOLIS_PATIO_SOUND_CUE), 0, 0);
     }
     return 0;
 }
 /// Runs patio CAP command 6 and records choice key 1 in the shared scene flag.
 ///
 /// Starts bodyless in state 0. Advances through one waiting tick, then tests
-/// the CAP variant key, conditionally sets `GAME_FLAG_015` and kills the task.
+/// the CAP variant key, conditionally sets `EVENT_FLAG_MAP_AKROPOLIS_AVAILABLE` and kills the task.
 /// The flag's wider story meaning is unproven; other choice keys leave it alone.
 static void _acropolisPatioRecordSceneChoiceTask(Task* task)
 {
@@ -2783,7 +2783,7 @@ static void _acropolisPatioRecordSceneChoiceTask(Task* task)
             return;
         case ACROPOLIS_PATIO_CAP6_RECORD_CHOICE:
             if (capGetVariantKey() == 1) {
-                gameFlagSetNibble(GAME_FLAG_015, 1);
+                gameFlagSetNibble(EVENT_FLAG_MAP_AKROPOLIS_AVAILABLE, 1);
             }
             taskKill(task);
             return;

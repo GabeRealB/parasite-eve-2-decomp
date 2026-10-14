@@ -826,7 +826,7 @@ void dryfieldNightMotelLoftFallingShardTask(Task* task)
 /// Writes only XYZ, leaving the vector's fourth halfword unchanged. Both
 /// objects are borrowed for this call and must be disjoint; no pointer is
 /// retained, and neither the coordinate nor GTE state is changed.
-static __inline__ void _dryfieldNightMotelLoftTranslateShardCorner(SVECTOR* corner, const GfxCoord* coord)
+static inline void _dryfieldNightMotelLoftTranslateShardCorner(SVECTOR* corner, const GfxCoord* coord)
 {
     corner->vx = (u16)corner->vx + (u16)coord->workm.t[0];
     corner->vy = (u16)corner->vy + (u16)coord->workm.t[1];

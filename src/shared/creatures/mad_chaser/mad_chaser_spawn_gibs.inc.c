@@ -10,7 +10,7 @@
 /// its next-half selector; source/buffer capacities, scratch space and GPU
 /// lifetime must satisfy `tmdBuildBufferHalf`. An absent buffer stays absent.
 /// Borrows the task/effect handles; only the chunk model and buffer are changed.
-static __inline__ void _madChaserBindGibTexture(const Task* bodyTask, const EffectWork* chunkEffect)
+static inline void _madChaserBindGibTexture(const Task* bodyTask, const EffectWork* chunkEffect)
 {
     const TmdObject* bodyModel  = bodyTask->extra.tmd;
     TmdObject*       chunkModel = chunkEffect->task->extra.tmd;

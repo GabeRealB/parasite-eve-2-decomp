@@ -5,7 +5,7 @@
 /// `bodyWork` must be live with valid list links on any linked body. Unlinks in
 /// pair/grid/attack order, clearing linked bodies' pass enables and list links.
 /// The work block, body shapes and contact storage remain task-owned and live.
-static __inline__ void _madChaserDeathStartShrinkUnlinkBodies(MadChaserWork* bodyWork)
+static inline void _madChaserDeathStartShrinkUnlinkBodies(MadChaserWork* bodyWork)
 {
     worldCollisionUnlinkBody(&bodyWork->pairBody);
     worldCollisionUnlinkBody(&bodyWork->gridBody);

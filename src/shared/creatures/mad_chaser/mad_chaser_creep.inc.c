@@ -11,7 +11,7 @@
 /// attenuation depth (-128..127, one unit per 256 game-coordinate units), both
 /// narrowed to s8 for the request. Does not compose the root. Borrows task
 /// storage; the sound bank must remain loaded through playback.
-static __inline__ void _madChaserEmergeCreepPlayEntrySound(const Task* task)
+static inline void _madChaserEmergeCreepPlayEntrySound(const Task* task)
 {
     enum {
         MAD_CHASER_EMERGE_CREEP_SOUND          = SOUND_CHARACTER(SOUND_BANK_MAD_CHASER, 9),

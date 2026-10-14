@@ -1849,9 +1849,9 @@ static AreaApplyRec _gNeoArkObservatoryCompanionDepartureAreaUpdates[2] = {
 
 RoomDeparture gRoomDeparture;
 
-static __inline__ void _neoArkObservatoryResolveDeparture(RoomDeparture* departure, RoomVariantResolver resolve);
-static void            _neoArkObservatoryInitializeRoom(Task* task);
-static void            _neoArkObservatoryUpdateCompanionVisibility(Task* unusedTask);
+static inline void _neoArkObservatoryResolveDeparture(RoomDeparture* departure, RoomVariantResolver resolve);
+static void        _neoArkObservatoryInitializeRoom(Task* task);
+static void        _neoArkObservatoryUpdateCompanionVisibility(Task* unusedTask);
 
 #include "../../shared/room/planar_reflection.inc.c"
 
@@ -1880,7 +1880,7 @@ static void _neoArkObservatoryPlayerReflectionTask(Task* reflectionTask)
 /// area, warp, room and queryOnly: other request fields are uninitialized. Its
 /// result is ignored; the resolved area narrows back to a byte. Stage, sound and
 /// facing stay intact, and neither the helper nor the resolver retains storage.
-static __inline__ void _neoArkObservatoryResolveDeparture(RoomDeparture* departure, RoomVariantResolver resolve)
+static inline void _neoArkObservatoryResolveDeparture(RoomDeparture* departure, RoomVariantResolver resolve)
 {
     RoomEventMsg request;
 

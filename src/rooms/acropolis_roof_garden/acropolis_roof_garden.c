@@ -738,8 +738,8 @@ WorldCoordRoomLighting gAcropolisRoofGardenRoomLightingTable[1] = {
 };
 
 enum {
-    ACROPOLIS_ROOF_GARDEN_WARP_ARRIVAL_SOUND   = SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_ROOF_GARDEN, 2),
-    ACROPOLIS_ROOF_GARDEN_WARP_DEPARTURE_SOUND = SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_ROOF_GARDEN, 1),
+    ACROPOLIS_ROOF_GARDEN_WARP_ARRIVAL_SOUND   = SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_ROOF_GARDEN, 2),
+    ACROPOLIS_ROOF_GARDEN_WARP_DEPARTURE_SOUND = SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_ROOF_GARDEN, 1),
 };
 
 DirectionWarpEntry gAcropolisRoofGardenWarpEntries[2] = {
@@ -853,7 +853,7 @@ enum {
 /// Positions/radii use room-coordinate units and normals Q12. Setup binds,
 /// links and enables every writable record through the final LAST marker.
 static WorldCollisionTrigger _gAcropolisRoofGardenActionTriggers[7] = {
-    { NULL, NULL, NULL, { -7465, -32, -9928, 0 }, { { -752, 0, -416, 0 }, { 752, 0, -416, 0 }, { -752, 0, 416, 0 }, { 752, 0, 416, 0 } }, { 0, 4115, 0, 0 }, { 0, 0, 4096, 0 }, 858, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_ACROPOLIS_SANCTUARY, ACROPOLIS_ROOF_GARDEN_SANCTUARY_WARP_ENDPOINTS, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -7465, -32, -9928, 0 }, { { -752, 0, -416, 0 }, { 752, 0, -416, 0 }, { -752, 0, 416, 0 }, { 752, 0, 416, 0 } }, { 0, 4115, 0, 0 }, { 0, 0, 4096, 0 }, 858, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_AKROPOLIS_SANCTUARY, ACROPOLIS_ROOF_GARDEN_SANCTUARY_WARP_ENDPOINTS, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { -4608, -128, -4816, 0 }, { { -1040, 0, -608, 0 }, { 1040, 0, -608, 0 }, { -1040, 0, 608, 0 }, { 1040, 0, 608, 0 } }, { 0, 4116, 0, 0 }, { -201, 0, -4091, 0 }, 1200, WORLD_COLLISION_TRIGGER_ACTION_CAP, 3, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { -4640, -96, -3776, 0 }, { { -752, 0, -368, 0 }, { 752, 0, -368, 0 }, { -752, 0, 368, 0 }, { 752, 0, 368, 0 } }, { 0, 4100, 0, 0 }, { -1, 0, 4095, 0 }, 836, WORLD_COLLISION_TRIGGER_ACTION_CAP_WEAPON, ACROPOLIS_ROOF_GARDEN_ROOM_COMMAND_STORY, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { -4400, -96, -2080, 0 }, { { -640, 0, -560, 0 }, { 640, 0, -560, 0 }, { -640, 0, 560, 0 }, { 640, 0, 560, 0 } }, { 0, 4105, 0, 0 }, { 0, 0, -4096, 0 }, 849, WORLD_COLLISION_TRIGGER_ACTION_CAP, 2, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
@@ -1645,7 +1645,7 @@ static s32 _acropolisRoofGardenResolveRoomTransition(Task* task, s32 messageId, 
         ACROPOLIS_ROOF_GARDEN_TRANSITION_ALLOWED         = 1,
     };
     *reply = *request;
-    if (request->areaId == GAME_AREA_ACROPOLIS_SANCTUARY && request->queryOnly == ROOM_EVENT_EXECUTE && gameFlagGetNibble(GAME_FLAG_SANCTUARY_EVENT_LATCH) == ACROPOLIS_ROOF_GARDEN_SANCTUARY_EVENT_UNSET) {
+    if (request->areaId == GAME_AREA_AKROPOLIS_SANCTUARY && request->queryOnly == ROOM_EVENT_EXECUTE && gameFlagGetNibble(GAME_FLAG_SANCTUARY_EVENT_LATCH) == ACROPOLIS_ROOF_GARDEN_SANCTUARY_EVENT_UNSET) {
         gameFlagSetNibble(GAME_FLAG_SANCTUARY_EVENT_LATCH, ACROPOLIS_ROOF_GARDEN_SANCTUARY_EVENT_SUPPRESSED);
         areaSetCurrentObjectState(ACROPOLIS_ROOF_GARDEN_PICKUP_OBJECT_ID, ACROPOLIS_ROOF_GARDEN_PICKUP_HIDDEN);
     }
@@ -1705,7 +1705,7 @@ static s32 _acropolisRoofGardenHandleSoundMessage(Task* task, s32 messageId, s32
     enum { ACROPOLIS_ROOF_GARDEN_SOUND_CUE_ENTRY3 = 3 };
     switch (soundCue) {
         case ACROPOLIS_ROOF_GARDEN_SOUND_CUE_ENTRY3:
-            sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_ROOF_GARDEN, ACROPOLIS_ROOF_GARDEN_SOUND_CUE_ENTRY3), 0, 0);
+            sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_ROOF_GARDEN, ACROPOLIS_ROOF_GARDEN_SOUND_CUE_ENTRY3), 0, 0);
             break;
         case 5:
             break;
@@ -1774,19 +1774,19 @@ static void _acropolisRoofGardenCutsceneOpeningSoundTask(Task* task)
     };
     switch (task->state) {
         case ACROPOLIS_ROOF_GARDEN_OPENING_CUE6_TICK:
-            sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_ROOF_GARDEN, 6), 0, 0);
+            sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_ROOF_GARDEN, 6), 0, 0);
             break;
         case ACROPOLIS_ROOF_GARDEN_OPENING_CUE7_TICK:
-            sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_ROOF_GARDEN, 7), 0, 0);
+            sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_ROOF_GARDEN, 7), 0, 0);
             break;
         case ACROPOLIS_ROOF_GARDEN_OPENING_CUE8_TICK:
-            sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_ROOF_GARDEN, 8), 0, 0);
+            sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_ROOF_GARDEN, 8), 0, 0);
             break;
         case ACROPOLIS_ROOF_GARDEN_OPENING_CUE9_TICK:
-            sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_ROOF_GARDEN, 9), 0, 0);
+            sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_ROOF_GARDEN, 9), 0, 0);
             break;
         case ACROPOLIS_ROOF_GARDEN_OPENING_FINAL_TICK:
-            sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_ROOF_GARDEN, 0x0A), 0, 0);
+            sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_ROOF_GARDEN, 0x0A), 0, 0);
             _gAcropolisRoofGardenCutsceneSoundTask = NULL;
             taskKill(task);
             break;
@@ -1807,10 +1807,10 @@ static void _acropolisRoofGardenCutsceneClosingSoundTask(Task* task)
     };
     switch (task->state) {
         case ACROPOLIS_ROOF_GARDEN_CLOSING_CUE15_TICK:
-            sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_ROOF_GARDEN, 0x0F), 0, 0);
+            sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_ROOF_GARDEN, 0x0F), 0, 0);
             break;
         case ACROPOLIS_ROOF_GARDEN_CLOSING_FINAL_TICK:
-            sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_ROOF_GARDEN, 0x10), 0, 0);
+            sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_ROOF_GARDEN, 0x10), 0, 0);
             _gAcropolisRoofGardenCutsceneSoundTask = NULL;
             taskKill(task);
             break;
@@ -1887,8 +1887,8 @@ static void _acropolisRoofGardenTickRoom(Task* task)
         _gAcropolisRoofGardenArrivalSceneStarted = ACROPOLIS_ROOF_GARDEN_CUTSCENE_STARTED;
         evsStartScriptWithSkip(_gAcropolisRoofGardenArrivalScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, _gAcropolisRoofGardenArrivalSkipScript);
         gameFlagSetNibble(GAME_FLAG_SANCTUARY_BLOCKER_CLEARED, ACROPOLIS_ROOF_GARDEN_SANCTUARY_BLOCKER_CLEARED);
-        sanctuary.stage = GAME_STAGE_ACROPOLIS;
-        sanctuary.area  = GAME_AREA_ACROPOLIS_SANCTUARY;
+        sanctuary.stage = GAME_STAGE_AKROPOLIS;
+        sanctuary.area  = GAME_AREA_AKROPOLIS_SANCTUARY;
         areaSetPlacementVariant(&sanctuary, ACROPOLIS_ROOF_GARDEN_SANCTUARY_CLEARED_VARIANT, AREA_VARIANT_RESET_ALWAYS);
     }
 }

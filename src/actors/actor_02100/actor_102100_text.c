@@ -722,7 +722,7 @@ static void _actor02100Initialize(Enemy* enemy, Task* task)
 /// Disables the beam's player/enemy pair and room-grid collision passes.
 ///
 /// Work and both linked strike bodies remain live; keys and links are retained.
-static __inline__ void _actor02100DisableBeamCollision(_Actor02100Work* work)
+static inline void _actor02100DisableBeamCollision(_Actor02100Work* work)
 {
     work->playerStrikeBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
     work->enemyStrikeBody.flags  &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
@@ -1157,7 +1157,7 @@ static void _actor02100AcquireTarget(Task* task)
 /// adds its translation in game units, without perspective projection. Borrows
 /// word-aligned input/output storage; writes only XYZ, leaving the output's
 /// fourth word intact. Overwrites GTE rotation and arithmetic state.
-static __inline__ void _actor02100TransformTargetToView(const SVECTOR* worldPoint, VECTOR* viewPosition)
+static inline void _actor02100TransformTargetToView(const SVECTOR* worldPoint, VECTOR* viewPosition)
 {
     gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_ldv0(worldPoint);
@@ -1316,7 +1316,7 @@ static s32 _actor02100UpdateTargetPosition(Task* task)
 /// Rotates a local +Z offset of `ACTOR_02100_STRIKE_REACH` game units and copies
 /// the signed-halfword result to both capsules. Borrows and releases one
 /// `SVECTOR` on the initialized scratch stack and changes GTE state.
-static __inline__ void _actor02100BuildStrikeEndpoints(Task* task)
+static inline void _actor02100BuildStrikeEndpoints(Task* task)
 {
     _Actor02100Work* work;
     SVECTOR*         strikeOffset;
@@ -1340,7 +1340,7 @@ static __inline__ void _actor02100BuildStrikeEndpoints(Task* task)
 /// in those axes. Requires live model/work and a nonzero direction suitable
 /// for SDK normalization. Borrows and releases an `_Actor02100AimScratch` on
 /// the initialized scratch stack. Changes GTE state.
-static __inline__ void _actor02100AimAtTarget(Task* task)
+static inline void _actor02100AimAtTarget(Task* task)
 {
     _Actor02100AimScratch* scratch;
     _Actor02100Work*       work;
@@ -1373,7 +1373,7 @@ static __inline__ void _actor02100AimAtTarget(Task* task)
 /// Uses the existing aim rotation and beam length in game units. Results are
 /// Watcher-local signed-halfword offsets. Borrows and releases a vector block
 /// and a strike input on the initialized scratch stack; changes GTE state.
-static __inline__ void _actor02100BuildBeamAndStrikePoints(Task* task)
+static inline void _actor02100BuildBeamAndStrikePoints(Task* task)
 {
     _Actor02100VectorScratch* scratch;
     _Actor02100Work*          work;
@@ -1402,7 +1402,7 @@ static __inline__ void _actor02100BuildBeamAndStrikePoints(Task* task)
 /// and strike points are local offsets in game units, narrowed to signed
 /// halfwords by the GTE. Requires live model/work and an initialized scratch
 /// stack; all reservations are released before returning.
-static __inline__ void _actor02100AimBeamAndStrikePoints(Task* task)
+static inline void _actor02100AimBeamAndStrikePoints(Task* task)
 {
     _actor02100AimAtTarget(task);
     _actor02100BuildBeamAndStrikePoints(task);
@@ -1414,7 +1414,7 @@ static __inline__ void _actor02100AimBeamAndStrikePoints(Task* task)
 /// scratch reservation to be an `_Actor02100VectorScratch`. The signed-halfword
 /// endpoint stays in the Watcher's local frame; adding the muzzle offset narrows
 /// without clamping.
-static __inline__ void _actor02100StoreBeamEndpoint(_Actor02100Work* work)
+static inline void _actor02100StoreBeamEndpoint(_Actor02100Work* work)
 {
     gte_stsv(&work->beamPoints[1]);
     work->beamPoints[1].vz += ACTOR_02100_MUZZLE_OFFSET;
@@ -1427,7 +1427,7 @@ static __inline__ void _actor02100StoreBeamEndpoint(_Actor02100Work* work)
 /// performs identical operations in both arms. Beam length is in game units;
 /// GTE outputs narrow to local signed-halfword offsets. Releases all scratch
 /// reservations and changes GTE state.
-static __inline__ void _actor02100BuildLockedBeamAndStrikePoints(Task* task, _Actor02100Work* currentWork)
+static inline void _actor02100BuildLockedBeamAndStrikePoints(Task* task, _Actor02100Work* currentWork)
 {
     // The lock lasts fifteen ticks; this distinguishes its final zero-based tick.
     enum { ACTOR_02100_BEAM_LOCK_LAST_TICK = 14 };
@@ -1772,7 +1772,7 @@ static void _actor02100TickGunAttack(Task* task)
 /// black. Requires weapon index 0..4 and `ACTOR_02100_BEAM_STYLE_SIGHT` or
 /// `ACTOR_02100_BEAM_STYLE_FIRE`. Signed table components narrow to bytes.
 /// Borrows the packet and work; retains the tag, command and screen positions.
-static __inline__ void _actor02100ShadeBeamQuad(POLY_G4* quad, const _Actor02100Work* work, s32 beamStyle)
+static inline void _actor02100ShadeBeamQuad(POLY_G4* quad, const _Actor02100Work* work, s32 beamStyle)
 {
     enum { ACTOR_02100_COLOR_COMPONENT_COUNT = 3 };
     u8 blue;
@@ -2045,7 +2045,7 @@ static void _actor02100TickMode(Task* task)
 /// word-aligned and disjoint from both endpoints, which remain unchanged.
 /// Normalizes XYZ in place to 4096 per unit; leaves the fourth word intact.
 /// Borrows all storage and changes GTE arithmetic state.
-static __inline__ void _actor02100NormalizeSightSegment(const SVECTOR* segmentStart, const SVECTOR* segmentEnd, VECTOR* direction)
+static inline void _actor02100NormalizeSightSegment(const SVECTOR* segmentStart, const SVECTOR* segmentEnd, VECTOR* direction)
 {
     direction->vx = segmentEnd->vx - segmentStart->vx;
     direction->vy = segmentEnd->vy - segmentStart->vy;

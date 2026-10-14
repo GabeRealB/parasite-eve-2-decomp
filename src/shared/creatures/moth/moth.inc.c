@@ -164,9 +164,9 @@ static void _mothUpdate(Enemy* enemy, Task* task)
 /// `scratchHead - 1`. Clears all four grid contacts after consuming them.
 /// Correction uses signed integer halves of Q16.16; the opposed result restores
 /// the whole-unit pre-move position. Neither delta pointer is retained.
-static __inline__ void _mothApplyGridCorrection(GfxCoord* rootCoord, MothWork* work,
-                                                const WorldCollisionDelta* scratchHead,
-                                                const WorldCollisionDelta* scratch, s32 pushbackResult)
+static inline void _mothApplyGridCorrection(GfxCoord* rootCoord, MothWork* work,
+                                            const WorldCollisionDelta* scratchHead,
+                                            const WorldCollisionDelta* scratch, s32 pushbackResult)
 {
     s32 correctedZ;
 
@@ -626,7 +626,7 @@ static void _mothDeath(Enemy* enemy, Task* task)
 /// the projected caller supplies 0..1536. Writes signed-halfword XYZ in
 /// top-left, top-right, bottom-left, bottom-right order with zero Z; corner
 /// pad words and the projected centre/depth remain intact.
-static __inline__ void _mothSetBurstCorners(ActorScreenQuadScratch* scratch, s32 halfSize)
+static inline void _mothSetBurstCorners(ActorScreenQuadScratch* scratch, s32 halfSize)
 {
     scratch->corners[0].vx = -halfSize;
     scratch->corners[0].vy = -halfSize;

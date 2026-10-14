@@ -251,7 +251,7 @@ WorldCollisionTrigger* gWorldCollisionViewBoundaryListHead;
 
 #include "world_collision.h"
 
-static __inline__ void Gp_ObjWorldPosInline(const WorldCollisionBody* obj, VECTOR* pos);
+static inline void Gp_ObjWorldPosInline(const WorldCollisionBody* obj, VECTOR* pos);
 
 static void _worldCollisionMarkMotionSphereGridCandidates(const WorldCollisionBody* body);
 
@@ -269,7 +269,7 @@ static void _worldCollisionMarkViewSegmentCandidates(const SVECTOR* target, cons
 /// bodyToRoom and the active grid must be live. Adds full-word room translation
 /// and grid bias to rotated X/Z, forces Y to zero and leaves the fourth vector
 /// word untouched. Coordinates use game units; the input endpoint is unchanged.
-static __inline__ void _worldCollisionPlaceBodyGridEndpoint(_WorldCollisionGridBodyQueryScratch* scratch, s32 endpointIndex)
+static inline void _worldCollisionPlaceBodyGridEndpoint(_WorldCollisionGridBodyQueryScratch* scratch, s32 endpointIndex)
 {
     gte_ldv0(&scratch->localEndpoints[endpointIndex]);
     gte_rtv0();
@@ -279,7 +279,7 @@ static __inline__ void _worldCollisionPlaceBodyGridEndpoint(_WorldCollisionGridB
     scratch->gridEndpoints[endpointIndex].vz = scratch->gridEndpoints[endpointIndex].vz + scratch->bodyToRoom.t[2] + gWorldCollisionActiveGrid->zBias;
 }
 
-static __inline__ void Gp_ObjWorldPosInline(const WorldCollisionBody* obj, VECTOR* pos)
+static inline void Gp_ObjWorldPosInline(const WorldCollisionBody* obj, VECTOR* pos)
 {
     u8*     h;
     VECTOR* vec;
@@ -404,9 +404,9 @@ static void _worldCollisionMarkMotionSphereGridCandidates(const WorldCollisionBo
 /// uses signed-halfword view-space game units; the unrotated room normal uses
 /// 4096 per unit. Both complete SVECTORs are copied, including unused fourth
 /// halfwords. The caller sets flags/distance and clips its segment if required.
-static __inline__ void _worldCollisionWriteCapsuleGridHit(WorldCollisionContact*                          contact,
-                                                          const _WorldCollisionCapsuleGridContactScratch* scratch,
-                                                          s32                                             faceIndex)
+static inline void _worldCollisionWriteCapsuleGridHit(WorldCollisionContact*                          contact,
+                                                      const _WorldCollisionCapsuleGridContactScratch* scratch,
+                                                      s32                                             faceIndex)
 {
     contact->key.value          = gWorldCollisionActiveGrid->faces[faceIndex].surfaceClass | WORLD_COLLISION_CONTACT_GRID;
     contact->point              = scratch->ray[1];

@@ -131,7 +131,7 @@ static void _streamAssignMovieBuffers(const GameLocationKey* location);
 
 static void _streamLoadMovieSlotState(u32 slotIndex);
 
-static __inline__ void _streamClearDisplayBuffers(RECT* clearRect);
+static inline void _streamClearDisplayBuffers(RECT* clearRect);
 
 static void _streamCompleteDecodedFrame(void);
 
@@ -141,13 +141,13 @@ static void _mdecStartMovieFrameOutput(void);
 
 static void _mdecStepMovieDecode(void);
 
-static __inline__ u16 _streamPollMovieSeek(CdlLOC* location);
+static inline u16 _streamPollMovieSeek(CdlLOC* location);
 
-static __inline__ void _streamStartDecode(void);
+static inline void _streamStartDecode(void);
 
-static __inline__ s32 _streamStartRead(void);
+static inline s32 _streamStartRead(void);
 
-static __inline__ void _streamUploadFrameStrips(RECT* uploadRect, u32 vramX, u32 vramY, u16 offsetDrawBuffer);
+static inline void _streamUploadFrameStrips(RECT* uploadRect, u32 vramX, u32 vramY, u16 offsetDrawBuffer);
 
 /// VRAM layout and byte capacities reserved for resident movie playback.
 enum {
@@ -276,7 +276,7 @@ static void _streamAssignMovieBuffers(const GameLocationKey* location)
             decodedBuffers[1]     = (u_long*)((u8*)workspace + (textureVlcBufferBytes * 2));
             return;
         }
-        case GAME_STAGE_ACROPOLIS + 1:
+        case GAME_STAGE_AKROPOLIS + 1:
             mapAkropolisSetupMovieBuffers(location);
             return;
         case GAME_STAGE_DRYFIELD + 1:
@@ -483,7 +483,7 @@ u16 streamPollGameRestore(s32 selectConfiguredAuxHeap, s32 reloadSpriteImages)
 /// Clears both 320x240 movie framebuffers, using 480 VRAM words per row for RGB24.
 ///
 /// Borrows `clearRect` as writable scratch; it ends describing the lower buffer.
-static __inline__ void _streamClearDisplayBuffers(RECT* clearRect)
+static inline void _streamClearDisplayBuffers(RECT* clearRect)
 {
     clearRect->y = 0;
     clearRect->x = 0;
@@ -583,7 +583,7 @@ s16 streamPollMovieStop(s32 clearFramebuffers)
 /// 1..frameLimit; the cached limit must be 1..32767. A changed movie frame sets
 /// ready/change latches; an unchanged frame leaves them intact. The one-based
 /// scene frame is refreshed on every call, reversing against the same limit.
-static __inline__ void _streamPublishMovieFrame(CdCmdQueue* queue, CdlLOC* backLocation)
+static inline void _streamPublishMovieFrame(CdCmdQueue* queue, CdlLOC* backLocation)
 {
     s16 receivedFrameMinusOne;
     s16 movieFrame;
@@ -850,7 +850,7 @@ static void _mdecStepMovieDecode(void)
 ///
 /// Returns 0 while pending and 1 when complete; the seek state starts at
 /// CD_COMMAND_SEEK_SET_LOCATION. Shares the resident drive recovery channel.
-static __inline__ u16 _streamPollMovieSeek(CdlLOC* location)
+static inline u16 _streamPollMovieSeek(CdlLOC* location)
 {
     if (cdSyncPollLogicalSeek(location, 0) != 0) {
         return 1;
@@ -864,7 +864,7 @@ static __inline__ u16 _streamPollMovieSeek(CdlLOC* location)
 /// remain live through playback. RGB16 display output uses the SDK's RGB16
 /// stream mode. Resets ring contents and pending VLC/output flags and applies
 /// the silent CD volume preset; it neither seeks nor starts the CD read.
-static __inline__ void _streamStartDecode(void)
+static inline void _streamStartDecode(void)
 {
     enum {
         STREAM_MOVIE_RING_RGB16          = 0,
@@ -889,7 +889,7 @@ static __inline__ void _streamStartDecode(void)
 ///
 /// Requires a completed CD seek and the cached movie volume selection. Returns the
 /// SDK read-start result (zero means failure); it does not wait for a frame.
-static __inline__ s32 _streamStartRead(void)
+static inline s32 _streamStartRead(void)
 {
     if (gStreamMovieVolumeTableIndex != 0) {
         return CdRead2(CdlModeStream2 | CdlModeSpeed | CdlModeRT);
@@ -1055,7 +1055,7 @@ s32 streamPollMoviePlayback(u16 sectorIsAbsolute, s32 sectorOffset)
 /// The pixel width must be a positive multiple of 16 and all columns must fit
 /// the buffer and destination. Each column is 16/24 VRAM words wide in RGB16/24,
 /// so its byte stride is width-in-words times height-in-rows times two.
-static __inline__ void _streamUploadFrameStrips(RECT* uploadRect, u32 vramX, u32 vramY, u16 offsetDrawBuffer)
+static inline void _streamUploadFrameStrips(RECT* uploadRect, u32 vramX, u32 vramY, u16 offsetDrawBuffer)
 {
     s16 stripWords;
     s32 drawBufferY;

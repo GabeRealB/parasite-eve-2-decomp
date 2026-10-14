@@ -747,7 +747,7 @@ static void _actor02500SpawnBurstFragments(Task* actor);
 /// carries notice, hit and grid spheres; coordinate 4 carries the sting.
 /// Registers each body before initializing its contacts, then enables only
 /// the passes allowed by the placement and attack state. Work outlives all links.
-static __inline__ void _actor02500InitCollisionBodies(const Enemy* enemy, const Task* actor, _Actor02500Work* work, GfxCoord* rootCoord)
+static inline void _actor02500InitCollisionBodies(const Enemy* enemy, const Task* actor, _Actor02500Work* work, GfxCoord* rootCoord)
 {
     enum { ACTOR_02500_BODY_ID            = 25,
            ACTOR_02500_NOTICE_RADIUS      = 600,
@@ -899,7 +899,7 @@ static void _actor02500Spawn(Enemy* enemy, Task* actor)
 ///
 /// soundId includes its placement instance byte. The coordinate is borrowed
 /// for the two spatial queries and is not retained by the queued event.
-static __inline__ void _actor02500RequestSound(const GfxCoord* coord, s32 soundId)
+static inline void _actor02500RequestSound(const GfxCoord* coord, s32 soundId)
 {
     s32 panOffset;
 
@@ -1630,7 +1630,7 @@ static void _actor02500SpawnBurstFragments(Task* actor)
 ///
 /// work owns the four live bodies and their contact tables; unlinking disables
 /// their passes without freeing either the bodies or work.
-static __inline__ void _actor02500UnlinkCollisionBodies(_Actor02500Work* work)
+static inline void _actor02500UnlinkCollisionBodies(_Actor02500Work* work)
 {
     worldCollisionUnlinkBody(&work->noticeBody);
     worldCollisionUnlinkBody(&work->hitBody);
@@ -2097,7 +2097,7 @@ static void _actor02500DrawShadow(Task* actor)
 /// The root, work and scratch records must be live and disjoint. The caller
 /// owns scratch reservation and release. Restoring the entire saved matrix
 /// preserves translation and avoids compounded scaling; composition is dirtied.
-static __inline__ void _actor02500ApplyCorpseScale(GfxCoord* rootCoord, const _Actor02500Work* work, ActorScaleScratch* scratch)
+static inline void _actor02500ApplyCorpseScale(GfxCoord* rootCoord, const _Actor02500Work* work, ActorScaleScratch* scratch)
 {
     scratch->scale.vx = ONE;
     scratch->scale.vy = work->deathScaleY;

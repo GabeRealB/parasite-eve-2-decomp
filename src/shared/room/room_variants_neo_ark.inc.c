@@ -15,7 +15,7 @@ enum {
 /// Only `reply->room` is written: 1 until sequence 2 is solved, 2 when only
 /// sequence 2 is solved, or 3 when both are solved. Sequence 1 alone keeps
 /// room 1. The writable record is borrowed for this call and is not retained.
-static __inline__ void _roomVariantNeoArkResolveAltar(RoomEventMsg* reply)
+static inline void _roomVariantNeoArkResolveAltar(RoomEventMsg* reply)
 {
     enum {
         ROOM_VARIANT_NEO_ARK_ALTAR_SECOND_SEQUENCE_ROOM = 2,

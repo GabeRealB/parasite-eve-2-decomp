@@ -2514,7 +2514,7 @@ static void _actor04000SpawnHitEffect(Task* task, s16 hitYaw, u32 attackKey)
 /// Borrows at most `contactCount` elements (a nonnegative signed-halfword count),
 /// stopping at the first zero key. Returns 0 if no attack is found, leaving
 /// `hitPos` untouched; a hit copies XYZ only, preserving its unused pad halfword.
-static __inline__ s32 _actor04000FindAttackContactKey(SVECTOR* hitPos, const WorldCollisionContact* contacts, s16 contactCount)
+static inline s32 _actor04000FindAttackContactKey(SVECTOR* hitPos, const WorldCollisionContact* contacts, s16 contactCount)
 {
     s16 contactIndex;
 
@@ -2897,7 +2897,7 @@ static void _actor04000StateScriptedThrash(Enemy* enemy, Task* task)
 /// units per tick squared and marks it airborne. Also clears the entry's unread
 /// work word, whose role is unproven. The caller chooses and primes animation
 /// and controls later integration; this helper does not move the model.
-static __inline__ void _actor04000InitScriptedAirborneMotion(_Actor04000Work* work)
+static inline void _actor04000InitScriptedAirborneMotion(_Actor04000Work* work)
 {
     enum { ACTOR_04000_SCRIPTED_INITIAL_FALL_ACCEL = 10 };
 
@@ -3100,7 +3100,7 @@ static const _Actor04000StateTable _gActor04000StateHandlers = {
 /// Requires initialized, writable contact tables ending in WORLD_COLLISION_CONTACT_LAST.
 /// Clears occupied entries' flags and contact data while preserving terminators;
 /// unoccupied entries are unchanged. The separately handled burst-wave table stays intact.
-static __inline__ void _actor04000ClearTickContacts(_Actor04000Work* work)
+static inline void _actor04000ClearTickContacts(_Actor04000Work* work)
 {
     worldCollisionClearContacts(work->gridContacts);
     worldCollisionClearContacts(work->hitContacts);
@@ -3111,7 +3111,7 @@ static __inline__ void _actor04000ClearTickContacts(_Actor04000Work* work)
 ///
 /// Requires live actor work and the current player task. The synchronous message
 /// uses a fresh slot lookup; no player work pointer is reused after dispatch.
-static __inline__ void _actor04000ReleaseTickHold(_Actor04000Work* work)
+static inline void _actor04000ReleaseTickHold(_Actor04000Work* work)
 {
     GameActor* heldPlayer = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->work;
 

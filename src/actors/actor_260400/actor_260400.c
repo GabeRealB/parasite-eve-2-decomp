@@ -1477,7 +1477,7 @@ static void _actor260400ExitScriptedWalker(Task* task)
 /// All model flags are cleared, permitting active drawing and automatic buffer
 /// allocation; existing primitive buffers are retained. The parent is borrowed
 /// and must remain live whenever the attached root is composed.
-static __inline__ void _actor260400AttachMongooseModel(TmdObject* mongooseModel, GfxCoord* mongooseRoot, GfxCoord* walkerPart)
+static inline void _actor260400AttachMongooseModel(TmdObject* mongooseModel, GfxCoord* mongooseRoot, GfxCoord* walkerPart)
 {
     mongooseRoot->composeStamp = GRAPHICS_COORD_DIRTY;
     mongooseModel->flags       = 0;

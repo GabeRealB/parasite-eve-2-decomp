@@ -85,7 +85,7 @@ static TaskDesc _gDisplayMenuTaskDesc = {
 /// tag, clears its tags and selects its primitive half before drawing.
 /// Storage remains borrowed until GPU drawing completes; packets must fit
 /// within the selected half.
-static __inline__ void _displayConfigureSmallTaskBuffers(void)
+static inline void _displayConfigureSmallTaskBuffers(void)
 {
     // SDK descriptors view the packed DMA words as tags.
     gGpuTaskOrderingTables[0].length = GPU_SMALL_ORDERING_TABLE_DEPTH_BITS;

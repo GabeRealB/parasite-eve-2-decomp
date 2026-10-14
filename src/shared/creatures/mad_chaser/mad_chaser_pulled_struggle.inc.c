@@ -8,7 +8,7 @@
 /// four-frame blend at normal rate on the live work block. A blast only clears
 /// busy, retaining the animation. Playback and task transitions belong to the
 /// caller; this helper borrows the work and leaves state/subState intact.
-static __inline__ void _madChaserPulledStruggleRequestSettle(Task* task, MadChaserWork* work)
+static inline void _madChaserPulledStruggleRequestSettle(Task* task, MadChaserWork* work)
 {
     if (work->hitReaction != MAD_CHASER_HIT_REACTION_BLAST) {
         work->busy = 1;
@@ -229,7 +229,7 @@ static void _madChaserPulledIn(Task* task)
 /// four-frame blend at normal rate on the live work block. A blast only clears
 /// busy, retaining the animation. Playback and task transitions belong to the
 /// caller; this helper borrows the work and leaves state/subState intact.
-static __inline__ void _madChaserPulledLimpRequestSettle(Task* task, MadChaserWork* work)
+static inline void _madChaserPulledLimpRequestSettle(Task* task, MadChaserWork* work)
 {
     s16 settleClip;
 

@@ -20,7 +20,7 @@
 /// Borrows both inputs without changing or retaining them. Requires initialized
 /// scratch storage and frame-arena capacity for one quad; inputs must not overlap
 /// that storage. An accepted packet lives through GPU drawing.
-static __inline__ void _effectSpriteRiseDrawRandomPalette(const GfxCoord* cachedCoord, const EffectWork* spriteWork)
+static inline void _effectSpriteRiseDrawRandomPalette(const GfxCoord* cachedCoord, const EffectWork* spriteWork)
 {
     enum {
         EFFECT_SPRITE_RISE_PALETTE_COUNT = 6,

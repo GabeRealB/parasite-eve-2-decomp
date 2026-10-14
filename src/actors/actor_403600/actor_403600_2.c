@@ -589,17 +589,17 @@ enum {
     ACTOR_403600_BATTLE_END_DELAY_FRAMES     = 5
 };
 
-static s32             _actor403600Are32HalfwordsZero(const s16* values);
-static __inline__ u8*  _actor403600QueueCoordFrameCapture(GfxCoord* coord);
-static inline void     _actor403600InitRushArm(_Actor403600RushPassScratch* scratch);
-static inline void     _actor403600PlaceOnRushCircle(Actor403600Work* work, _Actor403600RushPassScratch* scratch);
-static inline u32      _actor403600Rand(void);
-static __inline__ void _actor403600UpdateAnimation(Task* task, u8 partCount);
-static void            _actor403600SpawnDouble(Enemy* enemy, Task* task);
-static __inline__ void _actor403600UpdateColor(Enemy* enemy, Task* task);
-static __inline__ void _actor403600ApplyDoubleFlinch(Task* task);
-static void            _actor403600UpdateDouble(Enemy* enemy, Task* task);
-static inline void     _actor403600ResetState(Task* task);
+static s32         _actor403600Are32HalfwordsZero(const s16* values);
+static inline u8*  _actor403600QueueCoordFrameCapture(GfxCoord* coord);
+static inline void _actor403600InitRushArm(_Actor403600RushPassScratch* scratch);
+static inline void _actor403600PlaceOnRushCircle(Actor403600Work* work, _Actor403600RushPassScratch* scratch);
+static inline u32  _actor403600Rand(void);
+static inline void _actor403600UpdateAnimation(Task* task, u8 partCount);
+static void        _actor403600SpawnDouble(Enemy* enemy, Task* task);
+static inline void _actor403600UpdateColor(Enemy* enemy, Task* task);
+static inline void _actor403600ApplyDoubleFlinch(Task* task);
+static void        _actor403600UpdateDouble(Enemy* enemy, Task* task);
+static inline void _actor403600ResetState(Task* task);
 
 void actor403600LoosePartsTask(Task* task)
 {
@@ -647,7 +647,7 @@ static s32 _actor403600Are32HalfwordsZero(const s16* values)
 /// FLAG uses zero depth before the bias. Requires initialized scratch/GTE state
 /// and a biased slot within the capture ordering table. Releases its scratch
 /// block and returns the restored byte cursor, never the released workspace.
-static __inline__ u8* _actor403600QueueCoordFrameCapture(GfxCoord* coord)
+static inline u8* _actor403600QueueCoordFrameCapture(GfxCoord* coord)
 {
     enum { ACTOR_403600_CAPTURE_DEPTH_SHIFT = 4,
            ACTOR_403600_CAPTURE_TAG_BIAS    = 30 };
@@ -3955,7 +3955,7 @@ static void _actor403600UpdateDrainPuffs(Task* task)
 /// nothing. A changed animation resets phaseFrame and seeks each driven slot
 /// with animBlendFrames; subsequent calls increment phaseFrame and tick those
 /// slots at animRate (16 is normal playback). Part 0 is not driven.
-static __inline__ void _actor403600UpdateAnimation(Task* task, u8 partCount)
+static inline void _actor403600UpdateAnimation(Task* task, u8 partCount)
 {
     Actor403600Work* work;
     s32              partIndex;
@@ -4122,7 +4122,7 @@ static void _actor403600SpawnDouble(Enemy* enemy, Task* task)
 /// does not compose the coordinate. Passes a temporary full-width VECTOR to the
 /// world colour query, with both options zero, and releases it before returning.
 /// The enemy's lighting and colour matrices are updated; no pointer is retained.
-static __inline__ void _actor403600UpdateColor(Enemy* enemy, Task* task)
+static inline void _actor403600UpdateColor(Enemy* enemy, Task* task)
 {
     Actor403600Work* work;
     VECTOR*          position;
@@ -4163,7 +4163,7 @@ static inline void _actor403600MultiplyPartFlinch(GfxCoord* coord, const MATRIX*
 /// Post-multiplies the Q12 basis; translation and compose stamps stay intact.
 /// Pitch uses 4096 units per turn. Both ordered 32-unit halfword relaxation
 /// tests run, so small positive values can pass through the second test too.
-static __inline__ void _actor403600ApplyDoubleFlinch(Task* task)
+static inline void _actor403600ApplyDoubleFlinch(Task* task)
 {
     enum { ACTOR_403600_DOUBLE_FLINCH_DECAY = 32 };
     Actor403600Work* work;

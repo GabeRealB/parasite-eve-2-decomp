@@ -510,7 +510,7 @@ static void _bossStrangerAvoidContacts(BossStrangerWalker* walker)
 /// Requires one free word-aligned scratch `VECTOR` below the initialized
 /// cursor. Writes XYZ without touching `pad` and restores the cursor;
 /// consume the returned block before anything reserves scratch again.
-static __inline__ VECTOR* _actorAngleStageCoordPointOffset(const SVECTOR3* point, const GfxCoord* originCoord)
+static inline VECTOR* _actorAngleStageCoordPointOffset(const SVECTOR3* point, const GfxCoord* originCoord)
 {
     VECTOR* scratchHead;
     VECTOR* delta;
@@ -542,7 +542,7 @@ static __inline__ VECTOR* _actorAngleStageCoordPointOffset(const SVECTOR3* point
 /// `VECTOR` (16 bytes). All three offsets are staged, although only X and Z
 /// determine the angle; `pad` is untouched and the cursor is restored before
 /// `ratan2` runs.
-static __inline__ s32 _actorAngleBearingFromCoordXZ(const SVECTOR3* point, const GfxCoord* originCoord)
+static inline s32 _actorAngleBearingFromCoordXZ(const SVECTOR3* point, const GfxCoord* originCoord)
 {
     VECTOR* delta;
 

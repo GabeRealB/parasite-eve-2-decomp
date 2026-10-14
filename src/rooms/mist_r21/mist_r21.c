@@ -112,7 +112,7 @@ static void _mistR21CheckPlazaReloadShortcut(Task* task)
            MIST_R21_PLAZA_SHORTCUT_VIEW = 2 };
 
     if ((padCheckButtons(0, PAD_BUTTON_QUERY_HELD_ANY, PAD_BUTTON_L3) != 0) && (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_CROSS) != 0)) {
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.area = GAME_AREA_ACROPOLIS_PLAZA;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.area = GAME_AREA_AKROPOLIS_PLAZA;
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.warp = MIST_R21_PLAZA_SHORTCUT_WARP;
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.view = MIST_R21_PLAZA_SHORTCUT_VIEW;
         gameFlowBeginLoadScreen(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location, GAME_FLOW_LOAD_CAPTION_NORMAL);

@@ -995,8 +995,8 @@ STATIC_ASSERT_SIZEOF(KyleMadiganWalkerWork, 0x50C);
 /// until return without reserving or releasing it, and leaves coordinates
 /// unchanged. Overwrites GTE RT, V0, MAC1..3, IR1..3 and FLAG; translation
 /// registers are unchanged.
-static __inline__ s32 _actorAngleMeasureBearingInFrame(ActorBearingScratch* scratch, const GfxCoord* referenceCoord,
-                                                       const GfxCoord* targetCoord)
+static inline s32 _actorAngleMeasureBearingInFrame(ActorBearingScratch* scratch, const GfxCoord* referenceCoord,
+                                                   const GfxCoord* targetCoord)
 {
     // Bring the narrowed position difference into the reference's cached axes.
     scratch->delta.vx = targetCoord->workm.t[0] - referenceCoord->workm.t[0];
@@ -1024,8 +1024,8 @@ static __inline__ s32 _actorAngleMeasureBearingInFrame(ActorBearingScratch* scra
 /// other bytes stay intact. No scratch storage is reserved or released here,
 /// and the caller may reuse the block immediately. Coordinates stay unchanged;
 /// GTE rotation working registers are overwritten.
-static __inline__ s32 _actorAngleBearingInFrame(ActorBearingScratch* scratch, const GfxCoord* referenceCoord,
-                                                const GfxCoord* targetCoord)
+static inline s32 _actorAngleBearingInFrame(ActorBearingScratch* scratch, const GfxCoord* referenceCoord,
+                                            const GfxCoord* targetCoord)
 {
     s32 angle;
 
@@ -1053,7 +1053,7 @@ static __inline__ s32 _actorAngleBearingInFrame(ActorBearingScratch* scratch, co
 /// Only the nine rotation coefficients are a result: the whole-matrix copy
 /// also replaces translation and alignment bytes with unspecified stack data.
 /// Storage remains caller-owned; GTE rotation and working registers change.
-static __inline__ void _actorRenderPreMultiplyNormalizedRotation(const MATRIX* parentBasis, MATRIX* rotation)
+static inline void _actorRenderPreMultiplyNormalizedRotation(const MATRIX* parentBasis, MATRIX* rotation)
 {
     MATRIX normalizedRotation;
 
@@ -1079,8 +1079,8 @@ static __inline__ void _actorRenderPreMultiplyNormalizedRotation(const MATRIX* p
 /// 3x3 coefficients are a result: after any parent product, the whole-matrix
 /// copy overwrites its translation and alignment bytes with unspecified data.
 /// The coordinate nodes are borrowed and unchanged; GTE working registers change.
-static __inline__ s32 _actorRenderAccumulateRotation(const GfxCoord* joint, MATRIX* rotation,
-                                                     const GfxCoord* excludedAncestor)
+static inline s32 _actorRenderAccumulateRotation(const GfxCoord* joint, MATRIX* rotation,
+                                                 const GfxCoord* excludedAncestor)
 {
     const GfxCoord* ancestor;
 
@@ -1113,7 +1113,7 @@ static __inline__ s32 _actorRenderAccumulateRotation(const GfxCoord* joint, MATR
 /// alignment bytes after the 3x3 rotation. The caller installs the result and
 /// refreshes the coordinate's cache. Both inputs are borrowed for this call;
 /// GTE working registers may change.
-static __inline__ void _actorRenderLocalizeRotation(const GfxCoord* joint, MATRIX* worldRotation)
+static inline void _actorRenderLocalizeRotation(const GfxCoord* joint, MATRIX* worldRotation)
 {
     MATRIX          parentWorldRotation;
     MATRIX          normalizedParentRotation;
@@ -1188,7 +1188,7 @@ static __inline__ void _actorRenderLocalizeRotation(const GfxCoord* joint, MATRI
 /// Borrows both inputs for this call, uses no scratch stack, and overwrites
 /// GTE rotation, translation, vector, accumulator, IR and flag state. Captured
 /// overflow flags do not affect the result; no success status is returned.
-static __inline__ void _actorRenderTransformToWorld(const GfxCoord* localCoord, SVECTOR* point)
+static inline void _actorRenderTransformToWorld(const GfxCoord* localCoord, SVECTOR* point)
 {
     SVECTOR         parentPoint;
     VECTOR          transformedPoint;
@@ -1223,7 +1223,7 @@ static __inline__ void _actorRenderTransformToWorld(const GfxCoord* localCoord, 
 /// `yaw` uses 4096 units per turn. Both half-turn endpoints are retained:
 /// positive odd half turns return +2048, negative ones return -2048.
 /// Wider caller expressions are narrowed to signed 16 bits before wrapping.
-static __inline__ s16 _actorAngleNormalizeYaw(s16 yaw)
+static inline s16 _actorAngleNormalizeYaw(s16 yaw)
 {
     // Explicit exits keep the inlined loops tested at the top.
     if (yaw < 0) {
@@ -1251,7 +1251,7 @@ static __inline__ s16 _actorAngleNormalizeYaw(s16 yaw)
 /// the player matrix. Its XYZ components receive player minus actor translation,
 /// narrowed to signed 16 bits without saturation; `pad` stays intact.
 /// All pointers are borrowed for this call, and no storage is reserved.
-static __inline__ void _actorPositionDeltaToPlayer(const PlayerStatus* playerStatus, const GfxCoord* actorRoot, SVECTOR* toPlayer)
+static inline void _actorPositionDeltaToPlayer(const PlayerStatus* playerStatus, const GfxCoord* actorRoot, SVECTOR* toPlayer)
 {
     toPlayer->vx = playerStatus->coordMtx->t[0] - actorRoot->coord.t[0];
     toPlayer->vy = playerStatus->coordMtx->t[1] - actorRoot->coord.t[1];
@@ -1271,7 +1271,7 @@ static __inline__ void _actorPositionDeltaToPlayer(const PlayerStatus* playerSta
 /// wrapping. The result uses 4096 units per turn and lies in [-2048, 2048],
 /// retaining both half-turn endpoints. Neither root is rotated; callers apply
 /// any turn limit and rotation themselves.
-static __inline__ s16 _actorAngleTurnToPlayer(const Task* actor, SVECTOR* toPlayer, const PlayerStatus* playerStatus)
+static inline s16 _actorAngleTurnToPlayer(const Task* actor, SVECTOR* toPlayer, const PlayerStatus* playerStatus)
 {
     const GfxCoord* rootCoord;
     s32             playerBearing;
@@ -1292,7 +1292,7 @@ static __inline__ s16 _actorAngleTurnToPlayer(const Task* actor, SVECTOR* toPlay
 ///
 /// The caller must set `GfxCoord::composeStamp` to `GRAPHICS_COORD_DIRTY` after
 /// the copy, before using the composed matrix. No storage is reserved or retained.
-static __inline__ void _actorRenderCopyRotation(GfxCoord* destination, const s16 source[3][3])
+static inline void _actorRenderCopyRotation(GfxCoord* destination, const s16 source[3][3])
 {
     destination->coord.m[0][0] = source[0][0];
     destination->coord.m[0][1] = source[0][1];
@@ -1319,7 +1319,7 @@ static __inline__ void _actorRenderCopyRotation(GfxCoord* destination, const s16
 /// The initialized scratch stack needs 0x58 free aligned bytes: one
 /// `ActorScaleRotScratch` block and the nested axis-rotation workspace.
 /// Reservations are released before return; no pointer is retained.
-static __inline__ void _actorRenderRescaleYaw(GfxCoord* coord, s16 uniformScale)
+static inline void _actorRenderRescaleYaw(GfxCoord* coord, s16 uniformScale)
 {
     ActorScaleRotScratch* yawScratch;
     s16                   yaw;
@@ -1348,7 +1348,7 @@ static __inline__ void _actorRenderRescaleYaw(GfxCoord* coord, s16 uniformScale)
 /// quantization need not preserve the requested magnitude exactly.
 /// `direction` must be live, writable and aligned for `SVECTOR`; its `pad`
 /// is untouched. No storage is reserved or retained; GTE state is overwritten.
-static __inline__ void _actorMovementBuildDisplacement(SVECTOR* direction, s16 stepDistance)
+static inline void _actorMovementBuildDisplacement(SVECTOR* direction, s16 stepDistance)
 {
     VectorNormalSS(direction, direction);
     gte_lddp(stepDistance);
@@ -1370,7 +1370,7 @@ static __inline__ void _actorMovementBuildDisplacement(SVECTOR* direction, s16 s
 /// scratch stack must be initialized with room for one aligned `SVECTOR`
 /// (eight bytes), released before return. GTE state is overwritten and no
 /// pointer is retained. Collision correction is the caller's responsibility.
-static __inline__ void _actorMovementStepForward(GfxCoord* coord, s16 stepDistance)
+static inline void _actorMovementStepForward(GfxCoord* coord, s16 stepDistance)
 {
     enum { ACTOR_MOVEMENT_FROZEN = 1 };
     SVECTOR* displacement;
@@ -1402,7 +1402,7 @@ static __inline__ void _actorMovementStepForward(GfxCoord* coord, s16 stepDistan
 /// stack needs room for one aligned `SVECTOR` (eight bytes), released before
 /// return with its `pad` untouched. GTE state is overwritten by a nonzero
 /// step; no pointer is retained. Collision correction belongs to the caller.
-static __inline__ void _actorMovementTranslateForwardNonzero(GfxCoord* coord, s16 stepDistance)
+static inline void _actorMovementTranslateForwardNonzero(GfxCoord* coord, s16 stepDistance)
 {
     enum { ACTOR_MOVEMENT_FROZEN = 1 };
     SVECTOR* displacement;
@@ -1434,7 +1434,7 @@ static __inline__ void _actorMovementTranslateForwardNonzero(GfxCoord* coord, s1
 /// stack must have room for one aligned `SVECTOR` (eight bytes), released before
 /// return with its `pad` untouched. GTE state is overwritten; no pointer is
 /// retained. Collision correction and walk-frame accounting belong to callers.
-static __inline__ void _actorMovementStepModelForward(Task* modelTask, s16 stepDistance)
+static inline void _actorMovementStepModelForward(Task* modelTask, s16 stepDistance)
 {
     GfxCoord* rootCoord;
 
@@ -1455,7 +1455,7 @@ static __inline__ void _actorMovementStepModelForward(Task* modelTask, s16 stepD
 /// The initialized scratch stack needs 0x58 free word-aligned bytes: one
 /// `ActorScaleRotScratch` block plus the nested axis-rotation workspace.
 /// Both reservations are released before return; no pointer is retained.
-static __inline__ void _actorRenderCollapseYawRotation(GfxCoord* coord)
+static inline void _actorRenderCollapseYawRotation(GfxCoord* coord)
 {
     enum { ACTOR_RENDER_COLLAPSED_YAW_SCALE = 1 };
     ActorScaleRotScratch* yawScratch;
@@ -1494,7 +1494,7 @@ static __inline__ void _actorRenderCollapseYawRotation(GfxCoord* coord)
 /// The initialized scratch stack needs 0x58 free word-aligned bytes: one
 /// `ActorScaleRotScratch` block plus the nested axis-rotation workspace.
 /// Both reservations are released before return; no pointer is retained.
-static __inline__ void _actorRenderRescaleYawY(GfxCoord* coord, s32 horizontalScale, s16 verticalScale)
+static inline void _actorRenderRescaleYawY(GfxCoord* coord, s32 horizontalScale, s16 verticalScale)
 {
     ActorScaleRotScratch* yawScratch;
     s16                   yaw;
@@ -1528,7 +1528,7 @@ static __inline__ void _actorRenderRescaleYawY(GfxCoord* coord, s32 horizontalSc
 /// Returns NULL for a missing stage or variant table. An existing descriptor is
 /// returned even if its placement and resource pointers are NULL. The descriptor
 /// and its tables are borrowed; keep the loaded room storage live while using them.
-static __inline__ const AreaVariant* _areaGetCurrentVariant(void)
+static inline const AreaVariant* _areaGetCurrentVariant(void)
 {
     GameLocationKey        lookupKey;
     const GameLocationKey* sessionLocation;
@@ -1559,7 +1559,7 @@ static __inline__ const AreaVariant* _areaGetCurrentVariant(void)
 /// space and GPU lifetime must satisfy `tmdBuildBufferHalf`. With no buffer,
 /// only the offsets are stored for a later build. No resource is allocated
 /// and no pointer is retained.
-static __inline__ void _actorRenderApplyPlacementTextureOffsets(TmdObject* model, const Enemy* placementOwner)
+static inline void _actorRenderApplyPlacementTextureOffsets(TmdObject* model, const Enemy* placementOwner)
 {
     const AreaVariant*   areaVariant;
     const AreaPlacement* placement;
@@ -1592,7 +1592,7 @@ static __inline__ void _actorRenderApplyPlacementTextureOffsets(TmdObject* model
 /// Otherwise both writable halves are rebuilt and `nextBufferHalf` is restored;
 /// the model's source, capacities, scratch space and GPU lifetime must satisfy
 /// `tmdBuildBufferHalf`. This call allocates no resource.
-static __inline__ void _actorRenderApplyTaskPlacementTextureOffsets(const Task* task, const Enemy* placementOwner)
+static inline void _actorRenderApplyTaskPlacementTextureOffsets(const Task* task, const Enemy* placementOwner)
 {
     const AreaVariant*   areaVariant;
     const AreaPlacement* placement;
@@ -1628,7 +1628,7 @@ static __inline__ void _actorRenderApplyTaskPlacementTextureOffsets(const Task* 
 /// The placement table, model source, buffer capacities, scratch stack and GPU
 /// lifetime must satisfy `_actorRenderApplyPlacementTextureOffsets`. Resolving
 /// an unset saved variant initializes it and requests a saved-pose reset.
-static __inline__ void _actorRenderApplyEffectPlacementTextureOffsets(const EffectWork* effect, const Enemy* placementOwner)
+static inline void _actorRenderApplyEffectPlacementTextureOffsets(const EffectWork* effect, const Enemy* placementOwner)
 {
     if (effect != NULL) {
         _actorRenderApplyPlacementTextureOffsets(effect->task->extra.tmd, placementOwner);
@@ -1636,7 +1636,7 @@ static __inline__ void _actorRenderApplyEffectPlacementTextureOffsets(const Effe
 }
 
 /// The offset from `coord` to the translation of `m`.
-static __inline__ void actorMatrixPositionDelta(const MATRIX* m, const GfxCoord* coord, SVECTOR* pos)
+static inline void actorMatrixPositionDelta(const MATRIX* m, const GfxCoord* coord, SVECTOR* pos)
 {
     pos->vx = m->t[0] - coord->coord.t[0];
     pos->vy = m->t[1] - coord->coord.t[1];
@@ -1658,7 +1658,7 @@ static __inline__ void actorMatrixPositionDelta(const MATRIX* m, const GfxCoord*
 /// 4096 units per turn; both half-turn endpoints are retained. A zero X/Z offset
 /// uses bearing zero. No transform is composed or changed, and the target's
 /// rotation is ignored. Callers apply any turn limit and rotation themselves.
-static __inline__ s16 _actorAngleTurnToMatrixPosition(const Task* actor, SVECTOR* toTarget, const MATRIX* targetMatrix)
+static inline s16 _actorAngleTurnToMatrixPosition(const Task* actor, SVECTOR* toTarget, const MATRIX* targetMatrix)
 {
     const GfxCoord* rootCoord;
     s32             targetBearing;
@@ -1683,7 +1683,7 @@ static __inline__ s16 _actorAngleTurnToMatrixPosition(const Task* actor, SVECTOR
 /// retaining both half-turn endpoints. A zero offset uses the SDK's zero
 /// bearing, so the result is the wrapped negative heading. Callers apply any
 /// turn limit and rotation themselves.
-static __inline__ s16 _actorAngleTurnToOffset(const GfxCoord* headingCoord, s16 offsetX, s16 offsetZ)
+static inline s16 _actorAngleTurnToOffset(const GfxCoord* headingCoord, s16 offsetX, s16 offsetZ)
 {
     s32 offsetBearing;
 
@@ -1705,7 +1705,7 @@ static __inline__ s16 _actorAngleTurnToOffset(const GfxCoord* headingCoord, s16 
 /// A zero X/Z direction uses bearing zero and returns the wrapped negative
 /// heading. Translation, parent links and the composition cache are not read.
 /// Callers apply any turn limit and rotation themselves.
-static __inline__ s16 _actorAngleTurnToDirection(const GfxCoord* headingCoord, const SVECTOR* direction)
+static inline s16 _actorAngleTurnToDirection(const GfxCoord* headingCoord, const SVECTOR* direction)
 {
     return _actorAngleTurnToOffset(headingCoord, direction->vx, direction->vz);
 }
@@ -1719,7 +1719,7 @@ static __inline__ s16 _actorAngleTurnToDirection(const GfxCoord* headingCoord, c
 /// the grid correction; otherwise the greater magnitude wins, without adding
 /// the corrections. A zero object correction leaves the grid correction intact.
 /// The full signed-halfword range is valid: selection never negates an input.
-static __inline__ s16 _actorContactSelectAxisPushback(s16 gridPushback, s16 objectPushback)
+static inline s16 _actorContactSelectAxisPushback(s16 gridPushback, s16 objectPushback)
 {
     if (gridPushback == 0) {
         return objectPushback;
@@ -1741,7 +1741,7 @@ static __inline__ s16 _actorContactSelectAxisPushback(s16 gridPushback, s16 obje
 
 /// Whether the XZ offset `pos` reaches at least `radius`, worked in a
 /// scratch block pushed and popped around the test.
-static __inline__ s32 actorOutsideRadius(SVECTOR* pos, s16 radius)
+static inline s32 actorOutsideRadius(SVECTOR* pos, s16 radius)
 {
     OverlayRangeScratch* head;
     OverlayRangeScratch* scratch;
@@ -1769,7 +1769,7 @@ static __inline__ s32 actorOutsideRadius(SVECTOR* pos, s16 radius)
 /// or 0 after survival or suppressed damage; equipment and event survival are
 /// handled by the player. An absent damage handler also returns 0. The signed
 /// message reply is forwarded unchanged.
-static __inline__ s32 _damageApplyEnemyAttackToPlayer(const Enemy* enemy, s32 attackIndex)
+static inline s32 _damageApplyEnemyAttackToPlayer(const Enemy* enemy, s32 attackIndex)
 {
     Task* playerTask = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     return taskMessageDispatch(playerTask, GAME_ACTOR_MESSAGE_APPLY_DAMAGE, damagePackEnemyAttackKey(enemy, attackIndex), 0);
@@ -1787,7 +1787,7 @@ static __inline__ s32 _damageApplyEnemyAttackToPlayer(const Enemy* enemy, s32 at
 /// VECTOR plus `worldCoordUpdateActorColor`'s nested reservations. The unused
 /// fourth word is left intact. Releases the sample before returning, retains
 /// no pointer and changes GTE state through the lighting query.
-static __inline__ void _actorRenderUpdateCoordColor(Enemy* enemy, const GfxCoord* sampleCoord)
+static inline void _actorRenderUpdateCoordColor(Enemy* enemy, const GfxCoord* sampleCoord)
 {
     VECTOR* samplePosition = SCRATCH_STACK_CURSOR(VECTOR) - 1;
 
@@ -1810,7 +1810,7 @@ static __inline__ void _actorRenderUpdateCoordColor(Enemy* enemy, const GfxCoord
 /// VECTOR plus `worldCoordUpdateActorColor`'s nested reservations. The unused
 /// fourth word is left intact. Releases the sample before returning, retains
 /// no pointer and changes GTE state through the lighting query.
-static __inline__ void _actorRenderUpdateModelColor(Task* task)
+static inline void _actorRenderUpdateModelColor(Task* task)
 {
     GfxCoord* sampleCoord;
     VECTOR*   samplePosition;
@@ -1841,7 +1841,7 @@ static __inline__ void _actorRenderUpdateModelColor(Task* task)
 /// Borrows both inputs only for this call, uses no scratch stack, and overwrites
 /// GTE rotation, translation, vector, accumulator, IR and flag state. Captured
 /// overflow flags do not affect the result; no success status is returned.
-static __inline__ void _actorRenderTransformLocalPointToWorld(const GfxCoord* localCoord, SVECTOR* point)
+static inline void _actorRenderTransformLocalPointToWorld(const GfxCoord* localCoord, SVECTOR* point)
 {
     SVECTOR parentPoint;
     VECTOR  transformedPoint;
@@ -1887,7 +1887,7 @@ static __inline__ void _actorRenderTransformLocalPointToWorld(const GfxCoord* lo
 /// and mark its coordinate cache dirty. The input coordinates and their caches
 /// stay unchanged; inputs are borrowed for this call, no scratch stack is used,
 /// and parent products overwrite GTE working registers.
-static __inline__ void _actorRenderAccumulateWorldRotation(const GfxCoord* joint, MATRIX* worldRotation)
+static inline void _actorRenderAccumulateWorldRotation(const GfxCoord* joint, MATRIX* worldRotation)
 {
     MATRIX          normalizedRotation;
     const GfxCoord* ancestor;

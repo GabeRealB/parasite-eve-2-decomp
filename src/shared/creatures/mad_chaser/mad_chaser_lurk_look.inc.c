@@ -61,7 +61,7 @@ static void _madChaserLurkLookAround(Task* task)
 /// positive values move right along heading plus a quarter turn. The shifts
 /// retain the signed low 20 product bits before division by 16 and s16 narrowing.
 /// Requires the task's live work and model root.
-static __inline__ void _madChaserLurkAlertMoveRight(Task* task, const MadChaserWork* work, s32 distanceAtNormalRate)
+static inline void _madChaserLurkAlertMoveRight(Task* task, const MadChaserWork* work, s32 distanceAtNormalRate)
 {
     enum { MAD_CHASER_LURK_ALERT_RATE_FRACTION_BITS = 4 };
     const MadChaserWork* rateWork;
@@ -110,7 +110,7 @@ static void _madChaserLurkSidestepToCombat(Task* task)
 /// (4096 units per turn), with the task's live animation rate in sixteenths.
 /// Scaling retains the signed low 20 product bits before division by 16 and
 /// narrows the result to s16. Requires live work and root coordinates.
-static __inline__ void _madChaserLurkMoveRight(Task* task, MadChaserWork* work, s32 distanceAtNormalRate)
+static inline void _madChaserLurkMoveRight(Task* task, MadChaserWork* work, s32 distanceAtNormalRate)
 {
     enum { MAD_CHASER_LURK_RIGHT_RATE_FRACTION_BITS = 4 };
     MadChaserWork* rateWork;
@@ -175,7 +175,7 @@ static void _madChaserLurkSidestepRight(Task* task)
 /// (4096 units per turn), with the task's live animation rate in sixteenths.
 /// Scaling retains the signed low 20 product bits before division by 16 and
 /// narrows the result to s16. Requires live work and root coordinates.
-static __inline__ void _madChaserLurkMoveLeft(Task* task, MadChaserWork* work, s32 distanceAtNormalRate)
+static inline void _madChaserLurkMoveLeft(Task* task, MadChaserWork* work, s32 distanceAtNormalRate)
 {
     enum { MAD_CHASER_LURK_LEFT_RATE_FRACTION_BITS = 4 };
     MadChaserWork* rateWork;

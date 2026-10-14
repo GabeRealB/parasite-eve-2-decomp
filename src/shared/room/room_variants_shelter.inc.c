@@ -10,7 +10,7 @@
 /// The caller selects the parking area and gates query requests. Borrows a live,
 /// writable `reply` for this call; only `reply->room` changes, and no field needs
 /// an initial value. The room selectors are one-based indices within the area.
-static __inline__ void _roomVariantShelterResolveParking(RoomEventMsg* reply)
+static inline void _roomVariantShelterResolveParking(RoomEventMsg* reply)
 {
     enum {
         ROOM_VARIANT_PARKING_STATE_INITIAL                     = 0,

@@ -914,7 +914,7 @@ static GolemKnightBishopRoomRegions _gGolemKnightBishopRoomRegions[10] = {
     { 1, GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_SLEEPING_QUARTERS, ARRAY_SIZE(_gActor402200ShelterB1SleepingQuartersRegions) },
     { 2, GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_ACCESS_TUNNEL, ARRAY_SIZE(_gActor402200ShelterB1AccessTunnelRegions) },
     { 3, GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_SHELTER_1F_AIRLOCK, ARRAY_SIZE(_gActor402200Shelter1fAirlockRegions) },
-    { 4, GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PROMENADE, ARRAY_SIZE(_gActor402200AcropolisPromenadeRegions) },
+    { 4, GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_PROMENADE, ARRAY_SIZE(_gActor402200AcropolisPromenadeRegions) },
     { 5, GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_PARKING_LOT, ARRAY_SIZE(_gActor402200DryfieldParkingLotRegions) },
     { 6, GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_UNDERPASS, ARRAY_SIZE(_gActor402200DryfieldNightUnderpassRegions) },
     { 7, GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_MAIN_CORRIDOR, ARRAY_SIZE(_gActor402200ShelterB1MainCorridorRegions) },
@@ -950,7 +950,7 @@ static GolemKnightBishopRegion _gActor402200Shelter1fAirlockRegions[2] = {
     { GOLEM_KNIGHT_BISHOP_REGION_BOX, { .heading = 3072 }, 2000, 4800, -5500, 5500, -1900, 4000 },
 };
 
-/// Knight GOLEM activation regions for `GAME_AREA_ACROPOLIS_PROMENADE`, in room X/Z units.
+/// Knight GOLEM activation regions for `GAME_AREA_AKROPOLIS_PROMENADE`, in room X/Z units.
 static GolemKnightBishopRegion _gActor402200AcropolisPromenadeRegions[5] = {
     { GOLEM_KNIGHT_BISHOP_REGION_CIRCLE, { .radius = 2000 }, -3000, -2000, 0, 0, 0, 0 },
     { GOLEM_KNIGHT_BISHOP_REGION_CIRCLE, { .radius = 1000 }, -1500, -7500, 0, 0, 0, 0 },
@@ -1022,14 +1022,14 @@ static GolemKnightBishopRegion* _gGolemKnightBishopRegionTables[10] = {
     _gActor402200NeoArkShrineRegions,
 };
 
-/// Area-indexed GOLEM sound-set selectors for `GAME_STAGE_ACROPOLIS`.
+/// Area-indexed GOLEM sound-set selectors for `GAME_STAGE_AKROPOLIS`.
 ///
 /// Zero skips bank loading and the two animation cues; 1..4 select the loaded
 /// bank and animation/impact script rows. The area index must be below 21.
 static s16 _gActor402200AcropolisSoundSets[21] = {
-    [GAME_AREA_ACROPOLIS_CAFETERIA]   = 2,
-    [GAME_AREA_ACROPOLIS_FORKED_ROAD] = 2,
-    [GAME_AREA_ACROPOLIS_PROMENADE]   = 2,
+    [GAME_AREA_AKROPOLIS_CAFETERIA]   = 2,
+    [GAME_AREA_AKROPOLIS_FORKED_ROAD] = 2,
+    [GAME_AREA_AKROPOLIS_PROMENADE]   = 2,
 };
 
 /// Area-indexed GOLEM sound-set selectors for `GAME_STAGE_DRYFIELD`.
@@ -1110,7 +1110,7 @@ static s16 _gActor402200ShelterNeoArkSoundSets[34] = {
 /// Spawn copies the selector, while these carrier-owned tables remain loaded.
 static s16* _gGolemKnightBishopStageSoundSets[6] = {
     [GAME_STAGE_NONE]            = NULL,
-    [GAME_STAGE_ACROPOLIS]       = _gActor402200AcropolisSoundSets,
+    [GAME_STAGE_AKROPOLIS]       = _gActor402200AcropolisSoundSets,
     [GAME_STAGE_DRYFIELD]        = _gActor402200DryfieldSoundSets,
     [GAME_STAGE_DRYFIELD_NIGHT]  = _gActor402200DryfieldNightSoundSets,
     [GAME_STAGE_MINE_SHELTER]    = _gActor402200MineShelterSoundSets,

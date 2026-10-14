@@ -178,7 +178,7 @@ static void _sucklercephFlatten(Task* task);
 static void _sucklercephExit(Task* task);
 static void _sucklercephFallStep(Task* task);
 
-static __inline__ void _sucklercephTickAnim(Task* task);
+static inline void _sucklercephTickAnim(Task* task);
 
 static void _sucklercephTask(Task* task);
 static void _sucklercephAnimate(Task* task);

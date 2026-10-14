@@ -579,7 +579,7 @@ static void _gluttonTickBlended(Task* task)
 /// escort slots 0..3, narrowing each rate to s8, then records `appliedAnimId`.
 /// Host slot 0 is untouched;
 /// blend rigs, clip cues and elapsed ticks are managed by the caller.
-static __inline__ void _gluttonRestartDrivingRigs(Task* task)
+static inline void _gluttonRestartDrivingRigs(Task* task)
 {
     GluttonWork* rigWork = task->work;
     s32          slotIndex;
@@ -604,7 +604,7 @@ static __inline__ void _gluttonRestartDrivingRigs(Task* task)
 /// (signed sixteenths of a frame per tick) before ticking host slots 1..7 and
 /// escort slots 0..3, narrowing each rate to s8. Host slot 0 and all blend
 /// rigs remain untouched.
-static __inline__ void _gluttonAdvanceDrivingRigs(Task* task)
+static inline void _gluttonAdvanceDrivingRigs(Task* task)
 {
     GluttonWork* rigWork = task->work;
     s32          slotIndex;

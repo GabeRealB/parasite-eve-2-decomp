@@ -257,12 +257,12 @@ static inline void _viewQueueCameraCursorAndPackets(const ViewCamera* cursor, s3
 ///
 /// Borrows a live player record and checks its resource variant only in the
 /// training stage/area. Returns 0 or 1 and retains no pointer.
-static __inline__ s32 _attachmentUsesTrainingLevels(const PlayerStatus* player)
+static inline s32 _attachmentUsesTrainingLevels(const PlayerStatus* player)
 {
     enum { ATTACHMENT_TRAINING_RESOURCE_VARIANT = 4 };
     s32 training;
 
-    if ((GAME_LOCATION_WORD(gGameSession->location) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(GAME_STAGE_ACROPOLIS, GAME_AREA_MIST_SHOOTING_GALLERY, 0, 0)) {
+    if ((GAME_LOCATION_WORD(gGameSession->location) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(GAME_STAGE_AKROPOLIS, GAME_AREA_MIST_SHOOTING_GALLERY, 0, 0)) {
         training = 0;
     } else {
         training = player->resourceVariant == ATTACHMENT_TRAINING_RESOURCE_VARIANT;
@@ -283,7 +283,7 @@ static s32 _sceneIsBattleEndDelayClear(void);
 /// Borrows the live combat record and returns 0 or 1 without changing it.
 /// A resumed phase's holds alone do not pass; a nonzero end delay passes in
 /// every phase. Holds count outstanding references, while the delay counts frames.
-static __inline__ s32 _sceneHasBattleHoldOrEndDelay(const SceneCombatState* combat)
+static inline s32 _sceneHasBattleHoldOrEndDelay(const SceneCombatState* combat)
 {
     s32 hasHoldOrDelay;
 
@@ -307,7 +307,7 @@ static s32 _hudCanSwitchCategory(s32 ignoreSwapLock);
 
 static s32 func_800A7F2C(s32 value);
 
-static __inline__ void _gfxCoordToReference(GfxCoord* coord, GfxCoord* reference, GfxCoord* outCoord);
+static inline void _gfxCoordToReference(GfxCoord* coord, GfxCoord* reference, GfxCoord* outCoord);
 
 /// Writes the translation component of a reference-relative transform.
 ///
@@ -324,8 +324,8 @@ static __inline__ void _gfxCoordToReference(GfxCoord* coord, GfxCoord* reference
 /// words, so `out` may equal either input matrix. Leaves the output rotation
 /// and alignment bytes untouched. Changes GTE rotation and arithmetic state;
 /// retains no pointers and does not reserve or release the workspace.
-static __inline__ void _gfxWriteRelativeTranslation(const MATRIX* reference, const MATRIX* target, MATRIX* out,
-                                                    _GfxRelativeTransformScratch* scratch)
+static inline void _gfxWriteRelativeTranslation(const MATRIX* reference, const MATRIX* target, MATRIX* out,
+                                                _GfxRelativeTransformScratch* scratch)
 {
     scratch->originDelta.vx = target->t[0] - reference->t[0];
     scratch->originDelta.vy = target->t[1] - reference->t[1];
@@ -353,7 +353,7 @@ static void _viewQueueDefaultTransform(void);
 /// Requires an initialized view chain and a readable, word-aligned camera
 /// disjoint from its nodes. Borrows the record only for the call, retains no
 /// pointer, and changes GTE projection state without composing the view.
-static __inline__ void _viewWriteCameraState(const ViewCamera* camera)
+static inline void _viewWriteCameraState(const ViewCamera* camera)
 {
     GfxCoord*      viewOffset;
     _ViewRotation* viewRotation;
@@ -389,7 +389,7 @@ static __inline__ void _viewWriteCameraState(const ViewCamera* camera)
 /// have 12 fractional bits; origin XYZ uses signed game units. The destination
 /// views must be `gGfxViewRotCoord.coord`, `gGfxViewCoord.coord.t` and
 /// `gGfxViewOffsetCoord` respectively. Projection distance retains its low 16 bits.
-static __inline__ void _viewApplyCameraCursor(const ViewCamera* cursor, MATRIX* rotation, VECTOR3* translation, GfxCoord* offset)
+static inline void _viewApplyCameraCursor(const ViewCamera* cursor, MATRIX* rotation, VECTOR3* translation, GfxCoord* offset)
 {
     // Copy the 18-byte coefficient and 12-byte origin views, excluding alignment bytes.
     *(_ViewRotation*)rotation->m = *(const _ViewRotation*)(cursor - 1)->transform.m;
@@ -952,7 +952,7 @@ s32 attachmentIsTrainingMode(void)
 
     player = &gPlayerStatus;
     if ((GAME_LOCATION_WORD(gGameSession->location) & GAME_LOCATION_STAGE_AREA_MASK) !=
-        GAME_LOCATION_KEY(GAME_STAGE_ACROPOLIS, GAME_AREA_MIST_SHOOTING_GALLERY, 0, 0)) {
+        GAME_LOCATION_KEY(GAME_STAGE_AKROPOLIS, GAME_AREA_MIST_SHOOTING_GALLERY, 0, 0)) {
         return 0;
     }
     return player->resourceVariant == ATTACHMENT_TRAINING_RESOURCE_VARIANT;
@@ -1017,7 +1017,7 @@ static void _gameDebugStartInputReplay(void)
         GAME_DEBUG_REPLAY_RANDOM_SEED         = 1,
         GAME_DEBUG_REPLAY_BUTTONS_INVALID     = 0xFFFF,
         GAME_DEBUG_REPLAY_STREAM_OFFSET_BYTES = sizeof(McSaveData) + PLAYER_STATUS_SAVE_RECORD_BYTES +
-                                                GAME_FLAG_ACROPOLIS_BANK_BYTES + GAME_FLAG_DRYFIELD_BANK_BYTES + GAME_FLAG_DRYFIELD_NIGHT_BANK_BYTES +
+                                                GAME_FLAG_AKROPOLIS_BANK_BYTES + GAME_FLAG_DRYFIELD_BANK_BYTES + GAME_FLAG_DRYFIELD_NIGHT_BANK_BYTES +
                                                 GAME_FLAG_MINE_SHELTER_BANK_BYTES + GAME_FLAG_NEO_ARK_BANK_BYTES + sizeof(GameFlagNibbleBank)
     };
     DisplayState* display;
@@ -1433,7 +1433,7 @@ s32 playerStateSpendMp(s32 amount)
 /// `outCoord` may be either input node. The caller invalidates its composition
 /// stamp when needed. Requires one 48-byte scratch block, released before return;
 /// changes GTE rotation and arithmetic state and retains no pointers.
-static __inline__ void _gfxCoordToReference(GfxCoord* coord, GfxCoord* reference, GfxCoord* outCoord)
+static inline void _gfxCoordToReference(GfxCoord* coord, GfxCoord* reference, GfxCoord* outCoord)
 {
     _GfxRelativeTransformScratch* scratch;
     MATRIX*                       referenceMatrix;

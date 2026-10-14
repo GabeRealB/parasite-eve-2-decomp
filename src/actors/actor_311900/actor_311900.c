@@ -352,7 +352,7 @@ static void _actor311900TickPaletteGreying(Task* task, s32 clutRowOffset, s16 fi
 /// Entering `ACTOR_ENEMY_ANIM_TICK` clears `animFrames`, the wrapping 16-bit
 /// driver-tick count; the caller first advances the slots on its next update.
 /// Both pointers are borrowed for this call.
-static __inline__ void _actor311900CommitAnimationRequest(_Actor311900Work* playbackWork, _Actor311900Work* reseedWork)
+static inline void _actor311900CommitAnimationRequest(_Actor311900Work* playbackWork, _Actor311900Work* reseedWork)
 {
     reseedWork->appliedAnimId = reseedWork->animId;
     playbackWork->animState   = ACTOR_ENEMY_ANIM_TICK;

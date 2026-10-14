@@ -45,7 +45,7 @@
 
 #include "rooms/acropolis_east_elevator_hall.h"
 
-#include "rooms/acropolis_square.h"
+#include "rooms/akropolis_square.h"
 
 #include "rooms/acropolis_west_elevator_hall.h"
 
@@ -1099,13 +1099,13 @@ void planarReflectionDispatchPlayerTask(Task* reflectionTask)
         gPlanarReflectionLocationKey = GAME_LOCATION_WORD(gGameSession->location) & GAME_LOCATION_STAGE_AREA_MASK;
     }
     switch (gPlanarReflectionLocationKey) {
-        case GAME_LOCATION_KEY(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_SQUARE, 0, 0):
-            acropolisSquarePlayerReflectionTask(reflectionTask);
+        case GAME_LOCATION_KEY(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_SQUARE, 0, 0):
+            akropolisSquarePlayerReflectionTask(reflectionTask);
             break;
-        case GAME_LOCATION_KEY(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_EAST_ELEVATOR_HALL, 0, 0):
+        case GAME_LOCATION_KEY(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_EAST_ELEVATOR_HALL, 0, 0):
             acropolisEastElevatorHallPlayerReflectionTask(reflectionTask);
             break;
-        case GAME_LOCATION_KEY(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_WEST_ELEVATOR_HALL, 0, 0):
+        case GAME_LOCATION_KEY(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_WEST_ELEVATOR_HALL, 0, 0):
             acropolisWestElevatorHallPlayerReflectionTask(reflectionTask);
             break;
         case GAME_LOCATION_KEY(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_MOTEL_ROOM_6, 0, 0):
@@ -1482,7 +1482,7 @@ static void _menuMapDrawAreas(const Task* mapTask)
     bank        = banks[stage];
     shapes      = shapeTables[stageIndex];
     pageFlagIds = gMenuMapPageFlagTables[stageIndex];
-    if (stage == GAME_STAGE_ACROPOLIS) {
+    if (stage == GAME_STAGE_AKROPOLIS) {
         scaleQ12 = MENU_MAP_AREA_ACROPOLIS_SCALE_Q12;
     }
     // Dryfield night shares exploration with the daytime area bank.
@@ -3606,7 +3606,7 @@ s32 shopOpenSession(s32 stockSelector)
     locationWord                           = *(const volatile s32*)&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location;
     *(UiObject* volatile*)&gUiPromptObject = NULL;
     switch (locationWord & (s32)GAME_LOCATION_STAGE_AREA_MASK) {
-        case GAME_LOCATION_KEY(GAME_STAGE_ACROPOLIS, GAME_AREA_MIST_PARKING, 0, 0):
+        case GAME_LOCATION_KEY(GAME_STAGE_AKROPOLIS, GAME_AREA_MIST_PARKING, 0, 0):
             displayQueueModeTask(&gMistParkingShopSessionTaskDesc, stockSelector, 0, STAGE_ENTRY_RELOAD);
             break;
         case GAME_LOCATION_KEY(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_TRAILER_COACH, 0, 0):

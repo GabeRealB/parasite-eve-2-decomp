@@ -92,7 +92,7 @@ _gShopItemListDescriptor = 0x80183EA4; // size:0x1C defined:True
 _gShopBalancePanelDescriptor = 0x80183EC0; // size:0x1C defined:True
 _gShopPurchasePromptDescriptor = 0x80183EDC; // size:0x1C defined:True
 _gShopNoticeDescriptor = 0x80183EF8; // size:0x1C defined:True
-gAcropolisSquarePostCutsceneAreaUpdates = 0x80188888; // absolute:True owner=acropolis_square
+gAkropolisSquarePostCutsceneAreaUpdates = 0x80188888; // absolute:True owner=akropolis_square
 _gShopRetainedItemListDescriptor = 0x80183F14; // size:0x1C defined:True
 _gShopWeaponSupplyRefillDescriptor = 0x80183F30; // size:0x1C defined:True
 _gShopItemPreviewDescriptor = 0x80183F4C; // size:0x1C defined:True

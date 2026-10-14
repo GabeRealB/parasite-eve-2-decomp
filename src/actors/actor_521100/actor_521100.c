@@ -1705,8 +1705,8 @@ static TaskMessageEntry _gActor521100BodyMessageTable[8] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-static void           _actor521100SpawnBody(Enemy* enemy, Task* task);
-static __inline__ s32 _actor521100GetBaseHitResponse(s32 attackKey);
+static void       _actor521100SpawnBody(Enemy* enemy, Task* task);
+static inline s32 _actor521100GetBaseHitResponse(s32 attackKey);
 
 /// Allocates the Dryfield GOLEM body work, gunblade child and collision bodies.
 ///
@@ -1876,7 +1876,7 @@ static void _actor521100SpawnBody(Enemy* enemy, Task* task)
 /// 48-entry response table with their low six bits, which must be in 0..47.
 /// Category and other bits are ignored. The hit handler may turn a guard into
 /// a normal hit during a grab or a stagger when struck off-axis or attacking.
-static __inline__ s32 _actor521100GetBaseHitResponse(s32 attackKey)
+static inline s32 _actor521100GetBaseHitResponse(s32 attackKey)
 {
     enum {
         ACTOR_521100_ATTACK_KEY_ATTACHMENT = 0x8000,
@@ -3258,7 +3258,7 @@ static void _actor521100PlayFootsteps(Task* task)
 /// remain live; the chest is word-aligned and writable. Its loaded basis stays
 /// in the GTE while each result column is stored, avoiding compounded columns.
 /// Translation and composition stamps are untouched; retains no pointer.
-static __inline__ void _actor521100ComposeHitRotation(MATRIX* chestRotation, const MATRIX* hitRotation)
+static inline void _actor521100ComposeHitRotation(MATRIX* chestRotation, const MATRIX* hitRotation)
 {
     gte_SetRotMatrix(chestRotation);
     gte_ldclmv(hitRotation);

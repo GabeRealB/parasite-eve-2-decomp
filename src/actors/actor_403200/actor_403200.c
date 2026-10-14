@@ -3200,7 +3200,7 @@ static void _actor403200SummonState(Task* hostTask);
 /// Borrows live work, escort 0's part 1 and writable hit scratch through the
 /// synchronous effect spawn. Requires initialized scratch for the nested call.
 /// The burst snapshots placement and does not follow the retained source pointers.
-static __inline__ void _actor403200SpawnCriticalFlash(const GluttonWork* work, GluttonHitScratch* scratch)
+static inline void _actor403200SpawnCriticalFlash(const GluttonWork* work, GluttonHitScratch* scratch)
 {
     enum {
         ACTOR_403200_CRITICAL_FLASH_FORWARD = 800,
@@ -3218,7 +3218,7 @@ static __inline__ void _actor403200SpawnCriticalFlash(const GluttonWork* work, G
 /// Requires live host work and TMD models on every non-NULL escort. All seven
 /// escort slots are visited. Each model owns its auxiliary-heap buffer.
 /// Allocation failures are ignored; existing buffers are retained.
-static __inline__ void _actor403200AllocateModelBuffers(Task* host)
+static inline void _actor403200AllocateModelBuffers(Task* host)
 {
     GluttonWork* work;
     s16          escortIndex;
@@ -3237,7 +3237,7 @@ static __inline__ void _actor403200AllocateModelBuffers(Task* host)
 /// Requires live host work and TMD models on every non-NULL escort. All seven
 /// escort slots are visited. Each model owns its auxiliary-heap buffer.
 /// GPU consumption of these buffers must have finished before release.
-static __inline__ void _actor403200FreeModelBuffers(Task* host)
+static inline void _actor403200FreeModelBuffers(Task* host)
 {
     GluttonWork* work;
     s16          escortIndex;
@@ -3275,7 +3275,7 @@ static __inline__ void _actor403200FreeModelBuffers(Task* host)
 /// The displacement narrows to signed halfwords and
 /// includes Y; GTE quantization may change its length. Marks composition dirty
 /// and releases scratch. The caller decides whether actors are frozen.
-static __inline__ void _actor403200AdvanceRoot(GfxCoord* coord)
+static inline void _actor403200AdvanceRoot(GfxCoord* coord)
 {
     SVECTOR* displacement;
 
@@ -3299,7 +3299,7 @@ static __inline__ void _actor403200AdvanceRoot(GfxCoord* coord)
 /// Discards pitch, roll and previous scale, preserving translation and parent.
 /// Clears model flags and dirties composition. Requires live host work/model
 /// and initialized scratch with ActorScaleRotScratch plus axis-rotation space.
-static __inline__ void _actor403200ResetHostPose(Task* task, GluttonWork* work)
+static inline void _actor403200ResetHostPose(Task* task, GluttonWork* work)
 {
     _actorRenderRescaleYaw(task->extra.tmd->coords, ONE);
     work->state            = ACTOR_403200_STATE_HIDDEN;
@@ -3854,7 +3854,7 @@ static s32 _actor403200PickAdvanceView(Task* unusedHost, s16 phase)
 ///
 /// Borrows initialized host work, live coordinates and the enemy's sound-instance
 /// key. The sound uses half the host's audio depth; no pointer is retained.
-static __inline__ void _actor403200PlayAdvanceFootstep(Task* host, GluttonWork* work, Enemy* enemy)
+static inline void _actor403200PlayAdvanceFootstep(Task* host, GluttonWork* work, Enemy* enemy)
 {
     s32 soundId;
     s32 soundPan;

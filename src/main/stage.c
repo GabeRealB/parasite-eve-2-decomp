@@ -207,7 +207,7 @@ static void _stageResumeMovieAndFinishModeTask(Task* task);
 
 static void _stageModeControllerTask(Task* task);
 
-static __inline__ void _mdecFinishImageDecode(void);
+static inline void _mdecFinishImageDecode(void);
 
 static void _mdecStepSceneImageDecode(void);
 
@@ -261,7 +261,7 @@ static const TaskFuncTable6 _gStageModeControllerStates = { {
 /// arena, which must have room for both. Uses depth zero or the last entry of
 /// the selected small/full ordering table. The tile's origin compensates the
 /// display's draw-origin Y offset; the draw command executes before the tile.
-static __inline__ void _stageAppendFadeOverlay(void)
+static inline void _stageAppendFadeOverlay(void)
 {
     enum {
         STAGE_FADE_SEMITRANSPARENT_TILE_CODE = 0x62,
@@ -445,7 +445,7 @@ static s32 _stageStepFileLoadTransition(Task* unused)
 /// whole-unit XYZ correction in the root's parent frame and updates the surface
 /// class on a grid hit. Always clears occupied entries through the final marker
 /// and invalidates root composition. Contact storage remains owned by the player.
-static __inline__ void _stageResolvePlayerContacts(void)
+static inline void _stageResolvePlayerContacts(void)
 {
     enum { STAGE_PLAYER_RESPONSE_CONTACTS = 6 };
     Task*      playerTask;
@@ -526,7 +526,7 @@ static Task* _stageSpawnModeTask(void)
 /// Blocks port 0, queues the camera and marks the view unready before spawning
 /// the asynchronous view-load task. Completion policy 2 leaves flips with the
 /// stage controller. Neither waits for completion nor reports spawn failure.
-static __inline__ void _stageBeginViewResourceLoad(void)
+static inline void _stageBeginViewResourceLoad(void)
 {
     enum {
         STAGE_VIEW_RESET_GPU_QUEUE       = 1,
@@ -726,7 +726,7 @@ static void _stageFlipOtAndRedraw(s32 unused)
 /// The two distinct word-aligned words each contain two little-endian pixels.
 /// Grey is 31 - floor((3R + 4G + B) / 8), replicated into the three channels.
 /// All four input mask bits are ignored and cleared in the result.
-static __inline__ void _gfxInvertFourRgb555PixelsGray(u32* firstWord, u32* secondWord)
+static inline void _gfxInvertFourRgb555PixelsGray(u32* firstWord, u32* secondWord)
 {
     // RGB555 channel masks and the 3:4:1 weighting of red, green and blue.
     enum {
@@ -1001,7 +1001,7 @@ Task* displayQueueModeTask(TaskDesc* descriptor, s32 spawnArg1, TaskSpawnArg spa
     // A default request in the Acropolis plaza keeps the current resources.
     if (entryMode == STAGE_ENTRY_RELOAD) {
         if ((GAME_LOCATION_WORD(gGameSession->location) & GAME_LOCATION_STAGE_AREA_MASK) ==
-            GAME_LOCATION_KEY(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PLAZA, 0, 0)) {
+            GAME_LOCATION_KEY(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_PLAZA, 0, 0)) {
             stage->entryMode = STAGE_ENTRY_KEEP;
         }
     }
@@ -1212,7 +1212,7 @@ void mdecRequestSceneImageDecode(const u8* viewId)
 ///
 /// Also used on the scene decoder's timeout path. This marks the image complete
 /// and invalidates scene-payload reuse; it does not stop MDEC or remove its callback.
-static __inline__ void _mdecFinishImageDecode(void)
+static inline void _mdecFinishImageDecode(void)
 {
     CdCmdQueue* queue = &gCdCmdQueue;
 

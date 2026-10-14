@@ -502,7 +502,7 @@ static void _sucklercephScalePart(Task* task, GfxCoord* coord)
 ///
 /// The caller supplies live root, work and scratch storage. Translation is
 /// restored from `savedRootMtx`; the caller then invalidates composition.
-static __inline__ void _sucklercephRescaleRoot(GfxCoord* rootCoord, const SucklercephWork* work, ActorScaleScratch* scratch)
+static inline void _sucklercephRescaleRoot(GfxCoord* rootCoord, const SucklercephWork* work, ActorScaleScratch* scratch)
 {
     scratch->scale.vx = ONE;
     scratch->scale.vy = work->flattenScaleY;

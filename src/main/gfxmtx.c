@@ -116,7 +116,7 @@ STATIC_ASSERT_SIZEOF(_GfxZyxRotationScratch, 0x44);
 /// count (18..32) if no shift was needed, or the shift amount (1..17) otherwise.
 /// `componentSignBits` holds the input Z count (1..32). Changes the GTE leading
 /// sign-bit-count state. The caller owns and releases the workspace.
-static __inline__ void _gfxReduceLightDirection(_GfxLightDirectionScratch* scratch)
+static inline void _gfxReduceLightDirection(_GfxLightDirectionScratch* scratch)
 {
     /// Minimum leading sign-bit count for safe three-component normalization.
     ///
@@ -162,7 +162,7 @@ static __inline__ void _gfxReduceLightDirection(_GfxLightDirectionScratch* scrat
 /// a whole `GfxRotationWords` copy would overwrite the alignment bytes too.
 /// Composition changes GTE rotation and arithmetic state; replacement changes
 /// no GTE state. Uses no scratch-stack reservation and retains no pointer.
-static __inline__ void _gfxApplyEulerRotation(MATRIX* matrix, const MATRIX* rotation, s32 replace)
+static inline void _gfxApplyEulerRotation(MATRIX* matrix, const MATRIX* rotation, s32 replace)
 {
     if (replace != GRAPHICS_ROTATION_COMPOSE) {
         GfxRotationWords*       destinationRotation = (GfxRotationWords*)matrix;
@@ -189,7 +189,7 @@ static __inline__ void _gfxApplyEulerRotation(MATRIX* matrix, const MATRIX* rota
 /// Writes only its nine signed rotation halfwords; alignment bytes, translation
 /// and coefficients are unchanged. The caller owns both objects; no scratch-stack
 /// reservation or GTE state is changed, and no pointer is retained.
-static __inline__ void _gfxBuildEulerXFactor(MATRIX* rotation, const _GfxEulerRotationScratch* scratch)
+static inline void _gfxBuildEulerXFactor(MATRIX* rotation, const _GfxEulerRotationScratch* scratch)
 {
     rotation->m[0][0] = ONE;
     rotation->m[0][1] = 0;
@@ -213,7 +213,7 @@ static __inline__ void _gfxBuildEulerXFactor(MATRIX* rotation, const _GfxEulerRo
 /// Writes only its nine signed rotation halfwords; alignment bytes, translation
 /// and coefficients are unchanged. The caller owns both objects; no scratch-stack
 /// reservation or GTE state is changed, and no pointer is retained.
-static __inline__ void _gfxBuildEulerYFactor(MATRIX* rotation, const _GfxEulerRotationScratch* scratch)
+static inline void _gfxBuildEulerYFactor(MATRIX* rotation, const _GfxEulerRotationScratch* scratch)
 {
     rotation->m[0][0] = scratch->cosY;
     rotation->m[0][1] = 0;
@@ -345,7 +345,7 @@ void gfxRotMatrixYXZ(MATRIX* matrix, const SVECTOR* angles, s32 replace)
 /// Writes only its nine signed rotation halfwords; alignment bytes, translation
 /// and coefficients are unchanged. The caller owns both objects; no scratch-stack
 /// reservation or GTE state is changed, and no pointer is retained.
-static __inline__ void _gfxBuildZyxZFactor(MATRIX* rotation, const _GfxZyxRotationScratch* scratch)
+static inline void _gfxBuildZyxZFactor(MATRIX* rotation, const _GfxZyxRotationScratch* scratch)
 {
     rotation->m[0][0] = scratch->cosZ;
     rotation->m[0][1] = -scratch->sinZ;
@@ -493,7 +493,7 @@ void gfxReadMatrixZAxis(const MATRIX* matrix, SVECTOR* zAxis)
 /// Writes the nine signed 16-bit rotation elements, preserving the alignment
 /// bytes and translation. The caller owns both objects; no scratch-stack
 /// reservation or GTE state is changed, and no pointer is retained.
-static __inline__ void _gfxBuildXRotation(MATRIX* rotation, const _GfxAxisRotationScratch* scratch)
+static inline void _gfxBuildXRotation(MATRIX* rotation, const _GfxAxisRotationScratch* scratch)
 {
     rotation->m[0][0] = ONE;
     rotation->m[0][1] = 0;

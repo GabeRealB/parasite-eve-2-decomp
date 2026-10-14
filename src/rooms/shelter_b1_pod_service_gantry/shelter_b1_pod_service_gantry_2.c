@@ -162,7 +162,7 @@ static u8 _gShelterB1PodServiceGantryGlowFlickerOffsets[8] = { 0 };
 /// with a positive half-diagonal, zero points up and a quarter turn points right.
 /// The drawer subtracts Y from the centre and uses opposite signs for each pair
 /// of corners, repeating a quarter turn later for the other pair.
-static __inline__ void _shelterB1PodServiceGantryRotateDriftCorner(EffectShapeScratch* projection, s16 sizeFactor, s32 cornerAngle)
+static inline void _shelterB1PodServiceGantryRotateDriftCorner(EffectShapeScratch* projection, s16 sizeFactor, s32 cornerAngle)
 {
     enum {
         SHELTER_B1_POD_SERVICE_GANTRY_DRIFT_PERSPECTIVE_SCALE  = 47, // Multiplier in the depth-divided half-diagonal numerator

@@ -99,7 +99,7 @@
 
 #include "rooms/acropolis_security_room.h"
 
-#include "rooms/acropolis_square.h"
+#include "rooms/akropolis_square.h"
 
 #include "rooms/acropolis_west_elevator_hall.h"
 
@@ -578,7 +578,7 @@ TaskDesc gEffectTaskDescriptors[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, m4a1PykeNozzleTask, { NULL } },                                                     // 0x02A
     { { { TASK_BODY_COORD, 0x70 } }, effectControlTask2B, { NULL } },                                                    // 0x02B
     { { { TASK_BODY_NONE, 0xC0 } }, taskKill, { NULL } },                                                                // 0x02C
-    { { { TASK_BODY_COORD, 0x70 } }, acropolisSquareRoomEffectTask, { NULL } },                                          // 0x02D
+    { { { TASK_BODY_COORD, 0x70 } }, akropolisSquareRoomEffectTask, { NULL } },                                          // 0x02D
     { { { TASK_BODY_COORD, 0x70 } }, mistParkingContinueDepartureChoiceTask, { NULL } },                                 // 0x02E
     { { { TASK_BODY_COORD, 0x70 } }, m4a1JavelinGuideBeamTask, { NULL } },                                               // 0x02F
     { { { TASK_BODY_COORD, 0x70 } }, effectGravityParticleTask, { NULL } },                                              // 0x030
@@ -604,7 +604,7 @@ TaskDesc gEffectTaskDescriptors[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, actor510900MuzzleFlashTask44, { NULL } },                                           // 0x044
     { { { TASK_BODY_COORD, 0x70 } }, actor510900FlameSpriteTask45, { NULL } },                                           // 0x045
     { { { TASK_BODY_COORD, 0x70 } }, effectSpriteTask46, { NULL } },                                                     // 0x046
-    { { { TASK_BODY_COORD, 0x70 } }, acropolisSquareBeaconGlowTask, { NULL } },                                          // 0x047
+    { { { TASK_BODY_COORD, 0x70 } }, akropolisSquareTelephoneLightTask, { NULL } },                                      // 0x047
     { { { TASK_BODY_COORD, 0x70 } }, acropolisSecurityRoomMonitorFeedsTask, { NULL } },                                  // 0x048
     { { { TASK_BODY_COORD, 0x70 } }, acropolisSecurityRoomMonitorFeedTask, { NULL } },                                   // 0x049
     { { { TASK_BODY_COORD, 0x70 } }, acropolisPromenadeRoomEffectTask, { NULL } },                                       // 0x04A
@@ -1207,23 +1207,23 @@ TaskDesc gEffectTaskDescriptors[667] = {
 /// select bank-6 descriptors and require the area's effect resources and callback
 /// code to remain loaded. Values are task types, not packed effect IDs.
 static const s32 _gRoomEffectAcropolisTaskTypes[20] __attribute__((section(".data"))) = {
-    [GAME_AREA_ACROPOLIS_SQUARE - 1]                 = 0x02D,
-    [GAME_AREA_ACROPOLIS_EAST_ELEVATOR_HALL - 1]     = 0x021,
-    [GAME_AREA_ACROPOLIS_PATIO - 1]                  = 0x083,
-    [GAME_AREA_ACROPOLIS_CAFETERIA - 1]              = 0x060,
-    [GAME_AREA_ACROPOLIS_PLAZA - 1]                  = 0x04D,
-    [GAME_AREA_ACROPOLIS_SECURITY_ROOM - 1]          = 0x048,
-    [GAME_AREA_ACROPOLIS_HALLWAY - 1]                = 0x084,
-    [GAME_AREA_ACROPOLIS_FOUNTAIN - 1]               = 0x026,
-    [GAME_AREA_ACROPOLIS_FORKED_ROAD - 1]            = 0x085,
-    [GAME_AREA_ACROPOLIS_OBSERVATORY - 1]            = 0x027,
-    [GAME_AREA_ACROPOLIS_PROMENADE - 1]              = 0x04A,
-    [GAME_AREA_ACROPOLIS_SANCTUARY - 1]              = 0x077,
-    [GAME_AREA_ACROPOLIS_ROOF_GARDEN - 1]            = 0x086,
-    [GAME_AREA_ACROPOLIS_BRIDGE - 1]                 = 0x0B0,
-    [GAME_AREA_ACROPOLIS_FIRE_ESCAPE - 1]            = 0x04E,
-    [GAME_AREA_ACROPOLIS_HELICOPTER_LANDING_PAD - 1] = 0x01D,
-    [GAME_AREA_ACROPOLIS_WEST_ELEVATOR_HALL - 1]     = 0x01E,
+    [GAME_AREA_AKROPOLIS_SQUARE - 1]                 = 0x02D,
+    [GAME_AREA_AKROPOLIS_EAST_ELEVATOR_HALL - 1]     = 0x021,
+    [GAME_AREA_AKROPOLIS_PATIO - 1]                  = 0x083,
+    [GAME_AREA_AKROPOLIS_CAFETERIA - 1]              = 0x060,
+    [GAME_AREA_AKROPOLIS_PLAZA - 1]                  = 0x04D,
+    [GAME_AREA_AKROPOLIS_SECURITY_ROOM - 1]          = 0x048,
+    [GAME_AREA_AKROPOLIS_HALLWAY - 1]                = 0x084,
+    [GAME_AREA_AKROPOLIS_FOUNTAIN - 1]               = 0x026,
+    [GAME_AREA_AKROPOLIS_FORKED_ROAD - 1]            = 0x085,
+    [GAME_AREA_AKROPOLIS_OBSERVATORY - 1]            = 0x027,
+    [GAME_AREA_AKROPOLIS_PROMENADE - 1]              = 0x04A,
+    [GAME_AREA_AKROPOLIS_SANCTUARY - 1]              = 0x077,
+    [GAME_AREA_AKROPOLIS_ROOF_GARDEN - 1]            = 0x086,
+    [GAME_AREA_AKROPOLIS_BRIDGE - 1]                 = 0x0B0,
+    [GAME_AREA_AKROPOLIS_FIRE_ESCAPE - 1]            = 0x04E,
+    [GAME_AREA_AKROPOLIS_HELICOPTER_LANDING_PAD - 1] = 0x01D,
+    [GAME_AREA_AKROPOLIS_WEST_ELEVATOR_HALL - 1]     = 0x01E,
     [GAME_AREA_MIST_R18 - 1]                         = ROOM_EFFECT_AMBIENT_TASK_NONE,
     [GAME_AREA_MIST_PARKING - 1]                     = 0x039,
     [GAME_AREA_MIST_SHOOTING_GALLERY - 1]            = 0x19F,
@@ -1489,7 +1489,7 @@ static void _roomEffectInitController(Task* task)
 
     // The stage tables contain bank-6 types, with zero disabling ambient effects.
     switch (gGameSession->location.stage) {
-        case GAME_STAGE_ACROPOLIS:
+        case GAME_STAGE_AKROPOLIS:
             roomEffectType = _gRoomEffectAcropolisTaskTypes[gGameSession->location.area - 1];
             break;
         case GAME_STAGE_DRYFIELD:

@@ -6,7 +6,7 @@
 /// Selects the scene-event column within each area's stage music row.
 ///
 /// The low byte of `stage` must be 0..5; 0 selects the default column and
-/// callers normally supply `GAME_STAGE_ACROPOLIS` through
+/// callers normally supply `GAME_STAGE_AKROPOLIS` through
 /// `GAME_STAGE_SHELTER_NEO_ARK`. The scene event is compared as a signed byte,
 /// while the resulting column is checked and returned as an unsigned byte.
 ///

@@ -795,7 +795,7 @@ static void _actor123200Spawn(Enemy* enemy, Task* task)
 /// may change the exact distance. Requires an initialized scratch stack with
 /// one aligned SVECTOR free (eight bytes), released before return. Overwrites
 /// GTE state and marks composition dirty. The caller handles actor freezing.
-static __inline__ void _actor123200StepForward(GfxCoord* coord)
+static inline void _actor123200StepForward(GfxCoord* coord)
 {
     SVECTOR* scratchHead;
     SVECTOR* displacement;

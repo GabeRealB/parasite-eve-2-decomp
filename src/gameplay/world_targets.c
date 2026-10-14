@@ -174,7 +174,7 @@ static WorldTargetNode* _worldTargetFindLockNodeAndPositionFromPad(Task* aimingT
 /// `combat` must be live and writable, with its final battle reference already
 /// released. Sets the finished phase, clears action/enemy stimuli and rearms
 /// the 60-frame end delay. The caller handles rewards and the music fade.
-static __inline__ void _sceneFinishBattleSignals(SceneCombatState* combat)
+static inline void _sceneFinishBattleSignals(SceneCombatState* combat)
 {
     combat->signals.bytes.battlePhase    = SCENE_COMBAT_BATTLE_FINISHED;
     combat->signals.bytes.actionFlags    = 0;
@@ -188,7 +188,7 @@ static __inline__ void _sceneFinishBattleSignals(SceneCombatState* combat)
 /// (-1), or `WORLD_TARGET_LOCK_SCAN_AUTOMATIC` (0) when neither is held. Reads
 /// the processed pad sample, including synthesized stick directions; input is
 /// not polled or consumed. Right is queried only when left is clear.
-static __inline__ s32 _worldTargetGetPadLockScanMode(void)
+static inline s32 _worldTargetGetPadLockScanMode(void)
 {
     enum { WORLD_TARGET_LOCK_PAD_PORT = 0 };
 
@@ -211,7 +211,7 @@ static __inline__ s32 _worldTargetGetPadLockScanMode(void)
 /// bits and saturates to -32768..32767, then translation adds with 16-bit wrapping.
 /// Refreshes coordinate caches and changes GTE state. Both pointers are borrowed
 /// for this call; the caller retains and releases the scratch reservation.
-static __inline__ void _worldTargetTransformLockCandidate(const WorldTargetNode* candidate, _WorldTargetLockScanScratch* scanScratch)
+static inline void _worldTargetTransformLockCandidate(const WorldTargetNode* candidate, _WorldTargetLockScanScratch* scanScratch)
 {
     GfxCoord* targetCoord;
     SVECTOR   targetLocal;
@@ -235,7 +235,7 @@ static __inline__ void _worldTargetTransformLockCandidate(const WorldTargetNode*
 /// Call before ending the target entry's lifetime. Each occupied actor task must
 /// have a live `GameActor` work block. Only pointer identity is compared; the
 /// caller manages the target entry's tracking state and storage.
-static __inline__ void _worldTargetReleaseActorLocks(const WorldTargetNode* node)
+static inline void _worldTargetReleaseActorLocks(const WorldTargetNode* node)
 {
     s32        actorSlot;
     Task**     taskSlot;
@@ -266,7 +266,7 @@ static __inline__ void _worldTargetReleaseActorLocks(const WorldTargetNode* node
 /// The scratch rectangle can be reused on return; pixel storage stays borrowed
 /// until transfer completes. The SDK return value is ignored, and this helper
 /// neither waits for transfer completion nor manages the scratch-stack cursor.
-static __inline__ void _gpuUploadImageEntry(RECT* scratchDestination, const GpuImageUpload* upload)
+static inline void _gpuUploadImageEntry(RECT* scratchDestination, const GpuImageUpload* upload)
 {
     scratchDestination->x = upload->destination.x;
     scratchDestination->y = upload->destination.y;
@@ -284,7 +284,7 @@ static __inline__ void _gpuUploadImageEntry(RECT* scratchDestination, const GpuI
 /// Requires an initialized scratch stack with room for the projection block.
 /// Only the readout's screen word is changed; the scratch block is released
 /// before returning, and the GTE transform registers are left changed.
-static __inline__ void _worldTargetProjectReadout(WorldTargetReadout* readout)
+static inline void _worldTargetProjectReadout(WorldTargetReadout* readout)
 {
     s32*                           packedScreen;
     const WorldTargetNode*         node;

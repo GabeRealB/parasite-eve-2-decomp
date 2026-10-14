@@ -603,7 +603,7 @@ static void _sndScriptResetStageSlots(void);
 /// callers should supply valid stage/area location bytes (area 255 can match).
 static u8 _gSndScriptHighReverbAreas[GAME_STAGE_SHELTER_NEO_ARK + 1][SOUND_SCRIPT_REVERB_AREAS_PER_STAGE] = {
     [GAME_STAGE_NONE]            = { SOUND_SCRIPT_REVERB_UNUSED_AREA, SOUND_SCRIPT_REVERB_UNUSED_AREA },
-    [GAME_STAGE_ACROPOLIS]       = { SOUND_SCRIPT_REVERB_UNUSED_AREA, SOUND_SCRIPT_REVERB_UNUSED_AREA },
+    [GAME_STAGE_AKROPOLIS]       = { SOUND_SCRIPT_REVERB_UNUSED_AREA, SOUND_SCRIPT_REVERB_UNUSED_AREA },
     [GAME_STAGE_DRYFIELD]        = { GAME_AREA_DRYFIELD_WATER_HOLE, GAME_AREA_DRYFIELD_UNDERPASS },
     [GAME_STAGE_DRYFIELD_NIGHT]  = { GAME_AREA_DRYFIELD_NIGHT_WATER_HOLE, GAME_AREA_DRYFIELD_NIGHT_UNDERPASS },
     [GAME_STAGE_MINE_SHELTER]    = { GAME_AREA_SHELTER_B4_WATER_SUPPLY, GAME_AREA_MINE_GORGE },
@@ -838,7 +838,7 @@ s32 stageMusicSelectColumn(s32 stage, s32 sceneEvent, s32 sceneEventBase)
     sceneEventOffset = sceneEventBase - 1;
 
     switch (stage & 0xFF) {
-        case GAME_STAGE_ACROPOLIS:
+        case GAME_STAGE_AKROPOLIS:
         case GAME_STAGE_DRYFIELD:
             break;
         case GAME_STAGE_DRYFIELD_NIGHT:

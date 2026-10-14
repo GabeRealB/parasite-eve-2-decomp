@@ -538,7 +538,6 @@ enum {
     ACROPOLIS_EAST_ELEVATOR_HALL_WARP_ARRIVAL_SOUND   = 0x51020002,
     ACROPOLIS_EAST_ELEVATOR_HALL_WARP_DEPARTURE_SOUND = 0x51020001,
     ACROPOLIS_EAST_ELEVATOR_HALL_WARP_ARRIVAL_VIEW    = 4,
-    ACROPOLIS_EAST_ELEVATOR_HALL_WARP_MAP_FLAG        = 502,
 };
 
 DirectionWarpEntry gAcropolisEastElevatorHallWarpEntries[ACROPOLIS_EAST_ELEVATOR_HALL_WARP_COUNT] = {
@@ -552,7 +551,7 @@ DirectionWarpEntry gAcropolisEastElevatorHallWarpEntries[ACROPOLIS_EAST_ELEVATOR
         .blockedSound   = DIRECTION_WARP_SOUND_NONE,
         .initialView    = ACROPOLIS_EAST_ELEVATOR_HALL_WARP_ARRIVAL_VIEW,
         .flags          = DIRECTION_WARP_FLAG_NONE,
-        .mapFlagId      = ACROPOLIS_EAST_ELEVATOR_HALL_WARP_MAP_FLAG,
+        .mapFlagId      = EVENT_FLAG_MAP_DOOR_AKROPOLIS_SQUARE_EAST_ELEVATOR,
     },
 };
 
@@ -638,7 +637,7 @@ enum {
 /// and radii use game units, normals use Q12, and live links/hits remain writable.
 /// Keep the overlay loaded until the triggers are unlinked.
 static WorldCollisionTrigger _gAcropolisEastElevatorHallActionTriggers[] = {
-    { NULL, NULL, NULL, { -5232, -32, 992, 0 }, { { -400, 0, -1024, 0 }, { 400, 0, -1024, 0 }, { -400, 0, 1024, 0 }, { 400, 0, 1024, 0 } }, { 0, 4098, 0, 0 }, { ONE, 0, 0, 0 }, 1093, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_ACROPOLIS_SQUARE, (ACROPOLIS_EAST_ELEVATOR_HALL_DEPARTURE_WARP_SLOT << 4) | ACROPOLIS_EAST_ELEVATOR_HALL_SQUARE_ARRIVAL_SLOT, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -5232, -32, 992, 0 }, { { -400, 0, -1024, 0 }, { 400, 0, -1024, 0 }, { -400, 0, 1024, 0 }, { 400, 0, 1024, 0 } }, { 0, 4098, 0, 0 }, { ONE, 0, 0, 0 }, 1093, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_AKROPOLIS_SQUARE, (ACROPOLIS_EAST_ELEVATOR_HALL_DEPARTURE_WARP_SLOT << 4) | ACROPOLIS_EAST_ELEVATOR_HALL_SQUARE_ARRIVAL_SLOT, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { -2996, -128, 2774, 0 }, { { 1024, 0, -400, 0 }, { 1024, 0, 400, 0 }, { -1024, 0, -400, 0 }, { -1024, 0, 400, 0 } }, { 0, 4098, 0, 0 }, { 0, 0, -ONE, 0 }, 1093, WORLD_COLLISION_TRIGGER_ACTION_CAP, 3, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { 1216, -160, 1888, 0 }, { { 800, 0, -400, 0 }, { 800, 0, 400, 0 }, { -800, 0, -400, 0 }, { -800, 0, 400, 0 } }, { 0, ONE, 0, 0 }, { 0, 0, -ONE, 0 }, 893, WORLD_COLLISION_TRIGGER_ACTION_CAP, 4, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { 3696, -128, 1888, 0 }, { { 656, 0, -400, 0 }, { 656, 0, 400, 0 }, { -656, 0, -400, 0 }, { -656, 0, 400, 0 } }, { 0, ONE, 0, 0 }, { 0, 0, -ONE, 0 }, 768, WORLD_COLLISION_TRIGGER_ACTION_CAP, 5, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
@@ -1124,7 +1123,7 @@ static inline void _acropolisEastElevatorHallRecordOpeningProgress(void)
     };
 
     _gAcropolisEastElevatorHallOpeningEventStarted = ACROPOLIS_EAST_ELEVATOR_HALL_OPENING_STARTED;
-    gameFlagSetNibble(GAME_FLAG_ACROPOLIS_PROGRESS, ACROPOLIS_EAST_ELEVATOR_HALL_OPENING_STARTED);
+    gameFlagSetNibble(GAME_FLAG_AKROPOLIS_PROGRESS, ACROPOLIS_EAST_ELEVATOR_HALL_OPENING_STARTED);
     gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, ACROPOLIS_EAST_ELEVATOR_HALL_FOLLOW_UP_RESET);
     gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, ACROPOLIS_EAST_ELEVATOR_HALL_NEXT_DIALOGUE_INDEX);
     gameFlagSetNibble(GAME_FLAG_PATIO_CAFETERIA_DOOR_STATE, ACROPOLIS_EAST_ELEVATOR_HALL_CAFETERIA_DOOR_UNLOCKED);
@@ -1145,7 +1144,7 @@ static s32 _acropolisEastElevatorHallStartOpeningEvent(Task* unusedTask, s32 mes
     };
 
     if (actionRequest->actionId == ACROPOLIS_EAST_ELEVATOR_HALL_OPENING_ACTION_ID &&
-        gameFlagGetNibble(GAME_FLAG_ACROPOLIS_PROGRESS) == ACROPOLIS_EAST_ELEVATOR_HALL_OPENING_NOT_STARTED &&
+        gameFlagGetNibble(GAME_FLAG_AKROPOLIS_PROGRESS) == ACROPOLIS_EAST_ELEVATOR_HALL_OPENING_NOT_STARTED &&
         _gAcropolisEastElevatorHallOpeningEventStarted == ACROPOLIS_EAST_ELEVATOR_HALL_OPENING_NOT_STARTED) {
         evsStartScriptWithSkip(_gAcropolisEastElevatorHallOpeningScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, _gAcropolisEastElevatorHallOpeningSkipScript);
         _acropolisEastElevatorHallRecordOpeningProgress();

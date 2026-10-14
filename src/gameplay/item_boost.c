@@ -249,7 +249,7 @@ static inline void _itemMenuSizePouchNotice(UiObject* object, s32 armorItemId)
 ///
 /// Searches the carried range's selected table. Quantity is not tested; the
 /// equipped-armour marker and unattached rows do not qualify.
-static __inline__ s32 _inventoryHasAttachedItem(s32 itemId)
+static inline s32 _inventoryHasAttachedItem(s32 itemId)
 {
     const InventoryItemRange* range;
     const InventoryItemRow*   row;

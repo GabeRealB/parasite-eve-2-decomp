@@ -197,7 +197,7 @@ MATRIX* MulMatrix(MATRIX* m0, MATRIX* m1);
 /// Translation is retained, so repeated calls do not compound the flattening.
 /// All pointers must be live and separate; the caller reserves/releases one
 /// `ActorScaleScratch`. Marks composition dirty and changes GTE state.
-static __inline__ void _actor207200CreepingStrangerApplyRootScale(GfxCoord* rootCoord, const MATRIX* unscaled, const s16* scaleY, ActorScaleScratch* scratch)
+static inline void _actor207200CreepingStrangerApplyRootScale(GfxCoord* rootCoord, const MATRIX* unscaled, const s16* scaleY, ActorScaleScratch* scratch)
 {
     scratch->scale.vx = ONE;
     scratch->scale.vy = *scaleY;
@@ -220,27 +220,27 @@ enum {
 /// Shift of this enemy placement's instance tag within a sound-script request.
 enum { ACTOR_207200_CREEPING_STRANGER_SOUND_INSTANCE_SHIFT = 8 };
 
-static void            _actor207200CreepingStrangerSpawnState(Enemy* enemy, Task* task);
-static void            _actor207200CreepingStrangerDormantTick(Task* task);
-static void            _actor207200CreepingStrangerActiveTick(Task* task);
-static __inline__ void _actor207200CreepingStrangerTickAnimation(Task* task);
-static void            _actor207200CreepingStrangerApplyHeadDamage(Task* task, s32 damage);
-static s32             _actor207200CreepingStrangerMeasurePlayer(GfxCoord* reference, u32* rangeOut);
-static void            _actor207200CreepingStrangerDeathState(Enemy* enemy, Task* task);
-static void            _actor207200CreepingStrangerLiveState(Enemy* enemy, Task* task);
-static void            _actor207200CreepingStrangerBurstHead(Task* task);
-static void            _actor207200CreepingStrangerBurstRandomPart(Task* task);
-static void            _actor207200CreepingStrangerConsumeReactions(Task* task);
-static void            _actor207200CreepingStrangerUpdateBehavior(Task* task);
-static void            _actor207200CreepingStrangerStepForward(Task* task);
-static void            _actor207200CreepingStrangerAnimate(Task* task);
-static void            _actor207200CreepingStrangerUpdateLiveColor(Enemy* enemy, Task* task);
-static void            _actor207200CreepingStrangerDrawGroundShadow(Task* task);
-static void            _actor207200CreepingStrangerFlatten(Task* task);
-static void            _actor207200CreepingStrangerUpdateTarget(Task* task);
-static void            _actor207200CreepingStrangerCollapseHeadPart(Task* task, GfxCoord* partCoord);
-static void            _actor207200CreepingStrangerCopyBurstTextures(Task* burstTask, Task* sourceTask);
-static void            _actor207200CreepingStrangerExit(Task* task);
+static void        _actor207200CreepingStrangerSpawnState(Enemy* enemy, Task* task);
+static void        _actor207200CreepingStrangerDormantTick(Task* task);
+static void        _actor207200CreepingStrangerActiveTick(Task* task);
+static inline void _actor207200CreepingStrangerTickAnimation(Task* task);
+static void        _actor207200CreepingStrangerApplyHeadDamage(Task* task, s32 damage);
+static s32         _actor207200CreepingStrangerMeasurePlayer(GfxCoord* reference, u32* rangeOut);
+static void        _actor207200CreepingStrangerDeathState(Enemy* enemy, Task* task);
+static void        _actor207200CreepingStrangerLiveState(Enemy* enemy, Task* task);
+static void        _actor207200CreepingStrangerBurstHead(Task* task);
+static void        _actor207200CreepingStrangerBurstRandomPart(Task* task);
+static void        _actor207200CreepingStrangerConsumeReactions(Task* task);
+static void        _actor207200CreepingStrangerUpdateBehavior(Task* task);
+static void        _actor207200CreepingStrangerStepForward(Task* task);
+static void        _actor207200CreepingStrangerAnimate(Task* task);
+static void        _actor207200CreepingStrangerUpdateLiveColor(Enemy* enemy, Task* task);
+static void        _actor207200CreepingStrangerDrawGroundShadow(Task* task);
+static void        _actor207200CreepingStrangerFlatten(Task* task);
+static void        _actor207200CreepingStrangerUpdateTarget(Task* task);
+static void        _actor207200CreepingStrangerCollapseHeadPart(Task* task, GfxCoord* partCoord);
+static void        _actor207200CreepingStrangerCopyBurstTextures(Task* burstTask, Task* sourceTask);
+static void        _actor207200CreepingStrangerExit(Task* task);
 
 /// Creeping Stranger lifecycle: 0 spawn, 1 live combat update, 2 death sequence.
 ///
@@ -724,8 +724,8 @@ static s16 _gActor207200CreepingStrangerCrawlSpeeds[20] = {
     0,
 };
 
-static void            _actor207200CreepingStrangerScanContacts(Task* task);
-static __inline__ void _actor207200CreepingStrangerUpdateColor(Enemy* enemy, Task* task);
+static void        _actor207200CreepingStrangerScanContacts(Task* task);
+static inline void _actor207200CreepingStrangerUpdateColor(Enemy* enemy, Task* task);
 
 /// Creates the Creeping Stranger's seven-part rig and five collision spheres.
 ///
@@ -1487,7 +1487,7 @@ static void _actor207200CreepingStrangerApplyHeadDamage(Task* task, s32 damage)
 /// Requires the initialized seven-part rig: slot 0 is retained, slots 1..6
 /// blend from their current poses over eight frames. A changed request resets
 /// `animFrames`; an unchanged request increments the signed halfword counter.
-static __inline__ void _actor207200CreepingStrangerTickAnimation(Task* task)
+static inline void _actor207200CreepingStrangerTickAnimation(Task* task)
 {
     enum { ACTOR_207200_CREEPING_STRANGER_ANIMATION_BLEND_FRAMES = 8 };
     _Actor207200CreepingStrangerWork* work;
@@ -1514,7 +1514,7 @@ static __inline__ void _actor207200CreepingStrangerTickAnimation(Task* task)
 /// full VECTOR-sized scratch block, writes XYZ in world units and leaves its
 /// unused pad word untouched. The colour call consumes the position before
 /// the saved cursor slot releases the block.
-static __inline__ void _actor207200CreepingStrangerUpdateColor(Enemy* enemy, Task* task)
+static inline void _actor207200CreepingStrangerUpdateColor(Enemy* enemy, Task* task)
 {
     GfxCoord* bodyCoord;
     void**    cursorSlot;

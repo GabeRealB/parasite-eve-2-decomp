@@ -63,10 +63,10 @@
 s32 gAttachmentPlayerLightPulsePending;
 
 /// Inline copy of `sceneIsBattleActive`.
-static __inline__ s32 isStateF0Active_(void);
+static inline s32 isStateF0Active_(void);
 
 /// Inline copy of `sceneIsBattleActive`.
-static __inline__ s32 isStateF0Active_(void)
+static inline s32 isStateF0Active_(void)
 {
     SceneCombatState* combat;
 

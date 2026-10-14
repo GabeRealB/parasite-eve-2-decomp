@@ -183,7 +183,7 @@ static void _madChaserKnockdownEnd(Task* task)
 /// parent-coordinate units; rate scaling narrows it to s16 before multiplying
 /// signed Q12 sine/cosine. Updates only X/Z translation and marks composition
 /// dirty; animation playback and collision belong to the caller.
-static __inline__ void _madChaserWalkFinishAdvanceRoot(Task* task, MadChaserWork* work)
+static inline void _madChaserWalkFinishAdvanceRoot(Task* task, MadChaserWork* work)
 {
     enum {
         MAD_CHASER_WALK_TRIG_PRODUCT_FRACTION_BITS = 16,
@@ -402,7 +402,7 @@ static void _madChaserAlertStartSidestep(Task* task)
 /// and reloads the task's live work for its rate in sixteenths of a frame.
 /// Scaling retains the signed low 20 product bits before division by 16;
 /// the displacement then narrows to s16. Requires live work and root coordinates.
-static __inline__ void _madChaserAlertMoveRight(Task* task, MadChaserWork* work)
+static inline void _madChaserAlertMoveRight(Task* task, MadChaserWork* work)
 {
     enum { MAD_CHASER_ALERT_RIGHT_DISTANCE = 30 };
     s16 sideHeading;

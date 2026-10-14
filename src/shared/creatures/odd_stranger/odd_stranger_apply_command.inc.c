@@ -26,7 +26,7 @@ static s32 _oddStrangerApplyCommand(Task* task, s32 messageId, const ActorComman
     work->commandBytes[1] = command->context.loc.area;
     work->commandBytes[2] = (u8)command->command;
     contextKey            = command->context.key;
-    if (contextKey == ((GAME_AREA_ACROPOLIS_PATIO << 8) | GAME_STAGE_ACROPOLIS)) {
+    if (contextKey == ((GAME_AREA_AKROPOLIS_PATIO << 8) | GAME_STAGE_AKROPOLIS)) {
         patioCommand = command->command;
         if (patioCommand == ODD_STRANGER_COMMAND_PATIO_DORMANT) {
             work->state = ODD_STRANGER_STATE_DORMANT_SCRIPTED;

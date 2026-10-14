@@ -1473,31 +1473,31 @@ static void _actor00400SwimEmergeEnter(Task* task);
 
 static void _actor00400SwimEmergeWait(Task* task);
 
-static void            _actor00400InitModelAndEnemy(Task* task);
-static void            _actor00400CrawlStride(Task* task);
-static void            _actor00400DrawLimbShadows(Task* actor, s16 worldY, u8 shade);
-static void            _actor00400UpdatePartyTarget(Task* task);
-static void            _actor00400UpdateStrandedLook(Task* task, s32 lookDisabled);
-static void            _actor00400FlyShot(Task* task);
-static void            _actor00400FindNearestSurfaceSpot(Task* task, SVECTOR* nearestPosition);
-static void            _actor00400DrawGroundStain(SVECTOR* corner0, SVECTOR* corner1, SVECTOR* corner2, SVECTOR* corner3, u8 intensity);
-static __inline__ s32  _actor00400ApplyAreaConfig(Task* task);
-static __inline__ void _actor00400SelectTrunkTarget(Task* task, Enemy* enemy,
-                                                    _Actor00400Work* work, s32 gridCollisionEnabled);
-static __inline__ void _actor00400UpdateModelColor(Task* task, GfxCoord* sampleCoord,
-                                                   const _Actor00400Work* work, const TmdObject* model);
-static inline void     _actor00400TurnTowardPoint(Task* task, const SVECTOR* target, s32 yawStep, s32 deadband);
-static void            _actor00400DiveSwimToSurfaceSpot(Task* task);
-static void            _actor00400SwimHeavyRecoilEnter(Task* task);
-static void            _actor00400SwimAttackWindup(Task* task);
-static inline void     _actor00400SpawnShot(Task* parentTask);
-static void            _actor00400SwimAttackFireWait(Task* task);
-static void            _actor00400TunnelPatrolSwim(Task* task);
-static void            _actor00400RoomIntroBeginDischarge(Task* task);
-static inline s32      _actor00400ConsumeWoundedHitReaction(_Actor00400Work* work);
-static void            _actor00400WoundedFloatIdleTick(Task* task);
-static void            _actor00400WoundedFloatFlinchTick(Task* task);
-static inline s32      _actor00400ConsumeSwimHeavyRecoilHitReaction(Task* task);
+static void        _actor00400InitModelAndEnemy(Task* task);
+static void        _actor00400CrawlStride(Task* task);
+static void        _actor00400DrawLimbShadows(Task* actor, s16 worldY, u8 shade);
+static void        _actor00400UpdatePartyTarget(Task* task);
+static void        _actor00400UpdateStrandedLook(Task* task, s32 lookDisabled);
+static void        _actor00400FlyShot(Task* task);
+static void        _actor00400FindNearestSurfaceSpot(Task* task, SVECTOR* nearestPosition);
+static void        _actor00400DrawGroundStain(SVECTOR* corner0, SVECTOR* corner1, SVECTOR* corner2, SVECTOR* corner3, u8 intensity);
+static inline s32  _actor00400ApplyAreaConfig(Task* task);
+static inline void _actor00400SelectTrunkTarget(Task* task, Enemy* enemy,
+                                                _Actor00400Work* work, s32 gridCollisionEnabled);
+static inline void _actor00400UpdateModelColor(Task* task, GfxCoord* sampleCoord,
+                                               const _Actor00400Work* work, const TmdObject* model);
+static inline void _actor00400TurnTowardPoint(Task* task, const SVECTOR* target, s32 yawStep, s32 deadband);
+static void        _actor00400DiveSwimToSurfaceSpot(Task* task);
+static void        _actor00400SwimHeavyRecoilEnter(Task* task);
+static void        _actor00400SwimAttackWindup(Task* task);
+static inline void _actor00400SpawnShot(Task* parentTask);
+static void        _actor00400SwimAttackFireWait(Task* task);
+static void        _actor00400TunnelPatrolSwim(Task* task);
+static void        _actor00400RoomIntroBeginDischarge(Task* task);
+static inline s32  _actor00400ConsumeWoundedHitReaction(_Actor00400Work* work);
+static void        _actor00400WoundedFloatIdleTick(Task* task);
+static void        _actor00400WoundedFloatFlinchTick(Task* task);
+static inline s32  _actor00400ConsumeSwimHeavyRecoilHitReaction(Task* task);
 
 #include "../../shared/creatures/diver/diver_inlines.inc.c"
 
@@ -2813,7 +2813,7 @@ static const TaskFuncTable8 _gActor00400BodyStates = { {
 /// bits 4..5); the pointed-to water height is sampled once in coordinate units.
 /// NULL fields and an absent grid flag preserve existing work values. Room
 /// storage must outlive its divers.
-static __inline__ s32 _actor00400ApplyAreaConfig(Task* task)
+static inline s32 _actor00400ApplyAreaConfig(Task* task)
 {
     enum {
         ACTOR_00400_WAYPOINT_SET_SHIFT = 4,
@@ -2858,8 +2858,8 @@ static __inline__ s32 _actor00400ApplyAreaConfig(Task* task)
 /// Stores the low byte of `gridCollisionEnabled` as the work's grid setting.
 /// Both spawn paths call this after linking the bodies, so this store does
 /// not change the already-applied grid-body flags.
-static __inline__ void _actor00400SelectTrunkTarget(Task* task, Enemy* enemy,
-                                                    _Actor00400Work* work, s32 gridCollisionEnabled)
+static inline void _actor00400SelectTrunkTarget(Task* task, Enemy* enemy,
+                                                _Actor00400Work* work, s32 gridCollisionEnabled)
 {
     enum { ACTOR_00400_WOUNDED_TARGET_PART = 1 };
     enemy->coord                  = &task->extra.tmd->coords[ACTOR_00400_WOUNDED_TARGET_PART];
@@ -3154,8 +3154,8 @@ static void _actor00400InitDiver(Task* task)
 /// `ambientOff` clears the model's ambient term after the lighting query.
 /// Requires initialized scratch storage for a `VECTOR` plus the lighting
 /// query's nested reservations; releases its temporary position before return.
-static __inline__ void _actor00400UpdateModelColor(Task* task, GfxCoord* sampleCoord,
-                                                   const _Actor00400Work* work, const TmdObject* model)
+static inline void _actor00400UpdateModelColor(Task* task, GfxCoord* sampleCoord,
+                                               const _Actor00400Work* work, const TmdObject* model)
 {
     VECTOR* worldPosition = SCRATCH_STACK_CURSOR(VECTOR) - 1;
 

@@ -8,7 +8,7 @@ enum { RAT_HIT_COORD_INDEX = 4 };
 /// Requires unlinked sensor storage in live work and the model root. Clears
 /// the complete sensor contact array before enabling pairing; work and root
 /// must remain live until the sensor is unlinked. Uses local coordinate units.
-static __inline__ void _ratInitSensorBody(RatWork* work, GfxCoord* rootCoord)
+static inline void _ratInitSensorBody(RatWork* work, GfxCoord* rootCoord)
 {
     enum {
         RAT_SENSOR_FORWARD_OFFSET = 750,
@@ -37,7 +37,7 @@ static __inline__ void _ratInitSensorBody(RatWork* work, GfxCoord* rootCoord)
 /// The sensor and bite use the enemy-attack list; hit/grid use enemy bodies.
 /// Preserve flag-enabling order across contact initialization: sensor/hit
 /// enable pairing, the grid enables floor/grid queries, and the bite is disabled.
-static __inline__ void _ratInitCollisionBodies(RatWork* work, const Task* actor, GfxCoord* rootCoord)
+static inline void _ratInitCollisionBodies(RatWork* work, const Task* actor, GfxCoord* rootCoord)
 {
     enum {
         RAT_COLLISION_BODY_ID     = 7,

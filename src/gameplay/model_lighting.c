@@ -2881,7 +2881,7 @@ static inline void _gameDebugInitializePlayReplay(DisplayState* display)
         GAME_DEBUG_REPLAY_BUTTONS_INVALID     = 0xFFFF,
         GAME_DEBUG_REPLAY_INITIAL_FRAMES_LEFT = 1,
         GAME_DEBUG_REPLAY_STREAM_OFFSET_BYTES = sizeof(McSaveData) + PLAYER_STATUS_SAVE_RECORD_BYTES +
-                                                GAME_FLAG_ACROPOLIS_BANK_BYTES + GAME_FLAG_DRYFIELD_BANK_BYTES + GAME_FLAG_DRYFIELD_NIGHT_BANK_BYTES +
+                                                GAME_FLAG_AKROPOLIS_BANK_BYTES + GAME_FLAG_DRYFIELD_BANK_BYTES + GAME_FLAG_DRYFIELD_NIGHT_BANK_BYTES +
                                                 GAME_FLAG_MINE_SHELTER_BANK_BYTES + GAME_FLAG_NEO_ARK_BANK_BYTES + sizeof(GameFlagNibbleBank)
     };
 

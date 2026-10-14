@@ -5221,7 +5221,7 @@ static void _playerActorInitWork(Task* task)
         _playerActorPlayScriptedAnimation(task, 0, &animationRequest, 0);
         actor->collisionEnableMask = PLAYER_ACTOR_WORLD_COLLISION_DISABLE;
     }
-    if ((GAME_LOCATION_WORD(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PLAZA, 0, 0)) {
+    if ((GAME_LOCATION_WORD(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_PLAZA, 0, 0)) {
         actor->restrictRunAndAim = 1;
     }
 }

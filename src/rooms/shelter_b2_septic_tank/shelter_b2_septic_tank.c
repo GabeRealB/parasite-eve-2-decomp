@@ -86,9 +86,9 @@ STATIC_ASSERT_SIZEOF(_ShelterB2SepticTankGlowPoints, 0x248);
 static void _waterDrawSpin(const GfxCoord* coord, s16 textureColumn, s16 radiusScale, s16 spinAngle);
 static void _waterDrawTile(const GfxCoord* coord, s16 frameIndex, s16 radiusScale);
 
-static __inline__ s32 _shelterB2SepticTankStartEvent(const RoomEventMsg* destination, const RoomLatchedEvent* event);
-static void           _shelterB2SepticTankInitializeRoom(Task* task);
-static void           _shelterB2SepticTankMonitorEncounterIntro(Task* task);
+static inline s32 _shelterB2SepticTankStartEvent(const RoomEventMsg* destination, const RoomLatchedEvent* event);
+static void       _shelterB2SepticTankInitializeRoom(Task* task);
+static void       _shelterB2SepticTankMonitorEncounterIntro(Task* task);
 
 static void _shelterB2SepticTankInitializeWater(Task* task);
 static void _shelterB2SepticTankDrawWater(Task* task);
@@ -1399,7 +1399,7 @@ static void _glowDrawBeam(const SVECTOR worldPoints[2], s32 radiusScale, s32 sta
 /// the room's event-started byte. Execution copies both records to room-owned
 /// storage, sets a present flag to 1 and spawns the staged task. Flag zero
 /// stays eligible; its nibble is still read before the absent-flag test.
-static __inline__ s32 _shelterB2SepticTankStartEvent(const RoomEventMsg* destination, const RoomLatchedEvent* event)
+static inline s32 _shelterB2SepticTankStartEvent(const RoomEventMsg* destination, const RoomLatchedEvent* event)
 {
     enum {
         SHELTER_B2_SEPTIC_TANK_EVENT_ALREADY_LATCHED = 1,

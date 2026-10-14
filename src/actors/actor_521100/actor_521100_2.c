@@ -881,8 +881,8 @@ static void _actor521100AnmcWomanBlendAnim(void)
 ///
 /// Borrows live work, root and reserved scratch storage. Translation is restored
 /// with the matrix; only rotation is scaled. The caller releases the scratch.
-static __inline__ void _actor521100AnmcWomanRescaleRoot(GfxCoord* rootCoord, const _Actor521100AnmcWomanWork* work,
-                                                        ActorScaleScratch* scratch)
+static inline void _actor521100AnmcWomanRescaleRoot(GfxCoord* rootCoord, const _Actor521100AnmcWomanWork* work,
+                                                    ActorScaleScratch* scratch)
 {
     scratch->scale.vx = ONE;
     scratch->scale.vy = work->st.flattenScaleY;

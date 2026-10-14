@@ -197,7 +197,7 @@ reuse. Ordinary CSE and post-reload CSE have different invalidation rules (§11)
   `memory_address` (`explow.c`) forces it into a register instead, "By passing
   constant addresses thru registers we get a chance to cse them", so the address
   costs a `lui`/`ori` and every access is a `0($base)` form. The same statements
-  inside a `static __inline__` helper fold the whole absolute address into each
+  inside a `static inline` helper fold the whole absolute address into each
   operand (`lw $a1,0x1F8003FC`), and the assembler expands each one to its own
   `lui` + `%lo` pair — four instructions where the call-site spelling shares
   two, and no callee-saved register held across a call. See

@@ -605,7 +605,7 @@ static void _actor120500RunPlayerRequest(Task* task)
 /// Requires a rig bound to the loaded two-entry body clip table, with live
 /// pose/slot/model storage. Slot 0 is retained; this resets cursors and rates
 /// without ticking a pose or changing the enclosing scene request channels.
-static __inline__ void _actor120500ResetBodyTracks(_Actor120500Work* work)
+static inline void _actor120500ResetBodyTracks(_Actor120500Work* work)
 {
     enum { ACTOR_120500_FIRST_BODY_SLOT   = 1,
            ACTOR_120500_INITIAL_BODY_CLIP = 1 };

@@ -6,7 +6,7 @@
 /// tracks and coordinates for all five indices. `requestedSet` must select
 /// a loaded set, excluding `ANIMATION_SET_BUFFERED_POSE`. No pose is written;
 /// slots finish at `ANIMATION_RATE_ONE` and driver counters are unchanged.
-static __inline__ void _animDriverResetSlots(AnimDriverWork* driverWork)
+static inline void _animDriverResetSlots(AnimDriverWork* driverWork)
 {
     AnimDriverWork* work = driverWork; // The carriers match only with this copy of the parameter
     s32             slotIndex;
@@ -25,7 +25,7 @@ static __inline__ void _animDriverResetSlots(AnimDriverWork* driverWork)
 /// slots and the borrowed bindings required by `animationTickSlot`.
 /// `rate + rateBias` is narrowed to each slot's signed eight-bit rate, in
 /// sixteenths of a frame per tick. Slot 0 and driver counters are unchanged.
-static __inline__ void _animDriverTickSlots(Task* task)
+static inline void _animDriverTickSlots(Task* task)
 {
     AnimDriverWork* work;
     s32             slotIndex;
@@ -51,7 +51,7 @@ static __inline__ void _animDriverTickSlots(Task* task)
 /// finish at `ANIMATION_RATE_ONE`; the next playing call installs the combined
 /// driver rate and applies the pose. Restart itself writes no pose, leaves
 /// slot 0 untouched and preserves the driver's rate settings.
-static __inline__ void _animDriverRestart(AnimDriverWork* work)
+static inline void _animDriverRestart(AnimDriverWork* work)
 {
     _animDriverResetSlots(work);
     work->state     = ANIM_DRIVER_STATE_PLAYING;

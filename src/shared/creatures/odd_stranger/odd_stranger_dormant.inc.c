@@ -316,7 +316,7 @@ static void _oddStrangerSlide(Task* task)
 /// Replaces scratch turn with the resulting absolute heading. Discards pitch
 /// and roll, retains translation and marks composition dirty. Nested matrix
 /// scratch is released here; the caller retains the chase block.
-static __inline__ void _oddStrangerTurnBackOffRoot(Task* task, ActorChaseScratch* retreat, s16 turnLimit)
+static inline void _oddStrangerTurnBackOffRoot(Task* task, ActorChaseScratch* retreat, s16 turnLimit)
 {
     if (retreat->turn >= (turnLimit + 1)) {
         retreat->turn = turnLimit;
@@ -413,7 +413,7 @@ static void _oddStrangerBackOff(Task* task)
 /// and roll, and replaces the scale with the normal Q12 model scale.
 /// Translation is retained and composition marked dirty. Nested matrix scratch
 /// is released here; the caller retains and releases the chase block.
-static __inline__ void _oddStrangerRebuildWatchRoot(Task* task, ActorChaseScratch* watch)
+static inline void _oddStrangerRebuildWatchRoot(Task* task, ActorChaseScratch* watch)
 {
     GfxCoord* headingRoot;
 

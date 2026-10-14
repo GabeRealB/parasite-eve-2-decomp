@@ -318,7 +318,7 @@ SVECTOR ActorContact_ScratchPosition;
 /// with cleared boundary state and normal rate (`ANIMATION_RATE_ONE`).
 /// Subsequent ticks produce the poses; the caller settles the request and
 /// resets its frame counters.
-static __inline__ void _actor312200RestartPrimaryAnimation(_Actor312200Work* work)
+static inline void _actor312200RestartPrimaryAnimation(_Actor312200Work* work)
 {
     enum { ACTOR_312200_FIRST_ANIMATED_SLOT = 1 };
 
@@ -611,7 +611,7 @@ static s32 _actor312200ApplyCommand(Task* task, s32 messageId, const ActorComman
 {
     /// Stage is the low byte and area the high byte of the command context.
     enum {
-        ACTOR_312200_PATIO_COMMAND_CONTEXT = GAME_STAGE_ACROPOLIS | (GAME_AREA_ACROPOLIS_PATIO << 8),
+        ACTOR_312200_PATIO_COMMAND_CONTEXT = GAME_STAGE_AKROPOLIS | (GAME_AREA_AKROPOLIS_PATIO << 8),
     };
 
     _Actor312200Work* work;

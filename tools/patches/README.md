@@ -61,12 +61,12 @@ Acropolis room:
 | `acropolis_fire_escape` | `acropolisFireEscapeFlickerLightTask` | 627 becomes 625 |
 | `acropolis_plaza` | `acropolisPlazaLightFlareTask` | 929 becomes 928 |
 | `acropolis_roof_garden` | `acropolisRoofGardenFlareTask` | 924 becomes 922 |
-| `acropolis_square` | `acropolisSquareBeaconGlowTask` | 924 becomes 922 |
+| `akropolis_square` | `akropolisSquareTelephoneLightTask` | 924 becomes 922 |
 
 Those five are the cause. Everything after a shortened function sits one or
 two instructions early, so the functions that call or point at the moved code
 differ too: 17 functions in `acropolis_fire_escape`, 14 in `acropolis_plaza`,
-15 in `acropolis_roof_garden` and 26 in `acropolis_square`.
+15 in `acropolis_roof_garden` and 26 in `akropolis_square`.
 
 **Verified.** Yes. ASPSX 2.77 assembles
 

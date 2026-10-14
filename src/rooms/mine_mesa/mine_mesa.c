@@ -240,10 +240,10 @@ static void                       _mineMesaHaltVibrationScript(void);
 static s32  _mineMesaEnemyWaveActorEventMsg(Task* task, s32 messageId, s32 slotIndex, s32 unused);
 static void _mineMesaEnemyWaveTask(Task* task);
 
-static void           _mineMesaUpdateRoomEventsState(Task* task);
-static __inline__ s32 _mineMesaLatchStagedEvent(const RoomEventMsg* destination, const RoomLatchedEvent* event);
-static void           _mineMesaInitializeRoomState(Task* task);
-static void           _mineMesaSpawnEnemyWaveState(Task* task);
+static void       _mineMesaUpdateRoomEventsState(Task* task);
+static inline s32 _mineMesaLatchStagedEvent(const RoomEventMsg* destination, const RoomLatchedEvent* event);
+static void       _mineMesaInitializeRoomState(Task* task);
+static void       _mineMesaSpawnEnemyWaveState(Task* task);
 
 static s32 _mineMesaRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unused);
 
@@ -3583,7 +3583,7 @@ static s32 _mineMesaRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 
 /// the latched records. Execution copies both records before spawning the staged
 /// task and marks the event seen even if spawning fails. Requires room storage
 /// and the staged-task resources to remain live through the deferred transition.
-static __inline__ s32 _mineMesaLatchStagedEvent(const RoomEventMsg* destination, const RoomLatchedEvent* event)
+static inline s32 _mineMesaLatchStagedEvent(const RoomEventMsg* destination, const RoomLatchedEvent* event)
 {
     enum { EVENT_NO_FLAG      = 0,
            EVENT_UNSEEN       = 0,

@@ -1360,7 +1360,7 @@ static s16 _gFootstepWalkMode;
 /// starts at (-160, -128) relative to the draw origin and links at tag index 10
 /// of `gGpuCurrentOt`, which must be live and contain that entry. The packet
 /// and table must survive GPU drawing; no task storage or countdown is changed.
-static __inline__ void _actor535700DrawBlackoutTile(void)
+static inline void _actor535700DrawBlackoutTile(void)
 {
     enum {
         ACTOR_535700_BLACKOUT_WIDTH_PIXELS  = 320,

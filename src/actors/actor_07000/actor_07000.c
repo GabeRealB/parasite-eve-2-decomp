@@ -893,9 +893,9 @@ static void _actor07000SlouchProjectileExpire(Task* task);
 
 static void _actor07000SlouchProjectileExit(Task* task);
 
-static __inline__ void _actor07000SlouchColorAtCoord(Enemy* enemy, GfxCoord* sampleCoord);
-static __inline__ void _actor07000SlouchApplyDropTwist(Task* task);
-static __inline__ void _actor07000SlouchTwistPart(MATRIX* partMatrix, SVECTOR* twist, MATRIX* twistMatrix);
+static inline void _actor07000SlouchColorAtCoord(Enemy* enemy, GfxCoord* sampleCoord);
+static inline void _actor07000SlouchApplyDropTwist(Task* task);
+static inline void _actor07000SlouchTwistPart(MATRIX* partMatrix, SVECTOR* twist, MATRIX* twistMatrix);
 
 #include "../../shared/creatures/sucklerceph/sucklerceph_spawn_state.inc.c"
 
@@ -1436,7 +1436,7 @@ static void _actor07000SlouchEngaged(Task* task)
 ///
 /// Borrows the live Slouch work/root and the caller's contact scratch block.
 /// Corrections use integer halves of signed 16.16 units. Leaves contacts live.
-static __inline__ void _actor07000SlouchResolveBodyPushback(_Actor07000SlouchWork* work, GfxCoord* rootCoord, ActorContactDeltaScratch* scratch)
+static inline void _actor07000SlouchResolveBodyPushback(_Actor07000SlouchWork* work, GfxCoord* rootCoord, ActorContactDeltaScratch* scratch)
 {
     s32 pushbackStatus;
     // Apply the grid correction, or undo the last step for opposed normals.
@@ -1668,7 +1668,7 @@ static const TaskFuncTable3 _gActor07000SlouchProjectileStates = {
 /// frame blend; an unchanged id increments the signed-halfword counter and
 /// ticks those slots. Slot 0 stays unstarted. Requires the live initialized
 /// seven-slot rig and a valid nonzero index in the package's animation table.
-static __inline__ void _actor07000SlouchAnimateInline(Task* task)
+static inline void _actor07000SlouchAnimateInline(Task* task)
 {
     enum { ACTOR_07000_SLOUCH_ANIMATION_BLEND_TICKS = 8 };
     _Actor07000SlouchWork* work;
@@ -1969,7 +1969,7 @@ static void _actor07000SlouchProjectileLaunch(Task* task)
 /// Requires the flight task and its live work. Clears grid and body-pair tests,
 /// resets the signed-halfword countdown to 30 ticks and advances to state 2.
 /// Leaves the body linked and storage live for the later exit callback.
-static __inline__ void _actor07000SlouchProjectileStartExpiry(Task* task, _Actor07000SlouchProjectileWork* work)
+static inline void _actor07000SlouchProjectileStartExpiry(Task* task, _Actor07000SlouchProjectileWork* work)
 {
     enum { ACTOR_07000_SLOUCH_PROJECTILE_IMPACT_TICKS = 30 };
     work->body.flags   &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
@@ -2196,7 +2196,7 @@ static void _actor07000SlouchHiddenSpawn(Enemy* enemy, Task* task)
 /// Angles use 4096 units per turn. Translations and dirty stamps are unchanged;
 /// the three rotation columns retain GTE saturation and halfword writes.
 /// partMatrix and twistMatrix must be distinct live matrices; twist is borrowed.
-static __inline__ void _actor07000SlouchTwistPart(MATRIX* partMatrix, SVECTOR* twist, MATRIX* twistMatrix)
+static inline void _actor07000SlouchTwistPart(MATRIX* partMatrix, SVECTOR* twist, MATRIX* twistMatrix)
 {
     RotMatrix(twist, twistMatrix);
     gte_SetRotMatrix(partMatrix);
@@ -2218,7 +2218,7 @@ static __inline__ void _actor07000SlouchTwistPart(MATRIX* partMatrix, SVECTOR* t
 /// sampling signed 32-bit XYZ, leaves its fourth word intact, and releases it
 /// after the nested query. Requires an initialized aligned scratch stack and
 /// retains no pointer. Does not compose the coordinate.
-static __inline__ void _actor07000SlouchColorAtCoord(Enemy* enemy, GfxCoord* sampleCoord)
+static inline void _actor07000SlouchColorAtCoord(Enemy* enemy, GfxCoord* sampleCoord)
 {
     VECTOR* samplePosition;
     samplePosition     = SCRATCH_STACK_RESERVE_BLOCK(VECTOR);
@@ -2235,7 +2235,7 @@ static __inline__ void _actor07000SlouchColorAtCoord(Enemy* enemy, GfxCoord* sam
 /// saturation and halfword writes. A nonzero signed X twist loses 32, or clears
 /// with its active latch when below 33. Marks the model root dirty for the drop handler's following composition. Releases
 /// its one MATRIX scratch reservation before returning.
-static __inline__ void _actor07000SlouchApplyDropTwist(Task* task)
+static inline void _actor07000SlouchApplyDropTwist(Task* task)
 {
     enum { ACTOR_07000_SLOUCH_DROP_TWIST_DECAY = 32 };
     _Actor07000SlouchWork* work;

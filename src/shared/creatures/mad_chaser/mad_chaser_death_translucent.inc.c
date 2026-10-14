@@ -8,7 +8,7 @@
 /// `stateFrames` to count the subsequent shrink frames and advances behavior to
 /// 5, whose handler shrinks the saved root transform. Both pointers are borrowed;
 /// the task owns their storage throughout the shrink.
-static __inline__ void _madChaserShrinkDeathEnterTranslucentPhase(MadChaserWork* work, TmdObject* model)
+static inline void _madChaserShrinkDeathEnterTranslucentPhase(MadChaserWork* work, TmdObject* model)
 {
     model->flags      |= TMD_OBJECT_SEMI_TRANS;
     work->stateFrames  = 0U;
@@ -34,7 +34,7 @@ static void MAD_CHASER_SHRINK_DEATH_TRANSLUCENT_HANDLER(Task* task)
 /// threshold. Sets semi-transparent drawing, clears the u16 frame counter and
 /// advances the u16 behavior to 5, whose shrink emits burn effects. Retains every
 /// other model flag, animation request and allocation; both inputs are borrowed.
-static __inline__ void _madChaserDeathEnterTranslucentPhase(MadChaserWork* work, TmdObject* model)
+static inline void _madChaserDeathEnterTranslucentPhase(MadChaserWork* work, TmdObject* model)
 {
     model->flags      |= TMD_OBJECT_SEMI_TRANS;
     work->stateFrames  = 0U;

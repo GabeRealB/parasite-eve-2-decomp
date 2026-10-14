@@ -6,7 +6,7 @@
 /// including one suppressed by actor freezing. The signed-halfword count is
 /// decremented without clamping. A stored zero requests idle with a ten-frame
 /// blend; the caller still ticks the old tracks before the next update reseeds.
-static __inline__ void _strideWalkCompleteTravelTick(StrideWalkWork* work)
+static inline void _strideWalkCompleteTravelTick(StrideWalkWork* work)
 {
     enum {
         STRIDE_WALK_ANIM_IDLE         = 1,

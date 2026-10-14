@@ -422,8 +422,8 @@ static void _madChaserLurkRiseStart(Task* task);
 static s32  _madChaserScaleByAnimRate(Task* task, s16 distanceAtNormalRate);
 static void _madChaserAdvanceBehaviorState(Task* task);
 
-static __inline__ s16  _madChaserTakePullOrVanishCommand(Task* task);
-static __inline__ void _madChaserUpdateRotation(Task* task);
-static __inline__ s16  _madChaserTakeVanishCommand(Task* task);
+static inline s16  _madChaserTakePullOrVanishCommand(Task* task);
+static inline void _madChaserUpdateRotation(Task* task);
+static inline s16  _madChaserTakeVanishCommand(Task* task);
 
 #endif /* SRC_SHARED_MAD_CHASER_H */

@@ -753,7 +753,7 @@ static u8 _gActor342400Unknown11C8B = 1;
 
 u16 gActor342400EncounterNextPlaceIndex = 0;
 
-static __inline__ void set_state_s16(Task* arg0, s16 state);
+static inline void set_state_s16(Task* arg0, s16 state);
 
 #include "../../shared/creatures/mad_chaser/mad_chaser_limb_shadow.inc.c"
 
@@ -910,7 +910,7 @@ static const TaskFuncTable7 _gMadChaserShrinkDeathStates = { {
 /// with the `s32` one, `_madChaserEmergeAtSpot` no longer matches. Each
 /// call site reloads `work`, and cross-jumping merges the identical stores,
 /// which is what leaves one `lw` per arm in front of a shared tail.
-static __inline__ void set_state_s16(Task* arg0, s16 state)
+static inline void set_state_s16(Task* arg0, s16 state)
 {
     MadChaserWork* w = (MadChaserWork*)arg0->work;
 

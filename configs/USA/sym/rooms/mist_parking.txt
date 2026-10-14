@@ -187,7 +187,7 @@ gMistParkingDepartureMovieTaskDescs = 0x8018FC24; // size:0x18 defined:True
 _gMistParkingJodieTalkPoseScript = 0x8018F9A4; // size:0xA8 defined:True
 _gMistParkingJodieShopSessionScript = 0x8018FA4C; // size:0xF0 defined:True
 _gMistParkingJodieShopDeclineScript = 0x8018FB3C; // size:0xC0 defined:True
-gAcropolisSquarePostCutsceneAreaUpdates = 0x80188888; // absolute:True owner=acropolis_square
+gAkropolisSquarePostCutsceneAreaUpdates = 0x80188888; // absolute:True owner=akropolis_square
 _gShopRetainedItemListDescriptor = 0x8018661C; // size:0x1C defined:True
 _gShopWeaponSupplyRefillDescriptor = 0x80186638; // size:0x1C defined:True
 _gShopItemPreviewDescriptor = 0x80186654; // size:0x1C defined:True

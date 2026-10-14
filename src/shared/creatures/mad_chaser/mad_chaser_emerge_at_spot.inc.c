@@ -7,7 +7,7 @@
 /// are parent-coordinate units and heading is wrapped to 4096 units per turn.
 /// Borrows all storage and retains the command. Clears pitch/roll and writes
 /// root translation; the caller dirties and composes the changed root.
-static __inline__ void _madChaserPlaceEmergeRoot(MadChaserWork* work, GfxCoord* root, const OverlayEncounterSpot* spots)
+static inline void _madChaserPlaceEmergeRoot(MadChaserWork* work, GfxCoord* root, const OverlayEncounterSpot* spots)
 {
     enum {
         MAD_CHASER_EMERGE_SPOT_SHIFT = 8,
@@ -110,7 +110,7 @@ static void _madChaserEmergeAtSpot(Task* task)
 /// the s16 heading. Resets clip 17 at normal rate and launches at -110 Y units
 /// per update with zero acceleration. Clears the u16 frame counter and enters
 /// behavior 2; the caller applies animation and rebuilds rotation afterwards.
-static __inline__ void _madChaserEmergeBackflipLaunchHop(Task* task, MadChaserWork* work, GfxCoord* root)
+static inline void _madChaserEmergeBackflipLaunchHop(Task* task, MadChaserWork* work, GfxCoord* root)
 {
     enum {
         MAD_CHASER_EMERGE_BACKFLIP_HOP_CLIP    = 17,
@@ -181,7 +181,7 @@ static void _madChaserEmergeBackflip(Task* task)
 /// index 0..15 in sound-id bits 8..15. The cached root-to-view transform supplies
 /// pan (-16..15) and attenuation depth (-128..127), both narrowed to s8 before
 /// the request. Requires projection scratch/GTE setup; retains no storage.
-static __inline__ void _madChaserEmergeHopForwardPlayEntrySound(Task* task)
+static inline void _madChaserEmergeHopForwardPlayEntrySound(Task* task)
 {
     enum {
         MAD_CHASER_EMERGE_HOP_SOUND            = SOUND_CHARACTER(SOUND_BANK_MAD_CHASER, 9),

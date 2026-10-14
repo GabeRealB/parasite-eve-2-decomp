@@ -929,9 +929,9 @@ RoomLatchedEventStorage gRoomEventLatched = { { 0 }, { 0 } };
 
 RoomEventReq gRoomEventReq = { 0, 0, 0, 0, 0, 0 };
 
-static __inline__ s32 _walkwayStartEvent(RoomEventMsg* dst, RoomLatchedEvent* event);
-static void           _shelterB2NorthMaintenanceWalkwayInitRoomTask(Task* task);
-static void           _shelterB2NorthMaintenanceWalkwayIdleRoomTask(Task* unusedTask);
+static inline s32 _walkwayStartEvent(RoomEventMsg* dst, RoomLatchedEvent* event);
+static void       _shelterB2NorthMaintenanceWalkwayInitRoomTask(Task* task);
+static void       _shelterB2NorthMaintenanceWalkwayIdleRoomTask(Task* unusedTask);
 
 #include "../../shared/room/room_event_staged_task.inc.c"
 
@@ -941,7 +941,7 @@ static void           _shelterB2NorthMaintenanceWalkwayIdleRoomTask(Task* unused
 /// already happened (answering 1). Otherwise answers 2, and - unless
 /// `dst->queryOnly` asks for a dry run - latches the message and the event,
 /// sets the flag and spawns the room's event task.
-static __inline__ s32 _walkwayStartEvent(RoomEventMsg* dst, RoomLatchedEvent* event)
+static inline s32 _walkwayStartEvent(RoomEventMsg* dst, RoomLatchedEvent* event)
 {
     _gShelterB2NorthMaintenanceWalkwayStagedEventStart.eventStarted = false;
     if (gameFlagGetNibble(event->flagId) == 0 || event->flagId == 0) {

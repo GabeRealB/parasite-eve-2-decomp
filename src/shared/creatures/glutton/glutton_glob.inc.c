@@ -9,7 +9,7 @@
 /// launch Y / 15, truncated toward zero. Descent spends X/Z in fifteenths and
 /// adds the fall step's magnitude to Y. Clears elapsed ticks and caught state;
 /// all arguments are borrowed for this call.
-static __inline__ void _gluttonCaptureGlobTravel(GluttonProjectileWork* work, Task* task, Task* playerTask)
+static inline void _gluttonCaptureGlobTravel(GluttonProjectileWork* work, Task* task, Task* playerTask)
 {
     enum { GLUTTON_GLOB_FALL_TICKS = 15 };
     work->fallStep = task->extra.tmd->coords->coord.t[1] / GLUTTON_GLOB_FALL_TICKS;

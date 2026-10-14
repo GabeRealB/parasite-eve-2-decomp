@@ -12,7 +12,7 @@
 /// Clears the travel and turn-update counts, forgets the last footstep record
 /// and disables step sounds. Slots and poses are left untouched: the caller
 /// must process the reset request before ticking driven slots 1 through 18.
-static __inline__ void _footstepWalkPrepareAnimation(TmdObject* model)
+static inline void _footstepWalkPrepareAnimation(TmdObject* model)
 {
     enum { FOOTSTEP_WALK_STARTUP_ANIM_ID = 1 };
 
@@ -102,7 +102,7 @@ static void _footstepWalkSpawn(Enemy* enemy, Task* task)
 /// Both arguments are borrowed for this call. The rotation requires an initialized
 /// scratch stack with 0x24 free, word-aligned bytes disjoint from both objects;
 /// that reservation is released before return.
-static __inline__ void _footstepWalkTurnModel(GfxCoord* rootCoord, FootstepWalkWork* work)
+static inline void _footstepWalkTurnModel(GfxCoord* rootCoord, FootstepWalkWork* work)
 {
     work->st.yaw += FOOTSTEP_WALK_TURN_ANGLE_PER_UPDATE;
     gfxRotMatrixY(&rootCoord->coord, work->st.yaw, GRAPHICS_ROTATION_REPLACE);

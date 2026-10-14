@@ -21,12 +21,19 @@ from asset_data import TREE  # noqa: E402
 HEADER = ROOT / "include" / "main" / "areas.h"
 # The stages are the disc's stage folders; their names say which rooms each holds.
 STAGES = {
-    1: ("GAME_STAGE_ACROPOLIS", "Akropolis Tower and the MIST"),
+    1: ("GAME_STAGE_AKROPOLIS", "Akropolis Tower and the MIST"),
     2: ("GAME_STAGE_DRYFIELD", "Dryfield by day"),
     3: ("GAME_STAGE_DRYFIELD_NIGHT", "Dryfield by night"),
     4: ("GAME_STAGE_MINE_SHELTER", "The mine, and the Shelter from 1F to B4"),
     5: ("GAME_STAGE_SHELTER_NEO_ARK", "The Shelter's 1F and B6, and the Neo Ark"),
 }
+
+
+def constant_name(folder: str) -> str:
+    """The constant for a room folder. Most of the extractor's Akropolis folders
+    are still spelt with a c, a misspelling the source has dropped; they are
+    renamed as their rooms move, and until then the constants are spelt right here."""
+    return folder.upper().replace("ACROPOLIS", "AKROPOLIS")
 
 
 def render() -> str:
@@ -56,7 +63,7 @@ def render() -> str:
         out.append(f"    // {label}")
         width = max(len(name) for _, name in folders) + len("GAME_AREA_")
         for area, name in folders:
-            out.append(f"    {('GAME_AREA_' + name.upper()).ljust(width)} = {area},")
+            out.append(f"    {('GAME_AREA_' + constant_name(name)).ljust(width)} = {area},")
     out += ["};", "", "#endif // MAIN_AREAS_H", ""]
     return "\n".join(out)
 

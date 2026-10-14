@@ -8,7 +8,7 @@
 /// of zero selects `PAIR_WALK_ANIM_IDLE` and records `PAIR_WALK_IDLE_BLEND_FRAMES`
 /// whole frames for a later blend. Leaves `st.state` and the playing tracks
 /// unchanged, so this records a choice without requesting an animation reseed.
-static __inline__ void _pairWalkCompleteTravelTick(PairWalkWork* work)
+static inline void _pairWalkCompleteTravelTick(PairWalkWork* work)
 {
     work->st.travel--;
     if (work->st.travel == 0) {

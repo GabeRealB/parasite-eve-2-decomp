@@ -54,7 +54,7 @@
 
 #include "rooms/acropolis_security_room.h"
 
-#include "rooms/acropolis_square.h"
+#include "rooms/akropolis_square.h"
 
 #include "rooms/dryfield_back_street.h"
 
@@ -394,7 +394,7 @@ static void _loadingReloadView(s32 logicalViewIndex);
 // The overlay stores its immutable area records in the fixed data segment.
 const AreaRecord* gAreaRecordsByStage[GAME_STAGE_SHELTER_NEO_ARK + 1] = {
     [GAME_STAGE_NONE]            = NULL,
-    [GAME_STAGE_ACROPOLIS]       = _gAreaAcropolisRecords,
+    [GAME_STAGE_AKROPOLIS]       = _gAreaAcropolisRecords,
     [GAME_STAGE_DRYFIELD]        = _gAreaDryfieldRecords,
     [GAME_STAGE_DRYFIELD_NIGHT]  = _gAreaDryfieldNightRecords,
     [GAME_STAGE_MINE_SHELTER]    = _gAreaMineShelterRecords,
@@ -407,23 +407,23 @@ const AreaRecord* gAreaRecordsByStage[GAME_STAGE_SHELTER_NEO_ARK + 1] = {
 /// Room layout pointers require the selected room overlay to remain loaded.
 /// Save slots are explicit: the shooting gallery uses the live Dryfield bank.
 static const AreaRecord _gAreaAcropolisRecords[GAME_AREA_MIST_SHOOTING_GALLERY + 1] SECTION(".data") = {
-    [GAME_AREA_ACROPOLIS_SQUARE]                 = { gAcropolisSquareAreaVariants, &gGameFlagAcropolisBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[0].state },
-    [GAME_AREA_ACROPOLIS_EAST_ELEVATOR_HALL]     = { gAcropolisEastElevatorHallAreaVariants, &gGameFlagAcropolisBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[1].state },
-    [GAME_AREA_ACROPOLIS_PATIO]                  = { gAcropolisPatioAreaVariants, &gGameFlagAcropolisBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[2].state },
-    [GAME_AREA_ACROPOLIS_CAFETERIA]              = { gAcropolisCafeteriaAreaVariants, &gGameFlagAcropolisBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[3].state },
-    [GAME_AREA_ACROPOLIS_PLAZA]                  = { gAcropolisPlazaAreaVariants, &gGameFlagAcropolisBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[4].state },
-    [GAME_AREA_ACROPOLIS_SECURITY_ROOM]          = { gAcropolisSecurityRoomAreaVariants, &gGameFlagAcropolisBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[5].state },
-    [GAME_AREA_ACROPOLIS_HALLWAY]                = { gAcropolisHallwayAreaVariants, &gGameFlagAcropolisBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[6].state },
-    [GAME_AREA_ACROPOLIS_FOUNTAIN]               = { gAcropolisFountainAreaVariants, &gGameFlagAcropolisBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[7].state },
-    [GAME_AREA_ACROPOLIS_FORKED_ROAD]            = { gAcropolisForkedRoadAreaVariants, &gGameFlagAcropolisBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[8].state },
-    [GAME_AREA_ACROPOLIS_OBSERVATORY]            = { gAcropolisObservatoryAreaVariants, &gGameFlagAcropolisBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[9].state },
-    [GAME_AREA_ACROPOLIS_PROMENADE]              = { gAcropolisPromenadeAreaVariants, &gGameFlagAcropolisBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[10].state },
-    [GAME_AREA_ACROPOLIS_SANCTUARY]              = { gAcropolisSanctuaryAreaVariants, &gGameFlagAcropolisBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[11].state },
-    [GAME_AREA_ACROPOLIS_ROOF_GARDEN]            = { gAcropolisRoofGardenAreaVariants, &gGameFlagAcropolisBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[12].state },
-    [GAME_AREA_ACROPOLIS_BRIDGE]                 = { gAcropolisBridgePlacementVariants, &gGameFlagAcropolisBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[13].state },
-    [GAME_AREA_ACROPOLIS_FIRE_ESCAPE]            = { gAcropolisFireEscapeAreaVariants, &gGameFlagAcropolisBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[14].state },
-    [GAME_AREA_ACROPOLIS_HELICOPTER_LANDING_PAD] = { gAcropolisHelicopterLandingPadAreaVariants, &gGameFlagAcropolisBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[15].state },
-    [GAME_AREA_ACROPOLIS_WEST_ELEVATOR_HALL]     = { NULL, NULL },
+    [GAME_AREA_AKROPOLIS_SQUARE]                 = { gAkropolisSquareAreaVariants, &gGameFlagAcropolisBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[0].state },
+    [GAME_AREA_AKROPOLIS_EAST_ELEVATOR_HALL]     = { gAcropolisEastElevatorHallAreaVariants, &gGameFlagAcropolisBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[1].state },
+    [GAME_AREA_AKROPOLIS_PATIO]                  = { gAcropolisPatioAreaVariants, &gGameFlagAcropolisBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[2].state },
+    [GAME_AREA_AKROPOLIS_CAFETERIA]              = { gAcropolisCafeteriaAreaVariants, &gGameFlagAcropolisBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[3].state },
+    [GAME_AREA_AKROPOLIS_PLAZA]                  = { gAcropolisPlazaAreaVariants, &gGameFlagAcropolisBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[4].state },
+    [GAME_AREA_AKROPOLIS_SECURITY_ROOM]          = { gAcropolisSecurityRoomAreaVariants, &gGameFlagAcropolisBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[5].state },
+    [GAME_AREA_AKROPOLIS_HALLWAY]                = { gAcropolisHallwayAreaVariants, &gGameFlagAcropolisBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[6].state },
+    [GAME_AREA_AKROPOLIS_FOUNTAIN]               = { gAcropolisFountainAreaVariants, &gGameFlagAcropolisBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[7].state },
+    [GAME_AREA_AKROPOLIS_FORKED_ROAD]            = { gAcropolisForkedRoadAreaVariants, &gGameFlagAcropolisBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[8].state },
+    [GAME_AREA_AKROPOLIS_OBSERVATORY]            = { gAcropolisObservatoryAreaVariants, &gGameFlagAcropolisBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[9].state },
+    [GAME_AREA_AKROPOLIS_PROMENADE]              = { gAcropolisPromenadeAreaVariants, &gGameFlagAcropolisBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[10].state },
+    [GAME_AREA_AKROPOLIS_SANCTUARY]              = { gAcropolisSanctuaryAreaVariants, &gGameFlagAcropolisBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[11].state },
+    [GAME_AREA_AKROPOLIS_ROOF_GARDEN]            = { gAcropolisRoofGardenAreaVariants, &gGameFlagAcropolisBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[12].state },
+    [GAME_AREA_AKROPOLIS_BRIDGE]                 = { gAcropolisBridgePlacementVariants, &gGameFlagAcropolisBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[13].state },
+    [GAME_AREA_AKROPOLIS_FIRE_ESCAPE]            = { gAcropolisFireEscapeAreaVariants, &gGameFlagAcropolisBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[14].state },
+    [GAME_AREA_AKROPOLIS_HELICOPTER_LANDING_PAD] = { gAcropolisHelicopterLandingPadAreaVariants, &gGameFlagAcropolisBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[15].state },
+    [GAME_AREA_AKROPOLIS_WEST_ELEVATOR_HALL]     = { NULL, NULL },
     [GAME_AREA_MIST_R18]                         = { gMistR18AreaVariants, &gGameFlagAcropolisBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[16].state },
     [GAME_AREA_MIST_PARKING]                     = { gMistParkingAreaVariants, &gGameFlagAcropolisBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[17].state },
     [GAME_AREA_MIST_SHOOTING_GALLERY]            = { gMistShootingGalleryAreaVariants, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[29].state },
@@ -653,7 +653,7 @@ static const _LoadingConfigFileHundreds _gLoadingCharacterFileHundreds = { { 4, 
 /// in either path. The source and storage contracts of
 /// `tmdResetAuxHeapAndRestoreBuffers` and `spriteAllocateViewCachedPackets` apply.
 /// Allocation failure does not abort the remaining work or report a status.
-static __inline__ void _loadingRestoreViewGraphics(s32 keepGraphics)
+static inline void _loadingRestoreViewGraphics(s32 keepGraphics)
 {
     if (keepGraphics == 0) {
         // Invalidate model pointers before resetting their backing storage.
@@ -939,7 +939,7 @@ void loadingViewLoadTask(Task* viewLoadTask)
 /// is released; subsequent view setup supplies new packets. Resets the GPU
 /// command queue before clearing frame buffer 0's table, then frame buffer 1's.
 /// Leaves the selected ordering table and primitive allocation cursor intact.
-static __inline__ void _loadingResetViewDrawing(void)
+static inline void _loadingResetViewDrawing(void)
 {
     enum { LOADING_VIEW_GPU_RESET_QUEUE = 1 };
     ResetGraph(LOADING_VIEW_GPU_RESET_QUEUE);

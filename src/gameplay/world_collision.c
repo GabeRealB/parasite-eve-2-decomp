@@ -357,7 +357,7 @@ WorldCollisionPairRule gWorldCollisionPairRules[4][4] = {
 /// product is not normalized again; the caller supplies the plane offset.
 /// Only XYZ are read or written; vector pad words are untouched. Clobbers GTE
 /// rotation-matrix registers and arithmetic state, and retains no pointers.
-static __inline__ void _worldCollisionBuildGridEdgePlaneNormal(_WorldCollisionGridRayScratch* scratch, s32 edgePairIndex)
+static inline void _worldCollisionBuildGridEdgePlaneNormal(_WorldCollisionGridRayScratch* scratch, s32 edgePairIndex)
 {
     const WorldCollisionFaceEdge* edge = &gWorldCollisionFaceEdges[edgePairIndex];
 

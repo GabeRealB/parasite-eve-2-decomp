@@ -185,11 +185,11 @@ static void _roomCutsceneTask(Task* task)
                 capRunCommand(cutscene->capSlot, CAP_PLAYBACK_IN_PLACE);
             }
             if (gameFlagGetNibble(GAME_FLAG_STORY_CHAPTER) == ROOM_CUTSCENE_OPENING_CHAPTER) {
-                if (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_PROGRESS) == ROOM_CUTSCENE_ACROPOLIS_PROGRESS_BEFORE) {
-                    gameFlagSetNibble(GAME_FLAG_ACROPOLIS_PROGRESS, ROOM_CUTSCENE_ACROPOLIS_PROGRESS_AFTER);
+                if (gameFlagGetNibble(GAME_FLAG_AKROPOLIS_PROGRESS) == ROOM_CUTSCENE_ACROPOLIS_PROGRESS_BEFORE) {
+                    gameFlagSetNibble(GAME_FLAG_AKROPOLIS_PROGRESS, ROOM_CUTSCENE_ACROPOLIS_PROGRESS_AFTER);
                     gameFlagSetNibble(GAME_FLAG_00E, ROOM_CUTSCENE_POST_SCENE_FLAG_VALUE);
-                    if ((GAME_LOCATION_WORD(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_SQUARE, 0, 0)) {
-                        areaApplySavedUpdates(gAcropolisSquarePostCutsceneAreaUpdates);
+                    if ((GAME_LOCATION_WORD(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(GAME_STAGE_AKROPOLIS, GAME_AREA_AKROPOLIS_SQUARE, 0, 0)) {
+                        areaApplySavedUpdates(gAkropolisSquarePostCutsceneAreaUpdates);
                         gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, ROOM_CUTSCENE_SQUARE_OBJECTIVE);
                     }
                 }
