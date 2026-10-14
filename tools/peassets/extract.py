@@ -57,7 +57,7 @@ class FileChunkType(IntEnum):
     RoomPkg = 0x0  # .pe2pkg
     Image = 0x1  # .pe2img
     Clut = 0x2  # .pe2clut
-    Cap2 = 0x4  # .pe2cap2
+    Bundle = 0x4  # .pe2bundle: a resource bundle (doc/BUNDLE_FORMAT.md)
     RoomBackground = 0x5  # .bs
     Music = 0x6  # .spk
     Ascii = 0x7  # .txt
@@ -67,7 +67,7 @@ class FileChunkType(IntEnum):
             FileChunkType.RoomPkg: "Room package ",
             FileChunkType.Image: "Image",
             FileChunkType.Clut: "Color lookup table",
-            FileChunkType.Cap2: "Dialogue data",
+            FileChunkType.Bundle: "Resource bundle",
             FileChunkType.RoomBackground: "PSX BS v2 MDEC bitstream image",
             FileChunkType.Music: "SPK/MPK music program",
             FileChunkType.Ascii: "Ascii text",
@@ -78,7 +78,7 @@ class FileChunkType(IntEnum):
             FileChunkType.RoomPkg: ".pe2pkg",
             FileChunkType.Image: ".pe2img",
             FileChunkType.Clut: ".pe2clut",
-            FileChunkType.Cap2: ".pe2cap2",
+            FileChunkType.Bundle: ".pe2bundle",
             FileChunkType.RoomBackground: ".bs",
             FileChunkType.Music: ".spk",
             FileChunkType.Ascii: ".txt",
@@ -90,7 +90,7 @@ class FileChunkType(IntEnum):
             FileChunkType.RoomPkg: True,
             FileChunkType.Image: False,
             FileChunkType.Clut: False,
-            FileChunkType.Cap2: False,
+            FileChunkType.Bundle: False,
             FileChunkType.RoomBackground: False,
             FileChunkType.Music: False,
             FileChunkType.Ascii: False,
@@ -108,7 +108,7 @@ class FileChunkHeader:
     end_flag: FileChunkEndFlag
     sector_len: int  # exclusive end offset in sector buffer; range (0x10, 0x800]
     chunk_size: int
-    load_addr: int  # RAM dest for room_pkg / cap2; 0 otherwise
+    load_addr: int  # RAM dest for room_pkg / bundle; 0 otherwise
 
     def encode(self) -> dict:
         return {
@@ -260,7 +260,7 @@ def parse_file_chunk_header(data: bytes) -> FileChunkHeader | None:
             FileChunkType.RoomPkg
             | FileChunkType.Image
             | FileChunkType.Clut
-            | FileChunkType.Cap2
+            | FileChunkType.Bundle
             | FileChunkType.RoomBackground
             | FileChunkType.Music
             | FileChunkType.Ascii
@@ -568,6 +568,33 @@ class AssetStore:
             duplicate_of=None,
             header=header,
         )
+        return raw_path, stem, True
+
+    def put_resource(self, data: bytes, *, ext: str, name: str, canonical: str) -> tuple[Path, str, bool]:
+        """Store one resource of a bundle as an asset of its own (bundle.py).
+
+        Same raw/{type} store and SHA-1 dedup as :meth:`put_raw`, so a palette that is also an on-disc CLUT, or a
+        resource of several bundles, is stored once. Its name is the asset table's for those bytes, else ``name``.
+        A resource is not a chunk, so it has no entry in ``stages.json``: its bundle lists it.
+        """
+        type_dir = self.type_dir_for(ext)
+        digest = hashlib.sha1(data).hexdigest()
+        by_hash = self._by_hash.setdefault(type_dir, {})
+        if digest in by_hash:
+            raw_rel = by_hash[digest]
+            return self.assets_root / raw_rel, Path(raw_rel).stem, False
+        used = self._used_names.setdefault(type_dir, set())
+        stem = asset_id_for_sha1(digest) or name
+        if stem in used:
+            raise ValueError(f"resource name {stem} of {canonical} is taken by other bytes")
+        used.add(stem)
+        raw_rel = f"{RAW_ROOT_NAME}/{type_dir}/{stem}{ext}"
+        raw_path = self.assets_root / raw_rel
+        raw_path.parent.mkdir(parents=True, exist_ok=True)
+        raw_path.write_bytes(data)
+        by_hash[digest] = raw_rel
+        self._first_canonical[raw_rel] = canonical
+        self._unique_raw[raw_rel] = (type_dir, stem, ext)
         return raw_path, stem, True
 
     def put_embedded(
@@ -897,6 +924,20 @@ def output_chunk(
         raw_rel,
         "" if is_new else f" (of {first})",
     )
+    if chunk_type == FileChunkType.Bundle and is_new:
+        # A bundle's resources are assets of their own; its record lists them by name (bundle.py).
+        import bundle
+
+        found = bundle.slots(chunk.data)
+        for slot, payload in bundle.resources(chunk.data):
+            res_path, res_stem, res_new = store.put_resource(
+                payload,
+                ext=bundle.resource_ext(slot),
+                name=bundle.resource_name(_stem, slot, found),
+                canonical=f"{canonical}#{slot['slot']}",
+            )
+            logging.info("    %s slot %d → %s", "resource" if res_new else "dedup", slot["slot"],
+                         res_path.relative_to(store.assets_root))
 
 
 def output_file(

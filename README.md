@@ -213,7 +213,8 @@ Documentation:
 - [doc/OVERLAYS.md](doc/OVERLAYS.md) — packages, RAM slots, rooms, models and animations
 - [doc/STREAM_FORMATS.md](doc/STREAM_FORMATS.md) — MTS audio and STR movies
 - [doc/TMD_FORMAT.md](doc/TMD_FORMAT.md) — model streams and their opcodes
-- [doc/CAP_FORMAT.md](doc/CAP_FORMAT.md) — caption and dialogue bundles
+- [doc/BUNDLE_FORMAT.md](doc/BUNDLE_FORMAT.md) — resource bundles: view palettes, dialogue, credits, demos
+- [doc/CAP_FORMAT.md](doc/CAP_FORMAT.md) — CAP dialogue
 - [doc/LZSS_ENCODER.md](doc/LZSS_ENCODER.md) — the compressor
 - [doc/TASKS.md](doc/TASKS.md) — the cooperative task and actor model
 - [tools/patches/README.md](tools/patches/README.md) — the patches to maspsx and the permuter

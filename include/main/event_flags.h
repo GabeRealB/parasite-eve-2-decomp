@@ -43,8 +43,9 @@ enum {
 enum {
     // ---- Akropolis, from 0x000 ---------------------------------------------
 
-    /// Akropolis square. Set only by CAP script data: no C code reads or writes it.
-    /// The ammo box's dialog has been seen.
+    /// Akropolis square. Counter of the square's CAP command 4, the ammo box
+    /// ("A SWAT ammunition box..."): the CAP interpreter keeps the command's
+    /// counter here (doc/CAP_FORMAT.md §6), 0 before the box is examined, 1 after.
     EVENT_FLAG_AKROPOLIS_SQUARE_AMMO_BOX_DIALOG_SEEN = 0x004,
 
     // ---- Map pages, 0x015..0x01A: one per map, read by the map menu ---------

@@ -37,6 +37,7 @@ from asset_db import (  # noqa: E402
     reverse_file_id,
     reverse_folder_id,
 )
+import asset_schema  # noqa: E402
 from image_codec import (  # noqa: E402
     guess_bpp,
     height_from_work_entries,
@@ -50,7 +51,10 @@ RAW_TYPE_DIRS = (
     "pe2pkg",
     "pe2img",
     "pe2clut",
-    "pe2cap2",
+    "pe2bundle",
+    "cap",
+    "stf",
+    "demo",
     "bs",
     "spk",
     "txt",
@@ -219,7 +223,7 @@ def _by_id(container: dict[Any, Any], disc_id: int) -> dict[str, Any] | None:
 # What a chunk is called when its asset's own name says nothing beyond the
 # folder and file it sits in.
 TYPE_WORD = {"pe2pkg": "package", "pe2img": "image", "pe2clut": "clut", "spk": "sound", "bs": "background",
-             "txt": "text", "pe2cap2": "caption", "model": "model"}
+             "txt": "text", "pe2bundle": "caption", "model": "model"}
 
 
 def _default_chunk_name(aid: str, kind: str, folder_key: str | None, file_key: str) -> str:
@@ -318,9 +322,13 @@ def collect_assets(assets_root: Path, old_assets: dict[str, dict[str, Any]]) -> 
                     n += 1
                 aid = f"{base}_{n}"
             used_ids.add(aid)
+            # A type set by hand over the same stored form (a glyph atlas is a pe2img) is kept.
+            kind = old_rec.get("type")
+            if kind is None or asset_schema.EXT_BY_TYPE.get(kind) != asset_schema.EXT_BY_TYPE.get(type_dir):
+                kind = type_dir
             rec: dict[str, Any] = {
                 "sha1": digest,
-                "type": type_dir,
+                "type": kind,
             }
             # Preserve extra fields (bpp, required, notes, …).
             for k, v in old_rec.items():
@@ -596,6 +604,33 @@ def collect_samples(assets_root: Path, old: dict[str, dict[str, Any]], assets: d
     return out
 
 
+def collect_bundles(assets_root: Path, assets: dict[str, dict[str, Any]]) -> None:
+    """Each bundle's resources by name, in slot order (None where a slot is empty).
+
+    A bundle is a container, as a bank is. The extractor stores each resource under its own type (bundle.py), so
+    each is already an asset, found here by the SHA-1 of its bytes; the bundle's record lists them, and the
+    bundle needs no decoded form: its resources and its chunk's load address rebuild it.
+    """
+    import bundle
+
+    by_sha1 = {(rec["type"], rec["sha1"]): aid for aid, rec in assets.items()}
+    for aid, rec in assets.items():
+        if rec.get("type") != "pe2bundle":
+            continue
+        data = (assets_root / "raw" / "pe2bundle" / f"{aid}.pe2bundle").read_bytes()
+        names: list[str | None] = [None] * bundle.SLOTS
+        for slot, payload in bundle.resources(data):
+            kind = bundle.resource_ext(slot).lstrip(".")
+            names[slot["slot"]] = by_sha1[(kind, hashlib.sha1(payload).hexdigest())]
+        while names and names[-1] is None:
+            names.pop()
+        rec["resources"] = names
+        rec.pop("extra_sectors", None)
+        extra = bundle.extra_sectors(data)
+        if extra:
+            rec["extra_sectors"] = extra
+
+
 def collect_animations(assets_root: Path, old: dict[str, dict[str, Any]]) -> dict[str, dict[str, Any]]:
     """Every animation bank the overlay manifest declares, as an embedded asset.
 
@@ -741,6 +776,7 @@ def main(argv: list[str] | None = None) -> int:
         print(f"sample names already taken by other assets: {clash[:5]}", file=sys.stderr)
         return 1
     assets.update(samples)
+    collect_bundles(assets_root, assets)
     embedded = {key: rec for key, rec in embedded.items() if rec.get("type") != "animation"}
     embedded = {**embedded, **placements, **collect_animations(assets_root, old_embedded)}
     embedded_geometry(assets_root, embedded)

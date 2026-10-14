@@ -71,7 +71,7 @@ Slots are packed back-to-back in high RAM. Title and gameplay share
 | `0x80167A70` | Kyle (`800101`–`800105`) | ~55 KiB | |
 | `0x80179950` | Area-map UI / room names (`900000`–`900005`) | ~10–15 KiB | Ends at `0x8017D5BC` |
 | `0x8017D5C0` | **Room overlay** (stages 1–5) | ~12–40 KiB typical | |
-| just after that room | Room `.pe2cap2` dialogue | per-room | e.g. `stage1/101` overlay is `0xB35C` bytes → cap2 at `0x80188920` |
+| just after that room | Room `.pe2bundle` (palettes and dialogue) | per-room | e.g. `stage1/101` overlay is `0xB35C` bytes → bundle at `0x80188920` |
 | `0x801D4000` | Options (`20100`) | ~8 KiB | Open-menu only |
 | `0x801D6000` | Tiny helper (`20600`) | ~1.4 KiB | Role unknown |
 
@@ -123,7 +123,7 @@ the overlay:
 | `*.spk` (often two) | BGM / SFX bank |
 | `*.pe2img` / `*.pe2clut` | Extra textures for that room |
 | **`.pe2pkg` @ `0x8017D5C0`** | Room script / local state |
-| **`.pe2cap2`** | Dialogue, packed against the overlay’s end |
+| **`.pe2bundle`** | Resource bundle (view palettes, dialogue), packed against the overlay’s end |
 
 `file1`, `file2`, … are mostly **camera-angle `.bs` backgrounds** (320×240)
 plus the occasional extra image. File counts per room cluster around 4–12;
@@ -570,7 +570,7 @@ link address.
 
 - Room `file1+` — `.bs` 320×240 plates.
 - Room `.pe2pkg` — event tables + script code.
-- Room `.pe2cap2` — dialogue.
+- Room `.pe2bundle` — view palettes and dialogue.
 - `301xx` / `900xxx` — map art + map names.
 - `501xx` — code-only Parasite Energy effects.
 - `20100` / title — menus.
@@ -625,7 +625,7 @@ No anim chunk type exists in `STAGE*.CDF`. If it is not in that `.pe2pkg`
    `cdCmdEnqueueDisplayResource(0, 0, CD_COMMAND_DISPLAY_LOAD_SEEK_CURRENT_VIEW)`
    conditionally seeks back to the current mapped view using the live
    stage/area and sprite variant. It does not load the room's `file0`.
-3. The `0x8017D5C0` room overlay (and its cap2) always swap.
+3. The `0x8017D5C0` room overlay (and its bundle) always swap.
 4. Aya / weapon / the three actor slots stay unless the room asks for
    different stage-0 ids.
 

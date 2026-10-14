@@ -15,7 +15,7 @@ and that to its chunks - and keeps, for everything a load puts somewhere, where 
     video memory   a rectangle per image column and palette, moved by the load's page and row offsets
                    (asset_residency.moved, after src/main/fs.c)
     main memory    an address range: a package where the loader put it; each slot of a caption
-                   bundle at the destination and length its directory gives (cap_bundle.py); a background's
+                   bundle at the destination and length its directory gives (bundle.py); a background's
                    stored bytes in the one image workspace (`gFsImageWorkspace`, src/main/fs.c:896-907); a
                    music sequence's MIDI image in the one sequence buffer
     sound memory   a bank's samples: the address `sndLoadPlaceScriptSamples` (src/main/sndscript.c:746-829)
@@ -77,7 +77,7 @@ ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import asset_residency as residency  # noqa: E402
 import asset_schema  # noqa: E402
-import cap_bundle  # noqa: E402
+import bundle as bundles  # noqa: E402
 import spk_scripts  # noqa: E402
 
 TRACES = ROOT / "local" / "gametrace"
@@ -343,8 +343,8 @@ class World:
 
     def bundle(self, key: str) -> list:
         if key not in self._bundles:
-            path = RAW / "pe2cap2" / f"{key}.pe2cap2"
-            self._bundles[key] = cap_bundle.slots(path.read_bytes()) if path.is_file() else []
+            path = RAW / "pe2bundle" / f"{key}.pe2bundle"
+            self._bundles[key] = bundles.slots(path.read_bytes()) if path.is_file() else []
         return self._bundles[key]
 
     def raw_size(self, kind: str, key: str) -> int | None:
@@ -567,13 +567,13 @@ class Replay:
         stopped, after = False, None
         for key in (node.get("chunks") or {}).values():
             kind = self.w.type(key)
-            if kind in ("pe2pkg", "pe2cap2") and mode in STOP_AT_PACKAGE:
+            if kind in ("pe2pkg", "pe2bundle") and mode in STOP_AT_PACKAGE:
                 stopped = True
                 break
-            if kind in ("pe2img", "pe2clut"):
+            if kind in ("pe2img", "font_atlas", "pe2clut"):
                 where = [(*residency.moved(rect, page, row, relocate), rect[5], rect[6]) for rect in prints.get(key, ())]
                 if where:
-                    blank = self.w.filler(key) if kind == "pe2img" else 0
+                    blank = self.w.filler(key) if kind in ("pe2img", "font_atlas") else 0
                     kept = [(x, y, w, h - blank) for x, y, w, h in where] if blank else where
                     self.put(n, key, "v", kept, load, lands=where, note=f"its last {blank} rows are blank filler, not counted as part of it" if blank else "")
                     load["assets"].append(key)
@@ -591,7 +591,7 @@ class Replay:
                     continue
                 self.put(n, key, "m", (address, address + length), load, clears=(address, max(address + length, self.w.slot_end(address))))
                 load["assets"].append(key)
-            elif kind == "pe2cap2" or (kind == "bs" and mode != 4):
+            elif kind == "pe2bundle" or (kind == "bs" and mode != 4):
                 # A file's chunks are read in order. What follows a package chunk goes into main memory after the
                 # package has, so where the trace reports the package's arrival it is placed at that record.
                 if after is None:
@@ -624,14 +624,14 @@ class Replay:
 
     def land(self, n: int, load: dict, key: str, kind: str) -> None:
         """A caption bundle or a background of the file being loaded goes into main memory."""
-        if kind == "pe2cap2":
+        if kind == "pe2bundle":
             slots = self.w.bundle(key)
             if not slots:
                 self.miss(n, f"bundle {key}: not in the local extraction, so its slots are not placed")
             if slots:                                  # the bundle is its slots: they do not displace each other
                 self.put(n, key, "m", (min(s["dest"] for s in slots), max(s["dest"] + s["length"] for s in slots)), load, note="bundle", part=(n, key))
             for s in slots:
-                self.put(n, f"{key}_slot_{s['slot']:02d}", "m", (s["dest"], s["dest"] + s["length"]), load, note=s["what"], part=(n, key))
+                self.put(n, bundles.name_of(key, s['slot']), "m", (s["dest"], s["dest"] + s["length"]), load, note=s["what"], part=(n, key))
         else:
             length = self.w.raw_size("bs", key)
             if length is None:
@@ -640,7 +640,7 @@ class Replay:
             self.put(n, key, "m", (WORKSPACE, WORKSPACE + length), load)
             if load["view"]:
                 self.loc["bg"] = key
-        if kind != "pe2cap2" or self.w.bundle(key):
+        if kind != "pe2bundle" or self.w.bundle(key):
             load["assets"].append(key)
             if load["only"] is not None and key not in load["only"]:
                 load["only"].append(key)
@@ -726,7 +726,7 @@ class Replay:
             self.uploads.append({"n": n, "path": "", "asset": None, "stored": stored, "ok": False})
             self.miss(n, f"an upload for ({stored[0]}, {stored[1]}), {stored[2]} x {stored[3]} from {frm} that no slot of the resident bundle accounts for; what it overwrote is not ended")
             return "load", f"upload for ({stored[0]}, {stored[1]}), {stored[2]} x {stored[3]} from {frm}: source not identified", None
-        name = f"{bundle['asset']}_slot_{slot['slot']:02d}"
+        name = bundles.name_of(bundle['asset'], slot['slot'])
         load = {"n": n, "path": f"bundle:{name}", "page": 0, "row": 0, "mode": 0, "only": None, "by": frm, "view": True, "id": len(self.loads), "assets": [name], "cluts": []}
         self.loads.append(load)
         self.put(n, name, "v", [stored], load)
@@ -1020,7 +1020,7 @@ class Replay:
         bundle = next((t for t in reversed(self.live) if t["note"] == "bundle"), None)
         data = [s for s in self.w.bundle(bundle["asset"]) if s["kind"] == 3] if bundle else []
         if self.cap_file < len(data):
-            name = f"{bundle['asset']}_slot_{data[self.cap_file]['slot']:02d}"
+            name = bundles.name_of(bundle['asset'], data[self.cap_file]['slot'])
             self.marks.append((n, name, "caption command", f"command {command}", self.resident(name, "m")))
             return "where", f"{what} {command} of {name} · from {frm}", None
         return "where", f"{what} {command}: no resident bundle has data resource {self.cap_file} · from {frm}", None

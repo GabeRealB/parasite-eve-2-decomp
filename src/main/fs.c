@@ -59,7 +59,7 @@ STATIC_ASSERT_SIZEOF(_FsStage0CategoryFile, 0x4);
 /// leave the redirect pair zero.
 typedef struct {
     u8    kind;                  // Resource kind (0 none, 2 image, 3 untyped data)
-    u8    field_1;               // Unread; zero in every retail bundle, role unproven
+    u8    pad;                   // Aligns sectorsBeforeRedirect; zero in every retail bundle
     u16   sectorsBeforeRedirect; // Payload sectors written before the stream moves to `redirectDestination`
     u32   byteSize;              // Resource length in bytes
     void* destination;           // Absolute RAM address of the resource

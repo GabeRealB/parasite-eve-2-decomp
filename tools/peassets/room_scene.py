@@ -1153,7 +1153,7 @@ class Scene:
                 if node is not None:
                     chunks = list((node.get("chunks") or {}).values())
                     kind = lambda k: [c for c in chunks if self.p.assets.get(c, {}).get("type") == k]  # noqa: E731
-                    item["background"] = {"fileKey": f"{self.stage}/{self.room}/file{file}", "bs": kind("bs"), "images": kind("pe2img"), "cluts": kind("pe2clut")}
+                    item["background"] = {"fileKey": f"{self.stage}/{self.room}/file{file}", "bs": kind("bs"), "images": kind("pe2img") + kind("font_atlas"), "cluts": kind("pe2clut")}
                     if not item["background"]["bs"]:
                         item["note"] = "the view's file has no bs chunk: no background picture of its own"
                 else:

@@ -26,7 +26,7 @@ for stage, folder, fkey, node in asset_schema.tree_files(tree):
     if stage != 0 or folder is not None or not (20100 <= fid < 20800):
         continue
     chunks = list((node.get("chunks") or {}).values())
-    images = [c for c in chunks if assets[c]["type"] == "pe2img"]
+    images = [c for c in chunks if assets[c]["type"] in asset_schema.IMAGE_TYPES]
     cluts = [c for c in chunks if assets[c]["type"] == "pe2clut"]
     if len(images) != 1 or len(cluts) != 1 or len(asset_schema.image_columns(assets[images[0]])) != 1:
         skipped.append(f"0/{fkey}: {len(images)} images, {len(cluts)} palettes: not the one-picture, one-palette shape of a preview file")
@@ -82,7 +82,7 @@ for key, rec in sorted(assets.items(), key=lambda kv: int(kv[0].rsplit("_", 1)[1
 # The gantry's view files 26, 28 and 43 each replace the caption page while its scene packages keep it at (384, 0).
 EV_G = ("; the page: src/actors/actor_560800/actor_560800.c:4588-4589, :6234, :6787, :6800 and src/actors/actor_160900/actor_160900.c:2060-2061, :2093 "
         "capSetTexturePage(384, 0); tools/peassets/usage/shelter_b1_pod_service_gantry.tsv:13-15")
-for key in ("pe2img_1080", "pe2img_1081", "pe2img_1082"):
+for key in ("shelter_b1_pod_service_gantry_dialogue_1_atlas", "shelter_b1_pod_service_gantry_dialogue_2_atlas", "shelter_b1_pod_service_gantry_dialogue_3_atlas"):
     if (key, 0) not in caption_done and asset_schema.image_columns(assets[key])[0][:2] == (384, 0):
         for p in range(4):
             add(key, 0, 4, "pe2clut_0", 2, p, f"gameplay: caption glyphs, palette {p} of the text code" + (" and the highlighted choice" if p == 2 else ""), EV_B + EV_G)
@@ -105,7 +105,7 @@ for stage, folder, fkey, node in asset_schema.tree_files(tree):
     if stage != 0 or folder is not None or not (30100 <= fid < 30600):
         continue
     chunks = list((node.get("chunks") or {}).values())
-    images = [c for c in chunks if assets[c]["type"] == "pe2img"]
+    images = [c for c in chunks if assets[c]["type"] in asset_schema.IMAGE_TYPES]
     cluts = [c for c in chunks if assets[c]["type"] == "pe2clut"]
     if not images and not cluts:
         continue

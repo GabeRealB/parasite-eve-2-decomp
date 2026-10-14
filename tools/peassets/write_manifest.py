@@ -283,7 +283,7 @@ def _contents_from_chunk_map(
         sector_len = parse_sector_len(ent.get("sector_len"))
         if sector_len != SECTOR_LEN_DEFAULT:
             entry["sector_len"] = f"0x{sector_len:X}"
-        # load_addr required for pe2pkg / pe2cap2 (always non-zero in retail).
+        # load_addr required for pe2pkg / pe2bundle (always non-zero in retail).
         if chunk_type in LOAD_ADDR_CHUNK_TYPES:
             load_addr = parse_load_addr(
                 ent.get("load_addr"), chunk_type=chunk_type

@@ -81,7 +81,7 @@ def footprints(assets: dict, node: dict) -> list[tuple]:
         rec = assets.get(key, {})
         if rec.get("type") == "pe2clut":
             out.append((key, "clut", "", rec["x"], rec["y"], rec["w"], rec["h"], None))
-        elif rec.get("type") == "pe2img":
+        elif rec.get("type") in asset_schema.IMAGE_TYPES:
             columns = asset_schema.image_columns(rec)
             if isinstance(rec["x"], list) or len({b for _x, _y, b in columns}) > 1:
                 for n, (x, y, bpp) in enumerate(columns):

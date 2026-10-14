@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """What a room's dialogue payload does: its commands and the records each plays.
 
-    cap_dialogue.py pe2cap2_7                 every command of every dialogue in the bundle
-    cap_dialogue.py pe2cap2_7 --command 11    one command
+    cap_dialogue.py akropolis_square_bundle               every command of every dialogue in the bundle
+    cap_dialogue.py akropolis_square_dialogue_0 --command 4   one command of one dialogue
 
 A `CAP2` payload (doc/CAP_FORMAT.md) is a small state machine. Code runs a
 command by index; the command's opcode picks a variant key - always 0, a
@@ -14,28 +14,25 @@ into the logical view, unless a script has switched scene steps to logical
 ids (opcode 41, `SET_CAP_DIRECT_VIEW_IDS`) - and may send a message to the player, the companion or a
 placed actor. Records also start room sounds and run flag or item actions.
 
-Text is not characters: each code is a glyph cell of the payload's own table,
-drawn from the room's glyph image, so a line is reported by its length. A text
+A line is shown as its text (tools/peassets/cap_text.py), with glyphs the
+glyph table does not know yet as their hashes. A text
 stream can also carry view codes, which change the view as the line is drawn;
 those are listed with the line, as are the choices a line offers: each choice
 names the event key its reply selects.
 """
 from __future__ import annotations
 
+import re
 import struct
 import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-import cap_bundle  # noqa: E402
+import cap_text  # noqa: E402
 
 OPCODES = ("plain", "counter", "flag", "room decides", "tally")
 END = 0xFFFFFFFF
 VIEW_CONTROL, DELAYED_MESSAGE, TITLE_BANK, FORCE_CARET, LEFT_ALIGN = 0x80, 0x08, 0x10, 0x04, 0x02
-
-
-def dialogues(data: bytes) -> list[tuple[dict, bytes]]:
-    return [(s, data[s["offset"]:s["offset"] + s["length"]]) for s in cap_bundle.slots(data) if s["what"] == "dialogue"]
 
 
 # A text stream can end a line in a choice: the code's low byte is the event key the reply selects
@@ -98,7 +95,7 @@ def commands(cap: bytes) -> list[dict]:
             b0, flags, b2, b3, b4, key, action, minimum, ref = struct.unpack_from("<8BI", cap, at)
             if ref == END:
                 break
-            record = {"key": key, "action": action, "flags": flags}
+            record = {"key": key, "action": action, "flags": flags, "ref": ref}
             if flags & VIEW_CONTROL:
                 record.update(kind="scene", view=b0)
                 if flags & DELAYED_MESSAGE:
@@ -112,7 +109,7 @@ def commands(cap: bytes) -> list[dict]:
     return out
 
 
-def describe(command: dict) -> list[str]:
+def describe(command: dict, payload=None) -> list[str]:
     how = command["opcode"]
     if how == "counter":
         how += f" up to {command['limit']}" + (f", kept in game flag {command['flag']}" if command["persist"] else ", kept in the file")
@@ -125,7 +122,7 @@ def describe(command: dict) -> list[str]:
         how += f"; branches to command {command['next']}"
     lines = [f"  command {command['number']}: variant by {how}"]
     for record in command["records"]:
-        action = "" if not record["action"] else f", action {record['action']}" if record["action"] <= 100 else f", message to scene child {record['action'] - 100}"
+        action = "" if not record["action"] else f", placed object {record['action']}" if record["action"] <= 100 else f", message to scene child {record['action'] - 100}"
         if record["kind"] == "scene":
             sent = f", sends {record['message']} to the {record['recipient']} after {record['delay']} frames" if "message" in record else ""
             # A scene step names a view FILE, which the room's view map turns into the logical view; it names the
@@ -136,10 +133,15 @@ def describe(command: dict) -> list[str]:
             lines.append(f"    key {record['key']}: scene step, {view}{cue}{sent}{action}")
         else:
             sound = f", room sound {record['sound']}" if record["sound"] else ""
-            title = f", title {record['title'] - 1 + (256 if record['flags'] & TITLE_BANK else 0)}" if record["title"] else ""
+            # With an action, byte 0 is the action's fallback key, not a title.
+            title = "" if not record["title"] else f", fallback key {record['title']}" if record["action"] else f", title {record['title'] - 1 + (256 if record['flags'] & TITLE_BANK else 0)}"
             views = "".join(f", selects {'logical view' if direct else 'view file'} {view}" + (", hiding the actors" if hide else "") for view, direct, hide in record["views"])
             choices = (", choices " + ", ".join(f"key {key}" + ("" if kind == "confirm" else f" ({kind})") for kind, key in record["choices"])) if record["choices"] else ""
-            lines.append(f"    key {record['key']}: text, {record['glyphs']} glyphs{title}{sound}{action}{views}{choices}")
+            words = f"{record['glyphs']} glyphs" if record["glyphs"] else "none"
+            if payload is not None and record["glyphs"]:
+                spoken = re.sub(r"\{view [^}]*\}", "", payload.text(cap_text.codes_at(payload.cap, record["ref"]))).rstrip("\n")
+                words = '"' + spoken.replace("\n", " / ") + '"'
+            lines.append(f"    key {record['key']}: text {words}{title}{sound}{action}{views}{choices}")
     return lines
 
 
@@ -152,16 +154,16 @@ def main() -> int:
         print(__doc__)
         return 1
     for key in args:
-        path = cap_bundle.RAW / f"{key}.pe2cap2"
-        if not path.is_file():
-            print(f"{key}: not in the local extraction")
-            continue
-        for slot, cap in dialogues(path.read_bytes()):
-            found = commands(cap)
-            print(f"{key} slot {slot['slot']}: {len(found)} commands")
+        try:
+            texts = dict(cap_text.payloads(key))
+        except SystemExit:
+            texts = {}
+        for name in cap_text.dialogues(key):
+            found = commands(cap_text.cap_bytes(name))
+            print(f"{name}: {len(found)} commands")
             for command in found:
                 if only is None or command["number"] == only:
-                    print("\n".join(describe(command)))
+                    print("\n".join(describe(command, texts.get(name))))
     return 0
 
 

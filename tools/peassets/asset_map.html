@@ -97,7 +97,7 @@ const link = (kind, name, text) => h("a", { class: "lnk", href: "#" + kind + "."
 let S = 2; try { S = +localStorage.getItem("asset-map-scale") || 2; } catch (e) {}
 const zoom = (node, k) => { const w = node.width || node.naturalWidth, hh = node.height || node.naturalHeight; if (w) { node.style.width = w * (k || S) + "px"; node.style.height = hh * (k || S) + "px"; } return node; };
 const sign = (p, r) => `${p >= 0 ? "+" : ""}${p}/${r >= 0 ? "+" : ""}${r}`;
-const TYPE = { movie: "movies", stream: "streamed audio", pe2pkg: "overlays", pe2img: "images", pe2clut: "palettes", model: "models", animation: "animation banks", bs: "backgrounds", spk: "sound banks", txt: "text", pe2cap2: "captions", sample: "samples", image: "embedded images", clut: "embedded palettes" };
+const TYPE = { movie: "movies", stream: "streamed audio", pe2pkg: "overlays", pe2img: "images", pe2clut: "palettes", model: "models", animation: "animation banks", bs: "backgrounds", spk: "sound banks", txt: "text", pe2bundle: "resource bundles", cap: "dialogue", stf: "credits", demo: "attract demos", sample: "samples", image: "embedded images", clut: "embedded palettes" };
 
 // ---- pixels: each image and palette has its video-memory words in a small script beside the page ----
 const pix = new Map(), waiting = new Map();

@@ -66,6 +66,10 @@ COMMON = ("deps", "variants")
 BOOKKEEPING = ("required", "notes", "group")
 GROUP = re.compile(r"[a-z0-9_]+(?:/[a-z0-9_]+)*")
 
+# Types whose stored form is an on-disc image chunk, uploaded to video memory: what the residency and usage tools
+# treat as an image.
+IMAGE_TYPES = frozenset({"pe2img", "font_atlas"})
+
 # Per type: fields read from the payload, and fields a person or review writes.
 SCHEMA: dict[str, dict[str, tuple[str, ...]]] = {
     "pe2img": {"payload": ("x", "y", "w", "h"), "stored": ("bpp",)},
@@ -78,7 +82,20 @@ SCHEMA: dict[str, dict[str, tuple[str, ...]]] = {
     # One sound, known by the SHA-1 of its stored SPU-ADPCM bytes; banks list it by name.
     "sample": {"payload": (), "stored": ()},
     "txt": {"payload": (), "stored": ()},
-    "pe2cap2": {"payload": (), "stored": ()},
+    # A resource bundle is a container, as a bank is: `resources` names the asset in each directory slot, in slot
+    # order (None where the slot is empty), and `extra_sectors` counts zero sectors past the usual end (two bundles).
+    # The resources are assets of their own: palettes (pe2clut), dialogue (cap), credits (stf), pictures (bs) and
+    # attract demos (demo). doc/BUNDLE_FORMAT.md.
+    "pe2bundle": {"payload": ("resources",), "stored": ("extra_sectors",)},
+    # `glyphs` says which character a dialogue cell is where several share a picture (I and l): {cell: character},
+    # read by tools/peassets/cap_text.py.
+    "cap": {"payload": (), "stored": ("glyphs",)},
+    "stf": {"payload": (), "stored": ()},
+    # A dialogue's glyph atlas: an on-disc image chunk, stored and decoded as a pe2img, but not drawn by anyone - the
+    # tool that built the dialogue laid it out from its text and the font (doc/CAP_FORMAT.md §9). `generated_by` names
+    # that dialogue; the dialogue and the shared font (tools/peassets/cap_font.py) rebuild it.
+    "font_atlas": {"payload": ("x", "y", "w", "h"), "stored": ("bpp", "generated_by")},
+    "demo": {"payload": (), "stored": ()},
 }
 # An asset embedded in a package or the executable is located by address
 # (`source`, `vram`, `size`), and `include` / `layout` say how the build takes
@@ -268,7 +285,10 @@ TYPE_DIR_BY_EXT: dict[str, str] = {
     ".pe2pkg": "pe2pkg",
     ".pe2img": "pe2img",
     ".pe2clut": "pe2clut",
-    ".pe2cap2": "pe2cap2",
+    ".pe2bundle": "pe2bundle",
+    ".cap": "cap",
+    ".stf": "stf",
+    ".demo": "demo",
     ".bs": "bs",
     ".spk": "spk",
     ".txt": "txt",
@@ -278,11 +298,11 @@ TYPE_DIR_BY_EXT: dict[str, str] = {
     ".wav": "sample",
 }
 # The extension of the stored bytes of each manifest type that does not state one (`ext`, on an embedded asset).
-EXT_BY_TYPE: dict[str, str] = {"pe2pkg": ".pe2pkg", "pe2img": ".pe2img", "pe2clut": ".pe2clut", "pe2cap2": ".pe2cap2",
-                               "bs": ".bs", "spk": ".spk", "txt": ".txt", "model": ".tmd", "sample": ".wav"}
+EXT_BY_TYPE: dict[str, str] = {"pe2pkg": ".pe2pkg", "pe2img": ".pe2img", "pe2clut": ".pe2clut", "pe2bundle": ".pe2bundle",
+                               "cap": ".cap", "stf": ".stf", "demo": ".demo", "font_atlas": ".pe2img", "bs": ".bs", "spk": ".spk", "txt": ".txt", "model": ".tmd", "sample": ".wav"}
 PNG_EXTS = frozenset({".pe2img", ".pe2clut", ".bs"})       # decoded to <name>.png and <name><ext>.json
 DIRECTORY_EXTS = frozenset({".spk", ".mcsave"})            # decoded to a directory, <name>/meta.json and more
-RAW_ONLY_EXTS = frozenset({".tmd", ".anim"})               # located but not decoded: raw/ holds the only form
+RAW_ONLY_EXTS = frozenset({".tmd", ".anim", ".pe2bundle", ".cap", ".stf", ".demo"})  # raw/ holds the only form
 # Decoded forms that are addressed by their type's path and so never move, whatever the group.
 PINNED_TYPE_DIRS = frozenset({"pe2pkg"})
 # Directories the extraction owns at its root that hold no manifest asset. With the type directories, the names a
@@ -484,7 +504,7 @@ def url_dir(key: str, rec: dict[str, Any] | None = None, tables: tuple[dict, dic
 
 # The extension behind each chunk type a `stages.json` entry states.
 STAGES_TYPE_EXT: dict[str, str] = {"room_pkg": ".pe2pkg", "image": ".pe2img", "clut": ".pe2clut", "music": ".spk",
-                                   "ascii": ".txt", "cap2": ".pe2cap2", "room_background": ".bs"}
+                                   "ascii": ".txt", "bundle": ".pe2bundle", "room_background": ".bs"}
 
 
 def manifest_asset(path: str) -> tuple[str, str] | None:
@@ -633,7 +653,7 @@ def validate(assets: dict, embedded: dict) -> list[str]:
         for field in spec["payload"]:
             if field not in rec:
                 problems.append(f"{key}: a {kind} is missing {field!r}, which its payload states")
-        if kind == "pe2img" and "bpp" in rec and all(f in rec for f in ("x", "y", "w")):
+        if kind in IMAGE_TYPES and "bpp" in rec and all(f in rec for f in ("x", "y", "w")):
             try:
                 columns = image_columns(rec)
                 if any(b not in TPAGE_MODE for _, _, b in columns):
@@ -642,6 +662,8 @@ def validate(assets: dict, embedded: dict) -> list[str]:
                 problems.append(f"{key}: x, y and bpp do not describe the same columns")
         if "deps" in rec:
             check_deps(key, kind, rec["deps"], key)
+        if kind == "font_atlas" and assets.get(rec.get("generated_by"), {}).get("type") != "cap":
+            problems.append(f"{key}: generated_by must name a dialogue (a cap)")
         variants = rec.get("variants")
         if variants is None:
             continue

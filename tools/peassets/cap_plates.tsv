@@ -1,0 +1,7 @@
+# CAP speaker name plates: a hash of a plate cell's 4-bit pixels (cap_text.glyph_hash) and the name it shows.
+# Added as rooms are worked through; seeded from the Akropolis square (akropolis_square_bundle). ??? marks an unidentified speaker.
+# hash	name
+373e7032e6bfd797	AYA
+85203c517465a826	PIERCE
+8034dea2aa3f0a9b	BALDWIN
+6a525998034b76b2	???

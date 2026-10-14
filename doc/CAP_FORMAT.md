@@ -1,341 +1,233 @@
-# CAP dialogue payloads in `.pe2cap2` bundles
+# CAP dialogue (`cap`)
 
-The dialogue payload has magic `"CAP2"` (the loader compares 3 bytes).
-Extracted `.pe2cap2` files are CDF resource bundles: they can contain CAP
-payloads, images, STF credits and MDEC bitstreams. Their resource directory is
-described in §6; the sections below describe the CAP payload itself.
+| | |
+|---|---|
+| Magic | `"CAP2"` (loaders compare 3 bytes) |
+| Asset type | `cap`, `raw/cap/<room>_dialogue_<i>.cap`; decoded `cap/<name>.json` |
+| Container | data resource of a room bundle ([`BUNDLE_FORMAT.md`](BUNDLE_FORMAT.md)) |
+| Companion asset | its glyph atlas, `font_atlas` (§9) |
+| Code | `src/gameplay/cap_reloc.c`, `cap_commands.c`, `captions.c`; `include/gameplay/cap.h` |
+| Tools | `tools/peassets/cap_decode.py`, `cap_dialogue.py`, `cap_text.py`, `cap_font.py` |
 
-A CAP file is not a dialogue blob. It is a **small state machine that chooses
-which line plays**, over counters that persist in save flags, plus the text those
-lines point at. That is why a room does nothing more than
-`capRunCommandWithTransition(0xC)` and lets the file decide "first time say A, then B, then B
-forever".
+A room runs command *n* (`capRunCommand`); the command chooses a key, and the
+records with that key play: lines in the caption box, and scene steps around them.
 
-Everything below is read off the matched interpreter in
-`src/gameplay/cap_commands.c`, `src/gameplay/cap_reloc.c`,
-`src/gameplay/captions.c`, and the types in
-`include/gameplay/cap.h`.
+## 1. File
 
----
+| Order | Part | Size |
+|---|---|---|
+| 1 | header | `0x14` |
+| 2 | glyph cells | 4 × (highest cell used + 1) |
+| 3 | text streams | one per record, in record order; optionally one more, empty |
+| 4 | sequence table | 4 + 12 × slots |
+| 5 | command index | 4 + 4 × entries |
 
-## 1. File header — `CapFile` (0x14)
+No padding between parts. All offsets are file-relative until relocation (§8).
 
-```
-0x00  char magic[4]      "CAP2" on disc; loaders compare 3 bytes
-0x04  s32  field_4       constant 8 in every retail payload; unread; role unproven
-0x08  glyphs.offset      file-relative glyph-cell offset; TextGlyphCell* cells after relocation
-0x0C  sequences.offset   file-relative sequence-table offset; CapSequenceTable* table after relocation
-0x10  commands.offset    file-relative command-index offset; CapCommandTable* table after relocation
-```
+## 2. Header (`CapFile`)
 
-The three offsets are **file-relative on disc** and rebased in place by
-`capRelocateFile`: a wrong three-byte "CAP" prefix returns 0 without changing
-the file or active tables. No offset or table-bound validation is performed.
-Nothing is relocated when `glyphs.offset <= 0`. A relocated KSEG0 pointer is
-negative as a signed word, so repeated calls skip rebasing but still publish
-the glyph and command tables and return 1.
-Retail payloads store glyph offset `0x14`, the first byte after this header.
+| Offset | Type | Field | |
+|---|---|---|---|
+| `0x00` | `char[4]` | `magic` | `"CAP2"` |
+| `0x04` | `s32` | `field_4` | 8; unread |
+| `0x08` | `u32` | `glyphs` | offset of §3; always `0x14` |
+| `0x0C` | `u32` | `sequences` | offset of §5 |
+| `0x10` | `u32` | `commands` | offset of §8 |
 
-## 2. Relocation
+## 3. Glyph cells (`TextGlyphCell`, 4 bytes)
 
-`capRelocateFile` adds the file base to `glyphs.offset`, `sequences.offset`
-and `commands.offset`, then walks both tables:
+| Offset | Type | |
+|---|---|---|
+| `0x0` | `u8 u, v` | position in the atlas |
+| `0x2` | `u8 w, h` | size; text advances `w − 1`, lines `h + 2` |
 
-- **Sequence table** — `CapSequenceTable`:
+| Cells | |
+|---|---|
+| 0..24 | speaker plates, indexed by speaker number (AYA 0, PIERCE 3, BALDWIN 8; `???` stands for several); only the speakers shown are filled, the rest are 0 |
+| 25.. | glyphs, numbered by first use in the text streams |
 
-  ```
-  0x00  s16 count              sequence records the walk visits, including terminators
-  0x02  s16 slotSize           shared command and sequence-record size; 12 in every retail payload; unread
-  0x04  CapCommand firstCommand  slot zero of the first sequence; absent when count is 0
-  0x10  CapSequenceRecord records[]  walk start
-  ```
+A cell is a picture, not a character: the same index is a different character in each dialogue.
 
-  The checked payload in §6 begins `41 00 0C 00`: count `0x41`, then slot size
-  `0x0C`. Each visited record's `textRef.offset` is rebased **unless it is
-  `CAP_TEXT_REF_END` (`-1`)**, in which case the walk skips the next slot.
-  An earlier terminator's skipped slot is the next sequence's command, so the
-  walk leaves that command unrelocated. The last visited record is a terminator
-  on every retail payload with a nonzero count, and that final skip covers the
-  `CapCommandTable`'s first 12 bytes. Four payloads have
-  `count == 0` and no sequence slots; their `CapCommandTable` starts at
-  `firstCommand` instead, and the sequence walk stops before it.
-- **Command index** — `CapCommandTable`:
+## 4. Text streams
 
-  ```
-  0x00  s32 count                command references the relocation walk visits
-  0x04  CapCommandRef entries[]  one word per command index; zero names no sequence
-  ```
+`u16` codes, ending in `0xFFFF`.
 
-  Every nonzero word is a file-relative offset of a sequence command, slot zero
-  of that sequence, and is rebased. Zero stays null and names no sequence.
-  `gCapCommandEntries` is the published `entries` pointer. Playback indexes those words
-  by the caller's command index. `count` is the relocation bound.
+| Code | Meaning |
+|---|---|
+| `FFFF` | end |
+| `FFFE` | line break; ends an open choice |
+| `FFFD` | spacer, 3 pixels |
+| `8000 \| v` (mask `9F00`) | view change while drawn: `v` a view file, or a logical view with `0x2000`; `0x4000` hides player and companion when playing in place |
+| `81xx` / `82xx` / `83xx` | choice: its reply sets the key to `xx`; confirm sound `SOUND_SYSTEM_CONFIRM` / none / `SOUND_SYSTEM_CURSOR` |
+| `84xx` | inline icon `xx` of `gCapInlineIconCells` (4 cells, tpage `0x1E`, CLUT `0x3C00`) |
+| below `8000` | glyph: bits 0..9 cell, 10..11 palette (CLUT `0x3D50` + palette), 12..14 reveal delay |
 
-  On every retail payload with a nonzero sequence count the index is packed at
-  the first byte after the sequence slots. The sequence walk's last record is a
-  terminator, so its extra skip advances across this index's first 12 bytes —
-  the count and the first two entries — and only advances the record pointer. The command
-  walk then rebases the nonzero entries, including an entry that can sit inside
-  those 12 bytes. Entry 0 is zero in every retail payload. Other zero words are
-  command indices that name no sequence. Four payloads have a sequence count of
-  0. The index then starts at `sequences.offset + 4`, the sequence table's
-  first-command slot, and holds one zero entry.
+## 5. Sequence table (`CapSequenceTable`)
 
-Then:
+| Offset | Type | Field | |
+|---|---|---|---|
+| `0x0` | `s16` | `count` | records, terminators included |
+| `0x2` | `s16` | `slotSize` | 12; unread |
+| `0x4` | slots | | per command: its command (§6), its records (§7), a terminator |
 
-```c
-gCapGlyphCells = file->glyphs.cells;
-gCapCommandEntries   = file->commands.table->entries;
-```
+A terminator is a record with `textRef` = `-1` and every other byte 0.
+An empty dialogue has `count` 0 and no slots.
 
-`gCapCommandEntries[i].command` is the `CapCommand*` in slot zero, and
-`gCapCommandEntries[i].sequence` is that same address indexed as `CapSequenceRecord`
-values. Playback starts at slot one.
+## 6. Command (`CapCommand`, 12 bytes)
 
-## 3. Event records — `CapSequenceRecord` (0xC)
+| Offset | Field | Decoded | Read by |
+|---|---|---|---|
+| `0x0` | `opcode` | `opcode` | all |
+| `0x1` | `flags`: `0x01` wrap, `0x02` persist, `0x04` branch | `wraps`, `persists`, `branches` | counter (all three), tally (branch) |
+| `0x2` | `counterLimit` | `limit` | counter |
+| `0x3` | `flagIndexLo` | `game_flag` (low) | counter with persist, flag |
+| `0x4` | `counter` | `counter` | counter without persist; 0 in retail |
+| `0x5` | `bitFlagIndex` | `tally_first` | tally |
+| `0x6` | `bitFlagCount` | `tally_count` | tally |
+| `0x7` | `flagIndexHi` | `game_flag` (high) | as `0x3` |
+| `0x8` | `nextIndex` | `next` | counter, tally, with branch |
+| `0x9` | 3 bytes | `tail_0`..`tail_2` | none; 0 in retail |
 
-```
-0x0  u8  control.text.title          title glyph + 1; 0 means no title
-0x1  u8  control.text.flags          CAP_SEQUENCE_* flags
-0x2  u8  control.text.displayFrames  frames displaying completed text
-0x3  u8  control.text.pauseFrames    following frames without text; 255 waits for resume
-0x4  u8  trigger.soundAndTextFlags   bit 0 instant text; bits 1-7 room sound ID
-0x5  u8  key                         variant matched against gCapVariantKey
-0x6  u8  actionId                    0 none; 1-100 flag/item action; >100 non-type-9 scene child ID + 100
-0x7  u8  minDisplayFrames            minimum elapsed frames before advancing after confirmation
-0x8  CapTextRef textRef              file-relative byte offset, then const u16* text; -1 ends the run
-```
+| Opcode | Starting key | Then |
+|---|---|---|
+| 0 plain | 0 | play |
+| 1 counter | the counter: the game-flag nibble with persist, else `counter` | branch and value > limit: run `next` instead. Else play, then value + 1 while below the limit or with branch; at the limit, 0 with wrap, else unchanged |
+| 2 flag | the game-flag nibble | play |
+| 3 room | — | send `ROOM_MESSAGE_COMMAND` (`0x13F0`) with the command's number to the room; nothing plays |
+| 4 tally | how many of the `tally_count` stage objects from `tally_first` have state 0, 1 or 3 | branch and 0: run `next` instead. Else play |
 
-The flag byte selects additional interpretations of the control bytes.
-`CAP_SEQUENCE_VIEW_CONTROL` (`0x80`) selects `control.scene`: byte 0 is
-`view`, byte 2 is `messageValue`, byte 3 is `messageDelayFrames`, and byte 4
-is `trigger.messageRecipient` (0 player, 1 companion, otherwise placed-actor index +
-2). `CAP_SEQUENCE_DELAYED_MESSAGE` (`0x08`) enables that delayed message.
-An action ID above 100 is decoded by subtracting `CAP_SEQUENCE_CHILD_ACTION_BASE`
-and sending `SCENE_MESSAGE_FIND_OTHER_CHILD`, which matches a byte ID on children
-outside type 9. This differs from the placed-actor lookup used by delayed messages.
-For an action record, byte 0 is `control.action.fallbackKey`: declining an
-item action or finding it unavailable can select that nonzero variant key.
+A trigger with action `WORLD_COLLISION_TRIGGER_ACTION_CAP` runs command
+`parameter0`, or room command `parameter0` when `parameter1` is
+`WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE` (`0xFF`).
 
-For text, `CAP_SEQUENCE_LEFT_ALIGN` (`0x02`) disables centering,
-`CAP_SEQUENCE_FORCE_CARET` (`0x04`) requests the caret, and
-`CAP_SEQUENCE_TITLE_BANK` (`0x10`) adds 256 to the title selector. Scene flags
-`0x20` and `0x40` request the control handshake and select its phase. Bit 0 of
-the flag byte has no observed playback consumer. Both timing bytes zero select
-manual confirmation. A nonzero `minDisplayFrames` disables instant text; if
-confirmation comes early, playback waits the remaining minimum before
-processing the next record. Shared captions use the same instant-text bit to
-suppress their caret.
+## 7. Records (`CapSequenceRecord`, 12 bytes)
 
-`CapTextRef.offset` holds a file-relative byte offset before relocation. Adding
-the CAP file base to that word makes `CapTextRef.text` a borrowed `const u16*`
-code stream; the containing file must stay loaded during playback. Text codes
-are u16 elements, with 0xFFFF ending the stream. The separate table-end sentinel
-`CAP_TEXT_REF_END` (`-1`) is never relocated or dereferenced.
+Playback runs a command's records in order, skipping those whose `key` (byte 5)
+is not the current key. A choice, or a declined action with a fallback key,
+changes the key. Flag `0x80` makes a record a scene step; otherwise it is a line.
 
-`capFindVariantRecord(start)` scans forward from `start` through `gCapSelectedSequence` and
-stops at the first record whose `textRef.offset == CAP_TEXT_REF_END` **or** whose `key` equals
-the current `gCapVariantKey`, returning the index. So an event slot is a run of
-records terminated by `-1`, and the key selects a variant within the run.
+### 7.1 Line
 
-## 4. Command records — `CapCommand` (0xC)
+| Offset | Field | Decoded | |
+|---|---|---|---|
+| `0x0` | `title` / `fallbackKey` | `speaker` / `fallback_key` | speaker number + 1 (0 none); with an action, the key a decline selects |
+| `0x1` | `flags` | `left_aligned` (`0x02`), `caret` (`0x04`) | |
+| `0x2` | `displayFrames` | `show_frames` | frames showing the completed text |
+| `0x3` | `pauseFrames` | `pause_frames` | empty frames after; 255 waits to be resumed; both 0: the player confirms |
+| `0x4` | `soundAndTextFlags` | `instant` (bit 0), `room_sound` (bits 1..7) | instant reveal; `ROOM_MESSAGE_SOUND` with the sound, once |
+| `0x5` | `key` | `key` | |
+| `0x6` | `actionId` | `action` | see below |
+| `0x7` | `minDisplayFrames` | `minimum_frames` | holds a confirmation; nonzero turns off instant |
+| `0x8` | `textRef` | `text` | |
 
-```
-0x0  u8 opcode         CAP_COMMAND_PLAIN, COUNTER, FLAG, ROOM or TALLY
-0x1  u8 flags          CAP_COMMAND_WRAP, CAP_COMMAND_PERSIST, CAP_COMMAND_BRANCH
-0x2  u8 counterLimit   highest counter value that still plays
-0x3  u8 flagIndexLo    low byte of the game-flag nibble index
-0x4  u8 counter        live file counter when PERSIST is clear; 0 in every shipped command
-0x5  u8 bitFlagIndex   first current-stage two-bit flag (TALLY)
-0x6  u8 bitFlagCount   how many consecutive two-bit flags TALLY reads
-0x7  u8 flagIndexHi    high byte of the game-flag nibble index
-0x8  u8 nextIndex      command-table index taken when BRANCH skips playback
-0x9  u8 slotTail[3]    unread; zero in every shipped command
-```
+| `actionId` | Action |
+|---|---|
+| 0 | none |
+| 1..100 | placed object *n* of the stage (its two-bit state, its `AreaObjectPlace` entry). State 2: passes as accepted. Else `itemPickupPublishPlacedObject` prompts for the item or key item (accepted: collected, unless replenishing), the save point (telephone and save menu) or the transfer screen; declined or unavailable: key ← `fallbackKey` if nonzero |
+| 101..255 | scene child *n* − 100 (`SCENE_MESSAGE_FIND_OTHER_CHILD`, children outside type 9) receives `CAP_ACTION_MESSAGE_REQUEST` |
 
-The record is one sequence slot wide, the same 12 bytes as a
-`CapSequenceRecord`. Bytes 9..11 have no command reader. The game-flag nibble
-index is `flagIndexLo | (flagIndexHi << 8)`.
+Not read on a line: flags `0x01`, `0x08`, `0x10`, `0x20`, `0x40`.
 
-`capRunCommand(index, mode)` walks the command table in a loop. `nextIndex`
-replaces the index, so a branch chains without recursion.
+### 7.2 Scene step
 
-## 5. Opcodes
+| Offset | Field | Decoded | |
+|---|---|---|---|
+| `0x0` | `view` | `view` | view file to change to (logical with EVS opcode 41 `SET_CAP_DIRECT_VIEW_IDS`); 0 keeps the view; applied as the next line starts |
+| `0x1` | `flags` | `send_message` (`0x08`), `scene_sync` (`0x20`), `wait_for_cue` (`0x40`) | |
+| `0x2` | `messageValue` | `message` | with `0x08` |
+| `0x3` | `messageDelayFrames` | `message_delay` | with `0x08` |
+| `0x4` | `messageRecipient` | `message_to` | with `0x08`: 0 player, 1 companion, 2..17 placed actor 0..15 |
+| `0x5` | `key` | `key` | |
+| `0x6`..`0xB` | | | not read |
 
-`CAP_COMMAND_PLAIN`, `CAP_COMMAND_COUNTER`, `CAP_COMMAND_FLAG` and
-`CAP_COMMAND_TALLY` finish by starting playback at this command's sequence.
-`CAP_COMMAND_ROOM` gives the command index to the room and does not start
-playback itself. The playing opcodes differ in how the variant key is chosen
-and whether state advances.
+| Flag | Effect |
+|---|---|
+| `0x08` | after `message_delay` frames: player or companion get `GAME_ACTOR_MESSAGE_SET_TEXTURE_SEQUENCE` with `message` (mouth and expression); a placed actor gets an eye mode (`capDelayedTextureMessageTask`) |
+| `0x20` | after the view change, sync with the caption control task (`CAP_CONTROL_MESSAGE_BEGIN_SCENE_SYNC`) |
+| `0x40` | hold until an event script waits for a cue (`CAP_CONTROL_EVENT_SCRIPT_WAITING_FOR_CUE`), then consume it |
 
-### 0 — plain
+A scene step advances in the same tick: its text is never drawn, and the byte 4
+and `minDisplayFrames` loaded for it are replaced by the next record's.
 
-```c
-capStartSequenceSlot(index, mode, 0);
-```
-Always variant 0. One unconditional line.
+## 8. Command index and relocation
 
-### 1 — counter
+| Offset | Type | |
+|---|---|---|
+| `0x0` | `s32 count` | highest command number + 1 (1 when empty) |
+| `0x4` | `u32 entries[count]` | offset of command *n*'s slot, 0 for none; entry 0 is always 0 |
 
-The only opcode that mutates state.
+`capRelocateFile`: adds the file base to the three header offsets, to every
+record's `textRef` except `-1` (a terminator also skips the next slot, the
+next command), and to every nonzero index entry; publishes `gCapGlyphCells`
+and `gCapCommandEntries`. Nothing is rebased when `glyphs` is not positive, so
+a second call only republishes.
 
-```c
-val = (flags & CAP_COMMAND_PERSIST) ? gameFlagGetNibble(flagId) : command->counter;
-if ((flags & CAP_COMMAND_BRANCH) && command->counterLimit < val)  goto nextIndex;
-capStartSequenceSlot(index, mode, val);
-if (val < command->counterLimit || (flags & CAP_COMMAND_BRANCH)) val++;
-else if (flags & CAP_COMMAND_WRAP)                               val = 0;
-(flags & CAP_COMMAND_PERSIST) ? gameFlagSetNibble(flagId, val) : (command->counter = val);
-```
+## 9. Glyph atlas (`font_atlas`)
 
-- `CAP_COMMAND_PERSIST` decides **where the counter lives**: a save-game nibble
-  (persistent across rooms and saves) or `counter` in the record itself
-  (resets when the file reloads).
-- `CAP_COMMAND_BRANCH` turns the limit into a **branch condition** rather than a
-  clamp — once past it, control jumps to `nextIndex` instead of speaking.
-- `CAP_COMMAND_WRAP` stores 0 at the limit; without it, and without BRANCH, the
-  counter sticks.
+| | |
+|---|---|
+| Stored | a 4-bit image chunk, extracted like a `pe2img` |
+| Asset | `<dialogue>_atlas`, `generated_by: <dialogue>` |
+| Where | the room's disc file (room dialogue) or a view's file (cutscene) |
+| Texture page | (384, 0); the room cutscene task sets `capTPageX`/`Y`, or (960, 0) when `capTPageX` is 0 |
 
-That triple covers "say it once", "cycle through N lines", "say N times then
-something else".
+Layout rule: walking the text streams in order, each new cell is placed when
+first used, a speaker plate after the glyphs of the first line showing it;
+left to right, a new row 14 pixels down when an item would pass x = 256.
+All other pixels are 0.
 
-### 2 — flag-indexed
+## 10. Retail invariants
 
-```c
-capStartSequenceSlot(index, mode, gameFlagGetNibble(flagId));
-```
-Variant is read straight from a game flag. No mutation — the line follows story
-state that something else owns.
+Over the 166 distinct dialogues (213 in bundles). Each makes a field derivable.
 
-### 3 — delegate
+| | |
+|---|---|
+| `field_4` = 8, `slotSize` = 12, `glyphs` = `0x14` | all |
+| command slots in number order | all; command number = list position |
+| one text stream per record, in record order, none shared | all |
+| `limit` = highest key among the command's records | 1328 of 1333 commands |
+| a tally's `tally_count` = highest key | 69 of 72 |
+| unread `tally_count`: 1 in counter, flag and room commands, 0 in plain | most |
+| unread scene `message_to` without `0x08`: 1 | 2089 of 2111 |
+| glyph cells numbered by first use | all |
+| atlas follows the layout rule | 108 of 151 assigned |
 
-```c
-taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), 0x13F0, index, 0);
-```
-Hands the decision to slot 7's task with message `0x13F0`. The room decides;
-the file only marks the hand-off point.
+## 11. Decoded form
 
-### 4 — tally 2-bit flags
+`cap_decode.py decode <dialogue|bundle>` → `assets/USA/cap/<dialogue>.json`;
+`encode` rebuilds the dialogue and its atlas. Nothing is written unless both
+rebuild exactly.
 
-```c
-val = 0;
-for (i = 0; i < command->bitFlagCount; i++)
-    if (areaGetCurrentObjectState(command->bitFlagIndex + i) == 0 ||
-        areaGetCurrentObjectState(command->bitFlagIndex + i) == 1 ||
-        areaGetCurrentObjectState(command->bitFlagIndex + i) == 3)
-        val++;
-if ((flags & CAP_COMMAND_BRANCH) && val == 0) goto nextIndex;
-capStartSequenceSlot(index, mode, val);
-```
-Variant is how many of a run of current-stage two-bit flags have value 0, 1 or
-3. With `CAP_COMMAND_BRANCH`, a zero tally continues at `nextIndex` instead of
-playing.
-
-`capStartSequenceSlot` plays an explicit variant key without evaluating the
-slot's command opcode. While a sequence is selected it returns 0 without
-reading the command table. Otherwise the signed-halfword index must be
-nonnegative and less than the active command table's `count`; the wrapper
-performs no bounds check. A null entry returns 1. Every other path returns 0,
-including no matching variant and a failed task spawn or display request, so
-this result is not a playback-success flag. The return type is `s16`, retaining
-the signed-halfword normalization of the playback starter's result.
-
-Playback uses the caller's mode passed through `capStartSequenceSlot` to
-`capStartSequence`: 0 spawns in the current display, and nonzero modes queue
-a display transition. Mode 2 additionally brackets playback with room-effect
-messages and delays frame capture for placed-object actions. Mode 3 also spawns
-`capClearUnstartedSequenceTask`, which releases the selection if playback has
-not begun after one task dispatch; the stored mode then becomes 1. Startup
-always returns 0, including an empty variant and an unsuccessful spawn or queue
-request. These modes share the same initial text placement and reveal settings.
-
-## 6. Checked against a real file
-
-`assets/USA/raw/pe2cap2/pe2cap2_4.pe2cap2`. `.pe2cap2` payloads are stored
-opaque (§3.6 of `ASSET_FORMATS.md` — no LZSS), so the extracted bytes are what
-the loader sees.
-
-**The magic on disc is `"CAP2"`, four characters.** `capRelocateFile` compares
-only three, so any `CAP*` passes. Do not write a 4-byte comparison.
-
-**One raw chunk is a resource bundle containing images and data blobs.** This
-file has CAP2 headers at `0x1AA0` and `0x29F0`. Its first `0x320` bytes contain
-fifty 16-byte `_FsCdfResourceEntry` descriptors; the rest of the first `0x7F0`
-payload bytes is zero. Each descriptor holds a resource kind (0 empty, 2 image,
-3 untyped data), an unread byte that is zero in every retail bundle, the count
-of payload sectors written before a redirect, the resource's byte length, an
-absolute RAM destination, and an optional later write pointer. Retail bundles
-leave the redirect pair zero, and destinations are 16-byte aligned. `_fsReadChunkHeaderSector` publishes
-only the kind and destination as `FsResourceSlot` entries in `gFsResourceSlots`,
-before streaming the subsequent sectors into RAM. These resource kinds are
-distinct from the outer CDF chunk opcodes.
-
-Here slots 2..7 describe six image resources starting at raw offset `0x7F0`,
-with RAM destinations beginning at `0x80188920`. Slots 14 and 15 describe the
-two CAP2 blobs, at `0x80189BD0` and `0x8018AB20`. `capSelectLoadedFile` counts
-kind-3 resources in directory order; that kind can also hold STF credits or
-MDEC bitstreams in other bundles, so it does not by itself identify a CAP file.
-
-Header at `0x1AA0`, matching §1 exactly:
-
-```
-"CAP2"  field_4=0x8  glyph=+0x14  sequences=+0xB30  commands=+0xF00
+```json
+{"commands": [null, {"opcode": "counter", "records": […]}, …,
+  {"opcode": "counter", "persists": true, "game_flag": "0x004", "unread": {"tally_first": 1},
+   "records": [
+    {"key": 0, "type": "line", "text": "{view 12}A SWAT ammunition box...\nIt's filled with 9mm rounds.\n", "room_sound": 5},
+    {"key": 0, "type": "line", "action": {"placed_object": 1}, "instant": true}]}],
+ "trailing_empty_text": true}
 ```
 
-**The command index addresses sequence commands.** Count 18. Entry 0 is zero,
-index 6 is zero, and the other entries are file-relative offsets `0xB34`,
-`0xB64`, `0xB88`, `0xBA0`, …. `0xB34` is exactly `sequences + 4`,
-`firstCommand`. Gaps between nonzero entries are whole multiples of 12
-(`0xB64-0xB34 = 4 records`, `0xB88-0xB64 = 3`, `0xBA0-0xB88 = 2`).
+| Element | |
+|---|---|
+| `commands` | position = command number; `null` for none; ends at the last command |
+| command, record fields | the decoded names of §6, §7; written only where they differ from §10's defaults |
+| `unread` | bytes the command's opcode or the record's type does not read |
+| `text` | characters; markup `{view N [logical] [hide]}`, `{choice confirm\|silent\|cursor K}`, `{icon N}`, `{spacer}`, `{palette N}`, `{delay N}`, `{glyph name}`, `{code XXXX}` |
+| `speaker` | plate name; `name#N` when the plate stands for several numbers |
+| `trailing_empty_text` | the extra empty stream (§1) |
 
-Each sequence starts with a **command header in slot zero**, followed by
-`CapSequenceRecord` playback records from slot one. `capRunCommand` reads the
-header as `CapCommand`; `capStartSequence` stores the same base pointer as
-`gCapSelectedSequence` but initializes its record index to one. The command and playback
-records have different meanings. Relocation starts at `sequences + 0x10`
-(`records`), after the first command, and its extra step after a terminator
-skips the next sequence's command.
+Pictures go to the shared font, `assets/USA/capfont/` (`index.json`; one image
+per character and per speaker plate). First recognition: `cap_glyphs.tsv`,
+`cap_plates.tsv` (hashes, no pixels); characters drawn alike share a line, and
+the dialogue's `glyphs` field in `asset_data.py` (`{cell: "I"}`) chooses.
+`<dialogue>.warnings.json`: per cell, an unsettled ambiguity (with the guess),
+an unseen glyph or plate, or two cells with one character.
 
-Run termination confirmed: within the first run the fourth record has
-`textRef.offset == CAP_TEXT_REF_END`.
+## 12. Open
 
-**Glyph cells and text codes are separate records.** `glyphs.cells` points to
-four-byte `TextGlyphCell` entries: unsigned texture U, texture V, width and
-height. CAP quads use the extents as both screen-space and texture-space corner
-deltas; ordinary text advances by `width - 1`, and line height uses `height + 2`.
-Title labels index the same table; inline icons use the separate four-cell
-`gCapInlineIconCells` table. Texture-page and palette selection are outside the cell.
-
-The `+0x14 .. +0xB30` region includes the glyph table and text referenced by
-events. Interpreting that entire region as halfwords yields 1422 `u16` values,
-107 distinct, 1241 below `0x100`, and 108 at least `0x8000`; those measurements
-mix cell bytes with text and do not establish a character encoding. Rendering
-uses a text code's low ten bits as its glyph-cell index after handling controls.
-
-## 7. What is still open
-
-- **Glyph index -> character.** The values are indices into `gCapGlyphCells`;
-  turning them into readable text needs that table plus the font image. The
-  mapping is not alphabetical by inspection (`0x21` as `A` does not produce
-  words).
-- **Control codes.** Values `>= 0x8000` are mostly still undecoded. A dialogue
-  choice is the exception: a code whose high byte is `0x81`, `0x82` or `0x83`.
-  Its low byte is the variant key copied into `gCapVariantKey` on confirm, and
-  bits 8-11 select the confirm sound (`1` plays `SOUND_SYSTEM_CONFIRM`, `2`
-  plays nothing, `3` plays `SOUND_SYSTEM_CURSOR`). Retail text uses `1` and
-  `2` only. The renderer records the pen and those fields in a `CapChoice`
-  (`src/gameplay/cap.h`).
-- **`CapFile.field_4`** is `8` in all 213 retail CAP payloads. No loader reads
-  it, and the role is unproven.
-- **Message `0x13F0`** (opcode 3) - the payload contract with slot 7's task.
-
-## 8. Why this matters beyond extraction
-
-CAP is the closest thing the game has to a room scripting language, and it is
-deliberately narrow: five opcodes over counters, game-flag nibbles and 2-bit
-progress flags. It selects dialogue; it does not spawn, move or branch the
-world.
-
-Anything designing a room DSL should read that as a boundary. CAP is a good
-target for the "which line, how many times" part of a room and a bad target for
-room logic, which retail keeps in the overlay's C.
+| | |
+|---|---|
+| `field_4` | always 8; role unknown |
+| flag `0x01` | no reader |
+| flag `0x10` (`CAP_SEQUENCE_TITLE_BANK`) | on 96 lines, 92 without a speaker; passed to both caption renderers, ignored by both |
+| atlas layout | 39 atlases hold plates no record shows; 19 deviate from the rule; 15 dialogues have no atlas assigned |

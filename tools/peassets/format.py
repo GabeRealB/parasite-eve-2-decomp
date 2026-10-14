@@ -44,7 +44,7 @@ class FileChunkType(IntEnum):
     RoomPkg = 0x0  # .pe2pkg
     Image = 0x1  # .pe2img
     Clut = 0x2  # .pe2clut
-    Cap2 = 0x4  # .pe2cap2
+    Bundle = 0x4  # .pe2bundle: a resource bundle (doc/BUNDLE_FORMAT.md)
     RoomBackground = 0x5  # .bs
     Music = 0x6  # .spk
     Ascii = 0x7  # .txt
@@ -54,7 +54,7 @@ class FileChunkType(IntEnum):
             FileChunkType.RoomPkg: "Room package ",
             FileChunkType.Image: "Image",
             FileChunkType.Clut: "Color lookup table",
-            FileChunkType.Cap2: "Dialogue data",
+            FileChunkType.Bundle: "Resource bundle",
             FileChunkType.RoomBackground: "PSX BS v2 MDEC bitstream image",
             FileChunkType.Music: "SPK/MPK music program",
             FileChunkType.Ascii: "Ascii text",
@@ -65,7 +65,7 @@ class FileChunkType(IntEnum):
             FileChunkType.RoomPkg: ".pe2pkg",
             FileChunkType.Image: ".pe2img",
             FileChunkType.Clut: ".pe2clut",
-            FileChunkType.Cap2: ".pe2cap2",
+            FileChunkType.Bundle: ".pe2bundle",
             FileChunkType.RoomBackground: ".bs",
             FileChunkType.Music: ".spk",
             FileChunkType.Ascii: ".txt",
@@ -77,7 +77,7 @@ CHUNK_TYPE_IDS: dict[FileChunkType, str] = {
     FileChunkType.RoomPkg: "room_pkg",
     FileChunkType.Image: "image",
     FileChunkType.Clut: "clut",
-    FileChunkType.Cap2: "cap2",
+    FileChunkType.Bundle: "bundle",
     FileChunkType.RoomBackground: "room_background",
     FileChunkType.Music: "music",
     FileChunkType.Ascii: "ascii",
@@ -107,11 +107,11 @@ def chunk_type_id(chunk_type: FileChunkType) -> str:
     return CHUNK_TYPE_IDS[chunk_type]
 
 
-# Only room packages and cap2 dialogue chunks use a non-zero RAM load address.
+# Only room packages and resource bundles use a non-zero RAM load address.
 LOAD_ADDR_CHUNK_TYPES: frozenset[FileChunkType] = frozenset(
     {
         FileChunkType.RoomPkg,
-        FileChunkType.Cap2,
+        FileChunkType.Bundle,
     }
 )
 
@@ -176,7 +176,7 @@ class FileChunkHeader:
     # Loader: gFsLzssInputEnd = gFsSectorBuffers.sector.bytes + sector_len.
     sector_len: int
     chunk_size: int  # bytes, includes header
-    # RAM dest for room_pkg / cap2 (Fs FileChunkHeader.loadAddr); 0 otherwise.
+    # RAM dest for room_pkg / bundle (Fs FileChunkHeader.loadAddr); 0 otherwise.
     load_addr: int
 
     def __post_init__(self) -> None:
@@ -250,7 +250,7 @@ def parse_int(value: Any) -> int:
 def parse_load_addr(
     value: object | None, *, chunk_type: FileChunkType
 ) -> int:
-    """Parse load_addr for a chunk; only room_pkg / cap2 may be non-zero.
+    """Parse load_addr for a chunk; only room_pkg / bundle may be non-zero.
 
     Missing / empty → 0. Non-zero on any other type raises ``ValueError``.
     """
@@ -261,7 +261,7 @@ def parse_load_addr(
     if addr != 0 and chunk_type not in LOAD_ADDR_CHUNK_TYPES:
         raise ValueError(
             f"load_addr 0x{addr:X} is only valid for room packages "
-            f"(.pe2pkg) and cap2 (.pe2cap2), not {chunk_type_id(chunk_type)!r}"
+            f"(.pe2pkg) and bundles (.pe2bundle), not {chunk_type_id(chunk_type)!r}"
         )
     if chunk_type not in LOAD_ADDR_CHUNK_TYPES:
         return 0
@@ -282,7 +282,7 @@ STAGES_CHUNK_COMMON_OPTIONAL_KEYS: frozenset[str] = frozenset({"sector_len"})
 # Extra keys required only on specific types (retail always has non-zero load_addr).
 STAGES_CHUNK_TYPE_REQUIRED_KEYS: dict[FileChunkType, frozenset[str]] = {
     FileChunkType.RoomPkg: frozenset({"load_addr"}),
-    FileChunkType.Cap2: frozenset({"load_addr"}),
+    FileChunkType.Bundle: frozenset({"load_addr"}),
 }
 
 # Extra optional keys allowed only on specific types (none currently).
@@ -516,7 +516,7 @@ def parse_file_chunk_header(data: bytes) -> FileChunkHeader | None:
         FileChunkType.RoomPkg,
         FileChunkType.Image,
         FileChunkType.Clut,
-        FileChunkType.Cap2,
+        FileChunkType.Bundle,
         FileChunkType.RoomBackground,
         FileChunkType.Music,
         FileChunkType.Ascii,

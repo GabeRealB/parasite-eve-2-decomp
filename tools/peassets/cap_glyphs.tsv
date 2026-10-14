@@ -1,0 +1,59 @@
+# CAP glyphs: a hash of a glyph cell's 4-bit pixels (tools/peassets/cap_text.py, glyph_hash) and its character.
+# Added as rooms are worked through; seeded from the Akropolis square (akropolis_square_bundle).
+# A line naming several characters is a picture they share (l and I are drawn alike). Which one a payload's
+# cell is comes from the bundle's `glyphs` overrides in asset_data.py; without one the decoder guesses and warns.
+# hash	character [	character ...]
+48c97bf436130172	!
+a99f9cf3febacc10	'
+7e4f77fc42fb8012	,
+552e49cf3d80f05d	-
+a09c4cf0c90aa2ee	.
+f4244cc32b29ad3e	9
+5b864d0e2bcb48ff	?
+07933a606fcc8872	[
+18158d2caa6ef9ec	]
+d2b548ab7113fc8a	A
+c7cffa7427cd202c	a
+3bd8e66578216307	B
+f31786474cf0f3fc	b
+f9cf7b48d0062e19	C
+b69521136b0d0ba4	c
+f30d1b7dfaa5e179	D
+9e2129e95c6dd886	d
+163235f865f9fa8f	E
+bb0ba9e433fe84ce	e
+66cd2bd2b710c1f8	F
+02768679dabb45cb	f
+7aa588ae9834bb8e	G
+588197d6eb08eb2b	g
+7f528aa5554e35bf	H
+9c893b9f087e8093	h
+0abec8ac4d233690	i
+22346004ef590136	J
+d6efc68170e290bc	j
+fe5326e90200951a	k
+8de04b7e1cf468a7	L
+abd17226eb50c3dc	l	I
+19a62e63122ea93a	M
+e41eb77025b2b6af	m
+437d897895d5af10	N
+efd472f69504e9e0	n
+fa2f3f807cbbe14c	O
+82184d9ddbd4028e	o
+4a32201ef253fe63	P
+86efbab86536a24b	p
+0805f98e7091958f	q
+b0ad978fc5e6a271	R
+f814f7d5397ce763	r
+70c22d6e1f6ca5ce	S
+3c93d20a60450350	s
+1c6d72e282ddd9e2	T
+16e872ec2754b284	t
+7a15680e19400441	U
+37f8eabbdc75a537	u
+40a9b227407b4006	v
+03b92b5f9b87d1fd	W
+adfba811df3be293	w
+0349c12a6d53faf3	x
+a7520b776de77d18	Y
+03faf59861e67357	y

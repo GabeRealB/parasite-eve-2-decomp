@@ -424,7 +424,7 @@ class Manifest:
         self.by_value: dict[str, dict[int, set[tuple[str, str]]]] = defaultdict(lambda: defaultdict(set))
         self.near: dict[str, set[str]] = defaultdict(set)
         for key, rec in self.assets.items():
-            if rec["type"] == "pe2img":
+            if rec["type"] in asset_schema.IMAGE_TYPES:
                 for n, (x, y, bpp) in enumerate(asset_schema.image_columns(rec)):
                     for abr in range(4):
                         page = (asset_schema.TPAGE_MODE[bpp] << 7) | (abr << 5) | ((y & 0x100) >> 4) | ((x & 0x3FF) >> 6)
@@ -511,7 +511,7 @@ class Manifest:
                             value = asset_schema.clut_value(moved, row, column)
                             self.by_value["clut.value"][value].add(
                                 (key, f"row {row}" + (f", palette {column}" if column else "") + f", {how}"))
-                elif rec.get("type") == "pe2img" and page:
+                elif rec.get("type") in asset_schema.IMAGE_TYPES and page:
                     for n, (x, y, bpp) in enumerate(asset_schema.image_columns(rec)):
                         if y < 256:
                             continue

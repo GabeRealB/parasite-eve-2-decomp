@@ -53,7 +53,7 @@ TYPE_DIRS = (
     "pe2pkg",
     "pe2img",
     "pe2clut",
-    "pe2cap2",
+    "pe2bundle",
     "bs",
     "spk",
     "audio",
@@ -72,7 +72,7 @@ _TYPE_RAW_EXT: dict[str, tuple[str, str]] = {
     "clut": ("pe2clut", ".pe2clut"),
     "music": ("spk", ".spk"),
     "ascii": ("txt", ".txt"),
-    "cap2": ("pe2cap2", ".pe2cap2"),
+    "bundle": ("pe2bundle", ".pe2bundle"),
     "room_background": ("bs", ".bs"),
 }
 
@@ -423,7 +423,7 @@ def _resolve_on_disk(
             ".spk",
             ".txt",
             ".bs",
-            ".pe2cap2",
+            ".pe2bundle",
             Path(rel).suffix,
         ):
             raw = assets_root / "raw" / tdir / f"{stem}{ext}"
@@ -2033,7 +2033,7 @@ class AssetViewer(tk.Tk):
                 ".txt",
                 ".spk",
                 ".bs",
-                ".pe2cap2",
+                ".pe2bundle",
             ]
             defl_path, defl_data = path, data
             for ext in ext_candidates:

@@ -20,6 +20,7 @@ Implementation references:
 | **CD streams (MTS audio + STR movie)** | [`STREAM_FORMATS.md`](STREAM_FORMATS.md), `mts_codec.py`, `str_codec.py` |
 | **Overlays (RAM slots, rooms, models)** | [`OVERLAYS.md`](OVERLAYS.md) |
 | **Models (TMD)** | [`TMD_FORMAT.md`](TMD_FORMAT.md), `tools/peassets/pkg_model.py`, `src/main/tmd.c` |
+| **Resource bundles** | [`BUNDLE_FORMAT.md`](BUNDLE_FORMAT.md), `tools/peassets/bundle.py`, `src/main/fs.c` |
 | **Dialogue (CAP)** | [`CAP_FORMAT.md`](CAP_FORMAT.md), `src/gameplay/cap_reloc.c`, `src/gameplay/captions.c` |
 | Animation in packages | `tools/peassets/pkg_anim.py`, `src/gameplay/scene_runtime.c` |
 | Assets embedded in the executables | `tools/peassets/exe_assets.py` |
@@ -120,7 +121,7 @@ that chunk (not repeated on continuation sectors):
 | `0x1` | `u8` | `end_flag` | `0x01` = another chunk follows this one in the file; `0xFF` = last chunk |
 | `0x2` | `u16` | `sector_len` | Exclusive end of **valid** data in each sector buffer |
 | `0x4` | `u32` | `sector_count` | Chunk length in CD sectors, including the header sector |
-| `0x8` | `u32` | `load_addr` | RAM load address for room packages / cap2; else `0` |
+| `0x8` | `u32` | `load_addr` | RAM load address for room packages / bundles; else `0` |
 | `0xC` | `u32` | unused | Unread by the loader; zero in extracted retail headers |
 
 The on-disc word at `0x4` is a sector count. The tool's
@@ -217,7 +218,7 @@ python3 tools/peassets/lzss_roundtrip_report.py --log layout_diff.log
 | `0x0` | Room package | `.pe2pkg` | `fsDecompressStream` | LZSS body; overlays load at `load_addr` |
 | `0x1` | Image | `.pe2img` | `fsBeginImageColumns` + `fsUploadImageStrips` | Sequential LZSS strips → VRAM |
 | `0x2` | Color lookup table | `.pe2clut` | `fsUploadImageChunk` + `fsDecompressImagePayload` | 16-byte image header + LZSS → ABGR1555 |
-| `0x4` | Dialogue / cap2 | `.pe2cap2` | (package-like) | Often has load address |
+| `0x4` | Resource bundle | `.pe2bundle` | (package-like) | Has a load address |
 | `0x5` | Room background | `.bs` | MDEC path | PSX BS v2 → PNG (320×240) |
 | `0x6` | Music | `.spk` | SndLoad / SPU | `hSPK` bank → WAV samples |
 | `0x7` | Ascii | `.txt` | | |
@@ -1067,12 +1068,14 @@ Suggested roadmap: (1) structural `hONE` → JSON events, (2) timed events after
 
 ### 10.2 Other types
 
-- **`.pe2cap2`**: per-room dialogue, magic `"CAP"`. A header of three
-  file-relative offsets (glyph table, sequence table, command index) rebased in
-  place by `capRelocateFile`; the command index is a counted `CapCommandTable`
-  driving a five-opcode chooser over counters and game flags. Full layout and
-  opcode reference in [`CAP_FORMAT.md`](CAP_FORMAT.md). May carry a RAM load
-  address in `load_addr`.
+- **`.pe2bundle`**: a resource bundle (CDF chunk opcode 4): a directory of fifty
+  numbered resources, then their bytes. Room bundles hold the views' palettes
+  and the room's CAP dialogue; the replay bonus bundle holds STF credits and
+  MDEC still pictures; three hold the attract demos. Bundle layout, every
+  resource type in [`BUNDLE_FORMAT.md`](BUNDLE_FORMAT.md); the extractor stores
+  each resource as an asset of its own, and the dialogue format is
+  [`CAP_FORMAT.md`](CAP_FORMAT.md).
+  May carry a RAM load address in `load_addr`.
 - **`.txt`**: ASCII (type `0x7`). On-disc clean payload is CRLF text
   (usually ending in `\Z` or `\Z\r\n`) zero-padded to chunk capacity.
   Inflated `txt/` is the text only (no trailing NUL / zero pad).
@@ -1223,7 +1226,7 @@ allowed at each level; unknown keys (e.g. `chunk_size`, `end_flag`) fail.
 | `path` | **yes** | all | Relative to assets root: the inflated file, under its type directory or its group (§13) |
 | `type` | **yes** | all | See type table below |
 | `sector_len` | no | all | Omit if `0x800`. Range `(0x10, 0x800]` |
-| `load_addr` | **yes** (non-zero) | **`room_pkg`, `cap2` only** | RAM load address; retail never uses `0` |
+| `load_addr` | **yes** (non-zero) | **`room_pkg`, `bundle` only** | RAM load address; retail never uses `0` |
 
 **Never in `stages.json`** (inferred or on-disc only):
 
@@ -1239,7 +1242,7 @@ allowed at each level; unknown keys (e.g. `chunk_size`, `end_flag`) fail.
 | `room_pkg` | `.pe2pkg` | `path`, `type`, **`load_addr`**, `sector_len?` |
 | `image` | `.pe2img` / `.png` | `path`, `type`, `sector_len?` |
 | `clut` | `.pe2clut` / `.png` | `path`, `type`, `sector_len?` |
-| `cap2` | `.pe2cap2` | `path`, `type`, **`load_addr`**, `sector_len?` |
+| `bundle` | `.pe2bundle` | `path`, `type`, **`load_addr`**, `sector_len?` |
 | `room_background` | `.bs` / `.png` | `path`, `type`, `sector_len?` |
 | `music` | `.spk` | `path`, `type`, `sector_len?` |
 | `ascii` | `.txt` | `path`, `type`, `sector_len?` |

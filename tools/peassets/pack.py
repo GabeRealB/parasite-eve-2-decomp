@@ -182,7 +182,7 @@ def AssetStore_type_dir(chunk_type: FileChunkType) -> str:
         ".pe2pkg": "pe2pkg",
         ".pe2img": "pe2img",
         ".pe2clut": "pe2clut",
-        ".pe2cap2": "pe2cap2",
+        ".pe2bundle": "pe2bundle",
         ".bs": "bs",
         ".spk": "spk",
         ".txt": "txt",
@@ -547,7 +547,7 @@ def build_file_blob_from_contents(
                 f"chunk {name!r}: invalid sector_len {content.get('sector_len')!r}: {e}"
             ) from e
         try:
-            # Schema requires load_addr for room_pkg/cap2 (validated earlier too).
+            # Schema requires load_addr for room_pkg/bundle (validated earlier too).
             if (
                 chunk_type in LOAD_ADDR_CHUNK_TYPES
                 and "load_addr" not in content

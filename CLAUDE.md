@@ -638,7 +638,7 @@ own discs. Anything you move out of those trees and into `src/` or `include/`
 is being committed, so that move is a licensing decision, not a formatting one.
 
 Game content lives in files, not in the executable: `assets/USA/pe2img`
-(textures), `pe2clut` (palettes), `pe2pkg` (room/actor overlays), `pe2cap2`,
+(textures), `pe2clut` (palettes), `pe2pkg` (room/actor overlays), `cap` (dialogue),
 `audio`, `movie`, `bs`. See [`doc/ASSET_FORMATS.md`](doc/ASSET_FORMATS.md).
 
 **Only assets have to stay out of `src/` and `include/`.** Everything else a

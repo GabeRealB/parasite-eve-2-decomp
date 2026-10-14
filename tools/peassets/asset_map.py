@@ -246,7 +246,7 @@ class Supply:
         return None
 
 
-VIEW_PALETTE_AT = (0, 255)       # where a caption bundle's view palette is stored for (cap_bundle.py)
+VIEW_PALETTE_AT = (0, 255)       # where a caption bundle's view palette is stored for (bundle.py)
 
 
 def view_sprite_pairs(db: sqlite3.Connection, assets: dict, tree: dict, extracted: Path, findings: dict | None = None):
@@ -269,7 +269,7 @@ def view_sprite_pairs(db: sqlite3.Connection, assets: dict, tree: dict, extracte
     A view with neither of the first two, in a room where other views upload to that place, is drawn with what
     the last view left: nothing settles it, so it is left out and listed.
     """
-    import cap_bundle
+    import bundle as bundles
     import room_scene
     project = room_scene.Project()
     prints = defaultdict(list)
@@ -309,11 +309,11 @@ def view_sprite_pairs(db: sqlite3.Connection, assets: dict, tree: dict, extracte
                 continue
             slots = {}
             for key in chunks:
-                raw = extracted / "raw" / "pe2cap2" / f"{key}.pe2cap2"
-                if assets.get(key, {}).get("type") == "pe2cap2" and raw.is_file():
-                    for slot in cap_bundle.slots(raw.read_bytes()):
+                raw = extracted / "raw" / "pe2bundle" / f"{key}.pe2bundle"
+                if assets.get(key, {}).get("type") == "pe2bundle" and raw.is_file():
+                    for slot in bundles.slots(raw.read_bytes()):
                         if slot["what"] == "palette":
-                            slots[slot["slot"]] = (f"{key}_slot_{slot['slot']:02d}", "clut", slot["x"], slot["y"], slot["w"], slot["h"], 0, None)
+                            slots[slot["slot"]] = (bundles.name_of(key, slot['slot']), "clut", slot["x"], slot["y"], slot["w"], slot["h"], 0, None)
             by_id = {int(n["id"]): f"{stage}/{folder}/{k}" for k, n in fnode["files"].items()}
             views = room_scene.Scene(project, room).sprites()["views"]
             around = [(condition, r) for condition, path, page, row, mode in loads.get(room, ()) for r in landed(path, (page, row, mode))]
@@ -419,9 +419,9 @@ def stated_pairs(assets: dict, embedded: dict, path: Path = STATED):
         except ValueError:
             problems.append(f"line {n}: column, depth, row and palette index are numbers")
             continue
-        if rec is None or rec.get("type") not in ("pe2img", "image"):
+        if rec is None or rec.get("type") not in (*asset_schema.IMAGE_TYPES, "image"):
             problems.append(f"line {n}: {image} is not a catalogued image")
-        elif rec.get("type") == "pe2img" and not 0 <= column < len(asset_schema.image_columns(rec)):
+        elif rec.get("type") in asset_schema.IMAGE_TYPES and not 0 <= column < len(asset_schema.image_columns(rec)):
             problems.append(f"line {n}: {image} has no column {column}")
         elif depth not in (4, 8, 16) or (depth == 16) != (not palette):
             problems.append(f"line {n}: a palette goes with 4 or 8 bits, none with 16")
@@ -788,8 +788,8 @@ def build_data(db: sqlite3.Connection, out: Path, pixels: str) -> dict:
         known[image][at].add(how)
     for line in stated_problems:
         print(f"image_palettes.tsv: {line}", file=sys.stderr)
-    paired = {k for k in pairs if assets.get(k, {}).get("type") == "pe2img"}
-    print(f"images shown as used: {len(paired)} of {sum(1 for r in assets.values() if r['type'] == 'pe2img')} "
+    paired = {k for k in pairs if assets.get(k, {}).get("type") in asset_schema.IMAGE_TYPES}
+    print(f"images shown as used: {len(paired)} of {sum(1 for r in assets.values() if r['type'] in asset_schema.IMAGE_TYPES)} "
           f"({sprite_counts.get('columns paired', 0)} columns from {sprite_counts.get('views', 0)} views' sprite tables, {len(stated)} lines from image_palettes.tsv)", file=sys.stderr)
 
     # Region violations, per loader.
@@ -871,7 +871,7 @@ def build_data(db: sqlite3.Connection, out: Path, pixels: str) -> dict:
             catalogue[key][1].update({k: rec[k] for k in ("source", "vram", "size") if k in rec})
     # A room's caption bundle holds a palette per view, in the slot before that view's number, besides the dialogue.
     import base64
-    import cap_bundle
+    import bundle as bundles
     import cap_dialogue
     import spk_scripts
     dialogue = {}
@@ -881,14 +881,14 @@ def build_data(db: sqlite3.Connection, out: Path, pixels: str) -> dict:
             continue
         room = next((c for c in (node.get("chunks") or {}).values() if c in overlays), None)
         for key in (node.get("chunks") or {}).values():
-            if assets.get(key, {}).get("type") != "pe2cap2" or room is None:
+            if assets.get(key, {}).get("type") != "pe2bundle" or room is None:
                 continue
-            raw = extracted / "raw" / "pe2cap2" / f"{key}.pe2cap2"
+            raw = extracted / "raw" / "pe2bundle" / f"{key}.pe2bundle"
             if not raw.is_file():
                 continue
             data = raw.read_bytes()
-            for slot in cap_bundle.slots(data):
-                name = f"{key}_slot_{slot['slot']:02d}"
+            for slot in bundles.slots(data):
+                name = bundles.name_of(key, slot['slot'])
                 if slot["what"] == "palette":
                     # Only a palette for (0, 255) is a view's; one stored elsewhere is something the room's code uploads itself.
                     of_view = (slot["x"], slot["y"]) == (0, 255)
@@ -902,7 +902,7 @@ def build_data(db: sqlite3.Connection, out: Path, pixels: str) -> dict:
                         viewpal.setdefault(room, {})[slot["slot"] + 1] = len(files) - 1
                     if pixels:
                         (out.with_name(pixels) / f"{name}.js").write_text(
-                            f"PIX({json.dumps(name)},{json.dumps([[slot['x'], slot['y'], slot['w'], slot['h'], base64.b64encode(cap_bundle.palette_words(data, slot)).decode()]])});\n", encoding="utf-8")
+                            f"PIX({json.dumps(name)},{json.dumps([[slot['x'], slot['y'], slot['w'], slot['h'], base64.b64encode(bundles.palette_words(data, slot)).decode()]])});\n", encoding="utf-8")
                 else:
                     catalogue[name] = [slot["what"], {"source": key, "size": slot["length"], "vram": slot["dest"], "notes": f"slot {slot['slot']} of the bundle {room} loads"}]
                     if slot["what"] == "dialogue":
@@ -1046,7 +1046,7 @@ def main() -> int:
             for f in o["own"]:
                 for chunk, key in data["chunks"].get(f, []):
                     add(key, f"in file {data['files'][f]} as {chunk}")
-                    if data["assets"].get(key, [""])[0] == "pe2cap2":
+                    if data["assets"].get(key, [""])[0] == "pe2bundle":
                         for other, (kind, attrs) in data["assets"].items():
                             if attrs.get("source") == key:
                                 add(other, f"in the bundle {key}: {attrs.get('notes', '')}")
