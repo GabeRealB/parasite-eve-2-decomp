@@ -43,7 +43,7 @@ Tooling layout after extract (`assets/USA/`):
 raw/pe2pkg/ pe2img/ …   deduplicated **on-disc** clean payloads
                          name = ASSETS id (sha1), else {type}_{n}
 pe2pkg/ pe2img/ …        **inflated** edit forms (one per unique raw)
-                         pe2pkg = LZSS-decoded; pe2img/pe2clut = PNG + meta
+                         pe2pkg = LZSS-decoded; pe2img/pe2clut/bs = PNG
 weapons/m4a1/ …          the inflated forms of the assets whose `group` is
                          `weapons/m4a1`, in place of their type directory (§13)
 raw/audio/ audio/        MTS CD streams (not file chunks)
@@ -364,8 +364,8 @@ ASSETS["pe2img_455"]["bpp"] = [4, 8]  # font column + 8-bit bitmap column
 ```
 
 The viewer Image tab has a **BPP** combo per column (`Auto` / `4` / `8` /
-`16`). Auto uses `ASSETS[id].bpp` when set, else the guess. The chosen
-depth is written to `pe2img/<stem>.pe2img.json` (`bpp`, `bpp_source`).
+`16`). Auto uses `ASSETS[id].bpp` when set, else the guess. The depth an
+image keeps is its `bpp` in the asset table.
 
 When a neighbouring `.pe2clut` exists (`N±1` by chunk index), the PNG exporter
 applies it for 4/8 bpp (see §7.4 for multi-row selection). Examples:
@@ -376,8 +376,10 @@ applies it for 4/8 bpp (see §7.4 for multi-row selection). Examples:
 - `stage0/file30500/1.pe2img` + `0.pe2clut` → NEO ARK map (needs CLUT **row 1**,
   not row 0 — row 0 is a green monochrome palette)
 
-Decoded viewable form: `pe2img/<stem>.png` plus
-`pe2img/<stem>.pe2img.json` (bpp, height, entries, sector_len, …).
+Decoded form: `pe2img/<stem>.png` only. What a re-encode needs besides the
+pixels - the column table, height and size - is read from the stored chunk,
+`raw/pe2img/<stem>.pe2img` (`image_codec.pe2img_info`), and the depth from the
+asset table.
 
 ---
 
@@ -468,8 +470,7 @@ Concrete case — `stage0/file30500`:
 - Rows 2–5: sparse / empty.
 
 An earlier exporter that always used row 0 produced the all-green PNG; picking
-the highest-scoring row recovers the real map. Meta JSON notes
-`has_clut` / `clut_note` when a sibling palette was applied.
+the highest-scoring row recovers the real map.
 
 ### 7.5 Title STAGE0 occupancy
 
@@ -688,8 +689,9 @@ trusts the catalogue rather than scanning.
 - Macroblocks are 16×16, ordered **column-major** (top→bottom, then next
   column). Each MB is Cr, Cb, Y1, Y2, Y3, Y4 (8×8 blocks). PE2 retail
   backgrounds are **320×240** (20×15 MBs).
-- Extract: `raw/bs/*.bs` (on-disc) → `bs/*.png` + `*.bs.json` via
-  `tools/peassets/bs_codec.py` / `asset_decode.materialize_bs_asset`.
+- Extract: `raw/bs/*.bs` (on-disc) → `bs/*.png` via
+  `tools/peassets/bs_codec.py` / `asset_decode.materialize_bs_asset`. A
+  re-encode takes its quantiser from the stored chunk's header.
 - Pack **matching** prefers `raw/bs/` for bit-identity. Hybrid/decoded (or
   matching with missing raw) re-encodes PNG→BS v2 via `encode_bs_v2` (lossy
   DCT; uses meta `quant_scale` when present).
@@ -1295,7 +1297,7 @@ root (inflated). Dedup is by SHA-1 of the **raw** clean payload:
 | Type | `raw/{type}/` | inflated `{type}/` |
 |---|---|---|
 | pe2pkg | trim_lzss on-disc stream | LZSS-decoded package |
-| pe2img / pe2clut | clean pe2 blob | PNG + `*.pe2img.json` / `*.pe2clut.json` |
+| pe2img / pe2clut / bs | clean on-disc blob | PNG; a re-encode reads placement and size from the blob |
 | audio | MTS sector payload (`.mts`) | stereo WAV + JSON (§10.3) |
 | movie | STR 2048-byte sector blob (`.str`) | PNG frames + WebP + meta (§10.4) |
 | other | clean on-disc payload | hardlink/copy of raw |
@@ -1312,8 +1314,8 @@ its type directory; an asset without a group keeps the type directory, which
 is the fallback for everything.
 
 ```text
-weapons/m4a1/pe2img_20.png              an image with the group, + pe2img_20.pe2img.json
-weapons/m4a1/pe2clut_19.png             its CLUT, + pe2clut_19.pe2clut.json
+weapons/m4a1/pe2img_20.png              an image with the group
+weapons/m4a1/pe2clut_19.png             its CLUT
 weapons/m4a1/spk_7/meta.json            a bank: the directory moves as one
 weapons/m4a1/spk_7_sample_00.wav        a sample that has the group itself
 sample/spk_7_sample_01.wav              a sample of that bank that has none
@@ -1433,8 +1435,8 @@ Dependencies: see `requirements.txt` (includes **Pillow** for PNG).
 
 - **`.bs` BS v2 MDEC** backgrounds: decoded to PNG on extract (see §8).
 - **Exact bpp** is not stored in the image chunk; exporters **guess** unless
-  `ASSETS[id]["bpp"]` or the viewer BPP combo overrides. Meta JSON records
-  the choice (`bpp` + `bpp_source`) for re-encode.
+  `ASSETS[id]["bpp"]` says otherwise (the viewer's BPP combo previews
+  other depths); a re-encode uses `ASSETS[id]["bpp"]`.
 - **Which CLUT row** an 8 bpp texture uses when `h > 1` is not known offline
   (game picks via `getClut(x,y)`). Exporter scores rows and picks the most
   varied; wrong for textures that intentionally use a monochrome row.

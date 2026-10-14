@@ -126,13 +126,14 @@ def folder_of(key: str) -> dict:
 
 def atlases(folder: dict) -> list[Path]:
     """The folder's 4-bit images: the candidates for a payload's glyph atlas."""
+    import asset_data
     out = []
     for chunks in folder.values():
         for c in chunks.values():
             if c.get("type") != "image":
                 continue
-            meta = json.loads((ASSETS / c["path"].replace(".png", ".pe2img.json")).read_text(encoding="utf-8"))
-            if meta.get("bpp") == 4:
+            name = Path(c["path"]).stem
+            if (asset_data.ASSETS.get(name) or {}).get("bpp") == 4:
                 out.append(ASSETS / c["path"])
     return out
 

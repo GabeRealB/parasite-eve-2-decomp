@@ -340,6 +340,7 @@ def prepare_on_disc_payload(
     content_path: Path | None = None,
     content: dict[str, Any] | None = None,
     on_disc_blob: bool = False,
+    raw_path: Path | None = None,
 ) -> bytes:
     """Turn an asset into the on-disc clean chunk payload.
 
@@ -349,7 +350,7 @@ def prepare_on_disc_payload(
     Otherwise:
 
     * Room packages: LZSS-encode the inflated package
-    * Images / CLUTs: encode PNG + meta (or pass-through pe2)
+    * Images / CLUTs: encode the PNG, placed and sized as the stored chunk ``raw_path`` (or pass-through pe2)
     * Ascii: strip trailing NULs; sector zero-fill restores retail pad
     * Other types: clean bytes as-is
 
@@ -384,6 +385,7 @@ def prepare_on_disc_payload(
             content_path=content_path,
             decoded_payload=payload,
             sector_len=sector_len,
+            raw_path=raw_path,
         )
 
     if chunk_type == FileChunkType.RoomBackground:
@@ -391,6 +393,7 @@ def prepare_on_disc_payload(
             content_path=content_path,
             decoded_payload=payload,
             sector_len=sector_len,
+            raw_path=raw_path,
         )
 
     if not payload and content_path is not None:
@@ -407,36 +410,21 @@ def prepare_on_disc_payload(
     return ensure_clean_payload(payload, sector_len=sector_len)
 
 
-def _image_meta_candidates(
-    content_path: Path, chunk_type: FileChunkType
-) -> list[Path]:
-    stem_meta = content_path.with_suffix("")
-    if chunk_type == FileChunkType.Image:
-        return [
-            Path(str(stem_meta) + ".pe2img.json"),
-            content_path.with_name(content_path.stem + ".pe2img.json"),
-        ]
-    return [
-        Path(str(stem_meta) + ".pe2clut.json"),
-        content_path.with_name(content_path.stem + ".pe2clut.json"),
-    ]
-
-
 def _encode_image_from_png(
-    content_path: Path, chunk_type: FileChunkType
+    content_path: Path, chunk_type: FileChunkType, raw_path: Path | None
 ) -> bytes | None:
-    """Encode PNG + meta to pe2 payload, or None if meta is missing."""
+    """Encode a PNG to a pe2 payload placed and sized as its stored chunk; None when it is not a PNG."""
     if content_path.suffix.lower() != ".png":
         return None
+    if raw_path is None or not raw_path.exists():
+        raise FileNotFoundError(f"re-encoding {content_path} needs its stored chunk, {raw_path}")
     # Lazy import: matching/raw packs do not need Pillow.
-    from image_codec import png_files_to_pe2clut, png_files_to_pe2img
+    from image_codec import png_to_pe2clut, png_to_pe2img
 
-    for mp in _image_meta_candidates(content_path, chunk_type):
-        if mp.exists():
-            if chunk_type == FileChunkType.Image:
-                return png_files_to_pe2img(content_path, mp)
-            return png_files_to_pe2clut(content_path, mp)
-    return None
+    if chunk_type == FileChunkType.Image:
+        import asset_data
+        return png_to_pe2img(content_path, raw_path, (asset_data.ASSETS.get(raw_path.stem) or {}).get("bpp"))
+    return png_to_pe2clut(content_path, raw_path)
 
 
 def _prepare_image_payload(
@@ -445,17 +433,13 @@ def _prepare_image_payload(
     content_path: Path | None,
     decoded_payload: bytes,
     sector_len: int,
+    raw_path: Path | None = None,
 ) -> bytes:
-    """PNG (+ meta) or opaque pe2 bytes → clean pe2 payload."""
+    """PNG or opaque pe2 bytes → clean pe2 payload."""
     if content_path is not None:
-        encoded = _encode_image_from_png(content_path, chunk_type)
+        encoded = _encode_image_from_png(content_path, chunk_type, raw_path)
         if encoded is not None:
             return encoded
-        if content_path.suffix.lower() == ".png":
-            candidates = _image_meta_candidates(content_path, chunk_type)
-            raise FileNotFoundError(
-                f"missing image meta for {content_path} (tried {candidates})"
-            )
         # Recovery: pe2 blob left in the type store when PNG decode failed.
         if content_path.suffix.lower() in (".pe2img", ".pe2clut"):
             return ensure_clean_payload(
@@ -476,14 +460,15 @@ def _prepare_bs_payload(
     content_path: Path | None,
     decoded_payload: bytes,
     sector_len: int,
+    raw_path: Path | None = None,
 ) -> bytes:
-    """PNG (+ meta) or raw ``.bs`` → clean BS payload."""
+    """PNG or raw ``.bs`` → clean BS payload."""
     if content_path is not None:
         suf = content_path.suffix.lower()
         if suf == ".png":
             from asset_decode import encode_bs_from_png_path
 
-            encoded = encode_bs_from_png_path(content_path)
+            encoded = encode_bs_from_png_path(content_path, raw_path)
             if encoded is None:
                 raise FileNotFoundError(
                     f"failed to encode BS from {content_path}"
@@ -605,6 +590,8 @@ def build_file_blob_from_contents(
             content_path=payload_path,
             content=content if isinstance(content, dict) else None,
             on_disc_blob=on_disc_blob,
+            raw_path=path_under_raw_type_store(assets_dir, content["path"], chunk_type)
+            if "path" in content else None,
         )
         out.extend(build_chunk_blob(header_json, on_disc))
 

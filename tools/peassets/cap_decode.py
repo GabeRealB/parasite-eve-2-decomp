@@ -2,7 +2,7 @@
 """A full, reversible decode of a CAP dialogue (doc/CAP_FORMAT.md).
 
     cap_decode.py deps akropolis_square_bundle       what a full decode of each of its dialogues needs
-    cap_decode.py decode akropolis_square_bundle     write assets/USA/cap/<dialogue>.json for each
+    cap_decode.py decode akropolis_square_bundle     write <dialogue>.json for each, in its group or cap/
     cap_decode.py decode akropolis_square_dialogue_1 one dialogue
     cap_decode.py encode assets/USA/cap/akropolis_square_dialogue_0.json   rebuild it and its atlas, compare
 
@@ -519,6 +519,13 @@ def decode(name: str, payload: "cap_text.Payload", font: cap_font.Font, warnings
     return named
 
 
+def decoded_dir(name: str) -> Path:
+    """Where a dialogue's decode goes: its group's directory, else `cap/`. The extractor stores a dialogue raw only
+    (asset_schema.group_of answers None for that), so this decode is the one form a group moves."""
+    import asset_data
+    return cap_text.ASSETS / (asset_data.ASSETS.get(name, {}).get("group") or "cap")
+
+
 def encode(path: Path) -> int:
     """Rebuild a decoded dialogue and its atlas, and compare them with the extracted ones."""
     name = path.name.removesuffix(".json")  # a decode is named after its dialogue
@@ -553,11 +560,12 @@ def main(argv: list[str]) -> int:
         print("decodable" if complete(deps) else "not decodable yet")
         return 0 if complete(deps) else 2
     if action == "decode":
-        OUT.mkdir(parents=True, exist_ok=True)
         status = 0
         for name, payload in cap_text.payloads(target):
             font, warnings = cap_font.Font(), {}
-            report = OUT / f"{name}.warnings.json"
+            where = decoded_dir(name)
+            where.mkdir(parents=True, exist_ok=True)
+            report = where / f"{name}.warnings.json"
             try:
                 named = decode(name, payload, font, warnings)
             except SystemExit as failure:
@@ -575,7 +583,7 @@ def main(argv: list[str]) -> int:
             if named is None:
                 continue
             font.save()
-            out = OUT / f"{name}.json"
+            out = where / f"{name}.json"
             out.write_text(json.dumps(named, indent=1, ensure_ascii=False) + "\n", encoding="utf-8")
             print(f"wrote {out.relative_to(cap_text.ROOT)}")
         return status

@@ -20,7 +20,7 @@ Matches the main executable load path in ``fs.c``:
     renderer pads short output with zeros and trims excess bytes instead of
     retaining the runtime staging buffer's previous contents.
 
-Pack encodes from PNG + meta under the type store (``pe2img/``, ``pe2clut/``).
+Pack encodes from the PNG, placed and sized as the stored chunk under ``raw/`` (``pe2img_info``, ``pe2clut_info``).
 """
 
 from __future__ import annotations
@@ -485,75 +485,6 @@ def encode_pe2img(img: Image.Image, info: Pe2ImgInfo) -> bytes:
     return blob
 
 
-def _bpp_from_json(raw: object) -> Bpp | list[Bpp]:
-    if isinstance(raw, (list, tuple)):
-        out: list[Bpp] = []
-        for item in raw:
-            v = int(item)
-            if v not in (4, 8, 16):
-                raise ValueError(f"bpp must be 4, 8, or 16, got {v!r}")
-            out.append(v)  # type: ignore[arg-type]
-        if not out:
-            return 16
-        if len(set(out)) == 1:
-            return out[0]
-        return out
-    v = int(raw) if raw is not None else 16
-    if v not in (4, 8, 16):
-        raise ValueError(f"bpp must be 4, 8, or 16, got {v!r}")
-    return v  # type: ignore[return-value]
-
-
-def info_to_json_img(info: Pe2ImgInfo) -> dict[str, Any]:
-    return {
-        "format": "pe2img",
-        "bpp": info.bpp,
-        "height": info.height,
-        "term_y": info.term_y,
-        "stream_start": info.stream_start,
-        "original_size": info.original_size,
-        "entries": [
-            {"x": e.x, "y": e.y, "offset": e.offset} for e in info.entries
-        ],
-    }
-
-
-def info_from_json_img(data: dict[str, Any]) -> Pe2ImgInfo:
-    entries = [
-        WorkEntry(x=int(e["x"]), y=int(e["y"]), offset=int(e.get("offset", 0)))
-        for e in data["entries"]
-    ]
-    return Pe2ImgInfo(
-        entries=entries,
-        term_y=int(data.get("term_y", 0)),
-        height=int(data["height"]),
-        bpp=_bpp_from_json(data.get("bpp", 16)),
-        original_size=int(data.get("original_size", 0)),
-        stream_start=int(data.get("stream_start", entries[0].offset if entries else 0)),
-    )
-
-
-def info_to_json_clut(info: Pe2ClutInfo) -> dict[str, Any]:
-    return {
-        "format": "pe2clut",
-        "x": info.x,
-        "y": info.y,
-        "w": info.w,
-        "h": info.h,
-        "original_size": info.original_size,
-    }
-
-
-def info_from_json_clut(data: dict[str, Any]) -> Pe2ClutInfo:
-    return Pe2ClutInfo(
-        x=int(data["x"]),
-        y=int(data["y"]),
-        w=int(data["w"]),
-        h=int(data["h"]),
-        original_size=int(data.get("original_size", 0)),
-    )
-
-
 def _header_fields_for_path(pe2_path: Path) -> tuple[int | None, int | None]:
     headers_path = pe2_path.parent / "headers.json"
     if not headers_path.exists():
@@ -696,42 +627,52 @@ def _find_sibling_clut(pe2_path: Path, *, bpp: Bpp = 8) -> list[int] | None:
     return _load_clut_colors(cluts[0], bpp=bpp)
 
 
-def pe2img_to_png_files(
-    pe2_path: Path,
-    png_path: Path,
-    meta_path: Path,
-    *,
-    bpp: int | list[int] | None = None,
-) -> None:
-    """Materialize pe2img → PNG + meta (delegates to :mod:`asset_decode`)."""
+def pe2img_to_png_files(pe2_path: Path, png_path: Path, *, bpp: int | list[int] | None = None) -> None:
+    """Materialize pe2img → PNG (delegates to :mod:`asset_decode`)."""
     from asset_decode import pe2img_to_png_files as _impl
 
-    _impl(pe2_path, png_path, meta_path, bpp=bpp)
+    _impl(pe2_path, png_path, bpp=bpp)
 
 
-def pe2clut_to_png_files(pe2_path: Path, png_path: Path, meta_path: Path) -> None:
-    """Materialize pe2clut → PNG + meta (delegates to :mod:`asset_decode`)."""
+def pe2clut_to_png_files(pe2_path: Path, png_path: Path) -> None:
+    """Materialize pe2clut → PNG (delegates to :mod:`asset_decode`)."""
     from asset_decode import pe2clut_to_png_files as _impl
 
-    _impl(pe2_path, png_path, meta_path)
+    _impl(pe2_path, png_path)
 
 
-def png_files_to_pe2img(png_path: Path, meta_path: Path) -> bytes:
-    info = info_from_json_img(json.loads(meta_path.read_text()))
-    img = Image.open(png_path)
-    return encode_pe2img(img, info)
+def pe2img_info(raw: bytes, bpp: BppSpec | None) -> Pe2ImgInfo:
+    """What an image's re-encode keeps of the stored chunk: its column table, height and size, from its own
+    header; the depth comes from the asset table (`bpp`)."""
+    entries, term_y = parse_work_entries(raw)
+    if not entries:
+        raise ValueError("pe2img has no work entries")
+    bpps = expand_bpp(bpp if bpp is not None else 16, len(entries)) or [16]
+    return Pe2ImgInfo(entries=entries, term_y=term_y, height=height_from_work_entries(entries, term_y),
+                      bpp=bpps[0] if len(set(bpps)) == 1 else bpps, original_size=len(raw),
+                      stream_start=entries[0].offset)
 
 
-def png_files_to_pe2clut(png_path: Path, meta_path: Path) -> bytes:
-    info = info_from_json_clut(json.loads(meta_path.read_text()))
-    img = Image.open(png_path)
-    return encode_pe2clut(img, info)
+def pe2clut_info(raw: bytes) -> Pe2ClutInfo:
+    """A CLUT's rectangle and size, from its stored chunk."""
+    x, y, h, w = struct.unpack_from("<4H", raw, 0)
+    return Pe2ClutInfo(x=x, y=y, w=w, h=h, original_size=len(raw))
+
+
+def png_to_pe2img(png_path: Path, raw_path: Path, bpp: BppSpec | None) -> bytes:
+    """An edited image's PNG back to a chunk, placed and sized as the stored one."""
+    return encode_pe2img(Image.open(png_path), pe2img_info(raw_path.read_bytes(), bpp))
+
+
+def png_to_pe2clut(png_path: Path, raw_path: Path) -> bytes:
+    """An edited CLUT's PNG back to a chunk, placed and sized as the stored one."""
+    return encode_pe2clut(Image.open(png_path), pe2clut_info(raw_path.read_bytes()))
 
 
 def materialize_image_asset(
     src: Path, dest: Path, *, bpp: int | list[int] | None = None
 ) -> Path:
-    """Write PNG (+ meta) for a raw pe2img/pe2clut. Returns PNG path."""
+    """Write the PNG of a raw pe2img/pe2clut. Returns its path."""
     from asset_decode import materialize_image_asset as _impl
 
     return _impl(src, dest, bpp=bpp)

@@ -300,7 +300,7 @@ TYPE_DIR_BY_EXT: dict[str, str] = {
 # The extension of the stored bytes of each manifest type that does not state one (`ext`, on an embedded asset).
 EXT_BY_TYPE: dict[str, str] = {"pe2pkg": ".pe2pkg", "pe2img": ".pe2img", "pe2clut": ".pe2clut", "pe2bundle": ".pe2bundle",
                                "cap": ".cap", "stf": ".stf", "demo": ".demo", "font_atlas": ".pe2img", "bs": ".bs", "spk": ".spk", "txt": ".txt", "model": ".tmd", "sample": ".wav"}
-PNG_EXTS = frozenset({".pe2img", ".pe2clut", ".bs"})       # decoded to <name>.png and <name><ext>.json
+PNG_EXTS = frozenset({".pe2img", ".pe2clut", ".bs"})       # decoded to <name>.png
 DIRECTORY_EXTS = frozenset({".spk", ".mcsave"})            # decoded to a directory, <name>/meta.json and more
 RAW_ONLY_EXTS = frozenset({".tmd", ".anim", ".pe2bundle", ".cap", ".stf", ".demo"})  # raw/ holds the only form
 # Decoded forms that are addressed by their type's path and so never move, whatever the group.
@@ -435,7 +435,7 @@ def decoded_names(key: str, ext: str) -> list[str]:
     if ext in RAW_ONLY_EXTS:
         return [f"{key}{ext}"]
     if ext in PNG_EXTS:
-        return [f"{key}.png", f"{key}{ext}.json", f"{key}{ext}"]
+        return [f"{key}.png", f"{key}{ext}"]
     if ext in DIRECTORY_EXTS:
         return [key, f"{key}{ext}"]
     return [f"{key}{ext}"]

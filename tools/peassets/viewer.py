@@ -761,11 +761,6 @@ def scan_type_assets(assets_root: Path) -> dict[str, list[AssetItem]]:
                         continue
                     if not p.is_file():
                         continue
-                    # Skip sidecar meta next to PNGs in listing primary? keep them.
-                    if p.suffix.lower() == ".json" and p.name.endswith(
-                        (".pe2img.json", ".pe2clut.json", ".bs.json")
-                    ):
-                        continue
                     if type_dir == "audio" and p.suffix.lower() == ".json":
                         continue  # listed via .wav
                     if p.name == "streams.json":

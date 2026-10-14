@@ -678,23 +678,6 @@ def decode_bs_file(
     )
 
 
-def info_to_json_bs(info: BsInfo) -> dict:
-    return {
-        "format": "bs",
-        "version": info.version,
-        "width": info.width,
-        "height": info.height,
-        "quant_scale": info.quant_scale,
-        "mdec_code_count_div2": info.mdec_code_count_div2,
-        "macroblocks": info.macroblocks,
-        "original_size": info.original_size,
-        "note": (
-            "PSX BS v2 MDEC background (column-major macroblocks). "
-            "Pack prefers raw/.bs for bit-identity; PNG→BS re-encode is lossy."
-        ),
-    }
-
-
 # ---------------------------------------------------------------------------
 # Encoder
 # ---------------------------------------------------------------------------
@@ -968,11 +951,3 @@ def encode_bs_file(
     data = encode_bs_v2(image, quant_scale=quant_scale)
     Path(path).write_bytes(data)
     return data
-
-
-def info_from_json_bs(meta: dict) -> tuple[int, int, int]:
-    """Return ``(width, height, quant_scale)`` from ``*.bs.json`` meta."""
-    w = int(meta.get("width", DEFAULT_WIDTH))
-    h = int(meta.get("height", DEFAULT_HEIGHT))
-    q = int(meta.get("quant_scale", 2))
-    return w, h, q

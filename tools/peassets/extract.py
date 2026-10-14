@@ -386,8 +386,8 @@ class AssetStore:
           raw/pe2img/pe2img_0.pe2img
           raw/bs/bs_0.bs              # BS v2 MDEC on-disc
           pe2pkg/gameplay.pe2pkg      # LZSS-decoded (from unique raw only)
-          pe2img/pe2img_0.png         # + meta (from unique raw only)
-          bs/bs_0.png                 # + meta (from unique raw only)
+          pe2img/pe2img_0.png         # (from unique raw only)
+          bs/bs_0.png                 # (from unique raw only)
           weapons/m4a1/…              # the decoded form of every asset whose
                                       # `group` is weapons/m4a1, in place of
                                       # its type directory (asset_schema.asset_dir;
@@ -667,7 +667,7 @@ class AssetStore:
         (``asset_schema.asset_dir``; written ``{dir}`` below).
 
         * ``.pe2pkg`` — LZSS-decode → ``pe2pkg/{stem}.pe2pkg`` (never grouped)
-        * ``.pe2img`` / ``.pe2clut`` / ``.bs`` — PNG + meta under ``{dir}``
+        * ``.pe2img`` / ``.pe2clut`` / ``.bs`` — PNG under ``{dir}``; a re-encode reads the rest from ``raw/``
         * ``.spk`` — ``{dir}/{stem}/meta.json`` listing its slots by sample name, and each
           sample once as ``{its own dir}/{name}.wav`` (SPU-ADPCM); a bank the manifest does
           not know keeps ``sample_*.wav`` beside its meta
