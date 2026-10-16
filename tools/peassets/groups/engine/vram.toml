@@ -1,0 +1,12 @@
+# The assets of the group engine/vram, each named vram_<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[weapon_sheet]
+type = "vram_region"
+at = [448, 0]
+size = [64, 64]
+
+[weapon_palette]
+type = "vram_region"
+at = [0, 243]
+size = [320, 1]

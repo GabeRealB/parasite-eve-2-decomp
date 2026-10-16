@@ -31,29 +31,29 @@ enum {
 ///
 /// Read-only skeleton and count data retain their serialized positions in .data.
 static const TmdBone _gM93rWeaponModelSkeleton[] __attribute__((section(".data"))) = {
-#include "assets/m93r_model_00520_skeleton.inc"
+#include "assets/m93r_model_skeleton.inc"
 };
 
 /// Vertex count of the weapon's sole part: all 32 vertices.
 static const u32 _gM93rWeaponModelPartVerts[ARRAY_SIZE(_gM93rWeaponModelSkeleton)] __attribute__((section(".data"))) = {
-#include "assets/m93r_model_00520_partVerts.inc"
+#include "assets/m93r_model_partVerts.inc"
 };
 
 /// Writable weapon vertices in integer coordinates local to the hand anchor.
 static SVECTOR _gM93rWeaponModelVerts[] = {
-#include "assets/m93r_model_00520_verts.inc"
+#include "assets/m93r_model_verts.inc"
 };
 
 /// Writable weapon lighting normals with twelve fractional bits, indexed independently of vertices.
 static SVECTOR _gM93rWeaponModelNormals[] = {
-#include "assets/m93r_model_00520_normals.inc"
+#include "assets/m93r_model_normals.inc"
 };
 
 /// Writable commands for four textured triangles and 28 textured quads, ending in `TMD_STREAM_END`.
 ///
 /// First model creation resolves the commands' draw-handler slots in place.
 static u32 _gM93rWeaponModelStream[] = {
-#include "assets/m93r_model_00520_stream.inc"
+#include "assets/m93r_model_stream.inc"
 };
 
 TmdSource gM93rWeaponModel = {

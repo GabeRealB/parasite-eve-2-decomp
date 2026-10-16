@@ -326,8 +326,9 @@ _MODEL_NAMES: dict[str, str] | None = None
 def catalogue_name(data: bytes, load: int, source: int) -> str | None:
     """The asset manifest's name for the model whose `TmdSource` record is at `source`.
 
-    Keyed by the stream's SHA-1, like every other catalogued asset, so the name
-    is the same in every package that carries the model.
+    Keyed by SHA-1, like every other catalogued asset, so the name is the same in every package that carries
+    the model: a model a group declares is known by its whole bytes (arrays, stream and record), the others
+    still by their stream.
     """
     global _MODEL_NAMES
     if _MODEL_NAMES is None:
@@ -337,7 +338,8 @@ def catalogue_name(data: bytes, load: int, source: int) -> str | None:
             from asset_data import ASSETS
         _MODEL_NAMES = {rec["sha1"]: aid for aid, rec in ASSETS.items() if rec.get("type") == "model" and rec.get("sha1")}
     src = read_source(data, load, source)
-    return _MODEL_NAMES.get(hashlib.sha1(data[src["stream_offset"]:src["end"]]).hexdigest())
+    whole = _MODEL_NAMES.get(hashlib.sha1(data[src["head"]:source + TMD_SOURCE_SIZE]).hexdigest())
+    return whole or _MODEL_NAMES.get(hashlib.sha1(data[src["stream_offset"]:src["end"]]).hexdigest())
 
 
 def model_name(stream: bytes) -> str | None:

@@ -9,6 +9,10 @@ imported, so every tool reads one flat ASSETS; `dump_asset_db.write_groups` writ
 TOML has no null and only string keys: an empty slot of a bundle's `resources` is "", and the cells of a dialogue's
 `glyphs` are numbers written as keys; both are given back as the tools expect them.
 
+A file of a group lists its chunks, and the textures its image and palette chunks upload, by local name too. An
+image or palette chunk has no table of its own: its entry states the sha1 of its stored bytes, and `merge` adds the
+record it implies (texture/declaration.py).
+
 A package of a group places its embedded assets itself: `embedded = [{ name, offset, size }]`, the name local and
 the offset into the decoded package, and an `address` in memory for the types the code reaches by address (a model,
 an image, a CLUT: asset_schema.ADDRESSED_TYPES). Each placement becomes an EMBEDDED_ASSETS record - its source, its
@@ -40,6 +44,11 @@ def records(root: Path):
                 rec["glyphs"] = {int(cell): char for cell, char in rec["glyphs"].items()}
             if "embedded" in rec:
                 rec["embedded"] = [{**place, "name": full(place["name"])} for place in rec["embedded"]]
+            if rec.get("type") == "file":       # a file names its own group's chunks and textures, by local name
+                rec["contents"] = [{**entry, "chunk": full(entry["chunk"]),
+                                    **{part: [{**p, "texture": full(p["texture"])} for p in entry[part]]
+                                       for part in ("pages", "palettes") if part in entry}}
+                                   for entry in rec["contents"]]
             yield full(local), {**rec, "group": group}
 
 
@@ -50,10 +59,23 @@ def places(rec: dict[str, Any]) -> list[dict[str, Any]]:
 
 def merge(assets: dict[str, dict[str, Any]], embedded: dict[str, dict[str, Any]], root: Path) -> None:
     """Add the groups' assets to `assets`, and their packages' placements to `embedded`."""
+    # Loaded by path like this module itself (asset_data.py), so no import path is needed.
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("texture_declaration", Path(__file__).with_name("texture") / "declaration.py")
+    declaration = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(declaration)
+    chunk_records = declaration.chunk_records
+
     for key, rec in records(root):
         if key in assets:
             raise KeyError(f"{key} is both in ASSETS and in the group {rec['group']}")
         assets[key] = rec
+    # A file's image and palette chunks are declared in its entries; the other tools read them as records.
+    for key, rec in [(k, r) for k, r in assets.items() if r.get("type") == "file" and r.get("group")]:
+        for chunk, crec in chunk_records(rec, assets).items():
+            if chunk in assets:
+                raise KeyError(f"{chunk}: a chunk of {key} has a table of its own too")
+            assets[chunk] = crec
     for key, rec in list(assets.items()):
         if rec.get("type") != "pe2pkg" or not places(rec):
             continue

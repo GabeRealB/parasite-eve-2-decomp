@@ -29,7 +29,8 @@ Two fields are common to every type:
             calls resident code depends on no asset at all.
 `variants`  the same asset used in more than one way, by name. A variant holds
             only what differs: its own `deps`, and for an image the `row` of
-            its CLUT. An asset used one way has no variants, just `deps`.
+            its CLUT. An asset used one way has no variants, just `deps`. A
+            texture's `variants` are different: the names of its palettes.
 
 Some dependencies are already stated elsewhere in the manifest and are not
 repeated: a package requires every asset embedded in it, which is the
@@ -59,6 +60,9 @@ import sys
 from pathlib import Path
 from typing import Any
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from texture import declaration as texture_declaration  # noqa: E402
+
 IDENTITY = ("sha1", "type")
 COMMON = ("deps", "variants")
 # `required` marks a package the decomp builds; `notes` is free text; `group` files the asset under a subtree of
@@ -74,7 +78,19 @@ IMAGE_TYPES = frozenset({"pe2img", "font_atlas"})
 SCHEMA: dict[str, dict[str, tuple[str, ...]]] = {
     "pe2img": {"payload": ("x", "y", "w", "h"), "stored": ("bpp",)},
     "pe2clut": {"payload": ("x", "y", "w", "h"), "stored": ()},
-    "model": {"payload": ("textures",), "stored": ("parts",)},
+    # `slots` names the textures a model's materials draw from, in slot order (a declared model; the others
+    # still state their raw page/CLUT pairs in `textures`).
+    "model": {"payload": ("textures",), "stored": ("parts", "slots")},
+    # A binding fills a model's slots: `textures` maps each slot name to a texture variant, "<texture>.<variant>".
+    # A model's color swaps are further bindings.
+    "binding": {"payload": (), "stored": ("model", "textures")},
+    # A texture is one page of pixels in one or more variants, each an indexed PNG (texture/); `bpp`,
+    # `width` (texels) and `height` are what the game expects, against which a supplied PNG is checked.
+    "texture": {"payload": (), "stored": ("bpp", "width", "height", "variants")},
+    # A file lists its chunks in order, and what each image and palette chunk uploads where (texture/).
+    "file": {"payload": (), "stored": ("contents",)},
+    # A rectangle of VRAM in halfwords that pages and palettes are placed in by name (texture/declaration.py).
+    "vram_region": {"payload": (), "stored": ("at", "size")},
     # `package_name` is the overlay's name - its overlays.toml key, its symbol map, its decoded copy in pe2pkg/ -
     # where the asset's own name differs from it (a package filed in a room's group is `<room>_package`).
     # `embedded` lists the EMBEDDED_ASSETS located inside the package, by address: a package is a container, as a
@@ -98,6 +114,10 @@ SCHEMA: dict[str, dict[str, tuple[str, ...]]] = {
     # A room's collision grid: the normals, vertices, faces, cell lists and cell table its `WorldCollisionGrid`
     # header points at (the header itself is declared in C). Placed in its package by the package's `embedded`.
     "collision": {"payload": (), "stored": ()},
+    # An animation block: consecutive exported animation sets, the clips one skeleton plays - a weapon package
+    # carries the player's for that weapon. Its embedded record (source, address, size, clips) comes from the
+    # overlay manifest; a grouped package places it with its `embedded`.
+    "animation": {"payload": (), "stored": ()},
     # A dialogue's glyph atlas: an on-disc image chunk, stored and decoded as a pe2img, but not drawn by anyone - the
     # tool that built the dialogue laid it out from its text and the font (doc/CAP_FORMAT.md §9). `generated_by` names
     # that dialogue; the dialogue and the shared font (tools/peassets/cap_font.py) rebuild it.
@@ -110,6 +130,9 @@ SCHEMA: dict[str, dict[str, tuple[str, ...]]] = {
 # its size always, its position only when the record fixes one.
 EMBEDDED_FIELDS = ("source", "vram", "offset", "address", "size", "ext", "type", "include", "layout", "deps", "notes",
                    "group")
+# Types with no bytes of their own: declared by hand, carried over unchanged by dump_asset_db.py.
+DECLARED_TYPES = frozenset({"binding", "texture", "file", "vram_region"})
+
 # Embedded types the code reaches by their address in memory - a model through pointers in the code, an image or a
 # CLUT through its upload record - so a placement of one states its `address`.
 ADDRESSED_TYPES = frozenset({"model", "image", "clut"})
@@ -414,6 +437,12 @@ def record_of(key: str, type_dir: str | None = None, tables: tuple[dict, dict] |
     return None
 
 
+def decoded_model(rec: dict[str, Any] | None) -> bool:
+    """A model that declares its texture `slots`: model_decode.py decodes it, so unlike the other models it has
+    a decoded form outside raw/."""
+    return bool(rec) and rec.get("type") == "model" and bool(rec.get("slots"))
+
+
 def group_of(key: str, rec: dict[str, Any] | None = None, *, type_dir: str | None = None,
              tables: tuple[dict, dict] | None = None) -> str | None:
     """The group an asset is extracted under, or None where its type's directory holds it."""
@@ -422,7 +451,7 @@ def group_of(key: str, rec: dict[str, Any] | None = None, *, type_dir: str | Non
     if not rec or not rec.get("group"):
         return None
     ext = stored_ext(rec)
-    if ext in RAW_ONLY_EXTS or type_dir_for_ext(ext) in PINNED_TYPE_DIRS:
+    if (ext in RAW_ONLY_EXTS and not decoded_model(rec)) or type_dir_for_ext(ext) in PINNED_TYPE_DIRS:
         return None
     return rec["group"]
 
@@ -448,7 +477,8 @@ def asset_dir(key: str, rec: dict[str, Any] | None = None, *, type_dir: str | No
       collision and animation initializers are generated from it, and `room_scene.py`, `asset_residency.py`,
       `pkg_model.py` and others read packages there.
     * a type that is located but not decoded (`RAW_ONLY_EXTS`: models and animation banks). `raw/` holds its
-      only form, and that is the directory answered here.
+      only form, and that is the directory answered here - except a model that declares its `slots`, which
+      `model_decode.py` decodes to USD and so lives in its group.
     * what is not a manifest asset at all, and so has no group to carry: `main.exe`, the CD streams in `audio/`
       and `movie/`, the pack sidecars under `stage<N>/`, `stages.json` and the ISO manifests.
 
@@ -461,7 +491,7 @@ def asset_dir(key: str, rec: dict[str, Any] | None = None, *, type_dir: str | No
         type_dir = type_dir_of(rec)
     if type_dir is None:
         raise KeyError(f"{key} is not in the asset table, and no type was given for it")
-    if rec is not None and stored_ext(rec) in RAW_ONLY_EXTS:
+    if rec is not None and stored_ext(rec) in RAW_ONLY_EXTS and not decoded_model(rec):
         return f"{RAW_ROOT}/{type_dir}"
     return group_of(key, rec) or type_dir
 
@@ -722,10 +752,26 @@ def validate(assets: dict, embedded: dict) -> list[str]:
                 problems.append(f"{key}: x, y and bpp do not describe the same columns")
         if "deps" in rec:
             check_deps(key, kind, rec["deps"], key)
+        if kind == "binding":
+            model = assets.get(rec.get("model"), {})
+            if model.get("type") != "model":
+                problems.append(f"{key}: model must name a model")
+            for slot, name in rec.get("textures", {}).items():
+                texture, _, variant = name.partition(".")
+                if slot not in model.get("slots", ()):
+                    problems.append(f"{key}: names slot {slot!r}, which {rec.get('model')} does not have")
+                if assets.get(texture, {}).get("type") != "texture" or variant not in assets[texture].get("variants", ()):
+                    problems.append(f"{key}: textures.{slot} must name a texture variant, <texture>.<variant>")
+        if kind == "texture":
+            problems += texture_declaration.check_texture(key, rec)
+        if kind == "file":
+            problems += texture_declaration.check_file(key, rec, assets)
+        if kind == "vram_region":
+            problems += texture_declaration.check_region(key, rec, assets)
         if kind == "font_atlas" and assets.get(rec.get("generated_by"), {}).get("type") != "cap":
             problems.append(f"{key}: generated_by must name a dialogue (a cap)")
         variants = rec.get("variants")
-        if variants is None:
+        if variants is None or kind == "texture":       # a texture's variants are its palettes (texture/)
             continue
         fields = VARIANT_FIELDS.get(kind)
         if fields is None:
@@ -784,7 +830,11 @@ def validate(assets: dict, embedded: dict) -> list[str]:
             if len(bases) > 1:
                 problems.append(f"{key}: its placements' addresses do not share one load address")
             listed = [p["name"] for p in listed]
-        held = sorted((e.get("offset", e.get("vram", 0)), k) for k, e in embedded.items() if e.get("source") == f"{name}.pe2pkg")
+        # Records may give an offset into the package or an address in memory; with the load address the
+        # placements state, both order as offsets.
+        load = next(iter(bases)) if any(isinstance(p, dict) for p in assets[key].get("embedded", [])) and len(bases) == 1 else None
+        where = lambda e: e["offset"] if "offset" in e else (e.get("vram", 0) - load if load is not None else e.get("vram", 0))
+        held = sorted((where(e), k) for k, e in embedded.items() if e.get("source") == f"{name}.pe2pkg")
         if listed != [k for _vram, k in held]:
             problems.append(f"{key}: embedded must list, by address, the embedded assets whose source is {name}.pe2pkg")
     # A package's overlay name (`package_name`, else its asset name) is how the build finds it in pe2pkg/: one each.

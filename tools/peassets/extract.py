@@ -39,6 +39,7 @@ from asset_db import (  # noqa: E402
 )
 from parallel_util import default_jobs, run_jobs  # noqa: E402
 import asset_schema  # noqa: E402
+from texture import declaration as texture_declaration  # noqa: E402
 
 
 @dataclass
@@ -674,6 +675,9 @@ class AssetStore:
         * ``.txt`` — strip zero pad (text only, no trailing NUL)
         * other — hardlink/copy raw → ``{dir}`` (same bytes)
 
+        An image or palette chunk of a declared file is left to :func:`decode_declared`, which writes the
+        textures it holds instead.
+
         If ``only_pe2pkg_stems`` is set (minimal / CI mode), only those pe2pkg
         stems are inflated (typically :data:`names.REQUIRED_OVERLAY_STEMS`);
         images, ascii, and other types are skipped.
@@ -682,11 +686,14 @@ class AssetStore:
 
         Returns the number of unique assets materialized.
         """
+        from asset_data import ASSETS
+
+        texture_chunks = texture_declaration.texture_chunks(ASSETS)
         work: list[dict] = []
         for raw_rel, (type_dir, stem, ext) in sorted(
             self._unique_raw.items(), key=lambda kv: asset_name_key(kv[0])
         ):
-            if ext in RAW_ONLY_EXTS:
+            if ext in RAW_ONLY_EXTS or stem in texture_chunks:
                 continue
             if only_pe2pkg_stems is not None:
                 if type_dir != "pe2pkg" or stem not in only_pe2pkg_stems:
@@ -1408,10 +1415,23 @@ def main():
 
     n = store.materialize_inflated(jobs=args.jobs)
     logging.info("Materialized %d inflated assets", n)
+    decode_declared(output_path)
 
     write_pack_manifests(args, output_path, store, rom_root)
 
     logging.info("All done!")
+
+
+def decode_declared(assets_root: Path) -> None:
+    """Decode what the asset table fully declares: each file's textures, as indexed PNGs (texture/), then
+    each model with its slots and bindings, as USD (model_decode.py). The rest stays raw until it is declared."""
+    import model_decode
+    from asset_data import ASSETS
+    from texture import files
+
+    for name in files.declared_files(ASSETS):
+        files.decode_file(name, ASSETS, assets_root)
+    model_decode.main(["--assets", str(assets_root)])
 
 
 if __name__ == "__main__":

@@ -56,6 +56,7 @@ RAW_TYPE_DIRS = (
     "stf",
     "demo",
     "collision",
+    "animation",
     "bs",
     "spk",
     "txt",
@@ -531,6 +532,14 @@ def collect_models(
 
     records = pkg_model.declared_records(Path(__file__).resolve().parents[2])
     known = {rec["sha1"]: aid for aid, rec in old.items() if rec.get("type") == "model"}
+    # A model a group declares is placed by its package, whole - arrays, stream and record - and named there.
+    declared: dict[tuple[str, int], str] = {}
+    for rec in old.values():
+        if rec.get("type") != "pe2pkg":
+            continue
+        for place in rec.get("embedded", ()):
+            if isinstance(place, dict) and old.get(place["name"], {}).get("type") == "model":
+                declared[(rec.get("package_name"), place["offset"])] = place["name"]
     out: dict[str, dict[str, Any]] = {}
     placed: dict[str, dict[str, Any]] = {}
     seen: set[str] = set()
@@ -543,6 +552,14 @@ def collect_models(
                           key=lambda r: r["stream_offset"]):
             off = src["stream_offset"]
             blob = data[off : src["end"]]
+            if (pkg.stem, src["head"]) in declared:
+                aid = declared[(pkg.stem, src["head"])]
+                rec = dict(old[aid])
+                rec.update({"sha1": hashlib.sha1(data[src["head"]:src["source_offset"] + pkg_model.TMD_SOURCE_SIZE]).hexdigest(),
+                            "type": "model"})
+                rec["textures"] = [list(pair) for pair in pkg_model.stream_textures(blob) or ()]
+                out[aid] = rec
+                continue
             digest = hashlib.sha1(blob).hexdigest()
             if digest in seen:
                 continue
@@ -715,7 +732,7 @@ def _toml_scalar(value: Any, key: str = "") -> str:
     if isinstance(value, bool):
         return "true" if value else "false"
     if isinstance(value, int):
-        return f"0x{value:05X}" if key == "offset" else f"0x{value:X}" if key == "size" else str(value)
+        return f"0x{value:05X}" if key == "offset" else f"0x{value:X}" if key in ("size", "address") else str(value)
     if value is None:
         return '""'                     # TOML has no null: an empty slot of a list
     if isinstance(value, str):
@@ -731,7 +748,7 @@ def _toml_record(local: str, rec: dict[str, Any]) -> list[str]:
     """One asset as a TOML table: its type, the rest by name, and its sha1 last; a list one item per line when it
     does not fit in LINE_WIDTH columns."""
     lines = [f"[{local}]"]
-    for key in ["type"] + sorted(k for k in rec if k not in ("sha1", "type", "group")) + ["sha1"]:
+    for key in ["type"] + sorted(k for k in rec if k not in ("sha1", "type", "group")) + (["sha1"] if "sha1" in rec else []):
         value = rec[key]
         line = f"{key} = {_toml_scalar(value, key)}"
         if isinstance(value, (list, tuple)) and len(line) > LINE_WIDTH:
@@ -746,7 +763,11 @@ def _toml_record(local: str, rec: dict[str, Any]) -> list[str]:
 def write_groups(assets: dict[str, dict[str, Any]]) -> None:
     """Every group's assets into groups/<group>.toml, keyed by local name: the asset's name less the group's
     prefix, the path without its first part (`akropolis_square_view3_background` in rooms/akropolis/square is
-    `view3_background`). A group file no asset uses any more is removed."""
+    `view3_background`). A group file no asset uses any more is removed. A file's image and palette chunks are
+    written into its entries, not as tables (texture/declaration.py)."""
+    from texture.declaration import texture_chunks as declared_chunks
+
+    texture_chunks = declared_chunks(assets)
     groups: dict[str, dict[str, dict[str, Any]]] = {}
     for aid in sorted(assets, key=asset_name_key):
         group = assets[aid].get("group")
@@ -758,6 +779,14 @@ def write_groups(assets: dict[str, dict[str, Any]]) -> None:
         rec = dict(assets[aid])
         if any(isinstance(p, dict) for p in rec.get("embedded", ())):
             rec["embedded"] = [{**p, "name": p["name"][len(prefix) + 1:] if prefix else p["name"]} for p in rec["embedded"]]
+        if aid in texture_chunks:
+            continue                    # declared, with its sha1, in its file's entry
+        if rec.get("type") == "file":
+            local = lambda name: name[len(prefix) + 1:] if prefix else name
+            rec["contents"] = [{**e, "chunk": local(e["chunk"]),
+                                **({"sha1": assets[e["chunk"]]["sha1"]} if e["chunk"] in texture_chunks else {}),
+                                **{part: [{**p, "texture": local(p["texture"])} for p in e[part]]
+                                   for part in ("pages", "palettes") if part in e}} for e in rec["contents"]]
         groups.setdefault(group, {})[aid[len(prefix) + 1:] if prefix else aid] = rec
     written = set()
     for group, records in groups.items():
@@ -894,6 +923,7 @@ def main(argv: list[str] | None = None) -> int:
         return 1
     assets.update(samples)
     collect_bundles(assets_root, assets)
+    assets.update({key: rec for key, rec in old_assets.items() if rec.get("type") in asset_schema.DECLARED_TYPES})
     embedded = {key: rec for key, rec in embedded.items() if rec.get("type") != "animation"}
     embedded = {**embedded, **placements, **collect_animations(assets_root, old_embedded)}
     collect_embedded_lists(assets, embedded)
@@ -902,7 +932,6 @@ def main(argv: list[str] | None = None) -> int:
     # Dependencies and variants are written by hand or by a review and name
     # other assets by key, so a renamed or vanished key has to stop here
     # rather than be written back out.
-    import asset_schema
 
     problems = asset_schema.validate(assets, embedded) + asset_schema.validate_tree(tree, assets)
     if problems:

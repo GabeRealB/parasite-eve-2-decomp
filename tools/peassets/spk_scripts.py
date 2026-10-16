@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Which samples each script entry of a sound bank plays.
 
-    spk_scripts.py spk_2 [spk_89 ...]      one bank's entries
+    spk_scripts.py m93r_sounds [spk_89 ...]      one bank's entries
     spk_scripts.py --id 0x4007             the bank with that id
 
 A sound-script bank (`imageKind` 2) carries an `hONE` image at 0x800: a header

@@ -4717,7 +4717,7 @@ pe2clut_209	video memory	trace-20261012-152043	session 1	1	akropolis_square	1	2	
 pe2clut_209	video memory	trace-20261012-152043	session 1	1	akropolis_square	1	2		0,251,256,2	0/file210600	4	6	0		
 pe2clut_209	video memory	trace-20261012-152043	session 1	1	mist_parking	1	2		0,247,256,2	0/file101900	0	2	0		
 pe2clut_209	video memory	trace-20261012-152043	session 1	1	mist_parking	1	2		0,251,256,2	0/file210600	4	6	0		
-pe2clut_21	video memory	trace-20261012-145054	session 1	1	mist_parking	1	1		0,243,16,1	0/tonfa_baton	0	0	0		overwritten by pe2clut_7 of 0/m93r at event 11948
+pe2clut_21	video memory	trace-20261012-145054	session 1	1	mist_parking	1	1		0,243,16,1	0/tonfa_baton	0	0	0		overwritten by m93r_palette of 0/m93r at event 11948
 pe2clut_21	video memory	trace-20261012-152043	session 1	1	acropolis_observatory	1	3		0,243,16,1	0/tonfa_baton	0	0	0		
 pe2clut_21	video memory	trace-20261012-152043	session 1	1	acropolis_promenade	2	3		0,243,16,1	0/tonfa_baton	0	0	0		overwritten by pe2clut_28 of 0/mp5a5 at event 22974
 pe2clut_217	video memory	trace-20261012-152043	session 1	1	acropolis_observatory	1	3		0,247,256,2	0/file103700	0	2	0		
@@ -5696,7 +5696,7 @@ pe2clut_59	video memory	trace-20261012-152043	session 1	1	acropolis_promenade	1	
 pe2clut_59	video memory	trace-20261012-152043	session 1	1	acropolis_roof_garden	1	2		0,253,256,1	0/file20203	-8	-3	3		
 pe2clut_59	video memory	trace-20261012-152043	session 1	1	acropolis_sanctuary	1	1		0,253,256,1	0/file20203	-8	-3	3		overwritten by pe2clut_31 of 0/file20102 at event 12733
 pe2clut_59	video memory	trace-20261012-152043	session 1	1	acropolis_security_room	1	1		0,253,256,1	0/file20203	-8	-3	3		
-pe2clut_6	video memory	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1		0,243,16,1	0/p08_snail	0	0	0		overwritten by pe2clut_7 of 0/m93r at event 10424
+pe2clut_6	video memory	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1		0,243,16,1	0/p08_snail	0	0	0		overwritten by m93r_palette of 0/m93r at event 10424
 pe2clut_6	video memory	trace-20261012-152043	session 1	1	mist_parking	3	1		0,243,16,1	0/p08_snail	0	0	0		
 pe2clut_6	video memory	trace-20261012-152043	session 1	1	mist_parking	3	2		0,243,16,1	0/p08_snail	0	0	0		
 pe2clut_6	video memory	trace-20261012-152043	session 1	1	mist_r18	1	1		0,243,16,1	0/p08_snail	0	0	0		
@@ -5732,56 +5732,56 @@ pe2clut_67	video memory	trace-20261012-152043	session 1	1	mist_r18	1	1		0,253,25
 pe2clut_68	video memory	trace-20261012-152043	session 1	1	mist_parking	3	1		0,253,256,1	0/file20212	-8	-3	3		
 pe2clut_68	video memory	trace-20261012-152043	session 1	1	mist_parking	3	2		0,253,256,1	0/file20212	-8	-3	3		overwritten by pe2clut_97 of 0/file20303 at event 41893
 pe2clut_68	video memory	trace-20261012-152043	session 1	1	mist_r18	1	1		0,253,256,1	0/file20212	-8	-3	3		
-pe2clut_7	video memory	trace-20261012-145054	session 1						0,243,16,1	0/m93r	0	0	0		
-pe2clut_7	video memory	trace-20261012-145054	session 1	1	acropolis_plaza	1	1		0,243,16,1	0/m93r	0	0	0		
-pe2clut_7	video memory	trace-20261012-145054	session 1	1	acropolis_plaza	1	1		0,243,16,1	0/m93r	0	0	0		overwritten by pe2clut_7 of 0/m93r at event 18009
-pe2clut_7	video memory	trace-20261012-145054	session 1	1	akropolis_square	1	1		0,243,16,1	0/m93r	0	0	0		
-pe2clut_7	video memory	trace-20261012-145054	session 1	1	akropolis_square	7	2		0,243,16,1	0/m93r	0	0	0		
-pe2clut_7	video memory	trace-20261012-145054	session 1	1	acropolis_west_elevator_hall	1	1		0,243,16,1	0/m93r	0	0	0		
-pe2clut_7	video memory	trace-20261012-145054	session 1	1	mist_parking	1	1		0,243,16,1	0/m93r	0	0	0		
-pe2clut_7	video memory	trace-20261012-145054	session 1	1	mist_parking	1	1		0,243,16,1	0/m93r	0	0	0		overwritten by pe2clut_21 of 0/tonfa_baton at event 11857
-pe2clut_7	video memory	trace-20261012-145054	session 1	1	mist_parking	1	1		0,243,16,1	0/m93r	0	0	0		overwritten by pe2clut_7 of 0/m93r at event 12731
-pe2clut_7	video memory	trace-20261012-145054	session 1	1	mist_parking	2	1		0,243,16,1	0/m93r	0	0	0		
-pe2clut_7	video memory	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1		0,243,16,1	0/m93r	0	0	0		
-pe2clut_7	video memory	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1		0,243,16,1	0/m93r	0	0	0		overwritten by pe2clut_6 of 0/p08_snail at event 8482
-pe2clut_7	video memory	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1		0,243,16,1	0/m93r	0	0	0		overwritten by pe2clut_7 of 0/m93r at event 870
-pe2clut_7	video memory	trace-20261012-152043	session 1						0,243,16,1	0/m93r	0	0	0		
-pe2clut_7	video memory	trace-20261012-152043	session 1	1	acropolis_cafeteria	1	1		0,243,16,1	0/m93r	0	0	0		
-pe2clut_7	video memory	trace-20261012-152043	session 1	1	acropolis_cafeteria	1	3		0,243,16,1	0/m93r	0	0	0		
-pe2clut_7	video memory	trace-20261012-152043	session 1	1	acropolis_cafeteria	1	4		0,243,16,1	0/m93r	0	0	0		
-pe2clut_7	video memory	trace-20261012-152043	session 1	1	acropolis_cafeteria	2	1		0,243,16,1	0/m93r	0	0	0		
-pe2clut_7	video memory	trace-20261012-152043	session 1	1	acropolis_cafeteria	2	2		0,243,16,1	0/m93r	0	0	0		
-pe2clut_7	video memory	trace-20261012-152043	session 1	1	acropolis_cafeteria	4	1		0,243,16,1	0/m93r	0	0	0		
-pe2clut_7	video memory	trace-20261012-152043	session 1	1	acropolis_cafeteria	4	3		0,243,16,1	0/m93r	0	0	0		
-pe2clut_7	video memory	trace-20261012-152043	session 1	1	acropolis_east_elevator_hall	1	1		0,243,16,1	0/m93r	0	0	0		
-pe2clut_7	video memory	trace-20261012-152043	session 1	1	acropolis_east_elevator_hall	1	2		0,243,16,1	0/m93r	0	0	0		
-pe2clut_7	video memory	trace-20261012-152043	session 1	1	acropolis_forked_road	1	1		0,243,16,1	0/m93r	0	0	0		
-pe2clut_7	video memory	trace-20261012-152043	session 1	1	acropolis_forked_road	1	2		0,243,16,1	0/m93r	0	0	0		
-pe2clut_7	video memory	trace-20261012-152043	session 1	1	acropolis_forked_road	1	3		0,243,16,1	0/m93r	0	0	0		
-pe2clut_7	video memory	trace-20261012-152043	session 1	1	acropolis_forked_road	2	1		0,243,16,1	0/m93r	0	0	0		
-pe2clut_7	video memory	trace-20261012-152043	session 1	1	acropolis_forked_road	2	2		0,243,16,1	0/m93r	0	0	0		
-pe2clut_7	video memory	trace-20261012-152043	session 1	1	acropolis_fountain	1	1		0,243,16,1	0/m93r	0	0	0		
-pe2clut_7	video memory	trace-20261012-152043	session 1	1	acropolis_fountain	1	3		0,243,16,1	0/m93r	0	0	0		
-pe2clut_7	video memory	trace-20261012-152043	session 1	1	acropolis_hallway	1	1		0,243,16,1	0/m93r	0	0	0		
-pe2clut_7	video memory	trace-20261012-152043	session 1	1	acropolis_hallway	1	3		0,243,16,1	0/m93r	0	0	0		
-pe2clut_7	video memory	trace-20261012-152043	session 1	1	acropolis_hallway	1	4		0,243,16,1	0/m93r	0	0	0		
-pe2clut_7	video memory	trace-20261012-152043	session 1	1	acropolis_observatory	1	1		0,243,16,1	0/m93r	0	0	0		
-pe2clut_7	video memory	trace-20261012-152043	session 1	1	acropolis_observatory	1	2		0,243,16,1	0/m93r	0	0	0		
-pe2clut_7	video memory	trace-20261012-152043	session 1	1	acropolis_patio	1	1		0,243,16,1	0/m93r	0	0	0		
-pe2clut_7	video memory	trace-20261012-152043	session 1	1	acropolis_patio	1	2		0,243,16,1	0/m93r	0	0	0		
-pe2clut_7	video memory	trace-20261012-152043	session 1	1	acropolis_patio	1	3		0,243,16,1	0/m93r	0	0	0		
-pe2clut_7	video memory	trace-20261012-152043	session 1	1	acropolis_patio	1	4		0,243,16,1	0/m93r	0	0	0		
-pe2clut_7	video memory	trace-20261012-152043	session 1	1	acropolis_patio	2	1		0,243,16,1	0/m93r	0	0	0		
-pe2clut_7	video memory	trace-20261012-152043	session 1	1	acropolis_patio	3	1		0,243,16,1	0/m93r	0	0	0		
-pe2clut_7	video memory	trace-20261012-152043	session 1	1	acropolis_patio	3	2		0,243,16,1	0/m93r	0	0	0		
-pe2clut_7	video memory	trace-20261012-152043	session 1	1	acropolis_patio	3	3		0,243,16,1	0/m93r	0	0	0		
-pe2clut_7	video memory	trace-20261012-152043	session 1	1	acropolis_promenade	1	1		0,243,16,1	0/m93r	0	0	0		
-pe2clut_7	video memory	trace-20261012-152043	session 1	1	acropolis_promenade	1	2		0,243,16,1	0/m93r	0	0	0		
-pe2clut_7	video memory	trace-20261012-152043	session 1	1	acropolis_sanctuary	1	1		0,243,16,1	0/m93r	0	0	0		overwritten by pe2clut_28 of 0/mp5a5 at event 13015
-pe2clut_7	video memory	trace-20261012-152043	session 1	1	acropolis_security_room	1	1		0,243,16,1	0/m93r	0	0	0		
-pe2clut_7	video memory	trace-20261012-152043	session 1	1	akropolis_square	1	1		0,243,16,1	0/m93r	0	0	0		
-pe2clut_7	video memory	trace-20261012-152043	session 1	1	akropolis_square	1	2		0,243,16,1	0/m93r	0	0	0		
-pe2clut_7	video memory	trace-20261012-152043	session 1	1	mist_parking	1	2		0,243,16,1	0/m93r	0	0	0		
+m93r_palette	video memory	trace-20261012-145054	session 1						0,243,16,1	0/m93r	0	0	0		
+m93r_palette	video memory	trace-20261012-145054	session 1	1	acropolis_plaza	1	1		0,243,16,1	0/m93r	0	0	0		
+m93r_palette	video memory	trace-20261012-145054	session 1	1	acropolis_plaza	1	1		0,243,16,1	0/m93r	0	0	0		overwritten by m93r_palette of 0/m93r at event 18009
+m93r_palette	video memory	trace-20261012-145054	session 1	1	akropolis_square	1	1		0,243,16,1	0/m93r	0	0	0		
+m93r_palette	video memory	trace-20261012-145054	session 1	1	akropolis_square	7	2		0,243,16,1	0/m93r	0	0	0		
+m93r_palette	video memory	trace-20261012-145054	session 1	1	acropolis_west_elevator_hall	1	1		0,243,16,1	0/m93r	0	0	0		
+m93r_palette	video memory	trace-20261012-145054	session 1	1	mist_parking	1	1		0,243,16,1	0/m93r	0	0	0		
+m93r_palette	video memory	trace-20261012-145054	session 1	1	mist_parking	1	1		0,243,16,1	0/m93r	0	0	0		overwritten by pe2clut_21 of 0/tonfa_baton at event 11857
+m93r_palette	video memory	trace-20261012-145054	session 1	1	mist_parking	1	1		0,243,16,1	0/m93r	0	0	0		overwritten by m93r_palette of 0/m93r at event 12731
+m93r_palette	video memory	trace-20261012-145054	session 1	1	mist_parking	2	1		0,243,16,1	0/m93r	0	0	0		
+m93r_palette	video memory	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1		0,243,16,1	0/m93r	0	0	0		
+m93r_palette	video memory	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1		0,243,16,1	0/m93r	0	0	0		overwritten by pe2clut_6 of 0/p08_snail at event 8482
+m93r_palette	video memory	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1		0,243,16,1	0/m93r	0	0	0		overwritten by m93r_palette of 0/m93r at event 870
+m93r_palette	video memory	trace-20261012-152043	session 1						0,243,16,1	0/m93r	0	0	0		
+m93r_palette	video memory	trace-20261012-152043	session 1	1	acropolis_cafeteria	1	1		0,243,16,1	0/m93r	0	0	0		
+m93r_palette	video memory	trace-20261012-152043	session 1	1	acropolis_cafeteria	1	3		0,243,16,1	0/m93r	0	0	0		
+m93r_palette	video memory	trace-20261012-152043	session 1	1	acropolis_cafeteria	1	4		0,243,16,1	0/m93r	0	0	0		
+m93r_palette	video memory	trace-20261012-152043	session 1	1	acropolis_cafeteria	2	1		0,243,16,1	0/m93r	0	0	0		
+m93r_palette	video memory	trace-20261012-152043	session 1	1	acropolis_cafeteria	2	2		0,243,16,1	0/m93r	0	0	0		
+m93r_palette	video memory	trace-20261012-152043	session 1	1	acropolis_cafeteria	4	1		0,243,16,1	0/m93r	0	0	0		
+m93r_palette	video memory	trace-20261012-152043	session 1	1	acropolis_cafeteria	4	3		0,243,16,1	0/m93r	0	0	0		
+m93r_palette	video memory	trace-20261012-152043	session 1	1	acropolis_east_elevator_hall	1	1		0,243,16,1	0/m93r	0	0	0		
+m93r_palette	video memory	trace-20261012-152043	session 1	1	acropolis_east_elevator_hall	1	2		0,243,16,1	0/m93r	0	0	0		
+m93r_palette	video memory	trace-20261012-152043	session 1	1	acropolis_forked_road	1	1		0,243,16,1	0/m93r	0	0	0		
+m93r_palette	video memory	trace-20261012-152043	session 1	1	acropolis_forked_road	1	2		0,243,16,1	0/m93r	0	0	0		
+m93r_palette	video memory	trace-20261012-152043	session 1	1	acropolis_forked_road	1	3		0,243,16,1	0/m93r	0	0	0		
+m93r_palette	video memory	trace-20261012-152043	session 1	1	acropolis_forked_road	2	1		0,243,16,1	0/m93r	0	0	0		
+m93r_palette	video memory	trace-20261012-152043	session 1	1	acropolis_forked_road	2	2		0,243,16,1	0/m93r	0	0	0		
+m93r_palette	video memory	trace-20261012-152043	session 1	1	acropolis_fountain	1	1		0,243,16,1	0/m93r	0	0	0		
+m93r_palette	video memory	trace-20261012-152043	session 1	1	acropolis_fountain	1	3		0,243,16,1	0/m93r	0	0	0		
+m93r_palette	video memory	trace-20261012-152043	session 1	1	acropolis_hallway	1	1		0,243,16,1	0/m93r	0	0	0		
+m93r_palette	video memory	trace-20261012-152043	session 1	1	acropolis_hallway	1	3		0,243,16,1	0/m93r	0	0	0		
+m93r_palette	video memory	trace-20261012-152043	session 1	1	acropolis_hallway	1	4		0,243,16,1	0/m93r	0	0	0		
+m93r_palette	video memory	trace-20261012-152043	session 1	1	acropolis_observatory	1	1		0,243,16,1	0/m93r	0	0	0		
+m93r_palette	video memory	trace-20261012-152043	session 1	1	acropolis_observatory	1	2		0,243,16,1	0/m93r	0	0	0		
+m93r_palette	video memory	trace-20261012-152043	session 1	1	acropolis_patio	1	1		0,243,16,1	0/m93r	0	0	0		
+m93r_palette	video memory	trace-20261012-152043	session 1	1	acropolis_patio	1	2		0,243,16,1	0/m93r	0	0	0		
+m93r_palette	video memory	trace-20261012-152043	session 1	1	acropolis_patio	1	3		0,243,16,1	0/m93r	0	0	0		
+m93r_palette	video memory	trace-20261012-152043	session 1	1	acropolis_patio	1	4		0,243,16,1	0/m93r	0	0	0		
+m93r_palette	video memory	trace-20261012-152043	session 1	1	acropolis_patio	2	1		0,243,16,1	0/m93r	0	0	0		
+m93r_palette	video memory	trace-20261012-152043	session 1	1	acropolis_patio	3	1		0,243,16,1	0/m93r	0	0	0		
+m93r_palette	video memory	trace-20261012-152043	session 1	1	acropolis_patio	3	2		0,243,16,1	0/m93r	0	0	0		
+m93r_palette	video memory	trace-20261012-152043	session 1	1	acropolis_patio	3	3		0,243,16,1	0/m93r	0	0	0		
+m93r_palette	video memory	trace-20261012-152043	session 1	1	acropolis_promenade	1	1		0,243,16,1	0/m93r	0	0	0		
+m93r_palette	video memory	trace-20261012-152043	session 1	1	acropolis_promenade	1	2		0,243,16,1	0/m93r	0	0	0		
+m93r_palette	video memory	trace-20261012-152043	session 1	1	acropolis_sanctuary	1	1		0,243,16,1	0/m93r	0	0	0		overwritten by pe2clut_28 of 0/mp5a5 at event 13015
+m93r_palette	video memory	trace-20261012-152043	session 1	1	acropolis_security_room	1	1		0,243,16,1	0/m93r	0	0	0		
+m93r_palette	video memory	trace-20261012-152043	session 1	1	akropolis_square	1	1		0,243,16,1	0/m93r	0	0	0		
+m93r_palette	video memory	trace-20261012-152043	session 1	1	akropolis_square	1	2		0,243,16,1	0/m93r	0	0	0		
+m93r_palette	video memory	trace-20261012-152043	session 1	1	mist_parking	1	2		0,243,16,1	0/m93r	0	0	0		
 pe2clut_93	video memory	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1		0,253,256,1	0/file20364	-8	-3	3		overwritten by pe2clut_130 of 0/file20401 at event 10056
 pe2clut_93	video memory	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1		0,253,256,1	0/file20364	-8	-3	3		overwritten by pe2clut_142 of 0/file20501 at event 10135
 pe2clut_93	video memory	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1		0,254,256,1	0/file20364	0	-2	3		overwritten by pe2clut_130 of 0/file20401 at event 10086
@@ -6491,7 +6491,7 @@ pe2img_216	video memory	trace-20261012-152043	session 1	1	akropolis_square	1	2		
 pe2img_216	video memory	trace-20261012-152043	session 1	1	akropolis_square	1	2		640,256,128,256	0/file210600	4	6	0		
 pe2img_216	video memory	trace-20261012-152043	session 1	1	mist_parking	1	2		384,256,128,256	0/file101900	0	2	0		
 pe2img_216	video memory	trace-20261012-152043	session 1	1	mist_parking	1	2		640,256,128,256	0/file210600	4	6	0		
-pe2img_22	video memory	trace-20261012-145054	session 1	1	mist_parking	1	1		448,0,64,64	0/tonfa_baton	0	0	0		overwritten by pe2img_7 of 0/m93r at event 11948
+pe2img_22	video memory	trace-20261012-145054	session 1	1	mist_parking	1	1		448,0,64,64	0/tonfa_baton	0	0	0		overwritten by m93r_image of 0/m93r at event 11948
 pe2img_22	video memory	trace-20261012-152043	session 1	1	acropolis_observatory	1	3		448,0,64,64	0/tonfa_baton	0	0	0		
 pe2img_22	video memory	trace-20261012-152043	session 1	1	acropolis_promenade	2	3		448,0,64,64	0/tonfa_baton	0	0	0		overwritten by pe2img_30 of 0/mp5a5 at event 22974
 pe2img_223	video memory	trace-20261012-152043	session 1	1	acropolis_observatory	1	3		384,256,64,128	0/file103700	0	2	0	its last 128 rows are blank filler, not counted as part of it	
@@ -7933,7 +7933,7 @@ pe2img_59	video memory	trace-20261012-152043	session 1	1	acropolis_forked_road	1
 pe2img_59	video memory	trace-20261012-152043	session 1	1	acropolis_forked_road	1	2		448,128,64,96	0/file20201	-8	-3	3	its last 32 rows are blank filler, not counted as part of it	
 pe2img_59	video memory	trace-20261012-152043	session 1	1	akropolis_square	1	1		448,128,64,96	0/file20201	-8	-3	3	its last 32 rows are blank filler, not counted as part of it	
 pe2img_59	video memory	trace-20261012-152043	session 1	1	akropolis_square	1	2		448,128,64,96	0/file20201	-8	-3	3	its last 32 rows are blank filler, not counted as part of it	overwritten by pe2img_98 of 0/file20302 at event 1529
-pe2img_6	video memory	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1		448,0,64,64	0/p08_snail	0	0	0		overwritten by pe2img_7 of 0/m93r at event 10424
+pe2img_6	video memory	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1		448,0,64,64	0/p08_snail	0	0	0		overwritten by m93r_image of 0/m93r at event 10424
 pe2img_6	video memory	trace-20261012-152043	session 1	1	mist_parking	3	1		448,0,64,64	0/p08_snail	0	0	0		
 pe2img_6	video memory	trace-20261012-152043	session 1	1	mist_parking	3	2		448,0,64,64	0/p08_snail	0	0	0		
 pe2img_6	video memory	trace-20261012-152043	session 1	1	mist_r18	1	1		448,0,64,64	0/p08_snail	0	0	0		
@@ -7984,56 +7984,56 @@ pe2img_65	video memory	trace-20261012-152043	session 1	1	acropolis_security_room
 pe2img_67	video memory	trace-20261012-152043	session 1	1	mist_r18	1	1		448,128,64,96	0/file20209	-8	-3	3	its last 32 rows are blank filler, not counted as part of it	overwritten by pe2img_68 of 0/file20210 at event 41463
 pe2img_68	video memory	trace-20261012-152043	session 1	1	mist_r18	1	1		448,128,64,96	0/file20210	-8	-3	3	its last 32 rows are blank filler, not counted as part of it	overwritten by pe2img_69 of 0/file20211 at event 41474
 pe2img_69	video memory	trace-20261012-152043	session 1	1	mist_r18	1	1		448,128,64,96	0/file20211	-8	-3	3	its last 32 rows are blank filler, not counted as part of it	overwritten by pe2img_70 of 0/file20212 at event 41485
-pe2img_7	video memory	trace-20261012-145054	session 1						448,0,64,64	0/m93r	0	0	0		
-pe2img_7	video memory	trace-20261012-145054	session 1	1	acropolis_plaza	1	1		448,0,64,64	0/m93r	0	0	0		
-pe2img_7	video memory	trace-20261012-145054	session 1	1	acropolis_plaza	1	1		448,0,64,64	0/m93r	0	0	0		overwritten by pe2img_7 of 0/m93r at event 18009
-pe2img_7	video memory	trace-20261012-145054	session 1	1	akropolis_square	1	1		448,0,64,64	0/m93r	0	0	0		
-pe2img_7	video memory	trace-20261012-145054	session 1	1	akropolis_square	7	2		448,0,64,64	0/m93r	0	0	0		
-pe2img_7	video memory	trace-20261012-145054	session 1	1	acropolis_west_elevator_hall	1	1		448,0,64,64	0/m93r	0	0	0		
-pe2img_7	video memory	trace-20261012-145054	session 1	1	mist_parking	1	1		448,0,64,64	0/m93r	0	0	0		
-pe2img_7	video memory	trace-20261012-145054	session 1	1	mist_parking	1	1		448,0,64,64	0/m93r	0	0	0		overwritten by pe2img_22 of 0/tonfa_baton at event 11857
-pe2img_7	video memory	trace-20261012-145054	session 1	1	mist_parking	1	1		448,0,64,64	0/m93r	0	0	0		overwritten by pe2img_7 of 0/m93r at event 12731
-pe2img_7	video memory	trace-20261012-145054	session 1	1	mist_parking	2	1		448,0,64,64	0/m93r	0	0	0		
-pe2img_7	video memory	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1		448,0,64,64	0/m93r	0	0	0		
-pe2img_7	video memory	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1		448,0,64,64	0/m93r	0	0	0		overwritten by pe2img_6 of 0/p08_snail at event 8482
-pe2img_7	video memory	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1		448,0,64,64	0/m93r	0	0	0		overwritten by pe2img_7 of 0/m93r at event 870
-pe2img_7	video memory	trace-20261012-152043	session 1						448,0,64,64	0/m93r	0	0	0		
-pe2img_7	video memory	trace-20261012-152043	session 1	1	acropolis_cafeteria	1	1		448,0,64,64	0/m93r	0	0	0		
-pe2img_7	video memory	trace-20261012-152043	session 1	1	acropolis_cafeteria	1	3		448,0,64,64	0/m93r	0	0	0		
-pe2img_7	video memory	trace-20261012-152043	session 1	1	acropolis_cafeteria	1	4		448,0,64,64	0/m93r	0	0	0		
-pe2img_7	video memory	trace-20261012-152043	session 1	1	acropolis_cafeteria	2	1		448,0,64,64	0/m93r	0	0	0		
-pe2img_7	video memory	trace-20261012-152043	session 1	1	acropolis_cafeteria	2	2		448,0,64,64	0/m93r	0	0	0		
-pe2img_7	video memory	trace-20261012-152043	session 1	1	acropolis_cafeteria	4	1		448,0,64,64	0/m93r	0	0	0		
-pe2img_7	video memory	trace-20261012-152043	session 1	1	acropolis_cafeteria	4	3		448,0,64,64	0/m93r	0	0	0		
-pe2img_7	video memory	trace-20261012-152043	session 1	1	acropolis_east_elevator_hall	1	1		448,0,64,64	0/m93r	0	0	0		
-pe2img_7	video memory	trace-20261012-152043	session 1	1	acropolis_east_elevator_hall	1	2		448,0,64,64	0/m93r	0	0	0		
-pe2img_7	video memory	trace-20261012-152043	session 1	1	acropolis_forked_road	1	1		448,0,64,64	0/m93r	0	0	0		
-pe2img_7	video memory	trace-20261012-152043	session 1	1	acropolis_forked_road	1	2		448,0,64,64	0/m93r	0	0	0		
-pe2img_7	video memory	trace-20261012-152043	session 1	1	acropolis_forked_road	1	3		448,0,64,64	0/m93r	0	0	0		
-pe2img_7	video memory	trace-20261012-152043	session 1	1	acropolis_forked_road	2	1		448,0,64,64	0/m93r	0	0	0		
-pe2img_7	video memory	trace-20261012-152043	session 1	1	acropolis_forked_road	2	2		448,0,64,64	0/m93r	0	0	0		
-pe2img_7	video memory	trace-20261012-152043	session 1	1	acropolis_fountain	1	1		448,0,64,64	0/m93r	0	0	0		
-pe2img_7	video memory	trace-20261012-152043	session 1	1	acropolis_fountain	1	3		448,0,64,64	0/m93r	0	0	0		
-pe2img_7	video memory	trace-20261012-152043	session 1	1	acropolis_hallway	1	1		448,0,64,64	0/m93r	0	0	0		
-pe2img_7	video memory	trace-20261012-152043	session 1	1	acropolis_hallway	1	3		448,0,64,64	0/m93r	0	0	0		
-pe2img_7	video memory	trace-20261012-152043	session 1	1	acropolis_hallway	1	4		448,0,64,64	0/m93r	0	0	0		
-pe2img_7	video memory	trace-20261012-152043	session 1	1	acropolis_observatory	1	1		448,0,64,64	0/m93r	0	0	0		
-pe2img_7	video memory	trace-20261012-152043	session 1	1	acropolis_observatory	1	2		448,0,64,64	0/m93r	0	0	0		
-pe2img_7	video memory	trace-20261012-152043	session 1	1	acropolis_patio	1	1		448,0,64,64	0/m93r	0	0	0		
-pe2img_7	video memory	trace-20261012-152043	session 1	1	acropolis_patio	1	2		448,0,64,64	0/m93r	0	0	0		
-pe2img_7	video memory	trace-20261012-152043	session 1	1	acropolis_patio	1	3		448,0,64,64	0/m93r	0	0	0		
-pe2img_7	video memory	trace-20261012-152043	session 1	1	acropolis_patio	1	4		448,0,64,64	0/m93r	0	0	0		
-pe2img_7	video memory	trace-20261012-152043	session 1	1	acropolis_patio	2	1		448,0,64,64	0/m93r	0	0	0		
-pe2img_7	video memory	trace-20261012-152043	session 1	1	acropolis_patio	3	1		448,0,64,64	0/m93r	0	0	0		
-pe2img_7	video memory	trace-20261012-152043	session 1	1	acropolis_patio	3	2		448,0,64,64	0/m93r	0	0	0		
-pe2img_7	video memory	trace-20261012-152043	session 1	1	acropolis_patio	3	3		448,0,64,64	0/m93r	0	0	0		
-pe2img_7	video memory	trace-20261012-152043	session 1	1	acropolis_promenade	1	1		448,0,64,64	0/m93r	0	0	0		
-pe2img_7	video memory	trace-20261012-152043	session 1	1	acropolis_promenade	1	2		448,0,64,64	0/m93r	0	0	0		
-pe2img_7	video memory	trace-20261012-152043	session 1	1	acropolis_sanctuary	1	1		448,0,64,64	0/m93r	0	0	0		overwritten by pe2img_30 of 0/mp5a5 at event 13015
-pe2img_7	video memory	trace-20261012-152043	session 1	1	acropolis_security_room	1	1		448,0,64,64	0/m93r	0	0	0		
-pe2img_7	video memory	trace-20261012-152043	session 1	1	akropolis_square	1	1		448,0,64,64	0/m93r	0	0	0		
-pe2img_7	video memory	trace-20261012-152043	session 1	1	akropolis_square	1	2		448,0,64,64	0/m93r	0	0	0		
-pe2img_7	video memory	trace-20261012-152043	session 1	1	mist_parking	1	2		448,0,64,64	0/m93r	0	0	0		
+m93r_image	video memory	trace-20261012-145054	session 1						448,0,64,64	0/m93r	0	0	0		
+m93r_image	video memory	trace-20261012-145054	session 1	1	acropolis_plaza	1	1		448,0,64,64	0/m93r	0	0	0		
+m93r_image	video memory	trace-20261012-145054	session 1	1	acropolis_plaza	1	1		448,0,64,64	0/m93r	0	0	0		overwritten by m93r_image of 0/m93r at event 18009
+m93r_image	video memory	trace-20261012-145054	session 1	1	akropolis_square	1	1		448,0,64,64	0/m93r	0	0	0		
+m93r_image	video memory	trace-20261012-145054	session 1	1	akropolis_square	7	2		448,0,64,64	0/m93r	0	0	0		
+m93r_image	video memory	trace-20261012-145054	session 1	1	acropolis_west_elevator_hall	1	1		448,0,64,64	0/m93r	0	0	0		
+m93r_image	video memory	trace-20261012-145054	session 1	1	mist_parking	1	1		448,0,64,64	0/m93r	0	0	0		
+m93r_image	video memory	trace-20261012-145054	session 1	1	mist_parking	1	1		448,0,64,64	0/m93r	0	0	0		overwritten by pe2img_22 of 0/tonfa_baton at event 11857
+m93r_image	video memory	trace-20261012-145054	session 1	1	mist_parking	1	1		448,0,64,64	0/m93r	0	0	0		overwritten by m93r_image of 0/m93r at event 12731
+m93r_image	video memory	trace-20261012-145054	session 1	1	mist_parking	2	1		448,0,64,64	0/m93r	0	0	0		
+m93r_image	video memory	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1		448,0,64,64	0/m93r	0	0	0		
+m93r_image	video memory	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1		448,0,64,64	0/m93r	0	0	0		overwritten by pe2img_6 of 0/p08_snail at event 8482
+m93r_image	video memory	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1		448,0,64,64	0/m93r	0	0	0		overwritten by m93r_image of 0/m93r at event 870
+m93r_image	video memory	trace-20261012-152043	session 1						448,0,64,64	0/m93r	0	0	0		
+m93r_image	video memory	trace-20261012-152043	session 1	1	acropolis_cafeteria	1	1		448,0,64,64	0/m93r	0	0	0		
+m93r_image	video memory	trace-20261012-152043	session 1	1	acropolis_cafeteria	1	3		448,0,64,64	0/m93r	0	0	0		
+m93r_image	video memory	trace-20261012-152043	session 1	1	acropolis_cafeteria	1	4		448,0,64,64	0/m93r	0	0	0		
+m93r_image	video memory	trace-20261012-152043	session 1	1	acropolis_cafeteria	2	1		448,0,64,64	0/m93r	0	0	0		
+m93r_image	video memory	trace-20261012-152043	session 1	1	acropolis_cafeteria	2	2		448,0,64,64	0/m93r	0	0	0		
+m93r_image	video memory	trace-20261012-152043	session 1	1	acropolis_cafeteria	4	1		448,0,64,64	0/m93r	0	0	0		
+m93r_image	video memory	trace-20261012-152043	session 1	1	acropolis_cafeteria	4	3		448,0,64,64	0/m93r	0	0	0		
+m93r_image	video memory	trace-20261012-152043	session 1	1	acropolis_east_elevator_hall	1	1		448,0,64,64	0/m93r	0	0	0		
+m93r_image	video memory	trace-20261012-152043	session 1	1	acropolis_east_elevator_hall	1	2		448,0,64,64	0/m93r	0	0	0		
+m93r_image	video memory	trace-20261012-152043	session 1	1	acropolis_forked_road	1	1		448,0,64,64	0/m93r	0	0	0		
+m93r_image	video memory	trace-20261012-152043	session 1	1	acropolis_forked_road	1	2		448,0,64,64	0/m93r	0	0	0		
+m93r_image	video memory	trace-20261012-152043	session 1	1	acropolis_forked_road	1	3		448,0,64,64	0/m93r	0	0	0		
+m93r_image	video memory	trace-20261012-152043	session 1	1	acropolis_forked_road	2	1		448,0,64,64	0/m93r	0	0	0		
+m93r_image	video memory	trace-20261012-152043	session 1	1	acropolis_forked_road	2	2		448,0,64,64	0/m93r	0	0	0		
+m93r_image	video memory	trace-20261012-152043	session 1	1	acropolis_fountain	1	1		448,0,64,64	0/m93r	0	0	0		
+m93r_image	video memory	trace-20261012-152043	session 1	1	acropolis_fountain	1	3		448,0,64,64	0/m93r	0	0	0		
+m93r_image	video memory	trace-20261012-152043	session 1	1	acropolis_hallway	1	1		448,0,64,64	0/m93r	0	0	0		
+m93r_image	video memory	trace-20261012-152043	session 1	1	acropolis_hallway	1	3		448,0,64,64	0/m93r	0	0	0		
+m93r_image	video memory	trace-20261012-152043	session 1	1	acropolis_hallway	1	4		448,0,64,64	0/m93r	0	0	0		
+m93r_image	video memory	trace-20261012-152043	session 1	1	acropolis_observatory	1	1		448,0,64,64	0/m93r	0	0	0		
+m93r_image	video memory	trace-20261012-152043	session 1	1	acropolis_observatory	1	2		448,0,64,64	0/m93r	0	0	0		
+m93r_image	video memory	trace-20261012-152043	session 1	1	acropolis_patio	1	1		448,0,64,64	0/m93r	0	0	0		
+m93r_image	video memory	trace-20261012-152043	session 1	1	acropolis_patio	1	2		448,0,64,64	0/m93r	0	0	0		
+m93r_image	video memory	trace-20261012-152043	session 1	1	acropolis_patio	1	3		448,0,64,64	0/m93r	0	0	0		
+m93r_image	video memory	trace-20261012-152043	session 1	1	acropolis_patio	1	4		448,0,64,64	0/m93r	0	0	0		
+m93r_image	video memory	trace-20261012-152043	session 1	1	acropolis_patio	2	1		448,0,64,64	0/m93r	0	0	0		
+m93r_image	video memory	trace-20261012-152043	session 1	1	acropolis_patio	3	1		448,0,64,64	0/m93r	0	0	0		
+m93r_image	video memory	trace-20261012-152043	session 1	1	acropolis_patio	3	2		448,0,64,64	0/m93r	0	0	0		
+m93r_image	video memory	trace-20261012-152043	session 1	1	acropolis_patio	3	3		448,0,64,64	0/m93r	0	0	0		
+m93r_image	video memory	trace-20261012-152043	session 1	1	acropolis_promenade	1	1		448,0,64,64	0/m93r	0	0	0		
+m93r_image	video memory	trace-20261012-152043	session 1	1	acropolis_promenade	1	2		448,0,64,64	0/m93r	0	0	0		
+m93r_image	video memory	trace-20261012-152043	session 1	1	acropolis_sanctuary	1	1		448,0,64,64	0/m93r	0	0	0		overwritten by pe2img_30 of 0/mp5a5 at event 13015
+m93r_image	video memory	trace-20261012-152043	session 1	1	acropolis_security_room	1	1		448,0,64,64	0/m93r	0	0	0		
+m93r_image	video memory	trace-20261012-152043	session 1	1	akropolis_square	1	1		448,0,64,64	0/m93r	0	0	0		
+m93r_image	video memory	trace-20261012-152043	session 1	1	akropolis_square	1	2		448,0,64,64	0/m93r	0	0	0		
+m93r_image	video memory	trace-20261012-152043	session 1	1	mist_parking	1	2		448,0,64,64	0/m93r	0	0	0		
 pe2img_70	video memory	trace-20261012-152043	session 1	1	mist_parking	3	1		448,128,64,96	0/file20212	-8	-3	3	its last 32 rows are blank filler, not counted as part of it	
 pe2img_70	video memory	trace-20261012-152043	session 1	1	mist_parking	3	2		448,128,64,96	0/file20212	-8	-3	3	its last 32 rows are blank filler, not counted as part of it	overwritten by pe2img_99 of 0/file20303 at event 41893
 pe2img_70	video memory	trace-20261012-152043	session 1	1	mist_r18	1	1		448,128,64,96	0/file20212	-8	-3	3	its last 32 rows are blank filler, not counted as part of it	
@@ -9980,121 +9980,121 @@ spk_191_sample_12	played	trace-20261012-145054	session 1	1	mist_shooting_gallery
 spk_191_sample_12	played	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1			1/mist_shooting_gallery/file0	0	0	0	spk_191 entry 0x0d	
 spk_191_sample_12	played	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1			1/mist_shooting_gallery/file0	0	0	0	spk_191 entry 0x0f	
 spk_191_sample_16	played	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1			1/mist_shooting_gallery/file0	0	0	0	spk_191 entry 0x12	
-spk_2	played	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1			0/m93r	0	0	0	entry 0x02	
-spk_2	played	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1			0/m93r	0	0	0	entry 0x03	
-spk_2	played	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1			0/m93r	0	0	0	entry 0x04	
-spk_2	played	trace-20261012-152043	session 1	1	acropolis_cafeteria	2	1			0/m93r	0	0	0	entry 0x04	
-spk_2	played	trace-20261012-152043	session 1	1	acropolis_cafeteria	4	3			0/m93r	0	0	0	entry 0x02	
-spk_2	played	trace-20261012-152043	session 1	1	acropolis_cafeteria	4	3			0/m93r	0	0	0	entry 0x03	
-spk_2	played	trace-20261012-152043	session 1	1	acropolis_cafeteria	4	3			0/m93r	0	0	0	entry 0x04	
-spk_2	played	trace-20261012-152043	session 1	1	acropolis_forked_road	1	2			0/m93r	0	0	0	entry 0x02	
-spk_2	played	trace-20261012-152043	session 1	1	acropolis_forked_road	1	2			0/m93r	0	0	0	entry 0x03	
-spk_2	played	trace-20261012-152043	session 1	1	acropolis_forked_road	1	2			0/m93r	0	0	0	entry 0x04	
-spk_2	played	trace-20261012-152043	session 1	1	acropolis_hallway	1	1			0/m93r	0	0	0	entry 0x02	
-spk_2	played	trace-20261012-152043	session 1	1	acropolis_hallway	1	1			0/m93r	0	0	0	entry 0x03	
-spk_2	played	trace-20261012-152043	session 1	1	acropolis_hallway	1	1			0/m93r	0	0	0	entry 0x04	
-spk_2	played	trace-20261012-152043	session 1	1	acropolis_observatory	1	1			0/m93r	0	0	0	entry 0x02	
-spk_2	played	trace-20261012-152043	session 1	1	acropolis_observatory	1	1			0/m93r	0	0	0	entry 0x03	
-spk_2	played	trace-20261012-152043	session 1	1	acropolis_observatory	1	1			0/m93r	0	0	0	entry 0x04	
-spk_2	played	trace-20261012-152043	session 1	1	acropolis_patio	1	1			0/m93r	0	0	0	entry 0x04	
-spk_2	played	trace-20261012-152043	session 1	1	acropolis_patio	3	2			0/m93r	0	0	0	entry 0x02	
-spk_2	played	trace-20261012-152043	session 1	1	acropolis_patio	3	2			0/m93r	0	0	0	entry 0x03	
-spk_2	played	trace-20261012-152043	session 1	1	acropolis_patio	3	2			0/m93r	0	0	0	entry 0x04	
-spk_2	played	trace-20261012-152043	session 1	1	acropolis_patio	3	3			0/m93r	0	0	0	entry 0x02	
-spk_2	played	trace-20261012-152043	session 1	1	acropolis_patio	3	3			0/m93r	0	0	0	entry 0x03	
-spk_2	played	trace-20261012-152043	session 1	1	acropolis_patio	3	3			0/m93r	0	0	0	entry 0x04	
-spk_2	played	trace-20261012-152043	session 1	1	acropolis_promenade	1	1			0/m93r	0	0	0	entry 0x02	
-spk_2	played	trace-20261012-152043	session 1	1	acropolis_promenade	1	1			0/m93r	0	0	0	entry 0x03	
-spk_2	played	trace-20261012-152043	session 1	1	acropolis_promenade	1	1			0/m93r	0	0	0	entry 0x04	
-spk_2	sound memory	trace-20261012-145054	session 1						0x73f90-0x7b00f	0/m93r	0	0	0	bank 0x2002 descriptor 2	
-spk_2	sound memory	trace-20261012-145054	session 1	1	acropolis_plaza	1	1		0x73f90-0x7b00f	0/m93r	0	0	0	bank 0x2002 descriptor 2	
-spk_2	sound memory	trace-20261012-145054	session 1	1	akropolis_square	1	1		0x73f90-0x7b00f	0/m93r	0	0	0	bank 0x2002 descriptor 2	
-spk_2	sound memory	trace-20261012-145054	session 1	1	akropolis_square	7	2		0x73f90-0x7b00f	0/m93r	0	0	0	bank 0x2002 descriptor 2	
-spk_2	sound memory	trace-20261012-145054	session 1	1	acropolis_west_elevator_hall	1	1		0x73f90-0x7b00f	0/m93r	0	0	0	bank 0x2002 descriptor 2	
-spk_2	sound memory	trace-20261012-145054	session 1	1	mist_parking	1	1		0x73f90-0x7b00f	0/m93r	0	0	0	bank 0x2002 descriptor 2	
-spk_2	sound memory	trace-20261012-145054	session 1	1	mist_parking	1	1		0x73f90-0x7b00f	0/m93r	0	0	0	bank 0x2002 descriptor 2	freed by sndBankAllocTables at event 11861
-spk_2	sound memory	trace-20261012-145054	session 1	1	mist_parking	2	1		0x73f90-0x7b00f	0/m93r	0	0	0	bank 0x2002 descriptor 2	
-spk_2	sound memory	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1		0x73f90-0x7b00f	0/m93r	0	0	0	bank 0x2002 descriptor 2	
-spk_2	sound memory	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1		0x73f90-0x7b00f	0/m93r	0	0	0	bank 0x2002 descriptor 2	freed by sndBankAllocTables at event 8486
-spk_2	sound memory	trace-20261012-152043	session 1						0x73f90-0x7b00f	0/m93r	0	0	0	bank 0x2002 descriptor 2	
-spk_2	sound memory	trace-20261012-152043	session 1	1	acropolis_cafeteria	1	1		0x73f90-0x7b00f	0/m93r	0	0	0	bank 0x2002 descriptor 2	
-spk_2	sound memory	trace-20261012-152043	session 1	1	acropolis_cafeteria	1	3		0x73f90-0x7b00f	0/m93r	0	0	0	bank 0x2002 descriptor 2	
-spk_2	sound memory	trace-20261012-152043	session 1	1	acropolis_cafeteria	1	4		0x73f90-0x7b00f	0/m93r	0	0	0	bank 0x2002 descriptor 2	
-spk_2	sound memory	trace-20261012-152043	session 1	1	acropolis_cafeteria	2	1		0x73f90-0x7b00f	0/m93r	0	0	0	bank 0x2002 descriptor 2	
-spk_2	sound memory	trace-20261012-152043	session 1	1	acropolis_cafeteria	2	2		0x73f90-0x7b00f	0/m93r	0	0	0	bank 0x2002 descriptor 2	
-spk_2	sound memory	trace-20261012-152043	session 1	1	acropolis_cafeteria	4	1		0x73f90-0x7b00f	0/m93r	0	0	0	bank 0x2002 descriptor 2	
-spk_2	sound memory	trace-20261012-152043	session 1	1	acropolis_cafeteria	4	3		0x73f90-0x7b00f	0/m93r	0	0	0	bank 0x2002 descriptor 2	
-spk_2	sound memory	trace-20261012-152043	session 1	1	acropolis_east_elevator_hall	1	1		0x73f90-0x7b00f	0/m93r	0	0	0	bank 0x2002 descriptor 2	
-spk_2	sound memory	trace-20261012-152043	session 1	1	acropolis_east_elevator_hall	1	2		0x73f90-0x7b00f	0/m93r	0	0	0	bank 0x2002 descriptor 2	
-spk_2	sound memory	trace-20261012-152043	session 1	1	acropolis_forked_road	1	1		0x73f90-0x7b00f	0/m93r	0	0	0	bank 0x2002 descriptor 2	
-spk_2	sound memory	trace-20261012-152043	session 1	1	acropolis_forked_road	1	2		0x73f90-0x7b00f	0/m93r	0	0	0	bank 0x2002 descriptor 2	
-spk_2	sound memory	trace-20261012-152043	session 1	1	acropolis_forked_road	1	3		0x73f90-0x7b00f	0/m93r	0	0	0	bank 0x2002 descriptor 2	
-spk_2	sound memory	trace-20261012-152043	session 1	1	acropolis_forked_road	2	1		0x73f90-0x7b00f	0/m93r	0	0	0	bank 0x2002 descriptor 2	
-spk_2	sound memory	trace-20261012-152043	session 1	1	acropolis_forked_road	2	2		0x73f90-0x7b00f	0/m93r	0	0	0	bank 0x2002 descriptor 2	
-spk_2	sound memory	trace-20261012-152043	session 1	1	acropolis_fountain	1	1		0x73f90-0x7b00f	0/m93r	0	0	0	bank 0x2002 descriptor 2	
-spk_2	sound memory	trace-20261012-152043	session 1	1	acropolis_fountain	1	3		0x73f90-0x7b00f	0/m93r	0	0	0	bank 0x2002 descriptor 2	
-spk_2	sound memory	trace-20261012-152043	session 1	1	acropolis_hallway	1	1		0x73f90-0x7b00f	0/m93r	0	0	0	bank 0x2002 descriptor 2	
-spk_2	sound memory	trace-20261012-152043	session 1	1	acropolis_hallway	1	3		0x73f90-0x7b00f	0/m93r	0	0	0	bank 0x2002 descriptor 2	
-spk_2	sound memory	trace-20261012-152043	session 1	1	acropolis_hallway	1	4		0x73f90-0x7b00f	0/m93r	0	0	0	bank 0x2002 descriptor 2	
-spk_2	sound memory	trace-20261012-152043	session 1	1	acropolis_observatory	1	1		0x73f90-0x7b00f	0/m93r	0	0	0	bank 0x2002 descriptor 2	
-spk_2	sound memory	trace-20261012-152043	session 1	1	acropolis_observatory	1	2		0x73f90-0x7b00f	0/m93r	0	0	0	bank 0x2002 descriptor 2	
-spk_2	sound memory	trace-20261012-152043	session 1	1	acropolis_patio	1	1		0x73f90-0x7b00f	0/m93r	0	0	0	bank 0x2002 descriptor 2	
-spk_2	sound memory	trace-20261012-152043	session 1	1	acropolis_patio	1	2		0x73f90-0x7b00f	0/m93r	0	0	0	bank 0x2002 descriptor 2	
-spk_2	sound memory	trace-20261012-152043	session 1	1	acropolis_patio	1	3		0x73f90-0x7b00f	0/m93r	0	0	0	bank 0x2002 descriptor 2	
-spk_2	sound memory	trace-20261012-152043	session 1	1	acropolis_patio	1	4		0x73f90-0x7b00f	0/m93r	0	0	0	bank 0x2002 descriptor 2	
-spk_2	sound memory	trace-20261012-152043	session 1	1	acropolis_patio	2	1		0x73f90-0x7b00f	0/m93r	0	0	0	bank 0x2002 descriptor 2	
-spk_2	sound memory	trace-20261012-152043	session 1	1	acropolis_patio	3	1		0x73f90-0x7b00f	0/m93r	0	0	0	bank 0x2002 descriptor 2	
-spk_2	sound memory	trace-20261012-152043	session 1	1	acropolis_patio	3	2		0x73f90-0x7b00f	0/m93r	0	0	0	bank 0x2002 descriptor 2	
-spk_2	sound memory	trace-20261012-152043	session 1	1	acropolis_patio	3	3		0x73f90-0x7b00f	0/m93r	0	0	0	bank 0x2002 descriptor 2	
-spk_2	sound memory	trace-20261012-152043	session 1	1	acropolis_promenade	1	1		0x73f90-0x7b00f	0/m93r	0	0	0	bank 0x2002 descriptor 2	
-spk_2	sound memory	trace-20261012-152043	session 1	1	acropolis_promenade	1	2		0x73f90-0x7b00f	0/m93r	0	0	0	bank 0x2002 descriptor 2	
-spk_2	sound memory	trace-20261012-152043	session 1	1	acropolis_sanctuary	1	1		0x73f90-0x7b00f	0/m93r	0	0	0	bank 0x2002 descriptor 2	freed by sndBankAllocTables at event 13019
-spk_2	sound memory	trace-20261012-152043	session 1	1	acropolis_security_room	1	1		0x73f90-0x7b00f	0/m93r	0	0	0	bank 0x2002 descriptor 2	
-spk_2	sound memory	trace-20261012-152043	session 1	1	akropolis_square	1	1		0x73f90-0x7b00f	0/m93r	0	0	0	bank 0x2002 descriptor 2	
-spk_2	sound memory	trace-20261012-152043	session 1	1	akropolis_square	1	2		0x73f90-0x7b00f	0/m93r	0	0	0	bank 0x2002 descriptor 2	
-spk_2	sound memory	trace-20261012-152043	session 1	1	mist_parking	1	2		0x73f90-0x7b00f	0/m93r	0	0	0	bank 0x2002 descriptor 2	
-spk_2_sample_00	played	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1			0/m93r	0	0	0	spk_2 entry 0x02	
-spk_2_sample_00	played	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1			0/m93r	0	0	0	spk_2 entry 0x03	
-spk_2_sample_00	played	trace-20261012-152043	session 1	1	acropolis_cafeteria	4	3			0/m93r	0	0	0	spk_2 entry 0x02	
-spk_2_sample_00	played	trace-20261012-152043	session 1	1	acropolis_cafeteria	4	3			0/m93r	0	0	0	spk_2 entry 0x03	
-spk_2_sample_00	played	trace-20261012-152043	session 1	1	acropolis_forked_road	1	2			0/m93r	0	0	0	spk_2 entry 0x02	
-spk_2_sample_00	played	trace-20261012-152043	session 1	1	acropolis_forked_road	1	2			0/m93r	0	0	0	spk_2 entry 0x03	
-spk_2_sample_00	played	trace-20261012-152043	session 1	1	acropolis_hallway	1	1			0/m93r	0	0	0	spk_2 entry 0x02	
-spk_2_sample_00	played	trace-20261012-152043	session 1	1	acropolis_hallway	1	1			0/m93r	0	0	0	spk_2 entry 0x03	
-spk_2_sample_00	played	trace-20261012-152043	session 1	1	acropolis_observatory	1	1			0/m93r	0	0	0	spk_2 entry 0x02	
-spk_2_sample_00	played	trace-20261012-152043	session 1	1	acropolis_observatory	1	1			0/m93r	0	0	0	spk_2 entry 0x03	
-spk_2_sample_00	played	trace-20261012-152043	session 1	1	acropolis_patio	3	2			0/m93r	0	0	0	spk_2 entry 0x02	
-spk_2_sample_00	played	trace-20261012-152043	session 1	1	acropolis_patio	3	2			0/m93r	0	0	0	spk_2 entry 0x03	
-spk_2_sample_00	played	trace-20261012-152043	session 1	1	acropolis_patio	3	3			0/m93r	0	0	0	spk_2 entry 0x02	
-spk_2_sample_00	played	trace-20261012-152043	session 1	1	acropolis_patio	3	3			0/m93r	0	0	0	spk_2 entry 0x03	
-spk_2_sample_00	played	trace-20261012-152043	session 1	1	acropolis_promenade	1	1			0/m93r	0	0	0	spk_2 entry 0x02	
-spk_2_sample_00	played	trace-20261012-152043	session 1	1	acropolis_promenade	1	1			0/m93r	0	0	0	spk_2 entry 0x03	
-spk_2_sample_01	played	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1			0/m93r	0	0	0	spk_2 entry 0x03	
-spk_2_sample_01	played	trace-20261012-152043	session 1	1	acropolis_cafeteria	4	3			0/m93r	0	0	0	spk_2 entry 0x03	
-spk_2_sample_01	played	trace-20261012-152043	session 1	1	acropolis_forked_road	1	2			0/m93r	0	0	0	spk_2 entry 0x03	
-spk_2_sample_01	played	trace-20261012-152043	session 1	1	acropolis_hallway	1	1			0/m93r	0	0	0	spk_2 entry 0x03	
-spk_2_sample_01	played	trace-20261012-152043	session 1	1	acropolis_observatory	1	1			0/m93r	0	0	0	spk_2 entry 0x03	
-spk_2_sample_01	played	trace-20261012-152043	session 1	1	acropolis_patio	3	2			0/m93r	0	0	0	spk_2 entry 0x03	
-spk_2_sample_01	played	trace-20261012-152043	session 1	1	acropolis_patio	3	3			0/m93r	0	0	0	spk_2 entry 0x03	
-spk_2_sample_01	played	trace-20261012-152043	session 1	1	acropolis_promenade	1	1			0/m93r	0	0	0	spk_2 entry 0x03	
-spk_2_sample_02	played	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1			0/m93r	0	0	0	spk_2 entry 0x02	
-spk_2_sample_02	played	trace-20261012-152043	session 1	1	acropolis_cafeteria	4	3			0/m93r	0	0	0	spk_2 entry 0x02	
-spk_2_sample_02	played	trace-20261012-152043	session 1	1	acropolis_forked_road	1	2			0/m93r	0	0	0	spk_2 entry 0x02	
-spk_2_sample_02	played	trace-20261012-152043	session 1	1	acropolis_hallway	1	1			0/m93r	0	0	0	spk_2 entry 0x02	
-spk_2_sample_02	played	trace-20261012-152043	session 1	1	acropolis_observatory	1	1			0/m93r	0	0	0	spk_2 entry 0x02	
-spk_2_sample_02	played	trace-20261012-152043	session 1	1	acropolis_patio	3	2			0/m93r	0	0	0	spk_2 entry 0x02	
-spk_2_sample_02	played	trace-20261012-152043	session 1	1	acropolis_patio	3	3			0/m93r	0	0	0	spk_2 entry 0x02	
-spk_2_sample_02	played	trace-20261012-152043	session 1	1	acropolis_promenade	1	1			0/m93r	0	0	0	spk_2 entry 0x02	
-spk_2_sample_03	played	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1			0/m93r	0	0	0	spk_2 entry 0x04	
-spk_2_sample_03	played	trace-20261012-152043	session 1	1	acropolis_cafeteria	2	1			0/m93r	0	0	0	spk_2 entry 0x04	
-spk_2_sample_03	played	trace-20261012-152043	session 1	1	acropolis_cafeteria	4	3			0/m93r	0	0	0	spk_2 entry 0x04	
-spk_2_sample_03	played	trace-20261012-152043	session 1	1	acropolis_forked_road	1	2			0/m93r	0	0	0	spk_2 entry 0x04	
-spk_2_sample_03	played	trace-20261012-152043	session 1	1	acropolis_hallway	1	1			0/m93r	0	0	0	spk_2 entry 0x04	
-spk_2_sample_03	played	trace-20261012-152043	session 1	1	acropolis_observatory	1	1			0/m93r	0	0	0	spk_2 entry 0x04	
-spk_2_sample_03	played	trace-20261012-152043	session 1	1	acropolis_patio	1	1			0/m93r	0	0	0	spk_2 entry 0x04	
-spk_2_sample_03	played	trace-20261012-152043	session 1	1	acropolis_patio	3	2			0/m93r	0	0	0	spk_2 entry 0x04	
-spk_2_sample_03	played	trace-20261012-152043	session 1	1	acropolis_patio	3	3			0/m93r	0	0	0	spk_2 entry 0x04	
-spk_2_sample_03	played	trace-20261012-152043	session 1	1	acropolis_promenade	1	1			0/m93r	0	0	0	spk_2 entry 0x04	
+m93r_sounds	played	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1			0/m93r	0	0	0	entry 0x02	
+m93r_sounds	played	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1			0/m93r	0	0	0	entry 0x03	
+m93r_sounds	played	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1			0/m93r	0	0	0	entry 0x04	
+m93r_sounds	played	trace-20261012-152043	session 1	1	acropolis_cafeteria	2	1			0/m93r	0	0	0	entry 0x04	
+m93r_sounds	played	trace-20261012-152043	session 1	1	acropolis_cafeteria	4	3			0/m93r	0	0	0	entry 0x02	
+m93r_sounds	played	trace-20261012-152043	session 1	1	acropolis_cafeteria	4	3			0/m93r	0	0	0	entry 0x03	
+m93r_sounds	played	trace-20261012-152043	session 1	1	acropolis_cafeteria	4	3			0/m93r	0	0	0	entry 0x04	
+m93r_sounds	played	trace-20261012-152043	session 1	1	acropolis_forked_road	1	2			0/m93r	0	0	0	entry 0x02	
+m93r_sounds	played	trace-20261012-152043	session 1	1	acropolis_forked_road	1	2			0/m93r	0	0	0	entry 0x03	
+m93r_sounds	played	trace-20261012-152043	session 1	1	acropolis_forked_road	1	2			0/m93r	0	0	0	entry 0x04	
+m93r_sounds	played	trace-20261012-152043	session 1	1	acropolis_hallway	1	1			0/m93r	0	0	0	entry 0x02	
+m93r_sounds	played	trace-20261012-152043	session 1	1	acropolis_hallway	1	1			0/m93r	0	0	0	entry 0x03	
+m93r_sounds	played	trace-20261012-152043	session 1	1	acropolis_hallway	1	1			0/m93r	0	0	0	entry 0x04	
+m93r_sounds	played	trace-20261012-152043	session 1	1	acropolis_observatory	1	1			0/m93r	0	0	0	entry 0x02	
+m93r_sounds	played	trace-20261012-152043	session 1	1	acropolis_observatory	1	1			0/m93r	0	0	0	entry 0x03	
+m93r_sounds	played	trace-20261012-152043	session 1	1	acropolis_observatory	1	1			0/m93r	0	0	0	entry 0x04	
+m93r_sounds	played	trace-20261012-152043	session 1	1	acropolis_patio	1	1			0/m93r	0	0	0	entry 0x04	
+m93r_sounds	played	trace-20261012-152043	session 1	1	acropolis_patio	3	2			0/m93r	0	0	0	entry 0x02	
+m93r_sounds	played	trace-20261012-152043	session 1	1	acropolis_patio	3	2			0/m93r	0	0	0	entry 0x03	
+m93r_sounds	played	trace-20261012-152043	session 1	1	acropolis_patio	3	2			0/m93r	0	0	0	entry 0x04	
+m93r_sounds	played	trace-20261012-152043	session 1	1	acropolis_patio	3	3			0/m93r	0	0	0	entry 0x02	
+m93r_sounds	played	trace-20261012-152043	session 1	1	acropolis_patio	3	3			0/m93r	0	0	0	entry 0x03	
+m93r_sounds	played	trace-20261012-152043	session 1	1	acropolis_patio	3	3			0/m93r	0	0	0	entry 0x04	
+m93r_sounds	played	trace-20261012-152043	session 1	1	acropolis_promenade	1	1			0/m93r	0	0	0	entry 0x02	
+m93r_sounds	played	trace-20261012-152043	session 1	1	acropolis_promenade	1	1			0/m93r	0	0	0	entry 0x03	
+m93r_sounds	played	trace-20261012-152043	session 1	1	acropolis_promenade	1	1			0/m93r	0	0	0	entry 0x04	
+m93r_sounds	sound memory	trace-20261012-145054	session 1						0x73f90-0x7b00f	0/m93r	0	0	0	bank 0x2002 descriptor 2	
+m93r_sounds	sound memory	trace-20261012-145054	session 1	1	acropolis_plaza	1	1		0x73f90-0x7b00f	0/m93r	0	0	0	bank 0x2002 descriptor 2	
+m93r_sounds	sound memory	trace-20261012-145054	session 1	1	akropolis_square	1	1		0x73f90-0x7b00f	0/m93r	0	0	0	bank 0x2002 descriptor 2	
+m93r_sounds	sound memory	trace-20261012-145054	session 1	1	akropolis_square	7	2		0x73f90-0x7b00f	0/m93r	0	0	0	bank 0x2002 descriptor 2	
+m93r_sounds	sound memory	trace-20261012-145054	session 1	1	acropolis_west_elevator_hall	1	1		0x73f90-0x7b00f	0/m93r	0	0	0	bank 0x2002 descriptor 2	
+m93r_sounds	sound memory	trace-20261012-145054	session 1	1	mist_parking	1	1		0x73f90-0x7b00f	0/m93r	0	0	0	bank 0x2002 descriptor 2	
+m93r_sounds	sound memory	trace-20261012-145054	session 1	1	mist_parking	1	1		0x73f90-0x7b00f	0/m93r	0	0	0	bank 0x2002 descriptor 2	freed by sndBankAllocTables at event 11861
+m93r_sounds	sound memory	trace-20261012-145054	session 1	1	mist_parking	2	1		0x73f90-0x7b00f	0/m93r	0	0	0	bank 0x2002 descriptor 2	
+m93r_sounds	sound memory	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1		0x73f90-0x7b00f	0/m93r	0	0	0	bank 0x2002 descriptor 2	
+m93r_sounds	sound memory	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1		0x73f90-0x7b00f	0/m93r	0	0	0	bank 0x2002 descriptor 2	freed by sndBankAllocTables at event 8486
+m93r_sounds	sound memory	trace-20261012-152043	session 1						0x73f90-0x7b00f	0/m93r	0	0	0	bank 0x2002 descriptor 2	
+m93r_sounds	sound memory	trace-20261012-152043	session 1	1	acropolis_cafeteria	1	1		0x73f90-0x7b00f	0/m93r	0	0	0	bank 0x2002 descriptor 2	
+m93r_sounds	sound memory	trace-20261012-152043	session 1	1	acropolis_cafeteria	1	3		0x73f90-0x7b00f	0/m93r	0	0	0	bank 0x2002 descriptor 2	
+m93r_sounds	sound memory	trace-20261012-152043	session 1	1	acropolis_cafeteria	1	4		0x73f90-0x7b00f	0/m93r	0	0	0	bank 0x2002 descriptor 2	
+m93r_sounds	sound memory	trace-20261012-152043	session 1	1	acropolis_cafeteria	2	1		0x73f90-0x7b00f	0/m93r	0	0	0	bank 0x2002 descriptor 2	
+m93r_sounds	sound memory	trace-20261012-152043	session 1	1	acropolis_cafeteria	2	2		0x73f90-0x7b00f	0/m93r	0	0	0	bank 0x2002 descriptor 2	
+m93r_sounds	sound memory	trace-20261012-152043	session 1	1	acropolis_cafeteria	4	1		0x73f90-0x7b00f	0/m93r	0	0	0	bank 0x2002 descriptor 2	
+m93r_sounds	sound memory	trace-20261012-152043	session 1	1	acropolis_cafeteria	4	3		0x73f90-0x7b00f	0/m93r	0	0	0	bank 0x2002 descriptor 2	
+m93r_sounds	sound memory	trace-20261012-152043	session 1	1	acropolis_east_elevator_hall	1	1		0x73f90-0x7b00f	0/m93r	0	0	0	bank 0x2002 descriptor 2	
+m93r_sounds	sound memory	trace-20261012-152043	session 1	1	acropolis_east_elevator_hall	1	2		0x73f90-0x7b00f	0/m93r	0	0	0	bank 0x2002 descriptor 2	
+m93r_sounds	sound memory	trace-20261012-152043	session 1	1	acropolis_forked_road	1	1		0x73f90-0x7b00f	0/m93r	0	0	0	bank 0x2002 descriptor 2	
+m93r_sounds	sound memory	trace-20261012-152043	session 1	1	acropolis_forked_road	1	2		0x73f90-0x7b00f	0/m93r	0	0	0	bank 0x2002 descriptor 2	
+m93r_sounds	sound memory	trace-20261012-152043	session 1	1	acropolis_forked_road	1	3		0x73f90-0x7b00f	0/m93r	0	0	0	bank 0x2002 descriptor 2	
+m93r_sounds	sound memory	trace-20261012-152043	session 1	1	acropolis_forked_road	2	1		0x73f90-0x7b00f	0/m93r	0	0	0	bank 0x2002 descriptor 2	
+m93r_sounds	sound memory	trace-20261012-152043	session 1	1	acropolis_forked_road	2	2		0x73f90-0x7b00f	0/m93r	0	0	0	bank 0x2002 descriptor 2	
+m93r_sounds	sound memory	trace-20261012-152043	session 1	1	acropolis_fountain	1	1		0x73f90-0x7b00f	0/m93r	0	0	0	bank 0x2002 descriptor 2	
+m93r_sounds	sound memory	trace-20261012-152043	session 1	1	acropolis_fountain	1	3		0x73f90-0x7b00f	0/m93r	0	0	0	bank 0x2002 descriptor 2	
+m93r_sounds	sound memory	trace-20261012-152043	session 1	1	acropolis_hallway	1	1		0x73f90-0x7b00f	0/m93r	0	0	0	bank 0x2002 descriptor 2	
+m93r_sounds	sound memory	trace-20261012-152043	session 1	1	acropolis_hallway	1	3		0x73f90-0x7b00f	0/m93r	0	0	0	bank 0x2002 descriptor 2	
+m93r_sounds	sound memory	trace-20261012-152043	session 1	1	acropolis_hallway	1	4		0x73f90-0x7b00f	0/m93r	0	0	0	bank 0x2002 descriptor 2	
+m93r_sounds	sound memory	trace-20261012-152043	session 1	1	acropolis_observatory	1	1		0x73f90-0x7b00f	0/m93r	0	0	0	bank 0x2002 descriptor 2	
+m93r_sounds	sound memory	trace-20261012-152043	session 1	1	acropolis_observatory	1	2		0x73f90-0x7b00f	0/m93r	0	0	0	bank 0x2002 descriptor 2	
+m93r_sounds	sound memory	trace-20261012-152043	session 1	1	acropolis_patio	1	1		0x73f90-0x7b00f	0/m93r	0	0	0	bank 0x2002 descriptor 2	
+m93r_sounds	sound memory	trace-20261012-152043	session 1	1	acropolis_patio	1	2		0x73f90-0x7b00f	0/m93r	0	0	0	bank 0x2002 descriptor 2	
+m93r_sounds	sound memory	trace-20261012-152043	session 1	1	acropolis_patio	1	3		0x73f90-0x7b00f	0/m93r	0	0	0	bank 0x2002 descriptor 2	
+m93r_sounds	sound memory	trace-20261012-152043	session 1	1	acropolis_patio	1	4		0x73f90-0x7b00f	0/m93r	0	0	0	bank 0x2002 descriptor 2	
+m93r_sounds	sound memory	trace-20261012-152043	session 1	1	acropolis_patio	2	1		0x73f90-0x7b00f	0/m93r	0	0	0	bank 0x2002 descriptor 2	
+m93r_sounds	sound memory	trace-20261012-152043	session 1	1	acropolis_patio	3	1		0x73f90-0x7b00f	0/m93r	0	0	0	bank 0x2002 descriptor 2	
+m93r_sounds	sound memory	trace-20261012-152043	session 1	1	acropolis_patio	3	2		0x73f90-0x7b00f	0/m93r	0	0	0	bank 0x2002 descriptor 2	
+m93r_sounds	sound memory	trace-20261012-152043	session 1	1	acropolis_patio	3	3		0x73f90-0x7b00f	0/m93r	0	0	0	bank 0x2002 descriptor 2	
+m93r_sounds	sound memory	trace-20261012-152043	session 1	1	acropolis_promenade	1	1		0x73f90-0x7b00f	0/m93r	0	0	0	bank 0x2002 descriptor 2	
+m93r_sounds	sound memory	trace-20261012-152043	session 1	1	acropolis_promenade	1	2		0x73f90-0x7b00f	0/m93r	0	0	0	bank 0x2002 descriptor 2	
+m93r_sounds	sound memory	trace-20261012-152043	session 1	1	acropolis_sanctuary	1	1		0x73f90-0x7b00f	0/m93r	0	0	0	bank 0x2002 descriptor 2	freed by sndBankAllocTables at event 13019
+m93r_sounds	sound memory	trace-20261012-152043	session 1	1	acropolis_security_room	1	1		0x73f90-0x7b00f	0/m93r	0	0	0	bank 0x2002 descriptor 2	
+m93r_sounds	sound memory	trace-20261012-152043	session 1	1	akropolis_square	1	1		0x73f90-0x7b00f	0/m93r	0	0	0	bank 0x2002 descriptor 2	
+m93r_sounds	sound memory	trace-20261012-152043	session 1	1	akropolis_square	1	2		0x73f90-0x7b00f	0/m93r	0	0	0	bank 0x2002 descriptor 2	
+m93r_sounds	sound memory	trace-20261012-152043	session 1	1	mist_parking	1	2		0x73f90-0x7b00f	0/m93r	0	0	0	bank 0x2002 descriptor 2	
+m93r_sounds_sample_00	played	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1			0/m93r	0	0	0	m93r_sounds entry 0x02	
+m93r_sounds_sample_00	played	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1			0/m93r	0	0	0	m93r_sounds entry 0x03	
+m93r_sounds_sample_00	played	trace-20261012-152043	session 1	1	acropolis_cafeteria	4	3			0/m93r	0	0	0	m93r_sounds entry 0x02	
+m93r_sounds_sample_00	played	trace-20261012-152043	session 1	1	acropolis_cafeteria	4	3			0/m93r	0	0	0	m93r_sounds entry 0x03	
+m93r_sounds_sample_00	played	trace-20261012-152043	session 1	1	acropolis_forked_road	1	2			0/m93r	0	0	0	m93r_sounds entry 0x02	
+m93r_sounds_sample_00	played	trace-20261012-152043	session 1	1	acropolis_forked_road	1	2			0/m93r	0	0	0	m93r_sounds entry 0x03	
+m93r_sounds_sample_00	played	trace-20261012-152043	session 1	1	acropolis_hallway	1	1			0/m93r	0	0	0	m93r_sounds entry 0x02	
+m93r_sounds_sample_00	played	trace-20261012-152043	session 1	1	acropolis_hallway	1	1			0/m93r	0	0	0	m93r_sounds entry 0x03	
+m93r_sounds_sample_00	played	trace-20261012-152043	session 1	1	acropolis_observatory	1	1			0/m93r	0	0	0	m93r_sounds entry 0x02	
+m93r_sounds_sample_00	played	trace-20261012-152043	session 1	1	acropolis_observatory	1	1			0/m93r	0	0	0	m93r_sounds entry 0x03	
+m93r_sounds_sample_00	played	trace-20261012-152043	session 1	1	acropolis_patio	3	2			0/m93r	0	0	0	m93r_sounds entry 0x02	
+m93r_sounds_sample_00	played	trace-20261012-152043	session 1	1	acropolis_patio	3	2			0/m93r	0	0	0	m93r_sounds entry 0x03	
+m93r_sounds_sample_00	played	trace-20261012-152043	session 1	1	acropolis_patio	3	3			0/m93r	0	0	0	m93r_sounds entry 0x02	
+m93r_sounds_sample_00	played	trace-20261012-152043	session 1	1	acropolis_patio	3	3			0/m93r	0	0	0	m93r_sounds entry 0x03	
+m93r_sounds_sample_00	played	trace-20261012-152043	session 1	1	acropolis_promenade	1	1			0/m93r	0	0	0	m93r_sounds entry 0x02	
+m93r_sounds_sample_00	played	trace-20261012-152043	session 1	1	acropolis_promenade	1	1			0/m93r	0	0	0	m93r_sounds entry 0x03	
+m93r_sounds_sample_01	played	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1			0/m93r	0	0	0	m93r_sounds entry 0x03	
+m93r_sounds_sample_01	played	trace-20261012-152043	session 1	1	acropolis_cafeteria	4	3			0/m93r	0	0	0	m93r_sounds entry 0x03	
+m93r_sounds_sample_01	played	trace-20261012-152043	session 1	1	acropolis_forked_road	1	2			0/m93r	0	0	0	m93r_sounds entry 0x03	
+m93r_sounds_sample_01	played	trace-20261012-152043	session 1	1	acropolis_hallway	1	1			0/m93r	0	0	0	m93r_sounds entry 0x03	
+m93r_sounds_sample_01	played	trace-20261012-152043	session 1	1	acropolis_observatory	1	1			0/m93r	0	0	0	m93r_sounds entry 0x03	
+m93r_sounds_sample_01	played	trace-20261012-152043	session 1	1	acropolis_patio	3	2			0/m93r	0	0	0	m93r_sounds entry 0x03	
+m93r_sounds_sample_01	played	trace-20261012-152043	session 1	1	acropolis_patio	3	3			0/m93r	0	0	0	m93r_sounds entry 0x03	
+m93r_sounds_sample_01	played	trace-20261012-152043	session 1	1	acropolis_promenade	1	1			0/m93r	0	0	0	m93r_sounds entry 0x03	
+m93r_sounds_sample_02	played	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1			0/m93r	0	0	0	m93r_sounds entry 0x02	
+m93r_sounds_sample_02	played	trace-20261012-152043	session 1	1	acropolis_cafeteria	4	3			0/m93r	0	0	0	m93r_sounds entry 0x02	
+m93r_sounds_sample_02	played	trace-20261012-152043	session 1	1	acropolis_forked_road	1	2			0/m93r	0	0	0	m93r_sounds entry 0x02	
+m93r_sounds_sample_02	played	trace-20261012-152043	session 1	1	acropolis_hallway	1	1			0/m93r	0	0	0	m93r_sounds entry 0x02	
+m93r_sounds_sample_02	played	trace-20261012-152043	session 1	1	acropolis_observatory	1	1			0/m93r	0	0	0	m93r_sounds entry 0x02	
+m93r_sounds_sample_02	played	trace-20261012-152043	session 1	1	acropolis_patio	3	2			0/m93r	0	0	0	m93r_sounds entry 0x02	
+m93r_sounds_sample_02	played	trace-20261012-152043	session 1	1	acropolis_patio	3	3			0/m93r	0	0	0	m93r_sounds entry 0x02	
+m93r_sounds_sample_02	played	trace-20261012-152043	session 1	1	acropolis_promenade	1	1			0/m93r	0	0	0	m93r_sounds entry 0x02	
+m93r_sounds_sample_03	played	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1			0/m93r	0	0	0	m93r_sounds entry 0x04	
+m93r_sounds_sample_03	played	trace-20261012-152043	session 1	1	acropolis_cafeteria	2	1			0/m93r	0	0	0	m93r_sounds entry 0x04	
+m93r_sounds_sample_03	played	trace-20261012-152043	session 1	1	acropolis_cafeteria	4	3			0/m93r	0	0	0	m93r_sounds entry 0x04	
+m93r_sounds_sample_03	played	trace-20261012-152043	session 1	1	acropolis_forked_road	1	2			0/m93r	0	0	0	m93r_sounds entry 0x04	
+m93r_sounds_sample_03	played	trace-20261012-152043	session 1	1	acropolis_hallway	1	1			0/m93r	0	0	0	m93r_sounds entry 0x04	
+m93r_sounds_sample_03	played	trace-20261012-152043	session 1	1	acropolis_observatory	1	1			0/m93r	0	0	0	m93r_sounds entry 0x04	
+m93r_sounds_sample_03	played	trace-20261012-152043	session 1	1	acropolis_patio	1	1			0/m93r	0	0	0	m93r_sounds entry 0x04	
+m93r_sounds_sample_03	played	trace-20261012-152043	session 1	1	acropolis_patio	3	2			0/m93r	0	0	0	m93r_sounds entry 0x04	
+m93r_sounds_sample_03	played	trace-20261012-152043	session 1	1	acropolis_patio	3	3			0/m93r	0	0	0	m93r_sounds entry 0x04	
+m93r_sounds_sample_03	played	trace-20261012-152043	session 1	1	acropolis_promenade	1	1			0/m93r	0	0	0	m93r_sounds entry 0x04	
 spk_47	played	trace-20261012-152043	session 1	1	acropolis_cafeteria	2	1			0/file50101	0	0	0	entry 0x02	
 spk_47	played	trace-20261012-152043	session 1	1	acropolis_helicopter_landing_pad	1	1			0/file50101	0	0	0	entry 0x02	
 spk_47	played	trace-20261012-152043	session 1	1	acropolis_patio	3	4			0/file50101	0	0	0	entry 0x02	

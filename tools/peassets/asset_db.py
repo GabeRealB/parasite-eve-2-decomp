@@ -577,6 +577,8 @@ def validate_asset_db() -> None:
         _check_component(aid, key=f"ASSETS[{aid!r}]")
         if not isinstance(rec, dict):
             raise ValueError(f"ASSETS[{aid!r}] must be a dict")
+        if rec.get("type") in ("binding", "texture", "file", "vram_region"):  # no bytes, no hash (asset_schema.DECLARED_TYPES)
+            continue
         sha1 = rec.get("sha1")
         if not isinstance(sha1, str) or len(sha1) != 40:
             raise ValueError(f"ASSETS[{aid!r}].sha1 must be 40 hex chars")

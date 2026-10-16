@@ -1,0 +1,64 @@
+# The assets of the group weapons/m93r, each named m93r_<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[file]
+type = "file"
+contents = [
+    { chunk = "palette", sha1 = "cbdb817ed582b80cf2ddc81dd4acce7625598ab3", palettes = [{ texture = "texture", variant = "default", region = "vram_weapon_palette" }] },
+    { chunk = "image", sha1 = "4d34d0b2ad6a3202548d3e3880aaa1063a48fc99", pages = [{ texture = "texture", region = "vram_weapon_sheet" }] },
+    { chunk = "sounds" },
+    { chunk = "package" },
+]
+
+[model]
+type = "model"
+slots = ["body"]
+textures = [[39, 15552]]
+sha1 = "40dd2cbcc600c86e62b9203992a2b7357ad43590"
+
+[sounds]
+type = "spk"
+samples = ["m93r_sounds_sample_00", "m93r_sounds_sample_01", "m93r_sounds_sample_02", "m93r_sounds_sample_03"]
+sha1 = "92ff39f0b183a60d2c4b2e60461e251c8ac790ae"
+
+[binding]
+type = "binding"
+model = "m93r_model"
+textures = { body = "m93r_texture.default" }
+
+[package]
+type = "pe2pkg"
+embedded = [
+    { name = "model", offset = 0x002F8, size = 0x5E0, address = 0x8011D4B8 },
+    { name = "animations", offset = 0x008D8, size = 0xD360 },
+]
+package_name = "m93r"
+required = true
+sha1 = "bdf7f07b8fec29d2156f33facae5c2901453283b"
+
+[texture]
+type = "texture"
+bpp = 4
+height = 64
+variants = ["default"]
+width = 256
+
+[animations]
+type = "animation"
+sha1 = "ad4b79333e678e2a6372aee79e1bafdf5a83073a"
+
+[sounds_sample_00]
+type = "sample"
+sha1 = "a4af8fc22a4d69b32de4ce15e769441c0d3509ff"
+
+[sounds_sample_01]
+type = "sample"
+sha1 = "1348c4f8cfeb83b9c97ba65da794dbc8d092665d"
+
+[sounds_sample_02]
+type = "sample"
+sha1 = "073906a2c459cdfa1ef9a7077df5b7ab0d1a7a47"
+
+[sounds_sample_03]
+type = "sample"
+sha1 = "86bb2d4fdb1afeda10b68192da9542446865ecb1"

@@ -12,3 +12,4 @@ levenshtein
 cxxfilt
 toml
 pillow
+usd-core

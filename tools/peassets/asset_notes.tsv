@@ -1086,8 +1086,8 @@ m4a1_p1_animation_00D28	Aya's animation bank in the m4a1_p1 package (weapon 20):
 m4a1_p2_animation_00D28	Aya's animation bank in the m4a1_p2 package (weapon 21): the same M4A1 ready and per-round fire clips and standard locomotion, aim, reload, hit, parasite-energy and stair clips.	
 m4a1_pyke_animation_023D0	Aya's animation bank while the M4A1 with Pyke is equipped: ready, rifle-round, flame-start and flame-end clips plus the standard locomotion, aim, reload, hit, parasite-energy and stair clips.	
 m4a1_pyke_model_01BCC	One-part M4A1 Pyke weapon model spawned by gameplay as the player's held weapon; its root coord parents the rifle muzzle flash and the persistent nozzle effect.	
-m93r_animation_008D8	Aya's animation bank while the M93R is equipped: ready and per-round fire clips plus the standard locomotion, aim, reload, hit, parasite-energy and stair clips; a few filler slots are unused.	
-m93r_model_00520	One-part M93R pistol model spawned by gameplay as the player's held weapon; its coords are the muzzle-flash parent and weapon collision source.	
+m93r_animations	Aya's animation bank while the M93R is equipped: ready and per-round fire clips plus the standard locomotion, aim, reload, hit, parasite-energy and stair clips; a few filler slots are unused.	
+m93r_model	One-part M93R pistol model spawned by gameplay as the player's held weapon; its coords are the muzzle-flash parent and weapon collision source.	
 m950_animation_00900	Aya's animation bank while the M950 is equipped: ready and automatic-fire clips plus the standard locomotion, aim, reload, hit, parasite-energy and stair clips; a few filler slots are unused.	
 m950_model_00548	One-part M950 weapon model spawned by gameplay as the player's held weapon; its coords are the muzzle-flash parent and impact origin.	
 mad_chaser_body	9-part body of the Mad Chaser enemy: placed in rooms such as the night water tower and summoned hidden for the Glutton fights in the B3 dumping hole and garbage incinerator; shrinks or bursts on death.	
@@ -2950,7 +2950,7 @@ pe2clut_66	256-colour palette of the NMC Photo preview picture (pe2img_68) shown
 pe2clut_67	256-colour palette of the Manual preview picture (pe2img_69) shown in the key-item list of the in-game menu.	
 pe2clut_68	256-colour palette of the Dryfield Map preview picture (pe2img_70) shown in the key-item list of the in-game menu.	
 pe2clut_69	256-colour palette of the Motel Key No.6 preview picture (pe2img_71) in the key-item list; two unnamed key ids (0x10D, 0x10E) carry the same palette with no requester found.	
-pe2clut_7	16-colour palette of the M93R weapon model, loaded with pe2img_7 whenever the weapon model is drawn.	
+m93r_palette	16-colour palette of the M93R weapon model, loaded with m93r_image whenever the weapon model is drawn.	
 pe2clut_70	256-colour palette of the Saloon Key preview picture (pe2img_72) shown in the key-item list of the in-game menu.	
 pe2clut_71	256-colour palette of the Monkey Wrench preview picture (pe2img_73) shown in the key-item list of the in-game menu.	
 pe2clut_72	256-colour palette of the Lobby Key preview picture (pe2img_74) shown in the key-item list of the in-game menu.	
@@ -4102,7 +4102,7 @@ dryfield_cellar_dialogue_0_atlas	4-bit caption glyph atlas of the cellar's dialo
 pe2img_697	8-bit sheet (two pages) of the 58 occluder sprites of the cellar's file-2 view (room index 1, logical view 2), shared by the day and night cellar.	
 pe2img_698	8-bit sheet of the 49 occluder sprites of the cellar's file-3 view (room index 1, logical view 3), shared by the day and night cellar.	
 pe2img_699	8-bit sheet (two pages) of the 33 occluder sprites of the cellar's file-4 view (room index 1, logical view 4), shared by the day and night cellar.	
-pe2img_7	4-bit 64x64 texture of the M93R weapon model, queued by gameplay's equipped-weapon loader and read by the model's faces whenever the weapon is drawn.	
+m93r_image	4-bit 64x64 texture of the M93R weapon model, queued by gameplay's equipped-weapon loader and read by the model's faces whenever the weapon is drawn.	
 pe2img_70	Item preview picture of key item 0x10C, the Dryfield Map, drawn in gameplay's key-item menu list and in map_akropolis's MIST briefing key-item menu.	
 pe2img_700	8-bit sheet of the 21 occluder sprites of the cellar's file-5 view (room index 1, logical view 5), shared by the day and night cellar.	
 pe2img_701	8-bit sheet (two pages) of the 58 occluder sprites of the cellar's file-7 view (room index 2, logical view 2), shared by the day and night cellar.	
@@ -4664,7 +4664,7 @@ spk_196	Footstep bank of dryfield_general_store: walk and run step sounds on sur
 spk_197	Dryfield general store room sound bank: door sounds of its warp endpoints, the one-time gas-station door event, the underpass prompt and arrival, a caption cue and an automatic-scene sound.	
 spk_198	Footstep bank of dryfield_back_street: walk and run step sounds (the same two samples) on collision surface class 1.	
 spk_199	Dryfield back street room sound bank: door sounds of the general store and souvenir shop endpoints, the dilapidated house door's blocked sound and the view-mixed ambience loop.	
-spk_2	M93R weapon sound bank (weapon 2): round fired, empty-chamber click, reload start and reload load cues from the player's attack and reload states.	
+m93r_sounds	M93R weapon sound bank (weapon 2): round fired, empty-chamber click, reload start and reload load cues from the player's attack and reload states.	
 spk_20	Grenade pistol weapon sound bank (weapon 11, file 11001): launch and detonation of the fragmentation round, empty-chamber click, reload start and reload load cues.	
 spk_200	Footstep bank of dryfield_souvenir_shop: walk, scripted-jump and run step sounds on surface classes 1 and 2; the companion's +100 entries are past the bank.	
 spk_201	Dryfield souvenir shop room sound bank: the arrival and departure door sounds of the room's only endpoint (to the back street).	
