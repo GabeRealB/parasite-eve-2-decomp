@@ -1087,7 +1087,7 @@ def ninja_build(
         for writer in asset_writers:
             writer.build(
                 outputs=[str(inc) for inc in outputs], rule="model-inc", inputs=str(raw),
-                implicit=[str(GEN_MODEL_INC), str(TOOLS_DIR / "peassets" / "pkg_model.py"),
+                implicit=[str(GEN_MODEL_INC), str(TOOLS_DIR / "peassets" / "model" / "tmd.py"),
                           str(TOOLS_DIR / "peassets" / "asset_data.py"),
                           # the asset table's grouped assets (asset_data.py reads them)
                           *sorted(str(p) for p in (TOOLS_DIR / "peassets" / "groups").rglob("*.toml"))],

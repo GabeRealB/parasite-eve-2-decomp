@@ -226,7 +226,7 @@ def _by_id(container: dict[Any, Any], disc_id: int) -> dict[str, Any] | None:
 # What a chunk is called when its asset's own name says nothing beyond the
 # folder and file it sits in.
 TYPE_WORD = {"pe2pkg": "package", "pe2img": "image", "pe2clut": "clut", "spk": "sound", "bs": "background",
-             "txt": "text", "pe2bundle": "bundle", "model": "model"}
+             "txt": "text", "pe2bundle": "bundle", "model": "model", "tmd": "model"}
 
 
 def _default_chunk_name(aid: str, kind: str, folder_key: str | None, file_key: str) -> str:
@@ -516,7 +516,7 @@ def collect_models(
     which is the table for things located by address inside a container.
 
     Meshes are the models the overlay manifest declares, each decoded from its
-    `TmdSource` record (`pkg_model.read_source`), so nothing is searched for.
+    `TmdSource` record (`tmd.read_source`), so nothing is searched for.
     One entry per distinct mesh: 129 of them are shared between packages, and
     dedup is by SHA-1 like every other asset.
 
@@ -528,10 +528,11 @@ def collect_models(
     if not pkg_dir.is_dir():
         return {}
     sys.path.insert(0, str(Path(__file__).resolve().parent))
-    import pkg_model
+    from model import tmd
 
-    records = pkg_model.declared_records(Path(__file__).resolve().parents[2])
-    known = {rec["sha1"]: aid for aid, rec in old.items() if rec.get("type") == "model"}
+    records = tmd.declared_records(Path(__file__).resolve().parents[2])
+    # Names are kept by the stream's sha1; a declared model is known by its whole bytes instead, and never matches.
+    known = {rec["sha1"]: aid for aid, rec in old.items() if rec.get("type") in ("model", "tmd")}
     # A model a group declares is placed by its package, whole - arrays, stream and record - and named there.
     declared: dict[tuple[str, int], str] = {}
     for rec in old.values():
@@ -548,16 +549,16 @@ def collect_models(
             continue
         base, sources = records[pkg.stem]
         data = pkg.read_bytes()
-        for src in sorted((pkg_model.read_source(data, base, o) for o in sources),
+        for src in sorted((tmd.read_source(data, base, o) for o in sources),
                           key=lambda r: r["stream_offset"]):
             off = src["stream_offset"]
             blob = data[off : src["end"]]
             if (pkg.stem, src["head"]) in declared:
                 aid = declared[(pkg.stem, src["head"])]
                 rec = dict(old[aid])
-                rec.update({"sha1": hashlib.sha1(data[src["head"]:src["source_offset"] + pkg_model.TMD_SOURCE_SIZE]).hexdigest(),
+                rec.update({"sha1": hashlib.sha1(data[src["head"]:src["source_offset"] + tmd.TMD_SOURCE_SIZE]).hexdigest(),
                             "type": "model"})
-                rec["textures"] = [list(pair) for pair in pkg_model.stream_textures(blob) or ()]
+                rec["textures"] = [list(pair) for pair in tmd.stream_textures(blob) or ()]
                 out[aid] = rec
                 continue
             digest = hashlib.sha1(blob).hexdigest()
@@ -566,10 +567,10 @@ def collect_models(
             seen.add(digest)
             aid = known.get(digest) or f"{pkg.stem}_model_{off:05X}"
             rec = dict(old.get(aid) or {})
-            rec.update({"sha1": digest, "type": "model"})
+            rec.update({"sha1": digest, "type": "tmd"})
             # The pages and CLUTs its faces name, as [page, clut] pairs.
             # An untextured model states that too, as an empty list.
-            rec["textures"] = [list(pair) for pair in pkg_model.stream_textures(blob) or ()]
+            rec["textures"] = [list(pair) for pair in tmd.stream_textures(blob) or ()]
             rec.pop("source", None)
             rec.pop("offset", None)
             rec.pop("size", None)
@@ -582,7 +583,7 @@ def collect_models(
                 "vram": base + off,
                 "size": len(blob),
                 "ext": ".tmd",
-                "type": "model",
+                "type": "tmd",
             }
     return out, placed
 

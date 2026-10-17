@@ -10,15 +10,15 @@ import struct
 from pathlib import Path
 
 if __package__:
-    from ..peassets import pkg_model
+    from ..peassets.model import tmd
 else:
     import sys
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-    from peassets import pkg_model
+    from peassets.model import tmd
 
 
 def components(data: bytes, load: int, offset: int) -> list[dict]:
-    model = pkg_model.read_source(data, load, offset)
+    model = tmd.read_source(data, load, offset)
     if model["end"] != offset:
         raise ValueError(f"model at 0x{offset:X}: stream does not end at its descriptor")
     parts = model["part_count"]
@@ -111,7 +111,7 @@ def include_names(models: list[dict], read) -> dict[tuple[str, int], str]:
     rows = []
     for m in models:
         data = read(m["package"])
-        base = pkg_model.catalogue_name(data, m["load"], m["source"])
+        base = tmd.catalogue_name(data, m["load"], m["source"])
         if base is None:
             raise SystemExit(f"{m['package']}: model at 0x{m['source']:X} is not in the asset manifest; "
                              "run tools/peassets/dump_asset_db.py")

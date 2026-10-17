@@ -1,4 +1,4 @@
-"""Write a model (tmd_model.py's form) and its bindings as USD.
+"""Write a model (codec.py's form) and its bindings as USD.
 
 A model is one skinned mesh bound rigidly to a skeleton: each part is a joint with its rest transform, each vertex
 belongs to one part with weight 1, so faces spanning parts need nothing special. Materials are GeomSubsets bound to

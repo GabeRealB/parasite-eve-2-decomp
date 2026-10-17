@@ -67,7 +67,7 @@ def spawn_bindings(assets: dict, unresolved: list | None = None) -> dict[tuple[s
     import hashlib
     import re
     import struct
-    import pkg_model
+    from model import tmd
     import room_scene
     from room_scene import PLACEMENT, RESOURCE, TASK_DESC, VARIANT, sizeof
     sys.path.insert(0, str(ROOT / "tools" / "buildsteps"))
@@ -80,7 +80,7 @@ def spawn_bindings(assets: dict, unresolved: list | None = None) -> dict[tuple[s
             slots = {int(k): int(v) for k, v in (spec.get("slots") or {}).items()}
             for name, slot, _entry in slot_packages(spec):
                 loads[name] = slots.get(slot.get("slot"), int(spec["load_addr"]))
-    by_sha = {rec["sha1"]: key for key, rec in assets.items() if rec.get("type") == "model"}
+    by_sha = {rec["sha1"]: key for key, rec in assets.items() if rec.get("type") in ("model", "tmd")}
     last = lambda r: r["entryId"] == 0xFF  # noqa: E731 - AREA_RESOURCE_END / AREA_PLACEMENT_END (include/gameplay/area.h)
     missed = unresolved if unresolved is not None else []
 
@@ -137,7 +137,7 @@ def spawn_bindings(assets: dict, unresolved: list | None = None) -> dict[tuple[s
                 if flags & 0xFF != 1 or not load <= model < load + len(data):
                     continue                      # not a TMD body: the descriptor names no model
                 try:
-                    src = pkg_model.read_source(data, load, model - load)
+                    src = tmd.read_source(data, load, model - load)
                     key = by_sha.get(hashlib.sha1(data[src["stream_offset"]:src["end"]]).hexdigest())
                 except Exception:  # noqa: BLE001
                     key = None
@@ -443,49 +443,6 @@ RAW_DIR = {"motion_curve": ("motion", ".motion"), "sprite_schedule": ("motion", 
 UNIT = {"u8": 1, "u16": 2, "u32": 4}
 
 
-def textured_faces(data: bytes, stream_off: int, vertex_count: int):
-    """(faces, texture of each face or None, the [page, CLUT] pairs named, the part of each face).
-
-    A face's texture is the index of its pair and one (u, v) per corner, in
-    the face's own corner order. `u0` and `u1` carry a corner each in their
-    low half, the third word one in its low half and, for a quad, a fourth
-    in its high; a quad's corners are stored in Z order and drawn 0 1 3 2.
-    """
-    import struct
-    import pkg_model
-    import tmd_export
-    walked = pkg_model.walk_stream(data, stream_off)
-    faces, textures, pairs, parts = [], [], [], []
-    for packet in (walked[0] if walked else ()):
-        op, count, stride = packet["op"], packet["count"], packet["stride"]
-        if not count or not stride or op in tmd_export.TRANSFORM_OPS:
-            continue
-        word = pkg_model.TEXTURE_WORD.get(op)
-        body = packet["offset"] + pkg_model.HEADER_WORDS * 4
-        for e in range(count):
-            at = body + e * stride * 4
-            if at + stride * 4 > len(data):
-                break
-            words = struct.unpack_from(f"<{stride}I", data, at)
-            got = tmd_export.element_geometry(op, words, vertex_count)
-            if not got:
-                continue
-            faces.append(list(got[0]))
-            parts.append(packet["part"])
-            if word is None or stride < word + 3:
-                textures.append(None)
-                continue
-            u0, u1, u2 = words[word:word + 3]
-            corners = [u0 & 0xFFFF, u1 & 0xFFFF, u2 & 0xFFFF]
-            if len(got[0]) == 4:
-                corners = [corners[0], corners[1], u2 >> 16, corners[2]]
-            pair = [(u1 >> 16) & ~0x60, u0 >> 16]
-            if pair not in pairs:
-                pairs.append(pair)
-            textures.append([pairs.index(pair)] + [c for corner in corners for c in (corner & 0xFF, corner >> 8)])
-    return faces, textures, pairs, parts
-
-
 def write_side_data(folder: Path, assets: dict, embedded: dict) -> dict:
     """Meshes and sampled tracks, one script each beside the page, like the pixels; returns what was found.
 
@@ -494,28 +451,27 @@ def write_side_data(folder: Path, assets: dict, embedded: dict) -> dict:
     with: enough to plot, not a decoding of what each number means.
     """
     import base64
-    import hashlib
     sys.path.insert(0, str(Path(__file__).resolve().parent))
-    import pkg_model
-    import tmd_export
+    from model import mesh, tmd
     folder.mkdir(parents=True, exist_ok=True)
-    by_sha = {rec["sha1"]: key for key, rec in assets.items() if rec.get("type") == "model"}
     have = {"mesh": [], "track": {}, "holds": defaultdict(list)}
-    for package, (load, sources) in sorted(pkg_model.declared_records(ROOT).items()):
+    for package, (load, sources) in sorted(tmd.declared_records(ROOT).items()):
         path = ROOT / "assets" / "USA" / "pe2pkg" / f"{package}.pe2pkg"
         if not path.is_file():
             continue
         data = path.read_bytes()
         for offset in sorted(sources):
             try:
-                src = pkg_model.read_source(data, load, offset)
-                key = by_sha.get(hashlib.sha1(data[src["stream_offset"]:src["end"]]).hexdigest())
+                src = tmd.read_source(data, load, offset)
+                key = tmd.catalogue_name(data, load, offset)    # by the whole model's sha1, else the stream's
                 if key is not None and key not in have["holds"][package]:
                     have["holds"][package].append(key)       # a mesh shared with another package is this one's too
                 if key is None or key in have["mesh"]:
                     continue
-                verts = tmd_export.pose_vertices(tmd_export.read_vertices(data, src["verts_offset"], src["vertex_count"]), src.get("skeleton"))
-                faces, textures, named, parts = textured_faces(data, src["stream_offset"], src["vertex_count"])
+                # Faces, their textures ([page, CLUT] pair, then (u, v) per corner) and parts: model/mesh.py.
+                model, placement = mesh.from_source(data, load, offset)
+                verts = mesh.posed(model)
+                faces, textures, named, parts = mesh.faces_of(model, placement)
                 # The rest skeleton: where each bone sits, and its parent.
                 bones = []
                 skeleton = src.get("skeleton")
@@ -705,7 +661,7 @@ def build_data(db: sqlite3.Connection, out: Path, pixels: str) -> dict:
     findings = defaultdict(list)
     for key, rec in sorted(embedded.items()):
         package = rec.get("source", "").removesuffix(".pe2pkg")
-        if rec.get("type") != "model" or package not in supply.carrier or not assets.get(key, {}).get("textures"):
+        if rec.get("type") not in ("model", "tmd") or package not in supply.carrier or not assets.get(key, {}).get("textures"):
             continue
         bounds = residency.model_bounds(package, rec)
         for page, clut in assets[key]["textures"]:

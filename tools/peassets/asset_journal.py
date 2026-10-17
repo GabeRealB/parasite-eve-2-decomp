@@ -662,7 +662,7 @@ def scan(db: sqlite3.Connection, by_value: bool) -> None:
     # page say how the face is drawn, not where its image is.
     for key, rec in sorted(man.embedded.items()):
         model = man.assets.get(key, {})
-        if rec.get("type") != "model" or not model.get("textures"):
+        if rec.get("type") not in ("model", "tmd") or not model.get("textures"):
             continue
         package = rec["source"].removesuffix(".pe2pkg")
         near = man.near.get(package, set())

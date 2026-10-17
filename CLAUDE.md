@@ -393,9 +393,10 @@ overlay.
   equates `lw $v0, 0x4($t0)` with `lw $v0, 0xC($t0)`, the error behind the old
   56% claim. The brief embeds the top few, so an agent is handed its
   neighbours rather than having to go looking.
-- `python3 tools/peassets/tmd_export.py <family> [--out DIR]` export a manifest
-  family's model streams to Wavefront OBJ (vertices and faces only). Useful for
-  identifying an overlay whose name is still a placeholder.
+- `python3 tools/peassets/model preview <family or package> [--out DIR]` write
+  every model of a manifest family, or of one package, as plain USD (geometry
+  and parts, no textures) to open in Blender. Useful for identifying an overlay
+  whose name is still a placeholder.
 - `python3 tools/check/check_regalloc_model.py <scratch>/*.i.lreg [--inversions]`
   measure how much of a real allocation `CODEGEN_MODEL.md` section 10's ranking
   formula accounts for. Comparing only pseudos that competed in the same block,

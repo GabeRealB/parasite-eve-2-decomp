@@ -716,4 +716,4 @@ names must be unique within a container — so those extra ids keep their defaul
   are ~42% identical at the same offsets, while `800102` shares nothing at a
   fixed offset because its code shifts everything after it. The distinguishing
   meshes are small single-part objects that read as held props rather than
-  heads; `tools/peassets/tmd_export.py kyle` writes them out as OBJ.
+  heads; `python3 tools/peassets/model preview kyle` writes them out as USD.

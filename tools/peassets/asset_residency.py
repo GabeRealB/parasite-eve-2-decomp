@@ -496,9 +496,9 @@ _LOADS: dict[str, tuple[int, bytes]] = {}
 
 def model_bounds(package: str, rec: dict) -> dict[tuple[int, int], list[int]]:
     """(page, CLUT) -> [u0, v0, u1, v1]: the part of the page a model's faces cover."""
-    import pkg_model
+    from model import tmd
     if not _LOADS:
-        for name, (load, _sources) in pkg_model.declared_records(ROOT).items():
+        for name, (load, _sources) in tmd.declared_records(ROOT).items():
             path = ROOT / "assets" / "USA" / "pe2pkg" / f"{name}.pe2pkg"
             if path.is_file():
                 _LOADS[name] = (load, path.read_bytes())
@@ -506,7 +506,7 @@ def model_bounds(package: str, rec: dict) -> dict[tuple[int, int], list[int]]:
         return {}
     load, data = _LOADS[package]
     try:
-        return {pair: list(box) for pair, box in (pkg_model.stream_texture_bounds(data, asset_schema.embedded_offset(rec, load)) or {}).items()}
+        return {pair: list(box) for pair, box in (tmd.stream_texture_bounds(data, asset_schema.embedded_offset(rec, load)) or {}).items()}
     except Exception:  # noqa: BLE001 - bounds are a nicety
         return {}
 
@@ -706,7 +706,7 @@ def chain_check(db: sqlite3.Connection, verbose: bool) -> int:
     outside = []
     for key, rec in sorted(embedded.items()):
         package = rec.get("source", "").removesuffix(".pe2pkg")
-        if rec.get("type") != "model" or package not in carrier:
+        if rec.get("type") not in ("model", "tmd") or package not in carrier:
             continue
         chain = asset_schema.ancestors_of(package, assets, tree)
         for page, clut in assets.get(key, {}).get("textures", ()):

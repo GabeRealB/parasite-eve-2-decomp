@@ -81,6 +81,9 @@ SCHEMA: dict[str, dict[str, tuple[str, ...]]] = {
     # `slots` names the textures a model's materials draw from, in slot order (a declared model; the others
     # still state their raw page/CLUT pairs in `textures`).
     "model": {"payload": ("textures",), "stored": ("parts", "slots")},
+    # A model stream as the overlays declare it, kept raw: located, hashed and given to the build, never decoded.
+    # Every model is one until it is declared (`model`), so the model type can change without touching them.
+    "tmd": {"payload": ("textures",), "stored": ("parts",)},
     # A binding fills a model's slots: `textures` maps each slot name to a texture variant, "<texture>.<variant>".
     # A model's color swaps are further bindings.
     "binding": {"payload": (), "stored": ("model", "textures")},
@@ -135,7 +138,7 @@ DECLARED_TYPES = frozenset({"binding", "texture", "file", "vram_region"})
 
 # Embedded types the code reaches by their address in memory - a model through pointers in the code, an image or a
 # CLUT through its upload record - so a placement of one states its `address`.
-ADDRESSED_TYPES = frozenset({"model", "image", "clut"})
+ADDRESSED_TYPES = frozenset({"model", "tmd", "image", "clut"})
 # An animation bank states how many clips it holds; `clip_names` names them by
 # index, as a review finds what each is.
 EMBEDDED_PAYLOAD: dict[str, tuple[str, ...]] = {"image": ("x", "y", "w", "h"), "clut": ("x", "y", "w", "h"),
@@ -143,12 +146,13 @@ EMBEDDED_PAYLOAD: dict[str, tuple[str, ...]] = {"image": ("x", "y", "w", "h"), "
 EMBEDDED_STORED: dict[str, tuple[str, ...]] = {"image": ("bpp",), "animation": ("clip_names",)}
 
 # What a variant may hold, per type of the asset it belongs to.
-VARIANT_FIELDS: dict[str, tuple[str, ...]] = {"pe2img": ("deps", "row"), "model": ("deps",)}
+VARIANT_FIELDS: dict[str, tuple[str, ...]] = {"pe2img": ("deps", "row"), "model": ("deps",), "tmd": ("deps",)}
 # What each type may depend on. A type missing here may depend on anything.
 DEP_TYPES: dict[str, tuple[str, ...]] = {
     "pe2img": ("pe2clut", "clut"),
     "pe2clut": (),
     "model": ("pe2img", "pe2clut", "image", "clut"),
+    "tmd": ("pe2img", "pe2clut", "image", "clut"),
 }
 
 IMAGE_COLUMN_WIDTH = 0x40
@@ -367,7 +371,8 @@ TYPE_DIR_BY_EXT: dict[str, str] = {
     ".spk": "spk",
     ".txt": "txt",
     ".mcsave": "mcsave",
-    ".tmd": "model",
+    ".tmd": "tmd",
+    ".model": "model",
     ".anim": "animation",
     ".wav": "sample",
 }
@@ -378,10 +383,12 @@ EXT_BY_TYPE: dict[str, str] = {"pe2pkg": ".pe2pkg", "pe2img": ".pe2img", "pe2clu
                                "animation": ".anim", "camera_path": ".path", "movie_path": ".path", "clut": ".clut",
                                "image": ".img", "fontglyph": ".fontglyph", "mcsave": ".mcsave",
                                "morph_deltas": ".morph", "morph_normals": ".morph", "motion_curve": ".motion",
-                               "sprite_schedule": ".motion", "spusample": ".vag", "spk": ".spk", "txt": ".txt", "model": ".tmd", "sample": ".wav"}
+                               "sprite_schedule": ".motion", "spusample": ".vag", "spk": ".spk", "txt": ".txt", "model": ".model", "tmd": ".tmd",
+                               "sample": ".wav"}
 PNG_EXTS = frozenset({".pe2img", ".pe2clut", ".bs"})       # decoded to <name>.png
 DIRECTORY_EXTS = frozenset({".spk", ".mcsave"})            # decoded to a directory, <name>/meta.json and more
-RAW_ONLY_EXTS = frozenset({".tmd", ".anim", ".pe2bundle", ".cap", ".stf", ".demo", ".collision"})  # raw/ holds the only form
+# raw/ holds the only form (a declared model is decoded by model/ instead: decoded_model)
+RAW_ONLY_EXTS = frozenset({".tmd", ".model", ".anim", ".pe2bundle", ".cap", ".stf", ".demo", ".collision"})
 # Decoded forms that are addressed by their type's path and so never move, whatever the group.
 PINNED_TYPE_DIRS = frozenset({"pe2pkg"})
 # Directories the extraction owns at its root that hold no manifest asset. With the type directories, the names a
@@ -407,7 +414,7 @@ def use_table(path: Path | str):
 
 
 def type_dir_for_ext(ext: str) -> str:
-    """The type directory of a stored extension (`.pe2img` -> `pe2img`, `.tmd` -> `model`)."""
+    """The type directory of a stored extension (`.pe2img` -> `pe2img`, `.model` -> `model`)."""
     ext = ext if ext.startswith(".") else f".{ext}"
     return TYPE_DIR_BY_EXT.get(ext, ext.lstrip(".") or "bin")
 
@@ -438,7 +445,7 @@ def record_of(key: str, type_dir: str | None = None, tables: tuple[dict, dict] |
 
 
 def decoded_model(rec: dict[str, Any] | None) -> bool:
-    """A model that declares its texture `slots`: model_decode.py decodes it, so unlike the other models it has
+    """A model that declares its texture `slots`: model/ decodes it, so unlike the other models it has
     a decoded form outside raw/."""
     return bool(rec) and rec.get("type") == "model" and bool(rec.get("slots"))
 
@@ -475,10 +482,10 @@ def asset_dir(key: str, rec: dict[str, Any] | None = None, *, type_dir: str | No
     * an inflated package, `pe2pkg/<name>.pe2pkg` (`PINNED_TYPE_DIRS`). The overlay configs are built from that
       path (`gen_overlay_configs.PACKAGE_DIR`, the `target_path` of the hand-written configs), the model,
       collision and animation initializers are generated from it, and `room_scene.py`, `asset_residency.py`,
-      `pkg_model.py` and others read packages there.
+      `model/tmd.py` and others read packages there.
     * a type that is located but not decoded (`RAW_ONLY_EXTS`: models and animation banks). `raw/` holds its
       only form, and that is the directory answered here - except a model that declares its `slots`, which
-      `model_decode.py` decodes to USD and so lives in its group.
+      model/ decodes to USD and so lives in its group.
     * what is not a manifest asset at all, and so has no group to carry: `main.exe`, the CD streams in `audio/`
       and `movie/`, the pack sidecars under `stage<N>/`, `stages.json` and the ISO manifests.
 

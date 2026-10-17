@@ -5,8 +5,8 @@ Three tables (generated into :mod:`asset_data`, re-exported here):
 * :data:`ASSETS` — unique payloads, keyed by a stable name. Value is ``sha1``
   of the raw file plus optional attributes (``type``, ``bpp`` as int or
   per-column list, ``required``, …). Meshes live here too, as ``type``
-  ``"model"``: they are content-addressed like everything else, so a mesh
-  shared by twelve packages is one entry, and there is no side table.
+  ``"tmd"`` (kept raw) or, once declared, ``"model"``: they are content-addressed
+  like everything else, so a mesh shared by twelve packages is one entry.
 * :data:`EMBEDDED_ASSETS` — payloads baked into an executable rather than
   shipped as a CDF chunk. Nothing on disc references them, so they carry a
   ``vram`` address and exact ``size`` instead of a sha1, and are named the

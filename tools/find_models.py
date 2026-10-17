@@ -3,7 +3,7 @@
 
 Nothing here is searched for. A model is a `model` object followed by its
 `modelSource` object in `configs/USA/overlays.toml`, and the generator checks
-each pair against the package: the record decodes (`pkg_model.read_source`)
+each pair against the package: the record decodes (`tmd.read_source`)
 and the model object is exactly the arrays and stream it points at. So the set
 of models, where they are and how each is laid out come from declarations the
 build already verifies.
@@ -37,7 +37,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "tools" / "buildsteps"))
 sys.path.insert(0, str(ROOT / "tools" / "peassets"))
-import pkg_model  # noqa: E402
+from model import tmd  # noqa: E402
 from gen_overlay_configs import PACKAGE_DIR, declared_models, slot_packages  # noqa: E402
 
 OUT = ROOT / "build/USA/out"
@@ -327,7 +327,7 @@ def main() -> int:
     for m in models:
         pkg = m["package"]
         data = (PACKAGE_DIR / f"{pkg}.pe2pkg").read_bytes()
-        src = pkg_model.read_source(data, m["load"], m["source"])
+        src = tmd.read_source(data, m["load"], m["source"])
         addr = m["load"] + m["source"]
         if pkg not in syms_cache:
             elf = OUT / f"{pkg}.elf"

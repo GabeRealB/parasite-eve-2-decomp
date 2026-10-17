@@ -107,7 +107,7 @@ def check_model_records(name: str, objects: list[dict], data: bytes, load: int) 
     array to the record, so neither boundary can be misplaced.
     """
     sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "peassets"))
-    import pkg_model
+    from model import tmd
 
     kinds = [(obj.get("kind"), int(str(obj["at"]), 16) if "at" in obj else None) for obj in objects]
     # Where each object's runs begin: a run's `at`, and every section a unit owns.
@@ -121,7 +121,7 @@ def check_model_records(name: str, objects: list[dict], data: bytes, load: int) 
             if i == 0 or kinds[i - 1][0] != "model":
                 raise SystemExit(f"{name}: modelSource at 0x{at:X} does not follow a model")
             try:
-                src = pkg_model.read_source(data, load, at)
+                src = tmd.read_source(data, load, at)
             except ValueError as e:
                 raise SystemExit(f"{name}: modelSource {e}")
             model_at = kinds[i - 1][1]
@@ -132,10 +132,10 @@ def check_model_records(name: str, objects: list[dict], data: bytes, load: int) 
             if objects[i - 1].get("in_c"):
                 check_c_data_owner(name, objects, model_at, at, len(data))
             if objects[i].get("in_c"):
-                check_c_data_owner(name, objects, at, at + pkg_model.TMD_SOURCE_SIZE, len(data))
+                check_c_data_owner(name, objects, at, at + tmd.TMD_SOURCE_SIZE, len(data))
             else:
                 end = next((a for a in starts if a > at), len(data))
-                if end != at + pkg_model.TMD_SOURCE_SIZE:
+                if end != at + tmd.TMD_SOURCE_SIZE:
                     raise SystemExit(f"{name}: modelSource at 0x{at:X} runs to 0x{end:X}, not its record's end")
 
 

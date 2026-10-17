@@ -19,7 +19,7 @@ and animation sit together.
 | Early-image handlers | `src/main/hasm/Tmd_StreamHandlers_Ops.s` |
 | Container types | `include/main/tmd_types.h` (`TmdSource`, `TmdObject`) |
 | Attach path | `src/gameplay/model_objects.c` (`modelObjectAttachTmd`), `src/main/task.c` |
-| Locate / carve streams | `tools/peassets/pkg_model.py` |
+| Locate / carve streams | `tools/peassets/model/tmd.py` |
 
 **Status.** The format is understood well enough to write an exporter. An
 opcode's bits give the corner count, the shading model, whether it is textured
@@ -186,8 +186,8 @@ Two consequences:
   `workm.m = parent.workm.m * coord.m`, `workm.t = parent.workm.m * coord.t +
   parent.workm.t` — assembles the character. For Kyle it yields a
   pelvis at `y = -951`, a head at `-1594`, arms out to `x = ±211` and feet at
-  `-108` with the root on the ground (`y` is down). `tmd_export.py` and the
-  viewer both apply it, so exports and the Model tab show standing figures
+  `-108` with the root on the ground (`y` is down). The model codec and the
+  viewer both apply it, so previews and the Model tab show standing figures
   rather than a heap.
 
   Animation updates each bone's *local* transform and preserves its parent
@@ -699,9 +699,11 @@ What remains is narrower.
 
 ## 7. Tooling
 
-Reading a model is now end to end: `tmd_export.py` writes OBJ, and the two
-corrections it needed are worth stating because both produce output that looks
-plausible while being wrong.
+Reading a model is now end to end: `tools/peassets/model/codec.py` decodes every
+model and re-encodes it byte-exact, `python3 tools/peassets/model preview <family>`
+writes them as USD, and the viewer and the asset map draw them from it. Two
+corrections the first decoder needed are worth stating because both produce
+output that looks plausible while being wrong.
 
 **The transform pre-pass is not geometry, and its consumers are.** Skipping
 `0xC0`/`0xC4`/`0xC8` is right (§3.5), but the opcodes with bit `0x01` must not
@@ -758,7 +760,7 @@ shared by exactly two faces; with `/8` it is 279 faces, 119 rejected and only
 
 | Tool | Role |
 |---|---|
-| `tools/peassets/pkg_model.py` | walks and delimits streams, resolves each to its `TmdSource`, carves them to `raw/model/*.tmd` |
+| `tools/peassets/model/tmd.py` | walks and delimits streams, resolves each to its `TmdSource`, carves them to `raw/tmd/*.tmd` |
 | `tools/peassets/pkg_anim.py` | the animation side; see `ASSET_FORMATS.md` §9.2 |
 
 Streams are stored raw only (`.tmd` is in `RAW_ONLY_EXTS`) because nothing

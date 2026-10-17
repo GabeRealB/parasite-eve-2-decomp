@@ -19,7 +19,7 @@ Implementation references:
 | Runtime FS loader | `src/main/fs.c`, `include/main/fs.h` |
 | **CD streams (MTS audio + STR movie)** | [`STREAM_FORMATS.md`](STREAM_FORMATS.md), `mts_codec.py`, `str_codec.py` |
 | **Overlays (RAM slots, rooms, models)** | [`OVERLAYS.md`](OVERLAYS.md) |
-| **Models (TMD)** | [`TMD_FORMAT.md`](TMD_FORMAT.md), `tools/peassets/pkg_model.py`, `src/main/tmd.c` |
+| **Models (TMD)** | [`TMD_FORMAT.md`](TMD_FORMAT.md), `tools/peassets/model/tmd.py`, `src/main/tmd.c` |
 | **Resource bundles** | [`BUNDLE_FORMAT.md`](BUNDLE_FORMAT.md), `tools/peassets/bundle.py`, `src/main/fs.c` |
 | **Dialogue (CAP)** | [`CAP_FORMAT.md`](CAP_FORMAT.md), `src/gameplay/cap_reloc.c`, `src/gameplay/captions.c` |
 | Animation in packages | `tools/peassets/pkg_anim.py`, `src/gameplay/scene_runtime.c` |
@@ -793,8 +793,10 @@ part: its initial local matrix and parent index. The stream is packets of
 (quad) families; texture
 coordinates and the remaining 21 families are open.
 
-Streams are carved to `raw/model/*.tmd` and stored raw only, since nothing
-decodes them yet.
+Streams are carved to `raw/tmd/*.tmd` (type `tmd`) and stored raw only. A model
+a group declares whole, with its texture slots, is type `model` instead: its bytes
+from the first array to the end of its record are `raw/model/<name>.model`, and
+`tools/peassets/model` writes it as USD.
 
 ### 9.3.1 Animation tracks bind to model parts one-for-one
 
@@ -900,7 +902,7 @@ Angles use `4096` for a full turn and the rotation order is PsyQ's `RotMatrix`
 
 | Kind | Store | Why |
 |---|---|---|
-| Model streams | `raw/model/{pkg}_model_{off}.tmd` | contiguous byte ranges, so each is a self-contained asset; the map entry carries the `TmdSource` vertex/normal arrays where one is found |
+| Model streams | `raw/tmd/{pkg}_model_{off}.tmd` | contiguous byte ranges, so each is a self-contained asset; the map entry carries the `TmdSource` vertex/normal arrays where one is found |
 | Animation blocks | *not stored* | not contiguous — see below |
 
 `.tmd` is in `RAW_ONLY_EXTS`: located but not decoded, so there is no type-store
@@ -947,7 +949,7 @@ bone count from the model stream.
 
 | Tool | Role |
 |---|---|
-| `tools/peassets/pkg_model.py` | locates streams, carves them into `raw/model/` |
+| `tools/peassets/model/tmd.py` | locates streams, carves them into `raw/tmd/` |
 | `tools/peassets/pkg_anim.py` | walks clip structure; reports, stores nothing |
 | `tools/peassets/pkg_overlay.py` | family → overlay → embedded asset, for the viewer's Overlays tree |
 | `tools/peassets/mesh_view.py` | software-rendered mesh viewport (Tk canvas) |
@@ -973,13 +975,13 @@ straight out of the package:
 
 A package's models are the ones the overlay manifest declares - or, for the
 resident images, `configs/USA/resident.toml` (gameplay's five effect meshes) -
-each read from its `TmdSource` record (`pkg_model.declared_records` /
+each read from its `TmdSource` record (`model.tmd.declared_records` /
 `read_source`); nothing is searched for. Animation blocks are still located when a package's node is
 first expanded, and cached per package.
 
-The mesh comes from the same decoder as `tmd_export.py`, Y-flip included, so a
-model that looks upright in the viewport looks upright in Blender. Only faces
-are drawn — no textures and no UVs.
+The mesh comes from the model codec (`tools/peassets/model/mesh.py`), the same
+decoder `model preview` writes USD from, so a model that looks upright in the
+viewport looks upright in Blender. Only faces are drawn — no textures and no UVs.
 
 **Characters are posed with their rest skeleton.** A model stream is split by
 `0xFFFFFFFE` into parts, one per bone, and each part's vertices are in that

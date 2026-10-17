@@ -58,7 +58,7 @@ import area_variants  # noqa: E402
 import asset_journal  # noqa: E402
 import asset_schema  # noqa: E402
 import gen_collision_inc  # noqa: E402
-import pkg_model  # noqa: E402
+from model import tmd  # noqa: E402
 from asset_residency import GROUP_BASE  # noqa: E402
 
 SCHEMA = 1
@@ -399,7 +399,7 @@ class Project:
         self.models_of: dict[str, list[str]] = defaultdict(list)
         self.model_at: dict[tuple[str, int], str] = {}
         for key, r in self.embedded.items():
-            if r.get("type") == "model":
+            if r.get("type") in ("model", "tmd"):
                 package = r.get("source", "").removesuffix(".pe2pkg")
                 self.models_of[package].append(key)
                 # Code reaches a model by its address once the package is loaded (stated for a model).
@@ -1423,7 +1423,7 @@ class Scene:
         if key is None:
             # A mesh several packages carry is catalogued once, under its SHA-1 (asset_data.MODELS).
             try:
-                key = pkg_model.catalogue_name(data, load, address - load)
+                key = tmd.catalogue_name(data, load, address - load)
             except Exception:  # noqa: BLE001 - an unreadable stream is reported below
                 key = None
         if key is None:

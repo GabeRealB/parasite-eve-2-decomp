@@ -1424,14 +1424,15 @@ def main():
 
 def decode_declared(assets_root: Path) -> None:
     """Decode what the asset table fully declares: each file's textures, as indexed PNGs (texture/), then
-    each model with its slots and bindings, as USD (model_decode.py). The rest stays raw until it is declared."""
-    import model_decode
-    from asset_data import ASSETS
+    each model with its slots and bindings, as USD (model/). The rest stays raw until it is declared."""
+    from model import declared
+    from asset_data import ASSETS, EMBEDDED_ASSETS
     from texture import files
 
     for name in files.declared_files(ASSETS):
         files.decode_file(name, ASSETS, assets_root)
-    model_decode.main(["--assets", str(assets_root)])
+    for name in declared.declared(ASSETS):
+        declared.decode(name, ASSETS, EMBEDDED_ASSETS, assets_root)
 
 
 if __name__ == "__main__":

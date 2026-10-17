@@ -10,7 +10,7 @@ Two things shape the design:
 
 * **Models are declared.** The manifest lists every model with its
   `TmdSource` record, so a package's models are read from those records
-  (``pkg_model.declared_records``), not searched for. Animation blocks are
+  (``tmd.declared_records``), not searched for. Animation blocks are
   still located on demand when a node opens, and :func:`scan_overlay` caches
   the result.
 * **The manifest is the index.** Overlay names are manifest keys and a package
@@ -33,8 +33,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from asset_db import asset_name_key  # noqa: E402
 
 import pkg_anim  # noqa: E402
-import pkg_model  # noqa: E402
-import tmd_export  # noqa: E402
+from model import tmd  # noqa: E402
 
 
 @dataclass
@@ -121,7 +120,7 @@ def _declared(overlay: Overlay) -> list[int]:
     global _records
     if _records is None:
         root = find_repo_root(overlay.path.parent) or Path(__file__).resolve().parents[2]
-        _records = pkg_model.declared_records(root)
+        _records = tmd.declared_records(root)
     return sorted(_records.get(overlay.name, (0, []))[1])
 
 
@@ -139,10 +138,10 @@ def scan_overlay(overlay: Overlay, *, anim_candidates=None) -> list[Embedded]:
     out: list[Embedded] = []
     base = overlay.load_addr
     for rec in _declared(overlay):
-        src = pkg_model.read_source(data, base, rec)
+        src = tmd.read_source(data, base, rec)
         off = src["stream_offset"]
         size = src["end"] - off
-        named = pkg_model.model_name(data[off : src["end"]])
+        named = tmd.model_name(data[off : src["end"]])
         detail = {"source": src, "name": named}
         label = (named or f"model @0x{off:05X}") + f"  ({src['vertex_count']} verts)"
         out.append(Embedded("model", off, size, label, detail))
@@ -212,7 +211,7 @@ class Mesh:
     therefore turns every face inside out, which is what makes a solid render
     look like it is showing its back faces.
 
-    Everything here is Y-negated, the same flip ``tmd_export`` writes into OBJ:
+    Everything here is Y-negated:
     the PlayStation is Y-down and every viewer is Y-up. Negating one axis is a
     reflection and so reverses handedness, which flips the cross product too -
     so in *this* space the winding-derived normal agrees with the stored one,
@@ -269,16 +268,6 @@ def compose_skeleton(skel: dict) -> list[tuple[list, list]]:
     return [o for o in out if o is not None]
 
 
-def _bone_of_vertex(skel: dict, vertex_count: int) -> list[int]:
-    """Vertex index -> owning bone, from the per-part vertex counts."""
-    owner: list[int] = []
-    for i, c in enumerate(skel["part_verts"]):
-        owner.extend([i] * int(c))
-    if len(owner) < vertex_count:
-        owner.extend([max(0, len(skel["part_verts"]) - 1)] * (vertex_count - len(owner)))
-    return owner[:vertex_count]
-
-
 def _winding_normal(verts, face):
     a, b, c = verts[face[0]], verts[face[1]], verts[face[2]]
     ux, uy, uz = b[0] - a[0], b[1] - a[1], b[2] - a[2]
@@ -287,84 +276,60 @@ def _winding_normal(verts, face):
 
 
 def decode_model(overlay: Overlay, emb: Embedded) -> Mesh:
-    """Decode one embedded model stream into a :class:`Mesh`."""
+    """Decode one embedded model into a :class:`Mesh`, with the model codec (model/mesh.py)."""
+    from model import mesh
+
     src = emb.detail.get("source")
     if not src:
         return Mesh()
     data = overlay.path.read_bytes()
-    count = int(src["vertex_count"])
-    ncount = int(src["normal_count"])
-    raw_v = tmd_export.read_vertices(data, src["verts_offset"], count)
-    raw_n = tmd_export.read_vertices(data, src["norms_offset"], ncount)
-    faces, nrefs, parts, skipped = tmd_export.decode_stream_geometry(
-        data, emb.offset, count, ncount
-    )
-    # Pose the rest skeleton. Without this every part sits in its own local
-    # frame and the limbs pile up on the origin.
-    skel = src.get("skeleton")
-    owner: list[int] = []
-    world: list[tuple[list, list]] = []
-    if skel and skel["part_count"] == len(skel["bones"]):
-        world = compose_skeleton(skel)
-        owner = _bone_of_vertex(skel, count)
-        placed = []
-        for i, (x, y, z) in enumerate(raw_v):
-            rot, tr = world[owner[i]] if owner[i] < len(world) else ([[1, 0, 0], [0, 1, 0], [0, 0, 1]], [0, 0, 0])
-            placed.append(
-                (
-                    rot[0][0] * x + rot[0][1] * y + rot[0][2] * z + tr[0],
-                    rot[1][0] * x + rot[1][1] * y + rot[1][2] * z + tr[1],
-                    rot[2][0] * x + rot[2][1] * y + rot[2][2] * z + tr[2],
-                )
-            )
-        raw_v = placed
-        # Normals rotate with their bone, but not by the translation.
-        rotated = []
-        for i, nvec in enumerate(raw_n):
-            rot = world[owner[i]][0] if i < len(owner) and owner[i] < len(world) else [[1, 0, 0], [0, 1, 0], [0, 0, 1]]
-            rotated.append(
-                tuple(sum(rot[r][k] * nvec[k] for k in range(3)) for r in range(3))
-            )
-        raw_n = rotated
-
-    verts = [(x, -y, z) for x, y, z in raw_v]
-
-    normals: list[tuple[float, float, float]] = []
+    model, _placement = mesh.from_source(data, overlay.load_addr, src["source_offset"])
+    world = mesh.worlds(model["parts"])
+    owner = [i for i, part in enumerate(model["parts"]) for _v in part["vertices"]]
+    owner += [0] * len(model.get("loose_vertices", ()))
+    verts = [(x, -y, z) for x, y, z in mesh.posed(model)]
+    faces, normals, parts = [], [], []
     stored = 0
-    for face, nref in zip(faces, nrefs):
-        if nref is not None and nref < len(raw_n):
-            nx, ny, nz = raw_n[nref]
+    for f in model["faces"]:
+        face = tuple(c["vertex"] for c in f["corners"])
+        faces.append(face)
+        # A face spanning parts (the seam) is drawn with the part of its first corner.
+        part = f.get("part", -1)
+        parts.append(part if part >= 0 else owner[face[0]])
+        ref = f["corners"][0].get("normal", f.get("normal"))
+        if ref is not None and 0 <= ref < len(model["normals"]):
+            rot = world[parts[-1]][0]
+            n = model["normals"][ref]
+            nx, ny, nz = (sum(rot[r][k] * n[k] for k in range(3)) for r in range(3))
             normals.append((float(nx), float(-ny), float(nz)))
             stored += 1
         else:
             normals.append(_winding_normal(verts, face))
+    posed = bool(src.get("skeleton"))
     return Mesh(
         verts=verts,
         bone_of_vertex=owner,
-        bones=[{"rot": r, "trans": t} for r, t in world],
-        posed=bool(world),
+        bones=[{"rot": r, "trans": t} for r, t in world] if posed else [],
+        posed=posed,
         faces=faces,
         normals=normals,
         parts=parts,
-        part_count=max(parts, default=0) + 1,
-        skipped=dict(skipped),
+        part_count=len(model["parts"]),
+        skipped={},
         stored_normals=stored,
     )
 
 
 def raw_arrays(overlay: Overlay, emb: Embedded):
     """(vertices, normals) as they sit on disc, before any posing."""
+    from model import mesh
+
     src = emb.detail.get("source")
     if not src:
         return [], []
-    data = overlay.path.read_bytes()
-    verts = tmd_export.read_vertices(
-        data, src["verts_offset"], int(src["vertex_count"])
-    )
-    norms = tmd_export.read_vertices(
-        data, src["norms_offset"], int(src["normal_count"])
-    )
-    return verts, norms
+    model, _placement = mesh.from_source(overlay.path.read_bytes(), overlay.load_addr, src["source_offset"])
+    verts = [tuple(v) for part in model["parts"] for v in part["vertices"]] + [tuple(v) for v in model.get("loose_vertices", ())]
+    return verts, [tuple(n) for n in model["normals"]]
 
 
 def package_id(path: Path) -> int | None:
