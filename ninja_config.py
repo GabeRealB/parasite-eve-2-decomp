@@ -222,6 +222,7 @@ PERMUTER_DIR = Path("permuter")
 LIB_SPLAT_EXT = TOOLS_DIR / "splat_ext" / "libsrc.py"
 GEN_ASSET_INC = TOOLS_DIR / "buildsteps" / "gen_asset_inc.py"
 GEN_MODEL_INC = TOOLS_DIR / "buildsteps" / "gen_model_inc.py"
+GEN_MODEL_SOURCE = TOOLS_DIR / "buildsteps" / "gen_model_source.py"
 GEN_ANIMATION_INC = TOOLS_DIR / "buildsteps" / "gen_animation_inc.py"
 GEN_COLLISION_INC = TOOLS_DIR / "buildsteps" / "gen_collision_inc.py"
 
@@ -254,15 +255,58 @@ def asset_includes(version: str) -> list[tuple[Path, Path, int | str]]:
     return out
 
 
+def declared_model_placements() -> dict[tuple[str, int], tuple[str, str, str]]:
+    """(package, model offset) -> (name, decoded directory, generated include), for every declared model (asset
+    type `model`): those are built from their USD and binding by gen_model_source.py, not cut out of the package.
+    The include is grouped like the asset: `<group>/<local name>.inc` (weapons/m93r/model.inc)."""
+    import importlib.util
+
+    modules = {}
+    for module in ("asset_data", "asset_schema"):
+        spec = importlib.util.spec_from_file_location(module, TOOLS_DIR / "peassets" / f"{module}.py")
+        modules[module] = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(modules[module])
+    data, schema = modules["asset_data"], modules["asset_schema"]
+    out = {}
+    for name, rec in data.ASSETS.items():
+        if rec.get("type") == "model" and rec.get("slots"):
+            place = data.EMBEDDED_ASSETS[name]
+            group = rec.get("group")
+            if not group:
+                raise SystemExit(f"{name}: a declared model belongs to a group")
+            prefix = "_".join(group.split("/")[1:])         # asset_groups.py names grouped assets <prefix>_<local>
+            local = name.removeprefix(f"{prefix}_") if prefix else name
+            out[(place["source"].removesuffix(".pe2pkg"), schema.embedded_offset(place))] = (
+                name, schema.asset_dir(name, rec, tables=(data.ASSETS, data.EMBEDDED_ASSETS)), f"{group}/{local}.inc")
+    return out
+
+
+def model_source_includes(version: str) -> list[tuple[str, Path, Path]]:
+    """(name, model USD, generated include) for every declared model a C unit owns."""
+    from tools.buildsteps.gen_overlay_configs import declared_models
+
+    manifest = tomllib.loads((CONFIG_DIR / version / "overlays.toml").read_text())
+    placements = declared_model_placements()
+    out = []
+    for model in declared_models(manifest):
+        if (model["package"], model["model"]) not in placements or not model["in_c"]:
+            continue
+        name, directory, include = placements[(model["package"], model["model"])]
+        out.append((name, ASSETS_DIR / version / directory / f"{name}.usda", BUILD_DIR / "include" / "assets" / include))
+    return out
+
+
 def model_includes(version: str) -> list[tuple[Path, list[Path], int, int, str]]:
-    """Typed initializer inputs for model payloads owned by C translation units."""
+    """Typed initializer inputs for model payloads owned by C translation units (declared models excepted)."""
     from tools.buildsteps.gen_model_inc import components
     from tools.buildsteps.gen_model_inc import include_names
     from tools.buildsteps.gen_overlay_configs import declared_models, declared_resident_models
 
     manifest = tomllib.loads((CONFIG_DIR / version / "overlays.toml").read_text())
     resident = tomllib.loads((CONFIG_DIR / version / "resident.toml").read_text())
-    models = [m for m in declared_models(manifest) + declared_resident_models(resident) if m["in_c"]]
+    placements = declared_model_placements()
+    models = [m for m in declared_models(manifest) + declared_resident_models(resident)
+              if m["in_c"] and (m["package"], m["model"]) not in placements]
     raw_of = lambda package: ASSETS_DIR / version / "pe2pkg" / f"{package}.pe2pkg"
     cache: dict[str, bytes] = {}
     def read(package: str) -> bytes:
@@ -1045,6 +1089,11 @@ def ninja_build(
         command=f"{PYTHON} {GEN_MODEL_INC} $in $load $source {BUILD_DIR / 'include' / 'assets'} $name",
     )
     ninja_rules_file.rule(
+        "model-source",
+        description="model-source $name",
+        command=f"{PYTHON} {GEN_MODEL_SOURCE} $name $out --assets {ASSETS_DIR / 'USA'}",
+    )
+    ninja_rules_file.rule(
         "collision-inc",
         description="collision-inc $in $source",
         command=f"{PYTHON} {GEN_COLLISION_INC} $in $load $source {BUILD_DIR / 'include' / 'assets'} $pieces",
@@ -1094,6 +1143,16 @@ def ninja_build(
                 variables={"load": hex(load), "source": hex(source), "name": name},
             )
         ASSET_INC_OUTPUTS.extend(str(inc) for inc in outputs)
+    peassets = TOOLS_DIR / "peassets"
+    model_source_deps = [str(GEN_MODEL_SOURCE), str(peassets / "asset_data.py"), str(peassets / "asset_schema.py"),
+                         str(peassets / "texture" / "declaration.py"),
+                         *sorted(str(p) for p in (peassets / "model").glob("*.py")),
+                         *sorted(str(p) for p in (peassets / "groups").rglob("*.toml"))]
+    for name, usd, inc in model_source_includes(version):
+        for writer in asset_writers:
+            writer.build(outputs=str(inc), rule="model-source", inputs=str(usd),
+                         implicit=model_source_deps, variables={"name": name})
+        ASSET_INC_OUTPUTS.append(str(inc))
     for raw, outputs, load, source, pieces in collision_includes(version):
         for writer in asset_writers:
             writer.build(

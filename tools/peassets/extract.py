@@ -1409,6 +1409,7 @@ def main():
         ]
         if missing:
             logging.warning("Required overlay(s) not found in store: %s", missing)
+        decode_declared(output_path)        # the build reads declared models from their USD
         write_pack_manifests(args, output_path, store, rom_root)
         logging.info("All done! (raw + pe2pkg overlays under %s)", output_path)
         return

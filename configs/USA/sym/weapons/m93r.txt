@@ -1,4 +1,3 @@
 // Overlay-local symbols for M93R (file 10302).
-gM93rWeaponModel = 0x8011DA74; // held M93R model, exported to task bank 7
 m93rAttackState = 0x8011d1c4; // type:func
 gM93rPlayerAnimationBank = 0x8012adf8;

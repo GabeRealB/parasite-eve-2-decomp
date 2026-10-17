@@ -27,46 +27,9 @@ enum {
     M93R_ANIMATION_PACKED_ROTATION_BANK      = 4,
 };
 
-/// Initial identity transform and self-parented root of the weapon's sole part.
-///
-/// Read-only skeleton and count data retain their serialized positions in .data.
-static const TmdBone _gM93rWeaponModelSkeleton[] __attribute__((section(".data"))) = {
-#include "assets/m93r_model_skeleton.inc"
-};
-
-/// Vertex count of the weapon's sole part: all 32 vertices.
-static const u32 _gM93rWeaponModelPartVerts[ARRAY_SIZE(_gM93rWeaponModelSkeleton)] __attribute__((section(".data"))) = {
-#include "assets/m93r_model_partVerts.inc"
-};
-
-/// Writable weapon vertices in integer coordinates local to the hand anchor.
-static SVECTOR _gM93rWeaponModelVerts[] = {
-#include "assets/m93r_model_verts.inc"
-};
-
-/// Writable weapon lighting normals with twelve fractional bits, indexed independently of vertices.
-static SVECTOR _gM93rWeaponModelNormals[] = {
-#include "assets/m93r_model_normals.inc"
-};
-
-/// Writable commands for four textured triangles and 28 textured quads, ending in `TMD_STREAM_END`.
-///
-/// First model creation resolves the commands' draw-handler slots in place.
-static u32 _gM93rWeaponModelStream[] = {
-#include "assets/m93r_model_stream.inc"
-};
-
-TmdSource gM93rWeaponModel = {
-    .handlersResolved    = false,
-    .bufferHalfBytes     = (4 * sizeof(POLY_GT3)) + (28 * sizeof(POLY_GT4)),
-    .preXformRegionBytes = 0,
-    .partCount           = ARRAY_SIZE(_gM93rWeaponModelSkeleton),
-    .partVertexCounts    = _gM93rWeaponModelPartVerts,
-    .verts               = _gM93rWeaponModelVerts,
-    .normals             = _gM93rWeaponModelNormals,
-    .skeleton            = _gM93rWeaponModelSkeleton,
-    .stream              = _gM93rWeaponModelStream,
-};
+/// The held weapon model, `gM93rWeaponModel`, with its arrays: generated from the asset
+/// (weapons/m93r/m93r_model.usda, textured through m93r_binding) by tools/buildsteps/gen_model_source.py.
+#include "assets/weapons/m93r/model.inc"
 
 /// Idle translations in model units and Euler rotations in 1/4096 turns for tracks 0 and 1.
 ///

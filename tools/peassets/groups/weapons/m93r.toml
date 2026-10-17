@@ -13,6 +13,7 @@ contents = [
 [model]
 type = "model"
 slots = ["body"]
+symbol = "gM93rWeaponModel"
 sha1 = "40dd2cbcc600c86e62b9203992a2b7357ad43590"
 
 [sounds]

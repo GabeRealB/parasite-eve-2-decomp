@@ -79,8 +79,10 @@ SCHEMA: dict[str, dict[str, tuple[str, ...]]] = {
     "pe2img": {"payload": ("x", "y", "w", "h"), "stored": ("bpp",)},
     "pe2clut": {"payload": ("x", "y", "w", "h"), "stored": ()},
     # `slots` names the textures a model's materials draw from, in slot order; where they are in VRAM is its
-    # binding's (model.declared.texture_pairs). A `tmd` still states its raw page/CLUT pairs in `textures`.
-    "model": {"payload": (), "stored": ("parts", "slots")},
+    # binding's (model.declared.texture_pairs). `symbol` names its TmdSource record: the C definition the build
+    # generates (gen_model_source.py) and the label the overlay's split gives it (gen_overlay_configs.asset_symbols).
+    # A `tmd` still states its raw page/CLUT pairs in `textures`.
+    "model": {"payload": (), "stored": ("parts", "slots", "symbol")},
     # A model stream as the overlays declare it, kept raw: located, hashed and given to the build, never decoded.
     # Every model is one until it is declared (`model`), so the model type can change without touching them.
     "tmd": {"payload": ("textures",), "stored": ("parts",)},
