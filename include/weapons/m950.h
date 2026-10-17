@@ -15,7 +15,7 @@
 /// after installing a valid clip pointer there. Keep M950 loaded while playback
 /// borrows this bank or its native clips; copied clips also require their source
 /// data to remain loaded.
-extern AnimationBank gM950PlayerAnimationBank;
+extern AnimationSet* gM950PlayerAnimationBank[ANIMATION_BANK_SET_CAPACITY];
 
 /// The held M950 weapon model attached beneath the player's hand anchor.
 ///

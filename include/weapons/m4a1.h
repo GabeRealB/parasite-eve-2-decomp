@@ -15,7 +15,7 @@
 /// Play an extension entry only after installing a valid clip pointer there.
 /// Keep the selected family package loaded while playback borrows this bank or
 /// its native clips; copied clips also require their source data to remain loaded.
-extern AnimationBank gM4a1PlayerAnimationBank;
+extern AnimationSet* gM4a1PlayerAnimationBank[ANIMATION_BANK_SET_CAPACITY];
 
 /// The held rifle model shared by the M4A1 and both upgrade packages.
 ///

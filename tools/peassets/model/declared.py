@@ -9,6 +9,11 @@ its slots.
 
 The way back reads `<name>.usda` and encodes it with the placement its binding gives (`encode`, `check`): the
 model's bytes are built from the USD, the binding and the files, not from the package.
+
+A rig (type `rig`) has no bytes of its own: its skeleton is the one every declared model naming it (`rig`) stores,
+and `decode_rig` derives it from them, requiring them to agree joint for joint - parent, rest rotation and
+translation - and writes it as `<rig>.usda`, its joints named by the rig's `joints`. A model on a rig references that
+file for its skeleton, so it is decoded after its rig, and encoded with the rig's joints.
 """
 from __future__ import annotations
 
@@ -16,6 +21,7 @@ import os
 from pathlib import Path
 
 import asset_schema
+from texture import files
 from texture.declaration import place_at
 
 from . import codec, mesh, usd
@@ -25,6 +31,52 @@ TEXELS_PER_HALFWORD = {4: 4, 8: 2, 16: 1}
 
 def declared(assets: dict) -> list[str]:
     return sorted(k for k, r in assets.items() if r.get("type") == "model" and r.get("slots"))
+
+
+def rigs(assets: dict) -> list[str]:
+    return sorted(k for k, r in assets.items() if r.get("type") == "rig")
+
+
+def rig_path(rig: str, assets: dict, assets_root: Path) -> Path:
+    return assets_root / asset_schema.asset_dir(rig, assets[rig]) / f"{asset_schema.file_name(rig)}.usda"
+
+
+def rig_models(rig: str, assets: dict) -> list[str]:
+    """The declared models built on `rig`."""
+    return [name for name in declared(assets) if assets[name].get("rig") == rig]
+
+
+def derive_rig(rig: str, assets: dict, embedded: dict, assets_root: Path) -> list[dict]:
+    """The skeleton (parent, rotation, translation per joint) every model on `rig` stores; they must agree."""
+    models = rig_models(rig, assets)
+    if not models:
+        raise SystemExit(f"{rig}: no declared model is built on it, so nothing gives its skeleton")
+    skeleton, first = None, models[0]
+    for name in models:
+        blob, address = model_bytes(name, assets_root, embedded)
+        parts = [{k: p[k] for k in ("parent", "rotation", "translation")} for p in codec.decode(blob, address)[0]["parts"]]
+        if skeleton is None:
+            skeleton = parts
+        elif len(parts) != len(skeleton):
+            raise SystemExit(f"{rig}: {name} has {len(parts)} parts, {first} {len(skeleton)}")
+        else:
+            for i, (mine, theirs) in enumerate(zip(parts, skeleton)):
+                if mine != theirs:
+                    raise SystemExit(f"{rig}: joint {i} of {name} is {mine}, of {first} {theirs}")
+    names = assets[rig].get("joints")
+    if names is not None and len(names) != len(skeleton):
+        raise SystemExit(f"{rig}: names {len(names)} joints, its models have {len(skeleton)}")
+    return skeleton
+
+
+def decode_rig(rig: str, assets: dict, embedded: dict, assets_root: Path) -> Path:
+    """Write a rig, derived from its models, as USD; its path."""
+    skeleton = derive_rig(rig, assets, embedded, assets_root)
+    path = rig_path(rig, assets, assets_root)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.unlink(missing_ok=True)
+    usd.write_rig(skeleton, assets[rig].get("joints"), path, f"{rig}: the skeleton of {', '.join(rig_models(rig, assets))}")
+    return path
 
 
 def model_bytes(name: str, assets_root: Path, embedded: dict) -> tuple[bytes, int]:
@@ -88,7 +140,7 @@ def texture_pairs(name: str, assets: dict) -> list[list[int]]:
 
 
 def source_path(name: str, assets: dict, assets_root: Path) -> Path:
-    return assets_root / asset_schema.asset_dir(name, assets[name]) / f"{name}.usda"
+    return assets_root / asset_schema.asset_dir(name, assets[name]) / f"{asset_schema.file_name(name)}.usda"
 
 
 def decode(name: str, assets: dict, embedded: dict, assets_root: Path, binary: bool = False) -> Path:
@@ -112,18 +164,23 @@ def decode(name: str, assets: dict, embedded: dict, assets_root: Path, binary: b
     out_dir = source_path(name, assets, assets_root).parent
     out_dir.mkdir(parents=True, exist_ok=True)
     label = f"{name}: {embedded[name]['source']} at 0x{asset_schema.embedded_offset(embedded[name]):X}"
+    rig = assets[name].get("rig")
+    rig_file = Path(os.path.relpath(rig_path(rig, assets, assets_root), out_dir)).as_posix() if rig else None
+    if rig and [{k: p[k] for k in ("parent", "rotation", "translation")} for p in model["parts"]] != \
+            derive_rig(rig, assets, embedded, assets_root):
+        raise SystemExit(f"{name}: its skeleton is not its rig {rig}'s")
     for ext in (".usda",) + ((".usdc",) if binary else ()):
-        path = out_dir / f"{name}{ext}"
+        path = out_dir / f"{asset_schema.file_name(name)}{ext}"
         path.unlink(missing_ok=True)
-        usd.write_model(model, path, label)
+        usd.write_model(model, path, label, rig_file)
         for bname, brec in sorted(assets.items()):
             if brec.get("type") != "binding" or brec.get("model") != name:
                 continue
             textures = resolve(brec, names, assets)
             for t in textures.values():
-                tex_dir = assets_root / asset_schema.asset_dir(t["texture"], assets[t["texture"]])
-                t["file"] = Path(os.path.relpath(tex_dir / f"{t['texture']}_{t['variant']}.png", out_dir)).as_posix()
-            bpath = out_dir / f"{bname}{ext}"
+                png = files.variant_path(assets_root, assets, t["texture"], t["variant"])
+                t["file"] = Path(os.path.relpath(png, out_dir)).as_posix()
+            bpath = out_dir / f"{asset_schema.file_name(bname)}{ext}"
             bpath.unlink(missing_ok=True)
             usd.write_binding(model, textures, bpath, path.name)
     return out_dir
@@ -138,7 +195,7 @@ def encode(name: str, assets: dict, embedded: dict, assets_root: Path) -> bytes:
 
 
 def check(name: str, assets: dict, embedded: dict, assets_root: Path) -> list[str]:
-    """Encode the model from its USD and compare with its bytes in the package."""
+    """Encode the model from its USD (on a rig, with the rig's skeleton) and compare with its bytes in the package."""
     blob, _address = model_bytes(name, assets_root, embedded)
     mine = encode(name, assets, embedded, assets_root)
     if mine == blob:

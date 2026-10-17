@@ -590,13 +590,13 @@ static AnimationPlayRequest _gActor142600UnusedPlayerAnimation59 = {
 ///
 /// Sent before scene playback; the loaded character/weapon bank must be writable.
 /// The copied scene-set pointers borrow this package for their playback lifetime.
-static AnimationBankCopyRequest _gActor142600PlayerAnimationBankExtensionCopy = { { .sets = _gActor142600PlayerAnimationSets }, ANIMATION_BANK_EXTENSION_CAPACITY };
+static AnimationBankCopyRequest _gActor142600PlayerAnimationBankExtensionCopy = { _gActor142600PlayerAnimationSets, ANIMATION_BANK_EXTENSION_CAPACITY };
 
 /// Installs 32 words from the companion's scene table, including its documented overread.
 ///
 /// Sent before scene playback; the loaded companion bank must be writable.
 /// The copied scene-set pointers borrow this package for their playback lifetime.
-static AnimationBankCopyRequest _gActor142600CompanionAnimationBankExtensionCopy = { { .sets = _gActor142600CompanionAnimationSets }, ANIMATION_BANK_EXTENSION_CAPACITY };
+static AnimationBankCopyRequest _gActor142600CompanionAnimationBankExtensionCopy = { _gActor142600CompanionAnimationSets, ANIMATION_BANK_EXTENSION_CAPACITY };
 
 /// Player placement for the captioned scene, in room units with yaw 2275/4096 turn.
 static ActorTransform _gActor142600PlayerScenePlacement = { { -5860, 0, 1540, 0 }, { 0, 2275, 0, 0 } };

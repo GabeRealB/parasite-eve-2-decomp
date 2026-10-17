@@ -1594,14 +1594,14 @@ static AnimationPlayRequest _gActor136300PlayerAnimation72Request = {
 /// Sent before scene clips play; borrows the source through dispatch. The count
 /// includes request words beyond the clip-pointer array, as documented there.
 /// Copied clip pointers remain borrowed while playback uses the loaded package.
-static AnimationBankCopyRequest _gActor136300PlayerAnimationBankCopyRequest = { { .sets = _gActor136300PlayerAnimationSets }, ANIMATION_BANK_EXTENSION_CAPACITY };
+static AnimationBankCopyRequest _gActor136300PlayerAnimationBankCopyRequest = { _gActor136300PlayerAnimationSets, ANIMATION_BANK_EXTENSION_CAPACITY };
 
 /// Installs the garage scene's companion bank extension by copying 32 raw words.
 ///
 /// Sent before scene clips play; borrows the source through dispatch. The count
 /// includes request words beyond the clip-pointer array, as documented there.
 /// Copied clip pointers remain borrowed while playback uses the loaded package.
-static AnimationBankCopyRequest _gActor136300CompanionAnimationBankCopyRequest = { { .sets = _gActor136300CompanionAnimationSets }, ANIMATION_BANK_EXTENSION_CAPACITY };
+static AnimationBankCopyRequest _gActor136300CompanionAnimationBankCopyRequest = { _gActor136300CompanionAnimationSets, ANIMATION_BANK_EXTENSION_CAPACITY };
 
 /// Player placement at the start of the garage scene's scripted approach.
 ///

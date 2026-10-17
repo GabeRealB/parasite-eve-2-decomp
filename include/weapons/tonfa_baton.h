@@ -14,7 +14,7 @@
 /// extension slot only after installing a clip pointer there. The bank and
 /// its borrowed clip data must stay loaded while playback or cached records
 /// refer to them.
-extern AnimationBank gTonfaBatonPlayerAnimationBank;
+extern AnimationSet* gTonfaBatonPlayerAnimationBank[ANIMATION_BANK_SET_CAPACITY];
 
 /// Records the tonfa baton's swing and draws its fading additive ribbon.
 ///

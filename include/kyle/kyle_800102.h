@@ -12,7 +12,7 @@
 /// NULL and stay writable for extension-copy messages, which can also install
 /// raw payload words. Playback may follow only entries containing clip pointers.
 /// Keep this package and any borrowed extension clips loaded during playback.
-extern AnimationBank gKyle800102CompanionAnimationBank;
+extern AnimationSet* gKyle800102CompanionAnimationBank[ANIMATION_BANK_SET_CAPACITY];
 
 /// Advances Kyle's MM1 grenade shell through launch, flight, blast and teardown.
 ///

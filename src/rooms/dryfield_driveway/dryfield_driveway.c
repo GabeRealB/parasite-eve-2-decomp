@@ -129,8 +129,8 @@ static AnimationSet* _gDryfieldDrivewayEncounterAnimationBankExtension[2] = {
 /// The request and source words are read during synchronous dispatch; the
 /// installed clip pointer remains borrowed from this overlay during playback.
 static AnimationBankCopyRequest _gDryfieldDrivewayEncounterAnimationBankCopy = {
-    .source    = { .sets = _gDryfieldDrivewayEncounterAnimationBankExtension },
-    .wordCount = ARRAY_SIZE(_gDryfieldDrivewayEncounterAnimationBankExtension),
+    .sets  = _gDryfieldDrivewayEncounterAnimationBankExtension,
+    .count = ARRAY_SIZE(_gDryfieldDrivewayEncounterAnimationBankExtension),
 };
 
 /// Restarts the encounter player's extension clip 47 with world-grid participation.

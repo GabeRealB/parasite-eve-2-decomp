@@ -1345,8 +1345,8 @@ static inline void _shelterB3GarbageIncineratorInstallBlazeClips(Task* task)
     while (_gShelterB3GarbageIncineratorBlazeAnimationSets[extensionCount & SHELTER_B3_GARBAGE_INCINERATOR_BLAZE_CLIP_COUNT_MASK] != NULL) {
         extensionCount += 1;
     }
-    bankRequest.source.sets = _gShelterB3GarbageIncineratorBlazeAnimationSets;
-    bankRequest.wordCount   = extensionCount & SHELTER_B3_GARBAGE_INCINERATOR_BLAZE_CLIP_COUNT_MASK;
+    bankRequest.sets  = _gShelterB3GarbageIncineratorBlazeAnimationSets;
+    bankRequest.count = extensionCount & SHELTER_B3_GARBAGE_INCINERATOR_BLAZE_CLIP_COUNT_MASK;
     TASK_MESSAGE_DISPATCH_POINTER(clipWork->playerTask, ANIMATION_MESSAGE_COPY_BANK_EXTENSION, &bankRequest, 0);
 }
 

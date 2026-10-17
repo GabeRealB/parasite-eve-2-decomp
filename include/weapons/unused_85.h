@@ -12,6 +12,6 @@
 /// a valid clip pointer there. Keep unused_85 loaded while playback borrows
 /// this bank or its native clips; copied clips also require their source data
 /// to remain loaded.
-extern AnimationBank gUnused85PlayerAnimationBank;
+extern AnimationSet* gUnused85PlayerAnimationBank[ANIMATION_BANK_SET_CAPACITY];
 
 #endif // INCLUDE_WEAPONS_UNUSED_85_H

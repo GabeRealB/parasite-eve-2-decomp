@@ -522,10 +522,10 @@ static AnimationSet* _gActor450900PlayerAnimationSets[] = { &_gActor450900Animat
 static AnimationSet* _gActor450900CompanionAnimationSets[] = { &_gActor450900Animation00F80, &_gActor450900Animation012D8, &_gActor450900Animation0176C, &_gActor450900Animation01934, &_gActor450900Animation01B50, &_gActor450900Animation01D04 };
 
 /// Installs the companion's six clips and adjacent words into its 32-word bank extension.
-static AnimationBankCopyRequest _gActor450900CompanionAnimationBankCopy = { { .sets = _gActor450900CompanionAnimationSets }, ANIMATION_BANK_EXTENSION_CAPACITY };
+static AnimationBankCopyRequest _gActor450900CompanionAnimationBankCopy = { _gActor450900CompanionAnimationSets, ANIMATION_BANK_EXTENSION_CAPACITY };
 
 /// Installs the player's ten clips and adjacent words into its 32-word bank extension.
-static AnimationBankCopyRequest _gActor450900PlayerAnimationBankCopy = { { .sets = _gActor450900PlayerAnimationSets }, ANIMATION_BANK_EXTENSION_CAPACITY };
+static AnimationBankCopyRequest _gActor450900PlayerAnimationBankCopy = { _gActor450900PlayerAnimationSets, ANIMATION_BANK_EXTENSION_CAPACITY };
 
 /// Unplayed clip-47 reset preset at the start of the companion request run.
 ///

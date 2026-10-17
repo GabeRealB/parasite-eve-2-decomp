@@ -1696,8 +1696,8 @@ static AnimationPlayRequest _gActor450800NurseryCompanionClip1Reset = {
 /// 21 words of following request data. The count is the transfer span, not
 /// the playable clip count; the source package must stay loaded for playback.
 static AnimationBankCopyRequest _gActor450800NurseryCompanionBankCopy = {
-    .source    = { .sets = _gActor450800NurseryCompanionAnimationSets },
-    .wordCount = ANIMATION_BANK_EXTENSION_CAPACITY,
+    .sets  = _gActor450800NurseryCompanionAnimationSets,
+    .count = ANIMATION_BANK_EXTENSION_CAPACITY,
 };
 
 /// Installs the nursery's clips in the player's current bank extension.
@@ -1706,8 +1706,8 @@ static AnimationBankCopyRequest _gActor450800NurseryCompanionBankCopy = {
 /// 15 words of following request data. The count is the transfer span, not
 /// the playable clip count; the source package must stay loaded for playback.
 static AnimationBankCopyRequest _gActor450800NurseryPlayerBankCopy = {
-    .source    = { .sets = _gActor450800NurseryPlayerAnimationSets },
-    .wordCount = ANIMATION_BANK_EXTENSION_CAPACITY,
+    .sets  = _gActor450800NurseryPlayerAnimationSets,
+    .count = ANIMATION_BANK_EXTENSION_CAPACITY,
 };
 
 /// Commands of the nursery bodies' gun; their stage/area tags are ignored.

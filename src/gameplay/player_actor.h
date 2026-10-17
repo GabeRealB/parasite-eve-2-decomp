@@ -68,9 +68,9 @@ extern u16 gCompanionAnimationBankBases[4];
 /// Slot 0 is NULL; 1/2 share Kyle variant 1, 3..5 hold Kyle variants 2..4,
 /// and 6/7 hold companion families 2/3. The appropriate companion package
 /// must be loaded before lookup, and its borrowed sets/records must remain
-/// live during playback. Extension copies write the bank words, not these
+/// live during playback. Extension copies write the banks, not these
 /// pointers; repeated entries intentionally alias the same loaded bank.
-extern AnimationBank* gCompanionAnimationBanks[8];
+extern AnimationSet** gCompanionAnimationBanks[8];
 
 /// Advances the live player's input/state and prepares its bodies for collision.
 ///

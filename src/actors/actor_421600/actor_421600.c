@@ -4178,7 +4178,7 @@ static void _actor421600FrameState(Enemy* enemy, Task* task)
                 recoverySets = work->playerAnim.source.sets;
                 if (recoverySets == _gDesertChaserRearCatchPlayerAnimSets) {
                     if ((playerStatus->hp > 0) && (work->lastCommand.fields.catchFrames >= ACTOR421600_REAR_RECOVER_TICKS)) {
-                        recoverySets[ACTOR421600_CATCH_RECOVER] = (gPlayerActorWeaponAnimationBanks[gPlayerActorWeaponAnimationBankBases[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon])->table.sets[ACTOR421600_PLAYER_RECOVERY_SET];
+                        recoverySets[ACTOR421600_CATCH_RECOVER] = (gPlayerActorWeaponAnimationBanks[gPlayerActorWeaponAnimationBankBases[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon])[ACTOR421600_PLAYER_RECOVERY_SET];
                         work->playerAnim.animationId            = ACTOR421600_CATCH_RECOVER;
                         work->playerAnim.blend                  = ANIMATION_BLEND_INTERPOLATE;
                         work->playerAnim.blendFrames            = ACTOR421600_RECOVERY_BLEND_FRAMES;
@@ -4186,7 +4186,7 @@ static void _actor421600FrameState(Enemy* enemy, Task* task)
                         work->lastCommand.fields.catchFrames = 0U;
                     }
                 } else if ((playerStatus->hp > 0) && (work->lastCommand.fields.catchFrames >= ACTOR421600_FRONT_RECOVER_TICKS)) {
-                    _gDesertChaserFrontCatchPlayerAnimSets[ACTOR421600_CATCH_RECOVER] = (gPlayerActorWeaponAnimationBanks[gPlayerActorWeaponAnimationBankBases[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon])->table.sets[ACTOR421600_PLAYER_RECOVERY_SET];
+                    _gDesertChaserFrontCatchPlayerAnimSets[ACTOR421600_CATCH_RECOVER] = (gPlayerActorWeaponAnimationBanks[gPlayerActorWeaponAnimationBankBases[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon])[ACTOR421600_PLAYER_RECOVERY_SET];
 
                     work->playerAnim.animationId = ACTOR421600_CATCH_RECOVER;
                     work->playerAnim.blend       = ANIMATION_BLEND_INTERPOLATE;
@@ -4233,9 +4233,9 @@ static void _actor421600FrameState(Enemy* enemy, Task* task)
                         work->playerAnim.animationId = ACTOR421600_CATCH_RELEASE;
                         releaseSets                  = work->playerAnim.source.sets;
                         if (releaseSets == _gDesertChaserRearCatchPlayerAnimSets) {
-                            releaseSets[ACTOR421600_CATCH_RELEASE] = (gPlayerActorWeaponAnimationBanks[gPlayerActorWeaponAnimationBankBases[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon])->table.sets[ACTOR421600_PLAYER_RELEASE_SET];
+                            releaseSets[ACTOR421600_CATCH_RELEASE] = (gPlayerActorWeaponAnimationBanks[gPlayerActorWeaponAnimationBankBases[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon])[ACTOR421600_PLAYER_RELEASE_SET];
                         } else {
-                            _gDesertChaserFrontCatchPlayerAnimSets[ACTOR421600_CATCH_RELEASE] = (gPlayerActorWeaponAnimationBanks[gPlayerActorWeaponAnimationBankBases[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon])->table.sets[ACTOR421600_PLAYER_RELEASE_SET];
+                            _gDesertChaserFrontCatchPlayerAnimSets[ACTOR421600_CATCH_RELEASE] = (gPlayerActorWeaponAnimationBanks[gPlayerActorWeaponAnimationBankBases[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon])[ACTOR421600_PLAYER_RELEASE_SET];
                         }
                         TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &work->playerAnim, 0);
                         work->lastCommand.fields.catchFrames = 0U;

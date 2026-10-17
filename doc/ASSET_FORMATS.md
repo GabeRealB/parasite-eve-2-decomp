@@ -1320,7 +1320,7 @@ A grouped asset of `ASSETS` is not in `asset_data.py`: each group is a TOML
 file, `tools/peassets/groups/<group>.toml`, one table per asset keyed by its
 **local name**. The asset's name is the group's path without its first part,
 then the local name: `[view3_background]` in
-`groups/rooms/akropolis/square.toml` is `akropolis_square_view3_background`.
+`groups/rooms/akropolis/square.toml` is `rooms/akropolis/square/view3_background`.
 A table lists the asset's type, its other fields by name, and its `sha1` last.
 TOML has no null and only string keys, so an empty slot of `resources` is `""`
 and the cells of `glyphs` are written as keys. `asset_data.py` reads the group

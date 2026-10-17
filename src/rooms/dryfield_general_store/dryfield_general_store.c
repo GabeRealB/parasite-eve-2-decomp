@@ -223,8 +223,8 @@ static AnimationSet* _gDryfieldGeneralStoreEncounterAnimationSets[2] = {
 ///
 /// Dispatch borrows this request synchronously; the installed clip needs the room loaded.
 static AnimationBankCopyRequest _gDryfieldGeneralStoreEncounterAnimationBankCopy = {
-    .source    = { .sets = _gDryfieldGeneralStoreEncounterAnimationSets },
-    .wordCount = ARRAY_SIZE(_gDryfieldGeneralStoreEncounterAnimationSets),
+    .sets  = _gDryfieldGeneralStoreEncounterAnimationSets,
+    .count = ARRAY_SIZE(_gDryfieldGeneralStoreEncounterAnimationSets),
 };
 
 /// Retained record compatible with a bank-1 animation request resetting clip 1.

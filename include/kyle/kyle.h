@@ -14,7 +14,7 @@
 /// extension entry only when it holds a valid set pointer. Body playback uses
 /// tracks 1..19 of the twenty-track clips. Keep this package and any copied
 /// clip data loaded while playback or cached records borrow it.
-extern AnimationBank gKyle800101KyleMadiganAnimationBank;
+extern AnimationSet* gKyle800101KyleMadiganAnimationBank[ANIMATION_BANK_SET_CAPACITY];
 
 /// Kyle Madigan's native companion animation bank for resource variant 3.
 ///
@@ -24,7 +24,7 @@ extern AnimationBank gKyle800101KyleMadiganAnimationBank;
 /// play an extension entry only when it holds a valid set pointer.
 /// Body playback uses tracks 1..19 of the twenty-track clips. Keep this package
 /// and any copied clip data loaded while playback or cached records borrow it.
-extern AnimationBank gKyle800103KyleMadiganAnimationBank;
+extern AnimationSet* gKyle800103KyleMadiganAnimationBank[ANIMATION_BANK_SET_CAPACITY];
 
 /// Kyle Madigan's twenty-part companion body for resource variant 1.
 ///
@@ -195,7 +195,7 @@ extern TmdSource gKyle800104KyleMadiganGun;
 /// play an extension entry only when it holds a valid set pointer.
 /// Body playback uses tracks 1..19 of the twenty-track clips. Keep this package
 /// and any copied clip data loaded while playback or cached records borrow it.
-extern AnimationBank gKyle800104KyleMadiganAnimationBank;
+extern AnimationSet* gKyle800104KyleMadiganAnimationBank[ANIMATION_BANK_SET_CAPACITY];
 
 /// Kyle Madigan's one-part MM1 launcher for companion resource variant 2.
 ///

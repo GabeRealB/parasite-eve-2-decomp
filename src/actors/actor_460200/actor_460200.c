@@ -121,22 +121,6 @@ enum {
     ACTOR_460200_CAP_SOLDIER_A_REPEAT_TALK = 14,
 };
 
-/// The complete word span installed in the player's animation-bank extension.
-///
-/// Only the leading set pointers are playable clips. The copy also transfers
-/// its own request and three Soldier B requests into unused extension slots.
-typedef union {
-    struct {
-        AnimationSet*            sets[ACTOR_460200_PLAYER_EXTENSION_SET_COUNT]; // Player clips 47..61; 58..60 are NULL
-        AnimationBankCopyRequest copyRequest;                                   // Installs all 32 words, including the following records
-        AnimationPlayRequest     soldierBClip1Request;                          // Soldier B clip 1; not dispatched by this package
-        AnimationPlayRequest     soldierBClip4Request;                          // Restarts Soldier B clip 4 without blending
-        AnimationPlayRequest     soldierBClip5Request;                          // Restarts Soldier B clip 5 without blending
-    } data;                                                                     // Structured payloads occupying the copied span
-    s32 words[ANIMATION_BANK_EXTENSION_CAPACITY];                               // Raw copy view; trailing words are not animation-set pointers
-} _Actor460200AnimationBankExtensionStorage;
-STATIC_ASSERT_SIZEOF(_Actor460200AnimationBankExtensionStorage, ANIMATION_BANK_EXTENSION_CAPACITY * sizeof(s32));
-
 static s32 _pacedWalkSetSoldierCModelDraw(Task* task, s32 messageId, s32 flags, s32 unusedArg);
 
 // Message-table callbacks use the argument views required by this TU.
@@ -497,21 +481,25 @@ static RECT _gScreenNegativeStripRect = { 0, 0, FILE_SYSTEM_IMAGE_STRIP_WIDTH, F
 /// weapon bank; the request and clip data belong to this loaded package.
 static AnimationPlayRequest _gActor460200PlayerClip1BlendRequest = { { .index = 1 }, ACTOR_460200_PLAYER_CLIP_1, ANIMATION_BLEND_INTERPOLATE, ACTOR_460200_PLAYER_CLIP1_BLEND_FRAMES, ANIMATION_WORLD_COLLISION_DISABLE };
 
-/// Player clips and request records copied into the equipped bank for tent scenes.
+/// Player clips for the tent scenes, extended ids 47..61; 58..60 are NULL.
 ///
-/// Each player-animation script installs this complete span before playback.
-/// Extended clip IDs 47..57 and 61 are loaded; 58..60 are NULL. Words after
-/// the fifteen set pointers are copied as payload data and must not be played.
-/// Clip pointers and request members remain valid while this package is loaded.
-static _Actor460200AnimationBankExtensionStorage _gActor460200PlayerAnimationBankExtension = {
-    .data = {
-        { &_gActor460200Animation022B4, &_gActor460200Animation02520, &_gActor460200Animation026C0, &_gActor460200Animation029E0, &_gActor460200Animation02B8C, &_gActor460200Animation02DE0, &_gActor460200Animation03020, &_gActor460200Animation031D0, &_gActor460200Animation033B8, &_gActor460200Animation03584, &_gActor460200Animation03BF4, NULL, NULL, NULL, &_gActor460200Animation03FAC },
-        { { .words = _gActor460200PlayerAnimationBankExtension.words }, ARRAY_SIZE(_gActor460200PlayerAnimationBankExtension.words) },
-        { { .index = 1 }, ACTOR_460200_SOLDIER_B_CLIP_1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
-        { { .index = 1 }, ACTOR_460200_SOLDIER_B_CLIP_4, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
-        { { .index = 1 }, ACTOR_460200_SOLDIER_B_CLIP_5, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
-    },
-};
+/// Each player-animation script installs them before playback. The copy reads
+/// 32 entries, past these fifteen into the copy request and the Soldier B
+/// requests that follow; those words land in extension ids 62..78 and are never
+/// played. The clips remain valid while this package is loaded.
+static AnimationSet* _gActor460200PlayerExtensionSets[ACTOR_460200_PLAYER_EXTENSION_SET_COUNT] = { &_gActor460200Animation022B4, &_gActor460200Animation02520, &_gActor460200Animation026C0, &_gActor460200Animation029E0, &_gActor460200Animation02B8C, &_gActor460200Animation02DE0, &_gActor460200Animation03020, &_gActor460200Animation031D0, &_gActor460200Animation033B8, &_gActor460200Animation03584, &_gActor460200Animation03BF4, NULL, NULL, NULL, &_gActor460200Animation03FAC };
+
+/// Installs the tent-scene clips; reads 32 entries from a fifteen-clip list.
+static AnimationBankCopyRequest _gActor460200PlayerAnimationBankCopy = { _gActor460200PlayerExtensionSets, ANIMATION_BANK_EXTENSION_CAPACITY };
+
+/// Soldier B clip 1; not dispatched by this package.
+static AnimationPlayRequest _gActor460200SoldierBClip1Request = { { .index = 1 }, ACTOR_460200_SOLDIER_B_CLIP_1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+
+/// Restarts Soldier B clip 4 without blending.
+static AnimationPlayRequest _gActor460200SoldierBClip4Request = { { .index = 1 }, ACTOR_460200_SOLDIER_B_CLIP_4, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+
+/// Restarts Soldier B clip 5 without blending.
+static AnimationPlayRequest _gActor460200SoldierBClip5Request = { { .index = 1 }, ACTOR_460200_SOLDIER_B_CLIP_5, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
 /// Restarts Soldier B's clip 6 without blending.
 ///
@@ -856,7 +844,7 @@ EvsCommand gActor460200TentArrivalScript[233] = {
     { EVENT_SCRIPT_OPCODE_SET_SKIP_KEEP_SOUND, { .value = true }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor460200SelectCaptionFile }, { .value = ACTOR_460200_ARRIVAL_CAP_RESOURCE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_START }, { .value = ACTOR_460200_ARRIVAL_CAP_COMMAND }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &_gActor460200PlayerAnimationBankExtension.data.copyRequest } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &_gActor460200PlayerAnimationBankCopy } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_HIDE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = GPU_BLEND_AVERAGE }, { .value = 1 }, { .value = 6 }, { .value = 0 }, { .value = 0 } },
@@ -939,16 +927,16 @@ EvsCommand gActor460200TentArrivalScript[233] = {
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_460200_SOLDIER_B_PLACEMENT_INDEX }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = ACTOR_MESSAGE_PAIR_SHOW }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_460200_SOLDIER_B_PLACEMENT_INDEX }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gActor460200SoldierBCutsceneEntryPlacement } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_460200_SOLDIER_B_PLACEMENT_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor460200PlayerAnimationBankExtension.data.soldierBClip4Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_460200_SOLDIER_B_PLACEMENT_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor460200SoldierBClip4Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_460200_SOLDIER_B_PLACEMENT_INDEX }, { .value = ACTOR_MESSAGE_WALK_TO }, { .message = { .transform = &_gActor460200SoldierBFirstWalkTarget } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_460200_SOLDIER_B_PLACEMENT_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor460200PlayerAnimationBankExtension.data.soldierBClip5Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_460200_SOLDIER_B_PLACEMENT_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor460200SoldierBClip5Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_460200_SOLDIER_C_PLACEMENT_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor460200SoldierCClip11Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_460200_SOLDIER_B_PLACEMENT_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor460200SoldierBClip6Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_460200_SOLDIER_B_PLACEMENT_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor460200PlayerAnimationBankExtension.data.soldierBClip4Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_460200_SOLDIER_B_PLACEMENT_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor460200SoldierBClip4Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_460200_SOLDIER_B_PLACEMENT_INDEX }, { .value = ACTOR_MESSAGE_WALK_TO }, { .message = { .transform = &_gActor460200SoldierBSecondWalkTarget } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_460200_SOLDIER_C_PLACEMENT_INDEX }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gActor460200SoldierCCutsceneStartPlacement } }, { .value = 0 } },
@@ -1121,7 +1109,7 @@ EvsCommand gActor460200TentArrivalSkipScript[22] = {
 /// The commands, called scripts and clip data stay loaded through playback.
 static EvsCommand _gActor460200SoldierCFirstTalkScript[] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_START }, { .value = ACTOR_460200_CAP_SOLDIER_C_FIRST_TALK }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &_gActor460200PlayerAnimationBankExtension.data.copyRequest } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &_gActor460200PlayerAnimationBankCopy } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor460200PlayerClip61Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_460200_SOLDIER_C_PLACEMENT_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor460200SoldierCClip5Request } }, { .value = 0 } },
@@ -1141,7 +1129,7 @@ static EvsCommand _gActor460200SoldierCFirstTalkScript[] = {
 /// The commands, called scripts and clip data stay loaded through playback.
 static EvsCommand _gActor460200SoldierCSecondTalkScript[] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_START }, { .value = ACTOR_460200_CAP_SOLDIER_C_SECOND_TALK }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &_gActor460200PlayerAnimationBankExtension.data.copyRequest } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &_gActor460200PlayerAnimationBankCopy } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor460200PlayerClip61Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_460200_SOLDIER_C_PLACEMENT_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor460200SoldierCClip5Request } }, { .value = 0 } },
@@ -1161,7 +1149,7 @@ static EvsCommand _gActor460200SoldierCSecondTalkScript[] = {
 /// The commands, called scripts and clip data stay loaded through playback.
 static EvsCommand _gActor460200SoldierCThirdTalkScript[] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_START }, { .value = ACTOR_460200_CAP_SOLDIER_C_THIRD_TALK }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &_gActor460200PlayerAnimationBankExtension.data.copyRequest } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &_gActor460200PlayerAnimationBankCopy } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor460200PlayerClip1BlendRequest }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_460200_SOLDIER_C_PLACEMENT_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor460200SoldierCClip3Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -1180,7 +1168,7 @@ static EvsCommand _gActor460200SoldierCThirdTalkScript[] = {
 /// The commands, called scripts and clip data stay loaded through playback.
 static EvsCommand _gActor460200SoldierCRepeatTalkScript[] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_START }, { .value = ACTOR_460200_CAP_SOLDIER_C_REPEAT_TALK }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &_gActor460200PlayerAnimationBankExtension.data.copyRequest } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &_gActor460200PlayerAnimationBankCopy } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor460200PlayerClip1BlendRequest }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_460200_SOLDIER_C_PLACEMENT_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor460200SoldierCClip3Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -1198,7 +1186,7 @@ static EvsCommand _gActor460200SoldierCRepeatTalkScript[] = {
 /// restores Soldier A to clip 13, releases player scripted control, and returns.
 /// The interpreter and copied clip pointers borrow this package through playback.
 static EvsCommand _gActor460200SoldierATalkScript[11] = {
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &_gActor460200PlayerAnimationBankExtension.data.copyRequest } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &_gActor460200PlayerAnimationBankCopy } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = ACTOR_460200_SOLDIER_A_PLACEMENT_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .pointer = &_gActor460200SoldierAClip14Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor460200PlayerClip1BlendRequest }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },

@@ -12,6 +12,6 @@
 /// after installing a valid clip pointer there. Keep SP12 loaded while playback
 /// borrows this bank or its native clips; copied clips also require their source
 /// data to remain loaded.
-extern AnimationBank gSp12PlayerAnimationBank;
+extern AnimationSet* gSp12PlayerAnimationBank[ANIMATION_BANK_SET_CAPACITY];
 
 #endif // INCLUDE_WEAPONS_SP12_H

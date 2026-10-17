@@ -15,7 +15,7 @@
 /// non-clip payload words. Follow an extension entry as a clip only when it
 /// contains a loaded set pointer. Playback borrows the bank and its clip data;
 /// keep this package and any copied clip resources loaded while they are used.
-extern AnimationBank gM4a1GrenadePlayerAnimationBank;
+extern AnimationSet* gM4a1GrenadePlayerAnimationBank[ANIMATION_BANK_SET_CAPACITY];
 
 /// Held M4A1 rifle with its grenade-launcher attachment.
 ///

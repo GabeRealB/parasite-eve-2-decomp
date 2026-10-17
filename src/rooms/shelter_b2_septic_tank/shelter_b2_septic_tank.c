@@ -194,7 +194,7 @@ static AnimationSet* _gShelterB2SepticTankEncounterAnimationSets[1] = {
 /// Copies exactly one set pointer at `ANIMATION_BANK_BASE_SET_COUNT`, leaving
 /// the base clips and later extension words intact. The request is borrowed
 /// through dispatch; playback subsequently borrows the room-owned clip data.
-static AnimationBankCopyRequest _gShelterB2SepticTankEncounterAnimationBankCopy = { { .sets = _gShelterB2SepticTankEncounterAnimationSets }, ARRAY_SIZE(_gShelterB2SepticTankEncounterAnimationSets) };
+static AnimationBankCopyRequest _gShelterB2SepticTankEncounterAnimationBankCopy = { _gShelterB2SepticTankEncounterAnimationSets, ARRAY_SIZE(_gShelterB2SepticTankEncounterAnimationSets) };
 
 /// Plays the installed encounter clip with an eight-frame blend and grid collision.
 ///

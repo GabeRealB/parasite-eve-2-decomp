@@ -720,8 +720,8 @@ static AnimationSet* _gActor160600CompanionExtensionSets[3] = {
 /// The ten-word source span includes both copy requests and the next placement's
 /// XYZ. The count describes this raw transfer, rather than the clip-table length.
 static AnimationBankCopyRequest _gActor160600CompanionExtensionCopyRequest = {
-    .source    = { .words = (const s32*)_gActor160600CompanionExtensionSets },
-    .wordCount = ACTOR_160600_COMPANION_EXTENSION_COPY_WORDS,
+    .sets  = _gActor160600CompanionExtensionSets,
+    .count = ACTOR_160600_COMPANION_EXTENSION_COPY_WORDS,
 };
 
 /// Installs the player's scene clips and fills the rest of its extension with raw words.
@@ -729,8 +729,8 @@ static AnimationBankCopyRequest _gActor160600CompanionExtensionCopyRequest = {
 /// All 32 words are copied, including the 17 request words following the clip
 /// table. Scene playback selects only valid pointers in indices 47..61.
 static AnimationBankCopyRequest _gActor160600PlayerExtensionCopyRequest = {
-    .source    = { .words = (const s32*)_gActor160600PlayerExtensionSets },
-    .wordCount = ANIMATION_BANK_EXTENSION_CAPACITY,
+    .sets  = _gActor160600PlayerExtensionSets,
+    .count = ANIMATION_BANK_EXTENSION_CAPACITY,
 };
 
 /// Companion placement before the opening scene run.

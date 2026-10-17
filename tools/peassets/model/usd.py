@@ -12,6 +12,13 @@ without altering the data.
 
 A binding is a layer over the model: it connects each slot's material to its texture image and adds `st`, the UVs
 normalized to that image.
+
+A skeleton states its joints and their `bindTransforms` only: the game binds every mesh in the rest pose, so each
+joint's rest transform is its bind transform relative to its parent's, and is read back that way (`_read_skeleton`).
+One value per joint, which is the one Blender builds its armature from; a clip animates every joint, so nothing needs
+the `restTransforms` fallback. A rig is a skeleton of its own file (`write_rig`), its joints by name. A model on a
+rig does not hold its skeleton: `/Model/Rig/Skeleton` references the rig's file, so the model is read, and encoded,
+with the rig's joints.
 """
 from __future__ import annotations
 
@@ -52,19 +59,67 @@ def _matrix(R, t):
                        R[0][2], R[1][2], R[2][2], 0, t[0], t[1], t[2], 1)
 
 
-def _joint_paths(parts):
-    names = {}
+def _joint_paths(parts, names=None):
+    """Each joint's path, its ancestors' names and its own (`part<i>` without names)."""
+    paths = {}
 
-    def name(i):
-        if i not in names:
+    def path(i):
+        if i not in paths:
             p = parts[i]["parent"]
-            names[i] = f"part{i}" if p == i else f"{name(p)}/part{i}"
-        return names[i]
+            own = names[i] if names else f"part{i}"
+            paths[i] = own if p == i else f"{path(p)}/{own}"
+        return paths[i]
 
-    return [name(i) for i in range(len(parts))]
+    return [path(i) for i in range(len(parts))]
 
 
-def write_model(model: dict, path: Path, label: str) -> None:
+def _define_skeleton(stage, at: str, parts, names=None):
+    skel = UsdSkel.Skeleton.Define(stage, at)
+    skel.CreateJointsAttr(Vt.TokenArray(_joint_paths(parts, names)))
+    skel.CreateBindTransformsAttr(Vt.Matrix4dArray([_matrix(*w) for w in _worlds(parts)]))
+    return skel
+
+
+def _read_skeleton(skel, path) -> list[dict]:
+    """The parts (parent, rotation, translation) a skeleton's joints and bind transforms give: each joint's rest
+    transform is its bind transform relative to its parent's (USD composes row vectors: bind = rest * parent bind)."""
+    joints = [str(j) for j in skel.GetJointsAttr().Get() or []]
+    binds = skel.GetBindTransformsAttr().Get() or []
+    if not joints or len(binds) != len(joints):
+        raise ValueError(f"{path}: the skeleton needs its joints and a bind transform for each")
+    index = {j: i for i, j in enumerate(joints)}
+    parts = []
+    for i, (j, bind) in enumerate(zip(joints, binds)):
+        parent = index[j.rpartition("/")[0]] if "/" in j else i
+        m = bind if parent == i else bind * binds[parent].GetInverse()
+        parts.append({"parent": parent, "rotation": [[m[c][r] for c in range(3)] for r in range(3)],
+                      "translation": [round(m[3][r]) for r in range(3)], "vertices": []})
+    return parts
+
+
+def write_rig(parts: list[dict], names: list[str] | None, path: Path, label: str) -> None:
+    """A rig's file: a Skeleton, the default prim, with its joints named by `names` and the parts' rest pose."""
+    stage = Usd.Stage.CreateNew(str(path))
+    UsdGeom.SetStageUpAxis(stage, UsdGeom.Tokens.y)
+    UsdGeom.SetStageMetersPerUnit(stage, 0.001)
+    skel = _define_skeleton(stage, "/Rig", parts, names)
+    stage.SetDefaultPrim(skel.GetPrim())
+    skel.GetPrim().SetCustomDataByKey("source", label)
+    stage.GetRootLayer().Save()
+
+
+def read_rig(path: Path) -> list[dict]:
+    """The parts (parent, rotation, translation) of a `write_rig` file."""
+    stage = Usd.Stage.Open(str(path))
+    skel = UsdSkel.Skeleton(stage.GetDefaultPrim())
+    if not skel:
+        raise ValueError(f"{path}: not a rig (a Skeleton default prim)")
+    return _read_skeleton(skel, path)
+
+
+def write_model(model: dict, path: Path, label: str, rig_file: str | None = None) -> None:
+    """Write `model`; on a rig, `rig_file` is the rig's file relative to `path`, which the skeleton references (the
+    model's parts have to be the rig's)."""
     stage = Usd.Stage.CreateNew(str(path))
     UsdGeom.SetStageUpAxis(stage, UsdGeom.Tokens.y)
     UsdGeom.SetStageMetersPerUnit(stage, 0.001)
@@ -82,11 +137,11 @@ def write_model(model: dict, path: Path, label: str) -> None:
     parts = model["parts"]
     worlds = _worlds(parts)
     skel_root = UsdSkel.Root.Define(stage, "/Model/Rig")
-    skel = UsdSkel.Skeleton.Define(stage, "/Model/Rig/Skeleton")
-    skel.CreateJointsAttr(Vt.TokenArray(_joint_paths(parts)))
-    skel.CreateBindTransformsAttr(Vt.Matrix4dArray([_matrix(*w) for w in worlds]))
-    skel.CreateRestTransformsAttr(Vt.Matrix4dArray([_matrix([[float(x) for x in r] for r in p["rotation"]],
-                                                            [float(x) for x in p["translation"]]) for p in parts]))
+    if rig_file:
+        skel = UsdSkel.Skeleton.Define(stage, "/Model/Rig/Skeleton")
+        skel.GetPrim().GetReferences().AddReference(rig_file)
+    else:
+        skel = _define_skeleton(stage, "/Model/Rig/Skeleton", parts)
 
     points, joint = [], []
     for i, p in enumerate(parts):
@@ -201,13 +256,7 @@ def read_model(path: Path) -> dict:
             model[key] = attr.Get()
     model["slots"] = list(rp.GetAttribute("slots").Get() or [])
 
-    joints = [str(j) for j in skel.GetJointsAttr().Get()]
-    index = {j: i for i, j in enumerate(joints)}
-    parts = []
-    for i, (j, m) in enumerate(zip(joints, skel.GetRestTransformsAttr().Get())):
-        parent = index[j.rpartition("/")[0]] if "/" in j else i
-        parts.append({"parent": parent, "rotation": [[m[c][r] for c in range(3)] for r in range(3)],
-                      "translation": [round(m[3][r]) for r in range(3)], "vertices": []})
+    parts = _read_skeleton(skel, path)
     worlds = _worlds(parts)
 
     points = mesh.GetPointsAttr().Get()
@@ -278,6 +327,8 @@ def write_binding(model: dict, textures: dict, path: Path, model_file: str) -> N
     """A layer over `model_file` that fills its slots. `textures` maps a slot to {"file": image path relative to
     this layer, "size": (width, height) in texels, "origin": (u, v) of the image within the slot's texels}."""
     stage = Usd.Stage.CreateNew(str(path))
+    UsdGeom.SetStageUpAxis(stage, UsdGeom.Tokens.y)         # a layer's own metadata: the model's units and axis
+    UsdGeom.SetStageMetersPerUnit(stage, 0.001)
     stage.GetRootLayer().subLayerPaths.append(model_file)
     stage.SetDefaultPrim(stage.GetPrimAtPath("/Model")) if stage.GetPrimAtPath("/Model") else None
     st = []

@@ -1,0 +1,67 @@
+# The assets of the group characters/aya/10200, each named characters/aya/10200/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[body]
+type = "model"
+rig = "characters/aya/rig"
+slots = ["page_1", "page_0"]
+symbol = "gAya10200BodyModel"
+sha1 = "fb1a9ffefe6dd310d76e5df87aa4e9f21a5af394"
+
+[file]
+type = "file"
+
+[[file.contents]]
+chunk = "palette"
+sha1 = "e60cbd12a3db18d303d7e78e762536fa3339bee0"
+palettes = [
+    { texture = "page_0", variant = "default", region = "engine/vram/character_palette" },
+    { texture = "page_1", variant = "default", region = "engine/vram/character_palette", offset = [0, 1] },
+]
+
+[[file.contents]]
+chunk = "image"
+sha1 = "195bbc6bf54e1ad43f58aa097499486b1935ec2c"
+slots = 6
+pages = [
+    { texture = "page_0", region = "engine/vram/character_sheet" },
+    { texture = "page_1", region = "engine/vram/character_sheet", offset = [64, 0] },
+]
+
+[[file.contents]]
+chunk = "package"
+
+[page_0]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[page_1]
+type = "texture"
+bpp = 8
+height = 256
+variants = ["default"]
+width = 128
+
+[binding]
+type = "binding"
+model = "characters/aya/10200/body"
+textures = { page_0 = "characters/aya/10200/page_0.default", page_1 = "characters/aya/10200/page_1.default" }
+
+[package]
+type = "pe2pkg"
+embedded = [
+    "aya_10200_model_0019C",
+    "aya_10200_model_00A5C",
+    "aya_10200_model_00F0C",
+    { name = "body", offset = 0x011B4, size = 0x5910, address = 0x80116924 },
+    "aya_10200_image_06AC4",
+    "aya_10200_image_06E04",
+    "aya_10200_image_07144",
+    "aya_10200_image_07484",
+]
+package_name = "aya_10200"
+required = true
+sha1 = "e2845b5951488ca2980ecdf0a778e00ac03c9121"

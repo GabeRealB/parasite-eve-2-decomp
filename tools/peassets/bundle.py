@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Resource bundles (`.pe2bundle`, doc/BUNDLE_FORMAT.md): the directory, the resources, and the bundle rebuilt.
 
-    bundle.py akropolis_square_bundle [...]       what each bundle holds
+    bundle.py rooms/akropolis/square/bundle [...]       what each bundle holds
     bundle.py --check [bundle ...]                rebuild bundles from their resources, compare with the disc's
 
 A bundle is a CDF chunk (opcode 4): fifty 16-byte directory entries - kind (0

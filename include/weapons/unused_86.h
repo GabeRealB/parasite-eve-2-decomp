@@ -17,6 +17,6 @@
 /// package. Keep that package loaded while any slot or cached record pointer
 /// refers to them; copied clips also require their source packages to remain
 /// loaded. These packages contain animations without executable attack code.
-extern AnimationBank gUnused86PlayerAnimationBank;
+extern AnimationSet* gUnused86PlayerAnimationBank[ANIMATION_BANK_SET_CAPACITY];
 
 #endif // INCLUDE_WEAPONS_UNUSED_86_H

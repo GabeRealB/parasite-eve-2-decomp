@@ -158,8 +158,8 @@ static AnimationSet* _gNeoArkForestZoneFirstVisitAnimationSets[2] = {
 
 /// Copies exactly the two first-visit set pointers into the player's bank extension.
 static AnimationBankCopyRequest _gNeoArkForestZoneFirstVisitAnimationBankCopy = {
-    .source    = { .sets = _gNeoArkForestZoneFirstVisitAnimationSets },
-    .wordCount = ARRAY_SIZE(_gNeoArkForestZoneFirstVisitAnimationSets),
+    .sets  = _gNeoArkForestZoneFirstVisitAnimationSets,
+    .count = ARRAY_SIZE(_gNeoArkForestZoneFirstVisitAnimationSets),
 };
 
 /// Second first-visit player clip, blending for eight normal-rate frames with collision enabled.

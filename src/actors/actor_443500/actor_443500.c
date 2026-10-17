@@ -918,8 +918,8 @@ static AnimationSet* _gActor443500TourOpeningPlayerAnimationSets[11] = {
 /// Copies the complete set-pointer table in 32-bit words. The request is consumed
 /// during dispatch; keep this overlay loaded until the copied clips stop playing.
 static AnimationBankCopyRequest _gActor443500TourOpeningPlayerBankExtension = {
-    .source    = { .sets = _gActor443500TourOpeningPlayerAnimationSets },
-    .wordCount = ARRAY_SIZE(_gActor443500TourOpeningPlayerAnimationSets),
+    .sets  = _gActor443500TourOpeningPlayerAnimationSets,
+    .count = ARRAY_SIZE(_gActor443500TourOpeningPlayerAnimationSets),
 };
 
 /// Unplayed clip-1 reset preset beside the tour-opening player requests.
@@ -1131,8 +1131,8 @@ static AnimationSet* _gActor443500TerminalFollowupPlayerAnimationSets[25] = {
 /// Copies the complete set-pointer table in 32-bit words, including its NULL
 /// entry. Keep this overlay loaded while any copied clip remains in playback.
 static AnimationBankCopyRequest _gActor443500TerminalFollowupPlayerBankExtension = {
-    .source    = { .sets = _gActor443500TerminalFollowupPlayerAnimationSets },
-    .wordCount = ARRAY_SIZE(_gActor443500TerminalFollowupPlayerAnimationSets),
+    .sets  = _gActor443500TerminalFollowupPlayerAnimationSets,
+    .count = ARRAY_SIZE(_gActor443500TerminalFollowupPlayerAnimationSets),
 };
 
 /// Unplayed clip-1 reset preset beside the terminal-follow-up player requests.

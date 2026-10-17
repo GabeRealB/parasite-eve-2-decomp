@@ -14,7 +14,7 @@
 /// scripted copies, including payloads that are not clip pointers. Play an
 /// extension slot only after installing a clip pointer there. The bank and
 /// its borrowed clip data must stay loaded while playback refers to them.
-extern AnimationBank gAs12PlayerAnimationBank;
+extern AnimationSet* gAs12PlayerAnimationBank[ANIMATION_BANK_SET_CAPACITY];
 
 /// Held AS12 shotgun model, with one rigid part and its textured geometry.
 ///

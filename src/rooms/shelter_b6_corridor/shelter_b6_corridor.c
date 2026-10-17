@@ -180,8 +180,8 @@ static AnimationSet* _gShelterB6CorridorBattleEndAnimationSets[2] = {
 
 /// Installs the two battle-end extension words in the equipped player bank.
 static AnimationBankCopyRequest _gShelterB6CorridorBattleEndAnimationBankCopy = {
-    .source    = { .sets = _gShelterB6CorridorBattleEndAnimationSets },
-    .wordCount = ARRAY_SIZE(_gShelterB6CorridorBattleEndAnimationSets),
+    .sets  = _gShelterB6CorridorBattleEndAnimationSets,
+    .count = ARRAY_SIZE(_gShelterB6CorridorBattleEndAnimationSets),
 };
 
 /// Unreferenced playback-shaped record: bank 1, clip 1, reset, grid disabled.

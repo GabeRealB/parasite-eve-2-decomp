@@ -271,43 +271,23 @@ typedef struct {
 } AnimationHeadAim;
 STATIC_ASSERT_SIZEOF(AnimationHeadAim, 0xC);
 
-/// Word counts of one weapon or companion animation bank.
+/// Sizes of a weapon or companion animation bank.
 ///
-/// The base count is that resource's own clips. A copy overwrites at most
-/// `ANIMATION_BANK_EXTENSION_CAPACITY` words after them. The set capacity is
-/// both spans as one table.
+/// A weapon package defines its player bank, and a companion package its
+/// companion bank, as `AnimationSet* bank[ANIMATION_BANK_SET_CAPACITY]`: the
+/// clip table playback installs (`AnimationSet**`), indexed by animation id.
+/// The first `ANIMATION_BANK_BASE_SET_COUNT` entries are the resource's own
+/// clips, each an `AnimationSet*` or NULL. The remaining
+/// `ANIMATION_BANK_EXTENSION_CAPACITY` entries start cleared and are the
+/// extension: a copy message (`AnimationBankCopyRequest`) fills it with a
+/// scene's clips, ids 47 onward. A copy that reads past its list leaves other
+/// words in the later extension entries; those are never played. The bank
+/// stays valid only while its package is loaded, and the extension must stay
+/// writable.
 enum {
     ANIMATION_BANK_BASE_SET_COUNT     = 47,
     ANIMATION_BANK_EXTENSION_CAPACITY = 32,
     ANIMATION_BANK_SET_CAPACITY       = ANIMATION_BANK_BASE_SET_COUNT + ANIMATION_BANK_EXTENSION_CAPACITY,
 };
-
-/// Clip table of the loaded weapon or companion.
-///
-/// The player uses the bank for the current character and equipped weapon.
-/// A companion uses the bank for its saved type and variant. The resident
-/// package owns the 79 words; they remain valid only while that package stays
-/// loaded, and the extension must stay writable. The bank's address is the
-/// address of its first word, so that pointer is the `AnimationSet**` playback
-/// installs.
-///
-/// Each of the first `ANIMATION_BANK_BASE_SET_COUNT` words is an `AnimationSet*`
-/// or NULL. A copy message overwrites the next `ANIMATION_BANK_EXTENSION_CAPACITY`
-/// words with the raw values from an `AnimationBankCopyRequest` and leaves the
-/// base words unchanged. An extension word may be played as a set only when the
-/// copied value is a set pointer or NULL. The same copy also writes neighbouring
-/// play-request, text and event-script words into unused extension entries, and
-/// those words are not clips.
-///
-/// `table.sets` and `table.words` are the two views of all 79 words. There is
-/// no separate extension array: an extended id indexes this table, and the copy
-/// writes `table.words` from `ANIMATION_BANK_BASE_SET_COUNT`. No lengths are stored.
-typedef struct {
-    union {
-        AnimationSet* sets[ANIMATION_BANK_SET_CAPACITY];  // Playback view; follow a word only when it is a set pointer or NULL
-        s32           words[ANIMATION_BANK_SET_CAPACITY]; // Raw words, including non-pointer values copied into the extension
-    } table;                                              // All 79 words; the bank address is this table's address
-} AnimationBank;
-STATIC_ASSERT_SIZEOF(AnimationBank, 0x13C);
 
 #endif // GAMEPLAY_ANIMATION_H

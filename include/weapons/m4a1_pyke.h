@@ -22,7 +22,7 @@
 /// Play extension slots only when they hold loaded clips. Keep this weapon
 /// package and all borrowed clip data loaded while the bank or playback retains
 /// them; replacing the package invalidates the bank and its extension.
-extern AnimationBank gM4a1PykePlayerAnimationBank;
+extern AnimationSet* gM4a1PykePlayerAnimationBank[ANIMATION_BANK_SET_CAPACITY];
 
 /// Equipped M4A1 rifle with the Pyke flamethrower attachment.
 ///

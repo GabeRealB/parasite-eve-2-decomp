@@ -402,7 +402,7 @@ static AnimationSet* _gActor451100PlayerAnimationExtensionSets[4] = { &_gActor45
 /// script's first opcode. Only entries 47..50 are playable sets. Preserve this
 /// declaration order and copy length; the cast exposes the stored word span,
 /// including non-pointer data. Clip storage stays borrowed until bank playback ends.
-static AnimationBankCopyRequest _gActor451100PlayerAnimationBankCopy = { { .words = (const s32*)_gActor451100PlayerAnimationExtensionSets }, ANIMATION_BANK_EXTENSION_CAPACITY };
+static AnimationBankCopyRequest _gActor451100PlayerAnimationBankCopy = { _gActor451100PlayerAnimationExtensionSets, ANIMATION_BANK_EXTENSION_CAPACITY };
 
 /// Blends the player to installed clip 47 over eight normal-rate frames.
 ///

@@ -15,7 +15,7 @@ extern TmdSource gActor800300Model02CF4;
 /// Loaded base slots contain set pointers or NULL; copied extension words may
 /// also carry non-pointer payloads. Follow only slots known to contain clips.
 /// Playback and extension copies require actor_800300 and its sets to stay loaded.
-extern AnimationBank gActor800300CompanionAnimationBank;
+extern AnimationSet* gActor800300CompanionAnimationBank[ANIMATION_BANK_SET_CAPACITY];
 
 /// Runs the noncombatant companion's initialization, frame update and teardown states.
 ///

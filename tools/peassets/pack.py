@@ -152,9 +152,9 @@ def path_under_raw_type_store(
     ``spk/spk_0/meta.json`` → ``raw/spk/spk_0.spk``
 
     Only the asset's name is read from the path and the type comes from the
-    chunk, so an asset the table files under a group
-    (``weapons/m4a1/foo.png``, ``asset_schema.asset_dir``) maps the same way:
-    ``raw/`` is never grouped.
+    chunk. Under a group the name is the path (``weapons/m4a1/foo.png`` is
+    ``weapons/m4a1/foo``, ``asset_schema.manifest_asset``), which is where
+    ``raw/<type>/`` keeps it too.
     """
     p = Path(path_str)
     # Already under raw/
@@ -162,19 +162,17 @@ def path_under_raw_type_store(
         return resolve_path(assets_dir, p)
     type_dir = AssetStore_type_dir(chunk_type)
     ext = chunk_type.get_extension()
+    import asset_schema
     # SPK inflates to ``spk/{stem}/meta.json`` — stem is the parent dir name.
-    if chunk_type == FileChunkType.Music:
-        if p.name == "meta.json" and p.parent.name:
-            stem = p.parent.name
-        elif p.suffix.lower() == ".spk":
-            stem = p.stem
-        else:
-            stem = p.stem
+    found = asset_schema.manifest_asset(p.as_posix())
+    if found is not None:
+        stem = found[0]
+    elif chunk_type == FileChunkType.Music and p.name == "meta.json" and p.parent.name:
+        stem = p.parent.name
     else:
         stem = p.stem
     if chunk_type == FileChunkType.RoomPkg:
         # pe2pkg/ holds a package under its overlay name; raw/ under the asset's (`package_name`).
-        import asset_schema
         stem = asset_schema.package_asset(stem)
     return (assets_dir / "raw" / type_dir / f"{stem}{ext}").resolve()
 
@@ -427,7 +425,7 @@ def _encode_image_from_png(
 
     if chunk_type == FileChunkType.Image:
         import asset_data
-        return png_to_pe2img(content_path, raw_path, (asset_data.ASSETS.get(raw_path.stem) or {}).get("bpp"))
+        return png_to_pe2img(content_path, raw_path, (asset_data.ASSETS.get(asset_schema.raw_key(raw_path)) or {}).get("bpp"))
     return png_to_pe2clut(content_path, raw_path)
 
 

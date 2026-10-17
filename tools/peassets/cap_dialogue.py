@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """What a room's dialogue payload does: its commands and the records each plays.
 
-    cap_dialogue.py akropolis_square_bundle               every command of every dialogue in the bundle
-    cap_dialogue.py akropolis_square_dialogue_0 --command 4   one command of one dialogue
+    cap_dialogue.py rooms/akropolis/square/bundle               every command of every dialogue in the bundle
+    cap_dialogue.py rooms/akropolis/square/dialogue_0 --command 4   one command of one dialogue
 
 A `CAP2` payload (doc/CAP_FORMAT.md) is a small state machine. Code runs a
 command by index; the command's opcode picks a variant key - always 0, a

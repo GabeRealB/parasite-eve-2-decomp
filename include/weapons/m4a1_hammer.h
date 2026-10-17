@@ -14,7 +14,7 @@
 /// Only extension words containing clip pointers or NULL may be used for playback.
 /// Keep the Hammer overlay and any copied clip resources loaded while playback
 /// borrows the bank, its descriptors or their data.
-extern AnimationBank gM4a1HammerPlayerAnimationBank;
+extern AnimationSet* gM4a1HammerPlayerAnimationBank[ANIMATION_BANK_SET_CAPACITY];
 
 /// Single-part held M4A1 Hammer weapon model and its shared writable command stream.
 ///

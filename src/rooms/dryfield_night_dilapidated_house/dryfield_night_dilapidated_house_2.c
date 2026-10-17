@@ -976,8 +976,8 @@ STATIC_ASSERT(ARRAY_SIZE(_gDryfieldNightDilapidatedHouseFirstVisitPlayerSets) <=
 /// playback. The selected bank must be loaded and writable, and the copied
 /// clip pointers remain borrowed from this overlay until playback ends.
 static AnimationBankCopyRequest _gDryfieldNightDilapidatedHouseFirstVisitPlayerBankCopy = {
-    .source    = { .sets = _gDryfieldNightDilapidatedHouseFirstVisitPlayerSets },
-    .wordCount = ARRAY_SIZE(_gDryfieldNightDilapidatedHouseFirstVisitPlayerSets),
+    .sets  = _gDryfieldNightDilapidatedHouseFirstVisitPlayerSets,
+    .count = ARRAY_SIZE(_gDryfieldNightDilapidatedHouseFirstVisitPlayerSets),
 };
 
 /// Unreferenced request-shaped record for clip 1; its intended receiver is unproven.
@@ -1189,8 +1189,8 @@ STATIC_ASSERT(ARRAY_SIZE(_gDryfieldNightDilapidatedHouseFirstVisitCompanionSets)
 /// playback. The selected bank must be loaded and writable, and the copied
 /// clip pointers remain borrowed from this overlay until playback ends.
 static AnimationBankCopyRequest _gDryfieldNightDilapidatedHouseFirstVisitCompanionBankCopy = {
-    .source    = { .sets = _gDryfieldNightDilapidatedHouseFirstVisitCompanionSets },
-    .wordCount = ARRAY_SIZE(_gDryfieldNightDilapidatedHouseFirstVisitCompanionSets),
+    .sets  = _gDryfieldNightDilapidatedHouseFirstVisitCompanionSets,
+    .count = ARRAY_SIZE(_gDryfieldNightDilapidatedHouseFirstVisitCompanionSets),
 };
 
 /// Unreferenced request-shaped record for clip 1; its intended receiver is unproven.

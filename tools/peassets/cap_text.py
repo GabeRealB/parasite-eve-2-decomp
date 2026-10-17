@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """The text of a room's dialogue: CAP glyph codes turned back into characters.
 
-    cap_text.py akropolis_square_bundle      every text stream of every dialogue in the bundle
-    cap_text.py akropolis_square_dialogue_0  the same for one dialogue
+    cap_text.py rooms/akropolis/square/bundle      every text stream of every dialogue in the bundle
+    cap_text.py rooms/akropolis/square/dialogue_0  the same for one dialogue
     cap_text.py <name> --unknown             the glyphs the table does not know yet, by hash
 
 A CAP text stream is a list of glyph-cell indices, not characters

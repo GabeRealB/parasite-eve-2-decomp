@@ -742,8 +742,8 @@ static AnimationSet* _gDryfieldNightGasStationPlayerCutsceneAnimationSets[6] = {
 /// borrow the source table during dispatch, and playback borrows its clip
 /// descriptors and data for as long as the room overlay remains loaded.
 static AnimationBankCopyRequest _gDryfieldNightGasStationPlayerCutsceneAnimationBankCopy = {
-    .source    = { .sets = _gDryfieldNightGasStationPlayerCutsceneAnimationSets },
-    .wordCount = ARRAY_SIZE(_gDryfieldNightGasStationPlayerCutsceneAnimationSets),
+    .sets  = _gDryfieldNightGasStationPlayerCutsceneAnimationSets,
+    .count = ARRAY_SIZE(_gDryfieldNightGasStationPlayerCutsceneAnimationSets),
 };
 
 /// Unused bank-1 clip-1 reset request retained before the player cutscene requests.
@@ -901,8 +901,8 @@ static AnimationSet* _gDryfieldNightGasStationCompanionCutsceneAnimationSets[11]
 /// borrow the source table during dispatch, and playback borrows its clip
 /// descriptors and data for as long as the room overlay remains loaded.
 static AnimationBankCopyRequest _gDryfieldNightGasStationCompanionCutsceneAnimationBankCopy = {
-    .source    = { .sets = _gDryfieldNightGasStationCompanionCutsceneAnimationSets },
-    .wordCount = ARRAY_SIZE(_gDryfieldNightGasStationCompanionCutsceneAnimationSets),
+    .sets  = _gDryfieldNightGasStationCompanionCutsceneAnimationSets,
+    .count = ARRAY_SIZE(_gDryfieldNightGasStationCompanionCutsceneAnimationSets),
 };
 
 /// Restarts companion clip 48 without blending on the follow-up conversation's skip path.

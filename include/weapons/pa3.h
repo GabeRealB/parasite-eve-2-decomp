@@ -15,7 +15,7 @@
 /// Play an extension entry only after installing a valid clip pointer there.
 /// Keep PA3 loaded while playback borrows the bank or its native clips;
 /// copied clips also require their source overlays to remain loaded.
-extern AnimationBank gPa3PlayerAnimationBank;
+extern AnimationSet* gPa3PlayerAnimationBank[ANIMATION_BANK_SET_CAPACITY];
 
 /// Single-part held PA3 shotgun model attached to the player's weapon hand.
 ///

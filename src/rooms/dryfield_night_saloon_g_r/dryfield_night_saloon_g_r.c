@@ -584,8 +584,8 @@ static AnimationSet* _gDryfieldNightSaloonGRPlayerDialogueAnimationSets[] = {
 /// source table are borrowed through dispatch; the copied sets stay borrowed
 /// throughout playback. The bank's later extension words are left unchanged.
 static AnimationBankCopyRequest _gDryfieldNightSaloonGRPlayerDialogueBankCopyRequest = {
-    .source    = { .sets = _gDryfieldNightSaloonGRPlayerDialogueAnimationSets },
-    .wordCount = ARRAY_SIZE(_gDryfieldNightSaloonGRPlayerDialogueAnimationSets),
+    .sets  = _gDryfieldNightSaloonGRPlayerDialogueAnimationSets,
+    .count = ARRAY_SIZE(_gDryfieldNightSaloonGRPlayerDialogueAnimationSets),
 };
 
 /// Retained bank-index-1, clip-1 reset request with disabled world collision.

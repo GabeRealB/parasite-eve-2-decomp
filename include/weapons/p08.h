@@ -16,7 +16,7 @@
 /// Play extension slots only when they contain clips. The bank and its borrowed
 /// clip data remain valid only while the selected P08 package stays loaded;
 /// the unarmed selection loads the snail-magazine package.
-extern AnimationBank gP08PlayerAnimationBank;
+extern AnimationSet* gP08PlayerAnimationBank[ANIMATION_BANK_SET_CAPACITY];
 
 /// Rigid held P08 pistol model selected for both magazine variants.
 ///

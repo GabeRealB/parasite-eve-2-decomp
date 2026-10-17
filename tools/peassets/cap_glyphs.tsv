@@ -1,5 +1,5 @@
 # CAP glyphs: a hash of a glyph cell's 4-bit pixels (tools/peassets/cap_text.py, glyph_hash) and its character.
-# Added as rooms are worked through; seeded from the Akropolis square (akropolis_square_bundle).
+# Added as rooms are worked through; seeded from the Akropolis square (rooms/akropolis/square/bundle).
 # A line naming several characters is a picture they share (l and I are drawn alike). Which one a payload's
 # cell is comes from the bundle's `glyphs` overrides in asset_data.py; without one the decoder guesses and warns.
 # hash	character [	character ...]

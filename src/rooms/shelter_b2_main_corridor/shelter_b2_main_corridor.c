@@ -232,7 +232,7 @@ static AnimationSet* _gShelterB2MainCorridorAccessSceneAnimationSets[1] = {
 ///
 /// The request and one-word source are consumed synchronously; the copied
 /// clip pointer remains borrowed until playback ends.
-static AnimationBankCopyRequest _gShelterB2MainCorridorAccessSceneBankCopy = { { .sets = _gShelterB2MainCorridorAccessSceneAnimationSets }, ARRAY_SIZE(_gShelterB2MainCorridorAccessSceneAnimationSets) };
+static AnimationBankCopyRequest _gShelterB2MainCorridorAccessSceneBankCopy = { _gShelterB2MainCorridorAccessSceneAnimationSets, ARRAY_SIZE(_gShelterB2MainCorridorAccessSceneAnimationSets) };
 
 enum { SHELTER_B2_MAIN_CORRIDOR_ACCESS_SCENE_IDLE_CLIP = 1 };
 

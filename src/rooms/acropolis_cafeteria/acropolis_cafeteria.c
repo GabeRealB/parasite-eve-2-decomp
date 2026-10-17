@@ -352,8 +352,8 @@ static AnimationSet* _gAcropolisCafeteriaOpeningPlayerAnimationSets[1] = {
 /// Copies one 32-bit pointer to slot 47 synchronously without starting playback.
 /// The request and source table live with this overlay; clip data stays borrowed.
 static AnimationBankCopyRequest _gAcropolisCafeteriaOpeningPlayerBankCopy = {
-    .source    = { .sets = _gAcropolisCafeteriaOpeningPlayerAnimationSets },
-    .wordCount = ARRAY_SIZE(_gAcropolisCafeteriaOpeningPlayerAnimationSets),
+    .sets  = _gAcropolisCafeteriaOpeningPlayerAnimationSets,
+    .count = ARRAY_SIZE(_gAcropolisCafeteriaOpeningPlayerAnimationSets),
 };
 
 /// Plays the opening scene's installed player clip at bank slot 47.
@@ -386,8 +386,8 @@ static AnimationSet* _gAcropolisCafeteriaFollowUpPlayerAnimationSets[4] = {
 /// Copies four 32-bit pointers to slots 47..50 synchronously without starting
 /// playback. The source table lives with this overlay; clip data stays borrowed.
 static AnimationBankCopyRequest _gAcropolisCafeteriaFollowUpPlayerBankCopy = {
-    .source    = { .sets = _gAcropolisCafeteriaFollowUpPlayerAnimationSets },
-    .wordCount = ARRAY_SIZE(_gAcropolisCafeteriaFollowUpPlayerAnimationSets),
+    .sets  = _gAcropolisCafeteriaFollowUpPlayerAnimationSets,
+    .count = ARRAY_SIZE(_gAcropolisCafeteriaFollowUpPlayerAnimationSets),
 };
 
 /// Plays the follow-up's Rupert-supplied player clip at bank slot 47.

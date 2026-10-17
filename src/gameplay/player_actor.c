@@ -919,7 +919,7 @@ u16 gPlayerActorWeaponAnimationBankBases[2] = {
     1,
     0,
 };
-AnimationBank* gPlayerActorWeaponAnimationBanks[34] = { NULL, &gP08PlayerAnimationBank, &gP08PlayerAnimationBank, &gM93rPlayerAnimationBank, &gM950PlayerAnimationBank, &gP08PlayerAnimationBank, &gP229PlayerAnimationBank, &gUnused85PlayerAnimationBank, &gUnused86PlayerAnimationBank, &gUnused86PlayerAnimationBank, &gMongoosePlayerAnimationBank, &gUnused86PlayerAnimationBank, &gGrenadePistolPlayerAnimationBank, &gMm1PlayerAnimationBank, &gPa3PlayerAnimationBank, &gSp12PlayerAnimationBank, &gAs12PlayerAnimationBank, &gM4a1PlayerAnimationBank, &gM249PlayerAnimationBank, &gUnused86PlayerAnimationBank, &gTonfaBatonPlayerAnimationBank, &gM4a1PlayerAnimationBank, &gM4a1PlayerAnimationBank, &gHypervelocityPlayerAnimationBank, &gGunbladePlayerAnimationBank, &gUnused86PlayerAnimationBank, &gM4a1HammerPlayerAnimationBank, &gM4a1BayonetPlayerAnimationBank, &gM4a1GrenadePlayerAnimationBank, &gM4a1PykePlayerAnimationBank, &gM4a1JavelinPlayerAnimationBank, &gMp5a5PlayerAnimationBank, &gMp5a5PlayerAnimationBank, &gMp5a5PlayerAnimationBank };
+AnimationSet** gPlayerActorWeaponAnimationBanks[34] = { NULL, gP08PlayerAnimationBank, gP08PlayerAnimationBank, gM93rPlayerAnimationBank, gM950PlayerAnimationBank, gP08PlayerAnimationBank, gP229PlayerAnimationBank, gUnused85PlayerAnimationBank, gUnused86PlayerAnimationBank, gUnused86PlayerAnimationBank, gMongoosePlayerAnimationBank, gUnused86PlayerAnimationBank, gGrenadePistolPlayerAnimationBank, gMm1PlayerAnimationBank, gPa3PlayerAnimationBank, gSp12PlayerAnimationBank, gAs12PlayerAnimationBank, gM4a1PlayerAnimationBank, gM249PlayerAnimationBank, gUnused86PlayerAnimationBank, gTonfaBatonPlayerAnimationBank, gM4a1PlayerAnimationBank, gM4a1PlayerAnimationBank, gHypervelocityPlayerAnimationBank, gGunbladePlayerAnimationBank, gUnused86PlayerAnimationBank, gM4a1HammerPlayerAnimationBank, gM4a1BayonetPlayerAnimationBank, gM4a1GrenadePlayerAnimationBank, gM4a1PykePlayerAnimationBank, gM4a1JavelinPlayerAnimationBank, gMp5a5PlayerAnimationBank, gMp5a5PlayerAnimationBank, gMp5a5PlayerAnimationBank };
 /// First bank-7 weapon-model descriptor for each character selector.
 ///
 /// Indexed directly by characterId 0..3. Character 1 uses descriptors 64..95
@@ -1330,7 +1330,7 @@ u16            gCompanionAnimationBankBases[4] = {
     7,
     0,
 };
-AnimationBank* gCompanionAnimationBanks[8]        = { NULL, &gKyle800101KyleMadiganAnimationBank, &gKyle800101KyleMadiganAnimationBank, &gKyle800102CompanionAnimationBank, &gKyle800103KyleMadiganAnimationBank, &gKyle800104KyleMadiganAnimationBank, &gActor800200CompanionAnimationBank, &gActor800300CompanionAnimationBank };
+AnimationSet** gCompanionAnimationBanks[8]        = { NULL, gKyle800101KyleMadiganAnimationBank, gKyle800101KyleMadiganAnimationBank, gKyle800102CompanionAnimationBank, gKyle800103KyleMadiganAnimationBank, gKyle800104KyleMadiganAnimationBank, gActor800200CompanionAnimationBank, gActor800300CompanionAnimationBank };
 u8             gCompanionVariantUsesTorsoPitch[8] = {
     0,
     0,
@@ -6515,7 +6515,7 @@ restorePlayback:
     playbackActor                     = playerTask->work;
     playerModel                       = playerTask->extra.tmd;
     playbackActor->animationBankIndex = gPlayerActorWeaponAnimationBankBases[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon;
-    playbackActor->animationSets      = gPlayerActorWeaponAnimationBanks[playbackActor->animationBankIndex]->table.sets;
+    playbackActor->animationSets      = gPlayerActorWeaponAnimationBanks[playbackActor->animationBankIndex];
     animationInitContext(&playbackActor->animationContext, playbackActor->animationSets, playerModel, playbackActor->poseBuffer,
                          playbackActor->animationSlots);
     playerActorEnterLocomotion(playerTask, 1);
@@ -6599,7 +6599,7 @@ static void _animationBindPlayerWeaponBank(Task* task)
     actor                     = task->work;
     model                     = task->extra.tmd;
     actor->animationBankIndex = gPlayerActorWeaponAnimationBankBases[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon;
-    actor->animationSets      = gPlayerActorWeaponAnimationBanks[actor->animationBankIndex]->table.sets;
+    actor->animationSets      = gPlayerActorWeaponAnimationBanks[actor->animationBankIndex];
     animationInitContext(&actor->animationContext, actor->animationSets, model, actor->poseBuffer,
                          actor->animationSlots);
 }
@@ -7117,8 +7117,8 @@ static s32 _playerActorPlayScriptedAnimation(Task* task, s32 unusedMessageId, co
     _playerActorEnterScriptedMode(task);
     // Select the animation table before resetting or blending its slots.
     actor->state = PLAYER_ACTOR_SCRIPTED_ANIMATION_STATE;
-    if (actor->animationSets != gPlayerActorWeaponAnimationBanks[request->source.index]->table.sets) {
-        actor->animationSets = gPlayerActorWeaponAnimationBanks[request->source.index]->table.sets;
+    if (actor->animationSets != gPlayerActorWeaponAnimationBanks[request->source.index]) {
+        actor->animationSets = gPlayerActorWeaponAnimationBanks[request->source.index];
         animationInitContext(&actor->animationContext, actor->animationSets, model, actor->poseBuffer,
                              actor->animationSlots);
         actor->animationBankIndex = (u16)request->source.index;
@@ -7259,7 +7259,7 @@ s32 playerActorEndScripted(Task* task, s32 unusedMessageId, s32 resumeMode, s32 
     actor->previousPosition.vy                          = rootCoord->coord.t[1];
     actor->previousPosition.vz                          = rootCoord->coord.t[2];
     actor->animationBankIndex                           = gPlayerActorWeaponAnimationBankBases[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon;
-    actor->animationSets                                = gPlayerActorWeaponAnimationBanks[actor->animationBankIndex]->table.sets;
+    actor->animationSets                                = gPlayerActorWeaponAnimationBanks[actor->animationBankIndex];
     actor->animationRate                                = ANIMATION_RATE_ONE;
     actor->pendingCollisionUpdates                      = GAME_ACTOR_COLLISION_REQUEST_MASK;
     actor->collisionBodies[GAME_ACTOR_BODY_ROOT].flags |= WORLD_COLLISION_BODY_VIEW_TRIGGER_ENABLED;
@@ -7729,33 +7729,33 @@ s32 playerActorSetAnimationRate(Task* task, s32 unusedMessageId, s32 rate, s32 u
     return 0;
 }
 
-/// Copies raw words into the equipped player bank's extension without starting playback.
+/// Copies a scene's clips into the equipped player bank's extension without starting playback.
 ///
 /// characterId must be 1 or 2; its base plus weapon must select a non-NULL
 /// loaded, writable bank in entries 0..33. Counts above 32 return 1 without
 /// copying; nonpositive counts copy nothing and return 0. Accepted positive
-/// counts overwrite words 47 onward and return 0. The borrowed request and
-/// readable word-aligned source must remain valid through this call; the count
-/// is reread each iteration and must remain within the checked capacity.
-/// Copied clip pointers remain borrowed for playback; raw extension words may
-/// include other payloads. Receiver, message ID and second payload are unused.
+/// counts overwrite entries 47 onward and return 0. The borrowed request and
+/// its list must remain valid through this call; the count is reread each
+/// iteration and must remain within the checked capacity. Copied clips remain
+/// borrowed for playback; a count past the list's end copies whatever follows
+/// it (`AnimationBankCopyRequest`). Receiver, message ID and second payload are
+/// unused.
 static s32 _animationCopyPlayerBankExtension(Task* unusedTask, s32 unusedMessageId, const AnimationBankCopyRequest* request, s32 unusedSecondArg)
 {
-    s32*       destinationWords;
-    const s32* sourceWords;
-    s32        wordIndex;
-    s32        wordCount;
+    AnimationSet**       destinationSets;
+    AnimationSet* const* sourceSets;
+    s32                  setIndex;
+    s32                  setCount;
 
-    destinationWords = gPlayerActorWeaponAnimationBanks[gPlayerActorWeaponAnimationBankBases[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon]->table.words;
-    sourceWords      = request->source.words;
-    wordCount        = request->wordCount;
-    if (wordCount >= ANIMATION_BANK_EXTENSION_CAPACITY + 1) {
+    destinationSets = gPlayerActorWeaponAnimationBanks[gPlayerActorWeaponAnimationBankBases[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon];
+    sourceSets      = request->sets;
+    setCount        = request->count;
+    if (setCount >= ANIMATION_BANK_EXTENSION_CAPACITY + 1) {
         return 1;
     }
-    // Transfer raw words: the span can include records after the clip pointers.
-    destinationWords = &destinationWords[ANIMATION_BANK_BASE_SET_COUNT];
-    for (wordIndex = 0; wordIndex < request->wordCount; wordIndex++) {
-        destinationWords[wordIndex] = sourceWords[wordIndex];
+    destinationSets = &destinationSets[ANIMATION_BANK_BASE_SET_COUNT];
+    for (setIndex = 0; setIndex < request->count; setIndex++) {
+        destinationSets[setIndex] = sourceSets[setIndex];
     }
     return 0;
 }

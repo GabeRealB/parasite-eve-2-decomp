@@ -546,7 +546,7 @@ static AnimationSet* _gActor450200CompanionScenePlayerAnimationSets[ACTOR_450200
 ///
 /// The count is the bank's 32-word capacity, including 24 words after the clip
 /// table. Dispatch copies synchronously; playback continues to borrow the clips.
-static AnimationBankCopyRequest _gActor450200CompanionScenePlayerBankCopyRequest = { { .sets = _gActor450200CompanionScenePlayerAnimationSets }, ANIMATION_BANK_EXTENSION_CAPACITY };
+static AnimationBankCopyRequest _gActor450200CompanionScenePlayerBankCopyRequest = { _gActor450200CompanionScenePlayerAnimationSets, ANIMATION_BANK_EXTENSION_CAPACITY };
 
 /// Blends the player into companion-scene clip 47 over five frames with collision enabled.
 ///
@@ -614,7 +614,7 @@ static AnimationSet* _gActor450200CompanionAnimationSets[ACTOR_450200_COMPANION_
 /// Scene entry and three talk scripts install the bank; the scene's skip script
 /// and third talk script rely on the installed extension. Dispatch copies the
 /// full 32 words synchronously, and playback continues to borrow the clips.
-static AnimationBankCopyRequest _gActor450200CompanionBankCopyRequest = { { .sets = _gActor450200CompanionAnimationSets }, ANIMATION_BANK_EXTENSION_CAPACITY };
+static AnimationBankCopyRequest _gActor450200CompanionBankCopyRequest = { _gActor450200CompanionAnimationSets, ANIMATION_BANK_EXTENSION_CAPACITY };
 
 /// Resets the companion to scene clip 47 before the player's first approach.
 ///
@@ -1206,7 +1206,7 @@ static AnimationPlayRequest _gActor450200SoloScenePlayerAnimation51Request = { {
 /// Dispatch copies all 32 words synchronously into the equipped weapon bank's
 /// extension; only ids 47-51 are clips. Keep the adjacent records in stored order
 /// and this package loaded while playback borrows the installed clip data.
-static AnimationBankCopyRequest _gActor450200SoloScenePlayerBankCopyRequest = { { .sets = _gActor450200SoloScenePlayerAnimationSets }, ANIMATION_BANK_EXTENSION_CAPACITY };
+static AnimationBankCopyRequest _gActor450200SoloScenePlayerBankCopyRequest = { _gActor450200SoloScenePlayerAnimationSets, ANIMATION_BANK_EXTENSION_CAPACITY };
 
 /// Player placement at solo-scene setup and both normal and skipped endings.
 ///
@@ -1424,7 +1424,7 @@ static AnimationPlayRequest _gActor450200RoomVariantScenePlayerAnimation50Reques
 /// and three words of the clip-49 request. Only extension ids 47-50 are clips.
 /// Preserve the records' stored order and keep the package loaded while the
 /// equipped weapon's bank borrows the installed clip data.
-static AnimationBankCopyRequest _gActor450200RoomVariantScenePlayerBankCopyRequest = { { .words = (const s32*)_gActor450200RoomVariantScenePlayerAnimationSets }, ANIMATION_BANK_EXTENSION_CAPACITY };
+static AnimationBankCopyRequest _gActor450200RoomVariantScenePlayerBankCopyRequest = { _gActor450200RoomVariantScenePlayerAnimationSets, ANIMATION_BANK_EXTENSION_CAPACITY };
 
 /// Player approach and arrival clips shared by both room-variant scene walks.
 ///

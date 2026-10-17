@@ -15,9 +15,6 @@ enum {
     AYA_10200_MOUTH_FRAME_HEIGHT_ROWS = 20,
 };
 
-/// Initial state of this package's writable model command stream.
-enum { AYA_10200_BODY_MODEL_HANDLERS_UNRESOLVED = 0 };
-
 /// Initial local transform and self-parented root for first-pair hand slot 0.
 ///
 /// Read-only source tables retain their serialized positions in the data section.
@@ -182,44 +179,10 @@ TmdSource gAya10200SecondPairHand1Model = {
     .stream              = _gAya10200SecondPairHand1ModelStream,
 };
 
-/// Nineteen initial part transforms and parent indices for the player body.
-///
-/// Read-only tables retain their serialized positions in the package's data section.
-static const TmdBone _gAya10200BodyModelSkeleton[19] __attribute__((section(".data"))) = {
-#include "assets/aya_10200_model_02B58_skeleton.inc"
-};
-
-/// Part-local vertex counts in skeleton order, totaling 352 vertices.
-static const u32 _gAya10200BodyModelPartVerts[ARRAY_SIZE(_gAya10200BodyModelSkeleton)] __attribute__((section(".data"))) = {
-#include "assets/aya_10200_model_02B58_partVerts.inc"
-};
-
-/// Writable player-body vertices in integer coordinates local to each part.
-static SVECTOR _gAya10200BodyModelVerts[352] = {
-#include "assets/aya_10200_model_02B58_verts.inc"
-};
-
-/// Writable part-local body normals, with 12 fractional bits and independent stream indices.
-static SVECTOR _gAya10200BodyModelNormals[373] = {
-#include "assets/aya_10200_model_02B58_normals.inc"
-};
-
-/// Body draw commands whose handler slots are resolved in place on first model creation.
-static u32 _gAya10200BodyModelStream[4051] = {
-#include "assets/aya_10200_model_02B58_stream.inc"
-};
-
-TmdSource gAya10200BodyModel = {
-    AYA_10200_BODY_MODEL_HANDLERS_UNRESOLVED,
-    22344,
-    5824,
-    ARRAY_SIZE(_gAya10200BodyModelSkeleton),
-    _gAya10200BodyModelPartVerts,
-    _gAya10200BodyModelVerts,
-    _gAya10200BodyModelNormals,
-    _gAya10200BodyModelSkeleton,
-    _gAya10200BodyModelStream,
-};
+/// The player body for resource variant 3, `gAya10200BodyModel`, with its arrays: generated from the asset
+/// (characters/aya/10200/aya_10200_body.usda, textured through characters/aya/10200/binding) by
+/// tools/buildsteps/gen_model_source.py.
+#include "assets/characters/aya/10200/body.inc"
 
 static u_long _gAya10200Image06AC4[] = {
 #include "assets/aya_10200_image_06AC4.inc"

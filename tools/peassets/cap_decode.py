@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """A full, reversible decode of a CAP dialogue (doc/CAP_FORMAT.md).
 
-    cap_decode.py deps akropolis_square_bundle       what a full decode of each of its dialogues needs
-    cap_decode.py decode akropolis_square_bundle     write <dialogue>.json for each, in its group or cap/
+    cap_decode.py deps rooms/akropolis/square/bundle       what a full decode of each of its dialogues needs
+    cap_decode.py decode rooms/akropolis/square/bundle     write <dialogue>.json for each, in its group or cap/
     cap_decode.py decode akropolis_square_dialogue_1 one dialogue
     cap_decode.py encode assets/USA/cap/akropolis_square_dialogue_0.json   rebuild it and its atlas, compare
 

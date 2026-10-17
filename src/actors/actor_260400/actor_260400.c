@@ -530,8 +530,8 @@ static AnimationSet* _gActor260400PlayerAnimationSets[] = { &_gActor260400Animat
 /// Only indices 47..49 and 53..56 are played from this extension. The request
 /// and readable source span must remain loaded through synchronous dispatch.
 static AnimationBankCopyRequest _gActor260400PlayerAnimationBankCopyRequest = {
-    .source    = { .sets = _gActor260400PlayerAnimationSets },
-    .wordCount = ANIMATION_BANK_EXTENSION_CAPACITY,
+    .sets  = _gActor260400PlayerAnimationSets,
+    .count = ANIMATION_BANK_EXTENSION_CAPACITY,
 };
 
 /// Restarts the player bank's base clip 1 on conversation entry, completion or skip.

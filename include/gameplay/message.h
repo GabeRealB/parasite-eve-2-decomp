@@ -362,29 +362,25 @@ typedef struct AnimationPlayRequest {
 } AnimationPlayRequest;
 STATIC_ASSERT_SIZEOF(AnimationPlayRequest, 0x14);
 
-/// Copies borrowed words into the selected player or companion animation-bank extension.
+/// Copies clips into the selected player or companion animation bank's extension.
 ///
-/// `ANIMATION_MESSAGE_COPY_BANK_EXTENSION` overwrites the bank from set index
-/// `ANIMATION_BANK_BASE_SET_COUNT`, leaving later entries unchanged. The player
-/// selects its character/equipped-weapon bank; a companion selects its saved
-/// type/variant bank. The receiver does not start playback or select a new bank.
-/// The selected resource bank must be loaded and writable.
+/// `ANIMATION_MESSAGE_COPY_BANK_EXTENSION` copies `count` entries of `sets` to
+/// the bank from index `ANIMATION_BANK_BASE_SET_COUNT`, leaving later entries
+/// unchanged. The player selects its character/equipped-weapon bank; a
+/// companion selects its saved type/variant bank. The receiver does not start
+/// playback or select a new bank. The selected bank must be loaded and writable.
 /// Counts above `ANIMATION_BANK_EXTENSION_CAPACITY` return 1 without copying;
 /// nonpositive counts copy nothing and return 0. Other accepted counts return 0.
 ///
-/// Positive counts require that many readable, word-aligned source words.
-/// The source can be a set-pointer table, including null entries, or a word
-/// span that also covers adjacent request/script data. The count is not always
-/// the number of playable clips. Only valid set pointers may be used for playback.
-/// The request and source span are borrowed through synchronous dispatch;
-/// copied clip pointers and their data must remain live while playback uses them.
-/// The record occupies eight bytes with four-byte alignment.
+/// Most scenes ask for the whole extension (`ANIMATION_BANK_EXTENSION_CAPACITY`)
+/// with a shorter list, so the copy reads past the list's end into whatever
+/// follows it in the package, and the bank's later extension entries receive
+/// those words. A scene plays only the ids its list fills; each such list states
+/// its overrun. The request and list are borrowed through synchronous dispatch;
+/// copied clips must remain loaded while playback uses them.
 typedef struct AnimationBankCopyRequest {
-    union {
-        const s32*                  words; // Read-only word span, possibly including data after the set pointers
-        struct AnimationSet* const* sets;  // Read-only set-pointer table; the descriptors remain borrowed
-    } source;                              // Borrowed source span in either view
-    s32 wordCount;                         // Number of 32-bit words to overwrite (1..32, nonpositive no copy)
+    struct AnimationSet* const* sets;  // Borrowed clips for bank ids 47 onward
+    s32                         count; // Entries to copy (1..32; nonpositive copies none); may exceed the list's length
 } AnimationBankCopyRequest;
 STATIC_ASSERT_SIZEOF(AnimationBankCopyRequest, 8);
 

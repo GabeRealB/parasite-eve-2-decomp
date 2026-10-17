@@ -14,7 +14,7 @@
 /// scripted copies, which can include non-pointer payloads. Play only slots
 /// known to contain clips. The bank and its borrowed sets remain valid only
 /// while the Hypervelocity overlay stays loaded.
-extern AnimationBank gHypervelocityPlayerAnimationBank;
+extern AnimationSet* gHypervelocityPlayerAnimationBank[ANIMATION_BANK_SET_CAPACITY];
 
 /// Root body of the player's held Hypervelocity, supplied by bank-7 descriptor 0x55.
 ///

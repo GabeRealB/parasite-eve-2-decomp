@@ -302,12 +302,12 @@ s32 companionMoveTo(Task* task, s32 unusedMessageId, const ActorTransform* trans
 /// after the call and returns 0. Both unused words retain the message ABI.
 s32 companionInstallScriptedAnimation(Task* task, s32 unusedMessageId, const AnimationPlayRequest* request, s32 unusedSecondArg);
 
-/// Copies raw words into the live save's selected companion animation-bank extension.
+/// Copies a scene's clips into the live save's selected companion animation-bank extension.
 ///
 /// Selects the bank by saved companion type/variant, independently of the
 /// receiver's current scripted table. The bank must be loaded and writable.
 /// `AnimationBankCopyRequest` supplies the source extent and lifetime contract:
-/// 1..32 words overwrite the extension starting at index 47, nonpositive counts
+/// 1..32 entries overwrite the extension starting at index 47, nonpositive counts
 /// copy nothing and return 0, and larger counts return 1 without copying.
 /// Copies forward and does not start playback; copied clip data remains borrowed.
 /// The task, message ID and second payload are unused but retain the message ABI.

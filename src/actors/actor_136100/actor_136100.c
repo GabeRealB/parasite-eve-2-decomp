@@ -2518,8 +2518,8 @@ static inline s16 _actor136100ReadOpeningSceneCue(u16* triggerControl, u8* scene
         while (_gActor136100PlayerSceneAnimationSets[setCount] != NULL) {                                        \
             setCount += 1;                                                                                       \
         }                                                                                                        \
-        (record).source.sets = &_gActor136100PlayerSceneAnimationSets[0];                                        \
-        (record).wordCount   = setCount;                                                                         \
+        (record).sets  = &_gActor136100PlayerSceneAnimationSets[0];                                              \
+        (record).count = setCount;                                                                               \
         TASK_MESSAGE_DISPATCH_POINTER(msgWork->playerTask, ANIMATION_MESSAGE_COPY_BANK_EXTENSION, &(record), 0); \
     }
 
@@ -2984,7 +2984,7 @@ static void _actor136100CopyPlayerSceneAnimations(Task* task)
     while (_gActor136100PlayerSceneAnimationSets[setCount] != NULL) {
         setCount += 1;
     }
-    request.source.sets = &_gActor136100PlayerSceneAnimationSets[0];
-    request.wordCount   = setCount;
+    request.sets  = &_gActor136100PlayerSceneAnimationSets[0];
+    request.count = setCount;
     TASK_MESSAGE_DISPATCH_POINTER(work->playerTask, ANIMATION_MESSAGE_COPY_BANK_EXTENSION, &request, 0);
 }

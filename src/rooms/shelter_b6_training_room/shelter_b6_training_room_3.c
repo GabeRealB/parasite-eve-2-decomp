@@ -257,7 +257,7 @@ static AnimationSet* _gShelterB6TrainingRoomDefeatPlayerAnimationSets[5] = {
 };
 
 /// Installs all five defeat-scene set pointers in the equipped player's extension.
-static AnimationBankCopyRequest _gShelterB6TrainingRoomDefeatPlayerAnimationBankCopy = { { .sets = _gShelterB6TrainingRoomDefeatPlayerAnimationSets }, ARRAY_SIZE(_gShelterB6TrainingRoomDefeatPlayerAnimationSets) };
+static AnimationBankCopyRequest _gShelterB6TrainingRoomDefeatPlayerAnimationBankCopy = { _gShelterB6TrainingRoomDefeatPlayerAnimationSets, ARRAY_SIZE(_gShelterB6TrainingRoomDefeatPlayerAnimationSets) };
 
 /// Unreferenced bank-1 clip-1 reset request; its intended receiver is unproven.
 static AnimationPlayRequest D_shelter_b6_training_room_801839D0 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };

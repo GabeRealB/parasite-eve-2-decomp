@@ -14,7 +14,7 @@
 /// after installing a valid clip pointer there. Keep P229 loaded while playback
 /// borrows this bank or its native clips; copied clips also require their source
 /// data to remain loaded.
-extern AnimationBank gP229PlayerAnimationBank;
+extern AnimationSet* gP229PlayerAnimationBank[ANIMATION_BANK_SET_CAPACITY];
 
 /// Advances the P229 alternate-fire muzzle flash and its transient white point light.
 ///

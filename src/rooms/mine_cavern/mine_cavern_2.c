@@ -582,7 +582,7 @@ static AnimationSet* _gMineCavernSceneAnimationSets[17] = {
 /// within its 32-word extension capacity. Slot 47 is NULL and is not playable;
 /// slots 48..63 borrow room clips. Dispatch borrows this request and directory;
 /// the cavern must remain loaded for subsequent playback of the copied pointers.
-static AnimationBankCopyRequest _gMineCavernSceneAnimationBankCopyRequest = { { .sets = _gMineCavernSceneAnimationSets }, ARRAY_SIZE(_gMineCavernSceneAnimationSets) };
+static AnimationBankCopyRequest _gMineCavernSceneAnimationBankCopyRequest = { _gMineCavernSceneAnimationSets, ARRAY_SIZE(_gMineCavernSceneAnimationSets) };
 
 /// Unused bank-1, clip-1 request for immediate playback with grid collision disabled.
 ///

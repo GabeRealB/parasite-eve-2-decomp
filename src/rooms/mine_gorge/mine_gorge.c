@@ -189,8 +189,8 @@ static AnimationSet* _gMineGorgeEncounterAnimationSets[2] = {
 /// The request and source table are read synchronously; the copied clip remains
 /// borrowed from the loaded gorge. No adjacent request or script bytes are copied.
 static AnimationBankCopyRequest _gMineGorgeEncounterAnimationBankCopy = {
-    .source    = { .sets = _gMineGorgeEncounterAnimationSets },
-    .wordCount = ARRAY_SIZE(_gMineGorgeEncounterAnimationSets)
+    .sets  = _gMineGorgeEncounterAnimationSets,
+    .count = ARRAY_SIZE(_gMineGorgeEncounterAnimationSets)
 };
 
 /// Player encounter clip installed in the first weapon-bank extension slot.

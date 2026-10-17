@@ -88,7 +88,7 @@ static AnimationSet* _gMineTunnelEncounterAnimationSets[2] = {
 ///
 /// Synchronous dispatch copies the clip pointer and NULL slot; copied clip
 /// data remains room-owned through playback. The count includes the null word.
-static AnimationBankCopyRequest _gMineTunnelEncounterAnimationBankCopy = { { .sets = _gMineTunnelEncounterAnimationSets }, ARRAY_SIZE(_gMineTunnelEncounterAnimationSets) };
+static AnimationBankCopyRequest _gMineTunnelEncounterAnimationBankCopy = { _gMineTunnelEncounterAnimationSets, ARRAY_SIZE(_gMineTunnelEncounterAnimationSets) };
 
 /// Entrance encounter's first extension clip, with reset and world collision enabled.
 ///

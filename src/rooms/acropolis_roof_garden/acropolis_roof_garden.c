@@ -297,8 +297,8 @@ static AnimationSet* _gAcropolisRoofGardenArrivalPlayerAnimationSets[3] = {
 /// Copies three pointer words synchronously without starting playback; the
 /// copied clips remain borrowed from the room overlay through the scene.
 static AnimationBankCopyRequest _gAcropolisRoofGardenArrivalPlayerBankCopy = {
-    .source    = { .sets = _gAcropolisRoofGardenArrivalPlayerAnimationSets },
-    .wordCount = ARRAY_SIZE(_gAcropolisRoofGardenArrivalPlayerAnimationSets),
+    .sets  = _gAcropolisRoofGardenArrivalPlayerAnimationSets,
+    .count = ARRAY_SIZE(_gAcropolisRoofGardenArrivalPlayerAnimationSets),
 };
 
 enum {
@@ -566,8 +566,8 @@ static AnimationSet* _gAcropolisRoofGardenEntrancePlayerAnimationSets[3] = {
 /// The first word deliberately clears extension slot 47. The following two
 /// borrow the room's start/end clips; copying does not start playback.
 static AnimationBankCopyRequest _gAcropolisRoofGardenEntrancePlayerBankCopy = {
-    .source    = { .sets = _gAcropolisRoofGardenEntrancePlayerAnimationSets },
-    .wordCount = ARRAY_SIZE(_gAcropolisRoofGardenEntrancePlayerAnimationSets),
+    .sets  = _gAcropolisRoofGardenEntrancePlayerAnimationSets,
+    .count = ARRAY_SIZE(_gAcropolisRoofGardenEntrancePlayerAnimationSets),
 };
 
 /// Unused bank-1 clip-1 reset request retained with the entrance animation data.

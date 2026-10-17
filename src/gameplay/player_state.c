@@ -1421,7 +1421,7 @@ void companionRemoveEquipment(Task* task)
         model                              = task->extra.tmd;
         animationActor                     = task->work;
         animationActor->animationBankIndex = gCompanionAnimationBankBases[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType - 1] + gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant;
-        animationActor->animationSets      = gCompanionAnimationBanks[animationActor->animationBankIndex]->table.sets;
+        animationActor->animationSets      = gCompanionAnimationBanks[animationActor->animationBankIndex];
         animationInitContext(&animationActor->animationContext, animationActor->animationSets, model, animationActor->poseBuffer,
                              animationActor->animationSlots);
         playerActorResetChildSlots(task, COMPANION_REMOVE_EQUIPMENT_IDLE_SET);
@@ -1515,7 +1515,7 @@ Task* companionRestoreEquipment(void)
     animationActor                     = companionTask->work;
     companionModel                     = companionTask->extra.tmd;
     animationActor->animationBankIndex = gCompanionAnimationBankBases[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType - 1] + gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant;
-    animationActor->animationSets      = gCompanionAnimationBanks[animationActor->animationBankIndex]->table.sets;
+    animationActor->animationSets      = gCompanionAnimationBanks[animationActor->animationBankIndex];
     animationInitContext(&animationActor->animationContext, animationActor->animationSets, companionModel, animationActor->poseBuffer,
                          animationActor->animationSlots);
     idleActor = companionTask->work;
@@ -1803,7 +1803,7 @@ void companionInitNativeAnimation(Task* task)
     actor                     = task->work;
     model                     = task->extra.tmd;
     actor->animationBankIndex = gCompanionAnimationBankBases[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType - 1] + gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant;
-    actor->animationSets      = gCompanionAnimationBanks[actor->animationBankIndex]->table.sets;
+    actor->animationSets      = gCompanionAnimationBanks[actor->animationBankIndex];
     animationInitContext(&actor->animationContext, actor->animationSets, model, actor->poseBuffer,
                          actor->animationSlots);
 }
@@ -1942,7 +1942,7 @@ s32 companionEndScriptedMotion(Task* task, s32 unusedMessageId, s32 unusedFirstA
     // Restart on a bank change; otherwise blend the existing pose back to idle.
     previousSets              = actor->animationSets;
     actor->animationBankIndex = gCompanionAnimationBankBases[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType - 1] + gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant;
-    nativeSets                = gCompanionAnimationBanks[actor->animationBankIndex]->table.sets;
+    nativeSets                = gCompanionAnimationBanks[actor->animationBankIndex];
     bankChanged               = previousSets != nativeSets;
     actor->animationSets      = nativeSets;
     animationInitContext(&actor->animationContext, actor->animationSets, model, actor->poseBuffer,
@@ -2004,8 +2004,8 @@ s32 companionPlayScriptedAnimation(Task* task, s32 unusedMessageId, const Animat
     _companionEnterScriptedMode(task, actor);
     // Select the animation table before resetting or blending its slots.
     actor->state = COMPANION_SCRIPTED_ANIMATION_STATE;
-    if (actor->animationSets != gCompanionAnimationBanks[request->source.index]->table.sets) {
-        actor->animationSets = gCompanionAnimationBanks[request->source.index]->table.sets;
+    if (actor->animationSets != gCompanionAnimationBanks[request->source.index]) {
+        actor->animationSets = gCompanionAnimationBanks[request->source.index];
         animationInitContext(&actor->animationContext, actor->animationSets, model, actor->poseBuffer,
                              actor->animationSlots);
         actor->animationBankIndex = (u16)request->source.index;
@@ -2107,21 +2107,20 @@ s32 companionMoveBy(Task* task, s32 unusedMessageId, const GameActorMoveBy* move
 
 s32 animationCopyCompanionBankExtension(Task* unusedTask, s32 unusedMessageId, const AnimationBankCopyRequest* request, s32 unusedSecondArg)
 {
-    s32*       destinationWords;
-    const s32* sourceWords;
-    s32        wordIndex;
-    s32        wordCount;
+    AnimationSet**       destinationSets;
+    AnimationSet* const* sourceSets;
+    s32                  setIndex;
+    s32                  setCount;
 
-    destinationWords = gCompanionAnimationBanks[gCompanionAnimationBankBases[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType - 1] + gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant]->table.words;
-    sourceWords      = request->source.words;
-    wordCount        = request->wordCount;
-    if (wordCount >= ANIMATION_BANK_EXTENSION_CAPACITY + 1) {
+    destinationSets = gCompanionAnimationBanks[gCompanionAnimationBankBases[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType - 1] + gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant];
+    sourceSets      = request->sets;
+    setCount        = request->count;
+    if (setCount >= ANIMATION_BANK_EXTENSION_CAPACITY + 1) {
         return 1;
     }
-    // Transfer raw words: the span can include records after the clip pointers.
-    destinationWords = &destinationWords[ANIMATION_BANK_BASE_SET_COUNT];
-    for (wordIndex = 0; wordIndex < request->wordCount; wordIndex++) {
-        destinationWords[wordIndex] = sourceWords[wordIndex];
+    destinationSets = &destinationSets[ANIMATION_BANK_BASE_SET_COUNT];
+    for (setIndex = 0; setIndex < request->count; setIndex++) {
+        destinationSets[setIndex] = sourceSets[setIndex];
     }
     return 0;
 }

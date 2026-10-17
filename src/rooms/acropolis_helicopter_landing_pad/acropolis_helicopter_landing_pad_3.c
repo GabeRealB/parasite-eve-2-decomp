@@ -355,8 +355,8 @@ static AnimationSet* _gAcropolisHelicopterLandingPadDeparturePlayerAnimationSets
 /// 48/49 of the equipped-weapon bank. The count covers the complete source array.
 /// Dispatch borrows this record synchronously; copied sets remain actor-owned.
 static AnimationBankCopyRequest _gAcropolisHelicopterLandingPadDeparturePlayerBankCopyRequest = {
-    .source    = { .sets = _gAcropolisHelicopterLandingPadDeparturePlayerAnimationSets },
-    .wordCount = ARRAY_SIZE(_gAcropolisHelicopterLandingPadDeparturePlayerAnimationSets),
+    .sets  = _gAcropolisHelicopterLandingPadDeparturePlayerAnimationSets,
+    .count = ARRAY_SIZE(_gAcropolisHelicopterLandingPadDeparturePlayerAnimationSets),
 };
 
 /// Unreferenced stored request for bank 1, clip 47, with a five-frame blend.

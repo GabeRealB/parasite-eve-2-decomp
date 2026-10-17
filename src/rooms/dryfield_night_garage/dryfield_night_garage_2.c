@@ -129,8 +129,8 @@ static AnimationSet* const _gDryfieldNightGarageRefuelingAnimationSets[] __attri
 /// Borrowed synchronously by the scene script; the copied sets remain borrowed
 /// until playback finishes. The count includes the null entry for clip 47.
 static const AnimationBankCopyRequest _gDryfieldNightGarageRefuelingAnimationBankCopy __attribute__((section(".data"))) = {
-    .source    = { .sets = _gDryfieldNightGarageRefuelingAnimationSets },
-    .wordCount = ARRAY_SIZE(_gDryfieldNightGarageRefuelingAnimationSets),
+    .sets  = _gDryfieldNightGarageRefuelingAnimationSets,
+    .count = ARRAY_SIZE(_gDryfieldNightGarageRefuelingAnimationSets),
 };
 
 /// Retained bank-1 clip-1 reset request; no playback consumer is established.

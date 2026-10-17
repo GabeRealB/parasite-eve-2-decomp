@@ -624,7 +624,7 @@ static AnimationSet* _gMineMesaPlayerSceneAnimationSets[2] = {
 /// Dispatch copies the complete set-pointer table into the loaded, writable
 /// equipped-weapon bank at index 47. Later extension entries remain unchanged;
 /// the set data remains borrowed from this overlay during playback.
-static AnimationBankCopyRequest _gMineMesaPlayerSceneBankCopyRequest = { { .sets = _gMineMesaPlayerSceneAnimationSets }, ARRAY_SIZE(_gMineMesaPlayerSceneAnimationSets) };
+static AnimationBankCopyRequest _gMineMesaPlayerSceneBankCopyRequest = { _gMineMesaPlayerSceneAnimationSets, ARRAY_SIZE(_gMineMesaPlayerSceneAnimationSets) };
 
 /// Preserved image bytes with no known consumer.
 ///
@@ -853,7 +853,7 @@ static AnimationSet* _gMineMesaCompanionSceneAnimationSets[12] = {
 /// Dispatch copies the complete set-pointer table into the loaded, writable
 /// saved companion-type/variant bank at index 47, preserving later entries.
 /// Set data remains borrowed from this overlay throughout playback.
-static AnimationBankCopyRequest _gMineMesaCompanionSceneBankCopyRequest = { { .sets = _gMineMesaCompanionSceneAnimationSets }, ARRAY_SIZE(_gMineMesaCompanionSceneAnimationSets) };
+static AnimationBankCopyRequest _gMineMesaCompanionSceneBankCopyRequest = { _gMineMesaCompanionSceneAnimationSets, ARRAY_SIZE(_gMineMesaCompanionSceneAnimationSets) };
 
 /// Preserved image bytes with no known consumer.
 ///

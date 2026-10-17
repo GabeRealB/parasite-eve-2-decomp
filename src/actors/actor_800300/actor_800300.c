@@ -586,7 +586,7 @@ static AnimationSet _gActor800300Animation0AD50 = {
     { NULL, _gActor800300Animation0AD50Bank1, NULL, NULL, _gActor800300Animation0AD50Bank4, NULL, NULL, NULL },
 };
 
-AnimationBank gActor800300CompanionAnimationBank = { { {
+AnimationSet* gActor800300CompanionAnimationBank[ANIMATION_BANK_SET_CAPACITY] = {
     NULL,
     &_gActor800300Animation07E3C,
     &_gActor800300Animation08218,
@@ -666,7 +666,7 @@ AnimationBank gActor800300CompanionAnimationBank = { { {
     NULL,
     NULL,
     NULL,
-} } };
+};
 
 /// Stages a Q12 movement or pushback heading for all three motion contexts.
 ///

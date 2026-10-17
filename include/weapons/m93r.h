@@ -14,9 +14,9 @@
 /// scripted copies, including payloads that are not clip pointers. Play an
 /// extension slot only after installing a clip pointer there. Keep the bank
 /// and its borrowed clip data loaded while playback or cached records refer to them.
-extern AnimationBank gM93rPlayerAnimationBank;
+extern AnimationSet* gM93rPlayerAnimationBank[ANIMATION_BANK_SET_CAPACITY];
 
-/// Held M93R model attached to the player's weapon-hand anchor (asset m93r_model).
+/// Held M93R model attached to the player's weapon-hand anchor (asset weapons/m93r/model).
 ///
 /// Objects borrow the geometry and writable command stream; the M93R package
 /// must remain loaded until those objects are released. First creation resolves

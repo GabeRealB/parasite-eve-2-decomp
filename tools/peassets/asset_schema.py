@@ -42,8 +42,10 @@ position: the key has to be usable as part of a constant's name, and must not
 be spelled twice.
 
 Where an asset is extracted is decided here too, and nowhere else: `asset_dir`,
-`decoded_rel` and `decoded_files` below. An asset with a `group` is written
-under that subtree of the extraction; one without keeps its type's directory.
+`decoded_rel` and `decoded_files` below. An asset with a `group` is named by its
+path, `<group>/<local name>`, and written there: under that subtree of the
+extraction, as its local name (`file_name`). One without keeps its type's
+directory and its plain name.
 
     python3 tools/peassets/asset_schema.py --check     # fail on any problem
     python3 tools/peassets/asset_schema.py --deps KEY   # what KEY requires
@@ -81,8 +83,9 @@ SCHEMA: dict[str, dict[str, tuple[str, ...]]] = {
     # `slots` names the textures a model's materials draw from, in slot order; where they are in VRAM is its
     # binding's (model.declared.texture_pairs). `symbol` names its TmdSource record: the C definition the build
     # generates (gen_model_source.py) and the label the overlay's split gives it (gen_overlay_configs.asset_symbols).
+    # `rig` names the rig its skeleton is, which its parents and rest translations have to match (model check).
     # A `tmd` still states its raw page/CLUT pairs in `textures`.
-    "model": {"payload": (), "stored": ("parts", "slots", "symbol")},
+    "model": {"payload": (), "stored": ("parts", "slots", "symbol", "rig")},
     # A model stream as the overlays declare it, kept raw: located, hashed and given to the build, never decoded.
     # Every model is one until it is declared (`model`), so the model type can change without touching them.
     "tmd": {"payload": ("textures",), "stored": ("parts",)},
@@ -123,6 +126,26 @@ SCHEMA: dict[str, dict[str, tuple[str, ...]]] = {
     # carries the player's for that weapon. Its embedded record (source, address, size, clips) comes from the
     # overlay manifest; a grouped package places it with its `embedded`.
     "animation": {"payload": (), "stored": ()},
+    # A character's skeleton, which its models are built on and its clips drive. It has no bytes of its own: the
+    # extraction derives it from the declared models that name it (`rig`), which have to agree joint for joint, and
+    # writes it as USD that they and the clips reference (model/declared.py). `joints` names its joints in part
+    # order, the one thing the bytes do not say. One per character (characters/aya/rig serves all four of Aya's
+    # bodies), merged where two characters prove to share one.
+    "rig": {"payload": (), "stored": ("joints",)},
+    # One exported animation set, declared (animation/): one track per joint of its `rig`, decoded to a USD
+    # SkelAnimation in its group's directory and encoded from it; the rig gives the joint paths and the rest pose the
+    # decoded file shows. Placed (with its address: it holds pointers) by every package that carries it; a clip
+    # several packages carry belongs to a shared group (characters/aya).
+    "clip": {"payload": (), "stored": ("rig",)},
+    # The slots a table of clips is indexed by, as the code indexes it: `slots` names each index ("" where none is
+    # used). The player's schema serves every weapon and companion.
+    "animation_schema": {"payload": (), "stored": ("slots",)},
+    # A table of clips: binds clips to the slots of its `schema` (`clips`: {slot: clip}). `base` names a bank it
+    # extends, which gives the slots it does not bind; a bank with a base takes its schema. Placed in its package
+    # like an embedded asset, a bank is defined in C as `AnimationSet* symbol[N]` by the build
+    # (gen_animation_source.py), N its placement's size in words, entries past the slots NULL. Unplaced, it is a
+    # layer only other banks use: Aya's own clips, a carry style's locomotion, a weapon family's combat clips.
+    "animation_bank": {"payload": (), "stored": ("schema", "base", "clips", "symbol")},
     # A dialogue's glyph atlas: an on-disc image chunk, stored and decoded as a pe2img, but not drawn by anyone - the
     # tool that built the dialogue laid it out from its text and the font (doc/CAP_FORMAT.md §9). `generated_by` names
     # that dialogue; the dialogue and the shared font (tools/peassets/cap_font.py) rebuild it.
@@ -136,11 +159,12 @@ SCHEMA: dict[str, dict[str, tuple[str, ...]]] = {
 EMBEDDED_FIELDS = ("source", "vram", "offset", "address", "size", "ext", "type", "include", "layout", "deps", "notes",
                    "group")
 # Types with no bytes of their own: declared by hand, carried over unchanged by dump_asset_db.py.
-DECLARED_TYPES = frozenset({"binding", "texture", "file", "vram_region"})
+DECLARED_TYPES = frozenset({"binding", "texture", "file", "vram_region", "rig", "clip", "animation_schema",
+                            "animation_bank"})
 
 # Embedded types the code reaches by their address in memory - a model through pointers in the code, an image or a
 # CLUT through its upload record - so a placement of one states its `address`.
-ADDRESSED_TYPES = frozenset({"model", "tmd", "image", "clut"})
+ADDRESSED_TYPES = frozenset({"model", "tmd", "image", "clut", "clip", "animation_bank"})
 # An animation bank states how many clips it holds; `clip_names` names them by
 # index, as a review finds what each is.
 EMBEDDED_PAYLOAD: dict[str, tuple[str, ...]] = {"image": ("x", "y", "w", "h"), "clut": ("x", "y", "w", "h"),
@@ -376,6 +400,8 @@ TYPE_DIR_BY_EXT: dict[str, str] = {
     ".tmd": "tmd",
     ".model": "model",
     ".anim": "animation",
+    ".clip": "clip",
+    ".bank": "animation_bank",
     ".wav": "sample",
 }
 # The extension of the stored bytes of each manifest type that does not state one (`ext`, on an embedded asset).
@@ -386,11 +412,11 @@ EXT_BY_TYPE: dict[str, str] = {"pe2pkg": ".pe2pkg", "pe2img": ".pe2img", "pe2clu
                                "image": ".img", "fontglyph": ".fontglyph", "mcsave": ".mcsave",
                                "morph_deltas": ".morph", "morph_normals": ".morph", "motion_curve": ".motion",
                                "sprite_schedule": ".motion", "spusample": ".vag", "spk": ".spk", "txt": ".txt", "model": ".model", "tmd": ".tmd",
-                               "sample": ".wav"}
+                               "sample": ".wav", "clip": ".clip", "animation_bank": ".bank"}
 PNG_EXTS = frozenset({".pe2img", ".pe2clut", ".bs"})       # decoded to <name>.png
 DIRECTORY_EXTS = frozenset({".spk", ".mcsave"})            # decoded to a directory, <name>/meta.json and more
 # raw/ holds the only form (a declared model is decoded by model/ instead: decoded_model)
-RAW_ONLY_EXTS = frozenset({".tmd", ".model", ".anim", ".pe2bundle", ".cap", ".stf", ".demo", ".collision"})
+RAW_ONLY_EXTS = frozenset({".tmd", ".model", ".anim", ".clip", ".pe2bundle", ".cap", ".stf", ".demo", ".collision", ".bank"})
 # Decoded forms that are addressed by their type's path and so never move, whatever the group.
 PINNED_TYPE_DIRS = frozenset({"pe2pkg"})
 # Directories the extraction owns at its root that hold no manifest asset. With the type directories, the names a
@@ -447,9 +473,20 @@ def record_of(key: str, type_dir: str | None = None, tables: tuple[dict, dict] |
 
 
 def decoded_model(rec: dict[str, Any] | None) -> bool:
-    """A model that declares its texture `slots`: model/ decodes it, so unlike the other models it has
-    a decoded form outside raw/."""
-    return bool(rec) and rec.get("type") == "model" and bool(rec.get("slots"))
+    """A model that declares its texture `slots` (model/ decodes it), or a clip (animation/): unlike the other
+    models and animations, a decoded form outside raw/."""
+    return bool(rec) and (rec.get("type") == "model" and bool(rec.get("slots")) or rec.get("type") == "clip")
+
+
+def file_name(key: str) -> str:
+    """What an asset's files are called in its group's directory: its local name, the last part of its path."""
+    return key.rsplit("/", 1)[-1]
+
+
+def dir_stem(key: str, rec: dict[str, Any] | None, tables: tuple[dict, dict] | None) -> str:
+    """What an asset's files are called in its `asset_dir`: its local name in its group's, else its whole name
+    (`raw/<type>/` keeps a grouped asset below its path)."""
+    return file_name(key) if rec is not None and group_of(key, rec, tables=tables) else key
 
 
 def group_of(key: str, rec: dict[str, Any] | None = None, *, type_dir: str | None = None,
@@ -471,13 +508,14 @@ def asset_dir(key: str, rec: dict[str, Any] | None = None, *, type_dir: str | No
 
     This is the one place that decides it. The rule:
 
-    * an asset with a `group` lives in `<group>/` ("weapons/m4a1");
+    * an asset with a `group` lives in `<group>/` ("weapons/m4a1"), its files named by its local name;
     * an asset without one lives in its type's directory (`pe2img/`, `bs/`, `spk/`, `sample/`, `txt/`, ...),
       and so does any file the manifest does not know (`type_dir` says which type it is).
 
     What a group does NOT move, because the build or the tooling addresses it by its type's path:
 
-    * everything under `raw/`. The stored bytes stay at `raw/<type>/<name><ext>` (`raw_rel`): `pack`,
+    * everything under `raw/`. The stored bytes stay at `raw/<type>/<name><ext>` (`raw_rel`; a grouped asset's
+      name is a path, so `raw/<type>/<group>/<local name><ext>`): `pack`,
       `dump_asset_db.py` and every tool that reads bytes look there, and so does the build, which takes an
       `include`-marked embedded asset from `raw/<type>/<id><ext>` (`ninja_config.asset_includes`,
       `tools/buildsteps/gen_asset_inc.py`).
@@ -521,6 +559,17 @@ def raw_rel(key: str, rec: dict[str, Any] | None = None, *, type_dir: str | None
     return f"{RAW_ROOT}/{type_dir}/{key}{ext}"
 
 
+def raw_key(path: str | Path) -> str:
+    """The asset name a stored file under `raw/<type>/` is kept as: the path below the type's directory, less the
+    extension (`raw/pe2img/pe2img_12.pe2img` is `pe2img_12`, `raw/clip/characters/aya/idle.clip` is
+    `characters/aya/idle`)."""
+    parts = Path(str(path).replace("\\", "/")).parts
+    if RAW_ROOT in parts:
+        parts = parts[parts.index(RAW_ROOT) + 2:]
+    *where, last = parts
+    return "/".join([*where, last.split(".", 1)[0]])
+
+
 def decoded_names(key: str, ext: str) -> list[str]:
     """The entries an asset's decoded form occupies in its directory, the one a manifest names first.
 
@@ -552,10 +601,10 @@ def decoded_rel(key: str, rec: dict[str, Any] | None = None, *, type_dir: str | 
         raise KeyError(f"{key} is not in the asset table, and no extension was given for it")
     where = asset_dir(key, rec, type_dir=type_dir or type_dir_for_ext(ext), tables=tables)
     if ext in DIRECTORY_EXTS:
-        return f"{where}/{key}/{SPK_META}"
+        return f"{where}/{dir_stem(key, rec, tables)}/{SPK_META}"
     if ext == ".pe2pkg":
-        key = package_name(key, rec)            # pe2pkg/ is addressed by the overlay's name
-    return f"{where}/{decoded_names(key, ext)[0]}"
+        return f"{where}/{decoded_names(package_name(key, rec), ext)[0]}"     # pe2pkg/ is addressed by the overlay's name
+    return f"{where}/{decoded_names(dir_stem(key, rec, tables), ext)[0]}"
 
 
 def decoded_files(key: str, rec: dict[str, Any] | None = None, *, type_dir: str | None = None,
@@ -576,9 +625,8 @@ def decoded_files(key: str, rec: dict[str, Any] | None = None, *, type_dir: str 
         return []
     if where is None:
         where = asset_dir(key, rec, type_dir=type_dir or type_dir_for_ext(ext), tables=tables)
-    if ext == ".pe2pkg":
-        key = package_name(key, rec)
-    return [f"{where}/{name}" for name in decoded_names(key, ext)]
+    stem = package_name(key, rec) if ext == ".pe2pkg" else dir_stem(key, rec, tables)
+    return [f"{where}/{name}" for name in decoded_names(stem, ext)]
 
 
 def sample_rel(name: str, tables: tuple[dict, dict] | None = None) -> str:
@@ -609,15 +657,19 @@ STAGES_TYPE_EXT: dict[str, str] = {"room_pkg": ".pe2pkg", "image": ".pe2img", "c
 def manifest_asset(path: str) -> tuple[str, str] | None:
     """(asset name, what follows its directory) of a decoded path a manifest records.
 
-    `bs/view_a.png` is `view_a` and `view_a.png`; `weapons/m4a1/m4a1_fire/meta.json` is the bank `m4a1_fire`
-    and `m4a1_fire/meta.json`. None for a path that is not a decoded asset: one under `raw/`, a sidecar.
+    `bs/view_a.png` is `view_a` and `view_a.png`; `weapons/m4a1/fire/meta.json` is the bank `weapons/m4a1/fire`
+    and `fire/meta.json`: under a group, the name is the path. None for a path that is not a decoded asset: one
+    under `raw/`, a sidecar.
     """
     parts = path.replace("\\", "/").split("/")
     if len(parts) < 2 or parts[0] == RAW_ROOT or STAGE_ROOT.match(parts[0]):
         return None
-    if parts[-1] == SPK_META and len(parts) >= 3:
-        return parts[-2], "/".join(parts[-2:])
-    return parts[-1].split(".", 1)[0], parts[-1]
+    bank = parts[-1] == SPK_META and len(parts) >= 3
+    where, name = (parts[:-2], parts[-2]) if bank else (parts[:-1], parts[-1].split(".", 1)[0])
+    tail = "/".join(parts[-2:]) if bank else parts[-1]
+    if where[0] in reserved_roots():
+        return name, tail
+    return "/".join(where + [name]), tail
 
 
 def manifest_path(path: str, type_id: str, tables: tuple[dict, dict] | None = None) -> str:
@@ -649,11 +701,11 @@ def type_dir_at(path: str, tables: tuple[dict, dict] | None = None) -> str | Non
     assets, embedded = tables if tables is not None else load()
     if parts[0] in reserved_roots((assets, embedded)):
         return parts[0]
-    for key, where in ((parts[-2], "/".join(parts[:-2])), (parts[-1].split(".", 1)[0], "/".join(parts[:-1]))):
+    for key, where, directory in (("/".join(parts[:-1]), "/".join(parts[:-2]), True),
+                                  ("/".join(parts[:-1] + [parts[-1].split(".", 1)[0]]), "/".join(parts[:-1]), False)):
         for table in (assets, embedded):
             rec = table.get(key)
-            if rec is not None and group_of(key, rec) == where and (
-                    (parts[-2] == key) == (stored_ext(rec) in DIRECTORY_EXTS)):
+            if rec is not None and group_of(key, rec) == where and directory == (stored_ext(rec) in DIRECTORY_EXTS):
                 return type_dir_of(rec)
     return None
 
@@ -771,6 +823,45 @@ def validate(assets: dict, embedded: dict) -> list[str]:
                     problems.append(f"{key}: names slot {slot!r}, which {rec.get('model')} does not have")
                 if assets.get(texture, {}).get("type") != "texture" or variant not in assets[texture].get("variants", ()):
                     problems.append(f"{key}: textures.{slot} must name a texture variant, <texture>.<variant>")
+        if kind == "rig" and "joints" in rec:
+            joints = rec["joints"]
+            if not isinstance(joints, list) or not all(isinstance(j, str) and NAME.match(j) for j in joints) or \
+                    len(set(joints)) != len(joints):
+                problems.append(f"{key}: joints names each joint once (lower-case letters, digits and _)")
+        if kind in ("model", "clip") and "rig" in rec:
+            rig = assets.get(rec["rig"], {})
+            if rig.get("type") != "rig":
+                problems.append(f"{key}: rig must name a rig")
+            elif kind == "model" and "joints" in rig and rec.get("parts") not in (None, len(rig["joints"])):
+                problems.append(f"{key}: has {rec['parts']} parts, its rig {len(rig['joints'])} joints")
+        if kind == "clip" and "rig" not in rec:
+            problems.append(f"{key}: a clip names the rig it drives")
+        if kind == "animation_schema":
+            slots = rec.get("slots", [])
+            named = [s for s in slots if s]
+            if len(named) != len(set(named)) or not all(isinstance(s, str) for s in slots):
+                problems.append(f"{key}: slots are names, each once (\"\" where an index is unused)")
+        if kind == "animation_bank":
+            chain, at = [key], rec
+            while "base" in at and at["base"] not in chain and assets.get(at["base"], {}).get("type") == "animation_bank":
+                chain.append(at["base"])
+                at = assets[at["base"]]
+            if "base" in at:
+                problems.append(f"{key}: base must name another animation_bank, and bases must not run in a circle")
+            stated = [assets[b]["schema"] for b in chain if "schema" in assets[b]]
+            schema_name = stated[-1] if stated else None
+            schema = assets.get(schema_name, {})
+            if schema.get("type") != "animation_schema":
+                problems.append(f"{key}: schema must name an animation_schema (its own, or its base's)")
+            elif any(s != schema_name for s in stated):
+                problems.append(f"{key}: states the schema {stated[0]}, its base {schema_name}")
+            if "symbol" in rec and key not in embedded:
+                problems.append(f"{key}: only a placed bank is a table in C, with a symbol")
+            for slot, clip in rec.get("clips", {}).items():
+                if slot not in schema.get("slots", ()):
+                    problems.append(f"{key}: binds slot {slot!r}, which {schema_name} does not have")
+                if assets.get(clip, {}).get("type") != "clip":
+                    problems.append(f"{key}: clips.{slot} = {clip!r} is not a clip")
         if kind == "texture":
             problems += texture_declaration.check_texture(key, rec)
         if kind == "file":
@@ -826,6 +917,10 @@ def validate(assets: dict, embedded: dict) -> list[str]:
         if any(isinstance(p, dict) for p in listed):
             bases = set()
             for place in listed:
+                if isinstance(place, str):      # still located by address: an EMBEDDED_ASSETS record of its own
+                    if place not in embedded or "vram" not in embedded[place]:
+                        problems.append(f"{key}: lists {place!r}, which EMBEDDED_ASSETS does not locate by address")
+                    continue
                 if not {"name", "offset", "size"} <= set(place) <= {"name", "offset", "size", "address"} \
                         or not all(isinstance(v, int) for k, v in place.items() if k != "name"):
                     problems.append(f"{key}: a placement in embedded is {{name, offset, size[, address]}}, not {place!r}")
@@ -838,7 +933,7 @@ def validate(assets: dict, embedded: dict) -> list[str]:
                     bases.add(place["address"] - place["offset"])
             if len(bases) > 1:
                 problems.append(f"{key}: its placements' addresses do not share one load address")
-            listed = [p["name"] for p in listed]
+            listed = [p if isinstance(p, str) else p["name"] for p in listed]
         # Records may give an offset into the package or an address in memory; with the load address the
         # placements state, both order as offsets.
         load = next(iter(bases)) if any(isinstance(p, dict) for p in assets[key].get("embedded", [])) and len(bases) == 1 else None

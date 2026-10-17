@@ -170,7 +170,7 @@ static AnimationSet* _gMistParkingCommand1PlayerAnimationSets[1] = {
 ///
 /// Dispatch borrows the request and source table synchronously. The loaded
 /// room's clip descriptor and data must remain live through subsequent playback.
-static AnimationBankCopyRequest _gMistParkingCommand1PlayerBankCopy = { { .sets = _gMistParkingCommand1PlayerAnimationSets }, ARRAY_SIZE(_gMistParkingCommand1PlayerAnimationSets) };
+static AnimationBankCopyRequest _gMistParkingCommand1PlayerBankCopy = { _gMistParkingCommand1PlayerAnimationSets, ARRAY_SIZE(_gMistParkingCommand1PlayerAnimationSets) };
 
 /// Restarts room command 1's installed player clip without world-grid response.
 ///
@@ -1087,7 +1087,7 @@ void mistParkingAimPlayerHeadAtTalkPartnerTask(Task* task)
     if (gEvsPlaybackPaused == 0) {
         // Extension index zero has no aim flag; the copied bank bounds the lookup.
         extensionIndex = player->animationSlots[1].nextPose.indices.setIndex - ANIMATION_BANK_BASE_SET_COUNT;
-        if ((extensionIndex > 0) && (extensionIndex < gMistParkingPlayerConversationBankCopy.wordCount)) {
+        if ((extensionIndex > 0) && (extensionIndex < gMistParkingPlayerConversationBankCopy.count)) {
             animationRequestsAim = gMistParkingPlayerAnimationHeadAimFlags[extensionIndex];
         } else {
             animationRequestsAim = 0;

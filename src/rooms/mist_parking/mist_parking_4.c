@@ -140,7 +140,7 @@ static AnimationSet* _gMistParkingShopPlayerAnimationSets[] = {
     &gMistParkingAnimation1323C,
 };
 
-AnimationBankCopyRequest gMistParkingShopPlayerAnimationBankCopy = { { .sets = _gMistParkingShopPlayerAnimationSets }, ARRAY_SIZE(_gMistParkingShopPlayerAnimationSets) };
+AnimationBankCopyRequest gMistParkingShopPlayerAnimationBankCopy = { _gMistParkingShopPlayerAnimationSets, ARRAY_SIZE(_gMistParkingShopPlayerAnimationSets) };
 
 /// Unused bank-1 clip-1 reset request; intended receiver and presentation unproven.
 static AnimationPlayRequest _gMistParkingUnusedBank1Clip1Animation = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
@@ -408,7 +408,7 @@ static void _mistParkingAimPlayerHeadAtShopPartnerTask(Task* task)
     if (gEvsPlaybackPaused == 0) {
         // Extension index zero has no aim flag; the copied bank bounds the lookup.
         extensionIndex = player->animationSlots[1].nextPose.indices.setIndex - ANIMATION_BANK_BASE_SET_COUNT;
-        if ((extensionIndex > 0) && (extensionIndex < gMistParkingShopPlayerAnimationBankCopy.wordCount)) {
+        if ((extensionIndex > 0) && (extensionIndex < gMistParkingShopPlayerAnimationBankCopy.count)) {
             animationRequestsAim = _gMistParkingShopPlayerHeadAimFlags[extensionIndex];
         } else {
             animationRequestsAim = 0;

@@ -12,6 +12,6 @@
 /// after installing a valid clip pointer there. Keep Mongoose loaded while
 /// playback borrows this bank or its native clips; copied clips also require
 /// their source data to remain loaded.
-extern AnimationBank gMongoosePlayerAnimationBank;
+extern AnimationSet* gMongoosePlayerAnimationBank[ANIMATION_BANK_SET_CAPACITY];
 
 #endif // INCLUDE_WEAPONS_MONGOOSE_H

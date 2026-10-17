@@ -291,7 +291,7 @@ static AnimationSet* _gMistParkingPlayerConversationAnimationSets[25] = {
     &gMistParkingAnimation0D3E4,
 };
 
-AnimationBankCopyRequest gMistParkingPlayerConversationBankCopy = { { .sets = _gMistParkingPlayerConversationAnimationSets }, ARRAY_SIZE(_gMistParkingPlayerConversationAnimationSets) };
+AnimationBankCopyRequest gMistParkingPlayerConversationBankCopy = { _gMistParkingPlayerConversationAnimationSets, ARRAY_SIZE(_gMistParkingPlayerConversationAnimationSets) };
 
 /// Unreferenced player conversation request for clip 1.
 ///

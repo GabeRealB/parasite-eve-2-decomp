@@ -436,8 +436,8 @@ static AnimationPlayRequest _gAcropolisPatioFollowUpPlayerAnimation52Request = {
 /// Copies all 6 directory words synchronously without starting playback.
 /// Copied set pointers and tracks remain borrowed from this overlay.
 static AnimationBankCopyRequest _gAcropolisPatioFollowUpPlayerBankCopyRequest = {
-    .source    = { .sets = _gAcropolisPatioFollowUpPlayerAnimationSets },
-    .wordCount = ARRAY_SIZE(_gAcropolisPatioFollowUpPlayerAnimationSets),
+    .sets  = _gAcropolisPatioFollowUpPlayerAnimationSets,
+    .count = ARRAY_SIZE(_gAcropolisPatioFollowUpPlayerAnimationSets),
 };
 
 /// Equipped-weapon idle clip selected when the patio scripts take player control.
@@ -805,8 +805,8 @@ static AnimationSet* _gAcropolisPatioSecondVisitPlayerAnimationSets[] = {
 /// Copies all 5 directory words synchronously without starting playback.
 /// Copied set pointers and tracks remain borrowed from this overlay.
 static AnimationBankCopyRequest _gAcropolisPatioSecondVisitPlayerBankCopyRequest = {
-    .source    = { .sets = _gAcropolisPatioSecondVisitPlayerAnimationSets },
-    .wordCount = ARRAY_SIZE(_gAcropolisPatioSecondVisitPlayerAnimationSets),
+    .sets  = _gAcropolisPatioSecondVisitPlayerAnimationSets,
+    .count = ARRAY_SIZE(_gAcropolisPatioSecondVisitPlayerAnimationSets),
 };
 
 /// Retained bank-1 requests for clips 1, 48, 49 and 50, all carrying a disabled grid flag.

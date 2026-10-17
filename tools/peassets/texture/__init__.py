@@ -1,7 +1,8 @@
 """Textures: one texture page of pixels, stored as indexed PNGs, and the image and palette chunks built from them.
 
 A texture is `bpp` 4 or 8 (indexed) or 16 (direct color), `width` texels by `height` rows, in one or more
-`variants`. Each variant is a complete PNG, `<texture>_<variant>.png`: indexed for 4 and 8 bits, its PLTE the
+`variants`. Each variant is a complete PNG beside its texture's other files, `<local name>.png` for the variant
+`default` and `<local name>.<variant>.png` for any other (files.variant_file): indexed for 4 and 8 bits, its PLTE the
 variant's palette in stored order (16 or 256 entries, unused ones included), RGBA for 16 bits. All variants of a
 texture have the same indices; the game holds the pixels once and swaps the palette.
 
@@ -11,8 +12,8 @@ assets of their own:
 
     contents = [
         { chunk = "palette", sha1 = "...", palettes = [{ texture = "texture", variant = "default",
-                                                        region = "vram_weapon_palette" }] },
-        { chunk = "image", sha1 = "...", pages = [{ texture = "texture", region = "vram_weapon_sheet" }] },
+                                                        region = "engine/vram/weapon_palette" }] },
+        { chunk = "image", sha1 = "...", pages = [{ texture = "texture", region = "engine/vram/weapon_sheet" }] },
         { chunk = "sounds" },
         { chunk = "package" },
     ]

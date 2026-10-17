@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Which samples each script entry of a sound bank plays.
 
-    spk_scripts.py m93r_sounds [spk_89 ...]      one bank's entries
+    spk_scripts.py weapons/m93r/sounds [spk_89 ...]      one bank's entries
     spk_scripts.py --id 0x4007             the bank with that id
 
 A sound-script bank (`imageKind` 2) carries an `hONE` image at 0x800: a header
@@ -26,6 +26,9 @@ from __future__ import annotations
 import struct
 import sys
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import asset_schema  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[2]
 RAW = ROOT / "assets" / "USA" / "raw" / "spk"
@@ -81,10 +84,10 @@ def foreign(banks: dict[str, dict], other: int, program: int, layer: int) -> str
 
 def all_banks() -> dict[str, dict]:
     out = {}
-    for path in sorted(RAW.glob("*.spk")):
+    for path in sorted(RAW.rglob("*.spk")):
         found = scripts(path.read_bytes())
         if found:
-            out[path.stem] = found
+            out[asset_schema.raw_key(path)] = found
     return out
 
 

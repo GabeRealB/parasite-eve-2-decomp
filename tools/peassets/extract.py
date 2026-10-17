@@ -472,7 +472,8 @@ class AssetStore:
     @staticmethod
     def _fallback_rel(type_dir: str, stem: str, ext: str) -> str:
         """Where the stored bytes are left when an asset's decode fails."""
-        return f"{asset_schema.asset_dir(stem, type_dir=type_dir)}/{stem}{ext}"
+        rec = asset_schema.record_of(stem, type_dir)
+        return f"{asset_schema.asset_dir(stem, rec, type_dir=type_dir)}/{asset_schema.dir_stem(stem, rec, None)}{ext}"
 
     def _map_entry(
         self,
@@ -531,7 +532,7 @@ class AssetStore:
         if digest in by_hash:
             raw_rel = by_hash[digest]
             raw_path = self.assets_root / raw_rel
-            stem = Path(raw_rel).stem
+            stem = self._unique_raw[raw_rel][1]
             first = self._first_canonical.get(raw_rel)
             self.map[canonical] = self._map_entry(
                 type_dir=type_dir,
@@ -583,7 +584,7 @@ class AssetStore:
         by_hash = self._by_hash.setdefault(type_dir, {})
         if digest in by_hash:
             raw_rel = by_hash[digest]
-            return self.assets_root / raw_rel, Path(raw_rel).stem, False
+            return self.assets_root / raw_rel, self._unique_raw[raw_rel][1], False
         used = self._used_names.setdefault(type_dir, set())
         stem = asset_id_for_sha1(digest) or name
         if stem in used:
@@ -615,7 +616,7 @@ class AssetStore:
         if digest in by_hash:
             raw_rel = by_hash[digest]
             raw_path = self.assets_root / raw_rel
-            stem = Path(raw_rel).stem
+            stem = self._unique_raw[raw_rel][1]
             self.map[canonical] = self._map_entry(
                 type_dir=type_dir,
                 stem=stem,
@@ -1206,7 +1207,7 @@ def store_embedded_assets(output_path: Path, store: "AssetStore", *, skip: bool)
         )
         for entry in store.map.values()
         if entry["type"] == "pe2pkg"
-        and embedded_for_source(asset_schema.package_name(Path(entry["raw_path"]).stem) + ".pe2pkg")
+        and embedded_for_source(asset_schema.package_name(asset_schema.raw_key(entry["raw_path"])) + ".pe2pkg")
     }
     targets = [(output_path / "main.exe", None)] + [
         (output_path / raw_path, base)
@@ -1221,7 +1222,7 @@ def store_embedded_assets(output_path: Path, store: "AssetStore", *, skip: bool)
             else:
                 data = decode_pe2pkg_payload(path.read_bytes())
                 # An embedded asset names its package by the overlay's name, which a group's package differs from.
-                found = collect_bytes(data, asset_schema.package_name(path.stem) + ".pe2pkg", base=base)
+                found = collect_bytes(data, asset_schema.package_name(asset_schema.raw_key(path)) + ".pe2pkg", base=base)
         except Exception:
             logging.exception("Failed to read embedded assets from %s", path.name)
             continue
@@ -1424,16 +1425,22 @@ def main():
 
 
 def decode_declared(assets_root: Path) -> None:
-    """Decode what the asset table fully declares: each file's textures, as indexed PNGs (texture/), then
-    each model with its slots and bindings, as USD (model/). The rest stays raw until it is declared."""
+    """Decode what the asset table fully declares: each file's textures, as indexed PNGs (texture/), each
+    rig (derived from its models), each model with its slots and bindings, and each clip, as USD (model/,
+    animation/). The rest stays raw until it is declared."""
+    from animation import declared as clips
     from model import declared
     from asset_data import ASSETS, EMBEDDED_ASSETS
     from texture import files
 
     for name in files.declared_files(ASSETS):
         files.decode_file(name, ASSETS, assets_root)
+    for name in declared.rigs(ASSETS):               # before the models and clips that reference them
+        declared.decode_rig(name, ASSETS, EMBEDDED_ASSETS, assets_root)
     for name in declared.declared(ASSETS):
         declared.decode(name, ASSETS, EMBEDDED_ASSETS, assets_root)
+    for name in clips.declared(ASSETS):
+        clips.decode(name, ASSETS, EMBEDDED_ASSETS, assets_root)
 
 
 if __name__ == "__main__":

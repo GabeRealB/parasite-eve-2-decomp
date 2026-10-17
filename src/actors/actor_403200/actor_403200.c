@@ -6653,8 +6653,7 @@ static void _actor403200Tick(Enemy* enemy, Task* task)
                         work->playerAnim.source.sets = _gActor403200GluttonPlayerAnimSets;
                         _gActor403200GluttonPlayerAnimSets[4] =
                             (gPlayerActorWeaponAnimationBanks
-                                 [gPlayerActorWeaponAnimationBankBases[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon])
-                                ->table.sets[ACTOR_403200_PLAYER_WEAPON_RELEASE_CLIP];
+                                 [gPlayerActorWeaponAnimationBankBases[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon])[ACTOR_403200_PLAYER_WEAPON_RELEASE_CLIP];
                         work->playerAnim.animationId = ACTOR_403200_PLAYER_CLIP_SWIPE_RELEASE;
                         work->playerAnim.blend       = ANIMATION_BLEND_INTERPOLATE;
                         work->playerAnim.blendFrames = 3;

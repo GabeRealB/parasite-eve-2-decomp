@@ -5793,11 +5793,10 @@ static void _actor444000SwipeState(Task* task)
                     if (work->swipeDamageReply != ACTOR_444000_SWIPE_FATAL_REPLY && (s16)work->caughtTicks >= ACTOR_444000_SWIPE_PLAYER_RECOVER_TICK) {
                         work->playerAnim.source.sets                                                           = _gActor444000GluttonPlayerCaptureAnimationSets;
                         _gActor444000GluttonPlayerCaptureAnimationSets[ACTOR_444000_SWIPE_PLAYER_RECOVER_CLIP] = (gPlayerActorWeaponAnimationBanks
-                                                                                                                      [gPlayerActorWeaponAnimationBankBases[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon])
-                                                                                                                     ->table.sets[ACTOR_444000_SWIPE_WEAPON_RECOVER_SET];
-                        work->playerAnim.animationId = ACTOR_444000_SWIPE_PLAYER_RECOVER_CLIP;
-                        work->playerAnim.blend       = ANIMATION_BLEND_INTERPOLATE;
-                        work->playerAnim.blendFrames = ACTOR_444000_SWIPE_PLAYER_BLEND_FRAMES;
+                                                                                                                      [gPlayerActorWeaponAnimationBankBases[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon])[ACTOR_444000_SWIPE_WEAPON_RECOVER_SET];
+                        work->playerAnim.animationId                                                           = ACTOR_444000_SWIPE_PLAYER_RECOVER_CLIP;
+                        work->playerAnim.blend                                                                 = ANIMATION_BLEND_INTERPOLATE;
+                        work->playerAnim.blendFrames                                                           = ACTOR_444000_SWIPE_PLAYER_BLEND_FRAMES;
                         TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &work->playerAnim, 0);
                         work->caughtTicks = 0;
                     }

@@ -335,8 +335,8 @@ static AnimationSet* const _gDryfieldDilapidatedHousePlayerAnimationExtension[16
 /// Both encounter scripts borrow this request synchronously before playback.
 /// No adjacent request bytes are copied; later bank entries stay untouched.
 static const AnimationBankCopyRequest _gDryfieldDilapidatedHousePlayerAnimationExtensionRequest SECTION(".data") = {
-    .source    = { .sets = _gDryfieldDilapidatedHousePlayerAnimationExtension },
-    .wordCount = ARRAY_SIZE(_gDryfieldDilapidatedHousePlayerAnimationExtension),
+    .sets  = _gDryfieldDilapidatedHousePlayerAnimationExtension,
+    .count = ARRAY_SIZE(_gDryfieldDilapidatedHousePlayerAnimationExtension),
 };
 STATIC_ASSERT(ARRAY_SIZE(_gDryfieldDilapidatedHousePlayerAnimationExtension) <= ANIMATION_BANK_EXTENSION_CAPACITY, dryfieldDilapidatedHousePlayerExtensionFitsBank);
 

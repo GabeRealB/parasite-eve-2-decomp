@@ -368,8 +368,8 @@ static AnimationPlayRequest _gActor161500SoldierAnimation11Request = {
 /// pointers are never played. Keep the source data in this order and the overlay
 /// loaded while copied clip pointers are in use; the count is not an array bound.
 static AnimationBankCopyRequest _gActor161500TalkPlayerBankCopyRequest = {
-    .source    = { .words = (const s32*)_gActor161500TalkPlayerAnimationSets },
-    .wordCount = ANIMATION_BANK_EXTENSION_CAPACITY,
+    .sets  = _gActor161500TalkPlayerAnimationSets,
+    .count = ANIMATION_BANK_EXTENSION_CAPACITY,
 };
 
 /// CAP command indices and the placed soldier addressed by dialogue set A.
@@ -1263,8 +1263,8 @@ static AnimationPlayRequest _gActor161500RequestScenePlayerAnimation52Request = 
 /// pointers are in use; the transfer length is neither the table's extent nor
 /// the size of an established aggregate.
 static AnimationBankCopyRequest _gActor161500RequestScenePlayerBankCopyRequest = {
-    .source    = { .words = (const s32*)_gActor161500RequestScenePlayerAnimationSets },
-    .wordCount = ACTOR_161500_REQUEST_BANK_COPY_WORDS,
+    .sets  = _gActor161500RequestScenePlayerAnimationSets,
+    .count = ACTOR_161500_REQUEST_BANK_COPY_WORDS,
 };
 
 /// Resets equipped-weapon clip 1 and drops player grid participation on request-scene entry or skip.

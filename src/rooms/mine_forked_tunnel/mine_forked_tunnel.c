@@ -489,8 +489,8 @@ static AnimationSet* _gMineForkedTunnelSwitchSceneAnimationSets[4] = {
 /// The event script borrows this request until dispatch. The source includes
 /// a NULL slot and covers exactly the set table, without adjacent payload data.
 static AnimationBankCopyRequest _gMineForkedTunnelSwitchSceneAnimationBankCopy = {
-    .source    = { .sets = _gMineForkedTunnelSwitchSceneAnimationSets },
-    .wordCount = ARRAY_SIZE(_gMineForkedTunnelSwitchSceneAnimationSets),
+    .sets  = _gMineForkedTunnelSwitchSceneAnimationSets,
+    .count = ARRAY_SIZE(_gMineForkedTunnelSwitchSceneAnimationSets),
 };
 
 enum {

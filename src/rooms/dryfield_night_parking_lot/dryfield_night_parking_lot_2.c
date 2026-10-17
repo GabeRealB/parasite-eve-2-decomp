@@ -103,8 +103,8 @@ static AnimationSet* _gDryfieldNightParkingLotScavengerEntranceAnimationSets[2] 
 ///
 /// Synchronous dispatch copies two words and clears the following slot.
 static AnimationBankCopyRequest _gDryfieldNightParkingLotScavengerEntranceBankCopy = {
-    .source    = { .sets = _gDryfieldNightParkingLotScavengerEntranceAnimationSets },
-    .wordCount = ARRAY_SIZE(_gDryfieldNightParkingLotScavengerEntranceAnimationSets),
+    .sets  = _gDryfieldNightParkingLotScavengerEntranceAnimationSets,
+    .count = ARRAY_SIZE(_gDryfieldNightParkingLotScavengerEntranceAnimationSets),
 };
 
 /// Plays the installed scavenger-entrance clip with a reset pose and grid collision.

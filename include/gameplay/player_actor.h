@@ -93,10 +93,10 @@ extern u16 gPlayerActorWeaponAnimationBankBases[2];
 /// `gPlayerActorWeaponAnimationBankBases`. Repeated pointers intentionally
 /// select the same bank layout for related weapon packages. Only the bank
 /// whose weapon package is loaded may be dereferenced; its sets and writable
-/// extension words must stay live throughout playback and extension copies.
+/// extension must stay live throughout playback and extension copies.
 /// This table contains exactly 34 entries; selectors beyond 33 have no
 /// established backing storage.
-extern AnimationBank* gPlayerActorWeaponAnimationBanks[34];
+extern AnimationSet** gPlayerActorWeaponAnimationBanks[34];
 
 /// Initializes and links the equipped weapon's collision capsule for a player-type actor.
 ///

@@ -188,8 +188,8 @@ static AnimationSet* _gNeoArkSubmarineTunnelEncounterAnimationSets[2] = {
 /// Exactly two words populate slots 47/48. The script borrows this request
 /// through dispatch; copied pointers and room clip data remain live through playback.
 static AnimationBankCopyRequest _gNeoArkSubmarineTunnelEncounterAnimationBankCopy = {
-    .source    = { .sets = _gNeoArkSubmarineTunnelEncounterAnimationSets },
-    .wordCount = ARRAY_SIZE(_gNeoArkSubmarineTunnelEncounterAnimationSets),
+    .sets  = _gNeoArkSubmarineTunnelEncounterAnimationSets,
+    .count = ARRAY_SIZE(_gNeoArkSubmarineTunnelEncounterAnimationSets),
 };
 
 enum {

@@ -13,7 +13,7 @@
 /// and raw message payloads. Play an extension word only when it holds a clip
 /// pointer or NULL. Keep the Bayonet overlay and any copied clip resources
 /// loaded while playback borrows the bank, its descriptors or their data.
-extern AnimationBank gM4a1BayonetPlayerAnimationBank;
+extern AnimationSet* gM4a1BayonetPlayerAnimationBank[ANIMATION_BANK_SET_CAPACITY];
 
 /// Records the M4A1 bayonet's thrust and draws its fading blue-white ribbon.
 ///

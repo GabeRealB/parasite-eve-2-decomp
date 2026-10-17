@@ -267,7 +267,7 @@ static AnimationSet* _gActor341300PlayerAnimationExtensionSets[6] = {
 /// Both script paths borrow this request through dispatch; copied set pointers
 /// require the actor package to stay loaded through playback.
 static AnimationBankCopyRequest _gActor341300PlayerAnimationExtensionCopy = {
-    { .sets = _gActor341300PlayerAnimationExtensionSets }, ARRAY_SIZE(_gActor341300PlayerAnimationExtensionSets)
+    _gActor341300PlayerAnimationExtensionSets, ARRAY_SIZE(_gActor341300PlayerAnimationExtensionSets)
 };
 
 /// Unreferenced bank-1, animation-1 reset request with world collision enabled.

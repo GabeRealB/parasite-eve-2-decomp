@@ -316,7 +316,7 @@ static AnimationSet* _gAcropolisWestElevatorHallArrivalAnimationSets[1] = {
 ///
 /// Message dispatch borrows this request and source table synchronously;
 /// playback continues borrowing the copied animation-set pointer.
-static AnimationBankCopyRequest _gAcropolisWestElevatorHallArrivalAnimationBankCopyRequest = { { .sets = _gAcropolisWestElevatorHallArrivalAnimationSets }, ARRAY_SIZE(_gAcropolisWestElevatorHallArrivalAnimationSets) };
+static AnimationBankCopyRequest _gAcropolisWestElevatorHallArrivalAnimationBankCopyRequest = { _gAcropolisWestElevatorHallArrivalAnimationSets, ARRAY_SIZE(_gAcropolisWestElevatorHallArrivalAnimationSets) };
 
 /// Plays the installed arrival clip from the equipped bank with collision disabled.
 ///

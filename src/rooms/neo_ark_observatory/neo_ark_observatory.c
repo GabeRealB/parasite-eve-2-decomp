@@ -213,7 +213,7 @@ static AnimationSet* _gNeoArkObservatoryScenePlayerAnimationSets[1] = { &_gNeoAr
 /// The count is the bank capacity, not the playable set count. The source span
 /// continues through the next play request and four scene commands; the player
 /// consumes the request synchronously and borrows the clip through playback.
-static AnimationBankCopyRequest _gNeoArkObservatoryScenePlayerAnimationBankCopyRequest = { { .sets = _gNeoArkObservatoryScenePlayerAnimationSets }, ANIMATION_BANK_EXTENSION_CAPACITY };
+static AnimationBankCopyRequest _gNeoArkObservatoryScenePlayerAnimationBankCopyRequest = { _gNeoArkObservatoryScenePlayerAnimationSets, ANIMATION_BANK_EXTENSION_CAPACITY };
 
 /// Blends the player into scene clip 47 over 15 frames with world collision enabled.
 ///

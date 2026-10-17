@@ -452,8 +452,8 @@ static AnimationSet* _gShelterB1SterilizationRoomTrapAnimationSets[] = {
 };
 
 AnimationBankCopyRequest gShelterB1SterilizationRoomTrapAnimationBankCopyRequest = {
-    .source    = { .sets = _gShelterB1SterilizationRoomTrapAnimationSets },
-    .wordCount = ARRAY_SIZE(_gShelterB1SterilizationRoomTrapAnimationSets),
+    .sets  = _gShelterB1SterilizationRoomTrapAnimationSets,
+    .count = ARRAY_SIZE(_gShelterB1SterilizationRoomTrapAnimationSets),
 };
 
 /// Unreferenced bank-1, clip-1 reset request with world collision enabled.

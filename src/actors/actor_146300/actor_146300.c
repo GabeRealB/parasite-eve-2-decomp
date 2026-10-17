@@ -1014,8 +1014,8 @@ static AnimationPlayRequest _gActor146300PlayerClip64Request = {
 /// length is the bank capacity, rather than the number of clips. The request
 /// is borrowed through dispatch; the copied clip data must remain loaded.
 static AnimationBankCopyRequest _gActor146300CopyPlayerBankExtensionRequest = {
-    .source    = { .sets = _gActor146300PlayerBankExtension },
-    .wordCount = ANIMATION_BANK_EXTENSION_CAPACITY,
+    .sets  = _gActor146300PlayerBankExtension,
+    .count = ANIMATION_BANK_EXTENSION_CAPACITY,
 };
 
 /// Player placement at the first animation of the water-tank event.

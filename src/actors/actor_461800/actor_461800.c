@@ -259,8 +259,8 @@ static AnimationSet* _gActor461800ScenePlayerAnimationSets[1] = {
 
 /// Copies one set-pointer word into the player's bank at the first extension index.
 static AnimationBankCopyRequest _gActor461800ScenePlayerAnimationCopyRequest = {
-    .source    = { .sets = _gActor461800ScenePlayerAnimationSets },
-    .wordCount = ARRAY_SIZE(_gActor461800ScenePlayerAnimationSets),
+    .sets  = _gActor461800ScenePlayerAnimationSets,
+    .count = ARRAY_SIZE(_gActor461800ScenePlayerAnimationSets),
 };
 
 /// Neo Ark room-31 scene/audio key, borrowed until the event script finishes.

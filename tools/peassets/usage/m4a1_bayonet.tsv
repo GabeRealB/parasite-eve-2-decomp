@@ -51,4 +51,4 @@ gameplay common sound bank (ancestor; spk not resolved)	entry 0x17	m4a1_bayonet:
 # no literal-number asset data in the overlay's C: the only tables are the two trail endpoint offsets (tip (0,0x300,0x40), hilt (0,0x180,0x40), src/weapons/m4a1_bayonet/m4a1_bayonet.c:34 and 40), which are tuning constants.
 # `asset_residency.py show m4a1_bayonet` prints only `carrier / 0/m4a1_bayonet (2 uploads)` - no layer, though the load is established (cd_loading.c:1098, layer = variant on gPlayerStatus.weapon).
 # tools/peassets/model_textures.tsv has no m4a1_bayonet row; the pairing recorded here was read from the face stream words.
-# pe2img_26 and pe2clut_19 occupy the same VRAM places (448,0 and 0,243) as the m93r's m93r_image / m93r_palette: every weapon file overwrites the one slot, so only the equipped weapon's texture is resident.
+# pe2img_26 and pe2clut_19 occupy the same VRAM places (448,0 and 0,243) as the m93r's weapons/m93r/image / weapons/m93r/palette: every weapon file overwrites the one slot, so only the equipped weapon's texture is resident.

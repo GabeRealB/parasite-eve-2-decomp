@@ -448,8 +448,8 @@ static AnimationSet* _gAcropolisSanctuaryPlayerSceneAnimationSets[9] = {
 /// request is borrowed synchronously; the room and Rupert animation resources
 /// must remain loaded while those copied pointers are used.
 static AnimationBankCopyRequest _gAcropolisSanctuaryPlayerSceneBankExtensionRequest = {
-    .source    = { .sets = _gAcropolisSanctuaryPlayerSceneAnimationSets },
-    .wordCount = ARRAY_SIZE(_gAcropolisSanctuaryPlayerSceneAnimationSets),
+    .sets  = _gAcropolisSanctuaryPlayerSceneAnimationSets,
+    .count = ARRAY_SIZE(_gAcropolisSanctuaryPlayerSceneAnimationSets),
 };
 
 /// Resets player sanctuary scene clip 47.

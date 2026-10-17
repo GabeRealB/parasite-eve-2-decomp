@@ -450,8 +450,8 @@ static AnimationPlayRequest _gActor215100GalleryPlayerClip52Request = {
 /// words are not playable clips. The source overlay must stay loaded through
 /// dispatch and through playback of the copied pointers.
 static AnimationBankCopyRequest _gActor215100GalleryPlayerBankCopyRequest = {
-    .source    = { .words = (const s32*)_gActor215100GalleryPlayerAnimationSets },
-    .wordCount = ANIMATION_BANK_EXTENSION_CAPACITY,
+    .sets  = _gActor215100GalleryPlayerAnimationSets,
+    .count = ANIMATION_BANK_EXTENSION_CAPACITY,
 };
 
 /// Retained reset request for gallery player extension clip 57.
@@ -1670,8 +1670,8 @@ static AnimationPlayRequest _gActor215100ConversationPlayerClip66Request = {
 /// words are not playable clips. The source overlay must stay loaded through
 /// dispatch and through playback of the copied pointers.
 static AnimationBankCopyRequest _gActor215100ConversationPlayerBankCopyRequest = {
-    .source    = { .words = (const s32*)_gActor215100ConversationPlayerAnimationSets },
-    .wordCount = ANIMATION_BANK_EXTENSION_CAPACITY,
+    .sets  = _gActor215100ConversationPlayerAnimationSets,
+    .count = ANIMATION_BANK_EXTENSION_CAPACITY,
 };
 
 /// Pierce's opening placement in the gallery story scene.

@@ -883,8 +883,8 @@ static AnimationSet* const _gDryfieldTrailerCoachPlayerAnimationExtensionSets[17
 /// borrowed for playback. See `_gDryfieldTrailerCoachPlayerAnimationExtensionSets`
 /// for the retained read across adjacent objects.
 static const AnimationBankCopyRequest _gDryfieldTrailerCoachPlayerAnimationExtensionCopyRequest SECTION(".data") = {
-    .source    = { .sets = _gDryfieldTrailerCoachPlayerAnimationExtensionSets },
-    .wordCount = ANIMATION_BANK_EXTENSION_CAPACITY,
+    .sets  = _gDryfieldTrailerCoachPlayerAnimationExtensionSets,
+    .count = ANIMATION_BANK_EXTENSION_CAPACITY,
 };
 
 /// Null-terminated Shift-JIS topic label "銃器について (About firearms)".

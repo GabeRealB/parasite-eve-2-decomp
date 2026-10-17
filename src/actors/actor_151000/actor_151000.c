@@ -268,7 +268,7 @@ static ActorTransform _gActor151000WalkerDepartureTarget = { { -3600, 0, -12500,
 /// The fixed 32-word transfer intentionally includes adjacent requests, as
 /// documented on `_gActor151000PlayerAnimationBankExtension`. This request is
 /// borrowed through dispatch; the copied clip pointers remain borrowed afterwards.
-static AnimationBankCopyRequest _gActor151000PlayerAnimationBankCopy = { { .sets = _gActor151000PlayerAnimationBankExtension }, ANIMATION_BANK_EXTENSION_CAPACITY };
+static AnimationBankCopyRequest _gActor151000PlayerAnimationBankCopy = { _gActor151000PlayerAnimationBankExtension, ANIMATION_BANK_EXTENSION_CAPACITY };
 
 EvsCommand gActor151000GardenArrivalScript[47] = {
     // Set up the player bank and both actors while the scene is covered.

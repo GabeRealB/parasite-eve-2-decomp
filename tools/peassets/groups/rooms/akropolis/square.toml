@@ -1,4 +1,4 @@
-# The assets of the group rooms/akropolis/square, each named akropolis_square_<table name>.
+# The assets of the group rooms/akropolis/square, each named rooms/akropolis/square/<table name>.
 # Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
 
 [bundle]
@@ -6,19 +6,19 @@ type = "pe2bundle"
 resources = [
     "",
     "",
-    "akropolis_square_view3_palette",
-    "akropolis_square_view4_palette",
-    "akropolis_square_view5_palette",
-    "akropolis_square_view6_palette",
-    "akropolis_square_view7_palette",
-    "akropolis_square_view8_palette",
+    "rooms/akropolis/square/view3_palette",
+    "rooms/akropolis/square/view4_palette",
+    "rooms/akropolis/square/view5_palette",
+    "rooms/akropolis/square/view6_palette",
+    "rooms/akropolis/square/view7_palette",
+    "rooms/akropolis/square/view8_palette",
     "",
     "",
     "",
     "",
     "",
     "",
-    "akropolis_square_dialogue_0",
+    "rooms/akropolis/square/dialogue_0",
     "akropolis_square_dialogue_1",
 ]
 sha1 = "b12e305ec25b7cf40339d3db913c9725d5888c38"
@@ -39,17 +39,17 @@ sha1 = "fca5f3a7369e0e2fafe16af20defa5cd093cd858"
 type = "spk"
 samples = [
     "spk_153_sample_00",
-    "akropolis_square_sounds_1_sample_01",
-    "akropolis_square_sounds_1_sample_02",
-    "akropolis_square_sounds_1_sample_03",
-    "akropolis_square_sounds_1_sample_04",
-    "akropolis_square_sounds_1_sample_05",
-    "akropolis_square_sounds_1_sample_06",
-    "akropolis_square_sounds_1_sample_07",
-    "akropolis_square_sounds_1_sample_08",
-    "akropolis_square_sounds_1_sample_09",
-    "akropolis_square_sounds_1_sample_10",
-    "akropolis_square_sounds_1_sample_11",
+    "rooms/akropolis/square/sounds_1_sample_01",
+    "rooms/akropolis/square/sounds_1_sample_02",
+    "rooms/akropolis/square/sounds_1_sample_03",
+    "rooms/akropolis/square/sounds_1_sample_04",
+    "rooms/akropolis/square/sounds_1_sample_05",
+    "rooms/akropolis/square/sounds_1_sample_06",
+    "rooms/akropolis/square/sounds_1_sample_07",
+    "rooms/akropolis/square/sounds_1_sample_08",
+    "rooms/akropolis/square/sounds_1_sample_09",
+    "rooms/akropolis/square/sounds_1_sample_10",
+    "rooms/akropolis/square/sounds_1_sample_11",
 ]
 sha1 = "cfc6a5b7bccd432282dba946c8bc6dcb81064243"
 
@@ -184,7 +184,7 @@ sha1 = "fe5e1aab8a01bc26eb5972a60e540603c3721394"
 [dialogue_0_atlas]
 type = "font_atlas"
 bpp = 4
-generated_by = "akropolis_square_dialogue_0"
+generated_by = "rooms/akropolis/square/dialogue_0"
 h = 256
 w = 64
 x = 384

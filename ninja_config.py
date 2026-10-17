@@ -223,6 +223,7 @@ LIB_SPLAT_EXT = TOOLS_DIR / "splat_ext" / "libsrc.py"
 GEN_ASSET_INC = TOOLS_DIR / "buildsteps" / "gen_asset_inc.py"
 GEN_MODEL_INC = TOOLS_DIR / "buildsteps" / "gen_model_inc.py"
 GEN_MODEL_SOURCE = TOOLS_DIR / "buildsteps" / "gen_model_source.py"
+GEN_ANIMATION_SOURCE = TOOLS_DIR / "buildsteps" / "gen_animation_source.py"
 GEN_ANIMATION_INC = TOOLS_DIR / "buildsteps" / "gen_animation_inc.py"
 GEN_COLLISION_INC = TOOLS_DIR / "buildsteps" / "gen_collision_inc.py"
 
@@ -255,34 +256,45 @@ def asset_includes(version: str) -> list[tuple[Path, Path, int | str]]:
     return out
 
 
+_ASSET_TABLES: list = []
+
+
+def asset_tables():
+    """The asset table and its schema module (tools/peassets/asset_data.py, asset_schema.py), loaded once by path."""
+    if not _ASSET_TABLES:
+        import importlib.util
+        for module in ("asset_data", "asset_schema"):
+            spec = importlib.util.spec_from_file_location(module, TOOLS_DIR / "peassets" / f"{module}.py")
+            _ASSET_TABLES.append(importlib.util.module_from_spec(spec))
+            spec.loader.exec_module(_ASSET_TABLES[-1])
+    return _ASSET_TABLES
+
+
+def include_path(name: str, rec: dict) -> str:
+    """A declared asset's generated include, grouped like the asset: `<group>/<local name>.inc`."""
+    group = rec.get("group")
+    if not group:
+        raise SystemExit(f"{name}: a declared asset built into C belongs to a group")
+    return f"{name}.inc"                            # a grouped asset's name is its path, <group>/<local name>
+
+
 def declared_model_placements() -> dict[tuple[str, int], tuple[str, str, str]]:
     """(package, model offset) -> (name, decoded directory, generated include), for every declared model (asset
     type `model`): those are built from their USD and binding by gen_model_source.py, not cut out of the package.
     The include is grouped like the asset: `<group>/<local name>.inc` (weapons/m93r/model.inc)."""
-    import importlib.util
-
-    modules = {}
-    for module in ("asset_data", "asset_schema"):
-        spec = importlib.util.spec_from_file_location(module, TOOLS_DIR / "peassets" / f"{module}.py")
-        modules[module] = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(modules[module])
-    data, schema = modules["asset_data"], modules["asset_schema"]
+    data, schema = asset_tables()
     out = {}
     for name, rec in data.ASSETS.items():
         if rec.get("type") == "model" and rec.get("slots"):
             place = data.EMBEDDED_ASSETS[name]
-            group = rec.get("group")
-            if not group:
-                raise SystemExit(f"{name}: a declared model belongs to a group")
-            prefix = "_".join(group.split("/")[1:])         # asset_groups.py names grouped assets <prefix>_<local>
-            local = name.removeprefix(f"{prefix}_") if prefix else name
             out[(place["source"].removesuffix(".pe2pkg"), schema.embedded_offset(place))] = (
-                name, schema.asset_dir(name, rec, tables=(data.ASSETS, data.EMBEDDED_ASSETS)), f"{group}/{local}.inc")
+                name, schema.asset_dir(name, rec, tables=(data.ASSETS, data.EMBEDDED_ASSETS)), include_path(name, rec))
     return out
 
 
-def model_source_includes(version: str) -> list[tuple[str, Path, Path]]:
-    """(name, model USD, generated include) for every declared model a C unit owns."""
+def model_source_includes(version: str) -> list[tuple[str, list[Path], Path]]:
+    """(name, its USD files - the model's, and its rig's, which it references -, generated include) for every
+    declared model a C unit owns."""
     from tools.buildsteps.gen_overlay_configs import declared_models
 
     manifest = tomllib.loads((CONFIG_DIR / version / "overlays.toml").read_text())
@@ -292,7 +304,12 @@ def model_source_includes(version: str) -> list[tuple[str, Path, Path]]:
         if (model["package"], model["model"]) not in placements or not model["in_c"]:
             continue
         name, directory, include = placements[(model["package"], model["model"])]
-        out.append((name, ASSETS_DIR / version / directory / f"{name}.usda", BUILD_DIR / "include" / "assets" / include))
+        data, schema = asset_tables()
+        usd = [ASSETS_DIR / version / directory / f"{schema.file_name(name)}.usda"]
+        rig = data.ASSETS[name].get("rig")
+        if rig:
+            usd.append(ASSETS_DIR / version / schema.asset_dir(rig, data.ASSETS[rig]) / f"{schema.file_name(rig)}.usda")
+        out.append((name, usd, BUILD_DIR / "include" / "assets" / include))
     return out
 
 
@@ -330,15 +347,36 @@ def model_includes(version: str) -> list[tuple[Path, list[Path], int, int, str]]
     return out
 
 
+def declared_animation_sources(version: str) -> tuple[list, list]:
+    """What gen_animation_source.py writes: per package that places declared clips, (package, the clips' USD files,
+    `<package group>/clips.inc`); per declared bank, (name, `<group>/<local name>.inc`)."""
+    data, schema = asset_tables()
+    tables = (data.ASSETS, data.EMBEDDED_ASSETS)
+    clips, banks = [], []
+    for key, rec in data.ASSETS.items():
+        if rec.get("type") == "pe2pkg":
+            placed = [p["name"] for p in rec.get("embedded", ()) if isinstance(p, dict)
+                      and data.ASSETS[p["name"]]["type"] == "clip"]
+            if placed:
+                usd = [ASSETS_DIR / version / schema.asset_dir(n, data.ASSETS[n], tables=tables) / f"{schema.file_name(n)}.usda"
+                       for n in placed]
+                clips.append((rec.get("package_name", key), usd,
+                              BUILD_DIR / "include" / "assets" / rec["group"] / "clips.inc"))
+        elif rec.get("type") == "animation_bank" and key in data.EMBEDDED_ASSETS:      # a layer is not a table
+            banks.append((key, BUILD_DIR / "include" / "assets" / include_path(key, rec)))
+    return clips, banks
+
+
 def animation_includes(version: str) -> list[tuple[Path, list[Path], int, int]]:
-    """Typed initializer inputs for animation sets embedded in C data."""
+    """Typed initializer inputs for animation sets embedded in C data (packages placing declared clips excepted)."""
     from tools.buildsteps.gen_animation_inc import components
     from tools.buildsteps.gen_overlay_configs import declared_animations
 
     manifest = tomllib.loads((CONFIG_DIR / version / "overlays.toml").read_text())
+    declared = {package for package, _usd, _inc in declared_animation_sources(version)[0]}
     out = []
     for resource in declared_animations(manifest):
-        if not resource["in_c"]:
+        if not resource["in_c"] or resource["package"] in declared:
             continue
         raw = ASSETS_DIR / version / "pe2pkg" / f"{resource['package']}.pe2pkg"
         data = raw.read_bytes()
@@ -1099,6 +1137,11 @@ def ninja_build(
         command=f"{PYTHON} {GEN_COLLISION_INC} $in $load $source {BUILD_DIR / 'include' / 'assets'} $pieces",
     )
     ninja_rules_file.rule(
+        "animation-source",
+        description="animation-source $kind $name",
+        command=f"{PYTHON} {GEN_ANIMATION_SOURCE} $kind $name $out --assets {ASSETS_DIR / 'USA'}",
+    )
+    ninja_rules_file.rule(
         "animation-inc",
         description="animation-inc $in $source",
         command=f"{PYTHON} {GEN_ANIMATION_INC} $in $load $source {BUILD_DIR / 'include' / 'assets'}",
@@ -1150,7 +1193,7 @@ def ninja_build(
                          *sorted(str(p) for p in (peassets / "groups").rglob("*.toml"))]
     for name, usd, inc in model_source_includes(version):
         for writer in asset_writers:
-            writer.build(outputs=str(inc), rule="model-source", inputs=str(usd),
+            writer.build(outputs=str(inc), rule="model-source", inputs=[str(p) for p in usd],
                          implicit=model_source_deps, variables={"name": name})
         ASSET_INC_OUTPUTS.append(str(inc))
     for raw, outputs, load, source, pieces in collision_includes(version):
@@ -1170,6 +1213,20 @@ def ninja_build(
                 variables={"load": hex(load), "source": hex(source)},
             )
         ASSET_INC_OUTPUTS.extend(str(inc) for inc in outputs)
+    animation_deps = [str(GEN_ANIMATION_SOURCE), str(peassets / "asset_data.py"), str(peassets / "asset_schema.py"),
+                      str(peassets / "asset_groups.py"), *sorted(str(p) for p in (peassets / "animation").glob("*.py")),
+                      *sorted(str(p) for p in (peassets / "groups").rglob("*.toml"))]
+    clip_sources, bank_sources = declared_animation_sources(version)
+    for package, usd, inc in clip_sources:
+        for writer in asset_writers:
+            writer.build(outputs=str(inc), rule="animation-source", inputs=[str(u) for u in usd],
+                         implicit=animation_deps, variables={"kind": "clips", "name": package})
+        ASSET_INC_OUTPUTS.append(str(inc))
+    for name, inc in bank_sources:
+        for writer in asset_writers:
+            writer.build(outputs=str(inc), rule="animation-source", implicit=animation_deps,
+                         variables={"kind": "bank", "name": name})
+        ASSET_INC_OUTPUTS.append(str(inc))
 
     # Thousands of resource fragments can be embedded across the overlays.
     # One ordering edge per C file keeps both Ninja graphs small; preprocessing

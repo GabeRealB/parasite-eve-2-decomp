@@ -15,7 +15,7 @@
 /// Play an extension slot only when it contains a valid loaded clip pointer.
 /// The bank and its borrowed clip data remain valid while this weapon package
 /// stays loaded; finish referring playback before replacing the package.
-extern AnimationBank gM4a1JavelinPlayerAnimationBank;
+extern AnimationSet* gM4a1JavelinPlayerAnimationBank[ANIMATION_BANK_SET_CAPACITY];
 
 /// Held M4A1 Javelin model: one rigid part with writable geometry and draw stream.
 ///

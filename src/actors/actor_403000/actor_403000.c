@@ -5622,7 +5622,7 @@ static void _actor403000Update(Enemy* enemy, Task* actorTask)
     // Finish the paired player clips before restoring the player's own animation bank.
     if (work->playerCaught == 1) {
         work->catchFrame++;
-        if (work->playerAnimation.source.sets != gPlayerActorWeaponAnimationBanks[gPlayerActorWeaponAnimationBankBases[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon]->table.sets) {
+        if (work->playerAnimation.source.sets != gPlayerActorWeaponAnimationBanks[gPlayerActorWeaponAnimationBankBases[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon]) {
             switch (work->playerAnimation.animationId) {
                 case ACTOR_403000_PLAYER_CLIP_LUNGE_CATCH:
                     if (work->catchFrame == ACTOR_403000_GRAB_RUMBLE_FRAME) {
@@ -5656,7 +5656,7 @@ static void _actor403000Update(Enemy* enemy, Task* actorTask)
         }
         if (taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_IS_PLAYING, 0, 0) == 0) {
             work->catchFrame = 0;
-            if (work->playerAnimation.source.sets != gPlayerActorWeaponAnimationBanks[gPlayerActorWeaponAnimationBankBases[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon]->table.sets) {
+            if (work->playerAnimation.source.sets != gPlayerActorWeaponAnimationBanks[gPlayerActorWeaponAnimationBankBases[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon]) {
                 switch (work->playerAnimation.animationId) {
                     case ACTOR_403000_PLAYER_CLIP_LUNGE_CATCH:
                         work->playerAnimation.animationId          = ACTOR_403000_PLAYER_CLIP_LUNGE_RELEASE;
@@ -5682,7 +5682,7 @@ static void _actor403000Update(Enemy* enemy, Task* actorTask)
                     case ACTOR_403000_PLAYER_CLIP_LUNGE_RELEASE:
                     case ACTOR_403000_PLAYER_CLIP_GRAB_RELEASE:
                     case ACTOR_403000_PLAYER_CLIP_DROP_RELEASE:
-                        work->playerAnimation.source.sets          = gPlayerActorWeaponAnimationBanks[gPlayerActorWeaponAnimationBankBases[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon]->table.sets;
+                        work->playerAnimation.source.sets          = gPlayerActorWeaponAnimationBanks[gPlayerActorWeaponAnimationBankBases[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon];
                         work->playerAnimation.animationId          = ACTOR_403000_PLAYER_CLIP_RESUME;
                         work->playerAnimation.blendFrames          = ACTOR_403000_PLAYER_RESUME_BLEND_TICKS;
                         work->playerAnimation.blend                = ANIMATION_BLEND_RESET;

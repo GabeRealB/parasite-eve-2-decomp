@@ -14,7 +14,7 @@
 /// extension entry only after installing a valid clip pointer there. Keep the
 /// selected family package loaded while playback borrows this bank or its native
 /// clips; copied clips also require their source data to remain loaded.
-extern AnimationBank gMp5a5PlayerAnimationBank;
+extern AnimationSet* gMp5a5PlayerAnimationBank[ANIMATION_BANK_SET_CAPACITY];
 
 /// Advances the MP5A5 alternate-fire muzzle flash and its transient point light.
 ///

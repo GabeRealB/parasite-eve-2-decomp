@@ -1,0 +1,167 @@
+# The assets of the group characters/aya, each named characters/aya/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[rig]
+type = "rig"
+joints = [
+    "root",
+    "pelvis",
+    "waist",
+    "chest",
+    "head",
+    "right_shoulder",
+    "right_upper_arm",
+    "right_forearm",
+    "right_hand",
+    "left_shoulder",
+    "left_upper_arm",
+    "left_forearm",
+    "left_hand",
+    "right_thigh",
+    "right_shin",
+    "right_foot",
+    "left_thigh",
+    "left_shin",
+    "left_foot",
+]
+
+[bank]
+type = "animation_bank"
+schema = "engine/animation/player_schema"
+
+[bank.clips]
+idle = "characters/aya/idle"
+turn_left = "characters/aya/turn_left"
+turn_right = "characters/aya/turn_right"
+hit_head = "characters/aya/hit_head"
+hit_body = "characters/aya/hit_body"
+death = "characters/aya/death"
+unarmed_walk = "characters/aya/unarmed_walk"
+high_health_idle = "characters/aya/high_health_idle"
+mid_health_idle = "characters/aya/mid_health_idle"
+low_health_idle = "characters/aya/low_health_idle"
+parasite_energy_begin_0 = "characters/aya/parasite_energy_begin_0"
+parasite_energy_charge_0 = "characters/aya/parasite_energy_charge_0"
+parasite_energy_cast_0 = "characters/aya/parasite_energy_cast_0"
+parasite_energy_begin_1 = "characters/aya/parasite_energy_begin_1"
+parasite_energy_charge_1 = "characters/aya/parasite_energy_charge_1"
+parasite_energy_cast_1 = "characters/aya/parasite_energy_cast_1"
+examine_enter = "characters/aya/examine_enter"
+examine_exit = "characters/aya/examine_exit"
+stair_ascent = "characters/aya/stair_ascent"
+stair_descent = "characters/aya/stair_descent"
+stair_ascent_finish_even = "characters/aya/stair_ascent_finish_even"
+stair_ascent_finish_odd = "characters/aya/stair_ascent_finish_odd"
+item_use = "characters/aya/item_use"
+parasite_energy_begin_2 = "characters/aya/parasite_energy_begin_2"
+parasite_energy_charge_2 = "characters/aya/parasite_energy_charge_2"
+parasite_energy_cast_2 = "characters/aya/parasite_energy_cast_2"
+slot_21 = "characters/aya/idle"
+slot_22 = "characters/aya/idle"
+slot_41 = "characters/aya/idle"
+slot_34 = "characters/aya/examine_enter"
+slot_35 = "characters/aya/examine_exit"
+
+[idle]
+type = "clip"
+rig = "characters/aya/rig"
+
+[death]
+type = "clip"
+rig = "characters/aya/rig"
+
+[hit_body]
+type = "clip"
+rig = "characters/aya/rig"
+
+[hit_head]
+type = "clip"
+rig = "characters/aya/rig"
+
+[item_use]
+type = "clip"
+rig = "characters/aya/rig"
+
+[turn_left]
+type = "clip"
+rig = "characters/aya/rig"
+
+[turn_right]
+type = "clip"
+rig = "characters/aya/rig"
+
+[examine_exit]
+type = "clip"
+rig = "characters/aya/rig"
+
+[stair_ascent]
+type = "clip"
+rig = "characters/aya/rig"
+
+[unarmed_walk]
+type = "clip"
+rig = "characters/aya/rig"
+
+[examine_enter]
+type = "clip"
+rig = "characters/aya/rig"
+
+[stair_descent]
+type = "clip"
+rig = "characters/aya/rig"
+
+[low_health_idle]
+type = "clip"
+rig = "characters/aya/rig"
+
+[mid_health_idle]
+type = "clip"
+rig = "characters/aya/rig"
+
+[high_health_idle]
+type = "clip"
+rig = "characters/aya/rig"
+
+[parasite_energy_cast_0]
+type = "clip"
+rig = "characters/aya/rig"
+
+[parasite_energy_cast_1]
+type = "clip"
+rig = "characters/aya/rig"
+
+[parasite_energy_cast_2]
+type = "clip"
+rig = "characters/aya/rig"
+
+[parasite_energy_begin_0]
+type = "clip"
+rig = "characters/aya/rig"
+
+[parasite_energy_begin_1]
+type = "clip"
+rig = "characters/aya/rig"
+
+[parasite_energy_begin_2]
+type = "clip"
+rig = "characters/aya/rig"
+
+[stair_ascent_finish_odd]
+type = "clip"
+rig = "characters/aya/rig"
+
+[parasite_energy_charge_0]
+type = "clip"
+rig = "characters/aya/rig"
+
+[parasite_energy_charge_1]
+type = "clip"
+rig = "characters/aya/rig"
+
+[parasite_energy_charge_2]
+type = "clip"
+rig = "characters/aya/rig"
+
+[stair_ascent_finish_even]
+type = "clip"
+rig = "characters/aya/rig"

@@ -240,8 +240,8 @@ static AnimationSet* _gNeoArkPowerPlant1PlayerAnimationBankExtension[1] = {
 /// The retained two-word count reads one word beyond the one-entry source table;
 /// the count word itself is outside the copy. Both records belong to this room.
 static AnimationBankCopyRequest _gNeoArkPowerPlant1PlayerAnimationBankCopyRequest = {
-    .source    = { .sets = _gNeoArkPowerPlant1PlayerAnimationBankExtension },
-    .wordCount = NEO_ARK_POWER_PLANT_1_EXTENSION_COPY_WORDS,
+    .sets  = _gNeoArkPowerPlant1PlayerAnimationBankExtension,
+    .count = NEO_ARK_POWER_PLANT_1_EXTENSION_COPY_WORDS,
 };
 
 /// Player's battle-entry placement in whole room coordinates, with zero Euler angles.

@@ -2,9 +2,10 @@
 
     groups/<group>.toml        one table per asset of the group, keyed by its local name
 
-An asset's name is its group's path without the first part, then its local name: `[view3_background]` in
-groups/rooms/akropolis/square.toml is `akropolis_square_view3_background`. `asset_data.py` calls `merge` when it is
-imported, so every tool reads one flat ASSETS; `dump_asset_db.write_groups` writes the files.
+An asset's name is its path: its group, then its local name. `[view3_background]` in
+groups/rooms/akropolis/square.toml is `rooms/akropolis/square/view3_background`, and every reference to it, from any
+group or from asset_data.py, says so. An asset outside the groups keeps a plain name (`pe2img_12`). `asset_data.py`
+calls `merge` when it is imported, so every tool reads one ASSETS; `dump_asset_db.write_groups` writes the files.
 
 TOML has no null and only string keys: an empty slot of a bundle's `resources` is "", and the cells of a dialogue's
 `glyphs` are numbers written as keys; both are given back as the tools expect them.
@@ -14,7 +15,9 @@ image or palette chunk has no table of its own: its entry states the sha1 of its
 record it implies (texture/declaration.py).
 
 A package of a group places its embedded assets itself: `embedded = [{ name, offset, size }]`, the name local and
-the offset into the decoded package, and an `address` in memory for the types the code reaches by address (a model,
+the offset into the decoded package (`asset` with the asset's path in place of `name` places another group's asset: a
+clip Aya's group holds and every weapon package carries; a plain name, an embedded record still located by address
+in EMBEDDED_ASSETS, as its package lists it outside the groups), and an `address` in memory for the types the code reaches by address (a model,
 an image, a CLUT: asset_schema.ADDRESSED_TYPES). Each placement becomes an EMBEDDED_ASSETS record - its source, its
 `offset`, size and any `address`; the extension follows from its type - which the tools read through
 asset_schema.embedded_offset and embedded_address. A package outside the groups keeps the older
@@ -32,10 +35,9 @@ def records(root: Path):
     """(name, record) of every asset of every group file under `root`."""
     for path in sorted(root.rglob("*.toml")):
         group = path.relative_to(root).with_suffix("").as_posix()
-        prefix = "_".join(group.split("/")[1:])
 
         def full(local: str) -> str:
-            return f"{prefix}_{local}" if prefix else local
+            return f"{group}/{local}"
 
         for local, rec in tomllib.loads(path.read_text(encoding="utf-8")).items():
             if "resources" in rec:
@@ -43,7 +45,9 @@ def records(root: Path):
             if "glyphs" in rec:
                 rec["glyphs"] = {int(cell): char for cell, char in rec["glyphs"].items()}
             if "embedded" in rec:
-                rec["embedded"] = [{**place, "name": full(place["name"])} for place in rec["embedded"]]
+                rec["embedded"] = [{**{k: v for k, v in place.items() if k != "asset"},
+                                    "name": place["asset"] if "asset" in place else full(place["name"])}
+                                   if isinstance(place, dict) else place for place in rec["embedded"]]
             if rec.get("type") == "file":       # a file names its own group's chunks and textures, by local name
                 rec["contents"] = [{**entry, "chunk": full(entry["chunk"]),
                                     **{part: [{**p, "texture": full(p["texture"])} for p in entry[part]]

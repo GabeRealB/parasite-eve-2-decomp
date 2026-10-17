@@ -451,8 +451,8 @@ static AnimationSet* _gActor143400EntryPlayerAnimationSets[11] = {
 /// consumes the request synchronously; copied clip pointers remain borrowed
 /// from this overlay until their playback ends.
 static AnimationBankCopyRequest _gActor143400EntryPlayerBankExtension = {
-    .source    = { .sets = _gActor143400EntryPlayerAnimationSets },
-    .wordCount = ARRAY_SIZE(_gActor143400EntryPlayerAnimationSets),
+    .sets  = _gActor143400EntryPlayerAnimationSets,
+    .count = ARRAY_SIZE(_gActor143400EntryPlayerAnimationSets),
 };
 
 /// Unreferenced indexed request for bank selector 1, animation 1.
@@ -639,8 +639,8 @@ static AnimationSet* _gActor143400EntryCompanionAnimationSets[9] = {
 /// consumes the request synchronously; copied clip pointers remain borrowed
 /// from this overlay until their playback ends.
 static AnimationBankCopyRequest _gActor143400EntryCompanionBankExtension = {
-    .source    = { .sets = _gActor143400EntryCompanionAnimationSets },
-    .wordCount = ARRAY_SIZE(_gActor143400EntryCompanionAnimationSets),
+    .sets  = _gActor143400EntryCompanionAnimationSets,
+    .count = ARRAY_SIZE(_gActor143400EntryCompanionAnimationSets),
 };
 
 /// Unreferenced indexed request for bank selector 1, animation 48.

@@ -435,8 +435,8 @@ static AnimationSet* _gShelterB1PodAccessTunnelPlayerSceneAnimationSets[8] = {
 /// playback. Dispatch borrows the request and source table synchronously;
 /// copied clip pointers require this room overlay to remain loaded while used.
 static AnimationBankCopyRequest _gShelterB1PodAccessTunnelPlayerSceneAnimationBankCopy = {
-    .source    = { .sets = _gShelterB1PodAccessTunnelPlayerSceneAnimationSets },
-    .wordCount = ARRAY_SIZE(_gShelterB1PodAccessTunnelPlayerSceneAnimationSets),
+    .sets  = _gShelterB1PodAccessTunnelPlayerSceneAnimationSets,
+    .count = ARRAY_SIZE(_gShelterB1PodAccessTunnelPlayerSceneAnimationSets),
 };
 
 /// Unreferenced playback-shaped record: source index 1, clip 1, reset and collision enabled.

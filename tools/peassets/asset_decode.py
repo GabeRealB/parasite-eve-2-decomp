@@ -267,7 +267,7 @@ def materialize_spk_asset(src: Path, dest_dir: Path, *, assets_root: Path | None
         import asset_data
         import asset_schema
 
-        names = (asset_data.ASSETS.get(src.stem) or {}).get("samples")
+        names = (asset_data.ASSETS.get(asset_schema.raw_key(src)) or {}).get("samples")
         sample_path = lambda name: Path(assets_root) / asset_schema.sample_rel(name)  # noqa: E731
     except Exception:  # noqa: BLE001 - the manifest is optional here
         names = None

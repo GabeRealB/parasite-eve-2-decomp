@@ -215,7 +215,7 @@ static AnimationSet* _gDryfieldNightWaterHoleArrivalAnimationSets[1] = {
 /// Copies the arrival clip pointer into the loaded player's first extension slot.
 ///
 /// The one-word source is borrowed through dispatch; the copied clip remains room-owned.
-static AnimationBankCopyRequest _gDryfieldNightWaterHoleArrivalAnimationBankExtension = { { .sets = _gDryfieldNightWaterHoleArrivalAnimationSets }, ARRAY_SIZE(_gDryfieldNightWaterHoleArrivalAnimationSets) };
+static AnimationBankCopyRequest _gDryfieldNightWaterHoleArrivalAnimationBankExtension = { _gDryfieldNightWaterHoleArrivalAnimationSets, ARRAY_SIZE(_gDryfieldNightWaterHoleArrivalAnimationSets) };
 
 /// Restarts the room's appended player clip with world collision enabled.
 ///

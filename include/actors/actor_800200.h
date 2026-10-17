@@ -14,7 +14,7 @@ extern TmdSource gActor800200FlintBody;
 /// NULL and remain writable for extension-copy messages, including raw payload
 /// words that are not clips. Playback may follow only entries containing sets.
 /// Keep actor_800200 and its animation data loaded throughout playback and copying.
-extern AnimationBank gActor800200CompanionAnimationBank;
+extern AnimationSet* gActor800200CompanionAnimationBank[ANIMATION_BANK_SET_CAPACITY];
 
 /// Dispatches Flint's setup, active update, exit staging or teardown task state.
 ///

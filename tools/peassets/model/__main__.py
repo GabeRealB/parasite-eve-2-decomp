@@ -1,7 +1,8 @@
 """python3 tools/peassets/model decode|encode|check [--assets assets/USA] [--only NAME] [--usdc] [--out DIR]
 python3 tools/peassets/model preview FAMILY_OR_PACKAGE [--assets assets/USA] [--out build/models]
 
-decode    write each declared model and its bindings as USD (.usda; .usdc too with --usdc)
+decode    write each rig, derived from its models, and each declared model and its bindings as USD (.usda; .usdc
+          too with --usdc)
 encode    encode each declared model from its USD and binding into --out, as <name>.model
 check     encode them and compare with the models in their packages
 preview   write every model of a manifest family (kyle, weapons, ...) or one package as plain USD, to look at
@@ -18,7 +19,7 @@ if __package__ in (None, ""):                   # run as a directory: the packag
     __package__ = "model"
 
 from model import preview  # noqa: E402
-from model.declared import check, declared, decode, encode  # noqa: E402
+from model.declared import check, declared, decode, decode_rig, encode, rigs  # noqa: E402
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -39,6 +40,9 @@ def main(argv: list[str] | None = None) -> int:
     import asset_data
     assets, embedded = asset_data.ASSETS, asset_data.EMBEDDED_ASSETS
     failed = 0
+    if args.command == "decode":
+        for rig in rigs(assets):
+            print(f"{rig} -> {decode_rig(rig, assets, embedded, args.assets).relative_to(args.assets)}")
     for name in declared(assets):
         if args.only and name != args.only:
             continue
@@ -48,6 +52,7 @@ def main(argv: list[str] | None = None) -> int:
         elif args.command == "encode":
             args.out.mkdir(parents=True, exist_ok=True)
             path = args.out / f"{name}.model"
+            path.parent.mkdir(parents=True, exist_ok=True)           # a grouped asset's name is a path
             path.write_bytes(encode(name, assets, embedded, args.assets))
             print(path)
         else:

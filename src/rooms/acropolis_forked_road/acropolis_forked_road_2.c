@@ -163,8 +163,8 @@ static AnimationSet* _gAcropolisForkedRoadLockReleaseAnimationSets[3] = {
 ///
 /// The request is borrowed synchronously; the copied set pointers outlive the message.
 static AnimationBankCopyRequest _gAcropolisForkedRoadLockReleaseBankCopyRequest = {
-    .source    = { .sets = _gAcropolisForkedRoadLockReleaseAnimationSets },
-    .wordCount = ARRAY_SIZE(_gAcropolisForkedRoadLockReleaseAnimationSets),
+    .sets  = _gAcropolisForkedRoadLockReleaseAnimationSets,
+    .count = ARRAY_SIZE(_gAcropolisForkedRoadLockReleaseAnimationSets),
 };
 
 /// Unused bank-1 clip-1 reset request retained in the room image.

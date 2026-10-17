@@ -14,7 +14,7 @@
 /// scripted copies, including payloads that are not clip pointers. Play an
 /// extension slot only after installing a clip pointer there. Keep the bank
 /// and its borrowed clip data loaded while playback or cached records refer to them.
-extern AnimationBank gM249PlayerAnimationBank;
+extern AnimationSet* gM249PlayerAnimationBank[ANIMATION_BANK_SET_CAPACITY];
 
 /// Single-part model of the player's equipped M249.
 ///

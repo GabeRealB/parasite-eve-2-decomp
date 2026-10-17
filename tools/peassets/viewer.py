@@ -596,7 +596,7 @@ def list_all_cluts(assets_root: Path) -> list[Path]:
     if raw.is_dir():
         out.extend(
             sorted(
-                (p for p in raw.glob("*.pe2clut") if p.is_file()),
+                (p for p in raw.rglob("*.pe2clut") if p.is_file()),
                 key=asset_name_key,
             )
         )
@@ -776,19 +776,21 @@ def scan_type_assets(assets_root: Path) -> dict[str, list[AssetItem]]:
                     )
 
         if raw_dir.is_dir():
-            for p in sorted(raw_dir.iterdir(), key=asset_name_key):
+            for p in sorted(raw_dir.rglob("*"), key=asset_name_key):     # a grouped asset's below its path
                 if not p.is_file():
                     continue
+                key = asset_schema.raw_key(p)
+                name = asset_schema.file_name(key)
                 # Prefer inflated if same stem exists (e.g. pe2img_0.png vs .pe2img)
-                if p.stem in seen_stems:
+                if key in seen_stems:
                     continue
                 # Inflated PNG / SPK dir / same-suffix opaque
-                home = decoded_dir(assets_root, type_dir, p.stem)
-                if (home / f"{p.stem}.png").exists():
+                home = decoded_dir(assets_root, type_dir, key)
+                if (home / f"{name}.png").exists():
                     continue
-                if (home / p.stem).is_dir():
+                if (home / name).is_dir():
                     continue
-                if (home / f"{p.stem}{p.suffix}").exists():
+                if (home / f"{name}{p.suffix}").exists():
                     continue
                 if type_dir == "audio" and (
                     assets_root / type_dir / f"{p.stem}.wav"

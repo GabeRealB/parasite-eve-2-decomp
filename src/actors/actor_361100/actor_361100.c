@@ -507,8 +507,8 @@ static AnimationSet* _gActor361100PlayerSceneAnimationExtension[] = {
 /// including the leading NULL. The request is borrowed only through dispatch;
 /// the installed clips must remain loaded while the player plays them.
 static AnimationBankCopyRequest _gActor361100CopyPlayerSceneAnimations = {
-    .source    = { .sets = _gActor361100PlayerSceneAnimationExtension },
-    .wordCount = ARRAY_SIZE(_gActor361100PlayerSceneAnimationExtension),
+    .sets  = _gActor361100PlayerSceneAnimationExtension,
+    .count = ARRAY_SIZE(_gActor361100PlayerSceneAnimationExtension),
 };
 
 /// Player clip 9 requested when the pod scene is skipped.

@@ -382,8 +382,8 @@ static AnimationSet* _gActor335800PlayerSceneAnimationExtension[] = {
 /// index 47. The request is borrowed synchronously; the copied clips remain
 /// borrowed from this loaded package while playback uses them.
 static AnimationBankCopyRequest _gActor335800CopyPlayerSceneAnimations = {
-    .source    = { .sets = _gActor335800PlayerSceneAnimationExtension },
-    .wordCount = ARRAY_SIZE(_gActor335800PlayerSceneAnimationExtension)
+    .sets  = _gActor335800PlayerSceneAnimationExtension,
+    .count = ARRAY_SIZE(_gActor335800PlayerSceneAnimationExtension)
 };
 
 /// Player clips installed by the extension and Douglas clips in bank 0.

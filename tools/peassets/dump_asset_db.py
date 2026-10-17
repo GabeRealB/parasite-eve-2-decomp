@@ -202,6 +202,11 @@ def _asset_id_from_stages_path(rel: str) -> str | None:
     p = Path(rel.replace("\\", "/"))
     if p.name == "raw.bin":
         return None
+    if p.parts[0] == asset_schema.RAW_ROOT:
+        return asset_schema.raw_key(p)
+    found = asset_schema.manifest_asset(p.as_posix())
+    if found is not None:
+        return found[0]
     if p.name == "meta.json" and p.parent.name:
         return p.parent.name
     return p.stem
@@ -234,9 +239,9 @@ def _default_chunk_name(aid: str, kind: str, folder_key: str | None, file_key: s
 
     `dryfield_garage_view_a` in folder `dryfield_garage` is `view_a` there. An
     asset named exactly like its file - a weapon's package in the weapon's
-    file - is called by what it is.
+    file - is called by what it is. A grouped asset is called by its local name.
     """
-    rest = aid
+    rest = aid.rsplit("/", 1)[-1]
     changed = True
     while changed:
         changed = False
@@ -306,12 +311,12 @@ def collect_assets(assets_root: Path, old_assets: dict[str, dict[str, Any]]) -> 
         if not d.is_dir():
             continue
         files = sorted(
-            (p for p in d.iterdir() if p.is_file()),
+            (p for p in d.rglob("*") if p.is_file()),     # a grouped asset's below its group's path
             key=asset_name_key,
         )
         for path in files:
             digest = _sha1_file(path)
-            stem = path.stem
+            stem = asset_schema.raw_key(path.relative_to(d).as_posix())
             prev = by_sha1_old.get(digest)
             if prev is not None:
                 aid, old_rec = prev
@@ -610,7 +615,7 @@ def collect_samples(assets_root: Path, old: dict[str, dict[str, Any]], assets: d
     named: dict[str, str] = {}
     if not raw.is_dir():
         return out
-    for path in sorted((p for p in raw.iterdir() if p.is_file()), key=asset_name_key):
+    for path in sorted((p for p in raw.rglob("*") if p.is_file()), key=asset_name_key):
         bank = by_file.get(_sha1_file(path))
         if bank is None:
             continue
@@ -693,8 +698,12 @@ def collect_animations(assets_root: Path, old: dict[str, dict[str, Any]]) -> dic
              for key, rec in old.items() if rec.get("type") == "animation" and ("offset" in rec or rec.get("source") in loads)}
     out: dict[str, dict[str, Any]] = {}
     blobs: dict[str, bytes] = {}
+    # A package whose group places its clips one by one (type clip) has no block of its own any more.
+    declared = {rec.get("source") for rec in old.values() if rec.get("type") == "clip"}
     for row in declared_animations(manifest):
         source = row["package"] + ".pe2pkg"
+        if source in declared:
+            continue
         path = assets_root / "pe2pkg" / source
         if not path.is_file():
             continue
@@ -745,26 +754,40 @@ def _toml_scalar(value: Any, key: str = "") -> str:
     raise TypeError(f"no TOML for {value!r}")
 
 
-def _toml_record(local: str, rec: dict[str, Any]) -> list[str]:
-    """One asset as a TOML table: its type, the rest by name, and its sha1 last; a list one item per line when it
-    does not fit in LINE_WIDTH columns."""
-    lines = [f"[{local}]"]
-    for key in ["type"] + sorted(k for k in rec if k not in ("sha1", "type", "group")) + (["sha1"] if "sha1" in rec else []):
-        value = rec[key]
+def _toml_table(path: str, table: dict[str, Any], order: list[str], header: str) -> list[str]:
+    """A TOML table at `path` (keys in `order`): what fits in LINE_WIDTH columns inline, a list too long one item
+    per line, a mapping too long as a sub-table, and a list of mappings with an item too long as an array of
+    tables - those after the table's own keys, as TOML requires."""
+    lines, later = [header], []
+    for key in order:
+        value = table[key]
         line = f"{key} = {_toml_scalar(value, key)}"
-        if isinstance(value, (list, tuple)) and len(line) > LINE_WIDTH:
+        if len(line) <= LINE_WIDTH:
+            lines.append(line)
+        elif isinstance(value, dict):
+            later += [""] + _toml_table(f"{path}.{key}", value, list(value), f"[{path}.{key}]")
+        elif isinstance(value, (list, tuple)) and value and all(isinstance(item, dict) for item in value) and any(
+                len(f"    {_toml_scalar(item)},") > LINE_WIDTH for item in value):
+            for item in value:
+                later += [""] + _toml_table(f"{path}.{key}", item, list(item), f"[[{path}.{key}]]")
+        elif isinstance(value, (list, tuple)):
             lines.append(f"{key} = [")
             lines += [f"    {_toml_scalar(item)}," for item in value]
             lines.append("]")
         else:
             lines.append(line)
-    return lines
+    return lines + later
+
+
+def _toml_record(local: str, rec: dict[str, Any]) -> list[str]:
+    """One asset as a TOML table: its type, the rest by name, and its sha1 last (_toml_table)."""
+    order = ["type"] + sorted(k for k in rec if k not in ("sha1", "type", "group")) + (["sha1"] if "sha1" in rec else [])
+    return _toml_table(local, rec, order, f"[{local}]")
 
 
 def write_groups(assets: dict[str, dict[str, Any]]) -> None:
-    """Every group's assets into groups/<group>.toml, keyed by local name: the asset's name less the group's
-    prefix, the path without its first part (`akropolis_square_view3_background` in rooms/akropolis/square is
-    `view3_background`). A group file no asset uses any more is removed. A file's image and palette chunks are
+    """Every group's assets into groups/<group>.toml, keyed by local name: the asset's path less its group's
+    (`rooms/akropolis/square/view3_background` is `view3_background`). A group file no asset uses any more is removed. A file's image and palette chunks are
     written into its entries, not as tables (texture/declaration.py)."""
     from texture.declaration import texture_chunks as declared_chunks
 
@@ -774,26 +797,30 @@ def write_groups(assets: dict[str, dict[str, Any]]) -> None:
         group = assets[aid].get("group")
         if not group:
             continue
-        prefix = "_".join(group.split("/")[1:])
-        if prefix and not aid.startswith(prefix + "_"):
-            raise SystemExit(f"{aid}: an asset of the group {group} is named {prefix}_<local name>")
+        if not aid.startswith(group + "/"):
+            raise SystemExit(f"{aid}: an asset of the group {group} is named {group}/<local name>")
+        local = lambda name: name[len(group) + 1:]
         rec = dict(assets[aid])
         if any(isinstance(p, dict) for p in rec.get("embedded", ())):
-            rec["embedded"] = [{**p, "name": p["name"][len(prefix) + 1:] if prefix else p["name"]} for p in rec["embedded"]]
+            # Its own group's assets by local name, another group's by path (`asset`).
+            own = lambda name: assets.get(name, {}).get("group") == group
+            rec["embedded"] = [p if isinstance(p, str)
+                               else {"name": local(p["name"]),
+                                     **{k: v for k, v in p.items() if k != "name"}} if own(p["name"])
+                               else {"asset": p["name"], **{k: v for k, v in p.items() if k != "name"}}
+                               for p in rec["embedded"]]
         if aid in texture_chunks:
             continue                    # declared, with its sha1, in its file's entry
         if rec.get("type") == "file":
-            local = lambda name: name[len(prefix) + 1:] if prefix else name
             rec["contents"] = [{**e, "chunk": local(e["chunk"]),
                                 **({"sha1": assets[e["chunk"]]["sha1"]} if e["chunk"] in texture_chunks else {}),
                                 **{part: [{**p, "texture": local(p["texture"])} for p in e[part]]
                                    for part in ("pages", "palettes") if part in e}} for e in rec["contents"]]
-        groups.setdefault(group, {})[aid[len(prefix) + 1:] if prefix else aid] = rec
+        groups.setdefault(group, {})[local(aid)] = rec
     written = set()
     for group, records in groups.items():
         path = GROUP_ROOT / f"{group}.toml"
-        prefix = "_".join(group.split("/")[1:])
-        lines = [f"# The assets of the group {group}" + (f", each named {prefix}_<table name>." if prefix else "."),
+        lines = [f"# The assets of the group {group}, each named {group}/<table name>.",
                  "# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1."]
         for local, rec in records.items():
             lines += [""] + _toml_record(local, rec)

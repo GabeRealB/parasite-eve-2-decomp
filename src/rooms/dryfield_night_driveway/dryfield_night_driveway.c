@@ -213,8 +213,8 @@ static AnimationSet* _gDryfieldNightDrivewayEncounterAnimationBankExtension[2] =
 /// Dispatch borrows the request synchronously; playback keeps borrowing
 /// the installed room clip after the request has been consumed.
 static AnimationBankCopyRequest _gDryfieldNightDrivewayEncounterAnimationBankCopy = {
-    .source    = { .sets = _gDryfieldNightDrivewayEncounterAnimationBankExtension },
-    .wordCount = ARRAY_SIZE(_gDryfieldNightDrivewayEncounterAnimationBankExtension),
+    .sets  = _gDryfieldNightDrivewayEncounterAnimationBankExtension,
+    .count = ARRAY_SIZE(_gDryfieldNightDrivewayEncounterAnimationBankExtension),
 };
 
 /// Restarts the encounter scene's player extension clip 47 with grid participation.
@@ -528,8 +528,8 @@ enum { DRYFIELD_NIGHT_DRIVEWAY_COMPANION_SCENE_COPY_WORD_COUNT = 10 };
 /// This is a stored transfer length, including six words after the clip table,
 /// rather than its element count. Dispatch consumes the request synchronously.
 static AnimationBankCopyRequest _gDryfieldNightDrivewayCompanionSceneAnimationBankCopy = {
-    .source    = { .sets = _gDryfieldNightDrivewayCompanionSceneAnimationBankExtension },
-    .wordCount = DRYFIELD_NIGHT_DRIVEWAY_COMPANION_SCENE_COPY_WORD_COUNT,
+    .sets  = _gDryfieldNightDrivewayCompanionSceneAnimationBankExtension,
+    .count = DRYFIELD_NIGHT_DRIVEWAY_COMPANION_SCENE_COPY_WORD_COUNT,
 };
 
 /// Restarts companion clip 1 at the beginning of both companion scenes, without grid participation.

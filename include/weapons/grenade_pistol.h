@@ -16,7 +16,7 @@
 /// to contain valid clip pointers. Keep the Grenade Pistol overlay loaded
 /// while playback borrows its bank or native clips; copied clips require
 /// their source overlays to remain loaded as well.
-extern AnimationBank gGrenadePistolPlayerAnimationBank;
+extern AnimationSet* gGrenadePistolPlayerAnimationBank[ANIMATION_BANK_SET_CAPACITY];
 
 /// Native player motion bank used while the MM1 is equipped.
 ///
@@ -27,7 +27,7 @@ extern AnimationBank gGrenadePistolPlayerAnimationBank;
 /// including non-pointer payloads. Play only entries containing valid clip
 /// pointers. Keep the MM1 package loaded while playback borrows the bank or its
 /// native clips; copied clips also require their source packages to stay loaded.
-extern AnimationBank gMm1PlayerAnimationBank;
+extern AnimationSet* gMm1PlayerAnimationBank[ANIMATION_BANK_SET_CAPACITY];
 
 /// Single-part held Grenade Pistol model attached to the player's weapon hand.
 ///

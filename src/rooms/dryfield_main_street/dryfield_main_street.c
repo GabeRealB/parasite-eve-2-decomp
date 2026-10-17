@@ -260,8 +260,8 @@ enum { DRYFIELD_MAIN_STREET_ANIMATION_COPY_WORD_COUNT = 4 };
 /// pointer is also the fourth transferred word; keep it immediately after the
 /// set array. The copied clips require this room overlay through playback.
 static AnimationBankCopyRequest _gDryfieldMainStreetPlayerAnimationBankCopy = {
-    .source    = { .sets = _gDryfieldMainStreetPlayerAnimationBankExtension },
-    .wordCount = DRYFIELD_MAIN_STREET_ANIMATION_COPY_WORD_COUNT,
+    .sets  = _gDryfieldMainStreetPlayerAnimationBankExtension,
+    .count = DRYFIELD_MAIN_STREET_ANIMATION_COPY_WORD_COUNT,
 };
 
 /// Retained five-word record matching the neighboring animation-play requests.

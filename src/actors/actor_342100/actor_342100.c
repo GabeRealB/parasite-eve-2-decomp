@@ -630,8 +630,8 @@ static inline void _actor342100CopyBlazeAnimationSets(Task* controller)
     while (_gActor342100BlazeAnimationSets[setCount & ACTOR_342100_BLAZE_EXTENSION_COUNT_MASK] != NULL) {
         setCount += 1;
     }
-    bankCopyRequest.source.sets = _gActor342100BlazeAnimationSets;
-    bankCopyRequest.wordCount   = setCount & ACTOR_342100_BLAZE_EXTENSION_COUNT_MASK;
+    bankCopyRequest.sets  = _gActor342100BlazeAnimationSets;
+    bankCopyRequest.count = setCount & ACTOR_342100_BLAZE_EXTENSION_COUNT_MASK;
     TASK_MESSAGE_DISPATCH_POINTER(work->playerTask, ANIMATION_MESSAGE_COPY_BANK_EXTENSION, &bankCopyRequest, 0);
 }
 

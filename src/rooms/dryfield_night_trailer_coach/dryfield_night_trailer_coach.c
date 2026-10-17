@@ -851,8 +851,8 @@ static AnimationSet* const _gDryfieldNightTrailerCoachPlayerDialogueAnimationSet
 };
 
 const AnimationBankCopyRequest gDryfieldNightTrailerCoachPlayerDialogueBankCopyRequest SECTION(".data") = {
-    .source    = { .sets = _gDryfieldNightTrailerCoachPlayerDialogueAnimationSets },
-    .wordCount = ARRAY_SIZE(_gDryfieldNightTrailerCoachPlayerDialogueAnimationSets) - 1,
+    .sets  = _gDryfieldNightTrailerCoachPlayerDialogueAnimationSets,
+    .count = ARRAY_SIZE(_gDryfieldNightTrailerCoachPlayerDialogueAnimationSets) - 1,
 };
 
 /// Flint-bank clip 34 requested of a present companion on room entry.

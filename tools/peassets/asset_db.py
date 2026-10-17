@@ -54,19 +54,19 @@ _SAFE_NAME = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.-]*$")
 _GENERATED_ID = re.compile(r"^[A-Za-z][A-Za-z0-9]*_\d+$")
 
 
-def asset_name_key(path_or_str: object) -> tuple[int, str]:
-    """Sort key for asset basenames: length first, then lexicographic.
+def asset_name_key(path_or_str: object) -> tuple[int, str, str]:
+    """Sort key for asset basenames: length first, then lexicographic, then the whole path.
 
     Shorter names sort before longer ones with the same prefix, so
     ``bs_1`` / ``bs_2`` / … come before ``bs_10`` (pure lexicographic
-    would put ``bs_10`` between ``bs_1`` and ``bs_2``).
+    would put ``bs_10`` between ``bs_1`` and ``bs_2``). Two grouped assets
+    of one local name sort by their paths.
     """
+    whole = str(path_or_str).replace("\\", "/")
     name = getattr(path_or_str, "name", None)
     if name is None:
-        name = str(path_or_str)
-        if "/" in name or "\\" in name:
-            name = name.replace("\\", "/").rsplit("/", 1)[-1]
-    return (len(name), name)
+        name = whole.rsplit("/", 1)[-1]
+    return (len(name), name, whole)
 
 
 def _check_component(name: str, *, key: str) -> str:
@@ -76,6 +76,13 @@ def _check_component(name: str, *, key: str) -> str:
         raise ValueError(
             f"name for {key!r} must be a single path-safe component, got {name!r}"
         )
+    return name
+
+
+def _check_asset_name(name: str, *, key: str) -> str:
+    """An asset's name: one component, or a grouped asset's path of them (`weapons/m93r/model`)."""
+    for part in name.split("/"):
+        _check_component(part, key=key)
     return name
 
 
@@ -301,7 +308,7 @@ def lookup(key: str) -> str | None:
     if kind == "chunk" and file_id is not None and chunk_idx is not None:
         aid = tree_chunk_asset(stage, file_id, chunk_idx, folder_id)
         if aid and not _is_generated_id(aid):
-            return _check_component(aid, key=key)
+            return _check_asset_name(aid, key=key)
     return None
 
 
@@ -426,7 +433,7 @@ def reverse_chunk_idx(
     if node is None:
         return None
     for idx, (_name, aid) in enumerate(file_chunks(node)):
-        if aid == stem:
+        if aid == stem or aid.rsplit("/", 1)[-1] == stem:      # a grouped asset's chunk by its local name
             return idx
     return None
 
@@ -449,10 +456,11 @@ def chunk_stem(
     chunk_idx: int,
     folder_id: int | None = None,
 ) -> str:
-    """On-disk chunk basename without extension (default: decimal index)."""
+    """On-disk chunk basename without extension (default: decimal index): the asset's name, a grouped asset's
+    local name."""
     aid = tree_chunk_asset(stage, file_id, chunk_idx, folder_id)
     if aid and not _is_generated_id(aid):
-        return _check_component(aid, key=chunk_key(stage, file_id, chunk_idx, folder_id))
+        return _check_component(aid.rsplit("/", 1)[-1], key=chunk_key(stage, file_id, chunk_idx, folder_id))
     return str(chunk_idx)
 
 
@@ -574,10 +582,11 @@ def validate_asset_db() -> None:
     """Raise if ASSETS / TREE are inconsistent."""
     seen_sha1: dict[str, str] = {}
     for aid, rec in ASSETS.items():
-        _check_component(aid, key=f"ASSETS[{aid!r}]")
+        _check_asset_name(aid, key=f"ASSETS[{aid!r}]")
         if not isinstance(rec, dict):
             raise ValueError(f"ASSETS[{aid!r}] must be a dict")
-        if rec.get("type") in ("binding", "texture", "file", "vram_region"):  # no bytes, no hash (asset_schema.DECLARED_TYPES)
+        if rec.get("type") in ("binding", "texture", "file", "vram_region", "rig", "clip", "animation_schema",
+                               "animation_bank"):     # declared, no hash of its own (asset_schema.DECLARED_TYPES)
             continue
         sha1 = rec.get("sha1")
         if not isinstance(sha1, str) or len(sha1) != 40:

@@ -1,14 +1,46 @@
-# The assets of the group weapons/m93r, each named m93r_<table name>.
+# The assets of the group weapons/m93r, each named weapons/m93r/<table name>.
 # Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[bank]
+type = "animation_bank"
+base = "characters/aya/handgun/bank"
+symbol = "gM93rPlayerAnimationBank"
+
+[bank.clips]
+aim_enter = "weapons/m93r/aim_enter"
+aim_exit = "weapons/m93r/aim_exit"
+aim_idle = "weapons/m93r/aim_idle"
+fire = "weapons/m93r/fire"
+slot_11 = "characters/aya/idle"
+aim_backward = "weapons/m93r/aim_backward"
+reload = "weapons/m93r/reload"
+reload_battle_end = "weapons/m93r/reload"
+slot_15 = "characters/aya/idle"
+slot_34 = "weapons/m93r/aim_enter"
+slot_35 = "weapons/m93r/aim_exit"
 
 [file]
 type = "file"
-contents = [
-    { chunk = "palette", sha1 = "cbdb817ed582b80cf2ddc81dd4acce7625598ab3", palettes = [{ texture = "texture", variant = "default", region = "vram_weapon_palette" }] },
-    { chunk = "image", sha1 = "4d34d0b2ad6a3202548d3e3880aaa1063a48fc99", pages = [{ texture = "texture", region = "vram_weapon_sheet" }] },
-    { chunk = "sounds" },
-    { chunk = "package" },
-]
+
+[[file.contents]]
+chunk = "palette"
+sha1 = "cbdb817ed582b80cf2ddc81dd4acce7625598ab3"
+palettes = [{ texture = "texture", variant = "default", region = "engine/vram/weapon_palette" }]
+
+[[file.contents]]
+chunk = "image"
+sha1 = "4d34d0b2ad6a3202548d3e3880aaa1063a48fc99"
+pages = [{ texture = "texture", region = "engine/vram/weapon_sheet" }]
+
+[[file.contents]]
+chunk = "sounds"
+
+[[file.contents]]
+chunk = "package"
+
+[fire]
+type = "clip"
+rig = "characters/aya/rig"
 
 [model]
 type = "model"
@@ -16,21 +48,66 @@ slots = ["body"]
 symbol = "gM93rWeaponModel"
 sha1 = "40dd2cbcc600c86e62b9203992a2b7357ad43590"
 
+[reload]
+type = "clip"
+rig = "characters/aya/rig"
+
 [sounds]
 type = "spk"
-samples = ["m93r_sounds_sample_00", "m93r_sounds_sample_01", "m93r_sounds_sample_02", "m93r_sounds_sample_03"]
+samples = [
+    "weapons/m93r/sounds_sample_00",
+    "weapons/m93r/sounds_sample_01",
+    "weapons/m93r/sounds_sample_02",
+    "weapons/m93r/sounds_sample_03",
+]
 sha1 = "92ff39f0b183a60d2c4b2e60461e251c8ac790ae"
 
 [binding]
 type = "binding"
-model = "m93r_model"
-textures = { body = "m93r_texture.default" }
+model = "weapons/m93r/model"
+textures = { body = "weapons/m93r/texture.default" }
 
 [package]
 type = "pe2pkg"
 embedded = [
     { name = "model", offset = 0x002F8, size = 0x5E0, address = 0x8011D4B8 },
-    { name = "animations", offset = 0x008D8, size = 0xD360 },
+    { asset = "characters/aya/idle", offset = 0x008D8, size = 0x1B8, address = 0x8011DA98 },
+    { asset = "characters/aya/unarmed_walk", offset = 0x00A90, size = 0x6A4, address = 0x8011DC50 },
+    { asset = "characters/aya/turn_left", offset = 0x01134, size = 0x860, address = 0x8011E2F4 },
+    { asset = "characters/aya/turn_right", offset = 0x01994, size = 0x864, address = 0x8011EB54 },
+    { asset = "characters/aya/item_use", offset = 0x021F8, size = 0x314, address = 0x8011F3B8 },
+    { asset = "characters/aya/stair_ascent", offset = 0x0250C, size = 0x75C, address = 0x8011F6CC },
+    { asset = "characters/aya/stair_descent", offset = 0x02C68, size = 0x788, address = 0x8011FE28 },
+    { asset = "characters/aya/stair_ascent_finish_odd", offset = 0x033F0, size = 0x2D4, address = 0x801205B0 },
+    { asset = "characters/aya/stair_ascent_finish_even", offset = 0x036C4, size = 0x390, address = 0x80120884 },
+    { asset = "characters/aya/parasite_energy_begin_0", offset = 0x03A54, size = 0x488, address = 0x80120C14 },
+    { asset = "characters/aya/parasite_energy_charge_0", offset = 0x03EDC, size = 0x1FC, address = 0x8012109C },
+    { asset = "characters/aya/parasite_energy_cast_0", offset = 0x040D8, size = 0x2D8, address = 0x80121298 },
+    { asset = "characters/aya/parasite_energy_begin_1", offset = 0x043B0, size = 0x2A4, address = 0x80121570 },
+    { asset = "characters/aya/parasite_energy_charge_1", offset = 0x04654, size = 0x200, address = 0x80121814 },
+    { asset = "characters/aya/parasite_energy_cast_1", offset = 0x04854, size = 0x354, address = 0x80121A14 },
+    { asset = "characters/aya/hit_head", offset = 0x04BA8, size = 0x2B4, address = 0x80121D68 },
+    { asset = "characters/aya/hit_body", offset = 0x04E5C, size = 0x320, address = 0x8012201C },
+    { asset = "characters/aya/death", offset = 0x0517C, size = 0x7C4, address = 0x8012233C },
+    { asset = "characters/aya/high_health_idle", offset = 0x05940, size = 0x1298, address = 0x80122B00 },
+    { asset = "characters/aya/low_health_idle", offset = 0x06BD8, size = 0xB78, address = 0x80123D98 },
+    { asset = "characters/aya/mid_health_idle", offset = 0x07750, size = 0x71C, address = 0x80124910 },
+    { asset = "characters/aya/examine_enter", offset = 0x07E6C, size = 0x480, address = 0x8012502C },
+    { asset = "characters/aya/examine_exit", offset = 0x082EC, size = 0x1D8, address = 0x801254AC },
+    { asset = "characters/aya/parasite_energy_begin_2", offset = 0x084C4, size = 0x564, address = 0x80125684 },
+    { asset = "characters/aya/parasite_energy_charge_2", offset = 0x08A28, size = 0x1F4, address = 0x80125BE8 },
+    { asset = "characters/aya/parasite_energy_cast_2", offset = 0x08C1C, size = 0x480, address = 0x80125DDC },
+    { name = "aim_idle", offset = 0x0909C, size = 0x1DC, address = 0x8012625C },
+    { name = "aim_backward", offset = 0x09278, size = 0x6B0, address = 0x80126438 },
+    { asset = "characters/aya/handgun/aim_forward", offset = 0x09928, size = 0xBEC, address = 0x80126AE8 },
+    { name = "reload", offset = 0x0A514, size = 0xA98, address = 0x801276D4 },
+    { name = "fire", offset = 0x0AFAC, size = 0x550, address = 0x8012816C },
+    { name = "aim_enter", offset = 0x0B4FC, size = 0x714, address = 0x801286BC },
+    { name = "aim_exit", offset = 0x0BC10, size = 0x6D0, address = 0x80128DD0 },
+    { asset = "characters/aya/handgun/walk", offset = 0x0C2E0, size = 0x94C, address = 0x801294A0 },
+    { asset = "characters/aya/handgun/backward_walk", offset = 0x0CC2C, size = 0x8D8, address = 0x80129DEC },
+    { asset = "characters/aya/handgun/run", offset = 0x0D504, size = 0x734, address = 0x8012A6C4 },
+    { name = "bank", offset = 0x0DC38, size = 0x13C, address = 0x8012ADF8 },
 ]
 package_name = "m93r"
 required = true
@@ -43,9 +120,21 @@ height = 64
 variants = ["default"]
 width = 256
 
-[animations]
-type = "animation"
-sha1 = "ad4b79333e678e2a6372aee79e1bafdf5a83073a"
+[aim_exit]
+type = "clip"
+rig = "characters/aya/rig"
+
+[aim_idle]
+type = "clip"
+rig = "characters/aya/rig"
+
+[aim_enter]
+type = "clip"
+rig = "characters/aya/rig"
+
+[aim_backward]
+type = "clip"
+rig = "characters/aya/rig"
 
 [sounds_sample_00]
 type = "sample"

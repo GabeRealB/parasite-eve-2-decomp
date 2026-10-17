@@ -158,8 +158,8 @@ static AnimationSet* _gDryfieldUnderpassEventPlayerAnimationSets[] = {
 /// Dispatch borrows the request and source; the copied set pointers remain
 /// borrowed from this room until playback no longer uses them.
 static AnimationBankCopyRequest _gDryfieldUnderpassEventPlayerAnimationBankCopy = {
-    .source    = { .sets = _gDryfieldUnderpassEventPlayerAnimationSets },
-    .wordCount = ARRAY_SIZE(_gDryfieldUnderpassEventPlayerAnimationSets),
+    .sets  = _gDryfieldUnderpassEventPlayerAnimationSets,
+    .count = ARRAY_SIZE(_gDryfieldUnderpassEventPlayerAnimationSets),
 };
 
 /// Player animation slots and blend duration used by the Gray Stalker event.

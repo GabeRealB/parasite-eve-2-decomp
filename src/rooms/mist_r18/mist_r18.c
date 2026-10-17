@@ -604,8 +604,8 @@ static AnimationSet* _gMistR18PlayerBriefingAnimationSets[11] = {
 /// Synchronous dispatch copies slots 47..57 without starting playback. Requests
 /// for clips 48..57 require this copy first and room clip data live during use.
 static AnimationBankCopyRequest _gMistR18PlayerBriefingBankCopyRequest = {
-    .source    = { .sets = _gMistR18PlayerBriefingAnimationSets },
-    .wordCount = ARRAY_SIZE(_gMistR18PlayerBriefingAnimationSets),
+    .sets  = _gMistR18PlayerBriefingAnimationSets,
+    .count = ARRAY_SIZE(_gMistR18PlayerBriefingAnimationSets),
 };
 
 /// Indexed clips and transition timing used by the briefing requests.

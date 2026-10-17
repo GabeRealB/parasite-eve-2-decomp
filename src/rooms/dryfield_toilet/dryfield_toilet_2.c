@@ -92,37 +92,15 @@ enum { DRYFIELD_TOILET_LESSER_STRANGER_MORPH_NORMAL_COUNT = 1604 };
 static SVECTOR _gDryfieldToiletLesserStrangerMorphSavedVertices[326];
 static SVECTOR _gDryfieldToiletLesserStrangerMorphSavedNormals[DRYFIELD_TOILET_LESSER_STRANGER_MORPH_NORMAL_COUNT];
 
-/// Player encounter clips and the word span installed in the equipped animation bank.
+/// Player encounter clips, extended ids 47..49; 47 is empty.
 ///
-/// Both encounter paths install four words at bank indices 47..50: NULL, two
-/// playable room clips and the copy request's own source address. Index 50 is
-/// payload data and must not be played. The word view keeps that transfer in
-/// bounds across the clip table and request; its fifth word is the uncopied
-/// count. Dispatch borrows the request synchronously, and playback borrows the
-/// room's clips for as long as the equipped bank uses them.
-typedef union {
-    struct {
-        AnimationSet*            sets[3]; // Player extension slots 47..49; slot 47 is empty
-        AnimationBankCopyRequest copy;    // Borrowed four-word copy request sent by both scripts
-    } data;                               // Clip table and self-referencing request
-    s32 words[5];                         // Raw source view; only words 0..3 are copied
-} _DryfieldToiletPlayerAnimationBankExtensionStorage;
-STATIC_ASSERT_SIZEOF(_DryfieldToiletPlayerAnimationBankExtensionStorage, 0x14);
+/// Both encounter paths copy four entries, one past these three: id 50
+/// receives the following copy request's first word, this list's address, and
+/// is never played. Playback borrows the room's clips while the encounter plays.
+static AnimationSet* _gDryfieldToiletPlayerEncounterSets[3] = { NULL, &gDryfieldToiletAnimation03054, &gDryfieldToiletAnimation035A4 };
 
-static _DryfieldToiletPlayerAnimationBankExtensionStorage _gDryfieldToiletPlayerAnimationBankExtension;
-
-/// Player encounter-bank extension and its self-referencing copy request.
-///
-/// Both script paths copy words 0..3 into equipped-bank slots 47..50. Slot 50
-/// receives this storage's address, not a clip, and is never played here.
-/// Slots 48 and 49 borrow the room's clips while the encounter plays. The raw
-/// view covers the complete transfer without indexing beyond the clip array.
-static _DryfieldToiletPlayerAnimationBankExtensionStorage _gDryfieldToiletPlayerAnimationBankExtension = {
-    .data = {
-        { NULL, &gDryfieldToiletAnimation03054, &gDryfieldToiletAnimation035A4 },
-        { { .words = _gDryfieldToiletPlayerAnimationBankExtension.words }, DRYFIELD_TOILET_PLAYER_ANIMATION_COPY_WORD_COUNT },
-    },
-};
+/// Installs the encounter clips; reads four entries from a three-entry list.
+static AnimationBankCopyRequest _gDryfieldToiletPlayerAnimationBankCopy = { _gDryfieldToiletPlayerEncounterSets, DRYFIELD_TOILET_PLAYER_ANIMATION_COPY_WORD_COUNT };
 
 /// Unreferenced bank-1 idle request, resetting clip 1 with world collision disabled.
 static AnimationPlayRequest _gDryfieldToiletUnusedPlayerIdleAnimation = { { .index = 1 }, DRYFIELD_TOILET_PLAYER_IDLE_CLIP, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
@@ -188,7 +166,7 @@ EvsCommand gDryfieldToiletEncounterScript[31] = {
     { EVENT_SCRIPT_OPCODE_STOP_AREA_MUSIC, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SELECT_SCENE, { .sceneKey = &_gDryfieldToiletEncounterSceneKey }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = dryfieldToiletStageSceneAudioStart }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &_gDryfieldToiletPlayerAnimationBankExtension.data.copy } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &_gDryfieldToiletPlayerAnimationBankCopy } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldToiletPlayerEventAnimation48 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = DRYFIELD_TOILET_ODD_STRANGER_PLACEMENT_INDEX }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gDryfieldToiletOddStrangerCommand1 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = DRYFIELD_TOILET_WOMAN_PLACEMENT_INDEX }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = DRYFIELD_TOILET_WOMAN_DRAW_SHOW }, { .value = 0 } },
@@ -230,7 +208,7 @@ EvsCommand gDryfieldToiletEncounterSkipScript[20] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = DRYFIELD_TOILET_WOMAN_PLACEMENT_INDEX }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gDryfieldToiletReleaseLesserStrangerCommand } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gDryfieldToiletPlayerBattlePlacement } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &_gDryfieldToiletPlayerAnimationBankExtension.data.copy } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &_gDryfieldToiletPlayerAnimationBankCopy } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldToiletPlayerSkipAnimation9 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = DRYFIELD_TOILET_ODD_STRANGER_PLACEMENT_INDEX }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gDryfieldToiletOddStrangerAmbushCommand } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = dryfieldToiletMoveEventCollision }, { .value = DRYFIELD_TOILET_EVENT_COLLISION_MOVE_ASIDE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },

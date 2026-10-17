@@ -479,7 +479,7 @@ static AnimationSet* _gActor260500PlayerAnimationExtensionSets[10] = {
 /// The loaded source span and writable equipped weapon bank must survive dispatch.
 /// Only IDs 47..50 and 53..56 in that copied span are subsequently played as clips.
 static AnimationBankCopyRequest _gActor260500PlayerAnimationExtensionCopyRequest = {
-    { .words = (const s32*)_gActor260500PlayerAnimationExtensionSets }, ANIMATION_BANK_EXTENSION_CAPACITY
+    _gActor260500PlayerAnimationExtensionSets, ANIMATION_BANK_EXTENSION_CAPACITY
 };
 
 /// Restarts player base-bank clip 1 on opening-conversation entry, completion or skip.

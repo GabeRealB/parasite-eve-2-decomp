@@ -1093,7 +1093,7 @@ static AnimationSet* _gShelterB3DumpingHoleArrivalAnimationSets[4] = { NULL, &_g
 ///
 /// The fifth word is retained original behavior, not a fifth playable set.
 /// Dispatch borrows this request and source; clip data stays loaded during playback.
-static AnimationBankCopyRequest _gShelterB3DumpingHoleArrivalAnimationBankCopy = { { .sets = _gShelterB3DumpingHoleArrivalAnimationSets }, ARRAY_SIZE(_gShelterB3DumpingHoleArrivalAnimationSets) + 1 };
+static AnimationBankCopyRequest _gShelterB3DumpingHoleArrivalAnimationBankCopy = { _gShelterB3DumpingHoleArrivalAnimationSets, ARRAY_SIZE(_gShelterB3DumpingHoleArrivalAnimationSets) + 1 };
 
 /// Unreferenced bank-1, clip-1 reset request with world collision enabled; purpose unproven.
 static AnimationPlayRequest D_shelter_b3_dumping_hole_8018AFE0 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
@@ -3598,8 +3598,8 @@ static void _shelterB3DumpingHoleDebrisEventTask(Task* directorTask)
             while (gShelterB3DumpingHoleDebrisPlayerAnimationSets[extensionCount & 0xFFFF] != NULL) {
                 extensionCount += 1;
             }
-            bankCopyRequest.source.sets = gShelterB3DumpingHoleDebrisPlayerAnimationSets;
-            bankCopyRequest.wordCount   = extensionCount & 0xFFFF;
+            bankCopyRequest.sets  = gShelterB3DumpingHoleDebrisPlayerAnimationSets;
+            bankCopyRequest.count = extensionCount & 0xFFFF;
             TASK_MESSAGE_DISPATCH_POINTER(animationWork->player, ANIMATION_MESSAGE_COPY_BANK_EXTENSION, &bankCopyRequest, 0);
             weaponId                       = gPlayerStatus.weapon;
             animationRequest               = &animation;

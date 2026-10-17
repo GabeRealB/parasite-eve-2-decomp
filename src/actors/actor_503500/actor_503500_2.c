@@ -427,7 +427,7 @@ static AnimationSet* _gActor503500PlayerSceneAnimationSets[] = {
 ///
 /// Copies the entire pointer table, including its leading NULL, to ids 47..58.
 /// The request is borrowed during dispatch; copied sets remain borrowed afterward.
-static AnimationBankCopyRequest _gActor503500PlayerSceneAnimationBankCopy = { { .sets = _gActor503500PlayerSceneAnimationSets }, ARRAY_SIZE(_gActor503500PlayerSceneAnimationSets) };
+static AnimationBankCopyRequest _gActor503500PlayerSceneAnimationBankCopy = { _gActor503500PlayerSceneAnimationSets, ARRAY_SIZE(_gActor503500PlayerSceneAnimationSets) };
 
 /// Retained player bank-seed-1 clip-1 reset request with no script consumer.
 ///

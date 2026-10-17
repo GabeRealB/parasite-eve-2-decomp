@@ -15,8 +15,14 @@ from .declaration import PALETTE_ENTRIES, place_at
 from .png import read_variant, write_variant
 
 
+def variant_file(texture: str, variant: str) -> str:
+    """A texture variant's PNG, in its texture's directory: `<name>.png` for `default`, else `<name>.<variant>.png`."""
+    name = asset_schema.file_name(texture)
+    return f"{name}.png" if variant == "default" else f"{name}.{variant}.png"
+
+
 def variant_path(assets_root: Path, assets: dict, texture: str, variant: str) -> Path:
-    return assets_root / asset_schema.asset_dir(texture, assets[texture]) / f"{texture}_{variant}.png"
+    return assets_root / asset_schema.asset_dir(texture, assets[texture]) / variant_file(texture, variant)
 
 
 def chunk_path(assets_root: Path, assets: dict, chunk: str) -> Path:

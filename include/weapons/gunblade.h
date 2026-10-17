@@ -13,7 +13,7 @@
 /// scripted copies, including payloads that are not clip pointers. Play an
 /// extension slot only after installing a clip pointer there. The bank and
 /// its borrowed clip data must stay loaded while playback refers to them.
-extern AnimationBank gGunbladePlayerAnimationBank;
+extern AnimationSet* gGunbladePlayerAnimationBank[ANIMATION_BANK_SET_CAPACITY];
 
 /// Records a Gunblade slash and draws its blue-white then yellow-white ribbon.
 ///

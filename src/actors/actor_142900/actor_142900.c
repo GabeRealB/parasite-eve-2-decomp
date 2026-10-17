@@ -911,8 +911,8 @@ static AnimationPlayRequest _gActor142900PlayerPlayAnimation56 = {
 /// Dispatch borrows this request and source; copied clips remain borrowed for
 /// playback. The destination bank must be loaded and writable.
 static AnimationBankCopyRequest _gActor142900PlayerAnimationBankCopyRequest = {
-    .source    = { .sets = _gActor142900PlayerAnimationBankExtension },
-    .wordCount = ANIMATION_BANK_EXTENSION_CAPACITY,
+    .sets  = _gActor142900PlayerAnimationBankExtension,
+    .count = ANIMATION_BANK_EXTENSION_CAPACITY,
 };
 
 /// Copies 32 raw words from the companion scene table into its selected companion bank extension.
@@ -921,8 +921,8 @@ static AnimationBankCopyRequest _gActor142900PlayerAnimationBankCopyRequest = {
 /// Dispatch borrows this request and source; copied clips remain borrowed for
 /// playback. The destination bank must be loaded and writable.
 static AnimationBankCopyRequest _gActor142900CompanionAnimationBankCopyRequest = {
-    .source    = { .sets = _gActor142900CompanionAnimationBankExtension },
-    .wordCount = ANIMATION_BANK_EXTENSION_CAPACITY,
+    .sets  = _gActor142900CompanionAnimationBankExtension,
+    .count = ANIMATION_BANK_EXTENSION_CAPACITY,
 };
 
 /// Player placement for elevator scene setup and skipped-scene restoration.

@@ -147,36 +147,17 @@ enum {
     DRYFIELD_WATER_TANK_PLAYER_PATH_PRIORITY            = 192,
 };
 
-/// Player-path clips and the word span installed in the equipped animation bank.
+/// Player-path clips, extended ids 47..65; 47 is NULL.
 ///
-/// The twenty-word transfer installs NULL and eighteen room clips at bank
-/// indices 47..65, followed by the request's own source address at index 66.
-/// That last entry is payload data and must not be played. The complete word
-/// view bounds the transfer across the clip table and request; only its final
-/// count word is excluded. Dispatch borrows the request synchronously, and the
-/// clips must remain loaded while the equipped bank plays them.
-typedef union {
-    struct {
-        AnimationSet*            sets[DRYFIELD_WATER_TANK_PLAYER_EXTENSION_SET_COUNT];                          // Slots 47..65; slot 47 is NULL
-        AnimationBankCopyRequest copy;                                                                          // Installs slots 47..66 in the equipped bank
-    } data;                                                                                                     // Clip table and self-referencing request
-    s32 words[DRYFIELD_WATER_TANK_PLAYER_EXTENSION_SET_COUNT + sizeof(AnimationBankCopyRequest) / sizeof(s32)]; // Complete raw span; final count word is not copied
-} _DryfieldWaterTankPlayerAnimationBankExtensionStorage;
-STATIC_ASSERT_SIZEOF(_DryfieldWaterTankPlayerAnimationBankExtensionStorage, 0x54);
+/// The script copies twenty entries before playback, one past these nineteen:
+/// id 66 receives the following copy request's first word, this list's
+/// address, and is never played. Keep the room clips loaded while the equipped
+/// bank references them; the skip script only restores a base-bank stance and
+/// does not install the extension.
+static AnimationSet* _gDryfieldWaterTankPlayerPathSets[DRYFIELD_WATER_TANK_PLAYER_EXTENSION_SET_COUNT] = { NULL, &gDryfieldWaterTankAnimation034BC, &gDryfieldWaterTankAnimation0377C, &gDryfieldWaterTankAnimation03A60, &gDryfieldWaterTankAnimation03CB4, &gDryfieldWaterTankAnimation047BC, &gDryfieldWaterTankAnimation04C98, &gDryfieldWaterTankAnimation04FEC, &gDryfieldWaterTankAnimation051E4, &gDryfieldWaterTankAnimation05704, &gDryfieldWaterTankAnimation059E4, &gDryfieldWaterTankAnimation05DB8, &gDryfieldWaterTankAnimation061A8, &gDryfieldWaterTankAnimation06514, &gDryfieldWaterTankAnimation06840, &gDryfieldWaterTankAnimation04000, &gDryfieldWaterTankAnimation04AA0, &gDryfieldWaterTankAnimation06F48, &gDryfieldWaterTankAnimation06C68 };
 
-/// Player-path scene's extension clips and self-referencing copy request.
-///
-/// The script copies twenty words before playback: slots 47..65 receive NULL
-/// and eighteen borrowed clip pointers, and unused slot 66 receives this
-/// storage's address. The raw view covers that entire transfer. Keep the room
-/// clips loaded while the equipped bank references them; the skip script only
-/// restores a base-bank stance and does not install the extension.
-static _DryfieldWaterTankPlayerAnimationBankExtensionStorage _gDryfieldWaterTankPlayerAnimationBankExtension = {
-    .data = {
-        { NULL, &gDryfieldWaterTankAnimation034BC, &gDryfieldWaterTankAnimation0377C, &gDryfieldWaterTankAnimation03A60, &gDryfieldWaterTankAnimation03CB4, &gDryfieldWaterTankAnimation047BC, &gDryfieldWaterTankAnimation04C98, &gDryfieldWaterTankAnimation04FEC, &gDryfieldWaterTankAnimation051E4, &gDryfieldWaterTankAnimation05704, &gDryfieldWaterTankAnimation059E4, &gDryfieldWaterTankAnimation05DB8, &gDryfieldWaterTankAnimation061A8, &gDryfieldWaterTankAnimation06514, &gDryfieldWaterTankAnimation06840, &gDryfieldWaterTankAnimation04000, &gDryfieldWaterTankAnimation04AA0, &gDryfieldWaterTankAnimation06F48, &gDryfieldWaterTankAnimation06C68 },
-        { { .words = _gDryfieldWaterTankPlayerAnimationBankExtension.words }, ARRAY_SIZE(_gDryfieldWaterTankPlayerAnimationBankExtension.data.sets) + 1 },
-    },
-};
+/// Installs the player-path clips; reads twenty entries from a nineteen-entry list.
+static AnimationBankCopyRequest _gDryfieldWaterTankPlayerAnimationBankCopy = { _gDryfieldWaterTankPlayerPathSets, ARRAY_SIZE(_gDryfieldWaterTankPlayerPathSets) + 1 };
 
 /// Equipped-weapon standing clip restored by both player-path scene exits.
 ///
@@ -672,7 +653,7 @@ static EvsCommand _gDryfieldWaterTankPlayerPathSceneScript[126] = {
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = DRYFIELD_WATER_TANK_PATH_SCENE_FADE_FRAMES }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_SECONDARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_HIDE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &_gDryfieldWaterTankPlayerAnimationBankExtension.data.copy } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &_gDryfieldWaterTankPlayerAnimationBankCopy } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gDryfieldWaterTankPlayerPathEntryPlacement } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = DRYFIELD_WATER_TANK_PATH_SCENE_KYLE_PLACEMENT_INDEX }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = true }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = DRYFIELD_WATER_TANK_PATH_SCENE_KYLE_PLACEMENT_INDEX }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gDryfieldWaterTankKylePathSceneEntryPlacement } }, { .value = 0 } },
