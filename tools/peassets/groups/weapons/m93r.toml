@@ -13,7 +13,6 @@ contents = [
 [model]
 type = "model"
 slots = ["body"]
-textures = [[39, 15552]]
 sha1 = "40dd2cbcc600c86e62b9203992a2b7357ad43590"
 
 [sounds]

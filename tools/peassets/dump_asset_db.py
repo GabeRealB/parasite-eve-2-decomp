@@ -558,7 +558,7 @@ def collect_models(
                 rec = dict(old[aid])
                 rec.update({"sha1": hashlib.sha1(data[src["head"]:src["source_offset"] + tmd.TMD_SOURCE_SIZE]).hexdigest(),
                             "type": "model"})
-                rec["textures"] = [list(pair) for pair in tmd.stream_textures(blob) or ()]
+                rec.pop("textures", None)       # its binding places its slots
                 out[aid] = rec
                 continue
             digest = hashlib.sha1(blob).hexdigest()

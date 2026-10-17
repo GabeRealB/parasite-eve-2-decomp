@@ -39,6 +39,7 @@ EXTRACTED = ROOT / "assets" / "USA"
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import asset_residency as residency  # noqa: E402
 import asset_schema  # noqa: E402
+from model import declared  # noqa: E402
 
 TEMPLATE = Path(__file__).with_name("asset_map.html")
 SHOWN = ("x", "y", "w", "h", "bpp", "clips", "parent", "required", "source", "vram", "size", "notes", "group")
@@ -661,10 +662,19 @@ def build_data(db: sqlite3.Connection, out: Path, pixels: str) -> dict:
     findings = defaultdict(list)
     for key, rec in sorted(embedded.items()):
         package = rec.get("source", "").removesuffix(".pe2pkg")
-        if rec.get("type") not in ("model", "tmd") or package not in supply.carrier or not assets.get(key, {}).get("textures"):
+        if rec.get("type") not in ("model", "tmd") or package not in supply.carrier:
             continue
         bounds = residency.model_bounds(package, rec)
-        for page, clut in assets[key]["textures"]:
+        if rec["type"] == "model":          # its binding names the pages, without the blend rate
+            texture_pairs = declared.texture_pairs(key, assets)
+            masked: dict = {}
+            for (p, c), (u0, v0, u1, v1) in bounds.items():
+                box = masked.setdefault((p & ~0x60, c), [u0, v0, u1, v1])
+                box[:] = [min(box[0], u0), min(box[1], v0), max(box[2], u1), max(box[3], v1)]
+            bounds = masked
+        else:
+            texture_pairs = assets.get(key, {}).get("textures", ())
+        for page, clut in texture_pairs:
             box = bounds.get((page, clut), [])
             page &= ~0x60
             found = supply.resolve(package, page, clut, bindings.get((package, key)))

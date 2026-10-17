@@ -1,7 +1,9 @@
-"""python3 tools/peassets/model decode [--assets assets/USA] [--only NAME] [--usdc]
+"""python3 tools/peassets/model decode|encode|check [--assets assets/USA] [--only NAME] [--usdc] [--out DIR]
 python3 tools/peassets/model preview FAMILY_OR_PACKAGE [--assets assets/USA] [--out build/models]
 
 decode    write each declared model and its bindings as USD (.usda; .usdc too with --usdc)
+encode    encode each declared model from its USD and binding into --out, as <name>.model
+check     encode them and compare with the models in their packages
 preview   write every model of a manifest family (kyle, weapons, ...) or one package as plain USD, to look at
 """
 from __future__ import annotations
@@ -16,17 +18,17 @@ if __package__ in (None, ""):                   # run as a directory: the packag
     __package__ = "model"
 
 from model import preview  # noqa: E402
-from model.declared import declared, decode  # noqa: E402
+from model.declared import check, declared, decode, encode  # noqa: E402
 
 
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("command", choices=("decode", "preview"))
+    ap.add_argument("command", choices=("decode", "encode", "check", "preview"))
     ap.add_argument("name", nargs="?", help="preview: a manifest family or a package")
     ap.add_argument("--assets", type=Path, default=PEASSETS.parents[1] / "assets/USA")
     ap.add_argument("--only", help="decode: one declared model")
     ap.add_argument("--usdc", action="store_true", help="decode: also write the binary form")
-    ap.add_argument("--out", type=Path, default=PEASSETS.parents[1] / "build/models", help="preview: where to write")
+    ap.add_argument("--out", type=Path, default=PEASSETS.parents[1] / "build/models", help="preview, encode: where to write")
     args = ap.parse_args(argv)
     if args.command == "preview":
         if not args.name:
@@ -35,12 +37,24 @@ def main(argv: list[str] | None = None) -> int:
         print(f"wrote {len(written)} model(s) under {args.out}/")
         return 0
     import asset_data
-    for name in declared(asset_data.ASSETS):
+    assets, embedded = asset_data.ASSETS, asset_data.EMBEDDED_ASSETS
+    failed = 0
+    for name in declared(assets):
         if args.only and name != args.only:
             continue
-        out = decode(name, asset_data.ASSETS, asset_data.EMBEDDED_ASSETS, args.assets, args.usdc)
-        print(f"{name} -> {out.relative_to(args.assets)}")
-    return 0
+        if args.command == "decode":
+            out = decode(name, assets, embedded, args.assets, args.usdc)
+            print(f"{name} -> {out.relative_to(args.assets)}")
+        elif args.command == "encode":
+            args.out.mkdir(parents=True, exist_ok=True)
+            path = args.out / f"{name}.model"
+            path.write_bytes(encode(name, assets, embedded, args.assets))
+            print(path)
+        else:
+            problems = check(name, assets, embedded, args.assets)
+            print(f"{name}: " + ("rebuilds from its USD and binding" if not problems else "; ".join(problems)))
+            failed += bool(problems)
+    return 1 if failed else 0
 
 
 if __name__ == "__main__":

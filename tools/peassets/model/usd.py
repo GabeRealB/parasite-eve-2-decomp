@@ -4,9 +4,11 @@ A model is one skinned mesh bound rigidly to a skeleton: each part is a joint wi
 belongs to one part with weight 1, so faces spanning parts need nothing special. Materials are GeomSubsets bound to
 Material prims; a textured material names its slot in an input and leaves the texture open.
 
-Exact values sit beside display values so an importer can recover the model: `texel` UVs (in the slot's texels),
-`normalIndex`, part-local `sourceNormals`, uniform `shading` and `part`. The game's Y axis points down; the root
-rotates 180 degrees about X so models show upright without altering the data.
+Exact values sit beside display values so `read_model` can recover the model: `texel` UVs (in the slot's texels),
+`normalIndex`, part-local `sourceNormals`, uniform `shading`, `part` and `colorSource` (none, face or corner: which
+of `displayColor` is the face's). Faces wind clockwise about their normals, so the mesh is `leftHanded`. Vertices are not duplicated: each is its point taken back through its part's bind
+transform and rounded. The game's Y axis points down; the root rotates 180 degrees about X so models show upright
+without altering the data.
 
 A binding is a layer over the model: it connects each slot's material to its texture image and adds `st`, the UVs
 normalized to that image.
@@ -96,11 +98,12 @@ def write_model(model: dict, path: Path, label: str) -> None:
 
     mesh = UsdGeom.Mesh.Define(stage, "/Model/Rig/Mesh")
     mesh.CreatePointsAttr(Vt.Vec3fArray([Gf.Vec3f(*p) for p in points]))
-    counts, indices, normals, nidx, colors, texel, shading, partof = [], [], [], [], [], [], [], []
+    counts, indices, normals, nidx, colors, texel, shading, partof, source = [], [], [], [], [], [], [], [], []
     n_local = model["normals"]
     for f in model["faces"]:
         counts.append(len(f["corners"]))
         shading.append(f["shading"]); partof.append(f.get("part", -1))
+        source.append("corner" if any("color" in c for c in f["corners"]) else "face" if "color" in f else "none")
         for c in f["corners"]:
             v = c["vertex"]; indices.append(v)
             ni = c.get("normal", f.get("normal", -1))
@@ -116,6 +119,7 @@ def write_model(model: dict, path: Path, label: str) -> None:
     mesh.CreateFaceVertexCountsAttr(Vt.IntArray(counts))
     mesh.CreateFaceVertexIndicesAttr(Vt.IntArray(indices))
     mesh.CreateDoubleSidedAttr(True)
+    mesh.CreateOrientationAttr(UsdGeom.Tokens.leftHanded)      # the game's faces wind clockwise about their normals
     pv = UsdGeom.PrimvarsAPI(mesh)
     if any(n is not None for n in normals):
         k = 0
@@ -135,6 +139,7 @@ def write_model(model: dict, path: Path, label: str) -> None:
         pv.CreatePrimvar("texel", Sdf.ValueTypeNames.Int2Array, UsdGeom.Tokens.faceVarying).Set(Vt.Vec2iArray(texel))
     pv.CreatePrimvar("shading", Sdf.ValueTypeNames.TokenArray, UsdGeom.Tokens.uniform).Set(Vt.TokenArray(shading))
     pv.CreatePrimvar("part", Sdf.ValueTypeNames.IntArray, UsdGeom.Tokens.uniform).Set(Vt.IntArray(partof))
+    pv.CreatePrimvar("colorSource", Sdf.ValueTypeNames.TokenArray, UsdGeom.Tokens.uniform).Set(Vt.TokenArray(source))
     mesh.GetPrim().CreateAttribute("sourceNormals", Sdf.ValueTypeNames.Float3Array).Set(Vt.Vec3fArray([Gf.Vec3f(*n) for n in n_local]))
     if loose:
         mesh.GetPrim().CreateAttribute("looseVertexCount", Sdf.ValueTypeNames.Int).Set(len(loose))
@@ -170,6 +175,103 @@ def write_model(model: dict, path: Path, label: str) -> None:
         subset.CreateIndicesAttr(Vt.IntArray(faces_of))
         UsdShade.MaterialBindingAPI.Apply(subset.GetPrim()).Bind(mprim)
     stage.GetRootLayer().Save()
+
+
+def _solve(R, t, p):
+    """The x with R x + t = p, for a 3x3 R (Cramer's rule; rest rotations are Q12, not exactly orthonormal)."""
+    b = [p[i] - t[i] for i in range(3)]
+    det = lambda m: (m[0][0] * (m[1][1] * m[2][2] - m[1][2] * m[2][1]) - m[0][1] * (m[1][0] * m[2][2] - m[1][2] * m[2][0])
+                     + m[0][2] * (m[1][0] * m[2][1] - m[1][1] * m[2][0]))
+    d = det(R)
+    return [det([[b[r] if c == k else R[r][c] for c in range(3)] for r in range(3)]) / d for k in range(3)]
+
+
+def read_model(path: Path) -> dict:
+    """The model a `write_model` file holds, edited or not; raises ValueError where the file cannot be one."""
+    stage = Usd.Stage.Open(str(path))
+    rp = stage.GetPrimAtPath("/Model")
+    skel = UsdSkel.Skeleton(stage.GetPrimAtPath("/Model/Rig/Skeleton"))
+    mesh = UsdGeom.Mesh(stage.GetPrimAtPath("/Model/Rig/Mesh"))
+    if not (rp and skel and mesh):
+        raise ValueError(f"{path}: not a model (needs /Model, /Model/Rig/Skeleton and /Model/Rig/Mesh)")
+    model: dict = {}
+    for key in ("effect", "reflection"):
+        attr = rp.GetAttribute(key)
+        if attr and attr.HasAuthoredValue():
+            model[key] = attr.Get()
+    model["slots"] = list(rp.GetAttribute("slots").Get() or [])
+
+    joints = [str(j) for j in skel.GetJointsAttr().Get()]
+    index = {j: i for i, j in enumerate(joints)}
+    parts = []
+    for i, (j, m) in enumerate(zip(joints, skel.GetRestTransformsAttr().Get())):
+        parent = index[j.rpartition("/")[0]] if "/" in j else i
+        parts.append({"parent": parent, "rotation": [[m[c][r] for c in range(3)] for r in range(3)],
+                      "translation": [round(m[3][r]) for r in range(3)], "vertices": []})
+    worlds = _worlds(parts)
+
+    points = mesh.GetPointsAttr().Get()
+    binder = UsdSkel.BindingAPI(mesh.GetPrim())
+    joint = list(binder.GetJointIndicesPrimvar().Get())
+    loose = mesh.GetPrim().GetAttribute("looseVertexCount")
+    loose = loose.Get() if loose and loose.HasAuthoredValue() else 0
+    owned = len(points) - loose
+    if any(joint[k] > joint[k + 1] for k in range(owned - 1)):
+        raise ValueError(f"{path}: points are not grouped by part in part order")
+    for k in range(owned):
+        parts[joint[k]]["vertices"].append([round(x) for x in _solve(*worlds[joint[k]], list(points[k]))])
+    if mesh.GetOrientationAttr().Get() != UsdGeom.Tokens.leftHanded:
+        raise ValueError(f"{path}: faces must wind as the game's do (orientation leftHanded), in their stored corner order")
+    model["parts"] = parts
+    if loose:
+        model["loose_vertices"] = [[round(x) for x in p] for p in points[owned:]]
+    model["normals"] = [[float(x) for x in n] for n in mesh.GetPrim().GetAttribute("sourceNormals").Get()]
+
+    pv = UsdGeom.PrimvarsAPI(mesh)
+    get = lambda name: pv.GetPrimvar(name).Get() if pv.HasPrimvar(name) else None
+    counts, indices = mesh.GetFaceVertexCountsAttr().Get(), mesh.GetFaceVertexIndicesAttr().Get()
+    shading, partof, source = get("shading"), get("part"), get("colorSource")
+    nidx, colors, texel = get("normalIndex"), get("displayColor"), get("texel")
+    material_of = [None] * len(counts)
+    materials = {}
+    for subset in UsdGeom.Subset.GetAllGeomSubsets(mesh):
+        mat, _ = UsdShade.MaterialBindingAPI(subset.GetPrim()).ComputeBoundMaterial()
+        mi = int(subset.GetPrim().GetName().removeprefix("material"))
+        inputs = {i.GetBaseName(): i.Get() for i in mat.GetInputs()}
+        materials[mi] = {"transparent": bool(inputs["transparent"])}
+        for key in ("slot", "blend"):
+            if key in inputs:
+                materials[mi][key] = str(inputs[key])
+        for f in subset.GetIndicesAttr().Get():
+            material_of[f] = mi
+    if sorted(materials) != list(range(len(materials))) or None in material_of:
+        raise ValueError(f"{path}: every face needs a material, numbered from material0")
+    model["materials"] = [materials[i] for i in range(len(materials))]
+
+    faces, k = [], 0
+    rgb = lambda c: [round(x * 255) for x in c]
+    for fi, n in enumerate(counts):
+        mat = model["materials"][material_of[fi]]
+        face = {"material": material_of[fi], "shading": str(shading[fi]), "corners": []}
+        if partof[fi] >= 0:
+            face["part"] = partof[fi]
+        if face["shading"] == "flat":
+            face["normal"] = nidx[k]
+        if source[fi] == "face":
+            face["color"] = rgb(colors[k])
+        for j in range(n):
+            c = {"vertex": indices[k + j]}
+            if face["shading"] == "smooth":
+                c["normal"] = nidx[k + j]
+            if source[fi] == "corner":
+                c["color"] = rgb(colors[k + j])
+            if "slot" in mat:
+                c["uv"] = list(texel[k + j])
+            face["corners"].append(c)
+        faces.append(face)
+        k += n
+    model["faces"] = faces
+    return model
 
 
 def write_binding(model: dict, textures: dict, path: Path, model_file: str) -> None:

@@ -63,6 +63,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import asset_schema  # noqa: E402
+from model import declared  # noqa: E402
 
 DB = ROOT / "local" / "asset_journal.sqlite"
 SCHEMA_VERSION = 1
@@ -661,12 +662,13 @@ def scan(db: sqlite3.Connection, by_value: bool) -> None:
     # constant. Each names a page and a CLUT as stored; the blend bits of the
     # page say how the face is drawn, not where its image is.
     for key, rec in sorted(man.embedded.items()):
-        model = man.assets.get(key, {})
-        if rec.get("type") not in ("model", "tmd") or not model.get("textures"):
+        if rec.get("type") not in ("model", "tmd"):
             continue
+        texture_pairs = (declared.texture_pairs(key, man.assets) if rec["type"] == "model"
+                         else man.assets.get(key, {}).get("textures", ()))
         package = rec["source"].removesuffix(".pe2pkg")
         near = man.near.get(package, set())
-        for page, clut in model["textures"]:
+        for page, clut in texture_pairs:
             for attribute, value, found in (
                     ("model.image", page, sorted(man.by_value["image.tpage"].get(page & ~TPAGE_BLEND, ()))),
                     ("model.clut", clut, sorted(man.by_value["clut.value"].get(clut, ())))):

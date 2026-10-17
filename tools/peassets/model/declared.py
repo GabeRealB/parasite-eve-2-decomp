@@ -6,6 +6,9 @@ its placement, decoded (codec.py), checked to re-encode to the same bytes, and w
 `<name>.usda`. Each binding of it is resolved - every slot's texture variant must be where the model's faces look,
 the page and palette its file places it in - and written as `<binding>.usda`, a layer over the model that fills
 its slots.
+
+The way back reads `<name>.usda` and encodes it with the placement its binding gives (`encode`, `check`): the
+model's bytes are built from the USD, the binding and the files, not from the package.
 """
 from __future__ import annotations
 
@@ -15,7 +18,7 @@ from pathlib import Path
 import asset_schema
 from texture.declaration import place_at
 
-from . import codec, usd
+from . import codec, mesh, usd
 
 TEXELS_PER_HALFWORD = {4: 4, 8: 2, 16: 1}
 
@@ -32,9 +35,17 @@ def model_bytes(name: str, assets_root: Path, embedded: dict) -> tuple[bytes, in
     return data[off:off + place["size"]], asset_schema.embedded_address(place)
 
 
-def resolve(binding: dict, model_slots: list[str], raw_slots: dict, assets: dict) -> dict:
-    """Each slot's texture variant, checked against where the model's faces look - the page and palette its file
-    places it in: returns {slot: texture, variant, size, origin}."""
+def binding_of(name: str, assets: dict) -> str:
+    """The binding the model's bytes are built with: for now its only one."""
+    names = sorted(k for k, r in assets.items() if r.get("type") == "binding" and r.get("model") == name)
+    if len(names) != 1:
+        raise SystemExit(f"{name}: {len(names)} bindings; which one builds the model is not declared")
+    return names[0]
+
+
+def resolve(binding: dict, model_slots: list[str], assets: dict) -> dict:
+    """Each slot's texture variant and where its file places it: {slot: texture, variant, size, origin, placement},
+    the placement being what the faces name (color depth, texture page, palette)."""
     homes: dict[str, list] = {}
     for rec in assets.values():
         for entry in rec.get("contents", ()) if rec.get("type") == "file" else ():
@@ -46,26 +57,45 @@ def resolve(binding: dict, model_slots: list[str], raw_slots: dict, assets: dict
     for slot in model_slots:
         name = binding.get("textures", {}).get(slot)
         if name is None:
-            continue
+            raise SystemExit(f"slot {slot}: the binding leaves it empty")
         texture, _, variant = name.partition(".")
-        t, place = assets[texture], raw_slots[slot]
-        at = homes.get(texture)
-        if at is None:
-            raise SystemExit(f"slot {slot}: no file uploads {texture}")
+        t = assets[texture]
+        if texture not in homes or name not in homes:
+            raise SystemExit(f"slot {slot}: no file uploads {name}")
+        at = homes[texture]
         page = [at[0] // 64 * 64, at[1] // 256 * 256]
-        if t["bpp"] != place["bits"] or page != place["page"] or homes.get(name) != place["palette"]:
-            raise SystemExit(f"slot {slot}: {name} is not where the faces look ({place})")
         per = TEXELS_PER_HALFWORD[t["bpp"]]
         out[slot] = {"texture": texture, "variant": variant, "size": (t["width"], t["height"]),
-                     "origin": ((at[0] - page[0]) * per, at[1] - page[1])}
+                     "origin": ((at[0] - page[0]) * per, at[1] - page[1]),
+                     "placement": {"bits": t["bpp"], "page": page, "palette": list(homes[name])}}
     return out
+
+
+def placement(name: str, assets: dict) -> dict:
+    """The codec's placement for a declared model, from its binding."""
+    textures = resolve(assets[binding_of(name, assets)], assets[name]["slots"], assets)
+    return {"slots": {slot: t["placement"] for slot, t in textures.items()}}
+
+
+def texture_pairs(name: str, assets: dict) -> list[list[int]]:
+    """The [texture page, CLUT] words a declared model's faces name, from its binding; the page without its blend
+    rate, which is the material's."""
+    out = []
+    for at in placement(name, assets)["slots"].values():
+        if mesh.page_pair(at) not in out:
+            out.append(mesh.page_pair(at))
+    return out
+
+
+def source_path(name: str, assets: dict, assets_root: Path) -> Path:
+    return assets_root / asset_schema.asset_dir(name, assets[name]) / f"{name}.usda"
 
 
 def decode(name: str, assets: dict, embedded: dict, assets_root: Path, binary: bool = False) -> Path:
     """Write a declared model and its bindings as USD (`.usda`, and `.usdc` too when `binary`); the directory."""
     blob, address = model_bytes(name, assets_root, embedded)
-    model, placement = codec.decode(blob, address)
-    if codec.encode(model, placement, address) != blob:
+    model, raw = codec.decode(blob, address)
+    if codec.encode(model, raw, address) != blob:
         raise SystemExit(f"{name}: does not re-encode to its bytes")
     names = assets[name]["slots"]
     if len(names) != len(model["slots"]):
@@ -75,8 +105,11 @@ def decode(name: str, assets: dict, embedded: dict, assets_root: Path, binary: b
     for mat in model["materials"]:
         if "slot" in mat:
             mat["slot"] = rename[mat["slot"]]
-    raw_slots = {rename[k]: v for k, v in placement["slots"].items()}
-    out_dir = assets_root / asset_schema.asset_dir(name, assets[name])
+    faces_look = {rename[k]: v for k, v in raw["slots"].items()}
+    for slot, at in placement(name, assets)["slots"].items():
+        if at != faces_look[slot]:
+            raise SystemExit(f"{name}: slot {slot}'s binding places it at {at}, the faces look at {faces_look[slot]}")
+    out_dir = source_path(name, assets, assets_root).parent
     out_dir.mkdir(parents=True, exist_ok=True)
     label = f"{name}: {embedded[name]['source']} at 0x{asset_schema.embedded_offset(embedded[name]):X}"
     for ext in (".usda",) + ((".usdc",) if binary else ()):
@@ -86,7 +119,7 @@ def decode(name: str, assets: dict, embedded: dict, assets_root: Path, binary: b
         for bname, brec in sorted(assets.items()):
             if brec.get("type") != "binding" or brec.get("model") != name:
                 continue
-            textures = resolve(brec, names, raw_slots, assets)
+            textures = resolve(brec, names, assets)
             for t in textures.values():
                 tex_dir = assets_root / asset_schema.asset_dir(t["texture"], assets[t["texture"]])
                 t["file"] = Path(os.path.relpath(tex_dir / f"{t['texture']}_{t['variant']}.png", out_dir)).as_posix()
@@ -94,3 +127,23 @@ def decode(name: str, assets: dict, embedded: dict, assets_root: Path, binary: b
             bpath.unlink(missing_ok=True)
             usd.write_binding(model, textures, bpath, path.name)
     return out_dir
+
+
+def encode(name: str, assets: dict, embedded: dict, assets_root: Path) -> bytes:
+    """A declared model's bytes from its USD and its binding, placed at its address in the package."""
+    model = usd.read_model(source_path(name, assets, assets_root))
+    if model["slots"] != assets[name]["slots"]:
+        raise SystemExit(f"{name}: the file's slots {model['slots']} are not the declared {assets[name]['slots']}")
+    return codec.encode(model, placement(name, assets), asset_schema.embedded_address(embedded[name]))
+
+
+def check(name: str, assets: dict, embedded: dict, assets_root: Path) -> list[str]:
+    """Encode the model from its USD and compare with its bytes in the package."""
+    blob, _address = model_bytes(name, assets_root, embedded)
+    mine = encode(name, assets, embedded, assets_root)
+    if mine == blob:
+        return []
+    if len(mine) != len(blob):
+        return [f"{len(mine):#x} bytes, the package's model is {len(blob):#x}"]
+    first = next(i for i, (a, b) in enumerate(zip(mine, blob)) if a != b)
+    return [f"differs from the package's model from byte {first:#x}"]

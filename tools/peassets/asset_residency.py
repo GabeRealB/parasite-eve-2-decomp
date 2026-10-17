@@ -51,6 +51,7 @@ ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import asset_journal  # noqa: E402
 import asset_schema  # noqa: E402
+from model import declared  # noqa: E402
 
 DB = ROOT / "local" / "asset_residency.sqlite"
 
@@ -709,7 +710,9 @@ def chain_check(db: sqlite3.Connection, verbose: bool) -> int:
         if rec.get("type") not in ("model", "tmd") or package not in carrier:
             continue
         chain = asset_schema.ancestors_of(package, assets, tree)
-        for page, clut in assets.get(key, {}).get("textures", ()):
+        texture_pairs = (declared.texture_pairs(key, assets) if rec["type"] == "model"
+                         else assets.get(key, {}).get("textures", ()))
+        for page, clut in texture_pairs:
             page &= ~0x60
             if resolves(supply(package, False), page, clut) or resolves(supply(package, True), page, clut):
                 tally["its own files"] += 1
