@@ -6,7 +6,7 @@
 #include "main/task_types.h"
 #include "main/tmd_types.h"
 
-/// Native player animation bank for the equipped Hypervelocity.
+/// Native player animation bank for the equipped Hypervelocity (asset weapons/hypervelocity/bank).
 ///
 /// Gameplay selects this bank at index 23 (character-1 base 1 plus weapon 22).
 /// The 47 base slots hold clip pointers or NULL; slots 0, 45 and 46 are NULL.
@@ -16,28 +16,25 @@
 /// while the Hypervelocity overlay stays loaded.
 extern AnimationSet* gHypervelocityPlayerAnimationBank[ANIMATION_BANK_SET_CAPACITY];
 
-/// Root body of the player's held Hypervelocity, supplied by bank-7 descriptor 0x55.
+/// Root body of the player's held Hypervelocity, supplied by bank-7 descriptor 0x55 (asset weapons/hypervelocity/root_model).
 ///
-/// One part owns 50 vertices and 37 lighting normals. Its writable source and
-/// command stream stay in the loaded weapon overlay while any model borrows them;
-/// creation resolves draw handlers in place. Each primitive-buffer half holds
-/// one FT4, two GT3s and 38 GT4s. The root parents the charging slide and hinge.
+/// Its writable source and command stream stay in the loaded weapon overlay while
+/// any model borrows them; creation resolves draw handlers in place. The root
+/// parents the charging slide and hinge.
 extern TmdSource gHypervelocityRootModel;
 
-/// Sliding Hypervelocity component, supplied by bank-7 descriptor 0x70.
+/// Sliding Hypervelocity component, supplied by bank-7 descriptor 0x70 (asset weapons/hypervelocity/slide_model).
 ///
-/// One part owns sixteen vertices and sixteen lighting normals; each primitive
-/// buffer half holds fourteen GT4s. Its task translates along the root's local
-/// Y axis during charging. The writable source and stream remain loaded while
-/// its model borrows them; creation resolves draw handlers in place.
+/// Its task translates along the root's local Y axis during charging. The
+/// writable source and stream remain loaded while its model borrows them;
+/// creation resolves draw handlers in place.
 extern TmdSource gHypervelocitySlideModel;
 
-/// Hinged Hypervelocity component, supplied by bank-7 descriptor 0x74.
+/// Hinged Hypervelocity component, supplied by bank-7 descriptor 0x74 (asset weapons/hypervelocity/hinge_model).
 ///
-/// One part owns twelve vertices and sixteen lighting normals; each primitive
-/// buffer half holds one FT4 and ten GT4s. Its task pitches about local X as the
-/// second charge stage opens it. The writable source and stream remain loaded
-/// while its model borrows them; creation resolves draw handlers in place.
+/// Its task pitches about local X as the second charge stage opens it. The
+/// writable source and stream remain loaded while its model borrows them;
+/// creation resolves draw handlers in place.
 extern TmdSource gHypervelocityHingeModel;
 
 /// Expands and fades one of the hypervelocity round's discharge cones.

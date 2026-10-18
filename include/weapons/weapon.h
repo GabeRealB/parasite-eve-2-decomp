@@ -81,28 +81,28 @@ enum {
 /// constant expression.
 #define WEAPON_ITEM_ID(weaponIndex) ((weaponIndex) + (EQUIPMENT_WEAPON_ITEM_FIRST - 1))
 
-/// Held-weapon model for unused weapon index 6 (item 0x85).
+/// Held-weapon model for unused weapon index 6 (item 0x85) (asset weapons/unused_85/model).
 ///
 /// The resident model-task descriptor borrows this single-part source while
 /// `unused_85` is loaded. Keep the package loaded until its model tasks are
 /// released; creation resolves the writable command stream in place.
 extern TmdSource gUnused85HeldWeaponModel;
 
-/// Single-part Mongoose model attached to the player's weapon hand.
+/// Single-part Mongoose model attached to the player's weapon hand (asset weapons/mongoose/model).
 ///
 /// The source and its geometry stay live while the Mongoose package is loaded.
 /// Model creation resolves draw handlers in its writable stream; release all
 /// attached instances before replacing the package.
 extern TmdSource gMongooseModel;
 
-/// Rigid held SP12 shotgun model, attached through the resident weapon-task bank.
+/// Rigid held SP12 shotgun model, attached through the resident weapon-task bank (asset weapons/sp12/model).
 ///
-/// One root part holds 34 vertices and 30 lighting normals. The SP12 overlay
-/// must remain loaded while a model instance borrows this source; creation
-/// resolves its writable command stream and copies the initial root transform.
+/// The SP12 overlay must remain loaded while a model instance borrows this
+/// source; creation resolves its writable command stream and copies the
+/// initial root transform.
 extern TmdSource gSp12Model;
 
-/// Single-part held tonfa baton, including its shaft and side grip.
+/// Single-part held tonfa baton, including its shaft and side grip (asset weapons/tonfa_baton/model).
 ///
 /// Instances borrow the loaded package's 24 vertices, 20 normals and writable
 /// command stream. Each buffer half holds 16 gouraud textured quads. Release
@@ -110,15 +110,15 @@ extern TmdSource gSp12Model;
 /// in place and copies the initial root transform.
 extern TmdSource gTonfaBatonWeaponModel;
 
-/// Rigid P229 pistol model attached to the player's weapon hand.
+/// Rigid P229 pistol model attached to the player's weapon hand (asset weapons/p229/model).
 ///
-/// One root part holds 30 vertices and 24 lighting normals. Model instances
-/// borrow the source, geometry and writable command stream while the P229
-/// package is loaded; release them before replacing the package. Creation
-/// resolves draw handlers in place and copies the initial root transform.
+/// Model instances borrow the source, geometry and writable command stream
+/// while the P229 package is loaded; release them before replacing the
+/// package. Creation resolves draw handlers in place and copies the initial
+/// root transform.
 extern TmdSource gP229WeaponModel;
 
-/// Single-part tonfa baton shaft without the side grip, in model-task slot 111.
+/// Single-part tonfa baton shaft without the side grip, in model-task slot 111 (asset weapons/tonfa_baton/shaft_model).
 ///
 /// Eight vertices and eight normals define six gouraud textured quads. Instances
 /// borrow the loaded package's geometry and writable stream through teardown;
@@ -126,29 +126,26 @@ extern TmdSource gP229WeaponModel;
 /// descriptor is unproven.
 extern TmdSource gTonfaBatonShaftModel;
 
-/// Single-part held M4A1 rifle and bayonet model attached through the resident weapon-task bank.
+/// Single-part held M4A1 rifle and bayonet model attached through the resident weapon-task bank (asset weapons/m4a1_bayonet/model).
 ///
 /// Instances borrow the package's 63 vertices, 63 lighting normals and writable
-/// command stream. Model creation resolves draw handlers and copies the identity
-/// root pose. Each primitive-buffer half holds 3256 bytes of directly transformed
-/// primitives. Keep the M4A1 Bayonet package loaded until all instances are released;
-/// the player's nineteen-track animation bank is a separate resource.
+/// command stream. Model creation resolves draw handlers and copies the identity root
+/// pose. Keep the M4A1 Bayonet package loaded until all instances are released; the
+/// player's animation bank is a separate resource.
 extern TmdSource gM4a1BayonetWeaponModel;
 
-/// Single-part equipped MP5A5 model used by the base weapon and both upgrades.
+/// Single-part equipped MP5A5 model used by the base weapon and both upgrades (asset weapons/mp5a5/model).
 ///
 /// Instances borrow the loaded weapon package's geometry and command stream;
 /// keep the package loaded until those instances are released. The stream's
 /// draw-handler slots are resolved in place on first use.
 extern TmdSource gMp5a5WeaponModel;
 
-/// Held Gunblade geometry and initial one-part pose.
+/// Held Gunblade geometry and initial one-part pose (asset weapons/gunblade/model).
 ///
 /// Model objects borrow this record and its arrays while the Gunblade overlay
 /// remains loaded. Creation resolves the writable command stream in place and
-/// copies its initial skeleton. Each primitive-buffer half has 2224 bytes,
-/// entirely for directly transformed primitives; player animation uses a
-/// separate bank and rig.
+/// copies its initial skeleton.
 extern TmdSource gGunbladeModel;
 
 #endif // INCLUDE_WEAPONS_WEAPON_H

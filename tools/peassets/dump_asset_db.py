@@ -678,7 +678,8 @@ def collect_embedded_lists(assets: dict[str, dict[str, Any]], embedded: dict[str
             rec["embedded"] = [k for _vram, k in held]
 
 
-def collect_animations(assets_root: Path, old: dict[str, dict[str, Any]]) -> dict[str, dict[str, Any]]:
+def collect_animations(assets_root: Path, old: dict[str, dict[str, Any]],
+                       old_assets: dict[str, dict[str, Any]]) -> dict[str, dict[str, Any]]:
     """Every animation bank the overlay manifest declares, as an embedded asset.
 
     A bank is a run of exported animation sets, one per clip, and code selects
@@ -700,8 +701,11 @@ def collect_animations(assets_root: Path, old: dict[str, dict[str, Any]]) -> dic
              for key, rec in old.items() if rec.get("type") == "animation" and ("offset" in rec or rec.get("source") in loads)}
     out: dict[str, dict[str, Any]] = {}
     blobs: dict[str, bytes] = {}
-    # A package whose group places its clips one by one (type clip) has no block of its own any more.
-    declared = {rec.get("source") for rec in old.values() if rec.get("type") == "clip"}
+    # A package whose group places its clips one by one (type clip) has no block of its own any more. A clip
+    # several packages carry has its record from one of them, so each package's own placements say.
+    declared = {f"{rec.get('package_name', key)}.pe2pkg" for key, rec in old_assets.items()
+                if rec.get("type") == "pe2pkg" and any(isinstance(p, dict) and old_assets.get(p["name"], {}).get("type") == "clip"
+                                                      for p in rec.get("embedded", ()))}
     for row in declared_animations(manifest):
         source = row["package"] + ".pe2pkg"
         if source in declared:
@@ -814,7 +818,8 @@ def write_groups(assets: dict[str, dict[str, Any]]) -> None:
         if aid in texture_chunks:
             continue                    # declared, with its sha1, in its file's entry
         if rec.get("type") == "file":
-            rec["contents"] = [{**e, "chunk": local(e["chunk"]),
+            rec["contents"] = [{**({"chunk": local(e["chunk"])} if e["chunk"].startswith(group + "/") else {"asset": e["chunk"]}),
+                                **{k: v for k, v in e.items() if k != "chunk"},
                                 **({"sha1": assets[e["chunk"]]["sha1"]} if e["chunk"] in texture_chunks else {}),
                                 **{part: [{**p, "texture": local(p["texture"])} for p in e[part]]
                                    for part in ("pages", "palettes") if part in e}} for e in rec["contents"]]
@@ -955,7 +960,7 @@ def main(argv: list[str] | None = None) -> int:
     collect_bundles(assets_root, assets)
     assets.update({key: rec for key, rec in old_assets.items() if rec.get("type") in asset_schema.DECLARED_TYPES})
     embedded = {key: rec for key, rec in embedded.items() if rec.get("type") != "animation"}
-    embedded = {**embedded, **placements, **collect_animations(assets_root, old_embedded)}
+    embedded = {**embedded, **placements, **collect_animations(assets_root, old_embedded, old_assets)}
     collect_embedded_lists(assets, embedded)
     embedded_geometry(assets_root, embedded)
     tree = collect_tree(assets_root, old_tree, assets, old_assets)

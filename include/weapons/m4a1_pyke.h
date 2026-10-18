@@ -6,7 +6,7 @@
 #include "main/task_types.h"
 #include "main/tmd_types.h"
 
-/// Native player animation bank for the M4A1 rifle with the Pyke attachment.
+/// Native player animation bank for the M4A1 rifle with the Pyke attachment (asset weapons/m4a1_pyke/bank).
 ///
 /// The primary character selects bank index 29 for weapon 28. Base slots
 /// 1..44 contain 38 distinct player clips; slots 0, 45 and 46 are NULL.
@@ -24,7 +24,7 @@
 /// them; replacing the package invalidates the bank and its extension.
 extern AnimationSet* gM4a1PykePlayerAnimationBank[ANIMATION_BANK_SET_CAPACITY];
 
-/// Equipped M4A1 rifle with the Pyke flamethrower attachment.
+/// Equipped M4A1 rifle with the Pyke flamethrower attachment (asset weapons/m4a1_pyke/model).
 ///
 /// A single model part is attached beneath the player's weapon-hand task.
 /// Model instances borrow this overlay's geometry and stream; keep the package

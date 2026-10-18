@@ -1,7 +1,6 @@
 // Overlay-local symbols for M4A1 Javelin (file 10329).
 _gM4a1JavelinGroundBeamScreenAngle = 0x8012EB62; // type:u16 size:0x2
 _gM4a1JavelinGroundBeamAngleRefreshPending = 0x8012EB66; // type:s16 size:0x2
-gM4a1JavelinWeaponModel = 0x8012071C; // model named by a task descriptor
 
 m4a1JavelinGuideBeamTask = 0x8011D1E4; // type:func
 
@@ -20,4 +19,3 @@ _gM4a1JavelinBeamScreenAngle = 0x8012eb60;
 _gM4a1JavelinBeamAngleRefreshPending = 0x8012eb64;
 _gM4a1JavelinTrackedImpactPoint = 0x8012eb68;
 _gM4a1JavelinTrackedImpactValid = 0x8012eb70;
-gM4a1JavelinPlayerAnimationBank = 0x8012ea20;

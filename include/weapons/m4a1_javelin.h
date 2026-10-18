@@ -6,18 +6,18 @@
 #include "main/task_types.h"
 #include "main/tmd_types.h"
 
-/// Native player animation bank for the equipped M4A1 Javelin.
+/// Native player animation bank for the equipped M4A1 Javelin (asset weapons/m4a1_javelin/bank).
 ///
 /// The primary character selects bank index 30 for weapon 29. Base slots
-/// 1..44 contain nineteen-track player clips, with aliases for shared poses;
-/// slots 0, 45 and 46 are NULL. The 32 extension words start cleared and stay
-/// writable for scripted copies, which may include payloads other than clips.
-/// Play an extension slot only when it contains a valid loaded clip pointer.
-/// The bank and its borrowed clip data remain valid while this weapon package
-/// stays loaded; finish referring playback before replacing the package.
+/// 1..44 contain player clips, with aliases for shared poses; slots 0, 45 and
+/// 46 are NULL. The 32 extension words start cleared and stay writable for
+/// scripted copies, which may include payloads other than clips. Play an
+/// extension slot only when it contains a valid loaded clip pointer. The bank
+/// and its borrowed clip data remain valid while this weapon package stays
+/// loaded; finish referring playback before replacing the package.
 extern AnimationSet* gM4a1JavelinPlayerAnimationBank[ANIMATION_BANK_SET_CAPACITY];
 
-/// Held M4A1 Javelin model: one rigid part with writable geometry and draw stream.
+/// Held M4A1 Javelin model: one rigid part with writable geometry and draw stream (asset weapons/m4a1_javelin/model).
 ///
 /// Borrowed by the weapon's child-model task. The record and its arrays must
 /// remain loaded until every referring model is released; creation resolves

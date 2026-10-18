@@ -1,7 +1,4 @@
-gP229WeaponModel = 0x8011E5E4; // held pistol model
-
 p229MuzzleFlashTask = 0x8011D1DC; // type:func
 _muzzleFlashDrawCore = 0x8011D464; // type:func
 _muzzleFlashDrawStreak = 0x8011D860; // type:func
 p229AttackState = 0x8011dda0; // type:func
-gP229PlayerAnimationBank = 0x8012b51c;

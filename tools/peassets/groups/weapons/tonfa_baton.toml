@@ -1,0 +1,180 @@
+# The assets of the group weapons/tonfa_baton, each named weapons/tonfa_baton/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[bank]
+type = "animation_bank"
+base = "characters/aya/handgun/bank"
+symbol = "gTonfaBatonPlayerAnimationBank"
+
+[bank.clips]
+walk = "characters/aya/unarmed_walk"
+aim_enter = "weapons/tonfa_baton/aim_enter"
+aim_exit = "weapons/tonfa_baton/aim_exit"
+aim_idle = "weapons/tonfa_baton/aim_idle"
+fire = "weapons/tonfa_baton/strike"
+secondary_fire = "weapons/tonfa_baton/combo_strike"
+aim_forward = "weapons/tonfa_baton/aim_forward"
+aim_backward = "weapons/tonfa_baton/aim_backward"
+reload = "weapons/tonfa_baton/strike_recovery"
+secondary_reload = "weapons/tonfa_baton/strike_recovery"
+reload_battle_end = "weapons/tonfa_baton/battle_end"
+
+[file]
+type = "file"
+
+[[file.contents]]
+chunk = "palette"
+sha1 = "87358b9d4309237fd64ae8a52f475f2f0f3463ba"
+palettes = [{ texture = "texture", variant = "default", region = "engine/vram/weapon_palette" }]
+
+[[file.contents]]
+chunk = "image"
+sha1 = "4f133d590448bfe752593b8385b3accab668228a"
+pages = [{ texture = "texture", region = "engine/vram/weapon_sheet" }]
+
+[[file.contents]]
+chunk = "sounds"
+
+[[file.contents]]
+chunk = "package"
+
+[model]
+type = "model"
+slots = ["body"]
+symbol = "gTonfaBatonWeaponModel"
+sha1 = "554d25521447506a85e60a9aff5b406d1d190c5d"
+
+[sounds]
+type = "sound_bank"
+samples = [
+    "weapons/tonfa_baton/combo_swing",
+    "weapons/tonfa_baton/first_swing",
+    "weapons/tonfa_baton/first_contact",
+    "weapons/tonfa_baton/combo_contact",
+]
+sha1 = "819dfbeed617480acda84a500f2d1af402e638f7"
+
+[strike]
+type = "clip"
+rig = "characters/aya/rig"
+
+[binding]
+type = "binding"
+model = "weapons/tonfa_baton/model"
+textures = { body = "weapons/tonfa_baton/texture.default" }
+
+[package]
+type = "pe2pkg"
+embedded = [
+    { name = "model", offset = 0x00F40, size = 0x384, address = 0x8011E100 },
+    { name = "shaft_model", offset = 0x012C4, size = 0x18C, address = 0x8011E484 },
+    { asset = "characters/aya/idle", offset = 0x01450, size = 0x1B8, address = 0x8011E610 },
+    { asset = "characters/aya/unarmed_walk", offset = 0x01608, size = 0x6A4, address = 0x8011E7C8 },
+    { asset = "characters/aya/turn_left", offset = 0x01CAC, size = 0x860, address = 0x8011EE6C },
+    { asset = "characters/aya/turn_right", offset = 0x0250C, size = 0x864, address = 0x8011F6CC },
+    { asset = "characters/aya/item_use", offset = 0x02D70, size = 0x314, address = 0x8011FF30 },
+    { asset = "characters/aya/stair_ascent", offset = 0x03084, size = 0x75C, address = 0x80120244 },
+    { asset = "characters/aya/stair_descent", offset = 0x037E0, size = 0x788, address = 0x801209A0 },
+    { asset = "characters/aya/stair_ascent_finish_odd", offset = 0x03F68, size = 0x2D4, address = 0x80121128 },
+    { asset = "characters/aya/stair_ascent_finish_even", offset = 0x0423C, size = 0x390, address = 0x801213FC },
+    { asset = "characters/aya/parasite_energy_begin_0", offset = 0x045CC, size = 0x488, address = 0x8012178C },
+    { asset = "characters/aya/parasite_energy_charge_0", offset = 0x04A54, size = 0x1FC, address = 0x80121C14 },
+    { asset = "characters/aya/parasite_energy_cast_0", offset = 0x04C50, size = 0x2D8, address = 0x80121E10 },
+    { asset = "characters/aya/parasite_energy_begin_1", offset = 0x04F28, size = 0x2A4, address = 0x801220E8 },
+    { asset = "characters/aya/parasite_energy_charge_1", offset = 0x051CC, size = 0x200, address = 0x8012238C },
+    { asset = "characters/aya/parasite_energy_cast_1", offset = 0x053CC, size = 0x354, address = 0x8012258C },
+    { asset = "characters/aya/hit_head", offset = 0x05720, size = 0x2B4, address = 0x801228E0 },
+    { asset = "characters/aya/hit_body", offset = 0x059D4, size = 0x320, address = 0x80122B94 },
+    { asset = "characters/aya/death", offset = 0x05CF4, size = 0x7C4, address = 0x80122EB4 },
+    { asset = "characters/aya/high_health_idle", offset = 0x064B8, size = 0x1298, address = 0x80123678 },
+    { asset = "characters/aya/low_health_idle", offset = 0x07750, size = 0xB78, address = 0x80124910 },
+    { asset = "characters/aya/mid_health_idle", offset = 0x082C8, size = 0x71C, address = 0x80125488 },
+    { asset = "characters/aya/examine_enter", offset = 0x089E4, size = 0x480, address = 0x80125BA4 },
+    { asset = "characters/aya/examine_exit", offset = 0x08E64, size = 0x1D8, address = 0x80126024 },
+    { asset = "characters/aya/parasite_energy_begin_2", offset = 0x0903C, size = 0x564, address = 0x801261FC },
+    { asset = "characters/aya/parasite_energy_charge_2", offset = 0x095A0, size = 0x1F4, address = 0x80126760 },
+    { asset = "characters/aya/parasite_energy_cast_2", offset = 0x09794, size = 0x480, address = 0x80126954 },
+    { name = "aim_idle", offset = 0x09C14, size = 0x18C, address = 0x80126DD4 },
+    { name = "aim_backward", offset = 0x09DA0, size = 0x81C, address = 0x80126F60 },
+    { name = "aim_forward", offset = 0x0A5BC, size = 0x8BC, address = 0x8012777C },
+    { name = "battle_end", offset = 0x0AE78, size = 0x778, address = 0x80128038 },
+    { name = "strike", offset = 0x0B5F0, size = 0x640, address = 0x801287B0 },
+    { name = "strike_recovery", offset = 0x0BC30, size = 0x81C, address = 0x80128DF0 },
+    { name = "combo_strike", offset = 0x0C44C, size = 0x1008, address = 0x8012960C },
+    { name = "aim_enter", offset = 0x0D454, size = 0x2C8, address = 0x8012A614 },
+    { name = "aim_exit", offset = 0x0D71C, size = 0x1C8, address = 0x8012A8DC },
+    { asset = "characters/aya/handgun/backward_walk", offset = 0x0D8E4, size = 0x8D8, address = 0x8012AAA4 },
+    { asset = "characters/aya/handgun/run", offset = 0x0E1BC, size = 0x734, address = 0x8012B37C },
+    { name = "bank", offset = 0x0E8F0, size = 0x13C, address = 0x8012BAB0 },
+]
+package_name = "tonfa_baton"
+required = true
+sha1 = "039a1abc47fa6a2e89fee65c8d0e6d9b4c997781"
+
+[texture]
+type = "texture"
+bpp = 4
+height = 64
+variants = ["default"]
+width = 256
+
+[aim_exit]
+type = "clip"
+rig = "characters/aya/rig"
+
+[aim_idle]
+type = "clip"
+rig = "characters/aya/rig"
+
+[aim_enter]
+type = "clip"
+rig = "characters/aya/rig"
+
+[battle_end]
+type = "clip"
+rig = "characters/aya/rig"
+
+[aim_forward]
+type = "clip"
+rig = "characters/aya/rig"
+
+[combo_swing]
+type = "sound"
+mode = "high"
+sha1 = "2f230483a122a0ffc01a06d085665887c025c0c0"
+
+[first_swing]
+type = "sound"
+mode = "high"
+sha1 = "2ff30303896f84e8ee04ab3be0e9ff13a334a077"
+
+[shaft_model]
+type = "model"
+slots = ["body"]
+symbol = "gTonfaBatonShaftModel"
+sha1 = "97cf9525c14112a3b574a41c2d78050e43863191"
+
+[aim_backward]
+type = "clip"
+rig = "characters/aya/rig"
+
+[combo_strike]
+type = "clip"
+rig = "characters/aya/rig"
+
+[combo_contact]
+type = "sound"
+sha1 = "fd98a042ba86874ca3a9b022268363fb3a348589"
+
+[first_contact]
+type = "sound"
+sha1 = "fb47e8fdd8b8dc5ff012facf18a0aa295daea32e"
+
+[shaft_binding]
+type = "binding"
+model = "weapons/tonfa_baton/shaft_model"
+textures = { body = "weapons/tonfa_baton/texture.default" }
+
+[strike_recovery]
+type = "clip"
+rig = "characters/aya/rig"

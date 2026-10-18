@@ -1,0 +1,17 @@
+# The assets of the group weapons/m4a1_attachment, each named weapons/m4a1_attachment/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[shot]
+type = "sound"
+mode = "high"
+sha1 = "56eaebecc91737ecf513df98f41f73e3da9e5bfb"
+
+[click]
+type = "sound"
+mode = "high"
+sha1 = "3a868782c7f1bd448cbc8b84f8d4c209c391e257"
+
+[reload_load]
+type = "sound"
+mode = "high"
+sha1 = "13d3a14d4f096c6b535264ddf3e1697dc6c441c4"

@@ -6,7 +6,7 @@
 #include "main/task_types.h"
 #include "main/tmd_types.h"
 
-/// Player animation bank for the equipped M4A1 Hammer.
+/// Player animation bank for the equipped M4A1 Hammer (asset weapons/m4a1_hammer/bank).
 ///
 /// The 47 native slots contain clip pointers or NULL; slots 1..44 select 37
 /// distinct clips, with aliases for shared actions. The 32 extension words
@@ -16,12 +16,10 @@
 /// borrows the bank, its descriptors or their data.
 extern AnimationSet* gM4a1HammerPlayerAnimationBank[ANIMATION_BANK_SET_CAPACITY];
 
-/// Single-part held M4A1 Hammer weapon model and its shared writable command stream.
+/// Single-part held M4A1 Hammer weapon model and its shared writable command stream (asset weapons/m4a1_hammer/model).
 ///
 /// The Hammer overlay and its asset arrays must stay loaded while model objects
-/// borrow them. Creation copies the identity skeleton and resolves stream
-/// handlers in place; each primitive-buffer half holds two textured Gouraud
-/// triangles and 67 quads, with no pre-transformed region.
+/// borrow them.
 extern TmdSource gM4a1HammerModel;
 
 /// Requests for the attachment glow, stored in `Task::spawnArg1.value`.

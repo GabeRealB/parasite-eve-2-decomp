@@ -10,15 +10,17 @@ calls `merge` when it is imported, so every tool reads one ASSETS; `dump_asset_d
 TOML has no null and only string keys: an empty slot of a bundle's `resources` is "", and the cells of a dialogue's
 `glyphs` are numbers written as keys; both are given back as the tools expect them.
 
-A file of a group lists its chunks, and the textures its image and palette chunks upload, by local name too. An
-image or palette chunk has no table of its own: its entry states the sha1 of its stored bytes, and `merge` adds the
-record it implies (texture/declaration.py).
+A file of a group lists its chunks, and the textures its image and palette chunks upload, by local name too, or by
+path for another group's chunk (`asset` in place of `chunk`). An image or palette chunk has no table of its own: its
+entry states the sha1 of its stored bytes, and `merge` adds the record it implies (texture/declaration.py); a chunk
+several files hold is declared by each, and the declarations agree.
 
 A package of a group places its embedded assets itself: `embedded = [{ name, offset, size }]`, the name local and
 the offset into the decoded package (`asset` with the asset's path in place of `name` places another group's asset: a
 clip Aya's group holds and every weapon package carries; a plain name, an embedded record still located by address
 in EMBEDDED_ASSETS, as its package lists it outside the groups), and an `address` in memory for the types the code reaches by address (a model,
-an image, a CLUT: asset_schema.ADDRESSED_TYPES). Each placement becomes an EMBEDDED_ASSETS record - its source, its
+an image, a CLUT: asset_schema.ADDRESSED_TYPES). An asset several packages carry is placed by each, and its first
+placement in the groups' order (by path) becomes its EMBEDDED_ASSETS record - its source, its
 `offset`, size and any `address`; the extension follows from its type - which the tools read through
 asset_schema.embedded_offset and embedded_address. A package outside the groups keeps the older
 form: embedded records naming it as their `source`, at an address (`vram`).
@@ -49,11 +51,16 @@ def records(root: Path):
                                     "name": place["asset"] if "asset" in place else full(place["name"])}
                                    if isinstance(place, dict) else place for place in rec["embedded"]]
             if rec.get("type") == "file":       # a file names its own group's chunks and textures, by local name
-                rec["contents"] = [{**entry, "chunk": full(entry["chunk"]),
+                rec["contents"] = [{**{k: v for k, v in entry.items() if k != "asset"},
+                                    "chunk": entry["asset"] if "asset" in entry else full(entry["chunk"]),
                                     **{part: [{**p, "texture": full(p["texture"])} for p in entry[part]]
                                        for part in ("pages", "palettes") if part in entry}}
                                    for entry in rec["contents"]]
             yield full(local), {**rec, "group": group}
+
+
+def _same_chunk(a: dict[str, Any], b: dict[str, Any]) -> bool:
+    return {k: v for k, v in a.items() if k != "group"} == {k: v for k, v in b.items() if k != "group"}
 
 
 def places(rec: dict[str, Any]) -> list[dict[str, Any]]:
@@ -74,19 +81,30 @@ def merge(assets: dict[str, dict[str, Any]], embedded: dict[str, dict[str, Any]]
         if key in assets:
             raise KeyError(f"{key} is both in ASSETS and in the group {rec['group']}")
         assets[key] = rec
-    # A file's image and palette chunks are declared in its entries; the other tools read them as records.
+    # A file's image and palette chunks are declared in its entries; the other tools read them as records. A chunk
+    # several files hold (the M4A1's palette, which the Bayonet's file holds too) is declared by each, alike.
+    declared_by: dict[str, str] = {}
     for key, rec in [(k, r) for k, r in assets.items() if r.get("type") == "file" and r.get("group")]:
         for chunk, crec in chunk_records(rec, assets).items():
+            if chunk in declared_by and _same_chunk(assets[chunk], crec):
+                continue                        # another file holding the chunk declares it the same
             if chunk in assets:
                 raise KeyError(f"{chunk}: a chunk of {key} has a table of its own too")
             assets[chunk] = crec
+            declared_by[chunk] = key
+    # An asset several packages carry (a shared clip) is placed by each; its record is its first placement, in the
+    # groups' order: the others hold the same asset, which the build's checksum confirms.
+    placed: set[str] = set()
     for key, rec in list(assets.items()):
         if rec.get("type") != "pe2pkg" or not places(rec):
             continue
         name = rec.get("package_name", key)
         for place in places(rec):
+            if place["name"] in placed:
+                continue
             if place["name"] in embedded:
                 raise KeyError(f"{place['name']} is placed by {key} and listed in EMBEDDED_ASSETS")
+            placed.add(place["name"])
             record = {"source": f"{name}.pe2pkg", "offset": place["offset"], "size": place["size"],
                       "type": assets[place["name"]]["type"]}
             if "address" in place:

@@ -1,10 +1,7 @@
-gM4a1GrenadeWeaponModel = 0x8011EA2C; // held rifle and grenade launcher
-gM4a1GrenadeProjectileModel = 0x8012E1FC; // fired 40mm grenade
 _grenadeShellExit = 0x8011DE24; // type:func
 _grenadeShellBlast = 0x8011DDF8; // type:func
 _m4a1GrenadeInitProjectile = 0x8011d654; // type:func
 m4a1GrenadeAttackState = 0x8011d1ec; // type:func
 _m4a1GrenadeFlyProjectile = 0x8011d994; // type:func
 m4a1GrenadeShellTask = 0x8011de68; // type:func
-gM4a1GrenadePlayerAnimationBank = 0x8012df50;
 _gM4a1GrenadeBlastRadii = 0x8012e08c;

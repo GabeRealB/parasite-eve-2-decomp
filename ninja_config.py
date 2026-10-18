@@ -286,9 +286,25 @@ def declared_model_placements() -> dict[tuple[str, int], tuple[str, str, str]]:
     out = {}
     for name, rec in data.ASSETS.items():
         if rec.get("type") == "model" and rec.get("slots"):
-            place = data.EMBEDDED_ASSETS[name]
-            out[(place["source"].removesuffix(".pe2pkg"), schema.embedded_offset(place))] = (
-                name, schema.asset_dir(name, rec, tables=(data.ASSETS, data.EMBEDDED_ASSETS)), include_path(name, rec))
+            for package, offset in asset_placements(name):
+                out[(package, offset)] = (
+                    name, schema.asset_dir(name, rec, tables=(data.ASSETS, data.EMBEDDED_ASSETS)), include_path(name, rec))
+    return out
+
+
+def asset_placements(name: str) -> list[tuple[str, int]]:
+    """(package, offset) of every placement of an asset: its EMBEDDED_ASSETS record is the first, and a grouped
+    package lists its own (a model the P08 and its Snail variant both carry)."""
+    data, schema = asset_tables()
+    out = []
+    if name in data.EMBEDDED_ASSETS:
+        place = data.EMBEDDED_ASSETS[name]
+        out.append((place["source"].removesuffix(".pe2pkg"), schema.embedded_offset(place)))
+    for key, rec in data.ASSETS.items():
+        if rec.get("type") == "pe2pkg":
+            package = rec.get("package_name", key)
+            out += [(package, p["offset"]) for p in rec.get("embedded", ())
+                    if isinstance(p, dict) and p["name"] == name and (package, p["offset"]) not in out]
     return out
 
 
@@ -300,10 +316,14 @@ def model_source_includes(version: str) -> list[tuple[str, list[Path], Path]]:
     manifest = tomllib.loads((CONFIG_DIR / version / "overlays.toml").read_text())
     placements = declared_model_placements()
     out = []
+    seen = set()
     for model in declared_models(manifest):
         if (model["package"], model["model"]) not in placements or not model["in_c"]:
             continue
         name, directory, include = placements[(model["package"], model["model"])]
+        if name in seen:                            # one include, whichever packages carry the model
+            continue
+        seen.add(name)
         data, schema = asset_tables()
         usd = [ASSETS_DIR / version / directory / f"{schema.file_name(name)}.usda"]
         rig = data.ASSETS[name].get("rig")
@@ -349,7 +369,8 @@ def model_includes(version: str) -> list[tuple[Path, list[Path], int, int, str]]
 
 def declared_animation_sources(version: str) -> tuple[list, list]:
     """What gen_animation_source.py writes: per package that places declared clips, (package, the clips' USD files,
-    `<package group>/clips.inc`); per declared bank, (name, `<group>/<local name>.inc`)."""
+    `<package group>/clips.inc`, or `<group>/<variant>_clips.inc` for a group's package `<variant>_package`); per
+    declared bank, (name, `<group>/<local name>.inc`)."""
     data, schema = asset_tables()
     tables = (data.ASSETS, data.EMBEDDED_ASSETS)
     clips, banks = [], []
@@ -360,8 +381,9 @@ def declared_animation_sources(version: str) -> tuple[list, list]:
             if placed:
                 usd = [ASSETS_DIR / version / schema.asset_dir(n, data.ASSETS[n], tables=tables) / f"{schema.file_name(n)}.usda"
                        for n in placed]
-                clips.append((rec.get("package_name", key), usd,
-                              BUILD_DIR / "include" / "assets" / rec["group"] / "clips.inc"))
+                local = key.rsplit("/", 1)[-1]
+                inc = "clips.inc" if local == "package" else f"{local.removesuffix('_package')}_clips.inc"
+                clips.append((rec.get("package_name", key), usd, BUILD_DIR / "include" / "assets" / rec["group"] / inc))
         elif rec.get("type") == "animation_bank" and key in data.EMBEDDED_ASSETS:      # a layer is not a table
             banks.append((key, BUILD_DIR / "include" / "assets" / include_path(key, rec)))
     return clips, banks

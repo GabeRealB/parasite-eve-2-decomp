@@ -496,9 +496,17 @@ def asset_symbols(package: str) -> list[tuple[str, int]]:
             _ASSET_TABLES.append(mod)
     data, schema = _ASSET_TABLES
     out = []
+    # An asset several packages carry (the P08's model, which its Snail variant places too) is listed by each.
+    holder = next((rec for key, rec in data.ASSETS.items()
+                   if rec.get("type") == "pe2pkg" and rec.get("package_name", key) == package), None)
+    placed = {p["name"]: p for p in (holder or {}).get("embedded", ()) if isinstance(p, dict)}
     for name, rec in data.ASSETS.items():
         place = data.EMBEDDED_ASSETS.get(name)
-        if "symbol" not in rec or not place or place.get("source") != f"{package}.pe2pkg":
+        if place and place.get("source") != f"{package}.pe2pkg":
+            place = None
+        if name in placed and "address" in placed[name]:
+            place = {**placed[name], "source": f"{package}.pe2pkg"}
+        if "symbol" not in rec or not place:
             continue
         out.append((rec["symbol"], schema.embedded_address(place) + place["size"] - RECORD_SIZE.get(rec["type"], place["size"])))
     return sorted(out, key=lambda s: s[1])

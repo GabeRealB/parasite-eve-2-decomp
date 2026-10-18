@@ -1,7 +1,5 @@
 // Overlay-local symbols for tonfa_baton.
 _gTonfaBatonTrailTint = 0x8012C0EC; // type:s16 size:0x2
-gTonfaBatonWeaponModel = 0x8011E460; // size:0x24 held baton, model-task slot 82
-gTonfaBatonShaftModel = 0x8011E5EC; // size:0x24 shaft geometry, model-task slot 111
 
 tonfaBatonSwingTrailTask = 0x8011D1EC; // type:func
 _bladeTrailDraw = 0x8011D6B0; // type:func
@@ -12,4 +10,3 @@ _tonfaBatonDeferModelTaskRemoval = 0x8011db6c; // type:func
 tonfaBatonModelTask = 0x8011db98; // type:func
 tonfaBatonAttackState = 0x8011dbfc; // type:func
 _gTonfaBatonTrailEndpointOffsets = 0x8011e0f0; // size:0x10
-gTonfaBatonPlayerAnimationBank = 0x8012bab0;

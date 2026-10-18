@@ -1,0 +1,153 @@
+# The assets of the group weapons/pa3, each named weapons/pa3/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[bank]
+type = "animation_bank"
+base = "characters/aya/rifle/bank"
+symbol = "gPa3PlayerAnimationBank"
+
+[bank.clips]
+aim_enter = "weapons/pa3/aim_enter"
+aim_exit = "weapons/pa3/aim_exit"
+aim_idle = "weapons/pa3/aim_idle"
+fire = "weapons/pa3/fire"
+secondary_fire = "weapons/pa3/fire"
+aim_backward = "weapons/pa3/aim_backward"
+reload = "weapons/pa3/reload"
+secondary_reload = "weapons/pa3/reload"
+reload_battle_end = "weapons/pa3/reload"
+
+[file]
+type = "file"
+
+[[file.contents]]
+chunk = "palette"
+sha1 = "4472c8b45388ed0feb13847e91c1d00702f644f4"
+palettes = [{ texture = "texture", variant = "default", region = "engine/vram/weapon_palette" }]
+
+[[file.contents]]
+chunk = "image"
+sha1 = "877cd824c3988c6ac19016388f6c766f0772c854"
+pages = [{ texture = "texture", region = "engine/vram/weapon_sheet" }]
+
+[[file.contents]]
+chunk = "package"
+
+[fire]
+type = "clip"
+rig = "characters/aya/rig"
+
+[model]
+type = "model"
+slots = ["body"]
+symbol = "gPa3WeaponModel"
+sha1 = "0d697c10c60823eb7add9ebe843c84a9226d2336"
+
+[reload]
+type = "clip"
+rig = "characters/aya/rig"
+
+[binding]
+type = "binding"
+model = "weapons/pa3/model"
+textures = { body = "weapons/pa3/texture.default" }
+
+[package]
+type = "pe2pkg"
+embedded = [
+    { name = "model", offset = 0x003A4, size = 0x4C4, address = 0x8011D564 },
+    { asset = "characters/aya/idle", offset = 0x00868, size = 0x1B8, address = 0x8011DA28 },
+    { asset = "characters/aya/unarmed_walk", offset = 0x00A20, size = 0x6A4, address = 0x8011DBE0 },
+    { asset = "characters/aya/turn_left", offset = 0x010C4, size = 0x860, address = 0x8011E284 },
+    { asset = "characters/aya/turn_right", offset = 0x01924, size = 0x864, address = 0x8011EAE4 },
+    { asset = "characters/aya/item_use", offset = 0x02188, size = 0x314, address = 0x8011F348 },
+    { asset = "characters/aya/stair_ascent", offset = 0x0249C, size = 0x75C, address = 0x8011F65C },
+    { asset = "characters/aya/stair_descent", offset = 0x02BF8, size = 0x788, address = 0x8011FDB8 },
+    { asset = "characters/aya/stair_ascent_finish_odd", offset = 0x03380, size = 0x2D4, address = 0x80120540 },
+    { asset = "characters/aya/stair_ascent_finish_even", offset = 0x03654, size = 0x390, address = 0x80120814 },
+    { asset = "characters/aya/parasite_energy_begin_0", offset = 0x039E4, size = 0x488, address = 0x80120BA4 },
+    { asset = "characters/aya/parasite_energy_charge_0", offset = 0x03E6C, size = 0x1FC, address = 0x8012102C },
+    { asset = "characters/aya/parasite_energy_cast_0", offset = 0x04068, size = 0x2D8, address = 0x80121228 },
+    { asset = "characters/aya/parasite_energy_begin_1", offset = 0x04340, size = 0x2A4, address = 0x80121500 },
+    { asset = "characters/aya/parasite_energy_charge_1", offset = 0x045E4, size = 0x200, address = 0x801217A4 },
+    { asset = "characters/aya/parasite_energy_cast_1", offset = 0x047E4, size = 0x354, address = 0x801219A4 },
+    { asset = "characters/aya/hit_head", offset = 0x04B38, size = 0x2B4, address = 0x80121CF8 },
+    { asset = "characters/aya/hit_body", offset = 0x04DEC, size = 0x320, address = 0x80121FAC },
+    { asset = "characters/aya/death", offset = 0x0510C, size = 0x7C4, address = 0x801222CC },
+    { asset = "characters/aya/high_health_idle", offset = 0x058D0, size = 0x1298, address = 0x80122A90 },
+    { asset = "characters/aya/low_health_idle", offset = 0x06B68, size = 0xB78, address = 0x80123D28 },
+    { asset = "characters/aya/mid_health_idle", offset = 0x076E0, size = 0x71C, address = 0x801248A0 },
+    { asset = "characters/aya/examine_enter", offset = 0x07DFC, size = 0x480, address = 0x80124FBC },
+    { asset = "characters/aya/examine_exit", offset = 0x0827C, size = 0x1D8, address = 0x8012543C },
+    { asset = "characters/aya/parasite_energy_begin_2", offset = 0x08454, size = 0x564, address = 0x80125614 },
+    { asset = "characters/aya/parasite_energy_charge_2", offset = 0x089B8, size = 0x1F4, address = 0x80125B78 },
+    { asset = "characters/aya/parasite_energy_cast_2", offset = 0x08BAC, size = 0x480, address = 0x80125D6C },
+    { name = "aim_idle", offset = 0x0902C, size = 0x1DC, address = 0x801261EC },
+    { name = "aim_backward", offset = 0x09208, size = 0x7A4, address = 0x801263C8 },
+    { asset = "characters/aya/rifle/aim_forward", offset = 0x099AC, size = 0xAA8, address = 0x80126B6C },
+    { name = "reload", offset = 0x0A454, size = 0x1164, address = 0x80127614 },
+    { name = "fire", offset = 0x0B5B8, size = 0xDB8, address = 0x80128778 },
+    { name = "aim_enter", offset = 0x0C370, size = 0x758, address = 0x80129530 },
+    { name = "aim_exit", offset = 0x0CAC8, size = 0xAD8, address = 0x80129C88 },
+    { asset = "characters/aya/rifle/walk", offset = 0x0D5A0, size = 0x8B8, address = 0x8012A760 },
+    { asset = "characters/aya/rifle/backward_walk", offset = 0x0DE58, size = 0x7A0, address = 0x8012B018 },
+    { asset = "characters/aya/rifle/run", offset = 0x0E5F8, size = 0x9D4, address = 0x8012B7B8 },
+    { name = "bank", offset = 0x0EFCC, size = 0x13C, address = 0x8012C18C },
+]
+package_name = "pa3"
+required = true
+sha1 = "17910be3a76d064fb44cc3f73da7a94b8639752c"
+
+[texture]
+type = "texture"
+bpp = 4
+height = 64
+variants = ["default"]
+width = 256
+
+[aim_exit]
+type = "clip"
+rig = "characters/aya/rig"
+
+[aim_idle]
+type = "clip"
+rig = "characters/aya/rig"
+
+[aim_enter]
+type = "clip"
+rig = "characters/aya/rig"
+
+[slug_sounds]
+type = "sound_bank"
+samples = [
+    "weapons/shotgun/click",
+    "weapons/shotgun/slug_pump",
+    "weapons/shotgun/reload_load",
+    "weapons/shotgun/slug_shot",
+]
+sha1 = "2d76616d6d12cd5a165def3a42476ed12838c501"
+
+[aim_backward]
+type = "clip"
+rig = "characters/aya/rig"
+
+[firefly_sounds]
+type = "sound_bank"
+samples = [
+    "weapons/shotgun/click",
+    "weapons/shotgun/pump",
+    "weapons/shotgun/reload_load",
+    "weapons/shotgun/firefly_shot",
+    "weapons/shotgun/firefly_impact",
+]
+sha1 = "fc2851cd28d56c5c7291f6cee3821092259db16f"
+
+[buckshot_sounds]
+type = "sound_bank"
+samples = [
+    "weapons/shotgun/click",
+    "weapons/shotgun/pump",
+    "weapons/shotgun/reload_load",
+    "weapons/shotgun/buckshot_shot",
+]
+sha1 = "5b47355c025f8da3c24398066464bdafdee755f5"

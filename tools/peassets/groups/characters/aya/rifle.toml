@@ -1,0 +1,28 @@
+# The assets of the group characters/aya/rifle, each named characters/aya/rifle/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[run]
+type = "clip"
+rig = "characters/aya/rig"
+
+[bank]
+type = "animation_bank"
+base = "characters/aya/bank"
+
+[bank.clips]
+walk = "characters/aya/rifle/walk"
+backward_walk = "characters/aya/rifle/backward_walk"
+run = "characters/aya/rifle/run"
+aim_forward = "characters/aya/rifle/aim_forward"
+
+[walk]
+type = "clip"
+rig = "characters/aya/rig"
+
+[aim_forward]
+type = "clip"
+rig = "characters/aya/rig"
+
+[backward_walk]
+type = "clip"
+rig = "characters/aya/rig"

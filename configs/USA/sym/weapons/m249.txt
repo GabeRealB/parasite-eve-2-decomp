@@ -1,4 +1,2 @@
 // Overlay-local symbols for M249 (file 10317).
-gM249WeaponModel = 0x8011DE74; // player's held M249 model
 m249AttackState = 0x8011d1dc; // type:func
-gM249PlayerAnimationBank = 0x8012cf58;

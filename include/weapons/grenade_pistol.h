@@ -6,7 +6,7 @@
 #include "main/task_types.h"
 #include "main/tmd_types.h"
 
-/// Player motion bank used while the Grenade Pistol is equipped.
+/// Player motion bank used while the Grenade Pistol is equipped (asset weapons/grenade_pistol/bank).
 ///
 /// Gameplay selects bank index 12: character-1 base 1 plus weapon 11. Base
 /// slots 1..44 reference 36 distinct clips for movement, reactions, attacks
@@ -18,7 +18,7 @@
 /// their source overlays to remain loaded as well.
 extern AnimationSet* gGrenadePistolPlayerAnimationBank[ANIMATION_BANK_SET_CAPACITY];
 
-/// Native player motion bank used while the MM1 is equipped.
+/// Native player motion bank used while the MM1 is equipped (asset weapons/mm1/bank).
 ///
 /// Gameplay selects bank index 13: character-1 base 1 plus weapon 12. Slots
 /// 1..44 contain 36 distinct clips for locomotion, aiming, attacks, reactions
@@ -29,41 +29,37 @@ extern AnimationSet* gGrenadePistolPlayerAnimationBank[ANIMATION_BANK_SET_CAPACI
 /// native clips; copied clips also require their source packages to stay loaded.
 extern AnimationSet* gMm1PlayerAnimationBank[ANIMATION_BANK_SET_CAPACITY];
 
-/// Single-part held Grenade Pistol model attached to the player's weapon hand.
+/// Single-part held Grenade Pistol model attached to the player's weapon hand (asset weapons/grenade_pistol/model).
 ///
 /// Geometry and draw commands are shared by its runtime instances; initial
 /// transforms are copied into each instance. The Grenade Pistol overlay and
-/// its textures must remain loaded until those instances are released.
-/// The source and stream stay writable because creation resolves draw handlers
-/// in place. Each primitive-buffer half holds two textured Gouraud triangles
-/// and 33 textured Gouraud quads, all transformed from the weapon root.
+/// its textures must remain loaded until those instances are released. The
+/// source and stream stay writable because creation resolves draw handlers in
+/// place.
 extern TmdSource gGrenadePistolWeaponModel;
 
-/// Single-part held MM1 model attached to the player's weapon hand.
+/// Single-part held MM1 model attached to the player's weapon hand (asset weapons/mm1/model).
 ///
 /// Instances borrow its geometry and writable command stream; creation copies
 /// the read-only rest transform and resolves stream draw handlers in place.
-/// Each primitive-buffer half holds four textured Gouraud triangles and 41
-/// textured Gouraud quads, all transformed from the weapon root. Keep the MM1
-/// overlay and its textures loaded until every referring instance is released.
+/// Keep the MM1 overlay and its textures loaded until every referring instance
+/// is released.
 extern TmdSource gMm1WeaponModel;
 
-/// Single-part Grenade Pistol projectile model used during flight and the blast countdown.
+/// Single-part Grenade Pistol projectile model used during flight and the blast countdown (asset weapons/grenade_pistol/grenade_model).
 ///
-/// Eight vertices and eight lighting normals form six textured Gouraud quads;
-/// each primitive-buffer half holds those six packets. Instances borrow the
-/// geometry and writable command stream, while creation copies the initial
-/// root transform and resolves stream draw handlers in place. Keep the Grenade
-/// Pistol overlay and its textures loaded until every referring task is released.
+/// Instances borrow the geometry and writable command stream, while creation
+/// copies the initial root transform and resolves stream draw handlers in place.
+/// Keep the Grenade Pistol overlay and its textures loaded until every referring
+/// task is released.
 extern TmdSource gGrenadePistolShellModel;
 
-/// Single-part MM1 grenade-projectile model shared by its flying shells.
+/// Single-part MM1 grenade-projectile model shared by its flying shells (asset weapons/mm1/grenade_model).
 ///
 /// Instances borrow its geometry and writable command stream; creation copies
 /// the read-only rest transform and resolves stream draw handlers in place.
-/// Each primitive-buffer half holds six textured Gouraud quads, transformed
-/// from the projectile root. Keep the MM1 overlay and its textures loaded
-/// until every referring projectile is released.
+/// Keep the MM1 overlay and its textures loaded until every referring
+/// projectile is released.
 extern TmdSource gMm1ShellModel;
 
 /// Runs the player's Grenade Pistol ready, fire and recovery phases.

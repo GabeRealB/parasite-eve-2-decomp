@@ -6,7 +6,7 @@
 #include "main/task_types.h"
 #include "main/tmd_types.h"
 
-/// Player animation bank used while the PA3 shotgun is equipped.
+/// Player animation bank used while the PA3 shotgun is equipped (asset weapons/pa3/bank).
 ///
 /// Gameplay selects bank index 14 for character 1 with equipped weapon 13.
 /// Base slots 1..44 reference 36 distinct native clips; slots 0, 45 and 46
@@ -17,14 +17,12 @@
 /// copied clips also require their source overlays to remain loaded.
 extern AnimationSet* gPa3PlayerAnimationBank[ANIMATION_BANK_SET_CAPACITY];
 
-/// Single-part held PA3 shotgun model attached to the player's weapon hand.
+/// Single-part held PA3 shotgun model attached to the player's weapon hand (asset weapons/pa3/model).
 ///
 /// Instances borrow the package's 26 vertices, 26 lighting normals and writable
 /// command stream; keep PA3 loaded until all instances are released. Creation
-/// resolves draw handlers in place and copies the identity root pose. Each
-/// primitive-buffer half holds two textured Gouraud triangles and 23 quads,
-/// entirely in the directly transformed region. Player animation uses a
-/// separate bank and rig.
+/// resolves draw handlers in place and copies the identity root pose. Player
+/// animation uses a separate bank and rig.
 extern TmdSource gPa3WeaponModel;
 
 /// Runs the PA3 player shot, contact handling, pump cue and recovery.

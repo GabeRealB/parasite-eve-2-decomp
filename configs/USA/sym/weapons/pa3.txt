@@ -1,4 +1,2 @@
 // Overlay-local symbols for PA3 (file 10313).
-gPa3WeaponModel = 0x8011DA04; // held PA3 shotgun model source
 pa3AttackState = 0x8011d1dc; // type:func
-gPa3PlayerAnimationBank = 0x8012C18C; // player clips and writable scripted extension

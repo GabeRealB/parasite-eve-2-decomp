@@ -6,24 +6,22 @@
 #include "main/task_types.h"
 #include "main/tmd_types.h"
 
-/// Native player animation bank shared by the M4A1 and both upgrade packages.
+/// Native player animation bank shared by the M4A1 and both upgrade packages (asset weapons/m4a1/bank).
 ///
-/// Character 1 selects bank indices 17, 21 and 22 for equipped weapons 16,
-/// 20 and 21. Base slots 1..44 contain nineteen-track player clips; slots
-/// 0, 45 and 46 are NULL. The 32 raw extension words at indices 47..78 start
-/// cleared and remain writable for scripted copies, including non-pointer data.
-/// Play an extension entry only after installing a valid clip pointer there.
-/// Keep the selected family package loaded while playback borrows this bank or
-/// its native clips; copied clips also require their source data to remain loaded.
+/// Character 1 selects bank indices 17, 21 and 22 for equipped weapons 16, 20 and
+/// 21. Base slots 1..44 contain player clips; slots 0, 45 and 46 are NULL. The 32
+/// raw extension words at indices 47..78 start cleared and remain writable for
+/// scripted copies, including non-pointer data. Play an extension entry only after
+/// installing a valid clip pointer there. Keep the selected family package loaded
+/// while playback borrows this bank or its native clips; copied clips also require
+/// their source data to remain loaded.
 extern AnimationSet* gM4a1PlayerAnimationBank[ANIMATION_BANK_SET_CAPACITY];
 
-/// The held rifle model shared by the M4A1 and both upgrade packages.
+/// The held rifle model shared by the M4A1 and both upgrade packages (asset weapons/m4a1/model).
 ///
-/// One part with 58 vertices and normals, two textured triangles and 55
-/// textured quads. Each primitive-buffer half is 2,940 bytes, all for direct
-/// transformation. The initial hierarchy and vertex-count table are read-only;
-/// draw-handler resolution writes the descriptor and command stream in place.
-/// Keep the selected M4A1-family overlay loaded while a child model borrows it.
+/// The initial hierarchy and vertex-count table are read-only; draw-handler
+/// resolution writes the descriptor and command stream in place. Keep the
+/// selected M4A1-family overlay loaded while a child model borrows it.
 extern TmdSource gM4a1RifleModel;
 
 /// Runs the M4A1 single shot or three-round burst, including both upgrade builds.

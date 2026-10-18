@@ -91,7 +91,11 @@ SCHEMA: dict[str, dict[str, tuple[str, ...]]] = {
     "tmd": {"payload": ("textures",), "stored": ("parts",)},
     # A binding fills a model's slots: `textures` maps each slot name to a texture variant, "<texture>.<variant>".
     # A model's color swaps are further bindings.
-    "binding": {"payload": (), "stored": ("model", "textures")},
+    # `override` records, per slot, what the faces name where it differs from the bound texture - for now only the
+    # color depth, `bits`; the page and palette stay the texture's. The model is built with it, and the binding states
+    # the mismatch between the asset and its use (the M4A1 Grenade's projectile reads 8-bit texels below its
+    # weapon's sheet).
+    "binding": {"payload": (), "stored": ("model", "textures", "override")},
     # A texture is one page of pixels in one or more variants, each an indexed PNG (texture/); `bpp`,
     # `width` (texels) and `height` are what the game expects, against which a supplied PNG is checked.
     "texture": {"payload": (), "stored": ("bpp", "width", "height", "variants")},
@@ -844,6 +848,11 @@ def validate(assets: dict, embedded: dict) -> list[str]:
                     problems.append(f"{key}: names slot {slot!r}, which {rec.get('model')} does not have")
                 if assets.get(texture, {}).get("type") != "texture" or variant not in assets[texture].get("variants", ()):
                     problems.append(f"{key}: textures.{slot} must name a texture variant, <texture>.<variant>")
+            for slot, at in rec.get("override", {}).items():
+                if slot not in rec.get("textures", {}):
+                    problems.append(f"{key}: override names slot {slot!r}, which the binding does not bind")
+                elif not (isinstance(at, dict) and set(at) == {"bits"} and at["bits"] in (4, 8, 16)):
+                    problems.append(f"{key}: override.{slot} is {{bits = 4|8|16}}")
         if kind == "rig" and "joints" in rec:
             joints = rec["joints"]
             if not isinstance(joints, list) or not all(isinstance(j, str) and NAME.match(j) for j in joints) or \
@@ -960,7 +969,9 @@ def validate(assets: dict, embedded: dict) -> list[str]:
         load = next(iter(bases)) if any(isinstance(p, dict) for p in assets[key].get("embedded", [])) and len(bases) == 1 else None
         where = lambda e: e["offset"] if "offset" in e else (e.get("vram", 0) - load if load is not None else e.get("vram", 0))
         held = sorted((where(e), k) for k, e in embedded.items() if e.get("source") == f"{name}.pe2pkg")
-        if listed != [k for _vram, k in held]:
+        # A shared asset placed by several packages has its record from the first (asset_groups.merge).
+        own = [k for k in listed if embedded.get(k, {}).get("source") == f"{name}.pe2pkg"]
+        if own != [k for _vram, k in held]:
             problems.append(f"{key}: embedded must list, by address, the embedded assets whose source is {name}.pe2pkg")
     # A package's overlay name (`package_name`, else its asset name) is how the build finds it in pe2pkg/: one each.
     by_overlay: dict[str, list[str]] = {}

@@ -1,0 +1,41 @@
+# The assets of the group characters/aya/extended_aim, each named characters/aya/extended_aim/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[bank]
+type = "animation_bank"
+base = "characters/aya/handgun/bank"
+
+[bank.clips]
+aim_enter = "characters/aya/extended_aim/aim_enter"
+aim_exit = "characters/aya/extended_aim/aim_exit"
+aim_idle = "characters/aya/extended_aim/aim_idle"
+fire = "characters/aya/extended_aim/fire"
+secondary_fire = "characters/aya/extended_aim/fire"
+aim_backward = "characters/aya/extended_aim/aim_backward"
+reload = "characters/aya/extended_aim/reload"
+secondary_reload = "characters/aya/extended_aim/reload"
+reload_battle_end = "characters/aya/extended_aim/reload"
+
+[fire]
+type = "clip"
+rig = "characters/aya/rig"
+
+[reload]
+type = "clip"
+rig = "characters/aya/rig"
+
+[aim_exit]
+type = "clip"
+rig = "characters/aya/rig"
+
+[aim_idle]
+type = "clip"
+rig = "characters/aya/rig"
+
+[aim_enter]
+type = "clip"
+rig = "characters/aya/rig"
+
+[aim_backward]
+type = "clip"
+rig = "characters/aya/rig"

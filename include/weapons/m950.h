@@ -6,24 +6,22 @@
 #include "main/task_types.h"
 #include "main/tmd_types.h"
 
-/// Native player animation bank supplied by the loaded M950 package.
+/// Native player animation bank supplied by the loaded M950 package (asset weapons/m950/bank).
 ///
 /// Character 1 selects bank index 4 for equipped weapon 3. Base slots 1..44
-/// contain nineteen-track player clips; slots 0, 45 and 46 are NULL. The 32
-/// raw extension words at indices 47..78 start cleared and remain writable for
-/// scripted copies, including non-pointer data. Play an extension entry only
-/// after installing a valid clip pointer there. Keep M950 loaded while playback
-/// borrows this bank or its native clips; copied clips also require their source
-/// data to remain loaded.
+/// contain player clips; slots 0, 45 and 46 are NULL. The 32 raw extension words
+/// at indices 47..78 start cleared and remain writable for scripted copies,
+/// including non-pointer data. Play an extension entry only after installing a
+/// valid clip pointer there. Keep M950 loaded while playback borrows this bank
+/// or its native clips; copied clips also require their source data to remain
+/// loaded.
 extern AnimationSet* gM950PlayerAnimationBank[ANIMATION_BANK_SET_CAPACITY];
 
-/// The held M950 weapon model attached beneath the player's hand anchor.
+/// The held M950 weapon model attached beneath the player's hand anchor (asset weapons/m950/model).
 ///
-/// One rigid part contains 36 vertices and lighting normals, four textured
-/// triangles and 28 textured quads. Each primitive-buffer half occupies 1616
-/// bytes, with no pre-transformed region. Creation resolves draw handlers in
-/// the writable stream; the source and geometry remain borrowed by live models.
-/// Keep the M950 package loaded until its weapon models have been released.
+/// Creation resolves draw handlers in the writable stream; the source and
+/// geometry remain borrowed by live models. Keep the M950 package loaded until
+/// its weapon models have been released.
 extern TmdSource gM950WeaponModel;
 
 /// Runs the M950 player attack and repeats fire while input and ammunition permit.

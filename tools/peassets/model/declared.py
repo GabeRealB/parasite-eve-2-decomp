@@ -4,8 +4,8 @@ A model is declared when its record names its texture `slots` (a grouped package
 and record); the other models are `tmd` records and stay raw. Each declared model is read from its package through
 its placement, decoded (codec.py), checked to re-encode to the same bytes, and written to its asset directory as
 `<name>.usda`. Each binding of it is resolved - every slot's texture variant must be where the model's faces look,
-the page and palette its file places it in - and written as `<binding>.usda`, a layer over the model that fills
-its slots.
+the page and palette its file places it in, at its color depth unless the binding's `override` states another - and
+written as `<binding>.usda`, a layer over the model that fills its slots.
 
 The way back reads `<name>.usda` and encodes it with the placement its binding gives (`encode`, `check`): the
 model's bytes are built from the USD, the binding and the files, not from the package.
@@ -120,6 +120,7 @@ def resolve(binding: dict, model_slots: list[str], assets: dict) -> dict:
         out[slot] = {"texture": texture, "variant": variant, "size": (t["width"], t["height"]),
                      "origin": ((at[0] - page[0]) * per, at[1] - page[1]),
                      "placement": {"bits": t["bpp"], "page": page, "palette": list(homes[name])}}
+        out[slot]["placement"].update(binding.get("override", {}).get(slot, {}))   # where the faces differ from it
     return out
 
 

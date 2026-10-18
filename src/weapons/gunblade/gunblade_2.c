@@ -7,7 +7,6 @@
 
 #include "gunblade_private.h"
 
-#include "gameplay/animation.h"
 #include "gameplay/effects.h"
 #include "gameplay/items.h"
 #include "gameplay/player_actor.h"
@@ -25,7 +24,6 @@
 #include "main/session_types.h"
 #include "main/task.h"
 #include "main/task_types.h"
-#include "main/tmd_types.h"
 #include "main/wipsys.h"
 #include "main/wipsys_types.h"
 

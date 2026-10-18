@@ -1768,7 +1768,7 @@ m93r	main memory	trace-20261012-145054	session 1	1	akropolis_square	7	2		0x8011d
 m93r	main memory	trace-20261012-145054	session 1	1	acropolis_west_elevator_hall	1	1		0x8011d1c0-0x8012af33	0/m93r	0	0	0		
 m93r	main memory	trace-20261012-145054	session 1	1	mist_parking	1	1		0x8011d1c0-0x8012af33	0/m93r	0	0	0		
 m93r	main memory	trace-20261012-145054	session 1	1	mist_parking	1	1		0x8011d1c0-0x8012af33	0/m93r	0	0	0		overwritten by m93r of 0/m93r at event 12731
-m93r	main memory	trace-20261012-145054	session 1	1	mist_parking	1	1		0x8011d1c0-0x8012af33	0/m93r	0	0	0		overwritten by tonfa_baton of 0/tonfa_baton at event 11857
+m93r	main memory	trace-20261012-145054	session 1	1	mist_parking	1	1		0x8011d1c0-0x8012af33	0/m93r	0	0	0		overwritten by weapons/tonfa_baton/package of 0/tonfa_baton at event 11857
 m93r	main memory	trace-20261012-145054	session 1	1	mist_parking	2	1		0x8011d1c0-0x8012af33	0/m93r	0	0	0		
 m93r	main memory	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1		0x8011d1c0-0x8012af33	0/m93r	0	0	0		
 m93r	main memory	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1		0x8011d1c0-0x8012af33	0/m93r	0	0	0		overwritten by m93r of 0/m93r at event 870
@@ -1805,7 +1805,7 @@ m93r	main memory	trace-20261012-152043	session 1	1	acropolis_patio	3	2		0x8011d1
 m93r	main memory	trace-20261012-152043	session 1	1	acropolis_patio	3	3		0x8011d1c0-0x8012af33	0/m93r	0	0	0		
 m93r	main memory	trace-20261012-152043	session 1	1	acropolis_promenade	1	1		0x8011d1c0-0x8012af33	0/m93r	0	0	0		
 m93r	main memory	trace-20261012-152043	session 1	1	acropolis_promenade	1	2		0x8011d1c0-0x8012af33	0/m93r	0	0	0		
-m93r	main memory	trace-20261012-152043	session 1	1	acropolis_sanctuary	1	1		0x8011d1c0-0x8012af33	0/m93r	0	0	0		overwritten by mp5a5 of 0/mp5a5 at event 13021
+m93r	main memory	trace-20261012-152043	session 1	1	acropolis_sanctuary	1	1		0x8011d1c0-0x8012af33	0/m93r	0	0	0		overwritten by weapons/mp5a5/package of 0/mp5a5 at event 13021
 m93r	main memory	trace-20261012-152043	session 1	1	acropolis_security_room	1	1		0x8011d1c0-0x8012af33	0/m93r	0	0	0		
 m93r	main memory	trace-20261012-152043	session 1	1	akropolis_square	1	1		0x8011d1c0-0x8012af33	0/m93r	0	0	0		
 m93r	main memory	trace-20261012-152043	session 1	1	akropolis_square	1	2		0x8011d1c0-0x8012af33	0/m93r	0	0	0		
@@ -1960,48 +1960,48 @@ mist_shooting_gallery	view	trace-20261012-145054	session 1	1	mist_shooting_galle
 mist_shooting_gallery	view	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1	6		1/mist_shooting_gallery/file0	0	0	0	file 6, background bs_287	
 mist_shooting_gallery	view	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1	7		1/mist_shooting_gallery/file0	0	0	0	file 7, background bs_288	
 mist_shooting_gallery	view	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1	8		1/mist_shooting_gallery/file0	0	0	0	file 8, background bs_289	
-mp5a5	main memory	trace-20261012-152043	session 1	1	acropolis_bridge	1	1		0x8011d1c0-0x8012b50f	0/mp5a5	0	0	0		
-mp5a5	main memory	trace-20261012-152043	session 1	1	acropolis_bridge	1	2		0x8011d1c0-0x8012b50f	0/mp5a5	0	0	0		
-mp5a5	main memory	trace-20261012-152043	session 1	1	acropolis_bridge	2	1		0x8011d1c0-0x8012b50f	0/mp5a5	0	0	0		
-mp5a5	main memory	trace-20261012-152043	session 1	1	acropolis_bridge	2	3		0x8011d1c0-0x8012b50f	0/mp5a5	0	0	0		
-mp5a5	main memory	trace-20261012-152043	session 1	1	acropolis_cafeteria	4	4		0x8011d1c0-0x8012b50f	0/mp5a5	0	0	0		
-mp5a5	main memory	trace-20261012-152043	session 1	1	acropolis_fire_escape	1	1		0x8011d1c0-0x8012b50f	0/mp5a5	0	0	0		
-mp5a5	main memory	trace-20261012-152043	session 1	1	acropolis_forked_road	1	4		0x8011d1c0-0x8012b50f	0/mp5a5	0	0	0		
-mp5a5	main memory	trace-20261012-152043	session 1	1	acropolis_forked_road	2	2		0x8011d1c0-0x8012b50f	0/mp5a5	0	0	0		
-mp5a5	main memory	trace-20261012-152043	session 1	1	acropolis_forked_road	2	3		0x8011d1c0-0x8012b50f	0/mp5a5	0	0	0		
-mp5a5	main memory	trace-20261012-152043	session 1	1	acropolis_forked_road	2	4		0x8011d1c0-0x8012b50f	0/mp5a5	0	0	0		
-mp5a5	main memory	trace-20261012-152043	session 1	1	acropolis_fountain	1	2		0x8011d1c0-0x8012b50f	0/mp5a5	0	0	0		
-mp5a5	main memory	trace-20261012-152043	session 1	1	acropolis_fountain	2	2		0x8011d1c0-0x8012b50f	0/mp5a5	0	0	0		
-mp5a5	main memory	trace-20261012-152043	session 1	1	acropolis_fountain	2	4		0x8011d1c0-0x8012b50f	0/mp5a5	0	0	0		
-mp5a5	main memory	trace-20261012-152043	session 1	1	acropolis_hallway	1	1		0x8011d1c0-0x8012b50f	0/mp5a5	0	0	0		
-mp5a5	main memory	trace-20261012-152043	session 1	1	acropolis_hallway	1	4		0x8011d1c0-0x8012b50f	0/mp5a5	0	0	0		
-mp5a5	main memory	trace-20261012-152043	session 1	1	acropolis_helicopter_landing_pad	1	1		0x8011d1c0-0x8012b50f	0/mp5a5	0	0	0		
-mp5a5	main memory	trace-20261012-152043	session 1	1	acropolis_helicopter_landing_pad	1	2		0x8011d1c0-0x8012b50f	0/mp5a5	0	0	0		
-mp5a5	main memory	trace-20261012-152043	session 1	1	acropolis_observatory	1	2		0x8011d1c0-0x8012b50f	0/mp5a5	0	0	0		
-mp5a5	main memory	trace-20261012-152043	session 1	1	acropolis_observatory	1	3		0x8011d1c0-0x8012b50f	0/mp5a5	0	0	0		overwritten by tonfa_baton of 0/tonfa_baton at event 22718
-mp5a5	main memory	trace-20261012-152043	session 1	1	acropolis_observatory	2	3		0x8011d1c0-0x8012b50f	0/mp5a5	0	0	0		
-mp5a5	main memory	trace-20261012-152043	session 1	1	acropolis_observatory	2	4		0x8011d1c0-0x8012b50f	0/mp5a5	0	0	0		
-mp5a5	main memory	trace-20261012-152043	session 1	1	acropolis_patio	3	2		0x8011d1c0-0x8012b50f	0/mp5a5	0	0	0		
-mp5a5	main memory	trace-20261012-152043	session 1	1	acropolis_patio	3	4		0x8011d1c0-0x8012b50f	0/mp5a5	0	0	0		
-mp5a5	main memory	trace-20261012-152043	session 1	1	acropolis_promenade	1	3		0x8011d1c0-0x8012b50f	0/mp5a5	0	0	0		
-mp5a5	main memory	trace-20261012-152043	session 1	1	acropolis_promenade	2	1		0x8011d1c0-0x8012b50f	0/mp5a5	0	0	0		
-mp5a5	main memory	trace-20261012-152043	session 1	1	acropolis_promenade	2	2		0x8011d1c0-0x8012b50f	0/mp5a5	0	0	0		
-mp5a5	main memory	trace-20261012-152043	session 1	1	acropolis_promenade	2	3		0x8011d1c0-0x8012b50f	0/mp5a5	0	0	0		
-mp5a5	main memory	trace-20261012-152043	session 1	1	acropolis_roof_garden	1	1		0x8011d1c0-0x8012b50f	0/mp5a5	0	0	0		
-mp5a5	main memory	trace-20261012-152043	session 1	1	acropolis_roof_garden	1	2		0x8011d1c0-0x8012b50f	0/mp5a5	0	0	0		
-mp5a5	main memory	trace-20261012-152043	session 1	1	acropolis_roof_garden	1	3		0x8011d1c0-0x8012b50f	0/mp5a5	0	0	0		
-mp5a5	main memory	trace-20261012-152043	session 1	1	acropolis_sanctuary	1	1		0x8011d1c0-0x8012b50f	0/mp5a5	0	0	0		
-mp5a5	main memory	trace-20261012-152043	session 1	1	acropolis_sanctuary	1	2		0x8011d1c0-0x8012b50f	0/mp5a5	0	0	0		
-mp5a5	main memory	trace-20261012-152043	session 1	1	acropolis_sanctuary	1	3		0x8011d1c0-0x8012b50f	0/mp5a5	0	0	0		
-mp5a5	main memory	trace-20261012-152043	session 1	1	acropolis_sanctuary	120	3		0x8011d1c0-0x8012b50f	0/mp5a5	0	0	0		
-mp5a5	main memory	trace-20261012-152043	session 1	1	acropolis_sanctuary	96	3		0x8011d1c0-0x8012b50f	0/mp5a5	0	0	0		
-mp5a5	main memory	trace-20261012-152043	session 1	1	acropolis_security_room	1	1		0x8011d1c0-0x8012b50f	0/mp5a5	0	0	0		
-mp5a5	main memory	trace-20261012-152043	session 1	1	acropolis_security_room	1	4		0x8011d1c0-0x8012b50f	0/mp5a5	0	0	0		
-mp5a5	main memory	trace-20261012-152043	session 1	1	akropolis_square	1	2		0x8011d1c0-0x8012b50f	0/mp5a5	0	0	0		
-mp5a5	main memory	trace-20261012-152043	session 1	1	akropolis_square	1	3		0x8011d1c0-0x8012b50f	0/mp5a5	0	0	0		
-mp5a5	main memory	trace-20261012-152043	session 1	1	akropolis_square	1	4		0x8011d1c0-0x8012b50f	0/mp5a5	0	0	0		
-mp5a5	main memory	trace-20261012-152043	session 1	1	mist_r18	1	1		0x8011d1c0-0x8012b50f	0/mp5a5	0	0	0		overwritten by p08_snail of 0/p08_snail at event 41596
-mp5a5	main memory	trace-20261012-152043	session 1	1	mist_r18	1	2		0x8011d1c0-0x8012b50f	0/mp5a5	0	0	0		
+weapons/mp5a5/package	main memory	trace-20261012-152043	session 1	1	acropolis_bridge	1	1		0x8011d1c0-0x8012b50f	0/mp5a5	0	0	0		
+weapons/mp5a5/package	main memory	trace-20261012-152043	session 1	1	acropolis_bridge	1	2		0x8011d1c0-0x8012b50f	0/mp5a5	0	0	0		
+weapons/mp5a5/package	main memory	trace-20261012-152043	session 1	1	acropolis_bridge	2	1		0x8011d1c0-0x8012b50f	0/mp5a5	0	0	0		
+weapons/mp5a5/package	main memory	trace-20261012-152043	session 1	1	acropolis_bridge	2	3		0x8011d1c0-0x8012b50f	0/mp5a5	0	0	0		
+weapons/mp5a5/package	main memory	trace-20261012-152043	session 1	1	acropolis_cafeteria	4	4		0x8011d1c0-0x8012b50f	0/mp5a5	0	0	0		
+weapons/mp5a5/package	main memory	trace-20261012-152043	session 1	1	acropolis_fire_escape	1	1		0x8011d1c0-0x8012b50f	0/mp5a5	0	0	0		
+weapons/mp5a5/package	main memory	trace-20261012-152043	session 1	1	acropolis_forked_road	1	4		0x8011d1c0-0x8012b50f	0/mp5a5	0	0	0		
+weapons/mp5a5/package	main memory	trace-20261012-152043	session 1	1	acropolis_forked_road	2	2		0x8011d1c0-0x8012b50f	0/mp5a5	0	0	0		
+weapons/mp5a5/package	main memory	trace-20261012-152043	session 1	1	acropolis_forked_road	2	3		0x8011d1c0-0x8012b50f	0/mp5a5	0	0	0		
+weapons/mp5a5/package	main memory	trace-20261012-152043	session 1	1	acropolis_forked_road	2	4		0x8011d1c0-0x8012b50f	0/mp5a5	0	0	0		
+weapons/mp5a5/package	main memory	trace-20261012-152043	session 1	1	acropolis_fountain	1	2		0x8011d1c0-0x8012b50f	0/mp5a5	0	0	0		
+weapons/mp5a5/package	main memory	trace-20261012-152043	session 1	1	acropolis_fountain	2	2		0x8011d1c0-0x8012b50f	0/mp5a5	0	0	0		
+weapons/mp5a5/package	main memory	trace-20261012-152043	session 1	1	acropolis_fountain	2	4		0x8011d1c0-0x8012b50f	0/mp5a5	0	0	0		
+weapons/mp5a5/package	main memory	trace-20261012-152043	session 1	1	acropolis_hallway	1	1		0x8011d1c0-0x8012b50f	0/mp5a5	0	0	0		
+weapons/mp5a5/package	main memory	trace-20261012-152043	session 1	1	acropolis_hallway	1	4		0x8011d1c0-0x8012b50f	0/mp5a5	0	0	0		
+weapons/mp5a5/package	main memory	trace-20261012-152043	session 1	1	acropolis_helicopter_landing_pad	1	1		0x8011d1c0-0x8012b50f	0/mp5a5	0	0	0		
+weapons/mp5a5/package	main memory	trace-20261012-152043	session 1	1	acropolis_helicopter_landing_pad	1	2		0x8011d1c0-0x8012b50f	0/mp5a5	0	0	0		
+weapons/mp5a5/package	main memory	trace-20261012-152043	session 1	1	acropolis_observatory	1	2		0x8011d1c0-0x8012b50f	0/mp5a5	0	0	0		
+weapons/mp5a5/package	main memory	trace-20261012-152043	session 1	1	acropolis_observatory	1	3		0x8011d1c0-0x8012b50f	0/mp5a5	0	0	0		overwritten by weapons/tonfa_baton/package of 0/tonfa_baton at event 22718
+weapons/mp5a5/package	main memory	trace-20261012-152043	session 1	1	acropolis_observatory	2	3		0x8011d1c0-0x8012b50f	0/mp5a5	0	0	0		
+weapons/mp5a5/package	main memory	trace-20261012-152043	session 1	1	acropolis_observatory	2	4		0x8011d1c0-0x8012b50f	0/mp5a5	0	0	0		
+weapons/mp5a5/package	main memory	trace-20261012-152043	session 1	1	acropolis_patio	3	2		0x8011d1c0-0x8012b50f	0/mp5a5	0	0	0		
+weapons/mp5a5/package	main memory	trace-20261012-152043	session 1	1	acropolis_patio	3	4		0x8011d1c0-0x8012b50f	0/mp5a5	0	0	0		
+weapons/mp5a5/package	main memory	trace-20261012-152043	session 1	1	acropolis_promenade	1	3		0x8011d1c0-0x8012b50f	0/mp5a5	0	0	0		
+weapons/mp5a5/package	main memory	trace-20261012-152043	session 1	1	acropolis_promenade	2	1		0x8011d1c0-0x8012b50f	0/mp5a5	0	0	0		
+weapons/mp5a5/package	main memory	trace-20261012-152043	session 1	1	acropolis_promenade	2	2		0x8011d1c0-0x8012b50f	0/mp5a5	0	0	0		
+weapons/mp5a5/package	main memory	trace-20261012-152043	session 1	1	acropolis_promenade	2	3		0x8011d1c0-0x8012b50f	0/mp5a5	0	0	0		
+weapons/mp5a5/package	main memory	trace-20261012-152043	session 1	1	acropolis_roof_garden	1	1		0x8011d1c0-0x8012b50f	0/mp5a5	0	0	0		
+weapons/mp5a5/package	main memory	trace-20261012-152043	session 1	1	acropolis_roof_garden	1	2		0x8011d1c0-0x8012b50f	0/mp5a5	0	0	0		
+weapons/mp5a5/package	main memory	trace-20261012-152043	session 1	1	acropolis_roof_garden	1	3		0x8011d1c0-0x8012b50f	0/mp5a5	0	0	0		
+weapons/mp5a5/package	main memory	trace-20261012-152043	session 1	1	acropolis_sanctuary	1	1		0x8011d1c0-0x8012b50f	0/mp5a5	0	0	0		
+weapons/mp5a5/package	main memory	trace-20261012-152043	session 1	1	acropolis_sanctuary	1	2		0x8011d1c0-0x8012b50f	0/mp5a5	0	0	0		
+weapons/mp5a5/package	main memory	trace-20261012-152043	session 1	1	acropolis_sanctuary	1	3		0x8011d1c0-0x8012b50f	0/mp5a5	0	0	0		
+weapons/mp5a5/package	main memory	trace-20261012-152043	session 1	1	acropolis_sanctuary	120	3		0x8011d1c0-0x8012b50f	0/mp5a5	0	0	0		
+weapons/mp5a5/package	main memory	trace-20261012-152043	session 1	1	acropolis_sanctuary	96	3		0x8011d1c0-0x8012b50f	0/mp5a5	0	0	0		
+weapons/mp5a5/package	main memory	trace-20261012-152043	session 1	1	acropolis_security_room	1	1		0x8011d1c0-0x8012b50f	0/mp5a5	0	0	0		
+weapons/mp5a5/package	main memory	trace-20261012-152043	session 1	1	acropolis_security_room	1	4		0x8011d1c0-0x8012b50f	0/mp5a5	0	0	0		
+weapons/mp5a5/package	main memory	trace-20261012-152043	session 1	1	akropolis_square	1	2		0x8011d1c0-0x8012b50f	0/mp5a5	0	0	0		
+weapons/mp5a5/package	main memory	trace-20261012-152043	session 1	1	akropolis_square	1	3		0x8011d1c0-0x8012b50f	0/mp5a5	0	0	0		
+weapons/mp5a5/package	main memory	trace-20261012-152043	session 1	1	akropolis_square	1	4		0x8011d1c0-0x8012b50f	0/mp5a5	0	0	0		
+weapons/mp5a5/package	main memory	trace-20261012-152043	session 1	1	mist_r18	1	1		0x8011d1c0-0x8012b50f	0/mp5a5	0	0	0		overwritten by p08_snail of 0/p08_snail at event 41596
+weapons/mp5a5/package	main memory	trace-20261012-152043	session 1	1	mist_r18	1	2		0x8011d1c0-0x8012b50f	0/mp5a5	0	0	0		
 necrosis	main memory	trace-20261012-152043	session 1	1	acropolis_helicopter_landing_pad	1	1		0x8012ef30-0x801306d3	0/file50110	0	0	0		overwritten by energyshot of 0/file50131 at event 31063
 options	main memory	trace-20261012-145054	session 1						0x801d4000-0x801d5f17	0/options	-8	-3	3		
 options	main memory	trace-20261012-145054	session 1						0x801d4000-0x801d5f17	0/options	-8	-3	3		overwritten by options of 0/options at event 117
@@ -4717,9 +4717,9 @@ pe2clut_209	video memory	trace-20261012-152043	session 1	1	akropolis_square	1	2	
 pe2clut_209	video memory	trace-20261012-152043	session 1	1	akropolis_square	1	2		0,251,256,2	0/file210600	4	6	0		
 pe2clut_209	video memory	trace-20261012-152043	session 1	1	mist_parking	1	2		0,247,256,2	0/file101900	0	2	0		
 pe2clut_209	video memory	trace-20261012-152043	session 1	1	mist_parking	1	2		0,251,256,2	0/file210600	4	6	0		
-pe2clut_21	video memory	trace-20261012-145054	session 1	1	mist_parking	1	1		0,243,16,1	0/tonfa_baton	0	0	0		overwritten by weapons/m93r/palette of 0/m93r at event 11948
-pe2clut_21	video memory	trace-20261012-152043	session 1	1	acropolis_observatory	1	3		0,243,16,1	0/tonfa_baton	0	0	0		
-pe2clut_21	video memory	trace-20261012-152043	session 1	1	acropolis_promenade	2	3		0,243,16,1	0/tonfa_baton	0	0	0		overwritten by pe2clut_28 of 0/mp5a5 at event 22974
+weapons/tonfa_baton/palette	video memory	trace-20261012-145054	session 1	1	mist_parking	1	1		0,243,16,1	0/tonfa_baton	0	0	0		overwritten by weapons/m93r/palette of 0/m93r at event 11948
+weapons/tonfa_baton/palette	video memory	trace-20261012-152043	session 1	1	acropolis_observatory	1	3		0,243,16,1	0/tonfa_baton	0	0	0		
+weapons/tonfa_baton/palette	video memory	trace-20261012-152043	session 1	1	acropolis_promenade	2	3		0,243,16,1	0/tonfa_baton	0	0	0		overwritten by weapons/mp5a5/palette of 0/mp5a5 at event 22974
 pe2clut_217	video memory	trace-20261012-152043	session 1	1	acropolis_observatory	1	3		0,247,256,2	0/file103700	0	2	0		
 pe2clut_217	video memory	trace-20261012-152043	session 1	1	acropolis_observatory	2	3		0,247,256,2	0/file103700	0	2	0		
 pe2clut_217	video memory	trace-20261012-152043	session 1	1	acropolis_observatory	2	4		0,247,256,2	0/file103700	0	2	0		
@@ -5015,48 +5015,48 @@ pe2clut_276	video memory	trace-20261012-152043	session 1	1	acropolis_hallway	1	3
 pe2clut_276	video memory	trace-20261012-152043	session 1	1	acropolis_hallway	1	4		0,247,256,2	0/file401800	0	2	0		
 pe2clut_276	video memory	trace-20261012-152043	session 1	1	acropolis_hallway	1	4		0,247,256,2	0/file401800	0	2	0		overwritten by pe2clut_276 of 0/file401800 at event 19566
 pe2clut_276	video memory	trace-20261012-152043	session 1	1	acropolis_security_room	1	4		0,247,256,2	0/file401800	0	2	0		overwritten by pe2clut_268 of 0/file311900 at event 19920
-pe2clut_28	video memory	trace-20261012-152043	session 1	1	acropolis_bridge	1	1		0,243,16,1	0/mp5a5	0	0	0		
-pe2clut_28	video memory	trace-20261012-152043	session 1	1	acropolis_bridge	1	2		0,243,16,1	0/mp5a5	0	0	0		
-pe2clut_28	video memory	trace-20261012-152043	session 1	1	acropolis_bridge	2	1		0,243,16,1	0/mp5a5	0	0	0		
-pe2clut_28	video memory	trace-20261012-152043	session 1	1	acropolis_bridge	2	3		0,243,16,1	0/mp5a5	0	0	0		
-pe2clut_28	video memory	trace-20261012-152043	session 1	1	acropolis_cafeteria	4	4		0,243,16,1	0/mp5a5	0	0	0		
-pe2clut_28	video memory	trace-20261012-152043	session 1	1	acropolis_fire_escape	1	1		0,243,16,1	0/mp5a5	0	0	0		
-pe2clut_28	video memory	trace-20261012-152043	session 1	1	acropolis_forked_road	1	4		0,243,16,1	0/mp5a5	0	0	0		
-pe2clut_28	video memory	trace-20261012-152043	session 1	1	acropolis_forked_road	2	2		0,243,16,1	0/mp5a5	0	0	0		
-pe2clut_28	video memory	trace-20261012-152043	session 1	1	acropolis_forked_road	2	3		0,243,16,1	0/mp5a5	0	0	0		
-pe2clut_28	video memory	trace-20261012-152043	session 1	1	acropolis_forked_road	2	4		0,243,16,1	0/mp5a5	0	0	0		
-pe2clut_28	video memory	trace-20261012-152043	session 1	1	acropolis_fountain	1	2		0,243,16,1	0/mp5a5	0	0	0		
-pe2clut_28	video memory	trace-20261012-152043	session 1	1	acropolis_fountain	2	2		0,243,16,1	0/mp5a5	0	0	0		
-pe2clut_28	video memory	trace-20261012-152043	session 1	1	acropolis_fountain	2	4		0,243,16,1	0/mp5a5	0	0	0		
-pe2clut_28	video memory	trace-20261012-152043	session 1	1	acropolis_hallway	1	1		0,243,16,1	0/mp5a5	0	0	0		
-pe2clut_28	video memory	trace-20261012-152043	session 1	1	acropolis_hallway	1	4		0,243,16,1	0/mp5a5	0	0	0		
-pe2clut_28	video memory	trace-20261012-152043	session 1	1	acropolis_helicopter_landing_pad	1	1		0,243,16,1	0/mp5a5	0	0	0		
-pe2clut_28	video memory	trace-20261012-152043	session 1	1	acropolis_helicopter_landing_pad	1	2		0,243,16,1	0/mp5a5	0	0	0		
-pe2clut_28	video memory	trace-20261012-152043	session 1	1	acropolis_observatory	1	2		0,243,16,1	0/mp5a5	0	0	0		
-pe2clut_28	video memory	trace-20261012-152043	session 1	1	acropolis_observatory	1	3		0,243,16,1	0/mp5a5	0	0	0		overwritten by pe2clut_21 of 0/tonfa_baton at event 22712
-pe2clut_28	video memory	trace-20261012-152043	session 1	1	acropolis_observatory	2	3		0,243,16,1	0/mp5a5	0	0	0		
-pe2clut_28	video memory	trace-20261012-152043	session 1	1	acropolis_observatory	2	4		0,243,16,1	0/mp5a5	0	0	0		
-pe2clut_28	video memory	trace-20261012-152043	session 1	1	acropolis_patio	3	2		0,243,16,1	0/mp5a5	0	0	0		
-pe2clut_28	video memory	trace-20261012-152043	session 1	1	acropolis_patio	3	4		0,243,16,1	0/mp5a5	0	0	0		
-pe2clut_28	video memory	trace-20261012-152043	session 1	1	acropolis_promenade	1	3		0,243,16,1	0/mp5a5	0	0	0		
-pe2clut_28	video memory	trace-20261012-152043	session 1	1	acropolis_promenade	2	1		0,243,16,1	0/mp5a5	0	0	0		
-pe2clut_28	video memory	trace-20261012-152043	session 1	1	acropolis_promenade	2	2		0,243,16,1	0/mp5a5	0	0	0		
-pe2clut_28	video memory	trace-20261012-152043	session 1	1	acropolis_promenade	2	3		0,243,16,1	0/mp5a5	0	0	0		
-pe2clut_28	video memory	trace-20261012-152043	session 1	1	acropolis_roof_garden	1	1		0,243,16,1	0/mp5a5	0	0	0		
-pe2clut_28	video memory	trace-20261012-152043	session 1	1	acropolis_roof_garden	1	2		0,243,16,1	0/mp5a5	0	0	0		
-pe2clut_28	video memory	trace-20261012-152043	session 1	1	acropolis_roof_garden	1	3		0,243,16,1	0/mp5a5	0	0	0		
-pe2clut_28	video memory	trace-20261012-152043	session 1	1	acropolis_sanctuary	1	1		0,243,16,1	0/mp5a5	0	0	0		
-pe2clut_28	video memory	trace-20261012-152043	session 1	1	acropolis_sanctuary	1	2		0,243,16,1	0/mp5a5	0	0	0		
-pe2clut_28	video memory	trace-20261012-152043	session 1	1	acropolis_sanctuary	1	3		0,243,16,1	0/mp5a5	0	0	0		
-pe2clut_28	video memory	trace-20261012-152043	session 1	1	acropolis_sanctuary	120	3		0,243,16,1	0/mp5a5	0	0	0		
-pe2clut_28	video memory	trace-20261012-152043	session 1	1	acropolis_sanctuary	96	3		0,243,16,1	0/mp5a5	0	0	0		
-pe2clut_28	video memory	trace-20261012-152043	session 1	1	acropolis_security_room	1	1		0,243,16,1	0/mp5a5	0	0	0		
-pe2clut_28	video memory	trace-20261012-152043	session 1	1	acropolis_security_room	1	4		0,243,16,1	0/mp5a5	0	0	0		
-pe2clut_28	video memory	trace-20261012-152043	session 1	1	akropolis_square	1	2		0,243,16,1	0/mp5a5	0	0	0		
-pe2clut_28	video memory	trace-20261012-152043	session 1	1	akropolis_square	1	3		0,243,16,1	0/mp5a5	0	0	0		
-pe2clut_28	video memory	trace-20261012-152043	session 1	1	akropolis_square	1	4		0,243,16,1	0/mp5a5	0	0	0		
-pe2clut_28	video memory	trace-20261012-152043	session 1	1	mist_r18	1	1		0,243,16,1	0/mp5a5	0	0	0		overwritten by pe2clut_6 of 0/p08_snail at event 41590
-pe2clut_28	video memory	trace-20261012-152043	session 1	1	mist_r18	1	2		0,243,16,1	0/mp5a5	0	0	0		
+weapons/mp5a5/palette	video memory	trace-20261012-152043	session 1	1	acropolis_bridge	1	1		0,243,16,1	0/mp5a5	0	0	0		
+weapons/mp5a5/palette	video memory	trace-20261012-152043	session 1	1	acropolis_bridge	1	2		0,243,16,1	0/mp5a5	0	0	0		
+weapons/mp5a5/palette	video memory	trace-20261012-152043	session 1	1	acropolis_bridge	2	1		0,243,16,1	0/mp5a5	0	0	0		
+weapons/mp5a5/palette	video memory	trace-20261012-152043	session 1	1	acropolis_bridge	2	3		0,243,16,1	0/mp5a5	0	0	0		
+weapons/mp5a5/palette	video memory	trace-20261012-152043	session 1	1	acropolis_cafeteria	4	4		0,243,16,1	0/mp5a5	0	0	0		
+weapons/mp5a5/palette	video memory	trace-20261012-152043	session 1	1	acropolis_fire_escape	1	1		0,243,16,1	0/mp5a5	0	0	0		
+weapons/mp5a5/palette	video memory	trace-20261012-152043	session 1	1	acropolis_forked_road	1	4		0,243,16,1	0/mp5a5	0	0	0		
+weapons/mp5a5/palette	video memory	trace-20261012-152043	session 1	1	acropolis_forked_road	2	2		0,243,16,1	0/mp5a5	0	0	0		
+weapons/mp5a5/palette	video memory	trace-20261012-152043	session 1	1	acropolis_forked_road	2	3		0,243,16,1	0/mp5a5	0	0	0		
+weapons/mp5a5/palette	video memory	trace-20261012-152043	session 1	1	acropolis_forked_road	2	4		0,243,16,1	0/mp5a5	0	0	0		
+weapons/mp5a5/palette	video memory	trace-20261012-152043	session 1	1	acropolis_fountain	1	2		0,243,16,1	0/mp5a5	0	0	0		
+weapons/mp5a5/palette	video memory	trace-20261012-152043	session 1	1	acropolis_fountain	2	2		0,243,16,1	0/mp5a5	0	0	0		
+weapons/mp5a5/palette	video memory	trace-20261012-152043	session 1	1	acropolis_fountain	2	4		0,243,16,1	0/mp5a5	0	0	0		
+weapons/mp5a5/palette	video memory	trace-20261012-152043	session 1	1	acropolis_hallway	1	1		0,243,16,1	0/mp5a5	0	0	0		
+weapons/mp5a5/palette	video memory	trace-20261012-152043	session 1	1	acropolis_hallway	1	4		0,243,16,1	0/mp5a5	0	0	0		
+weapons/mp5a5/palette	video memory	trace-20261012-152043	session 1	1	acropolis_helicopter_landing_pad	1	1		0,243,16,1	0/mp5a5	0	0	0		
+weapons/mp5a5/palette	video memory	trace-20261012-152043	session 1	1	acropolis_helicopter_landing_pad	1	2		0,243,16,1	0/mp5a5	0	0	0		
+weapons/mp5a5/palette	video memory	trace-20261012-152043	session 1	1	acropolis_observatory	1	2		0,243,16,1	0/mp5a5	0	0	0		
+weapons/mp5a5/palette	video memory	trace-20261012-152043	session 1	1	acropolis_observatory	1	3		0,243,16,1	0/mp5a5	0	0	0		overwritten by weapons/tonfa_baton/palette of 0/tonfa_baton at event 22712
+weapons/mp5a5/palette	video memory	trace-20261012-152043	session 1	1	acropolis_observatory	2	3		0,243,16,1	0/mp5a5	0	0	0		
+weapons/mp5a5/palette	video memory	trace-20261012-152043	session 1	1	acropolis_observatory	2	4		0,243,16,1	0/mp5a5	0	0	0		
+weapons/mp5a5/palette	video memory	trace-20261012-152043	session 1	1	acropolis_patio	3	2		0,243,16,1	0/mp5a5	0	0	0		
+weapons/mp5a5/palette	video memory	trace-20261012-152043	session 1	1	acropolis_patio	3	4		0,243,16,1	0/mp5a5	0	0	0		
+weapons/mp5a5/palette	video memory	trace-20261012-152043	session 1	1	acropolis_promenade	1	3		0,243,16,1	0/mp5a5	0	0	0		
+weapons/mp5a5/palette	video memory	trace-20261012-152043	session 1	1	acropolis_promenade	2	1		0,243,16,1	0/mp5a5	0	0	0		
+weapons/mp5a5/palette	video memory	trace-20261012-152043	session 1	1	acropolis_promenade	2	2		0,243,16,1	0/mp5a5	0	0	0		
+weapons/mp5a5/palette	video memory	trace-20261012-152043	session 1	1	acropolis_promenade	2	3		0,243,16,1	0/mp5a5	0	0	0		
+weapons/mp5a5/palette	video memory	trace-20261012-152043	session 1	1	acropolis_roof_garden	1	1		0,243,16,1	0/mp5a5	0	0	0		
+weapons/mp5a5/palette	video memory	trace-20261012-152043	session 1	1	acropolis_roof_garden	1	2		0,243,16,1	0/mp5a5	0	0	0		
+weapons/mp5a5/palette	video memory	trace-20261012-152043	session 1	1	acropolis_roof_garden	1	3		0,243,16,1	0/mp5a5	0	0	0		
+weapons/mp5a5/palette	video memory	trace-20261012-152043	session 1	1	acropolis_sanctuary	1	1		0,243,16,1	0/mp5a5	0	0	0		
+weapons/mp5a5/palette	video memory	trace-20261012-152043	session 1	1	acropolis_sanctuary	1	2		0,243,16,1	0/mp5a5	0	0	0		
+weapons/mp5a5/palette	video memory	trace-20261012-152043	session 1	1	acropolis_sanctuary	1	3		0,243,16,1	0/mp5a5	0	0	0		
+weapons/mp5a5/palette	video memory	trace-20261012-152043	session 1	1	acropolis_sanctuary	120	3		0,243,16,1	0/mp5a5	0	0	0		
+weapons/mp5a5/palette	video memory	trace-20261012-152043	session 1	1	acropolis_sanctuary	96	3		0,243,16,1	0/mp5a5	0	0	0		
+weapons/mp5a5/palette	video memory	trace-20261012-152043	session 1	1	acropolis_security_room	1	1		0,243,16,1	0/mp5a5	0	0	0		
+weapons/mp5a5/palette	video memory	trace-20261012-152043	session 1	1	acropolis_security_room	1	4		0,243,16,1	0/mp5a5	0	0	0		
+weapons/mp5a5/palette	video memory	trace-20261012-152043	session 1	1	akropolis_square	1	2		0,243,16,1	0/mp5a5	0	0	0		
+weapons/mp5a5/palette	video memory	trace-20261012-152043	session 1	1	akropolis_square	1	3		0,243,16,1	0/mp5a5	0	0	0		
+weapons/mp5a5/palette	video memory	trace-20261012-152043	session 1	1	akropolis_square	1	4		0,243,16,1	0/mp5a5	0	0	0		
+weapons/mp5a5/palette	video memory	trace-20261012-152043	session 1	1	mist_r18	1	1		0,243,16,1	0/mp5a5	0	0	0		overwritten by weapons/p08/palette of 0/p08_snail at event 41590
+weapons/mp5a5/palette	video memory	trace-20261012-152043	session 1	1	mist_r18	1	2		0,243,16,1	0/mp5a5	0	0	0		
 pe2clut_29	video memory	trace-20261012-145054	session 1	1	acropolis_plaza	1	1		0,245,256,2	0/aya_10400	6	0	0		
 pe2clut_29	video memory	trace-20261012-145054	session 1	1	akropolis_square	1	1		0,245,256,2	0/aya_10400	6	0	0		
 pe2clut_29	video memory	trace-20261012-145054	session 1	1	akropolis_square	7	2		0,245,256,2	0/aya_10400	6	0	0		
@@ -5696,10 +5696,10 @@ pe2clut_59	video memory	trace-20261012-152043	session 1	1	acropolis_promenade	1	
 pe2clut_59	video memory	trace-20261012-152043	session 1	1	acropolis_roof_garden	1	2		0,253,256,1	0/file20203	-8	-3	3		
 pe2clut_59	video memory	trace-20261012-152043	session 1	1	acropolis_sanctuary	1	1		0,253,256,1	0/file20203	-8	-3	3		overwritten by pe2clut_31 of 0/file20102 at event 12733
 pe2clut_59	video memory	trace-20261012-152043	session 1	1	acropolis_security_room	1	1		0,253,256,1	0/file20203	-8	-3	3		
-pe2clut_6	video memory	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1		0,243,16,1	0/p08_snail	0	0	0		overwritten by weapons/m93r/palette of 0/m93r at event 10424
-pe2clut_6	video memory	trace-20261012-152043	session 1	1	mist_parking	3	1		0,243,16,1	0/p08_snail	0	0	0		
-pe2clut_6	video memory	trace-20261012-152043	session 1	1	mist_parking	3	2		0,243,16,1	0/p08_snail	0	0	0		
-pe2clut_6	video memory	trace-20261012-152043	session 1	1	mist_r18	1	1		0,243,16,1	0/p08_snail	0	0	0		
+weapons/p08/palette	video memory	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1		0,243,16,1	0/p08_snail	0	0	0		overwritten by weapons/m93r/palette of 0/m93r at event 10424
+weapons/p08/palette	video memory	trace-20261012-152043	session 1	1	mist_parking	3	1		0,243,16,1	0/p08_snail	0	0	0		
+weapons/p08/palette	video memory	trace-20261012-152043	session 1	1	mist_parking	3	2		0,243,16,1	0/p08_snail	0	0	0		
+weapons/p08/palette	video memory	trace-20261012-152043	session 1	1	mist_r18	1	1		0,243,16,1	0/p08_snail	0	0	0		
 pe2clut_60	video memory	trace-20261012-152043	session 1	1	acropolis_fountain	1	1		0,253,256,1	0/file20204	-8	-3	3		overwritten by pe2clut_120 of 0/file20360 at event 9165
 pe2clut_60	video memory	trace-20261012-152043	session 1	1	acropolis_hallway	1	1		0,253,256,1	0/file20204	-8	-3	3		
 pe2clut_60	video memory	trace-20261012-152043	session 1	1	acropolis_security_room	1	1		0,253,256,1	0/file20204	-8	-3	3		
@@ -5739,11 +5739,11 @@ weapons/m93r/palette	video memory	trace-20261012-145054	session 1	1	akropolis_sq
 weapons/m93r/palette	video memory	trace-20261012-145054	session 1	1	akropolis_square	7	2		0,243,16,1	0/m93r	0	0	0		
 weapons/m93r/palette	video memory	trace-20261012-145054	session 1	1	acropolis_west_elevator_hall	1	1		0,243,16,1	0/m93r	0	0	0		
 weapons/m93r/palette	video memory	trace-20261012-145054	session 1	1	mist_parking	1	1		0,243,16,1	0/m93r	0	0	0		
-weapons/m93r/palette	video memory	trace-20261012-145054	session 1	1	mist_parking	1	1		0,243,16,1	0/m93r	0	0	0		overwritten by pe2clut_21 of 0/tonfa_baton at event 11857
+weapons/m93r/palette	video memory	trace-20261012-145054	session 1	1	mist_parking	1	1		0,243,16,1	0/m93r	0	0	0		overwritten by weapons/tonfa_baton/palette of 0/tonfa_baton at event 11857
 weapons/m93r/palette	video memory	trace-20261012-145054	session 1	1	mist_parking	1	1		0,243,16,1	0/m93r	0	0	0		overwritten by weapons/m93r/palette of 0/m93r at event 12731
 weapons/m93r/palette	video memory	trace-20261012-145054	session 1	1	mist_parking	2	1		0,243,16,1	0/m93r	0	0	0		
 weapons/m93r/palette	video memory	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1		0,243,16,1	0/m93r	0	0	0		
-weapons/m93r/palette	video memory	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1		0,243,16,1	0/m93r	0	0	0		overwritten by pe2clut_6 of 0/p08_snail at event 8482
+weapons/m93r/palette	video memory	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1		0,243,16,1	0/m93r	0	0	0		overwritten by weapons/p08/palette of 0/p08_snail at event 8482
 weapons/m93r/palette	video memory	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1		0,243,16,1	0/m93r	0	0	0		overwritten by weapons/m93r/palette of 0/m93r at event 870
 weapons/m93r/palette	video memory	trace-20261012-152043	session 1						0,243,16,1	0/m93r	0	0	0		
 weapons/m93r/palette	video memory	trace-20261012-152043	session 1	1	acropolis_cafeteria	1	1		0,243,16,1	0/m93r	0	0	0		
@@ -5777,7 +5777,7 @@ weapons/m93r/palette	video memory	trace-20261012-152043	session 1	1	acropolis_pa
 weapons/m93r/palette	video memory	trace-20261012-152043	session 1	1	acropolis_patio	3	3		0,243,16,1	0/m93r	0	0	0		
 weapons/m93r/palette	video memory	trace-20261012-152043	session 1	1	acropolis_promenade	1	1		0,243,16,1	0/m93r	0	0	0		
 weapons/m93r/palette	video memory	trace-20261012-152043	session 1	1	acropolis_promenade	1	2		0,243,16,1	0/m93r	0	0	0		
-weapons/m93r/palette	video memory	trace-20261012-152043	session 1	1	acropolis_sanctuary	1	1		0,243,16,1	0/m93r	0	0	0		overwritten by pe2clut_28 of 0/mp5a5 at event 13015
+weapons/m93r/palette	video memory	trace-20261012-152043	session 1	1	acropolis_sanctuary	1	1		0,243,16,1	0/m93r	0	0	0		overwritten by weapons/mp5a5/palette of 0/mp5a5 at event 13015
 weapons/m93r/palette	video memory	trace-20261012-152043	session 1	1	acropolis_security_room	1	1		0,243,16,1	0/m93r	0	0	0		
 weapons/m93r/palette	video memory	trace-20261012-152043	session 1	1	akropolis_square	1	1		0,243,16,1	0/m93r	0	0	0		
 weapons/m93r/palette	video memory	trace-20261012-152043	session 1	1	akropolis_square	1	2		0,243,16,1	0/m93r	0	0	0		
@@ -6491,9 +6491,9 @@ pe2img_216	video memory	trace-20261012-152043	session 1	1	akropolis_square	1	2		
 pe2img_216	video memory	trace-20261012-152043	session 1	1	akropolis_square	1	2		640,256,128,256	0/file210600	4	6	0		
 pe2img_216	video memory	trace-20261012-152043	session 1	1	mist_parking	1	2		384,256,128,256	0/file101900	0	2	0		
 pe2img_216	video memory	trace-20261012-152043	session 1	1	mist_parking	1	2		640,256,128,256	0/file210600	4	6	0		
-pe2img_22	video memory	trace-20261012-145054	session 1	1	mist_parking	1	1		448,0,64,64	0/tonfa_baton	0	0	0		overwritten by weapons/m93r/image of 0/m93r at event 11948
-pe2img_22	video memory	trace-20261012-152043	session 1	1	acropolis_observatory	1	3		448,0,64,64	0/tonfa_baton	0	0	0		
-pe2img_22	video memory	trace-20261012-152043	session 1	1	acropolis_promenade	2	3		448,0,64,64	0/tonfa_baton	0	0	0		overwritten by pe2img_30 of 0/mp5a5 at event 22974
+weapons/tonfa_baton/image	video memory	trace-20261012-145054	session 1	1	mist_parking	1	1		448,0,64,64	0/tonfa_baton	0	0	0		overwritten by weapons/m93r/image of 0/m93r at event 11948
+weapons/tonfa_baton/image	video memory	trace-20261012-152043	session 1	1	acropolis_observatory	1	3		448,0,64,64	0/tonfa_baton	0	0	0		
+weapons/tonfa_baton/image	video memory	trace-20261012-152043	session 1	1	acropolis_promenade	2	3		448,0,64,64	0/tonfa_baton	0	0	0		overwritten by weapons/mp5a5/image of 0/mp5a5 at event 22974
 pe2img_223	video memory	trace-20261012-152043	session 1	1	acropolis_observatory	1	3		384,256,64,128	0/file103700	0	2	0	its last 128 rows are blank filler, not counted as part of it	
 pe2img_223	video memory	trace-20261012-152043	session 1	1	acropolis_observatory	2	3		384,256,64,128	0/file103700	0	2	0	its last 128 rows are blank filler, not counted as part of it	
 pe2img_223	video memory	trace-20261012-152043	session 1	1	acropolis_observatory	2	4		384,256,64,128	0/file103700	0	2	0	its last 128 rows are blank filler, not counted as part of it	
@@ -6777,48 +6777,48 @@ pe2img_3	video memory	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	
 pe2img_3	video memory	trace-20261012-152043	session 1						960,0,64,160	0/file5	0	0	0	its last 96 rows are blank filler, not counted as part of it	
 pe2img_3	video memory	trace-20261012-152043	session 1	1	akropolis_square	1	1		960,0,64,160	0/file5	0	0	0	its last 96 rows are blank filler, not counted as part of it	
 pe2img_3	video memory	trace-20261012-152043	session 1	1	akropolis_square	1	2		960,0,64,160	0/file5	0	0	0	its last 96 rows are blank filler, not counted as part of it	overwritten by rooms/akropolis/square/view6_image of 1/akropolis_square/file6 at event 124
-pe2img_30	video memory	trace-20261012-152043	session 1	1	acropolis_bridge	1	1		448,0,64,64	0/mp5a5	0	0	0		
-pe2img_30	video memory	trace-20261012-152043	session 1	1	acropolis_bridge	1	2		448,0,64,64	0/mp5a5	0	0	0		
-pe2img_30	video memory	trace-20261012-152043	session 1	1	acropolis_bridge	2	1		448,0,64,64	0/mp5a5	0	0	0		
-pe2img_30	video memory	trace-20261012-152043	session 1	1	acropolis_bridge	2	3		448,0,64,64	0/mp5a5	0	0	0		
-pe2img_30	video memory	trace-20261012-152043	session 1	1	acropolis_cafeteria	4	4		448,0,64,64	0/mp5a5	0	0	0		
-pe2img_30	video memory	trace-20261012-152043	session 1	1	acropolis_fire_escape	1	1		448,0,64,64	0/mp5a5	0	0	0		
-pe2img_30	video memory	trace-20261012-152043	session 1	1	acropolis_forked_road	1	4		448,0,64,64	0/mp5a5	0	0	0		
-pe2img_30	video memory	trace-20261012-152043	session 1	1	acropolis_forked_road	2	2		448,0,64,64	0/mp5a5	0	0	0		
-pe2img_30	video memory	trace-20261012-152043	session 1	1	acropolis_forked_road	2	3		448,0,64,64	0/mp5a5	0	0	0		
-pe2img_30	video memory	trace-20261012-152043	session 1	1	acropolis_forked_road	2	4		448,0,64,64	0/mp5a5	0	0	0		
-pe2img_30	video memory	trace-20261012-152043	session 1	1	acropolis_fountain	1	2		448,0,64,64	0/mp5a5	0	0	0		
-pe2img_30	video memory	trace-20261012-152043	session 1	1	acropolis_fountain	2	2		448,0,64,64	0/mp5a5	0	0	0		
-pe2img_30	video memory	trace-20261012-152043	session 1	1	acropolis_fountain	2	4		448,0,64,64	0/mp5a5	0	0	0		
-pe2img_30	video memory	trace-20261012-152043	session 1	1	acropolis_hallway	1	1		448,0,64,64	0/mp5a5	0	0	0		
-pe2img_30	video memory	trace-20261012-152043	session 1	1	acropolis_hallway	1	4		448,0,64,64	0/mp5a5	0	0	0		
-pe2img_30	video memory	trace-20261012-152043	session 1	1	acropolis_helicopter_landing_pad	1	1		448,0,64,64	0/mp5a5	0	0	0		
-pe2img_30	video memory	trace-20261012-152043	session 1	1	acropolis_helicopter_landing_pad	1	2		448,0,64,64	0/mp5a5	0	0	0		
-pe2img_30	video memory	trace-20261012-152043	session 1	1	acropolis_observatory	1	2		448,0,64,64	0/mp5a5	0	0	0		
-pe2img_30	video memory	trace-20261012-152043	session 1	1	acropolis_observatory	1	3		448,0,64,64	0/mp5a5	0	0	0		overwritten by pe2img_22 of 0/tonfa_baton at event 22712
-pe2img_30	video memory	trace-20261012-152043	session 1	1	acropolis_observatory	2	3		448,0,64,64	0/mp5a5	0	0	0		
-pe2img_30	video memory	trace-20261012-152043	session 1	1	acropolis_observatory	2	4		448,0,64,64	0/mp5a5	0	0	0		
-pe2img_30	video memory	trace-20261012-152043	session 1	1	acropolis_patio	3	2		448,0,64,64	0/mp5a5	0	0	0		
-pe2img_30	video memory	trace-20261012-152043	session 1	1	acropolis_patio	3	4		448,0,64,64	0/mp5a5	0	0	0		
-pe2img_30	video memory	trace-20261012-152043	session 1	1	acropolis_promenade	1	3		448,0,64,64	0/mp5a5	0	0	0		
-pe2img_30	video memory	trace-20261012-152043	session 1	1	acropolis_promenade	2	1		448,0,64,64	0/mp5a5	0	0	0		
-pe2img_30	video memory	trace-20261012-152043	session 1	1	acropolis_promenade	2	2		448,0,64,64	0/mp5a5	0	0	0		
-pe2img_30	video memory	trace-20261012-152043	session 1	1	acropolis_promenade	2	3		448,0,64,64	0/mp5a5	0	0	0		
-pe2img_30	video memory	trace-20261012-152043	session 1	1	acropolis_roof_garden	1	1		448,0,64,64	0/mp5a5	0	0	0		
-pe2img_30	video memory	trace-20261012-152043	session 1	1	acropolis_roof_garden	1	2		448,0,64,64	0/mp5a5	0	0	0		
-pe2img_30	video memory	trace-20261012-152043	session 1	1	acropolis_roof_garden	1	3		448,0,64,64	0/mp5a5	0	0	0		
-pe2img_30	video memory	trace-20261012-152043	session 1	1	acropolis_sanctuary	1	1		448,0,64,64	0/mp5a5	0	0	0		
-pe2img_30	video memory	trace-20261012-152043	session 1	1	acropolis_sanctuary	1	2		448,0,64,64	0/mp5a5	0	0	0		
-pe2img_30	video memory	trace-20261012-152043	session 1	1	acropolis_sanctuary	1	3		448,0,64,64	0/mp5a5	0	0	0		
-pe2img_30	video memory	trace-20261012-152043	session 1	1	acropolis_sanctuary	120	3		448,0,64,64	0/mp5a5	0	0	0		
-pe2img_30	video memory	trace-20261012-152043	session 1	1	acropolis_sanctuary	96	3		448,0,64,64	0/mp5a5	0	0	0		
-pe2img_30	video memory	trace-20261012-152043	session 1	1	acropolis_security_room	1	1		448,0,64,64	0/mp5a5	0	0	0		
-pe2img_30	video memory	trace-20261012-152043	session 1	1	acropolis_security_room	1	4		448,0,64,64	0/mp5a5	0	0	0		
-pe2img_30	video memory	trace-20261012-152043	session 1	1	akropolis_square	1	2		448,0,64,64	0/mp5a5	0	0	0		
-pe2img_30	video memory	trace-20261012-152043	session 1	1	akropolis_square	1	3		448,0,64,64	0/mp5a5	0	0	0		
-pe2img_30	video memory	trace-20261012-152043	session 1	1	akropolis_square	1	4		448,0,64,64	0/mp5a5	0	0	0		
-pe2img_30	video memory	trace-20261012-152043	session 1	1	mist_r18	1	1		448,0,64,64	0/mp5a5	0	0	0		overwritten by pe2img_6 of 0/p08_snail at event 41590
-pe2img_30	video memory	trace-20261012-152043	session 1	1	mist_r18	1	2		448,0,64,64	0/mp5a5	0	0	0		
+weapons/mp5a5/image	video memory	trace-20261012-152043	session 1	1	acropolis_bridge	1	1		448,0,64,64	0/mp5a5	0	0	0		
+weapons/mp5a5/image	video memory	trace-20261012-152043	session 1	1	acropolis_bridge	1	2		448,0,64,64	0/mp5a5	0	0	0		
+weapons/mp5a5/image	video memory	trace-20261012-152043	session 1	1	acropolis_bridge	2	1		448,0,64,64	0/mp5a5	0	0	0		
+weapons/mp5a5/image	video memory	trace-20261012-152043	session 1	1	acropolis_bridge	2	3		448,0,64,64	0/mp5a5	0	0	0		
+weapons/mp5a5/image	video memory	trace-20261012-152043	session 1	1	acropolis_cafeteria	4	4		448,0,64,64	0/mp5a5	0	0	0		
+weapons/mp5a5/image	video memory	trace-20261012-152043	session 1	1	acropolis_fire_escape	1	1		448,0,64,64	0/mp5a5	0	0	0		
+weapons/mp5a5/image	video memory	trace-20261012-152043	session 1	1	acropolis_forked_road	1	4		448,0,64,64	0/mp5a5	0	0	0		
+weapons/mp5a5/image	video memory	trace-20261012-152043	session 1	1	acropolis_forked_road	2	2		448,0,64,64	0/mp5a5	0	0	0		
+weapons/mp5a5/image	video memory	trace-20261012-152043	session 1	1	acropolis_forked_road	2	3		448,0,64,64	0/mp5a5	0	0	0		
+weapons/mp5a5/image	video memory	trace-20261012-152043	session 1	1	acropolis_forked_road	2	4		448,0,64,64	0/mp5a5	0	0	0		
+weapons/mp5a5/image	video memory	trace-20261012-152043	session 1	1	acropolis_fountain	1	2		448,0,64,64	0/mp5a5	0	0	0		
+weapons/mp5a5/image	video memory	trace-20261012-152043	session 1	1	acropolis_fountain	2	2		448,0,64,64	0/mp5a5	0	0	0		
+weapons/mp5a5/image	video memory	trace-20261012-152043	session 1	1	acropolis_fountain	2	4		448,0,64,64	0/mp5a5	0	0	0		
+weapons/mp5a5/image	video memory	trace-20261012-152043	session 1	1	acropolis_hallway	1	1		448,0,64,64	0/mp5a5	0	0	0		
+weapons/mp5a5/image	video memory	trace-20261012-152043	session 1	1	acropolis_hallway	1	4		448,0,64,64	0/mp5a5	0	0	0		
+weapons/mp5a5/image	video memory	trace-20261012-152043	session 1	1	acropolis_helicopter_landing_pad	1	1		448,0,64,64	0/mp5a5	0	0	0		
+weapons/mp5a5/image	video memory	trace-20261012-152043	session 1	1	acropolis_helicopter_landing_pad	1	2		448,0,64,64	0/mp5a5	0	0	0		
+weapons/mp5a5/image	video memory	trace-20261012-152043	session 1	1	acropolis_observatory	1	2		448,0,64,64	0/mp5a5	0	0	0		
+weapons/mp5a5/image	video memory	trace-20261012-152043	session 1	1	acropolis_observatory	1	3		448,0,64,64	0/mp5a5	0	0	0		overwritten by weapons/tonfa_baton/image of 0/tonfa_baton at event 22712
+weapons/mp5a5/image	video memory	trace-20261012-152043	session 1	1	acropolis_observatory	2	3		448,0,64,64	0/mp5a5	0	0	0		
+weapons/mp5a5/image	video memory	trace-20261012-152043	session 1	1	acropolis_observatory	2	4		448,0,64,64	0/mp5a5	0	0	0		
+weapons/mp5a5/image	video memory	trace-20261012-152043	session 1	1	acropolis_patio	3	2		448,0,64,64	0/mp5a5	0	0	0		
+weapons/mp5a5/image	video memory	trace-20261012-152043	session 1	1	acropolis_patio	3	4		448,0,64,64	0/mp5a5	0	0	0		
+weapons/mp5a5/image	video memory	trace-20261012-152043	session 1	1	acropolis_promenade	1	3		448,0,64,64	0/mp5a5	0	0	0		
+weapons/mp5a5/image	video memory	trace-20261012-152043	session 1	1	acropolis_promenade	2	1		448,0,64,64	0/mp5a5	0	0	0		
+weapons/mp5a5/image	video memory	trace-20261012-152043	session 1	1	acropolis_promenade	2	2		448,0,64,64	0/mp5a5	0	0	0		
+weapons/mp5a5/image	video memory	trace-20261012-152043	session 1	1	acropolis_promenade	2	3		448,0,64,64	0/mp5a5	0	0	0		
+weapons/mp5a5/image	video memory	trace-20261012-152043	session 1	1	acropolis_roof_garden	1	1		448,0,64,64	0/mp5a5	0	0	0		
+weapons/mp5a5/image	video memory	trace-20261012-152043	session 1	1	acropolis_roof_garden	1	2		448,0,64,64	0/mp5a5	0	0	0		
+weapons/mp5a5/image	video memory	trace-20261012-152043	session 1	1	acropolis_roof_garden	1	3		448,0,64,64	0/mp5a5	0	0	0		
+weapons/mp5a5/image	video memory	trace-20261012-152043	session 1	1	acropolis_sanctuary	1	1		448,0,64,64	0/mp5a5	0	0	0		
+weapons/mp5a5/image	video memory	trace-20261012-152043	session 1	1	acropolis_sanctuary	1	2		448,0,64,64	0/mp5a5	0	0	0		
+weapons/mp5a5/image	video memory	trace-20261012-152043	session 1	1	acropolis_sanctuary	1	3		448,0,64,64	0/mp5a5	0	0	0		
+weapons/mp5a5/image	video memory	trace-20261012-152043	session 1	1	acropolis_sanctuary	120	3		448,0,64,64	0/mp5a5	0	0	0		
+weapons/mp5a5/image	video memory	trace-20261012-152043	session 1	1	acropolis_sanctuary	96	3		448,0,64,64	0/mp5a5	0	0	0		
+weapons/mp5a5/image	video memory	trace-20261012-152043	session 1	1	acropolis_security_room	1	1		448,0,64,64	0/mp5a5	0	0	0		
+weapons/mp5a5/image	video memory	trace-20261012-152043	session 1	1	acropolis_security_room	1	4		448,0,64,64	0/mp5a5	0	0	0		
+weapons/mp5a5/image	video memory	trace-20261012-152043	session 1	1	akropolis_square	1	2		448,0,64,64	0/mp5a5	0	0	0		
+weapons/mp5a5/image	video memory	trace-20261012-152043	session 1	1	akropolis_square	1	3		448,0,64,64	0/mp5a5	0	0	0		
+weapons/mp5a5/image	video memory	trace-20261012-152043	session 1	1	akropolis_square	1	4		448,0,64,64	0/mp5a5	0	0	0		
+weapons/mp5a5/image	video memory	trace-20261012-152043	session 1	1	mist_r18	1	1		448,0,64,64	0/mp5a5	0	0	0		overwritten by weapons/p08/image of 0/p08_snail at event 41590
+weapons/mp5a5/image	video memory	trace-20261012-152043	session 1	1	mist_r18	1	2		448,0,64,64	0/mp5a5	0	0	0		
 pe2img_300	video memory	trace-20261012-145054	session 1						448,128,64,64	0/file900001	0	0	0	its last 32 rows are blank filler, not counted as part of it	
 pe2img_300	video memory	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1		448,128,64,64	0/file900001	0	0	0	its last 32 rows are blank filler, not counted as part of it	overwritten by pe2img_33 of 0/file20102 at event 863
 pe2img_300	video memory	trace-20261012-152043	session 1						448,128,64,64	0/file900001	0	0	0	its last 32 rows are blank filler, not counted as part of it	
@@ -7933,10 +7933,10 @@ pe2img_59	video memory	trace-20261012-152043	session 1	1	acropolis_forked_road	1
 pe2img_59	video memory	trace-20261012-152043	session 1	1	acropolis_forked_road	1	2		448,128,64,96	0/file20201	-8	-3	3	its last 32 rows are blank filler, not counted as part of it	
 pe2img_59	video memory	trace-20261012-152043	session 1	1	akropolis_square	1	1		448,128,64,96	0/file20201	-8	-3	3	its last 32 rows are blank filler, not counted as part of it	
 pe2img_59	video memory	trace-20261012-152043	session 1	1	akropolis_square	1	2		448,128,64,96	0/file20201	-8	-3	3	its last 32 rows are blank filler, not counted as part of it	overwritten by pe2img_98 of 0/file20302 at event 1529
-pe2img_6	video memory	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1		448,0,64,64	0/p08_snail	0	0	0		overwritten by weapons/m93r/image of 0/m93r at event 10424
-pe2img_6	video memory	trace-20261012-152043	session 1	1	mist_parking	3	1		448,0,64,64	0/p08_snail	0	0	0		
-pe2img_6	video memory	trace-20261012-152043	session 1	1	mist_parking	3	2		448,0,64,64	0/p08_snail	0	0	0		
-pe2img_6	video memory	trace-20261012-152043	session 1	1	mist_r18	1	1		448,0,64,64	0/p08_snail	0	0	0		
+weapons/p08/image	video memory	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1		448,0,64,64	0/p08_snail	0	0	0		overwritten by weapons/m93r/image of 0/m93r at event 10424
+weapons/p08/image	video memory	trace-20261012-152043	session 1	1	mist_parking	3	1		448,0,64,64	0/p08_snail	0	0	0		
+weapons/p08/image	video memory	trace-20261012-152043	session 1	1	mist_parking	3	2		448,0,64,64	0/p08_snail	0	0	0		
+weapons/p08/image	video memory	trace-20261012-152043	session 1	1	mist_r18	1	1		448,0,64,64	0/p08_snail	0	0	0		
 pe2img_60	video memory	trace-20261012-152043	session 1	1	acropolis_cafeteria	2	1		448,128,64,96	0/file20202	-8	-3	3	its last 32 rows are blank filler, not counted as part of it	
 pe2img_60	video memory	trace-20261012-152043	session 1	1	acropolis_forked_road	1	2		448,128,64,96	0/file20202	-8	-3	3	its last 32 rows are blank filler, not counted as part of it	
 pe2img_60	video memory	trace-20261012-152043	session 1	1	acropolis_patio	1	2		448,128,64,96	0/file20202	-8	-3	3	its last 32 rows are blank filler, not counted as part of it	
@@ -7991,11 +7991,11 @@ weapons/m93r/image	video memory	trace-20261012-145054	session 1	1	akropolis_squa
 weapons/m93r/image	video memory	trace-20261012-145054	session 1	1	akropolis_square	7	2		448,0,64,64	0/m93r	0	0	0		
 weapons/m93r/image	video memory	trace-20261012-145054	session 1	1	acropolis_west_elevator_hall	1	1		448,0,64,64	0/m93r	0	0	0		
 weapons/m93r/image	video memory	trace-20261012-145054	session 1	1	mist_parking	1	1		448,0,64,64	0/m93r	0	0	0		
-weapons/m93r/image	video memory	trace-20261012-145054	session 1	1	mist_parking	1	1		448,0,64,64	0/m93r	0	0	0		overwritten by pe2img_22 of 0/tonfa_baton at event 11857
+weapons/m93r/image	video memory	trace-20261012-145054	session 1	1	mist_parking	1	1		448,0,64,64	0/m93r	0	0	0		overwritten by weapons/tonfa_baton/image of 0/tonfa_baton at event 11857
 weapons/m93r/image	video memory	trace-20261012-145054	session 1	1	mist_parking	1	1		448,0,64,64	0/m93r	0	0	0		overwritten by weapons/m93r/image of 0/m93r at event 12731
 weapons/m93r/image	video memory	trace-20261012-145054	session 1	1	mist_parking	2	1		448,0,64,64	0/m93r	0	0	0		
 weapons/m93r/image	video memory	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1		448,0,64,64	0/m93r	0	0	0		
-weapons/m93r/image	video memory	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1		448,0,64,64	0/m93r	0	0	0		overwritten by pe2img_6 of 0/p08_snail at event 8482
+weapons/m93r/image	video memory	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1		448,0,64,64	0/m93r	0	0	0		overwritten by weapons/p08/image of 0/p08_snail at event 8482
 weapons/m93r/image	video memory	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1		448,0,64,64	0/m93r	0	0	0		overwritten by weapons/m93r/image of 0/m93r at event 870
 weapons/m93r/image	video memory	trace-20261012-152043	session 1						448,0,64,64	0/m93r	0	0	0		
 weapons/m93r/image	video memory	trace-20261012-152043	session 1	1	acropolis_cafeteria	1	1		448,0,64,64	0/m93r	0	0	0		
@@ -8029,7 +8029,7 @@ weapons/m93r/image	video memory	trace-20261012-152043	session 1	1	acropolis_pati
 weapons/m93r/image	video memory	trace-20261012-152043	session 1	1	acropolis_patio	3	3		448,0,64,64	0/m93r	0	0	0		
 weapons/m93r/image	video memory	trace-20261012-152043	session 1	1	acropolis_promenade	1	1		448,0,64,64	0/m93r	0	0	0		
 weapons/m93r/image	video memory	trace-20261012-152043	session 1	1	acropolis_promenade	1	2		448,0,64,64	0/m93r	0	0	0		
-weapons/m93r/image	video memory	trace-20261012-152043	session 1	1	acropolis_sanctuary	1	1		448,0,64,64	0/m93r	0	0	0		overwritten by pe2img_30 of 0/mp5a5 at event 13015
+weapons/m93r/image	video memory	trace-20261012-152043	session 1	1	acropolis_sanctuary	1	1		448,0,64,64	0/m93r	0	0	0		overwritten by weapons/mp5a5/image of 0/mp5a5 at event 13015
 weapons/m93r/image	video memory	trace-20261012-152043	session 1	1	acropolis_security_room	1	1		448,0,64,64	0/m93r	0	0	0		
 weapons/m93r/image	video memory	trace-20261012-152043	session 1	1	akropolis_square	1	1		448,0,64,64	0/m93r	0	0	0		
 weapons/m93r/image	video memory	trace-20261012-152043	session 1	1	akropolis_square	1	2		448,0,64,64	0/m93r	0	0	0		
@@ -8816,10 +8816,10 @@ spk_0_sample_09	played	trace-20261012-152043	session 1	1	acropolis_roof_garden	1
 spk_0_sample_11	played	trace-20261012-145054	session 1	1	mist_parking	1	1			0/title	0	0	0	spk_0 entry 0x3c	
 spk_0_sample_11	played	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1			0/title	0	0	0	spk_0 entry 0x3c	
 spk_0_sample_11	played	trace-20261012-152043	session 1	1	acropolis_sanctuary	1	1			0/title	0	0	0	spk_0 entry 0x3c	
-spk_1	sound memory	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1		0x74190-0x7b00f	0/p08_snail	0	0	0	bank 0x2001 descriptor 2	freed by sndBankAllocTables at event 10428
-spk_1	sound memory	trace-20261012-152043	session 1	1	mist_parking	3	1		0x74190-0x7b00f	0/p08_snail	0	0	0	bank 0x2001 descriptor 2	
-spk_1	sound memory	trace-20261012-152043	session 1	1	mist_parking	3	2		0x74190-0x7b00f	0/p08_snail	0	0	0	bank 0x2001 descriptor 2	
-spk_1	sound memory	trace-20261012-152043	session 1	1	mist_r18	1	1		0x74190-0x7b00f	0/p08_snail	0	0	0	bank 0x2001 descriptor 2	
+weapons/p08/snail_sounds	sound memory	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1		0x74190-0x7b00f	0/p08_snail	0	0	0	bank 0x2001 descriptor 2	freed by sndBankAllocTables at event 10428
+weapons/p08/snail_sounds	sound memory	trace-20261012-152043	session 1	1	mist_parking	3	1		0x74190-0x7b00f	0/p08_snail	0	0	0	bank 0x2001 descriptor 2	
+weapons/p08/snail_sounds	sound memory	trace-20261012-152043	session 1	1	mist_parking	3	2		0x74190-0x7b00f	0/p08_snail	0	0	0	bank 0x2001 descriptor 2	
+weapons/p08/snail_sounds	sound memory	trace-20261012-152043	session 1	1	mist_r18	1	1		0x74190-0x7b00f	0/p08_snail	0	0	0	bank 0x2001 descriptor 2	
 spk_107	played	trace-20261012-152043	session 1	1	acropolis_forked_road	2	4			0/file105500	0	2	0	entry 0x01	
 spk_107	played	trace-20261012-152043	session 1	1	acropolis_forked_road	2	4			0/file105500	0	2	0	entry 0x02	
 spk_107	played	trace-20261012-152043	session 1	1	acropolis_forked_road	2	4			0/file105500	0	2	0	entry 0x04	
@@ -9411,98 +9411,98 @@ spk_157_sample_11	played	trace-20261012-152043	session 1	1	acropolis_forked_road
 spk_157_sample_11	played	trace-20261012-152043	session 1	1	acropolis_forked_road	2	2			1/acropolis_forked_road/file0	0	0	0	spk_169 entry 0x03	
 spk_169_sample_03	played	trace-20261012-152043	session 1	1	acropolis_forked_road	2	4			1/acropolis_forked_road/file0	0	0	0	spk_169 entry 0x07	
 spk_169_sample_04	played	trace-20261012-152043	session 1	1	acropolis_forked_road	1	2			1/acropolis_forked_road/file0	0	0	0	spk_169 entry 0x08	
-spk_17	played	trace-20261012-152043	session 1	1	acropolis_bridge	2	1			0/mp5a5	0	0	0	entry 0x02	
-spk_17	played	trace-20261012-152043	session 1	1	acropolis_bridge	2	1			0/mp5a5	0	0	0	entry 0x03	
-spk_17	played	trace-20261012-152043	session 1	1	acropolis_bridge	2	1			0/mp5a5	0	0	0	entry 0x05	
-spk_17	played	trace-20261012-152043	session 1	1	acropolis_cafeteria	4	4			0/mp5a5	0	0	0	entry 0x02	
-spk_17	played	trace-20261012-152043	session 1	1	acropolis_cafeteria	4	4			0/mp5a5	0	0	0	entry 0x03	
-spk_17	played	trace-20261012-152043	session 1	1	acropolis_cafeteria	4	4			0/mp5a5	0	0	0	entry 0x04	
-spk_17	played	trace-20261012-152043	session 1	1	acropolis_fire_escape	1	1			0/mp5a5	0	0	0	entry 0x02	
-spk_17	played	trace-20261012-152043	session 1	1	acropolis_fire_escape	1	1			0/mp5a5	0	0	0	entry 0x03	
-spk_17	played	trace-20261012-152043	session 1	1	acropolis_fire_escape	1	1			0/mp5a5	0	0	0	entry 0x04	
-spk_17	played	trace-20261012-152043	session 1	1	acropolis_fire_escape	1	1			0/mp5a5	0	0	0	entry 0x05	
-spk_17	played	trace-20261012-152043	session 1	1	acropolis_forked_road	2	3			0/mp5a5	0	0	0	entry 0x02	
-spk_17	played	trace-20261012-152043	session 1	1	acropolis_forked_road	2	3			0/mp5a5	0	0	0	entry 0x03	
-spk_17	played	trace-20261012-152043	session 1	1	acropolis_forked_road	2	3			0/mp5a5	0	0	0	entry 0x04	
-spk_17	played	trace-20261012-152043	session 1	1	acropolis_forked_road	2	3			0/mp5a5	0	0	0	entry 0x05	
-spk_17	played	trace-20261012-152043	session 1	1	acropolis_forked_road	2	4			0/mp5a5	0	0	0	entry 0x02	
-spk_17	played	trace-20261012-152043	session 1	1	acropolis_forked_road	2	4			0/mp5a5	0	0	0	entry 0x03	
-spk_17	played	trace-20261012-152043	session 1	1	acropolis_forked_road	2	4			0/mp5a5	0	0	0	entry 0x04	
-spk_17	played	trace-20261012-152043	session 1	1	acropolis_forked_road	2	4			0/mp5a5	0	0	0	entry 0x05	
-spk_17	played	trace-20261012-152043	session 1	1	acropolis_fountain	2	2			0/mp5a5	0	0	0	entry 0x02	
-spk_17	played	trace-20261012-152043	session 1	1	acropolis_fountain	2	2			0/mp5a5	0	0	0	entry 0x03	
-spk_17	played	trace-20261012-152043	session 1	1	acropolis_fountain	2	2			0/mp5a5	0	0	0	entry 0x04	
-spk_17	played	trace-20261012-152043	session 1	1	acropolis_hallway	1	4			0/mp5a5	0	0	0	entry 0x02	
-spk_17	played	trace-20261012-152043	session 1	1	acropolis_hallway	1	4			0/mp5a5	0	0	0	entry 0x03	
-spk_17	played	trace-20261012-152043	session 1	1	acropolis_hallway	1	4			0/mp5a5	0	0	0	entry 0x04	
-spk_17	played	trace-20261012-152043	session 1	1	acropolis_helicopter_landing_pad	1	1			0/mp5a5	0	0	0	entry 0x02	
-spk_17	played	trace-20261012-152043	session 1	1	acropolis_helicopter_landing_pad	1	1			0/mp5a5	0	0	0	entry 0x03	
-spk_17	played	trace-20261012-152043	session 1	1	acropolis_helicopter_landing_pad	1	1			0/mp5a5	0	0	0	entry 0x04	
-spk_17	played	trace-20261012-152043	session 1	1	acropolis_observatory	1	2			0/mp5a5	0	0	0	entry 0x02	
-spk_17	played	trace-20261012-152043	session 1	1	acropolis_observatory	1	2			0/mp5a5	0	0	0	entry 0x03	
-spk_17	played	trace-20261012-152043	session 1	1	acropolis_observatory	1	2			0/mp5a5	0	0	0	entry 0x04	
-spk_17	played	trace-20261012-152043	session 1	1	acropolis_patio	3	4			0/mp5a5	0	0	0	entry 0x02	
-spk_17	played	trace-20261012-152043	session 1	1	acropolis_patio	3	4			0/mp5a5	0	0	0	entry 0x03	
-spk_17	played	trace-20261012-152043	session 1	1	acropolis_patio	3	4			0/mp5a5	0	0	0	entry 0x04	
-spk_17	played	trace-20261012-152043	session 1	1	acropolis_patio	3	4			0/mp5a5	0	0	0	entry 0x05	
-spk_17	played	trace-20261012-152043	session 1	1	acropolis_promenade	2	2			0/mp5a5	0	0	0	entry 0x02	
-spk_17	played	trace-20261012-152043	session 1	1	acropolis_promenade	2	2			0/mp5a5	0	0	0	entry 0x03	
-spk_17	played	trace-20261012-152043	session 1	1	acropolis_promenade	2	2			0/mp5a5	0	0	0	entry 0x04	
-spk_17	played	trace-20261012-152043	session 1	1	acropolis_promenade	2	2			0/mp5a5	0	0	0	entry 0x05	
-spk_17	played	trace-20261012-152043	session 1	1	acropolis_promenade	2	3			0/mp5a5	0	0	0	entry 0x02	
-spk_17	played	trace-20261012-152043	session 1	1	acropolis_promenade	2	3			0/mp5a5	0	0	0	entry 0x03	
-spk_17	played	trace-20261012-152043	session 1	1	acropolis_promenade	2	3			0/mp5a5	0	0	0	entry 0x04	
-spk_17	played	trace-20261012-152043	session 1	1	acropolis_promenade	2	3			0/mp5a5	0	0	0	entry 0x05	
-spk_17	played	trace-20261012-152043	session 1	1	acropolis_roof_garden	1	1			0/mp5a5	0	0	0	entry 0x02	
-spk_17	played	trace-20261012-152043	session 1	1	acropolis_roof_garden	1	1			0/mp5a5	0	0	0	entry 0x03	
-spk_17	played	trace-20261012-152043	session 1	1	acropolis_roof_garden	1	1			0/mp5a5	0	0	0	entry 0x04	
-spk_17	played	trace-20261012-152043	session 1	1	acropolis_roof_garden	1	1			0/mp5a5	0	0	0	entry 0x05	
-spk_17	played	trace-20261012-152043	session 1	1	acropolis_roof_garden	1	2			0/mp5a5	0	0	0	entry 0x02	
-spk_17	played	trace-20261012-152043	session 1	1	acropolis_roof_garden	1	2			0/mp5a5	0	0	0	entry 0x03	
-spk_17	played	trace-20261012-152043	session 1	1	acropolis_roof_garden	1	2			0/mp5a5	0	0	0	entry 0x04	
-spk_17	played	trace-20261012-152043	session 1	1	acropolis_roof_garden	1	2			0/mp5a5	0	0	0	entry 0x05	
-spk_17	sound memory	trace-20261012-152043	session 1	1	acropolis_bridge	1	1		0x73d10-0x7b00f	0/mp5a5	0	0	0	bank 0x201e descriptor 2	
-spk_17	sound memory	trace-20261012-152043	session 1	1	acropolis_bridge	1	2		0x73d10-0x7b00f	0/mp5a5	0	0	0	bank 0x201e descriptor 2	
-spk_17	sound memory	trace-20261012-152043	session 1	1	acropolis_bridge	2	1		0x73d10-0x7b00f	0/mp5a5	0	0	0	bank 0x201e descriptor 2	
-spk_17	sound memory	trace-20261012-152043	session 1	1	acropolis_bridge	2	3		0x73d10-0x7b00f	0/mp5a5	0	0	0	bank 0x201e descriptor 2	
-spk_17	sound memory	trace-20261012-152043	session 1	1	acropolis_cafeteria	4	4		0x73d10-0x7b00f	0/mp5a5	0	0	0	bank 0x201e descriptor 2	
-spk_17	sound memory	trace-20261012-152043	session 1	1	acropolis_fire_escape	1	1		0x73d10-0x7b00f	0/mp5a5	0	0	0	bank 0x201e descriptor 2	
-spk_17	sound memory	trace-20261012-152043	session 1	1	acropolis_forked_road	1	4		0x73d10-0x7b00f	0/mp5a5	0	0	0	bank 0x201e descriptor 2	
-spk_17	sound memory	trace-20261012-152043	session 1	1	acropolis_forked_road	2	2		0x73d10-0x7b00f	0/mp5a5	0	0	0	bank 0x201e descriptor 2	
-spk_17	sound memory	trace-20261012-152043	session 1	1	acropolis_forked_road	2	3		0x73d10-0x7b00f	0/mp5a5	0	0	0	bank 0x201e descriptor 2	
-spk_17	sound memory	trace-20261012-152043	session 1	1	acropolis_forked_road	2	4		0x73d10-0x7b00f	0/mp5a5	0	0	0	bank 0x201e descriptor 2	
-spk_17	sound memory	trace-20261012-152043	session 1	1	acropolis_fountain	1	2		0x73d10-0x7b00f	0/mp5a5	0	0	0	bank 0x201e descriptor 2	
-spk_17	sound memory	trace-20261012-152043	session 1	1	acropolis_fountain	2	2		0x73d10-0x7b00f	0/mp5a5	0	0	0	bank 0x201e descriptor 2	
-spk_17	sound memory	trace-20261012-152043	session 1	1	acropolis_fountain	2	4		0x73d10-0x7b00f	0/mp5a5	0	0	0	bank 0x201e descriptor 2	
-spk_17	sound memory	trace-20261012-152043	session 1	1	acropolis_hallway	1	1		0x73d10-0x7b00f	0/mp5a5	0	0	0	bank 0x201e descriptor 2	
-spk_17	sound memory	trace-20261012-152043	session 1	1	acropolis_hallway	1	4		0x73d10-0x7b00f	0/mp5a5	0	0	0	bank 0x201e descriptor 2	
-spk_17	sound memory	trace-20261012-152043	session 1	1	acropolis_helicopter_landing_pad	1	1		0x73d10-0x7b00f	0/mp5a5	0	0	0	bank 0x201e descriptor 2	
-spk_17	sound memory	trace-20261012-152043	session 1	1	acropolis_helicopter_landing_pad	1	2		0x73d10-0x7b00f	0/mp5a5	0	0	0	bank 0x201e descriptor 2	
-spk_17	sound memory	trace-20261012-152043	session 1	1	acropolis_observatory	1	2		0x73d10-0x7b00f	0/mp5a5	0	0	0	bank 0x201e descriptor 2	
-spk_17	sound memory	trace-20261012-152043	session 1	1	acropolis_observatory	1	3		0x73d10-0x7b00f	0/mp5a5	0	0	0	bank 0x201e descriptor 2	freed by sndBankAllocTables at event 22716
-spk_17	sound memory	trace-20261012-152043	session 1	1	acropolis_observatory	2	3		0x73d10-0x7b00f	0/mp5a5	0	0	0	bank 0x201e descriptor 2	
-spk_17	sound memory	trace-20261012-152043	session 1	1	acropolis_observatory	2	4		0x73d10-0x7b00f	0/mp5a5	0	0	0	bank 0x201e descriptor 2	
-spk_17	sound memory	trace-20261012-152043	session 1	1	acropolis_patio	3	2		0x73d10-0x7b00f	0/mp5a5	0	0	0	bank 0x201e descriptor 2	
-spk_17	sound memory	trace-20261012-152043	session 1	1	acropolis_patio	3	4		0x73d10-0x7b00f	0/mp5a5	0	0	0	bank 0x201e descriptor 2	
-spk_17	sound memory	trace-20261012-152043	session 1	1	acropolis_promenade	1	3		0x73d10-0x7b00f	0/mp5a5	0	0	0	bank 0x201e descriptor 2	
-spk_17	sound memory	trace-20261012-152043	session 1	1	acropolis_promenade	2	1		0x73d10-0x7b00f	0/mp5a5	0	0	0	bank 0x201e descriptor 2	
-spk_17	sound memory	trace-20261012-152043	session 1	1	acropolis_promenade	2	2		0x73d10-0x7b00f	0/mp5a5	0	0	0	bank 0x201e descriptor 2	
-spk_17	sound memory	trace-20261012-152043	session 1	1	acropolis_promenade	2	3		0x73d10-0x7b00f	0/mp5a5	0	0	0	bank 0x201e descriptor 2	
-spk_17	sound memory	trace-20261012-152043	session 1	1	acropolis_roof_garden	1	1		0x73d10-0x7b00f	0/mp5a5	0	0	0	bank 0x201e descriptor 2	
-spk_17	sound memory	trace-20261012-152043	session 1	1	acropolis_roof_garden	1	2		0x73d10-0x7b00f	0/mp5a5	0	0	0	bank 0x201e descriptor 2	
-spk_17	sound memory	trace-20261012-152043	session 1	1	acropolis_roof_garden	1	3		0x73d10-0x7b00f	0/mp5a5	0	0	0	bank 0x201e descriptor 2	
-spk_17	sound memory	trace-20261012-152043	session 1	1	acropolis_sanctuary	1	1		0x73d10-0x7b00f	0/mp5a5	0	0	0	bank 0x201e descriptor 2	
-spk_17	sound memory	trace-20261012-152043	session 1	1	acropolis_sanctuary	1	2		0x73d10-0x7b00f	0/mp5a5	0	0	0	bank 0x201e descriptor 2	
-spk_17	sound memory	trace-20261012-152043	session 1	1	acropolis_sanctuary	1	3		0x73d10-0x7b00f	0/mp5a5	0	0	0	bank 0x201e descriptor 2	
-spk_17	sound memory	trace-20261012-152043	session 1	1	acropolis_sanctuary	120	3		0x73d10-0x7b00f	0/mp5a5	0	0	0	bank 0x201e descriptor 2	
-spk_17	sound memory	trace-20261012-152043	session 1	1	acropolis_sanctuary	96	3		0x73d10-0x7b00f	0/mp5a5	0	0	0	bank 0x201e descriptor 2	
-spk_17	sound memory	trace-20261012-152043	session 1	1	acropolis_security_room	1	1		0x73d10-0x7b00f	0/mp5a5	0	0	0	bank 0x201e descriptor 2	
-spk_17	sound memory	trace-20261012-152043	session 1	1	acropolis_security_room	1	4		0x73d10-0x7b00f	0/mp5a5	0	0	0	bank 0x201e descriptor 2	
-spk_17	sound memory	trace-20261012-152043	session 1	1	akropolis_square	1	2		0x73d10-0x7b00f	0/mp5a5	0	0	0	bank 0x201e descriptor 2	
-spk_17	sound memory	trace-20261012-152043	session 1	1	akropolis_square	1	3		0x73d10-0x7b00f	0/mp5a5	0	0	0	bank 0x201e descriptor 2	
-spk_17	sound memory	trace-20261012-152043	session 1	1	akropolis_square	1	4		0x73d10-0x7b00f	0/mp5a5	0	0	0	bank 0x201e descriptor 2	
-spk_17	sound memory	trace-20261012-152043	session 1	1	mist_r18	1	1		0x73d10-0x7b00f	0/mp5a5	0	0	0	bank 0x201e descriptor 2	freed by sndBankAllocTables at event 41594
-spk_17	sound memory	trace-20261012-152043	session 1	1	mist_r18	1	2		0x73d10-0x7b00f	0/mp5a5	0	0	0	bank 0x201e descriptor 2	
+weapons/mp5a5/sounds	played	trace-20261012-152043	session 1	1	acropolis_bridge	2	1			0/mp5a5	0	0	0	entry 0x02	
+weapons/mp5a5/sounds	played	trace-20261012-152043	session 1	1	acropolis_bridge	2	1			0/mp5a5	0	0	0	entry 0x03	
+weapons/mp5a5/sounds	played	trace-20261012-152043	session 1	1	acropolis_bridge	2	1			0/mp5a5	0	0	0	entry 0x05	
+weapons/mp5a5/sounds	played	trace-20261012-152043	session 1	1	acropolis_cafeteria	4	4			0/mp5a5	0	0	0	entry 0x02	
+weapons/mp5a5/sounds	played	trace-20261012-152043	session 1	1	acropolis_cafeteria	4	4			0/mp5a5	0	0	0	entry 0x03	
+weapons/mp5a5/sounds	played	trace-20261012-152043	session 1	1	acropolis_cafeteria	4	4			0/mp5a5	0	0	0	entry 0x04	
+weapons/mp5a5/sounds	played	trace-20261012-152043	session 1	1	acropolis_fire_escape	1	1			0/mp5a5	0	0	0	entry 0x02	
+weapons/mp5a5/sounds	played	trace-20261012-152043	session 1	1	acropolis_fire_escape	1	1			0/mp5a5	0	0	0	entry 0x03	
+weapons/mp5a5/sounds	played	trace-20261012-152043	session 1	1	acropolis_fire_escape	1	1			0/mp5a5	0	0	0	entry 0x04	
+weapons/mp5a5/sounds	played	trace-20261012-152043	session 1	1	acropolis_fire_escape	1	1			0/mp5a5	0	0	0	entry 0x05	
+weapons/mp5a5/sounds	played	trace-20261012-152043	session 1	1	acropolis_forked_road	2	3			0/mp5a5	0	0	0	entry 0x02	
+weapons/mp5a5/sounds	played	trace-20261012-152043	session 1	1	acropolis_forked_road	2	3			0/mp5a5	0	0	0	entry 0x03	
+weapons/mp5a5/sounds	played	trace-20261012-152043	session 1	1	acropolis_forked_road	2	3			0/mp5a5	0	0	0	entry 0x04	
+weapons/mp5a5/sounds	played	trace-20261012-152043	session 1	1	acropolis_forked_road	2	3			0/mp5a5	0	0	0	entry 0x05	
+weapons/mp5a5/sounds	played	trace-20261012-152043	session 1	1	acropolis_forked_road	2	4			0/mp5a5	0	0	0	entry 0x02	
+weapons/mp5a5/sounds	played	trace-20261012-152043	session 1	1	acropolis_forked_road	2	4			0/mp5a5	0	0	0	entry 0x03	
+weapons/mp5a5/sounds	played	trace-20261012-152043	session 1	1	acropolis_forked_road	2	4			0/mp5a5	0	0	0	entry 0x04	
+weapons/mp5a5/sounds	played	trace-20261012-152043	session 1	1	acropolis_forked_road	2	4			0/mp5a5	0	0	0	entry 0x05	
+weapons/mp5a5/sounds	played	trace-20261012-152043	session 1	1	acropolis_fountain	2	2			0/mp5a5	0	0	0	entry 0x02	
+weapons/mp5a5/sounds	played	trace-20261012-152043	session 1	1	acropolis_fountain	2	2			0/mp5a5	0	0	0	entry 0x03	
+weapons/mp5a5/sounds	played	trace-20261012-152043	session 1	1	acropolis_fountain	2	2			0/mp5a5	0	0	0	entry 0x04	
+weapons/mp5a5/sounds	played	trace-20261012-152043	session 1	1	acropolis_hallway	1	4			0/mp5a5	0	0	0	entry 0x02	
+weapons/mp5a5/sounds	played	trace-20261012-152043	session 1	1	acropolis_hallway	1	4			0/mp5a5	0	0	0	entry 0x03	
+weapons/mp5a5/sounds	played	trace-20261012-152043	session 1	1	acropolis_hallway	1	4			0/mp5a5	0	0	0	entry 0x04	
+weapons/mp5a5/sounds	played	trace-20261012-152043	session 1	1	acropolis_helicopter_landing_pad	1	1			0/mp5a5	0	0	0	entry 0x02	
+weapons/mp5a5/sounds	played	trace-20261012-152043	session 1	1	acropolis_helicopter_landing_pad	1	1			0/mp5a5	0	0	0	entry 0x03	
+weapons/mp5a5/sounds	played	trace-20261012-152043	session 1	1	acropolis_helicopter_landing_pad	1	1			0/mp5a5	0	0	0	entry 0x04	
+weapons/mp5a5/sounds	played	trace-20261012-152043	session 1	1	acropolis_observatory	1	2			0/mp5a5	0	0	0	entry 0x02	
+weapons/mp5a5/sounds	played	trace-20261012-152043	session 1	1	acropolis_observatory	1	2			0/mp5a5	0	0	0	entry 0x03	
+weapons/mp5a5/sounds	played	trace-20261012-152043	session 1	1	acropolis_observatory	1	2			0/mp5a5	0	0	0	entry 0x04	
+weapons/mp5a5/sounds	played	trace-20261012-152043	session 1	1	acropolis_patio	3	4			0/mp5a5	0	0	0	entry 0x02	
+weapons/mp5a5/sounds	played	trace-20261012-152043	session 1	1	acropolis_patio	3	4			0/mp5a5	0	0	0	entry 0x03	
+weapons/mp5a5/sounds	played	trace-20261012-152043	session 1	1	acropolis_patio	3	4			0/mp5a5	0	0	0	entry 0x04	
+weapons/mp5a5/sounds	played	trace-20261012-152043	session 1	1	acropolis_patio	3	4			0/mp5a5	0	0	0	entry 0x05	
+weapons/mp5a5/sounds	played	trace-20261012-152043	session 1	1	acropolis_promenade	2	2			0/mp5a5	0	0	0	entry 0x02	
+weapons/mp5a5/sounds	played	trace-20261012-152043	session 1	1	acropolis_promenade	2	2			0/mp5a5	0	0	0	entry 0x03	
+weapons/mp5a5/sounds	played	trace-20261012-152043	session 1	1	acropolis_promenade	2	2			0/mp5a5	0	0	0	entry 0x04	
+weapons/mp5a5/sounds	played	trace-20261012-152043	session 1	1	acropolis_promenade	2	2			0/mp5a5	0	0	0	entry 0x05	
+weapons/mp5a5/sounds	played	trace-20261012-152043	session 1	1	acropolis_promenade	2	3			0/mp5a5	0	0	0	entry 0x02	
+weapons/mp5a5/sounds	played	trace-20261012-152043	session 1	1	acropolis_promenade	2	3			0/mp5a5	0	0	0	entry 0x03	
+weapons/mp5a5/sounds	played	trace-20261012-152043	session 1	1	acropolis_promenade	2	3			0/mp5a5	0	0	0	entry 0x04	
+weapons/mp5a5/sounds	played	trace-20261012-152043	session 1	1	acropolis_promenade	2	3			0/mp5a5	0	0	0	entry 0x05	
+weapons/mp5a5/sounds	played	trace-20261012-152043	session 1	1	acropolis_roof_garden	1	1			0/mp5a5	0	0	0	entry 0x02	
+weapons/mp5a5/sounds	played	trace-20261012-152043	session 1	1	acropolis_roof_garden	1	1			0/mp5a5	0	0	0	entry 0x03	
+weapons/mp5a5/sounds	played	trace-20261012-152043	session 1	1	acropolis_roof_garden	1	1			0/mp5a5	0	0	0	entry 0x04	
+weapons/mp5a5/sounds	played	trace-20261012-152043	session 1	1	acropolis_roof_garden	1	1			0/mp5a5	0	0	0	entry 0x05	
+weapons/mp5a5/sounds	played	trace-20261012-152043	session 1	1	acropolis_roof_garden	1	2			0/mp5a5	0	0	0	entry 0x02	
+weapons/mp5a5/sounds	played	trace-20261012-152043	session 1	1	acropolis_roof_garden	1	2			0/mp5a5	0	0	0	entry 0x03	
+weapons/mp5a5/sounds	played	trace-20261012-152043	session 1	1	acropolis_roof_garden	1	2			0/mp5a5	0	0	0	entry 0x04	
+weapons/mp5a5/sounds	played	trace-20261012-152043	session 1	1	acropolis_roof_garden	1	2			0/mp5a5	0	0	0	entry 0x05	
+weapons/mp5a5/sounds	sound memory	trace-20261012-152043	session 1	1	acropolis_bridge	1	1		0x73d10-0x7b00f	0/mp5a5	0	0	0	bank 0x201e descriptor 2	
+weapons/mp5a5/sounds	sound memory	trace-20261012-152043	session 1	1	acropolis_bridge	1	2		0x73d10-0x7b00f	0/mp5a5	0	0	0	bank 0x201e descriptor 2	
+weapons/mp5a5/sounds	sound memory	trace-20261012-152043	session 1	1	acropolis_bridge	2	1		0x73d10-0x7b00f	0/mp5a5	0	0	0	bank 0x201e descriptor 2	
+weapons/mp5a5/sounds	sound memory	trace-20261012-152043	session 1	1	acropolis_bridge	2	3		0x73d10-0x7b00f	0/mp5a5	0	0	0	bank 0x201e descriptor 2	
+weapons/mp5a5/sounds	sound memory	trace-20261012-152043	session 1	1	acropolis_cafeteria	4	4		0x73d10-0x7b00f	0/mp5a5	0	0	0	bank 0x201e descriptor 2	
+weapons/mp5a5/sounds	sound memory	trace-20261012-152043	session 1	1	acropolis_fire_escape	1	1		0x73d10-0x7b00f	0/mp5a5	0	0	0	bank 0x201e descriptor 2	
+weapons/mp5a5/sounds	sound memory	trace-20261012-152043	session 1	1	acropolis_forked_road	1	4		0x73d10-0x7b00f	0/mp5a5	0	0	0	bank 0x201e descriptor 2	
+weapons/mp5a5/sounds	sound memory	trace-20261012-152043	session 1	1	acropolis_forked_road	2	2		0x73d10-0x7b00f	0/mp5a5	0	0	0	bank 0x201e descriptor 2	
+weapons/mp5a5/sounds	sound memory	trace-20261012-152043	session 1	1	acropolis_forked_road	2	3		0x73d10-0x7b00f	0/mp5a5	0	0	0	bank 0x201e descriptor 2	
+weapons/mp5a5/sounds	sound memory	trace-20261012-152043	session 1	1	acropolis_forked_road	2	4		0x73d10-0x7b00f	0/mp5a5	0	0	0	bank 0x201e descriptor 2	
+weapons/mp5a5/sounds	sound memory	trace-20261012-152043	session 1	1	acropolis_fountain	1	2		0x73d10-0x7b00f	0/mp5a5	0	0	0	bank 0x201e descriptor 2	
+weapons/mp5a5/sounds	sound memory	trace-20261012-152043	session 1	1	acropolis_fountain	2	2		0x73d10-0x7b00f	0/mp5a5	0	0	0	bank 0x201e descriptor 2	
+weapons/mp5a5/sounds	sound memory	trace-20261012-152043	session 1	1	acropolis_fountain	2	4		0x73d10-0x7b00f	0/mp5a5	0	0	0	bank 0x201e descriptor 2	
+weapons/mp5a5/sounds	sound memory	trace-20261012-152043	session 1	1	acropolis_hallway	1	1		0x73d10-0x7b00f	0/mp5a5	0	0	0	bank 0x201e descriptor 2	
+weapons/mp5a5/sounds	sound memory	trace-20261012-152043	session 1	1	acropolis_hallway	1	4		0x73d10-0x7b00f	0/mp5a5	0	0	0	bank 0x201e descriptor 2	
+weapons/mp5a5/sounds	sound memory	trace-20261012-152043	session 1	1	acropolis_helicopter_landing_pad	1	1		0x73d10-0x7b00f	0/mp5a5	0	0	0	bank 0x201e descriptor 2	
+weapons/mp5a5/sounds	sound memory	trace-20261012-152043	session 1	1	acropolis_helicopter_landing_pad	1	2		0x73d10-0x7b00f	0/mp5a5	0	0	0	bank 0x201e descriptor 2	
+weapons/mp5a5/sounds	sound memory	trace-20261012-152043	session 1	1	acropolis_observatory	1	2		0x73d10-0x7b00f	0/mp5a5	0	0	0	bank 0x201e descriptor 2	
+weapons/mp5a5/sounds	sound memory	trace-20261012-152043	session 1	1	acropolis_observatory	1	3		0x73d10-0x7b00f	0/mp5a5	0	0	0	bank 0x201e descriptor 2	freed by sndBankAllocTables at event 22716
+weapons/mp5a5/sounds	sound memory	trace-20261012-152043	session 1	1	acropolis_observatory	2	3		0x73d10-0x7b00f	0/mp5a5	0	0	0	bank 0x201e descriptor 2	
+weapons/mp5a5/sounds	sound memory	trace-20261012-152043	session 1	1	acropolis_observatory	2	4		0x73d10-0x7b00f	0/mp5a5	0	0	0	bank 0x201e descriptor 2	
+weapons/mp5a5/sounds	sound memory	trace-20261012-152043	session 1	1	acropolis_patio	3	2		0x73d10-0x7b00f	0/mp5a5	0	0	0	bank 0x201e descriptor 2	
+weapons/mp5a5/sounds	sound memory	trace-20261012-152043	session 1	1	acropolis_patio	3	4		0x73d10-0x7b00f	0/mp5a5	0	0	0	bank 0x201e descriptor 2	
+weapons/mp5a5/sounds	sound memory	trace-20261012-152043	session 1	1	acropolis_promenade	1	3		0x73d10-0x7b00f	0/mp5a5	0	0	0	bank 0x201e descriptor 2	
+weapons/mp5a5/sounds	sound memory	trace-20261012-152043	session 1	1	acropolis_promenade	2	1		0x73d10-0x7b00f	0/mp5a5	0	0	0	bank 0x201e descriptor 2	
+weapons/mp5a5/sounds	sound memory	trace-20261012-152043	session 1	1	acropolis_promenade	2	2		0x73d10-0x7b00f	0/mp5a5	0	0	0	bank 0x201e descriptor 2	
+weapons/mp5a5/sounds	sound memory	trace-20261012-152043	session 1	1	acropolis_promenade	2	3		0x73d10-0x7b00f	0/mp5a5	0	0	0	bank 0x201e descriptor 2	
+weapons/mp5a5/sounds	sound memory	trace-20261012-152043	session 1	1	acropolis_roof_garden	1	1		0x73d10-0x7b00f	0/mp5a5	0	0	0	bank 0x201e descriptor 2	
+weapons/mp5a5/sounds	sound memory	trace-20261012-152043	session 1	1	acropolis_roof_garden	1	2		0x73d10-0x7b00f	0/mp5a5	0	0	0	bank 0x201e descriptor 2	
+weapons/mp5a5/sounds	sound memory	trace-20261012-152043	session 1	1	acropolis_roof_garden	1	3		0x73d10-0x7b00f	0/mp5a5	0	0	0	bank 0x201e descriptor 2	
+weapons/mp5a5/sounds	sound memory	trace-20261012-152043	session 1	1	acropolis_sanctuary	1	1		0x73d10-0x7b00f	0/mp5a5	0	0	0	bank 0x201e descriptor 2	
+weapons/mp5a5/sounds	sound memory	trace-20261012-152043	session 1	1	acropolis_sanctuary	1	2		0x73d10-0x7b00f	0/mp5a5	0	0	0	bank 0x201e descriptor 2	
+weapons/mp5a5/sounds	sound memory	trace-20261012-152043	session 1	1	acropolis_sanctuary	1	3		0x73d10-0x7b00f	0/mp5a5	0	0	0	bank 0x201e descriptor 2	
+weapons/mp5a5/sounds	sound memory	trace-20261012-152043	session 1	1	acropolis_sanctuary	120	3		0x73d10-0x7b00f	0/mp5a5	0	0	0	bank 0x201e descriptor 2	
+weapons/mp5a5/sounds	sound memory	trace-20261012-152043	session 1	1	acropolis_sanctuary	96	3		0x73d10-0x7b00f	0/mp5a5	0	0	0	bank 0x201e descriptor 2	
+weapons/mp5a5/sounds	sound memory	trace-20261012-152043	session 1	1	acropolis_security_room	1	1		0x73d10-0x7b00f	0/mp5a5	0	0	0	bank 0x201e descriptor 2	
+weapons/mp5a5/sounds	sound memory	trace-20261012-152043	session 1	1	acropolis_security_room	1	4		0x73d10-0x7b00f	0/mp5a5	0	0	0	bank 0x201e descriptor 2	
+weapons/mp5a5/sounds	sound memory	trace-20261012-152043	session 1	1	akropolis_square	1	2		0x73d10-0x7b00f	0/mp5a5	0	0	0	bank 0x201e descriptor 2	
+weapons/mp5a5/sounds	sound memory	trace-20261012-152043	session 1	1	akropolis_square	1	3		0x73d10-0x7b00f	0/mp5a5	0	0	0	bank 0x201e descriptor 2	
+weapons/mp5a5/sounds	sound memory	trace-20261012-152043	session 1	1	akropolis_square	1	4		0x73d10-0x7b00f	0/mp5a5	0	0	0	bank 0x201e descriptor 2	
+weapons/mp5a5/sounds	sound memory	trace-20261012-152043	session 1	1	mist_r18	1	1		0x73d10-0x7b00f	0/mp5a5	0	0	0	bank 0x201e descriptor 2	freed by sndBankAllocTables at event 41594
+weapons/mp5a5/sounds	sound memory	trace-20261012-152043	session 1	1	mist_r18	1	2		0x73d10-0x7b00f	0/mp5a5	0	0	0	bank 0x201e descriptor 2	
 spk_170	played	trace-20261012-152043	session 1	1	acropolis_observatory	1	1			1/acropolis_observatory/file0	0	0	0	entry 0x11	
 spk_170	played	trace-20261012-152043	session 1	1	acropolis_observatory	1	1			1/acropolis_observatory/file0	0	0	0	entry 0x12	
 spk_170	played	trace-20261012-152043	session 1	1	acropolis_observatory	1	1			1/acropolis_observatory/file0	0	0	0	entry 0x13	
@@ -9746,56 +9746,56 @@ spk_172_sample_05	played	trace-20261012-152043	session 1	1	acropolis_bridge	2	1	
 spk_172_sample_06	played	trace-20261012-152043	session 1	1	acropolis_bridge	1	2			1/acropolis_bridge/file0	0	0	0	spk_179 entry 0x08	
 spk_172_sample_06	played	trace-20261012-152043	session 1	1	acropolis_bridge	2	3			1/acropolis_bridge/file0	0	0	0	spk_179 entry 0x08	
 spk_179_sample_06	played	trace-20261012-152043	session 1	1	acropolis_bridge	1	1			1/acropolis_bridge/file0	0	0	0	spk_179 entry 0x09	
-spk_17_sample_01	played	trace-20261012-152043	session 1	1	acropolis_bridge	2	1			0/mp5a5	0	0	0	spk_17 entry 0x02	
-spk_17_sample_01	played	trace-20261012-152043	session 1	1	acropolis_cafeteria	4	4			0/mp5a5	0	0	0	spk_17 entry 0x02	
-spk_17_sample_01	played	trace-20261012-152043	session 1	1	acropolis_fire_escape	1	1			0/mp5a5	0	0	0	spk_17 entry 0x02	
-spk_17_sample_01	played	trace-20261012-152043	session 1	1	acropolis_forked_road	2	3			0/mp5a5	0	0	0	spk_17 entry 0x02	
-spk_17_sample_01	played	trace-20261012-152043	session 1	1	acropolis_forked_road	2	4			0/mp5a5	0	0	0	spk_17 entry 0x02	
-spk_17_sample_01	played	trace-20261012-152043	session 1	1	acropolis_fountain	2	2			0/mp5a5	0	0	0	spk_17 entry 0x02	
-spk_17_sample_01	played	trace-20261012-152043	session 1	1	acropolis_hallway	1	4			0/mp5a5	0	0	0	spk_17 entry 0x02	
-spk_17_sample_01	played	trace-20261012-152043	session 1	1	acropolis_helicopter_landing_pad	1	1			0/mp5a5	0	0	0	spk_17 entry 0x02	
-spk_17_sample_01	played	trace-20261012-152043	session 1	1	acropolis_observatory	1	2			0/mp5a5	0	0	0	spk_17 entry 0x02	
-spk_17_sample_01	played	trace-20261012-152043	session 1	1	acropolis_patio	3	4			0/mp5a5	0	0	0	spk_17 entry 0x02	
-spk_17_sample_01	played	trace-20261012-152043	session 1	1	acropolis_promenade	2	2			0/mp5a5	0	0	0	spk_17 entry 0x02	
-spk_17_sample_01	played	trace-20261012-152043	session 1	1	acropolis_promenade	2	3			0/mp5a5	0	0	0	spk_17 entry 0x02	
-spk_17_sample_01	played	trace-20261012-152043	session 1	1	acropolis_roof_garden	1	1			0/mp5a5	0	0	0	spk_17 entry 0x02	
-spk_17_sample_01	played	trace-20261012-152043	session 1	1	acropolis_roof_garden	1	2			0/mp5a5	0	0	0	spk_17 entry 0x02	
-spk_17_sample_02	played	trace-20261012-152043	session 1	1	acropolis_bridge	2	1			0/mp5a5	0	0	0	spk_17 entry 0x03	
-spk_17_sample_02	played	trace-20261012-152043	session 1	1	acropolis_cafeteria	4	4			0/mp5a5	0	0	0	spk_17 entry 0x03	
-spk_17_sample_02	played	trace-20261012-152043	session 1	1	acropolis_fire_escape	1	1			0/mp5a5	0	0	0	spk_17 entry 0x03	
-spk_17_sample_02	played	trace-20261012-152043	session 1	1	acropolis_forked_road	2	3			0/mp5a5	0	0	0	spk_17 entry 0x03	
-spk_17_sample_02	played	trace-20261012-152043	session 1	1	acropolis_forked_road	2	4			0/mp5a5	0	0	0	spk_17 entry 0x03	
-spk_17_sample_02	played	trace-20261012-152043	session 1	1	acropolis_fountain	2	2			0/mp5a5	0	0	0	spk_17 entry 0x03	
-spk_17_sample_02	played	trace-20261012-152043	session 1	1	acropolis_hallway	1	4			0/mp5a5	0	0	0	spk_17 entry 0x03	
-spk_17_sample_02	played	trace-20261012-152043	session 1	1	acropolis_helicopter_landing_pad	1	1			0/mp5a5	0	0	0	spk_17 entry 0x03	
-spk_17_sample_02	played	trace-20261012-152043	session 1	1	acropolis_observatory	1	2			0/mp5a5	0	0	0	spk_17 entry 0x03	
-spk_17_sample_02	played	trace-20261012-152043	session 1	1	acropolis_patio	3	4			0/mp5a5	0	0	0	spk_17 entry 0x03	
-spk_17_sample_02	played	trace-20261012-152043	session 1	1	acropolis_promenade	2	2			0/mp5a5	0	0	0	spk_17 entry 0x03	
-spk_17_sample_02	played	trace-20261012-152043	session 1	1	acropolis_promenade	2	3			0/mp5a5	0	0	0	spk_17 entry 0x03	
-spk_17_sample_02	played	trace-20261012-152043	session 1	1	acropolis_roof_garden	1	1			0/mp5a5	0	0	0	spk_17 entry 0x03	
-spk_17_sample_02	played	trace-20261012-152043	session 1	1	acropolis_roof_garden	1	2			0/mp5a5	0	0	0	spk_17 entry 0x03	
-spk_17_sample_03	played	trace-20261012-152043	session 1	1	acropolis_cafeteria	4	4			0/mp5a5	0	0	0	spk_17 entry 0x04	
-spk_17_sample_03	played	trace-20261012-152043	session 1	1	acropolis_fire_escape	1	1			0/mp5a5	0	0	0	spk_17 entry 0x04	
-spk_17_sample_03	played	trace-20261012-152043	session 1	1	acropolis_forked_road	2	3			0/mp5a5	0	0	0	spk_17 entry 0x04	
-spk_17_sample_03	played	trace-20261012-152043	session 1	1	acropolis_forked_road	2	4			0/mp5a5	0	0	0	spk_17 entry 0x04	
-spk_17_sample_03	played	trace-20261012-152043	session 1	1	acropolis_fountain	2	2			0/mp5a5	0	0	0	spk_17 entry 0x04	
-spk_17_sample_03	played	trace-20261012-152043	session 1	1	acropolis_hallway	1	4			0/mp5a5	0	0	0	spk_17 entry 0x04	
-spk_17_sample_03	played	trace-20261012-152043	session 1	1	acropolis_helicopter_landing_pad	1	1			0/mp5a5	0	0	0	spk_17 entry 0x04	
-spk_17_sample_03	played	trace-20261012-152043	session 1	1	acropolis_observatory	1	2			0/mp5a5	0	0	0	spk_17 entry 0x04	
-spk_17_sample_03	played	trace-20261012-152043	session 1	1	acropolis_patio	3	4			0/mp5a5	0	0	0	spk_17 entry 0x04	
-spk_17_sample_03	played	trace-20261012-152043	session 1	1	acropolis_promenade	2	2			0/mp5a5	0	0	0	spk_17 entry 0x04	
-spk_17_sample_03	played	trace-20261012-152043	session 1	1	acropolis_promenade	2	3			0/mp5a5	0	0	0	spk_17 entry 0x04	
-spk_17_sample_03	played	trace-20261012-152043	session 1	1	acropolis_roof_garden	1	1			0/mp5a5	0	0	0	spk_17 entry 0x04	
-spk_17_sample_03	played	trace-20261012-152043	session 1	1	acropolis_roof_garden	1	2			0/mp5a5	0	0	0	spk_17 entry 0x04	
-spk_5_sample_04	played	trace-20261012-152043	session 1	1	acropolis_bridge	2	1			0/mp5a5	0	0	0	spk_17 entry 0x05	
-spk_5_sample_04	played	trace-20261012-152043	session 1	1	acropolis_fire_escape	1	1			0/mp5a5	0	0	0	spk_17 entry 0x05	
-spk_5_sample_04	played	trace-20261012-152043	session 1	1	acropolis_forked_road	2	3			0/mp5a5	0	0	0	spk_17 entry 0x05	
-spk_5_sample_04	played	trace-20261012-152043	session 1	1	acropolis_forked_road	2	4			0/mp5a5	0	0	0	spk_17 entry 0x05	
-spk_5_sample_04	played	trace-20261012-152043	session 1	1	acropolis_patio	3	4			0/mp5a5	0	0	0	spk_17 entry 0x05	
-spk_5_sample_04	played	trace-20261012-152043	session 1	1	acropolis_promenade	2	2			0/mp5a5	0	0	0	spk_17 entry 0x05	
-spk_5_sample_04	played	trace-20261012-152043	session 1	1	acropolis_promenade	2	3			0/mp5a5	0	0	0	spk_17 entry 0x05	
-spk_5_sample_04	played	trace-20261012-152043	session 1	1	acropolis_roof_garden	1	1			0/mp5a5	0	0	0	spk_17 entry 0x05	
-spk_5_sample_04	played	trace-20261012-152043	session 1	1	acropolis_roof_garden	1	2			0/mp5a5	0	0	0	spk_17 entry 0x05	
+weapons/mp5a5/reload_start	played	trace-20261012-152043	session 1	1	acropolis_bridge	2	1			0/mp5a5	0	0	0	weapons/mp5a5/sounds entry 0x02	
+weapons/mp5a5/reload_start	played	trace-20261012-152043	session 1	1	acropolis_cafeteria	4	4			0/mp5a5	0	0	0	weapons/mp5a5/sounds entry 0x02	
+weapons/mp5a5/reload_start	played	trace-20261012-152043	session 1	1	acropolis_fire_escape	1	1			0/mp5a5	0	0	0	weapons/mp5a5/sounds entry 0x02	
+weapons/mp5a5/reload_start	played	trace-20261012-152043	session 1	1	acropolis_forked_road	2	3			0/mp5a5	0	0	0	weapons/mp5a5/sounds entry 0x02	
+weapons/mp5a5/reload_start	played	trace-20261012-152043	session 1	1	acropolis_forked_road	2	4			0/mp5a5	0	0	0	weapons/mp5a5/sounds entry 0x02	
+weapons/mp5a5/reload_start	played	trace-20261012-152043	session 1	1	acropolis_fountain	2	2			0/mp5a5	0	0	0	weapons/mp5a5/sounds entry 0x02	
+weapons/mp5a5/reload_start	played	trace-20261012-152043	session 1	1	acropolis_hallway	1	4			0/mp5a5	0	0	0	weapons/mp5a5/sounds entry 0x02	
+weapons/mp5a5/reload_start	played	trace-20261012-152043	session 1	1	acropolis_helicopter_landing_pad	1	1			0/mp5a5	0	0	0	weapons/mp5a5/sounds entry 0x02	
+weapons/mp5a5/reload_start	played	trace-20261012-152043	session 1	1	acropolis_observatory	1	2			0/mp5a5	0	0	0	weapons/mp5a5/sounds entry 0x02	
+weapons/mp5a5/reload_start	played	trace-20261012-152043	session 1	1	acropolis_patio	3	4			0/mp5a5	0	0	0	weapons/mp5a5/sounds entry 0x02	
+weapons/mp5a5/reload_start	played	trace-20261012-152043	session 1	1	acropolis_promenade	2	2			0/mp5a5	0	0	0	weapons/mp5a5/sounds entry 0x02	
+weapons/mp5a5/reload_start	played	trace-20261012-152043	session 1	1	acropolis_promenade	2	3			0/mp5a5	0	0	0	weapons/mp5a5/sounds entry 0x02	
+weapons/mp5a5/reload_start	played	trace-20261012-152043	session 1	1	acropolis_roof_garden	1	1			0/mp5a5	0	0	0	weapons/mp5a5/sounds entry 0x02	
+weapons/mp5a5/reload_start	played	trace-20261012-152043	session 1	1	acropolis_roof_garden	1	2			0/mp5a5	0	0	0	weapons/mp5a5/sounds entry 0x02	
+weapons/mp5a5/reload_load	played	trace-20261012-152043	session 1	1	acropolis_bridge	2	1			0/mp5a5	0	0	0	weapons/mp5a5/sounds entry 0x03	
+weapons/mp5a5/reload_load	played	trace-20261012-152043	session 1	1	acropolis_cafeteria	4	4			0/mp5a5	0	0	0	weapons/mp5a5/sounds entry 0x03	
+weapons/mp5a5/reload_load	played	trace-20261012-152043	session 1	1	acropolis_fire_escape	1	1			0/mp5a5	0	0	0	weapons/mp5a5/sounds entry 0x03	
+weapons/mp5a5/reload_load	played	trace-20261012-152043	session 1	1	acropolis_forked_road	2	3			0/mp5a5	0	0	0	weapons/mp5a5/sounds entry 0x03	
+weapons/mp5a5/reload_load	played	trace-20261012-152043	session 1	1	acropolis_forked_road	2	4			0/mp5a5	0	0	0	weapons/mp5a5/sounds entry 0x03	
+weapons/mp5a5/reload_load	played	trace-20261012-152043	session 1	1	acropolis_fountain	2	2			0/mp5a5	0	0	0	weapons/mp5a5/sounds entry 0x03	
+weapons/mp5a5/reload_load	played	trace-20261012-152043	session 1	1	acropolis_hallway	1	4			0/mp5a5	0	0	0	weapons/mp5a5/sounds entry 0x03	
+weapons/mp5a5/reload_load	played	trace-20261012-152043	session 1	1	acropolis_helicopter_landing_pad	1	1			0/mp5a5	0	0	0	weapons/mp5a5/sounds entry 0x03	
+weapons/mp5a5/reload_load	played	trace-20261012-152043	session 1	1	acropolis_observatory	1	2			0/mp5a5	0	0	0	weapons/mp5a5/sounds entry 0x03	
+weapons/mp5a5/reload_load	played	trace-20261012-152043	session 1	1	acropolis_patio	3	4			0/mp5a5	0	0	0	weapons/mp5a5/sounds entry 0x03	
+weapons/mp5a5/reload_load	played	trace-20261012-152043	session 1	1	acropolis_promenade	2	2			0/mp5a5	0	0	0	weapons/mp5a5/sounds entry 0x03	
+weapons/mp5a5/reload_load	played	trace-20261012-152043	session 1	1	acropolis_promenade	2	3			0/mp5a5	0	0	0	weapons/mp5a5/sounds entry 0x03	
+weapons/mp5a5/reload_load	played	trace-20261012-152043	session 1	1	acropolis_roof_garden	1	1			0/mp5a5	0	0	0	weapons/mp5a5/sounds entry 0x03	
+weapons/mp5a5/reload_load	played	trace-20261012-152043	session 1	1	acropolis_roof_garden	1	2			0/mp5a5	0	0	0	weapons/mp5a5/sounds entry 0x03	
+weapons/mp5a5/shot	played	trace-20261012-152043	session 1	1	acropolis_cafeteria	4	4			0/mp5a5	0	0	0	weapons/mp5a5/sounds entry 0x04	
+weapons/mp5a5/shot	played	trace-20261012-152043	session 1	1	acropolis_fire_escape	1	1			0/mp5a5	0	0	0	weapons/mp5a5/sounds entry 0x04	
+weapons/mp5a5/shot	played	trace-20261012-152043	session 1	1	acropolis_forked_road	2	3			0/mp5a5	0	0	0	weapons/mp5a5/sounds entry 0x04	
+weapons/mp5a5/shot	played	trace-20261012-152043	session 1	1	acropolis_forked_road	2	4			0/mp5a5	0	0	0	weapons/mp5a5/sounds entry 0x04	
+weapons/mp5a5/shot	played	trace-20261012-152043	session 1	1	acropolis_fountain	2	2			0/mp5a5	0	0	0	weapons/mp5a5/sounds entry 0x04	
+weapons/mp5a5/shot	played	trace-20261012-152043	session 1	1	acropolis_hallway	1	4			0/mp5a5	0	0	0	weapons/mp5a5/sounds entry 0x04	
+weapons/mp5a5/shot	played	trace-20261012-152043	session 1	1	acropolis_helicopter_landing_pad	1	1			0/mp5a5	0	0	0	weapons/mp5a5/sounds entry 0x04	
+weapons/mp5a5/shot	played	trace-20261012-152043	session 1	1	acropolis_observatory	1	2			0/mp5a5	0	0	0	weapons/mp5a5/sounds entry 0x04	
+weapons/mp5a5/shot	played	trace-20261012-152043	session 1	1	acropolis_patio	3	4			0/mp5a5	0	0	0	weapons/mp5a5/sounds entry 0x04	
+weapons/mp5a5/shot	played	trace-20261012-152043	session 1	1	acropolis_promenade	2	2			0/mp5a5	0	0	0	weapons/mp5a5/sounds entry 0x04	
+weapons/mp5a5/shot	played	trace-20261012-152043	session 1	1	acropolis_promenade	2	3			0/mp5a5	0	0	0	weapons/mp5a5/sounds entry 0x04	
+weapons/mp5a5/shot	played	trace-20261012-152043	session 1	1	acropolis_roof_garden	1	1			0/mp5a5	0	0	0	weapons/mp5a5/sounds entry 0x04	
+weapons/mp5a5/shot	played	trace-20261012-152043	session 1	1	acropolis_roof_garden	1	2			0/mp5a5	0	0	0	weapons/mp5a5/sounds entry 0x04	
+weapons/p229/secondary_shot	played	trace-20261012-152043	session 1	1	acropolis_bridge	2	1			0/mp5a5	0	0	0	weapons/mp5a5/sounds entry 0x05	
+weapons/p229/secondary_shot	played	trace-20261012-152043	session 1	1	acropolis_fire_escape	1	1			0/mp5a5	0	0	0	weapons/mp5a5/sounds entry 0x05	
+weapons/p229/secondary_shot	played	trace-20261012-152043	session 1	1	acropolis_forked_road	2	3			0/mp5a5	0	0	0	weapons/mp5a5/sounds entry 0x05	
+weapons/p229/secondary_shot	played	trace-20261012-152043	session 1	1	acropolis_forked_road	2	4			0/mp5a5	0	0	0	weapons/mp5a5/sounds entry 0x05	
+weapons/p229/secondary_shot	played	trace-20261012-152043	session 1	1	acropolis_patio	3	4			0/mp5a5	0	0	0	weapons/mp5a5/sounds entry 0x05	
+weapons/p229/secondary_shot	played	trace-20261012-152043	session 1	1	acropolis_promenade	2	2			0/mp5a5	0	0	0	weapons/mp5a5/sounds entry 0x05	
+weapons/p229/secondary_shot	played	trace-20261012-152043	session 1	1	acropolis_promenade	2	3			0/mp5a5	0	0	0	weapons/mp5a5/sounds entry 0x05	
+weapons/p229/secondary_shot	played	trace-20261012-152043	session 1	1	acropolis_roof_garden	1	1			0/mp5a5	0	0	0	weapons/mp5a5/sounds entry 0x05	
+weapons/p229/secondary_shot	played	trace-20261012-152043	session 1	1	acropolis_roof_garden	1	2			0/mp5a5	0	0	0	weapons/mp5a5/sounds entry 0x05	
 spk_180	played	trace-20261012-152043	session 1	1	acropolis_fire_escape	1	1			1/acropolis_fire_escape/file0	0	0	0	entry 0x0d	
 spk_180	played	trace-20261012-152043	session 1	1	acropolis_fire_escape	1	1			1/acropolis_fire_escape/file0	0	0	0	entry 0x0e	
 spk_180	played	trace-20261012-152043	session 1	1	acropolis_fire_escape	1	1			1/acropolis_fire_escape/file0	0	0	0	entry 0x0f	
@@ -10283,13 +10283,13 @@ spk_89_sample_05	played	trace-20261012-152043	session 1	1	acropolis_patio	3	4			
 spk_89_sample_05	played	trace-20261012-152043	session 1	1	acropolis_promenade	2	2			0/file200700	2	4	0	spk_89 entry 0x08	
 spk_89_sample_05	played	trace-20261012-152043	session 1	1	acropolis_promenade	2	3			0/file200700	2	4	0	spk_89 entry 0x08	
 spk_89_sample_05	played	trace-20261012-152043	session 1	1	acropolis_roof_garden	1	2			0/file200700	2	4	0	spk_89 entry 0x08	
-spk_9	played	trace-20261012-152043	session 1	1	acropolis_observatory	1	3			0/tonfa_baton	0	0	0	entry 0x01	
-spk_9	played	trace-20261012-152043	session 1	1	acropolis_observatory	1	3			0/tonfa_baton	0	0	0	entry 0x02	
-spk_9	played	trace-20261012-152043	session 1	1	acropolis_observatory	1	3			0/tonfa_baton	0	0	0	entry 0x03	
-spk_9	played	trace-20261012-152043	session 1	1	acropolis_observatory	1	3			0/tonfa_baton	0	0	0	entry 0x04	
-spk_9	sound memory	trace-20261012-145054	session 1	1	mist_parking	1	1		0x74450-0x7b00f	0/tonfa_baton	0	0	0	bank 0x2013 descriptor 2	freed by sndBankAllocTables at event 11952
-spk_9	sound memory	trace-20261012-152043	session 1	1	acropolis_observatory	1	3		0x74450-0x7b00f	0/tonfa_baton	0	0	0	bank 0x2013 descriptor 2	
-spk_9	sound memory	trace-20261012-152043	session 1	1	acropolis_promenade	2	3		0x74450-0x7b00f	0/tonfa_baton	0	0	0	bank 0x2013 descriptor 2	freed by sndBankAllocTables at event 22978
+weapons/tonfa_baton/sounds	played	trace-20261012-152043	session 1	1	acropolis_observatory	1	3			0/tonfa_baton	0	0	0	entry 0x01	
+weapons/tonfa_baton/sounds	played	trace-20261012-152043	session 1	1	acropolis_observatory	1	3			0/tonfa_baton	0	0	0	entry 0x02	
+weapons/tonfa_baton/sounds	played	trace-20261012-152043	session 1	1	acropolis_observatory	1	3			0/tonfa_baton	0	0	0	entry 0x03	
+weapons/tonfa_baton/sounds	played	trace-20261012-152043	session 1	1	acropolis_observatory	1	3			0/tonfa_baton	0	0	0	entry 0x04	
+weapons/tonfa_baton/sounds	sound memory	trace-20261012-145054	session 1	1	mist_parking	1	1		0x74450-0x7b00f	0/tonfa_baton	0	0	0	bank 0x2013 descriptor 2	freed by sndBankAllocTables at event 11952
+weapons/tonfa_baton/sounds	sound memory	trace-20261012-152043	session 1	1	acropolis_observatory	1	3		0x74450-0x7b00f	0/tonfa_baton	0	0	0	bank 0x2013 descriptor 2	
+weapons/tonfa_baton/sounds	sound memory	trace-20261012-152043	session 1	1	acropolis_promenade	2	3		0x74450-0x7b00f	0/tonfa_baton	0	0	0	bank 0x2013 descriptor 2	freed by sndBankAllocTables at event 22978
 spk_90	played	trace-20261012-152043	session 1	1	acropolis_cafeteria	4	3			0/file401800	0	2	0	entry 0x01	
 spk_90	played	trace-20261012-152043	session 1	1	acropolis_cafeteria	4	3			0/file401800	0	2	0	entry 0x02	
 spk_90	played	trace-20261012-152043	session 1	1	acropolis_cafeteria	4	3			0/file401800	0	2	0	entry 0x05	
@@ -10500,10 +10500,10 @@ spk_91_sample_05	played	trace-20261012-152043	session 1	1	acropolis_observatory	
 spk_91_sample_05	played	trace-20261012-152043	session 1	1	acropolis_promenade	1	1			0/file101101	0	0	0	spk_91 entry 0x08	
 spk_91_sample_06	played	trace-20261012-152043	session 1	1	acropolis_fountain	2	2			0/file101101	0	0	0	spk_91 entry 0x0a	
 spk_91_sample_07	played	trace-20261012-152043	session 1	1	acropolis_fountain	2	2			0/file101101	0	0	0	spk_91 entry 0x0b	
-spk_9_sample_00	played	trace-20261012-152043	session 1	1	acropolis_observatory	1	3			0/tonfa_baton	0	0	0	spk_9 entry 0x02	
-spk_9_sample_01	played	trace-20261012-152043	session 1	1	acropolis_observatory	1	3			0/tonfa_baton	0	0	0	spk_9 entry 0x01	
-spk_9_sample_02	played	trace-20261012-152043	session 1	1	acropolis_observatory	1	3			0/tonfa_baton	0	0	0	spk_9 entry 0x03	
-spk_9_sample_03	played	trace-20261012-152043	session 1	1	acropolis_observatory	1	3			0/tonfa_baton	0	0	0	spk_9 entry 0x04	
+weapons/tonfa_baton/combo_swing	played	trace-20261012-152043	session 1	1	acropolis_observatory	1	3			0/tonfa_baton	0	0	0	weapons/tonfa_baton/sounds entry 0x02	
+weapons/tonfa_baton/first_swing	played	trace-20261012-152043	session 1	1	acropolis_observatory	1	3			0/tonfa_baton	0	0	0	weapons/tonfa_baton/sounds entry 0x01	
+weapons/tonfa_baton/first_contact	played	trace-20261012-152043	session 1	1	acropolis_observatory	1	3			0/tonfa_baton	0	0	0	weapons/tonfa_baton/sounds entry 0x03	
+weapons/tonfa_baton/combo_contact	played	trace-20261012-152043	session 1	1	acropolis_observatory	1	3			0/tonfa_baton	0	0	0	weapons/tonfa_baton/sounds entry 0x04	
 stage1_folder1201_id7_s0_scene_0111_palette_0	video memory	trace-20261012-152043	session 1	1	acropolis_sanctuary	1	1	12	0,255,256,6	scene:stage1_folder1201_id7_s0_scene_0111_palette_0	0	0	0	image chunk 0 of the scene image for view 12, sector 111 of stage1_folder1201_id7_s0	overwritten by stage1_folder1201_id7_s0_scene_0372_palette_0 of scene:stage1_folder1201_id7_s0_scene_0372_palette_0 at event 12608
 stage1_folder1201_id7_s0_scene_0111_palette_0	video memory	trace-20261012-152043	session 1	1	acropolis_sanctuary	1	1	12	0,255,256,6	scene:stage1_folder1201_id7_s0_scene_0111_palette_0	0	0	0	image chunk 0 of the scene image for view 12, sector 111 of stage1_folder1201_id7_s0	overwritten by stage1_folder1201_id7_s0_scene_0523_palette_0 of scene:stage1_folder1201_id7_s0_scene_0523_palette_0 at event 12627
 stage1_folder1201_id7_s0_scene_0169_palette_0	video memory	trace-20261012-152043	session 1	1	acropolis_sanctuary	1	1	9	0,255,256,6	scene:stage1_folder1201_id7_s0_scene_0169_palette_0	0	0	0	image chunk 0 of the scene image for view 9, sector 169 of stage1_folder1201_id7_s0	overwritten by stage1_folder1201_id7_s0_scene_0246_palette_0 of scene:stage1_folder1201_id7_s0_scene_0246_palette_0 at event 12588
@@ -10519,6 +10519,6 @@ stage1_folder401_id6_s1_scene_1312_palette_0	video memory	trace-20261012-152043	
 stage1_folder401_id6_s1_scene_1312_palette_0	video memory	trace-20261012-152043	session 1	1	acropolis_patio	3	2	3	0,255,256,6	scene:stage1_folder401_id6_s1_scene_1312_palette_0	0	0	0	image chunk 0 of the scene image for view 3, sector 1312 of stage1_folder401_id6_s1	overwritten by acropolis_patio_view7 of bundle:acropolis_patio_view7 at event 3597
 title	main memory	trace-20261012-145054	session 1						0x80093800-0x80094ca9	0/title	0	0	0		overwritten by gameplay of 0/gameplay at event 124
 title	main memory	trace-20261012-152043	session 1						0x80093800-0x80094ca9	0/title	0	0	0		overwritten by gameplay of 0/gameplay at event 50
-tonfa_baton	main memory	trace-20261012-145054	session 1	1	mist_parking	1	1		0x8011d1c0-0x8012c0ed	0/tonfa_baton	0	0	0		overwritten by m93r of 0/m93r at event 11948
-tonfa_baton	main memory	trace-20261012-152043	session 1	1	acropolis_observatory	1	3		0x8011d1c0-0x8012c0ed	0/tonfa_baton	0	0	0		
-tonfa_baton	main memory	trace-20261012-152043	session 1	1	acropolis_promenade	2	3		0x8011d1c0-0x8012c0ed	0/tonfa_baton	0	0	0		overwritten by mp5a5 of 0/mp5a5 at event 22980
+weapons/tonfa_baton/package	main memory	trace-20261012-145054	session 1	1	mist_parking	1	1		0x8011d1c0-0x8012c0ed	0/tonfa_baton	0	0	0		overwritten by m93r of 0/m93r at event 11948
+weapons/tonfa_baton/package	main memory	trace-20261012-152043	session 1	1	acropolis_observatory	1	3		0x8011d1c0-0x8012c0ed	0/tonfa_baton	0	0	0		
+weapons/tonfa_baton/package	main memory	trace-20261012-152043	session 1	1	acropolis_promenade	2	3		0x8011d1c0-0x8012c0ed	0/tonfa_baton	0	0	0		overwritten by weapons/mp5a5/package of 0/mp5a5 at event 22980

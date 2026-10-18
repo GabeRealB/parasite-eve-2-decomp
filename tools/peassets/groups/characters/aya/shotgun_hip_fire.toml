@@ -1,0 +1,28 @@
+# The assets of the group characters/aya/shotgun_hip_fire, each named characters/aya/shotgun_hip_fire/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[bank]
+type = "animation_bank"
+base = "characters/aya/rifle/bank"
+
+[bank.clips]
+aim_enter = "characters/aya/shotgun_hip_fire/aim_enter"
+aim_exit = "characters/aya/shotgun_hip_fire/aim_exit"
+aim_idle = "characters/aya/shotgun_hip_fire/aim_idle"
+aim_backward = "characters/aya/shotgun_hip_fire/aim_backward"
+
+[aim_exit]
+type = "clip"
+rig = "characters/aya/rig"
+
+[aim_idle]
+type = "clip"
+rig = "characters/aya/rig"
+
+[aim_enter]
+type = "clip"
+rig = "characters/aya/rig"
+
+[aim_backward]
+type = "clip"
+rig = "characters/aya/rig"

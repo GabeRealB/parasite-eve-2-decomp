@@ -1,0 +1,150 @@
+# The assets of the group weapons/sp12, each named weapons/sp12/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[bank]
+type = "animation_bank"
+base = "characters/aya/shotgun_hip_fire/bank"
+symbol = "gSp12PlayerAnimationBank"
+
+[bank.clips]
+fire = "weapons/sp12/fire"
+secondary_fire = "weapons/sp12/fire"
+reload = "weapons/sp12/reload"
+secondary_reload = "weapons/sp12/reload"
+reload_battle_end = "weapons/sp12/reload"
+
+[file]
+type = "file"
+
+[[file.contents]]
+chunk = "palette"
+sha1 = "8a22dd0b6e15cd2f6dd89444da42860347f0157e"
+palettes = [{ texture = "texture", variant = "default", region = "engine/vram/weapon_palette" }]
+
+[[file.contents]]
+chunk = "image"
+sha1 = "f07fc4a875b1f08e2be894d4619ad7f4609a1498"
+pages = [{ texture = "texture", region = "engine/vram/weapon_sheet" }]
+
+[[file.contents]]
+chunk = "package"
+
+[fire]
+type = "clip"
+rig = "characters/aya/rig"
+
+[pump]
+type = "sound"
+sha1 = "55eecb63aab89f7297b4932c8c14deb4c0cb2ba5"
+
+[click]
+type = "sound"
+mode = "high"
+sha1 = "9a61d3c0559adb7919e953987f611e0f207559ac"
+
+[model]
+type = "model"
+slots = ["body"]
+symbol = "gSp12Model"
+sha1 = "4d5afbd4ec4928a50dea05541587ebf9f261d77b"
+
+[reload]
+type = "clip"
+rig = "characters/aya/rig"
+
+[binding]
+type = "binding"
+model = "weapons/sp12/model"
+textures = { body = "weapons/sp12/texture.default" }
+
+[package]
+type = "pe2pkg"
+embedded = [
+    { name = "model", offset = 0x003A4, size = 0x604, address = 0x8011D564 },
+    { asset = "characters/aya/idle", offset = 0x009A8, size = 0x1B8, address = 0x8011DB68 },
+    { asset = "characters/aya/unarmed_walk", offset = 0x00B60, size = 0x6A4, address = 0x8011DD20 },
+    { asset = "characters/aya/turn_left", offset = 0x01204, size = 0x860, address = 0x8011E3C4 },
+    { asset = "characters/aya/turn_right", offset = 0x01A64, size = 0x864, address = 0x8011EC24 },
+    { asset = "characters/aya/item_use", offset = 0x022C8, size = 0x314, address = 0x8011F488 },
+    { asset = "characters/aya/stair_ascent", offset = 0x025DC, size = 0x75C, address = 0x8011F79C },
+    { asset = "characters/aya/stair_descent", offset = 0x02D38, size = 0x788, address = 0x8011FEF8 },
+    { asset = "characters/aya/stair_ascent_finish_odd", offset = 0x034C0, size = 0x2D4, address = 0x80120680 },
+    { asset = "characters/aya/stair_ascent_finish_even", offset = 0x03794, size = 0x390, address = 0x80120954 },
+    { asset = "characters/aya/parasite_energy_begin_0", offset = 0x03B24, size = 0x488, address = 0x80120CE4 },
+    { asset = "characters/aya/parasite_energy_charge_0", offset = 0x03FAC, size = 0x1FC, address = 0x8012116C },
+    { asset = "characters/aya/parasite_energy_cast_0", offset = 0x041A8, size = 0x2D8, address = 0x80121368 },
+    { asset = "characters/aya/parasite_energy_begin_1", offset = 0x04480, size = 0x2A4, address = 0x80121640 },
+    { asset = "characters/aya/parasite_energy_charge_1", offset = 0x04724, size = 0x200, address = 0x801218E4 },
+    { asset = "characters/aya/parasite_energy_cast_1", offset = 0x04924, size = 0x354, address = 0x80121AE4 },
+    { asset = "characters/aya/hit_head", offset = 0x04C78, size = 0x2B4, address = 0x80121E38 },
+    { asset = "characters/aya/hit_body", offset = 0x04F2C, size = 0x320, address = 0x801220EC },
+    { asset = "characters/aya/death", offset = 0x0524C, size = 0x7C4, address = 0x8012240C },
+    { asset = "characters/aya/high_health_idle", offset = 0x05A10, size = 0x1298, address = 0x80122BD0 },
+    { asset = "characters/aya/low_health_idle", offset = 0x06CA8, size = 0xB78, address = 0x80123E68 },
+    { asset = "characters/aya/mid_health_idle", offset = 0x07820, size = 0x71C, address = 0x801249E0 },
+    { asset = "characters/aya/examine_enter", offset = 0x07F3C, size = 0x480, address = 0x801250FC },
+    { asset = "characters/aya/examine_exit", offset = 0x083BC, size = 0x1D8, address = 0x8012557C },
+    { asset = "characters/aya/parasite_energy_begin_2", offset = 0x08594, size = 0x564, address = 0x80125754 },
+    { asset = "characters/aya/parasite_energy_charge_2", offset = 0x08AF8, size = 0x1F4, address = 0x80125CB8 },
+    { asset = "characters/aya/parasite_energy_cast_2", offset = 0x08CEC, size = 0x480, address = 0x80125EAC },
+    { asset = "characters/aya/shotgun_hip_fire/aim_idle", offset = 0x0916C, size = 0x1D8, address = 0x8012632C },
+    { asset = "characters/aya/shotgun_hip_fire/aim_backward", offset = 0x09344, size = 0x840, address = 0x80126504 },
+    { asset = "characters/aya/rifle/aim_forward", offset = 0x09B84, size = 0xAA8, address = 0x80126D44 },
+    { name = "reload", offset = 0x0A62C, size = 0x1440, address = 0x801277EC },
+    { name = "fire", offset = 0x0BA6C, size = 0xA74, address = 0x80128C2C },
+    { asset = "characters/aya/shotgun_hip_fire/aim_enter", offset = 0x0C4E0, size = 0x684, address = 0x801296A0 },
+    { asset = "characters/aya/shotgun_hip_fire/aim_exit", offset = 0x0CB64, size = 0x578, address = 0x80129D24 },
+    { asset = "characters/aya/rifle/walk", offset = 0x0D0DC, size = 0x8B8, address = 0x8012A29C },
+    { asset = "characters/aya/rifle/backward_walk", offset = 0x0D994, size = 0x7A0, address = 0x8012AB54 },
+    { asset = "characters/aya/rifle/run", offset = 0x0E134, size = 0x9D4, address = 0x8012B2F4 },
+    { name = "bank", offset = 0x0EB08, size = 0x13C, address = 0x8012BCC8 },
+]
+package_name = "sp12"
+required = true
+sha1 = "e5711a4f37f25896281c118f279055baf49282d0"
+
+[texture]
+type = "texture"
+bpp = 4
+height = 64
+variants = ["default"]
+width = 256
+
+[slug_pump]
+type = "sound"
+sha1 = "e27ab188f3779c67f5d72d549fa7270237d8cad0"
+
+[reload_load]
+type = "sound"
+sha1 = "e5180506e6dd4693c77202e0b09900f2f790dcf9"
+
+[slug_sounds]
+type = "sound_bank"
+samples = ["weapons/sp12/click", "weapons/sp12/slug_pump", "weapons/sp12/reload_load", "weapons/shotgun/slug_shot"]
+sha1 = "1ad0309fbfa4427bade3ca265815af9dd4c2981e"
+
+[firefly_shot]
+type = "sound"
+mode = "high"
+sha1 = "6b25434fa285e451d8f2529b84b96ae430493d17"
+
+[firefly_sounds]
+type = "sound_bank"
+samples = [
+    "weapons/sp12/click",
+    "weapons/sp12/pump",
+    "weapons/sp12/firefly_reload_load",
+    "weapons/sp12/firefly_shot",
+    "weapons/shotgun/firefly_impact",
+]
+sha1 = "1d54a7a3709f38127a8e5a8015284a6cc96295b8"
+
+[buckshot_sounds]
+type = "sound_bank"
+samples = ["weapons/sp12/click", "weapons/sp12/pump", "weapons/sp12/reload_load", "weapons/shotgun/buckshot_shot"]
+sha1 = "892747a6dcd4d65273d8124eec5dc83e6ebc1a16"
+
+[firefly_reload_load]
+type = "sound"
+mode = "high"
+sha1 = "e79dcd67bef4a48c86dfe36393c9e8027ac1e341"

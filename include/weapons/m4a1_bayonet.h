@@ -5,7 +5,7 @@
 
 #include "main/task_types.h"
 
-/// Player animation bank for the equipped M4A1 Bayonet.
+/// Player animation bank for the equipped M4A1 Bayonet (asset weapons/m4a1_bayonet/bank).
 ///
 /// Native slots 1..44 select 37 distinct clips, including forward walk (2),
 /// backward walk (3) and run (4); native slots 0, 45 and 46 are NULL.

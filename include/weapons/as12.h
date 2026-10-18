@@ -6,23 +6,22 @@
 #include "main/task_types.h"
 #include "main/tmd_types.h"
 
-/// Native player animation bank supplied by the loaded AS12 package.
+/// Native player animation bank supplied by the loaded AS12 package (asset weapons/as12/bank).
 ///
-/// The primary character selects bank index 16 for equipped weapon 15.
-/// Base slots 1..44 contain nineteen-track player clips; slots 0, 45 and 46
-/// are NULL. The 32 extension words start cleared and remain writable for
-/// scripted copies, including payloads that are not clip pointers. Play an
-/// extension slot only after installing a clip pointer there. The bank and
-/// its borrowed clip data must stay loaded while playback refers to them.
+/// The primary character selects bank index 16 for equipped weapon 15. Base
+/// slots 1..44 contain player clips; slots 0, 45 and 46 are NULL. The 32
+/// extension words start cleared and remain writable for scripted copies,
+/// including payloads that are not clip pointers. Play an extension slot
+/// only after installing a clip pointer there. The bank and its borrowed
+/// clip data must stay loaded while playback refers to them.
 extern AnimationSet* gAs12PlayerAnimationBank[ANIMATION_BANK_SET_CAPACITY];
 
-/// Held AS12 shotgun model, with one rigid part and its textured geometry.
+/// Held AS12 shotgun model, with one rigid part and its textured geometry (asset weapons/as12/model).
 ///
 /// Model instances borrow the source and arrays from the loaded AS12 package.
 /// Keep the package loaded until those instances are released. First creation
 /// resolves draw handlers in the writable stream; the initial skeleton and
-/// vertex-count table remain read-only. Each primitive-buffer half holds two
-/// textured Gouraud triangles and 41 textured Gouraud quads (2212 bytes).
+/// vertex-count table remain read-only.
 extern TmdSource gAs12Model;
 
 /// Runs the AS12 automatic fire cycle while input, ammunition and cooldown permit.

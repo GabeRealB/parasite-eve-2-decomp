@@ -5,7 +5,6 @@
 
 #include "types.h"
 
-#include "gameplay/animation.h"
 #include "gameplay/items.h"
 #include "gameplay/player_actor.h"
 #include "gameplay/room_effects.h"
@@ -19,7 +18,6 @@
 #include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task_types.h"
-#include "main/tmd_types.h"
 #include "main/wipsys.h"
 #include "main/wipsys_types.h"
 

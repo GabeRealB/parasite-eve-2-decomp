@@ -1,4 +1,2 @@
 // Overlay-local symbols for M4A1 Rifle (file 10316).
-gM4a1RifleModel = 0x8011DEC4; // held rifle model, shared by both upgrades
 m4a1AttackState = 0x8011d1c4; // type:func
-gM4a1PlayerAnimationBank = 0x8012b9e4;

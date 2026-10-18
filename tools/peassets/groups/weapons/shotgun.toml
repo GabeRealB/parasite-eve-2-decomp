@@ -1,0 +1,39 @@
+# The assets of the group weapons/shotgun, each named weapons/shotgun/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[pump]
+type = "sound"
+sha1 = "d1818b0bf0a545959f8ce92d1fdb1128c579ec8f"
+
+[click]
+type = "sound"
+sha1 = "4493b63fe832564b40127460379805deecba9421"
+
+[slug_pump]
+type = "sound"
+sha1 = "ef5fd71e886cb914a2fd5a07cf6de2b9a8a75413"
+
+[slug_shot]
+type = "sound"
+mode = "high"
+sha1 = "f4a8f98b7db72cb75b986aef839733123eec84e5"
+
+[reload_load]
+type = "sound"
+mode = "high"
+sha1 = "35b1b333880727f7017093e2acd1a827abdf0b72"
+
+[firefly_shot]
+type = "sound"
+mode = "high"
+sha1 = "3db9e169d0758dc18a210c8db0025f7a58107659"
+
+[buckshot_shot]
+type = "sound"
+mode = "high"
+sha1 = "06f555b2f66b36ccf810d11f215abee223358da5"
+
+[firefly_impact]
+type = "sound"
+mode = "high"
+sha1 = "c6c7b541cf1a63c7ec4c40b6a04bff196028027f"

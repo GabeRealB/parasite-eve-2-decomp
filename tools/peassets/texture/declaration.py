@@ -163,9 +163,19 @@ def check_file(key: str, rec: dict[str, Any], assets: dict[str, dict[str, Any]])
                 continue
             x, y = place_at(pal, assets)
             place(f"palette {pal['texture']}.{pal['variant']}", x, y, *item_size(pal, assets, True))
-    listed = {(p["texture"], p["variant"]) for e in rec.get("contents", ()) for p in e.get("palettes", ())}
-    for name, tex in assets.items():
-        if tex.get("type") != "texture" or tex.get("group") != rec.get("group") or tex.get("bpp") not in PALETTE_ENTRIES:
+    # Each texture the file uploads pages of has its palettes uploaded with it. A chunk the file names that another
+    # file declares (a variant's file holding its weapon's image and palette) uploads what that declaration says.
+    def declared(chunk: str, part: str) -> list[dict[str, Any]]:
+        return [p for other in assets.values() if other.get("type") == "file"
+                for e in other.get("contents", ()) if e.get("chunk") == chunk for p in e.get(part, ())]
+
+    entries = rec.get("contents", ())
+    paged = {p["texture"] for e in entries for p in (e.get("pages") or (declared(e.get("chunk"), "pages") if not is_chunk_entry(e) else ()))}
+    listed = {(p["texture"], p["variant"]) for e in entries
+              for p in (e.get("palettes") or (declared(e.get("chunk"), "palettes") if not is_chunk_entry(e) else ()))}
+    for name in sorted(paged):
+        tex = assets.get(name, {})
+        if tex.get("bpp") not in PALETTE_ENTRIES:
             continue
         for variant in tex.get("variants", ()):
             if (name, variant) not in listed:

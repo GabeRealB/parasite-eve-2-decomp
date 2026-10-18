@@ -1,3 +1,1 @@
 // Overlay-local symbols for unused slot 0x85 (file 10306).
-gUnused85HeldWeaponModel = 0x8011D53C; // model named by a task descriptor
-gUnused85PlayerAnimationBank = 0x8012a474;

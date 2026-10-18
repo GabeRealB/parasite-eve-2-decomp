@@ -27,6 +27,26 @@ def declared(assets: dict, kind: str = "clip") -> list[str]:
     return sorted(k for k, r in assets.items() if r.get("type") == kind)
 
 
+def placements(name: str, assets: dict, embedded: dict) -> list[dict]:
+    """Every placement of an asset, as embedded records: one per package that carries it. Its EMBEDDED_ASSETS record
+    is the first (asset_groups.merge); a shared clip has one in each package placing it."""
+    out = [embedded[name]] if name in embedded else []
+    for key, rec in assets.items():
+        if rec.get("type") != "pe2pkg":
+            continue
+        source = f"{rec.get('package_name', key)}.pe2pkg"
+        for place in rec.get("embedded", ()):
+            if isinstance(place, dict) and place["name"] == name and all(source != o["source"] for o in out):
+                out.append({"source": source, **{k: v for k, v in place.items() if k != "name"},
+                            "type": assets[name]["type"]})
+    return out
+
+
+def placed_in(name: str, source: str, assets: dict, embedded: dict) -> dict | None:
+    """The asset's placement in the package `source` (`<package>.pe2pkg`), or None."""
+    return next((p for p in placements(name, assets, embedded) if p["source"] == source), None)
+
+
 def placed_bytes(name: str, assets_root: Path, embedded: dict) -> tuple[bytes, int]:
     """A placed asset's bytes, from its package's decoded copy, and the address of its first byte."""
     place = embedded[name]
@@ -74,9 +94,9 @@ def encode(name: str, assets: dict, embedded: dict, assets_root: Path) -> bytes:
                         asset_schema.embedded_address(embedded[name]))
 
 
-def set_address(clip: str, embedded: dict) -> int:
-    """Where a placed clip's `AnimationSet` record is: its last bytes."""
-    place = embedded[clip]
+def set_address(clip: str, embedded: dict, place: dict | None = None) -> int:
+    """Where a placed clip's `AnimationSet` record is: its last bytes (in `place`, or its first placement)."""
+    place = place or embedded[clip]
     return asset_schema.embedded_address(place) + place["size"] - codec.SET_SIZE
 
 
@@ -126,9 +146,10 @@ def bank_bytes(name: str, assets: dict, embedded: dict) -> bytes:
     source = embedded[name]["source"]
     words = []
     for clip in bank_slots(name, assets):
-        if clip is not None and embedded.get(clip, {}).get("source") != source:
+        place = placed_in(clip, source, assets, embedded) if clip is not None else None
+        if clip is not None and place is None:
             raise SystemExit(f"{name}: binds {clip}, which its package {source} does not place")
-        words.append(set_address(clip, embedded) if clip else 0)
+        words.append(set_address(clip, embedded, place) if clip else 0)
     if len(words) > bank_words(name, embedded):
         raise SystemExit(f"{name}: {len(words)} slots in a placement of {bank_words(name, embedded)} words")
     words += [0] * (bank_words(name, embedded) - len(words))
@@ -136,18 +157,27 @@ def bank_bytes(name: str, assets: dict, embedded: dict) -> bytes:
 
 
 def check(name: str, assets: dict, embedded: dict, assets_root: Path) -> list[str]:
-    """Encode a clip from its USD, or a bank from its declaration, and compare with its bytes in the package."""
-    stored, address = placed_bytes(name, assets_root, embedded)
-    if assets[name]["type"] == "clip":
+    """Encode a clip from its USD, or a bank from its declaration, and compare with its bytes in the package: a
+    clip in every package placing it."""
+    if assets[name]["type"] == "animation_bank":
+        return _compare(bank_bytes(name, assets, embedded), placed_bytes(name, assets_root, embedded)[0], "the package's")
+    clip = usd.read_clip(source_path(name, assets, assets_root))
+    problems = []
+    for place in placements(name, assets, embedded):
+        stored, address = placed_bytes(name, assets_root, {name: place})
         tracks = len(codec.decode(stored, address)["tracks"])
         joints = len(rig_joints(assets[name]["rig"], assets, assets_root))
         if tracks != joints:
-            return [f"{tracks} tracks, its rig {assets[name]['rig']} {joints} joints"]
-    mine = (bank_bytes(name, assets, embedded) if assets[name]["type"] == "animation_bank"
-            else encode(name, assets, embedded, assets_root))
+            problems.append(f"{tracks} tracks, its rig {assets[name]['rig']} {joints} joints")
+            continue
+        problems += _compare(codec.encode(clip, address), stored, place["source"] + "'s")
+    return problems
+
+
+def _compare(mine: bytes, stored: bytes, whose: str) -> list[str]:
     if mine == stored:
         return []
     if len(mine) != len(stored):
-        return [f"{len(mine):#x} bytes, the package's are {len(stored):#x}"]
+        return [f"{len(mine):#x} bytes, {whose} are {len(stored):#x}"]
     first = next(i for i, (a, b) in enumerate(zip(mine, stored)) if a != b)
-    return [f"differs from the package's bytes from byte {first:#x}"]
+    return [f"differs from {whose} bytes from byte {first:#x}"]

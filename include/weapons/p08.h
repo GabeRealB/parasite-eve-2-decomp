@@ -6,7 +6,7 @@
 #include "main/task_types.h"
 #include "main/tmd_types.h"
 
-/// Native player animation bank shared by the two P08 magazine variants.
+/// Native player animation bank shared by the two P08 magazine variants (asset weapons/p08/bank).
 ///
 /// The primary character selects this bank for no weapon, the snail-magazine
 /// P08 and the standard P08 (bank indices 1, 2 and 5). Each loaded P08 package
@@ -18,13 +18,11 @@
 /// the unarmed selection loads the snail-magazine package.
 extern AnimationSet* gP08PlayerAnimationBank[ANIMATION_BANK_SET_CAPACITY];
 
-/// Rigid held P08 pistol model selected for both magazine variants.
+/// Rigid held P08 pistol model selected for both magazine variants (asset weapons/p08/model).
 ///
-/// One root part holds 28 vertices and 26 lighting normals. Instances borrow
-/// the loaded P08 package's geometry and writable command stream; release them
-/// before replacing the package. Creation resolves draw handlers in place and
-/// copies the identity root transform. Each primitive-buffer half contains four
-/// textured Gouraud triangles and 24 quads, all directly transformed.
+/// Instances borrow the loaded P08 package's geometry and writable command
+/// stream; release them before replacing the package. Creation resolves draw
+/// handlers in place and copies the identity root transform.
 extern TmdSource gP08WeaponModel;
 
 /// Runs one P08 player shot and its impact and recovery phases.

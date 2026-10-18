@@ -410,8 +410,8 @@ amoeba_body	Four-part body of the amoeba enemy (root, trunk, two-part arm), scal
 anmc_woman_1_body	19-part body of the woman in the Dryfield toilet event, spawned hidden at room entry while the event is unseen, shown by the room and hidden for good by the event script.	
 anmc_woman_2_body	Body of the woman No. 9 kills in the Dryfield dilapidated house intro (room label "AUNT"): a non-combat scene actor shown and hidden by the script, then squashed and burned away.	
 anmc_woman_cafeteria_body	19-part view-space figure of the woman in the Akropolis cafeteria before she changes, placed actor 1 of variant 1 until the battle scene replaces her with actor_210600.	
-as12_animation_00B54	Aya's animation bank while the AS12 shotgun is equipped: ready and firing clips from the weapon's attack state plus gameplay's idle, walk, run, turn, aim, reload, hit, PE, stair and item-use clips.	
-as12_model_00660	One-part AS12 weapon model spawned as the player's held weapon (weapon 15) and parent of its muzzle flash and reload effects; the companion spawn path is open.	
+weapons/as12/bank	Aya's animation bank while the AS12 shotgun is equipped: ready and firing clips from the weapon's attack state plus gameplay's idle, walk, run, turn, aim, reload, hit, PE, stair and item-use clips.	
+weapons/as12/model	One-part AS12 weapon model spawned as the player's held weapon (weapon 15) and parent of its muzzle flash and reload effects; the companion spawn path is open.	
 aya_10200_image_06AC4	No reached use found: the three-frame (eyes closing, by position) and five-frame blink head-texture sequences A2 and A4 of this Aya costume; the caption senders of values 1 and 3 are undecoded.	
 aya_10200_image_06E04	No reached use found: middle 50x16 frame of this Aya costume's head-texture sequences A2-A4; the mechanism is known but which captions send the starting message is undecoded.	
 aya_10200_image_07144	No reached use found: head-texture sequence A3 of this Aya costume, the three A frames played in reverse after message value 2; the caption senders are undecoded.	
@@ -1008,7 +1008,7 @@ gameplay_effect_80112200_packets	Face stream (a prism 24 wide and 72 long) of th
 gameplay_effect_80112200_part_vertices	One-word vertex count (6) of the P229 casing model's single part; separate storage whose bytes equal the 80111fc8 count the source actually includes.	
 gameplay_effect_80112200_rest_pose	Single identity bone of the P229 casing model; separate storage with the same bytes as the 80111fc8 rest pose the source includes in its place.	
 gameplay_effect_80112200_vertices	Vertex array of gameplay's P229/NPC pistol shell casing model gEffectP229CasingModel.	
-gameplay_effect_8011231c	Triangular-prism model (52 wide, 165 long) of the ejected shotgun shell (effect 0x68), thrown per shotgun flash by PA3, SP12, AS12, the gunblade and Douglas; a second burst-part binding has no spawner.	
+gameplay_effect_8011231c	Triangular-prism model (52 wide, 165 long) of the ejected shotgun shell (effect 0x68), thrown per shotgun flash by PA3, SP12, AS12, the weapons/gunblade/package and Douglas; a second burst-part binding has no spawner.	
 gameplay_effect_8011231c_*	All parts of the one-part shotgun shell model bound as the body of effect slots 0x068 (shotgun shell casing) and 0x037 (burst model part) in gameplay's task bank 6.	
 gameplay_effect_8011231c_normals	Normal array of gameplay's ejected shotgun shell model gEffectShotgunShellCasingModel.	
 gameplay_effect_8011231c_packets	Face stream (a prism 52 wide and 165 long) of the ejected shotgun shell, drawn by the thrown-model effect task and also used by the burst-part task entry.	
@@ -1036,20 +1036,20 @@ gray_stalker_body	18-part cloaked body of the Gray Stalker boss spawned by actor
 gray_stalker_burst_head	One-part head chunk of the Gray Stalker that actor_400500 throws as a flying body chunk when the boss dies to a blast.	
 gray_stalker_burst_leg_left	One-part left leg chunk of the Gray Stalker thrown as a flying body chunk on its blast death only.	
 gray_stalker_burst_leg_right	One-part right leg chunk of the Gray Stalker thrown as a flying body chunk on its blast death only.	
-grenade_pistol_animation_010F0	Aya's animation bank while the Grenade Pistol is equipped: ready and fire clips plus the standard locomotion, aim, reload, hit, parasite-energy, stair and item-use clips; a few filler slots are unused.	
-grenade_pistol_model_00CDC	One-part Grenade Pistol weapon model spawned by gameplay as the player's held weapon whenever equipment is restored with it; the muzzle flash and fired shell start from its root.	
-grenade_pistol_model_0E324	Small box model of the Grenade Pistol's fired shell, spawned per shot as the projectile body, flown under gravity with a smoke trail until it becomes the blast.	
+weapons/grenade_pistol/bank	Aya's animation bank while the Grenade Pistol is equipped: ready and fire clips plus the standard locomotion, aim, reload, hit, parasite-energy, stair and item-use clips; a few filler slots are unused.	
+weapons/grenade_pistol/model	One-part Grenade Pistol weapon model spawned by gameplay as the player's held weapon whenever equipment is restored with it; the muzzle flash and fired shell start from its root.	
+weapons/grenade_pistol/grenade_model	Small box model of the Grenade Pistol's fired shell, spawned per shot as the projectile body, flown under gravity with a smoke trail until it becomes the blast.	
 grinning_stranger_body	19-part body of the Grinning Stranger: the enemy in acropolis_patio and forked road (burns or bursts on death) and the scripted figure in the acropolis square, cafeteria and patio scenes.	
-gunblade_animation_01D14	Aya's animation bank while the Gunblade is equipped: ready, spinning slash and shot clips plus the standard locomotion, aim, reload, hit, parasite-energy and stair clips; a few filler slots are unused.	
-gunblade_model_017FC	One-part Gunblade weapon model spawned by gameplay as the player's held weapon; its coords parent the shot's muzzle flash and the slash trail.	
+weapons/gunblade/bank	Aya's animation bank while the Gunblade is equipped: ready, spinning slash and shot clips plus the standard locomotion, aim, reload, hit, parasite-energy and stair clips; a few filler slots are unused.	
+weapons/gunblade/model	One-part Gunblade weapon model spawned by gameplay as the player's held weapon; its coords parent the shot's muzzle flash and the slash trail.	
 horned_stranger_body	21-part body of the Horned Stranger: the enemy of actor_401300 in the Neo Ark forest zone and woodland path (leaps in, burns or bursts on death) and a scripted cut in the forest ambush scene.	
 horned_stranger_burst_head	One-part detached piece of the Horned Stranger thrown by its burst death, from part 3 when standing and from part 9 in the walking burst.	Named 'burst_head', but the walking burst throws it from part 9 where the standing burst throws effect_1; the name fits only the standing use on part 3.
 horned_stranger_effect_1	One-part detached body piece (31 vertices) of the Horned Stranger thrown twice in its standing burst death, from parts 9 and 12, apparently the two arms.	Named 'effect_1', but the rows show a detached body part thrown from parts 9 and 12 (the two arms by symmetry) in the burst death, not a generic effect.
 horned_stranger_effect_2	Smallest detached body piece (7 vertices) of the Horned Stranger, thrown from part 1 in both the standing and the walking burst death.	
-hypervelocity_animation_036C4	Aya's animation bank while the Hypervelocity is equipped: charge, charge-release and fire/recoil clips plus the standard locomotion, aim, hit, parasite-energy and stair clips; one set and some slots are unused.	
-hypervelocity_model_02C9C	Root body of the three-piece Hypervelocity weapon model, spawned as the player's held weapon and parent of the charge effect, the slide and the hinge.	
-hypervelocity_model_03284	Sliding component of the Hypervelocity weapon model, spawned under the root body and slid along its length while the weapon is charging.	
-hypervelocity_model_03550	Hinged component of the Hypervelocity weapon model, spawned under the root body and pitched open from charge tick 60 until fire or cancel.	
+weapons/hypervelocity/bank	Aya's animation bank while the Hypervelocity is equipped: charge, charge-release and fire/recoil clips plus the standard locomotion, aim, hit, parasite-energy and stair clips; one set and some slots are unused.	
+weapons/hypervelocity/root_model	Root body of the three-piece Hypervelocity weapon model, spawned as the player's held weapon and parent of the charge effect, the slide and the hinge.	
+weapons/hypervelocity/slide_model	Sliding component of the Hypervelocity weapon model, spawned under the root body and slid along its length while the weapon is charging.	
+weapons/hypervelocity/hinge_model	Hinged component of the Hypervelocity weapon model, spawned under the root body and pitched open from charge tick 60 until fire or cancel.	
 ivory_stalker_body	18-part body of the Ivory Stalker enemy spawned by actor_405800 in mine_secret_passage variant 1, drawn through a cloak fed by a frame capture and burned or burst on death.	
 ivory_stalker_burst_head	One-part body chunk of the Ivory Stalker flung from body part 5 as a flying chunk when it dies to a killing blast.	
 jodie_bouquet_body_1	19-part body of Jodie Bouquet spawned hidden by actor_213100 as placed actor 1 in mist_parking variants 1 and 2 and drawn only in view 4, with a held model.	
@@ -1069,27 +1069,27 @@ kyle_madigan_hand_left	One-part hand model hung under part 8 of Kyle Madigan's b
 kyle_madigan_hand_right	One-part free-hand model hung under part 12 of Kyle Madigan's body in six scene packages; the copies in the four companion packages have no use found.	
 kyle_madigan_left	One-part gun-hand model hung under part 8 of Kyle Madigan's body in the water tank and B1 gantry scene packages; the copies in the four companion packages have no use found.	Named only 'left', but the code calls it the left or gun hand: a hand model on part 8, the same mesh role as kyle_madigan_hand_left.
 lesser_stranger_body	19-part body of the lesser Stranger spawned by actor_323300 in the Dryfield toilet event, morphed from the woman's shape using the room's morph deltas and normals.	
-m249_animation_00CD8	Aya's animation bank while the M249 is equipped: ready and per-round fire clips plus the standard locomotion, aim, reload, hit, parasite-energy and stair clips; a few filler slots are unused.	
-m249_model_0060C	One-part M249 weapon model spawned by gameplay as the player's held weapon; its coords parent the rifle muzzle-flash controller.	
-m4a1_animation_00D28	Aya's animation bank while the M4A1 is equipped: ready and per-round fire clips plus the standard locomotion, aim, reload, hit, parasite-energy and stair clips; a few filler slots are unused.	
-m4a1_bayonet_animation_01860	Aya's animation bank while the M4A1 with bayonet is equipped: ready, burst-fire and bayonet-thrust clips plus the standard locomotion, aim, reload, hit, parasite-energy and stair clips.	
-m4a1_bayonet_model_01130	One-part M4A1 bayonet weapon model spawned by gameplay as the player's held weapon; its coord parents the muzzle flash and the blade trail.	
-m4a1_grenade_animation_01890	Aya's animation bank while the M4A1 with grenade launcher is equipped: ready, rifle-round and grenade-launch clips plus the standard locomotion, aim, reload, hit, parasite-energy and stair clips.	
-m4a1_grenade_model_01134	One-part M4A1 with grenade launcher weapon model spawned by gameplay as the player's held weapon; its coords parent both muzzle effects and the launched projectile.	
-m4a1_grenade_model_10F7C	Small box model of the grenade fired by the M4A1 launcher, spawned on the secondary button and flown under gravity with a smoke trail until it detonates.	
-m4a1_hammer_animation_025DC	Aya's animation bank while the M4A1 with Hammer is equipped: ready, rifle-round and stun-gun discharge clips plus the standard locomotion, aim, reload, hit, parasite-energy and stair clips.	
-m4a1_hammer_model_01E10	One-part M4A1 Hammer weapon model spawned by gameplay as the player's held weapon; its coord parents the Hammer glow effect and the muzzle flash.	
-m4a1_javelin_animation_03580	Aya's animation bank while the M4A1 with Javelin is equipped: ready, rifle-round and guide-beam clips plus the standard locomotion, aim, reload, hit, parasite-energy and stair clips.	
-m4a1_javelin_model_02D7C	One-part M4A1 Javelin weapon model spawned by gameplay as the player's held weapon; its coords parent the rifle muzzle flash and the guide beam.	
-m4a1_model_006AC	One-part M4A1 rifle model spawned as the player's held weapon for weapons 16, 20 and 21 (the m4a1, m4a1_p1 and m4a1_p2 packages share it); its coord parents the rifle muzzle flash.	
-m4a1_p1_animation_00D28	Aya's animation bank in the m4a1_p1 package (weapon 20): the same M4A1 ready and per-round fire clips and standard locomotion, aim, reload, hit, parasite-energy and stair clips.	
-m4a1_p2_animation_00D28	Aya's animation bank in the m4a1_p2 package (weapon 21): the same M4A1 ready and per-round fire clips and standard locomotion, aim, reload, hit, parasite-energy and stair clips.	
-m4a1_pyke_animation_023D0	Aya's animation bank while the M4A1 with Pyke is equipped: ready, rifle-round, flame-start and flame-end clips plus the standard locomotion, aim, reload, hit, parasite-energy and stair clips.	
-m4a1_pyke_model_01BCC	One-part M4A1 Pyke weapon model spawned by gameplay as the player's held weapon; its root coord parents the rifle muzzle flash and the persistent nozzle effect.	
-m93r_animations	Aya's animation bank while the M93R is equipped: ready and per-round fire clips plus the standard locomotion, aim, reload, hit, parasite-energy and stair clips; a few filler slots are unused.	
+weapons/m249/bank	Aya's animation bank while the M249 is equipped: ready and per-round fire clips plus the standard locomotion, aim, reload, hit, parasite-energy and stair clips; a few filler slots are unused.	
+weapons/m249/model	One-part M249 weapon model spawned by gameplay as the player's held weapon; its coords parent the rifle muzzle-flash controller.	
+weapons/m4a1/bank	Aya's animation bank while the M4A1 is equipped: ready and per-round fire clips plus the standard locomotion, aim, reload, hit, parasite-energy and stair clips; a few filler slots are unused.	
+weapons/m4a1_bayonet/bank	Aya's animation bank while the M4A1 with bayonet is equipped: ready, burst-fire and bayonet-thrust clips plus the standard locomotion, aim, reload, hit, parasite-energy and stair clips.	
+weapons/m4a1_bayonet/model	One-part M4A1 bayonet weapon model spawned by gameplay as the player's held weapon; its coord parents the muzzle flash and the blade trail.	
+weapons/m4a1_grenade/bank	Aya's animation bank while the M4A1 with grenade launcher is equipped: ready, rifle-round and grenade-launch clips plus the standard locomotion, aim, reload, hit, parasite-energy and stair clips.	
+weapons/m4a1_grenade/model	One-part M4A1 with grenade launcher weapon model spawned by gameplay as the player's held weapon; its coords parent both muzzle effects and the launched projectile.	
+weapons/m4a1_grenade/grenade_model	Small box model of the grenade fired by the M4A1 launcher, spawned on the secondary button and flown under gravity with a smoke trail until it detonates. Its faces read 8-bit texels below the weapon's sheet (v 105..129, the companion-weapon cell) through the weapon palette row, not its own texture - likely a leftover of an earlier layout; its binding records the real placement as an override.	
+weapons/m4a1_hammer/bank	Aya's animation bank while the M4A1 with Hammer is equipped: ready, rifle-round and stun-gun discharge clips plus the standard locomotion, aim, reload, hit, parasite-energy and stair clips.	
+weapons/m4a1_hammer/model	One-part M4A1 Hammer weapon model spawned by gameplay as the player's held weapon; its coord parents the Hammer glow effect and the muzzle flash.	
+weapons/m4a1_javelin/bank	Aya's animation bank while the M4A1 with Javelin is equipped: ready, rifle-round and guide-beam clips plus the standard locomotion, aim, reload, hit, parasite-energy and stair clips.	
+weapons/m4a1_javelin/model	One-part M4A1 Javelin weapon model spawned by gameplay as the player's held weapon; its coords parent the rifle muzzle flash and the guide beam.	
+weapons/m4a1/model	One-part M4A1 rifle model spawned as the player's held weapon for weapons 16, 20 and 21 (the weapons/m4a1/package, weapons/m4a1/p1_package and weapons/m4a1/p2_package packages share it); its coord parents the rifle muzzle flash.	
+weapons/m4a1/bank	Aya's animation bank in the weapons/m4a1/p1_package package (weapon 20): the same M4A1 ready and per-round fire clips and standard locomotion, aim, reload, hit, parasite-energy and stair clips.	
+weapons/m4a1/bank	Aya's animation bank in the weapons/m4a1/p2_package package (weapon 21): the same M4A1 ready and per-round fire clips and standard locomotion, aim, reload, hit, parasite-energy and stair clips.	
+weapons/m4a1_pyke/bank	Aya's animation bank while the M4A1 with Pyke is equipped: ready, rifle-round, flame-start and flame-end clips plus the standard locomotion, aim, reload, hit, parasite-energy and stair clips.	
+weapons/m4a1_pyke/model	One-part M4A1 Pyke weapon model spawned by gameplay as the player's held weapon; its root coord parents the rifle muzzle flash and the persistent nozzle effect.	
+weapons/m93r/bank	Aya's animation bank while the M93R is equipped: ready and per-round fire clips plus the standard locomotion, aim, reload, hit, parasite-energy and stair clips; a few filler slots are unused.	
 weapons/m93r/model	One-part M93R pistol model spawned by gameplay as the player's held weapon; its coords are the muzzle-flash parent and weapon collision source.	
-m950_animation_00900	Aya's animation bank while the M950 is equipped: ready and automatic-fire clips plus the standard locomotion, aim, reload, hit, parasite-energy and stair clips; a few filler slots are unused.	
-m950_model_00548	One-part M950 weapon model spawned by gameplay as the player's held weapon; its coords are the muzzle-flash parent and impact origin.	
+weapons/m950/bank	Aya's animation bank while the M950 is equipped: ready and automatic-fire clips plus the standard locomotion, aim, reload, hit, parasite-energy and stair clips; a few filler slots are unused.	
+weapons/m950/model	One-part M950 weapon model spawned by gameplay as the player's held weapon; its coords are the muzzle-flash parent and impact origin.	
 mad_chaser_body	9-part body of the Mad Chaser enemy: placed in rooms such as the night water tower and summoned hidden for the Glutton fights in the B3 dumping hole and garbage incinerator; shrinks or bursts on death.	
 mad_chaser_burst_arm	One-part Mad Chaser chunk thrown from body part 8 as the second flying body chunk on a lethal blast, one chance in two (otherwise the tail is thrown).	
 mad_chaser_burst_head	One-part Mad Chaser chunk always thrown from body part 6 as a flying body chunk when the enemy dies to a lethal blast.	
@@ -1206,16 +1206,16 @@ mist_shooting_gallery_model_0B0D0	One-part body of shooting gallery target kind 
 mist_shooting_gallery_model_0B2C0	One-part body of shooting gallery target kind 11, which the result panel names Brown Target (400 points), used in course 1 only.	
 mist_shooting_gallery_model_0B4B0	One-part body of shooting gallery target kind 12, which the result panel names Red Target (600 points), used in course 1 only.	
 mist_shooting_gallery_model_0B6A0	One-part body of the uncounted demonstration target (kind 13) spawned once from actor_215100's introduction script in the shooting gallery; it has no score entry.	
-mm1_animation_012F8	Aya's animation bank while the MM1 is equipped: ready and shot clips plus the standard locomotion, aim, reload, hit, parasite-energy and stair clips; an extra set and some filler slots are unused.	
-mm1_model_00DD4	One-part MM1 grenade launcher model spawned by gameplay as the player's held weapon; its root coord parents the muzzle flash and the fired shell.	
-mm1_model_101C4	Small box model of the MM1's fired shell, spawned per shot as the projectile body, flown under gravity with a smoke trail until it becomes the blast.	
-mongoose_animation_00798	Aya's animation bank while the Mongoose is equipped: ready and shot clips plus the standard locomotion, aim, reload, hit, parasite-energy and stair clips; a few filler slots are unused.	
-mongoose_model_00450	One-part Mongoose revolver model spawned by gameplay as the player's held weapon; its coord is the muzzle-flash parent.	
+weapons/mm1/bank	Aya's animation bank while the MM1 is equipped: ready and shot clips plus the standard locomotion, aim, reload, hit, parasite-energy and stair clips; an extra set and some filler slots are unused.	
+weapons/mm1/model	One-part MM1 grenade launcher model spawned by gameplay as the player's held weapon; its root coord parents the muzzle flash and the fired shell.	
+weapons/mm1/grenade_model	Small box model of the MM1's fired shell, spawned per shot as the projectile body, flown under gravity with a smoke trail until it becomes the blast.	
+weapons/mongoose/bank	Aya's animation bank while the Mongoose is equipped: ready and shot clips plus the standard locomotion, aim, reload, hit, parasite-energy and stair clips; a few filler slots are unused.	
+weapons/mongoose/model	One-part Mongoose revolver model spawned by gameplay as the player's held weapon; its coord is the muzzle-flash parent.	
 moth_body	4-part body of the moth enemy (wings on parts 2 and 3 rotated by code) spawned by actors 100700/200700/300700 in Acropolis and night Dryfield rooms; squashed, spun and hidden on death.	
-mp5a5_animation_01960	Aya's animation bank while the MP5A5 is equipped: ready and recoil clips plus the standard locomotion, aim, reload, hit, parasite-energy and stair clips; a few filler slots are unused.	
-mp5a5_model_01318	One-part MP5A5 model spawned as the player's held weapon for weapons 30, 31 and 32 (the mp5a5, mp5a5_p1 and mp5a5_p2 packages share it); its coords parent both muzzle effects.	
-mp5a5_p1_animation_01960	Aya's animation bank in the mp5a5_p1 package (weapon 31): the same MP5A5 ready and recoil clips and standard locomotion, aim, reload, hit, parasite-energy and stair clips.	
-mp5a5_p2_animation_01960	Aya's animation bank in the mp5a5_p2 package (weapon 32): the same MP5A5 ready and recoil clips and standard locomotion, aim, reload, hit, parasite-energy and stair clips.	
+weapons/mp5a5/bank	Aya's animation bank while the MP5A5 is equipped: ready and recoil clips plus the standard locomotion, aim, reload, hit, parasite-energy and stair clips; a few filler slots are unused.	
+weapons/mp5a5/model	One-part MP5A5 model spawned as the player's held weapon for weapons 30, 31 and 32 (the weapons/mp5a5/package, weapons/mp5a5/p1_package and weapons/mp5a5/p2_package packages share it); its coords parent both muzzle effects.	
+weapons/mp5a5/bank	Aya's animation bank in the weapons/mp5a5/p1_package package (weapon 31): the same MP5A5 ready and recoil clips and standard locomotion, aim, reload, hit, parasite-energy and stair clips.	
+weapons/mp5a5/bank	Aya's animation bank in the weapons/mp5a5/p2_package package (weapon 32): the same MP5A5 ready and recoil clips and standard locomotion, aim, reload, hit, parasite-energy and stair clips.	
 neo_ark_altar_collision_01B74	Collision grid of the Neo Ark altar (29 faces, 3x2 cells), shared by all three room indices and used for the whole stay.	
 neo_ark_bridge_collision_04B54	Collision grid of the Neo Ark bridge (43 faces, 3x7 cells), used for the whole stay in every variant.	
 neo_ark_eve_access_tunnel_collision_01648	Collision grid of the Neo Ark Eve access tunnel (28 faces, 2x2 cells), used for the whole stay in every variant.	
@@ -1250,15 +1250,15 @@ neo_ark_woodland_path_collision_0414C	Collision grid of the Neo Ark woodland pat
 no9_golem_akropolis_body	19-part body of No. 9 in the Akropolis: a script-posed figure in the sanctuary, the 1600 HP first-encounter enemy on the helicopter landing pad, and its departure-scene actor there.	
 no9_golem_akropolis_prop	One-part off-hand prop chained under part 12 of No. 9's Akropolis body, shown only in the landing pad intro scene where he tosses and catches it, and spawned with the departure-scene golem.	
 no9_golem_dryfield_body	19-part body of No. 9 in golem armour: the Dryfield dilapidated house boss, also a walker in the B1 control room freezer scene and the submarine tunnel, and a cast member of the B1 gantry cutscene.	Named for Dryfield, but the same body is also spawned in the Shelter B1 control room, the Neo Ark submarine tunnel and the B1 pod service gantry cutscene.
-no9_golem_dryfield_gunblade	One-part gunblade carried under part 8 of No. 9's golem body, carrying the weapon attack sphere in the Dryfield boss fight and also spawned in the B1 gantry cutscene.	
+no9_golem_dryfield_gunblade	One-part weapons/gunblade/package carried under part 8 of No. 9's golem body, carrying the weapon attack sphere in the Dryfield boss fight and also spawned in the B1 gantry cutscene.	
 odd_stranger_body	19-part body of the Odd Stranger enemy spawned by actor_401800 in rooms such as the Acropolis hallway and night motel room 5; burns on the ground or bursts into parts on death.	
-p08_animation_00788	Aya's animation bank while the P08 is equipped: ready and shot clips plus the standard locomotion, aim, reload, hit, parasite-energy and stair clips; a few filler slots are unused.	
-p08_model_00440	One-part P08 pistol model spawned as the player's held weapon for weapons 4 and 1 (the p08 and p08_snail packages share it); its coord is the muzzle-flash parent.	
-p08_snail_animation_00788	Aya's animation bank in the p08_snail package (weapon 1): the same P08 ready, shot and standard clips, and also the bank installed while she is unarmed.	
-p229_animation_01448	Aya's animation bank while the P229 is equipped: ready and recoil clips plus the standard locomotion, aim, reload, hit, parasite-energy and stair clips; a few filler slots are unused.	
-p229_model_01110	One-part P229 pistol model spawned by gameplay as the player's held weapon; its coords parent both muzzle effects, including the secondary flash.	
-pa3_animation_00868	Aya's animation bank while the PA3 shotgun is equipped: ready and shot-and-pump clips plus the standard locomotion, aim, reload, hit, parasite-energy and stair clips; a few filler slots are unused.	
-pa3_model_0056C	One-part PA3 shotgun model spawned by gameplay as the player's held weapon; its coord parents the shotgun muzzle flash and the reload effects.	
+weapons/p08/bank	Aya's animation bank while the P08 is equipped: ready and shot clips plus the standard locomotion, aim, reload, hit, parasite-energy and stair clips; a few filler slots are unused.	
+weapons/p08/model	One-part P08 pistol model spawned as the player's held weapon for weapons 4 and 1 (the p08 and p08_snail packages share it); its coord is the muzzle-flash parent.	
+weapons/p08/bank	Aya's animation bank in the p08_snail package (weapon 1): the same P08 ready, shot and standard clips, and also the bank installed while she is unarmed.	
+weapons/p229/bank	Aya's animation bank while the P229 is equipped: ready and recoil clips plus the standard locomotion, aim, reload, hit, parasite-energy and stair clips; a few filler slots are unused.	
+weapons/p229/model	One-part P229 pistol model spawned by gameplay as the player's held weapon; its coords parent both muzzle effects, including the secondary flash.	
+weapons/pa3/bank	Aya's animation bank while the PA3 shotgun is equipped: ready and shot-and-pump clips plus the standard locomotion, aim, reload, hit, parasite-energy and stair clips; a few filler slots are unused.	
+weapons/pa3/model	One-part PA3 shotgun model spawned by gameplay as the player's held weapon; its coord parents the shotgun muzzle flash and the reload effects.	
 pawn_golem_body	19-part body of the Pawn GOLEM, with beam sword (actors 102000/202000/302000) or grenade launcher (105600/205600), kept as a persistent corpse; also a scene walker in the nursery and night r08.	
 replay_bonus_bundle	Ending bundle loaded for the replay_bonus credits: slot 0 is the STF credits document (417 rows of glyph, palette, column and picture commands) and slots 1-19 are MDEC bitstreams of the credits pictures.	
 acropolis_hallway_bundle	Resource bundle of acropolis_hallway holding one used slot, the room's dialogue file, with no view palettes; loaded for the whole stay.	
@@ -2566,7 +2566,7 @@ acropolis_security_room_view16	256-colour palette (row 255) of the 84 sprites of
 acropolis_security_room_dialogue_0	Acropolis security room's caption file: examine texts, the power-supply panel's left and right lock messages and the security monitor's camera captions; commands 5-9, 11 unused.	
 pe2clut_0	Boot-loaded resident palette block at (256,243): rows 2 and 3 colour gameplay's dialogue glyphs, highlighted choice line and speaker-title sprite; row 0 is rewritten by main's text palettes.	
 pe2clut_1	Boot-loaded resident interface palettes at (0,240): panel frames and fills, cursors, gauges, radar, status, P.E. and item icons, the player portrait and the point-and-click cursor.	
-pe2clut_10	No reached use found: 16-colour weapon palette row of file unused_86, loaded only if the equipped weapon were 7 (item 0x86), which no code path sets.	
+weapons/unused_86/palette	No reached use found: 16-colour weapon palette row of file weapons/unused_86/package, loaded only if the equipped weapon were 7 (item 0x86), which no code path sets.	
 pe2clut_100	256-colour palette of the menu preview picture of item 0x06 (MP Boost1, pe2img_102), uploaded when a menu row or panel showing that item is selected.	
 pe2clut_101	256-colour palette of the menu preview picture of item 0x07 (MP Boost2, pe2img_103), uploaded when a menu row or panel showing that item is selected.	
 pe2clut_102	256-colour palette of the menu preview picture of item 0x08 (Penicillin, pe2img_104), uploaded when a menu row or panel showing that item is selected.	
@@ -2577,7 +2577,7 @@ pe2clut_106	256-colour palette of the menu preview picture of item 0x0C (Snail M
 pe2clut_107	256-colour palette of the menu preview picture of item 0x0D (Belt Pouch, pe2img_109), uploaded when a menu row or panel showing that item is selected.	
 pe2clut_108	256-colour palette of the menu preview picture of item 0x0E (MD Player, pe2img_110), uploaded when a menu row or panel showing that item is selected.	
 pe2clut_109	256-colour palette of the shop preview picture shared by the Pyrokinesis, Combustion and Inferno ability rows (pe2img_111), one stored chunk in nine preview files.	
-pe2clut_11	No reached use found: 16-colour weapon palette row of file unused_87, loaded only if the equipped weapon were 8 (item 0x87), which no code path sets.	
+weapons/unused_86/unused_87_palette	No reached use found: 16-colour weapon palette row of file weapons/unused_86/unused_87_package, loaded only if the equipped weapon were 8 (item 0x87), which no code path sets.	
 pe2clut_110	256-colour palette of the shop preview picture shared by the Necrosis and Plasma ability rows and three more files (pe2img_112), one stored chunk in nine preview files.	
 pe2clut_111	256-colour palette of the shop preview picture shared by the Metabolism and Healing ability rows and three more files (pe2img_113), one stored chunk in nine preview files.	
 pe2clut_112	256-colour palette of the shop preview picture shared by the Antibody and Energyshot ability rows and three more files (pe2img_114), one stored chunk in nine preview files.	
@@ -2588,7 +2588,7 @@ pe2clut_116	256-colour palette of the menu preview picture of item 0x38 (Holy Wa
 pe2clut_117	256-colour palette of the menu preview picture of item 0x39 (Ofuda, pe2img_121), uploaded when a menu row or panel showing that item is selected.	
 pe2clut_118	256-colour palette of the menu preview picture of item 0x3A (Flare, pe2img_122), uploaded when a menu row or panel showing that item is selected.	
 pe2clut_119	256-colour palette of the menu preview picture of item 0x3B (Pepper Spray, pe2img_123), uploaded when a menu row or panel showing that item is selected.	
-pe2clut_12	16-colour palette row (0,243) of the Mongoose weapon model: every textured face of mongoose_model_00450 names it, loaded with the weapon's image.	
+weapons/mongoose/palette	16-colour palette row (0,243) of the Mongoose weapon model: every textured face of weapons/mongoose/model names it, loaded with the weapon's image.	
 pe2clut_120	256-colour palette of the menu preview picture of item 0x3C (Protein Capsule, pe2img_124), uploaded when a menu row or panel showing that item is selected.	
 pe2clut_121	256-colour palette of the menu preview picture of item 0x3D (Ringer's Solution, pe2img_125), uploaded when a menu row or panel showing that item is selected.	
 pe2clut_122	256-colour palette of the menu preview picture of item 0x3E (Eau de Toilette, pe2img_126), uploaded when a menu row or panel showing that item is selected.	
@@ -2599,7 +2599,7 @@ pe2clut_126	256-colour palette of the menu preview picture of item 0x43 (Pyke, p
 pe2clut_127	256-colour palette of the menu preview picture of item 0x44 (Javelin, pe2img_131), uploaded when a menu row or panel showing that item is selected.	
 pe2clut_128	256-colour palette of the menu preview picture of item 0x45 (M203, pe2img_132), uploaded when a menu row or panel showing that item is selected.	
 pe2clut_129	256-colour palette of the menu preview picture of item 0x46 (M9, pe2img_133), uploaded when a menu row or panel showing that item is selected.	
-pe2clut_13	No reached use found: 16-colour weapon palette row of file unused_89, loaded only if the equipped weapon were 10 (item 0x89), which no code path sets.	
+weapons/unused_86/unused_89_palette	No reached use found: 16-colour weapon palette row of file weapons/unused_86/unused_89_package, loaded only if the equipped weapon were 10 (item 0x89), which no code path sets.	
 pe2clut_130	256-colour palette of the menu preview picture of ammunition 0xA0 (9mm P.B., pe2img_134), uploaded when a menu row or panel showing it is selected.	
 pe2clut_131	256-colour palette of the menu preview picture of ammunition 0xA1 (9mm Hydra, pe2img_135), uploaded when a menu row or panel showing it is selected.	
 pe2clut_132	256-colour palette of the menu preview picture of ammunition 0xA2 (9mm Spartan, pe2img_136), uploaded when a menu row or panel showing it is selected.	
@@ -2610,7 +2610,7 @@ pe2clut_136	256-colour palette of the menu preview picture of ammunition 0xAA (A
 pe2clut_137	256-colour palette of the menu preview picture of ammunition 0xAB (Riot, pe2img_141), uploaded when a menu row or panel showing it is selected.	
 pe2clut_138	256-colour palette of the menu preview picture of ammunition 0xAC (Buckshot, pe2img_142), uploaded when a menu row or panel showing it is selected.	
 pe2clut_139	256-colour palette of the menu preview picture of ammunition 0xAD (Firefly, pe2img_143), uploaded when a menu row or panel showing it is selected.	
-pe2clut_14	16-colour palette row (0,243) of the grenade pistol's weapon model and of its fired grenade shell model, loaded with the weapon's image.	
+weapons/grenade_pistol/palette	16-colour palette row (0,243) of the grenade pistol's weapon model and of its fired grenade shell model, loaded with the weapon's image.	
 pe2clut_140	256-colour palette of the menu preview picture of ammunition 0xAE (R. Slug, pe2img_144), uploaded when a menu row or panel showing it is selected.	
 pe2clut_141	256-colour palette of the menu preview picture of ammunition 0xAF (5.56 Rifle, pe2img_145); the seven other preview files storing the same chunk have no requester.	
 pe2clut_142	256-colour palette of the menu preview picture of armour 0x60 (Leather Jacket, pe2img_146), the new-game armour, uploaded when its row or panel is selected.	
@@ -2621,7 +2621,7 @@ pe2clut_146	256-colour palette of the menu preview picture of armour 0x64 (PASGT
 pe2clut_147	256-colour palette of the menu preview picture of armour 0x65 (Tactical Vest, pe2img_151), uploaded when a menu row or panel showing it is selected.	
 pe2clut_148	256-colour palette of the menu preview picture of armour 0x66 (EOD Suit, pe2img_152), uploaded when a menu row or panel showing it is selected.	
 pe2clut_149	256-colour palette of the menu preview picture of armour 0x67 (Turtle Vest, pe2img_153), uploaded when a menu row or panel showing it is selected.	
-pe2clut_15	16-colour palette row (0,243) of the MM1's weapon model and of its fired grenade shell model, loaded with the weapon's image.	
+weapons/mm1/palette	16-colour palette row (0,243) of the MM1's weapon model and of its fired grenade shell model, loaded with the weapon's image.	
 pe2clut_150	256-colour palette of the menu preview picture of armour 0x68 (Chicken Plate, pe2img_154), uploaded when a menu row or panel showing it is selected.	
 pe2clut_151	256-colour palette of the menu preview picture of armour 0x69 (NBC Suit, pe2img_155), uploaded when a menu row or panel showing it is selected.	
 pe2clut_152	256-colour palette of the menu preview picture of armour 0x6A (PsySuit, pe2img_156), uploaded when a menu row or panel showing it is selected.	
@@ -2632,7 +2632,7 @@ pe2clut_156	No reached use found: palette of the tall preview picture of enemy i
 pe2clut_157	No reached use found: palette of the tall enemy preview picture stored for id 0x502 and 51 other entries (pe2img_161); no producer of an id of 0x500 or above was found (open).	
 pe2clut_158	No reached use found: palette of the tall preview picture of enemy id 0x503 (name-table entry 3, pe2img_162); no producer of an id of 0x500 or above was found (open).	
 pe2clut_159	No reached use found: palette of the tall preview picture of enemy id 0x504 (name-table entry 4, pe2img_163); no producer of an id of 0x500 or above was found (open).	
-pe2clut_16	16-colour palette row (0,243) of the PA3 weapon model: every textured face of pa3_model_0056C names it, loaded with the weapon's image.	
+weapons/pa3/palette	16-colour palette row (0,243) of the PA3 weapon model: every textured face of weapons/pa3/model names it, loaded with the weapon's image.	
 pe2clut_160	No reached use found: palette of the tall preview picture of enemy id 0x505 (name-table entry 5, pe2img_164); no producer of an id of 0x500 or above was found (open).	
 pe2clut_161	No reached use found: palette of the tall preview picture of enemy id 0x506 (name-table entry 6, pe2img_165); no producer of an id of 0x500 or above was found (open).	
 pe2clut_162	No reached use found: palette of the tall preview picture of enemy id 0x507 (name-table entry 7, pe2img_166); no producer of an id of 0x500 or above was found (open).	
@@ -2643,7 +2643,7 @@ pe2clut_166	No reached use found: palette of the tall preview picture of enemy i
 pe2clut_167	256-colour palette of the Parasite Energy menu preview picture shared by Pyrokinesis level 1 and Necrosis level 1 (pe2img_171), shown in the Specs and Next Level panels.	
 pe2clut_168	256-colour palette of the Parasite Energy menu preview picture shared by Pyrokinesis level 2 and Necrosis level 2 (pe2img_172), shown in the Specs and Next Level panels.	
 pe2clut_169	256-colour palette of the Parasite Energy menu preview picture shared by Pyrokinesis level 3 and Necrosis level 3 (pe2img_173), shown in the Specs and Next Level panels.	
-pe2clut_17	16-colour palette row (0,243) of the SP12 weapon model: every textured face of sp12_model_005CC names it, loaded with the weapon's image.	
+weapons/sp12/palette	16-colour palette row (0,243) of the SP12 weapon model: every textured face of weapons/sp12/model names it, loaded with the weapon's image.	
 pe2clut_170	256-colour palette of the Parasite Energy menu preview picture of Combustion level 1 (pe2img_174), shown in the Specs and Next Level panels.	
 pe2clut_171	256-colour palette of the Parasite Energy menu preview picture of Combustion level 2 (pe2img_175), shown in the Specs and Next Level panels.	
 pe2clut_172	256-colour palette of the Parasite Energy menu preview picture of Combustion level 3 (pe2img_176), shown in the Specs and Next Level panels.	
@@ -2654,7 +2654,7 @@ pe2clut_176	256-colour palette of the Parasite Energy menu preview picture of Pl
 pe2clut_177	256-colour palette of the Parasite Energy menu preview picture shared by the level-1 Apobiosis, Metabolism, Healing, Lifedrain, Antibody and Energyshot rows and one more (pe2img_181).	
 pe2clut_178	256-colour palette of the Parasite Energy menu preview picture shared by the level-2 Apobiosis, Metabolism, Healing, Lifedrain, Antibody and Energyshot rows and one more (pe2img_182).	
 pe2clut_179	256-colour palette of the Parasite Energy menu preview picture shared by the level-3 Apobiosis, Metabolism, Healing, Lifedrain, Antibody and Energyshot rows and one more (pe2img_183).	
-pe2clut_18	16-colour palette row (0,243) of the AS12 weapon model: all 43 textured faces of as12_model_00660 name it, loaded with the weapon's image.	
+weapons/as12/palette	16-colour palette row (0,243) of the AS12 weapon model: all 43 textured faces of weapons/as12/model name it, loaded with the weapon's image.	
 pe2clut_180	64x3 palette block at (256,240) loaded with the game-over and ending files; no reader found there, and whether the Blizzard Chaser's flare trail in the mine cavern sees it is open.	
 pe2clut_181	64x6 palette block loaded over the resident text and caption palettes at (256,243) by the game-over and ending files; no reader of it found on those screens (open).	
 pe2clut_182	Game-over file's palette at (0,255): its first 16 colours (white then a green-to-blue ramp) colour the GAME OVER logo quad; the rest is zero and unread.	
@@ -2665,7 +2665,7 @@ pe2clut_186	Map-menu palette shared by pages 0 and 1 of the Dryfield day and nig
 pe2clut_187	Map-menu palette shared by page 2 of the Dryfield day and night maps (gas station, main street, shops and nearby rooms): map picture, cover pattern and marker sprite palettes.	
 pe2clut_188	Map-menu palette shared by page 3 of the Dryfield day and night maps (water hole, cellar, underpass): map picture, cover pattern and marker sprite palettes.	
 pe2clut_189	Map-menu palette of stage 4 pages 0 and 1 (page 1 holds the mine cavern and secret passage): map picture, cover pattern and marker sprite palettes.	
-pe2clut_19	16-colour palette row (0,243) of the M4A1 weapon model in its three packages and of the M4A1 bayonet model, loaded with each weapon's image.	
+weapons/m4a1/palette	16-colour palette row (0,243) of the M4A1 weapon model in its three packages and of the M4A1 bayonet model, loaded with each weapon's image.	
 pe2clut_190	Map-menu palette of stage 4 page 2 (mine mesa, tunnel entrance, tunnel, gorge, refuge, forked tunnel): map picture, cover pattern and marker sprite palettes.	
 pe2clut_191	Map-menu palette of stage 4 page 3 (the shelter B1 rooms): row 256 for the map picture, row 255 for the cover pattern, row 257 for cursor, icon and arrow sprites.	
 pe2clut_192	Map-menu palette of stage 4 page 4 (the shelter B2 rooms): row 256 for the map picture, row 255 for the cover pattern, row 257 for cursor, icon and arrow sprites.	
@@ -2677,7 +2677,7 @@ pe2clut_197	Map-menu palette of stage 5 page 2 (Eve elevator and the shelter B6 
 pe2clut_198	Map-menu palette of stage 5 page 3 (the shelter 1F rooms): row 256 for the map picture, row 255 for the cover pattern, row 257 for the cursor and icon sprites.	
 pe2clut_199	Two 256-colour palette rows of the Stinger enemy (body, drain model and burst fragments), loaded per room with a row offset; also read by actor_341300's scene quads in the B2 north walkway.	
 pe2clut_2	256-colour palette at (0,255) of the title screen's chrome sprites; its other five rows are black and unread.	
-pe2clut_20	16-colour palette row (0,243) of the M249 weapon model: all 61 faces of m249_model_0060C name it, loaded with the weapon's image.	
+weapons/m249/palette	16-colour palette row (0,243) of the M249 weapon model: all 61 faces of weapons/m249/model name it, loaded with the weapon's image.	
 pe2clut_200	Two 256-colour palette rows of the diver enemy body and its six blast-death chunk models, placed at a per-room row offset.	
 pe2clut_201	Palette of the gray stalker enemy: its first 256-colour row colours the body, arm models and death chunks; the second row is uploaded but read by nothing.	
 pe2clut_202	Two 256-colour palette rows shared by the moth and rat enemies: the second row colours the moth body and its death burst sprite, the first is taken by the rat body.	
@@ -2688,7 +2688,7 @@ pe2clut_206	Two 256-colour palette rows, one per texture page, of the Horned Str
 pe2clut_207	Palette of the Mind Suckler enemy: its first 256-colour row colours the body and four burst parts in every placing room; the second row has no reader.	
 pe2clut_208	Palette of the scavenger enemy: its first 256-colour row colours the body and the detached head, ear and leg parts; the second row is single-colour filler with no reader.	
 pe2clut_209	Two 256-colour palette rows of the grinning stranger body's two texture pages and its flung burst hands, placed at row offsets +2, +4 or +6 by room.	
-pe2clut_21	16-colour palette row (0,243) of the tonfa baton's model and of a second small model in the package for which no spawner was found.	
+weapons/tonfa_baton/palette	16-colour palette row (0,243) of the tonfa baton's model and of a second small model in the package for which no spawner was found.	
 pe2clut_210	Two 256-colour palette rows, one per texture page, of the Pawn GOLEM body, displaced by each placement's row offset in the packages that carry it.	
 pe2clut_211	256-colour palette row of the GOLEMs' carried weapons: the beam sword, the Rook's shield, the grenade launcher and its grenade, shared by the Pawn and Rook GOLEM files.	
 pe2clut_212	Palette of the Watcher enemy: its first 256-colour row colours watcher_body at a per-room row offset; the second row has no reader.	
@@ -2699,7 +2699,7 @@ pe2clut_216	Palette of the caterpillar maggot enemy: its first 256-colour row co
 pe2clut_217	Palette of the bat enemy: its first 256-colour row colours bat_body and the detached wing at a per-room row offset; the second row has no reader.	
 pe2clut_218	Palette of the black beetle enemy: its first 256-colour row colours the body and five fragment models; the second row is a single repeated colour with no reader.	
 pe2clut_219	Palette of the Blood Suckler enemy: its first 256-colour row colours blood_suckler_body at a per-room row offset; the second row has no reader.	
-pe2clut_22	16-colour palette row (0,243) shared by the Hypervelocity's three weapon models (root body, slide and hinge), loaded with the weapon's image.	
+weapons/hypervelocity/palette	16-colour palette row (0,243) shared by the Hypervelocity's three weapon models (root body, slide and hinge), loaded with the weapon's image.	
 pe2clut_220	Palette of the Acropolis bridge enemy's body model (first 256-colour row), which the bridge loads through file 604100; the copies in files 104100-304100 are never requested.	
 pe2clut_221	Two 256-colour palette rows of the Mad Chaser body and its burst head, arm and tail, used by placed Mad Chasers and by the summoned and incinerator-wave ones.	
 pe2clut_222	Palette of the tentacle in the B2 pod-bottom entry scene (first 256-colour row, via file 361100); the same row is what Eve's row-249 faces show until another palette replaces it.	
@@ -2710,7 +2710,7 @@ pe2clut_226	256-colour palette row for the third texture page of the beta genera
 pe2clut_227	Two 256-colour palette rows for the first two texture pages of the proto generator body (actor_105400), uploaded two rows down at room entry.	
 pe2clut_228	256-colour palette row for the third texture page of the proto generator body (actor_105400), a separate chunk because the image has three pages.	
 pe2clut_229	Palette of the Caterpillar enemy file: its first 256-colour row colours caterpillar_maggot_body and the burst husk; the second row has no reader.	
-pe2clut_23	16-colour palette row (0,243) of the Gunblade weapon model: all 46 face groups of gunblade_model_017FC name it, loaded with the weapon's image.	
+weapons/gunblade/palette	16-colour palette row (0,243) of the Gunblade weapon model: all 46 face groups of weapons/gunblade/model name it, loaded with the weapon's image.	
 pe2clut_230	Two 256-colour palette rows of the Slouch file: the first for the Slouch body and its burst pieces, the second for the Sucklerceph body spawned in placement mode 1.	
 pe2clut_231	Two 256-colour palette rows of the Creeping Stranger file: the first for its body and burst pieces, the second for the Skull Stalker body spawned in placement mode 1.	
 pe2clut_232	Two 256-colour palette rows of the desert chaser body's two pages and its four burst part models, used through files 400100, 323000, 323400 and 421600.	
@@ -2721,7 +2721,7 @@ pe2clut_236	Palette pair loaded with the MIST shooting gallery targets: row 262 
 pe2clut_237	Two 256-colour palette rows of Pierce Carradine's body and his carried models, in MIST parking, the shooting gallery, GOLEM freezer 1 and actor_443500's scenes.	
 pe2clut_238	Two 256-colour palette rows of Rupert Broderick's body models: body_1 in the Acropolis sanctuary and body_2 in the helicopter landing pad departure scene.	
 pe2clut_239	Two 256-colour palette rows, one per page, of the SWAT member body; in the security room's monitor view the rows are greyed and re-uploaded after spawn.	
-pe2clut_24	16-colour palette row (0,243) of the M4A1 hammer weapon model: every face of m4a1_hammer_model_01E10 names it, loaded with the weapon's image.	
+weapons/m4a1_hammer/palette	16-colour palette row (0,243) of the M4A1 hammer weapon model: every face of weapons/m4a1_hammer/model names it, loaded with the weapon's image.	
 pe2clut_240	16-colour palette at row 244 for the faces of the helper model that accompanies the SWAT member in actor_110300.	
 pe2clut_241	Two 256-colour palette rows of the stranger body in the Acropolis cafeteria battle (actor_110600); the room's post-battle copy overwrites the first row in video memory.	
 pe2clut_242	Two 256-colour palette rows of the No. 9 GOLEM body's two pages, in the Acropolis sanctuary and the helicopter landing pad encounter.	
@@ -2732,18 +2732,18 @@ pe2clut_246	16-colour palette at row 244 of Gary Douglas's rifle or shotgun mode
 pe2clut_247	Two 256-colour palette rows of Gary Douglas: both for his body's two pages, the first also for his head-and-hat model, wherever his file is placed.	
 pe2clut_248	Two 256-colour palette rows of Kyle Madigan: both for his body's two pages, the first for his hand models, as a placed scene actor and as the companion.	
 pe2clut_249	Two 256-colour palette rows of the scripted Aya Brea body used in scene actors, also read by Eve's row-247/248 faces at the pod bottom and by the companion body of type 3.	
-pe2clut_25	16-colour palette row (0,243) of the M4A1 grenade launcher's weapon model; its grenade projectile model names the same row as an 8-bit palette (open).	
+weapons/m4a1_grenade/palette	16-colour palette row (0,243) of the M4A1 grenade launcher's weapon model; its grenade projectile model names the same row as an 8-bit palette (open).	
 pe2clut_250	256-colour palette (row 263) of two models of the mine forked tunnel's area object, loaded by the room's own file; the copies in actor files 140400 and 640400 are never loaded.	
 pe2clut_251	Two 256-colour palette rows of the Aya double's body in actor_141000, also the palette its uploaded eye and mouth patches are seen through.	
 pe2clut_252	256-colour palette (row 263) of the flight model in actor_141000 (shelter B1 pod access tunnel); its second row has no reader.	
 pe2clut_253	Sixteen-colour palettes of the shelter B2 laboratory console keypad (actor_143000): status line, key highlight, accepted and rejected banners, entry glyph, caret and animated dog.	
 pe2clut_254	Two 256-colour palette rows of the first walker's body in actor_143900, placed in shelter R36; a second copy filed under the Sea Diver's number is never loaded.	
 pe2clut_255	Two 256-colour palette rows of the body model of actor_146300 and its carried attachment, loaded in variants 10 and 11 of its room.	
-pe2clut_256	Two 256-colour palette rows of the Dryfield No. 9 GOLEM: both for the body's first two pages and the second for its gunblade; also the B1 control room's mirrored copy.	
+pe2clut_256	Two 256-colour palette rows of the Dryfield No. 9 GOLEM: both for the body's first two pages and the second for its weapons/gunblade/package; also the B1 control room's mirrored copy.	
 pe2clut_257	256-colour palette row for the third texture page of the Dryfield No. 9 GOLEM body and for its beam sword, including the B1 control room's mirrored copy.	
 pe2clut_258	Two 256-colour palette rows, one per page, of the Soldier A body (actor_160600 and the shelter 1F tent's actor_460200).	
 pe2clut_259	Two 256-colour palette rows, one per page, of the Soldier B body, in the shelter 1F heliport, B1 underground parking and the 1F tent.	
-pe2clut_26	16-colour palette row (0,243) of the M4A1 pyke weapon model: all 71 faces of m4a1_pyke_model_01BCC name it, loaded with the weapon's image.	
+weapons/m4a1_pyke/palette	16-colour palette row (0,243) of the M4A1 pyke weapon model: all 71 faces of weapons/m4a1_pyke/model name it, loaded with the weapon's image.	
 pe2clut_260	16-colour palette at row 244 of Soldier B's rifle model; heliport view file 4 carries a copy that restores it after view 7 puts another palette there.	
 pe2clut_261	Two 256-colour palette rows of the ANMC woman's body and her carried model in the Acropolis cafeteria, until the battle scene loads another file over them.	
 pe2clut_262	Two 256-colour palette rows, one per page, of the diver body of actor_206100, the Sea Diver placed in the Neo Ark submarine gallery.	
@@ -2754,7 +2754,7 @@ pe2clut_266	Two 256-colour palette rows, one per page, of police officer 1's bod
 pe2clut_267	Two 256-colour palette rows, one per page, of police officer 2's body and culled body in the Acropolis plaza scenes.	
 pe2clut_268	Two 256-colour palette rows of Rupert Broderick's body_1 in actor_310600 and on the security room's enemy-camera monitor, where they are greyed after spawn.	
 pe2clut_269	16-colour palette at row 244 of Rupert Broderick's Mongoose revolver model; heliport view file 7 also uploads it, where no reader was found.	
-pe2clut_27	16-colour palette row (0,243) of the M4A1 javelin weapon model: all 71 face groups of m4a1_javelin_model_02D7C name it, loaded with the weapon's image.	
+weapons/m4a1_javelin/palette	16-colour palette row (0,243) of the M4A1 javelin weapon model: all 71 face groups of weapons/m4a1_javelin/model name it, loaded with the weapon's image.	
 pe2clut_270	Two 256-colour palette rows, one per page, of the stranger body of actor_311500, uploaded two rows down from spawn.	
 pe2clut_271	Two 256-colour palette rows of the SWAT member 1 body in actor_312200; the same chunk in the Rook GOLEM's texture-only file 605700 has no loader.	
 pe2clut_272	Two 256-colour palette rows of the ANMC woman's body in the Dryfield toilet scene (actor_323300); their use for the lesser stranger's layer texture is open.	
@@ -2765,7 +2765,7 @@ pe2clut_276	Two 256-colour palette rows, one per page, of the odd stranger body 
 pe2clut_277	Palette of the Knight GOLEM (actor_402200): its first 256-colour row colours golem_body; the second row has no reader in any room checked.	
 pe2clut_278	Two 256-colour palette rows of the Blizzard Chaser body's normal skin (actor_403000), placed in the mine cavern.	
 pe2clut_279	256-colour palette row of the first page of the Blizzard Chaser's burned skin, read once its row offset is switched to 4.	
-pe2clut_28	16-colour palette row (0,243) of the MP5A5 weapon model in its three packages, loaded with the weapon's image.	
+weapons/mp5a5/palette	16-colour palette row (0,243) of the MP5A5 weapon model in its three packages, loaded with the weapon's image.	
 pe2clut_280	256-colour palette row of the second page of the Blizzard Chaser's burned skin; the chunk's second row is read by nothing.	
 pe2clut_281	Two 256-colour palette rows of the first two pages of the Burner's body (actor_403100), on the night motel balcony in variant 2.	
 pe2clut_282	256-colour palette row of the third page (512,256) of the Burner's body on the night motel balcony.	
@@ -2832,7 +2832,7 @@ pe2clut_337	16-colour palette of the five lamp-debris models of actor_121300 in 
 pe2clut_338	Drift-sprite palette sheet shared by dryfield_r08 and the shelter B2 pod rooms: palette 16 of row 271 colours the dream scene's drift sprites; the banked per-cell palettes have no trigger found.	
 pe2clut_339	Replacement 256-colour palette for the first page of the Dryfield golem's body (actor_521100), uploaded with view 20 of the dilapidated house.	
 pe2clut_34	256-colour palette of the P229 preview picture (pe2img_36) shown by gameplay's item menu when that weapon is the selected row.	
-pe2clut_340	Two replacement 256-colour palette rows for the Dryfield golem's second and third body pages and gunblade, uploaded with view 20 of the dilapidated house.	
+pe2clut_340	Two replacement 256-colour palette rows for the Dryfield golem's second and third body pages and weapons/gunblade/package, uploaded with view 20 of the dilapidated house.	
 pe2clut_341	Dryfield toilet effect palette whose only named palette is the jet puff's, and that puff is not reached because actor command 13 has no sender.	
 pe2clut_342	Two 8-bit palette rows for the Dryfield water tower's sliding prop and falling prop models.	
 pe2clut_343	Two 8-bit palette rows for the Dryfield water tank models: one for the scene prop of the day room's mechanism scene, the other for the model drawn from room entry in day and night rooms.	
@@ -2939,7 +2939,7 @@ pe2clut_56	15-colour palette of the disc-change prompt text (pe2img_58) drawn by
 pe2clut_57	256-colour palette of the Parthenon Key preview picture (pe2img_59) shown in the key-item list of the in-game menu.	
 pe2clut_58	256-colour palette of the Micro Device preview picture (pe2img_60), shown in the key-item list for both key items 0x102 and 0x12D.	
 pe2clut_59	256-colour palette of the Red Key preview picture (pe2img_61) shown in the key-item list of the in-game menu.	
-pe2clut_6	16-colour palette of the P08 weapon model, in the p08 and p08_snail packages; the same chunk sits in the unused weapon files 0x91 and 0x97, which no code path loads.	
+weapons/p08/palette	16-colour palette of the P08 weapon model, in the p08 and p08_snail packages; the same chunk sits in the unused weapon files 0x91 and 0x97, which no code path loads.	
 pe2clut_60	256-colour palette of the Blue Key preview picture (pe2img_62) shown in the key-item list of the in-game menu.	
 pe2clut_61	256-colour palette of the Armory Cardkey preview picture (pe2img_63) shown in the key-item list of the in-game menu.	
 pe2clut_62	256-colour palette of the MIST Badge preview picture (pe2img_64) shown in the key-item list of the in-game menu.	
@@ -2961,7 +2961,7 @@ pe2clut_76	256-colour palette of the Truck Key preview picture (pe2img_78) shown
 pe2clut_77	256-colour palette of the Jerry Can preview picture (pe2img_79) shown in the key-item list of the in-game menu.	
 pe2clut_78	256-colour palette of the Gasoline preview picture (pe2img_80) shown in the key-item list of the in-game menu.	
 pe2clut_79	256-colour palette of the Ice Bag preview picture (pe2img_81) shown in the key-item list of the in-game menu.	
-pe2clut_8	16-colour palette of the M950 weapon model, loaded with pe2img_8 whenever the weapon model is drawn.	
+weapons/m950/palette	16-colour palette of the M950 weapon model, loaded with weapons/m950/image whenever the weapon model is drawn.	
 pe2clut_80	256-colour palette of the Bag of Water preview picture (pe2img_82) shown in the key-item list of the in-game menu.	
 pe2clut_81	256-colour palette of the Bottlecap Magnet preview picture (pe2img_83) shown in the key-item list of the in-game menu.	
 pe2clut_82	256-colour palette of the SUV Key preview picture (pe2img_84) shown in the key-item list of the in-game menu.	
@@ -2972,7 +2972,7 @@ pe2clut_86	256-colour palette of the Yoshida's Card preview picture (pe2img_88) 
 pe2clut_87	256-colour palette of the Electric Car Key preview picture (pe2img_89) shown in the key-item list of the in-game menu.	
 pe2clut_88	256-colour palette of the Teddy Bear preview picture (pe2img_90) shown in the key-item list of the in-game menu.	
 pe2clut_89	256-colour palette of the Pierce's Memo preview picture (pe2img_91) shown in the key-item list of the in-game menu.	
-pe2clut_9	16-colour palette of the P229 weapon model; the unused weapon package 0x85 carries the same palette bytes for its own model.	
+weapons/p229/palette	16-colour palette of the P229 weapon model; the unused weapon package 0x85 carries the same palette bytes for its own model.	
 pe2clut_90	256-colour palette of the Aeris (Sept. issue) preview picture (pe2img_92) shown in the key-item list of the in-game menu.	
 pe2clut_91	256-colour palette of the Mr. Douglas's Letter preview picture (pe2img_93) shown in the key-item list of the in-game menu.	
 pe2clut_92	256-colour palette of the preview picture (pe2img_94) of key item 0x129, which has no name in its descriptor, shown in the key-item list.	
@@ -2985,7 +2985,7 @@ pe2clut_98	256-colour palette of the Stim item preview picture (pe2img_100) show
 pe2clut_99	256-colour palette of the Cola item preview picture (pe2img_101) shown by gameplay's item menu when that item is the selected row.	
 pe2img_0	Resident 4-bit font sheet loaded at boot to (960,256): the medium, large and small glyph faces main's text drawer uses for all HUD, menu, options, title and replay-bonus text.	
 pe2img_1	Resident 4-bit interface sheet loaded at boot to (896,256): panel tiles and frames, cursors, separators, HUD gauges, radar, item and P.E. icons, button glyphs and the point-and-click cursor.	
-pe2img_10	4-bit texture of the weapon model in the unused weapon package 0x85; not reached, since nothing grants that item.	
+weapons/unused_85/image	4-bit texture of the weapon model in the unused weapon package 0x85; not reached, since nothing grants that item.	
 pe2img_100	8-bit preview picture of the Stim item, shown by gameplay's item menu when that item is the selected row.	
 pe2img_1000	8-bit sheet of the 38 depth-sorted room sprites (occluders) of mapped view 3 of the shelter B1 north maintenance walkway, including a background patch toggled by a game flag.	
 pe2img_1001	4-bit glyph atlas of the shelter B1 armory's dialogue, uploaded to the caption page (384,0) and drawn by gameplay's captions.	
@@ -3096,7 +3096,7 @@ pe2img_1096	Two-page 8-bit sheet of the 87 depth-sorted room sprites (occluders)
 pe2img_1097	Two-page 8-bit sheet of the 124 depth-sorted room sprites (occluders) of mapped view 5 of the shelter B2 operating room.	
 pe2img_1098	Two-page 8-bit sheet of the 40 depth-sorted room sprites (occluders) of mapped view 6 of the shelter B2 operating room.	
 pe2img_1099	Two-page 8-bit sheet of the 50 depth-sorted room sprites (occluders) of mapped view 7 of the shelter B2 operating room.	
-pe2img_11	4-bit image of the unused weapon package 0x86, which holds no model; the loader path exists but its condition is unreachable, so nothing draws it.	
+weapons/unused_86/image	4-bit image of the unused weapon package 0x86, which holds no model; the loader path exists but its condition is unreachable, so nothing draws it.	
 pe2img_110	8-bit preview picture of the MD Player item, shown by gameplay's item menu when that item is the selected row.	
 shelter_b2_north_maintenance_walkway_dialogue_0_atlas	4-bit glyph atlas of the shelter B2 north maintenance walkway's dialogue, drawn by gameplay's captions from page (384,0).	
 pe2img_1101	8-bit sheet of the 28 depth-sorted room sprites (occluders) of mapped view 3 of the shelter B2 north maintenance walkway.	
@@ -3207,7 +3207,7 @@ pe2img_1196	Two-page 8-bit image of scene view 40 of the garbage incinerator: on
 shelter_b3_incinerator_control_room_dialogue_0_atlas	4-bit glyph atlas of the shelter B3 incinerator control room's default dialogue file, drawn by gameplay's captions from page (384,0).	
 pe2img_1198	8-bit sheet of the 13 depth-sorted room sprites (occluders) of mapped view 3 of the shelter B3 incinerator control room.	
 pe2img_1199	8-bit sheet of the 18 depth-sorted room sprites (occluders) of mapped view 4 of the shelter B3 incinerator control room.	
-pe2img_12	4-bit image of the unused weapon package 0x87, which holds no model; the loader path exists but its condition is unreachable, so nothing draws it.	
+weapons/unused_86/unused_87_image	4-bit image of the unused weapon package 0x87, which holds no model; the loader path exists but its condition is unreachable, so nothing draws it.	
 pe2img_120	8-bit preview picture of the Holy Water item, shown by gameplay's item menu when that item is the selected row.	
 pe2img_1200	8-bit sheet of the 2 depth-sorted room sprites (occluders) of mapped view 5 of the shelter B3 incinerator control room.	
 shelter_b3_elevator_hall_dialogue_0_atlas	4-bit glyph atlas of the shelter B3 elevator hall's dialogue, drawn by gameplay's captions from page (384,0).	
@@ -3318,7 +3318,7 @@ pe2img_1296	Two-page 8-bit sheet of the 94 depth-sorted room sprites (occluders)
 pe2img_1297	Three-page 8-bit sheet of the 69 depth-sorted room sprites (occluders) of mapped view 9 of the Neo Ark observatory.	
 pe2img_1298	Three-page 8-bit sheet of the 76 depth-sorted room sprites (occluders) of mapped view 10 of the Neo Ark observatory.	
 pe2img_1299	Three-page 8-bit sheet of the 78 depth-sorted room sprites (occluders) of mapped view 11 of the Neo Ark observatory.	
-pe2img_13	4-bit texture of the Mongoose weapon model, loaded with the equipped weapon's resources and drawn whenever the model is.	
+weapons/mongoose/image	4-bit texture of the Mongoose weapon model, loaded with the equipped weapon's resources and drawn whenever the model is.	
 pe2img_130	8-bit preview picture of the Pyke item, shown by gameplay's item menu when that item is the selected row.	
 pe2img_1300	Two-page 8-bit sheet of the 23 depth-sorted room sprites (occluders) of mapped view 12 of the Neo Ark observatory, reached only as a caption scene step.	
 pe2img_1301	8-bit sheet of the 14 depth-sorted room sprites (occluders) of mapped view 14 of the Neo Ark observatory, reached only as a caption scene step.	
@@ -3429,7 +3429,7 @@ pe2img_1396	Two-page 8-bit sheet of the 51 depth-sorted room sprites (occluders)
 pe2img_1397	8-bit sheet of the 56 depth-sorted room sprites (occluders) of mapped view 16 of the shelter B6 nursery.	
 pe2img_1398	8-bit texture swap stored in file 17 of the shelter B6 nursery: it replaces the first page of the body texture worn by scene actor 3 (actor_450800) in the later scene.	
 shelter_b6_growth_room_dialogue_0_atlas	4-bit glyph atlas of the shelter B6 growth room's dialogue, drawn by gameplay's captions from page (384,0).	
-pe2img_14	4-bit image of the unused weapon package 0x89, which holds no model; the loader path exists but its condition is unreachable, so nothing draws it.	
+weapons/unused_86/unused_89_image	4-bit image of the unused weapon package 0x89, which holds no model; the loader path exists but its condition is unreachable, so nothing draws it.	
 pe2img_140	8-bit preview picture of the Airburst ammunition, shown by gameplay's item menu when that ammunition is the selected row.	
 pe2img_1400	4-bit effect sheet of the shelter B6 growth room: the ambient mist billboard cells and the drifting puff cells drawn from room entry; three flare cells have no use found.	
 pe2img_1401	8-bit sheet of the 6 depth-sorted room sprites (occluders) of view 2 of the shelter B6 growth room.	
@@ -3493,7 +3493,7 @@ pe2img_146	8-bit preview picture of the Leather Jacket armour, shown by gameplay
 pe2img_147	8-bit preview picture of the Tactical Armor armour, shown by gameplay's item menu when that armour is the selected row.	
 pe2img_148	8-bit preview picture of the Combat Armor armour, shown by gameplay's item menu when that armour is the selected row.	
 pe2img_149	8-bit preview picture of the Assault Suit armour, shown by gameplay's item menu when that armour is the selected row.	
-pe2img_15	4-bit texture of the Grenade Pistol weapon model; a corner of it also textures the grenade shell model while a fired shell is in flight.	
+weapons/grenade_pistol/image	4-bit texture of the Grenade Pistol weapon model; a corner of it also textures the grenade shell model while a fired shell is in flight.	
 pe2img_150	8-bit preview picture of the PASGT Vest armour, shown by gameplay's item menu when that armour is the selected row.	
 pe2img_151	8-bit preview picture of the Tactical Vest armour, shown by gameplay's item menu when that armour is the selected row.	
 pe2img_152	8-bit preview picture of the EOD Suit armour, shown by gameplay's item menu when that armour is the selected row.	
@@ -3504,7 +3504,7 @@ pe2img_156	8-bit preview picture of the PsySuit armour, shown by gameplay's item
 pe2img_157	8-bit preview picture of the Aya Special armour, shown by gameplay's item menu when that armour is the selected row.	
 pe2img_158	8-bit preview picture of the Shoulder Holster armour, shown by gameplay's item menu when that armour is the selected row.	
 pe2img_159	8-bit preview picture of the Monk Robe armour, shown by gameplay's item menu when that armour is the selected row.	
-pe2img_16	4-bit texture of the MM1 weapon model; a corner of it also textures the grenade shell model while a fired shell is in flight.	
+weapons/mm1/image	4-bit texture of the MM1 weapon model; a corner of it also textures the grenade shell model while a fired shell is in flight.	
 pe2img_160	no reached use found: 8-bit picture stored as the preview of enemy name-table entry 1 (id 0x501, a rat by its Japanese name); no producer of such an id was found.	
 pe2img_161	no reached use found: 8-bit picture stored as the preview of enemy name-table entry 2 (id 0x502, a moth by its Japanese name); no producer of such an id was found.	
 pe2img_162	no reached use found: 8-bit picture stored as the preview of enemy name-table entry 3 (id 0x503); no producer of such an id was found.	
@@ -3515,7 +3515,7 @@ pe2img_166	no reached use found: 8-bit picture stored as the preview of enemy na
 pe2img_167	no reached use found: 8-bit picture stored as the preview of enemy name-table entry 8 (id 0x508, the blue slime by its Japanese name); no producer of such an id was found.	
 pe2img_168	no reached use found: 8-bit picture stored as the preview of enemy name-table entry 9 (id 0x509, the red slime by its Japanese name); no producer of such an id was found.	
 pe2img_169	no reached use found: 8-bit picture stored as the preview of enemy name-table entry 10 (id 0x50A, 'Chicken Man A' by its Japanese name); no producer of such an id was found.	
-pe2img_17	4-bit texture of the PA3 weapon model, loaded with the equipped weapon's resources and drawn whenever the model is.	
+weapons/pa3/image	4-bit texture of the PA3 weapon model, loaded with the equipped weapon's resources and drawn whenever the model is.	
 pe2img_170	no reached use found: 8-bit picture stored as the preview of enemy name-table entry 11 (id 0x50B, 'Chicken Man B' by its Japanese name); no producer of such an id was found.	
 pe2img_171	8-bit preview picture of the Parasite Energy Pyrokinesis level 1, shown in the Parasite Energy menu; the chunk is stored in more than one preview file.	
 pe2img_172	8-bit preview picture of the Parasite Energy Pyrokinesis level 2, shown in the Parasite Energy menu; the chunk is stored in two preview files.	
@@ -3526,7 +3526,7 @@ pe2img_176	8-bit preview picture of the Parasite Energy Combustion level 3, show
 pe2img_177	8-bit preview picture of the Parasite Energy Inferno level 1, shown in the Parasite Energy menu; the one stored chunk serves three preview files.	
 pe2img_178	8-bit preview picture of the Parasite Energy Plasma level 1, shown in the Parasite Energy menu.	
 pe2img_179	8-bit preview picture of the Parasite Energy Plasma level 2, shown in the Parasite Energy menu.	
-pe2img_18	4-bit texture of the SP12 weapon model, loaded with the equipped weapon's resources and drawn whenever the model is.	
+weapons/sp12/image	4-bit texture of the SP12 weapon model, loaded with the equipped weapon's resources and drawn whenever the model is.	
 pe2img_180	8-bit preview picture of the Parasite Energy Plasma level 3, shown in the Parasite Energy menu.	
 pe2img_181	8-bit preview picture of the Parasite Energy Apobiosis level 1, shown in the Parasite Energy menu; the one stored chunk serves seven preview files.	
 pe2img_182	8-bit preview picture of the Parasite Energy Apobiosis level 2, shown in the Parasite Energy menu; the one stored chunk serves seven preview files.	
@@ -3537,7 +3537,7 @@ pe2img_186	4-bit page of the two logo sprites drawn at two rows of the credits r
 pe2img_187	4-bit first font page of the credits roll drawn by replay_bonus, one quad per glyph; its last two texel rows hold the glyph palettes.	
 pe2img_188	4-bit second font page of the credits roll, of which replay_bonus draws a single glyph cell in the whole document.	
 pe2img_189	Stage 1 map-menu page 0 image: map picture, hatch pattern and cursor/icon strip, shown when the player is in an area with no map page (Acropolis plaza, mist_r18).	
-pe2img_19	4-bit texture of the AS12 weapon model, loaded with the equipped weapon's resources and drawn whenever the model is.	
+weapons/as12/image	4-bit texture of the AS12 weapon model, loaded with the equipped weapon's resources and drawn whenever the model is.	
 pe2img_190	Stage 1 map-menu page 2 image (the Acropolis helicopter landing pad's page): map picture sampled under the area shape, hatch pattern, player cursor and icon strip.	
 pe2img_191	Stage 1 map-menu page 3 image, shown when the player is in the MIST parking or shooting gallery; no area shapes are drawn on it and it cannot be reached by paging.	
 pe2img_192	Map-menu page 0 image shared by stage 2 and stage 3 (Dryfield day and night), shown in areas with no map page such as dryfield_r04 and dryfield_r08.	
@@ -3549,7 +3549,7 @@ pe2img_197	Stage 4 map-menu page 3 image: the shelter B1 map with 16 area shapes
 pe2img_198	Stage 4 map-menu page 4 image: the shelter B2 map with 11 area shapes, hatch pattern and player cursor.	
 pe2img_199	Stage 4 map-menu page 5 image: the shelter B3 map (dumping hole, garbage incinerator, control room, elevator hall) with four area shapes and player cursor.	
 pe2img_2	8-bit title screen chrome: 256x16 rows for the PRESS START BUTTON prompt, the copyright line, the cursor bar and the New Game, Continue and Option labels.	
-pe2img_20	4-bit texture of the M4A1 weapon model, shared by the m4a1, m4a1_p1 and m4a1_p2 packages and drawn whenever the weapon model is.	
+weapons/m4a1/image	4-bit texture of the M4A1 weapon model, shared by the weapons/m4a1/package, weapons/m4a1/p1_package and weapons/m4a1/p2_package packages and drawn whenever the weapon model is.	
 pe2img_200	Stage 4 map-menu page 6 image: the shelter B4 map (lower and upper sewer, reservoir, water supply) with four area shapes, in the base variant selected by a game flag.	
 pe2img_201	Stage 4 map-menu page 6 image, alternate variant (file id page 6 + 1): the same shelter B4 map and four area shapes, selected by a game flag.	
 pe2img_202	Stage 5 map-menu page 0 image, shown when the player is in a stage 5 area with no map page (neo_ark_r26, neo_ark_r31).	
@@ -3560,7 +3560,7 @@ pe2img_206	Two-page 8-bit texture of the Stinger: its body, drain model and five
 pe2img_207	Two-page 8-bit texture of the Bog Diver: its body and the six chunk models of its blast death, uploaded at the placement's page offset on room entry.	
 pe2img_208	8-bit texture of the gray Stalker (actor_400500): its body, the two strike-arm models and three death chunks; the copy in file 100500 has no use found.	
 pe2img_209	Two-page 8-bit texture shared by the rat and moth actors: the first page for the rat body (inferred), the second for the moth body and its subtractive death burst cells.	
-pe2img_21	4-bit texture of the M249 weapon model, loaded with the equipped weapon's resources and drawn whenever the model is.	
+weapons/m249/image	4-bit texture of the M249 weapon model, loaded with the equipped weapon's resources and drawn whenever the model is.	
 pe2img_210	Two-page 8-bit texture of the Stranger (actor_401000): its body and burst-death models; the copies in files 101000, 201000 and 301000 have no use found.	
 pe2img_211	Two-page 8-bit texture of the Brute Mossback: its body and the flying parts of its burst death, uploaded at the placement's page offset on room entry.	
 pe2img_212	8-bit texture page of the Bone Suckler body, uploaded at the placement's page offset on room entry in four actor packages.	
@@ -3571,7 +3571,7 @@ pe2img_216	Two-page 8-bit texture of the Grinning Stranger: its body and flung b
 pe2img_217	Three-page 8-bit texture of the Pawn Golem: two pages for the body and a third for its weapon models (beam sword, grenade launcher and grenade), in several golem actor packages.	
 pe2img_218	8-bit texture page of the Watcher body, uploaded at the placement's page offset on room entry; the copy in file 302100 has no use found.	
 pe2img_219	Three-page 8-bit texture of the Rook Golem: two pages for the body and a third for its beam sword, shield and grenade launcher models.	
-pe2img_22	4-bit texture of the Tonfa Baton model, loaded with the equipped weapon's resources; a second small model in the package also names it but no spawner of it was found.	
+weapons/tonfa_baton/image	4-bit texture of the Tonfa Baton model, loaded with the equipped weapon's resources; a second small model in the package also names it but no spawner of it was found.	
 pe2img_220	8-bit texture page of the Amoeba body, uploaded at the placement's page offset on room entry; the copy in file 302400 has no use found.	
 pe2img_221	8-bit texture page of the Scorpion: its body and the three fragment models of its burst death, uploaded at the placement's page offset on room entry.	
 pe2img_222	8-bit texture page of the Caterpillar Maggot: its body, the husk of its burst death, and eight 32x32 cells for the puff projectile of its spray.	
@@ -3582,7 +3582,7 @@ pe2img_226	8-bit texture of the bridge enemy's body model drawn by the Acropolis
 pe2img_227	Two-page 8-bit texture of the Mad Chaser: its body and gib models, including the hidden bodies revealed in the dumping hole encounter; two file copies have no use found.	
 pe2img_228	8-bit texture page of the tentacle model of actor_361100, drawn in the pod-bottom entry scene; the copies in files 104500 and 135000 have no use found.	
 pe2img_229	8-bit texture page shared by the Sucklerceph body and the Skull Stalker body in actor_204600 (the actor_104600 uses are still open); the copy in file 304600 has no use found.	
-pe2img_23	4-bit texture of the Hypervelocity weapon's three models (root body, slide, hinge), loaded with the equipped weapon's resources.	
+weapons/hypervelocity/image	4-bit texture of the Hypervelocity weapon's three models (root body, slide, hinge), loaded with the equipped weapon's resources.	
 pe2img_230	Two-page 8-bit texture of the Brute Mossback in actors 104900/204900: its body and the flying arm and head of its burst death.	
 pe2img_231	Three-page 8-bit texture of the beta generator body (actor_105300), uploaded on entry to Neo Ark power plant 2.	
 pe2img_232	Three-page 8-bit texture of the proto generator body (actor_105400), uploaded on entry to Neo Ark power plant 1.	
@@ -3593,7 +3593,7 @@ pe2img_236	Two-page 8-bit texture of the Desert Chaser body, used by several cha
 pe2img_237	Four-page 8-bit texture of the MIST shooting gallery's target models of kinds 0-9, spawned by actor_107600's mounts during the course scripts.	
 pe2img_238	8-bit page of the shooting gallery's target models of kinds 10-12, whose top 19 rows are also read as 4-bit digit glyphs for the course's MM:SS countdown clock.	
 pe2img_239	Two-page 8-bit texture of Pierce Carradine: his body and the model he carries, in the MIST parking, shooting gallery, golem freezer and shelter_r47 scene actors.	
-pe2img_24	4-bit texture of the Gunblade weapon model, loaded with the equipped weapon's resources and drawn whenever the model is.	
+weapons/gunblade/image	4-bit texture of the Gunblade weapon model, loaded with the equipped weapon's resources and drawn whenever the model is.	
 pe2img_240	Two-page 8-bit texture of Rupert Broderick's body in the Acropolis sanctuary and the landing pad departure scene; an eye patch on it has an overwrite handler no caption step triggers.	
 pe2img_241	Two-page 8-bit texture of the SWAT member 2 body, used by the figures in the Acropolis east elevator hall and roof garden actor packages.	
 pe2img_242	4-bit texture of the helper model of actor_110300 (the SWAT member's figure in the Acropolis east elevator hall), read from the weapon cell at page (448,0).	
@@ -3604,7 +3604,7 @@ pe2img_246	Two-page 8-bit texture of the hurt Rupert Broderick body in actors 11
 pe2img_247	4-bit texture of the rifle model carried in Gary Douglas's actor packages (garage, night main street), stored in the weapon cell below the player's weapon image.	
 pe2img_248	Two-page 8-bit texture of Gary Douglas: his body and head-and-hat model in the garage, night main street, night motel balcony and trailer coach actor packages.	
 pe2img_249	Two-page 8-bit texture of Kyle Madigan: his body and hand models as scene actor in many rooms and as the companion (kyle_80010x files).	
-pe2img_25	4-bit texture of the M4A1 Hammer weapon model, loaded with the equipped weapon's resources and drawn whenever the model is.	
+weapons/m4a1_hammer/image	4-bit texture of the M4A1 Hammer weapon model, loaded with the equipped weapon's resources and drawn whenever the model is.	
 pe2img_250	Two-page 8-bit texture of Aya Brea's body as worn by her doubles and scene walkers, by the pod-bottom boss (eve_body) and its double, and by the type-3 companion.	
 pe2img_251	4-bit glyph atlas of the dialogue file of actor_136300's first-visit captioned scene in the Dryfield night garage.	
 pe2img_252	8-bit texture of the two area-object models in the mine forked tunnel (weathered metal panels and a spoked wheel); the copies in files 140400 and 640400 have no use found.	
@@ -3612,10 +3612,10 @@ pe2img_253	Two-page 8-bit texture of the Aya Brea double's body in the shelter B
 pe2img_254	8-bit texture of which a 64x16 corner is read by the flight model of actor_141000 in the shelter B1 pod access tunnel entry scene.	
 pe2img_255	Two-page 8-bit texture of the first walker's body (actor_143900_body_1) in shelter_r49, neo_ark_r26 and shelter_r36; the copy in file 606100 is never loaded.	
 pe2img_256	Two-page 8-bit texture of the figure's body and its attachment in actor_146300, loaded for the Dryfield night water tank.	
-pe2img_257	Three-page 8-bit texture of the No. 9 golem (Dryfield): its body and its carried beam sword or gunblade in the control room, dilapidated house, gantry and other scene actors.	
+pe2img_257	Three-page 8-bit texture of the No. 9 golem (Dryfield): its body and its carried beam sword or weapons/gunblade/package in the control room, dilapidated house, gantry and other scene actors.	
 pe2img_258	Two-page 8-bit texture of the Soldier A body, in the shelter B1 sterilization room and the shelter 1F tent.	
 pe2img_259	Two-page 8-bit texture of the Soldier B body, in the shelter 1F heliport, the underground parking and the shelter 1F tent.	
-pe2img_26	4-bit texture of the M4A1 Bayonet weapon model, loaded with the equipped weapon's resources and drawn whenever the model is.	
+weapons/m4a1_bayonet/image	4-bit texture of the M4A1 Bayonet weapon model, loaded with the equipped weapon's resources and drawn whenever the model is.	
 pe2img_260	4-bit texture of Soldier B's rifle model in the shelter 1F heliport; view file 4 re-uploads it into the shared weapon cell after view 7's Mongoose swap.	
 pe2img_261	Two-page 8-bit texture of the woman's body (anmc_woman_cafeteria_body) and the model she carries, in the Acropolis cafeteria variant 1.	
 pe2img_262	Two-page 8-bit texture of the Sea Diver's body (actor_206100) in the Neo Ark submarine gallery.	
@@ -3626,7 +3626,7 @@ pe2img_266	Two-page 8-bit texture of Jodie Bouquet's second body (jodie_bouquet_
 pe2img_267	4-bit caption glyph page at (832,0) carried by actor_260500 and used for the conversations in the shelter 1F heliport variant 1.	
 pe2img_268	Two-page 8-bit texture of both police officer 1 models in the Acropolis plaza variant 1 (actor_310100).	
 pe2img_269	Two-page 8-bit texture of both police officer 2 models in the Acropolis plaza variant 1 (actor_310100).	
-pe2img_27	4-bit texture of the M4A1 Grenade weapon model; the grenade projectile's faces name a rectangle outside this image, which is still open.	
+weapons/m4a1_grenade/image	4-bit texture of the M4A1 Grenade weapon model; the grenade projectile's faces name a rectangle outside this image, which is still open.	
 pe2img_270	Two-page 8-bit texture of Rupert Broderick's body in the Acropolis cafeteria and security room actor packages; the copy in file 605200 is never loaded.	
 pe2img_271	4-bit texture of Rupert Broderick's Mongoose revolver model, stored in the weapon cell at (448,64); view file 7 of the shelter 1F heliport re-uploads it for the hurt Rupert's gun.	
 pe2img_272	Two-page 8-bit texture of the Stranger body in actor_311500, loaded for the Acropolis fire escape.	
@@ -3637,7 +3637,7 @@ pe2img_276	4-bit texture of Kyle Madigan's handgun model, stored in the companio
 pe2img_277	Two-page 8-bit texture of the Zebra Stalker: its body and the burst chunks of its blast death (actor_400600).	
 pe2img_278	Two-page 8-bit texture of the Odd Stranger: its body and three burst models (actor_401800).	
 pe2img_279	8-bit texture page of the golem body in actor_402200, the Knight golem placed in ten rooms.	
-pe2img_28	4-bit texture of the M4A1 Pyke weapon model, loaded with the equipped weapon's resources and drawn whenever the model is.	
+weapons/m4a1_pyke/image	4-bit texture of the M4A1 Pyke weapon model, loaded with the equipped weapon's resources and drawn whenever the model is.	
 pe2img_280	Four-page 8-bit texture of the Blizzard Chaser body: two pages for its normal skin and two for the burned skin switched in by the burn, dissolve and smolder commands.	
 pe2img_281	Four-page 8-bit texture of the Burner's body on the night motel balcony; a patch of its first page is overwritten by an embedded image in the low-health scene.	
 pe2img_282	Five-page 8-bit texture of the Glutton: the host body, its attached and escort models, legs, spat glob and heal chunk, also worn by the display Gluttons of the incinerator scenes.	
@@ -3648,7 +3648,7 @@ pe2img_286	Two-page 8-bit texture of the Soldier C body in the shelter 1F tent (
 pe2img_287	Six-page 8-bit texture of the Brahman boss in shelter_r48: torso, flash emitters, chains and arms, with spare patches copied over the emitters' texels as they die.	
 pe2img_288	Second 8-bit texture page of the Brahman's side-1 arm in shelter_r48, copied over the body's fifth page when that side's large orb emitter dies.	
 pe2img_289	Two-page 8-bit texture of the woman's body (anmc_woman_2_body) in the Dryfield dilapidated house.	
-pe2img_29	4-bit texture of the M4A1 Javelin weapon model, loaded with the equipped weapon's resources and drawn whenever the model is.	
+weapons/m4a1_javelin/image	4-bit texture of the M4A1 Javelin weapon model, loaded with the equipped weapon's resources and drawn whenever the model is.	
 pe2img_290	Two-page 8-bit texture of the second walker's body (actor_143900_body_2) in neo_ark_r26 and shelter_r36.	
 pe2img_291	8-bit texture page of Flint's body, as the scene actor in the Dryfield night garage and as the type-2 companion.	
 pe2img_293	First 8-bit texture page of actor_341700's prop model in the shelter B3 dumping hole's Glutton fight, loaded onto the room's effect page (768,0).	
@@ -3659,7 +3659,7 @@ pe2img_297	4-bit texture of the weapon model and grenade shell of the companion 
 pe2img_298	4-bit texture of the weapon model of the companion Kyle variant 3 (file 800103), stored in the companion-weapon cell.	
 pe2img_299	4-bit texture of the weapon model of the companion Kyle variant 4 (file 800104), stored in the companion-weapon cell.	
 pe2img_3	4-bit load-screen caption font: the glyphs main draws for the date and place lines on every load screen; its Japanese glyph rows are not addressed by the US table.	
-pe2img_30	4-bit texture of the MP5A5 weapon model, shared by the mp5a5, mp5a5_p1 and mp5a5_p2 packages and drawn whenever the weapon model is.	
+weapons/mp5a5/image	4-bit texture of the MP5A5 weapon model, shared by the weapons/mp5a5/package, weapons/mp5a5/p1_package and weapons/mp5a5/p2_package packages and drawn whenever the weapon model is.	
 pe2img_300	8-bit 'Parasite Eve II' logo drawn by gameplay's HUD as a panel during the attract demo, carried in the stage map files.	
 pe2img_301	8-bit soft shadow of the 'Parasite Eve II' logo, drawn subtractively under it by gameplay's HUD during the attract demo.	
 pe2img_302	Shared 4-bit effect sprite sheet at (512,0) loaded with every stage map file: blob shadows, muzzle flashes, glows, fireballs and casings drawn by gameplay, actors, rooms, weapons and Parasite Energies.	
@@ -3991,7 +3991,7 @@ pe2img_596	8-bit sheet of the 20 occluder sprites of dryfield_water_tower's mapp
 pe2img_597	8-bit sheet of the 47 occluder sprites of dryfield_water_tower's mapped view 14.	
 pe2img_598	8-bit sheet of the 16 occluder sprites of dryfield_water_tower's mapped view 18.	
 pe2img_599	8-bit image holding the single background sprite of the mechanism close-up, dryfield_water_tower's mapped view 19, entered only through caption command 7.	
-pe2img_6	4-bit texture of the P08 weapon model, queued by gameplay's equipped-weapon loader for p08 and p08_snail; also carried by unused_91 and unused_97, where no model use was found.	
+weapons/p08/image	4-bit texture of the P08 weapon model, queued by gameplay's equipped-weapon loader for p08 and p08_snail; also carried by weapons/unused_86/unused_91_package and weapons/unused_86/unused_97_package, where no model use was found.	
 pe2img_60	Item preview picture of the Micro Device key item (ids 0x102 and 0x12D share it), drawn in gameplay's key-item menu list when its row is selected.	
 pe2img_600	8-bit sheet of the 5 occluder sprites of dryfield_water_tower's mapped view 20.	
 dryfield_water_tank_dialogue_0_atlas	4-bit caption glyph atlas of dryfield_water_tank's dialogue, drawn by gameplay's caption code whenever the room shows text.	
@@ -4213,7 +4213,7 @@ pe2img_796	8-bit sheet (two pages) of the 43 occluder sprites of dryfield_night_
 pe2img_797	8-bit sheet (two pages) of the 61 occluder sprites of dryfield_night_toilet's mapped view 3.	
 pe2img_798	8-bit sheet of the 13 occluder sprites of dryfield_night_toilet's mapped view 4.	
 pe2img_799	8-bit sheet (two pages) of the 42 occluder sprites of dryfield_night_toilet's mapped view 5.	
-pe2img_8	4-bit 64x64 texture of the M950 weapon model, queued by gameplay's equipped-weapon loader and read by the model's faces whenever the weapon is drawn.	
+weapons/m950/image	4-bit 64x64 texture of the M950 weapon model, queued by gameplay's equipped-weapon loader and read by the model's faces whenever the weapon is drawn.	
 pe2img_80	Item preview picture of key item 0x118, the Gasoline, drawn in gameplay's key-item menu list when its row is selected.	
 pe2img_800	8-bit sheet of the 50 occluder sprites of dryfield_night_motel_lobby's mapped view 2.	
 pe2img_801	8-bit sheet of the 52 occluder sprites of dryfield_night_motel_lobby's mapped view 3.	
@@ -4324,7 +4324,7 @@ pe2img_896	8-bit sheet (two pages) of the 102 occluder sprites of dryfield_night
 pe2img_897	8-bit sheet (two pages) of the 54 occluder sprites of dryfield_night_motel_balcony's mapped view 19.	
 pe2img_898	8-bit sheet (two pages) of the 8 occluder sprites of dryfield_night_motel_balcony's mapped view 20.	
 pe2img_899	8-bit page uploaded by view 21's file over Gary Douglas's first texture page in the night motel balcony's entry scene; which faces read it is open.	
-pe2img_9	4-bit texture of the P229 weapon model, queued by gameplay's equipped-weapon loader and read by the model's faces whenever the weapon is drawn.	
+weapons/p229/image	4-bit texture of the P229 weapon model, queued by gameplay's equipped-weapon loader and read by the model's faces whenever the weapon is drawn.	
 pe2img_90	Item preview picture of key item 0x124, the Teddy Bear, drawn in gameplay's key-item menu list when its row is selected.	
 pe2img_900	8-bit sheet (two pages) of the 16 occluder sprites of dryfield_night_motel_balcony's mapped view 22.	
 pe2img_901	8-bit sheet (two pages) of the 32 occluder sprites of dryfield_night_motel_balcony's mapped view 23.	
@@ -4550,11 +4550,11 @@ soldier_a_body	20-part body model of a soldier: the smoking paced walker of the 
 soldier_b_body	20-part body model of Soldier B, a scripted stride walker with no AI placed in shelter_1f_heliport (actor_161500) and shelter_1f_tent (actor_460200).	
 soldier_b_rifle	One-part rifle model carried by Soldier B, spawned as a child of the body for the heliport's placed actors 1 and 2; no use found in actor_460200.	
 soldier_c_body	20-part body model of Soldier C, a non-lockable placed actor with no AI in shelter_1f_tent's variant 1 (actor_460200), visible throughout.	
-sp12_animation_009A8	SP12 weapon animation bank: player clips for the ready pose, idle, walk and the other locomotion and attack states, played by gameplay and the weapon code while the SP12 is equipped.	
-sp12_model_005CC	One-part model of the SP12 shotgun, spawned by gameplay as the player's held weapon and parent of the muzzle flash; the companion path is open.	
+weapons/sp12/bank	SP12 weapon animation bank: player clips for the ready pose, idle, walk and the other locomotion and attack states, played by gameplay and the weapon code while the SP12 is equipped.	
+weapons/sp12/model	One-part model of the SP12 shotgun, spawned by gameplay as the player's held weapon and parent of the muzzle flash; the companion path is open.	
 spk_0	Common sound bank (id 0), loaded with gameplay: menu and system interface sounds, bullet impact, player-struck sounds requested by many actors, PE charge cues, shop and telephone menu sounds.	
-spk_1	Weapon sound bank of the P08 with snail magazine (p08_snail): fire sound per round and two reload cues, loaded with the weapon file; entry 0 has no use found.	
-spk_10	Weapon sound bank of the M4A1 with one attachment (m4a1_p1): fire sound per round and the reload cue; one entry has no use found.	
+weapons/p08/snail_sounds	Weapon sound bank of the P08 with snail magazine (p08_snail): fire sound per round and two reload cues, loaded with the weapon file; entry 0 has no use found.	
+weapons/m4a1/p1_sounds	Weapon sound bank of the M4A1 with one attachment (weapons/m4a1/p1_package): fire sound per round and the reload cue; one entry has no use found.	
 spk_100	Character sound bank 0x15 of the Watcher enemy (actor_102100 and copies): aim, lock, hit and death lines, requested according to the weapon digits of placements in Shelter B1 and Neo Ark rooms.	
 spk_101	Rook GOLEM sound bank for sound set 1 rooms (neo_ark_bridge, Shelter tunnels and walkway): footsteps, body impact, fall, sword swing, scream, Silence and shield burst cues.	
 spk_102	Rook GOLEM sound bank for sound set 2 rooms (neo_ark_south_promenade and others): footsteps, body impact, fall, sword swing and scream cues from actor_102300 and actor_202300.	
@@ -4565,7 +4565,7 @@ spk_106	Character sound bank 0x19 of the scorpion enemy (actor_102500, actor_202
 spk_107	Character sound bank 0x1A of the Maggot, also carried by the Caterpillar packages: crawl sound and landing sound for ambush and pounce; one entry has no use found.	
 spk_108	Character sound bank 0x25 of the bat enemy (actor_103700 and actor_203700): notice cry, chase dash, strikes on the held player and death cry; unused in actor_303700.	
 spk_109	Character sound bank 0x26 of the enemy in actor_103800 and actor_203800: footstep every 12 ticks while its step timer runs; entry 0 and the actor_303800 copy have no use found.	
-spk_11	Weapon sound bank of the M4A1 with two attachments (m4a1_p2): fire sound per round and the reload cue; one entry has no use found.	
+weapons/m4a1/p2_sounds	Weapon sound bank of the M4A1 with two attachments (weapons/m4a1/p2_package): fire sound per round and the reload cue; one entry has no use found.	
 spk_110	Character sound bank 0x28 of the enemy in actor_104000, actor_204000 and actor_304000: footfalls on walk clip cues and a sound for each player attack that lands; entry 2 is unused.	
 spk_111	Character sound bank 0x29 carried by actor_104100 and copies: contact and fall sounds requested by acropolis_bridge's enemy code, but these packages' files are never requested.	
 spk_112	Mad Chaser sound bank 0x402C in its first file (0/file104401), queued by the first Mad Chaser to spawn: scuttle, alert cry, hurt cry, plus landing sounds for dropped-in enemies.	
@@ -4576,7 +4576,7 @@ spk_116	Character sound bank 0x4033 of actor_105100: a sound started from the an
 spk_117	Golem sound bank 0x4038 for sound set 1, one of four files queued by the golem spawn in actor_105600 and actor_205600: footsteps and knockdown cues, used in shelter_b2_pod_access_tunnel.	
 spk_118	Golem sound bank 0x4038 for sound set 2 (neo_ark_south_promenade): footstep cues on animation records and the fall sound, from actor_105600 and actor_205600.	
 spk_119	Golem sound bank 0x4038 for sound set 3 of actor_105600 and actor_205600: footstep and fall entries, recorded as not reached for the package's own file.	
-spk_12	Weapon sound bank of the Hypervelocity: charge sound in the attack, discharge report played twice, and the reload-start cue, loaded with the weapon file.	
+weapons/hypervelocity/sounds	Weapon sound bank of the Hypervelocity: charge sound in the attack, discharge report played twice, and the reload-start cue, loaded with the weapon file.	
 spk_120	Golem sound bank 0x4038 for sound set 4 (dryfield_back_street, neo_ark_forest_zone): footstep cues on animation records and the fall sound, from actor_105600 and actor_205600.	
 spk_121	Rook GOLEM sound bank 0x4039 for sound set 1 (shelter_b1_north_maintenance_walkway), queued by each fresh golem spawn of actor_105700 and actor_205700: animation-cue footsteps and cries.	
 spk_122	Rook GOLEM sound bank 0x4039 for sound set 2 (neo_ark_pavilion, neo_ark_power_plant_2), queued by each fresh golem spawn of actor_105700 and actor_205700.	
@@ -4587,7 +4587,7 @@ spk_126	Sound bank 0x4048 of actor_207200's creeping enemy and Skull Stalker: he
 spk_127	Desert Chaser sound bank 0x4001 carried by actor_407500 with the garage rooms: footstep cues from animation records; the actor_107500 and actor_400100 copies are not reached.	
 spk_128	Character sound bank 0x401D of actor_110600: two footstep cues on its walk clip and a sound for every hit it survives; a chase-clip branch is not reached.	
 spk_129	Desert Chaser sound bank 0x4001 as used around Dryfield Main Street, the breezeway and mine_mesa: clip sounds of the first-visit scene and footstep cues, several requesters unreached.	
-spk_13	Weapon sound bank of the M4A1 Hammer: the rifle round's fire sound, played per round in the burst; its entries 0 and 2 are empty with no use found.	
+weapons/m4a1_hammer/sounds	Weapon sound bank of the M4A1 Hammer: the rifle round's fire sound, played per round in the burst; its entries 0 and 2 are empty with no use found.	
 spk_130	Sound bank 0x4034 of actor_205200's controller enemy in the Neo Ark and Shelter B6 rooms: sustained hum, MP-draining pulse, part-hit and wreck sounds.	
 spk_131	Stalker (actor_400600) body sound bank: left/right steps, landings, cry, arm-strike swing and grab bite, used for every Stalker that is not a water-entrance one.	
 spk_132	Stalker (actor_400600) water-entrance sound bank: the same step, landing, cry, strike and bite cues as the body bank, played only for spawn kind 1 (water entrance).	
@@ -4598,7 +4598,7 @@ spk_136	GOLEM Knight/Bishop sound set 3 bank: steps, appear/vanish, fade, fall-i
 spk_137	GOLEM Knight/Bishop sound set 4 bank: steps, appear/vanish, fade, fall-impact and strike cues in set-4 rooms (dryfield parking lot and others).	
 spk_138	actor_403000 sound bank: prowl/walk/turn clip cues, hurt, grab-rush, lunge, catch, drop, knockdown and two death sounds, plus four entries started by mine_cavern's second-stage cutscene.	
 spk_139	Burner (actor_403100) boss sound bank: footfalls, roars and cries, arm striking the balcony, flame breath, throw/drag impacts on the player; one entry closes its defeat scene (actor_335800).	
-spk_14	M4A1 bayonet weapon sound bank (weapon 26): burst round, thrust swing, blade hit, empty-chamber click and reload cue, played from the player's attack and reload states.	
+weapons/m4a1_bayonet/sounds	M4A1 bayonet weapon sound bank (weapon 26): burst round, thrust swing, blade hit, empty-chamber click and reload cue, played from the player's attack and reload states.	
 spk_140	Glutton sound bank used by actor_403200 and actor_444000: advancing steps, inhale, limb retract and swipe, debris throw, summon, collapse cues, and rain blob/heal chunk launch and landing.	
 spk_141	actor_405800 sound bank (bank id 0x4005, shared id with spk_88): walk and on-back crawl steps, landings, engage cry/grab, arm strike and hold bites.	
 spk_142	Brahman boss (actor_503500) sound bank: part death, ballistic and lingering shots, arm strike, pink/yellow/orange flash attack charges and strikes, death loop and phase transition.	
@@ -4609,7 +4609,7 @@ spk_146	Companion Kyle variant 1 bank (file 800101): his single handgun shot and
 spk_147	Companion Kyle variant 2 (MM1) bank (file 800102): grenade launcher shot, shell explosion and hurt voice; the hurt entry is also started by the observatory companion arrival scene.	
 spk_148	Companion Kyle variant 3 (M950) bank (file 800103): one shot sound per round of his 3-10 shot burst and his hurt voice; not resident with the other variant files.	
 spk_149	Companion Kyle variant 4 (M4A1 + Pyke) bank (file 800104): rifle burst shot, Pyke flame start/stop sound and hurt voice; not resident with the other variant files.	
-spk_15	M4A1 Pyke weapon sound bank (weapon 28): rifle burst round, flame start with its stop requests, empty-chamber click and reload cue.	
+weapons/m4a1_pyke/sounds	M4A1 Pyke weapon sound bank (weapon 28): rifle burst round, flame start with its stop requests, empty-chamber click and reload cue.	
 spk_150	Companion actor_800200 sound bank: footsteps for several floor types, a directed-action voice and hurt sound; entry 9 is also started by companion scenes in actor_136100, actor_160600, junk yard.	
 spk_151	Stage ambience bank of map_dryfield_full: one looping outdoor ambience sample started on view loads when the area's music row asks for it; not in the other stage map files.	
 rooms/akropolis/square/sounds_0	Footstep bank of akropolis_square: walk, scripted-jump and run step sounds while the player stands on surface class 4 of the square.	
@@ -4620,7 +4620,7 @@ spk_156	Footstep bank of acropolis_patio: walk, run and stair-climb step sounds 
 spk_157	Acropolis patio room sound bank: door sounds of warps 1 and 2, the cafeteria door unlock, a caption sound, opening and follow-up scene sounds, and the Strangers' dormant loop (actor packages).	
 spk_158	Footstep bank of acropolis_cafeteria: walk, jump and run step sounds for surface classes 1, 2, 3 and 4 of the room.	
 spk_159	Acropolis cafeteria room sound bank: door sounds of warps 0, 1 and 2, a caption cue sound, the post-battle scene sound and the woman's (actor_202900) animation cue in room variant 1.	
-spk_16	M4A1 Javelin weapon sound bank (weapon 29): rifle burst round, guide beam sound, empty-chamber click and reload cue.	
+weapons/m4a1_javelin/sounds	M4A1 Javelin weapon sound bank (weapon 29): rifle burst round, guide beam sound, empty-chamber click and reload cue.	
 spk_160	Footstep bank of acropolis_plaza: walk, scripted-jump and run step sounds on surface classes 0 and 1 of the plaza grid.	
 spk_161	Acropolis plaza room sound bank: ambience loops and voices mixed frame by frame against the traversal movie, final-scene one-shots, and the officers' step sounds (actor_310100).	
 spk_162	Footstep bank of acropolis_security_room: walk, scripted-jump and run step sounds on surface class 4, the room's only class.	
@@ -4631,7 +4631,7 @@ spk_166	Footstep bank of acropolis_fountain: walk, jump and run step sounds on s
 spk_167	Acropolis fountain room sound bank: the fountain water loop mixed per view, door sounds of warps 0-4, and caption cue sounds of CAP command 5.	
 spk_168	Footstep bank of acropolis_forked_road: walk and run step sounds on surface class 4, the room's only walkable class.	
 spk_169	Acropolis forked road room sound bank: fountain-exit door sounds, the leap-in sound of the scripted Caterpillars (actor_105500/102600) and the dormant Grinning Stranger's two random sounds.	
-spk_17	MP5A5 weapon sound bank (weapon 30): primary shot, secondary flash fire, empty-chamber click, reload start and reload load cues.	
+weapons/mp5a5/sounds	MP5A5 weapon sound bank (weapon 30): primary shot, secondary flash fire, empty-chamber click, reload start and reload load cues.	
 spk_170	Footstep bank of acropolis_observatory: walk, scripted-jump and run step sounds on surface class 1.	
 spk_171	Footstep bank of acropolis_promenade: walk, stair-climb and run step sounds on surface classes 1, 2 and 4.	The third footstep base is selected for scripted stair climbing (actor mode 2, state 3).
 spk_172	Acropolis promenade room sound bank: door sounds of the sanctuary and bridge warps, two caption-cue one-shots and two sounds of the post-battle scene.	
@@ -4642,7 +4642,7 @@ spk_176	Footstep bank of acropolis_roof_garden: walk, scripted-jump and run step
 spk_177	Acropolis roof garden room sound bank: warp 0 door sounds, a caption sound, the view-mixed ambience, timed arrival-scene sounds, the view figure's cues (actor_110800) and Caterpillar drop-ins.	
 spk_178	Footstep bank of acropolis_bridge: walk, scripted-jump and run step sounds on surface classes 2 and 4.	
 spk_179	Acropolis bridge room sound bank: door sounds of warps 0 and 1 and the keypad's key beep, code-rejected and code-accepted sounds.	
-spk_18	MP5A5 P1 weapon sound bank (weapon 31): primary shot, secondary flash fire, empty-chamber click, reload start and reload load cues.	
+weapons/mp5a5/p1_sounds	MP5A5 P1 weapon sound bank (weapon 31): primary shot, secondary flash fire, empty-chamber click, reload start and reload load cues.	
 spk_180	Footstep bank of acropolis_fire_escape: walk and run step sounds on the floor and stair-climb steps on the two stair flights.	
 spk_181	Acropolis fire escape room sound bank: bridge door sounds, a view-levelled ambience loop, the flickering lamp's one-shot, and the telephone cutscene's start/scene/after/end sounds.	
 spk_182	Footstep bank of acropolis_helicopter_landing_pad: walk, run and scripted-stairs step sounds on surface classes 2 and 3.	
@@ -4653,7 +4653,7 @@ spk_186	Footstep bank of mist_r18: walk, jump and run step entries requested on 
 spk_187	mist_r18 room sound bank: two sounds started by the intro script during Eric Baldwin's clip 3, the second as his first held model is shown.	
 spk_188	Footstep bank of mist_parking: walk, scripted-jump and run step sounds on surface classes 1 and 3.	
 spk_189	MIST parking room sound bank: door fade sounds, warp 0 door sounds, the room command 8 cutscene's four sounds, the variant-2 arrival conversation's sounds and Pierce's steps (actor_113100).	
-spk_19	MP5A5 P2 weapon sound bank (weapon 32): primary shot, secondary flash fire, empty-chamber click, reload start and reload load cues.	
+weapons/mp5a5/p2_sounds	MP5A5 P2 weapon sound bank (weapon 32): primary shot, secondary flash fire, empty-chamber click, reload start and reload load cues.	
 spk_190	Footstep bank of mist_shooting_gallery: walk, scripted-jump and run step sounds on collision surface classes 1 and 2 (same four samples under two entry sets).	
 spk_191	MIST shooting gallery room sound bank: target appear/hit/fold/charge/attack/destroy sounds (actor_107600), door sounds, round-start sound and actor_215100's introduction scene sounds.	
 spk_192	Footstep bank of dryfield_gas_station: walk, scripted-jump and run step sounds on surface classes 2, 3 and 4.	
@@ -4665,7 +4665,7 @@ spk_197	Dryfield general store room sound bank: door sounds of its warp endpoint
 spk_198	Footstep bank of dryfield_back_street: walk and run step sounds (the same two samples) on collision surface class 1.	
 spk_199	Dryfield back street room sound bank: door sounds of the general store and souvenir shop endpoints, the dilapidated house door's blocked sound and the view-mixed ambience loop.	
 weapons/m93r/sounds	M93R weapon sound bank (weapon 2): round fired, empty-chamber click, reload start and reload load cues from the player's attack and reload states.	
-spk_20	Grenade pistol weapon sound bank (weapon 11, file 11001): launch and detonation of the fragmentation round, empty-chamber click, reload start and reload load cues.	
+weapons/grenade_pistol/fragmentation_sounds	Grenade pistol weapon sound bank (weapon 11, file 11001): launch and detonation of the fragmentation round, empty-chamber click, reload start and reload load cues.	
 spk_200	Footstep bank of dryfield_souvenir_shop: walk, scripted-jump and run step sounds on surface classes 1 and 2; the companion's +100 entries are past the bank.	
 spk_201	Dryfield souvenir shop room sound bank: the arrival and departure door sounds of the room's only endpoint (to the back street).	
 spk_202	Footstep bank of dryfield_warehouse: walk, scripted-jump and run step sounds on surface class 6, the room's only class.	
@@ -4676,7 +4676,7 @@ spk_206	Footstep bank of dryfield_motel_room_1: walk, scripted-jump and run step
 spk_207	Dryfield motel room 1 room sound bank: arrival and departure sounds of the room's only door; three other filled entries have no starter found.	
 spk_208	Footstep bank of dryfield_motel_room_2: walk, scripted-jump and run step sounds on surface classes 1 and 2.	
 spk_209	Dryfield motel room 2 room sound bank: arrival and departure sounds of the room's only warp (main street door); other filled entries have no starter found.	
-spk_21	Grenade pistol airburst-round sound bank (file 11002, weapon 11): launch and detonation of the airburst round, empty-chamber click, reload start and reload load cues.	
+weapons/grenade_pistol/airburst_sounds	Grenade pistol airburst-round sound bank (file 11002, weapon 11): launch and detonation of the airburst round, empty-chamber click, reload start and reload load cues.	
 spk_210	Footstep bank of dryfield_motel_room_3: walk, scripted-jump and run step sounds on surface classes 1 and 2.	
 spk_211	Dryfield motel room 3 room sound bank: arrival and departure sounds of the room's only warp (main street's room-3 door); other filled entries have no starter found.	
 spk_212	Footstep bank of dryfield_motel_room_4: walk, scripted-jump and run step sounds on surface classes 1 and 2.	
@@ -4687,7 +4687,7 @@ spk_216	Footstep bank of dryfield_toilet: walk, scripted-jump and run step sound
 spk_217	Dryfield toilet room sound bank: door sounds of the only warp, a caption cue sound, and the woman's looping sound started by actor_323300 and stopped by the room's event script.	
 spk_218	Footstep bank of dryfield_motel_lobby: walk, scripted-jump and run step sounds on surface class 1.	
 spk_219	Dryfield motel lobby room sound bank: arrival and departure sounds of the room's only warp (door to the parking lot); other filled entries have no starter found.	
-spk_22	Grenade pistol riot-round sound bank (file 11003, weapon 11): launch and detonation of the riot round, empty-chamber click, reload start and reload load cues.	
+weapons/grenade_pistol/riot_sounds	Grenade pistol riot-round sound bank (file 11003, weapon 11): launch and detonation of the riot round, empty-chamber click, reload start and reload load cues.	
 spk_220	Footstep bank of dryfield_saloon_g_r: walk, scripted-jump and run step sounds on surface classes 1 and 2 of the saloon.	
 spk_221	Dryfield saloon G.R. room sound bank: door sounds of the parking-lot and kitchen warps and the unlock-then-open pair of the one-time parking-lot door event.	
 spk_222	Footstep bank of dryfield_g_r_kitchen: walk, scripted-jump and run step sounds on surface class 1 of the kitchen.	
@@ -4698,7 +4698,7 @@ spk_226	Footstep bank of dryfield_water_tank: walk, scripted-jump and run step s
 spk_227	Dryfield water tank room sound bank: room and per-view ambiences, mechanism-scene and prop sounds, the streamed movie's two SFX, a prompt sound and the water tank scene's event-script sounds.	
 spk_228	Footstep bank of dryfield_breezeway: walk, scripted-jump and run step sounds on surface class 1.	
 spk_229	Dryfield breezeway room sound bank: door sounds incl. the refused factory door and its unlock event, a caption cue, the chaser's pursuit start (actor_400100), effect loop/burst and a cursor sound.	
-spk_23	MM1 fragmentation-round sound bank (file 11004, weapon 12): launch and detonation of the fragmentation round, empty-chamber click and reload load cue.	
+weapons/mm1/fragmentation_sounds	MM1 fragmentation-round sound bank (file 11004, weapon 12): launch and detonation of the fragmentation round, empty-chamber click and reload load cue.	
 spk_230	Footstep bank of dryfield_factory: walk, scripted-jump and run step sounds on surface classes 2 and 3; the class-3 scripted-jump entries are empty and not reached.	
 spk_231	Dryfield factory room sound bank: door sounds of three warps, the car lift's raise/lower/turn and settle sounds, hatch open/close, panel confirm, caption cues and the driveway departure event.	
 spk_232	Footstep bank of dryfield_garage: walk, scripted-jump and run step sounds on surface class 1.	
@@ -4709,7 +4709,7 @@ spk_236	Footstep bank of dryfield_junk_yard: walk, scripted-jump and run step so
 spk_237	Dryfield junk yard room sound bank: door sounds of warps 0, 1 and 2 and one unpositioned sound in the companion's final scene.	
 spk_238	Footstep bank of dryfield_trailer_coach: walk, scripted-jump and run steps on surface class 6; two of its samples are also voiced by room-bank entry 0x0D in the first story conversation.	
 spk_239	Dryfield trailer coach room sound bank: door sounds of both warps, the cutscene record's start/scene/after/end sounds and three sounds in the story conversations with Gary.	
-spk_24	MM1 airburst-round sound bank (file 11005, weapon 12): launch and detonation of the airburst round, empty-chamber click and reload load cue.	
+weapons/mm1/airburst_sounds	MM1 airburst-round sound bank (file 11005, weapon 12): launch and detonation of the airburst round, empty-chamber click and reload load cue.	
 spk_240	Footstep bank of dryfield_motel_room_5: walk, scripted-jump and run step sounds on surface class 1; the class-2 entries 1-4 are empty in this bank.	
 spk_241	Dryfield motel room 5 room sound bank: arrival and departure door sounds of warp 0.	
 spk_242	Footstep bank of dryfield_motel_balcony: walk and run step sounds on two surface classes (0x51 and 0x2D entry sets); the 0x49-0x4C requests of the other classes find no entry.	
@@ -4720,7 +4720,7 @@ spk_246	Type-1 (footstep) bank 0x121F of dryfield_motel_loft: no reached use fou
 spk_247	Dryfield motel loft room sound bank: arrival and departure door sounds of the room's one warp endpoint; other filled entries have no starter found.	
 spk_248	Footstep bank of dryfield_water_hole: walk, run and scripted-jump step sounds on the room floor and on the 5-step stair flight; companion +100 entries are past the bank.	
 spk_249	Dryfield water hole room sound bank: door sounds of warps 0 and 1 (the Shelter door warp has none) and the locked sound played by room command 2 and caption cue 4.	
-spk_25	MM1 riot-round sound bank (file 11006, weapon 12): launch and detonation of the riot round, empty-chamber click and reload load cue.	
+weapons/mm1/riot_sounds	MM1 riot-round sound bank (file 11006, weapon 12): launch and detonation of the riot round, empty-chamber click and reload load cue.	
 spk_250	Footstep bank of dryfield_cellar: walk and run step sounds on any surface; the scripted-jump entries are empty and not reached (no stair trigger).	
 spk_251	Dryfield cellar room sound bank: arrival and departure sounds of the room's only warp and one centred sound for room-message selector 3 (trigger recorded as open).	
 spk_252	Footstep bank of dryfield_underpass: walk, scripted-jump and run step sounds on surface classes 3 and 4.	
@@ -4731,7 +4731,7 @@ spk_256	Footstep bank of dryfield_night_gas_station room 4: walk, scripted-jump 
 spk_257	Night gas station room sound bank for room 4: door sounds of the two warps and caption / CAP-completion cue sounds of commands 15, 30, 31 and 32, incl. the cutscene loop entry.	
 spk_258	Footstep bank of dryfield_night_main_street: walk, scripted-jump and run step sounds on collision surface classes 2, 3 and 4.	
 spk_259	Night main street room sound bank: street and motel-room door sounds, locked-door rattle, motel door open/unlock events, caption cues, and unpositioned sounds of Gary's scenes (actor_136100).	
-spk_26	PA3 shotgun sound bank, first ammunition variant (file 11007, weapon 13): shot, pump, empty-chamber click and reload cues.	
+weapons/pa3/buckshot_sounds	PA3 shotgun sound bank, first ammunition variant (file 11007, weapon 13): shot, pump, empty-chamber click and reload cues.	
 spk_260	Footstep bank of dryfield_night_general_store: player walk and run steps on surface classes 0/1 and 2, plus +100 entries for a companion's steps.	
 spk_261	Night general store room sound bank: door sounds of its warp endpoints, the one-time gas-station door event, underpass prompt and arrival, and a caption cue sound.	
 spk_262	Footstep bank of dryfield_night_back_street: player walk and run steps on surface class 1 and the companion's +100 step entries.	
@@ -4742,7 +4742,7 @@ spk_266	Footstep bank of dryfield_night_warehouse: player walk/jump/run steps on
 spk_267	Night warehouse room sound bank: arrival and departure door sounds of warp endpoint 1; the other entries (day bank's layout) have no use found.	
 spk_268	Footstep bank of dryfield_night_dilapidated_house: player walk/jump/run steps on surface classes 1 and 2 and the companion's +100 entries for both.	
 spk_269	Night dilapidated house room sound bank: warp 0 door sounds and the two-sound back-street door event on the first departure to the night back street.	
-spk_27	PA3 shotgun sound bank, second ammunition variant (file 11008, weapon 13): shot, pump, firefly impact sound, empty-chamber click and reload cues.	
+weapons/pa3/firefly_sounds	PA3 shotgun sound bank, second ammunition variant (file 11008, weapon 13): shot, pump, firefly impact sound, empty-chamber click and reload cues.	
 spk_270	Footstep bank of dryfield_night_motel_room_1: walk, scripted-jump and run step sounds on surface classes 1 and 2.	
 spk_271	Night motel room 1 room sound bank: arrival and departure sounds of the room's only warp; three other filled entries have no starter found.	
 spk_272	Footstep bank of dryfield_night_motel_room_2: walk, scripted-jump and run step sounds on surface classes 1 and 2.	
@@ -4753,7 +4753,7 @@ spk_276	Footstep bank of dryfield_night_motel_room_4: walk, scripted-jump and ru
 spk_277	Night motel room 4 room sound bank: arrival and departure sounds of the room's only warp (from night main street); other filled entries have no starter found.	
 spk_278	Footstep bank of dryfield_night_parking_lot: walk and run step sounds on surface classes 5 and 2, and scripted-jump steps on the room's stair flight.	
 spk_279	Night parking lot room sound bank: door sounds of the main street, motel lobby, toilet and saloon warps incl. a refused saloon door, the motel lobby door unlock/open event and caption cues.	
-spk_28	PA3 shotgun sound bank, third ammunition variant (file 11009, weapon 13): shot, pump, empty-chamber click and reload cues.	
+weapons/pa3/slug_sounds	PA3 shotgun sound bank, third ammunition variant (file 11009, weapon 13): shot, pump, empty-chamber click and reload cues.	
 spk_280	Footstep bank of dryfield_night_toilet: walk, scripted-jump and run step sounds (same two samples) on surface classes 1 and 2.	
 spk_281	Night toilet room sound bank: door sounds of the only warp, a caption cue sound, and the landing sound of the Blood Sucklers that drop to the floor (requested by actor_104000).	
 spk_282	Footstep bank of dryfield_night_motel_lobby: walk, scripted-jump and run step sounds on surface classes 0/1 and, from a second record, class 2.	
@@ -4764,7 +4764,7 @@ spk_286	Footstep bank of dryfield_night_g_r_kitchen: walk, scripted-jump and run
 spk_287	Night G.R. kitchen room sound bank: arrival/departure sounds shared by both doors and the unlock-and-open sequence of the water-tower door's first use.	
 spk_288	Footstep bank of dryfield_night_water_tower: walk, scripted-jump and run step sounds on surface class 2.	
 spk_289	Night water tower room sound bank: door sounds of its warp slots, the kitchen door unlock/open event and two caption cue sounds; the breezeway blocked sound is not reached.	
-spk_29	SP12 shotgun sound bank, first ammunition variant (file 11010, weapon 14): shot, pump, empty-chamber click and reload cues.	
+weapons/sp12/buckshot_sounds	SP12 shotgun sound bank, first ammunition variant (file 11010, weapon 14): shot, pump, empty-chamber click and reload cues.	
 spk_290	Footstep bank of dryfield_night_water_tank: walk, scripted-jump and run step sounds on surface classes 3, 4 and 5.	
 spk_291	Night water tank room sound bank: one stage sound of room action 3 and the three event-script sounds of the post-battle water-tank event run by actor_146300.	
 spk_292	Footstep bank of dryfield_night_breezeway: walk, scripted-jump and run step sounds on surface class 2.	
@@ -4775,8 +4775,8 @@ spk_296	Footstep bank of dryfield_night_garage: walk, scripted-jump and run step
 spk_297	Night garage room sound bank: arrival and departure door sounds of warp endpoints 1 and 2; the blocked sound and six other filled entries are never requested.	
 spk_298	Footstep bank of dryfield_night_driveway: walk, scripted-jump and run step sounds on surface class 2.	
 spk_299	Night driveway room sound bank: door sounds of warps 0 and 2, the first factory-transition event sound, the companion arrival scene's sound and one caption cue sound.	
-spk_3	M950 weapon sound bank (weapon 3): round fired, empty-chamber click and the two reload-clip cue sounds (start and load).	
-spk_30	SP12 shotgun sound bank, second ammunition variant (file 11011, weapon 14): shot, pump, firefly impact sound, empty-chamber click and reload cues.	
+weapons/m950/sounds	M950 weapon sound bank (weapon 3): round fired, empty-chamber click and the two reload-clip cue sounds (start and load).	
+weapons/sp12/firefly_sounds	SP12 shotgun sound bank, second ammunition variant (file 11011, weapon 14): shot, pump, firefly impact sound, empty-chamber click and reload cues.	
 spk_300	Footstep bank of dryfield_night_junk_yard: walk, scripted-jump and run step sounds on surface class 1.	
 spk_301	Night junk yard room sound bank: door sounds of its warps incl. a refused trailer-coach door, and the two Stalker encounter sounds (first fall with rumble, landing) played by actor_400600.	
 spk_302	Footstep bank of dryfield_night_trailer_coach: walk, scripted-jump and run steps on surface class 6; its samples are also voiced by room-bank entry 0x0A in the talk's story scene.	
@@ -4787,7 +4787,7 @@ spk_306	Footstep bank of dryfield_night_motel_balcony: walk and run step sounds 
 spk_307	Night motel balcony room sound bank: door sounds of warps 0-3, the door unlock/open event, two caption cues, and the player's death sound when killed by the Burner (actor_403100).	
 spk_308	Footstep bank of dryfield_night_motel_room_6: walk, scripted-jump and run step sounds on three surface classes (entries 0x2D, 0x3D and 0x01 sets).	
 spk_309	Night motel room 6 room sound bank: door sounds of warps 0 and 1, the room cutscene record's start/scene/after/end sounds and one caption cue sound.	
-spk_31	SP12 shotgun sound bank, third ammunition variant (file 11012, weapon 14): shot, pump, empty-chamber click and reload cues.	
+weapons/sp12/slug_sounds	SP12 shotgun sound bank, third ammunition variant (file 11012, weapon 14): shot, pump, empty-chamber click and reload cues.	
 spk_310	Footstep bank of dryfield_night_motel_loft: walk, jump and run step sounds started on the player's animation cues.	
 spk_311	Night motel loft room sound bank: door sounds of the one warp endpoint, a caption cue sound of CAP command 17 and two event-script sounds of the Stalker encounter.	
 spk_312	Footstep bank of dryfield_night_water_hole: player walk/run/jump steps on two surface records (one once the Shelter route is open) and the companion's +100 entries.	
@@ -4798,7 +4798,7 @@ spk_316	Footstep bank of dryfield_night_underpass: walk, scripted-jump and run s
 spk_317	Night underpass room sound bank: door sounds of the cellar, water hole and general store warp slots and one caption cue sound of CAP commands 1 and 2.	
 spk_318	Footstep bank of mine_mesa: player walk/jump/run steps on surface class 2, two unpanned steps laid over the variant 1 run scene, and the companion's +100 entries (recorded as open).	
 spk_319	Mine mesa room sound bank: warp 1 arrival/departure and staged departure sounds, run and arrival scene sounds, and the falls of the player and the chaser (actor_400100) over the mesa's edge.	
-spk_32	AS12 shotgun Buckshot sound bank (file 11013, weapon 15): shot, empty-chamber click and the reload clip's load and final cue sounds.	
+weapons/as12/buckshot_sounds	AS12 shotgun Buckshot sound bank (file 11013, weapon 15): shot, empty-chamber click and the reload clip's load and final cue sounds.	
 spk_320	Footstep bank of mine_cavern: walk, scripted-jump and run step sounds on surface class 1; a timed step sequence using entries 0x39/0x3A is never run.	
 spk_321	Mine cavern room sound bank: door sounds of warps 0 and 1 incl. a refused exit, a caption cue sound, destroyed targets' positional fire loops, a target-hit sound and a second-stage cutscene sound.	
 spk_322	Footstep bank of mine_tunnel_entrance: walk, scripted-jump and run step sounds (same two samples) on surface class 2; eight other filled entries are not requested here.	
@@ -4809,7 +4809,7 @@ spk_326	Footstep bank of mine_gorge: walk, scripted-jump and run step sounds on 
 spk_327	Mine gorge room sound bank: door sounds of warps 0-2 incl. a refused exit, the bat encounter's sound, the oak-board cutscene's sound and one caption cue sound.	
 spk_328	Footstep bank of mine_refuge: walk, scripted-jump and run step sounds on surface class 1.	
 spk_329	Mine refuge room sound bank: door sounds, the telephone cutscene's four sounds, circuit panel open/close, switch, current loop, battery socket and circuit-complete sounds (actor_548100), caption cues.	
-spk_33	AS12 shotgun Firefly sound bank (file 11014, weapon 15): shot, Firefly impact, empty-chamber click and the reload clip's load and final cue sounds.	
+weapons/as12/firefly_sounds	AS12 shotgun Firefly sound bank (file 11014, weapon 15): shot, Firefly impact, empty-chamber click and the reload clip's load and final cue sounds.	
 spk_330	Footstep bank of mine_forked_tunnel: walk, scripted-jump and run step sounds on surface class 1.	
 spk_331	Mine forked tunnel room sound bank: door sounds of the room's only warp and three sounds of the switch scene (one re-mixed across the view cut).	
 spk_332	Footstep bank of mine_secret_passage: walk, scripted-jump and run step sounds on two surface classes (one of them class 3).	
@@ -4820,7 +4820,7 @@ spk_336	Footstep bank of shelter_b1_south_maintenance_walkway: walk, scripted-ju
 spk_337	Shelter B1 south maintenance walkway room sound bank: door sounds of its two warp endpoints and the stage sounds of the first staged exits to the elevator hall and the storeroom.	
 spk_338	Footstep bank of shelter_b1_storeroom: walk, scripted-jump and run step sounds on surface class 1.	
 spk_339	Shelter B1 storeroom room sound bank: door sounds of its three doors (same two samples), a caption cue sound and the completion cue sound of CAP command 6.	
-spk_34	AS12 shotgun Slug sound bank (file 11015, weapon 15): shot, empty-chamber click and the reload clip's load and final cue sounds.	
+weapons/as12/slug_sounds	AS12 shotgun Slug sound bank (file 11015, weapon 15): shot, empty-chamber click and the reload clip's load and final cue sounds.	
 spk_340	Footstep bank of shelter_b1_north_maintenance_walkway: walk, scripted-jump and run step sounds on surface class 1.	
 spk_341	Shelter B1 north maintenance walkway room sound bank: door sounds of its two warp endpoints and the stage sounds of the first staged exits to the storeroom and the sleeping quarters.	
 spk_342	Footstep bank of shelter_b1_armory: walk, scripted-jump and run step sounds (same two samples) on surface class 1.	
@@ -4831,7 +4831,7 @@ spk_346	Footstep bank of shelter_b1_main_corridor: walk, scripted-jump and run s
 spk_347	Shelter B1 main corridor room sound bank: one departure and one arrival sound shared by all six doors, also used by the first-departure staged scenes, and two caption cue sounds.	
 spk_348	Footstep bank of shelter_b1_sterilization_room: walk, scripted-jump and run step sounds on surface classes 1 and 2.	
 spk_349	Shelter B1 sterilization room sound bank: door sounds, trap and escape sequence sounds, internal door open/close, telephone cutscene sounds, player hurt, item lid, and actor_160600's event scripts.	
-spk_35	M4A1 grenade launcher weapon sound bank (weapon 27, ammunition-dependent file): rifle shot, grenade launch, launch recovery cues, projectile explosion, empty-chamber click and reload cues.	
+weapons/m4a1_grenade/fragmentation_sounds	M4A1 grenade launcher weapon sound bank (weapon 27, ammunition-dependent file): rifle shot, grenade launch, launch recovery cues, projectile explosion, empty-chamber click and reload cues.	
 spk_350	Footstep bank of shelter_b1_pod_access_tunnel: player walk, scripted-jump and run steps on surface class 2 and the companion's +100 entries.	
 spk_351	Shelter B1 pod access tunnel room sound bank: sterilization-room and R47 door sounds incl. refused, the staged first departure, gantry transit, pod ride to B2 and pod arrival sounds.	
 spk_352	Footstep bank of shelter_b1_control_room: walk, scripted-jump and run step sounds on two surface classes (0x59 and 0x15 entry sets).	
@@ -4862,7 +4862,7 @@ spk_376	Footstep bank of shelter_b2_laboratory: walk, scripted-jump and run step
 spk_377	Shelter B2 laboratory room sound bank: door sounds, corridor-door event, the room cutscene's sounds, ambience loop, item lid, and actor_143000's keypad key/enter/accepted/rejected and completion scene.	
 spk_378	Footstep bank of shelter_b2_breeding_room: walk, jump and run step sounds on three surface classes (incl. classes 3 and 4).	
 spk_379	Shelter B2 breeding room room sound bank: arrival and departure door sounds of warps 0 and 1 and the two sounds bracketing caption command 4's close-up (its cue and completion cue).	
-spk_38	Gunblade weapon sound bank, default ammunition file (weapon 23): shot, slash swing, blade contact, charged slash, empty-chamber click and reload cue.	
+weapons/gunblade/standard_sounds	Gunblade weapon sound bank, default ammunition file (weapon 23): shot, slash swing, blade contact, charged slash, empty-chamber click and reload cue.	
 spk_380	Footstep bank of shelter_b2_main_corridor: player walk, scripted-jump and run steps on surface class 2 and the companion's +100 entries.	
 spk_381	Shelter B2 main corridor room sound bank: shared door departure and arrival sounds, the staged first-departure scenes, a blocked-door sound, fade-warp arrival sound and one caption cue.	
 spk_382	Footstep bank of shelter_b2_septic_tank: player walk, scripted-jump and run steps on surface class 2 and the companion's +100 entries.	
@@ -4873,7 +4873,7 @@ spk_386	Footstep bank of shelter_r36: walk, jump and run step sounds on surface 
 spk_387	Shelter R36 room sound bank: one event-script sound started once, late in the arrival scene at warp 1.	
 spk_388	Footstep bank of shelter_b3_dumping_hole: walk, scripted-jump and run step sounds (the bank's two samples) on surface class 4.	
 spk_389	Shelter B3 dumping hole room sound bank: arrival scene sounds, warp 1 door sounds, alert and blaze sounds of the burn controller (actor_342100), enemy appear sound (actor_207000), item lid.	
-spk_39	Gunblade Firefly ammunition sound bank (variant 1, weapon 23): the Firefly impact sound played at the first weapon contact point the tick after a shot.	
+weapons/gunblade/firefly_sounds	Gunblade Firefly ammunition sound bank (variant 1, weapon 23): the Firefly impact sound played at the first weapon contact point the tick after a shot.	
 spk_390	Footstep bank of shelter_b3_garbage_incinerator: walk and run step sounds on surface classes 0 and 3; the scripted-jump entries are empty and not reached.	
 spk_391	Shelter B3 garbage incinerator room sound bank: door sounds, lift move/stop/jolt, switch press, alert and blaze, exit doors closing/shut (actor_342000), caption cues, Glutton collapse request.	
 spk_392	Footstep bank of shelter_b3_incinerator_control_room: player walk/run steps on surface class 1, stair-flight steps, and the companion's +100 entries.	
@@ -4884,8 +4884,8 @@ spk_396	Footstep bank of shelter_b4_lower_sewer: player walk, jump and run steps
 spk_397	Shelter B4 lower sewer room sound bank: arrival and departure door sounds of warp endpoints 2 and 4; a third pair of entries has no use found.	
 spk_398	Footstep bank of shelter_b4_upper_sewer: player walk, jump and run steps on surface classes 3, 5 and one more, and the companion's +100 entries.	
 spk_399	Shelter B4 upper sewer room sound bank: door sounds of endpoints 1 and 4, the exit-transit sound to the reservoir, a caption cue with the view-13 sprite and the route-opening script's sound.	
-spk_4	P08 weapon sound bank (weapon 4): shot, empty-chamber click, reload start and reload load cues.	
-spk_40	Gunblade R. Slug ammunition sound bank (variant 2, weapon 23): loaded as the ammunition-dependent sound file when the R. Slug is selected; no entry-level use is recorded.	
+weapons/p08/sounds	P08 weapon sound bank (weapon 4): shot, empty-chamber click, reload start and reload load cues.	
+weapons/gunblade/r_slug_sounds	Gunblade R. Slug ammunition sound bank (variant 2, weapon 23): loaded as the ammunition-dependent sound file when the R. Slug is selected; no entry-level use is recorded.	
 spk_400	Footstep bank of shelter_b4_reservoir: walk and run step sounds on the floor, on the stairs (class 3 flight record) and on surface class 5.	
 spk_401	Shelter B4 reservoir room sound bank: warp 0 door sounds, the exit-transit sound to the upper sewer, a caption cue sound and the water event's two successive sounds.	
 spk_402	Footstep bank of shelter_b4_water_supply: walk, run and third-base step sounds on two surface classes (0x3D and 0x25 entry sets), with filled +100 companion copies.	
@@ -4962,7 +4962,7 @@ spk_470	Footstep bank of the Neo Ark substation: player walk/run steps on surfac
 spk_471	Neo Ark substation area bank: door sounds of the warp to and from the Garden and the positional ambience loop played while power plant 2 is not yet cleared.	
 spk_48	Pyrokinesis level-2 sound bank (file50102, single sample): the cast's ignition roar, plus a blast-hit sound whose callers are open.	
 spk_49	Pyrokinesis level-3 sound bank (file50103): ignition roars of the three bursts of the level-3 volley, plus a blast-hit sound whose callers are open.	
-spk_5	P229 weapon sound bank (weapon bank 5), loaded with the equipped weapon: silenced primary shot, flashlight-flash secondary fire, empty-chamber click and the two reload sounds.	
+weapons/p229/sounds	P229 weapon sound bank (weapon bank 5), loaded with the equipped weapon: silenced primary shot, flashlight-flash secondary fire, empty-chamber click and the two reload sounds.	
 spk_50	Combustion level-1 sound bank, loaded with the spell package (file50104) when the cast is armed in battle: the flame emitter's ignition whoosh; entries 0 and 1 have no requester.	
 spk_51	Combustion level-2 sound bank (file50105): ignition whoosh started by each flame emitter on its first frame; entries 0 and 1 have no requester.	
 spk_52	Combustion level-3 sound bank (file50106): ignition whoosh started by each flame emitter on its first frame; entries 0 and 1 have no requester.	
@@ -4973,7 +4973,7 @@ spk_56	Necrosis level-1 sound bank (file50110, single sample), loaded when the c
 spk_57	Necrosis level-2 sound bank (file50111): the cloud's launch sound, started once per cast by necrosisCastTask.	
 spk_58	Necrosis level-3 sound bank (file50112): the cloud's launch sound, started once per cast by necrosisCastTask.	
 spk_59	Plasma level-1 sound bank, loaded with the spell package (file50113) after Plasma is armed: the cast sound started once per cast by plasmaCastTask.	
-spk_6	Mongoose revolver sound bank (weapon bank 9), loaded with the equipped weapon: the shot, empty-chamber click, the delayed reload sound with casings and the load-complete click.	
+weapons/mongoose/sounds	Mongoose revolver sound bank (weapon bank 9), loaded with the equipped weapon: the shot, empty-chamber click, the delayed reload sound with casings and the load-complete click.	
 spk_60	Plasma level-2 sound bank (file50114): the cast sound started once per cast by plasmaCastTask.	
 spk_61	Plasma level-3 sound bank (file50115): the cast sound started once per cast by plasmaCastTask.	
 spk_62	Apobiosis level-1 sound bank, loaded with the spell package (file50116) when the cast is armed in battle: the discharge sound on the cast's first frame.	
@@ -4984,7 +4984,7 @@ spk_66	Metabolism level-2 sound bank (file50120): the cast sound started once pe
 spk_67	Metabolism level-3 sound bank (file50121): the cast sound started once per cast by metabolismCastTask at the player.	
 spk_68	Healing level-1 sound bank (file50122): the aura's cast sound; besides the armed-cast load it is the standing PE file outside battle and is reloaded after each battle.	
 spk_69	Healing level-2 sound bank (file50123): the aura's cast sound; kept as the standing PE file outside battle and restored by the battle-result task.	
-spk_7	M4A1 weapon sound bank (weapon bank 16), loaded with the equipped weapon: per-round fire sound, empty-chamber click and the reload cue sound played twice; entries 0 and 2 have no requester.	
+weapons/m4a1/sounds	M4A1 weapon sound bank (weapon bank 16), loaded with the equipped weapon: per-round fire sound, empty-chamber click and the reload cue sound played twice; entries 0 and 2 have no requester.	
 spk_70	Healing level-3 sound bank (file50124): the aura's cast sound; kept as the standing PE file outside battle and restored by the battle-result task.	
 spk_71	Life Drain level-1 sound bank, loaded with the spell package (file50125) when the cast is armed: one cue for a drain that caught nothing and one for a drain that hit, chosen on frame 3.	
 spk_72	Life Drain level-2 sound bank (file50126): the miss cue or the hit cue of the cast, chosen on its third running frame by lifedrainCastTask.	
@@ -4995,7 +4995,7 @@ spk_76	Antibody level-3 sound bank (file50130): the cast sound started once per 
 spk_77	Energy Shot level-1 sound bank, loaded with the spell package (file50131) when the cast is armed in battle: the cast sound on the cast's first frame.	
 spk_78	Energy Shot level-2 sound bank (file50132): the cast sound started once per cast by energyshotCastTask.	
 spk_79	Energy Shot level-3 sound bank (file50133): the cast sound started once per cast by energyshotCastTask.	
-spk_8	M249 weapon sound bank (weapon bank 17), loaded with the equipped weapon: per-round shot, empty-chamber click and the two reload cue sounds.	
+weapons/m249/sounds	M249 weapon sound bank (weapon bank 17), loaded with the equipped weapon: per-round shot, empty-chamber click and the two reload cue sounds.	
 spk_80	Energy Ball level-1 sound bank (file50134): the sustained balls-out sound started and stopped by the cast task, and the impact burst when a ball touches an enemy body.	
 spk_81	Energy Ball level-2 sound bank (file50135): the sustained balls-out sound of the cast and the impact burst of a ball hitting an enemy body.	
 spk_82	Energy Ball level-3 sound bank (file50136): the sustained balls-out sound of the cast and the impact burst of a ball hitting an enemy body.	
@@ -5006,7 +5006,7 @@ spk_86	Voice and effect bank (id 0x4003) of the actor_100300/200300 enemy: movem
 spk_87	Diver creature bank (id 0x4004) of the Bog Diver actors 100400/200400: swim, crawl, surface, dive, neck release, hurt voice, shot and discharge; the Sea Diver (actor_206100) uses its hurt and discharge entries.	
 spk_88	Bank (id 0x4005) of the ceiling-crawling ambush enemy actor_400500: arm-plant steps, drop and fall landings, posture change, arm strike and two grab sounds; the copy in file 100500 has no use found.	
 spk_89	Rat and moth sound bank (id 0x4007) of actors 100700/200700/300700: rat idle squeak, flinch, alert, post-bite retreat and death, moth flutter cue and death.	
-spk_9	Tonfa baton weapon sound bank (weapon bank 19), loaded with the equipped weapon: first swing, combo swing and the two contact sounds when a strike connects.	
+weapons/tonfa_baton/sounds	Tonfa baton weapon sound bank (weapon bank 19), loaded with the equipped weapon: first swing, combo swing and the two contact sounds when a strike connects.	
 spk_90	Stranger family bank (id 0x400A): gait, alert, strike, landing and evasion cues plus hurt and death voices of actors 101900/301900/401000/401800; actor_311500 and actor_317000 borrow entries.	
 spk_91	Brute Mossback dry-room bank (id 0x400B, file 101101), queued by the first Mossback's init outside stage 3 area 32: footfalls, landing thud, rest, hit and death cries, punch, spit launch and impact.	
 spk_92	Brute Mossback water-room bank (id 0x404B, file 101102), queued instead of the dry bank only in stage 3 area 32 (Dryfield night water hole): wet versions of its cues plus a splash entry.	
@@ -5030,9 +5030,9 @@ stranger_burst_hand	3-part body piece flung by the bank-10 burst effect when a S
 sucklerceph_body	3-part Sucklerceph enemy body spawned by actors 104600/107000/204600/207000, swelling, then hidden on a burst death or squashed on a slump death; a hidden-spawn variant waits for an APPEAR command.	
 swat_member_1_body	19-part scripted figure placed once in acropolis_patio variant 1 by actor_312200: starts hidden, shown and hidden by the room's scenes, not lockable, with a sphere in the enemy-body list.	the code never identifies the figure as a SWAT member: it is a scripted body on the patio whose only sound is named STRANGER_DORMANT, and the rows leave what it depicts unsettled.
 swat_member_2_body	20-part view-parented scripted figure used by actors 110300, 110800 and 311900 in the east elevator hall, roof garden and security room, where it is the figure seen on the monitor's camera view.	
-tonfa_baton_animation_01450	Player animation bank for the Tonfa Baton (weapon 19): locomotion, aim, hit, PE and stair clips gameplay plays while it is equipped, plus first strike, combo strike and recovery clips.	
-tonfa_baton_model_010C8	One-part Tonfa Baton model spawned as the player's held weapon and posed every frame by the overlay's own model task, which flips it half a turn in the hand for a strike.	
-tonfa_baton_model_0136C	Second small one-part model (8 vertices) in the tonfa_baton overlay with a task descriptor at bank 7 index 111; no use found: nothing spawns that index.	
+weapons/tonfa_baton/bank	Player animation bank for the Tonfa Baton (weapon 19): locomotion, aim, hit, PE and stair clips gameplay plays while it is equipped, plus first strike, combo strike and recovery clips.	
+weapons/tonfa_baton/model	One-part Tonfa Baton model spawned as the player's held weapon and posed every frame by the overlay's own model task, which flips it half a turn in the hand for a strike.	
+weapons/tonfa_baton/shaft_model	Second small one-part model (8 vertices) in the weapons/tonfa_baton/package overlay with a task descriptor at bank 7 index 111; no use found: nothing spawns that index.	
 txt_0	Specs-panel text of weapon 0x80, P08 (S. Magazine): five statistics rows then the scrolling description, read in place by gameplay's itemMenuInfoTask while the panel is open.	
 txt_1	Specs-panel text of weapon 0x81, the M93R: statistics rows and description drawn by itemMenuInfoTask while the weapon's Specs panel is open.	
 txt_10	Specs-panel text of weapon 0x8E, the AS12 shotgun: statistics rows and description read by itemMenuInfoTask while its Specs panel is open.	
@@ -5241,13 +5241,13 @@ txt_96	One information-panel text shared by ammunition 0xAC Buckshot, 0xAD Firef
 txt_97	Information-panel text of ammunition 0xAF, 5.56 Rifle (file 20416), read by itemMenuInfoTask while the ammunition's panel is open.	
 txt_98	Information-panel text of armour 0x60, Leather Jacket (file 20501), the new-game armour, read by itemMenuInfoTask while its panel is open.	
 txt_99	Information-panel text of armour 0x61, Tactical Armor (file 20502), read by itemMenuInfoTask while the armour's panel is open.	
-unused_85_animation_003A0	Player animation bank of the unused weapon 6 (item 0x85): a full set of locomotion, aim, reload, hit, PE and stair clips, but not reached since no code grants the item.	
-unused_85_model_0016C	One-part held-weapon model of the unused weapon 6 (bank 7 descriptor 69), which gameplay would spawn in the player's hand; not reached because item 0x85 is never granted.	
-unused_86_animation_00004	Player animation bank of the codeless unused weapon 7 (item 0x86), one symbol shared by five unused packages; not reached: no code grants the item or equips weapon 7.	
-unused_87_animation_00004	Player animation bank of the codeless unused weapon 8 (item 0x87), same shared symbol as unused_86's bank; never used in play: nothing grants the item or equips weapon 8.	
-unused_89_animation_00004	Player animation bank of the codeless unused weapon 10 (item 0x89), same shared symbol as unused_86's bank; never used in play: nothing grants the item or equips weapon 10.	
-unused_91_animation_00004	Player animation bank of the codeless unused weapon 18 (item 0x91), same shared symbol as unused_86's bank; never used in play: nothing grants the item or equips weapon 18.	
-unused_97_animation_00004	Player animation bank of the codeless unused weapon 24 (item 0x97), same shared symbol as unused_86's bank; never used in play: nothing grants the item or equips weapon 24.	
+weapons/unused_85/bank	Player animation bank of the unused weapon 6 (item 0x85): a full set of locomotion, aim, reload, hit, PE and stair clips, but not reached since no code grants the item.	
+weapons/unused_85/model	One-part held-weapon model of the unused weapon 6 (bank 7 descriptor 69), which gameplay would spawn in the player's hand; not reached because item 0x85 is never granted.	
+weapons/unused_86/bank	Player animation bank of the codeless unused weapon 7 (item 0x86), one symbol shared by five unused packages; not reached: no code grants the item or equips weapon 7.	
+weapons/unused_86/bank	Player animation bank of the codeless unused weapon 8 (item 0x87), same shared symbol as weapons/unused_86/package's bank; never used in play: nothing grants the item or equips weapon 8.	
+weapons/unused_86/bank	Player animation bank of the codeless unused weapon 10 (item 0x89), same shared symbol as weapons/unused_86/package's bank; never used in play: nothing grants the item or equips weapon 10.	
+weapons/unused_86/bank	Player animation bank of the codeless unused weapon 18 (item 0x91), same shared symbol as weapons/unused_86/package's bank; never used in play: nothing grants the item or equips weapon 18.	
+weapons/unused_86/bank	Player animation bank of the codeless unused weapon 24 (item 0x97), same shared symbol as weapons/unused_86/package's bank; never used in play: nothing grants the item or equips weapon 24.	
 watcher_body	3-part rigid Watcher security turret body (actors 102100/202100), placed standing or patrolling with beam or gun weapons in Shelter B1 and Neo Ark power plant rooms; hidden and destroyed on death.	
 zebra_stalker_body	18-part Zebra Stalker enemy body (actor_400600), spawned cloaked in Dryfield night, mine and Shelter rooms, revealed semi-transparent on wake-up and replaced by chunk models on a blast death.	
 zebra_stalker_burst_foot_left	Chunk mesh defined in actor_400600 but with no use found: it is not one of the four chunks the Zebra Stalker throws on a blast death.	

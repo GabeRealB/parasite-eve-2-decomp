@@ -1,7 +1,6 @@
 #include "weapons/m93r.h"
 
 #include <psyq/sys/types.h>
-#include <psyq/libgpu.h>
 
 #include "common.h"
 

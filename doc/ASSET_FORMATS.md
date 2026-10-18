@@ -1400,15 +1400,41 @@ to the group files:
   the package's `embedded` lists their names by address; `dump_asset_db.py`
   derives the list and the schema checks that the two agree.
 
+An asset several packages carry - Aya's clips, which every weapon package
+holds, or a model a weapon shares with its variant - is placed by each of
+them, from another group by path (`{ asset = "characters/aya/idle", offset =
+…, size = …, address = … }`). Its `EMBEDDED_ASSETS` record is its first
+placement in the groups' order (by path); the others hold the same asset,
+which `animation check` compares in every package and the build's checksum
+confirms. The build reads each package's own placements: a bank's words are
+its clips' addresses in its own package, and a declared asset's symbol is in
+the generated symbol map of every package placing it. Packages of one source
+built with different parameters may share a group (the P08 and its
+snail-magazine variant, the MP5A5 and its upgrades): the variant's records
+are `<variant>_package`, `<variant>_file` and `<variant>_sounds`, and its
+clips are generated to `<group>/<variant>_clips.inc`.
+
+A file names its chunks by local name, or another group's by path (`asset =
+"weapons/m4a1/palette"` in place of `chunk`). A chunk several files hold is
+declared by each of them where it uploads for that file's own texture (the
+Bayonet's file declares the M4A1's palette again, for the Bayonet's texture),
+and the declarations agree; a file that only carries another group's chunks
+lists them as plain entries. Each texture a file uploads pages of has its
+palettes uploaded with it, by the file itself or by the declaration of a
+chunk it names.
+
 ```text
-weapons/m4a1/pe2img_20.png              an image with the group
-weapons/m4a1/pe2clut_19.png             its CLUT
-weapons/m4a1/spk_7/meta.json            a bank: the directory moves as one
-weapons/m4a1/spk_7_sample_00.wav        a sample that has the group itself
-sample/spk_7_sample_01.wav              a sample of that bank that has none
-pe2img/pe2img_21.png                    an image without a group
+weapons/m4a1/texture.png                a declared texture (its image and palette chunks)
+weapons/m4a1/model.usda                 a declared model, bound to it (binding.usda)
+weapons/m4a1/fire.usda                  a clip of the group
+weapons/m4a1/sounds.sfz                 a declared sound bank: its instruments,
+weapons/m4a1/sounds.sfx                 its scripts,
+weapons/m4a1/shot.wav                   and a sound of the group
+weapons/m4a1/p1_sounds.sfz              the bank of a variant in the group (m4a1_p1)
+characters/aya/rifle/walk.usda          a clip of the carry style's layer
+pe2img/acropolis_bridge_dialogue_0_atlas.png   an image without a group
 pe2pkg/m4a1.pe2pkg                      the package: never moved
-raw/pe2img/pe2img_20.pe2img             the stored bytes: never moved
+raw/pe2img/weapons/m4a1/image.pe2img    the stored bytes: under raw/, by the same path
 ```
 
 One function decides the directory, `asset_dir` in

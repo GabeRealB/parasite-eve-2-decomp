@@ -438,6 +438,7 @@ def _encode_image_from_png(
 
     if chunk_type == FileChunkType.Image:
         import asset_data
+        import asset_schema
         return png_to_pe2img(content_path, raw_path, (asset_data.ASSETS.get(asset_schema.raw_key(raw_path)) or {}).get("bpp"))
     return png_to_pe2clut(content_path, raw_path)
 

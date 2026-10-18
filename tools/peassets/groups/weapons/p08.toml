@@ -1,0 +1,160 @@
+# The assets of the group weapons/p08, each named weapons/p08/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[bank]
+type = "animation_bank"
+base = "characters/aya/extended_aim/bank"
+symbol = "gP08PlayerAnimationBank"
+
+[file]
+type = "file"
+
+[[file.contents]]
+chunk = "palette"
+sha1 = "49f18b6558a40ae37e91182e8a66626de05a613f"
+palettes = [{ texture = "texture", variant = "default", region = "engine/vram/weapon_palette" }]
+
+[[file.contents]]
+chunk = "image"
+sha1 = "595a735a08dd854894c95a6269def6533b52d08b"
+pages = [{ texture = "texture", region = "engine/vram/weapon_sheet" }]
+
+[[file.contents]]
+chunk = "sounds"
+
+[[file.contents]]
+chunk = "package"
+
+[shot]
+type = "sound"
+mode = "high"
+sha1 = "73e7bc2da680c32b2d3d982c33c4a627d16229f3"
+
+[model]
+type = "model"
+slots = ["body"]
+symbol = "gP08WeaponModel"
+sha1 = "426ed2d54650570f70cd9ed36a7f5db6f629812c"
+
+[sounds]
+type = "sound_bank"
+samples = ["weapons/pistol/click", "weapons/pistol/reload_start", "weapons/pistol/reload_load", "weapons/p08/shot"]
+sha1 = "3cf64172e7764f4e13bb4e5c8d18e1687d4ced8c"
+
+[binding]
+type = "binding"
+model = "weapons/p08/model"
+textures = { body = "weapons/p08/texture.default" }
+
+[package]
+type = "pe2pkg"
+embedded = [
+    { name = "model", offset = 0x00268, size = 0x520, address = 0x8011D428 },
+    { asset = "characters/aya/idle", offset = 0x00788, size = 0x1B8, address = 0x8011D948 },
+    { asset = "characters/aya/unarmed_walk", offset = 0x00940, size = 0x6A4, address = 0x8011DB00 },
+    { asset = "characters/aya/handgun/walk", offset = 0x00FE4, size = 0x94C, address = 0x8011E1A4 },
+    { asset = "characters/aya/handgun/backward_walk", offset = 0x01930, size = 0x8D8, address = 0x8011EAF0 },
+    { asset = "characters/aya/handgun/run", offset = 0x02208, size = 0x734, address = 0x8011F3C8 },
+    { asset = "characters/aya/turn_left", offset = 0x0293C, size = 0x860, address = 0x8011FAFC },
+    { asset = "characters/aya/turn_right", offset = 0x0319C, size = 0x864, address = 0x8012035C },
+    { asset = "characters/aya/item_use", offset = 0x03A00, size = 0x314, address = 0x80120BC0 },
+    { asset = "characters/aya/stair_ascent", offset = 0x03D14, size = 0x75C, address = 0x80120ED4 },
+    { asset = "characters/aya/stair_descent", offset = 0x04470, size = 0x788, address = 0x80121630 },
+    { asset = "characters/aya/stair_ascent_finish_odd", offset = 0x04BF8, size = 0x2D4, address = 0x80121DB8 },
+    { asset = "characters/aya/stair_ascent_finish_even", offset = 0x04ECC, size = 0x390, address = 0x8012208C },
+    { asset = "characters/aya/parasite_energy_begin_0", offset = 0x0525C, size = 0x488, address = 0x8012241C },
+    { asset = "characters/aya/parasite_energy_charge_0", offset = 0x056E4, size = 0x1FC, address = 0x801228A4 },
+    { asset = "characters/aya/parasite_energy_cast_0", offset = 0x058E0, size = 0x2D8, address = 0x80122AA0 },
+    { asset = "characters/aya/parasite_energy_begin_1", offset = 0x05BB8, size = 0x2A4, address = 0x80122D78 },
+    { asset = "characters/aya/parasite_energy_charge_1", offset = 0x05E5C, size = 0x200, address = 0x8012301C },
+    { asset = "characters/aya/parasite_energy_cast_1", offset = 0x0605C, size = 0x354, address = 0x8012321C },
+    { asset = "characters/aya/hit_head", offset = 0x063B0, size = 0x2B4, address = 0x80123570 },
+    { asset = "characters/aya/hit_body", offset = 0x06664, size = 0x320, address = 0x80123824 },
+    { asset = "characters/aya/death", offset = 0x06984, size = 0x7C4, address = 0x80123B44 },
+    { asset = "characters/aya/high_health_idle", offset = 0x07148, size = 0x1298, address = 0x80124308 },
+    { asset = "characters/aya/low_health_idle", offset = 0x083E0, size = 0xB78, address = 0x801255A0 },
+    { asset = "characters/aya/mid_health_idle", offset = 0x08F58, size = 0x71C, address = 0x80126118 },
+    { asset = "characters/aya/examine_enter", offset = 0x09674, size = 0x480, address = 0x80126834 },
+    { asset = "characters/aya/examine_exit", offset = 0x09AF4, size = 0x1D8, address = 0x80126CB4 },
+    { asset = "characters/aya/parasite_energy_begin_2", offset = 0x09CCC, size = 0x564, address = 0x80126E8C },
+    { asset = "characters/aya/parasite_energy_charge_2", offset = 0x0A230, size = 0x1F4, address = 0x801273F0 },
+    { asset = "characters/aya/parasite_energy_cast_2", offset = 0x0A424, size = 0x480, address = 0x801275E4 },
+    { asset = "characters/aya/extended_aim/aim_idle", offset = 0x0A8A4, size = 0x1DC, address = 0x80127A64 },
+    { asset = "characters/aya/extended_aim/aim_backward", offset = 0x0AA80, size = 0x6F0, address = 0x80127C40 },
+    { asset = "characters/aya/handgun/aim_forward", offset = 0x0B170, size = 0xBEC, address = 0x80128330 },
+    { asset = "characters/aya/extended_aim/reload", offset = 0x0BD5C, size = 0x928, address = 0x80128F1C },
+    { asset = "characters/aya/extended_aim/fire", offset = 0x0C684, size = 0x3D0, address = 0x80129844 },
+    { asset = "characters/aya/extended_aim/aim_enter", offset = 0x0CA54, size = 0x67C, address = 0x80129C14 },
+    { asset = "characters/aya/extended_aim/aim_exit", offset = 0x0D0D0, size = 0x5CC, address = 0x8012A290 },
+    { name = "bank", offset = 0x0D69C, size = 0x13C, address = 0x8012A85C },
+]
+package_name = "p08"
+required = true
+sha1 = "9a4cfdcbd95eccc4376628265d7ecdd50381ed94"
+
+[texture]
+type = "texture"
+bpp = 4
+height = 64
+variants = ["default"]
+width = 256
+
+[snail_file]
+type = "file"
+contents = [
+    { chunk = "palette", sha1 = "49f18b6558a40ae37e91182e8a66626de05a613f" },
+    { chunk = "image", sha1 = "595a735a08dd854894c95a6269def6533b52d08b" },
+    { chunk = "snail_sounds" },
+    { chunk = "snail_package" },
+]
+
+[snail_sounds]
+type = "sound_bank"
+samples = ["weapons/pistol/click", "weapons/pistol/reload_start", "weapons/pistol/reload_load", "weapons/p08/shot"]
+sha1 = "99b10f19a44d992b1c1ad33946c252cca4794d80"
+
+[snail_package]
+type = "pe2pkg"
+embedded = [
+    { name = "model", offset = 0x00268, size = 0x520, address = 0x8011D428 },
+    { asset = "characters/aya/idle", offset = 0x00788, size = 0x1B8, address = 0x8011D948 },
+    { asset = "characters/aya/unarmed_walk", offset = 0x00940, size = 0x6A4, address = 0x8011DB00 },
+    { asset = "characters/aya/handgun/walk", offset = 0x00FE4, size = 0x94C, address = 0x8011E1A4 },
+    { asset = "characters/aya/handgun/backward_walk", offset = 0x01930, size = 0x8D8, address = 0x8011EAF0 },
+    { asset = "characters/aya/handgun/run", offset = 0x02208, size = 0x734, address = 0x8011F3C8 },
+    { asset = "characters/aya/turn_left", offset = 0x0293C, size = 0x860, address = 0x8011FAFC },
+    { asset = "characters/aya/turn_right", offset = 0x0319C, size = 0x864, address = 0x8012035C },
+    { asset = "characters/aya/item_use", offset = 0x03A00, size = 0x314, address = 0x80120BC0 },
+    { asset = "characters/aya/stair_ascent", offset = 0x03D14, size = 0x75C, address = 0x80120ED4 },
+    { asset = "characters/aya/stair_descent", offset = 0x04470, size = 0x788, address = 0x80121630 },
+    { asset = "characters/aya/stair_ascent_finish_odd", offset = 0x04BF8, size = 0x2D4, address = 0x80121DB8 },
+    { asset = "characters/aya/stair_ascent_finish_even", offset = 0x04ECC, size = 0x390, address = 0x8012208C },
+    { asset = "characters/aya/parasite_energy_begin_0", offset = 0x0525C, size = 0x488, address = 0x8012241C },
+    { asset = "characters/aya/parasite_energy_charge_0", offset = 0x056E4, size = 0x1FC, address = 0x801228A4 },
+    { asset = "characters/aya/parasite_energy_cast_0", offset = 0x058E0, size = 0x2D8, address = 0x80122AA0 },
+    { asset = "characters/aya/parasite_energy_begin_1", offset = 0x05BB8, size = 0x2A4, address = 0x80122D78 },
+    { asset = "characters/aya/parasite_energy_charge_1", offset = 0x05E5C, size = 0x200, address = 0x8012301C },
+    { asset = "characters/aya/parasite_energy_cast_1", offset = 0x0605C, size = 0x354, address = 0x8012321C },
+    { asset = "characters/aya/hit_head", offset = 0x063B0, size = 0x2B4, address = 0x80123570 },
+    { asset = "characters/aya/hit_body", offset = 0x06664, size = 0x320, address = 0x80123824 },
+    { asset = "characters/aya/death", offset = 0x06984, size = 0x7C4, address = 0x80123B44 },
+    { asset = "characters/aya/high_health_idle", offset = 0x07148, size = 0x1298, address = 0x80124308 },
+    { asset = "characters/aya/low_health_idle", offset = 0x083E0, size = 0xB78, address = 0x801255A0 },
+    { asset = "characters/aya/mid_health_idle", offset = 0x08F58, size = 0x71C, address = 0x80126118 },
+    { asset = "characters/aya/examine_enter", offset = 0x09674, size = 0x480, address = 0x80126834 },
+    { asset = "characters/aya/examine_exit", offset = 0x09AF4, size = 0x1D8, address = 0x80126CB4 },
+    { asset = "characters/aya/parasite_energy_begin_2", offset = 0x09CCC, size = 0x564, address = 0x80126E8C },
+    { asset = "characters/aya/parasite_energy_charge_2", offset = 0x0A230, size = 0x1F4, address = 0x801273F0 },
+    { asset = "characters/aya/parasite_energy_cast_2", offset = 0x0A424, size = 0x480, address = 0x801275E4 },
+    { asset = "characters/aya/extended_aim/aim_idle", offset = 0x0A8A4, size = 0x1DC, address = 0x80127A64 },
+    { asset = "characters/aya/extended_aim/aim_backward", offset = 0x0AA80, size = 0x6F0, address = 0x80127C40 },
+    { asset = "characters/aya/handgun/aim_forward", offset = 0x0B170, size = 0xBEC, address = 0x80128330 },
+    { asset = "characters/aya/extended_aim/reload", offset = 0x0BD5C, size = 0x928, address = 0x80128F1C },
+    { asset = "characters/aya/extended_aim/fire", offset = 0x0C684, size = 0x3D0, address = 0x80129844 },
+    { asset = "characters/aya/extended_aim/aim_enter", offset = 0x0CA54, size = 0x67C, address = 0x80129C14 },
+    { asset = "characters/aya/extended_aim/aim_exit", offset = 0x0D0D0, size = 0x5CC, address = 0x8012A290 },
+    { name = "bank", offset = 0x0D69C, size = 0x13C, address = 0x8012A85C },
+]
+package_name = "p08_snail"
+required = true
+sha1 = "088f58a3e979060e9ce3e5fcab9a10a17393688f"

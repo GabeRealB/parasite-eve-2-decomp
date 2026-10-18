@@ -1,0 +1,14 @@
+# The assets of the group weapons/pistol, each named weapons/pistol/<table name>.
+# Written by tools/peassets/dump_asset_db.py; hand-written fields are kept, matched by sha1.
+
+[click]
+type = "sound"
+sha1 = "31f69390dc824f482b365bcdcf33a290aab792ee"
+
+[reload_load]
+type = "sound"
+sha1 = "603a88df17dc318c9d2732a58dd70ece092d1494"
+
+[reload_start]
+type = "sound"
+sha1 = "dc1af7a69bc2650aa552aa9e7208a0e419ec652e"

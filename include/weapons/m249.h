@@ -6,17 +6,17 @@
 #include "main/task_types.h"
 #include "main/tmd_types.h"
 
-/// Native player animation bank supplied by the loaded M249 package.
+/// Native player animation bank supplied by the loaded M249 package (asset weapons/m249/bank).
 ///
-/// The primary character selects bank index 18 for equipped weapon 17.
-/// Base slots 1..44 contain nineteen-track player clips; slots 0, 45 and 46
-/// are NULL. The 32 extension words start cleared and remain writable for
-/// scripted copies, including payloads that are not clip pointers. Play an
-/// extension slot only after installing a clip pointer there. Keep the bank
-/// and its borrowed clip data loaded while playback or cached records refer to them.
+/// The primary character selects bank index 18 for equipped weapon 17. Base slots
+/// 1..44 contain player clips; slots 0, 45 and 46 are NULL. The 32 extension words
+/// start cleared and remain writable for scripted copies, including payloads that
+/// are not clip pointers. Play an extension slot only after installing a clip
+/// pointer there. Keep the bank and its borrowed clip data loaded while playback or
+/// cached records refer to them.
 extern AnimationSet* gM249PlayerAnimationBank[ANIMATION_BANK_SET_CAPACITY];
 
-/// Single-part model of the player's equipped M249.
+/// Single-part model of the player's equipped M249 (asset weapons/m249/model).
 ///
 /// Weapon tasks borrow this source and its geometry; keep the M249 overlay
 /// loaded until every referring model is released. First creation resolves

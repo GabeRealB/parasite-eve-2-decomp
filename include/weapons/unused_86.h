@@ -3,7 +3,7 @@
 
 #include "gameplay/animation.h"
 
-/// Native player animation bank shared by the five unused weapon packages.
+/// Native player animation bank shared by the five unused weapon packages (asset weapons/unused_86/bank).
 ///
 /// The `unused_86`, `unused_87`, `unused_89`, `unused_91` and `unused_97`
 /// packages provide identical banks, selected at player bank indices 8, 9,
