@@ -226,7 +226,9 @@ def resolve_content_path(
             "matching pack: missing raw %s; re-encoding from inflated", raw_path
         )
 
-    # Always use raw .spk — no WAV→SPK encoder.
+    # A declared bank (`sound_bank`) is built from its files (sound/declared.py); any other bank uses raw .spk.
+    if chunk_type == FileChunkType.Music and staged.suffix.lower() == ".sfz" and staged.exists():
+        return staged, False
     if chunk_type == FileChunkType.Music:
         raw_path = path_under_raw_type_store(assets_dir, path_str, chunk_type)
         if raw_path.exists():
@@ -389,6 +391,17 @@ def prepare_on_disc_payload(
             sector_len=sector_len,
             raw_path=raw_path,
         )
+
+    if chunk_type == FileChunkType.Music and content_path is not None and content_path.suffix.lower() == ".sfz":
+        import asset_data
+        import asset_schema
+        from sound import declared
+
+        root = next((parent for parent in content_path.parents if (parent / "raw").is_dir()), None)
+        name = asset_schema.manifest_asset(content_path.relative_to(root).as_posix())[0] if root else None
+        if name is None or (asset_data.ASSETS.get(name) or {}).get("type") != "sound_bank":
+            raise FileNotFoundError(f"{content_path} is not a declared sound bank's")
+        return ensure_clean_payload(declared.build(name, asset_data.ASSETS, root), sector_len=sector_len)
 
     if chunk_type == FileChunkType.RoomBackground:
         return _prepare_bs_payload(

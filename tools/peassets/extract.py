@@ -694,8 +694,8 @@ class AssetStore:
         for raw_rel, (type_dir, stem, ext) in sorted(
             self._unique_raw.items(), key=lambda kv: asset_name_key(kv[0])
         ):
-            if ext in RAW_ONLY_EXTS or stem in texture_chunks:
-                continue
+            if ext in RAW_ONLY_EXTS or stem in texture_chunks or (ASSETS.get(stem) or {}).get("type") == "sound_bank":
+                continue                    # decoded by decode_declared
             if only_pe2pkg_stems is not None:
                 if type_dir != "pe2pkg" or stem not in only_pe2pkg_stems:
                     continue
@@ -1427,10 +1427,12 @@ def main():
 def decode_declared(assets_root: Path) -> None:
     """Decode what the asset table fully declares: each file's textures, as indexed PNGs (texture/), each
     rig (derived from its models), each model with its slots and bindings, and each clip, as USD (model/,
-    animation/). The rest stays raw until it is declared."""
+    animation/), and each sound bank as SFZ and its own text with its sounds as WAVs (sound/). The rest stays raw
+    until it is declared."""
     from animation import declared as clips
     from model import declared
     from asset_data import ASSETS, EMBEDDED_ASSETS
+    from sound import declared as sounds
     from texture import files
 
     for name in files.declared_files(ASSETS):
@@ -1441,6 +1443,7 @@ def decode_declared(assets_root: Path) -> None:
         declared.decode(name, ASSETS, EMBEDDED_ASSETS, assets_root)
     for name in clips.declared(ASSETS):
         clips.decode(name, ASSETS, EMBEDDED_ASSETS, assets_root)
+    sounds.decode_all(ASSETS, assets_root)
 
 
 if __name__ == "__main__":

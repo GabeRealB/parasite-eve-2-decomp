@@ -109,6 +109,14 @@ SCHEMA: dict[str, dict[str, tuple[str, ...]]] = {
     "spk": {"payload": ("samples",), "stored": ("sounds",)},
     # One sound, known by the SHA-1 of its stored SPU-ADPCM bytes; banks list it by name.
     "sample": {"payload": (), "stored": ()},
+    # A bank declared in full, in place of its `spk` record (the same name and sha1): `samples` names the `sound` at
+    # each position of its pool, in pool order (None where the pool holds bytes that are not a sample). Decoded to
+    # `<name>.sfz` and `<name>.sfx`, and built back from them (sound/declared.py).
+    "sound_bank": {"payload": ("samples",), "stored": ()},
+    # A sound of a declared bank, known by the SHA-1 of its stored body; decoded to a WAV that Sony's encoder turns
+    # back into that body in `mode` (ENCVAG's conversion mode: `high`, `low` or `4bit`, stated only where normal
+    # mode cannot reproduce the body; absent, `normal`).
+    "sound": {"payload": (), "stored": ("mode",)},
     "txt": {"payload": (), "stored": ()},
     # A resource bundle is a container, as a bank is: `resources` names the asset in each directory slot, in slot
     # order (None where the slot is empty), and `extra_sectors` counts zero sectors past the usual end (two bundles).
@@ -160,7 +168,7 @@ EMBEDDED_FIELDS = ("source", "vram", "offset", "address", "size", "ext", "type",
                    "group")
 # Types with no bytes of their own: declared by hand, carried over unchanged by dump_asset_db.py.
 DECLARED_TYPES = frozenset({"binding", "texture", "file", "vram_region", "rig", "clip", "animation_schema",
-                            "animation_bank"})
+                            "animation_bank", "sound_bank", "sound"})
 
 # Embedded types the code reaches by their address in memory - a model through pointers in the code, an image or a
 # CLUT through its upload record - so a placement of one states its `address`.
@@ -412,7 +420,8 @@ EXT_BY_TYPE: dict[str, str] = {"pe2pkg": ".pe2pkg", "pe2img": ".pe2img", "pe2clu
                                "image": ".img", "fontglyph": ".fontglyph", "mcsave": ".mcsave",
                                "morph_deltas": ".morph", "morph_normals": ".morph", "motion_curve": ".motion",
                                "sprite_schedule": ".motion", "spusample": ".vag", "spk": ".spk", "txt": ".txt", "model": ".model", "tmd": ".tmd",
-                               "sample": ".wav", "clip": ".clip", "animation_bank": ".bank"}
+                               "sample": ".wav", "clip": ".clip", "animation_bank": ".bank",
+                               "sound_bank": ".spk", "sound": ".wav"}
 PNG_EXTS = frozenset({".pe2img", ".pe2clut", ".bs"})       # decoded to <name>.png
 DIRECTORY_EXTS = frozenset({".spk", ".mcsave"})            # decoded to a directory, <name>/meta.json and more
 # raw/ holds the only form (a declared model is decoded by model/ instead: decoded_model)
@@ -424,6 +433,7 @@ PINNED_TYPE_DIRS = frozenset({"pe2pkg"})
 EXTRACTION_ROOTS = frozenset({RAW_ROOT, "incbin", "audio", "movie"})
 STAGE_ROOT = re.compile(r"stage\d+\Z")
 SPK_META = "meta.json"
+SOUND_BANK = ".sound_bank"                                 # decoded_ext of a declared bank (sound/declared.py)
 
 
 def use_table(path: Path | str):
@@ -450,6 +460,12 @@ def type_dir_for_ext(ext: str) -> str:
 def stored_ext(rec: dict[str, Any]) -> str:
     """The extension an asset's bytes are stored under in `raw/`; a sample has none there and answers `.wav`."""
     return rec.get("ext") or EXT_BY_TYPE.get(rec.get("type", ""), "." + rec.get("type", "bin"))
+
+
+def decoded_ext(rec: dict[str, Any]) -> str:
+    """The extension that says what an asset's decoded form is: its stored one, except a declared bank's
+    (`.sound_bank`: `<name>.sfz` and `<name>.sfx`, where an `spk` record of the same bytes is a directory)."""
+    return SOUND_BANK if rec.get("type") == "sound_bank" else stored_ext(rec)
 
 
 def type_dir_of(rec: dict[str, Any]) -> str:
@@ -550,7 +566,7 @@ def raw_rel(key: str, rec: dict[str, Any] | None = None, *, type_dir: str | None
     if rec is None:
         rec = record_of(key, type_dir, tables)
     if rec is not None:
-        if rec.get("type") == "sample":
+        if rec.get("type") in ("sample", "sound"):
             return None
         ext = stored_ext(rec)
         type_dir = type_dir_of(rec)
@@ -582,6 +598,8 @@ def decoded_names(key: str, ext: str) -> list[str]:
         return [f"{key}.png", f"{key}{ext}"]
     if ext in DIRECTORY_EXTS:
         return [key, f"{key}{ext}"]
+    if ext == SOUND_BANK:
+        return [f"{key}.sfz", f"{key}.sfx"]
     return [f"{key}{ext}"]
 
 
@@ -590,7 +608,8 @@ def decoded_rel(key: str, rec: dict[str, Any] | None = None, *, type_dir: str | 
     """The file an asset's decoded form is opened by, relative to the root of the extraction.
 
     This is the `path` `stages.json` records: `<dir>/<name>.png` for an image, a CLUT or a background,
-    `<dir>/<name>/meta.json` for a bank or the save header, `<dir>/<name>.wav` for a sample,
+    `<dir>/<name>/meta.json` for a bank or the save header, `<dir>/<name>.sfz` for a declared bank (a
+    `sound_bank`), `<dir>/<name>.wav` for a sample or a sound,
     `<dir>/<name><ext>` for anything decoded in its own form, and the raw file for a type that is not decoded.
     """
     if rec is None:
@@ -600,6 +619,8 @@ def decoded_rel(key: str, rec: dict[str, Any] | None = None, *, type_dir: str | 
     if ext is None:
         raise KeyError(f"{key} is not in the asset table, and no extension was given for it")
     where = asset_dir(key, rec, type_dir=type_dir or type_dir_for_ext(ext), tables=tables)
+    if rec is not None and decoded_ext(rec) == SOUND_BANK:
+        return f"{where}/{decoded_names(dir_stem(key, rec, tables), SOUND_BANK)[0]}"
     if ext in DIRECTORY_EXTS:
         return f"{where}/{dir_stem(key, rec, tables)}/{SPK_META}"
     if ext == ".pe2pkg":
@@ -626,7 +647,7 @@ def decoded_files(key: str, rec: dict[str, Any] | None = None, *, type_dir: str 
     if where is None:
         where = asset_dir(key, rec, type_dir=type_dir or type_dir_for_ext(ext), tables=tables)
     stem = package_name(key, rec) if ext == ".pe2pkg" else dir_stem(key, rec, tables)
-    return [f"{where}/{name}" for name in decoded_names(stem, ext)]
+    return [f"{where}/{name}" for name in decoded_names(stem, decoded_ext(rec) if rec is not None else ext)]
 
 
 def sample_rel(name: str, tables: tuple[dict, dict] | None = None) -> str:
@@ -705,7 +726,7 @@ def type_dir_at(path: str, tables: tuple[dict, dict] | None = None) -> str | Non
                                   ("/".join(parts[:-1] + [parts[-1].split(".", 1)[0]]), "/".join(parts[:-1]), False)):
         for table in (assets, embedded):
             rec = table.get(key)
-            if rec is not None and group_of(key, rec) == where and directory == (stored_ext(rec) in DIRECTORY_EXTS):
+            if rec is not None and group_of(key, rec) == where and directory == (decoded_ext(rec) in DIRECTORY_EXTS):
                 return type_dir_of(rec)
     return None
 

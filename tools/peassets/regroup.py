@@ -95,7 +95,7 @@ def plan_moves(found: Extraction) -> tuple[list[tuple[str, str, str]], int]:
             if ext in asset_schema.RAW_ONLY_EXTS or type_dir in asset_schema.PINNED_TYPE_DIRS:
                 continue
             home = asset_schema.asset_dir(key, rec, tables=found.tables)
-            for name in asset_schema.decoded_names(key, ext):
+            for name in asset_schema.decoded_names(key, asset_schema.decoded_ext(rec)):
                 for holder in found.holders(name, type_dir):
                     if holder == home:
                         settled += 1

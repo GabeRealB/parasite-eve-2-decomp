@@ -95,10 +95,12 @@ def _is_generated_id(aid: str) -> bool:
 
 
 def _sha1_index() -> dict[str, str]:
+    """Stored bytes' SHA-1 -> the asset that names them. A declared bank's sound is known by its body inside banks,
+    as a raw sample may be too, so it is not in it."""
     idx: dict[str, str] = {}
     for aid, rec in ASSETS.items():
         sha1 = rec.get("sha1")
-        if isinstance(sha1, str):
+        if isinstance(sha1, str) and rec.get("type") != "sound":
             idx[sha1] = aid
     return idx
 
@@ -581,6 +583,7 @@ def _check_container(items: dict[Any, Any], *, where: str) -> None:
 def validate_asset_db() -> None:
     """Raise if ASSETS / TREE are inconsistent."""
     seen_sha1: dict[str, str] = {}
+    seen_sound: dict[str, str] = {}                  # a sound's body may also be a raw sample's: its own domain
     for aid, rec in ASSETS.items():
         _check_asset_name(aid, key=f"ASSETS[{aid!r}]")
         if not isinstance(rec, dict):
@@ -591,12 +594,13 @@ def validate_asset_db() -> None:
         sha1 = rec.get("sha1")
         if not isinstance(sha1, str) or len(sha1) != 40:
             raise ValueError(f"ASSETS[{aid!r}].sha1 must be 40 hex chars")
-        prev = seen_sha1.get(sha1)
+        seen = seen_sound if rec.get("type") == "sound" else seen_sha1
+        prev = seen.get(sha1)
         if prev is not None and prev != aid:
             raise ValueError(
                 f"duplicate sha1 {sha1} on {prev!r} and {aid!r}"
             )
-        seen_sha1[sha1] = aid
+        seen[sha1] = aid
         bpp = rec.get("bpp")
         if bpp is not None:
             try:

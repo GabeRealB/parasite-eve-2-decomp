@@ -610,7 +610,9 @@ def collect_samples(assets_root: Path, old: dict[str, dict[str, Any]], assets: d
 
     raw = assets_root / "raw" / "spk"
     known = {rec["sha1"]: aid for aid, rec in old.items() if rec.get("type") == "sample"}
-    by_file = {rec["sha1"]: aid for aid, rec in assets.items() if rec.get("type") == "spk"}
+    # A declared bank (`sound_bank`) lists its own sounds; its samples are not the raw bank's.
+    declared = {rec["sha1"] for rec in old.values() if rec.get("type") == "sound_bank"}
+    by_file = {rec["sha1"]: aid for aid, rec in assets.items() if rec.get("type") == "spk" and rec["sha1"] not in declared}
     out: dict[str, dict[str, Any]] = {}
     named: dict[str, str] = {}
     if not raw.is_dir():

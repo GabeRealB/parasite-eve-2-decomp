@@ -16,14 +16,17 @@ Retail music chunks (CDF type ``0x6``) are **SPK** programs fed to
     0x10  s32      waveBytes      SPU-ADPCM pool bytes (attribute ``spu_size``)
     0x14  …        group table (4 B × groupCount)
                    layer table (0x14 B × layerCount)
-    0x800 …        program (``hONE`` / ``oneV`` / ``oneC`` / ``endC`` …)
-    spu_base …     SPU-ADPCM pool (a layer's wave address is an offset into this pool)
+    0x800 …        program (``hONE`` / ``oneV`` / ``oneC`` / ``endC`` …), then zeros
+    spu_base …     SPU-ADPCM pool, ``waveBytes`` long (a layer's wave address is an offset into it)
+    …              zeros to the end of the file: the pool end's sector floor + 0x1000 - 16
 
-``spu_base = align16(0x800 + align4(imageBytes))``.
+``spu_base = align2048(0x800 + imageBytes)``: the loader reads the image and the
+pool sector by sector, so the pool starts on a sector of its own.
 
-Each layer's wave address is a byte offset into the SPU pool (16-byte ADPCM
-frames). Samples run until an ADPCM frame with the end flag, or the next
-layer's wave offset / pool end.
+The pool is the samples back to back, each a VAG body as Sony's encoder writes
+one (EncVag, EncVagFin): a zero start block, the frames, the frame with the end
+flag (1, or 3 for a loop), and for a one-shot sound the end block ``00 07 77…``.
+A layer's wave address is the start of a body; a sample is its body.
 
 Encode is not implemented: pack prefers ``raw/spk/`` for bit-identity.
 """
@@ -102,14 +105,6 @@ def is_spk(data: bytes) -> bool:
     return len(data) >= SPK_HEADER_SIZE and data[:4] == SPK_MAGIC
 
 
-def _align4(n: int) -> int:
-    return (n + 3) & ~3
-
-
-def _align16(n: int) -> int:
-    return (n + 15) & ~15
-
-
 def parse_spk(data: bytes) -> SpkInfo:
     if not is_spk(data):
         raise ValueError(
@@ -173,7 +168,7 @@ def parse_spk(data: bytes) -> SpkInfo:
         )
 
     prog_base = PROG_BASE
-    spu_base = _align16(prog_base + _align4(prog_size))
+    spu_base = (prog_base + prog_size + 0x7FF) & ~0x7FF          # the pool starts on a sector of its own
 
     return SpkInfo(
         bank_id=bank_id,
@@ -226,27 +221,25 @@ def decode_spu_adpcm(data: bytes) -> list[int]:
     return out
 
 
-def _sample_bounds(info: SpkInfo, data_len: int) -> list[tuple[int, int, int]]:
-    """Return ``(wave_addr, file_off, length)`` for each unique sample.
+END_BLOCK = bytes([0x00, 0x07]) + bytes([0x77]) * 14   # EncVagFin's end block after a one-shot sound
 
-    Length is to the next wave offset, pool end, or file end.
-    """
-    pool_end = min(info.spu_base + max(info.spu_size, 0), data_len)
-    addrs = sorted({n.wave_addr for n in info.notes if n.wave_addr >= 0})
-    if not addrs:
-        return []
+
+def _sample_bounds(info: SpkInfo, data: bytes) -> list[tuple[int, int, int]]:
+    """``(wave_addr, file_off, length)`` of each sample, by address: its VAG body, from its start block to the frame
+    with the end flag, and the end block after it when there is one."""
+    pool_end = min(info.spu_base + max(info.spu_size, 0), len(data))
     bounds: list[tuple[int, int, int]] = []
-    for i, addr in enumerate(addrs):
+    for addr in sorted({n.wave_addr for n in info.notes if n.wave_addr >= 0}):
         start = info.spu_base + addr
-        if start >= data_len:
+        end = start
+        while end + 16 <= pool_end and not data[end + 1] & 1:
+            end += 16
+        if end + 16 > pool_end:
             continue
-        if i + 1 < len(addrs):
-            end = info.spu_base + addrs[i + 1]
-        else:
-            end = pool_end
-        end = min(end, data_len)
-        if end > start:
-            bounds.append((addr, start, end - start))
+        end += 16
+        if data[end:end + 16] == END_BLOCK:
+            end += 16
+        bounds.append((addr, start, end - start))
     return bounds
 
 
@@ -257,7 +250,7 @@ def sample_streams(data: bytes, info: SpkInfo | None = None) -> list[bytes]:
     """
     if info is None:
         info = parse_spk(data)
-    return [data[off : off + length] for _addr, off, length in _sample_bounds(info, len(data))]
+    return [data[off : off + length] for _addr, off, length in _sample_bounds(info, data)]
 
 
 def extract_samples(
@@ -267,7 +260,7 @@ def extract_samples(
     if info is None:
         info = parse_spk(data)
     out: list[tuple[int, list[int]]] = []
-    for addr, off, length in _sample_bounds(info, len(data)):
+    for addr, off, length in _sample_bounds(info, data):
         pcm = decode_spu_adpcm(data[off : off + length])
         out.append((addr, pcm))
     return out

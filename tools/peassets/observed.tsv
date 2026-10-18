@@ -9010,8 +9010,8 @@ spk_155	sound memory	trace-20261012-152043	session 1	1	acropolis_east_elevator_h
 spk_155_sample_00	played	trace-20261012-152043	session 1	1	acropolis_east_elevator_hall	1	1			1/acropolis_east_elevator_hall/file0	0	0	0	spk_155 entry 0x03	
 spk_155_sample_01	played	trace-20261012-152043	session 1	1	acropolis_east_elevator_hall	1	1			1/acropolis_east_elevator_hall/file0	0	0	0	spk_155 entry 0x03	
 spk_155_sample_02	played	trace-20261012-152043	session 1	1	acropolis_east_elevator_hall	1	1			1/acropolis_east_elevator_hall/file0	0	0	0	spk_155 entry 0x03	
-spk_155_sample_03	played	trace-20261012-152043	session 1	1	acropolis_east_elevator_hall	1	2			1/acropolis_east_elevator_hall/file0	0	0	0	spk_155 entry 0x02	
-spk_155_sample_04	played	trace-20261012-152043	session 1	1	acropolis_east_elevator_hall	1	1			1/acropolis_east_elevator_hall/file0	0	0	0	spk_155 entry 0x01	
+rooms/akropolis/square/sounds_1_sample_11	played	trace-20261012-152043	session 1	1	acropolis_east_elevator_hall	1	2			1/acropolis_east_elevator_hall/file0	0	0	0	spk_155 entry 0x02	
+rooms/akropolis/square/sounds_1_sample_10	played	trace-20261012-152043	session 1	1	acropolis_east_elevator_hall	1	1			1/acropolis_east_elevator_hall/file0	0	0	0	spk_155 entry 0x01	
 spk_156	played	trace-20261012-152043	session 1	1	acropolis_patio	1	1			1/acropolis_patio/file0	0	0	0	entry 0x01	
 spk_156	played	trace-20261012-152043	session 1	1	acropolis_patio	1	1			1/acropolis_patio/file0	0	0	0	entry 0x02	
 spk_156	played	trace-20261012-152043	session 1	1	acropolis_patio	1	1			1/acropolis_patio/file0	0	0	0	entry 0x03	
@@ -9138,21 +9138,21 @@ spk_158	sound memory	trace-20261012-152043	session 1	1	acropolis_cafeteria	4	3		
 spk_158	sound memory	trace-20261012-152043	session 1	1	acropolis_cafeteria	4	4		0x5e150-0x6380f	1/acropolis_cafeteria/file0	0	0	0	bank 0x1104 descriptor 1	freed by sndScriptResetForArea at event 19546
 spk_158	sound memory	trace-20261012-152043	session 1	1	acropolis_forked_road	1	2		0x5e150-0x6380f	1/acropolis_cafeteria/file0	0	0	0	bank 0x1104 descriptor 1	freed by sndScriptResetForArea at event 3549
 spk_158	sound memory	trace-20261012-152043	session 1	1	acropolis_patio	1	2		0x5e150-0x6380f	1/acropolis_cafeteria/file0	0	0	0	bank 0x1104 descriptor 1	
-spk_158_sample_00	played	trace-20261012-152043	session 1	1	acropolis_cafeteria	1	1			1/acropolis_cafeteria/file0	0	0	0	spk_158 entry 0x13	
-spk_158_sample_00	played	trace-20261012-152043	session 1	1	acropolis_cafeteria	2	1			1/acropolis_cafeteria/file0	0	0	0	spk_158 entry 0x11	
-spk_158_sample_00	played	trace-20261012-152043	session 1	1	acropolis_cafeteria	2	1			1/acropolis_cafeteria/file0	0	0	0	spk_158 entry 0x13	
-spk_158_sample_00	played	trace-20261012-152043	session 1	1	acropolis_cafeteria	4	3			1/acropolis_cafeteria/file0	0	0	0	spk_158 entry 0x13	
-spk_158_sample_00	played	trace-20261012-152043	session 1	1	acropolis_cafeteria	4	4			1/acropolis_cafeteria/file0	0	0	0	spk_158 entry 0x13	
-spk_158_sample_01	played	trace-20261012-145054	session 1	1	acropolis_plaza	1	1			1/acropolis_plaza/file0	0	0	0	spk_160 entry 0x12	
-spk_158_sample_01	played	trace-20261012-152043	session 1	1	acropolis_cafeteria	1	1			1/acropolis_cafeteria/file0	0	0	0	spk_158 entry 0x12	
-spk_158_sample_01	played	trace-20261012-152043	session 1	1	acropolis_cafeteria	1	1			1/acropolis_cafeteria/file0	0	0	0	spk_158 entry 0x14	
-spk_158_sample_01	played	trace-20261012-152043	session 1	1	acropolis_cafeteria	2	1			1/acropolis_cafeteria/file0	0	0	0	spk_158 entry 0x12	
-spk_158_sample_01	played	trace-20261012-152043	session 1	1	acropolis_cafeteria	2	1			1/acropolis_cafeteria/file0	0	0	0	spk_158 entry 0x14	
-spk_158_sample_01	played	trace-20261012-152043	session 1	1	acropolis_cafeteria	4	3			1/acropolis_cafeteria/file0	0	0	0	spk_158 entry 0x12	
-spk_158_sample_01	played	trace-20261012-152043	session 1	1	acropolis_cafeteria	4	3			1/acropolis_cafeteria/file0	0	0	0	spk_158 entry 0x14	
-spk_158_sample_01	played	trace-20261012-152043	session 1	1	acropolis_cafeteria	4	4			1/acropolis_cafeteria/file0	0	0	0	spk_158 entry 0x14	
-spk_158_sample_03	played	trace-20261012-152043	session 1	1	acropolis_cafeteria	4	3			1/acropolis_cafeteria/file0	0	0	0	spk_158 entry 0x02	
-spk_158_sample_03	played	trace-20261012-152043	session 1	1	acropolis_fountain	1	1			1/acropolis_fountain/file0	0	0	0	spk_166 entry 0x12	
+spk_152_sample_00	played	trace-20261012-152043	session 1	1	acropolis_cafeteria	1	1			1/acropolis_cafeteria/file0	0	0	0	spk_158 entry 0x13	
+spk_152_sample_00	played	trace-20261012-152043	session 1	1	acropolis_cafeteria	2	1			1/acropolis_cafeteria/file0	0	0	0	spk_158 entry 0x11	
+spk_152_sample_00	played	trace-20261012-152043	session 1	1	acropolis_cafeteria	2	1			1/acropolis_cafeteria/file0	0	0	0	spk_158 entry 0x13	
+spk_152_sample_00	played	trace-20261012-152043	session 1	1	acropolis_cafeteria	4	3			1/acropolis_cafeteria/file0	0	0	0	spk_158 entry 0x13	
+spk_152_sample_00	played	trace-20261012-152043	session 1	1	acropolis_cafeteria	4	4			1/acropolis_cafeteria/file0	0	0	0	spk_158 entry 0x13	
+spk_152_sample_01	played	trace-20261012-145054	session 1	1	acropolis_plaza	1	1			1/acropolis_plaza/file0	0	0	0	spk_160 entry 0x12	
+spk_152_sample_01	played	trace-20261012-152043	session 1	1	acropolis_cafeteria	1	1			1/acropolis_cafeteria/file0	0	0	0	spk_158 entry 0x12	
+spk_152_sample_01	played	trace-20261012-152043	session 1	1	acropolis_cafeteria	1	1			1/acropolis_cafeteria/file0	0	0	0	spk_158 entry 0x14	
+spk_152_sample_01	played	trace-20261012-152043	session 1	1	acropolis_cafeteria	2	1			1/acropolis_cafeteria/file0	0	0	0	spk_158 entry 0x12	
+spk_152_sample_01	played	trace-20261012-152043	session 1	1	acropolis_cafeteria	2	1			1/acropolis_cafeteria/file0	0	0	0	spk_158 entry 0x14	
+spk_152_sample_01	played	trace-20261012-152043	session 1	1	acropolis_cafeteria	4	3			1/acropolis_cafeteria/file0	0	0	0	spk_158 entry 0x12	
+spk_152_sample_01	played	trace-20261012-152043	session 1	1	acropolis_cafeteria	4	3			1/acropolis_cafeteria/file0	0	0	0	spk_158 entry 0x14	
+spk_152_sample_01	played	trace-20261012-152043	session 1	1	acropolis_cafeteria	4	4			1/acropolis_cafeteria/file0	0	0	0	spk_158 entry 0x14	
+spk_156_sample_01	played	trace-20261012-152043	session 1	1	acropolis_cafeteria	4	3			1/acropolis_cafeteria/file0	0	0	0	spk_158 entry 0x02	
+spk_156_sample_01	played	trace-20261012-152043	session 1	1	acropolis_fountain	1	1			1/acropolis_fountain/file0	0	0	0	spk_166 entry 0x12	
 spk_158_sample_04	played	trace-20261012-152043	session 1	1	acropolis_cafeteria	4	3			1/acropolis_cafeteria/file0	0	0	0	spk_158 entry 0x03	
 spk_158_sample_04	played	trace-20261012-152043	session 1	1	acropolis_fountain	1	1			1/acropolis_fountain/file0	0	0	0	spk_166 entry 0x13	
 spk_158_sample_04	played	trace-20261012-152043	session 1	1	acropolis_fountain	2	2			1/acropolis_fountain/file0	0	0	0	spk_166 entry 0x13	
@@ -9203,7 +9203,7 @@ spk_160	played	trace-20261012-145054	session 1	1	acropolis_plaza	1	1			1/acropol
 spk_160	played	trace-20261012-145054	session 1	1	acropolis_plaza	1	1			1/acropolis_plaza/file0	0	0	0	entry 0x2d	
 spk_160	played	trace-20261012-145054	session 1	1	acropolis_plaza	1	1			1/acropolis_plaza/file0	0	0	0	entry 0x2e	
 spk_160	sound memory	trace-20261012-145054	session 1	1	acropolis_plaza	1	1		0x615d0-0x6380f	1/acropolis_plaza/file0	0	0	0	bank 0x1105 descriptor 1	freed by sndScriptResetForArea at event 18028
-spk_160_sample_04	played	trace-20261012-145054	session 1	1	acropolis_plaza	1	1			1/acropolis_plaza/file0	0	0	0	spk_160 entry 0x11	
+spk_152_sample_00	played	trace-20261012-145054	session 1	1	acropolis_plaza	1	1			1/acropolis_plaza/file0	0	0	0	spk_160 entry 0x11	
 spk_161	played	trace-20261012-145054	session 1	1	acropolis_plaza	1	1			1/acropolis_plaza/file0	0	0	0	entry 0x01	
 spk_161	played	trace-20261012-145054	session 1	1	acropolis_plaza	1	1			1/acropolis_plaza/file0	0	0	0	entry 0x02	
 spk_161	played	trace-20261012-145054	session 1	1	acropolis_plaza	1	1			1/acropolis_plaza/file0	0	0	0	entry 0x03	
@@ -9239,28 +9239,28 @@ spk_162	sound memory	trace-20261012-152043	session 1	1	acropolis_security_room	1
 spk_162	sound memory	trace-20261012-152043	session 1	1	acropolis_security_room	1	1		0x61810-0x6380f	1/acropolis_security_room/file0	0	0	0	bank 0x1106 descriptor 1	freed by sndScriptResetForArea at event 7831
 spk_162	sound memory	trace-20261012-152043	session 1	1	acropolis_security_room	1	1		0x61810-0x6380f	1/acropolis_security_room/file0	0	0	0	bank 0x1106 descriptor 1	freed by sndScriptResetForArea at event 8165
 spk_162	sound memory	trace-20261012-152043	session 1	1	acropolis_security_room	1	4		0x61810-0x6380f	1/acropolis_security_room/file0	0	0	0	bank 0x1106 descriptor 1	
-spk_162_sample_02	played	trace-20261012-145054	session 1	1	mist_parking	1	1			1/mist_parking/file0	0	0	0	spk_188 entry 0x13	
-spk_162_sample_02	played	trace-20261012-145054	session 1	1	mist_parking	2	1			1/mist_parking/file0	0	0	0	spk_188 entry 0x13	
-spk_162_sample_02	played	trace-20261012-152043	session 1	1	acropolis_forked_road	1	1			1/acropolis_forked_road/file0	0	0	0	spk_168 entry 0x13	
-spk_162_sample_02	played	trace-20261012-152043	session 1	1	acropolis_forked_road	1	2			1/acropolis_forked_road/file0	0	0	0	spk_168 entry 0x13	
-spk_162_sample_02	played	trace-20261012-152043	session 1	1	acropolis_forked_road	2	2			1/acropolis_forked_road/file0	0	0	0	spk_168 entry 0x13	
-spk_162_sample_02	played	trace-20261012-152043	session 1	1	acropolis_forked_road	2	3			1/acropolis_forked_road/file0	0	0	0	spk_168 entry 0x13	
-spk_162_sample_02	played	trace-20261012-152043	session 1	1	acropolis_forked_road	2	4			1/acropolis_forked_road/file0	0	0	0	spk_168 entry 0x13	
-spk_162_sample_02	played	trace-20261012-152043	session 1	1	acropolis_hallway	1	1			1/acropolis_hallway/file0	0	0	0	spk_164 entry 0x0b	
-spk_162_sample_02	played	trace-20261012-152043	session 1	1	acropolis_hallway	1	4			1/acropolis_hallway/file0	0	0	0	spk_164 entry 0x0b	
-spk_162_sample_02	played	trace-20261012-152043	session 1	1	acropolis_security_room	1	1			1/acropolis_security_room/file0	0	0	0	spk_162 entry 0x0b	
-spk_162_sample_02	played	trace-20261012-152043	session 1	1	mist_parking	3	2			1/mist_parking/file0	0	0	0	spk_188 entry 0x13	
-spk_162_sample_03	played	trace-20261012-145054	session 1	1	mist_parking	1	1			1/mist_parking/file0	0	0	0	spk_188 entry 0x14	
-spk_162_sample_03	played	trace-20261012-145054	session 1	1	mist_parking	2	1			1/mist_parking/file0	0	0	0	spk_188 entry 0x14	
-spk_162_sample_03	played	trace-20261012-152043	session 1	1	acropolis_forked_road	1	1			1/acropolis_forked_road/file0	0	0	0	spk_168 entry 0x14	
-spk_162_sample_03	played	trace-20261012-152043	session 1	1	acropolis_forked_road	1	2			1/acropolis_forked_road/file0	0	0	0	spk_168 entry 0x14	
-spk_162_sample_03	played	trace-20261012-152043	session 1	1	acropolis_forked_road	2	2			1/acropolis_forked_road/file0	0	0	0	spk_168 entry 0x14	
-spk_162_sample_03	played	trace-20261012-152043	session 1	1	acropolis_forked_road	2	3			1/acropolis_forked_road/file0	0	0	0	spk_168 entry 0x14	
-spk_162_sample_03	played	trace-20261012-152043	session 1	1	acropolis_forked_road	2	4			1/acropolis_forked_road/file0	0	0	0	spk_168 entry 0x14	
-spk_162_sample_03	played	trace-20261012-152043	session 1	1	acropolis_hallway	1	1			1/acropolis_hallway/file0	0	0	0	spk_164 entry 0x0c	
-spk_162_sample_03	played	trace-20261012-152043	session 1	1	acropolis_hallway	1	4			1/acropolis_hallway/file0	0	0	0	spk_164 entry 0x0c	
-spk_162_sample_03	played	trace-20261012-152043	session 1	1	acropolis_security_room	1	1			1/acropolis_security_room/file0	0	0	0	spk_162 entry 0x0c	
-spk_162_sample_03	played	trace-20261012-152043	session 1	1	mist_parking	3	2			1/mist_parking/file0	0	0	0	spk_188 entry 0x14	
+spk_158_sample_04	played	trace-20261012-145054	session 1	1	mist_parking	1	1			1/mist_parking/file0	0	0	0	spk_188 entry 0x13	
+spk_158_sample_04	played	trace-20261012-145054	session 1	1	mist_parking	2	1			1/mist_parking/file0	0	0	0	spk_188 entry 0x13	
+spk_158_sample_04	played	trace-20261012-152043	session 1	1	acropolis_forked_road	1	1			1/acropolis_forked_road/file0	0	0	0	spk_168 entry 0x13	
+spk_158_sample_04	played	trace-20261012-152043	session 1	1	acropolis_forked_road	1	2			1/acropolis_forked_road/file0	0	0	0	spk_168 entry 0x13	
+spk_158_sample_04	played	trace-20261012-152043	session 1	1	acropolis_forked_road	2	2			1/acropolis_forked_road/file0	0	0	0	spk_168 entry 0x13	
+spk_158_sample_04	played	trace-20261012-152043	session 1	1	acropolis_forked_road	2	3			1/acropolis_forked_road/file0	0	0	0	spk_168 entry 0x13	
+spk_158_sample_04	played	trace-20261012-152043	session 1	1	acropolis_forked_road	2	4			1/acropolis_forked_road/file0	0	0	0	spk_168 entry 0x13	
+spk_158_sample_04	played	trace-20261012-152043	session 1	1	acropolis_hallway	1	1			1/acropolis_hallway/file0	0	0	0	spk_164 entry 0x0b	
+spk_158_sample_04	played	trace-20261012-152043	session 1	1	acropolis_hallway	1	4			1/acropolis_hallway/file0	0	0	0	spk_164 entry 0x0b	
+spk_158_sample_04	played	trace-20261012-152043	session 1	1	acropolis_security_room	1	1			1/acropolis_security_room/file0	0	0	0	spk_162 entry 0x0b	
+spk_158_sample_04	played	trace-20261012-152043	session 1	1	mist_parking	3	2			1/mist_parking/file0	0	0	0	spk_188 entry 0x13	
+spk_158_sample_05	played	trace-20261012-145054	session 1	1	mist_parking	1	1			1/mist_parking/file0	0	0	0	spk_188 entry 0x14	
+spk_158_sample_05	played	trace-20261012-145054	session 1	1	mist_parking	2	1			1/mist_parking/file0	0	0	0	spk_188 entry 0x14	
+spk_158_sample_05	played	trace-20261012-152043	session 1	1	acropolis_forked_road	1	1			1/acropolis_forked_road/file0	0	0	0	spk_168 entry 0x14	
+spk_158_sample_05	played	trace-20261012-152043	session 1	1	acropolis_forked_road	1	2			1/acropolis_forked_road/file0	0	0	0	spk_168 entry 0x14	
+spk_158_sample_05	played	trace-20261012-152043	session 1	1	acropolis_forked_road	2	2			1/acropolis_forked_road/file0	0	0	0	spk_168 entry 0x14	
+spk_158_sample_05	played	trace-20261012-152043	session 1	1	acropolis_forked_road	2	3			1/acropolis_forked_road/file0	0	0	0	spk_168 entry 0x14	
+spk_158_sample_05	played	trace-20261012-152043	session 1	1	acropolis_forked_road	2	4			1/acropolis_forked_road/file0	0	0	0	spk_168 entry 0x14	
+spk_158_sample_05	played	trace-20261012-152043	session 1	1	acropolis_hallway	1	1			1/acropolis_hallway/file0	0	0	0	spk_164 entry 0x0c	
+spk_158_sample_05	played	trace-20261012-152043	session 1	1	acropolis_hallway	1	4			1/acropolis_hallway/file0	0	0	0	spk_164 entry 0x0c	
+spk_158_sample_05	played	trace-20261012-152043	session 1	1	acropolis_security_room	1	1			1/acropolis_security_room/file0	0	0	0	spk_162 entry 0x0c	
+spk_158_sample_05	played	trace-20261012-152043	session 1	1	mist_parking	3	2			1/mist_parking/file0	0	0	0	spk_188 entry 0x14	
 spk_163	played	trace-20261012-152043	session 1	1	acropolis_roof_garden	1	2			1/acropolis_security_room/file0	0	0	0	entry 0x02	
 spk_163	played	trace-20261012-152043	session 1	1	acropolis_security_room	1	1			1/acropolis_security_room/file0	0	0	0	entry 0x01	
 spk_163	played	trace-20261012-152043	session 1	1	acropolis_security_room	1	1			1/acropolis_security_room/file0	0	0	0	entry 0x02	
@@ -9318,12 +9318,12 @@ spk_165	sound memory	trace-20261012-152043	session 1	1	acropolis_hallway	1	1		0x
 spk_165	sound memory	trace-20261012-152043	session 1	1	acropolis_hallway	1	3		0x59e90-0x6180f	1/acropolis_hallway/file0	0	0	0	bank 0x5107 descriptor 7	
 spk_165	sound memory	trace-20261012-152043	session 1	1	acropolis_hallway	1	4		0x59e90-0x6180f	1/acropolis_hallway/file0	0	0	0	bank 0x5107 descriptor 7	freed by sndScriptResetForArea at event 19901
 spk_165	sound memory	trace-20261012-152043	session 1	1	acropolis_hallway	1	4		0x59e90-0x6180f	1/acropolis_hallway/file0	0	0	0	bank 0x5107 descriptor 7	freed by sndScriptResetForArea at event 20265
-spk_165_sample_00	played	trace-20261012-152043	session 1	1	acropolis_hallway	1	1			1/acropolis_hallway/file0	0	0	0	spk_165 entry 0x01	
-spk_165_sample_00	played	trace-20261012-152043	session 1	1	acropolis_hallway	1	4			1/acropolis_hallway/file0	0	0	0	spk_165 entry 0x01	
-spk_165_sample_01	played	trace-20261012-152043	session 1	1	acropolis_hallway	1	1			1/acropolis_hallway/file0	0	0	0	spk_165 entry 0x02	
-spk_165_sample_01	played	trace-20261012-152043	session 1	1	acropolis_hallway	1	3			1/acropolis_hallway/file0	0	0	0	spk_165 entry 0x02	
-spk_165_sample_03	played	trace-20261012-152043	session 1	1	acropolis_hallway	1	3			1/acropolis_hallway/file0	0	0	0	spk_165 entry 0x04	
-spk_165_sample_03	played	trace-20261012-152043	session 1	1	acropolis_hallway	1	4			1/acropolis_hallway/file0	0	0	0	spk_165 entry 0x04	
+spk_163_sample_02	played	trace-20261012-152043	session 1	1	acropolis_hallway	1	1			1/acropolis_hallway/file0	0	0	0	spk_165 entry 0x01	
+spk_163_sample_02	played	trace-20261012-152043	session 1	1	acropolis_hallway	1	4			1/acropolis_hallway/file0	0	0	0	spk_165 entry 0x01	
+spk_163_sample_03	played	trace-20261012-152043	session 1	1	acropolis_hallway	1	1			1/acropolis_hallway/file0	0	0	0	spk_165 entry 0x02	
+spk_163_sample_03	played	trace-20261012-152043	session 1	1	acropolis_hallway	1	3			1/acropolis_hallway/file0	0	0	0	spk_165 entry 0x02	
+spk_159_sample_12	played	trace-20261012-152043	session 1	1	acropolis_hallway	1	3			1/acropolis_hallway/file0	0	0	0	spk_165 entry 0x04	
+spk_159_sample_12	played	trace-20261012-152043	session 1	1	acropolis_hallway	1	4			1/acropolis_hallway/file0	0	0	0	spk_165 entry 0x04	
 spk_165_sample_05	played	trace-20261012-152043	session 1	1	acropolis_hallway	1	1			1/acropolis_hallway/file0	0	0	0	spk_165 entry 0x06	
 spk_165_sample_06	played	trace-20261012-152043	session 1	1	acropolis_hallway	1	1			1/acropolis_hallway/file0	0	0	0	spk_165 entry 0x07	
 spk_166	played	trace-20261012-152043	session 1	1	acropolis_fountain	1	1			1/acropolis_fountain/file0	0	0	0	entry 0x11	
@@ -9339,7 +9339,7 @@ spk_166	sound memory	trace-20261012-152043	session 1	1	acropolis_fountain	1	1		0
 spk_166	sound memory	trace-20261012-152043	session 1	1	acropolis_fountain	1	3		0x5de50-0x6380f	1/acropolis_fountain/file0	0	0	0	bank 0x1108 descriptor 1	
 spk_166	sound memory	trace-20261012-152043	session 1	1	acropolis_fountain	2	2		0x5de50-0x6380f	1/acropolis_fountain/file0	0	0	0	bank 0x1108 descriptor 1	freed by sndScriptResetForArea at event 20933
 spk_166	sound memory	trace-20261012-152043	session 1	1	acropolis_fountain	2	4		0x5de50-0x6380f	1/acropolis_fountain/file0	0	0	0	bank 0x1108 descriptor 1	
-spk_166_sample_00	played	trace-20261012-152043	session 1	1	acropolis_fountain	1	1			1/acropolis_fountain/file0	0	0	0	spk_166 entry 0x11	
+spk_156_sample_00	played	trace-20261012-152043	session 1	1	acropolis_fountain	1	1			1/acropolis_fountain/file0	0	0	0	spk_166 entry 0x11	
 spk_166_sample_06	played	trace-20261012-152043	session 1	1	acropolis_fountain	1	1			1/acropolis_fountain/file0	0	0	0	spk_166 entry 0x3b	
 spk_166_sample_07	played	trace-20261012-152043	session 1	1	acropolis_fountain	1	1			1/acropolis_fountain/file0	0	0	0	spk_166 entry 0x3c	
 spk_167	played	trace-20261012-152043	session 1	1	acropolis_fountain	1	1			1/acropolis_fountain/file0	0	0	0	entry 0x01	
@@ -9356,14 +9356,14 @@ spk_167	sound memory	trace-20261012-152043	session 1	1	acropolis_fountain	1	1		0
 spk_167	sound memory	trace-20261012-152043	session 1	1	acropolis_fountain	1	3		0x4f750-0x5de4f	1/acropolis_fountain/file0	0	0	0	bank 0x5108 descriptor 7	
 spk_167	sound memory	trace-20261012-152043	session 1	1	acropolis_fountain	2	2		0x4f750-0x5de4f	1/acropolis_fountain/file0	0	0	0	bank 0x5108 descriptor 7	freed by sndScriptResetForArea at event 20934
 spk_167	sound memory	trace-20261012-152043	session 1	1	acropolis_fountain	2	4		0x4f750-0x5de4f	1/acropolis_fountain/file0	0	0	0	bank 0x5108 descriptor 7	
-spk_167_sample_00	played	trace-20261012-152043	session 1	1	acropolis_fountain	1	1			1/acropolis_fountain/file0	0	0	0	spk_167 entry 0x01	
+spk_163_sample_06	played	trace-20261012-152043	session 1	1	acropolis_fountain	1	1			1/acropolis_fountain/file0	0	0	0	spk_167 entry 0x01	
 spk_167_sample_01	played	trace-20261012-152043	session 1	1	acropolis_fountain	1	1			1/acropolis_fountain/file0	0	0	0	spk_167 entry 0x03	
 spk_167_sample_02	played	trace-20261012-152043	session 1	1	acropolis_fountain	1	1			1/acropolis_fountain/file0	0	0	0	spk_167 entry 0x04	
-spk_167_sample_03	played	trace-20261012-152043	session 1	1	acropolis_fountain	1	1			1/acropolis_fountain/file0	0	0	0	spk_167 entry 0x05	
-spk_167_sample_03	played	trace-20261012-152043	session 1	1	acropolis_fountain	2	2			1/acropolis_fountain/file0	0	0	0	spk_167 entry 0x05	
-spk_167_sample_04	played	trace-20261012-152043	session 1	1	acropolis_fountain	1	3			1/acropolis_fountain/file0	0	0	0	spk_167 entry 0x06	
-spk_167_sample_06	played	trace-20261012-152043	session 1	1	acropolis_fountain	1	1			1/acropolis_fountain/file0	0	0	0	spk_167 entry 0x08	
-spk_167_sample_06	played	trace-20261012-152043	session 1	1	acropolis_fountain	2	4			1/acropolis_fountain/file0	0	0	0	spk_167 entry 0x08	
+spk_157_sample_10	played	trace-20261012-152043	session 1	1	acropolis_fountain	1	1			1/acropolis_fountain/file0	0	0	0	spk_167 entry 0x05	
+spk_157_sample_10	played	trace-20261012-152043	session 1	1	acropolis_fountain	2	2			1/acropolis_fountain/file0	0	0	0	spk_167 entry 0x05	
+spk_157_sample_11	played	trace-20261012-152043	session 1	1	acropolis_fountain	1	3			1/acropolis_fountain/file0	0	0	0	spk_167 entry 0x06	
+spk_163_sample_03	played	trace-20261012-152043	session 1	1	acropolis_fountain	1	1			1/acropolis_fountain/file0	0	0	0	spk_167 entry 0x08	
+spk_163_sample_03	played	trace-20261012-152043	session 1	1	acropolis_fountain	2	4			1/acropolis_fountain/file0	0	0	0	spk_167 entry 0x08	
 spk_167_sample_07	played	trace-20261012-152043	session 1	1	acropolis_fountain	1	1			1/acropolis_fountain/file0	0	0	0	spk_167 entry 0x09	
 spk_168	played	trace-20261012-152043	session 1	1	acropolis_forked_road	1	1			1/acropolis_forked_road/file0	0	0	0	entry 0x11	
 spk_168	played	trace-20261012-152043	session 1	1	acropolis_forked_road	1	1			1/acropolis_forked_road/file0	0	0	0	entry 0x12	
@@ -9407,8 +9407,8 @@ spk_169	sound memory	trace-20261012-152043	session 1	1	acropolis_forked_road	2	2
 spk_169	sound memory	trace-20261012-152043	session 1	1	acropolis_forked_road	2	3		0x58c10-0x6180f	1/acropolis_forked_road/file0	0	0	0	bank 0x5109 descriptor 7	freed by sndScriptResetForArea at event 17276
 spk_169	sound memory	trace-20261012-152043	session 1	1	acropolis_forked_road	2	4		0x58c10-0x6180f	1/acropolis_forked_road/file0	0	0	0	bank 0x5109 descriptor 7	freed by sndScriptResetForArea at event 21885
 spk_169	sound memory	trace-20261012-152043	session 1	1	acropolis_forked_road	2	4		0x58c10-0x6180f	1/acropolis_forked_road/file0	0	0	0	bank 0x5109 descriptor 7	freed by sndScriptResetForArea at event 22288
-spk_169_sample_01	played	trace-20261012-152043	session 1	1	acropolis_forked_road	2	1			1/acropolis_forked_road/file0	0	0	0	spk_169 entry 0x03	
-spk_169_sample_01	played	trace-20261012-152043	session 1	1	acropolis_forked_road	2	2			1/acropolis_forked_road/file0	0	0	0	spk_169 entry 0x03	
+spk_157_sample_11	played	trace-20261012-152043	session 1	1	acropolis_forked_road	2	1			1/acropolis_forked_road/file0	0	0	0	spk_169 entry 0x03	
+spk_157_sample_11	played	trace-20261012-152043	session 1	1	acropolis_forked_road	2	2			1/acropolis_forked_road/file0	0	0	0	spk_169 entry 0x03	
 spk_169_sample_03	played	trace-20261012-152043	session 1	1	acropolis_forked_road	2	4			1/acropolis_forked_road/file0	0	0	0	spk_169 entry 0x07	
 spk_169_sample_04	played	trace-20261012-152043	session 1	1	acropolis_forked_road	1	2			1/acropolis_forked_road/file0	0	0	0	spk_169 entry 0x08	
 spk_17	played	trace-20261012-152043	session 1	1	acropolis_bridge	2	1			0/mp5a5	0	0	0	entry 0x02	
@@ -9606,14 +9606,14 @@ spk_173	sound memory	trace-20261012-152043	session 1	1	acropolis_sanctuary	1	2		
 spk_173	sound memory	trace-20261012-152043	session 1	1	acropolis_sanctuary	1	3		0x615d0-0x6380f	1/acropolis_sanctuary/file0	0	0	0	bank 0x110c descriptor 1	freed by sndScriptResetForArea at event 14422
 spk_173	sound memory	trace-20261012-152043	session 1	1	acropolis_sanctuary	1	3		0x615d0-0x6380f	1/acropolis_sanctuary/file0	0	0	0	bank 0x110c descriptor 1	freed by sndScriptResetForArea at event 23710
 spk_173	sound memory	trace-20261012-152043	session 1	1	acropolis_sanctuary	1	3		0x615d0-0x6380f	1/acropolis_sanctuary/file0	0	0	0	bank 0x110c descriptor 1	freed by sndScriptResetForArea at event 24608
-spk_173_sample_02	played	trace-20261012-152043	session 1	1	acropolis_sanctuary	1	1			1/acropolis_sanctuary/file0	0	0	0	spk_173 entry 0x2f	
-spk_173_sample_02	played	trace-20261012-152043	session 1	1	acropolis_sanctuary	1	3			1/acropolis_sanctuary/file0	0	0	0	spk_173 entry 0x2f	
-spk_173_sample_03	played	trace-20261012-152043	session 1	1	acropolis_sanctuary	1	1			1/acropolis_sanctuary/file0	0	0	0	spk_173 entry 0x30	
-spk_173_sample_03	played	trace-20261012-152043	session 1	1	acropolis_sanctuary	1	3			1/acropolis_sanctuary/file0	0	0	0	spk_173 entry 0x30	
-spk_173_sample_04	played	trace-20261012-152043	session 1	1	acropolis_sanctuary	1	1			1/acropolis_sanctuary/file0	0	0	0	spk_173 entry 0x13	
-spk_173_sample_04	played	trace-20261012-152043	session 1	1	acropolis_sanctuary	1	3			1/acropolis_sanctuary/file0	0	0	0	spk_173 entry 0x13	
-spk_173_sample_05	played	trace-20261012-152043	session 1	1	acropolis_sanctuary	1	1			1/acropolis_sanctuary/file0	0	0	0	spk_173 entry 0x14	
-spk_173_sample_05	played	trace-20261012-152043	session 1	1	acropolis_sanctuary	1	3			1/acropolis_sanctuary/file0	0	0	0	spk_173 entry 0x14	
+spk_158_sample_08	played	trace-20261012-152043	session 1	1	acropolis_sanctuary	1	1			1/acropolis_sanctuary/file0	0	0	0	spk_173 entry 0x2f	
+spk_158_sample_08	played	trace-20261012-152043	session 1	1	acropolis_sanctuary	1	3			1/acropolis_sanctuary/file0	0	0	0	spk_173 entry 0x2f	
+spk_158_sample_09	played	trace-20261012-152043	session 1	1	acropolis_sanctuary	1	1			1/acropolis_sanctuary/file0	0	0	0	spk_173 entry 0x30	
+spk_158_sample_09	played	trace-20261012-152043	session 1	1	acropolis_sanctuary	1	3			1/acropolis_sanctuary/file0	0	0	0	spk_173 entry 0x30	
+spk_152_sample_00	played	trace-20261012-152043	session 1	1	acropolis_sanctuary	1	1			1/acropolis_sanctuary/file0	0	0	0	spk_173 entry 0x13	
+spk_152_sample_00	played	trace-20261012-152043	session 1	1	acropolis_sanctuary	1	3			1/acropolis_sanctuary/file0	0	0	0	spk_173 entry 0x13	
+spk_152_sample_01	played	trace-20261012-152043	session 1	1	acropolis_sanctuary	1	1			1/acropolis_sanctuary/file0	0	0	0	spk_173 entry 0x14	
+spk_152_sample_01	played	trace-20261012-152043	session 1	1	acropolis_sanctuary	1	3			1/acropolis_sanctuary/file0	0	0	0	spk_173 entry 0x14	
 spk_174	played	trace-20261012-152043	session 1	1	acropolis_sanctuary	1	1			1/acropolis_sanctuary/file0	0	0	0	entry 0x02	
 spk_174	played	trace-20261012-152043	session 1	1	acropolis_sanctuary	1	1			1/acropolis_sanctuary/file0	0	0	0	entry 0x04	
 spk_174	played	trace-20261012-152043	session 1	1	acropolis_sanctuary	1	1			1/acropolis_sanctuary/file0	0	0	0	entry 0x07	
@@ -9649,15 +9649,15 @@ spk_175	played	trace-20261012-152043	session 1	1	acropolis_sanctuary	120	3			1/a
 spk_175	sound memory	trace-20261012-152043	session 1	1	acropolis_roof_garden	1	1		0x47010-0x4e3cf	1/acropolis_roof_garden/file0	0	0	0	bank 0x3108 descriptor 3	freed by sndScriptResetForArea at event 14159
 spk_175	sound memory	trace-20261012-152043	session 1	1	acropolis_roof_garden	1	3		0x47010-0x4e3cf	1/acropolis_roof_garden/file0	0	0	0	bank 0x3108 descriptor 3	overwritten by spk_89 of 0/file200700 at event 23747
 spk_175	sound memory	trace-20261012-152043	session 1	1	acropolis_sanctuary	120	3		0x47010-0x4e3cf	1/acropolis_roof_garden/file0	0	0	0	bank 0x3108 descriptor 3	
-spk_175_sample_00	played	trace-20261012-152043	session 1	1	acropolis_roof_garden	1	1			1/acropolis_roof_garden/file0	0	0	0	spk_175 entry 0x01	
-spk_175_sample_01	played	trace-20261012-152043	session 1	1	acropolis_roof_garden	1	1			1/acropolis_roof_garden/file0	0	0	0	spk_175 entry 0x02	
-spk_175_sample_02	played	trace-20261012-152043	session 1	1	acropolis_roof_garden	1	1			1/acropolis_roof_garden/file0	0	0	0	spk_175 entry 0x03	
-spk_175_sample_03	played	trace-20261012-152043	session 1	1	acropolis_roof_garden	1	1			1/acropolis_roof_garden/file0	0	0	0	spk_175 entry 0x04	
-spk_175_sample_03	played	trace-20261012-152043	session 1	1	acropolis_sanctuary	120	3			1/acropolis_roof_garden/file0	0	0	0	spk_175 entry 0x05	
+spk_163_sample_02	played	trace-20261012-152043	session 1	1	acropolis_roof_garden	1	1			1/acropolis_roof_garden/file0	0	0	0	spk_175 entry 0x01	
+spk_163_sample_03	played	trace-20261012-152043	session 1	1	acropolis_roof_garden	1	1			1/acropolis_roof_garden/file0	0	0	0	spk_175 entry 0x02	
+spk_157_sample_12	played	trace-20261012-152043	session 1	1	acropolis_roof_garden	1	1			1/acropolis_roof_garden/file0	0	0	0	spk_175 entry 0x03	
+spk_174_sample_00	played	trace-20261012-152043	session 1	1	acropolis_roof_garden	1	1			1/acropolis_roof_garden/file0	0	0	0	spk_175 entry 0x04	
+spk_174_sample_00	played	trace-20261012-152043	session 1	1	acropolis_sanctuary	120	3			1/acropolis_roof_garden/file0	0	0	0	spk_175 entry 0x05	
 spk_175_sample_04	played	trace-20261012-152043	session 1	1	acropolis_roof_garden	1	1			1/acropolis_roof_garden/file0	0	0	0	spk_175 entry 0x04	
 spk_175_sample_04	played	trace-20261012-152043	session 1	1	acropolis_sanctuary	120	3			1/acropolis_roof_garden/file0	0	0	0	spk_175 entry 0x05	
-spk_175_sample_05	played	trace-20261012-152043	session 1	1	acropolis_roof_garden	1	1			1/acropolis_roof_garden/file0	0	0	0	spk_175 entry 0x04	
-spk_175_sample_05	played	trace-20261012-152043	session 1	1	acropolis_sanctuary	120	3			1/acropolis_roof_garden/file0	0	0	0	spk_175 entry 0x05	
+spk_174_sample_02	played	trace-20261012-152043	session 1	1	acropolis_roof_garden	1	1			1/acropolis_roof_garden/file0	0	0	0	spk_175 entry 0x04	
+spk_174_sample_02	played	trace-20261012-152043	session 1	1	acropolis_sanctuary	120	3			1/acropolis_roof_garden/file0	0	0	0	spk_175 entry 0x05	
 spk_176	played	trace-20261012-152043	session 1	1	acropolis_roof_garden	1	1			1/acropolis_roof_garden/file0	0	0	0	entry 0x1f	
 spk_176	played	trace-20261012-152043	session 1	1	acropolis_roof_garden	1	1			1/acropolis_roof_garden/file0	0	0	0	entry 0x20	
 spk_176	played	trace-20261012-152043	session 1	1	acropolis_roof_garden	1	2			1/acropolis_roof_garden/file0	0	0	0	entry 0x1f	
@@ -9691,25 +9691,25 @@ spk_177	sound memory	trace-20261012-152043	session 1	1	acropolis_roof_garden	1	1
 spk_177	sound memory	trace-20261012-152043	session 1	1	acropolis_roof_garden	1	2		0x534d0-0x604cf	1/acropolis_roof_garden/file0	0	0	0	bank 0x510d descriptor 7	freed by sndScriptResetForArea at event 24487
 spk_177	sound memory	trace-20261012-152043	session 1	1	acropolis_roof_garden	1	3		0x534d0-0x604cf	1/acropolis_roof_garden/file0	0	0	0	bank 0x510d descriptor 7	
 spk_177	sound memory	trace-20261012-152043	session 1	1	acropolis_sanctuary	120	3		0x534d0-0x604cf	1/acropolis_roof_garden/file0	0	0	0	bank 0x510d descriptor 7	
-spk_177_sample_00	played	trace-20261012-152043	session 1	1	acropolis_roof_garden	1	1			1/acropolis_roof_garden/file0	0	0	0	spk_177 entry 0x12	
-spk_177_sample_01	played	trace-20261012-152043	session 1	1	acropolis_roof_garden	1	1			1/acropolis_roof_garden/file0	0	0	0	spk_177 entry 0x11	
-spk_177_sample_02	played	trace-20261012-152043	session 1	1	acropolis_roof_garden	1	1			1/acropolis_roof_garden/file0	0	0	0	spk_177 entry 0x0d	
-spk_177_sample_02	played	trace-20261012-152043	session 1	1	acropolis_roof_garden	1	1			1/acropolis_roof_garden/file0	0	0	0	spk_177 entry 0x0f	
-spk_177_sample_03	played	trace-20261012-152043	session 1	1	acropolis_roof_garden	1	1			1/acropolis_roof_garden/file0	0	0	0	spk_177 entry 0x0e	
-spk_177_sample_03	played	trace-20261012-152043	session 1	1	acropolis_roof_garden	1	1			1/acropolis_roof_garden/file0	0	0	0	spk_177 entry 0x10	
+spk_169_sample_03	played	trace-20261012-152043	session 1	1	acropolis_roof_garden	1	1			1/acropolis_roof_garden/file0	0	0	0	spk_177 entry 0x12	
+spk_174_sample_02	played	trace-20261012-152043	session 1	1	acropolis_roof_garden	1	1			1/acropolis_roof_garden/file0	0	0	0	spk_177 entry 0x11	
+spk_176_sample_00	played	trace-20261012-152043	session 1	1	acropolis_roof_garden	1	1			1/acropolis_roof_garden/file0	0	0	0	spk_177 entry 0x0d	
+spk_176_sample_00	played	trace-20261012-152043	session 1	1	acropolis_roof_garden	1	1			1/acropolis_roof_garden/file0	0	0	0	spk_177 entry 0x0f	
+spk_176_sample_01	played	trace-20261012-152043	session 1	1	acropolis_roof_garden	1	1			1/acropolis_roof_garden/file0	0	0	0	spk_177 entry 0x0e	
+spk_176_sample_01	played	trace-20261012-152043	session 1	1	acropolis_roof_garden	1	1			1/acropolis_roof_garden/file0	0	0	0	spk_177 entry 0x10	
 spk_177_sample_04	played	trace-20261012-152043	session 1	1	acropolis_sanctuary	120	3			1/acropolis_roof_garden/file0	0	0	0	spk_177 entry 0x06	
 spk_177_sample_04	played	trace-20261012-152043	session 1	1	acropolis_sanctuary	120	3			1/acropolis_roof_garden/file0	0	0	0	spk_177 entry 0x09	
 spk_177_sample_05	played	trace-20261012-152043	session 1	1	acropolis_sanctuary	120	3			1/acropolis_roof_garden/file0	0	0	0	spk_177 entry 0x07	
 spk_177_sample_06	played	trace-20261012-152043	session 1	1	acropolis_sanctuary	120	3			1/acropolis_roof_garden/file0	0	0	0	spk_177 entry 0x08	
 spk_177_sample_07	played	trace-20261012-152043	session 1	1	acropolis_sanctuary	120	3			1/acropolis_roof_garden/file0	0	0	0	spk_177 entry 0x0a	
-spk_177_sample_08	played	trace-20261012-152043	session 1	1	acropolis_roof_garden	1	1			1/acropolis_roof_garden/file0	0	0	0	spk_177 entry 0x01	
-spk_177_sample_08	played	trace-20261012-152043	session 1	1	acropolis_roof_garden	1	2			1/acropolis_roof_garden/file0	0	0	0	spk_177 entry 0x01	
-spk_177_sample_09	played	trace-20261012-152043	session 1	1	acropolis_roof_garden	1	3			1/acropolis_roof_garden/file0	0	0	0	spk_177 entry 0x02	
+spk_174_sample_05	played	trace-20261012-152043	session 1	1	acropolis_roof_garden	1	1			1/acropolis_roof_garden/file0	0	0	0	spk_177 entry 0x01	
+spk_174_sample_05	played	trace-20261012-152043	session 1	1	acropolis_roof_garden	1	2			1/acropolis_roof_garden/file0	0	0	0	spk_177 entry 0x01	
+spk_174_sample_06	played	trace-20261012-152043	session 1	1	acropolis_roof_garden	1	3			1/acropolis_roof_garden/file0	0	0	0	spk_177 entry 0x02	
 spk_177_sample_10	played	trace-20261012-152043	session 1	1	acropolis_roof_garden	1	1			1/acropolis_roof_garden/file0	0	0	0	spk_177 entry 0x05	
 spk_177_sample_10	played	trace-20261012-152043	session 1	1	acropolis_roof_garden	1	2			1/acropolis_roof_garden/file0	0	0	0	spk_177 entry 0x05	
 spk_177_sample_11	played	trace-20261012-152043	session 1	1	acropolis_roof_garden	1	1			1/acropolis_roof_garden/file0	0	0	0	spk_177 entry 0x05	
 spk_177_sample_11	played	trace-20261012-152043	session 1	1	acropolis_roof_garden	1	2			1/acropolis_roof_garden/file0	0	0	0	spk_177 entry 0x05	
-spk_177_sample_12	played	trace-20261012-152043	session 1	1	acropolis_roof_garden	1	1			1/acropolis_roof_garden/file0	0	0	0	spk_177 entry 0x03	
+spk_159_sample_10	played	trace-20261012-152043	session 1	1	acropolis_roof_garden	1	1			1/acropolis_roof_garden/file0	0	0	0	spk_177 entry 0x03	
 spk_178	played	trace-20261012-152043	session 1	1	acropolis_bridge	1	1			1/acropolis_bridge/file0	0	0	0	entry 0x17	
 spk_178	played	trace-20261012-152043	session 1	1	acropolis_bridge	1	1			1/acropolis_bridge/file0	0	0	0	entry 0x18	
 spk_178	played	trace-20261012-152043	session 1	1	acropolis_bridge	2	1			1/acropolis_bridge/file0	0	0	0	entry 0x17	
@@ -9725,9 +9725,9 @@ spk_178	sound memory	trace-20261012-152043	session 1	1	acropolis_sanctuary	96	3	
 spk_178_sample_00	played	trace-20261012-152043	session 1	1	acropolis_bridge	1	1			1/acropolis_bridge/file0	0	0	0	spk_178 entry 0x17	
 spk_178_sample_00	played	trace-20261012-152043	session 1	1	acropolis_bridge	2	1			1/acropolis_bridge/file0	0	0	0	spk_178 entry 0x17	
 spk_178_sample_00	played	trace-20261012-152043	session 1	1	acropolis_bridge	2	1			1/acropolis_bridge/file0	0	0	0	spk_178 entry 0x19	
-spk_178_sample_01	played	trace-20261012-152043	session 1	1	acropolis_bridge	1	1			1/acropolis_bridge/file0	0	0	0	spk_178 entry 0x18	
-spk_178_sample_01	played	trace-20261012-152043	session 1	1	acropolis_bridge	2	1			1/acropolis_bridge/file0	0	0	0	spk_178 entry 0x18	
-spk_178_sample_01	played	trace-20261012-152043	session 1	1	acropolis_bridge	2	1			1/acropolis_bridge/file0	0	0	0	spk_178 entry 0x1a	
+spk_171_sample_09	played	trace-20261012-152043	session 1	1	acropolis_bridge	1	1			1/acropolis_bridge/file0	0	0	0	spk_178 entry 0x18	
+spk_171_sample_09	played	trace-20261012-152043	session 1	1	acropolis_bridge	2	1			1/acropolis_bridge/file0	0	0	0	spk_178 entry 0x18	
+spk_171_sample_09	played	trace-20261012-152043	session 1	1	acropolis_bridge	2	1			1/acropolis_bridge/file0	0	0	0	spk_178 entry 0x1a	
 spk_179	played	trace-20261012-152043	session 1	1	acropolis_bridge	1	1			1/acropolis_bridge/file0	0	0	0	entry 0x03	
 spk_179	played	trace-20261012-152043	session 1	1	acropolis_bridge	1	1			1/acropolis_bridge/file0	0	0	0	entry 0x09	
 spk_179	played	trace-20261012-152043	session 1	1	acropolis_bridge	1	2			1/acropolis_bridge/file0	0	0	0	entry 0x08	
@@ -9742,9 +9742,9 @@ spk_179	sound memory	trace-20261012-152043	session 1	1	acropolis_bridge	2	3		0x5
 spk_179	sound memory	trace-20261012-152043	session 1	1	acropolis_sanctuary	96	3		0x53950-0x5db0f	1/acropolis_bridge/file0	0	0	0	bank 0x510e descriptor 7	
 spk_179_sample_00	played	trace-20261012-152043	session 1	1	acropolis_bridge	1	1			1/acropolis_bridge/file0	0	0	0	spk_179 entry 0x03	
 spk_179_sample_02	played	trace-20261012-152043	session 1	1	acropolis_bridge	2	1			1/acropolis_bridge/file0	0	0	0	spk_179 entry 0x05	
-spk_179_sample_04	played	trace-20261012-152043	session 1	1	acropolis_bridge	2	1			1/acropolis_bridge/file0	0	0	0	spk_179 entry 0x07	
-spk_179_sample_05	played	trace-20261012-152043	session 1	1	acropolis_bridge	1	2			1/acropolis_bridge/file0	0	0	0	spk_179 entry 0x08	
-spk_179_sample_05	played	trace-20261012-152043	session 1	1	acropolis_bridge	2	3			1/acropolis_bridge/file0	0	0	0	spk_179 entry 0x08	
+spk_172_sample_05	played	trace-20261012-152043	session 1	1	acropolis_bridge	2	1			1/acropolis_bridge/file0	0	0	0	spk_179 entry 0x07	
+spk_172_sample_06	played	trace-20261012-152043	session 1	1	acropolis_bridge	1	2			1/acropolis_bridge/file0	0	0	0	spk_179 entry 0x08	
+spk_172_sample_06	played	trace-20261012-152043	session 1	1	acropolis_bridge	2	3			1/acropolis_bridge/file0	0	0	0	spk_179 entry 0x08	
 spk_179_sample_06	played	trace-20261012-152043	session 1	1	acropolis_bridge	1	1			1/acropolis_bridge/file0	0	0	0	spk_179 entry 0x09	
 spk_17_sample_01	played	trace-20261012-152043	session 1	1	acropolis_bridge	2	1			0/mp5a5	0	0	0	spk_17 entry 0x02	
 spk_17_sample_01	played	trace-20261012-152043	session 1	1	acropolis_cafeteria	4	4			0/mp5a5	0	0	0	spk_17 entry 0x02	
@@ -9787,15 +9787,15 @@ spk_17_sample_03	played	trace-20261012-152043	session 1	1	acropolis_promenade	2	
 spk_17_sample_03	played	trace-20261012-152043	session 1	1	acropolis_promenade	2	3			0/mp5a5	0	0	0	spk_17 entry 0x04	
 spk_17_sample_03	played	trace-20261012-152043	session 1	1	acropolis_roof_garden	1	1			0/mp5a5	0	0	0	spk_17 entry 0x04	
 spk_17_sample_03	played	trace-20261012-152043	session 1	1	acropolis_roof_garden	1	2			0/mp5a5	0	0	0	spk_17 entry 0x04	
-spk_17_sample_04	played	trace-20261012-152043	session 1	1	acropolis_bridge	2	1			0/mp5a5	0	0	0	spk_17 entry 0x05	
-spk_17_sample_04	played	trace-20261012-152043	session 1	1	acropolis_fire_escape	1	1			0/mp5a5	0	0	0	spk_17 entry 0x05	
-spk_17_sample_04	played	trace-20261012-152043	session 1	1	acropolis_forked_road	2	3			0/mp5a5	0	0	0	spk_17 entry 0x05	
-spk_17_sample_04	played	trace-20261012-152043	session 1	1	acropolis_forked_road	2	4			0/mp5a5	0	0	0	spk_17 entry 0x05	
-spk_17_sample_04	played	trace-20261012-152043	session 1	1	acropolis_patio	3	4			0/mp5a5	0	0	0	spk_17 entry 0x05	
-spk_17_sample_04	played	trace-20261012-152043	session 1	1	acropolis_promenade	2	2			0/mp5a5	0	0	0	spk_17 entry 0x05	
-spk_17_sample_04	played	trace-20261012-152043	session 1	1	acropolis_promenade	2	3			0/mp5a5	0	0	0	spk_17 entry 0x05	
-spk_17_sample_04	played	trace-20261012-152043	session 1	1	acropolis_roof_garden	1	1			0/mp5a5	0	0	0	spk_17 entry 0x05	
-spk_17_sample_04	played	trace-20261012-152043	session 1	1	acropolis_roof_garden	1	2			0/mp5a5	0	0	0	spk_17 entry 0x05	
+spk_5_sample_04	played	trace-20261012-152043	session 1	1	acropolis_bridge	2	1			0/mp5a5	0	0	0	spk_17 entry 0x05	
+spk_5_sample_04	played	trace-20261012-152043	session 1	1	acropolis_fire_escape	1	1			0/mp5a5	0	0	0	spk_17 entry 0x05	
+spk_5_sample_04	played	trace-20261012-152043	session 1	1	acropolis_forked_road	2	3			0/mp5a5	0	0	0	spk_17 entry 0x05	
+spk_5_sample_04	played	trace-20261012-152043	session 1	1	acropolis_forked_road	2	4			0/mp5a5	0	0	0	spk_17 entry 0x05	
+spk_5_sample_04	played	trace-20261012-152043	session 1	1	acropolis_patio	3	4			0/mp5a5	0	0	0	spk_17 entry 0x05	
+spk_5_sample_04	played	trace-20261012-152043	session 1	1	acropolis_promenade	2	2			0/mp5a5	0	0	0	spk_17 entry 0x05	
+spk_5_sample_04	played	trace-20261012-152043	session 1	1	acropolis_promenade	2	3			0/mp5a5	0	0	0	spk_17 entry 0x05	
+spk_5_sample_04	played	trace-20261012-152043	session 1	1	acropolis_roof_garden	1	1			0/mp5a5	0	0	0	spk_17 entry 0x05	
+spk_5_sample_04	played	trace-20261012-152043	session 1	1	acropolis_roof_garden	1	2			0/mp5a5	0	0	0	spk_17 entry 0x05	
 spk_180	played	trace-20261012-152043	session 1	1	acropolis_fire_escape	1	1			1/acropolis_fire_escape/file0	0	0	0	entry 0x0d	
 spk_180	played	trace-20261012-152043	session 1	1	acropolis_fire_escape	1	1			1/acropolis_fire_escape/file0	0	0	0	entry 0x0e	
 spk_180	played	trace-20261012-152043	session 1	1	acropolis_fire_escape	1	1			1/acropolis_fire_escape/file0	0	0	0	entry 0x0f	
@@ -9805,8 +9805,8 @@ spk_180	played	trace-20261012-152043	session 1	1	acropolis_fire_escape	1	1			1/a
 spk_180	sound memory	trace-20261012-152043	session 1	1	acropolis_fire_escape	1	1		0x5d550-0x6380f	1/acropolis_fire_escape/file0	0	0	0	bank 0x110f descriptor 1	freed by sndScriptResetForArea at event 27362
 spk_180_sample_00	played	trace-20261012-152043	session 1	1	acropolis_fire_escape	1	1			1/acropolis_fire_escape/file0	0	0	0	spk_180 entry 0x0d	
 spk_180_sample_01	played	trace-20261012-152043	session 1	1	acropolis_fire_escape	1	1			1/acropolis_fire_escape/file0	0	0	0	spk_180 entry 0x0e	
-spk_180_sample_02	played	trace-20261012-152043	session 1	1	acropolis_fire_escape	1	1			1/acropolis_fire_escape/file0	0	0	0	spk_180 entry 0x0f	
-spk_180_sample_03	played	trace-20261012-152043	session 1	1	acropolis_fire_escape	1	1			1/acropolis_fire_escape/file0	0	0	0	spk_180 entry 0x10	
+spk_152_sample_00	played	trace-20261012-152043	session 1	1	acropolis_fire_escape	1	1			1/acropolis_fire_escape/file0	0	0	0	spk_180 entry 0x0f	
+spk_152_sample_01	played	trace-20261012-152043	session 1	1	acropolis_fire_escape	1	1			1/acropolis_fire_escape/file0	0	0	0	spk_180 entry 0x10	
 spk_180_sample_04	played	trace-20261012-152043	session 1	1	acropolis_fire_escape	1	1			1/acropolis_fire_escape/file0	0	0	0	spk_180 entry 0x19	
 spk_180_sample_05	played	trace-20261012-152043	session 1	1	acropolis_fire_escape	1	1			1/acropolis_fire_escape/file0	0	0	0	spk_180 entry 0x1a	
 spk_181	played	trace-20261012-152043	session 1	1	acropolis_fire_escape	1	1			1/acropolis_fire_escape/file0	0	0	0	entry 0x01	
@@ -9820,11 +9820,11 @@ spk_181	sound memory	trace-20261012-152043	session 1	1	acropolis_fire_escape	1	1
 spk_181_sample_00	played	trace-20261012-152043	session 1	1	acropolis_fire_escape	1	1			1/acropolis_fire_escape/file0	0	0	0	spk_181 entry 0x01	
 spk_181_sample_02	played	trace-20261012-152043	session 1	1	acropolis_fire_escape	1	1			1/acropolis_fire_escape/file0	0	0	0	spk_181 entry 0x03	
 spk_181_sample_03	played	trace-20261012-152043	session 1	1	acropolis_fire_escape	1	1			1/acropolis_fire_escape/file0	0	0	0	spk_181 entry 0x04	
-spk_181_sample_04	played	trace-20261012-152043	session 1	1	acropolis_fire_escape	1	1			1/acropolis_fire_escape/file0	0	0	0	spk_181 entry 0x07	
+rooms/akropolis/square/sounds_1_sample_07	played	trace-20261012-152043	session 1	1	acropolis_fire_escape	1	1			1/acropolis_fire_escape/file0	0	0	0	spk_181 entry 0x07	
 spk_181_sample_05	played	trace-20261012-152043	session 1	1	acropolis_fire_escape	1	1			1/acropolis_fire_escape/file0	0	0	0	spk_181 entry 0x06	
-spk_181_sample_06	played	trace-20261012-152043	session 1	1	acropolis_fire_escape	1	1			1/acropolis_fire_escape/file0	0	0	0	spk_181 entry 0x08	
-spk_181_sample_07	played	trace-20261012-152043	session 1	1	acropolis_fire_escape	1	1			1/acropolis_fire_escape/file0	0	0	0	spk_181 entry 0x05	
-spk_181_sample_08	played	trace-20261012-152043	session 1	1	acropolis_fire_escape	1	1			1/acropolis_fire_escape/file0	0	0	0	spk_181 entry 0x05	
+rooms/akropolis/square/sounds_1_sample_08	played	trace-20261012-152043	session 1	1	acropolis_fire_escape	1	1			1/acropolis_fire_escape/file0	0	0	0	spk_181 entry 0x08	
+spk_177_sample_10	played	trace-20261012-152043	session 1	1	acropolis_fire_escape	1	1			1/acropolis_fire_escape/file0	0	0	0	spk_181 entry 0x05	
+spk_177_sample_11	played	trace-20261012-152043	session 1	1	acropolis_fire_escape	1	1			1/acropolis_fire_escape/file0	0	0	0	spk_181 entry 0x05	
 spk_182	played	trace-20261012-152043	session 1	1	acropolis_helicopter_landing_pad	1	1			1/acropolis_helicopter_landing_pad/file0	0	0	0	entry 0x15	
 spk_182	played	trace-20261012-152043	session 1	1	acropolis_helicopter_landing_pad	1	1			1/acropolis_helicopter_landing_pad/file0	0	0	0	entry 0x17	
 spk_182	played	trace-20261012-152043	session 1	1	acropolis_helicopter_landing_pad	1	1			1/acropolis_helicopter_landing_pad/file0	0	0	0	entry 0x18	
@@ -9832,8 +9832,8 @@ spk_182	played	trace-20261012-152043	session 1	1	acropolis_helicopter_landing_pa
 spk_182	played	trace-20261012-152043	session 1	1	acropolis_helicopter_landing_pad	1	1			1/acropolis_helicopter_landing_pad/file0	0	0	0	entry 0x1a	
 spk_182	sound memory	trace-20261012-152043	session 1	1	acropolis_helicopter_landing_pad	1	1		0x60090-0x6380f	1/acropolis_helicopter_landing_pad/file0	0	0	0	bank 0x1110 descriptor 1	freed by sndScriptResetForArea at event 41268
 spk_182	sound memory	trace-20261012-152043	session 1	1	acropolis_helicopter_landing_pad	1	2		0x60090-0x6380f	1/acropolis_helicopter_landing_pad/file0	0	0	0	bank 0x1110 descriptor 1	
-spk_182_sample_00	played	trace-20261012-152043	session 1	1	acropolis_helicopter_landing_pad	1	1			1/acropolis_helicopter_landing_pad/file0	0	0	0	spk_182 entry 0x19	
-spk_182_sample_01	played	trace-20261012-152043	session 1	1	acropolis_helicopter_landing_pad	1	1			1/acropolis_helicopter_landing_pad/file0	0	0	0	spk_182 entry 0x1a	
+spk_180_sample_04	played	trace-20261012-152043	session 1	1	acropolis_helicopter_landing_pad	1	1			1/acropolis_helicopter_landing_pad/file0	0	0	0	spk_182 entry 0x19	
+spk_180_sample_05	played	trace-20261012-152043	session 1	1	acropolis_helicopter_landing_pad	1	1			1/acropolis_helicopter_landing_pad/file0	0	0	0	spk_182 entry 0x1a	
 spk_182_sample_02	played	trace-20261012-152043	session 1	1	acropolis_helicopter_landing_pad	1	1			1/acropolis_helicopter_landing_pad/file0	0	0	0	spk_182 entry 0x15	
 spk_182_sample_02	played	trace-20261012-152043	session 1	1	acropolis_helicopter_landing_pad	1	1			1/acropolis_helicopter_landing_pad/file0	0	0	0	spk_182 entry 0x17	
 spk_182_sample_03	played	trace-20261012-152043	session 1	1	acropolis_helicopter_landing_pad	1	1			1/acropolis_helicopter_landing_pad/file0	0	0	0	spk_182 entry 0x18	
@@ -9865,15 +9865,15 @@ spk_184	played	trace-20261012-145054	session 1	1	acropolis_west_elevator_hall	1	
 spk_184	played	trace-20261012-145054	session 1	1	acropolis_west_elevator_hall	1	1			1/acropolis_west_elevator_hall/file0	0	0	0	entry 0x13	
 spk_184	played	trace-20261012-145054	session 1	1	acropolis_west_elevator_hall	1	1			1/acropolis_west_elevator_hall/file0	0	0	0	entry 0x14	
 spk_184	sound memory	trace-20261012-145054	session 1	1	acropolis_west_elevator_hall	1	1		0x614d0-0x6380f	1/acropolis_west_elevator_hall/file0	0	0	0	bank 0x1111 descriptor 1	freed by sndScriptResetForArea at event 18185
-spk_184_sample_00	played	trace-20261012-145054	session 1	1	acropolis_west_elevator_hall	1	1			1/acropolis_west_elevator_hall/file0	0	0	0	spk_184 entry 0x11	
-spk_184_sample_00	played	trace-20261012-145054	session 1	1	acropolis_west_elevator_hall	1	1			1/acropolis_west_elevator_hall/file0	0	0	0	spk_184 entry 0x13	
+spk_152_sample_00	played	trace-20261012-145054	session 1	1	acropolis_west_elevator_hall	1	1			1/acropolis_west_elevator_hall/file0	0	0	0	spk_184 entry 0x11	
+spk_152_sample_00	played	trace-20261012-145054	session 1	1	acropolis_west_elevator_hall	1	1			1/acropolis_west_elevator_hall/file0	0	0	0	spk_184 entry 0x13	
 spk_185	played	trace-20261012-145054	session 1	1	acropolis_west_elevator_hall	1	1			1/acropolis_west_elevator_hall/file0	0	0	0	entry 0x01	
 spk_185	played	trace-20261012-145054	session 1	1	acropolis_west_elevator_hall	1	1			1/acropolis_west_elevator_hall/file0	0	0	0	entry 0x03	
 spk_185	played	trace-20261012-145054	session 1	1	acropolis_west_elevator_hall	1	1			1/acropolis_west_elevator_hall/file0	0	0	0	entry 0x04	
 spk_185	sound memory	trace-20261012-145054	session 1	1	acropolis_west_elevator_hall	1	1		0x564d0-0x614cf	1/acropolis_west_elevator_hall/file0	0	0	0	bank 0x5111 descriptor 7	freed by sndScriptResetForArea at event 18186
 spk_185_sample_00	played	trace-20261012-145054	session 1	1	acropolis_west_elevator_hall	1	1			1/acropolis_west_elevator_hall/file0	0	0	0	spk_185 entry 0x03	
 spk_185_sample_01	played	trace-20261012-145054	session 1	1	acropolis_west_elevator_hall	1	1			1/acropolis_west_elevator_hall/file0	0	0	0	spk_185 entry 0x04	
-spk_185_sample_02	played	trace-20261012-145054	session 1	1	acropolis_west_elevator_hall	1	1			1/acropolis_west_elevator_hall/file0	0	0	0	spk_185 entry 0x01	
+rooms/akropolis/square/sounds_1_sample_10	played	trace-20261012-145054	session 1	1	acropolis_west_elevator_hall	1	1			1/acropolis_west_elevator_hall/file0	0	0	0	spk_185 entry 0x01	
 spk_186	sound memory	trace-20261012-152043	session 1	1	mist_r18	1	1		0x614d0-0x6380f	1/mist_r18/file0	0	0	0	bank 0x1112 descriptor 1	freed by sndScriptResetForArea at event 41605
 spk_186	sound memory	trace-20261012-152043	session 1	1	mist_r18	1	2		0x614d0-0x6380f	1/mist_r18/file0	0	0	0	bank 0x1112 descriptor 1	
 spk_187	sound memory	trace-20261012-152043	session 1	1	mist_r18	1	1		0x56090-0x614cf	1/mist_r18/file0	0	0	0	bank 0x5112 descriptor 7	freed by sndScriptResetForArea at event 41606
@@ -9919,10 +9919,10 @@ spk_189_sample_00	played	trace-20261012-145054	session 1	1	mist_parking	2	1			1/
 spk_189_sample_01	played	trace-20261012-145054	session 1	1	mist_parking	1	1			1/mist_parking/file0	0	0	0	spk_189 entry 0x02	
 spk_189_sample_01	played	trace-20261012-145054	session 1	1	mist_parking	1	1			1/mist_parking/file0	0	0	0	spk_189 entry 0x15	
 spk_189_sample_01	played	trace-20261012-145054	session 1	1	mist_parking	2	1			1/mist_parking/file0	0	0	0	spk_189 entry 0x02	
-spk_189_sample_02	played	trace-20261012-145054	session 1	1	mist_parking	1	1			1/mist_parking/file0	0	0	0	spk_189 entry 0x03	
-spk_189_sample_02	played	trace-20261012-152043	session 1	1	mist_parking	3	2			1/mist_parking/file0	0	0	0	spk_189 entry 0x03	
-spk_189_sample_03	played	trace-20261012-145054	session 1	1	mist_parking	1	1			1/mist_parking/file0	0	0	0	spk_189 entry 0x04	
-spk_189_sample_03	played	trace-20261012-152043	session 1	1	mist_parking	3	2			1/mist_parking/file0	0	0	0	spk_189 entry 0x04	
+rooms/akropolis/square/sounds_1_sample_02	played	trace-20261012-145054	session 1	1	mist_parking	1	1			1/mist_parking/file0	0	0	0	spk_189 entry 0x03	
+rooms/akropolis/square/sounds_1_sample_02	played	trace-20261012-152043	session 1	1	mist_parking	3	2			1/mist_parking/file0	0	0	0	spk_189 entry 0x03	
+rooms/akropolis/square/sounds_1_sample_04	played	trace-20261012-145054	session 1	1	mist_parking	1	1			1/mist_parking/file0	0	0	0	spk_189 entry 0x04	
+rooms/akropolis/square/sounds_1_sample_04	played	trace-20261012-152043	session 1	1	mist_parking	3	2			1/mist_parking/file0	0	0	0	spk_189 entry 0x04	
 spk_189_sample_04	played	trace-20261012-145054	session 1	1	mist_parking	1	1			1/mist_parking/file0	0	0	0	spk_189 entry 0x0b	
 spk_189_sample_04	played	trace-20261012-152043	session 1	1	mist_parking	3	2			1/mist_parking/file0	0	0	0	spk_189 entry 0x0b	
 spk_189_sample_05	played	trace-20261012-152043	session 1	1	mist_parking	3	2			1/mist_parking/file0	0	0	0	spk_189 entry 0x05	
@@ -9935,8 +9935,8 @@ spk_189_sample_08	played	trace-20261012-152043	session 1	1	mist_parking	3	2			1/
 spk_189_sample_08	played	trace-20261012-152043	session 1	1	mist_parking	3	2			1/mist_parking/file0	0	0	0	spk_189 entry 0x0d	
 spk_189_sample_09	played	trace-20261012-152043	session 1	1	mist_parking	3	2			1/mist_parking/file0	0	0	0	spk_189 entry 0x08	
 spk_189_sample_10	played	trace-20261012-152043	session 1	1	mist_parking	3	2			1/mist_parking/file0	0	0	0	spk_189 entry 0x0e	
-spk_189_sample_11	played	trace-20261012-152043	session 1	1	mist_parking	3	2			1/mist_parking/file0	0	0	0	spk_189 entry 0x0f	
-spk_189_sample_12	played	trace-20261012-152043	session 1	1	mist_parking	3	2			1/mist_parking/file0	0	0	0	spk_189 entry 0x10	
+spk_161_sample_10	played	trace-20261012-152043	session 1	1	mist_parking	3	2			1/mist_parking/file0	0	0	0	spk_189 entry 0x0f	
+spk_161_sample_11	played	trace-20261012-152043	session 1	1	mist_parking	3	2			1/mist_parking/file0	0	0	0	spk_189 entry 0x10	
 spk_189_sample_13	played	trace-20261012-152043	session 1	1	mist_parking	3	2			1/mist_parking/file0	0	0	0	spk_189 entry 0x11	
 spk_189_sample_14	played	trace-20261012-152043	session 1	1	mist_parking	3	2			1/mist_parking/file0	0	0	0	spk_189 entry 0x11	
 spk_189_sample_15	played	trace-20261012-145054	session 1	1	mist_parking	1	1			1/mist_parking/file0	0	0	0	spk_189 entry 0x12	
@@ -9947,8 +9947,8 @@ spk_190	played	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1			1/m
 spk_190	sound memory	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1		0x61810-0x6380f	1/mist_shooting_gallery/file0	0	0	0	bank 0x1114 descriptor 1	freed by sndScriptResetForArea at event 11731
 spk_190	sound memory	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1		0x61810-0x6380f	1/mist_shooting_gallery/file0	0	0	0	bank 0x1114 descriptor 1	freed by sndScriptResetForArea at event 8496
 spk_190	sound memory	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1		0x61810-0x6380f	1/mist_shooting_gallery/file0	0	0	0	bank 0x1114 descriptor 1	freed by sndScriptResetForArea at event 9808
-spk_190_sample_02	played	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1			1/mist_shooting_gallery/file0	0	0	0	spk_190 entry 0x0b	
-spk_190_sample_03	played	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1			1/mist_shooting_gallery/file0	0	0	0	spk_190 entry 0x0c	
+spk_158_sample_04	played	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1			1/mist_shooting_gallery/file0	0	0	0	spk_190 entry 0x0b	
+spk_158_sample_05	played	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1			1/mist_shooting_gallery/file0	0	0	0	spk_190 entry 0x0c	
 spk_191	played	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1			1/mist_shooting_gallery/file0	0	0	0	entry 0x01	
 spk_191	played	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1			1/mist_shooting_gallery/file0	0	0	0	entry 0x03	
 spk_191	played	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1			1/mist_shooting_gallery/file0	0	0	0	entry 0x04	
@@ -9968,7 +9968,7 @@ spk_191	sound memory	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1
 spk_191	sound memory	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1		0x45a90-0x6180f	1/mist_shooting_gallery/file0	0	0	0	bank 0x5114 descriptor 7	freed by sndScriptResetForArea at event 9809
 spk_191_sample_00	played	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1			1/mist_shooting_gallery/file0	0	0	0	spk_191 entry 0x03	
 spk_191_sample_01	played	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1			1/mist_shooting_gallery/file0	0	0	0	spk_191 entry 0x04	
-spk_191_sample_02	played	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1			1/mist_shooting_gallery/file0	0	0	0	spk_191 entry 0x01	
+spk_189_sample_00	played	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1			1/mist_shooting_gallery/file0	0	0	0	spk_191 entry 0x01	
 spk_191_sample_04	played	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1			1/mist_shooting_gallery/file0	0	0	0	spk_191 entry 0x05	
 spk_191_sample_05	played	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1			1/mist_shooting_gallery/file0	0	0	0	spk_191 entry 0x06	
 spk_191_sample_06	played	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1			1/mist_shooting_gallery/file0	0	0	0	spk_191 entry 0x07	
@@ -10053,48 +10053,48 @@ weapons/m93r/sounds	sound memory	trace-20261012-152043	session 1	1	acropolis_sec
 weapons/m93r/sounds	sound memory	trace-20261012-152043	session 1	1	akropolis_square	1	1		0x73f90-0x7b00f	0/m93r	0	0	0	bank 0x2002 descriptor 2	
 weapons/m93r/sounds	sound memory	trace-20261012-152043	session 1	1	akropolis_square	1	2		0x73f90-0x7b00f	0/m93r	0	0	0	bank 0x2002 descriptor 2	
 weapons/m93r/sounds	sound memory	trace-20261012-152043	session 1	1	mist_parking	1	2		0x73f90-0x7b00f	0/m93r	0	0	0	bank 0x2002 descriptor 2	
-weapons/m93r/sounds_sample_00	played	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1			0/m93r	0	0	0	weapons/m93r/sounds entry 0x02	
-weapons/m93r/sounds_sample_00	played	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1			0/m93r	0	0	0	weapons/m93r/sounds entry 0x03	
-weapons/m93r/sounds_sample_00	played	trace-20261012-152043	session 1	1	acropolis_cafeteria	4	3			0/m93r	0	0	0	weapons/m93r/sounds entry 0x02	
-weapons/m93r/sounds_sample_00	played	trace-20261012-152043	session 1	1	acropolis_cafeteria	4	3			0/m93r	0	0	0	weapons/m93r/sounds entry 0x03	
-weapons/m93r/sounds_sample_00	played	trace-20261012-152043	session 1	1	acropolis_forked_road	1	2			0/m93r	0	0	0	weapons/m93r/sounds entry 0x02	
-weapons/m93r/sounds_sample_00	played	trace-20261012-152043	session 1	1	acropolis_forked_road	1	2			0/m93r	0	0	0	weapons/m93r/sounds entry 0x03	
-weapons/m93r/sounds_sample_00	played	trace-20261012-152043	session 1	1	acropolis_hallway	1	1			0/m93r	0	0	0	weapons/m93r/sounds entry 0x02	
-weapons/m93r/sounds_sample_00	played	trace-20261012-152043	session 1	1	acropolis_hallway	1	1			0/m93r	0	0	0	weapons/m93r/sounds entry 0x03	
-weapons/m93r/sounds_sample_00	played	trace-20261012-152043	session 1	1	acropolis_observatory	1	1			0/m93r	0	0	0	weapons/m93r/sounds entry 0x02	
-weapons/m93r/sounds_sample_00	played	trace-20261012-152043	session 1	1	acropolis_observatory	1	1			0/m93r	0	0	0	weapons/m93r/sounds entry 0x03	
-weapons/m93r/sounds_sample_00	played	trace-20261012-152043	session 1	1	acropolis_patio	3	2			0/m93r	0	0	0	weapons/m93r/sounds entry 0x02	
-weapons/m93r/sounds_sample_00	played	trace-20261012-152043	session 1	1	acropolis_patio	3	2			0/m93r	0	0	0	weapons/m93r/sounds entry 0x03	
-weapons/m93r/sounds_sample_00	played	trace-20261012-152043	session 1	1	acropolis_patio	3	3			0/m93r	0	0	0	weapons/m93r/sounds entry 0x02	
-weapons/m93r/sounds_sample_00	played	trace-20261012-152043	session 1	1	acropolis_patio	3	3			0/m93r	0	0	0	weapons/m93r/sounds entry 0x03	
-weapons/m93r/sounds_sample_00	played	trace-20261012-152043	session 1	1	acropolis_promenade	1	1			0/m93r	0	0	0	weapons/m93r/sounds entry 0x02	
-weapons/m93r/sounds_sample_00	played	trace-20261012-152043	session 1	1	acropolis_promenade	1	1			0/m93r	0	0	0	weapons/m93r/sounds entry 0x03	
-weapons/m93r/sounds_sample_01	played	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1			0/m93r	0	0	0	weapons/m93r/sounds entry 0x03	
-weapons/m93r/sounds_sample_01	played	trace-20261012-152043	session 1	1	acropolis_cafeteria	4	3			0/m93r	0	0	0	weapons/m93r/sounds entry 0x03	
-weapons/m93r/sounds_sample_01	played	trace-20261012-152043	session 1	1	acropolis_forked_road	1	2			0/m93r	0	0	0	weapons/m93r/sounds entry 0x03	
-weapons/m93r/sounds_sample_01	played	trace-20261012-152043	session 1	1	acropolis_hallway	1	1			0/m93r	0	0	0	weapons/m93r/sounds entry 0x03	
-weapons/m93r/sounds_sample_01	played	trace-20261012-152043	session 1	1	acropolis_observatory	1	1			0/m93r	0	0	0	weapons/m93r/sounds entry 0x03	
-weapons/m93r/sounds_sample_01	played	trace-20261012-152043	session 1	1	acropolis_patio	3	2			0/m93r	0	0	0	weapons/m93r/sounds entry 0x03	
-weapons/m93r/sounds_sample_01	played	trace-20261012-152043	session 1	1	acropolis_patio	3	3			0/m93r	0	0	0	weapons/m93r/sounds entry 0x03	
-weapons/m93r/sounds_sample_01	played	trace-20261012-152043	session 1	1	acropolis_promenade	1	1			0/m93r	0	0	0	weapons/m93r/sounds entry 0x03	
-weapons/m93r/sounds_sample_02	played	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1			0/m93r	0	0	0	weapons/m93r/sounds entry 0x02	
-weapons/m93r/sounds_sample_02	played	trace-20261012-152043	session 1	1	acropolis_cafeteria	4	3			0/m93r	0	0	0	weapons/m93r/sounds entry 0x02	
-weapons/m93r/sounds_sample_02	played	trace-20261012-152043	session 1	1	acropolis_forked_road	1	2			0/m93r	0	0	0	weapons/m93r/sounds entry 0x02	
-weapons/m93r/sounds_sample_02	played	trace-20261012-152043	session 1	1	acropolis_hallway	1	1			0/m93r	0	0	0	weapons/m93r/sounds entry 0x02	
-weapons/m93r/sounds_sample_02	played	trace-20261012-152043	session 1	1	acropolis_observatory	1	1			0/m93r	0	0	0	weapons/m93r/sounds entry 0x02	
-weapons/m93r/sounds_sample_02	played	trace-20261012-152043	session 1	1	acropolis_patio	3	2			0/m93r	0	0	0	weapons/m93r/sounds entry 0x02	
-weapons/m93r/sounds_sample_02	played	trace-20261012-152043	session 1	1	acropolis_patio	3	3			0/m93r	0	0	0	weapons/m93r/sounds entry 0x02	
-weapons/m93r/sounds_sample_02	played	trace-20261012-152043	session 1	1	acropolis_promenade	1	1			0/m93r	0	0	0	weapons/m93r/sounds entry 0x02	
-weapons/m93r/sounds_sample_03	played	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1			0/m93r	0	0	0	weapons/m93r/sounds entry 0x04	
-weapons/m93r/sounds_sample_03	played	trace-20261012-152043	session 1	1	acropolis_cafeteria	2	1			0/m93r	0	0	0	weapons/m93r/sounds entry 0x04	
-weapons/m93r/sounds_sample_03	played	trace-20261012-152043	session 1	1	acropolis_cafeteria	4	3			0/m93r	0	0	0	weapons/m93r/sounds entry 0x04	
-weapons/m93r/sounds_sample_03	played	trace-20261012-152043	session 1	1	acropolis_forked_road	1	2			0/m93r	0	0	0	weapons/m93r/sounds entry 0x04	
-weapons/m93r/sounds_sample_03	played	trace-20261012-152043	session 1	1	acropolis_hallway	1	1			0/m93r	0	0	0	weapons/m93r/sounds entry 0x04	
-weapons/m93r/sounds_sample_03	played	trace-20261012-152043	session 1	1	acropolis_observatory	1	1			0/m93r	0	0	0	weapons/m93r/sounds entry 0x04	
-weapons/m93r/sounds_sample_03	played	trace-20261012-152043	session 1	1	acropolis_patio	1	1			0/m93r	0	0	0	weapons/m93r/sounds entry 0x04	
-weapons/m93r/sounds_sample_03	played	trace-20261012-152043	session 1	1	acropolis_patio	3	2			0/m93r	0	0	0	weapons/m93r/sounds entry 0x04	
-weapons/m93r/sounds_sample_03	played	trace-20261012-152043	session 1	1	acropolis_patio	3	3			0/m93r	0	0	0	weapons/m93r/sounds entry 0x04	
-weapons/m93r/sounds_sample_03	played	trace-20261012-152043	session 1	1	acropolis_promenade	1	1			0/m93r	0	0	0	weapons/m93r/sounds entry 0x04	
+weapons/m93r/click	played	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1			0/m93r	0	0	0	weapons/m93r/sounds entry 0x02	
+weapons/m93r/click	played	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1			0/m93r	0	0	0	weapons/m93r/sounds entry 0x03	
+weapons/m93r/click	played	trace-20261012-152043	session 1	1	acropolis_cafeteria	4	3			0/m93r	0	0	0	weapons/m93r/sounds entry 0x02	
+weapons/m93r/click	played	trace-20261012-152043	session 1	1	acropolis_cafeteria	4	3			0/m93r	0	0	0	weapons/m93r/sounds entry 0x03	
+weapons/m93r/click	played	trace-20261012-152043	session 1	1	acropolis_forked_road	1	2			0/m93r	0	0	0	weapons/m93r/sounds entry 0x02	
+weapons/m93r/click	played	trace-20261012-152043	session 1	1	acropolis_forked_road	1	2			0/m93r	0	0	0	weapons/m93r/sounds entry 0x03	
+weapons/m93r/click	played	trace-20261012-152043	session 1	1	acropolis_hallway	1	1			0/m93r	0	0	0	weapons/m93r/sounds entry 0x02	
+weapons/m93r/click	played	trace-20261012-152043	session 1	1	acropolis_hallway	1	1			0/m93r	0	0	0	weapons/m93r/sounds entry 0x03	
+weapons/m93r/click	played	trace-20261012-152043	session 1	1	acropolis_observatory	1	1			0/m93r	0	0	0	weapons/m93r/sounds entry 0x02	
+weapons/m93r/click	played	trace-20261012-152043	session 1	1	acropolis_observatory	1	1			0/m93r	0	0	0	weapons/m93r/sounds entry 0x03	
+weapons/m93r/click	played	trace-20261012-152043	session 1	1	acropolis_patio	3	2			0/m93r	0	0	0	weapons/m93r/sounds entry 0x02	
+weapons/m93r/click	played	trace-20261012-152043	session 1	1	acropolis_patio	3	2			0/m93r	0	0	0	weapons/m93r/sounds entry 0x03	
+weapons/m93r/click	played	trace-20261012-152043	session 1	1	acropolis_patio	3	3			0/m93r	0	0	0	weapons/m93r/sounds entry 0x02	
+weapons/m93r/click	played	trace-20261012-152043	session 1	1	acropolis_patio	3	3			0/m93r	0	0	0	weapons/m93r/sounds entry 0x03	
+weapons/m93r/click	played	trace-20261012-152043	session 1	1	acropolis_promenade	1	1			0/m93r	0	0	0	weapons/m93r/sounds entry 0x02	
+weapons/m93r/click	played	trace-20261012-152043	session 1	1	acropolis_promenade	1	1			0/m93r	0	0	0	weapons/m93r/sounds entry 0x03	
+weapons/m93r/reload_load	played	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1			0/m93r	0	0	0	weapons/m93r/sounds entry 0x03	
+weapons/m93r/reload_load	played	trace-20261012-152043	session 1	1	acropolis_cafeteria	4	3			0/m93r	0	0	0	weapons/m93r/sounds entry 0x03	
+weapons/m93r/reload_load	played	trace-20261012-152043	session 1	1	acropolis_forked_road	1	2			0/m93r	0	0	0	weapons/m93r/sounds entry 0x03	
+weapons/m93r/reload_load	played	trace-20261012-152043	session 1	1	acropolis_hallway	1	1			0/m93r	0	0	0	weapons/m93r/sounds entry 0x03	
+weapons/m93r/reload_load	played	trace-20261012-152043	session 1	1	acropolis_observatory	1	1			0/m93r	0	0	0	weapons/m93r/sounds entry 0x03	
+weapons/m93r/reload_load	played	trace-20261012-152043	session 1	1	acropolis_patio	3	2			0/m93r	0	0	0	weapons/m93r/sounds entry 0x03	
+weapons/m93r/reload_load	played	trace-20261012-152043	session 1	1	acropolis_patio	3	3			0/m93r	0	0	0	weapons/m93r/sounds entry 0x03	
+weapons/m93r/reload_load	played	trace-20261012-152043	session 1	1	acropolis_promenade	1	1			0/m93r	0	0	0	weapons/m93r/sounds entry 0x03	
+weapons/m93r/reload_start	played	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1			0/m93r	0	0	0	weapons/m93r/sounds entry 0x02	
+weapons/m93r/reload_start	played	trace-20261012-152043	session 1	1	acropolis_cafeteria	4	3			0/m93r	0	0	0	weapons/m93r/sounds entry 0x02	
+weapons/m93r/reload_start	played	trace-20261012-152043	session 1	1	acropolis_forked_road	1	2			0/m93r	0	0	0	weapons/m93r/sounds entry 0x02	
+weapons/m93r/reload_start	played	trace-20261012-152043	session 1	1	acropolis_hallway	1	1			0/m93r	0	0	0	weapons/m93r/sounds entry 0x02	
+weapons/m93r/reload_start	played	trace-20261012-152043	session 1	1	acropolis_observatory	1	1			0/m93r	0	0	0	weapons/m93r/sounds entry 0x02	
+weapons/m93r/reload_start	played	trace-20261012-152043	session 1	1	acropolis_patio	3	2			0/m93r	0	0	0	weapons/m93r/sounds entry 0x02	
+weapons/m93r/reload_start	played	trace-20261012-152043	session 1	1	acropolis_patio	3	3			0/m93r	0	0	0	weapons/m93r/sounds entry 0x02	
+weapons/m93r/reload_start	played	trace-20261012-152043	session 1	1	acropolis_promenade	1	1			0/m93r	0	0	0	weapons/m93r/sounds entry 0x02	
+weapons/m93r/shot	played	trace-20261012-145054	session 1	1	mist_shooting_gallery	1	1			0/m93r	0	0	0	weapons/m93r/sounds entry 0x04	
+weapons/m93r/shot	played	trace-20261012-152043	session 1	1	acropolis_cafeteria	2	1			0/m93r	0	0	0	weapons/m93r/sounds entry 0x04	
+weapons/m93r/shot	played	trace-20261012-152043	session 1	1	acropolis_cafeteria	4	3			0/m93r	0	0	0	weapons/m93r/sounds entry 0x04	
+weapons/m93r/shot	played	trace-20261012-152043	session 1	1	acropolis_forked_road	1	2			0/m93r	0	0	0	weapons/m93r/sounds entry 0x04	
+weapons/m93r/shot	played	trace-20261012-152043	session 1	1	acropolis_hallway	1	1			0/m93r	0	0	0	weapons/m93r/sounds entry 0x04	
+weapons/m93r/shot	played	trace-20261012-152043	session 1	1	acropolis_observatory	1	1			0/m93r	0	0	0	weapons/m93r/sounds entry 0x04	
+weapons/m93r/shot	played	trace-20261012-152043	session 1	1	acropolis_patio	1	1			0/m93r	0	0	0	weapons/m93r/sounds entry 0x04	
+weapons/m93r/shot	played	trace-20261012-152043	session 1	1	acropolis_patio	3	2			0/m93r	0	0	0	weapons/m93r/sounds entry 0x04	
+weapons/m93r/shot	played	trace-20261012-152043	session 1	1	acropolis_patio	3	3			0/m93r	0	0	0	weapons/m93r/sounds entry 0x04	
+weapons/m93r/shot	played	trace-20261012-152043	session 1	1	acropolis_promenade	1	1			0/m93r	0	0	0	weapons/m93r/sounds entry 0x04	
 spk_47	played	trace-20261012-152043	session 1	1	acropolis_cafeteria	2	1			0/file50101	0	0	0	entry 0x02	
 spk_47	played	trace-20261012-152043	session 1	1	acropolis_helicopter_landing_pad	1	1			0/file50101	0	0	0	entry 0x02	
 spk_47	played	trace-20261012-152043	session 1	1	acropolis_patio	3	4			0/file50101	0	0	0	entry 0x02	

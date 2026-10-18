@@ -42,6 +42,15 @@ chunk = "package"
 type = "clip"
 rig = "characters/aya/rig"
 
+[shot]
+type = "sound"
+mode = "high"
+sha1 = "6307ddb049b24f1f320226769d5a19a662fd376b"
+
+[click]
+type = "sound"
+sha1 = "c63c6595684680750fad16c57a002d2a2e35a09f"
+
 [model]
 type = "model"
 slots = ["body"]
@@ -53,13 +62,8 @@ type = "clip"
 rig = "characters/aya/rig"
 
 [sounds]
-type = "spk"
-samples = [
-    "weapons/m93r/sounds_sample_00",
-    "weapons/m93r/sounds_sample_01",
-    "weapons/m93r/sounds_sample_02",
-    "weapons/m93r/sounds_sample_03",
-]
+type = "sound_bank"
+samples = ["weapons/m93r/click", "weapons/m93r/reload_load", "weapons/m93r/reload_start", "weapons/m93r/shot"]
 sha1 = "92ff39f0b183a60d2c4b2e60461e251c8ac790ae"
 
 [binding]
@@ -132,22 +136,16 @@ rig = "characters/aya/rig"
 type = "clip"
 rig = "characters/aya/rig"
 
+[reload_load]
+type = "sound"
+mode = "high"
+sha1 = "4c2761401f85a8fc2610abaa7e74192d5f5b2e2e"
+
 [aim_backward]
 type = "clip"
 rig = "characters/aya/rig"
 
-[sounds_sample_00]
-type = "sample"
-sha1 = "a4af8fc22a4d69b32de4ce15e769441c0d3509ff"
-
-[sounds_sample_01]
-type = "sample"
-sha1 = "1348c4f8cfeb83b9c97ba65da794dbc8d092665d"
-
-[sounds_sample_02]
-type = "sample"
-sha1 = "073906a2c459cdfa1ef9a7077df5b7ab0d1a7a47"
-
-[sounds_sample_03]
-type = "sample"
-sha1 = "86bb2d4fdb1afeda10b68192da9542446865ecb1"
+[reload_start]
+type = "sound"
+mode = "high"
+sha1 = "215a7f449ece033529139101758c5806404f6b31"

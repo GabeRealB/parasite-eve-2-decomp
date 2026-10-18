@@ -1041,7 +1041,44 @@ descending, because `SZ3` grows with distance and negating Y does not touch Z.
   sample are separate assets, each filed by its own `group` (§13), so a slot's
   `file` is the path from the bank's directory to the sample's file:
   `../../sample/{name}.wav` when neither has a group.
-- Pack always uses `raw/spk/` (no WAV→SPK encoder).
+- Pack uses `raw/spk/` for a raw bank; a declared bank (§10.1.1) is built from its files.
+
+#### 10.1.1 Declared sound banks (`sound_bank`, `sound`)
+
+A raw bank stays as above. A bank a group declares in full is a `sound_bank`, in place of its `spk` record (the same
+name and sha1), and each sample of its pool a `sound` (`tools/peassets/sound/`):
+
+```toml
+[sounds]
+type = "sound_bank"
+samples = ["weapons/m93r/click", "weapons/m93r/reload_load", "weapons/m93r/reload_start", "weapons/m93r/shot"]
+sha1 = "92ff39f0b183a60d2c4b2e60461e251c8ac790ae"
+
+[shot]
+type = "sound"
+mode = "high"
+sha1 = "6307ddb049b24f1f320226769d5a19a662fd376b"
+```
+
+- `samples` names the sound at each position of the pool, in pool order: unreferenced samples included, `None`
+  where the pool holds bytes that are not a sample (only `spk_217`, a slot its tool reserved and filled with its own
+  memory). A sound states the sha1 of its stored body, and `mode` where normal mode does not reproduce it.
+- Decoded (`decode_declared`) to `<dir>/<name>.sfz` - programs as SFZ `<group>`s, layers as `<region>`s, what a
+  sampler plays plus the exact values as `psx_*` opcodes - and `<dir>/<name>.sfx` - the bank id, the effect scripts
+  as indented text (`entry`, `voice`, `loop`, `wait`, `end`, `adsr`, `envelope`, `slot`) and any raw pool bytes - and
+  each sound as `<dir>/<name>.wav`: 16-bit mono at 44 100 Hz (the SPU's unity pitch), its loop a `smpl` loop.
+- Sony's encoder (ENCVAG `EncVag`, identical to AIFF2VAG 3.2 and 3.3; `sound/adpcm.py`) turns each WAV back into
+  the stored body in its mode. Decoding finds such input: with Y = clamped input + quantization error, the
+  encoder's arithmetic gives the decoder's recursion, so each input lies in an interval fixed by the codes and the
+  saturation of each code 7, and only each frame's filter and shift selection couples them. A search per frame
+  (two defaults, local repair, an exact polygon solve over up to three frames, annealing, backing up) meets it for
+  every sample on the disc, and the result is re-encoded to check. The search runs in the most restrictive mode
+  whose filters cover the body's, then again in normal mode from that input; a sound needs a mode only where the
+  second fails. The filters alone do not show the mode: most samples that never use filter 2 or 4 are plain
+  normal-mode conversions, while a `high` sound runs hundreds of frames on which normal would pick filter 2 or 3.
+  The decoder also checks the declaration: each sound's sha1, and its mode against the one decoding needed.
+- Pack builds the bank from those files; `sound/codec.py` gives every bank's parts back byte for byte (all 2,155
+  banks of the Japanese, US and European discs).
 
 #### What works today
 
