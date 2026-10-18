@@ -143,7 +143,7 @@ rig = "characters/aya/rig"
 type = "clip"
 rig = "characters/aya/rig"
 
-[r_slug_shot]
+[rifled_slug_shot]
 type = "sound"
 mode = "high"
 sha1 = "9883c3a5c1dbfcd04a071c025a0cc48086504c69"
@@ -161,18 +161,18 @@ type = "sound"
 mode = "high"
 sha1 = "6bc8256d2c69d2fce6d58a92c35a89114f9b348c"
 
-[r_slug_sounds]
+[rifled_slug_sounds]
 type = "sound_bank"
 samples = [
     "weapons/gunblade/click",
     "weapons/gunblade/reload_load",
-    "weapons/gunblade/r_slug_shot",
+    "weapons/gunblade/rifled_slug_shot",
     "weapons/gunblade/slash",
     "weapons/gunblade/contact",
 ]
 sha1 = "f0b011683aa00d9feb587dd669c0450579e6a55a"
 
-[standard_shot]
+[buckshot_shot]
 type = "sound"
 mode = "high"
 sha1 = "70688c05b61218b62f137fce466981005abbd8e5"
@@ -194,12 +194,12 @@ samples = [
 ]
 sha1 = "f233a55c55cf2fc89855ab20ecd6f0646299d023"
 
-[standard_sounds]
+[buckshot_sounds]
 type = "sound_bank"
 samples = [
     "weapons/gunblade/click",
     "weapons/gunblade/reload_load",
-    "weapons/gunblade/standard_shot",
+    "weapons/gunblade/buckshot_shot",
     "weapons/gunblade/slash",
     "weapons/gunblade/contact",
 ]

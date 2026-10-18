@@ -1,5 +1,26 @@
 /* Part of the ground glow library; see ground_glow.h. */
 
+#include <psyq/sys/types.h>
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/inline_c.h>
+#include <psyq/libgs.h>
+
+#include "common.h"
+#include "gte.h"
+#include "types.h"
+
+#include "gameplay/effect_tasks.h"
+#include "gameplay/effects.h"
+
+#include "main/coord.h"
+#include "main/display.h"
+#include "main/display_types.h"
+#include "main/gfx.h"
+#include "main/scratch.h"
+
+#include "ground_glow.h"
+
 /// Builds the four view-space corners of a world-ground square.
 ///
 /// `ground->workm.t` supplies the already-composed view-space centre;

@@ -56,7 +56,7 @@
 #include "main/tmd_types.h"
 #include "main/wipsys.h"
 #include "main/wipsys_types.h"
-#include "../../shared/effects/pyke_flame.h"
+#include "../../shared/projectiles/flamethrower_flame.h"
 
 static void _actor800100UpdateMove(Task* task);
 static void _actor800100TickTextureSequences(Task* task);
@@ -841,12 +841,12 @@ void actor800100PykeEmitterTask(Task* task)
                 case ACTOR_800100_PYKE_IDLE:
                     if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
                         effectWork->age--;
-                        _pykeFlameDrawNozzle(
-                            GRAPHICS_MATRIX_TRANSLATION(&nozzleCoord->workm), effectWork->age, PYKE_FLAME_NOZZLE_SIZE_SCALE);
+                        _flamethrowerFlameDrawNozzle(
+                            GRAPHICS_MATRIX_TRANSLATION(&nozzleCoord->workm), effectWork->age, FLAMETHROWER_FLAME_NOZZLE_SIZE_SCALE);
                         break;
                     }
-                    _pykeFlameDrawNozzle(
-                        GRAPHICS_MATRIX_TRANSLATION(&nozzleCoord->workm), effectWork->age, PYKE_FLAME_NOZZLE_SIZE_SCALE);
+                    _flamethrowerFlameDrawNozzle(
+                        GRAPHICS_MATRIX_TRANSLATION(&nozzleCoord->workm), effectWork->age, FLAMETHROWER_FLAME_NOZZLE_SIZE_SCALE);
                     _actor800100RefreshPykeLight(transientLight, pointLight, lightCoord, nozzleCoord,
                                                  ACTOR_800100_PYKE_IDLE_LIGHT_INNER, ACTOR_800100_PYKE_IDLE_LIGHT_OUTER,
                                                  ACTOR_800100_PYKE_IDLE_RED_MIN);
@@ -883,29 +883,15 @@ void actor800100PykeEmitterTask(Task* task)
     }
 }
 
-#include "../../shared/effects/pyke_flame_nozzle.inc.c"
-
-/// Category-2 weapon attack key for the companion's flying Pyke flame.
-///
-/// Selects attack row 30 and distance/critical row 28, with the companion bit
-/// suppressing player-only weapon damage bonuses. This s32-compatible integer
-/// constant is consumed and undefined by `pyke_flame_task.inc.c`.
-#define PYKE_FLAME_ATTACK_KEY \
-    (WORLD_COLLISION_CONTACT_ATTACK | (PYKE_FLAME_DISTANCE_ROW << PYKE_FLAME_DISTANCE_ROW_SHIFT) | PYKE_FLAME_COMPANION_BIT | PYKE_FLAME_ATTACK_ROW)
+/// The flying flame's collision key: the companion bit suppresses player-only weapon damage bonuses.
+enum { FLAMETHROWER_FLAME_ATTACK_KEY = FLAMETHROWER_FLAME_KEY | FLAMETHROWER_FLAME_COMPANION_BIT };
 /// Selects composed-transform refresh for the companion's nonrunning flame redraws.
 ///
-/// Consumed and undefined by `pyke_flame_task.inc.c`; flight remains stopped.
-#define PYKE_FLAME_REDRAW_UPDATES_COORD 1
-#include "../../shared/effects/pyke_flame_task.inc.c"
+/// Consumed and undefined by `flamethrower_flame.inc.c`; flight remains stopped.
+#define FLAMETHROWER_FLAME_REDRAW_UPDATES_COORD 1
+#include "../../shared/projectiles/flamethrower_flame.inc.c"
 
-void actor800100PykeFlameTask(Task* task)
-{
-    _pykeFlameTask(task);
-}
-
-#include "../../shared/effects/pyke_flame_blob.inc.c"
-
-#include "../../shared/effects/pyke_flame.inc.c"
+DEFINE_ALIAS(_flamethrowerFlameTask, actor800100PykeFlameTask);
 
 /// Initializes the armed companion's playback, collision bodies and equipment.
 ///
@@ -3174,7 +3160,7 @@ static void _actor800100TickM4a1PykeAttack(Task* task)
                 actor->attackControl.cooldownTicks = ACTOR_800100_RIFLE_PYKE_COOLDOWN_TICKS;
                 actor->attackCancelTicks           = ACTOR_800100_RIFLE_PYKE_CANCEL_TICKS;
                 actor->actionValue                 = ACTOR_800100_RIFLE_PYKE_DURATION_TICKS;
-                worldCoordPlaySound(weaponCoord, SOUND_COMPANION_PYKE_FIRE_TAIL, true);
+                worldCoordPlaySound(weaponCoord, SOUND_COMPANION_PYKE_FLAME, true);
                 if (actor->weaponEffectTask != NULL) {
                     actor->weaponEffectTask->spawnArg1.value = ACTOR_800100_PYKE_FIRE;
                 }
@@ -3226,7 +3212,7 @@ static void _actor800100TickM4a1PykeAttack(Task* task)
                 if (actor->weaponEffectTask != NULL) {
                     actor->weaponEffectTask->spawnArg1.value = ACTOR_800100_PYKE_RESET_IDLE;
                 }
-                sndEvtRequestScriptStop(SOUND_COMPANION_PYKE_FIRE_TAIL, SOUND_SCRIPT_STOP_KEEP_RELEASE);
+                sndEvtRequestScriptStop(SOUND_COMPANION_PYKE_FLAME, SOUND_SCRIPT_STOP_KEEP_RELEASE);
                 playerActorPlayChildSlotsWithBlend(task, ACTOR_800100_ATTACK_FINISH_ANIMATION, 0, ACTOR_800100_RIFLE_FIRE_BLEND_FRAMES);
             } else {
                 actor->actionValue = (u16)actor->actionValue - 1;

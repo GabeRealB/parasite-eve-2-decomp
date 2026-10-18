@@ -1,3 +1,5 @@
+/* The M4A1 Rifle and its two upgrades, one source (src/weapons/m4a1). */
+
 #ifndef INCLUDE_WEAPONS_M4A1_H
 #define INCLUDE_WEAPONS_M4A1_H
 
@@ -39,7 +41,7 @@ extern TmdSource gM4a1RifleModel;
 void m4a1AttackState(Task* playerTask);
 
 /// Upgrade-package aliases of `m4a1AttackState`, with their own `WEAPON_INDEX`.
-void func_m4a1_p1_8011D1C4(Task* arg0);
-void func_m4a1_p2_8011D1C4(Task* arg0);
+void m4a1P1AttackState(Task* playerTask);
+void m4a1P2AttackState(Task* playerTask);
 
 #endif // INCLUDE_WEAPONS_M4A1_H

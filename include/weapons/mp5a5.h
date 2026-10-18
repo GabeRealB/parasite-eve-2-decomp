@@ -1,3 +1,5 @@
+/* The MP5A5 and its two upgrades, one source (src/weapons/mp5a5). */
+
 #ifndef INCLUDE_WEAPONS_MP5A5_H
 #define INCLUDE_WEAPONS_MP5A5_H
 

@@ -1,5 +1,24 @@
 /* Part of the jet cone library; see jet_cone.h. */
 
+#include <psyq/sys/types.h>
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/inline_c.h>
+#include <psyq/libgs.h>
+
+#include "common.h"
+#include "gte.h"
+#include "types.h"
+
+#include "gameplay/effects.h"
+
+#include "main/coord.h"
+#include "main/display.h"
+#include "main/display_types.h"
+#include "main/scratch.h"
+
+#include "jet_cone.h"
+
 STATIC_ASSERT(ARRAY_SIZE(JET_CONE_TEXTURE_FRAME_OFFSETS) >= EFFECT_BAND_SEGMENT_COUNT, jet_cone_texture_frame_offsets_cover_segments);
 STATIC_ASSERT(JET_CONE_EXTENDED_TAIL_RIM_RADIUS >= 0 && JET_CONE_EXTENDED_TAIL_RIM_RADIUS <= 0x7FFF, jet_cone_extended_tail_rim_radius_fits_s16);
 STATIC_ASSERT(JET_CONE_BASE_TAIL_RIM_RADIUS >= 0 && JET_CONE_BASE_TAIL_RIM_RADIUS <= 0x7FFF, jet_cone_base_tail_rim_radius_fits_s16);

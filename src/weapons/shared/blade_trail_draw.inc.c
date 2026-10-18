@@ -1,14 +1,33 @@
 /* Part of the blade trail library; see blade_trail.h. */
 
-// Carriers bind BLADE_TRAIL_FIRST_ENDPOINT_HISTORY and BLADE_TRAIL_SECOND_ENDPOINT_HISTORY
-// to complete GfxCoord[8] array identifiers around this inclusion, then undefine
-// them. The first ring supplies corners 0 and 2; the second supplies 1 and 3.
+#include <psyq/sys/types.h>
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/inline_c.h>
+#include <psyq/libgs.h>
+
+#include "common.h"
+#include "gte.h"
+#include "types.h"
+
+#include "gameplay/room_effects.h"
+
+#include "main/coord.h"
+#include "main/display.h"
+#include "main/display_types.h"
+#include "main/scratch.h"
+
+#include "blade_trail.h"
+
+// The carrier defines the two endpoint rings, `static GfxCoord _gBladeTrailFirstHistory[8]` and
+// `_gBladeTrailSecondHistory[8]`, and declares them before this inclusion. The first ring supplies corners
+// 0 and 2; the second supplies 1 and 3.
 // Slots are paired samples, newest at age & 7, seeded before drawing and
 // recomposed into the current view. The drawer reads only workm.t, narrowing
 // game-coordinate units to signed 16 bits; it retains no coordinate pointers.
 
-STATIC_ASSERT(ARRAY_SIZE(BLADE_TRAIL_FIRST_ENDPOINT_HISTORY) == 8, blade_trail_first_endpoint_has_eight_samples);
-STATIC_ASSERT(ARRAY_SIZE(BLADE_TRAIL_FIRST_ENDPOINT_HISTORY) == ARRAY_SIZE(BLADE_TRAIL_SECOND_ENDPOINT_HISTORY), blade_trail_endpoint_histories_are_paired);
+STATIC_ASSERT(ARRAY_SIZE(_gBladeTrailFirstHistory) == 8, blade_trail_first_endpoint_has_eight_samples);
+STATIC_ASSERT(ARRAY_SIZE(_gBladeTrailFirstHistory) == ARRAY_SIZE(_gBladeTrailSecondHistory), blade_trail_endpoint_histories_are_paired);
 
 /// Colours the newer and older edges of a blade-trail quad with one packed tint.
 ///
@@ -80,23 +99,23 @@ static void _bladeTrailDraw(s16 newestSlot, s16 packedTint)
     scratch = SCRATCH_STACK_RESERVE_BLOCK(BladeTrailScratch);
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    for (segment = 0; segment < ARRAY_SIZE(BLADE_TRAIL_FIRST_ENDPOINT_HISTORY) - 1; segment++) {
+    for (segment = 0; segment < ARRAY_SIZE(_gBladeTrailFirstHistory) - 1; segment++) {
         // Join successive recorded poses, retaining the low signed coordinate halves.
         unwrappedSlot               = newestSlot - segment;
-        newerSlot                   = unwrappedSlot & (ARRAY_SIZE(BLADE_TRAIL_FIRST_ENDPOINT_HISTORY) - 1);
-        olderSlot                   = (unwrappedSlot - 1) & (ARRAY_SIZE(BLADE_TRAIL_SECOND_ENDPOINT_HISTORY) - 1);
-        firstEndpointCoord          = &BLADE_TRAIL_FIRST_ENDPOINT_HISTORY[newerSlot];
+        newerSlot                   = unwrappedSlot & (ARRAY_SIZE(_gBladeTrailFirstHistory) - 1);
+        olderSlot                   = (unwrappedSlot - 1) & (ARRAY_SIZE(_gBladeTrailSecondHistory) - 1);
+        firstEndpointCoord          = &_gBladeTrailFirstHistory[newerSlot];
         scratch->worldCorners[0].vx = firstEndpointCoord->workm.t[0];
         scratch->worldCorners[0].vy = firstEndpointCoord->workm.t[1];
-        secondEndpointCoord         = &BLADE_TRAIL_SECOND_ENDPOINT_HISTORY[newerSlot];
+        secondEndpointCoord         = &_gBladeTrailSecondHistory[newerSlot];
         scratch->worldCorners[0].vz = firstEndpointCoord->workm.t[2];
         scratch->worldCorners[1].vx = secondEndpointCoord->workm.t[0];
         scratch->worldCorners[1].vy = secondEndpointCoord->workm.t[1];
-        firstEndpointCoord          = &BLADE_TRAIL_FIRST_ENDPOINT_HISTORY[olderSlot];
+        firstEndpointCoord          = &_gBladeTrailFirstHistory[olderSlot];
         scratch->worldCorners[1].vz = secondEndpointCoord->workm.t[2];
         scratch->worldCorners[2].vx = firstEndpointCoord->workm.t[0];
         scratch->worldCorners[2].vy = firstEndpointCoord->workm.t[1];
-        secondEndpointCoord         = &BLADE_TRAIL_SECOND_ENDPOINT_HISTORY[olderSlot];
+        secondEndpointCoord         = &_gBladeTrailSecondHistory[olderSlot];
         scratch->worldCorners[2].vz = firstEndpointCoord->workm.t[2];
         scratch->worldCorners[3].vx = secondEndpointCoord->workm.t[0];
         scratch->worldCorners[3].vy = secondEndpointCoord->workm.t[1];

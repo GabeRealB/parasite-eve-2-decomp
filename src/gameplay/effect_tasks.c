@@ -798,17 +798,15 @@ void effectControlTask6B(Task* task)
 void effectControlTaskA1(Task* task)
 {
     enum {
-        EFFECT_SHOTGUN_FLASH_PROFILE_AS12        = 15,
-        EFFECT_SHOTGUN_FLASH_PROFILE_GUNBLADE    = 23,
-        EFFECT_SHOTGUN_FLASH_AMMUNITION_BUCKSHOT = 13,
-        EFFECT_SHOTGUN_FLASH_AMMUNITION_SLUG     = 15,
-        EFFECT_SHOTGUN_FLASH_STATE_EJECTED       = 2,
-        EFFECT_SHOTGUN_FLASH_BUCKSHOT_LAST_AGE   = 24,
-        EFFECT_SHOTGUN_FLASH_PELLET_COUNT        = 12,
-        EFFECT_SHOTGUN_FLASH_THROWN_SPARK_COUNT  = 4,
-        EFFECT_SHOTGUN_FLASH_BUCKSHOT_SIZE       = 512,
-        EFFECT_SHOTGUN_FLASH_SLUG_SIZE           = 640,
-        EFFECT_SHOTGUN_FLASH_SPARK_ARG           = (2 << 16) | 768,
+        EFFECT_SHOTGUN_FLASH_PROFILE_AS12       = 15,
+        EFFECT_SHOTGUN_FLASH_PROFILE_GUNBLADE   = 23,
+        EFFECT_SHOTGUN_FLASH_STATE_EJECTED      = 2,
+        EFFECT_SHOTGUN_FLASH_BUCKSHOT_LAST_AGE  = 24,
+        EFFECT_SHOTGUN_FLASH_PELLET_COUNT       = 12,
+        EFFECT_SHOTGUN_FLASH_THROWN_SPARK_COUNT = 4,
+        EFFECT_SHOTGUN_FLASH_BUCKSHOT_SIZE      = 512,
+        EFFECT_SHOTGUN_FLASH_SLUG_SIZE          = 640,
+        EFFECT_SHOTGUN_FLASH_SPARK_ARG          = (2 << 16) | 768,
     };
     EffectWork*                    work;
     GfxCoord*                      muzzleCoord;
@@ -862,7 +860,7 @@ void effectControlTaskA1(Task* task)
                     default:
                         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                         work->scale     = (gRandomLcgState >> 16) & EFFECT_WEAPON_FLASH_SIZE_JITTER_MASK;
-                        if (work->index == EFFECT_SHOTGUN_FLASH_AMMUNITION_BUCKSHOT) {
+                        if (work->index == SHOTGUN_ROUND_BUCKSHOT) {
                             work->move.vx = 0;
                             work->move.vy = 0;
                             work->move.vz = -((s32)((u16)work->scale << 16) >> 18);
@@ -877,7 +875,7 @@ void effectControlTaskA1(Task* task)
                             effectSpawn(EFFECT_MUZZLE_FLARE, muzzleCoord, work->scale + EFFECT_RIFLE_FLASH_SIZE, &work->move);
                             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                             effectSpawn(EFFECT_MUZZLE_FLARE_ADDITIVE, muzzleCoord, ((gRandomLcgState >> 16) & EFFECT_WEAPON_FLASH_SIZE_JITTER_MASK) + EFFECT_RIFLE_FLASH_SIZE, 0);
-                            if (work->index == EFFECT_SHOTGUN_FLASH_AMMUNITION_SLUG) {
+                            if (work->index == SHOTGUN_ROUND_RIFLED_SLUG) {
                                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                                 _effectDrawMuzzleFlash(muzzleCoord, (s16)(work->scale + EFFECT_SHOTGUN_FLASH_SLUG_SIZE),
                                                        (gRandomLcgState >> 16) & EFFECT_DRAW_ANGLE_MASK);
@@ -895,7 +893,7 @@ void effectControlTaskA1(Task* task)
                     case EFFECT_SHOTGUN_FLASH_PROFILE_AS12:
                         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                         work->scale     = (gRandomLcgState >> 16) & EFFECT_WEAPON_FLASH_SIZE_JITTER_MASK;
-                        if (work->index == EFFECT_SHOTGUN_FLASH_AMMUNITION_BUCKSHOT) {
+                        if (work->index == SHOTGUN_ROUND_BUCKSHOT) {
                             work->move.vx = 0;
                             work->move.vy = 0;
                             work->move.vz = -((s32)((u16)work->scale << 16) >> 18);
@@ -909,7 +907,7 @@ void effectControlTaskA1(Task* task)
                             effectSpawn(EFFECT_MUZZLE_FLARE, muzzleCoord, work->scale + EFFECT_RIFLE_FLASH_SIZE, &work->move);
                             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                             effectSpawn(EFFECT_MUZZLE_FLARE_ADDITIVE, muzzleCoord, ((gRandomLcgState >> 16) & EFFECT_WEAPON_FLASH_SIZE_JITTER_MASK) + EFFECT_RIFLE_FLASH_SIZE, 0);
-                            if (work->index == EFFECT_SHOTGUN_FLASH_AMMUNITION_SLUG) {
+                            if (work->index == SHOTGUN_ROUND_RIFLED_SLUG) {
                                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                                 _effectDrawMuzzleFlash(muzzleCoord, (s16)(work->scale + EFFECT_SHOTGUN_FLASH_SLUG_SIZE),
                                                        (gRandomLcgState >> 16) & EFFECT_DRAW_ANGLE_MASK);
@@ -928,7 +926,7 @@ void effectControlTaskA1(Task* task)
                     case EFFECT_SHOTGUN_FLASH_PROFILE_GUNBLADE:
                         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                         work->scale     = (gRandomLcgState >> 16) & EFFECT_WEAPON_FLASH_SIZE_JITTER_MASK;
-                        if (work->index == EFFECT_SHOTGUN_FLASH_AMMUNITION_BUCKSHOT) {
+                        if (work->index == SHOTGUN_ROUND_BUCKSHOT) {
                             work->move.vx = 0;
                             work->move.vy = 0;
                             work->move.vz = (s32)((u16)work->scale << 16) >> 18;
@@ -956,7 +954,7 @@ void effectControlTaskA1(Task* task)
                             effectSpawn(EFFECT_MUZZLE_FLARE, muzzleCoord, work->scale + EFFECT_RIFLE_FLASH_SIZE, flareOffset);
                             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                             effectSpawn(EFFECT_MUZZLE_FLARE_ADDITIVE, muzzleCoord, ((gRandomLcgState >> 16) & EFFECT_WEAPON_FLASH_SIZE_JITTER_MASK) + EFFECT_RIFLE_FLASH_SIZE, 0);
-                            if (work->index == EFFECT_SHOTGUN_FLASH_AMMUNITION_SLUG) {
+                            if (work->index == SHOTGUN_ROUND_RIFLED_SLUG) {
                                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                                 _effectDrawMuzzleFlash(muzzleCoord, (s16)(work->scale + EFFECT_SHOTGUN_FLASH_SLUG_SIZE),
                                                        (gRandomLcgState >> 16) & EFFECT_DRAW_ANGLE_MASK);

@@ -176,6 +176,7 @@
 #define SRC_SHARED_SPRITE_QUAD_H
 
 #include <psyq/sys/types.h>
+#include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 
 #include "common.h"

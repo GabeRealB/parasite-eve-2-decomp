@@ -4753,7 +4753,7 @@ spk_276	Footstep bank of dryfield_night_motel_room_4: walk, scripted-jump and ru
 spk_277	Night motel room 4 room sound bank: arrival and departure sounds of the room's only warp (from night main street); other filled entries have no starter found.	
 spk_278	Footstep bank of dryfield_night_parking_lot: walk and run step sounds on surface classes 5 and 2, and scripted-jump steps on the room's stair flight.	
 spk_279	Night parking lot room sound bank: door sounds of the main street, motel lobby, toilet and saloon warps incl. a refused saloon door, the motel lobby door unlock/open event and caption cues.	
-weapons/pa3/slug_sounds	PA3 shotgun sound bank, third ammunition variant (file 11009, weapon 13): shot, pump, empty-chamber click and reload cues.	
+weapons/pa3/rifled_slug_sounds	PA3 shotgun sound bank, third ammunition variant (file 11009, weapon 13): shot, pump, empty-chamber click and reload cues.	
 spk_280	Footstep bank of dryfield_night_toilet: walk, scripted-jump and run step sounds (same two samples) on surface classes 1 and 2.	
 spk_281	Night toilet room sound bank: door sounds of the only warp, a caption cue sound, and the landing sound of the Blood Sucklers that drop to the floor (requested by actor_104000).	
 spk_282	Footstep bank of dryfield_night_motel_lobby: walk, scripted-jump and run step sounds on surface classes 0/1 and, from a second record, class 2.	
@@ -4787,7 +4787,7 @@ spk_306	Footstep bank of dryfield_night_motel_balcony: walk and run step sounds 
 spk_307	Night motel balcony room sound bank: door sounds of warps 0-3, the door unlock/open event, two caption cues, and the player's death sound when killed by the Burner (actor_403100).	
 spk_308	Footstep bank of dryfield_night_motel_room_6: walk, scripted-jump and run step sounds on three surface classes (entries 0x2D, 0x3D and 0x01 sets).	
 spk_309	Night motel room 6 room sound bank: door sounds of warps 0 and 1, the room cutscene record's start/scene/after/end sounds and one caption cue sound.	
-weapons/sp12/slug_sounds	SP12 shotgun sound bank, third ammunition variant (file 11012, weapon 14): shot, pump, empty-chamber click and reload cues.	
+weapons/sp12/rifled_slug_sounds	SP12 shotgun sound bank, third ammunition variant (file 11012, weapon 14): shot, pump, empty-chamber click and reload cues.	
 spk_310	Footstep bank of dryfield_night_motel_loft: walk, jump and run step sounds started on the player's animation cues.	
 spk_311	Night motel loft room sound bank: door sounds of the one warp endpoint, a caption cue sound of CAP command 17 and two event-script sounds of the Stalker encounter.	
 spk_312	Footstep bank of dryfield_night_water_hole: player walk/run/jump steps on two surface records (one once the Shelter route is open) and the companion's +100 entries.	
@@ -4820,7 +4820,7 @@ spk_336	Footstep bank of shelter_b1_south_maintenance_walkway: walk, scripted-ju
 spk_337	Shelter B1 south maintenance walkway room sound bank: door sounds of its two warp endpoints and the stage sounds of the first staged exits to the elevator hall and the storeroom.	
 spk_338	Footstep bank of shelter_b1_storeroom: walk, scripted-jump and run step sounds on surface class 1.	
 spk_339	Shelter B1 storeroom room sound bank: door sounds of its three doors (same two samples), a caption cue sound and the completion cue sound of CAP command 6.	
-weapons/as12/slug_sounds	AS12 shotgun Slug sound bank (file 11015, weapon 15): shot, empty-chamber click and the reload clip's load and final cue sounds.	
+weapons/as12/rifled_slug_sounds	AS12 shotgun Slug sound bank (file 11015, weapon 15): shot, empty-chamber click and the reload clip's load and final cue sounds.	
 spk_340	Footstep bank of shelter_b1_north_maintenance_walkway: walk, scripted-jump and run step sounds on surface class 1.	
 spk_341	Shelter B1 north maintenance walkway room sound bank: door sounds of its two warp endpoints and the stage sounds of the first staged exits to the storeroom and the sleeping quarters.	
 spk_342	Footstep bank of shelter_b1_armory: walk, scripted-jump and run step sounds (same two samples) on surface class 1.	
@@ -4862,7 +4862,7 @@ spk_376	Footstep bank of shelter_b2_laboratory: walk, scripted-jump and run step
 spk_377	Shelter B2 laboratory room sound bank: door sounds, corridor-door event, the room cutscene's sounds, ambience loop, item lid, and actor_143000's keypad key/enter/accepted/rejected and completion scene.	
 spk_378	Footstep bank of shelter_b2_breeding_room: walk, jump and run step sounds on three surface classes (incl. classes 3 and 4).	
 spk_379	Shelter B2 breeding room room sound bank: arrival and departure door sounds of warps 0 and 1 and the two sounds bracketing caption command 4's close-up (its cue and completion cue).	
-weapons/gunblade/standard_sounds	Gunblade weapon sound bank, default ammunition file (weapon 23): shot, slash swing, blade contact, charged slash, empty-chamber click and reload cue.	
+weapons/gunblade/buckshot_sounds	Gunblade weapon sound bank, default ammunition file (weapon 23): shot, slash swing, blade contact, charged slash, empty-chamber click and reload cue.	
 spk_380	Footstep bank of shelter_b2_main_corridor: player walk, scripted-jump and run steps on surface class 2 and the companion's +100 entries.	
 spk_381	Shelter B2 main corridor room sound bank: shared door departure and arrival sounds, the staged first-departure scenes, a blocked-door sound, fade-warp arrival sound and one caption cue.	
 spk_382	Footstep bank of shelter_b2_septic_tank: player walk, scripted-jump and run steps on surface class 2 and the companion's +100 entries.	
@@ -4885,7 +4885,7 @@ spk_397	Shelter B4 lower sewer room sound bank: arrival and departure door sound
 spk_398	Footstep bank of shelter_b4_upper_sewer: player walk, jump and run steps on surface classes 3, 5 and one more, and the companion's +100 entries.	
 spk_399	Shelter B4 upper sewer room sound bank: door sounds of endpoints 1 and 4, the exit-transit sound to the reservoir, a caption cue with the view-13 sprite and the route-opening script's sound.	
 weapons/p08/sounds	P08 weapon sound bank (weapon 4): shot, empty-chamber click, reload start and reload load cues.	
-weapons/gunblade/r_slug_sounds	Gunblade R. Slug ammunition sound bank (variant 2, weapon 23): loaded as the ammunition-dependent sound file when the R. Slug is selected; no entry-level use is recorded.	
+weapons/gunblade/rifled_slug_sounds	Gunblade R. Slug ammunition sound bank (variant 2, weapon 23): loaded as the ammunition-dependent sound file when the R. Slug is selected; no entry-level use is recorded.	
 spk_400	Footstep bank of shelter_b4_reservoir: walk and run step sounds on the floor, on the stairs (class 3 flight record) and on surface class 5.	
 spk_401	Shelter B4 reservoir room sound bank: warp 0 door sounds, the exit-transit sound to the upper sewer, a caption cue sound and the water event's two successive sounds.	
 spk_402	Footstep bank of shelter_b4_water_supply: walk, run and third-base step sounds on two surface classes (0x3D and 0x25 entry sets), with filled +100 companion copies.	

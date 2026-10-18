@@ -64,15 +64,14 @@
 #include "weapons/m4a1_hammer.h"
 #include "weapons/m4a1_grenade.h"
 #include "weapons/m4a1_javelin.h"
+#include "weapons/sounds.h"
 #include "weapons/m4a1_pyke.h"
 #include "weapons/m93r.h"
 #include "weapons/m950.h"
-#include "weapons/mongoose.h"
 #include "weapons/mp5a5.h"
 #include "weapons/p08.h"
 #include "weapons/p229.h"
 #include "weapons/pa3.h"
-#include "weapons/sp12.h"
 #include "weapons/tonfa_baton.h"
 #include "weapons/unused_85.h"
 #include "weapons/unused_86.h"
@@ -188,6 +187,8 @@ STATIC_ASSERT_SIZEOF(_PlayerActorWeaponAttacks, sizeof(TaskFunc) * PLAYER_ACTOR_
 #include "main/wipsys.h"
 #include <psyq/abs.h>
 #include <psyq/rand.h>
+
+#include "assets/engine/animation/player_schema.h"
 
 /// Encodings used by the effect drawers in this translation unit.
 enum {
@@ -5302,7 +5303,7 @@ void playerActorInitWeaponCollision(Task* actorTask, s32 weaponId, s32 attackRow
         PLAYER_ACTOR_WEAPON_RADIUS             = 0x100,
         PLAYER_ACTOR_TONFA_RADIUS              = 0x280,
         PLAYER_ACTOR_WEAPON_SPREAD_RADIUS      = 0x900,
-        PLAYER_ACTOR_TONFA_WEAPON_ID           = 0x13,
+        PLAYER_ACTOR_TONFA_WEAPON_ID           = WEAPON_INDEX_TONFA_BATON,
         PLAYER_ACTOR_SPREAD_ATTACK_ROW         = 0xD,
         PLAYER_ACTOR_WEAPON_DISTANCE_ROW_SHIFT = 8,
     };
@@ -7884,7 +7885,7 @@ s32 playerActorSpawnWeaponImpact(const WorldCollisionContact* contacts, const Gf
     enum {
         PLAYER_ACTOR_IMPACT_NO_CANDIDATE        = 0x7FFFFFFF,
         PLAYER_ACTOR_IMPACT_JITTER_MASK         = 7,
-        PLAYER_ACTOR_IMPACT_JAVELIN_WEAPON_ID   = 0x1D,
+        PLAYER_ACTOR_IMPACT_JAVELIN_WEAPON_ID   = WEAPON_INDEX_M4A1_JAVELIN,
         PLAYER_ACTOR_IMPACT_FIRE_AMMUNITION_ROW = 0xE,
         PLAYER_ACTOR_IMPACT_FIRE_SIZE           = 0x300,
         PLAYER_ACTOR_IMPACT_SMOKE_ARGUMENT      = 0xC0013300,
@@ -8086,8 +8087,8 @@ static const _PlayerActorWeaponAttacks _gPlayerActorWeaponAttacks = { {
     m249AttackState,
     _playerActorNoWeaponAttack,
     tonfaBatonAttackState,
-    func_m4a1_p1_8011D1C4,
-    func_m4a1_p2_8011D1C4,
+    m4a1P1AttackState,
+    m4a1P2AttackState,
     hypervelocityAttackState,
     gunbladeAttackState,
     _playerActorNoWeaponAttack,
@@ -8198,9 +8199,9 @@ void playerActorResetWeaponAttack(Task* task, s32 weaponId, s32 unusedArgument)
         if (actor->weaponEffectTask != NULL) {
             actor->weaponEffectTask->spawnArg1.value = PLAYER_ACTOR_HYPERVELOCITY_CANCEL_CHARGE;
         }
-        sndEvtRequestScriptStop(SOUND_HYPERVELOCITY_CHARGE_START, SOUND_SCRIPT_STOP_NO_FADE);
-        sndEvtRequestScriptStop(SOUND_HYPERVELOCITY_CHARGE_CANCEL, SOUND_SCRIPT_STOP_NO_FADE);
-        sndEvtRequestScriptStop(SOUND_HYPERVELOCITY_CHARGE_LOOP, SOUND_SCRIPT_STOP_NO_FADE);
+        sndEvtRequestScriptStop(HYPERVELOCITY_SOUND(HYPERVELOCITY_SOUND_CHARGE_START), SOUND_SCRIPT_STOP_NO_FADE);
+        sndEvtRequestScriptStop(HYPERVELOCITY_SOUND(HYPERVELOCITY_SOUND_CHARGE_CANCEL), SOUND_SCRIPT_STOP_NO_FADE);
+        sndEvtRequestScriptStop(HYPERVELOCITY_SOUND(HYPERVELOCITY_SOUND_CHARGE_LOOP), SOUND_SCRIPT_STOP_NO_FADE);
     } else if (weaponId == PLAYER_ACTOR_WEAPON_HAMMER) {
         if (actor->weaponEffectTask != NULL) {
             if (equipmentConsumeWeaponLoad(EQUIPMENT_WEAPON_ITEM_FIRST - 1 + PLAYER_ACTOR_WEAPON_HAMMER, EQUIPMENT_WEAPON_LOAD_QUERY_SECONDARY) != 0) {
@@ -8221,9 +8222,9 @@ void playerActorResetWeaponAttack(Task* task, s32 weaponId, s32 unusedArgument)
                 actor->weaponEffectTask->spawnArg1.value = (actor->weaponEffectTask->spawnArg1.value == PLAYER_ACTOR_PYKE_GLOW_FIRING) << PLAYER_ACTOR_PYKE_GLOW_RESET_OFF_SHIFT;
             }
             if (actor->companionWork == NULL) {
-                sndEvtRequestScriptStop(SOUND_PYKE_FIRE_TAIL, SOUND_SCRIPT_STOP_NO_FADE);
+                sndEvtRequestScriptStop(M4A1_PYKE_SOUND(M4A1_PYKE_SOUND_FLAME), SOUND_SCRIPT_STOP_NO_FADE);
             } else {
-                sndEvtRequestScriptStop(SOUND_COMPANION_PYKE_FIRE_TAIL, SOUND_SCRIPT_STOP_NO_FADE);
+                sndEvtRequestScriptStop(SOUND_COMPANION_PYKE_FLAME, SOUND_SCRIPT_STOP_NO_FADE);
             }
         }
     }
@@ -8440,7 +8441,6 @@ static inline void _playerActorEnterParalysis(Task* task, const PlayerStatus* st
 {
     enum {
         PLAYER_ACTOR_PARALYSIS_FIRST_SLOT   = 3,
-        PLAYER_ACTOR_PARALYSIS_SET          = 25,
         PLAYER_ACTOR_PARALYSIS_BLEND_FRAMES = 6,
     };
     GameActor* actor;
@@ -8462,7 +8462,7 @@ static inline void _playerActorEnterParalysis(Task* task, const PlayerStatus* st
     actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
     gAttachmentState.flags                               |= ATTACHMENT_FLAG_EVENT_LOCK;
     playerActorResetWeaponAttack(task, status->weapon, 0);
-    playerActorPlayChildSlotsWithBlend(task, PLAYER_ACTOR_PARALYSIS_SET, PLAYER_ACTOR_PARALYSIS_FIRST_SLOT, PLAYER_ACTOR_PARALYSIS_BLEND_FRAMES);
+    playerActorPlayChildSlotsWithBlend(task, PLAYER_ANIMATION_LOW_HEALTH_IDLE, PLAYER_ACTOR_PARALYSIS_FIRST_SLOT, PLAYER_ACTOR_PARALYSIS_BLEND_FRAMES);
 }
 
 /// Advances normal player control, status effects, animation and movement in that order.
@@ -8532,7 +8532,7 @@ static void _playerActorNormalState2(Task* task)
         PLAYER_ACTOR_BERSERKER_SHOT_HP_COST    = 2,
         PLAYER_ACTOR_EMPTY_FIRE_COOLDOWN_TICKS = 10,
         PLAYER_ACTOR_EMPTY_SOUND_WEAPON_SHIFT  = 16,
-        PLAYER_ACTOR_EMPTY_FIRE_SOUND          = SOUND_WEAPON(0, 1),
+        PLAYER_ACTOR_EMPTY_FIRE_SOUND          = SOUND_WEAPON(0, WEAPON_SOUND_SLOT_CLICK),
         PLAYER_ACTOR_AIM_DIRECTION_BUTTONS     = PAD_BUTTON_UP | PAD_BUTTON_RIGHT | PAD_BUTTON_DOWN | PAD_BUTTON_LEFT,
     };
     GameActor* actor;
@@ -8637,11 +8637,11 @@ static void _playerActorNormalState5(Task* task)
         PLAYER_ACTOR_RELOAD_CANCEL_BLEND_FRAMES      = 6,
         PLAYER_ACTOR_RELOAD_SOUND_WEAPON_SHIFT       = 16,
         PLAYER_ACTOR_RELOAD_SOUND_VARIANT_SHIFT      = 24,
-        PLAYER_ACTOR_RELOAD_SOUND_START              = SOUND_WEAPON(0, 2),
-        PLAYER_ACTOR_RELOAD_SOUND_LOAD               = SOUND_WEAPON(0, 3),
-        PLAYER_ACTOR_GRENADE_RELOAD_SOUND_FIRST_CUE  = SOUND_WEAPON(0, 8),
-        PLAYER_ACTOR_GRENADE_RELOAD_SOUND_SECOND_CUE = SOUND_WEAPON(0, 5),
-        PLAYER_ACTOR_GRENADE_RELOAD_SOUND_LOADED_CUE = SOUND_WEAPON(0, 9),
+        PLAYER_ACTOR_RELOAD_SOUND_START              = SOUND_WEAPON(0, WEAPON_SOUND_SLOT_RELOAD_START),
+        PLAYER_ACTOR_RELOAD_SOUND_LOAD               = SOUND_WEAPON(0, WEAPON_SOUND_SLOT_RELOAD_LOAD),
+        PLAYER_ACTOR_GRENADE_RELOAD_SOUND_FIRST_CUE  = SOUND_WEAPON(0, M4A1_GRENADE_SOUND_GRENADE_RELOAD_FIRST),
+        PLAYER_ACTOR_GRENADE_RELOAD_SOUND_SECOND_CUE = SOUND_WEAPON(0, M4A1_GRENADE_SOUND_GRENADE_RELOAD_SECOND),
+        PLAYER_ACTOR_GRENADE_RELOAD_SOUND_LOADED_CUE = SOUND_WEAPON(0, M4A1_GRENADE_SOUND_GRENADE_RELOAD_LOADED),
         PLAYER_ACTOR_GRENADE_RELOAD_SOUND_VARIANTS   = 3,
         PLAYER_ACTOR_RELOAD_WEAPON_M950              = 3,
         PLAYER_ACTOR_RELOAD_WEAPON_MONGOOSE          = 9,
@@ -9189,7 +9189,6 @@ static void _playerActorTickScriptedStairClimb(Task* task)
         PLAYER_ACTOR_STAIR_ASCENT_FINISH_EVEN_SET   = 38,
         PLAYER_ACTOR_STAIR_ASCENT_FINISH_ODD_SET    = 39,
         PLAYER_ACTOR_STAIR_FINISH_BLEND_FRAMES      = 3,
-        PLAYER_ACTOR_STAIR_IDLE_SET                 = 1,
         PLAYER_ACTOR_STAIR_IDLE_BLEND_FRAMES        = 5,
     };
     _PlayerActorStairClimbScratch* scratch;
@@ -9267,7 +9266,7 @@ static void _playerActorTickScriptedStairClimb(Task* task)
             finishFlight:
                 actor->scriptedMotionPending = 0;
                 actor->state                 = PLAYER_ACTOR_SCRIPTED_ANIMATION_STATE;
-                playerActorPlayChildSlotsWithBlend(task, PLAYER_ACTOR_STAIR_IDLE_SET, 0, PLAYER_ACTOR_STAIR_IDLE_BLEND_FRAMES);
+                playerActorPlayChildSlotsWithBlend(task, PLAYER_ANIMATION_IDLE, 0, PLAYER_ACTOR_STAIR_IDLE_BLEND_FRAMES);
             }
             break;
         case PLAYER_ACTOR_STAIR_DESCEND_PHASE:
@@ -9417,7 +9416,6 @@ static inline void _playerActorBeginScriptedAttackAimExit(Task* task, GameActor*
         PLAYER_ACTOR_SCRIPTED_ATTACK_AIM_EXIT_TURN_RATE = 2,
         PLAYER_ACTOR_SCRIPTED_ATTACK_RETURN_CONTROLLER  = 4,
         PLAYER_ACTOR_SCRIPTED_ATTACK_STOPPED            = 0,
-        PLAYER_ACTOR_SCRIPTED_ATTACK_AIM_EXIT_SET       = 8,
         PLAYER_ACTOR_SCRIPTED_ATTACK_AIM_EXIT_BLEND     = 6,
     };
 
@@ -9427,7 +9425,7 @@ static inline void _playerActorBeginScriptedAttackAimExit(Task* task, GameActor*
     actor->movementMode   = PLAYER_ACTOR_SCRIPTED_ATTACK_STOPPED;
     actor->animationState = PLAYER_ACTOR_SCRIPTED_ATTACK_RETURN_CONTROLLER;
     actor->statePhase     = 0;
-    playerActorPlayChildSlotsWithBlend(task, PLAYER_ACTOR_SCRIPTED_ATTACK_AIM_EXIT_SET, 0, PLAYER_ACTOR_SCRIPTED_ATTACK_AIM_EXIT_BLEND);
+    playerActorPlayChildSlotsWithBlend(task, PLAYER_ANIMATION_AIM_EXIT, 0, PLAYER_ACTOR_SCRIPTED_ATTACK_AIM_EXIT_BLEND);
     playerActorClearLockTarget(task);
 }
 
@@ -9443,7 +9441,7 @@ static void _playerActorTickScriptedAttack(Task* task)
     enum {
         PLAYER_ACTOR_SCRIPTED_ATTACK_EMPTY_COOLDOWN_TICKS = 20,
         PLAYER_ACTOR_SCRIPTED_ATTACK_WEAPON_SOUND_SHIFT   = 16,
-        PLAYER_ACTOR_SCRIPTED_ATTACK_EMPTY_SOUND          = 0x20000001,
+        PLAYER_ACTOR_SCRIPTED_ATTACK_EMPTY_SOUND          = SOUND_WEAPON(0, WEAPON_SOUND_SLOT_CLICK),
     };
     s32        soundVariantBits;
     GameActor* actor;
@@ -9493,7 +9491,6 @@ static void _playerActorTickScriptedItemUse(Task* task)
     enum {
         PLAYER_ACTOR_ITEM_USE_START_PHASE  = 0,
         PLAYER_ACTOR_ITEM_USE_PLAY_PHASE   = 1,
-        PLAYER_ACTOR_ITEM_USE_SET          = 40,
         PLAYER_ACTOR_ITEM_USE_ENTRY_BLEND  = 6,
         PLAYER_ACTOR_ITEM_USE_RESUME_BLEND = 4,
         PLAYER_ACTOR_ITEM_USE_RIG_SLOT     = 1,
@@ -9507,7 +9504,7 @@ static void _playerActorTickScriptedItemUse(Task* task)
 
             playbackPhase     = PLAYER_ACTOR_ITEM_USE_PLAY_PHASE;
             actor->statePhase = playbackPhase;
-            playerActorPlayChildSlotsWithBlend(task, PLAYER_ACTOR_ITEM_USE_SET, 0, PLAYER_ACTOR_ITEM_USE_ENTRY_BLEND);
+            playerActorPlayChildSlotsWithBlend(task, PLAYER_ANIMATION_ITEM_USE, 0, PLAYER_ACTOR_ITEM_USE_ENTRY_BLEND);
             break;
         }
         case PLAYER_ACTOR_ITEM_USE_PLAY_PHASE:
@@ -9736,7 +9733,6 @@ void playerActorEnterAim(Task* task, s32 blendFrames)
     enum {
         PLAYER_ACTOR_AIM_ENTRY_STATE         = 1,
         PLAYER_ACTOR_AIM_ENTRY_CONTROLLER    = 2,
-        PLAYER_ACTOR_AIM_ENTRY_SET           = 7,
         PLAYER_ACTOR_AIM_ENTRY_STOPPED       = 0,
         PLAYER_ACTOR_AIM_ENTRY_TURN_DISABLED = 0,
     };
@@ -9751,9 +9747,9 @@ void playerActorEnterAim(Task* task, s32 blendFrames)
     actor->statePhase                  = 0;
     actor->attackControl.cooldownTicks = 0;
     if (blendFrames == 0) {
-        playerActorResetChildSlots(task, PLAYER_ACTOR_AIM_ENTRY_SET);
+        playerActorResetChildSlots(task, PLAYER_ANIMATION_AIM_ENTER);
     } else {
-        playerActorPlayChildSlotsWithBlend(task, PLAYER_ACTOR_AIM_ENTRY_SET, 0, blendFrames);
+        playerActorPlayChildSlotsWithBlend(task, PLAYER_ANIMATION_AIM_ENTER, 0, blendFrames);
     }
 }
 
@@ -9832,7 +9828,6 @@ void playerActorExitAim(Task* task)
         PLAYER_ACTOR_AIM_EXIT_STOPPED      = 0,
         PLAYER_ACTOR_AIM_EXIT_TURN_RATE    = 2,
         PLAYER_ACTOR_AIM_EXIT_CONTROLLER   = 4,
-        PLAYER_ACTOR_AIM_EXIT_SET          = 8,
         PLAYER_ACTOR_AIM_EXIT_BLEND_FRAMES = 6,
     };
     GameActor* actor;
@@ -9844,7 +9839,7 @@ void playerActorExitAim(Task* task)
     actor->turnRateIndex  = PLAYER_ACTOR_AIM_EXIT_TURN_RATE;
     actor->animationState = PLAYER_ACTOR_AIM_EXIT_CONTROLLER;
     actor->statePhase     = 0;
-    playerActorPlayChildSlotsWithBlend(task, PLAYER_ACTOR_AIM_EXIT_SET, 0, PLAYER_ACTOR_AIM_EXIT_BLEND_FRAMES);
+    playerActorPlayChildSlotsWithBlend(task, PLAYER_ANIMATION_AIM_EXIT, 0, PLAYER_ACTOR_AIM_EXIT_BLEND_FRAMES);
     playerActorClearLockTarget(task);
 }
 
@@ -9973,7 +9968,6 @@ static void _playerActorStartParalysis(Task* task)
 {
     enum {
         PLAYER_ACTOR_PARALYSIS_FIRST_SLOT   = 3,
-        PLAYER_ACTOR_PARALYSIS_SET          = 25,
         PLAYER_ACTOR_PARALYSIS_BLEND_FRAMES = 6,
     };
     GameActor* actor;
@@ -9996,7 +9990,7 @@ static void _playerActorStartParalysis(Task* task)
     actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
     gAttachmentState.flags                               |= ATTACHMENT_FLAG_EVENT_LOCK;
     playerActorResetWeaponAttack(task, gPlayerStatus.weapon, 0);
-    playerActorPlayChildSlotsWithBlend(task, PLAYER_ACTOR_PARALYSIS_SET, PLAYER_ACTOR_PARALYSIS_FIRST_SLOT, PLAYER_ACTOR_PARALYSIS_BLEND_FRAMES);
+    playerActorPlayChildSlotsWithBlend(task, PLAYER_ANIMATION_LOW_HEALTH_IDLE, PLAYER_ACTOR_PARALYSIS_FIRST_SLOT, PLAYER_ACTOR_PARALYSIS_BLEND_FRAMES);
 }
 
 void playerActorScriptedState0(Task* task)
@@ -10542,7 +10536,6 @@ static void _playerActorTickScriptedWalkSteps(Task* task)
         PLAYER_ACTOR_WALK_STEPS_FORWARD     = 1,
         PLAYER_ACTOR_WALK_STEPS_WALK_SET    = 2,
         PLAYER_ACTOR_WALK_STEPS_UNARMED_SET = 19,
-        PLAYER_ACTOR_WALK_STEPS_IDLE_SET    = 1,
         PLAYER_ACTOR_WALK_STEPS_IDLE_BLEND  = 5,
     };
     GameActor* actor;
@@ -10572,7 +10565,7 @@ static void _playerActorTickScriptedWalkSteps(Task* task)
                 if (actor->actionValue <= 0) {
                     actor->scriptedMotionPending = 0;
                     actor->state                 = PLAYER_ACTOR_SCRIPTED_ANIMATION_STATE;
-                    playerActorPlayChildSlotsWithBlend(task, PLAYER_ACTOR_WALK_STEPS_IDLE_SET, 0, PLAYER_ACTOR_WALK_STEPS_IDLE_BLEND);
+                    playerActorPlayChildSlotsWithBlend(task, PLAYER_ANIMATION_IDLE, 0, PLAYER_ACTOR_WALK_STEPS_IDLE_BLEND);
                 }
             } else {
                 actor->movementSign = PLAYER_ACTOR_WALK_STEPS_FORWARD;
@@ -10593,17 +10586,16 @@ static void _playerActorTickScriptedWalkSteps(Task* task)
 static void _playerActorWriteWeaponSoundVariant(s32* variantBitsOut)
 {
     enum {
-        PLAYER_ACTOR_SOUND_M4A1_GRENADE_WEAPON = 27,
-        PLAYER_ACTOR_SOUND_SPECIAL_AMMO_FIRST  = 10,
-        PLAYER_ACTOR_SOUND_SPECIAL_AMMO_COUNT  = 6,
-        PLAYER_ACTOR_SOUND_VARIANTS_PER_GROUP  = 3,
-        PLAYER_ACTOR_SOUND_VARIANT_SHIFT       = 24,
+        PLAYER_ACTOR_SOUND_SPECIAL_AMMO_FIRST = 10,
+        PLAYER_ACTOR_SOUND_SPECIAL_AMMO_COUNT = 6,
+        PLAYER_ACTOR_SOUND_VARIANTS_PER_GROUP = 3,
+        PLAYER_ACTOR_SOUND_VARIANT_SHIFT      = 24,
     };
     PlayerStatus*          playerStatus;
     volatile PlayerStatus* livePlayerStatus;
 
     playerStatus = &gPlayerStatus;
-    if (playerStatus->weapon == PLAYER_ACTOR_SOUND_M4A1_GRENADE_WEAPON) {
+    if (playerStatus->weapon == WEAPON_INDEX_M4A1_GRENADE) {
         *variantBitsOut = equipmentGetWeaponLoad(playerStatus->weapon + (EQUIPMENT_WEAPON_ITEM_FIRST - 1))->secondaryItemId - (INVENTORY_CONSUMABLE_ITEM_FIRST - 1);
         if (*variantBitsOut < 0) {
             *variantBitsOut = PLAYER_ACTOR_SOUND_SPECIAL_AMMO_FIRST;
@@ -10734,7 +10726,6 @@ static void _playerActorUpdateTurnYawOffset(Task* task)
 static void _playerActorEnterWeaponAttack(Task* task)
 {
     enum {
-        PLAYER_ACTOR_ATTACK_STATE                    = 4,
         PLAYER_ACTOR_ATTACK_MOVEMENT_STOPPED         = 0,
         PLAYER_ACTOR_ATTACK_TURN_DISABLED            = 0,
         PLAYER_ACTOR_ATTACK_RETURN_TO_AIM_CONTROLLER = 5,
@@ -10744,7 +10735,7 @@ static void _playerActorEnterWeaponAttack(Task* task)
 
     actor                 = task->work;
     actor->mode           = GAME_ACTOR_MODE_NORMAL;
-    actor->state          = PLAYER_ACTOR_ATTACK_STATE;
+    actor->state          = PLAYER_ACTOR_STATE_ATTACK;
     actor->movementMode   = PLAYER_ACTOR_ATTACK_MOVEMENT_STOPPED;
     actor->turnRateIndex  = PLAYER_ACTOR_ATTACK_TURN_DISABLED;
     actor->animationState = PLAYER_ACTOR_ATTACK_RETURN_TO_AIM_CONTROLLER;

@@ -96,14 +96,27 @@ def bank_source(name: str) -> str:
     return f"{head}\nAnimationSet* {bank['symbol']}[{count}] = {{\n" + "\n".join(entries) + "\n};\n"
 
 
+def schema_source(name: str) -> str:
+    """A schema's slots as C constants, `<PREFIX>_ANIMATION_<SLOT> = index`, the prefix its local name less `_schema`
+    (engine/animation/player_schema: PLAYER_ANIMATION_AIM_IDLE): the indices code plays a bank's clips by."""
+    slots = asset_data.ASSETS[name]["slots"]
+    prefix = name.rsplit("/", 1)[-1].removesuffix("_schema").upper() + "_ANIMATION_"
+    guard = "ASSETS_" + name.upper().replace("/", "_") + "_H"
+    rows = [f"    {prefix}{slot.upper()} = {i}," for i, slot in enumerate(slots) if slot]
+    head = HEADER.format(what=f"the animation schema {name}").split("\n\n#include")[0]
+    return (f"{head}\n\n#ifndef {guard}\n#define {guard}\n\n/// The slots of {name}, by index.\nenum {{\n"
+            + "\n".join(rows) + f"\n}};\n\n#endif // {guard}\n")
+
+
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("kind", choices=("clips", "bank"))
-    ap.add_argument("name", help="clips: the package; bank: the bank's asset name")
+    ap.add_argument("kind", choices=("clips", "bank", "schema"))
+    ap.add_argument("name", help="clips: the package; bank or schema: the asset's name")
     ap.add_argument("output", type=Path)
     ap.add_argument("--assets", type=Path, default=ROOT / "assets" / "USA")
     args = ap.parse_args()
-    text = clips_source(args.name, args.assets) if args.kind == "clips" else bank_source(args.name)
+    text = (clips_source(args.name, args.assets) if args.kind == "clips" else
+            bank_source(args.name) if args.kind == "bank" else schema_source(args.name))
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(text)
 

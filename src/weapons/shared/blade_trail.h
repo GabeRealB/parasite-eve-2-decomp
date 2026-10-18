@@ -8,13 +8,18 @@
  * position.
  */
 
-#ifndef SRC_SHARED_BLADE_TRAIL_H
-#define SRC_SHARED_BLADE_TRAIL_H
+#ifndef SRC_WEAPONS_SHARED_BLADE_TRAIL_H
+#define SRC_WEAPONS_SHARED_BLADE_TRAIL_H
 
 #include <psyq/sys/types.h>
 #include <psyq/libgte.h>
+#include <psyq/inline_c.h>
 
 #include "common.h"
+
+#include "gameplay/hud_sprites.h"
+
+#include "main/gfx.h"
 
 /// Packed trail tints: red at bit 8, green at bit 4 and blue at bit 0.
 ///
@@ -50,6 +55,30 @@ typedef struct {
 } BladeTrailScratch;
 STATIC_ASSERT_SIZEOF(BladeTrailScratch, 0x2C);
 
+/// Saves an endpoint pose in a trail frame that follows the camera independently of the weapon.
+///
+/// `composedEndpoint->workm` must be current in view space, and
+/// `gGfxViewCoord.workm` the current orthonormal world-to-view transform.
+/// Copies the complete 32-byte cache, including its alignment bytes, then
+/// removes the view into the destination's local matrix and borrows the
+/// persistent view node as parent. Both rotation and translation are rebased;
+/// the ribbon subsequently uses only the translation. Coefficients have twelve
+/// fractional bits and translations are signed game-coordinate units.
+///
+/// Requires live word-aligned nodes disjoint from each other and the view node,
+/// and an initialized scratch stack with 48 free bytes disjoint from them.
+/// Scratch is released before return; GTE rotation, translation and arithmetic
+/// state change. Leaves the destination's stamp and parameters untouched, so
+/// the caller must mark it dirty before recomposing. Retains no source pointer.
+static inline void _bladeTrailStoreFrame(GfxCoord* historyFrame, const GfxCoord* composedEndpoint)
+{
+    historyFrame->parent = &gGfxViewCoord;
+    historyFrame->workm  = composedEndpoint->workm;
+    gte_SetRotMatrix(&composedEndpoint->workm);
+    gte_SetTransMatrix(&composedEndpoint->workm);
+    gfxMakeRelativeTransform(&gGfxViewCoord.workm, &historyFrame->workm, &historyFrame->coord);
+}
+
 static void _bladeTrailDraw(s16 newestSlot, s16 packedTint);
 
-#endif /* SRC_SHARED_BLADE_TRAIL_H */
+#endif /* SRC_WEAPONS_SHARED_BLADE_TRAIL_H */

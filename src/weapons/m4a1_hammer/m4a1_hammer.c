@@ -1,12 +1,14 @@
 #include "weapons/m4a1_hammer.h"
 
+#include "config.h"
+
 #include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/inline_c.h>
+#include <psyq/gtemac.h>
 #include <psyq/libgs.h>
 
-#include "common.h"
 #include "gte.h"
 
 #include "gameplay/display.h"
@@ -17,9 +19,11 @@
 #include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
 #include "gameplay/world_coords.h"
+#include "gameplay/items.h"
+#include "gameplay/player_actor.h"
+#include "gameplay/scene_runtime.h"
 
 #include "main/coord.h"
-#include "main/display.h"
 #include "main/display_types.h"
 #include "main/random.h"
 #include "main/gfx.h"
@@ -28,11 +32,23 @@
 #include "main/task.h"
 #include "main/task_types.h"
 #include "main/tmd_types.h"
+#include "main/mc_types.h"
+#include "main/session_types.h"
+#include "main/wipsys.h"
+#include "main/wipsys_types.h"
+
+#include "weapons/sounds.h"
+#include "weapons/weapon.h"
+
 #include "types.h"
+
+#include "assets/engine/animation/player_schema.h"
+
 /// Signed texture-frame counter for the six-cell sprite's forward declaration.
 #define SPRITE_QUAD_FRAME_T s16
 #include "../../shared/effects/sprite_quad.h"
 #include "../../shared/effects/beam_strip.h"
+#include "../shared/attack.h"
 
 /// Charge-flare instance of `spriteQuadDraw`.
 ///
@@ -41,9 +57,6 @@
 /// 4096 units per turn.
 static void spriteQuadDrawCharge(const long* pos, u16 frame, u16 size, s16 angle);
 
-/// Signed perspective-sizing numerator for the attachment and contact beams.
-enum { M4A1_HAMMER_BEAM_WIDTH_SCALE = 0x280 };
-
 /// Eight charged sparks stored in contiguous angle, height and radius banks.
 enum {
     M4A1_HAMMER_SPARK_COUNT       = 8,
@@ -51,50 +64,40 @@ enum {
     M4A1_HAMMER_SPARK_RADIUS_BASE = M4A1_HAMMER_SPARK_COUNT * 2,
 };
 
-static s16     _gM4a1HammerSparkState[M4A1_HAMMER_SPARK_COUNT * 3];
-static Task*   _gM4a1HammerGlowTask;
+/// Retained cylindrical offsets of eight sparks, reseeded at the start of a charged burst.
+///
+/// Bank starts are 0 for angles, `M4A1_HAMMER_SPARK_HEIGHT_BASE` for heights
+/// and `M4A1_HAMMER_SPARK_RADIUS_BASE` for radii; each has `M4A1_HAMMER_SPARK_COUNT`
+/// entries. Angles use 4096 units per turn without normalization. Heights and
+/// radii use weapon-local integer coordinates; radii stay fixed at 0..1023.
+/// Every other active age tick drifts angles and raises heights, retaining
+/// signed-halfword wrap on each store. Storage lasts for the loaded overlay.
+static s16 _gM4a1HammerSparkState[M4A1_HAMMER_SPARK_COUNT * 3];
+
+/// Borrowed live attachment glow task that owns contact flashes' teardown.
+///
+/// Published when the glow attaches. Contact spawning requires it to remain
+/// live; releasing the glow does not clear this retained pointer.
+static Task* _gM4a1HammerGlowTask;
+
+/// Cached attachment origin shared by charged sparks and contact beams.
+///
+/// Signed low halfwords of the glow's composed translation, published before
+/// that update recomposes it. Uses composition-root space, including the view
+/// transform; the beam drawer projects it through `GsWSMATRIX`. Storage lasts
+/// for the loaded Hammer overlay; updates preserve the fourth halfword.
 static SVECTOR _gM4a1HammerAttachmentOrigin;
 
 /// Attachment glow origin in weapon-local integer coordinates.
 static SVECTOR _gM4a1HammerGlowLocalOffset = { 0, 0x280, 0x20, 0 };
 
-/// Rotates a charged spark offset and adds the cached attachment origin in place.
-///
-/// `glowCoord` borrows a composed GfxCoord with Q12 rotation. `sparkPosition`
-/// points to a writable word-aligned SVECTOR in local game-coordinate units;
-/// `attachmentOrigin` borrows a disjoint const SVECTOR in composition-root space.
-/// Rotation saturates XYZ to signed 16 bits; origin addition then wraps to
-/// 16 bits. The origin is the cache published before this update's composition.
-/// The result is a beam endpoint in GsWSMATRIX input space. The position's fourth
-/// halfword is loaded but unchanged. Changes GTE rotation, V0, MAC/IR and FLAG;
-/// translation registers stay unchanged. Inputs are borrowed only for this call.
-/// The coordinate argument is evaluated once; the vector pointers repeat and
-/// must have no side effects. Captures no caller locals. Expands to seven
-/// statements; invoke only inside a braced control body.
-#define M4A1_HAMMER_COMPOSE_SPARK_POSITION(glowCoord, sparkPosition, attachmentOrigin) \
-    gte_SetRotMatrix(&(glowCoord)->workm);                                             \
-    gte_ldv0((sparkPosition));                                                         \
-    gte_rtv0();                                                                        \
-    gte_stsv((sparkPosition));                                                         \
-    (sparkPosition)->vx = (sparkPosition)->vx + (u16)(attachmentOrigin)->vx;           \
-    (sparkPosition)->vy = (sparkPosition)->vy + (u16)(attachmentOrigin)->vy;           \
-    (sparkPosition)->vz = (sparkPosition)->vz + (u16)(attachmentOrigin)->vz
-
 void m4a1HammerGlowTask(Task* task)
 {
     enum {
-        M4A1_HAMMER_GLOW_TASK_ATTACH     = 0,
-        M4A1_HAMMER_GLOW_TASK_UPDATE     = 1,
-        M4A1_HAMMER_LIGHT_SLOT           = 1,
-        M4A1_HAMMER_LIGHT_REFRESH_FRAMES = 4,
-        M4A1_HAMMER_CHARGED_TICKS        = 5,
-        M4A1_HAMMER_ANGLE_MASK           = 0xFFF, // 4096 angle units per turn
-        M4A1_HAMMER_TRIG_SHIFT           = 12,    // rsin/rcos: 4096 represents 1.0
-        M4A1_HAMMER_SPIN_TICK_MASK       = 15,
-        M4A1_HAMMER_IDLE_LIGHT_INNER     = 0x80,
-        M4A1_HAMMER_IDLE_LIGHT_OUTER     = 0x400,
-        M4A1_HAMMER_CHARGED_LIGHT_INNER  = 0x400,
-        M4A1_HAMMER_CHARGED_LIGHT_OUTER  = 0x4000
+        M4A1_HAMMER_GLOW_TASK_ATTACH = 0,
+        M4A1_HAMMER_GLOW_TASK_UPDATE = 1,
+        M4A1_HAMMER_ANGLE_MASK       = 0xFFF, // 4096 angle units per turn
+        M4A1_HAMMER_TRIG_SHIFT       = 12,    // rsin/rcos: 4096 represents 1.0
     };
     EffectWork*                    work;
     GfxCoord*                      glowCoord;
@@ -205,7 +208,11 @@ void m4a1HammerGlowTask(Task* task)
                                 work->pos.vz =
                                     (_gM4a1HammerSparkState[sparkIndex + M4A1_HAMMER_SPARK_RADIUS_BASE] * rcos(_gM4a1HammerSparkState[sparkIndex])) >> M4A1_HAMMER_TRIG_SHIFT;
                                 work->pos.vy = _gM4a1HammerSparkState[heightIndex];
-                                M4A1_HAMMER_COMPOSE_SPARK_POSITION(glowCoord, &work->pos, &_gM4a1HammerAttachmentOrigin);
+                                // Rotates a charged spark offset and adds the cached attachment origin in place.
+                                gte_ApplyMatrixSV(&glowCoord->workm, &work->pos, &work->pos);
+                                work->pos.vx = work->pos.vx + (u16)_gM4a1HammerAttachmentOrigin.vx;
+                                work->pos.vy = work->pos.vy + (u16)_gM4a1HammerAttachmentOrigin.vy;
+                                work->pos.vz = work->pos.vz + (u16)_gM4a1HammerAttachmentOrigin.vz;
                                 _beamStripDraw(glowCoord, &work->pos, work->age, M4A1_HAMMER_BEAM_WIDTH_SCALE);
                             }
                         }
@@ -231,8 +238,6 @@ void m4a1HammerGlowTask(Task* task)
         }
     }
 }
-
-#undef M4A1_HAMMER_COMPOSE_SPARK_POSITION
 
 #undef SPRITE_QUAD_POSITION_SOURCE_TYPE
 #undef SPRITE_QUAD_TRANSLATION_COMPONENT
@@ -303,12 +308,9 @@ void m4a1HammerGlowTask(Task* task)
 void m4a1HammerImpactFlashTask(Task* task)
 {
     enum {
-        M4A1_HAMMER_IMPACT_TASK_ATTACH  = 0,
-        M4A1_HAMMER_IMPACT_TASK_DRAW    = 1,
-        M4A1_HAMMER_IMPACT_SPRITE_SIZE  = 0x400, // Perspective-sizing numerator
-        M4A1_HAMMER_IMPACT_BEAM_END_AGE = 8,
-        M4A1_HAMMER_IMPACT_LIFETIME     = 25,
-        M4A1_HAMMER_IMPACT_ANGLE_MASK   = 0xFFF // 4096 angle units per turn
+        M4A1_HAMMER_IMPACT_TASK_ATTACH = 0,
+        M4A1_HAMMER_IMPACT_TASK_DRAW   = 1,
+        M4A1_HAMMER_IMPACT_ANGLE_MASK  = 0xFFF // 4096 angle units per turn
     };
     EffectWork* work;
     GfxCoord*   impactCoord;
@@ -369,6 +371,146 @@ void m4a1HammerImpactFlashTask(Task* task)
 
 #include "../../shared/effects/beam_strip_draw.inc.c"
 
+void m4a1HammerAttackState(Task* playerTask)
+{
+    enum {
+        M4A1_HAMMER_PHASE_PREPARE       = 0,
+        M4A1_HAMMER_PHASE_WAIT_READY    = 1,
+        M4A1_HAMMER_PHASE_SELECT_ATTACK = 2,
+        M4A1_HAMMER_PHASE_BURST         = 3,
+        M4A1_HAMMER_PHASE_IMPACT        = 4,
+        M4A1_HAMMER_PHASE_DISCHARGE     = 5,
+        M4A1_HAMMER_PHASE_RECOVER       = 6,
+    };
+    GameActor*             actor;
+    GfxCoord*              rootCoord;
+    GfxCoord*              impactCoord;
+    WorldCollisionCapsule* weaponShape;
+    Task*                  glowTask;
+    s32                    readyBlendFrames;
+    s32                    phaseDelay;
+    u16                    collisionFlags;
+
+    actor       = playerTask->work;
+    rootCoord   = playerTask->extra.tmd->coords;
+    weaponShape = &actor->weaponShape;
+    impactCoord = SCRATCH_STACK_RESERVE_BLOCK(GfxCoord);
+    switch (actor->statePhase) {
+        case M4A1_HAMMER_PHASE_PREPARE:
+            readyBlendFrames                                      = M4A1_HAMMER_READY_BLEND_FRAMES;
+            actor->state                                          = PLAYER_ACTOR_STATE_ATTACK;
+            actor->mode                                           = GAME_ACTOR_MODE_NORMAL;
+            actor->animationState                                 = 0;
+            actor->statePhase                                    += readyBlendFrames;
+            actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= WORLD_COLLISION_BODY_CLIP_TO_GRID_CONTACT;
+            if (((u16)actor->movementMode | actor->turnSign) != 0) {
+                readyBlendFrames = M4A1_HAMMER_MOVING_READY_BLEND_FRAMES;
+            }
+            playerActorPlayChildSlotsWithBlend(playerTask, PLAYER_ANIMATION_AIM_IDLE, 0, readyBlendFrames);
+            actor->movementMode = 0;
+            break;
+        case M4A1_HAMMER_PHASE_WAIT_READY:
+            if (animationGetCurrentRecord(&actor->animationContext, actor->animationSlots + 1) !=
+                NULL) {
+                actor->statePhase++;
+            }
+            break;
+        case M4A1_HAMMER_PHASE_SELECT_ATTACK:
+            actor->rumblePosted = 0;
+            if (actor->attackButton & PLAYER_ACTOR_ATTACK_BUTTON_PRIMARY) {
+                actor->statePhase                                     = M4A1_HAMMER_PHASE_BURST;
+                actor->turnRateIndex                                  = 0;
+                actor->stateTimer                                     = 0;
+                actor->attackCancelTicks                              = M4A1_HAMMER_BURST_CANCEL_FRAMES;
+                actor->actionValue                                    = M4A1_HAMMER_BURST_ROUNDS;
+                actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].key    = gPlayerStatus.weaponSlotItem | M4A1_HAMMER_RIFLE_KEY_BASE;
+                weaponShape->end0Radius                               = M4A1_HAMMER_RIFLE_RADIUS;
+                weaponShape->end1Radius                               = M4A1_HAMMER_RIFLE_RADIUS;
+                weaponShape->ends[0].vz                               = weaponShape->ends[1].vz + gPlayerActorWeaponReaches[0x19];
+                actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= WORLD_COLLISION_BODY_SINGLE_CONTACT;
+                playerActorSetWeaponAttackFlags(playerTask, 0, 1);
+            } else if (actor->attackButton & PLAYER_ACTOR_ATTACK_BUTTON_SECONDARY) {
+                actor->statePhase                                     = M4A1_HAMMER_PHASE_DISCHARGE;
+                actor->turnRateIndex                                  = M4A1_HAMMER_SECONDARY_TURN_RATE_INDEX;
+                actor->attackCancelTicks                              = M4A1_HAMMER_SECONDARY_CANCEL_FRAMES;
+                actor->actionValue                                    = M4A1_HAMMER_SECONDARY_ACTION_FRAMES;
+                actor->stateTimer                                     = M4A1_HAMMER_DISCHARGE_WINDUP_FRAMES;
+                actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].key    = M4A1_HAMMER_DISCHARGE_KEY;
+                weaponShape->end0Radius                               = M4A1_HAMMER_DISCHARGE_RADIUS;
+                weaponShape->end1Radius                               = M4A1_HAMMER_DISCHARGE_RADIUS;
+                weaponShape->ends[0].vz                               = weaponShape->ends[1].vz + M4A1_HAMMER_DISCHARGE_REACH;
+                actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_SINGLE_CONTACT);
+                playerActorSetWeaponAttackFlags(playerTask, 0, 0);
+                glowTask = actor->weaponEffectTask;
+                if (glowTask != NULL) {
+                    glowTask->spawnArg1.value = M4A1_HAMMER_GLOW_CHARGED;
+                }
+                equipmentConsumeWeaponLoad(WEAPON_ITEM_ID(WEAPON_INDEX_M4A1_HAMMER), EQUIPMENT_WEAPON_LOAD_CONSUME_SECONDARY);
+                worldCoordPlaySound(playerTask->extra.tmd->coords, M4A1_HAMMER_SOUND(M4A1_HAMMER_SOUND_DISCHARGE), 1);
+                playerActorPlayChildSlotsWithBlend(playerTask, PLAYER_ANIMATION_SECONDARY_FIRE, 0, 2);
+                break;
+            }
+            /* fallthrough */
+        case M4A1_HAMMER_PHASE_BURST:
+            if (actor->actionValue != 0) {
+                phaseDelay = actor->stateTimer;
+                if (phaseDelay == 0) {
+                    actor->actionValue--;
+                    actor->stateTimer                                     = M4A1_HAMMER_BURST_DELAY_FRAMES;
+                    actor->rumblePosted                                   = 0;
+                    actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
+                    equipmentConsumeWeaponLoad(WEAPON_ITEM_ID(WEAPON_INDEX_M4A1_HAMMER), EQUIPMENT_WEAPON_LOAD_CONSUME_PRIMARY);
+                    if (playerActorQueryWeaponLoads(PLAYER_ACTOR_WEAPON_LOAD_PRIMARY) == 0) {
+                        actor->actionValue = 0;
+                    }
+                    worldCoordPlaySound(playerTask->extra.tmd->coords, M4A1_HAMMER_SOUND(WEAPON_SOUND_SLOT_SHOT), 1);
+                    effectSpawn(EFFECT_RIFLE_MUZZLE_FLASH,
+                                actor->equipmentTasks[1]->extra.tmd->coords,
+                                WEAPON_INDEX_M4A1_HAMMER, NULL);
+                    playerActorPlayChildSlotsWithBlend(playerTask, PLAYER_ANIMATION_FIRE, 0, 2);
+                    break;
+                }
+                actor->stateTimer = phaseDelay - 1;
+                if (phaseDelay - 1 == M4A1_HAMMER_BURST_IMPACT_TICKS_LEFT) {
+                    _weaponResolveShotImpact(actor, rootCoord, impactCoord);
+                }
+                break;
+            }
+            /* fallthrough */
+        case M4A1_HAMMER_PHASE_IMPACT:
+            actor->statePhase = M4A1_HAMMER_PHASE_RECOVER;
+            _weaponResolveShotImpact(actor, rootCoord, impactCoord);
+            break;
+        case M4A1_HAMMER_PHASE_DISCHARGE:
+            // The discharge enables contacts for one tick before recovery.
+            phaseDelay        = actor->stateTimer - 1;
+            actor->stateTimer = phaseDelay;
+            if (phaseDelay == M4A1_HAMMER_DISCHARGE_CONTACT_TICKS_LEFT) {
+                collisionFlags                                       = actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags | (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
+                actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags = collisionFlags;
+            } else if (phaseDelay == 0) {
+                actor->statePhase = M4A1_HAMMER_PHASE_RECOVER;
+                if (playerActorQueryWeaponLoads(PLAYER_ACTOR_WEAPON_LOAD_SECONDARY) == 0) {
+                    actor->weaponEffectTask->spawnArg1.value = M4A1_HAMMER_GLOW_OFF;
+                }
+                collisionFlags                                       = actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
+                actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags = collisionFlags;
+            }
+            /* fallthrough */
+        case M4A1_HAMMER_PHASE_RECOVER:
+            if (actor->attackCancelTicks != 0) {
+                actor->attackCancelTicks--;
+            }
+            if (_weaponIsArmSlotAdvancing(playerTask) == 0 ||
+                ((actor->padHeld & actor->actionPadMask) != 0 && actor->attackCancelTicks == 0)) {
+                actor->attackControl.cooldownTicks = M4A1_HAMMER_RECOVERY_COOLDOWN_FRAMES;
+                playerActorFinishWeaponAttack(playerTask);
+            }
+            break;
+    }
+    SCRATCH_STACK_RELEASE_BLOCK(GfxCoord);
+}
+
 /// The model `gM4a1HammerModel`: generated from its asset (weapons/m4a1_hammer/model) by tools/buildsteps/gen_model_source.py.
 #include "assets/weapons/m4a1_hammer/model.inc"
 
@@ -376,30 +518,3 @@ void m4a1HammerImpactFlashTask(Task* task)
 /// generated from the clip and bank assets by tools/buildsteps/gen_animation_source.py.
 #include "assets/weapons/m4a1_hammer/clips.inc"
 #include "assets/weapons/m4a1_hammer/bank.inc"
-
-/// Retained cylindrical offsets of eight sparks, reseeded at the start of a charged burst.
-///
-/// Bank starts are 0 for angles, `M4A1_HAMMER_SPARK_HEIGHT_BASE` for heights
-/// and `M4A1_HAMMER_SPARK_RADIUS_BASE` for radii; each has `M4A1_HAMMER_SPARK_COUNT`
-/// entries. Angles use 4096 units per turn without normalization. Heights and
-/// radii use weapon-local integer coordinates; radii stay fixed at 0..1023.
-/// Every other active age tick drifts angles and raises heights, retaining
-/// signed-halfword wrap on each store. Storage lasts for the loaded overlay.
-static s16 _gM4a1HammerSparkState[M4A1_HAMMER_SPARK_COUNT * 3] = { 0 };
-
-/// Borrowed live attachment glow task that owns contact flashes' teardown.
-///
-/// Published when the glow attaches. Contact spawning requires it to remain
-/// live; releasing the glow does not clear this retained pointer.
-static Task* _gM4a1HammerGlowTask = NULL;
-
-/// Retained zero-initialized word with no known accesses; its role is unproven.
-static s32 s_unused_8012D664 = 0;
-
-/// Cached attachment origin shared by charged sparks and contact beams.
-///
-/// Signed low halfwords of the glow's composed translation, published before
-/// that update recomposes it. Uses composition-root space, including the view
-/// transform; the beam drawer projects it through `GsWSMATRIX`. Storage lasts
-/// for the loaded Hammer overlay; updates preserve the fourth halfword.
-static SVECTOR _gM4a1HammerAttachmentOrigin = { 0, 0, 0, 0 };

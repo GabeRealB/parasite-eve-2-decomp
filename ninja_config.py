@@ -1249,6 +1249,14 @@ def ninja_build(
             writer.build(outputs=str(inc), rule="animation-source", implicit=animation_deps,
                          variables={"kind": "bank", "name": name})
         ASSET_INC_OUTPUTS.append(str(inc))
+    # A schema's slots as constants (`assets/<schema>.h`): the indices code plays clips by.
+    data, _schema = asset_tables()
+    for name in sorted(k for k, r in data.ASSETS.items() if r.get("type") == "animation_schema"):
+        header = BUILD_DIR / "include" / "assets" / f"{name}.h"
+        for writer in asset_writers:
+            writer.build(outputs=str(header), rule="animation-source", implicit=animation_deps,
+                         variables={"kind": "schema", "name": name})
+        ASSET_INC_OUTPUTS.append(str(header))
 
     # Thousands of resource fragments can be embedded across the overlays.
     # One ordering edge per C file keeps both Ninja graphs small; preprocessing

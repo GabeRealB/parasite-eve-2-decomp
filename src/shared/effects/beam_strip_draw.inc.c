@@ -1,5 +1,22 @@
 /* Part of the beam strip library; see beam_strip.h. */
 
+#include <psyq/sys/types.h>
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/inline_c.h>
+#include <psyq/libgs.h>
+
+#include "common.h"
+#include "gte.h"
+#include "types.h"
+
+#include "main/coord.h"
+#include "main/display.h"
+#include "main/display_types.h"
+#include "main/scratch.h"
+
+#include "beam_strip.h"
+
 #ifndef BEAM_STRIP_INCREMENT_DEPTH
 /// Enables a unit increment of the start depth after each accepted projection.
 ///

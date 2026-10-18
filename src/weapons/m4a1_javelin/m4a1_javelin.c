@@ -1,5 +1,7 @@
 #include "weapons/m4a1_javelin.h"
 
+#include "config.h"
+
 #include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
@@ -27,12 +29,10 @@
 #include "main/display_types.h"
 #include "main/random.h"
 #include "main/gfx.h"
-#include "main/mc.h"
 #include "main/mc_types.h"
 #include "main/scratch.h"
 #include "main/session.h"
 #include "main/session_types.h"
-#include "main/sound.h"
 #include "main/task.h"
 #include "main/task_types.h"
 
@@ -40,16 +40,10 @@
 #include "main/wipsys_types.h"
 
 #include "weapons/weapon.h"
+#include "weapons/sounds.h"
 
 #include "overlay.h"
 #include "types.h"
-
-static u16     _gM4a1JavelinBeamScreenAngle;
-static u16     _gM4a1JavelinGroundBeamScreenAngle;
-static s16     _gM4a1JavelinBeamAngleRefreshPending;
-static s16     _gM4a1JavelinGroundBeamAngleRefreshPending;
-static SVECTOR _gM4a1JavelinTrackedImpactPoint;
-static bool    _gM4a1JavelinTrackedImpactValid;
 
 /// Read-only XYZ translation words from the launch sprite's `GfxCoord::workm.t`.
 #define SPRITE_QUAD_POSITION_SOURCE_TYPE const long
@@ -65,6 +59,7 @@ static bool    _gM4a1JavelinTrackedImpactValid;
 /// Signed texture-frame index for the eight-frame launch sprite.
 #define SPRITE_QUAD_FRAME_T s16
 #include "../../shared/effects/sprite_quad.h"
+#include "../shared/attack.h"
 
 /// Scratch-stack block for projecting the two ends of one flare line.
 ///
@@ -95,8 +90,7 @@ enum {
     M4A1_JAVELIN_HALF_TURN             = 0x800,
     M4A1_JAVELIN_QUARTER_TURN          = 0x400,
     M4A1_JAVELIN_EIGHTH_TURN           = 0x200,
-    M4A1_JAVELIN_TRIG_FRACTION_BITS    = 12,
-    M4A1_JAVELIN_RADIUS_DEPTH_PRODUCT  = 0x4000
+    M4A1_JAVELIN_TRIG_FRACTION_BITS    = 12
 };
 
 static void _m4a1JavelinDrawBeamSegment(const SVECTOR* nearPoint, const SVECTOR* farPoint, u16 segmentFlags, u16 rgb444);
@@ -109,7 +103,7 @@ static SVECTOR _gM4a1JavelinGuideBeamOffset = { 0, 0x200, 0x20, 0 };
 /// Ground-probe displacement along view +Y, in game coordinate units.
 ///
 /// Rotated into world space before adding it to each guide-beam sample.
-static const SVECTOR _gM4a1JavelinGroundProbeOffset SECTION(".data") = { 0, 0x800, 0, 0 };
+static SVECTOR _gM4a1JavelinGroundProbeOffset = { 0, 0x800, 0, 0 };
 
 /// Controls for the six beam and ground-glow segments, indexed from the muzzle.
 ///
@@ -124,7 +118,51 @@ static u16 _gM4a1JavelinBeamSegmentFlags[] = {
 /// Beam retirement visits indices 3..0; ground glow uses that index >> 1,
 /// selecting only entries 1 and 0. Without ground tracing the beam retains
 /// its fixed bright colour instead of reading this ramp.
-static const u16 _gM4a1JavelinBeamFadeColours[] SECTION(".data") = { 0x12, 0x124, 0x248, 0x36C };
+static u16 _gM4a1JavelinBeamFadeColours[] = { 0x12, 0x124, 0x248, 0x36C };
+
+/// The model `gM4a1JavelinWeaponModel`: generated from its asset (weapons/m4a1_javelin/model) by tools/buildsteps/gen_model_source.py.
+#include "assets/weapons/m4a1_javelin/model.inc"
+
+/// The player's clips this package carries, in the package's order, and its animation bank (weapons/m4a1_javelin/bank):
+/// generated from the clip and bank assets by tools/buildsteps/gen_animation_source.py.
+#include "assets/weapons/m4a1_javelin/clips.inc"
+#include "assets/weapons/m4a1_javelin/bank.inc"
+
+/// Cached screen direction shared by visible segments of the airborne guide beam.
+///
+/// Stores the low halfword of a signed angle, in 4096 units per turn. Drawing
+/// interprets it as s16; a refresh replaces it before constructing a far cap.
+static u16 _gM4a1JavelinBeamScreenAngle;
+
+/// Cached ground-glow screen direction, independent of the airborne beam's angle.
+///
+/// Stores the low halfword of a signed angle, in 4096 units per turn, interpreted
+/// as s16 by the ground-strip drawer.
+static u16 _gM4a1JavelinGroundBeamScreenAngle;
+
+/// Requests an airborne-beam direction refresh after an endpoint projection fails.
+///
+/// Boolean halfword (0 clear, 1 pending). Cleared at the start of each beam tick;
+/// within the tick, the next accepted segment refreshes the angle and far cap.
+static s16 _gM4a1JavelinBeamAngleRefreshPending;
+
+/// Requests a ground-glow direction refresh after an endpoint projection fails.
+///
+/// Boolean halfword (0 clear, 1 pending), independent of the airborne request.
+/// Cleared at each beam tick and consumed by the next accepted ground segment.
+static s16 _gM4a1JavelinGroundBeamAngleRefreshPending;
+
+/// Copied world-space contact endpoint of the current guide beam, in game units.
+///
+/// XYZ are narrowed to signed halfwords. Coordinates are meaningful only while
+/// `_gM4a1JavelinTrackedImpactValid` is true; invalidation retains the stale point.
+static SVECTOR _gM4a1JavelinTrackedImpactPoint;
+
+/// Whether the guide beam should end at its copied contact rather than its full reach.
+///
+/// Cleared on guide initialization or a missing contact; set when the contact's
+/// XYZ translation is copied. It owns no pointer into the contact's scratch storage.
+static bool _gM4a1JavelinTrackedImpactValid;
 
 static void _m4a1JavelinSetTrackedImpactPoint(const long* worldTranslation);
 
@@ -139,6 +177,9 @@ static void _m4a1JavelinSetTrackedImpactPoint(const long* worldTranslation);
 /// blending before GPU submission; the packet lives until the GPU finishes.
 /// Captures no caller locals. Expands to a block with no control transfer;
 /// invoke as a standalone statement inside a braced control body.
+///
+/// A macro, not an inline function returning the quad: as one, its arguments
+/// are copied into fresh registers and both beam drawers no longer match.
 #define M4A1_JAVELIN_ALLOCATE_BEAM_QUAD(quad, red, green, blue, secondRed, secondGreen, secondBlue) \
     {                                                                                               \
         (quad)         = gGpuPrimCursor;                                                            \
@@ -153,22 +194,12 @@ static void _m4a1JavelinSetTrackedImpactPoint(const long* worldTranslation);
 void m4a1JavelinGuideBeamTask(Task* task)
 {
     enum {
-        M4A1_JAVELIN_GUIDE_INIT             = 0,
-        M4A1_JAVELIN_GUIDE_MUZZLE_FLARE     = 1,
-        M4A1_JAVELIN_GUIDE_BEAM             = 2,
-        M4A1_JAVELIN_BEAM_SEGMENT_COUNT     = ARRAY_SIZE(_gM4a1JavelinBeamSegmentFlags),
-        M4A1_JAVELIN_BEAM_LENGTH            = 8000,
-        M4A1_JAVELIN_FLARE_INITIAL_RADIUS   = 0x600,
-        M4A1_JAVELIN_FLARE_RADIUS_DECREMENT = 0xF0,
-        M4A1_JAVELIN_FLARE_FORWARD_STEP     = 0xC0,
-        M4A1_JAVELIN_FLARE_BRIGHTNESS_STEP  = 0x20,
-        M4A1_JAVELIN_FLARE_MAX_BRIGHTNESS   = 0xC0,
-        M4A1_JAVELIN_GUIDE_HOLD_TICKS       = 32,
-        M4A1_JAVELIN_LIGHT_LIFETIME_TICKS   = 4,
-        M4A1_JAVELIN_BEAM_BASE_RGB444       = 0x36C,
-        M4A1_JAVELIN_PROBE_RAISE            = 0x100,
+        M4A1_JAVELIN_GUIDE_INIT         = 0,
+        M4A1_JAVELIN_GUIDE_MUZZLE_FLARE = 1,
+        M4A1_JAVELIN_GUIDE_BEAM         = 2,
+        M4A1_JAVELIN_BEAM_SEGMENT_COUNT = ARRAY_SIZE(_gM4a1JavelinBeamSegmentFlags),
         // Actor mode occupies the low halfword, normal firing state 4 the high.
-        M4A1_JAVELIN_PLAYER_FIRING_MODE_STATE = (4 << 16) | GAME_ACTOR_MODE_NORMAL
+        M4A1_JAVELIN_PLAYER_FIRING_MODE_STATE = (PLAYER_ACTOR_STATE_ATTACK << 16) | GAME_ACTOR_MODE_NORMAL
     };
     EffectWork*                    work;
     GfxCoord*                      coord;
@@ -693,6 +724,8 @@ static void _m4a1JavelinDrawMuzzleFlareLine(const SVECTOR* muzzlePoint, const SV
 #define SPRITE_QUAD_SCALE (SPRITE_QUAD_CELL_WIDTH - 1)
 #include "../../shared/effects/sprite_quad_draw.inc.c"
 
+#include "assets/engine/animation/player_schema.h"
+
 /// Sets or clears the guide beam's tracked world-space impact point.
 ///
 /// `worldTranslation` is NULL to invalidate the point without clearing its
@@ -717,7 +750,6 @@ void m4a1JavelinContactFlashTask(Task* task)
         M4A1_JAVELIN_CONTACT_FLASH_INIT        = 0,
         M4A1_JAVELIN_CONTACT_FLASH_PLAYING     = 1,
         M4A1_JAVELIN_CONTACT_FLASH_FRAME_COUNT = 8,
-        M4A1_JAVELIN_CONTACT_FLASH_SIZE        = 512
     };
     EffectWork* work;
     GfxCoord*   coord;
@@ -751,36 +783,15 @@ void m4a1JavelinContactFlashTask(Task* task)
 void m4a1JavelinAttackState(Task* playerTask)
 {
     enum {
-        M4A1_JAVELIN_PHASE_PREPARE             = 0,
-        M4A1_JAVELIN_PHASE_WAIT_READY          = 1,
-        M4A1_JAVELIN_PHASE_SELECT_ATTACK       = 2,
-        M4A1_JAVELIN_PHASE_BURST               = 3,
-        M4A1_JAVELIN_PHASE_IMPACT              = 4,
-        M4A1_JAVELIN_PHASE_BEAM_DELAY          = 5,
-        M4A1_JAVELIN_PHASE_BEAM_ACTIVE         = 6,
-        M4A1_JAVELIN_PHASE_RECOVER             = 7,
-        M4A1_JAVELIN_PLAYER_ATTACK_STATE       = 4,
-        M4A1_JAVELIN_ANIMATION_READY           = 9,
-        M4A1_JAVELIN_ANIMATION_PRIMARY         = 0xA,
-        M4A1_JAVELIN_ANIMATION_SECONDARY       = 0xB,
-        M4A1_JAVELIN_READY_BLEND_FRAMES        = 1,
-        M4A1_JAVELIN_MOVING_READY_BLEND_FRAMES = 8,
-        M4A1_JAVELIN_IMPACT_SOUND              = SOUND_COMMON(0x17),
-        M4A1_JAVELIN_BURST_ROUNDS              = 3,
-        M4A1_JAVELIN_BURST_CANCEL_FRAMES       = 9,
-        M4A1_JAVELIN_SECONDARY_CANCEL_FRAMES   = 0x1C,
-        M4A1_JAVELIN_BURST_DELAY_FRAMES        = 3,
-        M4A1_JAVELIN_RECOVERY_COOLDOWN_FRAMES  = 0xC,
-        M4A1_JAVELIN_BEAM_DELAY_FRAMES         = 6,
-        M4A1_JAVELIN_BEAM_ACTIVE_FRAMES        = 0x1C,
-        M4A1_JAVELIN_ATTACK_SCRATCH_BYTES      = 0x58,
-        M4A1_JAVELIN_RIFLE_KEY_BASE            = WORLD_COLLISION_CONTACT_ATTACK | (29 << 8),
-        M4A1_JAVELIN_BEAM_KEY                  = WORLD_COLLISION_CONTACT_ATTACK | (29 << 8) | 0x1F,
-        M4A1_JAVELIN_WEAPON_ID                 = 29,
-        M4A1_JAVELIN_PRIMARY_SOUND             = SOUND_WEAPON(29, 4),
-        M4A1_JAVELIN_BEAM_SOUND                = SOUND_WEAPON(29, 5),
-        M4A1_JAVELIN_BURST_IMPACT_TICKS_LEFT   = 2,
-        M4A1_JAVELIN_SECONDARY_TURN_RATE_INDEX = 2,
+        M4A1_JAVELIN_PHASE_PREPARE        = 0,
+        M4A1_JAVELIN_PHASE_WAIT_READY     = 1,
+        M4A1_JAVELIN_PHASE_SELECT_ATTACK  = 2,
+        M4A1_JAVELIN_PHASE_BURST          = 3,
+        M4A1_JAVELIN_PHASE_IMPACT         = 4,
+        M4A1_JAVELIN_PHASE_BEAM_DELAY     = 5,
+        M4A1_JAVELIN_PHASE_BEAM_ACTIVE    = 6,
+        M4A1_JAVELIN_PHASE_RECOVER        = 7,
+        M4A1_JAVELIN_ATTACK_SCRATCH_BYTES = 0x58,
     };
     GameActor*  actor;
     GfxCoord*   rootCoord;
@@ -801,7 +812,7 @@ void m4a1JavelinAttackState(Task* playerTask)
     switch (actor->statePhase) {
         case M4A1_JAVELIN_PHASE_PREPARE:
             readyBlendFrames                                      = M4A1_JAVELIN_READY_BLEND_FRAMES;
-            actor->state                                          = M4A1_JAVELIN_PLAYER_ATTACK_STATE;
+            actor->state                                          = PLAYER_ACTOR_STATE_ATTACK;
             actor->mode                                           = GAME_ACTOR_MODE_NORMAL;
             actor->animationState                                 = 0;
             actor->statePhase                                    += readyBlendFrames;
@@ -809,7 +820,7 @@ void m4a1JavelinAttackState(Task* playerTask)
             if (((u16)actor->movementMode | actor->turnSign) != 0) {
                 readyBlendFrames = M4A1_JAVELIN_MOVING_READY_BLEND_FRAMES;
             }
-            playerActorPlayChildSlotsWithBlend(playerTask, M4A1_JAVELIN_ANIMATION_READY, 0, readyBlendFrames);
+            playerActorPlayChildSlotsWithBlend(playerTask, PLAYER_ANIMATION_AIM_IDLE, 0, readyBlendFrames);
             actor->movementMode = 0;
             break;
         case M4A1_JAVELIN_PHASE_WAIT_READY:
@@ -837,15 +848,15 @@ void m4a1JavelinAttackState(Task* playerTask)
                 actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].key    = M4A1_JAVELIN_BEAM_KEY;
                 actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_SINGLE_CONTACT);
                 playerActorSetWeaponAttackFlags(playerTask, 0, 0);
-                equipmentConsumeWeaponLoad(WEAPON_ITEM_ID(M4A1_JAVELIN_WEAPON_ID), EQUIPMENT_WEAPON_LOAD_CONSUME_SECONDARY);
+                equipmentConsumeWeaponLoad(WEAPON_ITEM_ID(WEAPON_INDEX_M4A1_JAVELIN), EQUIPMENT_WEAPON_LOAD_CONSUME_SECONDARY);
                 effectWork = effectSpawn(EFFECT_JAVELIN_GUIDE_BEAM,
                                          actor->equipmentTasks[1]->extra.tmd->coords,
                                          0x1D, NULL);
                 if (effectWork != NULL) {
                     taskReparent(actor->equipmentTasks[1], effectWork->task);
                 }
-                worldCoordPlaySound(playerTask->extra.tmd->coords, M4A1_JAVELIN_BEAM_SOUND, 1);
-                playerActorPlayChildSlotsWithBlend(playerTask, M4A1_JAVELIN_ANIMATION_SECONDARY, 0, 3);
+                worldCoordPlaySound(playerTask->extra.tmd->coords, M4A1_JAVELIN_SOUND(M4A1_JAVELIN_SOUND_BEAM), 1);
+                playerActorPlayChildSlotsWithBlend(playerTask, PLAYER_ANIMATION_SECONDARY_FIRE, 0, 3);
                 break;
             }
             /* fallthrough */
@@ -858,15 +869,15 @@ void m4a1JavelinAttackState(Task* playerTask)
                     actor->stateTimer                                     = M4A1_JAVELIN_BURST_DELAY_FRAMES;
                     actor->rumblePosted                                   = 0;
                     actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
-                    equipmentConsumeWeaponLoad(WEAPON_ITEM_ID(M4A1_JAVELIN_WEAPON_ID), EQUIPMENT_WEAPON_LOAD_CONSUME_PRIMARY);
+                    equipmentConsumeWeaponLoad(WEAPON_ITEM_ID(WEAPON_INDEX_M4A1_JAVELIN), EQUIPMENT_WEAPON_LOAD_CONSUME_PRIMARY);
                     if (playerActorQueryWeaponLoads(PLAYER_ACTOR_WEAPON_LOAD_PRIMARY) == 0) {
                         actor->actionValue = 0;
                     }
-                    worldCoordPlaySound(playerTask->extra.tmd->coords, M4A1_JAVELIN_PRIMARY_SOUND, 1);
+                    worldCoordPlaySound(playerTask->extra.tmd->coords, M4A1_JAVELIN_SOUND(WEAPON_SOUND_SLOT_SHOT), 1);
                     effectSpawn(EFFECT_RIFLE_MUZZLE_FLASH,
                                 actor->equipmentTasks[1]->extra.tmd->coords,
-                                M4A1_JAVELIN_WEAPON_ID, NULL);
-                    playerActorPlayChildSlotsWithBlend(playerTask, M4A1_JAVELIN_ANIMATION_PRIMARY, 0, 2);
+                                WEAPON_INDEX_M4A1_JAVELIN, NULL);
+                    playerActorPlayChildSlotsWithBlend(playerTask, PLAYER_ANIMATION_FIRE, 0, 2);
                 } else {
                     burstDelay--;
                     actor->stateTimer = burstDelay;
@@ -874,7 +885,7 @@ void m4a1JavelinAttackState(Task* playerTask)
                         actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
                         if (playerActorSpawnWeaponImpact(actor->weaponContacts, rootCoord, impactCoord) != 0) {
                             effectSpawn(EFFECT_IMPACT_SPARK, impactCoord, 0, NULL);
-                            worldCoordPlaySound(impactCoord, M4A1_JAVELIN_IMPACT_SOUND, 1);
+                            worldCoordPlaySound(impactCoord, SOUND_BULLET_IMPACT, 1);
                         }
                     }
                 }
@@ -886,7 +897,7 @@ void m4a1JavelinAttackState(Task* playerTask)
             actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
             if (playerActorSpawnWeaponImpact(actor->weaponContacts, rootCoord, impactCoord) != 0) {
                 effectSpawn(EFFECT_IMPACT_SPARK, impactCoord, 0, NULL);
-                worldCoordPlaySound(impactCoord, M4A1_JAVELIN_IMPACT_SOUND, 1);
+                worldCoordPlaySound(impactCoord, SOUND_BULLET_IMPACT, 1);
             }
             break;
         case M4A1_JAVELIN_PHASE_BEAM_DELAY:
@@ -918,7 +929,7 @@ void m4a1JavelinAttackState(Task* playerTask)
             if (actor->attackCancelTicks != 0) {
                 actor->attackCancelTicks--;
             }
-            if (playerActorIsSlotAdvancingLinearly(playerTask, gPlayerActorAttachmentParentParts[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId][1], 0, 0) == 0 ||
+            if (_weaponIsArmSlotAdvancing(playerTask) == 0 ||
                 ((actor->padHeld & actor->actionPadMask) != 0 && actor->attackCancelTicks == 0)) {
                 actor->attackControl.cooldownTicks = M4A1_JAVELIN_RECOVERY_COOLDOWN_FRAMES;
                 playerActorFinishWeaponAttack(playerTask);
@@ -927,50 +938,3 @@ void m4a1JavelinAttackState(Task* playerTask)
     }
     SCRATCH_STACK_RELEASE_BYTES(M4A1_JAVELIN_ATTACK_SCRATCH_BYTES);
 }
-
-/// The model `gM4a1JavelinWeaponModel`: generated from its asset (weapons/m4a1_javelin/model) by tools/buildsteps/gen_model_source.py.
-#include "assets/weapons/m4a1_javelin/model.inc"
-
-/// The player's clips this package carries, in the package's order, and its animation bank (weapons/m4a1_javelin/bank):
-/// generated from the clip and bank assets by tools/buildsteps/gen_animation_source.py.
-#include "assets/weapons/m4a1_javelin/clips.inc"
-#include "assets/weapons/m4a1_javelin/bank.inc"
-
-/// Unreferenced four-byte value following the player animation bank; role unproven.
-static u32 D_m4a1_javelin_8012EB5C = 0x102232DD;
-
-/// Cached screen direction shared by visible segments of the airborne guide beam.
-///
-/// Stores the low halfword of a signed angle, in 4096 units per turn. Drawing
-/// interprets it as s16; a refresh replaces it before constructing a far cap.
-static u16 _gM4a1JavelinBeamScreenAngle = 0;
-
-/// Cached ground-glow screen direction, independent of the airborne beam's angle.
-///
-/// Stores the low halfword of a signed angle, in 4096 units per turn, interpreted
-/// as s16 by the ground-strip drawer.
-static u16 _gM4a1JavelinGroundBeamScreenAngle = 0;
-
-/// Requests an airborne-beam direction refresh after an endpoint projection fails.
-///
-/// Boolean halfword (0 clear, 1 pending). Cleared at the start of each beam tick;
-/// within the tick, the next accepted segment refreshes the angle and far cap.
-static s16 _gM4a1JavelinBeamAngleRefreshPending = false;
-
-/// Requests a ground-glow direction refresh after an endpoint projection fails.
-///
-/// Boolean halfword (0 clear, 1 pending), independent of the airborne request.
-/// Cleared at each beam tick and consumed by the next accepted ground segment.
-static s16 _gM4a1JavelinGroundBeamAngleRefreshPending = false;
-
-/// Copied world-space contact endpoint of the current guide beam, in game units.
-///
-/// XYZ are narrowed to signed halfwords. Coordinates are meaningful only while
-/// `_gM4a1JavelinTrackedImpactValid` is true; invalidation retains the stale point.
-static SVECTOR _gM4a1JavelinTrackedImpactPoint = { 0, 0, 0, 0 };
-
-/// Whether the guide beam should end at its copied contact rather than its full reach.
-///
-/// Cleared on guide initialization or a missing contact; set when the contact's
-/// XYZ translation is copied. It owns no pointer into the contact's scratch storage.
-static bool _gM4a1JavelinTrackedImpactValid = false;

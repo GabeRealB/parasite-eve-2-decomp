@@ -1,5 +1,24 @@
 /* Part of the sprite quad library; see sprite_quad.h. */
 
+#include <psyq/sys/types.h>
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/inline_c.h>
+#include <psyq/libgs.h>
+
+#include "common.h"
+#include "gte.h"
+#include "types.h"
+
+#include "gameplay/effects.h"
+
+#include "main/coord.h"
+#include "main/display.h"
+#include "main/display_types.h"
+#include "main/scratch.h"
+
+#include "sprite_quad.h"
+
 #ifndef SPRITE_QUAD_TRANSLATION_COMPONENT
 #error Define SPRITE_QUAD_TRANSLATION_COMPONENT for the configured sprite position source type
 #endif

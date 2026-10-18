@@ -1,5 +1,5 @@
-_grenadeShellExit = 0x8011DE24; // type:func
-_grenadeShellBlast = 0x8011DDF8; // type:func
+_launcherGrenadeExit = 0x8011DE24; // type:func
+_launcherGrenadeBlast = 0x8011DDF8; // type:func
 _m4a1GrenadeInitProjectile = 0x8011d654; // type:func
 m4a1GrenadeAttackState = 0x8011d1ec; // type:func
 _m4a1GrenadeFlyProjectile = 0x8011d994; // type:func

@@ -110,7 +110,7 @@ height = 64
 variants = ["default"]
 width = 256
 
-[slug_pump]
+[rifled_slug_pump]
 type = "sound"
 sha1 = "e27ab188f3779c67f5d72d549fa7270237d8cad0"
 
@@ -118,9 +118,9 @@ sha1 = "e27ab188f3779c67f5d72d549fa7270237d8cad0"
 type = "sound"
 sha1 = "e5180506e6dd4693c77202e0b09900f2f790dcf9"
 
-[slug_sounds]
+[rifled_slug_sounds]
 type = "sound_bank"
-samples = ["weapons/sp12/click", "weapons/sp12/slug_pump", "weapons/sp12/reload_load", "weapons/shotgun/slug_shot"]
+samples = ["weapons/sp12/click", "weapons/sp12/rifled_slug_pump", "weapons/sp12/reload_load", "weapons/shotgun/rifled_slug_shot"]
 sha1 = "1ad0309fbfa4427bade3ca265815af9dd4c2981e"
 
 [firefly_shot]

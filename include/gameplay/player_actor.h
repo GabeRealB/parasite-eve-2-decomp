@@ -15,6 +15,11 @@
 #include "main/session_types.h"
 #include "main/task_types.h"
 
+/// Player actor states (`GameActor::state` in normal mode) that code outside the player actor enters.
+enum {
+    PLAYER_ACTOR_STATE_ATTACK = 4, // The equipped weapon's attack state runs (each weapon's `<weapon>AttackState`)
+};
+
 /// Values published by gameplay and scripts to the ordinary actor state-tick gate.
 enum { PLAYER_ACTOR_STATE_TICK_RUNNING = 0,
        PLAYER_ACTOR_STATE_TICK_HELD    = 1 };

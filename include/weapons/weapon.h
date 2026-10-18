@@ -15,6 +15,8 @@
 #include "main/task_types.h"
 #include "main/tmd_types.h"
 
+#include "weapons/weapon_index.h"
+
 /// Work block of a fired grenade, allocated zeroed by the projectile's spawn
 /// state and kept at `Task::work`.
 ///
@@ -45,7 +47,7 @@ STATIC_ASSERT_SIZEOF(WeaponGrenadeWork, 0xA0);
 /// the divisor slows subsequent steps. Shared launcher shells and M4A1 grenades
 /// use the same increment with different flight limits. Applies only in flight;
 /// detonation reuses the timer word as a whole-frame blast countdown.
-#define GRENADE_SHELL_FLIGHT_DIVISOR_STEP 0x1800
+#define LAUNCHER_GRENADE_FLIGHT_DIVISOR_STEP 0x1800
 
 /// Converts a loaded consumable item id to its one-based weapon ammunition index.
 ///
@@ -69,6 +71,17 @@ enum {
     GRENADE_ROUND_FRAGMENTATION = 0xA, // Grenade (item 0xA9)
     GRENADE_ROUND_AIRBURST      = 0xB, // Airburst (item 0xAA)
     GRENADE_ROUND_RIOT          = 0xC  // Riot (item 0xAB)
+};
+
+/// The 12-gauge shells of the shotguns (PA3, SP12, AS12) and the Gunblade, as `WEAPON_AMMUNITION_INDEX` of their items.
+///
+/// The loaded shell selects the weapon's sound bank and its shot's spread, flash and impact. Tables and sound variants
+/// with one entry per shell are indexed by the shell minus `SHOTGUN_ROUND_FIRST`.
+enum {
+    SHOTGUN_ROUND_FIRST       = 0xD,
+    SHOTGUN_ROUND_BUCKSHOT    = 0xD, // Buckshot (item 0xAC)
+    SHOTGUN_ROUND_FIREFLY     = 0xE, // Firefly (item 0xAD)
+    SHOTGUN_ROUND_RIFLED_SLUG = 0xF  // R. Slug (item 0xAE)
 };
 
 /// Converts a one-based weapon index to the weapon's inventory item id.

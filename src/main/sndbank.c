@@ -389,7 +389,7 @@ TaskDesc gTaskBank7Descs[TASK_BANK7_DESCRIPTOR_COUNT] = {
     { { { TASK_BODY_NONE, 0xC0 } }, taskKill },
     { { { TASK_BODY_NONE, 0xC0 } }, taskKill },
     { { { TASK_BODY_NONE, 0xC0 } }, taskKill },
-    { { { TASK_BODY_TMD, 0x52 } }, func_mm1_8011DBD0, { .model = &gMm1ShellModel } },
+    { { { TASK_BODY_TMD, 0x52 } }, mm1ShellTask, { .model = &gMm1ShellModel } },
     { { { TASK_BODY_TMD, 0x52 } }, kyle800102GrenadeShellTask, { .model = &gKyle800102Mm1GrenadeShell } },
     { { { TASK_BODY_NONE, 0xC0 } }, taskKill },
     { { { TASK_BODY_NONE, 0xC0 } }, taskKill },

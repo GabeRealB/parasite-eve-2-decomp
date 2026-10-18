@@ -1,45 +1,34 @@
 #include "weapons/mp5a5.h"
 
+#include "config.h"
+
 #include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
-#include <psyq/inline_c.h>
 #include <psyq/libgs.h>
 
 #include "common.h"
-#include "gte.h"
 #include "types.h"
 
-#include "gameplay/display.h"
-#include "gameplay/actor_render.h"
 #include "gameplay/effects.h"
 #include "gameplay/items.h"
-#include "gameplay/light.h"
 #include "gameplay/player_actor.h"
 #include "gameplay/room_effects.h"
-#include "gameplay/scene.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_coords.h"
 
-#include "main/coord.h"
-#include "main/display.h"
-#include "main/display_types.h"
-#include "main/gamemain.h"
-#include "main/mc.h"
 #include "main/mc_types.h"
 #include "main/scratch.h"
 #include "main/session_types.h"
-#include "main/sound.h"
 #include "main/task.h"
 #include "main/task_types.h"
 #include "main/wipsys.h"
 #include "main/wipsys_types.h"
 
 #include "weapons/weapon.h"
+#include "weapons/sounds.h"
 
-#include "overlay.h"
-
-#include "../../shared/effects/muzzle_flash.h"
+#include "../shared/muzzle_flash.h"
 
 /// Manifest-selected weapon index, equal to its inventory item ID minus 0x7F.
 ///
@@ -52,49 +41,31 @@
 #endif
 
 /// MP5A5 alternate-fire flash origin in integer weapon-root coordinates.
-static SVECTOR _gMp5a5MuzzleFlashOffset = { 0, 576, 64, 0 };
+static SVECTOR _gMuzzleFlashOffset = { 0, 576, 64, 0 };
 
+/// Retained streak directions shared by every live flash in this weapon package.
+///
+/// Angles use 4096 units per turn, one random direction in each quadrant.
+/// Each newly initialized flash replaces the directions older flashes read.
 static s16 _gMuzzleFlashAngles[MUZZLE_FLASH_STREAK_COUNT];
 
-/// Selects the MP5A5 alternate-fire flash offset in weapon-root coordinates.
-///
-/// Binds a carrier-owned `SVECTOR`: XYZ are signed integer model units, and
-/// `pad` is unused. The task copies each component once during initialization.
-/// Keep this binding scoped to the task-fragment inclusion.
-#define MUZZLE_FLASH_OFFSET _gMp5a5MuzzleFlashOffset
-#include "../../shared/effects/muzzle_flash_task.inc.c"
-#undef MUZZLE_FLASH_OFFSET
+#include "../shared/muzzle_flash.inc.c"
+#include "../shared/attack.h"
 
-void mp5a5MuzzleFlashTask(Task* task)
-{
-    _muzzleFlashTask(task);
-}
+DEFINE_ALIAS(_muzzleFlashTask, mp5a5MuzzleFlashTask);
 
-#include "../../shared/effects/muzzle_flash.inc.c"
+#include "assets/engine/animation/player_schema.h"
 
 void mp5a5AttackState(Task* playerTask)
 {
     enum {
-        MP5A5_PHASE_PREPARE             = 0,
-        MP5A5_PHASE_WAIT_READY          = 1,
-        MP5A5_PHASE_ARM_SHOT            = 2,
-        MP5A5_PHASE_SHOT_DELAY          = 3,
-        MP5A5_PHASE_PRIMARY_IMPACT      = 4,
-        MP5A5_PHASE_SECONDARY_IMPACT    = 5,
-        MP5A5_PHASE_RECOVER             = 6,
-        MP5A5_PLAYER_ATTACK_STATE       = 4,
-        MP5A5_ANIMATION_READY           = 9,
-        MP5A5_ANIMATION_PRIMARY         = 0xA,
-        MP5A5_READY_BLEND_FRAMES        = 1,
-        MP5A5_MOVING_READY_BLEND_FRAMES = 5,
-        MP5A5_IMPACT_SOUND              = SOUND_COMMON(0x17),
-        MP5A5_SECONDARY_SPREAD_RADIUS   = 0xC00,
-        MP5A5_SECONDARY_COOLDOWN_FRAMES = 0x12,
-        MP5A5_SECONDARY_ACTIVE_FRAMES   = 0x12,
-        MP5A5_PRIMARY_SHOT_DELAY_FRAMES = 3,
-        MP5A5_SECONDARY_KEY_BASE        = WORLD_COLLISION_CONTACT_ATTACK | 0x16,
-        MP5A5_PRIMARY_SOUND_BASE        = SOUND_WEAPON(0, 4),
-        MP5A5_SECONDARY_SOUND_BASE      = SOUND_WEAPON(0, 5),
+        MP5A5_PHASE_PREPARE          = 0,
+        MP5A5_PHASE_WAIT_READY       = 1,
+        MP5A5_PHASE_ARM_SHOT         = 2,
+        MP5A5_PHASE_SHOT_DELAY       = 3,
+        MP5A5_PHASE_PRIMARY_IMPACT   = 4,
+        MP5A5_PHASE_SECONDARY_IMPACT = 5,
+        MP5A5_PHASE_RECOVER          = 6,
     };
     GameActor*             actor;
     GfxCoord*              rootCoord;
@@ -108,7 +79,7 @@ void mp5a5AttackState(Task* playerTask)
     rootCoord   = playerTask->extra.tmd->coords;
     switch (actor->statePhase) {
         case MP5A5_PHASE_PREPARE:
-            actor->state                                          = MP5A5_PLAYER_ATTACK_STATE;
+            actor->state                                          = PLAYER_ACTOR_STATE_ATTACK;
             actor->turnRateIndex                                  = 2;
             actor->mode                                           = GAME_ACTOR_MODE_NORMAL;
             actor->animationState                                 = 0;
@@ -119,7 +90,7 @@ void mp5a5AttackState(Task* playerTask)
             if (((u16)actor->movementMode | actor->turnSign) != 0) {
                 readyBlendFrames = MP5A5_MOVING_READY_BLEND_FRAMES;
             }
-            playerActorPlayChildSlotsWithBlend(playerTask, MP5A5_ANIMATION_READY, 0, readyBlendFrames);
+            playerActorPlayChildSlotsWithBlend(playerTask, PLAYER_ANIMATION_AIM_IDLE, 0, readyBlendFrames);
             actor->movementMode = 0;
             break;
         case MP5A5_PHASE_WAIT_READY:
@@ -145,12 +116,12 @@ void mp5a5AttackState(Task* playerTask)
                     weaponShape->end0Radius                               = weaponShape->end1Radius;
                     actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= WORLD_COLLISION_BODY_SINGLE_CONTACT;
                     playerActorSetWeaponAttackFlags(playerTask, 0, 1);
-                    worldCoordPlaySound(playerTask->extra.tmd->coords, MP5A5_PRIMARY_SOUND_BASE | (WEAPON_INDEX << 16), 1);
+                    worldCoordPlaySound(playerTask->extra.tmd->coords, MP5A5_SOUND(WEAPON_SOUND_SLOT_SHOT), 1);
                     effectSpawn(EFFECT_HANDGUN_MUZZLE_FLASH,
                                 actor->equipmentTasks[1]->extra.tmd->coords,
                                 WEAPON_INDEX, NULL);
                     equipmentConsumeWeaponLoad(WEAPON_ITEM_ID(WEAPON_INDEX), EQUIPMENT_WEAPON_LOAD_CONSUME_PRIMARY);
-                    playerActorPlayChildSlotsWithBlend(playerTask, MP5A5_ANIMATION_PRIMARY, 0, 2);
+                    playerActorPlayChildSlotsWithBlend(playerTask, PLAYER_ANIMATION_FIRE, 0, 2);
                 } else {
                     actor->statePhase                                     = MP5A5_PHASE_SECONDARY_IMPACT;
                     actor->attackControl.cooldownTicks                    = MP5A5_SECONDARY_COOLDOWN_FRAMES;
@@ -159,7 +130,7 @@ void mp5a5AttackState(Task* playerTask)
                     weaponShape->end0Radius                               = MP5A5_SECONDARY_SPREAD_RADIUS;
                     actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_SINGLE_CONTACT);
                     playerActorSetWeaponAttackFlags(playerTask, 0, 0);
-                    worldCoordPlaySound(playerTask->extra.tmd->coords, MP5A5_SECONDARY_SOUND_BASE | (WEAPON_INDEX << 16), 0);
+                    worldCoordPlaySound(playerTask->extra.tmd->coords, MP5A5_SOUND(MP5A5_SOUND_SECONDARY_SHOT), 0);
                     equipmentConsumeWeaponLoad(WEAPON_ITEM_ID(WEAPON_INDEX), EQUIPMENT_WEAPON_LOAD_CONSUME_SECONDARY);
                     flashWork = effectSpawn(EFFECT_MP5A5_ALT_FIRE_MUZZLE_FLASH,
                                             actor->equipmentTasks[1]->extra.tmd->coords,
@@ -174,7 +145,7 @@ void mp5a5AttackState(Task* playerTask)
         case MP5A5_PHASE_PRIMARY_IMPACT:
         case MP5A5_PHASE_SECONDARY_IMPACT:
             if (actor->statePhase < MP5A5_PHASE_SECONDARY_IMPACT && playerActorSpawnWeaponImpact(actor->weaponContacts, rootCoord, impactCoord) != 0) {
-                worldCoordPlaySound(impactCoord, MP5A5_IMPACT_SOUND, 1);
+                worldCoordPlaySound(impactCoord, SOUND_BULLET_IMPACT, 1);
             }
             actor->statePhase                                     = MP5A5_PHASE_RECOVER;
             actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
@@ -184,7 +155,7 @@ void mp5a5AttackState(Task* playerTask)
             if (playerActorReadAttackButton(playerTask) == PLAYER_ACTOR_ATTACK_BUTTON_PRIMARY && playerActorQueryWeaponLoads(PLAYER_ACTOR_WEAPON_LOAD_PRIMARY) > 0 && actor->attackControl.cooldownTicks == 0) {
                 goto fire;
             }
-            if (playerActorIsSlotAdvancingLinearly(playerTask, gPlayerActorAttachmentParentParts[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId][1], 0, 0) == 0) {
+            if (_weaponIsArmSlotAdvancing(playerTask) == 0) {
                 playerActorFinishWeaponAttack(playerTask);
             }
             break;
@@ -208,11 +179,5 @@ void mp5a5AttackState(Task* playerTask)
 #error "WEAPON_INDEX selects no package of this source"
 #endif
 #include "assets/weapons/mp5a5/bank.inc"
-
-/// Retained streak directions shared by every live flash in this weapon package.
-///
-/// Angles use 4096 units per turn, one random direction in each quadrant.
-/// Each newly initialized flash replaces the directions older flashes read.
-static s16 _gMuzzleFlashAngles[MUZZLE_FLASH_STREAK_COUNT] = { 0, 0, 0, 0 };
 
 PACKAGE_ALIASES

@@ -38,8 +38,8 @@ samples = [
     "weapons/m4a1_attachment/click",
     "weapons/m4a1_attachment/reload_load",
     "weapons/m4a1_attachment/shot",
-    "weapons/m4a1_pyke/fire_tail_2",
-    "weapons/m4a1_pyke/fire_tail",
+    "weapons/m4a1_pyke/flame",
+    "weapons/m4a1_pyke/flame_ignition",
 ]
 sha1 = "ad5cfc82f2c90e3b8afc53a6a9cb0045aa031e31"
 
@@ -103,18 +103,18 @@ height = 64
 variants = ["default"]
 width = 256
 
-[fire_tail]
+[flame]
 type = "sound"
-mode = "high"
-sha1 = "9a74940e6cddbda3fa04c65f192c6db7e260f9ff"
+sha1 = "dedcb50f2b5a37cc67b4c91f83579ebb207fc92a"
 
 [flame_end]
 type = "clip"
 rig = "characters/aya/rig"
 
-[fire_tail_2]
+[flame_ignition]
 type = "sound"
-sha1 = "dedcb50f2b5a37cc67b4c91f83579ebb207fc92a"
+mode = "high"
+sha1 = "9a74940e6cddbda3fa04c65f192c6db7e260f9ff"
 
 [flame_start]
 type = "clip"

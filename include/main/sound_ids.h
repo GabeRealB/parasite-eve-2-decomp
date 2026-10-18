@@ -67,7 +67,7 @@ enum {
 /// before playback, and the entry must exist in its loaded script image.
 #define SOUND_COMMON(entry) SOUND_ID(SOUND_BANK_TYPE_COMMON, 0, (entry))
 
-/// Character and weapon banks, by the code that plays them.
+/// Character banks, by the code that plays them (weapon banks are weapon indices, weapons/weapon_index.h).
 enum {
     SOUND_BANK_ACTOR_311500  = 0x0A, // actor_311500 and actor_317000
     SOUND_BANK_ACTOR_356100  = 0x0D, // actor_356100 and actor_401300
@@ -77,8 +77,6 @@ enum {
     SOUND_BANK_BURNER        = 0x1F, // Burner
     SOUND_BANK_DESERT_CHASER = 0x01, // Desert Chaser; also played by actor_00100 and actor_323400
     SOUND_BANK_GLUTTON       = 0x20, // Glutton
-    SOUND_BANK_HYPERVELOCITY = 0x16, // Hypervelocity
-    SOUND_BANK_M4A1_PYKE     = 0x1C, // M4A1 Pyke
     SOUND_BANK_MAD_CHASER    = 0x2C, // Mad Chaser
     SOUND_BANK_PLAYER        = 0x68, // the player and the companions
     SOUND_BANK_STRANGER      = 0x1D, // Stranger
@@ -102,6 +100,8 @@ enum {
     /// Played when a weapon is equipped or a part attached (Equip/Attach prompt, ammo
     /// row equip).
     SOUND_WEAPON_EQUIP = SOUND_COMMON(0x0A),
+    /// A shot's impact, played at the impact point when `playerActorSpawnWeaponImpact` reports a hit.
+    SOUND_BULLET_IMPACT = SOUND_COMMON(0x17),
     /// Played when the area-leave task starts, before the ending/area music is queued.
     SOUND_AREA_EXIT = SOUND_COMMON(0x0B),
     /// Played when the Antibody aura reacts to the player losing HP.
@@ -120,25 +120,11 @@ enum {
     SOUND_AMMO_LOAD = SOUND_COMMON(0x3C),
 };
 
-/// Weapon banks.
+/// Weapon banks (each weapon's sounds: weapons/sounds.h).
 enum {
     /// Whole weapon bank type (2): stops every weapon sound on death/restart and stage
     /// init.
     SOUND_BANK_TYPE_WEAPON_ALL = SOUND_ID(SOUND_BANK_TYPE_WEAPON, 0, 0),
-    /// Hypervelocity first charge stage: started when the charge begins, stopped at the
-    /// 60-frame halfway mark or on cancel.
-    SOUND_HYPERVELOCITY_CHARGE_START = SOUND_WEAPON(SOUND_BANK_HYPERVELOCITY, 3),
-    /// Hypervelocity charge released early (power-down); cut every frame while the
-    /// trigger stays held.
-    SOUND_HYPERVELOCITY_CHARGE_CANCEL = SOUND_WEAPON(SOUND_BANK_HYPERVELOCITY, 4),
-    /// Hypervelocity charge loop running for the whole charge, stopped when the shot
-    /// fires or is cancelled.
-    SOUND_HYPERVELOCITY_CHARGE_LOOP = SOUND_WEAPON(SOUND_BANK_HYPERVELOCITY, 5),
-    /// Hypervelocity muzzle ring's one-shot report once it passes half brightness in
-    /// the firing state.
-    SOUND_HYPERVELOCITY_DISCHARGE = SOUND_WEAPON(SOUND_BANK_HYPERVELOCITY, 6),
-    /// M4A1 Pyke tail played when a burst/dart ends; stopped on interrupt.
-    SOUND_PYKE_FIRE_TAIL = SOUND_WEAPON(SOUND_BANK_M4A1_PYKE, 5),
 };
 
 /// Character banks.
@@ -175,9 +161,9 @@ enum {
     SOUND_SUCKLERCEPH_PROJECTILE_IMPACT = SOUND_CHARACTER(SOUND_BANK_SUCKLERCEPH, 7),
     /// Companion actor_800100 fires its weapon (effect 0x6002B at the weapon).
     SOUND_ACTOR_800100_ATTACK = SOUND_CHARACTER(SOUND_BANK_ACTOR_800100, 1),
-    /// Companion counterpart of the Pyke fire tail, stopped when its Pyke burst is
+    /// The companion's Pyke flame (the player's is `M4A1_PYKE_SOUND_FLAME`), stopped when its attack is
     /// interrupted.
-    SOUND_COMPANION_PYKE_FIRE_TAIL = SOUND_CHARACTER(SOUND_BANK_PLAYER, 2),
+    SOUND_COMPANION_PYKE_FLAME = SOUND_CHARACTER(SOUND_BANK_PLAYER, 2),
     /// Companion actor_800200 hit (hitRegion set after contact processing).
     SOUND_ACTOR_800200_HURT = SOUND_CHARACTER(SOUND_BANK_ACTOR_800200, 0x0A),
 };

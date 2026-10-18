@@ -102,13 +102,13 @@ height = 64
 variants = ["default"]
 width = 256
 
-[slug_sounds]
+[rifled_slug_sounds]
 type = "sound_bank"
 samples = [
     "weapons/shotgun/click",
-    "weapons/shotgun/slug_pump",
+    "weapons/shotgun/rifled_slug_pump",
     "weapons/shotgun/reload_load",
-    "weapons/shotgun/slug_shot",
+    "weapons/shotgun/rifled_slug_shot",
 ]
 sha1 = "0cd8e4a2a874f67baf57c4b68ec70f955c09091d"
 

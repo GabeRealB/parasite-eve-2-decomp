@@ -1,9 +1,9 @@
 // Overlay-local symbols for the Grenade Pistol. The MM1 is this source built
 // again; its objdiff target takes these names by position.
-_grenadeShellSpawn = 0x8011D3A0; // type:func
-_grenadeShellFly = 0x8011D6FC; // type:func
-_grenadeShellBlast = 0x8011DB60; // type:func
-_grenadeShellExit = 0x8011DB8C; // type:func
+_launcherGrenadeSpawn = 0x8011D3A0; // type:func
+_launcherGrenadeFly = 0x8011D6FC; // type:func
+_launcherGrenadeBlast = 0x8011DB60; // type:func
+_launcherGrenadeExit = 0x8011DB8C; // type:func
 grenadePistolShellTask = 0x8011dbd0; // type:func
 grenadePistolAttackState = 0x8011d1d4; // type:func
 _gGrenadePistolShellStateHandlers = 0x8011d1c4;

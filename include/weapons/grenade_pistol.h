@@ -1,3 +1,5 @@
+/* The grenade launchers, one source (src/weapons/grenade_pistol): the Grenade Pistol and the MM1. */
+
 #ifndef INCLUDE_WEAPONS_GRENADE_PISTOL_H
 #define INCLUDE_WEAPONS_GRENADE_PISTOL_H
 
@@ -5,6 +7,12 @@
 
 #include "main/task_types.h"
 #include "main/tmd_types.h"
+
+enum {
+    /// A shell's detonation in the Grenade Pistol's and MM1's banks, one bank per round (`GRENADE_ROUND_*`). The
+    /// shell effect plays it for the weapon that fired it, Kyle's launcher included.
+    GRENADE_PISTOL_SOUND_DETONATION = 5,
+};
 
 /// Player motion bank used while the Grenade Pistol is equipped (asset weapons/grenade_pistol/bank).
 ///
@@ -76,8 +84,6 @@ void grenadePistolAttackState(Task* playerTask);
 /// Uses the Grenade Pistol attack contract with the MM1 overlay loaded.
 void mm1AttackState(Task* playerTask);
 
-void func_mm1_8011DBD0(Task* arg0);
-
 /// Dispatches the Grenade Pistol projectile's spawn, flight, blast and teardown states.
 ///
 /// Requires task state 0..3 and the matching weapon/gameplay overlays loaded.
@@ -87,5 +93,8 @@ void func_mm1_8011DBD0(Task* arg0);
 /// ammunition and launcher-row selectors to the states. The MM1 build exports
 /// its own alias of this dispatcher; its model and launch tuning remain separate.
 void grenadePistolShellTask(Task* task);
+
+/// The MM1 build's alias of `grenadePistolShellTask`.
+void mm1ShellTask(Task* task);
 
 #endif // INCLUDE_WEAPONS_GRENADE_PISTOL_H

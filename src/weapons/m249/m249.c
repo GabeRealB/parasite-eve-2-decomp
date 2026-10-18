@@ -1,5 +1,7 @@
 #include "weapons/m249.h"
 
+#include "config.h"
+
 #include "common.h"
 
 #include "gameplay/items.h"
@@ -9,10 +11,8 @@
 #include "gameplay/world_coords.h"
 
 #include "main/coord.h"
-#include "main/mc.h"
 #include "main/mc_types.h"
 #include "main/scratch.h"
-#include "main/sound.h"
 #include "main/session_types.h"
 #include "main/task_types.h"
 
@@ -38,47 +38,21 @@ typedef struct {
 STATIC_ASSERT_SIZEOF(_M249AttackScratch, 0x68);
 
 #include "weapons/weapon.h"
+#include "weapons/sounds.h"
 
-enum { M249_IMPACT_SOUND = SOUND_COMMON(0x17) };
+#include "../shared/attack.h"
 
-/// Ends M249 shot contact tests and requests the chosen surface's impact effect and sound.
-///
-/// Clears only the weapon body's grid/pair enables; keeps it linked and its
-/// complete six-entry contact table intact. Requires live player/room state,
-/// initialized contacts and `rootCoord->workm` in the contacts' view frame.
-/// Enemy-body hits suppress surface selection. A selected eligible grid point
-/// receives 0..7 units of XYZ jitter; only `impactCoord`'s three cached
-/// translation words are written. Failure leaves that temporary node untouched.
-/// On success, requests the common impact sound synchronously and latches
-/// combat noise. Scratch/GTE requirements follow the picker and sound APIs;
-/// this helper neither releases nor retains the caller's writable impact node.
-static inline void _m249ResolveShotImpact(GameActor* actor, const GfxCoord* rootCoord, GfxCoord* impactCoord)
-{
-    enum { M249_IMPACT_SIGNAL_NOISE = 1 };
-
-    actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
-    if (playerActorSpawnWeaponImpact(actor->weaponContacts, rootCoord, impactCoord) != 0) {
-        worldCoordPlaySound(impactCoord, M249_IMPACT_SOUND, M249_IMPACT_SIGNAL_NOISE);
-    }
-}
+#include "assets/engine/animation/player_schema.h"
 
 void m249AttackState(Task* playerTask)
 {
     enum {
-        M249_PHASE_PREPARE             = 0,
-        M249_PHASE_WAIT_READY          = 1,
-        M249_PHASE_ARM_SHOT            = 2,
-        M249_PHASE_SHOT_DELAY          = 3,
-        M249_PHASE_IMPACT              = 4,
-        M249_PHASE_RECOVER             = 5,
-        M249_PLAYER_ATTACK_STATE       = 4,
-        M249_ANIMATION_READY           = 9,
-        M249_ANIMATION_PRIMARY         = 0xA,
-        M249_READY_BLEND_FRAMES        = 1,
-        M249_WEAPON_ID                 = 17,
-        M249_MOVING_READY_BLEND_FRAMES = 8,
-        M249_SHOT_DELAY_FRAMES         = 2,
-        M249_FIRE_SOUND                = SOUND_WEAPON(17, 4),
+        M249_PHASE_PREPARE    = 0,
+        M249_PHASE_WAIT_READY = 1,
+        M249_PHASE_ARM_SHOT   = 2,
+        M249_PHASE_SHOT_DELAY = 3,
+        M249_PHASE_IMPACT     = 4,
+        M249_PHASE_RECOVER    = 5,
     };
     GameActor*          actor;
     GfxCoord*           rootCoord;
@@ -92,7 +66,7 @@ void m249AttackState(Task* playerTask)
     switch (actor->statePhase) {
         case M249_PHASE_PREPARE:
             readyBlendFrames      = M249_READY_BLEND_FRAMES;
-            actor->state          = M249_PLAYER_ATTACK_STATE;
+            actor->state          = PLAYER_ACTOR_STATE_ATTACK;
             actor->turnRateIndex  = 2;
             actor->mode           = GAME_ACTOR_MODE_NORMAL;
             actor->animationState = 0;
@@ -101,7 +75,7 @@ void m249AttackState(Task* playerTask)
             if (((u16)actor->movementMode | actor->turnSign) != 0) {
                 readyBlendFrames = M249_MOVING_READY_BLEND_FRAMES;
             }
-            playerActorPlayChildSlotsWithBlend(playerTask, M249_ANIMATION_READY, 0, readyBlendFrames);
+            playerActorPlayChildSlotsWithBlend(playerTask, PLAYER_ANIMATION_AIM_IDLE, 0, readyBlendFrames);
             actor->movementMode = 0;
             break;
         case M249_PHASE_WAIT_READY:
@@ -123,25 +97,25 @@ void m249AttackState(Task* playerTask)
             if (--actor->stateTimer == 0) {
                 actor->statePhase++;
                 actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
-                equipmentConsumeWeaponLoad(WEAPON_ITEM_ID(M249_WEAPON_ID), EQUIPMENT_WEAPON_LOAD_CONSUME_PRIMARY);
-                worldCoordPlaySound(playerTask->extra.tmd->coords, M249_FIRE_SOUND, 1);
+                equipmentConsumeWeaponLoad(WEAPON_ITEM_ID(WEAPON_INDEX_M249), EQUIPMENT_WEAPON_LOAD_CONSUME_PRIMARY);
+                worldCoordPlaySound(playerTask->extra.tmd->coords, M249_SOUND(WEAPON_SOUND_SLOT_SHOT), 1);
                 effectSpawn(EFFECT_RIFLE_MUZZLE_FLASH,
-                            actor->equipmentTasks[1]->extra.tmd->coords, M249_WEAPON_ID,
+                            actor->equipmentTasks[1]->extra.tmd->coords, WEAPON_INDEX_M249,
                             NULL);
-                playerActorPlayChildSlotsWithBlend(playerTask, M249_ANIMATION_PRIMARY, 1, M249_SHOT_DELAY_FRAMES);
+                playerActorPlayChildSlotsWithBlend(playerTask, PLAYER_ANIMATION_FIRE, 1, M249_SHOT_DELAY_FRAMES);
             }
             break;
         case M249_PHASE_IMPACT:
             impactCoord         = &scratch->impactCoord;
             actor->movementSign = 0;
             actor->statePhase++;
-            _m249ResolveShotImpact(actor, rootCoord, impactCoord);
+            _weaponResolveShotImpact(actor, rootCoord, impactCoord);
             /* fallthrough */
         case M249_PHASE_RECOVER:
             if (playerActorReadAttackButton(playerTask) != 0 && playerActorQueryWeaponLoads(PLAYER_ACTOR_WEAPON_LOAD_PRIMARY) > 0) {
                 goto fire;
             }
-            if (playerActorIsSlotAdvancingLinearly(playerTask, gPlayerActorAttachmentParentParts[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId][1], 0, 0) == 0) {
+            if (_weaponIsArmSlotAdvancing(playerTask) == 0) {
                 playerActorFinishWeaponAttack(playerTask);
             }
             break;

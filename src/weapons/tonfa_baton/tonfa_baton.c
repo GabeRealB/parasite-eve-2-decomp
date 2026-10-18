@@ -1,15 +1,13 @@
 #include "weapons/tonfa_baton.h"
 
+#include "config.h"
+
 #include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
-#include <psyq/inline_c.h>
 #include <psyq/libgs.h>
 
 #include "common.h"
-#include "gte.h"
-
-#include "tonfa_baton_private.h"
 
 #include "gameplay/display.h"
 #include "gameplay/actor_render.h"
@@ -22,31 +20,25 @@
 #include "gameplay/world_collision.h"
 
 #include "main/coord.h"
-#include "main/display.h"
-#include "main/display_types.h"
 #include "main/gfx.h"
 #include "main/pad.h"
 #include "main/scratch.h"
 #include "main/session.h"
 #include "main/session_types.h"
-#include "main/sound.h"
 #include "main/task.h"
 #include "main/task_types.h"
 #include "main/tmd_types.h"
 
 #include "weapons/weapon.h"
 
-#include "../../shared/effects/blade_trail.h"
+#include "../shared/blade_trail.h"
 #include "gameplay/world_coords.h"
 
-static s16 _gTonfaBatonTrailTint;
-
-/// Divisor that turns the model's forward axis into the distance a baton
-/// strike carries the actor per frame: 4096 / 84, about 48 coordinate units.
-enum { TONFA_BATON_ATTACK_ADVANCE_DIVISOR = 84 };
+// Defined at the end of the file, after the package's model and bank.
+/// The eight-segment swing trails, one array per end of the baton. Every entry
+/// is parented to `gGfxViewCoord`.
 
 /// One-based weapon index passed to the resident use counter.
-enum { TONFA_BATON_WEAPON_ID = 19 };
 
 /// Scratch-stack block for the tonfa baton's attack handler.
 ///
@@ -88,47 +80,36 @@ enum {
     TONFA_BATON_POSE_STRIKE = 1
 };
 
-static void _tonfaBatonKillModelTask(Task* task);
+/// The model `gTonfaBatonWeaponModel`: generated from its asset (weapons/tonfa_baton/model) by tools/buildsteps/gen_model_source.py.
+#include "assets/weapons/tonfa_baton/model.inc"
 
-/// Stores a composed baton endpoint as a stationary world-space trail pose.
+/// The model `gTonfaBatonShaftModel`: generated from its asset (weapons/tonfa_baton/shaft_model) by tools/buildsteps/gen_model_source.py.
+#include "assets/weapons/tonfa_baton/shaft_model.inc"
+
+/// The player's clips this package carries, in the package's order, and its animation bank (weapons/tonfa_baton/bank):
+/// generated from the clip and bank assets by tools/buildsteps/gen_animation_source.py.
+#include "assets/weapons/tonfa_baton/clips.inc"
+#include "assets/weapons/tonfa_baton/bank.inc"
+
+static GfxCoord _gBladeTrailFirstHistory[8]  = { 0 };
+static GfxCoord _gBladeTrailSecondHistory[8] = { 0 };
+
+/// Packed RGB multipliers retained for the tonfa baton's swing ribbon.
 ///
-/// `composedEndpoint->workm.t` must be a current view-space position, and
-/// `gGfxViewCoord.workm` the matching world-to-view transform with an
-/// orthonormal rotation. Copies the complete 32-byte endpoint cache into
-/// `historyFrame->workm` and removes the view transform into
-/// `historyFrame->coord`. Rotation is copied and rebased too, although the
-/// ribbon consumes only translation. Rotation elements use `ONE` (4096)
-/// for 1.0; translations are signed 32-bit game coordinates.
-///
-/// The caller-owned nodes and the view must be live, word-aligned and
-/// disjoint. Reads only the endpoint's composed cache and retains no pointer
-/// to it, so a temporary endpoint may expire after the call. The saved parent
-/// is the persistent view node: later composition follows camera movement
-/// while preserving the sampled world pose. Leaves the destination's local
-/// matrix alignment bytes, composition stamp and parameters untouched; the
-/// caller must mark it dirty before recomposing.
-///
-/// Requires an initialized scratch stack with 48 free bytes disjoint from
-/// the nodes and view, released before return. Loads the endpoint's rotation
-/// and translation into the GTE before rebasing; changes GTE rotation,
-/// translation and arithmetic state.
-static inline void _tonfaBatonStoreTrailFrame(GfxCoord* historyFrame, const GfxCoord* composedEndpoint)
-{
-    historyFrame->parent = &gGfxViewCoord;
-    historyFrame->workm  = composedEndpoint->workm;
-    gte_SetRotMatrix(&composedEndpoint->workm);
-    gte_SetTransMatrix(&composedEndpoint->workm);
-    gfxMakeRelativeTransform(&gGfxViewCoord.workm, &historyFrame->workm, &historyFrame->coord);
-}
+/// Red occupies bits 8..9, green 4..5 and blue 0..1; all other bits are zero.
+/// Initially zero when the overlay loads. Seeding selects 0x001 (blue:
+/// 0, 0, 1) when `Task::spawnArg1.value` is zero or 0x013 (cyan: 0, 1, 3)
+/// otherwise. The tint persists between dispatches and is shared by
+/// simultaneous trail tasks until another seed replaces it.
+static s16 _gTonfaBatonTrailTint = 0;
+
+static void _tonfaBatonKillModelTask(Task* task);
 
 void tonfaBatonSwingTrailTask(Task* task)
 {
     enum {
-        TONFA_BATON_TRAIL_SEED           = 0,
-        TONFA_BATON_TRAIL_RECORD         = 1,
-        TONFA_BATON_TRAIL_LIFETIME_TICKS = 31,
-        TONFA_BATON_TRAIL_TINT_BLUE      = 0x001, // RGB multipliers (0, 0, 1)
-        TONFA_BATON_TRAIL_TINT_CYAN      = 0x013  // RGB multipliers (0, 1, 3)
+        TONFA_BATON_TRAIL_SEED   = 0,
+        TONFA_BATON_TRAIL_RECORD = 1,
     };
     GfxCoord       tipEndpoint;
     GfxCoord*      baseCoord;
@@ -168,11 +149,11 @@ void tonfaBatonSwingTrailTask(Task* task)
                 actorRenderComposeCoord(&tipEndpoint);
 
                 // Seed every slot with the same pose, detached from the moving baton.
-                for (historyIndex = 0; historyIndex < ARRAY_SIZE(gBladeTrailBase); historyIndex++) {
-                    historyFrame = &gBladeTrailBase[historyIndex];
-                    _tonfaBatonStoreTrailFrame(historyFrame, baseCoord);
-                    historyFrame = &gBladeTrailTip[historyIndex];
-                    _tonfaBatonStoreTrailFrame(historyFrame, &tipEndpoint);
+                for (historyIndex = 0; historyIndex < ARRAY_SIZE(_gBladeTrailFirstHistory); historyIndex++) {
+                    historyFrame = &_gBladeTrailFirstHistory[historyIndex];
+                    _bladeTrailStoreFrame(historyFrame, baseCoord);
+                    historyFrame = &_gBladeTrailSecondHistory[historyIndex];
+                    _bladeTrailStoreFrame(historyFrame, &tipEndpoint);
                 }
                 packedTint = TONFA_BATON_TRAIL_TINT_CYAN;
                 if (task->spawnArg1.value == 0) {
@@ -190,21 +171,21 @@ void tonfaBatonSwingTrailTask(Task* task)
                 tipEndpoint.coord.t[2]   = recordTipOffset->vz;
                 tipEndpoint.composeStamp = GRAPHICS_COORD_DIRTY;
                 actorRenderComposeCoord(&tipEndpoint);
-                historyFrame = &gBladeTrailBase[effectWork->age & (ARRAY_SIZE(gBladeTrailBase) - 1)];
-                _tonfaBatonStoreTrailFrame(historyFrame, baseCoord);
-                historyFrame = &gBladeTrailTip[effectWork->age & (ARRAY_SIZE(gBladeTrailTip) - 1)];
-                _tonfaBatonStoreTrailFrame(historyFrame, &tipEndpoint);
+                historyFrame = &_gBladeTrailFirstHistory[effectWork->age & (ARRAY_SIZE(_gBladeTrailFirstHistory) - 1)];
+                _bladeTrailStoreFrame(historyFrame, baseCoord);
+                historyFrame = &_gBladeTrailSecondHistory[effectWork->age & (ARRAY_SIZE(_gBladeTrailSecondHistory) - 1)];
+                _bladeTrailStoreFrame(historyFrame, &tipEndpoint);
 
                 // Recompose retained world poses against the current camera before drawing.
-                for (historyIndex = 0; historyIndex < ARRAY_SIZE(gBladeTrailBase); historyIndex++) {
-                    historyFrame               = &gBladeTrailBase[historyIndex];
+                for (historyIndex = 0; historyIndex < ARRAY_SIZE(_gBladeTrailFirstHistory); historyIndex++) {
+                    historyFrame               = &_gBladeTrailFirstHistory[historyIndex];
                     historyFrame->composeStamp = GRAPHICS_COORD_DIRTY;
                     actorRenderComposeCoord(historyFrame);
-                    historyFrame               = &gBladeTrailTip[historyIndex];
+                    historyFrame               = &_gBladeTrailSecondHistory[historyIndex];
                     historyFrame->composeStamp = GRAPHICS_COORD_DIRTY;
                     actorRenderComposeCoord(historyFrame);
                 }
-                _bladeTrailDraw(effectWork->age & (ARRAY_SIZE(gBladeTrailBase) - 1), _gTonfaBatonTrailTint);
+                _bladeTrailDraw(effectWork->age & (ARRAY_SIZE(_gBladeTrailFirstHistory) - 1), _gTonfaBatonTrailTint);
                 break;
         }
         if (effectWork->age >= TONFA_BATON_TRAIL_LIFETIME_TICKS) {
@@ -213,27 +194,9 @@ void tonfaBatonSwingTrailTask(Task* task)
     }
 }
 
-/// Binds the baton's base-endpoint ring to the first side of the swing ribbon.
-///
-/// Supplies a side-effect-free `GfxCoord[8]` array identifier, paired by slot
-/// with `BLADE_TRAIL_SECOND_ENDPOINT_HISTORY`. The drawer borrows composed view-space
-/// `workm.t` translations in game-coordinate units for corners 0 and 2;
-/// the task seeds every slot and refreshes the caches before drawing.
-/// This binding exists only around the shared drawer inclusion.
-#define BLADE_TRAIL_FIRST_ENDPOINT_HISTORY gBladeTrailBase
+#include "../shared/blade_trail_draw.inc.c"
 
-/// Binds the baton's tip-endpoint ring to the second side of the swing ribbon.
-///
-/// Supplies a side-effect-free, complete `GfxCoord[8]` array identifier, paired
-/// by slot with `BLADE_TRAIL_FIRST_ENDPOINT_HISTORY`. Seed every slot and
-/// recompose in the current view before drawing. The drawer borrows `workm.t`
-/// translations in game-coordinate units for corners 1 and 3, narrowing them
-/// to signed 16 bits and retaining no pointers. This binding exists only
-/// around the shared drawer inclusion.
-#define BLADE_TRAIL_SECOND_ENDPOINT_HISTORY gBladeTrailTip
-#include "../../shared/effects/blade_trail_draw.inc.c"
-#undef BLADE_TRAIL_FIRST_ENDPOINT_HISTORY
-#undef BLADE_TRAIL_SECOND_ENDPOINT_HISTORY
+#include "assets/engine/animation/player_schema.h"
 
 /// Starts the attached baton model's pose updates and installs default teardown.
 ///
@@ -269,10 +232,6 @@ static void _tonfaBatonInitModelTask(Task* task)
 /// scratch stack used by `gfxRotMatrixZ`; retains no pointer.
 static inline void _tonfaBatonStepModelPose(GfxCoord* rootCoord, s32 poseRequest)
 {
-    enum {
-        TONFA_BATON_POSE_RETURN_STEP = 0x100,
-        TONFA_BATON_POSE_STRIKE_STEP = 0x1C0
-    };
 
     switch (poseRequest) {
         case TONFA_BATON_POSE_REST:
@@ -299,9 +258,7 @@ static inline void _tonfaBatonStepModelPose(GfxCoord* rootCoord, s32 poseRequest
 static void _tonfaBatonUpdateModelPose(Task* task)
 {
     enum {
-        TONFA_BATON_PLAYER_ATTACK_STATE = 4,
-        TONFA_BATON_POSE_MODE_MASK      = 0xF,
-        TONFA_BATON_GRIP_OFFSET_Y       = 0x60
+        TONFA_BATON_POSE_MODE_MASK = 0xF,
     };
 
     TmdObject* model;
@@ -319,7 +276,7 @@ static void _tonfaBatonUpdateModelPose(Task* task)
     rootCoord->coord.t[1] = TONFA_BATON_GRIP_OFFSET_Y;
     rootCoord->coord.t[2] = 0;
 
-    if (playerActor->mode != GAME_ACTOR_MODE_NORMAL || playerActor->state != TONFA_BATON_PLAYER_ATTACK_STATE) {
+    if (playerActor->mode != GAME_ACTOR_MODE_NORMAL || playerActor->state != PLAYER_ACTOR_STATE_ATTACK) {
         task->spawnArg1.value = TONFA_BATON_POSE_REST;
     }
 
@@ -375,27 +332,12 @@ static inline void _tonfaBatonAdvanceAttack(GfxCoord* rootCoord, _TonfaBatonAtta
 void tonfaBatonAttackState(Task* playerTask)
 {
     enum {
-        TONFA_BATON_PHASE_PREPARE             = 0,
-        TONFA_BATON_PHASE_FIRST_STRIKE        = 1,
-        TONFA_BATON_PHASE_COMBO_QUEUED        = 2,
-        TONFA_BATON_PHASE_COMBO_STRIKE        = 3,
-        TONFA_BATON_PHASE_COMBO_RECOVER       = 4,
-        TONFA_BATON_PHASE_RECOVER             = 5,
-        TONFA_BATON_PLAYER_ATTACK_STATE       = 4,
-        TONFA_BATON_ANIMATION_PRIMARY         = 0xA,
-        TONFA_BATON_ANIMATION_SECONDARY       = 0xB,
-        TONFA_BATON_ANIMATION_RECOVER         = 0xE,
-        TONFA_BATON_FIRST_STRIKE_KEY          = 0x21317,
-        TONFA_BATON_COMBO_STRIKE_KEY          = 0x21315,
-        TONFA_BATON_WINDUP_FRAMES             = 8,
-        TONFA_BATON_COMBO_ADVANCE_FRAMES      = 0xC,
-        TONFA_BATON_RECOVERY_ADVANCE_FRAMES   = 0xA,
-        TONFA_BATON_COMBO_CONTACT_FRAMES      = 9,
-        TONFA_BATON_COMBO_CONTACT_START_TICKS = 3,
-        TONFA_BATON_FIRST_SWING_SOUND         = SOUND_WEAPON(TONFA_BATON_WEAPON_ID, 1),
-        TONFA_BATON_COMBO_SWING_SOUND         = SOUND_WEAPON(TONFA_BATON_WEAPON_ID, 2),
-        TONFA_BATON_FIRST_CONTACT_SOUND       = SOUND_WEAPON(TONFA_BATON_WEAPON_ID, 3),
-        TONFA_BATON_COMBO_CONTACT_SOUND       = SOUND_WEAPON(TONFA_BATON_WEAPON_ID, 4),
+        TONFA_BATON_PHASE_PREPARE       = 0,
+        TONFA_BATON_PHASE_FIRST_STRIKE  = 1,
+        TONFA_BATON_PHASE_COMBO_QUEUED  = 2,
+        TONFA_BATON_PHASE_COMBO_STRIKE  = 3,
+        TONFA_BATON_PHASE_COMBO_RECOVER = 4,
+        TONFA_BATON_PHASE_RECOVER       = 5,
     };
     GameActor*                actor;
     GfxCoord*                 rootCoord;
@@ -411,7 +353,7 @@ void tonfaBatonAttackState(Task* playerTask)
     scratch          = SCRATCH_STACK_RESERVE_BLOCK(_TonfaBatonAttackScratch);
     switch (actor->statePhase) {
         case TONFA_BATON_PHASE_PREPARE:
-            actor->state          = TONFA_BATON_PLAYER_ATTACK_STATE;
+            actor->state          = PLAYER_ACTOR_STATE_ATTACK;
             actor->statePhase     = TONFA_BATON_PHASE_FIRST_STRIKE;
             actor->mode           = GAME_ACTOR_MODE_NORMAL;
             actor->movementMode   = 0;
@@ -419,10 +361,10 @@ void tonfaBatonAttackState(Task* playerTask)
             actor->animationState = 0;
             actor->stateTimer     = TONFA_BATON_WINDUP_FRAMES;
             actor->actionValue    = 0;
-            weaponRecordUse(TONFA_BATON_WEAPON_ID);
+            weaponRecordUse(WEAPON_INDEX_TONFA_BATON);
             actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].key   = TONFA_BATON_FIRST_STRIKE_KEY;
             actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags = (actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_SINGLE_CONTACT)) | WORLD_COLLISION_BODY_CLIP_TO_GRID_CONTACT;
-            playerActorPlayChildSlotsWithBlend(playerTask, TONFA_BATON_ANIMATION_PRIMARY, 1, 3);
+            playerActorPlayChildSlotsWithBlend(playerTask, PLAYER_ANIMATION_FIRE, 1, 3);
             break;
         case TONFA_BATON_PHASE_FIRST_STRIKE:
         case TONFA_BATON_PHASE_COMBO_QUEUED:
@@ -440,7 +382,7 @@ void tonfaBatonAttackState(Task* playerTask)
                     actor->equipmentTasks[1]->spawnArg1.value             = TONFA_BATON_POSE_STRIKE;
                     actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
                     playerActorSetWeaponAttackFlags(playerTask, 0, 0);
-                    worldCoordPlaySound(playerTask->extra.tmd->coords, TONFA_BATON_FIRST_SWING_SOUND, 0);
+                    worldCoordPlaySound(playerTask->extra.tmd->coords, TONFA_BATON_SOUND(TONFA_BATON_SOUND_FIRST_SWING), 0);
                     trailWork = effectSpawn(EFFECT_TONFA_BATON_SWING_TRAIL,
                                             actor->equipmentTasks[1]->extra.tmd->coords,
                                             0, NULL);
@@ -451,14 +393,14 @@ void tonfaBatonAttackState(Task* playerTask)
             }
             if (actor->actionValue != 1 && worldCollisionCountContactsByKind(actor->weaponContacts, WORLD_COLLISION_CONTACT_ENEMY_BODY) != 0) {
                 actor->actionValue = 1;
-                worldCoordPlaySound(playerTask->extra.tmd->coords, TONFA_BATON_FIRST_CONTACT_SOUND, 0);
+                worldCoordPlaySound(playerTask->extra.tmd->coords, TONFA_BATON_SOUND(TONFA_BATON_SOUND_FIRST_CONTACT), 0);
             }
             if (playerActorIsSlotAdvancingLinearly(playerTask, 1, 0, 0) == 0) {
                 actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                 if (actor->statePhase == TONFA_BATON_PHASE_COMBO_QUEUED) {
                     actor->statePhase = TONFA_BATON_PHASE_COMBO_STRIKE;
                     actor->stateTimer = TONFA_BATON_COMBO_ADVANCE_FRAMES;
-                    weaponRecordUse(TONFA_BATON_WEAPON_ID);
+                    weaponRecordUse(WEAPON_INDEX_TONFA_BATON);
                     actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].key = TONFA_BATON_COMBO_STRIKE_KEY;
                     trailWork                                          = effectSpawn(
                         EFFECT_TONFA_BATON_SWING_TRAIL, actor->equipmentTasks[1]->extra.tmd->coords, 1,
@@ -466,12 +408,12 @@ void tonfaBatonAttackState(Task* playerTask)
                     if (trailWork != NULL) {
                         taskReparent(actor->equipmentTasks[1], trailWork->task);
                     }
-                    playerActorResetChildSlots(playerTask, TONFA_BATON_ANIMATION_SECONDARY);
+                    playerActorResetChildSlots(playerTask, PLAYER_ANIMATION_SECONDARY_FIRE);
                 } else {
                     actor->statePhase                         = TONFA_BATON_PHASE_RECOVER;
                     actor->stateTimer                         = TONFA_BATON_RECOVERY_ADVANCE_FRAMES;
                     actor->equipmentTasks[1]->spawnArg1.value = TONFA_BATON_POSE_REST;
-                    playerActorResetChildSlots(playerTask, TONFA_BATON_ANIMATION_RECOVER);
+                    playerActorResetChildSlots(playerTask, PLAYER_ANIMATION_RELOAD);
                 }
             }
             break;
@@ -484,7 +426,7 @@ void tonfaBatonAttackState(Task* playerTask)
                 if (comboTicksLeft == TONFA_BATON_COMBO_CONTACT_START_TICKS) {
                     actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
                     playerActorSetWeaponAttackFlags(playerTask, 0, 1);
-                    worldCoordPlaySound(playerTask->extra.tmd->coords, TONFA_BATON_COMBO_SWING_SOUND, 0);
+                    worldCoordPlaySound(playerTask->extra.tmd->coords, TONFA_BATON_SOUND(TONFA_BATON_SOUND_COMBO_SWING), 0);
                 } else if (comboTicksLeft == 0) {
                     actor->statePhase                         = TONFA_BATON_PHASE_COMBO_RECOVER;
                     actor->stateTimer                         = TONFA_BATON_COMBO_CONTACT_FRAMES;
@@ -503,7 +445,7 @@ void tonfaBatonAttackState(Task* playerTask)
             }
             if (actor->actionValue != 2 && worldCollisionCountContactsByKind(actor->weaponContacts, WORLD_COLLISION_CONTACT_ENEMY_BODY) != 0) {
                 actor->actionValue = 2;
-                worldCoordPlaySound(playerTask->extra.tmd->coords, TONFA_BATON_COMBO_CONTACT_SOUND, 0);
+                worldCoordPlaySound(playerTask->extra.tmd->coords, TONFA_BATON_SOUND(TONFA_BATON_SOUND_COMBO_CONTACT), 0);
             }
             if (playerActorIsSlotAdvancingLinearly(playerTask, 1, 0, 0) == 0) {
                 playerActorFinishWeaponAttack(playerTask);
@@ -525,26 +467,3 @@ void tonfaBatonAttackState(Task* playerTask)
     _tonfaBatonAdvanceAttack(rootCoord, scratch, advanceThisFrame);
     SCRATCH_STACK_RELEASE_BLOCK(_TonfaBatonAttackScratch);
 }
-
-/// The model `gTonfaBatonWeaponModel`: generated from its asset (weapons/tonfa_baton/model) by tools/buildsteps/gen_model_source.py.
-#include "assets/weapons/tonfa_baton/model.inc"
-
-/// The model `gTonfaBatonShaftModel`: generated from its asset (weapons/tonfa_baton/shaft_model) by tools/buildsteps/gen_model_source.py.
-#include "assets/weapons/tonfa_baton/shaft_model.inc"
-
-/// The player's clips this package carries, in the package's order, and its animation bank (weapons/tonfa_baton/bank):
-/// generated from the clip and bank assets by tools/buildsteps/gen_animation_source.py.
-#include "assets/weapons/tonfa_baton/clips.inc"
-#include "assets/weapons/tonfa_baton/bank.inc"
-
-GfxCoord gBladeTrailBase[8] = { 0 };
-GfxCoord gBladeTrailTip[8]  = { 0 };
-
-/// Packed RGB multipliers retained for the tonfa baton's swing ribbon.
-///
-/// Red occupies bits 8..9, green 4..5 and blue 0..1; all other bits are zero.
-/// Initially zero when the overlay loads. Seeding selects 0x001 (blue:
-/// 0, 0, 1) when `Task::spawnArg1.value` is zero or 0x013 (cyan: 0, 1, 3)
-/// otherwise. The tint persists between dispatches and is shared by
-/// simultaneous trail tasks until another seed replaces it.
-static s16 _gTonfaBatonTrailTint = 0;

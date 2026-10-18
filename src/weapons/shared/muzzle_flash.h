@@ -2,28 +2,26 @@
  * a spinning textured core, an additive screen tint, four Gouraud streaks
  * and a transient white point light.
  *
- * Include this header in the prologue and each fragment at its function's
- * position. The task is an entry point gameplay's effect table names by
- * address, so each package keeps its own name for it and calls the inline
- * body. All shared functions have static per-instance linkage. The flash's
- * data belongs to the carrier, which declares it before the task fragment
+ * Include this header in the prologue and muzzle_flash.inc.c where the task
+ * begins; the fragment holds the task and its draws. The task is an entry
+ * point gameplay's effect table names by address, so each package exports
+ * `_muzzleFlashTask` under its own name with DEFINE_ALIAS. All shared
+ * functions have static per-instance linkage. The flash's data belongs to
+ * the carrier, which declares it before the fragment
  * and retains each initialized definition at its original data position:
  *
- *   MUZZLE_FLASH_OFFSET selects a carrier-owned SVECTOR object. Its signed XYZ
- *   components are integer model-unit offsets local to the borrowed spawning
- *   coordinate, the equipped weapon root in both carriers; pad is unused.
- *   MP5A5 and P229 bind it before including the task fragment and undefine it
- *   afterwards. The binding must be side-effect-free: it expands separately
- *   for the vx, vy and vz reads on the first visible update. Each signed
- *   halfword is copied into a 32-bit local translation; no pointer is retained.
+ *   static SVECTOR _gMuzzleFlashOffset is the flash's position: signed XYZ
+ *   integer model-unit offsets local to the borrowed spawning coordinate, the
+ *   equipped weapon root in both carriers; pad is unused. The first visible
+ *   update copies each halfword into a 32-bit local translation.
  *
  *   static s16 _gMuzzleFlashAngles[MUZZLE_FLASH_STREAK_COUNT] retains one
  *   direction in each quadrant, in 4096 units per turn. All live flashes in
  *   the loaded carrier read the same buffer; initialization replaces it.
  */
 
-#ifndef SRC_SHARED_MUZZLE_FLASH_H
-#define SRC_SHARED_MUZZLE_FLASH_H
+#ifndef SRC_WEAPONS_SHARED_MUZZLE_FLASH_H
+#define SRC_WEAPONS_SHARED_MUZZLE_FLASH_H
 
 #include "main/coord.h"
 
@@ -38,4 +36,4 @@ enum {
 static void _muzzleFlashDrawCore(const GfxCoord* muzzleCoord, s16 worldSize, s16 spinAngle);
 static void _muzzleFlashDrawStreak(const GfxCoord* muzzleCoord, s16 directionAngle, s16 brightness);
 
-#endif /* SRC_SHARED_MUZZLE_FLASH_H */
+#endif /* SRC_WEAPONS_SHARED_MUZZLE_FLASH_H */

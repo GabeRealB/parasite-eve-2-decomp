@@ -3,8 +3,20 @@
 
 #include "gameplay/animation.h"
 
+#include "main/sound_ids.h"
 #include "main/task_types.h"
 #include "main/tmd_types.h"
+
+#include "weapons/weapon_index.h"
+
+/// A sound of the M4A1 Pyke's bank (weapons/m4a1_pyke/sounds), by slot (`WEAPON_SOUND_SLOT_*`, or one below).
+#define M4A1_PYKE_SOUND(slot) SOUND_WEAPON(WEAPON_INDEX_M4A1_PYKE, (slot))
+
+enum {
+    /// The flamethrower: started with the secondary attack, stopped when it ends; gameplay also stops it when the
+    /// attack is interrupted.
+    M4A1_PYKE_SOUND_FLAME = 5,
+};
 
 /// Native player animation bank for the M4A1 rifle with the Pyke attachment (asset weapons/m4a1_pyke/bank).
 ///

@@ -109,8 +109,13 @@ def main() -> int:
         known = mapped_names(paths)
         for sib in siblings.get(cfg_name, []):
             known |= mapped_names(maps_of.get(sib, []))
-        for addr, fn in image_functions(elf):
+        functions = image_functions(elf)
+        # a definition exported under a mapped name (DEFINE_ALIAS in its source) is paired through that name
+        mapped_addrs = {addr for addr, fn in functions if fn in known}
+        for addr, fn in functions:
             if fn in known or re.fullmatch(rf"func_(\w+_)?{addr:08X}", fn):
+                continue
+            if addr in mapped_addrs:
                 continue
             # an alias is a second symbol on a function the source defines under
             # another name, and that name is the one objdiff pairs

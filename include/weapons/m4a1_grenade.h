@@ -3,8 +3,23 @@
 
 #include "gameplay/animation.h"
 
+#include "main/sound_ids.h"
 #include "main/task_types.h"
 #include "main/tmd_types.h"
+
+#include "weapons/weapon_index.h"
+
+/// A sound of the M4A1 Grenade's bank, by slot (`WEAPON_SOUND_SLOT_*`, or one below); one bank per round
+/// (`GRENADE_ROUND_*`, the variant in bits 24..27).
+#define M4A1_GRENADE_SOUND(slot) SOUND_WEAPON(WEAPON_INDEX_M4A1_GRENADE, (slot))
+
+/// The launcher's reload cues, played in this order by gameplay's reload state; the attack state's reload after a
+/// launch plays the first and then slot 9.
+enum {
+    M4A1_GRENADE_SOUND_GRENADE_RELOAD_FIRST  = 8,
+    M4A1_GRENADE_SOUND_GRENADE_RELOAD_SECOND = 5,
+    M4A1_GRENADE_SOUND_GRENADE_RELOAD_LOADED = 9,
+};
 
 /// Native player-rig animation bank for the M4A1 grenade launcher (asset weapons/m4a1_grenade/bank).
 ///

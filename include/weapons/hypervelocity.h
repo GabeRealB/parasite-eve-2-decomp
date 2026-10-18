@@ -3,8 +3,21 @@
 
 #include "gameplay/animation.h"
 
+#include "main/sound_ids.h"
 #include "main/task_types.h"
 #include "main/tmd_types.h"
+
+#include "weapons/weapon_index.h"
+
+/// A sound of the Hypervelocity's bank (weapons/hypervelocity/sounds), by slot (`WEAPON_SOUND_SLOT_*`, or one below).
+#define HYPERVELOCITY_SOUND(slot) SOUND_WEAPON(WEAPON_INDEX_HYPERVELOCITY, (slot))
+
+/// The charge's sounds, which gameplay also stops when the attack is interrupted.
+enum {
+    HYPERVELOCITY_SOUND_CHARGE_START  = 3, // Started with the charge, stopped at the second stage or on cancel
+    HYPERVELOCITY_SOUND_CHARGE_CANCEL = 4, // The charge released early (power-down)
+    HYPERVELOCITY_SOUND_CHARGE_LOOP   = 5, // Runs for the whole charge, stopped when the shot fires or is canceled
+};
 
 /// Native player animation bank for the equipped Hypervelocity (asset weapons/hypervelocity/bank).
 ///

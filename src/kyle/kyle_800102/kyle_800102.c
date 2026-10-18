@@ -27,29 +27,31 @@
 #include "main/scratch.h"
 #include "main/session.h"
 #include "main/session_types.h"
+#include "main/sound_ids.h"
 #include "main/task.h"
 #include "main/task_types.h"
 
+#include "weapons/grenade_pistol.h"
 #include "weapons/weapon.h"
-#include "../../shared/effects/grenade_shell.h"
+#include "../../shared/projectiles/launcher_grenade.h"
 
-static SVECTOR   _gGrenadeShellMuzzleOffsets[2];
-static const u16 _gGrenadeShellBlastRadii[4];
-static u8        _gGrenadeShellInitialFlightDivisors[4];
+static SVECTOR _gLauncherGrenadeMuzzleOffsets[2];
+static u16     _gLauncherGrenadeBlastRadii[4];
+static u8      _gLauncherGrenadeInitialFlightDivisors[4];
 
-static void _grenadeShellExit(Task* task);
-static void _grenadeShellSpawn(Task* task);
+static void _launcherGrenadeExit(Task* task);
+static void _launcherGrenadeSpawn(Task* task);
 
-#include "../../shared/effects/grenade_shell_spawn.inc.c"
+#include "../../shared/projectiles/launcher_grenade_flight.inc.c"
 
-#include "../../shared/effects/grenade_shell.inc.c"
+#include "../../shared/projectiles/launcher_grenade.inc.c"
 void kyle800102GrenadeShellTask(Task* projectileTask)
 {
     const TaskFunc stateHandlers[] = {
-        _grenadeShellSpawn,
-        _grenadeShellFly,
-        _grenadeShellBlast,
-        _grenadeShellExit,
+        _launcherGrenadeSpawn,
+        _launcherGrenadeFly,
+        _launcherGrenadeBlast,
+        _launcherGrenadeExit,
     };
 
     stateHandlers[projectileTask->state](projectileTask);
@@ -1108,7 +1110,7 @@ AnimationSet* gKyle800102CompanionAnimationBank[ANIMATION_BANK_SET_CAPACITY] = {
 ///
 /// Rows 0 and 1 select the Grenade Pistol and MM1 respectively, from bits 16..19
 /// of the shot's spawn argument. Kyle's MM1 uses row 1. Only XYZ is consumed.
-static SVECTOR _gGrenadeShellMuzzleOffsets[2] = {
+static SVECTOR _gLauncherGrenadeMuzzleOffsets[2] = {
     { 0, 480, 128, 0 },
     { 0, 544, 128, 0 },
 };
@@ -1118,7 +1120,7 @@ static SVECTOR _gGrenadeShellMuzzleOffsets[2] = {
 /// Indexed by the loaded round minus `GRENADE_ROUND_FIRST`: fragmentation 500,
 /// airburst 1200 and riot 2000. The fourth stored halfword is zero; its role is
 /// unproven and no supported round selects it.
-static const u16 _gGrenadeShellBlastRadii[4] __attribute__((section(".data"))) = {
+static u16 _gLauncherGrenadeBlastRadii[4] = {
     [GRENADE_ROUND_FRAGMENTATION - GRENADE_ROUND_FIRST] = 500,
     [GRENADE_ROUND_AIRBURST -
         GRENADE_ROUND_FIRST]                            = 1200,
@@ -1133,7 +1135,7 @@ static const u16 _gGrenadeShellBlastRadii[4] __attribute__((section(".data"))) =
 /// the Q12 direction by its integer half, then increases the divisor each tick.
 /// The two trailing stored zero bytes have unproven roles and are never selected
 /// by supported launchers; they are not valid initial divisors.
-static u8 _gGrenadeShellInitialFlightDivisors[4] = { 12, 8, 0, 0 };
+static u8 _gLauncherGrenadeInitialFlightDivisors[4] = { 12, 8, 0, 0 };
 
 /// Identity rest transform for the shell's single root, copied into each model.
 static TmdBone _gKyle800102Mm1GrenadeShellSkeleton[] = {

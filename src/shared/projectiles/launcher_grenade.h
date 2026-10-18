@@ -12,22 +12,20 @@
  * Include this header in the prologue and each fragment at its function's
  * position.
  * The spawn/flight carriers declare their own static tuning tables
- * before those fragments: `_gGrenadeShellMuzzleOffsets` supplies SVECTOR rows
+ * before those fragments: `_gLauncherGrenadeMuzzleOffsets` supplies SVECTOR rows
  * 0 Grenade Pistol and 1 MM1 in launcher-local integer coordinates;
- * `_gGrenadeShellInitialFlightDivisors` supplies positive u8 divisors for the
- * same rows; `_gGrenadeShellBlastRadii` supplies u16 coordinate-unit radii for
+ * `_gLauncherGrenadeInitialFlightDivisors` supplies positive u8 divisors for the
+ * same rows; `_gLauncherGrenadeBlastRadii` supplies u16 coordinate-unit radii for
  * round indices GRENADE_ROUND_FRAGMENTATION..GRENADE_ROUND_RIOT relative to
  * GRENADE_ROUND_FIRST. The declarations live in each carrier's source prologue.
  */
 
-#ifndef SRC_SHARED_GRENADE_SHELL_H
-#define SRC_SHARED_GRENADE_SHELL_H
-
-#include "types.h"
+#ifndef SRC_SHARED_PROJECTILES_LAUNCHER_GRENADE_H
+#define SRC_SHARED_PROJECTILES_LAUNCHER_GRENADE_H
 
 #include "main/task_types.h"
 
-static void _grenadeShellFly(Task* task);
-static void _grenadeShellBlast(Task* task);
+static void _launcherGrenadeFly(Task* task);
+static void _launcherGrenadeBlast(Task* task);
 
-#endif /* SRC_SHARED_GRENADE_SHELL_H */
+#endif /* SRC_SHARED_PROJECTILES_LAUNCHER_GRENADE_H */

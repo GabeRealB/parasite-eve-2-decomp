@@ -55594,7 +55594,7 @@ example (93.3% → 100% on that one change).
 
 ### A switch case that compares against the switch value needs the value in a local
 
-`func_m4a1_p2_8011D1C4` dispatches on `actor->statePhase` and, inside `case 2`,
+`m4a1P2AttackState` dispatches on `actor->statePhase` and, inside `case 2`,
 compares a counter against that same field:
 
 ```
@@ -55631,7 +55631,7 @@ same temp (`temp_v1`), which is the hint that the original was one variable.
 Complement to "A `reload_cse` copy in front of a struct-field store": moving
 `anim = 1` *after* `actor->statePhase = 1` fixes the store (it picks up the
 constant the switch tree already materialised) but leaves the *next* use of the
-same constant wrong. In `func_m4a1_p2_8011D1C4` case 0 the target is
+same constant wrong. In `m4a1P2AttackState` case 0 the target is
 
 ```
 li    a0,1              <- the switch tree's constant
@@ -153962,3 +153962,57 @@ are both builds of `actor_00400`, where `_actor00400SwimTask` then compiles
 five instructions shorter. So five sites want the key 2-aligned and one wants
 it byte-aligned; the byte-aligned declaration with the attributes is what is
 committed.
+
+## Turning a matched helper macro into a `static inline` usually changes the code (weapons, 2026-10-18)
+
+A function-like macro that a matched body uses is text, and the compiler sees the arguments where they stand. As a
+`static inline`, GCC 2.8.1 first copies each argument into a fresh pseudo, and allocation follows the copies. Seven
+weapon helpers were tried:
+
+- **Failed:** `_as12PlayFireflyImpact`, `_gunbladeAdvanceAttack`, `_m4a1GrenadeStepProjectile`,
+  `_m4a1HammerComposeSparkPosition`, the Gunblade's charge bands and the Javelin's beam quad all changed their callers.
+  The bands showed the mechanism plainly: the caller's local `u8 rgb[3]` was passed by address, and as an inline
+  argument that address (`sp + 0x10`) sat in a saved register across the three calls, where the macro formed it
+  at each.
+- **Matched:** `_weaponResolveShotImpact` (16 sites, arguments that are the caller's own pointers),
+  `_bladeTrailStoreFrame` and `_weaponIsArmSlotAdvancing` (an expression helper taking only `playerTask`, matching at
+  every site but one: `grenadePistolAttackState`).
+
+So try the inline, and when the build fails:
+
+- **A single-use macro:** write its body at the use. That is exactly what the preprocessor produced, so it can't
+  change the code.
+- **A macro that is a Psy-Q compound:** use the compound. `gte_SetRotMatrix(m); gte_ldv0(v); gte_rtv0(); gte_stsv(v)`
+  is `gte_ApplyMatrixSV(m, v, v)` from `gtemac.h`.
+- **Otherwise:** keep the macro and say at its definition why it isn't a function.
+
+## Forward-declared work after the assets: BSS when the `.lcomm` rules fit, else define it after the moved assets (weapons, 2026-10-18)
+
+Weapon sources declared their work at the top and defined it with `= { 0 }` at the end, after the model, clip and
+bank includes, because `.data` comes out in definition order: defining it at the top moves it in front of the
+model, and the Hammer's three definitions there failed the checksum. Two ways out:
+
+- **BSS**, when the trailing run is all zeros and fits the assembler's `.lcomm` placement (the entry on uninitialised
+  variables): it starts on 8, and each variable is aligned to its size rounded up to a power of two, at most 16. The
+  declaration becomes the only one, and the manifest's `bss` key gives the run's package offset. The Hammer's run
+  starts at `0x10470` and fits, so its unreferenced `s_unused_8012D664` was the 8-alignment gap before an `SVECTOR`
+  and is gone. The MP5A5's and P229's streak angles fit too.
+- **`.data`, defined after the assets moved up**, when it doesn't fit: the Gunblade's run starts on 4, and 0x280-byte
+  trail rings at offsets that aren't multiples of 16 can't be `.lcomm`. The asset includes carry no `const`, so they
+  can move in front of the code, after the last data that precedes the model in the image; the late definitions
+  follow them and every forward declaration goes. A `static const` table that `__attribute__((section(".data")))`
+  only kept out of `.rodata` loses both; none of the weapons' reads were folded.
+
+## An unreferenced word that differs between releases is packaging junk in an alignment gap (m4a1_javelin, 2026-10-18)
+
+`D_m4a1_javelin_8012EB5C = 0x102232DD` looked like a value. The same package from the other discs settles such a
+word: extract disc 1 with `tools/linux/mkpsxiso/dumpsxiso -x <dir> -s <dir>/layout.xml <image>.bin`, read the
+stage-0 file with `extract.parse_file_list_entry` and `extract.read_file`, and inflate its `.pe2pkg` chunk with
+`lzss.decode_lzss`. Weapons are files `10300 + index`. The Javelin package is the same size on all three discs, and
+the word is `0x102232DD` (US), `0xE3A93F2C` (Europe) and zero (Japan). Code doesn't write that; the packaging tool's
+buffer does. It sat exactly where the unit's `.data` ended (the animation bank's end) and the next 8-byte boundary,
+and the six variables after it fit `.lcomm` placement, so they are BSS (`bss = "0x119A0"`), and the gap is an
+unclaimed `{ kind = "data" }` run that keeps each disc's bytes.
+
+The opposite reading needs the same check. The Gunblade's `s_unused_8012E24C`, eight bytes between `.data`
+variables, is zero on all three discs and referenced by none of their code, so it is a real but unused `static`.

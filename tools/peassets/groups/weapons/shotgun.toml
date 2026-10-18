@@ -9,11 +9,11 @@ sha1 = "d1818b0bf0a545959f8ce92d1fdb1128c579ec8f"
 type = "sound"
 sha1 = "4493b63fe832564b40127460379805deecba9421"
 
-[slug_pump]
+[rifled_slug_pump]
 type = "sound"
 sha1 = "ef5fd71e886cb914a2fd5a07cf6de2b9a8a75413"
 
-[slug_shot]
+[rifled_slug_shot]
 type = "sound"
 mode = "high"
 sha1 = "f4a8f98b7db72cb75b986aef839733123eec84e5"

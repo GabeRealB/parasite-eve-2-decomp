@@ -173,7 +173,7 @@ gM950WeaponModel = 0x8011DA9C; // absolute:True owner=m950
 gSp12Model = 0x8011DB44; // absolute:True owner=sp12
 tonfaBatonModelTask = 0x8011DB98; // type:func absolute:True owner=tonfa_baton
 grenadePistolShellTask = 0x8011DBD0; // type:func absolute:True owner=grenade_pistol
-func_mm1_8011DBD0 = 0x8011DBD8; // type:func absolute:True owner=mm1
+mm1ShellTask = 0x8011DBD8; // type:func absolute:True owner=mm1
 gAs12Model = 0x8011DCF0; // absolute:True owner=as12
 m4a1GrenadeShellTask = 0x8011DE68; // type:func absolute:True owner=m4a1_grenade
 gM249WeaponModel = 0x8011DE74; // absolute:True owner=m249

@@ -45,6 +45,8 @@
 #include "main/task.h"
 #include "main/wipsys.h"
 
+#include "assets/engine/animation/player_schema.h"
+
 /// Duration of each timed player ailment, in active status updates.
 enum { PLAYER_STATE_STATUS_DURATION_TICKS = 600 };
 
@@ -796,7 +798,6 @@ void playerActorEnterPendingHit(Task* task)
 void playerActorEnterStoppedPose(Task* task, s32 blendFrames)
 {
     enum {
-        PLAYER_ACTOR_STOPPED_ANIMATION_SET             = 18,
         PLAYER_ACTOR_STOPPED_MOVEMENT                  = 0,
         PLAYER_ACTOR_STOPPED_TURN_DISABLED             = 0,
         PLAYER_ACTOR_STOPPED_ANIMATION_CONTROLLER_NONE = 0
@@ -811,9 +812,9 @@ void playerActorEnterStoppedPose(Task* task, s32 blendFrames)
     actor->statePhase     = 0;
     actor->hitRegion      = PLAYER_ACTOR_HIT_REGION_STOPPED;
     if (blendFrames == 0) {
-        playerActorResetChildSlots(task, PLAYER_ACTOR_STOPPED_ANIMATION_SET);
+        playerActorResetChildSlots(task, PLAYER_ANIMATION_DEATH);
     } else {
-        playerActorPlayChildSlotsWithBlend(task, PLAYER_ACTOR_STOPPED_ANIMATION_SET, 0, blendFrames);
+        playerActorPlayChildSlotsWithBlend(task, PLAYER_ANIMATION_DEATH, 0, blendFrames);
     }
     playerActorClearLockTarget(task);
     actor->pendingCollisionUpdates |= (GAME_ACTOR_COLLISION_FIRST_TWO_REQUESTS << GAME_ACTOR_COLLISION_DISABLE_REQUEST_SHIFT);
@@ -1403,7 +1404,6 @@ void modelObjectChildTask(Task* task)
 void companionRemoveEquipment(Task* task)
 {
     enum {
-        COMPANION_REMOVE_EQUIPMENT_IDLE_SET          = 1,
         COMPANION_REMOVE_EQUIPMENT_IDLE_BLEND_FRAMES = 4
     };
     GameActor* actor;
@@ -1424,7 +1424,7 @@ void companionRemoveEquipment(Task* task)
         animationActor->animationSets      = gCompanionAnimationBanks[animationActor->animationBankIndex];
         animationInitContext(&animationActor->animationContext, animationActor->animationSets, model, animationActor->poseBuffer,
                              animationActor->animationSlots);
-        playerActorResetChildSlots(task, COMPANION_REMOVE_EQUIPMENT_IDLE_SET);
+        playerActorResetChildSlots(task, PLAYER_ANIMATION_IDLE);
         idleActor = task->work;
         /// Returns the surviving companion to normal idle after equipment removal.
         ///
@@ -1449,7 +1449,7 @@ void companionRemoveEquipment(Task* task)
     }
         COMPANION_REMOVE_EQUIPMENT_RESET_IDLE(idleActor);
 #undef COMPANION_REMOVE_EQUIPMENT_RESET_IDLE
-        playerActorPlayChildSlotsWithBlend(task, COMPANION_REMOVE_EQUIPMENT_IDLE_SET, 0, COMPANION_REMOVE_EQUIPMENT_IDLE_BLEND_FRAMES);
+        playerActorPlayChildSlotsWithBlend(task, PLAYER_ANIMATION_IDLE, 0, COMPANION_REMOVE_EQUIPMENT_IDLE_BLEND_FRAMES);
     }
     equipmentTask = actor->weaponEffectTask;
     if (equipmentTask != NULL) {
@@ -1464,7 +1464,6 @@ Task* companionRestoreEquipment(void)
         COMPANION_RESTORE_WEAPON_SLOT               = 1,
         COMPANION_RESTORE_PYKE_VARIANT              = 4,
         COMPANION_RESTORE_ATTACK_KEY_BIT            = 0x80,
-        COMPANION_RESTORE_IDLE_ANIMATION_SET        = 1,
         COMPANION_RESTORE_IDLE_STATE                = 0,
         COMPANION_RESTORE_MOVEMENT_STOPPED          = 0,
         COMPANION_RESTORE_TURN_DISABLED             = 0,
@@ -1538,7 +1537,7 @@ Task* companionRestoreEquipment(void)
     }
     COMPANION_RESTORE_RESET_IDLE(idleActor);
 #undef COMPANION_RESTORE_RESET_IDLE
-    playerActorResetChildSlots(companionTask, COMPANION_RESTORE_IDLE_ANIMATION_SET);
+    playerActorResetChildSlots(companionTask, PLAYER_ANIMATION_IDLE);
     restoredEquipment              = actor->equipmentTasks[COMPANION_RESTORE_WEAPON_SLOT];
     actor->pendingCollisionUpdates = GAME_ACTOR_COLLISION_REQUEST_MASK;
     return restoredEquipment;
@@ -1676,17 +1675,16 @@ static inline void _companionResetIdleState(GameActor* actor)
 void companionEnterIdle(Task* task, s16 resetAnimation)
 {
     enum {
-        COMPANION_IDLE_ANIMATION_SET = 1,
-        COMPANION_IDLE_BLEND_FRAMES  = 4
+        COMPANION_IDLE_BLEND_FRAMES = 4
     };
     GameActor* actor;
 
     actor = task->work;
     _companionResetIdleState(actor);
     if (resetAnimation != 0) {
-        playerActorResetChildSlots(task, COMPANION_IDLE_ANIMATION_SET);
+        playerActorResetChildSlots(task, PLAYER_ANIMATION_IDLE);
     } else {
-        playerActorPlayChildSlotsWithBlend(task, COMPANION_IDLE_ANIMATION_SET, 0, COMPANION_IDLE_BLEND_FRAMES);
+        playerActorPlayChildSlotsWithBlend(task, PLAYER_ANIMATION_IDLE, 0, COMPANION_IDLE_BLEND_FRAMES);
     }
 }
 
@@ -1855,7 +1853,6 @@ void companionTrackLockTarget(Task* task, s32 trackingAxes)
 void companionRecoverToIdle(Task* task)
 {
     enum {
-        COMPANION_RECOVERY_IDLE_SET          = 1,
         COMPANION_RECOVERY_IDLE_BLEND_FRAMES = 4
     };
     GameActor* hitActor;
@@ -1866,7 +1863,7 @@ void companionRecoverToIdle(Task* task)
     hitActor->recoveryTicks = PLAYER_ACTOR_HIT_RECOVERY_TICKS;
     actor                   = task->work;
     _companionResetIdleState(actor);
-    playerActorPlayChildSlotsWithBlend(task, COMPANION_RECOVERY_IDLE_SET, 0, COMPANION_RECOVERY_IDLE_BLEND_FRAMES);
+    playerActorPlayChildSlotsWithBlend(task, PLAYER_ANIMATION_IDLE, 0, COMPANION_RECOVERY_IDLE_BLEND_FRAMES);
 }
 
 void companionBindCollisionProbe(Task* task, const SVECTOR3* nearEndpoint, s32 farEndpointZ)

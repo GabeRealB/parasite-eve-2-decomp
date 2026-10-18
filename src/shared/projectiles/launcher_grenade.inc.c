@@ -1,4 +1,16 @@
-/* Part of the grenade shell library; see grenade_shell.h. */
+/* Part of the grenade shell library; see launcher_grenade.h. */
+
+#include "types.h"
+
+#include "gameplay/geometry.h"
+#include "gameplay/world_collision.h"
+
+#include "main/task.h"
+#include "main/task_types.h"
+
+#include "weapons/weapon.h"
+
+#include "launcher_grenade.h"
 
 /// Counts down the grenade's live blast sphere before advancing to teardown.
 ///
@@ -6,15 +18,15 @@
 /// the flight timer into a whole-frame countdown (8 normally, 1 for the airburst
 /// round). Decrements before testing; zero or negative advances to state 3.
 /// Collision bodies stay linked until the teardown handler runs.
-static void _grenadeShellBlast(Task* task)
+static void _launcherGrenadeBlast(Task* task)
 {
-    enum { GRENADE_SHELL_TASK_STATE_EXIT = 3 };
+    enum { LAUNCHER_GRENADE_TASK_STATE_EXIT = 3 };
     WeaponGrenadeWork* work  = task->work;
     s32                timer = work->flightTimer.word - 1;
 
     work->flightTimer.word = timer;
     if (timer <= 0) {
-        task->state = GRENADE_SHELL_TASK_STATE_EXIT;
+        task->state = LAUNCHER_GRENADE_TASK_STATE_EXIT;
     }
 }
 
@@ -25,7 +37,7 @@ static void _grenadeShellBlast(Task* task)
 /// releases work and schedules or performs body/task teardown. Used as both
 /// an exit callback and the terminal projectile state; the caller must not
 /// reuse the released work and must honor `taskKill`'s task-lifetime contract.
-static void _grenadeShellExit(Task* task)
+static void _launcherGrenadeExit(Task* task)
 {
     WeaponGrenadeWork* work = task->work;
 
