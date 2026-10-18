@@ -38,6 +38,12 @@
 #include "main/tmd.h"
 #include "main/wipsys_types.h"
 
+/// Reusable black semitransparent rectangle for the synchronous pause backdrop.
+static TILE _gGameMainPauseTile;
+
+/// Reusable average-blend draw-mode packet for the synchronous pause backdrop.
+static DR_TPAGE _gGameMainPauseDrawMode;
+
 /* Define BSS before API headers to preserve first-declaration order. */
 
 volatile u8 gDisplayTaskImageSourceSnapshot;
@@ -75,12 +81,6 @@ u8 D_800710C8[0x50];
 #include "main/gamemain.h"
 #include "main/gfx.h"
 #include "main/random.h"
-
-/// Reusable black semitransparent rectangle for the synchronous pause backdrop.
-static TILE _gGameMainPauseTile;
-
-/// Reusable average-blend draw-mode packet for the synchronous pause backdrop.
-static DR_TPAGE _gGameMainPauseDrawMode;
 
 static u32 _gGameMainInitializationCount;
 

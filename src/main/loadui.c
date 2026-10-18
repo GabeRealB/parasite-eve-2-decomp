@@ -33,15 +33,6 @@ typedef struct {
     u8 volumes[4]; // Indexed by the saved music-volume setting (0 loudest .. 3 off)
 } _SndMusicVolumeTable;
 
-/* Define BSS before API headers to preserve first-declaration order. */
-
-u8 gLoadUiDiskSwapState;
-
-u16 gMidiMusicVolume;
-
-#include "main/loadui.h"
-#include "main/sound.h"
-
 /// Disk-swap delay in poll calls, with bit 15 requesting the required-disc message.
 ///
 /// Bits 0..14 count down calls in the delay phase; retries start at 128 and
@@ -55,6 +46,15 @@ static u8 _gLoadUiDiskSwapMessageKind;
 ///
 /// Zero means no missing stage disc; 1 and 2 select the required main disc.
 static u8 _gLoadUiDiskSwapRequiredDisc;
+
+/* Define BSS before API headers to preserve first-declaration order. */
+
+u8 gLoadUiDiskSwapState;
+
+u16 gMidiMusicVolume;
+
+#include "main/loadui.h"
+#include "main/sound.h"
 
 static const _SndMusicVolumeTable _gMidiSavedMusicVolumes;
 

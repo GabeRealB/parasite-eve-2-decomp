@@ -105,22 +105,6 @@ typedef struct {
 } _EvsInterpreterWork;
 STATIC_ASSERT_SIZEOF(_EvsInterpreterWork, 0x34);
 
-/* Define BSS before API headers to preserve first-declaration order. */
-
-const EvsSceneKey* gEvsSelectedSceneKey;
-
-/// Saved 1-based room view slot restored by RESTORE_VIEW.
-///
-/// Event launch and SAVE_VIEW capture the live save's location view; this is
-/// the room's view slot, before any mapping to a camera or background image.
-u8 _gEvsSavedView;
-
-u8 gEvsPlaybackPaused;
-
-#include "gameplay/evs_scripts.h"
-
-#include "evs_scripts.h"
-
 /// Requested 16-bit music level captured when a timed fade initializes.
 ///
 /// Snapshots `gMidiMusicVolume`, including override bits; it is not an audible
@@ -228,6 +212,22 @@ static s32 _gEvsSavedPlayerWeapon;
 /// Event launch sets five; execution decrements after checking input, including
 /// frame/CAP waits. The shared playback pause suspends this byte countdown.
 static u8 _gEvsSkipDelayUpdates;
+
+/* Define BSS before API headers to preserve first-declaration order. */
+
+const EvsSceneKey* gEvsSelectedSceneKey;
+
+/// Saved 1-based room view slot restored by RESTORE_VIEW.
+///
+/// Event launch and SAVE_VIEW capture the live save's location view; this is
+/// the room's view slot, before any mapping to a camera or background image.
+u8 _gEvsSavedView;
+
+u8 gEvsPlaybackPaused;
+
+#include "gameplay/evs_scripts.h"
+
+#include "evs_scripts.h"
 
 static void _evsExecuteInterpreterTask(Task* task);
 

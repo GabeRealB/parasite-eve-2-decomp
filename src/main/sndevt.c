@@ -252,60 +252,6 @@ typedef u8* (*_MidiEventHandler)(s32 status, u8* event, _MidiSong* song, _MidiTr
 /// Maximum number of simultaneous sound-event reservations, queued or unqueued.
 enum { SOUND_EVENT_POOL_CAPACITY = 64 };
 
-s32 gSndVolumeNeoArkLevel;
-
-s16 gSndVolumeNeoArkDuckUpdates;
-
-s16 gSndVolumeNeoArkRestoreUpdates;
-
-/// Normalized gain (0..127) of the latest successfully queued MIDI volume event.
-///
-/// Shared across sequence selectors, even when none matches at dispatch.
-/// Muting can queue zero here; unmuting uses this latest value, with no
-/// separately saved pre-mute gain. Producers read the payload after enqueue.
-u8 _gMidiLastQueuedVolumeScale;
-
-// Independent music-output gate states; retain signed-byte reads of the latch.
-enum {
-    MIDI_MUSIC_MUTE_DISABLED = 0,
-    MIDI_MUSIC_MUTE_ENABLED  = 1
-};
-
-/// Music-output mute gate (0 disabled, 1 enabled), initialized disabled.
-///
-/// Suppresses MIDI voice gain except for sequence 0x5A. Gate changes precede
-/// event reservation and take effect even when the volume request is dropped.
-/// Existing voices observe the gate when their dirty channels are remixed.
-s8 _gMidiMusicMuteActive;
-
-SndLoadState gSndLoadState;
-
-volatile u8 gSndScriptStage;
-
-volatile u8 gSndLoadSavedCharacterRestartState;
-
-volatile u8 gSndLoadCharacterUploadOrdinal;
-
-volatile s32 gSndLoadAreaSampleOrigin;
-
-volatile s32 gSndLoadType1SampleOrigin;
-
-volatile u8 gSndLoadSavedCharacterUploadOrdinal;
-
-volatile s32 gSndLoadCharacterSampleEnd;
-
-volatile s8 D_80082134;
-
-volatile u8 gSndLoadCharacterRestartState;
-
-volatile u8 gSndScriptArea;
-
-#include "main/sound.h"
-
-#include "sound.h"
-
-#include "mapui/map_neo_ark.h"
-
 /// Permission for the audio interrupt to drain deferred sound events (0 defer, 1 process).
 ///
 /// Starts closed until the queue is reset. Appending an event closes the gate
@@ -361,6 +307,60 @@ static _MidiSong _gMidiSongSlots[MIDI_RESIDENT_SONG_COUNT];
 /// byte extent. Starting another load invalidates the previous image and all
 /// cursors into it; the loader neither allocates it nor checks the copy length.
 static u8 _gMidiSequenceBuffer[0x2800];
+
+s32 gSndVolumeNeoArkLevel;
+
+s16 gSndVolumeNeoArkDuckUpdates;
+
+s16 gSndVolumeNeoArkRestoreUpdates;
+
+/// Normalized gain (0..127) of the latest successfully queued MIDI volume event.
+///
+/// Shared across sequence selectors, even when none matches at dispatch.
+/// Muting can queue zero here; unmuting uses this latest value, with no
+/// separately saved pre-mute gain. Producers read the payload after enqueue.
+u8 _gMidiLastQueuedVolumeScale;
+
+// Independent music-output gate states; retain signed-byte reads of the latch.
+enum {
+    MIDI_MUSIC_MUTE_DISABLED = 0,
+    MIDI_MUSIC_MUTE_ENABLED  = 1
+};
+
+/// Music-output mute gate (0 disabled, 1 enabled), initialized disabled.
+///
+/// Suppresses MIDI voice gain except for sequence 0x5A. Gate changes precede
+/// event reservation and take effect even when the volume request is dropped.
+/// Existing voices observe the gate when their dirty channels are remixed.
+s8 _gMidiMusicMuteActive;
+
+SndLoadState gSndLoadState;
+
+volatile u8 gSndScriptStage;
+
+volatile u8 gSndLoadSavedCharacterRestartState;
+
+volatile u8 gSndLoadCharacterUploadOrdinal;
+
+volatile s32 gSndLoadAreaSampleOrigin;
+
+volatile s32 gSndLoadType1SampleOrigin;
+
+volatile u8 gSndLoadSavedCharacterUploadOrdinal;
+
+volatile s32 gSndLoadCharacterSampleEnd;
+
+volatile s8 D_80082134;
+
+volatile u8 gSndLoadCharacterRestartState;
+
+volatile u8 gSndScriptArea;
+
+#include "main/sound.h"
+
+#include "sound.h"
+
+#include "mapui/map_neo_ark.h"
 
 // Loader policies shared by sector processing and image installation.
 enum {

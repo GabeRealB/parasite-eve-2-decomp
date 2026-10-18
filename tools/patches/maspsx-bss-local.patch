@@ -1,10 +1,9 @@
 diff --git a/maspsx/__init__.py b/maspsx/__init__.py
-index 6068776..23c4874 100644
 --- a/maspsx/__init__.py
 +++ b/maspsx/__init__.py
-@@ -680,8 +680,8 @@ class MaspsxProcessor:
-                     elif size >= 2:
-                         res.append("\t.align 1")
+@@ -683,8 +683,8 @@
+                 if alignment > 1:
+                     res.append(f"\t.align {alignment.bit_length() - 1}")
  
 -                # only mark bss symbols as global
 -                if section == "bss":

@@ -539,15 +539,14 @@ def _ensure_maspsx_patch() -> None:
 
 
 def _ensure_maspsx_bss_layout_patch() -> None:
-    """Lay an object's .bss out the way ASPSX and PSYLINK did.
+    """Align .comm symbols the way PSYLINK did.
 
-    cc1 hands the assembler `.lcomm` for a `static` variable and `.comm` for
-    any other, each with a size and no alignment. ASPSX places the `.lcomm`
-    ones itself, in order, each aligned to its size rounded up to a power of
-    two (16 at most); a `.comm` one it leaves to the linker, and PSYLINK puts
-    those after the object's own .bss, aligned to 2, 4 or 8 by size. Upstream
-    maspsx keeps the order given and aligns neither. tools/patches/README.md
-    has the measurements.
+    PSYLINK places an object's .comm symbols after the object's own .bss and
+    aligns each to 2, 4 or 8 by size. Upstream maspsx (670417c) aligns them
+    like .lcomm ones, up to 16; the patch gives them PSYLINK's rule. ASPSX places .lcomm
+    symbols before .comm ones, which the sources reproduce by declaring every
+    static BSS variable before the non-static ones. tools/patches/README.md has
+    the measurements.
     """
     import subprocess
 
@@ -556,7 +555,7 @@ def _ensure_maspsx_bss_layout_patch() -> None:
     marker = sub / "maspsx" / "__init__.py"
     if not patch.is_file() or not marker.is_file():
         return
-    if "PSYLINK aligns a .comm symbol" in marker.read_text():
+    if "PSYLINK aligns .comm to 2, 4 or 8 by size" in marker.read_text():
         return
     subprocess.run(["git", "-C", str(sub), "apply", str(patch)], check=True)
     print(f"Applied {patch.name} to tools/maspsx")

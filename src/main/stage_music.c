@@ -54,13 +54,6 @@ typedef struct {
 } _StageMusicSelection;
 STATIC_ASSERT_SIZEOF(_StageMusicSelection, 0x8);
 
-/* Define BSS before API headers to preserve first-declaration order. */
-
-StageMusicParams gStageMusicParams;
-
-#include "main/stage.h"
-#include "stage.h"
-
 /// Whether the selected music request has a load deadline (0 no, 255 countdown).
 ///
 /// Selection replaces this byte; only the outgoing-sequence wait consumes it.
@@ -71,6 +64,13 @@ static u8 _gStageMusicCountdownActive;
 /// Starts at 300, requests a stop at 60 and abandons the wait at zero. It steps
 /// only while the recorded sequence is busy, not during subsequent CD loading.
 static s16 _gStageMusicCountdownFrames;
+
+/* Define BSS before API headers to preserve first-declaration order. */
+
+StageMusicParams gStageMusicParams;
+
+#include "main/stage.h"
+#include "stage.h"
 
 extern TmdSource D_80725F44;
 

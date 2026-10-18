@@ -262,6 +262,15 @@ typedef struct {
 } _CdAudioState;
 STATIC_ASSERT_SIZEOF(_CdAudioState, 0x44);
 
+/// Owned header-sector allocation, replaced only when another header read starts.
+///
+/// Track entries and the slot table borrow this allocation. Initialization and
+/// read-base reset drop this pointer without freeing it or clearing those aliases.
+static _CdAudioHeader* _gCdAudioHeaderBuffer;
+
+/// Bias added to a header track's low-byte entry index; this image only stores zero.
+static u8 _gCdAudioHeaderTrackBaseIndex;
+
 /* Define BSS before API headers to preserve first-declaration order. */
 
 /// Header-track metadata and asynchronous waveform-read position, destination and result.
@@ -309,15 +318,6 @@ volatile _CdAudioState _gCdAudioState;
 volatile u8 D_800827E4;
 
 #include "main/cdaudio.h"
-
-/// Owned header-sector allocation, replaced only when another header read starts.
-///
-/// Track entries and the slot table borrow this allocation. Initialization and
-/// read-base reset drop this pointer without freeing it or clearing those aliases.
-static _CdAudioHeader* _gCdAudioHeaderBuffer;
-
-/// Bias added to a header track's low-byte entry index; this image only stores zero.
-static u8 _gCdAudioHeaderTrackBaseIndex;
 
 static s32 _cdAudioOpenDriver(void);
 

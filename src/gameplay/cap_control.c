@@ -13,6 +13,16 @@
 #include "main/task.h"
 #include "main/text.h"
 
+/// Scene-sync timer latch (0 disarmed, 1 armed); inactive CAP playback pauses it.
+static s8 _gCapSceneSyncArmed;
+
+/// Whether the last scene-selection message supplied a key (0 no, 1 yes).
+///
+/// Selects the subsequent scene-sync timing branch. A NULL selection clears
+/// it without changing the CD descriptor; control-task initialization does
+/// not reset it.
+static s8 _gCapHasSceneKey;
+
 /* Define BSS before API headers to preserve first-declaration order. */
 
 /// Word set to one on every scene-selection message; its purpose is unproven.
@@ -31,16 +41,6 @@ Task* _gCapHudSlideTask;
 s16 gCapSceneSyncElapsedTicks;
 
 #include "captions.h"
-
-/// Scene-sync timer latch (0 disarmed, 1 armed); inactive CAP playback pauses it.
-static s8 _gCapSceneSyncArmed;
-
-/// Whether the last scene-selection message supplied a key (0 no, 1 yes).
-///
-/// Selects the subsequent scene-sync timing branch. A NULL selection clears
-/// it without changing the CD descriptor; control-task initialization does
-/// not reset it.
-static s8 _gCapHasSceneKey;
 
 static s32 _capStartControlledSequence(Task* unusedTask, s32 unusedMessageId, s16 commandIndex, s32 unusedSecondArg);
 

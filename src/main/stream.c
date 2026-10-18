@@ -24,50 +24,6 @@
 #include "mapui/map_dryfield.h"
 #include "mapui/map_neo_ark.h"
 
-/* Define BSS before API headers to preserve first-declaration order. */
-
-StreamInterFile gStreamInterFile;
-
-/// Borrowed 0x11000-byte halfword VLC lookup table in the selected movie layout.
-///
-/// Uses actor buffer zero for texture movies and the movie workspace for display
-/// movies. Must be built before expansion and remain intact throughout playback.
-u_short* _gMdecMovieVlcTable;
-
-u16 gStreamMovieReleasePauseOnStop;
-
-void* gStreamMovieWorkspace;
-
-u8* gStreamMovieBufferLayoutEnd;
-
-u_long* gMdecMovieOutputBuffers[2];
-
-u_long* gMdecMovieExpandedBuffers[2];
-
-u16 gStreamMovieVolumeTableIndex;
-
-u16 gStreamMovieWidthPixels;
-
-u16 gStreamMovieBackgroundPlayback;
-
-u_long* gStreamMovieRingBuffer;
-
-/// Receives the active workspace base during buffer assignment; purpose unproven.
-///
-/// No code reads this copy. Retained to preserve its storage and setup write.
-void* D_8006AC64;
-
-/// Borrowed compressed movie frame retained while its VLC expansion is in progress.
-///
-/// The STR ring owns the storage; output submission releases it before feeding
-/// expanded commands to MDEC. This pointer is stale after that release.
-u_long* _gMdecMovieCompressedFrame;
-
-u16 gStreamMovieHeightRows;
-
-#include "main/stream.h"
-#include "stream.h"
-
 /// Absolute 2048-byte CD sector used as the movie seek/recovery base.
 ///
 /// Starts at the descriptor's CDF sector; INTER movies replace it with the
@@ -124,6 +80,50 @@ static s32 _gStreamMovieRingSectorCount;
 
 /// Post-movie restore step (0 memory, 1 wait for images/CD idle, 2 complete).
 static u16 _gStreamGameRestoreStep;
+
+/* Define BSS before API headers to preserve first-declaration order. */
+
+StreamInterFile gStreamInterFile;
+
+/// Borrowed 0x11000-byte halfword VLC lookup table in the selected movie layout.
+///
+/// Uses actor buffer zero for texture movies and the movie workspace for display
+/// movies. Must be built before expansion and remain intact throughout playback.
+u_short* _gMdecMovieVlcTable;
+
+u16 gStreamMovieReleasePauseOnStop;
+
+void* gStreamMovieWorkspace;
+
+u8* gStreamMovieBufferLayoutEnd;
+
+u_long* gMdecMovieOutputBuffers[2];
+
+u_long* gMdecMovieExpandedBuffers[2];
+
+u16 gStreamMovieVolumeTableIndex;
+
+u16 gStreamMovieWidthPixels;
+
+u16 gStreamMovieBackgroundPlayback;
+
+u_long* gStreamMovieRingBuffer;
+
+/// Receives the active workspace base during buffer assignment; purpose unproven.
+///
+/// No code reads this copy. Retained to preserve its storage and setup write.
+void* D_8006AC64;
+
+/// Borrowed compressed movie frame retained while its VLC expansion is in progress.
+///
+/// The STR ring owns the storage; output submission releases it before feeding
+/// expanded commands to MDEC. This pointer is stale after that release.
+u_long* _gMdecMovieCompressedFrame;
+
+u16 gStreamMovieHeightRows;
+
+#include "main/stream.h"
+#include "stream.h"
 
 extern s32 StCdIntrFlag;
 

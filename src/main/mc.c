@@ -206,6 +206,12 @@ typedef struct {
 } _McFileSelectStateTable;
 STATIC_ASSERT_SIZEOF(_McFileSelectStateTable, 0x68);
 
+/// Shared resident work area borrowed by the active memory-card dialog and its children.
+///
+/// Save and load dialogs must run sequentially; a transfer allocation remains
+/// owned by the active dialog until completion or its documented error path.
+static McWork _gMcDialogWork;
+
 /* Define BSS before API headers to preserve first-declaration order. */
 
 McSaveData gMcSaveData[MEMORY_CARD_SAVE_COUNT];
@@ -236,12 +242,6 @@ s32 _gMcSaveDialogRandomSample;
 #include "main/gameflag.h"
 #include "main/mc.h"
 #include "main/wipsys.h"
-
-/// Shared resident work area borrowed by the active memory-card dialog and its children.
-///
-/// Save and load dialogs must run sequentially; a transfer allocation remains
-/// owned by the active dialog until completion or its documented error path.
-static McWork _gMcDialogWork;
 
 /// Number of 128-byte card sectors holding the complete game-flag bank pair.
 enum { GAME_FLAG_NIBBLE_BANK_CARD_SECTORS = 4 };

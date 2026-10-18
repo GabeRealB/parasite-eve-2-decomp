@@ -14,7 +14,7 @@ for that reason: a patched working tree is the expected state.
 | `decomp-permuter-objdump.patch` | `tools/decomp-permuter` | `tools/match/prepare_permuter.py` | no |
 | `decomp-permuter-sizeof.patch` | `tools/decomp-permuter` | `tools/match/prepare_permuter.py` | no |
 
-The maspsx patches are written against upstream `e85ecb3` (2026-10-02), the
+The maspsx patches are written against upstream `670417c` (2026-10-17), the
 commit the submodule points at. They apply in the order listed.
 
 ## maspsx
@@ -81,44 +81,40 @@ as one word. The same load written `lw $2,sym($3)` comes out as
 
 ### `maspsx-bss-layout.patch`
 
-**What it does.** Lays out an object's uninitialised variables as the Psy-Q
-tools did:
-
-- the object's `.bss` starts on a multiple of 8;
-- the `static` ones (`.lcomm`) come first, in the order given, each aligned to
-  its size rounded up to a power of two, 16 at most;
-- the others (`.comm`) follow, in the order given, each aligned to 2 from two
-  bytes, to 4 from four and to 8 from eight.
+**What it does.** Aligns an object's `.comm` variables as PSYLINK places
+them: to 2 from two bytes, to 4 from four and to 8 from eight.
 
 **Why it is needed.** The compiler hands the assembler `.lcomm` and `.comm`
 with a size and no alignment, so where each variable lands is decided
-downstream, by two different programs. ASPSX places the `.lcomm` ones itself.
-A `.comm` one it only records, by name and size, and the linker places it:
-PSYLINK puts an object's `.comm` variables directly after that object's own
-`.bss`. Upstream maspsx emits both kinds in the order given, aligns `.sbss`
-entries by size and `.bss` entries not at all.
+downstream, by two different programs. ASPSX places the `.lcomm` ones itself,
+at the start of the object's `.bss`, and upstream maspsx (`670417c`) lays them
+out the same way, by ASPSX version. A `.comm` one ASPSX only records, by name
+and size, and the linker places it: PSYLINK puts an object's `.comm` variables
+after that object's own `.bss`, with the alignment above. Upstream aligns them
+like `.lcomm` ones, up to 16. (Capping that at 8, upstream's
+`--max-comm-alignment`, would match this game too, but differs from PSYLINK
+for 3- and 5- to 7-byte variables.)
 
-One thing cannot be reproduced. PSYLINK orders an object's `.comm` variables
+Upstream emits the `.lcomm` and `.comm` variables in the order given, where
+ASPSX puts the `.lcomm` ones first. The sources follow ASPSX instead: every
+`static` BSS variable is declared before the file's non-`static` ones.
+
+Two things cannot be reproduced. PSYLINK orders an object's `.comm` variables
 by a hash of their names (below), not in the order the object records them.
 The original names are not known, so the sources state that order by declaring
 those variables in address order.
 
-**Without it.** Nine images fail the checksum; the other 440 match. No function
-changes length. What moves is data: a `.bss` object lands a few bytes early,
-everything after it in the image follows, and each function that addresses a
-moved object then differs in the address it loads.
+**Without it.** Fifteen images fail the checksum (measured against `670417c`
+with the `.lcomm`-first declarations in place): main, gameplay,
+`acropolis_fire_escape`, `dryfield_gas_station`, `dryfield_motel_room_6`,
+`shelter_r47`, `neo_ark_eve_access_tunnel`, `shelter_b6_nursery`,
+`shelter_b6_training_room`, and `actor_121300`, `143000`, `160900`, `401000`,
+`401800`, `450200`. A `.comm` variable of nine bytes or more lands on 16 instead
+of 8, and everything after it moves.
 
-| Image | First object to move | Functions that differ |
-|---|---|---|
-| `SLUS_010.42` (main) | `gCdCmdQueue`, 4 bytes early; 263 objects move | 426 |
-| `gameplay` | `gAttachmentState`, 2 bytes early; 194 objects move | 354 |
-| `actor_110600` | `ActorContact_ScratchPosition`, 6 bytes early | `_actor110600ScriptedState`, `_actor110600SpawnHitEffect`, `_actorContactApplyGridPushback` |
-| `actor_121300` | `_gScreenWaveColumnWaves`, 2 bytes early | `_screenWaveTask` |
-| `actor_160900` | `_gScreenWaveRowWaves`, 2 bytes early | `_screenWaveTask` |
-| `actor_215100` | `_gActor215100GalleryPendingExitRequest`, 4 bytes early | `actor215100GalleryExitDecisionTask`, `actor215100ResolveGalleryExit` |
-| `dryfield_night_motel_lobby` | `gDryfieldNightMotelLobbyRevisitCutscene`, 1 byte early | `_dryfieldNightMotelLobbyCommandMsg` |
-| `neo_ark_submarine_tunnel` | `gScreenWaveRowWaves`, 2 bytes early | `_screenWaveRun`, `_screenWaveTask` |
-| `shelter_1f_parking_garage` | `gRoomEventLatched`, 4 bytes early | `_shelter1fParkingGarageResolveRoomEvent`, `roomEventStagedTask` |
+The patch used to lay the whole `.bss` out itself, `.lcomm` padding and order
+included; against upstream `e85ecb3`, which aligned `.bss` entries not at all,
+nine images failed without it.
 
 **Verified.** Yes, each part against the program that decides it.
 
@@ -163,11 +159,11 @@ The images match the 4.4 behaviour, which is what the patch follows.
 **What this rules out in the sources.** A `static` variable that sits after a
 non-`static` one of the same object is a layout the real tools cannot produce,
 and so is a `static` of nine bytes or more at an offset that is not a multiple
-of 16. With this patch such a source no longer matches, so the build itself
-rejects it. 98 variables in 41 objects were declared `static` in ways the tools
-could not have laid out, and had only matched because an earlier version of
-this patch used the linker's rule for every variable; they are not `static`
-now.
+of 16. Neither matches: the second because of the `.lcomm` layout, the first
+because the sources declare `static`s first and maspsx keeps that order. 98
+variables in 41 objects were once declared `static` in ways the tools could
+not have laid out, and had only matched because an earlier version of this
+patch used the linker's rule for every variable; they are not `static` now.
 
 ### `maspsx-bss-local.patch`
 

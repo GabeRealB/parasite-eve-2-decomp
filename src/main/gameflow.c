@@ -79,13 +79,6 @@ typedef struct {
 } _PadScratch;
 STATIC_ASSERT_SIZEOF(_PadScratch, 0x6);
 
-/* Define BSS before API headers to preserve first-declaration order. */
-
-PadState gPadStates[PAD_PORT_COUNT];
-
-#include "main/game_debug.h"
-#include "main/pad.h"
-
 /// Resident storage for the live session exposed through `gGameSession`.
 ///
 /// Its address stays fixed across overlay loads. New-game, load and reset paths
@@ -94,6 +87,13 @@ static GameSession _gGameSessionState;
 
 /// BSS bytes with no established use; their original type and role are unproven.
 static u8 D_80071600[0x20];
+
+/* Define BSS before API headers to preserve first-declaration order. */
+
+PadState gPadStates[PAD_PORT_COUNT];
+
+#include "main/game_debug.h"
+#include "main/pad.h"
 
 static void _gameFlowResetNewSession(Task* task);
 

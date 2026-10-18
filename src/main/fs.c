@@ -119,135 +119,6 @@ enum {
 /// No discovered STAGE0 header or retained seek target, in absolute CD sectors.
 enum { FILE_SYSTEM_SECTOR_UNSET = 0 };
 
-/* Define BSS before API headers to preserve first-declaration order. */
-
-s32 gFsNextReadSector;
-
-u8 gFsCdOperationStatus;
-
-const u8* gFsLzssInputCursor;
-
-/// Continuation-sector interpretation, retained in one byte between CD callbacks.
-///
-/// FILE_SYSTEM_PAYLOAD_*: 0 raw, 1 package, 2 image, 3 CLUT, 4 bundle,
-/// 5 background, 6 music, 0xFF skip. This encoding differs from chunk opcodes.
-/// A last-chunk marker also becomes 0xFF here; header dispatch ignores it.
-u8 _gFsPayloadPhase;
-
-/// Selects CDF sector handling (0 opening header, 1 continuation payload).
-///
-/// Read-start callbacks and chunk setup enable payload handling; completion of
-/// a nonfinal chunk returns to headers. Music payload position errors restart
-/// the request rather than taking the other payloads' chunk-resumption path.
-u8 _gFsReadingPayload;
-
-u8 gFsChunkLoadPolicy;
-
-s8 gFsImageXPageOffset;
-
-s8 gFsImageHeaderYShiftRows;
-
-/// BSS storage of unproven role, retained by an unused startup-table entry.
-u8 D_8006C238[0x100];
-
-FsResourceSlot gFsResourceSlots[50];
-
-/// Accepted complete-image heights modulo 256, indexed by `_gFsLoadBank` (0..11).
-///
-/// Preparing an image clears its bank; accepted upload completion records the
-/// rectangle's height. No reader establishes any further status interpretation.
-u8 _gFsAcceptedImageRowsByBank[0xC];
-
-const u8* gFsLzssInputEnd;
-
-FsSectorBuffers gFsSectorBuffers;
-
-u8* gFsPayloadWriteCursor;
-
-/// Column transitions accepted since image setup, by load bank (0..15).
-///
-/// Zero names the initial column; advancing to another column increments the
-/// byte. The terminator is not counted. No external progress reader is known.
-u8 _gFsImageColumnAdvancesByBank[0x10];
-
-StreamSlot gStreamSlots[15];
-
-u16 gFsLzssDecodeStatus;
-
-/// BSS storage of unproven role, retained by an unused startup-table entry.
-u8 D_8006D750[0x100];
-
-void* gFsLzssResumeAddress;
-
-/// Absolute next-sector threshold at which a counted payload is complete.
-///
-/// For CDF chunks this is the exclusive chunk end, including the header sector
-/// in the count. Direct reads supply their own threshold; a raw read whose start
-/// equals the threshold still consumes one sector. Comparisons may use unsigned
-/// sector order, while the stored sector and direct-read interface remain s32.
-s32 _gFsPayloadEndSector;
-
-u16 gFsLzssRingWriteIndex;
-
-u16 gFsLzssUnreadBitCount;
-
-s32 gFsActorBufferWrittenBytes[3];
-
-/// Current chunk's file-end marker (0x01 another chunk, 0xFF last chunk).
-///
-/// Opening headers replace it; direct payload reads and fresh file requests
-/// seed FILE_SYSTEM_CHUNK_LAST. Payload completion uses it to return to the
-/// next header or stop the file; it is distinct from the payload interpretation.
-u8 _gFsChunkEndMarker;
-
-/// Word-aligned staging storage shared by complete-image and strip uploads.
-///
-/// Its 1120 words hold 4480 bytes; a strip transfers 4096 bytes. Decoding writes
-/// through a byte cursor and must fit this extent. GPU transfers must finish
-/// before reuse. No clear occurs between uploads: any unwritten tail is retained,
-/// including the final byte of some shortened palette streams.
-u_long _gFsImageUploadBuffer[0x460];
-
-s32 gFsStageCdfBaseSectors[FILE_SYSTEM_CDF_STAGE_COUNT];
-
-/// Saved token scratch value for the resumable LZSS decoder.
-///
-/// Holds a flag, literal/length fragment, or the last copied history byte,
-/// according to the decoder's continuation. Halfword stores and signed loads
-/// preserve it across input intervals; a fresh token overwrites it before use.
-s16 gFsLzssTokenValue;
-
-/// Saved number of bits still needed by the current LZSS token component (0..8).
-///
-/// Literal and history-index components start at 8 bits, lengths at 4.
-/// A split component retains the remaining count across input intervals.
-/// The decoder initializes it before use and saves/restores a signed halfword.
-s16 gFsLzssTokenBitsNeeded;
-
-/// Saved absolute history-ring index or partial index for a resumable LZSS match.
-///
-/// The eight-bit index uses zero as the stream terminator, rather than as a
-/// match source. Copying increments this word without wrapping; each history
-/// read masks it to 0..255. A new match initializes it before use.
-s32 gFsLzssMatchReadIndex;
-
-s32 gFsCdProgressVBlank;
-
-/// Absolute sector decoded from the most recent CDF/HED ready header.
-///
-/// Retained even on a position mismatch; no current reader is established.
-s32 _gFsLastReceivedSector;
-
-u8 gFsCdErrorCount;
-
-u16 gFsLzssInputByte;
-
-StreamSlot gFsStage0StreamSlots[0xa];
-
-u16 gFsLzssUnreadBitMask;
-
-#include "main/fs.h"
-
 /// Selects the sound-bank reader when a fresh file ReadN sync callback runs.
 ///
 /// Stage-zero category 4, hundreds 1 sets this byte; ordinary file requests
@@ -403,6 +274,135 @@ static u16 _gFsStageFolderCount;
 /// so requests must use an ID from the current directory. The declared storage
 /// covers 51 entries; the complete serialized index domain remains unproven.
 static s32 _gFsFolderFileSectors[0x33];
+
+/* Define BSS before API headers to preserve first-declaration order. */
+
+s32 gFsNextReadSector;
+
+u8 gFsCdOperationStatus;
+
+const u8* gFsLzssInputCursor;
+
+/// Continuation-sector interpretation, retained in one byte between CD callbacks.
+///
+/// FILE_SYSTEM_PAYLOAD_*: 0 raw, 1 package, 2 image, 3 CLUT, 4 bundle,
+/// 5 background, 6 music, 0xFF skip. This encoding differs from chunk opcodes.
+/// A last-chunk marker also becomes 0xFF here; header dispatch ignores it.
+u8 _gFsPayloadPhase;
+
+/// Selects CDF sector handling (0 opening header, 1 continuation payload).
+///
+/// Read-start callbacks and chunk setup enable payload handling; completion of
+/// a nonfinal chunk returns to headers. Music payload position errors restart
+/// the request rather than taking the other payloads' chunk-resumption path.
+u8 _gFsReadingPayload;
+
+u8 gFsChunkLoadPolicy;
+
+s8 gFsImageXPageOffset;
+
+s8 gFsImageHeaderYShiftRows;
+
+/// BSS storage of unproven role, retained by an unused startup-table entry.
+u8 D_8006C238[0x100];
+
+FsResourceSlot gFsResourceSlots[50];
+
+/// Accepted complete-image heights modulo 256, indexed by `_gFsLoadBank` (0..11).
+///
+/// Preparing an image clears its bank; accepted upload completion records the
+/// rectangle's height. No reader establishes any further status interpretation.
+u8 _gFsAcceptedImageRowsByBank[0xC];
+
+const u8* gFsLzssInputEnd;
+
+FsSectorBuffers gFsSectorBuffers;
+
+u8* gFsPayloadWriteCursor;
+
+/// Column transitions accepted since image setup, by load bank (0..15).
+///
+/// Zero names the initial column; advancing to another column increments the
+/// byte. The terminator is not counted. No external progress reader is known.
+u8 _gFsImageColumnAdvancesByBank[0x10];
+
+StreamSlot gStreamSlots[15];
+
+u16 gFsLzssDecodeStatus;
+
+/// BSS storage of unproven role, retained by an unused startup-table entry.
+u8 D_8006D750[0x100];
+
+void* gFsLzssResumeAddress;
+
+/// Absolute next-sector threshold at which a counted payload is complete.
+///
+/// For CDF chunks this is the exclusive chunk end, including the header sector
+/// in the count. Direct reads supply their own threshold; a raw read whose start
+/// equals the threshold still consumes one sector. Comparisons may use unsigned
+/// sector order, while the stored sector and direct-read interface remain s32.
+s32 _gFsPayloadEndSector;
+
+u16 gFsLzssRingWriteIndex;
+
+u16 gFsLzssUnreadBitCount;
+
+s32 gFsActorBufferWrittenBytes[3];
+
+/// Current chunk's file-end marker (0x01 another chunk, 0xFF last chunk).
+///
+/// Opening headers replace it; direct payload reads and fresh file requests
+/// seed FILE_SYSTEM_CHUNK_LAST. Payload completion uses it to return to the
+/// next header or stop the file; it is distinct from the payload interpretation.
+u8 _gFsChunkEndMarker;
+
+/// Word-aligned staging storage shared by complete-image and strip uploads.
+///
+/// Its 1120 words hold 4480 bytes; a strip transfers 4096 bytes. Decoding writes
+/// through a byte cursor and must fit this extent. GPU transfers must finish
+/// before reuse. No clear occurs between uploads: any unwritten tail is retained,
+/// including the final byte of some shortened palette streams.
+u_long _gFsImageUploadBuffer[0x460];
+
+s32 gFsStageCdfBaseSectors[FILE_SYSTEM_CDF_STAGE_COUNT];
+
+/// Saved token scratch value for the resumable LZSS decoder.
+///
+/// Holds a flag, literal/length fragment, or the last copied history byte,
+/// according to the decoder's continuation. Halfword stores and signed loads
+/// preserve it across input intervals; a fresh token overwrites it before use.
+s16 gFsLzssTokenValue;
+
+/// Saved number of bits still needed by the current LZSS token component (0..8).
+///
+/// Literal and history-index components start at 8 bits, lengths at 4.
+/// A split component retains the remaining count across input intervals.
+/// The decoder initializes it before use and saves/restores a signed halfword.
+s16 gFsLzssTokenBitsNeeded;
+
+/// Saved absolute history-ring index or partial index for a resumable LZSS match.
+///
+/// The eight-bit index uses zero as the stream terminator, rather than as a
+/// match source. Copying increments this word without wrapping; each history
+/// read masks it to 0..255. A new match initializes it before use.
+s32 gFsLzssMatchReadIndex;
+
+s32 gFsCdProgressVBlank;
+
+/// Absolute sector decoded from the most recent CDF/HED ready header.
+///
+/// Retained even on a position mismatch; no current reader is established.
+s32 _gFsLastReceivedSector;
+
+u8 gFsCdErrorCount;
+
+u16 gFsLzssInputByte;
+
+StreamSlot gFsStage0StreamSlots[0xa];
+
+u16 gFsLzssUnreadBitMask;
+
+#include "main/fs.h"
 
 /// SDK failure sentinel returned when draw DMA cannot be suspended.
 ///

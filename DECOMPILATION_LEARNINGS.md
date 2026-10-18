@@ -153929,10 +153929,13 @@ Two consequences for the sources:
   exactly that and are gone. A gap the rules do not explain is still a real
   question: nine unreferenced objects remain in main, each consistent with
   being a variable nothing uses.
-- Where a `static` is declared relative to the non-`static` variables no
-  longer matters, only its order among the other statics. The "define BSS
-  before the API headers" blocks therefore hold the non-`static` definitions
-  alone; the statics follow the includes.
+- Statics are declared before the non-`static` variables of their file, in
+  address order, as ASPSX lays them out. (Superseded 2026-10-18: until then
+  the maspsx patch sorted `.lcomm` ahead of `.comm` itself, so the statics
+  could follow the includes. With upstream maspsx `670417c` the order given is
+  kept, and the 15 objects that declared a static after a non-`static` - 4 in
+  gameplay, 11 in main - now declare their statics first, ahead of the
+  "define BSS before the API headers" blocks.)
 
 `--use-comm-section` does not help. It hands `.comm` variables to the GNU
 linker, which has no per-object placement that follows a given order and
